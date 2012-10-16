@@ -158,13 +158,13 @@ Private method "tokenize_" is
 	stacksTokens : <stacks token…|> := <>;
 	
 	/* delimiting characters for tokenization */
-	keyCharacters ::= {¢@,¢" ",¢"\"",¢{,¢},¢`,¢/,¢*};
+	keyCharacters ::= {¢@,¢" ",¢"\"",¢{,¢},¢`,¢/,¢*,¢"\t"};
  
-	doNotTokenize ::= {"/*","/**","*/"};
+	doNotTokenize ::= {"/*","/**","*/"," ","","\t"};
 	
 	newLinePositions ::= all indices of comment where 
 		[c : character | c = ¢"\n"];
-	
+
 	priorNewLine : natural number := 1;
 	bufferMap : {natural number→string|} := {};
 	
@@ -185,7 +185,6 @@ Private method "tokenize_" is
 	 	priorNewLine := i;
 		↑lineCount++;
 	];
-	
 	/* Tokenize comment lines */
 	For each bufferMap do
 	[
@@ -194,6 +193,80 @@ Private method "tokenize_" is
 	 |
 	 	columnPosition : natural number := 1;
 		charCounter : whole number := 0;
+/*Print: format "\n\nStart Newline=“①”\n" with lineNumber;*/
+		/* Is the new line a continuation of a nested comment, if so consume *
+		 * without tokenizing the contents                                   */
+		If openComment > 1 then
+		[
+		 	While
+		 	[
+		 	 	openComment > 1 ∨ [charCounter < |commentLine|]
+		 	]
+		 	do
+		 	[
+Print: "In nested comment\n";
+/*Print: format "commentLine[charCounter]=“①”\n" with commentLine[charCounter];*/
+		 	 	/* Consume nested comment without tokenizing but moving *
+		 	 	 * column pointer										*/
+		 	 	wordStart : natural number := charCounter + 1;
+				word : <character…|> := take from commentLine[charCounter+1..] 
+				until 
+				[
+				 	c : character 
+				 |
+Print: "here1\n";
+Print: <c>;
+Print: format "\nc=“①”\n" with c;
+				 	↑charCounter++;
+				 	c ∈ {¢/,¢*}  ∨ [charCounter = |commentLine|]
+				];
+		 	 	
+		 	 	j : natural number := cast charCounter into 
+					[n : natural number | n];
+Print: "here2\n";
+		 	 	
+Print: format "lineNumber=“①”\n" with lineNumber;
+Print: "word="; Print: word; Print: "\n";
+Print: format "charCounter=“①”\n" with charCounter;
+Print: format "j=“①”\n" with j;
+Print: format "|commentLine|=“①”\n" with |commentLine|;
+Print: format "commentLine[j]=“①”\n" with commentLine[j];
+		 	 	If charCounter < |commentLine| +1 ∨ [commentLine[j] ∈ {¢/,¢*}] then  
+				[
+					Cast commentLine[j] into
+					[
+					 	c : enumeration of {¢/,¢*}
+					 |
+Print: "here3\n";
+						Choose c from enumeration of {¢/,¢*}
+						where
+						¢* is
+						[
+Print: "here4\n";
+						 	If commentLine[j+1] = ¢/ then
+						 	[
+Print: "here5\n";
+						 	 	/*Close nested comment*/
+						 	 	↑openComment--;
+						 	 	↑charCounter++;
+						 	];
+						],
+						¢/ is
+						[
+Print: "here6\n";
+							/*If commentLine[j+1] = ¢* then
+							[
+Print: "here7\n";
+							 	/*Open new nested comment*/
+								↑openComment++;
+								↑charCounter++;
+							];*/
+						];
+					];
+				];
+		 	 	
+		 	];
+		];
 		While
 		[
 		 	charCounter < |commentLine|
@@ -206,90 +279,258 @@ Private method "tokenize_" is
 			 	c : character 
 			 |
 			 	↑charCounter++;
-			 	c ∈ keyCharacters
+			 	c ∈ keyCharacters  ∨ [charCounter = |commentLine|+1]
 			];
+
 			j : natural number := cast charCounter into 
 				[n : natural number | n];
-			Cast commentLine[j] into
+
+			if charCounter < |commentLine| then
 			[
-			 	c : enumeration of {¢@,¢" ",¢"\"",¢{,¢},¢`,¢/,¢*}
-			 | /*TODO take appropriate acction to create tokens*/
-				Choose c from enumeration of keyCharacters
-				where
-				¢@ is
+				Cast commentLine[j] into
 				[
-				 	stacksTokens := stacksTokens ++ 
-	 					<token <word,lineNumber,wordStart>>;
-	 					wordStart := j;
-	 				word := take from commentLine[j..] until 
-	 				[
-	 					ch : character 
-	 				 |
-	 					↑charCounter++;
-	 					ch = ¢" "
-	 				];
-		 			stacksTokens := stacksTokens ++ 
-		 				<token <word,lineNumber,wordStart>>;
-				],
-				¢" " is
-				[
-				 	stacksTokens := stacksTokens ++ 
-				 		<token <word,lineNumber,wordStart>>;
-				],
-				¢"\"" is
-				[
-				 	stacksTokens := stacksTokens ++ 
-		 				<token <word,lineNumber,wordStart>>;
-		 			wordStart := j;
-	 				word := take from commentLine[j..] until 
-	 				[
-	 					ch : character 
-	 				 |
-	 					↑charCounter++;
-	 					ch = ¢"\""
-	 				];
-		 			word := word ++ <¢"\"">;
-		 			stacksTokens := stacksTokens ++ 
-		 				<token <word,lineNumber,wordStart>>;
-				],
-				¢{ is
-				[
-				 	stacksTokens := stacksTokens ++ 
-			 			<token <word,lineNumber,wordStart>>;
-					stacksTokens := stacksTokens ++ 
-						<token <"{",lineNumber,j>>;
-				],
-				¢} is
-				[
-				 	stacksTokens := stacksTokens ++ 
-		 				<token <word,lineNumber,wordStart>>;
-		 			stacksTokens := stacksTokens ++ 
-		 				<token <"}",lineNumber,j>>;
-				],
-				¢` is
-				[/*TODO check for following escaped special characters */],
-				¢/ is
-				[/*TODO check to see if open comment, might need a recursive call*/],
-				¢* is
-				[/*TODO check to see if closing comment*/],
-				else
-				[/*Check to see if at end of comment line*/];
+				 	c : enumeration of {¢@,¢" ",¢"\"",¢{,¢},¢`,¢/,¢*,¢"\t"}
+				 |
+Print: "\n";
+					Choose c from enumeration of keyCharacters
+					where
+					¢"\t" is
+					[
+					 	If word ∉ doNotTokenize then 
+					 	[
+					 	 	stacksTokens := stacksTokens ++ 
+					 	 		<token <word,lineNumber,wordStart>>;
+					 	];
+					],
+					¢@ is
+					[
+Print: " In @\n";
+Print: "  previous word="; Print: word; Print: "~\n";
+					 	If word ∉ doNotTokenize then 
+					 	[
+					 	 	stacksTokens := stacksTokens ++ 
+					 	 		<token <word,lineNumber,wordStart>>;
+					 	];
+		 				wordStart := j;
+		 				word := take from commentLine[j..] until 
+		 				[
+		 					ch : character 
+		 				 |
+		 				 	↑charCounter++;
+		 					ch = ¢" " ∨ [charCounter = |commentLine|]
+		 				];
+			 			stacksTokens := stacksTokens ++ 
+			 				<token <word,lineNumber,wordStart>>;
+					 	/* Counter will be re-incremented above.*/
+					 	↑charCounter--;
+					],
+					¢" " is
+					[
+Print: " In space\n";
+Print: "  word="; Print: word; Print: "~\n"; 
+					 	If word ∉ doNotTokenize then 
+					 	[
+					 	 	stacksTokens := stacksTokens ++ 
+					 	 		<token <word,lineNumber,wordStart>>;
+					 	];
+					],
+					¢"\"" is
+					[
+Print: " In Quote\n";
+Print: "  previous word="; Print: word; Print: "~\n";
+					 	If word ∉ doNotTokenize then 
+					 	[
+					 	 	stacksTokens := stacksTokens ++ 
+					 	 		<token <word,lineNumber,wordStart>>;
+					 	];
+			 			wordStart := j;
+		 				word := take from commentLine[j+1..] until 
+		 				[
+		 					ch : character 
+		 				 |
+		 				 	Print: <ch>;
+		 					↑charCounter++;
+		 					ch = ¢"\"" ∨ [charCounter = |commentLine|]
+		 				];
+					 	if charCounter < |commentLine| + 1 then
+					 	[
+					 		word := <¢"\""> ++ word ++ <¢"\"">;
+					 		stacksTokens := stacksTokens ++ 
+					 			<token <word,lineNumber,wordStart>>;
+					 	] else
+					 	[
+					 	 	/* TODO some sort of Error handling of missing close quote*/
+					 	];
+Print: "  quote word="; Print: word; Print: "~\n";
+					],
+					¢{ is
+					[
+Print: " In {\n";
+Print: "  word="; Print: word; Print: "~\n";
+					 	If word ∉ doNotTokenize then 
+					 	[
+					 	 	stacksTokens := stacksTokens ++ 
+					 	 		<token <word,lineNumber,wordStart>>;
+					 	];
+						stacksTokens := stacksTokens ++ 
+							<token <"{",lineNumber,j>>;
+					],
+					¢} is
+					[
+Print: " In }\n";
+Print: "  word="; Print: word; Print: "~\n";
+					 	If word ∈ doNotTokenize then 
+					 	[
+					 	 	stacksTokens := stacksTokens ++ 
+					 	 		<token <word,lineNumber,wordStart>>;
+					 	];
+			 			stacksTokens := stacksTokens ++ 
+			 				<token <"}",lineNumber,j>>;
+					],
+					¢` is
+					[
+Print: " In `\n";
+Print: "  word="; Print: word; Print: "~\n";
+					 /* Check for following escaped special characters */
+					 	if charCounter < |commentLine| then
+					 	[
+						  	if commentLine[j+1] ∈ {¢@,¢"\"",¢`,¢*} then
+						  	[
+						  	 	word := word ++ commentLine[j..j+1];
+						  		↑charCounter++;
+						  		If charCounter ≠ |commentLine| then
+						  		[
+							  		word := word ++ 
+							  			take from commentLine[j+2..] until 
+					 				[
+					 					ch : character 
+					 				 |
+					 					↑charCounter++;
+					 					ch ∈ keyCharacters  ∨ 
+					 						[charCounter = |commentLine|]
+					 				];
+								 	If word ∉ doNotTokenize then 
+								 	[
+								 	 	stacksTokens := stacksTokens ++ 
+								 	 		<token <word,lineNumber,wordStart>>;
+								 	];
+								];
+						  	]
+						  	else 
+						  	[
+						  	 	word := word ++ <commentLine[j]>;
+						  		↑charCounter++;
+						  		word := word ++ take from commentLine[j+1..] until 
+				 				[
+				 					ch : character 
+				 				 |
+				 					↑charCounter++;
+				 					ch ∈ keyCharacters ∨ 
+			 							[charCounter = |commentLine|]
+				 				];
+							 	If word ∉ doNotTokenize then 
+							 	[
+							 	 	stacksTokens := stacksTokens ++ 
+							 	 		<token <word,lineNumber,wordStart>>;
+							 	];
+						  	];
+						] else
+						[
+						 	word := word ++ <commentLine[j]>;
+						 	If word ∉ doNotTokenize then 
+						 	[
+						 	 	stacksTokens := stacksTokens ++ 
+						 	 		<token <word,lineNumber,wordStart>>;
+						 	];
+						];
+					],
+					¢/ is
+					[
+Print: " In forward slash\n";
+Print: "  word="; Print: word; Print: "~\n";
+					 	/*Check to see if open nested comment*/
+					 	If commentLine[j+1] = ¢* then
+				 		[Print: "In 1\n";
+		 		 	 		↑charCounter++;
+				 		 	if openComment = 0 ∧ [|commentLine| ≤ j + 2] then
+				 		 	[Print: "In 2\n";
+				 		 	 	/*Open new comment*/
+				 		 	 	↑openComment++;
+				 		 	 	If commentLine[j+2] = ¢* then
+				 		 	 	[Print: "In 3\n";
+				 		 	 	 	/* Start of main comment*/
+				 		 	 	 	↑charCounter++;
+				 		 	 	];
+				 		 	] else
+				 		 	[Print: "In 4\n";
+				 		 	 	/*Open new nested comment*/
+				 		 	 	↑openComment++;
+				 		 	 	↑charCounter++;
+				 		 	];
+						]; /*else
+						[Print: "In 5\n"; Print: format "commentLine[j]=“①”\n" with commentLine[j];
+					  	 	word := word ++ <commentLine[j]>;
+					  		↑charCounter++;
+					  		word := word ++ take from commentLine[j+1..] until 
+			 				[
+			 					ch : character 
+			 				 |
+			 					↑charCounter++;
+			 					ch ∈ keyCharacters ∨ 
+		 							[charCounter = |commentLine|]
+			 				];
+						];*/
+					 	If word ∉ doNotTokenize then 
+					 	[
+					 	 	stacksTokens := stacksTokens ++ 
+					 	 		<token <word,lineNumber,wordStart>>;
+					 	];
+					],
+					¢* is
+					[
+Print: " In *\n";
+Print: "  word="; Print: word; Print: "~\n";
+					 /*Do nothing special here.  If closing comment, it will *
+					  * end the buffer.  If not, `* will not be converted 	 *
+					  * into a token.  Tokenize prior word if applicable.	 */
+					 	If word ∉ doNotTokenize then 
+					 	[
+					 	 	stacksTokens := stacksTokens ++ 
+					 	 		<token <word,lineNumber,wordStart>>;
+					 	];
+					 ];
+				];
+			] else
+			[
+			 	If word ∉ doNotTokenize then 
+			 	[
+			 	 	stacksTokens := stacksTokens ++ 
+			 	 		<token <word,lineNumber,wordStart>>;
+			 	];
+Print: " \nIn last word\n";
+Print: "  word="; Print: word; Print: "~\n";
+Print: format "\nEnd of Line=“①”\n" with lineNumber;
 			];
 		];
 	];
-	
 	stacksTokens
 ]:<stacks token…|>;
 
 keyCharacters ::= {¢@,¢" ",¢"\"",¢{,¢},¢`,¢/,¢*};
 charCounter : whole number := 0;
-t ::="Pupdog";
-word : <character…|> := take from t[charCounter+1..] until 
-[
- 	c : character 
- |
- 	↑charCounter++;
- 	c ∈ keyCharacters
-];
-Print: format "charCounter=“①”\n" with charCounter;
-Print: word;
+t ::="/**
+ * Tokenize all elements of a string.
+*
+* @method \"tokenize_\"
+* @categories \"Stacks\"
+* @param \"comment\" \"string\" 
+*		a qualifying stacks comment
+* @returnType \"<stacks token…|>\"
+*		a tuple of stacks tokens.  /* Frog */ Excludes `*.
+* @author \"Richard Arriaga\"
+*/";
+
+z ::= tokenize t;
+
+Print: format "z=“①”\n" with z;
+
