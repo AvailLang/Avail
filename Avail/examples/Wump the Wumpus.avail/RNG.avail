@@ -1,5 +1,5 @@
 /*
- * Collections.avail
+ * RNG.avail
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -30,23 +30,56 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Collections"
+System Module "RNG"
 Versions
 	"dev"
+Uses
+	"Avail"
 Names
-	/* The implementations are provided by Tuples, Sets, and Maps, but the names
-	 * are introduced here.
-	 */
-	"For each of⁇_do_",
-	"Require:_accepts_",
-	"any of_satisfies_",
-	"count of_where_",
-	"each of_satisfies_",
-	"filter_by_",
-	"group_by_",
-	"map and filter_by_",
-	"map_through_",
-	"_is empty",
-	"_[_]else_",
-	"_∉_"
+	"seed the RNG«with_»",
+	"the RNG"
 Body
+
+/**
+ * The {@type "pRNG" pseudorandom number generator} that will be used throughout
+ * the game.
+ */
+rng : pRNG;
+
+/**
+ * Seed {@method "the RNG"}.
+ *
+ * @method "seed the RNG«with_»"
+ * @param "optionalSeed" "<[0..2^32)…|0..1>"
+ *        If specified, then an unsigned 32-bit number that will be used to
+ *        seed the pseudorandom number generator. Otherwise, use the number of
+ *        milliseconds since the UNIX Epoch.
+ */
+Public method "seed the RNG«with_»" is
+[
+	optionalSeed : <[0..2^32)…|0..1>
+|
+	seed ::= optionalSeed[1] else [milliseconds since the Epoch mod 2^32];
+	rng := a Mersenne Twister from seed;
+] : ⊤;
+
+/**
+ * Answer the {@type "pRNG" pseudorandom number generator}.
+ *
+ * @method "the RNG"
+ * @returns "pRNG"
+ *          The global pseudorandom number generator. If it was not previously
+ *          {@method "seed the RNG«with_»" seeded}, then seed it using the
+ *          number of milliseconds since the UNIX Epoch.
+ */
+Public method "the RNG" is
+[
+	If ↑rng is unassigned then
+	[
+		/* This constructor uses the number of milliseconds since the UNIX
+		 * Epoch as a seed.
+		 */
+		rng := a Mersenne Twister;
+	];
+	rng
+] : pRNG;

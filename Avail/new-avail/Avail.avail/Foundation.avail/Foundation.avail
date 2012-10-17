@@ -325,9 +325,11 @@ Extends
 	"Characters" =
 	(
 		"_is a letter",
+		"_is an Arabic numeral",
 		"_is uppercase",
 		"_is lowercase",
 		"_is titlecase",
+		"_is whitespace",
 		"uppercase_",
 		"lowercase_",
 		"titlecase_"
@@ -344,7 +346,8 @@ Extends
 		"map and filter_by_",
 		"map_through_",
 		"_is empty",
-		"_[_]else_"
+		"_[_]else_",
+		"_∉_"
 	),
 	"Control Structures" =
 	(
@@ -608,7 +611,6 @@ Extends
 		"_⊂_",
 		"_⊇_",
 		"_⊃_",
-		"_∉_",
 		"_∌_",
 		"_⊄_",
 		"_⊅_"
@@ -639,6 +641,7 @@ Extends
 		"flatten_",
 		"last index of_where_",
 		"left fold_through_",
+		"nonempty string",
 		"quicksort_",
 		"quicksort_with_",
 		"relevant`|_`|",

@@ -1,0 +1,204 @@
+/*
+ * Common.avail
+ * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+System Module "Common"
+Versions
+	"dev"
+Uses
+	"Avail",
+	"Cave",
+	"Movable Entities",
+	"RNG"
+Names
+	/* Game. */
+	"a game of Wump the Wumpus",
+	"Wump the Wumpus",
+
+	/* Game accessors. */
+	"_'s⁇setting",
+	"_'s⁇dramatis personae",
+
+	/* Creature subscripts. */
+	"agent index",
+	"first swarm index",
+	"second swarm index",
+	"wumpus index"
+Body
+
+/* Define field atoms for the "Wump the Wumpus" type. */
+"setting" is a new atom;
+"dramatis personae" is a new atom;
+
+/**
+ * Roughly speaking, the game comprises a {@type "cave"} and four {@type
+ * "creature" denizens}: the {@type "agent"}, two {@type "super bat swarm"}s,
+ * and the elusive {@type "wumpus"}.
+ *
+ * @type "Wump the Wumpus"
+ * @supertype "object"
+ * @field "setting" "cave"
+ *        The {@type "cave"} which is the setting for the game.
+ * @field "dramatis personae" "<agent, wumpus, super bat swarm…|4>"
+ *        The characters in the setting.
+ */
+Class "Wump the Wumpus" extends object
+	with fields
+		setting : cave,
+		dramatis personae : <agent, wumpus, super bat swarm…|4>;
+
+Public method "agent index" is [1];
+Public method "wumpus index" is [2];
+Public method "first swarm index" is [3];
+Public method "second swarm index" is [4];
+
+/**
+ * Produce a reasonable description of a {@type "Wump the Wumpus"}. This is
+ * an override of the general purpose method "“_”" that produces a textual
+ * description of a value.
+ *
+ * @method "“_”"
+ * @param "aGame" "Wump the Wumpus"
+ *        A {@type "Wump the Wumpus"}.
+ * @returns "string"
+ *          A textual rendering of the argument.
+ */
+Method "“_”" is
+[
+	aGame : Wump the Wumpus
+|
+	/* Obtain the room identifiers of the locations of the creatures. */
+	locations ::=
+		map aGame's dramatis personae
+		through
+		[
+			c : creature
+		|
+			guard [↓c's location's room#]
+			intercept
+			[
+				e : cannot-read-unassigned-variable exception
+			|
+				/* If an attempt is made to print a game whose creatures have
+				 * not yet been placed -- such as might have occurred during
+				 * development of this game! -- then this exception will be
+				 * raised by "↓_" and caught here. Answer 0 instead of a valid
+				 * room identifier.
+				 */
+				0
+			]
+		];
+	format
+		"Game summary:
+		\|“setting”
+		\|The agent is in room #“agent location”.
+		\|The wumpus is in room #“wumpus location”.
+		\|The super bat swarms are in rooms #“swarm location 1” and \
+		\|#“swarm location 2”."
+	with
+		"setting" := aGame's setting,
+		"agent location" := locations[agent index],
+		"wumpus location" := locations[wumpus index],
+		"swarm location 1" := locations[first swarm index],
+		"swarm location 2" := locations[second swarm index]
+] : string;
+
+/**
+ * Set the initial placement of a {@type "creature"} in the {@type "cave"}.
+ *
+ * @method "Set initial placement of_in_"
+ * @param "critter" "creature"
+ *        A {@type "creature"} that has not yet been placed.
+ * @param "setting" "cave"
+ *        The {@type "cave"} into which {@param "critter"} should be placed.
+ * @param "optionalBanned" "<{room|}…|0..1>"
+ *        If specified, then a {@type "set"} of {@type "room"}s banned from
+ *        consideration when placing {@param "critter"}.
+ */
+Private method "Set initial placement of_in_«,avoiding_»" is
+[
+	critter : creature,
+	setting : cave,
+	optionalBanned : <{room|}…|0..1>
+|
+	/* Default to the empty set if no rooms were specifically disallowed. */
+	banned ::= optionalBanned[1] else [∅];
+	/* Avoid the entrance room, pit rooms, and the banned rooms. */
+	allowedRooms ::=
+			cast setting's network of rooms→set \ {setting's entrance room}
+				\ setting's pit rooms \ banned
+			into [s : {room|1..20} | s];
+	/* Randomly chose a room from among those remaining. */
+	theRoom ::= the RNG's next element of allowedRooms;
+	Move critter to theRoom (initial placement);
+] : ⊤;
+
+Method "Set initial placement of_in_«,avoiding_»" is
+[
+	critter : agent,
+	setting : cave,
+	optionalBanned : <{room|}…|0..1>
+|
+	banned ::= optionalBanned[1] else [∅];
+	/* Always place the agent into the entrance room. */
+	Assert: setting's entrance room ∉ banned;
+	Move critter to setting's entrance room (initial placement);
+] : ⊤;
+
+/**
+ * Construct and answer a new game of {@type "Wump the Wumpus"}. Randomly
+ * generate the {@type "cave"}. Place the {@type "agent"} in the {@type
+ * "entrance room"}. Randomly place the {@type "wumpus"} and {@type
+ * "super bat swarm"}s so that they do not begin in a {@type "pit room"} or
+ * colocated with any other {@type "creature"}.
+ *
+ * @method "a game of Wump the Wumpus"
+ * @returns "Wump the Wumpus"
+ *          A game of {@type "Wump the Wumpus"} in its initial state.
+ */
+Public method "a game of Wump the Wumpus" is
+[
+	theCave ::= a cave;
+	creatures ::= <an agent, a wumpus, a super bat swarm, a super bat swarm>;
+	Set initial placement of creatures[agent index] in theCave;
+	/* Never start the wumpus next to the player. */
+	Set initial placement of creatures[wumpus index] in theCave, avoiding
+		map ↓creatures[agent index]'s location's adjacent room ids
+		through [id : room id | theCave[id]];
+	Set initial placement of creatures[first swarm index] in theCave, avoiding
+		{↓creatures[wumpus index]'s location};
+	Set initial placement of creatures[second swarm index] in theCave, avoiding
+		{↓creatures[wumpus index]'s location,
+			↓creatures[first swarm index]'s location};
+	a Wump the Wumpus with
+		setting := theCave,
+		dramatis personae := creatures
+] : Wump the Wumpus;

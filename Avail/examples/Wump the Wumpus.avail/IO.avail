@@ -1,5 +1,5 @@
 /*
- * Collections.avail
+ * IO.avail
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -30,23 +30,55 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Collections"
+System Module "IO"
 Versions
 	"dev"
+Uses
+	"Avail"
 Names
-	/* The implementations are provided by Tuples, Sets, and Maps, but the names
-	 * are introduced here.
-	 */
-	"For each of⁇_do_",
-	"Require:_accepts_",
-	"any of_satisfies_",
-	"count of_where_",
-	"each of_satisfies_",
-	"filter_by_",
-	"group_by_",
-	"map and filter_by_",
-	"map_through_",
-	"_is empty",
-	"_[_]else_",
-	"_∉_"
+	/* Basic I/O. */
+	"Wump the Wumpus reporter",
+	"Wump the Wumpus reporter:=_",
+	"Wump the Wumpus reader",
+	"Wump the Wumpus reader:=_",
+
+	/* User interaction. */
+	"Report:_",
+	"next command"
 Body
+
+/**
+ * The {@type "variable"} that holds the {@param "function"} used by
+ * {@method "Report:_"} to report information to the player.
+ *
+ * @global "reporter" "[string]→⊤"
+ */
+_reporter : [string]→⊤ := [s : string | Print: s;];
+Public variable ↑_reporter is "Wump the Wumpus reporter";
+
+/**
+ * Report {@param "text"} to the player.
+ *
+ * @method "Report:_"
+ * @param "text" "string"
+ *        Some text.
+ */
+Public method "Report:_" is [text : string | _reporter(text);] : ⊤;
+
+/**
+ * The {@type "variable"} that holds the {@param "function"} used by
+ * {@method "Report:_"} to read a line of text from the player.
+ *
+ * @global "reader" "[]→string"
+ */
+_reader : []→string := [next line from console];
+Public variable ↑_reader is "Wump the Wumpus reader";
+
+/**
+ * Read a command from the player.
+ *
+ * @method "next command"
+ * @returns "string"
+ *          The next command.
+ */
+Public method "next command" is [_reader()] : string;

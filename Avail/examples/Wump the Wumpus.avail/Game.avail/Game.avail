@@ -1,0 +1,156 @@
+/*
+ * Game.avail
+ * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+System Module "Game"
+Versions
+	"dev"
+Uses
+	"Avail",
+	"Cave",
+	"Common",
+	"Context",
+	"Exploration",
+	"IO",
+	"Movable Entities",
+	"RNG",
+	"Turn"
+Names
+	"Play Wump the Wumpus"
+Body
+
+/**
+ * Repeatly apply {@param "action"} until the {@type "Wump the Wumpus" game} is
+ * over. The argument should be an implementation of the game's turn sequence.
+ *
+ * @method "Until the game is over,do_"
+ * @param "action" "[]→⊤"
+ *        The implementation of the {@type "Wump the Wumpus" game}'s turn
+ *        sequence.
+ */
+Private method "Until the game is over,do_" is
+[
+	action : []→⊤
+|
+	Backtracking fence
+	[
+		/* This is a little bit tricky. "first try" establishes a checkpoint
+		 * for backtracking later. Initially it answers "true", but a
+		 * subsequent send of "Try again" causes the checkpoint to return a
+		 * second time, this time answering "false". So after a "Try again",
+		 * "first try" exits with "false", meaning that the predicate is not
+		 * satisfied. Thus "action" will not be applied a second time.
+		 */
+		If first try then
+		[
+			/* Repeatedly apply "action". */
+			Repeat [action();]
+		];
+	];
+];
+
+Method "Kill_" is
+[
+	anAgent : agent
+|
+	Assert: anAgent = the agent;
+	↓the agent's life flag ?= false;
+	/* The game is over. Resume the checkpoint saved by
+	 * "Use_as the implied game and do_".
+	 */
+	Try again
+] : ⊥;
+
+Method "Kill_" is
+[
+	aWumpus : wumpus
+|
+	Assert: aWumpus = the wumpus;
+	↓the wumpus's life flag ?= false;
+	Now the wumpus is inactive;
+];
+
+/**
+ * Report victory to the player.
+ *
+ * @method "Report victory"
+ */
+Private method "Report victory" is
+[
+	Report: "You slew the dreaded wumpus and escaped with your life!\n";
+];
+
+/**
+ * Report cowardice to the player.
+ *
+ * @method "Report cowardice"
+ */
+Private method "Report cowardice" is
+[
+	Report: "Oh, I see. Runnin' away, eh? Disgraceful!\n";
+];
+
+/**
+ * Report defeat to the player.
+ *
+ * @method "Report defeat"
+ */
+Private method "Report defeat" is
+[
+	Report: "Better luck in your next life?\n";
+];
+
+Public method "Play Wump the Wumpus" is
+[
+	Use a game of Wump the Wumpus as the implied game and do
+	[
+		/* Force the agent to re-enter the entrance room. This is the simplest
+		 * way of reporting the initial room description to the player.
+		 */
+		Move the agent to the cave's entrance room;
+		Until the game is over, do
+		[
+			Give the agent a turn;
+			Give the first swarm a turn;
+			Give the second swarm a turn;
+			Give the wumpus a turn;
+		];
+		If the agent is alive then
+		[
+			If the wumpus is dead then [Report victory;]
+			else [Report cowardice;];
+		]
+		else [Report defeat;];
+		Report: "*** GAME OVER ***\n";
+	];
+] : ⊤;
+
+Play Wump the Wumpus;

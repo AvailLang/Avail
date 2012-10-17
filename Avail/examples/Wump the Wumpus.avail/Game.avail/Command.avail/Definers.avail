@@ -1,0 +1,356 @@
+/*
+ * Definers.avail
+ * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+System Module "Definers"
+Versions
+	"dev"
+Uses
+	"Avail",
+	"Cave",
+	"Scanner"
+Names
+	/* Definers. */
+	"Action_is_",
+	"Command|Commands«_‡,»is|are_",
+
+	/* The command tree. */
+	"command tree",
+	"command node",
+	"root command node",
+	"_'s⁇child nodes",
+	"_'s⁇action"
+Body
+
+/* Definitions of field atoms. */
+"label" is a new atom;
+"child nodes" is a new atom;
+"action" is a new atom;
+
+/**
+ * Avail is reference transparent, so no type can directly refer to itself; such
+ * a type would be recursive, and require a significantly more complex mechanism
+ * to describe or instantiate.
+ * 
+ * As a type, abstract command node exists so that subtypes may refer to objects
+ * similar to themselves. A subtype can refer to abstract command node rather
+ * than its own type. At exeuction time, a value schematically described as an
+ * abstract command node might actually be an instance of a more specific
+ * subtype -- even the same type as included the reference.
+ *
+ * @type "abstract command node"
+ * @supertype "object"
+ */
+Explicit class "abstract command node" extends object;
+
+/**
+ * A root command node has a mutable map from command token to command nodes.
+ * A key in the map represents encountering a particular command token in the
+ * player's input. A sequence of command nodes beginning at the root node
+ * represents having parsed a legal sequence of command tokens.
+ *
+ * Only the first node of a command tree is a root command node.
+ *
+ * @type "root command node"
+ * @supertype "abstract command node"
+ * @field "child nodes" "↑{nonempty string→abstract command node|}"
+ *        A map from command words to command nodes. 
+ */
+Class "root command node" extends abstract command node
+	with fields
+		child nodes : ↑{nonempty string→abstract command node|};
+
+/**
+ * Most of the command tree consists of command nodes. A command node extends
+ * a {@type "root command node"} with an action to perform when a complete
+ * command has been parsed. If no action is associated with a command node, then
+ * a command has not been completed.
+ *
+ * @type "command node"
+ * @supertype "root command node"
+ * @field "action" "↑[<room id…|>]→⊤"
+ *        An action.
+ */
+Class "command node" extends root command node
+	with fields
+		action : ↑[…]→boolean;
+
+/**
+ * Construct and answer a new {@type "root command node"}.
+ *
+ * @method "a root command node"
+ * @returns "root command node"
+ *          A {@type "root command node"} initialized with an empty map.
+ */
+Private method "a root command node" is
+[
+	/* Create a variable for retention by the root command node. */
+	children : {nonempty string→abstract command node|} := {};
+	a root command node with child nodes := ↑children
+] : root command node;
+
+/**
+ * Construct and answer a new {@type "command node"}.
+ *
+ * @method "a command node"
+ * @returns "command node"
+ *          A {@type "command node"} initialized with an empty map.
+ */
+Private method "a command node" is
+[
+	/* Create variables for retention by the command node. */
+	children : {nonempty string→abstract command node|} := {};
+	theAction : […]→boolean;
+	a command node with child nodes := ↑children, action := ↑theAction
+] : command node;
+
+/**
+ * This is the global command tree. It specifies the language which the player
+ * is allowed to use.
+ *
+ * @global "commandTree" "root command node"
+ */
+commandTree : root command node := a root command node;
+Public read-only variable ↑commandTree is "command tree";
+
+/**
+ * Answer a function that will serve as the implementation of both the lexical
+ * ({@method "Command«_‡,»is_"}) and variable ({@method "Command_is_"}) forms of
+ * the command definer.
+ *
+ * @method "command definer"
+ * @returns "[<nonempty string…|1..>, […]→boolean]→⊤"
+ */
+Private method "command definer" is
+[
+	[
+		syntaxes : <nonempty string…|1..>,
+		theAction : […]→boolean
+	|
+		For each of syntaxes do
+		[
+			syntax : nonempty string
+		|
+			tokens ::= tokenize syntax;
+			node : root command node := commandTree;
+			/* Install the syntax for the new command into the global command
+			 * tree.
+			 */
+			For each of tokens do
+			[
+				commandToken : string
+			|
+				Unless commandToken ∈ ↓node's child nodes then
+				[
+					newNode ::= a command node;
+					/* Associate the new command node with the current
+					 * token.
+					 */
+					↓node's child nodes ?=
+						↓node's child nodes + commandToken→newNode;
+				];
+				/* Traverse the link to the next node. */
+				node := cast ↓node's child nodes[commandToken]
+					into [n : command node | n];
+			];
+			/* The current node must be a command node. */
+			commandNode ::= cast node into [n : command node | n];
+			/* If there is already an action installed here, then the developer
+			 * has screwed up by defining multiple commands with the same
+			 * syntax!
+			 */
+			Assert: commandNode's action is unassigned;
+			↓commandNode's action ?= theAction;
+		];
+	]
+];
+
+/**
+ * Define a new command by augmenting the {@global "commandTree" command tree}.
+ *
+ * @method "Command_is_"
+ * @param "syntaxes" "nonempty string"
+ *        The syntaxes for the command, e.g., "go to #NUMBER".
+ * @param "theAction" "[…]→boolean"
+ *        The action to perform when the command is understood. This function
+ *        accepts a tuple. The parser will apply this function to the arguments
+ *        accumulated during the parse of the command.
+ */
+Public method "Command|Commands«_‡,»is|are_" is command definer;
+Private method "Command_are_" is command definer;
+
+/**
+ * Define a new command by augmenting the {@global "commandTree" command tree}.
+ *
+ * @method "Command_is_"
+ * @param "syntax" "nonempty string"
+ *        The syntax for the command, e.g., "go to #NUMBER".
+ * @param "theAction" "[…]→boolean"
+ *        The action to perform when the command is understood. This function
+ *        does not accept arguments.
+ */
+Method "Command|Commands«_‡,»is|are_" is
+[
+	syntaxes : <nonempty string…|1..>,
+	theAction : []→boolean
+|
+	Command syntaxes are [args : <⊥…|0> | theAction()];
+] : ⊤;
+
+Semantic restriction "Command|Commands«_‡,»is|are_" is
+[
+	syntaxesType : <nonempty string…|1..>'s type,
+	actionType : […]→boolean's type
+|
+	/* Because the tuple is lexical, we know its exact size. So either "⎣_⎦"
+	 * or "⎡_⎤" would work here. In any event, we iterate through the tuple
+	 * type's leading (and default) types, ensuring that each type is an
+	 * instance type.
+	 */
+	From 1 to ⎣syntaxesType⎦ do
+	[
+		index : natural number
+	|
+		/* Each syntax should be well-known to the compiler; a string literal,
+		 * for instance. "`|_`|" returns the size of a type, i.e., the
+		 * cardinality of its membership. If the answer is finite, then the
+		 * actual instances are available. In our case, we insist that
+		 * "nameType" be an instance type, meaning that the exact syntax string
+		 * is known to the compiler.
+		 */
+		syntax ::= syntaxesType[index];
+		Unless |syntax| = 1 then
+		[
+			Reject parse, expected:
+				"the command's syntax to be statically known \
+				\|(a string literal is preferred)"
+		];
+	];
+	/* If the function accepts a parameter, then its type must be a subtype of
+	 * "tuple".
+	 */
+	parametersType ::= actionType's parameters' type;
+	Assert: ⎣parametersType⎦ = ⎡parametersType⎤;
+	Assert: ⎣parametersType⎦ ≤ 1;
+	If ⎣parametersType⎦ = 1 ∧ [¬actionType[1] ⊆ tuple] then
+	[
+		Reject parse, expected:
+			format
+				"the function's parameter type to be a subtype of \"tuple\"\
+				\|(not “①”)"
+			with actionType[1]
+	];
+	⊤
+];
+
+/**
+ * Define an action that the player can specify, generally for the {@type
+ * "agent"} to execute. Hypothetically an action might not have an effect on the
+ * world, so an action may return {@method "false"} to indicate that it has not
+ * consumed the {@type "agent"}'s turn.
+ *
+ * This functionality is not strictly necessary, but makes it easier to define
+ * equivalent commands.
+ *
+ * @method "Action_is_"
+ * @param "name" "nonempty string"
+ *        The name of the action.
+ * @param "theActions" "[<room id…|>]→boolean"
+ *        The implementation of the action. It accepts the arguments parsed by
+ *        the command parser. It answers {@method "true"} if the {@type
+ *        "agent"}'s turn was consumed and {@method "false"} otherwise.
+ */
+Public method "Action_is_" is
+[
+	name : nonempty string,
+	theAction : [⊥]→boolean
+|
+	Private method name is [theAction];
+] : ⊤;
+
+/**
+ * Define an action that the player can specify, generally for the {@type
+ * "agent"} to execute. Hypothetically an action might not have an effect on the
+ * world, so an action may return {@method "false"} to indicate that it has not
+ * consumed the {@type "agent"}'s turn.
+ *
+ * This functionality is not strictly necessary, but makes it easier to define
+ * equivalent commands.
+ *
+ * @method "Action_is_"
+ * @param "name" "nonempty string"
+ *        The name of the action.
+ * @param "theActions" "[<room id…|>]→boolean"
+ *        The implementation of the action. It accepts the arguments parsed by
+ *        the command parser. It answers {@method "true"} if the {@type
+ *        "agent"}'s turn was consumed and {@method "false"} otherwise.
+ */
+Public method "Action_is_" is
+[
+	name : nonempty string,
+	theAction : []→boolean
+|
+	Private method name is [[args : <⊥…|0> | theAction()]];
+] : ⊤;
+
+Semantic restriction "Action_is_" is
+[
+	nameType : nonempty string's type,
+	actionType : […]→boolean's type
+|
+	/* The name should be well-known to the compiler; a string literal, for
+	 * instance. "`|_`|" returns the size of a type, i.e., the cardinality
+	 * of its membership. If the answer is finite, then the actual instances
+	 * are available. In our case, we insist that "nameType" be an instance
+	 * type.
+	 */
+	Unless |nameType| = 1 then
+	[
+		Reject parse, expected:
+			"the action's name to be statically known \
+			\|(a string literal is preferred)"
+	];
+	/* If the function accepts a parameter, then its type must be a subtype of
+	 * "tuple".
+	 */
+	parametersType ::= actionType's parameters' type;
+	Assert: ⎣parametersType⎦ = ⎡parametersType⎤;
+	Assert: ⎣parametersType⎦ ≤ 1;
+	If ⎣parametersType⎦ = 1 ∧ [¬actionType[1] ⊆ tuple] then
+	[
+		Reject parse, expected:
+			format
+				"the function's parameter type to be a subtype of \"tuple\"\
+				\|(not “①”)"
+			with actionType[1]
+	];
+	⊤
+];

@@ -1,0 +1,152 @@
+/*
+ * Perception.avail
+ * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+System Module "Perception"
+Versions
+	"dev"
+Uses
+	"Avail",
+	"Cave",
+	"Context",
+	"Geography",
+	"Movable Entities",
+	"RNG"
+Names
+	"accumulated sensory information"
+Body
+
+/**
+ * Answer a message describing a {@type "pit room"}'s proximity.
+ *
+ * @method "nearby pit message"
+ * @returns "string"
+ *          A suitable indication that a {@type "pit"} is nearby.
+ */
+Private method "nearby pit message" is
+[
+	the RNG's next element of
+	<
+		"Brrr!\n",
+		"A chill wind blows in from elsewhere.\n",
+		"One wrong step now could spell D-I-S-A-S-T-E-R.\n",
+		"You feel a draft.\n",
+		"You feel faintly vertiginous.\n"
+	>
+] : string;
+
+/**
+ * Answer a message describing the {@type "wumpus"}'s proximity, taking the
+ * {@method "_is active" activity level} of the {@type "wumpus"} into account.
+ *
+ * @method "nearby wumpus message"
+ * @returns "string"
+ *          A suitable indication that the {@type "wumpus"} is nearby.
+ */
+Private method "nearby wumpus message" is
+[
+	if the wumpus is active then
+	[
+		"You have a really bad feeling…\n"
+	]
+	else
+	[
+		the RNG's next element of
+		<
+			"Phew! Smells like wumpus!\n",
+			"A strange odor sticks in your nose.\n",
+			"Your nose hairs are twitching.\n",
+			"You hear the beating of a monstrous heart.\n",
+			"The end is near!\n"
+		>
+	]
+] : string;
+
+/**
+ * Answer a message describing a {@type "super bat swarm"}'s proximity.
+ *
+ * @method "nearby swarm message"
+ * @returns "string"
+ *          A suitable indication that a {@type "super bat swarm"} is nearby.
+ */
+Private method "nearby super bat swarm message" is
+[
+	the RNG's next element of
+	<
+		"Yech! Smells like bats!\n",
+		"An unusual odor sticks in your nose.\n",
+		"Your nose hairs are aquiver.\n",
+		"You hear the beating of wings.\n",
+		"Your feel a small draft.\n"
+	>
+] : string;
+
+/**
+ * Answer the sensory information available at the {@type "agent"}'s current
+ * {@type "room" location}.
+ *
+ * @method "accumulated sensory information"
+ * @returns "string"
+ *          Up to three lines of text describing the nearby hazards.
+ */
+Public method "accumulated sensory information" is
+[
+	nearbyRooms ::= the agent's location's adjacent rooms;
+	pitAnnounced : boolean := false;
+	batsAnnounced : boolean := false;
+	info : string := "";
+	/* Process the rooms in random order, so that the player can't use a
+	 * canonical ordering to learn what features are associated with which
+	 * rooms.
+	 */
+	For each of the RNG's next shuffling of nearbyRooms→tuple do
+	[
+		nextRoom : room
+	|
+		If nextRoom contains the wumpus then
+		[
+			info := info ++ nearby wumpus message;
+		]
+		/* There are two pits; only announce one of them. */
+		else if [¬pitAnnounced ∧ [nextRoom contains a pit]] then
+		[
+			info := info ++ nearby pit message;
+			pitAnnounced := true;
+		]
+		/* There are two swarms of bats; only announce one of them. */
+		else if [¬batsAnnounced ∧ [nextRoom contains a super bat swarm]] then
+		[
+			info := info ++ nearby super bat swarm message;
+			batsAnnounced := true;
+		];
+	];
+	info
+] : string;

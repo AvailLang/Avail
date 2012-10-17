@@ -35,23 +35,32 @@ Versions
 	"dev"
 Uses
 	"Bootstrap",
+	"Control Structures",
 	"Definers",
-	"Early Control Structures",
 	"Early Error Codes",
-	"Early Functions",
-	"Early Logic",
-	"Early Maps",
+	"Enumeration Support",
+	"Functions",
 	"Literals",
-	"Math"
+	"Logic",
+	"Maps",
+	"Math",
+	"Tuples",
+	"Types",
+	"Sets",
+	"Variables"
 Names
+	"_is an Arabic numeral",
 	"_is a letter",
 	"_is uppercase",
 	"_is lowercase",
 	"_is titlecase",
+	"_is whitespace",
 	"uppercase_",
 	"lowercase_",
 	"titlecase_"
 Body
+
+arabicNumerals ::= (48 to 57)→set;
 
 toUpperCase ::=
 {
@@ -887,6 +896,27 @@ titlecaseCharacter ::=
 	8109, 8110, 8111, 8124, 8140, 8188
 };
 
+whitespaceCharacter ::=
+{
+	9, 10, 11, 12, 13, 32, 133, 160, 5760, 6158, 8192, 8193, 8194, 8195, 8196,
+	8197, 8198, 8199, 8200, 8201, 8202, 8232, 8233, 8239, 8287, 12288
+};
+
+/**
+ * Return true if the supplied character is identified as an Arabic numeral
+ * according to the Unicode character description, false otherwise.
+ *
+ * @method "_is Arabic numeral"
+ * @param "c" "character"
+ * @returns "boolean"
+ */
+Public stable method "_is an Arabic numeral" is
+[
+	c : character
+|
+	(c's code point) ∈ arabicNumerals
+] : boolean;
+
 /**
  * Return true if the supplied character is identified as a letter, false
  * otherwise.
@@ -930,7 +960,6 @@ Public stable method "_is a letter" is
 	 */
 
 ] : boolean;
-
 
 /**
  * Return true if the supplied character is identified as an uppercase character
@@ -985,19 +1014,92 @@ Public stable method "_is titlecase" is
 ] : boolean;
 
 /**
+ * Return true if the supplied character is identified as a whitespace character
+ * according to the Unicode character description, false otherwise.
+ * 
+ * @method "_is whitespace"
+ * @param "c" "character"
+ * @returns "boolean"
+ */
+Public stable method "_is whitespace" is
+[
+	c : character
+|
+	(c's code point) ∈ whitespaceCharacter
+] : boolean;
+
+Private method "recase restriction using_" is
+[
+	converter : [character]→character
+|
+	[
+		stringType : string's type
+	|
+		$body : type;
+		If ⎡stringType⎤ = 0 then [Exit body with ""'s type];
+		types : <character's type…|> := <>;
+		From 1 to |stringType's leading types| + 1 do
+		[
+			index : natural number
+		|
+			charType ::= stringType[index];
+			converted : {character|} := ∅;
+			convertedType ::=
+				if |charType| is finite then
+				[
+					For each of charType's instances do
+					[
+						c : character
+					|
+						converted := eject ↑converted + converter(c);
+					];
+					cast enumeration of converted
+						into [t : character's type | t]
+				]
+				else
+				[
+					charType
+				];
+			types := eject ↑types ++ <convertedType>;
+		];
+		nonempty ::= cast types into [t : <character's type…|1..> | t];
+		leading ::= nonempty[1..|nonempty|-1];
+		default ::= nonempty[|nonempty|];
+		<leading, default… | ||stringType||>
+	] : type
+];
+
+/**
  * If a corresponding uppercase character is available, that character is
  * returned. Otherwise, the original character is returned.
  * 
  * @method "uppercase_"
  * @param "c" "character"
- * @returns "boolean"
+ * @returns "string"
  */
 Public stable method "uppercase_" is
 [
 	c : character
 |
-	toUpperCase[c's code point] else [c]
-];
+	(toUpperCase[c's code point] else [c's code point])→character
+] : character;
+
+/**
+ * Answer an uppercased variant of the specified string.
+ *
+ * @method "uppercase_"
+ * @param "s" "string"
+ * @returns "string"
+ */
+Stable method "uppercase_" is
+[
+	s : string
+|
+	map s through [c : character | uppercase c]
+] : string;
+
+Semantic restriction "uppercase_" is recase restriction
+	using [c : character | uppercase c];
 
 /**
  * If a corresponding lowercase character is available, that character is
@@ -1005,15 +1107,31 @@ Public stable method "uppercase_" is
  * 
  * @method "lowercase_"
  * @param "c" "character"
- * @returns "boolean"
+ * @returns "string"
  */
 Public stable method "lowercase_" is
 [
 	c : character
 |
-	toLowerCase[c's code point] else [c]
-];
+	(toLowerCase[c's code point] else [c's code point])→character
+] : character;
 
+/**
+ * Answer a lowercased variant of the specified string.
+ *
+ * @method "lowercase_"
+ * @param "s" "string"
+ * @returns "string"
+ */
+Stable method "lowercase_" is
+[
+	s : string
+|
+	map s through [c : character | lowercase c]
+] : string;
+
+Semantic restriction "lowercase_" is recase restriction
+	using [c : character | lowercase c];
 
 /**
  * If a corresponding titlecase character is available, that character is
@@ -1025,11 +1143,28 @@ Public stable method "lowercase_" is
  * 
  * @method "titlecase_"
  * @param "c" "character"
- * @returns "boolean"
+ * @returns "string"
  */
 Public stable method "titlecase_" is
 [
 	c : character
 |
-	toTitleCase[c's code point] else [c]
-];
+	(toTitleCase[c's code point] else [c's code point])→character
+] : character;
+
+/**
+ * Answer a titlecased variant of the specified string.
+ *
+ * @method "titlecase_"
+ * @param "s" "string"
+ * @returns "string"
+ */
+Stable method "titlecase_" is
+[
+	s : string
+|
+	map s through [c : character | titlecase c]
+] : string;
+
+Semantic restriction "titlecase_" is recase restriction
+	using [c : character | titlecase c];

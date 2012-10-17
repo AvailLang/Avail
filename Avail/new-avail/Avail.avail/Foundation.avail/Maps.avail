@@ -71,6 +71,39 @@ Method "_is empty" is
 ];
 
 /**
+ * Is `key` not a key of `aMap`?
+ *
+ * Parameters:
+ *    key - An arbitrary value.
+ *    aMap - A map.
+ * Returns:
+ *    `true` if `key` is not an element of `aMap`, `false` otherwise.
+ */
+Stable method "_∉_" is
+[
+	key : any,
+	aMap : map
+|
+	¬ key ∈ aMap
+] : boolean;
+
+Semantic restriction "_∉_" is
+[
+	keyType : any meta,
+	mapType : map meta
+|
+	if keyType ∩ (mapType's key type) = ⊥ then
+	[
+		true's type
+	]
+	else
+	[
+		/* Can't strengthen. */
+		⊤
+	]
+];
+
+/**
  * Iteratively apply `action` to each binding of `aMap`, but in no particular
  * order.
  * 

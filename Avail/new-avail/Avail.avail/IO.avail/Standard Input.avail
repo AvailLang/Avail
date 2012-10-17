@@ -85,7 +85,7 @@ Public method "next line«from console»⁇" is
 		result := eject ↑result ++ <next>;
 		next = ¢"\n"
 	];
-	nonempty ::= cast result into [ t : <character…|1..> | t ];
+	nonempty ::= cast result into [ t : nonempty string | t ];
 	nonempty[1..|nonempty| - 1]
 ] : string;
 
@@ -113,7 +113,7 @@ Public method "next_«from console»⁇" is
 		next ∈ integerChars
 	];
 	Reset to mark;
-	nonempty ::= cast text into [ t : <character…|1..> | t ];
+	nonempty ::= cast text into [ t : nonempty string | t ];
 	value ::= nonempty[1..|nonempty| - 1]→extended integer;
 	If ¬value ∈ range then
 	[

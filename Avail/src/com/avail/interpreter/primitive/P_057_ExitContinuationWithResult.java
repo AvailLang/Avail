@@ -81,7 +81,7 @@ public class P_057_ExitContinuationWithResult extends Primitive
 		}
 		final AvailObject linkStrengthenedType = caller.stackAt(
 			caller.stackp());
-		assert linkStrengthenedType.isSubtypeOf(expectedType);
+		assert expectedType.isSubtypeOf(linkStrengthenedType);
 		if (!result.isInstanceOf(expectedType))
 		{
 			// Wasn't strong enough to meet the block's declared type.

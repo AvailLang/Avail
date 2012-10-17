@@ -67,12 +67,6 @@ Body
  */
 "checkpoint" is an atom;
 
-/* The anchor continuation, set by "Setup backtracking subsystem". An exit from
- * the outermost "Backtracking fence_" resets the checkpoint to the anchor
- * (so that subsequent uses of "Try again" do not jump back to the checkpoint).
- */
-anchor : $[]→⊤;
-
 /**
  * A no-backtracking-fence exception indicates that a checkpoint establishment
  * method was invoked outside of any function governed by {@method
@@ -93,7 +87,7 @@ Public explicit class "no-backtracking-fence exception" extends exception;
  */
 Private method "Require:inside fence" is
 [
-	If current fiber[checkpoint] = anchor then
+	Unless checkpoint ∈ current fiber then
 	[
 		Raise a no-backtracking-fence exception
 	];
@@ -107,36 +101,6 @@ Private method "Require:inside fence" is
  * @supertype "exception"
  */
 Public explicit class "no-checkpoint exception" extends exception;
-
-/**
- * Prepare the backtracking subsystem. This sets a fiber-local variable,
- * {@code "checkpoint"}, with a continuation that, if resumed, raises a
- * {@type "no-checkpoint exception"}. This happens only when {@method
- * "Try again" backtracking} is requested before a checkpoint has been set.
- *
- * @method "Setup backtracking subsystem"
- * @raises "no-checkpoint exception"
- *         If no checkpoint has been set.
- */
-Private method "Setup backtracking subsystem" is
-[
-	firstInitialization : boolean := true;
-	[
-		$initialized : ⊤;
-		If firstInitialization then
-		[
-			firstInitialization := false;
-			current fiber[checkpoint] := initialized;
-			anchor := initialized;
-		]
-		else
-		[
-			Raise a no-checkpoint exception
-		];
-	]();
-] : ⊤;
-
-Setup backtracking subsystem;
 
 Forward method "Try again" is []→⊥;
 
@@ -154,7 +118,11 @@ Public method "Backtracking fence_" is
 [
 	action : []→⊤
 |
-	previousCheckpoint ::= current fiber[checkpoint];
+	previousCheckpoint : any;
+	If checkpoint ∈ current fiber then
+	[
+		previousCheckpoint := current fiber[checkpoint];
+	];
 	firstTime : boolean := true;
 	/* TODO: [TLS] Rewrite this once the "ensure" mechanism is available. */
 	Guard
@@ -162,9 +130,17 @@ Public method "Backtracking fence_" is
 		$fence : ⊤;
 		If firstTime then
 		[
+			firstTime := false;
 			current fiber[checkpoint] := fence;
 			action();
-			current fiber[checkpoint] := previousCheckpoint;
+			If ↑previousCheckpoint is assigned then
+			[
+				current fiber[checkpoint] := previousCheckpoint;
+			]
+			else
+			[
+				Remove current fiber[checkpoint];
+			];
 		]
 		else
 		[
@@ -175,13 +151,27 @@ Public method "Backtracking fence_" is
 	[
 		e : exception
 	|
-		current fiber[checkpoint] := previousCheckpoint;
+		If ↑previousCheckpoint is assigned then
+		[
+			current fiber[checkpoint] := previousCheckpoint;
+		]
+		else
+		[
+			Remove current fiber[checkpoint];
+		];
 		Raise e
 	];
 	/*
 	ensure
 	[
-		current fiber[checkpoint] := previousCheckpoint;
+		If ↑previousCheckpoint is assigned then
+		[
+			current fiber[checkpoint] := previousCheckpoint;
+		]
+		else
+		[
+			Remove current fiber[checkpoint];
+		];
 	];
 	 */
 ] : ⊤;

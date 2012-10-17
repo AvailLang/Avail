@@ -316,7 +316,7 @@ exceptionsByCode : {natural number→system exception's type|} := {};
  */
 Private method "System exception_(_)extends_" is
 [
-	exceptionBaseName : <character…|1..>,
+	exceptionBaseName : nonempty string,
 	code : natural number,
 	supertype : exception's type
 |

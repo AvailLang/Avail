@@ -141,8 +141,8 @@ Private method "conversion atom" is [_conversionAtom];
  */
 Public method "_(_)is an SI base unit" is
 [
-	name : <character…|1..>,
-	symbol : <character…|1..>
+	name : nonempty string,
+	symbol : nonempty string
 |
 	id ::= atom for name;
 	def ::= {id → 1};
@@ -199,8 +199,8 @@ Completely seal method "_(_)is an SI base unit";
  */
 Public method "_(_)is an SI derived unit equivalent to_" is
 [
-	name : <character…|1..>,
-	symbol : <character…|1..>,
+	name : nonempty string,
+	symbol : nonempty string,
 	referenceUnit : SI unit
 |
 	def ::= referenceUnit's unit map;

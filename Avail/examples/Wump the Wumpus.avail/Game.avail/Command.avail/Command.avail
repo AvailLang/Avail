@@ -1,0 +1,232 @@
+/*
+ * Command.avail
+ * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+System Module "Command"
+Versions
+	"dev"
+Uses
+	"Avail",
+	"Cave",
+	"Context",
+	"Definers",
+	"Geography",
+	"IO",
+	"Movable Entities",
+	"RNG"
+Extends
+	"Parser"
+Body
+
+/*
+ * These are the commands understood by the game.
+ */
+
+/* Quit the game. */
+Command "quit" is
+[
+	Report: "Just before you can quit, the wumpus rushes in and eats you!\n";
+	Kill the agent;
+	false
+];
+
+/* Try a little chutzpah. */
+Command "win" is
+[
+	Report: "Ah, if only things were that simple.\n";
+	false
+];
+
+/* Attempt to exit the cave. */
+Action "exiting" is
+[
+	if ↓the agent's location ∈ entrance room then
+	[
+		/* The game is over. Resume the checkpoint saved by
+		 * "Use_as the implied game and do_".
+		 */
+		Try again
+	]
+	else
+	[
+		Report: "You can't leave the cave from here.\n";
+		false
+	]
+];
+
+Commands "exit", "exit the cave" are exiting;
+Commands "leave", "leave the cave" are exiting;
+
+/* Attempt to move the agent to an adjacent room. */
+Action "moving" is
+[
+	args : <room id…|1>
+|
+	id ::= args[1];
+	destination ::= the cave[id];
+	if destination ∈ the agent's location's adjacent rooms then
+	[
+		Move the agent to destination;
+		true
+	]
+	else if [destination = ↓the agent's location] then
+	[
+		Report: "You can't go where you already are.\n";
+		false
+	]
+	else
+	[
+		Report: "That room isn't adjacent.\n";
+		false
+	]
+];
+
+Commands "NUMBER", "#NUMBER" are moving;
+Commands "go to NUMBER", "go to #NUMBER" are moving;
+Commands "move to NUMBER", "move to #NUMBER" are moving;
+
+/* For players coming from interactive fiction, reject attempts to use the
+ * cardinal directions.
+ */
+Action "compass rebuttal" is
+[
+	nearby ::=
+		map the agent's location's adjacent rooms through
+		[r : room | r's room#];
+	choice ::= the RNG's next element of nearby;
+	Report:
+		format
+			"\
+			\|The compass directions are not used to navigate the cave.
+			\|Instead, maybe try \"go to “id”\" or even just \"“id”\".\n"
+		with
+			id := choice;
+	false
+];
+
+Commands "go north", "go east", "go south", "go west", "go up", "go down"
+	are compass rebuttal;
+Commands "north", "east", "south", "west", "up", "down" are compass rebuttal;
+Commands "n", "e", "s", "w", "u", "d" are compass rebuttal;
+
+Action "shooting" is
+[
+	ids : <room id…|1..5>
+|
+	if the cave[ids[1]] ∉ the agent's location's adjacent rooms then
+	[
+		Report: "That room isn't adjacent.\n";
+		false
+	]
+	else
+	[
+		Report: "You take aim into the tunnel and fire a crooked arrow.\n";
+		/* Decrement the number of remaining arrows. */
+		the agent's count of remaining arrows--;
+		/* This is the path that the arrow has followed so far. The last element
+		 * is the arrow's current location.
+		 */
+		path : <room…|1..> := <↓the agent's location>;
+		/* During the first invalid transition, i.e., the first room identifier
+		 * specified that is not adjacent to the arrow's current location, the
+		 * arrow will start flying wild, randomly moving ahead the remaining
+		 * number of tunnels.
+		 */
+		flyingWild : boolean := false;
+		/* The arrow will make |ids| transitions, but not necessarily to the
+		 * intended rooms -- only if the player got them right!
+		 */
+		For each of ids do
+		[
+			nextId : room id
+		|
+			/* Note that the first shot will never fly wild. */
+			nextRoom ::=
+				If flyingWild
+					∨ [the cave[nextId] ∉ path[|path|]'s adjacent rooms] then
+				[
+					Unless flyingWild then
+					[
+						flyingWild := true;
+						Report:
+							"Your keen sense of hearing tells you that your \
+							\|arrow is now flying wild. Not good.\n";
+					];
+					cast path into
+					[
+						p : <room…|2..>
+					|
+						/* Don't allow the arrow to travel back along its
+						 * path; keep it moving forward.
+						 */
+						options ::= p[|p|]'s adjacent rooms - p[|p|-1];
+						the RNG's next element of options
+					]
+				]
+				else
+				[
+					the cave[nextId]
+				];
+			Move a crooked arrow to nextRoom;
+			path := path ++ <nextRoom>;
+		];
+		count ::= ↓the agent's count of remaining arrows;
+		If count > 0 then
+		[
+			Report:
+				format "You have “①” crooked arrows remaining.\n"
+				with ↓the agent's count of remaining arrows;
+		]
+		else
+		[
+			Report:
+				"You are out of ammunition.
+				\|Sensing your vulnerability, the wumpus springs out of \
+				\|nowhere and swallows you whole!\n";
+			Kill the agent;
+		];
+		true
+	]
+];
+Commands
+	"shoot NUMBER",
+	"shoot NUMBER, NUMBER",
+	"shoot NUMBER, NUMBER, NUMBER",
+	"shoot NUMBER, NUMBER, NUMBER, NUMBER",
+	"shoot NUMBER, NUMBER, NUMBER, NUMBER, NUMBER"
+are shooting;
+Commands
+	"shoot #NUMBER",
+	"shoot #NUMBER, #NUMBER",
+	"shoot #NUMBER, #NUMBER, #NUMBER",
+	"shoot #NUMBER, #NUMBER, #NUMBER, #NUMBER",
+	"shoot #NUMBER, #NUMBER, #NUMBER, #NUMBER, #NUMBER"
+are shooting;

@@ -650,7 +650,7 @@ is
 [
 	public : boolean,
 	explicit : boolean,
-	className : <character…|1..>,
+	className : nonempty string,
 	supertype : object meta,
 	optionalExtensions : <<<boolean, boolean, atom, any meta…|4>…|1..>…|0..1>,
 	optionalReconstructors : <<<boolean, <atom…|1..>…|2>…|1..>…|0..1>
@@ -754,7 +754,7 @@ is
 [
 	publicType : boolean's type,
 	explicit : boolean's type,
-	classNameType : <character…|1..>'s type,
+	classNameType : nonempty string's type,
 	meta : object meta's type,
 	optionalExtensions :
 		<<<boolean, boolean, atom, any meta…|4>…|1..>…|0..1>'s type,

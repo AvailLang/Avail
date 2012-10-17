@@ -1,0 +1,410 @@
+/*
+ * Cave.avail
+ * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+System Module "Cave"
+Versions
+	"dev"
+Uses
+	"Avail",
+	"RNG"
+Names
+	/* Rooms. */
+	"room",
+	"room id",
+	"entrance room",
+	"pit room",
+	"unfinished room",
+	"_'s⁇room`#",
+	"_'s⁇adjacent room ids",
+
+	/* Cave. */
+	"cave",
+	"a cave",
+	"_'s⁇entrance room",
+	"_'s⁇network of rooms",
+	"_'s⁇pit rooms"
+Body
+
+/**
+ * Every cave has twenty (20) rooms, numbered from 1 (inclusive) to 20
+ * (inclusive). This type represents a room identifier.
+ *
+ * @type "room id"
+ * @supertype "[1..20]"
+ */
+Public method "room id" is [[1..20]];
+
+/* Define the field atoms for the "unfinished room" type. */
+"room`#" is a new atom;
+"adjacent room ids" is a new atom;
+
+/**
+ * Unfinished rooms are used only by the {@method "a cave" cave builder}.
+ *
+ * @type "unfinished room"
+ * @supertype "object"
+ * @field "room#" "room id"
+ *        The {@type "room id"}. Rooms are usually accessed through a {@type
+ *        "cave"}, so the identifier is retained here only as a cross-check.
+ * @field "exits" "<room id…|3>"
+ *        The {@type "room id" identifiers} of the adjacent rooms.
+ * @see {@type "room"}
+ */
+Class "unfinished room" extends object
+	with fields
+		room# : [0..20],
+		adjacent room ids : {room id|}
+	with reconstructors
+		(room#),
+		(adjacent room ids);
+
+/**
+ * Construct an {@type "unfinished room"}.
+ *
+ * @method "an unfinished room"
+ * @returns "unfinished room"
+ *          An unfinished room.
+ */
+Private method "an unfinished room" is
+[
+	an unfinished room with room# := 0, adjacent room ids := ∅
+] : unfinished room;
+
+/**
+ * A room is a location within a cave. Every room has an {@type "room id"
+ * identifier} and exactly three adjacent rooms.
+ *
+ * @type "room"
+ * @supertype "unfinished room"
+ * @field "room#" "room id"
+ *        The {@type "room id"}. Rooms are usually accessed through a {@type
+ *        "cave"}, so the identifier is retained here only as a cross-check.
+ * @field "exits" "<room id…|3>"
+ *        The {@type "room id" identifiers} of the three adjacent rooms.
+ */
+Public class "room" extends unfinished room
+	with fields
+		room# : room id,
+		adjacent room ids : {room id|3};
+
+/**
+ * The {@type "agent"} begins her adventure in the entrance room. It is the only
+ * location from which the agent may exit the cave.
+ *
+ * @type "entrance room"
+ * @supertype "room"
+ */
+Public explicit class "entrance room" extends room;
+
+/**
+ * The {@type "cave"} contains two pits. Pits are bottomless, and thus fatal to
+ * the {@type "agent"}; the {@type "wumpus"}, however, has sucker feet and is
+ * thus unimpressed. (Just go with it.) Naturally {@type "super bats"} can fly,
+ * and are also unimpressed.
+ *
+ * @type "pit room"
+ * @supertype "room"
+ */
+Public explicit class "pit room" extends room;
+
+/**
+ * Produce a reasonable description of a {@type "unfinished room" room}. This is
+ * an override of the general purpose method "“_”" that produces a textual
+ * description of a value.
+ *
+ * @method "“_”"
+ * @param "aRoom" "unfinished room"
+ *        An arbitrary {@type "unfinished room"} room.
+ * @returns "string"
+ *          A textual rendering of the argument.
+ */
+Method "“_”" is
+[
+	aRoom : unfinished room
+|
+	/* Convert the set of adjacent room identifiers to a tuple, then sort the
+	 * tuple.
+	 */
+	adjacent ::= quicksort aRoom's adjacent room ids → tuple;
+	/* Generate formatted text.
+	 *
+	 * The format string contains three format variables: "name", "id", and
+	 * "rooms". These are the room type (room, pit room, or entrance room), room
+	 * identifier, and sorted adjacent room identifiers, respectively. In the
+	 * format string, "name" and "rooms" are enclosed within single quotation
+	 * marks, meaning that the corresponding objects are strings and should be
+	 * output directly. "id", on the other hand, is enclosed within double
+	 * quotation marks, meaning that the corresponding value will be converted
+	 * to a string via "“_”" prior to output.
+	 *
+	 * The semantic restriction on "format_with«…:=_‡,»" ensures that each
+	 * format variable is bound to a value at run-time and that any format
+	 * variable enclosed in single quotation marks is actually a string.
+	 */
+	format "‘name’ #“id” (exits to: ‘rooms’)" with
+		/* A object type has a set of most specific names; the type intersection
+		 * of two named object types will include both type's names as most
+		 * specific. By construction, we know that room types are not built
+		 * through type intersection, so the name set must contain but a single
+		 * element.
+		 */
+		name := aRoom's type's names→tuple[1],
+		id := aRoom's room#,
+		/* "“_”(as a simple comma-separated list)" composes a textual
+		 * representation of the set that does not include curly braces.
+		 */
+		rooms := “adjacent” (as simple list)
+] : string;
+
+/* Define the field atoms for the "cave" type. */
+"network of rooms" is a new atom;
+"entrance id" is a new atom;
+"pit ids" is a new atom;
+
+/**
+ * The cave comprises a network of twenty (20) {@type "room"}s. One of these
+ * rooms is the {@type "entrance room"} and two are {@type "pit room"}s. The
+ * rooms are arranged as the vertices of a dodecahedron (or faces of an
+ * icosahedron).
+ *
+ * @type "cave"
+ * @supertype "object"
+ * @field "network of rooms" "<room…|20>"
+ *        The {@type "room"}s of the cave.
+ * @field "entrance id" "room id"
+ *        The {@type "room id" identifier} of the {@type "entrance room"}.
+ * @field "pit ids" "{room id|2}"
+ *        The {@type "room id" identifiers} of the two {@type "pit rooms"}.
+ */
+Public class "cave" extends object
+	with fields
+		network of rooms : <room…|20>,
+		entrance id : room id,
+		pit ids : {room id|2};
+
+/**
+ * Produce a reasonable description of a {@type "cave" cave}. This is an
+ * override of the general purpose method "“_”" that produces a textual
+ * description of a value.
+ *
+ * @method "“_”"
+ * @param "aCave" "cave"
+ *        An arbitrary {@type "cave"}.
+ * @returns "string"
+ *          A textual rendering of the argument.
+ */
+Method "“_”" is
+[
+	aCave : cave
+|
+	s : string := "a cave with rooms:";
+	For each of aCave's network of rooms do
+	[
+		aRoom : room
+	|
+		s := s ++ "\n\t" ++ “aRoom”;
+	];
+	s
+] : string;
+
+/**
+ * Randomly generate and answer a {@type "cave"}. The new cave is guaranteed to
+ * be strongly connected; that is, every {@type "room"} is transitively
+ * reachable from every other room. Additionally, the cave features exactly one
+ * {@type "entrance room"} and exactly two {@type "pit room"}s.
+ *
+ * @method "a cave"
+ * @returns "cave"
+ *          A randomly generated {@type "cave"}.
+ */
+Public method "a cave" is
+[
+	$body;
+	/* Construct 20 unfinished rooms. These will become the cave's rooms. This
+	 * tuple is subscripted by room id.
+	 */
+	rooms : <unfinished room…|20> := 20 occurrences of an unfinished room;
+	/* Randomly shuffle the room identifiers. Delve a band that transitively
+	 * connects all the rooms.
+	 */
+	shuffledIds : <room id…|20> := the RNG's next shuffling of 1 to 20;
+	From 1 to 20 do
+	[
+		index : [1..20]
+	|
+		/* Use the index to select a room. */
+		id ::= shuffledIds[index];
+		theRoom : unfinished room := rooms[id];
+		/* Assign the room id. */
+		theRoom := theRoom's room# := id;
+		/* Connect the room to its neighbors in the shuffled tuple. The valid
+		 * subscripts are [1..20], so an attempt to access the 0th or 21st
+		 * element is invalid. Not to worry; "_[_]else_" answers the requested
+		 * element, if valid, and the result of applying the "else" function
+		 * otherwise. We use this constructs to cause wraparound in the limit
+		 * cases.
+		 */
+		backId ::= shuffledIds[index - 1] else [shuffledIds[20]];
+		forwardId ::= shuffledIds[index + 1] else [shuffledIds[1]];
+		/* Update the room tuple with a variant of the current room that
+		 * includes the newly delved tunnels.
+		 */
+		theRoom := theRoom's adjacent room ids := {backId, forwardId};
+		rooms := rooms[id] → theRoom;
+	];
+	/* This is a set of rooms lacking the requisite three tunnels. */
+	incompleteRooms : {room id|0..20} := (1 to 20)→set;
+	From 1 to 20 do
+	[
+		id : room id
+	|
+		/* If this room was completed by a previous step, then ignore it. */
+		If id ∈ incompleteRooms then
+		[
+			/* Use the identifier to select a room. */
+			theRoom : unfinished room := rooms[id];
+			/* Compute the identifiers of the possible neighbors by taking the
+			 * set of identifiers of incomplete rooms and excluding the
+			 * identifiers of the already delved and current rooms. There is a
+			 * small chance that the tunnels were delved in such a way that the
+			 * only option is to loop back to the current room. In this case,
+			 * the cast will fail, and the "else" block will restart the
+			 * algorithm completely.
+			 */
+			neighborIds ::=
+				cast incompleteRooms \ theRoom's adjacent room ids \ {id}
+				into [s : {room id|1..20} | s]
+				else [Restart body];
+			/* Randomly choose a neighbor. */
+			neighborId ::= the RNG's next element of neighborIds;
+			neighborRoom : unfinished room := rooms[neighborId];
+			/* Create variants of the current room and its new neighbor that
+			 * mutually reflect the new tunnel that connects them.
+			 */
+			theRoom := theRoom's adjacent room ids :=
+				theRoom's adjacent room ids + neighborId;
+			neighborRoom := neighborRoom's adjacent room ids :=
+				neighborRoom's adjacent room ids + id;
+			/* The current room and its new neighbor must be satisfy the basic
+			 * requirements for finished rooms. Ensure this.
+			 */
+			Assert: theRoom ∈ room;
+			Assert: neighborRoom ∈ room;
+			/* Update the tuple of rooms with the completed variants. */
+			rooms := rooms[id] → theRoom;
+			rooms := rooms[neighborId] → neighborRoom;
+			/* Remove the current and neighbor identifiers from the set of
+			 * identifiers of incomplete rooms.
+			 */
+			incompleteRooms := incompleteRooms \ {id, neighborId};
+		];
+	];
+	/* Finish the rooms: randomly turn one room into the entrance room and two
+	 * into pit rooms.
+	 */
+	shuffledIds := the RNG's next shuffling of 1 to 20;
+	For each shuffledIds do
+	[
+		id : room id,
+		subscript : [1..20]
+	|
+		/* The method "_as_«with«_:=_‡,»»" produces a variant of an object that
+		 * is an instance of the target subtype. "unfinished room" has three
+		 * subtypes: "room", "entrace room", and "pit room". "entrance room"
+		 * and "pit room" are explicit subtypes of "room"; they differ from
+		 * "room", and from each other, only by a newly obtained atom whose sole
+		 * purpose is to force distinction of the object types.
+		 */
+		theRoom ::=
+			if subscript = 1 then [rooms[id] as entrance room]
+			else if [subscript ≤ 3] then [rooms[id] as pit room]
+			else [rooms[id] as room];
+		rooms := rooms[id] → theRoom;
+	];
+	/* Coerce the tuple of rooms to the stronger type required for a cave's
+	 * network of rooms.
+	 */
+	finishedRooms ::= cast rooms into [r : <room…|20> | r];
+	a cave with
+		network of rooms := finishedRooms,
+		entrance id := shuffledIds[1],
+		pit ids := cast shuffledIds[2..3]→set into [s : {room id|2} | s]
+] : cave;
+
+/**
+ * Answer the {@type "room"} within the specified {@type "cave"} that has the
+ * given {@type "room id" room identifier}.
+ *
+ * @method "_[_]"
+ * @param "aCave" "cave"
+ *        A {@type "cave"}.
+ * @param "id" "room id"
+ *        A {@type "room id" room identifier}.
+ * @returns The requested {@type "room"}.
+ */
+Method "_[_]" is
+[
+	aCave : cave,
+	id : room id
+|
+	aCave's network of rooms[id]
+] : room;
+
+/**
+ * Answer the specified {@type "cave"}'s {@type "entrance room"}.
+ *
+ * @method "_'s⁇entrance room"
+ * @param "c" "cave"
+ *        A {@type "cave"}.
+ * @returns "room"
+ *         The {@type "entrance room"} (strengthened by a semantic restriction).
+ */
+Public method "_'s⁇entrance room" is [c : cave | c[c's entrance id]] : room;
+Semantic restriction "_'s⁇entrance room" is [c : cave's type | entrance room];
+
+/**
+ * Answer the specified {@type "cave"}'s {@type "pit rooms"}.
+ *
+ * @method "_'s⁇pit rooms"
+ * @param "c" "cave"
+ *        A {@type "cave"}.
+ * @returns "{room|2}"
+ *         The {@type "pit rooms"} (strengthened by a semantic restriction).
+ */
+Public method "_'s⁇pit rooms" is
+[
+	c : cave
+|
+	map c's pit ids through [id : room id | c[id]]
+] : {room|2};
+
+Semantic restriction "_'s⁇pit rooms" is [c : cave's type | {pit room|2} ];

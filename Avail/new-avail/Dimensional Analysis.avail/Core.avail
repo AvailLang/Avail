@@ -463,7 +463,7 @@ Method "“_”" is
 Public method "_has symbol_" is
 [
 	aUnit : unit,
-	symbol : <character…|1..>
+	symbol : nonempty string
 |
 	/* Generate a factory method. */
 	Method symbol is generate «[ <> | <‘`aUnit` ("")’> ] : aUnit's type»;
@@ -485,8 +485,8 @@ Public method "_has symbol_" is
  */
 Public method "_(_)is a base unit" is
 [
-	name : <character…|1..>,
-	symbol : <character…|1..>
+	name : nonempty string,
+	symbol : nonempty string
 |
 	id ::= atom for name;
 	def ::= {id → 1};
@@ -709,8 +709,8 @@ From 2 to |prettyPowers| do
  */
 Public method "_(_)is a derived unit equivalent to_" is
 [
-	name : <character…|1..>,
-	symbol : <character…|1..>,
+	name : nonempty string,
+	symbol : nonempty string,
 	aUnit : unit
 |
 	aUnit has symbol name;

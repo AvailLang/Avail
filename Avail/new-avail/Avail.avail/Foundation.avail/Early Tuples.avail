@@ -45,6 +45,7 @@ Uses
 	"Literals",
 	"Variables"
 Names
+	"nonempty string",
 	"relevant`|_`|",
 	"«_‡++»",
 	"_[_..]",
@@ -677,3 +678,12 @@ Semantic restriction "_[_]else_" is
 		]
 	]
 ];
+
+/**
+ * Answer the type of nonempty strings.
+ *
+ * @method "nonempty string"
+ * @returns "<character…|1..>"
+ *          A type that has all nonempty strings as its instances.
+ */
+Public method "nonempty string" is [<<>, character…|[1..∞)>];

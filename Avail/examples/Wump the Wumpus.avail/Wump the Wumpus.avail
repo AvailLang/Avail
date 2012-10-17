@@ -1,5 +1,5 @@
 /*
- * Collections.avail
+ * Wump the Wumpus.avail
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -30,23 +30,9 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Collections"
+System Module "Wump the Wumpus"
 Versions
 	"dev"
-Names
-	/* The implementations are provided by Tuples, Sets, and Maps, but the names
-	 * are introduced here.
-	 */
-	"For each of⁇_do_",
-	"Require:_accepts_",
-	"any of_satisfies_",
-	"count of_where_",
-	"each of_satisfies_",
-	"filter_by_",
-	"group_by_",
-	"map and filter_by_",
-	"map_through_",
-	"_is empty",
-	"_[_]else_",
-	"_∉_"
+Extends
+	"Game"
 Body

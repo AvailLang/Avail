@@ -1,0 +1,386 @@
+/*
+ * Movable Entities.avail
+ * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+System Module "Movable Entities"
+Versions
+	"dev"
+Uses
+	"Avail",
+	"Cave",
+	"RNG"
+Names
+	/* Creatures. */
+	"a|an_",
+	"agent",
+	"creature",
+	"crooked arrow",
+	"movable entity",
+	"super bat swarm",
+	"wumpus",
+
+	/* Location. */
+	"location",
+	"_'s⁇location",
+
+	/* Life cycle. */
+	"Kill_",
+	"_is«alive|dead»!",
+	"_'s⁇count of remaining arrows",
+	"_'s⁇life flag",
+
+	/* Exploration. */
+	"Handle_'s⁇arrival in_",
+	"Move_to_«(initial placement)»?",
+
+	/* Wumpus activity. */
+	"_is active",
+	"Now_is«active|inactive»!"
+Body
+
+/* Define field atoms for the "movable entity" type. */
+"location" is a new atom;
+
+/**
+ * A movable entity can move around in a {@type "cave"}, though not necessarily
+ * under its own power.
+ *
+ * @type "movable entity"
+ * @supertype "object"
+ * @field "location" "↑room"
+ *        The (mutable) {@type "room" location} of the movable entity.
+ */
+Public class "movable entity" extends object
+	with fields
+		location : ↑room;
+
+/**
+ * A crooked arrow is a {@type "movable entity"} carried by the {@type "agent"}
+ * for the purpose of wumping the {@type "wumpus"}.
+ *
+ * @type "crooked arrow"
+ * @supertype "movable entity"
+ */
+Public explicit class "crooked arrow" extends movable entity;
+
+/* Define field atoms for the "creature" type. */
+"life flag" is a new atom;
+
+/**
+ * A creature is an occupant or explorer of a {@type "cave"}.
+ *
+ * @type "creature"
+ * @supertype "movable entity"
+ * @field "life flag" "boolean"
+ *        {@method "true"} if the creature is active, {@method "false"}
+ *        otherwise.
+ */
+Public class "creature" extends movable entity
+	with fields
+		life flag : ↑boolean;
+
+/**
+ * Assess the vitality of the specified creature.
+ *
+ * @method "_is«alive|dead»!"
+ * @param "critter" "creature"
+ *        A {@type "creature"}.
+ * @param "mode" "[1..2]"
+ *        {@code 1} if the message included the token {@code "alive"}, or
+ *        {@code 2} if the message included the token {@code "dead"}.
+ * @returns "boolean"
+ */
+Public method "_is«alive|dead»!" is
+[
+	critter : creature,
+	mode : [1..2]
+|
+	↓critter's life flag = (mode = 1)
+] : boolean;
+
+/* Define field atoms for the "agent" type. */
+"count of remaining arrows" is a new atom;
+
+/**
+ * The agent is the player character.
+ *
+ * @type "agent"
+ * @supertype "creature"
+ * @field "count of remaining arrows" "↑(-∞..5]"
+ *        The number of {@type "crooked arrow"}s remaining in the agent's
+ *        quiver.
+ */
+Public class "agent" extends creature
+	with fields
+		count of remaining arrows : ↑(-∞..5];
+
+/**
+ * A super bat swarm conceptually comprises a close-knit multitude of herculean
+ * bats. So strong are they that they can grab an {@type "agent"} and carry her
+ * to any {@type "room"} of the {@type "cave"}.
+ *
+ * @type "super bat swarm"
+ * @supertype "creature"
+ */
+Public explicit class "super bat swarm" extends creature;
+
+/* Define field atoms for the "wumpus" type. */
+"activity flag" is a new atom;
+
+/**
+ * The fabled wumpus is master of the {@type "cave"}. It will eat any {@type
+ * "creature"} that dares enter its fell presence.
+ *
+ * @type "wumpus"
+ * @supertype "creature"
+ * @field "activity flag" "↑boolean"
+ *        {@method "true"} if the wumpus is currently active, {@method "false"}
+ *        otherwise.
+ */
+Public class "wumpus" extends creature
+	with fields
+		activity flag : ↑boolean;
+
+/**
+ * Is the {@type "wumpus"} active?
+ *
+ * @method "_is active"
+ * @param "w" "wumpus"
+ *        A {@type "wumpus"}.
+ * @returns "boolean"
+ *          {@method "true"} if the {@type "wumpus"} is active, {@method
+ *          "false"} otherwise.
+ */
+Public method "_is active" is [w : wumpus | ↓w's activity flag] : boolean;
+
+/**
+ * Set the activity flag of the {@type "wumpus"}.
+ *
+ * @method "Now_is«active|inactive»!"
+ * @param "aWumpus" "wumpus"
+ *        A {@type "wumpus"}.
+ * @param "mode" "[1..2]"
+ *        If the keyword {@code "active"} was parsed, then the {@type "wumpus"}
+ *        is now active. If the keyword {@code "inactive"} was parsed, then the
+ *        {@type "wumpus"} is not inactive.
+ */
+Public method "Now_is«active|inactive»!" is
+[
+	aWumpus : wumpus,
+	mode : [1..2]
+|
+	↓aWumpus's activity flag ?= if mode = 1 then [true] else [false];
+] : ⊤;
+
+/**
+ * Construct and answer a new {@type "movable entity"} of the specified subtype.
+ *
+ * @method "a|an_"
+ * @param "entityKind" "movable entity's type"
+ *        A subtype of {@type "movable entity"}.
+ * @returns "creature"
+ *          A {@type "movable entity"} of the requested type.
+ */
+Public method "a|an_" is
+[
+	entityKind : movable entity's type
+|
+	/* A movable entity's "location" field binds a variable. So unlike a cave or
+	 * room, a movable entity is mutable (by virtue of having some mutable
+	 * state). Capture a local variable, "entityLocation", for this field. Local
+	 * variables are created anew whenever a function is applied, so no
+	 * accidental sharing can occur because of this strategy.
+	 */
+	entityLocation : room;
+	an entityKind with location := ↑entityLocation
+] : movable entity;
+
+/**
+ * Construct and answer a new {@type "creature"}.
+ *
+ * @method "a|an_"
+ * @param "entityKind" "creature's type"
+ *        The type {@type "creature"}.
+ * @returns "creature"
+ *          A {@type "creature"}.
+ */
+Public method "a|an_" is
+[
+	entityKind : creature's type
+|
+	agentLocation : room;
+	isAlive : boolean := true;
+	an entityKind with
+		location := ↑agentLocation,
+		life flag := ↑isAlive
+] : creature;
+
+/**
+ * Construct and answer a new {@type "agent"}.
+ *
+ * @method "a|an_"
+ * @param "entityKind" "agent's type"
+ *        The type {@type "agent"}.
+ * @returns "agent"
+ *          An {@type "agent"}.
+ */
+Public method "a|an_" is
+[
+	entityKind : agent's type
+|
+	agentLocation : room;
+	isAlive : boolean := true;
+	arrowsLeft : (-∞..5] := 5;
+	an agent with
+		location := ↑agentLocation,
+		life flag := ↑isAlive,
+		count of remaining arrows := ↑arrowsLeft
+] : agent;
+
+/**
+ * Construct and answer a new {@type "wumpus"}.
+ *
+ * @method "a|an_"
+ * @param "entityKind" "wumpus's type"
+ *        The type {@type "wumpus"}.
+ * @returns "wumpus"
+ *          A {@type "wumpus"}.
+ */
+Public method "a|an_" is
+[
+	entityKind : wumpus's type
+|
+	lair : room;
+	isAlive : boolean := true;
+	isActive : boolean := false;
+	a wumpus with
+		location := ↑lair,
+		life flag := ↑isAlive,
+		activity flag := ↑isActive
+] : wumpus;
+
+/**
+ * Strengthen the type of the answer to the supplied {@type "movable entity"}
+ * type.
+ *
+ * @method "a|an_"
+ * @restricts "movable entity's type's type"
+ */
+Semantic restriction "a|an_" is
+[
+	entityMeta : movable entity's type's type
+|
+	/* Every metatype has a specific type as its sole instance. */
+	entityKind ::= entityMeta's instance;
+	/* "movable entity" and "creature" are essentially abstract types; they
+	 * should not have any direct instances, so forbid an attempt to create one.
+	 */
+	If entityKind ∈ {movable entity, creature} then
+	[
+		Reject parse, expected: "a concrete subtype of \"movable entity\""
+	];
+	/* The actual movable entity will be an instance of "entityKind". */
+	entityKind
+];
+
+/**
+ * React to the arrival of a {@type "movable entity"} in a particular {@type
+ * "room"}: do nothing.
+ *
+ * This method should be overridden for interesting combinations of {@type
+ * "movable entity"} type and {@type "room"} type.
+ *
+ * @method "Handle_'s⁇arrival in_"
+ * @param "entity" "movable entity"
+ *        A {@type "movable entity"}.
+ * @param "aRoom" "room"
+ *        A {@type "room"}.
+ */
+Public method "Handle_'s⁇arrival in_" is
+[
+	entity : movable entity,
+	aRoom : room
+|
+	/* Do nothing. */
+] : ⊤;
+
+/**
+ * Move the specified {@type "movable entity"} to the specified {@type "room"},
+ * then {@method "Handle_'s⁇arrival in_" handle its arrival}.
+ *
+ * @method "Move_to_"
+ * @param "entity" "movable entity"
+ *        A {@type "movable entity"}.
+ * @param "aRoom" "room"
+ *        A {@type "room"}.
+ * @param "initialPlacement" "boolean"
+ *        If {@method "true"}, then do not actually {@method
+ *        "Handle_'s⁇arrival in_" handle} {@param "entity"}'s arrival.
+ */
+Public method "Move_to_«(initial placement)»?" is
+[
+	entity : movable entity,
+	aRoom : room,
+	initialPlacement : boolean
+|
+	/* "↓_?=_" does indirect assignment, i.e., assignment to variable that is
+	 * not directly in scope but instead the result of evaluating of an
+	 * expression. In this case, the expression is "_'s⁇location", which answers
+	 * the value bound to the argument's field.
+	 *
+	 * Unlike a direct assignment, which is checked for type compatibility by
+	 * the compiler, indirect assignment is not checked for type compatibility
+	 * until execution time. Nonetheless, this assignment will always be
+	 * correct.
+	 */
+	↓entity's location ?= aRoom;
+	/* Handle the entity's arrival in the new room. */
+	Unless initialPlacement then [Handle entity's arrival in aRoom;];
+] : ⊤;
+
+/* Do not permit overriding of "Move_to_". Specializations of behavior should
+ * be accomplished by overriding "Handle_'s⁇arrival in_" instead.
+ */
+Seal method "Move_to_«(initial placement)»?" at <movable entity, room, boolean>;
+
+/**
+ * Kill the specified {@type "creature"}.
+ *
+ * @method "Kill_"
+ * @param "critter" "creature"
+ *        The presently deceased {@type "creature"}.
+ */
+Public method "Kill_" is
+[
+	critter : creature
+|
+	↓critter's life flag ?= false;
+] : ⊤;

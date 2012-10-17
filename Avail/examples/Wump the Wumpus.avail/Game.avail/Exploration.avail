@@ -1,0 +1,238 @@
+/*
+ * Exploration.avail
+ * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+System Module "Exploration"
+Versions
+	"dev"
+Uses
+	"Avail",
+	"Cave",
+	"Context",
+	"Geography",
+	"IO",
+	"Movable Entities",
+	"Perception",
+	"RNG"
+Body
+
+/**
+ * Attack the {@type "agent"} with a {@type "super bat swarm"}. Move the {@type
+ * "agent"} and the {@type "super bat swarm" swarm} randomly. Never put them
+ * together afterward.
+ */
+Private method "Super bat swarm attack" is
+[
+	aRoom ::= ↓the agent's location;
+	/* Figure out which swarm is here. */
+	theSwarm ::= if ↓the first swarm's location = aRoom
+		then [the first swarm]
+		else [the second swarm];
+	Report:
+		"A swarm of monstrous super bats swoops down and grabs you.
+		\|Dizziness overtakes you as they spirit you away.
+		\|The swarm drops you somewhere else and then wings off madly…\n";
+	/* Figure out where to move the agent and the swarm. Don't put the swarm
+	 * with any of the other creatures.
+	 */
+	rooms ::= cast the cave's network of rooms→set into [s : {room|20} | s];
+	agentDestination ::= the RNG's next element of rooms \ {aRoom};
+	swarmDestination ::= the RNG's next element of rooms \
+		{
+			↓the first swarm's location,
+			↓the second swarm's location,
+			/* 0 is guaranteed not to be present, so it's safe to try to
+			 * remove it.
+			 */
+			if the wumpus is alive then [↓the wumpus's location] else [0],
+			agentDestination
+		};
+	/* Actually move them! */
+	Move the agent to agentDestination;
+	Move theSwarm to swarmDestination;
+];
+
+Method "Handle_'s⁇arrival in_" is
+[
+	anAgent : agent,
+	aRoom : room
+|
+	Assert: anAgent = the agent;
+	Assert: ↓the agent's location = aRoom;
+	/* If the wumpus is here, then kill the agent. */
+	If the agent's location contains the wumpus then
+	[
+		If the wumpus is alive then
+		[
+			Report: "My, Wumpus, what big teeth you have!\n";
+			Kill the agent;
+		]
+		else
+		[
+			Report: "There is a dead wumpus here. Sure is ugly.\n";
+		];
+	]
+	/* If a super bat swarm is here, then move the player (and the swarm)
+	 * randomly.
+	 */
+	else if [the agent's location contains a super bat swarm] then
+	[
+		Super bat swarm attack;
+	]
+	/* Nothing interesting happened, so describe the room. */
+	else
+	[
+		Report:
+			format
+				"You are now in room #“id”.
+				\|There are exits to rooms ‘exits’ here.
+				\|‘escape’\
+				\|‘info’"
+			with
+				id := aRoom's room#,
+				/* Sort the adjacent room ids, convert them strings with
+				 * octothorp (#) prepended, and put them into a nice English
+				 * list using the serial comma.
+				 */
+				exits :=
+					“map quicksort aRoom's adjacent room ids→tuple
+					through [n : room id | "#" ++ “n”]”
+					(as conjunctive list with serial comma),
+				/* If this is the entrance room, then indicate that. */
+				escape :=
+					if aRoom ∈ entrance room then
+					[
+						"Additionally, there is an exit from the cave here.\n"
+					]
+					else [""],
+				/* Report sensory information available at the new location. */
+				info := accumulated sensory information;
+	];
+];
+
+Method "Handle_'s⁇arrival in_" is
+[
+	aSwarm : super bat swarm,
+	aRoom : room
+|
+	/* Upon discovery of the agent, attack her viciously! */
+	If aSwarm's location contains the agent then
+	[
+		Report: "A swarm of super bats enters the room. Uh oh.\n";
+		Super bat swarm attack;
+	];
+];
+
+Method "Handle_'s⁇arrival in_" is
+[
+	aWumpus : wumpus,
+	aRoom : room
+|
+	Assert: aWumpus = the wumpus;
+	Assert: ↓the wumpus's location = aRoom;
+	Assert: the wumpus is alive;
+	/* Upon discovery of the tasty agent, eat her up! Yum! */
+	If the wumpus's location contains the agent then
+	[
+		Report: "The wumpus charges in and gobbles you up!\n";
+		Kill the agent;
+	];
+];
+
+Method "Handle_'s⁇arrival in_" is
+[
+	anAgent : agent,
+	aRoom : pit room
+|
+	Assert: anAgent = the agent;
+	Assert: ↓the agent's location = aRoom;
+	If the agent's location contains a super bat swarm then
+	[
+		Report: "You are plummetting into a bottomless pit, but then…\n";
+		Super bat swarm attack;
+	]
+	else
+	[
+		Report: "You plummet into a bottomless pit!\n";
+		Kill the agent;
+	];
+];
+
+Method "Handle_'s⁇arrival in_" is
+[
+	anArrow : crooked arrow,
+	aRoom : room
+|
+	/* If the agent is in the room, then kill her. Shot with her own arrow;
+	 * how sad!
+	 */
+	If aRoom contains the agent then
+	[
+		Report: "Thwack! Shot with your own arrow. How sad.\n";
+		Kill the agent;
+	]
+	/* If the room contains the wumpus, then kill it. Victory is thine! */
+	else if [aRoom contains the wumpus] then
+	[
+		If the wumpus is alive then
+		[
+			Report:
+				"Thud! There is a great roar and then silence. \
+				\|The wumpus is dead.\n";
+			Kill the wumpus;
+		]
+		else
+		[
+			Report: "Thud!\n";
+		];
+	]
+	/* If the room contains super bats, then move them to the agent's location.
+	 * The agent's subsequent translocation may put her in the arrow's path.
+	 * Super bat swarms are *REALLY FAST*, you know?
+	 */
+	else if [aRoom contains a super bat swarm] then
+	[
+		swarm ::= if the first swarm is in aRoom
+			then [the first swarm]
+			else [the second swarm];
+		Report:
+			"You hear a great rustling, as of a multitude of wings.
+			\|Faster than a speeding arrow, …\n";
+		Move swarm to ↓the agent's location;
+	];
+	/* If the arrow whizzed by the wumpus, then wake it up. */
+	If the wumpus is alive
+		∧ [aRoom ∈ the wumpus's location's adjacent rooms] then
+	[
+		Report: "\"Murfle?\" Something large stirs.\n";
+		Now the wumpus is active;
+	];
+];

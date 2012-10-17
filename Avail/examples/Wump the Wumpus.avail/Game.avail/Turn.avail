@@ -1,0 +1,147 @@
+/*
+ * Turn.avail
+ * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+System Module "Turn"
+Versions
+	"dev"
+Uses
+	"Avail",
+	"Cave",
+	"Command",
+	"Context",
+	"Geography",
+	"IO",
+	"Movable Entities",
+	"RNG"
+Names
+	"Give_a turn"
+Body
+
+/**
+ * Give the specified {@type "creature"} an opportunity to act.
+ *
+ * @method "Give_a turn"
+ * @param "critter" "creature"
+ *        A {@type "creature"}.
+ */
+Public abstract method "Give_a turn" is [creature]→⊤;
+
+Method "Give_a turn" is
+[
+	anAgent : agent
+|
+	Assert: anAgent = the agent;
+	Until
+	[
+		Report: "\n> ";
+		Read and execute the next command
+	];
+];
+
+Method "Give_a turn" is
+[
+	aWumpus : wumpus
+|
+	Assert: aWumpus = the wumpus;
+	If the wumpus is active then
+	[
+		Assert: the wumpus is alive;
+		/* There is a 75% chance that an active wumpus will move. */
+		If the RNG's next [1..4] < 4 then
+		[
+			/* If the agent is right next door, then go devour her. Yum! */
+			If any of the wumpus's location's adjacent rooms satisfies
+				[r : room | r contains the agent]
+			then
+			[
+				Move the wumpus to ↓the agent's location;
+			]
+			/* Otherwise, randomly move the wumpus if possible. */
+			else
+			[
+				/* There's a slim chance that the wumpus has nowhere to go, in
+				 * which case, don't move him.
+				 */
+				choices ::= the wumpus's location's adjacent rooms \
+					the cave's pit rooms \
+					{↓the first swarm's location, ↓the second swarm's location};
+				Cast choices into
+				[
+					nonempty : {room|1..3}
+				|
+					/* Randomly choose among the allowed destinations. */
+					destination ::= the RNG's next element of nonempty;
+					Move the wumpus to destination;
+				]
+				else
+				[
+					/* Do nothing: the wumpus will stay put. */
+				];
+			];
+		];
+		/* There is a 25% chance that an active wumpus is tired. */
+		If the RNG's next [1..4] = 1 then
+		[
+			Now the wumpus is inactive;
+		];
+	];
+];
+
+Method "Give_a turn" is
+[
+	aSwarm : super bat swarm
+|
+	/* A super bat swarm only has a 5% chance of moving. */
+	If the RNG's next [1..20] = 1 then
+	[
+		/* Don't move a super bat swarm into a room containing another super bat
+		 * swarm or the wumpus.
+		 */
+		choices ::= aSwarm's location's adjacent rooms \
+			{
+				↓the first swarm's location,
+				↓the second swarm's location,
+				↓the wumpus's location
+			};
+		/* Nonetheless, a super bat swarm always has somewhere to go. This cast
+		 * should never fail.
+		 */
+		Cast choices into
+		[
+			nonempty : {room|1..3}
+		|
+			/* Randomly choose among the allowed destinations. */
+			destination ::= the RNG's next element of nonempty;
+			Move aSwarm to destination;
+		];
+	];
+];
