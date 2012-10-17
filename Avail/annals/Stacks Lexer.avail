@@ -185,6 +185,7 @@ Private method "tokenize_" is
 	 	priorNewLine := i;
 		↑lineCount++;
 	];
+	
 	/* Tokenize comment lines */
 	For each bufferMap do
 	[
@@ -193,31 +194,36 @@ Private method "tokenize_" is
 	 |
 	 	columnPosition : natural number := 1;
 		charCounter : whole number := 0;
-/*Print: format "\n\nStart Newline=“①”\n" with lineNumber;*/
+
 		/* Is the new line a continuation of a nested comment, if so consume *
 		 * without tokenizing the contents                                   */
+
+	While
+	[
+	 	charCounter < |commentLine|
+	]
+	do
+	[
 		If openComment > 1 then
 		[
 		 	While
 		 	[
-		 	 	openComment > 1 ∨ [charCounter < |commentLine|]
+		 	 	openComment > 1 ∧ [charCounter < |commentLine|]
 		 	]
 		 	do
 		 	[
-Print: "In nested comment\n";
-/*Print: format "commentLine[charCounter]=“①”\n" with commentLine[charCounter];*/
+
 		 	 	/* Consume nested comment without tokenizing but moving *
 		 	 	 * column pointer										*/
-		 	 	wordStart : natural number := charCounter + 1;
+		 	 	If charCounter = 0 then [↑charCounter++;];
+		 	 	
 				word : <character…|> := take from commentLine[charCounter+1..] 
 				until 
 				[
 				 	c : character 
 				 |
-Print: "here1\n";
-Print: <c>;
-Print: format "\nc=“①”\n" with c;
-				 	↑charCounter++;
+
+					If charCounter ≠ |commentLine| then [↑charCounter++;];
 				 	c ∈ {¢/,¢*}  ∨ [charCounter = |commentLine|]
 				];
 		 	 	
@@ -231,7 +237,8 @@ Print: format "charCounter=“①”\n" with charCounter;
 Print: format "j=“①”\n" with j;
 Print: format "|commentLine|=“①”\n" with |commentLine|;
 Print: format "commentLine[j]=“①”\n" with commentLine[j];
-		 	 	If charCounter < |commentLine| +1 ∨ [commentLine[j] ∈ {¢/,¢*}] then  
+p::=next line;
+		 	 	If charCounter < |commentLine| +1 ∧ [commentLine[j] ∈ {¢/,¢*}] then  
 				[
 					Cast commentLine[j] into
 					[
@@ -254,13 +261,13 @@ Print: "here5\n";
 						¢/ is
 						[
 Print: "here6\n";
-							/*If commentLine[j+1] = ¢* then
+							If commentLine[j+1] = ¢* then
 							[
 Print: "here7\n";
 							 	/*Open new nested comment*/
 								↑openComment++;
 								↑charCounter++;
-							];*/
+							];
 						];
 					];
 				];
@@ -269,7 +276,7 @@ Print: "here7\n";
 		];
 		While
 		[
-		 	charCounter < |commentLine|
+		 	charCounter < |commentLine| ∧ [openComment < 2]
 		]
 		do
 		[
@@ -448,13 +455,19 @@ Print: "  word="; Print: word; Print: "~\n";
 					[
 Print: " In forward slash\n";
 Print: "  word="; Print: word; Print: "~\n";
+Print: "<commentLine[j+1]>="; Print: <commentLine[j+1]>; Print: "\n";
+Print: format "charCounter=“①”\n" with charCounter;
 					 	/*Check to see if open nested comment*/
-					 	If commentLine[j+1] = ¢* then
+					 	if commentLine[j+1] = ¢* then
 				 		[Print: "In 1\n";
+p::=next line;
 		 		 	 		↑charCounter++;
+Print: format "charCounter=“①”\n" with charCounter;
 				 		 	if openComment = 0 ∧ [|commentLine| ≤ j + 2] then
 				 		 	[Print: "In 2\n";
 				 		 	 	/*Open new comment*/
+
+Print: "<commentLine[j+2]>="; Print: <commentLine[j+2]>; Print: "\n"; z::=next line;
 				 		 	 	↑openComment++;
 				 		 	 	If commentLine[j+2] = ¢* then
 				 		 	 	[Print: "In 3\n";
@@ -463,12 +476,18 @@ Print: "  word="; Print: word; Print: "~\n";
 				 		 	 	];
 				 		 	] else
 				 		 	[Print: "In 4\n";
+Print: format "charCounter=“①”\n" with charCounter;
+v::=next line;
 				 		 	 	/*Open new nested comment*/
 				 		 	 	↑openComment++;
 				 		 	 	↑charCounter++;
+Print: format "charCounter=“①”\n" with charCounter;
+f : natural number := cast charCounter into [w : natural number | w];
+Print: "<commentLine[charCounter]>="; Print: <commentLine[f]>;
+ev::=next line;
 				 		 	];
-						]; /*else
-						[Print: "In 5\n"; Print: format "commentLine[j]=“①”\n" with commentLine[j];
+						] else
+						[Print: "In 5\n"; Print: format "commentLine[j]=“①”\n" with commentLine[j]; g::=next line;
 					  	 	word := word ++ <commentLine[j]>;
 					  		↑charCounter++;
 					  		word := word ++ take from commentLine[j+1..] until 
@@ -479,7 +498,7 @@ Print: "  word="; Print: word; Print: "~\n";
 			 					ch ∈ keyCharacters ∨ 
 		 							[charCounter = |commentLine|]
 			 				];
-						];*/
+						];
 					 	If word ∉ doNotTokenize then 
 					 	[
 					 	 	stacksTokens := stacksTokens ++ 
@@ -513,6 +532,7 @@ Print: format "\nEnd of Line=“①”\n" with lineNumber;
 			];
 		];
 	];
+	];
 	stacksTokens
 ]:<stacks token…|>;
 
@@ -526,7 +546,8 @@ t ::="/**
 * @param \"comment\" \"string\" 
 *		a qualifying stacks comment
 * @returnType \"<stacks token…|>\"
-*		a tuple of stacks tokens.  /* Frog */ Excludes `*.
+*		a tuple of stacks tokens.  /* Frog 
+* in the bottom of space*/ Excludes `*.
 * @author \"Richard Arriaga\"
 */";
 
