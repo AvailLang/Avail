@@ -98,6 +98,11 @@ Method "Kill_" is
 	Now the wumpus is inactive;
 ];
 
+Private method "Welcome" is
+[
+	Report: "Welcome to WUMP THE WUMPUS. Type \"help\" for instructions.\n\n";
+];
+
 /**
  * Report victory to the player.
  *
@@ -132,10 +137,8 @@ Public method "Play Wump the Wumpus" is
 [
 	Use a game of Wump the Wumpus as the implied game and do
 	[
-		/* Force the agent to re-enter the entrance room. This is the simplest
-		 * way of reporting the initial room description to the player.
-		 */
-		Move the agent to the cave's entrance room;
+		Welcome;
+		Look around, having just entered;
 		Until the game is over, do
 		[
 			Give the agent a turn;

@@ -42,7 +42,82 @@ Uses
 	"Movable Entities",
 	"Perception",
 	"RNG"
+Names
+	"Look around«,having just entered»?",
+	"Quiver check"
 Body
+
+/**
+ * Report the description of the {@type "agent"}'s {@type "room" location}.
+ *
+ * @method "Look around"
+ * @param "justArrived" "boolean"
+ *        {@method "true"} if the {@type "agent"} is just entering the {@type
+ *        "room"}, {@method "false"} otherwise.
+ */
+Public method "Look around«,having just entered»?" is
+[
+	justArrived : boolean
+|
+	aRoom ::= ↓the agent's location;
+	Report:
+		format
+			"You are ‘arrived’in room ‘where’.
+			\|There are exits to rooms ‘exits’ here.
+			\|‘escape’\
+			\|‘info’"
+		with
+			arrived := if justArrived then ["now "] else [""],
+			where := #“aRoom” (with label),
+			/* Sort the adjacent room ids, convert them strings with
+			 * octothorp (#) prepended, and put them into a nice English
+			 * list using the serial comma.
+			 */
+			exits :=
+				“map quicksort aRoom's adjacent room ids→tuple
+				through [n : room id | #“the cave[n]” (with label)]”
+				(as conjunctive list with serial comma),
+			/* If this is the entrance room, then indicate that. */
+			escape :=
+				if aRoom ∈ entrance room then
+				[
+					"Additionally, there is an exit from the cave here.\n"
+				]
+				else [""],
+			/* Report sensory information available at the new location. */
+			info := accumulated sensory information;
+	If ↓the wumpus's location = aRoom then
+	[
+		Report: "There is a dead wumpus here. Sure is ugly.\n";
+	];
+];
+
+/**
+ * Check the {@type "agent"}'s quiver (after firing a {@type "crooked arrow"}.
+ *
+ * @method "Quiver check"
+ */
+Public method "Quiver check" is
+[
+	count ::= ↓the agent's count of remaining arrows;
+	If count > 0 then
+	[
+		Report:
+			format "You have “①” crooked arrows remaining.\n"
+			with ↓the agent's count of remaining arrows;
+	]
+	else
+	[
+		Report: "You are out of ammunition.\n";
+		If the wumpus is alive then
+		[
+			Report:
+				"Sensing your vulnerability, the wumpus springs out of \
+				\|nowhere and swallows you whole!\n";
+			Kill the agent;
+		];
+	];
+];
 
 /**
  * Attack the {@type "agent"} with a {@type "super bat swarm"}. Move the {@type
@@ -88,17 +163,10 @@ Method "Handle_'s⁇arrival in_" is
 	Assert: anAgent = the agent;
 	Assert: ↓the agent's location = aRoom;
 	/* If the wumpus is here, then kill the agent. */
-	If the agent's location contains the wumpus then
+	If the agent's location contains the wumpus ∧ [the wumpus is alive] then
 	[
-		If the wumpus is alive then
-		[
-			Report: "My, Wumpus, what big teeth you have!\n";
-			Kill the agent;
-		]
-		else
-		[
-			Report: "There is a dead wumpus here. Sure is ugly.\n";
-		];
+		Report: "My, Wumpus, what big teeth you have!\n";
+		Kill the agent;
 	]
 	/* If a super bat swarm is here, then move the player (and the swarm)
 	 * randomly.
@@ -110,31 +178,7 @@ Method "Handle_'s⁇arrival in_" is
 	/* Nothing interesting happened, so describe the room. */
 	else
 	[
-		Report:
-			format
-				"You are now in room #“id”.
-				\|There are exits to rooms ‘exits’ here.
-				\|‘escape’\
-				\|‘info’"
-			with
-				id := aRoom's room#,
-				/* Sort the adjacent room ids, convert them strings with
-				 * octothorp (#) prepended, and put them into a nice English
-				 * list using the serial comma.
-				 */
-				exits :=
-					“map quicksort aRoom's adjacent room ids→tuple
-					through [n : room id | "#" ++ “n”]”
-					(as conjunctive list with serial comma),
-				/* If this is the entrance room, then indicate that. */
-				escape :=
-					if aRoom ∈ entrance room then
-					[
-						"Additionally, there is an exit from the cave here.\n"
-					]
-					else [""],
-				/* Report sensory information available at the new location. */
-				info := accumulated sensory information;
+		Look around, having just entered;
 	];
 ];
 
@@ -176,7 +220,7 @@ Method "Handle_'s⁇arrival in_" is
 	Assert: ↓the agent's location = aRoom;
 	If the agent's location contains a super bat swarm then
 	[
-		Report: "You are plummetting into a bottomless pit, but then…\n";
+		Report: "You are plummeting into a bottomless pit, but then…\n";
 		Super bat swarm attack;
 	]
 	else
@@ -206,7 +250,8 @@ Method "Handle_'s⁇arrival in_" is
 		[
 			Report:
 				"Thud! There is a great roar and then silence. \
-				\|The wumpus is dead.\n";
+				\|The wumpus is dead.
+				\|Now might be a good time to return home.\n";
 			Kill the wumpus;
 		]
 		else

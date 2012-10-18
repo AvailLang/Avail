@@ -36,6 +36,12 @@ Versions
 Uses
 	"Avail"
 Names
+	/* Token types. */
+	"command token",
+	"number token",
+	"string token",
+
+	/* Tokenization. */
 	"tokenize_"
 Body
 
@@ -74,6 +80,12 @@ Public method "tokenize_" is
 			else if [c is an Arabic numeral] then
 			[
 				While [↑i++; i ≤ |s| ∧ [s[i] is an Arabic numeral]];
+			]
+			/* A string token begins and ends with a quotation mark ("). */
+			else if [c = ¢"\""] then
+			[
+				While [↑i++; i ≤ |s| ∧ [s[i] ≠ ¢"\""]];
+				If i ≤ |s| then [↑i++;];
 			]
 			/* Any other character is considered a token. */
 			else

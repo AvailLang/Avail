@@ -68,19 +68,21 @@ Private method "«Didn't understand_,»Expected|expected a child of_" is
 	node : root command node
 |
 	badToken ::= optionalBadToken[1] else [""];
-	goodTokens ::= quicksort map ↓node's child nodes's keys→tuple
-		through [s : string | if s = "NUMBER" then ["a number"] else [“s”]];
+	goodTokens ::= ↓node's next nodes' keys \ ↓node's bad nodes' keys;
 	If goodTokens is empty then [Didn't understand;]
 	else
 	[
+		subs ::= {"NUMBER" → "a number", "STRING" → "a quoted string"};
+		sorted ::= quicksort map goodTokens→tuple
+			through [s : string | if s ∈ subs then [subs[s]] else [“s”]];
 		Report:
 			format "‘bad’I expected ‘how many’‘good’.\n"
 			with
 				bad := if badToken is empty
 					then [""]
 					else [format "Instead of “①”, " with badToken],
-				"how many" := if |goodTokens| > 1 then ["one of "] else [""],
-				good := “goodTokens” (as disjunctive list with serial comma);
+				"how many" := if |sorted| > 1 then ["one of "] else [""],
+				good := “sorted” (as disjunctive list with serial comma);
 	];
 ];
 
@@ -120,28 +122,38 @@ Public method "Read and execute the next command" is
 		/* The player's commands should be construed case-insensitively. */
 		canonicalToken : nonempty string := lowercase commandToken;
 		/* If the token is numeric, then check to see if the special token
-		 * "NUMBER" is permitted here. If so, then convert the value to an
-		 * integer and arrange to make the transition to the next node by
-		 * substituting the parsed token with "NUMBER".
+		 * "NUMBER" is permitted here. Push the token onto the argument list.
 		 */
 		If canonicalToken[1] is an Arabic numeral then
 		[
-			If "NUMBER" ∈ ↓node's child nodes then
+			If "NUMBER" ∈ ↓node's next nodes then
 			[
 				args := args ++ <canonicalToken→extended integer>;
 				canonicalToken := "NUMBER";
 			];
-		];
-		/* If no child is associated with the current token, then the command
-		 * is invalid. Immediately answer false.
+		]
+		/* If the token is a string, then check to see if the special token
+		 * "STRING" is permitted here. Push the token onto the argument list.
 		 */
-		If canonicalToken ∉ ↓node's child nodes then
+		else if [canonicalToken[1] = ¢"\""] then
+		[
+			If "STRING" ∈ ↓node's next nodes then
+			[
+				/* Take a slice that doesn't include the quotation marks. */
+				args := args ++ <canonicalToken[2..|canonicalToken|-1]>;
+				canonicalToken := "STRING";
+			];
+		];
+		/* If no child is associated with the current token, then the
+		 * command is invalid. Immediately answer false.
+		 */
+		If canonicalToken ∉ ↓node's next nodes then
 		[
 			Didn't understand canonicalToken, expected a child of node;
 			Exit body with false
 		];
 		/* Traverse the link to the next node. */
-		node := cast ↓node's child nodes[canonicalToken]
+		node := cast ↓node's next nodes[canonicalToken]
 			into [n : command node | n];
 	];
 	/* The current node must be a command node. */

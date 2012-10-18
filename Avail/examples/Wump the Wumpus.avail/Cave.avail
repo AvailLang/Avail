@@ -43,8 +43,10 @@ Names
 	"entrance room",
 	"pit room",
 	"unfinished room",
-	"_'s⁇room`#",
+	"`#“_”(with label)",
 	"_'s⁇adjacent room ids",
+	"_'s⁇label",
+	"_'s⁇room`#",
 
 	/* Cave. */
 	"cave",
@@ -96,8 +98,12 @@ Class "unfinished room" extends object
  */
 Private method "an unfinished room" is
 [
+	roomLabel : string := "";
 	an unfinished room with room# := 0, adjacent room ids := ∅
 ] : unfinished room;
+
+/* Define the field atoms for the "room" type. */
+"label" is a new atom;
 
 /**
  * A room is a location within a cave. Every room has an {@type "room id"
@@ -110,11 +116,14 @@ Private method "an unfinished room" is
  *        "cave"}, so the identifier is retained here only as a cross-check.
  * @field "exits" "<room id…|3>"
  *        The {@type "room id" identifiers} of the three adjacent rooms.
+ * @field "label" "↑string"
+ *        A label assigned to the room by the player.
  */
 Public class "room" extends unfinished room
 	with fields
 		room# : room id,
-		adjacent room ids : {room id|3};
+		adjacent room ids : {room id|3},
+		label : ↑string;
 
 /**
  * The {@type "agent"} begins her adventure in the entrance room. It is the only
@@ -183,6 +192,27 @@ Method "“_”" is
 		 * representation of the set that does not include curly braces.
 		 */
 		rooms := “adjacent” (as simple list)
+] : string;
+
+/**
+ * Answer a textual description of {@param "aRoom"} that includes the {@type
+ * "room id" room identifier} and player assigned label (if set).
+ *
+ * @method "`#“_”(with label)"
+ * @param "aRoom" "room"
+ *        A {@type "room"}.
+ * @returns "string"
+ *          A textual rending of the argument.
+ */
+Public method "`#“_”(with label)" is
+[
+	aRoom : room
+|
+	format "#“id”‘name’" with
+		id := aRoom's room#,
+		name := if ↓aRoom's label is empty
+			then [""]
+			else [" (" ++ ↓aRoom's label ++ ")"]
 ] : string;
 
 /* Define the field atoms for the "cave" type. */
@@ -314,11 +344,6 @@ Public method "a cave" is
 				theRoom's adjacent room ids + neighborId;
 			neighborRoom := neighborRoom's adjacent room ids :=
 				neighborRoom's adjacent room ids + id;
-			/* The current room and its new neighbor must be satisfy the basic
-			 * requirements for finished rooms. Ensure this.
-			 */
-			Assert: theRoom ∈ room;
-			Assert: neighborRoom ∈ room;
 			/* Update the tuple of rooms with the completed variants. */
 			rooms := rooms[id] → theRoom;
 			rooms := rooms[neighborId] → neighborRoom;
@@ -344,10 +369,12 @@ Public method "a cave" is
 		 * "room", and from each other, only by a newly obtained atom whose sole
 		 * purpose is to force distinction of the object types.
 		 */
-		theRoom ::=
-			if subscript = 1 then [rooms[id] as entrance room]
-			else if [subscript ≤ 3] then [rooms[id] as pit room]
-			else [rooms[id] as room];
+		roomType : room's type :=
+			if subscript = 1 then [entrance room]
+			else if [subscript ≤ 3] then [pit room]
+			else [room];
+		s : string := "";
+		theRoom ::= rooms[id] as roomType with label := ↑s;
 		rooms := rooms[id] → theRoom;
 	];
 	/* Coerce the tuple of rooms to the stronger type required for a cave's

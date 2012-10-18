@@ -77,6 +77,10 @@ Private method "nearby wumpus message" is
 	[
 		"You have a really bad feeling…\n"
 	]
+	else if [the wumpus is dead] then
+	[
+		"Phyek! Smells like dead wumpus!\n"
+	]
 	else
 	[
 		the RNG's next element of

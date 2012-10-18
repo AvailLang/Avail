@@ -38,6 +38,7 @@ Uses
 	"Cave",
 	"Context",
 	"Definers",
+	"Exploration",
 	"Geography",
 	"IO",
 	"Movable Entities",
@@ -58,10 +59,172 @@ Command "quit" is
 	false
 ];
 
+/* Learn how to play. */
+Commands "help", "instructions", "?" are
+[
+	Report: "\
+Welcome to WUMP THE WUMPUS, an adaptation of Gregory Yob's 1972-3 classic,
+HUNT THE WUMPUS.
+
+While I have some small hope that this game entertains for a few minutes, its
+primary value is not in its playing, but in its source code. I hope that the
+source code will give aspiring Avail programmers some insight into how to write
+a complete program.
+
+In WUMP THE WUMPUS, you are a hunter on a mission to slay the mighty WUMPUS, a
+lazy but formidable beast that viciously defends its lair against invaders …
+Believe or it not, you are the HERO of this story. To complete your mission,
+you have entered the CAVE that is home to the wumpus.
+
+The cave comprises twenty (20) rooms, each of which are connected to three (3)
+other rooms. Two of these rooms contain PITS, which you automatically fall into
+upon entering the room. The wumpus knows the cave well, and is much too savvy to
+fall into a pit.
+
+Also living in the cave are two SWARMS OF SUPER BATS. When you find yourself in
+a room with a super bat swarm, then you soon won't be; the bats will carry you
+to another room at random, potentially landing you in a nasty situation. Super
+bats fly, obviously, so pits do not intimidate them. The bats and the wumpus
+have an armistice and avoid each other's company.
+
+If you ever find yourself in a room with the wumpus, then it will eat you up.
+So hand-to-hand combat is out of the question. Fortunately you brought a bow and
+five (5) CROOKED ARROWS, so named because they somehow navigate the tortuous
+geography of the cave. You may fire a crooked arrow through up to five (5)
+adjacent rooms in a single shot. If an arrow passes through a super bat swarm,
+then they will rouse themselves with unnatural haste and come spirit you off in
+anger. If an arrow strikes the wumpus, then it will fell it; if it passes
+through an adjacent room, however, then it rouses the wumpus. A roused wumpus
+will wander around until it finds the would-be hero or gets tired and goes back
+to sleep.
+
+As you explore the cave, sensory information will provide insight into the
+contents of adjacent rooms. Always trust your senses.
+
+Should you manage to slay the wumpus, you must also escape alive or your glory
+shall never be known. You can only exit the cave whence you entered it.
+
+COMMANDS:
+
+\"look\" --
+	Reiterate a description of your surroundings.
+
+\"NUMBER\"
+\"go to NUMBER\" --
+	Go to the adjacent room with the specified room number. NUMBER should be an
+	integer between 1 and 20.
+
+\"wait\" --
+	Pass your turn.
+
+\"exit\" --
+	Exit the cave; this is only possible from the entrance room.
+
+\"label NUMBER as STRING\" --
+	Label the room with the specified room number. NUMBER should be an integer
+	between 1 and 20, and need not refer to an adjacent room. STRING should be a
+	quoted string, e.g., \"entrance room\". This label will be printed in
+	subsequent references to the room (as an aid to navigation).
+
+\"check quiver\" --
+	Ascertain how many crooked arrows you have left.
+
+\"shoot NUMBER\"
+\"shoot NUMBER, NUMBER\"
+\"shoot NUMBER, NUMBER, NUMBER\"
+\"shoot NUMBER, NUMBER, NUMBER, NUMBER\"
+\"shoot NUMBER, NUMBER, NUMBER, NUMBER, NUMBER\" --
+	Shoot an arrow into the specified one (1) to five (5) rooms. Be sure about
+	your trajectory; if any room in the sequence is not actually adjacent to the
+	previous room, then the arrow will begin flying wild. It might even come
+	back to hit you!
+
+\"quit\" --
+	Quit the game.
+
+If you try hard enough, then you might find other commands that also work -- or
+at least don't work in slightly amusing ways.
+
+Hope you enjoy!
+";
+	false
+];
+
+/* Roll credits! */
+Commands "credits", "show credits" are
+[
+	Report: "\
+WUMP THE WUMPUS was written in Avail by Todd L. Smith <todd@availlang.org> for
+purely pedagogic purposes -- that and a bit of fun, of course!
+
+It is based loosely, but not *so* loosely, on HUNT THE WUMPUS by Gregory Yob. I
+think that I first encountered the 1993 Unix C port by Eric S. Raymond sometime
+during my college years, probably in 1998. As of 2012.10.17, the source code
+could be found here: http://internet.ls-la.net/folklore/wumpus.html
+
+There have been many variants of HUNT THE WUMPUS over the years. I am sad that I
+cannot credit all of them.
+
+The source for WUMP THE WUMPUS is freely available; that's sort of the point.
+";
+	false
+];
+
 /* Try a little chutzpah. */
-Command "win" is
+Bad command "win" is
 [
 	Report: "Ah, if only things were that simple.\n";
+	false
+];
+
+/* Try being direct about shooting the wumpus. */
+Bad command "shoot the wumpus" is
+[
+	if ↓the wumpus's location = ↓the agent's location then
+	[
+		Assert: the wumpus is dead;
+		Report: "It's still dead.\n";
+		the agent's count of remaining arrows--;
+		Quiver check;
+		true
+	]
+	else
+	[
+		Report: "Yeah, about that… You'll have to be more specific.\n";
+		false
+	]
+];
+
+Bad commands "where is the wumpus", "where is the wumpus?" are
+[
+	Report: "Go look for it yourself.\n";
+	false
+];
+
+/* Identity crisis. */
+Bad commands
+	"who am i", "who am i?", "what's all this then", "what's all this then?"
+are
+[
+	Report:
+		"Your mission, should you choose to accept it: Slay the fearsome \
+		\|wumpus with a crooked arrow.\n";
+	false
+];
+
+/* Look around. */
+Commands "look", "look around", "where am i", "where am i?" are
+[
+	Look around;
+	false
+];
+
+/* Check your quiver. */
+Commands "check quiver", "count arrows", "count crooked arrows" are
+[
+	Report:
+		format "You have “①” crooked arrows remaining.\n"
+		with ↓the agent's count of remaining arrows;
 	false
 ];
 
@@ -84,6 +247,13 @@ Action "exiting" is
 
 Commands "exit", "exit the cave" are exiting;
 Commands "leave", "leave the cave" are exiting;
+
+/* Pass your turn. */
+Command "wait", "pass", "lollygag" is
+[
+	Report: "You lollygag.\n";
+	true
+];
 
 /* Attempt to move the agent to an adjacent room. */
 Action "moving" is
@@ -132,10 +302,35 @@ Action "compass rebuttal" is
 	false
 ];
 
-Commands "go north", "go east", "go south", "go west", "go up", "go down"
+Bad commands "go north", "go east", "go south", "go west", "go up", "go down"
 	are compass rebuttal;
-Commands "north", "east", "south", "west", "up", "down" are compass rebuttal;
-Commands "n", "e", "s", "w", "u", "d" are compass rebuttal;
+Bad commands "north", "east", "south", "west", "up", "down"
+	are compass rebuttal;
+Bad commands "n", "e", "s", "w", "u", "d" are compass rebuttal;
+
+/* Wrong game. */
+Bad command "go fish" is
+[
+	ranks ::= map 2 to 10 through [i : [2..10] | “i” ++ "'s"]
+		++ <"aces", "jacks", "queens", "kings">;
+	Report:
+		format "Sorry, wrong game… But do you have any ‘rank’?\n"
+		with rank := the RNG's next element of ranks;
+	false
+];
+
+/* Label a room as an aid to navigation. */
+Commands "label NUMBER as STRING", "label #NUMBER as STRING" are
+[
+	args : <room id, string…|2>
+|
+	id ::= args[1];
+	name ::= args[2];
+	theRoom ::= the cave[id];
+	↓theRoom's label ?= name;
+	Report: "Done.\n";
+	false
+];
 
 Action "shooting" is
 [
@@ -198,21 +393,7 @@ Action "shooting" is
 			Move a crooked arrow to nextRoom;
 			path := path ++ <nextRoom>;
 		];
-		count ::= ↓the agent's count of remaining arrows;
-		If count > 0 then
-		[
-			Report:
-				format "You have “①” crooked arrows remaining.\n"
-				with ↓the agent's count of remaining arrows;
-		]
-		else
-		[
-			Report:
-				"You are out of ammunition.
-				\|Sensing your vulnerability, the wumpus springs out of \
-				\|nowhere and swallows you whole!\n";
-			Kill the agent;
-		];
+		Quiver check;
 		true
 	]
 ];
@@ -230,3 +411,29 @@ Commands
 	"shoot #NUMBER, #NUMBER, #NUMBER, #NUMBER",
 	"shoot #NUMBER, #NUMBER, #NUMBER, #NUMBER, #NUMBER"
 are shooting;
+
+/* Isn't it easier to "quit"? */
+Bad commands "shoot self", "shoot myself", "shoot me" are
+[
+	/* Seriously, how do you shoot yourself with a bow? It's not very likely to
+	 * kill you, but it's a waste of an arrow.
+	 */
+	If the RNG's next [1..20] = 1 then
+	[
+		Report: "Critical hit!\n";
+		Kill the agent;
+	]
+	else
+	[
+		the agent's count of remaining arrows--;
+		Report: "Ow. Well, now you're out an arrow.\n";
+		/* Sometimes the wumpus smells blood. */
+		If the wumpus is alive ∧ [the RNG's next [1..2] = 1] then
+		[
+			Report: "*SNIFF* *SNIFF* \"Wumpus smells hero!\"\n";
+			Now the wumpus is active;
+		];
+	];
+	Quiver check;
+	true
+];

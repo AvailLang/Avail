@@ -2278,20 +2278,6 @@ Public stable method "flatten_" is
 	newTuple
 ] : tuple;
 
-Semantic restriction "flatten_" is
-[
-	tupleType : <tuple…|>'s type
-|
-	resultType : tuple meta := <>'s type;
-	From 1 to ⎣tupleType⎦ do
-	[
-		index : natural number
-	|
-		resultType := eject ↑resultType ++ tupleType[index];
-	];
-	resultType
-];
-
 /**
  * Obtain the first element of the specified tuple.
  *

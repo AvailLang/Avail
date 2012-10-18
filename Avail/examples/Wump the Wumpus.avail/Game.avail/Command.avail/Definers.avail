@@ -40,19 +40,21 @@ Uses
 Names
 	/* Definers. */
 	"Action_is_",
-	"Command|Commands«_‡,»is|are_",
+	"«Bad»?Command|Commands|command|commands«_‡,»is|are_",
 
 	/* The command tree. */
 	"command tree",
 	"command node",
 	"root command node",
-	"_'s⁇child nodes",
+	"_'s⁇bad nodes",
+	"_'s⁇next nodes",
 	"_'s⁇action"
 Body
 
 /* Definitions of field atoms. */
 "label" is a new atom;
-"child nodes" is a new atom;
+"next nodes" is a new atom;
+"bad nodes" is a new atom;
 "action" is a new atom;
 
 /**
@@ -81,12 +83,17 @@ Explicit class "abstract command node" extends object;
  *
  * @type "root command node"
  * @supertype "abstract command node"
- * @field "child nodes" "↑{nonempty string→abstract command node|}"
- *        A map from command words to command nodes. 
+ * @field "next nodes" "↑{nonempty string→abstract command node|}"
+ *        A map from command words to command nodes.
+ * @field "bad nodes" "↑{nonempty string→abstract command node|}"
+ *        A map from command words to command nodes corresponding ultimately to
+ *        commands not necessary in a real game (but which might provide
+ *        amusing responses).
  */
 Class "root command node" extends abstract command node
 	with fields
-		child nodes : ↑{nonempty string→abstract command node|};
+		next nodes : ↑{nonempty string→abstract command node|},
+		bad nodes : ↑{nonempty string→abstract command node|};
 
 /**
  * Most of the command tree consists of command nodes. A command node extends
@@ -113,8 +120,9 @@ Class "command node" extends root command node
 Private method "a root command node" is
 [
 	/* Create a variable for retention by the root command node. */
-	children : {nonempty string→abstract command node|} := {};
-	a root command node with child nodes := ↑children
+	all : {nonempty string→abstract command node|} := {};
+	bad : {nonempty string→abstract command node|} := {};
+	a root command node with next nodes := ↑all, bad nodes := ↑bad
 ] : root command node;
 
 /**
@@ -127,9 +135,13 @@ Private method "a root command node" is
 Private method "a command node" is
 [
 	/* Create variables for retention by the command node. */
-	children : {nonempty string→abstract command node|} := {};
+	all : {nonempty string→abstract command node|} := {};
+	bad : {nonempty string→abstract command node|} := {};
 	theAction : […]→boolean;
-	a command node with child nodes := ↑children, action := ↑theAction
+	a command node with
+		next nodes := ↑all,
+		bad nodes := ↑bad,
+		action := ↑theAction
 ] : command node;
 
 /**
@@ -152,6 +164,7 @@ Public read-only variable ↑commandTree is "command tree";
 Private method "command definer" is
 [
 	[
+		isBad : boolean,
 		syntaxes : <nonempty string…|1..>,
 		theAction : […]→boolean
 	|
@@ -168,17 +181,24 @@ Private method "command definer" is
 			[
 				commandToken : string
 			|
-				Unless commandToken ∈ ↓node's child nodes then
+				Unless commandToken ∈ ↓node's next nodes then
 				[
+					/* Associate the new command node with the current token. */
 					newNode ::= a command node;
-					/* Associate the new command node with the current
-					 * token.
+					↓node's next nodes ?=
+						↓node's next nodes + commandToken→newNode;
+					/* If this is a bad command, then also add a transition to
+					 * the bad successors map.
 					 */
-					↓node's child nodes ?=
-						↓node's child nodes + commandToken→newNode;
+					If isBad ∧ [commandToken ∉ ↓node's bad nodes] then
+					[
+						badNode ::= a command node;
+						↓node's bad nodes ?=
+							↓node's bad nodes + commandToken→badNode;
+					];
 				];
 				/* Traverse the link to the next node. */
-				node := cast ↓node's child nodes[commandToken]
+				node := cast ↓node's next nodes[commandToken]
 					into [n : command node | n];
 			];
 			/* The current node must be a command node. */
@@ -197,6 +217,11 @@ Private method "command definer" is
  * Define a new command by augmenting the {@global "commandTree" command tree}.
  *
  * @method "Command_is_"
+ * @param "isBad" "boolean"
+ *        This is a bad command, one that will never affect the model world but
+ *        which may point the user in the right direction, report something
+ *        amusing, etc. Tokens leading only to bad commands will never be
+ *        suggested by the parser.
  * @param "syntaxes" "nonempty string"
  *        The syntaxes for the command, e.g., "go to #NUMBER".
  * @param "theAction" "[…]→boolean"
@@ -204,8 +229,9 @@ Private method "command definer" is
  *        accepts a tuple. The parser will apply this function to the arguments
  *        accumulated during the parse of the command.
  */
-Public method "Command|Commands«_‡,»is|are_" is command definer;
-Private method "Command_are_" is command definer;
+Public method "«Bad»?Command|Commands|command|commands«_‡,»is|are_"
+	is command definer;
+Private method "Command(bad=_)_are_" is command definer;
 
 /**
  * Define a new command by augmenting the {@global "commandTree" command tree}.
@@ -217,16 +243,18 @@ Private method "Command_are_" is command definer;
  *        The action to perform when the command is understood. This function
  *        does not accept arguments.
  */
-Method "Command|Commands«_‡,»is|are_" is
+Method "«Bad»?Command|Commands|command|commands«_‡,»is|are_" is
 [
+	isBad : boolean,
 	syntaxes : <nonempty string…|1..>,
 	theAction : []→boolean
 |
-	Command syntaxes are [args : <⊥…|0> | theAction()];
+	Command (bad=isBad) syntaxes are [args : <⊥…|0> | theAction()];
 ] : ⊤;
 
-Semantic restriction "Command|Commands«_‡,»is|are_" is
+Semantic restriction "«Bad»?Command|Commands|command|commands«_‡,»is|are_" is
 [
+	isBad : boolean's type,
 	syntaxesType : <nonempty string…|1..>'s type,
 	actionType : […]→boolean's type
 |

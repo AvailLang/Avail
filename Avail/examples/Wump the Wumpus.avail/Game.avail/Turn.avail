@@ -100,6 +100,17 @@ Method "Give_a turn" is
 				|
 					/* Randomly choose among the allowed destinations. */
 					destination ::= the RNG's next element of nonempty;
+					Unless destination = ↓the agent's location then
+					[
+						where ::=
+							if destination
+								∈ the agent's location's adjacent rooms
+							then [""]
+							else [" somewhere"];
+						Report:
+							format "You hear heavy thumping‘distance’.\n"
+							with distance := where;
+					];
 					Move the wumpus to destination;
 				]
 				else
@@ -112,6 +123,8 @@ Method "Give_a turn" is
 		If the RNG's next [1..4] = 1 then
 		[
 			Now the wumpus is inactive;
+			Report:
+				"You hear a thump, a brief episode of snoring, then silence.\n";
 		];
 	];
 ];
@@ -141,6 +154,16 @@ Method "Give_a turn" is
 		|
 			/* Randomly choose among the allowed destinations. */
 			destination ::= the RNG's next element of nonempty;
+			Unless destination = ↓the agent's location then
+			[
+				where ::=
+					if destination ∈ the agent's location's adjacent rooms
+					then [""]
+					else [" somewhere"];
+				Report:
+					format "You hear a flurry of wings‘distance’.\n"
+					with distance := where;
+			];
 			Move aSwarm to destination;
 		];
 	];
