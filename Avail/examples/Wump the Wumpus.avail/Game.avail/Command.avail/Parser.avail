@@ -140,7 +140,7 @@ Public method "Read and execute the next command" is
 			If "STRING" ∈ ↓node's next nodes then
 			[
 				/* Take a slice that doesn't include the quotation marks. */
-				args := args ++ <canonicalToken[2..|canonicalToken|-1]>;
+				args := args ++ <commandToken[2..|commandToken|-1]>;
 				canonicalToken := "STRING";
 			];
 		];
