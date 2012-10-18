@@ -37,7 +37,8 @@ Extends
 
 Uses
 	"Avail",
-	"Annals Class Definitions"
+	"Annals Class Definitions",
+	"Stacks Lexer"
 Names
 	"identify comment from_",
 	"Parse the Avail document_"
@@ -73,7 +74,9 @@ errorComments : <erroneous comment…|>  := <>;
 
 
 classMap : {string→class|} := {};
-methodMap : {string→methodContainer|} := {};
+methodMap : {string→method container|} := {};
+
+
 
 /**
  * Checks to see if the input character is one of the key characters defined
@@ -118,7 +121,7 @@ Private method "open comment strings" is [enumeration of {"/*","/**"}];
  */
 Private method "Increment the open comment count" is
 [
- 	openCommentCount := openCommentCount + 1;
+ 	↑openCommentCount++;
 ]:⊤;
 
 /**
@@ -144,20 +147,20 @@ Private method "Decrement the open comment count" is
  */
 Private method "Increment the line count" is
 [
-	lineCount := lineCount + 1;
+	↑lineCount++;
 ]:⊤;
 
 /**
- * Checks to see if the iterator is not exhausted.
+ * Checks to see if the iterator of character is not exhausted.
  * @method "_is not exhausted"
  * @category "Annals"
- * @param "iter" iterator
+ * @param "iter" iterator of character
  * @returns boolean
  * @raises
  */
 Private method "_is not exhausted" is
 [
- 	iter : iterator
+ 	iter : iterator of character
  |
  	¬iter is exhausted
 ]:boolean;
@@ -175,36 +178,36 @@ Private method "Clear the buffer" is
 ]:⊤;
 
 /**
- * Update the global variable, buffer, with the current element on the iterator.
- * Proceed to advance the iterator.
+ * Update the global variable, buffer, with the current element on the iterator of character.
+ * Proceed to advance the iterator of character.
  * @method "Buffer_"
  * @category "Stacks"
- * @param "iter" iterator
+ * @param "iter" iterator of character
  * @returns ⊤
  * @raises
  */
 Private method "Buffer_" is
 [
-	iter : iterator
+	iter : iterator of character
  |
 	buffer := buffer ++ 
-		<cast (iter's current element) into [c : character | c]>;
+		<iter's current element>;
 	Advance iter;
 ]:⊤;
 
 /**
- * Given an iterator at the start of a comment, collect all the characters until
- * the open comment count is 0.
+ * Given an iterator of character at the start of a comment, collect all the 
+ * characters until the open comment count is 0.
  * @method "buffer comment from_"
  * @category "Stacks"
- * @param "iter" iterator
+ * @param "iter" iterator of character
  * @returns "string"  The entire comment less the opening * on a new line.
  */
 Private method "buffer comment from_" is
 [
- 	iter : iterator
+ 	iter : iterator of character
  |
- 	atNewLine : boolean := true;
+
 	While 
 	[
 	 	iter is not exhausted ∧ 
@@ -212,148 +215,109 @@ Private method "buffer comment from_" is
 	]
 	do
 	[
-	 	prevChar : character := cast (iter's current element) 
-	 		into [c : character | c];
+	 	prevChar : character := iter's current element;
 	 	/* Simply buffer characters that are not special */
 		While 
 		[
-		 	iter's current element ∉ {¢*,¢/,¢"\n"}
+		 	iter's current element ∉ {¢*,¢/}
 		]
 		do
 		[
-		 	/* Set appropriate at new line condition.  No longer at a new line
-		 	 * once a non-blank character is reached. */
-		 	If atNewLine ∧ [prevChar ≠ ¢" "] then [atNewLine := false;];
-		 	/* Preserve the current element of the iterator. */
-		 	prevChar := cast (iter's current element) into [c : character | c];
+		 	/* Preserve the current element of the iterator of character. */
+		 	prevChar := iter's current element;
 		 	Buffer iter;
 		];
 		/* The * is a special character that has multiple implications */
 		if iter's current element = ¢* then
 		[
-		 	prevChar := cast (iter's current element) into [c : character | c];
-		 	Advance iter;
-			/* The * is not the first non-blank character on this line.*/
-		 	if atNewLine = false then
-		 	[
-		 	 	/* This indicates a closing of a comment */
-		 		if iter's current element = ¢/ then
-		 		[
-		 		 	/* The closing of a nested comment */
-		 		 	if openCommentCount > 1 then
-		 		 	[
-		 		 	 	/*Capture everything from the nested comment*/
-		 		 	 	Decrement the open comment count;
-		 		 	 	buffer := buffer ++ <prevChar,
-		 		 	 		cast (iter's current element) 
-		 		 	 		into [c : character | c]>;
-		 		 	 	Advance iter;
-		 		 	]
-		 		 	/* Closing the top level comment, all loops will end.*/
-		 		 	else
-		 		 	[Decrement the open comment count;];
-		 		]
-		 		/* The * character isn't doing anything special but is actually
-		 		 * part of text.  Buffer it.*/
-		 		else
-		 		[
-		 		 	buffer := buffer ++ <prevChar, 
-		 		 	cast (iter's current element) into [c : character | c]>;
-		 		 	Advance iter;
-		 		];
-		 	]
-		 	/* The * is the first non-blank char on the line 
-		 	 * Don't buffer it if it is not closing a nested comment */
-		 	else
-		 	[
-	 	 	 	/* A comment is being closed*/
-				if iter's current element = ¢/ then
-				[
-				 	/*Nested comment being closed preserve entire comment*/ 
-				 	if openCommentCount > 1 then
-				 	[
-				 	 	Decrement the open comment count;
-				 	 	buffer := buffer ++ <prevChar,
-				 	 		cast (iter's current element) 
-				 	 		into [c : character | c]>;
-				 	 	Advance iter;
-				 	]
-				 	/* Closing the top level comment, all loops will end.*/
-				 	else
-				 	[Decrement the open comment count;];
-				]
-				/* Nothing special about next charThe * does not get captured 
-				 * as it is the first non-blank character in the new line*/
-				else
-				[
-				 	While 
-				 	[
-				 	 	iter is not exhausted ∧ 
-				 	 		[iter's current element ∈ {¢" "}]
-				 	]
-				 	do
-				 	[
-				 	 	Advance iter;
-				 	];
-				];
-		 	];
+		 	prevChar := iter's current element;
+		 	Buffer iter;
+	 	 	/* This indicates a closing of a comment */
+	 		if iter's current element = ¢/ then
+	 		[
+	 		 	/* The closing of a nested comment */
+	 		 	if openCommentCount > 1 then
+	 		 	[
+	 		 	 	/*Capture everything from the nested comment*/
+	 		 	 	Decrement the open comment count;
+	 		 	 	Buffer iter;
+	 		 	]
+	 		 	/* Closing the top level comment, all loops will end.*/
+	 		 	else
+	 		 	[
+	 		 	 	Decrement the open comment count;
+	 		 	 	Buffer iter;
+	 		 	];
+	 		]
+	 		/* The * character isn't doing anything special but is actually
+	 		 * part of text.  Buffer it.*/
+	 		else
+	 		[
+	 		 	buffer := buffer ++ <prevChar, 
+	 		 	iter's current element>;
+	 		 	Advance iter;
+	 		];
 		]
 		else if [iter's current element = ¢/] then
 		[
-		 	prevChar := cast (iter's current element) into [c : character | c];
-		 	Advance iter;
-			/* Open of a nested comment.  Capture open comment syntax*/
-			if iter's current element = ¢* then 
+		 	Buffer iter;
+			/* If open of a nested comment.  Capture open comment syntax*/
+			If iter is not exhausted ∧ 
+	 			[iter's current element = ¢*] then 
 			[
 			 	Increment the open comment count;
-			 	Advance iter;
-			 	While
-			 	[
-			 	 	iter is not exhausted ∧ 
-		 	 			[openCommentCount > 1]
-			 	]
-			 	do
-			 	[
-			 	 	if iter's current element = ¢* then
-			 	 	[
-						prevChar := cast (iter's current element) into 
-							[c : character | c];
-						Advance iter;
-						If iter is not exhausted ∧ 
-							[iter's current element = ¢/] then
-						[
-						 	Decrement the open comment count;
-						 	Advance iter;
-						];
-			 	 	]
-			 	 	else
-			 	 	[Advance iter;];
-			 	];
-			]
-			/* Nothing special about character,/, buffer it.*/
-			else [buffer := buffer ++ <prevChar>;];
+			 	Buffer iter;
+			];
 		]
-		/* Start of a new line, indicate this here. */
-		else if [iter's current element = ¢"\n"] then
-		[
-		 	atNewLine := true;
-			/* Capture the new line character */
-			buffer := buffer ++ <cast (iter's current element) 
-				into [c : character | c]>;
-			Advance iter;
-			While 
-			[
-		 	 	iter is not exhausted ∧ 
-		 	 		[iter's current element ∈ {¢" "}]
-		 	]
-		 	do
-		 	[
-		 	 	Advance iter;
-		 	];
-		]
-		else [/* Outer loop will end, do nothing.*/];	
+		else [/* Only get here if iterator is exhausted before comment closed*/];	
 	];
 ]:⊤;
+
+
+
+
+/**
+ * Divide the comment buffer into parts designated by `@ tag keywords.  If `@
+ * tag is escaped or preceded by a {, then ignore tag.
+ *
+ * @method "Split comment buffer"
+ * @category "Stacks"
+ * @returns "<string…|1..>"
+ *		a tuple of strings
+ * @author "Richard Arriaga"
+ */
+Private method "Split_" is
+[
+ 	tokens : <stacks token…|1..>
+ |
+ 	parsedTokenMap : {stacks token→{stacks token…|1..}|} := {};
+ 	
+ 	/* Partition stacks tuple into map keyed by special stacks token type */
+ 	tokenCounter : whole number := 0;
+ 	generalComment ::=
+ 	if tokens[1]'s ¬isSpecial then 
+ 	[
+ 	 	take from tokens until 
+ 	 	[
+ 	 	 	st : stacks token
+ 	 	 |
+ 	 	 	↑tokenCounter++;
+ 	 		|tokens| + 1 = tokenCounter ∨ [st's isSpecial]
+ 	 	]
+ 	] else [""];
+ 	While
+ 	[
+ 	 	|tokens| ≠ tokenCounter
+ 	]
+ 	do
+ 	[
+ 	 	While
+ 	 	[
+ 	 	 	tokens[tokenCounter + 1]'s isSpecial then
+ 	 	[]
+ 	];
+]:<{string,stacks token→{stacks token…|1..}|}…|1..>;
+
 
 /**
  * Divide the comment buffer into parts designated by `@ tag keywords.  If `@
@@ -367,9 +331,9 @@ Private method "buffer comment from_" is
  */
 Private method "Split buffer" is
 [
- 	parseAtTag : boolean := true;
 	atTags : <natural number…|0..∞> := <>;
 	returnTuple : <string…|> := <>;
+	commentErrors : <<string,natural number,string…|3>…|0..> := <>;
 	
 	/* Locate each `@ symbol and determine if intended to be keyword */
 	For each of (all indices of buffer where [c : character | c = ¢@]) do
@@ -393,21 +357,19 @@ Private method "Split buffer" is
 	 	 	     	if endKeyWord ≠ 0 then
 	 	 	     	[
 	 	 	     	 	ekw : [2..∞) := cast endKeyWord into [l : [2..∞) | l];
-		 	 	     	if buffer [k..(ekw+k-2)] ∉ keywords then 
+		 	 	     	if buffer [k..(endKeyWord+k-2)] ∉ keywords then 
 		 	 	     	[
 		 	 	     	 	commentError := true;
+		 	 	     		errorLine ::= lineCount + count of all indices of 
+		 	 	     			buffer where [c : character | c = ¢"\n"] where 
+		 	 	     				[n : natural number | n < i];
 		 	 	     		/*TODO Create Comment Error object -not key word***/
-		 	 	     		Print: "Got Here1\n";
-		 	 	     		Print: "buffer [k-1] = ";
-		 	 	     		Print: <buffer [k-1]>;
-		 	 	     		Print: "\nbuffer [k..(endKeyWord+k-2)] =";
-		 	 	     		Print: buffer [k..(ekw+k-1)];
-		 	 	     		Print: "~\n";
-		 	 	     		Print: "\n<buffer [(endKeyWord+k-2)]> =";
-		 	 	     		Print: <buffer [ekw+k-2]>;
-		 	 	     		Print: "+\n";
-		 	 	     		Print: format "k=“①”\n" with k;
-		 	 	     		Print: format "endKeyWord=“①”\n" with endKeyWord;
+		 	 	     		commentErrors := commentErrors ++
+		 	 	     			<<"Not a key word",errorLine,
+		 	 	     				buffer [k..(ekw+k-2)]>>;
+		 	 	     	
+		 	 	     		Print: "Split buffer - not keyword\n";
+		 	 	     		Print: format "commentErrors=“①”\n\n" with commentErrors;
 		 	 	     	] else
 		 	 	     	[
 		 	 	     	 	If buffer[ekw] = ¢"\n" then 
@@ -416,7 +378,7 @@ Private method "Split buffer" is
 		 	 	     	 	];
 		 	 	     	 	/*TODO Check close bracket exists before next keyword***/
 		 	 	     	];
-	 	 	     	] else [/*No data following keyword*/];
+	 	 	     	/**/] else [/* TODO No data following keyword*/];
 	 	 	    ] else
 	 	 	    [
 	 	 	     	if buffer [k..] ∈ keywords then 
@@ -428,6 +390,15 @@ Private method "Split buffer" is
 	 	 	     	[
 	 	 	     	 	commentError := true;
 	 	 	     		/*TODO Create Comment Error object -not key word***/
+	 	 	     		errorLine ::= lineCount + count of all indices of 
+	 	 	     			buffer where [c : character | c = ¢"\n"] where 
+	 	 	     				[n : natural number | n < i];
+	 	 	     		commentErrors := commentErrors ++
+	 	 	     			<<"Not a key word",errorLine,
+	 	 	     				buffer [k..]>>;
+	 	 	     	
+	 	 	     		Print: "Split buffer - not keyword\n";
+	 	 	     		Print: format "commentErrors=“①”\n\n" with commentErrors;
 	 	 	     		Print: "Got Here4\n";
 	 	 	     	];
 	 	 	    ];
@@ -439,7 +410,12 @@ Private method "Split buffer" is
     	if buffer ∉ keywords then 
     	[
     	 	commentError := true;
-    		/*TODO Create Comment Error object -no key word***/
+    		/*TODO Create Comment Error object -no key word
+    		 * Need to take whole comment and put it in erroneous comment object*/
+ 			commentError ::= <"No keyword",lineCount,buffer>;
+     	
+ 			Print: "Split buffer - no keyword\n";
+ 			Print: format "commentError=“①”\n\n" with commentError;
     		Print: "Got Here6\n";
     	] else
         [
@@ -571,50 +547,34 @@ Private method "Identify tag in_" is
  	if subBuffer[1] = ¢@ then
  	[
 	 	/* identify the tag index range*/
-	 	firstBlankIndex ::= first index of subBuffer where
+	 	endOfKeywordIndex ::= first index of subBuffer where
 	 	[
 	 	 	c : character
 	 	 |
-	 	 	c = ¢" "
-	 	];
-		if firstBlankIndex ≠ 0 then
+	 	 	c ∈ {¢" ",¢"\n"}
+	 	] - 1;
+		if (subBuffer[..endOfKeywordIndex] else [subBuffer]) ∈ keywords then
 		[
-		 	fbi : [1..∞) := cast firstBlankIndex into [i : [1..∞)| i];
-		 	if subBuffer[..fbi-1] ∈ keywords then
-		 	[
-		 	 	/*TODO Add to comment temporary map of components***/
-		 	 	/* Using "Process_from_to_in_«for tag_»"***/
-		 	 	/*If only blanks and new lines past keyword, Create***/
-		 	 	/*Comment Error object - empty***/
-		 	 	subBuffer[..fbi-1]
-		 	] else
-		 	[
-		 	 	commentError := true;
-		 		/*TODO Create Comment Error object -not key word***/
-Print: "subBuffer ="; Print: subBuffer; Print: "\n";
-		 	"I'm gonna be the keyword error - not key word!"
-		 	]
-		] else
-		[    
-		    if subBuffer[..(cast |subBuffer| into [i : [1..∞)| i])-1] 
-		    	∉ keywords then 
-	    	[
-	    	 	commentError := true;
-	    		/*TODO Create Comment Error object -no key word***/
-		    "I'm gonna be the keyword error - no key word!"
-	    	] else
-	        [
-	     		/*Empty `@ tag keyword, suchas `@public*/
-				subBuffer[..(cast |subBuffer| into [i : [1..∞)| i])-1]
-	     	]
+		 	subBuffer[..endOfKeywordIndex] else [subBuffer]
+		] 
+		else
+		[
+	 	 	commentError := true;
+	
+	 		/*TODO Create Comment Error object -not key word***/
+	
+	 		commentError ::= <"Not a keyword",lineCount,
+	 			subBuffer[..endOfKeywordIndex] else [subBuffer]>;
+	 	
+	 		Print: "Identify tag in_ - not keyword\n";
+	 		Print: format "commentError=“①”\n\n" with commentError;
+	 		subBuffer
 		]
 	] else
 	[
-	 /*TODO Openning Description***/
-	 "@generalDescription"
+	 	/*TODO Openning Description***/
+	 	"@generalDescription"
 	]
-	/*TODO Return the keyword*/
-	
  ]:string;
 
 
@@ -623,16 +583,16 @@ Print: "subBuffer ="; Print: subBuffer; Print: "\n";
 
 
 /**
- * Locate Stacks comment from iterator
+ * Locate Stacks comment from iterator of character
  * @method "identify comment from_"
  * @category "Stacks"
- * @param "iter" iterator
+ * @param "iter" iterator of character
  * @returns ⊤
  * @raises
  */
 Public method "identify comment from_" is
 [
- 	iter : iterator
+ 	iter : iterator of character
  |
  	keyBuffer : <character…|> := <>;
  	
@@ -659,13 +619,14 @@ Public method "identify comment from_" is
 		do
 	 	[
 	 	 	keyBuffer:= keyBuffer ++ 
-	 	 		<cast (iter's current element) into [c : character | c]>;
+	 	 		<iter's current element>;
 	 	 	Advance iter;
 	 	];
 		if keyBuffer = "/**" ∧ [openCommentCount = 0] then 
 		[
 		 	/* Process Stacks Comment */
-		 	Increment the open comment count; 
+		 	Increment the open comment count;
+		 	buffer := buffer ++ keyBuffer;
 		 	buffer comment from iter;
 		 	
 		 	mp1 : {string→{<natural number,string…|2>|1..}|} := {};
@@ -733,21 +694,20 @@ Public method "identify comment from_" is
 
 
 
-/*
+
 test ::=
-"
- Sucker /**
- * Given an iterator at the start of a comment, collect all the characters until 
+"Sucker /**
+ * Given an iterator of character at the start of a comment, collect all the characters until 
  * the open comment count is 0. /*Puprplee*/
  * @method \"buffer comment from_\"
  * @category \"Stacks\" 
- * @param \"iter\" \"iterator\" an iterator over a string
+ * @param \"iter\" \"iterator of character\" an iterator of character over a string
  * @param turkey buzzard in space
  * yes, turkey master!
  * @returns \"string\"  The entire comment less the opening * on a new line. 
  */ yo
  e
-/*
+/**
  * Butt-licking great time!
  * 
  * Ew...
@@ -809,10 +769,10 @@ test ::=
 
 
 
-/* Print: test; Print: "\n";
- it : iterator := an iterator over test;
+/* Print: test; Print: "\n";*/
+ it : iterator of character := an iterator over test;
 identify comment from it;
-
+/*
 Print: buffer;
 Print: "\n";
 Print: format "lineCount=“①”\n\n" with lineCount;
@@ -843,4 +803,4 @@ Print: "\n\nMap:\n";
 Print: format "mp1=“arg”\n\n" with arg:=mp1;*/
 Print: format "lineCount=“①”\n\n\n" with lineCount;
 Print: format "fileCommentMapsTuple=“①”\n" with fileCommentMapsTuple;
-*/
+

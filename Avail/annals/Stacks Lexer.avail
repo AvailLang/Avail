@@ -1,0 +1,603 @@
+/*
+ * Stacks Stream Parser.avail
+ * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+System Module "Stacks Lexer"
+Versions
+	"Dev"
+Extends
+
+Uses
+	"Avail"
+
+Names
+	"@author",
+	"@category",
+	"@code",
+	"@field",
+	"@forbids",
+	"generic stacks token",
+	"@global",
+	"@link",
+	"@method",
+	"@param",
+	"@public",
+	"@raises",
+	"@restricts",
+	"@returns",
+	"@see",
+	"@supertype",
+	"@type",
+	"concatenate_separated by_",
+	"special stacks token",
+	"stacks token",
+	"tokenize_"
+
+Body
+
+lexeme ::= $lexeme;				/*string representation of token*/
+line ::= $line;					/*line in which token appears*/
+position ::= $position; 		/*column position token begins*/
+isSpecial ::= $isSpecial; /* is the token special */
+
+/**
+ * A class that defines a token for the stacks lexor.  
+ * 
+ * @type "@stacks token"
+ * @supertype {@type "element" element}
+ * @category Stacks
+ * @field "lexeme" "string"
+ * 	string representation of token
+ * @field "line" "natural number"
+ * 	line number on which token appears 
+ * @field "position" "natural number"
+ * 	column position where token begins
+ * @author Richard Arriaga
+ */
+Class "stacks token" extends object
+	with fields
+		lexeme : string,
+		line : natural number,
+		position : natural number;
+
+/**
+ * A class that defines a generic token for the stacks lexor.  
+ * 
+ * @type "@generic stacks token"
+ * @supertype {@type "element" element}
+ * @category Stacks
+ * @field "isSpecial" "false's type"
+ * 	this token is not a token of note.
+ */
+Public explicit class "generic stacks token" extends stacks token
+	with fields
+		isSpecial : false's type;
+
+/**
+ * A class that defines a generic token for the stacks lexor.  
+ * 
+ * @type "@special stacks token"
+ * @supertype {@type "element" element}
+ * @category Stacks
+ * @field "lexeme" "string"
+ * 	this token is a token of note.
+ */
+Public explicit class "special stacks token" extends stacks token
+	with fields
+		isSpecial : true's type;
+		
+		
+/**
+ * A method that constructs a subtype of stacks token class.
+ *
+ * @method "_ is a stacks token"
+ * @categories "Stacks"
+ * @param "name" "string" 
+ *		name of new token type
+ * @returnType "⊤"
+ *		none
+ * @author "Richard Arriaga"
+ */
+Private method "_is a stacks token" is
+[
+ 	name : <character…|1..>
+ |
+ 	 Class name extends special stacks token
+ 		with fields
+ 			lexeme : name's type;
+ ]:⊤;
+
+/* All keywords that will ultimately be special stacks tokens */
+
+stacksTokenTypeNames::= {"@type","@supertype","@field","@category","@param",
+	"@raises","@restricts","@returns","@forbids","@public","@method","@see",
+	"@author","@link","@code","@global"};
+	
+For each stacksTokenTypeNames do
+[
+	tokenName : <character…|1..>
+ |
+ 	tokenName is a stacks token;
+];
+
+/**
+ * A method that creates a single stacks token object
+ *
+ * @method "token_"
+ * @categories "Stacks"
+ * @param "tokenComponents" "<string,natural number…|3>" 
+ *		a tuple <token lexeme,token line number,token column position>
+ * @returnType "stacks token"
+ *		a stacks token of the input string
+ * @author "Richard Arriaga"
+ */
+Private method "token_" is
+[
+ 	tokenComponents : <string,natural number…|3>
+ |
+ 	if tokenComponents[1] ∉ stacksTokenTypeNames then
+ 	[
+	 	 a generic stacks token with
+			lexeme := tokenComponents[1],
+			line := tokenComponents[2],
+			position := tokenComponents[3]
+	] else
+	[
+	 	 a special stacks token with
+			lexeme := tokenComponents[1],
+			line := tokenComponents[2],
+			position := tokenComponents[3]
+	]
+ ]:stacks token;
+
+/**
+ * Tokenize all elements of a string.
+ *
+ * @method "tokenize_"
+ * @public
+ * @categories "Stacks"
+ * @param "comment" "string" 
+ *		a qualifying stacks comment
+ * @returnType "<stacks token…|>"
+ *		a tuple of stacks tokens.  Excludes astericks.
+ * @author "Richard Arriaga"
+ */
+Public method "tokenize_" is
+[
+ 	comment : string
+ |
+ 	lineCount : natural number := 1;
+ 	openComment : whole number := 0;
+	openQuote : whole number := 0;
+	stacksTokens : <stacks token…|> := <>;
+	
+	/* delimiting characters for tokenization */
+	keyCharacters ::= {¢@,¢" ",¢"\"",¢{,¢},¢`,¢/,¢*,¢"\t"};
+ 
+	doNotTokenize ::= {"/*","/**","*/"," ","","\t"};
+	
+	newLinePositions ::= all indices of comment where 
+		[c : character | c = ¢"\n"];
+
+	priorNewLine : natural number := 1;
+	bufferMap : {natural number→string|} := {};
+	
+	/* Break up comment by new lines.  Map key is line count, value is line *
+	 * less the new line character at the end of the line                   */
+	For each newLinePositions do
+	[
+	 	i : natural number
+	 |
+	 	if priorNewLine = 1 then
+	 	[
+	 	 	bufferMap := bufferMap + lineCount→comment[priorNewLine..i-1];
+	 	] else
+	 	[
+	 	 	bufferMap := bufferMap + lineCount→comment[priorNewLine + 1..i-1];
+	 	];
+	 
+	 	priorNewLine := i;
+		↑lineCount++;
+	];
+	
+	/* Tokenize comment lines */
+	For each bufferMap do
+	[
+	 	lineNumber : natural number,
+	 	commentLine : string
+	 |
+	 	columnPosition : natural number := 1;
+		charCounter : whole number := 0;
+
+		/* Is the new line a continuation of a nested comment, if so consume *
+		 * without tokenizing the contents                                   */
+
+		While
+		[
+		 	charCounter < |commentLine|
+		]
+		do
+		[
+			If openComment > 1 then
+			[
+			 	While
+			 	[
+			 	 	openComment > 1 ∧ [charCounter < |commentLine|]
+			 	]
+			 	do
+			 	[
+	
+			 	 	/* Consume nested comment without tokenizing but moving *
+			 	 	 * column pointer										*/
+			 	 	If charCounter = 0 then [↑charCounter++;];
+			 	 	
+					word : <character…|> := take from commentLine[charCounter+1..] 
+					until 
+					[
+					 	c : character 
+					 |
+	
+						If charCounter ≠ |commentLine| then [↑charCounter++;];
+					 	c ∈ {¢/,¢*}  ∨ [charCounter = |commentLine|]
+					];
+			 	 	
+			 	 	j : natural number := cast charCounter into 
+						[n : natural number | n];
+	
+			 	 	If charCounter < |commentLine| +1 ∧ [commentLine[j] ∈ {¢/,¢*}] then  
+					[
+						Cast commentLine[j] into
+						[
+						 	c : enumeration of {¢/,¢*}
+						 |
+							Choose c from enumeration of {¢/,¢*}
+							where
+							¢* is
+							[
+							 	If commentLine[j+1] = ¢/ then
+							 	[
+							 	 	/*Close nested comment*/
+							 	 	↑openComment--;
+							 	 	↑charCounter++;
+							 	];
+							],
+							¢/ is
+							[
+								If commentLine[j+1] = ¢* then
+								[
+								 	/*Open new nested comment*/
+									↑openComment++;
+									↑charCounter++;
+								];
+							];
+						];
+					];
+			 	 	
+			 	];
+			];
+			While
+			[
+			 	charCounter < |commentLine| ∧ [openComment < 2]
+			]
+			do
+			[
+			 	wordStart : natural number := charCounter + 1;
+				word : <character…|> := take from commentLine[charCounter+1..] until 
+				[
+				 	c : character 
+				 |
+				 	↑charCounter++;
+				 	c ∈ keyCharacters  ∨ [charCounter = |commentLine|+1]
+				];
+	
+				j : natural number := cast charCounter into 
+					[n : natural number | n];
+	
+				if charCounter < |commentLine| then
+				[
+					Cast commentLine[j] into
+					[
+					 	c : enumeration of {¢@,¢" ",¢"\"",¢{,¢},¢`,¢/,¢*,¢"\t"}
+					 |
+						Choose c from enumeration of keyCharacters
+						where
+						¢"\t" is
+						[
+						 	If word ∉ doNotTokenize then 
+						 	[
+						 	 	stacksTokens := stacksTokens ++ 
+						 	 		<token <word,lineNumber,wordStart>>;
+						 	];
+						],
+						¢@ is
+						[
+						 	If word ∉ doNotTokenize then 
+						 	[
+						 	 	stacksTokens := stacksTokens ++ 
+						 	 		<token <word,lineNumber,wordStart>>;
+						 	];
+			 				wordStart := j;
+			 				word := take from commentLine[j..] until 
+			 				[
+			 					ch : character 
+			 				 |
+			 				 	↑charCounter++;
+			 					ch = ¢" " ∨ [charCounter = |commentLine|]
+			 				];
+				 			stacksTokens := stacksTokens ++ 
+				 				<token <word,lineNumber,wordStart>>;
+						 	/* Counter will be re-incremented above.*/
+						 	↑charCounter--;
+						],
+						¢" " is
+						[
+						 	If word ∉ doNotTokenize then 
+						 	[
+						 	 	stacksTokens := stacksTokens ++ 
+						 	 		<token <word,lineNumber,wordStart>>;
+						 	];
+						],
+						¢"\"" is
+						[
+						 	If word ∉ doNotTokenize then 
+						 	[
+						 	 	stacksTokens := stacksTokens ++ 
+						 	 		<token <word,lineNumber,wordStart>>;
+						 	];
+				 			wordStart := j;
+			 				word := take from commentLine[j+1..] until 
+			 				[
+			 					ch : character 
+			 				 |
+			 				 	Print: <ch>;
+			 					↑charCounter++;
+			 					ch = ¢"\"" ∨ [charCounter = |commentLine|]
+			 				];
+						 	if charCounter < |commentLine| + 1 then
+						 	[
+						 		word := <¢"\""> ++ word ++ <¢"\"">;
+						 		stacksTokens := stacksTokens ++ 
+						 			<token <word,lineNumber,wordStart>>;
+						 	] else
+						 	[
+						 	 	/* TODO some sort of Error handling of missing close quote*/
+						 	];
+						],
+						¢{ is
+						[
+						 	If word ∉ doNotTokenize then 
+						 	[
+						 	 	stacksTokens := stacksTokens ++ 
+						 	 		<token <word,lineNumber,wordStart>>;
+						 	];
+							stacksTokens := stacksTokens ++ 
+								<token <"{",lineNumber,j>>;
+						],
+						¢} is
+						[
+						 	If word ∈ doNotTokenize then 
+						 	[
+						 	 	stacksTokens := stacksTokens ++ 
+						 	 		<token <word,lineNumber,wordStart>>;
+						 	];
+				 			stacksTokens := stacksTokens ++ 
+				 				<token <"}",lineNumber,j>>;
+						],
+						¢` is
+						[
+						 /* Check for following escaped special characters */
+						 	if charCounter < |commentLine| then
+						 	[
+							  	if commentLine[j+1] ∈ {¢@,¢"\"",¢`,¢*} then
+							  	[
+							  	 	word := word ++ commentLine[j..j+1];
+							  		↑charCounter++;
+							  		If charCounter ≠ |commentLine| then
+							  		[
+								  		word := word ++ 
+								  			take from commentLine[j+2..] until 
+						 				[
+						 					ch : character 
+						 				 |
+						 					↑charCounter++;
+						 					ch ∈ keyCharacters  ∨ 
+						 						[charCounter = |commentLine|]
+						 				];
+									 	If word ∉ doNotTokenize then 
+									 	[
+									 	 	stacksTokens := stacksTokens ++ 
+									 	 		<token <word,lineNumber,wordStart>>;
+									 	];
+									];
+							  	]
+							  	else 
+							  	[
+							  	 	word := word ++ <commentLine[j]>;
+							  		↑charCounter++;
+							  		word := word ++ take from commentLine[j+1..] until 
+					 				[
+					 					ch : character 
+					 				 |
+					 					↑charCounter++;
+					 					ch ∈ keyCharacters ∨ 
+				 							[charCounter = |commentLine|]
+					 				];
+								 	If word ∉ doNotTokenize then 
+								 	[
+								 	 	stacksTokens := stacksTokens ++ 
+								 	 		<token <word,lineNumber,wordStart>>;
+								 	];
+							  	];
+							] else
+							[
+							 	word := word ++ <commentLine[j]>;
+							 	If word ∉ doNotTokenize then 
+							 	[
+							 	 	stacksTokens := stacksTokens ++ 
+							 	 		<token <word,lineNumber,wordStart>>;
+							 	];
+							];
+						],
+						¢/ is
+						[
+						 	/*Check to see if open nested comment*/
+						 	if commentLine[j+1] = ¢* then
+					 		[
+			 		 	 		↑charCounter++;
+					 		 	if openComment = 0 ∧ [|commentLine| ≤ j + 2] then
+					 		 	[
+					 		 	 	/*Open new comment*/
+					 		 	 	↑openComment++;
+					 		 	 	If commentLine[j+2] = ¢* then
+					 		 	 	[
+					 		 	 	 	/* Start of main comment*/
+					 		 	 	 	↑charCounter++;
+					 		 	 	];
+					 		 	] else
+					 		 	[
+					 		 	 	/*Open new nested comment*/
+					 		 	 	↑openComment++;
+					 		 	 	↑charCounter++;
+					 		 	];
+							] else
+							[
+						  	 	word := word ++ <commentLine[j]>;
+						  		↑charCounter++;
+						  		word := word ++ take from commentLine[j+1..] until 
+				 				[
+				 					ch : character 
+				 				 |
+				 					↑charCounter++;
+				 					ch ∈ keyCharacters ∨ 
+			 							[charCounter = |commentLine|]
+				 				];
+							];
+						 	If word ∉ doNotTokenize then 
+						 	[
+						 	 	stacksTokens := stacksTokens ++ 
+						 	 		<token <word,lineNumber,wordStart>>;
+						 	];
+						],
+						¢* is
+						[
+						 /*Do nothing special here.  If closing comment, it will *
+						  * end the buffer.  If not, `* will not be converted 	 *
+						  * into a token.  Tokenize prior word if applicable.	 */
+						 	If word ∉ doNotTokenize then 
+						 	[
+						 	 	stacksTokens := stacksTokens ++ 
+						 	 		<token <word,lineNumber,wordStart>>;
+						 	];
+						 ];
+					];
+				] else
+				[
+				 	If word ∉ doNotTokenize then 
+				 	[
+				 	 	stacksTokens := stacksTokens ++ 
+				 	 		<token <word,lineNumber,wordStart>>;
+				 	];
+				];
+			];
+		];
+	];
+	stacksTokens
+]:<stacks token…|>;
+
+/**
+ * Take a tuple of stacks tokens and concatenate the lexemes seperated by
+ * provided character
+ *
+ * @method "Concatenate_separated by_"
+ * @public
+ * @categories "Stacks"
+ * @param "tokens" "<stacks token…|1..>" 
+ *		a tuple of stacks tokens
+ * @param "tokens" "<stacks token…|1..>" 
+ *		the character to separate the tokens' lexems in the string
+ * @returnType "string"
+ *		a string sentence of the tokens' lexemes
+ * @author "authorName"
+ */
+Public method "concatenate_separated by_" is
+[
+ 	tokens : <stacks token…|1..>,
+ 	delimeter : string
+ |
+ 	if |tokens| = 1 then [tokens[1]'s lexeme]
+ 	else
+ 	[
+ 	 	i : natural number := 1;
+ 	 	lexemeAndSpace : <string…|> := <>;
+ 	 	Do 
+ 	 	[
+ 	 	 	lexemeAndSpace := lexemeAndSpace ++ <tokens[i]'s lexeme>;
+ 	 	 	↑i++;
+ 	 	]
+ 	 	until [i > |tokens|]
+ 	 	alternate with [lexemeAndSpace := lexemeAndSpace ++ <delimeter>;];
+ 	 	Print: format "lexemeAndSpace=“①”\n" with (lexemeAndSpace's type ⊆ <string…|>);
+ 	 	a ::= next line;
+ 	 	Print: format "flatten lexemeAndSpace=“①”\n" with flatten lexemeAndSpace;
+ 	 	flatten lexemeAndSpace
+ 	]
+ ]:string;
+
+
+keyCharacters ::= {¢@,¢" ",¢"\"",¢{,¢},¢`,¢/,¢*};
+charCounter : whole number := 0;
+t ::="/**
+* Tokenize all elements of a string.
+*
+* @method \"tokenize_\"
+* @categories \"Stacks\"
+* @param \"comment\" \"string\" 
+*		a qualifying stacks comment *
+* @returnType \"<stacks token…|>\"
+*		a tuple of stacks tokens.  /* Frog 
+* in the bottom of space*/ Excludes `*.
+* @author \"Richard Arriaga\"
+*/";
+
+z ::= tokenize t;
+
+Print: format "z=“①”\n\n" with z;
+Print: t;
+Print: "\n\n";
+For each z do
+[
+ 	st : stacks token
+ |
+ 	Print: st's lexeme;
+ 	Print: "-";
+];
+Print: "\n\n";
+s ::= concatenate z separated by " ";

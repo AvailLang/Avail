@@ -45,11 +45,12 @@ Names
 	"erroneous comment",
 	"grammatical restriction",
 	"library component",
-	"methodContainer",
+	"method container",
 	"method document",
 	"method implementation",
 	"method signature document",
 	"module",
+	"module comment errors",
 	"parameter document",
 	"return document",
 	"semantic restriction",
@@ -64,6 +65,7 @@ categories ::= $categories;			/* categories associated with object */
 category :: = $category;			/* @category */
 classFields ::= $classFields;		/* @field */
 comment ::= $comment;				/* entire stacks comment */
+comments ::= $comments;				/* many stacks comments */
 description ::= $description;		/* general description of anything. */
 errorList ::= $errorList;			/* list of stacks comment errors */
 exports ::= $exports;				/* */
@@ -462,7 +464,7 @@ Public explicit class "grammatical restriction"
  * @author Richard Arriaga
  */
 
-Public explicit class "methodContainer" extends library component
+Public explicit class "method container" extends library component
 	with fields
 		parameters : <@param…|>,
 		raises : <@raises…|>,
@@ -470,6 +472,27 @@ Public explicit class "methodContainer" extends library component
 		semanticRestrictions : ↑<semantic restriction…|>,
 		grammaticalRestrictions : ↑<grammatical restriction…|>;
 
+/**
+ * A class that defines the errors in a Stacks comment.
+ * 
+ * @type "@erroneous comment"
+ * @supertype {@type "element" element}
+ * @category Annals
+ * @field "comment" "string" 
+ * 	the entire stacks comment
+ * @field "startLine" "natural number"
+ * 	the line where the comment starts
+ * @field "errorList" "<<string,natural number,string…|3>…|1..>"
+ *	a tuple of <error type, error line #, proximal erroneous text>
+ *
+ * @author Richard Arriaga
+ */
+Public explicit class "erroneous comment" extends element
+	with fields
+		comment : string,
+		startLine : natural number,
+		errorList : <<string,natural number,string…|3>…|1..>;
+		
 /**
  * A class that defines the errors in a Stacks comment.
  * 
@@ -487,9 +510,7 @@ Public explicit class "methodContainer" extends library component
  *
  * @author Richard Arriaga
  */
-Explicit class "erroneous comment" extends element
+Public explicit class "module comment errors" extends element
 	with fields
 		module : string,
-		comment : string,
-		startLine : natural number,
-		errorList : <<string,natural number,string…|3>…|1..>;
+		comments : <erroneous comment…|1..>;
