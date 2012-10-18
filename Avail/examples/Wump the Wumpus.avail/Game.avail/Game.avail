@@ -44,7 +44,7 @@ Uses
 	"RNG",
 	"Turn"
 Names
-	"Play Wump the Wumpus"
+	"Play Wump the Wumpus«with reader_with reporter_»"
 Body
 
 /**
@@ -133,8 +133,25 @@ Private method "Report defeat" is
 	Report: "Better luck in your next life?\n";
 ];
 
-Public method "Play Wump the Wumpus" is
+/**
+ * Play a game of Wump the Wumpus.
+ *
+ * @method "Play Wump the Wumpus«with reader_with reporter_»"
+ */
+Public method "Play Wump the Wumpus«with reader_with reporter_»" is
 [
+	optionalIOActions : <<[]→string, [string]→⊤…|2>…|0..1>
+|
+	/* Set up the game's I/O. By default, use the console for reading and
+	 * writing.
+	 */
+	ioActions ::= optionalIOActions[1]
+		else [<Wump the Wumpus reader, Wump the Wumpus reporter>];
+	Wump the Wumpus reader := ioActions[1];
+	Wump the Wumpus reporter := ioActions[2];
+	/* Create a new game. All references to game objects within the block are
+	 * implicitly understood as relative to this new game.
+	 */
 	Use a game of Wump the Wumpus as the implied game and do
 	[
 		Welcome;
@@ -155,5 +172,3 @@ Public method "Play Wump the Wumpus" is
 		Report: "*** GAME OVER ***\n";
 	];
 ] : ⊤;
-
-Play Wump the Wumpus;

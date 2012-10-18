@@ -426,9 +426,9 @@ Bad commands "shoot self", "shoot myself", "shoot me" are
 	else
 	[
 		the agent's count of remaining arrows--;
-		Report: "Ow. Well, now you're out an arrow.\n";
+		Report: "Ow. You are bleeding now.\n";
 		/* Sometimes the wumpus smells blood. */
-		If the wumpus is alive ∧ [the RNG's next [1..2] = 1] then
+		If the wumpus is alive ∧ [the RNG's next [1..3] < 3] then
 		[
 			Report: "*SNIFF* *SNIFF* \"Wumpus smells hero!\"\n";
 			Now the wumpus is active;

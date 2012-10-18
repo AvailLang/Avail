@@ -42,8 +42,20 @@ Names
 	"string token",
 
 	/* Tokenization. */
-	"tokenize_"
+	"tokenize_",
+
+	/* Exceptions. */
+	"runaway-string exception"
 Body
+
+/**
+ * A runaway-string exception is raised by {@method "tokenize_"} when an
+ * unterminated quoted string is encountered.
+ *
+ * @type "runaway-string exception"
+ * @supertype "exception"
+ */
+Public explicit class "runaway-string exception" extends exception;
 
 /**
  * Tokenize the specified string. Tokens are 1) sequences of letters, 2)
@@ -55,6 +67,8 @@ Body
  *        The {@type "string"} to tokenize.
  * @return "<nonempty string…|>"
  *         A tuple of tokens.
+ * @raises "runaway-string exception"
+ *         If {@param "s"} includes an unterminated quoted string.
  */
 Public method "tokenize_" is
 [
@@ -85,7 +99,16 @@ Public method "tokenize_" is
 			else if [c = ¢"\""] then
 			[
 				While [↑i++; i ≤ |s| ∧ [s[i] ≠ ¢"\""]];
-				If i ≤ |s| then [↑i++;];
+				↑i++;
+				/* "_[_]else_" is less strict about the subscript, saving us a
+				 * cast here. Characters and numbers are disjoint, so zero (0)
+				 * is a good default value here (as the logic around it will
+				 * cause the exception to be raised).
+				 */
+				If s[i-1] else [0] ≠ ¢"\"" then
+				[
+					Raise a runaway-string exception
+				];
 			]
 			/* Any other character is considered a token. */
 			else
