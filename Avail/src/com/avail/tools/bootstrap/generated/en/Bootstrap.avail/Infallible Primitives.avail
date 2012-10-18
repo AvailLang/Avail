@@ -57,7 +57,7 @@ Uses
 		"If|if_then_else_",
 		"Print:_",
 		"Reject parse,expected:_",
-		"Terminate:_",
+		"Terminate_",
 		"[`…]→_",
 		"_'s⁇arguments",
 		"_'s⁇arity",
@@ -2091,7 +2091,7 @@ Primitive "_is a primitive" is
  * Parameters:
  *    value - A value, provided to establish context for debugging.
  */
-Primitive "Terminate:_" is
+Primitive "Terminate_" is
 [
 	value : any
 |

@@ -754,9 +754,9 @@ final public class L2Interpreter extends Interpreter
 			final AvailObject code = continuation.function().code();
 			if (code.primitiveNumber() == 200)
 			{
-				assert code.numArgs() == 2;
+				assert code.numArgs() == 3;
 				final AvailObject failureVariable = continuation
-					.argOrLocalOrStackAt(3);
+					.argOrLocalOrStackAt(4);
 				// Ignore the frame if it is currently unwinding.
 				if (!failureVariable.getValue().equals(
 					E_UNWIND_SENTINEL.numericCode()))
@@ -777,7 +777,7 @@ final public class L2Interpreter extends Interpreter
 							// exception raised from within one of its handlers.
 							newVariable.setValue(E_UNWIND_SENTINEL
 								.numericCode());
-							continuation.argOrLocalOrStackAtPut(3, newVariable);
+							continuation.argOrLocalOrStackAtPut(4, newVariable);
 							prepareToResumeContinuation(continuation);
 							invokeFunctionArguments(
 								handler,
@@ -791,6 +791,7 @@ final public class L2Interpreter extends Interpreter
 			}
 			continuation = continuation.caller();
 		}
+		// If no handler was found, then return the unhandled exception.
 		return primitiveFailure(exceptionValue);
 	}
 
