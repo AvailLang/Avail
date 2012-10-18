@@ -196,8 +196,8 @@ Private method "Buffer_" is
 ]:⊤;
 
 /**
- * Given an iterator of character at the start of a comment, collect all the characters until
- * the open comment count is 0.
+ * Given an iterator of character at the start of a comment, collect all the 
+ * characters until the open comment count is 0.
  * @method "buffer comment from_"
  * @category "Stacks"
  * @param "iter" iterator of character
@@ -207,7 +207,7 @@ Private method "buffer comment from_" is
 [
  	iter : iterator of character
  |
- 	atNewLine : boolean := true;
+
 	While 
 	[
 	 	iter is not exhausted ∧ 
@@ -219,13 +219,10 @@ Private method "buffer comment from_" is
 	 	/* Simply buffer characters that are not special */
 		While 
 		[
-		 	iter's current element ∉ {¢*,¢/,¢"\n"}
+		 	iter's current element ∉ {¢*,¢/}
 		]
 		do
 		[
-		 	/* Set appropriate at new line condition.  No longer at a new line
-		 	 * once a non-blank character is reached. */
-		 	If atNewLine ∧ [prevChar ≠ ¢" "] then [atNewLine := false;];
 		 	/* Preserve the current element of the iterator of character. */
 		 	prevChar := iter's current element;
 		 	Buffer iter;
@@ -234,122 +231,93 @@ Private method "buffer comment from_" is
 		if iter's current element = ¢* then
 		[
 		 	prevChar := iter's current element;
-		 	Advance iter;
-			/* The * is not the first non-blank character on this line.*/
-		 	if atNewLine = false then
-		 	[
-		 	 	/* This indicates a closing of a comment */
-		 		if iter's current element = ¢/ then
-		 		[
-		 		 	/* The closing of a nested comment */
-		 		 	if openCommentCount > 1 then
-		 		 	[
-		 		 	 	/*Capture everything from the nested comment*/
-		 		 	 	Decrement the open comment count;
-		 		 	 	buffer := buffer ++ <prevChar,iter's current element>;
-		 		 	 	Advance iter;
-		 		 	]
-		 		 	/* Closing the top level comment, all loops will end.*/
-		 		 	else
-		 		 	[Decrement the open comment count;];
-		 		]
-		 		/* The * character isn't doing anything special but is actually
-		 		 * part of text.  Buffer it.*/
-		 		else
-		 		[
-		 		 	buffer := buffer ++ <prevChar, 
-		 		 	iter's current element>;
-		 		 	Advance iter;
-		 		];
-		 	]
-		 	/* The * is the first non-blank char on the line 
-		 	 * Don't buffer it if it is not closing a nested comment */
-		 	else
-		 	[
-	 	 	 	/* A comment is being closed*/
-				if iter's current element = ¢/ then
-				[
-				 	/*Nested comment being closed preserve entire comment*/ 
-				 	if openCommentCount > 1 then
-				 	[
-				 	 	Decrement the open comment count;
-				 	 	buffer := buffer ++ <prevChar,iter's current element>;
-				 	 	Advance iter;
-				 	]
-				 	/* Closing the top level comment, all loops will end.*/
-				 	else
-				 	[Decrement the open comment count;];
-				]
-				/* Nothing special about next charThe * does not get captured 
-				 * as it is the first non-blank character in the new line*/
-				else
-				[
-				 	While 
-				 	[
-				 	 	iter is not exhausted ∧ 
-				 	 		[iter's current element ∈ {¢" "}]
-				 	]
-				 	do
-				 	[
-				 	 	Advance iter;
-				 	];
-				];
-		 	];
+		 	Buffer iter;
+	 	 	/* This indicates a closing of a comment */
+	 		if iter's current element = ¢/ then
+	 		[
+	 		 	/* The closing of a nested comment */
+	 		 	if openCommentCount > 1 then
+	 		 	[
+	 		 	 	/*Capture everything from the nested comment*/
+	 		 	 	Decrement the open comment count;
+	 		 	 	Buffer iter;
+	 		 	]
+	 		 	/* Closing the top level comment, all loops will end.*/
+	 		 	else
+	 		 	[
+	 		 	 	Decrement the open comment count;
+	 		 	 	Buffer iter;
+	 		 	];
+	 		]
+	 		/* The * character isn't doing anything special but is actually
+	 		 * part of text.  Buffer it.*/
+	 		else
+	 		[
+	 		 	buffer := buffer ++ <prevChar, 
+	 		 	iter's current element>;
+	 		 	Advance iter;
+	 		];
 		]
 		else if [iter's current element = ¢/] then
 		[
-		 	prevChar := iter's current element;
-		 	Advance iter;
-			/* Open of a nested comment.  Capture open comment syntax*/
-			if iter's current element = ¢* then 
+		 	Buffer iter;
+			/* If open of a nested comment.  Capture open comment syntax*/
+			If iter is not exhausted ∧ 
+	 			[iter's current element = ¢*] then 
 			[
 			 	Increment the open comment count;
-			 	Advance iter;
-			 	While
-			 	[
-			 	 	iter is not exhausted ∧ 
-		 	 			[openCommentCount > 1]
-			 	]
-			 	do
-			 	[
-			 	 	if iter's current element = ¢* then
-			 	 	[
-						prevChar := iter's current element;
-						Advance iter;
-						If iter is not exhausted ∧ 
-							[iter's current element = ¢/] then
-						[
-						 	Decrement the open comment count;
-						 	Advance iter;
-						];
-			 	 	]
-			 	 	else
-			 	 	[Advance iter;];
-			 	];
-			]
-			/* Nothing special about character,/, buffer it.*/
-			else [buffer := buffer ++ <prevChar>;];
+			 	Buffer iter;
+			];
 		]
-		/* Start of a new line, indicate this here. */
-		else if [iter's current element = ¢"\n"] then
-		[
-		 	atNewLine := true;
-			/* Capture the new line character */
-			buffer := buffer ++ <iter's current element>;
-			Advance iter;
-			While 
-			[
-		 	 	iter is not exhausted ∧ 
-		 	 		[iter's current element ∈ {¢" "}]
-		 	]
-		 	do
-		 	[
-		 	 	Advance iter;
-		 	];
-		]
-		else [/* Outer loop will end, do nothing.*/];	
+		else [/* Only get here if iterator is exhausted before comment closed*/];	
 	];
 ]:⊤;
+
+
+
+
+/**
+ * Divide the comment buffer into parts designated by `@ tag keywords.  If `@
+ * tag is escaped or preceded by a {, then ignore tag.
+ *
+ * @method "Split comment buffer"
+ * @category "Stacks"
+ * @returns "<string…|1..>"
+ *		a tuple of strings
+ * @author "Richard Arriaga"
+ */
+Private method "Split_" is
+[
+ 	tokens : <stacks token…|1..>
+ |
+ 	parsedTokenMap : {stacks token→{stacks token…|1..}|} := {};
+ 	
+ 	/* Partition stacks tuple into map keyed by special stacks token type */
+ 	tokenCounter : whole number := 0;
+ 	generalComment ::=
+ 	if tokens[1]'s ¬isSpecial then 
+ 	[
+ 	 	take from tokens until 
+ 	 	[
+ 	 	 	st : stacks token
+ 	 	 |
+ 	 	 	↑tokenCounter++;
+ 	 		|tokens| + 1 = tokenCounter ∨ [st's isSpecial]
+ 	 	]
+ 	] else [""];
+ 	While
+ 	[
+ 	 	|tokens| ≠ tokenCounter
+ 	]
+ 	do
+ 	[
+ 	 	While
+ 	 	[
+ 	 	 	tokens[tokenCounter + 1]'s isSpecial then
+ 	 	[]
+ 	];
+]:<{string,stacks token→{stacks token…|1..}|}…|1..>;
+
 
 /**
  * Divide the comment buffer into parts designated by `@ tag keywords.  If `@
@@ -657,7 +625,8 @@ Public method "identify comment from_" is
 		if keyBuffer = "/**" ∧ [openCommentCount = 0] then 
 		[
 		 	/* Process Stacks Comment */
-		 	Increment the open comment count; 
+		 	Increment the open comment count;
+		 	buffer := buffer ++ keyBuffer;
 		 	buffer comment from iter;
 		 	
 		 	mp1 : {string→{<natural number,string…|2>|1..}|} := {};
