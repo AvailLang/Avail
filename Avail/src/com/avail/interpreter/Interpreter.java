@@ -1005,6 +1005,17 @@ public abstract class Interpreter
 		AvailObject exceptionValue);
 
 	/**
+	 * Scan the stack of continuations until one is found for a function whose
+	 * code specifies {@linkplain P_200_CatchException}. Write the specified
+	 * marker into its primitive failure variable to indicate the current
+	 * exception handling state.
+	 *
+	 * @param marker An exception handling state marker.
+	 * @return An indication of success.
+	 */
+	public abstract Result markNearestGuard (AvailObject marker);
+
+	/**
 	 * Prepare the interpreter to deal with executing the given function, using
 	 * the given arguments.  <em>Do not</em> set up the new function's locals.
 	 * In the case of level one code simulated in level two, a preamble level

@@ -40,3 +40,4 @@ Body
 
 /* Report on all tests. */
 Print: test suite-oriented “report on all tests”;
+/*Print: test suite-oriented “report on all tests in exception test suite”;*/

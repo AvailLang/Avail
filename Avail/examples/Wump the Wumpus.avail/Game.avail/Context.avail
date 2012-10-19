@@ -76,25 +76,8 @@ Public method "Use_as the implied game and do_" is
 	 * before returning control to the caller.
 	 */
 	current fiber[implied game] := game;
-	/* TODO: [TLS] Rewrite when "ensure" becomes available. */
-	Guard
-	[
-		action();
-		Remove current fiber[implied game];
-	]
-	intercept
-	[
-		e : exception
-	|
-		Remove current fiber[implied game];
-		Raise e
-	];
-	/*
-	ensure
-	[
-		Remove current fiber[implied game];
-	];
-	 */
+	Guard [action();]
+	ensure [Remove current fiber[implied game];];
 ] : ⊤;
 
 /* Introduce some simple methods to access the implied game's features. */

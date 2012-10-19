@@ -1,5 +1,5 @@
 /**
- * P_200_CatchException.java
+ * P_202_MarkNearestCatch.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -29,48 +29,41 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+
 package com.avail.interpreter.primitive;
 
-import static com.avail.descriptor.TypeDescriptor.Types.TOP;
+import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.*;
+import com.avail.annotations.NotNull;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 
 /**
- * <strong>Primitive 200:</strong> Always fail. The Avail failure code
- * invokes the {@linkplain FunctionDescriptor body block}. A handler block is
- * only invoked when an exception is raised.
+ * <strong>Primitive 202</strong>: Mark the nearest frame corresponding to an
+ * invocation of {@link P_200_CatchException} as ineligible to handle exceptions
+ * any longer.
+ *
+ * @author Todd Smith &lt;todd@availlang.org&gt;
  */
-public class P_200_CatchException extends Primitive
+public final class P_202_MarkNearestCatch
+extends Primitive
 {
 	/**
-	 * The sole instance of this primitive class.  Accessed through reflection.
+	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_200_CatchException().init(
-		3, CatchException, Unknown);
+	public final @NotNull static Primitive instance =
+		new P_202_MarkNearestCatch().init(1, Unknown);
 
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 3;
-		@SuppressWarnings("unused")
-		final AvailObject bodyBlock = args.get(0);
-		final AvailObject handlerBlocks = args.get(1);
-		@SuppressWarnings("unused")
-		final AvailObject optionalEnsureBlock = args.get(2);
-		for (final AvailObject block : handlerBlocks)
-		{
-			if (!block.kind().argsTupleType().typeAtIndex(1).isSubtypeOf(
-				ObjectTypeDescriptor.exceptionType()))
-			{
-				return interpreter.primitiveFailure(E_INCORRECT_ARGUMENT_TYPE);
-			}
-		}
-		return interpreter.primitiveFailure(E_REQUIRED_FAILURE);
+		assert args.size() == 1;
+		final AvailObject code = args.get(0);
+		return interpreter.markNearestGuard(code);
 	}
 
 	@Override
@@ -78,26 +71,13 @@ public class P_200_CatchException extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				FunctionTypeDescriptor.create(
-					TupleDescriptor.from(),
-					TOP.o()),
-				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
-					IntegerRangeTypeDescriptor.wholeNumbers(),
-					TupleDescriptor.from(),
-					FunctionTypeDescriptor.create(
-						TupleDescriptor.from(
-							BottomTypeDescriptor.bottom()),
-						TOP.o())),
-				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
-					IntegerRangeTypeDescriptor.create(
-						IntegerDescriptor.fromInt(0),
-						true,
-						IntegerDescriptor.fromInt(1),
-						true),
-					TupleDescriptor.from(),
-					FunctionTypeDescriptor.create(
-						TupleDescriptor.from(),
-						TOP.o()))),
+				AbstractEnumerationTypeDescriptor.withInstances(
+					SetDescriptor.fromCollection(
+						Arrays.asList(new AvailObject[]
+						{
+							E_HANDLER_SENTINEL.numericCode(),
+							E_UNWIND_SENTINEL.numericCode()
+						})))),
 			TOP.o());
 	}
 
@@ -108,10 +88,8 @@ public class P_200_CatchException extends Primitive
 			SetDescriptor.fromCollection(
 				Arrays.asList(new AvailObject[]
 				{
-					IntegerDescriptor.zero(),
-					E_INCORRECT_ARGUMENT_TYPE.numericCode(),
-					E_HANDLER_SENTINEL.numericCode(),
-					E_UNWIND_SENTINEL.numericCode()
+					E_CANNOT_MARK_HANDLER_FRAME.numericCode(),
+					E_NO_HANDLER_FRAME.numericCode()
 				})));
 	}
 }

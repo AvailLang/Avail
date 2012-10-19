@@ -109,7 +109,7 @@ Method "do_handleTuple_ensure_" is
 	handlers : tuple [1..INF) of [terminates]->void,
 	ensure : tuple [0..1] of []->void
 |
-	Primitive 200 (failureCode : [0..16]);
+	Primitive 200 (failureCode : [0..83]);
 	run body and if ||ensure|| > 0 then [ensure[1]] else [[]];
 ] : void;
 

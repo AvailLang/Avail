@@ -1,5 +1,5 @@
 /*
- * Foundation Tests.avail
+ * Exception Tests.avail
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -30,12 +30,37 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Foundation Tests"
+System Module "Exception Tests"
 Versions
 	"dev"
-Extends
-	"Common" = ("Foundation|foundation test suite"),
-	"Exception Tests" = ("exception test suite"),
-	"Function Tests" = ("function test suite"),
-	"Math Tests" = ("math test suite")
+Uses
+	"Common",
+	"Foundation",
+	"Unit Testing"
+Names
+	"exception test suite"
 Body
+
+/* The test suite identifier. */
+"exception test suite" is a new atom;
+
+New test suite exception test suite extends foundation test suite;
+
+Test "basic intercept(side-effect)" in exception test suite is
+[
+	ref : descriptive exception;
+	Guard [Raise a descriptive exception with error message := "fnord"]
+	intercept [e : descriptive exception | ref := e;];
+	Require: ↑ref is assigned;
+	Require: "fnord" = ref's error message;
+];
+
+Test "basic intercept(value-producing)" in exception test suite is
+[
+	ref : descriptive exception :=
+		guard [Raise a descriptive exception with error message := "fnord"]
+		/* TODO: [TLS] Remove this "Ignore: 1;" and fix it for real… */
+		intercept [e : descriptive exception | Ignore: 1; e];
+	Require: ↑ref is assigned;
+	Require: "fnord" = ref's error message;
+];
