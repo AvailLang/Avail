@@ -82,10 +82,7 @@ Test "one intercept(value-producing)" in exception test suite is
 [
 	ref : descriptive exception :=
 		guard [Raise a descriptive exception with error message := "fnord"]
-		/* TODO: [TLS] There are problems getting values back from primitives
-		 * 340 and 341. Make this not stupid when the VM bug is fixed.
-		 */
-		intercept [e : descriptive exception | Ignore: 0; e];
+		intercept [e : descriptive exception | e];
 	Require: ↑ref is assigned;
 	Require: "fnord" = ref's error message;
 ];
@@ -152,11 +149,6 @@ Test "two intercepts(value-producing)" in exception test suite is
 		[
 			e : subscript-out-of-bounds exception
 		|
-			/* TODO: [TLS] There are problems getting values back from
-			 * primitives 340 and 341. Make this not stupid when the VM bug is
-			 * fixed.
-			 */
-			Ignore: 0;
 			7
 		];
 	Require: ↑ref is assigned;
@@ -172,11 +164,6 @@ Test "two intercepts(value-producing)" in exception test suite is
 		[
 			e : subscript-out-of-bounds exception
 		|
-			/* TODO: [TLS] There are problems getting values back from
-			 * primitives 340 and 341. Make this not stupid when the VM bug is
-			 * fixed.
-			 */
-			Ignore: 0;
 			7
 		]
 		intercept
@@ -271,10 +258,7 @@ Test "one intercept,unwind(value-producing)" in exception test suite is
 	rice : string;
 	curry : string :=
 		guard [Raise an exception]
-		/* TODO: [TLS] There are problems getting values back from primitives
-		 * 340 and 341. Make this not stupid when the VM bug is fixed.
-		 */
-		intercept [e : exception | Ignore: 0; "lemon"]
+		intercept [e : exception | "lemon"]
 		ensure [rice := "basmati";];
 	Require: ↑curry is assigned;
 	Require: "lemon" = curry;
@@ -359,11 +343,6 @@ Test "two intercepts,unwind(value-producing)" in exception test suite is
 		[
 			e : subscript-out-of-bounds exception
 		|
-			/* TODO: [TLS] There are problems getting values back from
-			 * primitives 340 and 341. Make this not stupid when the VM bug is
-			 * fixed.
-			 */
-			Ignore: 0;
 			"lemon"
 		]
 		ensure
@@ -386,11 +365,6 @@ Test "two intercepts,unwind(value-producing)" in exception test suite is
 		[
 			e : subscript-out-of-bounds exception
 		|
-			/* TODO: [TLS] There are problems getting values back from
-			 * primitives 340 and 341. Make this not stupid when the VM bug is
-			 * fixed.
-			 */
-			Ignore: 0;
 			"lemon"
 		]
 		intercept

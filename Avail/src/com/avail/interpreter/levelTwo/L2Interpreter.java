@@ -772,16 +772,14 @@ final public class L2Interpreter extends Interpreter
 						if (exceptionValue.isInstanceOf(handler.kind()
 							.argsTupleType().typeAtIndex(1)))
 						{
-							// This is the correct handler. Run it.
-							continuation = continuation.ensureMutable();
 							// Mark this frame: we don't want it to handle an
 							// exception raised from within one of its handlers.
 							failureVariable.setValue(
 								E_HANDLER_SENTINEL.numericCode());
-							prepareToResumeContinuation(continuation);
-							invokeFunctionArguments(
+							// Run the handler.
+							invokePossiblePrimitiveWithReifiedCaller(
 								handler,
-								Collections.singletonList(exceptionValue));
+								continuation);
 							// Catching an exception *always* changes the
 							// continuation.
 							return CONTINUATION_CHANGED;
@@ -806,8 +804,6 @@ final public class L2Interpreter extends Interpreter
 			if (code.primitiveNumber() == primNum)
 			{
 				assert code.numArgs() == 3;
-				// This is the correct frame.
-				continuation = continuation.ensureMutable();
 				final AvailObject failureVariable = continuation
 					.argOrLocalOrStackAt(4);
 				// Only allow certain state transitions.
