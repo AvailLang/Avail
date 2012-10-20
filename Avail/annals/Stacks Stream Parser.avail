@@ -290,12 +290,12 @@ Private method "Split_" is
 [
  	tokens : <stacks token…|1..>
  |
- 	parsedTokenMap : {stacks token→{stacks token…|1..}|} := {};
+ 	parsedTokenMap : {stacks token→{stacks token|1..}|} := {};
  	
  	/* Partition stacks tuple into map keyed by special stacks token type */
  	tokenCounter : whole number := 0;
  	generalComment ::=
- 	if tokens[1]'s ¬isSpecial then 
+ 	if ¬(tokens[1]'s isSpecial) then 
  	[
  	 	take from tokens until 
  	 	[
