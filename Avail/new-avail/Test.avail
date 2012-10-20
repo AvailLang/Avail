@@ -40,5 +40,3 @@ Body
 
 /* Report on all tests. */
 Print: test suite-oriented “report on all tests”;
-/* TODO: [TLS] Keep testing this. */
-/*Print: test suite-oriented “report on all tests in exception test suite”;*/

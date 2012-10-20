@@ -46,7 +46,7 @@ Body
 
 New test suite exception test suite extends foundation test suite;
 
-Test "no exception(side-effect)" in exception test suite is
+Test "one intercept,no exception(side-effect)" in exception test suite is
 [
 	ref : integer;
 	Guard [ref := 10 + 14;]
@@ -55,7 +55,7 @@ Test "no exception(side-effect)" in exception test suite is
 	Require: 24 = ref;
 ];
 
-Test "no exception(value-producing)" in exception test suite is
+Test "one intercept,no exception(value-producing)" in exception test suite is
 [
 	ref : integer :=
 		guard [51 - 9]
@@ -69,7 +69,7 @@ Test "no exception(value-producing)" in exception test suite is
 	Require: 42 = ref;
 ];
 
-Test "single intercept(side-effect)" in exception test suite is
+Test "one intercept(side-effect)" in exception test suite is
 [
 	ref : descriptive exception;
 	Guard [Raise a descriptive exception with error message := "fnord"]
@@ -78,13 +78,384 @@ Test "single intercept(side-effect)" in exception test suite is
 	Require: "fnord" = ref's error message;
 ];
 
-/*
-Test "single intercept(value-producing)" in exception test suite is
+Test "one intercept(value-producing)" in exception test suite is
 [
 	ref : descriptive exception :=
 		guard [Raise a descriptive exception with error message := "fnord"]
-		intercept [e : descriptive exception | e];
+		/* TODO: [TLS] There are problems getting values back from primitives
+		 * 340 and 341. Make this not stupid when the VM bug is fixed.
+		 */
+		intercept [e : descriptive exception | Ignore: 0; e];
 	Require: ↑ref is assigned;
 	Require: "fnord" = ref's error message;
 ];
-*/
+
+Test "two intercepts(side-effect)" in exception test suite is
+[
+	ref : integer;
+	Guard
+	[
+		t : tuple := <>;
+		Ignore: t[1];
+	]
+	intercept
+	[
+		e : cannot-add-unlike-infinities exception
+	|
+		Require: false
+	]
+	intercept
+	[
+		e : subscript-out-of-bounds exception
+	|
+		ref := 7;
+	];
+	Require: ↑ref is assigned;
+	Require: 7 = ref;
+	Clear ↑ref;
+	Guard
+	[
+		t : tuple := <>;
+		Ignore: t[1];
+	]
+	intercept
+	[
+		e : subscript-out-of-bounds exception
+	|
+		ref := 7;
+	]
+	intercept
+	[
+		e : cannot-add-unlike-infinities exception
+	|
+		Require: false
+	];
+	Require: ↑ref is assigned;
+	Require: 7 = ref;
+];
+
+Test "two intercepts(value-producing)" in exception test suite is
+[
+	ref : integer :=
+		guard
+		[
+			t : <integer…|> := <>;
+			t[1]
+		]
+		intercept
+		[
+			e : cannot-add-unlike-infinities exception
+		|
+			Require: false
+		]
+		intercept
+		[
+			e : subscript-out-of-bounds exception
+		|
+			/* TODO: [TLS] There are problems getting values back from
+			 * primitives 340 and 341. Make this not stupid when the VM bug is
+			 * fixed.
+			 */
+			Ignore: 0;
+			7
+		];
+	Require: ↑ref is assigned;
+	Require: 7 = ref;
+	Clear ↑ref;
+	ref :=
+		guard
+		[
+			t : <integer…|> := <>;
+			t[1]
+		]
+		intercept
+		[
+			e : subscript-out-of-bounds exception
+		|
+			/* TODO: [TLS] There are problems getting values back from
+			 * primitives 340 and 341. Make this not stupid when the VM bug is
+			 * fixed.
+			 */
+			Ignore: 0;
+			7
+		]
+		intercept
+		[
+			e : cannot-add-unlike-infinities exception
+		|
+			Require: false
+		];
+	Require: ↑ref is assigned;
+	Require: 7 = ref;
+];
+
+Test "unwind,no exception(side-effect)" in exception test suite is
+[
+	curry : string;
+	rice : string;
+	Guard [curry := "lemon";]
+	ensure [rice := "basmati";];
+	Require: ↑curry is assigned;
+	Require: "lemon" = curry;
+	Require: ↑rice is assigned;
+	Require: "basmati" = rice;
+];
+
+Test "unwind,no exception(value-producing)"
+in exception test suite is
+[
+	rice : string;
+	curry : string :=
+		guard ["lemon"]
+		ensure [rice := "basmati";];
+	Require: ↑curry is assigned;
+	Require: "lemon" = curry;
+	Require: ↑rice is assigned;
+	Require: "basmati" = rice;
+];
+
+Test "unwind" in exception test suite is
+[
+	Guard [t : tuple := <>; Ignore: t[1];]
+	ensure
+	[
+		u : extended integer := ∞;
+		v : extended integer := -∞;
+		Ignore: u + v;
+	];
+]
+must raise cannot-add-unlike-infinities exception;
+
+Test "one intercept,unwind,no exception(side-effect)" in exception test suite is
+[
+	curry : string;
+	rice : string;
+	Guard [curry := "lemon";]
+	intercept [e : exception | Require: false]
+	ensure [rice := "basmati";];
+	Require: ↑curry is assigned;
+	Require: "lemon" = curry;
+	Require: ↑rice is assigned;
+	Require: "basmati" = rice;
+];
+
+Test "one intercept,unwind,no exception(value-producing)"
+in exception test suite is
+[
+	rice : string;
+	curry : string :=
+		guard ["lemon"]
+		intercept [e : exception | Require: false]
+		ensure [rice := "basmati";];
+	Require: ↑curry is assigned;
+	Require: "lemon" = curry;
+	Require: ↑rice is assigned;
+	Require: "basmati" = rice;
+];
+
+Test "one intercept,unwind(side-effect)" in exception test suite is
+[
+	curry : string;
+	rice : string;
+	Guard [Raise an exception]
+	intercept [e : exception | curry := "lemon";]
+	ensure [rice := "basmati";];
+	Require: ↑curry is assigned;
+	Require: "lemon" = curry;
+	Require: ↑rice is assigned;
+	Require: "basmati" = rice;
+];
+
+Test "one intercept,unwind(value-producing)" in exception test suite is
+[
+	rice : string;
+	curry : string :=
+		guard [Raise an exception]
+		/* TODO: [TLS] There are problems getting values back from primitives
+		 * 340 and 341. Make this not stupid when the VM bug is fixed.
+		 */
+		intercept [e : exception | Ignore: 0; "lemon"]
+		ensure [rice := "basmati";];
+	Require: ↑curry is assigned;
+	Require: "lemon" = curry;
+	Require: ↑rice is assigned;
+	Require: "basmati" = rice;
+];
+
+Test "two intercepts,unwind(side-effect)" in exception test suite is
+[
+	curry : string;
+	rice : string;
+	Guard
+	[
+		t : tuple := <>;
+		Ignore: t[1];
+	]
+	intercept
+	[
+		e : cannot-add-unlike-infinities exception
+	|
+		Require: false
+	]
+	intercept
+	[
+		e : subscript-out-of-bounds exception
+	|
+		curry := "lemon";
+	]
+	ensure
+	[
+		rice := "basmati";
+	];
+	Require: ↑curry is assigned;
+	Require: "lemon" = curry;
+	Require: ↑rice is assigned;
+	Require: "basmati" = rice;
+	Clear ↑curry;
+	Clear ↑rice;
+	Guard
+	[
+		t : tuple := <>;
+		Ignore: t[1];
+	]
+	intercept
+	[
+		e : subscript-out-of-bounds exception
+	|
+		curry := "lemon";
+	]
+	intercept
+	[
+		e : cannot-add-unlike-infinities exception
+	|
+		Require: false
+	]
+	ensure
+	[
+		rice := "basmati";
+	];
+	Require: ↑curry is assigned;
+	Require: "lemon" = curry;
+	Require: ↑rice is assigned;
+	Require: "basmati" = rice;
+];
+
+Test "two intercepts,unwind(value-producing)" in exception test suite is
+[
+	rice : string;
+	curry : string :=
+		guard
+		[
+			t : <string…|> := <>;
+			t[1]
+		]
+		intercept
+		[
+			e : cannot-add-unlike-infinities exception
+		|
+			Require: false
+		]
+		intercept
+		[
+			e : subscript-out-of-bounds exception
+		|
+			/* TODO: [TLS] There are problems getting values back from
+			 * primitives 340 and 341. Make this not stupid when the VM bug is
+			 * fixed.
+			 */
+			Ignore: 0;
+			"lemon"
+		]
+		ensure
+		[
+			rice := "basmati";
+		];
+	Require: ↑curry is assigned;
+	Require: "lemon" = curry;
+	Require: ↑rice is assigned;
+	Require: "basmati" = rice;
+	Clear ↑curry;
+	Clear ↑rice;
+	curry :=
+		guard
+		[
+			t : <string…|> := <>;
+			t[1]
+		]
+		intercept
+		[
+			e : subscript-out-of-bounds exception
+		|
+			/* TODO: [TLS] There are problems getting values back from
+			 * primitives 340 and 341. Make this not stupid when the VM bug is
+			 * fixed.
+			 */
+			Ignore: 0;
+			"lemon"
+		]
+		intercept
+		[
+			e : cannot-add-unlike-infinities exception
+		|
+			Require: false
+		]
+		ensure
+		[
+			rice := "basmati";
+		];
+	Require: ↑curry is assigned;
+	Require: "lemon" = curry;
+	Require: ↑rice is assigned;
+	Require: "basmati" = rice;
+];
+
+Test "bad intercept,unwind" in exception test suite is
+[
+	ensured : boolean := false;
+	Guard
+	[
+		Guard
+		[
+			u : extended integer := ∞;
+			v : extended integer := -∞;
+			Ignore: u + v;
+		]
+		intercept
+		[
+			e : cannot-add-unlike-infinities exception
+		|
+			t : tuple := <>;
+			Ignore: t[1];
+		]
+		ensure [ensured := true;];
+	]
+	ensure
+	[
+		Require: ensured;
+	];
+]
+must raise subscript-out-of-bounds exception;
+
+Test "bad intercept,bad unwind" in exception test suite is
+[
+	Guard
+	[
+		u : extended integer := ∞;
+		v : extended integer := -∞;
+		Ignore: u + v;
+	]
+	intercept
+	[
+		e : cannot-add-unlike-infinities exception
+	|
+		t : tuple := <>;
+		Ignore: t[1];
+	]
+	ensure
+	[
+		u : extended integer := ∞;
+		v : extended integer := ∞;
+		Ignore: u - v;
+	];
+]
+must raise cannot-subtract-like-infinities exception;
