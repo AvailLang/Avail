@@ -49,7 +49,7 @@ public class P_200_CatchException extends Primitive
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
 	public final static Primitive instance = new P_200_CatchException().init(
-		3, CatchException, Unknown);
+		3, CatchException, PreserveFailureVariable, PreserveArguments, Unknown);
 
 	@Override
 	public Result attempt (

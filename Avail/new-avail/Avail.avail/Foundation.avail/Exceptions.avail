@@ -452,10 +452,7 @@ Public method "Guard|guard_«intercept_»«ensure_»" is
 				<[
 					e : exception
 				|
-					unwind();
-					/* Forbid a subsequent unwind. */
-					Mark nearest guard frame with unwind-sentinel code;
-					Raise e
+					Handle e with [ex : exception | Raise ex] and unwind
 				]>
 			]
 			/* Otherwise, wrap each of the handlers. The wrapper will call the

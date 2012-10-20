@@ -46,7 +46,30 @@ Body
 
 New test suite exception test suite extends foundation test suite;
 
-Test "basic intercept(side-effect)" in exception test suite is
+Test "no exception(side-effect)" in exception test suite is
+[
+	ref : integer;
+	Guard [ref := 10 + 14;]
+	intercept [e : cannot-add-unlike-infinities exception | Require: false];
+	Require: ↑ref is assigned;
+	Require: 24 = ref;
+];
+
+Test "no exception(value-producing)" in exception test suite is
+[
+	ref : integer :=
+		guard [51 - 9]
+		intercept
+		[
+			e : cannot-subtract-like-infinities exception
+		|
+			Require: false
+		];
+	Require: ↑ref is assigned;
+	Require: 42 = ref;
+];
+
+Test "single intercept(side-effect)" in exception test suite is
 [
 	ref : descriptive exception;
 	Guard [Raise a descriptive exception with error message := "fnord"]
@@ -55,12 +78,13 @@ Test "basic intercept(side-effect)" in exception test suite is
 	Require: "fnord" = ref's error message;
 ];
 
-Test "basic intercept(value-producing)" in exception test suite is
+/*
+Test "single intercept(value-producing)" in exception test suite is
 [
 	ref : descriptive exception :=
 		guard [Raise a descriptive exception with error message := "fnord"]
-		/* TODO: [TLS] Remove this "Ignore: 1;" and fix it for real… */
-		intercept [e : descriptive exception | Ignore: 1; e];
+		intercept [e : descriptive exception | e];
 	Require: ↑ref is assigned;
 	Require: "fnord" = ref's error message;
 ];
+*/
