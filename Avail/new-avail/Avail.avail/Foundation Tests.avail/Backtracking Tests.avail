@@ -1,5 +1,5 @@
 /*
- * Foundation Tests.avail
+ * Backtracking Tests.avail
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -30,13 +30,54 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Foundation Tests"
+System Module "Backtracking Tests"
 Versions
 	"dev"
-Extends
-	"Backtracking Tests" = ("backtracking test suite"),
-	"Common" = ("Foundation|foundation test suite"),
-	"Exception Tests" = ("exception test suite"),
-	"Function Tests" = ("function test suite"),
-	"Math Tests" = ("math test suite")
+Uses
+	"Common",
+	"Foundation",
+	"Unit Testing"
+Names
+	"backtracking test suite"
 Body
+
+/* The test suite identifier. */
+"backtracking test suite" is a new atom;
+
+New test suite backtracking test suite extends foundation test suite;
+
+Private method "_queens" is
+[
+	n : natural number
+|
+	queens : <natural number…|> := 1 to n;
+	Backtracking fence
+	[
+		From 1 to n do
+		[
+			i : natural number
+		|
+			queens := eject ↑queens[i] → trial# of n;
+			From 1 to i - 1 do
+			[
+				j : natural number
+			|
+				If queens[i] = queens[j] then [Try again];
+				If |queens[i] - queens[j]| = i - j then [Try again];
+			];
+		];
+	];
+	queens
+] : <natural number…|>;
+
+Semantic restriction "_queens" is
+[
+	n : natural number's type
+|
+	<<>, natural number…|n>
+];
+
+Test "eight queens" in backtracking test suite is
+[
+	Require: <1, 3, 5, 2, 8, 6, 4, 7> = 8 queens;
+];

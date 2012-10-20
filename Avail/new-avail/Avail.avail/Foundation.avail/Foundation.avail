@@ -46,7 +46,7 @@ Extends
 		"_is a|an new⁇atom",
 		"_[_]else_"
 	),
-	"Backtrack" =
+	"Backtracking" =
 	(
 		"Backtracking fence_",
 		"Try again",
