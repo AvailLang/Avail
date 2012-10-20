@@ -121,9 +121,9 @@ Private method "an unfinished room" is
  */
 Public class "room" extends unfinished room
 	with fields
-		room# : room id,
-		adjacent room ids : {room id|3},
-		label : ↑string;
+		public room# : room id,
+		public adjacent room ids : {room id|3},
+		public label : ↑string;
 
 /**
  * The {@type "agent"} begins her adventure in the entrance room. It is the only
@@ -237,7 +237,7 @@ Public method "`#“_”(with label)" is
  */
 Public class "cave" extends object
 	with fields
-		network of rooms : <room…|20>,
+		public network of rooms : <room…|20>,
 		entrance id : room id,
 		pit ids : {room id|2};
 

@@ -90,10 +90,10 @@ Explicit class "abstract command node" extends object;
  *        commands not necessary in a real game (but which might provide
  *        amusing responses).
  */
-Class "root command node" extends abstract command node
+Public class "root command node" extends abstract command node
 	with fields
-		next nodes : ↑{nonempty string→abstract command node|},
-		bad nodes : ↑{nonempty string→abstract command node|};
+		public next nodes : ↑{nonempty string→abstract command node|},
+		public bad nodes : ↑{nonempty string→abstract command node|};
 
 /**
  * Most of the command tree consists of command nodes. A command node extends
@@ -106,9 +106,9 @@ Class "root command node" extends abstract command node
  * @field "action" "↑[<room id…|>]→⊤"
  *        An action.
  */
-Class "command node" extends root command node
+Public class "command node" extends root command node
 	with fields
-		action : ↑[…]→boolean;
+		public action : ↑[…]→boolean;
 
 /**
  * Construct and answer a new {@type "root command node"}.
