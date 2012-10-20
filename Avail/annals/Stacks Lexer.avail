@@ -534,6 +534,29 @@ Public method "tokenize_" is
 ]:<stacks token…|>;
 
 /**
+ *
+ * @method "tokenize_"
+ * @public
+ * @categories "Stacks"
+ * @param "comment" "string's type" 
+ *		a qualifying stacks comment type
+ *		a tuple of stacks tokens.  Excludes astericks.
+ * @author "Richard Arriaga"
+ */
+Semantic restriction "tokenize_" is
+[
+ 	comment : string's type
+ |
+ 	if comment ≠ <>'s type then 
+ 	[
+ 	 	<stacks token…|1..>
+	] 
+	else
+	[
+	 	<stacks token…|0>
+	]
+ ];
+/**
  * Take a tuple of stacks tokens and concatenate the lexemes seperated by
  * provided character
  *
@@ -542,8 +565,8 @@ Public method "tokenize_" is
  * @categories "Stacks"
  * @param "tokens" "<stacks token…|1..>" 
  *		a tuple of stacks tokens
- * @param "tokens" "<stacks token…|1..>" 
- *		the character to separate the tokens' lexems in the string
+ * @param "delimeter" "string" 
+ *		the string to separate the tokens' lexems in the string
  * @returnType "string"
  *		a string sentence of the tokens' lexemes
  * @author "authorName"
@@ -585,11 +608,13 @@ t ::="/**
 * @author \"Richard Arriaga\"
 */";
 
-z ::= tokenize t;
+z :<stacks token…|1..>:= tokenize t;
 
 Print: format "z=“①”\n\n" with z;
 Print: t;
 Print: "\n\n";
+l ::= ¬(z[1]'s isSpecial);
+Print: format "\nl=“①”\n\n" with l;
 For each z do
 [
  	st : stacks token
