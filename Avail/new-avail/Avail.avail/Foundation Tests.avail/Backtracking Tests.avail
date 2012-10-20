@@ -46,6 +46,26 @@ Body
 
 New test suite backtracking test suite extends foundation test suite;
 
+Test "Cartesian product" in backtracking test suite is
+[
+	ref ::= (5 of true ++ 5 of false) zip (1 to 5 ++ 1 to 5);
+	product ::= all values of [<first try, trial# of 5>];
+	Require: ref = product;
+];
+
+Test "partial Cartesian product" in backtracking test suite is
+[
+	ref ::= (5 of true ++ 5 of false) zip (1 to 5 ++ 1 to 5);
+	From 0 to |ref| do
+	[
+		i : whole number
+	|
+		product ::= first i values of
+			[<trial element of <true, false>, trial# of 5>];
+		Require: ref[1..|i|] = product;
+	];
+];
+
 Private method "_queens" is
 [
 	n : natural number
