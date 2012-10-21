@@ -40,9 +40,8 @@ import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 
 /**
- * <strong>Primitive 122:</strong> Answer whether the first {@linkplain
- * AtomDescriptor atom} has a property whose property key is the second
- * atom.
+ * <strong>Primitive 122:</strong> Answer whether the second {@linkplain
+ * AtomDescriptor atom} has a property whose key is the first atom.
  */
 public class P_122_AtomHasProperty extends Primitive
 {

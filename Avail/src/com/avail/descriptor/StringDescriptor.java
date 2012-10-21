@@ -257,6 +257,54 @@ extends TupleDescriptor
 	}
 
 	/**
+	 * A tuple containing just the single-dagger (†) character.
+	 */
+	static AvailObject singleDagger;
+
+	/**
+	 * Return an Avail {@linkplain StringDescriptor string} of size one,
+	 * consisting of just the (single-)dagger character ("†").
+	 *
+	 * @return A tuple containing just the single dagger character.
+	 */
+	public static AvailObject singleDagger ()
+	{
+		return singleDagger;
+	}
+
+	/**
+	 * A tuple containing just the section sign character.
+	 */
+	static AvailObject sectionSign;
+
+	/**
+	 * Return an Avail {@linkplain StringDescriptor string} of size one,
+	 * consisting of just the section sign character ("§").
+	 *
+	 * @return A tuple containing just the section sign character.
+	 */
+	public static AvailObject sectionSign ()
+	{
+		return sectionSign;
+	}
+
+	/**
+	 * A tuple containing just the pilcrow character (¶).
+	 */
+	static AvailObject pilcrow;
+
+	/**
+	 * Return an Avail {@linkplain StringDescriptor string} of size one,
+	 * consisting of just the pilcrow character ("¶").
+	 *
+	 * @return A tuple containing just the pilcrow character.
+	 */
+	public static AvailObject pilcrow ()
+	{
+		return pilcrow;
+	}
+
+	/**
 	 * Create any instances statically well-known to the {@linkplain
 	 * AvailRuntime Avail runtime system}.
 	 */
@@ -274,6 +322,9 @@ extends TupleDescriptor
 		exclamationMark = from("!").makeImmutable();
 		tilde = from("~").makeImmutable();
 		verticalBar = from("|").makeImmutable();
+		singleDagger = from("†").makeImmutable();
+		sectionSign = from("§").makeImmutable();
+		pilcrow = from("¶").makeImmutable();
 	}
 
 	/**
@@ -294,6 +345,9 @@ extends TupleDescriptor
 		exclamationMark = null;
 		tilde = null;
 		verticalBar = null;
+		singleDagger = null;
+		sectionSign = null;
+		pilcrow = null;
 	}
 
 	/**

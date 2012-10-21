@@ -40,6 +40,7 @@ import java.util.logging.*;
 import com.avail.AvailRuntime;
 import com.avail.annotations.*;
 import com.avail.compiler.*;
+import com.avail.compiler.AbstractAvailCompiler.ParserState;
 import com.avail.descriptor.*;
 import com.avail.descriptor.FiberDescriptor.ExecutionState;
 import com.avail.exceptions.*;
@@ -116,6 +117,14 @@ public abstract class Interpreter
 	 * The {@link FiberDescriptor} being executed by this interpreter.
 	 */
 	public AvailObject fiber;
+
+	/**
+	 * The {@link ParserState}, if any, at which parsing is currently taking
+	 * place.  Since parsing can happen in parallel, it indicates the location
+	 * of the current compilation step directly leading to execution of code in
+	 * this {@code Interpreter}.
+	 */
+	public ParserState currentParserState = null;
 
 	/**
 	 * A place to store the result of a primitive when the primitive

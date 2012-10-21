@@ -70,9 +70,7 @@ extends Primitive
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
 				BLOCK_NODE.mostGeneralType()),
-			TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
-				IntegerRangeTypeDescriptor.wholeNumbers(),
-				TupleDescriptor.empty(),
+			TupleTypeDescriptor.zeroOrMoreOf(
 				DECLARATION_NODE.mostGeneralType()));
 	}
 }

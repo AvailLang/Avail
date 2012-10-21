@@ -89,6 +89,7 @@ Names
 	/*  26 */ "invalid primitive number code",
 	/*  33 */ "invalid special object number code",
 	/*  21 */ "key not found code",
+	/*  58 */ "label macro must occur inside a block code",
 	/*  28 */ "local type literal is not a type code",
 	/*  34 */ "macro argument must be a parse node code",
 	/*  71 */ "method implementation lookup failed code",
@@ -410,6 +411,11 @@ Primitive "cannot convert not a number to integer code" is
 Primitive "incorrect type for numbered choice code" is
 [
 	57
+];
+
+Primitive "label macro must occur inside a block code" is
+[
+	58
 ];
 
 Primitive "compilation is over code" is

@@ -481,7 +481,8 @@ implements IntegerEnumSlotDescriptionEnum
 		final Primitive primitive = byPrimitiveNumberOrNull(primitiveNumber);
 		if (primitive == null)
 		{
-			throw new RuntimeException("Illegal primitive number: "+ primitive);
+			throw new RuntimeException(
+				"Illegal primitive number: " + primitiveNumber);
 		}
 		return primitive;
 	}

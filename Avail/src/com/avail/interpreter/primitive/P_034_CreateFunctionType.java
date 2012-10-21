@@ -67,9 +67,7 @@ public class P_034_CreateFunctionType extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
-					IntegerRangeTypeDescriptor.wholeNumbers(),
-					TupleDescriptor.empty(),
+				TupleTypeDescriptor.zeroOrMoreOf(
 					InstanceMetaDescriptor.anyMeta()),
 				InstanceMetaDescriptor.topMeta()),
 			FunctionTypeDescriptor.meta());

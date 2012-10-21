@@ -32,7 +32,6 @@
 package com.avail.interpreter.primitive;
 
 import static com.avail.interpreter.Primitive.Flag.*;
-import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.List;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
@@ -67,9 +66,6 @@ public class P_035_ParamType extends Primitive
 			TupleDescriptor.from(
 				FunctionTypeDescriptor.meta()),
 			InstanceMetaDescriptor.on(
-				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
-					IntegerRangeTypeDescriptor.wholeNumbers(),
-					TupleDescriptor.empty(),
-					ANY.o())));
+				TupleTypeDescriptor.mostGeneralType()));
 	}
 }

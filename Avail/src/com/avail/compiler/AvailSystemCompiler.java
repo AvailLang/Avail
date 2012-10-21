@@ -872,7 +872,7 @@ extends AbstractAvailCompiler
 
 		if (start.peekToken(
 			VERTICAL_BAR,
-			"command and more block arguments or a vertical bar"))
+			"comma and more block arguments or a vertical bar"))
 		{
 			attempt(
 				start.afterToken(),
@@ -983,25 +983,23 @@ extends AbstractAvailCompiler
 	/**
 	 * Parse a block (a function).
 	 *
-	 * @param start
+	 * @param startOfBlock
 	 *            Where to start parsing.
 	 * @param continuation
 	 *            What to do with the parsed block.
 	 */
 	private void parseBlockThen (
-		final ParserState start,
+		final ParserState startOfBlock,
 		final Con<AvailObject> continuation)
 	{
-		final AvailObject scopeOutsideBlock = start.scopeMap;
-		final AvailObject firstToken = start.peekToken();
-		if (!start.peekToken(OPEN_SQUARE))
+		if (!startOfBlock.peekToken(OPEN_SQUARE))
 		{
 			// Don't suggest a block was expected here unless at least the "["
 			// was present.
 			return;
 		}
 		parseBlockArgumentsThen(
-			start.afterToken(),
+			startOfBlock.afterToken(),
 			new Con<List<AvailObject>>("Block arguments")
 			{
 				@Override
@@ -1034,7 +1032,8 @@ extends AbstractAvailCompiler
 								final int primitive =
 									primitiveAndFailure.tupleIntAt(1);
 								final Primitive thePrimitive =
-									Primitive.byPrimitiveNumberOrNull(primitive);
+									Primitive.byPrimitiveNumberOrNull(
+										primitive);
 								if (thePrimitive != null
 									&& thePrimitive.hasFlag(Flag.CannotFail))
 								{
@@ -1044,8 +1043,7 @@ extends AbstractAvailCompiler
 										arguments,
 										primitive,
 										Collections.<AvailObject>emptyList(),
-										scopeOutsideBlock,
-										firstToken,
+										startOfBlock,
 										continuation);
 									return;
 								}
@@ -1076,8 +1074,7 @@ extends AbstractAvailCompiler
 												arguments,
 												primitive,
 												statements,
-												scopeOutsideBlock,
-												firstToken,
+												startOfBlock,
 												continuation);
 										}
 									});
@@ -1099,10 +1096,8 @@ extends AbstractAvailCompiler
 	 *            The primitive number
 	 * @param statements
 	 *            The list of statements.
-	 * @param scopeOutsideBlock
-	 *            The scope that existed before the block started to be parsed.
-	 * @param firstToken
-	 *            The first token participating in the block.
+	 * @param startOfBlock
+	 *            The parser state at the start of the block.
 	 * @param continuation
 	 *            What to do with the {@linkplain BlockNodeDescriptor block}.
 	 */
@@ -1111,8 +1106,7 @@ extends AbstractAvailCompiler
 		final List<AvailObject> arguments,
 		final int primitiveNumber,
 		final List<AvailObject> statements,
-		final AvailObject scopeOutsideBlock,
-		final AvailObject firstToken,
+		final ParserState startOfBlock,
 		final Con<AvailObject> continuation)
 	{
 		if (!afterStatements.peekToken(
@@ -1156,7 +1150,8 @@ extends AbstractAvailCompiler
 
 		final ParserState stateOutsideBlock = new ParserState(
 			afterClose.position,
-			scopeOutsideBlock);
+			startOfBlock.scopeMap,
+			startOfBlock.innermostBlockArguments);
 
 		final List<AvailObject> argumentTypesList =
 			new ArrayList<AvailObject>(arguments.size());
@@ -1206,7 +1201,7 @@ extends AbstractAvailCompiler
 								statements,
 								lastStatementType.value,
 								checkedExceptions,
-								firstToken.lineNumber());
+								startOfBlock.peekToken().lineNumber());
 						attempt(afterExceptions, continuation, blockNode);
 					}
 				});
@@ -1317,7 +1312,7 @@ extends AbstractAvailCompiler
 											statements,
 											returnType,
 											checkedExceptions,
-											firstToken.lineNumber());
+											startOfBlock.peekToken().lineNumber());
 									attempt(
 										afterExceptions,
 										continuation,

@@ -598,15 +598,9 @@ extends TypeDescriptor
 
 	public static void createWellKnownObjects ()
 	{
-		MostGeneralType = tupleTypeForSizesTypesDefaultType(
-			IntegerRangeTypeDescriptor.wholeNumbers(),
-			TupleDescriptor.empty(),
-			ANY.o());
+		MostGeneralType = zeroOrMoreOf(ANY.o());
 		MostGeneralType.makeImmutable();
-		StringType = tupleTypeForSizesTypesDefaultType(
-			IntegerRangeTypeDescriptor.wholeNumbers(),
-			TupleDescriptor.empty(),
-			CHARACTER.o());
+		StringType = zeroOrMoreOf(CHARACTER.o());
 		StringType.makeImmutable();
 		Meta = InstanceMetaDescriptor.on(MostGeneralType);
 		Meta.makeImmutable();
@@ -682,6 +676,69 @@ extends TypeDescriptor
 		}
 		return privateTupleTypeForSizesTypesDefaultType(
 			sizeRange, typeTuple, defaultType);
+	}
+
+	/**
+	 * Answer a tuple type consisting of either zero or one occurrences of the
+	 * given element type.
+	 *
+	 * @param aType A {@linkplain TypeDescriptor type}.
+	 * @return A size [0..1] tuple type whose element has the given type.
+	 *
+	 */
+	public static AvailObject zeroOrOneOf (final AvailObject aType)
+	{
+		return tupleTypeForSizesTypesDefaultType(
+			IntegerRangeTypeDescriptor.zeroOrOne(),
+			TupleDescriptor.empty(),
+			aType);
+	}
+
+	/**
+	 * Answer a tuple type consisting of zero or more of the given element type.
+	 *
+	 * @param aType A {@linkplain TypeDescriptor type}.
+	 * @return A size [0..∞) tuple type whose elements have the given type.
+	 *
+	 */
+	public static AvailObject zeroOrMoreOf (final AvailObject aType)
+	{
+		return tupleTypeForSizesTypesDefaultType(
+			IntegerRangeTypeDescriptor.wholeNumbers(),
+			TupleDescriptor.empty(),
+			aType);
+	}
+
+	/**
+	 * Answer a tuple type consisting of one or more of the given element type.
+	 *
+	 * @param aType A {@linkplain TypeDescriptor type}.
+	 * @return A size [1..∞) tuple type whose elements have the given type.
+	 *
+	 */
+	public static AvailObject oneOrMoreOf (final AvailObject aType)
+	{
+		return tupleTypeForSizesTypesDefaultType(
+			IntegerRangeTypeDescriptor.naturalNumbers(),
+			TupleDescriptor.empty(),
+			aType);
+	}
+
+	/**
+	 * Answer a fixed size tuple type consisting of the given element types.
+	 *
+	 * @param types
+	 *            A variable number of types corresponding to the elements of
+	 *            the resulting tuple type.
+	 * @return A fixed-size tuple type.
+	 *
+	 */
+	public static AvailObject forTypes (final AvailObject... types)
+	{
+		return tupleTypeForSizesTypesDefaultType(
+			IntegerRangeTypeDescriptor.singleInt(types.length),
+			TupleDescriptor.from(types),
+			BottomTypeDescriptor.bottom());
 	}
 
 	/**

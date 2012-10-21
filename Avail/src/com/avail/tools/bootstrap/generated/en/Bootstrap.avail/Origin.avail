@@ -47,7 +47,7 @@ Names
 	"Primitive_is_",
 	"special object_"
 Pragma
-	"bootstrapDefiningMethod=Primitive_is_",
-	"bootstrapSpecialObject=special object_"
+	"method=253=Primitive_is_",
+	"method=240=special object_"
 Body
 

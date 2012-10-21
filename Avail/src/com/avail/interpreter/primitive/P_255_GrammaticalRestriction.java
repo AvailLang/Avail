@@ -109,9 +109,7 @@ public class P_255_GrammaticalRestriction extends Primitive
 				SetTypeDescriptor.setTypeForSizesContentType(
 					IntegerRangeTypeDescriptor.wholeNumbers(),
 					TupleTypeDescriptor.stringTupleType()),
-				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
-					IntegerRangeTypeDescriptor.wholeNumbers(),
-					TupleDescriptor.empty(),
+				TupleTypeDescriptor.zeroOrMoreOf(
 					SetTypeDescriptor.setTypeForSizesContentType(
 						IntegerRangeTypeDescriptor.wholeNumbers(),
 						TupleTypeDescriptor.stringTupleType()))),

@@ -40,10 +40,12 @@ import java.io.PrintStream;
 import java.util.*;
 import com.avail.AvailRuntime;
 import com.avail.annotations.*;
+import com.avail.compiler.AbstractAvailCompiler.ParserState;
 import com.avail.compiler.scanning.AvailScanner;
 import com.avail.descriptor.*;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.exceptions.*;
+import com.avail.interpreter.primitive.*;
 
 /**
  * {@code MessageSplitter} is used to split Avail message names into a sequence
@@ -62,19 +64,39 @@ public class MessageSplitter
 
 	/**
 	 * The individual tokens ({@linkplain StringDescriptor strings})
-	 * constituting the message. Alphanumerics are in runs, separated from other
-	 * alphanumerics by a single space. Operator characters are never beside
-	 * spaces, and are always parsed as individual tokens. {@linkplain
-	 * StringDescriptor#openGuillemet() Open guillemet} («), {@linkplain
-	 * StringDescriptor#doubleDagger() double dagger} (‡), and {@linkplain
-	 * StringDescriptor#closeGuillemet() close guillemet} (») are used to
-	 * indicate repeated substructures. The characters {@linkplain
-	 * StringDescriptor#octothorp() octothorp} (#) and {@linkplain
-	 * StringDescriptor#questionMark() question mark} (?) modify the output of
-	 * repeated substructures. The {@linkplain StringDescriptor#backQuote()}
-	 * backquote (`) can precede any operator character, like guillemets and
-	 * double dagger, to ensure it is not used in a special way. A backquote
-	 * may also escape another backquote.
+	 * constituting the message.
+	 *
+	 * <p><ul>
+	 * <li>Alphanumerics are in runs, separated from other
+	 * alphanumerics by a single space.</li>
+	 * <li>Operator characters are never beside spaces, and are always parsed as
+	 * individual tokens.</li>
+	 * <li>{@linkplain StringDescriptor#openGuillemet() Open guillemet} («),
+	 * {@linkplain StringDescriptor#doubleDagger() double dagger} (‡), and
+	 * {@linkplain StringDescriptor#closeGuillemet() close guillemet} (») are
+	 * used to indicate repeated or optional substructures.</li>
+	 * <li>The characters {@linkplain StringDescriptor#octothorp() octothorp}
+	 * (#) and {@linkplain StringDescriptor#questionMark() question mark} (?)
+	 * modify the output of repeated substructures.</li>
+	 * <li>An {@linkplain StringDescriptor#exclamationMark() exclamation mark}
+	 * (!) can follow a group of alternations to produce the 1-based index of
+	 * the alternative that actually occurred.</li>
+	 * <li>{@linkplain StringDescriptor#underscore() Underscores} (_) indicate
+	 * where arguments occur, and may be followed by a {@linkplain
+	 * StringDescriptor#singleDagger() single dagger} (†) to cause the argument
+	 * expression to be evaluated in the static scope during compilation.</li>
+	 * <li>An {@linkplain StringDescriptor#ellipsis() ellipsis} (…) matches a
+	 * single {@linkplain TokenDescriptor token}.</li>
+	 * <li>A {@linkplain StringDescriptor#sectionSign() section sign} (§) is
+	 * used to mark where the {@linkplain P_400_BootstrapBlockMacro
+	 * block-defining macro} should save its current parsed subexpressions for
+	 * subsequent use by the {@linkplain P_401_BootstrapLabelMacro
+	 * label-creating macro}.</li>
+	 * <li>The {@linkplain StringDescriptor#backQuote() backquote} (`) can
+	 * precede any operator character, like guillemets and double dagger, to
+	 * ensure it is not used in a special way. A backquote may also escape
+	 * another backquote.</li>
+	 * </ul></p>
 	 */
 	final List<AvailObject> messageParts =
 		new ArrayList<AvailObject>(10);
@@ -272,7 +294,7 @@ public class MessageSplitter
 			// Parse the specific keyword.
 			final ParsingOperation op =
 				caseInsensitive ? parsePartCaseInsensitive : parsePart;
-			list.add(op.encodingForOperand(tokenIndex));
+			list.add(op.encoding(tokenIndex));
 		}
 
 		@Override
@@ -362,7 +384,7 @@ public class MessageSplitter
 			// a completely non-recursive parallel-shift-reduce parsing engine
 			// easier to build eventually.
 			list.add(parseArgument.encoding());
-			list.add(checkArgument.encodingForOperand(
+			list.add(checkArgument.encoding(
 				absoluteUnderscoreIndex));
 		}
 
@@ -430,7 +452,7 @@ public class MessageSplitter
 			// as it relates to the non-recursive parallel shift-reduce parsing
 			// engine.
 			list.add(parseRawToken.encoding());
-			list.add(checkArgument.encodingForOperand(
+			list.add(checkArgument.encoding(
 				absoluteUnderscoreIndex));
 		}
 
@@ -656,21 +678,21 @@ public class MessageSplitter
 				 */
 				list.add(saveParsePosition.encoding());
 				list.add(newList.encoding());
-				list.add(branch.encodingForOperand(loopSkip));
+				list.add(branch.encoding(loopSkip));
 				final int loopStart = list.size() + 1;
 				for (final Expression expression : expressionsBeforeDagger)
 				{
 					expression.emitOn(list, caseInsensitive);
 				}
 				list.add(appendArgument.encoding());
-				list.add(branch.encodingForOperand(loopExit));
+				list.add(branch.encoding(loopExit));
 				for (final Expression expression : expressionsAfterDagger)
 				{
 					assert !expression.isArgumentOrGroup();
 					expression.emitOn(list, caseInsensitive);
 				}
 				list.add(ensureParseProgress.encoding());
-				list.add(jump.encodingForOperand(loopStart));
+				list.add(jump.encoding(loopStart));
 				loopExit = list.size() + 1;
 				list.add(ensureParseProgress.encoding());
 				loopSkip = list.size() + 1;
@@ -706,7 +728,7 @@ public class MessageSplitter
 				 */
 				list.add(saveParsePosition.encoding());
 				list.add(newList.encoding());
-				list.add(branch.encodingForOperand(loopSkip));
+				list.add(branch.encoding(loopSkip));
 				final int loopStart = list.size() + 1;
 				list.add(newList.encoding());
 				for (final Expression expression : expressionsBeforeDagger)
@@ -717,7 +739,7 @@ public class MessageSplitter
 						list.add(appendArgument.encoding());
 					}
 				}
-				list.add(branch.encodingForOperand(loopExit));
+				list.add(branch.encoding(loopExit));
 				for (final Expression expression : expressionsAfterDagger)
 				{
 					expression.emitOn(list, caseInsensitive);
@@ -728,7 +750,7 @@ public class MessageSplitter
 				}
 				list.add(appendArgument.encoding());
 				list.add(ensureParseProgress.encoding());
-				list.add(jump.encodingForOperand(loopStart));
+				list.add(jump.encoding(loopStart));
 				loopExit = list.size() + 1;
 				list.add(appendArgument.encoding());
 				list.add(ensureParseProgress.encoding());
@@ -1048,7 +1070,7 @@ public class MessageSplitter
 			 */
 			list.add(saveParsePosition.encoding());
 			list.add(newList.encoding());
-			list.add(branch.encodingForOperand(loopSkip));
+			list.add(branch.encoding(loopSkip));
 			final int loopStart = list.size() + 1;
 			list.add(newList.encoding());
 			for (final Expression expression : group.expressionsBeforeDagger)
@@ -1057,19 +1079,19 @@ public class MessageSplitter
 				expression.emitOn(list, caseInsensitive);
 			}
 			list.add(appendArgument.encoding());
-			list.add(branch.encodingForOperand(loopExit));
+			list.add(branch.encoding(loopExit));
 			for (final Expression expression : group.expressionsAfterDagger)
 			{
 				assert !expression.isArgumentOrGroup();
 				expression.emitOn(list, caseInsensitive);
 			}
 			list.add(ensureParseProgress.encoding());
-			list.add(jump.encodingForOperand(loopStart));
+			list.add(jump.encoding(loopStart));
 			loopExit = list.size() + 1;
 			list.add(ensureParseProgress.encoding());
 			loopSkip = list.size() + 1;
 			list.add(discardSavedParsePosition.encoding());
-			list.add(convert.encodingForOperand(listToSize.number()));
+			list.add(convert.encoding(listToSize.number()));
 		}
 
 		@Override
@@ -1199,7 +1221,7 @@ public class MessageSplitter
 			 */
 			list.add(saveParsePosition.encoding());
 			list.add(newList.encoding());
-			list.add(branch.encodingForOperand(groupSkip));
+			list.add(branch.encoding(groupSkip));
 			list.add(newList.encoding());
 			for (final Expression expression : group.expressionsBeforeDagger)
 			{
@@ -1210,7 +1232,7 @@ public class MessageSplitter
 			list.add(ensureParseProgress.encoding());
 			groupSkip = list.size() + 1;
 			list.add(discardSavedParsePosition.encoding());
-			list.add(convert.encodingForOperand(listToNonemptiness.number()));
+			list.add(convert.encoding(listToNonemptiness.number()));
 		}
 
 		@Override
@@ -1332,7 +1354,7 @@ public class MessageSplitter
 			 */
 			list.add(saveParsePosition.encoding());
 			list.add(newList.encoding());
-			list.add(branch.encodingForOperand(expressionSkip));
+			list.add(branch.encoding(expressionSkip));
 			final List<Expression> expressions;
 			if (expression instanceof Simple)
 			{
@@ -1572,14 +1594,14 @@ public class MessageSplitter
 				// last alternative.
 				if (i < alternatives.size() - 1)
 				{
-					list.add(branch.encodingForOperand(branches[i]));
+					list.add(branch.encoding(branches[i]));
 				}
 				alternatives.get(i).emitOn(list, caseInsensitive);
 				// Generate a jump to the last label unless this is the last
 				// alternative.
 				if (i < alternatives.size() - 1)
 				{
-					list.add(jump.encodingForOperand(
+					list.add(jump.encoding(
 						branches[branches.length - 1]));
 				}
 				branches[i] = list.size() + 1;
@@ -1752,15 +1774,15 @@ public class MessageSplitter
 				final boolean last = index == branchTargets.length;
 				if (!last)
 				{
-					list.add(branch.encodingForOperand(branchTargets[index]));
+					list.add(branch.encoding(branchTargets[index]));
 				}
 				final Expression alternative =
 					alternation.alternatives().get(index);
 				alternative.emitOn(list, caseInsensitive);
-				list.add(pushIntegerLiteral.encodingForOperand(index + 1));
+				list.add(pushIntegerLiteral.encoding(index + 1));
 				if (!last)
 				{
-					list.add(jump.encodingForOperand(exitTarget));
+					list.add(jump.encoding(exitTarget));
 					branchTargets[index] = list.size() + 1;
 				}
 			}
@@ -1834,6 +1856,58 @@ public class MessageSplitter
 				builder,
 				indent);
 			builder.append("»!");
+		}
+	}
+
+	/**
+	 * An {@linkplain ArgumentsCheckpoint} expression is an occurrence of the
+	 * {@linkplain StringDescriptor#sectionSign() section sign} (§) in a message
+	 * name.  It indicates a position at which to save the argument expressions
+	 * for the message <em>up to this point</em>.  This value is captured in the
+	 * {@link ParserState} for subsequent use by primitive macros that need to
+	 * know an outer message send's initial argument expressions while parsing
+	 * a subsequent argument expression of the same message.
+	 *
+	 * <p>In particular, the block definition macro has to capture its
+	 * (optional) argument declarations before parsing the (optional) label,
+	 * declaration, since the latter has to be created with a suitable
+	 * continuation type that includes the argument types.</p>
+	 */
+	final class ArgumentsCheckpoint
+	extends Expression
+	{
+		/**
+		 * Construct an ArgumentsCheckpoint.
+		 */
+		ArgumentsCheckpoint ()
+		{
+			super();
+		}
+
+		@Override
+		void emitOn (
+			final List<Integer> list,
+			final boolean caseInsensitive)
+		{
+			// Capture all argument expressions that have been saved thus far.
+			// Save them where a primitive macro can get to them later.
+			list.add(argumentsCheckpoint.encoding());
+		}
+
+		@Override
+		public void printWithArguments (
+			final @Nullable Iterator<AvailObject> arguments,
+			final StringBuilder builder,
+			final int indent)
+		{
+			builder.append("§");
+		}
+
+		@Override
+		public void checkType (final AvailObject argumentType)
+		{
+			assert false : "checkType() should not be called for " +
+				"ArgumentsCheckpoint expressions";
 		}
 	}
 

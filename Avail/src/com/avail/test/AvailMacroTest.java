@@ -1,5 +1,5 @@
-/*
- * Avail.avail
+/**
+ * AvailMacroTest.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -30,14 +30,47 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Avail"
-Versions
-	"dev"
-Extends
-	"Advanced Math",
-	"Data Abstractions",
-	"Foundation",
-	"Foundation Tests",
-	"IO",
-	"Unit Testing"
-Body
+package com.avail.test;
+
+import java.io.*;
+import org.junit.*;
+import com.avail.builder.*;
+import com.avail.interpreter.Primitive;
+import com.avail.optimizer.L2Translator;
+
+/**
+ * Test suite for the Avail macro compiler.
+ *
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ */
+public class AvailMacroTest
+extends AbstractAvailTest
+{
+	static
+	{
+		roots = new ModuleRoots(
+			"avail=" + new File("even-newer-avail").getAbsolutePath());
+	}
+
+	/**
+	 * Test: Compile the Test module of the (new) Avail library.
+	 *
+	 * @throws Exception
+	 *         If an {@linkplain Exception exception} occurs.
+	 */
+	@Test
+	public void availMacroTest () throws Exception
+	{
+		final long startTime = System.currentTimeMillis();
+		compile(new ModuleName("/avail/bootstrap-syntax"));
+		System.out.flush();
+		System.err.printf(
+			"%ntime elapsed = %dms%n", System.currentTimeMillis() - startTime);
+		System.err.printf("Instructions%n\tGen=%d%n\tKept=%d%n\tRemv=%d%n",
+			L2Translator.generatedInstructionCount,
+			L2Translator.keptInstructionCount,
+			L2Translator.removedInstructionCount);
+		System.err.printf("%nPrimitive return type-check times:%n%s",
+			Primitive.reportReturnCheckTimes());
+	}
+}

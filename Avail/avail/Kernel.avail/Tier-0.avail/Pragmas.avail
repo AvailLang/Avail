@@ -37,6 +37,6 @@ Names
 	"Method_is_",
 	"Special Object_"
 Pragma
-	"bootstrapDefiningMethod = Method_is_",
-	"bootstrapSpecialObject = Special Object_"
+	"method=253=Method_is_",
+	"method=240=Special Object_"
 Body

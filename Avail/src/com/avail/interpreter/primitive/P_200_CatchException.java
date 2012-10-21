@@ -79,9 +79,7 @@ public class P_200_CatchException extends Primitive
 				FunctionTypeDescriptor.create(
 					TupleDescriptor.from(),
 					TOP.o()),
-				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
-					IntegerRangeTypeDescriptor.naturalNumbers(),
-					TupleDescriptor.from(),
+				TupleTypeDescriptor.oneOrMoreOf(
 					FunctionTypeDescriptor.create(
 						TupleDescriptor.from(
 							BottomTypeDescriptor.bottom()),
@@ -93,12 +91,10 @@ public class P_200_CatchException extends Primitive
 	protected AvailObject privateFailureVariableType ()
 	{
 		return AbstractEnumerationTypeDescriptor.withInstances(
-			SetDescriptor.fromCollection(
-				Arrays.asList(new AvailObject[]
-				{
-					IntegerDescriptor.zero(),
-					E_INCORRECT_ARGUMENT_TYPE.numericCode(),
-					E_UNWIND_SENTINEL.numericCode()
-				})));
+			TupleDescriptor.from(
+				IntegerDescriptor.zero(),
+				E_INCORRECT_ARGUMENT_TYPE.numericCode(),
+				E_UNWIND_SENTINEL.numericCode()
+			).asSet());
 	}
 }

@@ -38,6 +38,7 @@ import com.avail.AvailRuntime;
 import com.avail.compiler.MessageSplitter;
 import com.avail.descriptor.*;
 import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
+import com.avail.interpreter.primitive.P_401_BootstrapLabelMacro;
 
 /**
  * {@code AvailErrorCode} is an enumeration of all possible failures of
@@ -390,6 +391,12 @@ public enum AvailErrorCode
 	 * of listed choices.
 	 */
 	E_INCORRECT_TYPE_FOR_NUMBERED_CHOICE (57),
+
+	/**
+	 * An invocation of the {@linkplain P_401_BootstrapLabelMacro label phrase}
+	 * macro was encountered outside of any block.
+	 */
+	E_LABEL_MACRO_MUST_OCCUR_INSIDE_A_BLOCK (58),
 
 	/**
 	 * Compilation is over. The interpreter is now operating in runtime mode.

@@ -33,7 +33,6 @@ package com.avail.interpreter.primitive;
 
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.PARSE_NODE;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
-import static com.avail.exceptions.AvailErrorCode.E_MACRO_ARGUMENT_MUST_BE_A_PARSE_NODE;
 import static com.avail.interpreter.Primitive.Flag.Unknown;
 import java.util.List;
 import com.avail.descriptor.*;
@@ -63,10 +62,15 @@ public class P_249_SimpleMacroDeclaration extends Primitive
 		final AvailObject tupleType = blockType.argsTupleType();
 		for (int i = function.code().numArgs(); i >= 1; i--)
 		{
-			if (!tupleType.typeAtIndex(i).parseNodeKindIsUnder(PARSE_NODE))
+			if (!tupleType.typeAtIndex(i).isSubtypeOf(
+				PARSE_NODE.mostGeneralType()))
 			{
-				return interpreter.primitiveFailure(
-					E_MACRO_ARGUMENT_MUST_BE_A_PARSE_NODE);
+				//TODO[MvG] Get rid of this requirement.
+//				**** No longer true.  For example, an ellipsis should produce
+//				**** a token, and a statically-evaluated expression (_†) should
+//				**** produce a value (typically a type), not a phrase.
+//				return interpreter.primitiveFailure(
+//					E_MACRO_ARGUMENT_MUST_BE_A_PARSE_NODE);
 			}
 		}
 		try

@@ -158,9 +158,7 @@ public class P_506_CreatePojoInstanceMethodFunction extends Primitive
 			RAW_POJO.o(),
 			PojoTypeDescriptor.mostGeneralType(),
 			TupleTypeDescriptor.mostGeneralType(),
-			TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
-				IntegerRangeTypeDescriptor.wholeNumbers(),
-				TupleDescriptor.empty(),
+			TupleTypeDescriptor.zeroOrMoreOf(
 				RAW_POJO.o()));
 		writer.returnType(TOP.o());
 		writer.write(new L1Instruction(
@@ -239,9 +237,7 @@ public class P_506_CreatePojoInstanceMethodFunction extends Primitive
 				InstanceMetaDescriptor.on(
 					PojoTypeDescriptor.mostGeneralType()),
 				TupleTypeDescriptor.stringTupleType(),
-				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
-					IntegerRangeTypeDescriptor.wholeNumbers(),
-					TupleDescriptor.empty(),
+				TupleTypeDescriptor.zeroOrMoreOf(
 					InstanceMetaDescriptor.anyMeta()),
 				FunctionTypeDescriptor.create(
 					TupleDescriptor.from(
