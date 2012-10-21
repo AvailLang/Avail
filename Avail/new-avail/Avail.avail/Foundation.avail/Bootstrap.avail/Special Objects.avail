@@ -46,7 +46,7 @@ Extends
 Uses
 Names
 	/*  78 */ "-∞",
-	/* 111 */ "Euler number",
+	/* 111 */ "Euler's number",
 	/*  21 */ "VM error codes",
 	/*  42 */ "abstract site",
 	/*   1 */ "any",
@@ -956,7 +956,7 @@ Primitive "type of two" is
 	_type_of_two
 ];
 
-Primitive "Euler number" is
+Primitive "Euler's number" is
 [
 	_Euler_number
 ];
