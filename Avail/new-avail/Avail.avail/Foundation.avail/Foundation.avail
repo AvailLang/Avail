@@ -80,6 +80,7 @@ Extends
 		"Restart_with_",
 		"Seal method_at_",
 		"Semantic restriction_is_",
+		"Terminate current fiber",
 		"VM error codes",
 		"abstract site",
 		"any",
@@ -517,6 +518,8 @@ Extends
 		"wrong-number-of-outers exception",
 		"_'s⁇causal exception",
 		"_'s⁇error message",
+		"_'s⁇stack summary",
+		"_'s⁇unhandled exception handler",
 		"_'s⁇unhandled exception handler is_"
 	),
 	"Functions" =
@@ -626,6 +629,10 @@ Extends
 		"format_with«_‡,»",
 		"partially format_with_",
 		"partially format_with«…:=_‡,»",
+		"(A`|An)“_”«else_»",
+		"(The)“_”«else_»",
+		"(a`|an)“_”«else_»",
+		"(the)“_”«else_»",
 		"_(base_)",
 		"_→integer",
 		"“_”«else_»(as simple list)",

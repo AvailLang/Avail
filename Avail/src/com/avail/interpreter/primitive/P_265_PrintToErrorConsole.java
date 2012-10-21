@@ -1,5 +1,5 @@
 /**
- * P_258_PrintToConsole.java
+ * P_265_PrintToErrorConsole.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -29,39 +29,42 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+
 package com.avail.interpreter.primitive;
 
-import static com.avail.descriptor.TypeDescriptor.Types.TOP;
+import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.io.PrintStream;
 import java.util.List;
 import com.avail.AvailRuntime;
+import com.avail.annotations.NotNull;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 
 /**
- * <strong>Primitive 258:</strong> Print the specified {@linkplain
+ * <strong>Primitive 265</strong>: Print the specified {@linkplain
  * StringDescriptor string} to standard output.
+ *
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class P_258_PrintToConsole
+public final class P_265_PrintToErrorConsole
 extends Primitive
 {
 	/**
-	 * The sole instance of this primitive class.  Accessed through reflection.
+	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_258_PrintToConsole().init(
-		1, CannotFail, CanInline, HasSideEffect);
+	public final @NotNull static Primitive instance =
+		new P_265_PrintToErrorConsole().init(
+			1, CannotFail, CanInline, HasSideEffect);
 
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 1;
-
 		final AvailObject string = args.get(0);
-		final PrintStream out = AvailRuntime.current().standardOutputStream();
-		out.print(string.asNativeString());
+		final PrintStream err = AvailRuntime.current().standardErrorStream();
+		err.print(string.asNativeString());
 		return interpreter.primitiveSuccess(NullDescriptor.nullObject());
 	}
 

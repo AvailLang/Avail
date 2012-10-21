@@ -751,6 +751,10 @@ final public class L2Interpreter extends Interpreter
 	public Result searchForExceptionHandler (
 		final AvailObject exceptionValue)
 	{
+		// Replace the contents of the argument buffer with "exceptionValue",
+		// an exception augmented with stack information.
+		assert argsBuffer.size() == 1;
+		argsBuffer.set(0, exceptionValue);
 		final int primNum = P_200_CatchException.instance.primitiveNumber;
 		AvailObject continuation = pointerAt(CALLER);
 		while (!continuation.equalsNull())

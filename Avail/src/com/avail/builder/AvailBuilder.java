@@ -353,6 +353,10 @@ public final class AvailBuilder
 				{
 					killer.value = e;
 				}
+				catch (final TerminateCompilationException e)
+				{
+					killer.value = e;
+				}
 				catch (final RecursiveDependencyException e)
 				{
 					killer.value = e;
@@ -374,6 +378,10 @@ public final class AvailBuilder
 			if (killer.value instanceof AvailCompilerException)
 			{
 				throw (AvailCompilerException) killer.value;
+			}
+			else if (killer.value instanceof TerminateCompilationException)
+			{
+				throw (TerminateCompilationException) killer.value;
 			}
 			else if (killer.value instanceof RecursiveDependencyException)
 			{

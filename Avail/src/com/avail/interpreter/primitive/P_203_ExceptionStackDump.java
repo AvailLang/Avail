@@ -1,5 +1,5 @@
 /**
- * P_201_RaiseException.java
+ * P_203_ExceptionStackDump.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -29,33 +29,32 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+
 package com.avail.interpreter.primitive;
 
-import static com.avail.interpreter.Primitive.Flag.SwitchesContinuation;
-import java.util.*;
+import static com.avail.exceptions.AvailErrorCode.*;
+import static com.avail.interpreter.Primitive.Flag.*;
+import java.util.List;
+import com.avail.annotations.NotNull;
 import com.avail.descriptor.*;
+import com.avail.exceptions.MapException;
 import com.avail.interpreter.*;
 
 /**
- * <strong>Primitive 201:</strong> Raise an exception. Scan the stack of
- * {@linkplain ContinuationDescriptor continuations} until one is found for
- * a {@linkplain FunctionDescriptor function} whose {@linkplain
- * CompiledCodeDescriptor code} is {@linkplain P_200_CatchException primitive
- * 200}. Get that continuation's second argument (a handler block of one
- * argument), and check if that handler block will accept {@code
- * exceptionValue}. If not, keep looking. If it will accept it, unwind the
- * stack so that the primitive 200 continuation is the top entry, and invoke
- * the handler block with {@code exceptionValue}. If there is no suitable
- * handler block, then fail this primitive (with the unhandled exception).
+ * <strong>Primitive 202</strong>: Get the {@linkplain
+ * ObjectTypeDescriptor#stackDumpAtom() stack dump} associated with the
+ * specified {@linkplain ObjectTypeDescriptor#exceptionType() exception}.
+ *
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class P_201_RaiseException
+public final class P_203_ExceptionStackDump
 extends Primitive
 {
 	/**
-	 * The sole instance of this primitive class.  Accessed through reflection.
+	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_201_RaiseException().init(
-		1, SwitchesContinuation);
+	public final @NotNull static Primitive instance =
+		new P_203_ExceptionStackDump().init(1, CanFold);
 
 	@Override
 	public Result attempt (
@@ -64,22 +63,17 @@ extends Primitive
 	{
 		assert args.size() == 1;
 		final AvailObject exception = args.get(0);
-		// Attach a stack dump to the exception.
-		final AvailObject fieldMap = exception.fieldMap();
-		final List<String> stack = interpreter.dumpStack();
-		final List<AvailObject> frames =
-			new ArrayList<AvailObject>(stack.size());
-		for (int i = stack.size() - 1; i >= 0; i--)
+		try
 		{
-			frames.add(StringDescriptor.from(stack.get(i)));
+			final AvailObject stackDump = exception.fieldMap().mapAt(
+				ObjectTypeDescriptor.stackDumpAtom());
+			return interpreter.primitiveSuccess(stackDump);
 		}
-		final AvailObject stackDump = TupleDescriptor.fromList(frames);
-		final AvailObject newFieldMap = fieldMap.mapAtPuttingCanDestroy(
-			ObjectTypeDescriptor.stackDumpAtom(), stackDump, false);
-		final AvailObject newException =
-			ObjectDescriptor.objectFromMap(newFieldMap);
-		// Search for an applicable exception handler, and invoke it if found.
-		return interpreter.searchForExceptionHandler(newException);
+		catch (final MapException e)
+		{
+			assert e.errorCode().equals(E_KEY_NOT_FOUND);
+			return interpreter.primitiveFailure(E_INCORRECT_ARGUMENT_TYPE);
+		}
 	}
 
 	@Override
@@ -88,12 +82,14 @@ extends Primitive
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
 				ObjectTypeDescriptor.exceptionType()),
-			BottomTypeDescriptor.bottom());
+			TupleTypeDescriptor.zeroOrMoreOf(
+				TupleTypeDescriptor.stringTupleType()));
 	}
 
 	@Override
 	protected AvailObject privateFailureVariableType ()
 	{
-		return ObjectTypeDescriptor.exceptionType();
+		return InstanceTypeDescriptor.on(
+			E_INCORRECT_ARGUMENT_TYPE.numericCode());
 	}
 }

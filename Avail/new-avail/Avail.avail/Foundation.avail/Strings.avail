@@ -58,6 +58,12 @@ Names
 	"partially format_with_",
 	"partially format_with«…:=_‡,»",
 
+	/* English language. */
+	"(A`|An)“_”«else_»",
+	"(The)“_”«else_»",
+	"(a`|an)“_”«else_»",
+	"(the)“_”«else_»",
+
 	/* Formatting lists. */
 	"“_”«else_»(as simple list)",
 	"“_”«else_»(as«conjunctive|disjunctive»!list)",
@@ -1462,4 +1468,108 @@ Method "“_”«else_»(as«conjunctive|disjunctive»!list)" is
 	tx := cast last into [t : string | t] else [“last”];
 	s := eject ↑s ++ <" and ", " or ">[mode] ++ tx;
 	s
+] : string;
+
+vowels ::=
+	("aàáâãäåāăąǎǟǡǻȁȃȧḁạảấầẩẫậắằẳẵặ"
+	++ "AÀÁÂÃÄÅĀĂĄǍǞǠǺȀȂȦḀẠẢẤẦẨẪẬẮẰẲẴẶÅ"
+	++ "eèéêëēĕėęěȅȇȩḕḗḙḛḝẹẻẽếềểễệ"
+	++ "EÈÉÊËĒĔĖĘĚȄȆȨḔḖḘḚḜẸẺẼẾỀỂỄỆ"
+	++ "iìíîïĩīĭįıǐȉȋḭḯỉị"
+	++ "IÌÍÎÏĨĪĬĮİǏȈȊḬḮỈỊ"
+	++ "oòóôõöōŏőơǒǫǭȍȏȫȭȯȱṍṏṑṓọỏốồổỗộ"
+	++ "OÒÓÔÕÖŌŎŐƠǑǪǬȌȎȪȬȮȰṌṎṐṒỌỎỐỒỔỖỘỚ"
+	++ "uùúûüũūŭůűųưǔǖǘǚǜȕȗṳṵṷṹṻụủứừửữự"
+	++ "UÙÚÛÜŨŪŬŮŰŲƯǓǕǗǙǛȔȖṲṴṶṸṺỤỦỨỪỬỮỰ")→set;
+
+/**
+ * Answer a rendition of {@param "value"} that begins with the appropriate
+ * indefinite article. If {@param "value"} is a string, then it will not be
+ * quoted.
+ *
+ * @method "(a`|an)“_”«else_»"
+ * @param "value" "any"
+ * @param "optionalMissingText" "<string…|0..1>"
+ *        If specified, then the text that will be displayed if {@param "value"}
+ *        or its rendering via {@method "“_”"} is an empty string. If not
+ *        specified, then {@code "(nothing)"} will be used if necessary.
+ */
+Public method "(a`|an)“_”«else_»" is
+[
+	value : any,
+	optionalMissingText : <string…|0..1>
+|
+	missingText ::= optionalMissingText[1] else ["(nothing)"];
+	s ::= cast value into [t : string | t] else [“value”];
+	if s is empty then [missingText]
+	else [if s[1] ∈ vowels then ["an "] else ["a "] ++ s]
+] : string;
+
+/**
+ * Answer a rendition of {@param "value"} that begins with the appropriate
+ * uppercased indefinite article. If {@param "value"} is a string, then it will
+ * not be quoted.
+ *
+ * @method "(a`|an)“_”«else_»"
+ * @param "value" "any"
+ * @param "optionalMissingText" "<string…|0..1>"
+ *        If specified, then the text that will be displayed if {@param "value"}
+ *        or its rendering via {@method "“_”"} is an empty string. If not
+ *        specified, then {@code "(nothing)"} will be used if necessary.
+ */
+Public method "(A`|An)“_”«else_»" is
+[
+	value : any,
+	optionalMissingText : <string…|0..1>
+|
+	missingText ::= optionalMissingText[1] else ["(nothing)"];
+	s ::= cast value into [t : string | t] else [“value”];
+	if s is empty then [missingText]
+	else [if s[1] ∈ vowels then ["An "] else ["A "] ++ s]
+] : string;
+
+/**
+ * Answer a rendition of {@param "value"} that begins with the appropriate
+ * definite article. If {@param "value"} is a string, then it will not be
+ * quoted.
+ *
+ * @method "(The)“_”«else_»"
+ * @param "value" "any"
+ * @param "optionalMissingText" "<string…|0..1>"
+ *        If specified, then the text that will be displayed if {@param "value"}
+ *        or its rendering via {@method "“_”"} is an empty string. If not
+ *        specified, then {@code "(nothing)"} will be used if necessary.
+ */
+Public method "(the)“_”«else_»" is
+[
+	value : any,
+	optionalMissingText : <string…|0..1>
+|
+	missingText ::= optionalMissingText[1] else ["(nothing)"];
+	s ::= cast value into [t : string | t] else [“value”];
+	if s is empty then [missingText]
+	else ["the " ++ s]
+] : string;
+
+/**
+ * Answer a rendition of {@param "value"} that begins with the appropriate
+ * uppercased definite article. If {@param "value"} is a string, then it will
+ * not be quoted.
+ *
+ * @method "(The)“_”«else_»"
+ * @param "value" "any"
+ * @param "optionalMissingText" "<string…|0..1>"
+ *        If specified, then the text that will be displayed if {@param "value"}
+ *        or its rendering via {@method "“_”"} is an empty string. If not
+ *        specified, then {@code "(nothing)"} will be used if necessary.
+ */
+Public method "(The)“_”«else_»" is
+[
+	value : any,
+	optionalMissingText : <string…|0..1>
+|
+	missingText ::= optionalMissingText[1] else ["(nothing)"];
+	s ::= cast value into [t : string | t] else [“value”];
+	if s is empty then [missingText]
+	else ["The " ++ s]
 ] : string;

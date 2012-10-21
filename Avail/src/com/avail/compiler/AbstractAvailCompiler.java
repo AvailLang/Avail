@@ -3338,6 +3338,11 @@ public abstract class AbstractAvailCompiler
 			serializePublicationFunction(true);
 			commitModuleTransaction();
 		}
+		catch (final TerminateCompilationException e)
+		{
+			rollbackModuleTransaction();
+			throw e;
+		}
 		catch (final AvailCompilerException e)
 		{
 			rollbackModuleTransaction();

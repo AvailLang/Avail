@@ -44,6 +44,7 @@ Uses
 	"Functions",
 	"Literals",
 	"Logic",
+	"Math",
 	"Objects",
 	"Strings",
 	"Tuples",
@@ -57,8 +58,11 @@ Names
 	"descriptive_",
 	"error message",
 	"try_else_",
+	"_caused by_",
 	"_'s⁇causal exception",
 	"_'s⁇error message",
+	"_'s⁇stack summary",
+	"_'s⁇unhandled exception handler",
 	"_'s⁇unhandled exception handler is_",
 
 	/* System exception categories. */
@@ -83,6 +87,24 @@ Names
 	 * "Public exception_(_)extends_" defining method.
 	 */
 Body
+
+/**
+ * Answer a summary of the continuation stack associated with the specified
+ * {@type "exception"}.
+ *
+ * @method "_'s⁇stack summary"
+ * @param "e" "exception"
+ *        An {@type "exception"}.
+ * @returns "<string…|>"
+ *          A tuple of strings, each of which describes a continuation.
+ */
+Public method "_'s⁇stack summary" is
+[
+	e : exception
+|
+	Primitive 203 (failureCode : incorrect-argument-type code's type);
+	early failure function(failureCode)
+] : <string…|>;
 
 /* Private field definitions. */
 "error code" is a new atom;
@@ -113,11 +135,25 @@ Body
 "unhandled exception handler" is a new atom;
 
 /**
- * Establish {@param "handle"} as the function that the specified fiber will
+ * Answer the unhandled exception handler for the specified fiber.
+ *
+ * @method "_'s⁇unhandled exception handler"
+ * @param "aFiber" "fiber"
+ */
+Public method "_'s⁇unhandled exception handler" is
+[
+	aFiber : fiber
+|
+	cast aFiber[unhandled exception handler] into [t : [exception]→⊥ | t]
+] : [exception]→⊥;
+
+/**
+ * Establish {@param "handler"} as the function that the specified fiber will
  * apply in the event of an unhandled exception.
  * 
  * @method "_'s⁇unhandled exception handler is_"
- * @param "handle"
+ * @param "aFiber" "fiber"
+ * @param "handler"
  *    The unhandled exception handler. When an unhandled exception is trapped by
  *    the VM, the exception machinery will arrange to apply this function with
  *    the unhandled exception.
@@ -143,7 +179,7 @@ Public method "_'s⁇unhandled exception handler is_" is
  * typed exception handling functions. If no suitable exception handling
  * function is found, then invoke the current fiber's {@method
  * "_'s⁇unhandled exception handler is_" unhandled exception handler}. {@method
- * "Terminate_" Terminate} the current fiber if no such handler exists.
+ * "Crash:_" Crash} the current fiber if no such handler exists.
  *
  * @method "Raise_"
  * @param "anException" "exception"
@@ -162,7 +198,7 @@ Public method "Raise_" is
 	]
 	else
 	[
-		Terminate "unhandled exception: " ++ “anException”
+		Crash: "unhandled exception: " ++ “anException”
 	]
 ] : ⊥;
 
@@ -303,6 +339,24 @@ Semantic restriction "cascade_" is
 ];
 
 /**
+ * Answer an {@type "cascade exception"} based on {@param "newException"} and
+ * caused by {@param "originalException"}.
+ *
+ * @method "_caused by_"
+ * @param "newException" "exception"
+ * @param "originalException" "exception"
+ * @returns "cascade exception"
+ */
+Public method "_caused by_" is
+[
+	newException : exception,
+	originalException : exception
+|
+	fields ::= newException→map + causal exception→originalException;
+	cast fields→object into [t : cascade exception | t]
+] : cascade exception;
+
+/**
  * This is a helper for {@method "Guard|guard_«intercept_»«ensure_»"}. Having
  * intercepted {@param "originalException"}, invoke {@param "handler"}. If it
  * raises an {@type "exception", then intercept it and store it locally. Run
@@ -356,11 +410,7 @@ Private method "Handle_with_and_" is
 	 */
 	If ↑preemptiveException is assigned then
 	[
-		fields ::= preemptiveException→map +
-			causal exception→originalException;
-		cascadeException ::=
-			cast fields→object into [t : cascade exception | t];
-		Raise cascadeException
+		Raise preemptiveException caused by originalException
 	];
 ] : ⊤;
 
@@ -392,11 +442,7 @@ Private method "Handle_with_and_" is
 	 */
 	If ↑preemptiveException is assigned then
 	[
-		fields ::= preemptiveException→map +
-			causal exception→originalException;
-		cascadeException ::=
-			cast fields→object into [t : cascade exception | t];
-		Raise cascadeException
+		Raise preemptiveException caused by originalException
 	];
 	/* The result must be assigned, or control would have left because of a
 	 * raised exception.
@@ -435,45 +481,37 @@ Public method "Guard|guard_«intercept_»«ensure_»" is
 	handlers : <[⊥]→⊤…|>,
 	optionalUnwind : <[]→⊤…|0..1>
 |
+	unwind ::= optionalUnwind[1] else [[]];
 	realHandlers ::=
-		/* If no unwind handler has been supplied, then simply use the specified
-		 * set of handlers.
+		/* If only an unwind handler was provided, then synthesize a catch-all
+		 * exception handler.
 		 */
-		if optionalUnwind is empty
-		then [handlers]
+		if handlers is empty then
+		[
+			<[
+				e : exception
+			|
+				Handle e with [ex : exception | Raise ex] and unwind
+			]>
+		]
+		/* Otherwise, wrap each of the handlers. The wrapper will call the
+		 * user-supplied exception handler and then the unwind handler.
+		 */
 		else
 		[
-			unwind ::= optionalUnwind[1];
-			/* If no handlers have been provided, then synthesize one that will
-			 * call the unwind handler and then reraise the exception.
-			 */
-			if handlers is empty then
+			map handlers through
 			[
-				<[
-					e : exception
-				|
-					Handle e with [ex : exception | Raise ex] and unwind
-				]>
-			]
-			/* Otherwise, wrap each of the handlers. The wrapper will call the
-			 * user-supplied exception handler and then the unwind handler.
-			 */
-			else
-			[
-				map handlers through
+				handler : [⊥]→⊤
+			|
+				handlerType ::= handler's type;
+				/* Make sure that the new handler has the same signature as
+				 * the wrapped handler.
+				 */
+				new [handlerType[1]]→(handlerType's return type) applying
 				[
-					handler : [⊥]→⊤
+					originalException : exception
 				|
-					handlerType ::= handler's type;
-					/* Make sure that the new handler has the same signature as
-					 * the wrapped handler.
-					 */
-					new [handlerType[1]]→(handlerType's return type) applying
-					[
-						originalException : exception
-					|
-						Handle originalException with handler and unwind;
-					]
+					Handle originalException with handler and unwind;
 				]
 			]
 		];
@@ -581,14 +619,11 @@ Class "system exception" extends exception
 		error code : natural number,
 		error name : string;
 
-englishVowels ::= "AEIOUaeiou"→set;
-
 Stable method "“_”" is
 [
 	anException : system exception
 |
-	name ::= anException's error name;
-	(if name ∈ englishVowels then ["an "] else ["a "]) ++ name
+	(a|an) “anException's error name”
 ] : string;
 
 /* A map from error codes to system exceptions. */
@@ -973,3 +1008,59 @@ Set early failure function to
 		error code := errorCode,
 		error name := exceptionType's error name's instance
 ] : ⊥;
+
+Private method "“_”(stack summary)" is
+[
+	dump : <string…|>
+|
+	text : string := "";
+	From |dump| to 1 by -1 do
+	[
+		index : natural number
+	|
+		frame ::= dump[index];
+		text := eject ↑text ++ (format "\t‘①’\n" with frame);
+	];
+	text
+];
+
+current fiber's unhandled exception handler is
+[
+	unhandled : exception
+|
+	/* If the error was encountered during compilation, then which module was
+	 * being compiled.
+	 */
+	Guard
+	[
+		m ::= current module;
+		Error:
+			format "Unhandled exception during compilation of “①”:\n"
+			with m's name;
+	]
+	intercept [e : compilation-is-over exception |];
+	e : exception := unhandled;
+	firstTime : boolean := true;
+	While [↑e is assigned] do
+	[
+		spec ::= if firstTime
+			then ["unhandled exception [“ex”]:\n"]
+			else ["“ex”:\n"];
+		firstTime := false;
+		Error: format spec with ex := e;
+		Error: “e's stack summary” (stack summary);
+		Cast e into
+		[
+			cascade : cascade exception
+		|
+			Error: "\ncaused by…\n";
+			e := cascade's causal exception;
+		]
+		else
+		[
+			Clear ↑e;
+		];
+	];
+	Error: "\nThe current fiber will be terminated.\n";
+	Terminate current fiber
+];

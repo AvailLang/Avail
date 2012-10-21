@@ -405,6 +405,11 @@ extends JFrame
 					});
 				return null;
 			}
+			catch (final TerminateCompilationException e)
+			{
+				terminator = e;
+				return null;
+			}
 			catch (final AvailCompilerException e)
 			{
 				final ResolvedModuleName resolvedName =

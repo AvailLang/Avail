@@ -684,6 +684,7 @@ implements ThreadFactory
 		specialAtoms[8] = MethodDescriptor.vmPublishAtomsAtom();
 		specialAtoms[9] = AtomDescriptor.moduleHeaderSectionAtom();
 		specialAtoms[10] = AtomDescriptor.moduleBodySectionAtom();
+		specialAtoms[11] = ObjectTypeDescriptor.stackDumpAtom();
 
 		assert specialAtomsSet == null;
 		specialAtomsSet = new HashSet<AvailObject>(specialAtomsList);
