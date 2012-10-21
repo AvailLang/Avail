@@ -1,5 +1,5 @@
-/*
- * Avail.avail
+/**
+ * P_402_BootstrapArgumentMacro.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -30,14 +30,55 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Avail"
-Versions
-	"dev"
-Extends
-	"Advanced Math",
-	"Data Abstractions",
-	"Foundation",
-	"Foundation Tests",
-	"IO",
-	"Unit Testing"
-Body
+package com.avail.interpreter.primitive;
+
+import static com.avail.descriptor.TypeDescriptor.Types.*;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
+import static com.avail.interpreter.Primitive.Flag.*;
+import java.util.*;
+import com.avail.descriptor.*;
+import com.avail.interpreter.*;
+
+/**
+ * The {@code P_402_BootstrapArgumentMacro} primitive is used for bootstrapping
+ * the {@link #ARGUMENT_NODE block argument declaration} syntax.
+ *
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ */
+public class P_402_BootstrapArgumentMacro extends Primitive
+{
+	/**
+	 * The sole instance of this primitive class.  Accessed through reflection.
+	 */
+	public final static Primitive instance =
+		new P_402_BootstrapArgumentMacro().init(2, CannotFail, Bootstrap);
+
+	@Override
+	public Result attempt (
+		final List<AvailObject> args,
+		final Interpreter interpreter)
+	{
+		assert args.size() == 2;
+		final AvailObject argumentName = args.get(0);
+		final AvailObject type = args.get(1);
+
+		final AvailObject argumentDeclaration =
+			DeclarationNodeDescriptor.newArgument(
+				argumentName,
+				type);
+		argumentDeclaration.makeImmutable();
+		return interpreter.primitiveSuccess(argumentDeclaration);
+	}
+
+	@Override
+	protected AvailObject privateBlockTypeRestriction ()
+	{
+		return FunctionTypeDescriptor.create(
+			TupleDescriptor.from(
+				/* Argument name token */
+				TOKEN.o(),
+				/* Argument type */
+				InstanceMetaDescriptor.anyMeta()),
+			ARGUMENT_NODE.mostGeneralType());
+	}
+}

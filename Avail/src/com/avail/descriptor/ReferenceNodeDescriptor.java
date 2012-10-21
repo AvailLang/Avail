@@ -37,6 +37,7 @@ import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import java.util.List;
 import com.avail.annotations.*;
 import com.avail.compiler.AvailCodeGenerator;
+import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.utility.*;
 
@@ -93,8 +94,15 @@ extends ParseNodeDescriptor
 	@Override @AvailMethod
 	AvailObject o_ExpressionType (final AvailObject object)
 	{
-		return VariableTypeDescriptor.wrapInnerType(
-			object.variable().expressionType());
+		final AvailObject variable = object.variable();
+		final AvailObject declaration = variable.declaration();
+		final DeclarationKind kind = declaration.declarationKind();
+		if (kind == DeclarationKind.MODULE_VARIABLE)
+		{
+			return InstanceTypeDescriptor.on(declaration.literalObject());
+		}
+		assert kind == DeclarationKind.LOCAL_VARIABLE;
+		return VariableTypeDescriptor.wrapInnerType(variable.expressionType());
 	}
 
 	@Override @AvailMethod

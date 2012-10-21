@@ -87,9 +87,7 @@ public class P_187_CompiledCodeLiterals extends Primitive
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
 				CompiledCodeTypeDescriptor.mostGeneralType()),
-			TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
-				IntegerRangeTypeDescriptor.wholeNumbers(),
-				TupleDescriptor.empty(),
+			TupleTypeDescriptor.zeroOrMoreOf(
 				ANY.o()));
 	}
 }

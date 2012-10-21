@@ -126,9 +126,7 @@ public class P_502_CreatePojoConstructorFunction extends Primitive
 		writer.argumentTypes(
 			RAW_POJO.o(),
 			TupleTypeDescriptor.mostGeneralType(),
-			TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
-				IntegerRangeTypeDescriptor.wholeNumbers(),
-				TupleDescriptor.empty(),
+			TupleTypeDescriptor.zeroOrMoreOf(
 				RAW_POJO.o()),
 			InstanceMetaDescriptor.on(
 				PojoTypeDescriptor.mostGeneralType()));
@@ -201,9 +199,7 @@ public class P_502_CreatePojoConstructorFunction extends Primitive
 			TupleDescriptor.from(
 				InstanceMetaDescriptor.on(
 					PojoTypeDescriptor.mostGeneralType()),
-				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
-					IntegerRangeTypeDescriptor.wholeNumbers(),
-					TupleDescriptor.empty(),
+				TupleTypeDescriptor.zeroOrMoreOf(
 					InstanceMetaDescriptor.anyMeta()),
 				FunctionTypeDescriptor.create(
 					TupleDescriptor.from(

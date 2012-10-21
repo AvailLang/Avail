@@ -66,16 +66,9 @@ public class P_085_CreateMap extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
-					IntegerRangeTypeDescriptor.wholeNumbers(),
-					TupleDescriptor.from(),
-					TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
-						IntegerRangeTypeDescriptor.create(
-							IntegerDescriptor.two(),
-							true,
-							IntegerDescriptor.two(),
-							true),
-						TupleDescriptor.from(),
+				TupleTypeDescriptor.zeroOrMoreOf(
+					TupleTypeDescriptor.forTypes(
+						ANY.o(),
 						ANY.o()))),
 			MapTypeDescriptor.mostGeneralType());
 	}

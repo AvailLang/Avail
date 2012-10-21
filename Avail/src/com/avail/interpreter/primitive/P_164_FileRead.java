@@ -126,9 +126,7 @@ extends Primitive
 			TupleDescriptor.from(
 				ATOM.o(),
 				IntegerRangeTypeDescriptor.wholeNumbers()),
-			TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
-				IntegerRangeTypeDescriptor.wholeNumbers(),
-				TupleDescriptor.empty(),
+			TupleTypeDescriptor.zeroOrMoreOf(
 				IntegerRangeTypeDescriptor.bytes()));
 	}
 }

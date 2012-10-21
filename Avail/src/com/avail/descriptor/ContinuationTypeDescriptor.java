@@ -85,8 +85,8 @@ extends TypeDescriptor
 		 * The type of function that this {@linkplain ContinuationTypeDescriptor
 		 * continuation type} supports.  Continuation types are contravariant
 		 * with respect to the function type's argument types, and, surprisingly,
-		 * they are also contravariant with respect to the function type's return
-		 * type.
+		 * they are also contravariant with respect to the function type's
+		 * return type.
 		 */
 		FUNCTION_TYPE
 	}
@@ -162,8 +162,8 @@ extends TypeDescriptor
 	 * them or to exit them, continuation subtypes must accept any values that
 	 * could be passed as arguments or as the return value to the supertype.
 	 * Therefore, continuation types must be contravariant with respect to the
-	 * contained functionType's arguments, and also contravariant with respect to
-	 * the contained functionType's result type.
+	 * contained functionType's arguments, and also contravariant with respect
+	 * to the contained functionType's result type.
 	 * </p>
 	 */
 	@Override @AvailMethod

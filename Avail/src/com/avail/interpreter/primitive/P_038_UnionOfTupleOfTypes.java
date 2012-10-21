@@ -68,9 +68,7 @@ public class P_038_UnionOfTupleOfTypes extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
-					IntegerRangeTypeDescriptor.wholeNumbers(),
-					TupleDescriptor.empty(),
+				TupleTypeDescriptor.zeroOrMoreOf(
 					InstanceMetaDescriptor.topMeta())),
 			InstanceMetaDescriptor.topMeta());
 	}

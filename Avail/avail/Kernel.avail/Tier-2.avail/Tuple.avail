@@ -323,7 +323,7 @@ Method "_to_" is [a : integer, b : integer |
 	/* Use a weak type so result of unrefined "«_‡then»" operation will fit. */
 	result : tuple := <>;
 	From a to b do [i : integer | result := result then <i>;];
-	/* The "«_‡then»" operation is not yet refined with a returns clause.
+	/* The "«_‡then»" operation is not yet refined with a semantic restriction.
 	   Cast the type downwards, as we know the entries are all integers. */
 	cast result into [x : tuple of integer | x]
 ] : tuple of integer;
@@ -425,7 +425,7 @@ Restriction "_[_->_]" is [tType : tupleType, iType : integerType, vType : type |
 			From low max 1 to || leading || do [x : natural number |
 				newLeading ::= leading[x -> type union of leading[x] and vType];
 				/* Since we haven't defined "_[_->_]" with a strong enough
-				   returns clause yet (that's what we're in the middle of
+				   semantic restriction yet (that's what we're in the middle of
 				   doing!), we have to dynamically cast into tuple of type. */
 				cast newLeading into [y : tuple of type | leading := y; ];
 			];
@@ -443,7 +443,7 @@ Restriction "_[_->_]" is [tType : tupleType, iType : integerType, vType : type |
 		/* Infinite extension - all indices >= lower bound are weakened to
 		   vType... */
 		if iType upper bound not = INF then [
-			Crash "Inconsistency in returns clause of _[_->_]"];
+			Crash "Inconsistency in semantic restriction of _[_->_]"];
 		default := type union of default and vType;
 	];
 	tuple tType sizes

@@ -258,8 +258,10 @@ public final class AvailBuilder
 	{
 		while (!predecessors.isEmpty())
 		{
-			for (final Map.Entry<ResolvedModuleName, Set<ResolvedModuleName>> entry : new ArrayList<Map.Entry<ResolvedModuleName, Set<ResolvedModuleName>>>(
-				predecessors.entrySet()))
+			for (final Map.Entry<ResolvedModuleName, Set<ResolvedModuleName>>
+				entry : new ArrayList<Map.Entry<ResolvedModuleName,
+						Set<ResolvedModuleName>>>(
+					predecessors.entrySet()))
 			{
 				final ResolvedModuleName key = entry.getKey();
 				if (entry.getValue().isEmpty())
@@ -454,12 +456,6 @@ public final class AvailBuilder
 						filePath,
 						moduleTimestamp);
 
-					// TODO[MvG]: Remove debug.
-//					System.out.format(
-//						"LOADING MODULE: %s (%d compiled bytes)%n",
-//						moduleName,
-//						bytes.length);
-
 					final ByteArrayInputStream inputStream =
 						new ByteArrayInputStream(bytes);
 					final AvailObject module = ModuleDescriptor.newModule(
@@ -504,7 +500,6 @@ public final class AvailBuilder
 						// Run each zero-argument block.
 						while ((block = deserializer.deserialize()) != null)
 						{
-							// System.out.println("RUNNING: " + block);
 							interpreter.runFunctionArguments(block, noArgs);
 						}
 						runtime.addModule(module);
@@ -529,8 +524,11 @@ public final class AvailBuilder
 				else
 				{
 					// Actually compile the module and cache its compiled form.
-					final AbstractAvailCompiler compiler = AbstractAvailCompiler
-						.create(moduleName, interpreter, false);
+					final AbstractAvailCompiler compiler =
+						AbstractAvailCompiler.create(
+							moduleName,
+							interpreter,
+							false);
 					compiler.parseModule(
 						moduleName,
 						new Continuation4<ModuleName, Long, Long, Long>()
@@ -562,11 +560,6 @@ public final class AvailBuilder
 						filePath,
 						moduleTimestamp,
 						compiler.serializerOutputStream.toByteArray());
-					// TODO [MvG] - Remove serialization debug code.
-//					System.err.format(
-//						"%6d : %s%n",
-//						compiler.serializerOutputStream.size(),
-//						moduleName);
 				}
 			}
 			globalPosition.value += resolved.fileReference().length();

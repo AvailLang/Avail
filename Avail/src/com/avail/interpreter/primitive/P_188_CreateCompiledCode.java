@@ -137,9 +137,7 @@ public class P_188_CreateCompiledCode extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
-					IntegerRangeTypeDescriptor.wholeNumbers(),
-					TupleDescriptor.empty(),
+				TupleTypeDescriptor.zeroOrMoreOf(
 					IntegerRangeTypeDescriptor.nybbles()),
 				IntegerRangeTypeDescriptor.unsignedShorts(),
 				FunctionTypeDescriptor.meta(),

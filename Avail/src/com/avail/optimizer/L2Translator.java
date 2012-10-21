@@ -209,7 +209,7 @@ public class L2Translator implements L1OperationDispatcher
 	{
 		assert label.operation == L2_LABEL.instance;
 		// Don't transform its registers -- we need *this* instruction.
-		assert !instructions.contains(label);  // TODO [MvG] Remove - slow.
+		//assert !instructions.contains(label);  // Potentially slow.
 		instructions.add(label);
 	}
 

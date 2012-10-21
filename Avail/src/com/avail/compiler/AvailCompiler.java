@@ -39,9 +39,7 @@ import java.util.*;
 import com.avail.annotations.Nullable;
 import com.avail.builder.ModuleName;
 import com.avail.descriptor.*;
-import com.avail.interpreter.levelOne.*;
 import com.avail.interpreter.levelTwo.L2Interpreter;
-import com.avail.utility.*;
 
 /**
  * I parse a source file to create a {@linkplain ModuleDescriptor module}.
@@ -161,73 +159,43 @@ extends AbstractAvailCompiler
 		final AvailObject method,
 		final Con<AvailObject> continuation)
 	{
-		final Mutable<Boolean> valid = new Mutable<Boolean>(true);
 		final List<AvailObject> argumentNodeTypes = new ArrayList<AvailObject>(
 			argumentExpressions.size());
 		for (final AvailObject argExpr : argumentExpressions)
 		{
 			argumentNodeTypes.add(argExpr.kind());
 		}
-		method.validateArgumentTypesInterpreterIfFail(
-			argumentNodeTypes,
-			interpreter,
-			new Continuation1<Generator<String>>()
-			{
-				@Override
-				public void value (final @Nullable Generator<String> arg)
-				{
-					stateAfterCall.expected(
-						"parse node types to agree with macro types");
-					valid.value = false;
-				}
-			});
-		if (!valid.value)
-		{
-			return;
-		}
-
-		// Construct code to invoke the method, since it might be a
-		// primitive and we can't invoke that directly as the outermost
-		// function.
-		final L1InstructionWriter writer = new L1InstructionWriter(
-			module,
-			stateBeforeCall.peekToken().lineNumber());
-		for (final AvailObject arg : argumentExpressions)
-		{
-			writer.write(new L1Instruction(
-				L1Operation.L1_doPushLiteral,
-				writer.addLiteral(arg)));
-		}
-		writer.write(new L1Instruction(
-			L1Operation.L1_doCall,
-			writer.addLiteral(method),
-			writer.addLiteral(PARSE_NODE.mostGeneralType())));
-		writer.argumentTypes();
-		writer.primitiveNumber(0);
-		writer.returnType(PARSE_NODE.mostGeneralType());
-		final AvailObject newFunction = FunctionDescriptor.create(
-			writer.compiledCode(),
-			TupleDescriptor.empty());
-		newFunction.makeImmutable();
+		// A macro can't have semantic restrictions, so just run it.
 		try
 		{
-			final AvailObject replacement = interpreter.runFunctionArguments(
-				newFunction,
-				Collections.<AvailObject> emptyList());
+			final AvailObject implementations = method.implementationsTuple();
+			assert implementations.tupleSize() == 1;
+
+			// Declarations introduced in the macro should now be moved
+			// out of scope.
+			final ParserState stateAfter = new ParserState(
+				stateAfterCall.position,
+				stateBeforeCall.scopeMap,
+				stateBeforeCall.innermostBlockArguments);
+			interpreter.currentParserState = stateAfter;
+			AvailObject replacement;
+			try
+			{
+				replacement = interpreter.runFunctionArguments(
+					method,
+					argumentExpressions);
+			}
+			finally
+			{
+				interpreter.currentParserState = null;
+			}
 			if (replacement.isInstanceOfKind(PARSE_NODE.mostGeneralType()))
 			{
 				final AvailObject substitution =
 					MacroSubstitutionNodeDescriptor.fromNameAndNode(
 						bundle.message(),
 						replacement);
-				// Declarations introduced in the macro should now be moved
-				// out of scope.
-				attempt(
-					new ParserState(
-						stateAfterCall.position,
-						stateBeforeCall.scopeMap),
-					continuation,
-					substitution);
+				attempt(stateAfter, continuation, substitution);
 			}
 			else
 			{

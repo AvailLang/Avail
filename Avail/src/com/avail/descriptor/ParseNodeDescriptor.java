@@ -235,8 +235,8 @@ public abstract class ParseNodeDescriptor extends Descriptor
 	 *
 	 * @param object The {@linkplain ParseNodeDescriptor parse node} to
 	 *               transform.
-	 * @param aBlock The {@linkplain Transformer1 transformation} through which to
-	 *               map this parse node's children.
+	 * @param aBlock The {@linkplain Transformer1 transformation} through which
+	 *               to map this parse node's children.
 	 */
 	@Override @AvailMethod
 	abstract void o_ChildrenMap (
@@ -250,8 +250,8 @@ public abstract class ParseNodeDescriptor extends Descriptor
 	 * @param object
 	 *            The {@linkplain ParseNodeDescriptor parse node} to traverse.
 	 * @param aBlock
-	 *            The {@linkplain Continuation1 action} to perform with each of this
-	 *            parse node's children.
+	 *            The {@linkplain Continuation1 action} to perform with each of
+	 *            this parse node's children.
 	 */
 	@Override @AvailMethod
 	abstract void o_ChildrenDo (
@@ -305,8 +305,8 @@ public abstract class ParseNodeDescriptor extends Descriptor
 
 	/**
 	 * Visit the entire tree with the given {@linkplain Continuation3 block},
-	 * children before parents.  The block takes three arguments: the
-	 * node, its parent, and the list of enclosing block nodes.
+	 * children before parents.  The block takes three arguments: the node, its
+	 * parent, and the list of enclosing block nodes.
 	 *
 	 * @param object
 	 *        The current {@linkplain ParseNodeDescriptor parse node}.
@@ -320,8 +320,7 @@ public abstract class ParseNodeDescriptor extends Descriptor
 	 */
 	public static void treeDoWithParent (
 		final AvailObject object,
-		final
-			Continuation3<AvailObject, AvailObject, List<AvailObject>> aBlock,
+		final Continuation3<AvailObject, AvailObject, List<AvailObject>> aBlock,
 		final @Nullable AvailObject parentNode,
 		final List<AvailObject> outerNodes)
 	{

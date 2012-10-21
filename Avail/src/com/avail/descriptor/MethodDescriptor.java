@@ -134,9 +134,9 @@ extends Descriptor
 	}
 
 	/**
-	 * The (special) name of the VM-built pre-bootstrap defining method.
+	 * The (special) name of the VM-built pre-bootstrap method-defining method.
 	 */
-	private static AvailObject vmDefinerAtom;
+	private static AvailObject vmMethodDefinerAtom;
 
 	/**
 	 * Answer the (special) {@linkplain AtomDescriptor name} of the VM method
@@ -144,25 +144,57 @@ extends Descriptor
 	 *
 	 * @return The name of the bootstrap method-defining method.
 	 */
-	public static AvailObject vmDefinerAtom ()
+	public static AvailObject vmMethodDefinerAtom ()
 	{
-		return vmDefinerAtom;
+		return vmMethodDefinerAtom;
 	}
 
 	/**
-	 * The special pre-bootstrap defining method constructed by the VM.
+	 * The special pre-bootstrap method-defining method constructed by the VM.
 	 */
-	private static AvailObject vmDefinerMethod;
+	private static AvailObject vmMethodDefinerMethod;
 
 	/**
-	 * Answer the special pre-bootstrap defining method that was created and
-	 * installed into the {@link AvailRuntime} automatically.
+	 * Answer the special pre-bootstrap method-defining method that was created
+	 * and installed into the {@link AvailRuntime} automatically.
 	 *
 	 * @return The bootstrap method-defining method.
 	 */
-	public static AvailObject vmDefinerMethod ()
+	public static AvailObject vmMethodDefinerMethod ()
 	{
-		return vmDefinerMethod;
+		return vmMethodDefinerMethod;
+	}
+
+	/**
+	 * The (special) name of the VM-built pre-bootstrap macro-defining method.
+	 */
+	private static AvailObject vmMacroDefinerAtom;
+
+	/**
+	 * Answer the (special) {@linkplain AtomDescriptor name} of the VM method
+	 * used to bootstrap new macros.
+	 *
+	 * @return The name of the bootstrap macro-defining method.
+	 */
+	public static AvailObject vmMacroDefinerAtom ()
+	{
+		return vmMacroDefinerAtom;
+	}
+
+	/**
+	 * The special pre-bootstrap macro-defining method constructed by the VM.
+	 */
+	private static AvailObject vmMacroDefinerMethod;
+
+	/**
+	 * Answer the special pre-bootstrap macro-defining method that was created
+	 * and installed into the {@link AvailRuntime} automatically.
+	 *
+	 * @return The bootstrap macro-defining method.
+	 */
+	public static AvailObject vmMacroDefinerMethod ()
+	{
+		return vmMacroDefinerMethod;
 	}
 
 	/**
@@ -235,38 +267,18 @@ extends Descriptor
 	}
 
 	/**
-	 * Construct the {@linkplain FunctionDescriptor function} that implements
-	 * string-based method definition.
-	 *
-	 * @return A function.
-	 */
-	public static AvailObject newVMStringDefinerFunction ()
-	{
-		return newPrimitiveFunction(P_253_SimpleMethodDeclaration.instance);
-	}
-
-	/**
-	 * Construct the {@linkplain FunctionDescriptor function} that implements
-	 * atom-based method definition.
-	 *
-	 * @return A function.
-	 */
-	public static AvailObject newVMAtomDefinerFunction ()
-	{
-		return newPrimitiveFunction(P_228_MethodDeclarationFromAtom.instance);
-	}
-
-	/**
-	 * Construct the {@linkplain MethodDescriptor method}
-	 * for bootstrapping emergency exit.
+	 * Construct the {@linkplain MethodDescriptor method}s
+	 * for bootstrapping method definition.
 	 *
 	 * @return A method.
 	 */
-	private static AvailObject newVMDefinerMethod ()
+	private static AvailObject newVMMethodDefinerMethod ()
 	{
-		final AvailObject fromStringFunction = newVMStringDefinerFunction();
-		final AvailObject fromAtomFunction = newVMAtomDefinerFunction();
-		final AvailObject method = newMethodWithName(vmDefinerAtom);
+		final AvailObject fromStringFunction = newPrimitiveFunction(
+			P_253_SimpleMethodDeclaration.instance);
+		final AvailObject fromAtomFunction = newPrimitiveFunction(
+			P_228_MethodDeclarationFromAtom.instance);
+		final AvailObject method = newMethodWithName(vmMethodDefinerAtom);
 		try
 		{
 			method.addImplementation(
@@ -279,7 +291,30 @@ extends Descriptor
 			assert false : "This should not be possible!";
 			throw new RuntimeException(e);
 		}
+		return method;
+	}
 
+	/**
+	 * Construct the {@linkplain MethodDescriptor method}
+	 * for bootstrapping emergency exit.
+	 *
+	 * @return A method.
+	 */
+	private static AvailObject newVMMacroDefinerMethod ()
+	{
+		final AvailObject fromStringFunction = newPrimitiveFunction(
+			P_249_SimpleMacroDeclaration.instance);
+		final AvailObject method = newMethodWithName(vmMacroDefinerAtom);
+		try
+		{
+			method.addImplementation(
+				MethodImplementationDescriptor.create(fromStringFunction));
+		}
+		catch (final SignatureException e)
+		{
+			assert false : "This should not be possible!";
+			throw new RuntimeException(e);
+		}
 		return method;
 	}
 
@@ -425,10 +460,14 @@ extends Descriptor
 			StringDescriptor.from("vm function apply_(«_‡,»)"),
 			NullDescriptor.nullObject());
 		vmFunctionApplyMethod = newVMFunctionApplyMethod();
-		vmDefinerAtom = AtomDescriptor.create(
+		vmMethodDefinerAtom = AtomDescriptor.create(
 			StringDescriptor.from("vm method_is_"),
 			NullDescriptor.nullObject());
-		vmDefinerMethod = newVMDefinerMethod();
+		vmMethodDefinerMethod = newVMMethodDefinerMethod();
+		vmMacroDefinerAtom = AtomDescriptor.create(
+			StringDescriptor.from("vm macro_is_"),
+			NullDescriptor.nullObject());
+		vmMacroDefinerMethod = newVMMacroDefinerMethod();
 		vmPublishAtomsAtom = AtomDescriptor.create(
 			StringDescriptor.from("vm publish atom set_(public=_)"),
 			NullDescriptor.nullObject());
@@ -445,8 +484,10 @@ extends Descriptor
 		vmCrashMethod = null;
 		vmFunctionApplyAtom = null;
 		vmFunctionApplyMethod = null;
-		vmDefinerAtom = null;
-		vmDefinerMethod = null;
+		vmMethodDefinerAtom = null;
+		vmMethodDefinerMethod = null;
+		vmMacroDefinerAtom = null;
+		vmMacroDefinerMethod = null;
 		vmPublishAtomsAtom = null;
 		vmPublishAtomsMethod = null;
 	}
@@ -620,10 +661,7 @@ extends Descriptor
 		for (final AvailObject seal : seals)
 		{
 			final AvailObject sealType =
-				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
-					IntegerRangeTypeDescriptor.singleInt(seal.tupleSize()),
-					seal,
-					BottomTypeDescriptor.bottom());
+				TupleTypeDescriptor.forTypes(TupleDescriptor.toArray(seal));
 			if (paramTypes.isSubtypeOf(sealType))
 			{
 				throw new SignatureException(AvailErrorCode.E_METHOD_IS_SEALED);
@@ -989,8 +1027,6 @@ extends Descriptor
 			});
 			return NullDescriptor.nullObject();
 		}
-		// The requires clauses are only checked after a top-level statement has
-		// been parsed and is being validated.
 		AvailObject intersection =
 			satisfyingTypes.get(0).bodySignature().returnType();
 		for (int i = satisfyingTypes.size() - 1; i >= 1; i--)

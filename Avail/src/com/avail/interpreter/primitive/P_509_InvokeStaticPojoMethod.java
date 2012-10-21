@@ -125,9 +125,7 @@ public class P_509_InvokeStaticPojoMethod extends Primitive
 			TupleDescriptor.from(
 				RAW_POJO.o(),
 				TupleTypeDescriptor.mostGeneralType(),
-				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
-					IntegerRangeTypeDescriptor.wholeNumbers(),
-					TupleDescriptor.empty(),
+				TupleTypeDescriptor.zeroOrMoreOf(
 					RAW_POJO.o()),
 				InstanceMetaDescriptor.topMeta()),
 			TOP.o());

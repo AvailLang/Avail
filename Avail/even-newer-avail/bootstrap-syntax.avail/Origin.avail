@@ -1,5 +1,5 @@
 /*
- * Avail.avail
+ * bootstrap-test.avail
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -30,14 +30,24 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Avail"
+System Module "Origin"
+Pragma
+	"method=253=Primitive_is_",
+	"method=240=special object_",
+
+	"macro=400=[««_¶‡,»`|»§«Primitive_«_¶»;»«_¶;»«_¶;»«_»]«:_†»«^«_†‡,»»",  /* block */
+	"macro=401=$…«:_†»",   /* label declaration */
+	"macro=402=…:_†",      /* argument declaration */
+	"macro=403=(…:_†)",    /* primitive failure declaration */
+	"macro=404=…:_#",      /* variable declaration */
+	"macro=405=…::=_",     /* constant declaration */
+	"macro=406=…:_#:=_",   /* initializing variable declaration */
+	"macro=407=…:=_",      /* assignment */
+	"macro=408=↑…",        /* variable reference */
+	"macro=409=…"          /* variable use */
+
 Versions
-	"dev"
 Extends
-	"Advanced Math",
-	"Data Abstractions",
-	"Foundation",
-	"Foundation Tests",
-	"IO",
-	"Unit Testing"
+Uses
+Names
 Body

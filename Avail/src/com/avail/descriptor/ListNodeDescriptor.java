@@ -101,12 +101,8 @@ public class ListNodeDescriptor extends ParseNodeDescriptor
 				}
 				types.add(expressionType);
 			}
-			final AvailObject sizes = IntegerRangeTypeDescriptor.singleInt(
-				types.size());
-			tupleType = TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
-				sizes,
-				TupleDescriptor.fromList(types),
-				BottomTypeDescriptor.bottom());
+			tupleType = TupleTypeDescriptor.forTypes(
+				types.toArray(new AvailObject[types.size()]));
 			tupleType.makeImmutable();
 			object.setSlot(TUPLE_TYPE, tupleType);
 		}

@@ -64,9 +64,7 @@ public class P_136_ConcatenateTuples extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
-					IntegerRangeTypeDescriptor.wholeNumbers(),
-					TupleDescriptor.empty(),
+				TupleTypeDescriptor.zeroOrMoreOf(
 					TupleTypeDescriptor.mostGeneralType())),
 			TupleTypeDescriptor.mostGeneralType());
 	}

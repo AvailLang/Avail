@@ -435,6 +435,11 @@ extends TypeDescriptor
 	static AvailObject Bytes;
 
 	/**
+	 * The range [0..1].
+	 */
+	static AvailObject ZeroOrOne;
+
+	/**
 	 * The range of Unicode code points, [0..1114111].
 	 */
 	static AvailObject CharacterCodePoints;
@@ -479,6 +484,11 @@ extends TypeDescriptor
 
 	static void createWellKnownObjects ()
 	{
+		ZeroOrOne = create(
+			IntegerDescriptor.zero(),
+			true,
+			IntegerDescriptor.one(),
+			true).makeImmutable();
 		Bytes = create(
 			IntegerDescriptor.zero(),
 			true,
@@ -526,6 +536,7 @@ extends TypeDescriptor
 
 	static void clearWellKnownObjects ()
 	{
+		ZeroOrOne = null;
 		Bytes = null;
 		CharacterCodePoints = null;
 		ExtendedIntegers = null;
@@ -558,6 +569,16 @@ extends TypeDescriptor
 				? (upperInclusive ? 0x1503045E : 0x053A6C17)
 				: upperInclusive ? 0x1DB2D751 : 0x1130427D;
 		return lowerBoundHash * 29 ^ flagsHash ^ upperBoundHash;
+	}
+
+	/**
+	 * Return the range [0..1].
+	 *
+	 * @return The integer range that includes just zero and one.
+	 */
+	public static AvailObject zeroOrOne ()
+	{
+		return ZeroOrOne;
 	}
 
 	/**
