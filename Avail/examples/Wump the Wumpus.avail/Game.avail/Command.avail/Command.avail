@@ -126,6 +126,10 @@ COMMANDS:
 	quoted string, e.g., \"entrance room\". This label will be printed in
 	subsequent references to the room (as an aid to navigation).
 
+\"unlabel NUMBER\" --
+	Unlabel the room with the specified room number. NUMBER should be an integer
+	between 1 and 20, and need not refer to an adjacent room.
+
 \"check quiver\" --
 	Ascertain how many crooked arrows you have left.
 
@@ -139,12 +143,12 @@ COMMANDS:
 	previous room, then the arrow will begin flying wild. It might even come
 	back to hit you!
 
-\"quit\" --
-	Quit the game.
-
 \"show credits\" --
 	Display the credits for this text adventure epic. Read: shameless
 	promotion.
+
+\"quit\" --
+	Quit the game.
 
 If you try hard enough, then you might find other commands that also work -- or
 at least don't work in slightly amusing ways.
@@ -332,7 +336,30 @@ Commands "label NUMBER as STRING", "label #NUMBER as STRING" are
 	name ::= args[2];
 	theRoom ::= the cave[id];
 	↓theRoom's label ?= name;
-	Report: "Done.\n";
+	Report:
+		format "Done‘helpful’.\n"
+		with helpful := if name = ""
+			then [" (but \"unlabel NUMBER\" is better)"]
+			else [""];
+	false
+];
+
+/* Unlabel a room. */
+Commands "unlabel NUMBER", "unlabel #NUMBER" are
+[
+	args : <room id…|1>
+|
+	id ::= args[1];
+	theRoom ::= the cave[id];
+	If ↓theRoom's label = "" then
+	[
+		Report: "That room is not labeled.\n";
+	]
+	else
+	[
+		↓theRoom's label ?= "";
+		Report: "Done.\n";
+	];
 	false
 ];
 
