@@ -68,7 +68,7 @@ Private method "«Didn't understand_,»Expected|expected a child of_" is
 	node : root command node
 |
 	badToken ::= optionalBadToken[1] else [""];
-	goodTokens ::= ↓node's next nodes' keys \ ↓node's bad nodes' keys;
+	goodTokens ::= ↓node's good nodes' keys;
 	If goodTokens is empty then [Didn't understand;]
 	else
 	[

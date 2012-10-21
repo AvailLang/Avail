@@ -46,7 +46,7 @@ Names
 	"command tree",
 	"command node",
 	"root command node",
-	"_'s⁇bad nodes",
+	"_'s⁇good nodes",
 	"_'s⁇next nodes",
 	"_'s⁇action"
 Body
@@ -54,7 +54,7 @@ Body
 /* Definitions of field atoms. */
 "label" is a new atom;
 "next nodes" is a new atom;
-"bad nodes" is a new atom;
+"good nodes" is a new atom;
 "action" is a new atom;
 
 /**
@@ -85,15 +85,14 @@ Explicit class "abstract command node" extends object;
  * @supertype "abstract command node"
  * @field "next nodes" "↑{nonempty string→abstract command node|}"
  *        A map from command words to command nodes.
- * @field "bad nodes" "↑{nonempty string→abstract command node|}"
+ * @field "good nodes" "↑{nonempty string→abstract command node|}"
  *        A map from command words to command nodes corresponding ultimately to
- *        commands not necessary in a real game (but which might provide
- *        amusing responses).
+ *        commands necessary in a real game.
  */
 Public class "root command node" extends abstract command node
 	with fields
 		public next nodes : ↑{nonempty string→abstract command node|},
-		public bad nodes : ↑{nonempty string→abstract command node|};
+		public good nodes : ↑{nonempty string→abstract command node|};
 
 /**
  * Most of the command tree consists of command nodes. A command node extends
@@ -121,8 +120,8 @@ Private method "a root command node" is
 [
 	/* Create a variable for retention by the root command node. */
 	all : {nonempty string→abstract command node|} := {};
-	bad : {nonempty string→abstract command node|} := {};
-	a root command node with next nodes := ↑all, bad nodes := ↑bad
+	good : {nonempty string→abstract command node|} := {};
+	a root command node with next nodes := ↑all, good nodes := ↑good
 ] : root command node;
 
 /**
@@ -136,11 +135,11 @@ Private method "a command node" is
 [
 	/* Create variables for retention by the command node. */
 	all : {nonempty string→abstract command node|} := {};
-	bad : {nonempty string→abstract command node|} := {};
+	good : {nonempty string→abstract command node|} := {};
 	theAction : […]→boolean;
 	a command node with
 		next nodes := ↑all,
-		bad nodes := ↑bad,
+		good nodes := ↑good,
 		action := ↑theAction
 ] : command node;
 
@@ -190,11 +189,11 @@ Private method "command definer" is
 					/* If this is a bad command, then also add a transition to
 					 * the bad successors map.
 					 */
-					If isBad ∧ [commandToken ∉ ↓node's bad nodes] then
+					If ¬isBad ∧ [commandToken ∉ ↓node's good nodes] then
 					[
-						badNode ::= a command node;
-						↓node's bad nodes ?=
-							↓node's bad nodes + commandToken→badNode;
+						goodNode ::= a command node;
+						↓node's good nodes ?=
+							↓node's good nodes + commandToken→goodNode;
 					];
 				];
 				/* Traverse the link to the next node. */

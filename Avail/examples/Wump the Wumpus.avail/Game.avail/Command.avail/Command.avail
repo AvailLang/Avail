@@ -142,6 +142,10 @@ COMMANDS:
 \"quit\" --
 	Quit the game.
 
+\"show credits\" --
+	Display the credits for this text adventure epic. Read: shameless
+	promotion.
+
 If you try hard enough, then you might find other commands that also work -- or
 at least don't work in slightly amusing ways.
 
