@@ -1,5 +1,5 @@
 /*
- * Backtrack.avail
+ * Backtracking.avail
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Backtrack"
+System Module "Backtracking"
 Versions
 	"dev"
 Uses
@@ -124,7 +124,6 @@ Public method "Backtracking fence_" is
 		previousCheckpoint := current fiber[checkpoint];
 	];
 	firstTime : boolean := true;
-	/* TODO: [TLS] Rewrite this once the "ensure" mechanism is available. */
 	Guard
 	[
 		$fence : ⊤;
@@ -133,47 +132,24 @@ Public method "Backtracking fence_" is
 			firstTime := false;
 			current fiber[checkpoint] := fence;
 			action();
-			If ↑previousCheckpoint is assigned then
-			[
-				current fiber[checkpoint] := previousCheckpoint;
-			]
-			else
-			[
-				Remove current fiber[checkpoint];
-			];
 		]
 		else
 		[
 			Raise a no-checkpoint exception
 		];
 	]
-	intercept
-	[
-		e : exception
-	|
-		If ↑previousCheckpoint is assigned then
-		[
-			current fiber[checkpoint] := previousCheckpoint;
-		]
-		else
-		[
-			Remove current fiber[checkpoint];
-		];
-		Raise e
-	];
-	/*
 	ensure
 	[
 		If ↑previousCheckpoint is assigned then
 		[
 			current fiber[checkpoint] := previousCheckpoint;
+			Clear ↑previousCheckpoint;
 		]
 		else
 		[
 			Remove current fiber[checkpoint];
 		];
 	];
-	 */
 ] : ⊤;
 
 /**

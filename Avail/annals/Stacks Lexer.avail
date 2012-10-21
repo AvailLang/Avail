@@ -86,7 +86,8 @@ Class "stacks token" extends object
 	with fields
 		lexeme : string,
 		line : natural number,
-		position : natural number;
+		position : natural number,
+		isSpecial : boolean;
 
 /**
  * A class that defines a generic token for the stacks lexor.  
@@ -112,7 +113,7 @@ Public explicit class "generic stacks token" extends stacks token
  */
 Public explicit class "special stacks token" extends stacks token
 	with fields
-		isSpecial : true's type;
+	isSpecial : true's type;
 		
 		
 /**
@@ -564,10 +565,7 @@ Public method "concatenate_separated by_" is
  	 	]
  	 	until [i > |tokens|]
  	 	alternate with [lexemeAndSpace := lexemeAndSpace ++ <delimeter>;];
- 	 	Print: format "lexemeAndSpace=“①”\n" with (lexemeAndSpace's type ⊆ <string…|>);
- 	 	a ::= next line;
- 	 	Print: format "flatten lexemeAndSpace=“①”\n" with flatten lexemeAndSpace;
- 	 	flatten lexemeAndSpace
+ 	 	cast flatten lexemeAndSpace into [s : string | s]
  	]
  ]:string;
 
@@ -596,8 +594,10 @@ For each z do
 [
  	st : stacks token
  |
- 	Print: st's lexeme;
+ 	Print: format "st's isSpecial=“①”\n" with st's isSpecial;
+ 	Print: format "¬st's isSpecial=“①”\n" with ¬st's isSpecial;
  	Print: "-";
 ];
 Print: "\n\n";
 s ::= concatenate z separated by " ";
+Print: s;

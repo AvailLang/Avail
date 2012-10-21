@@ -62,6 +62,7 @@ Names
 	/*  56 */ "cannot convert not a number to integer code",
 	/*   4 */ "cannot divide by zero code",
 	/*   5 */ "cannot divide infinities code",
+	/*  81 */ "cannot mark handler frame code",
 	/* 507 */ "cannot modify final Java field code",
 	/*   3 */ "cannot multiply zero and infinity code",
 	/*   6 */ "cannot read unassigned variable code",
@@ -77,6 +78,7 @@ Names
 	/*  38 */ "exclamation mark must follow an alternation group code",
 	/*  46 */ "expected operator after backquote code",
 	/*  27 */ "function disagrees with primitive restriction code",
+	/*  80 */ "handler sentinel code",
 	/*  12 */ "incorrect argument type code",
 	/*  11 */ "incorrect number of arguments code",
 	/*  47 */ "incorrect type for boolean group code",
@@ -97,6 +99,7 @@ Names
 	/*  45 */ "method name is not canonical code",
 	/*  13 */ "method return type not as forward declared code",
 	/*  22 */ "negative size code",
+	/*  82 */ "no handler frame code",
 	/*  73 */ "no implementation code",
 	/*  19 */ "no method code",
 	/*   9 */ "no such fiber variable code",
@@ -114,10 +117,10 @@ Names
 	/*  41 */ "special atom code",
 	/*  10 */ "subscript out of bounds code",
 	/*  52 */ "tilde must not follow argument code",
+	/*  30 */ "too large to represent code",
 	/*  31 */ "type restriction must accept only types code",
 	/*  44 */ "unbalanced guillemets code",
-	/*  30 */ "unhandled exception code",
-	/*  16 */ "unwind sentinel code",
+	/*  83 */ "unwind sentinel code",
 	/*  55 */ "vertical bar must follow a simple or simple group code",
 	/*  20 */ "wrong number of outers code"
 Body
@@ -203,11 +206,6 @@ Primitive "primitive not supported code" is
 	15
 ];
 
-Primitive "unwind sentinel code" is
-[
-	16
-];
-
 Primitive "not enumeration code" is
 [
 	17
@@ -273,7 +271,7 @@ Primitive "outer type literal is not a type code" is
 	29
 ];
 
-Primitive "unhandled exception code" is
+Primitive "too large to represent code" is
 [
 	30
 ];
@@ -436,6 +434,26 @@ Primitive "method is sealed code" is
 Primitive "no implementation code" is
 [
 	73
+];
+
+Primitive "handler sentinel code" is
+[
+	80
+];
+
+Primitive "cannot mark handler frame code" is
+[
+	81
+];
+
+Primitive "no handler frame code" is
+[
+	82
+];
+
+Primitive "unwind sentinel code" is
+[
+	83
 ];
 
 Primitive "block contains invalid statements code" is

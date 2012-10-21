@@ -1,5 +1,5 @@
 /**
- * P_040_InvokeWithTuple.java
+ * P_202_MarkNearestCatch.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -29,60 +29,41 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+
 package com.avail.interpreter.primitive;
 
-import static com.avail.descriptor.TypeDescriptor.Types.TOP;
+import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode.*;
-import static com.avail.interpreter.Primitive.Flag.Invokes;
+import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.*;
+import com.avail.annotations.NotNull;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 
 /**
- * <strong>Primitive 40:</strong> {@linkplain FunctionDescriptor Function}
- * evaluation, given a {@linkplain TupleDescriptor tuple} of arguments.
- * Check the {@linkplain TypeDescriptor types} dynamically to prevent
- * corruption of the type system. Fail if the arguments are not of the
- * required types.
+ * <strong>Primitive 202</strong>: Mark the nearest frame corresponding to an
+ * invocation of {@link P_200_CatchException} as ineligible to handle exceptions
+ * any longer.
+ *
+ * @author Todd Smith &lt;todd@availlang.org&gt;
  */
-public class P_040_InvokeWithTuple extends Primitive
+public final class P_202_MarkNearestCatch
+extends Primitive
 {
 	/**
-	 * The sole instance of this primitive class.  Accessed through reflection.
+	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_040_InvokeWithTuple().init(
-		2, Invokes);
+	public final @NotNull static Primitive instance =
+		new P_202_MarkNearestCatch().init(1, Unknown);
 
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 2;
-		final AvailObject block = args.get(0);
-		final AvailObject argTuple = args.get(1);
-		final AvailObject blockType = block.kind();
-		final int numArgs = argTuple.tupleSize();
-		if (block.code().numArgs() != numArgs)
-		{
-			return interpreter.primitiveFailure(
-				E_INCORRECT_NUMBER_OF_ARGUMENTS);
-		}
-		final List<AvailObject> callArgs =
-			new ArrayList<AvailObject>(numArgs);
-		final AvailObject tupleType = blockType.argsTupleType();
-		for (int i = 1; i <= numArgs; i++)
-		{
-			final AvailObject anArg = argTuple.tupleAt(i);
-			if (!anArg.isInstanceOf(tupleType.typeAtIndex(i)))
-			{
-				return interpreter.primitiveFailure(
-					E_INCORRECT_ARGUMENT_TYPE);
-			}
-			//  Transfer the argument into callArgs.
-			callArgs.add(anArg);
-		}
-		return interpreter.invokeFunctionArguments(block, callArgs);
+		assert args.size() == 1;
+		final AvailObject code = args.get(0);
+		return interpreter.markNearestGuard(code);
 	}
 
 	@Override
@@ -90,8 +71,25 @@ public class P_040_InvokeWithTuple extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				FunctionTypeDescriptor.mostGeneralType(),
-				TupleTypeDescriptor.mostGeneralType()),
+				AbstractEnumerationTypeDescriptor.withInstances(
+					SetDescriptor.fromCollection(
+						Arrays.asList(new AvailObject[]
+						{
+							E_HANDLER_SENTINEL.numericCode(),
+							E_UNWIND_SENTINEL.numericCode()
+						})))),
 			TOP.o());
+	}
+
+	@Override
+	protected AvailObject privateFailureVariableType ()
+	{
+		return AbstractEnumerationTypeDescriptor.withInstances(
+			SetDescriptor.fromCollection(
+				Arrays.asList(new AvailObject[]
+				{
+					E_CANNOT_MARK_HANDLER_FRAME.numericCode(),
+					E_NO_HANDLER_FRAME.numericCode()
+				})));
 	}
 }

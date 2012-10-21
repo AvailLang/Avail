@@ -906,7 +906,7 @@ Method "_^_" is
 	exponent : number
 |
 	/* Uses the identity: a^b = exp(ln(a^b)) = exp(b*ln(a)). */
-	Euler number ^ (exponent × ln (base→double))
+	Euler's number ^ (exponent × ln (base→double))
 ] : number;
 
 /**

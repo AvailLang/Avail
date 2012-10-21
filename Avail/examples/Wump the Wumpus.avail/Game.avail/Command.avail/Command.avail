@@ -346,6 +346,16 @@ Action "shooting" is
 		Report: "You take aim into the tunnel and fire a crooked arrow.\n";
 		/* Decrement the number of remaining arrows. */
 		the agent's count of remaining arrows--;
+		/* If the agent is adjacent to the wumpus, then wake it up. */
+		If ¬the wumpus is active
+			∧ [↓the agent's location ∈ the wumpus's location's adjacent rooms]
+		then
+		[
+			Report:
+				"\"Gramghh!\" The wumpus is awakened by the loud twang of your \
+				\|bow.\n";
+			Now the wumpus is active;
+		];
 		/* This is the path that the arrow has followed so far. The last element
 		 * is the arrow's current location.
 		 */

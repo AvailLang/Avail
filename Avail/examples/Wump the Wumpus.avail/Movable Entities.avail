@@ -80,7 +80,7 @@ Body
  */
 Public class "movable entity" extends object
 	with fields
-		location : ↑room;
+		public location : ↑room;
 
 /**
  * A crooked arrow is a {@type "movable entity"} carried by the {@type "agent"}
@@ -105,7 +105,7 @@ Public explicit class "crooked arrow" extends movable entity;
  */
 Public class "creature" extends movable entity
 	with fields
-		life flag : ↑boolean;
+		public life flag : ↑boolean;
 
 /**
  * Assess the vitality of the specified creature.
@@ -140,7 +140,7 @@ Public method "_is«alive|dead»!" is
  */
 Public class "agent" extends creature
 	with fields
-		count of remaining arrows : ↑(-∞..5];
+		public count of remaining arrows : ↑(-∞..5];
 
 /**
  * A super bat swarm conceptually comprises a close-knit multitude of herculean
