@@ -77,16 +77,21 @@ Private method "Until the game is over,do_" is
 	];
 ];
 
+/**
+ * The game is over. Resume the checkpoint saved by
+ * "Use_as the implied game and do_".
+ *
+ * @method "Game over"
+ */
+Private method "Game over" is [Try again];
+
 Method "Kill_" is
 [
 	anAgent : agent
 |
 	Assert: anAgent = the agent;
 	↓the agent's life flag ?= false;
-	/* The game is over. Resume the checkpoint saved by
-	 * "Use_as the implied game and do_".
-	 */
-	Try again
+	Game over
 ] : ⊥;
 
 Method "Kill_" is
@@ -101,6 +106,11 @@ Method "Kill_" is
 Private method "Welcome" is
 [
 	Report: "Welcome to WUMP THE WUMPUS. Type \"help\" for instructions.\n\n";
+];
+
+Private method "Goodbye" is
+[
+	Report: "*** GAME OVER ***\n";
 ];
 
 /**
@@ -169,6 +179,6 @@ Public method "Play Wump the Wumpus«with reader_with reporter_»" is
 			else [Report cowardice;];
 		]
 		else [Report defeat;];
-		Report: "*** GAME OVER ***\n";
+		Goodbye;
 	];
 ] : ⊤;

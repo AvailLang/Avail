@@ -433,3 +433,27 @@ Test "bad intercept,bad unwind" in exception test suite is
 	];
 ]
 must raise cannot-subtract-like-infinities exception;
+
+Test "bad intercept,no unwind,don't reenter" in exception test suite is
+[
+	Guard
+	[
+		u : extended integer := ∞;
+		v : extended integer := -∞;
+		Ignore: u + v;
+	]
+	intercept
+	[
+		e : cannot-add-unlike-infinities exception
+	|
+		t : tuple := <>;
+		Ignore: t[1];
+	]
+	intercept
+	[
+		e : cannot-subtract-like-infinities exception
+	|
+		Require: false
+	];
+]
+must raise subscript-out-of-bounds exception;
