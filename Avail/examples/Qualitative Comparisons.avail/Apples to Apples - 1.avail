@@ -46,8 +46,8 @@ Body
 Abstract method "_is better than_" is [any, any]→boolean;
 
 "goodness|goodnesses" is a new atom;
-Class "apple" extends object
-	with fields goodness : whole number;
+Class "apple" extends object with fields
+	goodness : whole number;
 
 Method "_is better than_" is [a : apple, b : apple |
 	a's goodness > b's goodness
@@ -58,15 +58,15 @@ Method "best of_«'s⁇»⁇and_" is [a : any, b : any |
 ] : any;
 Seal method "best of_«'s⁇»⁇and_" at [any, any]→any;
 
-betterThanMethod ::= method for atom for "_is better than_";
+betterM ::= method for $"_is better than_";
 Semantic restriction "best of_«'s⁇»⁇and_" is
 [a : any's type, b : any's type |
-	site ::= method site of betterThanMethod for <a, b>;
+	site ::= method site of betterM for <a, b>;
 	Cast site into [abstractSite : abstract site |
 		Reject parse, expected:
 			format
-				"type-safe usage \
-				\|(but instances of “①” and “②” are not comparable)"
+				"type-safe usage (but instances of \
+				\|“①” and “②” are not comparable)"
 			with a, b
 	]
 	else [Assert: site ∈ implementation site;];
