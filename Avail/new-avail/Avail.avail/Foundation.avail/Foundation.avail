@@ -635,6 +635,7 @@ Extends
 		"(the)“_”«else_»",
 		"_(base_)",
 		"_→integer",
+		"“_”«else_»(as list partitioned by_)",
 		"“_”«else_»(as simple list)",
 		"“_”«else_»(as«conjunctive|disjunctive»!list)",
 		"“_”«else_»\
