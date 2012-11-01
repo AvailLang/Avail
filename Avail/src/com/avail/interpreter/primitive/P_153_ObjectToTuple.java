@@ -71,12 +71,9 @@ extends Primitive
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
 				ObjectTypeDescriptor.mostGeneralType()),
-			TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
-				IntegerRangeTypeDescriptor.wholeNumbers(),
-				TupleDescriptor.empty(),
-				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
-					IntegerRangeTypeDescriptor.singleInt(2),
-					TupleDescriptor.from(ATOM.o()),
+			TupleTypeDescriptor.zeroOrMoreOf(
+				TupleTypeDescriptor.forTypes(
+					ATOM.o(),
 					ANY.o())));
 	}
 }

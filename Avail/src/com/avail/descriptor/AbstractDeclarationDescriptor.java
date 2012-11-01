@@ -60,37 +60,32 @@ extends ImplementationDescriptor
 
 
 	@Override @AvailMethod
-	AvailObject o_BodySignature (
-		final AvailObject object)
+	AvailObject o_BodySignature (final AvailObject object)
 	{
 		return object.signature();
 	}
 
 	@Override @AvailMethod
-	AvailObject o_Signature (
-		final AvailObject object)
+	AvailObject o_Signature (final AvailObject object)
 	{
 		return object.slot(ObjectSlots.BODY_SIGNATURE);
 	}
 
 	@Override @AvailMethod
-	int o_Hash (
-		final AvailObject object)
+	int o_Hash (final AvailObject object)
 	{
 		return (object.signature().hash() * 19) ^ 0x201FE782;
 	}
 
 	@Override @AvailMethod
-	AvailObject o_Kind (
-		final AvailObject object)
+	AvailObject o_Kind (final AvailObject object)
 	{
 		return Types.ABSTRACT_SIGNATURE.o();
 	}
 
 
 	@Override @AvailMethod
-	boolean o_IsAbstract (
-		final AvailObject object)
+	boolean o_IsAbstract (final AvailObject object)
 	{
 		return true;
 	}

@@ -126,6 +126,10 @@ COMMANDS:
 	quoted string, e.g., \"entrance room\". This label will be printed in
 	subsequent references to the room (as an aid to navigation).
 
+\"unlabel NUMBER\" --
+	Unlabel the room with the specified room number. NUMBER should be an integer
+	between 1 and 20, and need not refer to an adjacent room.
+
 \"check quiver\" --
 	Ascertain how many crooked arrows you have left.
 
@@ -138,6 +142,10 @@ COMMANDS:
 	your trajectory; if any room in the sequence is not actually adjacent to the
 	previous room, then the arrow will begin flying wild. It might even come
 	back to hit you!
+
+\"show credits\" --
+	Display the credits for this text adventure epic. Read: shameless
+	promotion.
 
 \"quit\" --
 	Quit the game.
@@ -249,11 +257,14 @@ Commands "exit", "exit the cave" are exiting;
 Commands "leave", "leave the cave" are exiting;
 
 /* Pass your turn. */
-Command "wait", "pass", "lollygag" is
+Action "waiting" is
 [
 	Report: "You lollygag.\n";
 	true
 ];
+
+Command "wait", "pass" is waiting;
+Bad command "lollygag" is waiting;
 
 /* Attempt to move the agent to an adjacent room. */
 Action "moving" is
@@ -328,7 +339,30 @@ Commands "label NUMBER as STRING", "label #NUMBER as STRING" are
 	name ::= args[2];
 	theRoom ::= the cave[id];
 	↓theRoom's label ?= name;
-	Report: "Done.\n";
+	Report:
+		format "Done‘helpful’.\n"
+		with helpful := if name = ""
+			then [" (but \"unlabel NUMBER\" is better)"]
+			else [""];
+	false
+];
+
+/* Unlabel a room. */
+Commands "unlabel NUMBER", "unlabel #NUMBER" are
+[
+	args : <room id…|1>
+|
+	id ::= args[1];
+	theRoom ::= the cave[id];
+	If ↓theRoom's label = "" then
+	[
+		Report: "That room is not labeled.\n";
+	]
+	else
+	[
+		↓theRoom's label ?= "";
+		Report: "Done.\n";
+	];
 	false
 ];
 
@@ -346,6 +380,16 @@ Action "shooting" is
 		Report: "You take aim into the tunnel and fire a crooked arrow.\n";
 		/* Decrement the number of remaining arrows. */
 		the agent's count of remaining arrows--;
+		/* If the agent is adjacent to the wumpus, then wake it up. */
+		If ¬the wumpus is active
+			∧ [↓the agent's location ∈ the wumpus's location's adjacent rooms]
+		then
+		[
+			Report:
+				"\"Gramghh!\" The wumpus is awakened by the loud twang of your \
+				\|bow.\n";
+			Now the wumpus is active;
+		];
 		/* This is the path that the arrow has followed so far. The last element
 		 * is the arrow's current location.
 		 */
@@ -426,9 +470,9 @@ Bad commands "shoot self", "shoot myself", "shoot me" are
 	else
 	[
 		the agent's count of remaining arrows--;
-		Report: "Ow. Well, now you're out an arrow.\n";
+		Report: "Ow. You are bleeding now.\n";
 		/* Sometimes the wumpus smells blood. */
-		If the wumpus is alive ∧ [the RNG's next [1..2] = 1] then
+		If the wumpus is alive ∧ [the RNG's next [1..3] < 3] then
 		[
 			Report: "*SNIFF* *SNIFF* \"Wumpus smells hero!\"\n";
 			Now the wumpus is active;

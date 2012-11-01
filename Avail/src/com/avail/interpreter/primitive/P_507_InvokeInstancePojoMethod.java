@@ -138,9 +138,7 @@ public class P_507_InvokeInstancePojoMethod extends Primitive
 				RAW_POJO.o(),
 				PojoTypeDescriptor.mostGeneralType(),
 				TupleTypeDescriptor.mostGeneralType(),
-				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
-					IntegerRangeTypeDescriptor.wholeNumbers(),
-					TupleDescriptor.empty(),
+				TupleTypeDescriptor.zeroOrMoreOf(
 					RAW_POJO.o())),
 			TOP.o());
 	}

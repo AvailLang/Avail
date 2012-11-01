@@ -55,7 +55,7 @@ public enum ParsingOperation
 	parseArgument(0)
 	{
 		@Override
-		public int encodingForOperand (final int operand)
+		public int encoding (final int operand)
 		{
 			throw new UnsupportedOperationException();
 		}
@@ -69,7 +69,7 @@ public enum ParsingOperation
 	newList(1)
 	{
 		@Override
-		public int encodingForOperand (final int operand)
+		public int encoding (final int operand)
 		{
 			throw new UnsupportedOperationException();
 		}
@@ -84,7 +84,7 @@ public enum ParsingOperation
 	appendArgument(2)
 	{
 		@Override
-		public int encodingForOperand (final int operand)
+		public int encoding (final int operand)
 		{
 			throw new UnsupportedOperationException();
 		}
@@ -97,7 +97,7 @@ public enum ParsingOperation
 	saveParsePosition(3)
 	{
 		@Override
-		public int encodingForOperand (final int operand)
+		public int encoding (final int operand)
 		{
 			throw new UnsupportedOperationException();
 		}
@@ -110,7 +110,7 @@ public enum ParsingOperation
 	discardSavedParsePosition(4)
 	{
 		@Override
-		public int encodingForOperand (final int operand)
+		public int encoding (final int operand)
 		{
 			throw new UnsupportedOperationException();
 		}
@@ -126,7 +126,7 @@ public enum ParsingOperation
 	ensureParseProgress(5)
 	{
 		@Override
-		public int encodingForOperand (final int operand)
+		public int encoding (final int operand)
 		{
 			throw new UnsupportedOperationException();
 		}
@@ -138,7 +138,7 @@ public enum ParsingOperation
 	parseRawToken(6)
 	{
 		@Override
-		public int encodingForOperand (final int operand)
+		public int encoding (final int operand)
 		{
 			throw new UnsupportedOperationException();
 		}
@@ -150,18 +150,52 @@ public enum ParsingOperation
 	pop(7)
 	{
 		@Override
-		public int encodingForOperand (final int operand)
+		public int encoding (final int operand)
 		{
 			throw new UnsupportedOperationException();
 		}
 	},
+
+	/**
+	 * {@code 8} - Checkpoint the arguments parsed up to this point.  The
+	 * arguments can be subsequently read by a primitive macro.
+	 */
+	argumentsCheckpoint(8)
+	{
+		@Override
+		public int encoding (final int operand)
+		{
+			throw new UnsupportedOperationException();
+		}
+	},
+
+	/** Reserved for future parsing concepts. */
+	reserved9(9),
+
+	/** Reserved for future parsing concepts. */
+	reserved10(10),
+
+	/** Reserved for future parsing concepts. */
+	reserved11(11),
+
+	/** Reserved for future parsing concepts. */
+	reserved12(12),
+
+	/** Reserved for future parsing concepts. */
+	reserved13(13),
+
+	/** Reserved for future parsing concepts. */
+	reserved14(14),
+
+	/** Reserved for future parsing concepts. */
+	reserved15(15),
 
 	/*
 	 * Arity one (1).
 	 */
 
 	/**
-	 * {@code 8*N+0} - Branch to instruction N. Attempt to continue parsing at
+	 * {@code 16*N+0} - Branch to instruction N. Attempt to continue parsing at
 	 * each of the next instruction and instruction N.
 	 */
 	branch(0)
@@ -182,7 +216,7 @@ public enum ParsingOperation
 	},
 
 	/**
-	 * {@code 8*N+1} - Jump to instruction N. Attempt to continue parsing only
+	 * {@code 16*N+1} - Jump to instruction N. Attempt to continue parsing only
 	 * at instruction N.
 	 */
 	jump(1)
@@ -203,7 +237,7 @@ public enum ParsingOperation
 	},
 
 	/**
-	 * {@code 8*N+2} - Parse the Nth {@linkplain MessageSplitter#messageParts
+	 * {@code 16*N+2} - Parse the Nth {@linkplain MessageSplitter#messageParts
 	 * message part} of the current message. This will be a specific {@linkplain
 	 * TokenDescriptor token}. It should be matched case sensitively against the
 	 * source token.
@@ -224,7 +258,7 @@ public enum ParsingOperation
 	},
 
 	/**
-	 * {@code 8*N+3} - Apply grammatical restrictions to the Nth leaf argument
+	 * {@code 16*N+3} - Apply grammatical restrictions to the Nth leaf argument
 	 * (underscore/ellipsis) of the current message.
 	 */
 	checkArgument(3)
@@ -243,7 +277,7 @@ public enum ParsingOperation
 	},
 
 	/**
-	 * {@code 8*N+4} - Pop an argument from the parse stack and apply the
+	 * {@code 16*N+4} - Pop an argument from the parse stack and apply the
 	 * {@linkplain ParsingConversionRule conversion rule} specified by N.
 	 */
 	convert(4)
@@ -263,7 +297,7 @@ public enum ParsingOperation
 	},
 
 	/**
-	 * {@code 8*N+5} - Parse the Nth {@linkplain MessageSplitter#messageParts
+	 * {@code 16*N+5} - Parse the Nth {@linkplain MessageSplitter#messageParts
 	 * message part} of the current message. This will be a specific {@linkplain
 	 * TokenDescriptor token}. It should be matched case insensitively against
 	 * the source token.
@@ -284,7 +318,7 @@ public enum ParsingOperation
 	},
 
 	/**
-	 * {@code 8*N+6} - Push a {@link LiteralNodeDescriptor literal node}
+	 * {@code 16*N+6} - Push a {@link LiteralNodeDescriptor literal node}
 	 * containing an {@linkplain IntegerDescriptor Avail integer} based on the
 	 * operand.
 	 */
@@ -303,8 +337,17 @@ public enum ParsingOperation
 		}
 	};
 
-	/** The number of distinct instructions supported by the coding scheme. */
-	static final int distinctInstructions = 8;
+	/**
+	 * The binary logarithm of the number of distinct instructions supported by
+	 * the coding scheme.  It must be integral.
+	 */
+	static final int distinctInstructionsShift = 4;
+
+	/**
+	 * The number of distinct instructions supported by the coding scheme.  It
+	 * must be a power of two.
+	 */
+	static final int distinctInstructions = 1 << distinctInstructionsShift;
 
 	/** The modulus that represents the operation uniquely for its arity. */
 	private final int modulus;
@@ -337,9 +380,9 @@ public enum ParsingOperation
 	 * @param operand The operand.
 	 * @return The instruction coding.
 	 */
-	public int encodingForOperand (final int operand)
+	public int encoding (final int operand)
 	{
-		return distinctInstructions * operand + modulus;
+		return (operand << distinctInstructionsShift) + modulus;
 	}
 
 	/**
@@ -351,7 +394,7 @@ public enum ParsingOperation
 	 */
 	public int operand (final int instruction)
 	{
-		return instruction >> 3;
+		return instruction >> distinctInstructionsShift;
 	}
 
 	/**
@@ -433,34 +476,14 @@ public enum ParsingOperation
 	 */
 	public static ParsingOperation decode (final int instruction)
 	{
-		final int selector = instruction & (distinctInstructions - 1);
-		if (instruction > distinctInstructions)
+		if (instruction < distinctInstructions)
 		{
-			switch (selector)
-			{
-				case 0: return branch;
-				case 1: return jump;
-				case 2: return parsePart;
-				case 3: return checkArgument;
-				case 4: return convert;
-				case 5: return parsePartCaseInsensitive;
-				case 6: return pushIntegerLiteral;
-			}
+			return values()[instruction];
 		}
-		else
-		{
-			switch (selector)
-			{
-				case 0: return parseArgument;
-				case 1: return newList;
-				case 2: return appendArgument;
-				case 3: return saveParsePosition;
-				case 4: return discardSavedParsePosition;
-				case 5: return ensureParseProgress;
-				case 6: return parseRawToken;
-				case 7: return pop;
-			}
-		}
-		throw new RuntimeException("reserved opcode");
+		// It's parametric, so it resides in the next 'distinctInstructions'
+		// region of enum values.  Mask it and add the offset.
+		final int subscript = (instruction & (distinctInstructions - 1))
+			+ distinctInstructions;
+		return values()[subscript];
 	}
 }

@@ -156,9 +156,7 @@ public class P_508_CreatePojoStaticMethodFunction extends Primitive
 		writer.argumentTypes(
 			RAW_POJO.o(),
 			TupleTypeDescriptor.mostGeneralType(),
-			TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
-				IntegerRangeTypeDescriptor.wholeNumbers(),
-				TupleDescriptor.empty(),
+			TupleTypeDescriptor.zeroOrMoreOf(
 				RAW_POJO.o()),
 			InstanceMetaDescriptor.topMeta());
 		writer.returnType(TOP.o());
@@ -232,9 +230,7 @@ public class P_508_CreatePojoStaticMethodFunction extends Primitive
 				InstanceMetaDescriptor.on(
 					PojoTypeDescriptor.mostGeneralType()),
 				TupleTypeDescriptor.stringTupleType(),
-				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
-					IntegerRangeTypeDescriptor.wholeNumbers(),
-					TupleDescriptor.empty(),
+				TupleTypeDescriptor.zeroOrMoreOf(
 					InstanceMetaDescriptor.topMeta()),
 				FunctionTypeDescriptor.create(
 					TupleDescriptor.from(

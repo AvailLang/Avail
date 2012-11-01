@@ -38,6 +38,7 @@ import com.avail.AvailRuntime;
 import com.avail.compiler.MessageSplitter;
 import com.avail.descriptor.*;
 import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
+import com.avail.interpreter.primitive.P_401_BootstrapLabelMacro;
 
 /**
  * {@code AvailErrorCode} is an enumeration of all possible failures of
@@ -139,12 +140,6 @@ public enum AvailErrorCode
 	 * The primitive is not currently supported on this platform.
 	 */
 	E_PRIMITIVE_NOT_SUPPORTED (15),
-
-	/**
-	 * The continuation whose primitive failure variable is set to this value is
-	 * currently running an exception handler.
-	 */
-	E_UNWIND_SENTINEL (16),
 
 	/**
 	 * The specified type is not a finite {@linkplain EnumerationTypeDescriptor
@@ -392,6 +387,12 @@ public enum AvailErrorCode
 	E_INCORRECT_TYPE_FOR_NUMBERED_CHOICE (57),
 
 	/**
+	 * An invocation of the {@linkplain P_401_BootstrapLabelMacro label phrase}
+	 * macro was encountered outside of any block.
+	 */
+	E_LABEL_MACRO_MUST_OCCUR_INSIDE_A_BLOCK (58),
+
+	/**
 	 * Compilation is over. The interpreter is now operating in runtime mode.
 	 * This usually means that an attempt was made to modify module metadata at
 	 * runtime.
@@ -409,8 +410,36 @@ public enum AvailErrorCode
 	 */
 	E_METHOD_IS_SEALED (72),
 
-	/** The primitive is not implemented. */
+	/**
+	 * The primitive is not implemented.
+	 */
 	E_NO_IMPLEMENTATION (73),
+
+	/**
+	 * The continuation whose primitive failure variable is set to this value is
+	 * no longer eligible to run an exception handler (because it already has,
+	 * is currently doing so, or has successfully run its guarded function to
+	 * completion).
+	 */
+	E_HANDLER_SENTINEL (80),
+
+	/**
+	 * The continuation cannot be marked as ineligible to handle an exception
+	 * (because its state is incorrect).
+	 */
+	E_CANNOT_MARK_HANDLER_FRAME (81),
+
+	/**
+	 * There are no exception handling continuations anywhere in the call chain.
+	 */
+	E_NO_HANDLER_FRAME (82),
+
+	/**
+	 * The continuation whose primitive failure variable is set to this value is
+	 * no longer eligible to run an unwind handler (because it already has or is
+	 * currently doing so).
+	 */
+	E_UNWIND_SENTINEL (83),
 
 	/**
 	 * A proposed {@linkplain BlockNodeDescriptor block expression} contains

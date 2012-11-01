@@ -190,6 +190,18 @@ implements IntegerEnumSlotDescriptionEnum
 		CatchException,
 
 		/**
+		 * The primitive failure variable should not be cleared after its last
+		 * usage.
+		 */
+		PreserveFailureVariable,
+
+		/**
+		 * The primitive arguments should not be cleared after their last
+		 * usages.
+		 */
+		PreserveArguments,
+
+		/**
 		 * The semantics of the primitive fall outside the usual capacity of the
 		 * {@linkplain L2Translator Level Two translator}. The current
 		 * continuation should be reified prior to attempting the primitive. Do
@@ -481,7 +493,8 @@ implements IntegerEnumSlotDescriptionEnum
 		final Primitive primitive = byPrimitiveNumberOrNull(primitiveNumber);
 		if (primitive == null)
 		{
-			throw new RuntimeException("Illegal primitive number: "+ primitive);
+			throw new RuntimeException(
+				"Illegal primitive number: " + primitiveNumber);
 		}
 		return primitive;
 	}

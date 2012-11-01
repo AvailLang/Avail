@@ -67,9 +67,7 @@ public class P_212_BundleMessageParts extends Primitive
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
 				MESSAGE_BUNDLE.o()),
-			TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
-				IntegerRangeTypeDescriptor.wholeNumbers(),
-				TupleDescriptor.empty(),
+			TupleTypeDescriptor.zeroOrMoreOf(
 				TupleTypeDescriptor.stringTupleType()));
 	}
 }

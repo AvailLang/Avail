@@ -39,6 +39,28 @@ Uses
 	"International System of Units"
 Body
 
+/* Disable some annoying exceptions that happen during execution of semantic
+ * restrictions.
+ */
+unhandledExceptionHandler ::= current fiber's unhandled exception handler;
+current fiber's unhandled exception handler is
+[
+	e : exception
+|
+	/* These are the expected exceptions. */
+	if e ∈ cannot-add-unlike-infinities exception
+		∨ [e ∈ cannot-subtract-like-infinities exception]
+	then
+	[
+		/* Silently terminate. */
+		Terminate current fiber
+	]
+	else
+	[
+		unhandledExceptionHandler(e)
+	]
+];
+
 Test "comparison" in dimensional analysis test suite is
 [
 	For each map 1 to 10 through [i : [1..10] | i m] do
@@ -159,3 +181,6 @@ Test "cannot subtract unlike units" in dimensional analysis test suite is
 	Ignore: u - v;
 ]
 must raise incompatible-quantities exception;
+
+/* Restore the original unhandled exception handler. */
+current fiber's unhandled exception handler is unhandledExceptionHandler;

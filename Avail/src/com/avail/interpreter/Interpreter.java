@@ -40,6 +40,7 @@ import java.util.logging.*;
 import com.avail.AvailRuntime;
 import com.avail.annotations.*;
 import com.avail.compiler.*;
+import com.avail.compiler.AbstractAvailCompiler.ParserState;
 import com.avail.descriptor.*;
 import com.avail.descriptor.FiberDescriptor.ExecutionState;
 import com.avail.exceptions.*;
@@ -116,6 +117,14 @@ public abstract class Interpreter
 	 * The {@link FiberDescriptor} being executed by this interpreter.
 	 */
 	public AvailObject fiber;
+
+	/**
+	 * The {@link ParserState}, if any, at which parsing is currently taking
+	 * place.  Since parsing can happen in parallel, it indicates the location
+	 * of the current compilation step directly leading to execution of code in
+	 * this {@code Interpreter}.
+	 */
+	public ParserState currentParserState = null;
 
 	/**
 	 * A place to store the result of a primitive when the primitive
@@ -1003,6 +1012,17 @@ public abstract class Interpreter
 	 */
 	public abstract Result searchForExceptionHandler (
 		AvailObject exceptionValue);
+
+	/**
+	 * Scan the stack of continuations until one is found for a function whose
+	 * code specifies {@linkplain P_200_CatchException}. Write the specified
+	 * marker into its primitive failure variable to indicate the current
+	 * exception handling state.
+	 *
+	 * @param marker An exception handling state marker.
+	 * @return An indication of success.
+	 */
+	public abstract Result markNearestGuard (AvailObject marker);
 
 	/**
 	 * Prepare the interpreter to deal with executing the given function, using

@@ -1014,6 +1014,25 @@ extends Descriptor
 	}
 
 	/**
+	 * Construct an {@linkplain AvailObject AvailObject[]} from the specified
+	 * {@linkplain TupleDescriptor tuple}. The elements are not made immutable.
+	 *
+	 * @param tuple
+	 *        A tuple.
+	 * @return The corresponding Java array of AvailObjects.
+	 */
+	public static AvailObject[] toArray (final AvailObject tuple)
+	{
+		final int size = tuple.tupleSize();
+		final AvailObject[] array = new AvailObject[size];
+		for (int i = 0; i < size; i++)
+		{
+			array[i] = tuple.tupleAt(i + 1);
+		}
+		return array;
+	}
+
+	/**
 	 * Construct a new tuple of arbitrary {@linkplain AvailObject Avail objects}
 	 * based on the given tuple, but with an additional element appended.  The
 	 * elements may end up being shared between the original and the copy, so

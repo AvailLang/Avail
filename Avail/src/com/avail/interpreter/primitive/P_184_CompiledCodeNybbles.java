@@ -64,9 +64,7 @@ public class P_184_CompiledCodeNybbles extends Primitive
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
 				CompiledCodeTypeDescriptor.mostGeneralType()),
-			TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
-				IntegerRangeTypeDescriptor.wholeNumbers(),
-				TupleDescriptor.empty(),
+			TupleTypeDescriptor.zeroOrMoreOf(
 				IntegerRangeTypeDescriptor.nybbles()));
 	}
 }

@@ -97,9 +97,7 @@ public class P_142_TupleTypeSequenceOfTypes extends Primitive
 				TupleTypeDescriptor.meta(),
 				IntegerRangeTypeDescriptor.naturalNumbers(),
 				IntegerRangeTypeDescriptor.wholeNumbers()),
-			TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
-				IntegerRangeTypeDescriptor.wholeNumbers(),
-				TupleDescriptor.empty(),
+			TupleTypeDescriptor.zeroOrMoreOf(
 				InstanceMetaDescriptor.anyMeta()));
 	}
 }

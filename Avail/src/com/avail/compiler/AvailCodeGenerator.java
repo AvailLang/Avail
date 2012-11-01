@@ -663,14 +663,15 @@ public class AvailCodeGenerator
 				outerData,
 				this);
 		}
-		// Prevent clearing of the primitive failure variable. This is necessary
-		// for primitive 200, but probably also a good idea in general.
 		if (primitive != 0)
 		{
 			final Primitive prim = Primitive.byPrimitiveNumberOrNull(primitive);
 			assert prim != null;
-			if (!prim.hasFlag(Flag.CannotFail))
+			// If necessary, then prevent clearing of the primitive failure
+			// variable after its last usage.
+			if (prim.hasFlag(Flag.PreserveFailureVariable))
 			{
+				assert !prim.hasFlag(Flag.CannotFail);
 				final AvailInstruction fakeFailureVariableUse =
 					new AvailGetLocalVariable(numArgs + 1);
 				fakeFailureVariableUse
@@ -678,6 +679,21 @@ public class AvailCodeGenerator
 						localData,
 						outerData,
 						this);
+			}
+			// If necessary, then prevent clearing of the primitive arguments
+			// after their last usage.
+			if (prim.hasFlag(Flag.PreserveArguments))
+			{
+				for (int index = 1; index <= numArgs; index++)
+				{
+					final AvailInstruction fakeArgumentUse =
+						new AvailPushLocalVariable(index);
+					fakeArgumentUse
+						.fixFlagsUsingLocalDataOuterDataCodeGenerator(
+							localData,
+							outerData,
+							this);
+				}
 			}
 		}
 	}

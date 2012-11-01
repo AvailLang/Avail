@@ -73,16 +73,9 @@ public class P_092_MapBindings extends Primitive
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
 				MapTypeDescriptor.mostGeneralType()),
-			TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
-				IntegerRangeTypeDescriptor.wholeNumbers(),
-				TupleDescriptor.from(),
-				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
-					IntegerRangeTypeDescriptor.create(
-						IntegerDescriptor.two(),
-						true,
-						IntegerDescriptor.two(),
-						true),
-					TupleDescriptor.from(),
+			TupleTypeDescriptor.zeroOrMoreOf(
+				TupleTypeDescriptor.forTypes(
+					ANY.o(),
 					ANY.o())));
 	}
 }

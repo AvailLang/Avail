@@ -44,7 +44,7 @@ Uses
 	"RNG",
 	"Turn"
 Names
-	"Play Wump the Wumpus"
+	"Play Wump the Wumpus«with reader_with reporter_»"
 Body
 
 /**
@@ -77,16 +77,21 @@ Private method "Until the game is over,do_" is
 	];
 ];
 
+/**
+ * The game is over. Resume the checkpoint saved by
+ * "Use_as the implied game and do_".
+ *
+ * @method "Game over"
+ */
+Private method "Game over" is [Try again];
+
 Method "Kill_" is
 [
 	anAgent : agent
 |
 	Assert: anAgent = the agent;
 	↓the agent's life flag ?= false;
-	/* The game is over. Resume the checkpoint saved by
-	 * "Use_as the implied game and do_".
-	 */
-	Try again
+	Game over
 ] : ⊥;
 
 Method "Kill_" is
@@ -101,6 +106,11 @@ Method "Kill_" is
 Private method "Welcome" is
 [
 	Report: "Welcome to WUMP THE WUMPUS. Type \"help\" for instructions.\n\n";
+];
+
+Private method "Goodbye" is
+[
+	Report: "*** GAME OVER ***\n";
 ];
 
 /**
@@ -133,8 +143,25 @@ Private method "Report defeat" is
 	Report: "Better luck in your next life?\n";
 ];
 
-Public method "Play Wump the Wumpus" is
+/**
+ * Play a game of Wump the Wumpus.
+ *
+ * @method "Play Wump the Wumpus«with reader_with reporter_»"
+ */
+Public method "Play Wump the Wumpus«with reader_with reporter_»" is
 [
+	optionalIOActions : <<[]→string, [string]→⊤…|2>…|0..1>
+|
+	/* Set up the game's I/O. By default, use the console for reading and
+	 * writing.
+	 */
+	ioActions ::= optionalIOActions[1]
+		else [<Wump the Wumpus reader, Wump the Wumpus reporter>];
+	Wump the Wumpus reader := ioActions[1];
+	Wump the Wumpus reporter := ioActions[2];
+	/* Create a new game. All references to game objects within the block are
+	 * implicitly understood as relative to this new game.
+	 */
 	Use a game of Wump the Wumpus as the implied game and do
 	[
 		Welcome;
@@ -152,8 +179,6 @@ Public method "Play Wump the Wumpus" is
 			else [Report cowardice;];
 		]
 		else [Report defeat;];
-		Report: "*** GAME OVER ***\n";
+		Goodbye;
 	];
 ] : ⊤;
-
-Play Wump the Wumpus;

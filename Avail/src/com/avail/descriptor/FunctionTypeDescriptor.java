@@ -468,7 +468,8 @@ extends TypeDescriptor
 			}
 			return false;
 		}
-		return object.argsTupleType().isSubtypeOf(aFunctionType.argsTupleType());
+		return object.argsTupleType().isSubtypeOf(
+			aFunctionType.argsTupleType());
 	}
 
 	@Override @AvailMethod

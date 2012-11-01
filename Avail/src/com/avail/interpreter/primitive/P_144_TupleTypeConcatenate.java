@@ -40,7 +40,7 @@ import com.avail.interpreter.*;
  * <strong>Primitive 144:</strong> Answer the {@linkplain TypeDescriptor
  * type} that is the type of all possible concatenations of instances of the
  * given {@linkplain TupleTypeDescriptor tuple types}. This is basically the
- * returns clause of the two-argument concatenation operation.
+ * semantic restriction of the two-argument concatenation operation.
  */
 public class P_144_TupleTypeConcatenate extends Primitive
 {

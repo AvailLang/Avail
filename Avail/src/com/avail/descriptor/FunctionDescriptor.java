@@ -306,10 +306,11 @@ extends Descriptor
 				writer.addLiteral(method),
 				writer.addLiteral(returnType)));
 		final AvailObject code = writer.compiledCode();
-		return FunctionDescriptor.create(
-				code,
-				TupleDescriptor.empty())
-			.makeImmutable();
+		final AvailObject newFunction = FunctionDescriptor.create(
+			code,
+			TupleDescriptor.empty());
+		newFunction.makeImmutable();
+		return newFunction;
 	}
 
 	/**
@@ -332,12 +333,8 @@ extends Descriptor
 		{
 			argTypesArray[i - 1] = argTypes.typeAtIndex(i);
 		}
-		final AvailObject tupleOfTypes = TupleDescriptor.from(argTypesArray);
 		final AvailObject tupleType =
-			TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
-				IntegerRangeTypeDescriptor.singleInt(numArgs),
-				tupleOfTypes,
-				BottomTypeDescriptor.bottom());
+			TupleTypeDescriptor.forTypes(argTypesArray);
 		final AvailObject returnType = function.functionType().returnType();
 		final L1InstructionWriter writer = new L1InstructionWriter(
 			NullDescriptor.nullObject(),
@@ -360,10 +357,11 @@ extends Descriptor
 				writer.addLiteral(method),
 				writer.addLiteral(returnType)));
 		final AvailObject code = writer.compiledCode();
-		return FunctionDescriptor.create(
-				code,
-				TupleDescriptor.empty())
-			.makeImmutable();
+		final AvailObject newFunction = FunctionDescriptor.create(
+			code,
+			TupleDescriptor.empty());
+		newFunction.makeImmutable();
+		return newFunction;
 	}
 
 	/**

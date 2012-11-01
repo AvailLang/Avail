@@ -34,6 +34,7 @@ System Module "Exceptions"
 Versions
 	"dev"
 Uses
+	"Atoms",
 	"Bootstrap",
 	"Control Structures",
 	"Definers",
@@ -43,20 +44,25 @@ Uses
 	"Functions",
 	"Literals",
 	"Logic",
+	"Math",
 	"Objects",
 	"Strings",
 	"Tuples",
-	"Types"
+	"Types",
+	"Variables"
 Names
-	"Guard|guard_«intercept_»",
+	"Guard|guard_«intercept_»«ensure_»",
 	"Raise_",
 	"cascade_",
 	"causal exception",
 	"descriptive_",
 	"error message",
 	"try_else_",
+	"_caused by_",
 	"_'s⁇causal exception",
 	"_'s⁇error message",
+	"_'s⁇stack summary",
+	"_'s⁇unhandled exception handler",
 	"_'s⁇unhandled exception handler is_",
 
 	/* System exception categories. */
@@ -82,48 +88,75 @@ Names
 	 */
 Body
 
-/* TODO: [TLS] Remove these constants once a macro is available for "$…". */
-_errorCode ::= $"error code";
-_errorName ::= $"error name";
-_cause ::= $"causal exception";
-_errorMessage ::= $"error message";
-_unhandledExceptionHandler ::= $"unhandled exception handler";
+/**
+ * Answer a summary of the continuation stack associated with the specified
+ * {@type "exception"}.
+ *
+ * @method "_'s⁇stack summary"
+ * @param "e" "exception"
+ *        An {@type "exception"}.
+ * @returns "<string…|>"
+ *          A tuple of strings, each of which describes a continuation.
+ */
+Public method "_'s⁇stack summary" is
+[
+	e : exception
+|
+	Primitive 203 (failureCode : incorrect-argument-type code's type);
+	early failure function(failureCode)
+] : <string…|>;
 
-Private method "error code" is [ _errorCode ];
-Private method "error name" is [ _errorName ];
+/* Private field definitions. */
+"error code" is a new atom;
+"error name" is a new atom;
 
 /**
  * Answer the field atom that represents an exception's cause.
- * 
- * Returns:
- *    The requested field atom.
+ *
+ * @method "causal exception"
+ * @returns "atom"
  */
-Public method "causal exception" is [ _cause ];
+"causal exception" is a new atom;
 
 /**
  * Answer the field atom that represents an error message.
  *
- * Returns:
- *    The requested field atom.
+ * @method "error message"
+ * @returns "atom"
  */
-Public method "error message" is [ _errorMessage ];
+"error message" is a new atom;
 
 /**
  * Answer the field atom that represents a fiber's unhandled exception handler.
  *
- * Returns:
- *    The requested field atom.
+ * @method "unhandled exception handler"
+ * @returns "atom"
  */
-Private method "unhandled exception handler" is [ _unhandledExceptionHandler ];
+"unhandled exception handler" is a new atom;
 
 /**
- * Establish `handle` as the function that the specified fiber will apply in
- * the event of an unhandled exception.
+ * Answer the unhandled exception handler for the specified fiber.
+ *
+ * @method "_'s⁇unhandled exception handler"
+ * @param "aFiber" "fiber"
+ */
+Public method "_'s⁇unhandled exception handler" is
+[
+	aFiber : fiber
+|
+	cast aFiber[unhandled exception handler] into [t : [exception]→⊥ | t]
+] : [exception]→⊥;
+
+/**
+ * Establish {@param "handler"} as the function that the specified fiber will
+ * apply in the event of an unhandled exception.
  * 
- * Parameters:
- *    handler - The unhandled exception handler. When an unhandled exception is
- *       trapped by the VM, the exception machinery will arrange to apply this
- *       function with the unhandled exception.
+ * @method "_'s⁇unhandled exception handler is_"
+ * @param "aFiber" "fiber"
+ * @param "handler"
+ *    The unhandled exception handler. When an unhandled exception is trapped by
+ *    the VM, the exception machinery will arrange to apply this function with
+ *    the unhandled exception.
  */
 Public method "_'s⁇unhandled exception handler is_" is
 [
@@ -134,26 +167,137 @@ Public method "_'s⁇unhandled exception handler is_" is
 ] : ⊤;
 
 /**
- * Execute `body`. If an exception is raised, the virtual machine will scan the
- * current fiber's chain of continuations to identify invocations of this
- * primitive. The continuation nearest to the end of the continuation chain,
- * i.e., closest to the raise of the exception, that defines a handler that
- * accepts an argument of the correct type is invoked with the exception. So
- * an exception handler will potentially run if code run (directly or
- * indirectly) by `body` throws an exception of the accepted type.
+ * Raise the specified {@type "exception"}. The virtual machine scans the
+ * {@method "current fiber"}'s chain of {@type "continuation"}s to identify an
+ * invocation of {@method "Guard|guard_«intercept_»«ensure_»"} (primitive 200).
+ * Extract the second argument from that continuation. This is a {@type "tuple"}
+ * of arity-one exception handling {@type "function"}. If any of these handlers,
+ * from left to right, accepts {@param "anException"}, then discard all
+ * continuations after this one and then invoke the handler with {@param
+ * "anException"}. If none of these handlers accept the argument, then the
+ * virtual machine continues scanning the chain of continuations for correctly
+ * typed exception handling functions. If no suitable exception handling
+ * function is found, then invoke the current fiber's {@method
+ * "_'s⁇unhandled exception handler is_" unhandled exception handler}. {@method
+ * "Crash:_" Crash} the current fiber if no such handler exists.
  *
- * Parameters:
- *    body - The protected function.
- *    handlers - A tuple of exception handlers.
+ * @method "Raise_"
+ * @param "anException" "exception"
+ * @returns "⊥"
  */
-Public method "Guard|guard_«intercept_»" is
+Public method "Raise_" is
+[
+	anException : exception
+|
+	Primitive 201 (unhandledException : exception);
+	If unhandled exception handler ∈ current fiber then
+	[
+		handler ::= cast current fiber[unhandled exception handler]
+			into [ t : [exception]→⊥ | t ];
+		handler(unhandledException)
+	]
+	else
+	[
+		Crash: "unhandled exception: " ++ “anException”
+	]
+] : ⊥;
+
+/**
+ * Mark the nearest {@method "Guard|guard_«intercept_»«ensure_»" guard frame}
+ * with the current exception handling state.
+ *
+ * @method "Guarded function has run to completion"
+ */
+Private method "Mark nearest guard frame with_" is
+[
+	marker : {handler-sentinel code, unwind-sentinel code}ᵀ
+|
+	Primitive 202 (failureCode : 
+		{cannot-mark-handler-frame code, no-handler-frame code}ᵀ);
+	early failure function(failureCode)
+] : ⊤;
+
+/**
+ * This is a helper for {@method "Private guard_intercept_ensure_"}. Run
+ * {@param "body"} and then {@param "unwind"}. If {@param "body"} produces a
+ * value, then polymorphism and a semantic restriction make sure that it gets
+ * returned.
+ *
+ * @method "Run_and_"
+ * @param "body" "[]→⊤"
+ * @param "unwind" "[]→⊤"
+ */
+Private method "Run_and_" is
 [
 	body : []→⊤,
-	handler : <[⊥]→⊤…|1..>
+	unwind : []→⊤
+|
+	body();
+	Mark nearest guard frame with handler-sentinel code;
+	unwind();
+	Mark nearest guard frame with unwind-sentinel code;
+] : ⊤;
+
+Method "Run_and_" is
+[
+	body : []→any,
+	unwind : []→⊤
+|
+	result ::= body();
+	Mark nearest guard frame with handler-sentinel code;
+	unwind();
+	Mark nearest guard frame with unwind-sentinel code;
+	result
+] : any;
+
+/**
+ * Though this is the primitive guard method, it is merely a helper for
+ * {@method "Guard|guard_«intercept_»«ensure_»"}, the public exception
+ * protection control structure.
+ *
+ * Execute {@param "body"}. If an {@type "exception"} is {@method "Raise_"
+ * raised}, the virtual machine will scan the {@method "current fiber"}'s chain
+ * of {@type "continuation"}s to identify invocations of this primitive. The
+ * continuation nearest to the end of the continuation chain, i.e., closest to
+ * the raise of the exception, that defines a handler that accepts an argument
+ * of the correct type is invoked with the exception. So an exception handler
+ * will potentially run if code run (directly or indirectly) by {@param "body"}
+ * raises an exception of the accepted type.
+ *
+ * Whether {@param "body"} succeeds or is curtailed by an exception, always
+ * apply {@param "unwind"}. This is a safe place to clean up an algorithm after
+ * it runs or fails. If one of the handlers is invoked, then it will run after
+ * the handler runs, even if the handler raises its own exception. This happens
+ * because the public control structure, {@method
+ * "Guard|guard_«intercept_»«ensure_»"}, embeds {@param "unwind"} into each of
+ * the (modified) exception handlers.
+ *
+ * @method "Private guard_intercept_ensure_"
+ * @param "body" "[]→⊤"
+ *    The protected function.
+ * @param "handlers" "<[⊥]→⊤…|>"
+ *    A tuple of exception handlers.
+ * @param "optionalUnwind" "<[]→⊤…|0..1>"
+ *    If specified, then a function to apply after either the successful
+ *    completion of {@param "body"} or an unwind through this continuation.
+ */
+Private method "Private guard_intercept_ensure_" is
+[
+	body : []→⊤,
+	handlers : <[⊥]→⊤…|>,
+	optionalUnwind : <[]→⊤…|0..1>
 |
 	Primitive 200 (failureCode :
-		enumeration of {0, incorrect-argument-type code, unwind-sentinel code});
-	If failureCode = 0 then body
+		{
+			0,
+			incorrect-argument-type code,
+			handler-sentinel code,
+			unwind-sentinel code
+		}ᵀ);
+	If failureCode = 0 then
+	[
+		Run body and optionalUnwind[1] else [[]];
+	]
 	else
 	[
 		early failure function(incorrect-argument-type code)
@@ -161,17 +305,238 @@ Public method "Guard|guard_«intercept_»" is
 ] : ⊤;
 
 /**
+ * A cascade exception retains the exception that originally caused it.
+ */
+Public class "cascade exception" extends exception
+	with fields
+		public causal exception : exception;
+
+/**
+ * Construct and answer the type intersection of the argument and {@type
+ * "cascade exception"}.
+ *
+ * @method "cascade_"
+ * @param "exceptionType" "exception's type"
+ *        An exception type.
+ * @returns "cascade exception"
+ *          An exception type that is a subtype of both {@type "cascade
+ *          exception"} and {@param "exceptionType"}.
+ */
+Public method "cascade_" is
+[
+	exceptionType : exception's type
+|
+	cascade exception ∩ exceptionType
+] : cascade exception 's type;
+
+Grammatical restriction "cascade_" is <{"exception"}>;
+
+Semantic restriction "cascade_" is
+[
+	exceptionMeta : exception's type's type
+|
+	((cascade exception) ∩ (exceptionMeta's instance))'s type
+];
+
+/**
+ * Answer an {@type "cascade exception"} based on {@param "newException"} and
+ * caused by {@param "originalException"}.
+ *
+ * @method "_caused by_"
+ * @param "newException" "exception"
+ * @param "originalException" "exception"
+ * @returns "cascade exception"
+ */
+Public method "_caused by_" is
+[
+	newException : exception,
+	originalException : exception
+|
+	fields ::= newException→map + causal exception→originalException;
+	cast fields→object into [t : cascade exception | t]
+] : cascade exception;
+
+/**
+ * This is a helper for {@method "Guard|guard_«intercept_»«ensure_»"}. Having
+ * intercepted {@param "originalException"}, invoke {@param "handler"}. If it
+ * raises an {@type "exception", then intercept it and store it locally. Run
+ * {@param "unwind"}. If it raises an exception, then intercept it and store it
+ * locally, overwriting any exception intercepted by a failure of {@param
+ * "handler"}. If a new exception has been stored locally, then convert it into
+ * a {@type "cascade exception"} and reraise it. Otherwise answer the result
+ * produced by {@param "handler"}.
+ *
+ * @method "Handle_with_and_"
+ * @param "originalException" "exception"
+ *        The exception originally caught by the handler that {@method
+ *        "Guard|guard_«intercept_»«ensure_»"} wrapped around {@param
+ *        "handler"}.
+ * @param "handler" "[⊥]→⊤"
+ *        An exception handler lexically specified in the send of {@method
+ *        "Guard|guard_«intercept_»«ensure_»"}.
+ * @param "unwind" "[]→⊤"
+ *        The unwind handler lexically specified in the send of {@method
+ *        "Guard|guard_«intercept_»«ensure_»"}.
+ * @returns "any"
+ *          The value, if any, produced by {@param "handler"}.
+ * @raises "cascade exception"
+ *         If either {@param "handler"} or {@param "unwind"} raises an
+ *         {@type "exception"}.
+ */
+Private method "Handle_with_and_" is
+[
+	originalException : exception,
+	handler : [⊥]→⊤,
+	unwind : []→⊤
+|
+	preemptiveException : exception;
+	/* Guard the handler, because we need to try the unwind no matter what
+	 * happens.
+	 */
+	Private guard [handler(originalException);]
+	intercept <[e : exception | preemptiveException := e;]>
+	ensure <>;
+	/* Guard the unwind, because if it blows up, then we want to build a cascade
+	 * exception from it instead of from the handler.
+	 */
+	Private guard [unwind();]
+	intercept <[e : exception | preemptiveException := e;]>
+	ensure <>;
+	/* Forbid a subsequent unwind. */
+	Mark nearest guard frame with unwind-sentinel code;
+	/* If either the handler or the unwind raised an exception, then convert it
+	 * to a cascade exception (with the original exception attached) and reraise
+	 * it.
+	 */
+	If ↑preemptiveException is assigned then
+	[
+		Raise preemptiveException caused by originalException
+	];
+] : ⊤;
+
+Private method "Handle_with_and_" is
+[
+	originalException : exception,
+	handler : [⊥]→any,
+	unwind : []→⊤
+|
+	result : any;
+	preemptiveException : exception;
+	/* Guard the handler, because we need to try the unwind no matter what
+	 * happens.
+	 */
+	Private guard [result := handler(originalException);]
+	intercept <[e : exception | preemptiveException := e;]>
+	ensure <>;
+	/* Guard the unwind, because if it blows up, then we want to build a cascade
+	 * exception from it instead of from the handler.
+	 */
+	Private guard [unwind();]
+	intercept <[e : exception | preemptiveException := e;]>
+	ensure <>;
+	/* Forbid a subsequent unwind. */
+	Mark nearest guard frame with unwind-sentinel code;
+	/* If either the handler or the unwind raised an exception, then convert it
+	 * to a cascade exception (with the original exception attached) and reraise
+	 * it.
+	 */
+	If ↑preemptiveException is assigned then
+	[
+		Raise preemptiveException caused by originalException
+	];
+	/* The result must be assigned, or control would have left because of a
+	 * raised exception.
+	 */
+	Assert: ↑result is assigned;
+	result
+] : any;
+
+/**
+ * Execute {@param "body"}. If an {@type "exception"} is {@method "Raise_"
+ * raised}, the virtual machine will scan the {@method "current fiber"}'s chain
+ * of {@type "continuation"}s to identify invocations of this primitive. The
+ * continuation nearest to the end of the continuation chain, i.e., closest to
+ * the raise of the exception, that defines a handler that accepts an argument
+ * of the correct type is invoked with the exception. So an exception handler
+ * will potentially run if code run (directly or indirectly) by {@param "body"}
+ * raises an exception of the accepted type.
+ *
+ * Whether {@param "body"} succeeds or is curtailed by an exception, always
+ * apply {@param "unwind"}. This is a safe place to clean up an algorithm after
+ * it runs or fails. If one of the handlers is invoked, then it will run after
+ * the handler runs, even if the handler raises its own exception.
+ *
+ * @method "Guard|guard_«intercept_»«ensure_»"
+ * @param "body" "[]→⊤"
+ *    The protected function.
+ * @param "handlers" "<[⊥]→⊤…|>"
+ *    A tuple of exception handlers.
+ * @param "optionalUnwind" "<[]→⊤…|0..1>"
+ *    If specified, then a function to apply after either the successful
+ *    completion of {@param "body"} or an unwind through this continuation.
+ */
+Public method "Guard|guard_«intercept_»«ensure_»" is
+[
+	body : []→⊤,
+	handlers : <[⊥]→⊤…|>,
+	optionalUnwind : <[]→⊤…|0..1>
+|
+	unwind ::= optionalUnwind[1] else [[]];
+	realHandlers ::=
+		/* If only an unwind handler was provided, then synthesize a catch-all
+		 * exception handler.
+		 */
+		if handlers is empty then
+		[
+			<[
+				e : exception
+			|
+				Handle e with [ex : exception | Raise ex] and unwind
+			]>
+		]
+		/* Otherwise, wrap each of the handlers. The wrapper will call the
+		 * user-supplied exception handler and then the unwind handler.
+		 */
+		else
+		[
+			map handlers through
+			[
+				handler : [⊥]→⊤
+			|
+				handlerType ::= handler's type;
+				/* Make sure that the new handler has the same signature as
+				 * the wrapped handler.
+				 */
+				new [handlerType[1]]→(handlerType's return type) applying
+				[
+					originalException : exception
+				|
+					Handle originalException with handler and unwind;
+				]
+			]
+		];
+	Private guard body intercept realHandlers ensure optionalUnwind;
+] : ⊤;
+
+/**
  * Reject the current parse if 1) any of the exception handlers aren't or 2) any
  * earlier handlers hide later handlers (by having a more general type).
  */
-Semantic restriction "Guard|guard_«intercept_»" is
+Semantic restriction "Guard|guard_«intercept_»«ensure_»" is
 [
 	bodyType : []→⊤'s type,
-	handlersType : <[⊥]→⊤…|1..>'s type
+	handlersType : <[⊥]→⊤…|>'s type,
+	unwindType : <[]→⊤…|0..1>'s type
 |
 	returnType : type := bodyType's return type;
-	limit ::= ⎣handlersType⎦;
-	From 1 to limit do
+	handlerCount ::= ⎣handlersType⎦;
+	unwindCount ::= ⎣unwindType⎦;
+	If handlerCount = 0 ∧ [unwindCount = 0] then
+	[
+		Reject parse, expected:
+			"at least one exception handler or an unwind handler"
+	];
+	From 1 to handlerCount do
 	[
 		index : natural number
 	|
@@ -214,52 +579,19 @@ Semantic restriction "Guard|guard_«intercept_»" is
 ];
 
 /**
- * Raise the specified exception. The virtual machine scans the current fiber's
- * chain of continuations to identify an invocation of `guard_with handler_`
- * (primitive 200). Extract the second argument from that continuation. This is
- * an arity-one exception handling function. If it accepts `anException`, then
- * discard all continuations after this one and then invoke the handler with
- * `anException`. If the handler does not accept the argument, then the
- * virtual machine continues scanning the chain of continuations for correctly
- * typed exception handling functions. If no suitable exception handling
- * function is found, then invoke the current fiber's unhandled-exception
- * exception handler; terminate the current fiber if no such handler exists.
- *
- * Parameters:
- *    exception - An exception.
- */
-Public method "Raise_" is
-[
-	anException : exception
-|
-	Primitive 201 (unhandledException : exception);
-	If unhandled exception handler ∈ current fiber then
-	[
-		handler ::= cast current fiber[unhandled exception handler]
-			into [ t : [exception]→⊥ | t ];
-		handler(unhandledException)
-	]
-	else
-	[
-		Terminate: "unhandled exception: " ++ “anException”
-	]
-] : ⊥;
-
-/**
  * Attempt {@param "protected"}. If it does not raise an {@type "exception"},
  * then answer its result. Otherwise, answer the result of applying {@param
  * "else"}.
  *
  * @method "try_else_"
  * @param "protected" "[]→any"
- *         The function whose answer is preferred.
+ *    The function whose answer is preferred.
  * @param "else" "[]→any"
- *         The function whose answer will be returned if {@param "protected"}
- *         raises an {@type "exception"}.
+ *    The function whose answer will be returned if {@param "protected"} raises
+ *    an {@type "exception"}.
  * @return "any"
- *         If possible, then the answer obtained by applying {@param
- *         "protected"}. Otherwise, the answer obtained by applying {@param
- *         "else"}.
+ *    If possible, then the answer obtained by applying {@param "protected"}.
+ *    Otherwise, the answer obtained by applying {@param "else"}.
  */
 Public method "try_else_" is
 [
@@ -267,12 +599,7 @@ Public method "try_else_" is
 	else : []→any
 |
 	guard protected
-	intercept
-	[
-		e : exception
-	|
-		else()
-	]
+	intercept [e : exception | else()]
 ] : any;
 
 Semantic restriction "try_else_" is
@@ -292,14 +619,11 @@ Class "system exception" extends exception
 		error code : natural number,
 		error name : string;
 
-englishVowels ::= "AEIOUaeiou"→set;
-
 Stable method "“_”" is
 [
 	anException : system exception
 |
-	name ::= anException's error name;
-	(if name ∈ englishVowels then ["an "] else ["a "]) ++ name
+	(a|an) “anException's error name”
 ] : string;
 
 /* A map from error codes to system exceptions. */
@@ -307,12 +631,14 @@ exceptionsByCode : {natural number→system exception's type|} := {};
 
 /**
  * Define a new system exception class. Publish the name of the class.
- * 
- * Parameters:
- *    exceptionBaseName - The base name of the exception class (without the
- *       trailing " exception").
- *    supertype - The nearest supertype of the new exception class.
- *    code - The error code that uniquely identifies the system exception.
+ *
+ * @method "System exception_(_)extends_"
+ * @param "exceptionBaseName" "nonempty string"
+ *    The base name of the exception class (without the trailing " exception").
+ * @param "code" "natural number"
+ *    The error code that uniquely identifies the system exception.
+ * @param "supertype" "exception's type"
+ *    The nearest supertype of the new exception class.
  */
 Private method "System exception_(_)extends_" is
 [
@@ -457,8 +783,6 @@ System exception "continuation-expected-stronger-type" (14)
 	extends invocation exception;
 System exception "primitive-not-supported" (15)
 	extends bad-primitive exception;
-System exception "unwind-sentinel" (16)
-	extends system exception;
 System exception "not-enumeration" (17)
 	extends invocation exception;
 System exception "shift-and-truncate-requires-non-negative" (18)
@@ -485,7 +809,7 @@ System exception "local-type-literal-is-not-a-type" (28)
 	extends code-generation exception;
 System exception "outer-type-literal-is-not-a-type" (29)
 	extends code-generation exception;
-System exception "unhandled-exception" (30)
+System exception "too-large-to-represent" (30)
 	extends system exception;
 System exception "type-restriction-must-accept-only-types" (31)
 	extends definition exception;
@@ -539,8 +863,10 @@ System exception "vertical-bar-must-follow-a-simple-or-simple-group" (55)
 	extends bad-message exception;
 System exception "cannot-convert-not-a-number-to-integer" (56)
 	extends bad-argument exception;
-System exception "incorrect-type-for-numbered-choice-code" (57)
+System exception "incorrect-type-for-numbered-choice" (57)
 	extends bad-message exception;
+System exception "label-macro-must-occur-inside-a-block" (58)
+	extends bad-phrase exception;
 System exception "compilation-is-over" (70)
 	extends system exception;
 System exception "method-implementation-lookup-failed" (71)
@@ -549,6 +875,14 @@ System exception "method-is-sealed" (72)
 	extends definition exception;
 System exception "no-implementation" (73)
 	extends bad-primitive exception;
+System exception "handler-sentinel" (80)
+	extends system exception;
+System exception "cannot-mark-handler-frame" (81)
+	extends system exception;
+System exception "no-handler-frame" (82)
+	extends system exception;
+System exception "unwind-sentinel" (83)
+	extends system exception;
 System exception "block-contains-invalid-statements" (100)
 	extends bad-phrase exception;
 System exception "block-is-invalid" (101)
@@ -627,40 +961,6 @@ Semantic restriction "Ensure:all error codes have corresponding exceptions" is
 Ensure: all error codes have corresponding exceptions;
 
 /**
- * A cascade exception retains the exception that originally caused it.
- */
-Public class "cascade exception" extends exception
-	with fields
-		public causal exception : exception;
-
-/**
- * Construct and answer the type intersection of the argument and {@type
- * "cascade exception"}.
- *
- * @method "cascade_"
- * @param "exceptionType" "exception's type"
- *        An exception type.
- * @returns "cascade exception"
- *          An exception type that is a subtype of both {@type "cascade
- *          exception"} and {@param "exceptionType"}.
- */
-Public method "cascade_" is
-[
-	exceptionType : exception's type
-|
-	cascade exception ∩ exceptionType
-] : cascade exception 's type;
-
-Grammatical restriction "cascade_" is <{"exception"}>;
-
-Semantic restriction "cascade_" is
-[
-	exceptionMeta : exception's type's type
-|
-	((cascade exception) ∩ (exceptionMeta's instance))'s type
-];
-
-/**
  * A descriptive exception holds an error message.
  */
 Public class "descriptive exception" extends exception
@@ -708,3 +1008,59 @@ Set early failure function to
 		error code := errorCode,
 		error name := exceptionType's error name's instance
 ] : ⊥;
+
+Private method "“_”(stack summary)" is
+[
+	dump : <string…|>
+|
+	text : string := "";
+	From |dump| to 1 by -1 do
+	[
+		index : natural number
+	|
+		frame ::= dump[index];
+		text := eject ↑text ++ (format "\t‘①’\n" with frame);
+	];
+	text
+];
+
+current fiber's unhandled exception handler is
+[
+	unhandled : exception
+|
+	/* If the error was encountered during compilation, then which module was
+	 * being compiled.
+	 */
+	Guard
+	[
+		m ::= current module;
+		Error:
+			format "Unhandled exception during compilation of “①”:\n"
+			with m's name;
+	]
+	intercept [e : compilation-is-over exception |];
+	e : exception := unhandled;
+	firstTime : boolean := true;
+	While [↑e is assigned] do
+	[
+		spec ::= if firstTime
+			then ["unhandled exception [“ex”]:\n"]
+			else ["“ex”:\n"];
+		firstTime := false;
+		Error: format spec with ex := e;
+		Error: “e's stack summary” (stack summary);
+		Cast e into
+		[
+			cascade : cascade exception
+		|
+			Error: "\ncaused by…\n";
+			e := cascade's causal exception;
+		]
+		else
+		[
+			Clear ↑e;
+		];
+	];
+	Error: "\nThe current fiber will be terminated.\n";
+	Terminate current fiber
+];

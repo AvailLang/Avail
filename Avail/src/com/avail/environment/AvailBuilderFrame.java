@@ -40,9 +40,8 @@ import static javax.swing.SwingUtilities.*;
 import static javax.swing.JScrollPane.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.awt.image.ImageObserver;
 import java.io.*;
-import java.net.URL;
+import java.lang.reflect.*;
 import java.util.*;
 import java.util.List;
 import java.util.prefs.Preferences;
@@ -58,8 +57,8 @@ import com.avail.descriptor.*;
 import com.avail.utility.*;
 
 /**
- * {@code AvailBuilderFrame} is a simple Ui for the {@linkplain AvailBuilder
- * Avail builder}.
+ * {@code AvailBuilderFrame} is a simple user interface for the {@linkplain
+ * AvailBuilder Avail builder}.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
@@ -404,6 +403,11 @@ extends JFrame
 							});
 						}
 					});
+				return null;
+			}
+			catch (final TerminateCompilationException e)
+			{
+				terminator = e;
 				return null;
 			}
 			catch (final AvailCompilerException e)
@@ -1043,11 +1047,14 @@ extends JFrame
 			percent));
 	}
 
+	/** The user-specific {@link Preferences} for this application to use. */
 	@InnerAccess final Preferences basePreferences =
 		Preferences.userNodeForPackage(getClass());
 
+	/** The key under which to organize all placement information. */
 	final String placementByMonitorLayoutString = "placementByMonitorLayout";
 
+	/** The leaf key under which to store a single window placement. */
 	final String placementLeafKeyString = "placement";
 
 	/**
@@ -1163,9 +1170,9 @@ extends JFrame
 		this.resolver = resolver;
 
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		// Set *just* the window title...
 		setTitle("Avail Builder");
 		setResizable(true);
-//		setIconImage(new ImageIcon("images/AvailHammer.png").getImage());
 
 		// Create the menu bar and menus.
 		final JMenuBar menuBar = new JMenuBar();
@@ -1443,6 +1450,39 @@ extends JFrame
 	}
 
 	/**
+	 * @throws ClassNotFoundException
+	 * @throws IllegalAccessException
+	 * @throws InvocationTargetException
+	 * @throws NoSuchMethodException
+	 */
+	private static void setUpForMac ()
+	throws
+		ClassNotFoundException,
+		IllegalAccessException,
+		InvocationTargetException,
+		NoSuchMethodException
+	{
+		System.setProperty("apple.laf.useScreenMenuBar", "true");
+		System.setProperty(
+			"com.apple.mrj.application.apple.menu.about.name",
+			"Avail Builder ZOO");
+
+		System.setProperty("apple.eawt.quitStrategy", "CLOSE_ALL_WINDOWS");
+		final Class<?> appClass = Class.forName(
+			"com.apple.eawt.Application",
+			true,
+			AvailBuilderFrame.class.getClassLoader());
+		final Object application =
+			appClass.getMethod("getApplication").invoke(null);
+		final Image image =
+			new ImageIcon("images/AvailHammer.png").getImage();
+
+		appClass.getMethod("setDockIconImage", Image.class).invoke(
+			application,
+			image);
+	}
+
+	/**
 	 * Launch the {@linkplain AvailBuilder Avail builder} {@linkplain
 	 * AvailBuilderFrame UI}.
 	 *
@@ -1453,9 +1493,11 @@ extends JFrame
 	 */
 	public static void main (final String[] args) throws Exception
 	{
-		System.setProperty("apple.laf.useScreenMenuBar", "true");
-		// TODO[MvG]: I can't get this to work right.
-//		System.setProperty("apple.eawt.quitStrategy", "CLOSE_ALL_WINDOWS");
+		final String platform = System.getProperty("os.name");
+		if (platform.toLowerCase().matches("mac os x.*"))
+		{
+			setUpForMac();
+		}
 
 		final ModuleRoots roots = new ModuleRoots(
 			System.getProperty("availRoots", ""));

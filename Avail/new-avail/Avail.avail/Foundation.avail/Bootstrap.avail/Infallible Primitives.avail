@@ -53,11 +53,13 @@ Uses
 		"Assert:_(_)",
 		"Breakpoint",
 		"Clear_",
+		"Crash:_",
+		"Error:_",
 		"If_then_",
 		"If|if_then_else_",
 		"Print:_",
 		"Reject parse,expected:_",
-		"Terminate:_",
+		"Terminate current fiber",
 		"[`…]→_",
 		"_'s⁇arguments",
 		"_'s⁇arity",
@@ -1968,6 +1970,21 @@ Primitive "_'s⁇function" is
 ] : function;
 
 /**
+ * Answer the specified abstract site's function type.
+ *
+ * Parameters:
+ *    anAbstractSite - An abstract site.
+ * Returns:
+ *    The requested function type.
+ */
+Primitive "_'s⁇function type" is
+[
+	anAbstractSite : abstract site
+|
+	Primitive 218;
+] : function meta;
+
+/**
  * Answer the atom that uniquely describes the specified method.
  *
  * Parameters:
@@ -2077,7 +2094,7 @@ Primitive "_is a primitive" is
 ] : boolean;
 
 /**
- * Terminate the current fiber. Use the specified value to provide contextual
+ * Crash the current fiber. Use the specified value to provide contextual
  * debugging information.
  *
  * This method must not leak beyond the bootstrap package. Termination of
@@ -2091,7 +2108,7 @@ Primitive "_is a primitive" is
  * Parameters:
  *    value - A value, provided to establish context for debugging.
  */
-Primitive "Terminate:_" is
+Primitive "Crash:_" is
 [
 	value : any
 |
@@ -2162,6 +2179,30 @@ Primitive "Assert:_(_)" is
 |
 	Primitive 260;
 ] : ⊤;
+
+/**
+ * Print the argument to the application's standard error stream.
+ *
+ * Parameters:
+ *    text - A string.
+ */
+Primitive "Error:_" is
+[
+	text : string
+|
+	Primitive 265;
+] : ⊤;
+
+/**
+ * Terminate the current fiber.
+ *
+ * This method is for use by the exception handling machinery only. It should
+ * only be invoked from an unhandled exception handler.
+ */
+Primitive "Terminate current fiber" is
+[
+	Primitive 266;
+] : ⊥;
 
 /**
  * Compute and answer the numeric argument as a single-precision floating point

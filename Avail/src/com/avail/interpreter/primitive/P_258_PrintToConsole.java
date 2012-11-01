@@ -43,7 +43,8 @@ import com.avail.interpreter.*;
  * <strong>Primitive 258:</strong> Print the specified {@linkplain
  * StringDescriptor string} to standard output.
  */
-public class P_258_PrintToConsole extends Primitive
+public class P_258_PrintToConsole
+extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
@@ -59,8 +60,7 @@ public class P_258_PrintToConsole extends Primitive
 		assert args.size() == 1;
 
 		final AvailObject string = args.get(0);
-		final PrintStream out =
-			AvailRuntime.current().standardOutputStream();
+		final PrintStream out = AvailRuntime.current().standardOutputStream();
 		out.print(string.asNativeString());
 		return interpreter.primitiveSuccess(NullDescriptor.nullObject());
 	}

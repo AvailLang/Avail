@@ -1,0 +1,459 @@
+/*
+ * Exception Tests.avail
+ * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+System Module "Exception Tests"
+Versions
+	"dev"
+Uses
+	"Common",
+	"Foundation",
+	"Unit Testing"
+Names
+	"exception test suite"
+Body
+
+/* The test suite identifier. */
+"exception test suite" is a new atom;
+
+New test suite exception test suite extends foundation test suite;
+
+Test "one intercept,no exception(side-effect)" in exception test suite is
+[
+	ref : integer;
+	Guard [ref := 10 + 14;]
+	intercept [e : cannot-add-unlike-infinities exception | Require: false];
+	Require: ↑ref is assigned;
+	Require: 24 = ref;
+];
+
+Test "one intercept,no exception(value-producing)" in exception test suite is
+[
+	ref : integer :=
+		guard [51 - 9]
+		intercept
+		[
+			e : cannot-subtract-like-infinities exception
+		|
+			Require: false
+		];
+	Require: ↑ref is assigned;
+	Require: 42 = ref;
+];
+
+Test "one intercept(side-effect)" in exception test suite is
+[
+	ref : descriptive exception;
+	Guard [Raise a descriptive exception with error message := "fnord"]
+	intercept [e : descriptive exception | ref := e;];
+	Require: ↑ref is assigned;
+	Require: "fnord" = ref's error message;
+];
+
+Test "one intercept(value-producing)" in exception test suite is
+[
+	ref : descriptive exception :=
+		guard [Raise a descriptive exception with error message := "fnord"]
+		intercept [e : descriptive exception | e];
+	Require: ↑ref is assigned;
+	Require: "fnord" = ref's error message;
+];
+
+Test "two intercepts(side-effect)" in exception test suite is
+[
+	ref : integer;
+	Guard
+	[
+		t : tuple := <>;
+		Ignore: t[1];
+	]
+	intercept
+	[
+		e : cannot-add-unlike-infinities exception
+	|
+		Require: false
+	]
+	intercept
+	[
+		e : subscript-out-of-bounds exception
+	|
+		ref := 7;
+	];
+	Require: ↑ref is assigned;
+	Require: 7 = ref;
+	Clear ↑ref;
+	Guard
+	[
+		t : tuple := <>;
+		Ignore: t[1];
+	]
+	intercept
+	[
+		e : subscript-out-of-bounds exception
+	|
+		ref := 7;
+	]
+	intercept
+	[
+		e : cannot-add-unlike-infinities exception
+	|
+		Require: false
+	];
+	Require: ↑ref is assigned;
+	Require: 7 = ref;
+];
+
+Test "two intercepts(value-producing)" in exception test suite is
+[
+	ref : integer :=
+		guard
+		[
+			t : <integer…|> := <>;
+			t[1]
+		]
+		intercept
+		[
+			e : cannot-add-unlike-infinities exception
+		|
+			Require: false
+		]
+		intercept
+		[
+			e : subscript-out-of-bounds exception
+		|
+			7
+		];
+	Require: ↑ref is assigned;
+	Require: 7 = ref;
+	Clear ↑ref;
+	ref :=
+		guard
+		[
+			t : <integer…|> := <>;
+			t[1]
+		]
+		intercept
+		[
+			e : subscript-out-of-bounds exception
+		|
+			7
+		]
+		intercept
+		[
+			e : cannot-add-unlike-infinities exception
+		|
+			Require: false
+		];
+	Require: ↑ref is assigned;
+	Require: 7 = ref;
+];
+
+Test "unwind,no exception(side-effect)" in exception test suite is
+[
+	curry : string;
+	rice : string;
+	Guard [curry := "lemon";]
+	ensure [rice := "basmati";];
+	Require: ↑curry is assigned;
+	Require: "lemon" = curry;
+	Require: ↑rice is assigned;
+	Require: "basmati" = rice;
+];
+
+Test "unwind,no exception(value-producing)"
+in exception test suite is
+[
+	rice : string;
+	curry : string :=
+		guard ["lemon"]
+		ensure [rice := "basmati";];
+	Require: ↑curry is assigned;
+	Require: "lemon" = curry;
+	Require: ↑rice is assigned;
+	Require: "basmati" = rice;
+];
+
+Test "unwind" in exception test suite is
+[
+	Guard [t : tuple := <>; Ignore: t[1];]
+	ensure
+	[
+		u : extended integer := ∞;
+		v : extended integer := -∞;
+		Ignore: u + v;
+	];
+]
+must raise cannot-add-unlike-infinities exception;
+
+Test "one intercept,unwind,no exception(side-effect)" in exception test suite is
+[
+	curry : string;
+	rice : string;
+	Guard [curry := "lemon";]
+	intercept [e : exception | Require: false]
+	ensure [rice := "basmati";];
+	Require: ↑curry is assigned;
+	Require: "lemon" = curry;
+	Require: ↑rice is assigned;
+	Require: "basmati" = rice;
+];
+
+Test "one intercept,unwind,no exception(value-producing)"
+in exception test suite is
+[
+	rice : string;
+	curry : string :=
+		guard ["lemon"]
+		intercept [e : exception | Require: false]
+		ensure [rice := "basmati";];
+	Require: ↑curry is assigned;
+	Require: "lemon" = curry;
+	Require: ↑rice is assigned;
+	Require: "basmati" = rice;
+];
+
+Test "one intercept,unwind(side-effect)" in exception test suite is
+[
+	curry : string;
+	rice : string;
+	Guard [Raise an exception]
+	intercept [e : exception | curry := "lemon";]
+	ensure [rice := "basmati";];
+	Require: ↑curry is assigned;
+	Require: "lemon" = curry;
+	Require: ↑rice is assigned;
+	Require: "basmati" = rice;
+];
+
+Test "one intercept,unwind(value-producing)" in exception test suite is
+[
+	rice : string;
+	curry : string :=
+		guard [Raise an exception]
+		intercept [e : exception | "lemon"]
+		ensure [rice := "basmati";];
+	Require: ↑curry is assigned;
+	Require: "lemon" = curry;
+	Require: ↑rice is assigned;
+	Require: "basmati" = rice;
+];
+
+Test "two intercepts,unwind(side-effect)" in exception test suite is
+[
+	curry : string;
+	rice : string;
+	Guard
+	[
+		t : tuple := <>;
+		Ignore: t[1];
+	]
+	intercept
+	[
+		e : cannot-add-unlike-infinities exception
+	|
+		Require: false
+	]
+	intercept
+	[
+		e : subscript-out-of-bounds exception
+	|
+		curry := "lemon";
+	]
+	ensure
+	[
+		rice := "basmati";
+	];
+	Require: ↑curry is assigned;
+	Require: "lemon" = curry;
+	Require: ↑rice is assigned;
+	Require: "basmati" = rice;
+	Clear ↑curry;
+	Clear ↑rice;
+	Guard
+	[
+		t : tuple := <>;
+		Ignore: t[1];
+	]
+	intercept
+	[
+		e : subscript-out-of-bounds exception
+	|
+		curry := "lemon";
+	]
+	intercept
+	[
+		e : cannot-add-unlike-infinities exception
+	|
+		Require: false
+	]
+	ensure
+	[
+		rice := "basmati";
+	];
+	Require: ↑curry is assigned;
+	Require: "lemon" = curry;
+	Require: ↑rice is assigned;
+	Require: "basmati" = rice;
+];
+
+Test "two intercepts,unwind(value-producing)" in exception test suite is
+[
+	rice : string;
+	curry : string :=
+		guard
+		[
+			t : <string…|> := <>;
+			t[1]
+		]
+		intercept
+		[
+			e : cannot-add-unlike-infinities exception
+		|
+			Require: false
+		]
+		intercept
+		[
+			e : subscript-out-of-bounds exception
+		|
+			"lemon"
+		]
+		ensure
+		[
+			rice := "basmati";
+		];
+	Require: ↑curry is assigned;
+	Require: "lemon" = curry;
+	Require: ↑rice is assigned;
+	Require: "basmati" = rice;
+	Clear ↑curry;
+	Clear ↑rice;
+	curry :=
+		guard
+		[
+			t : <string…|> := <>;
+			t[1]
+		]
+		intercept
+		[
+			e : subscript-out-of-bounds exception
+		|
+			"lemon"
+		]
+		intercept
+		[
+			e : cannot-add-unlike-infinities exception
+		|
+			Require: false
+		]
+		ensure
+		[
+			rice := "basmati";
+		];
+	Require: ↑curry is assigned;
+	Require: "lemon" = curry;
+	Require: ↑rice is assigned;
+	Require: "basmati" = rice;
+];
+
+Test "bad intercept,unwind" in exception test suite is
+[
+	ensured : boolean := false;
+	Guard
+	[
+		Guard
+		[
+			u : extended integer := ∞;
+			v : extended integer := -∞;
+			Ignore: u + v;
+		]
+		intercept
+		[
+			e : cannot-add-unlike-infinities exception
+		|
+			t : tuple := <>;
+			Ignore: t[1];
+		]
+		ensure [ensured := true;];
+	]
+	ensure
+	[
+		Require: ensured;
+	];
+]
+must raise subscript-out-of-bounds exception;
+
+Test "bad intercept,bad unwind" in exception test suite is
+[
+	Guard
+	[
+		u : extended integer := ∞;
+		v : extended integer := -∞;
+		Ignore: u + v;
+	]
+	intercept
+	[
+		e : cannot-add-unlike-infinities exception
+	|
+		t : tuple := <>;
+		Ignore: t[1];
+	]
+	ensure
+	[
+		u : extended integer := ∞;
+		v : extended integer := ∞;
+		Ignore: u - v;
+	];
+]
+must raise cannot-subtract-like-infinities exception;
+
+Test "bad intercept,no unwind,don't reenter" in exception test suite is
+[
+	Guard
+	[
+		u : extended integer := ∞;
+		v : extended integer := -∞;
+		Ignore: u + v;
+	]
+	intercept
+	[
+		e : cannot-add-unlike-infinities exception
+	|
+		t : tuple := <>;
+		Ignore: t[1];
+	]
+	intercept
+	[
+		e : cannot-subtract-like-infinities exception
+	|
+		Require: false
+	];
+]
+must raise subscript-out-of-bounds exception;

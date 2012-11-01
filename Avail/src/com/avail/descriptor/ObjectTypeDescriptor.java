@@ -590,6 +590,25 @@ extends TypeDescriptor
 	}
 
 	/**
+	 * The {@linkplain AtomDescriptor atom} that identifies the {@linkplain
+	 * AtomDescriptor stack dump field} of an {@link #exceptionType() exception
+	 * type}.
+	 */
+	private static AvailObject stackDumpAtom;
+
+	/**
+	 * Answe the {@linkplain AtomDescriptor atom} that identifies the
+	 * {@linkplain AtomDescriptor stack dump field} of an {@link
+	 * #exceptionType() exception type}.
+	 *
+	 * @return The special stack dump atom.
+	 */
+	public static AvailObject stackDumpAtom ()
+	{
+		return stackDumpAtom;
+	}
+
+	/**
 	 * The most general exception type.
 	 */
 	private static AvailObject exceptionType;
@@ -626,6 +645,9 @@ extends TypeDescriptor
 					exceptionAtom,
 					InstanceTypeDescriptor.on(exceptionAtom))));
 		setNameForType(exceptionType, StringDescriptor.from("exception"));
+		stackDumpAtom = AtomWithPropertiesDescriptor.create(
+			StringDescriptor.from("stack dump"),
+			NullDescriptor.nullObject());
 	}
 
 	/**
@@ -637,6 +659,7 @@ extends TypeDescriptor
 		meta = null;
 		exceptionAtom = null;
 		exceptionType = null;
+		stackDumpAtom = null;
 	}
 
 	/**

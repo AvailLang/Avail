@@ -2025,9 +2025,7 @@ public class TypeConsistencyTest
 			@Override
 			AvailObject transform (final AvailObject type)
 			{
-				return TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
-					IntegerRangeTypeDescriptor.wholeNumbers(),
-					TupleDescriptor.empty(),
+				return TupleTypeDescriptor.zeroOrMoreOf(
 					type);
 			}
 		});

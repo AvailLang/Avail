@@ -314,7 +314,8 @@ implements ThreadFactory
 		this.classLoader = classLoader;
 		addMethod(MethodDescriptor.vmCrashMethod());
 		addMethod(MethodDescriptor.vmFunctionApplyMethod());
-		addMethod(MethodDescriptor.vmDefinerMethod());
+		addMethod(MethodDescriptor.vmMethodDefinerMethod());
+		addMethod(MethodDescriptor.vmMacroDefinerMethod());
 		addMethod(MethodDescriptor.vmPublishAtomsMethod());
 	}
 
@@ -453,9 +454,7 @@ implements ThreadFactory
 		specialObjects[12] = DOUBLE.o();
 		specialObjects[13] = IntegerRangeTypeDescriptor.extendedIntegers();
 		specialObjects[14] = InstanceMetaDescriptor.on(
-			TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
-				IntegerRangeTypeDescriptor.wholeNumbers(),
-				TupleDescriptor.empty(),
+			TupleTypeDescriptor.zeroOrMoreOf(
 				InstanceMetaDescriptor.anyMeta()));
 		specialObjects[15] = FLOAT.o();
 		specialObjects[16] = NUMBER.o();
@@ -515,19 +514,13 @@ implements ThreadFactory
 		specialObjects[70] = AtomDescriptor.trueObject();
 		specialObjects[71] = AtomDescriptor.falseObject();
 		specialObjects[72] =
-			TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
-				IntegerRangeTypeDescriptor.wholeNumbers(),
-				TupleDescriptor.empty(),
+			TupleTypeDescriptor.zeroOrMoreOf(
 				TupleTypeDescriptor.stringTupleType());
 		specialObjects[73] =
-			TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
-				IntegerRangeTypeDescriptor.wholeNumbers(),
-				TupleDescriptor.empty(),
+			TupleTypeDescriptor.zeroOrMoreOf(
 				InstanceMetaDescriptor.topMeta());
 		specialObjects[74] =
-			TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
-				IntegerRangeTypeDescriptor.wholeNumbers(),
-				TupleDescriptor.empty(),
+			TupleTypeDescriptor.zeroOrMoreOf(
 				SetTypeDescriptor.setTypeForSizesContentType(
 					IntegerRangeTypeDescriptor.wholeNumbers(),
 					TupleTypeDescriptor.stringTupleType()));
@@ -597,9 +590,7 @@ implements ThreadFactory
 				TupleTypeDescriptor.mostGeneralType());
 		specialObjects[101] = IntegerRangeTypeDescriptor.nybbles();
 		specialObjects[102] =
-			TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
-				IntegerRangeTypeDescriptor.wholeNumbers(),
-				TupleDescriptor.empty(),
+			TupleTypeDescriptor.zeroOrMoreOf(
 				IntegerRangeTypeDescriptor.nybbles());
 		specialObjects[103] = IntegerRangeTypeDescriptor.unsignedShorts();
 		specialObjects[104] = TupleDescriptor.empty();
@@ -632,9 +623,7 @@ implements ThreadFactory
 		specialObjects[115] = TOKEN.o();
 		specialObjects[116] = LiteralTokenTypeDescriptor.mostGeneralType();
 		specialObjects[117] =
-			TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
-				IntegerRangeTypeDescriptor.wholeNumbers(),
-				TupleDescriptor.empty(),
+			TupleTypeDescriptor.zeroOrMoreOf(
 				InstanceMetaDescriptor.anyMeta());
 		specialObjects[118] =
 			IntegerRangeTypeDescriptor.create(
@@ -643,44 +632,32 @@ implements ThreadFactory
 				InfinityDescriptor.positiveInfinity(),
 				true);
 		specialObjects[119] =
-			TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
-				IntegerRangeTypeDescriptor.wholeNumbers(),
-				TupleDescriptor.empty(),
+			TupleTypeDescriptor.zeroOrMoreOf(
 				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 					IntegerRangeTypeDescriptor.singleInt(2),
 					TupleDescriptor.from(ATOM.o()),
 					InstanceMetaDescriptor.anyMeta()));
 		specialObjects[120] =
-			TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
-				IntegerRangeTypeDescriptor.wholeNumbers(),
-				TupleDescriptor.empty(),
+			TupleTypeDescriptor.zeroOrMoreOf(
 				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 					IntegerRangeTypeDescriptor.singleInt(2),
 					TupleDescriptor.from(ATOM.o()),
 					ANY.o()));
 		specialObjects[121] =
-			TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
-				IntegerRangeTypeDescriptor.wholeNumbers(),
-				TupleDescriptor.empty(),
+			TupleTypeDescriptor.zeroOrMoreOf(
 				PARSE_NODE.mostGeneralType());
 		specialObjects[122] =
-			TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
-				IntegerRangeTypeDescriptor.wholeNumbers(),
-				TupleDescriptor.empty(),
+			TupleTypeDescriptor.zeroOrMoreOf(
 				ARGUMENT_NODE.mostGeneralType());
 		specialObjects[123] =
-			TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
-				IntegerRangeTypeDescriptor.wholeNumbers(),
-				TupleDescriptor.empty(),
+			TupleTypeDescriptor.zeroOrMoreOf(
 				DECLARATION_NODE.mostGeneralType());
 		specialObjects[124] =
 			VariableTypeDescriptor.fromReadAndWriteTypes(
 				TOP.o(),
 				EXPRESSION_NODE.create(BottomTypeDescriptor.bottom()));
 		specialObjects[125] =
-			TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
-				IntegerRangeTypeDescriptor.wholeNumbers(),
-				TupleDescriptor.empty(),
+			TupleTypeDescriptor.zeroOrMoreOf(
 				EXPRESSION_NODE.create(ANY.o()));
 		specialObjects[126] = EXPRESSION_NODE.create(ANY.o());
 		specialObjects[127] =
@@ -689,9 +666,7 @@ implements ThreadFactory
 					PojoTypeDescriptor.forClass(Throwable.class)),
 				BottomTypeDescriptor.bottom());
 		specialObjects[128] =
-			TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
-				IntegerRangeTypeDescriptor.wholeNumbers(),
-				TupleDescriptor.empty(),
+			TupleTypeDescriptor.zeroOrMoreOf(
 				SetTypeDescriptor.setTypeForSizesContentType(
 					IntegerRangeTypeDescriptor.wholeNumbers(),
 					ATOM.o()));
@@ -704,10 +679,12 @@ implements ThreadFactory
 		specialAtoms[3] = ObjectTypeDescriptor.exceptionAtom();
 		specialAtoms[4] = MethodDescriptor.vmCrashAtom();
 		specialAtoms[5] = MethodDescriptor.vmFunctionApplyAtom();
-		specialAtoms[6] = MethodDescriptor.vmDefinerAtom();
-		specialAtoms[7] = MethodDescriptor.vmPublishAtomsAtom();
-		specialAtoms[8] = AtomDescriptor.moduleHeaderSectionAtom();
-		specialAtoms[9] = AtomDescriptor.moduleBodySectionAtom();
+		specialAtoms[6] = MethodDescriptor.vmMethodDefinerAtom();
+		specialAtoms[7] = MethodDescriptor.vmMacroDefinerAtom();
+		specialAtoms[8] = MethodDescriptor.vmPublishAtomsAtom();
+		specialAtoms[9] = AtomDescriptor.moduleHeaderSectionAtom();
+		specialAtoms[10] = AtomDescriptor.moduleBodySectionAtom();
+		specialAtoms[11] = ObjectTypeDescriptor.stackDumpAtom();
 
 		assert specialAtomsSet == null;
 		specialAtomsSet = new HashSet<AvailObject>(specialAtomsList);

@@ -73,6 +73,9 @@ Assert "\(63)a\(74)" = "cat";
 "\\\t" check <92, 9>;
 "\t \r\n" check <9, 32, 13, 10>;
 
+"\(f,ee,ddd,cccc,bbbbb,10aaaa)" check
+<16r"F", 16r"EE", 16r"DDD", 16r"CCCC", 16r"BBBBB", 16r"10AAAA">;
+
 /* Check that characters beyond the Basic Multilingual Page work. */
 "𝄞" check <16r"1D11E">;
 

@@ -66,9 +66,7 @@ public class P_215_BundleRestrictions extends Primitive
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
 				MESSAGE_BUNDLE.o()),
-			TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
-				IntegerRangeTypeDescriptor.wholeNumbers(),
-				TupleDescriptor.empty(),
+			TupleTypeDescriptor.zeroOrMoreOf(
 				SetTypeDescriptor.setTypeForSizesContentType(
 					IntegerRangeTypeDescriptor.wholeNumbers(),
 					ATOM.o())));

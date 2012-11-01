@@ -186,3 +186,7 @@ pragma
 foreach
 deduplicate
 metadata
+arity
+checkpointed
+availlang.org
+pilcrow

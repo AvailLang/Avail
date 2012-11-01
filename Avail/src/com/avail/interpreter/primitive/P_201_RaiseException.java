@@ -32,7 +32,7 @@
 package com.avail.interpreter.primitive;
 
 import static com.avail.interpreter.Primitive.Flag.SwitchesContinuation;
-import java.util.List;
+import java.util.*;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 
@@ -63,7 +63,23 @@ extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
-		return interpreter.searchForExceptionHandler(args.get(0));
+		final AvailObject exception = args.get(0);
+		// Attach a stack dump to the exception.
+		final AvailObject fieldMap = exception.fieldMap();
+		final List<String> stack = interpreter.dumpStack();
+		final List<AvailObject> frames =
+			new ArrayList<AvailObject>(stack.size());
+		for (int i = stack.size() - 1; i >= 0; i--)
+		{
+			frames.add(StringDescriptor.from(stack.get(i)));
+		}
+		final AvailObject stackDump = TupleDescriptor.fromList(frames);
+		final AvailObject newFieldMap = fieldMap.mapAtPuttingCanDestroy(
+			ObjectTypeDescriptor.stackDumpAtom(), stackDump, false);
+		final AvailObject newException =
+			ObjectDescriptor.objectFromMap(newFieldMap);
+		// Search for an applicable exception handler, and invoke it if found.
+		return interpreter.searchForExceptionHandler(newException);
 	}
 
 	@Override

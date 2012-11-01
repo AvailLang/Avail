@@ -32,7 +32,7 @@
 package com.avail.interpreter.levelTwo;
 
 import static com.avail.descriptor.AvailObject.error;
-import static com.avail.exceptions.AvailErrorCode.E_UNWIND_SENTINEL;
+import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Result.*;
 import static com.avail.interpreter.levelTwo.register.FixedRegister.*;
 import static java.lang.Math.max;
@@ -45,6 +45,7 @@ import com.avail.descriptor.FiberDescriptor.ExecutionState;
 import com.avail.interpreter.*;
 import com.avail.interpreter.Primitive.*;
 import com.avail.interpreter.levelTwo.register.FixedRegister;
+import com.avail.interpreter.primitive.P_200_CatchException;
 
 /**
  * This class is used to execute {@linkplain L2ChunkDescriptor level two code},
@@ -726,7 +727,8 @@ final public class L2Interpreter extends Interpreter
 			numberOfFixedRegisters + theCode.numArgsAndLocalsAndStack());
 		if (neededObjectCount > pointers.length)
 		{
-			final AvailObject[] newPointers = new AvailObject[neededObjectCount * 2 + 10];
+			final AvailObject[] newPointers =
+				new AvailObject[neededObjectCount * 2 + 10];
 			System.arraycopy(pointers, 0, newPointers, 0, pointers.length);
 			pointers = newPointers;
 		}
@@ -738,7 +740,8 @@ final public class L2Interpreter extends Interpreter
 		}
 		if (theChunk.numDoubles() > doubles.length)
 		{
-			final double[] newDoubles = new double[theChunk.numDoubles() * 2 + 10];
+			final double[] newDoubles =
+				new double[theChunk.numDoubles() * 2 + 10];
 			System.arraycopy(doubles, 0, newDoubles, 0, doubles.length);
 			doubles = newDoubles;
 		}
@@ -748,18 +751,22 @@ final public class L2Interpreter extends Interpreter
 	public Result searchForExceptionHandler (
 		final AvailObject exceptionValue)
 	{
+		// Replace the contents of the argument buffer with "exceptionValue",
+		// an exception augmented with stack information.
+		assert argsBuffer.size() == 1;
+		argsBuffer.set(0, exceptionValue);
+		final int primNum = P_200_CatchException.instance.primitiveNumber;
 		AvailObject continuation = pointerAt(CALLER);
 		while (!continuation.equalsNull())
 		{
 			final AvailObject code = continuation.function().code();
-			if (code.primitiveNumber() == 200)
+			if (code.primitiveNumber() == primNum)
 			{
-				assert code.numArgs() == 2;
+				assert code.numArgs() == 3;
 				final AvailObject failureVariable = continuation
-					.argOrLocalOrStackAt(3);
-				// Ignore the frame if it is currently unwinding.
-				if (!failureVariable.getValue().equals(
-					E_UNWIND_SENTINEL.numericCode()))
+					.argOrLocalOrStackAt(4);
+				// Allow scan a currently unmarked frame.
+				if (failureVariable.getValue().extractInt() == 0)
 				{
 					final AvailObject handlerTuple = continuation
 						.argOrLocalOrStackAt(2);
@@ -769,19 +776,14 @@ final public class L2Interpreter extends Interpreter
 						if (exceptionValue.isInstanceOf(handler.kind()
 							.argsTupleType().typeAtIndex(1)))
 						{
-							// This is the correct handler. Run it.
-							continuation = continuation.ensureMutable();
-							final AvailObject newVariable = VariableDescriptor
-								.forOuterType(failureVariable.kind());
 							// Mark this frame: we don't want it to handle an
 							// exception raised from within one of its handlers.
-							newVariable.setValue(E_UNWIND_SENTINEL
-								.numericCode());
-							continuation.argOrLocalOrStackAtPut(3, newVariable);
-							prepareToResumeContinuation(continuation);
-							invokeFunctionArguments(
+							failureVariable.setValue(
+								E_HANDLER_SENTINEL.numericCode());
+							// Run the handler.
+							invokePossiblePrimitiveWithReifiedCaller(
 								handler,
-								Collections.singletonList(exceptionValue));
+								continuation);
 							// Catching an exception *always* changes the
 							// continuation.
 							return CONTINUATION_CHANGED;
@@ -791,7 +793,45 @@ final public class L2Interpreter extends Interpreter
 			}
 			continuation = continuation.caller();
 		}
+		// If no handler was found, then return the unhandled exception.
 		return primitiveFailure(exceptionValue);
+	}
+
+	@Override
+	public Result markNearestGuard (final AvailObject marker)
+	{
+		final int primNum = P_200_CatchException.instance.primitiveNumber;
+		AvailObject continuation = pointerAt(CALLER);
+		while (!continuation.equalsNull())
+		{
+			final AvailObject code = continuation.function().code();
+			if (code.primitiveNumber() == primNum)
+			{
+				assert code.numArgs() == 3;
+				final AvailObject failureVariable = continuation
+					.argOrLocalOrStackAt(4);
+				// Only allow certain state transitions.
+				if (marker.equals(E_HANDLER_SENTINEL.numericCode())
+					&& failureVariable.getValue().extractInt() != 0)
+				{
+					return primitiveFailure(E_CANNOT_MARK_HANDLER_FRAME);
+				}
+				else if (
+					marker.equals(
+						E_UNWIND_SENTINEL.numericCode())
+					&& !failureVariable.getValue().equals(
+						E_HANDLER_SENTINEL.numericCode()))
+				{
+					return primitiveFailure(E_CANNOT_MARK_HANDLER_FRAME);
+				}
+				// Mark this frame: we don't want it to handle exceptions
+				// anymore.
+				failureVariable.setValue(marker);
+				return primitiveSuccess(NullDescriptor.nullObject());
+			}
+			continuation = continuation.caller();
+		}
+		return primitiveFailure(E_NO_HANDLER_FRAME);
 	}
 
 	@Override

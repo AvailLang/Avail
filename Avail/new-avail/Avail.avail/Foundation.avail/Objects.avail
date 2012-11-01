@@ -685,7 +685,6 @@ is
 	];
 	/* Construct and verify the subtype. */
 	subtype ::= (supertype→tuple ++ newDefinitions ++ explicitDef)→object type;
-	subtypeMap ::= subtype→map;
 	If ¬subtype ⊆ supertype then
 	[
 		early failure function(
@@ -704,8 +703,7 @@ is
 		generate and install subtype accessor for fieldAtom;
 	];
 	/* Determine which reconstructors to create. */
-	reconstructors : <<atom…|1..>…|> := <>;
-	reconstructors := eject ↑reconstructors ++ map and filter extensions by
+	reconstructors : <<atom…|1..>…|> := map and filter extensions by
 		[
 			triple : <boolean, boolean, atom, any meta…|4>,
 			accept : [<atom…|1..>]→⊤

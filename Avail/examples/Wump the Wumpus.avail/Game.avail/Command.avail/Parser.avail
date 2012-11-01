@@ -68,7 +68,7 @@ Private method "«Didn't understand_,»Expected|expected a child of_" is
 	node : root command node
 |
 	badToken ::= optionalBadToken[1] else [""];
-	goodTokens ::= ↓node's next nodes' keys \ ↓node's bad nodes' keys;
+	goodTokens ::= ↓node's good nodes' keys;
 	If goodTokens is empty then [Didn't understand;]
 	else
 	[
@@ -100,10 +100,21 @@ Public method "Read and execute the next command" is
 	$body : boolean;
 	/* Read the next command. */
 	command ::= next command;
-	/* Split the command into tokens for parsing. If no tokens were provided,
-	 * then immediately answer false.
+	/* Split the command into tokens for parsing. If parsing fails, then
+	 * immediately answer false.
 	 */
-	tokens ::= tokenize command;
+	tokens ::=
+		guard [tokenize command]
+		intercept
+		[
+			e : runaway-string exception
+		|
+			Report:
+				"I didn't understand that, because I expected a quotation mark \
+				\|(\") at the end of the quoted string.\n";
+			Exit body with false
+		];
+	/* If no tokens were provided, then immediately answer false. */
 	If tokens is empty then
 	[
 		Report: "Say again?\n";
@@ -140,7 +151,7 @@ Public method "Read and execute the next command" is
 			If "STRING" ∈ ↓node's next nodes then
 			[
 				/* Take a slice that doesn't include the quotation marks. */
-				args := args ++ <canonicalToken[2..|canonicalToken|-1]>;
+				args := args ++ <commandToken[2..|commandToken|-1]>;
 				canonicalToken := "STRING";
 			];
 		];

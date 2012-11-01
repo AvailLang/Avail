@@ -275,7 +275,8 @@ Method "Handle_'s⁇arrival in_" is
 	];
 	/* If the arrow whizzed by the wumpus, then wake it up. */
 	If the wumpus is alive
-		∧ [aRoom ∈ the wumpus's location's adjacent rooms] then
+		∧ [¬the wumpus is active
+		∧ [aRoom ∈ the wumpus's location's adjacent rooms]] then
 	[
 		Report: "\"Murfle?\" Something large stirs.\n";
 		Now the wumpus is active;

@@ -49,17 +49,19 @@ public class P_200_CatchException extends Primitive
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
 	public final static Primitive instance = new P_200_CatchException().init(
-		2, CatchException, Unknown);
+		3, CatchException, PreserveFailureVariable, PreserveArguments, Unknown);
 
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 2;
+		assert args.size() == 3;
 		@SuppressWarnings("unused")
 		final AvailObject bodyBlock = args.get(0);
 		final AvailObject handlerBlocks = args.get(1);
+		@SuppressWarnings("unused")
+		final AvailObject optionalEnsureBlock = args.get(2);
 		for (final AvailObject block : handlerBlocks)
 		{
 			if (!block.kind().argsTupleType().typeAtIndex(1).isSubtypeOf(
@@ -79,12 +81,20 @@ public class P_200_CatchException extends Primitive
 				FunctionTypeDescriptor.create(
 					TupleDescriptor.from(),
 					TOP.o()),
-				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
-					IntegerRangeTypeDescriptor.naturalNumbers(),
-					TupleDescriptor.from(),
+				TupleTypeDescriptor.zeroOrMoreOf(
 					FunctionTypeDescriptor.create(
 						TupleDescriptor.from(
 							BottomTypeDescriptor.bottom()),
+						TOP.o())),
+				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
+					IntegerRangeTypeDescriptor.create(
+						IntegerDescriptor.fromInt(0),
+						true,
+						IntegerDescriptor.fromInt(1),
+						true),
+					TupleDescriptor.from(),
+					FunctionTypeDescriptor.create(
+						TupleDescriptor.from(),
 						TOP.o()))),
 			TOP.o());
 	}
@@ -93,12 +103,11 @@ public class P_200_CatchException extends Primitive
 	protected AvailObject privateFailureVariableType ()
 	{
 		return AbstractEnumerationTypeDescriptor.withInstances(
-			SetDescriptor.fromCollection(
-				Arrays.asList(new AvailObject[]
-				{
-					IntegerDescriptor.zero(),
-					E_INCORRECT_ARGUMENT_TYPE.numericCode(),
-					E_UNWIND_SENTINEL.numericCode()
-				})));
+			TupleDescriptor.from(
+				IntegerDescriptor.zero(),
+				E_INCORRECT_ARGUMENT_TYPE.numericCode(),
+				E_HANDLER_SENTINEL.numericCode(),
+				E_UNWIND_SENTINEL.numericCode()
+			).asSet());
 	}
 }

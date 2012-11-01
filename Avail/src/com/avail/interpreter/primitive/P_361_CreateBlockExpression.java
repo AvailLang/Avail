@@ -99,14 +99,10 @@ extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
-					IntegerRangeTypeDescriptor.wholeNumbers(),
-					TupleDescriptor.empty(),
+				TupleTypeDescriptor.zeroOrMoreOf(
 					ARGUMENT_NODE.mostGeneralType()),
 				IntegerRangeTypeDescriptor.unsignedShorts(),
-				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
-					IntegerRangeTypeDescriptor.wholeNumbers(),
-					TupleDescriptor.empty(),
+				TupleTypeDescriptor.zeroOrMoreOf(
 					PARSE_NODE.mostGeneralType()),
 				InstanceMetaDescriptor.topMeta(),
 				SetTypeDescriptor.setTypeForSizesContentType(

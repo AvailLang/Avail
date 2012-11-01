@@ -571,9 +571,8 @@ public class AvailScanner
 			/**
 			 * Parse Unicode hexadecimal encoded characters.  The characters
 			 * "\" and "(" were just encountered, so expect a comma-separated
-			 * sequence of upper case hex sequences, each of no more than six
-			 * digits, and having a value between 0 and 0x10FFFF, followed by a
-			 * ")".
+			 * sequence of hex sequences, each of no more than six digits, and
+			 * having a value between 0 and 0x10FFFF, followed by a ")".
 			 *
 			 * @param scanner
 			 *            The source of characters.
@@ -601,6 +600,11 @@ public class AvailScanner
 						else if (c >= 'A' && c <= 'F')
 						{
 							value = (value << 4) + c - 'A' + 10;
+							digitCount++;
+						}
+						else if (c >= 'a' && c <= 'f')
+						{
+							value = (value << 4) + c - 'a' + 10;
 							digitCount++;
 						}
 						else
