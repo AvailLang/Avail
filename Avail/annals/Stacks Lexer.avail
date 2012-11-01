@@ -44,7 +44,7 @@ Names
 	"@code",
 	"@field",
 	"@forbids",
-	"generic stacks token",
+	"@general",
 	"@global",
 	"@link",
 	"@method",
@@ -57,16 +57,25 @@ Names
 	"@supertype",
 	"@type",
 	"concatenate_separated by_",
+	"generic stacks token",
+	"isSpecial",
+	"lexeme",
+	"line",
+	"position",
 	"special stacks token",
 	"stacks token",
-	"tokenize_"
+	"tokenize_",
+	"_'s⁇lexeme",
+	"_'s⁇line",
+	"_'s⁇position",
+	"_'s⁇isSpecial"
 
 Body
 
-lexeme ::= $lexeme;				/*string representation of token*/
-line ::= $line;					/*line in which token appears*/
-position ::= $position; 		/*column position token begins*/
-isSpecial ::= $isSpecial; /* is the token special */
+"lexeme" is a new field atom;	 /*string representation of token*/
+"line" is a new field atom;		 /*line in which token appears*/
+"position" is a new field atom;  /*column position token begins*/
+"isSpecial" is a new field atom; /* is the token special */
 
 /**
  * A class that defines a token for the stacks lexor.  
@@ -82,12 +91,12 @@ isSpecial ::= $isSpecial; /* is the token special */
  * 	column position where token begins
  * @author Richard Arriaga
  */
-Class "stacks token" extends object
+Public class "stacks token" extends object
 	with fields
-		lexeme : string,
-		line : natural number,
-		position : natural number,
-		isSpecial : boolean;
+		public lexeme : string,
+		public line : natural number,
+		public position : whole number,
+		public isSpecial : boolean;
 
 /**
  * A class that defines a generic token for the stacks lexor.  
@@ -140,7 +149,7 @@ Private method "_is a stacks token" is
 
 stacksTokenTypeNames::= {"@type","@supertype","@field","@category","@param",
 	"@raises","@restricts","@returns","@forbids","@public","@method","@see",
-	"@author","@link","@code","@global"};
+	"@author","@link","@code","@global","@general"};
 	
 For each stacksTokenTypeNames do
 [
@@ -573,10 +582,11 @@ Semantic restriction "tokenize_" is
  */
 Public method "concatenate_separated by_" is
 [
- 	tokens : <stacks token…|1..>,
+ 	tokens : <stacks token…|>,
  	delimeter : string
  |
- 	if |tokens| = 1 then [tokens[1]'s lexeme]
+ 	if |tokens| = 1 then [""]
+ 	else if [|tokens| = 1] then [tokens[1]'s lexeme]
  	else
  	[
  	 	i : natural number := 1;
@@ -608,21 +618,14 @@ t ::="/**
 * @author \"Richard Arriaga\"
 */";
 
-z :<stacks token…|1..>:= tokenize t;
+/*z :<stacks token…|1..>:= tokenize t;
 
 Print: format "z=“①”\n\n" with z;
 Print: t;
 Print: "\n\n";
 l ::= ¬(z[1]'s isSpecial);
 Print: format "\nl=“①”\n\n" with l;
-For each z do
-[
- 	st : stacks token
- |
- 	Print: format "st's isSpecial=“①”\n" with st's isSpecial;
- 	Print: format "¬st's isSpecial=“①”\n" with ¬st's isSpecial;
- 	Print: "-";
-];
+
 Print: "\n\n";
 s ::= concatenate z separated by " ";
-Print: s;
+Print: s;*/

@@ -61,7 +61,7 @@ buffer : <character…|> := <>;
 inAnnalsType : boolean := false; 
 annalsType : string := "";
 annalsObjectName : string := "";
-fileCommentMapsTuple : <{string→{<natural number,string…|2>|1..}|}…|> := <>;
+fileCommentMapsTuple : <{stacks token→{<stacks token…|>|}|}…|> := <>;
 
 /* This will eventually be the name of the file being processed */
 fileName : string : = "test file.avail";
@@ -277,44 +277,83 @@ Private method "buffer comment from_" is
  * Divide the comment buffer into parts designated by `@ tag keywords.  If `@
  * tag is escaped or preceded by a {, then ignore tag.
  *
- * @method "Split comment buffer"
+ * @method "split_"
  * @category "Stacks"
- * @returns "<string…|1..>"
- *		a tuple of strings
+ * @param "<stacks token…|1..>" "tokens" 
+ * 	a tuple of stacks tokens
+ * @returns "{stacks token→{<stacks token…|>|1..}|}"
+ *		a map of a set of stacks token tuples keyed by special stacks tokens 
  * @author "Richard Arriaga"
  */
-Private method "Split_" is
+Private method "split stacks tuple_" is
 [
  	tokens : <stacks token…|1..>
  |
- 	parsedTokenMap : {stacks token→{stacks token|1..}|} := {};
-
+ 	parsedTokenMap : {stacks token→{<stacks token…|>|}|} := {};
+ 	
  	/* Partition stacks tuple into map keyed by special stacks token type */
- 	tokenCounter : whole number := 0;
- 	generalComment ::=
- 	if ¬(tokens[1]'s isSpecial) then 
+ 	generalComment : <stacks token…|> := <>;
+ 	If ¬(tokens[1]'s isSpecial) ∨ [tokens[1]'s lexeme = "@general"] then 
  	[
- 	 	take from tokens until 
+ 	 	generalKey ::= if ¬(tokens[1]'s isSpecial) then
+ 	 	[
+ 	 	 	a stacks token with
+				lexeme := "@general",
+				line := tokens[1]'s line,
+				position := 0,
+				isSpecial := true
+		] else [tokens[1]];
+		generalComment := generalComment ++ take from tokens until 
  	 	[
  	 	 	st : stacks token
  	 	 |
- 	 	 	↑tokenCounter++;
- 	 		|tokens| + 1 = tokenCounter ∨ [st's isSpecial]
- 	 	]
- 	] else [""];
+ 	 		st's isSpecial
+ 	 	];
+ 	 	parsedTokenMap := parsedTokenMap + generalKey→{generalComment};
+ 	];
+	/* Take remaining portion of unconsumed tuple */
+	remainder : <stacks token…|> := <>;
+	remainder := if |generalComment| = 0 then [remainder ++ tokens]
+		else [remainder ++ tokens[|generalComment|+1..]];
  	While
  	[
- 	 	|tokens| ≠ tokenCounter
+ 	 	|remainder| ≠ 0
  	]
  	do
  	[
- 	 	While
- 	 	[
- 	 	 	tokens[tokenCounter + 1]'s isSpecial then
- 	 	[]
+		genericStacks ::= take from remainder[2..] until 
+		[
+		 	st : stacks token
+		 |
+			st's isSpecial
+		];
+		parsedTokenMap := parsedTokenMap + 
+			remainder[1]→({genericStacks} 
+			∪ parsedTokenMap[remainder[1]] else [∅]);
+ 	 	remainder := if |remainder| = |genericStacks|+1 then [<>]
+ 	 		else [remainder[|genericStacks|+2..]];
  	];
-]:<{string,stacks token→{stacks token…|1..}|}…|1..>;
+ 	parsedTokenMap
+]:{stacks token→{<stacks token…|>|}|};
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* Stuff after here was from old parser */
+
+/*
 
 /**
  * Divide the comment buffer into parts designated by `@ tag keywords.  If `@
@@ -573,7 +612,7 @@ Private method "Identify tag in_" is
 	 	"@generalDescription"
 	]
  ]:string;
-
+*/
 
 /* TODO write funtions to process @keywords in map.  Complete error file
  * handling for erroneous comments.*/
@@ -625,21 +664,8 @@ Public method "identify comment from_" is
 		 	Increment the open comment count;
 		 	buffer := buffer ++ keyBuffer;
 		 	buffer comment from iter;
-		 	
-		 	mp1 : {string→{<natural number,string…|2>|1..}|} := {};
-		 	
-		 	For each of Split buffer do
-		 	[
-		 	 	st : string
-		 	 |
-		 	 	tg ::= Identify tag in st;
-		 		if tg ≠ "@generalDescription" then [
-		 		mp1:=Process st from (|tg| + 1) to 
-		 			(cast |st| into [n : natural number | n]) in mp1 for tag tg;
-		 		] else [mp1:=Process st from 1 to 
-		 			(cast |st| into [n : natural number | n]) in mp1;];
+		 	mp1 ::= split stacks tuple tokenize buffer;
 
-		 	];
 		 	fileCommentMapsTuple := fileCommentMapsTuple ++ <mp1>;
 		 	Clear the buffer;
 		 	keyBuffer := <>;
@@ -679,8 +705,6 @@ Public method "identify comment from_" is
 		 ]
 		else [keyBuffer := <>;];
 	];
-	Print: format "fileCommentMapsTuple=“①”\n" with fileCommentMapsTuple;
-	Print: format "lineCount=“①”\n\n\n" with lineCount;
 ]:⊤;
 
 
@@ -800,4 +824,25 @@ Print: "\n\nMap:\n";
 Print: format "mp1=“arg”\n\n" with arg:=mp1;*/
 Print: format "lineCount=“①”\n\n\n" with lineCount;
 Print: format "fileCommentMapsTuple=“①”\n" with fileCommentMapsTuple;
+
+For each of fileCommentMapsTuple do
+[
+ 	mps : {stacks token→{<stacks token…|>|}|}
+ |
+ 	For each of mps do
+ 	[
+ 	 	k : stacks token,
+ 	 	vs : {<stacks token…|>|}
+ 	 |
+ 	 	Print: k's lexeme;  Print: " ";
+ 	 	For each of vs do
+ 	 	[
+ 	 	 	v : <stacks token…|>
+ 	 	 |
+ 	 	 	Print: concatenate v separated by " ";
+ 	 		Print: "\n";
+ 	 	];
+ 	 	Print: "\n";
+ 	];
+];
 
