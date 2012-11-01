@@ -36,18 +36,37 @@ Versions
 Uses
 	"Bootstrap",
 	"Control Structures",
+	"Definers",
 	"Enumeration Support",
+	"Exceptions",
 	"Literals",
 	"Logic",
+	"Math",
 	"Tuples",
 	"Types",
 	"Variables"
+Names
+	"_is«not»?concrete at_"
 Body
 
-/* TODO: [TLS] It would be nice to uncomment this, but serialization operations
- * aren't -- and possibly can't -- be defined. Talk to Mark about this.
+/**
+ * Answer the {@method "method"} named by {@param "methodName"}.
+ *
+ * @method "method for_"
+ * @param "methodName" "string"
+ *        The name of the method, which will be resolved to an atom in the
+ *        context of the current module.
+ * @returns "method"
+ *          The requested method.
  */
-/*
+Method "method for_" is
+[
+	methodName : string
+|
+	methodAtom ::= atom for methodName;
+	method for methodAtom
+] : method;
+
 Semantic restriction "method site of_for_" is
 [
 	methodType : method's type,
@@ -85,4 +104,33 @@ Semantic restriction "_'s⁇function" is
 		⊤
 	]
 ];
-*/
+
+/**
+ * Is {@param "aMethod"} concrete at the specified {@type "method site"}?
+ *
+ * @method "_is«not»?concrete at_"
+ * @param "aMethod" "method"
+ *        A method.
+ * @param "negation" "boolean"
+ *        {@method "true"} if the sense of the query is reversed.
+ * @param "argTypes" "<any's type…|>"
+ *        The parameter types of the target {@type "method site"}.
+ * @returns "boolean"
+ *          {@method "true"} if the specified {@type "method site"} of {@param
+ *          "aMethod"} is an {@type "implementation site"}, {@method "false"}
+ *          otherwise.
+ */
+Public method "_is«not»?concrete at_" is
+[
+	aMethod : method,
+	negation : boolean,
+	argTypes : <any's type…|>
+|
+	ok : boolean := false;
+	If aMethod has implementation for argTypes then
+	[
+		site ::= method site of aMethod for argTypes;
+		ok := site ∈ implementation site;
+	];
+	negation ≠ ok
+];

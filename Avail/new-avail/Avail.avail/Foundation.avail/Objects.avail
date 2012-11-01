@@ -54,8 +54,8 @@ Names
 	"extend_with«_:_‡,»",
 	"«Public»?«Explicit|explicit»?\
 		\|Class|class_extends_\
-		\|«with fields««public»?«reconstructible»?_:_‡,»»\
-		\|«with reconstructors««public»?(«_‡,»)‡,»»",
+		\|«with field|fields««public»?«reconstructible»?_:_‡,»»\
+		\|«with reconstructor|reconstructors««public»?(«_‡,»)‡,»»",
 	"_as_«with«_:=_‡,»»"
 Body
 
@@ -644,8 +644,8 @@ is
 Public method
 	"«Public»?«Explicit|explicit»?\
 	\|Class|class_extends_\
-	\|«with fields««public»?«reconstructible»?_:_‡,»»\
-	\|«with reconstructors««public»?(«_‡,»)‡,»»"
+	\|«with field|fields««public»?«reconstructible»?_:_‡,»»\
+	\|«with reconstructor|reconstructors««public»?(«_‡,»)‡,»»"
 is
 [
 	public : boolean,
@@ -746,8 +746,8 @@ is
 Semantic restriction
 	"«Public»?«Explicit|explicit»?\
 	\|Class|class_extends_\
-	\|«with fields««public»?«reconstructible»?_:_‡,»»\
-	\|«with reconstructors««public»?(«_‡,»)‡,»»"
+	\|«with field|fields««public»?«reconstructible»?_:_‡,»»\
+	\|«with reconstructor|reconstructors««public»?(«_‡,»)‡,»»"
 is
 [
 	publicType : boolean's type,

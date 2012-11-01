@@ -43,7 +43,7 @@ Extends
 	),
 	"Atoms" =
 	(
-		"_is a|an new⁇atom",
+		"_is a|an new⁇field⁇atom",
 		"_[_]else_"
 	),
 	"Backtracking" =
@@ -587,15 +587,18 @@ Extends
 		"«_‡«=|≤|<»!»",
 		"«_‡«=|≥|>»!»"
 	),
-	"Methods",
+	"Methods" =
+	(
+		"_is«not»?concrete at_"
+	),
 	"Objects" =
 	(
 		"a|an_«with«_:=_‡,»»",
 		"extend_with«_:_‡,»",
 		"«Public»?«Explicit|explicit»?\
 			\|Class|class_extends_\
-			\|«with fields««public»?«reconstructible»?_:_‡,»»\
-			\|«with reconstructors««public»?(«_‡,»)‡,»»",
+			\|«with field|fields««public»?«reconstructible»?_:_‡,»»\
+			\|«with reconstructor|reconstructors««public»?(«_‡,»)‡,»»",
 		"_as_«with«_:=_‡,»»"
 	),
 	"Phrases" =
