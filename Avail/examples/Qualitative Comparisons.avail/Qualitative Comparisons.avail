@@ -34,5 +34,6 @@ System Module "Qualitative Comparisons"
 Versions
 	"dev"
 Uses
-	"Apples to Apples - 1"
+	"Apples to Apples - 1",
+	"Apples to Apples - 2"
 Body

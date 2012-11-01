@@ -39,7 +39,7 @@ Uses
 	"Early Definers",
 	"Early Literals"
 Names
-	"_is a|an new⁇atom",
+	"_is a|an new⁇field⁇atom",
 	"_[_]else_"
 Body
 
@@ -106,11 +106,11 @@ Method "_[_]else_" is
  * dynamic publication, then answer this atom. Otherwise, privately introduce a
  * new atom.
  *
- * @method "_is a|an new⁇atom"
+ * @method "_is a|an new⁇field⁇atom"
  * @param "atomName" "string"
  *        The name by which this atom is known locally.
  */
-Public method "_is a|an new⁇atom" is
+Public method "_is a|an new⁇field⁇atom" is
 [
 	atomName : string
 |

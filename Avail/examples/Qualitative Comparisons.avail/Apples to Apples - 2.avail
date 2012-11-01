@@ -1,5 +1,5 @@
 /*
- * Apples to Apples - 1.avail
+ * Apples to Apples - 2.avail
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Apples to Apples - 1"
+System Module "Apples to Apples - 2"
 Versions
 	"dev"
 Uses
@@ -45,22 +45,35 @@ Body
 
 Abstract method "_is better than_" is [any, any]→boolean;
 
+Explicit class "fruit" extends object;
 "goodness" is a new field atom;
-Class "apple" extends object with fields
+Class "apple" extends fruit with fields
 	goodness : whole number;
+Class "orange" extends fruit with fields
+	goodness : string;
 
 Method "_is better than_" is [a : apple, b : apple |
 	a's goodness > b's goodness
+];
+Method "_is better than_" is [a : orange, b : orange |
+	|a's goodness| > |b's goodness|
+];
+Method "_is better than_" is [a : apple, b : orange |
+	a's goodness > |b's goodness|
+];
+Method "_is better than_" is [a : orange, b : apple |
+	|a's goodness| > b's goodness
 ];
 
 Method "best of_and_" is [a : any, b : any |
 	if a is better than b then [a] else [b]
 ] : any;
+Seal method "best of_and_" at [any, any]→any;
 
 betterM ::= method for "_is better than_";
 Semantic restriction "best of_and_" is
 [a : any's type, b : any's type |
-	If betterM is not concrete at <a, b> then
+	Unless betterM is concrete at <a, b> then
 	[
 		Reject parse, expected:
 			format
@@ -68,9 +81,11 @@ Semantic restriction "best of_and_" is
 				\|“①” and “②” are not comparable)"
 			with a, b
 	];
-	a ∪ b
+	if |a| = |b| = 1
+	then [(best of a's instance and b's instance)'s type]
+	else [a ∪ b]
 ];
 
 a ::= an apple with goodness := 5;
-b ::= an apple with goodness := 3;
-tastiest ::= best of a and b;
+b ::= an orange with goodness := "foolish";
+tastiest : b's type := best of a and b;
