@@ -38,7 +38,7 @@ import com.avail.AvailRuntime;
 import com.avail.compiler.MessageSplitter;
 import com.avail.descriptor.*;
 import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
-import com.avail.interpreter.primitive.P_401_BootstrapLabelMacro;
+import com.avail.interpreter.primitive.*;
 
 /**
  * {@code AvailErrorCode} is an enumeration of all possible failures of
@@ -124,8 +124,8 @@ public enum AvailErrorCode
 	E_INCORRECT_ARGUMENT_TYPE (12),
 
 	/**
-	 * A {@linkplain MethodDescriptor method implementation} does not declare
-	 * the same return type as its {@linkplain ForwardDeclarationDescriptor
+	 * A {@linkplain MethodDescriptor method definition} did not declare
+	 * the same return type as its {@linkplain ForwardDefinitionDescriptor
 	 * forward declaration}.
 	 */
 	E_METHOD_RETURN_TYPE_NOT_AS_FORWARD_DECLARED (13),
@@ -238,7 +238,7 @@ public enum AvailErrorCode
 	E_NO_SPECIAL_OBJECT (33),
 
 	/**
-	 * A {@linkplain MacroImplementationDescriptor macro} {@linkplain
+	 * A {@linkplain MacroDefinitionDescriptor macro} {@linkplain
 	 * FunctionDescriptor body} must restrict each parameter to be at least as
 	 * specific as a {@linkplain ParseNodeDescriptor parse node}.
 	 */
@@ -387,10 +387,20 @@ public enum AvailErrorCode
 	E_INCORRECT_TYPE_FOR_NUMBERED_CHOICE (57),
 
 	/**
-	 * An invocation of the {@linkplain P_401_BootstrapLabelMacro label phrase}
+	 * An invocation of the {@linkplain P_403_BootstrapLabelMacro label phrase}
 	 * macro was encountered outside of any block.
 	 */
 	E_LABEL_MACRO_MUST_OCCUR_INSIDE_A_BLOCK (58),
+
+	/**
+	 * TODO: Recycle!
+	 */
+//	E_??? (59),
+
+	/**
+	 * TODO: Recycle!
+	 */
+//	E_??? (60),
 
 	/**
 	 * Compilation is over. The interpreter is now operating in runtime mode.

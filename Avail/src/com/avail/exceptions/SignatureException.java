@@ -36,12 +36,12 @@ import com.avail.descriptor.*;
 
 /**
  * An {@code SignatureException} is thrown when a {@linkplain
- * ImplementationDescriptor signature declaration} is invalid.  This might indicate
+ * DefinitionDescriptor signature declaration} is invalid.  This might indicate
  * a problem with the signature itself, or perhaps an inconsistency between it
  * and other signatures already installed in the system.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
- * @see ImplementationDescriptor
+ * @see DefinitionDescriptor
  */
 public final class SignatureException
 extends AvailException

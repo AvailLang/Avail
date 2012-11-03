@@ -143,7 +143,7 @@ extends Descriptor
 
 		/**
 		 * A {@linkplain MapDescriptor map} from {@linkplain AtomDescriptor
-		 * atoms} to {@linkplain ImplementationDescriptor signatures} which
+		 * atoms} to {@linkplain DefinitionDescriptor definitions} which
 		 * implement (or forward or declare abstract or declare as a macro} that
 		 * true name.
 		 */
@@ -200,8 +200,8 @@ extends Descriptor
 		 * executed to determine if the input types are acceptable, and if so
 		 * the expected return type is produced.  The actual expected return
 		 * type for the call site is the intersection of types provided by
-		 * applicable type restriction functions and the types indicated by the
-		 * applicable {@linkplain ImplementationDescriptor method signatures}.
+		 * applicable semantic restrictions and the types indicated by all
+		 * applicable {@linkplain DefinitionDescriptor definitions}.
 		 */
 		TYPE_RESTRICTION_FUNCTIONS,
 
@@ -259,22 +259,22 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	void o_AddMethodImplementation (
+	void o_AddMethodDefinition (
 		final AvailObject object,
-		final AvailObject methodName,
-		final AvailObject implementation)
+		final AvailObject definition)
 	{
+		final AvailObject methodName = definition.definitionMethod().name();
+		AvailObject methods = object.slot(METHODS);
 		AvailObject set;
-		if (object.methods().hasKey(methodName))
+		if (methods.hasKey(methodName))
 		{
-			set = object.methods().mapAt(methodName);
+			set = methods.mapAt(methodName);
 		}
 		else
 		{
 			set = SetDescriptor.empty();
 		}
-		set = set.setWithElementCanDestroy(implementation, true);
-		AvailObject methods = object.slot(METHODS);
+		set = set.setWithElementCanDestroy(definition, false);
 		methods = methods.mapAtPuttingCanDestroy(
 			methodName,
 			set,
@@ -334,7 +334,7 @@ extends Descriptor
 		{
 			set = SetDescriptor.empty();
 		}
-		set = set.setWithElementCanDestroy(trueName, true);
+		set = set.setWithElementCanDestroy(trueName, false);
 		names = names.mapAtPuttingCanDestroy(
 			stringName,
 			set,
@@ -384,7 +384,7 @@ extends Descriptor
 		{
 			set = SetDescriptor.empty();
 		}
-		set = set.setWithElementCanDestroy(trueName, true);
+		set = set.setWithElementCanDestroy(trueName, false);
 		privateNames = privateNames.mapAtPuttingCanDestroy(
 			stringName,
 			set,
@@ -407,31 +407,31 @@ extends Descriptor
 
 	/**
 	 * The interpreter is in the fiber of resolving this forward declaration.
-	 * Record the fact that this implementation no longer needs to be cleaned up
+	 * Record the fact that this definition no longer needs to be cleaned up
 	 * if the rest of the module compilation fails.
 	 *
 	 * @param object
 	 *        The module.
-	 * @param forwardImplementation
-	 *        The {@linkplain ForwardDeclarationDescriptor forward declaration
-	 *        signature} to be removed.
+	 * @param forwardDeclaration
+	 *        The {@linkplain ForwardDefinitionDescriptor forward declaration}
+	 *        to be removed.
 	 * @param methodName
 	 *        The {@linkplain AtomDescriptor true name} of the
-	 *        {@linkplain ForwardDeclarationDescriptor forward declaration
-	 *        signature} being removed.
+	 *        {@linkplain ForwardDefinitionDescriptor forward declaration}
+	 *        being removed.
 	 */
 	@Override @AvailMethod
 	void o_ResolvedForwardWithName (
 		final AvailObject object,
-		final AvailObject forwardImplementation,
+		final AvailObject forwardDeclaration,
 		final AvailObject methodName)
 	{
-		assert forwardImplementation.isInstanceOfKind(FORWARD_SIGNATURE.o());
+		assert forwardDeclaration.isInstanceOfKind(FORWARD_DEFINITION.o());
 		AvailObject methods = object.slot(METHODS);
 		assert methods.hasKey(methodName);
 		AvailObject group = methods.mapAt(methodName);
-		assert group.hasElement(forwardImplementation);
-		group = group.setWithoutElementCanDestroy(forwardImplementation, true);
+		assert group.hasElement(forwardDeclaration);
+		group = group.setWithoutElementCanDestroy(forwardDeclaration, true);
 		methods = methods.mapAtPuttingCanDestroy(
 			methodName,
 			group,
@@ -667,11 +667,11 @@ extends Descriptor
 		for (final MapDescriptor.Entry entry : object.methods().mapIterable())
 		{
 			final AvailObject methodName = entry.key;
-			for (final AvailObject implementation : entry.value)
+			for (final AvailObject definition : entry.value)
 			{
-				anInterpreter.removeMethodNamedImplementation(
+				anInterpreter.removeDefinition(
 					methodName,
-					implementation);
+					definition);
 			}
 		}
 		final AvailObject typeRestrictions = object.slot(

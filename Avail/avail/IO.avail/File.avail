@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "File"
+System Module "File"
 Extends
 Uses
 	"Kernel"
@@ -55,17 +55,24 @@ Body
 
 privateHandle ::= lookup "handle";
 
-Method "handle" is [privateHandle;];
+Method "handle" is [privateHandle];
 
 "File" is explicit subtype of Object with
-	[handle->atom];
+	handle->atom;
+
+File has fields <"handle">;
 
 
 /* Instance creation... */
 
-Abstract method "_named_" for [File type, string]->File
-returns [ftT : File type type, strT : string type |
-	ftT instance;
+Abstract method "_named_" for [File type, string]->File;
+
+Restriction "_named_" is
+[
+	ft : File type type,
+	s : string type
+|
+	ft instance
 ];
 
 /* Filename inquiries... */
@@ -109,32 +116,30 @@ Method "_position" is [file: File |
 	[handle : atom |
 		Primitive 167 (failureCode : natural number);
 		Failed
-	] : [0..INF] (file -> handle);
-] : [0..INF];
+	] : whole number (file handle)
+] : whole number;
 
 Method "_size" is [file : File |
 	[handle : atom |
 		Primitive 166 (failureCode : natural number);
 		Failed
-	] : [0..INF] (file -> handle);
-] : [0..INF];
+	] : whole number (file handle)
+] : whole number;
 
 Method "_is at end" is [file : File |
-	file position + 1 > file size;
+	file position + 1 > file size
 ] : boolean;
 
-Method "_go to_" is [file : File, newPosition : [0..INF] |
-	[handle : atom, newPosition : [0..INF] |
+Method "_go to_" is [file : File, newPosition : whole number |
+	[handle : atom, newPosition2 : whole number |
 		Primitive 168 (failureCode : natural number);
 		Failed
-	] : void (file -> handle, newPosition);
+	] : void (file handle, newPosition);
 ] : void;
 
 Method "Close_" is [file : File |
 	[handle : atom |
 		Primitive 163 (failureCode : natural number);
 		Failed
-	] : void (file -> handle);
+	] : void (file handle);
 ] : void;
-
-

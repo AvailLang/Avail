@@ -148,14 +148,14 @@ public class VariableUseNodeDescriptor extends ParseNodeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_Equals (
+	boolean o_EqualsParseNode (
 		final AvailObject object,
-		final AvailObject another)
+		final AvailObject aParseNode)
 	{
-		return object.kind().equals(another.kind())
-			&& object.token().equals(another.token())
-			&& object.declaration().equals(another.declaration())
-			&& object.isLastUse() == another.isLastUse();
+		return object.kind().equals(aParseNode.kind())
+			&& object.token().equals(aParseNode.token())
+			&& object.declaration().equals(aParseNode.declaration())
+			&& object.isLastUse() == aParseNode.isLastUse();
 	}
 
 	@Override @AvailMethod

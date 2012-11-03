@@ -264,16 +264,16 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_Equals (
+	boolean o_EqualsParseNode (
 		final AvailObject object,
-		final AvailObject another)
+		final AvailObject aParseNode)
 	{
-		return object.kind().equals(another.kind())
-			&& object.argumentsTuple().equals(another.argumentsTuple())
-			&& object.statementsTuple().equals(another.statementsTuple())
-			&& object.resultType().equals(another.resultType())
-			&& object.neededVariables().equals(another.neededVariables())
-			&& object.primitive() == another.primitive();
+		return object.kind().equals(aParseNode.kind())
+			&& object.argumentsTuple().equals(aParseNode.argumentsTuple())
+			&& object.statementsTuple().equals(aParseNode.statementsTuple())
+			&& object.resultType().equals(aParseNode.resultType())
+			&& object.neededVariables().equals(aParseNode.neededVariables())
+			&& object.primitive() == aParseNode.primitive();
 	}
 
 	@Override

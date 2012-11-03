@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "InputFile"
+System Module "InputFile"
 Extends
 Uses
 	"Kernel",
@@ -44,8 +44,10 @@ Body
 /* I define the simple file input operations for Avail. */
 
 "Input File" is explicit subtype of File, Iterator with
-	[elementType->[]->byte]
-	[handle->atom];
+	elementType -> []->byte,
+	handle -> atom;
+
+Input File has fields <"elementType", "handle">;
 
 
 /* Instance creation... */
@@ -56,23 +58,23 @@ Method "_named_" is [fileType : Input File type, name : string |
 		Failed
 	] : atom (name);
 	Input File new with <
-		<elementType, [Crash "don't call";] : byte>,
+		<elementType, [Crash "don't call"] : byte>,
 		<handle, fileHandle>
-	>;
+	>
 ] : Input File;
 
 
 /* Basic accessing... */
 
-Method "next_from_" is [count : [0..INF], file : Input File |
-	[handle : atom, count : [0..INF] |
+Method "next_from_" is [count : whole number, file : Input File |
+	[handle : atom, count2 : whole number |
 		Primitive 164 (failureCode : natural number);
 		Failed
-	] : tuple of byte (file -> handle, count);
+	] : tuple of byte (file handle, count)
 ] : tuple of byte;
 
 Method "next_" is [file : Input File |
-	next 1 from file [1];
+	next 1 from file [1]
 ] : byte;
 
 
@@ -80,6 +82,6 @@ Method "next_" is [file : Input File |
 
 Method "_is at end" is [file : Input File |
 	/* Cast the message up to File (not Iterator). */
-	file :: File is at end;
+	file :: File is at end
 ] : boolean;
 

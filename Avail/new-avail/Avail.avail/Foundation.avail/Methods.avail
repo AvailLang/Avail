@@ -74,7 +74,7 @@ Semantic restriction "method site of_for_" is
 
 Semantic restriction "_'s⁇function" is
 [
-	siteType : implementation site's type
+	siteType : method definition's type
 |
 	if |siteType| = 1 then
 	[

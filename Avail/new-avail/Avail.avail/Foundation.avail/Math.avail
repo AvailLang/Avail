@@ -946,7 +946,7 @@ Semantic restriction "_^_" is type promotion function for
 	a ^ b
 ];
 
-/* The remaining implementations of `_^_` are recursive, so forward declare them
+/* The remaining definitions of `_^_` are recursive, so forward declare them
  * here.
  */
 Forward method "_^_" is [extended integer, whole number]→extended integer;

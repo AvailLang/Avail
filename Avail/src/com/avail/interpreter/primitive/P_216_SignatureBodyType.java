@@ -31,7 +31,7 @@
  */
 package com.avail.interpreter.primitive;
 
-import static com.avail.descriptor.TypeDescriptor.Types.SIGNATURE;
+import static com.avail.descriptor.TypeDescriptor.Types.DEFINITION;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
 import com.avail.descriptor.*;
@@ -39,7 +39,7 @@ import com.avail.interpreter.*;
 
 /**
  * <strong>Primitive 216:</strong> Answer this {@linkplain
- * ImplementationDescriptor signature}'s {@linkplain FunctionDescriptor body}'s
+ * DefinitionDescriptor signature}'s {@linkplain FunctionDescriptor body}'s
  * {@linkplain FunctionTypeDescriptor type}.
  */
 public class P_216_SignatureBodyType extends Primitive
@@ -66,7 +66,7 @@ public class P_216_SignatureBodyType extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				SIGNATURE.o()),
+				DEFINITION.o()),
 			FunctionTypeDescriptor.meta());
 	}
 }

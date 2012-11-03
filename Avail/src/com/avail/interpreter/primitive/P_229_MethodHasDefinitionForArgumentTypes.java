@@ -1,5 +1,5 @@
 /**
- * P_222_ImplementationForArgumentTypes.java
+ * P_229_MethodHasDefinitionForArgumentTypes.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -42,21 +42,20 @@ import com.avail.exceptions.SignatureException;
 import com.avail.interpreter.*;
 
 /**
- * <strong>Primitive 222</strong>: Lookup the unique {@linkplain
- * ImplementationDescriptor implementation} of the specified {@linkplain
- * MethodDescriptor method} by the {@linkplain TupleDescriptor tuple} of
- * parameter {@linkplain TypeDescriptor types}.
+ * <strong>Primitive 229</strong>: Does the {@linkplain MethodDescriptor method}
+ * have a unique definition for the specified {@linkplain TupleDescriptor
+ * tuple} of parameter {@linkplain TypeDescriptor types}?
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class P_222_ImplementationForArgumentTypes
+public final class P_229_MethodHasDefinitionForArgumentTypes
 extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_222_ImplementationForArgumentTypes().init(2, CanFold);
+		new P_229_MethodHasDefinitionForArgumentTypes().init(2, CanFold);
 
 	@Override
 	public Result attempt (
@@ -81,12 +80,8 @@ extends Primitive
 			assert false : "The method name was extracted from a real method!";
 		}
 		final AvailObject impl = method.lookupByTypesFromTuple(argTypes);
-		if (impl.equalsNull())
-		{
-			return interpreter.primitiveFailure(
-				E_METHOD_IMPLEMENTATION_LOOKUP_FAILED);
-		}
-		return interpreter.primitiveSuccess(impl);
+		return interpreter.primitiveSuccess(AtomDescriptor.objectFromBoolean(
+			!impl.equalsNull()));
 	}
 
 	@Override
@@ -97,6 +92,6 @@ extends Primitive
 				METHOD.o(),
 				TupleTypeDescriptor.zeroOrMoreOf(
 					InstanceMetaDescriptor.anyMeta())),
-			SIGNATURE.o());
+			EnumerationTypeDescriptor.booleanObject());
 	}
 }

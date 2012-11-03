@@ -1,5 +1,5 @@
 /**
- * P_035_ParamType.java
+ * P_222_DefinitionForArgumentTypes.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -29,34 +29,64 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+
 package com.avail.interpreter.primitive;
 
+import static com.avail.descriptor.TypeDescriptor.Types.*;
+import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
+import com.avail.compiler.MessageSplitter;
 import com.avail.descriptor.*;
+import com.avail.exceptions.SignatureException;
 import com.avail.interpreter.*;
 
 /**
- * <strong>Primitive 35:</strong> Answer a tuple type describing the
- * parameters accepted by the function type.
+ * <strong>Primitive 222</strong>: Lookup the unique {@linkplain
+ * DefinitionDescriptor definition} of the specified {@linkplain
+ * MethodDescriptor method} by the {@linkplain TupleDescriptor tuple} of
+ * parameter {@linkplain TypeDescriptor types}.
+ *
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class P_035_ParamType extends Primitive
+public final class P_222_DefinitionForArgumentTypes
+extends Primitive
 {
 	/**
-	 * The sole instance of this primitive class.  Accessed through reflection.
+	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_035_ParamType().init(
-		1, CanFold, CannotFail);
+	public final static Primitive instance =
+		new P_222_DefinitionForArgumentTypes().init(2, CanFold);
 
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 1;
-		final AvailObject functionType = args.get(0);
-		return interpreter.primitiveSuccess(
-			functionType.argsTupleType());
+		assert args.size() == 2;
+		final AvailObject method = args.get(0);
+		final AvailObject argTypes = args.get(1);
+		final AvailObject name = method.name().name();
+		try
+		{
+			final MessageSplitter splitter = new MessageSplitter(name);
+			if (splitter.numberOfArguments() != argTypes.tupleSize())
+			{
+				return interpreter.primitiveFailure(
+					E_INCORRECT_NUMBER_OF_ARGUMENTS);
+			}
+		}
+		catch (final SignatureException e)
+		{
+			assert false : "The method name was extracted from a real method!";
+		}
+		final AvailObject impl = method.lookupByTypesFromTuple(argTypes);
+		if (impl.equalsNull())
+		{
+			return interpreter.primitiveFailure(
+				E_METHOD_IMPLEMENTATION_LOOKUP_FAILED);
+		}
+		return interpreter.primitiveSuccess(impl);
 	}
 
 	@Override
@@ -64,8 +94,9 @@ public class P_035_ParamType extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				FunctionTypeDescriptor.meta()),
-			InstanceMetaDescriptor.on(
-				TupleTypeDescriptor.mostGeneralType()));
+				METHOD.o(),
+				TupleTypeDescriptor.zeroOrMoreOf(
+					InstanceMetaDescriptor.anyMeta())),
+			DEFINITION.o());
 	}
 }

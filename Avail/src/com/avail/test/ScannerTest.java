@@ -413,7 +413,7 @@ public final class ScannerTest
 		C("/", O("/")),
 		C("\\(", O("\\"), O("(",1)),
 		C("`", O("`")),
-		C(";", T(";", END_OF_STATEMENT)),
+		C(";", O(";")),
 
 		C("\"cat", (Generator<AvailObject>)null),
 		C("\"cat\"", L("cat","\"cat\"")),

@@ -42,7 +42,7 @@ Names
 Body
 
 /**
- * Completely seal the specified method. No further implementations may be
+ * Completely seal the specified method. No further definitions may be
  * added at any site within the method.
  * 
  * @method "Completely seal method_"

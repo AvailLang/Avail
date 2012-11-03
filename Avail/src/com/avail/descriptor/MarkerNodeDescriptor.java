@@ -112,12 +112,12 @@ public class MarkerNodeDescriptor extends ParseNodeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_Equals (
+	boolean o_EqualsParseNode (
 		final AvailObject object,
-		final AvailObject another)
+		final AvailObject aParseNode)
 	{
-		return object.kind().equals(another.kind())
-			&& object.markerValue().equals(another.markerValue());
+		return object.kind().equals(aParseNode.kind())
+			&& object.markerValue().equals(aParseNode.markerValue());
 	}
 
 	@Override

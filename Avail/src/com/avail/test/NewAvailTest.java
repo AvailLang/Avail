@@ -59,6 +59,7 @@ extends AbstractAvailTest
 	 *         If an {@linkplain Exception exception} occurs.
 	 */
 	@Test
+	@SuppressWarnings("unused")
 	public void newAvailTest () throws Exception
 	{
 		final long startTime = System.currentTimeMillis();
@@ -66,10 +67,13 @@ extends AbstractAvailTest
 		System.out.flush();
 		System.err.printf(
 			"%ntime elapsed = %dms%n", System.currentTimeMillis() - startTime);
-		System.err.printf("Instructions%n\tGen=%d%n\tKept=%d%n\tRemv=%d%n",
-			L2Translator.generatedInstructionCount,
-			L2Translator.keptInstructionCount,
-			L2Translator.removedInstructionCount);
+		if (false)
+		{
+			System.err.printf("Instructions%n\tGen=%d%n\tKept=%d%n\tRemv=%d%n",
+				L2Translator.generatedInstructionCount,
+				L2Translator.keptInstructionCount,
+				L2Translator.removedInstructionCount);
+		}
 		System.err.printf("%nPrimitive return type-check times:%n%s",
 			Primitive.reportReturnCheckTimes());
 	}

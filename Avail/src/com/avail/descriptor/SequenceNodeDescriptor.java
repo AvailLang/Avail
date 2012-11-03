@@ -100,12 +100,12 @@ public class SequenceNodeDescriptor extends ParseNodeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_Equals (
+	boolean o_EqualsParseNode (
 		final AvailObject object,
-		final AvailObject another)
+		final AvailObject aParseNode)
 	{
-		return object.kind().equals(another.kind())
-			&& object.statements().equals(another.statements());
+		return object.kind().equals(aParseNode.kind())
+			&& object.statements().equals(aParseNode.statements());
 	}
 
 	@Override @AvailMethod

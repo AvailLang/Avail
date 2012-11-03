@@ -30,12 +30,11 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "ParseNodes"
+System Module "ParseNodes"
 Extends
 Uses
 	"Kernel"
 Names
-
 	"parseNode",
 	"markerNode",
 	"expressionNode",
@@ -63,7 +62,6 @@ Body
  */
 
 privateParseNode          ::= Special Object 50;
-privateMarkerNode         ::= Special Object 51;
 privateExpressionNode     ::= Special Object 52;
 privateAssignmentNode     ::= Special Object 53;
 privateBlockNode          ::= Special Object 54;
@@ -81,23 +79,22 @@ privateLocalConstantNode  ::= Special Object 65;
 privateModuleVariableNode ::= Special Object 66;
 privateModuleConstantNode ::= Special Object 67;
 
-Method "parseNode"          is [privateParseNode;] : primType;
-Method "markerNode"         is [privateMarkerNode;] : primType;
-Method "expressionNode"     is [privateExpressionNode;] : primType;
-Method "assignmentNode"     is [privateAssignmentNode;] : primType;
-Method "blockNode"          is [privateBlockNode;] : primType;
-Method "literalNode"        is [privateLiteralNode;] : primType;
-Method "referenceNode"      is [privateReferenceNode;] : primType;
-Method "sendNode"           is [privateSendNode;] : primType;
-Method "listNode"           is [privateListNode;] : primType;
-Method "variableUseNode"    is [privateVariableUseNode;] : primType;
-Method "declarationNode"    is [privateDeclarationNode;] : primType;
-Method "argumentNode"       is [privateArgumentNode;] : primType;
-Method "labelNode"          is [privateLabelNode;] : primType;
-Method "localVariableNode"  is [privateLocalVariableNode;] : primType;
-Method "localConstantNode"  is [privateLocalConstantNode;] : primType;
-Method "moduleVariableNode" is [privateModuleVariableNode;] : primType;
-Method "moduleConstantNode" is [privateModuleConstantNode;] : primType;
+Method "parseNode"          is [privateParseNode];
+Method "expressionNode"     is [privateExpressionNode];
+Method "assignmentNode"     is [privateAssignmentNode];
+Method "blockNode"          is [privateBlockNode];
+Method "literalNode"        is [privateLiteralNode];
+Method "referenceNode"      is [privateReferenceNode];
+Method "sendNode"           is [privateSendNode];
+Method "listNode"           is [privateListNode];
+Method "variableUseNode"    is [privateVariableUseNode];
+Method "declarationNode"    is [privateDeclarationNode];
+Method "argumentNode"       is [privateArgumentNode];
+Method "labelNode"          is [privateLabelNode];
+Method "localVariableNode"  is [privateLocalVariableNode];
+Method "localConstantNode"  is [privateLocalConstantNode];
+Method "moduleVariableNode" is [privateModuleVariableNode];
+Method "moduleConstantNode" is [privateModuleConstantNode];
 
 
 /* parseNode accessors */

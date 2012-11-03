@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "Methods"
+System Module "Methods"
 Extends
 Uses
 	"Kernel"
@@ -40,7 +40,7 @@ Names
 	"_message parts",
 	"_signatures",
 	"_has restrictions",
-	"_restrictions",
+	"_semantic restrictions for_",
 
 	"signature",
 		"abstractSignature",
@@ -93,33 +93,31 @@ Body
 
 
 
-privateMessageBundle		::= Special Object 40;
-privateSignature			::= Special Object 41;
-privateAbstractSignature	::= Special Object 42;
-privateForwardSignature	::= Special Object 43;
-privateMethodSignature	::= Special Object 44;
-privateMessageBundleTree	::= Special Object 45;
-privateImplementationSet	::= Special Object 46;
+privateMessageBundle     ::= Special Object 40;
+privateMessageBundleTree ::= Special Object 41;
+privateImplementationSet ::= Special Object 42;
+privateSignature         ::= Special Object 43;
+privateAbstractSignature ::= Special Object 44;
+privateForwardSignature  ::= Special Object 45;
+privateMethodSignature   ::= Special Object 46;
 
-Method "messageBundle" is [privateMessageBundle;] : primType;
-Method "signature" is [privateSignature;] : primType;
-Method "abstractSignature" is [privateAbstractSignature;] : primType;
-Method "forwardSignature" is [privateForwardSignature;] : primType;
-Method "methodSignature" is [privateMethodSignature;] : primType;
-Method "messageBundleTree" is [privateMessageBundleTree;] : primType;
-Method "implementationSet" is [privateImplementationSet;] : primType;
+Method "messageBundle"     is [privateMessageBundle];
+Method "messageBundleTree" is [privateMessageBundleTree];
+Method "signature"         is [privateSignature];
+Method "abstractSignature" is [privateAbstractSignature];
+Method "forwardSignature"  is [privateForwardSignature];
+Method "methodSignature"   is [privateMethodSignature];
+Method "implementationSet" is [privateImplementationSet];
 
 
 /* messageBundle accessors.. */
 
 Method "_message" is [bundle : messageBundle |
-	Primitive 211 (failureCode : natural number);
-	Failed
+	Primitive 211;
 ] : atom;
 
 Method "_message parts" is [bundle : messageBundle |
-	Primitive 212 (failureCode : natural number);
-	Failed
+	Primitive 212;
 ] : tuple of string;
 
 Method "_signatures" is [bundle : messageBundle |
@@ -128,13 +126,11 @@ Method "_signatures" is [bundle : messageBundle |
 ] : set of signature;
 
 Method "_has restrictions" is [bundle : messageBundle |
-	Primitive 214 (failureCode : natural number);
-	Failed
+	Primitive 214;
 ] : boolean;
 
 Method "_restrictions" is [bundle : messageBundle |
-	Primitive 215 (failureCode : natural number);
-	Failed
+	Primitive 215;
 ] : tuple of set of atom;
 
 
@@ -142,43 +138,37 @@ Method "_restrictions" is [bundle : messageBundle |
 /* signature accessors... */
 
 Method "_bodyType" is [sig : signature |
-	Primitive 216 (failureCode : natural number);
-	Failed
+	Primitive 216;
 ] : functionType;
 
 Method "_body" is [methSig : methodSignature |
-	Primitive 217 (failureCode : natural number);
-	Failed
+	Primitive 217;
 ] : function;
 
-Method "_requires block" is [sig : signature |
-	Primitive 218 (failureCode : natural number);
-	Failed
-] : [...]->boolean;
-
-Method "_returns block" is [sig : signature |
-	Primitive 219 (failureCode : natural number);
-	Failed
-] : [...]->type;
+Method "_semantic restrictions for_" is [
+		impSet : implementationSet,
+		argTypes : tuple of (any type) |
+	Primitive 247;
+] : tuple of [...]->type;
 
 
 /* Now some simple type-testers... */
 
 Method "_is forward" is [sig : signature |
-	false;
+	false
 ]  : boolean;
 
 Method "_is forward" is [forwardSig : forwardSignature |
-	true;
+	true
 ];
 
 
 Method "_is abstract" is [sig : signature |
-	false;
+	false
 ]  : boolean;
 
 Method "_is abstract" is [abstractSig : abstractSignature |
-	true;
+	true
 ];
 
 
@@ -187,16 +177,14 @@ Method "_is abstract" is [abstractSig : abstractSignature |
 Method "_complete" is [tree : messageBundleTree |
 	/* Answer the messages that are complete at this point
 	   in the tree.  Answer a map from messages to bundles. */
-	Primitive 207 (failureCode : natural number);
-	Failed
+	Primitive 207;
 ] : map from atom to messageBundle;
 
 Method "_incomplete" is [tree : messageBundleTree |
 	/* Answer the messages that are incomplete at this point
 	   in the tree.  Answer a map from strings (the next piece
 	   to be parsed) to messageBundleTrees. */
-	Primitive 208 (failureCode : natural number);
-	Failed
+	Primitive 208;
 ] : map from string to messageBundleTree;
 
 
@@ -214,8 +202,5 @@ Method "_implementation set" is [message : atom |
 /* Extract the atom associated with the implementationSet. */
 
 Method "_name" is [impSet : implementationSet |
-	Primitive 221 (failureCode : natural number);
-	Failed
+	Primitive 221;
 ] : atom;
-
-

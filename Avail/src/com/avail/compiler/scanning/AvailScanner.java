@@ -674,17 +674,16 @@ public class AvailScanner
 		},
 
 		/**
-		 * The semicolon is not considered an operator character and cannot be
-		 * used within operators. Parse it by itself as a {@linkplain
-		 * TokenDescriptor token} whose type is {@link
-		 * TokenType#END_OF_STATEMENT}.
+		 * The semicolon is now considered an ordinary operator character.
+		 * Parse it by itself as a {@linkplain TokenDescriptor token} whose type
+		 * is {@link TokenType#OPERATOR}.
 		 */
 		SEMICOLON ()
 		{
 			@Override
 			void scan (final AvailScanner scanner)
 			{
-				scanner.addCurrentToken(TokenType.END_OF_STATEMENT);
+				scanner.addCurrentToken(TokenType.OPERATOR);
 			}
 		},
 

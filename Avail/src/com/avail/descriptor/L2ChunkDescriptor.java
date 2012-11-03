@@ -388,7 +388,7 @@ extends Descriptor
 		/**
 		 * The list of {@linkplain MethodDescriptor methods} on which the referent chunk depends.  If one of these
 		 * methods changes (due to adding or removing a
-		 * {@linkplain ImplementationDescriptor method implementation}), this chunk
+		 * {@linkplain DefinitionDescriptor method implementation}), this chunk
 		 * will be immediately invalidated.
 		 */
 		final Set<AvailObject> contingentMethods;
@@ -664,7 +664,7 @@ extends Descriptor
 	 * method, and the specified chunk previously expressed an
 	 * interest in change notifications.  This must have been because it was
 	 * optimized in a way that relied on some aspect of the available
-	 * implementations (e.g., monomorphic inlining), so we need to invalidate
+	 * definitions (e.g., monomorphic inlining), so we need to invalidate
 	 * the chunk now, so that an attempt to invoke it or return into it will be
 	 * detected and converted into using the {@linkplain #UnoptimizedChunk
 	 * unoptimized chunk}.  Also remove this chunk's index from all

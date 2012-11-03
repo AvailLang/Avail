@@ -113,13 +113,6 @@ extends Descriptor
 		END_OF_FILE,
 
 		/**
-		 * The semicolon character may not (at least on 2010.12.28) be used as
-		 * an operator character.  This token type is used to prevent seeing a
-		 * semicolon as an operator.
-		 */
-		END_OF_STATEMENT,
-
-		/**
 		 * A sequence of characters suitable for an Avail identifier, which
 		 * roughly corresponds to characters in a Java identifier.
 		 */

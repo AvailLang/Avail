@@ -602,7 +602,7 @@ implements Iterable<AvailObject>
 	}
 
 	/**
-	 * Add the {@linkplain ImplementationDescriptor implementation} to the
+	 * Add the {@linkplain DefinitionDescriptor implementation} to the
 	 * receiver. Causes dependent chunks to be invalidated.
 	 *
 	 * Macro signatures and non-macro signatures should not be combined in the
@@ -612,11 +612,11 @@ implements Iterable<AvailObject>
 	 * @throws SignatureException
 	 *         If the implementation could not be added.
 	 */
-	public void addImplementation (
+	public void addDefinition (
 			final AvailObject implementation)
 		throws SignatureException
 	{
-		descriptor.o_AddImplementation(this, implementation);
+		descriptor.o_AddDefinition(this, implementation);
 	}
 
 	/**
@@ -734,17 +734,14 @@ implements Iterable<AvailObject>
 	}
 
 	/**
-	 * @param methodName
-	 * @param implementation
+	 * @param definition
 	 */
-	public void addMethodImplementation (
-		final AvailObject methodName,
-		final AvailObject implementation)
+	public void addMethodDefinition (
+		final AvailObject definition)
 	{
-		descriptor.o_AddMethodImplementation(
+		descriptor.o_AddMethodDefinition(
 			this,
-			methodName,
-			implementation);
+			definition);
 	}
 
 	/**
@@ -2233,18 +2230,18 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public List<AvailObject> implementationsAtOrBelow (
+	public List<AvailObject> definitionsAtOrBelow (
 		final List<AvailObject> argTypes)
 	{
-		return descriptor.o_ImplementationsAtOrBelow(this, argTypes);
+		return descriptor.o_DefinitionsAtOrBelow(this, argTypes);
 	}
 
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public AvailObject implementationsTuple ()
+	public AvailObject definitionsTuple ()
 	{
-		return descriptor.o_ImplementationsTuple(this);
+		return descriptor.o_DefinitionsTuple(this);
 	}
 
 	/**
@@ -2261,10 +2258,10 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public boolean includesImplementation (
+	public boolean includesDefinition (
 		final AvailObject imp)
 	{
-		return descriptor.o_IncludesImplementation(this, imp);
+		return descriptor.o_IncludesDefinition(this, imp);
 	}
 
 	/**
@@ -2340,6 +2337,14 @@ implements Iterable<AvailObject>
 	public boolean isAbstract ()
 	{
 		return descriptor.o_IsAbstract(this);
+	}
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	public boolean isAbstractDefinition ()
+	{
+		return descriptor.o_IsAbstractDefinition(this);
 	}
 
 	/**
@@ -2455,19 +2460,25 @@ implements Iterable<AvailObject>
 	}
 
 	/**
-	 * Dispatch to the descriptor.
+	 * Is the {@linkplain AvailObject receiver} a {@linkplain
+	 * ForwardDefinitionDescriptor forward declaration site}?
+	 *
+	 * @return {@code true} if the receiver is a forward declaration site.
 	 */
-	public boolean isForward ()
+	public boolean isForwardDefinition ()
 	{
-		return descriptor.o_IsForward(this);
+		return descriptor.o_IsForwardDefinition(this);
 	}
 
 	/**
-	 * Dispatch to the descriptor.
+	 * Is the {@linkplain AvailObject receiver} a {@linkplain
+	 * MethodDefinitionDescriptor method definition}?
+	 *
+	 * @return {@code true} if the receiver is a method definition.
 	 */
-	public boolean isMethod ()
+	public boolean isMethodDefinition ()
 	{
-		return descriptor.o_IsMethod(this);
+		return descriptor.o_IsMethodDefinition(this);
 	}
 
 	/**
@@ -3820,14 +3831,6 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public AvailObject signature ()
-	{
-		return descriptor.o_Signature(this);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
 	public void size (
 		final int value)
 	{
@@ -4927,27 +4930,9 @@ implements Iterable<AvailObject>
 	/**
 	 * @return
 	 */
-	public boolean isMacro ()
+	public boolean isMacroDefinition ()
 	{
-		return descriptor.o_IsMacro(this);
-	}
-
-
-	/**
-	 * @param value
-	 */
-	public void macros (final AvailObject value)
-	{
-		descriptor.o_Macros(this, value);
-	}
-
-
-	/**
-	 * @return
-	 */
-	public AvailObject macros ()
-	{
-		return descriptor.o_Macros(this);
+		return descriptor.o_IsMacroDefinition(this);
 	}
 
 
@@ -4966,15 +4951,6 @@ implements Iterable<AvailObject>
 	public AvailObject binUnionKind ()
 	{
 		return descriptor.o_BinUnionKind(this);
-	}
-
-
-	/**
-	 * @return
-	 */
-	public AvailObject macroName ()
-	{
-		return descriptor.o_MacroName(this);
 	}
 
 
@@ -6336,7 +6312,7 @@ implements Iterable<AvailObject>
 	 */
 	public SetIterator setBinIterator ()
 	{
-		return descriptor.o_SetBinIterator (this);
+		return descriptor.o_SetBinIterator(this);
 	}
 
 	/**
@@ -6349,5 +6325,33 @@ implements Iterable<AvailObject>
 		final boolean canDestroy)
 	{
 		return descriptor.o_BitShift(this, shiftFactor, canDestroy);
+	}
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	public boolean equalsParseNode (final AvailObject object)
+	{
+		return false;
+	}
+
+	/**
+	 * @return
+	 */
+	public AvailObject stripMacro ()
+	{
+		return descriptor.o_StripMacro(this);
+	}
+
+	/**
+	 * Answer the {@link MethodDescriptor method} that this {@link
+	 * DefinitionDescriptor definition} is for.
+	 *
+	 * @return The definition's method.
+	 */
+	public AvailObject definitionMethod ()
+	{
+		return descriptor.o_DefinitionMethod(this);
 	}
 }

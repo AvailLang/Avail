@@ -72,7 +72,7 @@ Uses
 		"_[_]:=_",
 		"_[_]→_",
 		"_`#_:_(literals=_,`#locals_,`#outers_,stack depth=_)",
-		"_has implementation for_",
+		"_has definition for_",
 		"_mod_",
 		"_×_",
 		"_÷_",
@@ -89,8 +89,8 @@ Uses
 		"function from_and_",
 		"generate_",
 		"message_contains groups",
+		"method definition of_for_",
 		"method for_",
-		"method site of_for_",
 		"method_._(«_‡,»)(fail with_)",
 		"next character",
 		"send_with_:_",
@@ -731,7 +731,7 @@ Primitive "method for_" is
 ] : method;
 
 /**
- * Lookup an implementation of the specified method given the tuple of parameter
+ * Lookup a definition of the specified method given the tuple of parameter
  * types.
  *
  * Parameters:
@@ -739,17 +739,17 @@ Primitive "method for_" is
  *    parameterTypes - A tuple of parameter types. This must agree in length
  *       with the number of parameters expected by the method.
  * Returns:
- *    The unique implementation of `aMethod` that best accords with the
+ *    The unique definition of `aMethod` that best accords with the
  *    specified parameter types.
  */
-Primitive "method site of_for_" is
+Primitive "method definition of_for_" is
 [
 	aMethod : method,
 	parameterTypes : tuple of any meta
 |
 	Primitive 222 (failureCode : natural number);
 	Private invoke _fail_primitive with failureCode
-] : method site;
+] : definition;
 
 /**
  * Compute and answer the number of parameters required by a valid send of a
@@ -786,7 +786,7 @@ Primitive "message_contains groups" is
 ] : boolean;
 
 /**
- * Seal the named method at the specified signature. No further implementations
+ * Seal the named method at the specified signature. No further definitions
  * may be added at or below this signature. This facility is provided to secure
  * methods against dangerous, unscrupulous, or confusing extensions.
  *
@@ -806,7 +806,7 @@ Primitive "Seal method_at_" is
 
 /**
  * Declare an abstract method with the specified name and signature. A concrete
- * implementation is one whose parameter types and return type are strictly more
+ * definition is one whose parameter types and return type are strictly more
  * specific than the corresponding types of the abstract signature.
  *
  * Only extend the grammar of the current module if the atom was introduced by
@@ -826,7 +826,7 @@ Primitive "Abstract method_is_" is
 ] : ⊤;
 
 /**
- * Does the specified method have a unique implementation for the given tuple
+ * Does the specified method have a unique definition for the given tuple
  * of parameter types?
  *
  * Parameters:
@@ -834,10 +834,10 @@ Primitive "Abstract method_is_" is
  *    parameterTypes - A tuple of parameter types. This must agree in length
  *       with the number of parameters expected by the method.
  * Returns:
- *    `true` if `aMethod` has a unique implementation for the specified parameter
+ *    `true` if `aMethod` has a unique definition for the specified parameter
  *    types, `false` otherwise.
  */
-Primitive "_has implementation for_" is
+Primitive "_has definition for_" is
 [
 	aMethod : method,
 	parameterTypes : tuple of any meta
@@ -976,7 +976,7 @@ Primitive "Macro_is_" is
 
 /**
  * Declare an abstract method with the specified name and signature. A concrete
- * implementation is one whose parameter types and return type are strictly more
+ * definition is one whose parameter types and return type are strictly more
  * specific than the corresponding types of the abstract signature.
  *
  * Parameters:

@@ -116,12 +116,23 @@ public abstract class ParseNodeDescriptor extends Descriptor
 
 	/**
 	 * {@linkplain ParseNodeDescriptor parse nodes} must implement {@link
-	* AbstractDescriptor#o_Equals(AvailObject, AvailObject) equals}.
+	* ParseNodeDescriptor#o_EqualsParseNode(AvailObject, AvailObject)}.
 	 */
 	@Override @AvailMethod
-	abstract boolean o_Equals (
+	final boolean o_Equals (
 		final AvailObject object,
-		final AvailObject another);
+		final AvailObject another)
+	{
+		return another.equalsParseNode(object);
+	}
+
+	/**
+	 * Compare this parse node to the given parse node.
+	 */
+	@Override @AvailMethod
+	abstract boolean o_EqualsParseNode (
+		final AvailObject object,
+		final AvailObject aParseNode);
 
 	/**
 	 * Emit the effect of this node.  By default that means to emit the value of
@@ -290,6 +301,14 @@ public abstract class ParseNodeDescriptor extends Descriptor
 	@Override @AvailMethod
 	abstract ParseNodeKind o_ParseNodeKind (
 		final AvailObject object);
+
+	@Override @AvailMethod
+	AvailObject o_StripMacro (
+		final AvailObject object)
+	{
+		return object;
+	}
+
 
 	@Override int maximumIndent ()
 	{

@@ -42,7 +42,7 @@ import com.avail.interpreter.*;
 /**
  * <strong>Primitive 226</strong>: Seal the named {@linkplain MethodDescriptor
  * method} at the specified {@linkplain TupleTypeDescriptor signature}. No
- * further implementations may be added below this signature.
+ * further definitions may be added below this signature.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */

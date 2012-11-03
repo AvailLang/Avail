@@ -42,9 +42,19 @@ import com.avail.utility.*;
 
 /**
  * A {@linkplain MacroSubstitutionNodeDescriptor macro substitution node}
- * represents the result of applying a {@linkplain MacroImplementationDescriptor
+ * represents the result of applying a {@linkplain MacroDefinitionDescriptor
  * macro} to its argument {@linkplain ParseNodeDescriptor expressions} to
  * produce an {@linkplain ObjectSlots#OUTPUT_PARSE_NODE output parse node}.
+ *
+ * <p>
+ * It's kept around specifically to allow grammatical restrictions to operate on
+ * the actual occurring macro (and method) names, not what they've turned into.
+ * As such, the macro substitution node should be {@linkplain
+ * #o_StripMacro(AvailObject) stripped off} prior to being composed into a larger
+ * parse tree, whether a send node, another macro invocation, or direct
+ * embedding within an assignment statement, variable reference, or any other
+ * hierarchical parsing structure.
+ * </p>
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
@@ -67,19 +77,9 @@ public class MacroSubstitutionNodeDescriptor extends ParseNodeDescriptor
 		/**
 		 * The {@linkplain ParseNodeDescriptor parse node} that is the result of
 		 * transforming the input parse node through a {@linkplain
-		 * MacroImplementationDescriptor macro substitution}.
+		 * MacroDefinitionDescriptor macro} substitution.
 		 */
 		OUTPUT_PARSE_NODE
-	}
-
-	/**
-	 * Getter for field macroName.
-	 */
-	@Override @AvailMethod
-	AvailObject o_MacroName (
-		final AvailObject object)
-	{
-		return object.slot(MACRO_NAME);
 	}
 
 	/**
@@ -104,26 +104,26 @@ public class MacroSubstitutionNodeDescriptor extends ParseNodeDescriptor
 	int o_Hash (final AvailObject object)
 	{
 		return
-			object.macroName().hash() * multiplier
-				+ object.outputParseNode().hash()
-			^ 0x1d50d7f9;
+			object.slot(MACRO_NAME).hash() * multiplier
+			+ (object.slot(OUTPUT_PARSE_NODE).hash() ^ 0x1d50d7f9);
 	}
 
 
 	@Override @AvailMethod
-	boolean o_Equals (
+	boolean o_EqualsParseNode (
 		final AvailObject object,
-		final AvailObject another)
+		final AvailObject aParseNode)
 	{
-		return object.macroName().equals(another.macroName())
-			&& object.outputParseNode().equals(another.outputParseNode());
+		return object.kind().equals(aParseNode.kind())
+			&& object.apparentSendName().equals(aParseNode.apparentSendName())
+			&& object.outputParseNode().equals(aParseNode.outputParseNode());
 	}
 
 
 	@Override @AvailMethod
 	AvailObject o_ApparentSendName (final AvailObject object)
 	{
-		return object.macroName();
+		return object.slot(MACRO_NAME);
 	}
 
 
@@ -185,9 +185,14 @@ public class MacroSubstitutionNodeDescriptor extends ParseNodeDescriptor
 	@Override
 	ParseNodeKind o_ParseNodeKind (final AvailObject object)
 	{
-		return object.slot(OUTPUT_PARSE_NODE).parseNodeKind();
+		return ParseNodeKind.MACRO_SUBSTITUTION;
 	}
 
+	@Override
+	AvailObject o_StripMacro (final AvailObject object)
+	{
+		return object.slot(OUTPUT_PARSE_NODE);
+	}
 
 	@Override
 	public void printObjectOnAvoidingIndent (
@@ -197,9 +202,9 @@ public class MacroSubstitutionNodeDescriptor extends ParseNodeDescriptor
 		final int indent)
 	{
 		builder.append("MACRO TRANSFORMATION (");
-		builder.append(object.macroName());
+		builder.append(object.slot(MACRO_NAME));
 		builder.append(") = ");
-		object.outputParseNode().printOnAvoidingIndent(
+		object.slot(OUTPUT_PARSE_NODE).printOnAvoidingIndent(
 			builder,
 			recursionList,
 			indent);

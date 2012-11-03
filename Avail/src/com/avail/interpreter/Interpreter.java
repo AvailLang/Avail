@@ -224,7 +224,7 @@ public abstract class Interpreter
 
 
 	/**
-	 * Add the method implementation. The precedence rules can change at any
+	 * Add the method definition. The precedence rules can change at any
 	 * time. The <em>requires block</em> is run at compile time to ensure that
 	 * the method is being used in an appropriate way. The <em>returns
 	 * block</em> lets us home in on the type returned by a general method by
@@ -258,14 +258,14 @@ public abstract class Interpreter
 		//  Make it so we can safely hold onto these things in the VM
 		methodName.makeImmutable();
 		bodyBlock.makeImmutable();
-		//  Add the method implementation.
-		final AvailObject newImp = MethodImplementationDescriptor.create(
-			bodyBlock);
-		module.addMethodImplementation(methodName, newImp);
-		final AvailObject imps = runtime.methodFor(methodName);
+		//  Add the method definition.
+		final AvailObject method = runtime.methodFor(methodName);
+		final AvailObject newMethodDefinition =
+			MethodDefinitionDescriptor.create(method, bodyBlock);
+		module.addMethodDefinition(newMethodDefinition);
 		final AvailObject bodySignature = bodyBlock.kind();
 		AvailObject forward = null;
-		final AvailObject impsTuple = imps.implementationsTuple();
+		final AvailObject impsTuple = method.definitionsTuple();
 		for (final AvailObject existingImp : impsTuple)
 		{
 			final AvailObject existingType = existingImp.bodySignature();
@@ -273,7 +273,7 @@ public abstract class Interpreter
 				bodySignature.argsTupleType());
 			if (same)
 			{
-				if (existingImp.isForward())
+				if (existingImp.isForwardDefinition())
 				{
 					if (existingType.returnType().equals(
 						bodySignature.returnType()))
@@ -315,7 +315,7 @@ public abstract class Interpreter
 		{
 			resolvedForwardWithName(forward, methodName);
 		}
-		imps.addImplementation(newImp);
+		method.addDefinition(newMethodDefinition);
 		assert methodName.isAtom();
 		if (extendGrammar)
 		{
@@ -327,11 +327,11 @@ public abstract class Interpreter
 
 	/**
 	 * This is a forward declaration of a method. Insert an appropriately
-	 * stubbed implementation in the module's method dictionary, and add it to
+	 * stubbed definition in the module's method dictionary, and add it to
 	 * the list of methods needing to be declared later in this module.
 	 *
 	 * @param methodName A {@linkplain AtomDescriptor method name}.
-	 * @param bodySignature A {@linkplain MethodImplementationDescriptor method
+	 * @param bodySignature A {@linkplain MethodDefinitionDescriptor method
 	 *                      signature}.
 	 * @throws SignatureException If the signature is malformed.
 	 */
@@ -342,17 +342,15 @@ public abstract class Interpreter
 	{
 		methodName.makeImmutable();
 		bodySignature.makeImmutable();
-		//  Add the stubbed method implementation.
-		final AvailObject newImp = ForwardDeclarationDescriptor.create(
-			methodName,
+		//  Add the stubbed method definition.
+		final AvailObject method = runtime.methodFor(methodName);
+		final AvailObject newForward = ForwardDefinitionDescriptor.create(
+			method,
 			bodySignature);
-		module.addMethodImplementation(methodName, newImp);
-		final AvailObject imps = runtime.methodFor(methodName);
-		final AvailObject impsTuple = imps.implementationsTuple();
-		for (int i = 1, end = impsTuple.tupleSize(); i <= end; i++)
+		module.addMethodDefinition(newForward);
+		for (final AvailObject definition : method.definitionsTuple())
 		{
-			final AvailObject existingType =
-				impsTuple.tupleAt(i).bodySignature();
+			final AvailObject existingType = definition.bodySignature();
 			final boolean same = existingType.argsTupleType().equals(
 				bodySignature.argsTupleType());
 			if (same)
@@ -379,9 +377,9 @@ public abstract class Interpreter
 				}
 			}
 		}
-		imps.addImplementation(newImp);
+		method.addDefinition(newForward);
 		pendingForwards = pendingForwards.setWithElementCanDestroy(
-			newImp,
+			newForward,
 			true);
 		assert methodName.isAtom();
 		module.filteredBundleTree().includeBundle(
@@ -391,12 +389,12 @@ public abstract class Interpreter
 	/**
 	 * Add the abstract method signature. A class is considered abstract if
 	 * there are any abstract methods that haven't been overridden with
-	 * implementations for it.
+	 * definitions for it.
 	 *
 	 * @param methodName
 	 *        A {@linkplain AtomDescriptor method name}.
 	 * @param bodySignature
-	 *        The {@linkplain MethodImplementationDescriptor method signature}.
+	 *        The {@linkplain MethodDefinitionDescriptor method signature}.
 	 * @param extendGrammar
 	 *        {@code true} if the method name should be added to the current
 	 *        module's bundle tree, {@code false} otherwise.
@@ -424,22 +422,23 @@ public abstract class Interpreter
 		//  Make it so we can safely hold onto these things in the VM
 		methodName.makeImmutable();
 		bodySignature.makeImmutable();
-		//  Add the method implementation.
-		final AvailObject newImp = AbstractDeclarationDescriptor.create(
+		//  Add the method definition.
+		final AvailObject method = runtime.methodFor(methodName);
+		final AvailObject newDefinition = AbstractDefinitionDescriptor.create(
+			method,
 			bodySignature);
-		module.addMethodImplementation(methodName, newImp);
-		final AvailObject imps = runtime.methodFor(methodName);
-		AvailObject forward = null;
-		for (final AvailObject existingImp : imps.implementationsTuple())
+		module.addMethodDefinition(newDefinition);
+		@Nullable AvailObject forward = null;
+		for (final AvailObject existingDefinition : method.definitionsTuple())
 		{
-			final AvailObject existingType = existingImp.bodySignature();
+			final AvailObject existingType = existingDefinition.bodySignature();
 			final boolean same = existingType.argsTupleType().equals(
 				bodySignature.argsTupleType());
 			if (same)
 			{
-				if (existingImp.isForward())
+				if (existingDefinition.isForwardDefinition())
 				{
-					forward = existingImp;
+					forward = existingDefinition;
 				}
 				else
 				{
@@ -470,7 +469,7 @@ public abstract class Interpreter
 		{
 			resolvedForwardWithName(forward, methodName);
 		}
-		imps.addImplementation(newImp);
+		method.addDefinition(newDefinition);
 		if (extendGrammar)
 		{
 			module.filteredBundleTree().includeBundle(
@@ -479,8 +478,8 @@ public abstract class Interpreter
 	}
 
 	/**
-	 * Add the macro implementation.  The precedence rules can not change after
-	 * the first implementation is encountered, so set them to 'no restrictions'
+	 * Add the macro definition.  The precedence rules can not change after
+	 * the first definition is encountered, so set them to 'no restrictions'
 	 * if they're not set already.
 	 *
 	 * @param methodName
@@ -498,6 +497,7 @@ public abstract class Interpreter
 		assert methodName.isAtom();
 		assert macroBody.isFunction();
 
+		final AvailObject method = runtime.methodFor(methodName);
 		final MessageSplitter splitter = new MessageSplitter(methodName.name());
 		final int numArgs = splitter.numberOfArguments();
 		assert macroBody.code().numArgs() == numArgs
@@ -505,15 +505,14 @@ public abstract class Interpreter
 		//  Make it so we can safely hold onto these things in the VM
 		methodName.makeImmutable();
 		macroBody.makeImmutable();
-		//  Add the macro implementation.
-		final AvailObject newImp =
-			MacroImplementationDescriptor.create(macroBody);
-		module.addMethodImplementation(methodName, newImp);
-		final AvailObject imps = runtime.methodFor(methodName);
+		//  Add the macro definition.
+		final AvailObject macroDefinition =
+			MacroDefinitionDescriptor.create(method, macroBody);
+		module.addMethodDefinition(macroDefinition);
 		final AvailObject macroBodyType = macroBody.kind();
-		for (final AvailObject existingImp : imps.implementationsTuple())
+		for (final AvailObject existingDefinition : method.definitionsTuple())
 		{
-			final AvailObject existingType = existingImp.bodySignature();
+			final AvailObject existingType = existingDefinition.bodySignature();
 			final boolean same = existingType.argsTupleType().equals(
 				macroBodyType.argsTupleType());
 			if (same)
@@ -540,7 +539,7 @@ public abstract class Interpreter
 				}
 			}
 		}
-		imps.addImplementation(newImp);
+		method.addDefinition(macroDefinition);
 		module.filteredBundleTree().includeBundle(
 			MessageBundleDescriptor.newBundle(methodName));
 	}
@@ -665,7 +664,7 @@ public abstract class Interpreter
 
 	/**
 	 * Answer the Avail {@linkplain SetDescriptor set} of outstanding unresolved
-	 * {@linkplain ForwardDeclarationDescriptor forward declarations} within the
+	 * {@linkplain ForwardDefinitionDescriptor forward declarations} within the
 	 * current module.
 	 *
 	 * @return The set of unresolved forward declarations.
@@ -734,7 +733,7 @@ public abstract class Interpreter
 
 	/**
 	 * The given forward is in the fiber of being resolved. A real
-	 * implementation is about to be added to the method tables, so remove the
+	 * definition is about to be added to the method tables, so remove the
 	 * forward now.
 	 *
 	 * @param aForward A forward declaration.
@@ -758,7 +757,7 @@ public abstract class Interpreter
 			error("Inconsistent forward declaration handling code");
 			return;
 		}
-		if (!method.includesImplementation(aForward))
+		if (!method.includesDefinition(aForward))
 		{
 			error("Inconsistent forward declaration handling code");
 			return;
@@ -770,27 +769,27 @@ public abstract class Interpreter
 	}
 
 	/**
-	 * Unbind the specified implementation from the {@linkplain
+	 * Unbind the specified definition from the {@linkplain
 	 * AtomDescriptor method name}.
 	 *
 	 * @param methodName
 	 *            The {@linkplain AtomDescriptor true name} of a method.
-	 * @param implementation
-	 *            An {@linkplain ImplementationDescriptor implementation}.
+	 * @param definition
+	 *            An {@linkplain DefinitionDescriptor definition}.
 	 */
-	public void removeMethodNamedImplementation (
+	public void removeDefinition (
 		final AvailObject methodName,
-		final AvailObject implementation)
+		final AvailObject definition)
 	{
 		assert methodName.isAtom();
 
-		if (implementation.isForward())
+		if (definition.isForwardDefinition())
 		{
 			pendingForwards = pendingForwards.setWithoutElementCanDestroy(
-				implementation,
+				definition,
 				true);
 		}
-		runtime.removeMethod(methodName, implementation);
+		runtime.removeMethod(methodName, definition);
 	}
 
 

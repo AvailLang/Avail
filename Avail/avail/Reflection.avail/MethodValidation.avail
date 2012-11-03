@@ -30,14 +30,14 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "MethodValidation"
+System Module "MethodValidation"
 Extends
 Uses
 	"Kernel",
 	"Methods"
 Names
 	"Requires Clause Exception",
-	"reasonString",
+	"_reasonString",
 	"validate types for message_argument types_if fail_"
 
 Body
@@ -48,8 +48,10 @@ Body
 
 
 reasonString ::= lookup "reasonString";
-"Requires Clause Exception" is explicit subtype of Exception with [reasonString -> string];
+"Requires Clause Exception" is explicit subtype of Exception
+	with reasonString -> string;
 
+Requires Clause Exception has fields <"reasonString">;
 
 
 /* Now, a validation routine which takes a bundle and some argument
@@ -57,53 +59,53 @@ reasonString ::= lookup "reasonString";
 
 Method "validate types for message_argument types_if fail_" is [
 		bundle : messageBundle,
-		argTypes : tuple of type,
+		argTypes : tuple of any type,
 		ifFail : [string]->terminates |
-	if argTypes any [argType : type | argType = terminates;] then [
+	if argTypes any [argType : type | argType = terminates] then [
 		ifFail("argument of \""
 			then bundle message name
-			then "\" to be some type other  than terminates");
+			then "\" to be some type other  than terminates")
 	];
 	sigs ::= bundle signatures;
+	myArgumentsType ::= tuple like argTypes;
 	matching : tuple of signature := <>;
 	sigs do [sig : signature |
-		sigBodyType ::= sig bodyType;
-		if 1 to ||sigBodyType|| all [i : natural number |
-				argTypes [i] <= sigBodyType [i];] then [
+		if myArgumentsType <= sig bodyType arguments type then [
 			matching := matching then <sig>;
 		];
 	];
 	chosenMethod ::= if ||matching|| = 1 then [
-		matching[1];
+		matching[1]
 	] else [
 		bestMatches : tuple of signature := <>;
 		matching do [sig : signature |
-			body ::= sig bodyType;
+			argsType ::= sig bodyType arguments type;
 			isBest ::= matching all [sig2 : signature |
-				body2 ::= sig2 bodyType;
-				1 to ||body|| all [i : natural number |
-					body[i] <= body2[i];
-				];
+				argsType <= sig2 bodyType arguments type
 			];
 			if isBest then [
 				bestMatches := bestMatches then <sig>;
 			];
 		];
 		if ||bestMatches|| = 0 then [
-			ifFail("at least one signature to be applicable");
+			ifFail("at least one signature to be applicable")
 		];
 		if ||bestMatches|| not = 1 then [
-			ifFail("passed types to select a single most specific method");
+			ifFail("passed types to select a single most specific method")
 		];
-		bestMatches[1];
+		bestMatches[1]
 	];
 
 	/* Now let's run the chosenMethod's returns block to get our type. */
+	resultType : type := chosenMethod bodyType result type;
 	catch [reason : Requires Clause Exception |
-		ifFail (reason->reasonString);
+		ifFail (reason reasonString)
 	] in [
-		chosenMethod returns block apply argTypes;
+		impSet ::= bundle message implementation set;
+		impSet semantic restrictions for argTypes do [f : [...]->type |
+			resultType := type intersection of resultType
+				and f apply argTypes;
+		];
 	];
+	resultType
 ] : type;
-
-

@@ -1,5 +1,5 @@
 /**
- * P_402_BootstrapArgumentMacro.java
+ * P_401_BootstrapArgumentMacro.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -40,18 +40,18 @@ import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 
 /**
- * The {@code P_402_BootstrapArgumentMacro} primitive is used for bootstrapping
+ * The {@code P_401_BootstrapArgumentMacro} primitive is used for bootstrapping
  * the {@link #ARGUMENT_NODE block argument declaration} syntax.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class P_402_BootstrapArgumentMacro extends Primitive
+public class P_401_BootstrapArgumentMacro extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_402_BootstrapArgumentMacro().init(2, CannotFail, Bootstrap);
+		new P_401_BootstrapArgumentMacro().init(2, CannotFail, Bootstrap);
 
 	@Override
 	public Result attempt (

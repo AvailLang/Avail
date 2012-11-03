@@ -307,7 +307,7 @@ public class L2Translator implements L1OperationDispatcher
 	/**
 	 * Only inline effectively monomorphic messages for now -- i.e., methods
 	 * where every possible method uses the same primitive number.  Return all
-	 * of the applicable method implementation bodies if they're unambiguous and
+	 * of the applicable method definition bodies if they're unambiguous and
 	 * can be inlined (or is a {@code Primitive.Flag#SpecialReturnConstant}),
 	 * otherwise return null.
 	 *
@@ -315,7 +315,7 @@ public class L2Translator implements L1OperationDispatcher
 	 *               containing the method(s) that may be inlined or invoked.
 	 * @param args A {@link List} of {@linkplain L2ObjectRegister registers}
 	 *             holding the actual constant values used to look up the
-	 *             implementation for the call.
+	 *             method definition for the call.
 	 * @return A method body (a {@code FunctionDescriptor function}) that
 	 *         exemplifies the primitive that should be inlined, or {@code
 	 *         null}.
@@ -336,7 +336,7 @@ public class L2Translator implements L1OperationDispatcher
 
 	/**
 	 * Only inline effectively monomorphic messages for now -- i.e., methods
-	 * where every possible implementation uses the same primitive number.
+	 * where every possible method definition uses the same primitive number.
 	 * Return all possible primitive functions if they would all have the same
 	 * primitive behavior (and they can be inlined), otherwise answer null.
 	 *
@@ -354,13 +354,13 @@ public class L2Translator implements L1OperationDispatcher
 		final List<AvailObject> argTypes)
 	{
 		final List<AvailObject> imps =
-			method.implementationsAtOrBelow(argTypes);
+			method.definitionsAtOrBelow(argTypes);
 		final List<AvailObject> bodies = new ArrayList<AvailObject>(2);
 		int existingPrimitiveNumber = -1;
 		for (final AvailObject imp : imps)
 		{
 			// If a forward or abstract method is possible, don't inline.
-			if (!imp.isMethod())
+			if (!imp.isMethodDefinition())
 			{
 				return null;
 			}
@@ -377,7 +377,7 @@ public class L2Translator implements L1OperationDispatcher
 			}
 			else if (primitiveNumber != existingPrimitiveNumber)
 			{
-				// Another possible implementation has a different primitive
+				// Another possible definition has a different primitive
 				// number.  Don't attempt to inline.
 				return null;
 			}
@@ -825,10 +825,10 @@ public class L2Translator implements L1OperationDispatcher
 		final L2ObjectRegister function = registers.newObject();
 		// Look up the method body to invoke.
 		final List<AvailObject> possibleMethods =
-			method.implementationsAtOrBelow(argTypes);
-		if (possibleMethods.size() == 1 && possibleMethods.get(0).isMethod())
+			method.definitionsAtOrBelow(argTypes);
+		if (possibleMethods.size() == 1 && possibleMethods.get(0).isMethodDefinition())
 		{
-			// If there was only one possible implementation to invoke, don't
+			// If there was only one possible definition to invoke, don't
 			// bother looking it up at runtime.
 			moveConstant(possibleMethods.get(0).bodyBlock(), function);
 		}

@@ -57,7 +57,7 @@ public enum L1Operation
 	 * <p>The first operand is an index into the current code's {@link
 	 * AvailObject#literalAt(int) literals}, which specifies a {@linkplain
 	 * MethodDescriptor method} that contains a collection of {@linkplain
-	 * MethodImplementationDescriptor method implementations} that might be
+	 * MethodDefinitionDescriptor method definitions} that might be
 	 * invoked.  The arguments are expected to already have been pushed. They
 	 * are popped from the stack and the literal specified by the second operand
 	 * is pushed.  This is the expected type of the send.  When the invoked

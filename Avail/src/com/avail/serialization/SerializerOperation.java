@@ -1260,14 +1260,20 @@ public enum SerializerOperation
 	},
 
 	/**
-	 * Reserved for future use.
+	 * A reference to a {@linkplain MethodDefinitionDescriptor method
+	 * definition}, which should be reconstructed by looking it up.
 	 */
-	RESERVED_44 (44)
+	METHOD_DEFINITION (44,
+		OBJECT_REFERENCE.as("method"),
+		OBJECT_REFERENCE.as("signature"))
 	{
 		@Override
 		AvailObject[] decompose (final AvailObject object)
 		{
-			throw new RuntimeException("Reserved serializer operation");
+			assert object.isMethodDefinition();
+			return array(
+				object.definitionMethod(),
+				object.bodySignature());
 		}
 
 		@Override
@@ -1275,19 +1281,39 @@ public enum SerializerOperation
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
-			throw new RuntimeException("Reserved serializer operation");
+			final AvailObject definitionMethod = subobjects[0];
+			final AvailObject signature = subobjects[1];
+			final List<AvailObject> definitions = new ArrayList<AvailObject>(1);
+			for (final AvailObject eachDefinition
+				: definitionMethod.definitionsTuple())
+			{
+				if (eachDefinition.bodySignature().equals(signature))
+				{
+					definitions.add(eachDefinition);
+				}
+			}
+			assert definitions.size() == 1;
+			final AvailObject definition = definitions.get(0);
+			assert definition.isMethodDefinition();
+			return definition;
 		}
 	},
 
 	/**
-	 * Reserved for future use.
+	 * A reference to a {@linkplain MacroDefinitionDescriptor macro
+	 * definition}, which should be reconstructed by looking it up.
 	 */
-	RESERVED_45 (45)
+	MACRO_DEFINITION (45,
+		OBJECT_REFERENCE.as("method"),
+		OBJECT_REFERENCE.as("signature"))
 	{
 		@Override
 		AvailObject[] decompose (final AvailObject object)
 		{
-			throw new RuntimeException("Reserved serializer operation");
+			assert object.isMacroDefinition();
+			return array(
+				object.definitionMethod(),
+				object.bodySignature());
 		}
 
 		@Override
@@ -1295,19 +1321,39 @@ public enum SerializerOperation
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
-			throw new RuntimeException("Reserved serializer operation");
+			final AvailObject definitionMethod = subobjects[0];
+			final AvailObject signature = subobjects[1];
+			final List<AvailObject> definitions = new ArrayList<AvailObject>(1);
+			for (final AvailObject eachDefinition
+				: definitionMethod.definitionsTuple())
+			{
+				if (eachDefinition.bodySignature().equals(signature))
+				{
+					definitions.add(eachDefinition);
+				}
+			}
+			assert definitions.size() == 1;
+			final AvailObject definition = definitions.get(0);
+			assert definition.isMacroDefinition();
+			return definition;
 		}
 	},
 
 	/**
-	 * Reserved for future use.
+	 * A reference to an {@linkplain AbstractDefinitionDescriptor abstract
+	 * declaration}, which should be reconstructed by looking it up.
 	 */
-	RESERVED_46 (46)
+	ABSTRACT_DEFINITION (46,
+		OBJECT_REFERENCE.as("method"),
+		OBJECT_REFERENCE.as("signature"))
 	{
 		@Override
 		AvailObject[] decompose (final AvailObject object)
 		{
-			throw new RuntimeException("Reserved serializer operation");
+			assert object.isAbstractDefinition();
+			return array(
+				object.definitionMethod(),
+				object.bodySignature());
 		}
 
 		@Override
@@ -1315,19 +1361,39 @@ public enum SerializerOperation
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
-			throw new RuntimeException("Reserved serializer operation");
+			final AvailObject definitionMethod = subobjects[0];
+			final AvailObject signature = subobjects[1];
+			final List<AvailObject> definitions = new ArrayList<AvailObject>(1);
+			for (final AvailObject eachDefinition
+				: definitionMethod.definitionsTuple())
+			{
+				if (eachDefinition.bodySignature().equals(signature))
+				{
+					definitions.add(eachDefinition);
+				}
+			}
+			assert definitions.size() == 1;
+			final AvailObject definition = definitions.get(0);
+			assert definition.isAbstractDefinition();
+			return definition;
 		}
 	},
 
 	/**
-	 * Reserved for future use.
+	 * A reference to a {@linkplain ForwardDefinitionDescriptor forward
+	 * declaration}, which should be reconstructed by looking it up.
 	 */
-	RESERVED_47 (47)
+	FORWARD_DEFINITION (47,
+		OBJECT_REFERENCE.as("method"),
+		OBJECT_REFERENCE.as("signature"))
 	{
 		@Override
 		AvailObject[] decompose (final AvailObject object)
 		{
-			throw new RuntimeException("Reserved serializer operation");
+			assert object.isForwardDefinition();
+			return array(
+				object.definitionMethod(),
+				object.bodySignature());
 		}
 
 		@Override
@@ -1335,7 +1401,21 @@ public enum SerializerOperation
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
-			throw new RuntimeException("Reserved serializer operation");
+			final AvailObject definitionMethod = subobjects[0];
+			final AvailObject signature = subobjects[1];
+			final List<AvailObject> definitions = new ArrayList<AvailObject>(1);
+			for (final AvailObject eachDefinition
+				: definitionMethod.definitionsTuple())
+			{
+				if (eachDefinition.bodySignature().equals(signature))
+				{
+					definitions.add(eachDefinition);
+				}
+			}
+			assert definitions.size() == 1;
+			final AvailObject definition = definitions.get(0);
+			assert definition.isForwardDefinition();
+			return definition;
 		}
 	},
 
@@ -1380,9 +1460,209 @@ public enum SerializerOperation
 	},
 
 	/**
+	 * Reserved for future use.
+	 */
+	RESERVED_50 (50)
+	{
+		@Override
+		AvailObject[] decompose (final AvailObject object)
+		{
+			throw new RuntimeException("Reserved serializer operation");
+		}
+
+		@Override
+		AvailObject compose (
+			final AvailObject[] subobjects,
+			final Deserializer deserializer)
+		{
+			throw new RuntimeException("Reserved serializer operation");
+		}
+	},
+
+	/**
+	 * Reserved for future use.
+	 */
+	RESERVED_51 (51)
+	{
+		@Override
+		AvailObject[] decompose (final AvailObject object)
+		{
+			throw new RuntimeException("Reserved serializer operation");
+		}
+
+		@Override
+		AvailObject compose (
+			final AvailObject[] subobjects,
+			final Deserializer deserializer)
+		{
+			throw new RuntimeException("Reserved serializer operation");
+		}
+	},
+
+	/**
+	 * Reserved for future use.
+	 */
+	RESERVED_52 (52)
+	{
+		@Override
+		AvailObject[] decompose (final AvailObject object)
+		{
+			throw new RuntimeException("Reserved serializer operation");
+		}
+
+		@Override
+		AvailObject compose (
+			final AvailObject[] subobjects,
+			final Deserializer deserializer)
+		{
+			throw new RuntimeException("Reserved serializer operation");
+		}
+	},
+
+	/**
+	 * Reserved for future use.
+	 */
+	RESERVED_53 (53)
+	{
+		@Override
+		AvailObject[] decompose (final AvailObject object)
+		{
+			throw new RuntimeException("Reserved serializer operation");
+		}
+
+		@Override
+		AvailObject compose (
+			final AvailObject[] subobjects,
+			final Deserializer deserializer)
+		{
+			throw new RuntimeException("Reserved serializer operation");
+		}
+	},
+
+	/**
+	 * Reserved for future use.
+	 */
+	RESERVED_54 (54)
+	{
+		@Override
+		AvailObject[] decompose (final AvailObject object)
+		{
+			throw new RuntimeException("Reserved serializer operation");
+		}
+
+		@Override
+		AvailObject compose (
+			final AvailObject[] subobjects,
+			final Deserializer deserializer)
+		{
+			throw new RuntimeException("Reserved serializer operation");
+		}
+	},
+
+	/**
+	 * Reserved for future use.
+	 */
+	RESERVED_55 (55)
+	{
+		@Override
+		AvailObject[] decompose (final AvailObject object)
+		{
+			throw new RuntimeException("Reserved serializer operation");
+		}
+
+		@Override
+		AvailObject compose (
+			final AvailObject[] subobjects,
+			final Deserializer deserializer)
+		{
+			throw new RuntimeException("Reserved serializer operation");
+		}
+	},
+
+	/**
+	 * Reserved for future use.
+	 */
+	RESERVED_56 (56)
+	{
+		@Override
+		AvailObject[] decompose (final AvailObject object)
+		{
+			throw new RuntimeException("Reserved serializer operation");
+		}
+
+		@Override
+		AvailObject compose (
+			final AvailObject[] subobjects,
+			final Deserializer deserializer)
+		{
+			throw new RuntimeException("Reserved serializer operation");
+		}
+	},
+
+	/**
+	 * Reserved for future use.
+	 */
+	RESERVED_57 (57)
+	{
+		@Override
+		AvailObject[] decompose (final AvailObject object)
+		{
+			throw new RuntimeException("Reserved serializer operation");
+		}
+
+		@Override
+		AvailObject compose (
+			final AvailObject[] subobjects,
+			final Deserializer deserializer)
+		{
+			throw new RuntimeException("Reserved serializer operation");
+		}
+	},
+
+	/**
+	 * Reserved for future use.
+	 */
+	RESERVED_58 (58)
+	{
+		@Override
+		AvailObject[] decompose (final AvailObject object)
+		{
+			throw new RuntimeException("Reserved serializer operation");
+		}
+
+		@Override
+		AvailObject compose (
+			final AvailObject[] subobjects,
+			final Deserializer deserializer)
+		{
+			throw new RuntimeException("Reserved serializer operation");
+		}
+	},
+
+	/**
+	 * Reserved for future use.
+	 */
+	RESERVED_59 (59)
+	{
+		@Override
+		AvailObject[] decompose (final AvailObject object)
+		{
+			throw new RuntimeException("Reserved serializer operation");
+		}
+
+		@Override
+		AvailObject compose (
+			final AvailObject[] subobjects,
+			final Deserializer deserializer)
+		{
+			throw new RuntimeException("Reserved serializer operation");
+		}
+	},
+
+	/**
 	 * A {@linkplain FunctionTypeDescriptor function type}.
 	 */
-	FUNCTION_TYPE (50,
+	FUNCTION_TYPE (60,
 		OBJECT_REFERENCE.as("Arguments tuple type"),
 		OBJECT_REFERENCE.as("Return type"),
 		TUPLE_OF_OBJECTS.as("Checked exceptions"))
@@ -1414,7 +1694,7 @@ public enum SerializerOperation
 	/**
 	 * A {@linkplain TupleTypeDescriptor tuple type}.
 	 */
-	TUPLE_TYPE (51,
+	TUPLE_TYPE (61,
 		OBJECT_REFERENCE.as("Tuple sizes"),
 		TUPLE_OF_OBJECTS.as("Leading types"),
 		OBJECT_REFERENCE.as("Default type"))
@@ -1446,7 +1726,7 @@ public enum SerializerOperation
 	/**
 	 * An {@linkplain IntegerRangeTypeDescriptor integer range type}.
 	 */
-	INTEGER_RANGE_TYPE (52,
+	INTEGER_RANGE_TYPE (62,
 		BYTE.as("Inclusive flags"),
 		OBJECT_REFERENCE.as("Lower bound"),
 		OBJECT_REFERENCE.as("Upper bound"))
@@ -1483,7 +1763,7 @@ public enum SerializerOperation
 	/**
 	 * Reserved for future use.
 	 */
-	RESERVED_53 (53)
+	RESERVED_63 (63)
 	{
 		@Override
 		AvailObject[] decompose (final AvailObject object)
@@ -1515,7 +1795,7 @@ public enum SerializerOperation
 	 * encountering the self type during tracing.
 	 * </p>
 	 */
-	UNFUSED_POJO_TYPE (54,
+	UNFUSED_POJO_TYPE (64,
 		OBJECT_REFERENCE.as("class name"),
 		TUPLE_OF_OBJECTS.as("class parameterization"))
 	{
@@ -1609,7 +1889,7 @@ public enum SerializerOperation
 	 * interface name.  This is enough to reconstruct the self pojo type.
 	 * </p>
 	 */
-	FUSED_POJO_TYPE (55,
+	FUSED_POJO_TYPE (65,
 		GENERAL_MAP.as("ancestor parameterizations map"))
 	{
 		@Override
@@ -1705,7 +1985,7 @@ public enum SerializerOperation
 	 * range of allowable sizes (a much stronger model than Java itself
 	 * supports).
 	 */
-	ARRAY_POJO_TYPE (56,
+	ARRAY_POJO_TYPE (66,
 		OBJECT_REFERENCE.as("content type"),
 		OBJECT_REFERENCE.as("size range"))
 	{
@@ -1740,7 +2020,7 @@ public enum SerializerOperation
 	 * such a self type.  To reconstruct a self type all we need is a way to get
 	 * to the raw Java classes involved, so we serialize their names.
 	 */
-	SELF_POJO_TYPE_REPRESENTATIVE (57,
+	SELF_POJO_TYPE_REPRESENTATIVE (67,
 		TUPLE_OF_OBJECTS.as("class names"))
 	{
 		@Override
@@ -1764,7 +2044,7 @@ public enum SerializerOperation
 	 * The bottom {@linkplain PojoTypeDescriptor pojo type}, representing
 	 * the most specific type of pojo.
 	 */
-	BOTTOM_POJO_TYPE (58)
+	BOTTOM_POJO_TYPE (68)
 	{
 		@Override
 		AvailObject[] decompose (final AvailObject object)
@@ -1785,7 +2065,7 @@ public enum SerializerOperation
 	 * The bottom {@linkplain PojoTypeDescriptor pojo type}, representing
 	 * the most specific type of pojo.
 	 */
-	COMPILED_CODE_TYPE (59,
+	COMPILED_CODE_TYPE (69,
 		OBJECT_REFERENCE.as("function type for code type"))
 	{
 		@Override
@@ -1807,7 +2087,7 @@ public enum SerializerOperation
 	 * The bottom {@linkplain PojoTypeDescriptor pojo type}, representing
 	 * the most specific type of pojo.
 	 */
-	CONTINUATION_TYPE (60,
+	CONTINUATION_TYPE (70,
 		OBJECT_REFERENCE.as("function type for continuation type"))
 	{
 		@Override
@@ -1829,7 +2109,7 @@ public enum SerializerOperation
 	 * An Avail {@link EnumerationTypeDescriptor enumeration}, a type that has
 	 * an explicit finite list of its instances.
 	 */
-	ENUMERATION_TYPE (61,
+	ENUMERATION_TYPE (71,
 		TUPLE_OF_OBJECTS.as("set of instances"))
 	{
 		@Override
@@ -1852,7 +2132,7 @@ public enum SerializerOperation
 	 * An Avail {@link InstanceTypeDescriptor singular enumeration}, a type that
 	 * has a single (non-type) instance.
 	 */
-	INSTANCE_TYPE (62,
+	INSTANCE_TYPE (72,
 		OBJECT_REFERENCE.as("type's instance"))
 	{
 		@Override
@@ -1875,7 +2155,7 @@ public enum SerializerOperation
 	 * has an instance i, which is itself a type.  Subtypes of type i are also
 	 * considered instances of this instance meta.
 	 */
-	INSTANCE_META (63,
+	INSTANCE_META (73,
 		OBJECT_REFERENCE.as("meta's instance"))
 	{
 		@Override
@@ -1896,7 +2176,7 @@ public enum SerializerOperation
 	/**
 	 * A {@linkplain SetTypeDescriptor set type}.
 	 */
-	SET_TYPE (64,
+	SET_TYPE (74,
 		OBJECT_REFERENCE.as("size range"),
 		OBJECT_REFERENCE.as("element type"))
 	{
@@ -1924,7 +2204,7 @@ public enum SerializerOperation
 	/**
 	 * A {@linkplain MapTypeDescriptor map type}.
 	 */
-	MAP_TYPE (65,
+	MAP_TYPE (75,
 		OBJECT_REFERENCE.as("size range"),
 		OBJECT_REFERENCE.as("key type"),
 		OBJECT_REFERENCE.as("value type"))
@@ -1956,7 +2236,7 @@ public enum SerializerOperation
 	/**
 	 * A {@linkplain LiteralTokenTypeDescriptor literal token type}.
 	 */
-	LITERAL_TOKEN_TYPE (66,
+	LITERAL_TOKEN_TYPE (76,
 		OBJECT_REFERENCE.as("literal type"))
 	{
 		@Override
@@ -1978,7 +2258,7 @@ public enum SerializerOperation
 	/**
 	 * A {@linkplain ParseNodeTypeDescriptor parse node type}.
 	 */
-	PARSE_NODE_TYPE (67,
+	PARSE_NODE_TYPE (77,
 		BYTE.as("kind"),
 		OBJECT_REFERENCE.as("expression type"))
 	{
@@ -2007,7 +2287,7 @@ public enum SerializerOperation
 	 * A {@linkplain VariableTypeDescriptor variable type} for which the read
 	 * type and write type are equal.
 	 */
-	SIMPLE_VARIABLE_TYPE (68,
+	SIMPLE_VARIABLE_TYPE (78,
 		OBJECT_REFERENCE.as("content type"))
 	{
 		@Override
@@ -2032,7 +2312,7 @@ public enum SerializerOperation
 	 * A {@linkplain ReadWriteVariableTypeDescriptor variable type} for which
 	 * the read type and write type are (actually) unequal.
 	 */
-	READ_WRITE_VARIABLE_TYPE (69,
+	READ_WRITE_VARIABLE_TYPE (79,
 		OBJECT_REFERENCE.as("content type"))
 	{
 		@Override
@@ -2061,7 +2341,7 @@ public enum SerializerOperation
 	 * The {@linkplain BottomTypeDescriptor bottom type}, more specific than all
 	 * other types.
 	 */
-	BOTTOM_TYPE (70)
+	BOTTOM_TYPE (80)
 	{
 		@Override
 		AvailObject[] decompose (final AvailObject object)

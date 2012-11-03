@@ -40,8 +40,8 @@ import com.avail.interpreter.*;
 
 /**
  * <strong>Primitive 251:</strong> Declare method as {@linkplain
- * AbstractDeclarationDescriptor abstract}. This identifies responsibility for
- * implementations that want to be concrete.
+ * AbstractDefinitionDescriptor abstract}. This identifies responsibility for
+ * definitions that want to be concrete.
  */
 public class P_251_AbstractMethodDeclaration extends Primitive
 {

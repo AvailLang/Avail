@@ -300,12 +300,12 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_AddImplementation (
-			final AvailObject object,
-			final AvailObject implementation)
-		throws SignatureException
+	void o_AddDefinition (
+		final AvailObject object,
+		final AvailObject definition)
+	throws SignatureException
 	{
-		o_Traversed(object).addImplementation(implementation);
+		o_Traversed(object).addDefinition(definition);
 	}
 
 	@Override
@@ -349,14 +349,12 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_AddMethodImplementation (
+	void o_AddMethodDefinition (
 		final AvailObject object,
-		final AvailObject methodName,
-		final AvailObject implementation)
+		final AvailObject definition)
 	{
-		o_Traversed(object).addMethodImplementation(
-			methodName,
-			implementation);
+		o_Traversed(object).addMethodDefinition(
+			definition);
 	}
 
 	@Override
@@ -1100,11 +1098,11 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	List<AvailObject> o_ImplementationsAtOrBelow (
+	List<AvailObject> o_DefinitionsAtOrBelow (
 		final AvailObject object,
 		final List<AvailObject> argTypes)
 	{
-		return o_Traversed(object).implementationsAtOrBelow(argTypes);
+		return o_Traversed(object).definitionsAtOrBelow(argTypes);
 	}
 
 	@Override
@@ -1117,11 +1115,11 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	boolean o_IncludesImplementation (
+	boolean o_IncludesDefinition (
 		final AvailObject object,
-		final AvailObject imp)
+		final AvailObject definition)
 	{
-		return o_Traversed(object).includesImplementation(imp);
+		return o_Traversed(object).includesDefinition(definition);
 	}
 
 	@Override
@@ -2490,9 +2488,9 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	AvailObject o_ImplementationsTuple (final AvailObject object)
+	AvailObject o_DefinitionsTuple (final AvailObject object)
 	{
-		return o_Traversed(object).implementationsTuple();
+		return o_Traversed(object).definitionsTuple();
 	}
 
 	@Override
@@ -2517,6 +2515,12 @@ extends AbstractDescriptor
 	int o_InvocationCount (final AvailObject object)
 	{
 		return o_Traversed(object).invocationCount();
+	}
+
+	@Override
+	boolean o_IsAbstractDefinition (final AvailObject object)
+	{
+		return o_Traversed(object).isAbstractDefinition();
 	}
 
 	@Override
@@ -2577,9 +2581,9 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	boolean o_IsForward (final AvailObject object)
+	boolean o_IsForwardDefinition (final AvailObject object)
 	{
-		return o_Traversed(object).isForward();
+		return o_Traversed(object).isForwardDefinition();
 	}
 
 	@Override
@@ -2589,9 +2593,9 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	boolean o_IsMethod (final AvailObject object)
+	boolean o_IsMethodDefinition (final AvailObject object)
 	{
-		return o_Traversed(object).isMethod();
+		return o_Traversed(object).isMethodDefinition();
 	}
 
 	@Override
@@ -2913,12 +2917,6 @@ extends AbstractDescriptor
 	int o_SetSize (final AvailObject object)
 	{
 		return o_Traversed(object).setSize();
-	}
-
-	@Override
-	AvailObject o_Signature (final AvailObject object)
-	{
-		return o_Traversed(object).signature();
 	}
 
 	@Override
@@ -3284,25 +3282,10 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	boolean o_IsMacro (
+	boolean o_IsMacroDefinition (
 		final AvailObject object)
 	{
-		return o_Traversed(object).isMacro();
-	}
-
-	@Override
-	void o_Macros (
-		final AvailObject object,
-		final AvailObject value)
-	{
-		o_Traversed(object).macros(value);
-	}
-
-	@Override
-	AvailObject o_Macros (
-		final AvailObject object)
-	{
-		return o_Traversed(object).macros();
+		return o_Traversed(object).isMacroDefinition();
 	}
 
 	@Override
@@ -3317,13 +3300,6 @@ extends AbstractDescriptor
 		final AvailObject object)
 	{
 		return o_Traversed(object).binUnionKind();
-	}
-
-	@Override
-	AvailObject o_MacroName (
-		final AvailObject object)
-	{
-		return o_Traversed(object).macroName();
 	}
 
 	@Override
@@ -4421,5 +4397,27 @@ extends AbstractDescriptor
 		final boolean canDestroy)
 	{
 		return o_Traversed(object).bitShift(shiftFactor, canDestroy);
+	}
+
+	@Override
+	boolean o_EqualsParseNode (
+		final AvailObject object,
+		final AvailObject aParseNode)
+	{
+		return o_Traversed(object).equalsParseNodeType(aParseNode);
+	}
+
+	@Override
+	AvailObject o_StripMacro (
+		final AvailObject object)
+	{
+		return o_Traversed(object).stripMacro();
+	}
+
+	@Override
+	public AvailObject o_DefinitionMethod (
+		final AvailObject object)
+	{
+		return o_Traversed(object).definitionMethod();
 	}
 }

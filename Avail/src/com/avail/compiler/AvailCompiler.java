@@ -40,6 +40,7 @@ import com.avail.annotations.Nullable;
 import com.avail.builder.ModuleName;
 import com.avail.descriptor.*;
 import com.avail.interpreter.levelTwo.L2Interpreter;
+import com.avail.utility.Generator;
 
 /**
  * I parse a source file to create a {@linkplain ModuleDescriptor module}.
@@ -108,7 +109,7 @@ extends AbstractAvailCompiler
 								if (expression.expressionType().equals(TOP.o()))
 								{
 									whenFoundStatement.value(
-										afterExpression.afterToken(),
+										afterExpression,
 										expression);
 								}
 								else
@@ -154,35 +155,78 @@ extends AbstractAvailCompiler
 	void completedSendNodeForMacro (
 		final ParserState stateBeforeCall,
 		final ParserState stateAfterCall,
-		final List<AvailObject> argumentExpressions,
+		final List<AvailObject> passedArgumentExpressions,
 		final AvailObject bundle,
 		final AvailObject method,
 		final Con<AvailObject> continuation)
 	{
-		final List<AvailObject> argumentNodeTypes = new ArrayList<AvailObject>(
-			argumentExpressions.size());
-		for (final AvailObject argExpr : argumentExpressions)
+		final AvailObject definitions = method.definitionsTuple();
+		assert definitions.tupleSize() == 1;
+		final AvailObject macroDefinition = definitions.tupleAt(1);
+		final AvailObject macroBody = macroDefinition.bodyBlock();
+		final AvailObject macroBodyKind = macroBody.kind();
+		final List<AvailObject> argumentExpressions =
+			new ArrayList<AvailObject>(passedArgumentExpressions.size());
+		// Strip off macro substitution wrappers from the arguments.  These
+		// were preserved only long enough to test grammatical restrictions.
+		for (final AvailObject argumentExpression : passedArgumentExpressions)
 		{
-			argumentNodeTypes.add(argExpr.kind());
+			argumentExpressions.add(argumentExpression.stripMacro());
+		}
+		if (!macroBodyKind.acceptsListOfArgValues(argumentExpressions))
+		{
+			stateAfterCall.expected(
+				new Generator<String>()
+				{
+					@Override
+					public String value ()
+					{
+						final List<Integer> disagreements =
+							new ArrayList<Integer>();
+						for (int i = 1; i <= macroBody.code().numArgs(); i++)
+						{
+							final AvailObject type =
+								macroBodyKind.argsTupleType().typeAtIndex(i);
+							final AvailObject value =
+								argumentExpressions.get(i - 1);
+							if (!value.isInstanceOf(type))
+							{
+								disagreements.add(i);
+							}
+						}
+						assert disagreements.size() > 0;
+						return String.format(
+							"macro arguments %s to agree with definition:%n"
+							+ "\tmacro = %s%n"
+							+ "\texpected = %s%n"
+							+ "\targuments = %s%n",
+							disagreements,
+							method.name(),
+							macroBodyKind,
+							argumentExpressions);
+					}
+				});
+			return;
 		}
 		// A macro can't have semantic restrictions, so just run it.
 		try
 		{
-			final AvailObject implementations = method.implementationsTuple();
-			assert implementations.tupleSize() == 1;
-
 			// Declarations introduced in the macro should now be moved
 			// out of scope.
+			final ParserState reportedStateDuringValidation = new ParserState(
+				stateAfterCall.position - 1,
+				stateBeforeCall.scopeMap,
+				stateBeforeCall.innermostBlockArguments);
 			final ParserState stateAfter = new ParserState(
 				stateAfterCall.position,
 				stateBeforeCall.scopeMap,
 				stateBeforeCall.innermostBlockArguments);
-			interpreter.currentParserState = stateAfter;
+			interpreter.currentParserState = reportedStateDuringValidation;
 			AvailObject replacement;
 			try
 			{
 				replacement = interpreter.runFunctionArguments(
-					method,
+					macroBody,
 					argumentExpressions);
 			}
 			finally

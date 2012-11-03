@@ -35,19 +35,34 @@ Pragma
 	"method=253=Primitive_is_",
 	"method=240=special object_",
 
-	"macro=400=[««_¶‡,»`|»§«Primitive_«_¶»;»«_¶;»«_¶;»«_»]«:_†»«^«_†‡,»»",  /* block */
-	"macro=401=$…«:_†»",   /* label declaration */
-	"macro=402=…:_†",      /* argument declaration */
-	"macro=403=(…:_†)",    /* primitive failure declaration */
-	"macro=404=…:_#",      /* variable declaration */
-	"macro=405=…::=_",     /* constant declaration */
-	"macro=406=…:_#:=_",   /* initializing variable declaration */
-	"macro=407=…:=_",      /* assignment */
-	"macro=408=↑…",        /* variable reference */
-	"macro=409=…"          /* variable use */
+	"macro=400=[««_¶‡,»`|»§«Primitive_«_¶»;»«_¶»«_¶»«_»]«:_†»«^«_†‡,»»",  /* block */
+	"macro=401=…:_†",      /* argument declaration */
+	"macro=402=(…:_†)",    /* primitive failure declaration */
+	"macro=403=$…«:_†»;",  /* label declaration */
+	"macro=404=…:_†;",     /* variable declaration */
+	"macro=405=…::=_;",    /* constant declaration */
+	"macro=406=…:_†:=_;",  /* initializing variable declaration */
+	"macro=407=_:=_;",     /* assignment */
+	"macro=408=↑_",        /* variable reference */
+	"macro=409=…",         /* variable use */
+	"macro=410=_;"         /* send as statement */
 
 Versions
 Extends
 Uses
 Names
+	"Primitive_is_",
+	"special object_",
+	"[««_¶‡,»`|»§«Primitive_«_¶»;»«_¶»«_¶»«_»]«:_†»«^«_†‡,»»",  /* block */
+	"…:_†",      /* argument declaration */
+	"(…:_†)",    /* primitive failure declaration */
+	"$…«:_†»;",  /* label declaration */
+	"…:_†;",     /* variable declaration */
+	"…::=_;",    /* constant declaration */
+	"…:_†:=_;",  /* initializing variable declaration */
+	"_:=_;",     /* assignment */
+	"↑_",        /* variable reference */
+	"…",         /* variable use */
+	"_;"         /* send as statement */
+
 Body

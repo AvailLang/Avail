@@ -123,14 +123,14 @@ public class SendNodeDescriptor extends ParseNodeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_Equals (
+	boolean o_EqualsParseNode (
 		final AvailObject object,
-		final AvailObject another)
+		final AvailObject aParseNode)
 	{
-		return object.kind().equals(another.kind())
-			&& object.argumentsListNode().equals(another.argumentsListNode())
-			&& object.method().equals(another.method())
-			&& object.returnType().equals(another.returnType());
+		return object.kind().equals(aParseNode.kind())
+			&& object.method().equals(aParseNode.method())
+			&& object.argumentsListNode().equals(aParseNode.argumentsListNode())
+			&& object.returnType().equals(aParseNode.returnType());
 	}
 
 	@Override @AvailMethod
