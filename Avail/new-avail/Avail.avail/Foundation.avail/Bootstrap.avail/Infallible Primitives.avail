@@ -1940,10 +1940,10 @@ Primitive "_'s⁇literals" is
 ] : tuple;
 
 /**
- * Answer the specified method definition's function type.
+ * Answer the specified definition's function type.
  *
  * Parameters:
- *    aDefinition - A method definition.
+ *    aDefinition - Any definition (method, macro, abstract, forward).
  * Returns:
  *    The requested function type.
  */

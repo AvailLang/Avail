@@ -663,8 +663,7 @@ Semantic restriction "_[_]else_" is
 	]
 	else
 	[
-		min ::= cast ⎣index⎦ max 1
-			into [t : natural number | t];
+		min ::= ⎣index⎦ max 1;
 		max ::= cast ⎡index⎤ min (|tupleType's leading types| + 1)
 			into [t : whole number | t];
 		union ::= ∪ tupleType[min..max];

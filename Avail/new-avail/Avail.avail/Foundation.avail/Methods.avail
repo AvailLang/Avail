@@ -36,19 +36,38 @@ Versions
 Uses
 	"Bootstrap",
 	"Control Structures",
+	"Definers",
 	"Enumeration Support",
+	"Exceptions",
 	"Literals",
 	"Logic",
+	"Math",
 	"Tuples",
 	"Types",
 	"Variables"
+Names
+	"_is«not»?implemented at_"
 Body
 
-/* TODO: [TLS] It would be nice to uncomment this, but serialization operations
- * aren't -- and possibly can't -- be defined. Talk to Mark about this.
+/**
+ * Answer the {@method "method"} named by {@param "methodName"}.
+ *
+ * @method "method for_"
+ * @param "methodName" "string"
+ *        The name of the method, which will be resolved to an atom in the
+ *        context of the current module.
+ * @returns "method"
+ *          The requested method.
  */
-/*
-Semantic restriction "method site of_for_" is
+Method "method for_" is
+[
+	methodName : string
+|
+	methodAtom ::= atom for methodName;
+	method for methodAtom
+] : method;
+
+Semantic restriction "method definition of_for_" is
 [
 	methodType : method's type,
 	parametersType : <any meta…|>'s type
@@ -64,9 +83,9 @@ Semantic restriction "method site of_for_" is
 			args := (eject ↑args) ++ <parametersType[index]'s instance>;
 		];
 		aMethod ::= methodType's instance;
-		If aMethod has implementation for args then
+		If aMethod has definition for args then
 		[
-			result := (method site of aMethod for args)'s type;
+			result := (method definition of aMethod for args)'s type;
 		];
 	];
 	result
@@ -74,15 +93,44 @@ Semantic restriction "method site of_for_" is
 
 Semantic restriction "_'s⁇function" is
 [
-	siteType : method definition's type
+	definitionType : method definition's type
 |
-	if |siteType| = 1 then
+	if |definitionType| = 1 then
 	[
-		siteType's instance's function's type
+		definitionType's instance's function's type
 	]
 	else
 	[
 		⊤
 	]
 ];
-*/
+
+/**
+ * Is {@param "aMethod"} concrete at the specified {@type "method site"}?
+ *
+ * @method "_is«not»?concrete at_"
+ * @param "aMethod" "method"
+ *        A method.
+ * @param "negation" "boolean"
+ *        {@method "true"} if the sense of the query is reversed.
+ * @param "argTypes" "<any's type…|>"
+ *        The parameter types of the target {@type "method site"}.
+ * @returns "boolean"
+ *          {@method "true"} if the specified {@type "method site"} of {@param
+ *          "aMethod"} is an {@type "implementation site"}, {@method "false"}
+ *          otherwise.
+ */
+Public method "_is«not»?implemented at_" is
+[
+	aMethod : method,
+	negation : boolean,
+	argTypes : <any's type…|>
+|
+	ok : boolean := false;
+	If aMethod has definition for argTypes then
+	[
+		theDefinition ::= method definition of aMethod for argTypes;
+		ok := theDefinition ∈ method definition;
+	];
+	negation ≠ ok
+];

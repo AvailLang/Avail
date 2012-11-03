@@ -65,6 +65,7 @@ Names
 	"(the)“_”«else_»",
 
 	/* Formatting lists. */
+	"“_”«else_»(as list partitioned by_)",
 	"“_”«else_»(as simple list)",
 	"“_”«else_»(as«conjunctive|disjunctive»!list)",
 	"“_”«else_»\
@@ -1401,7 +1402,7 @@ Method "“_”«else_»(as«conjunctive|disjunctive»!list)" is
  * @param "aSet" "set"
  *        An arbitrary set.
  * @param "optionalEmptyText" "<[]→string…|0..1>"
- *        If specified, then the function to apply if the tuple is empty. If not
+ *        If specified, then the function to apply if the set is empty. If not
  *        specified, then {@code ["(empty)"]} will be used.
  * @param "mode" "[1..2]"
  *        If the mode is {@code 1}, then output the word {@code "and"} before
@@ -1468,6 +1469,71 @@ Method "“_”«else_»(as«conjunctive|disjunctive»!list)" is
 	tx := cast last into [t : string | t] else [“last”];
 	s := eject ↑s ++ <" and ", " or ">[mode] ++ tx;
 	s
+] : string;
+
+/**
+ * Answer a textual rendition of {@param "aTuple"} as a list. Elements are
+ * separated by {@param "separator"}
+ *
+ * @method "“_”«else_»(as list partitioned by_)"
+ * @param "aTuple" "tuple"
+ *        An arbitrary tuple.
+ * @param "optionalEmptyText" "<[]→string…|0..1>"
+ *        If specified, then the function to apply if the tuple is empty. If not
+ *        specified, then {@code ["(empty)"]} will be used.
+ * @param "separator" "string"
+ *        The text that should separate renditions of the elements of {@param
+ *        "aTuple"}.
+ * @returns "string"
+ *          The requested textual rendition.
+ */
+Method "“_”«else_»(as list partitioned by_)" is
+[
+	aTuple : tuple,
+	optionalEmptyText : <[]→string…|0..1>,
+	separator : string
+|
+	if aTuple is empty then [optionalEmptyText[1] else [["(empty)"]]()]
+	else
+	[
+		s : string := "";
+		i : natural number := 1;
+		Do
+		[
+			tx ::= cast aTuple[i] into [t : string | t] else [“aTuple[i]”];
+			s := eject ↑s ++ tx;
+			↑i++;
+		]
+		while [i ≤ |aTuple|]
+		alternate with [s := eject ↑s ++ separator;];
+		s
+	]
+] : string;
+
+/**
+ * Answer a textual rendition of {@param "aSet"} as a list. Elements are
+ * separated by {@param "separator"}
+ *
+ * @method "“_”«else_»(as list partitioned by_)"
+ * @param "aSet" "set"
+ *        An arbitrary set.
+ * @param "optionalEmptyText" "<[]→string…|0..1>"
+ *        If specified, then the function to apply if the set is empty. If not
+ *        specified, then {@code ["(empty)"]} will be used.
+ * @param "separator" "string"
+ *        The text that should separate renditions of the elements of {@param
+ *        "aSet"}.
+ * @returns "string"
+ *          The requested textual rendition.
+ */
+Method "“_”«else_»(as list partitioned by_)" is
+[
+	aSet : set,
+	optionalEmptyText : <[]→string…|0..1>,
+	separator : string
+|
+	emptyText ::= optionalEmptyText[1] else [["(empty)"]];
+	“aSet→tuple” else emptyText (as list partitioned by separator)
 ] : string;
 
 vowels ::=
@@ -1572,4 +1638,20 @@ Public method "(The)“_”«else_»" is
 	s ::= cast value into [t : string | t] else [“value”];
 	if s is empty then [missingText]
 	else ["The " ++ s]
+] : string;
+
+/* Print object types more neatly. */
+Method "“_”" is
+[
+	anObjectType : object's type
+|
+	“anObjectType's names” (as list partitioned by " ∩ ")
+] : string;
+
+/* Print objects more neatly. */
+Stable method "“_”" is
+[
+	anObject : object
+|
+	(a|an) ““anObject's type's names” (as list partitioned by " ∩ ")”
 ] : string;

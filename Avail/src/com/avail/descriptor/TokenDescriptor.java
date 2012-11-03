@@ -136,8 +136,7 @@ extends Descriptor
 
 		/**
 		 * A single operator character, which is anything that isn't whitespace,
-		 * a keyword character, or an Avail reserved character such as
-		 * semicolon.
+		 * a keyword character, or an Avail reserved character.
 		 */
 		OPERATOR,
 

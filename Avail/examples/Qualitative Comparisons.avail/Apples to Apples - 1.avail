@@ -1,5 +1,5 @@
-/**
- * P_216_SignatureBodyType.java
+/*
+ * Apples to Apples - 1.avail
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -29,44 +29,48 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.avail.interpreter.primitive;
 
-import static com.avail.descriptor.TypeDescriptor.Types.DEFINITION;
-import static com.avail.interpreter.Primitive.Flag.*;
-import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
+System Module "Apples to Apples - 1"
+Versions
+	"dev"
+Uses
+	"Avail"
+Body
 
-/**
- * <strong>Primitive 216:</strong> Answer this {@linkplain
- * DefinitionDescriptor signature}'s {@linkplain FunctionDescriptor body}'s
- * {@linkplain FunctionTypeDescriptor type}.
+/*
+ * Pardon the awful formatting. This example is for use with the PLDI '13 paper,
+ * "The new frontier of generic programming", which has strict limits on paper
+ * length.
  */
-public class P_216_SignatureBodyType extends Primitive
-{
-	/**
-	 * The sole instance of this primitive class.  Accessed through reflection.
-	 */
-	public final static Primitive instance = new P_216_SignatureBodyType().init(
-		1, CanFold, CannotFail);
 
-	@Override
-	public Result attempt (
-		final List<AvailObject> args,
-		final Interpreter interpreter)
-	{
-		assert args.size() == 1;
-		final AvailObject sig = args.get(0);
-		return interpreter.primitiveSuccess(
-			sig.bodySignature().makeImmutable());
-	}
+Abstract method "_is better than_" is [any, any]→boolean;
 
-	@Override
-	protected AvailObject privateBlockTypeRestriction ()
-	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
-				DEFINITION.o()),
-			FunctionTypeDescriptor.meta());
-	}
-}
+"goodness" is a new field atom;
+Class "apple" extends object with fields
+	goodness : whole number;
+
+Method "_is better than_" is [a : apple, b : apple |
+	a's goodness > b's goodness
+];
+
+Method "best of_and_" is [a : any, b : any |
+	if a is better than b then [a] else [b]
+] : any;
+
+betterM ::= method for "_is better than_";
+Semantic restriction "best of_and_" is
+[a : any's type, b : any's type |
+	If betterM is not implemented at <a, b> then
+	[
+		Reject parse, expected:
+			format
+				"type-safe usage (but instances of \
+				\|“①” and “②” are not comparable)"
+			with a, b
+	];
+	a ∪ b
+];
+
+a ::= an apple with goodness := 5;
+b ::= an apple with goodness := 3;
+tastiest ::= best of a and b;

@@ -1852,8 +1852,7 @@ Semantic restriction "stripe_at_" is
 		[
 			delta : whole number
 		|
-			innerIndex ::= cast ⎣index⎦ + delta
-				into [ t : natural number | t ];
+			innerIndex ::= ⎣index⎦ + delta;
 			union := eject ↑union ∪ innerType[innerIndex];
 		];
 		stripeTypes := eject ↑stripeTypes ++ <union>;
@@ -2061,8 +2060,7 @@ Semantic restriction "_[_]→_" is
 	indexType : natural number's type,
 	valueType : any meta
 |
-	indexLower ::= cast ⎣indexType⎦ into
-		[ t : natural number | t ];
+	indexLower ::= ⎣indexType⎦;
 	If indexLower > ⎡tupleType⎤ then
 	[
 		Reject parse, expected:
@@ -2250,7 +2248,7 @@ Semantic restriction "_[_↔_]" is
 			++ “⎡aTuple⎤”
 			++ ")"
 	];
-	limit ::= cast ⎣index1⎦ min ⎣index2⎦ into [t : natural number | t];
+	limit ::= ⎣index1⎦ min ⎣index2⎦;
 	leadingTypes ::= aTuple[1..limit - 1];
 	defaultType ::= ∪ aTuple[limit..|aTuple's leading types| + 1];
 	<leadingTypes, defaultType… | ||aTuple||>
@@ -2475,16 +2473,16 @@ Semantic restriction "Σ_" is
  */
 Public stable method "∏_" is
 [
-	intTuple : <integer…|1..∞>
+	intTuple : <extended integer…|1..∞>
 |
 	left fold intTuple through 
 	[
-		i : integer,
-		ri : integer
+		i : extended integer,
+		ri : extended integer
 	|
 		i × ri
 	]
-]: integer;
+] : extended integer;
 
 /**
  * Strengthen the return type
@@ -2795,8 +2793,7 @@ Semantic restriction "_[_.._]else_" is
 	]
 	else
 	[
-		min ::= cast ⎣start⎦ max 1
-			into [t : natural number | t];
+		min ::= ⎣start⎦ max 1;
 		max ::= cast ⎡end⎤ min (|tupleType's leading types| + 1)
 			into [t : whole number | t];
 		if min - 1 = max then [ <>'s type]
@@ -2911,8 +2908,7 @@ Semantic restriction "_[_..]else_" is
 	]
 	else
 	[
-		min ::= cast ⎣start⎦ max 1
-			into [t : natural number | t];
+		min ::= ⎣start⎦ max 1;
 		max ::= cast ⎡tupleType⎤
 			into [t : whole number | t];
 		if min - 1 = max then [ <>'s type]

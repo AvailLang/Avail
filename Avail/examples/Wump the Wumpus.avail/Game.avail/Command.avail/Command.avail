@@ -257,11 +257,14 @@ Commands "exit", "exit the cave" are exiting;
 Commands "leave", "leave the cave" are exiting;
 
 /* Pass your turn. */
-Command "wait", "pass", "lollygag" is
+Action "waiting" is
 [
 	Report: "You lollygag.\n";
 	true
 ];
+
+Command "wait", "pass" is waiting;
+Bad command "lollygag" is waiting;
 
 /* Attempt to move the agent to an adjacent room. */
 Action "moving" is

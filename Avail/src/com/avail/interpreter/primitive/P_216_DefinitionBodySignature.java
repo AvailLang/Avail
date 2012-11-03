@@ -1,5 +1,5 @@
-/*
- * Advanced Math.avail
+/**
+ * P_216_DefinitionBodySignature.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -29,10 +29,44 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.interpreter.primitive;
 
-System Module "Advanced Math"
-Versions
-	"dev"
-Extends
-	"Combinatorics"
-Body
+import static com.avail.descriptor.TypeDescriptor.Types.DEFINITION;
+import static com.avail.interpreter.Primitive.Flag.*;
+import java.util.List;
+import com.avail.descriptor.*;
+import com.avail.interpreter.*;
+
+/**
+ * <strong>Primitive 216:</strong> Answer this {@linkplain
+ * DefinitionDescriptor definition}'s {@linkplain FunctionDescriptor body}'s
+ * {@linkplain FunctionTypeDescriptor type}.
+ */
+public class P_216_DefinitionBodySignature extends Primitive
+{
+	/**
+	 * The sole instance of this primitive class.  Accessed through reflection.
+	 */
+	public final static Primitive instance = new P_216_DefinitionBodySignature().init(
+		1, CannotFail, CanFold, CanInline);
+
+	@Override
+	public Result attempt (
+		final List<AvailObject> args,
+		final Interpreter interpreter)
+	{
+		assert args.size() == 1;
+		final AvailObject sig = args.get(0);
+		return interpreter.primitiveSuccess(
+			sig.bodySignature().makeImmutable());
+	}
+
+	@Override
+	protected AvailObject privateBlockTypeRestriction ()
+	{
+		return FunctionTypeDescriptor.create(
+			TupleDescriptor.from(
+				DEFINITION.o()),
+			FunctionTypeDescriptor.meta());
+	}
+}

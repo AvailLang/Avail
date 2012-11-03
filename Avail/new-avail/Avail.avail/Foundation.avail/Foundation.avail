@@ -43,7 +43,7 @@ Extends
 	),
 	"Atoms" =
 	(
-		"_is a|an new⁇atom",
+		"_is a|an new⁇field⁇atom",
 		"_[_]else_"
 	),
 	"Backtracking" =
@@ -577,26 +577,29 @@ Extends
 		"⎣_⎦is inclusive",
 		"⎡_⎤is inclusive",
 		"π",
+		"_is even",
 		"_is finite",
 		"_is infinite",
+		"_is odd",
 		"_>_",
 		"_≥_",
-		"_is odd",
-		"_is even",
 		"«_‡max»",
 		"«_‡min»",
 		"«_‡«=|≤|<»!»",
 		"«_‡«=|≥|>»!»"
 	),
-	"Methods",
+	"Methods" =
+	(
+		"_is«not»?implemented at_"
+	),
 	"Objects" =
 	(
 		"a|an_«with«_:=_‡,»»",
 		"extend_with«_:_‡,»",
 		"«Public»?«Explicit|explicit»?\
 			\|Class|class_extends_\
-			\|«with fields««public»?«reconstructible»?_:_‡,»»\
-			\|«with reconstructors««public»?(«_‡,»)‡,»»",
+			\|«with field|fields««public»?«reconstructible»?_:_‡,»»\
+			\|«with reconstructor|reconstructors««public»?(«_‡,»)‡,»»",
 		"_as_«with«_:=_‡,»»"
 	),
 	"Phrases" =
@@ -636,6 +639,7 @@ Extends
 		"(the)“_”«else_»",
 		"_(base_)",
 		"_→integer",
+		"“_”«else_»(as list partitioned by_)",
 		"“_”«else_»(as simple list)",
 		"“_”«else_»(as«conjunctive|disjunctive»!list)",
 		"“_”«else_»\
