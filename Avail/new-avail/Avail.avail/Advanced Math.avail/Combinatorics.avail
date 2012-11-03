@@ -1,5 +1,5 @@
 /*
- * Apples to Apples - 1.avail
+ * Combinatorics.avail
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -30,47 +30,42 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Apples to Apples - 1"
+System Module "Combinatorics"
 Versions
 	"dev"
 Uses
-	"Avail"
+	"Foundation"
+Names
+	"_`!"
 Body
 
-/*
- * Pardon the awful formatting. This example is for use with the PLDI '13 paper,
- * "The new frontier of generic programming", which has strict limits on paper
- * length.
+[
+	sum      ::= {"_+_", "_-_"};
+	product  ::= {"_×_", "_÷_", "_mod_"};
+	negation ::= {"-_"};
+	power    ::= {"_^_"};
+	fac      ::= {"_`!"};
+
+	/* Establish the precedence of factorial. */
+	Grammatical restriction fac is <sum ∪ product ∪ negation ∪ power ∪ fac>;
+]();
+
+/**
+ * Compute the factorial of {@param "n"}.
+ *
+ * @method "_`!"
+ * @param "n" "whole number"
+ * @returns "natural number"
+ *          The factorial of {@param "n"}.
  */
-
-Abstract method "_is better than_" is [any, any]→boolean;
-
-"goodness" is a new field atom;
-Class "apple" extends object with fields
-	goodness : whole number;
-
-Method "_is better than_" is [a : apple, b : apple |
-	a's goodness > b's goodness
+Stable abstract method "_`!" is [[0..∞]]→[1..∞];
+Method "_`!" is [n : [0..1] | 1];
+Method "_`!" is
+[
+	n : [2..∞)
+|
+	left fold 2 to n through [k : [2..∞), s : [2..∞) | k × s]
 ];
-
-Method "best of_and_" is [a : any, b : any |
-	if a is better than b then [a] else [b]
-] : any;
-
-betterM ::= method for "_is better than_";
-Semantic restriction "best of_and_" is
-[a : any's type, b : any's type |
-	If betterM is not implemented at <a, b> then
-	[
-		Reject parse, expected:
-			format
-				"type-safe usage (but instances of \
-				\|“①” and “②” are not comparable)"
-			with a, b
-	];
-	a ∪ b
-];
-
-a ::= an apple with goodness := 5;
-b ::= an apple with goodness := 3;
-tastiest ::= best of a and b;
+Method "_`!" is [n : ∞'s type | ∞];
+Semantic restriction "_`!" is [n : [0..∞]'s type | [⎣n⎦!..⎡n⎤!]];
+Semantic restriction "_`!" is [n : [0..∞)'s type | [⎣n⎦!..⎡n⎤!+1)];

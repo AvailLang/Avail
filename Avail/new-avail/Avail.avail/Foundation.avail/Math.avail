@@ -1211,82 +1211,78 @@ Private method "_positive range pairs" is
 	[
 		Exit outer with <>
 	];
-	cast ⎣range⎦ into
+	/* Find the biggest string of rightmost one-bits that can be added to
+	 * low without causing any internal carry and without exceeding the
+	 * range.
+	 */
+	lowBits : integer;
+	low ::= ⎣range⎦;
+	Cast ⎡range⎤ into
 	[
-		low : [0..∞)
+		high : [1..∞)
 	|
-		/* Find the biggest string of rightmost one-bits that can be added to
-		 * low without causing any internal carry and without exceeding the
-		 * range.
-		 */
-		lowBits : integer;
-		Cast ⎡range⎤ into
+		If low = 0 then
 		[
-			high : [1..∞)
-		|
-			If low = 0 then
-			[
-				/* Range is [0..n]. */
-				lowBits := high;
-				[
-					$here;
-					If lowBits bit∧ (lowBits + 1) ≠ 0 then
-					[
-						/* Not yet of the form 2^n-1 */
-						lowBits := lowBits bit∨ (lowBits << -1);
-						Restart here
-					];
-				]();
-			]
-			else
-			[
-				lowBits := (-1 - low) bit∧ (low - 1);
-			];
-		]
-		else
-		[
-			If ⎡range⎤ = 0 then
-			[
-				Assert: range = [0..0];
-				Exit outer with <range>
-			];
-			Assert: ⎡range⎤ = ∞;
-			If low = 0 then
-			[
-				Assert: range = [0..∞);
-				Exit outer with <range>
-			];
-			/* Find the next higher power of two. */
-			boundary : integer := low;
+			/* Range is [0..n]. */
+			lowBits := high;
 			[
 				$here;
-				If boundary bit∧ (boundary + 1) ≠ 0 then
+				If lowBits bit∧ (lowBits + 1) ≠ 0 then
 				[
-					boundary := boundary bit∨ (boundary << -1);
+					/* Not yet of the form 2^n-1 */
+					lowBits := lowBits bit∨ (lowBits << -1);
 					Restart here
 				];
 			]();
-			Exit outer with
-				[low .. boundary] positive range pairs
-					++ <[boundary + 1..∞)>
-		];
-		strongLowBits : whole number :=
-			cast lowBits into [x : whole number | x];
+		]
+		else
 		[
-			$loop : <whole number's type…|0..∞>;
-			subrangeEnd ::= low + strongLowBits;
-			If subrangeEnd ∈ range then
-			[
-				Exit outer with
-					<[low .. low + strongLowBits]>
-					++ (low + strongLowBits .. ⎡range⎤ + 1)
-						positive range pairs
-			];
-			Assert: strongLowBits ≠ 0;
-			strongLowBits := strongLowBits << -1;
-			Restart loop
-		] : <whole number's type…|0..∞> ()
+			lowBits := (-1 - low) bit∧ (low - 1);
+		];
 	]
+	else
+	[
+		If ⎡range⎤ = 0 then
+		[
+			Assert: range = [0..0];
+			Exit outer with <range>
+		];
+		Assert: ⎡range⎤ = ∞;
+		If low = 0 then
+		[
+			Assert: range = [0..∞);
+			Exit outer with <range>
+		];
+		/* Find the next higher power of two. */
+		boundary : integer := low;
+		[
+			$here;
+			If boundary bit∧ (boundary + 1) ≠ 0 then
+			[
+				boundary := boundary bit∨ (boundary << -1);
+				Restart here
+			];
+		]();
+		Exit outer with
+			[low .. boundary] positive range pairs
+				++ <[boundary + 1..∞)>
+	];
+	strongLowBits : whole number :=
+		cast lowBits into [x : whole number | x];
+	[
+		$loop : <whole number's type…|0..∞>;
+		subrangeEnd ::= low + strongLowBits;
+		If subrangeEnd ∈ range then
+		[
+			Exit outer with
+				<[low .. low + strongLowBits]>
+				++ (low + strongLowBits .. ⎡range⎤ + 1)
+					positive range pairs
+		];
+		Assert: strongLowBits ≠ 0;
+		strongLowBits := strongLowBits << -1;
+		Restart loop
+	] : <whole number's type…|0..∞> ()
 ] : <whole number's type…|0..∞>;
 
 /**

@@ -46,7 +46,7 @@ Uses
 	"Types",
 	"Variables"
 Names
-	"_is«not»?concrete at_"
+	"_is«not»?implemented at_"
 Body
 
 /**
@@ -120,7 +120,7 @@ Semantic restriction "_'s⁇function" is
  *          "aMethod"} is an {@type "implementation site"}, {@method "false"}
  *          otherwise.
  */
-Public method "_is«not»?concrete at_" is
+Public method "_is«not»?implemented at_" is
 [
 	aMethod : method,
 	negation : boolean,

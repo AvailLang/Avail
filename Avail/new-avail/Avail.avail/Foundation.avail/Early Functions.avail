@@ -185,8 +185,7 @@ Semantic restriction "_[_]" is
 	[
 		limit ::= cast ⎡parametersType⎤
 			into [ t : whole number | t ];
-		start ::= cast ⎣index⎦
-			into [ t : natural number | t ];
+		start ::= ⎣index⎦;
 		If start > limit then
 		[
 			Reject parse, expected:

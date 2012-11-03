@@ -73,7 +73,7 @@ Seal method "best of_and_" at [any, any]→any;
 betterM ::= method for "_is better than_";
 Semantic restriction "best of_and_" is
 [a : any's type, b : any's type |
-	Unless betterM is concrete at <a, b> then
+	Unless betterM is implemented at <a, b> then
 	[
 		Reject parse, expected:
 			format

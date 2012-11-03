@@ -93,7 +93,7 @@ Method "⎣_⎦" is
 [
 	aTupleType : tuple meta
 |
-	cast ⎣||aTupleType||⎦ into [ w : whole number | w ]
+	⎣||aTupleType||⎦
 ] : whole number;
 
 /**
@@ -108,7 +108,7 @@ Method "⎣_⎦" is
 [
 	aSetType : set meta
 |
-	cast ⎣||aSetType||⎦ into [ w : whole number | w ]
+	⎣||aSetType||⎦
 ] : whole number;
 
 /**
@@ -123,7 +123,7 @@ Method "⎣_⎦" is
 [
 	aMapType : map meta
 |
-	cast ⎣||aMapType||⎦ into [ w : whole number | w ]
+	⎣||aMapType||⎦
 ] : whole number;
 
 Method "⎣_⎦" is

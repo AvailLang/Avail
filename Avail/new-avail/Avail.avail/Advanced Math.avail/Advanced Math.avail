@@ -34,6 +34,5 @@ System Module "Advanced Math"
 Versions
 	"dev"
 Extends
-Uses
-Names
+	"Combinatorics"
 Body

@@ -576,12 +576,12 @@ Extends
 		"⎣_⎦is inclusive",
 		"⎡_⎤is inclusive",
 		"π",
+		"_is even",
 		"_is finite",
 		"_is infinite",
+		"_is odd",
 		"_>_",
 		"_≥_",
-		"_is odd",
-		"_is even",
 		"«_‡max»",
 		"«_‡min»",
 		"«_‡«=|≤|<»!»",
@@ -589,7 +589,7 @@ Extends
 	),
 	"Methods" =
 	(
-		"_is«not»?concrete at_"
+		"_is«not»?implemented at_"
 	),
 	"Objects" =
 	(
