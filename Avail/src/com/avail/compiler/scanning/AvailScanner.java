@@ -674,21 +674,6 @@ public class AvailScanner
 		},
 
 		/**
-		 * The semicolon is not considered an operator character and cannot be
-		 * used within operators. Parse it by itself as a {@linkplain
-		 * TokenDescriptor token} whose type is {@link
-		 * TokenType#END_OF_STATEMENT}.
-		 */
-		SEMICOLON ()
-		{
-			@Override
-			void scan (final AvailScanner scanner)
-			{
-				scanner.addCurrentToken(TokenType.END_OF_STATEMENT);
-			}
-		},
-
-		/**
 		 * A slash was encountered. Check if it's the start of a comment, and if
 		 * so skip it. If not, add the slash as a {@linkplain TokenDescriptor
 		 * token} of type {@link TokenType#OPERATOR}.
@@ -708,6 +693,7 @@ public class AvailScanner
 				}
 				else
 				{
+					final int startLine = scanner.lineNumber;
 					int depth = 1;
 					while (true)
 					{
@@ -715,7 +701,8 @@ public class AvailScanner
 						{
 							throw new AvailScannerException(
 								"Expected a close comment (*/) to correspond"
-									+ " with the open comment (/*)",
+									+ " with the open comment (/*) on line #"
+									+ startLine,
 								scanner);
 						}
 						if (scanner.peekFor('/') && scanner.peekFor('*'))
@@ -930,7 +917,6 @@ public class AvailScanner
 		}
 		dispatchTable['_'] = (byte) IDENTIFIER_START.ordinal();
 		dispatchTable['"'] = (byte) DOUBLE_QUOTE.ordinal();
-		dispatchTable[';'] = (byte) SEMICOLON.ordinal();
 		dispatchTable['/'] = (byte) SLASH.ordinal();
 		dispatchTable['\uFEFF'] = (byte) ZEROWIDTHWHITESPACE.ordinal();
 	}

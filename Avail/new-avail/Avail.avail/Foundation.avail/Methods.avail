@@ -46,7 +46,7 @@ Uses
 	"Types",
 	"Variables"
 Names
-	"_is«not»?concrete at_"
+	"_is«not»?implemented at_"
 Body
 
 /**
@@ -67,7 +67,7 @@ Method "method for_" is
 	method for methodAtom
 ] : method;
 
-Semantic restriction "method site of_for_" is
+Semantic restriction "method definition of_for_" is
 [
 	methodType : method's type,
 	parametersType : <any meta…|>'s type
@@ -83,9 +83,9 @@ Semantic restriction "method site of_for_" is
 			args := (eject ↑args) ++ <parametersType[index]'s instance>;
 		];
 		aMethod ::= methodType's instance;
-		If aMethod has implementation for args then
+		If aMethod has definition for args then
 		[
-			result := (method site of aMethod for args)'s type;
+			result := (method definition of aMethod for args)'s type;
 		];
 	];
 	result
@@ -93,11 +93,11 @@ Semantic restriction "method site of_for_" is
 
 Semantic restriction "_'s⁇function" is
 [
-	siteType : implementation site's type
+	definitionType : method definition's type
 |
-	if |siteType| = 1 then
+	if |definitionType| = 1 then
 	[
-		siteType's instance's function's type
+		definitionType's instance's function's type
 	]
 	else
 	[
@@ -120,17 +120,17 @@ Semantic restriction "_'s⁇function" is
  *          "aMethod"} is an {@type "implementation site"}, {@method "false"}
  *          otherwise.
  */
-Public method "_is«not»?concrete at_" is
+Public method "_is«not»?implemented at_" is
 [
 	aMethod : method,
 	negation : boolean,
 	argTypes : <any's type…|>
 |
 	ok : boolean := false;
-	If aMethod has implementation for argTypes then
+	If aMethod has definition for argTypes then
 	[
-		site ::= method site of aMethod for argTypes;
-		ok := site ∈ implementation site;
+		theDefinition ::= method definition of aMethod for argTypes;
+		ok := theDefinition ∈ method definition;
 	];
 	negation ≠ ok
 ];

@@ -196,10 +196,10 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_AddImplementation (
-			final AvailObject object,
-			final AvailObject implementation)
-		throws SignatureException
+	void o_AddDefinition (
+		final AvailObject object,
+		final AvailObject definition)
+	throws SignatureException
 	{
 		throw unsupportedOperationException();
 	}
@@ -240,10 +240,9 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_AddMethodImplementation (
+	void o_AddMethodDefinition (
 		final AvailObject object,
-		final AvailObject methodName,
-		final AvailObject implementation)
+		final AvailObject definition)
 	{
 		throw unsupportedOperationException();
 	}
@@ -647,7 +646,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	List<AvailObject> o_ImplementationsAtOrBelow (
+	List<AvailObject> o_DefinitionsAtOrBelow (
 		final AvailObject object,
 		final List<AvailObject> argTypes)
 	{
@@ -663,9 +662,9 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	boolean o_IncludesImplementation (
+	boolean o_IncludesDefinition (
 		final AvailObject object,
-		final AvailObject imp)
+		final AvailObject definition)
 	{
 		throw unsupportedOperationException();
 	}
@@ -2017,7 +2016,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	AvailObject o_ImplementationsTuple (
+	AvailObject o_DefinitionsTuple (
 		final AvailObject object)
 	{
 		throw unsupportedOperationException();
@@ -2059,6 +2058,13 @@ extends AbstractDescriptor
 	}
 
 	@Override
+	boolean o_IsAbstractDefinition (
+		final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
 	boolean o_IsFinite (
 		final AvailObject object)
 	{
@@ -2066,7 +2072,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	boolean o_IsForward (
+	boolean o_IsForwardDefinition (
 		final AvailObject object)
 	{
 		throw unsupportedOperationException();
@@ -2079,7 +2085,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	boolean o_IsMethod (
+	boolean o_IsMethodDefinition (
 		final AvailObject object)
 	{
 		throw unsupportedOperationException();
@@ -2360,13 +2366,6 @@ extends AbstractDescriptor
 
 	@Override
 	int o_SetSize (
-		final AvailObject object)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	AvailObject o_Signature (
 		final AvailObject object)
 	{
 		throw unsupportedOperationException();
@@ -2808,10 +2807,17 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final AvailObject anotherObject)
 	{
-		//  Given two objects that are known to be equal, is the first one in a better form (more
-		//  compact, more efficient, older generation) than the second one?
+		// Given two objects that are known to be equal, is the first one in a
+		// better form (more compact, more efficient, older generation) than the
+		// second one?
 
-		return object.objectSlotsCount() + object.integerSlotsCount() < anotherObject.objectSlotsCount() + anotherObject.integerSlotsCount();
+		final int objectCost =
+			object.objectSlotsCount() +
+			object.integerSlotsCount();
+		final int anotherCost =
+			anotherObject.objectSlotsCount() +
+			anotherObject.integerSlotsCount();
+		return objectCost < anotherCost;
 	}
 
 	@Override
@@ -2819,12 +2825,13 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final AvailObject aTupleType)
 	{
-		//  Given two objects that are known to be equal, the second of which is in the form of
-		//  a tuple type, is the first one in a better form than the second one?
+		// Given two objects that are known to be equal, the second of which is
+		// in the form of a tuple type, is the first one in a better form than
+		// the second one?
 
-		//  Explanation: This must be called with a tuple type as the second argument, but
-		//  the two arguments must also be equal.  All alternative implementations of tuple
-		//  types should reimplement this method.
+		// Explanation: This must be called with a tuple type as the second
+		// argument, but the two arguments must also be equal.  All alternative
+		// implementations of tuple types should re-implement this method.
 		throw unsupportedOperationException();
 	}
 
@@ -3451,28 +3458,12 @@ extends AbstractDescriptor
 
 
 	@Override
-	boolean o_IsMacro (
+	boolean o_IsMacroDefinition (
 		final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}
 
-
-	@Override
-	void o_Macros (
-		final AvailObject object,
-		final AvailObject value)
-	{
-		throw unsupportedOperationException();
-	}
-
-
-	@Override
-	AvailObject o_Macros (
-		final AvailObject object)
-	{
-		throw unsupportedOperationException();
-	}
 
 	@Override
 	AvailObject o_CopyMutableParseNode (
@@ -3487,14 +3478,6 @@ extends AbstractDescriptor
 	{
 		// Ordinary (non-bin, non-void) objects act as set bins of size one.
 		return object.kind();
-	}
-
-
-	@Override
-	AvailObject o_MacroName (
-		final AvailObject object)
-	{
-		throw unsupportedOperationException();
 	}
 
 
@@ -4669,6 +4652,26 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final AvailObject shiftFactor,
 		final boolean canDestroy)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	boolean o_EqualsParseNode (
+		final AvailObject object,
+		final AvailObject aParseNode)
+	{
+		return false;
+	}
+
+	@Override
+	AvailObject o_StripMacro (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	public AvailObject o_DefinitionMethod (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}

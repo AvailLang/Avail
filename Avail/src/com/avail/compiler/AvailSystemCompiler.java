@@ -392,8 +392,7 @@ extends AbstractAvailCompiler
 							{
 								assert afterExpr != null;
 								assert expr != null;
-								if (afterExpr.peekToken().tokenType()
-										!= END_OF_STATEMENT)
+								if (!afterExpr.peekToken(SEMICOLON))
 								{
 									afterExpr.expected(
 										"; to end assignment statement");
@@ -494,7 +493,7 @@ extends AbstractAvailCompiler
 						DeclarationNodeDescriptor.newLabel(
 							token,
 							contType);
-					if (lookupDeclaration(
+					if (lookupLocalDeclaration(
 							afterExpression,
 							token.string())
 						!= null)
@@ -600,11 +599,7 @@ extends AbstractAvailCompiler
 							assert afterInitExpression != null;
 							assert initExpression != null;
 
-							final AvailObject constantDeclaration =
-								DeclarationNodeDescriptor.newConstant(
-									localName,
-									initExpression);
-							if (lookupDeclaration(
+							if (lookupLocalDeclaration(
 									afterInitExpression,
 									localName.string())
 								!= null)
@@ -626,6 +621,10 @@ extends AbstractAvailCompiler
 									+ expressionType.toString());
 								return;
 							}
+							final AvailObject constantDeclaration =
+								DeclarationNodeDescriptor.newConstant(
+									localName,
+									initExpression);
 							attempt(
 								afterInitExpression.withDeclaration(
 									constantDeclaration),
@@ -657,7 +656,7 @@ extends AbstractAvailCompiler
 						return;
 					}
 					// Try the simple declaration... var : type;
-					if (lookupDeclaration(afterType, localName.string())
+					if (lookupLocalDeclaration(afterType, localName.string())
 						!= null)
 					{
 						afterType.expected(
@@ -726,7 +725,7 @@ extends AbstractAvailCompiler
 											localName,
 											type,
 											initExpr);
-									if (lookupDeclaration(
+									if (lookupLocalDeclaration(
 											afterInit,
 											localName.string())
 										!= null)
@@ -812,7 +811,7 @@ extends AbstractAvailCompiler
 							+ type.toString());
 						return;
 					}
-					if (lookupDeclaration(afterType, localName.string())
+					if (lookupLocalDeclaration(afterType, localName.string())
 						!= null)
 					{
 						afterType.expected(
@@ -959,7 +958,7 @@ extends AbstractAvailCompiler
 					}
 					else
 					{
-						if (lookupDeclaration(afterArgType, localName.string())
+						if (lookupLocalDeclaration(afterArgType, localName.string())
 							!= null)
 						{
 							afterArgType.expected(
@@ -1792,7 +1791,7 @@ extends AbstractAvailCompiler
 						// same block.
 						final AvailObject newName =
 							newStatement.token().string();
-						if (lookupDeclaration(start, newName) != null)
+						if (lookupLocalDeclaration(start, newName) != null)
 						{
 							afterStatement.expected(
 								"new declaration (\""
@@ -1862,7 +1861,7 @@ extends AbstractAvailCompiler
 		}
 		final ParserState afterVar = start.afterToken();
 		// First check if it's in a block scope...
-		final AvailObject localDecl = lookupDeclaration(
+		final AvailObject localDecl = lookupLocalDeclaration(
 			start,
 			token.string());
 		if (localDecl != null)

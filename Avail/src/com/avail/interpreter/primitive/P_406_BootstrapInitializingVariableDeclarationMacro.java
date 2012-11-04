@@ -1,5 +1,5 @@
 /**
- * P_035_ParamType.java
+ * P_406_BootstrapInitializingVariableDeclarationMacro.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -29,34 +29,53 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+
 package com.avail.interpreter.primitive;
 
+import static com.avail.descriptor.TypeDescriptor.Types.*;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import static com.avail.interpreter.Primitive.Flag.*;
-import java.util.List;
+import java.util.*;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 
 /**
- * <strong>Primitive 35:</strong> Answer a tuple type describing the
- * parameters accepted by the function type.
+ * The {@code P_406_BootstrapInitializingVariableDeclarationMacro} primitive is
+ * used for bootstrapping declaration of a {@link #LOCAL_VARIABLE_NODE local
+ * variable} (without an initializing expression).
+ *
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class P_035_ParamType extends Primitive
+public class P_406_BootstrapInitializingVariableDeclarationMacro extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_035_ParamType().init(
-		1, CanFold, CannotFail);
+	public final static Primitive instance =
+		new P_406_BootstrapInitializingVariableDeclarationMacro().init(
+			3, CannotFail, Bootstrap);
 
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 1;
-		final AvailObject functionType = args.get(0);
-		return interpreter.primitiveSuccess(
-			functionType.argsTupleType());
+		assert args.size() == 3;
+		final AvailObject variableName = args.get(0);
+		final AvailObject type = args.get(1);
+		final AvailObject initializingExpression = args.get(2);
+
+		//TODO[MvG]: Eventually prevent ⊥ from being an accepted type.  For
+		//other bootstrap macro primitives, too.  Also make sure initialization
+		//will produce a suitable type.
+
+		final AvailObject variableDeclaration =
+			DeclarationNodeDescriptor.newVariable(
+				variableName,
+				type,
+				initializingExpression);
+		variableDeclaration.makeImmutable();
+		return interpreter.primitiveSuccess(variableDeclaration);
 	}
 
 	@Override
@@ -64,8 +83,12 @@ public class P_035_ParamType extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				FunctionTypeDescriptor.meta()),
-			InstanceMetaDescriptor.on(
-				TupleTypeDescriptor.mostGeneralType()));
+				/* Variable name token */
+				TOKEN.o(),
+				/* Variable type */
+				InstanceMetaDescriptor.anyMeta(),
+				/* Initialization expression */
+				EXPRESSION_NODE.mostGeneralType()),
+			LOCAL_VARIABLE_NODE.mostGeneralType());
 	}
 }

@@ -161,13 +161,13 @@ extends ParseNodeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_Equals (
+	boolean o_EqualsParseNode (
 		final AvailObject object,
-		final AvailObject another)
+		final AvailObject aParseNode)
 	{
-		return object.kind().equals(another.kind())
-			&& object.variable().equals(another.variable())
-			&& object.expression().equals(another.expression());
+		return object.kind().equals(aParseNode.kind())
+			&& object.variable().equals(aParseNode.variable())
+			&& object.expression().equals(aParseNode.expression());
 	}
 
 	@Override @AvailMethod

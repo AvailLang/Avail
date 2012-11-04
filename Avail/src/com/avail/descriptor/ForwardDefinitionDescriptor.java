@@ -1,5 +1,5 @@
 /**
- * ForwardDeclarationDescriptor.java
+ * ForwardDefinitionDescriptor.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -32,16 +32,17 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.ForwardDeclarationDescriptor.ObjectSlots.*;
+import static com.avail.descriptor.ForwardDefinitionDescriptor.ObjectSlots.*;
 import java.util.List;
 import com.avail.annotations.*;
 import com.avail.descriptor.TypeDescriptor.Types;
+import com.avail.serialization.SerializerOperation;
 
 /**
- * This is a forward declaration of a method.  An actual method must be declared
+ * This is a forward declaration of a method.  An actual method must be defined
  * with the same signature before the end of the current module.
  *
- * <p>While a call to this method signature can be compiled after the forward
+ * <p>While a call with this method signature can be compiled after the forward
  * declaration, an attempt to actually call the method will result in an error
  * indicating this problem.</p>
  *
@@ -52,8 +53,8 @@ import com.avail.descriptor.TypeDescriptor.Types;
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class ForwardDeclarationDescriptor
-extends ImplementationDescriptor
+public class ForwardDefinitionDescriptor
+extends DefinitionDescriptor
 {
 	/**
 	 * The layout of object slots for my instances.
@@ -62,16 +63,21 @@ extends ImplementationDescriptor
 	implements ObjectSlotsEnum
 	{
 		/**
-		 * The {@linkplain MethodDescriptor method} {@linkplain AtomDescriptor
-		 * name}.
+		 * Duplicated from parent.  The method in which this definition occurs.
 		 */
-		METHOD_NAME,
+		DEFINITION_METHOD,
 
 		/**
-		 * The signature being forward-declared.  This is a {@linkplain
-		 * FunctionTypeDescriptor function type}.
+		 * The {@linkplain FunctionTypeDescriptor function type} for which this
+		 * signature is being specified.
 		 */
-		BODY_SIGNATURE
+		BODY_SIGNATURE;
+
+		static
+		{
+			assert DefinitionDescriptor.ObjectSlots.DEFINITION_METHOD.ordinal()
+				== DEFINITION_METHOD.ordinal();
+		}
 	}
 
 	@Override @AvailMethod
@@ -81,29 +87,29 @@ extends ImplementationDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_Signature (final AvailObject object)
-	{
-		return object.slot(BODY_SIGNATURE);
-	}
-
-	@Override @AvailMethod
 	int o_Hash (final AvailObject object)
 	{
 		return object.slot(BODY_SIGNATURE).hash() * 19
-			^ object.slot(METHOD_NAME).hash() * 757;
+			^ object.slot(DEFINITION_METHOD).hash() * 757;
 	}
 
 	@Override @AvailMethod
 	AvailObject o_Kind (
 		final AvailObject object)
 	{
-		return Types.FORWARD_SIGNATURE.o();
+		return Types.FORWARD_DEFINITION.o();
 	}
 
 	@Override @AvailMethod
-	boolean o_IsForward (final AvailObject object)
+	boolean o_IsForwardDefinition (final AvailObject object)
 	{
 		return true;
+	}
+
+	@Override
+	SerializerOperation o_SerializerOperation (final AvailObject object)
+	{
+		return SerializerOperation.FORWARD_DEFINITION;
 	}
 
 	@Override
@@ -113,7 +119,7 @@ extends ImplementationDescriptor
 		final List<AvailObject> recursionList,
 		final int indent)
 	{
-		object.slot(METHOD_NAME).printOnAvoidingIndent(
+		object.slot(DEFINITION_METHOD).name().printOnAvoidingIndent(
 			builder, recursionList, indent);
 		builder.append(' ');
 		object.slot(BODY_SIGNATURE).printOnAvoidingIndent(
@@ -122,67 +128,66 @@ extends ImplementationDescriptor
 
 	/**
 	 * Create a forward declaration signature for the given {@linkplain
-	 * MethodDescriptor method} {@linkplain AtomDescriptor name} and {@linkplain
-	 * FunctionTypeDescriptor function type}.
+	 * MethodDescriptor method} and {@linkplain FunctionTypeDescriptor function
+	 * type}.
 	 *
-	 * @param methodName
-	 *        The method name.
+	 * @param definitionMethod
+	 *        The method for which to declare a forward definition.
 	 * @param bodySignature
-	 *        The function type at which this signature should occur within
-	 *        a {@linkplain MethodDescriptor method}.
+	 *        The function type at which this forward definition should occur.
 	 * @return The new forward declaration signature.
 	 */
 	public static AvailObject create (
-		final AvailObject methodName,
+		final AvailObject definitionMethod,
 		final AvailObject bodySignature)
 	{
 		final AvailObject instance = mutable().create();
-		instance.setSlot(ObjectSlots.METHOD_NAME, methodName);
+		instance.setSlot(ObjectSlots.DEFINITION_METHOD, definitionMethod);
 		instance.setSlot(ObjectSlots.BODY_SIGNATURE, bodySignature);
 		instance.makeImmutable();
 		return instance;
 	}
 
 	/**
-	 * Construct a new {@link ForwardDeclarationDescriptor}.
+	 * Construct a new {@link ForwardDefinitionDescriptor}.
 	 *
 	 * @param isMutable
 	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
 	 *        object?
 	 */
-	protected ForwardDeclarationDescriptor (final boolean isMutable)
+	protected ForwardDefinitionDescriptor (final boolean isMutable)
 	{
 		super(isMutable);
 	}
 
 	/**
-	 * The mutable {@link ForwardDeclarationDescriptor}.
+	 * The mutable {@link ForwardDefinitionDescriptor}.
 	 */
-	private static final ForwardDeclarationDescriptor mutable =
-		new ForwardDeclarationDescriptor(true);
+	private static final ForwardDefinitionDescriptor mutable =
+		new ForwardDefinitionDescriptor(true);
 
 	/**
-	 * Answer the mutable {@link ForwardDeclarationDescriptor}.
+	 * Answer the mutable {@link ForwardDefinitionDescriptor}.
 	 *
-	 * @return The mutable {@link ForwardDeclarationDescriptor}.
+	 * @return The mutable {@link ForwardDefinitionDescriptor}.
 	 */
-	public static ForwardDeclarationDescriptor mutable ()
+	public static ForwardDefinitionDescriptor mutable ()
 	{
 		return mutable;
 	}
 
 	/**
-	 * The immutable {@link ForwardDeclarationDescriptor}.
+	 * The immutable {@link ForwardDefinitionDescriptor}.
 	 */
-	private static final ForwardDeclarationDescriptor immutable =
-		new ForwardDeclarationDescriptor(false);
+	private static final ForwardDefinitionDescriptor immutable =
+		new ForwardDefinitionDescriptor(false);
 
 	/**
-	 * Answer the immutable {@link ForwardDeclarationDescriptor}.
+	 * Answer the immutable {@link ForwardDefinitionDescriptor}.
 	 *
-	 * @return The immutable {@link ForwardDeclarationDescriptor}.
+	 * @return The immutable {@link ForwardDefinitionDescriptor}.
 	 */
-	public static ForwardDeclarationDescriptor immutable ()
+	public static ForwardDefinitionDescriptor immutable ()
 	{
 		return immutable;
 	}

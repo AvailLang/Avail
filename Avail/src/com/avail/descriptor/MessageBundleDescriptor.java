@@ -191,7 +191,7 @@ extends Descriptor
 		final List<AvailObject> recursionList,
 		final int indent)
 	{
-		// The existing implementations are also printed in parentheses to help
+		// The existing definitions are also printed in parentheses to help
 		// distinguish polymorphism from occurrences of non-polymorphic
 		// homonyms.
 		if (isMutable)

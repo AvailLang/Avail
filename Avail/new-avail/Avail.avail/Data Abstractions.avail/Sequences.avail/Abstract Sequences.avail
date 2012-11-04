@@ -270,7 +270,7 @@ Semantic restriction "_[_]" is
  * applying {@param "else"}.
  *
  * @method "_[_]else_"
- * @param "aSequence" "tuple"
+ * @param "aSequence" "sequence"
  *        A {@type "sequence"}.
  * @param "index" "integer"
  *        An {@type "integer"}.

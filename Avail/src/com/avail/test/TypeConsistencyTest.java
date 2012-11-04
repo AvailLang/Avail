@@ -1153,6 +1153,11 @@ public class TypeConsistencyTest
 							BOTTOM_VARIABLE,
 							null);
 						break;
+					case MACRO_SUBSTITUTION:
+						addMultiHelper(
+							kind,
+							topNode,
+							anyNode);
 				}
 			}
 		}

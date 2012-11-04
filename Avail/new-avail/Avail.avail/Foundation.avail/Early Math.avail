@@ -162,6 +162,52 @@ Method "⎡_⎤" is
 ];
 
 /**
+ * Is the lower bound of the argument inclusive?
+ *
+ * Note that integer ranges canonize each bound as inclusive unless the bound is
+ * ±∞. So `(3..6)` is really `[4..5]` and will answer `true` if asked whether
+ * its lower bound is inclusive. But `(-∞..0]` will answer `false` if asked
+ * whether its lower bound is inclusive.
+ *
+ * @method "⎣_⎦is inclusive"
+ * @param "range" "extended integer meta"
+ *        An integer range.
+ * @returns "boolean"
+ *          `false` if the lower bound is infinite and exclusive, `true`
+ *          otherwise.
+ */
+Public method "⎣_⎦is inclusive" is
+[
+	range : extended integer meta
+|
+	bound ::= ⎣range⎦;
+	bound's type ⊆ range
+] : boolean;
+
+/**
+ * Is the upper bound of the argument inclusive?
+ *
+ * Note that integer ranges canonize each bound as inclusive unless the bound is
+ * ±∞. So `(3..6)` is really `[4..5]` and will answer `true` if asked whether
+ * its upper bound is inclusive. But `[0..∞)` will answer `false` if asked
+ * whether its upper bound is inclusive.
+ *
+ * @method "⎡_⎤is inclusive"
+ * @param "range" "extended integer meta"
+ *        An integer range.
+ * @returns "boolean"
+ *          `false` if the upper bound is infinite and exclusive, `true`
+ *          otherwise.
+ */
+Public method "⎡_⎤is inclusive" is
+[
+	range : extended integer meta
+|
+	bound ::= ⎡range⎤;
+	bound's type ⊆ range
+] : boolean;
+
+/**
  * Answer the semantic restriction function that should be used for each of
  * `⎣_⎦` and `⎡_⎤`.
  *
@@ -170,20 +216,23 @@ Method "⎡_⎤" is
  * Returns:
  *    A function that strengthens the integer range bounds methods.
  */
-Private method "integer range bound semantic restriction function" is
+Private method
+"integer range«lower|upper»!bound semantic restriction function" is
 [
+	mode : integer range from 1 (inclusive=true) to 2 (inclusive=true)
+|
 	[
 		range : extended integer meta's type
 	|
 		instances ::= cast range's instances
-			into [ t : {extended integer meta|whole number} | t ];
+			into [t : {extended integer meta|whole number} | t];
 		Assert: |instances| = 1 ("range should be a single instance");
 		instance ::= cast instances→tuple[1] into
-			[ t : extended integer meta | t ];
+			[t : extended integer meta | t];
 		/* Specifically do not accommodate ⊥. */
 		integer range
-			from ⎣instance⎦ (inclusive=true)
-			to ⎡instance⎤ (inclusive=true)
+			from ⎣instance⎦ (inclusive=⎣instance⎦ is inclusive ∨ [mode = 1])
+			to ⎡instance⎤ (inclusive=⎡instance⎤ is inclusive ∨ [mode = 2])
 	]
 ];
 
@@ -196,7 +245,7 @@ Private method "integer range bound semantic restriction function" is
  * @param "extended integer meta's type"
  */
 Semantic restriction "⎣_⎦" is
-	integer range bound semantic restriction function;
+	integer range lower bound semantic restriction function;
 
 /**
  * Strengthen the bound to have the same static type as the argument. Note that
@@ -207,7 +256,7 @@ Semantic restriction "⎣_⎦" is
  * @param "extended integer meta's type"
  */
 Semantic restriction "⎡_⎤" is
-	integer range bound semantic restriction function;
+	integer range upper bound semantic restriction function;
 
 /**
  * Is `value` within `range`?
@@ -226,52 +275,6 @@ Method "_∈_" is
 	range : extended integer meta
 |
 	value's type ⊆ range
-] : boolean;
-
-/**
- * Is the lower bound of the argument inclusive?
- * 
- * Note that integer ranges canonize each bound as inclusive unless the bound is
- * ±∞. So `(3..6)` is really `[4..5]` and will answer `true` if asked whether
- * its lower bound is inclusive. But `(-∞..0]` will answer `false` if asked
- * whether its lower bound is inclusive.
- * 
- * @method "⎣_⎦is inclusive"
- * @param "range" "extended integer meta"
- *        An integer range.
- * @returns "boolean"
- *          `false` if the lower bound is infinite and exclusive, `true`
- *          otherwise.
- */
-Public method "⎣_⎦is inclusive" is
-[
-	range : extended integer meta
-|
-	bound ::= ⎣range⎦;
-	bound's type ⊆ range
-] : boolean;
-
-/**
- * Is the upper bound of the argument inclusive?
- * 
- * Note that integer ranges canonize each bound as inclusive unless the bound is
- * ±∞. So `(3..6)` is really `[4..5]` and will answer `true` if asked whether
- * its upper bound is inclusive. But `[0..∞)` will answer `false` if asked
- * whether its upper bound is inclusive.
- * 
- * @method "⎡_⎤is inclusive"
- * @param "range" "extended integer meta"
- *        An integer range.
- * @returns "boolean"
- *          `false` if the upper bound is infinite and exclusive, `true`
- *          otherwise.
- */
-Public method "⎡_⎤is inclusive" is
-[
-	range : extended integer meta
-|
-	bound ::= ⎡range⎤;
-	bound's type ⊆ range
 ] : boolean;
 
 /**

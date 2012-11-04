@@ -87,7 +87,7 @@ public abstract class AbstractAvailCompiler
 		 * undergoing compilation. Each element is a {@linkplain TupleDescriptor
 		 * 3-tuple} whose first element is a module {@linkplain StringDescriptor
 		 * name}, whose second element is the {@linkplain SetDescriptor set} of
-		 * {@linkplain MethodImplementationDescriptor method} names to import
+		 * {@linkplain MethodDefinitionDescriptor method} names to import
 		 * (and re-export), and whose third element is the set of conformant
 		 * versions.
 		 */
@@ -99,7 +99,7 @@ public abstract class AbstractAvailCompiler
 		 * undergoing compilation. Each element is a {@linkplain TupleDescriptor
 		 * 3-tuple} whose first element is a module {@linkplain StringDescriptor
 		 * name}, whose second element is the {@linkplain SetDescriptor set} of
-		 * {@linkplain MethodImplementationDescriptor method} names to import,
+		 * {@linkplain MethodDefinitionDescriptor method} names to import,
 		 * and whose third element is the set of conformant versions.
 		 */
 		public final List<AvailObject> usedModules =
@@ -483,7 +483,7 @@ public abstract class AbstractAvailCompiler
 		CLOSE_PARENTHESIS(")", OPERATOR),
 
 		/** End of statement. */
-		SEMICOLON(";", END_OF_STATEMENT);
+		SEMICOLON(";", OPERATOR);
 
 		/** The {@linkplain String Java string} form of the lexeme. */
 		private final String lexemeString;
@@ -927,7 +927,7 @@ public abstract class AbstractAvailCompiler
 		 * even more important if a pool of threads is used to parse a module.
 		 * </p>
 		 */
-		final AvailObject scopeMap;
+		public final AvailObject scopeMap;
 
 		/**
 		 * The tuple of argument declarations of the innermost block being
@@ -1175,6 +1175,17 @@ public abstract class AbstractAvailCompiler
 		{
 			expected(generate(aString));
 		}
+
+		/**
+		 * Return the {@linkplain ModuleDescriptor module} under compilation for
+		 * this {@linkplain ParserState}.
+		 *
+		 * @return The current module being compiled.
+		 */
+		public AvailObject currentModule ()
+		{
+			return AbstractAvailCompiler.this.module;
+		}
 	}
 
 	/**
@@ -1235,7 +1246,7 @@ public abstract class AbstractAvailCompiler
 	 * {@code null}. Populate the passed {@linkplain List list} with {@linkplain
 	 * TupleDescriptor 2-tuples}. Each tuple's first element is a module
 	 * {@linkplain StringDescriptor name} and second element is the
-	 * collection of {@linkplain MethodImplementationDescriptor method} names to
+	 * collection of {@linkplain MethodDefinitionDescriptor method} names to
 	 * import.
 	 * </p>
 	 *
@@ -1840,7 +1851,7 @@ public abstract class AbstractAvailCompiler
 	 *        The name of the variable declaration for which to look.
 	 * @return The declaration or {@code null}.
 	 */
-	@Nullable AvailObject lookupDeclaration (
+	@Nullable AvailObject lookupLocalDeclaration (
 		final ParserState start,
 		final AvailObject name)
 	{
@@ -1959,18 +1970,19 @@ public abstract class AbstractAvailCompiler
 	 * Declarations are handled differently - they cause a variable to be
 	 * declared in the module's scope.
 	 *
-	 * @param expr
+	 * @param expressionOrMacro
 	 *        The expression to compile and evaluate as a top-level statement in
 	 *        the module.
 	 */
-	void evaluateModuleStatement (final AvailObject expr)
+	void evaluateModuleStatement (final AvailObject expressionOrMacro)
 	{
-		if (!expr.isInstanceOfKind(DECLARATION_NODE.mostGeneralType()))
+		final AvailObject expression = expressionOrMacro.stripMacro();
+		if (!expression.isInstanceOfKind(DECLARATION_NODE.mostGeneralType()))
 		{
 			// Only record module statements that aren't declarations.  Users of
 			// the module don't care if a module variable or constant is only
 			// reachable from the module's methods.
-			final AvailObject function = createFunctionToRun(expr, 0);
+			final AvailObject function = createFunctionToRun(expression, 0);
 			serializer.serialize(function);
 			interpreter.runFunctionArguments(
 				function,
@@ -1979,14 +1991,14 @@ public abstract class AbstractAvailCompiler
 		}
 		// It's a declaration (but the parser couldn't previously tell that it
 		// was at module scope)...
-		final AvailObject name = expr.token().string();
-		switch (expr.declarationKind())
+		final AvailObject name = expression.token().string();
+		switch (expression.declarationKind())
 		{
 			case LOCAL_CONSTANT:
 			{
 				final AvailObject val = evaluate(
-					expr.initializationExpression(),
-					expr.token().lineNumber());
+					expression.initializationExpression(),
+					expression.token().lineNumber());
 				final AvailObject var = VariableDescriptor.forInnerType(
 					AbstractEnumerationTypeDescriptor.withInstance(val));
 				module.addConstantBinding(
@@ -1996,16 +2008,16 @@ public abstract class AbstractAvailCompiler
 				// this initializing assignment.
 				final AvailObject decl =
 					DeclarationNodeDescriptor.newModuleVariable(
-						expr.token(),
+						expression.token(),
 						var,
-						expr.initializationExpression());
+						expression.initializationExpression());
 				final AvailObject assign = AssignmentNodeDescriptor.from(
-					VariableUseNodeDescriptor.newUse(expr.token(), decl),
+					VariableUseNodeDescriptor.newUse(expression.token(), decl),
 					LiteralNodeDescriptor.syntheticFrom(val),
 					false);
 				final AvailObject function = createFunctionToRun(
 					assign,
-					expr.token().lineNumber());
+					expression.token().lineNumber());
 				serializer.serialize(function);
 				var.setValue(val);
 				break;
@@ -2013,29 +2025,31 @@ public abstract class AbstractAvailCompiler
 			case LOCAL_VARIABLE:
 			{
 				final AvailObject var = VariableDescriptor.forInnerType(
-					expr.declaredType());
+					expression.declaredType());
 				module.addVariableBinding(
 					name,
 					var.makeImmutable());
-				if (!expr.initializationExpression().equalsNull())
+				if (!expression.initializationExpression().equalsNull())
 				{
 					final AvailObject decl =
 						DeclarationNodeDescriptor.newModuleVariable(
-							expr.token(),
+							expression.token(),
 							var,
-							expr.initializationExpression());
+							expression.initializationExpression());
 					final AvailObject assign = AssignmentNodeDescriptor.from(
-						VariableUseNodeDescriptor.newUse(expr.token(), decl),
-						expr.initializationExpression(),
+						VariableUseNodeDescriptor.newUse(
+							expression.token(),
+							decl),
+						expression.initializationExpression(),
 						false);
 					final AvailObject function = createFunctionToRun(
 						assign,
-						expr.token().lineNumber());
+						expression.token().lineNumber());
 					serializer.serialize(function);
 					var.setValue(
 						evaluate(
-							expr.initializationExpression(),
-							expr.token().lineNumber()));
+							expression.initializationExpression(),
+							expression.token().lineNumber()));
 				}
 				break;
 			}
@@ -2494,6 +2508,14 @@ public abstract class AbstractAvailCompiler
 		final Con<AvailObject> continuation)
 	{
 		final ParsingOperation op = ParsingOperation.decode(instruction);
+//		System.out.format(
+//			"OP=%s%s [%s ☞ %s]%n",
+//			op.name(),
+//			instruction < ParsingOperation.distinctInstructions
+//				? ""
+//				: " (operand=" + op.operand(instruction) + ")",
+//			tokens.get(start.position - 1).string(),
+//			tokens.get(start.position).string());
 		switch (op)
 		{
 			case parseArgument:
@@ -3082,10 +3104,10 @@ public abstract class AbstractAvailCompiler
 		final AvailObject message = bundle.message();
 		final AvailObject method = interpreter.runtime().methodsAt(message);
 		assert !method.equalsNull();
-		final AvailObject implementationsTuple = method.implementationsTuple();
-		assert implementationsTuple.tupleSize() > 0;
+		final AvailObject definitionsTuple = method.definitionsTuple();
+		assert definitionsTuple.tupleSize() > 0;
 
-		if (implementationsTuple.tupleAt(1).isMacro())
+		if (definitionsTuple.tupleAt(1).isMacroDefinition())
 		{
 			// Macro definitions and non-macro definitions are not allowed to
 			// mix within a method.
@@ -3231,7 +3253,7 @@ public abstract class AbstractAvailCompiler
 	}
 
 	/**
-	 * Create a bootstrap primitive {@linkplain MacroImplementationDescriptor
+	 * Create a bootstrap primitive {@linkplain MacroDefinitionDescriptor
 	 * macro}. Use the primitive's type declaration as the argument types.  If
 	 * the primitive is fallible then generate suitable primitive failure code
 	 * (to invoke the {@link MethodDescriptor#vmCrashMethod}).

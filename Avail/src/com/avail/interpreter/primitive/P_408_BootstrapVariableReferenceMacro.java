@@ -1,5 +1,5 @@
 /**
- * P_216_SignatureBodyType.java
+ * P_408_BootstrapVariableReferenceMacro.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -29,26 +29,29 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+
 package com.avail.interpreter.primitive;
 
-import static com.avail.descriptor.TypeDescriptor.Types.SIGNATURE;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import static com.avail.interpreter.Primitive.Flag.*;
-import java.util.List;
+import java.util.*;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 
 /**
- * <strong>Primitive 216:</strong> Answer this {@linkplain
- * ImplementationDescriptor signature}'s {@linkplain FunctionDescriptor body}'s
- * {@linkplain FunctionTypeDescriptor type}.
+ * The {@code P_408_BootstrapVariableReferenceMacro} primitive is used to create
+ * {@link ReferenceNodeDescriptor variable reference} phrases.
+ *
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class P_216_SignatureBodyType extends Primitive
+public class P_408_BootstrapVariableReferenceMacro extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_216_SignatureBodyType().init(
-		1, CanFold, CannotFail);
+	public final static Primitive instance =
+		new P_408_BootstrapVariableReferenceMacro().init(
+			1, CannotFail, Bootstrap);
 
 	@Override
 	public Result attempt (
@@ -56,9 +59,12 @@ public class P_216_SignatureBodyType extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
-		final AvailObject sig = args.get(0);
-		return interpreter.primitiveSuccess(
-			sig.bodySignature().makeImmutable());
+		final AvailObject variableUse = args.get(0);
+
+		final AvailObject reference = ReferenceNodeDescriptor.fromUse(
+			variableUse);
+		reference.makeImmutable();
+		return interpreter.primitiveSuccess(reference);
 	}
 
 	@Override
@@ -66,7 +72,8 @@ public class P_216_SignatureBodyType extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				SIGNATURE.o()),
-			FunctionTypeDescriptor.meta());
+				/* Variable use */
+				DECLARATION_NODE.mostGeneralType()),
+			LOCAL_VARIABLE_NODE.mostGeneralType());
 	}
 }

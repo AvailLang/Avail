@@ -189,39 +189,39 @@ extends AbstractTypeDescriptor
 		POWER_STRING_TOKEN(TOKEN),
 
 		/**
-		 * The general kind of {@linkplain ImplementationDescriptor method
+		 * The general kind of {@linkplain DefinitionDescriptor method
 		 * signatures}.
 		 */
-		SIGNATURE(NONTYPE),
+		DEFINITION(NONTYPE),
 
 		/**
-		 * The specific kind of a signature which is an {@linkplain
-		 * AbstractDeclarationDescriptor abstract declaration}.
+		 * The specific kind of a definition which is an {@linkplain
+		 * AbstractDefinitionDescriptor abstract declaration} of a method.
 		 */
-		ABSTRACT_SIGNATURE(SIGNATURE),
+		ABSTRACT_DEFINITION(DEFINITION),
 
 		/**
-		 * The specific kind of signature which is a {@linkplain
-		 * ForwardDeclarationDescriptor forward declaration}.  Such declarations
+		 * The specific kind of definition which is a {@linkplain
+		 * ForwardDefinitionDescriptor forward declaration}.  Such declarations
 		 * must be resolved by the end of the module in which they occur.
 		 */
-		FORWARD_SIGNATURE(SIGNATURE),
+		FORWARD_DEFINITION(DEFINITION),
 
 		/**
 		 * The specific kind of signature which is an actual {@linkplain
-		 * MethodImplementationDescriptor method function}, by far the most common
-		 * case.
+		 * MethodDefinitionDescriptor method function}, by far the most
+		 * common case.
 		 */
-		METHOD_SIGNATURE(SIGNATURE),
+		METHOD_DEFINITION(DEFINITION),
 
 		/**
 		 * The specific kind of signature which is an actual {@linkplain
-		 * MacroImplementationDescriptor macro definition}.  An {@linkplain
-		 * MethodDescriptor method} may not contain
-		 * multiple macro signatures, nor may it mix macro signatures and any
-		 * other type of signature.
+		 * MacroDefinitionDescriptor macro definition}.  A {@linkplain
+		 * MethodDescriptor method} may not contain multiple macro
+		 * definition sites, nor may it mix macro definition sites and
+		 * any other type of sites.
 		 */
-		MACRO_SIGNATURE(SIGNATURE),
+		MACRO_DEFINITION(DEFINITION),
 
 		/**
 		 * {@linkplain ModuleDescriptor Modules} are maintained mostly

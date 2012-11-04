@@ -1,5 +1,5 @@
 /**
- * MethodImplementationDescriptor.java
+ * MethodDefinitionDescriptor.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -32,17 +32,18 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.TypeDescriptor.Types.METHOD_SIGNATURE;
+import static com.avail.descriptor.TypeDescriptor.Types.METHOD_DEFINITION;
 import com.avail.annotations.*;
+import com.avail.serialization.SerializerOperation;
 
 /**
- * An object instance of {@code MethodImplementationDescriptor} represents a
+ * An object instance of {@code MethodDefinitionDescriptor} represents a
  * function in the collection of available functions for this method hierarchy.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class MethodImplementationDescriptor
-extends ImplementationDescriptor
+public class MethodDefinitionDescriptor
+extends DefinitionDescriptor
 {
 	/**
 	 * The layout of object slots for my instances.
@@ -50,9 +51,21 @@ extends ImplementationDescriptor
 	public enum ObjectSlots implements ObjectSlotsEnum
 	{
 		/**
-		 * A function to execute this signature is selected during a call.
+		 * Duplicated from parent.  The method in which this definition occurs.
 		 */
-		BODY_BLOCK
+		DEFINITION_METHOD,
+
+		/**
+		 * The {@linkplain FunctionDescriptor function} to invoke when this
+		 * message is sent with applicable arguments.
+		 */
+		BODY_BLOCK;
+
+		static
+		{
+			assert DefinitionDescriptor.ObjectSlots.DEFINITION_METHOD.ordinal()
+				== DEFINITION_METHOD.ordinal();
+		}
 	}
 
 	@Override @AvailMethod
@@ -82,20 +95,28 @@ extends ImplementationDescriptor
 	{
 		//  Answer the object's type.
 
-		return METHOD_SIGNATURE.o();
+		return METHOD_DEFINITION.o();
 	}
 
 	@Override @AvailMethod
-	boolean o_IsMethod (
+	boolean o_IsMethodDefinition (
 		final AvailObject object)
 	{
 		return true;
 	}
 
+	@Override
+	SerializerOperation o_SerializerOperation (final AvailObject object)
+	{
+		return SerializerOperation.METHOD_DEFINITION;
+	}
 
 	/**
 	 * Create a new method signature from the provided arguments.
 	 *
+	 * @param method
+	 *            The {@linkplain MethodDescriptor method} for which to create
+	 *            a new method definition.
 	 * @param bodyBlock
 	 *            The body of the signature.  This will be invoked when the
 	 *            message is sent, assuming the argument types match and there
@@ -104,9 +125,11 @@ extends ImplementationDescriptor
 	 *            A method signature.
 	 */
 	public static AvailObject create (
+		final AvailObject method,
 		final AvailObject bodyBlock)
 	{
 		final AvailObject instance = mutable().create();
+		instance.setSlot(ObjectSlots.DEFINITION_METHOD, method);
 		instance.setSlot(ObjectSlots.BODY_BLOCK, bodyBlock);
 		instance.makeImmutable();
 		return instance;
@@ -114,45 +137,45 @@ extends ImplementationDescriptor
 
 
 	/**
-	 * Construct a new {@link MethodImplementationDescriptor}.
+	 * Construct a new {@link MethodDefinitionDescriptor}.
 	 *
 	 * @param isMutable
 	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
 	 *        object?
 	 */
-	protected MethodImplementationDescriptor (final boolean isMutable)
+	protected MethodDefinitionDescriptor (final boolean isMutable)
 	{
 		super(isMutable);
 	}
 
 	/**
-	 * The mutable {@link MethodImplementationDescriptor}.
+	 * The mutable {@link MethodDefinitionDescriptor}.
 	 */
-	private static final MethodImplementationDescriptor mutable =
-		new MethodImplementationDescriptor(true);
+	private static final MethodDefinitionDescriptor mutable =
+		new MethodDefinitionDescriptor(true);
 
 	/**
-	 * Answer the mutable {@link MethodImplementationDescriptor}.
+	 * Answer the mutable {@link MethodDefinitionDescriptor}.
 	 *
-	 * @return The mutable {@link MethodImplementationDescriptor}.
+	 * @return The mutable {@link MethodDefinitionDescriptor}.
 	 */
-	public static MethodImplementationDescriptor mutable ()
+	public static MethodDefinitionDescriptor mutable ()
 	{
 		return mutable;
 	}
 
 	/**
-	 * The immutable {@link MethodImplementationDescriptor}.
+	 * The immutable {@link MethodDefinitionDescriptor}.
 	 */
-	private static final MethodImplementationDescriptor immutable =
-		new MethodImplementationDescriptor(false);
+	private static final MethodDefinitionDescriptor immutable =
+		new MethodDefinitionDescriptor(false);
 
 	/**
-	 * Answer the immutable {@link MethodImplementationDescriptor}.
+	 * Answer the immutable {@link MethodDefinitionDescriptor}.
 	 *
-	 * @return The immutable {@link MethodImplementationDescriptor}.
+	 * @return The immutable {@link MethodDefinitionDescriptor}.
 	 */
-	public static MethodImplementationDescriptor immutable ()
+	public static MethodDefinitionDescriptor immutable ()
 	{
 		return immutable;
 	}

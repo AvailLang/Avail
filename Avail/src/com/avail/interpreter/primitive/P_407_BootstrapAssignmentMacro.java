@@ -1,5 +1,5 @@
-/*
- * bootstrap-test.avail
+/**
+ * P_407_BootstrapAssignmentMacro.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -30,15 +30,56 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "bootstrap-syntax"
-Versions "dev"
-Extends
-	"Origin"
-Uses
-Names
-Body
+package com.avail.interpreter.primitive;
 
-_any ::= special object 1;
-_foo ::= _any;
-Primitive "Crash_" is [hint : _any † | Primitive 256;];
-Crash "foo";
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
+import static com.avail.interpreter.Primitive.Flag.*;
+import java.util.*;
+import com.avail.descriptor.*;
+import com.avail.interpreter.*;
+
+/**
+ * The {@code P_407_BootstrapAssignmentMacro} primitive is used for
+ * assignment statements.
+ *
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ */
+public class P_407_BootstrapAssignmentMacro extends Primitive
+{
+	/**
+	 * The sole instance of this primitive class.  Accessed through reflection.
+	 */
+	public final static Primitive instance =
+		new P_407_BootstrapAssignmentMacro().init(
+			2, CannotFail, Bootstrap);
+
+	@Override
+	public Result attempt (
+		final List<AvailObject> args,
+		final Interpreter interpreter)
+	{
+		assert args.size() == 2;
+		final AvailObject variableUse = args.get(0);
+		final AvailObject valueExpression = args.get(1);
+
+		//TODO[MvG]: Check type compatibility.
+		final AvailObject assignment = AssignmentNodeDescriptor.from(
+			variableUse,
+			valueExpression,
+			false);
+		assignment.makeImmutable();
+		return interpreter.primitiveSuccess(assignment);
+	}
+
+	@Override
+	protected AvailObject privateBlockTypeRestriction ()
+	{
+		return FunctionTypeDescriptor.create(
+			TupleDescriptor.from(
+				/* Assignment variable */
+				VARIABLE_USE_NODE.mostGeneralType(),
+				/* Assignment value */
+				EXPRESSION_NODE.mostGeneralType()),
+			LOCAL_VARIABLE_NODE.mostGeneralType());
+	}
+}

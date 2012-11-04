@@ -1940,49 +1940,34 @@ Primitive "_'s⁇literals" is
 ] : tuple;
 
 /**
- * Answer the specified method implementation's function type.
+ * Answer the specified definition's function type.
  *
  * Parameters:
- *    anImplementation - A method implementation.
+ *    aDefinition - Any definition (method, macro, abstract, forward).
  * Returns:
  *    The requested function type.
  */
 Primitive "_'s⁇function type" is
 [
-	anImplementation : method site
+	aDefinition : definition
 |
 	Primitive 216;
 ] : function meta;
 
 /**
- * Answer the specified method implementation's function.
+ * Answer the specified method definition's function.
  *
  * Parameters:
- *    anImplementation - A method implementation.
+ *    aDefinition - A method definition.
  * Returns:
  *    The requested function.
  */
 Primitive "_'s⁇function" is
 [
-	anImplementation : implementation site
+	aDefinition : method definition
 |
 	Primitive 217;
 ] : function;
-
-/**
- * Answer the specified abstract site's function type.
- *
- * Parameters:
- *    anAbstractSite - An abstract site.
- * Returns:
- *    The requested function type.
- */
-Primitive "_'s⁇function type" is
-[
-	anAbstractSite : abstract site
-|
-	Primitive 218;
-] : function meta;
 
 /**
  * Answer the atom that uniquely describes the specified method.

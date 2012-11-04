@@ -39,6 +39,7 @@ import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import java.util.List;
 import com.avail.annotations.*;
 import com.avail.compiler.AvailCodeGenerator;
+import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.utility.*;
 
 /**
@@ -650,11 +651,11 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_Equals (
+	boolean o_EqualsParseNode (
 		final AvailObject object,
-		final AvailObject another)
+		final AvailObject aParseNode)
 	{
-		return object.sameAddressAs(another.traversed());
+		return object.sameAddressAs(aParseNode.traversed());
 	}
 
 	/**
@@ -760,6 +761,12 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 		final AvailObject initializationExpression,
 		final AvailObject literalObject)
 	{
+		assert token.isInstanceOf(Types.TOKEN.o());
+		assert declaredType.isType();
+		assert initializationExpression.equalsNull()
+			|| initializationExpression.isInstanceOfKind(
+				ParseNodeKind.EXPRESSION_NODE.create(Types.ANY.o()));
+
 		final AvailObject declaration = mutable().create();
 		declaration.setSlot(
 			IntegerSlots.DECLARATION_KIND,

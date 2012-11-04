@@ -42,7 +42,8 @@ import com.avail.interpreter.levelTwo.register.*;
  * interpreter}.  Avail programs can only see as far down as the level one
  * nybblecode representation.  Level two translations are invisibly created as
  * necessary to boost performance of frequently executed code.  Technically
- * level two is an optional part of the implementation, but modern hardware
+ * level two is an optional part of an Avail implementation, but modern hardware
+ * has enough memory that this should really always be present.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
@@ -109,12 +110,12 @@ public abstract class L2Operation
 	 * <p>
 	 * One more warning for good measure:  The level two instructions produced
 	 * by the optimizer take into account (and are themselves taken into account
-	 * by) the specific sets of implementations of relevant methods.  For
+	 * by) the specific sets of definitions of relevant methods.  For
 	 * example, the function [1+2;] may be tentatively folded to produce the
 	 * constant 3, irrespective of the current environment's definition of a
 	 * "_+_" operation.  Within a virtual machine, such level two code will be
-	 * made contingent upon the "_+_" method's set of implementations, being
-	 * invalidated automatically if an implementation is added or removed.  Any
+	 * made contingent upon the "_+_" method's set of definitions, being
+	 * invalidated automatically if a definition is added or removed.  Any
 	 * attempt to simply plug such level two code into another environment is
 	 * surely fraught with disaster, or at least great peril.
 	 * </p>

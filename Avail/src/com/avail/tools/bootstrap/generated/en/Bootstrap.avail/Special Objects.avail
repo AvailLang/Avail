@@ -48,7 +48,7 @@ Names
 	/*  78 */ "-∞",
 	/* 111 */ "Euler's number",
 	/*  21 */ "VM error codes",
-	/*  42 */ "abstract site",
+	/*  44 */ "abstract definition",
 	/*   1 */ "any",
 	/*  69 */ "any meta",
 	/*  62 */ "argument phrase",
@@ -64,6 +64,7 @@ Names
 	/*  92 */ "continuation variable",
 	/*  61 */ "declaration phrase",
 	/* 123 */ "declaration tuple",
+	/*  43 */ "definition",
 	/*  12 */ "double",
 	/*  96 */ "empty map",
 	/* 104 */ "empty tuple",
@@ -79,11 +80,10 @@ Names
 	/*  94 */ "field type map",
 	/* 119 */ "field type tuple",
 	/*  15 */ "float",
-	/*  43 */ "forward site",
+	/*  45 */ "forward definition",
 	/*   4 */ "function",
 	/*   6 */ "function implementation",
 	/*   5 */ "function meta",
-	/*  44 */ "implementation site",
 	/*  17 */ "integer",
 	/*  95 */ "key-value tuple",
 	/*  63 */ "label phrase",
@@ -93,13 +93,14 @@ Names
 	/*  58 */ "literal token meta",
 	/*  65 */ "local constant phrase",
 	/*  64 */ "local variable phrase",
+	/*  47 */ "macro definition",
 	/* 109 */ "macro function",
 	/*  39 */ "map",
 	/*  19 */ "map meta",
 	/*  40 */ "message bundle",
-	/*  45 */ "message bundle tree",
-	/*  46 */ "method",
-	/*  41 */ "method site",
+	/*  41 */ "message bundle tree",
+	/*  42 */ "method",
+	/*  46 */ "method definition",
 	/*  20 */ "module",
 	/*  67 */ "module constant phrase",
 	/*  66 */ "module variable phrase",
@@ -212,12 +213,13 @@ _natural_number                         ::= special object 37;
 _code_point                             ::= special object 38;
 _map                                    ::= special object 39;
 _message_bundle                         ::= special object 40;
-_method_site                            ::= special object 41;
-_abstract_site                          ::= special object 42;
-_forward_site                           ::= special object 43;
-_implementation_site                    ::= special object 44;
-_message_bundle_tree                    ::= special object 45;
-_method                                 ::= special object 46;
+_message_bundle_tree                    ::= special object 41;
+_method                                 ::= special object 42;
+_definition                             ::= special object 43;
+_abstract_definition                    ::= special object 44;
+_forward_definition                     ::= special object 45;
+_method_definition                      ::= special object 46;
+_macro_definition                       ::= special object 47;
 _phrase                                 ::= special object 50;
 _sequence_phrase                        ::= special object 51;
 _expression_phrase                      ::= special object 52;
@@ -611,26 +613,6 @@ Primitive "message bundle" is
 	_message_bundle
 ];
 
-Primitive "method site" is
-[
-	_method_site
-];
-
-Primitive "abstract site" is
-[
-	_abstract_site
-];
-
-Primitive "forward site" is
-[
-	_forward_site
-];
-
-Primitive "implementation site" is
-[
-	_implementation_site
-];
-
 Primitive "message bundle tree" is
 [
 	_message_bundle_tree
@@ -639,6 +621,31 @@ Primitive "message bundle tree" is
 Primitive "method" is
 [
 	_method
+];
+
+Primitive "definition" is
+[
+	_definition
+];
+
+Primitive "abstract definition" is
+[
+	_abstract_definition
+];
+
+Primitive "forward definition" is
+[
+	_forward_definition
+];
+
+Primitive "method definition" is
+[
+	_method_definition
+];
+
+Primitive "macro definition" is
+[
+	_macro_definition
 ];
 
 Primitive "phrase" is

@@ -249,12 +249,12 @@ implements L1OperationDispatcher
 	@Override
 	public void L1_doCall()
 	{
-		final AvailObject implementations = literalAt(getInteger());
+		final AvailObject definitions = literalAt(getInteger());
 		final AvailObject expectedReturnType = literalAt(getInteger());
-		final int numArgs = implementations.numArgs();
+		final int numArgs = definitions.numArgs();
 		if (debugL1)
 		{
-			System.out.printf(" (%s)", implementations.name().name());
+			System.out.printf(" (%s)", definitions.name().name());
 		}
 		argsBuffer.clear();
 		for (int i = numArgs; i >= 1; i--)
@@ -262,27 +262,27 @@ implements L1OperationDispatcher
 			argsBuffer.add(0, pop());
 		}
 		final AvailObject matching =
-			implementations.lookupByValuesFromList(argsBuffer);
+			definitions.lookupByValuesFromList(argsBuffer);
 		if (matching.equalsNull())
 		{
 			error(
 				"Ambiguous or invalid lookup of %s",
-				implementations.name().name());
+				definitions.name().name());
 			return;
 		}
-		if (matching.isForward())
+		if (matching.isForwardDefinition())
 		{
 			error(
 				"Attempted to execute forward method %s "
 				+ "before it was defined.",
-				implementations.name().name());
+				definitions.name().name());
 			return;
 		}
-		if (matching.isAbstract())
+		if (matching.isAbstractDefinition())
 		{
 			error(
 				"Attempted to execute an abstract method %s.",
-				implementations.name().name());
+				definitions.name().name());
 			return;
 		}
 		// Leave the expected return type pushed on the stack.  This will be

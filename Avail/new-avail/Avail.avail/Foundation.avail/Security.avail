@@ -51,7 +51,7 @@ Names
 Body
 
 /**
- * Seal the named method at the specified signature. No further implementations
+ * Seal the named method at the specified signature. No further definitions
  * may be added at or below this signature. This facility is provided to secure
  * methods against dangerous, unscrupulous, or confusing extensions.
  *
@@ -92,33 +92,20 @@ Semantic restriction "Seal method_at_" is
 		[
 			index : natural number
 		|
-			argTypes := eject ↑argTypes ++ <functionType[1]>;
+			argTypes := eject ↑argTypes ++ <functionType[index]>;
 		];
 		returnType ::= functionType's return type;
 		m ::= method for atom for methodName;
-		If m has implementation for argTypes then
+		If m has definition for argTypes then
 		[
-			siteType : function's type;
-			site ::= method site of m for argTypes;
-			Cast site into
-			[
-				implementationSite : implementation site
-			|
-				siteType := implementationSite's function's type;
-			],
-			[
-				abstractSite : abstract site
-			|
-				siteType := abstractSite's function type;
-			];
-			If ↑siteType is assigned
-				∧ [returnType ≠ siteType's return type] then
+			site ::= method definition of m for argTypes;
+			If returnType ≠ site's function type's return type then
 			[
 				Reject parse, expected:
 					format
 						"specified function type's return type (“①”) does \
 						\|not match method site's return type (“②”)"
-					with returnType, siteType's return type
+					with returnType, site's function type's return type
 			];
 		];
 	];
@@ -126,7 +113,7 @@ Semantic restriction "Seal method_at_" is
 ];
 
 /**
- * Completely seal the specified method. No further implementations may be
+ * Completely seal the specified method. No further definitions may be
  * added at any site within the method.
  * 
  * @method "Completely seal method_"

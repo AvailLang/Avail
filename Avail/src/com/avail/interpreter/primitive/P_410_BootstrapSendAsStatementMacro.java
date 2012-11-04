@@ -1,5 +1,5 @@
 /**
- * P_402_BootstrapArgumentMacro.java
+ * P_410_BootstrapSendAsStatementMacro.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -36,38 +36,40 @@ import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.*;
+import com.avail.compiler.AvailRejectedParseException;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 
 /**
- * The {@code P_402_BootstrapArgumentMacro} primitive is used for bootstrapping
- * the {@link #ARGUMENT_NODE block argument declaration} syntax.
+ * The {@code P_410_BootstrapSendAsStatementMacro} primitive is used to allow
+ * message sends producing ⊤ to be used as statements.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class P_402_BootstrapArgumentMacro extends Primitive
+public class P_410_BootstrapSendAsStatementMacro extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_402_BootstrapArgumentMacro().init(2, CannotFail, Bootstrap);
+		new P_410_BootstrapSendAsStatementMacro().init(
+			1, CannotFail, Bootstrap);
 
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 2;
-		final AvailObject argumentName = args.get(0);
-		final AvailObject type = args.get(1);
+		assert args.size() == 1;
+		final AvailObject sendNode = args.get(0);
 
-		final AvailObject argumentDeclaration =
-			DeclarationNodeDescriptor.newArgument(
-				argumentName,
-				type);
-		argumentDeclaration.makeImmutable();
-		return interpreter.primitiveSuccess(argumentDeclaration);
+		if (!sendNode.expressionType().equals(TOP.o()))
+		{
+			throw new AvailRejectedParseException(
+				StringDescriptor.from(
+					"statement's type to be ⊤"));
+		}
+		return interpreter.primitiveSuccess(sendNode);
 	}
 
 	@Override
@@ -75,10 +77,8 @@ public class P_402_BootstrapArgumentMacro extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				/* Argument name token */
-				TOKEN.o(),
-				/* Argument type */
-				InstanceMetaDescriptor.anyMeta()),
-			ARGUMENT_NODE.mostGeneralType());
+				/* The send node to treat as a statement */
+				SEND_NODE.mostGeneralType()),
+			SEND_NODE.mostGeneralType());
 	}
 }

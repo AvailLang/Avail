@@ -427,9 +427,9 @@ Private method "generate and install_accessor for_" is
 	[
 		theMethod ::= method for methodAtom;
 		defineClassAccessor :=
-			¬theMethod has implementation for <objectType's type>;
+			¬theMethod has definition for <objectType's type>;
 		defineInstanceAccessor :=
-			¬theMethod has implementation for <objectType>;
+			¬theMethod has definition for <objectType>;
 	];
 	If defineClassAccessor then
 	[

@@ -94,13 +94,13 @@ Names
 	/*  58 */ "label macro must occur inside a block code",
 	/*  28 */ "local type literal is not a type code",
 	/*  34 */ "macro argument must be a parse node code",
-	/*  71 */ "method implementation lookup failed code",
+	/*  71 */ "method definition lookup failed code",
 	/*  72 */ "method is sealed code",
 	/*  45 */ "method name is not canonical code",
 	/*  13 */ "method return type not as forward declared code",
 	/*  22 */ "negative size code",
+	/*  73 */ "no definition code",
 	/*  82 */ "no handler frame code",
-	/*  73 */ "no implementation code",
 	/*  19 */ "no method code",
 	/*   9 */ "no such fiber variable code",
 	/*  17 */ "not enumeration code",
@@ -421,7 +421,7 @@ Primitive "compilation is over code" is
 	70
 ];
 
-Primitive "method implementation lookup failed code" is
+Primitive "method definition lookup failed code" is
 [
 	71
 ];
@@ -431,7 +431,7 @@ Primitive "method is sealed code" is
 	72
 ];
 
-Primitive "no implementation code" is
+Primitive "no definition code" is
 [
 	73
 ];

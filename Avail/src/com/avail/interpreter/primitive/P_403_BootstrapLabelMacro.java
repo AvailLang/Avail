@@ -1,5 +1,5 @@
 /**
- * P_401_BootstrapLabelMacro.java
+ * P_403_BootstrapLabelMacro.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -45,19 +45,19 @@ import com.avail.interpreter.*;
 import com.avail.utility.Continuation1;
 
 /**
- * The {@code P_401_BootstrapLabelMacro} primitive is used for bootstrapping
+ * The {@code P_403_BootstrapLabelMacro} primitive is used for bootstrapping
  * the {@link #LABEL_NODE label declaration} syntax for declaring labels near
  * the start of blocks.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class P_401_BootstrapLabelMacro extends Primitive
+public class P_403_BootstrapLabelMacro extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_401_BootstrapLabelMacro().init(2, Unknown, Bootstrap);
+		new P_403_BootstrapLabelMacro().init(2, Unknown, Bootstrap);
 
 	@Override
 	public Result attempt (

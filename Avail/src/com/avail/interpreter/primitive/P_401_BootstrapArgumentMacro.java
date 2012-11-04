@@ -1,5 +1,5 @@
 /**
- * P_222_ImplementationForArgumentTypes.java
+ * P_401_BootstrapArgumentMacro.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -33,30 +33,25 @@
 package com.avail.interpreter.primitive;
 
 import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.exceptions.AvailErrorCode.*;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import static com.avail.interpreter.Primitive.Flag.*;
-import java.util.List;
-import com.avail.compiler.MessageSplitter;
+import java.util.*;
 import com.avail.descriptor.*;
-import com.avail.exceptions.SignatureException;
 import com.avail.interpreter.*;
 
 /**
- * <strong>Primitive 222</strong>: Lookup the unique {@linkplain
- * ImplementationDescriptor implementation} of the specified {@linkplain
- * MethodDescriptor method} by the {@linkplain TupleDescriptor tuple} of
- * parameter {@linkplain TypeDescriptor types}.
+ * The {@code P_401_BootstrapArgumentMacro} primitive is used for bootstrapping
+ * the {@link #ARGUMENT_NODE block argument declaration} syntax.
  *
- * @author Todd L Smith &lt;todd@availlang.org&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public final class P_222_ImplementationForArgumentTypes
-extends Primitive
+public class P_401_BootstrapArgumentMacro extends Primitive
 {
 	/**
-	 * The sole instance of this primitive class. Accessed through reflection.
+	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_222_ImplementationForArgumentTypes().init(2, CanFold);
+		new P_401_BootstrapArgumentMacro().init(2, CannotFail, Bootstrap);
 
 	@Override
 	public Result attempt (
@@ -64,29 +59,15 @@ extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 2;
-		final AvailObject method = args.get(0);
-		final AvailObject argTypes = args.get(1);
-		final AvailObject name = method.name().name();
-		try
-		{
-			final MessageSplitter splitter = new MessageSplitter(name);
-			if (splitter.numberOfArguments() != argTypes.tupleSize())
-			{
-				return interpreter.primitiveFailure(
-					E_INCORRECT_NUMBER_OF_ARGUMENTS);
-			}
-		}
-		catch (final SignatureException e)
-		{
-			assert false : "The method name was extracted from a real method!";
-		}
-		final AvailObject impl = method.lookupByTypesFromTuple(argTypes);
-		if (impl.equalsNull())
-		{
-			return interpreter.primitiveFailure(
-				E_METHOD_IMPLEMENTATION_LOOKUP_FAILED);
-		}
-		return interpreter.primitiveSuccess(impl);
+		final AvailObject argumentName = args.get(0);
+		final AvailObject type = args.get(1);
+
+		final AvailObject argumentDeclaration =
+			DeclarationNodeDescriptor.newArgument(
+				argumentName,
+				type);
+		argumentDeclaration.makeImmutable();
+		return interpreter.primitiveSuccess(argumentDeclaration);
 	}
 
 	@Override
@@ -94,9 +75,10 @@ extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				METHOD.o(),
-				TupleTypeDescriptor.zeroOrMoreOf(
-					InstanceMetaDescriptor.anyMeta())),
-			SIGNATURE.o());
+				/* Argument name token */
+				TOKEN.o(),
+				/* Argument type */
+				InstanceMetaDescriptor.anyMeta()),
+			ARGUMENT_NODE.mostGeneralType());
 	}
 }

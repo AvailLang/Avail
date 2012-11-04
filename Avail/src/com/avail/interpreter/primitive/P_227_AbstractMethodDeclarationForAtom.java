@@ -41,8 +41,8 @@ import com.avail.interpreter.*;
 
 /**
  * <strong>Primitive 227</strong>: Declare method as {@linkplain
- * AbstractDeclarationDescriptor abstract}. This identifies responsibility for
- * implementations that want to be concrete.
+ * AbstractDefinitionDescriptor abstract}. This identifies responsibility for
+ * definitions that want to be concrete.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */

@@ -60,7 +60,7 @@ Method "best of_and_" is [a : any, b : any |
 betterM ::= method for "_is better than_";
 Semantic restriction "best of_and_" is
 [a : any's type, b : any's type |
-	If betterM is not concrete at <a, b> then
+	If betterM is not implemented at <a, b> then
 	[
 		Reject parse, expected:
 			format

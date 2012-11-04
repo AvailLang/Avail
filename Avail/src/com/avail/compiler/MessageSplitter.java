@@ -90,7 +90,7 @@ public class MessageSplitter
 	 * <li>A {@linkplain StringDescriptor#sectionSign() section sign} (§) is
 	 * used to mark where the {@linkplain P_400_BootstrapBlockMacro
 	 * block-defining macro} should save its current parsed subexpressions for
-	 * subsequent use by the {@linkplain P_401_BootstrapLabelMacro
+	 * subsequent use by the {@linkplain P_403_BootstrapLabelMacro
 	 * label-creating macro}.</li>
 	 * <li>The {@linkplain StringDescriptor#backQuote() backquote} (`) can
 	 * precede any operator character, like guillemets and double dagger, to
@@ -2392,7 +2392,7 @@ public class MessageSplitter
 
 	/**
 	 * Return the number of arguments a {@linkplain
-	 * MethodImplementationDescriptor method} implementing this name would
+	 * MethodDefinitionDescriptor method} implementing this name would
 	 * accept.  Note that this is not necessarily the number of underscores and
 	 * ellipses, as a guillemet group may contain zero or more
 	 * underscores/ellipses (and other guillemet groups) but count as one
@@ -2428,7 +2428,7 @@ public class MessageSplitter
 	}
 
 	/**
-	 * Check that an {@linkplain ImplementationDescriptor implementation} with
+	 * Check that an {@linkplain DefinitionDescriptor implementation} with
 	 * the given {@linkplain FunctionTypeDescriptor signature} is appropriate
 	 * for a message like this.
 	 *
@@ -2447,7 +2447,7 @@ public class MessageSplitter
 		final AvailObject upperBound = sizes.upperBound();
 		if (!lowerBound.equals(upperBound) || !lowerBound.isInt())
 		{
-			// Method implementations (and other implementations) should take a
+			// Method definitions (and other definitions) should take a
 			// definite number of arguments.
 			throwSignatureException(E_INCORRECT_NUMBER_OF_ARGUMENTS);
 		}

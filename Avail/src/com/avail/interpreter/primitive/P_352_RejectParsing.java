@@ -55,8 +55,8 @@ public class P_352_RejectParsing extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
-		final AvailObject parseNode = args.get(0);
-		throw new AvailRejectedParseException(parseNode);
+		final AvailObject rejectionString = args.get(0);
+		throw new AvailRejectedParseException(rejectionString);
 	}
 
 	@Override

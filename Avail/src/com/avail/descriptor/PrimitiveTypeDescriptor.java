@@ -386,21 +386,21 @@ extends TypeDescriptor
 						return Double.TYPE;
 					case FLOAT:
 						return Float.TYPE;
-					case ABSTRACT_SIGNATURE:
+					case ABSTRACT_DEFINITION:
 					case ATOM:
-					case FORWARD_SIGNATURE:
-					case MACRO_SIGNATURE:
+					case FORWARD_DEFINITION:
+					case MACRO_DEFINITION:
 					case MESSAGE_BUNDLE:
 					case MESSAGE_BUNDLE_TREE:
 					case METHOD:
-					case METHOD_SIGNATURE:
+					case METHOD_DEFINITION:
 					case MODULE:
 					case NONTYPE:
 					case NUMBER:
 					case POWER_STRING_TOKEN:
 					case FIBER:
 					case RAW_POJO:
-					case SIGNATURE:
+					case DEFINITION:
 					case TOKEN:
 						return super.o_MarshalToJava(object, ignoredClassHint);
 				}

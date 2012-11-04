@@ -655,8 +655,8 @@ Private method "System exception_(_)extends_" is
 			error code : code's type,
 			error name : exceptionName's type;
 	Publish new name: exceptionName;
-	site ::= cast method site of method for atom for exceptionName for <>
-		into [ t : implementation site | t ];
+	site ::= cast method definition of method for atom for exceptionName for <>
+		into [ t : method definition | t ];
 	implementation ::= cast site's function into [t : []→object meta | t];
 	exceptionType ::= cast implementation()
 		into  [ t : system exception's type | t ];

@@ -1,5 +1,5 @@
 /**
- * MacroImplementationDescriptor.java
+ * MacroDefinitionDescriptor.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -32,9 +32,10 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.TypeDescriptor.Types.MACRO_SIGNATURE;
-import static com.avail.descriptor.MacroImplementationDescriptor.ObjectSlots.*;
+import static com.avail.descriptor.TypeDescriptor.Types.MACRO_DEFINITION;
+import static com.avail.descriptor.MacroDefinitionDescriptor.ObjectSlots.*;
 import com.avail.annotations.*;
+import com.avail.serialization.SerializerOperation;
 
 /**
  * Macros are extremely hygienic in Avail.  They are defined almost exactly like
@@ -62,8 +63,8 @@ import com.avail.annotations.*;
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class MacroImplementationDescriptor
-extends ImplementationDescriptor
+public class MacroDefinitionDescriptor
+extends DefinitionDescriptor
 {
 	/**
 	 * The layout of object slots for my instances.
@@ -71,10 +72,21 @@ extends ImplementationDescriptor
 	public enum ObjectSlots implements ObjectSlotsEnum
 	{
 		/**
+		 * Duplicated from parent.  The method in which this definition occurs.
+		 */
+		DEFINITION_METHOD,
+
+		/**
 		 * The {@linkplain FunctionDescriptor function} to invoke to transform
 		 * the argument parse nodes into a suitable replacement parse node.
 		 */
-		BODY_BLOCK,
+		BODY_BLOCK;
+
+		static
+		{
+			assert DefinitionDescriptor.ObjectSlots.DEFINITION_METHOD.ordinal()
+				== DEFINITION_METHOD.ordinal();
+		}
 	}
 
 	/**
@@ -106,20 +118,29 @@ extends ImplementationDescriptor
 	AvailObject o_Kind (
 		final AvailObject object)
 	{
-		return MACRO_SIGNATURE.o();
+		return MACRO_DEFINITION.o();
 	}
 
 	@Override @AvailMethod
-	boolean o_IsMacro (
+	boolean o_IsMacroDefinition (
 		final AvailObject object)
 	{
 		return true;
+	}
+
+	@Override
+	SerializerOperation o_SerializerOperation (final AvailObject object)
+	{
+		return SerializerOperation.MACRO_DEFINITION;
 	}
 
 
 	/**
 	 * Create a new macro signature from the provided argument.
 	 *
+	 * @param method
+	 *            The {@linkplain MethodDescriptor method} in which to define
+	 *            this macro.
 	 * @param bodyBlock
 	 *            The body of the signature.  This will be invoked when a call
 	 *            site is compiled, passing the sub<em>expressions</em> (
@@ -128,9 +149,11 @@ extends ImplementationDescriptor
 	 *            A macro signature.
 	 */
 	public static AvailObject create (
+		final AvailObject method,
 		final AvailObject bodyBlock)
 	{
 		final AvailObject instance = mutable().create();
+		instance.setSlot(DEFINITION_METHOD, method);
 		instance.setSlot(BODY_BLOCK, bodyBlock);
 		instance.makeImmutable();
 		return instance;
@@ -138,45 +161,45 @@ extends ImplementationDescriptor
 
 
 	/**
-	 * Construct a new {@link MacroImplementationDescriptor}.
+	 * Construct a new {@link MacroDefinitionDescriptor}.
 	 *
 	 * @param isMutable
 	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
 	 *        object?
 	 */
-	protected MacroImplementationDescriptor (final boolean isMutable)
+	protected MacroDefinitionDescriptor (final boolean isMutable)
 	{
 		super(isMutable);
 	}
 
 	/**
-	 * The mutable {@link MacroImplementationDescriptor}.
+	 * The mutable {@link MacroDefinitionDescriptor}.
 	 */
-	private static final MacroImplementationDescriptor mutable =
-		new MacroImplementationDescriptor(true);
+	private static final MacroDefinitionDescriptor mutable =
+		new MacroDefinitionDescriptor(true);
 
 	/**
-	 * Answer the mutable {@link MacroImplementationDescriptor}.
+	 * Answer the mutable {@link MacroDefinitionDescriptor}.
 	 *
-	 * @return The mutable {@link MacroImplementationDescriptor}.
+	 * @return The mutable {@link MacroDefinitionDescriptor}.
 	 */
-	public static MacroImplementationDescriptor mutable ()
+	public static MacroDefinitionDescriptor mutable ()
 	{
 		return mutable;
 	}
 
 	/**
-	 * The immutable {@link MacroImplementationDescriptor}.
+	 * The immutable {@link MacroDefinitionDescriptor}.
 	 */
-	private static final MacroImplementationDescriptor immutable =
-		new MacroImplementationDescriptor(false);
+	private static final MacroDefinitionDescriptor immutable =
+		new MacroDefinitionDescriptor(false);
 
 	/**
-	 * Answer the immutable {@link MacroImplementationDescriptor}.
+	 * Answer the immutable {@link MacroDefinitionDescriptor}.
 	 *
-	 * @return The immutable {@link MacroImplementationDescriptor}.
+	 * @return The immutable {@link MacroDefinitionDescriptor}.
 	 */
-	public static MacroImplementationDescriptor immutable ()
+	public static MacroDefinitionDescriptor immutable ()
 	{
 		return immutable;
 	}

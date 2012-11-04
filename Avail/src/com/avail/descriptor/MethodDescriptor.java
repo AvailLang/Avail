@@ -48,7 +48,7 @@ import com.avail.serialization.SerializerOperation;
 import com.avail.utility.*;
 
 /**
- * A method maintains all implementations that have the same name.  At
+ * A method maintains all definitions that have the same name.  At
  * compile time a name is looked up and the corresponding method is
  * stored as a literal in the object code.  At runtime the actual function is
  * located within the method and then invoked.  The methods also keep track of
@@ -57,8 +57,8 @@ import com.avail.utility.*;
  * previous membership.
  *
  * <p>To support macros safely, a method must contain either all
- * {@linkplain MacroImplementationDescriptor macro signatures} or all non-macro
- * {@linkplain ImplementationDescriptor signatures}, but not both.</p>
+ * {@linkplain MacroDefinitionDescriptor macro signatures} or all non-macro
+ * {@linkplain DefinitionDescriptor signatures}, but not both.</p>
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
@@ -84,14 +84,14 @@ extends Descriptor
 
 	/**
 	 * A {@linkplain MethodDescriptor method} containing a {@linkplain
-	 * MethodImplementationDescriptor function} that invokes {@linkplain
+	 * MethodDefinitionDescriptor function} that invokes {@linkplain
 	 * P_256_EmergencyExit}. Needed by some hand-built bootstrap functions.
 	 */
 	private static AvailObject vmCrashMethod;
 
 	/**
 	 * Answer a {@linkplain MethodDescriptor method}
-	 * containing a {@linkplain MethodImplementationDescriptor function} that
+	 * containing a {@linkplain MethodDefinitionDescriptor function} that
 	 * invokes {@linkplain P_256_EmergencyExit}. Needed by some hand-built
 	 * bootstrap functions.
 	 *
@@ -121,8 +121,8 @@ extends Descriptor
 		final AvailObject method = newMethodWithName(vmCrashAtom);
 		try
 		{
-			method.addImplementation(
-				MethodImplementationDescriptor.create(newFunction));
+			method.addDefinition(
+				MethodDefinitionDescriptor.create(method, newFunction));
 		}
 		catch (final SignatureException e)
 		{
@@ -267,8 +267,8 @@ extends Descriptor
 	}
 
 	/**
-	 * Construct the {@linkplain MethodDescriptor method}s
-	 * for bootstrapping method definition.
+	 * Construct the {@linkplain MethodDescriptor methods} for bootstrapping
+	 * method definition.
 	 *
 	 * @return A method.
 	 */
@@ -281,10 +281,10 @@ extends Descriptor
 		final AvailObject method = newMethodWithName(vmMethodDefinerAtom);
 		try
 		{
-			method.addImplementation(
-				MethodImplementationDescriptor.create(fromAtomFunction));
-			method.addImplementation(
-				MethodImplementationDescriptor.create(fromStringFunction));
+			method.addDefinition(
+				MethodDefinitionDescriptor.create(method, fromAtomFunction));
+			method.addDefinition(
+				MethodDefinitionDescriptor.create(method, fromStringFunction));
 		}
 		catch (final SignatureException e)
 		{
@@ -295,8 +295,8 @@ extends Descriptor
 	}
 
 	/**
-	 * Construct the {@linkplain MethodDescriptor method}
-	 * for bootstrapping emergency exit.
+	 * Construct the {@linkplain MethodDescriptor method} for bootstrapping
+	 * macro definition.
 	 *
 	 * @return A method.
 	 */
@@ -307,8 +307,8 @@ extends Descriptor
 		final AvailObject method = newMethodWithName(vmMacroDefinerAtom);
 		try
 		{
-			method.addImplementation(
-				MethodImplementationDescriptor.create(fromStringFunction));
+			method.addDefinition(
+				MethodDefinitionDescriptor.create(method, fromStringFunction));
 		}
 		catch (final SignatureException e)
 		{
@@ -335,16 +335,16 @@ extends Descriptor
 	}
 
 	/**
-	 * A {@linkplain MethodDescriptor method} containing an {@linkplain
-	 * MethodImplementationDescriptor implementation} that invokes {@link
+	 * A {@linkplain MethodDescriptor method} containing a {@linkplain
+	 * MethodDefinitionDescriptor definition} that invokes {@link
 	 * P_040_InvokeWithTuple} (function application). Needed by some hand-built
 	 * functions.
 	 */
 	private static AvailObject vmFunctionApplyMethod;
 
 	/**
-	 * A {@linkplain MethodDescriptor method} containing an {@linkplain
-	 * MethodImplementationDescriptor implementation} that invokes {@link
+	 * A {@linkplain MethodDescriptor method} containing a {@linkplain
+	 * MethodDefinitionDescriptor definition} that invokes {@link
 	 * P_040_InvokeWithTuple} (function application). Needed by some hand-built
 	 * functions.
 	 *
@@ -356,8 +356,8 @@ extends Descriptor
 	}
 
 	/**
-	 * Construct the {@linkplain MethodDescriptor method}
-	 * for bootstrap function application.
+	 * Construct the {@linkplain MethodDescriptor method} for bootstrapping
+	 * function application.
 	 *
 	 * @return A method.
 	 */
@@ -370,8 +370,8 @@ extends Descriptor
 		final AvailObject method = newMethodWithName(vmFunctionApplyAtom);
 		try
 		{
-			method.addImplementation(
-				MethodImplementationDescriptor.create(newFunction));
+			method.addDefinition(
+				MethodDefinitionDescriptor.create(method, newFunction));
 		}
 		catch (final SignatureException e)
 		{
@@ -399,16 +399,16 @@ extends Descriptor
 	}
 
 	/**
-	 * A {@linkplain MethodDescriptor method} containing an {@linkplain
-	 * MethodImplementationDescriptor implementation} that invokes {@link
+	 * A {@linkplain MethodDescriptor method} containing a {@linkplain
+	 * MethodDefinitionDescriptor definition} that invokes {@link
 	 * P_263_DeclareAllExportedAtoms} (atom-set publication). Needed by the
 	 * module compilation system.
 	 */
 	private static AvailObject vmPublishAtomsMethod;
 
 	/**
-	 * A {@linkplain MethodDescriptor method} containing an {@linkplain
-	 * MethodImplementationDescriptor implementation} that invokes {@link
+	 * A {@linkplain MethodDescriptor method} containing a {@linkplain
+	 * MethodDefinitionDescriptor definition} that invokes {@link
 	 * P_263_DeclareAllExportedAtoms} (atom-set publication). Needed by the
 	 * module compilation system.
 	 *
@@ -420,8 +420,8 @@ extends Descriptor
 	}
 
 	/**
-	 * Construct the {@linkplain MethodDescriptor method}
-	 * for publishing a set of atoms from the current module.
+	 * Construct the {@linkplain MethodDescriptor method} for publishing a set
+	 * of atoms from the current module.
 	 *
 	 * @return A method.
 	 */
@@ -434,8 +434,8 @@ extends Descriptor
 		final AvailObject method = newMethodWithName(vmPublishAtomsAtom);
 		try
 		{
-			method.addImplementation(
-				MethodImplementationDescriptor.create(newFunction));
+			method.addDefinition(
+				MethodDefinitionDescriptor.create(method, newFunction));
 		}
 		catch (final SignatureException e)
 		{
@@ -506,10 +506,10 @@ extends Descriptor
 
 		/**
 		 * The {@linkplain TupleDescriptor tuple} of {@linkplain
-		 * ImplementationDescriptor signatures} that constitute this multimethod
+		 * DefinitionDescriptor definitions} that constitute this multimethod
 		 * (or multimacro).
 		 */
-		IMPLEMENTATIONS_TUPLE,
+		DEFINITIONS_TUPLE,
 
 		/**
 		 * A {@linkplain TupleDescriptor tuple} of {@linkplain IntegerDescriptor
@@ -547,10 +547,10 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_ImplementationsTuple (
+	AvailObject o_DefinitionsTuple (
 		final AvailObject object)
 	{
-		return object.slot(IMPLEMENTATIONS_TUPLE);
+		return object.slot(DEFINITIONS_TUPLE);
 	}
 
 	@Override @AvailMethod
@@ -563,7 +563,7 @@ extends Descriptor
 	@Override boolean allowsImmutableToMutableReferenceInField (
 		final AbstractSlotsEnum e)
 	{
-		return e == IMPLEMENTATIONS_TUPLE
+		return e == DEFINITIONS_TUPLE
 			|| e == PRIVATE_TESTING_TREE
 			|| e == DEPENDENT_CHUNK_INDICES
 			|| e == TYPE_RESTRICTIONS_TUPLE
@@ -577,9 +577,9 @@ extends Descriptor
 		final List<AvailObject> recursionList,
 		final int indent)
 	{
-		final int size = object.implementationsTuple().tupleSize();
+		final int size = object.definitionsTuple().tupleSize();
 		aStream.append(Integer.toString(size));
-		aStream.append(" implementation");
+		aStream.append(" definition");
 		if (size != 1)
 		{
 			aStream.append('s');
@@ -644,19 +644,20 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	void o_AddImplementation (
-			final AvailObject object,
-			final AvailObject implementation)
-		throws SignatureException
+	void o_AddDefinition (
+		final AvailObject object,
+		final AvailObject definition)
+	throws SignatureException
 	{
-		final AvailObject oldTuple = object.implementationsTuple();
+		final AvailObject oldTuple = object.definitionsTuple();
 		if (oldTuple.tupleSize() > 0)
 		{
 			// Ensure that we're not mixing macro and non-macro signatures.
-			assert implementation.isMacro() == oldTuple.tupleAt(1).isMacro();
+			assert definition.isMacroDefinition()
+				== oldTuple.tupleAt(1).isMacroDefinition();
 		}
 		final AvailObject seals = object.slot(SEALED_ARGUMENTS_TYPES_TUPLE);
-		final AvailObject bodySignature = implementation.bodySignature();
+		final AvailObject bodySignature = definition.bodySignature();
 		final AvailObject paramTypes = bodySignature.argsTupleType();
 		for (final AvailObject seal : seals)
 		{
@@ -668,15 +669,15 @@ extends Descriptor
 			}
 		}
 		final AvailObject newTuple =
-			oldTuple.appendCanDestroy(implementation, true);
-		object.setSlot(IMPLEMENTATIONS_TUPLE, newTuple);
+			oldTuple.appendCanDestroy(definition, true);
+		object.setSlot(DEFINITIONS_TUPLE, newTuple);
 		membershipChanged(object);
 	}
 
 	/**
-	 * Look up all method implementations that could match the given argument
+	 * Look up all method definitions that could match the given argument
 	 * types.  Answer a {@linkplain List list} of {@linkplain
-	 * MethodImplementationDescriptor method signatures}.
+	 * MethodDefinitionDescriptor method signatures}.
 	 */
 	@Override @AvailMethod
 	List<AvailObject> o_FilterByTypes (
@@ -685,7 +686,7 @@ extends Descriptor
 	{
 		List<AvailObject> result;
 		result = new ArrayList<AvailObject>(3);
-		final AvailObject impsTuple = object.implementationsTuple();
+		final AvailObject impsTuple = object.definitionsTuple();
 		for (int i = 1, end = impsTuple.tupleSize(); i <= end; i++)
 		{
 			final AvailObject imp = impsTuple.tupleAt(i);
@@ -698,28 +699,28 @@ extends Descriptor
 	}
 
 	/**
-	 * Look up all method implementations that could match arguments with the
+	 * Look up all method definitions that could match arguments with the
 	 * given types, or anything more specific.  This should return the
-	 * implementations that could be invoked at runtime at a call site with the
+	 * definitions that could be invoked at runtime at a call site with the
 	 * given static types.  This set is subject to change as new methods and
 	 * types are created.  If an argType and the corresponding argument type of
-	 * an implementation have no possible descendant except bottom, then
-	 * disallow the implementation (it could never actually be invoked because
+	 * a definition have no possible descendant except bottom, then
+	 * disallow the definition (it could never actually be invoked because
 	 * bottom is uninstantiable).  Answer a {@linkplain List list} of
-	 * {@linkplain MethodImplementationDescriptor method signatures}.
+	 * {@linkplain MethodDefinitionDescriptor method signatures}.
 	 * <p>
 	 * Don't do coverage analysis yet (i.e., determining if one method would
 	 * always override a strictly more abstract method).  We can do that some
 	 * other day.
 	 */
 	@Override @AvailMethod
-	List<AvailObject> o_ImplementationsAtOrBelow (
+	List<AvailObject> o_DefinitionsAtOrBelow (
 		final AvailObject object,
 		final List<AvailObject> argTypes)
 	{
 		List<AvailObject> result;
 		result = new ArrayList<AvailObject>(3);
-		final AvailObject impsTuple = object.implementationsTuple();
+		final AvailObject impsTuple = object.definitionsTuple();
 		for (int i = 1, end = impsTuple.tupleSize(); i <= end; i++)
 		{
 			final AvailObject imp = impsTuple.tupleAt(i);
@@ -732,16 +733,16 @@ extends Descriptor
 	}
 
 	/**
-	 * Test if the implementation is present.
+	 * Test if the definition is present within this method.
 	 */
 	@Override @AvailMethod
-	boolean o_IncludesImplementation (
+	boolean o_IncludesDefinition (
 		final AvailObject object,
-		final AvailObject imp)
+		final AvailObject definition)
 	{
-		for (final AvailObject signature : object.implementationsTuple())
+		for (final AvailObject eachDefinition : object.definitionsTuple())
 		{
-			if (signature.equals(imp))
+			if (eachDefinition.equals(definition))
 			{
 				return true;
 			}
@@ -750,8 +751,8 @@ extends Descriptor
 	}
 
 	/**
-	 * Look up the implementation to invoke, given an array of argument types.
-	 * Use the testingTree to find the implementation to invoke (answer void if
+	 * Look up the definition to invoke, given an array of argument types.
+	 * Use the testingTree to find the definition to invoke (answer void if
 	 * a lookup error occurs).  There may be more entries in the tuple of
 	 * argument types than we need, to allow the tuple to be a reusable buffer.
 	 */
@@ -760,7 +761,7 @@ extends Descriptor
 		final AvailObject object,
 		final AvailObject argumentTypeTuple)
 	{
-		final AvailObject impsTuple = object.implementationsTuple();
+		final AvailObject impsTuple = object.definitionsTuple();
 		final AvailObject tree = object.testingTree();
 		int index = 1;
 		while (true)
@@ -787,8 +788,8 @@ extends Descriptor
 	}
 
 	/**
-	 * Look up the implementation to invoke, given an array of argument values.
-	 * Use the testingTree to find the implementation to invoke (answer void if
+	 * Look up the definition to invoke, given an array of argument values.
+	 * Use the testingTree to find the definition to invoke (answer void if
 	 * a lookup error occurs).
 	 */
 	@Override @AvailMethod
@@ -796,7 +797,7 @@ extends Descriptor
 		final AvailObject object,
 		final List<AvailObject> argumentList)
 	{
-		final AvailObject impsTuple = object.implementationsTuple();
+		final AvailObject impsTuple = object.definitionsTuple();
 		final AvailObject tree = object.testingTree();
 		int index = 1;
 		while (true)
@@ -823,8 +824,8 @@ extends Descriptor
 	}
 
 	/**
-	 * Look up the implementation to invoke, given a tuple of argument values.
-	 * Use the testingTree to find the implementation to invoke (answer void if
+	 * Look up the definition to invoke, given a tuple of argument values.
+	 * Use the testingTree to find the definition to invoke (answer void if
 	 * a lookup error occurs).  There may be more entries in the tuple of
 	 * arguments than we're interested in (to allow the tuple to be a reusable
 	 * buffer).
@@ -834,7 +835,7 @@ extends Descriptor
 		final AvailObject object,
 		final AvailObject argumentTuple)
 	{
-		final AvailObject impsTuple = object.implementationsTuple();
+		final AvailObject impsTuple = object.definitionsTuple();
 		final AvailObject tree = object.testingTree();
 		int index = 1;
 		while (true)
@@ -863,8 +864,8 @@ extends Descriptor
 	/**
 	 * Remove the chunk from my set of dependent chunks.  This is probably
 	 * because the chunk has been (A) removed by the garbage collector, or (B)
-	 * invalidated by a new implementation in either me or another
-	 * method that the chunk is contingent on.
+	 * invalidated by a new definition in either me or another method that the
+	 * chunk is contingent on.
 	 */
 	@Override @AvailMethod
 	void o_RemoveDependentChunkIndex (
@@ -880,21 +881,21 @@ extends Descriptor
 	}
 
 	/**
-	 * Remove the implementation from me.  Causes dependent chunks to be
+	 * Remove the definition from me.  Causes dependent chunks to be
 	 * invalidated.
 	 */
 	@Override @AvailMethod
 	void o_RemoveImplementation (
 		final AvailObject object,
-		final AvailObject implementation)
+		final AvailObject definition)
 	{
-		AvailObject implementationsTuple = object.implementationsTuple();
-		implementationsTuple = TupleDescriptor.without(
-			implementationsTuple,
-			implementation);
+		AvailObject definitionsTuple = object.definitionsTuple();
+		definitionsTuple = TupleDescriptor.without(
+			definitionsTuple,
+			definition);
 		object.setSlot(
-			IMPLEMENTATIONS_TUPLE,
-			implementationsTuple);
+			DEFINITIONS_TUPLE,
+			definitionsTuple);
 		membershipChanged(object);
 	}
 
@@ -902,7 +903,7 @@ extends Descriptor
 	int o_NumArgs (
 		final AvailObject object)
 	{
-		final AvailObject impsTuple = object.implementationsTuple();
+		final AvailObject impsTuple = object.definitionsTuple();
 		if (impsTuple.tupleSize() >= 1)
 		{
 			final AvailObject firstBody = impsTuple.tupleAt(1).bodySignature();
@@ -911,7 +912,7 @@ extends Descriptor
 		}
 		// Deal with it the slow way by using the MessageSplitter.  This allows
 		// the decompiler to continue to work even when a called method has no
-		// implementations.
+		// definitions.
 		try
 		{
 			final MessageSplitter splitter =
@@ -930,7 +931,7 @@ extends Descriptor
 	 * <p>
 	 * Check the argument types for validity and return the result type of the
 	 * message send.  Use not only the applicable {@linkplain
-	 * MethodImplementationDescriptor method signatures}, but also any type
+	 * MethodDefinitionDescriptor method signatures}, but also any type
 	 * restriction functions.  The type restriction functions may choose to
 	 * {@linkplain P_352_RejectParsing}, indicating that the argument types are
 	 * mutually incompatible.
@@ -943,13 +944,13 @@ extends Descriptor
 		final Interpreter anAvailInterpreter,
 		final Continuation1<Generator<String>> failBlock)
 	{
-		// Filter the implementations down to those that are locally most
+		// Filter the definitions down to those that are locally most
 		// specific.  Fail if more than one survives.
-		final AvailObject implementationsTuple = object.implementationsTuple();
-		if (implementationsTuple.tupleSize() > 0
-			&& !implementationsTuple.tupleAt(1).isMacro())
+		final AvailObject definitionsTuple = object.definitionsTuple();
+		if (definitionsTuple.tupleSize() > 0
+			&& !definitionsTuple.tupleAt(1).isMacroDefinition())
 		{
-			// This consists of method implementations.
+			// This consists of method definitions.
 			for (int index = 1, end = argTypes.size(); index <= end; index++)
 			{
 				final int finalIndex = index;
@@ -985,7 +986,7 @@ extends Descriptor
 				{
 					final List<AvailObject> functionTypes =
 						new ArrayList<AvailObject>(2);
-					for (final AvailObject imp : implementationsTuple)
+					for (final AvailObject imp : definitionsTuple)
 					{
 						functionTypes.add(imp.bodySignature());
 					}
@@ -1007,7 +1008,7 @@ extends Descriptor
 					}
 					builder.format(
 						"arguments at indices %s of message %s to match a "
-						+ "method implementation.%n",
+						+ "method definition.%n",
 						allFailedIndices,
 						object.name().name().asNativeString());
 					builder.format(
@@ -1097,7 +1098,7 @@ extends Descriptor
 
 	/**
 	 * Answer the cached privateTestingTree.  If there's a null object in that
-	 * slot, compute and cache the testing tree based on implementationsSet.
+	 * slot, compute and cache the testing tree based on the definitionsTuple.
 	 * See {@linkplain #createTestingTree(AvailObject[], List, List, List)
 	 * createTestingTree(...)} for an interpretation of the resulting tuple of
 	 * integers.
@@ -1113,23 +1114,23 @@ extends Descriptor
 			return result;
 		}
 		//  Compute the tree.
-		final AvailObject implementationsTuple = object.implementationsTuple();
-		final int indicesSize = implementationsTuple.tupleSize();
+		final AvailObject definitionsTuple = object.definitionsTuple();
+		final int indicesSize = definitionsTuple.tupleSize();
 		final List<Integer> allIndices = new ArrayList<Integer>(indicesSize);
 		for (int i = 0; i < indicesSize; i++)
 		{
 			allIndices.add(i);
 		}
-		final List<AvailObject> implementationsList =
+		final List<AvailObject> definitionsList =
 			new ArrayList<AvailObject>();
-		for (final AvailObject imp : implementationsTuple)
+		for (final AvailObject imp : definitionsTuple)
 		{
-			implementationsList.add(imp);
+			definitionsList.add(imp);
 		}
 		final List<Integer> instructions = new ArrayList<Integer>();
 		createTestingTree(
-			implementationsList.toArray(
-				new AvailObject[implementationsList.size()]),
+			definitionsList.toArray(
+				new AvailObject[definitionsList.size()]),
 			new ArrayList<Integer>(),
 			allIndices,
 			instructions);
@@ -1208,9 +1209,9 @@ extends Descriptor
 	boolean o_IsMethodEmpty (
 		final AvailObject object)
 	{
-		final AvailObject implementationsTuple =
-			object.slot(IMPLEMENTATIONS_TUPLE);
-		if (implementationsTuple.tupleSize() > 0)
+		final AvailObject definitionsTuple =
+			object.slot(DEFINITIONS_TUPLE);
+		if (definitionsTuple.tupleSize() > 0)
 		{
 			return false;
 		}
@@ -1237,12 +1238,12 @@ extends Descriptor
 	}
 
 	/**
-	 * Create the testing tree for computing which implementation to invoke when
+	 * Create the testing tree for computing which definition to invoke when
 	 * given a list of arguments.  The tree is flattened into a tuple of
 	 * integers.  Testing begins with the first element of the tuple.  If it's
-	 * odd, divide by two to get the index into implementationsTuple (a zero
+	 * odd, divide by two to get the index into definitionsTuple (a zero
 	 * index indicates an ambiguous lookup).  If it's even, divide by two to get
-	 * an index into implementationsTuple, then test the list of arguments
+	 * an index into definitionsTuple, then test the list of arguments
 	 * against it.  If the arguments agree with the signature, add 2 to the
 	 * current position (to skip the test number and an offset) and continue.
 	 * If the arguments did not agree with the signature, add 2 + the value in
@@ -1256,12 +1257,12 @@ extends Descriptor
 	 * </p>
 	 *
 	 * @param imps
-	 *            The complete array of implementations to analyze.
+	 *            The complete array of definitions to analyze.
 	 * @param positives
-	 *            Zero-based indices of implementations that are consistent
+	 *            Zero-based indices of definitions that are consistent
 	 *            with the checks that have been performed to reach this point.
 	 * @param possible
-	 *            Zero-based indices of implementations that have neither been
+	 *            Zero-based indices of definitions that have neither been
 	 *            shown to be consistent nor shown to be inconsistent with
 	 *            the checks that have been performed to reach this point.
 	 * @param instructions
@@ -1431,7 +1432,7 @@ extends Descriptor
 	/**
 	 * Answer a new {@linkplain MethodDescriptor method}.  Use the passed
 	 * {@linkplain AtomDescriptor atom} as its name.  A method is always
-	 * immutable, but its implementationsTuple, privateTestingTree, and
+	 * immutable, but its definitionsTuple, privateTestingTree, and
 	 * dependentsChunks can all be assigned to.
 	 *
 	 * @param messageName
@@ -1445,7 +1446,7 @@ extends Descriptor
 		assert messageName.isAtom();
 		final AvailObject result = mutable().create();
 		result.setSlot(
-			IMPLEMENTATIONS_TUPLE,
+			DEFINITIONS_TUPLE,
 			TupleDescriptor.empty());
 		result.setSlot(
 			DEPENDENT_CHUNK_INDICES,

@@ -1,5 +1,5 @@
 /**
- * P_226_SealMethod.java
+ * P_402_BootstrapPrimitiveFailureDeclarationMacro.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -33,27 +33,27 @@
 package com.avail.interpreter.primitive;
 
 import static com.avail.descriptor.TypeDescriptor.Types.*;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import static com.avail.interpreter.Primitive.Flag.*;
-import java.util.List;
+import java.util.*;
 import com.avail.descriptor.*;
-import com.avail.exceptions.*;
 import com.avail.interpreter.*;
 
 /**
- * <strong>Primitive 226</strong>: Seal the named {@linkplain MethodDescriptor
- * method} at the specified {@linkplain TupleTypeDescriptor signature}. No
- * further definitions may be added below this signature.
+ * The {@code P_402_BootstrapPrimitiveFailureDeclarationMacro} primitive is used
+ * for bootstrapping declaration of a {@link #PRIMITIVE_FAILURE_REASON_NODE
+ * primitive failure variable} which holds the reason for a primitive's failure.
  *
- * @author Todd L Smith &lt;todd@availlang.org&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public final class P_226_SealMethod
-extends Primitive
+public class P_402_BootstrapPrimitiveFailureDeclarationMacro extends Primitive
 {
 	/**
-	 * The sole instance of this primitive class. Accessed through reflection.
+	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_226_SealMethod().init(2, Unknown);
+		new P_402_BootstrapPrimitiveFailureDeclarationMacro().init(
+			2, CannotFail, Bootstrap);
 
 	@Override
 	public Result attempt (
@@ -61,23 +61,18 @@ extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 2;
-		final AvailObject methodName = args.get(0);
-		final AvailObject sealSignature = args.get(1);
-		try
-		{
-			interpreter.addSeal(
-				interpreter.lookupName(methodName),
-				sealSignature);
-		}
-		catch (final AmbiguousNameException e)
-		{
-			return interpreter.primitiveFailure(e);
-		}
-		catch (final SignatureException e)
-		{
-			return interpreter.primitiveFailure(e);
-		}
-		return interpreter.primitiveSuccess(NullDescriptor.nullObject());
+		final AvailObject failureVariableName = args.get(0);
+		final AvailObject type = args.get(1);
+
+		//TODO[MvG]: Eventually prevent ⊥ from being an accepted type.  For
+		//other bootstrap macro primitives, too.
+
+		final AvailObject failureDeclaration =
+			DeclarationNodeDescriptor.newPrimitiveFailureVariable(
+				failureVariableName,
+				type);
+		failureDeclaration.makeImmutable();
+		return interpreter.primitiveSuccess(failureDeclaration);
 	}
 
 	@Override
@@ -85,11 +80,10 @@ extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				TupleTypeDescriptor.stringTupleType(),
-				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
-					IntegerRangeTypeDescriptor.wholeNumbers(),
-					TupleDescriptor.from(),
-					InstanceMetaDescriptor.anyMeta())),
-			TOP.o());
+				/* Primitive failure variable name token */
+				TOKEN.o(),
+				/* Primitive failure variable type */
+				InstanceMetaDescriptor.anyMeta()),
+			PRIMITIVE_FAILURE_REASON_NODE.mostGeneralType());
 	}
 }

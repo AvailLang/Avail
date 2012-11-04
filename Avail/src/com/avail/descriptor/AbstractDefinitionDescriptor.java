@@ -1,5 +1,5 @@
 /**
- * AbstractDeclarationDescriptor.java
+ * AbstractDefinitionDescriptor.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -34,66 +34,85 @@ package com.avail.descriptor;
 
 import com.avail.annotations.*;
 import com.avail.descriptor.TypeDescriptor.Types;
+import com.avail.serialization.SerializerOperation;
 
 
 /**
- * This is a specialization of {@link ImplementationDescriptor} that is an abstract
+ * This is a specialization of {@link DefinitionDescriptor} that is an abstract
  * declaration of an Avail method (i.e., no implementation).
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class AbstractDeclarationDescriptor
-extends ImplementationDescriptor
+public class AbstractDefinitionDescriptor
+extends DefinitionDescriptor
 {
-
 	/**
 	 * The layout of object slots for my instances.
 	 */
 	public enum ObjectSlots implements ObjectSlotsEnum
 	{
 		/**
+		 * Duplicated from parent.  The method in which this definition occurs.
+		 */
+		DEFINITION_METHOD,
+
+		/**
 		 * The {@linkplain FunctionTypeDescriptor function type} for which this
 		 * signature is being specified.
 		 */
-		BODY_SIGNATURE,
+		BODY_SIGNATURE;
+
+		static
+		{
+			assert DefinitionDescriptor.ObjectSlots.DEFINITION_METHOD.ordinal()
+				== DEFINITION_METHOD.ordinal();
+		}
 	}
 
 
 	@Override @AvailMethod
-	AvailObject o_BodySignature (final AvailObject object)
-	{
-		return object.signature();
-	}
-
-	@Override @AvailMethod
-	AvailObject o_Signature (final AvailObject object)
+	AvailObject o_BodySignature (
+		final AvailObject object)
 	{
 		return object.slot(ObjectSlots.BODY_SIGNATURE);
 	}
 
 	@Override @AvailMethod
-	int o_Hash (final AvailObject object)
+	int o_Hash (
+		final AvailObject object)
 	{
-		return (object.signature().hash() * 19) ^ 0x201FE782;
+		return (object.slot(ObjectSlots.BODY_SIGNATURE).hash() * 19)
+			^ 0x201FE782;
 	}
 
 	@Override @AvailMethod
-	AvailObject o_Kind (final AvailObject object)
+	AvailObject o_Kind (
+		final AvailObject object)
 	{
-		return Types.ABSTRACT_SIGNATURE.o();
+		return Types.ABSTRACT_DEFINITION.o();
 	}
 
-
 	@Override @AvailMethod
-	boolean o_IsAbstract (final AvailObject object)
+	boolean o_IsAbstractDefinition (
+		final AvailObject object)
 	{
 		return true;
 	}
+
+	@Override
+	SerializerOperation o_SerializerOperation (final AvailObject object)
+	{
+		return SerializerOperation.ABSTRACT_DEFINITION;
+	}
+
 
 
 	/**
 	 * Create a new abstract method signature from the provided arguments.
 	 *
+	 * @param definitionMethod
+	 *            The {@linkplain MethodDescriptor method} for which this
+	 *            definition occurs.
 	 * @param bodySignature
 	 *            The function type at which this abstract method signature will
 	 *            be stored in the hierarchy of multimethods.
@@ -101,9 +120,11 @@ extends ImplementationDescriptor
 	 *            An abstract method signature.
 	 */
 	public static AvailObject create (
+		final AvailObject definitionMethod,
 		final AvailObject bodySignature)
 	{
 		final AvailObject instance = mutable().create();
+		instance.setSlot(ObjectSlots.DEFINITION_METHOD, definitionMethod);
 		instance.setSlot(ObjectSlots.BODY_SIGNATURE, bodySignature);
 		instance.makeImmutable();
 		return instance;
@@ -111,41 +132,41 @@ extends ImplementationDescriptor
 
 
 	/**
-	 * Construct a new {@link AbstractDeclarationDescriptor}.
+	 * Construct a new {@link AbstractDefinitionDescriptor}.
 	 *
 	 * @param isMutable
 	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
 	 *        object?
 	 */
-	protected AbstractDeclarationDescriptor (final boolean isMutable)
+	protected AbstractDefinitionDescriptor (final boolean isMutable)
 	{
 		super(isMutable);
 	}
 
 	/**
-	 * The mutable {@link AbstractDeclarationDescriptor}.
+	 * The mutable {@link AbstractDefinitionDescriptor}.
 	 */
-	private static final AbstractDeclarationDescriptor mutable =
-		new AbstractDeclarationDescriptor(true);
+	private static final AbstractDefinitionDescriptor mutable =
+		new AbstractDefinitionDescriptor(true);
 
 	/**
-	 * @return The mutable {@link AbstractDeclarationDescriptor}.
+	 * @return The mutable {@link AbstractDefinitionDescriptor}.
 	 */
-	public static AbstractDeclarationDescriptor mutable ()
+	public static AbstractDefinitionDescriptor mutable ()
 	{
 		return mutable;
 	}
 
 	/**
-	 * The immutable {@link AbstractDeclarationDescriptor}.
+	 * The immutable {@link AbstractDefinitionDescriptor}.
 	 */
-	private static final AbstractDeclarationDescriptor immutable =
-		new AbstractDeclarationDescriptor(false);
+	private static final AbstractDefinitionDescriptor immutable =
+		new AbstractDefinitionDescriptor(false);
 
 	/**
-	 * @return The mutable {@link AbstractDeclarationDescriptor}.
+	 * @return The mutable {@link AbstractDefinitionDescriptor}.
 	 */
-	public static AbstractDeclarationDescriptor immutable ()
+	public static AbstractDefinitionDescriptor immutable ()
 	{
 		return immutable;
 	}

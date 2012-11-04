@@ -40,7 +40,7 @@ import com.avail.interpreter.*;
 
 /**
  * <strong>Primitive 213:</strong> Answer a {@linkplain SetDescriptor set}
- * of all currently defined {@linkplain ImplementationDescriptor signatures} for
+ * of all currently defined {@linkplain DefinitionDescriptor signatures} for
  * the {@linkplain AtomDescriptor true message name} represented by
  * {@linkplain MessageBundleDescriptor bundle}. This includes abstract
  * signatures and forward signatures.
@@ -66,10 +66,10 @@ public class P_213_BundleSignatures extends Primitive
 		{
 			return interpreter.primitiveFailure(E_NO_METHOD);
 		}
-		final AvailObject implementations =
-			method.implementationsTuple().asSet();
-		implementations.makeImmutable();
-		return interpreter.primitiveSuccess(implementations);
+		final AvailObject definitions =
+			method.definitionsTuple().asSet();
+		definitions.makeImmutable();
+		return interpreter.primitiveSuccess(definitions);
 	}
 
 	@Override
@@ -80,6 +80,6 @@ public class P_213_BundleSignatures extends Primitive
 				MESSAGE_BUNDLE.o()),
 			SetTypeDescriptor.setTypeForSizesContentType(
 				IntegerRangeTypeDescriptor.wholeNumbers(),
-				SIGNATURE.o()));
+				DEFINITION.o()));
 	}
 }

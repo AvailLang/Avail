@@ -88,12 +88,12 @@ public class L2_LOOKUP_BY_VALUES extends L2Operation
 			selector.lookupByValuesFromList(interpreter.argsBuffer);
 		if (signatureToCall.equalsNull())
 		{
-			error("Unable to find unique implementation for call");
+			error("Unable to find unique definition for call");
 			return;
 		}
-		if (!signatureToCall.isMethod())
+		if (!signatureToCall.isMethodDefinition())
 		{
-			error("Attempted to call a non-implementation signature");
+			error("Attempted to call a non-method definition");
 			return;
 		}
 		interpreter.pointerAtPut(
@@ -106,7 +106,7 @@ public class L2_LOOKUP_BY_VALUES extends L2Operation
 		final L2Instruction instruction,
 		final RegisterSet registers)
 	{
-		// Find all possible implementations (taking into account the types
+		// Find all possible definitions (taking into account the types
 		// of the argument registers).  Then build an enumeration type over
 		// those functions.
 		final L2SelectorOperand selectorOperand =
@@ -132,10 +132,10 @@ public class L2_LOOKUP_BY_VALUES extends L2Operation
 		final List<AvailObject> possibleFunctions =
 			new ArrayList<AvailObject>();
 		final List<AvailObject> possibleSignatures =
-			selectorOperand.method.implementationsAtOrBelow(argTypeBounds);
+			selectorOperand.method.definitionsAtOrBelow(argTypeBounds);
 		for (final AvailObject signature : possibleSignatures)
 		{
-			if (signature.isMethod())
+			if (signature.isMethodDefinition())
 			{
 				possibleFunctions.add(signature.bodyBlock());
 			}

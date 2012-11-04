@@ -1,5 +1,5 @@
 /**
- * P_226_SealMethod.java
+ * P_222_DefinitionForArgumentTypes.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -33,27 +33,30 @@
 package com.avail.interpreter.primitive;
 
 import static com.avail.descriptor.TypeDescriptor.Types.*;
+import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
+import com.avail.compiler.MessageSplitter;
 import com.avail.descriptor.*;
-import com.avail.exceptions.*;
+import com.avail.exceptions.SignatureException;
 import com.avail.interpreter.*;
 
 /**
- * <strong>Primitive 226</strong>: Seal the named {@linkplain MethodDescriptor
- * method} at the specified {@linkplain TupleTypeDescriptor signature}. No
- * further definitions may be added below this signature.
+ * <strong>Primitive 222</strong>: Lookup the unique {@linkplain
+ * DefinitionDescriptor definition} of the specified {@linkplain
+ * MethodDescriptor method} by the {@linkplain TupleDescriptor tuple} of
+ * parameter {@linkplain TypeDescriptor types}.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class P_226_SealMethod
+public final class P_222_DefinitionForArgumentTypes
 extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_226_SealMethod().init(2, Unknown);
+		new P_222_DefinitionForArgumentTypes().init(2, CanFold);
 
 	@Override
 	public Result attempt (
@@ -61,23 +64,29 @@ extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 2;
-		final AvailObject methodName = args.get(0);
-		final AvailObject sealSignature = args.get(1);
+		final AvailObject method = args.get(0);
+		final AvailObject argTypes = args.get(1);
+		final AvailObject name = method.name().name();
 		try
 		{
-			interpreter.addSeal(
-				interpreter.lookupName(methodName),
-				sealSignature);
-		}
-		catch (final AmbiguousNameException e)
-		{
-			return interpreter.primitiveFailure(e);
+			final MessageSplitter splitter = new MessageSplitter(name);
+			if (splitter.numberOfArguments() != argTypes.tupleSize())
+			{
+				return interpreter.primitiveFailure(
+					E_INCORRECT_NUMBER_OF_ARGUMENTS);
+			}
 		}
 		catch (final SignatureException e)
 		{
-			return interpreter.primitiveFailure(e);
+			assert false : "The method name was extracted from a real method!";
 		}
-		return interpreter.primitiveSuccess(NullDescriptor.nullObject());
+		final AvailObject impl = method.lookupByTypesFromTuple(argTypes);
+		if (impl.equalsNull())
+		{
+			return interpreter.primitiveFailure(
+				E_METHOD_IMPLEMENTATION_LOOKUP_FAILED);
+		}
+		return interpreter.primitiveSuccess(impl);
 	}
 
 	@Override
@@ -85,11 +94,9 @@ extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				TupleTypeDescriptor.stringTupleType(),
-				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
-					IntegerRangeTypeDescriptor.wholeNumbers(),
-					TupleDescriptor.from(),
+				METHOD.o(),
+				TupleTypeDescriptor.zeroOrMoreOf(
 					InstanceMetaDescriptor.anyMeta())),
-			TOP.o());
+			DEFINITION.o());
 	}
 }

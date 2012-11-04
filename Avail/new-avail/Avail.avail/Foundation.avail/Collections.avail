@@ -34,7 +34,7 @@ System Module "Collections"
 Versions
 	"dev"
 Names
-	/* The implementations are provided by Tuples, Sets, and Maps, but the names
+	/* The definitions are provided by Tuples, Sets, and Maps, but the names
 	 * are introduced here.
 	 */
 	"For each of⁇_do_",

@@ -239,7 +239,7 @@ Public method "_(_)is an SI derived unit equivalent to_" is
 		];
 	conversionMethod ::= method for conversion atom;
 	quantityType ::= extend SI dimensioned quantity with metric : unitType;
-	Unless conversionMethod has implementation for <quantityType, unitType> then
+	Unless conversionMethod has definition for <quantityType, unitType> then
 	[
 		scalingFunction ::= SI scaling function for unitType;
 		Method conversion atom is scalingFunction;

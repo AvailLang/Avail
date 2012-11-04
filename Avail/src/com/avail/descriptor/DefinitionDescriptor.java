@@ -1,5 +1,5 @@
 /**
- * ImplementationDescriptor.java
+ * DefinitionDescriptor.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -33,26 +33,45 @@
 package com.avail.descriptor;
 
 import com.avail.annotations.*;
+import com.avail.serialization.SerializerOperation;
 
 /**
- * {@code ImplementationDescriptor} is an abstraction for things placed into a
+ * {@code DefinitionDescriptor} is an abstraction for things placed into a
  * {@linkplain MethodDescriptor method}.  They can be:
  * <ul>
- * <li>{@linkplain AbstractDeclarationDescriptor abstract declarations},</li>
- * <li>{@linkplain ForwardDeclarationDescriptor forward declarations},</li>
- * <li>{@linkplain MethodImplementationDescriptor method implementations}, or</li>
- * <li>{@linkplain MacroImplementationDescriptor macro definitions}.</li>
+ * <li>{@linkplain AbstractDefinitionDescriptor abstract declarations},</li>
+ * <li>{@linkplain ForwardDefinitionDescriptor forward declarations},</li>
+ * <li>{@linkplain MethodDefinitionDescriptor method definitions}, or</li>
+ * <li>{@linkplain MacroDefinitionDescriptor macro definitions}.</li>
  * </ul>
  *
  * <p>
- * If a macro definition is present, it must be the only signature.
+ * If a macro definition is present, it must be the only definition.
  * </p>
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public abstract class ImplementationDescriptor
+public abstract class DefinitionDescriptor
 extends Descriptor
 {
+	/**
+	 * The layout of object slots for my instances.
+	 */
+	public enum ObjectSlots implements ObjectSlotsEnum
+	{
+		/**
+		 * The {@link MethodDescriptor method} in which this definition occurs.
+		 */
+		DEFINITION_METHOD
+	}
+
+	@Override @AvailMethod
+	public AvailObject o_DefinitionMethod (
+		final AvailObject object)
+	{
+		return object.slot(ObjectSlots.DEFINITION_METHOD);
+	}
+
 	@Override @AvailMethod
 	abstract AvailObject o_BodySignature (
 		final AvailObject object);
@@ -82,41 +101,46 @@ extends Descriptor
 		final AvailObject object);
 
 	@Override @AvailMethod
-	boolean o_IsAbstract (
+	boolean o_IsAbstractDefinition (
 		final AvailObject object)
 	{
 		return false;
 	}
 
 	@Override @AvailMethod
-	boolean o_IsForward (
+	boolean o_IsForwardDefinition (
 		final AvailObject object)
 	{
 		return false;
 	}
 
 	@Override @AvailMethod
-	boolean o_IsMethod (
+	boolean o_IsMethodDefinition (
 		final AvailObject object)
 	{
 		return false;
 	}
 
 	@Override @AvailMethod
-	boolean o_IsMacro (
+	boolean o_IsMacroDefinition (
 		final AvailObject object)
 	{
 		return false;
 	}
+
+	@Override
+	abstract SerializerOperation o_SerializerOperation (
+		final AvailObject object);
+
 
 	/**
-	 * Construct a new {@link ImplementationDescriptor}.
+	 * Construct a new {@link DefinitionDescriptor}.
 	 *
 	 * @param isMutable
 	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
 	 *        object?
 	 */
-	protected ImplementationDescriptor (final boolean isMutable)
+	protected DefinitionDescriptor (final boolean isMutable)
 	{
 		super(isMutable);
 	}

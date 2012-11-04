@@ -137,12 +137,12 @@ public class ListNodeDescriptor extends ParseNodeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_Equals (
+	boolean o_EqualsParseNode (
 		final AvailObject object,
-		final AvailObject another)
+		final AvailObject aParseNode)
 	{
-		return object.kind().equals(another.kind())
-			&& object.expressionsTuple().equals(another.expressionsTuple());
+		return object.kind().equals(aParseNode.kind())
+			&& object.expressionsTuple().equals(aParseNode.expressionsTuple());
 	}
 
 	@Override @AvailMethod

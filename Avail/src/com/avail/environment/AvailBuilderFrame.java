@@ -1455,7 +1455,7 @@ extends JFrame
 	 * @throws InvocationTargetException
 	 * @throws NoSuchMethodException
 	 */
-	private static void setUpForMac ()
+	static void setUpForMac ()
 	throws
 		ClassNotFoundException,
 		IllegalAccessException,
@@ -1496,7 +1496,8 @@ extends JFrame
 		final String platform = System.getProperty("os.name");
 		if (platform.toLowerCase().matches("mac os x.*"))
 		{
-			setUpForMac();
+			// Doesn't work yet.
+//			setUpForMac();
 		}
 
 		final ModuleRoots roots = new ModuleRoots(

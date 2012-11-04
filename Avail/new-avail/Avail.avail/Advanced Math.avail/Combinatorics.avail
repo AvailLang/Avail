@@ -1,5 +1,5 @@
-/**
- * P_218_AbstractSiteFunctionType.java
+/*
+ * Combinatorics.avail
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -30,48 +30,42 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.interpreter.primitive;
+System Module "Combinatorics"
+Versions
+	"dev"
+Uses
+	"Foundation"
+Names
+	"_`!"
+Body
 
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.interpreter.Primitive.Flag.*;
-import java.util.List;
-import com.avail.annotations.NotNull;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
+[
+	sum      ::= {"_+_", "_-_"};
+	product  ::= {"_×_", "_÷_", "_mod_"};
+	negation ::= {"-_"};
+	power    ::= {"_^_"};
+	fac      ::= {"_`!"};
+
+	/* Establish the precedence of factorial. */
+	Grammatical restriction fac is <sum ∪ product ∪ negation ∪ power ∪ fac>;
+]();
 
 /**
- * <strong>Primitive 218</strong>: Answer the {@linkplain FunctionTypeDescriptor
- * function type} of the specified {@linkplain AbstractDeclarationDescriptor
- * abstract site}.
+ * Compute the factorial of {@param "n"}.
  *
- * @author Todd L Smith &lt;todd@availlang.org&gt;
+ * @method "_`!"
+ * @param "n" "whole number"
+ * @returns "natural number"
+ *          The factorial of {@param "n"}.
  */
-public final class P_218_AbstractSiteFunctionType
-extends Primitive
-{
-	/**
-	 * The sole instance of this primitive class. Accessed through reflection.
-	 */
-	public final @NotNull static Primitive instance =
-		new P_218_AbstractSiteFunctionType().init(
-			1, CannotFail, CanFold, CanInline);
-
-	@Override
-	public Result attempt (
-		final List<AvailObject> args,
-		final Interpreter interpreter)
-	{
-		assert args.size() == 1;
-		final AvailObject site = args.get(0);
-		return interpreter.primitiveSuccess(site.functionType());
-	}
-
-	@Override
-	protected AvailObject privateBlockTypeRestriction ()
-	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
-				ABSTRACT_SIGNATURE.o()),
-			FunctionTypeDescriptor.meta());
-	}
-}
+Stable abstract method "_`!" is [[0..∞]]→[1..∞];
+Method "_`!" is [n : [0..1] | 1];
+Method "_`!" is
+[
+	n : [2..∞)
+|
+	left fold 2 to n through [k : [2..∞), s : [2..∞) | k × s]
+];
+Method "_`!" is [n : ∞'s type | ∞];
+Semantic restriction "_`!" is [n : [0..∞]'s type | [⎣n⎦!..⎡n⎤!]];
+Semantic restriction "_`!" is [n : [0..∞)'s type | [⎣n⎦!..⎡n⎤!+1)];

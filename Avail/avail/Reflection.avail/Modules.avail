@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "Modules"
+System Module "Modules"
 Extends
 Uses
 	"Kernel"
@@ -68,7 +68,7 @@ Method "Define module_" is [blk : []->void |
 	Start new module;
 	catch [problem : Exception |
 		Rollback module;
-		Raise problem;
+		Raise problem
 	] in blk;
 	Commit module;
 ];

@@ -1,5 +1,5 @@
-/*
- * bootstrap-test.avail
+/**
+ * P_217_MethodDefinitionBody.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -29,16 +29,44 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.interpreter.primitive;
 
-Module "bootstrap-syntax"
-Versions "dev"
-Extends
-	"Origin"
-Uses
-Names
-Body
+import static com.avail.descriptor.TypeDescriptor.Types.METHOD_DEFINITION;
+import static com.avail.interpreter.Primitive.Flag.*;
+import java.util.List;
+import com.avail.descriptor.*;
+import com.avail.interpreter.*;
 
-_any ::= special object 1;
-_foo ::= _any;
-Primitive "Crash_" is [hint : _any † | Primitive 256;];
-Crash "foo";
+/**
+ * <strong>Primitive 217:</strong> Answer this {@linkplain
+ * MethodDefinitionDescriptor method signature}'s {@linkplain
+ * FunctionDescriptor body}.
+ */
+public class P_217_MethodDefinitionBody extends Primitive
+{
+	/**
+	 * The sole instance of this primitive class.  Accessed through reflection.
+	 */
+	public final static Primitive instance =
+		new P_217_MethodDefinitionBody().init(1, CanFold, CannotFail);
+
+	@Override
+	public Result attempt (
+		final List<AvailObject> args,
+		final Interpreter interpreter)
+	{
+		assert args.size() == 1;
+		final AvailObject methSig = args.get(0);
+		return interpreter.primitiveSuccess(
+			methSig.bodyBlock().makeImmutable());
+	}
+
+	@Override
+	protected AvailObject privateBlockTypeRestriction ()
+	{
+		return FunctionTypeDescriptor.create(
+			TupleDescriptor.from(
+				METHOD_DEFINITION.o()),
+			FunctionTypeDescriptor.mostGeneralType());
+	}
+}

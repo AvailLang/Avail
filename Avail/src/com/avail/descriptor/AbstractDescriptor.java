@@ -1002,21 +1002,21 @@ public abstract class AbstractDescriptor
 		int aChunkIndex);
 
 	/**
-	 * Add an {@linkplain ImplementationDescriptor implementation} to the
-	 * receiver. Causes dependent chunks to be invalidated.
+	 * Add a {@linkplain DefinitionDescriptor definition} to the receiver.
+	 * Causes dependent chunks to be invalidated.
 	 *
-	 * Macro signatures and non-macro signatures should not be combined in the
+	 * Macro signatures and non-macro definitions should not be combined in the
 	 * same method.
 	 *
 	 * @param object The receiver.
-	 * @param implementation The implementation to be added.
+	 * @param definition The definition to be added.
 	 * @throws SignatureException
-	 *         If the implementation could not be added.
-	 * @see AvailObject#addImplementation(AvailObject)
+	 *         If the definition could not be added.
+	 * @see AvailObject#addDefinition(AvailObject)
 	 */
-	abstract void o_AddImplementation (
+	abstract void o_AddDefinition (
 			AvailObject object,
-			AvailObject implementation)
+			AvailObject definition)
 		throws SignatureException;
 
 	/**
@@ -1089,13 +1089,11 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param methodName
-	 * @param implementation
+	 * @param definition
 	 */
-	abstract void o_AddMethodImplementation (
+	abstract void o_AddMethodDefinition (
 		AvailObject object,
-		AvailObject methodName,
-		AvailObject implementation);
+		AvailObject definition);
 
 	/**
 	 * @param object
@@ -1690,7 +1688,7 @@ public abstract class AbstractDescriptor
 	 * @param argTypes
 	 * @return
 	 */
-	abstract List<AvailObject> o_ImplementationsAtOrBelow (
+	abstract List<AvailObject> o_DefinitionsAtOrBelow (
 		AvailObject object,
 		List<AvailObject> argTypes);
 
@@ -1705,12 +1703,12 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param imp
+	 * @param definition
 	 * @return
 	 */
-	abstract boolean o_IncludesImplementation (
+	abstract boolean o_IncludesDefinition (
 		AvailObject object,
-		AvailObject imp);
+		AvailObject definition);
 
 	/**
 	 * @param object
@@ -3246,7 +3244,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	abstract AvailObject o_ImplementationsTuple (
+	abstract AvailObject o_DefinitionsTuple (
 		AvailObject object);
 
 	/**
@@ -3283,13 +3281,19 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
+	abstract boolean o_IsAbstractDefinition (AvailObject object);
+
+	/**
+	 * @param object
+	 * @return
+	 */
 	abstract boolean o_IsFinite (AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	abstract boolean o_IsForward (AvailObject object);
+	abstract boolean o_IsForwardDefinition (AvailObject object);
 
 	/**
 	 * @param object
@@ -3301,7 +3305,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	abstract boolean o_IsMethod (AvailObject object);
+	abstract boolean o_IsMethodDefinition (AvailObject object);
 
 	/**
 	 * @param object
@@ -3547,12 +3551,6 @@ public abstract class AbstractDescriptor
 	 * @return
 	 */
 	abstract int o_SetSize (AvailObject object);
-
-	/**
-	 * @param object
-	 * @return
-	 */
-	abstract AvailObject o_Signature (AvailObject object);
 
 	/**
 	 * @param object
@@ -4603,22 +4601,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	abstract boolean o_IsMacro (
-		AvailObject object);
-
-	/**
-	 * @param object
-	 * @param value
-	 */
-	abstract void o_Macros (
-		AvailObject object,
-		AvailObject value);
-
-	/**
-	 * @param object
-	 * @return
-	 */
-	abstract AvailObject o_Macros (
+	abstract boolean o_IsMacroDefinition (
 		AvailObject object);
 
 	/**
@@ -4633,13 +4616,6 @@ public abstract class AbstractDescriptor
 	 * @return
 	 */
 	abstract AvailObject o_BinUnionKind (
-		AvailObject object);
-
-	/**
-	 * @param object
-	 * @return
-	 */
-	abstract AvailObject o_MacroName (
 		AvailObject object);
 
 	/**
@@ -5767,4 +5743,27 @@ public abstract class AbstractDescriptor
 		final AvailObject object,
 		final AvailObject shiftFactor,
 		final boolean canDestroy);
+
+	/**
+	 * @param object
+	 * @param aParseNode
+	 * @return
+	 */
+	abstract boolean o_EqualsParseNode (
+		final AvailObject object,
+		final AvailObject aParseNode);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract AvailObject o_StripMacro (
+		final AvailObject object);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	public abstract AvailObject o_DefinitionMethod (
+		final AvailObject object);
 }
