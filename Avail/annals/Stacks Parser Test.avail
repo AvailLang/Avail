@@ -2188,11 +2188,8 @@ Public method \"Dimensional|dimensional analysis test suite\" is [_testSuite];
 
 Dimensional analysis test suite is a new test suite;";
 
-Print: format "test=“①”\n" with test;
-it : iterator := an iterator over test;
+
+it : iterator of character := an iterator over test;
 identify comment from it;
 
-/*t::="all dimensioned quantities to have compatible units \
-			\|(but “①” and “②” are not compatible)";
-Print: format "\n\n\nt=“①”\n" with t;
-*/
+Print comment map's tokens;

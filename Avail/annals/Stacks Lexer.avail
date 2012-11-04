@@ -147,6 +147,10 @@ Private method "_is a stacks token" is
 
 /* All keywords that will ultimately be special stacks tokens */
 
+
+/* Dispatch table is the code point numbers that refer to a character */
+dispatchTable ::
+
 stacksTokenTypeNames::= {"@type","@supertype","@field","@category","@param",
 	"@raises","@restricts","@returns","@forbids","@public","@method","@see",
 	"@author","@link","@code","@global","@general"};
@@ -210,7 +214,7 @@ Public method "tokenize_" is
 	stacksTokens : <stacks token…|> := <>;
 	
 	/* delimiting characters for tokenization */
-	keyCharacters ::= {¢@,¢" ",¢"\"",¢{,¢},¢`,¢/,¢*,¢"\t"};
+	keyCharacters ::= {¢@,¢" ",¢"\"",¢{,¢},¢`,¢/,¢*,¢"\t",¢"\n"};
  
 	doNotTokenize ::= {"/*","/**","*/"," ","","\t"};
 	
@@ -335,7 +339,8 @@ Public method "tokenize_" is
 				[
 					Cast commentLine[j] into
 					[
-					 	c : enumeration of {¢@,¢" ",¢"\"",¢{,¢},¢`,¢/,¢*,¢"\t"}
+					 	c : enumeration of 
+					 		{¢@,¢" ",¢"\"",¢{,¢},¢`,¢/,¢*,¢"\t",¢"\n"}
 					 |
 						Choose c from enumeration of keyCharacters
 						where
@@ -360,7 +365,7 @@ Public method "tokenize_" is
 			 					ch : character 
 			 				 |
 			 				 	↑charCounter++;
-			 					ch = ¢" " ∨ [charCounter = |commentLine|]
+			 					ch = ¢" " ∨ [ch =  ¢"\n"]
 			 				];
 				 			stacksTokens := stacksTokens ++ 
 				 				<token <word,lineNumber,wordStart>>;
@@ -387,7 +392,6 @@ Public method "tokenize_" is
 			 				[
 			 					ch : character 
 			 				 |
-			 				 	Print: <ch>;
 			 					↑charCounter++;
 			 					ch = ¢"\"" ∨ [charCounter = |commentLine|]
 			 				];
@@ -402,7 +406,7 @@ Public method "tokenize_" is
 						 	];
 						],
 						¢{ is
-						[
+						[/* TODO Better handling of this, want entire thing in one token if followed by @ tag*/
 						 	If word ∉ doNotTokenize then 
 						 	[
 						 	 	stacksTokens := stacksTokens ++ 
@@ -412,7 +416,7 @@ Public method "tokenize_" is
 								<token <"{",lineNumber,j>>;
 						],
 						¢} is
-						[
+						[/* TODO Don't actually need this once { is handled correctly*/
 						 	If word ∈ doNotTokenize then 
 						 	[
 						 	 	stacksTokens := stacksTokens ++ 
@@ -438,8 +442,7 @@ Public method "tokenize_" is
 						 					ch : character 
 						 				 |
 						 					↑charCounter++;
-						 					ch ∈ keyCharacters  ∨ 
-						 						[charCounter = |commentLine|]
+						 					ch ∈ keyCharacters  
 						 				];
 									 	If word ∉ doNotTokenize then 
 									 	[
@@ -526,6 +529,14 @@ Public method "tokenize_" is
 						 	 	stacksTokens := stacksTokens ++ 
 						 	 		<token <word,lineNumber,wordStart>>;
 						 	];
+						 ],
+						 ¢"\n" is
+						 [
+						 	If word ∉ doNotTokenize then 
+						 	[
+						 	 	stacksTokens := stacksTokens ++ 
+						 	 		<token <word,lineNumber,wordStart>>;
+						 	];
 						 ];
 					];
 				] else
@@ -585,7 +596,7 @@ Public method "concatenate_separated by_" is
  	tokens : <stacks token…|>,
  	delimeter : string
  |
- 	if |tokens| = 1 then [""]
+ 	if |tokens| = 0 then [""]
  	else if [|tokens| = 1] then [tokens[1]'s lexeme]
  	else
  	[
@@ -601,31 +612,3 @@ Public method "concatenate_separated by_" is
  	 	cast flatten lexemeAndSpace into [s : string | s]
  	]
  ]:string;
-
-
-keyCharacters ::= {¢@,¢" ",¢"\"",¢{,¢},¢`,¢/,¢*};
-charCounter : whole number := 0;
-t ::="/**
-* Tokenize all elements of a string.
-*
-* @method \"tokenize_\"
-* @categories \"Stacks\"
-* @param \"comment\" \"string\" 
-*		a qualifying stacks comment *
-* @returnType \"<stacks token…|>\"
-*		a tuple of stacks tokens.  /* Frog 
-* in the bottom of space*/ Excludes `*.
-* @author \"Richard Arriaga\"
-*/";
-
-/*z :<stacks token…|1..>:= tokenize t;
-
-Print: format "z=“①”\n\n" with z;
-Print: t;
-Print: "\n\n";
-l ::= ¬(z[1]'s isSpecial);
-Print: format "\nl=“①”\n\n" with l;
-
-Print: "\n\n";
-s ::= concatenate z separated by " ";
-Print: s;*/
