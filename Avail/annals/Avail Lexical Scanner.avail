@@ -40,6 +40,8 @@ Uses
 
 Names
 	"Avail scanner",
+	"Exhaust_",
+	"Next character from_",
 	"_process digit",
 	"_process double quote",
 	"_process forward slash",
@@ -47,29 +49,34 @@ Names
 	"_process operator",
 	"_process white space",
 	"_process zero width whitespace",
-	"_'s column number",
-	"_'s line number",
-	"_'s source"
+	"_'s⁇column number",
+	"_'s⁇line number",
+	"_'s⁇source"
 	
 
 Body
 
+/* Definition of atoms for fields in class, Avail scanner */
 "source" is a new field atom;
 "line number" is a new field atom;
 "column number" is a new field atom;
 
+/* Global variable definitions */
+lineNumber : natural number := 1;		/*Current line # of the scanner */
+columnNumber : natural number := 1;		/*Current column # of the scanner */
+
 /**
  * A class that defines an Avail lexical scanner.  This is an abstract class.
  * 
- * @type "@stacks token"
- * @supertype {@type "element" element}
- * @category Stacks
- * @field "lexeme" "string"
- * 	string representation of token
- * @field "line" "natural number"
- * 	line number on which token appears 
- * @field "position" "natural number"
- * 	column position where token begins
+ * @type "Avail scanner"
+ * @supertype {@type "object" object}
+ * @category Avail Lexical Scanner
+ * @field "source" "iterator of character"
+ * 	an iterator over the .avail input file
+ * @field "line number" "natural number"
+ * 	line number of current element of the iterator 
+ * @field "column number" "natural number"
+ * 	column position on line of current element of the iterator
  * @author Richard Arriaga
  */
 
@@ -96,13 +103,13 @@ Private method "construct Avail Scanner with_" is
  |
  	line : natural number := 1;
 	column : natural number := 1;
- 	an Avail Scanner with
+ 	an Avail scanner with
  		source := iter,
  		line number := ↑line,
  		column number := ↑column
  ]:Avail scanner;
 
-
+/* Methods on handling character types from the scanner */
 Public abstract method "_process digit" is [Avail scanner]→⊤;
 Public abstract method "_process identifier starter" is [Avail scanner]→⊤;
 Public abstract method "_process white space" is [Avail scanner]→⊤;
@@ -111,82 +118,133 @@ Public abstract method "_process forward slash" is [Avail scanner]→⊤;
 Public abstract method "_process double quote" is [Avail scanner]→⊤;
 Public abstract method "_process zero width whitespace" is [Avail scanner]→⊤;
 
-/* TODO create "next" function for Avail scanner iterator*/
+dispatchTable : {code point→[Avail scanner]→⊤|} := {};
 
-dispatchTable ::= map 1 to 65536 through 
+From 1 to 65536 do
 [
  	cp : [1..65536]
  |
+ 	Print: format "cp=“①”\n" with cp;
  	c ::= cp → character;
-
 	if c = ¢/ then
 	[
-	 	[
-	 	 	s : Avail scanner
-	 	 |
-	 	 	s process forward slash;
-	 	]
+	 	dispatchTable := dispatchTable + 
+	 		cp→ [
+			 	 	s : Avail scanner
+			 	 |
+			 	 	s process forward slash;
+			 	];
 	]
 	else if [c = ¢"\""] then
 	[
-	 	[
-	 	 	s : Avail scanner
-	 	 |
-	 	 	s process double quote;
-	 	]
+	 	dispatchTable := dispatchTable + 
+	 		cp→ [
+			 	 	s : Avail scanner
+			 	 |
+			 	 	s process double quote;
+			 	];
 	]
 	else if [c is an Arabic numeral] then
 	[
-	 	[
-	 	 	s : Avail scanner
-	 	 |
-	 	 	s process digit;
-	 	]
+	 	dispatchTable := dispatchTable  + 
+	 		cp→ [
+			 	 	s : Avail scanner
+			 	 |
+			 	 	s process digit;
+			 	];
 	]
 	else if [c is a letter ∨ [c = ¢_]] then
 	[
-	 	[
-	 	 	s : Avail scanner
-	 	 |
-	 	 	s process identifier starter;
-	 	]
+	 	dispatchTable := dispatchTable  + 
+	 		cp→ [
+			 	 	s : Avail scanner
+			 	 |
+			 	 	s process identifier starter;
+			 	];
 	]
 	else if [c is whitespace] then
 	[
-	 	[
-	 	 	s : Avail scanner
-	 	 |
-	 	 	s process white space;
-	 	]
+	 	dispatchTable := dispatchTable  + 
+	 		cp→ [
+			 	 	s : Avail scanner
+			 	 |
+			 	 	s process white space;
+			 	];
 	]
-	else if [c = "FEFF"(base 16)→character]
+	else if [c = "FEFF"(base 16)→character] then
 	[
-	 	[
-	 	 	s : Avail scanner
-	 	 |
-	 	 	s process zero width whitespace;
-	 	]
+	 	dispatchTable := dispatchTable  + 
+	 		cp→ [
+			 	 	s : Avail scanner
+			 	 |
+			 	 	s process zero width whitespace;
+			 	];
 	]
 	else
 	[
-	 	[
-	 	 	s : Avail scanner
-	 	 |
-	 	 	s process operator;
-	 	]
-	]
+		dispatchTable := dispatchTable  + 
+			cp→ [
+			 	 	s : Avail scanner
+			 	 |
+			 	 	s process operator;
+			 	];
+	];
 ];
+
+/**
+ * Advance the scanner's source and increment the line number and column number
+ * if able
+ *
+ * @method "Next character from_"
+ * @categories "Avail Lexical Scanner"
+ * @param "scanner" "Avail scanner" 
+ *		an Avail scanner
+ * @returnType "any"
+ *		the consumed character or an exception if source is exhausted
+ * @raises "Raise an exhausted-iterator exception" 
+ *		there is nothing left on the iterator to consume
+ * @author "Richard Arriaga"
+ */
+Public method "Next character from_" is
+[
+ 	scanner : Avail scanner
+ |
+ 	unless scanner's source is exhausted then
+ 	[
+		Advance scanner's source;
+		If scanner's source is not exhausted then
+		[ 
+			if scanner's source's current element = ¢"\n" then 
+			[
+			 	↑lineNumber++;
+			 	columnNumber := 1;
+			]
+			else
+			[
+			 	↑columnNumber++;
+			];
+		];
+ 	] 
+ 	else
+ 	[
+ 	 	Raise an exhausted-iterator exception
+ 	];
+ ]:⊤;
 
 /* Skeleton of moving through file, iterator in Avail Scanner */
 Public method "Exhaust_" is
 [
-	s : Avail scanner
+	scanner : Avail scanner
 |
-	.....
-	while source not at end,
+	While
 	[
-		c ::= next character from source
+		scanner's source is not exhausted 
+	]
+	do
+	[
+		c ::= scanner's source's current element; 
 		f ::= dispatchTable[c's code point];
-		f(s);
+		f(scanner);
+		Next character from scanner;
 	];
-];
+]:⊤;

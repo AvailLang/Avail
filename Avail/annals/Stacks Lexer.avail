@@ -147,10 +147,6 @@ Private method "_is a stacks token" is
 
 /* All keywords that will ultimately be special stacks tokens */
 
-
-/* Dispatch table is the code point numbers that refer to a character */
-dispatchTable ::
-
 stacksTokenTypeNames::= {"@type","@supertype","@field","@category","@param",
 	"@raises","@restricts","@returns","@forbids","@public","@method","@see",
 	"@author","@link","@code","@global","@general"};

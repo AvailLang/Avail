@@ -65,6 +65,7 @@ Names
 	"iterator of_",
 	"take«at most»?_from_",
 	"_is exhausted",
+	"_is not exhausted",
 	"_'s⁇current element",
 	"_'s⁇current element method is_",
 	"_'s⁇advance method is_"
@@ -917,6 +918,22 @@ Semantic restriction "take«at most»?_from_" is
 ];
 
 /**
+ * Checks to see if the iterator of character is not exhausted.
+ * @method "_is not exhausted"
+ * @public
+ * @category "Annals"
+ * @param "iter" iterator of character
+ * @returns "boolean"
+ * @author "Richard Arriaga"
+ */
+Public method "_is not exhausted" is
+[
+ 	anIterator : iterator
+ |
+ 	¬anIterator is exhausted
+]:boolean;
+
+/**
  * Answer a tuple containing the prefix of {@param "anIterator"} that answered
  * {@code "true"} to {@param "predicate"}.
  *
@@ -939,7 +956,7 @@ Method "take from_while_" is
 	result : tuple := <>;
 	While
 	[
-		¬anIterator is exhausted ∧ [predicate(anIterator's current element)]
+		anIterator is not exhausted ∧ [predicate(anIterator's current element)]
 	]
 	do
 	[
@@ -1055,7 +1072,7 @@ Method "Drop from_while_" is
 |
 	While
 	[
-		¬anIterator is exhausted ∧ [predicate(anIterator's current element)]
+		anIterator is not exhausted ∧ [predicate(anIterator's current element)]
 	]
 	do
 	[

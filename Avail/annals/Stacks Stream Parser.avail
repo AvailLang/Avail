@@ -152,21 +152,6 @@ Private method "Increment the line count" is
 ]:⊤;
 
 /**
- * Checks to see if the iterator of character is not exhausted.
- * @method "_is not exhausted"
- * @category "Annals"
- * @param "iter" iterator of character
- * @returns boolean
- * @raises
- */
-Private method "_is not exhausted" is
-[
- 	iter : iterator of character
- |
- 	¬iter is exhausted
-]:boolean;
-
-/**
  * Clears the global variable, buffer, of all its contents.
  * @method "Clear the buffer"
  * @category Stacks""
