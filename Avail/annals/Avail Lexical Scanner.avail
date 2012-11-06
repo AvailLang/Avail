@@ -120,11 +120,10 @@ Public abstract method "_process zero width whitespace" is [Avail scanner]→⊤
 
 dispatchTable : {code point→[Avail scanner]→⊤|} := {};
 
-From 1 to 65536 do
+From 1 to 256 do
 [
- 	cp : [1..65536]
+ 	cp : [1..256]
  |
- 	Print: format "cp=“①”\n" with cp;
  	c ::= cp → character;
 	if c = ¢/ then
 	[
@@ -243,7 +242,21 @@ Public method "Exhaust_" is
 	do
 	[
 		c ::= scanner's source's current element; 
-		f ::= dispatchTable[c's code point];
+		f ::= dispatchTable[c's code point] else
+			[
+			 	[
+			 	 	s : Avail scanner
+			 	 |
+			 	 	if s's source's current element is whitespace then
+			 	 	[
+			 	 	 	s process white space;
+			 	 	] 
+			 	 	else
+			 	 	[
+			 	 	 	s process identifier starter;
+			 	 	];
+			 	]
+			];
 		f(scanner);
 		Next character from scanner;
 	];
