@@ -42,6 +42,7 @@ Names
 	"Avail scanner",
 	"Exhaust_",
 	"Next character from_",
+	"read from_while_",
 	"_process digit",
 	"_process double quote",
 	"_process forward slash",
@@ -198,8 +199,8 @@ From 1 to 256 do
  * @categories "Avail Lexical Scanner"
  * @param "scanner" "Avail scanner" 
  *		an Avail scanner
- * @returnType "any"
- *		the consumed character or an exception if source is exhausted
+ * @returnType "⊤"
+ *		none
  * @raises "Raise an exhausted-iterator exception" 
  *		there is nothing left on the iterator to consume
  * @author "Richard Arriaga"
@@ -230,7 +231,18 @@ Public method "Next character from_" is
  	];
  ]:⊤;
 
-/* Skeleton of moving through file, iterator in Avail Scanner */
+/**
+ * Advance the scanner's source until exhaustion.  Perform appropriate functions
+ * for each element of the scanner's source's elements
+ *
+ * @method "Exhaust_"
+ * @categories "Avail Lexical Scanner"
+ * @param "scanner" "Avail scanner" 
+ *		an Avail scanner
+ * @returnType "⊤"
+ *		none
+ * @author "Richard Arriaga"
+ */
 Public method "Exhaust_" is
 [
 	scanner : Avail scanner
@@ -261,3 +273,37 @@ Public method "Exhaust_" is
 		Next character from scanner;
 	];
 ]:⊤;
+
+/**
+ * Read from Avail scanner's source while supplied condition is true or the 
+ * source is exhausted.
+ *
+ * @method "read from_while_"
+ * @public
+ * @categories "Avail Lexical Scanner"
+ * @param "scanner" "Avail scanner" 
+ *		an avail scanner 
+ * @param "predicate" "boolean" 
+ *		The function that guards repeated application of reading from the source
+ * @returnType "<character…|>"
+ *		the tuple of characters read from the source
+ * @author "Richard Arriaga"
+ */
+Public method "read from_while_" is
+[
+ 	scanner : Avail scanner,
+ 	predicate : []→boolean
+ |
+ 	buffer : <character…|> := <>;
+	While 
+	[
+	 	scanner's source is not exhausted ∧ 
+	 		[predicate()]
+	]
+	do
+	[
+	 	Next character from scanner;
+	 	buffer := buffer ++ <scanner's source's current element>;
+	];
+	buffer
+ ]:<character…|>;
