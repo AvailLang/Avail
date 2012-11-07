@@ -306,6 +306,8 @@ Private method "Buffer_'s⁇current comment" is
 	↓scanner's token buffer ?= <>;
 ]:⊤;
 
+Private abstract method "Process_comment" is [stacks scanner]→⊤;
+
 /**
  * Tokenize all characters in double quotes including white space.
  *
@@ -360,6 +362,34 @@ Private method "_process in comment white space" is
 		↓scanner's chracter buffer ?= word;
 		Buffer scanner's current token at wordStart;
 ]:⊤;
+		
+/**
+ * Tokenize all characters in buffer up to newline character.
+ *
+ * @method "_process in comment new line"
+ * @categories "Stacks"
+ * @param "scanner" "stacks scanner" 
+ *		a stacks scanner
+ * @returnType "⊤"
+ *		none
+ * @author "Richard Arriaga"
+ */
+Private method "_process in comment new line" is
+[
+	scanner : stacks scanner
+|
+		
+		wordStart ::= scanner's column number;
+		word ::= read from scanner 
+			while
+			[
+/*TODO Figure out condition to stop scanning*/
+			 	scanner's source's current element ∈ tokenDelimiter
+			];
+
+		↓scanner's chracter buffer ?= word;
+		Buffer scanner's current token at wordStart;
+]:⊤;
 
 inCommentDispatchTable : {character→[Avail scanner]→⊤|} := {};
 
@@ -370,7 +400,7 @@ For each tokenDelimeter do
 	if c = ¢/ then
 	[
 	 	inCommentDispatchTable := inCommentDispatchTable + 
-	 		cp→ [
+	 		c→ [
 			 	 	s : Avail scanner
 			 	 |
 			 	 	s process in comment forward slash;
@@ -379,7 +409,7 @@ For each tokenDelimeter do
 	else if [c = ¢"\n"] then
 	[
 	 	inCommentDispatchTable := inCommentDispatchTable + 
-	 		cp→ [
+	 		c→ [
 			 	 	s : Avail scanner
 			 	 |
 			 	 	s process in comment new line;
@@ -388,7 +418,7 @@ For each tokenDelimeter do
 	else if [c = ¢"\""] then
 	[
 	 	inCommentDispatchTable := inCommentDispatchTable + 
-	 		cp→ [
+	 		c→ [
 			 	 	s : Avail scanner
 			 	 |
 			 	 	s process in comment double quote;
@@ -397,7 +427,7 @@ For each tokenDelimeter do
 	else if [c = ¢{] then
 	[
 	 	inCommentDispatchTable := inCommentDispatchTable  + 
-	 		cp→ [
+	 		c→ [
 			 	 	s : Avail scanner
 			 	 |
 			 	 	s process in comment left curly brace;
@@ -406,7 +436,7 @@ For each tokenDelimeter do
 	else if [c = ¢`] then
 	[
 	 	inCommentDispatchTable := inCommentDispatchTable  + 
-	 		cp→ [
+	 		c→ [
 			 	 	s : Avail scanner
 			 	 |
 			 	 	s process in comment grave accent;
@@ -415,7 +445,7 @@ For each tokenDelimeter do
 	else if [c is whitespace] then
 	[
 	 	inCommentDispatchTable := inCommentDispatchTable  + 
-	 		cp→ [
+	 		c→ [
 			 	 	s : Avail scanner
 			 	 |
 			 	 	s process in comment white space;
@@ -424,7 +454,7 @@ For each tokenDelimeter do
 	else if [c = ¢@] then
 	[
 	 	inCommentDispatchTable := inCommentDispatchTable  + 
-	 		cp→ [
+	 		c→ [
 			 	 	s : Avail scanner
 			 	 |
 			 	 	s process in comment at sign;
@@ -433,13 +463,50 @@ For each tokenDelimeter do
 	else /* c = ¢* */
 	[
 	 	inCommentDispatchTable := inCommentDispatchTable + 
-	 		cp→ [
+	 		c→ [
 			 	 	s : Avail scanner
 			 	 |
 			 	 	s process in comment asterick;
 			 	];
 	];
 ];
+
+/**
+ * Tokenize all elements of the stacks scanner comment
+ *
+ * @method "Process_comment"
+ * @categories "Stacks"
+ * @param "scanner" "stacks scanner" 
+ *		a stacks scanner
+ * @returnType "⊤"
+ *		none
+ * @author "Richard Arriaga"
+ */
+Private method "Process_comment" is
+[
+ 	scanner : stacks scanner
+ |
+	Until
+	[
+		scanner's source is not exhausted ∨
+			[scanner's character buffer = "*/" ∧ 
+				[scanner's open comment count = 1]]
+	]
+	do
+	[
+		c ::= scanner's source's current element; 
+		f ::= inCommentDispatchTable[c] else
+			[
+			 	[
+			 	 	s : stacks scanner
+			 	 |
+			 	 	/* Unimportant character, let scanner proceed */
+			 	]
+			];
+		f(scanner);
+		Next character from scanner;
+	]; 
+]:⊤;
 
 
 

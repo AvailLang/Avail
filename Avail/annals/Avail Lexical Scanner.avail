@@ -217,7 +217,7 @@ Public method "Next character from_" is
 			if scanner's source's current element = ¢"\n" then 
 			[
 			 	↑lineNumber++;
-			 	columnNumber := 1;
+			 	↓columnNumber ?= 1;
 			]
 			else
 			[
