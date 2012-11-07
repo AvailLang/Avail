@@ -36,7 +36,8 @@ Versions
 Extends
 
 Uses
-	"Avail"
+	"Avail",
+	"Avail Lexical Scanner"
 
 Names
 	"@author",
@@ -57,25 +58,35 @@ Names
 	"@supertype",
 	"@type",
 	"concatenate_separated by_",
+	"erroneous stacks token",
 	"generic stacks token",
-	"isSpecial",
+	"is special",
 	"lexeme",
 	"line",
 	"position",
+	"stacks scanner",
 	"special stacks token",
 	"stacks token",
 	"tokenize_",
+	"_'s⁇comments",
+	"_'s⁇is error",
+	"_'s⁇is special",
 	"_'s⁇lexeme",
 	"_'s⁇line",
-	"_'s⁇position",
-	"_'s⁇isSpecial"
+	"_'s⁇position"
 
 Body
 
-"lexeme" is a new field atom;	 /*string representation of token*/
-"line" is a new field atom;		 /*line in which token appears*/
-"position" is a new field atom;  /*column position token begins*/
-"isSpecial" is a new field atom; /* is the token special */
+"character buffer" is a new field atom;
+"comments" is a new field atom;
+"in quoted string" is a new field atom;
+"is special" is a new field atom;
+"is error" is a new field atom;
+"lexeme" is a new field atom;
+"line" is a new field atom;
+"open comment count" is a new field atom;
+"position" is a new field atom;
+"token buffer" is a new field atom;
 
 /**
  * A class that defines a token for the stacks lexor.  
@@ -96,7 +107,8 @@ Public class "stacks token" extends object
 		public lexeme : string,
 		public line : natural number,
 		public position : whole number,
-		public isSpecial : boolean;
+		public is special : boolean,
+		public is error : boolean;
 
 /**
  * A class that defines a generic token for the stacks lexor.  
@@ -104,27 +116,43 @@ Public class "stacks token" extends object
  * @type "@generic stacks token"
  * @supertype {@type "element" element}
  * @category Stacks
- * @field "isSpecial" "false's type"
+ * @field "is special" "false's type"
  * 	this token is not a token of note.
  */
 Public explicit class "generic stacks token" extends stacks token
 	with fields
-		isSpecial : false's type;
+		is special : false's type,
+		is error : false's type;
 
 /**
- * A class that defines a generic token for the stacks lexor.  
+ * A class that defines a token that resembles a special token but is not
+ * representative of any of the special tokens.
  * 
  * @type "@special stacks token"
  * @supertype {@type "element" element}
- * @category Stacks
+ * @category "Stacks"
+ * @field "lexeme" "string"
+ * 	this token is an erroneous token of note.
+ */
+Public explicit class "erroneous stacks token" extends stacks token
+	with fields
+	is special : false's type,
+	is error : true's type;
+
+/**
+ * A class that defines a special token for the stacks lexor.
+ * 
+ * @type "@special stacks token"
+ * @supertype {@type "element" element}
+ * @category "Stacks"
  * @field "lexeme" "string"
  * 	this token is a token of note.
  */
 Public explicit class "special stacks token" extends stacks token
 	with fields
-	isSpecial : true's type;
-		
-		
+	is special : true's type,
+	is error : false's type;
+
 /**
  * A method that constructs a subtype of stacks token class.
  *
@@ -158,10 +186,42 @@ For each stacksTokenTypeNames do
  	tokenName is a stacks token;
 ];
 
+/* Special characters that could result in token delimiter */
+tokenDelimiter ::= {¢@,¢" ",¢"\t",¢"\"",¢{,¢`,¢/,¢*,¢"\n"};
+
+
+/* Strings that should not be tokenized */
+doNotTokenize ::= {"/*","/**","*/"," ","","\t"};
+
+/**
+ * A class that defines a Stacks lexical scanner.  This is a concrete class.
+ * 
+ * @type "stacks scanner"
+ * @supertype {@type "Avail scanner" object}
+ * @category "Stacks"
+ * @field "comments" "<<stacks token…|>…|>"
+ * 	an a tuple of stacks token tuples.  Each tuple represents a comment.
+ * @field "character buffer" "<character…|>"
+ * 	buffer that temporarily retains characters awaiting tokenization
+ * @field "token buffer" "<character…|>"
+ * 	buffer that temporarily retains tokens of a common comment awaiting to be
+ * 	added to comments.
+ * @field "open comment count" "whole number"
+ * 	number of comments currently opened
+ * @author Richard Arriaga
+ */
+Public class "stacks scanner" extends Avail scanner
+	with fields
+		public comments : ↑<<stacks token…|>…|>,
+		character buffer : ↑<character…|>,
+		token buffer : ↑<stacks token…|>,
+		open comment count : ↑whole number,
+		in quoted string : ↑boolean;
+
 /**
  * A method that creates a single stacks token object
  *
- * @method "token_"
+ * @method "tokenize_"
  * @categories "Stacks"
  * @param "tokenComponents" "<string,natural number…|3>" 
  *		a tuple <token lexeme,token line number,token column position>
@@ -169,16 +229,25 @@ For each stacksTokenTypeNames do
  *		a stacks token of the input string
  * @author "Richard Arriaga"
  */
-Private method "token_" is
+Private method "tokenize_" is
 [
  	tokenComponents : <string,natural number…|3>
  |
  	if tokenComponents[1] ∉ stacksTokenTypeNames then
  	[
-	 	 a generic stacks token with
-			lexeme := tokenComponents[1],
-			line := tokenComponents[2],
-			position := tokenComponents[3]
+ 	 	if tokenComponents[1][1] ≠ ¢@ then
+ 	 	[
+		 	 a generic stacks token with
+				lexeme := tokenComponents[1],
+				line := tokenComponents[2],
+				position := tokenComponents[3]
+		] else
+		[
+			an erroneous stacks token token with
+				lexeme := tokenComponents[1],
+				line := tokenComponents[2],
+				position := tokenComponents[3]
+		]
 	] else
 	[
 	 	 a special stacks token with
@@ -187,6 +256,193 @@ Private method "token_" is
 			position := tokenComponents[3]
 	]
  ]:stacks token;
+
+/**
+ * A method that accepts a stacks scanner and tokenizes its character buffer if
+ * the buffer does not meet the do not tokenize criteria
+ * 
+ * @method "Buffer_'s⁇ current token"
+ * @categories "Stacks"
+ * @param "scanner" "stacks scanner" 
+ *		a stacks lexical scanner
+ * @param "wordStart" "natural number"
+ * 		the column number where the characters to be tokenized started
+ * @returnType "⊤"
+ *		none
+ * @author "Richard Arriaga"
+ */
+Private method "Buffer_'s⁇current token at_" is
+[
+ 	scanner : stacks scanner,
+ 	wordStart : natural number
+ |
+	If scanner's token buffer ∉ doNotTokenize then 
+	[
+	 	↓scanner's token buffer ?= ↑scanner's token buffer ++ 
+	 		tokenize <scanner's character buffer, scanner's line number,
+	 			wordStart>;
+	];
+ 	↓scanner's chracter buffer ?= <>;
+]:⊤;
+
+/**
+ * A method that accepts a stacks scanner and stores a completely tokenized 
+ * comment into its comment buffer.
+ *
+ * @method "Buffer_'s⁇ current comment"
+ * @categories "Stacks"
+ * @param "scanner" "stacks scanner" 
+ *		a stacks lexical scanner
+ * @returnType "⊤"
+ *		none
+ * @author "Richard Arriaga"
+ */
+Private method "Buffer_'s⁇current comment" is
+[
+	scanner : stacks scanner
+|
+	↓scanner's comments ?= ↑scanner's comments ++ <scanner's token buffer>;
+	
+	↓scanner's token buffer ?= <>;
+]:⊤;
+
+/**
+ * Tokenize all characters in double quotes including white space.
+ *
+ * @method "_process in comment double quote"
+ * @categories "Stacks"
+ * @param "scanner" "stacks scanner" 
+ *		a stacks scanner
+ * @returnType "⊤"
+ *		none
+ * @author "Richard Arriaga"
+ */
+Private method "_process in comment double quote" is
+[
+ 	scanner : stacks scanner
+ |
+		wordStart ::= scanner's column number;
+		word ::= <¢"\""> ++ read from scanner 
+			while
+			[
+/*TODO Figure out condition to stop scanning*/
+			 	scanner's source's current element ∈ tokenDelimiter
+			];
+
+		↓scanner's chracter buffer ?= word;
+		Buffer scanner's current token at wordStart;
+ ]:⊤;
+
+/**
+ * Tokenize all characters in buffer up to white space.
+ *
+ * @method "_process in comment white space"
+ * @categories "Stacks"
+ * @param "scanner" "stacks scanner" 
+ *		a stacks scanner
+ * @returnType "⊤"
+ *		none
+ * @author "Richard Arriaga"
+ */
+Private method "_process in comment white space" is
+[
+	scanner : stacks scanner
+|
+		
+		wordStart ::= scanner's column number;
+		word ::= read from scanner 
+			while
+			[
+/*TODO Figure out condition to stop scanning*/
+			 	scanner's source's current element ∈ tokenDelimiter
+			];
+
+		↓scanner's chracter buffer ?= word;
+		Buffer scanner's current token at wordStart;
+]:⊤;
+
+inCommentDispatchTable : {character→[Avail scanner]→⊤|} := {};
+
+For each tokenDelimeter do
+[
+ 	c : character
+ |
+	if c = ¢/ then
+	[
+	 	inCommentDispatchTable := inCommentDispatchTable + 
+	 		cp→ [
+			 	 	s : Avail scanner
+			 	 |
+			 	 	s process in comment forward slash;
+			 	];
+	]
+	else if [c = ¢"\n"] then
+	[
+	 	inCommentDispatchTable := inCommentDispatchTable + 
+	 		cp→ [
+			 	 	s : Avail scanner
+			 	 |
+			 	 	s process in comment new line;
+			 	];
+	]
+	else if [c = ¢"\""] then
+	[
+	 	inCommentDispatchTable := inCommentDispatchTable + 
+	 		cp→ [
+			 	 	s : Avail scanner
+			 	 |
+			 	 	s process in comment double quote;
+			 	];
+	]
+	else if [c = ¢{] then
+	[
+	 	inCommentDispatchTable := inCommentDispatchTable  + 
+	 		cp→ [
+			 	 	s : Avail scanner
+			 	 |
+			 	 	s process in comment left curly brace;
+			 	];
+	]
+	else if [c = ¢`] then
+	[
+	 	inCommentDispatchTable := inCommentDispatchTable  + 
+	 		cp→ [
+			 	 	s : Avail scanner
+			 	 |
+			 	 	s process in comment grave accent;
+			 	];
+	]
+	else if [c is whitespace] then
+	[
+	 	inCommentDispatchTable := inCommentDispatchTable  + 
+	 		cp→ [
+			 	 	s : Avail scanner
+			 	 |
+			 	 	s process in comment white space;
+			 	];
+	]
+	else if [c = ¢@] then
+	[
+	 	inCommentDispatchTable := inCommentDispatchTable  + 
+	 		cp→ [
+			 	 	s : Avail scanner
+			 	 |
+			 	 	s process in comment at sign;
+			 	];
+	]
+	else /* c = ¢* */
+	[
+	 	inCommentDispatchTable := inCommentDispatchTable + 
+	 		cp→ [
+			 	 	s : Avail scanner
+			 	 |
+			 	 	s process in comment asterick;
+			 	];
+	];
+];
+
+
+
 
 /**
  * Tokenize all elements of a string.
@@ -200,7 +456,7 @@ Private method "token_" is
  *		a tuple of stacks tokens.  Excludes astericks.
  * @author "Richard Arriaga"
  */
-Public method "tokenize_" is
+Public method "token_" is
 [
  	comment : string
  |
@@ -572,6 +828,7 @@ Semantic restriction "tokenize_" is
 	 	<stacks token…|0>
 	]
  ];
+
 /**
  * Take a tuple of stacks tokens and concatenate the lexemes seperated by
  * provided character
