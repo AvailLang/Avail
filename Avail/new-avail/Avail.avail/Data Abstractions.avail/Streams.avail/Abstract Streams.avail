@@ -34,7 +34,7 @@ System Module "Abstract Streams"
 Versions
 	"dev"
 Extends
-	"Common" = ("element type"),
+	"Common",
 	"Foundation" =
 	(
 		"For each of⁇_do_",

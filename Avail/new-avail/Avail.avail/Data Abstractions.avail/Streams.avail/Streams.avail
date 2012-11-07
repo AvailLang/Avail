@@ -55,6 +55,7 @@ Extends
 		"zip_",
 		"_is empty",
 		"_starts with_",
+		"_'s⁇element type",
 		"_'s⁇head",
 		"_'s⁇tail",
 		"«_‡zip»",

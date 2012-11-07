@@ -71,7 +71,7 @@ Uses
 		"_'s⁇declared exceptions",
 		"_'s⁇declared type",
 		"_'s⁇default type",
-		"_'s⁇element type",
+		"_'s⁇element|member type",
 		"_'s⁇expressions",
 		"_'s⁇function",
 		"_'s⁇function type",
@@ -1553,7 +1553,7 @@ Primitive "`|`|_`|`|" is
  * Returns:
  *    The argument's element type.
  */
-Primitive "_'s⁇element type" is
+Primitive "_'s⁇element|member type" is
 [
 	aSetType : set meta
 |
