@@ -1,0 +1,263 @@
+/*
+ * Stacks Stream Parser.avail
+ * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+System Module "Avail Lexical Scanner"
+Versions
+	"Dev"
+Extends
+
+Uses
+	"Avail"
+
+Names
+	"Avail scanner",
+	"Exhaust_",
+	"Next character from_",
+	"_process digit",
+	"_process double quote",
+	"_process forward slash",
+	"_process identifier starter",
+	"_process operator",
+	"_process white space",
+	"_process zero width whitespace",
+	"_'s⁇column number",
+	"_'s⁇line number",
+	"_'s⁇source"
+	
+
+Body
+
+/* Definition of atoms for fields in class, Avail scanner */
+"source" is a new field atom;
+"line number" is a new field atom;
+"column number" is a new field atom;
+
+/* Global variable definitions */
+lineNumber : natural number := 1;		/*Current line # of the scanner */
+columnNumber : natural number := 1;		/*Current column # of the scanner */
+
+/**
+ * A class that defines an Avail lexical scanner.  This is an abstract class.
+ * 
+ * @type "Avail scanner"
+ * @supertype {@type "object" object}
+ * @category Avail Lexical Scanner
+ * @field "source" "iterator of character"
+ * 	an iterator over the .avail input file
+ * @field "line number" "natural number"
+ * 	line number of current element of the iterator 
+ * @field "column number" "natural number"
+ * 	column position on line of current element of the iterator
+ * @author Richard Arriaga
+ */
+
+Public class "Avail scanner" extends object
+	with fields
+		public source : iterator of character,
+		line number : ↑natural number,
+		column number : ↑natural number;
+
+/**
+ * Public constructor of Avail scanner
+ *
+ * @method "construct Avail Scanner with_"
+ * @categories "Avail Lexical Scanner"
+ * @param "iter" "iterator of character" 
+ *		and iterator of characters
+ * @returnType "Avail scanner"
+ *		an Avail scanner object
+ * @author "Richard Arriaga"
+ */
+Private method "construct Avail Scanner with_" is
+[
+ iter : iterator of character
+ |
+ 	line : natural number := 1;
+	column : natural number := 1;
+ 	an Avail scanner with
+ 		source := iter,
+ 		line number := ↑line,
+ 		column number := ↑column
+ ]:Avail scanner;
+
+/* Methods on handling character types from the scanner */
+Public abstract method "_process digit" is [Avail scanner]→⊤;
+Public abstract method "_process identifier starter" is [Avail scanner]→⊤;
+Public abstract method "_process white space" is [Avail scanner]→⊤;
+Public abstract method "_process operator" is [Avail scanner]→⊤;
+Public abstract method "_process forward slash" is [Avail scanner]→⊤;
+Public abstract method "_process double quote" is [Avail scanner]→⊤;
+Public abstract method "_process zero width whitespace" is [Avail scanner]→⊤;
+
+dispatchTable : {code point→[Avail scanner]→⊤|} := {};
+
+From 1 to 256 do
+[
+ 	cp : [1..256]
+ |
+ 	c ::= cp → character;
+	if c = ¢/ then
+	[
+	 	dispatchTable := dispatchTable + 
+	 		cp→ [
+			 	 	s : Avail scanner
+			 	 |
+			 	 	s process forward slash;
+			 	];
+	]
+	else if [c = ¢"\""] then
+	[
+	 	dispatchTable := dispatchTable + 
+	 		cp→ [
+			 	 	s : Avail scanner
+			 	 |
+			 	 	s process double quote;
+			 	];
+	]
+	else if [c is an Arabic numeral] then
+	[
+	 	dispatchTable := dispatchTable  + 
+	 		cp→ [
+			 	 	s : Avail scanner
+			 	 |
+			 	 	s process digit;
+			 	];
+	]
+	else if [c is a letter ∨ [c = ¢_]] then
+	[
+	 	dispatchTable := dispatchTable  + 
+	 		cp→ [
+			 	 	s : Avail scanner
+			 	 |
+			 	 	s process identifier starter;
+			 	];
+	]
+	else if [c is whitespace] then
+	[
+	 	dispatchTable := dispatchTable  + 
+	 		cp→ [
+			 	 	s : Avail scanner
+			 	 |
+			 	 	s process white space;
+			 	];
+	]
+	else if [c = "FEFF"(base 16)→character] then
+	[
+	 	dispatchTable := dispatchTable  + 
+	 		cp→ [
+			 	 	s : Avail scanner
+			 	 |
+			 	 	s process zero width whitespace;
+			 	];
+	]
+	else
+	[
+		dispatchTable := dispatchTable  + 
+			cp→ [
+			 	 	s : Avail scanner
+			 	 |
+			 	 	s process operator;
+			 	];
+	];
+];
+
+/**
+ * Advance the scanner's source and increment the line number and column number
+ * if able
+ *
+ * @method "Next character from_"
+ * @categories "Avail Lexical Scanner"
+ * @param "scanner" "Avail scanner" 
+ *		an Avail scanner
+ * @returnType "any"
+ *		the consumed character or an exception if source is exhausted
+ * @raises "Raise an exhausted-iterator exception" 
+ *		there is nothing left on the iterator to consume
+ * @author "Richard Arriaga"
+ */
+Public method "Next character from_" is
+[
+ 	scanner : Avail scanner
+ |
+ 	unless scanner's source is exhausted then
+ 	[
+		Advance scanner's source;
+		If scanner's source is not exhausted then
+		[ 
+			if scanner's source's current element = ¢"\n" then 
+			[
+			 	↑lineNumber++;
+			 	columnNumber := 1;
+			]
+			else
+			[
+			 	↑columnNumber++;
+			];
+		];
+ 	] 
+ 	else
+ 	[
+ 	 	Raise an exhausted-iterator exception
+ 	];
+ ]:⊤;
+
+/* Skeleton of moving through file, iterator in Avail Scanner */
+Public method "Exhaust_" is
+[
+	scanner : Avail scanner
+|
+	While
+	[
+		scanner's source is not exhausted 
+	]
+	do
+	[
+		c ::= scanner's source's current element; 
+		f ::= dispatchTable[c's code point] else
+			[
+			 	[
+			 	 	s : Avail scanner
+			 	 |
+			 	 	if s's source's current element is whitespace then
+			 	 	[
+			 	 	 	s process white space;
+			 	 	] 
+			 	 	else
+			 	 	[
+			 	 	 	s process identifier starter;
+			 	 	];
+			 	]
+			];
+		f(scanner);
+		Next character from scanner;
+	];
+]:⊤;
