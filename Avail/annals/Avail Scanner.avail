@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Avail Lexical Scanner"
+System Module "Avail Scanner"
 Versions
 	"Dev"
 Extends
@@ -39,32 +39,71 @@ Uses
 	"Avail"
 
 Names
+	"an Avail Scanner with_",
 	"Avail scanner",
+	"column number",
 	"Exhaust_",
+	"lexeme",
+	"line",
+	"line number",
 	"Next character from_",
+	"position",
+	"Process digit from_",
+	"Process double quote from_",
+	"Process forward slash from_",
+	"Process identifier starter from_",
+	"Process operator from_",
+	"Process white space from_",
+	"Process zero width whitespace from_",
 	"read from_while_",
-	"_process digit",
-	"_process double quote",
-	"_process forward slash",
-	"_process identifier starter",
-	"_process operator",
-	"_process white space",
-	"_process zero width whitespace",
+	"scanner token",
+	"token buffer",
+	"token start",
+	"tokenize_",
 	"_'s⁇column number",
+	"_'s⁇lexeme",
+	"_'s⁇line",
 	"_'s⁇line number",
-	"_'s⁇source"
-	
+	"_'s⁇position",
+	"_'s⁇source",
+	"_'s⁇token buffer",
+	"_'s⁇token start"
 
 Body
 
 /* Definition of atoms for fields in class, Avail scanner */
 "source" is a new field atom;
+"lexeme" is a new field atom;
+"line" is a new field atom;
 "line number" is a new field atom;
 "column number" is a new field atom;
+"position" is a new field atom;
+"token buffer" is a new field atom;
+"token start" is a new field atom;
 
 /* Global variable definitions */
-lineNumber : natural number := 1;		/*Current line # of the scanner */
-columnNumber : natural number := 1;		/*Current column # of the scanner */
+lineNumber : natural number := 1;   /*Current line # of the scanner */
+columnNumber : natural number := 1; /*Current column # of the scanner */
+
+/**
+ * A class that defines a token for the Avail scanner.  
+ * 
+ * @type "scanner token"
+ * @supertype {@type "object" object}
+ * @category Stacks
+ * @field "lexeme" "string"
+ *  string representation of token
+ * @field "line" "natural number"
+ *  line number on which token appears 
+ * @field "position" "natural number"
+ *  column position where token begins
+ * @author Richard Arriaga
+ */
+Public class "scanner token" extends object
+	with fields
+		public lexeme : <character…|1..>,
+		public line : natural number,
+		public position : natural number;
 
 /**
  * A class that defines an Avail lexical scanner.  This is an abstract class.
@@ -73,19 +112,21 @@ columnNumber : natural number := 1;		/*Current column # of the scanner */
  * @supertype {@type "object" object}
  * @category Avail Lexical Scanner
  * @field "source" "iterator of character"
- * 	an iterator over the .avail input file
+ *    an iterator over the .avail input file
  * @field "line number" "natural number"
- * 	line number of current element of the iterator 
+ *    line number of current element of the iterator 
  * @field "column number" "natural number"
- * 	column position on line of current element of the iterator
+ *    column position on line of current element of the iterator
  * @author Richard Arriaga
  */
 
 Public class "Avail scanner" extends object
 	with fields
 		public source : iterator of character,
-		line number : ↑natural number,
-		column number : ↑natural number;
+		public token buffer : ↑<scanner token…|>,
+		public line number : ↑natural number,
+		public column number : ↑natural number,
+		public token start : ↑natural number;
 
 /**
  * Public constructor of Avail scanner
@@ -93,31 +134,37 @@ Public class "Avail scanner" extends object
  * @method "construct Avail Scanner with_"
  * @categories "Avail Lexical Scanner"
  * @param "iter" "iterator of character" 
- *		and iterator of characters
+ *      and iterator of characters
  * @returnType "Avail scanner"
- *		an Avail scanner object
+ *      an Avail scanner object
  * @author "Richard Arriaga"
  */
-Private method "construct Avail Scanner with_" is
+Public method "an Avail Scanner with_" is
 [
- iter : iterator of character
- |
- 	line : natural number := 1;
+	iter : iterator of character
+|
+	line : natural number := 1;
 	column : natural number := 1;
- 	an Avail scanner with
- 		source := iter,
- 		line number := ↑line,
- 		column number := ↑column
- ]:Avail scanner;
+	tokenStart : natural number := 1;
+	tokens : <scanner token…|> := <>;
+	an Avail scanner with
+		source := iter,
+		token buffer := ↑tokens,
+		line number := ↑line,
+		column number := ↑column,
+		token start := ↑tokenStart
+] : Avail scanner;
+
+Public abstract method "tokenize_" is [Avail scanner]→scanner token;
 
 /* Methods on handling character types from the scanner */
-Public abstract method "_process digit" is [Avail scanner]→⊤;
-Public abstract method "_process identifier starter" is [Avail scanner]→⊤;
-Public abstract method "_process white space" is [Avail scanner]→⊤;
-Public abstract method "_process operator" is [Avail scanner]→⊤;
-Public abstract method "_process forward slash" is [Avail scanner]→⊤;
-Public abstract method "_process double quote" is [Avail scanner]→⊤;
-Public abstract method "_process zero width whitespace" is [Avail scanner]→⊤;
+Public abstract method "Process digit from_" is [Avail scanner]→⊤;
+Public abstract method "Process identifier starter from_" is [Avail scanner]→⊤;
+Public abstract method "Process white space from_" is [Avail scanner]→⊤;
+Public abstract method "Process operator from_" is [Avail scanner]→⊤;
+Public abstract method "Process forward slash from_" is [Avail scanner]→⊤;
+Public abstract method "Process double quote from_" is [Avail scanner]→⊤;
+Public abstract method "Process zero width whitespace from_" is [Avail scanner]→⊤;
 
 dispatchTable : {code point→[Avail scanner]→⊤|} := {};
 
@@ -132,7 +179,7 @@ From 1 to 256 do
 	 		cp→ [
 			 	 	s : Avail scanner
 			 	 |
-			 	 	s process forward slash;
+			 	 	Process forward slash from s;
 			 	];
 	]
 	else if [c = ¢"\""] then
@@ -141,7 +188,7 @@ From 1 to 256 do
 	 		cp→ [
 			 	 	s : Avail scanner
 			 	 |
-			 	 	s process double quote;
+			 	 	Process double quote from s;
 			 	];
 	]
 	else if [c is an Arabic numeral] then
@@ -150,7 +197,7 @@ From 1 to 256 do
 	 		cp→ [
 			 	 	s : Avail scanner
 			 	 |
-			 	 	s process digit;
+			 	 	Process digit from s;
 			 	];
 	]
 	else if [c is a letter ∨ [c = ¢_]] then
@@ -159,7 +206,7 @@ From 1 to 256 do
 	 		cp→ [
 			 	 	s : Avail scanner
 			 	 |
-			 	 	s process identifier starter;
+			 	 	Process identifier starter from s;
 			 	];
 	]
 	else if [c is whitespace] then
@@ -168,7 +215,7 @@ From 1 to 256 do
 	 		cp→ [
 			 	 	s : Avail scanner
 			 	 |
-			 	 	s process white space;
+			 	 	Process white space from s;
 			 	];
 	]
 	else if [c = "FEFF"(base 16)→character] then
@@ -177,7 +224,7 @@ From 1 to 256 do
 	 		cp→ [
 			 	 	s : Avail scanner
 			 	 |
-			 	 	s process zero width whitespace;
+			 	 	Process zero width whitespace from s;
 			 	];
 	]
 	else
@@ -186,7 +233,7 @@ From 1 to 256 do
 			cp→ [
 			 	 	s : Avail scanner
 			 	 |
-			 	 	s process operator;
+			 	 	Process operator from s;
 			 	];
 	];
 ];
@@ -209,19 +256,19 @@ Public method "Next character from_" is
 [
  	scanner : Avail scanner
  |
- 	unless scanner's source is exhausted then
+ 	Unless scanner's source is exhausted then
  	[
 		Advance scanner's source;
 		If scanner's source is not exhausted then
 		[ 
 			if scanner's source's current element = ¢"\n" then 
 			[
-			 	↑lineNumber++;
-			 	↓columnNumber ?= 1;
+				↓scanner's column number ?= 1;
+				scanner's line number++;
 			]
 			else
 			[
-			 	↑columnNumber++;
+			 	scanner's column number++;
 			];
 		];
  	] 
@@ -254,18 +301,23 @@ Public method "Exhaust_" is
 	do
 	[
 		c ::= scanner's source's current element; 
+		/*  TODO:  Current implementation is incomplete due to lacking character
+		 * functionality.  May miss many operator characters.  Once tuple
+		 * performance issue and/or character module limitiations addressed,
+		 * this needs to be revisited.*/
 		f ::= dispatchTable[c's code point] else
-			[
+			[ /* else addresses limits in dispatch table.  Assertions not
+			   * 100% effective on providing correct coverage.            */
 			 	[
 			 	 	s : Avail scanner
 			 	 |
 			 	 	if s's source's current element is whitespace then
 			 	 	[
-			 	 	 	s process white space;
+			 	 	 	Process white space from s;
 			 	 	] 
 			 	 	else
 			 	 	[
-			 	 	 	s process identifier starter;
+			 	 	 	Process identifier starter from s;
 			 	 	];
 			 	]
 			];
