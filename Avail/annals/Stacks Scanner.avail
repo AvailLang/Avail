@@ -204,7 +204,7 @@ Public class "stacks scanner" extends Avail scanner
 	with fields
 		public comments : ↑<<stacks token…|>…|>,
 		character buffer : ↑<character…|>,
-		token buffer : ↑<stacks token…|>,
+		token buffer : ↑<scanner token…|>,
 		open comment count : ↑whole number,
 		quoted flag : ↑boolean;
 

@@ -61,7 +61,6 @@ Names
 	"token start",
 	"tokenize_",
 	"_'s⁇column number",
-	"_'s⁇lexeme",
 	"_'s⁇line",
 	"_'s⁇line number",
 	"_'s⁇position",
@@ -101,7 +100,7 @@ columnNumber : natural number := 1; /*Current column # of the scanner */
  */
 Public class "scanner token" extends object
 	with fields
-		public lexeme : <character…|1..>,
+		lexeme : <character…|1..>,
 		public line : natural number,
 		public position : natural number;
 

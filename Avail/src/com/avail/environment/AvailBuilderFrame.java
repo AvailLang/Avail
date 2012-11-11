@@ -54,6 +54,7 @@ import com.avail.annotations.*;
 import com.avail.builder.*;
 import com.avail.compiler.*;
 import com.avail.descriptor.*;
+import com.avail.interpreter.Primitive;
 import com.avail.utility.*;
 
 /**
@@ -210,6 +211,45 @@ extends JFrame
 			putValue(
 				SHORT_DESCRIPTION,
 				"Unload all code and wipe the compiled module cache.");
+		}
+	}
+
+	/**
+	 * A {@code ReportAction} dumps performance information obtained from
+	 * running the primitives.
+	 */
+	private final class ReportAction
+	extends AbstractAction
+	{
+		/** The serial version identifier. */
+		private static final long serialVersionUID = 4345746948972392951L;
+
+		@Override
+		public void actionPerformed (final @Nullable ActionEvent event)
+		{
+			final StyledDocument doc = transcript.getStyledDocument();
+			try
+			{
+				doc.insertString(
+					doc.getLength(),
+					Primitive.reportReturnCheckTimes(),
+					doc.getStyle(infoStyleName));
+			}
+			catch (final BadLocationException e)
+			{
+				assert false : "This never happens.";
+			}
+		}
+
+		/**
+		 * Construct a new {@link ReportAction}.
+		 */
+		public ReportAction ()
+		{
+			super("Generate VM report");
+			putValue(
+				SHORT_DESCRIPTION,
+				"Report any diagnostic information collected by the VM.");
 		}
 	}
 
@@ -859,6 +899,9 @@ extends JFrame
 	/** The {@linkplain CleanAction clean action}. */
 	@InnerAccess final CleanAction cleanAction;
 
+	/** The {@linkplain ReportAction report action}. */
+	@InnerAccess final ReportAction reportAction;
+
 	/**
 	 * The transient {@link Repository} of compiled modules to load in place
 	 * of Avail source files.
@@ -1188,6 +1231,10 @@ extends JFrame
 		cleanAction.setEnabled(true);
 		final JMenuItem cleanItem = new JMenuItem(cleanAction);
 		menu.add(cleanItem);
+		reportAction = new ReportAction();
+		reportAction.setEnabled(true);
+		final JMenuItem reportItem = new JMenuItem(reportAction);
+		menu.add(reportItem);
 		menuBar.add(menu);
 		setJMenuBar(menuBar);
 		final JPopupMenu buildPopup = new JPopupMenu("Build");
