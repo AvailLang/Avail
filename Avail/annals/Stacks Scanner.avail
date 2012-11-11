@@ -155,18 +155,17 @@ Public explicit class "special stacks token" extends stacks token
 Private method "_is a stacks token" is
 [
  	tokenName : <character…|1..>
- |Print: "here\n";
+ |
  	Class tokenName extends special stacks token
  		with fields
  			lexeme : tokenName's type;
- 			Print: "2";
  ]:⊤;
  
- Class "@field" extends special stacks token;
+
 
 /* All keywords that will ultimately be special stacks tokens */
 
-stacksTokenTypeNames::= {"@type","@supertype","@category","@param",
+stacksTokenTypeNames::= {"@field","@type","@supertype","@category","@param",
 	"@raises","@restricts","@returns","@forbids","@public","@method","@see",
 	"@author","@link","@code","@global","@general"};
 	
@@ -174,7 +173,6 @@ For each stacksTokenTypeNames do
 [
 	tokenTypeName : <character…|1..>
  |
- 	Print: tokenTypeName;  Print: "\n";
  	tokenTypeName is a stacks token;
 ];
 
