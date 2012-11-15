@@ -64,7 +64,6 @@ Names
 	"stacks scanner",
 	"special stacks token",
 	"stacks token",
-	"tokenize_",
 	"_'s⁇comments",
 	"_'s⁇error flag",
 	"_'s⁇position",
@@ -204,10 +203,36 @@ Public class "stacks scanner" extends Avail scanner
 	with fields
 		public comments : ↑<<stacks token…|>…|>,
 		character buffer : ↑<character…|>,
-		token buffer : ↑<scanner token…|>,
 		open comment count : ↑whole number,
 		quoted flag : ↑boolean;
 
+/**
+ * return the most specific type of the stacks scanner's token buffer's element
+ * @method "_[_]"
+ * @categories "Stacks Scanner"
+ * @restrcits "scannerType" "stacks scanner's type" 
+ * @restricts "indexType" "natural number's type"
+ * @author "Richard Arriaga"
+ */
+Semantic restriction "_[_]" is
+[
+	scannerType : Avail scanner's type,
+	indexType : natural number's type
+ |
+	if |scannerType| = |indexType| = 1 then
+	[
+	 	scan ::= scannerType's instance;
+		(scan[indexType's instance])'s type
+	]
+	else if [|scannerType| = 1] then
+	[
+		tb ::= (↓(scannerType's instance)'s token buffer)'s type;
+		 
+		∪ (tb's leading types ++ 
+			<tb's default type>)
+	]
+	else [⊤]
+];
 /**
  * A method that creates a single stacks token object
  *
@@ -223,27 +248,29 @@ Method "tokenize_" is
 [
 	scanner : stacks scanner
  |
+	 cb : <character…|1..> := cast ↓scanner's character buffer into 
+	 	[c : <character…|1..> | c];
 	if scanner's character buffer ∉ stacksTokenTypeNames then
 	[
-		if scanner's character buffer[1] ≠ ¢@ then
+		if cb[1] ≠ ¢@ then
 		[
 		 	 a generic stacks token with
-				lexeme := scanner's character buffer,
-				line := scanner's line number,
-				position := scanner's token start
+				lexeme := cb,
+				line := ↓scanner's line number,
+				position := ↓scanner's token start
 		] else
 		[
-			an erroneous stacks token token with
-				lexeme := scanner's character buffer,
-				line := scanner's line number,
-				position := scanner's token start
+			an erroneous stacks token with
+				lexeme := cb,
+				line := ↓scanner's line number,
+				position := ↓scanner's token start
 		]
 	] else
 	[
 		a special stacks token with
-			lexeme := scanner's character buffer,
-			line := scanner's line number,
-			position := scanner's token start
+			lexeme := cb,
+			line := ↓scanner's line number,
+			position := ↓scanner's token start
 	]
 ] : stacks token;
 
@@ -255,23 +282,21 @@ Method "tokenize_" is
  * @categories "Stacks"
  * @param "scanner" "stacks scanner" 
  *		a stacks lexical scanner
- * @param "wordStart" "natural number"
- * 		the column number where the characters to be tokenized started
  * @returnType "⊤"
  *		none
  * @author "Richard Arriaga"
  */
-Private method "Buffer_'s⁇current token at_" is
+Private method "Buffer_'s⁇current token" is
 [
- 	scanner : stacks scanner,
- 	wordStart : natural number
+ 	scanner : stacks scanner
  |
-	If scanner's token buffer ∉ doNotTokenize then 
+	If ↓scanner's character buffer ∉ doNotTokenize then 
 	[
-	 	↓scanner's token buffer ?= ↑scanner's token buffer ++ 
-	 		tokenize scanner;
+	 	
+	 	tb :<scanner token…|>:= ↓scanner's token buffer ++ <tokenize scanner>;
+	 	↓scanner's token buffer ?= tb;
 	];
- 	↓scanner's chracter buffer ?= <>;
+ 	↓scanner's character buffer ?= <>;
 ]:⊤;
 
 /**
@@ -290,7 +315,7 @@ Private method "Buffer_'s⁇current comment" is
 [
 	scanner : stacks scanner
 |
-	↓scanner's comments ?= ↑scanner's comments ++ <scanner's token buffer>;
+	↓scanner's comments ?= ↓scanner's comments ++ <scanner's token buffer>;
 	
 	↓scanner's token buffer ?= <>;
 ]:⊤;
@@ -337,13 +362,13 @@ Private method "_is at new comment" is
  *      none
  * @author "Richard Arriaga"
  */
-Private method "Consume_'s⁇nested comment;" is
+Private method "Consume_'s⁇nested comment" is
 [
 	scanner : stacks scanner
  |
-	While scanner's open comment count > 1 then
+	While [↓scanner's open comment count > 1] do
 	[
-		read from scanner while
+		throwAway ::= read from scanner while
 		[
 			scanner's source's current element ∉ {¢/,¢*}
 		];
@@ -352,7 +377,9 @@ Private method "Consume_'s⁇nested comment;" is
 			Next character from scanner;
 			If scanner's source is not exhausted ∧ 
 				[scanner's source's current element = ¢*] then
-			[↑scanner's open comment count++;];
+			[
+				scanner's open comment count++;
+			];
 		]
 		else
 		[
@@ -360,7 +387,9 @@ Private method "Consume_'s⁇nested comment;" is
 			Next character from scanner;
 			If scanner's source is not exhausted ∧ 
 				[scanner's source's current element = ¢/] then
-			[↑scanner's open comment count--;];
+			[
+				scanner's open comment count--;
+			];
 		];
 	];
 ]:⊤;
@@ -382,9 +411,9 @@ Private method "Process forward slash from_" is
  |
 	If scanner is at new comment then
 	[
-		if scanner's open comment count = 0 then
+		If ↓scanner's open comment count = 0 then
 		[
-		 	↓scanner's open comment count ?= ↑scanner's open comment count + 1;
+			scanner's open comment count++;
 			Process scanner comment;
 		] else
 		[
@@ -392,7 +421,7 @@ Private method "Process forward slash from_" is
 		];
 	]
 	else
-	[/*TODO what should happen as a default.  Probably nothing?*/]
+	[/*TODO what should happen as a default.  Probably nothing?*/];
 ]:⊤;
 
 
@@ -409,8 +438,7 @@ Private method "Process forward slash from_" is
  *		none
  * @author "Richard Arriaga"
  */
-Private method "" +
-		"Process forward slash in comment from_" is
+Private method "Process forward slash in comment from_" is
 [
  	scanner : stacks scanner
  |
@@ -430,18 +458,20 @@ Private method "" +
  */
 Private method "Process double quote in comment from_" is
 [
- 	scanner : stacks scanner
+	scanner : stacks scanner
  |
-		wordStart ::= scanner's column number;
+		↓scanner's token start ?= scanner's column number;
 		word ::= <¢"\""> ++ read from scanner 
 			while
 			[
-/*TODO Figure out condition to stop scanning*/
+/*TODO Figure out condition to stop scanning - need close quote and the ability
+ * to handled new lines and the pipe new line - "\\
+ * \\|"*/
 			 	scanner's source's current element ∈ tokenDelimiter
 			];
 
-		↓scanner's chracter buffer ?= word;
-		Buffer scanner's current token at wordStart;
+		↓scanner's character buffer ?= word;
+		Buffer scanner's current token;
  ]:⊤;
 
 /**
@@ -468,8 +498,8 @@ Private method "Process white space in comment from_" is
 			 	scanner's source's current element ∈ tokenDelimiter
 			];
 
-		↓scanner's chracter buffer ?= word;
-		Buffer scanner's current token at wordStart;
+		↓scanner's character buffer ?= word;
+		Buffer scanner's current token;
 ]:⊤;
 		
 /**
@@ -496,13 +526,13 @@ Private method "Process new line in comment from_" is
 			 	scanner's source's current element ∈ tokenDelimiter
 			];
 
-		↓scanner's chracter buffer ?= word;
-		Buffer scanner's current token at wordStart;
+		↓scanner's character buffer ?= word;
+		Buffer scanner's current token;
 ]:⊤;
 
-inCommentDispatchTable : {character→[Avail scanner]→⊤|} := {};
+inCommentDispatchTable : {character→[stacks scanner]→⊤|} := {};
 
-For each tokenDelimeter do
+For each tokenDelimiter do
 [
  	c : character
  |
@@ -510,7 +540,7 @@ For each tokenDelimeter do
 	[
 	 	inCommentDispatchTable := inCommentDispatchTable + 
 	 		c→ [
-			 	 	scanner : Avail scanner
+			 	 	scanner : stacks scanner
 			 	 |
 			 	 	Process forward slash in comment from scanner;
 			 	];
@@ -519,7 +549,7 @@ For each tokenDelimeter do
 	[
 	 	inCommentDispatchTable := inCommentDispatchTable + 
 	 		c→ [
-			 	 	s : Avail scanner
+			 	 	scanner : stacks scanner
 			 	 |
 			 	 	Process new line in comment from scanner;
 			 	];
@@ -528,7 +558,7 @@ For each tokenDelimeter do
 	[
 	 	inCommentDispatchTable := inCommentDispatchTable + 
 	 		c→ [
-			 	 	s : Avail scanner
+			 	 	scanner : stacks scanner
 			 	 |
 			 	 	Process double quote in comment from scanner;
 			 	];
@@ -537,7 +567,7 @@ For each tokenDelimeter do
 	[
 	 	inCommentDispatchTable := inCommentDispatchTable  + 
 	 		c→ [
-			 	 	s : Avail scanner
+			 	 	scanner : stacks scanner
 			 	 |
 			 	 	Process left curly brace in comment from scanner;
 			 	];
@@ -546,7 +576,7 @@ For each tokenDelimeter do
 	[
 	 	inCommentDispatchTable := inCommentDispatchTable  + 
 	 		c→ [
-			 	 	s : Avail scanner
+			 	 	scanner : stacks scanner
 			 	 |
 			 	 	Process grave accent in comment from scanner;
 			 	];
@@ -555,7 +585,7 @@ For each tokenDelimeter do
 	[
 	 	inCommentDispatchTable := inCommentDispatchTable  + 
 	 		c→ [
-			 	 	s : Avail scanner
+			 	 	scanner : stacks scanner
 			 	 |
 			 	 	Process white space in comment from scanner;
 			 	];
@@ -564,7 +594,7 @@ For each tokenDelimeter do
 	[
 	 	inCommentDispatchTable := inCommentDispatchTable  + 
 	 		c→ [
-			 	 	s : Avail scanner
+			 	 	scanner : stacks scanner
 			 	 |
 			 	 	Process at sign in comment from scanner;
 			 	];
@@ -573,7 +603,7 @@ For each tokenDelimeter do
 	[
 	 	inCommentDispatchTable := inCommentDispatchTable + 
 	 		c→ [
-			 	 	s : Avail scanner
+			 	 	scanner : stacks scanner
 			 	 |
 			 	 	Process asterick in comment from scanner;
 			 	];
@@ -591,7 +621,7 @@ For each tokenDelimeter do
  *		none
  * @author "Richard Arriaga"
  */
-Private method "Process_comment" is
+Private method "Process the_comment" is
 [
  	scanner : stacks scanner
  |

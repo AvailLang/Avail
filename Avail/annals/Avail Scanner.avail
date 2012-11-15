@@ -56,6 +56,7 @@ Names
 	"Process white space from_",
 	"Process zero width whitespace from_",
 	"read from_while_",
+	"read_'s⁇region delimited by_and_«with|without»!nesting",
 	"scanner token",
 	"token buffer",
 	"token start",
@@ -153,6 +154,27 @@ Public method "an Avail Scanner with_" is
 		column number := ↑column,
 		token start := ↑tokenStart
 ] : Avail scanner;
+
+/**
+ * methodDescription
+ *
+ * @method "_'s⁇current element"
+ * @categories "Avail Scanner"
+ * @param "scanner" "Avail scanner" 
+ *      an avail scanner
+ * @returnType "character"
+ *      the Avail scanner's source's current element
+ * @raises "Raise an exhausted-iterator exception" 
+ *      The iterator is exhausted
+ * @author "Richard Arriaga"
+ */
+Method "_'s⁇current element" is
+[
+	scanner : Avail scanner
+ |
+		scanner's source's current element
+]:character;
+
 
 Public abstract method "tokenize_" is [Avail scanner]→scanner token;
 
@@ -253,14 +275,12 @@ From 1 to 256 do
  */
 Public method "Next character from_" is
 [
- 	scanner : Avail scanner
+	scanner : Avail scanner
  |
- 	Unless scanner's source is exhausted then
- 	[
 		Advance scanner's source;
 		If scanner's source is not exhausted then
 		[ 
-			if scanner's source's current element = ¢"\n" then 
+			if scanner's current element = ¢"\n" then 
 			[
 				↓scanner's column number ?= 1;
 				scanner's line number++;
@@ -270,11 +290,6 @@ Public method "Next character from_" is
 			 	scanner's column number++;
 			];
 		];
- 	] 
- 	else
- 	[
- 	 	Raise an exhausted-iterator exception
- 	];
  ]:⊤;
 
 /**
@@ -345,16 +360,199 @@ Public method "read from_while_" is
  	scanner : Avail scanner,
  	predicate : []→boolean
  |
- 	buffer : <character…|> := <>;
+	buffer : <character…|> := <>;
 	While 
 	[
-	 	scanner's source is not exhausted ∧ 
-	 		[predicate()]
+		scanner's source is not exhausted ∧ 
+			[predicate()]
 	]
 	do
 	[
-	 	Next character from scanner;
-	 	buffer := buffer ++ <scanner's source's current element>;
+		Next character from scanner;
+		buffer := buffer ++ <scanner's source's current element>;
 	];
 	buffer
- ]:<character…|>;
+]:<character…|>;
+
+/**
+ * An accessor for an Avail scanner's token buffer.  As token buffer is a 
+ * mutable variable, this method allowes for the composition of a semantic 
+ * restriction in order to return a more specific scanner token type.
+ *
+ * @method "_[_]"
+ * @public
+ * @categories "Avail Scanner"
+ * @param "scanner" "Avail scanner" 
+ *      an Avail scanner object.
+ * @param "index" "natural number"
+ * @returnType "scanner token"
+ *      a scanner token object
+ * @raises "exceptionName" 
+ *      exceptionDescription
+ * @author "Richard Arriaga"
+ */
+ Method "_[_]" is
+[
+	scanner : Avail scanner,
+	index : natural number
+ |
+	↓scanner's token buffer[index]
+]:scanner token;
+
+/**
+ * A method that reads a delimited region from a scanner.  It can do this with
+ * or without nesting.  If nesting is ignored, it will end the region on the 
+ * first read of the end delimiting character.  If nesting is enabled, it will
+ * read the region, including nested regions, until the out region is closed.
+ * In order for nested handling to occur, the start delimiter must be different
+ * from the end delimiter.
+ *
+ * @method "read_'s⁇region delimited by_and_«with|without»!nesting"
+ * @public
+ * @categories "Avail Scanner"
+ * @param "scanner" "Avail scanner" 
+ *      an Avail scanner object.
+ * @param "startDelimiter" "character" 
+ *      the delimiter that indicates the start of a region
+ * @param "endDelimiter" "character" 
+ *      the delimiter that indicates the end of a region
+ * @param "nesting" "[1..2]" 
+ *      indicator for operation allowing nesting or ignoring nesting
+ * @returnType "string"
+ *      the string that contains the characters in the region
+ * @author "Richard Arriaga"
+ */
+Public method "read_'s⁇region delimited by_and_«with|without»!nesting" is
+[
+	scanner : Avail scanner,
+	startDelimiter : character,
+	endDelimiter : character,
+	nesting : [1..2]
+ |
+	if nesting = 1 ∧ [ startDelimiter≠ endDelimiter] then /* handle nesting */
+	[
+		regionCount : whole number := 1;
+		region : string := "";
+		While [regionCount > 0] do
+		[
+			region := region ++ read from scanner while 
+				[scanner's current element ∉ {startDelimiter,endDelimiter}];
+			If scanner's current element = startDelimiter then
+			[
+				/* start of nested region */
+				↑regionCount++;
+			]
+			else
+			[
+				/* end of region */
+				↑regionCount--;
+			];
+		];
+		region
+	]
+	else /* ignore nesting */
+	[
+		read from scanner while [scanner's current element ≠ endDelimiter]
+	]
+]:string;
+
+/**
+ * A method that reads a delimited region from a scanner.  It takes strings 
+ * for the delimiters.  It can do this with or without nesting.  If nesting is 
+ * ignored, it will end the region on the first read of the end delimiting 
+ * character.  If nesting is enabled, it will read the region, including nested 
+ * regions, until the out region is closed. In order for nested handling to 
+ * occur, the start delimiter must be different from the end delimiter.
+ *
+ * @method "read_'s⁇region delimited by_and_«with|without»!nesting"
+ * @public
+ * @categories "Avail Scanner"
+ * @param "scanner" "Avail scanner" 
+ *      an Avail scanner object.
+ * @param "startDelimiter" "nonempty string" 
+ *      the delimiter that indicates the start of a region
+ * @param "endDelimiter" "nonempty string" 
+ *      the delimiter that indicates the end of a region
+ * @param "nesting" "[1..2]" 
+ *      indicator for operation allowing nesting or ignoring nesting
+ * @returnType "string"
+ *      the string that contains the characters in the region
+ * @author "Richard Arriaga"
+ */
+Method "read_'s⁇region delimited by_and_«with|without»!nesting" is
+[
+	scanner : Avail scanner,
+	startDelimiter : nonempty string,
+	endDelimiter : nonempty string,
+	nesting : [1..2]
+ |
+	
+	if nesting = 1 ∧ [ startDelimiter ≠ endDelimiter] then /* handle nesting */
+	[
+		/* Create a patricia trie and add both start and end delimiters*/
+		tree : patricia tree := a patricia tree;
+		Add startDelimiter to tree;
+		Add endDelimiter to tree;
+		
+		cursor : patricia trie := tree;
+		buffer : string := "";
+		regionCount : whole number := 1;
+		region : string := "";
+		While [regionCount > 0] do
+		[
+			Until [scanner's source is exhausted ∨ 
+				[cursor is at terminus ∧ 
+					[scanner's current element ∉ cursor's next steps]]]
+			do
+			[
+				value ::= scanner's current element;
+				next ::= cursor's next steps;
+				If char ∉ next then
+				[
+					/* We have not hit a delimiter, add collected characters
+					 * to the region and reset buffer and cursor.            */
+					region := eject ↑region ++ buffer ++ <value>;
+					buffer := "";
+					cursor := tree;
+				]
+				else
+				[
+				 	/* On track to buidling a delimiter; proceed down tree */
+					cursor := next[value];
+					buffer := buffer ++ <value>;
+				];
+
+				/* TODO Need to check to see if buffer is start or end delimiter
+				 * If it is, adjust regionCount appropriately:
+				 * ↑regionCount++ or ↑regionCount--
+				 * Remember, must do the longest possible delimiter.  Must be
+				 * able to rewind back if previously hit delimiter but still 
+				 * could proceed in tree to potentially longer delimiter.    */
+
+				Next character from scanner;
+			];
+		];
+		region
+	]
+	else /* ignore nesting */
+	[
+		region : string := "";
+		index : natural number := 1;
+		Until [scanner's source is exhausted ∨ [index > |endDelimiter|]]
+		do
+		[
+			value ::= scanner's current element;
+			If value = endDelimiter[index] then
+			[
+				↑index++;
+			]
+			else
+			[
+				region := eject ↑region ++ endDelimiter[1..index-1] ++ <value>;
+				index := 1;
+			];
+			Next character from scanner;
+		];
+		region
+	]
+]:string;

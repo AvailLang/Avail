@@ -1,0 +1,177 @@
+/*
+ * Stacks Stream Parser.avail
+ * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+System Module "Patricia Trie"
+Versions
+	"Dev"
+Extends
+
+Uses
+	"Avail"
+
+Names
+	"a patricia trie",
+	"Add_to_",
+	"patricia trie",
+	"_is at terminus",
+	"_'s⁇next steps"
+
+Body
+
+"terminus" is a new field atom;
+"next nodes" is a new field atom;
+
+/**
+ * An abstract class that defines a basic trie.
+ * 
+ * @type "trie"
+ * @supertype {@type "object" object}
+ * @category "Trie"
+ * @field "terminus" "boolean"
+ *	Indicates if at the end of a branch
+ * @field "next nodes" "any"
+ *	the nodes that follow in the trie
+ * @author Richard Arriaga
+ */
+Class "trie" extends object
+	with fields
+		terminus : ↑boolean,
+		next nodes : any;
+
+/**
+ * An abstract class that defines a basic trie.
+ * 
+ * @type "trie"
+ * @supertype {@type "object" object}
+ * @category "Trie"
+ * @field "next nodes" "↑{character→trie|}"
+ *	the nodes that follow in the trie
+ * @author Richard Arriaga
+ */
+Public class "patricia trie" extends trie
+	with fields
+		next nodes : ↑{character→trie|};
+
+/**
+ * Indicates if it is at the end of a branch
+ *
+ * @method "_is at terminus"
+ * @categories "Trie"
+ * @param "tree" "trie" 
+ *      a trie
+ * @returnType "boolean"
+ *      true if at end of branch
+ * @author "Richard Arriaga"
+ */
+Public method "_is at terminus" is
+[
+	tree : patricia trie
+ |
+ 	↓tree's terminus
+]:boolean;
+
+/**
+ * Provides next node map
+ *
+ * @method "_'s⁇next steps"
+ * @categories "Trie"
+ * @param "tree" "patricia trie" 
+ *      a trie
+ * @returnType "{character→trie|}"
+ *      a map of keyed by next characters with tries as values
+ * @author "Richard Arriaga"
+ */
+Public method "_'s⁇next steps" is
+[
+	tree : patricia trie
+ |
+	↓tree's next nodes
+]:{character→trie|};
+
+/**
+ * a patricia trie
+ *
+ * @method "a patricia trie"
+ * @categories "category"
+ * @returnType "returnType"
+ *      returnTypeDescription
+ * @raises "exceptionName" 
+ *      exceptionDescription
+ * @author "authorName"
+ */
+Public method "a patricia trie" is
+[
+	m : {character→trie|}:= {};
+	t : boolean := false;
+
+	a patricia trie with
+		terminus := ↑t,
+		next nodes := ↑m
+]:patricia trie;
+
+/**
+ * A method that populates a patricia trie
+ *
+ * @method "Add_to_"
+ * @categories "Trie"
+ * @param "branch" "nonempty string" 
+ *      a string to be added to the trie
+ * @param "tree" "patricia tree" 
+ *      a patricia tree
+ * @returnType "⊤"
+ *      none
+ * @author "Richard Arriaga"
+ */
+Public method "Add_to_" is
+[
+	branch : nonempty string,
+	tree : patricia trie 
+ |
+	cursor : patricia trie := tree;
+	For each branch do
+	[
+		char : character
+	 |
+	 	next ::= cursor's next nodes;
+	 	cursor := if char ∉ ↓next then
+		[
+		 	new ::= a patricia trie;
+			↓next ?= ↓next + char→new;
+			new
+		]
+		else
+		[
+			cast ↓next[char] into [p : patricia trie | p]
+		];
+	];
+	↓cursor's terminus ?= true; 
+]:⊤;
