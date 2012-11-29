@@ -886,12 +886,14 @@ is
  *    {@code reconstructible}. Each field tagged as {@code public} must be
  *    exported by the defining module.
  * @param "optionalMutable"
- *        "<<<boolean, boolean, boolean, atom, any meta…|5>…|1..>…|0..1>"
+ *        "<<<boolean, boolean, boolean, boolean, atom, any meta…|6>…|1..>…|0..1>"
  *    The mutable fields of this class. An accessor will be generated for each
  *    field. A referer will be generated for each field tagged as
  *    {@code referable}. A mutator will be generated for each field not tagged
  *    as {@code read-only}. Each field tagged as {@code public} must have its
- *    accessor, referer, and mutator exported by the defining module.
+ *    accessor, referer, and mutator exported by the defining module. Each field
+ *    tagged as {@code shared} will not be cloned (using a new variable) during
+ *    reconstruction.
  * @param "optionalReconstructors"
  *        "<<<boolean, <atom…|1..>…|2>…|1..>…|0..1>"
  *    The reconstructors of this class. A reconstructor will be generated for
