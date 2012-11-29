@@ -36,6 +36,7 @@ Versions
 Uses
 	"Abstract Iterators",
 	"Foundation",
+	"Sizable Positionable Iterators",
 	"Unit Testing"
 Names
 	"a counting iterator from_to_",
@@ -43,10 +44,10 @@ Names
 	"counting iterator test suite"
 Body
 
-/* TODO: [TLS] Remove these constants once a macro is available for "$…". */
-next ::= $next;
-step ::= $step;
-maximum ::= $maximum;
+"next" is a new field atom;
+"step" is a new field atom;
+"start" is a new field atom;
+"end" is a new field atom;
 
 /**
  * A counting number iterator is an immutable lazy list of arbitarily many
@@ -55,11 +56,13 @@ maximum ::= $maximum;
  * @type "counting number iterator"
  * @supertype "iterator"
  */
-Class "counting number iterator" extends iterator
+Class "counting number iterator" extends sizable positionable iterator
 	with fields
 		element type : number's type,
+		position type : number's type,
 		step : number,
-		maximum : number
+		start : number,
+		end : number
 	with mutable fields
 		next : number;
 
@@ -73,8 +76,10 @@ Class "counting number iterator" extends iterator
 Class "counting integer iterator" extends counting number iterator
 	with fields
 		element type : integer's type,
+		position type : integer's type,
 		step : integer,
-		maximum : extended integer;
+		start : extended integer,
+		end : extended integer;
 
 Method "_is exhausted" is
 [
@@ -82,11 +87,11 @@ Method "_is exhausted" is
 |
 	if anIterator's step ≥ 0 then
 	[
-		anIterator's next > anIterator's maximum
+		anIterator's next > anIterator's end
 	]
 	else
 	[
-		anIterator's next < anIterator's maximum
+		anIterator's next < anIterator's end
 	]
 ] : boolean;
 
@@ -104,30 +109,72 @@ counting number iterator's advance method is
 	anIterator's next := anIterator's next + anIterator's step;
 ] : ⊤;
 
+Method "_'s⁇current position" is
+[
+	anIterator : counting number iterator
+|
+	anIterator's next
+] : number;
+
+Private method "Require:_is a valid position for_" is
+[
+	position : number,
+	anIterator : counting number iterator
+|
+	first ::= anIterator's start;
+	last ::= anIterator's end;
+	delta ::= anIterator's step;
+	ok : boolean := (position - first) mod delta = 0;
+	ok := ok ∧ [if delta < 0 then [position ≤ first] else [position ≥ first]];
+	ok := ok ∧ [if delta < 0 then [position ≥ last] else [position ≤ last]];
+	If ¬ok then
+	[
+		Raise an invalid-position exception
+	];
+];
+
+Method "_'s⁇current position:=_" is
+[
+	anIterator : counting number iterator,
+	position : number
+|
+	Require: position is a valid position for anIterator;
+	anIterator's next := position;
+] : ⊤;
+
+Method "`|_`|" is
+[
+	anIterator : counting number iterator
+|
+	count ::= ((anIterator's end - anIterator's start + anIterator's step)
+		÷ anIterator's step)→extended integer;
+	cast count into [t : whole number | t]
+] : whole number;
+
+Method "`|_'s⁇remaining elements`|" is
+[
+	anIterator : counting number iterator
+|
+	size ::= |anIterator|;
+	answered ::= |(anIterator's next - anIterator's start) ÷ anIterator's step|;
+	cast (size - answered)→extended integer into [t : whole number | t]
+] : whole number;
+
 Semantic restriction "For each of⁇_do_" is
 [
 	iteratorType : counting integer iterator's type,
 	actionType : [⊥]→⊤'s type
 |
 	return ::= actionType's return type;
-	endSet ::= {⎣iteratorType's maximum⎦, ⎡iteratorType's maximum⎤};
+	endSet ::= {⎣iteratorType's end⎦, ⎡iteratorType's end⎤};
 	step ::= iteratorType's step;
 	elementType ::= iteratorType's element type's instance;
 	definitelyRuns ::=
-		if step ⊆ [0..∞) then
-		[
-			⎡elementType⎤ ≤ ⎣iteratorType's maximum⎦
-		]
+		if step ⊆ [0..∞) then [⎡elementType⎤ ≤ ⎣iteratorType's end⎦]
 		else
 		[
-			if step ⊆ (-∞..-1] then
-			[
-				⎣elementType⎦ ≥ ⎡iteratorType's maximum⎤
-			]
-			else
-			[
-				false
-			]
+			if step ⊆ (-∞..-1] then [⎣elementType⎦ ≥ ⎡iteratorType's end⎤]
+			else [false]
 		];
 	/* These are four circumstances which lead to non-termination:
 	 * 
@@ -149,10 +196,10 @@ Semantic restriction "For each of⁇_do_" is
  * consecutive values between {@param "start"} and {@param "end"}.
  *
  * @method "a counting iterator from_to_"
- * @param "start" "integer"
+ * @param "first" "integer"
  *        The start value, inclusive. This is the first value that will be
  *        answered by the iterator.
- * @param "end" "extended integer"
+ * @param "last" "extended integer"
  *        The end value, inclusive. This is the last value that will be
  *        answered by the iterator.
  * @returns "iterator of integer"
@@ -160,15 +207,17 @@ Semantic restriction "For each of⁇_do_" is
  */
 Public method "a counting iterator from_to_" is
 [
-	start : integer,
-	end : extended integer
+	first : integer,
+	last : extended integer
 |
 	a counting integer iterator with
-		element type ::= (start - 1..end + 1),
-		next := start,
+		element type ::= (first - 1..last + 1),
+		position type ::= (first - 1..last + 1),
+		next := first,
 		step ::= 1,
-		maximum ::= end
-] : iterator of integer;
+		start ::= first,
+		end ::= last
+] : counting integer iterator;
 
 Semantic restriction "a counting iterator from_to_" is
 [
@@ -178,8 +227,10 @@ Semantic restriction "a counting iterator from_to_" is
 	elementType ::= (⎣startType⎦ - 1..⎡endType⎤ + 1);
 	extend counting integer iterator with
 		element type : elementType's type,
+		position type : elementType's type,
 		step : 1's type,
-		maximum : endType
+		start : startType,
+		end : endType
 ];
 
 /**
@@ -197,10 +248,10 @@ Semantic restriction "a counting iterator from_to_" is
  * will be answered.
  *
  * @method "a counting iterator from_to_by_"
- * @param "start" "number"
+ * @param "first" "number"
  *        The start value, inclusive. This is the first value that will be
  *        answered by the iterator.
- * @param "end" "number"
+ * @param "last" "number"
  *        The end value, inclusive. If {@param "delta"} ≥ 0, then no values
  *        larger than this will be answered by the iterator. If {@param delta}
  *        < 0, then no values smaller than this will be answered by the
@@ -213,21 +264,23 @@ Semantic restriction "a counting iterator from_to_" is
  */
 Public method "a counting iterator from_to_by_" is
 [
-	start : number,
-	end : number,
+	first : number,
+	last : number,
 	delta : number
 |
-	elementType ::= cast start + delta into
+	elementType ::= cast first + delta into
 		[t : double | double],
 		[t : float | float],
 		[t : extended integer | extended integer]
 		else [number];
 	a counting number iterator with
 		element type ::= elementType,
-		next := start,
+		position type ::= elementType,
+		next := first,
 		step ::= delta,
-		maximum ::= end
-] : iterator of number;
+		start ::= first,
+		end ::= last
+] : counting number iterator;
 
 Semantic restriction "a counting iterator from_to_by_" is
 [
@@ -236,26 +289,19 @@ Semantic restriction "a counting iterator from_to_by_" is
 	deltaType : number's type
 |
 	elementType ::=
-		if startType ⊆ double ∨ [deltaType ⊆ double] then
-		[
-			double
-		]
-		else if [startType ⊆ float ∨ [endType ⊆ float]] then
-		[
-			float
-		]
-		else if [startType⊆extended integer ∧ [endType⊆extended integer]] then
-		[
-			extended integer
-		]
-		else
-		[
-			number
-		];
+		if startType ⊆ double ∨ [deltaType ⊆ double]
+			then [double]
+		else if [startType ⊆ float ∨ [endType ⊆ float]]
+			then [float]
+		else if [startType ⊆ extended integer ∧ [endType ⊆ extended integer]]
+			then [extended integer]
+		else [number];
 	extend counting number iterator with
 		element type : elementType's type,
+		position type : elementType's type,
 		step : deltaType,
-		maximum : endType
+		start : startType,
+		end : endType
 ];
 
 /**
@@ -273,10 +319,10 @@ Semantic restriction "a counting iterator from_to_by_" is
  * will be answered.
  *
  * @method "a counting iterator from_to_by_"
- * @param "start" "number"
+ * @param "first" "number"
  *        The start value, inclusive. This is the first value that will be
  *        answered by the iterator.
- * @param "end" "number"
+ * @param "last" "number"
  *        The end value, inclusive. If {@param "delta"} ≥ 0, then no values
  *        larger than this will be answered by the iterator. If {@param delta}
  *        < 0, then no values smaller than this will be answered by the
@@ -289,17 +335,19 @@ Semantic restriction "a counting iterator from_to_by_" is
  */
 Public method "a counting iterator from_to_by_" is
 [
-	start : integer,
-	end : number,
+	first : integer,
+	last : number,
 	delta : integer
 |
-	integralEnd ::= end→extended integer;
+	integralEnd ::= last→extended integer;
 	a counting integer iterator with
-		element type ::= (start - 1..integralEnd + 1),
-		next := start,
+		element type ::= (first - 1..integralEnd + 1),
+		position type ::= (first - 1..integralEnd + 1),
+		next := first,
 		step ::= delta,
-		maximum ::= integralEnd
-] : iterator of integer;
+		start ::= first,
+		end ::= integralEnd
+] : counting integer iterator;
 
 Semantic restriction "a counting iterator from_to_by_" is
 [
@@ -310,8 +358,10 @@ Semantic restriction "a counting iterator from_to_by_" is
 	elementType ::= (⎣startType⎦ - 1..⎡endType⎤ + 1);
 	extend counting integer iterator with
 		element type : elementType's type,
+		position type : elementType's type,
 		step : deltaType,
-		maximum : endType
+		start : startType,
+		end : endType
 ];
 
 "counting iterator test suite" is a new atom;
@@ -547,4 +597,56 @@ Test "counting iterator(Drop from_until_)" in counting iterator test suite is
 		Require: ref[(↑index++)] = element;
 	];
 	Require: (|ref| + 1) = index;
+];
+
+Test "counting iterator(size)" in counting iterator test suite is
+[
+	iter : sizable iterator := a counting iterator from 1 to 10;
+	Require: 10 = |iter|;
+	iter := a counting iterator from 3 to 16;
+	Require: 14 = |iter|;
+	iter := a counting iterator from 2 to 16 by 3;
+	Require: 5 = |iter|;
+	iter := a counting iterator from -5 to 25 by 5;
+	Require: 7 = |iter|;
+	iter := a counting iterator from -6.25 to 21.4 by 3.1;
+	Require: 9 = |iter|;
+];
+
+Test "counting iterator(position)" in counting iterator test suite is
+[
+	iter : sizable iterator of integer positioned by integer;
+	iter := a counting iterator from 1 to 10;
+	From 1 to 5 do
+	[
+		i : [1..5]
+	|
+		iter's current position := i;
+		Require: i to 5 = take 5 - i + 1 from iter;
+	];
+	iter := a counting iterator from 2 to 16 by 3;
+	From 2 to 16 by 3 do
+	[
+		i : [2..16]
+	|
+		iter's current position := i;
+		Require: i to 16 by 3 = take (16 - i + 3) ÷ 3 from iter;
+	];
+	iter's current position := 4;
+]
+must raise invalid-position exception;
+
+Test "counting iterator(remaining elements)" in counting iterator test suite is
+[
+	iter ::= a counting iterator from 2 to 10 by 3;
+	remaining : integer := |iter|;
+	For each iter do
+	[
+		element : [2..10]
+	|
+		Require: remaining = |iter's remaining elements|;
+		↑remaining--;
+	];
+	Require: iter is exhausted;
+	Require: remaining = |iter's remaining elements|;
 ];

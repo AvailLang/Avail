@@ -40,8 +40,6 @@ Extends
 	"Counting Iterators",
 	"Delimited Iterators",
 	"Generators",
-	"Grammar",
-	"Positionable Iterators",
-	"Sizable Iterators",
+	"Sizable Positionable Iterators",
 	"Stream Iterators"
 Body

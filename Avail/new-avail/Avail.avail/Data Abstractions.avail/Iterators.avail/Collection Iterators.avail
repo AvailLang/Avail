@@ -36,18 +36,15 @@ Versions
 Uses
 	"Abstract Iterators",
 	"Foundation",
-	"Grammar",
-	"Positionable Iterators",
-	"Sizable Iterators",
+	"Sizable Positionable Iterators",
 	"Unit Testing"
 Names
 	"an iterator over_",
 	"tuple iterator test suite"
 Body
 
-/* TODO: [TLS] Remove these constants once a macro is available for "$…". */
-collection ::= $collection;
-index ::= $index;
+"collection" is a new field atom;
+"index" is a new field atom;
 
 /**
  * A tuple iterator operates over the elements of a tuple. It is finite by
@@ -102,7 +99,7 @@ Method "_'s⁇current position:=_" is
 		Raise an invalid-position exception
 	];
 	anIterator's index := position;
-];
+] : ⊤;
 
 Method "`|_`|" is
 [
@@ -117,6 +114,13 @@ Semantic restriction "`|_`|" is
 |
 	||iteratorType's collection||
 ];
+
+Method "`|_'s⁇remaining elements`|" is
+[
+	anIterator : tuple iterator
+|
+	(|anIterator's collection| - anIterator's index + 1) max 0
+] : whole number;
 
 /**
  * Construct and answer an {@type "iterator"} that produces all elements of the
@@ -137,7 +141,7 @@ Public method "an iterator over_" is
 		position type ::= [1..|aTuple|],
 		collection ::= aTuple,
 		index := 1
-] : iterator;
+] : tuple iterator;
 
 Semantic restriction "an iterator over_" is
 [
@@ -171,7 +175,7 @@ Public method "an iterator over_" is
 		position type ::= [1..|aSet|],
 		collection ::= aSet→tuple,
 		index := 1
-] : iterator;
+] : tuple iterator;
 
 Semantic restriction "an iterator over_" is
 [
@@ -204,7 +208,7 @@ Public method "an iterator over_" is
 		position type ::= [1..|aMap|],
 		collection ::= aMap's bindings,
 		index := 1
-] : iterator;
+] : tuple iterator;
 
 Semantic restriction "an iterator over_" is
 [
@@ -479,3 +483,18 @@ Test "tuple iterator(position)" in tuple iterator test suite is
 	iter's current position := 50;
 ]
 must raise invalid-position exception;
+
+Test "tuple iterator(remaining elements)" in tuple iterator test suite is
+[
+	iter ::= an iterator over 1 to 10;
+	remaining : integer := |iter|;
+	For each iter do
+	[
+		element : [1..10]
+	|
+		Require: remaining = |iter's remaining elements|;
+		↑remaining--;
+	];
+	Require: iter is exhausted;
+	Require: remaining = |iter's remaining elements|;
+];
