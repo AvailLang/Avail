@@ -37,9 +37,11 @@ Uses
 	"Bootstrap",
 	"Early Control Structures",
 	"Early Definers",
-	"Early Literals"
+	"Early Enumeration Support",
+	"Early Literals",
+	"Early Logic"
 Names
-	"_is a|an new⁇field⁇atom",
+	"«Public»?_is a|an new⁇field⁇atom",
 	"_[_]else_"
 Body
 
@@ -110,11 +112,52 @@ Method "_[_]else_" is
  * @param "atomName" "string"
  *        The name by which this atom is known locally.
  */
-Public method "_is a|an new⁇field⁇atom" is
+Public method "«Public»?_is a|an new⁇field⁇atom" is
 [
+	isPublic : boolean,
 	atomName : string
 |
 	theAtom ::= atom for atomName;
 	Method atomName is [theAtom];
 	Semantic restriction atomName is [theAtom's type];
 ] : ⊤;
+
+Semantic restriction "«Public»?_is a|an new⁇field⁇atom" is
+[
+	publicType : boolean's type,
+	nameType : string's type
+|
+	public ::= cast publicType's instance into [t : boolean | t];
+	If public ∧ [|nameType| ≠ 1] then
+	[
+		Reject parse, expected:
+			"public modifier to be provided only when the atom name \
+			\|is statically known"
+	];
+	publicNames ::= current module's public names;
+	If |nameType| = 1 then
+	[
+		name ::= cast nameType's instance into [t : string | t];
+		If |message name's parameters| ≠ 0 then
+		[
+			t : tuple := concatenate <
+				"\"",
+				name,
+				"\" not to specify any parameters">;
+			s : string;
+			↓↑s ?= t;
+			Reject parse, expected: s
+		];
+		If public ∧ [¬name ∈ publicNames] then
+		[
+			t : tuple := concatenate <
+				"\"",
+				name,
+				"\" to be included in the module's \"Names\" section">;
+			s : string;
+			↓↑s ?= t;
+			Reject parse, expected: s
+		];
+	];
+	⊤
+];

@@ -53,10 +53,10 @@ Names
 	/* Formatting. */
 	"format_with unchecked_",
 	"format_with_",
-	"format_with«…:=_‡,»",
+	"format_with«…::=_‡,»",
 	"format_with«_‡,»",
 	"partially format_with_",
-	"partially format_with«…:=_‡,»",
+	"partially format_with«…::=_‡,»",
 
 	/* English language. */
 	"(A`|An)“_”«else_»",
@@ -481,13 +481,13 @@ Private method "format variable for_" is
  * 
  *    Assert:
  *        (partially format "‘greeting’, ‘recipient’!\n"
- *            with greeting := "Hello")
+ *            with greeting ::= "Hello")
  *        = "Hello, “recipient”!\n";
  *    Assert:
  *        (partially format
  *            (partially format "‘greeting’, ‘recipient’!\n"
- *                with greeting := "Hello")
- *            with recipient := "world")
+ *                with greeting ::= "Hello")
+ *            with recipient ::= "world")
  *        = "Hello, world!\n";
  *
  * The semantic restriction ensures that every lexically specified binding
@@ -500,7 +500,7 @@ Private method "format variable for_" is
  *    The result of partially formatting the template usings the specified
  *    bindings.
  */
-Public method "partially format_with«…:=_‡,»" is
+Public method "partially format_with«…::=_‡,»" is
 [
 	template : string,
 	bindings : <<token, any…|2>…|1..>
@@ -519,7 +519,7 @@ Public method "partially format_with«…:=_‡,»" is
  * references a valid format variable and 2) each format variable that uses
  * the $text interpolation mode is actually bound to a string.
  */
-Semantic restriction "partially format_with«…:=_‡,»" is
+Semantic restriction "partially format_with«…::=_‡,»" is
 [
 	templateType : string's type,
 	bindings : <<token, any…|2>…|1..>'s type
@@ -584,7 +584,7 @@ Semantic restriction "partially format_with«…:=_‡,»" is
  * 
  *    Assert:
  *        (format "‘greeting’, ‘recipient’!\n"
- *            with "greeting" := "Hello", "recipient" := "world")
+ *            with "greeting" ::= "Hello", "recipient" ::= "world")
  *        = "Hello, world!\n";
  *
  * Parameters:
@@ -593,7 +593,7 @@ Semantic restriction "partially format_with«…:=_‡,»" is
  * Returns:
  *    The result of formatting the template usings the specified bindings.
  */
-Public method "format_with«…:=_‡,»" is
+Public method "format_with«…::=_‡,»" is
 [
 	template : string,
 	bindings : <<token, any…|2>…|1..>
@@ -613,7 +613,7 @@ Public method "format_with«…:=_‡,»" is
  * 3) each format variable that uses the $text interpolation mode is actually
  * bound to a string.
  */
-Semantic restriction "format_with«…:=_‡,»" is
+Semantic restriction "format_with«…::=_‡,»" is
 [
 	templateType : string's type,
 	bindings : <<token, any…|2>…|1..>'s type

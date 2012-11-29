@@ -80,9 +80,9 @@ bounded stream's tail method is
 	aStream : extend bounded stream with remaining elements : natural number
 |
 	a bounded stream with
-		element type := aStream's element type,
-		decorated stream := aStream's decorated stream's tail,
-		remaining elements := aStream's remaining elements - 1
+		element type ::= aStream's element type,
+		decorated stream ::= aStream's decorated stream's tail,
+		remaining elements ::= aStream's remaining elements - 1
 ] : bounded stream;
 
 /**
@@ -106,9 +106,9 @@ Public stable method "_limited to_elements" is
 	else
 	[
 		a bounded stream with
-			element type := aStream's element type,
-			decorated stream := aStream,
-			remaining elements := cast limit into [t : natural number | t]
+			element type ::= aStream's element type,
+			decorated stream ::= aStream,
+			remaining elements ::= cast limit into [t : natural number | t]
 	]
 ] : stream;
 

@@ -50,7 +50,7 @@ Method "_·_" is
 		into [t : {atom→1's type|1} | base unit]
 		else [derived unit];
 	scaleFactor ::= x's scale factor + y's scale factor;
-	a unitType ∩ SI unit with unit map := unitMap, scale factor := scaleFactor
+	a unitType ∩ SI unit with unit map ::= unitMap, scale factor ::= scaleFactor
 ] : SI unit;
 
 Method "_/_" is
@@ -63,7 +63,7 @@ Method "_/_" is
 		into [t : {atom→1's type|1} | base unit]
 		else [derived unit];
 	scaleFactor ::= x's scale factor - y's scale factor;
-	a unitType ∩ SI unit with unit map := unitMap, scale factor := scaleFactor
+	a unitType ∩ SI unit with unit map ::= unitMap, scale factor ::= scaleFactor
 ] : SI unit;
 
 Method unit exponentiation atom is
@@ -76,5 +76,5 @@ Method unit exponentiation atom is
 		into [t : {atom→1's type|1} | base unit]
 		else [derived unit];
 	scaleFactor ::= theUnit's scale factor × theExponent;
-	a unitType ∩ SI unit with unit map := unitMap, scale factor := scaleFactor
+	a unitType ∩ SI unit with unit map ::= unitMap, scale factor ::= scaleFactor
 ] : SI unit;

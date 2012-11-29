@@ -58,9 +58,10 @@ maximum ::= $maximum;
 Class "counting number iterator" extends iterator
 	with fields
 		element type : number's type,
-		next : ↑number,
 		step : number,
-		maximum : number;
+		maximum : number
+	with mutable fields
+		next : number;
 
 /**
  * An counting integer iterator is an immutable lazy list of arbitrarily many
@@ -81,11 +82,11 @@ Method "_is exhausted" is
 |
 	if anIterator's step ≥ 0 then
 	[
-		↓anIterator's next > anIterator's maximum
+		anIterator's next > anIterator's maximum
 	]
 	else
 	[
-		↓anIterator's next < anIterator's maximum
+		anIterator's next < anIterator's maximum
 	]
 ] : boolean;
 
@@ -93,14 +94,14 @@ counting number iterator's current element method is
 [
 	anIterator : counting number iterator
 |
-	↓anIterator's next
+	anIterator's next
 ] : number;
 
 counting number iterator's advance method is
 [
 	anIterator : counting number iterator
 |
-	↓anIterator's next ?= ↓anIterator's next + anIterator's step;
+	anIterator's next := anIterator's next + anIterator's step;
 ] : ⊤;
 
 Semantic restriction "For each of⁇_do_" is
@@ -136,17 +137,11 @@ Semantic restriction "For each of⁇_do_" is
 	 * 4. The action is definitely invoked and it never terminates.
 	 */
 	if step ⊆ [0..0]
-		∨ [ (step ⊆ [0..∞) ∧ [ endSet = {∞} ])
-		∨ [ (step ⊆ (-∞..-1] ∧ [ endSet = {-∞} ])
-		∨ [ definitelyRuns ∧ [ return = ⊥ ] ] ] ]
-	then
-	[
-		⊥
-	]
-	else
-	[
-		⊤
-	]
+		∨ [(step ⊆ [0..∞) ∧ [endSet = {∞}])
+		∨ [(step ⊆ (-∞..-1] ∧ [endSet = {-∞}])
+		∨ [definitelyRuns ∧ [return = ⊥]]]]
+	then [⊥]
+	else [⊤]
 ];
 
 /**
@@ -169,10 +164,10 @@ Public method "a counting iterator from_to_" is
 	end : extended integer
 |
 	a counting integer iterator with
-		element type := (start - 1..end + 1),
-		next := cast (↓new ↑number := start) into [t : ↑number | t],
-		step := 1,
-		maximum := end
+		element type ::= (start - 1..end + 1),
+		next := start,
+		step ::= 1,
+		maximum ::= end
 ] : iterator of integer;
 
 Semantic restriction "a counting iterator from_to_" is
@@ -223,15 +218,15 @@ Public method "a counting iterator from_to_by_" is
 	delta : number
 |
 	elementType ::= cast start + delta into
-		[ t : double | double ],
-		[ t : float | float ],
-		[ t : extended integer | extended integer ]
-		else [ number];
+		[t : double | double],
+		[t : float | float],
+		[t : extended integer | extended integer]
+		else [number];
 	a counting number iterator with
-		element type := elementType,
-		next := cast (↓new ↑number := start) into [t : ↑number | t],
-		step := delta,
-		maximum := end
+		element type ::= elementType,
+		next := start,
+		step ::= delta,
+		maximum ::= end
 ] : iterator of number;
 
 Semantic restriction "a counting iterator from_to_by_" is
@@ -300,10 +295,10 @@ Public method "a counting iterator from_to_by_" is
 |
 	integralEnd ::= end→extended integer;
 	a counting integer iterator with
-		element type := (start - 1..integralEnd + 1),
-		next := cast (↓new ↑number := start) into [t : ↑number | t],
-		step := delta,
-		maximum := integralEnd
+		element type ::= (start - 1..integralEnd + 1),
+		next := start,
+		step ::= delta,
+		maximum ::= integralEnd
 ] : iterator of integer;
 
 Semantic restriction "a counting iterator from_to_by_" is
@@ -319,10 +314,7 @@ Semantic restriction "a counting iterator from_to_by_" is
 		maximum : endType
 ];
 
-/* TODO: [TLS] Remove these constants once a macro is available for "$…". */
-_testSuite ::= $"counting iterator test suite";
-Public method "counting iterator test suite" is [ _testSuite ];
-
+"counting iterator test suite" is a new atom;
 New test suite counting iterator test suite extends iterators test suite;
 
 Test "counting iterator basics" in counting iterator test suite is

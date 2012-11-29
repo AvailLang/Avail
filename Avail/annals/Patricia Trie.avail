@@ -134,8 +134,8 @@ Public method "a patricia trie" is
 	t : boolean := false;
 
 	a patricia trie with
-		terminus := ↑t,
-		next nodes := ↑m
+		terminus ::= ↑t,
+		next nodes ::= ↑m
 ]:patricia trie;
 
 /**

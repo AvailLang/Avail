@@ -43,16 +43,10 @@ Names
 	"generator test suite"
 Body
 
-/* TODO: [TLS] Remove these constants once a macro is available for "$…". */
-_currentValue ::= $"current value";
-_clientState ::= $"client state";
-_executionState ::= $"execution state";
-_resuming ::= $resuming;
-
-Private method "current value" is [_currentValue];
-Private method "client state" is [_clientState];
-Private method "execution state" is [_executionState];
-Private method "resuming" is [_resuming];
+"current value" is a new field atom;
+"client state" is a new field atom;
+"execution state" is a new field atom;
+"resuming" is a new field atom;
 
 /**
  * A generator iteratively applies a supplied function to produce values. This
@@ -65,24 +59,24 @@ Private method "resuming" is [_resuming];
  * @supertype "iterator"
  */
 Class "generator" extends iterator
-	with fields
-		current value : ↑any,
-		client state : ↑$[any]→⊤,
-		execution state : ↑continuation,
-		resuming : ↑boolean;
+	with mutable fields
+		current value : any,
+		client state : $[any]→⊤,
+		referable execution state : continuation,
+		resuming : boolean;
 
 Method "_is exhausted" is
 [
 	aGenerator : generator
 |
-	aGenerator's execution state is unassigned
+	↑aGenerator's execution state is unassigned
 ] : boolean;
 
 generator's current element method is
 [
 	aGenerator : generator
 |
-	↓aGenerator's current value
+	aGenerator's current value
 ] : any;
 
 generator's advance method is
@@ -103,8 +97,8 @@ generator's advance method is
 		cast arg into [e : exception | Raise e]
 		else
 		[
-			↓aGenerator's client state ?= body;
-			Restart ↓aGenerator's execution state
+			aGenerator's client state := body;
+			Restart aGenerator's execution state
 		]
 	] : ⊤ (false);
 ] : ⊤;
@@ -212,12 +206,12 @@ Public method "generator for_" is
 		]();
 	/* Construct the generator. */
 	theGenerator ::= a generator with
-		element type :=
+		element type ::=
 			cast generatorFunction's type[1] into [t : [⊥]→⊤'s type | t[1]],
-		current value := ↑value,
-		client state := ↑caller,
-		execution state := ↑state,
-		resuming := ↑resume;
+		current value ::= ↑value,
+		client state ::= ↑caller,
+		execution state ::= ↑state,
+		resuming ::= ↑resume;
 	/* Set the generator up prior to its first real usage. */
 	go := true;
 	Advance theGenerator;
@@ -238,10 +232,7 @@ Semantic restriction "generator for_" is
 		]
 ];
 
-/* TODO: [TLS] Remove these constants once a macro is available for "$…". */
-_testSuite ::= $"generator test suite";
-Public method "generator test suite" is [_testSuite];
-
+"generator test suite" is a new atom;
 New test suite generator test suite extends iterators test suite;
 
 Test "generator basics" in generator test suite is

@@ -255,22 +255,22 @@ Method "tokenize_" is
 		if cb[1] ≠ ¢@ then
 		[
 		 	 a generic stacks token with
-				lexeme := cb,
-				line := ↓scanner's line number,
-				position := ↓scanner's token start
+				lexeme ::= cb,
+				line ::= ↓scanner's line number,
+				position ::= ↓scanner's token start
 		] else
 		[
 			an erroneous stacks token with
-				lexeme := cb,
-				line := ↓scanner's line number,
-				position := ↓scanner's token start
+				lexeme ::= cb,
+				line ::= ↓scanner's line number,
+				position ::= ↓scanner's token start
 		]
 	] else
 	[
 		a special stacks token with
-			lexeme := cb,
-			line := ↓scanner's line number,
-			position := ↓scanner's token start
+			lexeme ::= cb,
+			line ::= ↓scanner's line number,
+			position ::= ↓scanner's token start
 	]
 ] : stacks token;
 

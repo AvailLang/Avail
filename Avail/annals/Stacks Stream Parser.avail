@@ -284,10 +284,10 @@ Private method "split stacks tuple_" is
  	 	generalKey ::= if ¬(tokens[1]'s isSpecial) then
  	 	[
  	 	 	a stacks token with
-				lexeme := "@general",
-				line := tokens[1]'s line,
-				position := 0,
-				isSpecial := true
+				lexeme ::= "@general",
+				line ::= tokens[1]'s line,
+				position ::= 0,
+				isSpecial ::= true
 		] else [tokens[1]];
 		generalComment := generalComment ++ take from tokens until 
  	 	[

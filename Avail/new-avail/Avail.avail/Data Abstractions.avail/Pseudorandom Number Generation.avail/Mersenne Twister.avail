@@ -140,8 +140,8 @@ Mersenne Twister's tail method is
 		then [ next state after rng's mt]
 		else [ rng's mt ];
 	rng's
-		mt := vector,
-		index := nextIndex
+		mt ::= vector,
+		index ::= nextIndex
 ] : Mersenne Twister;
 
 /**
@@ -168,9 +168,9 @@ Private method "untwisted Mersenne Twister from_" is
 		vector := eject ↑vector ++ <value mod _2_32>;
 	];
 	a Mersenne Twister with
-		element type := [0.._2_32),
-		mt := cast vector into [t : <[0.._2_32)…|624> | t],
-		index := 1
+		element type ::= [0.._2_32),
+		mt ::= cast vector into [t : <[0.._2_32)…|624> | t],
+		index ::= 1
 ];
 
 Private method "a Mersenne Twister stream from_" is
@@ -178,7 +178,7 @@ Private method "a Mersenne Twister stream from_" is
 	seed : [0.._2_32)
 |
 	rng ::= untwisted Mersenne Twister from seed;
-	rng's mt := next state after rng's mt, index := 1
+	rng's mt ::= next state after rng's mt, index ::= 1
 ] : Mersenne Twister;
 
 /**
@@ -237,7 +237,7 @@ Private method "a Mersenne Twister stream from_" is
 		];
 	] 623 times;
 	vector := vector[1]→_2_31;
-	rng's mt := next state after vector, index := 1
+	rng's mt ::= next state after vector, index ::= 1
 ] : Mersenne Twister;
 
 /**

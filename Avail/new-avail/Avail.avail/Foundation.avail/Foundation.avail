@@ -43,7 +43,7 @@ Extends
 	),
 	"Atoms" =
 	(
-		"_is a|an new⁇field⁇atom",
+		"«Public»?_is a|an new⁇field⁇atom",
 		"_[_]else_"
 	),
 	"Backtracking" =
@@ -594,13 +594,14 @@ Extends
 	),
 	"Objects" =
 	(
-		"a|an_«with«_:=_‡,»»",
+		"a|an_«with«_«:»?:=_‡,»»",
 		"extend_with«_:_‡,»",
 		"«Public»?«Explicit|explicit»?\
 			\|Class|class_extends_\
-			\|«with field|fields««public»?«reconstructible»?_:_‡,»»\
+			\|«with immutable⁇field|fields««public»?«reconstructible»?_:_‡,»»\
+			\|«with mutable field|fields««public»?«shared»?«referable»?«read-only»?_:_‡,»»\
 			\|«with reconstructor|reconstructors««public»?(«_‡,»)‡,»»",
-		"_as_«with«_:=_‡,»»"
+		"_as_«with«_::=_‡,»»"
 	),
 	"Phrases" =
 	(
@@ -629,10 +630,10 @@ Extends
 	(
 		"format_with unchecked_",
 		"format_with_",
-		"format_with«…:=_‡,»",
+		"format_with«…::=_‡,»",
 		"format_with«_‡,»",
 		"partially format_with_",
-		"partially format_with«…:=_‡,»",
+		"partially format_with«…::=_‡,»",
 		"(A`|An)“_”«else_»",
 		"(The)“_”«else_»",
 		"(a`|an)“_”«else_»",

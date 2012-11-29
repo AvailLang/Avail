@@ -40,9 +40,8 @@ Names
 	"a stream over_"
 Body
 
-/* TODO: [TLS] Remove these constants once a macro is available for "$…". */
-collection ::= $collection;
-index ::= $index;
+"collection" is a new field atom;
+"index" is a new field atom;
 
 /**
  * A tuple stream operates over the elements of a tuple. It is finite by
@@ -77,8 +76,8 @@ tuple stream's tail method is
 	nextIndex ::= aStream's index + 1;
 	theTuple ::= aStream's collection;
 	aStream's
-		element type := ∪ theTuple's type[nextIndex..|theTuple|],
-		index := nextIndex
+		element type ::= ∪ theTuple's type[nextIndex..|theTuple|],
+		index ::= nextIndex
 ] : tuple stream;
 
 /**
@@ -95,9 +94,9 @@ Public stable method "a stream over_" is
 	aTuple : <any…|>
 |
 	a tuple stream with
-		element type := ∪ aTuple's type[1..|aTuple|],
-		collection := aTuple,
-		index := 1
+		element type ::= ∪ aTuple's type[1..|aTuple|],
+		collection ::= aTuple,
+		index ::= 1
 ] : stream;
 
 Semantic restriction "a stream over_" is
@@ -126,9 +125,9 @@ Public method "a stream over_" is
 	aSet : {any|}
 |
 	a tuple stream with
-		element type := aSet's type's element type,
-		collection := aSet→tuple,
-		index := 1
+		element type ::= aSet's type's element type,
+		collection ::= aSet→tuple,
+		index ::= 1
 ] : stream;
 
 Semantic restriction "a stream over_" is
@@ -156,9 +155,9 @@ Public method "a stream over_" is
 	aMap : {any→any|}
 |
 	a tuple stream with
-		element type := <aMap's type's key type, aMap's type's value type…|2>,
-		collection := aMap's bindings,
-		index := 1
+		element type ::= <aMap's type's key type, aMap's type's value type…|2>,
+		collection ::= aMap's bindings,
+		index ::= 1
 ] : stream;
 
 Semantic restriction "a stream over_" is

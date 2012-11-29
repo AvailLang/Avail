@@ -48,43 +48,34 @@ Names
 	"stream iterator test suite"
 Body
 
-/* TODO: [TLS] Remove these constants once a macro is available for "$…". */
-adaptedStream ::= $"adapted stream";
-
-/**
- * Answer the field atom that represents an adapted stream.
- *
- * Returns:
- *    The requested field atom.
- */
-Private method "adapted stream" is [ adaptedStream ];
+"adapted stream" is a new field atom;
 
 /**
  * A stream iterator consumes the elements of a stream.
  */
 Public class "stream iterator" extends iterator
-	with fields
-		adapted stream : ↑stream;
+	with mutable field
+		adapted stream : stream;
 
 Method "_is exhausted" is
 [
 	anIterator : stream iterator
 |
-	↓anIterator's adapted stream is empty
+	anIterator's adapted stream is empty
 ] : boolean;
 
 stream iterator's current element method is
 [
 	anIterator : stream iterator
 |
-	↓anIterator's adapted stream's head
+	anIterator's adapted stream's head
 ] : any;
 
 stream iterator's advance method is
 [
 	anIterator : stream iterator
 |
-	↓anIterator's adapted stream ?= ↓anIterator's adapted stream's tail;
+	anIterator's adapted stream := anIterator's adapted stream's tail;
 ] : ⊤;
 
 /**
@@ -100,10 +91,9 @@ Public method "an iterator over_" is
 [
 	aStream : stream
 |
-	var ::= cast (↓new ↑stream := aStream) into [t : ↑stream | t];
 	a stream iterator with
-		element type := aStream's element type,
-		adapted stream := var
+		element type ::= aStream's element type,
+		adapted stream := aStream
 ] : iterator;
 
 Semantic restriction "an iterator over_" is
@@ -114,10 +104,7 @@ Semantic restriction "an iterator over_" is
 		element type : streamType's element type
 ];
 
-/* TODO: [TLS] Remove these constants once a macro is available for "$…". */
-_testSuite ::= $"stream iterator test suite";
-Public method "stream iterator test suite" is [ _testSuite ];
-
+"stream iterator test suite" is a new atom;
 New test suite stream iterator test suite extends iterators test suite;
 
 Test "stream iterator basics" in stream iterator test suite is

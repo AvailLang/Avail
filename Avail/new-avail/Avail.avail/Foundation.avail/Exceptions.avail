@@ -1005,8 +1005,8 @@ Set early failure function to
 		("no exception class for " ++ “errorCode”);
 	exceptionType ::= exceptionsByCode[errorCode];
 	Raise an exceptionType with
-		error code := errorCode,
-		error name := exceptionType's error name's instance
+		error code ::= errorCode,
+		error name ::= exceptionType's error name's instance
 ] : ⊥;
 
 Private method "“_”(stack summary)" is
@@ -1047,7 +1047,7 @@ current fiber's unhandled exception handler is
 			then ["unhandled exception [“ex”]:\n"]
 			else ["“ex”:\n"];
 		firstTime := false;
-		Error: format spec with ex := e;
+		Error: format spec with ex ::= e;
 		Error: “e's stack summary” (stack summary);
 		Cast e into
 		[

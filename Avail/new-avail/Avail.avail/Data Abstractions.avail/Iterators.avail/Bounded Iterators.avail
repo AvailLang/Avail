@@ -43,10 +43,7 @@ Names
 	"_limited to_elements"
 Body
 
-/* TODO: [TLS] Remove these constants once a macro is available for "$…". */
-_remainingElements ::= $"remaining elements";
-
-Private method "remaining elements" is [ _remainingElements ];
+"remaining elements" is a new field atom;
 
 /**
  * A bounded iterator artificially limits the number of elements that its
@@ -57,14 +54,15 @@ Private method "remaining elements" is [ _remainingElements ];
  */
 Class "bounded iterator" extends iterator
 	with fields
-		decorated iterator : iterator,
-		remaining elements : ↑whole number;
+		decorated iterator : iterator
+	with mutable fields
+		referable remaining elements : whole number;
 
 Method "_is exhausted" is
 [
 	anIterator : bounded iterator
 |
-	↓anIterator's remaining elements = 0
+	anIterator's remaining elements = 0
 		∨ [anIterator's decorated iterator is exhausted]
 ] : boolean;
 
@@ -80,7 +78,7 @@ bounded iterator's advance method is
 	anIterator : bounded iterator
 |
 	Advance anIterator's decorated iterator;
-	anIterator's remaining elements--;
+	↑anIterator's remaining elements--;
 ] : ⊤;
 
 /**
@@ -101,16 +99,17 @@ Public stable method "_limited to_elements" is
 	anIterator : iterator,
 	limit : [0..∞]
 |
-	if limit = ∞ then [ anIterator ]
-	else if [ limit = 0 ] then [ an exhausted iterator ]
-	else
-	[
-		a bounded iterator with
-			element type := anIterator's element type,
-			decorated iterator := anIterator,
-			remaining elements := cast (↓new ↑whole number ?= limit)
-				into [t : ↑whole number | t]
-	]
+	cast limit into
+		[t : ∞'s type | anIterator],
+		[t : 0's type | an exhausted iterator],
+		[
+			t : whole number
+		|
+			a bounded iterator with
+				element type ::= anIterator's element type,
+				decorated iterator ::= anIterator,
+				remaining elements := t
+		]
 ] : iterator;
 
 Semantic restriction "_limited to_elements" is
@@ -118,8 +117,8 @@ Semantic restriction "_limited to_elements" is
 	iteratorType : iterator's type,
 	limit : [0..∞]'s type
 |
-	if ⎣limit⎦ = ∞ then [ iteratorType ]
-	else if [ ⎡limit⎤ = 0 ] then [ exhausted iterator ]
+	if ⎣limit⎦ = ∞ then [iteratorType]
+	else if [⎡limit⎤ = 0] then [exhausted iterator]
 	else
 	[
 		extend bounded iterator with
@@ -128,10 +127,7 @@ Semantic restriction "_limited to_elements" is
 	]
 ];
 
-/* TODO: [TLS] Remove these constants once a macro is available for "$…". */
-_testSuite ::= $"bounded iterator test suite";
-Public method "bounded iterator test suite" is [ _testSuite ];
-
+"bounded iterator test suite" is a new atom;
 New test suite bounded iterator test suite extends iterators test suite;
 
 Test "bounded iterator basics" in bounded iterator test suite is

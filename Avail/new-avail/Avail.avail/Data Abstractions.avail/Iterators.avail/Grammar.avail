@@ -1,5 +1,5 @@
 /*
- * Iterators.avail
+ * Grammar.avail
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -30,18 +30,16 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Iterators"
+System Module "Grammar"
 Versions
 	"dev"
-Extends
-	"Abstract Iterators",
-	"Bounded Iterators",
-	"Collection Iterators",
-	"Counting Iterators",
-	"Delimited Iterators",
-	"Generators",
-	"Grammar",
+Uses
+	"Foundation",
 	"Positionable Iterators",
-	"Sizable Iterators",
-	"Stream Iterators"
+	"Sizable Iterators"
 Body
+
+/* Give "sizable_" higher precedence than "_positioned by_". The operations are
+ * commutative, so we could have broken the ambiguity either way.
+ */
+Grammatical restriction "sizable_" is <{"_positioned by_"}>;

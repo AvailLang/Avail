@@ -34,6 +34,7 @@ System Module "Objects"
 Versions
 	"dev"
 Uses
+	"Atoms",
 	"Bootstrap",
 	"Control Structures",
 	"Definers",
@@ -48,30 +49,21 @@ Uses
 	"Phrases",
 	"Sets",
 	"Tuples",
-	"Types"
+	"Types",
+	"Variables"
 Names
-	"a|an_«with«_:=_‡,»»",
+	"a|an_«with«_«:»?:=_‡,»»",
 	"extend_with«_:_‡,»",
 	"«Public»?«Explicit|explicit»?\
 		\|Class|class_extends_\
-		\|«with field|fields««public»?«reconstructible»?_:_‡,»»\
+		\|«with immutable⁇field|fields««public»?«reconstructible»?_:_‡,»»\
+		\|«with mutable field|fields««public»?«shared»?«referable»?«read-only»?_:_‡,»»\
 		\|«with reconstructor|reconstructors««public»?(«_‡,»)‡,»»",
-	"_as_«with«_:=_‡,»»"
+	"_as_«with«_::=_‡,»»"
 Body
 
 Method "_→object type" is stable at [field type map]→object meta;
 
-/**
- * Strengthen object type construction. If the enumeration of keys is known,
- * then it is possible to strengthen the object metatype (to one whose keys are
- * drawn from the enumeration and which has the map's value type as the type of
- * each field type).
- * 
- * Parameters:
- *    mapType -
- * Returns:
- *    The strongest possible object metatype for the given argument types.
- */
 Semantic restriction "_→object type" is
 [
 	mapType : field type map's type
@@ -285,17 +277,19 @@ Semantic restriction "_→tuple" is
 /**
  * Construct and answer an object type which is a subtype of `supertype`
  * augmented by the specified tuple of field definitions.
- * 
- * Parameters:
- *    supertype - An object type that must be a supertype of the answer.
- *    newDefinitions - A tuple of 2-tuples. Each 2-tuple consists of 1) an atom
- *       that uniquely identifies the field and 2) the field type, i.e., the
- *       type of value that instances of the answer may store in the field. If
- *       the field atom is defined by `supertype`, then the new field type must
- *       be a subtype of the field type as defined in `supertype`, i.e., it must
- *       be covariantly specialized.
- * Returns:
- *    The requested object type.
+ *
+ * @method "extend_with«_:_‡,»"
+ * @param "supertype" "object's type"
+ *   An object type that must be a supertype of the answer.
+ * @param "newDefinitions" "<<atom, any meta…|2>…|1..>"
+ *   A tuple of 2-tuples. Each 2-tuple consists of 1) an atom that uniquely
+ *   identifies the field and 2) the field type, i.e., the type of value that
+ *   instances of the answer may store in the field. If the field atom is
+ *   defined by {@param "supertype"}, then the new field type must be a subtype
+ *   of the field type as defined in {@param "supertype"}, i.e., it must be
+ *   covariantly specialized.
+ * @returns "object's type"
+ *   The requested object type.
  */
 Public method "extend_with«_:_‡,»" is
 [
@@ -325,11 +319,9 @@ Public method "extend_with«_:_‡,»" is
  *   or 2) specifies a type which covaries with the field type expressed in the
  *   supertype.
  *
- * Parameters:
- *    meta - The supertype's type.
- *    newDefinitionTypes - A lexical tuple type.
- * Return:
- *    The strongest possible object metatype for the given argument types.
+ * @method "extend_with«_:_‡,»"
+ * @restricts "object's type's type"
+ * @restricts "<<atom, any meta…|2>…|1..>'s type"
  */
 Semantic restriction "extend_with«_:_‡,»" is
 [
@@ -379,10 +371,11 @@ Semantic restriction "extend_with«_:_‡,»" is
 
 /**
  * Compute and answer the accessor name for the specified field atom.
- * 
- * Parameters:
- *    fieldAtom - A field atom.
- * Returns:
+ *
+ * @method "accessor name for_"
+ * @param "fieldAtom" "atom"
+ *    A field atom.
+ * @returns "string"
  *    The name of the accessor.
  */
 Private method "accessor name for_" is
@@ -390,20 +383,111 @@ Private method "accessor name for_" is
 	fieldAtom : atom
 |
 	"_'s⁇" ++ fieldAtom's name
-] : <character…|4..>;
+];
+
+/* These methods are needed for reconstructor synthesis. */
+toMapM ::= method for $"_→map";
+ejectM ::= method for $"eject_";
+addBindingM ::= method for $"_+_→_";
+toObjectM ::= method for $"_→object";
+toObjectTypeM ::= method for $"_→object type";
+mapAtM ::= method for $"_[_]";
+getM ::= method for $"↓_";
+readTypeM ::= method for $"_'s⁇read type";
+putM ::= method for $"↓_`?=_";
+
+/**
+ * Generate the field accessor method for the specified field declaration.
+ *
+ * @method "generate_field accessor for_:_(mutable=_)"
+ * @param "objectType" "object's type"
+ * @param "fieldAtom" "atom"
+ * @param "fieldType" "any's type"
+ * @param "mutable" "boolean"
+ *    {@method "true"} if the field is mutable, {@method "false"} otherwise.
+ */
+Private method "generate_field accessor for_:_(mutable=_)" is
+[
+	objectType : object meta,
+	fieldAtom : atom,
+	fieldType : any meta,
+	mutable : boolean
+|
+	args ::= <arg «`"x"` : objectType»>;
+	toMapMSend ::= send toMapM with «<«↓args[1]»>» : field map;
+	mapAtSend ::= send mapAtM
+		with «<toMapMSend, ‘`fieldAtom`’>» : fieldType;
+	resultType ::=
+		unless mutable then [fieldType]
+		else
+		[
+			varType ::= cast fieldType into [t : variable's type | t];
+			varType's read type
+		];
+	last ::=
+		unless mutable then [mapAtSend]
+		else
+		[
+			getSend ::= send getM with «<mapAtSend>» : resultType;
+			getSend
+		];
+	newBlock ::= «[args | <last>] : resultType»;
+	generate newBlock
+];
+
+/**
+ * Generate the field accessor semantic restriction for the specified field
+ * declaration.
+ *
+ * @method "generate field accessor restriction for_:_(mutable=_)"
+ * @param "objectType" "object's type"
+ * @param "fieldAtom" "atom"
+ * @param "fieldType" "any's type"
+ * @param "mutable" "boolean"
+ *    {@method "true"} if the field is mutable, {@method "false"} otherwise.
+ */
+Private method "generate_field accessor restriction for_:_(mutable=_)" is
+[
+	objectType : object meta,
+	fieldAtom : atom,
+	fieldType : any meta,
+	mutable : boolean
+|
+	args ::= <arg «`"x"` : objectType's type»>;
+	toMapMSend ::= send toMapM with «<«↓args[1]»>» : field map;
+	mapAtSend ::= send mapAtM
+		with «<toMapMSend, ‘`fieldAtom`’>» : fieldType's type;
+	resultType ::=
+		unless mutable then [fieldType's type]
+		else
+		[
+			varType ::= cast fieldType into [t : variable meta | t];
+			varType's read type's type
+		];
+	last ::=
+		unless mutable then [mapAtSend]
+		else [send readTypeM with «<mapAtSend>» : resultType];
+	newBlock ::= «[args | <last>] : resultType»;
+	generate newBlock
+];
 
 /**
  * Generate and install field type and field value accessors for the specified
  * object type and field atom. Generate and install a semantic restriction for
  * the field value accessor.
- * 
- * Parameters:
- *    objectType - An object type.
- *    fieldAtom - A field atom.
+ *
+ * @method "Generate and install_accessor for_"
+ * @param "objectType" "object's type"
+ *    An object type.
+ * @param "isMutable" "boolean"
+ *    {@method "true"} if the field is mutable, {@method "false"} otherwise.
+ * @param "fieldAtom" "atom"
+ *    A field atom.
  */
-Private method "generate and install_accessor for_" is
+Private method "Generate and install_accessor for«mutable»?_" is
 [
 	objectType : object meta,
+	isMutable : boolean,
 	fieldAtom : atom
 |
 	objectMap ::= objectType→map;
@@ -435,7 +519,7 @@ Private method "generate and install_accessor for_" is
 	[
 		Method methodName is
 			new [objectType's type]→(fieldType's type)
-			applying [ x : object meta | x→map[fieldAtom] ];
+			applying [x : object meta | x→map[fieldAtom]];
 		/* Install a semantic restriction if one does not already exist for this
 		 * signature.
 		 */
@@ -443,7 +527,7 @@ Private method "generate and install_accessor for_" is
 		restrictions ::= semantic restrictions for theMethod
 			given <objectType's type's type>;
 		needToRestrict ::= ¬any of restrictions satisfies
-			[ r : […]→type | r's type[1] = (objectType's type's type) ];
+			[r : […]→type | r's type[1] = (objectType's type's type)];
 		If needToRestrict then
 		[
 			Semantic restriction methodName is
@@ -458,9 +542,9 @@ Private method "generate and install_accessor for_" is
 	];
 	If defineInstanceAccessor then
 	[
-		Method methodName is
-			new [objectType]→fieldType
-			applying [ x : object | x→map[fieldAtom] ];
+		impl ::= generate objectType field accessor
+			for fieldAtom : fieldType (mutable = isMutable);
+		Method methodName is impl;
 		/* Install a semantic restriction if one does not already exist for this
 		 * signature.
 		 */
@@ -468,13 +552,134 @@ Private method "generate and install_accessor for_" is
 		restrictions ::=
 			semantic restrictions for theMethod given <objectType's type>;
 		needToRestrict ::= ¬any of restrictions satisfies
-			[ r : […]→type | r's type[1] = (objectType's type) ];
+			[r : […]→type | r's type[1] = (objectType's type)];
 		If needToRestrict then
 		[
-			Semantic restriction methodName is
-				new [objectType's type]→any meta
-				applying [ x : object meta | x→map[fieldAtom] ];
+			sem ::= generate objectType field accessor restriction
+				for fieldAtom : fieldType (mutable = isMutable);
+			Semantic restriction methodName is sem;
 		];
+	];
+] : ⊤;
+
+/**
+ * Compute and answer the referer name for the specified field atom.
+ *
+ * @method "referer name for_"
+ * @param "fieldAtom" "atom"
+ *    A field atom.
+ * @returns "string"
+ *    The name of the accessor.
+ */
+Private method "referer name for_" is
+[
+	fieldAtom : atom
+|
+	"↑" ++ accessor name for fieldAtom
+];
+
+/**
+ * Generate and install the field referer for the specified object type and
+ * mutable field atom.
+ *
+ * @method "Generate and install_referer for_"
+ * @param "objectType" "object's type"
+ * @param "fieldAtom" "atom"
+ */
+Private method "Generate and install_referer for mutable_" is
+[
+	objectType : object meta,
+	fieldAtom : atom
+|
+	objectMap ::= objectType→map;
+	methodName ::= referer name for fieldAtom;
+	methodAtom ::= atom for methodName;
+	fieldType ::= objectMap[fieldAtom];
+	defineReferer : boolean :=
+		if ¬method exists named methodAtom then
+		[
+			/* If the method doesn't exist at all, then define it and install a
+			 * referer.
+			 */
+			true
+		]
+		else
+		[
+			/* If the method does already exist, then install a referer for the
+			 * object type iff one is not already present.
+			 */
+			theMethod ::= method for methodAtom;
+			¬theMethod has definition for <objectType>
+		];
+	If defineReferer then
+	[
+		impl ::= generate objectType field accessor
+			for fieldAtom : fieldType (mutable = false);
+		Method methodName is impl;
+	];
+] : ⊤;
+
+/**
+ * Compute and answer the mutator name for the specified field atom.
+ *
+ * @method "mutator name for_"
+ * @param "fieldAtom" "atom"
+ *    A field atom.
+ * @returns "string"
+ *    The name of the mutator.
+ */
+Private method "mutator name for_" is
+[
+	fieldAtom : atom
+|
+	"_'s⁇" ++ fieldAtom's name ++ ":=_"
+];
+
+/**
+ * Generate and install the mutator for the specified object type and mutable
+ * field atom.
+ *
+ * @method "Generate and install_mutator for_"
+ * @param "objectType" "object's type"
+ * @param "fieldAtom" "atom"
+ */
+Private method "Generate and install_mutator for mutable_" is
+[
+	objectType : object meta,
+	fieldAtom : atom
+|
+	objectMap ::= objectType→map;
+	methodName ::= mutator name for fieldAtom;
+	methodAtom ::= atom for methodName;
+	fieldType ::= objectMap[fieldAtom];
+	defineMutator : boolean :=
+		if ¬method exists named methodAtom then
+		[
+			/* If the method doesn't exist at all, then define it and install a
+			 * referer.
+			 */
+			true
+		]
+		else
+		[
+			/* If the method does already exist, then install a referer for the
+			 * object type iff one is not already present.
+			 */
+			theMethod ::= method for methodAtom;
+			¬theMethod has definition for <objectType>
+		];
+	If defineMutator then
+	[
+		varType ::= cast fieldType into [t : variable's type | t];
+		readType ::= cast varType's read type into [t : any's type | t];
+		args ::= <arg «`"x"` : objectType», arg «`"v"` : readType»>;
+		toMapMSend ::= send toMapM with «<«↓args[1]»>» : field map;
+		mapAtSend ::= send mapAtM
+			with «<toMapMSend, ‘`fieldAtom`’>» : varType;
+		putSend ::= send putM with «<mapAtSend, «↓args[2]»>» : ⊤;
+		newBlock ::= «[args | <putSend>] : ⊤»;
+		impl ::= generate newBlock;
+		Method methodName is impl;
 	];
 ] : ⊤;
 
@@ -482,36 +687,40 @@ Private method "generate and install_accessor for_" is
  * Construct and answer the name of the object reconstructor method from the
  * specified tuple of field atoms.
  * 
- * Parameters:
- *    fieldAtoms - The atoms of the fields migrated by the reconstructor.
- * Returns:
+ * @method "reconstructor name for_"
+ * @param "fieldAtoms" "<atom…|1..>"
+ *    The atoms of the fields migrated by the reconstructor.
+ * @returns "string"
  *    The appropriate method name.
  */
 Private method "reconstructor name for_" is
 [
 	fieldAtoms : <atom…|1..>
 |
-	methodName : <character…|7..> := accessor name for fieldAtoms[1] ++ ":=_";
+	methodName : <character…|8..> := accessor name for fieldAtoms[1] ++ "::=_";
 	For each fieldAtoms' tail do
 	[
 		fieldAtom : atom
 	|
-		methodName := eject ↑methodName ++ "," ++ fieldAtom's name ++ ":=_";
+		methodName := eject ↑methodName ++ "," ++ fieldAtom's name ++ "::=_";
 	];
 	methodName
-] : <character…|7..>;
+];
 
 /**
  * Construct and answer a tuple of argument declarations for an object
  * reconstructor method (or its semantic restriction).
- * 
- * Parameters:
- *    objectType - The object type.
- *    fieldAtoms - The atoms of the fields migrated by the reconstructor.
- *    forSemanticRestriction - `true` if the argument declarations should be
- *       generated for the semantic restriction, `false` if they should be
- *       generated for the method.
- * Returns:
+ *
+ * @method "_reconstructor arguments for_«(for semantic restriction)»?"
+ * @param "objectType" "object's type"
+ *    The object type.
+ * @param "fieldAtoms" "<atom…|1..>"
+ *    The atoms of the fields migrated by the reconstructor.
+ * @param "forSemanticRestriction" "boolean"
+ *    {@method "true"} if the argument declarations should be generated for the
+ *    semantic restriction, {@method "false"} if they should be generated for
+ *    the method.
+ * @returns "<argument phrase…|2..>"
  *    The requested argument declarations. The first declaration is for the
  *    object type (or metatype) and the remaining correspond to the field atoms.
  */
@@ -521,7 +730,7 @@ Private method "_reconstructor arguments for_«(for semantic restriction)»?" is
 	fieldAtoms : <atom…|1..>,
 	forRestriction : boolean
 |
-	meta ::= if forRestriction then [ objectType's type ] else [ objectType ];
+	meta ::= if forRestriction then [objectType's type] else [objectType];
 	objectMap ::= objectType→map;
 	<arg «`"target"` : meta»> ++ map fieldAtoms through
 	[
@@ -530,37 +739,34 @@ Private method "_reconstructor arguments for_«(for semantic restriction)»?" is
 	|
 		desc ::= “index”;
 		argType ::= if forRestriction
-			then [ objectMap[fieldAtom]'s type ]
-			else [ objectMap[fieldAtom] ];
+			then [objectMap[fieldAtom]'s type]
+			else [objectMap[fieldAtom]];
 		arg «`"arg" ++ desc` : argType»
 	]
 ] : <argument phrase…|2..>;
 
-/* These methods are needed for reconstructor synthesis. */
-toMapM ::= method for $"_→map";
-ejectM ::= method for $"eject_";
-addBindingM ::= method for $"_+_→_";
-toObjectM ::= method for $"_→object";
-toObjectTypeM ::= method for $"_→object type";
+/* This atom marks field atoms as sharable across reconstructions. */
+"shared" is a new atom;
 
 /**
  * Generate and install a reconstructor for the specified object type and tuple
  * of field atoms.
- * 
- * Parameters:
- *    objectType - An object type.
- *    fieldAtoms - A field atoms.
+ *
+ * @method "Generate and install_reconstructor for_"
+ * @param "objectType" "object's type"
+ * @param "fieldAtoms" "<atom…|1..>"
  */
-Private method "generate and install_reconstructor for_" is
+Private method "Generate and install_reconstructor for_" is
 [
 	objectType : object meta,
 	fieldAtoms : <atom…|1..>
 |
 	methodName ::= reconstructor name for fieldAtoms;
 	args ::= objectType reconstructor arguments for fieldAtoms;
-	/* Construct the body of the mutator method. */
+	/* Emit code to convert the object to a map. */
 	toMapMSend ::= send toMapM with «<«↓args[1]»>» : field map;
 	mapDecl ::= «`"objectMap"` : field map := toMapMSend»;
+	/* Emit code to migrate the target fields to their new values. */
 	assignments ::= map fieldAtoms through
 		[
 			fieldAtom : atom,
@@ -572,8 +778,35 @@ Private method "generate and install_reconstructor for_" is
 				: field map;
 			««↓mapDecl» := addBindingSend»
 		];
+	/* Emit code to clone any mutable fields that are not explicitly being
+	 * shared.
+	 */
+	cloning : <phrase…|> := <>;
+	For each objectType→map do
+	[
+		fieldAtom : atom,
+		fieldType : any meta
+	|
+		If ¬shared ∈ fieldAtom ∧ [fieldType ⊆ variable] then
+		[
+			varType ::= cast fieldType into [t : variable meta | t];
+			readType ::= cast varType's read type into [t : any meta | t];
+			mapAtSend ::= send mapAtM
+				with «<«↓mapDecl», ‘`fieldAtom`’>» : varType;
+			getSend ::= send getM with «<mapAtSend>» : readType;
+			decl ::= «`fieldAtom's name` : readType := getSend»;
+			ejectSend ::= send ejectM with «<«↑«↓mapDecl»»>» : field map;
+			addBindingSend ::= send addBindingM
+				with «<ejectSend, ‘`fieldAtom`’, «↑«↓decl»»>»
+				: field map;
+			assignment ::= ««↓mapDecl» := addBindingSend»;
+			cloning := eject ↑cloning ++ <decl, assignment>;
+		];
+	];
+	/* Convert the map back to an object. */
 	last ::= send toObjectM with «<«↓mapDecl»>» : objectType;
-	statements ::= <mapDecl> ++ assignments ++ <last>;
+	/* Build and install the implementation. */
+	statements ::= <mapDecl> ++ assignments ++ cloning ++ <last>;
 	newBlock ::= «[ args | statements ] : objectType»;
 	reconstructorFunction ::= generate newBlock;
 	Method methodName is reconstructorFunction;
@@ -582,13 +815,15 @@ Private method "generate and install_reconstructor for_" is
 /**
  * Generate and install a semantic restriction for the reconstructor for the
  * specified object type and tuple of field atoms.
- * 
- * Parameters:
- *    objectType - An object type.
- *    fieldAtoms - A field atoms.
+ *
+ * @method "Generate and install_reconstructor's semantic restriction for_"
+ * @param "objectType" "object's type"
+ *    An object type.
+ * @param "fieldAtoms" "<atom…|1..>"
+ *    A field atoms.
  */
 Private method
-	"generate and install_reconstructor's semantic restriction for_"
+	"Generate and install_reconstructor's semantic restriction for_"
 is
 [
 	objectType : object meta,
@@ -624,27 +859,50 @@ is
  * methods that provide access to instance field values. A class is essentially
  * only a lexical construct, and is analogous to the distinction between blocks
  * (lexical) and functions (semantic).
- * 
- * Parameters:
- *    public - `true` if the class should be exported by the defining module,
- *       `false` otherwise.
- *    explicit - `true` if the class should have an artificial identity
- *       introduced (in order to ensure intentional provenance of subtypes),
- *       `false` otherwise.
- *    className - The name of the class. A method will be generated with this
- *       name. This method will answer the object type. The object type will
- *       also be christened with this name.
- *    supertype - The supertype of the class. Type intersection may be used here
- *       to facilitate inheritance from multiple sources.
- *    optionalExtensions - The extension fields of this class. An accessor will
- *       be generated for each field. A reconstructor will be generated for each
- *       field tagged as "reconstructible". Each field tagged as "public" must
- *       be exported by the defining module.
+ *
+ * @method "«Public»?«Explicit|explicit»?\
+ *   \|Class|class_extends_\
+ *   \|«with immutable⁇field|fields««public»?«reconstructible»?_:_‡,»»\
+ *   \|«with mutable field|fields««public»?«shared»?«referable»?«read-only»?_:_‡,»»\
+ *   \|«with reconstructor|reconstructors««public»?(«_‡,»)‡,»»"
+ * @param "public" "boolean"
+ *    {@method "true"} if the class should be exported by the defining module,
+ *    {@method "false"} otherwise.
+ * @param "explicit" "boolean"
+ *    {@method "true"} if the class should have an artificial identity
+ *    introduced (in order to ensure intentional provenance of subtypes),
+ *    {@method "false"} otherwise.
+ * @param "className" "nonempty string"
+ *    The name of the class. A method will be generated with this name. This
+ *    method will answer the object type. The object type will also be
+ *    christened with this name.
+ * @param "supertype" "object's type"
+ *    The supertype of the class. Type intersection may be used here to
+ *    facilitate inheritance from multiple sources.
+ * @param "optionalImmutable"
+ *        "<<<boolean, boolean, atom, any meta…|4>…|1..>…|0..1>"
+ *    The extension fields of this class. An accessor will be generated for each
+ *    field. A reconstructor will be generated for each field tagged as
+ *    {@code reconstructible}. Each field tagged as {@code public} must be
+ *    exported by the defining module.
+ * @param "optionalMutable"
+ *        "<<<boolean, boolean, boolean, atom, any meta…|5>…|1..>…|0..1>"
+ *    The mutable fields of this class. An accessor will be generated for each
+ *    field. A referer will be generated for each field tagged as
+ *    {@code referable}. A mutator will be generated for each field not tagged
+ *    as {@code read-only}. Each field tagged as {@code public} must have its
+ *    accessor, referer, and mutator exported by the defining module.
+ * @param "optionalReconstructors"
+ *        "<<<boolean, <atom…|1..>…|2>…|1..>…|0..1>"
+ *    The reconstructors of this class. A reconstructor will be generated for
+ *    each specification tuple. Each reconstructor tagged as {@code public} must
+ *    be exported by the defining module.
  */
 Public method
 	"«Public»?«Explicit|explicit»?\
 	\|Class|class_extends_\
-	\|«with field|fields««public»?«reconstructible»?_:_‡,»»\
+	\|«with immutable⁇field|fields««public»?«reconstructible»?_:_‡,»»\
+	\|«with mutable field|fields««public»?«shared»?«referable»?«read-only»?_:_‡,»»\
 	\|«with reconstructor|reconstructors««public»?(«_‡,»)‡,»»"
 is
 [
@@ -652,20 +910,41 @@ is
 	explicit : boolean,
 	className : nonempty string,
 	supertype : object meta,
-	optionalExtensions : <<<boolean, boolean, atom, any meta…|4>…|1..>…|0..1>,
+	optionalImmutable : <<<boolean, boolean, atom, any meta…|4>…|1..>…|0..1>,
+	optionalMutable :
+		<<<boolean, boolean, boolean, boolean, atom, any meta…|6>…|1..>…|0..1>,
 	optionalReconstructors : <<<boolean, <atom…|1..>…|2>…|1..>…|0..1>
 |
-	/* Extract the extensions. */
-	extensions : <<boolean, boolean, atom, any meta…|4>…|> := <>;
 	newDefinitions : <<atom, any meta…|2>…|> := <>;
-	Unless optionalExtensions is empty then
+	/* Extract the immutable extensions. */
+	immutable : <<boolean, boolean, atom, any meta…|4>…|> := <>;
+	immutableAtoms : <atom…|> := <>;
+	Unless optionalImmutable is empty then
 	[
-		extensions := optionalExtensions[1];
-		newDefinitions := map extensions through
+		immutable := optionalImmutable[1];
+		newDefinitions := map immutable through
 			[
 				fieldTuple : <boolean, boolean, atom, any meta…|4>
 			|
-				fieldTuple[3..4]
+				fieldAtom ::= fieldTuple[3];
+				immutableAtoms := eject ↑immutableAtoms ++ <fieldAtom>;
+				<fieldAtom, fieldTuple[4]>
+			];
+	];
+	/* Extract the mutable fields. */
+	mutable : <<boolean, boolean, boolean, boolean, atom, any meta…|6>…|> := <>;
+	mutableAtoms : <atom…|> := <>;
+	Unless optionalMutable is empty then
+	[
+		mutable := optionalMutable[1];
+		newDefinitions := eject ↑newDefinitions ++ map mutable through
+			[
+				fieldTuple :
+					<boolean, boolean, boolean, boolean, atom, any meta…|6>
+			|
+				fieldAtom ::= fieldTuple[5];
+				mutableAtoms := eject ↑mutableAtoms ++ <fieldAtom>;
+				<fieldAtom, ↑fieldTuple[6]>
 			];
 	];
 	/* Verify the uniqueness of the field atoms. */
@@ -695,15 +974,37 @@ is
 	 * definitions and values.
 	 */
 	subtype's name := className;
-	Method className is new []→(subtype's type) applying [ subtype ];
-	For each fieldAtoms do
+	Method className is new []→(subtype's type) applying [subtype];
+	For each immutableAtoms do
 	[
 		fieldAtom : atom
 	|
-		generate and install subtype accessor for fieldAtom;
+		Generate and install subtype accessor for fieldAtom;
+	];
+	For each mutable do
+	[
+		fieldTuple : <boolean, boolean, boolean, boolean, atom, any meta…|6>
+	|
+		isShared ::= fieldTuple[2];
+		referable ::= fieldTuple[3];
+		readOnly ::= fieldTuple[4];
+		fieldAtom ::= fieldTuple[5];
+		/* The shared flag must be set on the field atom *before* any
+		 * reconstructors are generated!
+		 */
+		If isShared then [fieldAtom[shared] := true;];
+		Generate and install subtype accessor for mutable fieldAtom;
+		If referable then
+		[
+			Generate and install subtype referer for mutable fieldAtom;
+		];
+		Unless readOnly then
+		[
+			Generate and install subtype mutator for mutable fieldAtom;
+		];
 	];
 	/* Determine which reconstructors to create. */
-	reconstructors : <<atom…|1..>…|> := map and filter extensions by
+	reconstructors : <<atom…|1..>…|> := map and filter immutable by
 		[
 			triple : <boolean, boolean, atom, any meta…|4>,
 			accept : [<atom…|1..>]→⊤
@@ -728,8 +1029,8 @@ is
 	[
 		atoms : <atom…|1..>
 	|
-		generate and install subtype reconstructor for atoms;
-		generate and install subtype reconstructor's semantic restriction
+		Generate and install subtype reconstructor for atoms;
+		Generate and install subtype reconstructor's semantic restriction
 			for atoms;
 	];
 ] : ⊤;
@@ -742,11 +1043,26 @@ is
  * - Each field atom of the extension is either 1) not present in the supertype
  *   or 2) specifies a type which covaries with the field type expressed in the
  *   supertype.
+ *
+ * @method "«Public»?«Explicit|explicit»?\
+ *   \|Class|class_extends_\
+ *   \|«with immutable⁇field|fields««public»?«reconstructible»?_:_‡,»»\
+ *   \|«with mutable field|fields««public»?«shared»?«referable»?«read-only»?_:_‡,»»\
+ *   \|«with reconstructor|reconstructors««public»?(«_‡,»)‡,»»"
+ * @restricts "boolean's type"
+ * @restricts "boolean's type"
+ * @restricts "nonempty string's type"
+ * @restricts "object's type"
+ * @restricts "<<<boolean, boolean, atom, any meta…|4>…|1..>…|0..1>'s type"
+ * @restricts
+ *    "<<<boolean, boolean, boolean, boolean, atom, any meta…|6>…|1..>…|0..1>'s type"
+ * @restricts "<<<boolean, <atom…|1..>…|2>…|1..>…|0..1>'s type"
  */
 Semantic restriction
 	"«Public»?«Explicit|explicit»?\
 	\|Class|class_extends_\
-	\|«with field|fields««public»?«reconstructible»?_:_‡,»»\
+	\|«with immutable⁇field|fields««public»?«reconstructible»?_:_‡,»»\
+	\|«with mutable field|fields««public»?«shared»?«referable»?«read-only»?_:_‡,»»\
 	\|«with reconstructor|reconstructors««public»?(«_‡,»)‡,»»"
 is
 [
@@ -754,8 +1070,10 @@ is
 	explicit : boolean's type,
 	classNameType : nonempty string's type,
 	meta : object meta's type,
-	optionalExtensions :
+	optionalImmutable :
 		<<<boolean, boolean, atom, any meta…|4>…|1..>…|0..1>'s type,
+	optionalMutable :
+		<<<boolean, boolean, boolean, boolean, atom, any meta…|6>…|1..>…|0..1>'s type,
 	optionalReconstructors : <<<boolean, <atom…|1..>…|2>…|1..>…|0..1>'s type
 |
 	public ::= publicType's instance;
@@ -780,11 +1098,11 @@ is
 	supertype ::= meta's instance;
 	oldDefinitions ::= supertype→map;
 	newDefinitions : field type map := {};
-	From 1 to relevant |optionalExtensions[1]| do
+	From 1 to relevant |optionalImmutable[1]| do
 	[
 		index : natural number
 	|
-		def ::= optionalExtensions[1][index];
+		def ::= optionalImmutable[1][index];
 		publicField ::= def[1]'s instance;
 		reconstructible ::= def[2]'s instance;
 		atomType ::= def[3];
@@ -815,7 +1133,7 @@ is
 			];
 			If reconstructible then
 			[
-				reconstructorName ::= accessorName ++ ":=_";
+				reconstructorName ::= reconstructor name for <fieldAtom>;
 				If ¬reconstructorName ∈ publicNames then
 				[
 					Reject parse, expected:
@@ -835,7 +1153,7 @@ is
 				++ “newDefinitions[fieldAtom]”
 				++ ")"
 		];
-		oldType ::= oldDefinitions[fieldAtom] else [ any ];
+		oldType ::= oldDefinitions[fieldAtom] else [any];
 		If ¬newType ⊆ oldType then
 		[
 			Reject parse, expected:
@@ -844,6 +1162,88 @@ is
 				++ " (but new field type "
 				++ “newType”
 				++ " is not a subtype of "
+				++ “oldType”
+				++ ")"
+		];
+		newDefinitions := eject ↑newDefinitions + fieldAtom→newType;
+	];
+	From 1 to relevant |optionalMutable[1]| do
+	[
+		index : natural number
+	|
+		def ::= optionalMutable[1][index];
+		publicField ::= def[1]'s instance;
+		referable ::= def[3]'s instance;
+		readOnly ::= def[4]'s instance;
+		atomType ::= def[5];
+		newType ::= def[6]'s instance;
+		If |atomType| ≠ 1 then
+		[
+			Reject parse, expected:
+				"all field atoms to be known statically"
+		];
+		fieldAtom ::= atomType's instance;
+		accessorName ::= accessor name for fieldAtom;
+		If publicField then
+		[
+			If ¬public then
+			[
+				Reject parse, expected:
+					"\""
+					++ accessorName
+					++ " to be private (because the class is private)"
+			];
+			If ¬accessorName ∈ publicNames then
+			[
+				Reject parse, expected:
+					"\""
+					++ accessorName
+					++ "\" to be included in the module's \"Names\" section\
+					\| (because it is public)"
+			];
+			If referable then
+			[
+				refererName ::= referer name for fieldAtom;
+				If ¬refererName ∈ publicNames then
+				[
+					Reject parse, expected:
+						"\""
+						++ refererName
+						++ "\" to be included in the module's \"Names\"\
+							\| section (because it is public)"
+				];
+			];
+			Unless readOnly then
+			[
+				mutatorName ::= mutator name for fieldAtom;
+				If ¬mutatorName ∈ publicNames then
+				[
+					Reject parse, expected:
+						"\""
+						++ mutatorName
+						++ "\" to be included in the module's \"Names\"\
+							\| section (because it is public)"
+				];
+			];
+		];
+		If fieldAtom ∈ newDefinitions then
+		[
+			Reject parse, expected:
+				fieldAtom's name
+				++ " to appear only once during extension (but it already\
+				\| appeared with type = "
+				++ “newDefinitions[fieldAtom]”
+				++ ")"
+		];
+		oldType ::= oldDefinitions[fieldAtom] else [newType];
+		Unless newType = oldType then
+		[
+			Reject parse, expected:
+				"equivalent specification of "
+				++ fieldAtom's name
+				++ " (but new field type "
+				++ “newType”
+				++ " is not equivalent to "
 				++ “oldType”
 				++ ")"
 		];
@@ -896,42 +1296,112 @@ is
 /**
  * Construct and answer an object which is an instance of `objectType` and whose
  * field values are determined by `optional`.
- * 
- * Parameters:
- *    objectType - An object type that must be a supertype of the answer.
- *    optional - A tuple of field assignments. The outermost tuple may be empty
- *       (but only to support the case that `objectType = object`), but usually
- *       contains a single tuple of field assignments. A field assignment is a
- *       2-tuple that consists of 1) an atom that uniquely identifies the field
- *       and 2) the field value.
- * Returns:
+ *
+ * @method "a|an_«with«_::=_‡,»»"
+ * @param "objectType" "object's type"
+ *    An object type that must be a supertype of the answer.
+ * @param "optional" "<<<atom, boolean, any…|3>…|1..>…|0..1>"
+ *    A tuple of field assignments. The outermost tuple may be empty (but only
+ *    to support the case that {@code objectType = object}), but usually
+ *    contains a single tuple of field assignments. A field assignment is a
+ *    3-tuple that consists of 1) an atom that uniquely identifies the field,
+ *    2) a boolean that is {@method "true"} if the field is mutable and a
+ *    variable should be created and initialized, and 3) the field value.
+ * @returns "object"
  *    The requested object type.
  */
-Public method "a|an_«with«_:=_‡,»»" is
+Public method "a|an_«with«_«:»?:=_‡,»»" is
 [
 	objectType : object meta,
-	optional : <<<atom, any…|2>…|1..>…|0..1>
+	optional : <<<atom, boolean, any…|3>…|1..>…|0..1>
 |
-	assignments ::= if optional is empty then [ <> ] else [ optional[1] ];
-	fieldAtoms ::= stripe assignments at 1;
-	If |fieldAtoms→set| ≠ |fieldAtoms| then
-	[
-		early failure function(object-instantiation-contains-duplicates code)
-	];
 	objectMap ::= objectType→map;
-	identityAssignments : <<atom, any…|2>…|> := <>;
+	defs ::= optional[1] else [<>];
+	fieldAtoms : {atom|} := ∅;
+	/* Process each field definition, ensuring its uniqueness. Create
+	 * appropriately typed variables whenever assignment forms are encountered.
+	 */
+	assignments ::=
+		map defs through
+		[
+			def : <atom, boolean, any…|3>
+		|
+			fieldAtom ::= def[1];
+			If fieldAtom ∈ fieldAtoms then
+			[
+				early failure function(
+					object-instantiation-contains-duplicates code)
+			];
+			fieldAtoms := eject ↑fieldAtoms + fieldAtom;
+			/* If the assignment form (:=) was used, then create a new variable
+			 * and initialize it with the specified value.
+			 */
+			value ::= def[3];
+			/* Construct the field assignment. */
+			<fieldAtom,
+				if ¬def[2] then
+				[
+					/* The semantic restriction ensures that this will not fail
+					 * at runtime.
+					 */
+					cast objectMap[fieldAtom] into
+					[
+						varType : variable meta
+					|
+						readType ::= cast varType's read type
+							into [t : any meta | t];
+						var ::= new ↑readType;
+						↓var ?= value;
+						var
+					]
+				]
+				else
+				[
+					value
+				]>
+		];
+	/* Synthesize assignments whenever appropriate and necessary, taking care
+	 * not to override any user assignments.
+	 */
+	syntheticAssignments : field tuple := <>;
 	For each objectMap do
 	[
 		fieldAtom : atom,
 		fieldType : any meta
 	|
-		If |fieldType| = 1 ∧ [ ¬fieldType ⊆ type ] then
+		/* Don't override the user's assignments. */
+		If ¬fieldAtom ∈ fieldAtoms then
 		[
-			identityAssignments := eject ↑identityAssignments
-				++ <<fieldAtom, fieldType's instance>>;
+			/* Any field whose type is an instance type on a nontype may have
+			 * its value synthesized.
+			 */
+			If |fieldType| = 1 ∧ [fieldType ⊆ nontype] then
+			[
+				syntheticAssignments := eject ↑syntheticAssignments
+					++ <<fieldAtom, fieldType's instance>>;
+			]
+			else
+			[
+				/* Create any variables not explicitly assigned by the user. */
+				Cast fieldType into
+				[
+					varType : variable meta
+				|
+					readType ::= cast varType's read type
+						into [t : any meta | t];
+					var ::= new ↑readType;
+					syntheticAssignments := eject ↑syntheticAssignments
+						++ <<fieldAtom, var>>;
+				]
+				else
+				[
+					/* Do nothing. */
+				];
+			];
 		];
 	];
-	newObject ::= (assignments ++ identityAssignments)→object;
+	/* Instantiate the object and certify its type. */
+	newObject ::= (assignments ++ syntheticAssignments)→object;
 	If ¬newObject ∈ objectType then
 	[
 		early failure function(
@@ -949,11 +1419,15 @@ Public method "a|an_«with«_:=_‡,»»" is
  * - An assigned value conforms to the field type.
  * - An assignment occurs for every field of the object type except those for
  *   which the exact types are known; these will be supplied automatically.
+ *
+ * @method "a|an_«with«_::=_‡,»»"
+ * @restricts "object's type's type"
+ * @restricts "<<<atom, boolean, any…|3>…|1..>…|0..1>'s type"
  */
-Semantic restriction "a|an_«with«_:=_‡,»»" is
+Semantic restriction "a|an_«with«_«:»?:=_‡,»»" is
 [
 	meta : object meta's type,
-	optional : <<<atom, any…|2>…|1..>…|0..1>'s type
+	optional : <<<atom, boolean, any…|3>…|1..>…|0..1>'s type
 |
 	objectType ::= meta's instance;
 	definitions ::= objectType→map;
@@ -964,7 +1438,8 @@ Semantic restriction "a|an_«with«_:=_‡,»»" is
 	|
 		def ::= optional[1][index];
 		atomType ::= def[1];
-		valueType ::= def[2];
+		assign ::= ¬def[2]'s instance;
+		valueType ::= def[3];
 		If |atomType| ≠ 1 then
 		[
 			Reject parse, expected: "all field atoms to be known statically"
@@ -979,7 +1454,36 @@ Semantic restriction "a|an_«with«_:=_‡,»»" is
 				++ “assignments[fieldAtom]”
 				++ ")"
 		];
-		requiredType ::= definitions[fieldAtom] else [ any ];
+		requiredType ::=
+			if assign then
+			[
+				fieldType ::= definitions[fieldAtom] else
+					[
+						Reject parse, expected:
+							"mutable field assignment not to introduce \
+							\|target field "
+							++ fieldAtom's name
+							++ " (but it is not present in the object type)"
+					];
+				cast fieldType into
+				[
+					varType : variable meta
+				|
+					cast varType's read type into [t : any meta | t]
+				]
+				else
+				[
+					Reject parse, expected:
+						"mutable field assignment to target a mutable field \
+						\|(but "
+						++ fieldAtom's name
+						++ " is not a mutable field)"
+				]
+			]
+			else
+			[
+				definitions[fieldAtom] else [any]
+			];
 		If ¬valueType ⊆ requiredType then
 		[
 			Reject parse, expected:
@@ -998,16 +1502,20 @@ Semantic restriction "a|an_«with«_:=_‡,»»" is
 		fieldAtom : atom,
 		fieldType : any meta
 	|
-		If |fieldType| = 1 ∧ [ ¬fieldType ⊆ type ] then
+		If |fieldType| = 1 ∧ [¬fieldType ⊆ type] then
+		[
+			assignments := eject ↑assignments + fieldAtom→fieldType;
+		]
+		else if [fieldType ⊆ variable] then
 		[
 			assignments := eject ↑assignments + fieldAtom→fieldType;
 		];
 	];
-	missing ::= filter definitions' keys by [ a : atom | ¬a ∈ assignments ];
+	missing ::= filter definitions' keys by [a : atom | ¬a ∈ assignments];
 	If |missing| ≠ 0 then
 	[
 		Reject parse, expected:
-			"assignments for all fields of "
+			"assignments for all immutable fields of "
 			++ “objectType”
 			++ " (but assignments are missing for "
 			++ “missing”
@@ -1020,23 +1528,26 @@ Semantic restriction "a|an_«with«_:=_‡,»»" is
  * Given an object and a target object type, answer an object that retains the
  * field assignments of the original object but which 1) is also an instance of
  * the new object type and 2) reflects the new (optional) field assignments.
- * 
- * Parameters:
- *    instance - An object.
- *    objectType - An object type that must be a supertype of the answer.
- *    optional - An optional tuple of field assignments. A field assignment is
- *       a 2-tuple that consists of 1) an atom that uniquely identifies the
- *       field and 2) the field value.
- * Returns:
+ *
+ * @method "_as_«with«_::=_‡,»»"
+ * @param "instance" "object"
+ *    An object.
+ * @param "objectType" "object's type"
+ *    An object type that must be a supertype of the answer.
+ * @param "optional" "<<<atom, any…|2>…|1..>…|0..1>"
+ *    An optional tuple of field assignments. A field assignment is a 2-tuple
+ *    that consists of 1) an atom that uniquely identifies the field and 2) the
+ *    field value.
+ * @returns "object"
  *    The requested object type.
  */
-Public method "_as_«with«_:=_‡,»»" is
+Public method "_as_«with«_::=_‡,»»" is
 [
 	instance : object,
 	objectType : object meta,
 	optional : <<<atom, any…|2>…|1..>…|0..1>
 |
-	assignments ::= if optional is empty then [ <> ] else [ optional[1] ];
+	assignments ::= optional[1] else [<>];
 	fieldAtoms ::= stripe assignments at 1;
 	If |fieldAtoms→set| ≠ |fieldAtoms| then
 	[
@@ -1049,7 +1560,7 @@ Public method "_as_«with«_:=_‡,»»" is
 		fieldAtom : atom,
 		fieldType : any meta
 	|
-		If |fieldType| = 1 ∧ [ ¬fieldType ⊆ type ] then
+		If |fieldType| = 1 ∧ [¬fieldType ⊆ type] then
 		[
 			identityAssignments := eject ↑identityAssignments
 				++ <<fieldAtom, fieldType's instance>>;
@@ -1074,8 +1585,13 @@ Public method "_as_«with«_:=_‡,»»" is
  * - An assigned value conforms to the field type.
  * - An assignment occurs for every field of the object type except those for
  *   which the exact types are known; these will be supplied automatically.
+ *
+ * @method "_as_«with«_::=_‡,»»"
+ * @restricts "object's type"
+ * @restricts "object's type's type"
+ * @restricts "<<<atom, any…|2>…|1..>…|0..1>'s type"
  */
-Semantic restriction "_as_«with«_:=_‡,»»" is
+Semantic restriction "_as_«with«_::=_‡,»»" is
 [
 	instance : object meta,
 	meta : object meta's type,

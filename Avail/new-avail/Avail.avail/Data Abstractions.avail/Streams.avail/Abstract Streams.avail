@@ -72,30 +72,13 @@ Names
 	 */
 Body
 
-/* TODO: [TLS] Remove these constants once a macro is available for "$…". */
 privateHeadName ::= $"private_'s⁇head";
 privateTailName ::= $"private_'s⁇tail";
-decoratedStream ::= $"decorated stream|streams";
-transformer ::= $"transformer";
-filter ::= $"filter";
-streamIndex ::= $"stream index";
 
-/**
- * Answer the field atom that represents a decorated stream.
- *
- * Returns:
- *    The requested field atom.
- */
-Public method "decorated stream|streams" is [ decoratedStream ];
-
-/**
- * Answer the field atom that represents the stream index of a concatenation
- * stream.
- * 
- * Returns:
- *    The requested field atom.
- */
-Method "stream index" is [ streamIndex ];
+Public "decorated stream|streams" is a new field atom;
+"transformer" is a new field atom;
+"filter" is a new field atom;
+"stream index" is a new field atom;
 
 /**
  * A stream is an immutable lazy list of arbitarily many elements.
@@ -376,7 +359,7 @@ Semantic restriction "_'s⁇tail" is
 		"an empty stream not to be asked for its tail"
 ];
 
-theEmptyStream ::= an empty stream with element type := ⊥;
+theEmptyStream ::= an empty stream with element type ::= ⊥;
 
 /**
  * Answer an empty stream.
@@ -394,7 +377,7 @@ Seal method "_'s⁇tail" at <stream>;
 
 /**
  * Iteratively apply `action` to each consecutive element of `aStream`.
- * 
+ *
  * Parameters:
  *    aStream - A stream.
  *    action - A function that accepts the elements of the stream.
@@ -477,9 +460,9 @@ mapped stream's tail method is
 	aStream : mapped stream
 |
 	a mapped stream with
-		element type := aStream's element type,
-		decorated stream := aStream's decorated stream's tail,
-		transformer := aStream's transformer
+		element type ::= aStream's element type,
+		decorated stream ::= aStream's decorated stream's tail,
+		transformer ::= aStream's transformer
 ] : mapped stream;
 
 /**
@@ -500,9 +483,9 @@ Method "map_through_" is
 	theTransformer : [⊥]→any
 |
 	a mapped stream with
-		element type := theTransformer's type's return type,
-		decorated stream := aStream,
-		transformer := theTransformer
+		element type ::= theTransformer's type's return type,
+		decorated stream ::= aStream,
+		transformer ::= theTransformer
 ] : stream;
 
 Semantic restriction "map_through_" is
@@ -582,9 +565,9 @@ filtered stream's tail method is
 			then [ headed filtered stream]
 			else [ filtered stream ];
 		a streamType with
-			element type := aStream's element type,
-			decorated stream := rest,
-			filter := aStream's filter
+			element type ::= aStream's element type,
+			decorated stream ::= rest,
+			filter ::= aStream's filter
 	]
 ] : stream;
 
@@ -626,9 +609,9 @@ Method "filter_by_" is
 	predicate : [⊥]→boolean
 |
 	a filtered stream with
-		element type := aStream's element type,
-		decorated stream := aStream,
-		filter := predicate
+		element type ::= aStream's element type,
+		decorated stream ::= aStream,
+		filter ::= predicate
 ] : stream;
 
 Semantic restriction "filter_by_" is
@@ -676,9 +659,9 @@ concatenation stream's tail method is
 	streams ::= aStream's decorated streams;
 	While [ streams[index] is empty ] do [ ↑index++; ];
 	a concatenation stream with
-		element type := aStream's element type,
-		decorated streams := streams[index]→(streams[index]'s tail),
-		stream index := index
+		element type ::= aStream's element type,
+		decorated streams ::= streams[index]→(streams[index]'s tail),
+		stream index ::= index
 ];
 
 /**
@@ -703,9 +686,9 @@ Method "concatenate_" is
 			cast ∪ map streams through [s : stream | s's element type]
 			into [ t : any's type | t ];
 		a concatenation stream with
-			element type := elementType,
-			decorated streams := streams,
-			stream index := 1
+			element type ::= elementType,
+			decorated streams ::= streams,
+			stream index ::= 1
 	]
 ] : stream;
 
@@ -727,9 +710,9 @@ Method "«_‡++»" is
 		cast ∪ map streams through [s : stream | s's element type]
 		into [ t : any's type | t ];
 	a concatenation stream with
-		element type := elementType,
-		decorated streams := streams,
-		stream index := 1
+		element type ::= elementType,
+		decorated streams ::= streams,
+		stream index ::= 1
 ] : stream;
 
 /**
@@ -789,8 +772,8 @@ zipped stream's tail method is
 	aStream : zipped stream
 |
 	a zipped stream with
-		element type := aStream's element type,
-		decorated streams :=
+		element type ::= aStream's element type,
+		decorated streams ::=
 			map aStream's decorated streams through [s : stream | s's tail]
 ] : zipped stream;
 
@@ -812,8 +795,8 @@ Method "zip_" is
 	types ::= map streams through [s : stream | s's element type];
 	elementType ::= <types[1..|types| - 1], types[|types|]… | |streams|'s type>;
 	a zipped stream with
-		element type := elementType,
-		decorated streams := streams
+		element type ::= elementType,
+		decorated streams ::= streams
 ] : stream;
 
 /**
@@ -834,8 +817,8 @@ Method "«_‡zip»" is
 	types ::= map streams through [s : stream | s's element type];
 	elementType ::= <types[1..|types| - 1], types[|types|]… | |streams|'s type>;
 	a zipped stream with
-		element type := elementType,
-		decorated streams := streams
+		element type ::= elementType,
+		decorated streams ::= streams
 ] : stream;
 
 /**

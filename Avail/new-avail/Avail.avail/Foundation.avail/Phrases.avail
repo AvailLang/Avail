@@ -156,7 +156,7 @@ Semantic restriction "`«[_`|_]:_`»" is
 	statements : <<>, phrase…|whole number>'s type,
 	returnType : type's type
 |
-	block phrase⇒([…]→cast returnType's instance into [ t : type | t ])
+	block phrase⇒([…]→cast returnType's instance into [t : type | t])
 ];
 
 /**

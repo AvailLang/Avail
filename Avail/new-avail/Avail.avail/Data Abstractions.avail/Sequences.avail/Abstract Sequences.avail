@@ -363,7 +363,7 @@ Method "_[_]" is
 ] : ⊥;
 
 _theEmptySequence ::=
-	an empty sequence with element type := ⊥, sequence size := 0;
+	an empty sequence with element type ::= ⊥, sequence size ::= 0;
 
 /**
  * Answer an {@type "empty sequence"}.
@@ -425,7 +425,7 @@ Method "_[_.._]" is
 	endIndex : [0..∞]
 |
 	size ::= endIndex - startIndex + 1;
-	If size ≤ 0 then
+	If size < 0 then
 	[
 		Raise a subscript-out-of-bounds exception
 	];
@@ -433,10 +433,10 @@ Method "_[_.._]" is
 	else
 	[
 		a sliced sequence with
-			element type := aSequence's element type,
-			sequence size := cast size into [t : natural number | t],
-			decorated sequence := aSequence,
-			index offset := startIndex - 1
+			element type ::= aSequence's element type,
+			sequence size ::= cast size into [t : natural number | t],
+			decorated sequence ::= aSequence,
+			index offset ::= startIndex - 1
 	]
 ] : sequence;
 

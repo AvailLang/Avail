@@ -96,7 +96,7 @@ counting number stream's tail method is
 	aStream : counting number stream
 |
 	nextValue ::= aStream's next + aStream's step;
-	aStream's next := nextValue
+	aStream's next ::= nextValue
 ] : counting number stream;
 
 counting integer stream's tail method is
@@ -105,8 +105,8 @@ counting integer stream's tail method is
 |
 	nextValue ::= aStream's next + aStream's step;
 	aStream's
-		element type := (nextValue - 1..aStream's maximum + 1),
-		next := nextValue
+		element type ::= (nextValue - 1..aStream's maximum + 1),
+		next ::= nextValue
 ] : counting integer stream;
 
 Semantic restriction "For each of⁇_do_" is
@@ -172,10 +172,10 @@ Public method "a counting stream from_to_" is
 	end : extended integer
 |
 	a counting integer stream with
-		element type := (start - 1..end + 1),
-		next := start,
-		step := 1,
-		maximum := end
+		element type ::= (start - 1..end + 1),
+		next ::= start,
+		step ::= 1,
+		maximum ::= end
 ] : stream of integer;
 
 Semantic restriction "a counting stream from_to_" is
@@ -228,10 +228,10 @@ Public method "a counting stream from_to_by_" is
 		[ t : extended integer | extended integer ]
 		else [ number];
 	a counting number stream with
-		element type := elementType,
-		next := start,
-		step := delta,
-		maximum := end
+		element type ::= elementType,
+		next ::= start,
+		step ::= delta,
+		maximum ::= end
 ] : stream of number;
 
 Semantic restriction "a counting stream from_to_by_" is
@@ -297,10 +297,10 @@ Public method "a counting stream from_to_by_" is
 |
 	integralEnd ::= end→extended integer;
 	a counting integer stream with
-		element type := (start - 1..integralEnd + 1),
-		next := start,
-		step := delta,
-		maximum := integralEnd
+		element type ::= (start - 1..integralEnd + 1),
+		next ::= start,
+		step ::= delta,
+		maximum ::= integralEnd
 ] : stream of integer;
 
 Semantic restriction "a counting stream from_to_by_" is

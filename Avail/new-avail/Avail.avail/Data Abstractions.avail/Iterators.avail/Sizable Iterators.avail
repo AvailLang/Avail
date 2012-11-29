@@ -1,5 +1,5 @@
 /*
- * Iterators.avail
+ * Sizable Iterators.avail
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -30,18 +30,53 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Iterators"
+System Module "Sizable Iterators"
 Versions
 	"dev"
-Extends
+Uses
 	"Abstract Iterators",
-	"Bounded Iterators",
-	"Collection Iterators",
-	"Counting Iterators",
-	"Delimited Iterators",
-	"Generators",
-	"Grammar",
-	"Positionable Iterators",
-	"Sizable Iterators",
-	"Stream Iterators"
+	"Foundation"
+Names
+	"sizable iterator",
+	"sizable_"
 Body
+
+/**
+ * A sizable iterator may be queried to discover its {@method "`|_`|" size}.
+ *
+ * @type "sizable iterator"
+ * @supertype "iterator"
+ */
+Public explicit class "sizable iterator" extends iterator;
+
+/**
+ * Construct and answer a sizable iterator type from the specified {@type
+ * "iterator"} type.
+ *
+ * @method "sizable_"
+ * @param "iteratorType" "iterator's type"
+ *        An {@type "iterator"} type.
+ * @returns "sizable iterator's type"
+ *          The requested iterator type.
+ */
+Public method "sizable_" is
+[
+	iteratorType : iterator's type
+|
+	iteratorType ∩ sizable iterator
+] : sizable iterator's type;
+
+/* "sizable iterator" always means the type. */
+Grammatical restriction "sizable_" is <{"iterator"}>;
+
+/**
+ * Answer the size of the specified {@type "sizable iterator"}.
+ *
+ * @method "`|_`|"
+ * @param "anIterator" "sizable iterator"
+ *        A {@type "sizable iterator"}.
+ * @returns "[0..∞]"
+ *          The number of elements covered by {@param "anIterator"}, included
+ *          any elements already answered.
+ */
+Abstract method "`|_`|" is [sizable iterator]→[0..∞];
