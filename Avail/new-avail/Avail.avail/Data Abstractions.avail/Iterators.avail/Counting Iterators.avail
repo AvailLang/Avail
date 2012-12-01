@@ -616,13 +616,14 @@ Test "counting iterator(size)" in counting iterator test suite is
 Test "counting iterator(position)" in counting iterator test suite is
 [
 	iter : sizable iterator of integer positioned by integer;
-	iter := a counting iterator from 1 to 10;
+	iter := a counting iterator from 1 to 5;
 	From 1 to 5 do
 	[
 		i : [1..5]
 	|
 		iter's current position := i;
 		Require: i to 5 = take 5 - i + 1 from iter;
+		Require: iter is exhausted;
 	];
 	iter := a counting iterator from 2 to 16 by 3;
 	From 2 to 16 by 3 do
@@ -631,6 +632,7 @@ Test "counting iterator(position)" in counting iterator test suite is
 	|
 		iter's current position := i;
 		Require: i to 16 by 3 = take (16 - i + 3) ÷ 3 from iter;
+		Require: iter is exhausted;
 	];
 	iter's current position := 4;
 ]

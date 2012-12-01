@@ -36,6 +36,7 @@ Versions
 Uses
 	"Abstract Iterators",
 	"Foundation",
+	"Positionable Iterators",
 	"Streams" =
 	(
 		"a counting stream from_to_",
@@ -49,11 +50,19 @@ Names
 Body
 
 "adapted stream" is a new field atom;
+"iterator id" is a new atom;
 
 /**
- * A stream iterator consumes the elements of a stream.
+ * A stream iterator consumes the elements of a stream. A stream iterator can be
+ * rewound to any position previously answered by {@method
+ * "_'s⁇current position"}.
+ *
+ * @type "stream iterator"
+ * @supertype "positionable iterator"
  */
-Public class "stream iterator" extends iterator
+Public class "stream iterator" extends positionable iterator
+	with field
+		position type : atom's type
 	with mutable field
 		adapted stream : stream;
 
@@ -78,6 +87,38 @@ stream iterator's advance method is
 	anIterator's adapted stream := anIterator's adapted stream's tail;
 ] : ⊤;
 
+Method "_'s⁇current position" is
+[
+	anIterator : stream iterator
+|
+	/* Create an atom as a memento of the current position. Use the "adapted
+	 * stream" atom to store the current stream, and "iterator id" to store the
+	 * argument. In this way the memento is specific to a particular iterator
+	 * and position.
+	 */
+	position ::= new atom "current position";
+	position[iterator id] := anIterator;
+	position[adapted stream] := anIterator's adapted stream;
+	position
+] : atom;
+
+Method "_'s⁇current position:=_" is
+[
+	anIterator : stream iterator,
+	position : atom
+|
+	/* Only allow a position memento previously allocated by this iterator to be
+	 * used to change its current position.
+	 */
+	Unless iterator id ∈ position  ∧ [position[iterator id] = anIterator] then
+	[
+		Raise an invalid-position exception
+	];
+	Assert: adapted stream ∈ position;
+	anIterator's adapted stream := cast position[adapted stream]
+		into [t : stream | t];
+];
+
 /**
  * Construct and answer an iterator that destructively consumes the elements of
  * the specified stream.
@@ -93,8 +134,9 @@ Public method "an iterator over_" is
 |
 	a stream iterator with
 		element type ::= aStream's element type,
+		position type ::= atom,
 		adapted stream := aStream
-] : iterator;
+] : stream iterator;
 
 Semantic restriction "an iterator over_" is
 [
@@ -337,4 +379,23 @@ Test "stream iterator(Drop from_until_)" in stream iterator test suite is
 		Require: ref[(↑index++)] = element;
 	];
 	Require: (|ref| + 1) = index;
+];
+
+Test "stream iterator(position)" in stream iterator test suite is
+[
+	iter ::= an iterator over a counting stream from 1 to 10;
+	i : [1..11] := 1;
+	For each iter do
+	[
+		value : [1..10]
+	|
+		Require: i = value;
+		pos ::= iter's current position;
+		ref ::= i to 10;
+		Require: ref = take 10 - i + 1 from iter;
+		Require: iter is exhausted;
+		iter's current position := pos;
+		↑i++;
+	];
+	Require: iter is exhausted;
 ];
