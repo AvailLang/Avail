@@ -82,14 +82,14 @@ tuple iterator's advance method is
 	↑anIterator's index++;
 ] : ⊤;
 
-Method "_'s⁇current position" is
+Method "_'s⁇position" is
 [
 	anIterator : tuple iterator
 |
 	anIterator's index
 ] : natural number;
 
-Method "_'s⁇current position:=_" is
+Method "_'s⁇position:=_" is
 [
 	anIterator : tuple iterator,
 	position : natural number
@@ -468,19 +468,19 @@ Test "tuple iterator(position)" in tuple iterator test suite is
 		an iterator over 1 to 10;
 	Require: |iter| = 10;
 	Repeat [Advance iter;] 5 times;
-	position ::= iter's current position;
+	position ::= iter's position;
 	ref : tuple := 6 to 10;
 	tail : tuple := take 5 from iter;
 	Require: ref = tail;
-	iter's current position := position;
+	iter's position := position;
 	tail := take 5 from iter;
 	Require: ref = tail;
-	iter's current position := 8;
+	iter's position := 8;
 	ref := 8 to 10;
 	tail := take 3 from iter;
 	Require: ref = tail;
 	Require: |iter| = 10;
-	iter's current position := 50;
+	iter's position := 50;
 ]
 must raise invalid-position exception;
 

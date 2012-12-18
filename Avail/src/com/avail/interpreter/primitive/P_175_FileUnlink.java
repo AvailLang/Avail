@@ -31,7 +31,7 @@
  */
 package com.avail.interpreter.primitive;
 
-import static com.avail.descriptor.TypeDescriptor.Types.TOP;
+import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.io.File;
@@ -59,7 +59,6 @@ extends Primitive
 	{
 		assert args.size() == 1;
 		final AvailObject filename = args.get(0);
-
 		final File file = new File(filename.asNativeString());
 		final boolean deleted;
 		try
@@ -70,12 +69,10 @@ extends Primitive
 		{
 			return interpreter.primitiveFailure(E_PERMISSION_DENIED);
 		}
-
 		if (!deleted)
 		{
 			return interpreter.primitiveFailure(E_IO_ERROR);
 		}
-
 		return interpreter.primitiveSuccess(NullDescriptor.nullObject());
 	}
 
@@ -84,7 +81,17 @@ extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				TupleTypeDescriptor.stringTupleType()),
+				TupleTypeDescriptor.oneOrMoreOf(CHARACTER.o())),
 			TOP.o());
+	}
+
+	@Override
+	protected AvailObject privateFailureVariableType ()
+	{
+		return AbstractEnumerationTypeDescriptor.withInstances(
+			TupleDescriptor.from(
+				E_PERMISSION_DENIED.numericCode(),
+				E_IO_ERROR.numericCode()
+			).asSet());
 	}
 }

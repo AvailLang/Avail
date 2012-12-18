@@ -64,33 +64,27 @@ extends Primitive
 		assert args.size() == 2;
 		final AvailObject handle = args.get(0);
 		final AvailObject filePosition = args.get(1);
-
-		if (!handle.isAtom())
-		{
-			return interpreter.primitiveFailure(E_INVALID_HANDLE);
-		}
-
-		final RandomAccessFile file =
-			interpreter.runtime().getReadableFile(handle);
-		if (file == null)
-		{
-			return interpreter.primitiveFailure(E_INVALID_HANDLE);
-		}
-
 		if (!filePosition.isLong())
 		{
 			return interpreter.primitiveFailure(E_SUBSCRIPT_OUT_OF_BOUNDS);
 		}
-
+		final AvailObject pojo =
+			handle.getAtomProperty(AtomDescriptor.fileKey());
+		if (pojo.equalsNull())
+		{
+			return interpreter.primitiveFailure(E_INVALID_HANDLE);
+		}
+		final RandomAccessFile file = (RandomAccessFile) pojo.javaObject();
+		final AvailObject oneBased = filePosition.minusCanDestroy(
+			IntegerDescriptor.one(), false);
 		try
 		{
-			file.seek(filePosition.extractLong());
+			file.seek(oneBased.extractLong());
 		}
 		catch (final IOException e)
 		{
 			return interpreter.primitiveFailure(E_IO_ERROR);
 		}
-
 		return interpreter.primitiveSuccess(NullDescriptor.nullObject());
 	}
 
@@ -100,7 +94,18 @@ extends Primitive
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
 				ATOM.o(),
-				IntegerRangeTypeDescriptor.wholeNumbers()),
+				IntegerRangeTypeDescriptor.naturalNumbers()),
 			TOP.o());
+	}
+
+	@Override
+	protected AvailObject privateFailureVariableType ()
+	{
+		return AbstractEnumerationTypeDescriptor.withInstances(
+			TupleDescriptor.from(
+				E_SUBSCRIPT_OUT_OF_BOUNDS.numericCode(),
+				E_INVALID_HANDLE.numericCode(),
+				E_IO_ERROR.numericCode()
+			).asSet());
 	}
 }

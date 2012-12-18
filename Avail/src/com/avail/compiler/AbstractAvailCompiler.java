@@ -252,7 +252,7 @@ public abstract class AbstractAvailCompiler
 					{
 						return
 							"module \"" + ref.qualifiedName()
-							+ "\" to export \"" + strName + "\"";
+							+ "\" to export " + strName;
 					}
 					final AvailObject trueNames = mod.names().mapAt(strName);
 					for (final AvailObject trueName : trueNames)
@@ -305,7 +305,7 @@ public abstract class AbstractAvailCompiler
 					{
 						return
 							"module \"" + ref.qualifiedName()
-							+ "\" to export \"" + strName + "\"";
+							+ "\" to export " + strName;
 					}
 					final AvailObject trueNames = mod.names().mapAt(strName);
 					for (final AvailObject trueName : trueNames)

@@ -55,7 +55,7 @@ Body
 /**
  * A stream iterator consumes the elements of a stream. A stream iterator can be
  * rewound to any position previously answered by {@method
- * "_'s⁇current position"}.
+ * "_'s⁇position"}.
  *
  * @type "stream iterator"
  * @supertype "positionable iterator"
@@ -87,7 +87,7 @@ stream iterator's advance method is
 	anIterator's adapted stream := anIterator's adapted stream's tail;
 ] : ⊤;
 
-Method "_'s⁇current position" is
+Method "_'s⁇position" is
 [
 	anIterator : stream iterator
 |
@@ -102,7 +102,7 @@ Method "_'s⁇current position" is
 	position
 ] : atom;
 
-Method "_'s⁇current position:=_" is
+Method "_'s⁇position:=_" is
 [
 	anIterator : stream iterator,
 	position : atom
@@ -390,11 +390,11 @@ Test "stream iterator(position)" in stream iterator test suite is
 		value : [1..10]
 	|
 		Require: i = value;
-		pos ::= iter's current position;
+		pos ::= iter's position;
 		ref ::= i to 10;
 		Require: ref = take 10 - i + 1 from iter;
 		Require: iter is exhausted;
-		iter's current position := pos;
+		iter's position := pos;
 		↑i++;
 	];
 	Require: iter is exhausted;

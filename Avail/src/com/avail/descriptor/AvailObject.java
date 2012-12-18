@@ -6354,4 +6354,47 @@ implements Iterable<AvailObject>
 	{
 		return descriptor.o_DefinitionMethod(this);
 	}
+
+	/**
+	 * @param aByteArrayTuple
+	 * @return
+	 */
+	public boolean equalsByteArrayTuple (
+		final AvailObject aByteArrayTuple)
+	{
+		return descriptor.o_EqualsByteArrayTuple(this, aByteArrayTuple);
+	}
+
+	/**
+	 * @param i
+	 * @param tupleSize
+	 * @param aByteArrayTuple
+	 * @param j
+	 * @return
+	 */
+	public boolean compareFromToWithByteArrayTupleStartingAt (
+		final int i,
+		final int tupleSize,
+		final AvailObject aByteArrayTuple,
+		final int j)
+	{
+		return descriptor.o_CompareFromToWithByteArrayTupleStartingAt(
+			this, i, tupleSize, aByteArrayTuple, j);
+	}
+
+	/**
+	 * @return
+	 */
+	public byte[] byteArray ()
+	{
+		return descriptor.o_ByteArray(this);
+	}
+
+	/**
+	 * @return
+	 */
+	public boolean isByteArrayTuple ()
+	{
+		return descriptor.o_IsByteArrayTuple(this);
+	}
 }

@@ -1,5 +1,5 @@
 /**
- * P_169_FileSync.java
+ * P_176_FileSetSize.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -29,6 +29,7 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+
 package com.avail.interpreter.primitive;
 
 import static com.avail.descriptor.TypeDescriptor.Types.*;
@@ -36,32 +37,36 @@ import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.io.*;
 import java.util.List;
+import com.avail.annotations.NotNull;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 
 /**
- * <strong>Primitive 168:</strong> Force all system buffers associated with
- * the writable {@linkplain RandomAccessFile file} to synchronize with the
- * underlying device.
+ * <strong>Primitive 176</strong>: Set the size of the specified {@link
+ * RandomAccessFile file} to the specified value. If the new value is smaller
+ * than the file's current size, then the file will be truncated. If it is
+ * larger, then the file will be extended. The contents of the extension are
+ * undefined.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class P_169_FileSync
+public final class P_176_FileSetSize
 extends Primitive
 {
 	/**
-	 * The sole instance of this primitive class.  Accessed through reflection.
+	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_169_FileSync().init(
-		1, CanInline, HasSideEffect);
+	public final @NotNull static Primitive instance =
+		new P_176_FileSetSize().init(2, CanInline, HasSideEffect);
 
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 1;
+		assert args.size() == 2;
 		final AvailObject handle = args.get(0);
+		final AvailObject size = args.get(1);
 		final AvailObject pojo =
 			handle.getAtomProperty(AtomDescriptor.fileKey());
 		final AvailObject mode =
@@ -73,7 +78,7 @@ extends Primitive
 		final RandomAccessFile file = (RandomAccessFile) pojo.javaObject();
 		try
 		{
-			file.getFD().sync();
+			file.setLength(size.extractLong());
 		}
 		catch (final IOException e)
 		{
@@ -87,7 +92,8 @@ extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				ATOM.o()),
+				ATOM.o(),
+				IntegerRangeTypeDescriptor.wholeNumbers()),
 			TOP.o());
 	}
 

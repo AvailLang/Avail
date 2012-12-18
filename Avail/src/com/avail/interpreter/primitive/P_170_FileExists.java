@@ -31,8 +31,9 @@
  */
 package com.avail.interpreter.primitive;
 
+import static com.avail.descriptor.TypeDescriptor.Types.CHARACTER;
 import static com.avail.exceptions.AvailErrorCode.E_PERMISSION_DENIED;
-import static com.avail.interpreter.Primitive.Flag.CanInline;
+import static com.avail.interpreter.Primitive.Flag.*;
 import java.io.File;
 import java.util.List;
 import com.avail.descriptor.*;
@@ -49,7 +50,7 @@ extends Primitive
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
 	public final static Primitive instance = new P_170_FileExists().init(
-		1, CanInline);
+		1, CanInline, HasSideEffect);
 
 	@Override
 	public Result attempt (
@@ -58,7 +59,6 @@ extends Primitive
 	{
 		assert args.size() == 1;
 		final AvailObject filename = args.get(0);
-
 		final File file = new File(filename.asNativeString());
 		final boolean exists;
 		try
@@ -69,7 +69,6 @@ extends Primitive
 		{
 			return interpreter.primitiveFailure(E_PERMISSION_DENIED);
 		}
-
 		return interpreter.primitiveSuccess(
 			AtomDescriptor.objectFromBoolean(exists));
 	}
@@ -79,7 +78,13 @@ extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				TupleTypeDescriptor.stringTupleType()),
+				TupleTypeDescriptor.oneOrMoreOf(CHARACTER.o())),
 			EnumerationTypeDescriptor.booleanObject());
+	}
+
+	@Override
+	protected AvailObject privateFailureVariableType ()
+	{
+		return InstanceTypeDescriptor.on(E_PERMISSION_DENIED.numericCode());
 	}
 }

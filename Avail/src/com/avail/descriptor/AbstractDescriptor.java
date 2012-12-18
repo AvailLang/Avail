@@ -5764,6 +5764,42 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	public abstract AvailObject o_DefinitionMethod (
+	abstract AvailObject o_DefinitionMethod (
 		final AvailObject object);
+
+	/**
+	 * @param object
+	 * @param aByteArrayTuple
+	 * @return
+	 */
+	abstract boolean o_EqualsByteArrayTuple (
+		final AvailObject object,
+		final AvailObject aByteArrayTuple);
+
+	/**
+	 * @param object
+	 * @param i
+	 * @param tupleSize
+	 * @param aByteArrayTuple
+	 * @param j
+	 * @return
+	 */
+	abstract boolean o_CompareFromToWithByteArrayTupleStartingAt (
+		final AvailObject object,
+		final int i,
+		final int tupleSize,
+		final AvailObject aByteArrayTuple,
+		final int j);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract byte[] o_ByteArray (final AvailObject object);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract boolean o_IsByteArrayTuple (final AvailObject object);
 }

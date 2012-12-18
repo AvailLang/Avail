@@ -210,7 +210,7 @@ Public method "short“_”" is
 		cast anException
 		into
 		[
-			e : unit-test exception ∩ descriptive exception
+			e : descriptive unit-test exception
 		|
 			" (" ++ e's error message ++ ")"
 		]
@@ -381,7 +381,7 @@ Method "short“_”" is
 [
 	result : unit test failure
 |
-	format "FAILED: “①” (raised: “②”)"
+	format "FAILED: “①” (raised: ‘②’)"
 		with result's test ID's name, short “result's causal exception”
 ] : string;
 

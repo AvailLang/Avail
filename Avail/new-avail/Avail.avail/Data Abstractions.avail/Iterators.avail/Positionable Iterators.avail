@@ -42,17 +42,17 @@ Names
 	"position type",
 	"positionable iterator",
 	"_positioned by_",
-	"_'s⁇current position",
-	"_'s⁇current position:=_"
+	"_'s⁇position",
+	"_'s⁇position:=_"
 Body
 
 "position type" is a new field atom;
 
 /**
- * A positionable iterator supports explicitly {@method "_'s⁇current position"
- * querying} and {@method "_'s⁇current position:=_" setting} the current
- * position. Specific subtypes may support random access, but all subtypes
- * should support setting the current position to a previous position.
+ * A positionable iterator supports explicitly {@method "_'s⁇position"
+ * querying} and {@method "_'s⁇position:=_" setting} the current position.
+ * Specific subtypes may support random access, but all subtypes should support
+ * setting the current position to a previous position.
  *
  * @type "positionable iterator"
  * @supertype "iterator"
@@ -94,15 +94,15 @@ Public explicit class "invalid-position exception"
 /**
  * Answer the current position of the specified {@type "positionable iterator"}.
  *
- * @method "_'s⁇current position"
+ * @method "_'s⁇position"
  * @param "anIterator" "positionable iterator"
  *        A {@type "positionable iterator"}.
  * @returns "any"
  *          A position memento that represents the current position.
  */
-Public abstract method "_'s⁇current position" is [positionable iterator]→any;
+Public abstract method "_'s⁇position" is [positionable iterator]→any;
 
-Semantic restriction "_'s⁇current position" is
+Semantic restriction "_'s⁇position" is
 [
 	iteratorType : positionable iterator's type
 |
@@ -112,7 +112,7 @@ Semantic restriction "_'s⁇current position" is
 /**
  * Set the current position of the specified {@type "positionable iterator"}.
  *
- * @method "_'s⁇current position:=_"
+ * @method "_'s⁇position:=_"
  * @param "anIterator" "positionable iterator"
  *        A {@type "positionable iterator"}.
  * @param "position" "any"
@@ -120,10 +120,10 @@ Semantic restriction "_'s⁇current position" is
  * @raises "invalid-position exception"
  *         If {@param "position"} is not a valid memento.
  */
-Public abstract method "_'s⁇current position:=_" is
+Public abstract method "_'s⁇position:=_" is
 	[positionable iterator, any]→⊤;
 
-Semantic restriction "_'s⁇current position:=_" is
+Semantic restriction "_'s⁇position:=_" is
 [
 	iteratorType : positionable iterator's type,
 	positionType : any's type

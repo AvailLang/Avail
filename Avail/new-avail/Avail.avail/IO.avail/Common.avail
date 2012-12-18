@@ -1,5 +1,5 @@
-/**
- * P_120_CreateAtom.java
+/*
+ * Common.avail
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -29,43 +29,16 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.avail.interpreter.primitive;
 
-import static com.avail.descriptor.TypeDescriptor.Types.ATOM;
-import static com.avail.interpreter.Primitive.Flag.*;
-import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
+System Module "Common"
+Versions
+	"dev"
+Uses
+	"Foundation",
+	"Unit Testing"
+Names
+	"I/O test suite"
+Body
 
-/**
- * <strong>Primitive 120:</strong> Create a new {@linkplain AtomDescriptor
- * atom} with the given name.
- */
-public class P_120_CreateAtom extends Primitive
-{
-	/**
-	 * The sole instance of this primitive class.  Accessed through reflection.
-	 */
-	public final static Primitive instance = new P_120_CreateAtom().init(
-		1, CanInline, CannotFail);
-
-	@Override
-	public Result attempt (
-		final List<AvailObject> args,
-		final Interpreter interpreter)
-	{
-		assert args.size() == 1;
-		final AvailObject name = args.get(0);
-		return interpreter.primitiveSuccess(
-			interpreter.createAtom(name, false));
-	}
-
-	@Override
-	protected AvailObject privateBlockTypeRestriction ()
-	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
-				TupleTypeDescriptor.stringTupleType()),
-			ATOM.o());
-	}
-}
+"I/O test suite" is a new atom;
+I/O test suite is a new test suite;

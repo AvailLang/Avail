@@ -31,7 +31,7 @@
  */
 package com.avail.interpreter.primitive;
 
-import static com.avail.descriptor.TypeDescriptor.Types.ATOM;
+import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.io.*;
@@ -63,14 +63,20 @@ extends Primitive
 		assert args.size() == 1;
 		final AvailObject filename = args.get(0);
 
-		final AvailObject handle = interpreter.createAtom(filename);
+		final AvailObject handle = interpreter.createAtom(filename, true);
 		try
 		{
 			final RandomAccessFile file = new RandomAccessFile(
 				filename.asNativeString(),
 				"rw");
-			interpreter.runtime().putReadableFile(handle, file);
-			interpreter.runtime().putWritableFile(handle, file);
+			final AvailObject pojo = RawPojoDescriptor.identityWrap(file);
+			handle.setAtomProperty(AtomDescriptor.fileKey(), pojo);
+			handle.setAtomProperty(
+				AtomDescriptor.fileModeReadKey(),
+				AtomDescriptor.fileModeReadKey());
+			handle.setAtomProperty(
+				AtomDescriptor.fileModeWriteKey(),
+				AtomDescriptor.fileModeWriteKey());
 		}
 		catch (final IOException e)
 		{
@@ -88,7 +94,17 @@ extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				TupleTypeDescriptor.stringTupleType()),
+				TupleTypeDescriptor.oneOrMoreOf(CHARACTER.o())),
 			ATOM.o());
+	}
+
+	@Override
+	protected AvailObject privateFailureVariableType ()
+	{
+		return AbstractEnumerationTypeDescriptor.withInstances(
+			TupleDescriptor.from(
+				E_PERMISSION_DENIED.numericCode(),
+				E_IO_ERROR.numericCode()
+			).asSet());
 	}
 }

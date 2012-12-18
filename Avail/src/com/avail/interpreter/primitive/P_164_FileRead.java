@@ -67,19 +67,15 @@ extends Primitive
 		assert args.size() == 2;
 		final AvailObject handle = args.get(0);
 		final AvailObject size = args.get(1);
-
-		if (!handle.isAtom())
+		final AvailObject pojo =
+			handle.getAtomProperty(AtomDescriptor.fileKey());
+		final AvailObject mode =
+			handle.getAtomProperty(AtomDescriptor.fileModeReadKey());
+		if (pojo.equalsNull() || mode.equalsNull())
 		{
 			return interpreter.primitiveFailure(E_INVALID_HANDLE);
 		}
-
-		final RandomAccessFile file =
-			interpreter.runtime().getReadableFile(handle);
-		if (file == null)
-		{
-			return interpreter.primitiveFailure(E_INVALID_HANDLE);
-		}
-
+		final RandomAccessFile file = (RandomAccessFile) pojo.javaObject();
 		final byte[] buffer;
 		final int bytesRead;
 		try
@@ -101,21 +97,9 @@ extends Primitive
 		{
 			return interpreter.primitiveFailure(E_IO_ERROR);
 		}
-
-		final AvailObject tuple;
-		if (bytesRead > 0)
-		{
-			tuple = ByteTupleDescriptor.mutableObjectOfSize(bytesRead);
-			for (int i = 1; i <= bytesRead; i++)
-			{
-				tuple.rawByteAtPut(i, (short) (buffer[i - 1] & 0xff));
-			}
-		}
-		else
-		{
-			tuple = TupleDescriptor.empty();
-		}
-
+		final AvailObject tuple = bytesRead > 0
+			? ByteArrayTupleDescriptor.forByteArray(buffer)
+			: TupleDescriptor.empty();
 		return interpreter.primitiveSuccess(tuple);
 	}
 
@@ -125,8 +109,22 @@ extends Primitive
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
 				ATOM.o(),
-				IntegerRangeTypeDescriptor.wholeNumbers()),
+				IntegerRangeTypeDescriptor.create(
+					IntegerDescriptor.zero(),
+					true,
+					InfinityDescriptor.positiveInfinity(),
+					true)),
 			TupleTypeDescriptor.zeroOrMoreOf(
 				IntegerRangeTypeDescriptor.bytes()));
+	}
+
+	@Override
+	protected AvailObject privateFailureVariableType ()
+	{
+		return AbstractEnumerationTypeDescriptor.withInstances(
+			TupleDescriptor.from(
+				E_INVALID_HANDLE.numericCode(),
+				E_IO_ERROR.numericCode()
+			).asSet());
 	}
 }

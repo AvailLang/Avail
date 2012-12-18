@@ -1,0 +1,1092 @@
+/*
+ * Primitives.avail
+ * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+System Module "Primitives"
+Versions
+	"dev"
+Extends
+	"Data Abstractions" = ("_'s⁇position", "_'s⁇position:=_")
+Uses
+	"Common",
+	"Foundation",
+	"Unit Testing"
+Names
+	/* File open modes. */
+	"file open mode",
+	"read mode",
+	"write mode",
+
+	/* File name types. */
+	"file name",
+
+	/* File names. */
+	"Rename_to_",
+	"Unlink_",
+	"_as file name",
+	"_exists",
+	"_is executable",
+	"_is readable",
+	"_is writable",
+	"_'s⁇name",
+
+	/* File types. */
+	"file",
+	"readable file",
+	"readable,⁇writable file",
+	"writable file",
+
+	/* File constructors. */
+	"a file named_(mode=_)",
+	"a readable file named_",
+	"a readable,⁇writable file named_",
+	"a writable file named_",
+
+	/* File attributes. */
+	"_is open",
+	"_is closed",
+	"_'s⁇size",
+	"_'s⁇size:=_",
+
+	/* File I/O. */
+	"next_byte|bytes from_",
+	"Write_to_",
+	"Synchronize_with file system",
+
+	/* File cleanup. */
+	"Close_",
+	"Using|using_,⁇do_",
+
+	/* File exceptions. */
+	"file-closed exception",
+
+	/* Unit testing. */
+	"file primitives test suite"
+Body
+
+"name" is a new field atom;
+
+/**
+ * A file name represents a node, actual or hypothetical, within a file system.
+ *
+ * @type "file name"
+ * @supertype "object"
+ */
+Public class "file name" extends object
+	with fields
+		public name : nonempty string;
+
+Stable method "“_”" is
+[
+	fn : file name
+|
+	fn's name
+];
+
+/**
+ * Construct and answer a {@type "file name"} from the specified {@type
+ * "nonempty string"}.
+ *
+ * @method "_as file name"
+ * @param "n" "nonempty string"
+ * @returns "file name"
+ *    The requested file name.
+ */
+Public stable method "_as file name" is
+[
+	n : nonempty string
+|
+	a file name with name ::= n
+] : file name;
+
+Semantic restriction "_as file name" is
+[
+	n : nonempty string's type
+|
+	extend file name with name : n
+];
+
+/**
+ * Does the specified {@type "file name"} exist?
+ *
+ * @method "_exists"
+ * @param "n" "file name"
+ * @returns "boolean"
+ *    {@method "true"} if {@param "n"} names an existing file, {@method "false"}
+ *    otherwise.
+ * @raises "permission-denied exception"
+ *    If permission is denied to use the specified {@type "file name"}.
+ */
+Public method "_exists" is
+[
+	n : file name
+|
+	[
+		s : nonempty string
+	|
+		Primitive 170 (failureCode : permission-denied code's type);
+		Raise a permission-denied exception
+	] : boolean (n's name)
+] : boolean;
+
+/**
+ * Is the specified {@type "file name"} readable?
+ *
+ * @method "_is readable"
+ * @param "n" "file name"
+ * @returns "boolean"
+ *    {@method "true"} if {@param "n"} names an existing file that is readable
+ *    by this process; {@method "false"} otherwise.
+ * @raises "permission-denied exception"
+ *    If permission is denied to use the specified {@type "file name"}.
+ */
+Public method "_is readable" is
+[
+	n : file name
+|
+	[
+		s : nonempty string
+	|
+		Primitive 171 (e : permission-denied code's type);
+		Raise a permission-denied exception
+	] : boolean (n's name)
+] : boolean;
+
+/**
+ * Is the specified {@type "file name"} writable?
+ *
+ * @method "_is writable"
+ * @param "n" "file name"
+ * @returns "boolean"
+ *    {@method "true"} if {@param "n"} names an existing file that is writable
+ *    by this process; {@method "false"} otherwise.
+ * @raises "permission-denied exception"
+ *    If permission is denied to use the specified {@type "file name"}.
+ */
+Public method "_is writable" is
+[
+	n : file name
+|
+	[
+		s : nonempty string
+	|
+		Primitive 172 (e : permission-denied code's type);
+		Raise a permission-denied exception
+	] : boolean (n's name)
+] : boolean;
+
+/**
+ * Is the specified {@type "file name"} executable?
+ *
+ * @method "_is readable"
+ * @param "n" "file name"
+ * @returns "boolean"
+ *    {@method "true"} if {@param "n"} names an existing file that is executable
+ *    by this process; {@method "false"} otherwise.
+ * @raises "permission-denied exception"
+ *    If permission is denied to use the specified {@type "file name"}.
+ */
+Public method "_is executable" is
+[
+	n : file name
+|
+	[
+		s : nonempty string
+	|
+		Primitive 173 (e : permission-denied code's type);
+		Raise a permission-denied exception
+	] : boolean (n's name)
+] : boolean;
+
+/**
+ * Rename the {@type "file"} named by {@param "src"} to {@param "dest"}.
+ *
+ * @method "Rename_to_"
+ * @param "src" "file name"
+ *        The source {@type "file name"}.
+ * @param "dest" "file name"
+ *        The destination {@type "file name"}.
+ * @raises "permission-denied exception"
+ *    If permission is denied to use either of the specified {@type
+ *    "file name"}s.
+ * @raises "I/O exception"
+ *    If an I/O error occurs for any reason.
+ */
+Public method "Rename_to_" is
+[
+	src : file name,
+	dest : file name
+|
+	[
+		s : nonempty string,
+		d : nonempty string
+	|
+		Primitive 174 (e : {I/O-error code, permission-denied code}ᵀ);
+		If e = I/O-error code then [Raise an I/O exception];
+		Raise a permission-denied exception
+	] : ⊤ (src's name, dest's name);
+] : ⊤;
+
+/**
+ * Unlink {@param "n"}. If no links remaining in the file system to the
+ * underlying {@type "file"}, then the {@type "file"} is deleted.
+ *
+ * @method "Unlink_"
+ * @param "n" "file name"
+ * @raises "permission-denied exception"
+ *    If permission is denied to use the specified {@type "file name"}.
+ * @raises "I/O exception"
+ *    If an I/O error occurs for any reason.
+ */
+Public method "Unlink_" is
+[
+	n : file name
+|
+	[
+		s : nonempty string
+	|
+		Primitive 175 (e : {I/O-error code, permission-denied code}ᵀ);
+		If e = I/O-error code then [Raise an I/O exception];
+		Raise a permission-denied exception
+	] : ⊤ (n's name);
+] : ⊤;
+
+/**
+ * The atom that represents the readability of a file.
+ *
+ * {@method "read mode"}
+ * @returns "atom"
+ */
+Public "read mode" is a new atom;
+
+/**
+ * The atom that represents the writability of a file.
+ *
+ * {@method "write mode"}
+ * @returns "atom"
+ */
+Public "write mode" is a new atom;
+
+/**
+ * Answer the enumeration of file open modes.
+ *
+ * {@method "file open mode"}
+ * @returns "{read mode, write mode}ᵀ"
+ */
+_mode ::= {read mode, write mode}ᵀ;
+Public method "file open mode" is [_mode];
+
+"handle" is a new field atom;
+"readable" is a new field atom;
+"writable" is a new field atom;
+"open state" is a new field atom;
+
+/**
+ * A file represents an open node within a file system.
+ *
+ * @type "file"
+ * @supertype "object"
+ */
+Public class "file" extends object
+	with fields
+		handle : atom,
+		public name : file name,
+		readable : boolean,
+		writable : boolean
+	with mutable field
+		open state : boolean;
+
+/**
+ * A readable file has been opened for reading.
+ *
+ * @type "readable file"
+ * @supertype "file"
+ */
+Public class "readable file" extends file
+	with field
+		readable : true's type;
+
+/**
+ * A writable file has been opened for writing.
+ *
+ * @type "writable file"
+ * @supertype "file"
+ */
+Public class "writable file" extends file
+	with field
+		writable : true's type;
+
+/**
+ * A readable, writable file has been opened for reading and writing.
+ *
+ * @type "readable,⁇writable file"
+ * @supertype "readable file"
+ * @supertype "writable file"
+ */
+Public class "readable,⁇writable file" extends readable file ∩ writable file;
+
+/**
+ * Answer an abstraction of the file named {@param "n"} that is open for
+ * reading. The file position is initially zero ({@code 0}).
+ *
+ * @method "a readable file named_"
+ * @param "n" "file name"
+ * @returns "readable file"
+ * @raises "permission-denied exception"
+ *    If permission is denied to use the specified {@type "file name"}.
+ * @raises "I/O exception"
+ *    If an I/O error occurs for any reason.
+ */
+Public method "a readable file named_" is
+[
+	n : file name
+|
+	a readable file with
+		handle ::=
+			[
+				s : nonempty string
+			|
+				Primitive 160 (e : {I/O-error code, permission-denied code}ᵀ);
+				If e = I/O-error code then [Raise an I/O exception];
+				Raise a permission-denied exception
+			] : atom (n's name),
+		name ::= n,
+		writable ::= false,
+		open state := true
+] : readable file;
+
+Semantic restriction "a readable file named_" is
+[
+	n : file name's type
+|
+	extend readable file with name : n
+];
+
+/**
+ * Answer an abstraction of the file named {@param "n"} that is open for
+ * writing. The file position is initially zero ({@code 0}).
+ *
+ * @method "a truncated,⁇writable file named_"
+ * @param "n" "file name"
+ * @returns "writable file"
+ * @raises "permission-denied exception"
+ *    If permission is denied to use the specified {@type "file name"}.
+ * @raises "I/O exception"
+ *    If an I/O error occurs for any reason.
+ */
+Public method "a writable file named_" is
+[
+	n : file name
+|
+	a writable file with
+		handle ::=
+			[
+				s : nonempty string
+			|
+				Primitive 161 (e : {I/O-error code, permission-denied code}ᵀ);
+				If e = I/O-error code then [Raise an I/O exception];
+				Raise a permission-denied exception
+			] : atom (n's name),
+		name ::= n,
+		readable ::= false,
+		open state := true
+] : writable file;
+
+Semantic restriction "a writable file named_" is
+[
+	n : file name's type
+|
+	extend writable file with name : n
+];
+
+/**
+ * Answer an abstraction of the file named {@param "n"} that is open for
+ * reading and writing. The file position is initially zero ({@code 0}).
+ *
+ * @method "a readable,⁇writable file named_"
+ * @param "n" "file name"
+ * @returns "readable,⁇writable file"
+ * @raises "permission-denied exception"
+ *    If permission is denied to use the specified {@type "file name"}.
+ * @raises "I/O exception"
+ *    If an I/O error occurs for any reason.
+ */
+Public method "a readable,⁇writable file named_" is
+[
+	n : file name
+|
+	a readable, writable file with
+		handle ::=
+			[
+				s : nonempty string
+			|
+				Primitive 162 (e : {I/O-error code, permission-denied code}ᵀ);
+				If e = I/O-error code then [Raise an I/O exception];
+				Raise a permission-denied exception
+			] : atom (n's name),
+		name ::= n,
+		open state := true
+] : readable, writable file;
+
+Semantic restriction "a readable,⁇writable file named_" is
+[
+	n : file name's type
+|
+	extend readable, writable file with name : n
+];
+
+/**
+ * Answer an abstraction of the file named {@param "n"} using the specified
+ * {@type "file open mode"}s. The file position is initially zero ({@code 0}).
+ *
+ * @method "a file named_(mode=_)"
+ * @param "n" "file name"
+ * @param "modes" "{file open mode|1..2}"
+ *    A set containing {@method "read mode"}, {@method "write mode"}, or both.
+ * @returns "file"
+ *    A file open for reading, writing, or both, as specified by {@param
+ *    "modes"}.
+ * @raises "permission-denied exception"
+ *    If permission is denied to use the specified {@type "file name"}.
+ * @raises "I/O exception"
+ *    If an I/O error occurs for any reason.
+ */
+Public method "a file named_(mode=_)" is
+[
+	n : file name,
+	modes : {file open mode|1..2}
+|
+	if read mode ∈ modes then
+	[
+		if write mode ∈ modes then [a readable, writable file named n]
+		else [a readable file named n]
+	]
+	else [a writable file named n]
+] : file;
+
+Semantic restriction "a file named_(mode=_)" is
+[
+	n : file name's type,
+	modesType : {file open mode|1..2}'s type
+|
+	fileType ::=
+		if |modesType| = 1 then
+		[
+			modes ::= modesType's instance;
+			t : file's type := file;
+			If read mode ∈ modes then [t := eject ↑t ∩ readable file;];
+			If write mode ∈ modes then [t := eject ↑t ∩ writable file;];
+			t
+		]
+		else [file];
+	extend fileType with name : n
+];
+
+Stable method "_is readable" is [f : file | false] : boolean;
+Method "_is readable" is [f : readable file | true];
+Stable method "_is writable" is [f : file | false] : boolean;
+Method "_is writable" is [f : writable file | true];
+Public stable method "_is open" is [f : file | f's open state];
+Public stable method "_is closed" is [f : file | ¬f's open state];
+
+Stable method "“_”" is
+[
+	f : file
+|
+	s : string := if f is open then ["open"] else ["closed"];
+	s := eject ↑s ++ " file named " ++ “file's name”;
+	If f is open then
+	[
+		s := eject ↑s ++ " " ++
+			if f is readable then
+			[
+				if f is writable then ["(readable, writable)"]
+				else ["(readable)"]
+			]
+			else ["(writable)"];
+	];
+	s
+];
+
+/**
+ * A file-closed exception is raised when a file operation is performed on a
+ * closed file.
+ *
+ * @type "file-closed exception"
+ * @supertype "I/O exception"
+ */
+Public explicit class "file-closed exception" extends I/O exception;
+
+/**
+ * Close the specified {@type "file"}.
+ *
+ * @method "Close_"
+ * @param "f" "file"
+ * @raises "file-closed exception"
+ *    If {@param "f"} has already been closed.
+ */
+Public method "Close_" is
+[
+	f : file
+|
+	[
+		h : atom
+	|
+		Primitive 163 (e : invalid-handle code's type);
+		Raise a file-closed exception
+	] : ⊤ (f's handle);
+	f's open state := false;
+] : ⊤;
+
+/**
+ * Answer the current size of the specified {@type "file"}.
+ *
+ * @method "_'s⁇size"
+ * @param "f" "file"
+ * @returns "whole number"
+ * @raises "I/O exception"
+ *    If an I/O error occurs for any reason.
+ * @raises "file-closed exception"
+ *    If {@param "f"} has already been closed.
+ */
+Public method "_'s⁇size" is
+[
+	f : file
+|
+	[
+		h : atom
+	|
+		Primitive 166 (e : {invalid-handle code, I/O-error code}ᵀ);
+		If e = invalid-handle code then [Raise a file-closed exception];
+		Raise an I/O exception
+	] : whole number (f's handle)
+] : whole number;
+
+/**
+ * Set the size of the specified {@type "file"} to {@param "newSize"}. If
+ * {@param "newSize"} is less than the current size of {@param "f"}, then
+ * truncate the file, preserving the prefix of the contents. If {@param
+ * "newSize"} is greater than the current size of {@param "f"}, then extend the
+ * file; the contents of the extension are undefined.
+ *
+ * @method "_'s⁇size:=_"
+ * @param "f" "writable file"
+ * @param "newSize" "whole number"
+ * @returns "whole number"
+ * @raises "I/O exception"
+ *    If an I/O error occurs for any reason.
+ * @raises "file-closed exception"
+ *    If {@param "f"} has already been closed.
+ */
+Public method "_'s⁇size:=_" is
+[
+	f : writable file,
+	newSize : whole number
+|
+	[
+		h : atom,
+		v : whole number
+	|
+		Primitive 176 (e : {invalid-handle code, I/O-error code}ᵀ);
+		If e = invalid-handle code then [Raise a file-closed exception];
+		Raise an I/O exception
+	] : ⊤ (f's handle, newSize);
+] : ⊤;
+
+/**
+ * Answer the current file position for the specified {@type "file"}.
+ *
+ * @method "_'s⁇position"
+ * @param "f" "file"
+ * @returns "natural number"
+ *    The current one-based file position. This is the subscript of the next
+ *    byte that will be read or written.
+ * @raises "I/O exception"
+ *    If an I/O error occurs for any reason.
+ * @raises "file-closed exception"
+ *    If {@param "f"} has already been closed.
+ */
+Method "_'s⁇position" is
+[
+	f : file
+|
+	[
+		h : atom
+	|
+		Primitive 167 (e : {invalid-handle code, I/O-error code}ᵀ);
+		If e = invalid-handle code then [Raise a file-closed exception];
+		Raise an I/O exception
+	] : natural number (f's handle)
+] : natural number;
+
+/**
+ * Set the file position of the specified {@type "file"} to {@param
+ * "newPosition"}. {@param "newPosition"} may exceed the {@method "_'s⁇size"
+ * current size} of {@param "f"}. This will not cause extension of {@param "f"}
+ * unless and until a write occurs.
+ *
+ * @method "_'s⁇position:=_"
+ * @param "f" "file"
+ * @param "newPosition" "natural number"
+ *    The new one-based file position. This is the subscript of the next byte
+ *    that will be read or written.
+ * @raises "subscript-out-of-bounds exception"
+ *    If {@param "newPosition"} exceeds the maximum representation of a file
+ *    position for the given file system.
+ * @raises "I/O exception"
+ *    If an I/O error occurs for any reason.
+ * @raises "file-closed exception"
+ *    If {@param "f"} has already been closed.
+ */
+Method "_'s⁇position:=_" is
+[
+	f : file,
+	newPosition : natural number
+|
+	[
+		h : atom,
+		v : natural number
+	|
+		Primitive 168 (e : {subscript-out-of-bounds code, invalid-handle code,
+			I/O-error code}ᵀ);
+		If e = invalid-handle code then [Raise a file-closed exception];
+		If e = subscript-out-of-bounds code then
+		[
+			Raise a subscript-out-of-bounds exception
+		];
+		Raise an I/O exception
+	] : ⊤ (f's handle, newPosition);
+] : ⊤;
+
+/**
+ * Read data from the specified {@type "file"}, starting at the {@method
+ * "_'s⁇position" current file position}. Advance the file position by the
+ * number of bytes actually read.
+ *
+ * @method "next_byte|bytes from_"
+ * @param "bytesToRead" "[0..∞]"
+ *    The number of bytes to attempt to read from {@param "f"}. If infinite,
+ *    then return the smaller of 1) all remaining bytes or 2) a huge tuple whose
+ *    exact size is unspecified.
+ * @param "f" "readable file"
+ * @returns "<[0..255]…|>"
+ *    Up to {@param "bytesToRead"} bytes from {@param "f"}. Fewer bytes will be
+ *    returned if fewer bytes are available.
+ * @raises "I/O exception"
+ *    If an I/O error occurs for any reason.
+ * @raises "file-closed exception"
+ *    If {@param "f"} has already been closed.
+ */
+Public method "next_byte|bytes from_" is
+[
+	bytesToRead : [0..∞],
+	f : readable file
+|
+	[
+		h : atom,
+		v : [0..∞]
+	|
+		Primitive 164 (e : {invalid-handle code, I/O-error code}ᵀ);
+		If e = invalid-handle code then [Raise a file-closed exception];
+		Raise an I/O exception
+	] : <[0..255]…|> (f's handle, bytesToRead)
+] : <[0..255]…|>;
+
+Semantic restriction "next_byte|bytes from_" is
+[
+	bytesToRead : [0..∞]'s type,
+	f : readable file's type
+|
+	<[0..255]…|0..⎡bytesToRead⎤>
+];
+
+/**
+ * Write data to the specified {@type "file"}, starting at the {@method
+ * "_'s⁇position" current file position}. Advance the file position by the
+ * number of bytes actually written.
+ *
+ * @method "Write_to_"
+ * @param "bytesToWrite" "whole number"
+ *    The bytes to write to {@param "f"}.
+ * @param "f" "writable file"
+ * @raises "I/O exception"
+ *    If an I/O error occurs for any reason.
+ * @raises "file-closed exception"
+ *    If {@param "f"} has already been closed.
+ */
+Public method "Write_to_" is
+[
+	bytesToWrite : <[0..255]…|>,
+	f : writable file
+|
+	[
+		h : atom,
+		b : <[0..255]…|>
+	|
+		Primitive 165 (e : {invalid-handle code, I/O-error code}ᵀ);
+		If e = invalid-handle code then [Raise a file-closed exception];
+		Raise an I/O exception
+	] : ⊤ (f's handle, bytesToWrite);
+] : ⊤;
+
+/**
+ * Block the current fiber until all writes buffered for the specified {@type
+ * "file"} have been committed to the file system.
+ *
+ * @method "Synchronize_with file system"
+ * @param "f" "writable file"
+ * @raises "I/O exception"
+ *    If an I/O error occurs for any reason.
+ * @raises "file-closed exception"
+ *    If {@param "f"} has already been closed.
+ */
+Public method "Synchronize_with file system" is
+[
+	f : writable file
+|
+	[
+		h : atom
+	|
+		Primitive 169 (e : {invalid-handle code, I/O-error code}ᵀ);
+		If e = invalid-handle code then [Raise a file-closed exception];
+		Raise an I/O exception
+	] : ⊤ (f's handle);
+] : ⊤;
+
+/**
+ * Perform the specified {@type "function" action}, passing {@param "f"} as the
+ * argument. Whether the action completes normally or raises an exception,
+ * {@method "Close_" close} {@param "f"}.
+ *
+ * @method "Using|using_,⁇do_"
+ * @param "f" "file"
+ *    A file, typically opened very near the send of this method. The argument
+ *    position works especially well.
+ * @param "action" "[⊥]→⊤"
+ *    A function to apply to {@param "f"}.
+ * @returns "⊤"
+ *    The answer produced by applying {@param "action"} to {@param "f"}.
+ */
+Public method "Using|using_,⁇do_" is
+[
+	f : file,
+	action : [⊥]→⊤
+|
+	Guard [action(f);]
+	ensure [Close f;];
+] : ⊤;
+
+Semantic restriction "Using|using_,⁇do_" is
+[
+	f : file's type,
+	action : [⊥]→⊤'s type
+|
+	If ¬f ⊆ action[1] then
+	[
+		Reject parse, expected:
+			format
+				"function to accept the specified file \
+				\|(but “①” is not a subtype of “②”)"
+			with f, action[1]
+	];
+	action's return type
+];
+
+/* Disallow the general object constructor for file-related types. */
+Grammatical restriction "a|an_«with«_«:»?:=_‡,»»" is
+	<{
+		"file name",
+		"file",
+		"readable file",
+		"writable file",
+		"readable,⁇writable file"},
+	∅,
+	∅>;
+
+"file primitives test suite" is a new atom;
+New test suite file primitives test suite extends I/O test suite;
+
+/* The test directory. */
+testDir ::= "new-avail/Avail.avail/IO.avail/Files.avail/test";
+
+Test "file name(exists)" in file primitives test suite is
+[
+	fn1 ::= testDir ++ "/abracadabra.txt" as file name;
+	fn2 ::= testDir ++ "/doesnotexist.txt" as file name;
+	Require: fn1 exists;
+	Require: ¬fn2 exists;
+];
+
+Test "file name(readable)" in file primitives test suite is
+[
+	fn ::= testDir ++ "/abracadabra.txt" as file name;
+	Require: fn is readable;
+];
+
+Test "file name(writable)" in file primitives test suite is
+[
+	fn ::= testDir ++ "/abracadabra.txt" as file name;
+	Require: ¬fn is writable;
+];
+
+Test "file name(executable)" in file primitives test suite is
+[
+	fn ::= testDir ++ "/abracadabra.txt" as file name;
+	Require: ¬fn is executable;
+];
+
+Test "file name(rename)" in file primitives test suite is
+[
+	src ::= testDir ++ "/source.empty" as file name;
+	dest ::= testDir ++ "/destination.empty" as file name;
+	Require: src exists;
+	Require: ¬dest exists;
+	Rename src to dest;
+	Require: ¬src exists;
+	Require: dest exists;
+	Rename dest to src;
+	Require: src exists;
+	Require: ¬dest exists;
+];
+
+Test "file name(unlink)" in file primitives test suite is
+[
+	fn ::= testDir ++ "/delete.me" as file name;
+	Require: ¬fn exists;
+	Using a writable file named fn, do [f : file |];
+	Require: fn exists;
+	Unlink fn;
+	Require: ¬fn exists;
+];
+
+Test "file(open readable,close)" in file primitives test suite is
+[
+	fn ::= testDir ++ "/abracadabra.txt" as file name;
+	f ::= a readable file named fn;
+	Require: 1 = f's position;
+	Require: 11 = f's size;
+	Close f;
+];
+
+Test "file(open writable,close)" in file primitives test suite is
+[
+	fn ::= testDir ++ "/scratch.txt" as file name;
+	f ::= a writable file named fn;
+	Require: 1 = f's position;
+	Require: 12 = f's size;
+	Close f;
+];
+
+Test "file(open readable&writable,close)" in file primitives test suite is
+[
+	fn ::= testDir ++ "/scratch.txt" as file name;
+	f ::= a readable, writable file named fn;
+	Require: 1 = f's position;
+	Require: 12 = f's size;
+	Close f;
+];
+
+Test "file(open variable mode,close)" in file primitives test suite is
+[
+	rdfn ::= testDir ++ "/abracadabra.txt" as file name;
+	rf : readable file := a file named rdfn (mode={read mode});
+	Close rf;
+	wrfn ::= testDir ++ "/scratch.txt" as file name;
+	wf : writable file := a file named wrfn (mode={write mode});
+	Close wf;
+	rwf : readable, writable file :=
+		a file named wrfn (mode={read mode, write mode});
+	Close rwf;
+];
+
+Test "file(size)" in file primitives test suite is
+[
+	fn ::= testDir ++ "/abracadabra.txt" as file name;
+	Using a readable file named fn, do
+	[
+		f : readable file
+	|
+		Require: 11 = f's size;
+	];
+];
+
+Test "file(read fully)" in file primitives test suite is
+[
+	ref ::= map "abracadabra" through [c : character | c's code point];
+	fn ::= testDir ++ "/abracadabra.txt" as file name;
+	Using a readable file named fn, do
+	[
+		f : readable file
+	|
+		contents ::= next ∞ bytes from f;
+		Require: ref = contents;
+	];
+];
+
+Test "file(read in parts)" in file primitives test suite is
+[
+	ref ::= map "abracadabra" through [c : character | c's code point];
+	fn ::= testDir ++ "/abracadabra.txt" as file name;
+	Using a readable file named fn, do
+	[
+		f : readable file
+	|
+		contents : tuple := next 5 bytes from f;
+		Require: ref[1..5] = contents;
+		contents := eject ↑contents ++ next 6 bytes from f;
+		Require: ref = contents;
+		/* This reads past the end of the file. */
+		contents := next 1 bytes from f;
+		Require: <> = contents;
+	];
+];
+
+Test "file(resize)" in file primitives test suite is
+[
+	ref1 ::= map "beluga whale" through
+		[c : character | cast c's code point into [t : [0..255] | t]];
+	ref2 ::= ref1 ++ 100 of ¢" " ++ "1";
+	fn ::= testDir ++ "/scratch.txt" as file name;
+	Using a readable, writable file named fn, do
+	[
+		f : readable, writable file
+	|
+		Require: 12 = f's size;
+		Require: 1 = f's position;
+		contents ::= next ∞ bytes from f;
+		Require: ref1 = contents;
+		Require: 12 = f's size;
+		Require: 13 = f's position;
+		f's size := 112;
+		Require: 112 = f's size;
+		Require: 13 = f's position;
+		suffix ::= <cast ¢1's code point into [t : [0..255] | t]>;
+		Write suffix to f;
+		Require: 112 = f's size;
+		Require: 14 = f's position;
+		f's size := 0;
+		Require: 0 = f's size;
+		Require: 1 = f's position;
+		Write ref1 to f;
+		Require: 12 = f's size;
+		Require: 13 = f's position;
+	];
+];
+
+Test "file(reposition)" in file primitives test suite is
+[
+	ref1 ::= map "beluga whale" through
+		[c : character | cast c's code point into [t : [0..255] | t]];
+	ref2 ::= ref1 ++ 100 of ¢" " ++ "1";
+	fn ::= testDir ++ "/scratch.txt" as file name;
+	Using a readable, writable file named fn, do
+	[
+		f : readable, writable file
+	|
+		Require: 1 = f's position;
+		Require: 12 = f's size;
+		contents : tuple := next ∞ bytes from f;
+		Require: ref1 = contents;
+		Require: 13 = f's position;
+		Require: 12 = f's size;
+		f's position := 1;
+		Require: 1 = f's position;
+		contents := next ∞ bytes from f;
+		Require: ref1 = contents;
+		Require: 13 = f's position;
+		Require: 12 = f's size;
+		f's position := 200;
+		Require: 200 = f's position;
+		Require: 12 = f's size;
+		suffix ::= <cast ¢1's code point into [t : [0..255] | t]>;
+		Write suffix to f;
+		Require: 200 = f's size;
+		Require: 201 = f's position;
+		f's size := 12;
+		Require: 12 = f's size;
+		Require: 13 = f's position;
+	];
+];
+
+Test "file(round trip)" in file primitives test suite is
+[
+	ref ::= map "my life as a parrot" through
+		[c : character | cast c's code point into [t : [0..255] | t]];
+	fn ::= testDir ++ "/roundtrip.txt" as file name;
+	Require: ¬fn exists;
+	Using a readable, writable file named fn, do
+	[
+		f : readable, writable file
+	|
+		Require: fn exists;
+		Write ref to f;
+		Synchronize f with file system;
+		Require: |ref| = f's position - 1;
+		Require: |ref| = f's size;
+		f's position := 1;
+		contents ::= next |ref| bytes from f;
+		Require: |ref| = f's position - 1;
+		Require: |ref| = f's size;
+		Require: ref = contents;
+	];
+	Unlink fn;
+	Require: ¬fn exists;
+];
+
+Test "file(double close)" in file primitives test suite is
+[
+	fn ::= testDir ++ "/abracadabra.txt" as file name;
+	f ::= a readable file named fn;
+	Close f;
+	Close f;
+]
+must raise file-closed exception;
+
+Test "file(can't open for reading)" in file primitives test suite is
+[
+	fn ::= testDir ++ "/doesntexist.txt" as file name;
+	f ::= a readable file named fn;
+]
+must raise I/O exception;
+
+Test "file(can't open for writing)" in file primitives test suite is
+[
+	fn ::= testDir ++ "/abracadabra.txt" as file name;
+	f ::= a writable file named fn;
+]
+must raise I/O exception;
+
+Test "file(can't open for reading,writing)" in file primitives test suite is
+[
+	fn ::= testDir ++ "/abracadabra.txt" as file name;
+	f ::= a readable, writable file named fn;
+]
+must raise I/O exception;

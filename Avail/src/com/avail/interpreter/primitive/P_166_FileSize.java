@@ -33,7 +33,7 @@ package com.avail.interpreter.primitive;
 
 import static com.avail.descriptor.TypeDescriptor.Types.ATOM;
 import static com.avail.exceptions.AvailErrorCode.*;
-import static com.avail.interpreter.Primitive.Flag.CanInline;
+import static com.avail.interpreter.Primitive.Flag.*;
 import java.io.*;
 import java.util.List;
 import com.avail.descriptor.*;
@@ -53,7 +53,7 @@ extends Primitive
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
 	public final static Primitive instance = new P_166_FileSize().init(
-		1, CanInline);
+		1, CanInline, HasSideEffect);
 
 	@Override
 	public Result attempt (
@@ -62,19 +62,13 @@ extends Primitive
 	{
 		assert args.size() == 1;
 		final AvailObject handle = args.get(0);
-
-		if (!handle.isAtom())
+		final AvailObject pojo =
+			handle.getAtomProperty(AtomDescriptor.fileKey());
+		if (pojo.equalsNull())
 		{
 			return interpreter.primitiveFailure(E_INVALID_HANDLE);
 		}
-
-		final RandomAccessFile file =
-			interpreter.runtime().getOpenFile(handle);
-		if (file == null)
-		{
-			return interpreter.primitiveFailure(E_INVALID_HANDLE);
-		}
-
+		final RandomAccessFile file = (RandomAccessFile) pojo.javaObject();
 		final long fileSize;
 		try
 		{
@@ -84,7 +78,6 @@ extends Primitive
 		{
 			return interpreter.primitiveFailure(E_IO_ERROR);
 		}
-
 		return interpreter.primitiveSuccess(
 			IntegerDescriptor.fromLong(fileSize));
 	}
@@ -96,5 +89,15 @@ extends Primitive
 			TupleDescriptor.from(
 				ATOM.o()),
 			IntegerRangeTypeDescriptor.wholeNumbers());
+	}
+
+	@Override
+	protected AvailObject privateFailureVariableType ()
+	{
+		return AbstractEnumerationTypeDescriptor.withInstances(
+			TupleDescriptor.from(
+				E_INVALID_HANDLE.numericCode(),
+				E_IO_ERROR.numericCode()
+			).asSet());
 	}
 }

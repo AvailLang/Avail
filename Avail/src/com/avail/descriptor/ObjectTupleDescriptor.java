@@ -379,7 +379,7 @@ extends TupleDescriptor
 		int hash = 0;
 		for (int index = end; index >= start; index--)
 		{
-			final int itemHash = object.tupleAt(index).hash() ^ PreToggle;
+			final int itemHash = object.tupleAt(index).hash() ^ preToggle;
 			hash = hash * multiplier + itemHash;
 		}
 		return hash * multiplier;

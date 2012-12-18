@@ -32,7 +32,7 @@
 package com.avail.interpreter.primitive;
 
 import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.exceptions.AvailErrorCode.E_INVALID_HANDLE;
+import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.io.*;
 import java.util.List;
@@ -62,19 +62,13 @@ extends Primitive
 	{
 		assert args.size() == 1;
 		final AvailObject handle = args.get(0);
-
-		if (!handle.isAtom())
+		final AvailObject pojo =
+			handle.getAtomProperty(AtomDescriptor.fileKey());
+		if (pojo.equalsNull())
 		{
 			return interpreter.primitiveFailure(E_INVALID_HANDLE);
 		}
-
-		final RandomAccessFile file =
-			interpreter.runtime().getOpenFile(handle);
-		if (file == null)
-		{
-			return interpreter.primitiveFailure(E_INVALID_HANDLE);
-		}
-
+		final RandomAccessFile file = (RandomAccessFile) pojo.javaObject();
 		try
 		{
 			file.close();
@@ -85,9 +79,12 @@ extends Primitive
 			// we've already forgotten about the handle. There's no reason
 			// to fail the primitive.
 		}
-
-		interpreter.runtime().forgetReadableFile(handle);
-		interpreter.runtime().forgetWritableFile(handle);
+		handle.setAtomProperty(
+			AtomDescriptor.fileKey(), NullDescriptor.nullObject());
+		handle.setAtomProperty(
+			AtomDescriptor.fileModeReadKey(), NullDescriptor.nullObject());
+		handle.setAtomProperty(
+			AtomDescriptor.fileModeWriteKey(), NullDescriptor.nullObject());
 		return interpreter.primitiveSuccess(NullDescriptor.nullObject());
 	}
 
@@ -98,5 +95,11 @@ extends Primitive
 			TupleDescriptor.from(
 				ATOM.o()),
 			TOP.o());
+	}
+
+	@Override
+	protected AvailObject privateFailureVariableType ()
+	{
+		return InstanceTypeDescriptor.on(E_INVALID_HANDLE.numericCode());
 	}
 }

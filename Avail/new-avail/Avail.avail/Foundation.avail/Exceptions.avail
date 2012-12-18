@@ -994,6 +994,13 @@ Semantic restriction "descriptive_" is
 	((descriptive exception) ∩ (exceptionMeta's instance))'s type
 ];
 
+Stable method "“_”" is
+[
+	e : descriptive exception
+|
+	(a|an) “e's type” ++ " (" ++ e's error message ++ ")"
+];
+
 /* Exceptions are going live! Failures of bootstrap linked primitives will now
  * raise appropriate exceptions.
  */

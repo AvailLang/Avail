@@ -562,7 +562,6 @@ extends Descriptor
 		return cont;
 	}
 
-
 	/**
 	 * Construct a new {@link ContinuationDescriptor}.
 	 *

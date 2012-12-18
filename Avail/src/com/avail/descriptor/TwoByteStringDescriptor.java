@@ -311,7 +311,7 @@ extends StringDescriptor
 			final int itemHash =
 				CharacterDescriptor.computeHashOfCharacterWithCodePoint(
 					object.rawShortForCharacterAt(index))
-				^ PreToggle;
+				^ preToggle;
 			hash = hash * multiplier + itemHash;
 		}
 		return hash * multiplier;

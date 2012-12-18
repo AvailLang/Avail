@@ -35,6 +35,7 @@ package com.avail.descriptor;
 import static com.avail.descriptor.AtomDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.AtomDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
+import java.io.RandomAccessFile;
 import java.util.*;
 import com.avail.AvailRuntime;
 import com.avail.annotations.*;
@@ -213,6 +214,21 @@ extends Descriptor
 	 */
 	private static AvailObject moduleBodySectionAtom;
 
+	/**
+	 * The atom used as a property key under which to store a {@link
+	 * RandomAccessFile}.
+	 */
+	private static AvailObject fileKey;
+
+	/**
+	 * The property key that indicates that a file is readable.
+	 */
+	private static AvailObject fileModeReadKey;
+
+	/**
+	 * The property key that indicates that a file is writable.
+	 */
+	private static AvailObject fileModeWriteKey;
 
 	/**
 	 * Answer the atom representing the Avail concept "true".
@@ -270,6 +286,36 @@ extends Descriptor
 		return moduleBodySectionAtom;
 	}
 
+	/**
+	 * Answer the atom used as a property key under which to store a {@link
+	 * RandomAccessFile}.
+	 *
+	 * @return An atom that's special because it's known by the virtual machine.
+	 */
+	public static AvailObject fileKey ()
+	{
+		return fileKey;
+	}
+
+	/**
+	 * Answer the property key that indicates that a file is readable.
+	 *
+	 * @return An atom that's special because it's known by the virtual machine.
+	 */
+	public static AvailObject fileModeReadKey ()
+	{
+		return fileModeReadKey;
+	}
+
+	/**
+	 * Answer the property key that indicates that a file is writable.
+	 *
+	 * @return An atom that's special because it's known by the virtual machine.
+	 */
+	public static AvailObject fileModeWriteKey ()
+	{
+		return fileModeWriteKey;
+	}
 
 	/**
 	 * Create the true and false singletons.
@@ -291,6 +337,15 @@ extends Descriptor
 		moduleBodySectionAtom = create(
 			StringDescriptor.from("Module body section"),
 			NullDescriptor.nullObject());
+		fileKey = create(
+			StringDescriptor.from("file key"),
+			NullDescriptor.nullObject());
+		fileModeReadKey = create(
+			StringDescriptor.from("file mode read"),
+			NullDescriptor.nullObject());
+		fileModeWriteKey = create(
+			StringDescriptor.from("file mode write"),
+			NullDescriptor.nullObject());
 	}
 
 	/**
@@ -301,6 +356,11 @@ extends Descriptor
 		trueObject = null;
 		falseObject = null;
 		objectTypeNamePropertyKey = null;
+		moduleHeaderSectionAtom = null;
+		moduleBodySectionAtom = null;
+		fileKey = null;
+		fileModeReadKey = null;
+		fileModeWriteKey = null;
 	}
 
 	/**

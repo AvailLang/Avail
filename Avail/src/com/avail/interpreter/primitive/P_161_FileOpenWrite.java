@@ -31,7 +31,7 @@
  */
 package com.avail.interpreter.primitive;
 
-import static com.avail.descriptor.TypeDescriptor.Types.ATOM;
+import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.io.*;
@@ -53,32 +53,26 @@ extends Primitive
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
 	public final static Primitive instance = new P_161_FileOpenWrite().init(
-		2, CanInline, HasSideEffect);
+		1, CanInline, HasSideEffect);
 
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 2;
+		assert args.size() == 1;
 		final AvailObject filename = args.get(0);
-		final AvailObject append = args.get(1);
-
-		final AvailObject handle = interpreter.createAtom(filename);
+		final AvailObject handle = interpreter.createAtom(filename, true);
 		try
 		{
 			final RandomAccessFile file = new RandomAccessFile(
 				filename.asNativeString(),
 				"rw");
-			if (append.extractBoolean())
-			{
-				file.seek(file.length());
-			}
-			else
-			{
-				file.setLength(0);
-			}
-			interpreter.runtime().putWritableFile(handle, file);
+			final AvailObject pojo = RawPojoDescriptor.identityWrap(file);
+			handle.setAtomProperty(AtomDescriptor.fileKey(), pojo);
+			handle.setAtomProperty(
+				AtomDescriptor.fileModeWriteKey(),
+				AtomDescriptor.fileModeWriteKey());
 		}
 		catch (final IOException e)
 		{
@@ -96,8 +90,17 @@ extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				TupleTypeDescriptor.stringTupleType(),
-				EnumerationTypeDescriptor.booleanObject()),
+				TupleTypeDescriptor.oneOrMoreOf(CHARACTER.o())),
 			ATOM.o());
+	}
+
+	@Override
+	protected AvailObject privateFailureVariableType ()
+	{
+		return AbstractEnumerationTypeDescriptor.withInstances(
+			TupleDescriptor.from(
+				E_PERMISSION_DENIED.numericCode(),
+				E_IO_ERROR.numericCode()
+			).asSet());
 	}
 }

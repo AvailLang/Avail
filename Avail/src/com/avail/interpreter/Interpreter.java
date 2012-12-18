@@ -652,13 +652,20 @@ public abstract class Interpreter
 	 * unique, as it is only used as a visual hint about the purpose of an atom.
 	 *
 	 * @param nameString
-	 *            A {@linkplain StringDescriptor string} describing the atom.
-	 * @return
-	 *            A new atom.
+	 *        A {@linkplain StringDescriptor string} describing the atom.
+	 * @param withProperties
+	 *        {@code true} if the atom definitely requires properties, {@code
+	 *        false} otherwise.
+	 * @return A new atom.
 	 */
 	public AvailObject createAtom (
-		final AvailObject nameString)
+		final AvailObject nameString,
+		final boolean withProperties)
 	{
+		if (withProperties)
+		{
+			return AtomWithPropertiesDescriptor.create(nameString, module);
+		}
 		return AtomDescriptor.create(nameString, module);
 	}
 

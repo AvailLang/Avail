@@ -4415,9 +4415,41 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	public AvailObject o_DefinitionMethod (
+	AvailObject o_DefinitionMethod (
 		final AvailObject object)
 	{
 		return o_Traversed(object).definitionMethod();
+	}
+
+	@Override
+	boolean o_EqualsByteArrayTuple (
+		final AvailObject object,
+		final AvailObject aByteArrayTuple)
+	{
+		return o_Traversed(object).equalsByteArrayTuple(aByteArrayTuple);
+	}
+
+	@Override
+	boolean o_CompareFromToWithByteArrayTupleStartingAt (
+		final AvailObject object,
+		final int i,
+		final int tupleSize,
+		final AvailObject aByteArrayTuple,
+		final int j)
+	{
+		return o_Traversed(object).compareFromToWithByteArrayTupleStartingAt(
+			i, tupleSize, aByteArrayTuple, j);
+	}
+
+	@Override
+	byte[] o_ByteArray (final AvailObject object)
+	{
+		return o_Traversed(object).byteArray();
+	}
+
+	@Override
+	boolean o_IsByteArrayTuple (final AvailObject object)
+	{
+		return o_Traversed(object).isByteArrayTuple();
 	}
 }

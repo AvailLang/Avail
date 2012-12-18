@@ -109,7 +109,7 @@ counting number iterator's advance method is
 	anIterator's next := anIterator's next + anIterator's step;
 ] : ⊤;
 
-Method "_'s⁇current position" is
+Method "_'s⁇position" is
 [
 	anIterator : counting number iterator
 |
@@ -133,7 +133,7 @@ Private method "Require:_is a valid position for_" is
 	];
 ];
 
-Method "_'s⁇current position:=_" is
+Method "_'s⁇position:=_" is
 [
 	anIterator : counting number iterator,
 	position : number
@@ -621,7 +621,7 @@ Test "counting iterator(position)" in counting iterator test suite is
 	[
 		i : [1..5]
 	|
-		iter's current position := i;
+		iter's position := i;
 		Require: i to 5 = take 5 - i + 1 from iter;
 		Require: iter is exhausted;
 	];
@@ -630,11 +630,11 @@ Test "counting iterator(position)" in counting iterator test suite is
 	[
 		i : [2..16]
 	|
-		iter's current position := i;
+		iter's position := i;
 		Require: i to 16 by 3 = take (16 - i + 3) ÷ 3 from iter;
 		Require: iter is exhausted;
 	];
-	iter's current position := 4;
+	iter's position := 4;
 ]
 must raise invalid-position exception;
 
