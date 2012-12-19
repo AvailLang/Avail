@@ -36,7 +36,8 @@ Versions
 Extends
 
 Uses
-	"Avail"
+	"Avail",
+	"Patricia Trie"
 
 Names
 	"an Avail Scanner with_",
@@ -47,6 +48,7 @@ Names
 	"line",
 	"line number",
 	"Next character from_",
+	"previous element",
 	"position",
 	"Process digit from_",
 	"Process double quote from_",
@@ -62,12 +64,20 @@ Names
 	"token start",
 	"tokenize_",
 	"_'s⁇column number",
+	"_'s⁇column number:=_",
 	"_'s⁇line",
+	"_'s⁇line:=_",
 	"_'s⁇line number",
+	"_'s⁇line number:=_",
+	"_'s⁇previous element",
+	"_'s⁇previous element:=_",
 	"_'s⁇position",
+	"_'s⁇position:=_",
 	"_'s⁇source",
 	"_'s⁇token buffer",
-	"_'s⁇token start"
+	"_'s⁇token buffer:=_",
+	"_'s⁇token start",
+	"_'s⁇token start:=_"
 
 Body
 
@@ -77,6 +87,7 @@ Body
 "line" is a new field atom;
 "line number" is a new field atom;
 "column number" is a new field atom;
+"previous element" is a new field atom;
 "position" is a new field atom;
 "token buffer" is a new field atom;
 "token start" is a new field atom;
@@ -122,11 +133,13 @@ Public class "scanner token" extends object
 
 Public class "Avail scanner" extends object
 	with fields
-		public source : iterator of character,
-		public token buffer : ↑<scanner token…|>,
-		public line number : ↑natural number,
-		public column number : ↑natural number,
-		public token start : ↑natural number;
+		public source : iterator of character
+	with mutable fields
+		public previous element : character,
+		public token buffer : <scanner token…|>,
+		public line number : natural number,
+		public column number : natural number,
+		public token start : natural number;
 
 /**
  * Public constructor of Avail scanner
@@ -282,12 +295,12 @@ Public method "Next character from_" is
 		[ 
 			if scanner's current element = ¢"\n" then 
 			[
-				↓scanner's column number ?= 1;
-				scanner's line number++;
+				scanner's column number := 1;
+				scanner's line number := scanner's line number + 1;
 			]
 			else
 			[
-			 	scanner's column number++;
+			 	scanner's column number := scanner's column number + 1;
 			];
 		];
  ]:⊤;
@@ -396,7 +409,7 @@ Public method "read from_while_" is
 	scanner : Avail scanner,
 	index : natural number
  |
-	↓scanner's token buffer[index]
+	scanner's token buffer[index]
 ]:scanner token;
 
 /**
@@ -490,7 +503,7 @@ Method "read_'s⁇region delimited by_and_«with|without»!nesting" is
 	if nesting = 1 ∧ [ startDelimiter ≠ endDelimiter] then /* handle nesting */
 	[
 		/* Create a patricia trie and add both start and end delimiters*/
-		tree : patricia tree := a patricia tree;
+		tree : patricia trie := a patricia trie;
 		Add startDelimiter to tree;
 		Add endDelimiter to tree;
 		
@@ -507,7 +520,7 @@ Method "read_'s⁇region delimited by_and_«with|without»!nesting" is
 			[
 				value ::= scanner's current element;
 				next ::= cursor's next steps;
-				If char ∉ next then
+				If value ∉ next then
 				[
 					/* We have not hit a delimiter, add collected characters
 					 * to the region and reset buffer and cursor.            */
@@ -521,13 +534,13 @@ Method "read_'s⁇region delimited by_and_«with|without»!nesting" is
 					cursor := next[value];
 					buffer := buffer ++ <value>;
 				];
-
-				/* TODO Need to check to see if buffer is start or end delimiter
-				 * If it is, adjust regionCount appropriately:
-				 * ↑regionCount++ or ↑regionCount--
-				 * Remember, must do the longest possible delimiter.  Must be
-				 * able to rewind back if previously hit delimiter but still 
-				 * could proceed in tree to potentially longer delimiter.    */
+				If cursor is at terminus then
+				[
+				 	/*Check to see if terminating region or opening nested
+				 	 * region. Increment region count appropriately.  */
+					If buffer = startDelimiter then
+					[↑regionCount++;] else [↑regionCount--;];
+				];
 
 				Next character from scanner;
 			];

@@ -37,7 +37,8 @@ Extends
 
 Uses
 	"Avail",
-	"Avail Scanner"
+	"Avail Scanner",
+	"Patricia Trie"
 
 Names
 	"@author",
@@ -57,6 +58,7 @@ Names
 	"@see",
 	"@supertype",
 	"@type",
+	"comments",
 	"concatenate_separated by_",
 	"erroneous stacks token",
 	"generic stacks token",
@@ -65,6 +67,7 @@ Names
 	"special stacks token",
 	"stacks token",
 	"_'s⁇comments",
+	"_'s⁇comments:=_",
 	"_'s⁇error flag",
 	"_'s⁇position",
 	"_'s⁇special flag"
@@ -72,8 +75,10 @@ Names
 Body
 
 "character buffer" is a new field atom;
+"comment buffer" is a new field atom;
 "comments" is a new field atom;
 "quoted flag" is a new field atom;
+"special comment" is a new field atom;
 "special flag" is a new field atom;
 "error flag" is a new field atom;
 "open comment count" is a new field atom;
@@ -190,6 +195,9 @@ doNotTokenize ::= {"/*","/**","*/"," ","","\t"};
  * @category "Stacks"
  * @field "comments" "<<stacks token…|>…|>"
  * 	an a tuple of stacks token tuples.  Each tuple represents a comment.
+ * @field "comment buffer" "<character…|>"
+ * 	buffer that temporarily retains the body of a comment while scanning is 
+ * 	making first pass
  * @field "character buffer" "<character…|>"
  * 	buffer that temporarily retains characters awaiting tokenization
  * @field "token buffer" "<character…|>"
@@ -197,14 +205,22 @@ doNotTokenize ::= {"/*","/**","*/"," ","","\t"};
  * 	added to comments.
  * @field "open comment count" "whole number"
  * 	number of comments currently opened
+ * @field "special comment" "boolean"
+ * 	if scanner current element is in a stacks comment.  Should be initialized
+ * 	to false.
+ * @field "quoted flag" "boolean"
+ * 	if scanner current element in a quoted region.  Should be initialized to
+ * 	false.
  * @author Richard Arriaga
  */
 Public class "stacks scanner" extends Avail scanner
-	with fields
-		public comments : ↑<<stacks token…|>…|>,
-		character buffer : ↑<character…|>,
-		open comment count : ↑whole number,
-		quoted flag : ↑boolean;
+	with mutable fields
+		public comments : <<stacks token…|>…|>,
+		comment buffer : <character…|>,
+		character buffer : <character…|>,
+		referable open comment count : whole number,
+		special comment : boolean,
+		quoted flag : boolean;
 
 /**
  * return the most specific type of the stacks scanner's token buffer's element
@@ -226,13 +242,26 @@ Semantic restriction "_[_]" is
 	]
 	else if [|scannerType| = 1] then
 	[
-		tb ::= (↓(scannerType's instance)'s token buffer)'s type;
-		 
-		∪ (tb's leading types ++ 
-			<tb's default type>)
+		tb ::= ((scannerType's instance)'s token buffer)'s type;
+		∪ (tb's leading types ++ <tb's default type>)
 	]
 	else [⊤]
 ];
+
+/**
+ * @method "_'s⁇token buffer"
+ * @categories "Stacks Scanner"
+ * @restricts "scannerType" "stacks scanner's type" 
+ * @author "Richard Arriaga"
+ */
+Semantic restriction "_'s⁇token buffer" is
+[
+	scannerType : stacks scanner's type
+ |
+	<stacks token…|>
+];
+
+
 /**
  * A method that creates a single stacks token object
  *
@@ -248,7 +277,7 @@ Method "tokenize_" is
 [
 	scanner : stacks scanner
  |
-	 cb : <character…|1..> := cast ↓scanner's character buffer into 
+	 cb : <character…|1..> := cast scanner's character buffer into 
 	 	[c : <character…|1..> | c];
 	if scanner's character buffer ∉ stacksTokenTypeNames then
 	[
@@ -256,21 +285,21 @@ Method "tokenize_" is
 		[
 		 	 a generic stacks token with
 				lexeme ::= cb,
-				line ::= ↓scanner's line number,
-				position ::= ↓scanner's token start
+				line ::= scanner's line number,
+				position ::= scanner's token start
 		] else
 		[
 			an erroneous stacks token with
 				lexeme ::= cb,
-				line ::= ↓scanner's line number,
-				position ::= ↓scanner's token start
+				line ::= scanner's line number,
+				position ::= scanner's token start
 		]
 	] else
 	[
 		a special stacks token with
 			lexeme ::= cb,
-			line ::= ↓scanner's line number,
-			position ::= ↓scanner's token start
+			line ::= scanner's line number,
+			position ::= scanner's token start
 	]
 ] : stacks token;
 
@@ -290,13 +319,13 @@ Private method "Buffer_'s⁇current token" is
 [
  	scanner : stacks scanner
  |
-	If ↓scanner's character buffer ∉ doNotTokenize then 
+	If scanner's character buffer ∉ doNotTokenize then 
 	[
 	 	
-	 	tb :<scanner token…|>:= ↓scanner's token buffer ++ <tokenize scanner>;
-	 	↓scanner's token buffer ?= tb;
+	 	tb :<scanner token…|>:= scanner's token buffer ++ <tokenize scanner>;
+	 	scanner's token buffer := tb;
 	];
- 	↓scanner's character buffer ?= <>;
+ 	scanner's character buffer := <>;
 ]:⊤;
 
 /**
@@ -315,23 +344,23 @@ Private method "Buffer_'s⁇current comment" is
 [
 	scanner : stacks scanner
 |
-	↓scanner's comments ?= ↓scanner's comments ++ <scanner's token buffer>;
+	scanner's comments := (scanner's comments ++ <scanner's token buffer>);
 	
-	↓scanner's token buffer ?= <>;
+	scanner's token buffer := <>;
 ]:⊤;
 
 Private abstract method "Process_comment" is [stacks scanner]→⊤;
 Private forward method "_is at new comment" is [stacks scanner]→boolean;
 
-/**
+/***
  * Determine if a scanner comment is at the start of a new stacks comment.
  *
  * @method "_is at new comment"
  * @categories "stacks"
  * @param "scanner" "stacks scanner" 
  *      a stacks scanner
- * @returnType "⊤"
- *      none
+ * @returnType "boolean"
+ *      whether or not at start of a new comment.
  * @author "Richard Arriaga"
  */
 Private method "_is at new comment" is
@@ -347,7 +376,8 @@ Private method "_is at new comment" is
 	[
 		buffer ::= "/" ++ 
 			read from scanner while [scanner's source's current element = ¢*];
-		buffer[1..2] else [0] = "/*"
+		if |buffer| = 1 then [false] 
+		else [true]
 	]
 ] : boolean;
 
@@ -366,7 +396,7 @@ Private method "Consume_'s⁇nested comment" is
 [
 	scanner : stacks scanner
  |
-	While [↓scanner's open comment count > 1] do
+	While [scanner's open comment count > 1] do
 	[
 		throwAway ::= read from scanner while
 		[
@@ -378,7 +408,7 @@ Private method "Consume_'s⁇nested comment" is
 			If scanner's source is not exhausted ∧ 
 				[scanner's source's current element = ¢*] then
 			[
-				scanner's open comment count++;
+				↑scanner's open comment count++;
 			];
 		]
 		else
@@ -388,7 +418,7 @@ Private method "Consume_'s⁇nested comment" is
 			If scanner's source is not exhausted ∧ 
 				[scanner's source's current element = ¢/] then
 			[
-				scanner's open comment count--;
+				↑scanner's open comment count--;
 			];
 		];
 	];
@@ -411,9 +441,9 @@ Private method "Process forward slash from_" is
  |
 	If scanner is at new comment then
 	[
-		If ↓scanner's open comment count = 0 then
+		If scanner's open comment count = 0 then
 		[
-			scanner's open comment count++;
+			↑scanner's open comment count++;
 			Process scanner comment;
 		] else
 		[
@@ -460,7 +490,7 @@ Private method "Process double quote in comment from_" is
 [
 	scanner : stacks scanner
  |
-		↓scanner's token start ?= scanner's column number;
+		scanner's token start := scanner's column number;
 		word ::= <¢"\""> ++ read from scanner 
 			while
 			[
@@ -470,7 +500,7 @@ Private method "Process double quote in comment from_" is
 			 	scanner's source's current element ∈ tokenDelimiter
 			];
 
-		↓scanner's character buffer ?= word;
+		scanner's character buffer := word;
 		Buffer scanner's current token;
  ]:⊤;
 
@@ -498,7 +528,7 @@ Private method "Process white space in comment from_" is
 			 	scanner's source's current element ∈ tokenDelimiter
 			];
 
-		↓scanner's character buffer ?= word;
+		scanner's character buffer := word;
 		Buffer scanner's current token;
 ]:⊤;
 		
@@ -526,8 +556,80 @@ Private method "Process new line in comment from_" is
 			 	scanner's source's current element ∈ tokenDelimiter
 			];
 
-		↓scanner's character buffer ?= word;
+		scanner's character buffer := word;
 		Buffer scanner's current token;
+]:⊤;
+
+/**
+ * methodDescription
+ *
+ * @method "Process left curly brace in comment from_;"
+ * @categories "Stacks Scanner"
+ * @param "scanner" "stacks scanner" 
+ *	a stacks scanner
+ * @returnType "⊤"
+ *      none
+ * @author "authorName"
+ */
+Private method "Process left curly brace in comment from_" is
+[
+	scanner : stacks scanner
+ |
+	/*TODO Write me if needed*/
+]:⊤;
+
+/**
+ * methodDescription
+ *
+ * @method "Process grave accent in comment from_;"
+ * @categories "Stacks Scanner"
+ * @param "scanner" "stacks scanner" 
+ *	a stacks scanner
+ * @returnType "⊤"
+ *      none
+ * @author "authorName"
+ */
+Private method "Process grave accent in comment from_" is
+[
+	scanner : stacks scanner
+ |
+	/*TODO Write me if needed*/
+]:⊤;
+
+/**
+ * methodDescription
+ *
+ * @method "Process at sign in comment from_;"
+ * @categories "Stacks Scanner"
+ * @param "scanner" "stacks scanner" 
+ *	a stacks scanner
+ * @returnType "⊤"
+ *      none
+ * @author "authorName"
+ */
+Private method "Process at sign in comment from_" is
+[
+	scanner : stacks scanner
+ |
+	/*TODO Write me if needed*/
+]:⊤;
+
+/**
+ * methodDescription
+ *
+ * @method "Process asterick in comment from_;"
+ * @categories "Stacks Scanner"
+ * @param "scanner" "stacks scanner" 
+ *	a stacks scanner
+ * @returnType "⊤"
+ *      none
+ * @author "authorName"
+ */
+Private method "Process asterick in comment from_" is
+[
+	scanner : stacks scanner
+ |
+	/*TODO Write me if needed*/
 ]:⊤;
 
 inCommentDispatchTable : {character→[stacks scanner]→⊤|} := {};
@@ -614,7 +716,7 @@ For each tokenDelimiter do
  * Tokenize all elements of the stacks scanner comment
  *
  * @method "Process_comment"
- * @categories "Stacks"
+ * @categories "Stacks Scanner"
  * @param "scanner" "stacks scanner" 
  *		a stacks scanner
  * @returnType "⊤"
@@ -683,6 +785,192 @@ Public method "concatenate_separated by_" is
  	 	cast flatten lexemeAndSpace into [s : string | s]
  	]
  ]:string;
+
+/***
+ * Find the start of the scanner's next new unnested comment.
+ *
+ * @method "find_'s⁇next comment"
+ * @categories "stacks"
+ * @param "scanner" "stacks scanner" 
+ *      a stacks scanner
+ * @returnType "⊤"
+ *      none
+ * @author "Richard Arriaga"
+ */
+Private method "find_'s⁇next comment" is
+[
+	scanner : stacks scanner
+ |
+	Next character from scanner;
+	if scanner's source's current element = ¢/ then
+	[
+		scanner is at new comment
+	]
+	else
+	[
+		buffer ::= "/" ++ 
+			read from scanner while [scanner's source's current element = ¢*];
+		if |buffer| = 1 then [false] 
+		else if [|buffer| = 2] then [true]
+		else 
+		[
+			scanner's special comment := true; 
+			true
+		]
+	]
+] : boolean;
+
+/**
+ * Process first pass of comment.
+ *
+ * @method "comment first pass from_using_in level_"
+ * @categories "category"
+ * @param "scanner" "stacks scanner" 
+ *      a stacks scanner
+ * @param "tree" "patricia trie"
+ * 		the patricia trie that identifies the delimiters.
+ * @param "regionCount" "whole number" the number of comments currently nested
+ * 	in
+ * @returnType "whole number"
+ *      the number of comments deep currently nested
+ * @author "Richard Arriaga"
+ */
+Private method "comment first pass from_using_in level_" is
+[
+	scanner : stacks scanner,
+	tree : patricia trie,
+	regionCount : ↑whole number
+ |
+ 	tempCommentBuffer : string := "";
+	buffer : string := "";
+	cursor : patricia trie := tree;
+	Until [scanner's source is exhausted ∨ 
+			[cursor is at terminus ∧ 
+				[scanner's current element ∉ cursor's next steps]]]
+	do
+	[
+		value : character := scanner's current element;
+		next ::= cursor's next steps;
+		If value = ¢"\"" then
+		[
+			tempCommentBuffer := tempCommentBuffer ++ <value> ++ 
+				read from scanner while 
+				[
+					scanner's current element ≠ ¢"\"" ∧ 
+						[scanner's previous element = ¢\ ∧
+						 		[scanner's current element = ¢"\""]]
+				] ++ <¢"\"">;
+			/* We know the next element is a quote, we need to move pass this*/
+			Next character from scanner;
+		]
+		else if [value ∉ next] then
+		[
+			/* We have not hit a delimiter, add collected characters
+			 * to the region and reset buffer and cursor.            */
+			If scanner's special comment = true then
+			[
+				tempCommentBuffer := tempCommentBuffer ++ buffer ++ <value>;
+			];
+			buffer := "";
+			cursor := tree;
+		]
+		else
+		[
+		 	/* On track to buidling a delimiter; proceed down tree */
+			cursor := next[value];
+			buffer := buffer ++ <value>;
+		];
+		If cursor is at terminus then
+		[
+		 	/*Check to see if terminating region or opening nested
+		 	 * region. Increment region count appropriately.  */
+			If buffer ∈ {"/**","/*"} then
+			[
+				If scanner's special comment = true then
+				[
+					tempCommentBuffer := tempCommentBuffer ++ buffer;
+				];
+				regionCount++;
+			]
+			else 
+			[
+				regionCount--;
+				If ↓regionCount > 0 ∧ [scanner's special comment = true] then 
+				[
+					tempCommentBuffer := tempCommentBuffer ++ buffer;
+				];
+			];
+		];
+		Next character from scanner;
+	];
+	/* check to see if in stacks comment, if so, save captured comment */
+	If scanner's special comment = true then
+	[
+		scanner's comment buffer := scanner's comment buffer ++ 
+			tempCommentBuffer;
+	];
+	↓regionCount
+]:whole number;
+
+/**
+ * Obtain all Stacks comments from a scanner then process them into tokenized 
+ * regions.
+ *
+ * @method "Obtain Stacks comments from_"
+ * @categories "category"
+ * @param "scanner" "stacks scanner" 
+ *      a stacks scanner
+ * @returnType "⊤"
+ *      none
+ * @author "Richard Arriaga"
+ */
+Private method "Obtain Stacks comments from_" is
+[
+ scanner : stacks scanner
+ |
+	tree : patricia trie := a patricia trie;
+	/* Add open and close comment delimiters to patricia trie */
+	Add "/**" to tree;  /* open stacks comment*/
+	Add "/*" to tree;  /* open plain comment*/
+	Add "*/" to tree;  /* open stacks comment*/
+
+	Until [scanner's source is exhausted]
+	do
+	[
+	 	inComment : boolean := false;
+	 	Until 
+	 	[
+	 	 	scanner's source is exhausted ∨ [inComment = true]
+	 	]
+	 	do [find scanner's next comment];
+	 	
+	 	nestedLevel : whole number := 0;
+	 	If inComment = true then [nestedLevel := 1;];
+		
+	 	While [nestedLevel > 0] do
+		[
+		 	nestedLevel := comment first pass from scanner using tree 
+		 					in level ↑nestedLevel;
+		];
+	 	
+	 	If scanner's special comment = true then 
+		[
+			/*TODO complete second pass*/
+			scanner's special comment := false;
+		];
+	];
+]:⊤;
+
+
+
+
+
+
+
+
+
+
+
 
 
 /* All work that follows is old work*/
