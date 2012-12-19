@@ -86,6 +86,6 @@ Semantic restriction "best of_and_" is
 	else [a ∪ b]
 ];
 
-a ::= an apple with goodness := 5;
-b ::= an orange with goodness := "foolish";
+a ::= an apple with goodness ::= 5;
+b ::= an orange with goodness ::= "foolish";
 tastiest : b's type := best of a and b;

@@ -62,19 +62,15 @@ extends Primitive
 	{
 		assert args.size() == 1;
 		final AvailObject handle = args.get(0);
-
-		if (!handle.isAtom())
+		final AvailObject pojo =
+			handle.getAtomProperty(AtomDescriptor.fileKey());
+		final AvailObject mode =
+			handle.getAtomProperty(AtomDescriptor.fileModeWriteKey());
+		if (pojo.equalsNull() || mode.equalsNull())
 		{
 			return interpreter.primitiveFailure(E_INVALID_HANDLE);
 		}
-
-		final RandomAccessFile file =
-			interpreter.runtime().getWritableFile(handle);
-		if (file == null)
-		{
-			return interpreter.primitiveFailure(E_INVALID_HANDLE);
-		}
-
+		final RandomAccessFile file = (RandomAccessFile) pojo.javaObject();
 		try
 		{
 			file.getFD().sync();
@@ -83,7 +79,6 @@ extends Primitive
 		{
 			return interpreter.primitiveFailure(E_IO_ERROR);
 		}
-
 		return interpreter.primitiveSuccess(NullDescriptor.nullObject());
 	}
 
@@ -94,5 +89,15 @@ extends Primitive
 			TupleDescriptor.from(
 				ATOM.o()),
 			TOP.o());
+	}
+
+	@Override
+	protected AvailObject privateFailureVariableType ()
+	{
+		return AbstractEnumerationTypeDescriptor.withInstances(
+			TupleDescriptor.from(
+				E_INVALID_HANDLE.numericCode(),
+				E_IO_ERROR.numericCode()
+			).asSet());
 	}
 }

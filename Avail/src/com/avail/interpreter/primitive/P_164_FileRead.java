@@ -44,9 +44,10 @@ import com.avail.interpreter.*;
  * the {@linkplain RandomAccessFile file} associated with the specified
  * {@linkplain AtomDescriptor handle} and answer them as a {@linkplain
  * ByteTupleDescriptor tuple} of bytes. If fewer bytes are available, then
- * simply return a shorter tuple. If the request amount is infinite, then
- * answer a tuple containing all remaining bytes, or a very large buffer
- * size, whichever is less. Reading begins at the current file position.
+ * simply return a shorter tuple; an empty tuple indicates that the end of the
+ * file has been reached. If the request amount is infinite, then answer a tuple
+ * containing all remaining bytes, or a very large buffer size, whichever is
+ * less. Reading begins at the current file position.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
@@ -67,20 +68,16 @@ extends Primitive
 		assert args.size() == 2;
 		final AvailObject handle = args.get(0);
 		final AvailObject size = args.get(1);
-
-		if (!handle.isAtom())
+		final AvailObject pojo =
+			handle.getAtomProperty(AtomDescriptor.fileKey());
+		final AvailObject mode =
+			handle.getAtomProperty(AtomDescriptor.fileModeReadKey());
+		if (pojo.equalsNull() || mode.equalsNull())
 		{
 			return interpreter.primitiveFailure(E_INVALID_HANDLE);
 		}
-
-		final RandomAccessFile file =
-			interpreter.runtime().getReadableFile(handle);
-		if (file == null)
-		{
-			return interpreter.primitiveFailure(E_INVALID_HANDLE);
-		}
-
-		final byte[] buffer;
+		final RandomAccessFile file = (RandomAccessFile) pojo.javaObject();
+		byte[] buffer;
 		final int bytesRead;
 		try
 		{
@@ -101,22 +98,19 @@ extends Primitive
 		{
 			return interpreter.primitiveFailure(E_IO_ERROR);
 		}
-
-		final AvailObject tuple;
-		if (bytesRead > 0)
+		/* End of file has been reached. */
+		if (bytesRead == -1)
 		{
-			tuple = ByteTupleDescriptor.mutableObjectOfSize(bytesRead);
-			for (int i = 1; i <= bytesRead; i++)
-			{
-				tuple.rawByteAtPut(i, (short) (buffer[i - 1] & 0xff));
-			}
+			return interpreter.primitiveSuccess(TupleDescriptor.empty());
 		}
-		else
+		if (bytesRead < buffer.length)
 		{
-			tuple = TupleDescriptor.empty();
+			final byte[] newBuffer = new byte[bytesRead];
+			System.arraycopy(buffer, 0, newBuffer, 0, bytesRead);
+			buffer = newBuffer;
 		}
-
-		return interpreter.primitiveSuccess(tuple);
+		return interpreter.primitiveSuccess(
+			ByteArrayTupleDescriptor.forByteArray(buffer));
 	}
 
 	@Override
@@ -125,8 +119,22 @@ extends Primitive
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
 				ATOM.o(),
-				IntegerRangeTypeDescriptor.wholeNumbers()),
+				IntegerRangeTypeDescriptor.create(
+					IntegerDescriptor.zero(),
+					true,
+					InfinityDescriptor.positiveInfinity(),
+					true)),
 			TupleTypeDescriptor.zeroOrMoreOf(
 				IntegerRangeTypeDescriptor.bytes()));
+	}
+
+	@Override
+	protected AvailObject privateFailureVariableType ()
+	{
+		return AbstractEnumerationTypeDescriptor.withInstances(
+			TupleDescriptor.from(
+				E_INVALID_HANDLE.numericCode(),
+				E_IO_ERROR.numericCode()
+			).asSet());
 	}
 }

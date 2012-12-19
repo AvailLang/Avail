@@ -68,7 +68,7 @@ Private method "«Didn't understand_,»Expected|expected a child of_" is
 	node : root command node
 |
 	badToken ::= optionalBadToken[1] else [""];
-	goodTokens ::= ↓node's good nodes' keys;
+	goodTokens ::= node's good nodes' keys;
 	If goodTokens is empty then [Didn't understand;]
 	else
 	[
@@ -78,11 +78,11 @@ Private method "«Didn't understand_,»Expected|expected a child of_" is
 		Report:
 			format "‘bad’I expected ‘how many’‘good’.\n"
 			with
-				bad := if badToken is empty
+				bad ::= if badToken is empty
 					then [""]
 					else [format "Instead of “①”, " with badToken],
-				"how many" := if |sorted| > 1 then ["one of "] else [""],
-				good := “sorted” (as disjunctive list with serial comma);
+				"how many" ::= if |sorted| > 1 then ["one of "] else [""],
+				good ::= “sorted” (as disjunctive list with serial comma);
 	];
 ];
 
@@ -137,7 +137,7 @@ Public method "Read and execute the next command" is
 		 */
 		If canonicalToken[1] is an Arabic numeral then
 		[
-			If "NUMBER" ∈ ↓node's next nodes then
+			If "NUMBER" ∈ node's next nodes then
 			[
 				args := args ++ <canonicalToken→extended integer>;
 				canonicalToken := "NUMBER";
@@ -148,7 +148,7 @@ Public method "Read and execute the next command" is
 		 */
 		else if [canonicalToken[1] = ¢"\""] then
 		[
-			If "STRING" ∈ ↓node's next nodes then
+			If "STRING" ∈ node's next nodes then
 			[
 				/* Take a slice that doesn't include the quotation marks. */
 				args := args ++ <commandToken[2..|commandToken|-1]>;
@@ -158,13 +158,13 @@ Public method "Read and execute the next command" is
 		/* If no child is associated with the current token, then the
 		 * command is invalid. Immediately answer false.
 		 */
-		If canonicalToken ∉ ↓node's next nodes then
+		If canonicalToken ∉ node's next nodes then
 		[
 			Didn't understand canonicalToken, expected a child of node;
 			Exit body with false
 		];
 		/* Traverse the link to the next node. */
-		node := cast ↓node's next nodes[canonicalToken]
+		node := cast node's next nodes[canonicalToken]
 			into [n : command node | n];
 	];
 	/* The current node must be a command node. */
@@ -172,7 +172,7 @@ Public method "Read and execute the next command" is
 	/* If the final node does not have an associated action, then the command
 	 * is invalid. Immediately answer false.
 	 */
-	If commandNode's action is unassigned then
+	If ↑commandNode's action is unassigned then
 	[
 		Expected a child of node;
 		Exit body with false
@@ -181,7 +181,7 @@ Public method "Read and execute the next command" is
 	 * action to the accumulated arguments. If the arguments don't conform to
 	 * the parameter types, then the command is not semantically valid.
 	 */
-	guard [invoke ↓commandNode's action with <args>]
+	guard [invoke commandNode's action with <args>]
 	intercept
 	[
 		e : incorrect-argument-type exception

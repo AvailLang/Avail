@@ -186,8 +186,8 @@ Private method "Setup:_" is
 		e : exception
 	|
 		Raise a test-fixture-setup exception with
-			suite ID := aSuite's suite ID,
-			causal exception := e
+			suite ID ::= aSuite's suite ID,
+			causal exception ::= e
 	];
 ] : ⊤;
 
@@ -213,8 +213,8 @@ Private method "Setup:_" is
 		e : exception
 	|
 		Raise a test-fixture-setup exception with
-			suite ID := aTest's suite ID,
-			causal exception := e
+			suite ID ::= aTest's suite ID,
+			causal exception ::= e
 	];
 ] : ⊤;
 
@@ -240,8 +240,8 @@ Private method "Tear down:_" is
 		e : exception
 	|
 		Raise a test-fixture-tear-down exception with
-			suite ID := aSuite's suite ID,
-			causal exception := e
+			suite ID ::= aSuite's suite ID,
+			causal exception ::= e
 	];
 ] : ⊤;
 
@@ -267,8 +267,8 @@ Private method "Tear down:_" is
 		e : exception
 	|
 		Raise a test-fixture-tear-down exception with
-			suite ID := aTest's suite ID,
-			causal exception := e
+			suite ID ::= aTest's suite ID,
+			causal exception ::= e
 	];
 ] : ⊤;
 
@@ -300,15 +300,15 @@ Private method "test metric for_" is
 			if ¬expected is empty then
 			[
 				a unit test failure with
-					test ID := id,
-					causal exception :=
+					test ID ::= id,
+					causal exception ::=
 						an expected-a-specific-exception exception with
-							test ID := id,
-							expected exception type := expected[1]
+							test ID ::= id,
+							expected exception type ::= expected[1]
 			]
 			else
 			[
-				a unit test success with test ID := test's test ID
+				a unit test success with test ID ::= test's test ID
 			]
 		]
 		intercept
@@ -318,25 +318,25 @@ Private method "test metric for_" is
 			if expected is empty then
 			[
 				a unit test failure with
-					test ID := id,
-					causal exception := a failed-test exception with
-						test ID := id,
-						causal exception := e
+					test ID ::= id,
+					causal exception ::= a failed-test exception with
+						test ID ::= id,
+						causal exception ::= e
 			]
 			else if [ ¬e ∈ expected[1] ] then
 			[
 				exceptionType ::= expected-a-specific-exception exception
 					∩ failed-test exception;
 				a unit test failure with
-					test ID := id,
-					causal exception := an exceptionType with
-						test ID := id,
-						causal exception := e,
-						expected exception type := expected[1]
+					test ID ::= id,
+					causal exception ::= an exceptionType with
+						test ID ::= id,
+						causal exception ::= e,
+						expected exception type ::= expected[1]
 			]
 			else
 			[
-				a unit test success with test ID := test's test ID
+				a unit test success with test ID ::= test's test ID
 			]
 		];
 	Tear down: test;
@@ -360,12 +360,12 @@ Public method "report on_" is
 |
 	Unless trueName ∈ tests by atom then
 	[
-		Raise a no-such-test exception with test ID := trueName
+		Raise a no-such-test exception with test ID ::= trueName
 	];
 	test ::= tests by atom[trueName];
 	suite ::= suites by atom[test's suite ID];
 	Setup: suite;
-	report ::= a unit test report with metrics := <test metric for test>;
+	report ::= a unit test report with metrics ::= <test metric for test>;
 	Tear down: suite;
 	report
 ] : unit test report;
@@ -414,7 +414,7 @@ Private method "Run each_,raising_on error" is
 	[
 		e : exception
 	|
-		Raise an exceptionType with causal exception := e
+		Raise an exceptionType with causal exception ::= e
 	];
 ] : ⊤;
 
@@ -537,7 +537,7 @@ Public method "report on all tests in_" is
 	trueName : atom
 |
 	suite ::= suites by atom[trueName] else
-		[Raise a no-such-test-suite exception with suite ID := trueName];
+		[Raise a no-such-test-suite exception with suite ID ::= trueName];
 	isTopLevel ::= suite's parent suite ID = root test suite ID;
 	Unless isTopLevel then
 	[
@@ -548,7 +548,7 @@ Public method "report on all tests in_" is
 	[
 		Tear down: suites by atom[suite's parent suite ID];
 	];
-	a unit test report with metrics := results
+	a unit test report with metrics ::= results
 ] : unit test report;
 
 /**
@@ -562,7 +562,7 @@ Public method "report on all tests in_" is
 Public method "report on all tests" is
 [
 	a unit test report with
-		metrics := recursively report on all tests in root suite
+		metrics ::= recursively report on all tests in root suite
 ] : unit test report;
 
 
@@ -656,9 +656,9 @@ Public method "module-oriented“_”" is
 				"\t(summary: total=“total”, passed=“passed”, \
 				\|failed=“failed”)\n\n"
 			with
-				total := |results|,
-				passed := |statistics[_passed] else [<>]|,
-				failed := |statistics[_failed] else [<>]|;
+				total ::= |results|,
+				passed ::= |statistics[_passed] else [<>]|,
+				failed ::= |statistics[_failed] else [<>]|;
 	];
 	/* Report statistics. */
 	statistics ::= group report's metrics by discriminator;
@@ -668,10 +668,10 @@ Public method "module-oriented“_”" is
 		\|\tPASSED: “passed”\n\
 		\|\tFAILED: “failed”\n"
 	with
-		breakdown := desc,
-		total := |report's metrics|,
-		passed := |statistics[_passed] else [<>]|,
-		failed := |statistics[_failed] else [<>]|
+		breakdown ::= desc,
+		total ::= |report's metrics|,
+		passed ::= |statistics[_passed] else [<>]|,
+		failed ::= |statistics[_failed] else [<>]|
 ] : string;
 
 /**
@@ -715,9 +715,9 @@ Public method "test suite-oriented“_”" is
 				"\t(summary: total=“total”, passed=“passed”, \
 				\|failed=“failed”)\n\n"
 			with
-				total := |results|,
-				passed := |statistics[_passed] else [<>]|,
-				failed := |statistics[_failed] else [<>]|;
+				total ::= |results|,
+				passed ::= |statistics[_passed] else [<>]|,
+				failed ::= |statistics[_failed] else [<>]|;
 	];
 	/* Report statistics. */
 	statistics ::= group report's metrics by discriminator;
@@ -727,10 +727,10 @@ Public method "test suite-oriented“_”" is
 		\|\tPASSED: “passed”\n\
 		\|\tFAILED: “failed”\n"
 	with
-		breakdown := desc,
-		total := |report's metrics|,
-		passed := |statistics[_passed] else [<>]|,
-		failed := |statistics[_failed] else [<>]|
+		breakdown ::= desc,
+		total ::= |report's metrics|,
+		passed ::= |statistics[_passed] else [<>]|,
+		failed ::= |statistics[_failed] else [<>]|
 ] : string;
 
 /**
@@ -751,7 +751,7 @@ Public method "all tests in_" is
 	suiteID : atom
 |
 	suite ::= suites by atom[suiteID] else
-		[Raise a no-such-test-suite exception with suite ID := suiteID];
+		[Raise a no-such-test-suite exception with suite ID ::= suiteID];
 	recursively visit suite,
 		on entering do
 		[
@@ -787,7 +787,7 @@ Public method "all test suites in_" is
 	suiteID : atom
 |
 	suite ::= suites by atom[suiteID] else
-		[Raise a no-such-test-suite exception with suite ID := suiteID];
+		[Raise a no-such-test-suite exception with suite ID ::= suiteID];
 	recursively visit suite,
 		on entering do
 		[

@@ -1,0 +1,142 @@
+/*
+ * Positionable Iterators.avail
+ * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+System Module "Positionable Iterators"
+Versions
+	"dev"
+Uses
+	"Abstract Iterators",
+	"Common" = ("element type"),
+	"Foundation"
+Names
+	"invalid-position exception",
+	"position type",
+	"positionable iterator",
+	"_positioned by_",
+	"_'s⁇position",
+	"_'s⁇position type",
+	"_'s⁇position:=_"
+Body
+
+"position type" is a new field atom;
+
+/**
+ * A positionable iterator supports explicitly {@method "_'s⁇position"
+ * querying} and {@method "_'s⁇position:=_" setting} the current position.
+ * Specific subtypes may support random access, but all subtypes should support
+ * setting the current position to a previous position.
+ *
+ * @type "positionable iterator"
+ * @supertype "iterator"
+ */
+Public class "positionable iterator" extends iterator
+	with fields
+		public position type : any's type;
+
+/**
+ * Construct and answer a {@type "positionable iterator"} type from the
+ * specified {@type "iterator"} type.
+ *
+ * @method "_positioned by_"
+ * @param "iteratorType" "iterator's type"
+ *        An {@type "iterator"} type.
+ * @param "positionType" "any's type"
+ *        The type of position memento used by iterators of the answered type.
+ * @returns "positionable iterator's type"
+ *          The requested iterator type.
+ */
+Public method "_positioned by_" is
+[
+	iteratorType : iterator's type,
+	positionType : any's type
+|
+	extend iteratorType with position type : positionType's type
+] : positionable iterator's type;
+
+/**
+ * An invalid-position exception is raised by {@method
+ * "_'s⁇current position:=_"} when the position memento is not appropriate.
+ *
+ * @type "invalid-position exception"
+ * @supertype "element-access exception"
+ */
+Public explicit class "invalid-position exception"
+	extends element-access exception;
+
+/**
+ * Answer the current position of the specified {@type "positionable iterator"}.
+ *
+ * @method "_'s⁇position"
+ * @param "anIterator" "positionable iterator"
+ *        A {@type "positionable iterator"}.
+ * @returns "any"
+ *          A position memento that represents the current position.
+ */
+Public abstract method "_'s⁇position" is [positionable iterator]→any;
+
+Semantic restriction "_'s⁇position" is
+[
+	iteratorType : positionable iterator's type
+|
+	iteratorType's position type's instance
+];
+
+/**
+ * Set the current position of the specified {@type "positionable iterator"}.
+ *
+ * @method "_'s⁇position:=_"
+ * @param "anIterator" "positionable iterator"
+ *        A {@type "positionable iterator"}.
+ * @param "position" "any"
+ *        A position memento that represents a valid position.
+ * @raises "invalid-position exception"
+ *         If {@param "position"} is not a valid memento.
+ */
+Public abstract method "_'s⁇position:=_" is
+	[positionable iterator, any]→⊤;
+
+Semantic restriction "_'s⁇position:=_" is
+[
+	iteratorType : positionable iterator's type,
+	positionType : any's type
+|
+	expectedType ::= iteratorType's position type's instance;
+	If ¬positionType ⊆ expectedType then
+	[
+		Reject parse, expected:
+			format
+				"position memento to be an instance of “①” \
+				\|(but “②” is not a subtype)"
+			with expectedType, positionType
+	];
+	⊤
+];

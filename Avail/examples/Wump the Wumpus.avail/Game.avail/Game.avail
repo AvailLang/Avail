@@ -90,7 +90,7 @@ Method "Kill_" is
 	anAgent : agent
 |
 	Assert: anAgent = the agent;
-	↓the agent's life flag ?= false;
+	the agent's life flag := false;
 	Game over
 ] : ⊥;
 
@@ -99,7 +99,7 @@ Method "Kill_" is
 	aWumpus : wumpus
 |
 	Assert: aWumpus = the wumpus;
-	↓the wumpus's life flag ?= false;
+	the wumpus's life flag := false;
 	Now the wumpus is inactive;
 ];
 

@@ -105,8 +105,8 @@ Public method "Cast|cast_into_" is
 	else
 	[
 		Raise a bad-cast exception with
-			source type := valueType,
-			destination type := paramType
+			source type ::= valueType,
+			destination type ::= paramType
 	];
 ] : ⊤;
 
@@ -171,8 +171,8 @@ Public method "Cast|cast each of_into_" is
 	else
 	[
 		Raise a bad-cast exception with
-			source type := valueTypes' type,
-			destination type := paramTypes' type
+			source type ::= valueTypes' type,
+			destination type ::= paramTypes' type
 	];
 ];
 

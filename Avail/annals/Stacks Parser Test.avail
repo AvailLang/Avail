@@ -324,7 +324,7 @@ Public stable method \"__\" is
 	magnitude : number,
 	theUnit : unit
 |
-	a dimensioned quantity with extent := magnitude, metric := theUnit
+	a dimensioned quantity with extent ::= magnitude, metric ::= theUnit
 ] : dimensioned quantity;
 
 Semantic restriction \"__\" is
@@ -536,7 +536,7 @@ Public method \"_(_)is a base unit\" is
 	id ::= atom for name;
 	def ::= {id → 1};
 	unitType ::= extend base unit with unit map : def's type;
-	aUnit ::= a unitType with unit map := def;
+	aUnit ::= a unitType with unit map ::= def;
 	aUnit has symbol name;
 	Unless name = symbol then [aUnit has symbol symbol;];
 	Unless aUnit ∈ namesByUnit then
@@ -605,7 +605,7 @@ Public stable method \"_·_\" is
 	unitType ::= cast unitMap
 		into [t : {atom→1's type|1} | base unit]
 		else [derived unit];
-	a unitType with unit map := unitMap
+	a unitType with unit map ::= unitMap
 ] : unit;
 
 /**
@@ -658,7 +658,7 @@ Public stable method \"_/_\" is
 	unitType ::= cast unitMap
 		into [t : {atom→1's type|1} | base unit]
 		else [derived unit];
-	a unitType with unit map := unitMap
+	a unitType with unit map ::= unitMap
 ] : unit;
 
 /**
@@ -710,7 +710,7 @@ Public stable method \"_^_\" is
 	unitType ::= cast unitMap
 		into [t : {atom→1's type|1} | base unit]
 		else [derived unit];
-	a unitType with unit map := unitMap
+	a unitType with unit map ::= unitMap
 ] : unit;
 
 From 2 to |prettyPowers| do
@@ -2188,11 +2188,8 @@ Public method \"Dimensional|dimensional analysis test suite\" is [_testSuite];
 
 Dimensional analysis test suite is a new test suite;";
 
-Print: format "test=“①”\n" with test;
-it : iterator := an iterator over test;
+
+it : iterator of character := an iterator over test;
 identify comment from it;
 
-/*t::="all dimensioned quantities to have compatible units \
-			\|(but “①” and “②” are not compatible)";
-Print: format "\n\n\nt=“①”\n" with t;
-*/
+Print comment map's tokens;

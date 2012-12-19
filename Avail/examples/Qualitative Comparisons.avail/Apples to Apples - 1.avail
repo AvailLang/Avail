@@ -71,6 +71,6 @@ Semantic restriction "best of_and_" is
 	a ∪ b
 ];
 
-a ::= an apple with goodness := 5;
-b ::= an apple with goodness := 3;
+a ::= an apple with goodness ::= 5;
+b ::= an apple with goodness ::= 3;
 tastiest ::= best of a and b;

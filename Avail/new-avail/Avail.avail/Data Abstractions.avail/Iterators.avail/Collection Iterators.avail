@@ -36,49 +36,91 @@ Versions
 Uses
 	"Abstract Iterators",
 	"Foundation",
+	"Sizable Positionable Iterators",
 	"Unit Testing"
 Names
 	"an iterator over_",
 	"tuple iterator test suite"
 Body
 
-/* TODO: [TLS] Remove these constants once a macro is available for "$…". */
-collection ::= $collection;
-index ::= $index;
+"collection" is a new field atom;
+"index" is a new field atom;
 
 /**
  * A tuple iterator operates over the elements of a tuple. It is finite by
  * definition, since tuples are finite.
  *
  * @type "tuple iterator"
- * @supertype "iterator"
+ * @supertype "positionable iterator"
  */
-Class "tuple iterator" extends iterator
+Class "tuple iterator" extends sizable positionable iterator
 	with fields
 		element type : any's type,
-		collection : tuple,
-		index : ↑natural number;
+		position type : natural number's type,
+		collection : tuple
+	with mutable fields
+		referable index : natural number;
 
 Method "_is exhausted" is
 [
 	anIterator : tuple iterator
 |
-	↓anIterator's index > |anIterator's collection|
+	anIterator's index > |anIterator's collection|
 ] : boolean;
 
 tuple iterator's current element method is
 [
 	anIterator : tuple iterator
 |
-	anIterator's collection[↓anIterator's index]
+	anIterator's collection[anIterator's index]
 ] : any;
 
 tuple iterator's advance method is
 [
 	anIterator : tuple iterator
 |
-	anIterator's index++;
+	↑anIterator's index++;
 ] : ⊤;
+
+Method "_'s⁇position" is
+[
+	anIterator : tuple iterator
+|
+	anIterator's index
+] : natural number;
+
+Method "_'s⁇position:=_" is
+[
+	anIterator : tuple iterator,
+	position : natural number
+|
+	If position > |anIterator's collection| then
+	[
+		Raise an invalid-position exception
+	];
+	anIterator's index := position;
+] : ⊤;
+
+Method "`|_`|" is
+[
+	anIterator : tuple iterator
+|
+	|anIterator's collection|
+] : whole number;
+
+Semantic restriction "`|_`|" is
+[
+	iteratorType : tuple iterator's type
+|
+	||iteratorType's collection||
+];
+
+Method "`|_'s⁇remaining elements`|" is
+[
+	anIterator : tuple iterator
+|
+	(|anIterator's collection| - anIterator's index + 1) max 0
+] : whole number;
 
 /**
  * Construct and answer an {@type "iterator"} that produces all elements of the
@@ -95,10 +137,11 @@ Public method "an iterator over_" is
 	aTuple : tuple
 |
 	a tuple iterator with
-		element type := ∪ aTuple's type[1..|aTuple|],
-		collection := aTuple,
-		index := cast (↓new ↑natural number := 1) into [t : ↑natural number | t]
-] : iterator;
+		element type ::= ∪ aTuple's type[1..|aTuple|],
+		position type ::= [1..|aTuple|],
+		collection ::= aTuple,
+		index := 1
+] : tuple iterator;
 
 Semantic restriction "an iterator over_" is
 [
@@ -107,6 +150,7 @@ Semantic restriction "an iterator over_" is
 	limit ::= ⎡tupleType⎤ min (|tupleType's leading types| + 1);
 	extend tuple iterator with
 		element type : ∪ tupleType[1..limit]'s type,
+		position type : [1..⎡tupleType⎤+1)'s type,
 		collection : tupleType
 ];
 
@@ -127,10 +171,11 @@ Public method "an iterator over_" is
 	aSet : set
 |
 	a tuple iterator with
-		element type := aSet's type's element type,
-		collection := aSet→tuple,
-		index := cast (↓new ↑natural number := 1) into [t : ↑natural number | t]
-] : iterator;
+		element type ::= aSet's type's element type,
+		position type ::= [1..|aSet|],
+		collection ::= aSet→tuple,
+		index := 1
+] : tuple iterator;
 
 Semantic restriction "an iterator over_" is
 [
@@ -138,6 +183,7 @@ Semantic restriction "an iterator over_" is
 |
 	extend tuple iterator with
 		element type : setType's element type's type,
+		position type : [1..⎡setType⎤+1)'s type,
 		collection : <<>, setType's element type… | ||setType||>
 ];
 
@@ -158,10 +204,11 @@ Public method "an iterator over_" is
 	aMap : map
 |
 	a tuple iterator with
-		element type := <aMap's type's key type, aMap's type's value type…|2>,
-		collection := aMap's bindings,
-		index := cast (↓new ↑natural number := 1) into [t : ↑natural number | t]
-] : iterator;
+		element type ::= <aMap's type's key type, aMap's type's value type…|2>,
+		position type ::= [1..|aMap|],
+		collection ::= aMap's bindings,
+		index := 1
+] : tuple iterator;
 
 Semantic restriction "an iterator over_" is
 [
@@ -170,13 +217,11 @@ Semantic restriction "an iterator over_" is
 	elementType ::= <mapType's key type, mapType's value type…|2>;
 	extend tuple iterator with
 		element type : elementType's type,
+		position type : [1..⎡mapType⎤+1)'s type,
 		collection : <<>, elementType… | ||mapType||>
 ];
 
-/* TODO: [TLS] Remove these constants once a macro is available for "$…". */
-_testSuite ::= $"tuple iterator test suite";
-Public method "tuple iterator test suite" is [ _testSuite ];
-
+"tuple iterator test suite" is a new atom;
 New test suite tuple iterator test suite extends iterators test suite;
 
 Test "tuple iterator basics" in tuple iterator test suite is
@@ -409,4 +454,47 @@ Test "tuple iterator(Drop from_until_)" in tuple iterator test suite is
 		Require: ref[(↑index++)] = element;
 	];
 	Require: (|ref| + 1) = index;
+];
+
+Test "tuple iterator(size)" in tuple iterator test suite is
+[
+	iter : sizable iterator of [1..10] := an iterator over 1 to 10;
+	Require: |iter| = 10;
+];
+
+Test "tuple iterator(position)" in tuple iterator test suite is
+[
+	iter : sizable iterator of [1..10] positioned by [1..∞) :=
+		an iterator over 1 to 10;
+	Require: |iter| = 10;
+	Repeat [Advance iter;] 5 times;
+	position ::= iter's position;
+	ref : tuple := 6 to 10;
+	tail : tuple := take 5 from iter;
+	Require: ref = tail;
+	iter's position := position;
+	tail := take 5 from iter;
+	Require: ref = tail;
+	iter's position := 8;
+	ref := 8 to 10;
+	tail := take 3 from iter;
+	Require: ref = tail;
+	Require: |iter| = 10;
+	iter's position := 50;
+]
+must raise invalid-position exception;
+
+Test "tuple iterator(remaining elements)" in tuple iterator test suite is
+[
+	iter ::= an iterator over 1 to 10;
+	remaining : integer := |iter|;
+	For each iter do
+	[
+		element : [1..10]
+	|
+		Require: remaining = |iter's remaining elements|;
+		↑remaining--;
+	];
+	Require: iter is exhausted;
+	Require: remaining = |iter's remaining elements|;
 ];

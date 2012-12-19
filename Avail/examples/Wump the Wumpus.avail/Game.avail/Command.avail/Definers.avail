@@ -47,8 +47,12 @@ Names
 	"command node",
 	"root command node",
 	"_'s⁇good nodes",
+	"_'s⁇good nodes:=_",
 	"_'s⁇next nodes",
-	"_'s⁇action"
+	"_'s⁇next nodes:=_",
+	"_'s⁇action",
+	"_'s⁇action:=_",
+	"↑_'s⁇action"
 Body
 
 /* Definitions of field atoms. */
@@ -90,9 +94,9 @@ Explicit class "abstract command node" extends object;
  *        commands necessary in a real game.
  */
 Public class "root command node" extends abstract command node
-	with fields
-		public next nodes : ↑{nonempty string→abstract command node|},
-		public good nodes : ↑{nonempty string→abstract command node|};
+	with mutable fields
+		public next nodes : {nonempty string→abstract command node|},
+		public good nodes : {nonempty string→abstract command node|};
 
 /**
  * Most of the command tree consists of command nodes. A command node extends
@@ -106,8 +110,8 @@ Public class "root command node" extends abstract command node
  *        An action.
  */
 Public class "command node" extends root command node
-	with fields
-		public action : ↑[…]→boolean;
+	with mutable field
+		public referable action : […]→boolean;
 
 /**
  * Construct and answer a new {@type "root command node"}.
@@ -118,10 +122,7 @@ Public class "command node" extends root command node
  */
 Private method "a root command node" is
 [
-	/* Create a variable for retention by the root command node. */
-	all : {nonempty string→abstract command node|} := {};
-	good : {nonempty string→abstract command node|} := {};
-	a root command node with next nodes := ↑all, good nodes := ↑good
+	a root command node with next nodes := {}, good nodes := {}
 ] : root command node;
 
 /**
@@ -133,15 +134,19 @@ Private method "a root command node" is
  */
 Private method "a command node" is
 [
-	/* Create variables for retention by the command node. */
+	/* The "action" field is created automatically by the object constructor. */
 	all : {nonempty string→abstract command node|} := {};
 	good : {nonempty string→abstract command node|} := {};
-	theAction : […]→boolean;
 	a command node with
-		next nodes := ↑all,
-		good nodes := ↑good,
-		action := ↑theAction
+		next nodes := {},
+		good nodes := {}
 ] : command node;
+
+/* Make sure that "a root command node" and "a command node" are bound instead
+ * of the generic object constructor.
+ */
+Grammatical restriction "a|an_«with«_«:»?:=_‡,»»" is
+	<{"root command node", "command node"}, ∅, ∅>;
 
 /**
  * This is the global command tree. It specifies the language which the player
@@ -178,26 +183,26 @@ Private method "command definer" is
 			 */
 			For each of tokens do
 			[
-				commandToken : string
+				commandToken : nonempty string
 			|
-				Unless commandToken ∈ ↓node's next nodes then
+				Unless commandToken ∈ node's next nodes then
 				[
 					/* Associate the new command node with the current token. */
 					newNode ::= a command node;
-					↓node's next nodes ?=
-						↓node's next nodes + commandToken→newNode;
+					node's next nodes :=
+						node's next nodes + commandToken→newNode;
 					/* If this is a bad command, then also add a transition to
 					 * the bad successors map.
 					 */
-					If ¬isBad ∧ [commandToken ∉ ↓node's good nodes] then
+					If ¬isBad ∧ [commandToken ∉ node's good nodes] then
 					[
 						goodNode ::= a command node;
-						↓node's good nodes ?=
-							↓node's good nodes + commandToken→goodNode;
+						node's good nodes :=
+							node's good nodes + commandToken→goodNode;
 					];
 				];
 				/* Traverse the link to the next node. */
-				node := cast ↓node's next nodes[commandToken]
+				node := cast node's next nodes[commandToken]
 					into [n : command node | n];
 			];
 			/* The current node must be a command node. */
@@ -206,8 +211,8 @@ Private method "command definer" is
 			 * has screwed up by defining multiple commands with the same
 			 * syntax!
 			 */
-			Assert: commandNode's action is unassigned;
-			↓commandNode's action ?= theAction;
+			Assert: ↑commandNode's action is unassigned;
+			commandNode's action := theAction;
 		];
 	]
 ];

@@ -279,7 +279,7 @@ Public stable method "__" is
 	magnitude : number,
 	theUnit : unit
 |
-	a dimensioned quantity with extent := magnitude, metric := theUnit
+	a dimensioned quantity with extent ::= magnitude, metric ::= theUnit
 ] : dimensioned quantity;
 
 Semantic restriction "__" is
@@ -491,7 +491,7 @@ Public method "_(_)is a base unit" is
 	id ::= atom for name;
 	def ::= {id → 1};
 	unitType ::= extend base unit with unit map : def's type;
-	aUnit ::= a unitType with unit map := def;
+	aUnit ::= a unitType with unit map ::= def;
 	aUnit has symbol name;
 	Unless name = symbol then [aUnit has symbol symbol;];
 	Unless aUnit ∈ namesByUnit then
@@ -560,7 +560,7 @@ Public stable method "_·_" is
 	unitType ::= cast unitMap
 		into [t : {atom→1's type|1} | base unit]
 		else [derived unit];
-	a unitType with unit map := unitMap
+	a unitType with unit map ::= unitMap
 ] : unit;
 
 /**
@@ -613,7 +613,7 @@ Public stable method "_/_" is
 	unitType ::= cast unitMap
 		into [t : {atom→1's type|1} | base unit]
 		else [derived unit];
-	a unitType with unit map := unitMap
+	a unitType with unit map ::= unitMap
 ] : unit;
 
 /**
@@ -665,7 +665,7 @@ Public stable method "_^_" is
 	unitType ::= cast unitMap
 		into [t : {atom→1's type|1} | base unit]
 		else [derived unit];
-	a unitType with unit map := unitMap
+	a unitType with unit map ::= unitMap
 ] : unit;
 
 From 2 to |prettyPowers| do
@@ -753,7 +753,7 @@ Public method "Require:_and_are compatible" is
 	If a's metric ≠ b's metric then
 	[
 		Raise an incompatible-quantities exception with
-			incompatible quantities := <a, b>
+			incompatible quantities ::= <a, b>
 	];
 ] : ⊤;
 
@@ -1854,8 +1854,8 @@ Public stable method "_converted to_" is
 	converter ::= converters[key] else
 		[
 			Raise a no-such-conversion exception with
-				source unit := key[1],
-				target unit := key[2]
+				source unit ::= key[1],
+				target unit ::= key[2]
 		];
 	converter(quantity, targetUnit)
 ] : dimensioned quantity;

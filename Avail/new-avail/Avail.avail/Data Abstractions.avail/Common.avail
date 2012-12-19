@@ -39,6 +39,7 @@ Uses
 Names
 	/* Attributes. */
 	"element type",
+	"_'s⁇element type",
 
 	/* Test suite identifiers. */
 	"Data|data abstractions test suite"

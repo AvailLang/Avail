@@ -46,6 +46,7 @@ Names
 	"`#“_”(with label)",
 	"_'s⁇adjacent room ids",
 	"_'s⁇label",
+	"_'s⁇label:=_",
 	"_'s⁇room`#",
 
 	/* Cave. */
@@ -99,7 +100,7 @@ Class "unfinished room" extends object
 Private method "an unfinished room" is
 [
 	roomLabel : string := "";
-	an unfinished room with room# := 0, adjacent room ids := ∅
+	an unfinished room with room# ::= 0, adjacent room ids ::= ∅
 ] : unfinished room;
 
 /* Define the field atoms for the "room" type. */
@@ -122,8 +123,9 @@ Private method "an unfinished room" is
 Public class "room" extends unfinished room
 	with fields
 		public room# : room id,
-		public adjacent room ids : {room id|3},
-		public label : ↑string;
+		public adjacent room ids : {room id|3}
+	with mutable field
+		public label : string;
 
 /**
  * The {@type "agent"} begins her adventure in the entrance room. It is the only
@@ -186,12 +188,12 @@ Method "“_”" is
 		 * through type intersection, so the name set must contain but a single
 		 * element.
 		 */
-		name := aRoom's type's names→tuple[1],
-		id := aRoom's room#,
+		name ::= aRoom's type's names→tuple[1],
+		id ::= aRoom's room#,
 		/* "“_”(as a simple comma-separated list)" composes a textual
 		 * representation of the set that does not include curly braces.
 		 */
-		rooms := “adjacent” (as simple list)
+		rooms ::= “adjacent” (as simple list)
 ] : string;
 
 /**
@@ -209,10 +211,10 @@ Public method "`#“_”(with label)" is
 	aRoom : room
 |
 	format "#“id”‘name’" with
-		id := aRoom's room#,
-		name := if ↓aRoom's label is empty
+		id ::= aRoom's room#,
+		name ::= if aRoom's label is empty
 			then [""]
-			else [" (" ++ ↓aRoom's label ++ ")"]
+			else [" (" ++ aRoom's label ++ ")"]
 ] : string;
 
 /* Define the field atoms for the "cave" type. */
@@ -295,7 +297,7 @@ Public method "a cave" is
 		id ::= shuffledIds[index];
 		theRoom : unfinished room := rooms[id];
 		/* Assign the room id. */
-		theRoom := theRoom's room# := id;
+		theRoom := theRoom's room# ::= id;
 		/* Connect the room to its neighbors in the shuffled tuple. The valid
 		 * subscripts are [1..20], so an attempt to access the 0th or 21st
 		 * element is invalid. Not to worry; "_[_]else_" answers the requested
@@ -308,7 +310,7 @@ Public method "a cave" is
 		/* Update the room tuple with a variant of the current room that
 		 * includes the newly delved tunnels.
 		 */
-		theRoom := theRoom's adjacent room ids := {backId, forwardId};
+		theRoom := theRoom's adjacent room ids ::= {backId, forwardId};
 		rooms := rooms[id] → theRoom;
 	];
 	/* This is a set of rooms lacking the requisite three tunnels. */
@@ -340,9 +342,9 @@ Public method "a cave" is
 			/* Create variants of the current room and its new neighbor that
 			 * mutually reflect the new tunnel that connects them.
 			 */
-			theRoom := theRoom's adjacent room ids :=
+			theRoom := theRoom's adjacent room ids ::=
 				theRoom's adjacent room ids + neighborId;
-			neighborRoom := neighborRoom's adjacent room ids :=
+			neighborRoom := neighborRoom's adjacent room ids ::=
 				neighborRoom's adjacent room ids + id;
 			/* Update the tuple of rooms with the completed variants. */
 			rooms := rooms[id] → theRoom;
@@ -374,7 +376,7 @@ Public method "a cave" is
 			else if [subscript ≤ 3] then [pit room]
 			else [room];
 		s : string := "";
-		theRoom ::= rooms[id] as roomType with label := ↑s;
+		theRoom ::= rooms[id] as roomType with label ::= ↑s;
 		rooms := rooms[id] → theRoom;
 	];
 	/* Coerce the tuple of rooms to the stronger type required for a cave's
@@ -382,9 +384,9 @@ Public method "a cave" is
 	 */
 	finishedRooms ::= cast rooms into [r : <room…|20> | r];
 	a cave with
-		network of rooms := finishedRooms,
-		entrance id := shuffledIds[1],
-		pit ids := cast shuffledIds[2..3]→set into [s : {room id|2} | s]
+		network of rooms ::= finishedRooms,
+		entrance id ::= shuffledIds[1],
+		pit ids ::= cast shuffledIds[2..3]→set into [s : {room id|2} | s]
 ] : cave;
 
 /**

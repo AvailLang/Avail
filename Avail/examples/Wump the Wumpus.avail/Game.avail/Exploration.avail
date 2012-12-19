@@ -59,7 +59,7 @@ Public method "Look around«,having just entered»?" is
 [
 	justArrived : boolean
 |
-	aRoom ::= ↓the agent's location;
+	aRoom ::= the agent's location;
 	Report:
 		format
 			"You are ‘arrived’in room ‘where’.
@@ -67,26 +67,26 @@ Public method "Look around«,having just entered»?" is
 			\|‘escape’\
 			\|‘info’"
 		with
-			arrived := if justArrived then ["now "] else [""],
-			where := #“aRoom” (with label),
+			arrived ::= if justArrived then ["now "] else [""],
+			where ::= #“aRoom” (with label),
 			/* Sort the adjacent room ids, convert them strings with
 			 * octothorp (#) prepended, and put them into a nice English
 			 * list using the serial comma.
 			 */
-			exits :=
+			exits ::=
 				“map quicksort aRoom's adjacent room ids→tuple
 				through [n : room id | #“the cave[n]” (with label)]”
 				(as conjunctive list with serial comma),
 			/* If this is the entrance room, then indicate that. */
-			escape :=
+			escape ::=
 				if aRoom ∈ entrance room then
 				[
 					"Additionally, there is an exit from the cave here.\n"
 				]
 				else [""],
 			/* Report sensory information available at the new location. */
-			info := accumulated sensory information;
-	If ↓the wumpus's location = aRoom then
+			info ::= accumulated sensory information;
+	If the wumpus's location = aRoom then
 	[
 		Report: "There is a dead wumpus here. Sure is ugly.\n";
 	];
@@ -99,12 +99,12 @@ Public method "Look around«,having just entered»?" is
  */
 Public method "Quiver check" is
 [
-	count ::= ↓the agent's count of remaining arrows;
+	count ::= the agent's count of remaining arrows;
 	If count > 0 then
 	[
 		Report:
 			format "You have “①” crooked arrows remaining.\n"
-			with ↓the agent's count of remaining arrows;
+			with the agent's count of remaining arrows;
 	]
 	else
 	[
@@ -126,9 +126,9 @@ Public method "Quiver check" is
  */
 Private method "Super bat swarm attack" is
 [
-	aRoom ::= ↓the agent's location;
+	aRoom ::= the agent's location;
 	/* Figure out which swarm is here. */
-	theSwarm ::= if ↓the first swarm's location = aRoom
+	theSwarm ::= if the first swarm's location = aRoom
 		then [the first swarm]
 		else [the second swarm];
 	Report:
@@ -142,12 +142,12 @@ Private method "Super bat swarm attack" is
 	agentDestination ::= the RNG's next element of rooms \ {aRoom};
 	swarmDestination ::= the RNG's next element of rooms \
 		{
-			↓the first swarm's location,
-			↓the second swarm's location,
+			the first swarm's location,
+			the second swarm's location,
 			/* 0 is guaranteed not to be present, so it's safe to try to
 			 * remove it.
 			 */
-			if the wumpus is alive then [↓the wumpus's location] else [0],
+			if the wumpus is alive then [the wumpus's location] else [0],
 			agentDestination
 		};
 	/* Actually move them! */
@@ -161,7 +161,7 @@ Method "Handle_'s⁇arrival in_" is
 	aRoom : room
 |
 	Assert: anAgent = the agent;
-	Assert: ↓the agent's location = aRoom;
+	Assert: the agent's location = aRoom;
 	/* If the wumpus is here, then kill the agent. */
 	If the agent's location contains the wumpus ∧ [the wumpus is alive] then
 	[
@@ -201,7 +201,7 @@ Method "Handle_'s⁇arrival in_" is
 	aRoom : room
 |
 	Assert: aWumpus = the wumpus;
-	Assert: ↓the wumpus's location = aRoom;
+	Assert: the wumpus's location = aRoom;
 	Assert: the wumpus is alive;
 	/* Upon discovery of the tasty agent, eat her up! Yum! */
 	If the wumpus's location contains the agent then
@@ -217,7 +217,7 @@ Method "Handle_'s⁇arrival in_" is
 	aRoom : pit room
 |
 	Assert: anAgent = the agent;
-	Assert: ↓the agent's location = aRoom;
+	Assert: the agent's location = aRoom;
 	If the agent's location contains a super bat swarm then
 	[
 		Report: "You are plummeting into a bottomless pit, but then…\n";
@@ -271,7 +271,7 @@ Method "Handle_'s⁇arrival in_" is
 		Report:
 			"You hear a great rustling, as of a multitude of wings.
 			\|Faster than a speeding arrow, …\n";
-		Move swarm to ↓the agent's location;
+		Move swarm to the agent's location;
 	];
 	/* If the arrow whizzed by the wumpus, then wake it up. */
 	If the wumpus is alive

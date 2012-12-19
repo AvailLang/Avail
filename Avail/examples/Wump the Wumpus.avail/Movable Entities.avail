@@ -50,12 +50,18 @@ Names
 	/* Location. */
 	"location",
 	"_'s⁇location",
+	"_'s⁇location:=_",
 
 	/* Life cycle. */
 	"Kill_",
 	"_is«alive|dead»!",
-	"_'s⁇count of remaining arrows",
 	"_'s⁇life flag",
+	"_'s⁇life flag:=_",
+
+	/* Arrows. */
+	"_'s⁇count of remaining arrows",
+	"_'s⁇count of remaining arrows:=_",
+	"↑_'s⁇count of remaining arrows",
 
 	/* Exploration. */
 	"Handle_'s⁇arrival in_",
@@ -67,7 +73,7 @@ Names
 Body
 
 /* Define field atoms for the "movable entity" type. */
-"location" is a new atom;
+"location" is a new field atom;
 
 /**
  * A movable entity can move around in a {@type "cave"}, though not necessarily
@@ -79,8 +85,8 @@ Body
  *        The (mutable) {@type "room" location} of the movable entity.
  */
 Public class "movable entity" extends object
-	with fields
-		public location : ↑room;
+	with mutable field
+		public location : room;
 
 /**
  * A crooked arrow is a {@type "movable entity"} carried by the {@type "agent"}
@@ -92,7 +98,7 @@ Public class "movable entity" extends object
 Public explicit class "crooked arrow" extends movable entity;
 
 /* Define field atoms for the "creature" type. */
-"life flag" is a new atom;
+"life flag" is a new field atom;
 
 /**
  * A creature is an occupant or explorer of a {@type "cave"}.
@@ -104,8 +110,8 @@ Public explicit class "crooked arrow" extends movable entity;
  *        otherwise.
  */
 Public class "creature" extends movable entity
-	with fields
-		public life flag : ↑boolean;
+	with mutable field
+		public life flag : boolean;
 
 /**
  * Assess the vitality of the specified creature.
@@ -123,11 +129,11 @@ Public method "_is«alive|dead»!" is
 	critter : creature,
 	mode : [1..2]
 |
-	↓critter's life flag = (mode = 1)
+	critter's life flag = (mode = 1)
 ] : boolean;
 
 /* Define field atoms for the "agent" type. */
-"count of remaining arrows" is a new atom;
+"count of remaining arrows" is a new field atom;
 
 /**
  * The agent is the player character.
@@ -139,8 +145,8 @@ Public method "_is«alive|dead»!" is
  *        quiver.
  */
 Public class "agent" extends creature
-	with fields
-		public count of remaining arrows : ↑(-∞..5];
+	with mutable field
+		public referable count of remaining arrows : (-∞..5];
 
 /**
  * A super bat swarm conceptually comprises a close-knit multitude of herculean
@@ -153,7 +159,7 @@ Public class "agent" extends creature
 Public explicit class "super bat swarm" extends creature;
 
 /* Define field atoms for the "wumpus" type. */
-"activity flag" is a new atom;
+"activity flag" is a new field atom;
 
 /**
  * The fabled wumpus is master of the {@type "cave"}. It will eat any {@type
@@ -166,8 +172,8 @@ Public explicit class "super bat swarm" extends creature;
  *        otherwise.
  */
 Public class "wumpus" extends creature
-	with fields
-		activity flag : ↑boolean;
+	with mutable field
+		activity flag : boolean;
 
 /**
  * Is the {@type "wumpus"} active?
@@ -179,7 +185,7 @@ Public class "wumpus" extends creature
  *          {@method "true"} if the {@type "wumpus"} is active, {@method
  *          "false"} otherwise.
  */
-Public method "_is active" is [w : wumpus | ↓w's activity flag] : boolean;
+Public method "_is active" is [w : wumpus | w's activity flag] : boolean;
 
 /**
  * Set the activity flag of the {@type "wumpus"}.
@@ -197,31 +203,8 @@ Public method "Now_is«active|inactive»!" is
 	aWumpus : wumpus,
 	mode : [1..2]
 |
-	↓aWumpus's activity flag ?= if mode = 1 then [true] else [false];
+	aWumpus's activity flag := if mode = 1 then [true] else [false];
 ] : ⊤;
-
-/**
- * Construct and answer a new {@type "movable entity"} of the specified subtype.
- *
- * @method "a|an_"
- * @param "entityKind" "movable entity's type"
- *        A subtype of {@type "movable entity"}.
- * @returns "creature"
- *          A {@type "movable entity"} of the requested type.
- */
-Public method "a|an_" is
-[
-	entityKind : movable entity's type
-|
-	/* A movable entity's "location" field binds a variable. So unlike a cave or
-	 * room, a movable entity is mutable (by virtue of having some mutable
-	 * state). Capture a local variable, "entityLocation", for this field. Local
-	 * variables are created anew whenever a function is applied, so no
-	 * accidental sharing can occur because of this strategy.
-	 */
-	entityLocation : room;
-	an entityKind with location := ↑entityLocation
-] : movable entity;
 
 /**
  * Construct and answer a new {@type "creature"}.
@@ -236,11 +219,7 @@ Public method "a|an_" is
 [
 	entityKind : creature's type
 |
-	agentLocation : room;
-	isAlive : boolean := true;
-	an entityKind with
-		location := ↑agentLocation,
-		life flag := ↑isAlive
+	an entityKind with life flag := true
 ] : creature;
 
 /**
@@ -256,13 +235,7 @@ Public method "a|an_" is
 [
 	entityKind : agent's type
 |
-	agentLocation : room;
-	isAlive : boolean := true;
-	arrowsLeft : (-∞..5] := 5;
-	an agent with
-		location := ↑agentLocation,
-		life flag := ↑isAlive,
-		count of remaining arrows := ↑arrowsLeft
+	an agent with life flag := true, count of remaining arrows := 5
 ] : agent;
 
 /**
@@ -278,38 +251,12 @@ Public method "a|an_" is
 [
 	entityKind : wumpus's type
 |
-	lair : room;
-	isAlive : boolean := true;
-	isActive : boolean := false;
-	a wumpus with
-		location := ↑lair,
-		life flag := ↑isAlive,
-		activity flag := ↑isActive
+	a wumpus with life flag := true, activity flag := false
 ] : wumpus;
 
-/**
- * Strengthen the type of the answer to the supplied {@type "movable entity"}
- * type.
- *
- * @method "a|an_"
- * @restricts "movable entity's type's type"
- */
-Semantic restriction "a|an_" is
-[
-	entityMeta : movable entity's type's type
-|
-	/* Every metatype has a specific type as its sole instance. */
-	entityKind ::= entityMeta's instance;
-	/* "movable entity" and "creature" are essentially abstract types; they
-	 * should not have any direct instances, so forbid an attempt to create one.
-	 */
-	If entityKind ∈ {movable entity, creature} then
-	[
-		Reject parse, expected: "a concrete subtype of \"movable entity\""
-	];
-	/* The actual movable entity will be an instance of "entityKind". */
-	entityKind
-];
+/* Ensure that the specialized "a|an_" creature constructors will be used. */
+Grammatical restriction "a|an_«with«_«:»?:=_‡,»»" is
+	<{"creature", "agent", "wumpus"}, ∅, ∅>;
 
 /**
  * React to the arrival of a {@type "movable entity"} in a particular {@type
@@ -351,17 +298,7 @@ Public method "Move_to_«(initial placement)»?" is
 	aRoom : room,
 	initialPlacement : boolean
 |
-	/* "↓_?=_" does indirect assignment, i.e., assignment to variable that is
-	 * not directly in scope but instead the result of evaluating of an
-	 * expression. In this case, the expression is "_'s⁇location", which answers
-	 * the value bound to the argument's field.
-	 *
-	 * Unlike a direct assignment, which is checked for type compatibility by
-	 * the compiler, indirect assignment is not checked for type compatibility
-	 * until execution time. Nonetheless, this assignment will always be
-	 * correct.
-	 */
-	↓entity's location ?= aRoom;
+	entity's location := aRoom;
 	/* Handle the entity's arrival in the new room. */
 	Unless initialPlacement then [Handle entity's arrival in aRoom;];
 ] : ⊤;
@@ -382,5 +319,5 @@ Public method "Kill_" is
 [
 	critter : creature
 |
-	↓critter's life flag ?= false;
+	critter's life flag := false;
 ] : ⊤;

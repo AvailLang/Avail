@@ -86,8 +86,6 @@ extends TupleDescriptor
 		final AvailObject anotherObject,
 		final int startIndex2)
 	{
-		//  Compare sections of two tuples.
-
 		return anotherObject.compareFromToWithByteTupleStartingAt(
 			startIndex2,
 			startIndex2 + endIndex1 - startIndex1,
@@ -109,13 +107,12 @@ extends TupleDescriptor
 		}
 		//  Compare actual bytes.
 		int index2 = startIndex2;
-		for (int index1 = startIndex1; index1 <= endIndex1; index1++)
+		for (int index1 = startIndex1; index1 <= endIndex1; index1++, index2++)
 		{
 			if (object.rawByteAt(index1) != aByteTuple.rawByteAt(index2))
 			{
 				return false;
 			}
-			index2++;
 		}
 		return true;
 	}
@@ -264,7 +261,7 @@ extends TupleDescriptor
 		final AvailObject aByteObject)
 	{
 		// Set the byte at the given index to the given object (which should be
-		// an AvailObject that's an integer 0<=n<=255.
+		// an AvailObject that's an integer 0<=n<=255).
 		assert index >= 1 && index <= object.tupleSize();
 		final short theByte = aByteObject.extractUnsignedByte();
 		object.byteSlotAtPut(IntegerSlots.RAW_QUAD_AT_, index, theByte);
@@ -308,8 +305,7 @@ extends TupleDescriptor
 		final AvailObject object,
 		final int index)
 	{
-		//  Answer the integer element at the given index in the tuple object.
-
+		// Answer the integer element at the given index in the tuple object.
 		return object.byteSlotAt(IntegerSlots.RAW_QUAD_AT_, index);
 	}
 
@@ -317,8 +313,8 @@ extends TupleDescriptor
 	int o_BitsPerEntry (
 		final AvailObject object)
 	{
-		//  Answer approximately how many bits per entry are taken up by this object.
-
+		// Answer approximately how many bits per entry are taken up by this
+		// object.
 		return 8;
 	}
 
@@ -328,13 +324,13 @@ extends TupleDescriptor
 		final int start,
 		final int end)
 	{
-		//  See comment in superclass.  This method must produce the same value.
+		// See comment in superclass. This method must produce the same value.
 
 		int hash = 0;
 		for (int index = end; index >= start; index--)
 		{
 			final int itemHash = IntegerDescriptor.hashOfUnsignedByte(
-				object.rawByteAt(index)) ^ PreToggle;
+				object.rawByteAt(index)) ^ preToggle;
 			hash = hash * multiplier + itemHash;
 		}
 		return hash * multiplier;
@@ -429,5 +425,4 @@ extends TupleDescriptor
 		new ByteTupleDescriptor(true, 1),
 		new ByteTupleDescriptor(false, 1)
 	};
-
 }

@@ -59,13 +59,13 @@ Public variable ↑testsByAtom is "tests by atom";
  * @global "rootSuite" "root unit test suite"
  */
 rootSuite : root unit test suite := a root unit test suite with
-	suite ID := root test suite ID,
-	child suite IDs := <>,
-	suite fixture setup := <>,
-	suite fixture tear down := <>,
-	test fixture setup := <>,
-	test fixture tear down := <>,
-	unit tests := <>;
+	suite ID ::= root test suite ID,
+	child suite IDs ::= <>,
+	suite fixture setup ::= <>,
+	suite fixture tear down ::= <>,
+	test fixture setup ::= <>,
+	test fixture tear down ::= <>,
+	unit tests ::= <>;
 Public variable ↑rootSuite is "root suite";
 
 /**

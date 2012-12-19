@@ -33,6 +33,7 @@ package com.avail.interpreter.primitive;
 
 import static com.avail.descriptor.TypeDescriptor.Types.NUMBER;
 import static com.avail.interpreter.Primitive.Flag.CanFold;
+import static com.avail.descriptor.InfinityDescriptor.*;
 import java.util.List;
 import com.avail.descriptor.*;
 import com.avail.exceptions.ArithmeticException;
@@ -117,15 +118,17 @@ public class P_001_Addition extends Primitive
 				final AvailObject high = aType.upperBound().plusCanDestroy(
 					bType.upperBound(),
 					false);
-				final boolean lowInclusive =
-					aType.lowerInclusive() && bType.lowerInclusive();
-				final boolean highInclusive =
-					aType.upperInclusive() && bType.upperInclusive();
+				final boolean includesNegativeInfinity =
+					negativeInfinity().isInstanceOf(aType)
+					|| negativeInfinity().isInstanceOf(bType);
+				final boolean includesInfinity =
+					positiveInfinity().isInstanceOf(aType)
+					|| positiveInfinity().isInstanceOf(bType);
 				return IntegerRangeTypeDescriptor.create(
-					low,
-					lowInclusive,
-					high,
-					highInclusive);
+					low.minusCanDestroy(IntegerDescriptor.one(), false),
+					includesNegativeInfinity,
+					high.plusCanDestroy(IntegerDescriptor.one(), false),
+					includesInfinity);
 			}
 		}
 		catch (final ArithmeticException e)

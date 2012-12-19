@@ -204,7 +204,7 @@ d ::= a described @raises with
 	target type := "exception",
 	description := "If anything goes wrong.";
 
-d2 ::= d's target type := "element-access exception";
+d2 ::= d's target type ::= "element-access exception";
 Assert: d2's target type = "element-access exception";
 Assert: d2's description = "If anything goes wrong."
 

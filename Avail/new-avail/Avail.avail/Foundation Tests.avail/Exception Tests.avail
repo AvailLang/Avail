@@ -72,7 +72,7 @@ Test "one intercept,no exception(value-producing)" in exception test suite is
 Test "one intercept(side-effect)" in exception test suite is
 [
 	ref : descriptive exception;
-	Guard [Raise a descriptive exception with error message := "fnord"]
+	Guard [Raise a descriptive exception with error message ::= "fnord"]
 	intercept [e : descriptive exception | ref := e;];
 	Require: ↑ref is assigned;
 	Require: "fnord" = ref's error message;
@@ -81,7 +81,7 @@ Test "one intercept(side-effect)" in exception test suite is
 Test "one intercept(value-producing)" in exception test suite is
 [
 	ref : descriptive exception :=
-		guard [Raise a descriptive exception with error message := "fnord"]
+		guard [Raise a descriptive exception with error message ::= "fnord"]
 		intercept [e : descriptive exception | e];
 	Require: ↑ref is assigned;
 	Require: "fnord" = ref's error message;

@@ -65,18 +65,6 @@ Public method "_'s⁇adjacent rooms" is
 ] : {room|3};
 
 /**
- * Answer the {@type "room"}s adjacent to {@param "aRoom"} in the {@type "cave"}
- * of the implied {@type "Wump the Wumpus" game}.
- *
- * @method "_'s⁇adjacent rooms"
- * @param "aRoom" "↑room"
- *        A {@type "variable"} containing a {@type "room"}.
- * @returns "{room|3}"
- *          The {@type "room"}s adjacent to {@param "aRoom"}.
- */
-Method "_'s⁇adjacent rooms" is [aRoom : ↑room | ↓aRoom's adjacent rooms];
-
-/**
  * Is {@param "entity"} in {@param "aRoom"}?
  *
  * @method "_is in_"
@@ -93,27 +81,7 @@ Public method "_is in_" is
 	entity : movable entity,
 	aRoom : room
 |
-	↓entity's location = aRoom
-] : boolean;
-
-/**
- * Is {@param "entity"} in {@param "aRoom"}?
- *
- * @method "_is in_"
- * @param "entity" "movable entity"
- *        A {@type "movable entity"}.
- * @param "aRoom" "↑room"
- *        A {@type "room"}.
- * @returns "boolean"
- *          {@method "true"} if {@param "aRoom"} contains {@param "entity"},
- *          {@method "false"} otherwise.
- */
-Public method "_is in_" is
-[
-	entity : movable entity,
-	aRoom : ↑room
-|
-	↓entity's location = ↓aRoom
+	entity's location = aRoom
 ] : boolean;
 
 /**
@@ -133,27 +101,7 @@ Public method "_contains_" is
 	aRoom : room,
 	entity : movable entity
 |
-	↓entity's location = aRoom
-] : boolean;
-
-/**
- * Does {@param "aRoom"} contain the {@type "movable entity" entity}?
- *
- * @method "_contains_"
- * @param "aRoom" "↑room"
- *        A {@type "room"}.
- * @param "entity" "movable entity"
- *        A {@type "movable entity"}.
- * @returns "boolean"
- *          {@method "true"} if {@param "aRoom"} contains {@param "entity"},
- *          {@method "false"} otherwise.
- */
-Public method "_contains_" is
-[
-	aRoom : ↑room,
-	entity : movable entity
-|
-	↓entity's location = ↓aRoom
+	entity's location = aRoom
 ] : boolean;
 
 /**
@@ -174,20 +122,6 @@ Public method "_contains a pit" is
 ] : boolean;
 
 /**
- * Does {@param "aRoom"} contain a pit?
- *
- * @method "_contains a pit"
- * @param "aRoom" "↑room"
- *        A {@type "variable"} containing a {@type "room"}.
- * @returns "boolean"
- *          {@method "true"} if {@param "aRoom"} is a {@type "pit room"},
- *          {@method "false"} otherwise.
- */
-Method "_contains a pit" is [aRoom : ↑room | ↓aRoom contains a pit];
-
-Grammatical restriction "_contains_" is <∅, {"a|an_"}>;
-
-/**
  * Does {@param "aRoom"} contain a {@type "super bat swarm"}?
  *
  * @method "_contains a super bat swarm"
@@ -201,22 +135,11 @@ Public method "_contains a super bat swarm" is
 [
 	aRoom : room
 |
-	aRoom ∈ {↓the first swarm's location, ↓the second swarm's location}
+	aRoom ∈ {the first swarm's location, the second swarm's location}
 ] : boolean;
 
-/**
- * Does {@param "aRoom"} contain a {@type "super bat swarm"}?
- *
- * @method "_contains a super bat swarm"
- * @param "aRoom" "↑room"
- *        A {@type "variable"} containing a {@type "room"}.
- * @returns "boolean"
- *          {@method "true"} if {@param "aRoom"} contains a
- *          {@type "super bat swarm"}, {@method "false"} otherwise.
+/* Make sure that "_contains a super bat swarm" takes priority over "_contains_"
+ * with an object constructor in the second position.
  */
-Method "_contains a super bat swarm" is
-[
-	aRoom : ↑room
-|
-	↓aRoom contains a super bat swarm
-];
+Grammatical restriction "_contains_" is
+	<∅, {"a|an_", "a|an_«with«_«:»?:=_‡,»»"}>;

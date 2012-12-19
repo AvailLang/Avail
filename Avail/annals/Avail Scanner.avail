@@ -1,0 +1,558 @@
+/*
+ * Stacks Stream Parser.avail
+ * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+System Module "Avail Scanner"
+Versions
+	"Dev"
+Extends
+
+Uses
+	"Avail"
+
+Names
+	"an Avail Scanner with_",
+	"Avail scanner",
+	"column number",
+	"Exhaust_",
+	"lexeme",
+	"line",
+	"line number",
+	"Next character from_",
+	"position",
+	"Process digit from_",
+	"Process double quote from_",
+	"Process forward slash from_",
+	"Process identifier starter from_",
+	"Process operator from_",
+	"Process white space from_",
+	"Process zero width whitespace from_",
+	"read from_while_",
+	"read_'s⁇region delimited by_and_«with|without»!nesting",
+	"scanner token",
+	"token buffer",
+	"token start",
+	"tokenize_",
+	"_'s⁇column number",
+	"_'s⁇line",
+	"_'s⁇line number",
+	"_'s⁇position",
+	"_'s⁇source",
+	"_'s⁇token buffer",
+	"_'s⁇token start"
+
+Body
+
+/* Definition of atoms for fields in class, Avail scanner */
+"source" is a new field atom;
+"lexeme" is a new field atom;
+"line" is a new field atom;
+"line number" is a new field atom;
+"column number" is a new field atom;
+"position" is a new field atom;
+"token buffer" is a new field atom;
+"token start" is a new field atom;
+
+/* Global variable definitions */
+lineNumber : natural number := 1;   /*Current line # of the scanner */
+columnNumber : natural number := 1; /*Current column # of the scanner */
+
+/**
+ * A class that defines a token for the Avail scanner.  
+ * 
+ * @type "scanner token"
+ * @supertype {@type "object" object}
+ * @category Stacks
+ * @field "lexeme" "string"
+ *  string representation of token
+ * @field "line" "natural number"
+ *  line number on which token appears 
+ * @field "position" "natural number"
+ *  column position where token begins
+ * @author Richard Arriaga
+ */
+Public class "scanner token" extends object
+	with fields
+		lexeme : <character…|1..>,
+		public line : natural number,
+		public position : natural number;
+
+/**
+ * A class that defines an Avail lexical scanner.  This is an abstract class.
+ * 
+ * @type "Avail scanner"
+ * @supertype {@type "object" object}
+ * @category Avail Lexical Scanner
+ * @field "source" "iterator of character"
+ *    an iterator over the .avail input file
+ * @field "line number" "natural number"
+ *    line number of current element of the iterator 
+ * @field "column number" "natural number"
+ *    column position on line of current element of the iterator
+ * @author Richard Arriaga
+ */
+
+Public class "Avail scanner" extends object
+	with fields
+		public source : iterator of character,
+		public token buffer : ↑<scanner token…|>,
+		public line number : ↑natural number,
+		public column number : ↑natural number,
+		public token start : ↑natural number;
+
+/**
+ * Public constructor of Avail scanner
+ *
+ * @method "construct Avail Scanner with_"
+ * @categories "Avail Lexical Scanner"
+ * @param "iter" "iterator of character" 
+ *      and iterator of characters
+ * @returnType "Avail scanner"
+ *      an Avail scanner object
+ * @author "Richard Arriaga"
+ */
+Public method "an Avail Scanner with_" is
+[
+	iter : iterator of character
+|
+	line : natural number := 1;
+	column : natural number := 1;
+	tokenStart : natural number := 1;
+	tokens : <scanner token…|> := <>;
+	an Avail scanner with
+		source ::= iter,
+		token buffer ::= ↑tokens,
+		line number ::= ↑line,
+		column number ::= ↑column,
+		token start ::= ↑tokenStart
+] : Avail scanner;
+
+/**
+ * methodDescription
+ *
+ * @method "_'s⁇current element"
+ * @categories "Avail Scanner"
+ * @param "scanner" "Avail scanner" 
+ *      an avail scanner
+ * @returnType "character"
+ *      the Avail scanner's source's current element
+ * @raises "Raise an exhausted-iterator exception" 
+ *      The iterator is exhausted
+ * @author "Richard Arriaga"
+ */
+Method "_'s⁇current element" is
+[
+	scanner : Avail scanner
+ |
+		scanner's source's current element
+]:character;
+
+
+Public abstract method "tokenize_" is [Avail scanner]→scanner token;
+
+/* Methods on handling character types from the scanner */
+Public abstract method "Process digit from_" is [Avail scanner]→⊤;
+Public abstract method "Process identifier starter from_" is [Avail scanner]→⊤;
+Public abstract method "Process white space from_" is [Avail scanner]→⊤;
+Public abstract method "Process operator from_" is [Avail scanner]→⊤;
+Public abstract method "Process forward slash from_" is [Avail scanner]→⊤;
+Public abstract method "Process double quote from_" is [Avail scanner]→⊤;
+Public abstract method "Process zero width whitespace from_" is [Avail scanner]→⊤;
+
+dispatchTable : {code point→[Avail scanner]→⊤|} := {};
+
+From 1 to 256 do
+[
+ 	cp : [1..256]
+ |
+ 	c ::= cp → character;
+	if c = ¢/ then
+	[
+	 	dispatchTable := dispatchTable + 
+	 		cp→ [
+			 	 	s : Avail scanner
+			 	 |
+			 	 	Process forward slash from s;
+			 	];
+	]
+	else if [c = ¢"\""] then
+	[
+	 	dispatchTable := dispatchTable + 
+	 		cp→ [
+			 	 	s : Avail scanner
+			 	 |
+			 	 	Process double quote from s;
+			 	];
+	]
+	else if [c is an Arabic numeral] then
+	[
+	 	dispatchTable := dispatchTable  + 
+	 		cp→ [
+			 	 	s : Avail scanner
+			 	 |
+			 	 	Process digit from s;
+			 	];
+	]
+	else if [c is a letter ∨ [c = ¢_]] then
+	[
+	 	dispatchTable := dispatchTable  + 
+	 		cp→ [
+			 	 	s : Avail scanner
+			 	 |
+			 	 	Process identifier starter from s;
+			 	];
+	]
+	else if [c is whitespace] then
+	[
+	 	dispatchTable := dispatchTable  + 
+	 		cp→ [
+			 	 	s : Avail scanner
+			 	 |
+			 	 	Process white space from s;
+			 	];
+	]
+	else if [c = "FEFF"(base 16)→character] then
+	[
+	 	dispatchTable := dispatchTable  + 
+	 		cp→ [
+			 	 	s : Avail scanner
+			 	 |
+			 	 	Process zero width whitespace from s;
+			 	];
+	]
+	else
+	[
+		dispatchTable := dispatchTable  + 
+			cp→ [
+			 	 	s : Avail scanner
+			 	 |
+			 	 	Process operator from s;
+			 	];
+	];
+];
+
+/**
+ * Advance the scanner's source and increment the line number and column number
+ * if able
+ *
+ * @method "Next character from_"
+ * @categories "Avail Lexical Scanner"
+ * @param "scanner" "Avail scanner" 
+ *		an Avail scanner
+ * @returnType "⊤"
+ *		none
+ * @raises "Raise an exhausted-iterator exception" 
+ *		there is nothing left on the iterator to consume
+ * @author "Richard Arriaga"
+ */
+Public method "Next character from_" is
+[
+	scanner : Avail scanner
+ |
+		Advance scanner's source;
+		If scanner's source is not exhausted then
+		[ 
+			if scanner's current element = ¢"\n" then 
+			[
+				↓scanner's column number ?= 1;
+				scanner's line number++;
+			]
+			else
+			[
+			 	scanner's column number++;
+			];
+		];
+ ]:⊤;
+
+/**
+ * Advance the scanner's source until exhaustion.  Perform appropriate functions
+ * for each element of the scanner's source's elements
+ *
+ * @method "Exhaust_"
+ * @categories "Avail Lexical Scanner"
+ * @param "scanner" "Avail scanner" 
+ *		an Avail scanner
+ * @returnType "⊤"
+ *		none
+ * @author "Richard Arriaga"
+ */
+Public method "Exhaust_" is
+[
+	scanner : Avail scanner
+|
+	While
+	[
+		scanner's source is not exhausted 
+	]
+	do
+	[
+		c ::= scanner's source's current element; 
+		/*  TODO:  Current implementation is incomplete due to lacking character
+		 * functionality.  May miss many operator characters.  Once tuple
+		 * performance issue and/or character module limitiations addressed,
+		 * this needs to be revisited.*/
+		f ::= dispatchTable[c's code point] else
+			[ /* else addresses limits in dispatch table.  Assertions not
+			   * 100% effective on providing correct coverage.            */
+			 	[
+			 	 	s : Avail scanner
+			 	 |
+			 	 	if s's source's current element is whitespace then
+			 	 	[
+			 	 	 	Process white space from s;
+			 	 	] 
+			 	 	else
+			 	 	[
+			 	 	 	Process identifier starter from s;
+			 	 	];
+			 	]
+			];
+		f(scanner);
+		Next character from scanner;
+	];
+]:⊤;
+
+/**
+ * Read from Avail scanner's source while supplied condition is true or the 
+ * source is exhausted.
+ *
+ * @method "read from_while_"
+ * @public
+ * @categories "Avail Lexical Scanner"
+ * @param "scanner" "Avail scanner" 
+ *		an avail scanner 
+ * @param "predicate" "boolean" 
+ *		The function that guards repeated application of reading from the source
+ * @returnType "<character…|>"
+ *		the tuple of characters read from the source
+ * @author "Richard Arriaga"
+ */
+Public method "read from_while_" is
+[
+ 	scanner : Avail scanner,
+ 	predicate : []→boolean
+ |
+	buffer : <character…|> := <>;
+	While 
+	[
+		scanner's source is not exhausted ∧ 
+			[predicate()]
+	]
+	do
+	[
+		Next character from scanner;
+		buffer := buffer ++ <scanner's source's current element>;
+	];
+	buffer
+]:<character…|>;
+
+/**
+ * An accessor for an Avail scanner's token buffer.  As token buffer is a 
+ * mutable variable, this method allowes for the composition of a semantic 
+ * restriction in order to return a more specific scanner token type.
+ *
+ * @method "_[_]"
+ * @public
+ * @categories "Avail Scanner"
+ * @param "scanner" "Avail scanner" 
+ *      an Avail scanner object.
+ * @param "index" "natural number"
+ * @returnType "scanner token"
+ *      a scanner token object
+ * @raises "exceptionName" 
+ *      exceptionDescription
+ * @author "Richard Arriaga"
+ */
+ Method "_[_]" is
+[
+	scanner : Avail scanner,
+	index : natural number
+ |
+	↓scanner's token buffer[index]
+]:scanner token;
+
+/**
+ * A method that reads a delimited region from a scanner.  It can do this with
+ * or without nesting.  If nesting is ignored, it will end the region on the 
+ * first read of the end delimiting character.  If nesting is enabled, it will
+ * read the region, including nested regions, until the out region is closed.
+ * In order for nested handling to occur, the start delimiter must be different
+ * from the end delimiter.
+ *
+ * @method "read_'s⁇region delimited by_and_«with|without»!nesting"
+ * @public
+ * @categories "Avail Scanner"
+ * @param "scanner" "Avail scanner" 
+ *      an Avail scanner object.
+ * @param "startDelimiter" "character" 
+ *      the delimiter that indicates the start of a region
+ * @param "endDelimiter" "character" 
+ *      the delimiter that indicates the end of a region
+ * @param "nesting" "[1..2]" 
+ *      indicator for operation allowing nesting or ignoring nesting
+ * @returnType "string"
+ *      the string that contains the characters in the region
+ * @author "Richard Arriaga"
+ */
+Public method "read_'s⁇region delimited by_and_«with|without»!nesting" is
+[
+	scanner : Avail scanner,
+	startDelimiter : character,
+	endDelimiter : character,
+	nesting : [1..2]
+ |
+	if nesting = 1 ∧ [ startDelimiter≠ endDelimiter] then /* handle nesting */
+	[
+		regionCount : whole number := 1;
+		region : string := "";
+		While [regionCount > 0] do
+		[
+			region := region ++ read from scanner while 
+				[scanner's current element ∉ {startDelimiter,endDelimiter}];
+			If scanner's current element = startDelimiter then
+			[
+				/* start of nested region */
+				↑regionCount++;
+			]
+			else
+			[
+				/* end of region */
+				↑regionCount--;
+			];
+		];
+		region
+	]
+	else /* ignore nesting */
+	[
+		read from scanner while [scanner's current element ≠ endDelimiter]
+	]
+]:string;
+
+/**
+ * A method that reads a delimited region from a scanner.  It takes strings 
+ * for the delimiters.  It can do this with or without nesting.  If nesting is 
+ * ignored, it will end the region on the first read of the end delimiting 
+ * character.  If nesting is enabled, it will read the region, including nested 
+ * regions, until the out region is closed. In order for nested handling to 
+ * occur, the start delimiter must be different from the end delimiter.
+ *
+ * @method "read_'s⁇region delimited by_and_«with|without»!nesting"
+ * @public
+ * @categories "Avail Scanner"
+ * @param "scanner" "Avail scanner" 
+ *      an Avail scanner object.
+ * @param "startDelimiter" "nonempty string" 
+ *      the delimiter that indicates the start of a region
+ * @param "endDelimiter" "nonempty string" 
+ *      the delimiter that indicates the end of a region
+ * @param "nesting" "[1..2]" 
+ *      indicator for operation allowing nesting or ignoring nesting
+ * @returnType "string"
+ *      the string that contains the characters in the region
+ * @author "Richard Arriaga"
+ */
+Method "read_'s⁇region delimited by_and_«with|without»!nesting" is
+[
+	scanner : Avail scanner,
+	startDelimiter : nonempty string,
+	endDelimiter : nonempty string,
+	nesting : [1..2]
+ |
+	
+	if nesting = 1 ∧ [ startDelimiter ≠ endDelimiter] then /* handle nesting */
+	[
+		/* Create a patricia trie and add both start and end delimiters*/
+		tree : patricia tree := a patricia tree;
+		Add startDelimiter to tree;
+		Add endDelimiter to tree;
+		
+		cursor : patricia trie := tree;
+		buffer : string := "";
+		regionCount : whole number := 1;
+		region : string := "";
+		While [regionCount > 0] do
+		[
+			Until [scanner's source is exhausted ∨ 
+				[cursor is at terminus ∧ 
+					[scanner's current element ∉ cursor's next steps]]]
+			do
+			[
+				value ::= scanner's current element;
+				next ::= cursor's next steps;
+				If char ∉ next then
+				[
+					/* We have not hit a delimiter, add collected characters
+					 * to the region and reset buffer and cursor.            */
+					region := eject ↑region ++ buffer ++ <value>;
+					buffer := "";
+					cursor := tree;
+				]
+				else
+				[
+				 	/* On track to buidling a delimiter; proceed down tree */
+					cursor := next[value];
+					buffer := buffer ++ <value>;
+				];
+
+				/* TODO Need to check to see if buffer is start or end delimiter
+				 * If it is, adjust regionCount appropriately:
+				 * ↑regionCount++ or ↑regionCount--
+				 * Remember, must do the longest possible delimiter.  Must be
+				 * able to rewind back if previously hit delimiter but still 
+				 * could proceed in tree to potentially longer delimiter.    */
+
+				Next character from scanner;
+			];
+		];
+		region
+	]
+	else /* ignore nesting */
+	[
+		region : string := "";
+		index : natural number := 1;
+		Until [scanner's source is exhausted ∨ [index > |endDelimiter|]]
+		do
+		[
+			value ::= scanner's current element;
+			If value = endDelimiter[index] then
+			[
+				↑index++;
+			]
+			else
+			[
+				region := eject ↑region ++ endDelimiter[1..index-1] ++ <value>;
+				index := 1;
+			];
+			Next character from scanner;
+		];
+		region
+	]
+]:string;

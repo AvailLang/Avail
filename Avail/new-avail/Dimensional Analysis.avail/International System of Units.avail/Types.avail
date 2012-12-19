@@ -106,7 +106,7 @@ Method "__" is
 	magnitude : number,
 	theUnit : SI unit
 |
-	a dimensioned quantity with extent := magnitude, metric := theUnit
+	a dimensioned quantity with extent ::= magnitude, metric ::= theUnit
 ] : SI dimensioned quantity;
 
 Method "__" is
@@ -114,7 +114,7 @@ Method "__" is
 	magnitude : double,
 	theUnit : SI unit
 |
-	a dimensioned quantity with extent := magnitude, metric := theUnit
+	a dimensioned quantity with extent ::= magnitude, metric ::= theUnit
 ] : SI dimensioned quantity;
 
 Semantic restriction "__" is

@@ -228,7 +228,7 @@ Public method "an edge from_to_" is
 	sourceVertex : any,
 	destinationVertex : any
 |
-	an edge with source := sourceVertex, destination := destinationVertex
+	an edge with source ::= sourceVertex, destination ::= destinationVertex
 ] : edge;
 
 Semantic restriction "an edge from_to_" is
@@ -297,9 +297,9 @@ Public method "an edge from_to_,⁇labeled by_" is
 	edgeLabel : any
 |
 	an edge with
-		source := sourceVertex,
-		destination := destinationVertex,
-		edge label := edge label
+		source ::= sourceVertex,
+		destination ::= destinationVertex,
+		edge label ::= edge label
 ] : edge;
 
 Semantic restriction "an edge from_to_,⁇labeled by_" is
@@ -503,8 +503,8 @@ Method "_+_" is
 	next ::= successors[aVertex] else [∅];
 	Assert: (previous = ∅) ↔ (next = ∅);
 	aGraph's
-		predecessors := predecessors + aVertex→previous,
-		successors := successors + aVertex→next
+		predecessors ::= predecessors + aVertex→previous,
+		successors ::= successors + aVertex→next
 ] : basic unlabeled graph;
 
 Semantic restriction "_+_" is
@@ -526,8 +526,8 @@ Method "_+_" is
 	next ::= successors[aVertex] else [{}];
 	Assert: (previous = {}) ↔ (next = {});
 	aGraph's
-		predecessors := predecessors + aVertex→previous,
-		successors := successors + aVertex→next
+		predecessors ::= predecessors + aVertex→previous,
+		successors ::= successors + aVertex→next
 ] : basic labeled graph;
 
 Semantic restriction "_+_" is
@@ -579,8 +579,8 @@ Method "_-_" is
 		predecessors := eject ↑predecessors + successor→(aSet - aVertex);
 	];
 	aGraph's
-		predecessors := predecessors - aVertex,
-		successors := successors - aVertex
+		predecessors ::= predecessors - aVertex,
+		successors ::= successors - aVertex
 ] : basic unlabeled graph;
 
 Semantic restriction "_-_" is
@@ -648,8 +648,8 @@ Method "_-_" is
 		];
 	];
 	aGraph's
-		predecessors := predecessors - aVertex,
-		successors := successors - aVertex
+		predecessors ::= predecessors - aVertex,
+		successors ::= successors - aVertex
 ] : basic labeled graph;
 
 Semantic restriction "_-_" is
@@ -719,16 +719,16 @@ Method "_+_" is
 	previous ::= (predecessors[anEdge's destination] else
 		[
 			Raise a no-such-vertex exception
-				with target vertex := anEdge's destination
+				with target vertex ::= anEdge's destination
 		]) + anEdge's source;
 	next ::= (successors[anEdge's source] else
 		[
 			Raise a no-such-vertex exception
-				with target vertex := anEdge's source
+				with target vertex ::= anEdge's source
 		]) + anEdge's destination;
 	aGraph's
-		predecessors := predecessors + anEdge's destination→previous,
-		successors := successors + anEdge's source→next
+		predecessors ::= predecessors + anEdge's destination→previous,
+		successors ::= successors + anEdge's source→next
 ] : basic unlabeled graph;
 
 Semantic restriction "_+_" is
@@ -776,20 +776,20 @@ Method "_+_" is
 	previousMap : {any→set|} := (predecessors[anEdge's destination] else
 		[
 			Raise a no-such-vertex exception
-				with target vertex := anEdge's destination
+				with target vertex ::= anEdge's destination
 		]);
 	previous ::= (previousMap[anEdge's edge label] else [∅]) + anEdge's source;
 	previousMap := eject ↑previousMap + anEdge's edge label→previous;
 	nextMap : {any→set|} := (successors[anEdge's source] else
 		[
 			Raise a no-such-vertex exception
-				with target vertex := anEdge's source
+				with target vertex ::= anEdge's source
 		]);
 	next ::= (nextMap[anEdge's edge label] else [∅]) + anEdge's destination;
 	nextMap := eject ↑nextMap + anEdge's edge label→next;
 	aGraph's
-		predecessors := predecessors + anEdge's destination→previousMap,
-		successors := successors + anEdge's source→nextMap
+		predecessors ::= predecessors + anEdge's destination→previousMap,
+		successors ::= successors + anEdge's source→nextMap
 ] : basic labeled graph;
 
 Semantic restriction "_+_" is

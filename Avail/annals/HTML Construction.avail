@@ -84,9 +84,9 @@ Public method "<!DOCTYPE html>_" is
 	ate : abstract tagged element
 |
 	a heading tagged element with
-		tag := "!DOCTYPE html",
-		page := ate,
-		attributes := <>
+		tag ::= "!DOCTYPE html",
+		page ::= ate,
+		attributes ::= <>
 ]: heading tagged element;
 
 /**
@@ -117,9 +117,9 @@ Public method "<…«…=_»>«_»</…>" is
 	];
 	
 	a tagged element with
-		tag := startElementName's lexeme,
-		attributes := modAtts,
-		elements := contents
+		tag ::= startElementName's lexeme,
+		attributes ::= modAtts,
+		elements ::= contents
 
 ]: tagged element;
 
@@ -185,8 +185,8 @@ Public method "<…«…=_»/>" is
 	];
 
 	an empty tagged element with
-		tag := startElementName's lexeme,
-		attributes := modAtts
+		tag ::= startElementName's lexeme,
+		attributes ::= modAtts
 ]: empty tagged element;
 
 Abstract method "generate_" is [abstract tagged element]→string;

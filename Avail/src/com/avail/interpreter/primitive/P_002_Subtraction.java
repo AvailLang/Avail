@@ -31,6 +31,7 @@
  */
 package com.avail.interpreter.primitive;
 
+import static com.avail.descriptor.InfinityDescriptor.*;
 import static com.avail.descriptor.TypeDescriptor.Types.NUMBER;
 import static com.avail.interpreter.Primitive.Flag.CanFold;
 import java.util.List;
@@ -112,18 +113,22 @@ public class P_002_Subtraction extends Primitive
 			if (aType.isIntegerRangeType() && bType.isIntegerRangeType())
 			{
 				final AvailObject low = aType.lowerBound().minusCanDestroy(
-					bType.upperBound(), false);
+					bType.upperBound(),
+					false);
 				final AvailObject high = aType.upperBound().minusCanDestroy(
-					bType.lowerBound(), false);
-				final boolean lowInclusive =
-					aType.lowerInclusive() && bType.upperInclusive();
-				final boolean highInclusive =
-					aType.upperInclusive() && bType.lowerInclusive();
+					bType.lowerBound(),
+					false);
+				final boolean includesNegativeInfinity =
+					negativeInfinity().isInstanceOf(aType)
+					|| positiveInfinity().isInstanceOf(bType);
+				final boolean includesInfinity =
+					positiveInfinity().isInstanceOf(aType)
+					|| negativeInfinity().isInstanceOf(bType);
 				return IntegerRangeTypeDescriptor.create(
-					low,
-					lowInclusive,
-					high,
-					highInclusive);
+					low.minusCanDestroy(IntegerDescriptor.one(), false),
+					includesNegativeInfinity,
+					high.plusCanDestroy(IntegerDescriptor.one(), false),
+					includesInfinity);
 			}
 		}
 		catch (final ArithmeticException e)

@@ -248,6 +248,16 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
+	boolean o_EqualsByteArrayTuple (
+		final AvailObject object,
+		final AvailObject aTuple)
+	{
+		// Default to generic tuple comparison.
+
+		return o_EqualsAnyTuple(object, aTuple);
+	}
+
+	@Override @AvailMethod
 	boolean o_EqualsNybbleTuple (
 		final AvailObject object,
 		final AvailObject aTuple)
@@ -415,6 +425,22 @@ extends Descriptor
 
 	@Override @AvailMethod
 	boolean o_CompareFromToWithByteTupleStartingAt (
+		final AvailObject object,
+		final int startIndex1,
+		final int endIndex1,
+		final AvailObject aByteTuple,
+		final int startIndex2)
+	{
+		return o_CompareFromToWithAnyTupleStartingAt(
+			object,
+			startIndex1,
+			endIndex1,
+			aByteTuple,
+			startIndex2);
+	}
+
+	@Override @AvailMethod
+	boolean o_CompareFromToWithByteArrayTupleStartingAt (
 		final AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
@@ -835,7 +861,7 @@ extends Descriptor
 		int hash = 0;
 		for (int index = end; index >= start; index--)
 		{
-			final int itemHash = object.tupleAt(index).hash() ^ PreToggle;
+			final int itemHash = object.tupleAt(index).hash() ^ preToggle;
 			hash = hash * multiplier + itemHash;
 		}
 		return hash * multiplier;
@@ -1205,7 +1231,7 @@ extends Descriptor
 	 * combining them.  This reduces the chance of systematic collisions due to
 	 * using the same elements in different patterns of nested tuples.
 	 */
-	static final int PreToggle = 0x71E570A6;
+	static final int preToggle = 0x71E570A6;
 
 	/**
 	 * Construct a new {@link TupleDescriptor}.

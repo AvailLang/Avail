@@ -102,7 +102,7 @@ Method "“_”" is
 		[
 			c : creature
 		|
-			guard [↓c's location's room#]
+			guard [c's location's room#]
 			intercept
 			[
 				e : cannot-read-unassigned-variable exception
@@ -110,8 +110,8 @@ Method "“_”" is
 				/* If an attempt is made to print a game whose creatures have
 				 * not yet been placed -- such as might have occurred during
 				 * development of this game! -- then this exception will be
-				 * raised by "↓_" and caught here. Answer 0 instead of a valid
-				 * room identifier.
+				 * raised by "↓_'s⁇location" and caught here. Answer 0 instead
+				 * of a valid room identifier.
 				 */
 				0
 			]
@@ -124,11 +124,11 @@ Method "“_”" is
 		\|The super bat swarms are in rooms #“swarm location 1” and \
 		\|#“swarm location 2”."
 	with
-		"setting" := aGame's setting,
-		"agent location" := locations[agent index],
-		"wumpus location" := locations[wumpus index],
-		"swarm location 1" := locations[first swarm index],
-		"swarm location 2" := locations[second swarm index]
+		setting ::= aGame's setting,
+		"agent location" ::= locations[agent index],
+		"wumpus location" ::= locations[wumpus index],
+		"swarm location 1" ::= locations[first swarm index],
+		"swarm location 2" ::= locations[second swarm index]
 ] : string;
 
 /**
@@ -191,14 +191,14 @@ Public method "a game of Wump the Wumpus" is
 	Set initial placement of creatures[agent index] in theCave;
 	/* Never start the wumpus next to the player. */
 	Set initial placement of creatures[wumpus index] in theCave, avoiding
-		map ↓creatures[agent index]'s location's adjacent room ids
+		map creatures[agent index]'s location's adjacent room ids
 		through [id : room id | theCave[id]];
 	Set initial placement of creatures[first swarm index] in theCave, avoiding
-		{↓creatures[wumpus index]'s location};
+		{creatures[wumpus index]'s location};
 	Set initial placement of creatures[second swarm index] in theCave, avoiding
-		{↓creatures[wumpus index]'s location,
-			↓creatures[first swarm index]'s location};
+		{creatures[wumpus index]'s location,
+			creatures[first swarm index]'s location};
 	a Wump the Wumpus with
-		setting := theCave,
-		dramatis personae := creatures
+		setting ::= theCave,
+		dramatis personae ::= creatures
 ] : Wump the Wumpus;

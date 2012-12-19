@@ -100,7 +100,7 @@ Method "Require:_(_)" is
 	message : string
 |
 	Raise a failed-requirement exception ∩ descriptive exception with
-		error message := message
+		error message ::= message
 ] : ⊥;
 
 /**
@@ -122,7 +122,7 @@ Public method "Require:_=_" is
 	If expected ≠ actual then
 	[
 		Raise a failed-requirement exception ∩ descriptive exception
-			with error message :=
+			with error message ::=
 				format "expected=“①”, actual=“②”" with expected, actual
 	];
 ] : ⊤;
@@ -169,7 +169,7 @@ Public method "Require:_=_(_)" is
 	If expected ≠ actual then
 	[
 		Raise a failed-requirement exception ∩ descriptive exception
-			with error message :=
+			with error message ::=
 				format "“①”: expected=“②”, actual=“③”"
 				with message, expected, actual
 	];
@@ -218,7 +218,7 @@ Public method "Require:_raises_" is
 	[
 		aFunction();
 		Raise a failed-requirement exception ∩ descriptive exception
-			with error message :=
+			with error message ::=
 				format "expected ∈ “①” (no exception)"
 				with exceptionType
 	]
@@ -230,8 +230,8 @@ Public method "Require:_raises_" is
 		[
 			Raise a descriptive cascade failed-requirement exception
 				with
-					causal exception := e,
-					error message :=
+					causal exception ::= e,
+					error message ::=
 						format "expected ∈ “①”, actual=“②”"
 						with exceptionType, e
 		];
@@ -264,7 +264,7 @@ Public method "Require:_raises_(_)" is
 	[
 		aFunction();
 		Raise a failed-requirement exception ∩ descriptive exception
-			with error message :=
+			with error message ::=
 				format "“①”: expected ∈ “②” (no exception)"
 				with message, exceptionType
 	]
@@ -276,8 +276,8 @@ Public method "Require:_raises_(_)" is
 		[
 			Raise a descriptive cascade failed-requirement exception
 				with
-					causal exception := e,
-					error message :=
+					causal exception ::= e,
+					error message ::=
 						format "“①”: expected ∈ “②”, actual=“③”"
 						with message, exceptionType, e
 		];

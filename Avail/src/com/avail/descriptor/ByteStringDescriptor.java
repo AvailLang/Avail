@@ -324,7 +324,7 @@ extends StringDescriptor
 		{
 			final int itemHash =
 				CharacterDescriptor.hashOfByteCharacterWithCodePoint(
-					object.rawByteForCharacterAt(index)) ^ PreToggle;
+					object.rawByteForCharacterAt(index)) ^ preToggle;
 			hash = hash * multiplier + itemHash;
 		}
 		return hash * multiplier;

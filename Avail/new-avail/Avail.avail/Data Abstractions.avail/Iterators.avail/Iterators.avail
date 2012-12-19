@@ -36,9 +36,11 @@ Versions
 Extends
 	"Abstract Iterators",
 	"Bounded Iterators",
+	"Buffered Iterators",
 	"Collection Iterators",
 	"Counting Iterators",
 	"Delimited Iterators",
 	"Generators",
+	"Sizable Positionable Iterators",
 	"Stream Iterators"
 Body

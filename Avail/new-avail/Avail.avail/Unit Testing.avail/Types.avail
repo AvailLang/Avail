@@ -82,55 +82,39 @@ Names
 	/* Attribute accessors. */
 	"_'s⁇body",
 	"_'s⁇child suite IDs",
-	"_'s⁇child suite IDs:=_",
+	"_'s⁇child suite IDs::=_",
 	"_'s⁇expected exception type",
 	"_'s⁇metrics",
 	"_'s⁇parent suite ID",
 	"_'s⁇suite fixture setup",
-	"_'s⁇suite fixture setup:=_",
+	"_'s⁇suite fixture setup::=_",
 	"_'s⁇suite fixture tear down",
-	"_'s⁇suite fixture tear down:=_",
+	"_'s⁇suite fixture tear down::=_",
 	"_'s⁇suite ID",
 	"_'s⁇statistics",
 	"_'s⁇test fixture setup",
-	"_'s⁇test fixture setup:=_",
+	"_'s⁇test fixture setup::=_",
 	"_'s⁇test fixture tear down",
-	"_'s⁇test fixture tear down:=_",
+	"_'s⁇test fixture tear down::=_",
 	"_'s⁇test ID",
 	"_'s⁇unit tests",
-	"_'s⁇unit tests:=_"
+	"_'s⁇unit tests::=_"
 Body
 
-/* TODO: [TLS] Remove these constants once a macro is available for "$…". */
-_testID ::= $"test ID";
-_body ::= $"body";
-_expectedExceptionType ::= $"expected exception type";
-_metrics ::= $"metrics";
-_statistics ::= $"statistics";
-_suiteID ::= $"suite ID";
-_childSuiteIDs ::= $"child suite IDs";
-_parentSuiteID ::= $"parent suite ID";
-_suiteFixtureSetup ::= $"suite fixture setup";
-_testFixtureSetup ::= $"test fixture setup";
-_suiteFixtureTearDown ::= $"suite fixture tear down";
-_testFixtureTearDown ::= $"test fixture tear down";
-_unitTests ::= $"unit tests";
-_rootTestSuiteID ::= $"root test suite ID";
-
-Public method "test ID" is [ _testID ];
-Public method "body" is [ _body ];
-Public method "expected exception type" is [ _expectedExceptionType ];
-Public method "metrics" is [ _metrics ];
-Public method "statistics" is [ _statistics ];
-Public method "suite ID" is [ _suiteID ];
-Public method "parent suite ID" is [ _parentSuiteID ];
-Public method "child suite IDs" is [ _childSuiteIDs ];
-Public method "suite fixture setup" is [ _suiteFixtureSetup ];
-Public method "test fixture setup" is [ _testFixtureSetup ];
-Public method "suite fixture tear down" is [ _suiteFixtureTearDown ];
-Public method "test fixture tear down" is [ _testFixtureTearDown ];
-Public method "unit tests" is [ _unitTests ];
-Public method "root test suite ID" is [ _rootTestSuiteID ];
+"test ID" is a new field atom;
+"body" is a new field atom;
+"expected exception type" is a new field atom;
+"metrics" is a new field atom;
+"statistics" is a new field atom;
+"suite ID" is a new field atom;
+"child suite IDs" is a new field atom;
+"parent suite ID" is a new field atom;
+"suite fixture setup" is a new field atom;
+"test fixture setup" is a new field atom;
+"suite fixture tear down" is a new field atom;
+"test fixture tear down" is a new field atom;
+"unit tests" is a new field atom;
+"root test suite ID" is a new field atom;
 
 /**
  * A unit test comprises:
@@ -226,7 +210,7 @@ Public method "short“_”" is
 		cast anException
 		into
 		[
-			e : unit-test exception ∩ descriptive exception
+			e : descriptive unit-test exception
 		|
 			" (" ++ e's error message ++ ")"
 		]
@@ -243,9 +227,9 @@ Public method "short“_”" is
 	format
 		"a ‘name’‘description’‘cause’"
 	with
-		name := name,
-		description := description,
-		cause := cause
+		name ::= name,
+		description ::= description,
+		cause ::= cause
 ];
 
 /**
@@ -397,7 +381,7 @@ Method "short“_”" is
 [
 	result : unit test failure
 |
-	format "FAILED: “①” (raised: “②”)"
+	format "FAILED: “①” (raised: ‘②’)"
 		with result's test ID's name, short “result's causal exception”
 ] : string;
 
@@ -439,8 +423,8 @@ Method "“_”" is
 		\|\tPASSED: “passed”\n\
 		\|\tFAILED: “failed”\n"
 	with
-		results := description,
-		total := |results|,
-		passed := |statistics[_passed] else [<>]|,
-		failed := |statistics[_failed] else [<>]|
+		results ::= description,
+		total ::= |results|,
+		passed ::= |statistics[_passed] else [<>]|,
+		failed ::= |statistics[_failed] else [<>]|
 ] : string;

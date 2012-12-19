@@ -688,6 +688,9 @@ implements ThreadFactory
 		specialAtoms[9] = AtomDescriptor.moduleHeaderSectionAtom();
 		specialAtoms[10] = AtomDescriptor.moduleBodySectionAtom();
 		specialAtoms[11] = ObjectTypeDescriptor.stackDumpAtom();
+		specialAtoms[12] = AtomDescriptor.fileKey();
+		specialAtoms[13] = AtomDescriptor.fileModeReadKey();
+		specialAtoms[14] = AtomDescriptor.fileModeWriteKey();
 
 		assert specialAtomsSet == null;
 		specialAtomsSet = new HashSet<AvailObject>(specialAtomsList);
@@ -1135,127 +1138,6 @@ implements ThreadFactory
 	}
 
 	/**
-	 * A mapping from {@linkplain AtomDescriptor keys} to {@link
-	 * RandomAccessFile}s open for reading.
-	 */
-	private final Map<AvailObject, RandomAccessFile> openReadableFiles =
-		new WeakHashMap<AvailObject, RandomAccessFile>();
-
-	/**
-	 * A mapping from {@linkplain AtomDescriptor keys} to {@link
-	 * RandomAccessFile}s open for writing.
-	 */
-	private final Map<AvailObject, RandomAccessFile> openWritableFiles =
-		new WeakHashMap<AvailObject, RandomAccessFile>();
-
-	/**
-	 * Answer the open readable {@linkplain RandomAccessFile file} associated
-	 * with the specified {@linkplain AtomDescriptor handle}.
-	 *
-	 * @param handle A {@linkplain AtomDescriptor handle}.
-	 * @return The open {@linkplain RandomAccessFile file} associated with the
-	 *         {@linkplain AtomDescriptor atom}, or {@code null} if no such
-	 *         association exists.
-	 */
-	public @Nullable RandomAccessFile getReadableFile (final AvailObject handle)
-	{
-		assert handle.isAtom();
-		return openReadableFiles.get(handle);
-	}
-
-	/**
-	 * Associate the specified {@linkplain AtomDescriptor handle} with
-	 * the open readable {@linkplain RandomAccessFile file}.
-	 *
-	 * @param handle A {@linkplain AtomDescriptor handle}.
-	 * @param file An open {@linkplain RandomAccessFile file}.
-	 */
-	public void putReadableFile (
-		final AvailObject handle,
-		final RandomAccessFile file)
-	{
-		assert handle.isAtom();
-		openReadableFiles.put(handle, file);
-	}
-
-	/**
-	 * Remove the association between the specified {@linkplain
-	 * AtomDescriptor handle} and its open readable {@linkplain
-	 * RandomAccessFile file}.
-	 *
-	 * @param handle A {@linkplain AtomDescriptor handle}.
-	 */
-	public void forgetReadableFile (final AvailObject handle)
-	{
-		assert handle.isAtom();
-		openReadableFiles.remove(handle);
-	}
-
-	/**
-	 * Answer the open writable {@linkplain RandomAccessFile file} associated
-	 * with the specified {@linkplain AtomDescriptor handle}.
-	 *
-	 * @param handle A {@linkplain AtomDescriptor handle}.
-	 * @return The open {@linkplain RandomAccessFile file} associated with the
-	 *         {@linkplain AtomDescriptor atom}, or {@code null} if no such
-	 *         association exists.
-	 */
-	public @Nullable RandomAccessFile getWritableFile (final AvailObject handle)
-	{
-		assert handle.isAtom();
-		return openWritableFiles.get(handle);
-	}
-
-	/**
-	 * Associate the specified {@linkplain AtomDescriptor handle} with
-	 * the open writable {@linkplain RandomAccessFile file}.
-	 *
-	 * @param handle A {@linkplain AtomDescriptor handle}.
-	 * @param file An open {@linkplain RandomAccessFile file}.
-	 */
-	public void putWritableFile (
-		final AvailObject handle,
-		final RandomAccessFile file)
-	{
-		assert handle.isAtom();
-		openWritableFiles.put(handle, file);
-	}
-
-	/**
-	 * Remove the association between the specified {@linkplain
-	 * AtomDescriptor handle} and its open writable {@linkplain
-	 * RandomAccessFile file}.
-	 *
-	 * @param handle A {@linkplain AtomDescriptor handle}.
-	 */
-	public void forgetWritableFile (final AvailObject handle)
-	{
-		assert handle.isAtom();
-		openWritableFiles.remove(handle);
-	}
-
-	/**
-	 * Answer the open {@linkplain RandomAccessFile file} associated with the
-	 * specified {@linkplain AtomDescriptor handle}.
-	 *
-	 * @param handle A {@linkplain AtomDescriptor handle}.
-	 * @return The open {@linkplain RandomAccessFile file} associated with the
-	 *         {@linkplain AtomDescriptor atom}, or {@code null} if no such
-	 *         association exists.
-	 */
-	public @Nullable RandomAccessFile getOpenFile (final AvailObject handle)
-	{
-		assert handle.isAtom();
-		final RandomAccessFile file = openReadableFiles.get(handle);
-		if (file != null)
-		{
-			return file;
-		}
-
-		return openWritableFiles.get(handle);
-	}
-
-	/**
 	 * Destroy all data structures used by this {@code AvailRuntime}.  Also
 	 * disassociate it from the current {@link Thread}'s local storage.
 	 */
@@ -1267,7 +1149,5 @@ implements ThreadFactory
 		modules = null;
 		methods = null;
 		rootBundleTree = null;
-		openReadableFiles.clear();
-		openWritableFiles.clear();
 	}
 }

@@ -92,7 +92,7 @@ delimited stream's tail method is
 	[
 		rest := drop |aStream's delimiter| from eject ↑rest;
 	];
-	aStream's decorated stream := rest
+	aStream's decorated stream ::= rest
 ] : delimited stream;
 
 /**
@@ -112,9 +112,9 @@ Public method "_delimited by_" is
 	delimiterTuple : <any…|1..>
 |
 	a delimited stream with
-		element type := <aStream's element type…|>,
-		decorated stream := aStream,
-		delimiter := delimiterTuple
+		element type ::= <aStream's element type…|>,
+		decorated stream ::= aStream,
+		delimiter ::= delimiterTuple
 ] : stream of tuple;
 
 Semantic restriction "_delimited by_" is
@@ -184,7 +184,7 @@ multiply delimited stream's tail method is
 	[
 		rest := drop |theDelimiter| from eject ↑rest;
 	];
-	aStream's decorated stream := rest
+	aStream's decorated stream ::= rest
 ] : multiply delimited stream;
 
 /**
@@ -204,9 +204,9 @@ Public method "_delimited by any of_" is
 	delimitersTuple : <<any…|1..>…|1..>
 |
 	a multiply delimited stream with
-		element type := <aStream's element type…|>,
-		decorated stream := aStream,
-		delimiters := delimitersTuple
+		element type ::= <aStream's element type…|>,
+		decorated stream ::= aStream,
+		delimiters ::= delimitersTuple
 ] : stream of tuple;
 
 Semantic restriction "_delimited by any of_" is

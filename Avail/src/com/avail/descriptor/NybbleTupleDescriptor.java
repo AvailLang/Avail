@@ -408,7 +408,7 @@ extends TupleDescriptor
 		{
 			int itemHash = IntegerDescriptor.hashOfUnsignedByte(
 				object.rawNybbleAt(nybbleIndex));
-			itemHash ^= PreToggle;
+			itemHash ^= preToggle;
 			hash = hash * multiplier + itemHash;
 		}
 		return hash * multiplier;
@@ -438,7 +438,7 @@ extends TupleDescriptor
 	 *            A new {@linkplain ByteTupleDescriptor byte tuple} with the
 	 *            same sequence of integers as the argument.
 	 */
-	AvailObject copyAsMutableByteTuple (
+	private AvailObject copyAsMutableByteTuple (
 		final AvailObject object)
 	{
 		final AvailObject result =

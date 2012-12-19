@@ -188,11 +188,11 @@ Bad command "win" is
 /* Try being direct about shooting the wumpus. */
 Bad command "shoot the wumpus" is
 [
-	if ↓the wumpus's location = ↓the agent's location then
+	if the wumpus's location = the agent's location then
 	[
 		Assert: the wumpus is dead;
 		Report: "It's still dead.\n";
-		the agent's count of remaining arrows--;
+		↑the agent's count of remaining arrows--;
 		Quiver check;
 		true
 	]
@@ -232,14 +232,14 @@ Commands "check quiver", "count arrows", "count crooked arrows" are
 [
 	Report:
 		format "You have “①” crooked arrows remaining.\n"
-		with ↓the agent's count of remaining arrows;
+		with the agent's count of remaining arrows;
 	false
 ];
 
 /* Attempt to exit the cave. */
 Action "exiting" is
 [
-	if ↓the agent's location ∈ entrance room then
+	if the agent's location ∈ entrance room then
 	[
 		/* The game is over. Resume the checkpoint saved by
 		 * "Use_as the implied game and do_".
@@ -278,7 +278,7 @@ Action "moving" is
 		Move the agent to destination;
 		true
 	]
-	else if [destination = ↓the agent's location] then
+	else if [destination = the agent's location] then
 	[
 		Report: "You can't go where you already are.\n";
 		false
@@ -309,7 +309,7 @@ Action "compass rebuttal" is
 			\|The compass directions are not used to navigate the cave.
 			\|Instead, maybe try \"go to “id”\" or even just \"“id”\".\n"
 		with
-			id := choice;
+			id ::= choice;
 	false
 ];
 
@@ -326,7 +326,7 @@ Bad command "go fish" is
 		++ <"aces", "jacks", "queens", "kings">;
 	Report:
 		format "Sorry, wrong game… But do you have any ‘rank’?\n"
-		with rank := the RNG's next element of ranks;
+		with rank ::= the RNG's next element of ranks;
 	false
 ];
 
@@ -338,10 +338,10 @@ Commands "label NUMBER as STRING", "label #NUMBER as STRING" are
 	id ::= args[1];
 	name ::= args[2];
 	theRoom ::= the cave[id];
-	↓theRoom's label ?= name;
+	theRoom's label := name;
 	Report:
 		format "Done‘helpful’.\n"
-		with helpful := if name = ""
+		with helpful ::= if name = ""
 			then [" (but \"unlabel NUMBER\" is better)"]
 			else [""];
 	false
@@ -354,13 +354,13 @@ Commands "unlabel NUMBER", "unlabel #NUMBER" are
 |
 	id ::= args[1];
 	theRoom ::= the cave[id];
-	If ↓theRoom's label = "" then
+	If theRoom's label = "" then
 	[
 		Report: "That room is not labeled.\n";
 	]
 	else
 	[
-		↓theRoom's label ?= "";
+		theRoom's label := "";
 		Report: "Done.\n";
 	];
 	false
@@ -379,10 +379,10 @@ Action "shooting" is
 	[
 		Report: "You take aim into the tunnel and fire a crooked arrow.\n";
 		/* Decrement the number of remaining arrows. */
-		the agent's count of remaining arrows--;
+		↑the agent's count of remaining arrows--;
 		/* If the agent is adjacent to the wumpus, then wake it up. */
 		If ¬the wumpus is active
-			∧ [↓the agent's location ∈ the wumpus's location's adjacent rooms]
+			∧ [the agent's location ∈ the wumpus's location's adjacent rooms]
 		then
 		[
 			Report:
@@ -393,7 +393,7 @@ Action "shooting" is
 		/* This is the path that the arrow has followed so far. The last element
 		 * is the arrow's current location.
 		 */
-		path : <room…|1..> := <↓the agent's location>;
+		path : <room…|1..> := <the agent's location>;
 		/* During the first invalid transition, i.e., the first room identifier
 		 * specified that is not adjacent to the arrow's current location, the
 		 * arrow will start flying wild, randomly moving ahead the remaining
@@ -469,7 +469,7 @@ Bad commands "shoot self", "shoot myself", "shoot me" are
 	]
 	else
 	[
-		the agent's count of remaining arrows--;
+		↑the agent's count of remaining arrows--;
 		Report: "Ow. You are bleeding now.\n";
 		/* Sometimes the wumpus smells blood. */
 		If the wumpus is alive ∧ [the RNG's next [1..3] < 3] then

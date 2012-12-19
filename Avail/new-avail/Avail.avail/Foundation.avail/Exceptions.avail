@@ -1010,6 +1010,13 @@ Semantic restriction "descriptive_" is
 	((descriptive exception) ∩ (exceptionMeta's instance))'s type
 ];
 
+Stable method "“_”" is
+[
+	e : descriptive exception
+|
+	(a|an) “e's type” ++ " (" ++ e's error message ++ ")"
+];
+
 /* Exceptions are going live! Failures of bootstrap linked primitives will now
  * raise appropriate exceptions.
  */
@@ -1021,8 +1028,8 @@ Set early failure function to
 		("no exception class for " ++ “errorCode”);
 	exceptionType ::= exceptionsByCode[errorCode];
 	Raise an exceptionType with
-		error code := errorCode,
-		error name := exceptionType's error name's instance
+		error code ::= errorCode,
+		error name ::= exceptionType's error name's instance
 ] : ⊥;
 
 Private method "“_”(stack summary)" is
@@ -1063,7 +1070,7 @@ current fiber's unhandled exception handler is
 			then ["unhandled exception [“ex”]:\n"]
 			else ["“ex”:\n"];
 		firstTime := false;
-		Error: format spec with ex := e;
+		Error: format spec with ex ::= e;
 		Error: “e's stack summary” (stack summary);
 		Cast e into
 		[

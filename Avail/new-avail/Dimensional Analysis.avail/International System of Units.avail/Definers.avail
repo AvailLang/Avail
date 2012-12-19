@@ -157,8 +157,8 @@ Public method "_(_)is an SI base unit" is
 			longName ::= prefix[1] ++ name;
 			shortName ::= prefix[2] ++ symbol;
 			aUnit ::= a unitType with
-				unit map := def,
-				scale factor := prefix[3];
+				unit map ::= def,
+				scale factor ::= prefix[3];
 			impl ::= generate «[ <> | <‘`aUnit` ("")’> ] : aUnit's type»;
 			Method longName is impl;
 			publicNames ::= current module's public names;
@@ -175,7 +175,7 @@ Public method "_(_)is an SI base unit" is
 			Prefer shortName for printing aUnit in a dimensioned quantity;
 			aUnit
 		];
-	aUnit ::= a unitType with unit map := def, scale factor := 0;
+	aUnit ::= a unitType with unit map ::= def, scale factor ::= 0;
 	Prefer symbol for printing aUnit in a dimensioned quantity;
 	scalingFunction ::= SI scaling function for unitType;
 	Method conversion atom is scalingFunction;
@@ -219,8 +219,8 @@ Public method "_(_)is an SI derived unit equivalent to_" is
 			longName ::= prefix[1] ++ name;
 			shortName ::= prefix[2] ++ symbol;
 			aUnit ::= a unitType with
-				unit map := def,
-				scale factor := baseScaleFactor + prefix[3];
+				unit map ::= def,
+				scale factor ::= baseScaleFactor + prefix[3];
 			impl ::= generate «[ <> | <‘`aUnit` ("")’> ] : aUnit's type»;
 			Method longName is impl;
 			publicNames ::= current module's public names;

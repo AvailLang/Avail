@@ -873,6 +873,25 @@ Primitive "Semantic restriction_is_" is
 ] : ⊤;
 
 /**
+ * Seal the named method at the specified signature. No further definitions
+ * may be added at or below this signature. This facility is provided to secure
+ * methods against dangerous, unscrupulous, or confusing extensions.
+ *
+ * Parameters:
+ *    methodName - The atom that uniquely designates the method to seal.
+ *    signature - A tuple of parameter types. This is the signature at which the
+ *       seal will be placed.
+ */
+Primitive "Seal method_at_" is
+[
+	methodName : atom,
+	signature : tuple of any meta
+|
+	Primitive 232 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode
+] : ⊤;
+
+/**
  * Answer the module currently undergoing compilation.
  *
  * Returns:

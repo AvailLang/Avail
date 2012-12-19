@@ -45,14 +45,9 @@ Names
 	"_delimited by any of_"
 Body
 
-/* TODO: [TLS] Remove these constants once a macro is available for "$…". */
-_delimiter ::= $"delimiter|delimiters";
-_currentValue ::= $"current value";
-_exhaustionState ::= $"exhaustion state";
-
-Private method "delimiter|delimiters" is [ _delimiter ];
-Private method "current value" is [ _currentValue ];
-Private method "exhaustion state" is [ _exhaustionState ];
+"delimiter|delimiters" is a new field atom;
+"current value" is a new field atom;
+"exhaustion state" is a new field atom;
 
 /**
  * A delimited iterator answers tuples of elements from its decorated iterator.
@@ -65,15 +60,16 @@ Class "delimited iterator" extends iterator
 	with fields
 		element type : tuple's type,
 		decorated iterator : iterator,
-		delimiter : <any…|1..>,
-		current value : ↑tuple,
-		exhaustion state : ↑boolean;
+		delimiter : <any…|1..>
+	with mutable fields
+		referable current value : tuple,
+		exhaustion state : boolean;
 
 Method "_is exhausted" is
 [
 	anIterator : delimited iterator
 |
-	↓anIterator's exhaustion state
+	anIterator's exhaustion state
 ] : boolean;
 
 delimited iterator's current element method is
@@ -83,11 +79,11 @@ delimited iterator's current element method is
 	/* If this is the first inquiry, then advance the iterator (to capture the
 	 * current element).
 	 */
-	If anIterator's current value is unassigned then
+	If ↑anIterator's current value is unassigned then
 	[
 		Advance anIterator;
 	];
-	↓anIterator's current value
+	anIterator's current value
 ] : tuple;
 
 delimited iterator's advance method is
@@ -97,8 +93,8 @@ delimited iterator's advance method is
 	inner ::= anIterator's decorated iterator;
 	If inner is exhausted then
 	[
-		Clear anIterator's current value;
-		↓anIterator's exhaustion state ?= true;
+		Clear ↑anIterator's current value;
+		anIterator's exhaustion state := true;
 	]
 	else
 	[
@@ -120,7 +116,7 @@ delimited iterator's advance method is
 			];
 			Advance inner;
 		];
-		↓anIterator's current value ?= result;
+		anIterator's current value := result;
 	];
 ] : ⊤;
 
@@ -144,12 +140,10 @@ Public method "_delimited by_" is
 	delimiterTuple : <any…|1..>
 |
 	a delimited iterator with
-		element type := <anIterator's element type…|>,
-		decorated iterator := anIterator,
-		delimiter := delimiterTuple,
-		current value := cast new ↑tuple into [t : ↑tuple | t],
-		exhaustion state :=
-			cast (↓new ↑boolean := false) into [t : ↑boolean | t]
+		element type ::= <anIterator's element type…|>,
+		decorated iterator ::= anIterator,
+		delimiter ::= delimiterTuple,
+		exhaustion state := false
 ] : iterator of tuple;
 
 Semantic restriction "_delimited by_" is
@@ -163,10 +157,7 @@ Semantic restriction "_delimited by_" is
 		delimiter : delimiterType
 ];
 
-/* TODO: [TLS] Remove these constants once a macro is available for "$…". */
-_testSuite ::= $"delimited iterator test suite";
-Public method "delimited iterator test suite" is [ _testSuite ];
-
+"delimited iterator test suite" is a new atom;
 New test suite delimited iterator test suite extends iterators test suite;
 
 Test "delimited iterator basics" in delimited iterator test suite is

@@ -45,12 +45,12 @@ Uses
 Body
 
 /**
- * Strengthen `_'s⁇element type`.
+ * Strengthen `_'s⁇element|member type`.
  * 
- * @method "_'s⁇element type"
+ * @method "_'s⁇element|member type"
  * @restricts "set meta's type"
  */
-Semantic restriction "_'s⁇element type" is
+Semantic restriction "_'s⁇element|member type" is
 [
 	aSetMeta : set meta's type
 |

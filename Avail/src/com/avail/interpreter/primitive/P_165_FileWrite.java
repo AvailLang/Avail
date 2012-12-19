@@ -31,7 +31,7 @@
  */
 package com.avail.interpreter.primitive;
 
-import static com.avail.descriptor.TypeDescriptor.Types.ATOM;
+import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.io.*;
@@ -42,9 +42,8 @@ import com.avail.interpreter.*;
 /**
  * <strong>Primitive 165:</strong> Write the specified {@linkplain
  * TupleDescriptor tuple} to the {@linkplain RandomAccessFile file} associated
- * with the {@linkplain AtomDescriptor handle}. Answer a {@linkplain
- * ByteTupleDescriptor tuple} containing the bytes that could not be written.
- * Writing begins at the current file position.
+ * with the {@linkplain AtomDescriptor handle}. Writing begins at the current
+ * file position.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
@@ -65,25 +64,28 @@ extends Primitive
 		assert args.size() == 2;
 		final AvailObject handle = args.get(0);
 		final AvailObject bytes = args.get(1);
-
-		if (!handle.isAtom())
+		final AvailObject pojo =
+			handle.getAtomProperty(AtomDescriptor.fileKey());
+		final AvailObject mode =
+			handle.getAtomProperty(AtomDescriptor.fileModeWriteKey());
+		if (pojo.equalsNull() || mode.equalsNull())
 		{
 			return interpreter.primitiveFailure(E_INVALID_HANDLE);
 		}
-
-		final RandomAccessFile file =
-			interpreter.runtime().getWritableFile(handle);
-		if (file == null)
+		final RandomAccessFile file = (RandomAccessFile) pojo.javaObject();
+		final byte[] buffer;
+		if (bytes.isByteArrayTuple())
 		{
-			return interpreter.primitiveFailure(E_INVALID_HANDLE);
+			buffer = bytes.byteArray();
 		}
-
-		final byte[] buffer = new byte[bytes.tupleSize()];
-		for (int i = 1, end = bytes.tupleSize(); i <= end; i++)
+		else
 		{
-			buffer[i - 1] = (byte) bytes.tupleAt(i).extractUnsignedByte();
+			buffer = new byte[bytes.tupleSize()];
+			for (int i = 1, end = bytes.tupleSize(); i <= end; i++)
+			{
+				buffer[i - 1] = (byte) bytes.tupleAt(i).extractUnsignedByte();
+			}
 		}
-
 		try
 		{
 			file.write(buffer);
@@ -92,10 +94,7 @@ extends Primitive
 		{
 			return interpreter.primitiveFailure(E_IO_ERROR);
 		}
-
-		// Always return an empty tuple since RandomAccessFile writes its
-		// buffer transactionally.
-		return interpreter.primitiveSuccess(TupleDescriptor.empty());
+		return interpreter.primitiveSuccess(NullDescriptor.nullObject());
 	}
 
 	@Override
@@ -106,7 +105,16 @@ extends Primitive
 				ATOM.o(),
 				TupleTypeDescriptor.zeroOrMoreOf(
 					IntegerRangeTypeDescriptor.bytes())),
-			TupleTypeDescriptor.zeroOrMoreOf(
-				IntegerRangeTypeDescriptor.bytes()));
+			TOP.o());
+	}
+
+	@Override
+	protected AvailObject privateFailureVariableType ()
+	{
+		return AbstractEnumerationTypeDescriptor.withInstances(
+			TupleDescriptor.from(
+				E_INVALID_HANDLE.numericCode(),
+				E_IO_ERROR.numericCode()
+			).asSet());
 	}
 }

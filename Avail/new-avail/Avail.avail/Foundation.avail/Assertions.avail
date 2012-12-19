@@ -118,7 +118,7 @@ Public method "Assert:_(_)" is
 	message : string
 |
 	Raise an assertion-failed exception ∩ descriptive exception
-		with error message := message
+		with error message ::= message
 ] : ⊥;
 
 /**
@@ -147,5 +147,5 @@ Semantic restriction "Assert:_(_)" is
 Public method "Shouldn't happen" is
 [
 	Raise an assertion-failed exception ∩ descriptive exception
-		with error message := "This should not be possible."
+		with error message ::= "This should not be possible."
 ] : ⊥;

@@ -41,7 +41,8 @@ Uses
 	"Stacks Lexer"
 Names
 	"identify comment from_",
-	"Parse the Avail document_"
+	"Parse the Avail document_",
+	"Print comment map's tokens"
 
 Body
 
@@ -61,7 +62,7 @@ buffer : <character…|> := <>;
 inAnnalsType : boolean := false; 
 annalsType : string := "";
 annalsObjectName : string := "";
-fileCommentMapsTuple : <{stacks token→{<stacks token…|>|}|}…|> := <>;
+fileCommentMapsTuple : <{string→{<stacks token, <stacks token…|>…|>|}|}…|> := <>;
 
 /* This will eventually be the name of the file being processed */
 fileName : string : = "test file.avail";
@@ -149,21 +150,6 @@ Private method "Increment the line count" is
 [
 	↑lineCount++;
 ]:⊤;
-
-/**
- * Checks to see if the iterator of character is not exhausted.
- * @method "_is not exhausted"
- * @category "Annals"
- * @param "iter" iterator of character
- * @returns boolean
- * @raises
- */
-Private method "_is not exhausted" is
-[
- 	iter : iterator of character
- |
- 	¬iter is exhausted
-]:boolean;
 
 /**
  * Clears the global variable, buffer, of all its contents.
@@ -289,7 +275,7 @@ Private method "split stacks tuple_" is
 [
  	tokens : <stacks token…|1..>
  |
- 	parsedTokenMap : {stacks token→{<stacks token…|>|}|} := {};
+ 	parsedTokenMap : {string→{<stacks token, <stacks token…|>…|>|}|} := {};
  	
  	/* Partition stacks tuple into map keyed by special stacks token type */
  	generalComment : <stacks token…|> := <>;
@@ -298,10 +284,10 @@ Private method "split stacks tuple_" is
  	 	generalKey ::= if ¬(tokens[1]'s isSpecial) then
  	 	[
  	 	 	a stacks token with
-				lexeme := "@general",
-				line := tokens[1]'s line,
-				position := 0,
-				isSpecial := true
+				lexeme ::= "@general",
+				line ::= tokens[1]'s line,
+				position ::= 0,
+				isSpecial ::= true
 		] else [tokens[1]];
 		generalComment := generalComment ++ take from tokens until 
  	 	[
@@ -309,7 +295,8 @@ Private method "split stacks tuple_" is
  	 	 |
  	 		st's isSpecial
  	 	];
- 	 	parsedTokenMap := parsedTokenMap + generalKey→{generalComment};
+ 	 	parsedTokenMap := parsedTokenMap + 
+ 	 		generalKey's lexeme→{<generalKey,generalComment>};
  	];
 	/* Take remaining portion of unconsumed tuple */
 	remainder : <stacks token…|> := <>;
@@ -328,13 +315,13 @@ Private method "split stacks tuple_" is
 			st's isSpecial
 		];
 		parsedTokenMap := parsedTokenMap + 
-			remainder[1]→({genericStacks} 
-			∪ parsedTokenMap[remainder[1]] else [∅]);
+			remainder[1]'s lexeme→({<remainder[1],genericStacks>} 
+			∪ parsedTokenMap[remainder[1]'s lexeme] else [∅]);
  	 	remainder := if |remainder| = |genericStacks|+1 then [<>]
  	 		else [remainder[|genericStacks|+2..]];
  	];
  	parsedTokenMap
-]:{stacks token→{<stacks token…|>|}|};
+]:{string→{<stacks token, <stacks token…|>…|>|}|};
 
 
 
@@ -351,268 +338,6 @@ Private method "split stacks tuple_" is
 
 
 
-/* Stuff after here was from old parser */
-
-/*
-
-/**
- * Divide the comment buffer into parts designated by `@ tag keywords.  If `@
- * tag is escaped or preceded by a {, then ignore tag.
- *
- * @method "Split comment buffer"
- * @category "Stacks"
- * @returns "<string…|1..>"
- *		a tuple of strings
- * @author "Richard Arriaga"
- */
-Private method "Split buffer" is
-[
-	atTags : <natural number…|0..∞> := <>;
-	returnTuple : <string…|> := <>;
-	commentErrors : <<string,natural number,string…|3>…|0..> := <>;
-	
-	/* Locate each `@ symbol and determine if intended to be keyword */
-	For each of (all indices of buffer where [c : character | c = ¢@]) do
-	[
-	 	i : natural number
-	 | 
-	 	If i ≠ 1 then 
-	 	[
-	 	 	k : [2..∞) := cast i into [l : [2..∞) | l];
-	 	 	if buffer [k-1] ∉ {¢{, ¢`} then 
-	 	 	[
-	 	 	 	atTags := atTags ++ <k>;
-	 	 	] else if [buffer [k-1] = ¢{] then
-	 	 	[
-	 	 	 	endTag ::= first index of buffer[k..] where 
-	 	 	 		[c: character | c = ¢}];
-	 	 	    if endTag ≠ 0 then 
-	 	 	    [
-	 	 	     	endKeyWord::= first index of buffer[k..] where 
-	 	 	     		[c: character | c ∈ {¢" ", ¢"\n"}];
-	 	 	     	if endKeyWord ≠ 0 then
-	 	 	     	[
-	 	 	     	 	ekw : [2..∞) := cast endKeyWord into [l : [2..∞) | l];
-		 	 	     	if buffer [k..(endKeyWord+k-2)] ∉ keywords then 
-		 	 	     	[
-		 	 	     	 	commentError := true;
-		 	 	     		errorLine ::= lineCount + count of all indices of 
-		 	 	     			buffer where [c : character | c = ¢"\n"] where 
-		 	 	     				[n : natural number | n < i];
-		 	 	     		/*TODO Create Comment Error object -not key word***/
-		 	 	     		commentErrors := commentErrors ++
-		 	 	     			<<"Not a key word",errorLine,
-		 	 	     				buffer [k..(ekw+k-2)]>>;
-		 	 	     	
-		 	 	     		Print: "Split buffer - not keyword\n";
-		 	 	     		Print: format "commentErrors=“①”\n\n" with commentErrors;
-		 	 	     	] else
-		 	 	     	[
-		 	 	     	 	If buffer[ekw] = ¢"\n" then 
-		 	 	     	 	[
-		 	 	     	 	 	Increment the line count;
-		 	 	     	 	];
-		 	 	     	 	/*TODO Check close bracket exists before next keyword***/
-		 	 	     	];
-	 	 	     	/**/] else [/* TODO No data following keyword*/];
-	 	 	    ] else
-	 	 	    [
-	 	 	     	if buffer [k..] ∈ keywords then 
-	 	 	     	[
-	 	 	     	 	commentError := true;
-	 	 	     		/*TODO Create Comment Error object -nothing following key word***/
-	 	 	     		Print: "Got Here3\n";
-	 	 	     	] else
-	 	 	     	[
-	 	 	     	 	commentError := true;
-	 	 	     		/*TODO Create Comment Error object -not key word***/
-	 	 	     		errorLine ::= lineCount + count of all indices of 
-	 	 	     			buffer where [c : character | c = ¢"\n"] where 
-	 	 	     				[n : natural number | n < i];
-	 	 	     		commentErrors := commentErrors ++
-	 	 	     			<<"Not a key word",errorLine,
-	 	 	     				buffer [k..]>>;
-	 	 	     	
-	 	 	     		Print: "Split buffer - not keyword\n";
-	 	 	     		Print: format "commentErrors=“①”\n\n" with commentErrors;
-	 	 	     		Print: "Got Here4\n";
-	 	 	     	];
-	 	 	    ];
-	 	 	] else [/* Escaped `@ character; do nothing */Print: "Got Here5\n";];
-	 	];
-	];
-	if |atTags| = 0 then
-	[
-    	if buffer ∉ keywords then 
-    	[
-    	 	commentError := true;
-    		/*TODO Create Comment Error object -no key word
-    		 * Need to take whole comment and put it in erroneous comment object*/
- 			commentError ::= <"No keyword",lineCount,buffer>;
-     	
- 			Print: "Split buffer - no keyword\n";
- 			Print: format "commentError=“①”\n\n" with commentError;
-    		Print: "Got Here6\n";
-    	] else
-        [
-     	 	commentError := true;
-     		/*TODO Create Comment Error object - key word deficient***/
-    		Print: "Got Here7\n";
-     	];
-	] else
-	[
-	 	at : <natural number…|1..∞> := 
-	 		cast atTags into [t : <natural number…|1..∞> | t ];
-	 	/* Split up buffer at pertinant `@ tag boundaries. */
-	 	From 1 to |at| do
-	 	[
-	 	 	j : natural number
-	 	 |
-	 	 	if j = 1 then 
-	 	 	[
-	 	 	 	/* Do not include the `@ tag at the end by capturing up through
-	 	 	 	 * the character just before the `@ character */ 
-	 	 	 	returnTuple := returnTuple ++ <buffer[..(at[1]-1)]>;
-	 	 	 	If |at| > 1 then
-	 	 	 	[
-		 	 	 	returnTuple := returnTuple ++ <buffer[at[j]..(at[j+1]-1)]>;
-	 	 	 	];
-	 	 	 	If |at| = 1 then
-	 	 	 	[
-		 	 	 	returnTuple := returnTuple ++ <buffer[at[j]..]>;
-	 	 	 	];
-	 		]
-	 	 	else if [j = |at|] then
-	 	 	[
-	 	 	 	returnTuple := returnTuple ++ <buffer[(at's last)..]>;
-	 	 	]
-	 	 	else
-	 	 	[
-	 	 	 	/* Do not include the `@ tag at the end by capturing up through
-	 	 	 	 * the character just before the `@ character */ 
-	 	 	 	m : [2..∞) := cast j into [n : [2..∞) | n];
-	 	 	 	returnTuple := returnTuple ++ <buffer[at[m]..(at[m+1]-1)]>;
-	 	 	];
-	 	];
-	];
-	returnTuple
-]:<string…|>;
-
-/**
- * Consume the buffer characters starting from the start index provided through
- * end index provided.  Place text in provided map with key of tag provided.  
- * If no tag provided, then place in general description slot of map.
- *
- * @method "Process_from_to_in_«for tag_»"
- * @category "Stacks"
- * @param "subBuffer" "string" 
- *		The initial index to start processing from in the buffer.
- * @param "start" "natural number" 
- *		The initial index to start processing from in the buffer.
- * @param "end" "natural number" 
- *		The final index to stop processing from in the buffer.
- * @param "aMap" "{string→{<naturalNumber,string…|2>|1..}|}"
- * 		The map containing all the components of the comment.
- * @param "tag" "<string…|0..1>"
- *  	The tag associated with this block of text.
- * @returns "{string→{string|1..}|}"
- *		Updated map containing Stacks comment components
- * @author "Richard Arriaga"
- */
-Private method "Process_from_to_in_«for tag_»" is
-[
-	subBuffer : string,
- 	start : natural number,
- 	end : natural number,
- 	aMap : {string→{<natural number,string…|2>|1..}|},
- 	tag : <string…|0..1>
- |
- 	startLineNumber ::= lineCount;
- 	lineCount := lineCount + 
- 		|all indices of subBuffer where [c : character | c = ¢"\n"]|; 
- 	sub ::= map subBuffer[start..end] through
- 	[
- 	 	c : character
- 	 |
- 	 	if c = ¢"\n" then [¢" "] else [c]
- 	];
- 	mapKeys ::= aMap's keys;
- 	if |tag| = 0 then
- 	[
- 	 	/* Update general description */
- 	 	if "@generalDescription" ∈ mapKeys then
- 	 	[
- 	 	 	aMap + "@generalDescription"→aMap["@generalDescription"] ∪ 
- 	 	 		{<startLineNumber,sub>}
- 	 	] else
- 	 	[
- 	 	 	aMap + "@generalDescription"→{<startLineNumber,sub>}
- 	 	]
- 	] else
- 	[
-	 	/* Update general description */
-	 	if tag[1] ∈ mapKeys then
-	 	[
-	 	 	aMap + tag[1]→aMap[tag[1]] ∪ {<startLineNumber,sub>}
-	 	]else
-	 	[
-	 	 	aMap + tag[1]→{<startLineNumber,sub>}
-	 	]
- 	]
-
- ]:{string→{<natural number,string…|2>|1..}|};
-
-/**
- * Determine what tag is being used.  If the tag is invalid, add entire comment
- * to error log.
- *
- * @method "Identify tag at_"
- * @category "Stacks"
- * @param "subBuffer" "string" 
- *		Start of string with keyword denoted by `@ character.
- * @returns "string"
- *		Stacks comment tag
- * @raises "No-such-tag exception" 
- *		If the tag is not a valid tag.
- * @author "Richard Arriaga"
- */
-Private method "Identify tag in_" is
-[
- 	subBuffer : string
- |
- 	if subBuffer[1] = ¢@ then
- 	[
-	 	/* identify the tag index range*/
-	 	endOfKeywordIndex ::= first index of subBuffer where
-	 	[
-	 	 	c : character
-	 	 |
-	 	 	c ∈ {¢" ",¢"\n"}
-	 	] - 1;
-		if (subBuffer[..endOfKeywordIndex] else [subBuffer]) ∈ keywords then
-		[
-		 	subBuffer[..endOfKeywordIndex] else [subBuffer]
-		] 
-		else
-		[
-	 	 	commentError := true;
-	
-	 		/*TODO Create Comment Error object -not key word***/
-	
-	 		commentError ::= <"Not a keyword",lineCount,
-	 			subBuffer[..endOfKeywordIndex] else [subBuffer]>;
-	 	
-	 		Print: "Identify tag in_ - not keyword\n";
-	 		Print: format "commentError=“①”\n\n" with commentError;
-	 		subBuffer
-		]
-	] else
-	[
-	 	/*TODO Openning Description***/
-	 	"@generalDescription"
-	]
- ]:string;
-*/
 
 /* TODO write funtions to process @keywords in map.  Complete error file
  * handling for erroneous comments.*/
@@ -707,142 +432,45 @@ Public method "identify comment from_" is
 	];
 ]:⊤;
 
-
-
-
-
-
-
-
-
-
-test ::=
-"Sucker /**
- * Given an iterator of character at the start of a comment, collect all the characters until 
- * the open comment count is 0. /*Puprplee*/
- * @method \"buffer comment from_\"
- * @category \"Stacks\" 
- * @param \"iter\" \"iterator of character\" an iterator of character over a string
- * @param turkey buzzard in space
- * yes, turkey master!
- * @returns \"string\"  The entire comment less the opening * on a new line. 
- */ yo
- e
 /**
- * Butt-licking great time!
- * 
- * Ew...
+ * A print method for fileCommentMapsTuple to test tokenizer
+ *
+ * @method "Print comment maps tokens"
+ * @public
+ * @categories "Stacks"
+ * @param "tokenMap" "<{string→{<stacks token, <stacks token…|>…|>|}|}…|>" 
+ *		A
+ * @returnType "⊤"
+ *		none
+ * @author "Richard Arriaga"
  */
-
- Private method \"methodName\" is
- [
-  parameter : parameterType
-  |
-  
-  ]:returnType;
-
- /**
-  * Consume the buffer characters starting from the start index provided through
-  * end index provided.  Place text in provided map with key of tag provided.  
-  * If no tag provided, then place in general description slot of map.
-  *
-  * @method \"Process_from_to_in_«for tag_»\"
-  * @category \"Stacks\"
-  * @param \"subBuffer\" \"string\" 
-  *		The initial index to start processing from in the buffer.
-  * @param \"start\" \"natural number\" 
-  *		The initial index to start processing from in the buffer.
-  * @param \"end\" \"natural number\" 
-  *		The final index to stop processing from in the buffer.
-  * @param \"aMap\" \"{string→{<naturalNumber,string…|2>|1..}|}\"
-  * 		The map containing all the components of the comment.
-  * @param \"tag\" \"<string…|0..1>\"
-  *  	The tag associated with this block of text.
-  * @returns \"{string→{string|1..}|}\"
-  *		Updated map containing Stacks comment components
-  * @author Richard Arriaga
-  */ peace
-  out!
-  /**
-   * A subtype of /*{@type \"library component\" library component}*/ that contains 
-   * information on Avail methods.
-   * 
-   * @type \"method\"
-   * @supertype {@type \"library component\" library component}
-   * @public
-   * @category Annals
-   * 
-   * @field \"parameters\" \"<<string…|2>…|>\"
-   *  the inputs of the method<br>
-   *   1) input name<br>
-   *   2) input description<br>
-   * @field \"raises\" \"<string…|>\",
-   *  exceptions the method uses
-   * @field \"methodImplemenations\" \"<library method implementation…|1..>\"
-   *  All the implemenations of the method in the library.
-   * @field \"semanticRestrictions\" \"<library semantic restriction…|>\"
-   *  All the semantic restrictions of the method in the library.
-   * @field \"grammaticalRestrictions\" \"<library grammatical restrictions…|>\"
-   *  All the grammatical restrictions of the method in the library.
-   *  
-   * @author Richard Arriaga
-   */";
-
-
-
-/* Print: test; Print: "\n";*/
- it : iterator of character := an iterator over test;
-identify comment from it;
-/*
-Print: buffer;
-Print: "\n";
-Print: format "lineCount=“①”\n\n" with lineCount;
-Print: “buffer”;
-
-Print: format "\n\nnew lines count in buffer =“①”\n" with (all indices of buffer where [c : character | c = ¢"\n"]);
-Print: "\n\n";
-Print: format "Split buffer=“①”\n" with Split buffer;
-Print: "\n\n";
-Print: "Split Buffer=\n\n";
-
-mp1 : {string→{<natural number,string…|2>|1..}|} := {};
-For each of Split buffer do
+Public method "Print comment map's tokens" is
 [
- 	st : string
- |
- 	tg ::= Identify tag in st;
-	if tg ≠ "@generalDescription" then [
-mp1:=Process st from (|tg| + 1) to (cast |st| into [n : natural number | n]) in mp1 for tag tg;
-	] else [mp1:=Process st from 1 to (cast |st| into [n : natural number | n]) in mp1;];
- 	Print: "tag=";
- 	Print: tg;
- 	Print: "\n";
-	Print: st;
- 	Print: "\n~\n";
-];
-Print: "\n\nMap:\n";
-Print: format "mp1=“arg”\n\n" with arg:=mp1;*/
-Print: format "lineCount=“①”\n\n\n" with lineCount;
-Print: format "fileCommentMapsTuple=“①”\n" with fileCommentMapsTuple;
+	For each of fileCommentMapsTuple do
+	[
+	 	mps : {string→{<stacks token, <stacks token…|>…|>|}|}
+	 |
+	 	Print: "==================================================================\n";
+	 	Print: "==================================================================\n";
+	 	Print: "==================================================================\n\n";
+	 	For each of mps do
+	 	[
+	 	 	k : string,
+	 	 	vs : {<stacks token, <stacks token…|>…|>|}
+	 	 |
+	 	 	Print: k;  Print: " ";
+	 	 	For each of vs do
+	 	 	[
+	 	 	 	v : <stacks token, <stacks token…|>…|>
+	 	 	 |
+	 	 	 	Print: concatenate v[2] separated by " ";
+	 	 		Print: "\n";
+	 	 	];
+	 	 	Print: "\n";
+	 	];
+	];
+]:⊤;
 
-For each of fileCommentMapsTuple do
-[
- 	mps : {stacks token→{<stacks token…|>|}|}
- |
- 	For each of mps do
- 	[
- 	 	k : stacks token,
- 	 	vs : {<stacks token…|>|}
- 	 |
- 	 	Print: k's lexeme;  Print: " ";
- 	 	For each of vs do
- 	 	[
- 	 	 	v : <stacks token…|>
- 	 	 |
- 	 	 	Print: concatenate v separated by " ";
- 	 		Print: "\n";
- 	 	];
- 	 	Print: "\n";
- 	];
-];
+
+
 

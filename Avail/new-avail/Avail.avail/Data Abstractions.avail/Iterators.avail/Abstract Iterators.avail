@@ -34,7 +34,7 @@ System Module "Abstract Iterators"
 Versions
 	"dev"
 Extends
-	"Common" = ("element type"),
+	"Common" = ("element type", "_'s⁇element type"),
 	"Foundation" =
 	(
 		"For each of⁇_do_",
@@ -56,6 +56,8 @@ Names
 	"Drop from_until_",
 	"Drop from_while_",
 	"Drop«at most»?_from_",
+	"Seal_'s⁇current element method",
+	"Seal_'s⁇advance method",
 	"an exhausted iterator",
 	"decorated iterator|iterators",
 	"exhausted iterator",
@@ -65,6 +67,7 @@ Names
 	"iterator of_",
 	"take«at most»?_from_",
 	"_is exhausted",
+	"_is not exhausted",
 	"_'s⁇current element",
 	"_'s⁇current element method is_",
 	"_'s⁇advance method is_"
@@ -73,29 +76,11 @@ Body
 /* TODO: [TLS] Remove these constants once a macro is available for "$…". */
 privateCurrentElementName ::= $"private_'s⁇current element";
 privateAdvanceName ::= $"Private advance_";
-decoratedIterator ::= $"decorated iterator|iterators";
-transformer ::= $"transformer";
-filter ::= $"filter";
-iteratorIndex ::= $"iterator index";
-testSuite ::= $"iterators test suite";
 
-/**
- * Answer the field atom that represents a decorated iterator.
- *
- * @method "decorated iterator|iterators"
- * @returns "atom"
- *          The requested field atom.
- */
-Public method "decorated iterator|iterators" is [ decoratedIterator ];
-
-/**
- * Answer the field atom that represents an iterator index.
- *
- * @method "iterator index"
- * @returns "atom"
- *          The requested field atom.
- */
-Method "iterator index" is [ iteratorIndex ];
+Public "decorated iterator|iterators" is a new field atom;
+"transformer" is a new field atom;
+"filter" is a new field atom;
+"iterator index" is a new field atom;
 
 /**
  * An iterator is a mutable lazy list of arbitrarily many elements.
@@ -125,7 +110,7 @@ Public method "iterator of_" is
 
 /**
  * An exhausted-iterator exception is raised when an inappropriate operation,
- * like `advance_`, is performed on an exhausted iterator.
+ * like {@method "Advance_"}, is performed on an exhausted iterator.
  *
  * @type "exhausted-iterator exception"
  */
@@ -222,6 +207,19 @@ Semantic restriction "_'s⁇current element method is_" is
 	⊤
 ];
 
+/**
+ * Seal the current element method at the specified {@type "iterator"} type.
+ *
+ * @method "Seal_'s⁇current element method"
+ * @param "iteratorType" "iterator's type"
+ */
+Public method "Seal_'s⁇current element method" is
+[
+	iteratorType : iterator's type
+|
+	Seal method privateCurrentElementName at <iteratorType>;
+] : ⊤;
+
 Private abstract method privateAdvanceName is [iterator]→⊤;
 
 /**
@@ -291,6 +289,19 @@ Semantic restriction "_'s⁇advance method is_" is
 	];
 	⊤
 ];
+
+/**
+ * Seal the advance method at the specified {@type "iterator"} type.
+ *
+ * @method "Seal_'s⁇advance method"
+ * @param "iteratorType" "iterator's type"
+ */
+Public method "Seal_'s⁇advance method" is
+[
+	iteratorType : iterator's type
+|
+	Seal method privateAdvanceName at <iteratorType>;
+] : ⊤;
 
 /**
  * An exhausted iterator has ⊥ as its element type.
@@ -366,7 +377,7 @@ Semantic restriction "Advance_" is
 		"an exhausted iterator not to be asked to advance"
 ];
 
-theExhaustedIterator ::= an exhausted iterator with element type := ⊥;
+theExhaustedIterator ::= an exhausted iterator with element type ::= ⊥;
 
 /**
  * Answer an {@type "exhausted iterator"}.
@@ -500,9 +511,9 @@ Method "map_through_" is
 	theTransformer : [⊥]→any
 |
 	a mapped iterator with
-		element type := theTransformer's type's return type,
-		decorated iterator := anIterator,
-		transformer := theTransformer
+		element type ::= theTransformer's type's return type,
+		decorated iterator ::= anIterator,
+		transformer ::= theTransformer
 ] : iterator;
 
 Semantic restriction "map_through_" is
@@ -603,9 +614,9 @@ Method "filter_by_" is
 	predicate : [⊥]→boolean
 |
 	a filtered iterator with
-		element type := anIterator's element type,
-		decorated iterator := anIterator,
-		filter := predicate
+		element type ::= anIterator's element type,
+		decorated iterator ::= anIterator,
+		filter ::= predicate
 ] : iterator;
 
 Semantic restriction "filter_by_" is
@@ -625,15 +636,16 @@ Semantic restriction "filter_by_" is
  * @supertype "iterator"
  */
 Class "concatenation iterator" extends iterator
-	with fields
-		decorated iterators : <iterator…|>,
-		iterator index : ↑natural number;
+	with field
+		decorated iterators : <iterator…|>
+	with mutable field
+		referable iterator index : natural number;
 
 Method "_is exhausted" is
 [
 	anIterator : concatenation iterator
 |
-	index : ↑natural number := anIterator's iterator index;
+	index : ↑natural number := ↑anIterator's iterator index;
 	iterators ::= anIterator's decorated iterators;
 	limit ::= |iterators|;
 	While [↓index ≤ limit ∧ [iterators[↓index] is exhausted]]
@@ -648,7 +660,7 @@ concatenation iterator's current element method is
 [
 	anIterator : concatenation iterator
 |
-	inner ::= anIterator's decorated iterators[↓anIterator's iterator index];
+	inner ::= anIterator's decorated iterators[anIterator's iterator index];
 	inner's current element
 ] : any;
 
@@ -656,7 +668,7 @@ concatenation iterator's advance method is
 [
 	anIterator : concatenation iterator
 |
-	index ::= ↓anIterator's iterator index;
+	index ::= anIterator's iterator index;
 	iterators ::= anIterator's decorated iterators;
 	Advance iterators[index];
 ] : ⊤;
@@ -676,18 +688,17 @@ Method "concatenate_" is
 [
 	iterators : <iterator…|>
 |
-	if |iterators| = 0 then [ an exhausted iterator ]
-	else if [ |iterators| = 1 ] then [ iterators[1] ]
+	if |iterators| = 0 then [an exhausted iterator]
+	else if [|iterators| = 1] then [iterators[1]]
 	else
 	[
 		elementType ::=
 			cast ∪ map iterators through [i : iterator | i's element type]
 			into [t : any's type | t];
-		var ::= cast (↓new ↑natural number := 1) into [t : ↑natural number | t];
 		a concatenation iterator with
-			element type := elementType,
-			decorated iterators := iterators,
-			iterator index := var
+			element type ::= elementType,
+			decorated iterators ::= iterators,
+			iterator index := 1
 	]
 ] : iterator;
 
@@ -709,11 +720,10 @@ Method "«_‡++»" is
 	elementType ::=
 		cast ∪ map iterators through [i : iterator | i's element type]
 		into [t : any's type | t];
-	var ::= cast (↓new ↑natural number := 1) into [t : ↑natural number | t];
 	a concatenation iterator with
-		element type := elementType,
-		decorated iterators := iterators,
-		iterator index := var
+		element type ::= elementType,
+		decorated iterators ::= iterators,
+		iterator index := 1
 ];
 
 /**
@@ -800,8 +810,8 @@ Method "zip_" is
 	elementType ::=
 		<types[1..|types| - 1], types[|types|]… | |iterators|'s type>;
 	a zipped iterator with
-		element type := elementType,
-		decorated iterators := iterators
+		element type ::= elementType,
+		decorated iterators ::= iterators
 ] : iterator;
 
 /**
@@ -825,8 +835,8 @@ Method "«_‡zip»" is
 	elementType ::=
 		<types[1..|types| - 1], types[|types|]… | |iterators|'s type>;
 	a zipped iterator with
-		element type := elementType,
-		decorated iterators := iterators
+		element type ::= elementType,
+		decorated iterators ::= iterators
 ] : iterator;
 
 /**
@@ -871,7 +881,7 @@ Semantic restriction "«_‡zip»" is zip semantic restriction;
  *        {@code false} if an {@type "exhausted-iterator exception"} should be
  *        raised if {@param "count"} exceeds the number of elements remaining,
  *        {@code true} otherwise.
- * @param "count" "whole number"
+ * @param "count" "[0..∞]"
  *        The size of the requested tuple.
  * @param "anIterator" "iterator"
  *        An iterator.
@@ -885,7 +895,7 @@ Semantic restriction "«_‡zip»" is zip semantic restriction;
 Method "take«at most»?_from_" is
 [
 	isLax : boolean,
-	count : whole number,
+	count : [0..∞],
 	anIterator : iterator
 |
 	result : tuple := <>;
@@ -893,7 +903,8 @@ Method "take«at most»?_from_" is
 	[
 		Repeat
 		[
-			result := eject ↑result ++ <anIterator's current element>;
+			next ::= anIterator's current element;
+			result := eject ↑result ++ <next>;
 			Advance anIterator;
 		] count times;
 	]
@@ -909,12 +920,28 @@ Method "take«at most»?_from_" is
 Semantic restriction "take«at most»?_from_" is
 [
 	laxity : boolean's type,
-	count : whole number's type,
+	count : [0..∞]'s type,
 	iteratorType : iterator's type
 |
-	min ::= if laxity = true then [0] else [⎣count⎦];
+	min ::= if laxity = true's type then [0] else [⎣count⎦];
 	<<>, iteratorType's element type's instance…|[min..⎡count⎤+1)>
 ];
+
+/**
+ * Checks to see if the iterator of character is not exhausted.
+ * @method "_is not exhausted"
+ * @public
+ * @category "Annals"
+ * @param "iter" iterator of character
+ * @returns "boolean"
+ * @author "Richard Arriaga"
+ */
+Public method "_is not exhausted" is
+[
+ 	anIterator : iterator
+ |
+ 	¬anIterator is exhausted
+]:boolean;
 
 /**
  * Answer a tuple containing the prefix of {@param "anIterator"} that answered
@@ -939,7 +966,7 @@ Method "take from_while_" is
 	result : tuple := <>;
 	While
 	[
-		¬anIterator is exhausted ∧ [predicate(anIterator's current element)]
+		anIterator is not exhausted ∧ [predicate(anIterator's current element)]
 	]
 	do
 	[
@@ -1055,7 +1082,7 @@ Method "Drop from_while_" is
 |
 	While
 	[
-		¬anIterator is exhausted ∧ [predicate(anIterator's current element)]
+		anIterator is not exhausted ∧ [predicate(anIterator's current element)]
 	]
 	do
 	[
@@ -1108,13 +1135,5 @@ Semantic restriction "Drop from_until_" is
 	⊤
 ];
 
-/**
- * Answer the test suite identifier of the iterator test suite.
- *
- * @method "iterator test suite"
- * @returns "atom"
- *          The requested test suite identifier.
- */
-Public method "iterators test suite" is [ testSuite ];
-
+Public "iterators test suite" is a new field atom;
 New test suite iterators test suite extends data abstractions test suite;

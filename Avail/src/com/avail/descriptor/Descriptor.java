@@ -4671,7 +4671,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	public AvailObject o_DefinitionMethod (final AvailObject object)
+	AvailObject o_DefinitionMethod (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}
@@ -4680,5 +4680,35 @@ extends AbstractDescriptor
 	AvailObject o_PrefixFunctions (final AvailObject object)
 	{
 		throw unsupportedOperationException();
+	}
+
+	@Override boolean o_EqualsByteArrayTuple (
+		final AvailObject object,
+		final AvailObject aByteArrayTuple)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	boolean o_CompareFromToWithByteArrayTupleStartingAt (
+		final AvailObject object,
+		final int i,
+		final int tupleSize,
+		final AvailObject aByteArrayTuple,
+		final int j)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	byte[] o_ByteArray (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	boolean o_IsByteArrayTuple (final AvailObject object)
+	{
+		return false;
 	}
 }
