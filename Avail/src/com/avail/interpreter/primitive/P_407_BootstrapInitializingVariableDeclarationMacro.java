@@ -1,5 +1,5 @@
 /**
- * P_410_BootstrapSendAsStatementMacro.java
+ * P_407_BootstrapInitializingVariableDeclarationMacro.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -41,35 +41,56 @@ import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 
 /**
- * The {@code P_410_BootstrapSendAsStatementMacro} primitive is used to allow
- * message sends producing ⊤ to be used as statements.
+ * The {@code P_407_BootstrapInitializingVariableDeclarationMacro} primitive is
+ * used for bootstrapping declaration of a {@link #LOCAL_VARIABLE_NODE local
+ * variable} (without an initializing expression).
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class P_410_BootstrapSendAsStatementMacro extends Primitive
+public class P_407_BootstrapInitializingVariableDeclarationMacro extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_410_BootstrapSendAsStatementMacro().init(
-			1, CannotFail, Bootstrap);
+		new P_407_BootstrapInitializingVariableDeclarationMacro().init(
+			3, CannotFail, Bootstrap);
 
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 1;
-		final AvailObject sendNode = args.get(0);
+		assert args.size() == 3;
+		final AvailObject variableNameLiteral = args.get(0);
+		final AvailObject typeLiteral = args.get(1);
+		final AvailObject initializingExpression = args.get(2);
 
-		if (!sendNode.expressionType().equals(TOP.o()))
+		final AvailObject type = typeLiteral.token().literal();
+		if (type.equals(TOP.o()) || type.equals(BottomTypeDescriptor.bottom()))
 		{
 			throw new AvailRejectedParseException(
 				StringDescriptor.from(
-					"statement's type to be ⊤"));
+					"variable's declared type to be something other than "
+					+ type));
 		}
-		return interpreter.primitiveSuccess(sendNode);
+		if (!initializingExpression.expressionType().isSubtypeOf(type))
+		{
+			throw new AvailRejectedParseException(
+				StringDescriptor.from(
+					String.format(
+						"initializing assignment expression's type (%s) "
+						+ "to match variable type (%s)",
+						initializingExpression.expressionType(),
+						type)));
+		}
+		final AvailObject variableDeclaration =
+			DeclarationNodeDescriptor.newVariable(
+				variableNameLiteral.token().literal(), // contains another token
+				type,
+				initializingExpression);
+		variableDeclaration.makeImmutable();
+		return interpreter.primitiveSuccess(variableDeclaration);
 	}
 
 	@Override
@@ -77,8 +98,12 @@ public class P_410_BootstrapSendAsStatementMacro extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				/* The send node to treat as a statement */
-				SEND_NODE.mostGeneralType()),
-			SEND_NODE.mostGeneralType());
+				/* Variable name token */
+				LITERAL_NODE.create(TOKEN.o()),
+				/* Variable type */
+				LITERAL_NODE.create(InstanceMetaDescriptor.anyMeta()),
+				/* Initialization expression */
+				EXPRESSION_NODE.mostGeneralType()),
+			LOCAL_VARIABLE_NODE.mostGeneralType());
 	}
 }

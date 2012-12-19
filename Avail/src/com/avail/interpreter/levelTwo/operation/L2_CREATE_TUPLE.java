@@ -66,7 +66,7 @@ public class L2_CREATE_TUPLE extends L2Operation
 		final AvailObject indices = interpreter.vectorAt(valuesIndex);
 		final int size = indices.tupleSize();
 		final AvailObject tuple =
-			ObjectTupleDescriptor.mutable().create(size);
+			ObjectTupleDescriptor.createUninitialized(size);
 		for (int i = 1; i <= size; i++)
 		{
 			tuple.tupleAtPut(

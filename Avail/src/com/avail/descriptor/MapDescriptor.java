@@ -176,6 +176,13 @@ public class MapDescriptor extends Descriptor
 		aStream.append('}');
 	}
 
+	@Override
+	String o_NameForDebugger (final AvailObject object)
+	{
+		return super.o_NameForDebugger(object) + ": mapSize="
+			+ object.mapSize();
+	}
+
 	@Override @AvailMethod
 	boolean o_Equals (
 		final AvailObject object,

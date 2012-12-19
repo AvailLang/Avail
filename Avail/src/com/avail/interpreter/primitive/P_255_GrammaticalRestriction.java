@@ -34,9 +34,18 @@ package com.avail.interpreter.primitive;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.interpreter.Primitive.Flag.Unknown;
 import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.exceptions.*;
-import com.avail.interpreter.*;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.FunctionTypeDescriptor;
+import com.avail.descriptor.IntegerRangeTypeDescriptor;
+import com.avail.descriptor.NullDescriptor;
+import com.avail.descriptor.SetDescriptor;
+import com.avail.descriptor.SetTypeDescriptor;
+import com.avail.descriptor.TupleDescriptor;
+import com.avail.descriptor.TupleTypeDescriptor;
+import com.avail.exceptions.AmbiguousNameException;
+import com.avail.exceptions.SignatureException;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
 
 /**
  * <strong>Primitive 255:</strong> Message precedence declaration with

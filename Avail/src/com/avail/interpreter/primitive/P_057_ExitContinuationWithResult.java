@@ -59,10 +59,8 @@ public class P_057_ExitContinuationWithResult extends Primitive
 		assert args.size() == 2;
 		final AvailObject con = args.get(0);
 		final AvailObject result = args.get(1);
-		assert con.stackp() ==
-				con.objectSlotsCount()
-				+ 1
-				- con.descriptor().numberOfFixedObjectSlots()
+		final AvailObject function = con.function();
+		assert con.stackp() == function.code().numArgsAndLocalsAndStack() + 1
 			: "Outer continuation should have been a label- rather than "
 				+ "call- continuation";
 		assert con.pc() == 1
@@ -72,7 +70,7 @@ public class P_057_ExitContinuationWithResult extends Primitive
 		// reference is lost by this.  We go ahead and make a mutable copy
 		// (if necessary) because the interpreter requires the current
 		// continuation to always be mutable...
-		final AvailObject expectedType = con.function().kind().returnType();
+		final AvailObject expectedType = function.kind().returnType();
 		final AvailObject caller = con.caller();
 		if (caller.equalsNull())
 		{

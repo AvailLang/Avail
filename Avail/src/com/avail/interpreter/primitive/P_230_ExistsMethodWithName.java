@@ -61,7 +61,7 @@ extends Primitive
 		assert args.size() == 1;
 		final AvailObject trueName = args.get(0);
 		final AvailObject method =
-			interpreter.runtime().methodsAt(trueName);
+			interpreter.runtime().methodAt(trueName);
 		return interpreter.primitiveSuccess(AtomDescriptor.objectFromBoolean(
 			!method.equalsNull()));
 	}

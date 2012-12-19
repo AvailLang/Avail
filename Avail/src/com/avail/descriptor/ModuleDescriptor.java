@@ -259,7 +259,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	void o_AddMethodDefinition (
+	void o_ModuleAddDefinition (
 		final AvailObject object,
 		final AvailObject definition)
 	{

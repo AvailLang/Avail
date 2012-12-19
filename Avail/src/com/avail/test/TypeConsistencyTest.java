@@ -109,7 +109,7 @@ import com.avail.interpreter.Primitive;
  *     <td>&forall;<sub>x,y&isin;T</sub>&thinsp;(T(x)&cup;T(y) = T(x&cup;y))</td>
  * </tr>
  * </tr><tr>
- *     <td>Type intersect metainvariance</td>
+ *     <td>Type intersection metainvariance</td>
  *     <td>&forall;<sub>x,y&isin;T</sub>&thinsp;(T(x)&cap;T(y) = T(x&cap;y))</td>
  * </tr><tr>
  *     <td>Instantiation metainvariance</td>

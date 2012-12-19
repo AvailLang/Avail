@@ -36,7 +36,7 @@ Extends
 Uses
 Names
 	"_yielding_",
-	"Macro_is_",
+	"Macro_is«_,»_",
 	"make assignment variable_expression_",
 	"_expression type",
 	"_:=_",
@@ -60,7 +60,10 @@ Method "_yielding_" is [
 ] : parseNode type;
 
 
-Method "Macro_is_" is [name : string, block : [...]-> parseNode |
+Method "Macro_is«_,»_" is [
+		name : string,
+		prefixBlocks : tuple of [...]->void,
+		block : [...]-> parseNode |
 	Primitive 249 (failureCode : natural number);
 	Failed
 ] : void;

@@ -498,13 +498,12 @@ extends Descriptor
 	{
 		final ContinuationDescriptor descriptor = mutable();
 		final AvailObject code = function.code();
-		final AvailObject cont = descriptor.create(
-			code.numArgsAndLocalsAndStack());
+		final int frameSize = code.numArgsAndLocalsAndStack();
+		final AvailObject cont = descriptor.create(frameSize);
 		cont.setSlot(CALLER, caller);
 		cont.setSlot(FUNCTION, function);
 		cont.pc(1);
-		cont.stackp(
-			cont.objectSlotsCount() + 1 - descriptor.numberOfFixedObjectSlots);
+		cont.stackp(frameSize + 1);
 		cont.levelTwoChunkOffset(startingChunk, startingOffset);
 		for (int i = code.numArgsAndLocalsAndStack(); i >= 1; i--)
 		{

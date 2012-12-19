@@ -108,7 +108,7 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 		/**
 		 * This is an argument to a block.
 		 */
-		ARGUMENT(false, ParseNodeKind.ARGUMENT_NODE)
+		ARGUMENT("argument", false, false, ParseNodeKind.ARGUMENT_NODE)
 		{
 			@Override
 			public void emitVariableValueForOn (
@@ -137,7 +137,7 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 		/**
 		 * This is a label declaration at the start of a block.
 		 */
-		LABEL(false, ParseNodeKind.LABEL_NODE)
+		LABEL("label", false, false, ParseNodeKind.LABEL_NODE)
 		{
 			/**
 			 * Let the code generator know that the label occurs at the
@@ -181,7 +181,8 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 		/**
 		 * This is a local variable, declared within a block.
 		 */
-		LOCAL_VARIABLE(true, ParseNodeKind.LOCAL_VARIABLE_NODE)
+		LOCAL_VARIABLE(
+			"local variable", true, false, ParseNodeKind.LOCAL_VARIABLE_NODE)
 		{
 			@Override
 			public void emitEffectForOn (
@@ -247,7 +248,8 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 		/**
 		 * This is a local constant, declared within a block.
 		 */
-		LOCAL_CONSTANT(false, ParseNodeKind.LOCAL_CONSTANT_NODE)
+		LOCAL_CONSTANT(
+			"local constant", false, false, ParseNodeKind.LOCAL_CONSTANT_NODE)
 		{
 			@Override
 			public void emitEffectForOn (
@@ -286,7 +288,8 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 		/**
 		 * This is a variable declared at the outermost (module) scope.
 		 */
-		MODULE_VARIABLE(true, ParseNodeKind.MODULE_VARIABLE_NODE)
+		MODULE_VARIABLE(
+			"module variable", true, true, ParseNodeKind.MODULE_VARIABLE_NODE)
 		{
 			@Override
 			public void emitVariableAssignmentForOn (
@@ -339,7 +342,8 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 		/**
 		 * This is a constant declared at the outermost (module) scope.
 		 */
-		MODULE_CONSTANT(false, ParseNodeKind.MODULE_CONSTANT_NODE)
+		MODULE_CONSTANT(
+			"module constant", false, true, ParseNodeKind.MODULE_CONSTANT_NODE)
 		{
 			@Override
 			public void emitVariableValueForOn (
@@ -369,6 +373,8 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 		 * This is a local constant, declared within a block.
 		 */
 		PRIMITIVE_FAILURE_REASON(
+			"primitive failure reason",
+			false,
 			false,
 			ParseNodeKind.PRIMITIVE_FAILURE_REASON_NODE)
 		{
@@ -405,10 +411,11 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 		};
 
 
-		/**
-		 * Whether this entity can be modified.
-		 */
+		/** Whether this entity can be modified. */
 		private final boolean isVariable;
+
+		/** Whether this entity occurs at the module scope. */
+		private final boolean isModuleScoped;
 
 		/**
 		 * The instance of the enumeration {@link ParseNodeKind} that
@@ -416,21 +423,38 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 		 */
 		private final ParseNodeKind kindEnumeration;
 
+		/** A Java {@link String} describing this kind of declaration */
+		private final String nativeKindName;
+
+		/**
+		 * An Avail {@link StringDescriptor string} describing this kind of
+		 * declaration.
+		 */
+		private AvailObject kindName;
+
 		/**
 		 * Construct a {@link DeclarationKind}.  Can only be invoked implicitly
 		 * when constructing the enumeration values.
 		 *
+		 * @param nativeKindName
+		 *        A Java {@link String} describing this kind of declaration.
 		 * @param isVariable
 		 *        Whether it's legal to assign to this entity.
+		 * @param isModuleScoped
+		 *        Whether declarations of this kind have module scope.
 		 * @param kindEnumeration
 		 *        The enumeration instance of {@link TypeDescriptor.Types} that
 		 *        is associated with this kind of declaration.
 		 */
 		private DeclarationKind (
+			final String nativeKindName,
 			final boolean isVariable,
+			final boolean isModuleScoped,
 			final ParseNodeKind kindEnumeration)
 		{
+			this.nativeKindName = nativeKindName;
 			this.isVariable = isVariable;
+			this.isModuleScoped = isModuleScoped;
 			this.kindEnumeration = kindEnumeration;
 		}
 
@@ -439,9 +463,19 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 		 *
 		 * @return Whether this entity is assignable.
 		 */
-		public boolean isVariable ()
+		public final boolean isVariable ()
 		{
 			return isVariable;
+		}
+
+		/**
+		 * Return whether this entity is defined at the module scope.
+		 *
+		 * @return Whether this entity is scoped at the module level.
+		 */
+		public final boolean isModuleScoped ()
+		{
+			return isModuleScoped;
 		}
 
 		/**
@@ -450,9 +484,31 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 		 *
 		 * @return The associated {@code ParseNodeKind} enumeration value.
 		 */
-		public ParseNodeKind parseNodeKind ()
+		public final ParseNodeKind parseNodeKind ()
 		{
 			return kindEnumeration;
+		}
+
+		/**
+		 * Answer a Java {@link String} describing this kind of declaration.
+		 *
+		 * @return A Java String.
+		 */
+		public final String nativeKindName ()
+		{
+			return nativeKindName;
+		}
+
+		/**
+		 * Return an Avail {@link StringDescriptor string} describing this kind
+		 * of declaration.
+		 *
+		 * @return The associated {@code ParseNodeKind} enumeration value.
+		 */
+		public final AvailObject kindName ()
+		{
+			assert kindName != null;
+			return kindName;
 		}
 
 		/**
@@ -538,6 +594,29 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 			final StringBuilder builder,
 			final List<AvailObject> recursionList,
 			final int indent);
+
+		/**
+		 * Release any AvailObjects held statically by this class.
+		 */
+		public static void clearWellKnownObjects ()
+		{
+			for (final DeclarationKind kind : values())
+			{
+				kind.kindName = null;
+			}
+		}
+
+		/**
+		 * Create AvailObjects to hold statically by this class.
+		 */
+		public static void createWellKnownObjects ()
+		{
+			for (final DeclarationKind kind : values())
+			{
+				assert kind.kindName == null;
+				kind.kindName = StringDescriptor.from(kind.nativeKindName);
+			}
+		}
 	}
 
 	/**
@@ -990,7 +1069,6 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 			initializationExpression,
 			literalVariable);
 	}
-
 
 	/**
 	 * Construct a new {@link DeclarationNodeDescriptor}.

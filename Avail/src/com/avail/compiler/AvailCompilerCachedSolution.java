@@ -87,7 +87,7 @@ public class AvailCompilerCachedSolution
 		builder.append("Solution(@");
 		builder.append(endState.position);
 		builder.append(": ");
-		builder.append(endState.scopeMap);
+		builder.append(endState.clientDataMap);
 		builder.append(") = ");
 		builder.append(parseNode().toString());
 		return builder.toString();

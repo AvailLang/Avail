@@ -60,7 +60,7 @@ public class P_220_MethodFromName extends Primitive
 		assert args.size() == 1;
 		final AvailObject trueName = args.get(0);
 		final AvailObject method =
-			interpreter.runtime().methodsAt(trueName);
+			interpreter.runtime().methodAt(trueName);
 		if (method.equalsNull())
 		{
 			return interpreter.primitiveFailure(E_NO_METHOD);

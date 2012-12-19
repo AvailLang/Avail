@@ -1,5 +1,5 @@
 /**
- * P_408_BootstrapVariableReferenceMacro.java
+ * P_410_BootstrapVariableUseMacro.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -42,19 +42,19 @@ import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.interpreter.*;
 
 /**
- * The {@code P_408_BootstrapVariableReferenceMacro} primitive is used to create
- * {@link ReferenceNodeDescriptor variable reference} phrases.
+ * The {@code P_410_BootstrapVariableUseMacro} primitive is used to create
+ * {@link VariableUseNodeDescriptor variable use} phrases.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class P_409_BootstrapVariableUseMacro extends Primitive
+public class P_410_BootstrapVariableUseMacro extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_409_BootstrapVariableUseMacro().init(
-			1, Bootstrap);
+		new P_410_BootstrapVariableUseMacro().init(
+			1, CannotFail, Bootstrap);
 
 	@Override
 	public Result attempt (
@@ -73,11 +73,13 @@ public class P_409_BootstrapVariableUseMacro extends Primitive
 		{
 			throw new AvailRejectedParseException(
 				StringDescriptor.from(
-					"(variable name to be a keyword token)"));
+					"variable name to be a keyword token"));
 		}
 		final AvailObject variableNameString = actualToken.string();
+		final AvailObject clientData =
+			interpreter.currentParserState.clientDataMap;
 		final AvailObject scopeMap =
-			interpreter.currentParserState.scopeMap;
+			clientData.mapAt(AtomDescriptor.compilerScopeMapKey());
 		if (scopeMap.hasKey(variableNameString))
 		{
 			final AvailObject variableUse = VariableUseNodeDescriptor.newUse(
@@ -105,25 +107,25 @@ public class P_409_BootstrapVariableUseMacro extends Primitive
 			variableUse.makeImmutable();
 			return interpreter.primitiveSuccess(variableUse);
 		}
-		if (module.constantBindings().hasKey(variableNameString))
+		if (!module.constantBindings().hasKey(variableNameString))
 		{
-			final AvailObject variableObject = module.constantBindings().mapAt(
-				variableNameString);
-			final AvailObject moduleConstDecl =
-				DeclarationNodeDescriptor.newModuleConstant(
-					actualToken,
-					variableObject,
-					NullDescriptor.nullObject());
-			final AvailObject variableUse = VariableUseNodeDescriptor.newUse(
-				actualToken,
-				moduleConstDecl);
-			return interpreter.primitiveSuccess(variableUse);
+			throw new AvailRejectedParseException(
+				StringDescriptor.from(
+					"variable "
+					+ variableNameString.toString()
+					+ " to be in scope"));
 		}
-		throw new AvailRejectedParseException(
-			StringDescriptor.from(
-				"variable "
-				+ variableNameString.toString()
-				+ " to be in scope"));
+		final AvailObject variableObject = module.constantBindings().mapAt(
+			variableNameString);
+		final AvailObject moduleConstDecl =
+			DeclarationNodeDescriptor.newModuleConstant(
+				actualToken,
+				variableObject,
+				NullDescriptor.nullObject());
+		final AvailObject variableUse = VariableUseNodeDescriptor.newUse(
+			actualToken,
+			moduleConstDecl);
+		return interpreter.primitiveSuccess(variableUse);
 	}
 
 	@Override

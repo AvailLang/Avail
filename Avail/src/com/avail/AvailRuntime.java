@@ -491,6 +491,8 @@ implements ThreadFactory
 		specialObjects[45] = FORWARD_DEFINITION.o();
 		specialObjects[46] = METHOD_DEFINITION.o();
 		specialObjects[47] = MACRO_DEFINITION.o();
+		specialObjects[48] = TupleTypeDescriptor.zeroOrMoreOf(
+			FunctionTypeDescriptor.mostGeneralType());
 		specialObjects[50] = PARSE_NODE.mostGeneralType();
 		specialObjects[51] = SEQUENCE_NODE.mostGeneralType();
 		specialObjects[52] = EXPRESSION_NODE.mostGeneralType();
@@ -914,7 +916,7 @@ implements ThreadFactory
 	 *            or {@linkplain NullDescriptor the null object}.
 	 */
 	@ThreadSafe
-	public AvailObject methodsAt (final AvailObject selector)
+	public AvailObject methodAt (final AvailObject selector)
 	{
 		assert selector.isAtom();
 

@@ -65,7 +65,7 @@ public class AvailScanner
 	private int startOfToken;
 
 	/**
-	 * The position of the start of the token currently being parsed.
+	 * The line number of the start of the token currently being parsed.
 	 */
 	int lineNumber;
 
@@ -805,7 +805,7 @@ public class AvailScanner
 		 */
 		public static ScannerAction forCodePoint (final int c)
 		{
-			if (c <= 65536)
+			if (c < 65536)
 			{
 				return values()[dispatchTable[c]];
 			}
@@ -877,7 +877,7 @@ public class AvailScanner
 	}
 
 	/**
-	 * A table whose indices are Unicode characters (up to 65535) and whose
+	 * A table whose indices are Unicode code points (up to 65535) and whose
 	 * values are {@link AvailScanner.ScannerAction scanner actions}.
 	 */
 	static byte[] dispatchTable = new byte[65536];

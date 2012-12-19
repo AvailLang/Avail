@@ -40,6 +40,7 @@ import static com.avail.utility.PrefixSharingList.*;
 import java.util.*;
 import com.avail.annotations.*;
 import com.avail.builder.ModuleName;
+import com.avail.compiler.AbstractAvailCompiler.ParserState;
 import com.avail.descriptor.*;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.Primitive.Flag;
@@ -80,6 +81,68 @@ extends AbstractAvailCompiler
 	boolean isSystemCompiler ()
 	{
 		return true;
+	}
+
+	/**
+	 * Return a new {@linkplain ParserState parser state} like the given one,
+	 * but with the given declaration added.
+	 *
+	 * @param originalState
+	 *        The parser state to start with.
+	 * @param declaration
+	 *        The {@linkplain DeclarationNodeDescriptor declaration} to add
+	 *        to the map of visible bindings.
+	 * @return The new parser state including the declaration.
+	 */
+	ParserState withDeclaration (
+		final ParserState originalState,
+		final AvailObject declaration)
+	{
+		final AvailObject clientMap = originalState.clientDataMap;
+		final AvailObject scopeMapKey = AtomDescriptor.compilerScopeMapKey();
+		final AvailObject scopeMap = clientMap.hasKey(scopeMapKey)
+			? clientMap.mapAt(scopeMapKey)
+			: MapDescriptor.empty();
+		final AvailObject name = declaration.token().string();
+		assert !scopeMap.hasKey(name);
+		final AvailObject newScopeMap = scopeMap.mapAtPuttingCanDestroy(
+			name,
+			declaration,
+			false);
+		final AvailObject newClientMap = clientMap.mapAtPuttingCanDestroy(
+			scopeMapKey,
+			newScopeMap,
+			false);
+		newClientMap.makeImmutable();
+		return new ParserState(
+			originalState.position,
+			newClientMap);
+	}
+
+	/**
+	 * Look up a local declaration that has the given name, or null if not
+	 * found.
+	 *
+	 * @param state
+	 *        The parser state in which to look up a declaration.
+	 * @param name
+	 *        The name of the declaration for which to look.
+	 * @return The declaration or {@code null}.
+	 */
+	static @Nullable AvailObject lookupLocalDeclaration (
+		final ParserState state,
+		final AvailObject name)
+	{
+		final AvailObject clientMap = state.clientDataMap;
+		final AvailObject scopeMapKey = AtomDescriptor.compilerScopeMapKey();
+		final AvailObject scopeMap = clientMap.hasKey(scopeMapKey)
+			? clientMap.mapAt(scopeMapKey)
+			: MapDescriptor.empty();
+		if (scopeMap.hasKey(name))
+		{
+			return scopeMap.mapAt(name);
+		}
+		return null;
 	}
 
 	/**
@@ -493,9 +556,7 @@ extends AbstractAvailCompiler
 						DeclarationNodeDescriptor.newLabel(
 							token,
 							contType);
-					if (lookupLocalDeclaration(
-							afterExpression,
-							token.string())
+					if (lookupLocalDeclaration(afterExpression, token.string())
 						!= null)
 					{
 						afterExpression.expected(
@@ -504,7 +565,7 @@ extends AbstractAvailCompiler
 						return;
 					}
 					final ParserState afterDeclaration =
-						afterExpression.withDeclaration(label);
+						withDeclaration(afterExpression, label);
 					attempt(afterDeclaration, continuation, label);
 				}
 			};
@@ -626,7 +687,8 @@ extends AbstractAvailCompiler
 									localName,
 									initExpression);
 							attempt(
-								afterInitExpression.withDeclaration(
+								withDeclaration(
+									afterInitExpression,
 									constantDeclaration),
 								continuation,
 								constantDeclaration);
@@ -669,7 +731,7 @@ extends AbstractAvailCompiler
 								localName,
 								type);
 						attempt(
-							afterType.withDeclaration(simpleDeclaration),
+							withDeclaration(afterType, simpleDeclaration),
 							continuation,
 							simpleDeclaration);
 					}
@@ -736,7 +798,7 @@ extends AbstractAvailCompiler
 										return;
 									}
 									attempt(
-										afterInit.withDeclaration(initDecl),
+										withDeclaration(afterInit, initDecl),
 										continuation,
 										initDecl);
 								}
@@ -824,7 +886,7 @@ extends AbstractAvailCompiler
 							localName,
 							type);
 					attempt(
-						afterType.withDeclaration(declaration),
+						withDeclaration(afterType, declaration),
 						continuation,
 						declaration);
 				}
@@ -958,7 +1020,9 @@ extends AbstractAvailCompiler
 					}
 					else
 					{
-						if (lookupLocalDeclaration(afterArgType, localName.string())
+						if (lookupLocalDeclaration(
+								afterArgType,
+								localName.string())
 							!= null)
 						{
 							afterArgType.expected(
@@ -971,7 +1035,7 @@ extends AbstractAvailCompiler
 								localName,
 								type);
 						attempt(
-							afterArgType.withDeclaration(decl),
+							withDeclaration(afterArgType, decl),
 							continuation,
 							decl);
 					}
@@ -1149,8 +1213,7 @@ extends AbstractAvailCompiler
 
 		final ParserState stateOutsideBlock = new ParserState(
 			afterClose.position,
-			startOfBlock.scopeMap,
-			startOfBlock.innermostBlockArguments);
+			startOfBlock.clientDataMap);
 
 		final List<AvailObject> argumentTypesList =
 			new ArrayList<AvailObject>(arguments.size());
@@ -1576,12 +1639,11 @@ extends AbstractAvailCompiler
 						declaration.declaredType()))
 					{
 						afterDeclaration.expected(
-							"primitive #"
-							+ primitiveNumber
-							+ " failure variable to be able to hold values "
-							+ "of type ("
-							+ prim.failureVariableType()
-							+ ")");
+							String.format(
+								"primitive #%s's failure variable to be able " +
+								"to hold values of type (%s)",
+								primitiveNumber,
+								prim.failureVariableType()));
 						return;
 					}
 					if (!afterDeclaration.peekToken(

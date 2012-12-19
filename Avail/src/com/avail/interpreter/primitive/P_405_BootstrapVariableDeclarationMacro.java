@@ -1,5 +1,5 @@
 /**
- * P_289_FloatTruncatedAsInteger.java
+ * P_405_BootstrapVariableDeclarationMacro.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -29,77 +29,56 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+
 package com.avail.interpreter.primitive;
 
-import static com.avail.descriptor.TypeDescriptor.Types.FLOAT;
+import static com.avail.descriptor.TypeDescriptor.Types.*;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import static com.avail.interpreter.Primitive.Flag.*;
-import static java.lang.Math.*;
-import java.util.List;
+import java.util.*;
+import com.avail.compiler.AvailRejectedParseException;
 import com.avail.descriptor.*;
-import com.avail.exceptions.AvailErrorCode;
 import com.avail.interpreter.*;
 
 /**
- * <strong>Primitive 289:</strong> Convert a {@linkplain FloatDescriptor
- * float} to an {@linkplain IntegerDescriptor integer}, rounding towards
- * zero.
+ * The {@code P_405_BootstrapVariableDeclarationMacro} primitive is used
+ * for bootstrapping declaration of a {@link #LOCAL_VARIABLE_NODE local
+ * variable} (without an initializing expression).
+ *
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class P_289_FloatTruncatedAsInteger extends Primitive
+public class P_405_BootstrapVariableDeclarationMacro extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_289_FloatTruncatedAsInteger().init(
-		1, CanFold, CannotFail);
+	public final static Primitive instance =
+		new P_405_BootstrapVariableDeclarationMacro().init(
+			2, CannotFail, Bootstrap);
 
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 1;
-		final AvailObject a = args.get(0);
-		// Extract the top two 32-bit sections.  That guarantees 33 bits
-		// of mantissa, which is more than a float actually captures.
-		float f = a.extractFloat();
-		if (Float.isNaN(f))
+		assert args.size() == 2;
+		final AvailObject variableNameLiteral = args.get(0);
+		final AvailObject typeLiteral = args.get(1);
+
+		final AvailObject type = typeLiteral.token().literal();
+		if (type.equals(TOP.o()) || type.equals(BottomTypeDescriptor.bottom()))
 		{
-			return interpreter.primitiveFailure(
-				AvailErrorCode.E_CANNOT_CONVERT_NOT_A_NUMBER_TO_INTEGER);
+			throw new AvailRejectedParseException(
+				StringDescriptor.from(
+					"variable's declared type to be something other than "
+					+ type));
 		}
-		final boolean neg = f < 0.0f;
-		if (Float.isInfinite(f))
-		{
-			// Return the corresponding integral infinity.
-			return interpreter.primitiveSuccess(
-				neg
-					? InfinityDescriptor.negativeInfinity()
-					: InfinityDescriptor.positiveInfinity());
-		}
-		if (f >= -0x80000000L && f <= 0x7FFFFFFFL)
-		{
-			// Common case -- it fits in an int.
-			return interpreter.primitiveSuccess(
-				IntegerDescriptor.fromInt((int)f));
-		}
-		f = abs(f);
-		final int exponent = getExponent(f);
-		final int slots = exponent + 31 / 32;  // probably needs work
-		AvailObject out = IntegerDescriptor.createUninitialized(slots);
-		f = scalb(f, (1 - slots) * 32);
-		for (int i = slots; i >= 1; --i)
-		{
-			final long intSlice = (int) f;
-			out.rawUnsignedIntegerAtPut(i, (int)intSlice);
-			f -= intSlice;
-			f = scalb(f, 32);
-		}
-		out.trimExcessInts();
-		if (neg)
-		{
-			out = IntegerDescriptor.zero().noFailMinusCanDestroy(out, true);
-		}
-		return interpreter.primitiveSuccess(out);
+		final AvailObject variableDeclaration =
+			DeclarationNodeDescriptor.newVariable(
+				variableNameLiteral.token().literal(), // contains another token
+				type);
+		variableDeclaration.makeImmutable();
+		return interpreter.primitiveSuccess(variableDeclaration);
 	}
 
 	@Override
@@ -107,7 +86,10 @@ public class P_289_FloatTruncatedAsInteger extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				FLOAT.o()),
-			IntegerRangeTypeDescriptor.extendedIntegers());
+				/* Variable name token */
+				LITERAL_NODE.create(TOKEN.o()),
+				/* Variable type */
+				InstanceMetaDescriptor.anyMeta()),
+			LOCAL_VARIABLE_NODE.mostGeneralType());
 	}
 }

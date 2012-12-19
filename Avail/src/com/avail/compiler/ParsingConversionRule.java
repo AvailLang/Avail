@@ -63,7 +63,14 @@ public enum ParsingConversionRule
 	 * AtomDescriptor#trueObject() true} if the list was nonempty, {@link
 	 * AtomDescriptor#falseObject() false} otherwise.
 	 */
-	listToNonemptiness(2);
+	listToNonemptiness(2),
+
+	/**
+	 * {@code 3} - Immediately evaluate the {@linkplain ParseNodeDescriptor
+	 * parse node} on the stack to produce a value.  Replace the parse node with
+	 * a literal node holding this value.
+	 */
+	evaluateExpression(3);
 
 	/** The rule number. */
 	private final int number;
@@ -102,6 +109,7 @@ public enum ParsingConversionRule
 			case 0: return noConversion;
 			case 1: return listToSize;
 			case 2: return listToNonemptiness;
+			case 3: return evaluateExpression;
 		}
 		throw new RuntimeException("reserved rule number");
 	}

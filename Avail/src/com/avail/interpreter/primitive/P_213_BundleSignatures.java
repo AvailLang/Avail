@@ -61,7 +61,7 @@ public class P_213_BundleSignatures extends Primitive
 		assert args.size() == 1;
 		final AvailObject bundle = args.get(0);
 		final AvailObject method =
-			interpreter.runtime().methodsAt(bundle.message());
+			interpreter.runtime().methodAt(bundle.message());
 		if (method.equalsNull())
 		{
 			return interpreter.primitiveFailure(E_NO_METHOD);

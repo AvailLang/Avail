@@ -67,7 +67,7 @@ extends TupleDescriptor
 	/**
 	 * A tuple containing just the underscore character.
 	 */
-	static AvailObject underscore;
+	private static AvailObject underscore;
 
 	/**
 	 * Return an Avail {@linkplain StringDescriptor string} of size one,
@@ -83,7 +83,7 @@ extends TupleDescriptor
 	/**
 	 * A tuple containing just the open-guillemet character.
 	 */
-	static AvailObject openGuillemet;
+	private static AvailObject openGuillemet;
 
 	/**
 	 * Return an Avail {@linkplain StringDescriptor string} of size one,
@@ -99,7 +99,7 @@ extends TupleDescriptor
 	/**
 	 * A tuple containing just the close-guillemet character.
 	 */
-	static AvailObject closeGuillemet;
+	private static AvailObject closeGuillemet;
 
 	/**
 	 * Return an Avail {@linkplain StringDescriptor string} of size one,
@@ -115,7 +115,7 @@ extends TupleDescriptor
 	/**
 	 * A tuple containing just the double-dagger character.
 	 */
-	static AvailObject doubleDagger;
+	private static AvailObject doubleDagger;
 
 	/**
 	 * Return an Avail {@linkplain StringDescriptor string} of size one,
@@ -131,7 +131,7 @@ extends TupleDescriptor
 	/**
 	 * A tuple containing just the back-quote character.
 	 */
-	static AvailObject backQuote;
+	private static AvailObject backQuote;
 
 	/**
 	 * Return an Avail {@linkplain StringDescriptor string} of size one,
@@ -147,7 +147,7 @@ extends TupleDescriptor
 	/**
 	 * A tuple containing just the ellipsis character.
 	 */
-	static AvailObject ellipsis;
+	private static AvailObject ellipsis;
 
 	/**
 	 * Return an Avail {@linkplain StringDescriptor string} of size one,
@@ -163,7 +163,7 @@ extends TupleDescriptor
 	/**
 	 * A tuple containing just the octothorp character.
 	 */
-	static AvailObject octothorp;
+	private static AvailObject octothorp;
 
 	/**
 	 * Return an Avail {@linkplain StringDescriptor string} of size one,
@@ -179,7 +179,7 @@ extends TupleDescriptor
 	/**
 	 * A tuple containing just the question mark character.
 	 */
-	static AvailObject questionMark;
+	private static AvailObject questionMark;
 
 	/**
 	 * Return an Avail {@linkplain StringDescriptor string} of size one,
@@ -195,7 +195,7 @@ extends TupleDescriptor
 	/**
 	 * A tuple containing just the double question mark character.
 	 */
-	static AvailObject doubleQuestionMark;
+	private static AvailObject doubleQuestionMark;
 
 	/**
 	 * Return an Avail {@linkplain StringDescriptor string} of size one,
@@ -211,7 +211,7 @@ extends TupleDescriptor
 	/**
 	 * A tuple containing just the exclamation mark character.
 	 */
-	static AvailObject exclamationMark;
+	private static AvailObject exclamationMark;
 
 	/**
 	 * Return an Avail {@linkplain StringDescriptor string} of size one,
@@ -227,7 +227,7 @@ extends TupleDescriptor
 	/**
 	 * A tuple containing just the tilde character.
 	 */
-	static AvailObject tilde;
+	private static AvailObject tilde;
 
 	/**
 	 * Return an Avail {@linkplain StringDescriptor string} of size one,
@@ -243,7 +243,7 @@ extends TupleDescriptor
 	/**
 	 * A tuple containing just the vertical bar character.
 	 */
-	static AvailObject verticalBar;
+	private static AvailObject verticalBar;
 
 	/**
 	 * Return an Avail {@linkplain StringDescriptor string} of size one,
@@ -259,7 +259,7 @@ extends TupleDescriptor
 	/**
 	 * A tuple containing just the single-dagger (†) character.
 	 */
-	static AvailObject singleDagger;
+	private static AvailObject singleDagger;
 
 	/**
 	 * Return an Avail {@linkplain StringDescriptor string} of size one,
@@ -275,7 +275,7 @@ extends TupleDescriptor
 	/**
 	 * A tuple containing just the section sign character.
 	 */
-	static AvailObject sectionSign;
+	private static AvailObject sectionSign;
 
 	/**
 	 * Return an Avail {@linkplain StringDescriptor string} of size one,
@@ -286,22 +286,6 @@ extends TupleDescriptor
 	public static AvailObject sectionSign ()
 	{
 		return sectionSign;
-	}
-
-	/**
-	 * A tuple containing just the pilcrow character (¶).
-	 */
-	static AvailObject pilcrow;
-
-	/**
-	 * Return an Avail {@linkplain StringDescriptor string} of size one,
-	 * consisting of just the pilcrow character ("¶").
-	 *
-	 * @return A tuple containing just the pilcrow character.
-	 */
-	public static AvailObject pilcrow ()
-	{
-		return pilcrow;
 	}
 
 	/**
@@ -324,7 +308,6 @@ extends TupleDescriptor
 		verticalBar = from("|").makeImmutable();
 		singleDagger = from("†").makeImmutable();
 		sectionSign = from("§").makeImmutable();
-		pilcrow = from("¶").makeImmutable();
 	}
 
 	/**
@@ -347,7 +330,6 @@ extends TupleDescriptor
 		verticalBar = null;
 		singleDagger = null;
 		sectionSign = null;
-		pilcrow = null;
 	}
 
 	/**

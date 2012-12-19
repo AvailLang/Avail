@@ -35,17 +35,54 @@ Pragma
 	"method=253=Primitive_is_",
 	"method=240=special object_",
 
-	"macro=400=[««_¶‡,»`|»§«Primitive_«_¶»;»«_¶»«_¶»«_»]«:_†»«^«_†‡,»»",  /* block */
-	"macro=401=…:_†",      /* argument declaration */
-	"macro=402=(…:_†)",    /* primitive failure declaration */
-	"macro=403=$…«:_†»;",  /* label declaration */
-	"macro=404=…:_†;",     /* variable declaration */
-	"macro=405=…::=_;",    /* constant declaration */
-	"macro=406=…:_†:=_;",  /* initializing variable declaration */
-	"macro=407=_:=_;",     /* assignment */
-	"macro=408=↑_",        /* variable reference */
-	"macro=409=…",         /* variable use */
-	"macro=410=_;"         /* send as statement */
+	/* Block declaration consists of
+	 * 1. Open square bracket
+	 * 2. Optional comma-separated argument declarations followed by a vertical
+	 *    bar (if any declarations occurred).  Each argument declaration invokes
+	 *    the first prefix function to build the declaration and add it to the
+	 *    scope.  Although the declaration nodes are created here, we can't
+	 *    substitute these alternative parse nodes for what was actually parsed,
+	 *    the argument names and types.  Therefore when a subsequent prefix
+	 *    function needs the list of argument declarations it must look them up
+	 *    in the current scope by the argument names that were captured.
+	 * 3. Optional primitive declaration.  After the primitive number, there is
+	 *    an optional parenthesized declaration of a primitive failure variable.
+	 *    If the primitive failure variable occurs (which must only be the
+	 *    case for fallible primitives), a prefix function is invoked to create
+	 *    the actual primitive failure variable from the name token and type.
+	 *    Like the arguments, the actual declaration enters scope but is not
+	 *    directly retained as a substitute for the parsed argument; the
+	 *    primitive failure variable's name can be looked up in the current
+	 *    scope to retrieve this declaration.
+	 * 4. Optional label declaration (with a leading $).  The prefix function
+	 *    invoked here looks up the previously constructed block arguments to
+	 *    determine their types for use in the label's continuation type.
+	 * 5. Zero or more statements.  A prefix function runs here to detect any
+	 *    variable or constant declarations and automatically add them to the
+	 *    current scope.  The statements include their own trailing semicolon.
+	 * 6. Optional final value-yielding expression (type any).
+	 * 7. Close square bracket.
+	 * 8. Optional block return type declaration (with leading :).
+	 * 9. Optional exception declaration with one or more comma-separated
+	 *    exceptions (with leading ^).
+	 */
+	"macro=400,401,402,403,404=\
+		\|[\
+			\|««…:_†§‡,»`|»\
+			\|«Primitive_«(…:_†)§»;»\
+			\|«$…:_†§»\
+			\|«_§»\
+			\|«_»\
+		\|]\
+		\|«:_†»\
+		\|«^«_†‡,»»",
+	"macro=405=…:_†;",     /* variable declaration */
+	"macro=406=…::=_;",    /* constant declaration */
+	"macro=407=…:_†:=_;",  /* initializing variable declaration */
+	"macro=408=_:=_;",     /* assignment */
+	"macro=409=↑_",        /* variable reference */
+	"macro=410=…",         /* variable use */
+	"macro=411=_;"         /* send as statement */
 
 Versions
 Extends
@@ -53,10 +90,20 @@ Uses
 Names
 	"Primitive_is_",
 	"special object_",
-	"[««_¶‡,»`|»§«Primitive_«_¶»;»«_¶»«_¶»«_»]«:_†»«^«_†‡,»»",  /* block */
-	"…:_†",      /* argument declaration */
-	"(…:_†)",    /* primitive failure declaration */
-	"$…«:_†»;",  /* label declaration */
+	
+	"\
+		\|[\
+			\|««…:_†§‡,»`|»\
+			\|«Primitive_«(…:_†)§»;»\
+			\|«$…:_†§»\
+			\|«_§»\
+			\|«_»\
+		\|]\
+		\|«:_†»\
+		\|«^«_†‡,»»",
+/*	"…:_†",      /* argument declaration */ */
+/*	"(…:_†)",    /* primitive failure declaration */ */
+/*	"$…«:_†»;",  /* label declaration */ */
 	"…:_†;",     /* variable declaration */
 	"…::=_;",    /* constant declaration */
 	"…:_†:=_;",  /* initializing variable declaration */

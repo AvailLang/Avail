@@ -40,7 +40,13 @@ import com.avail.exceptions.*;
 import com.avail.interpreter.*;
 
 /**
- * <strong>Primitive 249:</strong> Simple macro definition.
+ * <strong>Primitive 249:</strong> Simple macro definition.  The first argument
+ * is the macro name, and the second argument is a {@linkplain TupleDescriptor
+ * tuple} of {@linkplain FunctionDescriptor functions} returning ⊤, one for each
+ * occurrence of a {@linkplain StringDescriptor#sectionSign() section sign} (§)
+ * in the macro name.  The third argument is the function to invoke for the
+ * complete macro.  It is constrained to answer a {@linkplain
+ * ParseNodeDescriptor parse node}.
  */
 public class P_249_SimpleMacroDeclaration extends Primitive
 {
@@ -48,39 +54,44 @@ public class P_249_SimpleMacroDeclaration extends Primitive
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
 	public final static Primitive instance = new P_249_SimpleMacroDeclaration().init(
-		2, Unknown);
+		3, Unknown);
 
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 2;
+		assert args.size() == 3;
 		final AvailObject string = args.get(0);
-		final AvailObject function = args.get(1);
-		final AvailObject blockType = function.kind();
-		final AvailObject tupleType = blockType.argsTupleType();
-		for (int i = function.code().numArgs(); i >= 1; i--)
+		final AvailObject prefixFunctions = args.get(1);
+		final AvailObject function = args.get(2);
+		for (final AvailObject prefixFunction : prefixFunctions)
 		{
-			if (!tupleType.typeAtIndex(i).isSubtypeOf(
-				PARSE_NODE.mostGeneralType()))
+			if (!prefixFunction.kind().returnType().equals(TOP.o()))
 			{
-				//TODO[MvG] Get rid of this requirement.
-//				**** No longer true.  For example, an ellipsis should produce
-//				**** a token, and a statically-evaluated expression (_†) should
-//				**** produce a value (typically a type), not a phrase.
-//				return interpreter.primitiveFailure(
-//					E_MACRO_ARGUMENT_MUST_BE_A_PARSE_NODE);
+				return interpreter.primitiveFailure(
+					AvailErrorCode.E_MACRO_PREFIX_FUNCTIONS_MUST_RETURN_TOP);
 			}
 		}
 		try
 		{
 			interpreter.addMacroBody(
-				interpreter.lookupName(string), function);
+				interpreter.lookupName(string),
+				prefixFunctions,
+				function);
 			// Even though a macro is always monomorphic and therefore
 			// effectively permanent (and probably unlikely to ever be inlined),
 			// we may as well do the fixup call here.  Designs change.
 			interpreter.fixupForPotentiallyInvalidCurrentChunk();
+			for (int i = 1; i <= prefixFunctions.tupleSize(); i++)
+			{
+				prefixFunctions.tupleAt(i).code().setMethodName(
+					StringDescriptor.from(
+						String.format(
+							"Macro prefix #%d of %s",
+							i,
+							string)));
+			}
 			function.code().setMethodName(
 				StringDescriptor.from(
 					String.format("Macro body of %s", string)));
@@ -103,6 +114,8 @@ public class P_249_SimpleMacroDeclaration extends Primitive
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
 				TupleTypeDescriptor.stringTupleType(),
+				TupleTypeDescriptor.zeroOrMoreOf(
+					FunctionTypeDescriptor.mostGeneralType()),
 				FunctionTypeDescriptor.forReturnType(
 					PARSE_NODE.mostGeneralType())),
 			TOP.o());

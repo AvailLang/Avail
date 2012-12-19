@@ -223,19 +223,17 @@ implements L1OperationDispatcher
 	{
 		final AvailObject function = pointerAt(FUNCTION);
 		final AvailObject code = function.code();
-		final AvailObject continuation =
-			ContinuationDescriptor.mutable().create(
-				code.numArgsAndLocalsAndStack());
-		continuation.caller(pointerAt(CALLER));
-		continuation.function(function);
-		continuation.pc(integerAt(pcRegister()));
-		continuation.stackp(
-			integerAt(stackpRegister()) + 1 - argumentOrLocalRegister(1));
 		final AvailObject chunk = interpreter.chunk();
 		assert chunk == L2ChunkDescriptor.unoptimizedChunk();
-		continuation.levelTwoChunkOffset(
-			chunk,
-			L2ChunkDescriptor.offsetToContinueUnoptimizedChunk());
+		final AvailObject continuation =
+			ContinuationDescriptor.createExceptFrame(
+				code.numArgsAndLocalsAndStack(),
+				function,
+				pointerAt(CALLER),
+				integerAt(pcRegister()),
+				integerAt(stackpRegister()) + 1 - argumentOrLocalRegister(1),
+				chunk,
+				L2ChunkDescriptor.offsetToContinueUnoptimizedChunk());
 		for (int i = code.numArgsAndLocalsAndStack(); i >= 1; i--)
 		{
 			continuation.argOrLocalOrStackAtPut(
@@ -349,9 +347,9 @@ implements L1OperationDispatcher
 		final int numCopiedVars = getInteger();
 		final int literalIndexOfCode = getInteger();
 		final AvailObject codeToClose = literalAt(literalIndexOfCode);
-		final AvailObject newFunction = FunctionDescriptor.mutable().create(
+		final AvailObject newFunction = FunctionDescriptor.createExceptOuters(
+			codeToClose,
 			numCopiedVars);
-		newFunction.code(codeToClose);
 		for (int i = numCopiedVars; i >= 1; i--)
 		{
 			final AvailObject value = pop();
@@ -466,12 +464,12 @@ implements L1OperationDispatcher
 	public void L1_doMakeTuple ()
 	{
 		final int count = getInteger();
-		final AvailObject tuple = ObjectTupleDescriptor.mutable().create(
-			count);
-		for (int i = count; i >= 1; i--)
+		final AvailObject[] array = new AvailObject[count];
+		for (int i = count - 1; i >= 0; i--)
 		{
-			tuple.tupleAtPut(i, pop());
+			array[i] = pop();
 		}
+		final AvailObject tuple = TupleDescriptor.from(array);
 		tuple.hashOrZero(0);
 		push(tuple);
 	}

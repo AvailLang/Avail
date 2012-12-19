@@ -121,7 +121,7 @@ extends Descriptor
 		final AvailObject method = newMethodWithName(vmCrashAtom);
 		try
 		{
-			method.addDefinition(
+			method.methodAddDefinition(
 				MethodDefinitionDescriptor.create(method, newFunction));
 		}
 		catch (final SignatureException e)
@@ -281,9 +281,9 @@ extends Descriptor
 		final AvailObject method = newMethodWithName(vmMethodDefinerAtom);
 		try
 		{
-			method.addDefinition(
+			method.methodAddDefinition(
 				MethodDefinitionDescriptor.create(method, fromAtomFunction));
-			method.addDefinition(
+			method.methodAddDefinition(
 				MethodDefinitionDescriptor.create(method, fromStringFunction));
 		}
 		catch (final SignatureException e)
@@ -307,7 +307,7 @@ extends Descriptor
 		final AvailObject method = newMethodWithName(vmMacroDefinerAtom);
 		try
 		{
-			method.addDefinition(
+			method.methodAddDefinition(
 				MethodDefinitionDescriptor.create(method, fromStringFunction));
 		}
 		catch (final SignatureException e)
@@ -370,7 +370,7 @@ extends Descriptor
 		final AvailObject method = newMethodWithName(vmFunctionApplyAtom);
 		try
 		{
-			method.addDefinition(
+			method.methodAddDefinition(
 				MethodDefinitionDescriptor.create(method, newFunction));
 		}
 		catch (final SignatureException e)
@@ -434,7 +434,7 @@ extends Descriptor
 		final AvailObject method = newMethodWithName(vmPublishAtomsAtom);
 		try
 		{
-			method.addDefinition(
+			method.methodAddDefinition(
 				MethodDefinitionDescriptor.create(method, newFunction));
 		}
 		catch (final SignatureException e)
@@ -465,7 +465,7 @@ extends Descriptor
 			NullDescriptor.nullObject());
 		vmMethodDefinerMethod = newVMMethodDefinerMethod();
 		vmMacroDefinerAtom = AtomDescriptor.create(
-			StringDescriptor.from("vm macro_is_"),
+			StringDescriptor.from("vm macro_is«_,»_"),
 			NullDescriptor.nullObject());
 		vmMacroDefinerMethod = newVMMacroDefinerMethod();
 		vmPublishAtomsAtom = AtomDescriptor.create(
@@ -644,7 +644,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	void o_AddDefinition (
+	void o_MethodAddDefinition (
 		final AvailObject object,
 		final AvailObject definition)
 	throws SignatureException

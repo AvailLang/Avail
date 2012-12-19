@@ -145,6 +145,7 @@ Names
 	/*  33 */ "tuple meta",
 	/* 117 */ "tuple of any meta",
 	/* 125 */ "tuple of expressions yielding any",
+	/*  48 */ "tuple of functions",
 	/* 102 */ "tuple of nybble",
 	/* 108 */ "tuple of semantic restriction function",
 	/* 128 */ "tuple of set of atom",
@@ -220,6 +221,7 @@ _abstract_definition                    ::= special object 44;
 _forward_definition                     ::= special object 45;
 _method_definition                      ::= special object 46;
 _macro_definition                       ::= special object 47;
+_tuple_of_functions                     ::= special object 48;
 _phrase                                 ::= special object 50;
 _sequence_phrase                        ::= special object 51;
 _expression_phrase                      ::= special object 52;
@@ -646,6 +648,11 @@ Primitive "method definition" is
 Primitive "macro definition" is
 [
 	_macro_definition
+];
+
+Primitive "tuple of functions" is
+[
+	_tuple_of_functions
 ];
 
 Primitive "phrase" is

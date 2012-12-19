@@ -35,6 +35,7 @@ package com.avail.compiler;
 import static com.avail.compiler.ParsingOperation.*;
 import static com.avail.compiler.ParsingConversionRule.*;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
+import static com.avail.descriptor.StringDescriptor.*;
 import static com.avail.exceptions.AvailErrorCode.*;
 import java.io.PrintStream;
 import java.util.*;
@@ -45,7 +46,6 @@ import com.avail.compiler.scanning.AvailScanner;
 import com.avail.descriptor.*;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.exceptions.*;
-import com.avail.interpreter.primitive.*;
 
 /**
  * {@code MessageSplitter} is used to split Avail message names into a sequence
@@ -77,24 +77,27 @@ public class MessageSplitter
 	 * used to indicate repeated or optional substructures.</li>
 	 * <li>The characters {@linkplain StringDescriptor#octothorp() octothorp}
 	 * (#) and {@linkplain StringDescriptor#questionMark() question mark} (?)
-	 * modify the output of repeated substructures.</li>
+	 * modify the output of repeated substructures to produce either a count
+	 * of the repetitions or a boolean indicating whether an optional
+	 * substructure was present.</li>
 	 * <li>An {@linkplain StringDescriptor#exclamationMark() exclamation mark}
 	 * (!) can follow a group of alternations to produce the 1-based index of
 	 * the alternative that actually occurred.</li>
-	 * <li>{@linkplain StringDescriptor#underscore() Underscores} (_) indicate
-	 * where arguments occur, and may be followed by a {@linkplain
-	 * StringDescriptor#singleDagger() single dagger} (†) to cause the argument
-	 * expression to be evaluated in the static scope during compilation.</li>
+	 * <li>An {@linkplain StringDescriptor#underscore() underscore} (_)
+	 * indicates where an argument occurs.</li>
+	 * <li>A {@linkplain StringDescriptor#singleDagger() single dagger} (†) may
+	 * occur immediately after an underscore to cause the argument expression to
+	 * be evaluated in the static scope during compilation.  This is applicable
+	 * to both methods and macros.</li>
 	 * <li>An {@linkplain StringDescriptor#ellipsis() ellipsis} (…) matches a
 	 * single {@linkplain TokenDescriptor token}.</li>
 	 * <li>A {@linkplain StringDescriptor#sectionSign() section sign} (§) is
-	 * used to mark where the {@linkplain P_400_BootstrapBlockMacro
-	 * block-defining macro} should save its current parsed subexpressions for
-	 * subsequent use by the {@linkplain P_403_BootstrapLabelMacro
-	 * label-creating macro}.</li>
-	 * <li>The {@linkplain StringDescriptor#backQuote() backquote} (`) can
-	 * precede any operator character, like guillemets and double dagger, to
-	 * ensure it is not used in a special way. A backquote may also escape
+	 * used to mark where a macro's Nth {@linkplain
+	 * AvailObject#prefixFunctions() prefix function} should be invoked with
+	 * the current parse stack up to that point.</li>
+	 * <li>A {@linkplain StringDescriptor#backQuote() backquote} (`) can
+	 * precede any operator character, such as guillemets or double dagger, to
+	 * ensure it is not used in a special way. A backquote may also operate on
 	 * another backquote.</li>
 	 * </ul></p>
 	 */
@@ -108,6 +111,11 @@ public class MessageSplitter
 	 * The number of non-backquoted underscores/ellipses encountered so far.
 	 */
 	@InnerAccess int numberOfUnderscores;
+
+	/**
+	 * The number of {@link SectionCheckpoint}s encountered so far.
+	 */
+	@InnerAccess int numberOfSectionCheckpoints;
 
 	/**
 	 * A list of integers representing parsing instructions. These instructions
@@ -130,19 +138,6 @@ public class MessageSplitter
 	 */
 	abstract class Expression
 	{
-		/**
-		 * Write instructions for parsing me to the given list.
-		 *
-		 * @param list
-		 *        The list of integers {@linkplain MessageSplitter encoding}
-		 *        parsing instructions.
-		 * @param caseInsensitive
-		 *        Should keywords be matched case insensitively?
-		 */
-		abstract void emitOn (
-			final List<Integer> list,
-			final boolean caseInsensitive);
-
 		/**
 		 * Answer whether or not this an {@linkplain Argument argument} or
 		 * {@linkplain Group group}.
@@ -193,6 +188,19 @@ public class MessageSplitter
 		}
 
 		/**
+		 * Return whether the {@link SectionCheckpoint} with the given index is
+		 * within this expression.
+		 *
+		 * @param sectionCheckpoint Which section checkpoint to look for.
+		 * @return Whether this expression recursively contains the given
+		 *         section checkpoint.
+		 */
+		boolean containsSectionCheckpoint (final int sectionCheckpoint)
+		{
+			return false;
+		}
+
+		/**
 		 * Are all keywords of the expression comprised exclusively of lower
 		 * case characters?
 		 *
@@ -230,11 +238,51 @@ public class MessageSplitter
 		 * @param argumentType
 		 *        A {@linkplain TupleTypeDescriptor tuple type} describing the
 		 *        types of arguments that a method being added will accept.
+		 * @param sectionNumber
+		 *        Which {@linkplain SectionCheckpoint} section marker this list
+		 *        of argument types are being validated against.  To validate
+		 *        the final method or macro body rather than a prefix function,
+		 *        use any value greater than the {@linkplain
+		 *        #numberOfSectionCheckpoints}.
 		 * @throws SignatureException
 		 *        If the argument type is inappropriate.
 		 */
-		public abstract void checkType (final AvailObject argumentType)
-			throws SignatureException;
+		abstract public void checkType (
+			final AvailObject argumentType,
+			final int sectionNumber)
+		throws SignatureException;
+
+		/**
+		 * Check that the given type signature is appropriate for this message
+		 * expression. If not, throw a {@link SignatureException}.
+		 *
+		 * @param argumentType
+		 *        A {@linkplain TupleTypeDescriptor tuple type} describing the
+		 *        types of arguments that a method being added will accept.
+		 * @throws SignatureException
+		 *        If the argument type is inappropriate.
+		 *
+		 * @see #checkType(AvailObject, int)
+		 */
+//		public final void checkType (
+//			final AvailObject argumentType)
+//		throws SignatureException
+//		{
+//			checkType(argumentType, Integer.MAX_VALUE);
+//		}
+
+		/**
+		 * Write instructions for parsing me to the given list.
+		 *
+		 * @param list
+		 *        The list of integers {@linkplain MessageSplitter encoding}
+		 *        parsing instructions.
+		 * @param caseInsensitive
+		 *        Should keywords be matched case insensitively?
+		 */
+		abstract void emitOn (
+			final List<Integer> list,
+			final boolean caseInsensitive);
 
 		@Override
 		public String toString ()
@@ -287,22 +335,31 @@ public class MessageSplitter
 		}
 
 		@Override
+		final boolean isLowerCase ()
+		{
+			final String token =
+				messageParts.get(tokenIndex - 1).asNativeString();
+			return token.toLowerCase().equals(token);
+		}
+
+		@Override
+		public void checkType (
+			final AvailObject argumentType,
+			final int sectionNumber)
+		{
+			assert false : "checkType() should not be called for Simple" +
+					" expressions";
+		}
+
+		@Override
 		void emitOn (
 			final List<Integer> list,
 			final boolean caseInsensitive)
 		{
 			// Parse the specific keyword.
 			final ParsingOperation op =
-				caseInsensitive ? parsePartCaseInsensitive : parsePart;
+				caseInsensitive ? PARSE_PART_CASE_INSENSITIVELY : PARSE_PART;
 			list.add(op.encoding(tokenIndex));
-		}
-
-		@Override
-		final boolean isLowerCase ()
-		{
-			final String token =
-				messageParts.get(tokenIndex - 1).asNativeString();
-			return token.toLowerCase().equals(token);
 		}
 
 		@Override
@@ -314,13 +371,6 @@ public class MessageSplitter
 			builder.append(messageParts.get(tokenIndex - 1).asNativeString());
 			builder.append("\")");
 			return builder.toString();
-		}
-
-		@Override
-		public void checkType (final AvailObject argumentType)
-		{
-			assert false : "checkType() should not be called for Simple" +
-					" expressions";
 		}
 
 		@Override
@@ -370,32 +420,16 @@ public class MessageSplitter
 			return 1;
 		}
 
-		@Override
-		void emitOn (
-			final List<Integer> list,
-			final boolean caseInsensitive)
-		{
-			// First, parse an argument subexpression. Next, record it in a list
-			// of lists that will later be used to check negative precedence
-			// restrictions. In particular, it will be recorded at position N if
-			// this argument is for the Nth non-backquoted underscore/ellipsis
-			// of this message. This is done with two instructions to simplify
-			// processing of the recursive expression parse, as well as to make
-			// a completely non-recursive parallel-shift-reduce parsing engine
-			// easier to build eventually.
-			list.add(parseArgument.encoding());
-			list.add(checkArgument.encoding(
-				absoluteUnderscoreIndex));
-		}
-
 		/**
 		 * A simple underscore/ellipsis can be arbitrarily restricted, other
 		 * than when it is restricted to the uninstantiable type {@linkplain
 		 * BottomTypeDescriptor#bottom() bottom}.
 		 */
 		@Override
-		public void checkType (final AvailObject argumentType)
-			throws SignatureException
+		public void checkType (
+			final AvailObject argumentType,
+			final int sectionNumber)
+		throws SignatureException
 		{
 			if (argumentType.equals(BottomTypeDescriptor.bottom()))
 			{
@@ -403,6 +437,20 @@ public class MessageSplitter
 				throwSignatureException(E_INCORRECT_ARGUMENT_TYPE);
 			}
 			return;
+		}
+
+		/**
+		 * Parse an argument subexpression, then check that it has an acceptable
+		 * form (i.e., does not violate a grammatical restriction for that
+		 * argument position).
+		 */
+		@Override
+		void emitOn (
+			final List<Integer> list,
+			final boolean caseInsensitive)
+		{
+			list.add(PARSE_ARGUMENT.encoding());
+			list.add(CHECK_ARGUMENT.encoding(absoluteUnderscoreIndex));
 		}
 
 		@Override
@@ -419,6 +467,53 @@ public class MessageSplitter
 		}
 
 	}
+	/**
+	 * A {@linkplain ArgumentInModuleScope} is an occurrence of an {@linkplain
+	 * StringDescriptor#ellipsis() underscore} (_) in a message name, followed
+	 * immediately by a {@linkplain StringDescriptor#singleDagger() single
+	 * dagger} (†). It indicates where an argument is expected, but the argument
+	 * must not make use of any local declarations. The argument expression will
+	 * be evaluated at compile time and replaced by a {@linkplain
+	 * LiteralNodeDescriptor literal} based on the produced value.
+	 */
+	final class ArgumentInModuleScope
+	extends Argument
+	{
+		/**
+		 * First parse an argument subexpression, then check that it has an
+		 * acceptable form (i.e., does not violate a grammatical restriction for
+		 * that argument position).  Also ensure that no local declarations that
+		 * were in scope before parsing the argument are used by the argument.
+		 * Then evaluate the argument expression (at compile time) and replace
+		 * it with a {@link LiteralNodeDescriptor literal phrase} wrapping the
+		 * produced value.
+		 */
+		@Override
+		void emitOn (
+			final List<Integer> list,
+			final boolean caseInsensitive)
+		{
+			list.add(PARSE_ARGUMENT_IN_MODULE_SCOPE.encoding());
+			list.add(CHECK_ARGUMENT.encoding(absoluteUnderscoreIndex));
+			list.add(CONVERT.encoding(evaluateExpression.number()));
+		}
+
+		@Override
+		public void printWithArguments (
+			final @Nullable Iterator<AvailObject> arguments,
+			final StringBuilder builder,
+			final int indent)
+		{
+			assert arguments != null;
+			// Describe the token that was parsed as this raw token argument.
+			arguments.next().printOnAvoidingIndent(
+				builder,
+				new ArrayList<AvailObject>(),
+				indent + 1);
+			builder.append("†");
+		}
+	}
+
 
 	/**
 	 * A {@linkplain RawTokenArgument} is an occurrence of {@linkplain
@@ -451,9 +546,8 @@ public class MessageSplitter
 			// simplify processing of the recursive expression parse, especially
 			// as it relates to the non-recursive parallel shift-reduce parsing
 			// engine.
-			list.add(parseRawToken.encoding());
-			list.add(checkArgument.encoding(
-				absoluteUnderscoreIndex));
+			list.add(PARSE_RAW_TOKEN.encoding());
+			list.add(CHECK_ARGUMENT.encoding(absoluteUnderscoreIndex));
 		}
 
 		@Override
@@ -650,146 +744,23 @@ public class MessageSplitter
 		}
 
 		@Override
-		void emitOn (
-			final List<Integer> list,
-			final boolean caseInsensitive)
+		boolean containsSectionCheckpoint (final int sectionCheckpoint)
 		{
-			if (!needsDoubleWrapping())
+			for (final Expression expression : expressionsBeforeDagger)
 			{
-				/* Special case -- one argument case produces a list of
-				 * expressions rather than a list of fixed-length lists of
-				 * expressions.  The generated instructions should look like:
-				 *
-				 * push current parse position
-				 * push empty list
-				 * branch to @loopSkip
-				 * @loopStart:
-				 * ...Stuff before dagger.
-				 * append  (add solution)
-				 * branch to @loopExit (even if no dagger)
-				 * ...Stuff after dagger, nothing if dagger is omitted.  Must
-				 * ...follow argument or subgroup with "append" instruction.
-				 * check progress and update saved position, or abort.
-				 * jump to @loopStart
-				 * @loopExit:
-				 * check progress and update saved position, or abort.
-				 * @loopSkip:
-				 * under-pop parse position (remove 2nd from top of stack)
-				 */
-				list.add(saveParsePosition.encoding());
-				list.add(newList.encoding());
-				list.add(branch.encoding(loopSkip));
-				final int loopStart = list.size() + 1;
-				for (final Expression expression : expressionsBeforeDagger)
+				if (expression.containsSectionCheckpoint(sectionCheckpoint))
 				{
-					expression.emitOn(list, caseInsensitive);
-				}
-				list.add(appendArgument.encoding());
-				list.add(branch.encoding(loopExit));
-				for (final Expression expression : expressionsAfterDagger)
-				{
-					assert !expression.isArgumentOrGroup();
-					expression.emitOn(list, caseInsensitive);
-				}
-				list.add(ensureParseProgress.encoding());
-				list.add(jump.encoding(loopStart));
-				loopExit = list.size() + 1;
-				list.add(ensureParseProgress.encoding());
-				loopSkip = list.size() + 1;
-				list.add(discardSavedParsePosition.encoding());
-			}
-			else
-			{
-				/* General case -- the individual arguments need to be wrapped
-				 * with "append" as for the special case above, but the start
-				 * of each loop has to push an empty tuple, the dagger has to
-				 * branch to a special @loopExit that closes the last (partial)
-				 * group, and the backward jump should be preceded by an append
-				 * to capture a solution.  Here's the code:
-				 *
-				 * push current parse position
-				 * push empty list (the list of solutions)
-				 * branch to @loopSkip
-				 * @loopStart:
-				 * push empty list (a compound solution)
-				 * ...Stuff before dagger, where arguments and subgroups must
-				 * ...be followed by "append" instruction.
-				 * branch to @loopExit
-				 * ...Stuff after dagger, nothing if dagger is omitted.  Must
-				 * ...follow argument or subgroup with "append" instruction.
-				 * append  (add complete solution)
-				 * check progress and update saved position, or abort.
-				 * jump @loopStart
-				 * @loopExit:
-				 * append  (add partial solution up to dagger)
-				 * check progress and update saved position, or abort.
-				 * @loopSkip:
-				 * under-pop parse position (remove 2nd from top of stack)
-				 */
-				list.add(saveParsePosition.encoding());
-				list.add(newList.encoding());
-				list.add(branch.encoding(loopSkip));
-				final int loopStart = list.size() + 1;
-				list.add(newList.encoding());
-				for (final Expression expression : expressionsBeforeDagger)
-				{
-					expression.emitOn(list, caseInsensitive);
-					if (expression.isArgumentOrGroup())
-					{
-						list.add(appendArgument.encoding());
-					}
-				}
-				list.add(branch.encoding(loopExit));
-				for (final Expression expression : expressionsAfterDagger)
-				{
-					expression.emitOn(list, caseInsensitive);
-					if (expression.isArgumentOrGroup())
-					{
-						list.add(appendArgument.encoding());
-					}
-				}
-				list.add(appendArgument.encoding());
-				list.add(ensureParseProgress.encoding());
-				list.add(jump.encoding(loopStart));
-				loopExit = list.size() + 1;
-				list.add(appendArgument.encoding());
-				list.add(ensureParseProgress.encoding());
-				loopSkip = list.size() + 1;
-				list.add(discardSavedParsePosition.encoding());
-			}
-		}
-
-		@Override
-		public String toString ()
-		{
-			final List<String> strings = new ArrayList<String>();
-			for (final Expression e : expressionsBeforeDagger)
-			{
-				strings.add(e.toString());
-			}
-			if (hasDagger)
-			{
-				strings.add("‡");
-				for (final Expression e : expressionsAfterDagger)
-				{
-					strings.add(e.toString());
+					return true;
 				}
 			}
-
-			final StringBuilder builder = new StringBuilder();
-			builder.append("Group(");
-			boolean first = true;
-			for (final String s : strings)
+			for (final Expression expression : expressionsAfterDagger)
 			{
-				if (!first)
+				if (expression.containsSectionCheckpoint(sectionCheckpoint))
 				{
-					builder.append(", ");
+					return true;
 				}
-				builder.append(s);
-				first = false;
 			}
-			builder.append(")");
-			return builder.toString();
+			return false;
 		}
 
 		/**
@@ -797,9 +768,13 @@ public class MessageSplitter
 		 * this group.
 		 */
 		@Override
-		public void checkType (final AvailObject argumentType)
-			throws SignatureException
+		public void checkType (
+			final AvailObject argumentType,
+			final int sectionNumber)
+		throws SignatureException
 		{
+			//TODO[MvG]: Deal with the sectionNumber somehow.
+
 			// Always expect a tuple of solutions here.
 			if (argumentType.equals(BottomTypeDescriptor.bottom()))
 			{
@@ -851,10 +826,8 @@ public class MessageSplitter
 						solutionType.sizeRange();
 					final AvailObject lower = solutionTypeSizes.lowerBound();
 					final AvailObject upper = solutionTypeSizes.upperBound();
-					if (!(lower.equals(expectedLower)
-							|| lower.equals(expectedUpper))
-						&& (!(upper.equals(expectedLower)
-							|| upper.equals(expectedUpper))))
+					if (!lower.equals(expectedLower)
+						|| !upper.equals(expectedUpper))
 					{
 						// This complex group should have elements whose types
 						// are tuples restricted to have sizes ranging from the
@@ -869,7 +842,9 @@ public class MessageSplitter
 					{
 						if (e.isArgumentOrGroup())
 						{
-							e.checkType(solutionType.typeAtIndex(j));
+							e.checkType(
+								solutionType.typeAtIndex(j),
+								sectionNumber);
 							j++;
 						}
 					}
@@ -877,12 +852,157 @@ public class MessageSplitter
 					{
 						if (e.isArgumentOrGroup())
 						{
-							e.checkType(solutionType.typeAtIndex(j));
+							e.checkType(
+								solutionType.typeAtIndex(j),
+								sectionNumber);
 							j++;
 						}
 					}
 				}
 			}
+		}
+
+		@Override
+		void emitOn (
+			final List<Integer> list,
+			final boolean caseInsensitive)
+		{
+			if (!needsDoubleWrapping())
+			{
+				/* Special case -- one argument case produces a list of
+				 * expressions rather than a list of fixed-length lists of
+				 * expressions.  The generated instructions should look like:
+				 *
+				 * push current parse position
+				 * push empty list
+				 * branch to @loopSkip
+				 * @loopStart:
+				 * ...Stuff before dagger.
+				 * append  (add solution)
+				 * branch to @loopExit (even if no dagger)
+				 * ...Stuff after dagger, nothing if dagger is omitted.  Must
+				 * ...follow argument or subgroup with "append" instruction.
+				 * check progress and update saved position, or abort.
+				 * jump to @loopStart
+				 * @loopExit:
+				 * check progress and update saved position, or abort.
+				 * @loopSkip:
+				 * under-pop parse position (remove 2nd from top of stack)
+				 */
+				list.add(SAVE_PARSE_POSITION.encoding());
+				list.add(NEW_LIST.encoding());
+				list.add(BRANCH.encoding(loopSkip));
+				final int loopStart = list.size() + 1;
+				for (final Expression expression : expressionsBeforeDagger)
+				{
+					expression.emitOn(list, caseInsensitive);
+				}
+				list.add(APPEND_ARGUMENT.encoding());
+				list.add(BRANCH.encoding(loopExit));
+				for (final Expression expression : expressionsAfterDagger)
+				{
+					assert !expression.isArgumentOrGroup();
+					expression.emitOn(list, caseInsensitive);
+				}
+				list.add(ENSURE_PARSE_PROGRESS.encoding());
+				list.add(JUMP.encoding(loopStart));
+				loopExit = list.size() + 1;
+				list.add(ENSURE_PARSE_PROGRESS.encoding());
+				loopSkip = list.size() + 1;
+				list.add(DISCARD_SAVED_PARSE_POSITION.encoding());
+			}
+			else
+			{
+				/* General case -- the individual arguments need to be wrapped
+				 * with "append" as for the special case above, but the start
+				 * of each loop has to push an empty tuple, the dagger has to
+				 * branch to a special @loopExit that closes the last (partial)
+				 * group, and the backward jump should be preceded by an append
+				 * to capture a solution.  Here's the code:
+				 *
+				 * push current parse position
+				 * push empty list (the list of solutions)
+				 * branch to @loopSkip
+				 * @loopStart:
+				 * push empty list (a compound solution)
+				 * ...Stuff before dagger, where arguments and subgroups must
+				 * ...be followed by "append" instruction.
+				 * branch to @loopExit
+				 * ...Stuff after dagger, nothing if dagger is omitted.  Must
+				 * ...follow argument or subgroup with "append" instruction.
+				 * append  (add complete solution)
+				 * check progress and update saved position, or abort.
+				 * jump @loopStart
+				 * @loopExit:
+				 * append  (add partial solution up to dagger)
+				 * check progress and update saved position, or abort.
+				 * @loopSkip:
+				 * under-pop parse position (remove 2nd from top of stack)
+				 */
+				list.add(SAVE_PARSE_POSITION.encoding());
+				list.add(NEW_LIST.encoding());
+				list.add(BRANCH.encoding(loopSkip));
+				final int loopStart = list.size() + 1;
+				list.add(NEW_LIST.encoding());
+				for (final Expression expression : expressionsBeforeDagger)
+				{
+					expression.emitOn(list, caseInsensitive);
+					if (expression.isArgumentOrGroup())
+					{
+						list.add(APPEND_ARGUMENT.encoding());
+					}
+				}
+				list.add(BRANCH.encoding(loopExit));
+				for (final Expression expression : expressionsAfterDagger)
+				{
+					expression.emitOn(list, caseInsensitive);
+					if (expression.isArgumentOrGroup())
+					{
+						list.add(APPEND_ARGUMENT.encoding());
+					}
+				}
+				list.add(APPEND_ARGUMENT.encoding());
+				list.add(ENSURE_PARSE_PROGRESS.encoding());
+				list.add(JUMP.encoding(loopStart));
+				loopExit = list.size() + 1;
+				list.add(APPEND_ARGUMENT.encoding());
+				list.add(ENSURE_PARSE_PROGRESS.encoding());
+				loopSkip = list.size() + 1;
+				list.add(DISCARD_SAVED_PARSE_POSITION.encoding());
+			}
+		}
+
+		@Override
+		public String toString ()
+		{
+			final List<String> strings = new ArrayList<String>();
+			for (final Expression e : expressionsBeforeDagger)
+			{
+				strings.add(e.toString());
+			}
+			if (hasDagger)
+			{
+				strings.add("‡");
+				for (final Expression e : expressionsAfterDagger)
+				{
+					strings.add(e.toString());
+				}
+			}
+
+			final StringBuilder builder = new StringBuilder();
+			builder.append("Group(");
+			boolean first = true;
+			for (final String s : strings)
+			{
+				if (!first)
+				{
+					builder.append(", ");
+				}
+				builder.append(s);
+				first = false;
+			}
+			builder.append(")");
+			return builder.toString();
 		}
 
 		@Override
@@ -1047,6 +1167,46 @@ public class MessageSplitter
 		}
 
 		@Override
+		boolean isArgumentOrGroup ()
+		{
+			return true;
+		}
+
+		@Override
+		int underscoreCount ()
+		{
+			assert group.underscoreCount() == 0;
+			return 0;
+		}
+
+		@Override
+		boolean isLowerCase ()
+		{
+			return group.isLowerCase();
+		}
+
+		@Override
+		boolean containsSectionCheckpoint(final int sectionCheckpoint)
+		{
+			return group.containsSectionCheckpoint(sectionCheckpoint);
+		}
+
+		@Override
+		public void checkType (
+			final AvailObject argumentType,
+			final int sectionNumber)
+		throws SignatureException
+		{
+			if (!argumentType.isSubtypeOf(
+				IntegerRangeTypeDescriptor.wholeNumbers()))
+			{
+				// The declared type for the subexpression must be a subtype of
+				// whole number.
+				throwSignatureException(E_INCORRECT_TYPE_FOR_COUNTING_GROUP);
+			}
+		}
+
+		@Override
 		void emitOn (
 			final List<Integer> list,
 			final boolean caseInsensitive)
@@ -1068,62 +1228,30 @@ public class MessageSplitter
 			 * @loopSkip:
 			 * under-pop parse position (remove 2nd from top of stack)
 			 */
-			list.add(saveParsePosition.encoding());
-			list.add(newList.encoding());
-			list.add(branch.encoding(loopSkip));
+			list.add(SAVE_PARSE_POSITION.encoding());
+			list.add(NEW_LIST.encoding());
+			list.add(BRANCH.encoding(loopSkip));
 			final int loopStart = list.size() + 1;
-			list.add(newList.encoding());
+			list.add(NEW_LIST.encoding());
 			for (final Expression expression : group.expressionsBeforeDagger)
 			{
 				assert !expression.isArgumentOrGroup();
 				expression.emitOn(list, caseInsensitive);
 			}
-			list.add(appendArgument.encoding());
-			list.add(branch.encoding(loopExit));
+			list.add(APPEND_ARGUMENT.encoding());
+			list.add(BRANCH.encoding(loopExit));
 			for (final Expression expression : group.expressionsAfterDagger)
 			{
 				assert !expression.isArgumentOrGroup();
 				expression.emitOn(list, caseInsensitive);
 			}
-			list.add(ensureParseProgress.encoding());
-			list.add(jump.encoding(loopStart));
+			list.add(ENSURE_PARSE_PROGRESS.encoding());
+			list.add(JUMP.encoding(loopStart));
 			loopExit = list.size() + 1;
-			list.add(ensureParseProgress.encoding());
+			list.add(ENSURE_PARSE_PROGRESS.encoding());
 			loopSkip = list.size() + 1;
-			list.add(discardSavedParsePosition.encoding());
-			list.add(convert.encoding(listToSize.number()));
-		}
-
-		@Override
-		boolean isArgumentOrGroup ()
-		{
-			return true;
-		}
-
-		@Override
-		int underscoreCount ()
-		{
-			assert group.underscoreCount() == 0;
-			return 0;
-		}
-
-		@Override
-		boolean isLowerCase ()
-		{
-			return group.isLowerCase();
-		}
-
-		@Override
-		public void checkType (final AvailObject argumentType)
-			throws SignatureException
-		{
-			if (!argumentType.isSubtypeOf(
-				IntegerRangeTypeDescriptor.wholeNumbers()))
-			{
-				// The declared type for the subexpression must be a subtype of
-				// whole number.
-				throwSignatureException(E_INCORRECT_TYPE_FOR_COUNTING_GROUP);
-			}
+			list.add(DISCARD_SAVED_PARSE_POSITION.encoding());
+			list.add(CONVERT.encoding(listToSize.number()));
 		}
 
 		@Override
@@ -1204,38 +1332,6 @@ public class MessageSplitter
 		}
 
 		@Override
-		void emitOn (
-			final List<Integer> list,
-			final boolean caseInsensitive)
-		{
-			/* push current parse position
-			 * push empty list
-			 * branch to @groupSkip
-			 * push empty list (represents group presence)
-			 * ...Stuff before dagger (i.e., all expressions).
-			 * append (add solution)
-			 * check progress and update saved position, or abort.
-			 * @groupSkip:
-			 * under-pop parse position (remove 2nd from top of stack)
-			 * convert (list->boolean)
-			 */
-			list.add(saveParsePosition.encoding());
-			list.add(newList.encoding());
-			list.add(branch.encoding(groupSkip));
-			list.add(newList.encoding());
-			for (final Expression expression : group.expressionsBeforeDagger)
-			{
-				assert !expression.isArgumentOrGroup();
-				expression.emitOn(list, caseInsensitive);
-			}
-			list.add(appendArgument.encoding());
-			list.add(ensureParseProgress.encoding());
-			groupSkip = list.size() + 1;
-			list.add(discardSavedParsePosition.encoding());
-			list.add(convert.encoding(listToNonemptiness.number()));
-		}
-
-		@Override
 		boolean isArgumentOrGroup ()
 		{
 			return true;
@@ -1255,8 +1351,16 @@ public class MessageSplitter
 		}
 
 		@Override
-		public void checkType (final AvailObject argumentType)
-			throws SignatureException
+		boolean containsSectionCheckpoint(final int sectionCheckpoint)
+		{
+			return group.containsSectionCheckpoint(sectionCheckpoint);
+		}
+
+		@Override
+		public void checkType (
+			final AvailObject argumentType,
+			final int sectionNumber)
+		throws SignatureException
 		{
 			if (!argumentType.isSubtypeOf(
 				EnumerationTypeDescriptor.booleanObject()))
@@ -1265,6 +1369,38 @@ public class MessageSplitter
 				// boolean.
 				throwSignatureException(E_INCORRECT_TYPE_FOR_BOOLEAN_GROUP);
 			}
+		}
+
+		@Override
+		void emitOn (
+			final List<Integer> list,
+			final boolean caseInsensitive)
+		{
+			/* push current parse position
+			 * push empty list
+			 * branch to @groupSkip
+			 * push empty list (represents group presence)
+			 * ...Stuff before dagger (i.e., all expressions).
+			 * append (add solution)
+			 * check progress and update saved position, or abort.
+			 * @groupSkip:
+			 * under-pop parse position (remove 2nd from top of stack)
+			 * convert (list->boolean)
+			 */
+			list.add(SAVE_PARSE_POSITION.encoding());
+			list.add(NEW_LIST.encoding());
+			list.add(BRANCH.encoding(groupSkip));
+			list.add(NEW_LIST.encoding());
+			for (final Expression expression : group.expressionsBeforeDagger)
+			{
+				assert !expression.isArgumentOrGroup();
+				expression.emitOn(list, caseInsensitive);
+			}
+			list.add(APPEND_ARGUMENT.encoding());
+			list.add(ENSURE_PARSE_PROGRESS.encoding());
+			groupSkip = list.size() + 1;
+			list.add(DISCARD_SAVED_PARSE_POSITION.encoding());
+			list.add(CONVERT.encoding(listToNonemptiness.number()));
 		}
 
 		@Override
@@ -1339,6 +1475,36 @@ public class MessageSplitter
 		}
 
 		@Override
+		int underscoreCount ()
+		{
+			assert expression.underscoreCount() == 0;
+			return 0;
+		}
+
+		@Override
+		boolean isLowerCase ()
+		{
+			return expression.isLowerCase();
+		}
+
+		@Override
+		boolean containsSectionCheckpoint(final int sectionCheckpoint)
+		{
+			return expression.containsSectionCheckpoint(sectionCheckpoint);
+		}
+
+		@Override
+		public void checkType (
+			final AvailObject argumentType,
+			final int sectionNumber)
+		throws SignatureException
+		{
+			assert false :
+				"checkType() should not be called for CompletelyOptional" +
+				" expressions";
+		}
+
+		@Override
 		void emitOn (
 			final List<Integer> list,
 			final boolean caseInsensitive)
@@ -1352,9 +1518,9 @@ public class MessageSplitter
 			 * under-pop parse position (remove 2nd from top of stack)
 			 * pop (empty list)
 			 */
-			list.add(saveParsePosition.encoding());
-			list.add(newList.encoding());
-			list.add(branch.encoding(expressionSkip));
+			list.add(SAVE_PARSE_POSITION.encoding());
+			list.add(NEW_LIST.encoding());
+			list.add(BRANCH.encoding(expressionSkip));
 			final List<Expression> expressions;
 			if (expression instanceof Simple)
 			{
@@ -1373,32 +1539,10 @@ public class MessageSplitter
 				assert !subexpression.isArgumentOrGroup();
 				subexpression.emitOn(list, caseInsensitive);
 			}
-			list.add(ensureParseProgress.encoding());
+			list.add(ENSURE_PARSE_PROGRESS.encoding());
 			expressionSkip = list.size() + 1;
-			list.add(discardSavedParsePosition.encoding());
-			list.add(pop.encoding());
-		}
-
-		@Override
-		int underscoreCount ()
-		{
-			assert expression.underscoreCount() == 0;
-			return 0;
-		}
-
-		@Override
-		boolean isLowerCase ()
-		{
-			return expression.isLowerCase();
-		}
-
-		@Override
-		public void checkType (final AvailObject argumentType)
-			throws SignatureException
-		{
-			assert false :
-				"checkType() should not be called for CompletelyOptional" +
-				" expressions";
+			list.add(DISCARD_SAVED_PARSE_POSITION.encoding());
+			list.add(POP.encoding());
 		}
 
 		@Override
@@ -1455,14 +1599,6 @@ public class MessageSplitter
 		}
 
 		@Override
-		void emitOn (
-			final List<Integer> list,
-			final boolean caseInsensitive)
-		{
-			expression.emitOn(list, true);
-		}
-
-		@Override
 		boolean isArgumentOrGroup ()
 		{
 			return expression.isArgumentOrGroup();
@@ -1488,10 +1624,26 @@ public class MessageSplitter
 		}
 
 		@Override
-		public void checkType (final AvailObject argumentType)
-			throws SignatureException
+		boolean containsSectionCheckpoint (final int sectionCheckpoint)
 		{
-			expression.checkType(argumentType);
+			return expression.containsSectionCheckpoint(sectionCheckpoint);
+		}
+
+		@Override
+		public void checkType (
+			final AvailObject argumentType,
+			final int sectionNumber)
+		throws SignatureException
+		{
+			expression.checkType(argumentType, sectionNumber);
+		}
+
+		@Override
+		void emitOn (
+			final List<Integer> list,
+			final boolean caseInsensitive)
+		{
+			expression.emitOn(list, true);
 		}
 
 		@Override
@@ -1569,49 +1721,6 @@ public class MessageSplitter
 		}
 
 		@Override
-		void emitOn (
-			final List<Integer> list,
-			final boolean caseInsensitive)
-		{
-			/* push current parse position
-			 * push empty list (just to discard)
-			 * branch to @branches[0]
-			 * ...First alternative.
-			 * jump to @branches[N-1] (the last branch label)
-			 * @branches[0]:
-			 * ...Repeat for each alternative, omitting the branch and jump for
-			 * ...the last alternative.
-			 * @branches[N-1]:
-			 * check progress and update saved position, or abort.
-			 * under-pop parse position (remove 2nd from top of stack)
-			 * pop (empty list)
-			 */
-			list.add(saveParsePosition.encoding());
-			list.add(newList.encoding());
-			for (int i = 0; i < alternatives.size(); i++)
-			{
-				// Generate a branch to the next alternative unless this is the
-				// last alternative.
-				if (i < alternatives.size() - 1)
-				{
-					list.add(branch.encoding(branches[i]));
-				}
-				alternatives.get(i).emitOn(list, caseInsensitive);
-				// Generate a jump to the last label unless this is the last
-				// alternative.
-				if (i < alternatives.size() - 1)
-				{
-					list.add(jump.encoding(
-						branches[branches.length - 1]));
-				}
-				branches[i] = list.size() + 1;
-			}
-			list.add(ensureParseProgress.encoding());
-			list.add(discardSavedParsePosition.encoding());
-			list.add(pop.encoding());
-		}
-
-		@Override
 		int underscoreCount ()
 		{
 			return 0;
@@ -1631,11 +1740,69 @@ public class MessageSplitter
 		}
 
 		@Override
-		public void checkType (final AvailObject argumentType)
-			throws SignatureException
+		boolean containsSectionCheckpoint (final int sectionCheckpoint)
+		{
+			for (final Expression alternative : alternatives)
+			{
+				if (alternative.containsSectionCheckpoint(sectionCheckpoint))
+				{
+					return true;
+				}
+			}
+			return false;
+		}
+
+		@Override
+		public void checkType (
+			final AvailObject argumentType,
+			final int sectionNumber)
+		throws SignatureException
 		{
 			assert false :
 				"checkType() should not be called for Alternation expressions";
+		}
+
+		@Override
+		void emitOn (
+			final List<Integer> list,
+			final boolean caseInsensitive)
+		{
+			/* push current parse position
+			 * push empty list (just to discard)
+			 * branch to @branches[0]
+			 * ...First alternative.
+			 * jump to @branches[N-1] (the last branch label)
+			 * @branches[0]:
+			 * ...Repeat for each alternative, omitting the branch and jump for
+			 * ...the last alternative.
+			 * @branches[N-1]:
+			 * check progress and update saved position, or abort.
+			 * under-pop parse position (remove 2nd from top of stack)
+			 * pop (empty list)
+			 */
+			list.add(SAVE_PARSE_POSITION.encoding());
+			list.add(NEW_LIST.encoding());
+			for (int i = 0; i < alternatives.size(); i++)
+			{
+				// Generate a branch to the next alternative unless this is the
+				// last alternative.
+				if (i < alternatives.size() - 1)
+				{
+					list.add(BRANCH.encoding(branches[i]));
+				}
+				alternatives.get(i).emitOn(list, caseInsensitive);
+				// Generate a jump to the last label unless this is the last
+				// alternative.
+				if (i < alternatives.size() - 1)
+				{
+					list.add(JUMP.encoding(
+						branches[branches.length - 1]));
+				}
+				branches[i] = list.size() + 1;
+			}
+			list.add(ENSURE_PARSE_PROGRESS.encoding());
+			list.add(DISCARD_SAVED_PARSE_POSITION.encoding());
+			list.add(POP.encoding());
 		}
 
 		@Override
@@ -1737,6 +1904,52 @@ public class MessageSplitter
 			Arrays.fill(branchTargets, -1);
 		}
 
+
+		@Override
+		boolean isArgumentOrGroup ()
+		{
+			return true;
+		}
+
+		@Override
+		int underscoreCount ()
+		{
+			assert alternation.underscoreCount() == 0;
+			return 0;
+		}
+
+		@Override
+		boolean isLowerCase ()
+		{
+			return alternation.isLowerCase();
+		}
+
+		@Override
+		boolean containsSectionCheckpoint (final int sectionCheckpoint)
+		{
+			return alternation.containsSectionCheckpoint(sectionCheckpoint);
+		}
+
+		@Override
+		public void checkType (
+			final AvailObject argumentType,
+			final int sectionNumber)
+		throws SignatureException
+		{
+			if (!argumentType.isSubtypeOf(
+				IntegerRangeTypeDescriptor.create(
+					IntegerDescriptor.one(),
+					true,
+					IntegerDescriptor.fromInt(
+						alternation.alternatives().size()),
+					true)))
+			{
+				// The declared type of the subexpression must be a subtype of
+				// [1..N] where N is the number of alternatives.
+				throwSignatureException(E_INCORRECT_TYPE_FOR_NUMBERED_CHOICE);
+			}
+		}
+
 		@Override
 		void emitOn (
 			final List<Integer> list,
@@ -1774,57 +1987,21 @@ public class MessageSplitter
 				final boolean last = index == branchTargets.length;
 				if (!last)
 				{
-					list.add(branch.encoding(branchTargets[index]));
+					list.add(BRANCH.encoding(branchTargets[index]));
 				}
 				final Expression alternative =
 					alternation.alternatives().get(index);
 				alternative.emitOn(list, caseInsensitive);
-				list.add(pushIntegerLiteral.encoding(index + 1));
+				list.add(PUSH_INTEGER_LITERAL.encoding(index + 1));
 				if (!last)
 				{
-					list.add(jump.encoding(exitTarget));
+					list.add(JUMP.encoding(exitTarget));
 					branchTargets[index] = list.size() + 1;
 				}
 			}
 			exitTarget = list.size() + 1;
 		}
 
-		@Override
-		boolean isArgumentOrGroup ()
-		{
-			return true;
-		}
-
-		@Override
-		int underscoreCount ()
-		{
-			assert alternation.underscoreCount() == 0;
-			return 0;
-		}
-
-		@Override
-		boolean isLowerCase ()
-		{
-			return alternation.isLowerCase();
-		}
-
-		@Override
-		public void checkType (final AvailObject argumentType)
-			throws SignatureException
-		{
-			if (!argumentType.isSubtypeOf(
-				IntegerRangeTypeDescriptor.create(
-					IntegerDescriptor.one(),
-					true,
-					IntegerDescriptor.fromInt(
-						alternation.alternatives().size()),
-					true)))
-			{
-				// The declared type of the subexpression must be a subtype of
-				// [1..N] where N is the number of alternatives.
-				throwSignatureException(E_INCORRECT_TYPE_FOR_NUMBERED_CHOICE);
-			}
-		}
 
 		@Override
 		public String toString ()
@@ -1860,7 +2037,7 @@ public class MessageSplitter
 	}
 
 	/**
-	 * An {@linkplain ArgumentsCheckpoint} expression is an occurrence of the
+	 * An {@linkplain SectionCheckpoint} expression is an occurrence of the
 	 * {@linkplain StringDescriptor#sectionSign() section sign} (§) in a message
 	 * name.  It indicates a position at which to save the argument expressions
 	 * for the message <em>up to this point</em>.  This value is captured in the
@@ -1873,15 +2050,39 @@ public class MessageSplitter
 	 * declaration, since the latter has to be created with a suitable
 	 * continuation type that includes the argument types.</p>
 	 */
-	final class ArgumentsCheckpoint
+	final class SectionCheckpoint
 	extends Expression
 	{
 		/**
-		 * Construct an ArgumentsCheckpoint.
+		 * The occurrence number of this SectionCheckpoint.  The section
+		 * checkpoints are one-based and are numbered consecutively in the order
+		 * in which they occur in the whole method name.
 		 */
-		ArgumentsCheckpoint ()
+		final int subscript;
+
+		/**
+		 * Construct a SectionCheckpoint.
+		 */
+		SectionCheckpoint ()
 		{
-			super();
+			numberOfSectionCheckpoints++;
+			this.subscript = numberOfSectionCheckpoints;
+		}
+
+		@Override
+		boolean containsSectionCheckpoint (final int sectionCheckpoint)
+		{
+			return sectionCheckpoint == subscript;
+		}
+
+		@Override
+		public void checkType (
+			final AvailObject argumentType,
+			final int sectionNumber)
+		throws SignatureException
+		{
+			assert false : "checkType() should not be called for " +
+				"SectionCheckpoint expressions";
 		}
 
 		@Override
@@ -1889,9 +2090,10 @@ public class MessageSplitter
 			final List<Integer> list,
 			final boolean caseInsensitive)
 		{
-			// Capture all argument expressions that have been saved thus far.
-			// Save them where a primitive macro can get to them later.
-			list.add(argumentsCheckpoint.encoding());
+			// Clean up any partially-constructed groups and invoke the
+			// appropriate prefix function.
+			list.add(PREPARE_TO_RUN_PREFIX_FUNCTION.encoding(-999999999)); //TODO[MvG]Finish
+			list.add(RUN_PREFIX_FUNCTION.encoding(subscript));
 		}
 
 		@Override
@@ -1901,13 +2103,6 @@ public class MessageSplitter
 			final int indent)
 		{
 			builder.append("§");
-		}
-
-		@Override
-		public void checkType (final AvailObject argumentType)
-		{
-			assert false : "checkType() should not be called for " +
-				"ArgumentsCheckpoint expressions";
 		}
 	}
 
@@ -2127,11 +2322,11 @@ public class MessageSplitter
 				return group;
 			}
 			AvailObject token = messageParts.get(messagePartPosition - 1);
-			if (token.equals(StringDescriptor.closeGuillemet()))
+			if (token.equals(closeGuillemet()))
 			{
 				return group;
 			}
-			else if (token.equals(StringDescriptor.underscore()))
+			else if (token.equals(underscore()))
 			{
 				if (alternatives.size() > 0)
 				{
@@ -2139,10 +2334,26 @@ public class MessageSplitter
 					throwSignatureException(
 						E_ALTERNATIVE_MUST_NOT_CONTAIN_ARGUMENTS);
 				}
-				group.addExpression(new Argument());
 				messagePartPosition++;
+				final Argument argument;
+				@Nullable
+				final AvailObject nextToken =
+					messagePartPosition > messageParts.size()
+						? null
+						: messageParts.get(messagePartPosition - 1);
+				if (nextToken != null
+					&& nextToken.equals(singleDagger()))
+				{
+					messagePartPosition++;
+					argument = new ArgumentInModuleScope();
+				}
+				else
+				{
+					argument = new Argument();
+				}
+				group.addExpression(argument);
 			}
-			else if (token.equals(StringDescriptor.ellipsis()))
+			else if (token.equals(ellipsis()))
 			{
 				if (alternatives.size() > 0)
 				{
@@ -2153,7 +2364,7 @@ public class MessageSplitter
 				group.addExpression(new RawTokenArgument());
 				messagePartPosition++;
 			}
-			else if (token.equals(StringDescriptor.doubleDagger()))
+			else if (token.equals(doubleDagger()))
 			{
 				if (group.hasDagger)
 				{
@@ -2169,31 +2380,31 @@ public class MessageSplitter
 				group.hasDagger = true;
 				messagePartPosition++;
 			}
-			else if (token.equals(StringDescriptor.octothorp()))
+			else if (token.equals(octothorp()))
 			{
 				throwSignatureException(
 					E_OCTOTHORP_MUST_FOLLOW_A_SIMPLE_GROUP);
 			}
-			else if (token.equals(StringDescriptor.questionMark()))
+			else if (token.equals(questionMark()))
 			{
 				throwSignatureException(
 					E_QUESTION_MARK_MUST_FOLLOW_A_SIMPLE_GROUP);
 			}
-			else if (token.equals(StringDescriptor.tilde()))
+			else if (token.equals(tilde()))
 			{
 				throwSignatureException(E_TILDE_MUST_NOT_FOLLOW_ARGUMENT);
 			}
-			else if (token.equals(StringDescriptor.verticalBar()))
+			else if (token.equals(verticalBar()))
 			{
 				throwSignatureException(
 					E_VERTICAL_BAR_MUST_FOLLOW_A_SIMPLE_OR_SIMPLE_GROUP);
 			}
-			else if (token.equals(StringDescriptor.exclamationMark()))
+			else if (token.equals(exclamationMark()))
 			{
 				throwSignatureException(
 					E_EXCLAMATION_MARK_MUST_FOLLOW_AN_ALTERNATION_GROUP);
 			}
-			else if (token.equals(StringDescriptor.openGuillemet()))
+			else if (token.equals(openGuillemet()))
 			{
 				// Eat the open guillemet, parse a subgroup, eat the (mandatory)
 				// close guillemet, and add the group.
@@ -2204,7 +2415,7 @@ public class MessageSplitter
 					token = messageParts.get(messagePartPosition - 1);
 				}
 				// Otherwise token stays an open guillemet, hence not a close...
-				if (!token.equals(StringDescriptor.closeGuillemet()))
+				if (!token.equals(closeGuillemet()))
 				{
 					// Expected matching close guillemet.
 					throwSignatureException(E_UNBALANCED_GUILLEMETS);
@@ -2215,7 +2426,7 @@ public class MessageSplitter
 				if (messagePartPosition <= messageParts.size())
 				{
 					token = messageParts.get(messagePartPosition - 1);
-					if (token.equals(StringDescriptor.octothorp()))
+					if (token.equals(octothorp()))
 					{
 						if (subgroup.underscoreCount() > 0)
 						{
@@ -2226,7 +2437,7 @@ public class MessageSplitter
 						subexpression = new Counter(subgroup);
 						messagePartPosition++;
 					}
-					else if (token.equals(StringDescriptor.questionMark()))
+					else if (token.equals(questionMark()))
 					{
 						if (subgroup.underscoreCount() > 0
 							|| subgroup.hasDagger)
@@ -2239,7 +2450,7 @@ public class MessageSplitter
 						messagePartPosition++;
 					}
 					else if (token.equals(
-						StringDescriptor.doubleQuestionMark()))
+						doubleQuestionMark()))
 					{
 						if (subgroup.underscoreCount() > 0
 							|| subgroup.hasDagger)
@@ -2253,7 +2464,7 @@ public class MessageSplitter
 						messagePartPosition++;
 					}
 					else if (token.equals(
-						StringDescriptor.exclamationMark()))
+						exclamationMark()))
 					{
 						if (subgroup.underscoreCount() > 0
 							|| subgroup.hasDagger
@@ -2276,7 +2487,7 @@ public class MessageSplitter
 				{
 					token = messageParts.get(messagePartPosition - 1);
 					// Try to parse a case-insensitive modifier.
-					if (token.equals(StringDescriptor.tilde()))
+					if (token.equals(tilde()))
 					{
 						if (!subexpression.isLowerCase())
 						{
@@ -2293,7 +2504,7 @@ public class MessageSplitter
 				// the group.
 				if (messagePartPosition > messageParts.size()
 					|| !messageParts.get(messagePartPosition - 1)
-						.equals(StringDescriptor.verticalBar()))
+						.equals(verticalBar()))
 				{
 					if (alternatives.size() > 0)
 					{
@@ -2315,10 +2526,15 @@ public class MessageSplitter
 					messagePartPosition++;
 				}
 			}
+			else if (token.equals(sectionSign()))
+			{
+				group.addExpression(new SectionCheckpoint());
+				messagePartPosition++;
+			}
 			else
 			{
 				// Parse a backquote.
-				if (token.equals(StringDescriptor.backQuote()))
+				if (token.equals(backQuote()))
 				{
 					messagePartPosition++;  // eat the backquote
 					if (messagePartPosition > messageParts.size())
@@ -2344,7 +2560,7 @@ public class MessageSplitter
 				if (messagePartPosition <= messageParts.size())
 				{
 					token = messageParts.get(messagePartPosition - 1);
-					if (token.equals(StringDescriptor.doubleQuestionMark()))
+					if (token.equals(doubleQuestionMark()))
 					{
 						subexpression = new CompletelyOptional(subexpression);
 						messagePartPosition++;
@@ -2354,7 +2570,7 @@ public class MessageSplitter
 				if (messagePartPosition <= messageParts.size())
 				{
 					token = messageParts.get(messagePartPosition - 1);
-					if (token.equals(StringDescriptor.tilde()))
+					if (token.equals(tilde()))
 					{
 						if (!subexpression.isLowerCase())
 						{
@@ -2370,8 +2586,8 @@ public class MessageSplitter
 				// most recent expression) or add the subexpression directly to
 				// the group.
 				if (messagePartPosition > messageParts.size()
-					|| !messageParts.get(messagePartPosition - 1)
-						.equals(StringDescriptor.verticalBar()))
+					|| !messageParts.get(messagePartPosition - 1).equals(
+						verticalBar()))
 				{
 					if (alternatives.size() > 0)
 					{
@@ -2434,12 +2650,19 @@ public class MessageSplitter
 	 *
 	 * @param functionType
 	 *            A function type.
+	 * @param sectionNumber
+	 *            The {@link SectionCheckpoint}'s subscript if this is a check
+	 *            of a {@linkplain MacroDefinitionDescriptor macro}'s,
+	 *            {@linkplain AvailObject#prefixFunctions() prefix function},
+	 *            otherwise any value past the total {@link
+	 *            #numberOfSectionCheckpoints} for a method or macro body.
 	 * @throws SignatureException
 	 *            If the function type is inappropriate for the method name.
 	 */
 	public void checkImplementationSignature (
-			final AvailObject functionType)
-		throws SignatureException
+		final AvailObject functionType,
+		final int sectionNumber)
+	throws SignatureException
 	{
 		final AvailObject argsTupleType = functionType.argsTupleType();
 		final AvailObject sizes = argsTupleType.sizeRange();
@@ -2462,7 +2685,25 @@ public class MessageSplitter
 			TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 				sizes,
 				TupleDescriptor.empty(),
-				functionType.argsTupleType()));
+				functionType.argsTupleType()),
+			sectionNumber);
+	}
+
+	/**
+	 * Check that an {@linkplain DefinitionDescriptor implementation} with
+	 * the given {@linkplain FunctionTypeDescriptor signature} is appropriate
+	 * for a message like this.
+	 *
+	 * @param functionType
+	 *            A function type.
+	 * @throws SignatureException
+	 *            If the function type is inappropriate for the method name.
+	 */
+	public void checkImplementationSignature (
+		final AvailObject functionType)
+	throws SignatureException
+	{
+		checkImplementationSignature(functionType, Integer.MAX_VALUE);
 	}
 
 	/**

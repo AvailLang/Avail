@@ -386,6 +386,18 @@ extends TupleDescriptor
 	}
 
 	/**
+	 * Create an {@linkplain ObjectTupleDescriptor object tuple} whose slots
+	 * have not been initialized.
+	 *
+	 * @param size The number of elements in the resulting tuple.
+	 * @return An uninitialized object tuple of the requested size.
+	 */
+	public static AvailObject createUninitialized (final int size)
+	{
+		return mutable().create(size);
+	}
+
+	/**
 	 * Construct a new {@link ObjectTupleDescriptor}.
 	 *
 	 * @param isMutable

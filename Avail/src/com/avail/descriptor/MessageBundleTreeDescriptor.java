@@ -40,6 +40,7 @@ import java.util.*;
 import com.avail.AvailRuntime;
 import com.avail.annotations.*;
 import com.avail.compiler.*;
+import com.avail.utility.Mutable;
 
 /**
  * A {@linkplain MessageBundleTreeDescriptor message bundle tree} is used by the
@@ -144,11 +145,11 @@ extends Descriptor
 		 *
 		 * <p>{@linkplain MessageBundleDescriptor Message bundles} only get
 		 * added to this map if their current instruction is the {@link
-		 * ParsingOperation#parsePart} instruction. There may be other
+		 * ParsingOperation#PARSE_PART} instruction. There may be other
 		 * instructions current for other message bundles, but they will be
 		 * represented in the {@link #LAZY_ACTIONS} map, or the {@link
 		 * #LAZY_PREFILTER_MAP} if their instruction is a {@link
-		 * ParsingOperation#checkArgument}.</p>
+		 * ParsingOperation#CHECK_ARGUMENT}.</p>
 		 */
 		LAZY_INCOMPLETE,
 
@@ -165,11 +166,11 @@ extends Descriptor
 		 *
 		 * <p>{@linkplain MessageBundleDescriptor Message bundles} only get
 		 * added to this map if their current instruction is the {@link
-		 * ParsingOperation#parsePartCaseInsensitive} instruction. There may be
-		 * other instructions current for other message bundles, but they will
-		 * be represented in the {@link #LAZY_ACTIONS} map, or the {@link
+		 * ParsingOperation#PARSE_PART_CASE_INSENSITIVELY} instruction. There
+		 * may be other instructions current for other message bundles, but they
+		 * will be represented in the {@link #LAZY_ACTIONS} map, or the {@link
 		 * #LAZY_PREFILTER_MAP} if their instruction is a {@link
-		 * ParsingOperation#checkArgument}.</p>
+		 * ParsingOperation#CHECK_ARGUMENT}.</p>
 		 */
 		LAZY_INCOMPLETE_CASE_INSENSITIVE,
 
@@ -180,16 +181,16 @@ extends Descriptor
 		 * instruction succeeds.  Attempt each possible instruction, proceeding
 		 * to each of the successor trees if the instruction succeeds.
 		 *
-		 * <p>Note that the {@link ParsingOperation#parsePart} and {@link
-		 * ParsingOperation#parsePartCaseInsensitive} instructions are treated
-		 * specially, as only one keyword can be next in the source stream (so
-		 * there's no value in checking whether it's an X, whether it's a Y,
-		 * whether it's a Z, etc. Instead, the {@link #LAZY_INCOMPLETE} and
-		 * {@link #LAZY_INCOMPLETE_CASE_INSENSITIVE} {@linkplain MapDescriptor
-		 * map} takes care of dealing with this efficiently with a single
-		 * lookup.</p>
+		 * <p>Note that the {@link ParsingOperation#PARSE_PART} and {@link
+		 * ParsingOperation#PARSE_PART_CASE_INSENSITIVELY} instructions are
+		 * treated specially, as only one keyword can be next in the source
+		 * stream (so there's no value in checking whether it's an X, whether
+		 * it's a Y, whether it's a Z, etc. Instead, the {@link
+		 * #LAZY_INCOMPLETE} and {@link #LAZY_INCOMPLETE_CASE_INSENSITIVE}
+		 * {@linkplain MapDescriptor map} takes care of dealing with this
+		 * efficiently with a single lookup.</p>
 		 *
-		 * <p>Similarly, the {@link ParsingOperation#checkArgument} instruction
+		 * <p>Similarly, the {@link ParsingOperation#CHECK_ARGUMENT} instruction
 		 * is treated specially. When it is encountered and the argument that
 		 * was just parsed is a send node, that send node is looked up in the
 		 * {@link #LAZY_PREFILTER_MAP}, yielding the next message bundle tree.
@@ -219,13 +220,13 @@ extends Descriptor
 		 * {@linkplain MessageBundleDescriptor message bundles} as we parse.
 		 * Since we already do this in general while parsing expressions, all
 		 * that remains is to check right after an argument has been parsed (or
-		 * replayed due to the dynamic programming optimization). The check for
-		 * now is simple and doesn't consider argument types, simply excluding
-		 * methods based on the grammatical restrictions.</p>
+		 * replayed due to memoization). The check for now is simple and doesn't
+		 * consider argument types, simply excluding methods based on the
+		 * grammatical restrictions.</p>
 		 *
 		 * <p>When a message bundle's next instruction is {@link
-		 * ParsingOperation#checkArgument} (which must be all or nothing within
-		 * a {@linkplain MessageBundleTreeDescriptor message bundle tree}, this
+		 * ParsingOperation#CHECK_ARGUMENT} (which must be all or nothing within
+		 * a {@linkplain MessageBundleTreeDescriptor message bundle tree}), this
 		 * {@link #LAZY_PREFILTER_MAP} is populated. It maps from interesting
 		 * {@linkplain AtomDescriptor atoms} naming methods that might occur as
 		 * an argument to an appropriately reduced {@linkplain
@@ -524,12 +525,16 @@ extends Descriptor
 		{
 			return;
 		}
-		AvailObject complete = object.slot(LAZY_COMPLETE);
-		AvailObject incomplete = object.slot(LAZY_INCOMPLETE);
-		AvailObject caseInsensitive =
-			object.slot(LAZY_INCOMPLETE_CASE_INSENSITIVE);
-		AvailObject actionMap = object.slot(LAZY_ACTIONS);
-		AvailObject prefilterMap = object.slot(LAZY_PREFILTER_MAP);
+		final Mutable<AvailObject> complete = new Mutable<AvailObject>(
+			object.slot(LAZY_COMPLETE));
+		final Mutable<AvailObject> incomplete = new Mutable<AvailObject>(
+			object.slot(LAZY_INCOMPLETE));
+		final Mutable<AvailObject> caseInsensitive = new Mutable<AvailObject>(
+			object.slot(LAZY_INCOMPLETE_CASE_INSENSITIVE));
+		final Mutable<AvailObject> actionMap = new Mutable<AvailObject>(
+			object.slot(LAZY_ACTIONS));
+		final Mutable<AvailObject> prefilterMap = new Mutable<AvailObject>(
+			object.slot(LAZY_PREFILTER_MAP));
 		final int pc = object.slot(PARSING_PC);
 		// Fail fast if someone messes with this during iteration.
 		object.setSlot(UNCLASSIFIED, NullDescriptor.nullObject());
@@ -537,173 +542,186 @@ extends Descriptor
 		{
 			final AvailObject message = entry.key;
 			final AvailObject bundle = entry.value;
-			final AvailObject instructions = bundle.parsingInstructions();
-			if (pc == instructions.tupleSize() + 1)
+			updateForMessageAndBundle(
+				message,
+				bundle,
+				complete,
+				incomplete,
+				caseInsensitive,
+				actionMap,
+				prefilterMap,
+				pc);
+		}
+		object.setSlot(UNCLASSIFIED, MapDescriptor.empty());
+		object.setSlot(LAZY_COMPLETE, complete.value);
+		object.setSlot(LAZY_INCOMPLETE, incomplete.value);
+		object.setSlot(LAZY_INCOMPLETE_CASE_INSENSITIVE, caseInsensitive.value);
+		object.setSlot(LAZY_ACTIONS, actionMap.value);
+		object.setSlot(LAZY_PREFILTER_MAP, prefilterMap.value);
+	}
+
+	/**
+	 * Categorize a single message/bundle pair.
+	 *
+	 * @param message
+	 * @param bundle
+	 * @param complete
+	 * @param incomplete
+	 * @param caseInsensitive
+	 * @param actionMap
+	 * @param prefilterMap
+	 * @param pc
+	 */
+	private void updateForMessageAndBundle (
+		final AvailObject message,
+		final AvailObject bundle,
+		final Mutable<AvailObject> complete,
+		final Mutable<AvailObject> incomplete,
+		final Mutable<AvailObject> caseInsensitive,
+		final Mutable<AvailObject> actionMap,
+		final Mutable<AvailObject> prefilterMap,
+		final int pc)
+	{
+		final AvailObject instructions = bundle.parsingInstructions();
+		if (pc == instructions.tupleSize() + 1)
+		{
+			// It's past the end of the parsing instructions.
+			complete.value = complete.value.mapAtPuttingCanDestroy(
+				message,
+				bundle,
+				true);
+			return;
+		}
+
+		final int instruction = instructions.tupleIntAt(pc);
+		final ParsingOperation op = ParsingOperation.decode(instruction);
+		final int keywordIndex = op.keywordIndex(instruction);
+		if (keywordIndex != 0)
+		{
+			// It's a parsing instruction that matches some specific keyword.
+			assert op == PARSE_PART
+				|| op == PARSE_PART_CASE_INSENSITIVELY;
+			AvailObject subtree;
+			final AvailObject part = bundle.messageParts().tupleAt(
+				keywordIndex);
+			final Mutable<AvailObject> map = (op == PARSE_PART)
+				? incomplete
+				: caseInsensitive;
+			if (map.value.hasKey(part))
 			{
-				complete = complete.mapAtPuttingCanDestroy(
-					message,
-					bundle,
-					true);
+				subtree = map.value.mapAt(part);
 			}
 			else
 			{
-				final int instruction = instructions.tupleIntAt(pc);
-				final ParsingOperation op =
-					ParsingOperation.decode(instruction);
-				final int keywordIndex = op.keywordIndex(instruction);
-				if (keywordIndex != 0)
+				subtree = newPc(pc + 1);
+				map.value = map.value.mapAtPuttingCanDestroy(
+					part,
+					subtree,
+					true);
+			}
+			subtree.includeBundle(bundle);
+			return;
+		}
+
+		// It's not a keyword parsing instruction.
+		final AvailObject instructionObject =
+			IntegerDescriptor.fromInt(instruction);
+		final List<Integer> nextPcs = op.successorPcs(instruction, pc);
+		final int checkArgumentIndex = op.checkArgumentIndex(instruction);
+		if (checkArgumentIndex > 0)
+		{
+			// It's a checkArgument instruction.
+			assert nextPcs.size() == 1;
+			assert nextPcs.get(0).intValue() == pc + 1;
+			// Add it to the action map.
+			final AvailObject successor;
+			if (actionMap.value.hasKey(instructionObject))
+			{
+				final AvailObject successors =
+					actionMap.value.mapAt(instructionObject);
+				assert successors.tupleSize() == 1;
+				successor = successors.tupleAt(1);
+			}
+			else
+			{
+				successor = newPc(pc + 1);
+				actionMap.value = actionMap.value.mapAtPuttingCanDestroy(
+					instructionObject,
+					TupleDescriptor.from(successor),
+					true);
+			}
+			final AvailObject restrictionSet =
+				bundle.grammaticalRestrictions().tupleAt(checkArgumentIndex);
+			// Add it to every existing branch where it's permitted.
+			for (final MapDescriptor.Entry prefilterEntry
+				: prefilterMap.value.mapIterable())
+			{
+				if (!restrictionSet.hasElement(prefilterEntry.key))
 				{
-					// It's either a parsePart or parsePartCaseInsensitive
-					// instruction.
-					AvailObject subtree;
-					final AvailObject part = bundle.messageParts().tupleAt(
-						keywordIndex);
-					AvailObject map;
-					if (op == parsePart)
-					{
-						map = incomplete;
-					}
-					else
-					{
-						assert op == parsePartCaseInsensitive;
-						map = caseInsensitive;
-					}
-					if (map.hasKey(part))
-					{
-						subtree = map.mapAt(part);
-					}
-					else
-					{
-						subtree = newPc(pc + 1);
-						map = map.mapAtPuttingCanDestroy(
-							part,
-							subtree,
-							true);
-					}
-					if (op == parsePart)
-					{
-						incomplete = map;
-					}
-					else
-					{
-						assert op == parsePartCaseInsensitive;
-						caseInsensitive = map;
-					}
-					subtree.includeBundle(bundle);
-				}
-				else
-				{
-					final AvailObject instructionObject =
-						IntegerDescriptor.fromInt(instruction);
-					final List<Integer> nextPcs =
-						op.successorPcs(instruction, pc);
-					final int checkArgumentIndex =
-						op.checkArgumentIndex(instruction);
-					if (checkArgumentIndex > 0)
-					{
-						// It's a checkArgument instruction.
-						assert nextPcs.size() == 1;
-						assert nextPcs.get(0) == pc + 1;
-						// Add it to the action map.
-						final AvailObject successor;
-						if (actionMap.hasKey(instructionObject))
-						{
-							final AvailObject successors =
-								actionMap.mapAt(instructionObject);
-							assert successors.tupleSize() == 1;
-							successor = successors.tupleAt(1);
-						}
-						else
-						{
-							successor = newPc(pc + 1);
-							actionMap = actionMap.mapAtPuttingCanDestroy(
-								instructionObject,
-								TupleDescriptor.from(successor),
-								true);
-						}
-						final AvailObject restrictionSet =
-							bundle.grammaticalRestrictions().tupleAt(
-								checkArgumentIndex);
-						// Add it to every existing branch where it's permitted.
-						for (final MapDescriptor.Entry prefilterEntry
-								: prefilterMap.mapIterable())
-						{
-							if (!restrictionSet.hasElement(prefilterEntry.key))
-							{
-								prefilterEntry.value.includeBundle(bundle);
-							}
-						}
-						// Add branches for any new restrictions.  Pre-populate
-						// with every bundle present thus far, since none of
-						// them had this restriction.
-						for (final AvailObject restriction : restrictionSet)
-						{
-							if (!prefilterMap.hasKey(restriction))
-							{
-								final AvailObject newTarget = newPc(pc + 1);
-								// Be careful.  We can't add ALL_BUNDLES, since
-								// it may contain some bundles that are still
-								// UNCLASSIFIED.  Instead, use ALL_BUNDLES of
-								// the successor found under this instruction,
-								// since it *has* been kept up to date as the
-								// bundles have gotten classified.
-								for (final MapDescriptor.Entry existingEntry
-									: successor.allBundles().mapIterable())
-								{
-									newTarget.includeBundle(
-										existingEntry.value);
-								}
-								prefilterMap =
-									prefilterMap.mapAtPuttingCanDestroy(
-										restriction,
-										newTarget,
-										true);
-							}
-						}
-						// Finally, add it to the action map.  This had to be
-						// postponed, since we didn't want to add it under any
-						// new restrictions, and the actionMap is what gets
-						// visited to populate new restrictions.
-						successor.includeBundle(bundle);
-					}
-					else
-					{
-						// It's an ordinary parsing instruction.
-						AvailObject successors;
-						if (actionMap.hasKey(instructionObject))
-						{
-							successors = actionMap.mapAt(instructionObject);
-						}
-						else
-						{
-							final List<AvailObject> successorsList =
-								new ArrayList<AvailObject>(nextPcs.size());
-							for (final int nextPc : nextPcs)
-							{
-								successorsList.add(newPc(nextPc));
-							}
-							successors = TupleDescriptor.fromList(
-								successorsList);
-							actionMap = actionMap.mapAtPuttingCanDestroy(
-								instructionObject,
-								successors,
-								true);
-						}
-						assert successors.tupleSize() == nextPcs.size();
-						for (final AvailObject successor : successors)
-						{
-							successor.includeBundle(bundle);
-						}
-					}
+					prefilterEntry.value.includeBundle(bundle);
 				}
 			}
+			// Add branches for any new restrictions.  Pre-populate
+			// with every bundle present thus far, since none of
+			// them had this restriction.
+			for (final AvailObject restriction : restrictionSet)
+			{
+				if (!prefilterMap.value.hasKey(restriction))
+				{
+					final AvailObject newTarget = newPc(pc + 1);
+					// Be careful.  We can't add ALL_BUNDLES, since
+					// it may contain some bundles that are still
+					// UNCLASSIFIED.  Instead, use ALL_BUNDLES of
+					// the successor found under this instruction,
+					// since it *has* been kept up to date as the
+					// bundles have gotten classified.
+					for (final MapDescriptor.Entry existingEntry
+						: successor.allBundles().mapIterable())
+					{
+						newTarget.includeBundle(existingEntry.value);
+					}
+					prefilterMap.value =
+						prefilterMap.value.mapAtPuttingCanDestroy(
+							restriction,
+							newTarget,
+							true);
+				}
+			}
+			// Finally, add it to the action map.  This had to be
+			// postponed, since we didn't want to add it under any
+			// new restrictions, and the actionMap is what gets
+			// visited to populate new restrictions.
+			successor.includeBundle(bundle);
+			return;
 		}
-		object.setSlot(UNCLASSIFIED, MapDescriptor.empty());
-		object.setSlot(LAZY_COMPLETE, complete);
-		object.setSlot(LAZY_INCOMPLETE, incomplete);
-		object.setSlot(LAZY_INCOMPLETE_CASE_INSENSITIVE, caseInsensitive);
-		object.setSlot(LAZY_ACTIONS, actionMap);
-		object.setSlot(LAZY_PREFILTER_MAP, prefilterMap);
+
+		// It's an ordinary parsing instruction.
+		AvailObject successors;
+		if (actionMap.value.hasKey(instructionObject))
+		{
+			successors = actionMap.value.mapAt(instructionObject);
+		}
+		else
+		{
+			final List<AvailObject> successorsList =
+				new ArrayList<AvailObject>(nextPcs.size());
+			for (final int nextPc : nextPcs)
+			{
+				successorsList.add(newPc(nextPc));
+			}
+			successors = TupleDescriptor.fromList(
+				successorsList);
+			actionMap.value =
+				actionMap.value.mapAtPuttingCanDestroy(
+					instructionObject,
+					successors,
+					true);
+		}
+		assert successors.tupleSize() == nextPcs.size();
+		for (final AvailObject successor : successors)
+		{
+			successor.includeBundle(bundle);
+		}
 	}
 
 

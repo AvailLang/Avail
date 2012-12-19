@@ -300,12 +300,12 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_AddDefinition (
+	void o_MethodAddDefinition (
 		final AvailObject object,
 		final AvailObject definition)
 	throws SignatureException
 	{
-		o_Traversed(object).addDefinition(definition);
+		o_Traversed(object).methodAddDefinition(definition);
 	}
 
 	@Override
@@ -349,11 +349,11 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_AddMethodDefinition (
+	void o_ModuleAddDefinition (
 		final AvailObject object,
 		final AvailObject definition)
 	{
-		o_Traversed(object).addMethodDefinition(
+		o_Traversed(object).moduleAddDefinition(
 			definition);
 	}
 
@@ -4419,5 +4419,12 @@ extends AbstractDescriptor
 		final AvailObject object)
 	{
 		return o_Traversed(object).definitionMethod();
+	}
+
+	@Override
+	AvailObject o_PrefixFunctions (
+		final AvailObject object)
+	{
+		return o_Traversed(object).prefixFunctions();
 	}
 }

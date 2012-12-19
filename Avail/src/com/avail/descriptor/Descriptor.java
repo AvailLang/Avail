@@ -196,7 +196,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_AddDefinition (
+	void o_MethodAddDefinition (
 		final AvailObject object,
 		final AvailObject definition)
 	throws SignatureException
@@ -240,7 +240,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_AddMethodDefinition (
+	void o_ModuleAddDefinition (
 		final AvailObject object,
 		final AvailObject definition)
 	{
@@ -4672,6 +4672,12 @@ extends AbstractDescriptor
 
 	@Override
 	public AvailObject o_DefinitionMethod (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	AvailObject o_PrefixFunctions (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}

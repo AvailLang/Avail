@@ -386,6 +386,24 @@ extends Descriptor
 	}
 
 	/**
+	 * Construct a function with the given code and room for the given number of
+	 * outer variables.  Do not initialize any outer variable slots.
+	 *
+	 * @param code The code with which to build the function.
+	 * @param outersCount The number of outer variables that will be enclosed.
+	 * @return A function without its outer variables initialized.
+	 */
+	public static AvailObject createExceptOuters (
+		final AvailObject code,
+		final int outersCount)
+	{
+		assert code.numOuters() == outersCount;
+		final AvailObject object = mutable().create(outersCount);
+		object.code(code);
+		return object;
+	}
+
+	/**
 	 * Construct a new {@link FunctionDescriptor}.
 	 *
 	 * @param isMutable

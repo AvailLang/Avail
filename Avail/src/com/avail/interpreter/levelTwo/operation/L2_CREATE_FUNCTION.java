@@ -63,17 +63,17 @@ public class L2_CREATE_FUNCTION extends L2Operation
 		final int codeIndex = interpreter.nextWord();
 		final int outersIndex = interpreter.nextWord();
 		final int destIndex = interpreter.nextWord();
-		final AvailObject outers = interpreter.vectorAt(outersIndex);
-		final AvailObject clos = FunctionDescriptor.mutable().create(
-			outers.tupleSize());
-		clos.code(interpreter.chunk().literalAt(codeIndex));
-		for (int i = 1, end = outers.tupleSize(); i <= end; i++)
+		final AvailObject outersVector = interpreter.vectorAt(outersIndex);
+		final AvailObject function = FunctionDescriptor.createExceptOuters(
+			interpreter.chunk().literalAt(codeIndex),
+			outersVector.tupleSize());
+		for (int i = 1, end = outersVector.tupleSize(); i <= end; i++)
 		{
-			clos.outerVarAtPut(
+			function.outerVarAtPut(
 				i,
-				interpreter.pointerAt(outers.tupleIntAt(i)));
+				interpreter.pointerAt(outersVector.tupleIntAt(i)));
 		}
-		interpreter.pointerAtPut(destIndex, clos);
+		interpreter.pointerAtPut(destIndex, function);
 	}
 
 	@Override
@@ -94,9 +94,9 @@ public class L2_CREATE_FUNCTION extends L2Operation
 		if (outersOperand.vector.allRegistersAreConstantsIn(registers))
 		{
 			final AvailObject function =
-				FunctionDescriptor.mutable().create(
+				FunctionDescriptor.createExceptOuters(
+					codeOperand.object,
 					outersOperand.vector.registers().size());
-			function.code(codeOperand.object);
 			int index = 1;
 			for (final L2ObjectRegister outer : outersOperand.vector)
 			{

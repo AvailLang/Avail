@@ -203,7 +203,9 @@ extends ParseNodeDescriptor
 		final AvailObject literalValue)
 	{
 		final AvailObject token = LiteralTokenDescriptor.create(
-			literalValue,
+			literalValue.isString()
+				? literalValue
+				: StringDescriptor.from("Synthetic literal"),
 			0,
 			0,
 			TokenType.SYNTHETIC_LITERAL,

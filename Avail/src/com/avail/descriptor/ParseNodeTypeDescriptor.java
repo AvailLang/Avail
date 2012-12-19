@@ -170,25 +170,25 @@ public class ParseNodeTypeDescriptor extends TypeDescriptor
 		 */
 		DECLARATION_NODE(PARSE_NODE),
 
-		/** The kind of an argument node. */
+		/** The kind of an argument declaration node. */
 		ARGUMENT_NODE(DECLARATION_NODE),
 
-		/** The kind of a label node. */
+		/** The kind of a label declaration node. */
 		LABEL_NODE(DECLARATION_NODE),
 
-		/** The kind of a local variable node. */
+		/** The kind of a local variable declaration node. */
 		LOCAL_VARIABLE_NODE(DECLARATION_NODE),
 
-		/** The kind of a local constant node. */
+		/** The kind of a local constant declaration node. */
 		LOCAL_CONSTANT_NODE(DECLARATION_NODE),
 
-		/** The kind of a module variable node. */
+		/** The kind of a module variable declaration node. */
 		MODULE_VARIABLE_NODE(DECLARATION_NODE),
 
-		/** The kind of a module constant node. */
+		/** The kind of a module constant declaration node. */
 		MODULE_CONSTANT_NODE(DECLARATION_NODE),
 
-		/** The kind of a primitive failure reason variable. */
+		/** The kind of a primitive failure reason variable declaration. */
 		PRIMITIVE_FAILURE_REASON_NODE(DECLARATION_NODE),
 
 		/** The result of a macro substitution. */

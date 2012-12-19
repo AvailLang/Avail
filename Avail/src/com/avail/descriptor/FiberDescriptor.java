@@ -399,6 +399,31 @@ extends Descriptor
 	}
 
 	/**
+	 * Create a new fiber.
+	 *
+	 * @param initialState The initial execution state of the new fiber.
+	 * @return The new fiber.
+	 */
+	public static AvailObject create (
+		final ExecutionState initialState)
+	{
+		final AvailObject fiber = mutable().create();
+		fiber.name(StringDescriptor.from(String.format(
+			"unnamed, creation time = %d, hash = %d",
+			System.currentTimeMillis(),
+			fiber.hash())));
+		fiber.priority(IntegerDescriptor.fromUnsignedByte((short)50));
+		fiber.continuation(NullDescriptor.nullObject());
+		fiber.executionState(initialState);
+		fiber.clearInterruptRequestFlags();
+		fiber.breakpointBlock(NullDescriptor.nullObject());
+		fiber.fiberGlobals(MapDescriptor.empty());
+		fiber.makeImmutable();
+		return fiber;
+	}
+
+
+	/**
 	 * Construct a new {@link FiberDescriptor}.
 	 *
 	 * @param isMutable

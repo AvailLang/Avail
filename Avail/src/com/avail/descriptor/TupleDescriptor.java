@@ -178,6 +178,13 @@ extends Descriptor
 		aStream.append('>');
 	}
 
+	@Override
+	String o_NameForDebugger (final AvailObject object)
+	{
+		return super.o_NameForDebugger(object) + ": tupleSize="
+			+ object.tupleSize();
+	}
+
 	@Override @AvailMethod
 	boolean o_EqualsAnyTuple (
 		final AvailObject object,

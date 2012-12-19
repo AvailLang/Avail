@@ -104,6 +104,7 @@ implements Iterable<AvailObject>
 		L2ChunkDescriptor.createWellKnownObjects();
 		VariableTypeDescriptor.createWellKnownObjects();
 		ParseNodeTypeDescriptor.createWellKnownObjects();
+		DeclarationNodeDescriptor.DeclarationKind.createWellKnownObjects();
 		RawPojoDescriptor.createWellKnownObjects();
 		PojoTypeDescriptor.createWellKnownObjects();
 		PojoDescriptor.createWellKnownObjects();
@@ -152,6 +153,7 @@ implements Iterable<AvailObject>
 		L2ChunkDescriptor.clearWellKnownObjects();
 		VariableTypeDescriptor.clearWellKnownObjects();
 		ParseNodeTypeDescriptor.clearWellKnownObjects();
+		DeclarationNodeDescriptor.DeclarationKind.clearWellKnownObjects();
 		RawPojoDescriptor.clearWellKnownObjects();
 		PojoTypeDescriptor.clearWellKnownObjects();
 		PojoDescriptor.clearWellKnownObjects();
@@ -602,21 +604,22 @@ implements Iterable<AvailObject>
 	}
 
 	/**
-	 * Add the {@linkplain DefinitionDescriptor implementation} to the
-	 * receiver. Causes dependent chunks to be invalidated.
+	 * Add the {@linkplain DefinitionDescriptor definition} to the receiver, a
+	 * {@linkplain MethodDefinitionDescriptor method}.  Causes dependent chunks
+	 * to be invalidated.
 	 *
 	 * Macro signatures and non-macro signatures should not be combined in the
 	 * same method.
 	 *
-	 * @param implementation The implementation to be added.
+	 * @param definition The definition to be added.
 	 * @throws SignatureException
-	 *         If the implementation could not be added.
+	 *         If the definition could not be added.
 	 */
-	public void addDefinition (
-			final AvailObject implementation)
+	public void methodAddDefinition (
+			final AvailObject definition)
 		throws SignatureException
 	{
-		descriptor.o_AddDefinition(this, implementation);
+		descriptor.o_MethodAddDefinition(this, definition);
 	}
 
 	/**
@@ -736,10 +739,10 @@ implements Iterable<AvailObject>
 	/**
 	 * @param definition
 	 */
-	public void addMethodDefinition (
+	public void moduleAddDefinition (
 		final AvailObject definition)
 	{
-		descriptor.o_AddMethodDefinition(
+		descriptor.o_ModuleAddDefinition(
 			this,
 			definition);
 	}
@@ -6353,5 +6356,13 @@ implements Iterable<AvailObject>
 	public AvailObject definitionMethod ()
 	{
 		return descriptor.o_DefinitionMethod(this);
+	}
+
+	/**
+	 * @return
+	 */
+	public AvailObject prefixFunctions ()
+	{
+		return descriptor.o_PrefixFunctions(this);
 	}
 }

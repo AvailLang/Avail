@@ -1,5 +1,5 @@
 /**
- * P_404_BootstrapVariableDeclarationMacro.java
+ * P_400_BootstrapBlockAfterArgumentPrefix.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -34,45 +34,67 @@ package com.avail.interpreter.primitive;
 
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
+import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.*;
 import com.avail.descriptor.*;
+import com.avail.exceptions.AvailErrorCode;
 import com.avail.interpreter.*;
 
 /**
- * The {@code P_404_BootstrapVariableDeclarationMacro} primitive is used
- * for bootstrapping declaration of a {@link #LOCAL_VARIABLE_NODE local
- * variable} (without an initializing expression).
+ * The {@code P_400_BootstrapBlockAfterArgumentPrefix} primitive is used as a
+ * prefix function for bootstrapping argument declarations within a {@link
+ * P_404_BootstrapBlockMacro block}.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class P_404_BootstrapVariableDeclarationMacro extends Primitive
+public class P_400_BootstrapBlockAfterArgumentPrefix extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_404_BootstrapVariableDeclarationMacro().init(
-			2, CannotFail, Bootstrap);
+		new P_400_BootstrapBlockAfterArgumentPrefix().init(
+			1, CannotFail, Bootstrap);
 
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 2;
-		final AvailObject variableName = args.get(0);
-		final AvailObject type = args.get(1);
+		assert args.size() == 1;
+		final AvailObject allBlockArguments = args.get(0);
 
-		//TODO[MvG]: Eventually prevent ⊥ from being an accepted type.  For
-		//other bootstrap macro primitives, too.
+		final AvailObject latestBlockArgument =
+			allBlockArguments.tupleAt(allBlockArguments.tupleSize());
+		assert latestBlockArgument.tupleSize() == 2;
+		final AvailObject labelPhrase = latestBlockArgument.tupleAt(1);
+		final AvailObject typePhrase = latestBlockArgument.tupleAt(2);
 
-		final AvailObject variableDeclaration =
-			DeclarationNodeDescriptor.newVariable(
-				variableName,
-				type);
-		variableDeclaration.makeImmutable();
-		return interpreter.primitiveSuccess(variableDeclaration);
+		assert labelPhrase.isInstanceOfKind(LITERAL_NODE.create(TOKEN.o()));
+		assert typePhrase.isInstanceOfKind(
+			LITERAL_NODE.create(InstanceMetaDescriptor.anyMeta()));
+		final AvailObject argToken = labelPhrase.token().token();
+		final AvailObject argType = typePhrase.token().literal();
+		assert argType.isType();
+
+		if (argType.equals(TOP.o())
+			|| argType.equals(BottomTypeDescriptor.bottom()))
+		{
+			return interpreter.primitiveFailure(
+				E_DECLARATION_TYPE_MUST_NOT_BE_TOP_OR_BOTTOM);
+		}
+
+		final AvailObject argDeclaration =
+			DeclarationNodeDescriptor.newArgument(argToken, argType);
+
+		// Add the binding and we're done.
+		final AvailErrorCode error = interpreter.addDeclaration(argDeclaration);
+		if (error != null)
+		{
+			return interpreter.primitiveFailure(error);
+		}
+		return interpreter.primitiveSuccess(NullDescriptor.nullObject());
 	}
 
 	@Override
@@ -80,10 +102,17 @@ public class P_404_BootstrapVariableDeclarationMacro extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				/* Variable name token */
-				TOKEN.o(),
-				/* Variable type */
-				InstanceMetaDescriptor.anyMeta()),
-			LOCAL_VARIABLE_NODE.mostGeneralType());
+				/* Optional arguments section */
+				TupleTypeDescriptor.zeroOrOneOf(
+					/* Arguments are present */
+					TupleTypeDescriptor.oneOrMoreOf(
+						/* An argument */
+						TupleTypeDescriptor.forTypes(
+							/* Argument name */
+							LITERAL_NODE.create(TOKEN.o()),
+							/* Argument type */
+							LITERAL_NODE.create(
+								InstanceMetaDescriptor.anyMeta()))))),
+			TOP.o());
 	}
 }

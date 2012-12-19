@@ -57,8 +57,7 @@ public class P_073_OuterVariables extends Primitive
 		assert args.size() == 1;
 		final AvailObject aFunction = args.get(0);
 		final AvailObject newTupleObject =
-			ObjectTupleDescriptor.mutable().create(aFunction.numOuterVars());
-		newTupleObject.hashOrZero(0);
+			ObjectTupleDescriptor.createUninitialized(aFunction.numOuterVars());
 		for (int i = 1, end = aFunction.numOuterVars(); i <= end; i++)
 		{
 			final AvailObject outer = aFunction.outerVarAt(i);

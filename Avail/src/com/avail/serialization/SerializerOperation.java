@@ -912,19 +912,19 @@ public enum SerializerOperation
 			final int numRegularLiterals =
 				object.numLiterals() - numLocals - numOuters;
 			final AvailObject regularLiterals =
-				ObjectTupleDescriptor.mutable().create(numRegularLiterals);
+				ObjectTupleDescriptor.createUninitialized(numRegularLiterals);
 			for (int i = 1; i <= numRegularLiterals; i++)
 			{
 				regularLiterals.tupleAtPut(i, object.literalAt(i));
 			}
 			final AvailObject localTypes =
-				ObjectTupleDescriptor.mutable().create(numLocals);
+				ObjectTupleDescriptor.createUninitialized(numLocals);
 			for (int i = 1; i <= numLocals; i++)
 			{
 				localTypes.tupleAtPut(i, object.localTypeAt(i));
 			}
 			final AvailObject outerTypes =
-				ObjectTupleDescriptor.mutable().create(numOuters);
+				ObjectTupleDescriptor.createUninitialized(numOuters);
 			for (int i = 1; i <= numOuters; i++)
 			{
 				outerTypes.tupleAtPut(i, object.outerTypeAt(i));
@@ -1019,8 +1019,8 @@ public enum SerializerOperation
 		AvailObject[] decompose (final AvailObject object)
 		{
 			final int numOuters = object.numOuterVars();
-			final AvailObject outers = ObjectTupleDescriptor.mutable().create(
-				numOuters);
+			final AvailObject outers =
+				ObjectTupleDescriptor.createUninitialized(numOuters);
 			for (int i = 1; i <= numOuters; i++)
 			{
 				outers.tupleAtPut(i, object.outerVarAt(i));

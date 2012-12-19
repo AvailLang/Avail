@@ -62,13 +62,12 @@ public class P_049_CreateContinuation extends Primitive
 		final AvailObject stackp = args.get(2);
 		final AvailObject callerHolder = args.get(4);
 		final AvailObject theCode = function.code();
-		final AvailObject cont = ContinuationDescriptor.mutable().create(
-			theCode.numArgsAndLocalsAndStack());
-		cont.caller(callerHolder.value());
-		cont.function(function);
-		cont.pc(pc.extractInt());
-		cont.stackp(stackp.extractInt());
-		cont.levelTwoChunkOffset(
+		final AvailObject cont = ContinuationDescriptor.createExceptFrame(
+			theCode.numArgsAndLocalsAndStack(),
+			function,
+			callerHolder.value(),
+			pc.extractInt(),
+			stackp.extractInt(),
 			L2ChunkDescriptor.unoptimizedChunk(),
 			L2ChunkDescriptor.offsetToContinueUnoptimizedChunk());
 		for (int i = 1, end = stack.tupleSize(); i <= end; i++)

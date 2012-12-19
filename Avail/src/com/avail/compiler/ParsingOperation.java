@@ -34,6 +34,7 @@ package com.avail.compiler;
 
 import static com.avail.compiler.ParsingConversionRule.*;
 import java.util.*;
+import com.avail.compiler.MessageSplitter.SectionCheckpoint;
 import com.avail.descriptor.*;
 
 /**
@@ -52,28 +53,14 @@ public enum ParsingOperation
 	/**
 	 * {@code 0} - Parse an argument of a message send.
 	 */
-	parseArgument(0)
-	{
-		@Override
-		public int encoding (final int operand)
-		{
-			throw new UnsupportedOperationException();
-		}
-	},
+	PARSE_ARGUMENT(0),
 
 	/**
 	 * {@code 1} - Push a new {@linkplain ListNodeDescriptor list} that
 	 * contains an {@linkplain TupleDescriptor#empty() empty tuple} of
 	 * {@linkplain ParseNodeDescriptor phrases} onto the parse stack.
 	 */
-	newList(1)
-	{
-		@Override
-		public int encoding (final int operand)
-		{
-			throw new UnsupportedOperationException();
-		}
-	},
+	NEW_LIST(1),
 
 	/**
 	 * {@code 2} - Pop an argument from the parse stack of the current
@@ -81,40 +68,19 @@ public enum ParsingOperation
 	 * the parse stack. Append the argument to the list. Push the resultant list
 	 * onto the parse stack.
 	 */
-	appendArgument(2)
-	{
-		@Override
-		public int encoding (final int operand)
-		{
-			throw new UnsupportedOperationException();
-		}
-	},
+	APPEND_ARGUMENT(2),
 
 	/**
 	 * {@code 3} - Push a {@linkplain MarkerNodeDescriptor marker} representing
 	 * the current parse position onto the parse stack.
 	 */
-	saveParsePosition(3)
-	{
-		@Override
-		public int encoding (final int operand)
-		{
-			throw new UnsupportedOperationException();
-		}
-	},
+	SAVE_PARSE_POSITION(3),
 
 	/**
 	 * {@code 4} - Underpop(1) a {@linkplain MarkerNodeDescriptor marker}
 	 * representing a saved parse position from the parse stack.
 	 */
-	discardSavedParsePosition(4)
-	{
-		@Override
-		public int encoding (final int operand)
-		{
-			throw new UnsupportedOperationException();
-		}
-	},
+	DISCARD_SAVED_PARSE_POSITION(4),
 
 	/**
 	 * {@code 5} - Underpop(1) the parse stack for a {@linkplain
@@ -123,72 +89,44 @@ public enum ParsingOperation
 	 * parse if no progress has been made. Otherwise underpush(1) a marker that
 	 * represents the current parse position.
 	 */
-	ensureParseProgress(5)
-	{
-		@Override
-		public int encoding (final int operand)
-		{
-			throw new UnsupportedOperationException();
-		}
-	},
+	ENSURE_PARSE_PROGRESS(5),
 
 	/**
 	 * {@code 6} - Parse a {@linkplain TokenDescriptor raw token}.
 	 */
-	parseRawToken(6)
-	{
-		@Override
-		public int encoding (final int operand)
-		{
-			throw new UnsupportedOperationException();
-		}
-	},
+	PARSE_RAW_TOKEN(6),
 
 	/**
 	 * {@code 7} - Pop the parse stack (and discard the result).
 	 */
-	pop(7)
-	{
-		@Override
-		public int encoding (final int operand)
-		{
-			throw new UnsupportedOperationException();
-		}
-	},
+	POP(7),
 
 	/**
-	 * {@code 8} - Checkpoint the arguments parsed up to this point.  The
-	 * arguments can be subsequently read by a primitive macro.
+	 * {@code 9} - Parse an argument of a message send, using the outermost
+	 * (module) scope</em>.
 	 */
-	argumentsCheckpoint(8)
-	{
-		@Override
-		public int encoding (final int operand)
-		{
-			throw new UnsupportedOperationException();
-		}
-	},
+	PARSE_ARGUMENT_IN_MODULE_SCOPE(8),
 
 	/** Reserved for future parsing concepts. */
-	reserved9(9),
+	RESERVED_9(9),
 
 	/** Reserved for future parsing concepts. */
-	reserved10(10),
+	RESERVED_10(10),
 
 	/** Reserved for future parsing concepts. */
-	reserved11(11),
+	RESERVED_11(11),
 
 	/** Reserved for future parsing concepts. */
-	reserved12(12),
+	RESERVED_12(12),
 
 	/** Reserved for future parsing concepts. */
-	reserved13(13),
+	RESERVED_13(13),
 
 	/** Reserved for future parsing concepts. */
-	reserved14(14),
+	RESERVED_14(14),
 
 	/** Reserved for future parsing concepts. */
-	reserved15(15),
+	RESERVED_15(15),
 
 	/*
 	 * Arity one (1).
@@ -198,14 +136,8 @@ public enum ParsingOperation
 	 * {@code 16*N+0} - Branch to instruction N. Attempt to continue parsing at
 	 * each of the next instruction and instruction N.
 	 */
-	branch(0)
+	BRANCH(0)
 	{
-		@Override
-		public int encoding ()
-		{
-			throw new UnsupportedOperationException();
-		}
-
 		@Override
 		public List<Integer> successorPcs (
 			final int instruction,
@@ -219,14 +151,8 @@ public enum ParsingOperation
 	 * {@code 16*N+1} - Jump to instruction N. Attempt to continue parsing only
 	 * at instruction N.
 	 */
-	jump(1)
+	JUMP(1)
 	{
-		@Override
-		public int encoding ()
-		{
-			throw new UnsupportedOperationException();
-		}
-
 		@Override
 		public List<Integer> successorPcs (
 			final int instruction,
@@ -242,14 +168,8 @@ public enum ParsingOperation
 	 * TokenDescriptor token}. It should be matched case sensitively against the
 	 * source token.
 	 */
-	parsePart(2)
+	PARSE_PART(2)
 	{
-		@Override
-		public int encoding ()
-		{
-			throw new UnsupportedOperationException();
-		}
-
 		@Override
 		public int keywordIndex (final int instruction)
 		{
@@ -261,14 +181,8 @@ public enum ParsingOperation
 	 * {@code 16*N+3} - Apply grammatical restrictions to the Nth leaf argument
 	 * (underscore/ellipsis) of the current message.
 	 */
-	checkArgument(3)
+	CHECK_ARGUMENT(3)
 	{
-		@Override
-		public int encoding ()
-		{
-			throw new UnsupportedOperationException();
-		}
-
 		@Override
 		public int checkArgumentIndex (final int instruction)
 		{
@@ -280,14 +194,8 @@ public enum ParsingOperation
 	 * {@code 16*N+4} - Pop an argument from the parse stack and apply the
 	 * {@linkplain ParsingConversionRule conversion rule} specified by N.
 	 */
-	convert(4)
+	CONVERT(4)
 	{
-		@Override
-		public int encoding ()
-		{
-			throw new UnsupportedOperationException();
-		}
-
 		@Override
 		public ParsingConversionRule conversionRule (
 			final int instruction)
@@ -302,14 +210,8 @@ public enum ParsingOperation
 	 * TokenDescriptor token}. It should be matched case insensitively against
 	 * the source token.
 	 */
-	parsePartCaseInsensitive(5)
+	PARSE_PART_CASE_INSENSITIVELY(5)
 	{
-		@Override
-		public int encoding ()
-		{
-			throw new UnsupportedOperationException();
-		}
-
 		@Override
 		public int keywordIndex (final int instruction)
 		{
@@ -322,16 +224,52 @@ public enum ParsingOperation
 	 * containing an {@linkplain IntegerDescriptor Avail integer} based on the
 	 * operand.
 	 */
-	pushIntegerLiteral(6)
+	PUSH_INTEGER_LITERAL(6)
 	{
 		@Override
-		public int encoding ()
-		{
-			throw new UnsupportedOperationException();
-		}
-
-		@Override
 		public int integerToPush (final int instruction)
+		{
+			return operand(instruction);
+		}
+	},
+
+	/**
+	 * {@code 16*N+7} - A macro has been parsed up to a {@link
+	 * SectionCheckpoint} (§).  Make a copy of the parse stack, stripping out
+	 * {@link MarkerNodeDescriptor marker nodes}, then perform the equivalent of
+	 * an {@link #APPEND_ARGUMENT} on the copy, the specified number of times.
+	 * Make it into a single {@linkplain ListNodeDescriptor list node} and push
+	 * it onto the original parse stack.  It will be consumed by a subsequent
+	 * {@link #RUN_PREFIX_FUNCTION}.
+	 */
+	PREPARE_TO_RUN_PREFIX_FUNCTION(7)
+	{
+		@Override
+		public int fixupDepth (final int instruction)
+		{
+			return operand(instruction);
+		}
+	},
+
+	/**
+	 * {@code 16*N+8} - A macro has been parsed up to a {@link
+	 * SectionCheckpoint} (§), and a copy of the cleaned up parse stack has been
+	 * pushed, so invoke the Nth prefix function associated with the macro.
+	 * Consume the previously pushed copy of the parse stack.  The current
+	 * {@link AbstractAvailCompiler.ParserState}'s {@linkplain
+	 * AbstractAvailCompiler.ParserState#clientDataMap} is stashed in the
+	 * current {@link FiberDescriptor fiber}'s {@linkplain
+	 * AvailObject#fiberGlobals()} and retrieved afterward, so the prefix
+	 * function and macros can alter the scope or communicate with each other
+	 * by manipulating this {@linkplain MapDescriptor map}.  This technique
+	 * prevents chatter between separate processes (i.e., parsing can still be
+	 * done in parallel) and between separate linguistic abstractions (the keys
+	 * are atoms and are therefore modular).
+	 */
+	RUN_PREFIX_FUNCTION(8)
+	{
+		@Override
+		public int prefixFunctionSubscript (final int instruction)
 		{
 			return operand(instruction);
 		}
@@ -347,7 +285,8 @@ public enum ParsingOperation
 	 * The number of distinct instructions supported by the coding scheme.  It
 	 * must be a power of two.
 	 */
-	static final int distinctInstructions = 1 << distinctInstructionsShift;
+	public static final int distinctInstructions =
+		1 << distinctInstructionsShift;
 
 	/** The modulus that represents the operation uniquely for its arity. */
 	private final int modulus;
@@ -368,8 +307,12 @@ public enum ParsingOperation
 	 *
 	 * @return The instruction coding.
 	 */
-	public int encoding ()
+	public final int encoding ()
 	{
+		if (ordinal() >= distinctInstructions)
+		{
+			throw new UnsupportedOperationException();
+		}
 		return modulus;
 	}
 
@@ -380,8 +323,12 @@ public enum ParsingOperation
 	 * @param operand The operand.
 	 * @return The instruction coding.
 	 */
-	public int encoding (final int operand)
+	public final int encoding (final int operand)
 	{
+		if (ordinal() < distinctInstructions)
+		{
+			throw new UnsupportedOperationException();
+		}
 		return (operand << distinctInstructionsShift) + modulus;
 	}
 
@@ -424,8 +371,27 @@ public enum ParsingOperation
 	}
 
 	/**
+	 * @param instruction
+	 * @return
+	 */
+	public int fixupDepth (final int instruction)
+	{
+		return 0;
+	}
+
+	/**
+	 * Answer which prefix function should be invoked by this
+	 * @param instruction
+	 * @return
+	 */
+	public int prefixFunctionSubscript (final int instruction)
+	{
+		return 0;
+	}
+
+	/**
 	 * Given an instruction and program counter, answer the list of successor
-	 * program counters that should be explored. For example, a {@link #branch}
+	 * program counters that should be explored. For example, a {@link #BRANCH}
 	 * instruction will need to visit both the next program counter <em>and</em>
 	 * the branch target.
 	 *

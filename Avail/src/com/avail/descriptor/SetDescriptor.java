@@ -129,6 +129,13 @@ public class SetDescriptor extends Descriptor
 		}
 	}
 
+	@Override
+	String o_NameForDebugger (final AvailObject object)
+	{
+		return super.o_NameForDebugger(object) + ": setSize="
+			+ object.setSize();
+	}
+
 	@Override @AvailMethod
 	boolean o_Equals (
 		final AvailObject object,

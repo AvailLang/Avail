@@ -2202,6 +2202,19 @@ extends ExtendedIntegerDescriptor
 	 */
 	static AvailObject [] immutableByteObjects = null;
 
+
+	/**
+	 * Create an {@linkplain IntegerDescriptor integer} of the specified size,
+	 * but with uninitialized slots.
+	 *
+	 * @param size The number of slots to have in the result.
+	 * @return An uninitialized, mutable integer.
+	 */
+	public static AvailObject createUninitialized (final int size)
+	{
+		return mutable().create(size);
+	}
+
 	/**
 	 * Construct a new {@link IntegerDescriptor}.
 	 *

@@ -57,9 +57,8 @@ public class P_187_CompiledCodeLiterals extends Primitive
 	{
 		assert args.size() == 1;
 		final AvailObject cc = args.get(0);
-		AvailObject tupleObject = ObjectTupleDescriptor.mutable().create(
+		AvailObject tupleObject = ObjectTupleDescriptor.createUninitialized(
 			cc.numLiterals());
-		tupleObject.hashOrZero(0);
 		final int tupleSize = tupleObject.tupleSize();
 		for (int i = 1; i <= tupleSize; i++)
 		{

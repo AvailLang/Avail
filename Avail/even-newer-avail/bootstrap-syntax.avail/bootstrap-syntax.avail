@@ -40,5 +40,5 @@ Body
 
 _any ::= special object 1;
 _foo ::= _any;
-Primitive "Crash_" is [hint : _any † | Primitive 256;];
+Primitive "Crash_" is [hint : _any | Primitive 256;];
 Crash "foo";

@@ -38,6 +38,7 @@ import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.*;
 import com.avail.AvailRuntime;
 import com.avail.annotations.*;
+import com.avail.compiler.AbstractAvailCompiler.*;
 import com.avail.serialization.*;
 
 /**
@@ -213,6 +214,19 @@ extends Descriptor
 	 */
 	private static AvailObject moduleBodySectionAtom;
 
+	/**
+	 * The atom used as a key in a {@link ParserState}'s {@linkplain
+	 * ParserState#clientDataMap} to store the current map of declarations that
+	 * are in scope.
+	 */
+	private static AvailObject compilerScopeMapKey;
+
+	/**
+	 * The atom used as a key in a {@linkplain FiberDescriptor fiber}'s global
+	 * map to extract the current {@link ParserState}'s {@linkplain
+	 * ParserState#clientDataMap}.
+	 */
+	private static AvailObject clientDataGlobalKey;
 
 	/**
 	 * Answer the atom representing the Avail concept "true".
@@ -270,6 +284,33 @@ extends Descriptor
 		return moduleBodySectionAtom;
 	}
 
+	/**
+	 * Answer the atom used to identify the entry in a {@linkplain
+	 * ParserState}'s {@linkplain ParserState#clientDataMap client data map}
+	 * which holds the current map of declarations that are currently in scope.
+	 *
+	 * @return An atom to use as a key in a ParserState's client data map.
+	 */
+	public static AvailObject compilerScopeMapKey ()
+	{
+		return compilerScopeMapKey;
+	}
+
+	/**
+	 * Answer the atom used to locate the compiler's {@linkplain
+	 * ParserState#clientDataMap client data map} within the current fiber's
+	 * {@linkplain FiberDescriptor.ObjectSlots#PROCESS_GLOBALS global map}.
+	 * Among other things, the client data map contains another map under the
+	 * key {@link #compilerScopeMapKey()} which holds the current declarations
+	 * that are in scope.
+	 *
+	 * @return An atom to use as a key in a fiber's global map to extract the
+	 *         current ParserState's client data map.
+	 */
+	public static AvailObject clientDataGlobalKey ()
+	{
+		return clientDataGlobalKey;
+	}
 
 	/**
 	 * Create the true and false singletons.
@@ -291,16 +332,26 @@ extends Descriptor
 		moduleBodySectionAtom = create(
 			StringDescriptor.from("Module body section"),
 			NullDescriptor.nullObject());
+		compilerScopeMapKey = create(
+			StringDescriptor.from("Compilation scope"),
+			NullDescriptor.nullObject());
+		clientDataGlobalKey = create(
+			StringDescriptor.from("Compiler client data"),
+			NullDescriptor.nullObject());
 	}
 
 	/**
-	 * Release the true and false singletons.
+	 * Release the atom singletons known to the VM.
 	 */
 	static void clearWellKnownObjects ()
 	{
 		trueObject = null;
 		falseObject = null;
 		objectTypeNamePropertyKey = null;
+		moduleHeaderSectionAtom = null;
+		moduleBodySectionAtom = null;
+		compilerScopeMapKey = null;
+		clientDataGlobalKey = null;
 	}
 
 	/**

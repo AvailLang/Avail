@@ -33,8 +33,9 @@
 package com.avail.descriptor;
 
 import static com.avail.descriptor.TypeDescriptor.Types.MESSAGE_BUNDLE;
-import java.util.*;
-import com.avail.annotations.*;
+import java.util.ArrayList;
+import java.util.List;
+import com.avail.annotations.AvailMethod;
 import com.avail.compiler.MessageSplitter;
 import com.avail.exceptions.SignatureException;
 

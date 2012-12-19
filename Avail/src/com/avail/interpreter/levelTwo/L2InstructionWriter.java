@@ -117,16 +117,16 @@ public class L2InstructionWriter
 		}
 		else
 		{
-			words = ObjectTupleDescriptor.mutable().create(
-				wordCount);
-			int dest = 1;
+			final AvailObject[] array = new AvailObject[wordCount];
+			int dest = 0;
 			for (int source = 0; source < byteArray.length; source += 2)
 			{
 				final int value =
 					(byteArray[source] & 0xFF) << 8
 					+ (byteArray[source + 1] & 0xFF);
-				words.tupleAtPut(dest++, IntegerDescriptor.fromInt(value));
+				array[dest++] = IntegerDescriptor.fromInt(value);
 			}
+			words = TupleDescriptor.from(array);
 		}
 		words.hashOrZero(0);
 		words.makeImmutable();

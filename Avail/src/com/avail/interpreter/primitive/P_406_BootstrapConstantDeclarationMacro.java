@@ -1,5 +1,5 @@
 /**
- * P_406_BootstrapInitializingVariableDeclarationMacro.java
+ * P_406_BootstrapConstantDeclarationMacro.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -34,48 +34,76 @@ package com.avail.interpreter.primitive;
 
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
+import static com.avail.descriptor.TokenDescriptor.TokenType.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.*;
+import com.avail.compiler.AvailRejectedParseException;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 
 /**
- * The {@code P_406_BootstrapInitializingVariableDeclarationMacro} primitive is
- * used for bootstrapping declaration of a {@link #LOCAL_VARIABLE_NODE local
- * variable} (without an initializing expression).
+ * The {@code P_406_BootstrapConstantDeclarationMacro} primitive is used
+ * for bootstrapping declaration of a {@link #LOCAL_CONSTANT_NODE local
+ * constant declaration}.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class P_406_BootstrapInitializingVariableDeclarationMacro extends Primitive
+public class P_406_BootstrapConstantDeclarationMacro extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_406_BootstrapInitializingVariableDeclarationMacro().init(
-			3, CannotFail, Bootstrap);
+		new P_406_BootstrapConstantDeclarationMacro().init(
+			2, CannotFail, Bootstrap);
 
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 3;
-		final AvailObject variableName = args.get(0);
-		final AvailObject type = args.get(1);
-		final AvailObject initializingExpression = args.get(2);
+		assert args.size() == 2;
+		final AvailObject constantNameLiteralNode = args.get(0);
+		final AvailObject initializationExpression = args.get(1);
 
-		//TODO[MvG]: Eventually prevent ⊥ from being an accepted type.  For
-		//other bootstrap macro primitives, too.  Also make sure initialization
-		//will produce a suitable type.
+		assert constantNameLiteralNode.isInstanceOfKind(
+			LITERAL_NODE.mostGeneralType());
+		final AvailObject syntheticLiteralNameToken =
+			constantNameLiteralNode.token();
+		assert syntheticLiteralNameToken.isLiteralToken();
+		assert syntheticLiteralNameToken.tokenType() == SYNTHETIC_LITERAL;
+		final AvailObject innerNameToken = syntheticLiteralNameToken.literal();
+		assert innerNameToken.isInstanceOfKind(TOKEN.o());
 
-		final AvailObject variableDeclaration =
-			DeclarationNodeDescriptor.newVariable(
-				variableName,
-				type,
-				initializingExpression);
-		variableDeclaration.makeImmutable();
-		return interpreter.primitiveSuccess(variableDeclaration);
+		if (innerNameToken.tokenType() != KEYWORD)
+		{
+			throw new AvailRejectedParseException(
+				StringDescriptor.from(
+					"Constant name to be alphanumeric"));
+		}
+		final AvailObject initializationType =
+			initializationExpression.expressionType();
+		if (initializationType.equals(TOP.o()))
+		{
+			throw new AvailRejectedParseException(
+				StringDescriptor.from(
+					"constant initialization expression to have a type"
+					+ " other than ⊤"));
+		}
+		if (initializationType.equals(BottomTypeDescriptor.bottom()))
+		{
+			throw new AvailRejectedParseException(
+				StringDescriptor.from(
+					"constant initialization expression to have a type"
+					+ " other than ⊥"));
+		}
+
+		final AvailObject constantDeclaration =
+			DeclarationNodeDescriptor.newConstant(
+				innerNameToken,
+				initializationExpression);
+		constantDeclaration.makeImmutable();
+		return interpreter.primitiveSuccess(constantDeclaration);
 	}
 
 	@Override
@@ -83,12 +111,10 @@ public class P_406_BootstrapInitializingVariableDeclarationMacro extends Primiti
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				/* Variable name token */
-				TOKEN.o(),
-				/* Variable type */
-				InstanceMetaDescriptor.anyMeta(),
+				/* Constant name token as a literal node */
+				LITERAL_NODE.create(TOKEN.o()),
 				/* Initialization expression */
-				EXPRESSION_NODE.mostGeneralType()),
-			LOCAL_VARIABLE_NODE.mostGeneralType());
+				EXPRESSION_NODE.create(ANY.o())),
+			LOCAL_CONSTANT_NODE.mostGeneralType());
 	}
 }

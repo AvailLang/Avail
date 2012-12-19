@@ -59,7 +59,7 @@ public class P_059_ContinuationStackData extends Primitive
 		assert args.size() == 1;
 		final AvailObject con = args.get(0);
 		final int count = con.function().code().numArgsAndLocalsAndStack();
-		final AvailObject tuple = ObjectTupleDescriptor.mutable().create(
+		final AvailObject tuple = ObjectTupleDescriptor.createUninitialized(
 			count);
 		for (int i = 1; i <= count; i++)
 		{

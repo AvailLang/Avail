@@ -886,8 +886,7 @@ public abstract class AbstractAvailCompiler
 			reportAmbiguousInterpretations(
 				new ParserState(
 					where.value.position - 1,
-					where.value.scopeMap,
-					where.value.innermostBlockArguments),
+					where.value.clientDataMap),
 				solution.value,
 				another.value);
 			return;
@@ -901,7 +900,7 @@ public abstract class AbstractAvailCompiler
 
 	/**
 	 * {@link ParserState} instances are immutable and keep track of a current
-	 * {@link #position} and {@link #scopeMap} during parsing.
+	 * {@link #position} and {@link #clientDataMap} during parsing.
 	 *
 	 * @author Mark van Gulik &lt;mark@availlang.org&gt;
 	 */
@@ -914,58 +913,32 @@ public abstract class AbstractAvailCompiler
 		final int position;
 
 		/**
-		 * A {@linkplain MapDescriptor map} from each name that is in scope to
-		 * the {@linkplain DeclarationNodeDescriptor declaration} with that
-		 * name.  The names are {@linkplain StringDescriptor strings}.
-		 *
-		 * <p>
-		 * The map should be immutable, as each new declaration must create a
-		 * fresh map.  Backtracking (or closing a block scope) causes some
-		 * previous version of the map to be used, so its state must never be
-		 * destroyed.  Note that this is especially important since the parser
-		 * is both continuation-passing and potentially breadth-first.  This is
-		 * even more important if a pool of threads is used to parse a module.
-		 * </p>
+		 * A {@linkplain MapDescriptor map} of interesting information used by
+		 * the compiler.
 		 */
-		public final AvailObject scopeMap;
-
-		/**
-		 * The tuple of argument declarations of the innermost block being
-		 * parsed.  This gets populated by an occurrence of the {@link
-		 * MessageSplitter.ArgumentsCheckpoint} parsing instruction, which is
-		 * specified by a {@linkplain StringDescriptor#sectionSign() section
-		 * sign} ("§") outside any repeating/variable-occurrence
-		 * parsing groups and structures.
-		 */
-		public final AvailObject innermostBlockArguments;
+		public final AvailObject clientDataMap;
 
 		/**
 		 * Construct a new immutable {@link ParserState}.
 		 *
 		 * @param position
 		 *            The index of the current token.
-		 * @param scopeMap
-		 *            The {@link MapDescriptor map} of bindings.
-		 * @param innermostBlockArguments
-		 *            The {@link TupleDescriptor tuple} of arguments to be
-		 *            checkpointed in this parser state.
+		 * @param clientDataMap
+		 *            The {@link MapDescriptor map} of data used by macros while
+		 *            parsing Avail code.
 		 */
 		ParserState (
 			final int position,
-			final AvailObject scopeMap,
-			final AvailObject innermostBlockArguments)
+			final AvailObject clientDataMap)
 		{
-			assert scopeMap != null;
-
 			this.position = position;
-			this.scopeMap = scopeMap;
-			this.innermostBlockArguments = innermostBlockArguments;
+			this.clientDataMap = clientDataMap;
 		}
 
 		@Override
 		public int hashCode ()
 		{
-			return position * 473897843 ^ scopeMap.hashCode();
+			return position * 473897843 ^ clientDataMap.hashCode();
 		}
 
 		@Override
@@ -977,23 +950,17 @@ public abstract class AbstractAvailCompiler
 			}
 			final ParserState anotherState = (ParserState) another;
 			return position == anotherState.position
-				&& scopeMap.equals(anotherState.scopeMap)
-				&& innermostBlockArguments.equals(
-					anotherState.innermostBlockArguments);
+				&& clientDataMap.equals(anotherState.clientDataMap);
 		}
 
 		@Override
 		public String toString ()
 		{
 			return String.format(
-				"%s%n\tPOSITION = %d%n%s\tSCOPE_STACK = %s",
+				"%s%n\tPOSITION = %d%n%s\tCLIENT_DATA = %s",
 				getClass().getSimpleName(),
 				position,
-				innermostBlockArguments.equals(NullDescriptor.nullObject())
-					? ""
-					: ("\tINNERMOST_BLOCK_ARGUMENTS = "
-						+ innermostBlockArguments),
-				scopeMap);
+				clientDataMap);
 		}
 
 		/**
@@ -1088,8 +1055,7 @@ public abstract class AbstractAvailCompiler
 			assert !atEnd();
 			return new ParserState(
 				position + 1,
-				scopeMap,
-				innermostBlockArguments);
+				clientDataMap);
 		}
 
 		/**
@@ -1109,29 +1075,6 @@ public abstract class AbstractAvailCompiler
 				return token;
 			}
 			return null;
-		}
-
-		/**
-		 * Return a new {@linkplain ParserState parser state} like this one, but
-		 * with the given declaration added.
-		 *
-		 * @param declaration
-		 *        The {@linkplain DeclarationNodeDescriptor declaration} to add
-		 *        to the map of visible bindings.
-		 * @return The new parser state including the declaration.
-		 */
-		ParserState withDeclaration (
-			final AvailObject declaration)
-		{
-			final AvailObject name = declaration.token().string();
-			assert !scopeMap.hasKey(name);
-			return new ParserState(
-				position,
-				scopeMap.mapAtPuttingCanDestroy(
-					name,
-					declaration,
-					false),
-				innermostBlockArguments);
 		}
 
 		/**
@@ -1842,27 +1785,6 @@ public abstract class AbstractAvailCompiler
 	}
 
 	/**
-	 * Look up a local declaration that has the given name, or null if not
-	 * found.
-	 *
-	 * @param start
-	 *        Where to start parsing.
-	 * @param name
-	 *        The name of the variable declaration for which to look.
-	 * @return The declaration or {@code null}.
-	 */
-	@Nullable AvailObject lookupLocalDeclaration (
-		final ParserState start,
-		final AvailObject name)
-	{
-		if (start.scopeMap.hasKey(name))
-		{
-			return start.scopeMap.mapAt(name);
-		}
-		return null;
-	}
-
-	/**
 	 * Start definition of a {@linkplain ModuleDescriptor module}. The entire
 	 * definition can be rolled back because the {@linkplain L2Interpreter
 	 * interpreter}'s context module will contain all methods and precedence
@@ -2321,15 +2243,13 @@ public abstract class AbstractAvailCompiler
 			// recursion.
 			for (final MapDescriptor.Entry entry : complete.mapIterable())
 			{
-				if (interpreter.runtime().hasMethodsAt(entry.key))
-				{
-					completedSendNode(
-						initialTokenPosition,
-						start,
-						argsSoFar,
-						entry.value,
-						continuation);
-				}
+				assert interpreter.runtime().hasMethodsAt(entry.key);
+				completedSendNode(
+					initialTokenPosition,
+					start,
+					argsSoFar,
+					entry.value,
+					continuation);
 			}
 		}
 		if (anyIncomplete
@@ -2379,7 +2299,7 @@ public abstract class AbstractAvailCompiler
 		{
 			final AvailObject keywordToken = start.peekToken();
 			if (keywordToken.tokenType() == KEYWORD
-					|| keywordToken.tokenType() == OPERATOR)
+				|| keywordToken.tokenType() == OPERATOR)
 			{
 				final AvailObject keywordString =
 					keywordToken.lowerCaseString();
@@ -2468,6 +2388,44 @@ public abstract class AbstractAvailCompiler
 	}
 
 	/**
+	 * Answer the {@linkplain SetDescriptor set} of {@linkplain
+	 * DeclarationNodeDescriptor declaration nodes} which are used by this
+	 * parse tree but are locally declared (i.e., not at global module scope).
+	 *
+	 * @param parseTree
+	 *            The parse tree to examine.
+	 * @return
+	 *            The set of the local declarations that were used in the parse
+	 *            tree.
+	 */
+	AvailObject usesWhichLocalVariables (
+		final AvailObject parseTree)
+	{
+		final Mutable<AvailObject> usedDeclarations =
+			new Mutable<AvailObject>(SetDescriptor.empty());
+		parseTree.childrenDo(new Continuation1<AvailObject>()
+		{
+			@Override
+			public void value (final @Nullable AvailObject node)
+			{
+				assert node != null;
+				if (node.isInstanceOfKind(VARIABLE_USE_NODE.mostGeneralType()))
+				{
+					final AvailObject declaration = node.declaration();
+					if (!declaration.declarationKind().isModuleScoped())
+					{
+						usedDeclarations.value =
+							usedDeclarations.value.setWithElementCanDestroy(
+								declaration,
+								true);
+					}
+				}
+			}
+		});
+		return usedDeclarations.value;
+	}
+
+	/**
 	 * Execute one non-keyword-parsing instruction, then run the continuation.
 	 *
 	 * @param start
@@ -2484,7 +2442,7 @@ public abstract class AbstractAvailCompiler
 	 *            The message arguments that have been parsed so far.
 	 * @param initialTokenPosition
 	 *            The position at which parsing of this message started. If it
-	 *            was parsed as a leading argument send (i.e., firtArgOrNull
+	 *            was parsed as a leading argument send (i.e., firstArgOrNull
 	 *            started out non-null) then the position is of the token
 	 *            following the first argument.
 	 * @param consumedAnything
@@ -2518,7 +2476,7 @@ public abstract class AbstractAvailCompiler
 //			tokens.get(start.position).string());
 		switch (op)
 		{
-			case parseArgument:
+			case PARSE_ARGUMENT:
 			{
 				// Parse an argument and continue.
 				assert successorTrees.tupleSize() == 1;
@@ -2528,7 +2486,7 @@ public abstract class AbstractAvailCompiler
 					firstArgOrNull,
 					firstArgOrNull == null
 						&& initialTokenPosition.position != start.position,
-					new Con<AvailObject>("Argument of message send")
+					new Con<AvailObject>("Argument of message")
 					{
 						@Override
 						public void value (
@@ -2550,8 +2508,9 @@ public abstract class AbstractAvailCompiler
 											successorTrees.tupleAt(1),
 											null,
 											initialTokenPosition,
-											/* Arg was consumed if it's not a
-											 * leading argument... */
+											// The argument counts as something
+											// that was consumed if it's not a
+											// leading argument...
 											firstArgOrNull == null,
 											newArgsSoFar,
 											continuation);
@@ -2563,7 +2522,7 @@ public abstract class AbstractAvailCompiler
 					});
 				break;
 			}
-			case newList:
+			case NEW_LIST:
 			{
 				// Push an empty list node and continue.
 				assert successorTrees.tupleSize() == 1;
@@ -2589,7 +2548,7 @@ public abstract class AbstractAvailCompiler
 					start.position);
 				break;
 			}
-			case appendArgument:
+			case APPEND_ARGUMENT:
 			{
 				// Append the item that's the last thing to the list that's the
 				// second last thing. Pop both and push the new list (the
@@ -2621,7 +2580,7 @@ public abstract class AbstractAvailCompiler
 					start.position);
 				break;
 			}
-			case saveParsePosition:
+			case SAVE_PARSE_POSITION:
 			{
 				// Push current parse position.
 				assert successorTrees.tupleSize() == 1;
@@ -2652,7 +2611,7 @@ public abstract class AbstractAvailCompiler
 					start.position);
 				break;
 			}
-			case discardSavedParsePosition:
+			case DISCARD_SAVED_PARSE_POSITION:
 			{
 				// Under-pop saved parse position (from 2nd-to-top of stack).
 				assert successorTrees.tupleSize() == 1;
@@ -2681,7 +2640,7 @@ public abstract class AbstractAvailCompiler
 					start.position);
 				break;
 			}
-			case ensureParseProgress:
+			case ENSURE_PARSE_PROGRESS:
 			{
 				// Check parse progress (abort if parse position is still equal
 				// to value at 2nd-to-top of stack). Also update the entry to
@@ -2721,7 +2680,7 @@ public abstract class AbstractAvailCompiler
 					start.position);
 				break;
 			}
-			case parseRawToken:
+			case PARSE_RAW_TOKEN:
 				// Parse a raw token and continue.
 				assert successorTrees.tupleSize() == 1;
 				if (firstArgOrNull != null)
@@ -2769,7 +2728,7 @@ public abstract class AbstractAvailCompiler
 						afterToken.position);
 				}
 				break;
-			case pop:
+			case POP:
 			{
 				// Pop the parse stack.
 				assert successorTrees.tupleSize() == 1;
@@ -2794,50 +2753,125 @@ public abstract class AbstractAvailCompiler
 					start.position);
 				break;
 			}
-			case argumentsCheckpoint:
+			case PARSE_ARGUMENT_IN_MODULE_SCOPE:
 			{
+				// Parse an argument in the outermost (module) scope and
+				// continue.
 				assert successorTrees.tupleSize() == 1;
-				final AvailObject tupleOfArgsSoFar =
-					TupleDescriptor.fromList(argsSoFar);
-				eventuallyDo(
-					new Continuation0()
+				final AvailObject clientDataInGlobalScope =
+					start.clientDataMap.mapAtPuttingCanDestroy(
+						AtomDescriptor.compilerScopeMapKey(),
+						MapDescriptor.empty(),
+						false);
+				final ParserState startInGlobalScope = new ParserState(
+					start.position,
+					clientDataInGlobalScope);
+				parseSendArgumentWithExplanationThen(
+					startInGlobalScope,
+					" (a global-scoped argument of some message)",
+					firstArgOrNull,
+					firstArgOrNull == null
+						&& initialTokenPosition.position != start.position,
+					new Con<AvailObject>("Global-scoped argument of message")
 					{
 						@Override
-						public void value ()
+						public void value (
+							final @Nullable ParserState afterArg,
+							final @Nullable AvailObject newArg)
 						{
-							parseRestOfSendNode(
+							assert afterArg != null;
+							assert newArg != null;
+							if (firstArgOrNull != null)
+							{
+								// A leading argument was already supplied.  We
+								// couldn't prevent it from referring to
+								// variables that were in scope during its
+								// parsing, but we can reject it if the leading
+								// argument is supposed to be parsed in global
+								// scope, which is the case here, and there are
+								// references to local variables within the
+								// argument's parse tree.
+								final AvailObject usedLocals =
+									usesWhichLocalVariables(newArg);
+								if (usedLocals.setSize() > 0)
+								{
+									// A leading argument was supplied which
+									// used at least one local.  It shouldn't
+									// have.
+									afterArg.expected(new Generator<String>()
+									{
+										@Override
+										public String value ()
+										{
+											final List<String> localNames =
+												new ArrayList<String>();
+											for (final AvailObject usedLocal
+												: usedLocals)
+											{
+												final AvailObject name =
+													usedLocal.token().string();
+												localNames.add(
+													name.asNativeString());
+											}
+											return
+												"A leading argument which " +
+												"was supposed to be parsed in" +
+												"module scope actually " +
+												"referred to some local " +
+												"variables: " +
+												localNames.toString();
+										}
+									});
+									return;
+								}
+							}
+							final List<AvailObject> newArgsSoFar =
+								append(argsSoFar, newArg);
+							final ParserState afterArgButInScope =
 								new ParserState(
-									start.position,
-									start.scopeMap,
-									tupleOfArgsSoFar),
-								successorTrees.tupleAt(1),
-								firstArgOrNull,
-								initialTokenPosition,
-								consumedAnything,
-								argsSoFar,
-								continuation);
+									afterArg.position,
+									start.clientDataMap);
+							eventuallyDo(
+								new Continuation0()
+								{
+									@Override
+									public void value ()
+									{
+										parseRestOfSendNode(
+											afterArgButInScope,
+											successorTrees.tupleAt(1),
+											null,
+											initialTokenPosition,
+											// The argument counts as something
+											// that was consumed if it's not a
+											// leading argument...
+											firstArgOrNull == null,
+											newArgsSoFar,
+											continuation);
+									}
+								},
+								"Continue send after argument",
+								afterArg.position);
 						}
-					},
-					"Continue send after argumentsCheckpoint (§)",
-					start.position);
+					});
 				break;
 			}
-			case reserved9:
-			case reserved10:
-			case reserved11:
-			case reserved12:
-			case reserved13:
-			case reserved14:
-			case reserved15:
+			case RESERVED_9:
+			case RESERVED_10:
+			case RESERVED_11:
+			case RESERVED_12:
+			case RESERVED_13:
+			case RESERVED_14:
+			case RESERVED_15:
 			{
 				AvailObject.error("Invalid parse instruction: " + op);
 				break;
 			}
-			case branch:
+			case BRANCH:
 				// $FALL-THROUGH$
 				// Fall through.  The successorTrees will be different
 				// for the jump versus parallel-branch.
-			case jump:
+			case JUMP:
 				for (int i = successorTrees.tupleSize(); i >= 1; i--)
 				{
 					final AvailObject successorTree = successorTrees.tupleAt(i);
@@ -2861,13 +2895,13 @@ public abstract class AbstractAvailCompiler
 						start.position);
 				}
 				break;
-			case parsePart:
+			case PARSE_PART:
 				// $FALL-THROUGH$
-			case parsePartCaseInsensitive:
+			case PARSE_PART_CASE_INSENSITIVELY:
 				assert false
-				: "parse-token instruction should not be dispatched";
+				: op.name() + " instruction should not be dispatched";
 				break;
-			case checkArgument:
+			case CHECK_ARGUMENT:
 			{
 				// CheckArgument.  An actual argument has just been parsed (and
 				// pushed).  Make sure it satisfies any grammatical
@@ -2895,7 +2929,7 @@ public abstract class AbstractAvailCompiler
 					start.position);
 				break;
 			}
-			case convert:
+			case CONVERT:
 			{
 				// Convert the argument.
 				assert successorTrees.tupleSize() == 1;
@@ -2904,8 +2938,10 @@ public abstract class AbstractAvailCompiler
 				switch (op.conversionRule(instruction))
 				{
 					case noConversion:
+					{
 						replacement = target;
 						break;
+					}
 					case listToSize:
 					{
 						final AvailObject expressions =
@@ -2919,9 +2955,7 @@ public abstract class AbstractAvailCompiler
 								initialTokenPosition.peekToken().lineNumber(),
 								LITERAL,
 								count);
-						final AvailObject literalNode =
-							LiteralNodeDescriptor.fromToken(token);
-						replacement = literalNode;
+						replacement = LiteralNodeDescriptor.fromToken(token);
 						break;
 					}
 					case listToNonemptiness:
@@ -2938,9 +2972,24 @@ public abstract class AbstractAvailCompiler
 								initialTokenPosition.peekToken().lineNumber(),
 								LITERAL,
 								nonempty);
-						final AvailObject literalNode =
-							LiteralNodeDescriptor.fromToken(token);
-						replacement = literalNode;
+						replacement = LiteralNodeDescriptor.fromToken(token);
+						break;
+					}
+					case evaluateExpression:
+					{
+						final int line = start.peekToken().lineNumber();
+						try
+						{
+							final AvailObject value = evaluate(target, line);
+							replacement =
+								LiteralNodeDescriptor.syntheticFrom(value);
+						}
+						catch (final AvailRejectedParseException e)
+						{
+							start.expected(
+								e.rejectionString().asNativeString());
+							return;
+						}
 						break;
 					}
 					default:
@@ -2972,7 +3021,7 @@ public abstract class AbstractAvailCompiler
 					start.position);
 				break;
 			}
-			case pushIntegerLiteral:
+			case PUSH_INTEGER_LITERAL:
 			{
 				final AvailObject integerValue = IntegerDescriptor.fromInt(
 					op.integerToPush(instruction));
@@ -3006,6 +3055,195 @@ public abstract class AbstractAvailCompiler
 					"Continue send after conversion",
 					start.position);
 
+				break;
+			}
+			case PREPARE_TO_RUN_PREFIX_FUNCTION:
+			{
+				List<AvailObject> stackCopy = Collections.emptyList();
+				for (final AvailObject arg : argsSoFar)
+				{
+					if (!arg.isMarkerNode())
+					{
+						stackCopy = append(stackCopy, arg);
+					}
+				}
+				for (int i = op.fixupDepth(instruction); i > 0; i--)
+				{
+					// Pop the last element and append it to the second last.
+					final AvailObject value = last(stackCopy);
+					final List<AvailObject> poppedOnce = withoutLast(stackCopy);
+					final AvailObject oldNode = last(poppedOnce);
+					final AvailObject listNode = oldNode.copyWith(value);
+					stackCopy = append(withoutLast(poppedOnce), listNode);
+				}
+				// Convert the List to an Avail list node.
+				final AvailObject newListNode =
+					ListNodeDescriptor.newExpressions(
+						TupleDescriptor.fromList(stackCopy));
+				assert successorTrees.tupleSize() == 1;
+				eventuallyDo(
+					new Continuation0()
+					{
+						@Override
+						public void value ()
+						{
+							parseRestOfSendNode(
+								start,
+								successorTrees.tupleAt(1),
+								firstArgOrNull,
+								initialTokenPosition,
+								consumedAnything,
+								append(argsSoFar, newListNode),
+								continuation);
+						}
+					},
+					"Continue send after prepare to run prefix function (§)",
+					start.position);
+				break;
+			}
+			case RUN_PREFIX_FUNCTION:
+			{
+				// Extract the list node pushed by the
+				// PREPARE_TO_RUN_PREFIX_FUNCTION instruction that should have
+				// just run.
+				final AvailObject listNodeOfArgsSoFar = last(argsSoFar);
+				final List<AvailObject> listOfArgs = TupleDescriptor.toList(
+					listNodeOfArgsSoFar.expressionsTuple());
+
+				// Store the current parsing state in a special fiber global.
+				final AvailObject clientDataGlobalKey =
+					AtomDescriptor.clientDataGlobalKey();
+				AvailObject fiberGlobals = interpreter.fiber.fiberGlobals();
+				fiberGlobals = fiberGlobals.mapAtPuttingCanDestroy(
+					clientDataGlobalKey,
+					start.clientDataMap.makeImmutable(),
+					true);
+				interpreter.fiber.fiberGlobals(fiberGlobals);
+
+				// Call the appropriate prefix function(s).
+				assert successorTrees.tupleSize() == 1;
+				final AvailObject successorTree = successorTrees.tupleAt(1);
+				final AvailObject bundlesMap = successorTree.allBundles();
+				for (final MapDescriptor.Entry entry : bundlesMap.mapIterable())
+				{
+//					final AvailObject message = entry.value.message();
+//					final AvailObject method =
+//						interpreter.runtime().methodAt(message);
+//					assert !method.equalsNull();
+//					final AvailObject definitionsTuple =
+//						method.definitionsTuple();
+//					assert definitionsTuple.tupleSize() > 0;
+//					for (final AvailObject macroDefinition : definitionsTuple)
+//					{
+//						if (macroDefinition.isMacroDefinition())
+//						{
+//							final AvailObject function =
+//								macroDefinition.prefixFunctions().tupleAt(
+//									instruction);
+//							interpreter.invokeFunctionArguments(
+//								function,
+//								listOfArgs);
+//							TODO[MvG]:LOTS
+//							*** If we allow multiple macros with a common
+//							*** prefix, then each associated prefix function may
+//							*** produce a different value / effect.  Thus, the
+//							*** existing bundle tree must be split somehow along
+//							*** that boundary.  CRAP!
+//						}
+//					}
+//					assert definitionsTuple.tupleAt(1).isMacroDefinition();
+//					{
+//						// Macro definitions and non-macro definitions are not allowed to
+//						// mix within a method.
+//						completedSendNodeForMacro(
+//							stateBeforeCall,
+//							stateAfterCall,
+//							argumentExpressions,
+//							bundle,
+//							method,
+//							continuation);
+//						return;
+//					}
+//					// It invokes a method (not a macro).
+//					final List<AvailObject> argTypes =
+//						new ArrayList<AvailObject>(argumentExpressions.size());
+//					for (final AvailObject argumentExpression : argumentExpressions)
+//					{
+//						argTypes.add(argumentExpression.expressionType());
+//					}
+//					// Parsing a method send can't affect the scope.
+//					assert stateAfterCall.clientDataMap.equals(
+//						stateBeforeCall.clientDataMap);
+//					final AvailObject returnType = validateArgumentTypes(
+//						stateAfterCall,
+//						argTypes,
+//						method,
+//						new Continuation1<Generator<String>>()
+//						{
+//							@Override
+//							public void value (
+//								final @Nullable Generator<String> errorGenerator)
+//							{
+//								assert errorGenerator != null;
+//								valid.value = false;
+//								stateAfterCall.expected(errorGenerator);
+//							}
+//						});
+//					if (valid.value)
+//					{
+//						final AvailObject sendNode = SendNodeDescriptor.from(
+//							method,
+//							ListNodeDescriptor.newExpressions(
+//								TupleDescriptor.fromList(argumentExpressions)),
+//							returnType);
+//						attempt(stateAfterCall, continuation, sendNode);
+//					}
+//
+//
+//					completedSendNode(
+//						initialTokenPosition,
+//						start,
+//						withoutLast(argsSoFar),
+//						entry.value,
+//						continuation);
+				}
+
+				//TODO[MvG]: Implement this parse instruction.
+//				*** Stash the client data in the fiber, then run the specified
+//				*** prefix function, and re-extract the client data from the
+//				*** fiber.
+
+//				*** Crap... we need to be able to get to the prefix functions
+//				*** of all applicable macros somehow.  In theory we could just
+//				*** look at the successorTrees.  We also need to forbid method
+//				*** definitions from being added if the message includes "§".
+//				*** We also need to count and type-check the prefix functions.
+
+				fiberGlobals = interpreter.fiber.fiberGlobals();
+				final AvailObject newClientData =
+					fiberGlobals.mapAt(clientDataGlobalKey);
+
+				assert successorTrees.tupleSize() == 1;
+				eventuallyDo(
+					new Continuation0()
+					{
+						@Override
+						public void value ()
+						{
+							parseRestOfSendNode(
+								new ParserState(
+									start.position,
+									newClientData),
+								successorTrees.tupleAt(1),
+								firstArgOrNull,
+								initialTokenPosition,
+								consumedAnything,
+								withoutLast(argsSoFar),
+								continuation);
+						}
+					},
+					"Continue send after argumentsCheckpoint (§)",
+					start.position);
 				break;
 			}
 		}
@@ -3102,7 +3340,7 @@ public abstract class AbstractAvailCompiler
 	{
 		final Mutable<Boolean> valid = new Mutable<Boolean>(true);
 		final AvailObject message = bundle.message();
-		final AvailObject method = interpreter.runtime().methodsAt(message);
+		final AvailObject method = interpreter.runtime().methodAt(message);
 		assert !method.equalsNull();
 		final AvailObject definitionsTuple = method.definitionsTuple();
 		assert definitionsTuple.tupleSize() > 0;
@@ -3128,13 +3366,10 @@ public abstract class AbstractAvailCompiler
 			argTypes.add(argumentExpression.expressionType());
 		}
 		// Parsing a method send can't affect the scope.
-		assert stateAfterCall.scopeMap == stateBeforeCall.scopeMap;
-		final ParserState afterState = new ParserState(
-			stateAfterCall.position,
-			stateBeforeCall.scopeMap,
-			stateBeforeCall.innermostBlockArguments);
+		assert stateAfterCall.clientDataMap.equals(
+			stateBeforeCall.clientDataMap);
 		final AvailObject returnType = validateArgumentTypes(
-			afterState,
+			stateAfterCall,
 			argTypes,
 			method,
 			new Continuation1<Generator<String>>()
@@ -3155,7 +3390,7 @@ public abstract class AbstractAvailCompiler
 				ListNodeDescriptor.newExpressions(
 					TupleDescriptor.fromList(argumentExpressions)),
 				returnType);
-			attempt(afterState, continuation, sendNode);
+			attempt(stateAfterCall, continuation, sendNode);
 		}
 	}
 
@@ -3178,18 +3413,10 @@ public abstract class AbstractAvailCompiler
 		final AvailObject method,
 		final Continuation1<Generator<String>> failBlock)
 	{
-		interpreter.currentParserState = parserState;
-		try
-		{
-			return method.validateArgumentTypesInterpreterIfFail(
-				argumentTypes,
-				interpreter,
-				failBlock);
-		}
-		finally
-		{
-			interpreter.currentParserState = null;
-		}
+		return method.validateArgumentTypesInterpreterIfFail(
+			argumentTypes,
+			interpreter,
+			failBlock);
 	}
 
 	/**
@@ -3260,25 +3487,38 @@ public abstract class AbstractAvailCompiler
 	 *
 	 * @param macroName
 	 *        The name of the primitive macro being defined.
-	 * @param primitiveNumber
-	 *        The {@linkplain Primitive#primitiveNumber primitive number} of the
-	 *        macro being defined.
+	 * @param primitiveNumbers
+	 *        The array of {@linkplain Primitive#primitiveNumber primitive
+	 *        numbers} of the bodies of the macro being defined.  These
+	 *        correspond to the occurrences of the {@linkplain StringDescriptor
+	 *        #sectionSign() section sign} (§) in the macro name, plus a final
+	 *        body for the complete macro.
 	 */
 	void bootstrapMacro (
 		final String macroName,
-		final int primitiveNumber)
+		final int[] primitiveNumbers)
 	{
+		assert primitiveNumbers.length > 0;
 		final AvailObject availName = StringDescriptor.from(macroName);
 		final AvailObject nameLiteral =
 			LiteralNodeDescriptor.syntheticFrom(availName);
-		final AvailObject function =
-			MethodDescriptor.newPrimitiveFunction(
-				Primitive.byPrimitiveNumberOrFail(primitiveNumber));
+		final List<AvailObject> functionsList = new ArrayList<AvailObject>();
+		for (final int primitiveNumber : primitiveNumbers)
+		{
+			functionsList.add(
+				MethodDescriptor.newPrimitiveFunction(
+					Primitive.byPrimitiveNumberOrFail(primitiveNumber)));
+		}
+		final AvailObject body =
+			functionsList.remove(functionsList.size() - 1);
+		final AvailObject functionsTuple =
+			TupleDescriptor.fromList(functionsList);
 		final AvailObject send = SendNodeDescriptor.from(
 			MethodDescriptor.vmMacroDefinerMethod(),
 			ListNodeDescriptor.newExpressions(TupleDescriptor.from(
 				nameLiteral,
-				LiteralNodeDescriptor.syntheticFrom(function))),
+				LiteralNodeDescriptor.syntheticFrom(functionsTuple),
+				LiteralNodeDescriptor.syntheticFrom(body))),
 			TOP.o());
 		evaluateModuleStatement(send);
 	}
@@ -3469,25 +3709,30 @@ public abstract class AbstractAvailCompiler
 			final String pragmaPrim = parts[1].trim();
 			final String pragmaName = parts[2].trim();
 			//TODO[MvG]: Move these into named constants.
-			final boolean isMethod;
-			if ((isMethod = pragmaKind.equals("method"))
-				|| pragmaKind.equals("macro"))
+			final boolean isMethod = pragmaKind.equals("method");
+			if (isMethod || pragmaKind.equals("macro"))
 			{
-				final int primNum = Integer.valueOf(pragmaPrim);
 				if (isMethod)
 				{
+					final int primNum = Integer.valueOf(pragmaPrim);
 					bootstrapMethod(pragmaName, primNum);
 				}
 				else
 				{
-					bootstrapMacro(pragmaName, primNum);
+					final String[] primNumStrings = pragmaPrim.split(",");
+					final int[] primNums = new int[primNumStrings.length];
+					for (int i = 0; i < primNums.length; i++)
+					{
+						primNums[i] = Integer.valueOf(primNumStrings[i]);
+					}
+					bootstrapMacro(pragmaName, primNums);
 				}
 			}
 			else
 			{
 				state.value.expected(
 					"pragma to have the form method=999=name " +
-					"or macro=999=name.");
+					"or macro=999[,999...]=name.");
 				reportError(qualifiedName);
 				assert false;
 			}
@@ -3524,8 +3769,7 @@ public abstract class AbstractAvailCompiler
 						interpretation.value = stmt;
 						state.value = new ParserState(
 							afterStatement.position,
-							state.value.scopeMap,
-							state.value.innermostBlockArguments);
+							state.value.clientDataMap);
 					}
 				});
 			assert workPool.isEmpty();
@@ -3650,8 +3894,10 @@ public abstract class AbstractAvailCompiler
 		// are in scope, and we're not part-way through parsing a block.
 		ParserState state = new ParserState(
 			0,
-			MapDescriptor.empty(),
-			NullDescriptor.nullObject());
+			MapDescriptor.empty().mapAtPuttingCanDestroy(
+				AtomDescriptor.compilerScopeMapKey(),
+				MapDescriptor.empty(),
+				false));
 
 		// The module header must begin with either SYSTEM MODULE or MODULE,
 		// followed by the local name of the module.
@@ -3873,11 +4119,15 @@ public abstract class AbstractAvailCompiler
 		final AvailObject someType,
 		final Con<AvailObject> continuation)
 	{
-		final ParserState startWithoutScope = new ParserState(
+		final AvailObject clientDataInModuleScope =
+			start.clientDataMap.mapAtPuttingCanDestroy(
+				AtomDescriptor.compilerScopeMapKey(),
+				MapDescriptor.empty(),
+				false);
+		final ParserState startInModuleScope = new ParserState(
 			start.position,
-			MapDescriptor.empty(),
-			NullDescriptor.nullObject());
-		parseExpressionThen(startWithoutScope, new Con<AvailObject>(
+			clientDataInModuleScope);
+		parseExpressionThen(startInModuleScope, new Con<AvailObject>(
 			"Evaluate expression")
 		{
 			@SuppressWarnings("null")
@@ -3894,8 +4144,8 @@ public abstract class AbstractAvailCompiler
 						start.peekToken().lineNumber());
 					if (value.isInstanceOf(someType))
 					{
-						assert afterExpression.scopeMap ==
-							startWithoutScope.scopeMap
+						assert afterExpression.clientDataMap.equals(
+							startInModuleScope.clientDataMap)
 						: "Subexpression should not have been able "
 							+ "to cause declaration";
 						// Make sure we continue at the position after the
@@ -3907,8 +4157,7 @@ public abstract class AbstractAvailCompiler
 						attempt(
 							new ParserState(
 								afterExpression.position,
-								start.scopeMap,
-								start.innermostBlockArguments),
+								start.clientDataMap),
 							continuation,
 							value);
 					}

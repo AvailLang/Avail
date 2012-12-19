@@ -215,12 +215,10 @@ extends AbstractAvailCompiler
 			// out of scope.
 			final ParserState reportedStateDuringValidation = new ParserState(
 				stateAfterCall.position - 1,
-				stateBeforeCall.scopeMap,
-				stateBeforeCall.innermostBlockArguments);
+				stateBeforeCall.clientDataMap);
 			final ParserState stateAfter = new ParserState(
 				stateAfterCall.position,
-				stateBeforeCall.scopeMap,
-				stateBeforeCall.innermostBlockArguments);
+				stateBeforeCall.clientDataMap);
 			interpreter.currentParserState = reportedStateDuringValidation;
 			AvailObject replacement;
 			try

@@ -186,19 +186,8 @@ public abstract class Interpreter
 	protected Interpreter (final AvailRuntime runtime)
 	{
 		this.runtime = runtime;
-
 		// Also initialize the fiber field.
-		fiber = FiberDescriptor.mutable().create();
-		fiber.name(StringDescriptor.from(String.format(
-			"unnamed, creation time = %d, hash = %d",
-			System.currentTimeMillis(),
-			fiber.hash())));
-		fiber.priority(IntegerDescriptor.fromUnsignedByte((short)50));
-		fiber.continuation(NullDescriptor.nullObject());
-		fiber.executionState(ExecutionState.RUNNING);
-		fiber.clearInterruptRequestFlags();
-		fiber.breakpointBlock(NullDescriptor.nullObject());
-		fiber.fiberGlobals(MapDescriptor.empty());
+		fiber = FiberDescriptor.create(ExecutionState.RUNNING);
 	}
 
 	/**
@@ -262,7 +251,7 @@ public abstract class Interpreter
 		final AvailObject method = runtime.methodFor(methodName);
 		final AvailObject newMethodDefinition =
 			MethodDefinitionDescriptor.create(method, bodyBlock);
-		module.addMethodDefinition(newMethodDefinition);
+		module.moduleAddDefinition(newMethodDefinition);
 		final AvailObject bodySignature = bodyBlock.kind();
 		AvailObject forward = null;
 		final AvailObject impsTuple = method.definitionsTuple();
@@ -315,7 +304,7 @@ public abstract class Interpreter
 		{
 			resolvedForwardWithName(forward, methodName);
 		}
-		method.addDefinition(newMethodDefinition);
+		method.methodAddDefinition(newMethodDefinition);
 		assert methodName.isAtom();
 		if (extendGrammar)
 		{
@@ -347,7 +336,7 @@ public abstract class Interpreter
 		final AvailObject newForward = ForwardDefinitionDescriptor.create(
 			method,
 			bodySignature);
-		module.addMethodDefinition(newForward);
+		module.moduleAddDefinition(newForward);
 		for (final AvailObject definition : method.definitionsTuple())
 		{
 			final AvailObject existingType = definition.bodySignature();
@@ -377,7 +366,7 @@ public abstract class Interpreter
 				}
 			}
 		}
-		method.addDefinition(newForward);
+		method.methodAddDefinition(newForward);
 		pendingForwards = pendingForwards.setWithElementCanDestroy(
 			newForward,
 			true);
@@ -427,7 +416,7 @@ public abstract class Interpreter
 		final AvailObject newDefinition = AbstractDefinitionDescriptor.create(
 			method,
 			bodySignature);
-		module.addMethodDefinition(newDefinition);
+		module.moduleAddDefinition(newDefinition);
 		@Nullable AvailObject forward = null;
 		for (final AvailObject existingDefinition : method.definitionsTuple())
 		{
@@ -469,7 +458,7 @@ public abstract class Interpreter
 		{
 			resolvedForwardWithName(forward, methodName);
 		}
-		method.addDefinition(newDefinition);
+		method.methodAddDefinition(newDefinition);
 		if (extendGrammar)
 		{
 			module.filteredBundleTree().includeBundle(
@@ -484,6 +473,8 @@ public abstract class Interpreter
 	 *
 	 * @param methodName
 	 *            The macro's name, an {@linkplain AtomDescriptor atom}.
+	 * @param prefixFunctions
+	 *            The tuple of prefix functions.
 	 * @param macroBody
 	 *            A {@linkplain FunctionDescriptor function} that manipulates parse
 	 *            nodes.
@@ -491,6 +482,7 @@ public abstract class Interpreter
 	 */
 	public void addMacroBody (
 		final AvailObject methodName,
+		final AvailObject prefixFunctions,
 		final AvailObject macroBody)
 	throws SignatureException
 	{
@@ -502,13 +494,17 @@ public abstract class Interpreter
 		final int numArgs = splitter.numberOfArguments();
 		assert macroBody.code().numArgs() == numArgs
 			: "Wrong number of arguments in macro definition";
-		//  Make it so we can safely hold onto these things in the VM
+		// Make it so we can safely hold onto these things in the VM
 		methodName.makeImmutable();
+		prefixFunctions.makeImmutable();
 		macroBody.makeImmutable();
-		//  Add the macro definition.
+		// Add the macro definition.
 		final AvailObject macroDefinition =
-			MacroDefinitionDescriptor.create(method, macroBody);
-		module.addMethodDefinition(macroDefinition);
+			MacroDefinitionDescriptor.create(
+				method,
+				prefixFunctions,
+				macroBody);
+		module.moduleAddDefinition(macroDefinition);
 		final AvailObject macroBodyType = macroBody.kind();
 		for (final AvailObject existingDefinition : method.definitionsTuple())
 		{
@@ -539,7 +535,7 @@ public abstract class Interpreter
 				}
 			}
 		}
-		method.addDefinition(macroDefinition);
+		method.methodAddDefinition(macroDefinition);
 		module.filteredBundleTree().includeBundle(
 			MessageBundleDescriptor.newBundle(methodName));
 	}
@@ -648,6 +644,46 @@ public abstract class Interpreter
 	}
 
 	/**
+	 * Attempt to add the declaration to the compiler scope information within
+	 * the client data stored in this interpreter's current fiber.
+	 *
+	 * @param declaration A {@link DeclarationNodeDescriptor declaration}.
+	 * @return {@code Null} if successful, otherwise an {@link AvailErrorCode}
+	 *         indicating the problem.
+	 */
+	public final @Nullable AvailErrorCode addDeclaration (
+		final AvailObject declaration)
+	{
+		final AvailObject clientDataGlobalKey =
+			AtomDescriptor.clientDataGlobalKey();
+		final AvailObject compilerScopeMapKey =
+			AtomDescriptor.compilerScopeMapKey();
+		AvailObject fiberGlobals = fiber.fiberGlobals();
+		AvailObject clientData = fiberGlobals.mapAt(clientDataGlobalKey);
+		AvailObject bindings = clientData.mapAt(compilerScopeMapKey);
+		final AvailObject declarationName = declaration.token().string();
+		if (bindings.hasKey(declarationName))
+		{
+			return E_LOCAL_DECLARATION_SHADOWS_ANOTHER;
+		}
+		bindings = bindings.mapAtPuttingCanDestroy(
+			declarationName,
+			declaration,
+			true);
+		clientData = clientData.mapAtPuttingCanDestroy(
+			compilerScopeMapKey,
+			bindings,
+			true);
+		fiberGlobals = fiberGlobals.mapAtPuttingCanDestroy(
+			clientDataGlobalKey,
+			clientData,
+			true);
+		fiberGlobals.makeImmutable();
+		fiber.fiberGlobals(fiberGlobals);
+		return null;
+	}
+
+	/**
 	 * Create a new atom with the given name.  The name does not have to be
 	 * unique, as it is only used as a visual hint about the purpose of an atom.
 	 *
@@ -745,12 +781,8 @@ public abstract class Interpreter
 	{
 		assert methodName.isAtom();
 
-		if (!runtime.hasMethodsAt(methodName))
-		{
-			error("Inconsistent forward declaration handling code");
-			return;
-		}
-		final AvailObject method = runtime.methodsAt(methodName);
+		assert runtime.hasMethodsAt(methodName);
+		final AvailObject method = runtime.methodAt(methodName);
 		assert !method.equalsNull();
 		if (!pendingForwards.hasElement(aForward))
 		{

@@ -526,10 +526,8 @@ public class L1Decompiler
 				outerDecl.token(),
 				outerDecl);
 			final AvailObject valueExpr = popExpression();
-			final AvailObject assignmentNode =
-				AssignmentNodeDescriptor.mutable().create();
-			assignmentNode.variable(variableUse);
-			assignmentNode.expression(valueExpr);
+			final AvailObject assignmentNode = AssignmentNodeDescriptor.from(
+				variableUse, valueExpr, false);
 			if (expressionStack.isEmpty())
 			{
 				statements.add(assignmentNode);
@@ -648,9 +646,7 @@ public class L1Decompiler
 				globalToken,
 				decl);
 			final AvailObject assignmentNode =
-				AssignmentNodeDescriptor.mutable().create();
-			assignmentNode.variable(varUse);
-			assignmentNode.expression(popExpression());
+				AssignmentNodeDescriptor.from(varUse, popExpression(), false);
 			if (expressionStack.isEmpty())
 			{
 				statements.add(assignmentNode);

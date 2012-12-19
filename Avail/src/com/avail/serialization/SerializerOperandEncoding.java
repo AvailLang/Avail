@@ -283,7 +283,7 @@ enum SerializerOperandEncoding
 		{
 			final int slotsCount = readCompressedPositiveInt(deserializer);
 			final AvailObject newInteger =
-				IntegerDescriptor.mutable().create(slotsCount);
+				IntegerDescriptor.createUninitialized(slotsCount);
 			for (int i = slotsCount; i >= 1; i--)
 			{
 				newInteger.rawSignedIntegerAtPut(i, deserializer.readInt());
@@ -333,7 +333,7 @@ enum SerializerOperandEncoding
 		{
 			final int tupleSize = readCompressedPositiveInt(deserializer);
 			final AvailObject newTuple =
-				ObjectTupleDescriptor.mutable().create(tupleSize);
+				ObjectTupleDescriptor.createUninitialized(tupleSize);
 			for (int i = 1; i <= tupleSize; i++)
 			{
 				final int objectIndex = readCompressedPositiveInt(deserializer);

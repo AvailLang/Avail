@@ -52,7 +52,7 @@ Uses
 		"Forward method_is_",
 		"Grammatical restriction_is_",
 		"Invoke|invoke_with_",
-		"Macro_is_",
+		"Macro_is«_,»_",
 		"Mark for_character|characters of read ahead",
 		"Publish new name:_",
 		"Remove_[_]",
@@ -958,16 +958,24 @@ Primitive "Semantic restriction_is_" is
  * built this parse node from the original tokens instead of the macro
  * invocation parse node.
  *
+ * If a macro name contains the section sign (§), it must have a prefix function
+ * for each occurrence of that character in the name.  The prefix function will
+ * be invoked each time that character is "reached" in the method name while
+ * parsing a potential call site, giving the macro the opportunity to alter the
+ * current variable scope and other parsing state.
+ *
  * Macro definitions are parametric by parameter types. They participate in
  * multiply polymorphic dispatch just as do methods.
  *
  * Parameters:
  *    macroName - The name of the macro to define.
+ *    prefixFunctions - A tuple of zero or more prefix functions.
  *    body - The function that implements the macro.
  */
-Primitive "Macro_is_" is
+Primitive "Macro_is«_,»_" is
 [
 	macroName : string,
+	prefixFunctions : tuple of functions,
 	body : macro function
 |
 	Primitive 249 (failureCode : natural number);

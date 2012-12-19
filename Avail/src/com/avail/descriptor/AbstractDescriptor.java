@@ -147,7 +147,7 @@ public abstract class AbstractDescriptor
 	 * @return The minimum number of object slots featured by an object using
 	 *         this {@linkplain AbstractDescriptor descriptor}.
 	 */
-	public final int numberOfFixedObjectSlots ()
+	final int numberOfFixedObjectSlots ()
 	{
 		return numberOfFixedObjectSlots;
 	}
@@ -169,7 +169,7 @@ public abstract class AbstractDescriptor
 	 * @return The minimum number of integer slots featured by an object using
 	 *         this {@linkplain AbstractDescriptor descriptor}.
 	 */
-	public final int numberOfFixedIntegerSlots ()
+	final int numberOfFixedIntegerSlots ()
 	{
 		return numberOfFixedIntegerSlots;
 	}
@@ -398,7 +398,7 @@ public abstract class AbstractDescriptor
 	 * @return
 	 */
 	@SuppressWarnings("unchecked")
-	public AvailObjectFieldHelper[] o_DescribeForDebugger (
+	AvailObjectFieldHelper[] o_DescribeForDebugger (
 		final AvailObject object)
 	{
 		final List<AvailObjectFieldHelper> fields =
@@ -546,7 +546,7 @@ public abstract class AbstractDescriptor
 	 * @param indexedSlotCount The number of variable slots to include.
 	 * @return The new uninitialized {@linkplain AvailObject object}.
 	 */
-	public final AvailObject create (final int indexedSlotCount)
+	final AvailObject create (final int indexedSlotCount)
 	{
 		return AvailObject.newIndexedDescriptor(indexedSlotCount, this);
 	}
@@ -558,7 +558,7 @@ public abstract class AbstractDescriptor
 	 *
 	 * @return The new uninitialized {@linkplain AvailObject object}.
 	 */
-	public final AvailObject create ()
+	final AvailObject create ()
 	{
 		return AvailObject.newIndexedDescriptor(0, this);
 	}
@@ -1012,9 +1012,9 @@ public abstract class AbstractDescriptor
 	 * @param definition The definition to be added.
 	 * @throws SignatureException
 	 *         If the definition could not be added.
-	 * @see AvailObject#addDefinition(AvailObject)
+	 * @see AvailObject#methodAddDefinition(AvailObject)
 	 */
-	abstract void o_AddDefinition (
+	abstract void o_MethodAddDefinition (
 			AvailObject object,
 			AvailObject definition)
 		throws SignatureException;
@@ -1091,7 +1091,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @param definition
 	 */
-	abstract void o_AddMethodDefinition (
+	abstract void o_ModuleAddDefinition (
 		AvailObject object,
 		AvailObject definition);
 
@@ -5658,7 +5658,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	public boolean o_ShowValueInNameForDebugger (
+	boolean o_ShowValueInNameForDebugger (
 		final AvailObject object)
 	{
 		return true;
@@ -5764,6 +5764,13 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	public abstract AvailObject o_DefinitionMethod (
+	abstract AvailObject o_DefinitionMethod (
+		final AvailObject object);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract AvailObject o_PrefixFunctions (
 		final AvailObject object);
 }

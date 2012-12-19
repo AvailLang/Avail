@@ -73,8 +73,7 @@ public class P_142_TupleTypeSequenceOfTypes extends Primitive
 			return interpreter.primitiveFailure(E_NEGATIVE_SIZE);
 		}
 		AvailObject tupleObject =
-			ObjectTupleDescriptor.mutable().create(tupleSize);
-		tupleObject.hashOrZero(0);
+			ObjectTupleDescriptor.createUninitialized(tupleSize);
 		for (int i = 1; i <= tupleSize; i++)
 		{
 			tupleObject.tupleAtPut(i, NullDescriptor.nullObject());

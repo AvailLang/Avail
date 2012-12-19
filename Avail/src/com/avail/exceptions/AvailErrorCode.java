@@ -32,13 +32,14 @@
 
 package com.avail.exceptions;
 
+import static com.avail.interpreter.Primitive.Flag.*;
 import java.lang.reflect.*;
 import java.util.*;
 import com.avail.AvailRuntime;
 import com.avail.compiler.MessageSplitter;
 import com.avail.descriptor.*;
 import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
-import com.avail.interpreter.primitive.*;
+import com.avail.interpreter.*;
 
 /**
  * {@code AvailErrorCode} is an enumeration of all possible failures of
@@ -387,20 +388,67 @@ public enum AvailErrorCode
 	E_INCORRECT_TYPE_FOR_NUMBERED_CHOICE (57),
 
 	/**
-	 * An invocation of the {@linkplain P_403_BootstrapLabelMacro label phrase}
-	 * macro was encountered outside of any block.
+	 * A {@link Primitive} has the flag {@linkplain #CannotFail}, so it should
+	 * not have any statements to run in the event of a failed primitive.
 	 */
-	E_LABEL_MACRO_MUST_OCCUR_INSIDE_A_BLOCK (58),
+	E_INFALLIBLE_PRIMITIVE_MUST_NOT_HAVE_STATEMENTS (58),
 
 	/**
-	 * TODO: Recycle!
+	 * A macro prefix function is invoked when a potential macro site reaches
+	 * certain checkpoints.  Only the macro body may return a parse node.  One
+	 * of the prefix functions did not have return type ⊤.
 	 */
-//	E_??? (59),
+	E_MACRO_PREFIX_FUNCTIONS_MUST_RETURN_TOP (59),
 
 	/**
-	 * TODO: Recycle!
+	 * A {@link Primitive} either has the flag {@linkplain #CannotFail} and has
+	 * a failure variable, or it does not have that flag and has no failure
+	 * variable.
 	 */
-//	E_??? (60),
+	E_PRIMITIVE_FALLIBILITY_DISAGREES_WITH_FAILURE_VARIABLE (60),
+
+	/**
+	 * The type of value returned by the implicit return at the end of a
+	 * {@linkplain BlockNodeDescriptor block} should be a subtype of the block's
+	 * explicit return type declaration.
+	 */
+	E_FINAL_EXPRESSION_SHOULD_AGREE_WITH_DECLARED_RETURN_TYPE (61),
+
+	/**
+	 * The type of value potentially returned by a block's {@link Primitive}
+	 * should be a subtype of the block's explicit return type declaration.
+	 */
+	E_PRIMITIVE_SHOULD_AGREE_WITH_DECLARED_RETURN_TYPE (62),
+
+	/**
+	 * A label's return type should be a subtype of the containing block's
+	 * declared return type.
+	 */
+	E_LABEL_TYPE_SHOULD_AGREE_WITH_DECLARED_RETURN_TYPE (63),
+
+	/**
+	 * If a primitive declaration or label is specified, then a block must
+	 * have an explicitly declared return type.
+	 */
+	E_RETURN_TYPE_IS_MANDATORY_WITH_PRIMITIVES_OR_LABELS (64),
+
+	/**
+	 * A {@link DeclarationNodeDescriptor declaration} is of type {@linkplain
+	 * TopTypeDescriptor top} or {@linkplain BottomTypeDescriptor bottom}, which
+	 * is not allowed.
+	 */
+	E_DECLARATION_TYPE_MUST_NOT_BE_TOP_OR_BOTTOM (65),
+
+	/**
+	 * A {@LINK DeclarationNodeDescriptor declaration} has the same name as
+	 * another declaration in the current scope or an enclosing scope.  This is
+	 * not allowed.
+	 */
+	E_LOCAL_DECLARATION_SHADOWS_ANOTHER (66),
+
+//	E_??? (67),
+//	E_??? (68),
+//	E_??? (69),
 
 	/**
 	 * Compilation is over. The interpreter is now operating in runtime mode.

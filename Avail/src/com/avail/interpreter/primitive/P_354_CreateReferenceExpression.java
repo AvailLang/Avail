@@ -69,9 +69,7 @@ public class P_354_CreateReferenceExpression extends Primitive
 			return interpreter.primitiveFailure(
 				E_DECLARATION_KIND_DOES_NOT_SUPPORT_REFERENCE);
 		}
-		final AvailObject reference =
-			ReferenceNodeDescriptor.mutable().create();
-		reference.variable(variable);
+		final AvailObject reference = ReferenceNodeDescriptor.fromUse(variable);
 		return interpreter.primitiveSuccess(reference);
 	}
 

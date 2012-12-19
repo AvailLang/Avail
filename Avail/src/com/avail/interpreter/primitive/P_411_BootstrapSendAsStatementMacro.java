@@ -1,5 +1,5 @@
 /**
- * P_405_BootstrapConstantDeclarationMacro.java
+ * P_411_BootstrapSendAsStatementMacro.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -34,7 +34,6 @@ package com.avail.interpreter.primitive;
 
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
-import static com.avail.descriptor.TokenDescriptor.TokenType.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.*;
 import com.avail.compiler.AvailRejectedParseException;
@@ -42,68 +41,35 @@ import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 
 /**
- * The {@code P_405_BootstrapConstantDeclarationMacro} primitive is used
- * for bootstrapping declaration of a {@link #LOCAL_CONSTANT_NODE local
- * constant declaration}.
+ * The {@code P_411_BootstrapSendAsStatementMacro} primitive is used to allow
+ * message sends producing ⊤ to be used as statements.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class P_405_BootstrapConstantDeclarationMacro extends Primitive
+public class P_411_BootstrapSendAsStatementMacro extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_405_BootstrapConstantDeclarationMacro().init(
-			2, CannotFail, Bootstrap);
+		new P_411_BootstrapSendAsStatementMacro().init(
+			1, CannotFail, Bootstrap);
 
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 2;
-		final AvailObject constantNameLiteralNode = args.get(0);
-		final AvailObject initializationExpression = args.get(1);
+		assert args.size() == 1;
+		final AvailObject sendNode = args.get(0);
 
-		assert constantNameLiteralNode.isInstanceOfKind(
-			LITERAL_NODE.mostGeneralType());
-		final AvailObject syntheticLiteralNameToken =
-			constantNameLiteralNode.token();
-		assert syntheticLiteralNameToken.isLiteralToken();
-		assert syntheticLiteralNameToken.tokenType() == SYNTHETIC_LITERAL;
-		final AvailObject innerNameToken = syntheticLiteralNameToken.literal();
-		assert innerNameToken.isInstanceOfKind(TOKEN.o());
-
-		if (innerNameToken.tokenType() != KEYWORD)
+		if (!sendNode.expressionType().equals(TOP.o()))
 		{
 			throw new AvailRejectedParseException(
 				StringDescriptor.from(
-					"Constant name to be alphanumeric"));
+					"statement's type to be ⊤"));
 		}
-		final AvailObject initializationType =
-			initializationExpression.expressionType();
-		if (initializationType.equals(TOP.o()))
-		{
-			throw new AvailRejectedParseException(
-				StringDescriptor.from(
-					"constant initialization expression to have a type"
-					+ " other than ⊤"));
-		}
-		if (initializationType.equals(BottomTypeDescriptor.bottom()))
-		{
-			throw new AvailRejectedParseException(
-				StringDescriptor.from(
-					"constant initialization expression to have a type"
-					+ " other than ⊥"));
-		}
-
-		final AvailObject constantDeclaration =
-			DeclarationNodeDescriptor.newConstant(
-				innerNameToken,
-				initializationExpression);
-		constantDeclaration.makeImmutable();
-		return interpreter.primitiveSuccess(constantDeclaration);
+		return interpreter.primitiveSuccess(sendNode);
 	}
 
 	@Override
@@ -111,10 +77,8 @@ public class P_405_BootstrapConstantDeclarationMacro extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				/* Constant name token as a literal node */
-				LITERAL_NODE.create(TOKEN.o()),
-				/* Initialization expression */
-				EXPRESSION_NODE.create(ANY.o())),
-			LOCAL_CONSTANT_NODE.mostGeneralType());
+				/* The send node to treat as a statement */
+				SEND_NODE.mostGeneralType()),
+			SEND_NODE.mostGeneralType());
 	}
 }

@@ -1,5 +1,5 @@
 /**
- * P_407_BootstrapAssignmentMacro.java
+ * P_409_BootstrapVariableReferenceMacro.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -35,40 +35,45 @@ package com.avail.interpreter.primitive;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.*;
+import com.avail.compiler.AvailRejectedParseException;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 
 /**
- * The {@code P_407_BootstrapAssignmentMacro} primitive is used for
- * assignment statements.
+ * The {@code P_409_BootstrapVariableReferenceMacro} primitive is used to create
+ * {@link ReferenceNodeDescriptor variable reference} phrases.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class P_407_BootstrapAssignmentMacro extends Primitive
+public class P_409_BootstrapVariableReferenceMacro extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_407_BootstrapAssignmentMacro().init(
-			2, CannotFail, Bootstrap);
+		new P_409_BootstrapVariableReferenceMacro().init(
+			1, CannotFail, Bootstrap);
 
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 2;
+		assert args.size() == 1;
 		final AvailObject variableUse = args.get(0);
-		final AvailObject valueExpression = args.get(1);
 
-		//TODO[MvG]: Check type compatibility.
-		final AvailObject assignment = AssignmentNodeDescriptor.from(
-			variableUse,
-			valueExpression,
-			false);
-		assignment.makeImmutable();
-		return interpreter.primitiveSuccess(assignment);
+		final AvailObject declaration = variableUse.declaration();
+		if (!declaration.declarationKind().isVariable())
+		{
+			throw new AvailRejectedParseException(
+				StringDescriptor.from(
+					"a variable that supports reference-taking, not a "
+					+ declaration.declarationKind().nativeKindName()));
+		}
+		final AvailObject reference = ReferenceNodeDescriptor.fromUse(
+			variableUse);
+		reference.makeImmutable();
+		return interpreter.primitiveSuccess(reference);
 	}
 
 	@Override
@@ -76,10 +81,8 @@ public class P_407_BootstrapAssignmentMacro extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				/* Assignment variable */
-				VARIABLE_USE_NODE.mostGeneralType(),
-				/* Assignment value */
-				EXPRESSION_NODE.mostGeneralType()),
-			LOCAL_VARIABLE_NODE.mostGeneralType());
+				/* Variable use */
+				VARIABLE_USE_NODE.mostGeneralType()),
+			REFERENCE_NODE.mostGeneralType());
 	}
 }

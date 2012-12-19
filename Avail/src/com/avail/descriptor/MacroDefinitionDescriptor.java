@@ -77,8 +77,17 @@ extends DefinitionDescriptor
 		DEFINITION_METHOD,
 
 		/**
+		 * The {@linkplain TupleDescriptor tuple} of prefix {@linkplain
+		 * FunctionDescriptor functions} to invoke at parse points corresponding
+		 * to occurrences of the {@linkplain StringDescriptor#sectionSign()
+		 * section sign} (§) in the method name.
+		 */
+		PREFIX_FUNCTIONS,
+
+		/**
 		 * The {@linkplain FunctionDescriptor function} to invoke to transform
-		 * the argument parse nodes into a suitable replacement parse node.
+		 * the (complete) argument parse nodes into a suitable replacement parse
+		 * node.
 		 */
 		BODY_BLOCK;
 
@@ -97,6 +106,13 @@ extends DefinitionDescriptor
 		final AvailObject object)
 	{
 		return object.bodyBlock().kind();
+	}
+
+	@Override @AvailMethod
+	AvailObject o_PrefixFunctions (
+		final AvailObject object)
+	{
+		return object.slot(PREFIX_FUNCTIONS);
 	}
 
 	@Override @AvailMethod
@@ -140,7 +156,11 @@ extends DefinitionDescriptor
 	 *
 	 * @param method
 	 *            The {@linkplain MethodDescriptor method} in which to define
-	 *            this macro.
+	 *            this macro definition.
+	 * @param prefixFunctions
+	 *            The tuple of functions to invoke as the {@linkplain
+	 *            StringDescriptor#sectionSign() section signs} (§) are
+	 *            "reached" while parsing invocations of the method.
 	 * @param bodyBlock
 	 *            The body of the signature.  This will be invoked when a call
 	 *            site is compiled, passing the sub<em>expressions</em> (
@@ -150,10 +170,12 @@ extends DefinitionDescriptor
 	 */
 	public static AvailObject create (
 		final AvailObject method,
+		final AvailObject prefixFunctions,
 		final AvailObject bodyBlock)
 	{
 		final AvailObject instance = mutable().create();
 		instance.setSlot(DEFINITION_METHOD, method);
+		instance.setSlot(PREFIX_FUNCTIONS, prefixFunctions);
 		instance.setSlot(BODY_BLOCK, bodyBlock);
 		instance.makeImmutable();
 		return instance;

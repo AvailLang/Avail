@@ -1,5 +1,5 @@
 /**
- * P_408_BootstrapVariableReferenceMacro.java
+ * P_408_BootstrapAssignmentMacro.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -35,36 +35,59 @@ package com.avail.interpreter.primitive;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.*;
+import com.avail.compiler.AvailRejectedParseException;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 
 /**
- * The {@code P_408_BootstrapVariableReferenceMacro} primitive is used to create
- * {@link ReferenceNodeDescriptor variable reference} phrases.
+ * The {@code P_408_BootstrapAssignmentMacro} primitive is used for
+ * assignment statements.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class P_408_BootstrapVariableReferenceMacro extends Primitive
+public class P_408_BootstrapAssignmentMacro extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_408_BootstrapVariableReferenceMacro().init(
-			1, CannotFail, Bootstrap);
+		new P_408_BootstrapAssignmentMacro().init(
+			2, CannotFail, Bootstrap);
 
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 1;
+		assert args.size() == 2;
 		final AvailObject variableUse = args.get(0);
+		final AvailObject valueExpression = args.get(1);
 
-		final AvailObject reference = ReferenceNodeDescriptor.fromUse(
-			variableUse);
-		reference.makeImmutable();
-		return interpreter.primitiveSuccess(reference);
+		final AvailObject declaration = variableUse.declaration();
+		if (!declaration.declarationKind().isVariable())
+		{
+			throw new AvailRejectedParseException(
+				StringDescriptor.from(
+					"a name of a variable, not a "
+					+ declaration.declarationKind().nativeKindName()));
+		}
+		if (!valueExpression.expressionType().isSubtypeOf(
+			declaration.declaredType()))
+		{
+			throw new AvailRejectedParseException(
+				StringDescriptor.from(
+					String.format(
+						"assignment expression's type (%s) "
+						+ "to match variable type (%s)",
+						valueExpression.expressionType(),
+						declaration.declaredType().expressionType())));
+		}
+		final AvailObject assignment = AssignmentNodeDescriptor.from(
+			variableUse,
+			valueExpression,
+			false);
+		assignment.makeImmutable();
+		return interpreter.primitiveSuccess(assignment);
 	}
 
 	@Override
@@ -72,8 +95,10 @@ public class P_408_BootstrapVariableReferenceMacro extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				/* Variable use */
-				DECLARATION_NODE.mostGeneralType()),
+				/* Assignment variable */
+				VARIABLE_USE_NODE.mostGeneralType(),
+				/* Assignment value */
+				EXPRESSION_NODE.mostGeneralType()),
 			LOCAL_VARIABLE_NODE.mostGeneralType());
 	}
 }

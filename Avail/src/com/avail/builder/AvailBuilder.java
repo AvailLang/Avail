@@ -371,7 +371,7 @@ public final class AvailBuilder
 				}
 			}
 		});
-		thread.run();
+		thread.start();
 		thread.join();
 		if (killer.value != null)
 		{
