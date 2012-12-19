@@ -1,0 +1,271 @@
+/*
+ * File Iterators.avail
+ * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+System Module "File Iterators"
+Versions
+	"dev"
+Extends
+	"Data Abstractions" = ("_'s⁇position"),
+	"Primitives" =
+	(
+		"Close_",
+		"Using|using_,⁇do_",
+		"_is closed",
+		"_is open"
+	)
+Uses
+	"Common",
+	"Data Abstractions",
+	"Foundation",
+	"Primitives",
+	"Unit Testing"
+Names
+	/* Types. */
+	"file iterator",
+	"readable file iterator",
+
+	/* Constructors. */
+	"a file iterator for_«that buffers_bytes»"
+Body
+
+/**
+ * A file iterator buffers bytes obtained from a backing {@type "file"}.
+ *
+ * @type "file iterator"
+ * @supertype "positionable buffered iterator"
+ */
+Public class "file iterator" extends positionable buffered iterator
+	with field
+		element type : [0..255]'s type,
+		position type : natural number's type,
+		element source : file;
+
+Public class "readable file iterator" extends file iterator
+	with field
+		element source : readable file;
+
+file iterator's next buffer method is
+[
+	anIterator : readable file iterator
+|
+	next anIterator's maximum buffer size bytes from anIterator's element source
+] : <[0..255]…|>;
+
+file iterator's set position method is
+[
+	anIterator : readable file iterator,
+	pos : natural number
+|
+	anIterator's element source's position := pos;
+] : ⊤;
+
+/**
+ * Construct and answer a {@type "readable file iterator"} that is open on the
+ * file named by {@param "fn"}.
+ *
+ * @method "a file iterator for_«that buffers_bytes»"
+ * @param "fn" "file name"
+ *    The {@method "file name"} of the target file.
+ * @param "optionalSize" "<[2..∞)…|0..1>"
+ *    If specified, the number of bytes to buffer from the underlying {@type
+ *    "file"}. If not specified, then a default value is used.
+ * @returns "readable file iterator"
+ * @raises "permission-denied exception"
+ *    If permission is denied to use the specified {@type "file name"}.
+ * @raises "I/O exception"
+ *    If an I/O error occurs for any reason.
+ */
+Public method "a file iterator for_«that buffers_bytes»" is
+[
+	fn : file name,
+	optionalSize : <[2..∞)…|0..1>
+|
+	size ::= optionalSize[1] else [32768];
+	a readable file iterator with
+		element type ::= [0..255],
+		position type ::= natural number,
+		element source ::= a readable file named fn,
+		maximum buffer size ::= size
+] : readable file iterator;
+
+/**
+ * Is the {@type "file"} underlying the specified {@type "file iterator"} open?
+ *
+ * @method "_is open"
+ * @param "anIterator" "file iterator"
+ * @returns "boolean"
+ *    {@method "true"} if {@param "anIterator"} is open, {@method "false"}
+ *    otherwise.
+ */
+Method "_is open" is
+[
+	anIterator : file iterator
+|
+	anIterator's element source is open
+] : boolean;
+
+/**
+ * Is the {@type "file"} underlying the specified {@type "file iterator"}
+ * closed?
+ *
+ * @method "_is closed"
+ * @param "anIterator" "file iterator"
+ * @returns "boolean"
+ *    {@method "true"} if {@param "anIterator"} is closed, {@method "false"}
+ *    otherwise.
+ */
+Method "_is closed" is
+[
+	anIterator : file iterator
+|
+	anIterator's element source is closed
+] : boolean;
+
+/**
+ * Close the {@type "file"} underlying the specified {@type "file iterator"}.
+ *
+ * @method "Close_"
+ * @param "anIterator" "file iterator"
+ * @raises "file-closed exception"
+ *    If {@param "anIterator"} has already been closed.
+ */
+Method "Close_" is
+[
+	anIterator : file iterator
+|
+	Close anIterator's element source;
+];
+
+/**
+ * Perform the specified {@type "function" action}, passing {@param
+ * "anIterator"} as the argument. Whether the action completes normally or
+ * raises an exception, {@method "Close_" close} {@param "anIterator"}.
+ *
+ * @method "Using|using_,⁇do_"
+ * @param "anIterator" "file iterator"
+ *    A file iterator, typically opened very near the send of this method. The
+ *    argument position works especially well.
+ * @param "action" "[⊥]→⊤"
+ *    A function to apply to {@param "anIterator"}.
+ * @returns "⊤"
+ *    The answer produced by applying {@param "action"} to {@param
+ *    "anIterator"}.
+ */
+Method "Using|using_,⁇do_" is
+[
+	anIterator : file iterator,
+	action : [⊥]→⊤
+|
+	Guard [action(anIterator);]
+	ensure [Close anIterator;];
+] : ⊤;
+
+Semantic restriction "Using|using_,⁇do_" is
+[
+	anIterator : file iterator's type,
+	action : [⊥]→⊤'s type
+|
+	If ¬anIterator ⊆ action[1] then
+	[
+		Reject parse, expected:
+			format
+				"function to accept the specified file iterator \
+				\|(but “①” is not a subtype of “②”)"
+			with anIterator, action[1]
+	];
+	action's return type
+];
+
+"file iterator test suite" is a new atom;
+New test suite file iterator test suite extends I/O test suite;
+
+/* The test directory. */
+testDir ::= test directory;
+
+Test "file iterator(readable)" in file iterator test suite is
+[
+	ref ::= map "abracadabra" through [c : character | c's code point];
+	fn ::= testDir ++ "/abracadabra.txt" as file name;
+	iter ::= a file iterator for fn;
+	Require: iter is open;
+	Require: ref = take at most ∞ from iter;
+	Require: iter is exhausted;
+	Require: iter is open;
+	Close iter;
+	Require: iter is closed;
+];
+
+Test "file iterator(readable,small buffer)" in file iterator test suite is
+[
+	ref ::= map "abracadabra" through [c : character | c's code point];
+	fn ::= testDir ++ "/abracadabra.txt" as file name;
+	iter ::= a file iterator for fn that buffers 3 bytes;
+	Require: iter is open;
+	Require: ref = take at most ∞ from iter;
+	Require: iter is exhausted;
+	Require: iter is open;
+	Close iter;
+	Require: iter is closed;
+];
+
+Test "file iterator(readable,reposition)" in file iterator test suite is
+[
+	ref ::= map "abracadabra" through [c : character | c's code point];
+	fn ::= testDir ++ "/abracadabra.txt" as file name;
+	iter ::= a file iterator for fn;
+	Require: iter is open;
+	Require: ref = take at most ∞ from iter;
+	Require: iter is exhausted;
+	Require: iter is open;
+	iter's position := 1;
+	Require: ref = take at most ∞ from iter;
+	Require: iter is exhausted;
+	Require: iter is open;
+	Close iter;
+	Require: iter is closed;
+];
+
+Test "file iterator(double close)" in file iterator test suite is
+[
+	fn ::= testDir ++ "/abracadabra.txt" as file name;
+	iter ::= a file iterator for fn;
+	Close iter;
+	Close iter;
+]
+must raise file-closed exception;
+
+Test "file iterator(can't open for reading)" in file iterator test suite is
+[
+	fn ::= testDir ++ "/doesntexist.txt" as file name;
+	iter ::= a file iterator for fn;
+]
+must raise I/O exception;

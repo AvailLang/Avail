@@ -33,6 +33,7 @@
 System Module "Files"
 Versions
 	"dev"
-Uses
+Extends
+	"File Iterators",
 	"Primitives"
 Body

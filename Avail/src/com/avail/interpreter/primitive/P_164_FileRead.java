@@ -44,9 +44,10 @@ import com.avail.interpreter.*;
  * the {@linkplain RandomAccessFile file} associated with the specified
  * {@linkplain AtomDescriptor handle} and answer them as a {@linkplain
  * ByteTupleDescriptor tuple} of bytes. If fewer bytes are available, then
- * simply return a shorter tuple. If the request amount is infinite, then
- * answer a tuple containing all remaining bytes, or a very large buffer
- * size, whichever is less. Reading begins at the current file position.
+ * simply return a shorter tuple; an empty tuple indicates that the end of the
+ * file has been reached. If the request amount is infinite, then answer a tuple
+ * containing all remaining bytes, or a very large buffer size, whichever is
+ * less. Reading begins at the current file position.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
@@ -76,7 +77,7 @@ extends Primitive
 			return interpreter.primitiveFailure(E_INVALID_HANDLE);
 		}
 		final RandomAccessFile file = (RandomAccessFile) pojo.javaObject();
-		final byte[] buffer;
+		byte[] buffer;
 		final int bytesRead;
 		try
 		{
@@ -97,10 +98,19 @@ extends Primitive
 		{
 			return interpreter.primitiveFailure(E_IO_ERROR);
 		}
-		final AvailObject tuple = bytesRead > 0
-			? ByteArrayTupleDescriptor.forByteArray(buffer)
-			: TupleDescriptor.empty();
-		return interpreter.primitiveSuccess(tuple);
+		/* End of file has been reached. */
+		if (bytesRead == -1)
+		{
+			return interpreter.primitiveSuccess(TupleDescriptor.empty());
+		}
+		if (bytesRead < buffer.length)
+		{
+			final byte[] newBuffer = new byte[bytesRead];
+			System.arraycopy(buffer, 0, newBuffer, 0, bytesRead);
+			buffer = newBuffer;
+		}
+		return interpreter.primitiveSuccess(
+			ByteArrayTupleDescriptor.forByteArray(buffer));
 	}
 
 	@Override

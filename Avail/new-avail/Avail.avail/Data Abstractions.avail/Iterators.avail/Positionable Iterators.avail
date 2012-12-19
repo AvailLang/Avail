@@ -43,6 +43,7 @@ Names
 	"positionable iterator",
 	"_positioned by_",
 	"_'s⁇position",
+	"_'s⁇position type",
 	"_'s⁇position:=_"
 Body
 
@@ -59,7 +60,7 @@ Body
  */
 Public class "positionable iterator" extends iterator
 	with fields
-		position type : any's type;
+		public position type : any's type;
 
 /**
  * Construct and answer a {@type "positionable iterator"} type from the

@@ -56,6 +56,8 @@ Names
 	"Drop from_until_",
 	"Drop from_while_",
 	"Drop«at most»?_from_",
+	"Seal_'s⁇current element method",
+	"Seal_'s⁇advance method",
 	"an exhausted iterator",
 	"decorated iterator|iterators",
 	"exhausted iterator",
@@ -205,6 +207,19 @@ Semantic restriction "_'s⁇current element method is_" is
 	⊤
 ];
 
+/**
+ * Seal the current element method at the specified {@type "iterator"} type.
+ *
+ * @method "Seal_'s⁇current element method"
+ * @param "iteratorType" "iterator's type"
+ */
+Public method "Seal_'s⁇current element method" is
+[
+	iteratorType : iterator's type
+|
+	Seal method privateCurrentElementName at <iteratorType>;
+] : ⊤;
+
 Private abstract method privateAdvanceName is [iterator]→⊤;
 
 /**
@@ -274,6 +289,19 @@ Semantic restriction "_'s⁇advance method is_" is
 	];
 	⊤
 ];
+
+/**
+ * Seal the advance method at the specified {@type "iterator"} type.
+ *
+ * @method "Seal_'s⁇advance method"
+ * @param "iteratorType" "iterator's type"
+ */
+Public method "Seal_'s⁇advance method" is
+[
+	iteratorType : iterator's type
+|
+	Seal method privateAdvanceName at <iteratorType>;
+] : ⊤;
 
 /**
  * An exhausted iterator has ⊥ as its element type.
@@ -853,7 +881,7 @@ Semantic restriction "«_‡zip»" is zip semantic restriction;
  *        {@code false} if an {@type "exhausted-iterator exception"} should be
  *        raised if {@param "count"} exceeds the number of elements remaining,
  *        {@code true} otherwise.
- * @param "count" "whole number"
+ * @param "count" "[0..∞]"
  *        The size of the requested tuple.
  * @param "anIterator" "iterator"
  *        An iterator.
@@ -867,7 +895,7 @@ Semantic restriction "«_‡zip»" is zip semantic restriction;
 Method "take«at most»?_from_" is
 [
 	isLax : boolean,
-	count : whole number,
+	count : [0..∞],
 	anIterator : iterator
 |
 	result : tuple := <>;
@@ -875,7 +903,8 @@ Method "take«at most»?_from_" is
 	[
 		Repeat
 		[
-			result := eject ↑result ++ <anIterator's current element>;
+			next ::= anIterator's current element;
+			result := eject ↑result ++ <next>;
 			Advance anIterator;
 		] count times;
 	]
@@ -891,10 +920,10 @@ Method "take«at most»?_from_" is
 Semantic restriction "take«at most»?_from_" is
 [
 	laxity : boolean's type,
-	count : whole number's type,
+	count : [0..∞]'s type,
 	iteratorType : iterator's type
 |
-	min ::= if laxity = true then [0] else [⎣count⎦];
+	min ::= if laxity = true's type then [0] else [⎣count⎦];
 	<<>, iteratorType's element type's instance…|[min..⎡count⎤+1)>
 ];
 

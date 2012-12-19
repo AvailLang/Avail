@@ -37,8 +37,14 @@ Uses
 	"Foundation",
 	"Unit Testing"
 Names
-	"I/O test suite"
+	"I/O test suite",
+	"test directory"
 Body
 
 "I/O test suite" is a new atom;
 I/O test suite is a new test suite;
+
+Public method "test directory" is
+[
+	"new-avail/Avail.avail/IO.avail/Files.avail/test"
+];

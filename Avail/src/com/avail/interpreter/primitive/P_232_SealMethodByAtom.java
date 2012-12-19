@@ -1,5 +1,5 @@
 /**
- * P_226_SealMethod.java
+ * P_232_SealMethodByAtom.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -40,20 +40,20 @@ import com.avail.exceptions.*;
 import com.avail.interpreter.*;
 
 /**
- * <strong>Primitive 226</strong>: Seal the named {@linkplain MethodDescriptor
+ * <strong>Primitive 232</strong>: Seal the named {@linkplain MethodDescriptor
  * method} at the specified {@linkplain TupleTypeDescriptor signature}. No
  * further definitions may be added below this signature.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class P_226_SealMethod
+public final class P_232_SealMethodByAtom
 extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_226_SealMethod().init(2, CanInline, HasSideEffect);
+		new P_232_SealMethodByAtom().init(2, CanInline, HasSideEffect);
 
 	@Override
 	public Result attempt (
@@ -65,13 +65,7 @@ extends Primitive
 		final AvailObject sealSignature = args.get(1);
 		try
 		{
-			interpreter.addSeal(
-				interpreter.lookupName(methodName),
-				sealSignature);
-		}
-		catch (final AmbiguousNameException e)
-		{
-			return interpreter.primitiveFailure(e);
+			interpreter.addSeal(methodName, sealSignature);
 		}
 		catch (final SignatureException e)
 		{
@@ -85,7 +79,7 @@ extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				TupleTypeDescriptor.stringTupleType(),
+				ATOM.o(),
 				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 					IntegerRangeTypeDescriptor.wholeNumbers(),
 					TupleDescriptor.from(),
