@@ -737,7 +737,7 @@ public abstract class AbstractDescriptor
 	 * @param builder Where to write the description.
 	 */
 	static void describeIntegerSlot (
-		final AvailObject object,
+		final @Nullable AvailObject object,
 		final int value,
 		final IntegerSlotsEnum slot,
 		final StringBuilder builder)
@@ -833,6 +833,7 @@ public abstract class AbstractDescriptor
 			else if (!bitFields.isEmpty())
 			{
 				// Show each bit field.
+				assert object != null;
 				builder.append(" (");
 				boolean first = true;
 				for (final BitField bitField : bitFields)

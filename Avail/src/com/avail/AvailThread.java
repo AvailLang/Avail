@@ -59,5 +59,11 @@ extends Thread
 	{
 		super(runnable);
 		AvailRuntime.setCurrent(runtime);
+		setDaemon(false);
+		setName(String.format(
+			"%s-%d [from %s]",
+			this.getClass().getSimpleName(),
+			System.identityHashCode(this),
+			Thread.currentThread().getName()));
 	}
 }

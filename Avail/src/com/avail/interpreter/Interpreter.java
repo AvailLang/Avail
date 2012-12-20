@@ -35,6 +35,7 @@ package com.avail.interpreter;
 import static com.avail.descriptor.AvailObject.error;
 import static com.avail.interpreter.Primitive.Result.*;
 import static com.avail.exceptions.AvailErrorCode.*;
+import java.io.PrintStream;
 import java.util.*;
 import java.util.logging.*;
 import com.avail.AvailRuntime;
@@ -1103,18 +1104,31 @@ public abstract class Interpreter
 	public String toString ()
 	{
 		final StringBuilder builder = new StringBuilder();
-		builder.append(
-			String.format(
-				"%s [%s]",
-				getClass().getSimpleName(),
-				fiber().name()));
-		final List<String> stack = dumpStack();
-		for (final String frame : stack)
+		try
 		{
 			builder.append(
 				String.format(
-					"%n\t-- %s",
-					frame));
+					"%s [%s]",
+					getClass().getSimpleName(),
+					fiber().name()));
+			final List<String> stack = dumpStack();
+			for (final String frame : stack)
+			{
+				builder.append(
+					String.format(
+						"%n\t-- %s",
+						frame));
+			}
+		}
+		catch (final Throwable e)
+		{
+			builder.append(
+				"\n*** JAVA ERROR WHILE DESCRIBING AVAIL INTERPRETER STATE:\n");
+			for (final StackTraceElement element : e.getStackTrace())
+			{
+				builder.append(element);
+				builder.append("\n");
+			}
 		}
 		builder.append("\n\n");
 		return builder.toString();

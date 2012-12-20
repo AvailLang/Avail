@@ -42,6 +42,7 @@ import com.avail.AvailRuntime;
 import com.avail.annotations.*;
 import com.avail.descriptor.*;
 import com.avail.descriptor.FiberDescriptor.ExecutionState;
+import com.avail.exceptions.AvailRuntimeException;
 import com.avail.interpreter.*;
 import com.avail.interpreter.Primitive.*;
 import com.avail.interpreter.levelTwo.register.FixedRegister;
@@ -175,6 +176,21 @@ final public class L2Interpreter extends Interpreter
 	}
 
 	/**
+	 * Fake slots used to show that creating the Avail stack trace failed in
+	 * some way, and to present the Java stack trace in the Eclipse Java
+	 * debugger.
+	 */
+	enum FakeJavaStackTraceSlots implements ObjectSlotsEnum
+	{
+		/**
+		 * A {@linkplain TupleDescriptor tuple} of {@linkplain StringDescriptor
+		 * Avail strings} showing Java stack frames that indicate why the
+		 * interpreter's Avail stack could not be rendered.
+		 */
+		JAVA_STACK_FRAMES
+	}
+
+	/**
 	 * Utility method for decomposing this object in the debugger. See
 	 * {@link AvailObjectFieldHelper} for instructions to enable this
 	 * functionality in Eclipse.
@@ -191,29 +207,56 @@ final public class L2Interpreter extends Interpreter
 	 */
 	public AvailObjectFieldHelper[] describeForDebugger ()
 	{
-		final List<AvailObject> frames = new ArrayList<AvailObject>(50);
-		AvailObject frame = pointers[CALLER.ordinal()];
-		if (frame != null)
+		try
 		{
-			while (!frame.equalsNull())
+			final List<AvailObject> frames = new ArrayList<AvailObject>(50);
+			AvailObject frame = pointers[CALLER.ordinal()];
+			if (frame != null)
 			{
-				frames.add(frame);
-				frame = frame.caller();
+				while (!frame.equalsNull())
+				{
+					frames.add(frame);
+					frame = frame.caller();
+				}
 			}
+			final AvailObject framesTuple = TupleDescriptor.fromList(frames);
+			final AvailObject outerTuple = TupleDescriptor.from(framesTuple);
+			final List<AvailObjectFieldHelper> outerList =
+				new ArrayList<AvailObjectFieldHelper>();
+			assert outerTuple.tupleSize()
+				== FakeStackTraceSlots.values().length;
+			for (final FakeStackTraceSlots field : FakeStackTraceSlots.values())
+			{
+				outerList.add(new AvailObjectFieldHelper(
+					outerTuple,
+					field,
+					-1,
+					outerTuple.tupleAt(field.ordinal() + 1)));
+			}
+			return outerList.toArray(
+				new AvailObjectFieldHelper[outerList.size()]);
 		}
-		final AvailObject framesTuple = TupleDescriptor.fromList(frames);
-		final AvailObject outerTuple = TupleDescriptor.from(framesTuple);
-		final List<AvailObjectFieldHelper> outerList = new ArrayList<AvailObjectFieldHelper>();
-		assert outerTuple.tupleSize() == FakeStackTraceSlots.values().length;
-		for (final FakeStackTraceSlots field : FakeStackTraceSlots.values())
+		catch (final Throwable e)
 		{
-			outerList.add(new AvailObjectFieldHelper(
-				outerTuple,
-				field,
+			final List<AvailObject> javaStackHelperStrings =
+				new ArrayList<AvailObject>();
+			for (final StackTraceElement stackTraceElement : e.getStackTrace())
+			{
+				javaStackHelperStrings.add(
+					StringDescriptor.from(stackTraceElement.toString()));
+			}
+			final AvailObject javaStackHelperTuple =
+				TupleDescriptor.fromList(javaStackHelperStrings);
+			final List<AvailObjectFieldHelper> javaStackHelpers =
+				new ArrayList<AvailObjectFieldHelper>(1);
+			javaStackHelpers.add(new AvailObjectFieldHelper(
+				TupleDescriptor.from(javaStackHelperTuple),
+				FakeJavaStackTraceSlots.JAVA_STACK_FRAMES,
 				-1,
-				outerTuple.tupleAt(field.ordinal() + 1)));
+				javaStackHelperTuple));
+			return javaStackHelpers.toArray(
+				new AvailObjectFieldHelper[javaStackHelpers.size()]);
 		}
-		return outerList.toArray(new AvailObjectFieldHelper[outerList.size()]);
 	}
 
 	/**
@@ -1066,10 +1109,15 @@ final public class L2Interpreter extends Interpreter
 	public List<String> dumpStack ()
 	{
 		final List<AvailObject> frames = new ArrayList<AvailObject>(20);
-		for (AvailObject c = currentContinuation(); !c.equalsNull(); c = c
-			.caller())
+		if (pointers[CALLER.ordinal()] != null)
 		{
-			frames.add(c);
+			for (
+				AvailObject c = currentContinuation();
+				!c.equalsNull();
+				c = c.caller())
+			{
+				frames.add(c);
+			}
 		}
 		final List<String> strings = new ArrayList<String>(frames.size());
 		int line = frames.size();

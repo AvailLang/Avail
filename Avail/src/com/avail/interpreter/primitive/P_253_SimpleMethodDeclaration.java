@@ -65,9 +65,7 @@ public class P_253_SimpleMethodDeclaration extends Primitive
 				function,
 				true);
 			interpreter.fixupForPotentiallyInvalidCurrentChunk();
-			function.code().setMethodName(
-				StringDescriptor.from(
-					String.format("%s", string)));
+			function.code().setMethodName(string);
 		}
 		catch (final AmbiguousNameException e)
 		{

@@ -80,12 +80,13 @@ implements ThreadFactory
 	 * Thread#currentThread() current thread} is not an {@link AvailThread},
 	 * then answer {@code null}.
 	 *
-	 * @return The current Avail runtime, or {@code null} if the the current
-	 *         thread is not an {@code AvailThread}.
+	 * @return The current Avail runtime.
 	 */
 	public static final AvailRuntime current ()
 	{
-		return current.get();
+		final AvailRuntime runtime = current.get();
+		assert runtime != null;
+		return runtime;
 	}
 
 	@Override

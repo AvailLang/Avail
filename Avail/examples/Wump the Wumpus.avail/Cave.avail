@@ -99,7 +99,6 @@ Class "unfinished room" extends object
  */
 Private method "an unfinished room" is
 [
-	roomLabel : string := "";
 	an unfinished room with room# ::= 0, adjacent room ids ::= ∅
 ] : unfinished room;
 
@@ -190,7 +189,7 @@ Method "“_”" is
 		 */
 		name ::= aRoom's type's names→tuple[1],
 		id ::= aRoom's room#,
-		/* "“_”(as a simple comma-separated list)" composes a textual
+		/* "“_”«else_»(as simple list)" composes a textual
 		 * representation of the set that does not include curly braces.
 		 */
 		rooms ::= “adjacent” (as simple list)
@@ -204,7 +203,7 @@ Method "“_”" is
  * @param "aRoom" "room"
  *        A {@type "room"}.
  * @returns "string"
- *          A textual rending of the argument.
+ *          A textual rendering of the argument.
  */
 Public method "`#“_”(with label)" is
 [
@@ -302,7 +301,7 @@ Public method "a cave" is
 		 * subscripts are [1..20], so an attempt to access the 0th or 21st
 		 * element is invalid. Not to worry; "_[_]else_" answers the requested
 		 * element, if valid, and the result of applying the "else" function
-		 * otherwise. We use this constructs to cause wraparound in the limit
+		 * otherwise. We use this construct to cause wraparound in the limit
 		 * cases.
 		 */
 		backId ::= shuffledIds[index - 1] else [shuffledIds[20]];

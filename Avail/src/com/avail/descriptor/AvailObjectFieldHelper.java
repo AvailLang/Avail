@@ -32,6 +32,8 @@
 
 package com.avail.descriptor;
 
+import com.avail.annotations.Nullable;
+
 /**
  * This class assists with the presentation of {@link AvailObject}s in the
  * Eclipse debugger.  Since AvailObjects have a uniform structure consisting of
@@ -92,7 +94,7 @@ public class AvailObjectFieldHelper
 	/**
 	 * The object containing this field.
 	 */
-	public final AvailObject parentObject;
+	public final @Nullable AvailObject parentObject;
 
 	/**
 	 * The actual value being presented with the given label.
@@ -128,7 +130,7 @@ public class AvailObjectFieldHelper
 	 *            The value found in that slot of the object.
 	 */
 	public AvailObjectFieldHelper (
-		final AvailObject parentObject,
+		final @Nullable AvailObject parentObject,
 		final AbstractSlotsEnum slot,
 		final int subscript,
 		final Object value)

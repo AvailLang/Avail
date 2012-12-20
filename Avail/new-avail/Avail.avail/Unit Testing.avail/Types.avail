@@ -202,10 +202,11 @@ Public method "short“_”" is
 [
 	anException : unit-test exception
 |
-	name ::=
-		cast anException into
+	name ::= “anException”;
+/*		cast anException into
 			[e : no-such-test exception | "no-such-test exception" ],
 			[e : failed-test exception | "failed-test exception" ];
+*/
 	description ::= 
 		cast anException
 		into
@@ -225,7 +226,7 @@ Public method "short“_”" is
 		]
 		else [""];
 	format
-		"a ‘name’‘description’‘cause’"
+		"‘name’‘description’‘cause’"
 	with
 		name ::= name,
 		description ::= description,
