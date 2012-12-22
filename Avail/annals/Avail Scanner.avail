@@ -40,7 +40,7 @@ Uses
 	"Patricia Trie"
 
 Names
-	"an Avail Scanner with_",
+	"an Avail scanner with_",
 	"Avail scanner",
 	"column number",
 	"Exhaust_",
@@ -60,6 +60,7 @@ Names
 	"read from_while_",
 	"read_'s⁇region delimited by_and_«with|without»!nesting",
 	"scanner token",
+	"source",
 	"token buffer",
 	"token start",
 	"tokenize_",
@@ -152,7 +153,7 @@ Public class "Avail scanner" extends object
  *      an Avail scanner object
  * @author "Richard Arriaga"
  */
-Public method "an Avail Scanner with_" is
+Public method "an Avail scanner with_" is
 [
 	iter : iterator of character
 |
@@ -290,20 +291,21 @@ Public method "Next character from_" is
 [
 	scanner : Avail scanner
  |
-		Advance scanner's source;
-		If scanner's source is not exhausted then
-		[ 
-			if scanner's current element = ¢"\n" then 
-			[
-				scanner's column number := 1;
-				scanner's line number := scanner's line number + 1;
-			]
-			else
-			[
-			 	scanner's column number := scanner's column number + 1;
-			];
+	scanner's previous element := scanner's current element;
+	Advance scanner's source;
+	If scanner's source is not exhausted then
+	[
+		if scanner's current element = ¢"\n" then 
+		[
+			scanner's column number := 1;
+			scanner's line number := scanner's line number + 1;
+		]
+		else
+		[
+		 	scanner's column number := scanner's column number + 1;
 		];
- ]:⊤;
+	];
+]:⊤;
 
 /**
  * Advance the scanner's source until exhaustion.  Perform appropriate functions

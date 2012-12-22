@@ -58,11 +58,14 @@ Names
 	"@see",
 	"@supertype",
 	"@type",
+	"a stacks scanner with_",
 	"comments",
 	"concatenate_separated by_",
 	"erroneous stacks token",
 	"generic stacks token",
+	"Obtain Stacks comments from_",
 	"special flag",
+	"special region stacks token",
 	"stacks scanner",
 	"special stacks token",
 	"stacks token",
@@ -70,18 +73,21 @@ Names
 	"_'s⁇comments:=_",
 	"_'s⁇error flag",
 	"_'s⁇position",
-	"_'s⁇special flag"
+	"_'s⁇special flag",
+	"_'s⁇special region flag"
 
 Body
 
 "character buffer" is a new field atom;
 "comment buffer" is a new field atom;
+"comment buffer index" is a new field atom;
 "comments" is a new field atom;
+"error flag" is a new field atom;
+"open comment count" is a new field atom;
 "quoted flag" is a new field atom;
 "special comment" is a new field atom;
 "special flag" is a new field atom;
-"error flag" is a new field atom;
-"open comment count" is a new field atom;
+"special region flag" is a new field atom;
 
 /**
  * A class that defines a token for the stacks lexor.  
@@ -100,7 +106,8 @@ Body
 Public class "stacks token" extends scanner token
 	with fields
 		public special flag : boolean,
-		public error flag : boolean;
+		public error flag : boolean,
+		public special region flag : boolean;
 
 /**
  * A class that defines a generic token for the stacks lexor.  
@@ -114,7 +121,8 @@ Public class "stacks token" extends scanner token
 Public explicit class "generic stacks token" extends stacks token
 	with fields
 		special flag : false's type,
-		error flag : false's type;
+		error flag : false's type,
+		special region flag : false's type;
 
 /**
  * A class that defines a token that resembles a special token but is not
@@ -129,7 +137,8 @@ Public explicit class "generic stacks token" extends stacks token
 Public explicit class "erroneous stacks token" extends stacks token
 	with fields
 	special flag : false's type,
-	error flag : true's type;
+	error flag : true's type,
+	special region flag : false's type;
 
 /**
  * A class that defines a special token for the stacks lexor.
@@ -143,7 +152,23 @@ Public explicit class "erroneous stacks token" extends stacks token
 Public explicit class "special stacks token" extends stacks token
 	with fields
 	special flag : true's type,
-	error flag : false's type;
+	error flag : false's type,
+	special region flag : false's type;
+
+/**
+ * A class that defines a special token for the stacks lexor.
+ * 
+ * @type "@special stacks token"
+ * @supertype {@type "element" element}
+ * @category "Stacks"
+ * @field "lexeme" "string"
+ * 	this token is a token of note.
+ */
+Public explicit class "special region stacks token" extends stacks token
+	with fields
+	special flag : false's type,
+	error flag : false's type,
+	special region flag : true's type;
 
 /**
  * A method that constructs a subtype of stacks token class.
@@ -181,11 +206,48 @@ For each stacksTokenTypeNames do
 ];
 
 /* Special characters that could result in token delimiter */
-tokenDelimiter ::= {¢@,¢" ",¢"\t",¢"\"",¢{,¢`,¢/,¢*,¢"\n"};
+tokenDelimiter ::= {¢@,¢" ",¢"\t",¢"\"",¢{,¢/};
 
 
 /* Strings that should not be tokenized */
 doNotTokenize ::= {"/*","/**","*/"," ","","\t"};
+
+/**
+ * Take a tuple of stacks tokens and concatenate the lexemes seperated by
+ * provided character
+ *
+ * @method "Concatenate_separated by_"
+ * @public
+ * @categories "Stacks"
+ * @param "tokens" "<stacks token…|1..>" 
+ *      a tuple of stacks tokens
+ * @param "delimeter" "string" 
+ *      the string to separate the tokens' lexems in the string
+ * @returnType "string"
+ *      a string sentence of the tokens' lexemes
+ * @author "authorName"
+ */
+Public method "concatenate_separated by_" is
+[
+	tokens : <stacks token…|>,
+	delimeter : string
+ |
+	if |tokens| = 0 then [""]
+	else if [|tokens| = 1] then [tokens[1]'s lexeme]
+	else
+	[
+		i : natural number := 1;
+		lexemeAndSpace : <string…|> := <>;
+		Do 
+		[
+			lexemeAndSpace := lexemeAndSpace ++ <tokens[i]'s lexeme>;
+			↑i++;
+		]
+		until [i > |tokens|]
+		alternate with [lexemeAndSpace := lexemeAndSpace ++ <delimeter>;];
+		cast flatten lexemeAndSpace into [s : string | s]
+	]
+]:string;
 
 /**
  * A class that defines a Stacks lexical scanner.  This is a concrete class.
@@ -200,6 +262,9 @@ doNotTokenize ::= {"/*","/**","*/"," ","","\t"};
  * 	making first pass
  * @field "character buffer" "<character…|>"
  * 	buffer that temporarily retains characters awaiting tokenization
+ * @field "comment buffer" "<character…|>"
+ * 	buffer that temporarily retains characters from buffer obtained in first 
+ * 	pass parse.
  * @field "token buffer" "<character…|>"
  * 	buffer that temporarily retains tokens of a common comment awaiting to be
  * 	added to comments.
@@ -218,9 +283,299 @@ Public class "stacks scanner" extends Avail scanner
 		public comments : <<stacks token…|>…|>,
 		comment buffer : <character…|>,
 		character buffer : <character…|>,
+		referable comment buffer index : natural number,
 		referable open comment count : whole number,
 		special comment : boolean,
 		quoted flag : boolean;
+
+/**
+ * Public constructor of stacks scanner
+ *
+ * @method "construct stacks scanner with_"
+ * @categories "Stacks Scanner"
+ * @param "iter" "iterator of character" 
+ *      and iterator of characters
+ * @returnType "stacks scanner"
+ *      a stacks scanner object
+ * @author "Richard Arriaga"
+ */
+Public method "a stacks scanner with_" is
+[
+	iter : iterator of character
+|
+	line : natural number := 1;
+	column : natural number := 1;
+	tokenStart : natural number := 1;
+	tokens : <scanner token…|> := <>;
+	comment : <<stacks token…|>…|> := <>;
+	cb : <character…|> := <>;
+	charB : <character…|> := <>;
+	cbi : natural number := 1;
+	occ : whole number := 0;
+	sc : boolean := false;
+	qf : boolean := false;
+	
+	a stacks scanner with
+		source ::= iter,
+		token buffer ::= ↑tokens,
+		line number ::= ↑line,
+		column number ::= ↑column,
+		token start ::= ↑tokenStart,
+		comments ::= ↑comment,
+		comment buffer ::= ↑cb,
+		character buffer ::= ↑charB,
+		comment buffer index ::= ↑cbi,
+		open comment count ::= ↑occ,
+		special comment ::= ↑sc,
+		quoted flag ::= ↑qf
+] : stacks scanner;
+
+/**
+ * Advance the stacks scanner's source.  If it is not in a stacks comment,
+ * increment the line number and column number if able.
+ *
+ * @method "Next character from_"
+ * @categories "Stacks Scanner"
+ * @param "scanner" "stacks scanner" 
+ *		a stacks scanner
+ * @returnType "⊤"
+ *		none
+ * @raises "Raise an exhausted-iterator exception" 
+ *		there is nothing left on the iterator to consume
+ * @author "Richard Arriaga"
+ */
+Method "Next character from_" is
+[
+	scanner : stacks scanner
+ |
+	scanner's previous element := scanner's current element;
+	Advance scanner's source;
+	If scanner's source is not exhausted then
+	[
+		If ¬scanner's special comment then 
+		[
+			If scanner's current element = ¢"\n" then 
+			[
+				scanner's column number := 1;
+				scanner's line number := scanner's line number + 1;
+			]
+			else
+			[
+				scanner's column number := scanner's column number + 1;
+			];
+		];
+	];
+]:⊤;
+
+Private forward method "_is at new comment" is [stacks scanner]→boolean;
+
+/***
+ * Determine if a scanner comment is at the start of a new stacks comment.
+ *
+ * @method "_is at new comment"
+ * @categories "stacks"
+ * @param "scanner" "stacks scanner" 
+ *      a stacks scanner
+ * @returnType "boolean"
+ *      whether or not at start of a new comment.
+ * @author "Richard Arriaga"
+ */
+Private method "_is at new comment" is
+[
+	scanner : stacks scanner
+ |
+	Next character from scanner;
+	if scanner's source's current element = ¢/ then
+	[
+		scanner is at new comment
+	]
+	else
+	[
+		if scanner's previous element = ¢/ then
+		[
+			buffer ::= read from scanner while [scanner's current element = ¢*];
+			if |buffer| = 1 then [false]
+			else if [|buffer| = 2] then [true]
+			else
+			[
+				scanner's special comment := true;
+				true
+			]
+		] else [false]
+	]
+] : boolean;
+
+/**
+ * Determine if the comment character is exhausted
+ *
+ * @method "_'s⁇comment buffer is exhausted"
+ * @categories "Stacks Scanner"
+ * @param "scanner" "stacks scanner" 
+ *      a stacks scanner
+ * @returnType "boolean"
+ *      true if buffer is exhausted, false if it is not.
+ * @author "Richard Arriaga"
+ */
+Private method "_'s⁇comment buffer is exhausted" is
+[
+	scanner : stacks scanner
+ |
+	if scanner's comment buffer index > |scanner's comment buffer| then
+	[true] else [false]
+]:boolean;
+
+/**
+ * Determine if the comment character is not exhausted
+ *
+ * @method "_'s⁇comment buffer is not exhausted"
+ * @categories "Stacks Scanner"
+ * @param "scanner" "stacks scanner" 
+ *      a stacks scanner
+ * @returnType "boolean"
+ *      true if buffer is not exhausted, false if it is.
+ * @author "Richard Arriaga"
+ */
+Private method "_'s⁇comment buffer is not exhausted" is
+[
+	scanner : stacks scanner
+ |
+	¬scanner's comment buffer is exhausted
+]:boolean;
+
+/**
+ * clear the scanner's comment buffer
+ *
+ * @method "clear_'s⁇comment buffer"
+ * @categories "category"
+ * @param "scanner" "stacks scanner" 
+ *      a stacks scanner
+ * @returnType "⊤"
+ *      none
+ * @author "Richard Arriaga"
+ */
+Private method "clear_'s⁇comment buffer" is
+[
+	scanner : stacks scanner
+ |
+	scanner's comment buffer := <>;
+	scanner's comment buffer index := 1;
+]:⊤;
+
+/**
+ * The character at the scanner comment buffer's index.
+ *
+ * @method "_'s⁇current buffer character"
+ * @categories "category"
+ * @param "scanner" "stacks scanner" 
+ *      a stacks scanner
+ * @returnType "character"
+ *      the character at the index position of the comment buffer
+ * @raises "exceptionName" 
+ *      exceptionDescription
+ * @author "Richard Arriaga"
+ */
+Private method "_'s⁇current buffer character" is
+[
+	scanner : stacks scanner
+ |
+ 	/*TODO handle error when no character at index*/
+	scanner's comment buffer[scanner's comment buffer index]
+]:character;
+
+/**
+ * The character at the scanner comment buffer's index.
+ *
+ * @method "_'s⁇previous buffer character"
+ * @categories "category"
+ * @param "scanner" "stacks scanner" 
+ *      a stacks scanner
+ * @returnType "character"
+ *      the character at the index position of the comment buffer
+ * @raises "exceptionName" 
+ *      exceptionDescription
+ * @author "Richard Arriaga"
+ */
+Private method "_'s⁇previous buffer character" is
+[
+	scanner : stacks scanner
+ |
+ 	/*TODO handle error when no character at index*/
+ 	i : natural number := cast scanner's comment buffer index-1 into 
+ 		[n : natural number | n];  
+	scanner's comment buffer[i]
+]:character;
+
+/**
+ * Increment the scanner's character buffer index
+ *
+ * @method "Increment_'s⁇buffer index"
+ * @categories "Stacks Scanner"
+ * @param "scanner" "stacks scanner" 
+ *      a stacks scanner
+ * @returnType "⊤"
+ *      none
+ * @raises "exceptionName" 
+ *      exceptionDescription
+ * @author "Richard Arriaga"
+ */
+Private method "Increment_'s⁇buffer index" is
+[
+	scanner : stacks scanner
+ |
+	
+	scanner's comment buffer index := scanner's comment buffer index + 1;
+
+	If scanner's comment buffer is exhausted then
+	[
+		/*TODO add error handling for attempt to increment index beyond buffer size*/
+	] else
+	[
+		If scanner's comment buffer[scanner's comment buffer index] = ¢"\n" then 
+		[
+			scanner's column number := 1;
+			scanner's line number := scanner's line number + 1;
+		]
+		else
+		[
+			scanner's column number := scanner's column number + 1;
+		];
+	];
+]:⊤;
+
+/**
+ * Read from Avail scanner's comment buffer while supplied condition is true 
+ * or the buffer is exhausted.
+ *
+ * @method "read from_'s⁇comment buffer while_"
+ * @public
+ * @categories "Stacks Scanner"
+ * @param "scanner" "stacks scanner" 
+ *		an stacks scanner 
+ * @param "predicate" "boolean" 
+ *		The function that guards repeated application of reading from the source
+ * @returnType "<character…|>"
+ *		the tuple of characters read from the source
+ * @author "Richard Arriaga"
+ */
+Private method "read from_'s⁇comment buffer while_" is
+[
+ 	scanner : stacks scanner,
+ 	predicate : []→boolean
+ |
+	buffer : <character…|> := <>;
+	While 
+	[
+		scanner's comment buffer is not exhausted ∧ 
+			[predicate()]
+	]
+	do
+	[
+		buffer := buffer ++ 
+			<scanner's comment buffer[scanner's comment buffer index]>;
+			Increment scanner's buffer index;
+	];
+	buffer
+]:<character…|>;
 
 /**
  * return the most specific type of the stacks scanner's token buffer's element
@@ -261,7 +616,6 @@ Semantic restriction "_'s⁇token buffer" is
 	<stacks token…|>
 ];
 
-
 /**
  * A method that creates a single stacks token object
  *
@@ -273,33 +627,50 @@ Semantic restriction "_'s⁇token buffer" is
  *		a stacks token of the input string
  * @author "Richard Arriaga"
  */
-Method "tokenize_" is
+Method "tokenize_'s⁇«special region»?character buffer" is
 [
-	scanner : stacks scanner
+	scanner : stacks scanner,
+	optionalFlag : boolean
  |
-	 cb : <character…|1..> := cast scanner's character buffer into 
-	 	[c : <character…|1..> | c];
-	if scanner's character buffer ∉ stacksTokenTypeNames then
+	cb : <character…|1..> := cast scanner's character buffer into 
+		[s : nonempty string | s];
+	tokenStart : natural number := if scanner's quoted flag then
+	[
+		scanner's token start
+	]
+	else
+	[
+		cast scanner's column number - |cb| + 1
+			into [n : natural number | n]
+	];
+	if optionalFlag then 
+	[
+		a special region stacks token with
+			lexeme ::= cb,
+			line ::= scanner's line number,
+			position ::= tokenStart
+	]
+	else if [scanner's character buffer ∉ stacksTokenTypeNames] then
 	[
 		if cb[1] ≠ ¢@ then
 		[
 		 	 a generic stacks token with
 				lexeme ::= cb,
 				line ::= scanner's line number,
-				position ::= scanner's token start
+				position ::= tokenStart
 		] else
 		[
 			an erroneous stacks token with
 				lexeme ::= cb,
 				line ::= scanner's line number,
-				position ::= scanner's token start
+				position ::= tokenStart
 		]
 	] else
 	[
 		a special stacks token with
 			lexeme ::= cb,
 			line ::= scanner's line number,
-			position ::= scanner's token start
+			position ::= tokenStart
 	]
 ] : stacks token;
 
@@ -315,76 +686,71 @@ Method "tokenize_" is
  *		none
  * @author "Richard Arriaga"
  */
-Private method "Buffer_'s⁇current token" is
+Private method "Buffer_'s⁇current«region»?token" is
 [
- 	scanner : stacks scanner
+ 	scanner : stacks scanner,
+ 	optionalFlag : boolean
  |
 	If scanner's character buffer ∉ doNotTokenize then 
 	[
-	 	
-	 	tb :<scanner token…|>:= scanner's token buffer ++ <tokenize scanner>;
-	 	scanner's token buffer := tb;
+		tb :<scanner token…|>:= scanner's token buffer ++ 
+			if optionalFlag then
+			[
+				<tokenize scanner's special region character buffer>
+			]
+			else [<tokenize scanner's character buffer>];
+
+		scanner's token buffer := tb;
 	];
- 	scanner's character buffer := <>;
+	scanner's character buffer := <>;
 ]:⊤;
 
-/**
- * A method that accepts a stacks scanner and stores a completely tokenized 
- * comment into its comment buffer.
- *
- * @method "Buffer_'s⁇ current comment"
- * @categories "Stacks"
- * @param "scanner" "stacks scanner" 
- *		a stacks lexical scanner
- * @returnType "⊤"
- *		none
- * @author "Richard Arriaga"
- */
-Private method "Buffer_'s⁇current comment" is
-[
-	scanner : stacks scanner
-|
-	scanner's comments := (scanner's comments ++ <scanner's token buffer>);
-	
-	scanner's token buffer := <>;
-]:⊤;
-
-Private abstract method "Process_comment" is [stacks scanner]→⊤;
-Private forward method "_is at new comment" is [stacks scanner]→boolean;
+Private forward method "_is at nested comment" is [stacks scanner]→boolean;
 
 /***
- * Determine if a scanner comment is at the start of a new stacks comment.
+ * Determine if a scanner comment buffer is at the start of a nested comment.
  *
- * @method "_is at new comment"
+ * @method "_is at nested comment"
  * @categories "stacks"
  * @param "scanner" "stacks scanner" 
  *      a stacks scanner
  * @returnType "boolean"
- *      whether or not at start of a new comment.
+ *      whether or not at start of a nested.
  * @author "Richard Arriaga"
  */
-Private method "_is at new comment" is
+Private method "_is at nested comment" is
 [
 	scanner : stacks scanner
  |
-	Next character from scanner;
-	if scanner's source's current element = ¢/ then
+	if scanner's current buffer character = ¢/ then
 	[
-		scanner is at new comment
+		scanner is at nested comment
 	]
 	else
 	[
-		buffer ::= "/" ++ 
-			read from scanner while [scanner's source's current element = ¢*];
-		if |buffer| = 1 then [false] 
-		else [true]
+		if scanner's previous buffer character = ¢/ then
+		[
+			buffer : <character…|> := read from scanner's comment buffer while 
+				[scanner's current buffer character = ¢*];
+			if |buffer| = 1 then 
+			[
+			 	scanner's character buffer := scanner's character buffer ++ 
+			 		buffer;
+				false]
+			else 
+			[
+				If |scanner's character buffer| ≠ 0 then
+					[Buffer scanner's current token;];
+				true
+			]
+		] else [false]
 	]
 ] : boolean;
 
 /**
  * Consume the scanners nested comment without tokenizing any elements
  *
- * @method "Consume_'s⁇nested comment;"
+ * @method "Consume_'s⁇nested comment"
  * @categories "stacks"
  * @param "scanner" "stacks scanner" 
  *      a stacks scanner
@@ -396,27 +762,32 @@ Private method "Consume_'s⁇nested comment" is
 [
 	scanner : stacks scanner
  |
-	While [scanner's open comment count > 1] do
+	While 
 	[
-		throwAway ::= read from scanner while
+		scanner's comment buffer is not exhausted ∧ 
+			[scanner's open comment count > 1] 
+	] 
+	do
+	[
+		throwAway ::= read from scanner's comment buffer while
 		[
-			scanner's source's current element ∉ {¢/,¢*}
+			scanner's current buffer character ∉ {¢/,¢*}
 		];
-		if scanner's source's current element = ¢/ then
+		if scanner's current buffer character = ¢/ then
 		[
-			Next character from scanner;
-			If scanner's source is not exhausted ∧ 
-				[scanner's source's current element = ¢*] then
+			Increment scanner's buffer index;
+			If scanner's comment buffer is not exhausted ∧ 
+				[scanner's current buffer character = ¢*] then
 			[
 				↑scanner's open comment count++;
 			];
 		]
 		else
 		[
-			/* current element is `* */
-			Next character from scanner;
-			If scanner's source is not exhausted ∧ 
-				[scanner's source's current element = ¢/] then
+			/* current element is * */
+			Increment scanner's buffer index;
+			If scanner's comment buffer is not exhausted ∧ 
+				[scanner's current buffer character = ¢/] then
 			[
 				↑scanner's open comment count--;
 			];
@@ -439,41 +810,12 @@ Private method "Process forward slash from_" is
 [
 	scanner : stacks scanner
  |
-	If scanner is at new comment then
+	If scanner is at nested comment then
 	[
-		If scanner's open comment count = 0 then
-		[
-			↑scanner's open comment count++;
-			Process scanner comment;
-		] else
-		[
-			Consume scanner's nested comment;
-		];
-	]
-	else
-	[/*TODO what should happen as a default.  Probably nothing?*/];
+		↑scanner's open comment count++;
+		Consume scanner's nested comment;
+	];
 ]:⊤;
-
-
-
-/**
- * Handle case where scanner's current element is a forward slash while in a
- * comment
- *
- * @method "Process forward slash in comment from_"
- * @categories "Stacks"
- * @param "scanner" "stacks scanner" 
- *		a stacks scanner
- * @returnType "⊤"
- *		none
- * @author "Richard Arriaga"
- */
-Private method "Process forward slash in comment from_" is
-[
- 	scanner : stacks scanner
- |
-/*TODO create method*/
- ]:⊤;
 
 /**
  * Tokenize all characters in double quotes including white space.
@@ -490,18 +832,66 @@ Private method "Process double quote in comment from_" is
 [
 	scanner : stacks scanner
  |
-		scanner's token start := scanner's column number;
-		word ::= <¢"\""> ++ read from scanner 
-			while
-			[
-/*TODO Figure out condition to stop scanning - need close quote and the ability
- * to handled new lines and the pipe new line - "\\
- * \\|"*/
-			 	scanner's source's current element ∈ tokenDelimiter
-			];
+/*TODO Error handling.  What if new lines not handled with expected syntax?*/
+	scanner's token start := scanner's column number;
+	scanner's quoted flag := true;
+	word : string := read from scanner's comment buffer  
+		while
+		[
+			scanner's current buffer character ≠ ¢"\"" ∧ 
+			[scanner's previous buffer character = ¢\ ∧
+			 		[scanner's current buffer character = ¢"\""]]
+		];
 
-		scanner's character buffer := word;
-		Buffer scanner's current token;
+	/* Find all instances of \" in word.  All remaining instances will be 
+	 * preceded by a \ */
+	quoteIndices ::= all indices of word where [c : character | c = ¢"\""];
+	/* Iteratate through quote indices removing the char before the quote */
+	From |quoteIndices| to 1 by -1 do
+	[
+		n : natural number
+	 |
+		z ::= split word after quoteIndices[n];
+		i ::= |z[1]| - 1; 
+		word := z[1][1..i] ++ z[2];
+	];
+
+	/* Find all new line instances in word */
+	newlineIndices ::= all indices of word where [c : character | c = ¢"\n"];
+	/* Iterate through new line indices removing them and associated 
+	 * syntax used to break quoted strings over many lines */
+	From |newlineIndices| to 1 by -1 do
+	[
+		n : natural number
+	 |
+		z ::= split word after quoteIndices[n];
+		half1End ::= last index of z[1] where [c: character | c = ¢\];
+		end ::= cast |half1End|-1 into [r : natural number | r];
+		half1 : string := if z[1][end] ≠ ¢" " then 
+		[
+			z[1][..end] ++ " "
+		] else 
+		[
+			z[1][..end]
+		];
+
+		half2Start ::= first index of z[2] where [c: character | c = ¢|];
+		half2 : string := if z[2][|half2Start|+1] ≠ ¢" " then 
+		[
+			z[2][|half2Start|+1..]
+		] else 
+		[
+			z[2][|half2Start|+2..]
+		];
+
+		word := half1 ++ half2;
+	];
+
+	scanner's character buffer := word;
+	Buffer scanner's current token;
+	scanner's line number := scanner's line number + |newlineIndices|;
+	Increment scanner's buffer index;
+	scanner's quoted flag := false;
  ]:⊤;
 
 /**
@@ -519,45 +909,8 @@ Private method "Process white space in comment from_" is
 [
 	scanner : stacks scanner
 |
-		
-		wordStart ::= scanner's column number;
-		word ::= read from scanner 
-			while
-			[
-/*TODO Figure out condition to stop scanning*/
-			 	scanner's source's current element ∈ tokenDelimiter
-			];
-
-		scanner's character buffer := word;
 		Buffer scanner's current token;
-]:⊤;
-		
-/**
- * Tokenize all characters in buffer up to newline character.
- *
- * @method "Process new line in comment from_"
- * @categories "Stacks"
- * @param "scanner" "stacks scanner" 
- *		a stacks scanner
- * @returnType "⊤"
- *		none
- * @author "Richard Arriaga"
- */
-Private method "Process new line in comment from_" is
-[
-	scanner : stacks scanner
-|
-		
-		wordStart ::= scanner's column number;
-		word ::= read from scanner 
-			while
-			[
-/*TODO Figure out condition to stop scanning*/
-			 	scanner's source's current element ∈ tokenDelimiter
-			];
-
-		scanner's character buffer := word;
-		Buffer scanner's current token;
+		Increment scanner's buffer index;
 ]:⊤;
 
 /**
@@ -575,31 +928,34 @@ Private method "Process left curly brace in comment from_" is
 [
 	scanner : stacks scanner
  |
-	/*TODO Write me if needed*/
+	/*Store current comment buffer index to be reset to if not start of special 
+	 * bracketed region */
+	startIndex ::= scanner's comment buffer index;
+	
+	throwAway ::= read from scanner's comment buffer while
+		[ scanner's current buffer character ∈ {¢" ",¢"\t"}];
+	If scanner's current buffer character = ¢@ then
+	[
+		Buffer scanner's current token;
+		word ::= read from scanner's comment buffer while
+			[scanner's current buffer character = ¢}];
+		scanner's character buffer := word;
+		Buffer scanner's current region token;
+		Increment scanner's buffer index;
+	]
+	else
+	[
+		scanner's comment buffer index := startIndex;
+		scanner's character buffer := scanner's character buffer ++ 
+			<scanner's current buffer character>;
+		Increment scanner's buffer index;
+	];
 ]:⊤;
 
 /**
  * methodDescription
  *
- * @method "Process grave accent in comment from_;"
- * @categories "Stacks Scanner"
- * @param "scanner" "stacks scanner" 
- *	a stacks scanner
- * @returnType "⊤"
- *      none
- * @author "authorName"
- */
-Private method "Process grave accent in comment from_" is
-[
-	scanner : stacks scanner
- |
-	/*TODO Write me if needed*/
-]:⊤;
-
-/**
- * methodDescription
- *
- * @method "Process at sign in comment from_;"
+ * @method "Process at sign in comment from_"
  * @categories "Stacks Scanner"
  * @param "scanner" "stacks scanner" 
  *	a stacks scanner
@@ -611,7 +967,11 @@ Private method "Process at sign in comment from_" is
 [
 	scanner : stacks scanner
  |
-	/*TODO Write me if needed*/
+	Buffer scanner's current token;
+	word ::= read from scanner's comment buffer while
+		[ scanner's current buffer character ∉ tokenDelimiter];
+	scanner's character buffer := word;
+	Buffer scanner's current token;
 ]:⊤;
 
 /**
@@ -642,19 +1002,10 @@ For each tokenDelimiter do
 	[
 	 	inCommentDispatchTable := inCommentDispatchTable + 
 	 		c→ [
-			 	 	scanner : stacks scanner
-			 	 |
-			 	 	Process forward slash in comment from scanner;
-			 	];
-	]
-	else if [c = ¢"\n"] then
-	[
-	 	inCommentDispatchTable := inCommentDispatchTable + 
-	 		c→ [
-			 	 	scanner : stacks scanner
-			 	 |
-			 	 	Process new line in comment from scanner;
-			 	];
+					scanner : stacks scanner
+				 |
+					Process forward slash from scanner; /*Done*/
+				];
 	]
 	else if [c = ¢"\""] then
 	[
@@ -662,7 +1013,7 @@ For each tokenDelimiter do
 	 		c→ [
 			 	 	scanner : stacks scanner
 			 	 |
-			 	 	Process double quote in comment from scanner;
+			 	 	Process double quote in comment from scanner; /*Done*/
 			 	];
 	]
 	else if [c = ¢{] then
@@ -671,16 +1022,7 @@ For each tokenDelimiter do
 	 		c→ [
 			 	 	scanner : stacks scanner
 			 	 |
-			 	 	Process left curly brace in comment from scanner;
-			 	];
-	]
-	else if [c = ¢`] then
-	[
-	 	inCommentDispatchTable := inCommentDispatchTable  + 
-	 		c→ [
-			 	 	scanner : stacks scanner
-			 	 |
-			 	 	Process grave accent in comment from scanner;
+			 	 	Process left curly brace in comment from scanner; /*TODO*/
 			 	];
 	]
 	else if [c is whitespace] then
@@ -689,7 +1031,7 @@ For each tokenDelimiter do
 	 		c→ [
 			 	 	scanner : stacks scanner
 			 	 |
-			 	 	Process white space in comment from scanner;
+			 	 	Process white space in comment from scanner; /*Done*/
 			 	];
 	]
 	else if [c = ¢@] then
@@ -698,7 +1040,7 @@ For each tokenDelimiter do
 	 		c→ [
 			 	 	scanner : stacks scanner
 			 	 |
-			 	 	Process at sign in comment from scanner;
+			 	 	Process at sign in comment from scanner; /*Done*/
 			 	];
 	]
 	else /* c = ¢* */
@@ -707,15 +1049,16 @@ For each tokenDelimiter do
 	 		c→ [
 			 	 	scanner : stacks scanner
 			 	 |
-			 	 	Process asterick in comment from scanner;
+			 	 	Process asterick in comment from scanner; /*TODO*/
 			 	];
 	];
 ];
 
+/*TODO Write "Process the_'s⁇comment buffer"*/
 /**
  * Tokenize all elements of the stacks scanner comment
  *
- * @method "Process_comment"
+ * @method "Process the_'s⁇comment buffer"
  * @categories "Stacks Scanner"
  * @param "scanner" "stacks scanner" 
  *		a stacks scanner
@@ -723,68 +1066,31 @@ For each tokenDelimiter do
  *		none
  * @author "Richard Arriaga"
  */
-Private method "Process the_comment" is
+Private method "Process the_'s⁇comment buffer" is
 [
  	scanner : stacks scanner
  |
 	Until
 	[
-		scanner's source is not exhausted ∨
-			[scanner's character buffer = "*/" ∧ 
-				[scanner's open comment count = 1]]
+		scanner's comment buffer is exhausted
 	]
 	do
 	[
-		c ::= scanner's source's current element; 
+		c ::= scanner's current buffer character; 
 		f ::= inCommentDispatchTable[c] else
 			[
-			 	[
-			 	 	s : stacks scanner
-			 	 |
-			 	 	/* Unimportant character, let scanner proceed */
-			 	]
+				[
+					s : stacks scanner
+				 |
+					scanner's character buffer := 
+						scanner's character buffer ++ <c>;
+					Increment scanner's buffer index;
+				]
 			];
 		f(scanner);
-		Next character from scanner;
-	]; 
+		Increment scanner's buffer index;
+	];
 ]:⊤;
-
-/**
- * Take a tuple of stacks tokens and concatenate the lexemes seperated by
- * provided character
- *
- * @method "Concatenate_separated by_"
- * @public
- * @categories "Stacks"
- * @param "tokens" "<stacks token…|1..>" 
- *      a tuple of stacks tokens
- * @param "delimeter" "string" 
- *      the string to separate the tokens' lexems in the string
- * @returnType "string"
- *      a string sentence of the tokens' lexemes
- * @author "authorName"
- */
-Public method "concatenate_separated by_" is
-[
- 	tokens : <stacks token…|>,
- 	delimeter : string
- |
- 	if |tokens| = 0 then [""]
- 	else if [|tokens| = 1] then [tokens[1]'s lexeme]
- 	else
- 	[
- 	 	i : natural number := 1;
- 	 	lexemeAndSpace : <string…|> := <>;
- 	 	Do 
- 	 	[
- 	 	 	lexemeAndSpace := lexemeAndSpace ++ <tokens[i]'s lexeme>;
- 	 	 	↑i++;
- 	 	]
- 	 	until [i > |tokens|]
- 	 	alternate with [lexemeAndSpace := lexemeAndSpace ++ <delimeter>;];
- 	 	cast flatten lexemeAndSpace into [s : string | s]
- 	]
- ]:string;
 
 /***
  * Find the start of the scanner's next new unnested comment.
@@ -801,23 +1107,17 @@ Private method "find_'s⁇next comment" is
 [
 	scanner : stacks scanner
  |
-	Next character from scanner;
-	if scanner's source's current element = ¢/ then
+	inComment : boolean := false;
+	Until 
 	[
-		scanner is at new comment
+		scanner's source is exhausted ∨
+			[inComment]
 	]
-	else
+	do
 	[
-		buffer ::= "/" ++ 
-			read from scanner while [scanner's source's current element = ¢*];
-		if |buffer| = 1 then [false] 
-		else if [|buffer| = 2] then [true]
-		else 
-		[
-			scanner's special comment := true; 
-			true
-		]
-	]
+		inComment := scanner is at new comment;
+	];
+	inComment
 ] : boolean;
 
 /**
@@ -913,6 +1213,50 @@ Private method "comment first pass from_using_in level_" is
 ]:whole number;
 
 /**
+ * Reset all comment tokenizing fields in a stacks scanner to initial settings
+ *
+ * @method "Reset_'s⁇comment processing structure"
+ * @categories "Stacks Scanner"
+ * @param "scanner" "stacks scanner" 
+ *      a stacks scanner
+ * @returnType "⊤"
+ *      none
+ * @author "Richard Arriaga"
+ */
+Private method "Reset_'s⁇comment processing structure" is
+[
+	scanner : stacks scanner
+ |
+	scanner's comment buffer := <>;
+	scanner's character buffer := <>;
+	scanner's comment buffer index := 1;
+	scanner's  open comment count := 0;
+	scanner's special comment := false;
+	scanner's token buffer := <>;
+]:⊤;
+
+
+/**
+ * A method that accepts a stacks scanner and stores a completely tokenized 
+ * comment into its comment buffer.
+ *
+ * @method "Buffer_'s⁇ current comment"
+ * @categories "Stacks"
+ * @param "scanner" "stacks scanner" 
+ *		a stacks lexical scanner
+ * @returnType "⊤"
+ *		none
+ * @author "Richard Arriaga"
+ */
+Private method "Buffer_'s⁇current comment" is
+[
+	scanner : stacks scanner
+|
+	scanner's comments := (scanner's comments ++ <scanner's token buffer>);
+	Reset scanner's comment processing structure;
+]:⊤;
+
+/**
  * Obtain all Stacks comments from a scanner then process them into tokenized 
  * regions.
  *
@@ -924,9 +1268,9 @@ Private method "comment first pass from_using_in level_" is
  *      none
  * @author "Richard Arriaga"
  */
-Private method "Obtain Stacks comments from_" is
+Public method "Obtain Stacks comments from_" is
 [
- scanner : stacks scanner
+	scanner : stacks scanner
  |
 	tree : patricia trie := a patricia trie;
 	/* Add open and close comment delimiters to patricia trie */
@@ -937,427 +1281,27 @@ Private method "Obtain Stacks comments from_" is
 	Until [scanner's source is exhausted]
 	do
 	[
-	 	inComment : boolean := false;
-	 	Until 
-	 	[
-	 	 	scanner's source is exhausted ∨ [inComment = true]
-	 	]
-	 	do [find scanner's next comment];
-	 	
-	 	nestedLevel : whole number := 0;
-	 	If inComment = true then [nestedLevel := 1;];
-		
-	 	While [nestedLevel > 0] do
+		inComment : boolean := false;
+		inComment := find scanner's next comment;
+
+		nestedLevel : whole number := 0;
+		If inComment = true then 
 		[
-		 	nestedLevel := comment first pass from scanner using tree 
-		 					in level ↑nestedLevel;
+			nestedLevel := 1;
+			↑scanner's open comment count++;
 		];
-	 	
-	 	If scanner's special comment = true then 
+
+		While [nestedLevel > 0] do
 		[
-			/*TODO complete second pass*/
-			scanner's special comment := false;
+			nestedLevel := comment first pass from scanner using tree 
+							in level ↑nestedLevel;
+		];
+
+		If scanner's special comment = true then 
+		[
+			/*Transform comment buffer into a tokenized comment tuple*/
+			Process the scanner's comment buffer;
+			Buffer scanner's current comment;
 		];
 	];
 ]:⊤;
-
-
-
-
-
-
-
-
-
-
-
-
-
-/* All work that follows is old work*/
-
-/**
- * Tokenize all elements of a string.
- *
- * @method "tokenize comment_"
- * @public
- * @categories "Stacks"
- * @param "comment" "string" 
- *		a qualifying stacks comment
- * @returnType "<stacks token…|>"
- *		a tuple of stacks tokens.  Excludes astericks.
- * @author "Richard Arriaga"
- */
-Public method "tokenize comment_" is
-[
- 	comment : string
- |
- 	lineCount : natural number := 1;
- 	openComment : whole number := 0;
-	openQuote : whole number := 0;
-	stacksTokens : <stacks token…|> := <>;
-	
-	/* delimiting characters for tokenization */
-	keyCharacters ::= {¢@,¢" ",¢"\"",¢{,¢},¢`,¢/,¢*,¢"\t",¢"\n"};
- 
-	doNotTokenize ::= {"/*","/**","*/"," ","","\t"};
-	
-	newLinePositions ::= all indices of comment where 
-		[c : character | c = ¢"\n"];
-
-	priorNewLine : natural number := 1;
-	bufferMap : {natural number→string|} := {};
-	
-	/* Break up comment by new lines.  Map key is line count, value is line *
-	 * less the new line character at the end of the line                   */
-	For each newLinePositions do
-	[
-	 	i : natural number
-	 |
-	 	if priorNewLine = 1 then
-	 	[
-	 	 	bufferMap := bufferMap + lineCount→comment[priorNewLine..i-1];
-	 	] else
-	 	[
-	 	 	bufferMap := bufferMap + lineCount→comment[priorNewLine + 1..i-1];
-	 	];
-	 
-	 	priorNewLine := i;
-		↑lineCount++;
-	];
-	
-	/* Tokenize comment lines */
-	For each bufferMap do
-	[
-	 	lineNumber : natural number,
-	 	commentLine : string
-	 |
-	 	columnPosition : natural number := 1;
-		charCounter : whole number := 0;
-
-		/* Is the new line a continuation of a nested comment, if so consume *
-		 * without tokenizing the contents                                   */
-
-		While
-		[
-		 	charCounter < |commentLine|
-		]
-		do
-		[
-			If openComment > 1 then
-			[
-			 	While
-			 	[
-			 	 	openComment > 1 ∧ [charCounter < |commentLine|]
-			 	]
-			 	do
-			 	[
-	
-			 	 	/* Consume nested comment without tokenizing but moving *
-			 	 	 * column pointer										*/
-			 	 	If charCounter = 0 then [↑charCounter++;];
-			 	 	
-					word : <character…|> := take from commentLine[charCounter+1..] 
-					until 
-					[
-					 	c : character 
-					 |
-	
-						If charCounter ≠ |commentLine| then [↑charCounter++;];
-					 	c ∈ {¢/,¢*}  ∨ [charCounter = |commentLine|]
-					];
-			 	 	
-			 	 	j : natural number := cast charCounter into 
-						[n : natural number | n];
-	
-			 	 	If charCounter < |commentLine| +1 ∧ [commentLine[j] ∈ {¢/,¢*}] then  
-					[
-						Cast commentLine[j] into
-						[
-						 	c : enumeration of {¢/,¢*}
-						 |
-							Choose c from enumeration of {¢/,¢*}
-							where
-							¢* is
-							[
-							 	If commentLine[j+1] = ¢/ then
-							 	[
-							 	 	/*Close nested comment*/
-							 	 	↑openComment--;
-							 	 	↑charCounter++;
-							 	];
-							],
-							¢/ is
-							[
-								If commentLine[j+1] = ¢* then
-								[
-								 	/*Open new nested comment*/
-									↑openComment++;
-									↑charCounter++;
-								];
-							];
-						];
-					];
-			 	 	
-			 	];
-			];
-			While
-			[
-			 	charCounter < |commentLine| ∧ [openComment < 2]
-			]
-			do
-			[
-			 	wordStart : natural number := charCounter + 1;
-				word : <character…|> := take from commentLine[charCounter+1..] until 
-				[
-				 	c : character 
-				 |
-				 	↑charCounter++;
-				 	c ∈ keyCharacters  ∨ [charCounter = |commentLine|+1]
-				];
-	
-				j : natural number := cast charCounter into 
-					[n : natural number | n];
-	
-				if charCounter < |commentLine| then
-				[
-					Cast commentLine[j] into
-					[
-					 	c : enumeration of 
-					 		{¢@,¢" ",¢"\"",¢{,¢},¢`,¢/,¢*,¢"\t",¢"\n"}
-					 |
-						Choose c from enumeration of keyCharacters
-						where
-						¢"\t" is
-						[
-						 	If word ∉ doNotTokenize then 
-						 	[
-						 	 	stacksTokens := stacksTokens ++ 
-						 	 		<token <word,lineNumber,wordStart>>;
-						 	];
-						],
-						¢@ is
-						[
-						 	If word ∉ doNotTokenize then 
-						 	[
-						 	 	stacksTokens := stacksTokens ++ 
-						 	 		<token <word,lineNumber,wordStart>>;
-						 	];
-			 				wordStart := j;
-			 				word := take from commentLine[j..] until 
-			 				[
-			 					ch : character 
-			 				 |
-			 				 	↑charCounter++;
-			 					ch = ¢" " ∨ [ch =  ¢"\n"]
-			 				];
-				 			stacksTokens := stacksTokens ++ 
-				 				<token <word,lineNumber,wordStart>>;
-						 	/* Counter will be re-incremented above.*/
-						 	↑charCounter--;
-						],
-						¢" " is
-						[
-						 	If word ∉ doNotTokenize then 
-						 	[
-						 	 	stacksTokens := stacksTokens ++ 
-						 	 		<token <word,lineNumber,wordStart>>;
-						 	];
-						],
-						¢"\"" is
-						[
-						 	If word ∉ doNotTokenize then 
-						 	[
-						 	 	stacksTokens := stacksTokens ++ 
-						 	 		<token <word,lineNumber,wordStart>>;
-						 	];
-				 			wordStart := j;
-			 				word := take from commentLine[j+1..] until 
-			 				[
-			 					ch : character 
-			 				 |
-			 					↑charCounter++;
-			 					ch = ¢"\"" ∨ [charCounter = |commentLine|]
-			 				];
-						 	if charCounter < |commentLine| + 1 then
-						 	[
-						 		word := <¢"\""> ++ word ++ <¢"\"">;
-						 		stacksTokens := stacksTokens ++ 
-						 			<token <word,lineNumber,wordStart>>;
-						 	] else
-						 	[
-						 	 	/* TODO some sort of Error handling of missing close quote*/
-						 	];
-						],
-						¢{ is
-						[/* TODO Better handling of this, want entire thing in one token if followed by @ tag*/
-						 	If word ∉ doNotTokenize then 
-						 	[
-						 	 	stacksTokens := stacksTokens ++ 
-						 	 		<token <word,lineNumber,wordStart>>;
-						 	];
-							stacksTokens := stacksTokens ++ 
-								<token <"{",lineNumber,j>>;
-						],
-						¢} is
-						[/* TODO Don't actually need this once { is handled correctly*/
-						 	If word ∈ doNotTokenize then 
-						 	[
-						 	 	stacksTokens := stacksTokens ++ 
-						 	 		<token <word,lineNumber,wordStart>>;
-						 	];
-				 			stacksTokens := stacksTokens ++ 
-				 				<token <"}",lineNumber,j>>;
-						],
-						¢` is
-						[
-						 /* Check for following escaped special characters */
-						 	if charCounter < |commentLine| then
-						 	[
-							  	if commentLine[j+1] ∈ {¢@,¢"\"",¢`,¢*} then
-							  	[
-							  	 	word := word ++ commentLine[j..j+1];
-							  		↑charCounter++;
-							  		If charCounter ≠ |commentLine| then
-							  		[
-								  		word := word ++ 
-								  			take from commentLine[j+2..] until 
-						 				[
-						 					ch : character 
-						 				 |
-						 					↑charCounter++;
-						 					ch ∈ keyCharacters  
-						 				];
-									 	If word ∉ doNotTokenize then 
-									 	[
-									 	 	stacksTokens := stacksTokens ++ 
-									 	 		<token <word,lineNumber,wordStart>>;
-									 	];
-									];
-							  	]
-							  	else 
-							  	[
-							  	 	word := word ++ <commentLine[j]>;
-							  		↑charCounter++;
-							  		word := word ++ take from commentLine[j+1..] until 
-					 				[
-					 					ch : character 
-					 				 |
-					 					↑charCounter++;
-					 					ch ∈ keyCharacters ∨ 
-				 							[charCounter = |commentLine|]
-					 				];
-								 	If word ∉ doNotTokenize then 
-								 	[
-								 	 	stacksTokens := stacksTokens ++ 
-								 	 		<token <word,lineNumber,wordStart>>;
-								 	];
-							  	];
-							] else
-							[
-							 	word := word ++ <commentLine[j]>;
-							 	If word ∉ doNotTokenize then 
-							 	[
-							 	 	stacksTokens := stacksTokens ++ 
-							 	 		<token <word,lineNumber,wordStart>>;
-							 	];
-							];
-						],
-						¢/ is
-						[
-						 	/*Check to see if open nested comment*/
-						 	if commentLine[j+1] = ¢* then
-					 		[
-			 		 	 		↑charCounter++;
-					 		 	if openComment = 0 ∧ [|commentLine| ≤ j + 2] then
-					 		 	[
-					 		 	 	/*Open new comment*/
-					 		 	 	↑openComment++;
-					 		 	 	If commentLine[j+2] = ¢* then
-					 		 	 	[
-					 		 	 	 	/* Start of main comment*/
-					 		 	 	 	↑charCounter++;
-					 		 	 	];
-					 		 	] else
-					 		 	[
-					 		 	 	/*Open new nested comment*/
-					 		 	 	↑openComment++;
-					 		 	 	↑charCounter++;
-					 		 	];
-							] else
-							[
-						  	 	word := word ++ <commentLine[j]>;
-						  		↑charCounter++;
-						  		word := word ++ take from commentLine[j+1..] until 
-				 				[
-				 					ch : character 
-				 				 |
-				 					↑charCounter++;
-				 					ch ∈ keyCharacters ∨ 
-			 							[charCounter = |commentLine|]
-				 				];
-							];
-						 	If word ∉ doNotTokenize then 
-						 	[
-						 	 	stacksTokens := stacksTokens ++ 
-						 	 		<token <word,lineNumber,wordStart>>;
-						 	];
-						],
-						¢* is
-						[
-						 /*Do nothing special here.  If closing comment, it will *
-						  * end the buffer.  If not, `* will not be converted 	 *
-						  * into a token.  Tokenize prior word if applicable.	 */
-						 	If word ∉ doNotTokenize then 
-						 	[
-						 	 	stacksTokens := stacksTokens ++ 
-						 	 		<token <word,lineNumber,wordStart>>;
-						 	];
-						 ],
-						 ¢"\n" is
-						 [
-						 	If word ∉ doNotTokenize then 
-						 	[
-						 	 	stacksTokens := stacksTokens ++ 
-						 	 		<token <word,lineNumber,wordStart>>;
-						 	];
-						 ];
-					];
-				] else
-				[
-				 	If word ∉ doNotTokenize then 
-				 	[
-				 	 	stacksTokens := stacksTokens ++ 
-				 	 		<token <word,lineNumber,wordStart>>;
-				 	];
-				];
-			];
-		];
-	];
-	stacksTokens
-]:<stacks token…|>;
-
-/**
- *
- * @method "tokenize_"
- * @public
- * @categories "Stacks"
- * @param "comment" "string's type" 
- *		a qualifying stacks comment type
- *		a tuple of stacks tokens.  Excludes astericks.
- * @author "Richard Arriaga"
- */
-Semantic restriction "tokenize_" is
-[
- 	comment : string's type
- |
- 	if comment ≠ <>'s type then 
- 	[
- 	 	<stacks token…|1..>
-	] 
-	else
-	[
-	 	<stacks token…|0>
-	]
- ];
-
-
