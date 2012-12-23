@@ -157,16 +157,12 @@ Public method "an Avail scanner with_" is
 [
 	iter : iterator of character
 |
-	line : natural number := 1;
-	column : natural number := 1;
-	tokenStart : natural number := 1;
-	tokens : <scanner token…|> := <>;
 	an Avail scanner with
 		source ::= iter,
-		token buffer ::= ↑tokens,
-		line number ::= ↑line,
-		column number ::= ↑column,
-		token start ::= ↑tokenStart
+		token buffer := <>,
+		line number := 1,
+		column number := 1,
+		token start := 1
 ] : Avail scanner;
 
 /**
