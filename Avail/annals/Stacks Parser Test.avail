@@ -43,7 +43,7 @@ Names
 
 
 Body
-test ::= "purple
+test : string := "purple
 /*
 * Core.avail
 * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
@@ -80,9 +80,11 @@ test ::= "purple
 
 
 /**
-* A base unit is metrically irreducible; though * it may be reduced to smaller*
+* A {@type 
+* \"number\" 
+* extent   } base \"unit is metrically\" irreducible; though * it may be reduced to smaller*
 * quanta, it may not be reduced to simpler *terms. Examples of base units are * 
-* meters (m), seconds (s), or grams (g). {@type \"number\" extent} type 
+* meters (m), seconds (s), or grams (g). type 
 *
 * @type \"base unit\"
 * @supertype \"unit\" garble
@@ -95,7 +97,7 @@ Public explicit class \"base unit\" extends unit
 
 /**
 * Construct and answer a {@type \"dimensioned quantity\"} type with the specified
-* {@type \"number\" extent} type.
+* {@type \"number\" extent}
 *
 * @method \"dimensioned_\"
 * @param \"magnitudeType\" \"number's type\"
@@ -121,8 +123,11 @@ it : iterator of character := an iterator over test;
 scanner : stacks scanner := a stacks scanner with it;
 Obtain Stacks comments from scanner;
 Print: format "scanner's comments[1]=“①”\n\n" with scanner's comments[1];
-q ::= concatenate scanner's comments[1] separated by "_";
+q : string := concatenate scanner's comments[1] separated by "_";
+p : bracketed stacks token := cast scanner's comments[1][2] into [b : bracketed stacks token | b];
+Print: format "scanner's comments[1][2]'s subtokens=“①”\n\n" with p;
+Print: format "scanner's comments[1][3]'s lexeme=“①”\n\n" with scanner's comments[1][3]'s lexeme;
 Print: q; Print: "\n\n\n\n";
 Print: format "scanner's comments[2]=“①”\n\n" with scanner's comments[2];
-v ::= concatenate scanner's comments[2] separated by "_";
+v : string := concatenate scanner's comments[2] separated by "_";
 Print: v; Print: "\n";

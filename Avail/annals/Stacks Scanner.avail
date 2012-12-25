@@ -1225,7 +1225,7 @@ Private method "Process left curly brace in comment from_" is
 		scanner's comment buffer index := startIndex;
 		While
 		[
-			scanner's comment buffer index ≤ endIndex
+			scanner's comment buffer index < endIndex
 		]
 		do
 		[
@@ -1241,12 +1241,13 @@ Private method "Process left curly brace in comment from_" is
 					]
 				];
 			f(scanner);
-			Increment scanner's buffer index;
 		];
 		/*Reached index pointing at close of region, }.  Advance index beyond
 		 * this point in order to not tokenize it*/
-		/*Increment scanner's buffer index;*/
-		scanner's character buffer := region;
+		Increment scanner's buffer index;
+		Buffer scanner's current token;
+		scanner's character buffer := 
+			concatenate scanner's subtokens buffer separated by " ";
 		scanner's tokenize := true;
 		Buffer scanner's current bracketed token;
 	]
