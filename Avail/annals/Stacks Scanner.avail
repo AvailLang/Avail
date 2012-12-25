@@ -949,44 +949,54 @@ Private method "Process double quote in comment from_" is
 	 * preceded by a \ */
 	quoteIndices ::= all indices of word where [c : character | c = ¢"\""];
 	/* Iteratate through quote indices removing the char before the quote */
-	From |quoteIndices| to 1 by -1 do
+	If |quoteIndices| > 0 then
 	[
-		n : natural number
-	 |
-		z ::= split word after quoteIndices[n];
-		i ::= |z[1]| - 1; 
-		word := z[1][1..i] ++ z[2];
+		size : natural number := cast |quoteIndices| into 
+			[i : natural number | i]; 
+		From size to 1 by -1 do
+		[
+			n : natural number
+		 |
+			z ::= split word after quoteIndices[n];
+			i ::= |z[1]| - 1; 
+			word := z[1][1..i] ++ z[2];
+		];
 	];
 
 	/* Find all new line instances in word */
 	newlineIndices ::= all indices of word where [c : character | c = ¢"\n"];
 	/* Iterate through new line indices removing them and associated 
 	 * syntax used to break quoted strings over many lines */
-	From |newlineIndices| to 1 by -1 do
+	If |newlineIndices| > 0 then
 	[
-		n : natural number
-	 |
-		z ::= split word after quoteIndices[n];
-		half1End ::= last index of z[1] where [c: character | c = ¢\];
-		end ::= cast |half1End|-1 into [r : natural number | r];
-		half1 : string := if z[1][end] ≠ ¢" " then 
+		size : natural number := cast |newlineIndices| into 
+			[i : natural number | i]; 
+		From size to 1 by -1 do
 		[
-			z[1][..end] ++ " "
-		] else 
-		[
-			z[1][..end]
+			n : natural number
+		 |
+			z ::= split word after newlineIndices[n];
+			half1End ::= last index of z[1] where [c: character | c = ¢\];
+			end ::= cast |half1End|-1 into [r : natural number | r];
+			half1 : string := if z[1][end] ≠ ¢" " then 
+			[
+				z[1][..end] ++ " "
+			] else 
+			[
+				z[1][..end]
+			];
+	
+			half2Start ::= first index of z[2] where [c: character | c = ¢|];
+			half2 : string := if z[2][|half2Start|+1] ≠ ¢" " then 
+			[
+				z[2][|half2Start|+1..]
+			] else 
+			[
+				z[2][|half2Start|+2..]
+			];
+	
+			word := half1 ++ half2;
 		];
-
-		half2Start ::= first index of z[2] where [c: character | c = ¢|];
-		half2 : string := if z[2][|half2Start|+1] ≠ ¢" " then 
-		[
-			z[2][|half2Start|+1..]
-		] else 
-		[
-			z[2][|half2Start|+2..]
-		];
-
-		word := half1 ++ half2;
 	];
 
 	scanner's character buffer := word;

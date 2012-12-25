@@ -79,12 +79,13 @@ test : string := "purple
 
 
 
-/*
+/**
 * A {@type 
 * \"number\" 
 * extent   } base \"unit is metrically\" irreducible; though * it may be reduced to smaller*
 * quanta, it may /*/*not*/ be reduced*/ to simpler *terms. Examples of base units are * 
-* meters (m), seconds (s), or grams (g). type 
+* meters (m), seconds (s), or grams (g). type \"first function to accept a dimensioned quantity and a unit \\
+*		\\|(but it accepts ① and ②)\"
 *
 * @type \"base unit\"
 * @supertype \"unit\" garble
