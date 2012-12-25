@@ -434,7 +434,21 @@ Private method "_is at new comment" is
 					scanner's special comment := true;
 					true
 				]
-			] else [false]
+			]
+			else 
+			[
+				If scanner's current element = ¢"\"" then
+				[
+					Next character from scanner;
+					throwAway : string := read from scanner while 
+						[
+							scanner's current element ≠ ¢"\"" ∨
+								[scanner's previous element = ¢\ ∧
+								 		[scanner's current element = ¢"\""]]
+						];
+				];
+				false
+			]
 		]
 	] else [false]
 ] : boolean;
