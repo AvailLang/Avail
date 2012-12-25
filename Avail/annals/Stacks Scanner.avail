@@ -824,6 +824,7 @@ Private method "_is at nested comment" is
  |
 	if scanner's current buffer character = ¢/ then
 	[
+		Increment scanner's buffer index;
 		scanner is at nested comment
 	]
 	else
@@ -832,15 +833,17 @@ Private method "_is at nested comment" is
 		[
 			buffer : <character…|> := read from scanner's comment buffer while 
 				[scanner's current buffer character = ¢*];
-			if |buffer| = 1 then 
+			if |buffer| = 0 then 
 			[
+			 	
 			 	scanner's character buffer := scanner's character buffer ++ 
 			 		buffer;
-				false]
+				false
+			]
 			else 
 			[
-				If |scanner's character buffer| ≠ 0 then
-					[Buffer scanner's current token;];
+				↑scanner's open comment count++;
+				Buffer scanner's current token;
 				true
 			]
 		] else [false]
@@ -865,15 +868,13 @@ Private method "Consume_'s⁇nested comment" is
 	While 
 	[
 		scanner's comment buffer is not exhausted ∧ 
-			[scanner's open comment count > 1] 
+			[scanner's open comment count > 0] 
 	] 
 	do
 	[
 		throwAway ::= read from scanner's comment buffer while
-		[
-			scanner's current buffer character ∉ {¢/,¢*}
-		];
-		if scanner's current buffer character = ¢/ then
+			[scanner's current buffer character ∉ {¢/,¢*}];
+		If scanner's current buffer character = ¢/ then
 		[
 			Increment scanner's buffer index;
 			If scanner's comment buffer is not exhausted ∧ 
@@ -890,6 +891,7 @@ Private method "Consume_'s⁇nested comment" is
 				[scanner's current buffer character = ¢/] then
 			[
 				↑scanner's open comment count--;
+				Increment scanner's buffer index;
 			];
 		];
 	];
@@ -912,7 +914,6 @@ Private method "Process forward slash from_" is
  |
 	If scanner is at nested comment then
 	[
-		↑scanner's open comment count++;
 		Consume scanner's nested comment;
 	];
 ]:⊤;
@@ -1493,7 +1494,6 @@ Public method "Obtain Stacks comments from_" is
 		If inComment = true then 
 		[
 			nestedLevel := 1;
-			↑scanner's open comment count++;
 		];
 
 		While [nestedLevel > 0] do

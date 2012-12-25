@@ -79,11 +79,11 @@ test : string := "purple
 
 
 
-/**
+/*
 * A {@type 
 * \"number\" 
 * extent   } base \"unit is metrically\" irreducible; though * it may be reduced to smaller*
-* quanta, it may not be reduced to simpler *terms. Examples of base units are * 
+* quanta, it may /*/*not*/ be reduced*/ to simpler *terms. Examples of base units are * 
 * meters (m), seconds (s), or grams (g). type 
 *
 * @type \"base unit\"
@@ -124,10 +124,11 @@ scanner : stacks scanner := a stacks scanner with it;
 Obtain Stacks comments from scanner;
 Print: format "scanner's comments[1]=“①”\n\n" with scanner's comments[1];
 q : string := concatenate scanner's comments[1] separated by "_";
-p : bracketed stacks token := cast scanner's comments[1][2] into [b : bracketed stacks token | b];
+Print: q; Print: "\n\n\n\n";
+/*p : bracketed stacks token := cast scanner's comments[1][2] into [b : bracketed stacks token | b];
 Print: format "scanner's comments[1][2]'s subtokens=“①”\n\n" with p;
 Print: format "scanner's comments[1][3]'s lexeme=“①”\n\n" with scanner's comments[1][3]'s lexeme;
 Print: q; Print: "\n\n\n\n";
 Print: format "scanner's comments[2]=“①”\n\n" with scanner's comments[2];
 v : string := concatenate scanner's comments[2] separated by "_";
-Print: v; Print: "\n";
+Print: v; Print: "\n";*/
