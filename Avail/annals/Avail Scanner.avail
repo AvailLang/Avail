@@ -36,10 +36,11 @@ Versions
 Extends
 
 Uses
-	"Avail"
+	"Avail",
+	"Patricia Trie"
 
 Names
-	"an Avail Scanner with_",
+	"an Avail scanner with_",
 	"Avail scanner",
 	"column number",
 	"Exhaust_",
@@ -47,6 +48,7 @@ Names
 	"line",
 	"line number",
 	"Next character from_",
+	"previous element",
 	"position",
 	"Process digit from_",
 	"Process double quote from_",
@@ -58,16 +60,25 @@ Names
 	"read from_while_",
 	"read_'s⁇region delimited by_and_«with|without»!nesting",
 	"scanner token",
+	"source",
 	"token buffer",
 	"token start",
 	"tokenize_",
 	"_'s⁇column number",
+	"_'s⁇column number:=_",
 	"_'s⁇line",
+	"_'s⁇line:=_",
 	"_'s⁇line number",
+	"_'s⁇line number:=_",
+	"_'s⁇previous element",
+	"_'s⁇previous element:=_",
 	"_'s⁇position",
+	"_'s⁇position:=_",
 	"_'s⁇source",
 	"_'s⁇token buffer",
-	"_'s⁇token start"
+	"_'s⁇token buffer:=_",
+	"_'s⁇token start",
+	"_'s⁇token start:=_"
 
 Body
 
@@ -77,6 +88,7 @@ Body
 "line" is a new field atom;
 "line number" is a new field atom;
 "column number" is a new field atom;
+"previous element" is a new field atom;
 "position" is a new field atom;
 "token buffer" is a new field atom;
 "token start" is a new field atom;
@@ -122,11 +134,13 @@ Public class "scanner token" extends object
 
 Public class "Avail scanner" extends object
 	with fields
-		public source : iterator of character,
-		public token buffer : ↑<scanner token…|>,
-		public line number : ↑natural number,
-		public column number : ↑natural number,
-		public token start : ↑natural number;
+		public source : iterator of character
+	with mutable fields
+		public previous element : character,
+		public token buffer : <scanner token…|>,
+		public line number : natural number,
+		public column number : natural number,
+		public token start : natural number;
 
 /**
  * Public constructor of Avail scanner
@@ -139,20 +153,16 @@ Public class "Avail scanner" extends object
  *      an Avail scanner object
  * @author "Richard Arriaga"
  */
-Public method "an Avail Scanner with_" is
+Public method "an Avail scanner with_" is
 [
 	iter : iterator of character
 |
-	line : natural number := 1;
-	column : natural number := 1;
-	tokenStart : natural number := 1;
-	tokens : <scanner token…|> := <>;
 	an Avail scanner with
 		source ::= iter,
-		token buffer ::= ↑tokens,
-		line number ::= ↑line,
-		column number ::= ↑column,
-		token start ::= ↑tokenStart
+		token buffer := <>,
+		line number := 1,
+		column number := 1,
+		token start := 1
 ] : Avail scanner;
 
 /**
@@ -277,20 +287,21 @@ Public method "Next character from_" is
 [
 	scanner : Avail scanner
  |
-		Advance scanner's source;
-		If scanner's source is not exhausted then
-		[ 
-			if scanner's current element = ¢"\n" then 
-			[
-				↓scanner's column number ?= 1;
-				scanner's line number++;
-			]
-			else
-			[
-			 	scanner's column number++;
-			];
+	scanner's previous element := scanner's current element;
+	Advance scanner's source;
+	If scanner's source is not exhausted then
+	[
+		if scanner's current element = ¢"\n" then 
+		[
+			scanner's column number := 1;
+			scanner's line number := scanner's line number + 1;
+		]
+		else
+		[
+		 	scanner's column number := scanner's column number + 1;
 		];
- ]:⊤;
+	];
+]:⊤;
 
 /**
  * Advance the scanner's source until exhaustion.  Perform appropriate functions
@@ -396,7 +407,7 @@ Public method "read from_while_" is
 	scanner : Avail scanner,
 	index : natural number
  |
-	↓scanner's token buffer[index]
+	scanner's token buffer[index]
 ]:scanner token;
 
 /**
@@ -490,7 +501,7 @@ Method "read_'s⁇region delimited by_and_«with|without»!nesting" is
 	if nesting = 1 ∧ [ startDelimiter ≠ endDelimiter] then /* handle nesting */
 	[
 		/* Create a patricia trie and add both start and end delimiters*/
-		tree : patricia tree := a patricia tree;
+		tree : patricia trie := a patricia trie;
 		Add startDelimiter to tree;
 		Add endDelimiter to tree;
 		
@@ -507,7 +518,7 @@ Method "read_'s⁇region delimited by_and_«with|without»!nesting" is
 			[
 				value ::= scanner's current element;
 				next ::= cursor's next steps;
-				If char ∉ next then
+				If value ∉ next then
 				[
 					/* We have not hit a delimiter, add collected characters
 					 * to the region and reset buffer and cursor.            */
@@ -521,13 +532,13 @@ Method "read_'s⁇region delimited by_and_«with|without»!nesting" is
 					cursor := next[value];
 					buffer := buffer ++ <value>;
 				];
-
-				/* TODO Need to check to see if buffer is start or end delimiter
-				 * If it is, adjust regionCount appropriately:
-				 * ↑regionCount++ or ↑regionCount--
-				 * Remember, must do the longest possible delimiter.  Must be
-				 * able to rewind back if previously hit delimiter but still 
-				 * could proceed in tree to potentially longer delimiter.    */
+				If cursor is at terminus then
+				[
+				 	/*Check to see if terminating region or opening nested
+				 	 * region. Increment region count appropriately.  */
+					If buffer = startDelimiter then
+					[↑regionCount++;] else [↑regionCount--;];
+				];
 
 				Next character from scanner;
 			];
