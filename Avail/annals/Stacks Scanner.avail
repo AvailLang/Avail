@@ -434,7 +434,21 @@ Private method "_is at new comment" is
 					scanner's special comment := true;
 					true
 				]
-			] else [false]
+			]
+			else 
+			[
+				If scanner's current element = ¢"\"" then
+				[
+					Next character from scanner;
+					throwAway : string := read from scanner while 
+						[
+							scanner's current element ≠ ¢"\"" ∨
+								[scanner's previous element = ¢\ ∧
+								 		[scanner's current element = ¢"\""]]
+						];
+				];
+				false
+			]
 		]
 	] else [false]
 ] : boolean;
@@ -824,6 +838,7 @@ Private method "_is at nested comment" is
  |
 	if scanner's current buffer character = ¢/ then
 	[
+		Increment scanner's buffer index;
 		scanner is at nested comment
 	]
 	else
@@ -832,15 +847,17 @@ Private method "_is at nested comment" is
 		[
 			buffer : <character…|> := read from scanner's comment buffer while 
 				[scanner's current buffer character = ¢*];
-			if |buffer| = 1 then 
+			if |buffer| = 0 then 
 			[
+			 	
 			 	scanner's character buffer := scanner's character buffer ++ 
 			 		buffer;
-				false]
+				false
+			]
 			else 
 			[
-				If |scanner's character buffer| ≠ 0 then
-					[Buffer scanner's current token;];
+				↑scanner's open comment count++;
+				Buffer scanner's current token;
 				true
 			]
 		] else [false]
@@ -865,15 +882,13 @@ Private method "Consume_'s⁇nested comment" is
 	While 
 	[
 		scanner's comment buffer is not exhausted ∧ 
-			[scanner's open comment count > 1] 
+			[scanner's open comment count > 0] 
 	] 
 	do
 	[
 		throwAway ::= read from scanner's comment buffer while
-		[
-			scanner's current buffer character ∉ {¢/,¢*}
-		];
-		if scanner's current buffer character = ¢/ then
+			[scanner's current buffer character ∉ {¢/,¢*}];
+		If scanner's current buffer character = ¢/ then
 		[
 			Increment scanner's buffer index;
 			If scanner's comment buffer is not exhausted ∧ 
@@ -890,6 +905,7 @@ Private method "Consume_'s⁇nested comment" is
 				[scanner's current buffer character = ¢/] then
 			[
 				↑scanner's open comment count--;
+				Increment scanner's buffer index;
 			];
 		];
 	];
@@ -912,7 +928,6 @@ Private method "Process forward slash from_" is
  |
 	If scanner is at nested comment then
 	[
-		↑scanner's open comment count++;
 		Consume scanner's nested comment;
 	];
 ]:⊤;
@@ -948,44 +963,54 @@ Private method "Process double quote in comment from_" is
 	 * preceded by a \ */
 	quoteIndices ::= all indices of word where [c : character | c = ¢"\""];
 	/* Iteratate through quote indices removing the char before the quote */
-	From |quoteIndices| to 1 by -1 do
+	If |quoteIndices| > 0 then
 	[
-		n : natural number
-	 |
-		z ::= split word after quoteIndices[n];
-		i ::= |z[1]| - 1; 
-		word := z[1][1..i] ++ z[2];
+		size : natural number := cast |quoteIndices| into 
+			[i : natural number | i]; 
+		From size to 1 by -1 do
+		[
+			n : natural number
+		 |
+			z ::= split word after quoteIndices[n];
+			i ::= |z[1]| - 1; 
+			word := z[1][1..i] ++ z[2];
+		];
 	];
 
 	/* Find all new line instances in word */
 	newlineIndices ::= all indices of word where [c : character | c = ¢"\n"];
 	/* Iterate through new line indices removing them and associated 
 	 * syntax used to break quoted strings over many lines */
-	From |newlineIndices| to 1 by -1 do
+	If |newlineIndices| > 0 then
 	[
-		n : natural number
-	 |
-		z ::= split word after quoteIndices[n];
-		half1End ::= last index of z[1] where [c: character | c = ¢\];
-		end ::= cast |half1End|-1 into [r : natural number | r];
-		half1 : string := if z[1][end] ≠ ¢" " then 
+		size : natural number := cast |newlineIndices| into 
+			[i : natural number | i]; 
+		From size to 1 by -1 do
 		[
-			z[1][..end] ++ " "
-		] else 
-		[
-			z[1][..end]
+			n : natural number
+		 |
+			z ::= split word after newlineIndices[n];
+			half1End ::= last index of z[1] where [c: character | c = ¢\];
+			end ::= cast |half1End|-1 into [r : natural number | r];
+			half1 : string := if z[1][end] ≠ ¢" " then 
+			[
+				z[1][..end] ++ " "
+			] else 
+			[
+				z[1][..end]
+			];
+	
+			half2Start ::= first index of z[2] where [c: character | c = ¢|];
+			half2 : string := if z[2][|half2Start|+1] ≠ ¢" " then 
+			[
+				z[2][|half2Start|+1..]
+			] else 
+			[
+				z[2][|half2Start|+2..]
+			];
+	
+			word := half1 ++ half2;
 		];
-
-		half2Start ::= first index of z[2] where [c: character | c = ¢|];
-		half2 : string := if z[2][|half2Start|+1] ≠ ¢" " then 
-		[
-			z[2][|half2Start|+1..]
-		] else 
-		[
-			z[2][|half2Start|+2..]
-		];
-
-		word := half1 ++ half2;
 	];
 
 	scanner's character buffer := word;
@@ -1225,7 +1250,7 @@ Private method "Process left curly brace in comment from_" is
 		scanner's comment buffer index := startIndex;
 		While
 		[
-			scanner's comment buffer index ≤ endIndex
+			scanner's comment buffer index < endIndex
 		]
 		do
 		[
@@ -1241,12 +1266,13 @@ Private method "Process left curly brace in comment from_" is
 					]
 				];
 			f(scanner);
-			Increment scanner's buffer index;
 		];
 		/*Reached index pointing at close of region, }.  Advance index beyond
 		 * this point in order to not tokenize it*/
-		/*Increment scanner's buffer index;*/
-		scanner's character buffer := region;
+		Increment scanner's buffer index;
+		Buffer scanner's current token;
+		scanner's character buffer := 
+			concatenate scanner's subtokens buffer separated by " ";
 		scanner's tokenize := true;
 		Buffer scanner's current bracketed token;
 	]
@@ -1492,7 +1518,6 @@ Public method "Obtain Stacks comments from_" is
 		If inComment = true then 
 		[
 			nestedLevel := 1;
-			↑scanner's open comment count++;
 		];
 
 		While [nestedLevel > 0] do
