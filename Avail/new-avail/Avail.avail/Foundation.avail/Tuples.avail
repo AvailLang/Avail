@@ -3097,11 +3097,11 @@ Method "first index of_in_" is
 	]
 	else
 	[
-	 	found : boolean := false;
-	 	subtupleStart : whole number := 0;
-	 	tupleIndex : natural number := 1;
-	 	subtupleIndex : natural number := 1;
-	 	overlapTable : {tuple→natural number|} := self overlap subtuple;
+		found : boolean := false;
+		subtupleStart : whole number := 0;
+		tupleIndex : natural number := 1;
+		subtupleIndex : natural number := 1;
+		overlapTable : {tuple→natural number|} := self overlap subtuple;
 		Until 
 		[
 			found ∨ [tupleIndex > |aTuple|]
@@ -3110,14 +3110,14 @@ Method "first index of_in_" is
 		[
 			If aTuple[tupleIndex] = subtuple[subtupleIndex] then
 			[
-			 	If subtupleIndex = |subtuple| then 
-			 	[
-			 		found := true;
-			 		subtupleStart := cast tupleIndex - subtupleIndex + 1 into 
-			 			[w : whole number | w];
-			 	]
-			 	else [↑subtupleIndex++;];
-			 	
+				If subtupleIndex = |subtuple| then 
+				[
+					found := true;
+					subtupleStart := cast tupleIndex - subtupleIndex + 1 into 
+						[w : whole number | w];
+				]
+				else [↑subtupleIndex++;];
+				
 			]
 			else
 			[
@@ -3129,8 +3129,6 @@ Method "first index of_in_" is
 		subtupleStart
 	]
 ]:whole number;
-
-
 
 /**
  * Obtain the location of the start of every instance of subtuple occuring in a 
@@ -3265,9 +3263,9 @@ Method "all indices of_in_" is
 			w := first index of subtuple in aTuple[index..];
 			if w > 0 then 
 			[
-			 	occurrences := occurrences ++ <cast w + index - 1 into 
-			 		[n : natural number | n]>;
-			 	index := index + w + |subtuple| - 1;
+				occurrences := occurrences ++ <cast w + index - 1 into 
+					[n : natural number | n]>;
+				index := index + w + |subtuple| - 1;
 			]
 			else [index := index + |aTuple|;];
 		];
