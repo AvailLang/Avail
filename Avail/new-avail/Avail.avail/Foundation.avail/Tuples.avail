@@ -3104,7 +3104,7 @@ Method "first index of_in_" is
 		overlapTable : {tuple→natural number|} := self overlap subtuple;
 		Until 
 		[
-			found ∨ [tupleIndex > |aTuple|]
+			found ∨ [tupleIndex + |subtuple| - subtupleIndex > |aTuple|]
 		]
 		do
 		[
@@ -3257,7 +3257,9 @@ Method "all indices of_in_" is
 		index : natural number := 1;
 		occurrences : <natural number…|> := <>;
 		w : whole number := 0;
-		While [index < |aTuple|]
+		While [
+			index + |subtuple| < |aTuple| 
+		]
 		do
 		[
 			w := first index of subtuple in aTuple[index..];
