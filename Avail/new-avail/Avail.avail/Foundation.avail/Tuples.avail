@@ -2962,15 +2962,13 @@ Private method "self overlap_" is
 		If aTuple[current] = aTuple[position] then
 		[
 		 	↑current++;
-			overlap := overlap + aTuple[..position]→current;
-			↑position++;
 		] 
 		else
 		[
 			current := 1;
-			overlap := overlap + aTuple[..position]→current;
-			↑position++;
 		];
+		overlap := overlap + aTuple[..position]→current;
+		↑position++;
 	];
 	overlap
 ]:{tuple→natural number|};
