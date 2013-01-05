@@ -204,6 +204,9 @@ Public explicit class "bracketed stacks token"
 	with fields
 		subtokens : <stacks token…|>;
 
+/*TODO Extend erroneous stacks token tree to include bad quoted tokens and bad
+ * bracketed stacks tokens.*/
+
 /**
  * A method that constructs a subtype of stacks token class.
  *
@@ -491,7 +494,7 @@ Private method "_'s⁇comment buffer is not exhausted" is
 ]:boolean;
 
 /**
- * clear the scanner's comment buffer
+ * Clear the scanner's comment buffer
  *
  * @method "clear_'s⁇comment buffer"
  * @categories "category"
@@ -947,7 +950,6 @@ Private method "Process double quote in comment from_" is
 [
 	scanner : stacks scanner
  |
-/*TODO Error handling.  What if new lines not handled with expected syntax?*/
 	scanner's token start := scanner's column number;
 	scanner's quoted flag := true;
 	Increment scanner's buffer index;
@@ -983,33 +985,105 @@ Private method "Process double quote in comment from_" is
 	 * syntax used to break quoted strings over many lines */
 	If |newlineIndices| > 0 then
 	[
+	 	/* Function that handles case where \...|\ is not used.  As an input 
+	 	 * accepts the index location of the newline being processed. Returns 
+	 	 * the string with that newline character as well as the next line's 
+	 	 * starting asterisk and white space fileterd out*/
+		processLineFrom : [natural number]→string := 
+		[
+			tupleIndex : natural number
+		 |
+			firstAsterisk : natural number := 
+				first index of "*" in word[tupleIndex+1..] + tupleIndex;
+			start : natural number := first index of 
+				word[firstAsterisk + 1..] where
+				[
+					c : character
+				 |
+					¬c is whitespace
+				] + firstAsterisk;
+			if start = firstAsterisk then
+			[
+				if tupleIndex = 1 then [""]
+				else 
+				[
+					end : natural number := cast tupleIndex-1 into 
+						[k : natural number | k]; 
+					word[..end]
+				]
+			]
+			else
+			[
+				if tupleIndex = 1 then 
+				[
+					word[start..]
+				]
+				else 
+				[
+					end : natural number := cast tupleIndex-1 into 
+						[k : natural number | k]; 
+					if word[end] ≠ ¢" " then 
+					[word[..end] ++ " " ++ word[start..]]
+					else [word[..end] ++ word[start..]]
+				]
+			]
+		];
+
 		size : natural number := cast |newlineIndices| into 
 			[i : natural number | i]; 
 		From size to 1 by -1 do
 		[
 			n : natural number
 		 |
-			z ::= split word after newlineIndices[n];
-			half1End ::= last index of z[1] where [c: character | c = ¢\];
-			end ::= cast |half1End|-1 into [r : natural number | r];
-			half1 : string := if z[1][end] ≠ ¢" " then 
+			word := if newlineIndices[n] > 1 then /*TODO review conditionals*/
 			[
-				z[1][..end] ++ " "
-			] else 
+				i : natural number := cast newlineIndices[n]-1 into 
+					[k : natural number | k];
+			 	if word[i] = ¢\ then
+				[
+					startHalf2 : natural number := 
+						first index of "\\|" in word[i+1..] + i + 2;
+					if startHalf2 = 2 then
+					[
+						/*TODO Insert error handling.  Missing \| */
+						word
+					]
+					else
+					[
+						if i = 1 then 
+						[
+							/*TODO Insert warning, string starts
+							 * with new line unncessarily.*/
+							word [startHalf2..]
+						]
+						else if [startHalf2 -1 = |word|] then 
+						[
+							/*TODO Insert warning, string concludes
+							 * with |\ making new line unncessary.*/
+							end : natural number := cast i-1 into 
+								[k : natural number | k]; 
+							word[..end]
+						]
+						else
+						[
+							end : natural number := cast i-1 into 
+								[k : natural number | k];
+							if word[end] ≠ ¢" " then 
+							[word[..end] ++ " " ++ word[startHalf2..]]
+							else [word[..end] ++ word[startHalf2..]]
+						]
+					]
+				]
+				else 
+				[
+					/*Did not use \ ... \| in this new line*/
+					processLineFrom(newlineIndices[n])
+				]
+			]
+			else
 			[
-				z[1][..end]
+			 	processLineFrom(newlineIndices[n])
 			];
-	
-			half2Start ::= first index of z[2] where [c: character | c = ¢|];
-			half2 : string := if z[2][|half2Start|+1] ≠ ¢" " then 
-			[
-				z[2][|half2Start|+1..]
-			] else 
-			[
-				z[2][|half2Start|+2..]
-			];
-	
-			word := half1 ++ half2;
 		];
 	];
 
@@ -1144,6 +1218,9 @@ Private method "Process asterick in comment from_" is
 
 Private forward method "Process left curly brace in comment from_" is
 	[stacks scanner]→⊤;
+
+/* Construct the function dispatch table for functions that handle characters
+ * in a comment.*/
 
 inCommentDispatchTable : {character→[stacks scanner]→⊤|} := {};
 
