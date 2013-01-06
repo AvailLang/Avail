@@ -51,11 +51,13 @@ Uses
 	"Types",
 	"Variables"
 Names
+	"all indices of_in_",
 	"all indices of_where_",
 	"distinct_",
 	"drop from_until_",
 	"drop from_while_",
 	"drop_from_",
+	"first index of_in_",
 	"first index of_where_",
 	"flatten_",
 	"last index of_where_",
@@ -2926,3 +2928,349 @@ Semantic restriction "_[_..]else_" is
 		]
 	]
 ];
+
+/**
+ * A method that calculates all instances of overlap that a tuple has with
+ * itself.  
+ *
+ * @method "self overlap_"
+ * @categories "Tuples"
+ * @param "aTuple" "tuple" 
+ *      a tuple
+ * @returnType "{tuple→natural number|}"
+ *      a map keyed by the strict subtuples of the input tuple with values of 
+ *      the index on the full tuple that is one position beyond the overlap.
+ * @author "Richard Arriaga"
+ */
+Private method "self overlap_" is
+[
+	aTuple : <any…|1..>
+ |
+	overlap : {tuple→natural number|} := {};
+	position : natural number := 2;
+	current : natural number := 1;
+	While
+	[
+		|aTuple| > position
+	]
+	do
+	[
+		/*create a map for each state of a tuple, what it would be mapped back
+		 * to.  The key is a subtuple of the input tuple, the value is the 
+		 * index in the tuple it returns to for the most recent overlap
+		 */
+		If aTuple[current] = aTuple[position] then
+		[
+		 	↑current++;
+			overlap := overlap + aTuple[..position]→current;
+			↑position++;
+		] 
+		else
+		[
+			current := 1;
+			overlap := overlap + aTuple[..position]→current;
+			↑position++;
+		];
+	];
+	overlap
+]:{tuple→natural number|};
+
+/**
+ * Obtain the location of the start of the first occuring subtuple in a 
+ * tuple (a substring of a string).  This is the abstract implementation.
+ *
+ * @method "first index of_in_"
+ * @categories "Tuples"
+ * @param "aTuple" "tuple" 
+ *      the tuple to search for the subtuple
+ * @param "subtuple" "tuple"
+ * 		the subtuple to locate in aTuple
+ * @returnType "whole number"
+ *      the index of the start of the first subtuple, 0 if none.
+ * @author "Richard Arriaga"
+ */
+Public stable abstract method "first index of_in_" is [tuple,tuple]→whole number;
+
+/**
+ * Obtain the location of the start of the first occuring subtuple in a 
+ * tuple (a substring of a string). This implementation is called when both the 
+ * target tuple and the subtuple are empty 
+ *
+ * @method "first index of_in_"
+ * @categories "Tuples"
+ * @param "aTuple" "<any…|0>" 
+ *      the tuple to search for the subtuple
+ * @param "subtuple" "<any…|0>"
+ * 		the subtuple to locate in aTuple
+ * @returnType "0's type"
+ *      the index of the start of the first subtuple, 0 for this implementation.
+ * @author "Richard Arriaga"
+ */
+Method "first index of_in_" is
+[
+	subtuple : <any…|0>,
+	aTuple : <any…|0>
+ |
+	0
+]:0's type;
+
+/**
+ * Obtain the location of the start of the first occuring subtuple in a 
+ * tuple (a substring of a string).  The  This implementation is called when 
+ * both the target tuple is empty 
+ *
+ * @method "first index of_in_"
+ * @categories "Tuples"
+ * @param "aTuple" "<any…|1..>" 
+ *      the tuple to search for the subtuple
+ * @param "subtuple" "<any…|0>"
+ * 		the subtuple to locate in aTuple
+ * @returnType "0's type"
+ *      the index of the start of the first subtuple, 0 for this implementation.
+ * @author "Richard Arriaga"
+ */
+Method "first index of_in_" is
+[
+	subtuple : <any…|1..>,
+	aTuple : <any…|0>
+ |
+	0
+]:0's type;
+
+/**
+ * Obtain the location of the start of the first occuring subtuple in a 
+ * tuple (a substring of a string). This implementation is called when the 
+ * subtuple is empty 
+ *
+ * @method "first index of_in_"
+ * @categories "Tuples"
+ * @param "aTuple" "<any…|0>" 
+ *      the tuple to search for the subtuple
+ * @param "subtuple" "<any…|1..>"
+ * 		the subtuple to locate in aTuple
+ * @returnType "0's type"
+ *      the index of the start of the first subtuple, 0 for this implementation.
+ * @author "Richard Arriaga"
+ */
+Method "first index of_in_" is
+[
+	subtuple : <any…|0>,
+	aTuple : <any…|1..>
+ |
+	0
+]:0's type;
+
+/**
+ * Obtain the location of the start of the first occuring subtuple in a 
+ * tuple (a substring of a string).  The
+ * {@link "http://en.wikipedia.org/wiki/Knuth-Morris-Pratt_algorithm" 
+ * Knuth-Moris-Pratt algorithm} is used for this implementation. 
+ *
+ * @method "first index of_in_"
+ * @categories "Tuples"
+ * @param "aTuple" "<any…|1..>" 
+ *      the tuple to search for the subtuple
+ * @param "subtuple" "<any…|1..>"
+ * 		the subtuple to locate in aTuple
+ * @returnType "whole number"
+ *      the index of the start of the first subtuple, 0 if none.
+ * @author "Richard Arriaga"
+ */
+Method "first index of_in_" is
+[
+	subtuple : <any…|1..>,
+	aTuple : <any…|1..>
+ |
+
+	if |subtuple| > |aTuple| then [0]
+	else if [|subtuple| = 1] then
+	[
+		/* if the subtuple has only one element, no benefit from KMP, simply
+		 * walk through aTuple searching for first element that matches the 
+		 * single element of aSubtuple*/
+		first index of aTuple where
+		[
+			a : any
+		 |
+			a = subtuple[1]
+		]
+	]
+	else
+	[
+		found : boolean := false;
+		subtupleStart : whole number := 0;
+		tupleIndex : natural number := 1;
+		subtupleIndex : natural number := 1;
+		overlapTable : {tuple→natural number|} := self overlap subtuple;
+		Until 
+		[
+			found ∨ [tupleIndex + |subtuple| - subtupleIndex > |aTuple|]
+		]
+		do
+		[
+			If aTuple[tupleIndex] = subtuple[subtupleIndex] then
+			[
+				If subtupleIndex = |subtuple| then 
+				[
+					found := true;
+					subtupleStart := cast tupleIndex - subtupleIndex + 1 into 
+						[w : whole number | w];
+				]
+				else [↑subtupleIndex++;];
+				
+			]
+			else
+			[
+			 	subtupleIndex := overlapTable[subtuple[..subtupleIndex]] 
+			 		else [1];
+			];
+			↑tupleIndex++;
+		];
+		subtupleStart
+	]
+]:whole number;
+
+/**
+ * Obtain the location of the start of every instance of subtuple occuring in a 
+ * a string).  This is the abstract implemenation of this method.
+ *
+ * @method "all indices of_in_"
+ * @categories "Tuples"
+ * @param "aTuple" "tuple" 
+ *      the tuple to search for the subtuple
+ * @param "subtuple" "tuple"
+ * 		the subtuple to locate in aTuple
+ * @returnType "<natural number…|>"
+ *      a tuple of the indices of the start of every instance of subtuple, <> 
+ *      if none.
+ * @author "Richard Arriaga"
+ */
+Public stable abstract method "all indices of_in_" is 
+	[tuple,tuple]→<natural number…|>;
+
+/**
+ * Obtain the location of the start of every instance of subtuple occuring in a 
+ * a string).  This implementation is called when both the target tuple and the
+ * subtuple are empty 
+ *
+ * @method "all indices of_in_"
+ * @categories "Tuples"
+ * @param "aTuple" "<any…|0>" 
+ *      the tuple to search for the subtuple
+ * @param "subtuple" "<any…|0>"
+ * 		the subtuple to locate in aTuple
+ * @returnType "<>'s type"
+ *      the <> for this implementation.
+ * @author "Richard Arriaga"
+ */
+Method "all indices of_in_" is
+[
+	subtuple : <any…|0>,
+	aTuple : <any…|0>
+ |
+	<>
+]:<>'s type;
+
+/**
+ * Obtain the location of the start of every instance of subtuple occuring in a 
+ * a string).  This implementation is called when both the target tuple and the
+ * subtuple are empty 
+ *
+ * @method "first index of_in_"
+ * @categories "Tuples"
+ * @param "aTuple" "<any…|1..>" 
+ *      the tuple to search for the subtuple
+ * @param "subtuple" "<any…|0>"
+ * 		the subtuple to locate in aTuple
+ * @returnType "<>'s type"
+ *      the <> for this implementation.
+ * @author "Richard Arriaga"
+ */
+Method "all indices of_in_" is
+[
+	subtuple : <any…|1..>,
+	aTuple : <any…|0>
+ |
+	<>
+]:<>'s type;
+
+/**
+ * Obtain the location of the start of every instance of subtuple occuring in a 
+ * a string).  This implementation is called when both the target tuple and the
+ * subtuple are empty 
+ *
+ * @method "all indices of_in_"
+ * @categories "Tuples"
+ * @param "aTuple" "<any…|0>" 
+ *      the tuple to search for the subtuple
+ * @param "subtuple" "<any…|1..>"
+ * 		the subtuple to locate in aTuple
+ * @returnType "<>'s type"
+ *      the <> for this implementation.
+ * @author "Richard Arriaga"
+ */
+Method "all indices of_in_" is
+[
+	subtuple : <any…|0>,
+	aTuple : <any…|1..>
+ |
+	<>
+]:<>'s type;
+
+/**
+ * Obtain the location of the start of every instance of subtuple occuring in a 
+ * tuple (a substring of a string).  The 
+ * {@link "http://en.wikipedia.org/wiki/Knuth-Morris-Pratt_algorithm" 
+ * Knuth-Moris-Pratt algorithm} is used for this implementation. 
+ *
+ * @method "all indices of_in_"
+ * @categories "Tuples"
+ * @param "aTuple" "<any…|1..>" 
+ *      the tuple to search for the subtuple
+ * @param "subtuple" "<any…|1..>"
+ * 		the subtuple to locate in aTuple
+ * @returnType "<natural number…|>"
+ *      a tuple of the indices of the start of every instance of subtuple, <> 
+ *      if none.
+ * @author "Richard Arriaga"
+ */
+Method "all indices of_in_" is
+[
+	subtuple : <any…|1..>,
+	aTuple : <any…|1..>
+ |
+	if |subtuple| > |aTuple| then [<>]
+	else if [|subtuple| = 1] then
+	[
+		/* if the subtuple has only one element, no benefit from KMP, simply
+		 * walk through aTuple searching for first element that matches the 
+		 * single element of aSubtuple*/
+		all indices of aTuple where
+		[
+			a : any
+		 |
+			a = subtuple[1]
+		]
+	]
+	else
+	[
+		index : natural number := 1;
+		occurrences : <natural number…|> := <>;
+		w : whole number := 0;
+		While [
+			index + |subtuple| < |aTuple| 
+		]
+		do
+		[
+			w := first index of subtuple in aTuple[index..];
+			if w > 0 then 
+			[
+				occurrences := occurrences ++ <cast w + index - 1 into 
+					[n : natural number | n]>;
+				index := index + w + |subtuple| - 1;
+			]
+			else [index := index + |aTuple|;];
+		];
+		occurrences
+	]
+] : <natural number…|>;
