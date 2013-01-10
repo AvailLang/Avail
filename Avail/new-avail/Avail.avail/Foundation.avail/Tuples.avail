@@ -2552,6 +2552,9 @@ Print: “z”;
 	[lowBound..upBound+1)
 ];*/
 
+
+
+
 /**
  * An implementation of insertion sort that accepts a tuple to be sorted and
  * the predicate that defines how sorting occurs.  This only used for sorting
@@ -2573,43 +2576,28 @@ Print: “z”;
  */
 Private method "insertion sort_with_" is
 [
-	aTuple : <any…|2..15>,
+	aTuple : <any…|2..10>,
 	comparator : [⊥, ⊥]→boolean
  |
-	output : <any…|0..> := aTuple;
+	output : <any…|2..> := aTuple;
 	From 2 to |aTuple| do
 	[
 		i : [2..15]
 	 |
 		j : [1..14] := i - 1;
-		While 
+		k : [2..15] := i;
+		While [j > 1 ∧ [comparator(output[k],output[j])]]
+		do
 		[
-			j > 1 ∧ [comparator(output[i],output[j])]
-		]
-		do [↑j--;];
-		right: <any…|0..> := output[i+1..];
-		output := if j = 1 then 
-		[
-			if comparator(output[i],output[j]) then
-			[
-				<aTuple[i]> ++ output[..i-1] ++ right
-			]
-			else
-			[
-				left : <any…|0..> := <output[j]> ++ <aTuple[i]>;
-				right := output[j+1..i-1] ++ right;
-				left ++ right
-			]
-		]
-		else
-		[
-			left : <any…|0..> := output[..j] ++ <aTuple[i]>;
-			right := output[j+1..i-1] ++ right;
-			left ++ right
+		 	output := output[k↔j];
+			↑j--;
+			↑k--;
 		];
+		output := if j = 1 ∧ [comparator(output[k],output[j])] then 
+			[output[k↔j]] else [output];
 	];
 	output
-]:<any…|0..>;
+]:<any…|2..>;
 
 Semantic restriction "insertion sort_with_" is
 [
@@ -2757,7 +2745,7 @@ Method "quicksort_with_" is
 
 Method "quicksort_with_" is
 [
-	aTuple : <any…|2..15>,
+	aTuple : <any…|2..10>,
 	comparator : [⊥, ⊥]→boolean
  |
 	insertion sort aTuple with comparator
@@ -2765,7 +2753,7 @@ Method "quicksort_with_" is
 
 Method "quicksort_with_" is
 [
-	aTuple : <any…|16..>,
+	aTuple : <any…|11..>,
 	comparator : [⊥, ⊥]→boolean
 |
 	/* Choose the median of the first, middle, and last elements as the
@@ -2817,25 +2805,27 @@ Private method "merge_with_" is
  |
 	i : natural number := 1;
 	j : natural number := 1;
+	k : natural number := 1;
 
-	output : tuple := <>;
+	output : tuple := splitInput[1] ++ splitInput[2];
 
 	While [i ≤ |splitInput[1]| ∧  [j ≤ |splitInput[2]|]]
 	do
 	[
 		If comparator(splitInput[1][i] ,splitInput[2][j]) then
 		[
-			output := output ++ <splitInput[1][i]>;
+			output := output[k]→splitInput[1][i];
 			↑i++;
 		]
 		else
 		[
-			output := output ++ <splitInput[2][j]>;
+			output := output[k]→splitInput[2][j];
 			↑j++;
 		];
+		↑k++;
 	];
-	if  i < |splitInput[1]| then [output ++ splitInput[1][i..]]
-	else [output ++ splitInput[2][j..]]
+	if  i < |splitInput[1]| then [output[..k-1] ++ splitInput[1][i..]]
+	else [output[..k-1] ++ splitInput[2][j..]]
 ]: tuple;
 
 /**
@@ -2893,7 +2883,7 @@ Method "merge sort_with_" is
 
 Method "merge sort_with_" is
 [
-	aTuple : <any…|2..15>,
+	aTuple : <any…|2..10>,
 	comparator : [⊥, ⊥]→boolean
  |
 	insertion sort aTuple with comparator
@@ -2901,22 +2891,12 @@ Method "merge sort_with_" is
 
 Public method "merge sort_with_" is
 [
-	aTuple : <any…|16..>,
+	aTuple : <any…|11..>,
 	comparator : [⊥, ⊥]→boolean
  |
-	if |aTuple| ≤ 1 then [aTuple]
-	else
-	[
 		left : tuple := merge sort aTuple[..|aTuple | ÷ 2] with comparator;
-/*DEBUG*/Print: "left=";
-Print: “left”;
-Print: "\n";
 		right: tuple := merge sort aTuple[|aTuple | ÷ 2 + 1..] with comparator;
-/*DEBUG*/Print: "right=";
-Print: “right”;
-Print: "\n";
 		merge <left,right> with comparator
-	]
 ]: tuple;
 
 /**
@@ -2964,18 +2944,6 @@ Method "merge sort_" is
  |
 	merge sort aTuple with [n : number, m : number | n ≤ m]
 ];
-
-Print: "insertion sort:\noutput 1 = <5, 3, 4, 8, 1, 2, 15, 16, 17, 6, 9, 11, 14, 10>\n";
-Print: “insertion sort <5,3,4,8,1,2,15,16,17,6,9,11,14,10> with [n : number, m : number | n ≤ m]”;
-Print: "\n";
-Print: "\n\n=======\n\n";
-Print: "merge sort with[] <5,3,4,8,1,2,15,16,17,6,9,11,21,14,99,10,32>\n";
-Print: “merge sort <5,3,4,8,1,2,15,16,17,6,9,11,21,14,99,10,32> with [n : number, m : number | n ≤ m]”;
-Print: "\n";
-
-Print: "merge sort <5,3,4,8,1,2,15,16,17,6,9,11,21,14,99,10,32>=";
-Print: “merge sort <5,3,4,8,1,2,15,16,17,6,9,11,21,14,99,10,32>”;
-Print: "\n";
 
 /**
  * Construct and answer a tuple like {@param "aTuple"}, but with the leftmost

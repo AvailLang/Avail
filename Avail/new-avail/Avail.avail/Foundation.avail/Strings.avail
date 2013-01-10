@@ -1055,6 +1055,13 @@ Method "quicksort_" is
 	quicksort strings with [a : string, b : string | a ≤ b]
 ] : <string…|>;
 
+Method "merge sort_" is
+[
+	strings : <string…|>
+|
+	merge sort strings with [a : string, b : string | a ≤ b]
+] : <string…|>;
+
 Method "“_”" is
 [
 	aTuple : tuple

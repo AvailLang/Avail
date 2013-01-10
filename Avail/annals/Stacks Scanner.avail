@@ -448,8 +448,6 @@ Public method "Toggle_'s⁇new line" is
  *      a stacks scanner
  * @returnType "⊤"
  *      none
- * @raises "exceptionName" 
- *      exceptionDescription
  * @author "Richard Arriaga"
  */
 Public method "Toggle_'s⁇quoted flag" is
@@ -468,8 +466,6 @@ Public method "Toggle_'s⁇quoted flag" is
  *      a stacks scanner
  * @returnType "⊤"
  *      none
- * @raises "exceptionName" 
- *      exceptionDescription
  * @author "Richard Arriaga"
  */
 Public method "Toggle_'s⁇special comment" is
@@ -488,8 +484,6 @@ Public method "Toggle_'s⁇special comment" is
  *      a stacks scanner
  * @returnType "⊤"
  *      none
- * @raises "exceptionName" 
- *      exceptionDescription
  * @author "Richard Arriaga"
  */
 Public method "Toggle_'s⁇tokenize" is
@@ -520,8 +514,9 @@ Explicit class "open-comment-less-than-zero exception" extends exception;
  *      a stacks scanner
  * @returnType "⊤"
  *      none
- * @raises "exceptionName" 
- *      exceptionDescription
+ * @raises "open-comment-less-than-zero exception" 
+ *      An open-comment-less-than-zero exception is raised when an attempt is 
+ *      made to reduce a stacks scanner object open comment count below 0.
  * @author "Richard Arriaga"
  */
 Public method "«Increment|Decrement»!_'s⁇open comment count" is
