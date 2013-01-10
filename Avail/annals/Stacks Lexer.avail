@@ -46,8 +46,11 @@ Names
 
 Body
 
+"file name" is a new field atom;
+"error occurs after line number" is a new field atom;
+
 /* Special characters that could result in token delimiter */
-tokenDelimiter ::= {¢@,¢" ",¢"\t",¢"\"",¢"\n",¢{,¢/,¢*};
+tokenDelimiter ::= {¢@,¢" ",¢"\t",¢"\"",¢"\n",¢{,¢/,¢*,¢\};
 
 Private forward method "_is at new comment" is [stacks scanner]→boolean;
 
@@ -195,9 +198,40 @@ Private method "Consume_'s⁇nested comment" is
 ]:⊤;
 
 /**
+ * Handle the escape character, back slash, in a stacks scanner by ignoring
+ * the next immediate character and treating it as a generic character.
+ *
+ * @method "Process back slash from_"
+ * @categories "Stacks"
+ * @param "scanner" "stacks scanner" 
+ *      a stacks scanner
+ * @returnType "⊤"
+ *      none
+ * @author "Richard Arriaga"
+ */
+Private method "Process back slash from_" is
+[
+	scanner : stacks scanner
+ |
+	Increment scanner's comment buffer index;
+	If scanner's current buffer character ≠ ¢"\n" then
+	[
+		Unless scanner's comment buffer is exhausted then 
+		[
+			scanner's character buffer := scanner's character buffer ++ 
+				<scanner's current buffer character>;
+			Increment scanner's comment buffer index;
+		]
+		else
+		[/*TODO Add issue to warning file.  Concluding comment with escape char*/];
+	]
+	else [/*TODO Add waring that attempting to escape newline not allowed and is ignored*/];
+]:⊤;
+
+/**
  * Handle a forward slash in a stacks scanner.
  *
- * @method "_process forward slash"
+ * @method "Process forward slash from_"
  * @categories "Stacks"
  * @param "scanner" "stacks scanner" 
  *      a stacks scanner
@@ -216,7 +250,7 @@ Private method "Process forward slash from_" is
 ]:⊤;
 
 /**
- * Tokenize all characters in double quotes including white space.
+ * Tokenize all characters in double quotes including white space as one token.
  *
  * @method "Process double quote in comment from_"
  * @categories "Stacks"
@@ -315,7 +349,7 @@ Private method "Process double quote in comment from_" is
 		[
 			n : natural number
 		 |
-			word := if newlineIndices[n] > 1 then /*TODO review conditionals*/
+			word := if newlineIndices[n] > 1 then
 			[
 				i : natural number := cast newlineIndices[n]-1 into 
 					[k : natural number | k];
@@ -570,6 +604,15 @@ For each tokenDelimiter do
 			 	 |
 			 	 	Process asterick in comment from scanner; /*Done*/
 			 	];
+	]
+	else if [c = ¢\] then
+	[
+	 	inCommentDispatchTable := inCommentDispatchTable + 
+	 		c→ [
+					scanner : stacks scanner
+				 |
+					Process back slash from scanner; /*Done*/
+				];
 	];
 ];
 
@@ -707,6 +750,18 @@ Private method "find_'s⁇next comment" is
 ] : boolean;
 
 /**
+ * A unescaped-unterminated-double-quote exception is raised when a \" is 
+ * reached that does not have a terminating \" nor does it have the appropriate
+ * escaper character, \\.
+ *
+ * @type "unescaped-unterminated-double-quote exception"
+ * @supertype {@type "descriptive exception"}
+ * @category "Stacks"
+ */
+Explicit class "unescaped-unterminated-double-quote exception" 
+	extends descriptive exception;
+	
+/**
  * Process first pass of comment.
  *
  * @method "comment first pass from_using_in level_"
@@ -737,17 +792,32 @@ Private method "comment first pass from_using_in level_" is
 	[
 		value : character := scanner's current element;
 		next ::= cursor's next steps;
-		If value = ¢"\"" then
+		If value = ¢"\"" ∧ [scanner's previous element ≠ ¢\] then
 		[
 			Next character from scanner;
-			tempCommentBuffer := tempCommentBuffer ++ <¢"\""> ++ 
-				<scanner's current element> ++
+			tempCommentBuffer := tempCommentBuffer ++ <¢"\""> ++
 				read from scanner while 
 				[
 					scanner's current element ≠ ¢"\"" ∨
 						[scanner's previous element = ¢\ ∧
 						 		[scanner's current element = ¢"\""]]
 				];
+			If scanner's source is not exhausted ∧ 
+				[scanner's current element = ¢"\""] then
+			[
+			 	tempCommentBuffer := tempCommentBuffer ++ <¢"\"">;
+			];
+			size : natural number := cast |tempCommentBuffer| into 
+				[n : natural number | n];
+			If tempCommentBuffer[size] ≠ ¢"\"" then
+			[
+			 	e::= an unescaped-unterminated-double-quote exception
+					with 
+						error message ::= format "In module, ‘①’, error occurs in \
+								\|comment starting at line number “②”\n" with
+						scanner's module name, scanner's line number;
+				Raise e
+			];
 		]
 		else if [value ∉ next] then
 		[

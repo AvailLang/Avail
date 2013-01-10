@@ -62,6 +62,8 @@ Names
 	"flatten_",
 	"last index of_where_",
 	"left fold_through_",
+	"merge sort_",
+	"merge sort_with_",
 	"quicksort_",
 	"quicksort_with_",
 	"right fold_through_",
@@ -2551,6 +2553,92 @@ Print: “z”;
 ];*/
 
 /**
+ * An implementation of insertion sort that accepts a tuple to be sorted and
+ * the predicate that defines how sorting occurs.  This only used for sorting
+ * small tuples.
+ *
+ * @method "insertion sort_with_"
+ * @categories "category"
+ * @param "aTuple" "<any…|2..15>" 
+ *      the tuple to be sorted
+ * @param "comparator" "[⊥, ⊥]→boolean"
+ * 		A comparison function that accepts two elements of {@param "aTuple"}
+ *      and answers {@code "true"} if the first ≤ second and {@code "false"}
+ *      otherwise.
+ * @returnType "<any|2..15>"
+ *      the sorted tuple
+ * @raises "exceptionName" 
+ *      exceptionDescription
+ * @author "authorName"
+ */
+Private method "insertion sort_with_" is
+[
+	aTuple : <any…|2..15>,
+	comparator : [⊥, ⊥]→boolean
+ |
+	output : <any…|0..> := aTuple;
+	From 2 to |aTuple| do
+	[
+		i : [2..15]
+	 |
+		j : [1..14] := i - 1;
+		While 
+		[
+			j > 1 ∧ [comparator(output[i],output[j])]
+		]
+		do [↑j--;];
+		right: <any…|0..> := output[i+1..];
+		output := if j = 1 then 
+		[
+			if comparator(output[i],output[j]) then
+			[
+				<aTuple[i]> ++ output[..i-1] ++ right
+			]
+			else
+			[
+				left : <any…|0..> := <output[j]> ++ <aTuple[i]>;
+				right := output[j+1..i-1] ++ right;
+				left ++ right
+			]
+		]
+		else
+		[
+			left : <any…|0..> := output[..j] ++ <aTuple[i]>;
+			right := output[j+1..i-1] ++ right;
+			left ++ right
+		];
+	];
+	output
+]:<any…|0..>;
+
+Semantic restriction "insertion sort_with_" is
+[
+	tupleType : tuple meta,
+	comparator : [⊥, ⊥]→boolean's type
+|
+	union ::= ∪ tupleType[1..|tupleType's leading types|+1];
+	If comparator[1] ≠ ⊥ ∧ [¬union ⊆ comparator[1]] then
+	[
+		Reject parse, expected:
+			"first parameter of comparison function to accept all elements ∈ "
+			++ “union”
+			++ " of the specified tuple (but it only accepts "
+			++ “comparator[1]”
+			++ ")"
+	];
+	If comparator[2] ≠ ⊥ ∧ [¬union ⊆ comparator[2]] then
+	[
+		Reject parse, expected:
+			"second parameter of comparison function to accept all elements ∈ "
+			++ “union”
+			++ " of the specified tuple (but it only accepts "
+			++ “comparator[2]”
+			++ ")"
+	];
+	<<>, union… | ||tupleType||>
+];
+
+/**
  * Construct and answer a sorted variant of {@param "numbers"} using the
  * quicksort algorithm.
  *
@@ -2669,7 +2757,15 @@ Method "quicksort_with_" is
 
 Method "quicksort_with_" is
 [
-	aTuple : <any…|2..>,
+	aTuple : <any…|2..15>,
+	comparator : [⊥, ⊥]→boolean
+ |
+	insertion sort aTuple with comparator
+];
+
+Method "quicksort_with_" is
+[
+	aTuple : <any…|16..>,
 	comparator : [⊥, ⊥]→boolean
 |
 	/* Choose the median of the first, middle, and last elements as the
@@ -2697,6 +2793,189 @@ Method "quicksort_with_" is
 ];
 
 Seal method "quicksort_with_" at <tuple, [⊥, ⊥]→boolean>;
+
+/**
+ * Construct and answer a sorted variant of {@param "aTuple"} using the
+ * quicksort algorithm and specified comparison function.
+ *
+ * @method "merge_with_"
+ * @categories "Tuples"
+ * @param "splitInput" "<tuple…|2>>" 
+ *      two ordered tuples to merge
+ * @param "comparator" "[⊥, ⊥]→boolean"
+ * 		A comparison function that accepts two elements of {@param "aTuple"}
+ * 		and answers {@code "true"} if the first ≤ second and {@code "false"}
+ * 		otherwise.
+ * @returnType "tuple"
+ *      merged tuple
+ * @author "Richard Arriaga"
+ */
+Private method "merge_with_" is
+[
+	splitInput : <tuple…|2>,
+	comparator : [⊥, ⊥]→boolean
+ |
+	i : natural number := 1;
+	j : natural number := 1;
+
+	output : tuple := <>;
+
+	While [i ≤ |splitInput[1]| ∧  [j ≤ |splitInput[2]|]]
+	do
+	[
+		If comparator(splitInput[1][i] ,splitInput[2][j]) then
+		[
+			output := output ++ <splitInput[1][i]>;
+			↑i++;
+		]
+		else
+		[
+			output := output ++ <splitInput[2][j]>;
+			↑j++;
+		];
+	];
+	if  i < |splitInput[1]| then [output ++ splitInput[1][i..]]
+	else [output ++ splitInput[2][j..]]
+]: tuple;
+
+/**
+ * Construct and answer a sorted variant of {@param "aTuple"} using the
+ * merge sort algorithm and specified comparison function.
+ *
+ * @method "merge sort_with_"
+ * @categories "Tuples"
+ * @param "aTuple" "<any…|16..>" 
+ *      two ordered tuples to merge
+ * @param "comparator" "[⊥, ⊥]→boolean"
+ * 		A comparison function that accepts two elements of {@param "aTuple"}
+ * 		and answers {@code "true"} if the first ≤ second and {@code "false"}
+ * 		otherwise.
+ * @returnType "tuple"
+ *      merged tuple
+ * @author "Richard Arriaga"
+ */
+Public abstract method "merge sort_with_" is [tuple, [⊥, ⊥]→boolean]→tuple;
+
+Semantic restriction "merge sort_with_" is
+[
+	tupleType : tuple meta,
+	comparator : [⊥, ⊥]→boolean's type
+|
+	union ::= ∪ tupleType[1..|tupleType's leading types|+1];
+	If comparator[1] ≠ ⊥ ∧ [¬union ⊆ comparator[1]] then
+	[
+		Reject parse, expected:
+			"first parameter of comparison function to accept all elements ∈ "
+			++ “union”
+			++ " of the specified tuple (but it only accepts "
+			++ “comparator[1]”
+			++ ")"
+	];
+	If comparator[2] ≠ ⊥ ∧ [¬union ⊆ comparator[2]] then
+	[
+		Reject parse, expected:
+			"second parameter of comparison function to accept all elements ∈ "
+			++ “union”
+			++ " of the specified tuple (but it only accepts "
+			++ “comparator[2]”
+			++ ")"
+	];
+	<<>, union… | ||tupleType||>
+];
+
+Method "merge sort_with_" is
+[
+	trivial : <any…|..1>,
+	comparator : [⊥, ⊥]→boolean
+|
+	trivial
+] : <any…|0..1>;
+
+Method "merge sort_with_" is
+[
+	aTuple : <any…|2..15>,
+	comparator : [⊥, ⊥]→boolean
+ |
+	insertion sort aTuple with comparator
+]: tuple;
+
+Public method "merge sort_with_" is
+[
+	aTuple : <any…|16..>,
+	comparator : [⊥, ⊥]→boolean
+ |
+	if |aTuple| ≤ 1 then [aTuple]
+	else
+	[
+		left : tuple := merge sort aTuple[..|aTuple | ÷ 2] with comparator;
+/*DEBUG*/Print: "left=";
+Print: “left”;
+Print: "\n";
+		right: tuple := merge sort aTuple[|aTuple | ÷ 2 + 1..] with comparator;
+/*DEBUG*/Print: "right=";
+Print: “right”;
+Print: "\n";
+		merge <left,right> with comparator
+	]
+]: tuple;
+
+/**
+ * Construct and answer a sorted variant of {@param "aTuple"} using the
+ * merge sort algorithm.
+ *
+ * @method "merge sort_"
+ * @categories "Tuples"
+ * @param "aTuple" "<number…|>" 
+ *      a tuple
+ * @returnType "<number…|>"
+ *      a sorted tuple
+ * @author "Richard Arriaga"
+ */
+Public abstract method "merge sort_" is [<number…|>]→<number…|>;
+
+/* Give quicksort higher precedence than concatenation. */
+Grammatical restriction "merge sort_" is <{"«_‡++»"}>;
+
+Semantic restriction "merge sort_" is
+[
+	tupleType : tuple meta
+|
+	union ::= ∪ tupleType[1..|tupleType's leading types|+1];
+	<<>, union… | ||tupleType||>
+];
+
+Method "merge sort_" is
+[
+	trivial : <⊥…|0>
+|
+	trivial
+] : <number…|0>;
+
+Method "merge sort_" is
+[
+	trivial : <number…|1>
+|
+	trivial
+] : <number…|1>;
+
+Method "merge sort_" is
+[
+	aTuple : <number…|2..>
+ |
+	merge sort aTuple with [n : number, m : number | n ≤ m]
+];
+
+Print: "insertion sort:\noutput 1 = <5, 3, 4, 8, 1, 2, 15, 16, 17, 6, 9, 11, 14, 10>\n";
+Print: “insertion sort <5,3,4,8,1,2,15,16,17,6,9,11,14,10> with [n : number, m : number | n ≤ m]”;
+Print: "\n";
+Print: "\n\n=======\n\n";
+Print: "merge sort with[] <5,3,4,8,1,2,15,16,17,6,9,11,21,14,99,10,32>\n";
+Print: “merge sort <5,3,4,8,1,2,15,16,17,6,9,11,21,14,99,10,32> with [n : number, m : number | n ≤ m]”;
+Print: "\n";
+
+Print: "merge sort <5,3,4,8,1,2,15,16,17,6,9,11,21,14,99,10,32>=";
+Print: “merge sort <5,3,4,8,1,2,15,16,17,6,9,11,21,14,99,10,32>”;
+Print: "\n";
 
 /**
  * Construct and answer a tuple like {@param "aTuple"}, but with the leftmost

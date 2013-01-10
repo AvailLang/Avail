@@ -98,6 +98,7 @@ Names
 	"_'s⁇comments:=_",
 	"_'s⁇current buffer character",
 	"_'s⁇error flag",
+	"_'s⁇module name",
 	"_'s⁇new line",
 	"_'s⁇open comment count",
 	"_'s⁇position",
@@ -118,6 +119,7 @@ Body
 "comment buffer index" is a new field atom;
 "comments" is a new field atom;
 "error flag" is a new field atom;
+"module name" is a new field atom;
 "new line" is a new field atom;
 "open comment count" is a new field atom;
 "quoted" is a new field atom;
@@ -346,6 +348,8 @@ Public method "concatenate_separated by_" is
  * @author Richard Arriaga
  */
 Public class "stacks scanner" extends Avail scanner
+	with fields
+		module name : nonempty string
 	with mutable fields
 		public comments : <<stacks token…|>…|>,
 		public subtokens buffer : <stacks token…|>,
@@ -375,6 +379,7 @@ Public method "a stacks scanner with_" is
 |
 	a stacks scanner with
 		source ::= iter,
+		module name ::= "TestTemp (replace when file hooked up)", /*TODO Replace with correct file name when files hooked in*/
 		token buffer := <>,
 		line number := 1,
 		column number := 1,
@@ -491,7 +496,7 @@ Public method "Toggle_'s⁇tokenize" is
 [
 	scanner : stacks scanner
  |
-	scanner's quoted flag := ¬scanner's tokenize;
+	scanner's tokenize := ¬scanner's tokenize;
 ]:⊤;
 
 /**
@@ -507,7 +512,7 @@ Explicit class "open-comment-less-than-zero exception" extends exception;
 /**
  * Increment/decrement the stacks open comment field.
  *
- * @method "«Increment|Decrement»_'s⁇«commentBufferIndex|openCommentCount»!"
+ * @method "«Increment|Decrement»!_'s⁇open comment count"
  * @categories "category"
  * @param "actionFlag" "[1..2]" 
  *      will 1 be added or subtracted
@@ -853,7 +858,7 @@ Private method "tokenize_'s⁇«quoted»?character buffer" is
 	if optionalFlag then 
 	[
 		a quoted stacks token with
-			lexeme ::= cb,
+			lexeme ::= "\"" ++ cb ++ "\"",
 			line ::= scanner's line number,
 			position ::= tokenStart
 	]

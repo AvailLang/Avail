@@ -379,8 +379,8 @@ Public method "read from_while_" is
 	]
 	do
 	[
-		Next character from scanner;
 		buffer := buffer ++ <scanner's source's current element>;
+		Next character from scanner;
 	];
 	buffer
 ]:<character…|>;

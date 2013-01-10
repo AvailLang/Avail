@@ -446,14 +446,24 @@ Commands
 	"shoot NUMBER, NUMBER",
 	"shoot NUMBER, NUMBER, NUMBER",
 	"shoot NUMBER, NUMBER, NUMBER, NUMBER",
-	"shoot NUMBER, NUMBER, NUMBER, NUMBER, NUMBER"
+	"shoot NUMBER, NUMBER, NUMBER, NUMBER, NUMBER",
+	"fire NUMBER",
+	"fire NUMBER, NUMBER",
+	"fire NUMBER, NUMBER, NUMBER",
+	"fire NUMBER, NUMBER, NUMBER, NUMBER",
+	"fire NUMBER, NUMBER, NUMBER, NUMBER, NUMBER"
 are shooting;
 Commands
 	"shoot #NUMBER",
 	"shoot #NUMBER, #NUMBER",
 	"shoot #NUMBER, #NUMBER, #NUMBER",
 	"shoot #NUMBER, #NUMBER, #NUMBER, #NUMBER",
-	"shoot #NUMBER, #NUMBER, #NUMBER, #NUMBER, #NUMBER"
+	"shoot #NUMBER, #NUMBER, #NUMBER, #NUMBER, #NUMBER",
+	"fire #NUMBER",
+	"fire #NUMBER, #NUMBER",
+	"fire #NUMBER, #NUMBER, #NUMBER",
+	"fire #NUMBER, #NUMBER, #NUMBER, #NUMBER",
+	"fire #NUMBER, #NUMBER, #NUMBER, #NUMBER, #NUMBER"
 are shooting;
 
 /* Isn't it easier to "quit"? */
