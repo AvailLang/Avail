@@ -1,6 +1,6 @@
 /**
  * L1OperationDispatcher.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,7 @@
 
 package com.avail.interpreter.levelOne;
 
-import com.avail.descriptor.NullDescriptor;
+import com.avail.descriptor.NilDescriptor;
 
 
 /**
@@ -50,12 +50,11 @@ public interface L1OperationDispatcher
 	 * the arguments for this message off the stack (the message itself
 	 * knows how many to expect). The first argument was pushed first, and
 	 * is the deepest on the stack. Use these arguments to look up the
-	 * method dynamically. Before invoking the method, push the {@linkplain
-	 * NullDescriptor#nullObject() null object} onto the stack. Its presence
-	 * will help distinguish continuations produced by the pushLabel
-	 * instruction from their senders. When the call completes (if ever) by
-	 * using an implicit return instruction, it will replace this null object
-	 * with the result of the call.
+	 * method dynamically. Before invoking the method, push {@linkplain
+	 * NilDescriptor#nil() nil} onto the stack. Its presence will help
+	 * distinguish continuations produced by the pushLabel instruction from
+	 * their senders. When the call completes (if ever) by using an implicit
+	 * return instruction, it will replace this nil with the result of the call.
 	 */
 	void L1_doCall();
 

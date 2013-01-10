@@ -1,6 +1,6 @@
 /**
  * ForwardDefinitionDescriptor.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -80,6 +80,20 @@ extends DefinitionDescriptor
 		}
 	}
 
+	@Override
+	void printObjectOnAvoidingIndent (
+		final AvailObject object,
+		final StringBuilder builder,
+		final List<AvailObject> recursionList,
+		final int indent)
+	{
+		object.slot(DEFINITION_METHOD).name().printOnAvoidingIndent(
+			builder, recursionList, indent);
+		builder.append(' ');
+		object.slot(BODY_SIGNATURE).printOnAvoidingIndent(
+			builder, recursionList, indent + 1);
+	}
+
 	@Override @AvailMethod
 	AvailObject o_BodySignature (final AvailObject object)
 	{
@@ -94,8 +108,7 @@ extends DefinitionDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_Kind (
-		final AvailObject object)
+	AvailObject o_Kind (final AvailObject object)
 	{
 		return Types.FORWARD_DEFINITION.o();
 	}
@@ -110,20 +123,6 @@ extends DefinitionDescriptor
 	SerializerOperation o_SerializerOperation (final AvailObject object)
 	{
 		return SerializerOperation.FORWARD_DEFINITION;
-	}
-
-	@Override
-	void printObjectOnAvoidingIndent (
-		final AvailObject object,
-		final StringBuilder builder,
-		final List<AvailObject> recursionList,
-		final int indent)
-	{
-		object.slot(DEFINITION_METHOD).name().printOnAvoidingIndent(
-			builder, recursionList, indent);
-		builder.append(' ');
-		object.slot(BODY_SIGNATURE).printOnAvoidingIndent(
-			builder, recursionList, indent + 1);
 	}
 
 	/**
@@ -141,7 +140,7 @@ extends DefinitionDescriptor
 		final AvailObject definitionMethod,
 		final AvailObject bodySignature)
 	{
-		final AvailObject instance = mutable().create();
+		final AvailObject instance = mutable.create();
 		instance.setSlot(ObjectSlots.DEFINITION_METHOD, definitionMethod);
 		instance.setSlot(ObjectSlots.BODY_SIGNATURE, bodySignature);
 		instance.makeImmutable();
@@ -151,44 +150,41 @@ extends DefinitionDescriptor
 	/**
 	 * Construct a new {@link ForwardDefinitionDescriptor}.
 	 *
-	 * @param isMutable
-	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
-	 *        object?
+	 * @param mutability
+	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 */
-	protected ForwardDefinitionDescriptor (final boolean isMutable)
+	protected ForwardDefinitionDescriptor (final Mutability mutability)
 	{
-		super(isMutable);
+		super(mutability);
 	}
 
-	/**
-	 * The mutable {@link ForwardDefinitionDescriptor}.
-	 */
+	/** The mutable {@link ForwardDefinitionDescriptor}. */
 	private static final ForwardDefinitionDescriptor mutable =
-		new ForwardDefinitionDescriptor(true);
+		new ForwardDefinitionDescriptor(Mutability.MUTABLE);
 
-	/**
-	 * Answer the mutable {@link ForwardDefinitionDescriptor}.
-	 *
-	 * @return The mutable {@link ForwardDefinitionDescriptor}.
-	 */
-	public static ForwardDefinitionDescriptor mutable ()
+	@Override
+	ForwardDefinitionDescriptor mutable ()
 	{
 		return mutable;
 	}
 
-	/**
-	 * The immutable {@link ForwardDefinitionDescriptor}.
-	 */
+	/** The immutable {@link ForwardDefinitionDescriptor}. */
 	private static final ForwardDefinitionDescriptor immutable =
-		new ForwardDefinitionDescriptor(false);
+		new ForwardDefinitionDescriptor(Mutability.IMMUTABLE);
 
-	/**
-	 * Answer the immutable {@link ForwardDefinitionDescriptor}.
-	 *
-	 * @return The immutable {@link ForwardDefinitionDescriptor}.
-	 */
-	public static ForwardDefinitionDescriptor immutable ()
+	@Override
+	ForwardDefinitionDescriptor immutable ()
 	{
 		return immutable;
+	}
+
+	/** The shared {@link ForwardDefinitionDescriptor}. */
+	private static final ForwardDefinitionDescriptor shared =
+		new ForwardDefinitionDescriptor(Mutability.SHARED);
+
+	@Override
+	ForwardDefinitionDescriptor shared ()
+	{
+		return shared;
 	}
 }

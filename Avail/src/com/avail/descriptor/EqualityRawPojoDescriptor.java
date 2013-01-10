@@ -1,6 +1,6 @@
 /**
  * EqualityRawPojoDescriptor.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -69,14 +69,12 @@ extends RawPojoDescriptor
 	{
 		// Indices are allowed to move because of compaction (triggered by the
 		// Java garbage collector).
-		return e == INDEX
-			|| e == RawPojoDescriptor.IntegerSlots.INDEX;
+		return super.allowsImmutableToMutableReferenceInField(e)
+			|| e == INDEX;
 	}
 
 	@Override @AvailMethod
-	boolean o_Equals (
-		final AvailObject object,
-		final AvailObject another)
+	boolean o_Equals (final AvailObject object, final AvailObject another)
 	{
 		return another.equalsEqualityRawPojo(object);
 	}
@@ -97,7 +95,8 @@ extends RawPojoDescriptor
 				return false;
 			}
 
-			if (!object.sameAddressAs(aRawPojo))
+			if (!object.sameAddressAs(aRawPojo)
+				&& (!isShared() || !aRawPojo.descriptor.isShared()))
 			{
 				coalesce(object, aRawPojo);
 			}
@@ -127,10 +126,22 @@ extends RawPojoDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_MakeImmutable (
-		final AvailObject object)
+	AvailObject o_MakeImmutable (final AvailObject object)
 	{
-		object.descriptor = immutable;
+		if (isMutable())
+		{
+			object.descriptor = immutable;
+		}
+		return object;
+	}
+
+	@Override @AvailMethod
+	AvailObject o_MakeShared (final AvailObject object)
+	{
+		if (!isShared())
+		{
+			object.descriptor = shared;
+		}
 		return object;
 	}
 
@@ -141,6 +152,9 @@ extends RawPojoDescriptor
 		final List<AvailObject> recursionList,
 		final int indent)
 	{
+		// This is not a thread-safe read of the slot, but this method is just
+		// for debugging anyway, so don't bother acquiring the lock. Coherence
+		// isn't important here.
 		builder.append("equality raw pojo@");
 		builder.append(object.slot(INDEX));
 		builder.append(" = ");
@@ -150,30 +164,41 @@ extends RawPojoDescriptor
 	/**
 	 * Construct a new {@link EqualityRawPojoDescriptor}.
 	 *
-	 * @param isMutable
-	 *        Does the {@linkplain EqualityRawPojoDescriptor descriptor}
-	 *        represent a mutable object?
+	 * @param mutability
+	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 */
-	private EqualityRawPojoDescriptor (final boolean isMutable)
+	private EqualityRawPojoDescriptor (final Mutability mutability)
 	{
-		super(isMutable);
+		super(mutability);
 	}
 
 	/** The mutable {@link EqualityRawPojoDescriptor}. */
-	private static final EqualityRawPojoDescriptor mutable =
-		new EqualityRawPojoDescriptor(true);
+	static final EqualityRawPojoDescriptor mutable =
+		new EqualityRawPojoDescriptor(Mutability.MUTABLE);
 
-	/**
-	 * Answer the mutable {@link EqualityRawPojoDescriptor}.
-	 *
-	 * @return The mutable {@code EqualityRawPojoDescriptor}.
-	 */
-	public static EqualityRawPojoDescriptor mutable ()
+	@Override
+	EqualityRawPojoDescriptor mutable ()
 	{
 		return mutable;
 	}
 
 	/** The immutable {@link EqualityRawPojoDescriptor}. */
 	private static final EqualityRawPojoDescriptor immutable =
-		new EqualityRawPojoDescriptor(false);
+		new EqualityRawPojoDescriptor(Mutability.IMMUTABLE);
+
+	@Override
+	EqualityRawPojoDescriptor immutable ()
+	{
+		return immutable;
+	}
+
+	/** The shared {@link EqualityRawPojoDescriptor}. */
+	private static final EqualityRawPojoDescriptor shared =
+		new EqualityRawPojoDescriptor(Mutability.SHARED);
+
+	@Override
+	EqualityRawPojoDescriptor shared ()
+	{
+		return shared;
+	}
 }

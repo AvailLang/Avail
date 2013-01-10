@@ -1,6 +1,6 @@
 /**
  * P_049_CreateContinuation.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -46,9 +46,8 @@ public class P_049_CreateContinuation extends Primitive
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_049_CreateContinuation().init(
-
-	5, CanFold, CannotFail);
+	public final static Primitive instance =
+		new P_049_CreateContinuation().init(5, CanFold, CannotFail);
 
 	@Override
 	public Result attempt (
@@ -62,13 +61,12 @@ public class P_049_CreateContinuation extends Primitive
 		final AvailObject stackp = args.get(2);
 		final AvailObject callerHolder = args.get(4);
 		final AvailObject theCode = function.code();
-		final AvailObject cont = ContinuationDescriptor.mutable().create(
-			theCode.numArgsAndLocalsAndStack());
-		cont.caller(callerHolder.value());
-		cont.function(function);
-		cont.pc(pc.extractInt());
-		cont.stackp(stackp.extractInt());
-		cont.levelTwoChunkOffset(
+		final AvailObject cont = ContinuationDescriptor.createExceptFrame(
+			theCode.numArgsAndLocalsAndStack(),
+			function,
+			callerHolder.value(),
+			pc.extractInt(),
+			stackp.extractInt(),
 			L2ChunkDescriptor.unoptimizedChunk(),
 			L2ChunkDescriptor.offsetToContinueUnoptimizedChunk());
 		for (int i = 1, end = stack.tupleSize(); i <= end; i++)

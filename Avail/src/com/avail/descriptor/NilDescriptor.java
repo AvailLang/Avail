@@ -1,6 +1,6 @@
 /**
- * NullDescriptor.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * NilDescriptor.java
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,59 +40,27 @@ import com.avail.descriptor.SetDescriptor.*;
 import com.avail.serialization.SerializerOperation;
 
 /**
- * {@code NullDescriptor} implements the Avail {@linkplain #nullObject() null
+ * {@code NilDescriptor} implements the Avail {@linkplain #nil() null
  * object}, the sole instance of the invisible and uninstantiable root type, ⊤
  * (pronounced top).
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class NullDescriptor
+public final class NilDescriptor
 extends Descriptor
 {
-	/** The sole instance of the {@linkplain #nullObject() null object}. */
-	private static AvailObject soleInstance;
-
-	/**
-	 * Create the sole instance of the {@linkplain #nullObject() null object}.
-	 */
-	static void createWellKnownObjects ()
+	@Override
+	@AvailMethod @ThreadSafe
+	boolean o_Equals (final AvailObject object, final AvailObject another)
 	{
-		soleInstance = immutable().create();
-	}
-
-	/**
-	 * Discard the sole instance of the {@linkplain #nullObject() null object}.
-	 */
-	static void clearWellKnownObjects ()
-	{
-		soleInstance = null;
-	}
-
-	/**
-	 * Answer the sole instance of the null object.
-	 *
-	 * @return The sole instance of the null object.
-	 */
-	@ThreadSafe
-	public static AvailObject nullObject ()
-	{
-		return soleInstance;
+		return another.equalsNil();
 	}
 
 	@Override
 	@AvailMethod @ThreadSafe
-	boolean o_Equals (
-		final AvailObject object,
-		final AvailObject another)
+	boolean o_EqualsNil (final AvailObject object)
 	{
-		return another.equalsNull();
-	}
-
-	@Override
-	@AvailMethod @ThreadSafe
-	boolean o_EqualsNull (final AvailObject object)
-	{
-		//  There is only one top.
+		//  There is only one Nil.
 		return true;
 	}
 
@@ -100,10 +68,9 @@ extends Descriptor
 	@AvailMethod @ThreadSafe
 	int o_Hash (final AvailObject object)
 	{
-		// The null object should hash to zero, because the only place it can
-		// appear in a data structure is as a filler object.  This currently
-		// (as of July 1998) applies to sets, maps, variables, and
-		// continuations.
+		// Nil should hash to zero, because the only place it can appear in a
+		// data structure is as a filler object. This currently (as of July
+		// 1998) applies to sets, maps, variables, and continuations.
 		return 0;
 	}
 
@@ -122,10 +89,10 @@ extends Descriptor
 		final byte myLevel,
 		final boolean canDestroy)
 	{
-		// The null object can't be an actual member of a set, so if one
-		// receives this message it must be the rootBin of a set (empty by
-		// definition).  Answer the new element, which will become the new
-		// rootBin, indicating a set of size one.
+		// Nil can't be an actual member of a set, so if one receives this
+		// message it must be the rootBin of a set (empty by definition). Answer
+		// the new element, which will become the new rootBin, indicating a set
+		// of size one.
 		if (!canDestroy)
 		{
 			elementObject.makeImmutable();
@@ -139,9 +106,9 @@ extends Descriptor
 		final AvailObject object,
 		final AvailObject potentialSuperset)
 	{
-		// Top can't actually be a member of a set, so treat it as a
-		// structural component indicating an empty bin within a set.
-		// Since it's empty, it is a subset of potentialSuperset.
+		// Nil can't actually be a member of a set, so treat it as a structural
+		// component indicating an empty bin within a set. Since it's empty, it
+		// is a subset of potentialSuperset.
 		return true;
 	}
 
@@ -153,17 +120,16 @@ extends Descriptor
 		final int elementObjectHash,
 		final boolean canDestroy)
 	{
-		// The null object is acting as a bin of size zero, so the answer must
-		// also be the null object.
-		return NullDescriptor.nullObject();
+		// Nil is acting as a bin of size zero, so the answer must also be nil.
+		return NilDescriptor.nil();
 	}
 
 	@Override
 	@AvailMethod @ThreadSafe
 	int o_BinHash (final AvailObject object)
 	{
-		// The null object acting as a size-zero bin has a bin hash which is the
-		// sum of the elements' hashes, which in this case is zero.
+		// Nil acting as a size-zero bin has a bin hash which is the sum of the
+		// elements' hashes, which in this case is zero.
 		return 0;
 	}
 
@@ -171,24 +137,22 @@ extends Descriptor
 	@AvailMethod @ThreadSafe
 	int o_BinSize (final AvailObject object)
 	{
-		// The null object acts as an empty bin.
+		// Nil acts as an empty bin.
 		return 0;
 	}
 
 	@Override
 	@AvailMethod @ThreadSafe
-	AvailObject o_BinUnionKind (
-		final AvailObject object)
+	AvailObject o_BinUnionKind (final AvailObject object)
 	{
-		// The null object acts as an empty bin.
+		// Nil acts as an empty bin.
 		return BottomTypeDescriptor.bottom();
 	}
 
 	@Override @AvailMethod @ThreadSafe
-	SerializerOperation o_SerializerOperation (
-		final AvailObject object)
+	SerializerOperation o_SerializerOperation (final AvailObject object)
 	{
-		return SerializerOperation.NULL_OBJECT;
+		return SerializerOperation.NIL;
 	}
 
 	@Override
@@ -208,15 +172,13 @@ extends Descriptor
 	}
 
 	@Override
-	AvailObject o_MapBinKeyUnionKind (
-		final AvailObject object)
+	AvailObject o_MapBinKeyUnionKind (final AvailObject object)
 	{
 		return BottomTypeDescriptor.bottom();
 	}
 
 	@Override
-	AvailObject o_MapBinValueUnionKind (
-		final AvailObject object)
+	AvailObject o_MapBinValueUnionKind (final AvailObject object)
 	{
 		return BottomTypeDescriptor.bottom();
 	}
@@ -227,19 +189,17 @@ extends Descriptor
 		final AvailObject key,
 		final int keyHash)
 	{
-		return nullObject();
+		return nil();
 	}
 
 	@Override
-	int o_MapBinKeysHash (
-		final AvailObject object)
+	int o_MapBinKeysHash (final AvailObject object)
 	{
 		return 0;
 	}
 
 	@Override
-	int o_MapBinValuesHash (
-		final AvailObject object)
+	int o_MapBinValuesHash (final AvailObject object)
 	{
 		return 0;
 	}
@@ -255,8 +215,7 @@ extends Descriptor
 	}
 
 	@Override
-	MapIterable o_MapBinIterable (
-		final AvailObject object)
+	MapIterable o_MapBinIterable (final AvailObject object)
 	{
 		return new MapIterable()
 		{
@@ -275,10 +234,9 @@ extends Descriptor
 	}
 
 	@Override
-	SetIterator o_SetBinIterator (
-		final AvailObject object)
+	SetIterator o_SetBinIterator (final AvailObject object)
 	{
-		// The null object acts like a bin of size zero.
+		// Nil acts like a bin of size zero.
 		return new SetDescriptor.SetIterator()
 		{
 			@Override
@@ -307,44 +265,72 @@ extends Descriptor
 	}
 
 	/**
-	 * Construct a new {@link NullDescriptor}.
+	 * Construct a new {@link NilDescriptor}.
 	 *
-	 * @param isMutable
-	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
-	 *        object?
+	 * @param mutability
+	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 */
-	protected NullDescriptor (final boolean isMutable)
+	protected NilDescriptor (final Mutability mutability)
 	{
-		super(isMutable);
+		super(mutability);
 	}
 
-	/** The mutable {@link NullDescriptor}. */
-	private static final NullDescriptor mutable =
-		new NullDescriptor(true);
+	/** The mutable {@link NilDescriptor}. */
+	private static final NilDescriptor mutable =
+		new NilDescriptor(Mutability.MUTABLE);
 
-	/**
-	 * Answer the mutable {@link NullDescriptor}.
-	 *
-	 * @return The mutable {@link NullDescriptor}.
-	 */
-	@ThreadSafe
-	public static NullDescriptor mutable ()
+	@Override
+	NilDescriptor mutable ()
 	{
 		return mutable;
 	}
 
-	/** The immutable {@link NullDescriptor}. */
-	private static final NullDescriptor immutable =
-		new NullDescriptor(false);
+	/** The immutable {@link NilDescriptor}. */
+	private static final NilDescriptor immutable =
+		new NilDescriptor(Mutability.IMMUTABLE);
 
-	/**
-	 * Answer an immutable {@link NullDescriptor}.
-	 *
-	 * @return An immutable {@link NullDescriptor}.
-	 */
-	@ThreadSafe
-	public static NullDescriptor immutable ()
+	@Override
+	NilDescriptor immutable ()
 	{
 		return immutable;
+	}
+
+	/** The shared {@link NilDescriptor}. */
+	private static final NilDescriptor shared =
+		new NilDescriptor(Mutability.SHARED);
+
+	@Override
+	NilDescriptor shared ()
+	{
+		return shared;
+	}
+
+	/** The sole instance of {@linkplain #nil() nil}. */
+	private static AvailObject soleInstance;
+
+	/**
+	 * Answer the sole instance of nil.
+	 *
+	 * @return The sole instance of the nil.
+	 */
+	public static AvailObject nil ()
+	{
+		return soleInstance;
+	}
+
+	/**
+	 * Create the sole instance of the {@linkplain #nil() nil}.
+	 */
+	static void createWellKnownObjects ()
+	{
+		soleInstance = shared.create();
+	}
+
+	/**
+	 * Discard the sole instance of the {@linkplain #nil() nil}.
+	 */
+	static void clearWellKnownObjects ()
+	{
+		soleInstance = null;
 	}
 }

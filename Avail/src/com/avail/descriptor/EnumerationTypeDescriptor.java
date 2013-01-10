@@ -1,6 +1,6 @@
 /**
  * EnumerationTypeDescriptor.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -77,10 +77,9 @@ import com.avail.serialization.SerializerOperation;
 public class EnumerationTypeDescriptor
 extends AbstractEnumerationTypeDescriptor
 {
-	/**
-	 * The layout of object slots for my instances.
-	 */
-	public enum ObjectSlots implements ObjectSlotsEnum
+	/** The layout of object slots for my instances. */
+	public enum ObjectSlots
+	implements ObjectSlotsEnum
 	{
 		/**
 		 * The set of {@linkplain AvailObject objects} for which I am the
@@ -91,7 +90,7 @@ extends AbstractEnumerationTypeDescriptor
 		INSTANCES,
 
 		/**
-		 * Either {@linkplain NullDescriptor#nullObject() the null object} or
+		 * Either {@linkplain NilDescriptor#nil() nil} or
 		 * this enumeration's nearest superkind (i.e., the nearest type that
 		 * isn't a union}.
 		 */
@@ -108,10 +107,37 @@ extends AbstractEnumerationTypeDescriptor
 	 *            The enumeration for which to extract the instances.
 	 * @return The instances of this enumeration.
 	 */
-	static final
-	AvailObject getInstances (final AvailObject object)
+	static final AvailObject getInstances (final AvailObject object)
 	{
 		return object.slot(INSTANCES);
+	}
+
+	/**
+	 * Answer my nearest superkind (the most specific supertype of me that isn't
+	 * also an {@linkplain AbstractEnumerationTypeDescriptor enumeration}). Do
+	 * not acquire the argument's monitor.
+	 *
+	 * @param object
+	 *        An enumeration.
+	 * @return The kind closest to the given enumeration.
+	 */
+	private AvailObject rawGetSuperkind (final AvailObject object)
+	{
+		AvailObject cached = object.slot(CACHED_SUPERKIND);
+		if (cached.equalsNil())
+		{
+			cached = BottomTypeDescriptor.bottom();
+			for (final AvailObject instance : getInstances(object))
+			{
+				cached = cached.typeUnion(instance.kind());
+			}
+			if (isShared())
+			{
+				cached = cached.traversed().makeShared();
+			}
+			object.setSlot(CACHED_SUPERKIND, cached);
+		}
+		return cached;
 	}
 
 	/**
@@ -119,23 +145,19 @@ extends AbstractEnumerationTypeDescriptor
 	 * also an {@linkplain AbstractEnumerationTypeDescriptor enumeration}).
 	 *
 	 * @param object
-	 *            An enumeration.
+	 *        An enumeration.
 	 * @return The kind closest to the given enumeration.
 	 */
-	static final
-	AvailObject getSuperkind (final AvailObject object)
+	private final AvailObject getSuperkind (final AvailObject object)
 	{
-		AvailObject cached = object.slot(CACHED_SUPERKIND);
-		if (cached.equalsNull())
+		if (isShared())
 		{
-			cached = BottomTypeDescriptor.bottom();
-			for (final AvailObject instance : getInstances(object))
+			synchronized (object)
 			{
-				cached = cached.typeUnion(instance.kind());
+				return rawGetSuperkind(object);
 			}
-			object.setSlot(CACHED_SUPERKIND, cached);
 		}
-		return cached;
+		return rawGetSuperkind(object);
 	}
 
 	@Override boolean allowsImmutableToMutableReferenceInField (
@@ -145,8 +167,7 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_ComputeSuperkind (
-		final AvailObject object)
+	AvailObject o_ComputeSuperkind (final AvailObject object)
 	{
 		return getSuperkind(object);
 	}
@@ -171,7 +192,7 @@ extends AbstractEnumerationTypeDescriptor
 		final int indent)
 	{
 		// Print boolean specially.
-		if (object.equals(Boolean))
+		if (object.equals(booleanObject))
 		{
 			aStream.append("boolean");
 			return;
@@ -193,15 +214,22 @@ extends AbstractEnumerationTypeDescriptor
 	 * </p>
 	 */
 	@Override @AvailMethod
-	boolean o_Equals (
-		final AvailObject object,
-		final AvailObject another)
+	boolean o_Equals (final AvailObject object, final AvailObject another)
 	{
-		final boolean equal = another
-			.equalsEnumerationWithSet(getInstances(object));
+		final boolean equal =
+			another.equalsEnumerationWithSet(getInstances(object));
 		if (equal)
 		{
-			another.becomeIndirectionTo(object);
+			if (!isShared())
+			{
+				another.makeImmutable();
+				object.becomeIndirectionTo(another);
+			}
+			else if (!another.descriptor.isShared())
+			{
+				object.makeImmutable();
+				another.becomeIndirectionTo(object);
+			}
 		}
 		return equal;
 	}
@@ -216,7 +244,7 @@ extends AbstractEnumerationTypeDescriptor
 
 	/**
 	 * The potentialInstance is a {@linkplain ObjectDescriptor user-defined
-	 * object}. See if it is an instance of the object.  It is an instance
+	 * object}. See if it is an instance of the object. It is an instance
 	 * precisely when it is in object's set of {@linkplain ObjectSlots#INSTANCES
 	 * instances}, or if it is a subtype of any type that occurs in the set of
 	 * instances.
@@ -236,9 +264,7 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_IsInstanceOf (
-		final AvailObject object,
-		final AvailObject aType)
+	boolean o_IsInstanceOf (final AvailObject object, final AvailObject aType)
 	{
 		if (aType.isInstanceMeta())
 		{
@@ -269,19 +295,19 @@ extends AbstractEnumerationTypeDescriptor
 
 	/**
 	 * Compute the type intersection of the object, which is an {@linkplain
-	 * EnumerationTypeDescriptor enumeration}, and
-	 * the argument, which may or may not be an enumeration (but must be a
-	 * {@linkplain TypeDescriptor type}).
+	 * EnumerationTypeDescriptor enumeration}, and the argument, which may or
+	 * may not be an enumeration (but must be a {@linkplain TypeDescriptor
+	 * type}).
 	 *
 	 * @param object
-	 *            An enumeration.
+	 *        An enumeration.
 	 * @param another
-	 *            Another type.
+	 *        Another type.
 	 * @return The most general type that is a subtype of both {@code object}
 	 *         and {@code another}.
 	 */
-	@Override final
-	AvailObject computeIntersectionWith (
+	@Override
+	final AvailObject computeIntersectionWith (
 		final AvailObject object,
 		final AvailObject another)
 	{
@@ -368,8 +394,8 @@ extends AbstractEnumerationTypeDescriptor
 	 * @return The most general type that is a subtype of both {@code object}
 	 *         and {@code another}.
 	 */
-	@Override final
-	AvailObject computeUnionWith (
+	@Override
+	final AvailObject computeUnionWith (
 		final AvailObject object,
 		final AvailObject another)
 	{
@@ -391,15 +417,13 @@ extends AbstractEnumerationTypeDescriptor
 		return union;
 	}
 
-	@Override
-	public
+	@Override @AvailMethod
 	AvailObject o_FieldTypeMap (final AvailObject object)
 	{
 		return getSuperkind(object).fieldTypeMap();
 	}
 
-	@Override
-	public
+	@Override @AvailMethod
 	AvailObject o_LowerBound (final AvailObject object)
 	{
 		return getSuperkind(object).lowerBound();
@@ -411,8 +435,7 @@ extends AbstractEnumerationTypeDescriptor
 		return getSuperkind(object).lowerInclusive();
 	}
 
-	@Override
-	public
+	@Override @AvailMethod
 	AvailObject o_UpperBound (final AvailObject object)
 	{
 		return getSuperkind(object).upperBound();
@@ -436,8 +459,7 @@ extends AbstractEnumerationTypeDescriptor
 		return false;
 	}
 
-	@Override
-	public
+	@Override @AvailMethod
 	AvailObject o_TypeAtIndex (
 		final AvailObject object,
 		final int index)
@@ -449,8 +471,7 @@ extends AbstractEnumerationTypeDescriptor
 		return getSuperkind(object).typeAtIndex(index);
 	}
 
-	@Override
-	public
+	@Override @AvailMethod
 	AvailObject o_UnionOfTypesAtThrough (
 		final AvailObject object,
 		final int startIndex,
@@ -464,32 +485,27 @@ extends AbstractEnumerationTypeDescriptor
 		return getSuperkind(object).unionOfTypesAtThrough(startIndex, endIndex);
 	}
 
-	@Override
-	public
+	@Override @AvailMethod
 	AvailObject o_DefaultType (final AvailObject object)
 	{
 		assert object.isTupleType();
 		return getSuperkind(object).defaultType();
 	}
 
-	@Override
-	public
+	@Override @AvailMethod
 	AvailObject o_SizeRange (final AvailObject object)
 	{
 		return getSuperkind(object).sizeRange();
 	}
 
-	@Override
-	public
+	@Override @AvailMethod
 	AvailObject o_TypeTuple (final AvailObject object)
 	{
 		return getSuperkind(object).typeTuple();
 	}
 
 	@Override @AvailMethod
-	boolean o_IsSubtypeOf (
-		final AvailObject object,
-		final AvailObject aType)
+	boolean o_IsSubtypeOf (final AvailObject object, final AvailObject aType)
 	{
 		// Check if object (an enumeration) is a subtype of aType (should also
 		// be a type).  All members of me must also be instances of aType.
@@ -516,7 +532,7 @@ extends AbstractEnumerationTypeDescriptor
 		return true;
 	}
 
-	@Override
+	@Override @AvailMethod
 	boolean o_IsLiteralTokenType (final AvailObject object)
 	{
 		for (final AvailObject instance : object.instances())
@@ -573,7 +589,8 @@ extends AbstractEnumerationTypeDescriptor
 		final AvailObject object,
 		final AvailObject functionType)
 	{
-		return getSuperkind(object).acceptsArgTypesFromFunctionType(functionType);
+		return getSuperkind(object).acceptsArgTypesFromFunctionType(
+			functionType);
 	}
 
 	@Override @AvailMethod
@@ -646,7 +663,7 @@ extends AbstractEnumerationTypeDescriptor
 		final AvailObject anotherObject)
 	{
 		// An enumeration with a cached superkind is pretty good.
-		return !object.slot(CACHED_SUPERKIND).equalsNull();
+		return !object.mutableSlot(CACHED_SUPERKIND).equalsNil();
 	}
 
 	@Override @AvailMethod
@@ -684,7 +701,7 @@ extends AbstractEnumerationTypeDescriptor
 		final AvailObject object,
 		final @Nullable Class<?> ignoredClassHint)
 	{
-		if (object.isSubtypeOf(Boolean))
+		if (object.isSubtypeOf(booleanObject))
 		{
 			return java.lang.Boolean.TYPE;
 		}
@@ -692,22 +709,19 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	@Override
-	AvailObject o_ReadType (
-		final AvailObject object)
+	AvailObject o_ReadType (final AvailObject object)
 	{
 		return getSuperkind(object).readType();
 	}
 
 	@Override
-	AvailObject o_WriteType (
-		final AvailObject object)
+	AvailObject o_WriteType (final AvailObject object)
 	{
 		return getSuperkind(object).writeType();
 	}
 
 	@Override
-	AvailObject o_ExpressionType (
-		final AvailObject object)
+	AvailObject o_ExpressionType (final AvailObject object)
 	{
 		AvailObject unionType = BottomTypeDescriptor.bottom();
 		for (final AvailObject instance : getInstances(object))
@@ -718,45 +732,42 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	@Override
-	boolean o_RangeIncludesInt (
-		final AvailObject object,
-		final int anInt)
+	boolean o_RangeIncludesInt (final AvailObject object, final int anInt)
 	{
 		return getInstances(object).hasElement(
 			IntegerDescriptor.fromInt(anInt));
 	}
 
 	@Override
-	SerializerOperation o_SerializerOperation (
-		final AvailObject object)
+	SerializerOperation o_SerializerOperation (final AvailObject object)
 	{
 		return SerializerOperation.ENUMERATION_TYPE;
 	}
 
 	/**
 	 * Construct an {@linkplain EnumerationTypeDescriptor enumeration} from a
-	 * {@linkplain SetDescriptor set} with at least two instances.  The set
+	 * {@linkplain SetDescriptor set} with at least two instances. The set
 	 * must have already been normalized, such that at most one of the elements
 	 * is itself a {@linkplain TypeDescriptor type}.
 	 *
 	 * @param normalizedSet The set of instances.
 	 * @return The resulting enumeration.
 	 */
-	static AvailObject fromNormalizedSet (
-		final AvailObject normalizedSet)
+	static AvailObject fromNormalizedSet (final AvailObject normalizedSet)
 	{
 		assert normalizedSet.setSize() > 1;
-		final AvailObject result = EnumerationTypeDescriptor.mutable().create();
+		final AvailObject result = mutable.create();
 		result.setSlot(INSTANCES, normalizedSet.makeImmutable());
-		result.setSlot(CACHED_SUPERKIND, NullDescriptor.nullObject());
+		result.setSlot(CACHED_SUPERKIND, NilDescriptor.nil());
 		return result;
 	}
 
 	/**
 	 * Avail's boolean type, the equivalent of Java's primitive {@code boolean}
-	 * pseudo-type, and Java's other non-primitive boxed {@link Boolean} class.
+	 * pseudo-type, and Java's other non-primitive boxed {@link #booleanObject}
+	 * class.
 	 */
-	private static AvailObject Boolean;
+	private static AvailObject booleanObject;
 
 	/**
 	 * Return Avail's boolean type.
@@ -766,7 +777,7 @@ extends AbstractEnumerationTypeDescriptor
 	 */
 	public static AvailObject booleanObject ()
 	{
-		return Boolean;
+		return booleanObject;
 	}
 
 	/**
@@ -780,7 +791,7 @@ extends AbstractEnumerationTypeDescriptor
 		final AvailObject tuple = TupleDescriptor.from(
 			AtomDescriptor.trueObject(),
 			AtomDescriptor.falseObject());
-		Boolean = withInstances(tuple.asSet());
+		booleanObject = withInstances(tuple.asSet()).makeShared();
 	}
 
 	/**
@@ -788,50 +799,47 @@ extends AbstractEnumerationTypeDescriptor
 	 */
 	static void clearWellKnownObjects ()
 	{
-		Boolean = null;
+		booleanObject = null;
 	}
 
 	/**
 	 * Construct a new {@link EnumerationTypeDescriptor}.
 	 *
-	 * @param isMutable
-	 *            Does the {@linkplain Descriptor descriptor} represent a
-	 *            mutable object?
+	 * @param mutability
+	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 */
-	protected EnumerationTypeDescriptor (final boolean isMutable)
+	protected EnumerationTypeDescriptor (final Mutability mutability)
 	{
-		super(isMutable);
+		super(mutability);
 	}
 
-	/**
-	 * The mutable {@link EnumerationTypeDescriptor}.
-	 */
-	private static final AbstractEnumerationTypeDescriptor mutable = new EnumerationTypeDescriptor(
-		true);
+	/** The mutable {@link EnumerationTypeDescriptor}. */
+	private static final AbstractEnumerationTypeDescriptor mutable =
+		new EnumerationTypeDescriptor(Mutability.MUTABLE);
 
-	/**
-	 * Answer the mutable {@link EnumerationTypeDescriptor}.
-	 *
-	 * @return The mutable {@link EnumerationTypeDescriptor}.
-	 */
-	public static AbstractEnumerationTypeDescriptor mutable ()
+	@Override
+	AbstractEnumerationTypeDescriptor mutable ()
 	{
 		return mutable;
 	}
 
-	/**
-	 * The immutable {@link EnumerationTypeDescriptor}.
-	 */
-	private static final AbstractEnumerationTypeDescriptor immutable = new EnumerationTypeDescriptor(
-		false);
+	/** The immutable {@link EnumerationTypeDescriptor}. */
+	private static final AbstractEnumerationTypeDescriptor immutable =
+		new EnumerationTypeDescriptor(Mutability.IMMUTABLE);
 
-	/**
-	 * Answer the immutable {@link EnumerationTypeDescriptor}.
-	 *
-	 * @return The immutable {@link EnumerationTypeDescriptor}.
-	 */
-	public static AbstractEnumerationTypeDescriptor immutable ()
+	@Override
+	AbstractEnumerationTypeDescriptor immutable ()
 	{
 		return immutable;
+	}
+
+	/** The shared {@link EnumerationTypeDescriptor}. */
+	private static final AbstractEnumerationTypeDescriptor shared =
+		new EnumerationTypeDescriptor(Mutability.SHARED);
+
+	@Override
+	AbstractEnumerationTypeDescriptor shared ()
+	{
+		return shared;
 	}
 }

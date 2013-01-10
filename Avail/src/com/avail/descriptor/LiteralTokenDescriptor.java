@@ -1,6 +1,6 @@
 /**
  * LiteralTokenDescriptor.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -46,14 +46,12 @@ import com.avail.serialization.SerializerOperation;
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class LiteralTokenDescriptor
+public final class LiteralTokenDescriptor
 extends TokenDescriptor
 {
 	/**
-	 * My slots of type {@link AvailObject}.  Note that they have to start the
+	 * My slots of type {@link AvailObject}. Note that they have to start the
 	 * same as in my superclass {@link TokenDescriptor}.
-	 *
-	 * @author Mark van Gulik &lt;mark@availlang.org&gt;
 	 */
 	public enum ObjectSlots
 	implements ObjectSlotsEnum
@@ -126,8 +124,7 @@ extends TokenDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_Literal (
-		final AvailObject object)
+	AvailObject o_Literal (final AvailObject object)
 	{
 		return object.slot(LITERAL);
 	}
@@ -162,12 +159,10 @@ extends TokenDescriptor
 	}
 
 	@Override
-	SerializerOperation o_SerializerOperation (
-		final AvailObject object)
+	SerializerOperation o_SerializerOperation (final AvailObject object)
 	{
 		return SerializerOperation.LITERAL_TOKEN;
 	}
-
 
 	/**
 	 * Create and initialize a new {@linkplain TokenDescriptor token}.
@@ -188,7 +183,7 @@ extends TokenDescriptor
 	{
 		final AvailObject instance = mutable.create();
 		instance.setSlot(STRING, string);
-		instance.setSlot(LOWER_CASE_STRING, NullDescriptor.nullObject());
+		instance.setSlot(LOWER_CASE_STRING, NilDescriptor.nil());
 		instance.setSlot(START, start);
 		instance.setSlot(LINE_NUMBER, lineNumber);
 		instance.setSlot(TOKEN_TYPE_CODE, tokenType.ordinal());
@@ -199,44 +194,38 @@ extends TokenDescriptor
 	/**
 	 * Construct a new {@link LiteralTokenDescriptor}.
 	 *
-	 * @param isMutable
-	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
-	 *        object?
+	 * @param mutability
+	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 */
-	protected LiteralTokenDescriptor (final boolean isMutable)
+	private LiteralTokenDescriptor (final Mutability mutability)
 	{
-		super(isMutable);
+		super(mutability);
 	}
 
-	/**
-	 * The mutable {@link LiteralTokenDescriptor}.
-	 */
+	/** The mutable {@link LiteralTokenDescriptor}. */
 	private static final LiteralTokenDescriptor mutable =
-		new LiteralTokenDescriptor(true);
+		new LiteralTokenDescriptor(Mutability.MUTABLE);
 
-	/**
-	 * Answer the mutable {@link LiteralTokenDescriptor}.
-	 *
-	 * @return The mutable {@link LiteralTokenDescriptor}.
-	 */
-	public static LiteralTokenDescriptor mutable ()
+	@Override
+	LiteralTokenDescriptor mutable ()
 	{
 		return mutable;
 	}
 
-	/**
-	 * The immutable {@link LiteralTokenDescriptor}.
-	 */
-	private static final LiteralTokenDescriptor immutable =
-		new LiteralTokenDescriptor(false);
+	/** The shared {@link LiteralTokenDescriptor}. */
+	private static final LiteralTokenDescriptor shared =
+		new LiteralTokenDescriptor(Mutability.SHARED);
 
-	/**
-	 * Answer the immutable {@link LiteralTokenDescriptor}.
-	 *
-	 * @return The immutable {@link LiteralTokenDescriptor}.
-	 */
-	public static LiteralTokenDescriptor immutable ()
+	@Override
+	LiteralTokenDescriptor immutable ()
 	{
-		return immutable;
+		// Answer the shared descriptor, since there isn't an immutable one.
+		return shared;
+	}
+
+	@Override
+	LiteralTokenDescriptor shared ()
+	{
+		return shared;
 	}
 }

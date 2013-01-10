@@ -118,7 +118,7 @@ For each scanner's comments[1] do
  Print: format "‘①’-“②”, " with s's lexeme,s's line;
 ];
 Print: "\n\n";
-q : string := concatenate scanner's comments[1] separated by "_";
+q : string := concatenate scanner's comments[1] separated by ",";
 Print: q; Print: "\n\n";
 For each scanner's comments[2] do
 [

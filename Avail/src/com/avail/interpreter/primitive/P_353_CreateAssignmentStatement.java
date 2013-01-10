@@ -1,6 +1,6 @@
 /**
  * P_353_CreateAssignmentStatement.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -50,7 +50,7 @@ import com.avail.interpreter.*;
  * assignments used as subexpressions), we actually produce a {@linkplain
  * SequenceNodeDescriptor sequence node} here, consisting of the assignment
  * node proper (whose output is effectively discarded) and a literal
- * {@linkplain NullDescriptor#nullObject() null value}.</p>
+ * {@linkplain NilDescriptor#nil() null value}.</p>
  */
 public class P_353_CreateAssignmentStatement extends Primitive
 {

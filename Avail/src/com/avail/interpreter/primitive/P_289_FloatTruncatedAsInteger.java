@@ -1,6 +1,6 @@
 /**
  * P_289_FloatTruncatedAsInteger.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -85,7 +85,7 @@ public class P_289_FloatTruncatedAsInteger extends Primitive
 		f = abs(f);
 		final int exponent = getExponent(f);
 		final int slots = exponent + 31 / 32;  // probably needs work
-		AvailObject out = IntegerDescriptor.mutable().create(slots);
+		AvailObject out = IntegerDescriptor.mutable.create(slots);
 		f = scalb(f, (1 - slots) * 32);
 		for (int i = slots; i >= 1; --i)
 		{

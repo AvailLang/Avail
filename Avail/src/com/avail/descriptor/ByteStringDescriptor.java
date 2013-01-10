@@ -1,6 +1,6 @@
 /**
  * ByteStringDescriptor.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,6 +33,7 @@
 package com.avail.descriptor;
 
 import static com.avail.descriptor.AvailObject.*;
+import static com.avail.descriptor.Mutability.*;
 import com.avail.annotations.*;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.*;
@@ -43,13 +44,14 @@ import com.avail.utility.*;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-class ByteStringDescriptor
+final class ByteStringDescriptor
 extends StringDescriptor
 {
 	/**
 	 * The layout of integer slots for my instances.
 	 */
-	public enum IntegerSlots implements IntegerSlotsEnum
+	public enum IntegerSlots
+	implements IntegerSlotsEnum
 	{
 		/**
 		 * The hash, or zero ({@code 0}) if the hash has not yet been computed.
@@ -85,8 +87,6 @@ extends StringDescriptor
 		final AvailObject anotherObject,
 		final int startIndex2)
 	{
-		//  Compare sections of two tuples.  My instance is a string.
-
 		return anotherObject.compareFromToWithByteStringStartingAt(
 			startIndex2,
 			(startIndex2 + endIndex1 - startIndex1),
@@ -102,29 +102,28 @@ extends StringDescriptor
 		final AvailObject aByteString,
 		final int startIndex2)
 	{
-		//  Compare sections of two byte strings.
-
+		// Compare sections of two byte strings.
 		if (object.sameAddressAs(aByteString) && startIndex1 == startIndex2)
 		{
 			return true;
 		}
-		//  Compare actual bytes.
-		int index2 = startIndex2;
-		for (int index1 = startIndex1; index1 <= endIndex1; index1++)
+		// Compare actual bytes.
+		for (
+			int index1 = startIndex1, index2 = startIndex2;
+			index1 <= endIndex1;
+			index1++, index2++)
 		{
-			if (object.rawByteForCharacterAt(index1) != aByteString.rawByteForCharacterAt(index2))
+			if (object.rawByteForCharacterAt(index1)
+				!= aByteString.rawByteForCharacterAt(index2))
 			{
 				return false;
 			}
-			index2++;
 		}
 		return true;
 	}
 
 	@Override @AvailMethod
-	boolean o_Equals (
-		final AvailObject object,
-		final AvailObject another)
+	boolean o_Equals (final AvailObject object, final AvailObject another)
 	{
 		return another.equalsByteString(object);
 	}
@@ -134,8 +133,7 @@ extends StringDescriptor
 		final AvailObject object,
 		final AvailObject aByteString)
 	{
-		//  First, check for object-structure (address) identity.
-
+		// First, check for object-structure (address) identity.
 		if (object.sameAddressAs(aByteString))
 		{
 			return true;
@@ -156,17 +154,22 @@ extends StringDescriptor
 		{
 			return false;
 		}
-		//  They're equal (but occupy disjoint storage).  Replace one with an indirection to the other
-		//  to keep down the frequency of byte-wise comparisons.
-		object.becomeIndirectionTo(aByteString);
-		aByteString.makeImmutable();
-		//  Now that there are at least two references to it
+		// They're equal (but occupy disjoint storage). If possible, then
+		// replace one with an indirection to the other to keep down the
+		// frequency of byte-wise comparisons.
+		if (!isShared())
+		{
+			aByteString.makeImmutable();
+			object.becomeIndirectionTo(aByteString);
+		}
+		else if (!aByteString.descriptor.isShared())
+		{
+			object.makeImmutable();
+			aByteString.becomeIndirectionTo(object);
+		}
 		return true;
 	}
 
-	/**
-	 * @author Todd L Smith &lt;todd@availlang.org&gt;
-	 */
 	@Override @AvailMethod
 	boolean o_IsString (final AvailObject object)
 	{
@@ -174,14 +177,21 @@ extends StringDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_MakeImmutable (
-		final AvailObject object)
+	AvailObject o_MakeImmutable (final AvailObject object)
 	{
-		//  Make the object immutable so it can be shared safely.
-
-		if (isMutable)
+		if (isMutable())
 		{
-			object.descriptor = isMutableSize(false, object.tupleSize());
+			object.descriptor = descriptorFor(IMMUTABLE, object.tupleSize());
+		}
+		return object;
+	}
+
+	@Override @AvailMethod
+	AvailObject o_MakeShared (final AvailObject object)
+	{
+		if (!isShared())
+		{
+			object.descriptor = descriptorFor(SHARED, object.tupleSize());
 		}
 		return object;
 	}
@@ -203,14 +213,13 @@ extends StringDescriptor
 		final short anInteger)
 	{
 		//  Set the character at the given index based on the given byte.
+		assert isMutable();
 		assert index >= 1 && index <= object.tupleSize();
 		object.byteSlotAtPut(IntegerSlots.RAW_QUAD_AT_, index, anInteger);
 	}
 
 	@Override @AvailMethod
-	AvailObject o_TupleAt (
-		final AvailObject object,
-		final int index)
+	AvailObject o_TupleAt (final AvailObject object, final int index)
 	{
 		// Answer the element at the given index in the tuple object.  It's a
 		// one-byte character.
@@ -228,6 +237,7 @@ extends StringDescriptor
 	{
 		// Set the byte at the given index to the given object (which should be
 		// an AvailObject that's a one-byte character).
+		assert isMutable();
 		assert index >= 1 && index <= object.tupleSize();
 		final short codePoint = (short) aCharacterObject.codePoint();
 		object.byteSlotAtPut(IntegerSlots.RAW_QUAD_AT_, index, codePoint);
@@ -249,7 +259,7 @@ extends StringDescriptor
 			final int codePoint = newValueObject.codePoint();
 			if ((codePoint & 0xFF) == codePoint)
 			{
-				if (canDestroy & isMutable)
+				if (canDestroy & isMutable())
 				{
 					object.rawByteForCharacterAtPut(index, (short)codePoint);
 					object.hashOrZero(0);
@@ -278,27 +288,20 @@ extends StringDescriptor
 	}
 
 	@Override @AvailMethod
-	int o_TupleIntAt (
-		final AvailObject object,
-		final int index)
+	int o_TupleIntAt (final AvailObject object, final int index)
 	{
-		//  Answer the integer element at the given index in the tuple object.
-
-		error("Strings store characters, not integers", object);
-		return 0;
+		throw unsupportedOperationException();
 	}
 
 	@Override @AvailMethod
-	int o_TupleSize (
-		final AvailObject object)
+	int o_TupleSize (final AvailObject object)
 	{
-		// Answer the number of elements in the object (as a Smalltalk Integer).
+		// Answer the number of elements in the object.
 		return object.variableIntegerSlotsCount() * 4 - unusedBytesOfLastWord;
 	}
 
 	@Override @AvailMethod
-	int o_BitsPerEntry (
-		final AvailObject object)
+	int o_BitsPerEntry (final AvailObject object)
 	{
 		// Answer approximately how many bits per entry are taken up by this
 		// object.
@@ -309,7 +312,7 @@ extends StringDescriptor
 	 * {@inheritDoc}
 	 *
 	 * <p>
-	 * See comment in superclass.  This overridden method must produce the same
+	 * See comment in superclass. This overridden method must produce the same
 	 * value.
 	 * </p>
 	 */
@@ -332,8 +335,7 @@ extends StringDescriptor
 
 	@Override
 	@AvailMethod @ThreadSafe
-	SerializerOperation o_SerializerOperation (
-		final AvailObject object)
+	SerializerOperation o_SerializerOperation (final AvailObject object)
 	{
 		return SerializerOperation.BYTE_STRING;
 	}
@@ -344,6 +346,60 @@ extends StringDescriptor
 		final @Nullable Class<?> ignoredClassHint)
 	{
 		return object.asNativeString();
+	}
+
+	/**
+	 * Construct a new {@link ByteStringDescriptor}.
+	 *
+	 * @param mutability
+	 *        The {@linkplain Mutability mutability} of the new descriptor.
+	 * @param unusedBytes
+	 *        The number of unused bytes of the last word.
+	 */
+	private ByteStringDescriptor (
+		final Mutability mutability,
+		final int unusedBytes)
+	{
+		super(mutability);
+		unusedBytesOfLastWord = unusedBytes;
+	}
+
+	/** The {@link ByteStringDescriptor} instances. */
+	private static final ByteStringDescriptor[] descriptors =
+	{
+		new ByteStringDescriptor(MUTABLE, 0),
+		new ByteStringDescriptor(IMMUTABLE, 0),
+		new ByteStringDescriptor(SHARED, 0),
+		new ByteStringDescriptor(MUTABLE, 3),
+		new ByteStringDescriptor(IMMUTABLE, 3),
+		new ByteStringDescriptor(SHARED, 3),
+		new ByteStringDescriptor(MUTABLE, 2),
+		new ByteStringDescriptor(IMMUTABLE, 2),
+		new ByteStringDescriptor(SHARED, 2),
+		new ByteStringDescriptor(MUTABLE, 1),
+		new ByteStringDescriptor(IMMUTABLE, 1),
+		new ByteStringDescriptor(SHARED, 1)
+	};
+
+	@Override
+	ByteStringDescriptor mutable ()
+	{
+		return descriptors[
+			((4 - unusedBytesOfLastWord) & 3) * 3 + MUTABLE.ordinal()];
+	}
+
+	@Override
+	ByteStringDescriptor immutable ()
+	{
+		return descriptors[
+			((4 - unusedBytesOfLastWord) & 3) * 3 + IMMUTABLE.ordinal()];
+	}
+
+	@Override
+	ByteStringDescriptor shared ()
+	{
+		return descriptors[
+			((4 - unusedBytesOfLastWord) & 3) * 3 + SHARED.ordinal()];
 	}
 
 	/**
@@ -401,13 +457,9 @@ extends StringDescriptor
 	 */
 	private AvailObject mutableObjectOfSize (final int size)
 	{
-		if (!isMutable)
-		{
-			error("This descriptor should be mutable");
-			return NullDescriptor.nullObject();
-		}
+		assert isMutable();
 		assert (size + unusedBytesOfLastWord & 3) == 0;
-		final AvailObject result = this.create(size + 3 >> 2);
+		final AvailObject result = create((size + 3) >> 2);
 		return result;
 	}
 
@@ -417,48 +469,19 @@ extends StringDescriptor
 	 * and size.
 	 *
 	 * @param flag
-	 *        {@code true} if the desired {@linkplain ByteStringDescriptor
-	 *        descriptor} is mutable, {@code false} otherwise.
+	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 * @param size
 	 *        The desired number of elements.
-	 * @return A {@linkplain ByteStringDescriptor descriptor}.
+	 * @return A {@link ByteStringDescriptor} suitable for representing a
+	 *         byte string of the given mutability and {@linkplain
+	 *         AvailObject#tupleSize() size}.
 	 */
-	private static ByteStringDescriptor isMutableSize (
-		final boolean flag,
+	private static ByteStringDescriptor descriptorFor (
+		final Mutability flag,
 		final int size)
 	{
-		final int delta = flag ? 0 : 1;
-		return descriptors[delta + (size & 3) * 2];
+		return descriptors[(size & 3) * 3 + flag.ordinal()];
 	}
-
-	/**
-	 * Construct a new {@link ByteStringDescriptor}.
-	 *
-	 * @param isMutable
-	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
-	 *        object?
-	 * @param unusedBytes The number of unused bytes of the last word.
-	 */
-	private ByteStringDescriptor (
-		final boolean isMutable,
-		final int unusedBytes)
-	{
-		super(isMutable);
-		unusedBytesOfLastWord = unusedBytes;
-	}
-
-	/** The {@link ByteStringDescriptor} instances. */
-	private static final ByteStringDescriptor[] descriptors =
-	{
-		new ByteStringDescriptor(true, 0),
-		new ByteStringDescriptor(false, 0),
-		new ByteStringDescriptor(true, 3),
-		new ByteStringDescriptor(false, 3),
-		new ByteStringDescriptor(true, 2),
-		new ByteStringDescriptor(false, 2),
-		new ByteStringDescriptor(true, 1),
-		new ByteStringDescriptor(false, 1)
-	};
 
 	/**
 	 * Convert the specified Java {@link String} of purely Latin-1 characters
@@ -487,7 +510,6 @@ extends StringDescriptor
 			});
 	}
 
-
 	/**
 	 * Create an object of the appropriate size, whose descriptor is an instance
 	 * of {@link ByteStringDescriptor}.  Note that it can only store Latin-1
@@ -503,7 +525,7 @@ extends StringDescriptor
 		final int size,
 		final Generator<Integer> generator)
 	{
-		final ByteStringDescriptor descriptor = isMutableSize(true, size);
+		final ByteStringDescriptor descriptor = descriptorFor(MUTABLE, size);
 		final AvailObject result = descriptor.mutableObjectOfSize(size);
 		// Aggregate four writes at a time for the bulk of the string.
 		int index;

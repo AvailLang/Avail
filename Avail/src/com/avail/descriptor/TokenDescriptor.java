@@ -1,6 +1,6 @@
 /**
  * TokenDescriptor.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -50,6 +50,34 @@ public class TokenDescriptor
 extends Descriptor
 {
 	/**
+	 * My class's slots of type int.
+	 */
+	public enum IntegerSlots
+	implements IntegerSlotsEnum
+	{
+		/**
+		 * The starting position in the source file. Currently signed 32 bits,
+		 * but this may change at some point -- not that we really need to parse
+		 * 2GB of <em>Avail</em> source in one file, due to its deeply flexible
+		 * syntax.
+		 */
+		START,
+
+		/**
+		 * The line number in the source file. Currently signed 32 bits, which
+		 * should be plenty.
+		 */
+		LINE_NUMBER,
+
+		/**
+		 * The {@link Enum#ordinal() ordinal} of the {@link TokenType} that
+		 * indicates what basic kind of token this is.
+		 */
+		@EnumField(describedBy=TokenType.class)
+		TOKEN_TYPE_CODE
+	}
+
+	/**
 	 * My class's slots of type AvailObject.
 	 */
 	public enum ObjectSlots
@@ -67,34 +95,6 @@ extends Descriptor
 		 */
 		@HideFieldInDebugger
 		LOWER_CASE_STRING
-	}
-
-	/**
-	 * My class's slots of type int.
-	 */
-	public enum IntegerSlots
-	implements IntegerSlotsEnum
-	{
-		/**
-		 * The starting position in the source file.  Currently signed 32 bits,
-		 * but this may change at some point -- not that we really need to parse
-		 * 2GB of <em>Avail</em> source in one file, due to its deeply flexible
-		 * syntax.
-		 */
-		START,
-
-		/**
-		 * The line number in the source file.  Currently signed 32 bits, which
-		 * should be plenty.
-		 */
-		LINE_NUMBER,
-
-		/**
-		 * The {@link Enum#ordinal() ordinal} of the {@link TokenType} that
-		 * indicates what basic kind of token this is.
-		 */
-		@EnumField(describedBy=TokenType.class)
-		TOKEN_TYPE_CODE
 	}
 
 	/**
@@ -148,18 +148,9 @@ extends Descriptor
 	}
 
 	@Override
-	boolean allowsImmutableToMutableReferenceInField (
-		final AbstractSlotsEnum e)
+	boolean allowsImmutableToMutableReferenceInField (final AbstractSlotsEnum e)
 	{
 		return e == LOWER_CASE_STRING;
-	}
-
-	@Override @AvailMethod
-	void o_String (
-		final AvailObject object,
-		final AvailObject value)
-	{
-		object.setSlot(STRING, value);
 	}
 
 	@Override @AvailMethod
@@ -168,26 +159,41 @@ extends Descriptor
 		return object.slot(STRING);
 	}
 
-	@Override @AvailMethod
-	AvailObject o_LowerCaseString (final AvailObject object)
+	/**
+	 * Lazily compute and install the lowercase variant of the specified
+	 * {@linkplain TokenDescriptor token}'s lexeme.
+	 *
+	 * @param object A token.
+	 * @return The lowercase lexeme.
+	 */
+	private AvailObject lowerCaseString (final AvailObject object)
 	{
 		AvailObject lowerCase = object.slot(LOWER_CASE_STRING);
-		if (lowerCase.equalsNull())
+		if (lowerCase.equalsNil())
 		{
 			final String nativeOriginal = object.slot(STRING).asNativeString();
 			final String nativeLowerCase = nativeOriginal.toLowerCase();
 			lowerCase = StringDescriptor.from(nativeLowerCase);
+			if (isShared())
+			{
+				lowerCase = lowerCase.traversed().makeShared();
+			}
 			object.setSlot(LOWER_CASE_STRING, lowerCase);
 		}
 		return lowerCase;
 	}
 
 	@Override @AvailMethod
-	void o_Start (
-		final AvailObject object,
-		final int value)
+	AvailObject o_LowerCaseString (final AvailObject object)
 	{
-		object.setSlot(START, value);
+		if (isShared())
+		{
+			synchronized (object)
+			{
+				return lowerCaseString(object);
+			}
+		}
+		return lowerCaseString(object);
 	}
 
 	@Override @AvailMethod
@@ -196,40 +202,12 @@ extends Descriptor
 		return object.slot(START);
 	}
 
-	/**
-	 * Setter for field lineNumber.
-	 */
-	@Override @AvailMethod
-	void o_LineNumber (
-		final AvailObject object,
-		final int value)
-	{
-		object.setSlot(LINE_NUMBER, value);
-	}
-
-	/**
-	 * Getter for field lineNumber.
-	 */
 	@Override @AvailMethod
 	int o_LineNumber (final AvailObject object)
 	{
 		return object.slot(LINE_NUMBER);
 	}
 
-	/**
-	 * Setter for field tokenTypeCode.
-	 */
-	@Override @AvailMethod
-	void o_TokenType (
-		final AvailObject object,
-		final TokenType value)
-	{
-		object.setSlot(TOKEN_TYPE_CODE, value.ordinal());
-	}
-
-	/**
-	 * Getter for field tokenTypeCode.
-	 */
 	@Override @AvailMethod
 	TokenType o_TokenType (final AvailObject object)
 	{
@@ -254,17 +232,13 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_Equals (
-		final AvailObject object,
-		final AvailObject another)
+	boolean o_Equals (final AvailObject object, final AvailObject another)
 	{
 		return another.equalsToken(object);
 	}
 
 	@Override @AvailMethod
-	boolean o_EqualsToken (
-		final AvailObject object,
-		final AvailObject aToken)
+	boolean o_EqualsToken (final AvailObject object, final AvailObject aToken)
 	{
 		return object.string().equals(aToken.string())
 			&& object.start() == aToken.start()
@@ -275,8 +249,7 @@ extends Descriptor
 	}
 
 	@Override
-	SerializerOperation o_SerializerOperation (
-		final AvailObject object)
+	SerializerOperation o_SerializerOperation (final AvailObject object)
 	{
 		return SerializerOperation.TOKEN;
 	}
@@ -298,7 +271,7 @@ extends Descriptor
 	{
 		final AvailObject instance = mutable.create();
 		instance.setSlot(STRING, string);
-		instance.setSlot(LOWER_CASE_STRING, NullDescriptor.nullObject());
+		instance.setSlot(LOWER_CASE_STRING, NilDescriptor.nil());
 		instance.setSlot(START, start);
 		instance.setSlot(LINE_NUMBER, lineNumber);
 		instance.setSlot(TOKEN_TYPE_CODE, tokenType.ordinal());
@@ -308,42 +281,38 @@ extends Descriptor
 	/**
 	 * Construct a new {@link TokenDescriptor}.
 	 *
-	 * @param isMutable
-	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
-	 *        object?
+	 * @param mutability
+	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 */
-	protected TokenDescriptor (final boolean isMutable)
+	protected TokenDescriptor (final Mutability mutability)
 	{
-		super(isMutable);
+		super(mutability);
 	}
 
-	/**
-	 * The mutable {@link TokenDescriptor}.
-	 */
-	private static final TokenDescriptor mutable = new TokenDescriptor(true);
+	/** The mutable {@link TokenDescriptor}. */
+	private static final TokenDescriptor mutable =
+		new TokenDescriptor(Mutability.MUTABLE);
 
-	/**
-	 * Answer the mutable {@link TokenDescriptor}.
-	 *
-	 * @return The mutable {@link TokenDescriptor}.
-	 */
-	public static TokenDescriptor mutable ()
+	@Override
+	TokenDescriptor mutable ()
 	{
 		return mutable;
 	}
 
-	/**
-	 * The immutable {@link TokenDescriptor}.
-	 */
-	private static final TokenDescriptor immutable = new TokenDescriptor(false);
+	/** The shared {@link TokenDescriptor}. */
+	private static final TokenDescriptor shared =
+		new TokenDescriptor(Mutability.SHARED);
 
-	/**
-	 * Answer the immutable {@link TokenDescriptor}.
-	 *
-	 * @return The immutable {@link TokenDescriptor}.
-	 */
-	public static TokenDescriptor immutable ()
+	@Override
+	TokenDescriptor immutable ()
 	{
-		return immutable;
+		// Answer the shared descriptor, since there isn't an immutable one.
+		return shared;
+	}
+
+	@Override
+	TokenDescriptor shared ()
+	{
+		return shared;
 	}
 }

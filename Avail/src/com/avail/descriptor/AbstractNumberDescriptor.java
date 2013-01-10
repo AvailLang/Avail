@@ -1,6 +1,6 @@
 /**
  * AbstractNumberDescriptor.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -49,7 +49,8 @@ extends Descriptor
 	/**
 	 * An enumeration used to describe the sign of a quantity.
 	 */
-	public enum Sign implements IntegerEnumSlotDescriptionEnum
+	public enum Sign
+	implements IntegerEnumSlotDescriptionEnum
 	{
 		/**
 		 * The value is positive.
@@ -414,16 +415,14 @@ extends Descriptor
 	@Override @AvailMethod
 	abstract double o_ExtractDouble (AvailObject object);
 
-
 	/**
 	 * Construct a new {@link AbstractNumberDescriptor}.
 	 *
-	 * @param isMutable
-	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
-	 *        object?
+	 * @param mutability
+	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 */
-	protected AbstractNumberDescriptor (final boolean isMutable)
+	protected AbstractNumberDescriptor (final Mutability mutability)
 	{
-		super(isMutable);
+		super(mutability);
 	}
 }

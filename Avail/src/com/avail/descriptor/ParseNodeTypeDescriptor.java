@@ -1,6 +1,6 @@
 /**
  * ParseNodeTypeDescriptor.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -48,12 +48,11 @@ import com.avail.serialization.SerializerOperation;
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class ParseNodeTypeDescriptor extends TypeDescriptor
+public final class ParseNodeTypeDescriptor
+extends TypeDescriptor
 {
 	/**
 	 * My slots of type {@link AvailObject}.
-	 *
-	 * @author Mark van Gulik &lt;mark@availlang.org&gt;
 	 */
 	public enum ObjectSlots
 	implements ObjectSlotsEnum
@@ -66,8 +65,6 @@ public class ParseNodeTypeDescriptor extends TypeDescriptor
 
 	/**
 	 * My slots of type {@linkplain Integer int}.
-	 *
-	 * @author Mark van Gulik &lt;mark@availlang.org&gt;
 	 */
 	public enum IntegerSlots
 	implements IntegerSlotsEnum
@@ -80,11 +77,8 @@ public class ParseNodeTypeDescriptor extends TypeDescriptor
 		KIND;
 	}
 
-
 	/**
 	 * My hierarchy of kinds of parse nodes.
-	 *
-	 * @author Mark van Gulik &lt;mark@availlang.org&gt;
 	 */
 	public enum ParseNodeKind
 	implements IntegerEnumSlotDescriptionEnum
@@ -249,19 +243,18 @@ public class ParseNodeTypeDescriptor extends TypeDescriptor
 		}
 
 		/**
-		 * Create a {@linkplain ParseNodeTypeDescriptor parse node type} given the
-		 * expression type (the type of object produced by the expression).
+		 * Create a {@linkplain ParseNodeTypeDescriptor parse node type} given
+		 * the expression type (the type of object produced by the expression).
 		 *
 		 * @param expressionType
-		 *            The type of object that will be produced by an expression
-		 *            which is of the type being constructed.
+		 *        The type of object that will be produced by an expression
+		 *        which is of the type being constructed.
 		 * @return The new parse node type, whose kind is the receiver.
 		 */
-		final public AvailObject create (
-			final AvailObject expressionType)
+		final public AvailObject create (final AvailObject expressionType)
 		{
 			AvailObject boundedExpressionType = expressionType;
-			final AvailObject type = mutable().create();
+			final AvailObject type = mutable.create();
 			boundedExpressionType = expressionType.typeIntersection(
 				mostGeneralInnerType());
 			boundedExpressionType.makeImmutable();
@@ -276,7 +269,7 @@ public class ParseNodeTypeDescriptor extends TypeDescriptor
 		 */
 		void createWellKnownObjects ()
 		{
-			mostGeneralType = create(mostGeneralInnerType()).makeImmutable();
+			mostGeneralType = create(mostGeneralInnerType()).makeShared();
 		}
 
 		/**
@@ -291,7 +284,7 @@ public class ParseNodeTypeDescriptor extends TypeDescriptor
 		/**
 		 * Answer a {@linkplain ParseNodeTypeDescriptor parse node type} whose kind
 		 * is the receiver and whose expression type is {@linkplain
-		 * TypeDescriptor.Types#TOP top}.  This is the most general parse node
+		 * TypeDescriptor.Types#TOP top}. This is the most general parse node
 		 * type of that kind.
 		 *
 		 * @return The new parse node type, whose kind is the receiver and whose
@@ -359,8 +352,7 @@ public class ParseNodeTypeDescriptor extends TypeDescriptor
 		 * @param purportedParent The kind that may be the ancestor.
 		 * @return Whether the receiver descends from the argument.
 		 */
-		final public boolean isSubkindOf (
-			final ParseNodeKind purportedParent)
+		final public boolean isSubkindOf (final ParseNodeKind purportedParent)
 		{
 			final int index =
 				ordinal() * values().length + purportedParent.ordinal();
@@ -372,12 +364,11 @@ public class ParseNodeTypeDescriptor extends TypeDescriptor
 	 * Return the type of object that would be produced by a parse node of this
 	 * type.
 	 *
-	 * @return The {@linkplain TypeDescriptor type} of the {@link AvailObject} that
-	 *         will be produced by a parse node of this type.
+	 * @return The {@linkplain TypeDescriptor type} of the {@link AvailObject}
+	 *         that will be produced by a parse node of this type.
 	 */
 	@Override @AvailMethod
-	AvailObject o_ExpressionType (
-		final AvailObject object)
+	AvailObject o_ExpressionType (final AvailObject object)
 	{
 		return object.slot(EXPRESSION_TYPE);
 	}
@@ -390,8 +381,7 @@ public class ParseNodeTypeDescriptor extends TypeDescriptor
 	 *         is.
 	 */
 	@Override @AvailMethod
-	ParseNodeKind o_ParseNodeKind (
-		final AvailObject object)
+	ParseNodeKind o_ParseNodeKind (final AvailObject object)
 	{
 		final int ordinal = object.slot(KIND);
 		return ParseNodeKind.values()[ordinal];
@@ -417,9 +407,7 @@ public class ParseNodeTypeDescriptor extends TypeDescriptor
 	 * </p>
 	 */
 	@Override @AvailMethod
-	boolean o_Equals (
-		final AvailObject object,
-		final AvailObject another)
+	boolean o_Equals (final AvailObject object, final AvailObject another)
 	{
 		return another.equalsParseNodeType(object);
 	}
@@ -428,8 +416,8 @@ public class ParseNodeTypeDescriptor extends TypeDescriptor
 	 * {@inheritDoc}
 	 *
 	 * <p>
-	 * {@linkplain ParseNodeTypeDescriptor parse node types} are equal when they are
-	 * of the same kind and have the same expression type.
+	 * {@linkplain ParseNodeTypeDescriptor parse node types} are equal when they
+	 * are of the same kind and have the same expression type.
 	 * </p>
 	 */
 	@Override @AvailMethod
@@ -439,14 +427,12 @@ public class ParseNodeTypeDescriptor extends TypeDescriptor
 	{
 		return object.slot(KIND)
 				== aParseNodeType.slot(KIND)
-			&& object.expressionType().equals(
-				aParseNodeType.expressionType());
+			&& object.slot(EXPRESSION_TYPE).equals(
+				aParseNodeType.slot(EXPRESSION_TYPE));
  	}
 
 	@Override @AvailMethod
-	boolean o_IsSubtypeOf (
-		final AvailObject object,
-		final AvailObject aType)
+	boolean o_IsSubtypeOf (final AvailObject object, final AvailObject aType)
 	{
 		return aType.isSupertypeOfParseNodeType(object);
 	}
@@ -460,8 +446,8 @@ public class ParseNodeTypeDescriptor extends TypeDescriptor
 		final ParseNodeKind otherKind = aParseNodeType.parseNodeKind();
 		if (otherKind.isSubkindOf(myKind))
 		{
-			return aParseNodeType.expressionType().isSubtypeOf(
-				object.expressionType());
+			return aParseNodeType.slot(EXPRESSION_TYPE).isSubtypeOf(
+				object.slot(EXPRESSION_TYPE));
 		}
 		return false;
 	}
@@ -502,8 +488,8 @@ public class ParseNodeTypeDescriptor extends TypeDescriptor
 		{
 			// One kind is the ancestor of the other.  We can work with that.
 			final AvailObject innerIntersection =
-				object.expressionType().typeIntersection(
-					aParseNodeType.expressionType());
+				object.slot(EXPRESSION_TYPE).typeIntersection(
+					aParseNodeType.slot(EXPRESSION_TYPE));
 			return (ancestor == myKind ? otherKind : myKind).create(
 				innerIntersection);
 		}
@@ -533,13 +519,12 @@ public class ParseNodeTypeDescriptor extends TypeDescriptor
 		{
 			return object;
 		}
-		final ParseNodeKind myKind = ParseNodeKind
-			.values()[object.slot(KIND)];
-		final ParseNodeKind otherKind = ParseNodeKind
-			.values()[aParseNodeType.slot(KIND)];
+		final ParseNodeKind myKind = object.parseNodeKind();
+		final ParseNodeKind otherKind = aParseNodeType.parseNodeKind();
 		final ParseNodeKind ancestor = myKind.commonAncestorWith(otherKind);
 		return ancestor.create(
-			object.expressionType().typeUnion(aParseNodeType.expressionType()));
+			object.slot(EXPRESSION_TYPE).typeUnion(
+				aParseNodeType.slot(EXPRESSION_TYPE)));
 	}
 
 	@Override @AvailMethod
@@ -551,8 +536,7 @@ public class ParseNodeTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	SerializerOperation o_SerializerOperation (
-		final AvailObject object)
+	SerializerOperation o_SerializerOperation (final AvailObject object)
 	{
 		return SerializerOperation.PARSE_NODE_TYPE;
 	}
@@ -564,8 +548,7 @@ public class ParseNodeTypeDescriptor extends TypeDescriptor
 		final List<AvailObject> recursionList,
 		final int indent)
 	{
-		final int kindOrdinal = object.slot(KIND);
-		final ParseNodeKind kind = ParseNodeKind.values()[kindOrdinal];
+		final ParseNodeKind kind = object.parseNodeKind();
 		if (kind == PARSE_NODE)
 		{
 			builder.append("phrase");
@@ -610,44 +593,39 @@ public class ParseNodeTypeDescriptor extends TypeDescriptor
 	/**
 	 * Construct a new {@link ParseNodeTypeDescriptor}.
 	 *
-	 * @param isMutable Whether my {@linkplain AvailObject instances} can
-	 *                  change.
+	 * @param mutability
+	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 */
-	public ParseNodeTypeDescriptor (final boolean isMutable)
+	public ParseNodeTypeDescriptor (final Mutability mutability)
 	{
-		super(isMutable);
+		super(mutability);
 	}
 
-	/**
-	 * The mutable {@link ParseNodeTypeDescriptor}.
-	 */
-	private static final ParseNodeTypeDescriptor mutable =
-		new ParseNodeTypeDescriptor(true);
+	/** The mutable {@link ParseNodeTypeDescriptor}. */
+	static final ParseNodeTypeDescriptor mutable =
+		new ParseNodeTypeDescriptor(Mutability.MUTABLE);
 
-	/**
-	 * Answer the mutable {@link ParseNodeTypeDescriptor}.
-	 *
-	 * @return The mutable {@link ParseNodeTypeDescriptor}.
-	 */
-	public static ParseNodeTypeDescriptor mutable ()
+	@Override
+	ParseNodeTypeDescriptor mutable ()
 	{
 		return mutable;
 	}
 
-	/**
-	 * The immutable {@link ParseNodeTypeDescriptor}.
-	 */
-	private static final ParseNodeTypeDescriptor immutable =
-		new ParseNodeTypeDescriptor(false);
+	/** The shared {@link ParseNodeTypeDescriptor}. */
+	private static final ParseNodeTypeDescriptor shared =
+		new ParseNodeTypeDescriptor(Mutability.SHARED);
 
-	/**
-	 * Answer the immutable {@link ParseNodeTypeDescriptor}.
-	 *
-	 * @return The immutable {@link ParseNodeTypeDescriptor}.
-	 */
-	public static ParseNodeTypeDescriptor immutable ()
+	@Override
+	ParseNodeTypeDescriptor immutable ()
 	{
-		return immutable;
+		// There is no immutable descriptor.
+		return shared;
+	}
+
+	@Override
+	ParseNodeTypeDescriptor shared ()
+	{
+		return shared;
 	}
 
 	/**

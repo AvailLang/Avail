@@ -1,6 +1,6 @@
 /**
  * AbstractDefinitionDescriptor.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -49,7 +49,8 @@ extends DefinitionDescriptor
 	/**
 	 * The layout of object slots for my instances.
 	 */
-	public enum ObjectSlots implements ObjectSlotsEnum
+	public enum ObjectSlots
+	implements ObjectSlotsEnum
 	{
 		/**
 		 * Duplicated from parent.  The method in which this definition occurs.
@@ -71,30 +72,26 @@ extends DefinitionDescriptor
 
 
 	@Override @AvailMethod
-	AvailObject o_BodySignature (
-		final AvailObject object)
+	AvailObject o_BodySignature (final AvailObject object)
 	{
 		return object.slot(ObjectSlots.BODY_SIGNATURE);
 	}
 
 	@Override @AvailMethod
-	int o_Hash (
-		final AvailObject object)
+	int o_Hash (final AvailObject object)
 	{
 		return (object.slot(ObjectSlots.BODY_SIGNATURE).hash() * 19)
 			^ 0x201FE782;
 	}
 
 	@Override @AvailMethod
-	AvailObject o_Kind (
-		final AvailObject object)
+	AvailObject o_Kind (final AvailObject object)
 	{
 		return Types.ABSTRACT_DEFINITION.o();
 	}
 
 	@Override @AvailMethod
-	boolean o_IsAbstractDefinition (
-		final AvailObject object)
+	boolean o_IsAbstractDefinition (final AvailObject object)
 	{
 		return true;
 	}
@@ -104,8 +101,6 @@ extends DefinitionDescriptor
 	{
 		return SerializerOperation.ABSTRACT_DEFINITION;
 	}
-
-
 
 	/**
 	 * Create a new abstract method signature from the provided arguments.
@@ -123,51 +118,51 @@ extends DefinitionDescriptor
 		final AvailObject definitionMethod,
 		final AvailObject bodySignature)
 	{
-		final AvailObject instance = mutable().create();
+		final AvailObject instance = mutable.create();
 		instance.setSlot(ObjectSlots.DEFINITION_METHOD, definitionMethod);
 		instance.setSlot(ObjectSlots.BODY_SIGNATURE, bodySignature);
 		instance.makeImmutable();
 		return instance;
 	}
 
-
 	/**
 	 * Construct a new {@link AbstractDefinitionDescriptor}.
 	 *
-	 * @param isMutable
-	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
-	 *        object?
+	 * @param mutability
+	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 */
-	protected AbstractDefinitionDescriptor (final boolean isMutable)
+	protected AbstractDefinitionDescriptor (final Mutability mutability)
 	{
-		super(isMutable);
+		super(mutability);
 	}
 
-	/**
-	 * The mutable {@link AbstractDefinitionDescriptor}.
-	 */
+	/** The mutable {@link AbstractDefinitionDescriptor}. */
 	private static final AbstractDefinitionDescriptor mutable =
-		new AbstractDefinitionDescriptor(true);
+		new AbstractDefinitionDescriptor(Mutability.MUTABLE);
 
-	/**
-	 * @return The mutable {@link AbstractDefinitionDescriptor}.
-	 */
-	public static AbstractDefinitionDescriptor mutable ()
+	@Override
+	AbstractDefinitionDescriptor mutable ()
 	{
 		return mutable;
 	}
 
-	/**
-	 * The immutable {@link AbstractDefinitionDescriptor}.
-	 */
+	/** The immutable {@link AbstractDefinitionDescriptor}. */
 	private static final AbstractDefinitionDescriptor immutable =
-		new AbstractDefinitionDescriptor(false);
+		new AbstractDefinitionDescriptor(Mutability.IMMUTABLE);
 
-	/**
-	 * @return The mutable {@link AbstractDefinitionDescriptor}.
-	 */
-	public static AbstractDefinitionDescriptor immutable ()
+	@Override
+	AbstractDefinitionDescriptor immutable ()
 	{
 		return immutable;
+	}
+
+	/** The shared {@link AbstractDefinitionDescriptor}. */
+	private static final AbstractDefinitionDescriptor shared =
+		new AbstractDefinitionDescriptor(Mutability.SHARED);
+
+	@Override
+	AbstractDefinitionDescriptor shared ()
+	{
+		return shared;
 	}
 }

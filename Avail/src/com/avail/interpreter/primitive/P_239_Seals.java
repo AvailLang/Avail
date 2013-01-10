@@ -1,6 +1,6 @@
 /**
- * AvailBeImmutableSubobjectVisitor.java
- * Copyright © 1993-2011, Mark van Gulik and Todd L Smith.
+ * P_239_Seals.java
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,26 +30,48 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.visitor;
+package com.avail.interpreter.primitive;
 
-import com.avail.descriptor.AvailObject;
+import static com.avail.descriptor.TypeDescriptor.Types.*;
+import static com.avail.interpreter.Primitive.Flag.*;
+import java.util.List;
+import com.avail.annotations.NotNull;
+import com.avail.descriptor.*;
+import com.avail.interpreter.*;
 
 /**
- * Provide the ability to iterate over an object's fields, marking each child
- * object as immutable.  Note that marking a child immutable may involve
- * creating another visitor of this class and visiting the child's children
- * in this mutually recursive way.
+ * <strong>Primitive 239</strong>: Answer all seals placed upon the specified
+ * {@linkplain MethodDescriptor method}.
  *
- * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class AvailBeImmutableSubobjectVisitor
-extends AvailSubobjectVisitor
+public final class P_239_Seals
+extends Primitive
 {
+	/**
+	 * The sole instance of this primitive class. Accessed through reflection.
+	 */
+	public final @NotNull static Primitive instance =
+		new P_239_Seals().init(1, CanInline, CannotFail);
+
 	@Override
-	public void invoke (
-		final AvailObject parentObject,
-		final AvailObject childObject)
+	public Result attempt (
+		final List<AvailObject> args,
+		final Interpreter interpreter)
 	{
-		childObject.makeImmutable();
+		assert args.size() == 1;
+		final AvailObject method = args.get(0);
+		return interpreter.primitiveSuccess(method.sealedArgumentsTypesTuple());
+	}
+
+	@Override
+	protected AvailObject privateBlockTypeRestriction ()
+	{
+		return FunctionTypeDescriptor.create(
+			TupleDescriptor.from(
+				METHOD.o()),
+			TupleTypeDescriptor.zeroOrMoreOf(
+				TupleTypeDescriptor.zeroOrMoreOf(
+					InstanceMetaDescriptor.anyMeta())));
 	}
 }

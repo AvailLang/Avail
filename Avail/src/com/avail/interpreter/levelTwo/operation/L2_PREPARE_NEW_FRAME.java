@@ -1,6 +1,6 @@
 /**
  * L2_PREPARE_NEW_FRAME.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -78,13 +78,13 @@ public class L2_PREPARE_NEW_FRAME extends L2Operation
 				VariableDescriptor.forOuterType(code.localTypeAt(i)));
 			dest++;
 		}
-		// Write the null object into the remaining stack slots.  These
+		// Write nil into the remaining stack slots.  These
 		// values should not encounter any kind of ordinary use, but they
 		// must still be transferred into a continuation during reification.
 		// Therefore don't use Java nulls here.
 		for (int i = numArgs + numLocals + 1; i <= numSlots; i++)
 		{
-			interpreter.pointerAtPut(dest, NullDescriptor.nullObject());
+			interpreter.pointerAtPut(dest, NilDescriptor.nil());
 			dest++;
 		}
 		interpreter.integerAtPut(pcRegister(), 1);

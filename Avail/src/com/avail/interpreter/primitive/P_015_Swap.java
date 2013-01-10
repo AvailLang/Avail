@@ -1,6 +1,6 @@
 /**
  * P_015_Swap.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -67,7 +67,7 @@ public class P_015_Swap extends Primitive
 		final AvailObject value2 = var2.getValue();
 		var1.setValue(value2);
 		var2.setValue(value1);
-		return interpreter.primitiveSuccess(NullDescriptor.nullObject());
+		return interpreter.primitiveSuccess(NilDescriptor.nil());
 	}
 
 	@Override

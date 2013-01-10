@@ -1,6 +1,6 @@
 /*
  * Positionable Iterators.avail
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -43,6 +43,7 @@ Names
 	"positionable iterator",
 	"_positioned by_",
 	"_'s⁇position",
+	"_'s⁇position type",
 	"_'s⁇position:=_"
 Body
 
@@ -59,7 +60,7 @@ Body
  */
 Public class "positionable iterator" extends iterator
 	with fields
-		position type : any's type;
+		public position type : any's type;
 
 /**
  * Construct and answer a {@type "positionable iterator"} type from the

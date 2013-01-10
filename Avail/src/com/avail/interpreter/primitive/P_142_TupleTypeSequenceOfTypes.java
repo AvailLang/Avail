@@ -1,6 +1,6 @@
 /**
  * P_142_TupleTypeSequenceOfTypes.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -73,11 +73,11 @@ public class P_142_TupleTypeSequenceOfTypes extends Primitive
 			return interpreter.primitiveFailure(E_NEGATIVE_SIZE);
 		}
 		AvailObject tupleObject =
-			ObjectTupleDescriptor.mutable().create(tupleSize);
+			ObjectTupleDescriptor.mutable.create(tupleSize);
 		tupleObject.hashOrZero(0);
 		for (int i = 1; i <= tupleSize; i++)
 		{
-			tupleObject.tupleAtPut(i, NullDescriptor.nullObject());
+			tupleObject.tupleAtPut(i, NilDescriptor.nil());
 		}
 		for (int i = 1; i <= tupleSize; i++)
 		{

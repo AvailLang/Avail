@@ -1,6 +1,6 @@
 /**
  * ObjectTypeDescriptor.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -46,7 +46,7 @@ import com.avail.serialization.SerializerOperation;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class ObjectTypeDescriptor
+public final class ObjectTypeDescriptor
 extends TypeDescriptor
 {
 	/**
@@ -93,7 +93,7 @@ extends TypeDescriptor
 		AvailObject ignoreKeys = SetDescriptor.empty();
 		for (final AvailObject baseType : baseTypes)
 		{
-			final AvailObject fieldTypes = baseType.fieldTypeMap();
+			final AvailObject fieldTypes = baseType.slot(FIELD_TYPE_MAP);
 			for (final MapDescriptor.Entry entry : fieldTypes.mapIterable())
 			{
 				if (InstanceTypeDescriptor.on(entry.key).equals(entry.value))
@@ -106,7 +106,7 @@ extends TypeDescriptor
 		}
 		first = true;
 		for (final MapDescriptor.Entry entry
-			: object.fieldTypeMap().mapIterable())
+			: object.slot(FIELD_TYPE_MAP).mapIterable())
 		{
 			if (!ignoreKeys.hasElement(entry.key))
 			{
@@ -141,9 +141,7 @@ extends TypeDescriptor
 	}
 
 	@Override
-	boolean o_Equals (
-		final AvailObject object,
-		final AvailObject another)
+	boolean o_Equals (final AvailObject object, final AvailObject another)
 	{
 		return another.equalsObjectType(object);
 	}
@@ -153,12 +151,12 @@ extends TypeDescriptor
 		final AvailObject object,
 		final AvailObject anObjectType)
 	{
-		return object.fieldTypeMap().equals(anObjectType.fieldTypeMap());
+		return object.slot(FIELD_TYPE_MAP).equals(
+			anObjectType.slot(FIELD_TYPE_MAP));
 	}
 
 	@Override @AvailMethod
-	int o_Hash (
-		final AvailObject object)
+	int o_Hash (final AvailObject object)
 	{
 		return object.fieldTypeMap().hash() * 11 ^ 0xE3561F16;
 	}
@@ -181,7 +179,7 @@ extends TypeDescriptor
 		final AvailObject object,
 		final AvailObject potentialInstance)
 	{
-		final AvailObject typeMap = object.fieldTypeMap();
+		final AvailObject typeMap = object.slot(FIELD_TYPE_MAP);
 		final AvailObject instMap = potentialInstance.fieldMap();
 		if (instMap.mapSize() < typeMap.mapSize())
 		{
@@ -216,7 +214,7 @@ extends TypeDescriptor
 		final AvailObject object,
 		final AvailObject anObjectType)
 	{
-		final AvailObject m1 = object.fieldTypeMap();
+		final AvailObject m1 = object.slot(FIELD_TYPE_MAP);
 		final AvailObject m2 = anObjectType.fieldTypeMap();
 		if (m1.mapSize() > m2.mapSize())
 		{
@@ -264,8 +262,8 @@ extends TypeDescriptor
 		final AvailObject object,
 		final AvailObject anObjectType)
 	{
-		final AvailObject map1 = object.fieldTypeMap();
-		final AvailObject map2 = anObjectType.fieldTypeMap();
+		final AvailObject map1 = object.slot(FIELD_TYPE_MAP);
+		final AvailObject map2 = anObjectType.slot(FIELD_TYPE_MAP);
 		AvailObject resultMap = MapDescriptor.empty();
 		for (final MapDescriptor.Entry entry : map1.mapIterable())
 		{
@@ -325,8 +323,8 @@ extends TypeDescriptor
 		final AvailObject object,
 		final AvailObject anObjectType)
 	{
-		final AvailObject map1 = object.fieldTypeMap();
-		final AvailObject map2 = anObjectType.fieldTypeMap();
+		final AvailObject map1 = object.slot(FIELD_TYPE_MAP);
+		final AvailObject map2 = anObjectType.slot(FIELD_TYPE_MAP);
 		AvailObject resultMap = MapDescriptor.empty();
 		for (final MapDescriptor.Entry entry : map1.mapIterable())
 		{
@@ -344,10 +342,20 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod @ThreadSafe
-	SerializerOperation o_SerializerOperation (
-		final AvailObject object)
+	SerializerOperation o_SerializerOperation (final AvailObject object)
 	{
 		return SerializerOperation.OBJECT_TYPE;
+	}
+
+	@Override @AvailMethod
+	AvailObject o_MakeImmutable (final AvailObject object)
+	{
+		if (isMutable())
+		{
+			// There isn't an immutable descriptor; make it shared.
+			return object.makeShared();
+		}
+		return object;
 	}
 
 	/**
@@ -358,10 +366,9 @@ extends TypeDescriptor
 	 * @param map The map from atoms to types.
 	 * @return The new {@linkplain ObjectTypeDescriptor object type}.
 	 */
-	public static AvailObject objectTypeFromMap (
-		final AvailObject map)
+	public static AvailObject objectTypeFromMap (final AvailObject map)
 	{
-		final AvailObject result = mutable().create();
+		final AvailObject result = mutable.create();
 		result.setSlot(FIELD_TYPE_MAP, map);
 		return result;
 	}
@@ -376,8 +383,7 @@ extends TypeDescriptor
 	 *        {@linkplain TypeDescriptor type}.
 	 * @return The new object type.
 	 */
-	public static AvailObject objectTypeFromTuple (
-		final AvailObject tuple)
+	public static AvailObject objectTypeFromTuple (final AvailObject tuple)
 	{
 		AvailObject map = MapDescriptor.empty();
 		for (final AvailObject fieldDefinition : tuple)
@@ -386,7 +392,7 @@ extends TypeDescriptor
 			final AvailObject type = fieldDefinition.tupleAt(2);
 			map = map.mapAtPuttingCanDestroy(fieldAtom, type, true);
 		}
-		final AvailObject result = mutable().create();
+		final AvailObject result = mutable.create();
 		result.setSlot(FIELD_TYPE_MAP, map);
 		return result;
 	}
@@ -395,8 +401,8 @@ extends TypeDescriptor
 	 * Assign a name to the specified {@linkplain ObjectTypeDescriptor
 	 * user-defined object type}.
 	 *
-	 * @param anObjectType A {@linkplain ObjectTypeDescriptor user-defined
-	 *                     object type}.
+	 * @param anObjectType
+	 *        A {@linkplain ObjectTypeDescriptor user-defined object type}.
 	 * @param aString A name.
 	 */
 	public static void setNameForType (
@@ -414,7 +420,7 @@ extends TypeDescriptor
 		{
 			final AvailObject atom = entry.key;
 			final AvailObject namesMap = atom.getAtomProperty(propertyKey);
-			if (namesMap.equalsNull())
+			if (namesMap.equalsNil())
 			{
 				keyAtomWithLeastNames = atom;
 				keyAtomNamesMap = MapDescriptor.empty();
@@ -461,7 +467,7 @@ extends TypeDescriptor
 			: anObjectType.fieldTypeMap().mapIterable())
 		{
 			final AvailObject map = entry.key.getAtomProperty(propertyKey);
-			if (!map.equalsNull())
+			if (!map.equalsNil())
 			{
 				for (final MapDescriptor.Entry innerEntry : map.mapIterable())
 				{
@@ -516,8 +522,7 @@ extends TypeDescriptor
 	 *         excluding names for which a strictly more specific named type is
 	 *         known.
 	 */
-	public static AvailObject namesForType (
-		final AvailObject anObjectType)
+	public static AvailObject namesForType (final AvailObject anObjectType)
 	{
 		return namesAndBaseTypesForType(anObjectType).tupleAt(1);
 	}
@@ -597,7 +602,7 @@ extends TypeDescriptor
 	private static AvailObject stackDumpAtom;
 
 	/**
-	 * Answe the {@linkplain AtomDescriptor atom} that identifies the
+	 * Answer the {@linkplain AtomDescriptor atom} that identifies the
 	 * {@linkplain AtomDescriptor stack dump field} of an {@link
 	 * #exceptionType() exception type}.
 	 *
@@ -633,21 +638,21 @@ extends TypeDescriptor
 	static void createWellKnownObjects ()
 	{
 		mostGeneralType = objectTypeFromMap(MapDescriptor.empty());
-		mostGeneralType.makeImmutable();
+		mostGeneralType.makeShared();
 		meta = InstanceMetaDescriptor.on(mostGeneralType);
-		meta.makeImmutable();
-		exceptionAtom = AtomWithPropertiesDescriptor.create(
+		meta.makeShared();
+		exceptionAtom = AtomDescriptor.create(
 			StringDescriptor.from("explicit-exception"),
-			NullDescriptor.nullObject());
+			NilDescriptor.nil());
 		exceptionType = objectTypeFromTuple(
 			TupleDescriptor.from(
 				TupleDescriptor.from(
 					exceptionAtom,
 					InstanceTypeDescriptor.on(exceptionAtom))));
 		setNameForType(exceptionType, StringDescriptor.from("exception"));
-		stackDumpAtom = AtomWithPropertiesDescriptor.create(
-			StringDescriptor.from("stack dump"),
-			NullDescriptor.nullObject());
+		exceptionType.makeShared();
+		stackDumpAtom = AtomDescriptor.createSpecialAtom(
+			StringDescriptor.from("stack dump"));
 	}
 
 	/**
@@ -665,40 +670,38 @@ extends TypeDescriptor
 	/**
 	 * Construct a new {@link ObjectTypeDescriptor}.
 	 *
-	 * @param isMutable
-	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
-	 *        object?
+	 * @param mutability
+	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 */
-	protected ObjectTypeDescriptor (final boolean isMutable)
+	private ObjectTypeDescriptor (final Mutability mutability)
 	{
-		super(isMutable);
+		super(mutability);
 	}
 
 	/** The mutable {@link ObjectTypeDescriptor}. */
 	private static final ObjectTypeDescriptor mutable =
-		new ObjectTypeDescriptor(true);
+		new ObjectTypeDescriptor(Mutability.MUTABLE);
 
-	/**
-	 * Answer the mutable {@link ObjectTypeDescriptor}.
-	 *
-	 * @return The mutable {@link ObjectTypeDescriptor}.
-	 */
-	public static ObjectTypeDescriptor mutable ()
+	@Override
+	ObjectTypeDescriptor mutable ()
 	{
 		return mutable;
 	}
 
-	/** The immutable {@link ObjectTypeDescriptor}. */
-	private static final ObjectTypeDescriptor immutable =
-		new ObjectTypeDescriptor(false);
+	/** The shared {@link ObjectTypeDescriptor}. */
+	private static final ObjectTypeDescriptor shared =
+		new ObjectTypeDescriptor(Mutability.SHARED);
 
-	/**
-	 * Answer the immutable {@link ObjectTypeDescriptor}.
-	 *
-	 * @return The immutable {@link ObjectTypeDescriptor}.
-	 */
-	public static ObjectTypeDescriptor immutable ()
+	@Override
+	ObjectTypeDescriptor immutable ()
 	{
-		return immutable;
+		// There isn't an immutable descriptor, only a shared one.
+		return shared;
+	}
+
+	@Override
+	ObjectTypeDescriptor shared ()
+	{
+		return shared;
 	}
 }

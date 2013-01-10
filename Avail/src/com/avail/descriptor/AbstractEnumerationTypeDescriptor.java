@@ -1,6 +1,6 @@
 /**
  * AbstractEnumerationTypeDescriptor.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -54,12 +54,10 @@ public abstract class AbstractEnumerationTypeDescriptor
 extends AbstractTypeDescriptor
 {
 	@Override @AvailMethod
-	abstract AvailObject o_InstanceCount (
-		final AvailObject object);
+	abstract AvailObject o_InstanceCount (final AvailObject object);
 
 	@Override @AvailMethod
-	abstract AvailObject o_Instances (
-		final AvailObject object);
+	abstract AvailObject o_Instances (final AvailObject object);
 
 	@Override @AvailMethod
 	abstract boolean o_Equals (
@@ -67,8 +65,7 @@ extends AbstractTypeDescriptor
 		final AvailObject another);
 
 	@Override @AvailMethod
-	final boolean o_IsEnumeration (
-		final AvailObject object)
+	final boolean o_IsEnumeration (final AvailObject object)
 	{
 		return true;
 	}
@@ -80,12 +77,11 @@ extends AbstractTypeDescriptor
 	 * {@linkplain TypeDescriptor type}).
 	 *
 	 * @param object
-	 *            An enumeration.
+	 *        An enumeration.
 	 * @param another
-	 *            Another type.
-	 * @return
-	 *            The most general type that is a subtype of both {@code object}
-	 *            and {@code another}.
+	 *        Another type.
+	 * @return The most general type that is a subtype of both {@code object}
+	 *         and {@code another}.
 	 */
 	abstract AvailObject computeIntersectionWith (
 		final AvailObject object,
@@ -98,12 +94,11 @@ extends AbstractTypeDescriptor
 	 * {@linkplain TypeDescriptor type}).
 	 *
 	 * @param object
-	 *            An enumeration.
+	 *        An enumeration.
 	 * @param another
-	 *            Another type.
-	 * @return
-	 *            The most general type that is a subtype of both {@code object}
-	 *            and {@code another}.
+	 *        Another type.
+	 * @return The most general type that is a subtype of both {@code object}
+	 *         and {@code another}.
 	 */
 	abstract AvailObject computeUnionWith (
 		final AvailObject object,
@@ -115,14 +110,12 @@ extends AbstractTypeDescriptor
 	 * type.  Fail if the object is {@linkplain BottomTypeDescriptor bottom}.
 	 *
 	 * @param object
-	 *            The enumeration.
-	 * @return
-	 *            The closest supertype of the argument that isn't an
-	 *            enumeration.
+	 *        The enumeration.
+	 * @return The closest supertype of the argument that isn't an
+	 *         enumeration.
 	 */
 	@Override @AvailMethod
-	abstract AvailObject o_ComputeSuperkind (
-		final AvailObject object);
+	abstract AvailObject o_ComputeSuperkind (final AvailObject object);
 
 
 	@Override @AvailMethod
@@ -720,13 +713,11 @@ extends AbstractTypeDescriptor
 	/**
 	 * Construct a new {@link AbstractEnumerationTypeDescriptor}.
 	 *
-	 * @param isMutable
-	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
-	 *        object?
+	 * @param mutability
+	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 */
-	protected AbstractEnumerationTypeDescriptor (final boolean isMutable)
+	protected AbstractEnumerationTypeDescriptor (final Mutability mutability)
 	{
-		super(isMutable);
+		super(mutability);
 	}
-
 }

@@ -1,6 +1,6 @@
 /**
  * P_187_CompiledCodeLiterals.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -57,19 +57,19 @@ public class P_187_CompiledCodeLiterals extends Primitive
 	{
 		assert args.size() == 1;
 		final AvailObject cc = args.get(0);
-		AvailObject tupleObject = ObjectTupleDescriptor.mutable().create(
+		AvailObject tupleObject = ObjectTupleDescriptor.mutable.create(
 			cc.numLiterals());
 		tupleObject.hashOrZero(0);
 		final int tupleSize = tupleObject.tupleSize();
 		for (int i = 1; i <= tupleSize; i++)
 		{
-			tupleObject.tupleAtPut(i, NullDescriptor.nullObject());
+			tupleObject.tupleAtPut(i, NilDescriptor.nil());
 		}
 		AvailObject literal;
 		for (int i = 1; i <= tupleSize; i++)
 		{
 			literal = cc.literalAt(i);
-			if (literal.equalsNull())
+			if (literal.equalsNil())
 			{
 				literal = IntegerDescriptor.zero();
 			}

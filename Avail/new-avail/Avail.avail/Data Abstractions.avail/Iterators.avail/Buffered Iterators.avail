@@ -1,0 +1,410 @@
+/*
+ * Buffered Iterators.avail
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+System Module "Buffered Iterators"
+Versions
+	"dev"
+Uses
+	"Abstract Iterators",
+	"Common" = ("element type"),
+	"Generators" = ("generator for_"),
+	"Foundation",
+	"Positionable Iterators",
+	"Unit Testing"
+Names
+	/* Types. */
+	"buffered iterator",
+	"positionable buffered iterator",
+
+	/* Constructors. */
+	"an iterator that buffers_element|elements of_",
+	"_that buffers_element|elements",
+
+	/* Accessors. */
+	"_'s⁇maximum buffer size",
+
+	/* Extension. */
+	"Seal_'s⁇next buffer method",
+	"Seal_'s⁇set position method",
+	"_'s⁇next buffer method is_",
+	"_'s⁇set position method is_",
+
+	/* Fields. */
+	"element source",
+	"maximum buffer size",
+
+	/* Test suites. */
+	"buffered iterator test suite"
+Body
+
+/* TODO: [TLS] Remove these constants once a macro is available for "$…". */
+privateNextBufferName ::= $"private_'s⁇next buffer";
+privateSetPositionName ::= $"private_'s⁇position:=_";
+
+Public "element source" is a new field atom;
+Public "maximum buffer size" is a new field atom;
+"buffer" is a new field atom;
+"buffer position" is a new field atom;
+
+/**
+ * A buffered iterator buffers elements obtained from a source.
+ *
+ * @type "buffered iterator"
+ * @supertype "iterator"
+ * @field "element source" "any"
+ *    The source of elements.
+ * @field "maximum buffer size" "[2..∞)"
+ *    The maximum number of elements to buffer.
+ * @field "buffer" "tuple"
+ *    The buffered elements.
+ * @field "buffer position" "natural number"
+ *    The index of the next buffered element to answer.
+ */
+Public class "buffered iterator" extends iterator
+	with field
+		element source : any,
+		public maximum buffer size : [2..∞)
+	with mutable fields
+		referable buffer : tuple,
+		referable buffer position : natural number;
+
+Private abstract method privateNextBufferName is [buffered iterator]→tuple;
+
+/**
+ * Define a method to fetch the next buffer for a {@type "buffered iterator"}.
+ * This is a private operation that should not be called directly from client
+ * code, but which must be overridden for specific {@type "buffered iterator"}
+ * subtypes.
+ *
+ * @method "_'s⁇next buffer method is_"
+ * @param "iteratorType" "buffered iterator's type"
+ *        The iterator's type, as a cross check for the implementation.
+ * @param "implementation" "[⊥, ⊥]→tuple"
+ *        The new method extension. The argument is the iterator.
+ */
+Public method "_'s⁇next buffer method is_" is
+[
+	iteratorType : buffered iterator's type,
+	implementation : [⊥]→tuple
+|
+	Private method privateNextBufferName is implementation;
+] : ⊤;
+
+Semantic restriction "_'s⁇next buffer method is_" is
+[
+	iteratorMeta : buffered iterator's type's type,
+	implementationType : [⊥]→tuple's type
+|
+	If implementationType[1] = ⊥ then
+	[
+		Reject parse, expected:
+			"function's parameter types to be statically known"
+	];
+	If ¬implementationType[1] ⊆ iteratorMeta's instance then
+	[
+		Reject parse, expected:
+			"function parameter type ("
+			++ “implementationType[1]”
+			++ ") to be a subtype of the iterator type ("
+			++ “iteratorMeta's instance”
+			++ ")"
+	];
+	⊤
+];
+
+/**
+ * Seal the {@method "_'s⁇next buffer method is_" next buffer method} at the
+ * specified {@type "buffered iterator"} type.
+ *
+ * @method "Seal_'s⁇next buffer method"
+ * @param "iteratorType" "buffered iterator's type"
+ */
+Public method "Seal_'s⁇next buffer method" is
+[
+	iteratorType : buffered iterator's type
+|
+	Seal method privateNextBufferName at <iteratorType>;
+] : ⊤;
+
+Method "_is exhausted" is
+[
+	anIterator : buffered iterator
+|
+	/* This completes initialization of the iterator. */
+	If ↑anIterator's buffer is unassigned then
+	[
+		next ::= private anIterator's next buffer;
+		anIterator's buffer := next;
+		anIterator's buffer position := 1;
+	];
+	anIterator's buffer position > |anIterator's buffer| ∧
+	[
+		next ::= private anIterator's next buffer;
+		anIterator's buffer := next;
+		anIterator's buffer position := 1;
+		|next| = 0
+	]
+] : boolean;
+
+buffered iterator's current element method is
+[
+	anIterator : buffered iterator
+|
+	anIterator's buffer[anIterator's buffer position]
+] : any;
+
+buffered iterator's advance method is
+[
+	anIterator : buffered iterator
+|
+	↑anIterator's buffer position++;
+] : ⊤;
+
+Seal method "_is exhausted" at <buffered iterator>;
+Seal buffered iterator's current element method;
+Seal buffered iterator's advance method;
+
+/*
+ * TODO: [TLS] Remove the next two methods once method renaming is supported by
+ * module headers!
+ */
+
+Private method "constructor method" is
+[
+	[
+		src : iterator,
+		size : whole number
+	|
+		if size < 2 then [src]
+		else
+		[
+			a buffered iterator with
+				element type ::= src's element type,
+				element source ::= src,
+				maximum buffer size ::= cast size into [t : [2..∞) | t]
+		]
+	] : iterator
+];
+
+Private method "constructor restriction" is
+[
+	[
+		src : iterator's type,
+		size : whole number's type
+	|
+		if ⎡size⎤ < 2 then [src]
+		else if [⎣size⎦ > 1] then
+		[
+			extend buffered iterator with
+				element type : src's element type,
+				element source : src,
+				maximum buffer size : cast size into [t : [2..∞)'s type | t]
+		]
+		else [⊤]
+	]
+];
+
+/**
+ * Construct and answer a buffered iterator that answers values drawn from the
+ * specified iterator. If {@param "size"} is {@code 0} or {@code 1}, then
+ * buffering is not warranted; the answer will simply be {@param "src"}.
+ *
+ * @method "_that buffers_elements"
+ * @param "src" "iterator"
+ *    The source iterator.
+ * @param "size" "whole number"
+ *    The number of elements to buffer.
+ * @returns "iterator"
+ *    An iterator that provides the same elements and ordering as {@param
+ *    "src"}. This will be a {@type "buffered iterator"} so long as {@param
+ *    "size"} is greater than {@code 1}.
+ */
+Public method "_that buffers_element|elements" is constructor method;
+
+/**
+ * Construct and answer a buffered iterator that answers values drawn from the
+ * specified iterator. If {@param "size"} is {@code 0} or {@code 1}, then
+ * buffering is not warranted; the answer will simply be {@param "src"}.
+ *
+ * @method "an iterator that buffers_element|elements of_"
+ * @param "size" "whole number"
+ *    The number of elements to buffer.
+ * @param "src" "iterator"
+ *    The source iterator.
+ * @returns "iterator"
+ *    An iterator that provides the same elements and ordering as {@param
+ *    "src"}. This will be a {@type "buffered iterator"} so long as {@param
+ *    "size"} is greater than {@code 1}.
+ */
+Public method "an iterator that buffers_element|elements of_" is
+[
+	size : whole number,
+	src : iterator
+|
+	constructor method(src, size)
+] : iterator;
+
+Semantic restriction "_that buffers_element|elements" is
+	constructor restriction;
+Semantic restriction "an iterator that buffers_element|elements of_" is
+[
+	size : whole number's type,
+	src : iterator's type
+|
+	constructor restriction(src, size)
+];
+
+buffered iterator's next buffer method is
+[
+	anIterator : extend buffered iterator with element source : iterator
+|
+	take at most anIterator's maximum buffer size
+		from anIterator's element source
+] : tuple;
+
+"buffered iterator test suite" is a new atom;
+New test suite buffered iterator test suite extends iterators test suite;
+
+/**
+ * A positionable buffered iterator supports explicitly {@method "_'s⁇position"
+ * querying} and {@method "_'s⁇position:=_" setting} the current position, while
+ * also buffering elements from the source. Specific subtypes may support random
+ * access, but all subtypes should support setting the current position to a
+ * previous position.
+ *
+ * @type "positionable buffered iterator"
+ * @supertype "positionable iterator"
+ * @supertype "buffered iterator"
+ */
+Public class "positionable buffered iterator"
+extends buffered iterator ∩ positionable iterator;
+
+Private abstract method privateSetPositionName
+	is [positionable buffered iterator, any]→⊤;
+
+/**
+ * Define a method to set the position for a {@type
+ * "positionable buffered iterator"}. This is a private operation that should
+ * not be called directly from client code, but which must be overridden for
+ * specific {@type "buffered iterator"} subtypes. The public (sealed) operation,
+ * {@method "_'s⁇position:=_"}, updates the buffer after the position is
+ * changed.
+ *
+ * @method "_'s⁇next buffer method is_"
+ * @param "iteratorType" "positionable buffered iterator's type"
+ *        The iterator's type, as a cross check for the implementation.
+ * @param "implementation" "[⊥, ⊥]→⊤"
+ *        The new method extension. The first argument is the iterator, the
+ *        second is the new position.
+ */
+Public method "_'s⁇set position method is_" is
+[
+	iteratorType : positionable buffered iterator's type,
+	implementation : [⊥, ⊥]→⊤
+|
+	Private method privateSetPositionName is implementation;
+] : ⊤;
+
+Semantic restriction "_'s⁇set position method is_" is
+[
+	iteratorMeta : positionable buffered iterator's type's type,
+	implementationType : [⊥, ⊥]→tuple's type
+|
+	If ⊥ ∈ {implementationType[1], implementationType[2]} then
+	[
+		Reject parse, expected:
+			"function's parameter types to be statically known"
+	];
+	If ¬implementationType[1] ⊆ iteratorMeta's instance then
+	[
+		Reject parse, expected:
+			"function parameter type ("
+			++ “implementationType[1]”
+			++ ") to be a subtype of the iterator type ("
+			++ “iteratorMeta's instance”
+			++ ")"
+	];
+	iteratorType ::= cast implementationType[1]
+		into [t : positionable buffered iterator's type | t];
+	If ¬implementationType[2] ⊆ iteratorType's position type then
+	[
+		Reject parse, expected:
+			"function parameter type ("
+			++ “implementationType[2]”
+			++ ") to be a subtype of the iterator type's position type ("
+			++ “iteratorType's position type”
+			++ ")"
+	];
+	⊤
+];
+
+/**
+ * Seal the {@method "_'s⁇set position method is_" set position method} at the
+ * specified {@type "positionable buffered iterator"} type.
+ *
+ * @method "Seal_'s⁇next buffer method"
+ * @param "iteratorType" "positionable buffered iterator's type"
+ */
+Public method "Seal_'s⁇set position method" is
+[
+	iteratorType : positionable buffered iterator's type
+|
+	Seal method privateNextBufferName at <iteratorType>;
+] : ⊤;
+
+Method "_'s⁇position:=_" is
+[
+	anIterator : positionable buffered iterator,
+	pos : any
+|
+	/* Changing the position should certainly affect the next buffer method. */
+	private anIterator's position := pos;
+	anIterator's buffer := private anIterator's next buffer;
+	anIterator's buffer position := 1;
+] : ⊤;
+
+Seal method "_'s⁇position:=_" at <positionable buffered iterator, any>;
+
+Test "buffered iterator basics" in buffered iterator test suite is
+[
+	ref ::= 1 to 10;
+	iter ::=
+		generator for
+		[
+			yield : [[1..∞]]→⊤
+		|
+			end : [1..∞] := ∞;
+			From 1 to end do [x : [1..∞] | yield(x);];
+		]
+		that buffers 5 elements;
+	Require: ref = take 10 from iter;
+];

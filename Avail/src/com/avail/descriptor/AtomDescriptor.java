@@ -1,6 +1,6 @@
 /**
  * AtomDescriptor.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -79,15 +79,18 @@ import com.avail.serialization.*;
  * </p>
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
+ * @see AtomWithPropertiesDescriptor
+ * @see AtomWithPropertiesSharedDescriptor
  */
 public class AtomDescriptor
 extends Descriptor
 {
-
 	/**
 	 * The layout of integer slots for my instances.
 	 */
-	public enum IntegerSlots implements IntegerSlotsEnum
+	public enum IntegerSlots
+	implements IntegerSlotsEnum
 	{
 		/**
 		 * The hash value of this {@linkplain AtomDescriptor atom}.  It is a
@@ -100,7 +103,8 @@ extends Descriptor
 	/**
 	 * The layout of object slots for my instances.
 	 */
-	public enum ObjectSlots implements ObjectSlotsEnum
+	public enum ObjectSlots
+	implements ObjectSlotsEnum
 	{
 		/**
 		 * A string (non-uniquely) roughly identifying this atom.  It need not
@@ -116,14 +120,14 @@ extends Descriptor
 		ISSUING_MODULE
 	}
 
-	@Override boolean allowsImmutableToMutableReferenceInField (
-		final AbstractSlotsEnum e)
+	@Override
+	boolean allowsImmutableToMutableReferenceInField (final AbstractSlotsEnum e)
 	{
 		return e == HASH_OR_ZERO;
 	}
 
 	@Override
-	public void printObjectOnAvoidingIndent (
+	public final void printObjectOnAvoidingIndent (
 		final AvailObject object,
 		final StringBuilder aStream,
 		final List<AvailObject> recursionList,
@@ -151,7 +155,7 @@ extends Descriptor
 			aStream.append('"');
 		}
 		final AvailObject issuer = object.slot(ISSUING_MODULE);
-		if (!issuer.equalsNull())
+		if (!issuer.equalsNil())
 		{
 			aStream.append(" (from ");
 			final String issuerName = issuer.name().asNativeString();
@@ -161,28 +165,265 @@ extends Descriptor
 		}
 	}
 
+	@Override @AvailMethod
+	void o_Name (
+		final AvailObject object,
+		final AvailObject value)
+	{
+		object.setSlot(NAME, value);
+	}
+
+
+	@Override @AvailMethod
+	AvailObject o_Name (final AvailObject object)
+	{
+		return object.slot(NAME);
+	}
+
+	@Override @AvailMethod
+	AvailObject o_IssuingModule (final AvailObject object)
+	{
+		return object.slot(ISSUING_MODULE);
+	}
+
+	@Override @AvailMethod
+	boolean o_Equals (
+		final AvailObject object,
+		final AvailObject another)
+	{
+		return another.traversed().sameAddressAs(object);
+	}
+
+	@Override @AvailMethod
+	int o_Hash (final AvailObject object)
+	{
+		int hash = object.slot(HASH_OR_ZERO);
+		if (hash == 0)
+		{
+			do
+			{
+				hash = AvailRuntime.nextHash();
+			}
+			while (hash == 0);
+			object.setSlot(HASH_OR_ZERO, hash);
+		}
+		return hash;
+	}
+
+	@Override @AvailMethod
+	final AvailObject o_Kind (final AvailObject object)
+	{
+		return ATOM.o();
+	}
+
+	@Override @AvailMethod
+	final boolean o_ExtractBoolean (final AvailObject object)
+	{
+		if (object.equals(trueObject))
+		{
+			return true;
+		}
+		assert object.equals(falseObject);
+		return false;
+	}
+
+	@Override @AvailMethod
+	final boolean o_IsAtom (final AvailObject object)
+	{
+		return true;
+	}
+
+	@Override @AvailMethod
+	final boolean o_IsInstanceOfKind (
+		final AvailObject object,
+		final AvailObject aType)
+	{
+		return aType.isSupertypeOfPrimitiveTypeEnum(ATOM);
+	}
+
 	/**
-	 * Create a new atom with the given name.  The name is not globally unique,
+	 * {@inheritDoc}
+	 *
+	 * <p>
+	 * Before becoming shared, convert the object to an equivalent {@linkplain
+	 * AtomWithPropertiesDescriptor atom with properties}, otherwise the object
+	 * won't be able to support property definitions.
+	 * </p>
+	 */
+	@Override
+	AvailObject o_MakeShared (final AvailObject object)
+	{
+		// Special atoms, which are already shared, should not transform.
+		if (!isShared())
+		{
+			final AvailObject substituteAtom =
+				AtomWithPropertiesDescriptor.createWithNameAndModuleAndHash(
+					object.slot(NAME),
+					object.slot(ISSUING_MODULE),
+					object.slot(HASH_OR_ZERO));
+			object.becomeIndirectionTo(substituteAtom);
+			object.makeShared();
+			return substituteAtom;
+		}
+		return object;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>
+	 * Convert myself to an equivalent {@linkplain AtomWithPropertiesDescriptor
+	 * atom with properties}, then add the property to it.
+	 * </p>
+	 */
+	@Override @AvailMethod
+	void o_SetAtomProperty (
+		final AvailObject object,
+		final AvailObject key,
+		final AvailObject value)
+	{
+		assert !isShared();
+		final AvailObject substituteAtom =
+			AtomWithPropertiesDescriptor.createWithNameAndModuleAndHash(
+				object.slot(NAME),
+				object.slot(ISSUING_MODULE),
+				object.slot(HASH_OR_ZERO));
+		object.becomeIndirectionTo(substituteAtom);
+		substituteAtom.setAtomProperty(key, value);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>
+	 * This atom has no properties, so always answer {@linkplain
+	 * NilDescriptor#nil() nil}.
+	 * </p>
+	 */
+	@Override @AvailMethod
+	AvailObject o_GetAtomProperty (
+		final AvailObject object,
+		final AvailObject key)
+	{
+		return NilDescriptor.nil();
+	}
+
+	@Override
+	@AvailMethod @ThreadSafe
+	final SerializerOperation o_SerializerOperation (final AvailObject object)
+	{
+		return SerializerOperation.ATOM;
+	}
+
+	@Override
+	final Object o_MarshalToJava (
+		final AvailObject object,
+		final @Nullable Class<?> ignoredClassHint)
+	{
+		if (object.equals(trueObject))
+		{
+			return Boolean.TRUE;
+		}
+		if (object.equals(falseObject))
+		{
+			return Boolean.FALSE;
+		}
+		return super.o_MarshalToJava(object, ignoredClassHint);
+	}
+
+	/**
+	 * Construct a new {@link AtomDescriptor}.
+	 *
+	 * @param mutability
+	 *        The {@linkplain Mutability mutability} of the new descriptor.
+	 */
+	protected AtomDescriptor (final Mutability mutability)
+	{
+		super(mutability);
+	}
+
+	/** The mutable {@link AtomDescriptor}. */
+	private static final AtomDescriptor mutable =
+		new AtomDescriptor(Mutability.MUTABLE);
+
+	@Override
+	AtomDescriptor mutable ()
+	{
+		return mutable;
+	}
+
+	/** The immutable {@link AtomDescriptor}. */
+	private static final AtomDescriptor immutable =
+		new AtomDescriptor(Mutability.IMMUTABLE);
+
+	@Override
+	AtomDescriptor immutable ()
+	{
+		return immutable;
+	}
+
+	@Override
+	final AtomDescriptor shared ()
+	{
+		if (this == specialShared)
+		{
+			return specialShared;
+		}
+		return AtomWithPropertiesSharedDescriptor.shared;
+	}
+
+	/**
+	 * A {@linkplain Mutability#SHARED shared} {@linkplain AtomDescriptor
+	 * descriptor} for use only with special atoms.
+	 */
+	private static final AtomDescriptor specialShared =
+		new AtomDescriptor(Mutability.SHARED);
+
+	/**
+	 * Create a new atom with the given name. The name is not globally unique,
 	 * but serves to help to visually distinguish atoms.
 	 *
 	 * @param name
-	 *            A string used to help identify the new atom.
+	 *        A string used to help identify the new atom.
 	 * @param issuingModule
-	 *            Which {@linkplain ModuleDescriptor module} was active when the
-	 *            atom was created.
+	 *        Which {@linkplain ModuleDescriptor module} was active when the
+	 *        atom was created.
 	 * @return
-	 *            The new atom, not equal to any object in use before this
-	 *            method was invoked.
+	 *        The new atom, not equal to any object in use before this method
+	 *        was invoked.
 	 */
 	public static AvailObject create (
 		final AvailObject name,
 		final AvailObject issuingModule)
 	{
-		final AvailObject instance = mutable().create();
+		final AvailObject instance = mutable.create();
 		instance.setSlot(NAME, name);
 		instance.setSlot(HASH_OR_ZERO, 0);
 		instance.setSlot(ISSUING_MODULE, issuingModule);
 		instance.makeImmutable();
+		return instance;
+	}
+
+	/**
+	 * Create a new special atom with the given name. The name is not globally
+	 * unique, but serves to help to visually distinguish atoms. A special atom
+	 * comes into existence already {@linkplain Mutability#SHARED shared} and
+	 * uses a special {@linkplain AtomDescriptor descriptor} that does not
+	 * support property definition.
+	 *
+	 * @param name
+	 *        A string used to help identify the new atom.
+	 * @return
+	 *        The new atom, not equal to any object in use before this method
+	 *        was invoked.
+	 */
+	public static AvailObject createSpecialAtom (final AvailObject name)
+	{
+		final AvailObject instance = mutable.create();
+		instance.setSlot(NAME, name.makeShared());
+		instance.setSlot(HASH_OR_ZERO, 0);
+		instance.setSlot(ISSUING_MODULE, NilDescriptor.nil());
+		instance.descriptor = specialShared;
 		return instance;
 	}
 
@@ -195,6 +436,20 @@ extends Descriptor
 	 * The atom representing the Avail concept "false".
 	 */
 	private static AvailObject falseObject;
+
+	/**
+	 * Convert a Java <code>boolean</code> into an Avail boolean.  There are
+	 * exactly two Avail booleans, which are just ordinary atoms ({@link
+	 * #trueObject} and {@link #falseObject}) which are known by the Avail
+	 * virtual machine.
+	 *
+	 * @param aBoolean A Java <code>boolean</code>
+	 * @return An Avail boolean.
+	 */
+	public static AvailObject objectFromBoolean (final boolean aBoolean)
+	{
+		return aBoolean ? trueObject : falseObject;
+	}
 
 	/**
 	 * The atom used as a property key under which to store information about
@@ -322,30 +577,19 @@ extends Descriptor
 	 */
 	static void createWellKnownObjects ()
 	{
-		trueObject = create(
-			StringDescriptor.from("true"),
-			NullDescriptor.nullObject());
-		falseObject = create(
-			StringDescriptor.from("false"),
-			NullDescriptor.nullObject());
-		objectTypeNamePropertyKey = create(
-			StringDescriptor.from("object names"),
-			NullDescriptor.nullObject());
-		moduleHeaderSectionAtom = create(
-			StringDescriptor.from("Module header section"),
-			NullDescriptor.nullObject());
-		moduleBodySectionAtom = create(
-			StringDescriptor.from("Module body section"),
-			NullDescriptor.nullObject());
-		fileKey = create(
-			StringDescriptor.from("file key"),
-			NullDescriptor.nullObject());
-		fileModeReadKey = create(
-			StringDescriptor.from("file mode read"),
-			NullDescriptor.nullObject());
-		fileModeWriteKey = create(
-			StringDescriptor.from("file mode write"),
-			NullDescriptor.nullObject());
+		trueObject = createSpecialAtom(StringDescriptor.from("true"));
+		falseObject = createSpecialAtom(StringDescriptor.from("false"));
+		objectTypeNamePropertyKey = createSpecialAtom(
+			StringDescriptor.from("object names"));
+		moduleHeaderSectionAtom = createSpecialAtom(
+			StringDescriptor.from("Module header section"));
+		moduleBodySectionAtom = createSpecialAtom(
+			StringDescriptor.from("Module body section"));
+		fileKey = createSpecialAtom(StringDescriptor.from("file key"));
+		fileModeReadKey = createSpecialAtom(
+			StringDescriptor.from("file mode read"));
+		fileModeWriteKey = createSpecialAtom(
+			StringDescriptor.from("file mode write"));
 	}
 
 	/**
@@ -361,208 +605,5 @@ extends Descriptor
 		fileKey = null;
 		fileModeReadKey = null;
 		fileModeWriteKey = null;
-	}
-
-	/**
-	 * Convert a Java <code>boolean</code> into an Avail boolean.  There are
-	 * exactly two Avail booleans, which are just ordinary atoms ({@link
-	 * #trueObject} and {@link #falseObject}) which are known by the Avail
-	 * virtual machine.
-	 *
-	 * @param aBoolean A Java <code>boolean</code>
-	 * @return An Avail boolean.
-	 */
-	public static AvailObject objectFromBoolean (final boolean aBoolean)
-	{
-		return aBoolean ? trueObject : falseObject;
-	}
-
-	@Override @AvailMethod
-	void o_Name (
-		final AvailObject object,
-		final AvailObject value)
-	{
-		object.setSlot(NAME, value);
-	}
-
-
-	@Override @AvailMethod
-	AvailObject o_Name (
-		final AvailObject object)
-	{
-		return object.slot(NAME);
-	}
-
-	@Override @AvailMethod
-	AvailObject o_IssuingModule (
-		final AvailObject object)
-	{
-		return object.slot(ISSUING_MODULE);
-	}
-
-	@Override @AvailMethod
-	boolean o_Equals (
-		final AvailObject object,
-		final AvailObject another)
-	{
-		return another.traversed().sameAddressAs(object);
-	}
-
-	@Override @AvailMethod
-	int o_Hash (
-		final AvailObject object)
-	{
-		int hash = object.slot(HASH_OR_ZERO);
-		if (hash == 0)
-		{
-			do
-			{
-				hash = AvailRuntime.nextHash();
-			}
-			while (hash == 0);
-			object.setSlot(HASH_OR_ZERO, hash);
-		}
-		return hash;
-	}
-
-	@Override @AvailMethod
-	AvailObject o_Kind (
-		final AvailObject object)
-	{
-		return ATOM.o();
-	}
-
-	@Override @AvailMethod
-	boolean o_ExtractBoolean (
-		final AvailObject object)
-	{
-		if (object.equals(trueObject))
-		{
-			return true;
-		}
-		assert object.equals(falseObject);
-		return false;
-	}
-
-	@Override @AvailMethod
-	boolean o_IsAtom (
-		final AvailObject object)
-	{
-		return true;
-	}
-
-	@Override @AvailMethod
-	boolean o_IsInstanceOfKind (
-		final AvailObject object,
-		final AvailObject aType)
-	{
-		return aType.isSupertypeOfPrimitiveTypeEnum(ATOM);
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>
-	 * Convert myself to an equivalent {@linkplain AtomWithPropertiesDescriptor
-	 * atom with properties}, then add the property to it.
-	 * </p>
-	 */
-	@Override @AvailMethod
-	void o_SetAtomProperty (
-		final AvailObject object,
-		final AvailObject key,
-		final AvailObject value)
-	{
-		final AvailObject substituteAtom =
-			AtomWithPropertiesDescriptor.createWithNameAndModuleAndHash(
-				object.slot(NAME),
-				object.slot(ISSUING_MODULE),
-				object.slot(HASH_OR_ZERO));
-		object.becomeIndirectionTo(substituteAtom);
-		substituteAtom.setAtomProperty(key, value);
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>
-	 * This atom has no properties, so always answer {@linkplain
-	 * NullDescriptor#nullObject() the null object}.
-	 * </p>
-	 */
-	@Override @AvailMethod
-	AvailObject o_GetAtomProperty (
-		final AvailObject object,
-		final AvailObject key)
-	{
-		return NullDescriptor.nullObject();
-	}
-
-	@Override
-	@AvailMethod @ThreadSafe
-	SerializerOperation o_SerializerOperation (
-		final AvailObject object)
-	{
-		return SerializerOperation.ATOM;
-	}
-
-	@Override
-	Object o_MarshalToJava (
-		final AvailObject object,
-		final @Nullable Class<?> ignoredClassHint)
-	{
-		if (object.equals(trueObject))
-		{
-			return Boolean.TRUE;
-		}
-		if (object.equals(falseObject))
-		{
-			return Boolean.FALSE;
-		}
-		return super.o_MarshalToJava(object, ignoredClassHint);
-	}
-
-	/**
-	 * Construct a new {@link AtomDescriptor}.
-	 *
-	 * @param isMutable
-	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
-	 *        object?
-	 */
-	protected AtomDescriptor (final boolean isMutable)
-	{
-		super(isMutable);
-	}
-
-	/**
-	 * The mutable {@link AtomDescriptor}.
-	 */
-	private static final AtomDescriptor mutable =
-		new AtomDescriptor(true);
-
-	/**
-	 * Answer the mutable {@link AtomDescriptor}.
-	 *
-	 * @return The mutable {@link AtomDescriptor}.
-	 */
-	public static AtomDescriptor mutable ()
-	{
-		return mutable;
-	}
-
-	/**
-	 * The immutable {@link AtomDescriptor}.
-	 */
-	private static final AtomDescriptor immutable =
-		new AtomDescriptor(false);
-
-	/**
-	 * Answer the immutable {@link AtomDescriptor}.
-	 *
-	 * @return The immutable {@link AtomDescriptor}.
-	 */
-	public static AtomDescriptor immutable ()
-	{
-		return immutable;
 	}
 }

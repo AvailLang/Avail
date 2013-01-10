@@ -1,6 +1,6 @@
 /**
  * HashedSetBinDescriptor.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,9 +32,10 @@
 
 package com.avail.descriptor;
 
+import static java.lang.Integer.bitCount;
 import static com.avail.descriptor.HashedSetBinDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.HashedSetBinDescriptor.ObjectSlots.*;
-import static java.lang.Integer.bitCount;
+import static com.avail.descriptor.Mutability.*;
 import java.util.*;
 import com.avail.annotations.*;
 import com.avail.descriptor.SetDescriptor.SetIterator;
@@ -51,7 +52,8 @@ extends SetBinDescriptor
 	/**
 	 * The layout of integer slots for my instances.
 	 */
-	public enum IntegerSlots implements IntegerSlotsEnum
+	public enum IntegerSlots
+	implements IntegerSlotsEnum
 	{
 		/**
 		 * The sum of the hashes of the elements recursively within this bin.
@@ -79,11 +81,12 @@ extends SetBinDescriptor
 	/**
 	 * The layout of object slots for my instances.
 	 */
-	public enum ObjectSlots implements ObjectSlotsEnum
+	public enum ObjectSlots
+	implements ObjectSlotsEnum
 	{
 		/**
 		 * The union of the types of all elements recursively within this bin.
-		 * If this is {@linkplain NullDescriptor#nullObject() top}, then it can
+		 * If this is {@linkplain NilDescriptor#nil() top}, then it can
 		 * be recomputed when needed and cached.
 		 */
 		BIN_UNION_TYPE_OR_NULL,
@@ -95,10 +98,32 @@ extends SetBinDescriptor
 		BIN_ELEMENT_AT_
 	}
 
+	@Override boolean allowsImmutableToMutableReferenceInField (
+		final AbstractSlotsEnum e)
+	{
+		return e == BIN_UNION_TYPE_OR_NULL;
+	}
+
 	@Override @AvailMethod
-	AvailObject o_BinElementAt (
-		final AvailObject object,
-		final int subscript)
+	int o_BinSize (final AvailObject object)
+	{
+		return object.slot(BIN_SIZE);
+	}
+
+	@Override @AvailMethod
+	void o_BinSize (final AvailObject object, final int value)
+	{
+		object.setSlot(BIN_SIZE, value);
+	}
+
+	@Override @AvailMethod
+	void o_BitVector (final AvailObject object, final int value)
+	{
+		object.setSlot(BIT_VECTOR, value);
+	}
+
+	@Override @AvailMethod
+	AvailObject o_BinElementAt (final AvailObject object, final int subscript)
 	{
 		return object.slot(BIN_ELEMENT_AT_, subscript);
 	}
@@ -109,75 +134,20 @@ extends SetBinDescriptor
 		final int subscript,
 		final AvailObject value)
 	{
-		//  GENERATED setter method (indexed).
-
 		object.setSlot(BIN_ELEMENT_AT_, subscript, value);
 	}
 
-	@Override @AvailMethod
-	void o_BinSize (
-		final AvailObject object,
-		final int value)
-	{
-		object.setSlot(BIN_SIZE, value);
-	}
-
-	@Override @AvailMethod
-	void o_BinUnionTypeOrNull (
-		final AvailObject object,
-		final AvailObject value)
-	{
-		object.setSlot(BIN_UNION_TYPE_OR_NULL, value);
-	}
-
-	@Override @AvailMethod
-	void o_BitVector (
-		final AvailObject object,
-		final int value)
-	{
-		object.setSlot(BIT_VECTOR, value);
-	}
-
-	@Override @AvailMethod
-	int o_BinSize (
-		final AvailObject object)
-	{
-		return object.slot(BIN_SIZE);
-	}
-
-	@Override @AvailMethod
-	AvailObject o_BinUnionTypeOrNull (
-		final AvailObject object)
-	{
-		return object.slot(BIN_UNION_TYPE_OR_NULL);
-	}
-
-	@Override boolean allowsImmutableToMutableReferenceInField (
-		final AbstractSlotsEnum e)
-	{
-		return e == BIN_UNION_TYPE_OR_NULL;
-	}
-
-	@Override @AvailMethod
-	AvailObject o_MakeImmutable (
-		final AvailObject object)
-	{
-		//  Make the object immutable so it can be shared safely.
-
-		if (isMutable)
-		{
-			object.descriptor = isMutableLevel(false, level);
-			object.makeSubobjectsImmutable();
-		}
-		return object;
-	}
-
-	@Override @AvailMethod
-	AvailObject o_BinUnionKind (
-		final AvailObject object)
+	/**
+	 * Lazily compute and install the union kind of the specified {@linkplain
+	 * HashedSetBinDescriptor object}.
+	 *
+	 * @param object An object.
+	 * @return A type.
+	 */
+	private AvailObject binUnionKind (final AvailObject object)
 	{
 		AvailObject union = object.slot(BIN_UNION_TYPE_OR_NULL);
-		if (union.equalsNull())
+		if (union.equalsNil())
 		{
 			union = object.slot(BIN_ELEMENT_AT_, 1).binUnionKind();
 			final int limit = object.variableObjectSlotsCount();
@@ -185,6 +155,10 @@ extends SetBinDescriptor
 			{
 				union = union.typeUnion(
 					object.slot(BIN_ELEMENT_AT_, i).binUnionKind());
+			}
+			if (isShared())
+			{
+				union = union.traversed().makeShared();
 			}
 			object.setSlot(BIN_UNION_TYPE_OR_NULL, union);
 		}
@@ -192,23 +166,24 @@ extends SetBinDescriptor
 	}
 
 	@Override @AvailMethod
+	AvailObject o_BinUnionKind (final AvailObject object)
+	{
+		if (isShared())
+		{
+			synchronized (object)
+			{
+				return binUnionKind(object);
+			}
+		}
+		return binUnionKind(object);
+	}
+
+	@Override @AvailMethod
 	boolean o_BinElementsAreAllInstancesOfKind (
 		final AvailObject object,
 		final AvailObject kind)
 	{
-		AvailObject union = object.slot(BIN_UNION_TYPE_OR_NULL);
-		if (union.equalsNull())
-		{
-			union = object.slot(BIN_ELEMENT_AT_, 1).binUnionKind();
-			final int limit = object.variableObjectSlotsCount();
-			for (int i = 2; i <= limit; i++)
-			{
-				union = union.typeUnion(
-					object.slot(BIN_ELEMENT_AT_, i).binUnionKind());
-			}
-			object.setSlot(BIN_UNION_TYPE_OR_NULL, union);
-		}
-		return union.isSubtypeOf(kind);
+		return object.binUnionKind().isSubtypeOf(kind);
 	}
 
 	/**
@@ -257,7 +232,7 @@ extends SetBinDescriptor
 			//  The element had to be added.
 			final int hashDelta = entry.binHash() - previousHash;
 			final int newSize = object.slot(BIN_SIZE) + delta;
-			if (canDestroy & isMutable)
+			if (canDestroy & isMutable())
 			{
 				// Clobber the object in place.
 				objectToModify = object;
@@ -265,11 +240,11 @@ extends SetBinDescriptor
 				objectToModify.setSlot(BIN_SIZE, newSize);
 				objectToModify.setSlot(
 					BIN_UNION_TYPE_OR_NULL,
-					NullDescriptor.nullObject());
+					NilDescriptor.nil());
 			}
 			else
 			{
-				if (!canDestroy & isMutable)
+				if (!canDestroy & isMutable())
 				{
 					object.makeSubobjectsImmutable();
 				}
@@ -279,7 +254,7 @@ extends SetBinDescriptor
 					newSize,
 					object.binHash() + hashDelta,
 					vector,
-					NullDescriptor.nullObject());
+					NilDescriptor.nil());
 				final int limit = object.variableObjectSlotsCount();
 				for (int i = 1; i <= limit; i++)
 				{
@@ -293,12 +268,12 @@ extends SetBinDescriptor
 			return objectToModify;
 		}
 		// Augment object with a new entry.
-		if (!canDestroy & isMutable)
+		if (!canDestroy & isMutable())
 		{
 			object.makeSubobjectsImmutable();
 		}
-		typeUnion = object.binUnionTypeOrNull();
-		if (!typeUnion.equalsNull())
+		typeUnion = object.mutableSlot(BIN_UNION_TYPE_OR_NULL);
+		if (!typeUnion.equalsNil())
 		{
 			typeUnion = typeUnion.typeUnion(elementObject.kind());
 		}
@@ -353,8 +328,8 @@ extends SetBinDescriptor
 	}
 
 	/**
-	 * Remove elementObject from the bin object, if present.  Answer the
-	 * resulting bin.  The bin may be modified if it's mutable and canDestroy.
+	 * Remove elementObject from the bin object, if present. Answer the
+	 * resulting bin. The bin may be modified if it's mutable and canDestroy.
 	 */
 	@Override @AvailMethod
 	AvailObject o_BinRemoveElementHashCanDestroy (
@@ -390,12 +365,12 @@ extends SetBinDescriptor
 		final int deltaHash = replacementEntry.binHash() - oldHash;
 		final int deltaSize = replacementEntry.binSize() - oldSize;
 		AvailObject result;
-		if (replacementEntry.equalsNull())
+		if (replacementEntry.equalsNil())
 		{
 			// Exclude the entire hash entry.
 			if (objectEntryCount == 1)
 			{
-				return NullDescriptor.nullObject();
+				return NilDescriptor.nil();
 			}
 			result = HashedSetBinDescriptor.createBin(
 				level,
@@ -403,7 +378,7 @@ extends SetBinDescriptor
 				object.binSize() + deltaSize,
 				object.binHash() + deltaHash,
 				vector ^ logicalBitValue,
-				NullDescriptor.nullObject());
+				NilDescriptor.nil());
 			int writeIndex = 1;
 			for (int readIndex = 1; readIndex <= objectEntryCount; readIndex++)
 			{
@@ -431,7 +406,7 @@ extends SetBinDescriptor
 				object.binSize() + deltaSize,
 				object.binHash() + deltaHash,
 				vector,
-				NullDescriptor.nullObject());
+				NilDescriptor.nil());
 			for (int index = 1; index <= objectEntryCount; index++)
 			{
 				if (index == physicalIndex)
@@ -478,7 +453,7 @@ extends SetBinDescriptor
 		final AvailObject object,
 		final AvailObject potentialSuperset)
 	{
-		// TODO[MvG] - This could be much quicker in the case that some of the
+		// TODO: [MvG] This could be much quicker in the case that some of the
 		// bins are shared between the sets.  Even if not, we should be able to
 		// avoid traversing some of the hashed layers for each element.
 		final int limit = object.objectSlotsCount() - numberOfFixedObjectSlots;
@@ -497,7 +472,8 @@ extends SetBinDescriptor
 	 * A {@link SetIterator} for iterating over a set whose root bin happens to
 	 * be hashed.
 	 */
-	static class HashedSetBinIterator extends SetIterator
+	static class HashedSetBinIterator
+	extends SetIterator
 	{
 		/**
 		 * The path through set bins, excluding the leaf (non-bin) element.
@@ -584,8 +560,7 @@ extends SetBinDescriptor
 	}
 
 	@Override
-	SetIterator o_SetBinIterator (
-		final AvailObject object)
+	SetIterator o_SetBinIterator (final AvailObject object)
 	{
 		return new HashedSetBinIterator(object);
 	}
@@ -602,7 +577,7 @@ extends SetBinDescriptor
 	 * @param hash The hash of this bin.
 	 * @param bitVector The bit vector indicating which hash values are present.
 	 * @param unionKindOrNull
-	 *            Either the null object or the kind that is nearest to the
+	 *            Either nil or the kind that is nearest to the
 	 *            union of the elements' types.
 	 * @return A new hashed set bin with uninitialized sub-bin slots.
 	 */
@@ -616,7 +591,7 @@ extends SetBinDescriptor
 	{
 		assert bitCount(bitVector) == localSize;
 		final AvailObject instance =
-			isMutableLevel(true, level).create(localSize);
+			descriptorFor(MUTABLE, level).create(localSize);
 		instance.setSlot(BIN_HASH, hash);
 		instance.setSlot(BIN_SIZE, totalSize);
 		instance.setSlot(BIT_VECTOR, bitVector);
@@ -638,41 +613,64 @@ extends SetBinDescriptor
 	 * @param level The bin tree level that its objects should occupy.
 	 * @return A suitable {@code HashedSetBinDescriptor}.
 	 */
-	static HashedSetBinDescriptor isMutableLevel (
-		final boolean flag,
+	static HashedSetBinDescriptor descriptorFor (
+		final Mutability flag,
 		final byte level)
 	{
 		assert 0 <= level && level < numberOfLevels;
-		return descriptors [level * 2 + (flag ? 0 : 1)];
+		return descriptors[level * 3 + flag.ordinal()];
 	}
 
 	/**
 	 * Construct a new {@link HashedSetBinDescriptor}.
 	 *
-	 * @param isMutable
-	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
-	 *        object?
-	 * @param level The depth of the bin in the hash tree.
+	 * @param mutability
+	 *        The {@linkplain Mutability mutability} of the new descriptor.
+	 * @param level
+	 *        The depth of the bin in the hash tree.
 	 */
 	HashedSetBinDescriptor (
-		final boolean isMutable,
+		final Mutability mutability,
 		final int level)
 	{
-		super(isMutable, level);
+		super(mutability, level);
 	}
 
 	/**
-	 *
+	 * {@link HashedSetBinDescriptor}s clustered by mutability and level.
 	 */
 	static final HashedSetBinDescriptor descriptors[];
 
-	static {
-		descriptors = new HashedSetBinDescriptor[numberOfLevels * 2];
+	static
+	{
+		descriptors = new HashedSetBinDescriptor[numberOfLevels * 3];
 		int target = 0;
 		for (int level = 0; level < numberOfLevels; level++)
 		{
-			descriptors[target++] = new HashedSetBinDescriptor(true, level);
-			descriptors[target++] = new HashedSetBinDescriptor(false, level);
+			descriptors[target++] =
+				new HashedSetBinDescriptor(MUTABLE, level);
+			descriptors[target++] =
+				new HashedSetBinDescriptor(IMMUTABLE, level);
+			descriptors[target++] =
+				new HashedSetBinDescriptor(SHARED, level);
 		}
+	}
+
+	@Override
+	HashedSetBinDescriptor mutable ()
+	{
+		return descriptorFor(MUTABLE, level);
+	}
+
+	@Override
+	HashedSetBinDescriptor immutable ()
+	{
+		return descriptorFor(IMMUTABLE, level);
+	}
+
+	@Override
+	HashedSetBinDescriptor shared ()
+	{
+		return descriptorFor(SHARED, level);
 	}
 }

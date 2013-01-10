@@ -1,6 +1,6 @@
 /**
  * Serializer.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -338,7 +338,7 @@ public class Serializer
 				});
 			}
 			if (instruction.operation.isVariable()
-				&& !object.value().equalsNull())
+				&& !object.value().equalsNil())
 			{
 				variablesToAssign.add(object);
 				// Output an action to the *start* of the workstack to trace
@@ -429,7 +429,7 @@ public class Serializer
 		// Next, do all variable assignments...
 		for (final AvailObject variable : variablesToAssign)
 		{
-			assert !variable.value().equalsNull();
+			assert !variable.value().equalsNil();
 			final SerializerInstruction assignment =
 				new SerializerInstruction(
 					variable,

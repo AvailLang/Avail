@@ -1,6 +1,6 @@
 /**
  * ScannerTest.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -359,7 +359,7 @@ public final class ScannerTest
 	{
 		C(""),
 
-		// Integers
+		// integers
 		C("0", L(0,"0")),
 		C("1", L(1,"1")),
 		C("123", L(123,"123")),

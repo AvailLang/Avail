@@ -1,6 +1,6 @@
 /*
  * Abstract Streams.avail
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -871,7 +871,7 @@ Semantic restriction "«_‡zip»" is zip semantic restriction;
 Method "take«at most»?_from_" is
 [
 	isLax : boolean,
-	count : whole number,
+	count : [0..∞],
 	aStream : stream
 |
 	rest : stream := aStream;
@@ -880,7 +880,8 @@ Method "take«at most»?_from_" is
 	[
 		Repeat
 		[
-			result := eject ↑result ++ <rest's head>;
+			next ::= rest's head;
+			result := eject ↑result ++ <next>;
 			rest := eject ↑rest's tail;
 		] count times;
 	]
@@ -896,10 +897,10 @@ Method "take«at most»?_from_" is
 Semantic restriction "take«at most»?_from_" is
 [
 	laxity : boolean's type,
-	count : whole number's type,
+	count : [0..∞]'s type,
 	streamType : stream's type
 |
-	min ::= if laxity = true then [0] else [⎣count⎦];
+	min ::= if laxity = true's type then [0] else [⎣count⎦];
 	<<>, streamType's element type's instance…|[min..⎡count⎤+1)>
 ];
 

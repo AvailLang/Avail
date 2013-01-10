@@ -1,6 +1,6 @@
 /**
  * SetTypeDescriptor.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,26 +33,29 @@
 package com.avail.descriptor;
 
 import static com.avail.descriptor.TypeDescriptor.Types.*;
+import static com.avail.descriptor.SetTypeDescriptor.ObjectSlots.*;
 import java.util.List;
+import com.avail.AvailRuntime;
 import com.avail.annotations.*;
 import com.avail.serialization.SerializerOperation;
 
 /**
  * A {@code SetTypeDescriptor} object instance is a type that some {@linkplain
- * SetDescriptor sets} may conform to.  It is built up from a {@linkplain
+ * SetDescriptor sets} may conform to. It is built up from a {@linkplain
  * ObjectSlots#SIZE_RANGE range of sizes} that the sets may be, and the
  * {@linkplain ObjectSlots#CONTENT_TYPE content type} that the set's elements
  * would have to conform to.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class SetTypeDescriptor
+public final class SetTypeDescriptor
 extends TypeDescriptor
 {
 	/**
 	 * The layout of object slots for my instances.
 	 */
-	public enum ObjectSlots implements ObjectSlotsEnum
+	public enum ObjectSlots
+	implements ObjectSlotsEnum
 	{
 		/**
 		 * An {@linkplain IntegerRangeTypeDescriptor integer range type} which
@@ -69,20 +72,6 @@ extends TypeDescriptor
 		CONTENT_TYPE
 	}
 
-	@Override @AvailMethod
-	AvailObject o_ContentType (
-		final AvailObject object)
-	{
-		return object.slot(ObjectSlots.CONTENT_TYPE);
-	}
-
-	@Override @AvailMethod
-	AvailObject o_SizeRange (
-		final AvailObject object)
-	{
-		return object.slot(ObjectSlots.SIZE_RANGE);
-	}
-
 	@Override
 	public void printObjectOnAvoidingIndent (
 		final AvailObject object,
@@ -90,18 +79,18 @@ extends TypeDescriptor
 		final List<AvailObject> recursionList,
 		final int indent)
 	{
-		if (object.contentType().equals(ANY.o())
-			&& object.sizeRange().equals(
+		if (object.slot(CONTENT_TYPE).equals(ANY.o())
+			&& object.slot(SIZE_RANGE).equals(
 				IntegerRangeTypeDescriptor.wholeNumbers()))
 		{
 			aStream.append("set");
 			return;
 		}
 		aStream.append('{');
-		object.contentType().printOnAvoidingIndent(
+		object.slot(CONTENT_TYPE).printOnAvoidingIndent(
 			aStream, recursionList, indent + 1);
 		aStream.append('|');
-		final AvailObject sizeRange = object.sizeRange();
+		final AvailObject sizeRange = object.slot(SIZE_RANGE);
 		if (sizeRange.equals(IntegerRangeTypeDescriptor.wholeNumbers()))
 		{
 			aStream.append('}');
@@ -119,9 +108,19 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_Equals (
-		final AvailObject object,
-		final AvailObject another)
+	AvailObject o_ContentType (final AvailObject object)
+	{
+		return object.slot(CONTENT_TYPE);
+	}
+
+	@Override @AvailMethod
+	AvailObject o_SizeRange (final AvailObject object)
+	{
+		return object.slot(SIZE_RANGE);
+	}
+
+	@Override @AvailMethod
+	boolean o_Equals (final AvailObject object, final AvailObject another)
 	{
 		return another.equalsSetType(object);
 	}
@@ -131,22 +130,20 @@ extends TypeDescriptor
 		final AvailObject object,
 		final AvailObject aSetType)
 	{
-		//  Set types are equal iff both their sizeRange and contentType match.
-
+		// Set types are equal iff both their sizeRange and contentType match.
 		if (object.sameAddressAs(aSetType))
 		{
 			return true;
 		}
-		return object.sizeRange().equals(aSetType.sizeRange()) && object.contentType().equals(aSetType.contentType());
+		return object.slot(SIZE_RANGE).equals(aSetType.slot(SIZE_RANGE))
+			&& object.slot(CONTENT_TYPE).equals(aSetType.slot(CONTENT_TYPE));
 	}
 
 	@Override @AvailMethod
-	int o_Hash (
-		final AvailObject object)
+	int o_Hash (final AvailObject object)
 	{
-		//  Answer a 32-bit integer that is always the same for equal objects, but
-		//  statistically different for different objects.
-
+		// Answer a 32-bit integer that is always the same for equal objects,
+		// but statistically different for different objects.
 		return object.sizeRange().hash() * 11 + object.contentType().hash() * 5;
 	}
 
@@ -155,8 +152,8 @@ extends TypeDescriptor
 		final AvailObject object,
 		final AvailObject aType)
 	{
-		//  Check if object (a type) is a subtype of aType (should also be a type).
-
+		// Check if object (a type) is a subtype of aType (should also be a
+		// type).
 		return aType.isSupertypeOfSetType(object);
 	}
 
@@ -165,10 +162,13 @@ extends TypeDescriptor
 		final AvailObject object,
 		final AvailObject aSetType)
 	{
-		//  Set type A is a subtype of B if and only if their size ranges are covariant
-		//  and their content types are covariant.
-
-		return aSetType.sizeRange().isSubtypeOf(object.sizeRange()) && aSetType.contentType().isSubtypeOf(object.contentType());
+		// Set type A is a subtype of B if and only if their size ranges are
+		// covariant and their content types are covariant.
+		return
+			aSetType.slot(SIZE_RANGE).isSubtypeOf(
+				object.slot(SIZE_RANGE))
+			&& aSetType.slot(CONTENT_TYPE).isSubtypeOf(
+				object.slot(CONTENT_TYPE));
 	}
 
 	@Override @AvailMethod
@@ -176,8 +176,8 @@ extends TypeDescriptor
 		final AvailObject object,
 		final AvailObject another)
 	{
-		//  Answer the most general type that is still at least as specific as these.
-
+		// Answer the most general type that is still at least as specific as
+		// these.
 		if (object.isSubtypeOf(another))
 		{
 			return object;
@@ -195,8 +195,10 @@ extends TypeDescriptor
 		final AvailObject aSetType)
 	{
 		return SetTypeDescriptor.setTypeForSizesContentType(
-			object.sizeRange().typeIntersection(aSetType.sizeRange()),
-			object.contentType().typeIntersection(aSetType.contentType()));
+			object.slot(SIZE_RANGE).typeIntersection(
+				aSetType.slot(SIZE_RANGE)),
+			object.slot(CONTENT_TYPE).typeIntersection(
+				aSetType.slot(CONTENT_TYPE)));
 	}
 
 	@Override @AvailMethod
@@ -225,28 +227,35 @@ extends TypeDescriptor
 		final AvailObject aSetType)
 	{
 		return SetTypeDescriptor.setTypeForSizesContentType(
-			object.sizeRange().typeUnion(aSetType.sizeRange()),
-			object.contentType().typeUnion(aSetType.contentType()));
+			object.slot(SIZE_RANGE).typeUnion(aSetType.slot(SIZE_RANGE)),
+			object.slot(CONTENT_TYPE).typeUnion(aSetType.slot(CONTENT_TYPE)));
 	}
 
 	@Override @AvailMethod
-	boolean o_IsSetType (
-		final AvailObject object)
+	boolean o_IsSetType (final AvailObject object)
 	{
 		return true;
 	}
 
 	@Override
-	SerializerOperation o_SerializerOperation (
-		final AvailObject object)
+	SerializerOperation o_SerializerOperation (final AvailObject object)
 	{
 		return SerializerOperation.SET_TYPE;
 	}
 
-	/**
-	 * The most general set type.
-	 */
-	private static AvailObject MostGeneralType;
+	@Override
+	AvailObject o_MakeImmutable (final AvailObject object)
+	{
+		if (isMutable())
+		{
+			// Make the object shared, since there isn't an immutable choice.
+			object.makeShared();
+		}
+		return object;
+	}
+
+	/** The most general set type. */
+	private static AvailObject mostGeneralType;
 
 	/**
 	 * Answer the most general set type.
@@ -255,13 +264,13 @@ extends TypeDescriptor
 	 */
 	public static AvailObject mostGeneralType ()
 	{
-		return MostGeneralType;
+		return mostGeneralType;
 	}
 
 	/**
 	 * The metatype for all set types.
 	 */
-	private static AvailObject Meta;
+	private static AvailObject meta;
 
 	/**
 	 * Answer the metatype for all set types.
@@ -270,35 +279,41 @@ extends TypeDescriptor
 	 */
 	public static AvailObject meta ()
 	{
-		return Meta;
+		return meta;
 	}
 
-	public static void clearWellKnownObjects ()
-	{
-		MostGeneralType = null;
-		Meta = null;
-	}
-
+	/**
+	 * Create objects statically well-known to the {@linkplain AvailRuntime
+	 * Avail runtime}.
+	 */
 	public static void createWellKnownObjects ()
 	{
-		MostGeneralType = setTypeForSizesContentType(
+		mostGeneralType = setTypeForSizesContentType(
 			IntegerRangeTypeDescriptor.wholeNumbers(),
 			ANY.o());
-		MostGeneralType.makeImmutable();
-		Meta = InstanceMetaDescriptor.on(MostGeneralType);
-		Meta.makeImmutable();
+		mostGeneralType.makeShared();
+		meta = InstanceMetaDescriptor.on(mostGeneralType);
+		meta.makeShared();
 	}
 
+	/**
+	 * Destroy or reset objects statically well-known to the {@linkplain
+	 * AvailRuntime Avail runtime}.
+	 */
+	public static void clearWellKnownObjects ()
+	{
+		mostGeneralType = null;
+		meta = null;
+	}
 
 	/**
 	 * Create a set type with the given range of sizes and content type.
 	 *
 	 * @param sizeRange
-	 *            The allowed sizes of my instances.
+	 *        The allowed sizes of my instances.
 	 * @param contentType
-	 *            The type that constrains my instances' elements.
-	 * @return
-	 *            An immutable set type as specified.
+	 *        The type that constrains my instances' elements.
+	 * @return An immutable set type as specified.
 	 */
 	public static AvailObject setTypeForSizesContentType (
 		final AvailObject sizeRange,
@@ -346,52 +361,48 @@ extends TypeDescriptor
 			newSizeRange = sizeRangeKind;
 			newContentType = contentType;
 		}
-		final AvailObject result = mutable().create();
+		final AvailObject result = mutable.create();
 		result.setSlot(ObjectSlots.SIZE_RANGE, newSizeRange);
 		result.setSlot(ObjectSlots.CONTENT_TYPE, newContentType);
-		result.makeImmutable();
+		result.makeShared();
 		return result;
 	}
 
 	/**
 	 * Construct a new {@link SetTypeDescriptor}.
 	 *
-	 * @param isMutable
-	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
-	 *        object?
+	 * @param mutability
+	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 */
-	protected SetTypeDescriptor (final boolean isMutable)
+	private SetTypeDescriptor (final Mutability mutability)
 	{
-		super(isMutable);
+		super(mutability);
 	}
 
-	/**
-	 * The mutable {@link SetTypeDescriptor}.
-	 */
-	private static final SetTypeDescriptor mutable = new SetTypeDescriptor(true);
+	/** The mutable {@link SetTypeDescriptor}. */
+	private static final SetTypeDescriptor mutable =
+		new SetTypeDescriptor(Mutability.MUTABLE);
 
-	/**
-	 * Answer the mutable {@link SetTypeDescriptor}.
-	 *
-	 * @return The mutable {@link SetTypeDescriptor}.
-	 */
-	public static SetTypeDescriptor mutable ()
+	@Override
+	SetTypeDescriptor mutable ()
 	{
 		return mutable;
 	}
 
-	/**
-	 * The immutable {@link SetTypeDescriptor}.
-	 */
-	private static final SetTypeDescriptor immutable = new SetTypeDescriptor(false);
+	/** The shared {@link SetTypeDescriptor}. */
+	private static final SetTypeDescriptor shared =
+		new SetTypeDescriptor(Mutability.SHARED);
 
-	/**
-	 * Answer the immutable {@link SetTypeDescriptor}.
-	 *
-	 * @return The immutable {@link SetTypeDescriptor}.
-	 */
-	public static SetTypeDescriptor immutable ()
+	@Override
+	SetTypeDescriptor immutable ()
 	{
-		return immutable;
+		// There isn't an immutable descriptor, just the shared one.
+		return shared;
+	}
+
+	@Override
+	SetTypeDescriptor shared ()
+	{
+		return shared;
 	}
 }

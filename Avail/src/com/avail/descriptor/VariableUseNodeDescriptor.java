@@ -1,6 +1,6 @@
 /**
  * VariableUseNodeDescriptor.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * modification, are permitted provided that the following conditions are met:
@@ -35,6 +35,8 @@ package com.avail.descriptor;
 import static com.avail.descriptor.AvailObject.multiplier;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
+import static com.avail.descriptor.VariableUseNodeDescriptor.IntegerSlots.*;
+import static com.avail.descriptor.VariableUseNodeDescriptor.ObjectSlots.*;
 import java.util.List;
 import com.avail.annotations.*;
 import com.avail.compiler.AvailCodeGenerator;
@@ -47,32 +49,11 @@ import com.avail.utility.*;
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class VariableUseNodeDescriptor extends ParseNodeDescriptor
+public final class VariableUseNodeDescriptor
+extends ParseNodeDescriptor
 {
 	/**
-	 * My slots of type {@link AvailObject}.
-	 *
-	 * @author Mark van Gulik &lt;mark@availlang.org&gt;
-	 */
-	public enum ObjectSlots implements ObjectSlotsEnum
-	{
-		/**
-		 * The {@linkplain TokenDescriptor token} that is a mention of the entity
-		 * in question.
-		 */
-		USE_TOKEN,
-
-		/**
-		 * The {@linkplain DeclarationNodeDescriptor declaration} of the entity that
-		 * is being mentioned.
-		 */
-		DECLARATION
-	}
-
-	/**
 	 * My slots of type {@linkplain Integer int}.
-	 *
-	 * @author Mark van Gulik &lt;mark@availlang.org&gt;
 	 */
 	public enum IntegerSlots implements IntegerSlotsEnum
 	{
@@ -93,48 +74,56 @@ public class VariableUseNodeDescriptor extends ParseNodeDescriptor
 
 	}
 
-
 	/**
-	 * Getter for field token.
+	 * My slots of type {@link AvailObject}.
 	 */
-	@Override @AvailMethod
-	AvailObject o_Token (
-		final AvailObject object)
+	public enum ObjectSlots
+	implements ObjectSlotsEnum
 	{
-		return object.slot(ObjectSlots.USE_TOKEN);
+		/**
+		 * The {@linkplain TokenDescriptor token} that is a mention of the
+		 * entity in question.
+		 */
+		USE_TOKEN,
+
+		/**
+		 * The {@linkplain DeclarationNodeDescriptor declaration} of the entity
+		 * that is being mentioned.
+		 */
+		DECLARATION
 	}
 
-	/**
-	 * Getter for field declaration.
-	 */
 	@Override @AvailMethod
-	AvailObject o_Declaration (
-		final AvailObject object)
+	AvailObject o_Token (final AvailObject object)
 	{
-		return object.slot(ObjectSlots.DECLARATION);
+		return object.slot(USE_TOKEN);
 	}
 
+	@Override @AvailMethod
+	AvailObject o_Declaration (final AvailObject object)
+	{
+		return object.slot(DECLARATION);
+	}
 
 	@Override @AvailMethod
 	void o_IsLastUse (
 		final AvailObject object,
 		final boolean isLastUse)
 	{
-		object.setSlot(IntegerSlots.LAST_USE, isLastUse ? 1 : 0);
+		object.setSlot(LAST_USE, isLastUse ? 1 : 0);
 	}
 
 	@Override @AvailMethod
-	boolean o_IsLastUse (
-		final AvailObject object)
+	boolean o_IsLastUse (final AvailObject object)
 	{
-		return object.slot(IntegerSlots.LAST_USE) != 0;
+		return object.slot(LAST_USE) != 0;
 	}
 
 
 	@Override @AvailMethod
 	AvailObject o_ExpressionType (final AvailObject object)
 	{
-		return object.declaration().declaredType();
+		return object.slot(DECLARATION).declaredType();
 	}
 
 	@Override @AvailMethod
@@ -142,8 +131,8 @@ public class VariableUseNodeDescriptor extends ParseNodeDescriptor
 	{
 		return
 			((object.isLastUse() ? 1 : 0) * multiplier
-				+ object.token().hash()) * multiplier
-				+ object.declaration().hash()
+				+ object.slot(USE_TOKEN).hash()) * multiplier
+				+ object.slot(DECLARATION).hash()
 			^ 0x62CE7BA2;
 	}
 
@@ -153,8 +142,8 @@ public class VariableUseNodeDescriptor extends ParseNodeDescriptor
 		final AvailObject aParseNode)
 	{
 		return object.kind().equals(aParseNode.kind())
-			&& object.token().equals(aParseNode.token())
-			&& object.declaration().equals(aParseNode.declaration())
+			&& object.slot(USE_TOKEN).equals(aParseNode.token())
+			&& object.slot(DECLARATION).equals(aParseNode.declaration())
 			&& object.isLastUse() == aParseNode.isLastUse();
 	}
 
@@ -163,7 +152,7 @@ public class VariableUseNodeDescriptor extends ParseNodeDescriptor
 		final AvailObject object,
 		final AvailCodeGenerator codeGenerator)
 	{
-		final AvailObject declaration = object.declaration();
+		final AvailObject declaration = object.slot(DECLARATION);
 		declaration.declarationKind().emitVariableValueForOn(
 			declaration,
 			codeGenerator);
@@ -194,8 +183,7 @@ public class VariableUseNodeDescriptor extends ParseNodeDescriptor
 	}
 
 	@Override
-	ParseNodeKind o_ParseNodeKind (
-		final AvailObject object)
+	ParseNodeKind o_ParseNodeKind (final AvailObject object)
 	{
 		return VARIABLE_USE_NODE;
 	}
@@ -207,10 +195,8 @@ public class VariableUseNodeDescriptor extends ParseNodeDescriptor
 		final List<AvailObject> recursionList,
 		final int indent)
 	{
-		builder.append(object.token().string().asNativeString());
+		builder.append(object.slot(USE_TOKEN).string().asNativeString());
 	}
-
-
 
 	/**
 	 * Construct a new {@linkplain VariableUseNodeDescriptor variable use node}.
@@ -225,56 +211,41 @@ public class VariableUseNodeDescriptor extends ParseNodeDescriptor
 	{
 		assert theToken.isInstanceOfKind(TOKEN.o());
 		assert declaration.isInstanceOfKind(DECLARATION_NODE.mostGeneralType());
-
-		final AvailObject newUse = mutable().create();
-		newUse.setSlot(ObjectSlots.USE_TOKEN, theToken);
-		newUse.setSlot(ObjectSlots.DECLARATION, declaration);
+		final AvailObject newUse = mutable.create();
+		newUse.setSlot(USE_TOKEN, theToken);
+		newUse.setSlot(DECLARATION, declaration);
 		newUse.isLastUse(false);
 		return newUse;
 	}
 
-
-
 	/**
 	 * Construct a new {@link VariableUseNodeDescriptor}.
 	 *
-	 * @param isMutable Whether my {@linkplain AvailObject instances} can
-	 *                  change.
+	 * @param mutability
+	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 */
-	public VariableUseNodeDescriptor (final boolean isMutable)
+	private VariableUseNodeDescriptor (final Mutability mutability)
 	{
-		super(isMutable);
+		super(mutability);
 	}
 
-	/**
-	 * The mutable {@link VariableUseNodeDescriptor}.
-	 */
+	/** The mutable {@link VariableUseNodeDescriptor}. */
 	private static final VariableUseNodeDescriptor mutable =
-		new VariableUseNodeDescriptor(true);
+		new VariableUseNodeDescriptor(Mutability.MUTABLE);
 
-	/**
-	 * Answer the mutable {@link VariableUseNodeDescriptor}.
-	 *
-	 * @return The mutable {@link VariableUseNodeDescriptor}.
-	 */
-	public static VariableUseNodeDescriptor mutable ()
+	@Override
+	VariableUseNodeDescriptor mutable ()
 	{
 		return mutable;
 	}
 
-	/**
-	 * The immutable {@link VariableUseNodeDescriptor}.
-	 */
-	private static final VariableUseNodeDescriptor immutable =
-		new VariableUseNodeDescriptor(false);
+	/** The shared {@link VariableUseNodeDescriptor}. */
+	private static final VariableUseNodeDescriptor shared =
+		new VariableUseNodeDescriptor(Mutability.IMMUTABLE);
 
-	/**
-	 * Answer the immutable {@link VariableUseNodeDescriptor}.
-	 *
-	 * @return The immutable {@link VariableUseNodeDescriptor}.
-	 */
-	public static VariableUseNodeDescriptor immutable ()
+	@Override
+	VariableUseNodeDescriptor shared ()
 	{
-		return immutable;
+		return shared;
 	}
 }

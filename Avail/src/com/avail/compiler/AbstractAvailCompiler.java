@@ -1,6 +1,6 @@
 /**
  * AbstractAvailCompiler.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith. All rights reserved.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -554,7 +554,8 @@ public abstract class AbstractAvailCompiler
 			for (final ExpectedToken value : values())
 			{
 				assert value.lexeme == null;
-				value.lexeme = StringDescriptor.from(value.lexemeString);
+				value.lexeme =
+					StringDescriptor.from(value.lexemeString).makeShared();
 			}
 		}
 	}
@@ -989,7 +990,7 @@ public abstract class AbstractAvailCompiler
 				"%s%n\tPOSITION = %d%n%s\tSCOPE_STACK = %s",
 				getClass().getSimpleName(),
 				position,
-				innermostBlockArguments.equals(NullDescriptor.nullObject())
+				innermostBlockArguments.equals(NilDescriptor.nil())
 					? ""
 					: ("\tINNERMOST_BLOCK_ARGUMENTS = "
 						+ innermostBlockArguments),
@@ -2029,7 +2030,7 @@ public abstract class AbstractAvailCompiler
 				module.addVariableBinding(
 					name,
 					var.makeImmutable());
-				if (!expression.initializationExpression().equalsNull())
+				if (!expression.initializationExpression().equalsNil())
 				{
 					final AvailObject decl =
 						DeclarationNodeDescriptor.newModuleVariable(
@@ -3103,7 +3104,7 @@ public abstract class AbstractAvailCompiler
 		final Mutable<Boolean> valid = new Mutable<Boolean>(true);
 		final AvailObject message = bundle.message();
 		final AvailObject method = interpreter.runtime().methodsAt(message);
-		assert !method.equalsNull();
+		assert !method.equalsNil();
 		final AvailObject definitionsTuple = method.definitionsTuple();
 		assert definitionsTuple.tupleSize() > 0;
 
@@ -3651,7 +3652,7 @@ public abstract class AbstractAvailCompiler
 		ParserState state = new ParserState(
 			0,
 			MapDescriptor.empty(),
-			NullDescriptor.nullObject());
+			NilDescriptor.nil());
 
 		// The module header must begin with either SYSTEM MODULE or MODULE,
 		// followed by the local name of the module.
@@ -3876,7 +3877,7 @@ public abstract class AbstractAvailCompiler
 		final ParserState startWithoutScope = new ParserState(
 			start.position,
 			MapDescriptor.empty(),
-			NullDescriptor.nullObject());
+			NilDescriptor.nil());
 		parseExpressionThen(startWithoutScope, new Con<AvailObject>(
 			"Evaluate expression")
 		{

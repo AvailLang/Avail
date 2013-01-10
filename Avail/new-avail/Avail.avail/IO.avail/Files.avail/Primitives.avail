@@ -1,6 +1,6 @@
 /*
  * Primitives.avail
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -514,8 +514,8 @@ Stable method "_is readable" is [f : file | false] : boolean;
 Method "_is readable" is [f : readable file | true];
 Stable method "_is writable" is [f : file | false] : boolean;
 Method "_is writable" is [f : writable file | true];
-Public stable method "_is open" is [f : file | f's open state];
-Public stable method "_is closed" is [f : file | ¬f's open state];
+Public method "_is open" is [f : file | f's open state];
+Public method "_is closed" is [f : file | ¬f's open state];
 
 Stable method "“_”" is
 [
@@ -835,7 +835,7 @@ Grammatical restriction "a|an_«with«_«:»?:=_‡,»»" is
 New test suite file primitives test suite extends I/O test suite;
 
 /* The test directory. */
-testDir ::= "new-avail/Avail.avail/IO.avail/Files.avail/test";
+testDir ::= test directory;
 
 Test "file name(exists)" in file primitives test suite is
 [

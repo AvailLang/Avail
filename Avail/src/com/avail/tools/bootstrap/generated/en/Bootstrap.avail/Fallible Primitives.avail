@@ -1,6 +1,6 @@
 /*
  * Fallible Primitives.avail
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -869,6 +869,25 @@ Primitive "Semantic restriction_is_" is
 	restriction : semantic restriction function
 |
 	Primitive 231 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode
+] : ⊤;
+
+/**
+ * Seal the named method at the specified signature. No further definitions
+ * may be added at or below this signature. This facility is provided to secure
+ * methods against dangerous, unscrupulous, or confusing extensions.
+ *
+ * Parameters:
+ *    methodName - The atom that uniquely designates the method to seal.
+ *    signature - A tuple of parameter types. This is the signature at which the
+ *       seal will be placed.
+ */
+Primitive "Seal method_at_" is
+[
+	methodName : atom,
+	signature : tuple of any meta
+|
+	Primitive 232 (failureCode : natural number);
 	Private invoke _fail_primitive with failureCode
 ] : ⊤;
 

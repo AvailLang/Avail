@@ -1,6 +1,6 @@
 /**
  * AbstractAvailObject.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,6 +41,7 @@ package com.avail.descriptor;
  * capability, and descriptor access.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
+ * @author Mark van Gulik &lt;todd@availlang.org&gt;
  */
 abstract class AbstractAvailObject
 {
@@ -94,7 +95,7 @@ abstract class AbstractAvailObject
 	 * semantics. The descriptor essentially says how this object should behave,
 	 * including how its fields are laid out.
 	 */
-	protected AbstractDescriptor descriptor;
+	protected volatile AbstractDescriptor descriptor;
 
 	/**
 	 * Answer the object's {@linkplain AbstractDescriptor descriptor}.
@@ -115,7 +116,7 @@ abstract class AbstractAvailObject
 	public final void destroy ()
 	{
 		// verifyToSpaceAddress();
-		descriptor = FillerDescriptor.mutable();
+		descriptor = FillerDescriptor.shared;
 	}
 
 	/**
@@ -128,30 +129,7 @@ abstract class AbstractAvailObject
 	final boolean isDestroyed ()
 	{
 		checkValidAddress();
-		return descriptor == FillerDescriptor.mutable();
-	}
-
-	/**
-	 * Answer the object's {@linkplain AbstractDescriptor descriptor}'s
-	 * {@linkplain AbstractDescriptor#id() id}.
-	 *
-	 * @return A {@code short} that identifies the descriptor.
-	 */
-	final short descriptorId ()
-	{
-		return descriptor.id();
-	}
-
-	/**
-	 * Set the object's {@linkplain AbstractDescriptor descriptor} by
-	 * {@linkplain AbstractDescriptor#id() id}.
-	 *
-	 * @param anInteger A {@code short} that identifies the new descriptor.
-	 */
-	final void descriptorId (final short anInteger)
-	{
-		descriptor = AbstractDescriptor.allDescriptors.get(anInteger);
-		checkValidAddress();
+		return descriptor == FillerDescriptor.shared;
 	}
 
 	/**
@@ -290,6 +268,55 @@ abstract class AbstractAvailObject
 		final int anInteger);
 
 	/**
+	 * Extract the (signed 32-bit) integer for the given field {@code enum}
+	 * value. If the receiver is {@linkplain Mutability#SHARED shared}, then
+	 * acquire its monitor.
+	 *
+	 * @param e An enumeration value that defines the field ordering.
+	 * @return An {@code int} extracted from this object.
+	 */
+	abstract int mutableSlot (final IntegerSlotsEnum e);
+
+	/**
+	 * Store the (signed 32-bit) integer in the four bytes starting at the
+	 * given field {@code enum} value. If the receiver is {@linkplain
+	 * Mutability#SHARED shared}, then acquire its monitor.
+	 *
+	 * @param e An enumeration value that defines the field ordering.
+	 * @param anInteger An {@code int} to store in the indicated slot.
+	 */
+	abstract void setMutableSlot (
+		final IntegerSlotsEnum e,
+		final int anInteger);
+
+	/**
+	 * Extract the (signed 32-bit) integer at the given field enum value. If the
+	 * receiver is {@linkplain Mutability#SHARED shared}, then acquire its
+	 * monitor.
+	 *
+	 * @param e An enumeration value that defines the field ordering.
+	 * @param subscript The positive one-based subscript to apply.
+	 * @return An {@code int} extracted from this object.
+	 */
+	abstract int mutableSlot (
+		final IntegerSlotsEnum e,
+		final int subscript);
+
+	/**
+	 * Store the (signed 32-bit) integer in the four bytes starting at the
+	 * given field {@code enum} value. If the receiver is {@linkplain
+	 * Mutability#SHARED shared}, then acquire its monitor.
+	 *
+	 * @param e An enumeration value that defines the field ordering.
+	 * @param subscript The positive one-based subscript to apply.
+	 * @param anInteger An {@code int} to store in the indicated slot.
+	 */
+	abstract void setMutableSlot (
+		final IntegerSlotsEnum e,
+		final int subscript,
+		final int anInteger);
+
+	/**
 	 * Answer the number of object slots in this {@link AvailObject}. All
 	 * variable object slots occur following the last fixed object slot.
 	 *
@@ -309,8 +336,8 @@ abstract class AbstractAvailObject
 	}
 
 	/**
-	 * Store the {@linkplain AvailObject object} in the receiver at the given
-	 * byte-index.
+	 * Extract the {@linkplain AvailObject object} at the specified slot of the
+	 * receiver.
 	 *
 	 * @param e An enumeration value that defines the field ordering.
 	 * @return The object found at the specified slot in the receiver.
@@ -349,6 +376,55 @@ abstract class AbstractAvailObject
 	 * @param anAvailObject The object to store at the specified slot.
 	 */
 	abstract void setSlot (
+		final ObjectSlotsEnum e,
+		final int subscript,
+		final AvailObject anAvailObject);
+
+	/**
+	 * Extract the {@linkplain AvailObject object} at the specified slot of the
+	 * receiver. If the receiver is {@linkplain Mutability#SHARED shared}, then
+	 * acquire its monitor.
+	 *
+	 * @param e An enumeration value that defines the field ordering.
+	 * @return The object found at the specified slot in the receiver.
+	 */
+	abstract AvailObject mutableSlot (final ObjectSlotsEnum e);
+
+	/**
+	 * Store the {@linkplain AvailObject object} in the specified slot of the
+	 * receiver. If the receiver is {@linkplain Mutability#SHARED shared}, then
+	 * acquire its monitor.
+	 *
+	 * @param e An enumeration value that defines the field ordering.
+	 * @param anAvailObject The object to store at the specified slot.
+	 */
+	abstract void setMutableSlot (
+		final ObjectSlotsEnum e,
+		final AvailObject anAvailObject);
+
+	/**
+	 * Extract the {@linkplain AvailObject object} at the specified slot of the
+	 * receiver. If the receiver is {@linkplain Mutability#SHARED shared}, then
+	 * acquire its monitor.
+	 *
+	 * @param e An enumeration value that defines the field ordering.
+	 * @param subscript The positive one-based subscript to apply.
+	 * @return The object found at the specified slot in the receiver.
+	 */
+	abstract AvailObject mutableSlot (
+		final ObjectSlotsEnum e,
+		final int subscript);
+
+	/**
+	 * Store the {@linkplain AvailObject object} in the specified slot of the
+	 * receiver. If the receiver is {@linkplain Mutability#SHARED shared}, then
+	 * acquire its monitor.
+	 *
+	 * @param e An enumeration value that defines the field ordering.
+	 * @param subscript The positive one-based subscript to apply.
+	 * @param anAvailObject The object to store at the specified slot.
+	 */
+	abstract void setMutableSlot (
 		final ObjectSlotsEnum e,
 		final int subscript,
 		final AvailObject anAvailObject);

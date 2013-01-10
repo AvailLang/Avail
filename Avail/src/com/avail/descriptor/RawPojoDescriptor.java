@@ -1,6 +1,6 @@
 /**
  * RawPojoDescriptor.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -168,8 +168,8 @@ extends Descriptor
 		assert pojosLock == null;
 		WeakPojoReference.recyclingQueue = new ReferenceQueue<AvailObject>();
 		pojosLock = new ReentrantLock();
-		rawObjectClass = equalityWrap(Object.class);
-		rawNullObject = identityWrap(null);
+		rawObjectClass = equalityWrap(Object.class).makeShared();
+		rawNullObject = identityWrap(null).makeShared();
 	}
 
 	/**
@@ -276,8 +276,7 @@ extends Descriptor
 	 * @param object An object.
 	 * @return A pojo.
 	 */
-	private static final Object getPojo (
-		final AvailObject object)
+	private static final Object getPojo (final AvailObject object)
 	{
 		pojosLock.lock();
 		try
@@ -294,9 +293,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_Equals (
-		final AvailObject object,
-		final AvailObject another)
+	boolean o_Equals (final AvailObject object, final AvailObject another)
 	{
 		return another.equalsRawPojo(object);
 	}
@@ -321,25 +318,33 @@ extends Descriptor
 		final AvailObject object,
 		final AvailObject aRawPojo)
 	{
-		final AvailObject keeper;
-		final AvailObject loser;
-		if (object.slot(INDEX) < aRawPojo.slot(INDEX))
+		pojosLock.lock();
+		try
 		{
-			keeper = object;
-			loser = aRawPojo;
+			final AvailObject keeper;
+			final AvailObject loser;
+			if (object.slot(INDEX) < aRawPojo.slot(INDEX))
+			{
+				keeper = object;
+				loser = aRawPojo;
+			}
+			else
+			{
+				keeper = aRawPojo;
+				loser = object;
+			}
+			final int index = loser.slot(INDEX);
+			allPojosStrongly.set(index, null);
+			final WeakPojoReference ref = allPojosWeakly.get(index);
+			ref.clear();
+			ref.enqueue();
+			loser.becomeIndirectionTo(keeper);
+			keeper.makeImmutable();
 		}
-		else
+		finally
 		{
-			keeper = aRawPojo;
-			loser = object;
+			pojosLock.unlock();
 		}
-		final int index = loser.slot(INDEX);
-		allPojosStrongly.set(index, null);
-		final WeakPojoReference ref = allPojosWeakly.get(index);
-		ref.clear();
-		ref.enqueue();
-		loser.becomeIndirectionTo(keeper);
-		keeper.makeImmutable();
 	}
 
 	@Override @AvailMethod
@@ -358,7 +363,8 @@ extends Descriptor
 				return false;
 			}
 
-			if (!object.sameAddressAs(aRawPojo))
+			if (!object.sameAddressAs(aRawPojo)
+				&& (!isShared() || !aRawPojo.descriptor.isShared()))
 			{
 				coalesce(object, aRawPojo);
 			}
@@ -398,10 +404,22 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_MakeImmutable (
-		final AvailObject object)
+	AvailObject o_MakeImmutable (final AvailObject object)
 	{
-		object.descriptor = immutable;
+		if (isMutable())
+		{
+			object.descriptor = immutable;
+		}
+		return object;
+	}
+
+	@Override @AvailMethod
+	AvailObject o_MakeShared (final AvailObject object)
+	{
+		if (!isShared())
+		{
+			object.descriptor = shared;
+		}
 		return object;
 	}
 
@@ -420,6 +438,9 @@ extends Descriptor
 		final List<AvailObject> recursionList,
 		final int indent)
 	{
+		// This is not a thread-safe read of the slot, but this method is just
+		// for debugging anyway, so don't bother acquiring the lock. Coherence
+		// isn't important here.
 		builder.append("raw pojo@");
 		builder.append(object.slot(INDEX));
 		builder.append(" = ");
@@ -429,32 +450,43 @@ extends Descriptor
 	/**
 	 * Construct a new {@link RawPojoDescriptor}.
 	 *
-	 * @param isMutable
-	 *        Does the {@linkplain AbstractDescriptor descriptor} represent a
-	 *        mutable object?
+	 * @param mutability
+	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 */
-	protected RawPojoDescriptor (final boolean isMutable)
+	protected RawPojoDescriptor (final Mutability mutability)
 	{
-		super(isMutable);
+		super(mutability);
 	}
 
 	/** The mutable {@link RawPojoDescriptor}. */
 	private static final RawPojoDescriptor mutable =
-		new RawPojoDescriptor(true);
+		new RawPojoDescriptor(Mutability.MUTABLE);
 
-	/**
-	 * Answer the mutable {@link RawPojoDescriptor}.
-	 *
-	 * @return The mutable {@code RawPojoDescriptor}.
-	 */
-	public static RawPojoDescriptor mutable ()
+	@Override
+	RawPojoDescriptor mutable ()
 	{
 		return mutable;
 	}
 
 	/** The immutable {@link RawPojoDescriptor}. */
 	private static final RawPojoDescriptor immutable =
-		new RawPojoDescriptor(false);
+		new RawPojoDescriptor(Mutability.IMMUTABLE);
+
+	@Override
+	RawPojoDescriptor immutable ()
+	{
+		return immutable;
+	}
+
+	/** The shared {@link RawPojoDescriptor}. */
+	private static final RawPojoDescriptor shared =
+		new RawPojoDescriptor(Mutability.SHARED);
+
+	@Override
+	RawPojoDescriptor shared ()
+	{
+		return shared;
+	}
 
 	/**
 	 * Create a new {@link AvailObject} that wraps the specified {@linkplain
@@ -510,6 +542,6 @@ extends Descriptor
 	 */
 	public static AvailObject equalityWrap (final Object pojo)
 	{
-		return wrap(pojo, EqualityRawPojoDescriptor.mutable());
+		return wrap(pojo, EqualityRawPojoDescriptor.mutable);
 	}
 }

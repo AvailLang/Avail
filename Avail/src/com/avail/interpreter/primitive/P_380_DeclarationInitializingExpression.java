@@ -1,6 +1,6 @@
 /**
  * P_380_DeclarationInitializingExpression.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -69,7 +69,7 @@ extends Primitive
 		final AvailObject var = args.get(1);
 		final AvailObject initializer = decl.initializationExpression();
 		boolean stored = false;
-		if (!initializer.equalsNull())
+		if (!initializer.equalsNil())
 		{
 			var.setValue(initializer);
 			stored = true;

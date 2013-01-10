@@ -1,6 +1,6 @@
 /**
  * FillerDescriptor.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,7 +38,7 @@ import java.util.List;
  * arbitrary size. It exists solely to occupy dead space during an object
  * traversal <em>(not implemented in Java as of 2010.11.17)</em>.
  */
-public class FillerDescriptor
+public final class FillerDescriptor
 extends Descriptor
 {
 	@Override
@@ -51,46 +51,36 @@ extends Descriptor
 		builder.append("(*** a destroyed object ***)");
 	}
 
-
 	/**
 	 * Construct a new {@link FillerDescriptor}.
 	 *
-	 * @param isMutable
-	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
-	 *        object?
+	 * @param mutability
+	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 */
-	protected FillerDescriptor (final boolean isMutable)
+	private FillerDescriptor (final Mutability mutability)
 	{
-		super(isMutable);
+		super(mutability);
 	}
 
-	/**
-	 * A mutable {@link FillerDescriptor}.
-	 */
-	final private static FillerDescriptor mutable = new FillerDescriptor(true);
+	/** A shared {@link FillerDescriptor}. */
+	final static FillerDescriptor shared =
+		new FillerDescriptor(Mutability.SHARED);
 
-	/**
-	 * Answer a mutable {@link FillerDescriptor}.
-	 *
-	 * @return A mutable {@link FillerDescriptor}.
-	 */
-	public static FillerDescriptor mutable ()
+	@Override
+	FillerDescriptor mutable ()
 	{
-		return mutable;
+		return shared;
 	}
 
-	/**
-	 * An immutable {@link FillerDescriptor}.
-	 */
-	final private static FillerDescriptor immutable = new FillerDescriptor(false);
-
-	/**
-	 * Answer an immutable {@link FillerDescriptor}.
-	 *
-	 * @return An immutable {@link FillerDescriptor}.
-	 */
-	public static FillerDescriptor immutable ()
+	@Override
+	FillerDescriptor immutable ()
 	{
-		return immutable;
+		return shared;
+	}
+
+	@Override
+	FillerDescriptor shared ()
+	{
+		return shared;
 	}
 }

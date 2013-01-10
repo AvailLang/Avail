@@ -32,6 +32,7 @@
 
 package com.avail.descriptor;
 
+import static com.avail.descriptor.Mutability.*;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
 import java.math.BigInteger;
@@ -48,6 +49,7 @@ import com.avail.descriptor.FiberDescriptor.ExecutionState;
 import com.avail.descriptor.SetDescriptor.SetIterator;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.exceptions.SignatureException;
+import com.avail.exceptions.UnsupportedOperationException;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Interpreter;
 import com.avail.serialization.SerializerOperation;
@@ -88,46 +90,59 @@ import com.avail.visitor.AvailSubobjectVisitor;
  * more tractable and less error prone.</p>
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public abstract class AbstractDescriptor
 {
-	/**
-	 * A unique short, monotonically allocated and set automatically by the
-	 * constructor.  It equals the {@linkplain AbstractDescriptor descriptor's}
-	 * index into {@link #allDescriptors}, which is also populated by the
-	 * constructor.
-	 */
-	final short myId;
+	/** The {@linkplain Mutability mutability} of my instances. */
+	final Mutability mutability;
 
 	/**
-	 * Answer a unique short, monotonically allocated and set automatically by
-	 * the constructor.  It equals the {@linkplain AbstractDescriptor
-	 * descriptor}'s index into {@link #allDescriptors}, which is also populated
-	 * by the constructor.
+	 * Are {@linkplain AvailObject objects} using this {@linkplain
+	 * AbstractDescriptor descriptor} {@linkplain Mutability#MUTABLE mutable}?
 	 *
-	 * @return The {@linkplain AbstractDescriptor descriptor}'s identifier.
-	 */
-	final short id ()
-	{
-		return myId;
-	}
-
-	/**
-	 * A flag indicating whether instances of me can be modified in place.
-	 * Generally, as soon as there are two references from {@linkplain AvailObject
-	 * Avail objects}.
-	 */
-	protected final boolean isMutable;
-
-	/**
-	 * Can instances of me be modified in place?
-	 *
-	 * @return {@code true} if it is permissible to modify the object in place,
-	 *         {@code false} otherwise.
+	 * @return {@code true} if the described object is mutable, {@code false}
+	 *         otherwise.
 	 */
 	public final boolean isMutable ()
 	{
-		return isMutable;
+		return mutability == MUTABLE;
+	}
+
+	/**
+	 * Answer the {@linkplain Mutability#MUTABLE mutable} version of this
+	 * {@linkplain AbstractDescriptor descriptor}.
+	 *
+	 * @return A mutable descriptor equivalent to the receiver.
+	 */
+	abstract AbstractDescriptor mutable ();
+
+	/**
+	 * Answer the {@linkplain Mutability#IMMUTABLE immutable} version of this
+	 * {@linkplain AbstractDescriptor descriptor}.
+	 *
+	 * @return An immutable descriptor equivalent to the receiver.
+	 */
+	abstract AbstractDescriptor immutable ();
+
+	/**
+	 * Answer the {@linkplain Mutability#SHARED shared} version of this
+	 * {@linkplain AbstractDescriptor descriptor}.
+	 *
+	 * @return A shared descriptor equivalent to the receiver.
+	 */
+	abstract AbstractDescriptor shared ();
+
+	/**
+	 * Are {@linkplain AvailObject objects} using this {@linkplain
+	 * AbstractDescriptor descriptor} {@linkplain Mutability#SHARED shared}?
+	 *
+	 * @return {@code true} if the described object is shared, {@code false}
+	 *         otherwise.
+	 */
+	public final boolean isShared ()
+	{
+		return mutability == SHARED;
 	}
 
 	/**
@@ -219,10 +234,6 @@ public abstract class AbstractDescriptor
 		return hasVariableIntegerSlots;
 	}
 
-	/** The registry of all {@linkplain AbstractDescriptor descriptors}. */
-	protected static final List<AbstractDescriptor> allDescriptors =
-		new ArrayList<AbstractDescriptor>(200);
-
 	/**
 	 * Note: This is a logical shift *without* Java's implicit modulus on the
 	 * shift amount.
@@ -307,16 +318,13 @@ public abstract class AbstractDescriptor
 	/**
 	 * Construct a new {@linkplain AbstractDescriptor descriptor}.
 	 *
-	 * @param isMutable Does the {@linkplain AbstractDescriptor descriptor}
-	 *                  represent a mutable object?
+	 * @param mutability
+	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 */
 	@SuppressWarnings("unchecked")
-	protected AbstractDescriptor (final boolean isMutable)
+	protected AbstractDescriptor (final Mutability mutability)
 	{
-		this.myId = (short) allDescriptors.size();
-		assert (this.myId % 2 == 0) == isMutable;
-		allDescriptors.add(this);
-		this.isMutable = isMutable;
+		this.mutability = mutability;
 
 		final Class<Descriptor> cls = (Class<Descriptor>) this.getClass();
 		final ClassLoader loader = cls.getClassLoader();
@@ -603,11 +611,16 @@ public abstract class AbstractDescriptor
 		}
 		builder.append(' ');
 		builder.append(shortenedName);
-		if (isMutable)
+		if (isMutable())
 		{
+			// Script capital M.
 			builder.append("\u2133");
 		}
-
+		else if (isShared())
+		{
+			// Mathematical S.
+			builder.append("\uD835\uDCAE");
+		}
 		final Class<Descriptor> cls = (Class<Descriptor>) this.getClass();
 		final ClassLoader loader = cls.getClassLoader();
 		Class<IntegerSlotsEnum> intEnumClass;
@@ -909,6 +922,36 @@ public abstract class AbstractDescriptor
 	}
 
 	/**
+	 * Answer a {@linkplain UnsupportedOperationException unsupported operation
+	 * exception} suitable to be thrown by the sender.  We don't throw it here,
+	 * since Java sadly has no way of indicating that a method <em>always</em>
+	 * throws an exception (i.e., doesn't return), forcing one to have to add
+	 * stupid dead statements like {@code return null;} after the
+	 * never-returning call.
+	 *
+	 * <p>
+	 * The exception indicates that the receiver does not meaningfully implement
+	 * the method that immediately invoked this.  This is a strong indication
+	 * that the wrong kind of object is being used somewhere.
+	 * </p>
+	 *
+	 * @return an UnsupportedOperationException suitable to be thrown.
+	 */
+	public UnsupportedOperationException unsupportedOperationException ()
+	{
+		final String callerName;
+		try
+		{
+			throw new Exception("just want the caller's frame");
+		}
+		catch (final Exception e)
+		{
+			callerName = e.getStackTrace()[1].getMethodName();
+		}
+		throw new UnsupportedOperationException(getClass(), callerName);
+	}
+
+	/**
 	 * Answer whether the {@linkplain AvailObject#argsTupleType() argument
 	 * types} supported by the specified {@linkplain FunctionTypeDescriptor
 	 * function type} are acceptable argument types for invoking a {@linkplain
@@ -1165,14 +1208,6 @@ public abstract class AbstractDescriptor
 	 * @param value
 	 */
 	abstract void o_BinSize (AvailObject object, int value);
-
-	/**
-	 * @param object
-	 * @param value
-	 */
-	abstract void o_BinUnionTypeOrNull (
-		AvailObject object,
-		AvailObject value);
 
 	/**
 	 * @param object
@@ -1649,14 +1684,6 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param value
-	 */
-	abstract void o_Hash (
-		AvailObject object,
-		int value);
-
-	/**
-	 * @param object
 	 * @param startIndex
 	 * @param endIndex
 	 * @return
@@ -1738,6 +1765,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @param aBoolean
 	 */
+	@Deprecated
 	abstract void o_IsSaved (
 		AvailObject object,
 		boolean aBoolean);
@@ -2482,19 +2510,13 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param value
+	 * @param chunk
+	 * @param countdown
 	 */
-	abstract void o_Start (
+	abstract void o_SetStartingChunkAndReoptimizationCountdown (
 		AvailObject object,
-		int value);
-
-	/**
-	 * @param object
-	 * @param value
-	 */
-	abstract void o_StartingChunk (
-		AvailObject object,
-		AvailObject value);
+		AvailObject chunk,
+		int countdown);
 
 	/**
 	 * @param object
@@ -2513,14 +2535,6 @@ public abstract class AbstractDescriptor
 	abstract int o_StartSubtupleIndexInZone (
 		AvailObject object,
 		int zone);
-
-	/**
-	 * @param object
-	 * @param value
-	 */
-	abstract void o_String (
-		AvailObject object,
-		AvailObject value);
 
 	/**
 	 * Difference the {@linkplain AvailObject operands} and answer the result.
@@ -2611,14 +2625,6 @@ public abstract class AbstractDescriptor
 		AvailObject object,
 		AvailObject aNumber,
 		boolean canDestroy);
-
-	/**
-	 * @param object
-	 * @param value
-	 */
-	abstract void o_TokenType (
-		AvailObject object,
-		TokenDescriptor.TokenType value);
 
 	/**
 	 * @param object
@@ -3122,12 +3128,6 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @return
-	 */
-	abstract int o_ParsingPc (AvailObject object);
-
-	/**
-	 * @param object
 	 */
 	abstract void o_DisplayTestingTree (AvailObject object);
 
@@ -3269,7 +3269,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	abstract int o_InvocationCount (AvailObject object);
+	abstract int o_CountdownToReoptimize (AvailObject object);
 
 	/**
 	 * @param object
@@ -3317,6 +3317,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
+	@Deprecated
 	abstract boolean o_IsSaved (AvailObject object);
 
 	/**
@@ -3622,12 +3623,6 @@ public abstract class AbstractDescriptor
 	 * @return
 	 */
 	abstract AvailObject o_TypeTuple (AvailObject object);
-
-	/**
-	 * @param object
-	 * @return
-	 */
-	abstract AvailObject o_Unclassified (AvailObject object);
 
 	/**
 	 * @param object
@@ -4090,7 +4085,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	abstract boolean o_EqualsNull (AvailObject object);
+	abstract boolean o_EqualsNil (AvailObject object);
 
 	/**
 	 * @param object
@@ -4118,6 +4113,17 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 */
 	abstract void o_MakeSubobjectsImmutable (AvailObject object);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract AvailObject o_MakeShared (AvailObject object);
+
+	/**
+	 * @param object
+	 */
+	abstract void o_MakeSubobjectsShared (AvailObject object);
 
 	/**
 	 * @param object
@@ -4290,12 +4296,6 @@ public abstract class AbstractDescriptor
 	abstract int o_BinSize (AvailObject object);
 
 	/**
-	 * @param object
-	 * @return
-	 */
-	abstract AvailObject o_BinUnionTypeOrNull (AvailObject object);
-
-	/**
 	 * Is the specified {@link AvailObject} an Avail tuple?
 	 *
 	 * @see AvailObject#isTuple()
@@ -4386,25 +4386,9 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param expression
-	 */
-	abstract void o_Expression (
-		AvailObject object,
-		AvailObject expression);
-
-	/**
-	 * @param object
 	 * @return
 	 */
 	abstract AvailObject o_Expression (AvailObject object);
-
-	/**
-	 * @param object
-	 * @param variable
-	 */
-	abstract void o_Variable (
-		AvailObject object,
-		AvailObject variable);
 
 	/**
 	 * @param object
@@ -4634,13 +4618,6 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param statementsTuple
-	 */
-	abstract void o_Statements (
-		AvailObject object, AvailObject statementsTuple);
-
-	/**
-	 * @param object
 	 * @return
 	 */
 	abstract AvailObject o_Statements (
@@ -4656,21 +4633,9 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param value
-	 */
-	abstract void o_LineNumber (AvailObject object, int value);
-
-	/**
-	 * @param object
 	 * @return
 	 */
 	abstract int o_LineNumber (AvailObject object);
-
-	/**
-	 * @param object
-	 * @return
-	 */
-	abstract AvailObject o_AllBundles (AvailObject object);
 
 	/**
 	 * @param object
@@ -4697,13 +4662,6 @@ public abstract class AbstractDescriptor
 	 * @return
 	 */
 	abstract AvailObject o_Incomplete (
-		AvailObject object);
-
-	/**
-	 * @param object
-	 * @return
-	 */
-	abstract AvailObject o_Actions (
 		AvailObject object);
 
 	/**
@@ -5802,4 +5760,12 @@ public abstract class AbstractDescriptor
 	 * @return
 	 */
 	abstract boolean o_IsByteArrayTuple (final AvailObject object);
+
+	/**
+	 * @param object
+	 * @param critical
+	 */
+	abstract void o_Lock (
+		final AvailObject object,
+		final Continuation0 critical);
 }

@@ -1,6 +1,6 @@
 /**
  * MessageBundleTreeDescriptor.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -68,6 +68,7 @@ import com.avail.compiler.*;
  * </p>
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public class MessageBundleTreeDescriptor
 extends Descriptor
@@ -75,13 +76,14 @@ extends Descriptor
 	/**
 	 * The layout of integer slots for my instances.
 	 */
-	public enum IntegerSlots implements IntegerSlotsEnum
+	public enum IntegerSlots
+	implements IntegerSlotsEnum
 	{
 		/**
 		 * The subscript into the {@linkplain TupleDescriptor tuple} of encoded
-		 * parsing instructions.  These instructions are produced by the {@link
+		 * parsing instructions. These instructions are produced by the {@link
 		 * MessageSplitter} as a way to interpret the tokens, underscores, and
-		 * guillemet expressions of a method name.  There may be multiple
+		 * guillemet expressions of a method name. There may be multiple
 		 * potential method invocations being parsed <em>together</em> at this
 		 * position in the message bundle tree, but the parsing instructions
 		 * that have been encountered so far along this history must be the same
@@ -100,15 +102,16 @@ extends Descriptor
 	/**
 	 * The layout of object slots for my instances.
 	 */
-	public enum ObjectSlots implements ObjectSlotsEnum
+	public enum ObjectSlots
+	implements ObjectSlotsEnum
 	{
 		/**
 		 * A {@linkplain MapDescriptor map} from {@linkplain AtomDescriptor
 		 * atoms} that name methods to the {@linkplain MessageBundleDescriptor
-		 * message bundles} that assist with their parsing.  In particular, any
+		 * message bundles} that assist with their parsing. In particular, any
 		 * {@linkplain MessageBundleTreeDescriptor message bundle tree}
 		 * represents the current state of collective parsing of an invocation
-		 * of one or more thus far equivalent methods.  This is the collection
+		 * of one or more thus far equivalent methods. This is the collection
 		 * of such methods.
 		 */
 		ALL_BUNDLES,
@@ -116,9 +119,9 @@ extends Descriptor
 		/**
 		 * A {@linkplain MapDescriptor map} from {@linkplain AtomDescriptor
 		 * atoms} that name methods to the {@linkplain MessageBundleDescriptor
-		 * message bundles} that assist with their parsing.  In particular,
+		 * message bundles} that assist with their parsing. In particular,
 		 * these are methods that have not yet been categorized as complete,
-		 * incomplete, action, or prefilter.  They are categorized if and when
+		 * incomplete, action, or prefilter. They are categorized if and when
 		 * this message bundle tree is reached during parsing.
 		 */
 		UNCLASSIFIED,
@@ -126,7 +129,7 @@ extends Descriptor
 		/**
 		 * A {@linkplain MapDescriptor map} from {@linkplain AtomDescriptor
 		 * atoms} that name methods to the {@linkplain MessageBundleDescriptor
-		 * message bundles} that assist with their parsing.  In particular,
+		 * message bundles} that assist with their parsing. In particular,
 		 * these are methods for which an invocation has just been completely
 		 * parsed.
 		 */
@@ -177,7 +180,7 @@ extends Descriptor
 		 * This is a map from instruction (an {@linkplain IntegerDescriptor
 		 * integer}) to the (non-empty) tuple of {@linkplain
 		 * MessageBundleTreeDescriptor message bundle trees} to attempt if the
-		 * instruction succeeds.  Attempt each possible instruction, proceeding
+		 * instruction succeeds. Attempt each possible instruction, proceeding
 		 * to each of the successor trees if the instruction succeeds.
 		 *
 		 * <p>Note that the {@link ParsingOperation#parsePart} and {@link
@@ -250,59 +253,12 @@ extends Descriptor
 		LAZY_PREFILTER_MAP
 	}
 
-	@Override @AvailMethod
-	int o_ParsingPc (final AvailObject object)
-	{
-		return object.slot(PARSING_PC);
-	}
-
-	@Override @AvailMethod
-	AvailObject o_AllBundles (final AvailObject object)
-	{
-		return object.slot(ALL_BUNDLES);
-	}
-
-	@Override @AvailMethod
-	AvailObject o_Unclassified (final AvailObject object)
-	{
-		return object.slot(UNCLASSIFIED);
-	}
-
-	@Override @AvailMethod
-	AvailObject o_LazyComplete (final AvailObject object)
-	{
-		return object.slot(LAZY_COMPLETE);
-	}
-
-	@Override @AvailMethod
-	AvailObject o_LazyIncomplete (final AvailObject object)
-	{
-		return object.slot(LAZY_INCOMPLETE);
-	}
-
-	@Override @AvailMethod
-	AvailObject o_LazyIncompleteCaseInsensitive (
-		final AvailObject object)
-	{
-		return object.slot(LAZY_INCOMPLETE_CASE_INSENSITIVE);
-	}
-
-	@Override @AvailMethod
-	AvailObject o_LazyActions (final AvailObject object)
-	{
-		return object.slot(LAZY_ACTIONS);
-	}
-
-	@Override @AvailMethod
-	AvailObject o_LazyPrefilterMap (final AvailObject object)
-	{
-		return object.slot(LAZY_PREFILTER_MAP);
-	}
-
-	@Override boolean allowsImmutableToMutableReferenceInField (
+	@Override
+	boolean allowsImmutableToMutableReferenceInField (
 		final AbstractSlotsEnum e)
 	{
-		return e == LAZY_COMPLETE
+		return e == HASH_OR_ZERO
+			|| e == LAZY_COMPLETE
 			|| e == LAZY_INCOMPLETE
 			|| e == LAZY_INCOMPLETE_CASE_INSENSITIVE
 			|| e == LAZY_ACTIONS
@@ -311,25 +267,70 @@ extends Descriptor
 			|| e == ALL_BUNDLES;
 	}
 
-	/**
-	 * Make the object immutable so it can be shared safely.  If I was mutable I
-	 * have to scan my children and make them immutable as well (recursively
-	 * down to immutable descendants).
-	 */
 	@Override @AvailMethod
-	AvailObject o_MakeImmutable (
-		final AvailObject object)
+	AvailObject o_LazyComplete (final AvailObject object)
 	{
-		object.descriptor = immutable();
-		// Don't bother scanning subobjects. They're allowed to be mutable even
-		// when object is immutable.
+		assert isShared();
+		synchronized (object)
+		{
+			return object.slot(LAZY_COMPLETE);
+		}
+	}
+
+	@Override @AvailMethod
+	AvailObject o_LazyIncomplete (final AvailObject object)
+	{
+		assert isShared();
+		synchronized (object)
+		{
+			return object.slot(LAZY_INCOMPLETE);
+		}
+	}
+
+	@Override @AvailMethod
+	AvailObject o_LazyIncompleteCaseInsensitive (final AvailObject object)
+	{
+		assert isShared();
+		synchronized (object)
+		{
+			return object.slot(LAZY_INCOMPLETE_CASE_INSENSITIVE);
+		}
+	}
+
+	@Override @AvailMethod
+	AvailObject o_LazyActions (final AvailObject object)
+	{
+		assert isShared();
+		synchronized (object)
+		{
+			return object.slot(LAZY_ACTIONS);
+		}
+	}
+
+	@Override @AvailMethod
+	AvailObject o_LazyPrefilterMap (final AvailObject object)
+	{
+		assert isShared();
+		synchronized (object)
+		{
+			return object.slot(LAZY_PREFILTER_MAP);
+		}
+	}
+
+	@Override @AvailMethod
+	AvailObject o_MakeImmutable (final AvailObject object)
+	{
+		if (isMutable())
+		{
+			// Never actually make a message bundle tree immutable. They are
+			// always shared.
+			return object.makeShared();
+		}
 		return object;
 	}
 
 	@Override @AvailMethod
-	boolean o_Equals (
-		final AvailObject object,
-		final AvailObject another)
+	boolean o_Equals (final AvailObject object, final AvailObject another)
 	{
 		return another.traversed().sameAddressAs(object);
 	}
@@ -337,17 +338,21 @@ extends Descriptor
 	@Override @AvailMethod
 	int o_Hash (final AvailObject object)
 	{
-		int hash = object.slot(HASH_OR_ZERO);
-		if (hash == 0)
+		assert isShared();
+		synchronized (object)
 		{
-			do
+			int hash = object.slot(HASH_OR_ZERO);
+			if (hash == 0)
 			{
-				hash = AvailRuntime.nextHash();
+				do
+				{
+					hash = AvailRuntime.nextHash();
+				}
+				while (hash == 0);
+				object.setSlot(HASH_OR_ZERO, hash);
 			}
-			while (hash == 0);
-			object.setSlot(HASH_OR_ZERO, hash);
+			return hash;
 		}
-		return hash;
 	}
 
 	@Override @AvailMethod
@@ -359,22 +364,21 @@ extends Descriptor
 	@Override @AvailMethod
 	AvailObject o_Complete (final AvailObject object)
 	{
-		object.expand();
-		return object.lazyComplete();
+		synchronized (object)
+		{
+			object.expand();
+			return object.slot(LAZY_COMPLETE);
+		}
 	}
 
 	@Override @AvailMethod
 	AvailObject o_Incomplete (final AvailObject object)
 	{
-		object.expand();
-		return object.lazyIncomplete();
-	}
-
-	@Override @AvailMethod
-	AvailObject o_Actions (final AvailObject object)
-	{
-		object.expand();
-		return object.lazyActions();
+		synchronized (object)
+		{
+			object.expand();
+			return object.slot(LAZY_INCOMPLETE);
+		}
 	}
 
 	/**
@@ -386,23 +390,26 @@ extends Descriptor
 		final AvailObject message,
 		final AvailObject bundle)
 	{
-		AvailObject allBundles = object.slot(ALL_BUNDLES);
-		allBundles = allBundles.mapAtPuttingCanDestroy(
-			message,
-			bundle,
-			true);
-		object.setSlot(ALL_BUNDLES, allBundles);
-		AvailObject unclassified = object.unclassified();
-		assert !unclassified.hasKey(message);
-		unclassified = unclassified.mapAtPuttingCanDestroy(
-			message,
-			bundle,
-			true);
-		object.setSlot(UNCLASSIFIED, unclassified);
+		synchronized (object)
+		{
+			AvailObject allBundles = object.slot(ALL_BUNDLES);
+			allBundles = allBundles.mapAtPuttingCanDestroy(
+				message,
+				bundle,
+				true);
+			object.setSlot(ALL_BUNDLES, allBundles.traversed().makeShared());
+			AvailObject unclassified = object.slot(UNCLASSIFIED);
+			assert !unclassified.hasKey(message);
+			unclassified = unclassified.mapAtPuttingCanDestroy(
+				message,
+				bundle,
+				true);
+			object.setSlot(UNCLASSIFIED, unclassified.traversed().makeShared());
+		}
 	}
 
 	/**
-	 * Copy the visible message bundles to the filteredBundleTree.  The Avail
+	 * Copy the visible message bundles to the filteredBundleTree. The Avail
 	 * {@linkplain SetDescriptor set} of visible names ({@linkplain
 	 * AtomDescriptor atoms}) is in {@code visibleNames}.
 	 */
@@ -412,62 +419,70 @@ extends Descriptor
 		final AvailObject filteredBundleTree,
 		final AvailObject visibleNames)
 	{
-		assert object.parsingPc() == 1;
-		assert filteredBundleTree.parsingPc() == 1;
-
-		AvailObject filteredAllBundles = filteredBundleTree.allBundles();
-		AvailObject filteredUnclassified = filteredBundleTree.unclassified();
-		for (final MapDescriptor.Entry entry
-			: object.slot(ALL_BUNDLES).mapIterable())
+		synchronized (object)
 		{
-			final AvailObject message = entry.key;
-			final AvailObject bundle = entry.value;
-			if (visibleNames.hasElement(message)
-				&& !filteredAllBundles.hasKey(message))
+			assert object.slot(PARSING_PC) == 1;
+			final AvailObject filtered = filteredBundleTree.traversed();
+			assert filtered.slot(PARSING_PC) == 1;
+			AvailObject filteredAllBundles = filtered.slot(ALL_BUNDLES);
+			AvailObject filteredUnclassified = filtered.slot(UNCLASSIFIED);
+			for (final MapDescriptor.Entry entry
+				: object.slot(ALL_BUNDLES).mapIterable())
 			{
-				filteredAllBundles =
-					filteredAllBundles.mapAtPuttingCanDestroy(
-						message,
-						bundle,
-						true);
-				filteredUnclassified =
-					filteredUnclassified.mapAtPuttingCanDestroy(
-						message,
-						bundle,
-						true);
+				final AvailObject message = entry.key;
+				final AvailObject bundle = entry.value;
+				if (visibleNames.hasElement(message)
+					&& !filteredAllBundles.hasKey(message))
+				{
+					filteredAllBundles =
+						filteredAllBundles.mapAtPuttingCanDestroy(
+							message,
+							bundle,
+							true);
+					filteredUnclassified =
+						filteredUnclassified.mapAtPuttingCanDestroy(
+							message,
+							bundle,
+							true);
+				}
 			}
+			filtered.setSlot(
+				ALL_BUNDLES, filteredAllBundles.traversed().makeShared());
+			filtered.setSlot(
+				UNCLASSIFIED, filteredUnclassified.traversed().makeShared());
 		}
-		filteredBundleTree.setSlot(ALL_BUNDLES, filteredAllBundles);
-		filteredBundleTree.setSlot(UNCLASSIFIED, filteredUnclassified);
 	}
 
 	/**
 	 * If there isn't one already, add a bundle to correspond to the given
-	 * message.  Answer the new or existing bundle.
+	 * message. Answer the new or existing bundle.
 	 */
 	@Override @AvailMethod
 	AvailObject o_IncludeBundle (
 		final AvailObject object,
 		final AvailObject newBundle)
 	{
-		final AvailObject message = newBundle.message();
-		AvailObject allBundles = object.slot(ALL_BUNDLES);
-		if (allBundles.hasKey(message))
+		synchronized (object)
 		{
-			return allBundles.mapAt(message);
+			final AvailObject message = newBundle.message();
+			AvailObject allBundles = object.slot(ALL_BUNDLES);
+			if (allBundles.hasKey(message))
+			{
+				return allBundles.mapAt(message);
+			}
+			allBundles = allBundles.mapAtPuttingCanDestroy(
+				message,
+				newBundle,
+				true);
+			object.setSlot(ALL_BUNDLES, allBundles.traversed().makeShared());
+			AvailObject unclassified = object.slot(UNCLASSIFIED);
+			unclassified = unclassified.mapAtPuttingCanDestroy(
+				message,
+				newBundle,
+				true);
+			object.setSlot(UNCLASSIFIED, unclassified.traversed().makeShared());
+			return newBundle;
 		}
-		allBundles = allBundles.mapAtPuttingCanDestroy(
-			message,
-			newBundle,
-			true);
-		object.setSlot(ALL_BUNDLES, allBundles);
-		AvailObject unclassified = object.slot(UNCLASSIFIED);
-		unclassified = unclassified.mapAtPuttingCanDestroy(
-			message,
-			newBundle,
-			true);
-		object.setSlot(UNCLASSIFIED, unclassified);
-		return newBundle;
 	}
 
 	/**
@@ -475,41 +490,42 @@ extends Descriptor
 	 * Answer true if this tree is now empty and should be removed.
 	 */
 	@Override @AvailMethod
-	boolean o_RemoveBundle (
-		final AvailObject object,
-		final AvailObject bundle)
+	boolean o_RemoveBundle (final AvailObject object, final AvailObject bundle)
 	{
-		AvailObject allBundles = object.slot(ALL_BUNDLES);
-		final AvailObject message = bundle.message();
-		if (allBundles.hasKey(message))
+		synchronized (object)
 		{
-			allBundles = allBundles.mapWithoutKeyCanDestroy(
-				message,
-				true);
-			object.setSlot(ALL_BUNDLES, allBundles);
-			AvailObject unclassified = object.unclassified();
-			if (unclassified.hasKey(message))
+			AvailObject allBundles = object.slot(ALL_BUNDLES);
+			final AvailObject message = bundle.message();
+			if (allBundles.hasKey(message))
 			{
-				// Easy to do.
-				unclassified = unclassified.mapWithoutKeyCanDestroy(
+				allBundles = allBundles.mapWithoutKeyCanDestroy(
 					message,
-					true);
+					true).traversed().makeShared();
+				object.setSlot(ALL_BUNDLES, allBundles);
+				AvailObject unclassified = object.slot(UNCLASSIFIED);
+				if (unclassified.hasKey(message))
+				{
+					// Easy to do.
+					unclassified = unclassified.mapWithoutKeyCanDestroy(
+						message,
+						true).traversed().makeShared();
+				}
+				else
+				{
+					// Not so easy -- just clear everything.
+					object.setSlot(LAZY_COMPLETE, MapDescriptor.empty());
+					object.setSlot(LAZY_INCOMPLETE, MapDescriptor.empty());
+					object.setSlot(
+						LAZY_INCOMPLETE_CASE_INSENSITIVE,
+						MapDescriptor.empty());
+					object.setSlot(LAZY_ACTIONS, MapDescriptor.empty());
+					object.setSlot(LAZY_PREFILTER_MAP, MapDescriptor.empty());
+					unclassified = allBundles;
+				}
+				object.setSlot(UNCLASSIFIED, unclassified);
 			}
-			else
-			{
-				// Not so easy -- just clear everything.
-				object.setSlot(LAZY_COMPLETE, MapDescriptor.empty());
-				object.setSlot(LAZY_INCOMPLETE, MapDescriptor.empty());
-				object.setSlot(
-					LAZY_INCOMPLETE_CASE_INSENSITIVE, MapDescriptor.empty());
-				object.setSlot(LAZY_ACTIONS, MapDescriptor.empty());
-				object.setSlot(LAZY_PREFILTER_MAP, MapDescriptor.empty());
-				allBundles.makeImmutable();
-				unclassified = allBundles;
-			}
-			object.setSlot(UNCLASSIFIED, unclassified);
+			return allBundles.mapSize() == 0;
 		}
-		return allBundles.mapSize() == 0;
 	}
 
 
@@ -519,193 +535,203 @@ extends Descriptor
 	@Override @AvailMethod
 	void o_Expand (final AvailObject object)
 	{
-		final AvailObject unclassified = object.slot(UNCLASSIFIED);
-		if (unclassified.mapSize() == 0)
+		synchronized (object)
 		{
-			return;
-		}
-		AvailObject complete = object.slot(LAZY_COMPLETE);
-		AvailObject incomplete = object.slot(LAZY_INCOMPLETE);
-		AvailObject caseInsensitive =
-			object.slot(LAZY_INCOMPLETE_CASE_INSENSITIVE);
-		AvailObject actionMap = object.slot(LAZY_ACTIONS);
-		AvailObject prefilterMap = object.slot(LAZY_PREFILTER_MAP);
-		final int pc = object.slot(PARSING_PC);
-		// Fail fast if someone messes with this during iteration.
-		object.setSlot(UNCLASSIFIED, NullDescriptor.nullObject());
-		for (final MapDescriptor.Entry entry : unclassified.mapIterable())
-		{
-			final AvailObject message = entry.key;
-			final AvailObject bundle = entry.value;
-			final AvailObject instructions = bundle.parsingInstructions();
-			if (pc == instructions.tupleSize() + 1)
+			final AvailObject unclassified = object.slot(UNCLASSIFIED);
+			if (unclassified.mapSize() == 0)
 			{
-				complete = complete.mapAtPuttingCanDestroy(
-					message,
-					bundle,
-					true);
+				return;
 			}
-			else
+			AvailObject complete = object.slot(LAZY_COMPLETE);
+			AvailObject incomplete = object.slot(LAZY_INCOMPLETE);
+			AvailObject caseInsensitive =
+				object.slot(LAZY_INCOMPLETE_CASE_INSENSITIVE);
+			AvailObject actionMap = object.slot(LAZY_ACTIONS);
+			AvailObject prefilterMap = object.slot(LAZY_PREFILTER_MAP);
+			final int pc = object.slot(PARSING_PC);
+			// Fail fast if someone messes with this during iteration.
+			object.setSlot(UNCLASSIFIED, NilDescriptor.nil());
+			for (final MapDescriptor.Entry entry : unclassified.mapIterable())
 			{
-				final int instruction = instructions.tupleIntAt(pc);
-				final ParsingOperation op =
-					ParsingOperation.decode(instruction);
-				final int keywordIndex = op.keywordIndex(instruction);
-				if (keywordIndex != 0)
+				final AvailObject message = entry.key;
+				final AvailObject bundle = entry.value;
+				final AvailObject instructions = bundle.parsingInstructions();
+				if (pc == instructions.tupleSize() + 1)
 				{
-					// It's either a parsePart or parsePartCaseInsensitive
-					// instruction.
-					AvailObject subtree;
-					final AvailObject part = bundle.messageParts().tupleAt(
-						keywordIndex);
-					AvailObject map;
-					if (op == parsePart)
-					{
-						map = incomplete;
-					}
-					else
-					{
-						assert op == parsePartCaseInsensitive;
-						map = caseInsensitive;
-					}
-					if (map.hasKey(part))
-					{
-						subtree = map.mapAt(part);
-					}
-					else
-					{
-						subtree = newPc(pc + 1);
-						map = map.mapAtPuttingCanDestroy(
-							part,
-							subtree,
-							true);
-					}
-					if (op == parsePart)
-					{
-						incomplete = map;
-					}
-					else
-					{
-						assert op == parsePartCaseInsensitive;
-						caseInsensitive = map;
-					}
-					subtree.includeBundle(bundle);
+					complete = complete.mapAtPuttingCanDestroy(
+						message,
+						bundle,
+						true);
 				}
 				else
 				{
-					final AvailObject instructionObject =
-						IntegerDescriptor.fromInt(instruction);
-					final List<Integer> nextPcs =
-						op.successorPcs(instruction, pc);
-					final int checkArgumentIndex =
-						op.checkArgumentIndex(instruction);
-					if (checkArgumentIndex > 0)
+					final int instruction = instructions.tupleIntAt(pc);
+					final ParsingOperation op =
+						ParsingOperation.decode(instruction);
+					final int keywordIndex = op.keywordIndex(instruction);
+					if (keywordIndex != 0)
 					{
-						// It's a checkArgument instruction.
-						assert nextPcs.size() == 1;
-						assert nextPcs.get(0) == pc + 1;
-						// Add it to the action map.
-						final AvailObject successor;
-						if (actionMap.hasKey(instructionObject))
+						// It's either a parsePart or parsePartCaseInsensitive
+						// instruction.
+						AvailObject subtree;
+						final AvailObject part = bundle.messageParts().tupleAt(
+							keywordIndex);
+						AvailObject map;
+						if (op == parsePart)
 						{
-							final AvailObject successors =
-								actionMap.mapAt(instructionObject);
-							assert successors.tupleSize() == 1;
-							successor = successors.tupleAt(1);
+							map = incomplete;
 						}
 						else
 						{
-							successor = newPc(pc + 1);
-							actionMap = actionMap.mapAtPuttingCanDestroy(
-								instructionObject,
-								TupleDescriptor.from(successor),
+							assert op == parsePartCaseInsensitive;
+							map = caseInsensitive;
+						}
+						if (map.hasKey(part))
+						{
+							subtree = map.mapAt(part);
+						}
+						else
+						{
+							subtree = newPc(pc + 1);
+							map = map.mapAtPuttingCanDestroy(
+								part,
+								subtree,
 								true);
 						}
-						final AvailObject restrictionSet =
-							bundle.grammaticalRestrictions().tupleAt(
-								checkArgumentIndex);
-						// Add it to every existing branch where it's permitted.
-						for (final MapDescriptor.Entry prefilterEntry
-								: prefilterMap.mapIterable())
+						if (op == parsePart)
 						{
-							if (!restrictionSet.hasElement(prefilterEntry.key))
-							{
-								prefilterEntry.value.includeBundle(bundle);
-							}
+							incomplete = map;
 						}
-						// Add branches for any new restrictions.  Pre-populate
-						// with every bundle present thus far, since none of
-						// them had this restriction.
-						for (final AvailObject restriction : restrictionSet)
+						else
 						{
-							if (!prefilterMap.hasKey(restriction))
-							{
-								final AvailObject newTarget = newPc(pc + 1);
-								// Be careful.  We can't add ALL_BUNDLES, since
-								// it may contain some bundles that are still
-								// UNCLASSIFIED.  Instead, use ALL_BUNDLES of
-								// the successor found under this instruction,
-								// since it *has* been kept up to date as the
-								// bundles have gotten classified.
-								for (final MapDescriptor.Entry existingEntry
-									: successor.allBundles().mapIterable())
-								{
-									newTarget.includeBundle(
-										existingEntry.value);
-								}
-								prefilterMap =
-									prefilterMap.mapAtPuttingCanDestroy(
-										restriction,
-										newTarget,
-										true);
-							}
+							assert op == parsePartCaseInsensitive;
+							caseInsensitive = map;
 						}
-						// Finally, add it to the action map.  This had to be
-						// postponed, since we didn't want to add it under any
-						// new restrictions, and the actionMap is what gets
-						// visited to populate new restrictions.
-						successor.includeBundle(bundle);
+						subtree.includeBundle(bundle);
 					}
 					else
 					{
-						// It's an ordinary parsing instruction.
-						AvailObject successors;
-						if (actionMap.hasKey(instructionObject))
+						final AvailObject instructionObject =
+							IntegerDescriptor.fromInt(instruction);
+						final List<Integer> nextPcs =
+							op.successorPcs(instruction, pc);
+						final int checkArgumentIndex =
+							op.checkArgumentIndex(instruction);
+						if (checkArgumentIndex > 0)
 						{
-							successors = actionMap.mapAt(instructionObject);
+							// It's a checkArgument instruction.
+							assert nextPcs.size() == 1;
+							assert nextPcs.get(0) == pc + 1;
+							// Add it to the action map.
+							final AvailObject successor;
+							if (actionMap.hasKey(instructionObject))
+							{
+								final AvailObject successors =
+									actionMap.mapAt(instructionObject);
+								assert successors.tupleSize() == 1;
+								successor = successors.tupleAt(1).traversed();
+							}
+							else
+							{
+								successor = newPc(pc + 1);
+								actionMap = actionMap.mapAtPuttingCanDestroy(
+									instructionObject,
+									TupleDescriptor.from(successor),
+									true);
+							}
+							final AvailObject restrictionSet =
+								bundle.grammaticalRestrictions().tupleAt(
+									checkArgumentIndex);
+							// Add it to every existing branch where it's
+							// permitted.
+							for (final MapDescriptor.Entry prefilterEntry
+									: prefilterMap.mapIterable())
+							{
+								if (!restrictionSet.hasElement(
+									prefilterEntry.key))
+								{
+									prefilterEntry.value.includeBundle(bundle);
+								}
+							}
+							// Add branches for any new restrictions.
+							// Pre-populate with every bundle present thus far,
+							// since none of them had this restriction.
+							for (final AvailObject restriction : restrictionSet)
+							{
+								if (!prefilterMap.hasKey(restriction))
+								{
+									final AvailObject newTarget = newPc(pc + 1);
+									// Be careful.  We can't add ALL_BUNDLES,
+									// since it may contain some bundles that
+									// are still UNCLASSIFIED. Instead, use
+									// ALL_BUNDLES of the successor found under
+									// this instruction, since it *has* been
+									// kept up to date as the bundles have
+									// gotten classified.
+									for (final MapDescriptor.Entry existingEntry
+										: successor
+											.slot(ALL_BUNDLES).mapIterable())
+									{
+										newTarget.includeBundle(
+											existingEntry.value);
+									}
+									prefilterMap =
+										prefilterMap.mapAtPuttingCanDestroy(
+											restriction,
+											newTarget,
+											true);
+								}
+							}
+							// Finally, add it to the action map. This had to be
+							// postponed, since we didn't want to add it under
+							// any new restrictions, and the actionMap is what
+							// gets visited to populate new restrictions.
+							successor.includeBundle(bundle);
 						}
 						else
 						{
-							final List<AvailObject> successorsList =
-								new ArrayList<AvailObject>(nextPcs.size());
-							for (final int nextPc : nextPcs)
+							// It's an ordinary parsing instruction.
+							AvailObject successors;
+							if (actionMap.hasKey(instructionObject))
 							{
-								successorsList.add(newPc(nextPc));
+								successors = actionMap.mapAt(instructionObject);
 							}
-							successors = TupleDescriptor.fromList(
-								successorsList);
-							actionMap = actionMap.mapAtPuttingCanDestroy(
-								instructionObject,
-								successors,
-								true);
-						}
-						assert successors.tupleSize() == nextPcs.size();
-						for (final AvailObject successor : successors)
-						{
-							successor.includeBundle(bundle);
+							else
+							{
+								final List<AvailObject> successorsList =
+									new ArrayList<AvailObject>(nextPcs.size());
+								for (final int nextPc : nextPcs)
+								{
+									successorsList.add(newPc(nextPc));
+								}
+								successors = TupleDescriptor.fromList(
+									successorsList);
+								actionMap = actionMap.mapAtPuttingCanDestroy(
+									instructionObject,
+									successors,
+									true);
+							}
+							assert successors.tupleSize() == nextPcs.size();
+							for (final AvailObject successor : successors)
+							{
+								successor.includeBundle(bundle);
+							}
 						}
 					}
 				}
 			}
+			object.setSlot(UNCLASSIFIED, MapDescriptor.empty());
+			object.setSlot(LAZY_COMPLETE, complete.traversed().makeShared());
+			object.setSlot(
+				LAZY_INCOMPLETE, incomplete.traversed().makeShared());
+			object.setSlot(
+				LAZY_INCOMPLETE_CASE_INSENSITIVE,
+				caseInsensitive.traversed().makeShared());
+			object.setSlot(LAZY_ACTIONS, actionMap.traversed().makeShared());
+			object.setSlot(
+				LAZY_PREFILTER_MAP, prefilterMap.traversed().makeShared());
 		}
-		object.setSlot(UNCLASSIFIED, MapDescriptor.empty());
-		object.setSlot(LAZY_COMPLETE, complete);
-		object.setSlot(LAZY_INCOMPLETE, incomplete);
-		object.setSlot(LAZY_INCOMPLETE_CASE_INSENSITIVE, caseInsensitive);
-		object.setSlot(LAZY_ACTIONS, actionMap);
-		object.setSlot(LAZY_PREFILTER_MAP, prefilterMap);
 	}
-
 
 	/**
 	 * Create a new empty message bundle tree.
@@ -715,7 +741,7 @@ extends Descriptor
 	 */
 	public static AvailObject newPc (final int pc)
 	{
-		final AvailObject result = mutable().create();
+		final AvailObject result = mutable.create();
 		result.setSlot(PARSING_PC, pc);
 		result.setSlot(HASH_OR_ZERO, 0);
 		result.setSlot(ALL_BUNDLES, MapDescriptor.empty());
@@ -725,51 +751,45 @@ extends Descriptor
 		result.setSlot(LAZY_INCOMPLETE_CASE_INSENSITIVE, MapDescriptor.empty());
 		result.setSlot(LAZY_ACTIONS, MapDescriptor.empty());
 		result.setSlot(LAZY_PREFILTER_MAP, MapDescriptor.empty());
-		result.makeImmutable();
+		result.makeShared();
 		return result;
 	}
 
 	/**
 	 * Construct a new {@link MessageBundleTreeDescriptor}.
 	 *
-	 * @param isMutable
-	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
-	 *        object?
+	 * @param mutability
+	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 */
-	private MessageBundleTreeDescriptor (final boolean isMutable)
+	private MessageBundleTreeDescriptor (final Mutability mutability)
 	{
-		super(isMutable);
+		super(mutability);
 	}
 
-	/**
-	 * The mutable {@link MessageBundleTreeDescriptor}.
-	 */
+	/** The mutable {@link MessageBundleTreeDescriptor}. */
 	private static final MessageBundleTreeDescriptor mutable =
-		new MessageBundleTreeDescriptor(true);
+		new MessageBundleTreeDescriptor(Mutability.MUTABLE);
 
-	/**
-	 * Answer the mutable {@link MessageBundleTreeDescriptor}.
-	 *
-	 * @return The mutable {@link MessageBundleTreeDescriptor}.
-	 */
-	public static MessageBundleTreeDescriptor mutable ()
+	@Override
+	MessageBundleTreeDescriptor mutable ()
 	{
 		return mutable;
 	}
 
-	/**
-	 * The immutable {@link MessageBundleTreeDescriptor}.
-	 */
-	private static final MessageBundleTreeDescriptor immutable =
-		new MessageBundleTreeDescriptor(false);
+	/** The shared {@link MessageBundleTreeDescriptor}. */
+	private static final MessageBundleTreeDescriptor shared =
+		new MessageBundleTreeDescriptor(Mutability.SHARED);
 
-	/**
-	 * Answer the immutable {@link MessageBundleTreeDescriptor}.
-	 *
-	 * @return The immutable {@link MessageBundleTreeDescriptor}.
-	 */
-	public static MessageBundleTreeDescriptor immutable ()
+	@Override
+	MessageBundleTreeDescriptor immutable ()
 	{
-		return immutable;
+		// There is no immutable descriptor. Use the shared one.
+		return shared;
+	}
+
+	@Override
+	MessageBundleTreeDescriptor shared ()
+	{
+		return shared;
 	}
 }

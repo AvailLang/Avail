@@ -1,6 +1,6 @@
 /**
  * MessageBundleDescriptor.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,7 +39,7 @@ import com.avail.compiler.MessageSplitter;
 import com.avail.exceptions.SignatureException;
 
 /**
- *
+ * TODO: [MvG] Document this!
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
@@ -49,7 +49,8 @@ extends Descriptor
 	/**
 	 * The layout of object slots for my instances.
 	 */
-	public enum ObjectSlots implements ObjectSlotsEnum
+	public enum ObjectSlots
+	implements ObjectSlotsEnum
 	{
 		/**
 		 * An {@linkplain AtomDescriptor atom} which is the "true name" of this
@@ -59,23 +60,23 @@ extends Descriptor
 
 		/**
 		 * The tuple of {@linkplain StringDescriptor strings} comprising the
-		 * method name's tokens.  These tokens may be a single operator
+		 * method name's tokens. These tokens may be a single operator
 		 * character, a sequence of alphanumerics, the underscore "_", an open
 		 * guillemet "«", a close guillemet "»", the double-dagger "‡", the
-		 * ellipsis "…", or any backquoted character "`x".  Some of the parsing
+		 * ellipsis "…", or any backquoted character "`x". Some of the parsing
 		 * instructions index this tuple (e.g., to represent parsing a
-		 * particular keyword).  This tuple is produced by the {@link
+		 * particular keyword). This tuple is produced by the {@link
 		 * MessageSplitter}.
 		 */
 		MESSAGE_PARTS,
 
 		/**
 		 * A tuple of sets, one for each underscore that occurs in the method
-		 * name.  The sets contain {@linkplain AtomDescriptor atoms} that name
+		 * name. The sets contain {@linkplain AtomDescriptor atoms} that name
 		 * methods that must not directly occur at the corresponding argument
-		 * position when parsing this method.  If such a method invocation does
+		 * position when parsing this method. If such a method invocation does
 		 * occur in that argument position, that parse tree is simply eliminated
-		 * as malformed.  This allows the grammar to be specified by its
+		 * as malformed. This allows the grammar to be specified by its
 		 * negative space, a <em>much</em> more powerful (and modular) concept
 		 * than the traditional specification of the positive space of the
 		 * grammar.
@@ -84,19 +85,31 @@ extends Descriptor
 
 		/**
 		 * A tuple of integers that describe how to parse an invocation of this
-		 * method.  The integers encode parsing instructions, many of which can
+		 * method. The integers encode parsing instructions, many of which can
 		 * be executed en masse against a piece of Avail source code for
-		 * multiple potential methods.  This is facilitated by the incremental
+		 * multiple potential methods. This is facilitated by the incremental
 		 * construction of a {@linkplain MessageBundleTreeDescriptor message
-		 * bundle tree}.  The instructions are produced during analysis of the
+		 * bundle tree}. The instructions are produced during analysis of the
 		 * method name by the {@link MessageSplitter}, which has a description
 		 * of the complete instruction set.
 		 */
 		PARSING_INSTRUCTIONS
 	}
 
-	@Override @AvailMethod
-	void o_AddGrammaticalRestrictions (
+	@Override boolean allowsImmutableToMutableReferenceInField (
+		final AbstractSlotsEnum e)
+	{
+		return e == ObjectSlots.GRAMMATICAL_RESTRICTIONS;
+	}
+
+	/**
+	 * Add a set of grammatical restrictions to the specified {@linkplain
+	 * MessageBundleDescriptor object}.
+	 *
+	 * @param object An object.
+	 * @param restrictions Some restrictions.
+	 */
+	private void addGrammaticalRestrictions  (
 		final AvailObject object,
 		final AvailObject restrictions)
 	{
@@ -112,11 +125,39 @@ extends Descriptor
 					true),
 				true);
 		}
+		if (isShared())
+		{
+			merged = merged.traversed().makeShared();
+		}
 		object.setSlot(ObjectSlots.GRAMMATICAL_RESTRICTIONS, merged);
 	}
 
 	@Override @AvailMethod
-	void o_RemoveGrammaticalRestrictions (
+	void o_AddGrammaticalRestrictions (
+		final AvailObject object,
+		final AvailObject restrictions)
+	{
+		if (isShared())
+		{
+			synchronized (object)
+			{
+				addGrammaticalRestrictions(object, restrictions);
+			}
+		}
+		else
+		{
+			addGrammaticalRestrictions(object, restrictions);
+		}
+	}
+
+	/**
+	 * Remove a set of grammatical restrictions from the specified {@linkplain
+	 * MessageBundleDescriptor object}.
+	 *
+	 * @param object An object.
+	 * @param obsoleteRestrictions Some restrictions.
+	 */
+	private void removeGrammaticalRestrictions  (
 		final AvailObject object,
 		final AvailObject obsoleteRestrictions)
 	{
@@ -131,15 +172,36 @@ extends Descriptor
 					true),
 				true);
 		}
+		if (isShared())
+		{
+			reduced = reduced.traversed().makeShared();
+		}
 		object.setSlot(ObjectSlots.GRAMMATICAL_RESTRICTIONS, reduced);
 	}
 
 	@Override @AvailMethod
-	boolean o_HasGrammaticalRestrictions (
-		final AvailObject object)
+	void o_RemoveGrammaticalRestrictions (
+		final AvailObject object,
+		final AvailObject obsoleteRestrictions)
+	{
+		if (isShared())
+		{
+			synchronized (object)
+			{
+				removeGrammaticalRestrictions(object, obsoleteRestrictions);
+			}
+		}
+		else
+		{
+			removeGrammaticalRestrictions(object, obsoleteRestrictions);
+		}
+	}
+
+	@Override @AvailMethod
+	boolean o_HasGrammaticalRestrictions (final AvailObject object)
 	{
 		final AvailObject restrictions =
-			object.slot(ObjectSlots.GRAMMATICAL_RESTRICTIONS);
+			object.mutableSlot(ObjectSlots.GRAMMATICAL_RESTRICTIONS);
 		for (final AvailObject setForArgument : restrictions)
 		{
 			if (setForArgument.setSize() > 0)
@@ -151,37 +213,27 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_GrammaticalRestrictions (
-		final AvailObject object)
+	AvailObject o_GrammaticalRestrictions (final AvailObject object)
 	{
-		return object.slot(ObjectSlots.GRAMMATICAL_RESTRICTIONS);
+		return object.mutableSlot(ObjectSlots.GRAMMATICAL_RESTRICTIONS);
 	}
 
 	@Override @AvailMethod
-	AvailObject o_Message (
-		final AvailObject object)
+	AvailObject o_Message (final AvailObject object)
 	{
 		return object.slot(ObjectSlots.MESSAGE);
 	}
 
 	@Override @AvailMethod
-	AvailObject o_MessageParts (
-		final AvailObject object)
+	AvailObject o_MessageParts (final AvailObject object)
 	{
 		return object.slot(ObjectSlots.MESSAGE_PARTS);
 	}
 
 	@Override @AvailMethod
-	AvailObject o_ParsingInstructions (
-		final AvailObject object)
+	AvailObject o_ParsingInstructions (final AvailObject object)
 	{
 		return object.slot(ObjectSlots.PARSING_INSTRUCTIONS);
-	}
-
-	@Override boolean allowsImmutableToMutableReferenceInField (
-		final AbstractSlotsEnum e)
-	{
-		return e == ObjectSlots.GRAMMATICAL_RESTRICTIONS;
 	}
 
 	@Override
@@ -194,40 +246,31 @@ extends Descriptor
 		// The existing definitions are also printed in parentheses to help
 		// distinguish polymorphism from occurrences of non-polymorphic
 		// homonyms.
-		if (isMutable)
-		{
-			aStream.append("(mut)");
-		}
 		aStream.append("bundle\"");
 		aStream.append(object.message().name().asNativeString());
 		aStream.append("\"");
 	}
 
 	@Override @AvailMethod
-	boolean o_Equals (
-		final AvailObject object,
-		final AvailObject another)
+	boolean o_Equals (final AvailObject object, final AvailObject another)
 	{
 		return another.traversed().sameAddressAs(object);
 	}
 
 	@Override @AvailMethod
-	int o_Hash (
-		final AvailObject object)
+	int o_Hash (final AvailObject object)
 	{
 		return object.message().hash() ^ 0x312CAB9;
 	}
 
 	@Override @AvailMethod
-	AvailObject o_Kind (
-		final AvailObject object)
+	AvailObject o_Kind (final AvailObject object)
 	{
 		return MESSAGE_BUNDLE.o();
 	}
 
-
 	/**
-	 * A list of tuples whose elements are all the empty set.  Subscript N is an
+	 * A list of tuples whose elements are all the empty set. Subscript N is an
 	 * immutable tuple of size N whose elements are all the empty set.
 	 */
 	static List<AvailObject> tuplesOfEmptySets;
@@ -247,7 +290,7 @@ extends Descriptor
 			final AvailObject newTuple = lastTuple.appendCanDestroy(
 				SetDescriptor.empty(),
 				true);
-			newTuple.makeImmutable();
+			newTuple.makeShared();
 			tuplesOfEmptySets.add(newTuple);
 		}
 		return tuplesOfEmptySets.get(size);
@@ -278,66 +321,62 @@ extends Descriptor
 	 * @return A new {@linkplain MessageBundleDescriptor message bundle}.
 	 * @throws SignatureException If the message name is malformed.
 	 */
-	public static AvailObject newBundle (
-		final AvailObject message)
-	throws SignatureException
+	public static AvailObject newBundle (final AvailObject message)
+		throws SignatureException
 	{
 		assert message.isAtom();
 		final MessageSplitter splitter = new MessageSplitter(message.name());
-		final AvailObject restrictions = tupleOfEmptySetsOfSize(
-			splitter.numberOfUnderscores());
-		final AvailObject result = mutable().create();
+		final AvailObject result = mutable.create();
 		result.setSlot(ObjectSlots.MESSAGE, message);
 		result.setSlot(ObjectSlots.MESSAGE_PARTS, splitter.messageParts());
-		result.setSlot(ObjectSlots.GRAMMATICAL_RESTRICTIONS, restrictions);
+		result.setSlot(
+			ObjectSlots.GRAMMATICAL_RESTRICTIONS,
+			tupleOfEmptySetsOfSize(splitter.numberOfUnderscores()));
 		result.setSlot(
 			ObjectSlots.PARSING_INSTRUCTIONS,
 			splitter.instructionsTuple());
-		result.makeImmutable();
+		result.makeShared();
 		return result;
 	}
 
 	/**
 	 * Construct a new {@link MessageBundleDescriptor}.
 	 *
-	 * @param isMutable
-	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
-	 *        object?
+	 * @param mutability
+	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 */
-	protected MessageBundleDescriptor (final boolean isMutable)
+	private MessageBundleDescriptor (final Mutability mutability)
 	{
-		super(isMutable);
+		super(mutability);
 	}
 
-	/**
-	 * The mutable {@link MessageBundleDescriptor}.
-	 */
+	/** The mutable {@link MessageBundleDescriptor}. */
 	private static final MessageBundleDescriptor mutable =
-		new MessageBundleDescriptor(true);
+		new MessageBundleDescriptor(Mutability.MUTABLE);
 
-	/**
-	 * Answer the mutable {@link MessageBundleDescriptor}.
-	 *
-	 * @return The mutable {@link MessageBundleDescriptor}.
-	 */
-	public static MessageBundleDescriptor mutable ()
+	@Override
+	MessageBundleDescriptor mutable ()
 	{
 		return mutable;
 	}
 
-	/**
-	 * The immutable {@link MessageBundleDescriptor}.
-	 */
+	/** The immutable {@link MessageBundleDescriptor}. */
 	private static final MessageBundleDescriptor immutable =
-		new MessageBundleDescriptor(false);
+		new MessageBundleDescriptor(Mutability.IMMUTABLE);
 
-	/**
-	 * Answer the immutable {@link MessageBundleDescriptor}.
-	 *
-	 * @return The immutable {@link MessageBundleDescriptor}.
-	 */
-	public static MessageBundleDescriptor immutable ()
+	@Override
+	MessageBundleDescriptor immutable ()
 	{
 		return immutable;
+	}
+
+	/** The shared {@link MessageBundleDescriptor}. */
+	private static final MessageBundleDescriptor shared =
+		new MessageBundleDescriptor(Mutability.SHARED);
+
+	@Override
+	MessageBundleDescriptor shared ()
+	{
+		return shared;
 	}
 }

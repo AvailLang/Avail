@@ -1,6 +1,6 @@
 /**
  * TypeDescriptor.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -90,17 +90,17 @@ extends AbstractTypeDescriptor
 		 * not accidentally used as procedures – and to ensure that the reader
 		 * of the code knows it.
 		 */
-		TOP(null, TopTypeDescriptor.mutable()),
+		TOP(null, TopTypeDescriptor.mutable),
 
 		/**
 		 * This is the second-most general type in Avail's type lattice.  It is
 		 * the only direct descendant of {@linkplain #TOP top (⊤)}, and all
 		 * types except ⊤ are subtypes of it.  Like ⊤, all Avail objects are
-		 * instances of {@code ANY}.  Technically there is also a {@linkplain
-		 * NullDescriptor#nullObject() null object}, but that is only used
-		 * internally by the Avail machinery (e.g., the value of an unassigned
-		 * {@linkplain VariableDescriptor variable}) and can never be
-		 * manipulated by an Avail program.
+		 * instances of {@code ANY}. Technically there is also a {@linkplain
+		 * NilDescriptor#nil() nil}, but that is only used internally by the
+		 * Avail machinery (e.g., the value of an unassigned {@linkplain
+		 * VariableDescriptor variable}) and can never be manipulated by an
+		 * Avail program.
 		 */
 		ANY(TOP),
 
@@ -298,7 +298,7 @@ extends AbstractTypeDescriptor
 		 */
 		Types (final @Nullable Types parent)
 		{
-			this(parent, PrimitiveTypeDescriptor.mutable());
+			this(parent, PrimitiveTypeDescriptor.mutable);
 		}
 
 		/**
@@ -948,7 +948,7 @@ extends AbstractTypeDescriptor
 			final AvailObject o = spec.o();
 			o.parent(
 				spec.parent == null
-					 ? NullDescriptor.nullObject()
+					 ? NilDescriptor.nil()
 					: spec.parent.o());
 			final boolean[] row = new boolean [Types.values().length];
 			supertypeTable[spec.ordinal()] = row;
@@ -959,9 +959,10 @@ extends AbstractTypeDescriptor
 				pointer = pointer.parent;
 			}
 		}
+		// Now make all the objects shared.
 		for (final Types spec : Types.values())
 		{
-			spec.o().makeImmutable();
+			spec.o().makeShared();
 		}
 		// Sanity check them for metacovariance: a<=b -> a.type<=b.type
 		for (final Types spec : Types.values())
@@ -989,12 +990,11 @@ extends AbstractTypeDescriptor
 	/**
 	 * Construct a new {@link TypeDescriptor}.
 	 *
-	 * @param isMutable
-	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
-	 *        object?
+	 * @param mutability
+	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 */
-	protected TypeDescriptor (final boolean isMutable)
+	protected TypeDescriptor (final Mutability mutability)
 	{
-		super(isMutable);
+		super(mutability);
 	}
 }

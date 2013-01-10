@@ -1,6 +1,6 @@
 /**
  * AvailSystemCompiler.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -344,7 +344,7 @@ extends AbstractAvailCompiler
 						new Mutable<AvailObject>();
 					final AvailObject declaration = varUse.declaration();
 					boolean ok = false;
-					if (declaration.equalsNull())
+					if (declaration.equalsNil())
 					{
 						start.expected("variable to have been declared");
 					}
@@ -1671,7 +1671,7 @@ extends AbstractAvailCompiler
 
 						final AvailObject declaration = var.declaration();
 						String suffix = null;
-						if (declaration.equalsNull())
+						if (declaration.equalsNil())
 						{
 							suffix = " to have been declared";
 						}
@@ -1884,7 +1884,7 @@ extends AbstractAvailCompiler
 				DeclarationNodeDescriptor.newModuleVariable(
 					token,
 					variableObject,
-					NullDescriptor.nullObject());
+					NilDescriptor.nil());
 			final AvailObject varUse = VariableUseNodeDescriptor.newUse(
 				token,
 				moduleVarDecl);
@@ -1899,7 +1899,7 @@ extends AbstractAvailCompiler
 				DeclarationNodeDescriptor.newModuleConstant(
 					token,
 					variableObject,
-					NullDescriptor.nullObject());
+					NilDescriptor.nil());
 			final AvailObject varUse = VariableUseNodeDescriptor.newUse(
 				token,
 				moduleConstDecl);

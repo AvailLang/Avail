@@ -1,6 +1,6 @@
 /**
  * ByteTupleDescriptor.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,6 +33,7 @@
 package com.avail.descriptor;
 
 import static com.avail.descriptor.AvailObject.multiplier;
+import static com.avail.descriptor.Mutability.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static java.lang.Math.*;
 import com.avail.annotations.*;
@@ -105,9 +106,11 @@ extends TupleDescriptor
 		{
 			return true;
 		}
-		//  Compare actual bytes.
-		int index2 = startIndex2;
-		for (int index1 = startIndex1; index1 <= endIndex1; index1++, index2++)
+		// Compare actual bytes.
+		for (
+			int index1 = startIndex1, index2 = startIndex2;
+			index1 <= endIndex1;
+			index1++, index2++)
 		{
 			if (object.rawByteAt(index1) != aByteTuple.rawByteAt(index2))
 			{
@@ -151,12 +154,19 @@ extends TupleDescriptor
 		{
 			return false;
 		}
-		// They're equal (but occupy disjoint storage).  Replace one with an
-		// indirection to the other to keep down the frequency of byte-wise
-		// comparisons.
-		object.becomeIndirectionTo(aByteTuple);
-		// There are now at least two references to it.
-		aByteTuple.makeImmutable();
+		// They're equal (but occupy disjoint storage). If possible, then
+		// replace one with an indirection to the other to keep down the
+		// frequency of byte-wise comparisons.
+		if (!isShared())
+		{
+			aByteTuple.makeImmutable();
+			object.becomeIndirectionTo(aByteTuple);
+		}
+		else if (!aByteTuple.descriptor.isShared())
+		{
+			object.makeImmutable();
+			aByteTuple.becomeIndirectionTo(object);
+		}
 		return true;
 	}
 
@@ -210,14 +220,21 @@ extends TupleDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_MakeImmutable (
-		final AvailObject object)
+	AvailObject o_MakeImmutable (final AvailObject object)
 	{
-		//  Make the object immutable so it can be shared safely.
-
-		if (isMutable)
+		if (isMutable())
 		{
-			object.descriptor = isMutableSize(false, object.tupleSize());
+			object.descriptor = descriptorFor(IMMUTABLE, object.tupleSize());
+		}
+		return object;
+	}
+
+	@Override @AvailMethod
+	AvailObject o_MakeShared (final AvailObject object)
+	{
+		if (!isShared())
+		{
+			object.descriptor = descriptorFor(SHARED, object.tupleSize());
 		}
 		return object;
 	}
@@ -286,7 +303,7 @@ extends TupleDescriptor
 				newValueObject,
 				true);
 		}
-		if (!canDestroy || !isMutable)
+		if (!canDestroy || !isMutable())
 		{
 			return copyAsMutableByteTuple(object).tupleAtPuttingCanDestroy(
 				index,
@@ -325,7 +342,6 @@ extends TupleDescriptor
 		final int end)
 	{
 		// See comment in superclass. This method must produce the same value.
-
 		int hash = 0;
 		for (int index = end; index >= start; index--)
 		{
@@ -360,69 +376,95 @@ extends TupleDescriptor
 	}
 
 	@Override @AvailMethod
-	int o_TupleSize (
-		final AvailObject object)
+	int o_TupleSize (final AvailObject object)
 	{
 		return object.variableIntegerSlotsCount() * 4 - unusedBytesOfLastWord;
 	}
 
 	/**
-	 * Build a mutable {@linkplain ByteTupleDescriptor byte tuple} with room for the
-	 * specified number of elements.
+	 * Construct a new {@link ByteTupleDescriptor}.
+	 *
+	 * @param mutability
+	 *        The {@linkplain Mutability mutability} of the new descriptor.
+	 * @param unusedBytes
+	 *        The number of unused bytes of the last word.
+	 */
+	private ByteTupleDescriptor (
+		final Mutability mutability,
+		final int unusedBytes)
+	{
+		super(mutability);
+		unusedBytesOfLastWord = unusedBytes;
+	}
+
+	/** The {@link ByteTupleDescriptor} instances. */
+	private static final ByteTupleDescriptor[] descriptors =
+	{
+		new ByteTupleDescriptor(MUTABLE, 0),
+		new ByteTupleDescriptor(IMMUTABLE, 0),
+		new ByteTupleDescriptor(SHARED, 0),
+		new ByteTupleDescriptor(MUTABLE, 3),
+		new ByteTupleDescriptor(IMMUTABLE, 3),
+		new ByteTupleDescriptor(SHARED, 3),
+		new ByteTupleDescriptor(MUTABLE, 2),
+		new ByteTupleDescriptor(IMMUTABLE, 2),
+		new ByteTupleDescriptor(SHARED, 2),
+		new ByteTupleDescriptor(MUTABLE, 1),
+		new ByteTupleDescriptor(IMMUTABLE, 1),
+		new ByteTupleDescriptor(SHARED, 1)
+	};
+
+	@Override
+	ByteTupleDescriptor mutable ()
+	{
+		return descriptors[
+			((4 - unusedBytesOfLastWord) & 3) * 3 + MUTABLE.ordinal()];
+	}
+
+	@Override
+	ByteTupleDescriptor immutable ()
+	{
+		return descriptors[
+			((4 - unusedBytesOfLastWord) & 3) * 3 + IMMUTABLE.ordinal()];
+	}
+
+	@Override
+	ByteTupleDescriptor shared ()
+	{
+		return descriptors[
+			((4 - unusedBytesOfLastWord) & 3) * 3 + SHARED.ordinal()];
+	}
+
+	/**
+	 * Answer the appropriate {@linkplain ByteTupleDescriptor descriptor} to
+	 * represent an {@linkplain AvailObject object} of the specified mutability
+	 * and size.
+	 *
+	 * @param flag
+	 *        The {@linkplain Mutability mutability} of the new descriptor.
+	 * @param size
+	 *        The desired number of elements.
+	 * @return A {@linkplain ByteTupleDescriptor descriptor}.
+	 */
+	private static ByteTupleDescriptor descriptorFor (
+		final Mutability flag,
+		final int size)
+	{
+		final int delta = flag.ordinal();
+		return descriptors[(size & 3) * 3 + delta];
+	}
+
+	/**
+	 * Build a mutable {@linkplain ByteTupleDescriptor byte tuple} with room for
+	 * the specified number of elements.
 	 *
 	 * @param size The number of bytes in the resulting tuple.
 	 * @return A byte tuple with the specified number of bytes (initially zero).
 	 */
-	public static AvailObject mutableObjectOfSize (
-		final int size)
+	public static AvailObject mutableObjectOfSize (final int size)
 	{
-		final ByteTupleDescriptor descriptor = isMutableSize(true, size);
+		final ByteTupleDescriptor descriptor = descriptorFor(MUTABLE, size);
 		assert (size + descriptor.unusedBytesOfLastWord & 3) == 0;
 		return descriptor.create(size + 3 >> 2);
 	}
-
-	/**
-	 * Obtain the {@link ByteTupleDescriptor} that corresponds to the specified
-	 * mutability flag and size.
-	 *
-	 * @param flag {@code true} if the desired descriptor is mutable.
-	 * @param size The number of bytes in conformant tuples.
-	 * @return A {@code ByteTupleDescriptor}.
-	 */
-	private static ByteTupleDescriptor isMutableSize (
-		final boolean flag,
-		final int size)
-	{
-		final int delta = flag ? 0 : 1;
-		return descriptors[delta + (size & 3) * 2];
-	}
-
-	/**
-	 * Construct a new {@link ByteTupleDescriptor}.
-	 *
-	 * @param isMutable
-	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
-	 *        object?
-	 * @param unusedBytes The number of unused bytes of the last word.
-	 */
-	protected ByteTupleDescriptor (
-		final boolean isMutable,
-		final int unusedBytes)
-	{
-		super(isMutable);
-		unusedBytesOfLastWord = unusedBytes;
-	}
-
-	/** {@link ByteTupleDescriptor}s corresponding to different sizes. */
-	private static final ByteTupleDescriptor[] descriptors =
-	{
-		new ByteTupleDescriptor(true, 0),
-		new ByteTupleDescriptor(false, 0),
-		new ByteTupleDescriptor(true, 3),
-		new ByteTupleDescriptor(false, 3),
-		new ByteTupleDescriptor(true, 2),
-		new ByteTupleDescriptor(false, 2),
-		new ByteTupleDescriptor(true, 1),
-		new ByteTupleDescriptor(false, 1)
-	};
 }

@@ -1,6 +1,6 @@
 /**
  * FunctionDescriptor.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -52,7 +52,8 @@ extends Descriptor
 	/**
 	 * The layout of object slots for my instances.
 	 */
-	public enum ObjectSlots implements ObjectSlotsEnum
+	public enum ObjectSlots
+	implements ObjectSlotsEnum
 	{
 		/** The {@linkplain CompiledCodeDescriptor compiled code}. */
 		CODE,
@@ -62,17 +63,13 @@ extends Descriptor
 	}
 
 	@Override
-	void o_Code (
-		final AvailObject object,
-		final AvailObject value)
+	void o_Code (final AvailObject object, final AvailObject value)
 	{
 		object.setSlot(ObjectSlots.CODE, value);
 	}
 
 	@Override
-	AvailObject o_OuterVarAt (
-		final AvailObject object,
-		final int subscript)
+	AvailObject o_OuterVarAt (final AvailObject object, final int subscript)
 	{
 		return object.slot(ObjectSlots.OUTER_VAR_AT_, subscript);
 	}
@@ -87,8 +84,7 @@ extends Descriptor
 	}
 
 	@Override
-	AvailObject o_Code (
-		final AvailObject object)
+	AvailObject o_Code (final AvailObject object)
 	{
 		return object.slot(ObjectSlots.CODE);
 	}
@@ -100,7 +96,7 @@ extends Descriptor
 		final List<AvailObject> recursionList,
 		final int indent)
 	{
-		if (isMutable)
+		if (isMutable())
 		{
 			aStream.append("Mutable function with code: ");
 		}
@@ -115,9 +111,7 @@ extends Descriptor
 	}
 
 	@Override
-	boolean o_Equals (
-		final AvailObject object,
-		final AvailObject another)
+	boolean o_Equals (final AvailObject object, final AvailObject another)
 	{
 		return another.equalsFunction(object);
 	}
@@ -142,18 +136,24 @@ extends Descriptor
 				return false;
 			}
 		}
-		// They're equal (but occupy disjoint storage). Replace one with an
-		// indirection to the other to reduce storage costs and the frequency of
-		// detailed comparisons.
-		object.becomeIndirectionTo(aFunction);
-		aFunction.makeImmutable();
-		// Now that there are at least two references to it
+		// They're equal, but occupy disjoint storage. If possible, then replace
+		// one with an indirection to the other to reduce storage costs and the
+		// frequency of detailed comparisons.
+		if (!isShared())
+		{
+			aFunction.makeImmutable();
+			object.becomeIndirectionTo(aFunction);
+		}
+		else if (!aFunction.descriptor.isShared())
+		{
+			object.makeImmutable();
+			aFunction.becomeIndirectionTo(object);
+		}
 		return true;
 	}
 
 	@Override
-	int o_Hash (
-		final AvailObject object)
+	int o_Hash (final AvailObject object)
 	{
 		// Answer a 32-bit hash value. If outer vars of mutable functions can
 		// peel away when executed (last use of an outer var of a mutable
@@ -171,8 +171,7 @@ extends Descriptor
 	}
 
 	@Override
-	boolean o_IsFunction (
-		final AvailObject object)
+	boolean o_IsFunction (final AvailObject object)
 	{
 		return true;
 	}
@@ -183,8 +182,7 @@ extends Descriptor
 	 * FunctionTypeDescriptor function type}.
 	 */
 	@Override
-	AvailObject o_Kind (
-		final AvailObject object)
+	AvailObject o_Kind (final AvailObject object)
 	{
 		return object.slot(ObjectSlots.CODE).functionType();
 	}
@@ -216,9 +214,9 @@ extends Descriptor
 		// needs it in that case). Answer true if it was mutable, otherwise
 		// false, so the calling code knows what happened.
 
-		if (isMutable)
+		if (isMutable())
 		{
-			object.outerVarAtPut(index, NullDescriptor.nullObject());
+			object.outerVarAtPut(index, NilDescriptor.nil());
 			return true;
 		}
 		return false;
@@ -228,16 +226,14 @@ extends Descriptor
 	 * Answer how many outer vars I've copied.
 	 */
 	@Override
-	int o_NumOuterVars (
-		final AvailObject object)
+	int o_NumOuterVars (final AvailObject object)
 	{
 		return object.variableObjectSlotsCount();
 	}
 
 	@Override
 	@AvailMethod @ThreadSafe
-	SerializerOperation o_SerializerOperation (
-		final AvailObject object)
+	SerializerOperation o_SerializerOperation (final AvailObject object)
 	{
 		if (object.numOuterVars() == 0)
 		{
@@ -254,8 +250,7 @@ extends Descriptor
 	}
 
 	@Override
-	public boolean o_ShowValueInNameForDebugger (
-		final AvailObject object)
+	public boolean o_ShowValueInNameForDebugger (final AvailObject object)
 	{
 		return true;
 	}
@@ -285,7 +280,7 @@ extends Descriptor
 		}
 		final AvailObject returnType = functionType.returnType();
 		final L1InstructionWriter writer = new L1InstructionWriter(
-			NullDescriptor.nullObject(),
+			NilDescriptor.nil(),
 			0);
 		writer.argumentTypes(argTypesArray);
 		writer.returnType(returnType);
@@ -337,7 +332,7 @@ extends Descriptor
 			TupleTypeDescriptor.forTypes(argTypesArray);
 		final AvailObject returnType = function.functionType().returnType();
 		final L1InstructionWriter writer = new L1InstructionWriter(
-			NullDescriptor.nullObject(),
+			NilDescriptor.nil(),
 			0);
 		writer.argumentTypes(new AvailObject[] {tupleType});
 		writer.returnType(returnType);
@@ -375,8 +370,7 @@ extends Descriptor
 		final AvailObject code,
 		final AvailObject copiedTuple)
 	{
-		final AvailObject object = mutable().create(
-			copiedTuple.tupleSize());
+		final AvailObject object = mutable.create(copiedTuple.tupleSize());
 		object.code(code);
 		for (int i = copiedTuple.tupleSize(); i >= 1; -- i)
 		{
@@ -388,44 +382,42 @@ extends Descriptor
 	/**
 	 * Construct a new {@link FunctionDescriptor}.
 	 *
-	 * @param isMutable
-	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
-	 *        object?
+	 * @param mutability
+	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 */
-	protected FunctionDescriptor (final boolean isMutable)
+	private FunctionDescriptor (final Mutability mutability)
 	{
-		super(isMutable);
+		super(mutability);
 	}
 
-	/**
-	 * The mutable {@link FunctionDescriptor}.
-	 */
-	private static final FunctionDescriptor mutable =
-		new FunctionDescriptor(true);
+	/** The mutable {@link FunctionDescriptor}. */
+	public static final FunctionDescriptor mutable =
+		new FunctionDescriptor(Mutability.MUTABLE);
 
-	/**
-	 * Answer the mutable {@link FunctionDescriptor}.
-	 *
-	 * @return The mutable {@link FunctionDescriptor}.
-	 */
-	public static FunctionDescriptor mutable ()
+	@Override
+	FunctionDescriptor mutable ()
 	{
 		return mutable;
 	}
 
-	/**
-	 * The immutable {@link FunctionDescriptor}.
-	 */
+	/** The immutable {@link FunctionDescriptor}. */
 	private static final FunctionDescriptor immutable =
-		new FunctionDescriptor(false);
+		new FunctionDescriptor(Mutability.IMMUTABLE);
 
-	/**
-	 * Answer the immutable {@link FunctionDescriptor}.
-	 *
-	 * @return The immutable {@link FunctionDescriptor}.
-	 */
-	public static FunctionDescriptor immutable ()
+	@Override
+	FunctionDescriptor immutable ()
 	{
 		return immutable;
+	}
+
+
+	/** The shared {@link FunctionDescriptor}. */
+	private static final FunctionDescriptor shared =
+		new FunctionDescriptor(Mutability.SHARED);
+
+	@Override
+	FunctionDescriptor shared ()
+	{
+		return shared;
 	}
 }

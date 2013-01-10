@@ -1,6 +1,6 @@
 /**
  * ReadWriteVariableTypeDescriptor.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -58,27 +58,14 @@ extends TypeDescriptor
 	/**
 	 * The layout of object slots for my instances.
 	 */
-	public enum ObjectSlots implements ObjectSlotsEnum
+	public enum ObjectSlots
+	implements ObjectSlotsEnum
 	{
 		/** The type of values that can be read from my object instances. */
 		READ_TYPE,
 
 		/** The type of values that can be written to my object instances. */
 		WRITE_TYPE
-	}
-
-	@Override @AvailMethod
-	AvailObject o_ReadType (
-		final AvailObject object)
-	{
-		return object.slot(READ_TYPE);
-	}
-
-	@Override @AvailMethod
-	AvailObject o_WriteType (
-		final AvailObject object)
-	{
-		return object.slot(WRITE_TYPE);
 	}
 
 	@Override
@@ -102,9 +89,19 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_Equals (
-		final AvailObject object,
-		final AvailObject another)
+	AvailObject o_ReadType (final AvailObject object)
+	{
+		return object.slot(READ_TYPE);
+	}
+
+	@Override @AvailMethod
+	AvailObject o_WriteType (final AvailObject object)
+	{
+		return object.slot(WRITE_TYPE);
+	}
+
+	@Override @AvailMethod
+	boolean o_Equals (final AvailObject object, final AvailObject another)
 	{
 		return another.equalsVariableType(object);
 	}
@@ -121,15 +118,23 @@ extends TypeDescriptor
 		if (aType.readType().equals(object.slot(READ_TYPE))
 			&& aType.writeType().equals(object.slot(WRITE_TYPE)))
 		{
-			aType.becomeIndirectionTo(object);
+			if (!isShared())
+			{
+				aType.makeImmutable();
+				object.becomeIndirectionTo(aType);
+			}
+			else if (!aType.descriptor.isShared())
+			{
+				object.makeImmutable();
+				aType.becomeIndirectionTo(object);
+			}
 			return true;
 		}
 		return false;
 	}
 
 	@Override @AvailMethod
-	int o_Hash (
-		final AvailObject object)
+	int o_Hash (final AvailObject object)
 	{
 		return
 			(object.slot(READ_TYPE).hash() ^ 0xF40149E
@@ -137,9 +142,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_IsSubtypeOf (
-		final AvailObject object,
-		final AvailObject aType)
+	boolean o_IsSubtypeOf (final AvailObject object, final AvailObject aType)
 	{
 		return aType.isSupertypeOfVariableType(object);
 	}
@@ -214,15 +217,64 @@ extends TypeDescriptor
 				aVariableType.writeType()));
 	}
 
-	@Override
-	SerializerOperation o_SerializerOperation (
-		final AvailObject object)
+	@Override @AvailMethod
+	SerializerOperation o_SerializerOperation (final AvailObject object)
 	{
 		if (object.readType().equals(object.writeType()))
 		{
 			return SerializerOperation.SIMPLE_VARIABLE_TYPE;
 		}
 		return SerializerOperation.READ_WRITE_VARIABLE_TYPE;
+	}
+
+	@Override @AvailMethod
+	AvailObject o_MakeImmutable (final AvailObject object)
+	{
+		if (isMutable())
+		{
+			// Make the object shared rather than immutable (since there isn't
+			// actually an immutable descriptor).
+			return object.makeShared();
+		}
+		return object;
+	}
+
+	/**
+	 * Construct a new {@link ReadWriteVariableTypeDescriptor}.
+	 *
+	 * @param mutability
+	 *        The {@linkplain Mutability mutability} of the new descriptor.
+	 */
+	private ReadWriteVariableTypeDescriptor (final Mutability mutability)
+	{
+		super(mutability);
+	}
+
+	/** The mutable {@link ReadWriteVariableTypeDescriptor}. */
+	private static final ReadWriteVariableTypeDescriptor mutable =
+		new ReadWriteVariableTypeDescriptor(Mutability.MUTABLE);
+
+	@Override
+	ReadWriteVariableTypeDescriptor mutable ()
+	{
+		return mutable;
+	}
+
+	/** The shared {@link ReadWriteVariableTypeDescriptor}. */
+	private static final ReadWriteVariableTypeDescriptor shared =
+		new ReadWriteVariableTypeDescriptor(Mutability.SHARED);
+
+	@Override
+	ReadWriteVariableTypeDescriptor immutable ()
+	{
+		// There isn't an immutable variant.
+		return shared;
+	}
+
+	@Override
+	ReadWriteVariableTypeDescriptor shared ()
+	{
+		return shared;
 	}
 
 	/**
@@ -243,54 +295,9 @@ extends TypeDescriptor
 		{
 			return VariableTypeDescriptor.wrapInnerType(readType);
 		}
-		final AvailObject result = mutable().create();
+		final AvailObject result = mutable.create();
 		result.setSlot(READ_TYPE, readType);
 		result.setSlot(WRITE_TYPE, writeType);
-		result.makeImmutable();
 		return result;
-	}
-
-	/**
-	 * Construct a new {@link ReadWriteVariableTypeDescriptor}.
-	 *
-	 * @param isMutable
-	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
-	 *        object?
-	 */
-	protected ReadWriteVariableTypeDescriptor (final boolean isMutable)
-	{
-		super(isMutable);
-	}
-
-	/**
-	 * The mutable {@link ReadWriteVariableTypeDescriptor}.
-	 */
-	private static final ReadWriteVariableTypeDescriptor mutable =
-		new ReadWriteVariableTypeDescriptor(true);
-
-	/**
-	 * Answer the mutable {@link ReadWriteVariableTypeDescriptor}.
-	 *
-	 * @return The mutable {@link ReadWriteVariableTypeDescriptor}.
-	 */
-	public static ReadWriteVariableTypeDescriptor mutable ()
-	{
-		return mutable;
-	}
-
-	/**
-	 * The immutable {@link ReadWriteVariableTypeDescriptor}.
-	 */
-	private static final ReadWriteVariableTypeDescriptor immutable =
-		new ReadWriteVariableTypeDescriptor(false);
-
-	/**
-	 * Answer the immutable {@link ReadWriteVariableTypeDescriptor}.
-	 *
-	 * @return The immutable {@link ReadWriteVariableTypeDescriptor}.
-	 */
-	public static ReadWriteVariableTypeDescriptor immutable ()
-	{
-		return immutable;
 	}
 }

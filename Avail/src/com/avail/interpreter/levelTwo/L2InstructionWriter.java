@@ -1,6 +1,6 @@
 /**
  * L2InstructionWriter.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -117,8 +117,7 @@ public class L2InstructionWriter
 		}
 		else
 		{
-			words = ObjectTupleDescriptor.mutable().create(
-				wordCount);
+			words = ObjectTupleDescriptor.mutable.create(wordCount);
 			int dest = 1;
 			for (int source = 0; source < byteArray.length; source += 2)
 			{

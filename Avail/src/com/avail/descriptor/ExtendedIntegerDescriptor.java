@@ -1,6 +1,6 @@
 /**
  * ExtendedIntegerDescriptor.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,19 +36,17 @@ import com.avail.annotations.*;
 
 /**
  * The abstract class {@code ExtendedIntegerDescriptor} represents instances
- * that are extended integers.  That includes all integers and positive and
+ * that are extended integers. That includes all integers and positive and
  * negative infinity.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd Smith &lt;todd@availlang.org&gt;
  */
-public abstract class ExtendedIntegerDescriptor
+abstract class ExtendedIntegerDescriptor
 extends AbstractNumberDescriptor
 {
-
 	@Override @AvailMethod
-	boolean o_IsExtendedInteger (
-		final AvailObject object)
+	boolean o_IsExtendedInteger (final AvailObject object)
 	{
 		return true;
 	}
@@ -56,12 +54,11 @@ extends AbstractNumberDescriptor
 	/**
 	 * Construct a new {@link ExtendedIntegerDescriptor}.
 	 *
-	 * @param isMutable
-	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
-	 *        object?
+	 * @param mutability
+	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 */
-	protected ExtendedIntegerDescriptor (final boolean isMutable)
+	protected ExtendedIntegerDescriptor (final Mutability mutability)
 	{
-		super(isMutable);
+		super(mutability);
 	}
 }

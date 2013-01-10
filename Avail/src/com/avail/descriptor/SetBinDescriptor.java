@@ -1,6 +1,6 @@
 /**
  * SetBinDescriptor.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -47,7 +47,8 @@ extends Descriptor
 	/**
 	 * The layout of integer slots for my instances.
 	 */
-	public enum IntegerSlots implements IntegerSlotsEnum
+	public enum IntegerSlots
+	implements IntegerSlotsEnum
 	{
 		/**
 		 * The sum of the hashes of the elements recursively within this bin.
@@ -57,16 +58,13 @@ extends Descriptor
 
 
 	@Override @AvailMethod
-	void o_BinHash (
-		final AvailObject object,
-		final int value)
+	void o_BinHash (final AvailObject object, final int value)
 	{
 		object.setSlot(IntegerSlots.BIN_HASH, value);
 	}
 
 	@Override @AvailMethod
-	int o_BinHash (
-		final AvailObject object)
+	int o_BinHash (final AvailObject object)
 	{
 		return object.slot(IntegerSlots.BIN_HASH);
 	}
@@ -80,16 +78,14 @@ extends Descriptor
 	/**
 	 * Asked of the top bin of a set.  If the set is large enough to be
 	 * hashed then compute/cache the union's nearest kind, otherwise just
-	 * answer the null object.
+	 * answer nil.
 	 */
 	@Override @AvailMethod
-	abstract
-	boolean o_BinElementsAreAllInstancesOfKind (
+	abstract boolean o_BinElementsAreAllInstancesOfKind (
 		final AvailObject object, AvailObject kind);
 
 	@Override
-	public boolean o_ShowValueInNameForDebugger (
-		final AvailObject object)
+	public boolean o_ShowValueInNameForDebugger (final AvailObject object)
 	{
 		return false;
 	}
@@ -98,42 +94,29 @@ extends Descriptor
 	abstract SetDescriptor.SetIterator o_SetBinIterator (
 		final AvailObject object);
 
-
 	/**
-	 * The level of my objects in their enclosing bin trees.
-	 *
-	 * @see #level()
+	 * The level of my objects in their enclosing bin trees. The top node is
+	 * level 0 (using hash bits 0..4), and the bottom hashed node is level 6
+	 * (using hash bits 30..34, the top three of which are always zero). There
+	 * can be a level 7 {@linkplain LinearSetBinDescriptor linear bin}, but it
+	 * represents elements which all have the same hash value, so it should
+	 * never be hashed.
 	 */
 	final byte level;
 
 	/**
-	 * Answer what level this descriptor's objects occupy in their hierarchy.
-	 * The top node is level 0 (using hash bits 0..4), and the bottom hashed
-	 * node is level 6 (using hash bits 30..34, the top three of which are
-	 * always zero).  There can be a level 7 {@linkplain LinearSetBinDescriptor
-	 * linear bin}, but it represents elements which all have the same hash
-	 * value, so it should never be hashed.
-	 *
-	 * @return The descriptor's level in a bin tree.
-	 */
-	byte level ()
-	{
-		return level;
-	}
-
-	/**
 	 * Construct a new {@link SetBinDescriptor}.
 	 *
-	 * @param isMutable
-	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
-	 *        object?
-	 * @param level The depth of the bin in the hash tree.
+	 * @param mutability
+	 *        The {@linkplain Mutability mutability} of the new descriptor.
+	 * @param level
+	 *        The depth of the bin in the hash tree.
 	 */
 	protected SetBinDescriptor (
-		final boolean isMutable,
+		final Mutability mutability,
 		final int level)
 	{
-		super(isMutable);
+		super(mutability);
 		this.level = (byte) level;
 	}
 }

@@ -1,6 +1,6 @@
 /**
  * ModuleDescriptor.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -64,7 +64,8 @@ extends Descriptor
 	/**
 	 * The layout of integer slots for my instances.
 	 */
-	public enum IntegerSlots implements IntegerSlotsEnum
+	public enum IntegerSlots
+	implements IntegerSlotsEnum
 	{
 		/**
 		 * A composite field containing a {@link #IS_SYSTEM_MODULE} flag
@@ -93,7 +94,8 @@ extends Descriptor
 	/**
 	 * The layout of object slots for my instances.
 	 */
-	public enum ObjectSlots implements ObjectSlotsEnum
+	public enum ObjectSlots
+	implements ObjectSlotsEnum
 	{
 		/**
 		 * A {@linkplain StringDescriptor string} that names the {@linkplain
@@ -110,28 +112,28 @@ extends Descriptor
 		/**
 		 * A {@linkplain MapDescriptor map} from {@linkplain
 		 * StringDescriptor strings} to {@linkplain AtomDescriptor atoms} which
-		 * act as true names.  The true names are identity-based identifiers
-		 * that prevent or at least clarify name conflicts.  This field holds
+		 * act as true names. The true names are identity-based identifiers
+		 * that prevent or at least clarify name conflicts. This field holds
 		 * only those names that are newly added by this module.
 		 */
 		NEW_NAMES,
 
 		/**
-		 * A {@linkplain MapDescriptor map} from {@linkplain
-		 * StringDescriptor strings} to {@linkplain AtomDescriptor atoms} which
-		 * act as true names.  The true names are identity-based identifiers
-		 * that prevent or at least clarify name conflicts.  This field holds
-		 * only those names that have been imported from other modules.
+		 * A {@linkplain MapDescriptor map} from {@linkplain StringDescriptor
+		 * strings} to {@linkplain AtomDescriptor atoms} which act as true
+		 * names. The true names are identity-based identifiers that prevent or
+		 * at least clarify name conflicts. This field holds only those names
+		 * that have been imported from other modules.
 		 */
 		NAMES,
 
 		/**
-		 * A {@linkplain MapDescriptor map} from {@linkplain
-		 * StringDescriptor strings} to {@linkplain AtomDescriptor atoms} which
-		 * act as true names.  The true names are identity-based identifiers
-		 * that prevent or at least clarify name conflicts.  This field holds
-		 * only those names that are neither imported from another module nor
-		 * exported from the current module.
+		 * A {@linkplain MapDescriptor map} from {@linkplain StringDescriptor
+		 * strings} to {@linkplain AtomDescriptor atoms} which act as true
+		 * names. The true names are identity-based identifiers that prevent or
+		 * at least clarify name conflicts. This field holds only those names
+		 * that are neither imported from another module nor exported from the
+		 * current module.
 		 */
 		PRIVATE_NAMES,
 
@@ -144,7 +146,7 @@ extends Descriptor
 		/**
 		 * A {@linkplain MapDescriptor map} from {@linkplain AtomDescriptor
 		 * atoms} to {@linkplain DefinitionDescriptor definitions} which
-		 * implement (or forward or declare abstract or declare as a macro} that
+		 * implement (or forward or declare abstract or declare as a macro) that
 		 * true name.
 		 */
 		METHODS,
@@ -152,7 +154,7 @@ extends Descriptor
 		/**
 		 * A {@linkplain MapDescriptor map} from a parent {@linkplain
 		 * AtomDescriptor true names} to a {@linkplain TupleDescriptor tuple} of
-		 * {@linkplain SetDescriptor sets} of child true names.  An argument of
+		 * {@linkplain SetDescriptor sets} of child true names. An argument of
 		 * a {@linkplain SendNodeDescriptor send} of the parent true name must
 		 * not be a send of a child name at the corresponding argument position
 		 * in the tuple.
@@ -160,34 +162,30 @@ extends Descriptor
 		GRAMMATICAL_RESTRICTIONS,
 
 		/**
-		 * A {@linkplain MapDescriptor map} from {@linkplain
-		 * StringDescriptor string} to a {@linkplain VariableDescriptor
-		 * variable}.  Since {@linkplain
-		 * DeclarationNodeDescriptor.DeclarationKind#MODULE_VARIABLE module
-		 * variables} are never accessible outside the module in which they are
-		 * defined, this slot is overwritten with {@linkplain
-		 * NullDescriptor#nullObject() the null object} when module compilation
-		 * is complete.
+		 * A {@linkplain MapDescriptor map} from {@linkplain StringDescriptor
+		 * string} to a {@linkplain VariableDescriptor variable}. Since
+		 * {@linkplain DeclarationNodeDescriptor.DeclarationKind#MODULE_VARIABLE
+		 * module variables} are never accessible outside the module in which
+		 * they are defined, this slot is overwritten with {@linkplain
+		 * NilDescriptor#nil() nil} when module compilation is complete.
 		 */
 		VARIABLE_BINDINGS,
 
 		/**
-		 * A {@linkplain MapDescriptor map} from {@linkplain
-		 * StringDescriptor string} to an {@linkplain AvailObject}.  Since a
-		 * {@linkplain DeclarationNodeDescriptor.DeclarationKind#MODULE_CONSTANT
-		 * module constants} are never accessible outside the module in which
-		 * they are defined, this slot is overwritten with {@linkplain
-		 * NullDescriptor#nullObject() the null object} when module compilation
-		 * is complete.
+		 * A {@linkplain MapDescriptor map} from {@linkplain StringDescriptor
+		 * string} to an {@linkplain AvailObject}. Since a {@linkplain
+		 * DeclarationNodeDescriptor.DeclarationKind#MODULE_CONSTANT module
+		 * constants} are never accessible outside the module in which they are
+		 * defined, this slot is overwritten with {@linkplain
+		 * NilDescriptor#nil() nil} when module compilation is complete.
 		 */
 		CONSTANT_BINDINGS,
 
 		/**
 		 * The {@linkplain MessageBundleTreeDescriptor bundle tree} used to
 		 * parse multimethod {@linkplain SendNodeDescriptor sends} while
-		 * compiling this module.  When the module has been fully compiled, this
-		 * slot is overwritten with {@linkplain NullDescriptor#nullObject() the
-		 * null object}.
+		 * compiling this module. When the module has been fully compiled, this
+		 * slot is overwritten with {@linkplain NilDescriptor#nil() nil}.
 		 */
 		FILTERED_BUNDLE_TREE,
 
@@ -195,10 +193,10 @@ extends Descriptor
 		 * A {@linkplain MapDescriptor map} from {@linkplain AtomDescriptor true
 		 * names} to {@linkplain TupleDescriptor tuples} of {@linkplain
 		 * MethodDescriptor.ObjectSlots#TYPE_RESTRICTIONS_TUPLE type
-		 * restriction} {@linkplain FunctionDescriptor functions}.  At any call
+		 * restriction} {@linkplain FunctionDescriptor functions}. At any call
 		 * site for the given message name, any applicable functions are
 		 * executed to determine if the input types are acceptable, and if so
-		 * the expected return type is produced.  The actual expected return
+		 * the expected return type is produced. The actual expected return
 		 * type for the call site is the intersection of types provided by
 		 * applicable semantic restrictions and the types indicated by all
 		 * applicable {@linkplain DefinitionDescriptor definitions}.
@@ -209,14 +207,45 @@ extends Descriptor
 		 * A {@linkplain MapDescriptor map} from {@linkplain AtomDescriptor true
 		 * names} to {@linkplain TupleDescriptor tuples} of seal points.
 		 */
-		SEALS;
+		SEALS
 	}
 
+	@Override boolean allowsImmutableToMutableReferenceInField (
+		final AbstractSlotsEnum e)
+	{
+		return e == NEW_NAMES
+			|| e == NAMES
+			|| e == PRIVATE_NAMES
+			|| e == VISIBLE_NAMES
+			|| e == METHODS
+			|| e == GRAMMATICAL_RESTRICTIONS
+			|| e == VARIABLE_BINDINGS
+			|| e == CONSTANT_BINDINGS
+			|| e == FILTERED_BUNDLE_TREE
+			|| e == TYPE_RESTRICTION_FUNCTIONS
+			|| e == SEALS
+			|| e == FLAGS_AND_COUNTER
+			|| e == VERSIONS;
+	}
+
+	@Override
+	public void printObjectOnAvoidingIndent (
+		final AvailObject object,
+		final StringBuilder builder,
+		final List<AvailObject> recursionList,
+		final int indent)
+	{
+		builder.append("Module: ");
+		builder.append(object.name().toString());
+	}
 
 	@Override @AvailMethod
 	boolean o_IsSystemModule (final AvailObject object)
 	{
-		return object.slot(IS_SYSTEM_MODULE) != 0;
+		synchronized (object)
+		{
+			return object.slot(IS_SYSTEM_MODULE) != 0;
+		}
 	}
 
 	@Override @AvailMethod
@@ -224,62 +253,118 @@ extends Descriptor
 		final AvailObject object,
 		final boolean isSystemModule)
 	{
-		object.setSlot(
-			IS_SYSTEM_MODULE,
-			isSystemModule ? 1 : 0);
-	}
-
-	@Override @AvailMethod
-	int o_AllocateFromCounter (final AvailObject object)
-	{
-		final int value = object.slot(COUNTER);
-		object.setSlot(COUNTER, value + 1);
-		return value;
-	}
-
-	@Override @AvailMethod
-	void o_AddGrammaticalMessageRestrictions (
-		final AvailObject object,
-		final AvailObject methodName,
-		final AvailObject illegalArgMsgs)
-	{
-		assert !object.grammaticalRestrictions().hasKey(methodName)
-		: "Don't declare multiple restrictions on same message separately"
-			+ " in module.";
-		AvailObject grammaticalRestrictions = object.slot(
-			GRAMMATICAL_RESTRICTIONS);
-		grammaticalRestrictions =
-			grammaticalRestrictions.mapAtPuttingCanDestroy(
-				methodName,
-				illegalArgMsgs,
-				true);
-		object.setSlot(
-			GRAMMATICAL_RESTRICTIONS,
-			grammaticalRestrictions);
-	}
-
-	@Override @AvailMethod
-	void o_AddMethodDefinition (
-		final AvailObject object,
-		final AvailObject definition)
-	{
-		final AvailObject methodName = definition.definitionMethod().name();
-		AvailObject methods = object.slot(METHODS);
-		AvailObject set;
-		if (methods.hasKey(methodName))
+		assert isShared();
+		synchronized (object)
 		{
-			set = methods.mapAt(methodName);
+			object.setSlot(
+				IS_SYSTEM_MODULE,
+				isSystemModule ? 1 : 0);
 		}
-		else
+	}
+
+	@Override @AvailMethod
+	AvailObject o_Name (final AvailObject object)
+	{
+		return object.slot(NAME);
+	}
+
+	@Override @AvailMethod
+	AvailObject o_Versions (final AvailObject object)
+	{
+		synchronized (object)
 		{
-			set = SetDescriptor.empty();
+			return object.slot(VERSIONS);
 		}
-		set = set.setWithElementCanDestroy(definition, false);
-		methods = methods.mapAtPuttingCanDestroy(
-			methodName,
-			set,
-			true);
-		object.setSlot(METHODS, methods);
+	}
+
+	@Override @AvailMethod
+	void o_Versions (final AvailObject object, final AvailObject value)
+	{
+		synchronized (object)
+		{
+			object.setSlot(VERSIONS, value.traversed().makeShared());
+		}
+	}
+
+	@Override @AvailMethod
+	AvailObject o_NewNames (final AvailObject object)
+	{
+		synchronized (object)
+		{
+			return object.slot(NEW_NAMES);
+		}
+	}
+
+	@Override @AvailMethod
+	AvailObject o_Names (final AvailObject object)
+	{
+		synchronized (object)
+		{
+			return object.slot(NAMES);
+		}
+	}
+
+	@Override @AvailMethod
+	AvailObject o_PrivateNames (final AvailObject object)
+	{
+		synchronized (object)
+		{
+			return object.slot(PRIVATE_NAMES);
+		}
+	}
+
+	@Override @AvailMethod
+	AvailObject o_VisibleNames (final AvailObject object)
+	{
+		synchronized (object)
+		{
+			return object.slot(VISIBLE_NAMES);
+		}
+	}
+
+	@Override @AvailMethod
+	AvailObject o_Methods (final AvailObject object)
+	{
+		synchronized (object)
+		{
+			return object.slot(METHODS);
+		}
+	}
+
+	@Override @AvailMethod
+	AvailObject o_GrammaticalRestrictions (final AvailObject object)
+	{
+		synchronized (object)
+		{
+			return object.slot(GRAMMATICAL_RESTRICTIONS);
+		}
+	}
+
+	@Override @AvailMethod
+	AvailObject o_VariableBindings (final AvailObject object)
+	{
+		synchronized (object)
+		{
+			return object.slot(VARIABLE_BINDINGS);
+		}
+	}
+
+	@Override @AvailMethod
+	AvailObject o_ConstantBindings (final AvailObject object)
+	{
+		synchronized (object)
+		{
+			return object.slot(CONSTANT_BINDINGS);
+		}
+	}
+
+	@Override @AvailMethod
+	AvailObject o_FilteredBundleTree (final AvailObject object)
+	{
+		synchronized (object)
+		{
+			return object.slot(FILTERED_BUNDLE_TREE);
+		}
 	}
 
 	@Override @AvailMethod
@@ -288,15 +373,124 @@ extends Descriptor
 		final AvailObject name,
 		final AvailObject constantBinding)
 	{
-		assert constantBinding.kind().isSubtypeOf(
-			VariableTypeDescriptor.mostGeneralType());
-		AvailObject constantBindings = object.slot(
-			CONSTANT_BINDINGS);
-		constantBindings = constantBindings.mapAtPuttingCanDestroy(
-			name,
-			constantBinding,
-			true);
-		object.setSlot(CONSTANT_BINDINGS, constantBindings);
+		synchronized (object)
+		{
+			assert constantBinding.kind().isSubtypeOf(
+				VariableTypeDescriptor.mostGeneralType());
+			AvailObject constantBindings = object.slot(
+				CONSTANT_BINDINGS);
+			constantBindings = constantBindings.mapAtPuttingCanDestroy(
+				name,
+				constantBinding,
+				true);
+			object.setSlot(
+				CONSTANT_BINDINGS, constantBindings.traversed().makeShared());
+		}
+	}
+
+	@Override @AvailMethod
+	void o_AddGrammaticalMessageRestrictions (
+		final AvailObject object,
+		final AvailObject methodName,
+		final AvailObject illegalArgMsgs)
+	{
+		synchronized (object)
+		{
+			assert !object.grammaticalRestrictions().hasKey(methodName)
+			: "Don't declare multiple restrictions on same message separately"
+				+ " in module.";
+			AvailObject grammaticalRestrictions = object.slot(
+				GRAMMATICAL_RESTRICTIONS);
+			grammaticalRestrictions =
+				grammaticalRestrictions.mapAtPuttingCanDestroy(
+					methodName,
+					illegalArgMsgs,
+					true);
+			object.setSlot(
+				GRAMMATICAL_RESTRICTIONS,
+				grammaticalRestrictions.traversed().makeShared());
+		}
+	}
+
+	@Override @AvailMethod
+	void o_AddMethodDefinition (
+		final AvailObject object,
+		final AvailObject definition)
+	{
+		synchronized (object)
+		{
+			final AvailObject methodName = definition.definitionMethod().name();
+			AvailObject methods = object.slot(METHODS);
+			AvailObject set;
+			if (methods.hasKey(methodName))
+			{
+				set = methods.mapAt(methodName);
+			}
+			else
+			{
+				set = SetDescriptor.empty();
+			}
+			set = set.setWithElementCanDestroy(definition, false);
+			methods = methods.mapAtPuttingCanDestroy(
+				methodName,
+				set,
+				true);
+			object.setSlot(METHODS, methods.traversed().makeShared());
+		}
+	}
+
+	@Override @AvailMethod
+	void o_AddSeal (
+		final AvailObject object,
+		final AvailObject methodName,
+		final AvailObject sealSignature)
+	{
+		synchronized (object)
+		{
+			AvailObject seals = object.slot(SEALS);
+			AvailObject tuple;
+			if (seals.hasKey(methodName))
+			{
+				tuple = seals.mapAt(methodName);
+			}
+			else
+			{
+				tuple = TupleDescriptor.empty();
+			}
+			tuple = tuple.appendCanDestroy(sealSignature, true);
+			seals = seals.mapAtPuttingCanDestroy(methodName, tuple, true);
+			object.setSlot(SEALS, seals.traversed().makeShared());
+		}
+	}
+
+	@Override @AvailMethod
+	void o_AddTypeRestriction (
+		final AvailObject object,
+		final AvailObject methodName,
+		final AvailObject typeRestrictionFunction)
+	{
+		synchronized (object)
+		{
+			AvailObject typeRestrictions = object.slot(
+				TYPE_RESTRICTION_FUNCTIONS);
+			AvailObject tuple;
+			if (typeRestrictions.hasKey(methodName))
+			{
+				tuple = typeRestrictions.mapAt(methodName);
+			}
+			else
+			{
+				tuple = TupleDescriptor.empty();
+			}
+			tuple = tuple.appendCanDestroy(typeRestrictionFunction, true);
+			typeRestrictions = typeRestrictions.mapAtPuttingCanDestroy(
+				methodName,
+				tuple,
+				true);
+			object.setSlot(
+				TYPE_RESTRICTION_FUNCTIONS,
+				typeRestrictions.traversed().makeShared());
+		}
 	}
 
 	@Override @AvailMethod
@@ -305,15 +499,31 @@ extends Descriptor
 		final AvailObject name,
 		final AvailObject variableBinding)
 	{
-		assert variableBinding.kind().isSubtypeOf(
-			VariableTypeDescriptor.mostGeneralType());
-		AvailObject variableBindings = object.slot(
-			VARIABLE_BINDINGS);
-		variableBindings = variableBindings.mapAtPuttingCanDestroy(
-			name,
-			variableBinding,
-			true);
-		object.setSlot(VARIABLE_BINDINGS, variableBindings);
+		synchronized (object)
+		{
+			assert variableBinding.kind().isSubtypeOf(
+				VariableTypeDescriptor.mostGeneralType());
+			AvailObject variableBindings = object.slot(
+				VARIABLE_BINDINGS);
+			variableBindings = variableBindings.mapAtPuttingCanDestroy(
+				name,
+				variableBinding,
+				true);
+			object.setSlot(
+				VARIABLE_BINDINGS,
+				variableBindings.traversed().makeShared());
+		}
+	}
+
+	@Override @AvailMethod
+	int o_AllocateFromCounter (final AvailObject object)
+	{
+		synchronized (object)
+		{
+			final int value = object.slot(COUNTER);
+			object.setSlot(COUNTER, value + 1);
+			return value;
+		}
 	}
 
 	@Override @AvailMethod
@@ -322,27 +532,31 @@ extends Descriptor
 		final AvailObject stringName,
 		final AvailObject trueName)
 	{
-		//  Add the trueName to the current public scope.
-
-		AvailObject names = object.slot(NAMES);
-		AvailObject set;
-		if (names.hasKey(stringName))
+		// Add the trueName to the current public scope.
+		synchronized (object)
 		{
-			set = names.mapAt(stringName);
+			AvailObject names = object.slot(NAMES);
+			AvailObject set;
+			if (names.hasKey(stringName))
+			{
+				set = names.mapAt(stringName);
+			}
+			else
+			{
+				set = SetDescriptor.empty();
+			}
+			set = set.setWithElementCanDestroy(trueName, false);
+			names = names.mapAtPuttingCanDestroy(
+				stringName,
+				set,
+				true);
+			object.setSlot(NAMES, names.traversed().makeShared());
+			AvailObject visibleNames = object.slot(VISIBLE_NAMES);
+			visibleNames = visibleNames.setWithElementCanDestroy(
+				trueName, true);
+			object.setSlot(
+				VISIBLE_NAMES, visibleNames.traversed().makeShared());
 		}
-		else
-		{
-			set = SetDescriptor.empty();
-		}
-		set = set.setWithElementCanDestroy(trueName, false);
-		names = names.mapAtPuttingCanDestroy(
-			stringName,
-			set,
-			true);
-		object.setSlot(NAMES, names);
-		AvailObject visibleNames = object.slot(VISIBLE_NAMES);
-		visibleNames = visibleNames.setWithElementCanDestroy(trueName, true);
-		object.setSlot(VISIBLE_NAMES, visibleNames);
 	}
 
 	@Override @AvailMethod
@@ -351,19 +565,24 @@ extends Descriptor
 		final AvailObject stringName,
 		final AvailObject trueName)
 	{
-		//  Set up this true name, which is local to the module.
-
-		if (object.newNames().hasKey(stringName))
+		// Set up this true name, which is local to the module.
+		synchronized (object)
 		{
-			error("Can't define a new true name twice in a module", object);
-			return;
+			if (object.newNames().hasKey(stringName))
+			{
+				error("Can't define a new true name twice in a module", object);
+				return;
+			}
+			AvailObject newNames = object.slot(NEW_NAMES);
+			newNames = newNames.mapAtPuttingCanDestroy(
+				stringName, trueName, true);
+			object.setSlot(NEW_NAMES, newNames.traversed().makeShared());
+			AvailObject visibleNames = object.slot(VISIBLE_NAMES);
+			visibleNames = visibleNames.setWithElementCanDestroy(
+				trueName, true);
+			object.setSlot(
+				VISIBLE_NAMES, visibleNames.traversed().makeShared());
 		}
-		AvailObject newNames = object.slot(NEW_NAMES);
-		newNames = newNames.mapAtPuttingCanDestroy(stringName, trueName, true);
-		object.setSlot(NEW_NAMES, newNames);
-		AvailObject visibleNames = object.slot(VISIBLE_NAMES);
-		visibleNames = visibleNames.setWithElementCanDestroy(trueName, true);
-		object.setSlot(VISIBLE_NAMES, visibleNames);
 	}
 
 	@Override @AvailMethod
@@ -372,37 +591,170 @@ extends Descriptor
 		final AvailObject stringName,
 		final AvailObject trueName)
 	{
-		//  Add the trueName to the current private scope.
+		// Add the trueName to the current private scope.
+		synchronized (object)
+		{
+			AvailObject privateNames = object.slot(PRIVATE_NAMES);
+			AvailObject set;
+			if (privateNames.hasKey(stringName))
+			{
+				set = privateNames.mapAt(stringName);
+			}
+			else
+			{
+				set = SetDescriptor.empty();
+			}
+			set = set.setWithElementCanDestroy(trueName, false);
+			privateNames = privateNames.mapAtPuttingCanDestroy(
+				stringName,
+				set,
+				true);
+			object.setSlot(
+				PRIVATE_NAMES, privateNames.traversed().makeShared());
+			AvailObject visibleNames = object.slot(VISIBLE_NAMES);
+			visibleNames = visibleNames.setWithElementCanDestroy(
+				trueName, true);
+			object.setSlot(
+				VISIBLE_NAMES, visibleNames.traversed().makeShared());
+		}
+	}
 
-		AvailObject privateNames = object.slot(PRIVATE_NAMES);
-		AvailObject set;
-		if (privateNames.hasKey(stringName))
+	/**
+	 * Construct a {@linkplain MessageBundleTreeDescriptor bundle tree} that has
+	 * been filtered to contain just those {@linkplain MessageBundleDescriptor
+	 * message bundles} that are visible in the current module.  Store the
+	 * resulting bundle tree as this module's {@linkplain
+	 * ObjectSlots#FILTERED_BUNDLE_TREE filtered bundle tree}.
+	 *
+	 * @param object The module.
+	 * @param bundleTree
+	 *        The root {@linkplain MessageBundleTreeDescriptor bundle tree} for
+	 *        which to make a filtered copy.
+	 */
+	@Override @AvailMethod
+	void o_BuildFilteredBundleTreeFrom (
+		final AvailObject object,
+		final AvailObject bundleTree)
+	{
+		synchronized (object)
 		{
-			set = privateNames.mapAt(stringName);
+			final AvailObject filteredBundleTree =
+				MessageBundleTreeDescriptor.newPc(1);
+			object.setSlot(
+				FILTERED_BUNDLE_TREE,
+				filteredBundleTree.traversed().makeShared());
+			bundleTree.copyToRestrictedTo(
+				filteredBundleTree,
+				object.visibleNames());
 		}
-		else
-		{
-			set = SetDescriptor.empty();
-		}
-		set = set.setWithElementCanDestroy(trueName, false);
-		privateNames = privateNames.mapAtPuttingCanDestroy(
-			stringName,
-			set,
-			true);
-		object.setSlot(PRIVATE_NAMES, privateNames);
-		AvailObject visibleNames = object.slot(VISIBLE_NAMES);
-		visibleNames = visibleNames.setWithElementCanDestroy(trueName, true);
-		object.setSlot(VISIBLE_NAMES, visibleNames);
 	}
 
 	@Override @AvailMethod
-	boolean o_NameVisible (
-		final AvailObject object,
-		final AvailObject trueName)
+	void o_CleanUpAfterCompile (final AvailObject object)
 	{
-		//  Check if the given trueName is visible in this module.
+		synchronized (object)
+		{
+			object.setSlot(
+				METHODS,
+				NilDescriptor.nil());
+			object.setSlot(
+				GRAMMATICAL_RESTRICTIONS,
+				NilDescriptor.nil());
+			object.setSlot(
+				VARIABLE_BINDINGS,
+				NilDescriptor.nil());
+			object.setSlot(
+				CONSTANT_BINDINGS,
+				NilDescriptor.nil());
+			object.setSlot(
+				FILTERED_BUNDLE_TREE,
+				NilDescriptor.nil());
+			object.setSlot(
+				TYPE_RESTRICTION_FUNCTIONS,
+				NilDescriptor.nil());
+		}
+	}
 
+	@Override @AvailMethod
+	boolean o_Equals (final AvailObject object, final AvailObject another)
+	{
+		// Compare by address (identity).
+		return another.traversed().sameAddressAs(object);
+	}
+
+	@Override @AvailMethod
+	int o_Hash (final AvailObject object)
+	{
+		return object.slot(NAME).hash() * 173 ^ 0xDF383F8C;
+	}
+
+	@Override @AvailMethod
+	AvailObject o_Kind (final AvailObject object)
+	{
+		return MODULE.o();
+	}
+
+	@Override
+	AvailObject o_MakeImmutable (final AvailObject object)
+	{
+		if (isMutable())
+		{
+			// Modules are always shared, never immutable.
+			return object.makeShared();
+		}
+		return object;
+	}
+
+	@Override @AvailMethod
+	boolean o_NameVisible (final AvailObject object, final AvailObject trueName)
+	{
+		// Check if the given trueName is visible in this module.
 		return object.visibleNames().hasElement(trueName);
+	}
+
+	@Override @AvailMethod
+	void o_RemoveFrom (
+		final AvailObject object,
+		final L2Interpreter anInterpreter)
+	{
+		synchronized (object)
+		{
+			for (final MapDescriptor.Entry entry
+				: object.methods().mapIterable())
+			{
+				final AvailObject methodName = entry.key;
+				for (final AvailObject definition : entry.value)
+				{
+					anInterpreter.removeDefinition(
+						methodName,
+						definition);
+				}
+			}
+			final AvailObject typeRestrictions = object.slot(
+				TYPE_RESTRICTION_FUNCTIONS);
+			for (final MapDescriptor.Entry entry
+				: typeRestrictions.mapIterable())
+			{
+				final AvailObject methodName = entry.key;
+				for (final AvailObject restriction : entry.value)
+				{
+					anInterpreter.runtime().removeTypeRestriction(
+						methodName,
+						restriction);
+				}
+			}
+			final AvailObject seals = object.slot(SEALS);
+			for (final MapDescriptor.Entry entry : seals.mapIterable())
+			{
+				final AvailObject methodName = entry.key;
+				for (final AvailObject seal : entry.value)
+				{
+					anInterpreter.runtime().removeSeal(
+						methodName,
+						seal);
+				}
+			}
+		}
 	}
 
 	/**
@@ -426,17 +778,26 @@ extends Descriptor
 		final AvailObject forwardDeclaration,
 		final AvailObject methodName)
 	{
-		assert forwardDeclaration.isInstanceOfKind(FORWARD_DEFINITION.o());
-		AvailObject methods = object.slot(METHODS);
-		assert methods.hasKey(methodName);
-		AvailObject group = methods.mapAt(methodName);
-		assert group.hasElement(forwardDeclaration);
-		group = group.setWithoutElementCanDestroy(forwardDeclaration, true);
-		methods = methods.mapAtPuttingCanDestroy(
-			methodName,
-			group,
-			true);
-		object.setSlot(METHODS, methods);
+		synchronized (object)
+		{
+			assert forwardDeclaration.isInstanceOfKind(FORWARD_DEFINITION.o());
+			AvailObject methods = object.slot(METHODS);
+			assert methods.hasKey(methodName);
+			AvailObject group = methods.mapAt(methodName);
+			assert group.hasElement(forwardDeclaration);
+			group = group.setWithoutElementCanDestroy(forwardDeclaration, true);
+			methods = methods.mapAtPuttingCanDestroy(
+				methodName,
+				group,
+				true);
+			object.setSlot(METHODS, methods.traversed().makeShared());
+		}
+	}
+
+	@Override
+	public boolean o_ShowValueInNameForDebugger (final AvailObject object)
+	{
+		return false;
 	}
 
 	/**
@@ -456,311 +817,36 @@ extends Descriptor
 		final AvailObject object,
 		final AvailObject stringName)
 	{
-		assert stringName.isTuple();
-		if (object.newNames().hasKey(stringName))
+		synchronized (object)
 		{
-			return SetDescriptor.empty().setWithElementCanDestroy(
-				object.newNames().mapAt(stringName),
-				false);
-		}
-		final AvailObject publics;
-		if (object.names().hasKey(stringName))
-		{
-			publics = object.names().mapAt(stringName);
-		}
-		else
-		{
-			publics = SetDescriptor.empty();
-		}
-		if (!object.privateNames().hasKey(stringName))
-		{
-			return publics;
-		}
-		final AvailObject privates = object.privateNames().mapAt(stringName);
-		if (publics.setSize() == 0)
-		{
-			return privates;
-		}
-		return publics.setUnionCanDestroy(privates, false);
-	}
-
-	@Override @AvailMethod
-	AvailObject o_Name (
-		final AvailObject object)
-	{
-		return object.slot(NAME);
-	}
-
-	@Override @AvailMethod
-	void o_Versions (
-		final AvailObject object,
-		final AvailObject value)
-	{
-		object.setSlot(VERSIONS, value);
-	}
-
-	@Override @AvailMethod
-	AvailObject o_ConstantBindings (
-		final AvailObject object)
-	{
-		return object.slot(CONSTANT_BINDINGS);
-	}
-
-	@Override @AvailMethod
-	AvailObject o_FilteredBundleTree (
-		final AvailObject object)
-	{
-		return object.slot(FILTERED_BUNDLE_TREE);
-	}
-
-	@Override @AvailMethod
-	AvailObject o_Methods (
-		final AvailObject object)
-	{
-		return object.slot(METHODS);
-	}
-
-	@Override @AvailMethod
-	AvailObject o_Versions (
-		final AvailObject object)
-	{
-		return object.slot(VERSIONS);
-	}
-
-	@Override @AvailMethod
-	AvailObject o_Names (
-		final AvailObject object)
-	{
-		return object.slot(NAMES);
-	}
-
-	@Override @AvailMethod
-	AvailObject o_NewNames (
-		final AvailObject object)
-	{
-		return object.slot(NEW_NAMES);
-	}
-
-	@Override @AvailMethod
-	AvailObject o_PrivateNames (
-		final AvailObject object)
-	{
-		return object.slot(PRIVATE_NAMES);
-	}
-
-	@Override @AvailMethod
-	AvailObject o_GrammaticalRestrictions (
-		final AvailObject object)
-	{
-		return object.slot(GRAMMATICAL_RESTRICTIONS);
-	}
-
-	@Override @AvailMethod
-	AvailObject o_VariableBindings (
-		final AvailObject object)
-	{
-		return object.slot(VARIABLE_BINDINGS);
-	}
-
-	@Override @AvailMethod
-	AvailObject o_VisibleNames (
-		final AvailObject object)
-	{
-		return object.slot(VISIBLE_NAMES);
-	}
-
-	@Override boolean allowsImmutableToMutableReferenceInField (
-		final AbstractSlotsEnum e)
-	{
-		return e == NEW_NAMES
-			|| e == NAMES
-			|| e == PRIVATE_NAMES
-			|| e == VISIBLE_NAMES
-			|| e == METHODS
-			|| e == GRAMMATICAL_RESTRICTIONS
-			|| e == VARIABLE_BINDINGS
-			|| e == CONSTANT_BINDINGS
-			|| e == FILTERED_BUNDLE_TREE
-			|| e == TYPE_RESTRICTION_FUNCTIONS
-			|| e == SEALS
-			|| e == FLAGS_AND_COUNTER;
-	}
-
-	/**
-	 * Construct a {@linkplain MessageBundleTreeDescriptor bundle tree} that has
-	 * been filtered to contain just those {@linkplain MessageBundleDescriptor
-	 * message bundles} that are visible in the current module.  Store the
-	 * resulting bundle tree as this module's {@linkplain
-	 * ObjectSlots#FILTERED_BUNDLE_TREE filtered bundle tree}.
-	 *
-	 * @param object The module.
-	 * @param bundleTree
-	 *        The root {@linkplain MessageBundleTreeDescriptor bundle tree} for
-	 *        which to make a filtered copy.
-	 */
-	@Override @AvailMethod
-	void o_BuildFilteredBundleTreeFrom (
-		final AvailObject object,
-		final AvailObject bundleTree)
-	{
-		final AvailObject filteredBundleTree =
-			MessageBundleTreeDescriptor.newPc(1);
-		object.setSlot(
-			FILTERED_BUNDLE_TREE,
-			filteredBundleTree);
-		bundleTree.copyToRestrictedTo(
-			filteredBundleTree,
-			object.visibleNames());
-	}
-
-	@Override @AvailMethod
-	void o_CleanUpAfterCompile (
-		final AvailObject object)
-	{
-		object.setSlot(
-			METHODS,
-			NullDescriptor.nullObject());
-		object.setSlot(
-			GRAMMATICAL_RESTRICTIONS,
-			NullDescriptor.nullObject());
-		object.setSlot(
-			VARIABLE_BINDINGS,
-			NullDescriptor.nullObject());
-		object.setSlot(
-			CONSTANT_BINDINGS,
-			NullDescriptor.nullObject());
-		object.setSlot(
-			FILTERED_BUNDLE_TREE,
-			NullDescriptor.nullObject());
-		object.setSlot(
-			TYPE_RESTRICTION_FUNCTIONS,
-			NullDescriptor.nullObject());
-	}
-
-	@Override @AvailMethod
-	boolean o_Equals (
-		final AvailObject object,
-		final AvailObject another)
-	{
-		// Compare by address (identity).
-		return another.traversed().sameAddressAs(object);
-	}
-
-	@Override @AvailMethod
-	AvailObject o_Kind (final AvailObject object)
-	{
-		return MODULE.o();
-	}
-
-	@Override @AvailMethod
-	int o_Hash (
-		final AvailObject object)
-	{
-		return object.name().hash() * 173 ^ 0xDF383F8C;
-	}
-
-	@Override @AvailMethod
-	void o_RemoveFrom (
-		final AvailObject object,
-		final L2Interpreter anInterpreter)
-	{
-		for (final MapDescriptor.Entry entry : object.methods().mapIterable())
-		{
-			final AvailObject methodName = entry.key;
-			for (final AvailObject definition : entry.value)
+			assert stringName.isTuple();
+			if (object.slot(NEW_NAMES).hasKey(stringName))
 			{
-				anInterpreter.removeDefinition(
-					methodName,
-					definition);
+				return SetDescriptor.empty().setWithElementCanDestroy(
+					object.slot(NEW_NAMES).mapAt(stringName),
+					false);
 			}
-		}
-		final AvailObject typeRestrictions = object.slot(
-			TYPE_RESTRICTION_FUNCTIONS);
-		for (final MapDescriptor.Entry entry : typeRestrictions.mapIterable())
-		{
-			final AvailObject methodName = entry.key;
-			for (final AvailObject restriction : entry.value)
+			final AvailObject publics;
+			if (object.slot(NAMES).hasKey(stringName))
 			{
-				anInterpreter.runtime().removeTypeRestriction(
-					methodName,
-					restriction);
+				publics = object.slot(NAMES).mapAt(stringName);
 			}
-		}
-		final AvailObject seals = object.slot(SEALS);
-		for (final MapDescriptor.Entry entry : seals.mapIterable())
-		{
-			final AvailObject methodName = entry.key;
-			for (final AvailObject seal : entry.value)
+			else
 			{
-				anInterpreter.runtime().removeSeal(
-					methodName,
-					seal);
+				publics = SetDescriptor.empty();
 			}
+			if (!object.slot(PRIVATE_NAMES).hasKey(stringName))
+			{
+				return publics;
+			}
+			final AvailObject privates = object.slot(PRIVATE_NAMES).mapAt(
+				stringName);
+			if (publics.setSize() == 0)
+			{
+				return privates;
+			}
+			return publics.setUnionCanDestroy(privates, false);
 		}
-	}
-
-	@Override @AvailMethod
-	void o_AddTypeRestriction (
-		final AvailObject object,
-		final AvailObject methodName,
-		final AvailObject typeRestrictionFunction)
-	{
-		AvailObject typeRestrictions = object.slot(
-			TYPE_RESTRICTION_FUNCTIONS);
-		AvailObject tuple;
-		if (typeRestrictions.hasKey(methodName))
-		{
-			tuple = typeRestrictions.mapAt(methodName);
-		}
-		else
-		{
-			tuple = TupleDescriptor.empty();
-		}
-		tuple = tuple.appendCanDestroy(typeRestrictionFunction, true);
-		typeRestrictions = typeRestrictions.mapAtPuttingCanDestroy(
-			methodName,
-			tuple,
-			true);
-		object.setSlot(TYPE_RESTRICTION_FUNCTIONS, typeRestrictions);
-	}
-
-	@Override @AvailMethod
-	void o_AddSeal (
-		final AvailObject object,
-		final AvailObject methodName,
-		final AvailObject sealSignature)
-	{
-		AvailObject seals = object.slot(SEALS);
-		AvailObject tuple;
-		if (seals.hasKey(methodName))
-		{
-			tuple = seals.mapAt(methodName);
-		}
-		else
-		{
-			tuple = TupleDescriptor.empty();
-		}
-		tuple = tuple.appendCanDestroy(sealSignature, true);
-		seals = seals.mapAtPuttingCanDestroy(methodName, tuple, true);
-		object.setSlot(SEALS, seals);
-	}
-
-	@Override
-	public boolean o_ShowValueInNameForDebugger (
-		final AvailObject object)
-	{
-		return false;
-	}
-
-	@Override
-	public void printObjectOnAvoidingIndent (
-		final AvailObject object,
-		final StringBuilder builder,
-		final List<AvailObject> recursionList,
-		final int indent)
-	{
-		builder.append("Module: ");
-		builder.append(object.name().toString());
 	}
 
 	/**
@@ -770,12 +856,11 @@ extends Descriptor
 	 *        The {@linkplain StringDescriptor name} of the module.
 	 * @return The new module.
 	 */
-	public static AvailObject newModule (
-		final AvailObject moduleName)
+	public static AvailObject newModule (final AvailObject moduleName)
 	{
 		final AvailObject emptyMap = MapDescriptor.empty();
 		final AvailObject emptySet = SetDescriptor.empty();
-		final AvailObject object = mutable().create();
+		final AvailObject object = mutable.create();
 		object.setSlot(NAME, moduleName);
 		object.setSlot(VERSIONS, emptySet);
 		object.setSlot(NEW_NAMES, emptyMap);
@@ -793,49 +878,45 @@ extends Descriptor
 		object.setSlot(TYPE_RESTRICTION_FUNCTIONS, MapDescriptor.empty());
 		object.setSlot(SEALS, MapDescriptor.empty());
 		object.setSlot(COUNTER, 0);
+		object.makeShared();
 		return object;
 	}
 
 	/**
 	 * Construct a new {@link ModuleDescriptor}.
 	 *
-	 * @param isMutable
-	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
-	 *        object?
+	 * @param mutability
+	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 */
-	protected ModuleDescriptor (final boolean isMutable)
+	private ModuleDescriptor (final Mutability mutability)
 	{
-		super(isMutable);
+		super(mutability);
 	}
 
-	/**
-	 * The mutable {@link ModuleDescriptor}.
-	 */
-	private static final ModuleDescriptor mutable = new ModuleDescriptor(true);
+	/** The mutable {@link ModuleDescriptor}. */
+	private static final ModuleDescriptor mutable =
+		new ModuleDescriptor(Mutability.MUTABLE);
 
-	/**
-	 * Answer the mutable {@link ModuleDescriptor}.
-	 *
-	 * @return The mutable {@link ModuleDescriptor}.
-	 */
-	public static ModuleDescriptor mutable ()
+	@Override
+	ModuleDescriptor mutable ()
 	{
 		return mutable;
 	}
 
-	/**
-	 * The immutable {@link ModuleDescriptor}.
-	 */
-	private static final ModuleDescriptor immutable =
-		new ModuleDescriptor(false);
+	/** The shared {@link ModuleDescriptor}. */
+	private static final ModuleDescriptor shared =
+		new ModuleDescriptor(Mutability.SHARED);
 
-	/**
-	 * Answer the immutable {@link ModuleDescriptor}.
-	 *
-	 * @return The immutable {@link ModuleDescriptor}.
-	 */
-	public static ModuleDescriptor immutable ()
+	@Override
+	ModuleDescriptor immutable ()
 	{
-		return immutable;
+		// There is no immutable descriptor. Use the shared one.
+		return shared;
+	}
+
+	@Override
+	ModuleDescriptor shared ()
+	{
+		return shared;
 	}
 }

@@ -1,6 +1,6 @@
 /**
  * P_169_FileSync.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -66,7 +66,7 @@ extends Primitive
 			handle.getAtomProperty(AtomDescriptor.fileKey());
 		final AvailObject mode =
 			handle.getAtomProperty(AtomDescriptor.fileModeWriteKey());
-		if (pojo.equalsNull() || mode.equalsNull())
+		if (pojo.equalsNil() || mode.equalsNil())
 		{
 			return interpreter.primitiveFailure(E_INVALID_HANDLE);
 		}
@@ -79,7 +79,7 @@ extends Primitive
 		{
 			return interpreter.primitiveFailure(E_IO_ERROR);
 		}
-		return interpreter.primitiveSuccess(NullDescriptor.nullObject());
+		return interpreter.primitiveSuccess(NilDescriptor.nil());
 	}
 
 	@Override

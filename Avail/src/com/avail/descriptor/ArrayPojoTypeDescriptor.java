@@ -1,6 +1,6 @@
 /**
  * ArrayPojoTypeDescriptor.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -147,14 +147,28 @@ extends PojoTypeDescriptor
 			return false;
 		}
 		// The objects are known to be equal and not reference identical
-		// (checked by a caller), so coalesce them.
-		object.becomeIndirectionTo(aPojoType);
-		aPojoType.makeImmutable();
+		// (checked by a caller), so coalesce them if possible.
+		if (!isShared())
+		{
+			aPojoType.makeImmutable();
+			object.becomeIndirectionTo(aPojoType);
+		}
+		else if (!aPojoType.descriptor.isShared())
+		{
+			object.makeImmutable();
+			aPojoType.becomeIndirectionTo(object);
+		}
 		return true;
 	}
 
-	@Override @AvailMethod
-	int o_Hash (final AvailObject object)
+	/**
+	 * Lazily compute and install the hash of the {@linkplain
+	 * ArrayPojoTypeDescriptor object}.
+	 *
+	 * @param object An object.
+	 * @return The hash.
+	 */
+	private int hash (final AvailObject object)
 	{
 		int hash = object.slot(HASH_OR_ZERO);
 		if (hash == 0)
@@ -166,6 +180,19 @@ extends PojoTypeDescriptor
 			object.setSlot(HASH_OR_ZERO, hash);
 		}
 		return hash;
+	}
+
+	@Override @AvailMethod
+	int o_Hash (final AvailObject object)
+	{
+		if (isShared())
+		{
+			synchronized (object)
+			{
+				return hash(object);
+			}
+		}
+		return hash(object);
 	}
 
 	@Override @AvailMethod
@@ -196,16 +223,6 @@ extends PojoTypeDescriptor
 	AvailObject o_JavaClass (final AvailObject object)
 	{
 		return RawPojoDescriptor.equalityWrap(PojoArray.class);
-	}
-
-	@Override @AvailMethod
-	AvailObject o_MakeImmutable (final AvailObject object)
-	{
-		object.descriptor = immutable;
-		object.slot(JAVA_ANCESTORS).makeImmutable();
-		object.slot(CONTENT_TYPE).makeImmutable();
-		object.slot(SIZE_RANGE).makeImmutable();
-		return object;
 	}
 
 	@Override
@@ -301,7 +318,7 @@ extends PojoTypeDescriptor
 			intersectionAncestors.keysAsSet());
 		// If the intersection contains a most specific type, then the answer is
 		// not a fused pojo type; otherwise it is.
-		return !javaClass.equalsNull()
+		return !javaClass.equalsNil()
 			? UnfusedPojoTypeDescriptor.create(javaClass, intersectionAncestors)
 			: FusedPojoTypeDescriptor.create(intersectionAncestors);
 	}
@@ -322,7 +339,7 @@ extends PojoTypeDescriptor
 			intersectionAncestors.keysAsSet());
 		// If the intersection contains a most specific type, then the answer is
 		// not a fused pojo type; otherwise it is.
-		return !javaClass.equalsNull()
+		return !javaClass.equalsNil()
 			? UnfusedPojoTypeDescriptor.create(javaClass, intersectionAncestors)
 			: FusedPojoTypeDescriptor.create(intersectionAncestors);
 	}
@@ -368,32 +385,43 @@ extends PojoTypeDescriptor
 	/**
 	 * Construct a new {@link ArrayPojoTypeDescriptor}.
 	 *
-	 * @param isMutable
-	 *        Does the {@linkplain ArrayPojoTypeDescriptor descriptor}
-	 *        represent a mutable object?
+	 * @param mutability
+	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 */
-	public ArrayPojoTypeDescriptor (final boolean isMutable)
+	private ArrayPojoTypeDescriptor (final Mutability mutability)
 	{
-		super(isMutable);
+		super(mutability);
 	}
 
 	/** The mutable {@link ArrayPojoTypeDescriptor}. */
 	private final static ArrayPojoTypeDescriptor mutable =
-		new ArrayPojoTypeDescriptor(true);
+		new ArrayPojoTypeDescriptor(Mutability.MUTABLE);
 
-	/**
-	 * Answer the mutable {@link ArrayPojoTypeDescriptor}.
-	 *
-	 * @return The mutable {@code ArrayPojoTypeDescriptor}.
-	 */
-	static ArrayPojoTypeDescriptor mutable ()
+	@Override
+	ArrayPojoTypeDescriptor mutable ()
 	{
 		return mutable;
 	}
 
 	/** The immutable {@link ArrayPojoTypeDescriptor}. */
 	private final static ArrayPojoTypeDescriptor immutable =
-		new ArrayPojoTypeDescriptor(false);
+		new ArrayPojoTypeDescriptor(Mutability.IMMUTABLE);
+
+	@Override
+	ArrayPojoTypeDescriptor immutable ()
+	{
+		return immutable;
+	}
+
+	/** The shared {@link ArrayPojoTypeDescriptor}. */
+	private final static ArrayPojoTypeDescriptor shared =
+		new ArrayPojoTypeDescriptor(Mutability.SHARED);
+
+	@Override
+	ArrayPojoTypeDescriptor shared ()
+	{
+		return shared;
+	}
 
 	/**
 	 * Create a new {@link AvailObject} that represents a {@linkplain

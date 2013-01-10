@@ -1,6 +1,6 @@
 /**
  * L2Translator.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -491,7 +491,7 @@ public class L2Translator implements L1OperationDispatcher
 		final AvailObject value,
 		final L2ObjectRegister destinationRegister)
 	{
-		if (value.equalsNull())
+		if (value.equalsNil())
 		{
 			moveRegister(registers.fixed(NULL), destinationRegister);
 		}
@@ -1002,7 +1002,7 @@ public class L2Translator implements L1OperationDispatcher
 			stackIndex++)
 		{
 			moveConstant(
-				NullDescriptor.nullObject(),
+				NilDescriptor.nil(),
 				stackRegister(stackIndex, true));
 		}
 	}
@@ -1106,7 +1106,7 @@ public class L2Translator implements L1OperationDispatcher
 		// Remove the top item from the stack.
 		assert stackp == code.maxStackDepth()
 		: "Pop should only only occur at end of statement";
-		moveConstant(NullDescriptor.nullObject(), writeTopOfStackRegister());
+		moveConstant(NilDescriptor.nil(), writeTopOfStackRegister());
 		stackp++;
 	}
 
@@ -1123,7 +1123,7 @@ public class L2Translator implements L1OperationDispatcher
 			registers.argumentOrLocal(localIndex),
 			writeTopOfStackRegister());
 		moveConstant(
-			NullDescriptor.nullObject(),
+			NilDescriptor.nil(),
 			registers.argumentOrLocal(localIndex));
 	}
 
@@ -1578,7 +1578,7 @@ public class L2Translator implements L1OperationDispatcher
 		contingentMethods.clear();
 		registers.constantAtPut(
 			registers.fixed(NULL),
-			NullDescriptor.nullObject());
+			NilDescriptor.nil());
 		registers.typeAtPut(registers.fixed(FUNCTION), code.functionType());
 		if (optLevel == 0)
 		{
@@ -1640,7 +1640,7 @@ public class L2Translator implements L1OperationDispatcher
 			stackSlot++)
 		{
 			moveConstant(
-				NullDescriptor.nullObject(),
+				NilDescriptor.nil(),
 				stackRegister(stackSlot, true));
 		}
 		// Now translate all the instructions.  We already wrote a label as

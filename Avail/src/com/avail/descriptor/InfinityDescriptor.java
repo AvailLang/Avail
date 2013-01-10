@@ -1,6 +1,6 @@
 /**
  * InfinityDescriptor.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -57,7 +57,8 @@ extends ExtendedIntegerDescriptor
 	/**
 	 * The layout of integer slots for my instances.
 	 */
-	public enum IntegerSlots implements IntegerSlotsEnum
+	public enum IntegerSlots
+	implements IntegerSlotsEnum
 	{
 		/**
 		 * A slot to indicate the sign of the infinity.
@@ -95,17 +96,13 @@ extends ExtendedIntegerDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_Equals (
-		final AvailObject object,
-		final AvailObject another)
+	boolean o_Equals (final AvailObject object, final AvailObject another)
 	{
 		return another.equalsInfinity(getSign(object));
 	}
 
 	@Override @AvailMethod
-	boolean o_EqualsInfinity (
-		final AvailObject object,
-		final Sign sign)
+	boolean o_EqualsInfinity (final AvailObject object, final Sign sign)
 	{
 		return object.slot(IntegerSlots.SIGN) == sign.ordinal();
 	}
@@ -150,30 +147,25 @@ extends ExtendedIntegerDescriptor
 	}
 
 	@Override @AvailMethod
-	int o_Hash (
-		final AvailObject object)
+	int o_Hash (final AvailObject object)
 	{
-		// Answer the object's hash value.
 		return object.isPositive() ? 0x14B326DA : 0xBF9302D;
 	}
 
 	@Override @AvailMethod
-	boolean o_IsFinite (
-		final AvailObject object)
+	boolean o_IsFinite (final AvailObject object)
 	{
 		return false;
 	}
 
 	@Override @AvailMethod
-	AvailObject o_Kind (
-		final AvailObject object)
+	AvailObject o_Kind (final AvailObject object)
 	{
 		return IntegerRangeTypeDescriptor.singleInteger(object);
 	}
 
 	@Override @AvailMethod
-	double o_ExtractDouble (
-		final AvailObject object)
+	double o_ExtractDouble (final AvailObject object)
 	{
 		return object.isPositive()
 			? Double.POSITIVE_INFINITY
@@ -232,8 +224,7 @@ extends ExtendedIntegerDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_IsPositive (
-		final AvailObject object)
+	boolean o_IsPositive (final AvailObject object)
 	{
 		return object.slot(IntegerSlots.SIGN) == Sign.POSITIVE.ordinal();
 	}
@@ -432,9 +423,7 @@ extends ExtendedIntegerDescriptor
 	}
 
 	@Override @AvailMethod
-	Order o_NumericCompare (
-		final AvailObject object,
-		final AvailObject another)
+	Order o_NumericCompare (final AvailObject object, final AvailObject another)
 	{
 		return another.numericCompareToInfinity(getSign(object)).reverse();
 	}
@@ -447,6 +436,23 @@ extends ExtendedIntegerDescriptor
 		return DoubleDescriptor.compareDoubles(
 			getSign(object).limitDouble(),
 			double1);
+	}
+
+	@Override @AvailMethod
+	AvailObject o_MakeImmutable (final AvailObject object)
+	{
+		assert isShared();
+		return object;
+	}
+
+	@Override @AvailMethod
+	AvailObject o_MakeShared (final AvailObject object)
+	{
+		if (!isShared())
+		{
+			object.descriptor = shared;
+		}
+		return object;
 	}
 
 	/**
@@ -466,17 +472,17 @@ extends ExtendedIntegerDescriptor
 	 */
 	static void createWellKnownObjects ()
 	{
-		final AvailObject positive = mutable().create();
+		final AvailObject positive = mutable.create();
 		positive.setSlot(
 			IntegerSlots.SIGN,
 			Sign.POSITIVE.ordinal());
-		positiveInfinity = positive;
+		positiveInfinity = positive.makeShared();
 
-		final AvailObject negative = mutable().create();
+		final AvailObject negative = mutable.create();
 		negative.setSlot(
 			IntegerSlots.SIGN,
 			Sign.NEGATIVE.ordinal());
-		negativeInfinity = negative;
+		negativeInfinity = negative.makeShared();
 	}
 
 	/**
@@ -531,44 +537,38 @@ extends ExtendedIntegerDescriptor
 	/**
 	 * Construct a new {@link InfinityDescriptor}.
 	 *
-	 * @param isMutable
-	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
-	 *        object?
+	 * @param mutability
+	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 */
-	protected InfinityDescriptor (final boolean isMutable)
+	private InfinityDescriptor (final Mutability mutability)
 	{
-		super(isMutable);
+		super(mutability);
 	}
 
-	/**
-	 * The mutable {@link InfinityDescriptor}.
-	 */
+	/** The mutable {@link InfinityDescriptor}. */
 	private static final InfinityDescriptor mutable =
-		new InfinityDescriptor(true);
+		new InfinityDescriptor(Mutability.MUTABLE);
 
-	/**
-	 * Answer the mutable {@link InfinityDescriptor}.
-	 *
-	 * @return The mutable {@link InfinityDescriptor}.
-	 */
-	public static InfinityDescriptor mutable ()
+	@Override
+	InfinityDescriptor mutable ()
 	{
 		return mutable;
 	}
 
-	/**
-	 * The immutable {@link InfinityDescriptor}.
-	 */
-	private static final InfinityDescriptor immutable =
-		new InfinityDescriptor(false);
+	/** The shared {@link InfinityDescriptor}. */
+	private static final InfinityDescriptor shared =
+		new InfinityDescriptor(Mutability.SHARED);
 
-	/**
-	 * Answer the immutable {@link InfinityDescriptor}.
-	 *
-	 * @return The immutable {@link InfinityDescriptor}.
-	 */
-	public static InfinityDescriptor immutable ()
+	@Override
+	InfinityDescriptor immutable ()
 	{
-		return immutable;
+		// There isn't an immutable variant; answer the shared one.
+		return shared;
+	}
+
+	@Override
+	InfinityDescriptor shared ()
+	{
+		return shared;
 	}
 }

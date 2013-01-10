@@ -1,6 +1,6 @@
 /**
  * FiberDescriptor.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,7 +42,7 @@ import com.avail.descriptor.TypeDescriptor.Types;
 
 /**
  * An Avail {@linkplain FiberDescriptor fiber} represents an independently
- * schedulable flow of control.  Its primary feature is a continuation which is
+ * schedulable flow of control. Its primary feature is a continuation which is
  * repeatedly replaced with continuations representing successively more
  * advanced states, thereby effecting execution.
  *
@@ -54,11 +54,11 @@ import com.avail.descriptor.TypeDescriptor.Types;
 public class FiberDescriptor
 extends Descriptor
 {
-
 	/**
 	 * The layout of integer slots for my instances.
 	 */
-	public enum IntegerSlots implements IntegerSlotsEnum
+	public enum IntegerSlots
+	implements IntegerSlotsEnum
 	{
 		/**
 		 * The hash of this fiber, which is chosen randomly on the first demand.
@@ -79,7 +79,6 @@ extends Descriptor
 		 * value is zero then no interrupt is indicated.
 		 */
 		INTERRUPT_REQUEST_FLAGS;
-
 
 		/**
 		 * Interrupt because this fiber has executed the specified number of
@@ -116,7 +115,8 @@ extends Descriptor
 	/**
 	 * The layout of object slots for my instances.
 	 */
-	public enum ObjectSlots implements ObjectSlotsEnum
+	public enum ObjectSlots
+	implements ObjectSlotsEnum
 	{
 		/**
 		 * The current {@linkplain ContinuationDescriptor state of execution} of
@@ -139,16 +139,16 @@ extends Descriptor
 		/**
 		 * A map from {@linkplain AtomDescriptor atoms} to values.  Each fiber
 		 * has its own unique such map, which allows processes to record
-		 * fiber-specific values.  The atom identities ensure modularity and
+		 * fiber-specific values. The atom identities ensure modularity and
 		 * non-interference of these keys.
 		 */
-		PROCESS_GLOBALS,
+		FIBER_GLOBALS,
 
 		/**
-		 * Not yet implement.  This will be a block that should be invoked after
-		 * the fiber executes each nybblecode.  Using {@linkplain
-		 * TopTypeDescriptor the null object} here means run without this
-		 * special single-stepping mode enabled.
+		 * Not yet implemented. This will be a block that should be invoked
+		 * after the fiber executes each nybblecode. Using {@linkplain
+		 * NilDescriptor nil} here means run without this special
+		 * single-stepping mode enabled.
 		 */
 		BREAKPOINT_BLOCK
 	}
@@ -157,7 +157,8 @@ extends Descriptor
 	 * These are the possible execution states of a {@linkplain FiberDescriptor
 	 * fiber}.
 	 */
-	public enum ExecutionState implements IntegerEnumSlotDescriptionEnum
+	public enum ExecutionState
+	implements IntegerEnumSlotDescriptionEnum
 	{
 		/**
 		 * The fiber is running or waiting for another fiber to yield.
@@ -170,136 +171,9 @@ extends Descriptor
 		SUSPENDED,
 
 		/**
-		 * The fiber has terminated.  This state is permanent.
+		 * The fiber has terminated. This state is permanent.
 		 */
 		TERMINATED;
-	}
-
-	@Override @AvailMethod
-	void o_BreakpointBlock (
-		final AvailObject object,
-		final AvailObject value)
-	{
-		object.setSlot(BREAKPOINT_BLOCK, value);
-	}
-
-	@Override @AvailMethod
-	void o_Continuation (
-		final AvailObject object,
-		final AvailObject value)
-	{
-		object.setSlot(CONTINUATION, value);
-	}
-
-	@Override @AvailMethod
-	void o_ExecutionState (
-		final AvailObject object,
-		final ExecutionState value)
-	{
-		object.setSlot(EXECUTION_STATE, value.ordinal());
-	}
-
-	@Override @AvailMethod
-	void o_HashOrZero (
-		final AvailObject object,
-		final int value)
-	{
-		object.setSlot(HASH_OR_ZERO, value);
-	}
-
-	@Override
-	synchronized void o_ClearInterruptRequestFlags (
-		final AvailObject object)
-	{
-		object.setSlot(INTERRUPT_REQUEST_FLAGS, 0);
-	}
-
-	@Override @AvailMethod
-	synchronized void o_SetInterruptRequestFlag (
-		final AvailObject object,
-		final BitField field)
-	{
-		assert field.integerSlot == INTERRUPT_REQUEST_FLAGS;
-		object.setSlot(field, 1);
-	}
-
-	@Override @AvailMethod
-	void o_Name (
-		final AvailObject object,
-		final AvailObject value)
-	{
-		object.setSlot(NAME, value);
-	}
-
-	@Override @AvailMethod
-	void o_Priority (
-		final AvailObject object,
-		final AvailObject value)
-	{
-		object.setSlot(PRIORITY, value);
-	}
-
-	@Override @AvailMethod
-	void o_FiberGlobals (
-		final AvailObject object,
-		final AvailObject value)
-	{
-		object.setSlot(PROCESS_GLOBALS, value);
-	}
-
-	@Override @AvailMethod
-	AvailObject o_BreakpointBlock (
-		final AvailObject object)
-	{
-		return object.slot(BREAKPOINT_BLOCK);
-	}
-
-	@Override @AvailMethod
-	AvailObject o_Continuation (
-		final AvailObject object)
-	{
-		return object.slot(CONTINUATION);
-	}
-
-	@Override @AvailMethod
-	ExecutionState o_ExecutionState (
-		final AvailObject object)
-	{
-		return ExecutionState.values()[object.slot(EXECUTION_STATE)];
-	}
-
-	@Override @AvailMethod
-	int o_HashOrZero (
-		final AvailObject object)
-	{
-		return object.slot(HASH_OR_ZERO);
-	}
-
-	@Override @AvailMethod
-	synchronized int o_InterruptRequestFlags (
-		final AvailObject object)
-	{
-		return object.slot(INTERRUPT_REQUEST_FLAGS);
-	}
-
-	@Override @AvailMethod
-	AvailObject o_Name (final AvailObject object)
-	{
-		return object.slot(NAME);
-	}
-
-	@Override @AvailMethod
-	AvailObject o_Priority (
-		final AvailObject object)
-	{
-		return object.slot(PRIORITY);
-	}
-
-	@Override @AvailMethod
-	AvailObject o_FiberGlobals (
-		final AvailObject object)
-	{
-		return object.slot(PROCESS_GLOBALS);
 	}
 
 	@Override boolean allowsImmutableToMutableReferenceInField (
@@ -309,7 +183,7 @@ extends Descriptor
 			e == CONTINUATION
 			|| e == NAME
 			|| e == PRIORITY
-			|| e == PROCESS_GLOBALS
+			|| e == FIBER_GLOBALS
 			|| e == BREAKPOINT_BLOCK
 			|| e == HASH_OR_ZERO
 			|| e == EXECUTION_STATE
@@ -317,18 +191,123 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_Equals (
-		final AvailObject object,
-		final AvailObject another)
+	ExecutionState o_ExecutionState (final AvailObject object)
 	{
-		//  Compare processes by address (identity).
-
-		return another.traversed().sameAddressAs(object);
+		return ExecutionState.values()[object.mutableSlot(EXECUTION_STATE)];
 	}
 
 	@Override @AvailMethod
-	int o_Hash (
-		final AvailObject object)
+	void o_ExecutionState (final AvailObject object, final ExecutionState value)
+	{
+		object.setMutableSlot(EXECUTION_STATE, value.ordinal());
+	}
+
+	@Override
+	void o_ClearInterruptRequestFlags (final AvailObject object)
+	{
+		object.setMutableSlot(INTERRUPT_REQUEST_FLAGS, 0);
+	}
+
+	@Override @AvailMethod
+	void o_SetInterruptRequestFlag (
+		final AvailObject object,
+		final BitField field)
+	{
+		assert field.integerSlot == INTERRUPT_REQUEST_FLAGS;
+		if (isShared())
+		{
+			synchronized (object)
+			{
+				object.setSlot(field, 1);
+			}
+		}
+		else
+		{
+			object.setSlot(field, 1);
+		}
+	}
+
+	@Override @AvailMethod
+	int o_InterruptRequestFlags (final AvailObject object)
+	{
+		return object.mutableSlot(INTERRUPT_REQUEST_FLAGS);
+	}
+
+	@Override @AvailMethod
+	AvailObject o_Continuation (final AvailObject object)
+	{
+		return object.mutableSlot(CONTINUATION);
+	}
+
+	@Override @AvailMethod
+	void o_Continuation (final AvailObject object, final AvailObject value)
+	{
+		object.setMutableSlot(CONTINUATION, value);
+	}
+
+	@Override @AvailMethod
+	AvailObject o_Priority (final AvailObject object)
+	{
+		return object.mutableSlot(PRIORITY);
+	}
+
+	@Override @AvailMethod
+	void o_Priority (final AvailObject object, final AvailObject value)
+	{
+		object.setMutableSlot(PRIORITY, value);
+	}
+
+	@Override @AvailMethod
+	AvailObject o_Name (final AvailObject object)
+	{
+		return object.mutableSlot(NAME);
+	}
+
+	@Override @AvailMethod
+	void o_Name (final AvailObject object, final AvailObject value)
+	{
+		object.setMutableSlot(NAME, value);
+	}
+
+	@Override @AvailMethod
+	AvailObject o_FiberGlobals (final AvailObject object)
+	{
+		return object.mutableSlot(FIBER_GLOBALS);
+	}
+
+	@Override @AvailMethod
+	void o_FiberGlobals (final AvailObject object, final AvailObject value)
+	{
+		object.setMutableSlot(FIBER_GLOBALS, value);
+	}
+
+	@Override @AvailMethod
+	AvailObject o_BreakpointBlock (final AvailObject object)
+	{
+		return object.mutableSlot(BREAKPOINT_BLOCK);
+	}
+
+	@Override @AvailMethod
+	void o_BreakpointBlock (final AvailObject object, final AvailObject value)
+	{
+		object.setMutableSlot(BREAKPOINT_BLOCK, value);
+	}
+
+	@Override @AvailMethod
+	boolean o_Equals (final AvailObject object, final AvailObject another)
+	{
+		// Compare fibers by address (identity).
+		return another.traversed().sameAddressAs(object);
+	}
+
+	/**
+	 * Lazily compute and install the hash of the specified {@linkplain
+	 * FiberDescriptor object}.
+	 *
+	 * @param object An object.
+	 * @return The hash.
+	 */
+	private int hash (final AvailObject object)
 	{
 		int hash = object.slot(HASH_OR_ZERO);
 		if (hash == 0)
@@ -344,29 +323,32 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_MakeImmutable (
-		final AvailObject object)
+	int o_Hash (final AvailObject object)
 	{
-		object.descriptor = immutable();
-		return object;
+		if (isShared())
+		{
+			synchronized (object)
+			{
+				return hash(object);
+			}
+		}
+		return hash(object);
 	}
 
 	@Override @AvailMethod
-	AvailObject o_Kind (
-		final AvailObject object)
+	AvailObject o_Kind (final AvailObject object)
 	{
 		return Types.FIBER.o();
 	}
 
 	/**
 	 * Answer an integer extracted at the current program counter from the
-	 * continuation.  The program counter will be adjusted to skip over the
-	 * integer.  Use a totally naive implementation for now, with very little
+	 * continuation. The program counter will be adjusted to skip over the
+	 * integer. Use a totally naive implementation for now, with very little
 	 * caching.
 	 */
 	@Override @AvailMethod
-	int o_GetInteger (
-		final AvailObject object)
+	int o_GetInteger (final AvailObject object)
 	{
 		final AvailObject contObject = object.continuation();
 		int pc = contObject.pc();
@@ -392,8 +374,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	void o_Step (
-		final AvailObject object)
+	void o_Step (final AvailObject object)
 	{
 		error("Process stepping is not implemented");
 	}
@@ -401,42 +382,41 @@ extends Descriptor
 	/**
 	 * Construct a new {@link FiberDescriptor}.
 	 *
-	 * @param isMutable
-	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
-	 *        object?
+	 * @param mutability
+	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 */
-	protected FiberDescriptor (final boolean isMutable)
+	private FiberDescriptor (final Mutability mutability)
 	{
-		super(isMutable);
+		super(mutability);
 	}
 
-	/**
-	 * The mutable {@link FiberDescriptor}.
-	 */
-	private static final FiberDescriptor mutable = new FiberDescriptor(true);
+	/** The mutable {@link FiberDescriptor}. */
+	public static final FiberDescriptor mutable =
+		new FiberDescriptor(Mutability.MUTABLE);
 
-	/**
-	 * Answer the mutable {@link FiberDescriptor}.
-	 *
-	 * @return The mutable {@link FiberDescriptor}.
-	 */
-	public static FiberDescriptor mutable ()
+	@Override
+	FiberDescriptor mutable ()
 	{
 		return mutable;
 	}
 
-	/**
-	 * The immutable {@link FiberDescriptor}.
-	 */
-	private static final FiberDescriptor immutable = new FiberDescriptor(false);
+	/** The immutable {@link FiberDescriptor}. */
+	private static final FiberDescriptor immutable =
+		new FiberDescriptor(Mutability.IMMUTABLE);
 
-	/**
-	 * Answer the immutable {@link FiberDescriptor}.
-	 *
-	 * @return The immutable {@link FiberDescriptor}.
-	 */
-	public static FiberDescriptor immutable ()
+	@Override
+	FiberDescriptor immutable ()
 	{
 		return immutable;
+	}
+
+	/** The shared {@link FiberDescriptor}. */
+	private static final FiberDescriptor shared =
+		new FiberDescriptor(Mutability.SHARED);
+
+	@Override
+	FiberDescriptor shared ()
+	{
+		return shared;
 	}
 }

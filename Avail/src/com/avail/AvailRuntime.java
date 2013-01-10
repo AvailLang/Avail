@@ -1,6 +1,6 @@
 /**
  * AvailRuntime.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -689,16 +689,28 @@ implements ThreadFactory
 		specialAtoms[12] = AtomDescriptor.fileKey();
 		specialAtoms[13] = AtomDescriptor.fileModeReadKey();
 		specialAtoms[14] = AtomDescriptor.fileModeWriteKey();
+		specialAtoms[15] = CompiledCodeDescriptor.methodNameKeyAtom();
+		specialAtoms[16] = CompiledCodeDescriptor.lineNumberKeyAtom();
 
 		assert specialAtomsSet == null;
 		specialAtomsSet = new HashSet<AvailObject>(specialAtomsList);
 		specialAtomsSet.remove(null);
 		specialAtomsSet = Collections.unmodifiableSet(specialAtomsSet);
-		for (final AvailObject object : specialObjects)
+		for (int i = 0; i < specialObjects.length; i++)
 		{
+			final AvailObject object = specialObjects[i];
 			if (object != null && object.isAtom())
 			{
 				assert specialAtomsSet.contains(object);
+				specialObjects[i] = object.makeShared();
+			}
+		}
+		for (int i = 0; i < specialAtoms.length; i++)
+		{
+			final AvailObject object = specialAtoms[i];
+			if (object != null)
+			{
+				specialAtoms[i] = object.makeShared();
 			}
 		}
 	}
@@ -908,13 +920,13 @@ implements ThreadFactory
 	 * Answer the {@linkplain MethodDescriptor method}
 	 * bound to the specified {@linkplain AtomDescriptor selector}.  If
 	 * there is no method with that selector, answer {@linkplain
-	 * NullDescriptor the null object}.
+	 * NilDescriptor nil}.
 	 *
 	 * @param selector
 	 *            A {@linkplain AtomDescriptor selector}.
 	 * @return
 	 *            A {@linkplain MethodDescriptor method}
-	 *            or {@linkplain NullDescriptor the null object}.
+	 *            or {@linkplain NilDescriptor nil}.
 	 */
 	@ThreadSafe
 	public AvailObject methodsAt (final AvailObject selector)
@@ -928,7 +940,7 @@ implements ThreadFactory
 			{
 				return methods.mapAt(selector);
 			}
-			return NullDescriptor.nullObject();
+			return NilDescriptor.nil();
 		}
 		finally
 		{

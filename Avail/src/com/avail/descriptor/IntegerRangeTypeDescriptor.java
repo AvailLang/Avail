@@ -1,6 +1,6 @@
 /**
  * IntegerRangeTypeDescriptor.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,17 +36,18 @@ import static com.avail.descriptor.IntegerRangeTypeDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.AvailObject.error;
 import java.math.BigInteger;
 import java.util.List;
+import com.avail.AvailRuntime;
 import com.avail.annotations.*;
 import com.avail.serialization.SerializerOperation;
 
 /**
- * My instances represent the types of one or more extended integers.  There are
+ * My instances represent the types of one or more extended integers. There are
  * lower and upper bounds, and flags to indicate whether those bounds are to be
  * treated as inclusive or exclusive of the bounds themselves.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class IntegerRangeTypeDescriptor
+public final class IntegerRangeTypeDescriptor
 extends TypeDescriptor
 {
 	/**
@@ -56,32 +57,18 @@ extends TypeDescriptor
 	implements ObjectSlotsEnum
 	{
 		/**
-		 * The extended integer which is the lower bound of this range.  It is
+		 * The extended integer which is the lower bound of this range. It is
 		 * either inclusive or exclusive depending on the {@linkplain
 		* IntegerRangeTypeDescriptor#o_LowerInclusive lowerInclusive} flag.
 		 */
 		LOWER_BOUND,
 
 		/**
-		 * The extended integer which is the upper bound of this range.  It is
+		 * The extended integer which is the upper bound of this range. It is
 		 * either inclusive or exclusive depending on the {@linkplain
 		* IntegerRangeTypeDescriptor#o_UpperInclusive upperInclusive} flag.
 		 */
 		UPPER_BOUND
-	}
-
-	@Override @AvailMethod
-	AvailObject o_LowerBound (
-		final AvailObject object)
-	{
-		return object.slot(LOWER_BOUND);
-	}
-
-	@Override @AvailMethod
-	AvailObject o_UpperBound (
-		final AvailObject object)
-	{
-		return object.slot(UPPER_BOUND);
 	}
 
 	@Override
@@ -105,9 +92,19 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_Equals (
-		final AvailObject object,
-		final AvailObject another)
+	AvailObject o_LowerBound (final AvailObject object)
+	{
+		return object.slot(LOWER_BOUND);
+	}
+
+	@Override @AvailMethod
+	AvailObject o_UpperBound (final AvailObject object)
+	{
+		return object.slot(UPPER_BOUND);
+	}
+
+	@Override @AvailMethod
+	boolean o_Equals (final AvailObject object, final AvailObject another)
 	{
 		return another.equalsIntegerRangeType(object);
 	}
@@ -149,8 +146,7 @@ extends TypeDescriptor
 	 * serves to distinguish two representations of equal objects).
 	 */
 	@Override @AvailMethod
-	int o_Hash (
-		final AvailObject object)
+	int o_Hash (final AvailObject object)
 	{
 		return IntegerRangeTypeDescriptor.computeHash(
 			object.slot(LOWER_BOUND).hash(),
@@ -160,36 +156,31 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_LowerInclusive (
-		final AvailObject object)
+	boolean o_LowerInclusive (final AvailObject object)
 	{
 		return lowerInclusive;
 	}
 
 	@Override @AvailMethod
-	boolean o_UpperInclusive (
-		final AvailObject object)
+	boolean o_UpperInclusive (final AvailObject object)
 	{
 		return upperInclusive;
 	}
 
 	@Override @AvailMethod
-	boolean o_IsSubtypeOf (
-		final AvailObject object,
-		final AvailObject aType)
+	boolean o_IsSubtypeOf (final AvailObject object, final AvailObject aType)
 	{
-		// Check if object (a type) is a subtype of aType (should also be a type).
 		return aType.isSupertypeOfIntegerRangeType(object);
 	}
 
 	/**
-	 * Integer range types compare like the subsets they represent.  The only
+	 * Integer range types compare like the subsets they represent. The only
 	 * elements that matter in the comparisons are within one unit of the four
 	 * boundary conditions (because these are the only places where the type
-	 * memberships can change), so just use these.  In particular, use the value
-	 * just inside and the value just outside each boundary.  If the subtype's
+	 * memberships can change), so just use these. In particular, use the value
+	 * just inside and the value just outside each boundary. If the subtype's
 	 * constraints don't logically imply the supertype's constraints then the
-	 * subtype is not actually a subtype.  Make use of the fact that integer
+	 * subtype is not actually a subtype. Make use of the fact that integer
 	 * range types have their bounds canonized into inclusive form, if finite,
 	 * at range type creation time.
 	 */
@@ -327,15 +318,13 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_IsIntegerRangeType (
-		final AvailObject object)
+	boolean o_IsIntegerRangeType (final AvailObject object)
 	{
 		return true;
 	}
 
 	@Override @AvailMethod @ThreadSafe
-	SerializerOperation o_SerializerOperation(
-		final AvailObject object)
+	SerializerOperation o_SerializerOperation(final AvailObject object)
 	{
 		return SerializerOperation.INTEGER_RANGE_TYPE;
 	}
@@ -361,7 +350,7 @@ extends TypeDescriptor
 		{
 			return Long.TYPE;
 		}
-		else if (object.isSubtypeOf(Integers))
+		else if (object.isSubtypeOf(integers))
 		{
 			return BigInteger.class;
 		}
@@ -429,123 +418,122 @@ extends TypeDescriptor
 		return true;
 	}
 
-	/**
-	 * The range [0..255].
-	 */
-	static AvailObject Bytes;
+	@Override @AvailMethod
+	AvailObject o_MakeImmutable (final AvailObject object)
+	{
+		if (isMutable())
+		{
+			// There are no immutable descriptors, so make the object shared.
+			object.makeShared();
+		}
+		return object;
+	}
+
+	/** The range [0..255]. */
+	static AvailObject bytes;
+
+	/** The range [0..1]. */
+	static AvailObject zeroOrOne;
+
+	/** The range of Unicode code points, [0..1114111]. */
+	static AvailObject characterCodePoints;
+
+	/** The range of integers including infinities, [-∞..∞]. */
+	static AvailObject extendedIntegers;
+
+	/** The range of integers not including infinities, (∞..∞). */
+	static AvailObject integers;
+
+	/** The range of natural numbers, [1..∞). */
+	static AvailObject naturalNumbers;
+
+	/** The range [0..15]. */
+	static AvailObject nybbles;
+
+	/** The range [0..65535]. */
+	static AvailObject unsignedShorts;
+
+	/** The range of whole numbers, [0..∞). */
+	static AvailObject wholeNumbers;
 
 	/**
-	 * The range [0..1].
-	 */
-	static AvailObject ZeroOrOne;
-
-	/**
-	 * The range of Unicode code points, [0..1114111].
-	 */
-	static AvailObject CharacterCodePoints;
-
-	/**
-	 * The range of integers including infinities, [-∞..∞].
-	 */
-	static AvailObject ExtendedIntegers;
-
-	/**
-	 * The range of integers not including infinities, (∞..∞).
-	 */
-	static AvailObject Integers;
-
-	/**
-	 * The range of natural numbers, [1..∞).
-	 */
-	static AvailObject NaturalNumbers;
-
-	/**
-	 * The range [0..15].
-	 */
-	static AvailObject Nybbles;
-
-	/**
-	 * The range [0..65535].
-	 */
-	static AvailObject UnsignedShorts;
-
-	/**
-	 * The range of whole numbers, [0..∞).
-	 */
-	static AvailObject WholeNumbers;
-
-	/**
-	 * The metatype for integers.  This is an {@linkplain InstanceTypeDescriptor
-	 * instance type} whose base instance is {@linkplain #ExtendedIntegers
+	 * The metatype for integers. This is an {@linkplain InstanceTypeDescriptor
+	 * instance type} whose base instance is {@linkplain #extendedIntegers
 	 * extended integer}, and therefore has all integer range types as
 	 * instances.
 	 */
-	static AvailObject Meta;
+	static AvailObject meta;
 
+	/**
+	 * Create all objects well-known to the {@linkplain AvailRuntime Avail
+	 * runtime}.
+	 */
 	static void createWellKnownObjects ()
 	{
-		ZeroOrOne = create(
+		zeroOrOne = create(
 			IntegerDescriptor.zero(),
 			true,
 			IntegerDescriptor.one(),
-			true).makeImmutable();
-		Bytes = create(
+			true).makeShared();
+		bytes = create(
 			IntegerDescriptor.zero(),
 			true,
 			IntegerDescriptor.fromUnsignedByte((short)255),
-			true).makeImmutable();
-		CharacterCodePoints = create(
+			true).makeShared();
+		characterCodePoints = create(
 			IntegerDescriptor.zero(),
 			true,
 			IntegerDescriptor.fromInt(CharacterDescriptor.maxCodePointInt),
-			true).makeImmutable();
-		ExtendedIntegers = create(
+			true).makeShared();
+		extendedIntegers = create(
 			InfinityDescriptor.negativeInfinity(),
 			true,
 			InfinityDescriptor.positiveInfinity(),
-			true).makeImmutable();
-		Integers = create(
+			true).makeShared();
+		integers = create(
 			InfinityDescriptor.negativeInfinity(),
 			false,
 			InfinityDescriptor.positiveInfinity(),
-			false).makeImmutable();
-		NaturalNumbers = create(
+			false).makeShared();
+		naturalNumbers = create(
 			IntegerDescriptor.one(),
 			true,
 			InfinityDescriptor.positiveInfinity(),
-			false).makeImmutable();
-		Nybbles = create(
+			false).makeShared();
+		nybbles = create(
 			IntegerDescriptor.zero(),
 			true,
 			IntegerDescriptor.fromUnsignedByte((short)15),
-			true).makeImmutable();
-		UnsignedShorts = create(
+			true).makeShared();
+		unsignedShorts = create(
 			IntegerDescriptor.zero(),
 			true,
 			IntegerDescriptor.fromInt(65535),
-			true).makeImmutable();
-		WholeNumbers = create(
+			true).makeShared();
+		wholeNumbers = create(
 			IntegerDescriptor.zero(),
 			true,
 			InfinityDescriptor.positiveInfinity(),
-			false).makeImmutable();
-
-		Meta = InstanceMetaDescriptor.on(
-			ExtendedIntegers).makeImmutable();
+			false).makeShared();
+		meta = InstanceMetaDescriptor.on(extendedIntegers).makeShared();
 	}
 
+	/**
+	 * Discard or reset all objects well-known to the {@linkplain AvailRuntime
+	 * Avail runtime}.
+	 */
 	static void clearWellKnownObjects ()
 	{
-		ZeroOrOne = null;
-		Bytes = null;
-		CharacterCodePoints = null;
-		ExtendedIntegers = null;
-		Integers = null;
-		NaturalNumbers = null;
-		Nybbles = null;
-		UnsignedShorts = null;
-		WholeNumbers = null;
-		Meta = null;
+		zeroOrOne = null;
+		bytes = null;
+		characterCodePoints = null;
+		extendedIntegers = null;
+		integers = null;
+		naturalNumbers = null;
+		nybbles = null;
+		unsignedShorts = null;
+		wholeNumbers = null;
+		meta = null;
 	}
 
 	/**
@@ -578,7 +566,7 @@ extends TypeDescriptor
 	 */
 	public static AvailObject zeroOrOne ()
 	{
-		return ZeroOrOne;
+		return zeroOrOne;
 	}
 
 	/**
@@ -588,7 +576,7 @@ extends TypeDescriptor
 	 */
 	public static AvailObject bytes ()
 	{
-		return Bytes;
+		return bytes;
 	}
 
 	/**
@@ -598,7 +586,7 @@ extends TypeDescriptor
 	 */
 	public static AvailObject characterCodePoints ()
 	{
-		return CharacterCodePoints;
+		return characterCodePoints;
 	}
 
 	/**
@@ -608,7 +596,7 @@ extends TypeDescriptor
 	 */
 	public static AvailObject extendedIntegers ()
 	{
-		return ExtendedIntegers;
+		return extendedIntegers;
 	}
 
 	/**
@@ -618,7 +606,7 @@ extends TypeDescriptor
 	 */
 	public static AvailObject integers ()
 	{
-		return Integers;
+		return integers;
 	}
 
 	/**
@@ -628,7 +616,7 @@ extends TypeDescriptor
 	 */
 	public static AvailObject naturalNumbers ()
 	{
-		return NaturalNumbers;
+		return naturalNumbers;
 	}
 
 	/**
@@ -638,7 +626,7 @@ extends TypeDescriptor
 	 */
 	public static AvailObject nybbles ()
 	{
-		return Nybbles;
+		return nybbles;
 	}
 
 	/**
@@ -648,7 +636,7 @@ extends TypeDescriptor
 	 */
 	public static AvailObject unsignedShorts ()
 	{
-		return UnsignedShorts;
+		return unsignedShorts;
 	}
 
 	/**
@@ -658,7 +646,7 @@ extends TypeDescriptor
 	 */
 	public static AvailObject wholeNumbers ()
 	{
-		return WholeNumbers;
+		return wholeNumbers;
 	}
 
 	/**
@@ -668,9 +656,8 @@ extends TypeDescriptor
 	 */
 	public static AvailObject meta ()
 	{
-		return Meta;
+		return meta;
 	}
-
 
 	/**
 	 * Return a range consisting of a single {@linkplain IntegerDescriptor
@@ -780,19 +767,20 @@ extends TypeDescriptor
 	 * Construct a new {@link IntegerRangeTypeDescriptor}.
 	 *
 	 * @param isMutable
-	 *            Does the {@linkplain Descriptor descriptor} represent a
-	 *            mutable object?
+	 *        {@code true} if the descriptor is {@linkplain Mutability#MUTABLE
+	 *        mutable}, {@code false} if it is {@linkplain Mutability#SHARED
+	 *        shared}.
 	 * @param lowerInclusive
-	 *            Do my object instances include their lower bound?
+	 *        Do my object instances include their lower bound?
 	 * @param upperInclusive
-	 *            Do my object instances include their upper bound?
+	 *        Do my object instances include their upper bound?
 	 */
-	protected IntegerRangeTypeDescriptor (
+	private IntegerRangeTypeDescriptor (
 		final boolean isMutable,
 		final boolean lowerInclusive,
 		final boolean upperInclusive)
 	{
-		super(isMutable);
+		super(isMutable ? Mutability.MUTABLE : Mutability.SHARED);
 		this.lowerInclusive = lowerInclusive;
 		this.upperInclusive = upperInclusive;
 	}
@@ -813,9 +801,10 @@ extends TypeDescriptor
 	 * The array of descriptor instances of this class.  There are three boolean
 	 * decisions to make when selecting a descriptor, namely:
 	 * <ul>
-	 * <li>Whether the descriptor is <em>immutable</em>,</li>
-	 * <li>Whether the descriptor's instances include their lower bound,
-	 * and</li>
+	 * <li>Whether the descriptor is <em>{@linkplain Mutability#SHARED
+	 * shared}</em>,</li>
+	 * <li>Whether the descriptor's instances include their lower bound, and
+	 * </li>
 	 * <li>Whether the descriptor's instances include their upper bound.</li>
 	 * </ul>
 	 * These occur in bit positions 0x01, 0x02, and 0x04 of the array
@@ -839,11 +828,13 @@ extends TypeDescriptor
 	 * Answer the descriptor with the three specified boolean properties.
 	 *
 	 * @param isMutable
-	 *            Whether the descriptor's objects are mutable.
+	 *        {@code true} if the descriptor's objects are {@linkplain
+	 *        Mutability#MUTABLE mutable}, {@code false} if they are {@linkplain
+	 *        Mutability#SHARED shared}.
 	 * @param lowerInclusive
-	 *            Whether the descriptor's objects include the lower bound.
+	 *        Whether the descriptor's objects include the lower bound.
 	 * @param upperInclusive
-	 *            Whether the descriptor's objects include the upper bound.
+	 *        Whether the descriptor's objects include the upper bound.
 	 * @return
 	 */
 	private static IntegerRangeTypeDescriptor lookupDescriptor (
@@ -856,5 +847,24 @@ extends TypeDescriptor
 			| (lowerInclusive ? 2 : 0)
 			| (upperInclusive ? 4 : 0);
 		return descriptors[subscript];
+	}
+
+	@Override
+	AbstractDescriptor mutable ()
+	{
+		return lookupDescriptor(true, lowerInclusive, upperInclusive);
+	}
+
+	@Override
+	AbstractDescriptor immutable ()
+	{
+		// There are no immutable descriptors, only shared ones.
+		return lookupDescriptor(false, lowerInclusive, upperInclusive);
+	}
+
+	@Override
+	AbstractDescriptor shared ()
+	{
+		return lookupDescriptor(false, lowerInclusive, upperInclusive);
 	}
 }

@@ -1,6 +1,6 @@
 /*
  * Common.avail
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,8 +37,14 @@ Uses
 	"Foundation",
 	"Unit Testing"
 Names
-	"I/O test suite"
+	"I/O test suite",
+	"test directory"
 Body
 
 "I/O test suite" is a new atom;
 I/O test suite is a new test suite;
+
+Public method "test directory" is
+[
+	"new-avail/Avail.avail/IO.avail/Files.avail/test"
+];
