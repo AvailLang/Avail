@@ -80,8 +80,9 @@ enum Mutability
 	 * state. A fiber begins existence <em>shared</em> only if the parent fiber
 	 * retains a reference to the new child. The origin {@linkplain
 	 * FunctionDescriptor function} of a new fiber becomes <em>shared</em>
-	 * before its execution. Other objects become <em>shared</em> just before
-	 * assignment to the {@linkplain ObjectSlotsEnum object slot} of a
+	 * before its execution. All special objects and other root objects begin
+	 * existence <em>shared</em>. Other objects become <em>shared</em> just
+	 * before assignment to the {@linkplain ObjectSlotsEnum object slot} of a
 	 * <em>shared</em> object.
 	 */
 	SHARED
