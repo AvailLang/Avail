@@ -1,6 +1,6 @@
 /**
  * TwoByteStringDescriptor.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,6 +33,7 @@
 package com.avail.descriptor;
 
 import static com.avail.descriptor.AvailObject.*;
+import static com.avail.descriptor.Mutability.*;
 import com.avail.annotations.*;
 import com.avail.utility.*;
 
@@ -48,7 +49,8 @@ extends StringDescriptor
 	/**
 	 * The layout of integer slots for my instances.
 	 */
-	public enum IntegerSlots implements IntegerSlotsEnum
+	public enum IntegerSlots
+	implements IntegerSlotsEnum
 	{
 		/**
 		 * The hash value of this two-byte string or zero.  In the rare case
@@ -73,7 +75,7 @@ extends StringDescriptor
 
 	/**
 	 * The number of shorts that are unused in the last {@linkplain
-	 * IntegerSlots#RAW_QUAD_AT_ integer slot}.  Zero when the number of
+	 * IntegerSlots#RAW_QUAD_AT_ integer slot}. Zero when the number of
 	 * characters is even, one if odd.
 	 */
 	int unusedShortsOfLastWord;
@@ -105,23 +107,22 @@ extends StringDescriptor
 		{
 			return true;
 		}
-		int index2 = startIndex2;
-		for (int index1 = startIndex1; index1 <= endIndex1; index1++)
+		for (
+			int index1 = startIndex1, index2 = startIndex2;
+			index1 <= endIndex1;
+			index1++, index2++)
 		{
 			if (object.rawShortForCharacterAt(index1)
 					!= aTwoByteString.rawShortForCharacterAt(index2))
 			{
 				return false;
 			}
-			index2++;
 		}
 		return true;
 	}
 
 	@Override @AvailMethod
-	boolean o_Equals (
-		final AvailObject object,
-		final AvailObject another)
+	boolean o_Equals (final AvailObject object, final AvailObject another)
 	{
 		return another.equalsTwoByteString(object);
 	}
@@ -131,8 +132,7 @@ extends StringDescriptor
 		final AvailObject object,
 		final AvailObject aTwoByteString)
 	{
-		//  First, check for object-structure (address) identity.
-
+		// First, check for object-structure (address) identity.
 		if (object.sameAddressAs(aTwoByteString))
 		{
 			return true;
@@ -153,34 +153,44 @@ extends StringDescriptor
 		{
 			return false;
 		}
-		// They're equal (but occupy disjoint storage).  Replace one with an
-		// indirection to the other to keep down the frequency of byte-wise
-		// comparisons.
-		object.becomeIndirectionTo(aTwoByteString);
-		// Make it immutable, now that there are at least two references to it.
-		aTwoByteString.makeImmutable();
+		// They're equal, but occupy disjoint storage. If possible, then replace
+		// one with an indirection to the other to keep down the frequency of
+		// byte-wise comparisons.
+		if (!isShared())
+		{
+			aTwoByteString.makeImmutable();
+			object.becomeIndirectionTo(aTwoByteString);
+		}
+		else if (!aTwoByteString.descriptor.isShared())
+		{
+			object.makeImmutable();
+			aTwoByteString.becomeIndirectionTo(object);
+		}
 		return true;
 	}
 
-	/**
-	 * @author Todd L Smith &lt;todd@availlang.org&gt;
-	 */
 	@Override @AvailMethod
 	boolean o_IsString (final AvailObject object)
 	{
 		return true;
 	}
 
-	/**
-	 * Make the object immutable so it can be shared safely.
-	 */
 	@Override @AvailMethod
-	AvailObject o_MakeImmutable (
-		final AvailObject object)
+	AvailObject o_MakeImmutable (final AvailObject object)
 	{
-		if (isMutable)
+		if (isMutable())
 		{
-			object.descriptor = isMutableSize(false, object.tupleSize());
+			object.descriptor = descriptorFor(IMMUTABLE, object.tupleSize());
+		}
+		return object;
+	}
+
+	@Override @AvailMethod
+	AvailObject o_MakeShared (final AvailObject object)
+	{
+		if (!isShared())
+		{
+			object.descriptor = descriptorFor(SHARED, object.tupleSize());
 		}
 		return object;
 	}
@@ -189,9 +199,7 @@ extends StringDescriptor
 	 * Answer the int that encodes the character at the given index.
 	 */
 	@Override @AvailMethod
-	int o_RawShortForCharacterAt (
-		final AvailObject object,
-		final int index)
+	int o_RawShortForCharacterAt (final AvailObject object, final int index)
 	{
 		return object.shortSlotAt(IntegerSlots.RAW_QUAD_AT_, index);
 	}
@@ -203,15 +211,14 @@ extends StringDescriptor
 		final int anInteger)
 	{
 		// Set the character at the given index based on the given byte.
+		assert isMutable();
 		object.shortSlotAtPut(IntegerSlots.RAW_QUAD_AT_, index, anInteger);
 	}
 
 	@Override @AvailMethod
-	AvailObject o_TupleAt (
-		final AvailObject object,
-		final int index)
+	AvailObject o_TupleAt (final AvailObject object, final int index)
 	{
-		// Answer the element at the given index in the tuple object.  It's a
+		// Answer the element at the given index in the tuple object. It's a
 		// two-byte character.
 		assert index >= 1 && index <= object.tupleSize();
 		return CharacterDescriptor.fromCodePoint(
@@ -227,6 +234,7 @@ extends StringDescriptor
 	{
 		// Set the short at the given index to the given object (which should be
 		// an AvailObject that's a two-byte character).
+		assert isMutable();
 		assert index >= 1 && index <= object.tupleSize();
 		object.shortSlotAtPut(
 			IntegerSlots.RAW_QUAD_AT_,
@@ -241,29 +249,30 @@ extends StringDescriptor
 		final AvailObject newValueObject,
 		final boolean canDestroy)
 	{
-		//  Answer a tuple with all the elements of object except at the given index we should
-		//  have newValueObject.  This may destroy the original tuple if canDestroy is true.
-
+		// Answer a tuple with all the elements of object except at the given
+		// index we should have newValueObject. This may destroy the original
+		// tuple if canDestroy is true.
 		assert index >= 1 && index <= object.tupleSize();
 		if (newValueObject.isCharacter())
 		{
 			final int codePoint = newValueObject.codePoint();
 			if (codePoint >= 0 && codePoint <= 0xFFFF)
 			{
-				if (canDestroy & isMutable)
+				if (canDestroy & isMutable())
 				{
 					object.rawShortForCharacterAtPut(index, (short)codePoint);
 					object.hashOrZero(0);
 					return object;
 				}
-				//  Clone it then modify the copy in place.
-				return copyAsMutableTwoByteString(object).tupleAtPuttingCanDestroy(
-					index,
-					newValueObject,
-					true);
+				// Clone it then modify the copy in place.
+				return copyAsMutableTwoByteString(object)
+					.tupleAtPuttingCanDestroy(
+						index,
+						newValueObject,
+						true);
 			}
 		}
-		//  Convert to an arbitrary Tuple instead.
+		// Convert to an arbitrary Tuple instead.
 		return object.copyAsMutableObjectTuple().tupleAtPuttingCanDestroy(
 			index,
 			newValueObject,
@@ -271,26 +280,19 @@ extends StringDescriptor
 	}
 
 	@Override @AvailMethod
-	int o_TupleIntAt (
-		final AvailObject object,
-		final int index)
+	int o_TupleIntAt (final AvailObject object, final int index)
 	{
-		//  Answer the integer element at the given index in the tuple object.
-
-		error("Strings store characters, not integers", object);
-		return 0;
+		throw unsupportedOperationException();
 	}
 
 	@Override @AvailMethod
-	int o_TupleSize (
-		final AvailObject object)
+	int o_TupleSize (final AvailObject object)
 	{
 		return object.variableIntegerSlotsCount() * 2 - unusedShortsOfLastWord;
 	}
 
 	@Override @AvailMethod
-	int o_BitsPerEntry (
-		final AvailObject object)
+	int o_BitsPerEntry (final AvailObject object)
 	{
 		// Answer approximately how many bits per entry are taken up by this
 		// object.
@@ -303,8 +305,7 @@ extends StringDescriptor
 		final int start,
 		final int end)
 	{
-		//  See comment in superclass.  This method must produce the same value.
-
+		// See comment in superclass. This method must produce the same value.
 		int hash = 0;
 		for (int index = end; index >= start; index--)
 		{
@@ -328,44 +329,65 @@ extends StringDescriptor
 	/**
 	 * Construct a new {@link TwoByteStringDescriptor}.
 	 *
-	 * @param isMutable
-	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
-	 *        object?
+	 * @param mutability
+	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 * @param unusedShortsOfLastWord
 	 *        The number of unused shorts of the last word.
 	 */
 	private TwoByteStringDescriptor (
-		final boolean isMutable,
+		final Mutability mutability,
 		final int unusedShortsOfLastWord)
 	{
-		super(isMutable);
+		super(mutability);
 		this.unusedShortsOfLastWord = unusedShortsOfLastWord;
 	}
 
 	/**
 	 * The static list of descriptors of this kind, organized in such a way that
-	 * {@link #isMutableSize(boolean, int)} can find them by mutability and
+	 * {@link #descriptorFor(Mutability, int)} can find them by mutability and
 	 * number of unused shorts in the last word.
 	 */
 	static final TwoByteStringDescriptor[] descriptors =
 	{
-		new TwoByteStringDescriptor(true, 0),
-		new TwoByteStringDescriptor(false, 0),
-		new TwoByteStringDescriptor(true, 1),
-		new TwoByteStringDescriptor(false, 1)
+		new TwoByteStringDescriptor(MUTABLE, 0),
+		new TwoByteStringDescriptor(IMMUTABLE, 0),
+		new TwoByteStringDescriptor(SHARED, 0),
+		new TwoByteStringDescriptor(MUTABLE, 1),
+		new TwoByteStringDescriptor(IMMUTABLE, 1),
+		new TwoByteStringDescriptor(SHARED, 1)
 	};
 
+	@Override
+	TwoByteStringDescriptor mutable ()
+	{
+		return descriptors[
+			((2 - unusedShortsOfLastWord) & 1) * 3 + MUTABLE.ordinal()];
+	}
+
+	@Override
+	TwoByteStringDescriptor immutable ()
+	{
+		return descriptors[
+			((2 - unusedShortsOfLastWord) & 1) * 3 + IMMUTABLE.ordinal()];
+	}
+
+	@Override
+	TwoByteStringDescriptor shared ()
+	{
+		return descriptors[
+			((2 - unusedShortsOfLastWord) & 1) * 3 + SHARED.ordinal()];
+	}
+
 	/**
-	 * Create a new mutable {@linkplain TwoByteStringDescriptor two-byte string} with
-	 * the specified number of elements.
+	 * Create a new mutable {@linkplain TwoByteStringDescriptor two-byte string}
+	 * with the specified number of elements.
 	 *
 	 * @param size The number of elements in the new tuple.
-	 * @return The new tuple, initialized to null characters (codepoint 0).
+	 * @return The new tuple, initialized to null characters (code point 0).
 	 */
-	static AvailObject mutableObjectOfSize (
-		final int size)
+	static AvailObject mutableObjectOfSize (final int size)
 	{
-		return isMutableSize(true, size).create(size + 1 >> 1);
+		return descriptorFor(MUTABLE, size).create(size + 1 >> 1);
 	}
 
 	/**
@@ -378,8 +400,7 @@ extends StringDescriptor
 	 *            A new {@linkplain TwoByteStringDescriptor two-byte string}
 	 *            with the same content as the argument.
 	 */
-	AvailObject copyAsMutableTwoByteString (
-		final AvailObject object)
+	private AvailObject copyAsMutableTwoByteString (final AvailObject object)
 	{
 		final AvailObject result = mutableObjectOfSize(object.tupleSize());
 		assert result.integerSlotsCount() == object.integerSlotsCount();
@@ -408,12 +429,11 @@ extends StringDescriptor
 	 *            two-byte string of the given mutability and {@link
 	 *            AvailObject#tupleSize() size}.
 	 */
-	static TwoByteStringDescriptor isMutableSize (
-		final boolean flag,
+	private static TwoByteStringDescriptor descriptorFor (
+		final Mutability flag,
 		final int size)
 	{
-		final int delta = flag ? 0 : 1;
-		return descriptors [delta + (size & 1) * 2];
+		return descriptors[(size & 1) * 3 + flag.ordinal()];
 	}
 
 	/**
@@ -421,10 +441,9 @@ extends StringDescriptor
 	 * with the specified Java {@linkplain String}'s characters.
 	 *
 	 * @param aNativeTwoByteString
-	 *            A Java String that may contain characters outside the Latin-1
-	 *            range (0-255).
-	 * @return
-	 *            A two-byte string with the given content.
+	 *        A Java String that may contain characters outside the Latin-1
+	 *        range (0-255).
+	 * @return A two-byte string with the given content.
 	 */
 	static AvailObject mutableObjectFromNativeTwoByteString (
 		final String aNativeTwoByteString)
@@ -445,9 +464,9 @@ extends StringDescriptor
 
 	/**
 	 * Create an object of the appropriate size, whose descriptor is an instance
-	 * of {@link TwoByteStringDescriptor}.  Note that it can only store Unicode
+	 * of {@link TwoByteStringDescriptor}. Note that it can only store Unicode
 	 * characters from the Basic Multilingual Plane (i.e., those having Unicode
-	 * code points 0..65535).  Run the generator for each position in ascending
+	 * code points 0..65535). Run the generator for each position in ascending
 	 * order to produce the code points with which to populate the string.
 	 *
 	 * @param size The size of two-byte string to create.

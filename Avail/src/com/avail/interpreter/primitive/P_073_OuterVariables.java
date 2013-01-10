@@ -1,6 +1,6 @@
 /**
  * P_073_OuterVariables.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -57,12 +57,12 @@ public class P_073_OuterVariables extends Primitive
 		assert args.size() == 1;
 		final AvailObject aFunction = args.get(0);
 		final AvailObject newTupleObject =
-			ObjectTupleDescriptor.mutable().create(aFunction.numOuterVars());
+			ObjectTupleDescriptor.mutable.create(aFunction.numOuterVars());
 		newTupleObject.hashOrZero(0);
 		for (int i = 1, end = aFunction.numOuterVars(); i <= end; i++)
 		{
 			final AvailObject outer = aFunction.outerVarAt(i);
-			if (outer.equalsNull())
+			if (outer.equalsNil())
 			{
 				newTupleObject.tupleAtPut(i, IntegerDescriptor.zero());
 			}

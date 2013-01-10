@@ -1,6 +1,6 @@
 /**
  * BottomPojoTypeDescriptor.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -109,7 +109,7 @@ extends PojoTypeDescriptor
 	@Override
 	AvailObject o_JavaAncestors (final AvailObject object)
 	{
-		return NullDescriptor.nullObject();
+		return NilDescriptor.nil();
 	}
 
 	@Override @AvailMethod
@@ -121,7 +121,21 @@ extends PojoTypeDescriptor
 	@Override @AvailMethod
 	AvailObject o_MakeImmutable (final AvailObject object)
 	{
-		object.descriptor = immutable;
+		if (isMutable())
+		{
+			// There is no immutable descriptor.
+			object.descriptor = shared;
+		}
+		return object;
+	}
+
+	@Override @AvailMethod
+	AvailObject o_MakeShared (final AvailObject object)
+	{
+		if (!isShared())
+		{
+			object.descriptor = shared;
+		}
 		return object;
 	}
 
@@ -214,30 +228,38 @@ extends PojoTypeDescriptor
 	/**
 	 * Construct a new {@link BottomPojoTypeDescriptor}.
 	 *
-	 * @param isMutable
-	 *        Does the {@linkplain BottomPojoTypeDescriptor descriptor}
-	 *        represent a mutable object?
+	 * @param mutability
+	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 */
-	public BottomPojoTypeDescriptor (final boolean isMutable)
+	public BottomPojoTypeDescriptor (final Mutability mutability)
 	{
-		super(isMutable);
+		super(mutability);
 	}
 
 	/** The mutable {@link BottomPojoTypeDescriptor}. */
-	private final static BottomPojoTypeDescriptor mutable =
-		new BottomPojoTypeDescriptor(true);
+	static final BottomPojoTypeDescriptor mutable =
+		new BottomPojoTypeDescriptor(Mutability.MUTABLE);
 
-	/**
-	 * Answer the mutable {@link BottomPojoTypeDescriptor}.
-	 *
-	 * @return The mutable {@code BottomPojoTypeDescriptor}.
-	 */
-	static BottomPojoTypeDescriptor mutable ()
+	@Override
+	BottomPojoTypeDescriptor mutable ()
 	{
 		return mutable;
 	}
 
-	/** The immutable {@link BottomPojoTypeDescriptor}. */
-	private final static BottomPojoTypeDescriptor immutable =
-		new BottomPojoTypeDescriptor(false);
+	/** The shared {@link BottomPojoTypeDescriptor}. */
+	private static final BottomPojoTypeDescriptor shared =
+		new BottomPojoTypeDescriptor(Mutability.SHARED);
+
+	@Override
+	BottomPojoTypeDescriptor immutable ()
+	{
+		// There is no immutable descriptor, just a shared one.
+		return shared;
+	}
+
+	@Override
+	BottomPojoTypeDescriptor shared ()
+	{
+		return shared;
+	}
 }

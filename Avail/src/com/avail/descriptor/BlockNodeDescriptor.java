@@ -1,6 +1,6 @@
 /**
  * BlockNodeDescriptor.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -50,15 +50,38 @@ import com.avail.utility.*;
  * My instances represent occurrences of blocks (functions) encountered in code.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class BlockNodeDescriptor extends ParseNodeDescriptor
+public final class BlockNodeDescriptor
+extends ParseNodeDescriptor
 {
 	/**
-	 * My slots of type {@link AvailObject}.
-	 *
-	 * @author Mark van Gulik &lt;mark@availlang.org&gt;
+	 * My slots of type {@linkplain Integer int}.
 	 */
-	public enum ObjectSlots implements ObjectSlotsEnum
+	public enum IntegerSlots
+	implements IntegerSlotsEnum
+	{
+		/**
+		 * The {@linkplain Primitive primitive} number to invoke for this block.
+		 * This is not the {@link Enum#ordinal()} of the primitive, but rather
+		 * its {@link Primitive#primitiveNumber}.
+		 */
+		@EnumField(
+			describedBy=Primitive.class,
+			lookupMethodName="byPrimitiveNumberOrNull")
+		PRIMITIVE,
+
+		/**
+		 * The line number on which this block starts.
+		 */
+		STARTING_LINE_NUMBER;
+	}
+
+	/**
+	 * My slots of type {@link AvailObject}.
+	 */
+	public enum ObjectSlots
+	implements ObjectSlotsEnum
 	{
 		/**
 		 * The block's tuple of argument declarations.
@@ -90,116 +113,61 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 		DECLARED_EXCEPTIONS
 	}
 
-	/**
-	 * My slots of type {@linkplain Integer int}.
-	 *
-	 * @author Mark van Gulik &lt;mark@availlang.org&gt;
-	 */
-	public enum IntegerSlots implements IntegerSlotsEnum
-	{
-		/**
-		 * The {@linkplain Primitive primitive} number to invoke for this block.
-		 * This is not the {@link Enum#ordinal()} of the primitive, but rather
-		 * its {@link Primitive#primitiveNumber}.
-		 */
-		@EnumField(
-			describedBy=Primitive.class,
-			lookupMethodName="byPrimitiveNumberOrNull")
-		PRIMITIVE,
-
-		/**
-		 * The line number on which this block starts.
-		 */
-		STARTING_LINE_NUMBER;
-	}
-
-	/**
-	 * Getter for field argumentsTuple.
-	 */
-	@Override @AvailMethod
-	AvailObject o_ArgumentsTuple (
-		final AvailObject object)
-	{
-		return object.slot(ARGUMENTS_TUPLE);
-	}
-
-	/**
-	 * Getter for field statementsTuple.
-	 */
-	@Override @AvailMethod
-	AvailObject o_StatementsTuple (
-		final AvailObject object)
-	{
-		return object.slot(STATEMENTS_TUPLE);
-	}
-
-	/**
-	 * Getter for field resultType.
-	 */
-	@Override @AvailMethod
-	AvailObject o_ResultType (
-		final AvailObject object)
-	{
-		return object.slot(RESULT_TYPE);
-	}
-
-	/**
-	 * Setter for field neededVariables.
-	 */
-	@Override @AvailMethod
-	void o_NeededVariables (
-		final AvailObject object,
-		final AvailObject neededVariables)
-	{
-		object.setSlot(NEEDED_VARIABLES, neededVariables);
-	}
-
-	/**
-	 * Getter for field neededVariables.
-	 */
-	@Override @AvailMethod
-	AvailObject o_NeededVariables (
-		final AvailObject object)
-	{
-		return object.slot(NEEDED_VARIABLES);
-	}
-
-	/**
-	 * Getter for field checkedExceptions.
-	 */
-	@Override @AvailMethod
-	AvailObject o_DeclaredExceptions (
-		final AvailObject object)
-	{
-		return object.slot(DECLARED_EXCEPTIONS);
-	}
-
-	/**
-	 * Getter for field primitive.
-	 */
-	@Override @AvailMethod
-	int o_Primitive (
-		final AvailObject object)
-	{
-		return object.slot(PRIMITIVE);
-	}
-
-	/**
-	 * Getter for field startingLineNumber.
-	 */
-	@Override @AvailMethod
-	int o_StartingLineNumber (
-		final AvailObject object)
-	{
-		return object.slot(STARTING_LINE_NUMBER);
-	}
-
 	@Override boolean allowsImmutableToMutableReferenceInField (
 		final AbstractSlotsEnum e)
 	{
 		return e == NEEDED_VARIABLES;
 	}
 
+	@Override @AvailMethod
+	AvailObject o_ArgumentsTuple (final AvailObject object)
+	{
+		return object.slot(ARGUMENTS_TUPLE);
+	}
+
+	@Override @AvailMethod
+	AvailObject o_StatementsTuple (final AvailObject object)
+	{
+		return object.slot(STATEMENTS_TUPLE);
+	}
+
+	@Override @AvailMethod
+	AvailObject o_ResultType (final AvailObject object)
+	{
+		return object.slot(RESULT_TYPE);
+	}
+
+	@Override @AvailMethod
+	AvailObject o_NeededVariables (final AvailObject object)
+	{
+		return object.mutableSlot(NEEDED_VARIABLES);
+	}
+
+	@Override @AvailMethod
+	void o_NeededVariables (
+		final AvailObject object,
+		final AvailObject neededVariables)
+	{
+		object.setMutableSlot(NEEDED_VARIABLES, neededVariables);
+	}
+
+	@Override @AvailMethod
+	AvailObject o_DeclaredExceptions (final AvailObject object)
+	{
+		return object.slot(DECLARED_EXCEPTIONS);
+	}
+
+	@Override @AvailMethod
+	int o_Primitive (final AvailObject object)
+	{
+		return object.slot(PRIMITIVE);
+	}
+
+	@Override @AvailMethod
+	int o_StartingLineNumber (final AvailObject object)
+	{
+		return object.slot(STARTING_LINE_NUMBER);
+	}
 
 	@Override @AvailMethod
 	AvailObject o_ExpressionType (final AvailObject object)
@@ -217,7 +185,7 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 	}
 
 	/**
-	 * The expression '[expr]' has no effect, only a value.
+	 * The expression "[expr]" has no effect, only a value.
 	 */
 	@Override @AvailMethod
 	void o_EmitEffectOn (
@@ -434,7 +402,7 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 		final int statementsCount = statementsTuple.tupleSize();
 		if (statementsCount == 0)
 		{
-			codeGenerator.emitPushLiteral(NullDescriptor.nullObject());
+			codeGenerator.emitPushLiteral(NilDescriptor.nil());
 		}
 		else
 		{
@@ -454,7 +422,7 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 				// 2) is top-valued and ends with an assignment. Push the top
 				// object as the return value.
 				lastStatement.emitEffectOn(codeGenerator);
-				codeGenerator.emitPushLiteral(NullDescriptor.nullObject());
+				codeGenerator.emitPushLiteral(NilDescriptor.nil());
 			}
 			else
 			{
@@ -552,14 +520,14 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 				flattenedStatements.remove(index);
 			}
 		}
-		final AvailObject block = mutable().create();
+		final AvailObject block = mutable.create();
 		block.setSlot(ARGUMENTS_TUPLE, arguments);
 		block.setSlot(PRIMITIVE, primitive.extractInt());
 		block.setSlot(
 			STATEMENTS_TUPLE,
 			TupleDescriptor.fromList(flattenedStatements));
 		block.setSlot(RESULT_TYPE, resultType);
-		block.setSlot(NEEDED_VARIABLES, NullDescriptor.nullObject());
+		block.setSlot(NEEDED_VARIABLES, NilDescriptor.nil());
 		block.setSlot(DECLARED_EXCEPTIONS, declaredExceptions);
 		block.setSlot(STARTING_LINE_NUMBER, lineNumber);
 		block.makeImmutable();
@@ -576,24 +544,20 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 	public static void recursivelyValidate (
 		final AvailObject blockNode)
 	{
-		final List<AvailObject> blockStack = new ArrayList<AvailObject>(3);
 		treeDoWithParent(
 			blockNode,
-			new Continuation3<AvailObject, AvailObject, List<AvailObject>>()
+			new Continuation2<AvailObject, AvailObject>()
 			{
 				@Override
 				public void value (
 					final @Nullable AvailObject node,
-					final @Nullable AvailObject parent,
-					final @Nullable List<AvailObject> blockNodes)
+					final @Nullable AvailObject parent)
 				{
 					assert node != null;
 					node.validateLocally(parent);
 				}
 			},
-			null,
-			blockStack);
-		assert blockStack.isEmpty();
+			null);
 		assert blockNode.neededVariables().tupleSize() == 0;
 	}
 
@@ -603,8 +567,7 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 	 *
 	 * @param object The current {@linkplain BlockNodeDescriptor block node}.
 	 */
-	private void collectNeededVariablesOfOuterBlocks (
-		final AvailObject object)
+	private void collectNeededVariablesOfOuterBlocks (final AvailObject object)
 	{
 		final Set<AvailObject> neededDeclarations = new HashSet<AvailObject>();
 		final Set<AvailObject> providedByMe = new HashSet<AvailObject>();
@@ -772,43 +735,31 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 	/**
 	 * Construct a new {@link BlockNodeDescriptor}.
 	 *
-	 * @param isMutable Whether my {@linkplain AvailObject instances} can
-	 *                  change.
+	 * @param mutability
+	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 */
-	public BlockNodeDescriptor (final boolean isMutable)
+	private BlockNodeDescriptor (final Mutability mutability)
 	{
-		super(isMutable);
+		super(mutability);
 	}
 
-	/**
-	 * The mutable {@link BlockNodeDescriptor}.
-	 */
+	/** The mutable {@link BlockNodeDescriptor}. */
 	private static final BlockNodeDescriptor mutable =
-		new BlockNodeDescriptor(true);
+		new BlockNodeDescriptor(Mutability.MUTABLE);
 
-	/**
-	 * Answer the mutable {@link BlockNodeDescriptor}.
-	 *
-	 * @return The mutable {@link BlockNodeDescriptor}.
-	 */
-	public static BlockNodeDescriptor mutable ()
+	@Override
+	BlockNodeDescriptor mutable ()
 	{
 		return mutable;
 	}
 
-	/**
-	 * The immutable {@link BlockNodeDescriptor}.
-	 */
-	private static final BlockNodeDescriptor immutable =
-		new BlockNodeDescriptor(false);
+	/** The shared {@link BlockNodeDescriptor}. */
+	private static final BlockNodeDescriptor shared =
+		new BlockNodeDescriptor(Mutability.SHARED);
 
-	/**
-	 * Answer the immutable {@link BlockNodeDescriptor}.
-	 *
-	 * @return The immutable {@link BlockNodeDescriptor}.
-	 */
-	public static BlockNodeDescriptor immutable ()
+	@Override
+	BlockNodeDescriptor shared ()
 	{
-		return immutable;
+		return shared;
 	}
 }

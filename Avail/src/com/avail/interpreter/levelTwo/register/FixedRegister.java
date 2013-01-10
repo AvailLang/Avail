@@ -1,6 +1,6 @@
 /**
  * L2Translator.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,7 +44,7 @@ public enum FixedRegister
 {
 	/**
 	 * The enumeration value representing the fixed register reserved for
-	 * holding Avail's {@link NullDescriptor#nullObject() null value}.
+	 * holding Avail's {@link NilDescriptor#nil() null value}.
 	 * Read only.
 	 */
 	NULL,

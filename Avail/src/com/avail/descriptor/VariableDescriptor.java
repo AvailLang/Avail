@@ -1,6 +1,6 @@
 /**
  * VariableDescriptor.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -82,7 +82,8 @@ extends Descriptor
 		KIND
 	}
 
-	@Override boolean allowsImmutableToMutableReferenceInField (
+	@Override
+	boolean allowsImmutableToMutableReferenceInField (
 		final AbstractSlotsEnum e)
 	{
 		return e == ObjectSlots.VALUE
@@ -90,38 +91,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_Value (
-		final AvailObject object)
-	{
-		return object.slot(ObjectSlots.VALUE);
-	}
-
-	@Override @AvailMethod
-	AvailObject o_Kind (
-		final AvailObject object)
-	{
-		return object.slot(ObjectSlots.KIND);
-	}
-
-	@Override @AvailMethod
-	boolean o_Equals (
-		final AvailObject object,
-		final AvailObject another)
-	{
-		return another.equalsVariable(object);
-	}
-
-	@Override @AvailMethod
-	boolean o_EqualsVariable (
-		final AvailObject object,
-		final AvailObject aVariable)
-	{
-		return object.sameAddressAs(aVariable);
-	}
-
-	@Override @AvailMethod
-	int o_Hash (
-		final AvailObject object)
+	int o_Hash (final AvailObject object)
 	{
 		int hash = object.slot(IntegerSlots.HASH_OR_ZERO);
 		if (hash == 0)
@@ -137,20 +107,27 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_MakeImmutable (
-		final AvailObject object)
+	AvailObject o_Value (final AvailObject object)
 	{
-		// If I am being frozen (a variable), I don't need to freeze my current
-		// value.  I do, on the other hand, have to freeze my kind object.
-		object.descriptor = immutable();
-		object.slot(ObjectSlots.KIND).makeImmutable();
-		return object;
+		return object.slot(ObjectSlots.VALUE);
 	}
 
 	@Override @AvailMethod
-	void o_SetValue (
-		final AvailObject object,
-		final AvailObject newValue)
+	AvailObject o_GetValue (final AvailObject object)
+	{
+		// Answer the current value of the variable.  Fail if no value is
+		// currently assigned.
+		final AvailObject value = object.slot(ObjectSlots.VALUE);
+		if (value.equalsNil())
+		{
+			throw new VariableGetException(
+				AvailErrorCode.E_CANNOT_READ_UNASSIGNED_VARIABLE);
+		}
+		return value;
+	}
+
+	@Override @AvailMethod
+	void o_SetValue (final AvailObject object, final AvailObject newValue)
 	{
 		final AvailObject outerKind = object.slot(ObjectSlots.KIND);
 		if (!newValue.isInstanceOf(outerKind.writeType()))
@@ -166,42 +143,52 @@ extends Descriptor
 		final AvailObject object,
 		final AvailObject newValue)
 	{
-//		final AvailObject outerKind = object.slot(ObjectSlots.KIND);
-//		if (!newValue.isInstanceOf(outerKind.writeType()))
-//		{
-//			throw new VariableSetException(
-//				AvailErrorCode.E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE);
-//		}
 		object.setSlot(ObjectSlots.VALUE, newValue);
 	}
 
 	@Override @AvailMethod
-	void o_ClearValue (
-		final AvailObject object)
+	void o_ClearValue (final AvailObject object)
 	{
 		// Clear the variable (make it have no current value).
 		// Eventually, the previous contents should drop a reference.
-		object.setSlot(ObjectSlots.VALUE, NullDescriptor.nullObject());
+		object.setSlot(ObjectSlots.VALUE, NilDescriptor.nil());
 	}
 
 	@Override @AvailMethod
-	AvailObject o_GetValue (
-		final AvailObject object)
+	final AvailObject o_Kind (final AvailObject object)
 	{
-		// Answer the current value of the variable.  Fail if no value is
-		// currently assigned.
-		final AvailObject value = object.slot(ObjectSlots.VALUE);
-		if (value.equalsNull())
-		{
-			throw new VariableGetException(
-				AvailErrorCode.E_CANNOT_READ_UNASSIGNED_VARIABLE);
-		}
-		return value;
+		return object.slot(ObjectSlots.KIND);
 	}
 
-	@Override
-	SerializerOperation o_SerializerOperation (
-		final AvailObject object)
+	@Override @AvailMethod
+	final boolean o_Equals (final AvailObject object, final AvailObject another)
+	{
+		return another.equalsVariable(object);
+	}
+
+	@Override @AvailMethod
+	final boolean o_EqualsVariable (
+		final AvailObject object,
+		final AvailObject aVariable)
+	{
+		return object.sameAddressAs(aVariable);
+	}
+
+	@Override @AvailMethod
+	AvailObject o_MakeImmutable (final AvailObject object)
+	{
+		// If I am being frozen (a variable), I don't need to freeze my current
+		// value. I do, on the other hand, have to freeze my kind object.
+		if (isMutable())
+		{
+			object.descriptor = immutable;
+			object.slot(ObjectSlots.KIND).makeImmutable();
+		}
+		return object;
+	}
+
+	@Override @AvailMethod
+	final SerializerOperation o_SerializerOperation (final AvailObject object)
 	{
 		return SerializerOperation.VARIABLE;
 	}
@@ -212,12 +199,10 @@ extends Descriptor
 	 * no value.
 	 *
 	 * @param innerType
-	 *            The type of objects the new variable can contain.
-	 * @return
-	 *            A new variable able to hold the specified type of objects.
+	 *        The type of objects the new variable can contain.
+	 * @return A new variable able to hold the specified type of objects.
 	 */
-	public static AvailObject forInnerType (
-		final AvailObject innerType)
+	public static AvailObject forInnerType (final AvailObject innerType)
 	{
 		return VariableDescriptor.forOuterType(
 			VariableTypeDescriptor.wrapInnerType(innerType));
@@ -236,54 +221,47 @@ extends Descriptor
 	public static AvailObject forOuterType (
 		final AvailObject outerType)
 	{
-		final AvailObject result = mutable().create();
+		final AvailObject result = mutable.create();
 		result.setSlot(ObjectSlots.KIND, outerType);
 		result.setSlot(IntegerSlots.HASH_OR_ZERO, 0);
-		result.setSlot(ObjectSlots.VALUE, NullDescriptor.nullObject());
+		result.setSlot(ObjectSlots.VALUE, NilDescriptor.nil());
 		return result;
 	}
 
 	/**
 	 * Construct a new {@link VariableDescriptor}.
 	 *
-	 * @param isMutable
-	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
-	 *        object?
+	 * @param mutability
+	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 */
-	protected VariableDescriptor (final boolean isMutable)
+	protected VariableDescriptor (final Mutability mutability)
 	{
-		super(isMutable);
+		super(mutability);
 	}
 
-	/**
-	 * The mutable {@link VariableDescriptor}.
-	 */
+	/** The mutable {@link VariableDescriptor}. */
 	private static final VariableDescriptor mutable =
-		new VariableDescriptor(true);
+		new VariableDescriptor(Mutability.MUTABLE);
 
-	/**
-	 * Answer the mutable {@link VariableDescriptor}.
-	 *
-	 * @return The mutable {@link VariableDescriptor}.
-	 */
-	public static VariableDescriptor mutable ()
+	@Override
+	final VariableDescriptor mutable ()
 	{
 		return mutable;
 	}
 
-	/**
-	 * The immutable {@link VariableDescriptor}.
-	 */
+	/** The immutable {@link VariableDescriptor}. */
 	private static final VariableDescriptor immutable =
-		new VariableDescriptor(false);
+		new VariableDescriptor(Mutability.IMMUTABLE);
 
-	/**
-	 * Answer the immutable {@link VariableDescriptor}.
-	 *
-	 * @return The immutable {@link VariableDescriptor}.
-	 */
-	public static VariableDescriptor immutable ()
+	@Override
+	final VariableDescriptor immutable ()
 	{
 		return immutable;
+	}
+
+	@Override
+	final VariableDescriptor shared ()
+	{
+		return VariableSharedDescriptor.shared;
 	}
 }

@@ -1,6 +1,6 @@
 /**
  * L2_CREATE_FUNCTION.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -64,7 +64,7 @@ public class L2_CREATE_FUNCTION extends L2Operation
 		final int outersIndex = interpreter.nextWord();
 		final int destIndex = interpreter.nextWord();
 		final AvailObject outers = interpreter.vectorAt(outersIndex);
-		final AvailObject clos = FunctionDescriptor.mutable().create(
+		final AvailObject clos = FunctionDescriptor.mutable.create(
 			outers.tupleSize());
 		clos.code(interpreter.chunk().literalAt(codeIndex));
 		for (int i = 1, end = outers.tupleSize(); i <= end; i++)
@@ -94,7 +94,7 @@ public class L2_CREATE_FUNCTION extends L2Operation
 		if (outersOperand.vector.allRegistersAreConstantsIn(registers))
 		{
 			final AvailObject function =
-				FunctionDescriptor.mutable().create(
+				FunctionDescriptor.mutable.create(
 					outersOperand.vector.registers().size());
 			function.code(codeOperand.object);
 			int index = 1;

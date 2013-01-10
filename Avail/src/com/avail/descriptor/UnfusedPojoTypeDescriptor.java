@@ -1,6 +1,6 @@
 /**
  * UnfusedPojoTypeDescriptor.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -144,14 +144,28 @@ extends PojoTypeDescriptor
 			}
 		}
 		// The objects are known to be equal and not reference identical
-		// (checked by a caller), so coalesce them.
-		object.becomeIndirectionTo(aPojoType);
-		aPojoType.makeImmutable();
+		// (checked by a caller), so coalesce them if possible.
+		if (!isShared())
+		{
+			aPojoType.makeImmutable();
+			object.becomeIndirectionTo(aPojoType);
+		}
+		else if (!aPojoType.descriptor.isShared())
+		{
+			object.makeImmutable();
+			aPojoType.becomeIndirectionTo(object);
+		}
 		return true;
 	}
 
-	@Override @AvailMethod
-	int o_Hash (final AvailObject object)
+	/**
+	 * Lazily compute the hash of the specified {@linkplain
+	 * UnfusedPojoTypeDescriptor object}.
+	 *
+	 * @param object An object.
+	 * @return The hash.
+	 */
+	private int hash (final AvailObject object)
 	{
 		int hash = object.slot(HASH_OR_ZERO);
 		if (hash == 0)
@@ -163,6 +177,19 @@ extends PojoTypeDescriptor
 			object.setSlot(HASH_OR_ZERO, hash);
 		}
 		return hash;
+	}
+
+	@Override @AvailMethod
+	int o_Hash (final AvailObject object)
+	{
+		if (isShared())
+		{
+			synchronized (object)
+			{
+				return hash(object);
+			}
+		}
+		return hash(object);
 	}
 
 	@Override @AvailMethod
@@ -196,15 +223,6 @@ extends PojoTypeDescriptor
 		return object.slot(JAVA_CLASS);
 	}
 
-	@Override @AvailMethod
-	AvailObject o_MakeImmutable (final AvailObject object)
-	{
-		object.descriptor = immutable;
-		object.slot(JAVA_CLASS).makeImmutable();
-		object.slot(JAVA_ANCESTORS).makeImmutable();
-		return object;
-	}
-
 	@Override
 	Object o_MarshalToJava (
 		final AvailObject object,
@@ -213,23 +231,45 @@ extends PojoTypeDescriptor
 		return object.slot(JAVA_CLASS).javaObject();
 	}
 
-	@Override @AvailMethod
-	AvailObject o_PojoSelfType (final AvailObject object)
+	/**
+	 * Lazily compute the self type of the specified {@linkplain
+	 * UnfusedPojoTypeDescriptor object}.
+	 *
+	 * @param object An object.
+	 * @return The self type.
+	 */
+	private AvailObject pojoSelfType (final AvailObject object)
 	{
 		AvailObject selfType = object.slot(SELF_TYPE);
-		if (selfType.equalsNull())
+		if (selfType.equalsNil())
 		{
 			selfType = SelfPojoTypeDescriptor.create(
 				object.slot(JAVA_CLASS),
 				object.slot(JAVA_ANCESTORS).keysAsSet());
+			if (isShared())
+			{
+				selfType = selfType.traversed().makeShared();
+			}
 			object.setSlot(SELF_TYPE, selfType);
 		}
 		return selfType;
 	}
 
+	@Override @AvailMethod
+	AvailObject o_PojoSelfType (final AvailObject object)
+	{
+		if (isShared())
+		{
+			synchronized (object)
+			{
+				return pojoSelfType(object);
+			}
+		}
+		return pojoSelfType(object);
+	}
+
 	@Override @AvailMethod @ThreadSafe
-	SerializerOperation o_SerializerOperation (
-		final AvailObject object)
+	SerializerOperation o_SerializerOperation (final AvailObject object)
 	{
 		return SerializerOperation.UNFUSED_POJO_TYPE;
 	}
@@ -357,7 +397,7 @@ extends PojoTypeDescriptor
 			intersectionAncestors.keysAsSet());
 		// If the intersection contains a most specific type, then the answer is
 		// not a fused pojo type; otherwise it is.
-		return !javaClass.equalsNull()
+		return !javaClass.equalsNil()
 			? create(javaClass, intersectionAncestors)
 			: FusedPojoTypeDescriptor.create(intersectionAncestors);
 	}
@@ -373,17 +413,22 @@ extends PojoTypeDescriptor
 			intersectionAncestors.keysAsSet());
 		// If the intersection contains a most specific type, then the answer is
 		// not a fused pojo type; otherwise it is.
-		return !javaClass.equalsNull()
+		return !javaClass.equalsNil()
 			? create(javaClass, intersectionAncestors)
 			: FusedPojoTypeDescriptor.create(intersectionAncestors);
 	}
 
-	@Override @AvailMethod
-	AvailObject o_TypeVariables (
-		final AvailObject object)
+	/**
+	 * Lazily compute the type variables of the specified {@linkplain
+	 * UnfusedPojoTypeDescriptor object}.
+	 *
+	 * @param object An object.
+	 * @return The type variables.
+	 */
+	private AvailObject typeVariables (final AvailObject object)
 	{
 		AvailObject typeVars = object.slot(TYPE_VARIABLES);
-		if (typeVars.equalsNull())
+		if (typeVars.equalsNil())
 		{
 			typeVars = MapDescriptor.empty();
 			for (final MapDescriptor.Entry entry
@@ -402,9 +447,26 @@ extends PojoTypeDescriptor
 						true);
 				}
 			}
+			if (isShared())
+			{
+				typeVars = typeVars.traversed().makeShared();
+			}
 			object.setSlot(TYPE_VARIABLES, typeVars);
 		}
 		return typeVars;
+	}
+
+	@Override @AvailMethod
+	AvailObject o_TypeVariables (final AvailObject object)
+	{
+		if (isShared())
+		{
+			synchronized (object)
+			{
+				return typeVariables(object);
+			}
+		}
+		return typeVariables(object);
 	}
 
 	@Override
@@ -438,32 +500,43 @@ extends PojoTypeDescriptor
 	/**
 	 * Construct a new {@link UnfusedPojoTypeDescriptor}.
 	 *
-	 * @param isMutable
-	 *        Does the {@linkplain UnfusedPojoTypeDescriptor descriptor}
-	 *        represent a mutable object?
+	 * @param mutability
+	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 */
-	public UnfusedPojoTypeDescriptor (final boolean isMutable)
+	public UnfusedPojoTypeDescriptor (final Mutability mutability)
 	{
-		super(isMutable);
+		super(mutability);
 	}
 
 	/** The mutable {@link UnfusedPojoTypeDescriptor}. */
 	private final static UnfusedPojoTypeDescriptor mutable =
-		new UnfusedPojoTypeDescriptor(true);
+		new UnfusedPojoTypeDescriptor(Mutability.MUTABLE);
 
-	/**
-	 * Answer the mutable {@link UnfusedPojoTypeDescriptor}.
-	 *
-	 * @return The mutable {@code UnfusedPojoTypeDescriptor}.
-	 */
-	static UnfusedPojoTypeDescriptor mutable ()
+	@Override
+	UnfusedPojoTypeDescriptor mutable ()
 	{
 		return mutable;
 	}
 
 	/** The immutable {@link UnfusedPojoTypeDescriptor}. */
 	private final static UnfusedPojoTypeDescriptor immutable =
-		new UnfusedPojoTypeDescriptor(false);
+		new UnfusedPojoTypeDescriptor(Mutability.IMMUTABLE);
+
+	@Override
+	UnfusedPojoTypeDescriptor immutable ()
+	{
+		return immutable;
+	}
+
+	/** The shared {@link UnfusedPojoTypeDescriptor}. */
+	private final static UnfusedPojoTypeDescriptor shared =
+		new UnfusedPojoTypeDescriptor(Mutability.SHARED);
+
+	@Override
+	UnfusedPojoTypeDescriptor shared ()
+	{
+		return shared;
+	}
 
 	/**
 	 * Create a new {@link AvailObject} that represents an {@linkplain
@@ -489,8 +562,8 @@ extends PojoTypeDescriptor
 		newObject.setSlot(HASH_OR_ZERO, 0);
 		newObject.setSlot(JAVA_CLASS, javaClass);
 		newObject.setSlot(JAVA_ANCESTORS, javaAncestors);
-		newObject.setSlot(TYPE_VARIABLES, NullDescriptor.nullObject());
-		newObject.setSlot(SELF_TYPE, NullDescriptor.nullObject());
+		newObject.setSlot(TYPE_VARIABLES, NilDescriptor.nil());
+		newObject.setSlot(SELF_TYPE, NilDescriptor.nil());
 		return newObject.makeImmutable();
 	}
 }

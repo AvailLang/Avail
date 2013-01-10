@@ -1,6 +1,6 @@
 /**
  * SetDescriptor.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,31 +39,32 @@ import com.avail.serialization.SerializerOperation;
 
 /**
  * An Avail {@linkplain SetDescriptor set} refers to the root of a Bagwell Ideal
- * Hash Tree.  If the set is empty, the root is {@linkplain NullDescriptor the
- * null object}, which may not be a member of a set.  If the set has one
- * element, the root is the element itself.  If the set has two or more elements
- * then a {@linkplain SetBinDescriptor bin} must be used.  There are two types
- * of bin, the {@linkplain LinearSetBinDescriptor linear bin} and the
- * {@linkplain HashedSetBinDescriptor hashed bin}.  The linear bin is used below
- * a threshold size, after which a hashed bin is substituted.  The linear bin
- * simply contains an arbitrarily ordered list of elements, which are examined
- * exhaustively when testing set membership.  The hashed bin uses up to five
- * bits of an element's {@link AvailObject#hash(int) hash value} to partition
- * the set.  The depth of the bin in the hash tree determines which hash bits
+ * Hash Tree. If the set is empty, the root is {@linkplain NilDescriptor
+ * nil}, which may not be a member of a set. If the set has one element, the
+ * root is the element itself. If the set has two or more elements then a
+ * {@linkplain SetBinDescriptor bin} must be used.  There are two types of bin,
+ * the {@linkplain LinearSetBinDescriptor linear bin} and the {@linkplain
+ * HashedSetBinDescriptor hashed bin}. The linear bin is used below a threshold
+ * size, after which a hashed bin is substituted. The linear bin simply
+ * contains an arbitrarily ordered list of elements, which are examined
+ * exhaustively when testing set membership. The hashed bin uses up to five
+ * bits of an element's {@link AvailObject#hash() hash value} to partition
+ * the set. The depth of the bin in the hash tree determines which hash bits
  * are used.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class SetDescriptor extends Descriptor
+public class SetDescriptor
+extends Descriptor
 {
-
 	/**
 	 * The layout of object slots for my instances.
 	 */
-	public enum ObjectSlots implements ObjectSlotsEnum
+	public enum ObjectSlots
+	implements ObjectSlotsEnum
 	{
 		/**
-		 * The topmost bin of this set.  If it's {@link NullDescriptor null},
+		 * The topmost bin of this set.  If it's {@link NilDescriptor null},
 		 * the set is empty.  If it's a {@link SetBinDescriptor set bin} then
 		 * the bin contains the elements.  Otherwise the set contains one
 		 * element, the object in this field.
@@ -78,21 +79,20 @@ public class SetDescriptor extends Descriptor
 	 * @param object The set from which to extract the root bin.
 	 * @return The set's bin.
 	 */
-	private static AvailObject rootBin (
-		final AvailObject object)
+	private static AvailObject rootBin (final AvailObject object)
 	{
 		return object.slot(ObjectSlots.ROOT_BIN);
 	}
 
 	/**
 	 * Replace the {@linkplain SetDescriptor set}'s root {@linkplain
-	 * SetBinDescriptor bin}.  The replacement may be the {@link
-	 * NullDescriptor#nullObject() null object} to indicate an empty map.
+	 * SetBinDescriptor bin}. The replacement may be the {@link
+	 * NilDescriptor#nil() nil} to indicate an empty map.
 	 *
 	 * @param object
-	 *            The set (must not be an indirection).
+	 *        The set (must not be an indirection).
 	 * @param bin
-	 *            The root bin for the set, or the null object.
+	 *        The root bin for the set, or nil.
 	 */
 	private static void rootBin (
 		final AvailObject object,
@@ -130,17 +130,13 @@ public class SetDescriptor extends Descriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_Equals (
-		final AvailObject object,
-		final AvailObject another)
+	boolean o_Equals (final AvailObject object, final AvailObject another)
 	{
 		return another.equalsSet(object);
 	}
 
 	@Override @AvailMethod
-	boolean o_EqualsSet (
-		final AvailObject object,
-		final AvailObject aSet)
+	boolean o_EqualsSet (final AvailObject object, final AvailObject aSet)
 	{
 		// First eliminate the trivial case of different sizes.
 		if (object.setSize() != aSet.setSize())
@@ -151,18 +147,24 @@ public class SetDescriptor extends Descriptor
 		{
 			return false;
 		}
-		// Unfortunately, this also has time at least proportional to the set
-		// sizes, even if the sets are virtually identical and share structural
-		// subcomponents.  We can do better, ostensibly by navigating the tries
-		// together, checking for structural sharing.
+		// TODO: [MvG] Unfortunately, this also has time at least proportional
+		// to the set sizes, even if the sets are virtually identical and share
+		// structural subcomponents.  We can do better, ostensibly by navigating
+		// the tries together, checking for structural sharing.
 		if (!rootBin(object).isBinSubsetOf(aSet))
 		{
 			return false;
 		}
-		// They're equal.  Collapse them together.
-		object.becomeIndirectionTo(aSet);
-		// Note that it now has at least two references.
-		object.makeImmutable();
+		if (!isShared())
+		{
+			aSet.makeImmutable();
+			object.becomeIndirectionTo(aSet);
+		}
+		else if (!aSet.descriptor.isShared())
+		{
+			object.makeImmutable();
+			aSet.becomeIndirectionTo(object);
+		}
 		return true;
 	}
 
@@ -202,25 +204,21 @@ public class SetDescriptor extends Descriptor
 	}
 
 	@Override @AvailMethod
-	int o_Hash (
-		final AvailObject object)
+	int o_Hash (final AvailObject object)
 	{
-		// A set's hash is a simple function of its rootBin's binHash, which is always the sum
-		// of its elements' hashes.
-
+		// A set's hash is a simple function of its rootBin's binHash, which is
+		// always the sum of its elements' hashes.
 		return rootBin(object).binHash() ^ 0xCD9EFC6;
 	}
 
 	@Override @AvailMethod
-	boolean o_IsSet (
-		final AvailObject object)
+	boolean o_IsSet (final AvailObject object)
 	{
 		return true;
 	}
 
 	@Override @AvailMethod
-	AvailObject o_Kind (
-		final AvailObject object)
+	AvailObject o_Kind (final AvailObject object)
 	{
 		final int size = object.setSize();
 		final AvailObject sizeRange = InstanceTypeDescriptor.on(
@@ -235,13 +233,12 @@ public class SetDescriptor extends Descriptor
 		final AvailObject object,
 		final AvailObject elementObject)
 	{
-		return rootBin(object).binHasElementWithHash(elementObject, elementObject.hash());
+		return rootBin(object).binHasElementWithHash(
+			elementObject, elementObject.hash());
 	}
 
 	@Override @AvailMethod
-	boolean o_IsSubsetOf (
-		final AvailObject object,
-		final AvailObject another)
+	boolean o_IsSubsetOf (final AvailObject object, final AvailObject another)
 	{
 		// Check if object is a subset of another.
 		if (object.setSize() > another.setSize())
@@ -268,7 +265,7 @@ public class SetDescriptor extends Descriptor
 		final AvailObject otherSet,
 		final boolean canDestroy)
 	{
-		// Compute the intersection of two sets.  May destroy one of them if
+		// Compute the intersection of two sets. May destroy one of them if
 		// it's mutable and canDestroy is true.
 		AvailObject smaller;
 		AvailObject larger;
@@ -282,15 +279,18 @@ public class SetDescriptor extends Descriptor
 			larger = object;
 			smaller = otherSet.traversed();
 		}
-		// Freeze smaller because we're going to create a new version with some
-		// elements removed.  Technically we might be able to do slightly better
-		// by freezing it the first time a removal is actually needed.
-		smaller.makeImmutable();
+		boolean intersected = false;
 		AvailObject result = smaller;
 		for (final AvailObject element : smaller)
 		{
 			if (!larger.hasElement(element))
 			{
+				if (!intersected)
+				{
+					assert result == smaller;
+					result.makeImmutable();
+					intersected = true;
+				}
 				result = result.setWithoutElementCanDestroy(element, true);
 			}
 		}
@@ -305,16 +305,18 @@ public class SetDescriptor extends Descriptor
 	{
 		// Compute the asymmetric difference of two sets (a \ b).  May destroy
 		// one of them if it's mutable and canDestroy is true.
-
-		// Freeze object because we're going to create a new version with some
-		// elements removed.  Technically we might be able to do slightly better
-		// by freezing it the first time a removal is actually needed.
-		object.makeImmutable();
+		boolean intersected = false;
 		AvailObject result = object;
 		for (final AvailObject element : object)
 		{
 			if (otherSet.hasElement(element))
 			{
+				if (!intersected)
+				{
+					assert result == object;
+					result.makeImmutable();
+					intersected = true;
+				}
 				result = result.setWithoutElementCanDestroy(element, true);
 			}
 		}
@@ -327,9 +329,8 @@ public class SetDescriptor extends Descriptor
 		final AvailObject otherSet,
 		final boolean canDestroy)
 	{
-		// Compute the union of two sets.  May destroy one of them if it's
+		// Compute the union of two sets. May destroy one of them if it's
 		// mutable and canDestroy is true.
-
 		AvailObject smaller;
 		AvailObject larger;
 		if (object.setSize() <= otherSet.setSize())
@@ -370,7 +371,7 @@ public class SetDescriptor extends Descriptor
 		final AvailObject newElementObject,
 		final boolean canDestroy)
 	{
-		// Ensure newElementObject is in the set, adding it if necessary.  May
+		// Ensure newElementObject is in the set, adding it if necessary. May
 		// destroy the set if it's mutable and canDestroy is true.
 		final int elementHash = newElementObject.hash();
 		final AvailObject root = rootBin(object);
@@ -380,7 +381,7 @@ public class SetDescriptor extends Descriptor
 				newElementObject,
 				elementHash,
 				(byte)0,
-				canDestroy & isMutable);
+				canDestroy & isMutable());
 		if (newRootBin.binSize() == oldSize)
 		{
 			if (!canDestroy)
@@ -390,7 +391,7 @@ public class SetDescriptor extends Descriptor
 			return object;
 		}
 		AvailObject result;
-		if (canDestroy & isMutable)
+		if (canDestroy & isMutable())
 		{
 			result = object;
 		}
@@ -408,15 +409,15 @@ public class SetDescriptor extends Descriptor
 		final AvailObject elementObjectToExclude,
 		final boolean canDestroy)
 	{
-		// Ensure elementObjectToExclude is not in the set, removing it if necessary.
-		// May destroy the set if it's mutable and canDestroy is true.
-
+		// Ensure elementObjectToExclude is not in the set, removing it if
+		// necessary. May destroy the set if it's mutable and canDestroy is
+		// true.
 		final AvailObject root = rootBin(object);
 		final int oldSize = root.binSize();
 		final AvailObject newRootBin = root.binRemoveElementHashCanDestroy(
 			elementObjectToExclude,
 			elementObjectToExclude.hash(),
-			(canDestroy & isMutable));
+			(canDestroy & isMutable()));
 		if (newRootBin.binSize() == oldSize)
 		{
 			if (!canDestroy)
@@ -426,7 +427,7 @@ public class SetDescriptor extends Descriptor
 			return object;
 		}
 		AvailObject result;
-		if (canDestroy & isMutable)
+		if (canDestroy & isMutable())
 		{
 			result = object;
 		}
@@ -439,8 +440,7 @@ public class SetDescriptor extends Descriptor
 	}
 
 	@Override
-	public boolean o_ShowValueInNameForDebugger (
-		final AvailObject object)
+	public boolean o_ShowValueInNameForDebugger (final AvailObject object)
 	{
 		return false;
 	}
@@ -450,7 +450,7 @@ public class SetDescriptor extends Descriptor
 	 * asked for its {@link AvailObject#iterator()}.  Among other uses, this is
 	 * useful when combined with Java's "foreach" control structure.
 	 */
-	public abstract static class SetIterator
+	abstract static class SetIterator
 	implements Iterator<AvailObject>
 	{
 		@Override
@@ -461,22 +461,20 @@ public class SetDescriptor extends Descriptor
 	}
 
 	@Override @AvailMethod
-	SetIterator o_Iterator (
-		final AvailObject object)
+	SetIterator o_Iterator (final AvailObject object)
 	{
 		return rootBin(object).setBinIterator();
 	}
 
 	@Override @AvailMethod
-	AvailObject o_AsTuple (
-		final AvailObject object)
+	AvailObject o_AsTuple (final AvailObject object)
 	{
 		final int size = object.setSize();
-		final AvailObject result = ObjectTupleDescriptor.mutable().create(size);
+		final AvailObject result = ObjectTupleDescriptor.mutable.create(size);
 		for (int i = 1; i <= size; i++)
 		{
 			// Initialize it for when we use our own garbage collection again.
-			result.tupleAtPut(i, NullDescriptor.nullObject());
+			result.tupleAtPut(i, NilDescriptor.nil());
 		}
 		int index = 1;
 		for (final AvailObject element : object)
@@ -490,53 +488,16 @@ public class SetDescriptor extends Descriptor
 	}
 
 	@Override @AvailMethod
-	int o_SetSize (
-		final AvailObject object)
+	int o_SetSize (final AvailObject object)
 	{
-		// Answer how many elements are in the set.  Delegate to the rootBin.
+		// Answer how many elements are in the set. Delegate to the rootBin.
 		return rootBin(object).binSize();
 	}
 
 	@Override @AvailMethod @ThreadSafe
-	SerializerOperation o_SerializerOperation (
-		final AvailObject object)
+	SerializerOperation o_SerializerOperation (final AvailObject object)
 	{
 		return SerializerOperation.SET;
-	}
-
-
-	/**
-	 * The empty set (immutable).
-	 */
-	static AvailObject EmptySet;
-
-	/**
-	 * Initialize the {@link #EmptySet} static in addition to the usual statics.
-	 */
-	static void createWellKnownObjects ()
-	{
-		final AvailObject empty = mutable().create();
-		rootBin(empty, NullDescriptor.nullObject());
-		empty.makeImmutable();
-		EmptySet = empty;
-	}
-
-	/**
-	 * Clear the {@link #EmptySet} static in addition to the usual statics.
-	 */
-	static void clearWellKnownObjects ()
-	{
-		EmptySet = null;
-	}
-
-	/**
-	 * Answer the (immutable) empty set.
-	 *
-	 * @return The empty set.
-	 */
-	public static AvailObject empty ()
-	{
-		return EmptySet;
 	}
 
 	/**
@@ -561,42 +522,73 @@ public class SetDescriptor extends Descriptor
 	/**
 	 * Construct a new {@link SetDescriptor}.
 	 *
-	 * @param isMutable
-	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
-	 *        object?
+	 * @param mutability
+	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 */
-	protected SetDescriptor (final boolean isMutable)
+	private SetDescriptor (final Mutability mutability)
 	{
-		super(isMutable);
+		super(mutability);
 	}
 
-	/**
-	 * The mutable {@link SetDescriptor}.
-	 */
-	private static final SetDescriptor mutable = new SetDescriptor(true);
+	/** The mutable {@link SetDescriptor}. */
+	private static final SetDescriptor mutable =
+		new SetDescriptor(Mutability.MUTABLE);
 
-	/**
-	 * Answer the mutable {@link SetDescriptor}.
-	 *
-	 * @return The mutable {@link SetDescriptor}.
-	 */
-	public static SetDescriptor mutable ()
+	@Override
+	SetDescriptor mutable ()
 	{
 		return mutable;
 	}
 
-	/**
-	 * The immutable {@link SetDescriptor}.
-	 */
-	private static final SetDescriptor immutable = new SetDescriptor(false);
+	/** The immutable {@link SetDescriptor}. */
+	private static final SetDescriptor immutable =
+		new SetDescriptor(Mutability.IMMUTABLE);
 
-	/**
-	 * Answer the immutable {@link SetDescriptor}.
-	 *
-	 * @return The immutable {@link SetDescriptor}.
-	 */
-	public static SetDescriptor immutable ()
+	@Override
+	SetDescriptor immutable ()
 	{
 		return immutable;
+	}
+
+	/** The shared {@link SetDescriptor}. */
+	private static final SetDescriptor shared =
+		new SetDescriptor(Mutability.SHARED);
+
+	@Override
+	SetDescriptor shared ()
+	{
+		return shared;
+	}
+
+	/** The empty set. */
+	private static AvailObject emptySet;
+
+	/**
+	 * Answer the empty set.
+	 *
+	 * @return The empty set.
+	 */
+	public static AvailObject empty ()
+	{
+		return emptySet;
+	}
+
+	/**
+	 * Initialize the {@link #emptySet} static in addition to the usual statics.
+	 */
+	static void createWellKnownObjects ()
+	{
+		emptySet = mutable.create();
+		rootBin(emptySet, NilDescriptor.nil());
+		emptySet.hash();
+		emptySet.makeShared();
+	}
+
+	/**
+	 * Clear the {@link #emptySet} static in addition to the usual statics.
+	 */
+	static void clearWellKnownObjects ()
+	{
+		emptySet = null;
 	}
 }

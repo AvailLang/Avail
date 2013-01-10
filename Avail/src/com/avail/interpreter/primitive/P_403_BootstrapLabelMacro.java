@@ -1,6 +1,6 @@
 /**
  * P_403_BootstrapLabelMacro.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -71,7 +71,7 @@ public class P_403_BootstrapLabelMacro extends Primitive
 		final ParserState parserState = interpreter.currentParserState;
 		final AvailObject blockMacroArguments =
 			parserState.innermostBlockArguments;
-		if (blockMacroArguments == null || blockMacroArguments.equalsNull())
+		if (blockMacroArguments == null || blockMacroArguments.equalsNil())
 		{
 			return interpreter.primitiveFailure(
 				E_LABEL_MACRO_MUST_OCCUR_INSIDE_A_BLOCK);

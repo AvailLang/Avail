@@ -1,6 +1,6 @@
 /**
  * ContinuationTypeDescriptor.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -73,27 +73,27 @@ import com.avail.serialization.SerializerOperation;
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class ContinuationTypeDescriptor
+public final class ContinuationTypeDescriptor
 extends TypeDescriptor
 {
 	/**
 	 * The layout of object slots for my instances.
 	 */
-	public enum ObjectSlots implements ObjectSlotsEnum
+	public enum ObjectSlots
+	implements ObjectSlotsEnum
 	{
 		/**
 		 * The type of function that this {@linkplain ContinuationTypeDescriptor
 		 * continuation type} supports.  Continuation types are contravariant
-		 * with respect to the function type's argument types, and, surprisingly,
-		 * they are also contravariant with respect to the function type's
-		 * return type.
+		 * with respect to the function type's argument types, and,
+		 * surprisingly, they are also contravariant with respect to the
+		 * function type's return type.
 		 */
 		FUNCTION_TYPE
 	}
 
 	@Override @AvailMethod
-	AvailObject o_FunctionType (
-		final AvailObject object)
+	AvailObject o_FunctionType (final AvailObject object)
 	{
 		return object.slot(ObjectSlots.FUNCTION_TYPE);
 	}
@@ -113,9 +113,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_Equals (
-		final AvailObject object,
-		final AvailObject another)
+	boolean o_Equals (final AvailObject object, final AvailObject another)
 	{
 		return another.equalsContinuationType(object);
 	}
@@ -124,7 +122,8 @@ extends TypeDescriptor
 	 * {@inheritDoc}
 	 *
 	 * <p>
-	 * Continuation types compare for equality by comparing their functionTypes.
+	 * Continuation types compare for equality by comparing their function
+	 * types.
 	 * </p>
 	 */
 	@Override @AvailMethod
@@ -140,16 +139,13 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	int o_Hash (
-		final AvailObject object)
+	int o_Hash (final AvailObject object)
 	{
 		return object.functionType().hash() * 11 ^ 0x3E20409;
 	}
 
 	@Override @AvailMethod
-	boolean o_IsSubtypeOf (
-		final AvailObject object,
-		final AvailObject aType)
+	boolean o_IsSubtypeOf (final AvailObject object, final AvailObject aType)
 	{
 		return aType.isSupertypeOfContinuationType(object);
 	}
@@ -253,30 +249,26 @@ extends TypeDescriptor
 	}
 
 	@Override
-	SerializerOperation o_SerializerOperation (
-		final AvailObject object)
+	SerializerOperation o_SerializerOperation (final AvailObject object)
 	{
 		return SerializerOperation.CONTINUATION_TYPE;
 	}
 
 	/**
 	 * Create a {@linkplain ContinuationTypeDescriptor continuation type} based
-	 * on the passed {@linkplain FunctionTypeDescriptor function type}.  Ignore
+	 * on the passed {@linkplain FunctionTypeDescriptor function type}. Ignore
 	 * the function type's exception set.
 	 *
 	 * @param functionType
-	 *            A {@linkplain FunctionTypeDescriptor function type} on which to
-	 *            base the new {@linkplain ContinuationTypeDescriptor
-	 *            continuation type}.
-	 * @return
-	 *            A new {@linkplain ContinuationTypeDescriptor}.
+	 *        A {@linkplain FunctionTypeDescriptor function type} on which to
+	 *        base the new {@linkplain ContinuationTypeDescriptor continuation
+	 *        type}.
+	 * @return A new {@linkplain ContinuationTypeDescriptor}.
 	 */
-	public static AvailObject forFunctionType (
-		final AvailObject functionType)
+	public static AvailObject forFunctionType (final AvailObject functionType)
 	{
-		functionType.makeImmutable();
-		final AvailObject result = mutable().create();
-		result.setSlot(ObjectSlots.FUNCTION_TYPE, functionType);
+		final AvailObject result = mutable.create();
+		result.setSlot(ObjectSlots.FUNCTION_TYPE, functionType.makeImmutable());
 		result.makeImmutable();
 		return result;
 	}
@@ -328,9 +320,9 @@ extends TypeDescriptor
 		mostGeneralType = forFunctionType(
 			FunctionTypeDescriptor.forReturnType(
 				BottomTypeDescriptor.bottom()));
-		mostGeneralType.makeImmutable();
+		mostGeneralType.makeShared();
 		meta = InstanceMetaDescriptor.on(mostGeneralType);
-		meta.makeImmutable();
+		meta.makeShared();
 	}
 
 	/**
@@ -346,44 +338,41 @@ extends TypeDescriptor
 	/**
 	 * Construct a new {@link ContinuationTypeDescriptor}.
 	 *
-	 * @param isMutable
-	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
-	 *        object?
+	 * @param mutability
+	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 */
-	protected ContinuationTypeDescriptor (final boolean isMutable)
+	private ContinuationTypeDescriptor (final Mutability mutability)
 	{
-		super(isMutable);
+		super(mutability);
 	}
 
-	/**
-	 * The mutable {@link ContinuationTypeDescriptor}.
-	 */
+	/** The mutable {@link ContinuationTypeDescriptor}. */
 	private static final ContinuationTypeDescriptor mutable =
-		new ContinuationTypeDescriptor(true);
+		new ContinuationTypeDescriptor(Mutability.MUTABLE);
 
-	/**
-	 * Answer the mutable {@link ContinuationTypeDescriptor}.
-	 *
-	 * @return The mutable {@link ContinuationTypeDescriptor}.
-	 */
-	public static ContinuationTypeDescriptor mutable ()
+	@Override
+	ContinuationTypeDescriptor mutable ()
 	{
 		return mutable;
 	}
 
-	/**
-	 * The immutable {@link ContinuationTypeDescriptor}.
-	 */
+	/** The immutable {@link ContinuationTypeDescriptor}. */
 	private static final ContinuationTypeDescriptor immutable =
-		new ContinuationTypeDescriptor(false);
+		new ContinuationTypeDescriptor(Mutability.IMMUTABLE);
 
-	/**
-	 * Answer the immutable {@link ContinuationTypeDescriptor}.
-	 *
-	 * @return The immutable {@link ContinuationTypeDescriptor}.
-	 */
-	public static ContinuationTypeDescriptor immutable ()
+	@Override
+	ContinuationTypeDescriptor immutable ()
 	{
 		return immutable;
+	}
+
+	/** The shared {@link ContinuationTypeDescriptor}. */
+	private static final ContinuationTypeDescriptor shared =
+		new ContinuationTypeDescriptor(Mutability.SHARED);
+
+	@Override
+	ContinuationTypeDescriptor shared ()
+	{
+		return shared;
 	}
 }

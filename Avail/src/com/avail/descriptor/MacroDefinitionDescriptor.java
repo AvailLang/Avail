@@ -1,6 +1,6 @@
 /**
  * MacroDefinitionDescriptor.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -152,55 +152,51 @@ extends DefinitionDescriptor
 		final AvailObject method,
 		final AvailObject bodyBlock)
 	{
-		final AvailObject instance = mutable().create();
+		final AvailObject instance = mutable.create();
 		instance.setSlot(DEFINITION_METHOD, method);
 		instance.setSlot(BODY_BLOCK, bodyBlock);
 		instance.makeImmutable();
 		return instance;
 	}
 
-
 	/**
 	 * Construct a new {@link MacroDefinitionDescriptor}.
 	 *
-	 * @param isMutable
-	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
-	 *        object?
+	 * @param mutability
+	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 */
-	protected MacroDefinitionDescriptor (final boolean isMutable)
+	protected MacroDefinitionDescriptor (final Mutability mutability)
 	{
-		super(isMutable);
+		super(mutability);
 	}
 
-	/**
-	 * The mutable {@link MacroDefinitionDescriptor}.
-	 */
+	/** The mutable {@link MacroDefinitionDescriptor}. */
 	private static final MacroDefinitionDescriptor mutable =
-		new MacroDefinitionDescriptor(true);
+		new MacroDefinitionDescriptor(Mutability.MUTABLE);
 
-	/**
-	 * Answer the mutable {@link MacroDefinitionDescriptor}.
-	 *
-	 * @return The mutable {@link MacroDefinitionDescriptor}.
-	 */
-	public static MacroDefinitionDescriptor mutable ()
+	@Override
+	MacroDefinitionDescriptor mutable ()
 	{
 		return mutable;
 	}
 
-	/**
-	 * The immutable {@link MacroDefinitionDescriptor}.
-	 */
+	/** The immutable {@link MacroDefinitionDescriptor}. */
 	private static final MacroDefinitionDescriptor immutable =
-		new MacroDefinitionDescriptor(false);
+		new MacroDefinitionDescriptor(Mutability.IMMUTABLE);
 
-	/**
-	 * Answer the immutable {@link MacroDefinitionDescriptor}.
-	 *
-	 * @return The immutable {@link MacroDefinitionDescriptor}.
-	 */
-	public static MacroDefinitionDescriptor immutable ()
+	@Override
+	MacroDefinitionDescriptor immutable ()
 	{
 		return immutable;
+	}
+
+	/** The shared {@link MacroDefinitionDescriptor}. */
+	private static final MacroDefinitionDescriptor shared =
+		new MacroDefinitionDescriptor(Mutability.SHARED);
+
+	@Override
+	MacroDefinitionDescriptor shared ()
+	{
+		return shared;
 	}
 }

@@ -1,6 +1,6 @@
 /**
  * P_125_AtomRemoveProperty.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -66,12 +66,12 @@ public class P_125_AtomRemoveProperty extends Primitive
 			return interpreter.primitiveFailure(E_SPECIAL_ATOM);
 		}
 		final AvailObject propertyValue = atom.getAtomProperty(propertyKey);
-		if (propertyValue.equalsNull())
+		if (propertyValue.equalsNil())
 		{
 			return interpreter.primitiveFailure(E_KEY_NOT_FOUND);
 		}
-		atom.setAtomProperty(propertyKey, NullDescriptor.nullObject());
-		return interpreter.primitiveSuccess(NullDescriptor.nullObject());
+		atom.setAtomProperty(propertyKey, NilDescriptor.nil());
+		return interpreter.primitiveSuccess(NilDescriptor.nil());
 	}
 
 	@Override

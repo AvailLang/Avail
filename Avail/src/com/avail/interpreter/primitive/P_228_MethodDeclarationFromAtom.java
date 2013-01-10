@@ -1,6 +1,6 @@
 /**
  * P_228_MethodDeclarationFromAtom.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -68,14 +68,14 @@ extends Primitive
 				atom,
 				block,
 				atom.issuingModule().equals(
-					module != null ? module : NullDescriptor.nullObject()));
+					module != null ? module : NilDescriptor.nil()));
 			interpreter.fixupForPotentiallyInvalidCurrentChunk();
 		}
 		catch (final SignatureException e)
 		{
 			return interpreter.primitiveFailure(e);
 		}
-		return interpreter.primitiveSuccess(NullDescriptor.nullObject());
+		return interpreter.primitiveSuccess(NilDescriptor.nil());
 	}
 
 	@Override

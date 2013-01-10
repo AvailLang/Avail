@@ -1,6 +1,6 @@
 /**
  * P_266_TerminateCurrentFiber.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -64,7 +64,7 @@ extends Primitive
 		{
 			throw new TerminateCompilationException();
 		}
-		interpreter.exitProcessWith(NullDescriptor.nullObject());
+		interpreter.exitProcessWith(NilDescriptor.nil());
 		return Result.CONTINUATION_CHANGED;
 	}
 

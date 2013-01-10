@@ -1,6 +1,6 @@
 /**
  * HashedMapBinDescriptor.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,6 +35,7 @@ package com.avail.descriptor;
 import static java.lang.Integer.bitCount;
 import static com.avail.descriptor.HashedMapBinDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.HashedMapBinDescriptor.ObjectSlots.*;
+import static com.avail.descriptor.Mutability.*;
 import java.util.*;
 import com.avail.annotations.*;
 import com.avail.descriptor.MapDescriptor.MapIterable;
@@ -64,13 +65,50 @@ import com.avail.descriptor.MapDescriptor.Entry;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd Smith &lt;todd@availlang.org&gt;
  */
-public final class HashedMapBinDescriptor
+final class HashedMapBinDescriptor
 extends MapBinDescriptor
 {
 	/**
+	 * A static switch for enabling slow, detailed correctness checks.
+	 */
+	private final static boolean shouldCheck = false;
+
+	/**
+	 * Make sure the {@link HashedMapBinDescriptor hashed map bin} is
+	 * well-formed at this moment.
+	 *
+	 * @param object A hashed bin used by maps.
+	 */
+	static void check (final AvailObject object)
+	{
+		if (shouldCheck)
+		{
+			assert object.descriptor() instanceof HashedMapBinDescriptor;
+			int keyHashSum = 0;
+			int valueHashSum = 0;
+			int totalCount = 0;
+			final int size = object.variableObjectSlotsCount();
+			assert bitCount(object.slot(BIT_VECTOR)) == size;
+			for (int i = 1; i <= size; i++)
+			{
+				final AvailObject subBin = object.slot(SUB_BINS_, i);
+				keyHashSum += subBin.mapBinKeysHash();
+				valueHashSum += subBin.mapBinValuesHash();
+				totalCount += subBin.binSize();
+			}
+			assert object.slot(KEYS_HASH) == keyHashSum;
+			final int storedValuesHash =
+				object.mutableSlot(VALUES_HASH_OR_ZERO);
+			assert storedValuesHash == 0 || storedValuesHash == valueHashSum;
+			assert object.slot(BIN_SIZE) == totalCount;
+		}
+	}
+
+	/**
 	 * The layout of integer slots for my instances.
 	 */
-	public enum IntegerSlots implements IntegerSlotsEnum
+	public enum IntegerSlots
+	implements IntegerSlotsEnum
 	{
 		/**
 		 * The sum of the hashes of the elements recursively within this bin.
@@ -106,18 +144,19 @@ extends MapBinDescriptor
 	/**
 	 * The layout of object slots for my instances.
 	 */
-	public enum ObjectSlots implements ObjectSlotsEnum
+	public enum ObjectSlots
+	implements ObjectSlotsEnum
 	{
 		/**
 		 * The union of the types of all keys recursively within this bin.
-		 * If this is {@linkplain NullDescriptor#nullObject() top}, then it can
+		 * If this is {@linkplain NilDescriptor#nil() top}, then it can
 		 * be recomputed when needed and cached.
 		 */
 		BIN_KEY_UNION_KIND_OR_NULL,
 
 		/**
 		 * The union of the types of all keys recursively within this bin.
-		 * If this is {@linkplain NullDescriptor#nullObject() top}, then it can
+		 * If this is {@linkplain NilDescriptor#nil() top}, then it can
 		 * be recomputed when needed and cached.
 		 */
 		BIN_VALUE_UNION_KIND_OR_NULL,
@@ -129,45 +168,16 @@ extends MapBinDescriptor
 		SUB_BINS_
 	}
 
-	/**
-	 * A static switch for enabling slow, detailed correctness checks.
-	 */
-	private final static boolean shouldCheck = false;
-
-	/**
-	 * Make sure the {@link HashedMapBinDescriptor hashed map bin} is
-	 * well-formed at this moment.
-	 *
-	 * @param object A hashed bin used by maps.
-	 */
-	static void check (final AvailObject object)
+	@Override boolean allowsImmutableToMutableReferenceInField (
+		final AbstractSlotsEnum e)
 	{
-		if (shouldCheck)
-		{
-			assert object.descriptor() instanceof HashedMapBinDescriptor;
-			int keyHashSum = 0;
-			int valueHashSum = 0;
-			int totalCount = 0;
-			final int size = object.variableObjectSlotsCount();
-			assert bitCount(object.slot(BIT_VECTOR)) == size;
-			for (int i = 1; i <= size; i++)
-			{
-				final AvailObject subBin = object.slot(SUB_BINS_, i);
-				keyHashSum += subBin.mapBinKeysHash();
-				valueHashSum += subBin.mapBinValuesHash();
-				totalCount += subBin.binSize();
-			}
-			assert object.slot(KEYS_HASH) == keyHashSum;
-			final int storedValuesHash = object.slot(VALUES_HASH_OR_ZERO);
-			assert storedValuesHash == 0 || storedValuesHash == valueHashSum;
-			assert object.slot(BIN_SIZE) == totalCount;
-		}
+		return e == VALUES_HASH_OR_ZERO
+			|| e == BIN_KEY_UNION_KIND_OR_NULL
+			|| e == BIN_VALUE_UNION_KIND_OR_NULL;
 	}
 
 	@Override @AvailMethod
-	AvailObject o_BinElementAt (
-		final AvailObject object,
-		final int subscript)
+	AvailObject o_BinElementAt (final AvailObject object, final int subscript)
 	{
 		return object.slot(SUB_BINS_, subscript);
 	}
@@ -182,37 +192,57 @@ extends MapBinDescriptor
 	}
 
 	@Override @AvailMethod
-	void o_BinSize (
-		final AvailObject object,
-		final int value)
+	void o_BinSize (final AvailObject object, final int value)
 	{
 		object.setSlot(BIN_SIZE, value);
 	}
 
 	@Override @AvailMethod
-	void o_BitVector (
-		final AvailObject object,
-		final int value)
+	void o_BitVector (final AvailObject object, final int value)
 	{
 		object.setSlot(BIT_VECTOR, value);
 	}
 
 	@Override @AvailMethod
-	int o_BinSize (
-		final AvailObject object)
+	int o_BinSize (final AvailObject object)
 	{
 		return object.slot(BIN_SIZE);
+	}
+
+	/**
+	 * Check if object, a bin, holds a subset of aSet's elements.
+	 */
+	@Override @AvailMethod
+	boolean o_IsBinSubsetOf (
+		final AvailObject object,
+		final AvailObject potentialSuperset)
+	{
+		final int size = object.variableObjectSlotsCount();
+		for (int index = 1; index <= size; index++)
+		{
+			final AvailObject subBin = object.slot(SUB_BINS_, index);
+			if (!subBin.isBinSubsetOf(potentialSuperset))
+			{
+				return false;
+			}
+		}
+		return true;
+	}
+
+	@Override
+	boolean o_IsHashedMapBin (final AvailObject object)
+	{
+		return true;
 	}
 
 	/**
 	 * Compute this bin's key type and value type.
 	 *
 	 * @param object
-	 *            The {@link HashedMapBinDescriptor bin} to populate with key
-	 *            and value type information.
+	 *        The {@link HashedMapBinDescriptor bin} to populate with key
+	 *        and value type information.
 	 */
-	private void computeKeyAndValueKinds (
-		final AvailObject object)
+	private void computeKeyAndValueKinds (final AvailObject object)
 	{
 		AvailObject keyType = BottomTypeDescriptor.bottom();
 		AvailObject valueType = BottomTypeDescriptor.bottom();
@@ -224,16 +254,26 @@ extends MapBinDescriptor
 			keyType = keyType.typeUnion(subBin.mapBinKeyUnionKind());
 			valueType = valueType.typeUnion(subBin.mapBinValueUnionKind());
 		}
+		if (isShared())
+		{
+			keyType = keyType.traversed().makeShared();
+			valueType = valueType.traversed().makeShared();
+		}
 		object.setSlot(BIN_KEY_UNION_KIND_OR_NULL, keyType);
 		object.setSlot(BIN_VALUE_UNION_KIND_OR_NULL, valueType);
 	}
 
-	@Override @AvailMethod
-	AvailObject o_MapBinKeyUnionKind (
-		final AvailObject object)
+	/**
+	 * Compute and install the bin key union kind for the specified
+	 * {@linkplain HashedMapBinDescriptor object}.
+	 *
+	 * @param object An object.
+	 * @return A key type.
+	 */
+	private AvailObject mapBinKeyUnionKind (final AvailObject object)
 	{
 		AvailObject keyType = object.slot(BIN_KEY_UNION_KIND_OR_NULL);
-		if (keyType.equalsNull())
+		if (keyType.equalsNil())
 		{
 			computeKeyAndValueKinds(object);
 			keyType = object.slot(BIN_KEY_UNION_KIND_OR_NULL);
@@ -242,11 +282,29 @@ extends MapBinDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_MapBinValueUnionKind (
-		final AvailObject object)
+	AvailObject o_MapBinKeyUnionKind (final AvailObject object)
+	{
+		if (isShared())
+		{
+			synchronized (object)
+			{
+				return mapBinKeyUnionKind(object);
+			}
+		}
+		return mapBinKeyUnionKind(object);
+	}
+
+	/**
+	 * Compute and install the bin value union kind for the specified
+	 * {@linkplain HashedMapBinDescriptor object}.
+	 *
+	 * @param object An object.
+	 * @return A key type.
+	 */
+	private AvailObject mapBinValueUnionKind (final AvailObject object)
 	{
 		AvailObject valueType = object.slot(BIN_VALUE_UNION_KIND_OR_NULL);
-		if (valueType.equalsNull())
+		if (valueType.equalsNil())
 		{
 			computeKeyAndValueKinds(object);
 			valueType = object.slot(BIN_VALUE_UNION_KIND_OR_NULL);
@@ -254,24 +312,17 @@ extends MapBinDescriptor
 		return valueType;
 	}
 
-	@Override boolean allowsImmutableToMutableReferenceInField (
-		final AbstractSlotsEnum e)
-	{
-		return e == VALUES_HASH_OR_ZERO
-			|| e == BIN_KEY_UNION_KIND_OR_NULL
-			|| e == BIN_VALUE_UNION_KIND_OR_NULL;
-	}
-
 	@Override @AvailMethod
-	AvailObject o_MakeImmutable (
-		final AvailObject object)
+	AvailObject o_MapBinValueUnionKind (final AvailObject object)
 	{
-		if (isMutable)
+		if (isShared())
 		{
-			object.descriptor = isMutableLevel(false, level);
-			object.makeSubobjectsImmutable();
+			synchronized (object)
+			{
+				return mapBinValueUnionKind(object);
+			}
 		}
-		return object;
+		return mapBinValueUnionKind(object);
 	}
 
 	/**
@@ -319,18 +370,18 @@ extends MapBinDescriptor
 					canDestroy);
 			delta = newSubBin.binSize() - oldSubBinSize;
 			hashDelta = newSubBin.mapBinKeysHash() - oldSubBinKeyHash;
-			if (canDestroy & isMutable)
+			if (canDestroy & isMutable())
 			{
 				objectToModify = object;
 			}
 			else
 			{
-				if (!canDestroy & isMutable)
+				if (!canDestroy & isMutable())
 				{
 					object.makeSubobjectsImmutable();
 				}
 				objectToModify = AvailObjectRepresentation.newLike(
-					isMutableLevel(true, level),
+					descriptorFor(MUTABLE, level),
 					object,
 					0,
 					0);
@@ -344,11 +395,11 @@ extends MapBinDescriptor
 		{
 			delta = 1;
 			hashDelta = keyHash;
-			if (!canDestroy & isMutable)
+			if (!canDestroy & isMutable())
 			{
 				object.makeSubobjectsImmutable();
 			}
-			objectToModify = isMutableLevel(true, level).create(
+			objectToModify = descriptorFor(MUTABLE, level).create(
 				objectEntryCount + 1);
 			objectToModify.setSlot(
 				BIT_VECTOR,
@@ -375,6 +426,7 @@ extends MapBinDescriptor
 					object.slot(SUB_BINS_, i));
 			}
 		}
+		assert objectToModify.descriptor.isMutable();
 		objectToModify.setSlot(
 			KEYS_HASH,
 			oldKeysHash + hashDelta);
@@ -386,10 +438,10 @@ extends MapBinDescriptor
 			oldSize + delta);
 		objectToModify.setSlot(
 			BIN_KEY_UNION_KIND_OR_NULL,
-			NullDescriptor.nullObject());
+			NilDescriptor.nil());
 		objectToModify.setSlot(
 			BIN_VALUE_UNION_KIND_OR_NULL,
-			NullDescriptor.nullObject());
+			NilDescriptor.nil());
 		check(objectToModify);
 		return objectToModify;
 	}
@@ -405,8 +457,8 @@ extends MapBinDescriptor
 		final int vector = object.slot(BIT_VECTOR);
 		if ((vector & bitShift(1, logicalIndex)) == 0)
 		{
-			// Not found.  Answer the null object.
-			return NullDescriptor.nullObject();
+			// Not found.  Answer nil.
+			return NilDescriptor.nil();
 		}
 		// There's an entry.  Count the 1-bits below it to compute its
 		// zero-relative physicalIndex.
@@ -458,18 +510,18 @@ extends MapBinDescriptor
 		final int delta;
 		final int deltaHash;
 		final AvailObject objectToModify;
-		if (newSubBin.equalsNull())
+		if (newSubBin.equalsNil())
 		{
 			// The entire subBin can be removed.
 			final int oldSlotCount = bitCount(vector);
 			if (oldSlotCount == 1)
 			{
 				// ...and so can this one.
-				return NullDescriptor.nullObject();
+				return NilDescriptor.nil();
 			}
 			objectToModify = AvailObject.newIndexedDescriptor(
 				bitCount(vector) - 1,
-				isMutableLevel(true, level));
+				descriptorFor(MUTABLE, level));
 			int destination = 1;
 			for (int source = 1; source <= oldSlotCount; source++)
 			{
@@ -501,7 +553,7 @@ extends MapBinDescriptor
 			else
 			{
 				objectToModify = AvailObjectRepresentation.newLike(
-					isMutableLevel(true, level),
+					descriptorFor(MUTABLE, level),
 					object,
 					0,
 					0);
@@ -511,50 +563,28 @@ extends MapBinDescriptor
 				physicalIndex,
 				newSubBin);
 		}
+		assert objectToModify.descriptor.isMutable();
 		objectToModify.setSlot(BIN_SIZE, oldSize + delta);
 		objectToModify.setSlot(KEYS_HASH, oldKeysHash + deltaHash);
 		objectToModify.setSlot(VALUES_HASH_OR_ZERO, 0);
 		objectToModify.setSlot(
 			BIN_KEY_UNION_KIND_OR_NULL,
-			NullDescriptor.nullObject());
+			NilDescriptor.nil());
 		objectToModify.setSlot(
 			BIN_VALUE_UNION_KIND_OR_NULL,
-			NullDescriptor.nullObject());
+			NilDescriptor.nil());
 		check(objectToModify);
 		return objectToModify;
 	}
 
 	/**
-	 * Check if object, a bin, holds a subset of aSet's elements.
+	 * Lazily compute and install the values hash of the specified {@linkplain
+	 * HashedMapBinDescriptor object}.
+	 *
+	 * @param object An object.
+	 * @return The hash.
 	 */
-	@Override @AvailMethod
-	boolean o_IsBinSubsetOf (
-		final AvailObject object,
-		final AvailObject potentialSuperset)
-	{
-		final int size = object.variableObjectSlotsCount();
-		for (int index = 1; index <= size; index++)
-		{
-			final AvailObject subBin = object.slot(SUB_BINS_, index);
-			if (!subBin.isBinSubsetOf(potentialSuperset))
-			{
-				return false;
-			}
-		}
-		return true;
-	}
-
-	@Override
-	boolean o_IsHashedMapBin (
-		final AvailObject object)
-	{
-		return true;
-	}
-
-
-	@Override
-	int o_MapBinValuesHash (
-		final AvailObject object)
+	private int mapBinValuesHash (final AvailObject object)
 	{
 		int valuesHash = object.slot(VALUES_HASH_OR_ZERO);
 		if (valuesHash == 0)
@@ -570,11 +600,25 @@ extends MapBinDescriptor
 		return valuesHash;
 	}
 
+	@Override
+	int o_MapBinValuesHash (final AvailObject object)
+	{
+		if (isShared())
+		{
+			synchronized (object)
+			{
+				return mapBinValuesHash(object);
+			}
+		}
+		return mapBinValuesHash(object);
+	}
+
 	/**
 	 * A MapIterable used for iterating over the key/value pairs of a map whose
 	 * root bin happens to be hashed.
 	 */
-	static class HashedMapBinIterable extends MapIterable
+	static class HashedMapBinIterable
+	extends MapIterable
 	{
 		/**
 		 * The path through map bins, including the current linear bin.
@@ -600,18 +644,17 @@ extends MapBinDescriptor
 		}
 
 		/**
-		 * Visit this bin or {@link NullDescriptor#nullObject() null object}.
-		 * In particular, travel down its left spine so that it's positioned at
-		 * the leftmost descendant.
+		 * Visit this bin or {@link NilDescriptor#nil() nil}. In particular,
+		 * travel down its left spine so that it's positioned at the leftmost
+		 * descendant.
 		 *
-		 * @param bin The bin or null object at which to begin enumerating.
+		 * @param bin The bin or nil at which to begin enumerating.
 		 */
-		private void followLeftmost (
-			final AvailObject bin)
+		private void followLeftmost (final AvailObject bin)
 		{
-			if (bin.equalsNull())
+			if (bin.equalsNil())
 			{
-				// The null object may only occur at the top of the bin tree.
+				// Nil may only occur at the top of the bin tree.
 				assert binStack.isEmpty();
 				assert subscriptStack.isEmpty();
 				//entry.keyHash = 0;
@@ -690,8 +733,7 @@ extends MapBinDescriptor
 	}
 
 	@Override
-	MapIterable o_MapBinIterable (
-		final AvailObject object)
+	MapIterable o_MapBinIterable (final AvailObject object)
 	{
 		return new HashedMapBinIterable(object);
 	}
@@ -707,28 +749,27 @@ extends MapBinDescriptor
 	{
 		AvailObject result;
 		final int newSize = bitCount(bitVector);
-		result = isMutableLevel(true, myLevel).create(newSize);
+		result = descriptorFor(MUTABLE, myLevel).create(newSize);
 		result.setSlot(KEYS_HASH, 0);
 		result.setSlot(VALUES_HASH_OR_ZERO, 0);
 		result.setSlot(BIN_SIZE, 0);
 		result.setSlot(BIT_VECTOR, bitVector);
 		result.setSlot(
 			BIN_KEY_UNION_KIND_OR_NULL,
-			NullDescriptor.nullObject());
+			NilDescriptor.nil());
 		result.setSlot(
 			BIN_VALUE_UNION_KIND_OR_NULL,
-			NullDescriptor.nullObject());
+			NilDescriptor.nil());
 		for (int i = 1; i <= newSize; i++)
 		{
 			result.setSlot(
 				SUB_BINS_,
 				i,
-				NullDescriptor.nullObject());
+				NilDescriptor.nil());
 		}
 		check(result);
 		return result;
 	}
-
 
 	/**
 	 * The number of distinct levels that my instances can occupy in a set's
@@ -740,45 +781,68 @@ extends MapBinDescriptor
 	 * Answer the appropriate {@link HashedMapBinDescriptor} to use for the
 	 * given mutability and level.
 	 *
-	 * @param flag Whether the descriptor is to be used for a mutable object.
+	 * @param flag The mutability of the object.
 	 * @param level The bin tree level that its objects should occupy.
 	 * @return A suitable {@code HashedSetBinDescriptor}.
 	 */
-	static HashedMapBinDescriptor isMutableLevel (
-		final boolean flag,
+	private static HashedMapBinDescriptor descriptorFor (
+		final Mutability flag,
 		final byte level)
 	{
 		assert 0 <= level && level < numberOfLevels;
-		return descriptors [level * 2 + (flag ? 0 : 1)];
+		return descriptors[level * 3 + flag.ordinal()];
 	}
 
 	/**
 	 * Construct a new {@link HashedMapBinDescriptor}.
 	 *
-	 * @param isMutable
-	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
-	 *        object?
-	 * @param level The depth of the bin in the hash tree.
+	 * @param mutability
+	 *        The {@linkplain Mutability mutability} of the new descriptor.
+	 * @param level
+	 *        The depth of the bin in the hash tree.
 	 */
 	HashedMapBinDescriptor (
-		final boolean isMutable,
+		final Mutability mutability,
 		final int level)
 	{
-		super(isMutable, level);
+		super(mutability, level);
 	}
 
 	/**
-	 *
+	 * {@link HashedMapBinDescriptor}s clustered by mutability and level.
 	 */
-	static final HashedMapBinDescriptor descriptors[];
+	static final HashedMapBinDescriptor[] descriptors;
 
-	static {
-		descriptors = new HashedMapBinDescriptor[numberOfLevels * 2];
+	static
+	{
+		descriptors = new HashedMapBinDescriptor[numberOfLevels * 3];
 		int target = 0;
 		for (int level = 0; level < numberOfLevels; level++)
 		{
-			descriptors[target++] = new HashedMapBinDescriptor(true, level);
-			descriptors[target++] = new HashedMapBinDescriptor(false, level);
+			descriptors[target++] =
+				new HashedMapBinDescriptor(MUTABLE, level);
+			descriptors[target++] =
+				new HashedMapBinDescriptor(IMMUTABLE, level);
+			descriptors[target++] =
+				new HashedMapBinDescriptor(SHARED, level);
 		}
+	}
+
+	@Override
+	HashedMapBinDescriptor mutable ()
+	{
+		return descriptorFor(MUTABLE, level);
+	}
+
+	@Override
+	HashedMapBinDescriptor immutable ()
+	{
+		return descriptorFor(IMMUTABLE, level);
+	}
+
+	@Override
+	HashedMapBinDescriptor shared ()
+	{
+		return descriptorFor(SHARED, level);
 	}
 }

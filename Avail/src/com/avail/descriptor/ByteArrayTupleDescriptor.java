@@ -1,6 +1,6 @@
 /**
  * ByteArrayTupleDescriptor.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -47,7 +47,7 @@ import com.avail.annotations.*;
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class ByteArrayTupleDescriptor
+public final class ByteArrayTupleDescriptor
 extends TupleDescriptor
 {
 	/**
@@ -107,9 +107,7 @@ extends TupleDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_Equals (
-		final AvailObject object,
-		final AvailObject another)
+	boolean o_Equals (final AvailObject object, final AvailObject another)
 	{
 		return another.equalsByteArrayTuple(object);
 	}
@@ -144,12 +142,19 @@ extends TupleDescriptor
 		{
 			return false;
 		}
-		// They're equal (but occupy disjoint storage).  Replace one with an
-		// indirection to the other to keep down the frequency of byte-wise
-		// comparisons.
-		object.becomeIndirectionTo(aByteArrayTuple);
-		// There are now at least two references to it.
-		aByteArrayTuple.makeImmutable();
+		// They're equal, but occupy disjoint storage. If possible, then
+		// replace one with an indirection to the other to keep down the
+		// frequency of byte-wise comparisons.
+		if (!isShared())
+		{
+			aByteArrayTuple.makeImmutable();
+			object.becomeIndirectionTo(aByteArrayTuple);
+		}
+		else if (!aByteArrayTuple.descriptor.isShared())
+		{
+			object.makeImmutable();
+			aByteArrayTuple.becomeIndirectionTo(object);
+		}
 		return true;
 	}
 
@@ -271,6 +276,7 @@ extends TupleDescriptor
 	{
 		// Set the byte at the given index to the given object (which should be
 		// an AvailObject that's an integer 0<=n<=255).
+		assert isMutable();
 		assert index >= 1 && index <= object.tupleSize();
 		final byte theByte = (byte) aByteObject.extractUnsignedByte();
 		final byte[] array = (byte[]) object.slot(BYTE_ARRAY).javaObject();
@@ -296,7 +302,7 @@ extends TupleDescriptor
 				newValueObject,
 				true);
 		}
-		if (!canDestroy || !isMutable)
+		if (!canDestroy || !isMutable())
 		{
 			return copyAsMutableByteArrayTuple(object).tupleAtPuttingCanDestroy(
 				index,
@@ -330,6 +336,7 @@ extends TupleDescriptor
 		final short anInteger)
 	{
 		// Set the byte at the given index.
+		assert isMutable();
 		assert index >= 1 && index <= object.tupleSize();
 		final byte theByte = (byte) anInteger;
 		final byte[] array = (byte[]) object.slot(BYTE_ARRAY).javaObject();
@@ -353,8 +360,7 @@ extends TupleDescriptor
 		return 8;
 	}
 
-	@Override
-	@AvailMethod
+	@Override @AvailMethod
 	int o_TupleSize (final AvailObject object)
 	{
 		final byte[] array = (byte[]) object.slot(BYTE_ARRAY).javaObject();
@@ -364,53 +370,64 @@ extends TupleDescriptor
 	@Override @AvailMethod
 	AvailObject o_MakeImmutable (final AvailObject object)
 	{
-		// Make the object immutable so it can be shared safely.
-		object.descriptor = immutable;
+		if (isMutable())
+		{
+			object.descriptor = immutable;
+			object.slot(BYTE_ARRAY).makeImmutable();
+		}
+		return object;
+	}
+
+	@Override @AvailMethod
+	AvailObject o_MakeShared (final AvailObject object)
+	{
+		if (!isShared())
+		{
+			object.descriptor = shared;
+			object.slot(BYTE_ARRAY).makeShared();
+		}
 		return object;
 	}
 
 	/**
 	 * Construct a new {@link ByteArrayTupleDescriptor}.
 	 *
-	 * @param isMutable
-	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
-	 *        object?
+	 * @param mutability
+	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 */
-	protected ByteArrayTupleDescriptor (final boolean isMutable)
+	protected ByteArrayTupleDescriptor (final Mutability mutability)
 	{
-		super(isMutable);
+		super(mutability);
 	}
 
-	/**
-	 * The mutable {@link ByteArrayTupleDescriptor}.
-	 */
+	/** The mutable {@link ByteArrayTupleDescriptor}. */
 	private static final ByteArrayTupleDescriptor mutable =
-		new ByteArrayTupleDescriptor(true);
+		new ByteArrayTupleDescriptor(Mutability.MUTABLE);
 
-	/**
-	 * Answer the mutable {@link ByteArrayTupleDescriptor}.
-	 *
-	 * @return The mutable {@link ByteArrayTupleDescriptor}.
-	 */
-	public static ByteArrayTupleDescriptor mutable ()
+	@Override
+	ByteArrayTupleDescriptor mutable ()
 	{
 		return mutable;
 	}
 
-	/**
-	 * The immutable {@link ByteArrayTupleDescriptor}.
-	 */
+	/** The immutable {@link ByteArrayTupleDescriptor}. */
 	private static final ByteArrayTupleDescriptor immutable =
-		new ByteArrayTupleDescriptor(false);
+		new ByteArrayTupleDescriptor(Mutability.IMMUTABLE);
 
-	/**
-	 * Answer the immutable {@link ByteArrayTupleDescriptor}.
-	 *
-	 * @return The immutable {@link ByteArrayTupleDescriptor}.
-	 */
-	public static ByteArrayTupleDescriptor immutable ()
+	@Override
+	ByteArrayTupleDescriptor immutable ()
 	{
 		return immutable;
+	}
+
+	/** The shared {@link ByteArrayTupleDescriptor}. */
+	private static final ByteArrayTupleDescriptor shared =
+		new ByteArrayTupleDescriptor(Mutability.SHARED);
+
+	@Override
+	ByteArrayTupleDescriptor shared ()
+	{
+		return shared;
 	}
 
 	/**

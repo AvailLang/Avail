@@ -1,6 +1,6 @@
 /**
  * FloatDescriptor.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,14 +42,14 @@ import com.avail.serialization.SerializerOperation;
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class FloatDescriptor
+public final class FloatDescriptor
 extends AbstractNumberDescriptor
 {
-
 	/**
 	 * The layout of integer slots for my instances.
 	 */
-	public enum IntegerSlots implements IntegerSlotsEnum
+	public enum IntegerSlots
+	implements IntegerSlotsEnum
 	{
 		/**
 		 * The Java {@code float} value, packed into an {@code int} field.
@@ -84,7 +84,6 @@ extends AbstractNumberDescriptor
 		return getFloat(object);
 	}
 
-
 	@Override @AvailMethod
 	public void printObjectOnAvoidingIndent (
 		final AvailObject object,
@@ -104,7 +103,16 @@ extends AbstractNumberDescriptor
 		final boolean same = another.equalsFloat(getFloat(object));
 		if (same)
 		{
-			object.becomeIndirectionTo(another);
+			if (!isShared())
+			{
+				another.makeImmutable();
+				object.becomeIndirectionTo(another);
+			}
+			else if (!another.descriptor.isShared())
+			{
+				object.makeImmutable();
+				another.becomeIndirectionTo(object);
+			}
 		}
 		return same;
 	}
@@ -443,9 +451,7 @@ extends AbstractNumberDescriptor
 	}
 
 	@Override @AvailMethod
-	Order o_NumericCompare (
-		final AvailObject object,
-		final AvailObject another)
+	Order o_NumericCompare (final AvailObject object, final AvailObject another)
 	{
 		return another.numericCompareToDouble(getDouble(object)).reverse();
 	}
@@ -473,8 +479,7 @@ extends AbstractNumberDescriptor
 
 	@Override
 	@AvailMethod @ThreadSafe
-	SerializerOperation o_SerializerOperation (
-		final AvailObject object)
+	SerializerOperation o_SerializerOperation (final AvailObject object)
 	{
 		return SerializerOperation.FLOAT;
 	}
@@ -496,7 +501,7 @@ extends AbstractNumberDescriptor
 	 */
 	public static AvailObject privateFloat (final float aFloat)
 	{
-		final AvailObject result = mutable().create();
+		final AvailObject result = mutable.create();
 		result.setSlot(
 			IntegerSlots.RAW_INT,
 			Float.floatToRawIntBits(aFloat));
@@ -541,15 +546,10 @@ extends AbstractNumberDescriptor
 		final AvailObject recyclable1,
 		final boolean canDestroy)
 	{
-		AvailObject result;
-		if (canDestroy && recyclable1.descriptor() == mutable())
-		{
-			result = recyclable1;
-		}
-		else
-		{
-			result = mutable().create();
-		}
+		final AvailObject result =
+			canDestroy && recyclable1.descriptor().isMutable()
+			? recyclable1
+			: mutable.create();
 		result.setSlot(
 			IntegerSlots.RAW_INT,
 			Float.floatToRawIntBits(aFloat));
@@ -578,17 +578,17 @@ extends AbstractNumberDescriptor
 		final boolean canDestroy)
 	{
 		AvailObject result;
-		if (canDestroy && recyclable1.descriptor() == mutable())
+		if (canDestroy && recyclable1.descriptor().isMutable())
 		{
 			result = recyclable1;
 		}
-		else if (canDestroy && recyclable2.descriptor() == mutable())
+		else if (canDestroy && recyclable2.descriptor().isMutable())
 		{
 			result = recyclable2;
 		}
 		else
 		{
-			result = mutable().create();
+			result = mutable.create();
 		}
 		result.setSlot(
 			IntegerSlots.RAW_INT,
@@ -642,13 +642,13 @@ extends AbstractNumberDescriptor
 	static void createWellKnownObjects ()
 	{
 		Sign.POSITIVE.limitFloatObject =
-			privateFloat(Float.POSITIVE_INFINITY).makeImmutable();
+			privateFloat(Float.POSITIVE_INFINITY).makeShared();
 		Sign.NEGATIVE.limitFloatObject =
-			privateFloat(Float.NEGATIVE_INFINITY).makeImmutable();
+			privateFloat(Float.NEGATIVE_INFINITY).makeShared();
 		Sign.INDETERMINATE.limitFloatObject =
-			privateFloat(Float.NaN).makeImmutable();
+			privateFloat(Float.NaN).makeShared();
 		Sign.ZERO.limitFloatObject =
-			privateFloat(0.0f).makeImmutable();
+			privateFloat(0.0f).makeShared();
 	}
 
 	/**
@@ -662,46 +662,44 @@ extends AbstractNumberDescriptor
 		Sign.ZERO.limitFloatObject = null;
 	}
 
-
 	/**
 	 * Construct a new {@link FloatDescriptor}.
 	 *
-	 * @param isMutable
-	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
-	 *        object?
+	 * @param mutability
+	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 */
-	private FloatDescriptor (final boolean isMutable)
+	private FloatDescriptor (final Mutability mutability)
 	{
-		super(isMutable);
+		super(mutability);
 	}
 
-	/**
-	 * The mutable {@link FloatDescriptor}.
-	 */
-	private static final FloatDescriptor mutable = new FloatDescriptor(true);
+	/** The mutable {@link FloatDescriptor}. */
+	private static final FloatDescriptor mutable =
+		new FloatDescriptor(Mutability.MUTABLE);
 
-	/**
-	 * Answer the mutable {@link FloatDescriptor}.
-	 *
-	 * @return The mutable {@link FloatDescriptor}.
-	 */
-	public static FloatDescriptor mutable ()
+	@Override
+	FloatDescriptor mutable ()
 	{
 		return mutable;
 	}
 
-	/**
-	 * The immutable {@link FloatDescriptor}.
-	 */
-	private static final FloatDescriptor immutable = new FloatDescriptor(false);
+	/** The immutable {@link FloatDescriptor}. */
+	private static final FloatDescriptor immutable =
+		new FloatDescriptor(Mutability.IMMUTABLE);
 
-	/**
-	 * Answer the immutable {@link FloatDescriptor}.
-	 *
-	 * @return The immutable {@link FloatDescriptor}.
-	 */
-	public static FloatDescriptor immutable ()
+	@Override
+	FloatDescriptor immutable ()
 	{
 		return immutable;
+	}
+
+	/** The shared {@link FloatDescriptor}. */
+	private static final FloatDescriptor shared =
+		new FloatDescriptor(Mutability.SHARED);
+
+	@Override
+	FloatDescriptor shared ()
+	{
+		return shared;
 	}
 }

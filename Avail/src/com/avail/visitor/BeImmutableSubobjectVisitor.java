@@ -1,6 +1,6 @@
 /**
- * AvailMarkUnreachableSubobjectVisitor.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * BeImmutableSubobjectVisitor.java
+ * Copyright © 1993-2011, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,57 +36,20 @@ import com.avail.descriptor.AvailObject;
 
 /**
  * Provide the ability to iterate over an object's fields, marking each child
- * object as unreachable.  Also recurse into the children, but avoid a specific
- * object during the recursion.
+ * object as immutable. Note that marking a child immutable may involve
+ * creating another visitor of this class and visiting the child's children
+ * in this mutually recursive way.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public final class AvailMarkUnreachableSubobjectVisitor
+public final class BeImmutableSubobjectVisitor
 extends AvailSubobjectVisitor
 {
-	/**
-	 * An object which we should <em>not</em> recurse into if encountered.
-	 */
-	private final AvailObject exclusion;
-
-	/**
-	 * Construct a new {@link AvailMarkUnreachableSubobjectVisitor}.
-	 *
-	 * @param excludedObject
-	 *        The object within which to <em>avoid</em> marking subobjects as
-	 *        unreachable. Use NullDescriptor.nullObject() if no such object
-	 *        is necessary, as it's always already immutable.
-	 */
-	public AvailMarkUnreachableSubobjectVisitor (
-		final AvailObject excludedObject)
-	{
-		exclusion = excludedObject;
-	}
-
 	@Override
 	public void invoke (
 		final AvailObject parentObject,
 		final AvailObject childObject)
 	{
-//		if (!canDestroyObjects())
-//		{
-//			error("Don't invoke this if destructions are disallowed");
-//			return;
-//		}
-		if (!childObject.descriptor().isMutable())
-		{
-			return;
-		}
-		if (childObject.sameAddressAs(exclusion))
-		{
-			return;
-		}
-		// The excluded object was reached.
-		//
-		// Recursively invoke the iterator on the subobjects of subobject...
-		childObject.scanSubobjects(this);
-		// Indicate the object is no longer valid and should not ever be used
-		// again.
-		childObject.destroy();
+		childObject.makeImmutable();
 	}
 }

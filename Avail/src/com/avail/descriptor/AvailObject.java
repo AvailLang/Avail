@@ -1,6 +1,6 @@
 /**
  * AvailObject.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -77,7 +77,7 @@ implements Iterable<AvailObject>
 	 */
 	public static void createAllWellKnownObjects ()
 	{
-		NullDescriptor.createWellKnownObjects();
+		NilDescriptor.createWellKnownObjects();
 		CharacterDescriptor.createWellKnownObjects();
 		BottomTypeDescriptor.createWellKnownObjects();
 		TupleDescriptor.createWellKnownObjects();
@@ -125,7 +125,7 @@ implements Iterable<AvailObject>
 	public static void clearAllWellKnownObjects ()
 	{
 		Primitive.clearCachedData();
-		NullDescriptor.clearWellKnownObjects();
+		NilDescriptor.clearWellKnownObjects();
 		CharacterDescriptor.clearWellKnownObjects();
 		BottomTypeDescriptor.clearWellKnownObjects();
 		TupleDescriptor.clearWellKnownObjects();
@@ -293,7 +293,6 @@ implements Iterable<AvailObject>
 		return stringBuilder.toString();
 	}
 
-
 	/**
 	 * Create a new {@link AvailObject} with the specified {@linkplain
 	 * AbstractDescriptor descriptor} and the same number of variable object and
@@ -323,7 +322,6 @@ implements Iterable<AvailObject>
 			objectSlotCount,
 			integerSlotCount);
 	}
-
 
 	/**
 	 * Create a new {@link AvailObject} with the specified {@linkplain
@@ -406,7 +404,7 @@ implements Iterable<AvailObject>
 	 */
 	void assertObjectUnreachableIfMutable ()
 	{
-		assertObjectUnreachableIfMutableExcept(NullDescriptor.nullObject());
+		assertObjectUnreachableIfMutableExcept(NilDescriptor.nil());
 	}
 
 	/**
@@ -436,7 +434,7 @@ implements Iterable<AvailObject>
 
 		// Recursively invoke the iterator on the subobjects of self...
 		final AvailSubobjectVisitor vis =
-			new AvailMarkUnreachableSubobjectVisitor(exceptMe);
+			new MarkUnreachableSubobjectVisitor(exceptMe);
 		scanSubobjects(vis);
 		destroy();
 		return;
@@ -450,7 +448,7 @@ implements Iterable<AvailObject>
 	public void setToInvalidDescriptor ()
 	{
 		// verifyToSpaceAddress();
-		descriptor = FillerDescriptor.mutable();
+		descriptor = FillerDescriptor.shared;
 	}
 
 	/**
@@ -461,16 +459,6 @@ implements Iterable<AvailObject>
 	public final int hash ()
 	{
 		return descriptor.o_Hash(this);
-	}
-
-	/**
-	 * Set the 32-bit hash in the receiver.
-	 *
-	 * @param value The {@code int} to store as the receiver's hash value.
-	 */
-	public final void hash (final int value)
-	{
-		descriptor.o_Hash(this, value);
 	}
 
 	@Override
@@ -899,23 +887,6 @@ implements Iterable<AvailObject>
 		final int value)
 	{
 		descriptor.o_BinSize(this, value);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	public AvailObject binUnionTypeOrNull ()
-	{
-		return descriptor.o_BinUnionTypeOrNull(this);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	public void binUnionTypeOrNull (
-		final AvailObject value)
-	{
-		descriptor.o_BinUnionTypeOrNull(this, value);
 	}
 
 	/**
@@ -1429,14 +1400,6 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public int parsingPc ()
-	{
-		return descriptor.o_ParsingPc(this);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
 	public void displayTestingTree ()
 	{
 		descriptor.o_DisplayTestingTree(this);
@@ -1504,7 +1467,7 @@ implements Iterable<AvailObject>
 			// intention of this method.
 			assert false;
 			error("noFailDivideCanDestroy failed!");
-			return NullDescriptor.nullObject();
+			return NilDescriptor.nil();
 		}
 	}
 
@@ -1992,9 +1955,9 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public boolean equalsNull ()
+	public boolean equalsNil ()
 	{
-		return descriptor.o_EqualsNull(this);
+		return descriptor.o_EqualsNil(this);
 	}
 
 	/**
@@ -2317,9 +2280,9 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public int invocationCount ()
+	public int countdownToReoptimize ()
 	{
-		return descriptor.o_InvocationCount(this);
+		return descriptor.o_CountdownToReoptimize(this);
 	}
 
 	/**
@@ -2547,6 +2510,7 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
+	@Deprecated
 	public boolean isSaved ()
 	{
 		return descriptor.o_IsSaved(this);
@@ -2555,6 +2519,7 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
+	@Deprecated
 	public void isSaved (
 		final boolean aBoolean)
 	{
@@ -2940,9 +2905,25 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
+	public AvailObject makeShared ()
+	{
+		return descriptor.o_MakeShared(this);
+	}
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void makeSubobjectsImmutable ()
 	{
 		descriptor.o_MakeSubobjectsImmutable(this);
+	}
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	public void makeSubobjectsShared ()
+	{
+		descriptor.o_MakeSubobjectsShared(this);
 	}
 
 	/**
@@ -3084,7 +3065,7 @@ implements Iterable<AvailObject>
 			// intention of this method.
 			assert false;
 			error("noFailMinusCanDestroy failed!");
-			return NullDescriptor.nullObject();
+			return NilDescriptor.nil();
 		}
 	}
 
@@ -3406,7 +3387,7 @@ implements Iterable<AvailObject>
 			// intention of this method.
 			assert false;
 			error("noFailPlusCanDestroy failed!");
-			return NullDescriptor.nullObject();
+			return NilDescriptor.nil();
 		}
 	}
 
@@ -3912,15 +3893,6 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public void start (
-		final int value)
-	{
-		descriptor.o_Start(this, value);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
 	public AvailObject startingChunk ()
 	{
 		return descriptor.o_StartingChunk(this);
@@ -3929,10 +3901,12 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public void startingChunk (
-		final AvailObject value)
+	public void setStartingChunkAndReoptimizationCountdown (
+		final AvailObject chunk,
+		final int countdown)
 	{
-		descriptor.o_StartingChunk(this, value);
+		descriptor.o_SetStartingChunkAndReoptimizationCountdown(
+			this, chunk, countdown);
 	}
 
 	/**
@@ -3967,15 +3941,6 @@ implements Iterable<AvailObject>
 	public AvailObject string ()
 	{
 		return descriptor.o_String(this);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	public void string (
-		final AvailObject value)
-	{
-		descriptor.o_String(this, value);
 	}
 
 	/**
@@ -4111,7 +4076,7 @@ implements Iterable<AvailObject>
 			// intention of this method.
 			assert false;
 			error("noFailTimesCanDestroy failed!");
-			return NullDescriptor.nullObject();
+			return NilDescriptor.nil();
 		}
 	}
 
@@ -4121,15 +4086,6 @@ implements Iterable<AvailObject>
 	public TokenDescriptor.TokenType tokenType ()
 	{
 		return descriptor.o_TokenType(this);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	public void tokenType (
-		final TokenDescriptor.TokenType value)
-	{
-		descriptor.o_TokenType(this, value);
 	}
 
 	/**
@@ -4290,7 +4246,6 @@ implements Iterable<AvailObject>
 			this,
 			aCompiledCodeType);
 	}
-
 
 	/**
 	 * Dispatch to the descriptor.
@@ -4491,14 +4446,6 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public AvailObject unclassified ()
-	{
-		return descriptor.o_Unclassified(this);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
 	public AvailObject unionOfTypesAtThrough (
 		final int startIndex,
 		final int endIndex)
@@ -4647,25 +4594,9 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public void expression (final AvailObject expression)
-	{
-		descriptor.o_Expression(this, expression);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
 	public AvailObject expression ()
 	{
 		return descriptor.o_Expression(this);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	public void variable (final AvailObject variable)
-	{
-		descriptor.o_Variable(this, variable);
 	}
 
 	/**
@@ -4676,7 +4607,6 @@ implements Iterable<AvailObject>
 		return descriptor.o_Variable(this);
 	}
 
-
 	/**
 	 * @return
 	 */
@@ -4684,7 +4614,6 @@ implements Iterable<AvailObject>
 	{
 		return descriptor.o_ArgumentsTuple(this);
 	}
-
 
 	/**
 	 * @return
@@ -4694,7 +4623,6 @@ implements Iterable<AvailObject>
 		return descriptor.o_StatementsTuple(this);
 	}
 
-
 	/**
 	 * @return
 	 */
@@ -4702,7 +4630,6 @@ implements Iterable<AvailObject>
 	{
 		return descriptor.o_ResultType(this);
 	}
-
 
 	/**
 	 * @param neededVariables
@@ -4712,7 +4639,6 @@ implements Iterable<AvailObject>
 		descriptor.o_NeededVariables(this, neededVariables);
 	}
 
-
 	/**
 	 * @return
 	 */
@@ -4720,7 +4646,6 @@ implements Iterable<AvailObject>
 	{
 		return descriptor.o_NeededVariables(this);
 	}
-
 
 	/**
 	 * @return
@@ -4730,7 +4655,6 @@ implements Iterable<AvailObject>
 		return descriptor.o_Primitive(this);
 	}
 
-
 	/**
 	 * @return
 	 */
@@ -4738,7 +4662,6 @@ implements Iterable<AvailObject>
 	{
 		return descriptor.o_DeclaredType(this);
 	}
-
 
 	/**
 	 * @return
@@ -4748,7 +4671,6 @@ implements Iterable<AvailObject>
 		return descriptor.o_DeclarationKind(this);
 	}
 
-
 	/**
 	 * @return
 	 */
@@ -4756,7 +4678,6 @@ implements Iterable<AvailObject>
 	{
 		return descriptor.o_InitializationExpression(this);
 	}
-
 
 	/**
 	 * @param initializationExpression
@@ -4766,7 +4687,6 @@ implements Iterable<AvailObject>
 		descriptor.o_InitializationExpression(this, initializationExpression);
 	}
 
-
 	/**
 	 * @return
 	 */
@@ -4774,7 +4694,6 @@ implements Iterable<AvailObject>
 	{
 		return descriptor.o_LiteralObject(this);
 	}
-
 
 	/**
 	 * @return
@@ -4784,7 +4703,6 @@ implements Iterable<AvailObject>
 		return descriptor.o_Token(this);
 	}
 
-
 	/**
 	 * @return
 	 */
@@ -4792,7 +4710,6 @@ implements Iterable<AvailObject>
 	{
 		return descriptor.o_MarkerValue(this);
 	}
-
 
 	/**
 	 * @return
@@ -4802,7 +4719,6 @@ implements Iterable<AvailObject>
 		return descriptor.o_ArgumentsListNode(this);
 	}
 
-
 	/**
 	 * @return
 	 */
@@ -4810,7 +4726,6 @@ implements Iterable<AvailObject>
 	{
 		return descriptor.o_Method(this);
 	}
-
 
 	/**
 	 * @return
@@ -4820,7 +4735,6 @@ implements Iterable<AvailObject>
 		return descriptor.o_ExpressionsTuple(this);
 	}
 
-
 	/**
 	 * @return
 	 */
@@ -4828,7 +4742,6 @@ implements Iterable<AvailObject>
 	{
 		return descriptor.o_Declaration(this);
 	}
-
 
 	/**
 	 * @return
@@ -4838,7 +4751,6 @@ implements Iterable<AvailObject>
 		return descriptor.o_ExpressionType(this);
 	}
 
-
 	/**
 	 * @param codeGenerator
 	 */
@@ -4847,7 +4759,6 @@ implements Iterable<AvailObject>
 		descriptor.o_EmitEffectOn(this, codeGenerator);
 	}
 
-
 	/**
 	 * @param codeGenerator
 	 */
@@ -4855,7 +4766,6 @@ implements Iterable<AvailObject>
 	{
 		descriptor.o_EmitValueOn(this, codeGenerator);
 	}
-
 
 	/**
 	 * @param aBlock
@@ -4866,7 +4776,6 @@ implements Iterable<AvailObject>
 		descriptor.o_ChildrenMap(this, aBlock);
 	}
 
-
 	/**
 	 * @param aBlock
 	 */
@@ -4875,7 +4784,6 @@ implements Iterable<AvailObject>
 	{
 		descriptor.o_ChildrenDo(this, aBlock);
 	}
-
 
 	/**
 	 * @param parent
@@ -4887,7 +4795,6 @@ implements Iterable<AvailObject>
 			parent);
 	}
 
-
 	/**
 	 * @param codeGenerator
 	 * @return
@@ -4898,7 +4805,6 @@ implements Iterable<AvailObject>
 		return descriptor.o_Generate(this, codeGenerator);
 	}
 
-
 	/**
 	 * @param newParseNode
 	 * @return
@@ -4908,7 +4814,6 @@ implements Iterable<AvailObject>
 		return descriptor.o_CopyWith(this, newParseNode);
 	}
 
-
 	/**
 	 * @param isLastUse
 	 */
@@ -4916,7 +4821,6 @@ implements Iterable<AvailObject>
 	{
 		descriptor.o_IsLastUse(this, isLastUse);
 	}
-
 
 	/**
 	 * @return
@@ -4926,7 +4830,6 @@ implements Iterable<AvailObject>
 		return descriptor.o_IsLastUse(this);
 	}
 
-
 	/**
 	 * @return
 	 */
@@ -4934,7 +4837,6 @@ implements Iterable<AvailObject>
 	{
 		return descriptor.o_IsMacroDefinition(this);
 	}
-
 
 	/**
 	 * @return
@@ -4944,7 +4846,6 @@ implements Iterable<AvailObject>
 		return descriptor.o_CopyMutableParseNode(this);
 	}
 
-
 	/**
 	 * Dispatch to the descriptor.
 	 */
@@ -4952,7 +4853,6 @@ implements Iterable<AvailObject>
 	{
 		return descriptor.o_BinUnionKind(this);
 	}
-
 
 	/**
 	 * @return
@@ -4962,7 +4862,6 @@ implements Iterable<AvailObject>
 		return descriptor.o_OutputParseNode(this);
 	}
 
-
 	/**
 	 * @return
 	 */
@@ -4971,16 +4870,6 @@ implements Iterable<AvailObject>
 		return descriptor.o_ApparentSendName(this);
 	}
 
-
-	/**
-	 * @param statementsTuple
-	 */
-	public void statements (final AvailObject statementsTuple)
-	{
-		descriptor.o_Statements(this, statementsTuple);
-	}
-
-
 	/**
 	 * @return
 	 */
@@ -4988,7 +4877,6 @@ implements Iterable<AvailObject>
 	{
 		return descriptor.o_Statements(this);
 	}
-
 
 	/**
 	 * @param accumulatedStatements
@@ -4999,16 +4887,6 @@ implements Iterable<AvailObject>
 		descriptor.o_FlattenStatementsInto(this, accumulatedStatements);
 	}
 
-
-	/**
-	 * @param value
-	 */
-	public void lineNumber (final int value)
-	{
-		descriptor.o_LineNumber(this, value);
-	}
-
-
 	/**
 	 * @return
 	 */
@@ -5016,16 +4894,6 @@ implements Iterable<AvailObject>
 	{
 		return descriptor.o_LineNumber(this);
 	}
-
-
-	/**
-	 * @return
-	 */
-	public AvailObject allBundles ()
-	{
-		return descriptor.o_AllBundles(this);
-	}
-
 
 	/**
 	 * @return
@@ -5035,7 +4903,6 @@ implements Iterable<AvailObject>
 		return descriptor.o_IsSetBin(this);
 	}
 
-
 	/**
 	 * @return
 	 */
@@ -5043,7 +4910,6 @@ implements Iterable<AvailObject>
 	{
 		return descriptor.o_MapIterable(this);
 	}
-
 
 	/**
 	 * @return
@@ -5053,7 +4919,6 @@ implements Iterable<AvailObject>
 		return descriptor.o_Complete(this);
 	}
 
-
 	/**
 	 * @return
 	 */
@@ -5061,16 +4926,6 @@ implements Iterable<AvailObject>
 	{
 		return descriptor.o_Incomplete(this);
 	}
-
-
-	/**
-	 * @return
-	 */
-	public AvailObject actions ()
-	{
-		return descriptor.o_Actions(this);
-	}
-
 
 	/**
 	 * @return
@@ -5080,7 +4935,6 @@ implements Iterable<AvailObject>
 		return descriptor.o_DeclaredExceptions(this);
 	}
 
-
 	/**
 	 * @return
 	 */
@@ -5088,7 +4942,6 @@ implements Iterable<AvailObject>
 	{
 		return descriptor.o_IsInt(this);
 	}
-
 
 	/**
 	 * @return
@@ -5098,7 +4951,6 @@ implements Iterable<AvailObject>
 		return descriptor.o_IsLong(this);
 	}
 
-
 	/**
 	 * @return
 	 */
@@ -5106,7 +4958,6 @@ implements Iterable<AvailObject>
 	{
 		return descriptor.o_ArgsTupleType(this);
 	}
-
 
 	/**
 	 * @param anInstanceType
@@ -5118,7 +4969,6 @@ implements Iterable<AvailObject>
 		return descriptor.o_EqualsInstanceTypeFor(this, anInstanceType);
 	}
 
-
 	/**
 	 * @return
 	 */
@@ -5126,7 +4976,6 @@ implements Iterable<AvailObject>
 	{
 		return descriptor.o_Instances(this);
 	}
-
 
 	/**
 	 * Determine whether the receiver is an {@linkplain
@@ -5142,7 +4991,6 @@ implements Iterable<AvailObject>
 		return descriptor.o_EqualsEnumerationWithSet(this, aSet);
 	}
 
-
 	/**
 	 * @return
 	 */
@@ -5150,7 +4998,6 @@ implements Iterable<AvailObject>
 	{
 		return descriptor.o_IsEnumeration(this);
 	}
-
 
 	/**
 	 * @param potentialInstance
@@ -5164,7 +5011,6 @@ implements Iterable<AvailObject>
 			potentialInstance);
 	}
 
-
 	/**
 	 * @return
 	 */
@@ -5172,7 +5018,6 @@ implements Iterable<AvailObject>
 	{
 		return descriptor.o_ValueType(this);
 	}
-
 
 	/**
 	 * Compute a {@linkplain TypeDescriptor type} that is an ancestor of the
@@ -5188,7 +5033,6 @@ implements Iterable<AvailObject>
 		return descriptor.o_ComputeSuperkind(this);
 	}
 
-
 	/**
 	 * @param aCompiledCodeType
 	 * @return
@@ -5197,7 +5041,6 @@ implements Iterable<AvailObject>
 	{
 		return descriptor.o_EqualsCompiledCodeType(this, aCompiledCodeType);
 	}
-
 
 	/**
 	 * @param aCompiledCodeType
@@ -5211,7 +5054,6 @@ implements Iterable<AvailObject>
 			aCompiledCodeType);
 	}
 
-
 	/**
 	 * @param aCompiledCodeType
 	 * @return
@@ -5224,7 +5066,6 @@ implements Iterable<AvailObject>
  			aCompiledCodeType);
 	}
 
-
 	/**
 	 * @param key
 	 * @param value
@@ -5236,7 +5077,6 @@ implements Iterable<AvailObject>
 		descriptor.o_SetAtomProperty(this, key, value);
 	}
 
-
 	/**
 	 * @param key
 	 * @return
@@ -5246,7 +5086,6 @@ implements Iterable<AvailObject>
 	{
 		return descriptor.o_GetAtomProperty(this, key);
 	}
-
 
 	/**
 	 * @param anEnumerationType
@@ -5258,7 +5097,6 @@ implements Iterable<AvailObject>
 		return descriptor.o_EqualsEnumerationType(this, anEnumerationType);
 	}
 
-
 	/**
 	 * @return
 	 */
@@ -5266,7 +5104,6 @@ implements Iterable<AvailObject>
 	{
 		return descriptor.o_ReadType(this);
 	}
-
 
 	/**
 	 * @return
@@ -5276,7 +5113,6 @@ implements Iterable<AvailObject>
 		return descriptor.o_WriteType(this);
 	}
 
-
 	/**
 	 * @param value
 	 */
@@ -5284,7 +5120,6 @@ implements Iterable<AvailObject>
 	{
 		descriptor.o_Versions(this, value);
 	}
-
 
 	/**
 	 * @return
@@ -5294,7 +5129,6 @@ implements Iterable<AvailObject>
 		return descriptor.o_Versions(this);
 	}
 
-
 	/**
 	 * @return
 	 */
@@ -5302,7 +5136,6 @@ implements Iterable<AvailObject>
 	{
 		return descriptor.o_ParseNodeKind(this);
 	}
-
 
 	/**
 	 * @return
@@ -5329,7 +5162,6 @@ implements Iterable<AvailObject>
 		descriptor.o_AddTypeRestriction(this, restrictionSignature);
 	}
 
-
 	/**
 	 * @param restrictionSignature
 	 */
@@ -5337,7 +5169,6 @@ implements Iterable<AvailObject>
 	{
 		descriptor.o_RemoveTypeRestriction(this, restrictionSignature);
 	}
-
 
 	/**
 	 * @return
@@ -5347,7 +5178,6 @@ implements Iterable<AvailObject>
 		return descriptor.o_TypeRestrictions(this);
 	}
 
-
 	/**
 	 * @param tupleType
 	 */
@@ -5355,7 +5185,6 @@ implements Iterable<AvailObject>
 	{
 		descriptor.o_AddSealedArgumentsType(this, tupleType);
 	}
-
 
 	/**
 	 * @param tupleType
@@ -5365,7 +5194,6 @@ implements Iterable<AvailObject>
 		descriptor.o_RemoveSealedArgumentsType(this, tupleType);
 	}
 
-
 	/**
 	 * @return
 	 */
@@ -5373,7 +5201,6 @@ implements Iterable<AvailObject>
 	{
 		return descriptor.o_SealedArgumentsTypesTuple(this);
 	}
-
 
 	/**
 	 * @param methodNameAtom
@@ -5389,7 +5216,6 @@ implements Iterable<AvailObject>
 			typeRestrictionFunction);
 	}
 
-
 	/**
 	 * @param name
 	 * @param constantBinding
@@ -5403,7 +5229,6 @@ implements Iterable<AvailObject>
 			name,
 			constantBinding);
 	}
-
 
 	/**
 	 * @param name
@@ -5696,7 +5521,6 @@ implements Iterable<AvailObject>
 		return descriptor.o_SerializerOperation(this);
 	}
 
-
 	/**
 	 * @param key
 	 * @param keyHash
@@ -5765,12 +5589,12 @@ implements Iterable<AvailObject>
 
 	/**
 	 * Look up the key in this {@linkplain MapBinDescriptor map bin}.  If not
-	 * found, answer the {@linkplain NullDescriptor#nullObject()}.  Use the
+	 * found, answer the {@linkplain NilDescriptor#nil()}.  Use the
 	 * provided hash of the key.
 	 *
 	 * @param key The key to look up in this map.
 	 * @param keyHash The conveniently already computed hash of the key.
-	 * @return The value under that key in the map, or the null object if not
+	 * @return The value under that key in the map, or nil if not
 	 *         found.
 	 */
 	AvailObject mapBinAtHash (
@@ -5803,7 +5627,6 @@ implements Iterable<AvailObject>
 	{
 		return descriptor.o_IssuingModule(this);
 	}
-
 
 	/**
 	 * @return
@@ -6328,12 +6151,12 @@ implements Iterable<AvailObject>
 	}
 
 	/**
-	 * @param object
+	 * @param aParseNode
 	 * @return
 	 */
-	public boolean equalsParseNode (final AvailObject object)
+	public boolean equalsParseNode (final AvailObject aParseNode)
 	{
-		return false;
+		return descriptor.o_EqualsParseNode(this, aParseNode);
 	}
 
 	/**
@@ -6396,5 +6219,14 @@ implements Iterable<AvailObject>
 	public boolean isByteArrayTuple ()
 	{
 		return descriptor.o_IsByteArrayTuple(this);
+	}
+
+	/**
+	 * @param critical
+	 * @return
+	 */
+	public void lock (final Continuation0 critical)
+	{
+		descriptor.o_Lock(this, critical);
 	}
 }

@@ -1,6 +1,6 @@
 /**
  * InstanceMetaDescriptor.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -78,7 +78,8 @@ extends AbstractEnumerationTypeDescriptor
 	/**
 	 * The layout of object slots for my instances.
 	 */
-	public enum ObjectSlots implements ObjectSlotsEnum
+	public enum ObjectSlots
+	implements ObjectSlotsEnum
 	{
 		/**
 		 * The {@linkplain TypeDescriptor type} for which I am the {@linkplain
@@ -93,8 +94,7 @@ extends AbstractEnumerationTypeDescriptor
 	 * @param object An instance type.
 	 * @return The instance represented by the given instance type.
 	 */
-	private static AvailObject getInstance (
-		final AvailObject object)
+	private static AvailObject getInstance (final AvailObject object)
 	{
 		return object.slot(INSTANCE);
 	}
@@ -106,14 +106,13 @@ extends AbstractEnumerationTypeDescriptor
 	 * instance metas, we must answer {@linkplain Types#ANY any}.
 	 *
 	 * @param object
-	 *            An instance meta.
+	 *        An instance meta.
 	 * @return
-	 *            The kind (a {@linkplain TypeDescriptor type} but <em>not</em>
-	 *            an {@linkplain AbstractEnumerationTypeDescriptor enumeration})
-	 *            that is nearest the specified instance meta.
+	 *        The kind (a {@linkplain TypeDescriptor type} but <em>not</em>
+	 *        an {@linkplain AbstractEnumerationTypeDescriptor enumeration})
+	 *        that is nearest the specified instance meta.
 	 */
-	private static AvailObject getSuperkind (
-		final AvailObject object)
+	private static AvailObject getSuperkind (final AvailObject object)
 	{
 		return ANY.o();
 	}
@@ -145,15 +144,15 @@ extends AbstractEnumerationTypeDescriptor
 	 * AbstractEnumerationTypeDescriptor enumeration}).
 	 *
 	 * @param object
-	 *            An instance meta.
+	 *        An instance meta.
 	 * @param another
-	 *            Another type.
+	 *        Another type.
 	 * @return
-	 *            The most general type that is a subtype of both object and
-	 *            another.
+	 *        The most general type that is a subtype of both object and
+	 *        another.
 	 */
-	@Override final
-	AvailObject computeIntersectionWith (
+	@Override
+	final AvailObject computeIntersectionWith (
 		final AvailObject object,
 		final AvailObject another)
 	{
@@ -182,15 +181,15 @@ extends AbstractEnumerationTypeDescriptor
 	 * must be a {@linkplain TypeDescriptor type}).
 	 *
 	 * @param object
-	 *            An instance meta.
+	 *        An instance meta.
 	 * @param another
-	 *            Another type.
+	 *        Another type.
 	 * @return
-	 *            The most specific type that is a supertype of both {@code
-	 *            object} and {@code another}.
+	 *        The most specific type that is a supertype of both {@code object}
+	 *        and {@code another}.
 	 */
-	@Override final
-	AvailObject computeUnionWith (
+	@Override
+	final AvailObject computeUnionWith (
 		final AvailObject object,
 		final AvailObject another)
 	{
@@ -228,15 +227,22 @@ extends AbstractEnumerationTypeDescriptor
 	 * </p>
 	 */
 	@Override @AvailMethod
-	boolean o_Equals (
-		final AvailObject object,
-		final AvailObject another)
+	boolean o_Equals (final AvailObject object, final AvailObject another)
 	{
 		final boolean equal = another.isInstanceMeta()
 			&& getInstance(object).equals(another.instance());
 		if (equal)
 		{
-			another.becomeIndirectionTo(object);
+			if (!isShared())
+			{
+				another.makeImmutable();
+				object.becomeIndirectionTo(another);
+			}
+			else if (!another.descriptor.isShared())
+			{
+				object.makeImmutable();
+				another.becomeIndirectionTo(object);
+			}
 		}
 		return equal;
 	}
@@ -257,16 +263,13 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	int o_Hash (
-		final AvailObject object)
+	int o_Hash (final AvailObject object)
 	{
 		return (getInstance(object).hash() - 0x361b5d51) * multiplier;
 	}
 
 	@Override @AvailMethod
-	boolean o_IsSubtypeOf (
-		final AvailObject object,
-		final AvailObject aType)
+	boolean o_IsSubtypeOf (final AvailObject object, final AvailObject aType)
 	{
 		return getInstance(object).isInstanceOf(aType);
 	}
@@ -298,9 +301,7 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_IsInstanceOf (
-		final AvailObject object,
-		final AvailObject aType)
+	boolean o_IsInstanceOf (final AvailObject object, final AvailObject aType)
 	{
 		if (aType.isInstanceMeta())
 		{
@@ -315,58 +316,56 @@ extends AbstractEnumerationTypeDescriptor
 		return aType.isSupertypeOfPrimitiveTypeEnum(ANY);
 	}
 
-	@Override
-	boolean o_RangeIncludesInt (
-		final AvailObject object,
-		final int anInt)
+	@Override @AvailMethod
+	boolean o_RangeIncludesInt (final AvailObject object, final int anInt)
 	{
 		// A metatype can't have an integer as an instance.
 		return false;
 	}
 
-	@Override
+	@Override @AvailMethod
 	AvailObject o_FieldTypeMap (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}
 
 
-	@Override
+	@Override @AvailMethod
 	AvailObject o_LowerBound (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}
 
 
-	@Override
+	@Override @AvailMethod
 	boolean o_LowerInclusive (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}
 
 
-	@Override
+	@Override @AvailMethod
 	AvailObject o_UpperBound (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}
 
 
-	@Override
+	@Override @AvailMethod
 	boolean o_UpperInclusive (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}
 
 
-	@Override
+	@Override @AvailMethod
 	AvailObject o_TypeAtIndex (final AvailObject object, final int index)
 	{
 		throw unsupportedOperationException();
 	}
 
 
-	@Override
+	@Override @AvailMethod
 	AvailObject o_UnionOfTypesAtThrough (
 		final AvailObject object,
 		final int startIndex,
@@ -376,63 +375,63 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 
-	@Override
+	@Override @AvailMethod
 	AvailObject o_DefaultType (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}
 
 
-	@Override
+	@Override @AvailMethod
 	AvailObject o_SizeRange (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}
 
 
-	@Override
+	@Override @AvailMethod
 	AvailObject o_TypeTuple (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}
 
 
-	@Override
+	@Override @AvailMethod
 	boolean o_IsIntegerRangeType (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}
 
 
-	@Override
+	@Override @AvailMethod
 	boolean o_IsLiteralTokenType (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}
 
 
-	@Override
+	@Override @AvailMethod
 	boolean o_IsMapType (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}
 
 
-	@Override
+	@Override @AvailMethod
 	boolean o_IsSetType (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}
 
 
-	@Override
+	@Override @AvailMethod
 	boolean o_IsTupleType (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}
 
 
-	@Override
+	@Override @AvailMethod
 	boolean o_AcceptsArgTypesFromFunctionType (
 		final AvailObject object,
 		final AvailObject functionType)
@@ -441,7 +440,7 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 
-	@Override
+	@Override @AvailMethod
 	boolean o_AcceptsListOfArgTypes (
 		final AvailObject object,
 		final List<AvailObject> argTypes)
@@ -450,7 +449,7 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 
-	@Override
+	@Override @AvailMethod
 	boolean o_AcceptsListOfArgValues (
 		final AvailObject object,
 		final List<AvailObject> argValues)
@@ -459,49 +458,53 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 
-	@Override
-	boolean o_AcceptsTupleOfArgTypes (final AvailObject object, final AvailObject argTypes)
+	@Override @AvailMethod
+	boolean o_AcceptsTupleOfArgTypes (
+		final AvailObject object,
+		final AvailObject argTypes)
 	{
 		throw unsupportedOperationException();
 	}
 
 
-	@Override
-	boolean o_AcceptsTupleOfArguments (final AvailObject object, final AvailObject arguments)
+	@Override @AvailMethod
+	boolean o_AcceptsTupleOfArguments (
+		final AvailObject object,
+		final AvailObject arguments)
 	{
 		throw unsupportedOperationException();
 	}
 
 
-	@Override
+	@Override @AvailMethod
 	AvailObject o_ArgsTupleType (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}
 
 
-	@Override
+	@Override @AvailMethod
 	AvailObject o_DeclaredExceptions (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}
 
 
-	@Override
+	@Override @AvailMethod
 	AvailObject o_FunctionType (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}
 
 
-	@Override
+	@Override @AvailMethod
 	AvailObject o_ContentType (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}
 
 
-	@Override
+	@Override @AvailMethod
 	boolean o_CouldEverBeInvokedWith (
 		final AvailObject object,
 		final List<AvailObject> argTypes)
@@ -510,63 +513,63 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 
-	@Override
+	@Override @AvailMethod
 	AvailObject o_KeyType (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}
 
 
-	@Override
+	@Override @AvailMethod
 	AvailObject o_Name (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}
 
 
-	@Override
+	@Override @AvailMethod
 	AvailObject o_Parent (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}
 
 
-	@Override
+	@Override @AvailMethod
 	AvailObject o_ReturnType (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}
 
 
-	@Override
+	@Override @AvailMethod
 	AvailObject o_ValueType (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}
 
 
-	@Override
+	@Override @AvailMethod
 	AvailObject o_ReadType (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}
 
 
-	@Override
+	@Override @AvailMethod
 	AvailObject o_WriteType (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}
 
 
-	@Override
+	@Override @AvailMethod
 	AvailObject o_ExpressionType (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}
 
 
-	@Override
+	@Override @AvailMethod
 	boolean o_HasObjectInstance (
 		final AvailObject object,
 		final AvailObject potentialInstance)
@@ -575,30 +578,11 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 
-	@Override
-	SerializerOperation o_SerializerOperation (
-		final AvailObject object)
+	@Override @AvailMethod
+	SerializerOperation o_SerializerOperation (final AvailObject object)
 	{
 		return SerializerOperation.INSTANCE_META;
 	}
-
-
-	/**
-	 * Answer a new instance of this descriptor based on some object whose type
-	 * it will represent.
-	 *
-	 * @param instance The object whose type to represent.
-	 * @return An {@link AvailObject} representing the type of the argument.
-	 */
-	public static AvailObject on (final AvailObject instance)
-	{
-		assert instance.isType();
-		final AvailObject result = mutable().create();
-		instance.makeImmutable();
-		result.setSlot(INSTANCE, instance);
-		return result;
-	}
-
 
 	/**
 	 * ⊤'s type, cached statically for convenience.
@@ -635,8 +619,8 @@ extends AbstractEnumerationTypeDescriptor
 	 */
 	static void createWellKnownObjects ()
 	{
-		topMeta = on(TOP.o());
-		anyMeta = on(ANY.o());
+		topMeta = on(TOP.o()).makeShared();
+		anyMeta = on(ANY.o()).makeShared();
 	}
 
 	/**
@@ -648,50 +632,60 @@ extends AbstractEnumerationTypeDescriptor
 		anyMeta = null;
 	}
 
-
-
-
 	/**
 	 * Construct a new {@link InstanceMetaDescriptor}.
 	 *
-	 * @param isMutable
-	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
-	 *        object?
+	 * @param mutability
+	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 */
-	protected InstanceMetaDescriptor (final boolean isMutable)
+	protected InstanceMetaDescriptor (final Mutability mutability)
 	{
-		super(isMutable);
+		super(mutability);
 	}
 
-	/**
-	 * The mutable {@link InstanceMetaDescriptor}.
-	 */
+	/** The mutable {@link InstanceMetaDescriptor}. */
 	private static final AbstractEnumerationTypeDescriptor mutable =
-		new InstanceMetaDescriptor(true);
+		new InstanceMetaDescriptor(Mutability.MUTABLE);
 
-	/**
-	 * Answer the mutable {@link InstanceMetaDescriptor}.
-	 *
-	 * @return The mutable {@link InstanceMetaDescriptor}.
-	 */
-	public static AbstractEnumerationTypeDescriptor mutable ()
+	@Override
+	AbstractEnumerationTypeDescriptor mutable ()
 	{
 		return mutable;
 	}
 
-	/**
-	 * The immutable {@link InstanceMetaDescriptor}.
-	 */
+	/** The immutable {@link InstanceMetaDescriptor}. */
 	private static final AbstractEnumerationTypeDescriptor immutable =
-		new InstanceMetaDescriptor(false);
+		new InstanceMetaDescriptor(Mutability.IMMUTABLE);
 
-	/**
-	 * Answer the immutable {@link InstanceMetaDescriptor}.
-	 *
-	 * @return The immutable {@link InstanceMetaDescriptor}.
-	 */
-	public static AbstractEnumerationTypeDescriptor immutable ()
+	@Override
+	AbstractEnumerationTypeDescriptor immutable ()
 	{
 		return immutable;
+	}
+
+	/** The shared {@link InstanceMetaDescriptor}. */
+	private static final AbstractEnumerationTypeDescriptor shared =
+		new InstanceMetaDescriptor(Mutability.SHARED);
+
+	@Override
+	AbstractEnumerationTypeDescriptor shared ()
+	{
+		return shared;
+	}
+
+	/**
+	 * Answer a new instance of this descriptor based on some object whose type
+	 * it will represent.
+	 *
+	 * @param instance The object whose type to represent.
+	 * @return An {@link AvailObject} representing the type of the argument.
+	 */
+	public static AvailObject on (final AvailObject instance)
+	{
+		assert instance.isType();
+		final AvailObject result = mutable.create();
+		instance.makeImmutable();
+		result.setSlot(INSTANCE, instance);
+		return result;
 	}
 }

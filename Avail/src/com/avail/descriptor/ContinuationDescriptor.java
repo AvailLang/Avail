@@ -1,6 +1,6 @@
 /**
  * ContinuationDescriptor.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -68,7 +68,8 @@ extends Descriptor
 	/**
 	 * The layout of integer slots for my instances.
 	 */
-	public enum IntegerSlots implements IntegerSlotsEnum
+	public enum IntegerSlots
+	implements IntegerSlotsEnum
 	{
 		/**
 		 * A composite field containing the {@linkplain #PROGRAM_COUNTER program
@@ -102,22 +103,22 @@ extends Descriptor
 			PROGRAM_COUNTER_AND_STACK_POINTER,
 			0,
 			16);
-
 	}
 
 	/**
 	 * The layout of object slots for my instances.
 	 */
-	public enum ObjectSlots implements ObjectSlotsEnum
+	public enum ObjectSlots
+	implements ObjectSlotsEnum
 	{
 		/**
-		 * The continuation that invoked this one, or the {@linkplain
-		 * NullDescriptor#nullObject() null object} for the outermost
-		 * continuation. When a continuation is not directly created by a
-		 * {@linkplain L1Operation#L1Ext_doPushLabel push-label instruction}, it
-		 * will have a type pushed on it.  This type is checked against any
-		 * value that the callee attempts to return to it. This supports
-		 * link-time type strengthening at call sites.
+		 * The continuation that invoked this one, or {@linkplain
+		 * NilDescriptor#nil() nil} for the outermost continuation. When a
+		 * continuation is not directly created by a {@linkplain
+		 * L1Operation#L1Ext_doPushLabel push-label instruction}, it will have a
+		 * type pushed on it. This type is checked against any value that the
+		 * callee attempts to return to it. This supports link-time type
+		 * strengthening at call sites.
 		 */
 		@HideFieldJustForPrinting
 		CALLER,
@@ -144,18 +145,21 @@ extends Descriptor
 		FRAME_AT_
 	}
 
+	@Override
+	boolean allowsImmutableToMutableReferenceInField (final AbstractSlotsEnum e)
+	{
+		return e == LEVEL_TWO_OFFSET
+			|| e == LEVEL_TWO_CHUNK;
+	}
+
 	@Override @AvailMethod
-	void o_Caller (
-		final AvailObject object,
-		final AvailObject value)
+	void o_Caller (final AvailObject object, final AvailObject value)
 	{
 		object.setSlot(CALLER, value);
 	}
 
 	@Override @AvailMethod
-	void o_Function (
-		final AvailObject object,
-		final AvailObject value)
+	void o_Function (final AvailObject object, final AvailObject value)
 	{
 		object.setSlot(FUNCTION, value);
 	}
@@ -178,53 +182,43 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	void o_Pc (
-		final AvailObject object,
-		final int value)
+	void o_Pc (final AvailObject object, final int value)
 	{
 		object.setSlot(PROGRAM_COUNTER, value);
 	}
 
 	@Override @AvailMethod
-	void o_Stackp (
-		final AvailObject object,
-		final int value)
+	void o_Stackp (final AvailObject object, final int value)
 	{
 		object.setSlot(STACK_POINTER, value);
 	}
 
 	@Override @AvailMethod
-	AvailObject o_Caller (
-		final AvailObject object)
+	AvailObject o_Caller (final AvailObject object)
 	{
 		return object.slot(CALLER);
 	}
 
 	@Override @AvailMethod
-	AvailObject o_Function (
-		final AvailObject object)
+	AvailObject o_Function (final AvailObject object)
 	{
 		return object.slot(FUNCTION);
 	}
 
 	@Override @AvailMethod
-	int o_Pc (
-		final AvailObject object)
+	int o_Pc (final AvailObject object)
 	{
 		return object.slot(PROGRAM_COUNTER);
 	}
 
 	@Override @AvailMethod
-	int o_Stackp (
-		final AvailObject object)
+	int o_Stackp (final AvailObject object)
 	{
 		return object.slot(STACK_POINTER);
 	}
 
 	@Override @AvailMethod
-	boolean o_Equals (
-		final AvailObject object,
-		final AvailObject another)
+	boolean o_Equals (final AvailObject object, final AvailObject another)
 	{
 		return another.equalsContinuation(object);
 	}
@@ -266,8 +260,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	int o_Hash (
-		final AvailObject object)
+	int o_Hash (final AvailObject object)
 	{
 		int h = 0x593599A;
 		h ^= object.caller().hash();
@@ -280,8 +273,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_Kind (
-		final AvailObject object)
+	AvailObject o_Kind (final AvailObject object)
 	{
 		return ContinuationTypeDescriptor.forFunctionType(
 			object.function().kind());
@@ -296,8 +288,19 @@ extends Descriptor
 		final AvailObject chunk,
 		final int offset)
 	{
-		object.setSlot(LEVEL_TWO_CHUNK, chunk);
-		object.setSlot(LEVEL_TWO_OFFSET, offset);
+		if (isShared())
+		{
+			synchronized (object)
+			{
+				object.setSlot(LEVEL_TWO_CHUNK, chunk.traversed().makeShared());
+				object.setSlot(LEVEL_TWO_OFFSET, offset);
+			}
+		}
+		else
+		{
+			object.setSlot(LEVEL_TWO_CHUNK, chunk.makeImmutable());
+			object.setSlot(LEVEL_TWO_OFFSET, offset);
+		}
 	}
 
 	/**
@@ -305,9 +308,7 @@ extends Descriptor
 	 * based on just the stack area.
 	 */
 	@Override @AvailMethod
-	AvailObject o_StackAt (
-		final AvailObject object,
-		final int subscript)
+	AvailObject o_StackAt (final AvailObject object, final int subscript)
 	{
 		return object.slot(FRAME_AT_, subscript);
 	}
@@ -333,24 +334,21 @@ extends Descriptor
 	 * is therefore always able to directly modify it.
 	 */
 	@Override @AvailMethod
-	AvailObject o_EnsureMutable (
-		final AvailObject object)
+	AvailObject o_EnsureMutable (final AvailObject object)
 	{
-		return isMutable ? object : object.copyAsMutableContinuation();
+		return isMutable() ? object : object.copyAsMutableContinuation();
 	}
 
 	@Override @AvailMethod
-	AvailObject o_LevelTwoChunk (
-		final AvailObject object)
+	AvailObject o_LevelTwoChunk (final AvailObject object)
 	{
-		return object.slot(LEVEL_TWO_CHUNK);
+		return object.mutableSlot(LEVEL_TWO_CHUNK);
 	}
 
 	@Override @AvailMethod
-	int o_LevelTwoOffset (
-		final AvailObject object)
+	int o_LevelTwoOffset (final AvailObject object)
 	{
-		return object.slot(LEVEL_TWO_OFFSET);
+		return object.mutableSlot(LEVEL_TWO_OFFSET);
 	}
 
 	/**
@@ -358,8 +356,7 @@ extends Descriptor
 	 * entries.
 	 */
 	@Override @AvailMethod
-	int o_NumArgsAndLocalsAndStack (
-		final AvailObject object)
+	int o_NumArgsAndLocalsAndStack (final AvailObject object)
 	{
 		return object.variableObjectSlotsCount();
 	}
@@ -377,8 +374,7 @@ extends Descriptor
 	 * </p>
 	 */
 	@Override @AvailMethod @Deprecated
-	void o_PostFault (
-		final AvailObject object)
+	void o_PostFault (final AvailObject object)
 	{
 		final AvailObject chunk = object.levelTwoChunk();
 		if (chunk.isValid())
@@ -397,10 +393,9 @@ extends Descriptor
 	 * Answer a fresh mutable copy of the given continuation object.
 	 */
 	@Override @AvailMethod
-	AvailObject o_CopyAsMutableContinuation (
-		final AvailObject object)
+	AvailObject o_CopyAsMutableContinuation (final AvailObject object)
 	{
-		if (isMutable)
+		if (isMutable())
 		{
 			object.makeSubobjectsImmutable();
 		}
@@ -419,41 +414,32 @@ extends Descriptor
 	}
 
 	@Override
-	public boolean o_ShowValueInNameForDebugger (
-		final AvailObject object)
+	public boolean o_ShowValueInNameForDebugger (final AvailObject object)
 	{
 		return false;
 	}
 
 	@Override
-	SerializerOperation o_SerializerOperation (
-		final AvailObject object)
+	SerializerOperation o_SerializerOperation (final AvailObject object)
 	{
 		return SerializerOperation.CONTINUATION;
 	}
 
-	@Override boolean allowsImmutableToMutableReferenceInField (
-		final AbstractSlotsEnum e)
-	{
-		return e == LEVEL_TWO_OFFSET
-			|| e == LEVEL_TWO_CHUNK;
-	}
-
 	/**
-	 * A substitute for the {@linkplain AvailObject null object}, for use by
+	 * A substitute for {@linkplain AvailObject nil}, for use by
 	 * {@link P_059_ContinuationStackData}.
 	 */
-	private static AvailObject nullSubstitute;
+	private static AvailObject nilSubstitute;
 
 	/**
-	 * Answer a substitute for the {@linkplain AvailObject null object}. This is
+	 * Answer a substitute for {@linkplain AvailObject nil}. This is
 	 * primarily for use by {@link P_059_ContinuationStackData}.
 	 *
 	 * @return An immutable bottom-typed variable.
 	 */
-	public static AvailObject nullSubstitute ()
+	public static AvailObject nilSubstitute ()
 	{
-		return nullSubstitute;
+		return nilSubstitute;
 	}
 
 	/**
@@ -462,8 +448,8 @@ extends Descriptor
 	 */
 	public static void createWellKnownObjects ()
 	{
-		nullSubstitute = VariableDescriptor.forInnerType(
-			BottomTypeDescriptor.bottom()).makeImmutable();
+		nilSubstitute = VariableDescriptor.forInnerType(
+			BottomTypeDescriptor.bottom()).makeShared();
 	}
 
 	/**
@@ -472,7 +458,7 @@ extends Descriptor
 	 */
 	public static void clearWellKnownObjects ()
 	{
-		nullSubstitute = null;
+		nilSubstitute = null;
 	}
 
 	/**
@@ -496,7 +482,7 @@ extends Descriptor
 		final List<AvailObject> args,
 		final List<AvailObject> locals)
 	{
-		final ContinuationDescriptor descriptor = mutable();
+		final ContinuationDescriptor descriptor = mutable;
 		final AvailObject code = function.code();
 		final AvailObject cont = descriptor.create(
 			code.numArgsAndLocalsAndStack());
@@ -508,7 +494,7 @@ extends Descriptor
 		cont.levelTwoChunkOffset(startingChunk, startingOffset);
 		for (int i = code.numArgsAndLocalsAndStack(); i >= 1; i--)
 		{
-			cont.argOrLocalOrStackAtPut(i, NullDescriptor.nullObject());
+			cont.argOrLocalOrStackAtPut(i, NilDescriptor.nil());
 		}
 		//  Set up arguments...
 		final int nArgs = args.size();
@@ -552,7 +538,7 @@ extends Descriptor
 	{
 		final AvailObject code = function.code();
 		assert frameSize == code.numArgsAndLocalsAndStack();
-		final AvailObject cont = mutable().create(frameSize);
+		final AvailObject cont = mutable.create(frameSize);
 		cont.setSlot(CALLER, caller);
 		cont.setSlot(FUNCTION, function);
 		cont.setSlot(PROGRAM_COUNTER, pc);
@@ -565,44 +551,41 @@ extends Descriptor
 	/**
 	 * Construct a new {@link ContinuationDescriptor}.
 	 *
-	 * @param isMutable
-	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
-	 *        object?
+	 * @param mutability
+	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 */
-	protected ContinuationDescriptor (final boolean isMutable)
+	protected ContinuationDescriptor (final Mutability mutability)
 	{
-		super(isMutable);
+		super(mutability);
 	}
 
-	/**
-	 * The mutable {@link ContinuationDescriptor}.
-	 */
+	/** The mutable {@link ContinuationDescriptor}. */
 	private static final ContinuationDescriptor mutable =
-		new ContinuationDescriptor(true);
+		new ContinuationDescriptor(Mutability.MUTABLE);
 
-	/**
-	 * Answer the mutable {@link ContinuationDescriptor}.
-	 *
-	 * @return The mutable {@link ContinuationDescriptor}.
-	 */
-	public static ContinuationDescriptor mutable ()
+	@Override
+	ContinuationDescriptor mutable ()
 	{
 		return mutable;
 	}
 
-	/**
-	 * The immutable {@link ContinuationDescriptor}.
-	 */
+	/** The immutable {@link ContinuationDescriptor}. */
 	private static final ContinuationDescriptor immutable =
-		new ContinuationDescriptor(false);
+		new ContinuationDescriptor(Mutability.IMMUTABLE);
 
-	/**
-	 * Answer the immutable {@link ContinuationDescriptor}.
-	 *
-	 * @return The immutable {@link ContinuationDescriptor}.
-	 */
-	public static ContinuationDescriptor immutable ()
+	@Override
+	ContinuationDescriptor immutable ()
 	{
 		return immutable;
+	}
+
+	/** The shared {@link ContinuationDescriptor}. */
+	private static final ContinuationDescriptor shared =
+		new ContinuationDescriptor(Mutability.SHARED);
+
+	@Override
+	ContinuationDescriptor shared ()
+	{
+		return shared;
 	}
 }

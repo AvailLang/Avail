@@ -1,6 +1,6 @@
 /**
  * P_044_IfThen.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,7 +40,7 @@ import com.avail.interpreter.*;
 /**
  * <strong>Primitive 44:</strong> Invoke the {@linkplain FunctionDescriptor
  * trueBlock} if {@linkplain EnumerationTypeDescriptor#booleanObject() aBoolean}
- * is true, otherwise just answer {@linkplain NullDescriptor#nullObject()
+ * is true, otherwise just answer {@linkplain NilDescriptor#nil()
  * void}.
  */
 public class P_044_IfThen extends Primitive
@@ -66,7 +66,7 @@ public class P_044_IfThen extends Primitive
 				trueBlock,
 				Collections.<AvailObject>emptyList());
 		}
-		return interpreter.primitiveSuccess(NullDescriptor.nullObject());
+		return interpreter.primitiveSuccess(NilDescriptor.nil());
 	}
 
 	@Override

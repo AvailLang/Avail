@@ -1,6 +1,6 @@
 /**
  * SpliceTupleDescriptor.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -47,7 +47,8 @@ extends TupleDescriptor
 	/**
 	 * The layout of integer slots for my instances.
 	 */
-	public enum IntegerSlots implements IntegerSlotsEnum
+	public enum IntegerSlots
+	implements IntegerSlotsEnum
 	{
 		/**
 		 * The hash value of this splice tuple, or zero.  If the hash value
@@ -72,7 +73,8 @@ extends TupleDescriptor
 	/**
 	 * The layout of object slots for my instances.
 	 */
-	public enum ObjectSlots implements ObjectSlotsEnum
+	public enum ObjectSlots
+	implements ObjectSlotsEnum
 	{
 		/**
 		 * TODO: [MvG] Document this.
@@ -288,12 +290,8 @@ extends TupleDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_Equals (
-		final AvailObject object,
-		final AvailObject another)
+	boolean o_Equals (final AvailObject object, final AvailObject another)
 	{
-		//  Compare this splice tuple and the given tuple.
-
 		return another.equalsAnyTuple(object);
 	}
 
@@ -302,10 +300,6 @@ extends TupleDescriptor
 		final AvailObject object,
 		final AvailObject anotherTuple)
 	{
-		//  Compare this splice tuple and the given tuple.
-		//
-		//  Compare identity...
-
 		if (object.sameAddressAs(anotherTuple))
 		{
 			return true;
@@ -332,36 +326,36 @@ extends TupleDescriptor
 		if (!anotherTuple.isSplice()
 			|| anotherTuple.numberOfZones() < object.numberOfZones())
 		{
-			object.becomeIndirectionTo(anotherTuple);
-			anotherTuple.makeImmutable();
+			if (!isShared())
+			{
+				anotherTuple.makeImmutable();
+				object.becomeIndirectionTo(anotherTuple);
+			}
 		}
 		else
 		{
-			anotherTuple.becomeIndirectionTo(object);
-			object.makeImmutable();
+			if (!anotherTuple.descriptor.isShared())
+			{
+				object.makeImmutable();
+				anotherTuple.becomeIndirectionTo(object);
+			}
 		}
 		return true;
 	}
 
 	@Override @AvailMethod
-	int o_EndOfZone (
-		final AvailObject object,
-		final int zone)
+	int o_EndOfZone (final AvailObject object, final int zone)
 	{
 		// Answer the ending index for the given zone.
-
 		return object.slot(
 			IntegerSlots.INTEGER_ZONE_DATA_AT_,
 			zone * 2);
 	}
 
 	@Override @AvailMethod
-	int o_EndSubtupleIndexInZone (
-		final AvailObject object,
-		final int zone)
+	int o_EndSubtupleIndexInZone (final AvailObject object, final int zone)
 	{
 		// Answer the ending index into the subtuple for the given zone.
-
 		return
 			object.slot(
 				IntegerSlots.INTEGER_ZONE_DATA_AT_,
@@ -384,7 +378,7 @@ extends TupleDescriptor
 			final int startSubtupleIndex,
 			final int endOfZone)
 	{
-		assert isMutable;
+		assert isMutable();
 		object.setSlot(
 			ObjectSlots.OBJECT_ZONE_DATA_AT_,
 			zone,
@@ -410,7 +404,7 @@ extends TupleDescriptor
 		final int zoneIndex,
 		final AvailObject newTuple)
 	{
-		assert isMutable;
+		assert isMutable();
 		object.setSlot(
 			ObjectSlots.OBJECT_ZONE_DATA_AT_,
 			zoneIndex,
@@ -421,9 +415,7 @@ extends TupleDescriptor
 	 * Answer the size of the given zone.
 	 */
 	@Override @AvailMethod
-	int o_SizeOfZone (
-		final AvailObject object,
-		final int zone)
+	int o_SizeOfZone (final AvailObject object, final int zone)
 	{
 		if (zone == 1)
 		{
@@ -444,9 +436,7 @@ extends TupleDescriptor
 	 * Answer the starting index for the given zone.
 	 */
 	@Override @AvailMethod
-	int o_StartOfZone (
-		final AvailObject object,
-		final int zone)
+	int o_StartOfZone (final AvailObject object, final int zone)
 	{
 		if (zone == 1)
 		{
@@ -463,9 +453,7 @@ extends TupleDescriptor
 	 * Answer the starting index into the subtuple for the given zone.
 	 */
 	@Override @AvailMethod
-	int o_StartSubtupleIndexInZone (
-		final AvailObject object,
-		final int zone)
+	int o_StartSubtupleIndexInZone (final AvailObject object, final int zone)
 	{
 		return object.slot(
 			IntegerSlots.INTEGER_ZONE_DATA_AT_,
@@ -477,9 +465,7 @@ extends TupleDescriptor
 	 * 'unclipped'.
 	 */
 	@Override @AvailMethod
-	AvailObject o_SubtupleForZone (
-		final AvailObject object,
-		final int zone)
+	AvailObject o_SubtupleForZone (final AvailObject object, final int zone)
 	{
 		return object.slot(
 			ObjectSlots.OBJECT_ZONE_DATA_AT_,
@@ -506,9 +492,7 @@ extends TupleDescriptor
 	 * Answer the zone number that contains the given index.
 	 */
 	@Override @AvailMethod
-	int o_ZoneForIndex (
-		final AvailObject object,
-		final int index)
+	int o_ZoneForIndex (final AvailObject object, final int index)
 	{
 		int high = object.numberOfZones();
 		int low = 1;
@@ -532,8 +516,7 @@ extends TupleDescriptor
 	 * Answer the number of zones in the splice tuple.
 	 */
 	@Override @AvailMethod
-	int o_NumberOfZones (
-		final AvailObject object)
+	int o_NumberOfZones (final AvailObject object)
 	{
 		return object.variableObjectSlotsCount();
 	}
@@ -564,7 +547,7 @@ extends TupleDescriptor
 			AvailObject.newObjectIndexedIntegerIndexedDescriptor(
 				(highZone - lowZone + 1),
 				((highZone - lowZone + 1) * 2),
-				SpliceTupleDescriptor.mutable());
+				SpliceTupleDescriptor.mutable);
 		result.hashOrZero(object.computeHashFromTo(start, end));
 		int mainIndex = 0;
 		int destZone = 1;
@@ -604,14 +587,12 @@ extends TupleDescriptor
 	 * Answer the element at the given index in the tuple object.
 	 */
 	@Override @AvailMethod
-	AvailObject o_TupleAt (
-		final AvailObject object,
-		final int index)
+	AvailObject o_TupleAt (final AvailObject object, final int index)
 	{
 		if (index < 1 || index > object.tupleSize())
 		{
 			error("Out of bounds access to SpliceTuple", object);
-			return NullDescriptor.nullObject();
+			return NilDescriptor.nil();
 		}
 		final int zoneIndex = object.zoneForIndex(index);
 		final AvailObject subtuple = object.subtupleForZone(zoneIndex);
@@ -646,7 +627,7 @@ extends TupleDescriptor
 		final boolean canDestroy)
 	{
 		assert index >= 1 && index <= object.tupleSize();
-		if (!(canDestroy & isMutable))
+		if (!(canDestroy & isMutable()))
 		{
 			return object.copyAsMutableSpliceTuple().tupleAtPuttingCanDestroy(
 				index,
@@ -670,9 +651,7 @@ extends TupleDescriptor
 	 * Answer the integer element at the given index in the tuple object.
 	 */
 	@Override @AvailMethod
-	int o_TupleIntAt (
-		final AvailObject object,
-		final int index)
+	int o_TupleIntAt (final AvailObject object, final int index)
 	{
 		if (index < 1 || index > object.tupleSize())
 		{
@@ -688,29 +667,28 @@ extends TupleDescriptor
 	 * Answer the number of elements in the object as an int.
 	 */
 	@Override @AvailMethod
-	int o_TupleSize (
-		final AvailObject object)
+	int o_TupleSize (final AvailObject object)
 	{
 		return object.endOfZone(object.numberOfZones());
 	}
 
 	/**
 	 * Answer approximately how many bits per entry are taken up by this object.
+	 *
 	 * <p>
 	 * Make this always seem a little worse than any of the other
 	 * representations
+	 * </p>
 	 */
 	@Override @AvailMethod
-	int o_BitsPerEntry (
-		final AvailObject object)
+	int o_BitsPerEntry (final AvailObject object)
 	{
 		return 33;
 	}
 
 
 	@Override @AvailMethod
-	boolean o_IsSplice (
-		final AvailObject object)
+	boolean o_IsSplice (final AvailObject object)
 	{
 		return true;
 	}
@@ -758,10 +736,9 @@ extends TupleDescriptor
 	 * Answer a mutable copy of object that is also a splice tuple.
 	 */
 	@Override @AvailMethod
-	AvailObject o_CopyAsMutableSpliceTuple (
-		final AvailObject object)
+	AvailObject o_CopyAsMutableSpliceTuple (final AvailObject object)
 	{
-		if (isMutable)
+		if (isMutable())
 		{
 			object.makeSubobjectsImmutable();
 		}
@@ -770,7 +747,7 @@ extends TupleDescriptor
 			AvailObject.newObjectIndexedIntegerIndexedDescriptor(
 				numberOfZones,
 				numberOfZones * 2,
-				SpliceTupleDescriptor.mutable());
+				SpliceTupleDescriptor.mutable);
 		assert result.objectSlotsCount() == object.objectSlotsCount();
 		assert result.integerSlotsCount() == object.integerSlotsCount();
 		for (int subscript = 1; subscript <= numberOfZones; subscript++)
@@ -800,8 +777,7 @@ extends TupleDescriptor
 	 * Make sure the object contains no empty zones.
 	 */
 	@Override @AvailMethod
-	void o_Verify (
-		final AvailObject object)
+	void o_Verify (final AvailObject object)
 	{
 		assert object.tupleSize() > 0;
 		for (int i = object.numberOfZones(); i >= 1; i--)
@@ -813,48 +789,41 @@ extends TupleDescriptor
 	/**
 	 * Construct a new {@link SpliceTupleDescriptor}.
 	 *
-	 * @param isMutable
-	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
-	 *        object?
+	 * @param mutability
+	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 */
-	protected SpliceTupleDescriptor (final boolean isMutable)
+	private SpliceTupleDescriptor (final Mutability mutability)
 	{
-		super(isMutable);
+		super(mutability);
 	}
 
+	/** The mutable {@link SpliceTupleDescriptor}. */
+	static final SpliceTupleDescriptor mutable =
+		new SpliceTupleDescriptor(Mutability.MUTABLE);
 
-	/**
-	 * The mutable {@link SpliceTupleDescriptor}.
-	 */
-	private static final SpliceTupleDescriptor mutable =
-		new SpliceTupleDescriptor(true);
-
-
-	/**
-	 * Answer the mutable {@link SpliceTupleDescriptor}.
-	 *
-	 * @return The mutable {@link SpliceTupleDescriptor}.
-	 */
-	public static SpliceTupleDescriptor mutable ()
+	@Override
+	SpliceTupleDescriptor mutable ()
 	{
 		return mutable;
 	}
 
-
-	/**
-	 * The immutable {@link SpliceTupleDescriptor}.
-	 */
+	/** The immutable {@link SpliceTupleDescriptor}. */
 	private static final SpliceTupleDescriptor immutable =
-		new SpliceTupleDescriptor(false);
+		new SpliceTupleDescriptor(Mutability.IMMUTABLE);
 
-
-	/**
-	 * Answer the immutable {@link SpliceTupleDescriptor}.
-	 *
-	 * @return The immutable {@link SpliceTupleDescriptor}.
-	 */
-	public static SpliceTupleDescriptor immutable ()
+	@Override
+	SpliceTupleDescriptor immutable ()
 	{
 		return immutable;
+	}
+
+	/** The shared {@link SpliceTupleDescriptor}. */
+	private static final SpliceTupleDescriptor shared =
+		new SpliceTupleDescriptor(Mutability.SHARED);
+
+	@Override
+	SpliceTupleDescriptor shared ()
+	{
+		return shared;
 	}
 }

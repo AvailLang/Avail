@@ -1,6 +1,6 @@
 /**
  * L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -60,7 +60,7 @@ public class L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO extends L2Operation
 	{
 		final AvailObject theFunction = interpreter.pointerAt(FUNCTION);
 		final AvailObject theCode = theFunction.code();
-		final int newCount = theCode.invocationCount() - 1;
+		final int newCount = theCode.countdownToReoptimize() - 1;
 		assert newCount >= 0;
 		if (newCount != 0)
 		{

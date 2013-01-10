@@ -1,6 +1,6 @@
 /**
  * ReferenceNodeDescriptor.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,6 +34,7 @@ package com.avail.descriptor;
 
 import static com.avail.descriptor.AvailObject.error;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
+import static com.avail.descriptor.ReferenceNodeDescriptor.ObjectSlots.*;
 import java.util.List;
 import com.avail.annotations.*;
 import com.avail.compiler.AvailCodeGenerator;
@@ -48,7 +49,7 @@ import com.avail.utility.*;
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class ReferenceNodeDescriptor
+public final class ReferenceNodeDescriptor
 extends ParseNodeDescriptor
 {
 	/**
@@ -56,7 +57,8 @@ extends ParseNodeDescriptor
 	 *
 	 * @author Mark van Gulik &lt;mark@availlang.org&gt;
 	 */
-	public enum ObjectSlots implements ObjectSlotsEnum
+	public enum ObjectSlots
+	implements ObjectSlotsEnum
 	{
 		/**
 		 * The {@linkplain VariableUseNodeDescriptor variable use node} for
@@ -66,25 +68,21 @@ extends ParseNodeDescriptor
 		VARIABLE
 	}
 
-	/**
-	 * Setter for field variable.
-	 */
-	@Override @AvailMethod
-	void o_Variable (
+	@Override
+	public void printObjectOnAvoidingIndent (
 		final AvailObject object,
-		final AvailObject variable)
+		final StringBuilder builder,
+		final List<AvailObject> recursionList,
+		final int indent)
 	{
-		object.setSlot(ObjectSlots.VARIABLE, variable);
+		builder.append("↑");
+		builder.append(object.slot(VARIABLE).token().string().asNativeString());
 	}
 
-	/**
-	 * Getter for field variable.
-	 */
 	@Override @AvailMethod
-	AvailObject o_Variable (
-		final AvailObject object)
+	AvailObject o_Variable (final AvailObject object)
 	{
-		return object.slot(ObjectSlots.VARIABLE);
+		return object.slot(VARIABLE);
 	}
 
 	/**
@@ -94,7 +92,7 @@ extends ParseNodeDescriptor
 	@Override @AvailMethod
 	AvailObject o_ExpressionType (final AvailObject object)
 	{
-		final AvailObject variable = object.variable();
+		final AvailObject variable = object.slot(VARIABLE);
 		final AvailObject declaration = variable.declaration();
 		final DeclarationKind kind = declaration.declarationKind();
 		if (kind == DeclarationKind.MODULE_VARIABLE)
@@ -106,19 +104,18 @@ extends ParseNodeDescriptor
 	}
 
 	@Override @AvailMethod
-	int o_Hash (final AvailObject object)
-	{
-		return
-			object.variable().hash() ^ 0xE7FA9B3F;
-	}
-
-	@Override @AvailMethod
 	boolean o_EqualsParseNode (
 		final AvailObject object,
 		final AvailObject aParseNode)
 	{
 		return object.kind().equals(aParseNode.kind())
-			&& object.variable().equals(aParseNode.variable());
+			&& object.slot(VARIABLE).equals(aParseNode.variable());
+	}
+
+	@Override @AvailMethod
+	int o_Hash (final AvailObject object)
+	{
+		return object.variable().hash() ^ 0xE7FA9B3F;
 	}
 
 	@Override @AvailMethod
@@ -126,7 +123,7 @@ extends ParseNodeDescriptor
 		final AvailObject object,
 		final AvailCodeGenerator codeGenerator)
 	{
-		final AvailObject declaration = object.variable().declaration();
+		final AvailObject declaration = object.slot(VARIABLE).declaration();
 		declaration.declarationKind().emitVariableReferenceForOn(
 			declaration,
 			codeGenerator);
@@ -137,7 +134,7 @@ extends ParseNodeDescriptor
 		final AvailObject object,
 		final Transformer1<AvailObject, AvailObject> aBlock)
 	{
-		object.variable(aBlock.value(object.variable()));
+		object.setSlot(VARIABLE, aBlock.value(object.slot(VARIABLE)));
 	}
 
 	@Override @AvailMethod
@@ -145,16 +142,15 @@ extends ParseNodeDescriptor
 		final AvailObject object,
 		final Continuation1<AvailObject> aBlock)
 	{
-		aBlock.value(object.variable());
+		aBlock.value(object.slot(VARIABLE));
 	}
-
 
 	@Override @AvailMethod
 	void o_ValidateLocally (
 		final AvailObject object,
 		final @Nullable AvailObject parent)
 	{
-		final AvailObject decl = object.variable().declaration();
+		final AvailObject decl = object.slot(VARIABLE).declaration();
 		switch (decl.declarationKind())
 		{
 			case ARGUMENT:
@@ -175,83 +171,56 @@ extends ParseNodeDescriptor
 		}
 	}
 
-	@Override
-	ParseNodeKind o_ParseNodeKind (
-		final AvailObject object)
+	@Override @AvailMethod
+	ParseNodeKind o_ParseNodeKind (final AvailObject object)
 	{
 		return REFERENCE_NODE;
 	}
-
-	@Override
-	public void printObjectOnAvoidingIndent (
-		final AvailObject object,
-		final StringBuilder builder,
-		final List<AvailObject> recursionList,
-		final int indent)
-	{
-		builder.append("↑");
-		builder.append(
-			object.variable().token().string().asNativeString());
-	}
-
 
 	/**
 	 * Create a new {@linkplain ReferenceNodeDescriptor reference node} from the
 	 * given {@linkplain VariableUseNodeDescriptor variable use node}.
 	 *
 	 * @param variableUse
-	 *            A variable use node for which to construct a reference node.
+	 *        A variable use node for which to construct a reference node.
 	 * @return The new reference node.
 	 */
-	public static AvailObject fromUse (
-		final AvailObject variableUse)
+	public static AvailObject fromUse (final AvailObject variableUse)
 	{
-		final AvailObject newReferenceNode = mutable().create();
-		newReferenceNode.variable(variableUse);
-		newReferenceNode.makeImmutable();
+		final AvailObject newReferenceNode = mutable.create();
+		newReferenceNode.setSlot(VARIABLE, variableUse);
+		newReferenceNode.makeShared();
 		return newReferenceNode;
 	}
 
 	/**
 	 * Construct a new {@link ReferenceNodeDescriptor}.
 	 *
-	 * @param isMutable Whether my {@linkplain AvailObject instances} can
-	 *                  change.
+	 * @param mutability
+	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 */
-	public ReferenceNodeDescriptor (final boolean isMutable)
+	public ReferenceNodeDescriptor (final Mutability mutability)
 	{
-		super(isMutable);
+		super(mutability);
 	}
 
-	/**
-	 * The mutable {@link ReferenceNodeDescriptor}.
-	 */
+	/** The mutable {@link ReferenceNodeDescriptor}. */
 	private static final ReferenceNodeDescriptor mutable =
-		new ReferenceNodeDescriptor(true);
+		new ReferenceNodeDescriptor(Mutability.MUTABLE);
 
-	/**
-	 * Answer the mutable {@link ReferenceNodeDescriptor}.
-	 *
-	 * @return The mutable {@link ReferenceNodeDescriptor}.
-	 */
-	public static ReferenceNodeDescriptor mutable ()
+	@Override
+	ReferenceNodeDescriptor mutable ()
 	{
 		return mutable;
 	}
 
-	/**
-	 * The immutable {@link ReferenceNodeDescriptor}.
-	 */
-	private static final ReferenceNodeDescriptor immutable =
-		new ReferenceNodeDescriptor(false);
+	/** The shared {@link ReferenceNodeDescriptor}. */
+	private static final ReferenceNodeDescriptor shared =
+		new ReferenceNodeDescriptor(Mutability.SHARED);
 
-	/**
-	 * Answer the immutable {@link ReferenceNodeDescriptor}.
-	 *
-	 * @return The immutable {@link ReferenceNodeDescriptor}.
-	 */
-	public static ReferenceNodeDescriptor immutable ()
+	@Override
+	ReferenceNodeDescriptor shared ()
 	{
-		return immutable;
+		return shared;
 	}
 }

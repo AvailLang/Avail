@@ -1,6 +1,6 @@
 /**
  * P_017_HasNoValue.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -58,7 +58,7 @@ public class P_017_HasNoValue extends Primitive
 		final AvailObject var = args.get(0);
 		return interpreter.primitiveSuccess(
 			AtomDescriptor.objectFromBoolean(
-				var.value().equalsNull()));
+				var.value().equalsNil()));
 	}
 
 	@Override

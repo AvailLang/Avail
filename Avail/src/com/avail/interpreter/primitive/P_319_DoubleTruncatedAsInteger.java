@@ -1,6 +1,6 @@
 /**
  * P_319_DoubleTruncatedAsInteger.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -71,7 +71,7 @@ public class P_319_DoubleTruncatedAsInteger extends Primitive
 		d = abs(d);
 		final int exponent = getExponent(d);
 		final int slots = exponent + 31 / 32;  // probably needs work
-		AvailObject out = IntegerDescriptor.mutable().create(
+		AvailObject out = IntegerDescriptor.mutable.create(
 			slots);
 		d = scalb(d, (1 - slots) * 32);
 		for (int i = slots; i >= 1; --i)

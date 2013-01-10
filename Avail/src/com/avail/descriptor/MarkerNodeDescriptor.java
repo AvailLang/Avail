@@ -1,6 +1,6 @@
 /**
  * MarkerNodeDescriptor.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,7 +33,6 @@
 package com.avail.descriptor;
 
 import static com.avail.descriptor.MarkerNodeDescriptor.ObjectSlots.*;
-import static com.avail.descriptor.AvailObject.error;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.List;
@@ -49,14 +48,14 @@ import com.avail.utility.*;
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class MarkerNodeDescriptor extends ParseNodeDescriptor
+public final class MarkerNodeDescriptor
+extends ParseNodeDescriptor
 {
 	/**
 	 * My slots of type {@link AvailObject}.
-	 *
-	 * @author Mark van Gulik &lt;mark@availlang.org&gt;
 	 */
-	public enum ObjectSlots implements ObjectSlotsEnum
+	public enum ObjectSlots
+	implements ObjectSlotsEnum
 	{
 		/**
 		 * The {@linkplain MarkerNodeDescriptor marker} being wrapped in a form
@@ -65,17 +64,11 @@ public class MarkerNodeDescriptor extends ParseNodeDescriptor
 		MARKER_VALUE
 	}
 
-
-	/**
-	 * Getter for field markerValue.
-	 */
 	@Override @AvailMethod
-	AvailObject o_MarkerValue (
-		final AvailObject object)
+	AvailObject o_MarkerValue (final AvailObject object)
 	{
 		return object.slot(MARKER_VALUE);
 	}
-
 
 	@Override @AvailMethod
 	AvailObject o_ExpressionType (final AvailObject object)
@@ -104,7 +97,6 @@ public class MarkerNodeDescriptor extends ParseNodeDescriptor
 		assert false : "A marker node can not generate code.";
 	}
 
-
 	@Override @AvailMethod
 	int o_Hash (final AvailObject object)
 	{
@@ -121,15 +113,13 @@ public class MarkerNodeDescriptor extends ParseNodeDescriptor
 	}
 
 	@Override
-	ParseNodeKind o_ParseNodeKind (
-		final AvailObject object)
+	ParseNodeKind o_ParseNodeKind (final AvailObject object)
 	{
 		return MARKER_NODE;
 	}
 
 	@Override
-	boolean o_IsMarkerNode (
-		final AvailObject object)
+	boolean o_IsMarkerNode (final AvailObject object)
 	{
 		return true;
 	}
@@ -139,7 +129,7 @@ public class MarkerNodeDescriptor extends ParseNodeDescriptor
 		final AvailObject object,
 		final Transformer1<AvailObject, AvailObject> aBlock)
 	{
-		error("Marker nodes should not be mapped.");
+		throw unsupportedOperationException();
 	}
 
 	@Override @AvailMethod
@@ -147,7 +137,7 @@ public class MarkerNodeDescriptor extends ParseNodeDescriptor
 		final AvailObject object,
 		final Continuation1<AvailObject> aBlock)
 	{
-		error("Marker nodes should not be iterated over.");
+		throw unsupportedOperationException();
 	}
 
 	@Override @AvailMethod
@@ -155,7 +145,7 @@ public class MarkerNodeDescriptor extends ParseNodeDescriptor
 		final AvailObject object,
 		final @Nullable AvailObject parent)
 	{
-		error("Marker nodes should not validateLocally.");
+		throw unsupportedOperationException();
 	}
 
 	/**
@@ -165,10 +155,9 @@ public class MarkerNodeDescriptor extends ParseNodeDescriptor
 	 * @param markerValue The value to wrap.
 	 * @return A new immutable marker node.
 	 */
-	public static AvailObject create (
-		final AvailObject markerValue)
+	public static AvailObject create (final AvailObject markerValue)
 	{
-		final AvailObject instance = mutable().create();
+		final AvailObject instance = mutable.create();
 		instance.setSlot(MARKER_VALUE, markerValue);
 		instance.makeImmutable();
 		return instance;
@@ -177,43 +166,31 @@ public class MarkerNodeDescriptor extends ParseNodeDescriptor
 	/**
 	 * Construct a new {@link MarkerNodeDescriptor}.
 	 *
-	 * @param isMutable Whether my {@linkplain AvailObject instances} can
-	 *                  change.
+	 * @param mutability
+	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 */
-	public MarkerNodeDescriptor (final boolean isMutable)
+	private MarkerNodeDescriptor (final Mutability mutability)
 	{
-		super(isMutable);
+		super(mutability);
 	}
 
-	/**
-	 * The mutable {@link MarkerNodeDescriptor}.
-	 */
+	/** The mutable {@link MarkerNodeDescriptor}. */
 	private static final MarkerNodeDescriptor mutable =
-		new MarkerNodeDescriptor(true);
+		new MarkerNodeDescriptor(Mutability.MUTABLE);
 
-	/**
-	 * Answer the mutable {@link MarkerNodeDescriptor}.
-	 *
-	 * @return The mutable {@link MarkerNodeDescriptor}.
-	 */
-	public static MarkerNodeDescriptor mutable ()
+	@Override
+	MarkerNodeDescriptor mutable ()
 	{
 		return mutable;
 	}
 
-	/**
-	 * The immutable {@link MarkerNodeDescriptor}.
-	 */
-	private static final MarkerNodeDescriptor immutable =
-		new MarkerNodeDescriptor(false);
+	/** The shared {@link MarkerNodeDescriptor}. */
+	private static final MarkerNodeDescriptor shared =
+		new MarkerNodeDescriptor(Mutability.SHARED);
 
-	/**
-	 * Answer the immutable {@link MarkerNodeDescriptor}.
-	 *
-	 * @return The immutable {@link MarkerNodeDescriptor}.
-	 */
-	public static MarkerNodeDescriptor immutable ()
+	@Override
+	MarkerNodeDescriptor shared ()
 	{
-		return immutable;
+		return shared;
 	}
 }

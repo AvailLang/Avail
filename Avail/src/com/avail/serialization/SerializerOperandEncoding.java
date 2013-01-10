@@ -1,6 +1,6 @@
 /**
  * SerializerOperandEncoding.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -283,7 +283,7 @@ enum SerializerOperandEncoding
 		{
 			final int slotsCount = readCompressedPositiveInt(deserializer);
 			final AvailObject newInteger =
-				IntegerDescriptor.mutable().create(slotsCount);
+				IntegerDescriptor.mutable.create(slotsCount);
 			for (int i = slotsCount; i >= 1; i--)
 			{
 				newInteger.rawSignedIntegerAtPut(i, deserializer.readInt());
@@ -333,7 +333,7 @@ enum SerializerOperandEncoding
 		{
 			final int tupleSize = readCompressedPositiveInt(deserializer);
 			final AvailObject newTuple =
-				ObjectTupleDescriptor.mutable().create(tupleSize);
+				ObjectTupleDescriptor.mutable.create(tupleSize);
 			for (int i = 1; i <= tupleSize; i++)
 			{
 				final int objectIndex = readCompressedPositiveInt(deserializer);

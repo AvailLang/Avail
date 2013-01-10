@@ -1,6 +1,6 @@
 /*
  * Early Sets.avail
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -71,7 +71,7 @@ Semantic restriction "_∪_" is
 	typeA : set meta,
 	typeB : set meta
 |
-	lower ::= ⎣typeA⎦ min ⎣typeB⎦;
+	lower ::= ⎣typeA⎦ max ⎣typeB⎦;
 	upper ::= cast ⎡typeA⎤ + ⎡typeB⎤ into [ t : [0..∞] | t ];
 	{typeA's element type ∪ typeB's element type | [lower..upper + 1)}
 ];

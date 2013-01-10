@@ -1,6 +1,6 @@
 /**
  * L1InstructionStepper.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -184,7 +184,7 @@ implements L1OperationDispatcher
 			pointerAt(FUNCTION).code().numArgsAndLocalsAndStack());
 		final AvailObject popped = pointerAt(stackp);
 		// Clear the stack slot
-		pointerAtPut(stackp, NullDescriptor.nullObject());
+		pointerAtPut(stackp, NilDescriptor.nil());
 		integerAtPut(stackpRegister(), stackp + 1);
 		return popped;
 	}
@@ -224,18 +224,14 @@ implements L1OperationDispatcher
 		final AvailObject function = pointerAt(FUNCTION);
 		final AvailObject code = function.code();
 		final AvailObject continuation =
-			ContinuationDescriptor.mutable().create(
-				code.numArgsAndLocalsAndStack());
-		continuation.caller(pointerAt(CALLER));
-		continuation.function(function);
-		continuation.pc(integerAt(pcRegister()));
-		continuation.stackp(
-			integerAt(stackpRegister()) + 1 - argumentOrLocalRegister(1));
-		final AvailObject chunk = interpreter.chunk();
-		assert chunk == L2ChunkDescriptor.unoptimizedChunk();
-		continuation.levelTwoChunkOffset(
-			chunk,
-			L2ChunkDescriptor.offsetToContinueUnoptimizedChunk());
+			ContinuationDescriptor.createExceptFrame(
+				code.numArgsAndLocalsAndStack(),
+				function,
+				pointerAt(CALLER),
+				integerAt(pcRegister()),
+				integerAt(stackpRegister()) + 1 - argumentOrLocalRegister(1),
+				interpreter.chunk(),
+				L2ChunkDescriptor.offsetToContinueUnoptimizedChunk());
 		for (int i = code.numArgsAndLocalsAndStack(); i >= 1; i--)
 		{
 			continuation.argOrLocalOrStackAtPut(
@@ -263,7 +259,7 @@ implements L1OperationDispatcher
 		}
 		final AvailObject matching =
 			definitions.lookupByValuesFromList(argsBuffer);
-		if (matching.equalsNull())
+		if (matching.equalsNil())
 		{
 			error(
 				"Ambiguous or invalid lookup of %s",
@@ -312,7 +308,7 @@ implements L1OperationDispatcher
 	{
 		final int localIndex = argumentOrLocalRegister(getInteger());
 		final AvailObject local = pointerAt(localIndex);
-		pointerAtPut(localIndex, NullDescriptor.nullObject());
+		pointerAtPut(localIndex, NilDescriptor.nil());
 		push(local);
 	}
 
@@ -331,7 +327,7 @@ implements L1OperationDispatcher
 		final AvailObject function = pointerAt(FUNCTION);
 		final int outerIndex = getInteger();
 		final AvailObject outer = function.outerVarAt(outerIndex);
-		if (outer.equalsNull())
+		if (outer.equalsNil())
 		{
 			error("Someone prematurely erased this outer var");
 			return;
@@ -349,13 +345,13 @@ implements L1OperationDispatcher
 		final int numCopiedVars = getInteger();
 		final int literalIndexOfCode = getInteger();
 		final AvailObject codeToClose = literalAt(literalIndexOfCode);
-		final AvailObject newFunction = FunctionDescriptor.mutable().create(
+		final AvailObject newFunction = FunctionDescriptor.mutable.create(
 			numCopiedVars);
 		newFunction.code(codeToClose);
 		for (int i = numCopiedVars; i >= 1; i--)
 		{
 			final AvailObject value = pop();
-			assert !value.equalsNull();
+			assert !value.equalsNil();
 			newFunction.outerVarAtPut(i, value);
 		}
 		/*
@@ -403,7 +399,7 @@ implements L1OperationDispatcher
 		final AvailObject function = pointerAt(FUNCTION);
 		final int outerIndex = getInteger();
 		final AvailObject outer = function.outerVarAt(outerIndex);
-		if (outer.equalsNull())
+		if (outer.equalsNil())
 		{
 			error("Someone prematurely erased this outer var");
 			return;
@@ -442,7 +438,7 @@ implements L1OperationDispatcher
 		final AvailObject function = pointerAt(FUNCTION);
 		final int outerIndex = getInteger();
 		final AvailObject outerVariable = function.outerVarAt(outerIndex);
-		if (outerVariable.equalsNull())
+		if (outerVariable.equalsNil())
 		{
 			error("Someone prematurely erased this outer var");
 			return;
@@ -466,7 +462,7 @@ implements L1OperationDispatcher
 	public void L1_doMakeTuple ()
 	{
 		final int count = getInteger();
-		final AvailObject tuple = ObjectTupleDescriptor.mutable().create(
+		final AvailObject tuple = ObjectTupleDescriptor.mutable.create(
 			count);
 		for (int i = count; i >= 1; i--)
 		{
@@ -483,7 +479,7 @@ implements L1OperationDispatcher
 		final int outerIndex = getInteger();
 		final AvailObject outerVariable = function.outerVarAt(outerIndex);
 		final AvailObject outer = outerVariable.getValue();
-		if (outer.equalsNull())
+		if (outer.equalsNil())
 		{
 			error("Someone prematurely erased this outer var");
 			return;
@@ -535,7 +531,7 @@ implements L1OperationDispatcher
 		// function, and args.
 		newContinuation.makeSubobjectsImmutable();
 		// ...always a fresh copy, always mutable (uniquely owned).
-		assert newContinuation.caller().equalsNull()
+		assert newContinuation.caller().equalsNil()
 			|| !newContinuation.caller().descriptor().isMutable()
 		: "Caller should freeze because two continuations can see it";
 		push(newContinuation);

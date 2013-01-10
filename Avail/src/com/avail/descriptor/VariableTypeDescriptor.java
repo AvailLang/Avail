@@ -1,6 +1,6 @@
 /**
  * VariableTypeDescriptor.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -48,32 +48,19 @@ import com.avail.serialization.SerializerOperation;
  * @author Todd Smith &lt;todd@availlang.org&gt;
  * @see ReadWriteVariableTypeDescriptor
  */
-public class VariableTypeDescriptor
+public final class VariableTypeDescriptor
 extends TypeDescriptor
 {
 	/**
 	 * The layout of object slots for my instances.
 	 */
-	public enum ObjectSlots implements ObjectSlotsEnum
+	public enum ObjectSlots
+	implements ObjectSlotsEnum
 	{
 		/**
 		 * The type of values that my object instances can contain.
 		 */
 		INNER_TYPE
-	}
-
-	@Override @AvailMethod
-	AvailObject o_ReadType (
-		final AvailObject object)
-	{
-		return object.slot(ObjectSlots.INNER_TYPE);
-	}
-
-	@Override @AvailMethod
-	AvailObject o_WriteType (
-		final AvailObject object)
-	{
-		return object.slot(ObjectSlots.INNER_TYPE);
 	}
 
 	@Override
@@ -91,9 +78,19 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_Equals (
-		final AvailObject object,
-		final AvailObject another)
+	AvailObject o_ReadType (final AvailObject object)
+	{
+		return object.slot(ObjectSlots.INNER_TYPE);
+	}
+
+	@Override @AvailMethod
+	AvailObject o_WriteType (final AvailObject object)
+	{
+		return object.slot(ObjectSlots.INNER_TYPE);
+	}
+
+	@Override @AvailMethod
+	boolean o_Equals (final AvailObject object, final AvailObject another)
 	{
 		return another.equalsVariableType(object);
 	}
@@ -107,29 +104,36 @@ extends TypeDescriptor
 		{
 			return true;
 		}
-		if (aType.readType().equals(
+		final boolean same =
+			aType.readType().equals(
 				object.slot(ObjectSlots.INNER_TYPE))
 			&& aType.writeType().equals(
-				object.slot(ObjectSlots.INNER_TYPE)))
+				object.slot(ObjectSlots.INNER_TYPE));
+		if (same)
 		{
-			aType.becomeIndirectionTo(object);
-			return true;
+			if (!isShared())
+			{
+				aType.makeImmutable();
+				object.becomeIndirectionTo(aType);
+			}
+			else if (!aType.descriptor.isShared())
+			{
+				object.makeImmutable();
+				aType.becomeIndirectionTo(object);
+			}
 		}
-		return false;
+		return same;
 	}
 
 	@Override @AvailMethod
-	int o_Hash (
-		final AvailObject object)
+	int o_Hash (final AvailObject object)
 	{
 		return object.slot(ObjectSlots.INNER_TYPE).hash()
 			* 17 ^ 0x613E420;
 	}
 
 	@Override @AvailMethod
-	boolean o_IsSubtypeOf (
-		final AvailObject object,
-		final AvailObject aType)
+	boolean o_IsSubtypeOf (final AvailObject object, final AvailObject aType)
 	{
 		return aType.isSupertypeOfVariableType(object);
 	}
@@ -169,7 +173,6 @@ extends TypeDescriptor
 		final AvailObject aVariableType)
 	{
 		final AvailObject innerType = object.slot(ObjectSlots.INNER_TYPE);
-
 		// The intersection of two variable types is a variable type whose
 		// read type is the type intersection of the two incoming read types and
 		// whose write type is the type union of the two incoming write types.
@@ -209,11 +212,21 @@ extends TypeDescriptor
 			innerType.typeIntersection(aVariableType.writeType()));
 	}
 
-	@Override
-	SerializerOperation o_SerializerOperation (
-		final AvailObject object)
+	@Override @AvailMethod
+	SerializerOperation o_SerializerOperation (final AvailObject object)
 	{
 		return SerializerOperation.SIMPLE_VARIABLE_TYPE;
+	}
+
+	@Override @AvailMethod
+	AvailObject o_MakeImmutable (final AvailObject object)
+	{
+		if (isMutable())
+		{
+			// Since there isn't an immutable variant, make the object shared.
+			return object.makeShared();
+		}
+		return object;
 	}
 
 	/**
@@ -221,18 +234,16 @@ extends TypeDescriptor
 	 * the given content {@linkplain TypeDescriptor type}.
 	 *
 	 * @param innerType
-	 *            The content type on which to base the variable type.
+	 *        The content type on which to base the variable type.
 	 * @return
-	 *            The new variable type.
+	 *        The new variable type.
 	 */
-	public static AvailObject wrapInnerType (
-		final AvailObject innerType)
+	public static AvailObject wrapInnerType (final AvailObject innerType)
 	{
-		final AvailObject result = mutable().create();
+		final AvailObject result = mutable.create();
 		result.setSlot(
 			ObjectSlots.INNER_TYPE,
 			innerType.makeImmutable());
-		result.makeImmutable();
 		return result;
 	}
 
@@ -261,45 +272,39 @@ extends TypeDescriptor
 	/**
 	 * Construct a new {@link VariableTypeDescriptor}.
 	 *
-	 * @param isMutable
-	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
-	 *        object?
+	 * @param mutability
+	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 */
-	protected VariableTypeDescriptor (final boolean isMutable)
+	protected VariableTypeDescriptor (final Mutability mutability)
 	{
-		super(isMutable);
+		super(mutability);
 	}
 
-	/**
-	 * The mutable {@link VariableTypeDescriptor}.
-	 */
+	/** The mutable {@link VariableTypeDescriptor}. */
 	private static final VariableTypeDescriptor mutable =
-		new VariableTypeDescriptor(true);
+		new VariableTypeDescriptor(Mutability.MUTABLE);
 
-	/**
-	 * Answer the mutable {@link VariableTypeDescriptor}.
-	 *
-	 * @return The mutable {@link VariableTypeDescriptor}.
-	 */
-	public static VariableTypeDescriptor mutable ()
+	@Override
+	VariableTypeDescriptor mutable ()
 	{
 		return mutable;
 	}
 
-	/**
-	 * The immutable {@link VariableTypeDescriptor}.
-	 */
-	private static final VariableTypeDescriptor immutable =
-		new VariableTypeDescriptor(false);
+	/** The shared {@link VariableTypeDescriptor}. */
+	private static final VariableTypeDescriptor shared =
+		new VariableTypeDescriptor(Mutability.SHARED);
 
-	/**
-	 * Answer the immutable {@link VariableTypeDescriptor}.
-	 *
-	 * @return The immutable {@link VariableTypeDescriptor}.
-	 */
-	public static VariableTypeDescriptor immutable ()
+	@Override
+	VariableTypeDescriptor immutable ()
 	{
-		return immutable;
+		// There is only a shared variant, not an immutable one.
+		return shared;
+	}
+
+	@Override
+	VariableTypeDescriptor shared ()
+	{
+		return shared;
 	}
 
 	/**
@@ -355,8 +360,8 @@ extends TypeDescriptor
 	{
 		mostGeneralType = fromReadAndWriteTypes(
 			TOP.o(), BottomTypeDescriptor.bottom());
-		mostGeneralType.makeImmutable();
+		mostGeneralType.makeShared();
 		meta = InstanceMetaDescriptor.on(mostGeneralType);
-		meta.makeImmutable();
+		meta.makeShared();
 	}
 }

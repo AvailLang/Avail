@@ -1,6 +1,6 @@
 /**
  * P_018_GetClearing.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -61,7 +61,7 @@ public class P_018_GetClearing extends Primitive
 		assert args.size() == 1;
 		final AvailObject var = args.get(0);
 		final AvailObject valueObject = var.value();
-		if (valueObject.equalsNull())
+		if (valueObject.equalsNil())
 		{
 			return interpreter.primitiveFailure(
 				E_CANNOT_READ_UNASSIGNED_VARIABLE);

@@ -1,6 +1,6 @@
 /**
  * P_247_SemanticRestrictions.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -43,13 +43,14 @@ import com.avail.interpreter.*;
  * would run for a call site for the specified {@linkplain
  * MethodDescriptor method} and tuple of argument types.
  */
-public class P_247_SemanticRestrictions extends Primitive
+public class P_247_SemanticRestrictions
+extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_247_SemanticRestrictions().init(
-		2, CanInline, CannotFail);
+	public final static Primitive instance =
+		new P_247_SemanticRestrictions().init(2, CanInline, CannotFail);
 
 	@Override
 	public Result attempt (

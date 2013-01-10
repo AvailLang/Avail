@@ -1,6 +1,6 @@
 /**
  * L2_CREATE_TUPLE.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -65,8 +65,7 @@ public class L2_CREATE_TUPLE extends L2Operation
 		final int destIndex = interpreter.nextWord();
 		final AvailObject indices = interpreter.vectorAt(valuesIndex);
 		final int size = indices.tupleSize();
-		final AvailObject tuple =
-			ObjectTupleDescriptor.mutable().create(size);
+		final AvailObject tuple = ObjectTupleDescriptor.mutable.create(size);
 		for (int i = 1; i <= size; i++)
 		{
 			tuple.tupleAtPut(

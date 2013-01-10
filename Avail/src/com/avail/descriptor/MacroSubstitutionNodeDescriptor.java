@@ -1,6 +1,6 @@
 /**
  * MacroSubstitutionNodeDescriptor.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -58,14 +58,16 @@ import com.avail.utility.*;
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class MacroSubstitutionNodeDescriptor extends ParseNodeDescriptor
+public final class MacroSubstitutionNodeDescriptor
+extends ParseNodeDescriptor
 {
 	/**
 	 * My slots of type {@link AvailObject}.
 	 *
 	 * @author Mark van Gulik &lt;mark@availlang.org&gt;
 	 */
-	public enum ObjectSlots implements ObjectSlotsEnum
+	public enum ObjectSlots
+	implements ObjectSlotsEnum
 	{
 		/**
 		 * The {@linkplain AtomDescriptor true name} of the macro that was
@@ -80,118 +82,6 @@ public class MacroSubstitutionNodeDescriptor extends ParseNodeDescriptor
 		 * MacroDefinitionDescriptor macro} substitution.
 		 */
 		OUTPUT_PARSE_NODE
-	}
-
-	/**
-	 * Getter for field outputParseNode.
-	 */
-	@Override @AvailMethod
-	AvailObject o_OutputParseNode (
-		final AvailObject object)
-	{
-		return object.slot(OUTPUT_PARSE_NODE);
-	}
-
-
-	@Override @AvailMethod
-	AvailObject o_ExpressionType (final AvailObject object)
-	{
-		return object.outputParseNode().expressionType();
-	}
-
-
-	@Override @AvailMethod
-	int o_Hash (final AvailObject object)
-	{
-		return
-			object.slot(MACRO_NAME).hash() * multiplier
-			+ (object.slot(OUTPUT_PARSE_NODE).hash() ^ 0x1d50d7f9);
-	}
-
-
-	@Override @AvailMethod
-	boolean o_EqualsParseNode (
-		final AvailObject object,
-		final AvailObject aParseNode)
-	{
-		return object.kind().equals(aParseNode.kind())
-			&& object.apparentSendName().equals(aParseNode.apparentSendName())
-			&& object.outputParseNode().equals(aParseNode.outputParseNode());
-	}
-
-
-	@Override @AvailMethod
-	AvailObject o_ApparentSendName (final AvailObject object)
-	{
-		return object.slot(MACRO_NAME);
-	}
-
-
-	@Override @AvailMethod
-	void o_EmitEffectOn (
-		final AvailObject object,
-		final AvailCodeGenerator codeGenerator)
-	{
-		object.outputParseNode().emitEffectOn(codeGenerator);
-	}
-
-
-	@Override @AvailMethod
-	void o_EmitValueOn (
-		final AvailObject object,
-		final AvailCodeGenerator codeGenerator)
-	{
-		object.outputParseNode().emitValueOn(codeGenerator);
-	}
-
-
-	@Override @AvailMethod
-	void o_ChildrenMap (
-		final AvailObject object,
-		final Transformer1<AvailObject, AvailObject> aBlock)
-	{
-		object.setSlot(
-			OUTPUT_PARSE_NODE,
-			aBlock.value(object.slot(OUTPUT_PARSE_NODE)));
-	}
-
-
-	@Override @AvailMethod
-	void o_ChildrenDo (
-		final AvailObject object,
-		final Continuation1<AvailObject> aBlock)
-	{
-		aBlock.value(object.outputParseNode());
-	}
-
-
-	@Override @AvailMethod
-	void o_ValidateLocally (
-		final AvailObject object,
-		final @Nullable AvailObject parent)
-	{
-		// Do nothing.
-	}
-
-
-	@Override @AvailMethod
-	void o_FlattenStatementsInto (
-		final AvailObject object,
-		final List<AvailObject> accumulatedStatements)
-	{
-		object.outputParseNode().flattenStatementsInto(accumulatedStatements);
-	}
-
-	@Override
-	ParseNodeKind o_ParseNodeKind (final AvailObject object)
-	{
-		return ParseNodeKind.MACRO_SUBSTITUTION;
-	}
-
-	@Override
-	AvailObject o_StripMacro (final AvailObject object)
-	{
-		return object.slot(OUTPUT_PARSE_NODE);
 	}
 
 	@Override
@@ -210,22 +100,121 @@ public class MacroSubstitutionNodeDescriptor extends ParseNodeDescriptor
 			indent);
 	}
 
+	@Override @AvailMethod
+	AvailObject o_OutputParseNode (final AvailObject object)
+	{
+		return object.slot(OUTPUT_PARSE_NODE);
+	}
+
+	@Override @AvailMethod
+	AvailObject o_ExpressionType (final AvailObject object)
+	{
+		return object.slot(OUTPUT_PARSE_NODE).expressionType();
+	}
+
+	@Override @AvailMethod
+	int o_Hash (final AvailObject object)
+	{
+		return
+			object.slot(MACRO_NAME).hash() * multiplier
+			+ (object.slot(OUTPUT_PARSE_NODE).hash() ^ 0x1d50d7f9);
+	}
+
+	@Override @AvailMethod
+	boolean o_EqualsParseNode (
+		final AvailObject object,
+		final AvailObject aParseNode)
+	{
+		return object.kind().equals(aParseNode.kind())
+			&& object.slot(MACRO_NAME).equals(aParseNode.apparentSendName())
+			&& object.slot(OUTPUT_PARSE_NODE).equals(
+				aParseNode.outputParseNode());
+	}
+
+	@Override @AvailMethod
+	AvailObject o_ApparentSendName (final AvailObject object)
+	{
+		return object.slot(MACRO_NAME);
+	}
+
+	@Override @AvailMethod
+	void o_EmitEffectOn (
+		final AvailObject object,
+		final AvailCodeGenerator codeGenerator)
+	{
+		object.outputParseNode().emitEffectOn(codeGenerator);
+	}
+
+	@Override @AvailMethod
+	void o_EmitValueOn (
+		final AvailObject object,
+		final AvailCodeGenerator codeGenerator)
+	{
+		object.outputParseNode().emitValueOn(codeGenerator);
+	}
+
+	@Override @AvailMethod
+	void o_ChildrenMap (
+		final AvailObject object,
+		final Transformer1<AvailObject, AvailObject> aBlock)
+	{
+		object.setSlot(
+			OUTPUT_PARSE_NODE,
+			aBlock.value(object.slot(OUTPUT_PARSE_NODE)));
+	}
+
+	@Override @AvailMethod
+	void o_ChildrenDo (
+		final AvailObject object,
+		final Continuation1<AvailObject> aBlock)
+	{
+		aBlock.value(object.slot(OUTPUT_PARSE_NODE));
+	}
+
+	@Override @AvailMethod
+	void o_ValidateLocally (
+		final AvailObject object,
+		final @Nullable AvailObject parent)
+	{
+		// Do nothing.
+	}
+
+	@Override @AvailMethod
+	void o_FlattenStatementsInto (
+		final AvailObject object,
+		final List<AvailObject> accumulatedStatements)
+	{
+		object.slot(OUTPUT_PARSE_NODE).flattenStatementsInto(
+			accumulatedStatements);
+	}
+
+	@Override
+	ParseNodeKind o_ParseNodeKind (final AvailObject object)
+	{
+		return ParseNodeKind.MACRO_SUBSTITUTION;
+	}
+
+	@Override
+	AvailObject o_StripMacro (final AvailObject object)
+	{
+		return object.slot(OUTPUT_PARSE_NODE);
+	}
 
 	/**
 	 * Construct a new {@linkplain MacroSubstitutionNodeDescriptor macro
 	 * substitution node}.
 	 *
 	 * @param macroName
-	 *            The name of the macro that produced this node.
+	 *        The name of the macro that produced this node.
 	 * @param outputParseNode
-	 *            The expression produced by the macro body.
+	 *        The expression produced by the macro body.
 	 * @return The new macro substitution node.
 	 */
 	public static AvailObject fromNameAndNode(
 		final AvailObject macroName,
 		final AvailObject outputParseNode)
 	{
-		final AvailObject newNode = mutable().create();
+		final AvailObject newNode = mutable.create();
 		newNode.setSlot(MACRO_NAME, macroName);
 		newNode.setSlot(OUTPUT_PARSE_NODE, outputParseNode);
 		newNode.makeImmutable();
@@ -235,43 +224,31 @@ public class MacroSubstitutionNodeDescriptor extends ParseNodeDescriptor
 	/**
 	 * Construct a new {@link MacroSubstitutionNodeDescriptor}.
 	 *
-	 * @param isMutable Whether my {@linkplain AvailObject instances} can
-	 *                  change.
+	 * @param mutability
+	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 */
-	public MacroSubstitutionNodeDescriptor (final boolean isMutable)
+	public MacroSubstitutionNodeDescriptor (final Mutability mutability)
 	{
-		super(isMutable);
+		super(mutability);
 	}
 
-	/**
-	 * The mutable {@link MacroSubstitutionNodeDescriptor}.
-	 */
+	/** The mutable {@link MacroSubstitutionNodeDescriptor}. */
 	private static final MacroSubstitutionNodeDescriptor mutable =
-		new MacroSubstitutionNodeDescriptor(true);
+		new MacroSubstitutionNodeDescriptor(Mutability.MUTABLE);
 
-	/**
-	 * Answer the mutable {@link MacroSubstitutionNodeDescriptor}.
-	 *
-	 * @return The mutable {@link MacroSubstitutionNodeDescriptor}.
-	 */
-	public static MacroSubstitutionNodeDescriptor mutable ()
+	@Override
+	MacroSubstitutionNodeDescriptor mutable ()
 	{
 		return mutable;
 	}
 
-	/**
-	 * The immutable {@link MacroSubstitutionNodeDescriptor}.
-	 */
-	private static final MacroSubstitutionNodeDescriptor immutable =
-		new MacroSubstitutionNodeDescriptor(false);
+	/** The immutable {@link MacroSubstitutionNodeDescriptor}. */
+	private static final MacroSubstitutionNodeDescriptor shared =
+		new MacroSubstitutionNodeDescriptor(Mutability.SHARED);
 
-	/**
-	 * Answer the immutable {@link MacroSubstitutionNodeDescriptor}.
-	 *
-	 * @return The immutable {@link MacroSubstitutionNodeDescriptor}.
-	 */
-	public static MacroSubstitutionNodeDescriptor immutable ()
+	@Override
+	MacroSubstitutionNodeDescriptor shared ()
 	{
-		return immutable;
+		return shared;
 	}
 }

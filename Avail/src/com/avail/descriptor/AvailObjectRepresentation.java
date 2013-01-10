@@ -1,6 +1,6 @@
 /**
  * AvailObjectRepresentation.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,7 @@
 
 package com.avail.descriptor;
 
-import com.avail.visitor.AvailMarkUnreachableSubobjectVisitor;
+import com.avail.visitor.MarkUnreachableSubobjectVisitor;
 
 /**
  * {@code AvailObjectRepresentation} is the representation used for all Avail
@@ -65,11 +65,15 @@ extends AbstractAvailObject
 	 * <p><strong>WARNING:</strong> This alters the receiver's slots and
 	 * descriptor.</p>
 	 *
+	 * <p><strong>WARNING:</strong> A {@linkplain Mutability#SHARED shared}
+	 * object may not become an indirection. The caller must ensure that this
+	 * method is not sent to a shared object.</p>
+	 *
 	 * @param anotherObject An object.
 	 */
-	final void becomeIndirectionTo (
-		final AvailObject anotherObject)
+	final void becomeIndirectionTo (final AvailObject anotherObject)
 	{
+		assert !descriptor.isShared();
 		// Yes, this is really gross, but it's the simplest way to ensure that
 		// objectSlots can remain private ...
 		final AvailObject me = (AvailObject) this;
@@ -86,22 +90,22 @@ extends AbstractAvailObject
 			// Java-specific mechanism for now.  Requires more complex solution
 			// when Avail starts using raw memory again.
 			objectSlots = new AvailObject[1];
-			objectSlots[0] = NullDescriptor.nullObject();
+			objectSlots[0] = NilDescriptor.nil();
 		}
-		if (descriptor().isMutable())
+		if (descriptor.isMutable())
 		{
 //			if (canDestroyObjects())
 //			{
 				me.scanSubobjects(
-					new AvailMarkUnreachableSubobjectVisitor(anotherObject));
+					new MarkUnreachableSubobjectVisitor(anotherObject));
 //			}
-			descriptor = IndirectionDescriptor.mutable();
+			descriptor = IndirectionDescriptor.mutable;
 			objectSlots[0] = anotherTraversed;
 		}
 		else
 		{
 			anotherObject.makeImmutable();
-			descriptor = IndirectionDescriptor.mutable();
+			descriptor = IndirectionDescriptor.mutable;
 			objectSlots[0] = anotherTraversed;
 			me.makeImmutable();
 		}
@@ -119,7 +123,8 @@ extends AbstractAvailObject
 	{
 		if (shouldCheckSlots)
 		{
-			final Class<?> definitionClass = field.getClass().getEnclosingClass();
+			final Class<?> definitionClass =
+				field.getClass().getEnclosingClass();
 			assert definitionClass.isInstance(descriptor);
 		}
 	}
@@ -273,6 +278,78 @@ extends AbstractAvailObject
 	}
 
 	@Override
+	final int mutableSlot (final IntegerSlotsEnum field)
+	{
+//		verifyToSpaceAddress();
+		checkSlot(field);
+		if (descriptor.isShared())
+		{
+			synchronized (this)
+			{
+				return intSlots[field.ordinal()];
+			}
+		}
+		return intSlots[field.ordinal()];
+	}
+
+	@Override
+	final void setMutableSlot (
+		final IntegerSlotsEnum field,
+		final int anInteger)
+	{
+		checkWriteForField(field);
+//		verifyToSpaceAddress();
+		checkSlot(field);
+		if (descriptor.isShared())
+		{
+			synchronized (this)
+			{
+				intSlots[field.ordinal()] = anInteger;
+			}
+		}
+		else
+		{
+			intSlots[field.ordinal()] = anInteger;
+		}
+	}
+
+	@Override
+	final int mutableSlot (
+		final IntegerSlotsEnum field,
+		final int subscript)
+	{
+//		verifyToSpaceAddress();
+		checkSlot(field);
+		if (descriptor.isShared())
+		{
+			return intSlots[field.ordinal() + subscript - 1];
+		}
+		return intSlots[field.ordinal() + subscript - 1];
+	}
+
+	@Override
+	final void setMutableSlot (
+		final IntegerSlotsEnum field,
+		final int subscript,
+		final int anInteger)
+	{
+		checkWriteForField(field);
+//		verifyToSpaceAddress();
+		checkSlot(field);
+		if (descriptor.isShared())
+		{
+			synchronized (this)
+			{
+				intSlots[field.ordinal() + subscript - 1] = anInteger;
+			}
+		}
+		else
+		{
+			intSlots[field.ordinal() + subscript - 1] = anInteger;
+		}
+	}
+
+	@Override
 	public final int objectSlotsCount ()
 	{
 		return objectSlots.length;
@@ -294,9 +371,12 @@ extends AbstractAvailObject
 		final ObjectSlotsEnum field,
 		final AvailObject anAvailObject)
 	{
+		assert !descriptor.isShared() || anAvailObject.descriptor.isShared();
 //		verifyToSpaceAddress();
 		checkSlot(field);
 		checkWriteForField(field);
+		// If the receiver is shared, then the new value must become shared
+		// before it can be stored.
 		objectSlots[field.ordinal()] = anAvailObject;
 	}
 
@@ -318,10 +398,103 @@ extends AbstractAvailObject
 		final int subscript,
 		final AvailObject anAvailObject)
 	{
+		assert !descriptor.isShared() || anAvailObject.descriptor.isShared();
 //		verifyToSpaceAddress();
 		checkSlot(field);
 		checkWriteForField(field);
+		// If the receiver is shared, then the new value must become shared
+		// before it can be stored.
 		objectSlots[field.ordinal() + subscript - 1] = anAvailObject;
+	}
+
+	@Override
+	final AvailObject mutableSlot (final ObjectSlotsEnum field)
+	{
+//		verifyToSpaceAddress();
+		checkSlot(field);
+		if (descriptor.isShared())
+		{
+			synchronized (this)
+			{
+				final AvailObject result = objectSlots[field.ordinal()];
+//				result.verifyToSpaceAddress();
+				return result;
+			}
+		}
+		final AvailObject result = objectSlots[field.ordinal()];
+//		result.verifyToSpaceAddress();
+		return result;
+	}
+
+	@Override
+	final void setMutableSlot (
+		final ObjectSlotsEnum field,
+		final AvailObject anAvailObject)
+	{
+//		verifyToSpaceAddress();
+		checkSlot(field);
+		checkWriteForField(field);
+		if (descriptor.isShared())
+		{
+			// If the receiver is shared, then the new value must become shared
+			// before it can be stored.
+			final AvailObject shared = anAvailObject.traversed().makeShared();
+			synchronized (this)
+			{
+				objectSlots[field.ordinal()] = shared;
+			}
+		}
+		else
+		{
+			objectSlots[field.ordinal()] = anAvailObject;
+		}
+	}
+
+	@Override
+	final AvailObject mutableSlot (
+		final ObjectSlotsEnum field,
+		final int subscript)
+	{
+//		verifyToSpaceAddress();
+		checkSlot(field);
+		if (descriptor.isShared())
+		{
+			synchronized (this)
+			{
+				final AvailObject result =
+					objectSlots[field.ordinal() + subscript - 1];
+//				result.verifyToSpaceAddress();
+				return result;
+			}
+		}
+		final AvailObject result = objectSlots[field.ordinal() + subscript - 1];
+//		result.verifyToSpaceAddress();
+		return result;
+	}
+
+	@Override
+	final void setMutableSlot (
+		final ObjectSlotsEnum field,
+		final int subscript,
+		final AvailObject anAvailObject)
+	{
+//		verifyToSpaceAddress();
+		checkSlot(field);
+		checkWriteForField(field);
+		if (descriptor.isShared())
+		{
+			// If the receiver is shared, then the new value must become shared
+			// before it can be stored.
+			final AvailObject shared = anAvailObject.traversed().makeShared();
+			synchronized (this)
+			{
+				objectSlots[field.ordinal() + subscript - 1] = shared;
+			}
+		}
+		else
+		{
+			objectSlots[field.ordinal() + subscript - 1] = anAvailObject;
+		}
 	}
 
 	/**

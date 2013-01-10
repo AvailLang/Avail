@@ -1,6 +1,6 @@
 /**
  * P_010_GetValue.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -63,7 +63,7 @@ public class P_010_GetValue extends Primitive
 		assert args.size() == 1;
 		final AvailObject var = args.get(0);
 		final AvailObject value = var.value();
-		if (value.equalsNull())
+		if (value.equalsNil())
 		{
 			return interpreter.primitiveFailure(
 				E_CANNOT_READ_UNASSIGNED_VARIABLE);

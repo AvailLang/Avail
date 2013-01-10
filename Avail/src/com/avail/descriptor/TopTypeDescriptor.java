@@ -1,6 +1,6 @@
 /**
  * TopTypeDescriptor.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,18 +35,19 @@ package com.avail.descriptor;
 import com.avail.annotations.*;
 
 /**
- * {@code TopTypeDescriptor} implements the type of the {@linkplain
- * NullDescriptor#nullObject() null object}.
+ * {@code TopTypeDescriptor} implements the type of {@linkplain
+ * NilDescriptor#nil() nil}.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class TopTypeDescriptor
+public final class TopTypeDescriptor
 extends PrimitiveTypeDescriptor
 {
 	/**
 	 * The layout of integer slots for my instances.
 	 */
-	public enum IntegerSlots implements IntegerSlotsEnum
+	public enum IntegerSlots
+	implements IntegerSlotsEnum
 	{
 		/**
 		 * The hash of this primitive type, computed at construction time.
@@ -71,7 +72,8 @@ extends PrimitiveTypeDescriptor
 	/**
 	 * The layout of object slots for my instances.
 	 */
-	public enum ObjectSlots implements ObjectSlotsEnum
+	public enum ObjectSlots
+	implements ObjectSlotsEnum
 	{
 		/**
 		 * The {@linkplain StringDescriptor name} of this primitive type.
@@ -94,9 +96,7 @@ extends PrimitiveTypeDescriptor
 
 	@Override
 	@AvailMethod @ThreadSafe
-	boolean o_IsSubtypeOf (
-		final AvailObject object,
-		final AvailObject aType)
+	boolean o_IsSubtypeOf (final AvailObject object, final AvailObject aType)
 	{
 		// Check if object (the type top) is a subtype of aType (may also be
 		// top).
@@ -118,56 +118,40 @@ extends PrimitiveTypeDescriptor
 	/**
 	 * Construct a new {@link TopTypeDescriptor}.
 	 *
-	 * @param isMutable
-	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
-	 *        object?
+	 * @param mutability
+	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 */
-	protected TopTypeDescriptor (final boolean isMutable)
+	private TopTypeDescriptor (final Mutability mutability)
 	{
-		super(isMutable);
+		super(mutability);
 	}
 
-	/**
-	 * The mutable {@link TopTypeDescriptor}.
-	 */
-	private static final TopTypeDescriptor mutable =
-		new TopTypeDescriptor(true);
 
-	/**
-	 * Answer a mutable {@link TopTypeDescriptor}.
-	 *
-	 * @return A mutable {@link TopTypeDescriptor}.
-	 */
-	@ThreadSafe
-	/**
-	 * Answer the mutable {@link VoidTypeDescriptor}.
-	 *
-	 * @return The mutable {@link VoidTypeDescriptor}.
-	 */
-	public static TopTypeDescriptor mutable ()
+	/** The mutable {@link TopTypeDescriptor}. */
+	@SuppressWarnings("hiding")
+	final static TopTypeDescriptor mutable =
+		new TopTypeDescriptor(Mutability.MUTABLE);
+
+	@Override
+	TopTypeDescriptor mutable ()
 	{
 		return mutable;
 	}
 
-	/**
-	 * The immutable {@link TopTypeDescriptor}.
-	 */
-	private static final TopTypeDescriptor immutable =
-		new TopTypeDescriptor(false);
+	/** The shared {@link TopTypeDescriptor}. */
+	final private static TopTypeDescriptor shared =
+		new TopTypeDescriptor(Mutability.SHARED);
 
-	/**
-	 * Answer an immutable {@link TopTypeDescriptor}.
-	 *
-	 * @return An immutable {@link TopTypeDescriptor}.
-	 */
-	@ThreadSafe
-	/**
-	 * Answer the immutable {@link VoidTypeDescriptor}.
-	 *
-	 * @return The immutable {@link VoidTypeDescriptor}.
-	 */
-	public static TopTypeDescriptor immutable ()
+	@Override
+	TopTypeDescriptor immutable ()
 	{
-		return immutable;
+		// There is no immutable descriptor.
+		return shared;
+	}
+
+	@Override
+	TopTypeDescriptor shared ()
+	{
+		return shared;
 	}
 }

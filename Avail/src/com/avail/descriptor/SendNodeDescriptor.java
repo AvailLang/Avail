@@ -1,6 +1,6 @@
 /**
  * SendNodeDescriptor.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -47,14 +47,14 @@ import com.avail.utility.*;
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class SendNodeDescriptor extends ParseNodeDescriptor
+public final class SendNodeDescriptor
+extends ParseNodeDescriptor
 {
 	/**
 	 * My slots of type {@link AvailObject}.
-	 *
-	 * @author Mark van Gulik &lt;mark@availlang.org&gt;
 	 */
-	public enum ObjectSlots implements ObjectSlotsEnum
+	public enum ObjectSlots
+	implements ObjectSlotsEnum
 	{
 		/**
 		 * A {@link ListNodeDescriptor list node} containing the expressions
@@ -74,51 +74,64 @@ public class SendNodeDescriptor extends ParseNodeDescriptor
 		RETURN_TYPE
 	}
 
-
-	/**
-	 * Getter for field arguments.
-	 */
-	@Override @AvailMethod
-	AvailObject o_ArgumentsListNode (
-		final AvailObject object)
+	@Override
+	public void printObjectOnAvoidingIndent (
+		final AvailObject object,
+		final StringBuilder builder,
+		final List<AvailObject> recursionList,
+		final int indent)
 	{
-		return object.slot(ObjectSlots.ARGUMENTS_LIST_NODE);
+		final MessageSplitter splitter;
+		try
+		{
+			splitter = new MessageSplitter(
+				object.method().name().name());
+		}
+		catch (final SignatureException e)
+		{
+			builder.append("*** Malformed selector: ");
+			builder.append(e.errorCode().name());
+			builder.append("***");
+			return;
+		}
+		splitter.printSendNodeOnIndent(
+			object,
+			builder,
+			indent);
 	}
 
-	/**
-	 * Getter for field method.
-	 */
 	@Override @AvailMethod
-	AvailObject o_Method (
-		final AvailObject object)
+	AvailObject o_ArgumentsListNode (final AvailObject object)
 	{
-		return object.slot(ObjectSlots.METHOD);
+		return object.slot(ARGUMENTS_LIST_NODE);
 	}
 
-	/**
-	 * Getter for field arguments.
-	 */
 	@Override @AvailMethod
-	AvailObject o_ReturnType (
-		final AvailObject object)
+	AvailObject o_Method (final AvailObject object)
 	{
-		return object.slot(ObjectSlots.RETURN_TYPE);
+		return object.slot(METHOD);
+	}
+
+	@Override @AvailMethod
+	AvailObject o_ReturnType (final AvailObject object)
+	{
+		return object.slot(RETURN_TYPE);
 	}
 
 
 	@Override @AvailMethod
 	AvailObject o_ExpressionType (final AvailObject object)
 	{
-		return object.returnType();
+		return object.slot(RETURN_TYPE);
 	}
 
 	@Override @AvailMethod
 	int o_Hash (final AvailObject object)
 	{
 		return
-			(object.argumentsListNode().hash() * multiplier
-				^ object.method().hash()) * multiplier
-				- object.returnType().hash()
+			(object.slot(ARGUMENTS_LIST_NODE).hash() * multiplier
+				^ object.slot(METHOD).hash()) * multiplier
+				- object.slot(RETURN_TYPE).hash()
 			^ 0x90E39B4D;
 	}
 
@@ -128,15 +141,16 @@ public class SendNodeDescriptor extends ParseNodeDescriptor
 		final AvailObject aParseNode)
 	{
 		return object.kind().equals(aParseNode.kind())
-			&& object.method().equals(aParseNode.method())
-			&& object.argumentsListNode().equals(aParseNode.argumentsListNode())
-			&& object.returnType().equals(aParseNode.returnType());
+			&& object.slot(METHOD).equals(aParseNode.method())
+			&& object.slot(ARGUMENTS_LIST_NODE).equals(
+				aParseNode.argumentsListNode())
+			&& object.slot(RETURN_TYPE).equals(aParseNode.returnType());
 	}
 
 	@Override @AvailMethod
 	AvailObject o_ApparentSendName (final AvailObject object)
 	{
-		return object.method().name();
+		return object.slot(METHOD).name();
 	}
 
 	@Override @AvailMethod
@@ -144,14 +158,13 @@ public class SendNodeDescriptor extends ParseNodeDescriptor
 		final AvailObject object,
 		final AvailCodeGenerator codeGenerator)
 	{
-		final AvailObject arguments = object.argumentsListNode();
+		final AvailObject arguments = object.slot(ARGUMENTS_LIST_NODE);
 		final AvailObject tuple = arguments.expressionsTuple();
 		for (final AvailObject argNode : tuple)
 		{
 			argNode.emitValueOn(codeGenerator);
 		}
-		final AvailObject method = object.method();
-		method.makeImmutable();
+		final AvailObject method = object.slot(METHOD);
 		codeGenerator.emitCall(
 			tuple.tupleSize(),
 			method,
@@ -165,8 +178,7 @@ public class SendNodeDescriptor extends ParseNodeDescriptor
 	{
 		object.setSlot(
 			ARGUMENTS_LIST_NODE,
-			aBlock.value(
-				object.slot(ARGUMENTS_LIST_NODE)));
+			aBlock.value(object.slot(ARGUMENTS_LIST_NODE)));
 	}
 
 	@Override @AvailMethod
@@ -186,71 +198,10 @@ public class SendNodeDescriptor extends ParseNodeDescriptor
 	}
 
 	@Override
-	ParseNodeKind o_ParseNodeKind (
-		final AvailObject object)
+	ParseNodeKind o_ParseNodeKind (final AvailObject object)
 	{
 		return SEND_NODE;
 	}
-
-
-	/**
-	 * If set to true, print send nodes with extra notation to help visually
-	 * sort out ambiguous parses.
-	 */
-	static final boolean nicePrinting = true;
-
-	@Override
-	public void printObjectOnAvoidingIndent (
-		final AvailObject object,
-		final StringBuilder builder,
-		final List<AvailObject> recursionList,
-		final int indent)
-	{
-		if (nicePrinting)
-		{
-			final MessageSplitter splitter;
-			try
-			{
-				splitter = new MessageSplitter(
-					object.method().name().name());
-			}
-			catch (final SignatureException e)
-			{
-				builder.append("*** Malformed selector: ");
-				builder.append(e.errorCode().name());
-				builder.append("***");
-				return;
-			}
-			splitter.printSendNodeOnIndent(
-				object,
-				builder,
-				indent);
-		}
-		else
-		{
-			builder.append("SendNode[");
-			builder.append(object.method().name().name().asNativeString());
-			builder.append("](");
-			boolean isFirst = true;
-			for (final AvailObject arg
-				: object.argumentsListNode().expressionsTuple())
-			{
-				if (!isFirst)
-				{
-					builder.append(",");
-				}
-				builder.append("\n");
-				for (int i = indent; i >= 0; i--)
-				{
-					builder.append("\t");
-				}
-				arg.printOnAvoidingIndent(builder, recursionList, indent + 1);
-				isFirst = false;
-			}
-			builder.append(")");
-		}
-	}
-
 
 	/**
 	 * Create a new {@linkplain SendNodeDescriptor send node} from the specified
@@ -282,43 +233,31 @@ public class SendNodeDescriptor extends ParseNodeDescriptor
 	/**
 	 * Construct a new {@link SendNodeDescriptor}.
 	 *
-	 * @param isMutable Whether my {@linkplain AvailObject instances} can
-	 *                  change.
+	 * @param mutability
+	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 */
-	public SendNodeDescriptor (final boolean isMutable)
+	private SendNodeDescriptor (final Mutability mutability)
 	{
-		super(isMutable);
+		super(mutability);
 	}
 
-	/**
-	 * The mutable {@link SendNodeDescriptor}.
-	 */
+	/** The mutable {@link SendNodeDescriptor}. */
 	private static final SendNodeDescriptor mutable =
-		new SendNodeDescriptor(true);
+		new SendNodeDescriptor(Mutability.MUTABLE);
 
-	/**
-	 * Answer the mutable {@link SendNodeDescriptor}.
-	 *
-	 * @return The mutable {@link SendNodeDescriptor}.
-	 */
-	public static SendNodeDescriptor mutable ()
+	@Override
+	SendNodeDescriptor mutable ()
 	{
 		return mutable;
 	}
 
-	/**
-	 * The immutable {@link SendNodeDescriptor}.
-	 */
-	private static final SendNodeDescriptor immutable =
-		new SendNodeDescriptor(false);
+	/** The shared {@link SendNodeDescriptor}. */
+	private static final SendNodeDescriptor shared =
+		new SendNodeDescriptor(Mutability.SHARED);
 
-	/**
-	 * Answer the immutable {@link SendNodeDescriptor}.
-	 *
-	 * @return The immutable {@link SendNodeDescriptor}.
-	 */
-	public static SendNodeDescriptor immutable ()
+	@Override
+	SendNodeDescriptor shared ()
 	{
-		return immutable;
+		return shared;
 	}
 }

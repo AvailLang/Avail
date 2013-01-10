@@ -1,6 +1,6 @@
 /**
  * L2_LOOKUP_BY_VALUES.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -86,7 +86,7 @@ public class L2_LOOKUP_BY_VALUES extends L2Operation
 		}
 		final AvailObject signatureToCall =
 			selector.lookupByValuesFromList(interpreter.argsBuffer);
-		if (signatureToCall.equalsNull())
+		if (signatureToCall.equalsNil())
 		{
 			error("Unable to find unique definition for call");
 			return;

@@ -1,6 +1,6 @@
 /**
  * ParseNodeDescriptor.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,23 +40,23 @@ import com.avail.descriptor.ParseNodeTypeDescriptor.*;
 import com.avail.utility.*;
 
 /**
- * I'm used to implement the abstract notion of parse nodes.  All concrete parse
+ * I'm used to implement the abstract notion of parse nodes. All concrete parse
  * nodes are below me in the hierarchy.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public abstract class ParseNodeDescriptor extends Descriptor
+public abstract class ParseNodeDescriptor
+extends Descriptor
 {
-
 	/**
 	 * Construct a new {@link ParseNodeDescriptor}.
 	 *
-	 * @param isMutable Whether the descriptor being constructed represents
-	 *                  mutable objects or not.
+	 * @param mutability
+	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 */
-	protected ParseNodeDescriptor (final boolean isMutable)
+	protected ParseNodeDescriptor (final Mutability mutability)
 	{
-		super(isMutable);
+		super(mutability);
 	}
 
 	/**
@@ -67,12 +67,10 @@ public abstract class ParseNodeDescriptor extends Descriptor
 	 *         that will be produced by this parse node.
 	 */
 	@Override @AvailMethod
-	abstract AvailObject o_ExpressionType (
-		final AvailObject object);
+	abstract AvailObject o_ExpressionType (final AvailObject object);
 
 	@Override @AvailMethod
-	final AvailObject o_Kind (
-		final AvailObject object)
+	final AvailObject o_Kind (final AvailObject object)
 	{
 		return object.parseNodeKind().create(object.expressionType());
 	}
@@ -98,18 +96,17 @@ public abstract class ParseNodeDescriptor extends Descriptor
 	* The {@link #o_ApparentSendName(AvailObject) apparentSendName} of
 	 * something that isn't a {@linkplain SendNodeDescriptor send node} or
 	 * {@linkplain MacroSubstitutionNodeDescriptor macro substitution node} is
-	 * always the {@link NullDescriptor#nullObject() void} object.
+	 * always the {@link NilDescriptor#nil() void} object.
 	 */
 	@Override @AvailMethod
-	AvailObject o_ApparentSendName (
-		final AvailObject object)
+	AvailObject o_ApparentSendName (final AvailObject object)
 	{
-		return NullDescriptor.nullObject();
+		return NilDescriptor.nil();
 	}
 
 	/**
 	 * {@linkplain ParseNodeDescriptor parse nodes} must implement {@link
-	* AbstractDescriptor#o_Hash(AvailObject) hash}.
+	 * AbstractDescriptor#o_Hash(AvailObject) hash}.
 	 */
 	@Override @AvailMethod
 	abstract int o_Hash (final AvailObject object);
@@ -119,9 +116,7 @@ public abstract class ParseNodeDescriptor extends Descriptor
 	* ParseNodeDescriptor#o_EqualsParseNode(AvailObject, AvailObject)}.
 	 */
 	@Override @AvailMethod
-	final boolean o_Equals (
-		final AvailObject object,
-		final AvailObject another)
+	final boolean o_Equals (final AvailObject object, final AvailObject another)
 	{
 		return another.equalsParseNode(object);
 	}
@@ -166,7 +161,8 @@ public abstract class ParseNodeDescriptor extends Descriptor
 	/**
 	 * A special enumeration used to visit all object slots for copying.
 	 */
-	enum FakeObjectSlots implements ObjectSlotsEnum
+	enum FakeObjectSlots
+	implements ObjectSlotsEnum
 	{
 		/**
 		 * An indexed object slot that makes it easy to visit all object slots.
@@ -177,7 +173,8 @@ public abstract class ParseNodeDescriptor extends Descriptor
 	/**
 	 * A special enumeration used to visit all integer slots for copying.
 	 */
-	enum FakeIntegerSlots implements IntegerSlotsEnum
+	enum FakeIntegerSlots
+	implements IntegerSlotsEnum
 	{
 		/**
 		 * An indexed integer slot that makes it easy to visit all integer
@@ -190,14 +187,14 @@ public abstract class ParseNodeDescriptor extends Descriptor
 	 * If the receiver is immutable, make an equivalent mutable copy of that
 	 * parse node.  Otherwise, answer the receiver itself.
 	 *
-	 * @param object The {@linkplain ParseNodeDescriptor parse node} of which to
-	 *               create a mutable copy.
+	 * @param object
+	 *        The {@linkplain ParseNodeDescriptor parse node} of which to
+	 *        create a mutable copy.
 	 * @return A mutable {@linkplain ParseNodeDescriptor parse node} equivalent
 	 *         to the passed parse node, possibly the same object.
 	 */
 	@Override @AvailMethod
-	AvailObject o_CopyMutableParseNode (
-		final AvailObject object)
+	AvailObject o_CopyMutableParseNode (final AvailObject object)
 	{
 		if (isMutable())
 		{
@@ -206,9 +203,7 @@ public abstract class ParseNodeDescriptor extends Descriptor
 		final int objectCount = object.objectSlotsCount();
 		final int integerCount = object.integerSlotsCount();
 
-		final short descriptorId = (short)(object.descriptorId() & ~1);
-		final AbstractDescriptor mutableDescriptor =
-			allDescriptors.get(descriptorId);
+		final AbstractDescriptor mutableDescriptor = mutable();
 		assert mutableDescriptor.getClass() == object.descriptor().getClass();
 
 		final AvailObject copy =
@@ -299,16 +294,13 @@ public abstract class ParseNodeDescriptor extends Descriptor
 	 *         object's type would be.
 	 */
 	@Override @AvailMethod
-	abstract ParseNodeKind o_ParseNodeKind (
-		final AvailObject object);
+	abstract ParseNodeKind o_ParseNodeKind (final AvailObject object);
 
 	@Override @AvailMethod
-	AvailObject o_StripMacro (
-		final AvailObject object)
+	AvailObject o_StripMacro (final AvailObject object)
 	{
 		return object;
 	}
-
 
 	@Override int maximumIndent ()
 	{
@@ -316,10 +308,21 @@ public abstract class ParseNodeDescriptor extends Descriptor
 	}
 
 	@Override
-	public boolean o_ShowValueInNameForDebugger (
-		final AvailObject object)
+	public boolean o_ShowValueInNameForDebugger (final AvailObject object)
 	{
 		return false;
+	}
+
+	@Override
+	final AvailObject o_MakeImmutable (final AvailObject object)
+	{
+		if (isMutable())
+		{
+			// None of the subclasses define an immutable descriptor, so make
+			// the argument shared instead.
+			return object.makeShared();
+		}
+		return object;
 	}
 
 	/**
@@ -333,15 +336,11 @@ public abstract class ParseNodeDescriptor extends Descriptor
 	 *        What to do with each descendant.
 	 * @param parentNode
 	 *        This node's parent, or {@code null}.
-	 * @param outerNodes
-	 *        The list of {@linkplain BlockNodeDescriptor blocks} surrounding
-	 *        this node, from outermost to innermost.
 	 */
 	public static void treeDoWithParent (
 		final AvailObject object,
-		final Continuation3<AvailObject, AvailObject, List<AvailObject>> aBlock,
-		final @Nullable AvailObject parentNode,
-		final List<AvailObject> outerNodes)
+		final Continuation2<AvailObject, AvailObject> aBlock,
+		final @Nullable AvailObject parentNode)
 	{
 		object.childrenDo(
 			new Continuation1<AvailObject>()
@@ -354,13 +353,20 @@ public abstract class ParseNodeDescriptor extends Descriptor
 					treeDoWithParent(
 						child,
 						aBlock,
-						object,
-						outerNodes);
+						object);
 				}
 			});
-		aBlock.value(
-			object,
-			parentNode,
-			outerNodes);
+		aBlock.value(object, parentNode);
 	}
+
+	@Override
+	final ParseNodeDescriptor immutable ()
+	{
+		// Subclasses do not have an immutable descriptor, so use the shared one
+		// instead.
+		return shared();
+	}
+
+	@Override
+	abstract ParseNodeDescriptor shared ();
 }

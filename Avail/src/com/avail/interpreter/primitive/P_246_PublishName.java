@@ -1,6 +1,6 @@
 /**
  * P_246_PublishName.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -75,7 +75,7 @@ extends Primitive
 			final AvailObject trueName = interpreter.lookupName(name);
 			module.atNewNamePut(name, trueName);
 			module.atNameAdd(name, trueName);
-			return interpreter.primitiveSuccess(NullDescriptor.nullObject());
+			return interpreter.primitiveSuccess(NilDescriptor.nil());
 		}
 		catch (final AmbiguousNameException e)
 		{

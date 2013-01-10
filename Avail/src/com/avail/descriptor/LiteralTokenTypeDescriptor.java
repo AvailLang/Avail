@@ -1,6 +1,6 @@
 /**
  * LiteralTokenTypeDescriptor.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -49,7 +49,7 @@ import com.avail.serialization.SerializerOperation;
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class LiteralTokenTypeDescriptor
+public final class LiteralTokenTypeDescriptor
 extends TypeDescriptor
 {
 	/**
@@ -62,20 +62,6 @@ extends TypeDescriptor
 		 * The type constraint on a literal token's value.
 		 */
 		LITERAL_TYPE
-	}
-
-
-	@Override @AvailMethod
-	AvailObject o_LiteralType (
-		final AvailObject object)
-	{
-		return object.slot(LITERAL_TYPE);
-	}
-
-	@Override @AvailMethod int o_Hash(
-		final AvailObject object)
-	{
-		return object.slot(LITERAL_TYPE).hash() ^ 0xF47FF1B1;
 	}
 
 	@Override
@@ -92,17 +78,25 @@ extends TypeDescriptor
 			indent + 1);
 	}
 
+	@Override @AvailMethod
+	AvailObject o_LiteralType (final AvailObject object)
+	{
+		return object.slot(LITERAL_TYPE);
+	}
+
+	@Override @AvailMethod int o_Hash(final AvailObject object)
+	{
+		return object.slot(LITERAL_TYPE).hash() ^ 0xF47FF1B1;
+	}
+
 	@Override
-	boolean o_IsLiteralTokenType (
-		final AvailObject object)
+	boolean o_IsLiteralTokenType (final AvailObject object)
 	{
 		return true;
 	}
 
 	@Override
-	boolean o_Equals (
-		final AvailObject object,
-		final AvailObject another)
+	boolean o_Equals (final AvailObject object, final AvailObject another)
 	{
 		return another.equalsLiteralTokenType(object);
 	}
@@ -116,9 +110,7 @@ extends TypeDescriptor
 	}
 
 	@Override
-	boolean o_IsSubtypeOf (
-		final AvailObject object,
-		final AvailObject aType)
+	boolean o_IsSubtypeOf (final AvailObject object, final AvailObject aType)
 	{
 		// Check if object (a type) is a subtype of aType (should also be a
 		// type).
@@ -199,8 +191,7 @@ extends TypeDescriptor
 	}
 
 	@Override
-	SerializerOperation o_SerializerOperation (
-		final AvailObject object)
+	SerializerOperation o_SerializerOperation (final AvailObject object)
 	{
 		return SerializerOperation.LITERAL_TOKEN_TYPE;
 	}
@@ -212,14 +203,23 @@ extends TypeDescriptor
 	 * @param literalType The type with which to constrain literal values.
 	 * @return A {@link LiteralTokenTypeDescriptor literal token type}.
 	 */
-	public static AvailObject create (
-		final AvailObject literalType)
+	public static AvailObject create (final AvailObject literalType)
 	{
 		final AvailObject instance = mutable.create();
 		instance.setSlot(LITERAL_TYPE, literalType.makeImmutable());
 		return instance;
 	}
 
+	@Override
+	AvailObject o_MakeImmutable (final AvailObject object)
+	{
+		if (isMutable())
+		{
+			// There is no immutable descriptor, so share the object.
+			return object.makeShared();
+		}
+		return object;
+	}
 
 	/** The most general literal token type */
 	private static AvailObject mostGeneralType;
@@ -244,52 +244,44 @@ extends TypeDescriptor
 	public static void createWellKnownObjects ()
 	{
 		mostGeneralType = create(ANY.o());
-		mostGeneralType.makeImmutable();
+		mostGeneralType.makeShared();
 	}
-
-
 
 	/**
 	 * Construct a new {@link LiteralTokenTypeDescriptor}.
 	 *
-	 * @param isMutable
-	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
-	 *        object?
+	 * @param mutability
+	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 */
-	protected LiteralTokenTypeDescriptor (final boolean isMutable)
+	protected LiteralTokenTypeDescriptor (final Mutability mutability)
 	{
-		super(isMutable);
+		super(mutability);
 	}
 
-	/**
-	 * The mutable {@link LiteralTokenTypeDescriptor}.
-	 */
+	/** The mutable {@link LiteralTokenTypeDescriptor}. */
 	private static final LiteralTokenTypeDescriptor mutable =
-		new LiteralTokenTypeDescriptor(true);
+		new LiteralTokenTypeDescriptor(Mutability.MUTABLE);
 
-	/**
-	 * Answer the mutable {@link LiteralTokenTypeDescriptor}.
-	 *
-	 * @return The mutable {@link LiteralTokenTypeDescriptor}.
-	 */
-	public static LiteralTokenTypeDescriptor mutable ()
+	@Override
+	LiteralTokenTypeDescriptor mutable ()
 	{
 		return mutable;
 	}
 
-	/**
-	 * The immutable {@link LiteralTokenTypeDescriptor}.
-	 */
-	private static final LiteralTokenTypeDescriptor immutable =
-		new LiteralTokenTypeDescriptor(false);
+	/** The shared {@link LiteralTokenTypeDescriptor}. */
+	private static final LiteralTokenTypeDescriptor shared =
+		new LiteralTokenTypeDescriptor(Mutability.SHARED);
 
-	/**
-	 * Answer the immutable {@link LiteralTokenTypeDescriptor}.
-	 *
-	 * @return The immutable {@link LiteralTokenTypeDescriptor}.
-	 */
-	public static LiteralTokenTypeDescriptor immutable ()
+	@Override
+	LiteralTokenTypeDescriptor immutable ()
 	{
-		return immutable;
+		// There is no immutable variant.
+		return shared;
+	}
+
+	@Override
+	LiteralTokenTypeDescriptor shared ()
+	{
+		return shared;
 	}
 }

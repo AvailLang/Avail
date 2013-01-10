@@ -1,6 +1,6 @@
 /**
  * AssignmentNodeDescriptor.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,6 +33,8 @@
 package com.avail.descriptor;
 
 import static com.avail.descriptor.AvailObject.*;
+import static com.avail.descriptor.AssignmentNodeDescriptor.IntegerSlots.*;
+import static com.avail.descriptor.AssignmentNodeDescriptor.ObjectSlots.*;
 import java.util.List;
 import com.avail.annotations.*;
 import com.avail.compiler.AvailCodeGenerator;
@@ -46,7 +48,7 @@ import com.avail.utility.*;
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class AssignmentNodeDescriptor
+public final class AssignmentNodeDescriptor
 extends ParseNodeDescriptor
 {
 	/**
@@ -87,46 +89,31 @@ extends ParseNodeDescriptor
 		EXPRESSION
 	}
 
-	/**
-	 * Setter for field variable.
-	 */
-	@Override @AvailMethod
-	void o_Variable (
+	@Override
+	void printObjectOnAvoidingIndent (
 		final AvailObject object,
-		final AvailObject value)
+		final StringBuilder builder,
+		final List<AvailObject> recursionList,
+		final int indent)
 	{
-		object.setSlot(ObjectSlots.VARIABLE, value);
+		builder.append(object.slot(VARIABLE).token().string().asNativeString());
+		builder.append(" := ");
+		object.slot(EXPRESSION).printOnAvoidingIndent(
+			builder,
+			recursionList,
+			indent + 1);
 	}
 
-	/**
-	 * Getter for field variable.
-	 */
 	@Override @AvailMethod
-	AvailObject o_Variable (
-		final AvailObject object)
+	AvailObject o_Variable (final AvailObject object)
 	{
-		return object.slot(ObjectSlots.VARIABLE);
+		return object.slot(VARIABLE);
 	}
 
-	/**
-	 * Setter for field expression.
-	 */
 	@Override @AvailMethod
-	void o_Expression (
-		final AvailObject object,
-		final AvailObject value)
+	AvailObject o_Expression (final AvailObject object)
 	{
-		object.setSlot(ObjectSlots.EXPRESSION, value);
-	}
-
-	/**
-	 * Getter for field expression.
-	 */
-	@Override @AvailMethod
-	AvailObject o_Expression (
-		final AvailObject object)
-	{
-		return object.slot(ObjectSlots.EXPRESSION);
+		return object.slot(EXPRESSION);
 	}
 
 	/**
@@ -138,7 +125,7 @@ extends ParseNodeDescriptor
 	 */
 	private boolean isInline (final AvailObject object)
 	{
-		return object.slot(IntegerSlots.IS_INLINE) == 1;
+		return object.slot(IS_INLINE) == 1;
 	}
 
 	@Override @AvailMethod
@@ -148,7 +135,7 @@ extends ParseNodeDescriptor
 		{
 			return Types.TOP.o();
 		}
-		return object.expression().expressionType();
+		return object.slot(EXPRESSION).expressionType();
 	}
 
 	@Override @AvailMethod
@@ -166,8 +153,8 @@ extends ParseNodeDescriptor
 		final AvailObject aParseNode)
 	{
 		return object.kind().equals(aParseNode.kind())
-			&& object.variable().equals(aParseNode.variable())
-			&& object.expression().equals(aParseNode.expression());
+			&& object.slot(VARIABLE).equals(aParseNode.variable())
+			&& object.slot(EXPRESSION).equals(aParseNode.expression());
 	}
 
 	@Override @AvailMethod
@@ -175,10 +162,10 @@ extends ParseNodeDescriptor
 		final AvailObject object,
 		final AvailCodeGenerator codeGenerator)
 	{
-		final AvailObject declaration = object.variable().declaration();
+		final AvailObject declaration = object.slot(VARIABLE).declaration();
 		final DeclarationKind declarationKind = declaration.declarationKind();
 		assert declarationKind.isVariable();
-		object.expression().emitValueOn(codeGenerator);
+		object.slot(EXPRESSION).emitValueOn(codeGenerator);
 		declarationKind.emitVariableAssignmentForOn(
 			declaration,
 			codeGenerator);
@@ -189,10 +176,10 @@ extends ParseNodeDescriptor
 		final AvailObject object,
 		final AvailCodeGenerator codeGenerator)
 	{
-		final AvailObject declaration = object.variable().declaration();
+		final AvailObject declaration = object.slot(VARIABLE).declaration();
 		final DeclarationKind declarationKind = declaration.declarationKind();
 		assert declarationKind.isVariable();
-		object.expression().emitValueOn(codeGenerator);
+		object.slot(EXPRESSION).emitValueOn(codeGenerator);
 		codeGenerator.emitDuplicate();
 		declarationKind.emitVariableAssignmentForOn(
 			declaration,
@@ -204,8 +191,8 @@ extends ParseNodeDescriptor
 		final AvailObject object,
 		final Transformer1<AvailObject, AvailObject> aBlock)
 	{
-		object.expression(aBlock.value(object.expression()));
-		object.variable(aBlock.value(object.variable()));
+		object.setSlot(EXPRESSION, aBlock.value(object.slot(EXPRESSION)));
+		object.setSlot(VARIABLE, aBlock.value(object.slot(VARIABLE)));
 	}
 
 	@Override @AvailMethod
@@ -213,8 +200,8 @@ extends ParseNodeDescriptor
 		final AvailObject object,
 		final Continuation1<AvailObject> aBlock)
 	{
-		aBlock.value(object.expression());
-		aBlock.value(object.variable());
+		aBlock.value(object.slot(EXPRESSION));
+		aBlock.value(object.slot(VARIABLE));
 	}
 
 	@Override @AvailMethod
@@ -222,7 +209,7 @@ extends ParseNodeDescriptor
 		final AvailObject object,
 		final @Nullable AvailObject parent)
 	{
-		final AvailObject variable = object.variable();
+		final AvailObject variable = object.slot(VARIABLE);
 		final DeclarationKind kind = variable.declaration().declarationKind();
 		switch (kind)
 		{
@@ -249,22 +236,6 @@ extends ParseNodeDescriptor
 		return ParseNodeKind.ASSIGNMENT_NODE;
 	}
 
-	@Override
-	void printObjectOnAvoidingIndent (
-		final AvailObject object,
-		final StringBuilder builder,
-		final List<AvailObject> recursionList,
-		final int indent)
-	{
-		builder.append(
-			object.variable().token().string().asNativeString());
-		builder.append(" := ");
-		object.expression().printOnAvoidingIndent(
-			builder,
-			recursionList,
-			indent + 1);
-	}
-
 	/**
 	 * Create a new {@linkplain AssignmentNodeDescriptor assignment node} using
 	 * the given {@linkplain VariableUseNodeDescriptor variable use} and
@@ -285,54 +256,42 @@ extends ParseNodeDescriptor
 		final AvailObject expression,
 		final boolean isInline)
 	{
-		final AvailObject assignment = mutable().create();
-		assignment.setSlot(ObjectSlots.VARIABLE, variableUse);
-		assignment.setSlot(ObjectSlots.EXPRESSION, expression);
-		assignment.setSlot(IntegerSlots.IS_INLINE, isInline ? 1 : 0);
-		assignment.makeImmutable();
+		final AvailObject assignment = mutable.create();
+		assignment.setSlot(VARIABLE, variableUse);
+		assignment.setSlot(EXPRESSION, expression);
+		assignment.setSlot(IS_INLINE, isInline ? 1 : 0);
+		assignment.makeShared();
 		return assignment;
 	}
 
 	/**
 	 * Construct a new {@link AssignmentNodeDescriptor}.
 	 *
-	 * @param isMutable Whether my {@linkplain AvailObject instances} can
-	 *                  change.
+	 * @param mutability
+	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 */
-	public AssignmentNodeDescriptor (final boolean isMutable)
+	private AssignmentNodeDescriptor (final Mutability mutability)
 	{
-		super(isMutable);
+		super(mutability);
 	}
 
-	/**
-	 * The mutable {@link AssignmentNodeDescriptor}.
-	 */
+	/** The mutable {@link AssignmentNodeDescriptor}. */
 	private static final AssignmentNodeDescriptor mutable =
-		new AssignmentNodeDescriptor(true);
+		new AssignmentNodeDescriptor(Mutability.MUTABLE);
 
-	/**
-	 * Answer the mutable {@link AssignmentNodeDescriptor}.
-	 *
-	 * @return The mutable {@link AssignmentNodeDescriptor}.
-	 */
-	public static AssignmentNodeDescriptor mutable ()
+	@Override
+	AssignmentNodeDescriptor mutable ()
 	{
 		return mutable;
 	}
 
-	/**
-	 * The immutable {@link AssignmentNodeDescriptor}.
-	 */
-	private static final AssignmentNodeDescriptor immutable =
-		new AssignmentNodeDescriptor(false);
+	/** The shared {@link AssignmentNodeDescriptor}. */
+	private static final AssignmentNodeDescriptor shared =
+		new AssignmentNodeDescriptor(Mutability.SHARED);
 
-	/**
-	 * Answer the immutable {@link AssignmentNodeDescriptor}.
-	 *
-	 * @return The immutable {@link AssignmentNodeDescriptor}.
-	 */
-	public static AssignmentNodeDescriptor immutable ()
+	@Override
+	AssignmentNodeDescriptor shared ()
 	{
-		return immutable;
+		return shared;
 	}
 }

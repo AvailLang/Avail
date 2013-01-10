@@ -1,6 +1,6 @@
 /**
  * Interpreter.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -188,16 +188,16 @@ public abstract class Interpreter
 		this.runtime = runtime;
 
 		// Also initialize the fiber field.
-		fiber = FiberDescriptor.mutable().create();
+		fiber = FiberDescriptor.mutable.create();
 		fiber.name(StringDescriptor.from(String.format(
 			"unnamed, creation time = %d, hash = %d",
 			System.currentTimeMillis(),
 			fiber.hash())));
 		fiber.priority(IntegerDescriptor.fromUnsignedByte((short)50));
-		fiber.continuation(NullDescriptor.nullObject());
+		fiber.continuation(NilDescriptor.nil());
 		fiber.executionState(ExecutionState.RUNNING);
 		fiber.clearInterruptRequestFlags();
-		fiber.breakpointBlock(NullDescriptor.nullObject());
+		fiber.breakpointBlock(NilDescriptor.nil());
 		fiber.fiberGlobals(MapDescriptor.empty());
 	}
 
@@ -758,7 +758,7 @@ public abstract class Interpreter
 			return;
 		}
 		final AvailObject method = runtime.methodsAt(methodName);
-		assert !method.equalsNull();
+		assert !method.equalsNil();
 		if (!pendingForwards.hasElement(aForward))
 		{
 			error("Inconsistent forward declaration handling code");
