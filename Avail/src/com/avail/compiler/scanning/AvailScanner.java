@@ -145,7 +145,7 @@ public class AvailScanner
 			startOfToken,
 			lineNumber,
 			tokenType);
-		token.makeImmutable();
+		token.makeShared();
 		outputTokens.add(token);
 		return token;
 	}
@@ -168,7 +168,7 @@ public class AvailScanner
 			lineNumber,
 			TokenType.LITERAL,
 			anAvailObject);
-		token.makeImmutable();
+		token.makeShared();
 		outputTokens.add(token);
 		return token;
 	}

@@ -696,11 +696,21 @@ implements ThreadFactory
 		specialAtomsSet = new HashSet<AvailObject>(specialAtomsList);
 		specialAtomsSet.remove(null);
 		specialAtomsSet = Collections.unmodifiableSet(specialAtomsSet);
-		for (final AvailObject object : specialObjects)
+		for (int i = 0; i < specialObjects.length; i++)
 		{
+			final AvailObject object = specialObjects[i];
 			if (object != null && object.isAtom())
 			{
 				assert specialAtomsSet.contains(object);
+				specialObjects[i] = object.makeShared();
+			}
+		}
+		for (int i = 0; i < specialAtoms.length; i++)
+		{
+			final AvailObject object = specialAtoms[i];
+			if (object != null)
+			{
+				specialAtoms[i] = object.makeShared();
 			}
 		}
 	}

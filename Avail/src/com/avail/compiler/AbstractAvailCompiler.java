@@ -554,7 +554,8 @@ public abstract class AbstractAvailCompiler
 			for (final ExpectedToken value : values())
 			{
 				assert value.lexeme == null;
-				value.lexeme = StringDescriptor.from(value.lexemeString);
+				value.lexeme =
+					StringDescriptor.from(value.lexemeString).makeShared();
 			}
 		}
 	}

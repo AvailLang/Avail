@@ -335,7 +335,7 @@ extends Descriptor
 		result.setSlot(
 			ObjectSlots.PARSING_INSTRUCTIONS,
 			splitter.instructionsTuple());
-		result.makeImmutable();
+		result.makeShared();
 		return result;
 	}
 
