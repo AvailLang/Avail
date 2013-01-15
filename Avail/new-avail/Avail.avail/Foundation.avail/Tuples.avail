@@ -2582,16 +2582,16 @@ Private method "insertion sort_with_" is
 	output : <any…|2..> := aTuple;
 	From 2 to |aTuple| do
 	[
-		i : [2..15]
+		i : [2..10]
 	 |
-		j : [1..14] := i - 1;
-		k : [2..15] := i;
+		j : [1..9] := i-1;
+		k : [2..10] := i;
 		While [j > 1 ∧ [comparator(output[k],output[j])]]
 		do
 		[
 		 	output := output[k↔j];
-			↑j--;
 			↑k--;
+			↑j--;
 		];
 		output := if j = 1 ∧ [comparator(output[k],output[j])] then 
 			[output[k↔j]] else [output];
@@ -2599,9 +2599,10 @@ Private method "insertion sort_with_" is
 	output
 ]:<any…|2..>;
 
+
 Semantic restriction "insertion sort_with_" is
 [
-	tupleType : tuple meta,
+	tupleType : <any…|2..10>'s type,
 	comparator : [⊥, ⊥]→boolean's type
 |
 	union ::= ∪ tupleType[1..|tupleType's leading types|+1];
