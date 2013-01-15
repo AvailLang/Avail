@@ -45,8 +45,7 @@ Names
 	"Obtain Stacks comments from_"
 
 Body
-
-"file name" is a new field atom;
+"Avail file" is a new field atom;
 "error occurs after line number" is a new field atom;
 
 /* Special characters that could result in token delimiter */
@@ -54,7 +53,7 @@ tokenDelimiter ::= {¢@,¢" ",¢"\t",¢"\"",¢"\n",¢{,¢/,¢*,¢\};
 
 Private forward method "_is at new comment" is [stacks scanner]→boolean;
 
-/***
+/**
  * Determine if a scanner comment is at the start of a new stacks comment.
  *
  * @method "_is at new comment"
@@ -86,6 +85,9 @@ Private method "_is at new comment" is
 				else
 				[
 					Toggle scanner's special comment;
+					/*Don't want to start comment buffer with newline*/
+					If scanner's current element = ¢"\n" then
+						[Next character from scanner;];
 					true
 				]
 			]
@@ -265,7 +267,7 @@ Private method "Process double quote in comment from_" is
 	scanner : stacks scanner
  |
 	scanner's token start := scanner's column number;
-	Toggle scanner's quoted flag;
+	Toggle scanner's special region flag;
 	Increment scanner's comment buffer index;
 	word : string := read from scanner's comment buffer  
 		while
@@ -400,12 +402,11 @@ Private method "Process double quote in comment from_" is
 			];
 		];
 	];
-
 	scanner's character buffer := word;
 	Buffer scanner's current quoted token;
 	scanner's line number := scanner's line number + |newlineIndices|;
 	Increment scanner's comment buffer index;
-	Toggle scanner's quoted flag;
+	Toggle scanner's special region flag;
  ]:⊤;
 
 /**
@@ -635,16 +636,18 @@ Private method "Process left curly brace in comment from_" is
 	 * bracketed region */
 	startIndex : natural number := scanner's comment buffer index;
 	Increment scanner's comment buffer index;
-
 	throwAway ::= read from scanner's comment buffer while
 		[ scanner's current buffer character is whitespace];
 	If scanner's current buffer character = ¢@ then
 	[
 		Buffer scanner's current token;
+		Toggle scanner's special region flag;
 		Toggle scanner's tokenize;
 		startIndex := scanner's comment buffer index;
 		region ::= read from scanner's comment buffer while
 			[scanner's current buffer character ≠ ¢}]; 
+		newlineIndices ::= all indices of region where 
+			[c : character | c = ¢"\n"];
 		scanner's character buffer := <>;
 		endIndex : natural number := scanner's comment buffer index;
 		scanner's comment buffer index := startIndex;
@@ -675,6 +678,8 @@ Private method "Process left curly brace in comment from_" is
 			concatenate scanner's subtokens buffer separated by " ";
 		Toggle scanner's tokenize;
 		Buffer scanner's current bracketed token;
+		Toggle scanner's special region flag;
+		scanner's line number := scanner's line number + |newlineIndices|;
 	]
 	else
 	[

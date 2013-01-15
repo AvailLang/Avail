@@ -71,7 +71,6 @@ Names
 	"Increment_'s⁇buffer index",
 	"Increment_'s⁇comment buffer index",
 	"«Increment|Decrement»!_'s⁇open comment count",
-	"Obtain Stacks comments from_",
 	"open comment count",
 	"quoted stacks token",
 	"read from_'s⁇comment buffer while_",
@@ -83,7 +82,7 @@ Names
 	"stacks token",
 	"subtokens buffer",
 	"Toggle_'s⁇new line",
-	"Toggle_'s⁇quoted flag",
+	"Toggle_'s⁇special region flag",
 	"Toggle_'s⁇special comment",
 	"Toggle_'s⁇tokenize",
 	"_'s⁇character buffer",
@@ -103,7 +102,6 @@ Names
 	"_'s⁇open comment count",
 	"_'s⁇position",
 	"_'s⁇previous buffer character",
-	"_'s⁇quoted flag",
 	"_'s⁇special flag",
 	"_'s⁇special region flag",
 	"_'s⁇special comment",
@@ -123,10 +121,9 @@ Body
 "new line" is a new field atom;
 "open comment count" is a new field atom;
 "quoted" is a new field atom;
-"quoted flag" is a new field atom;
+"special region flag" is a new field atom;
 "special comment" is a new field atom;
 "special flag" is a new field atom;
-"special region flag" is a new field atom;
 "subtokens" is a new field atom;
 "subtokens buffer" is a new field atom;
 "tokenize" is a new field atom;
@@ -342,7 +339,7 @@ Public method "concatenate_separated by_" is
  * @field "special comment" "boolean"
  * 	if scanner current element is in a stacks comment.  Should be initialized
  * 	to false.
- * @field "quoted flag" "boolean"
+ * @field "special region flag" "boolean"
  * 	if scanner current element in a quoted region.  Should be initialized to
  * 	false.
  * @author Richard Arriaga
@@ -358,8 +355,8 @@ Public class "stacks scanner" extends Avail scanner
 		public referable comment buffer index : natural number,
 		referable open comment count : whole number,
 		new line : boolean,
-		quoted flag : boolean,
 		special comment : boolean,
+		special region flag : boolean,
 		tokenize : boolean;
 
 /**
@@ -392,7 +389,7 @@ Public method "a stacks scanner with_" is
 		open comment count := 0,
 		new line := true,
 		special comment := false,
-		quoted flag := false,
+		special region flag := false,
 		tokenize := true
 ] : stacks scanner;
 
@@ -440,9 +437,9 @@ Public method "Toggle_'s⁇new line" is
 ]:⊤;
 
 /**
- * Toggle scanner's stacks object quoted flag
+ * Toggle scanner's stacks object special region flag
  *
- * @method "Toggle_'s⁇quoted flag"
+ * @method "Toggle_'s⁇special region flag"
  * @categories "Stacks"
  * @param "scanner" "stacks scanner" 
  *      a stacks scanner
@@ -450,15 +447,15 @@ Public method "Toggle_'s⁇new line" is
  *      none
  * @author "Richard Arriaga"
  */
-Public method "Toggle_'s⁇quoted flag" is
+Public method "Toggle_'s⁇special region flag" is
 [
 	scanner : stacks scanner
  |
-	scanner's quoted flag := ¬scanner's quoted flag;
+	scanner's special region flag := ¬scanner's special region flag;
 ]:⊤;
 
 /**
- * Toggle scanner's stacks object quoted flag
+ * Toggle scanner's stacks object special region flag
  *
  * @method "Toggle_'s⁇special comment"
  * @categories "Stacks"
@@ -476,7 +473,7 @@ Public method "Toggle_'s⁇special comment" is
 ]:⊤;
 
 /**
- * Toggle scanner's stacks object quoted flag
+ * Toggle scanner's stacks object special region flag
  *
  * @method "Toggle_'s⁇tokenize"
  * @categories "Stacks"
@@ -734,8 +731,8 @@ Public method "Increment_'s⁇comment buffer index" is
 	] else
 	[
 		↑scanner's comment buffer index++;
-		If scanner's comment buffer index > 1  ∧ 
-			[scanner's previous buffer character = ¢"\n"] 
+		If ¬scanner's special region flag ∧ [scanner's comment buffer index > 1  ∧ 
+			[scanner's previous buffer character = ¢"\n"]] 
 		then 
 		[
 			scanner's column number := 1;
@@ -841,7 +838,7 @@ Private method "tokenize_'s⁇«quoted»?character buffer" is
 	cb : <character…|1..> := cast scanner's character buffer into 
 		[s : <character…|1..> | s];
 
-	tokenStart : natural number := if scanner's quoted flag then
+	tokenStart : natural number := if scanner's special region flag then
 	[
 		scanner's token start
 	]

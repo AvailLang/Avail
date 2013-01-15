@@ -44,10 +44,13 @@ Names
 
 Body
 test : string := "purple
-\"/**Frog*/\"
+ask\" /**Frog*/
+
+you\"
 Stuff
 /*Hooray*/ no
 /*
+ * Zilch
 * Construct and answer a {@type \"dimensioned quantity\"} type with the specified
 * {@type \"number\" extent} I'ma \\\" quote
 *
@@ -58,15 +61,15 @@ with fields
 	unit map : {atom→1's type|1};
 
 /**
-* A f {@method burger} break {@type 
-* \"number\" 
-* extent   } base \"unit is metrically\" irreducible; though * it may be reduced to smaller*
+* A f {@method burger} break base \"unit is metrically\" irreducible; though * it may be reduced to smaller*
 * quanta, it may /*/*not*/ be reduced*/ to simpler *terms. Examples of base units are * 
 * meters (m), seconds (s), or grams (g). type \"first function to accept a dimensioned quantity and a unit \\
 *		\\|(but it accepts ① and ②)\\
-*		\\|over three lines baby!\"
+*		\\|over three lines baby!\" Sigh
 * An email address {@link \"turkey@turkeytown.com\"} does it work?
-* yup yup yup \"Second function to accept a dimensioned quantity and a unit
+* yup yup yup {@type 
+* \"number\" 
+* extent   } turtle \"Second function to accept a dimensioned quantity and a unit
 *		(but it accepts ① and ②)\"
 * hut hut hut \"third function to accept a dimensioned quantity and a unit \\
 *		(but it accepts ① and ②)\"

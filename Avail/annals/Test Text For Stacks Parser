@@ -1,3 +1,70 @@
+"purple
+ask\" /**Frog*/
+
+you\"
+Stuff
+/*Hooray*/ no
+/*
+*Zilch
+* Construct and answer a {@type \"dimensioned quantity\"} type with the specified
+* {@type \"number\" extent} I'ma \\\" quote
+*
+* @method \"dimensioned_\"
+*/
+Public explicit class \"base unit\" extends unit
+with fields
+	unit map : {atom→1's type|1};
+
+/**
+* A f {@method burger} break base \"unit is metrically\" irreducible; though * it may be reduced to smaller*
+* quanta, it may /*/*not*/ be reduced*/ to simpler *terms. Examples of base units are * 
+* meters (m), seconds (s), or grams (g). type \"first function to accept a dimensioned quantity and a unit \\
+*		\\|(but it accepts ① and ②)\\
+*		\\|over three lines baby!\" Sigh
+* An email address {@link \"turkey@turkeytown.com\"} does it work?
+* yup yup yup {@type 
+* \"number\" 
+* extent   } turtle \"Second function to accept a dimensioned quantity and a unit
+*		(but it accepts ① and ②)\"
+* hut hut hut \"third function to accept a dimensioned quantity and a unit \\
+*		(but it accepts ① and ②)\"
+* now now now \"mixed style to accept a dimensioned quantity and a unit \\
+*		\\|(but it accepts ① and ②)
+*		mixed over three lines baby!\"
+* @type \"base unit\" tea \\\" a
+* @supertype \"unit\" garble \\
+* @method so @ \\@ feels \\@scruffy me @wood perky\\@google.com jeffy\\ tickle-fuck
+* stuff and {nickels} for { sammy } \\
+*/
+Public explicit class \"base unit\" extends unit
+	with fields
+		unit map : {atom→1's type|1};
+
+
+/**
+* Construct and answer a {@type \"dimensioned quantity\"} type with the specified
+* {@type \"number\" extent} I'ma \\\" quote
+*
+* @method \"dimensioned_\"
+* @param \"magnitudeType\" \"number's type\"
+*        The magnitude type.
+* @returns \"dimensioned quantity\"
+*          The requested {@type \"dimensioned quantity\"} type.
+*/
+Public method \"dimensioned_\" is
+[
+	magnitudeType : number's type
+|
+	extend dimensioned quantity with extent : magnitudeType
+] : dimensioned quantity's type;
+
+Semantic restriction \"dimensioned_\" is
+[
+	magnitudeType : number's type's type
+|
+	(extend dimensioned quantity with extent : magnitudeType's instance)'s type
+];";
+
 "Sucker /**
  * Given an iterator at the start of a comment, collect all the characters until 
  * the open comment count is 0. /*Puprplee*/
