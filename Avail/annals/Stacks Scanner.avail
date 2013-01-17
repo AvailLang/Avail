@@ -411,10 +411,11 @@ Public method "Reset_'s⁇comment processing structure" is
 	scanner's comment buffer := <>;
 	scanner's character buffer := <>;
 	scanner's comment buffer index := 1;
-	scanner's  open comment count := 0;
+	scanner's open comment count := 0;
 	scanner's special comment := false;
 	scanner's new line := true;
 	scanner's token buffer := <>;
+	scanner's column number := 1;
 ]:⊤;
 
 /**
@@ -844,8 +845,7 @@ Private method "tokenize_'s⁇«quoted»?character buffer" is
 	]
 	else
 	[
-		cast scanner's column number - |cb| + 1
-			into [n : natural number | n]
+		cast scanner's column number - |cb| into [n : natural number | n]
 	];
 	if optionalFlag then 
 	[

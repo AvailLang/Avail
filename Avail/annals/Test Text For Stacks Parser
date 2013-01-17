@@ -16,8 +16,8 @@ with fields
 	unit map : {atom→1's type|1};
 
 /**
-* A f {@method burger} break base \"unit is metrically\" irreducible; though * it may be reduced to smaller*
-* quanta, it may /*/*not*/ be reduced*/ to simpler *terms. Examples of base units are * 
+* A f break base \"unit is metrically\" irreducible; though * it may be reduced to smaller*
+* quanta, {@method burger} it may /*/*not*/ be reduced*/ to simpler *terms. Examples of base units are * 
 * meters (m), seconds (s), or grams (g). type \"first function to accept a dimensioned quantity and a unit \\
 *		\\|(but it accepts ① and ②)\\
 *		\\|over three lines baby!\" Sigh

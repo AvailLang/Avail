@@ -61,8 +61,8 @@ with fields
 	unit map : {atom→1's type|1};
 
 /**
-* A f {@method burger} break base \"unit is metrically\" irreducible; though * it may be reduced to smaller*
-* quanta, it may /*/*not*/ be reduced*/ to simpler *terms. Examples of base units are * 
+* A f break base \"unit is metrically\" irreducible; though * it may be reduced to smaller*
+* quanta, {@method burger} it may /*/*not*/ be reduced*/ to simpler *terms. Examples of base units are * 
 * meters (m), seconds (s), or grams (g). type \"first function to accept a dimensioned quantity and a unit \\
 *		\\|(but it accepts ① and ②)\\
 *		\\|over three lines baby!\" Sigh
@@ -72,7 +72,7 @@ with fields
 * extent   } turtle \"Second function to accept a dimensioned quantity and a unit
 *		(but it accepts ① and ②)\"
 * hut hut hut \"third function to accept a dimensioned quantity and a unit \\
-*		(but it accepts ① and ②)\"
+*		(but it accepts ③ and ④)\" trye
 * now now now \"mixed style to accept a dimensioned quantity and a unit \\
 *		\\|(but it accepts ① and ②)
 *		mixed over three lines baby!\"
@@ -121,6 +121,14 @@ For each scanner's comments[1] do
  Print: format "‘①’-“②”, " with s's lexeme,s's line;
 ];
 Print: "\n\n";
+For each scanner's comments[1] do
+[
+	s : stacks token
+ |
+ Print: format "‘①’-“②”, " with s's lexeme,s's position;
+];
+Print: "\n\n";
+
 q : string := concatenate scanner's comments[1] separated by ",";
 Print: q; Print: "\n\n";
 For each scanner's comments[2] do

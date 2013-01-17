@@ -252,6 +252,180 @@ Private method "Process forward slash from_" is
 ]:⊤;
 
 /**
+ * Function that handles case where \...|\ is not used.  As an input accepts 
+ * the index location of the newline being processed. Returns the string with 
+ * that newline character as well as the next line's starting asterisk and 
+ * white space fileterd out
+ *
+ * @method "process raw new line from_at_"
+ * @categories "Stacks"
+ * @param "phrase" "string"
+ *  	special region to remove new lines from
+ * @param "index" "natural number" 
+ *      tuple of new line location
+ * @returnType "string"
+ *      string with new line removed
+ * @author "Richard Arriaga"
+ */
+Private method "process raw new line from_at_" is
+[
+	phrase : string,
+	index : natural number
+ |
+	filtered : string := phrase;
+	firstAsterisk : natural number := 
+		first index of "*" in filtered[index+1..] + index;
+	start : natural number := first index of 
+		filtered[firstAsterisk + 1..] where
+		[
+			c : character
+		 |
+			¬c is whitespace
+		] + firstAsterisk;
+	if start = firstAsterisk then
+	[
+		if index = 1 then [""]
+		else 
+		[
+			end : natural number := cast index-1 into 
+				[k : natural number | k]; 
+			filtered[..end]
+		]
+	]
+	else
+	[
+		if index = 1 then 
+		[
+			filtered[start..]
+		]
+		else 
+		[
+			end : natural number := cast index-1 into 
+				[k : natural number | k]; 
+			if filtered[end] ≠ ¢" " then 
+			[filtered[..end] ++ " " ++ filtered[start..]]
+			else [filtered[..end] ++ filtered[start..]]
+		]
+	]
+]:string;
+
+/**
+ * Remove the new lines from a special region string given a tuple of indices
+ * of the new line locations.
+ *
+ * @method "remove new lines from_at_"
+ * @categories "stacks"
+ * @param "phrase" "string" 
+ *  	special region to remove new lines from
+ * @param "indices" "<natural number…|1..>"
+ * 		indices of a new line characters
+ * @returnType "string"
+ *      string with new lines removed
+ * @raises "exceptionName" 
+ *      exceptionDescription
+ * @author "Richard Arriaga"
+ */
+Private method "remove new lines from_at_" is
+[
+	phrase : string,
+	indices : <natural number…|1..>
+ |
+	size : natural number := |indices|;
+	filtered : string := phrase;
+	From size to 1 by -1 do
+	[
+		n : natural number
+	 |
+		filtered := if indices[n] > 1 then
+		[
+			i : natural number := cast indices[n]-1 into 
+				[k : natural number | k];
+		 	if filtered[i] = ¢\ then
+			[
+				startHalf2 : natural number := 
+					first index of "\\|" in filtered[i+1..] + i + 2;
+				if startHalf2 = 2 then
+				[
+					/*TODO Insert error handling.  Missing \| */
+					filtered
+				]
+				else
+				[
+					if i = 1 then 
+					[
+						/*TODO Insert warning, string starts
+						 * with new line unncessarily.*/
+						filtered [startHalf2..]
+					]
+					else if [startHalf2 -1 = |filtered|] then 
+					[
+						/*TODO Insert warning, string concludes
+						 * with |\ making new line unncessary.*/
+						end : natural number := cast i-1 into 
+							[k : natural number | k]; 
+						filtered[..end]
+					]
+					else
+					[
+						end : natural number := cast i-1 into 
+							[k : natural number | k];
+						if filtered[end] ≠ ¢" " then 
+						[filtered[..end] ++ " " ++ filtered[startHalf2..]]
+						else [filtered[..end] ++ filtered[startHalf2..]]
+					]
+				]
+			]
+			else 
+			[
+				/*Did not use \ ... \| in this new line*/
+				process raw new line from filtered at indices[n]
+			]
+		]
+		else
+		[
+		 	process raw new line from filtered at indices[n]
+		];
+	];
+	filtered
+]:string;
+
+/**
+ * Remove from the quoted region all the escaped characters that indicates the 
+ * subsequent quotes is escaped
+ *
+ * @method "remove escaped character for quotes from_"
+ * @categories "Stacks"
+ * @param "phrase" "string" 
+ *      the string to remove escaped
+ * @returnType "string"
+ *      the string with escape characters removed
+ * @author "Richard Arriaga"
+ */
+Private method "remove escaped character for quotes from_" is
+[
+	phrase : string
+ |
+ 	word : string := phrase;
+	quoteIndices ::= all indices of word where [c : character | c = ¢"\""];
+	/* Iteratate through quote indices removing the char before the quote */
+	If |quoteIndices| > 0 then
+	[
+		size : natural number := cast |quoteIndices| into 
+			[i : natural number | i]; 
+		From size to 1 by -1 do
+		[
+			n : natural number
+		 |
+			z ::= split word after quoteIndices[n];
+			i ::= |z[1]| - 1; 
+			word := z[1][1..i] ++ z[2];
+		];
+	];
+	phrase
+]:string;
+
+
+/**
  * Tokenize all characters in double quotes including white space as one token.
  *
  * @method "Process double quote in comment from_"
@@ -269,7 +443,11 @@ Private method "Process double quote in comment from_" is
 	scanner's token start := scanner's column number;
 	Toggle scanner's special region flag;
 	Increment scanner's comment buffer index;
-	word : string := read from scanner's comment buffer  
+	columnNumber : natural number;
+	/*columnStart := scanner's column number;*/
+
+	/*Obtain quoted region*/
+	region : string := read from scanner's comment buffer  
 		while
 		[
 			scanner's current buffer character ≠ ¢"\"" ∨ 
@@ -277,134 +455,30 @@ Private method "Process double quote in comment from_" is
 			 		[scanner's current buffer character = ¢"\""]]
 		];
 
-	/* Find all instances of \" in word.  All remaining instances will be 
-	 * preceded by a \ */
-	quoteIndices ::= all indices of word where [c : character | c = ¢"\""];
-	/* Iteratate through quote indices removing the char before the quote */
-	If |quoteIndices| > 0 then
-	[
-		size : natural number := cast |quoteIndices| into 
-			[i : natural number | i]; 
-		From size to 1 by -1 do
+	/* Find all new line instances in word and remove them*/
+	newlineIndices : <natural number…|> := all indices of region where 
+		[c : character | c = ¢"\n"];
+	region := if |newlineIndices| > 0 then 
 		[
-			n : natural number
-		 |
-			z ::= split word after quoteIndices[n];
-			i ::= |z[1]| - 1; 
-			word := z[1][1..i] ++ z[2];
-		];
-	];
-
-	/* Find all new line instances in word */
-	newlineIndices ::= all indices of word where [c : character | c = ¢"\n"];
-	/* Iterate through new line indices removing them and associated 
-	 * syntax used to break quoted strings over many lines */
-	If |newlineIndices| > 0 then
-	[
-	 	/* Function that handles case where \...|\ is not used.  As an input 
-	 	 * accepts the index location of the newline being processed. Returns 
-	 	 * the string with that newline character as well as the next line's 
-	 	 * starting asterisk and white space fileterd out*/
-		processLineFrom : [natural number]→string := 
+		 	indices : <natural number…|1..> := cast newlineIndices into 
+		 		[t : <natural number…|1..> | t];
+			columnNumber := |region[indices' last + 1..]| + 1;
+			remove new lines from region at indices
+		] else
 		[
-			tupleIndex : natural number
-		 |
-			firstAsterisk : natural number := 
-				first index of "*" in word[tupleIndex+1..] + tupleIndex;
-			start : natural number := first index of 
-				word[firstAsterisk + 1..] where
-				[
-					c : character
-				 |
-					¬c is whitespace
-				] + firstAsterisk;
-			if start = firstAsterisk then
-			[
-				if tupleIndex = 1 then [""]
-				else 
-				[
-					end : natural number := cast tupleIndex-1 into 
-						[k : natural number | k]; 
-					word[..end]
-				]
-			]
-			else
-			[
-				if tupleIndex = 1 then 
-				[
-					word[start..]
-				]
-				else 
-				[
-					end : natural number := cast tupleIndex-1 into 
-						[k : natural number | k]; 
-					if word[end] ≠ ¢" " then 
-					[word[..end] ++ " " ++ word[start..]]
-					else [word[..end] ++ word[start..]]
-				]
-			]
+			columnNumber := scanner's column number;
+			region
 		];
 
-		size : natural number := cast |newlineIndices| into 
-			[i : natural number | i]; 
-		From size to 1 by -1 do
-		[
-			n : natural number
-		 |
-			word := if newlineIndices[n] > 1 then
-			[
-				i : natural number := cast newlineIndices[n]-1 into 
-					[k : natural number | k];
-			 	if word[i] = ¢\ then
-				[
-					startHalf2 : natural number := 
-						first index of "\\|" in word[i+1..] + i + 2;
-					if startHalf2 = 2 then
-					[
-						/*TODO Insert error handling.  Missing \| */
-						word
-					]
-					else
-					[
-						if i = 1 then 
-						[
-							/*TODO Insert warning, string starts
-							 * with new line unncessarily.*/
-							word [startHalf2..]
-						]
-						else if [startHalf2 -1 = |word|] then 
-						[
-							/*TODO Insert warning, string concludes
-							 * with |\ making new line unncessary.*/
-							end : natural number := cast i-1 into 
-								[k : natural number | k]; 
-							word[..end]
-						]
-						else
-						[
-							end : natural number := cast i-1 into 
-								[k : natural number | k];
-							if word[end] ≠ ¢" " then 
-							[word[..end] ++ " " ++ word[startHalf2..]]
-							else [word[..end] ++ word[startHalf2..]]
-						]
-					]
-				]
-				else 
-				[
-					/*Did not use \ ... \| in this new line*/
-					processLineFrom(newlineIndices[n])
-				]
-			]
-			else
-			[
-			 	processLineFrom(newlineIndices[n])
-			];
-		];
-	];
-	scanner's character buffer := word;
+	/* Find all instances of escaped quotes in word and remove the escape 
+	 * character prior to the quote.  */
+	scanner's character buffer := 
+		remove escaped character for quotes from region;
+	
+	/*Tokenize quoted string*/
 	Buffer scanner's current quoted token;
 	scanner's line number := scanner's line number + |newlineIndices|;
+	scanner's column number := columnNumber;
 	Increment scanner's comment buffer index;
 	Toggle scanner's special region flag;
  ]:⊤;
@@ -445,9 +519,9 @@ Private method "Process newline in comment from_" is
 [
 	scanner : stacks scanner
 |
-
 	Buffer scanner's current token;
 	Toggle scanner's new line;
+ 	scanner's column number := 1;
 	asterickCount : whole number := 0;
 	While
 	[
@@ -635,6 +709,7 @@ Private method "Process left curly brace in comment from_" is
 	/*Store current comment buffer index to be reset to if not start of special 
 	 * bracketed region */
 	startIndex : natural number := scanner's comment buffer index;
+	startColumn : natural number := scanner's column number;
 	Increment scanner's comment buffer index;
 	throwAway ::= read from scanner's comment buffer while
 		[ scanner's current buffer character is whitespace];
@@ -646,10 +721,17 @@ Private method "Process left curly brace in comment from_" is
 		startIndex := scanner's comment buffer index;
 		region ::= read from scanner's comment buffer while
 			[scanner's current buffer character ≠ ¢}]; 
-		newlineIndices ::= all indices of region where 
-			[c : character | c = ¢"\n"];
-		scanner's character buffer := <>;
 		endIndex : natural number := scanner's comment buffer index;
+		newlineIndices : <natural number…|> := all indices of region where 
+			[c : character | c = ¢"\n"];
+		columnPosition : natural number := if |newlineIndices| > 0 then 
+		[
+			indices : <natural number…|1..> := cast newlineIndices into 
+				[t : <natural number…|1..> | t];
+			cast |region[indices' last + 1..]| into
+				[n : natural number | n]
+		] else [scanner's column number] + 1; 
+		scanner's character buffer := <>;
 		scanner's comment buffer index := startIndex;
 		While
 		[
@@ -677,13 +759,16 @@ Private method "Process left curly brace in comment from_" is
 		scanner's character buffer := 
 			concatenate scanner's subtokens buffer separated by " ";
 		Toggle scanner's tokenize;
+		scanner's token start := startColumn;
 		Buffer scanner's current bracketed token;
 		Toggle scanner's special region flag;
 		scanner's line number := scanner's line number + |newlineIndices|;
+		scanner's column number := columnPosition;
 	]
 	else
 	[
 		scanner's comment buffer index := startIndex;
+		scanner's column number := startColumn;
 		scanner's character buffer := scanner's character buffer ++ 
 			<scanner's current buffer character>;
 		Increment scanner's comment buffer index;
