@@ -388,6 +388,11 @@ public abstract class AbstractAvailCompiler
 	@InnerAccess volatile boolean canceling = false;
 
 	/**
+	 * The original reason, if any, that a cancellation is taking place.
+	 */
+	@InnerAccess @Nullable volatile Throwable causeOfCancellation = null;
+
+	/**
 	 * Answer whether this is a {@linkplain AvailSystemCompiler system
 	 * compiler}.  A system compiler is used for modules that start with the
 	 * keyword "{@linkplain ExpectedToken#SYSTEM System}".  Such modules use a
@@ -722,7 +727,7 @@ public abstract class AbstractAvailCompiler
 		@Override
 		public String toString()
 		{
-			return description + "@pos(" + position + ")";
+			return "Task(@" + position + ", " + description + ")";
 		}
 
 		@Override
@@ -957,9 +962,15 @@ public abstract class AbstractAvailCompiler
 		public String toString ()
 		{
 			return String.format(
-				"%s%n\tPOSITION = %d%n%s\tCLIENT_DATA = %s",
+				"%s%n\tPOSITION = %d%n\tTOKENS = %s ☞ %s%n\tCLIENT_DATA = %s",
 				getClass().getSimpleName(),
 				position,
+				(position > 0
+					? tokens.get(position - 1).string()
+					: "(start)"),
+				(position < tokens.size()
+					? tokens.get(position).string()
+					: "(end)"),
 				clientDataMap);
 		}
 
@@ -1128,6 +1139,21 @@ public abstract class AbstractAvailCompiler
 		public AvailObject currentModule ()
 		{
 			return AbstractAvailCompiler.this.module;
+		}
+
+		/**
+		 * Evaluate the given {@linkplain ParseNodeDescriptor phrase}, answering
+		 * its result.  Note that the phrase might throw an {@link
+		 * AvailRejectedParseException}.  The phrase is considered to start
+		 * lexically at the token position carried by the receiver.
+		 *
+		 * @param phrase The phrase to execute.
+		 * @return The value returned by the phrase.
+		 */
+		public AvailObject evaluate (final AvailObject phrase)
+		{
+			final int line = peekToken().lineNumber();
+			return AbstractAvailCompiler.this.evaluate(phrase, line);
 		}
 	}
 
@@ -1706,7 +1732,8 @@ public abstract class AbstractAvailCompiler
 		try
 		{
 			workUnitsQueued++;
-			workPoolExecutor.execute(new ParsingTask(description, position)
+			final Mutable<ParsingTask> task = new Mutable<ParsingTask>();
+			task.value = new ParsingTask(description, position)
 			{
 				@Override
 				public void run ()
@@ -1720,7 +1747,19 @@ public abstract class AbstractAvailCompiler
 						// Don't actually run tasks if canceling.
 						if (!canceling)
 						{
+//							System.out.println(task.value);  //TODO[MvG] Remove
 							continuation.value();
+						}
+					}
+					catch (final Throwable e)
+					{
+						synchronized (thisCompiler)
+						{
+							if (!canceling)
+							{
+								causeOfCancellation = e;
+								canceling = true;
+							}
 						}
 					}
 					finally
@@ -1735,7 +1774,8 @@ public abstract class AbstractAvailCompiler
 						}
 					}
 				}
-			});
+			};
+			workPoolExecutor.execute(task.value);
 		}
 		catch (final RejectedExecutionException e)
 		{
@@ -2020,10 +2060,38 @@ public abstract class AbstractAvailCompiler
 					}
 					final List<String> sorted = new ArrayList<String>(
 						incomplete.mapSize());
+					final boolean detail = incomplete.mapSize() < 10;
 					for (final MapDescriptor.Entry entry
 						: incomplete.mapIterable())
 					{
-						sorted.add(entry.key.asNativeString());
+						final String string = entry.key.asNativeString();
+						if (detail)
+						{
+							final StringBuilder buffer = new StringBuilder();
+							buffer.append(string);
+							buffer.append(" (");
+							boolean first = true;
+							for (final MapDescriptor.Entry successorBundleEntry
+								: entry.value.allBundles().mapIterable())
+							{
+								if (first)
+								{
+									first = false;
+								}
+								else
+								{
+									buffer.append(", ");
+								}
+								buffer.append(
+									successorBundleEntry.key.toString());
+							}
+							buffer.append(")");
+							sorted.add(buffer.toString());
+						}
+						else
+						{
+							sorted.add(string);
+						}
 					}
 					Collections.sort(sorted);
 					boolean startOfLine = true;
@@ -2041,7 +2109,7 @@ public abstract class AbstractAvailCompiler
 						final int lengthBefore = builder.length();
 						builder.append(s);
 						column += builder.length() - lengthBefore;
-						if (column + 2 + s.length() > 80)
+						if (detail || column + 2 + s.length() > 80)
 						{
 							builder.append("\n\t");
 							column = leftColumn;
@@ -2243,7 +2311,7 @@ public abstract class AbstractAvailCompiler
 			// recursion.
 			for (final MapDescriptor.Entry entry : complete.mapIterable())
 			{
-				assert interpreter.runtime().hasMethodsAt(entry.key);
+				assert interpreter.runtime().hasMethodAt(entry.key);
 				completedSendNode(
 					initialTokenPosition,
 					start,
@@ -2264,24 +2332,15 @@ public abstract class AbstractAvailCompiler
 				if (incomplete.hasKey(keywordString))
 				{
 					final AvailObject subtree = incomplete.mapAt(keywordString);
-					eventuallyDo(
-						new Continuation0()
-						{
-							@Override
-							public void value ()
-							{
-								parseRestOfSendNode(
-									start.afterToken(),
-									subtree,
-									null,
-									initialTokenPosition,
-									true,  // Just consumed a token
-									argsSoFar,
-									continuation);
-							}
-						},
-						"Continue send after a keyword",
-						start.afterToken().position);
+					eventuallyParseRestOfSendNode(
+						"Continue send after a keyword: " + keywordString,
+						start.afterToken(),
+						subtree,
+						null,
+						initialTokenPosition,
+						true,  // Just consumed a token.
+						argsSoFar,
+						continuation);
 				}
 				else
 				{
@@ -2307,24 +2366,15 @@ public abstract class AbstractAvailCompiler
 				{
 					final AvailObject subtree =
 						caseInsensitive.mapAt(keywordString);
-					eventuallyDo(
-						new Continuation0()
-						{
-							@Override
-							public void value ()
-							{
-								parseRestOfSendNode(
-									start.afterToken(),
-									subtree,
-									null,
-									initialTokenPosition,
-									true,  // Just consumed a token.
-									argsSoFar,
-									continuation);
-							}
-						},
-						"Continue send after a keyword",
-						start.afterToken().position);
+					eventuallyParseRestOfSendNode(
+						"Continue send after a case-insensitive keyword",
+						start.afterToken(),
+						subtree,
+						null,
+						initialTokenPosition,
+						true,  // Just consumed a token.
+						argsSoFar,
+						continuation);
 				}
 				else
 				{
@@ -2338,13 +2388,16 @@ public abstract class AbstractAvailCompiler
 		}
 		if (anyPrefilter)
 		{
+			System.out.println("PREFILTER ENCOUNTERED: " + prefilter);
 			final AvailObject latestArgument = last(argsSoFar);
 			if (latestArgument.isInstanceOfKind(SEND_NODE.mostGeneralType()))
 			{
 				final AvailObject methodName = latestArgument.method().name();
 				if (prefilter.hasKey(methodName))
 				{
-					parseRestOfSendNode(
+					eventuallyParseRestOfSendNode(
+						"Continue send after productive grammatical "
+							+ "restriction",
 						start,
 						prefilter.mapAt(methodName),
 						firstArgOrNull,
@@ -2354,6 +2407,10 @@ public abstract class AbstractAvailCompiler
 						continuation);
 					// Don't allow normal action processing, as it would ignore
 					// the restriction which we've been so careful to prefilter.
+					assert actions.mapSize() == 1;
+					assert ParsingOperation.decode(
+							actions.mapIterable().next().key.extractInt())
+						== ParsingOperation.CHECK_ARGUMENT;
 					return;
 				}
 			}
@@ -2381,7 +2438,9 @@ public abstract class AbstractAvailCompiler
 								continuation);
 						}
 					},
-					"Continue with an instruction",
+					//TODO[MvG]: Reduce back to a string constant at some point.
+					"Continue with instruction: "
+						+ ParsingOperation.decode(entry.key.extractInt()),
 					start.position);
 			}
 		}
@@ -2497,27 +2556,17 @@ public abstract class AbstractAvailCompiler
 							assert newArg != null;
 							final List<AvailObject> newArgsSoFar =
 								append(argsSoFar, newArg);
-							eventuallyDo(
-								new Continuation0()
-								{
-									@Override
-									public void value ()
-									{
-										parseRestOfSendNode(
-											afterArg,
-											successorTrees.tupleAt(1),
-											null,
-											initialTokenPosition,
-											// The argument counts as something
-											// that was consumed if it's not a
-											// leading argument...
-											firstArgOrNull == null,
-											newArgsSoFar,
-											continuation);
-									}
-								},
+							eventuallyParseRestOfSendNode(
 								"Continue send after argument",
-								afterArg.position);
+								afterArg,
+								successorTrees.tupleAt(1),
+								null,
+								initialTokenPosition,
+								// The argument counts as something that was
+								// consumed if it's not a leading argument...
+								firstArgOrNull == null,
+								newArgsSoFar,
+								continuation);
 						}
 					});
 				break;
@@ -2528,24 +2577,15 @@ public abstract class AbstractAvailCompiler
 				assert successorTrees.tupleSize() == 1;
 				final List<AvailObject> newArgsSoFar =
 					append(argsSoFar, ListNodeDescriptor.empty());
-				eventuallyDo(
-					new Continuation0()
-					{
-						@Override
-						public void value ()
-						{
-							parseRestOfSendNode(
-								start,
-								successorTrees.tupleAt(1),
-								firstArgOrNull,
-								initialTokenPosition,
-								consumedAnything,
-								newArgsSoFar,
-								continuation);
-						}
-					},
+				eventuallyParseRestOfSendNode(
 					"Continue send after push empty",
-					start.position);
+					start,
+					successorTrees.tupleAt(1),
+					firstArgOrNull,
+					initialTokenPosition,
+					consumedAnything,
+					newArgsSoFar,
+					continuation);
 				break;
 			}
 			case APPEND_ARGUMENT:
@@ -2560,24 +2600,15 @@ public abstract class AbstractAvailCompiler
 				final AvailObject listNode = oldNode.copyWith(value);
 				final List<AvailObject> newArgsSoFar =
 					append(withoutLast(poppedOnce), listNode);
-				eventuallyDo(
-					new Continuation0()
-					{
-						@Override
-						public void value ()
-						{
-							parseRestOfSendNode(
-								start,
-								successorTrees.tupleAt(1),
-								firstArgOrNull,
-								initialTokenPosition,
-								consumedAnything,
-								newArgsSoFar,
-								continuation);
-						}
-					},
+				eventuallyParseRestOfSendNode(
 					"Continue send after append",
-					start.position);
+					start,
+					successorTrees.tupleAt(1),
+					firstArgOrNull,
+					initialTokenPosition,
+					consumedAnything,
+					newArgsSoFar,
+					continuation);
 				break;
 			}
 			case SAVE_PARSE_POSITION:
@@ -2591,24 +2622,15 @@ public abstract class AbstractAvailCompiler
 							: initialTokenPosition.position));
 				final List<AvailObject> newArgsSoFar =
 					PrefixSharingList.append(argsSoFar, marker);
-				eventuallyDo(
-					new Continuation0()
-					{
-						@Override
-						public void value ()
-						{
-							parseRestOfSendNode(
-								start,
-								successorTrees.tupleAt(1),
-								firstArgOrNull,
-								initialTokenPosition,
-								consumedAnything,
-								newArgsSoFar,
-								continuation);
-						}
-					},
+				eventuallyParseRestOfSendNode(
 					"Continue send after push parse position",
-					start.position);
+					start,
+					successorTrees.tupleAt(1),
+					firstArgOrNull,
+					initialTokenPosition,
+					consumedAnything,
+					newArgsSoFar,
+					continuation);
 				break;
 			}
 			case DISCARD_SAVED_PARSE_POSITION:
@@ -2620,24 +2642,15 @@ public abstract class AbstractAvailCompiler
 				assert last(poppedOnce).isMarkerNode();
 				final List<AvailObject> newArgsSoFar =
 					append(withoutLast(poppedOnce), oldTop);
-				eventuallyDo(
-					new Continuation0()
-					{
-						@Override
-						public void value ()
-						{
-							parseRestOfSendNode(
-								start,
-								successorTrees.tupleAt(1),
-								firstArgOrNull,
-								initialTokenPosition,
-								consumedAnything,
-								newArgsSoFar,
-								continuation);
-						}
-					},
+				eventuallyParseRestOfSendNode(
 					"Continue send after underpop saved position",
-					start.position);
+					start,
+					successorTrees.tupleAt(1),
+					firstArgOrNull,
+					initialTokenPosition,
+					consumedAnything,
+					newArgsSoFar,
+					continuation);
 				break;
 			}
 			case ENSURE_PARSE_PROGRESS:
@@ -2660,24 +2673,15 @@ public abstract class AbstractAvailCompiler
 					append(
 						append(withoutLast(poppedOnce), newMarker),
 						top);
-				eventuallyDo(
-					new Continuation0()
-					{
-						@Override
-						public void value ()
-						{
-							parseRestOfSendNode(
-								start,
-								successorTrees.tupleAt(1),
-								firstArgOrNull,
-								initialTokenPosition,
-								consumedAnything,
-								newArgsSoFar,
-								continuation);
-						}
-					},
+				eventuallyParseRestOfSendNode(
 					"Continue send after check parse progress",
-					start.position);
+					start,
+					successorTrees.tupleAt(1),
+					firstArgOrNull,
+					initialTokenPosition,
+					consumedAnything,
+					newArgsSoFar,
+					continuation);
 				break;
 			}
 			case PARSE_RAW_TOKEN:
@@ -2708,24 +2712,15 @@ public abstract class AbstractAvailCompiler
 						LiteralNodeDescriptor.fromToken(syntheticToken);
 					final List<AvailObject> newArgsSoFar =
 						append(argsSoFar, literalNode);
-					eventuallyDo(
-						new Continuation0()
-						{
-							@Override
-							public void value ()
-							{
-								parseRestOfSendNode(
-									afterToken,
-									successorTrees.tupleAt(1),
-									null,
-									initialTokenPosition,
-									true,
-									newArgsSoFar,
-									continuation);
-							}
-						},
+					eventuallyParseRestOfSendNode(
 						"Continue send after raw token for ellipsis",
-						afterToken.position);
+						afterToken,
+						successorTrees.tupleAt(1),
+						null,
+						initialTokenPosition,
+						true,
+						newArgsSoFar,
+						continuation);
 				}
 				break;
 			case POP:
@@ -2733,24 +2728,15 @@ public abstract class AbstractAvailCompiler
 				// Pop the parse stack.
 				assert successorTrees.tupleSize() == 1;
 				final List<AvailObject> newArgsSoFar = withoutLast(argsSoFar);
-				eventuallyDo(
-					new Continuation0()
-					{
-						@Override
-						public void value ()
-						{
-							parseRestOfSendNode(
-								start,
-								successorTrees.tupleAt(1),
-								firstArgOrNull,
-								initialTokenPosition,
-								consumedAnything,
-								newArgsSoFar,
-								continuation);
-						}
-					},
+				eventuallyParseRestOfSendNode(
 					"Continue send after pop",
-					start.position);
+					start,
+					successorTrees.tupleAt(1),
+					firstArgOrNull,
+					initialTokenPosition,
+					consumedAnything,
+					newArgsSoFar,
+					continuation);
 				break;
 			}
 			case PARSE_ARGUMENT_IN_MODULE_SCOPE:
@@ -2831,27 +2817,17 @@ public abstract class AbstractAvailCompiler
 								new ParserState(
 									afterArg.position,
 									start.clientDataMap);
-							eventuallyDo(
-								new Continuation0()
-								{
-									@Override
-									public void value ()
-									{
-										parseRestOfSendNode(
-											afterArgButInScope,
-											successorTrees.tupleAt(1),
-											null,
-											initialTokenPosition,
-											// The argument counts as something
-											// that was consumed if it's not a
-											// leading argument...
-											firstArgOrNull == null,
-											newArgsSoFar,
-											continuation);
-									}
-								},
-								"Continue send after argument",
-								afterArg.position);
+							eventuallyParseRestOfSendNode(
+								"Continue send after argument in module scope",
+								afterArgButInScope,
+								successorTrees.tupleAt(1),
+								null,
+								initialTokenPosition,
+								// The argument counts as something that was
+								// consumed if it's not a leading argument...
+								firstArgOrNull == null,
+								newArgsSoFar,
+								continuation);
 						}
 					});
 				break;
@@ -2875,24 +2851,16 @@ public abstract class AbstractAvailCompiler
 				for (int i = successorTrees.tupleSize(); i >= 1; i--)
 				{
 					final AvailObject successorTree = successorTrees.tupleAt(i);
-					eventuallyDo(
-						new Continuation0()
-						{
-							@Override
-							public void value ()
-							{
-								parseRestOfSendNode(
-									start,
-									successorTree,
-									firstArgOrNull,
-									initialTokenPosition,
-									consumedAnything,
-									argsSoFar,
-									continuation);
-							}
-						},
-						"Continue send after branch or jump",
-						start.position);
+					eventuallyParseRestOfSendNode(
+						"Continue send after branch or jump (" +
+							(i == 1 ? "not taken)" : "taken)"),
+						start,
+						successorTree,
+						firstArgOrNull,
+						initialTokenPosition,
+						consumedAnything,
+						argsSoFar,
+						continuation);
 				}
 				break;
 			case PARSE_PART:
@@ -2909,116 +2877,37 @@ public abstract class AbstractAvailCompiler
 				// deals with that efficiently.
 				assert successorTrees.tupleSize() == 1;
 				assert firstArgOrNull == null;
-				eventuallyDo(
-					new Continuation0()
-					{
-						@Override
-						public void value ()
-						{
-							parseRestOfSendNode(
-								start,
-								successorTrees.tupleAt(1),
-								firstArgOrNull,
-								initialTokenPosition,
-								consumedAnything,
-								argsSoFar,
-								continuation);
-						}
-					},
+				eventuallyParseRestOfSendNode(
 					"Continue send after checkArgument",
-					start.position);
+					start,
+					successorTrees.tupleAt(1),
+					firstArgOrNull,
+					initialTokenPosition,
+					consumedAnything,
+					argsSoFar,
+					continuation);
 				break;
 			}
 			case CONVERT:
 			{
 				// Convert the argument.
 				assert successorTrees.tupleSize() == 1;
-				final AvailObject target = last(argsSoFar);
-				final AvailObject replacement;
-				switch (op.conversionRule(instruction))
-				{
-					case noConversion:
-					{
-						replacement = target;
-						break;
-					}
-					case listToSize:
-					{
-						final AvailObject expressions =
-							target.expressionsTuple();
-						final AvailObject count = IntegerDescriptor.fromInt(
-							expressions.tupleSize());
-						final AvailObject token =
-							LiteralTokenDescriptor.create(
-								StringDescriptor.from(count.toString()),
-								initialTokenPosition.peekToken().start(),
-								initialTokenPosition.peekToken().lineNumber(),
-								LITERAL,
-								count);
-						replacement = LiteralNodeDescriptor.fromToken(token);
-						break;
-					}
-					case listToNonemptiness:
-					{
-						final AvailObject expressions =
-							target.expressionsTuple();
-						final AvailObject nonempty =
-							AtomDescriptor.objectFromBoolean(
-								expressions.tupleSize() > 0);
-						final AvailObject token =
-							LiteralTokenDescriptor.create(
-								StringDescriptor.from(nonempty.toString()),
-								initialTokenPosition.peekToken().start(),
-								initialTokenPosition.peekToken().lineNumber(),
-								LITERAL,
-								nonempty);
-						replacement = LiteralNodeDescriptor.fromToken(token);
-						break;
-					}
-					case evaluateExpression:
-					{
-						final int line = start.peekToken().lineNumber();
-						try
-						{
-							final AvailObject value = evaluate(target, line);
-							replacement =
-								LiteralNodeDescriptor.syntheticFrom(value);
-						}
-						catch (final AvailRejectedParseException e)
-						{
-							start.expected(
-								e.rejectionString().asNativeString());
-							return;
-						}
-						break;
-					}
-					default:
-					{
-						replacement = target;
-						assert false : "Conversion rule not handled";
-						break;
-					}
-				}
+				final AvailObject input = last(argsSoFar);
+				final AvailObject replacement =
+					op.conversionRule(instruction).convert(
+						input,
+						initialTokenPosition);
 				final List<AvailObject> newArgsSoFar =
 					append(withoutLast(argsSoFar), replacement);
-				eventuallyDo(
-					new Continuation0()
-					{
-						@Override
-						public void value ()
-						{
-							parseRestOfSendNode(
-								start,
-								successorTrees.tupleAt(1),
-								firstArgOrNull,
-								initialTokenPosition,
-								consumedAnything,
-								newArgsSoFar,
-								continuation);
-						}
-					},
+				eventuallyParseRestOfSendNode(
 					"Continue send after conversion",
-					start.position);
+					start,
+					successorTrees.tupleAt(1),
+					firstArgOrNull,
+					initialTokenPosition,
+					consumedAnything,
+					newArgsSoFar,
+					continuation);
 				break;
 			}
 			case PUSH_INTEGER_LITERAL:
@@ -3036,25 +2925,15 @@ public abstract class AbstractAvailCompiler
 					LiteralNodeDescriptor.fromToken(token);
 				final List<AvailObject> newArgsSoFar =
 					append(argsSoFar, literalNode);
-				eventuallyDo(
-					new Continuation0()
-					{
-						@Override
-						public void value ()
-						{
-							parseRestOfSendNode(
-								start,
-								successorTrees.tupleAt(1),
-								firstArgOrNull,
-								initialTokenPosition,
-								consumedAnything,
-								newArgsSoFar,
-								continuation);
-						}
-					},
+				eventuallyParseRestOfSendNode(
 					"Continue send after conversion",
-					start.position);
-
+					start,
+					successorTrees.tupleAt(1),
+					firstArgOrNull,
+					initialTokenPosition,
+					consumedAnything,
+					newArgsSoFar,
+					continuation);
 				break;
 			}
 			case PREPARE_TO_RUN_PREFIX_FUNCTION:
@@ -3081,24 +2960,15 @@ public abstract class AbstractAvailCompiler
 					ListNodeDescriptor.newExpressions(
 						TupleDescriptor.fromList(stackCopy));
 				assert successorTrees.tupleSize() == 1;
-				eventuallyDo(
-					new Continuation0()
-					{
-						@Override
-						public void value ()
-						{
-							parseRestOfSendNode(
-								start,
-								successorTrees.tupleAt(1),
-								firstArgOrNull,
-								initialTokenPosition,
-								consumedAnything,
-								append(argsSoFar, newListNode),
-								continuation);
-						}
-					},
-					"Continue send after prepare to run prefix function (§)",
-					start.position);
+				eventuallyParseRestOfSendNode(
+					"Continue send after preparing to run prefix function (§)",
+					start,
+					successorTrees.tupleAt(1),
+					firstArgOrNull,
+					initialTokenPosition,
+					consumedAnything,
+					append(argsSoFar, newListNode),
+					continuation);
 				break;
 			}
 			case RUN_PREFIX_FUNCTION:
@@ -3224,29 +3094,63 @@ public abstract class AbstractAvailCompiler
 					fiberGlobals.mapAt(clientDataGlobalKey);
 
 				assert successorTrees.tupleSize() == 1;
-				eventuallyDo(
-					new Continuation0()
-					{
-						@Override
-						public void value ()
-						{
-							parseRestOfSendNode(
-								new ParserState(
-									start.position,
-									newClientData),
-								successorTrees.tupleAt(1),
-								firstArgOrNull,
-								initialTokenPosition,
-								consumedAnything,
-								withoutLast(argsSoFar),
-								continuation);
-						}
-					},
-					"Continue send after argumentsCheckpoint (§)",
-					start.position);
+				eventuallyParseRestOfSendNode(
+					"Continue send after running prefix function (§)",
+					new ParserState(
+						start.position,
+						newClientData),
+					successorTrees.tupleAt(1),
+					firstArgOrNull,
+					initialTokenPosition,
+					consumedAnything,
+					withoutLast(argsSoFar),
+					continuation);
 				break;
 			}
 		}
+	}
+
+	/**
+	 * A helper method to queue a parsing activity for continuing to parse a
+	 * {@linkplain SendNodeDescriptor send phrase}.
+	 *
+	 * @param description
+	 * @param start
+	 * @param bundleTree
+	 * @param firstArgOrNull
+	 * @param initialTokenPosition
+	 * @param consumedAnything
+	 * @param argsSoFar
+	 * @param continuation
+	 */
+	@InnerAccess void eventuallyParseRestOfSendNode (
+		final String description,
+		final ParserState start,
+		final AvailObject bundleTree,
+		final @Nullable AvailObject firstArgOrNull,
+		final ParserState initialTokenPosition,
+		final boolean consumedAnything,
+		final List<AvailObject> argsSoFar,
+		final Con<AvailObject> continuation)
+	{
+		eventuallyDo(
+			new Continuation0()
+			{
+				@Override
+				public void value ()
+				{
+					parseRestOfSendNode(
+						start,
+						bundleTree,
+						firstArgOrNull,
+						initialTokenPosition,
+						consumedAnything,
+						argsSoFar,
+						continuation);
+				}
+			},
+			description,
+			start.position);
 	}
 
 	/**
@@ -3676,7 +3580,6 @@ public abstract class AbstractAvailCompiler
 		if (state.value == null)
 		{
 			reportError(qualifiedName);
-			assert false;
 		}
 		if (!state.value.atEnd())
 		{
@@ -3693,7 +3596,6 @@ public abstract class AbstractAvailCompiler
 		{
 			state.value.expected(errorString);
 			reportError(qualifiedName);
-			assert false;
 		}
 
 		serializer.serialize(AtomDescriptor.moduleHeaderSectionAtom());
@@ -3734,12 +3636,11 @@ public abstract class AbstractAvailCompiler
 					"pragma to have the form method=999=name " +
 					"or macro=999[,999...]=name.");
 				reportError(qualifiedName);
-				assert false;
 			}
 		}
 
 		module.buildFilteredBundleTreeFrom(
-			interpreter.runtime().rootBundleTree());
+			interpreter.runtime().allBundles());
 		fragmentCache = new AvailCompilerFragmentCache();
 		while (!state.value.atEnd())
 		{
@@ -3774,10 +3675,33 @@ public abstract class AbstractAvailCompiler
 				});
 			assert workPool.isEmpty();
 
+			if (canceling)
+			{
+				reportError(
+					qualifiedName,
+					tokens.get(Math.max(greatestGuess, state.value.position)),
+					"Error during parsing:",
+					Collections.<Generator<String>>singletonList(
+						new Generator<String>()
+						{
+							@Override
+							public String value ()
+							{
+								final StringBuilder trace = new StringBuilder();
+								trace.append(causeOfCancellation.toString());
+								for (final StackTraceElement stackFrame
+									: causeOfCancellation.getStackTrace())
+								{
+									trace.append("\n\t");
+									trace.append(stackFrame);
+								}
+								return trace.toString();
+							}
+						}));
+			}
 			if (interpretation.value == null)
 			{
 				reportError(qualifiedName);
-				assert false;
 			}
 			// Clear the section of the fragment cache associated with the
 			// (outermost) statement just parsed...
@@ -3804,7 +3728,6 @@ public abstract class AbstractAvailCompiler
 								return e.assertionString().asNativeString();
 							}
 						}));
-
 			}
 			if (!state.value.atEnd())
 			{
@@ -3863,7 +3786,6 @@ public abstract class AbstractAvailCompiler
 		if (parseModuleHeader(resolvedName, true) == null)
 		{
 			reportError(resolvedName);
-			assert false;
 		}
 	}
 

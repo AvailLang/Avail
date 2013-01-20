@@ -1657,20 +1657,20 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_RemoveImplementation (
+	void o_RemoveDefinition (
 		final AvailObject object,
-		final AvailObject implementation)
+		final AvailObject definition)
 	{
-		o_Traversed(object).removeImplementation(implementation);
+		o_Traversed(object).removeDefinition(definition);
 	}
 
 	@Override
-	boolean o_RemoveBundle (
+	boolean o_RemoveBundleNamed (
 		final AvailObject object,
-		final AvailObject bundle)
+		final AvailObject message)
 	{
-		return o_Traversed(object).removeBundle(
-			bundle);
+		return o_Traversed(object).removeBundleNamed(
+			message);
 	}
 
 	@Override
@@ -4404,7 +4404,7 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final AvailObject aParseNode)
 	{
-		return o_Traversed(object).equalsParseNodeType(aParseNode);
+		return o_Traversed(object).equalsParseNode(aParseNode);
 	}
 
 	@Override
@@ -4458,5 +4458,22 @@ extends AbstractDescriptor
 	boolean o_IsByteArrayTuple (final AvailObject object)
 	{
 		return o_Traversed(object).isByteArrayTuple();
+	}
+
+	@Override
+	AvailObject o_IncludeBundleNamed (
+		final AvailObject object,
+		final AvailObject message)
+	throws SignatureException
+	{
+		return o_Traversed(object).includeBundleNamed(message);
+	}
+
+	@Override
+	void o_FlushForNewOrChangedBundleNamed (
+		final AvailObject object,
+		final AvailObject message)
+	{
+		o_Traversed(object).flushForNewOrChangedBundleNamed(message);
 	}
 }

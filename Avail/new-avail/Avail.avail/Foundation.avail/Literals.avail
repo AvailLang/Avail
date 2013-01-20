@@ -523,6 +523,11 @@ Semantic restriction "<«_‡,»>" is
 Method "_[_]" is stable at
 	function accepting <tuple, natural number> and returning any;
 
+/** TODO[MvG] REMOVE DEBUG **/
+x ::= 1 min 2;
+y ::= 1 min 2 min 3;
+
+
 /**
  * Strengthen the tuple subscript operation. The strongest available static type
  * is the type union of the elements within the slice indicated by the range of

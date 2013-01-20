@@ -118,6 +118,38 @@ extends StringDescriptor
 		return true;
 	}
 
+	@Override
+	AvailObject o_CopyTupleFromToCanDestroy (
+		final AvailObject object,
+		final int start,
+		final int end,
+		final boolean canDestroy)
+	{
+		if (end - start < 50)
+		{
+			// Make a simple copy of a small region.
+			return generateTwoByteString(
+				end - start + 1,
+				new Generator<Integer>()
+				{
+					private int sourceIndex = start;
+
+					@Override
+					public Integer value ()
+					{
+						return (int)object.shortSlotAt(
+							IntegerSlots.RAW_QUAD_AT_,
+							sourceIndex++);
+					}
+				});
+		}
+		return super.o_CopyTupleFromToCanDestroy(
+			object,
+			start,
+			end,
+			canDestroy);
+	}
+
 	@Override @AvailMethod
 	boolean o_Equals (
 		final AvailObject object,
@@ -268,17 +300,6 @@ extends StringDescriptor
 			index,
 			newValueObject,
 			true);
-	}
-
-	@Override @AvailMethod
-	int o_TupleIntAt (
-		final AvailObject object,
-		final int index)
-	{
-		//  Answer the integer element at the given index in the tuple object.
-
-		error("Strings store characters, not integers", object);
-		return 0;
 	}
 
 	@Override @AvailMethod

@@ -32,6 +32,8 @@
 
 package com.avail.compiler;
 
+import static com.avail.descriptor.TokenDescriptor.TokenType.LITERAL;
+import com.avail.compiler.AbstractAvailCompiler.ParserState;
 import com.avail.descriptor.*;
 
 /**
@@ -46,7 +48,16 @@ public enum ParsingConversionRule
 	/**
 	 * {@code 0} - No conversion.
 	 */
-	noConversion(0),
+	noConversion(0)
+	{
+		@Override
+		public AvailObject convert (
+			final AvailObject input,
+			final ParserState startingParserState)
+		{
+			return input;
+		}
+	},
 
 	/**
 	 * {@code 1} - Convert a {@linkplain ListNodeDescriptor list} into a
@@ -54,7 +65,27 @@ public enum ParsingConversionRule
 	 * {@linkplain IntegerDescriptor integer} representing the {@linkplain
 	 * AvailObject#tupleSize() size} of the original list.
 	 */
-	listToSize(1),
+	listToSize(1)
+	{
+		@Override
+		public AvailObject convert (
+			final AvailObject input,
+			final ParserState startingParserState)
+		{
+			final AvailObject expressions =
+				input.expressionsTuple();
+			final AvailObject count = IntegerDescriptor.fromInt(
+				expressions.tupleSize());
+			final AvailObject token =
+				LiteralTokenDescriptor.create(
+					StringDescriptor.from(count.toString()),
+					startingParserState.peekToken().start(),
+					startingParserState.peekToken().lineNumber(),
+					LITERAL,
+					count);
+			return LiteralNodeDescriptor.fromToken(token);
+		}
+	},
 
 	/**
 	 * {@code 2} - Convert a {@linkplain ListNodeDescriptor list} into a
@@ -63,14 +94,55 @@ public enum ParsingConversionRule
 	 * AtomDescriptor#trueObject() true} if the list was nonempty, {@link
 	 * AtomDescriptor#falseObject() false} otherwise.
 	 */
-	listToNonemptiness(2),
+	listToNonemptiness(2)
+	{
+		@Override
+		public AvailObject convert (
+			final AvailObject input,
+			final ParserState startingParserState)
+		{
+			final AvailObject expressions =
+				input.expressionsTuple();
+			final AvailObject nonempty =
+				AtomDescriptor.objectFromBoolean(
+					expressions.tupleSize() > 0);
+			final AvailObject token =
+				LiteralTokenDescriptor.create(
+					StringDescriptor.from(nonempty.toString()),
+					startingParserState.peekToken().start(),
+					startingParserState.peekToken().lineNumber(),
+					LITERAL,
+					nonempty);
+			return LiteralNodeDescriptor.fromToken(token);
+		}
+	},
 
 	/**
 	 * {@code 3} - Immediately evaluate the {@linkplain ParseNodeDescriptor
 	 * parse node} on the stack to produce a value.  Replace the parse node with
 	 * a literal node holding this value.
 	 */
-	evaluateExpression(3);
+	evaluateExpression(3)
+	{
+		@Override
+		public AvailObject convert (
+			final AvailObject input,
+			final ParserState startingParserState)
+		{
+			try
+			{
+				final AvailObject value =
+					startingParserState.evaluate(input);
+				return LiteralNodeDescriptor.syntheticFrom(value);
+			}
+			catch (final AvailRejectedParseException e)
+			{
+				startingParserState.expected(
+					e.rejectionString().asNativeString());
+				return NullDescriptor.nullObject();
+			}
+		}
+	};
 
 	/** The rule number. */
 	private final int number;
@@ -84,6 +156,16 @@ public enum ParsingConversionRule
 	{
 		return number;
 	}
+
+	/**
+	 * Convert an input {@link AvailObject} into an output AvailObject, using
+	 * the specific conversion rule's implementation.
+	 *
+	 * @param input The value to be converted.
+	 * @param startingParserState TODO
+	 * @return The converted value.
+	 */
+	public abstract AvailObject convert (AvailObject input, ParserState startingParserState);
 
 	/**
 	 * Construct a new {@link ParsingConversionRule}.
@@ -104,13 +186,10 @@ public enum ParsingConversionRule
 	 */
 	public static ParsingConversionRule ruleNumber (final int number)
 	{
-		switch (number)
+		if (number < values().length)
 		{
-			case 0: return noConversion;
-			case 1: return listToSize;
-			case 2: return listToNonemptiness;
-			case 3: return evaluateExpression;
+			return values()[number];
 		}
-		throw new RuntimeException("reserved rule number");
+		throw new RuntimeException("reserved conversion rule number");
 	}
 }

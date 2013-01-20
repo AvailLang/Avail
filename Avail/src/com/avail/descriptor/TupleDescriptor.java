@@ -624,18 +624,6 @@ extends Descriptor
 			}
 			return TupleDescriptor.empty();
 		}
-		if (isMutable && canDestroy && (start == 1 || end - start < 20))
-		{
-			if (start != 1)
-			{
-				for (int i = 1; i <= end - start + 1; i++)
-				{
-					object.tupleAtPut(i, object.tupleAt(start + i - 1));
-				}
-			}
-			object.truncateTo(end - start + 1);
-			return object;
-		}
 		final AvailObject result =
 			AvailObject.newObjectIndexedIntegerIndexedDescriptor(
 				1,

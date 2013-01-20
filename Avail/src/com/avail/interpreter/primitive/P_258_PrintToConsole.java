@@ -35,7 +35,6 @@ import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.io.PrintStream;
 import java.util.List;
-import com.avail.AvailRuntime;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 
@@ -60,7 +59,7 @@ extends Primitive
 		assert args.size() == 1;
 
 		final AvailObject string = args.get(0);
-		final PrintStream out = AvailRuntime.current().standardOutputStream();
+		final PrintStream out = interpreter.runtime().standardOutputStream();
 		out.print(string.asNativeString());
 		return interpreter.primitiveSuccess(NullDescriptor.nullObject());
 	}

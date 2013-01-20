@@ -1696,7 +1696,7 @@ extends AbstractAvailCompiler
 			attempt(start.afterToken(), continuation, literalNode);
 		}
 
-		// Try a reference: &var.
+		// Try a reference: ↑var.
 		parseReferenceThen(start, continuation);
 
 		start.expected("simple expression");

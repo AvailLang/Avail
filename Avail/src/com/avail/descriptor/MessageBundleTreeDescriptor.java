@@ -40,6 +40,7 @@ import java.util.*;
 import com.avail.AvailRuntime;
 import com.avail.annotations.*;
 import com.avail.compiler.*;
+import com.avail.exceptions.SignatureException;
 import com.avail.utility.Mutable;
 
 /**
@@ -251,6 +252,46 @@ extends Descriptor
 		LAZY_PREFILTER_MAP
 	}
 
+	@Override
+	AvailObjectFieldHelper[] o_DescribeForDebugger (final AvailObject object)
+	{
+		object.expand();
+		return super.o_DescribeForDebugger(object);
+	}
+
+	@Override
+	void printObjectOnAvoidingIndent (
+		final AvailObject object,
+		final StringBuilder builder,
+		final List<AvailObject> recursionList,
+		final int indent)
+	{
+		builder.append("BundleTree[pc=");
+		builder.append(object.slot(PARSING_PC));
+		builder.append("](");
+		final AvailObject allBundles = object.slot(ALL_BUNDLES);
+		final int bundleCount = allBundles.mapSize();
+		if (bundleCount <= 10)
+		{
+			boolean first = true;
+			for (final MapDescriptor.Entry entry : allBundles.mapIterable())
+			{
+				if (!first)
+				{
+					builder.append(", ");
+				}
+				first = false;
+				builder.append(entry.key.name());
+			}
+		}
+		else
+		{
+			builder.append(bundleCount);
+			builder.append(" entries");
+		}
+		builder.append(")");
+	}
+
 	@Override @AvailMethod
 	int o_ParsingPc (final AvailObject object)
 	{
@@ -388,6 +429,7 @@ extends Descriptor
 		final AvailObject bundle)
 	{
 		AvailObject allBundles = object.slot(ALL_BUNDLES);
+		assert !allBundles.hasKey(message);
 		allBundles = allBundles.mapAtPuttingCanDestroy(
 			message,
 			bundle,
@@ -444,7 +486,42 @@ extends Descriptor
 
 	/**
 	 * If there isn't one already, add a bundle to correspond to the given
-	 * message.  Answer the new or existing bundle.
+	 * message name.  Answer the existing or new bundle.  If the bundle was
+	 * already present (and classified), treat it as changed by invalidating any
+	 * cached structures that might be using it.
+	 */
+	@Override @AvailMethod
+	AvailObject o_IncludeBundleNamed (
+		final AvailObject object,
+		final AvailObject message)
+	throws SignatureException
+	{
+		assert message.isAtom();
+		AvailObject allBundles = object.slot(ALL_BUNDLES);
+		if (allBundles.hasKey(message))
+		{
+			object.flushForNewOrChangedBundleNamed(message);
+			return object.slot(ALL_BUNDLES).mapAt(message);
+		}
+		final AvailObject newBundle =
+			MessageBundleDescriptor.newBundle(message);
+		allBundles = allBundles.mapAtPuttingCanDestroy(
+			message,
+			newBundle,
+			true);
+		object.setSlot(ALL_BUNDLES, allBundles);
+		AvailObject unclassified = object.slot(UNCLASSIFIED);
+		unclassified = unclassified.mapAtPuttingCanDestroy(
+			message,
+			newBundle,
+			true);
+		object.setSlot(UNCLASSIFIED, unclassified);
+		return newBundle;
+	}
+
+	/**
+	 * If there isn't one already with the same name, add the given bundle to
+	 * this tree.  Answer the existing or new bundle.
 	 */
 	@Override @AvailMethod
 	AvailObject o_IncludeBundle (
@@ -455,7 +532,8 @@ extends Descriptor
 		AvailObject allBundles = object.slot(ALL_BUNDLES);
 		if (allBundles.hasKey(message))
 		{
-			return allBundles.mapAt(message);
+			object.flushForNewOrChangedBundleNamed(message);
+			return object.slot(ALL_BUNDLES).mapAt(message);
 		}
 		allBundles = allBundles.mapAtPuttingCanDestroy(
 			message,
@@ -472,16 +550,16 @@ extends Descriptor
 	}
 
 	/**
-	 * Remove the bundle with the given message name (expanded as parts).
-	 * Answer true if this tree is now empty and should be removed.
+	 * Remove the bundle with the given method name.  Answer true if this tree
+	 * is now empty (and therefore should probably be removed).
 	 */
 	@Override @AvailMethod
-	boolean o_RemoveBundle (
+	boolean o_RemoveBundleNamed (
 		final AvailObject object,
-		final AvailObject bundle)
+		final AvailObject message)
 	{
+		assert message.isAtom();
 		AvailObject allBundles = object.slot(ALL_BUNDLES);
-		final AvailObject message = bundle.message();
 		if (allBundles.hasKey(message))
 		{
 			allBundles = allBundles.mapWithoutKeyCanDestroy(
@@ -499,12 +577,12 @@ extends Descriptor
 			else
 			{
 				// Not so easy -- just clear everything.
-				object.setSlot(LAZY_COMPLETE, MapDescriptor.empty());
-				object.setSlot(LAZY_INCOMPLETE, MapDescriptor.empty());
-				object.setSlot(
-					LAZY_INCOMPLETE_CASE_INSENSITIVE, MapDescriptor.empty());
-				object.setSlot(LAZY_ACTIONS, MapDescriptor.empty());
-				object.setSlot(LAZY_PREFILTER_MAP, MapDescriptor.empty());
+				final AvailObject emptyMap = MapDescriptor.empty();
+				object.setSlot(LAZY_COMPLETE, emptyMap);
+				object.setSlot(LAZY_INCOMPLETE, emptyMap);
+				object.setSlot(LAZY_INCOMPLETE_CASE_INSENSITIVE, emptyMap);
+				object.setSlot(LAZY_ACTIONS, emptyMap);
+				object.setSlot(LAZY_PREFILTER_MAP, emptyMap);
 				allBundles.makeImmutable();
 				unclassified = allBundles;
 			}
@@ -572,7 +650,7 @@ extends Descriptor
 	 * @param prefilterMap
 	 * @param pc
 	 */
-	private void updateForMessageAndBundle (
+	private static void updateForMessageAndBundle (
 		final AvailObject message,
 		final AvailObject bundle,
 		final Mutable<AvailObject> complete,
@@ -692,11 +770,15 @@ extends Descriptor
 			// new restrictions, and the actionMap is what gets
 			// visited to populate new restrictions.
 			successor.includeBundle(bundle);
-			return;
+
+			// Note:  DO NOT return here, since the action has to also be added
+			// to the actionMap (to deal with the case that a subexpression is
+			// a non-send, or a send that is not forbidden in this position by
+			// any potential parent sends.
 		}
 
 		// It's an ordinary parsing instruction.
-		AvailObject successors;
+		final AvailObject successors;
 		if (actionMap.value.hasKey(instructionObject))
 		{
 			successors = actionMap.value.mapAt(instructionObject);
@@ -724,6 +806,38 @@ extends Descriptor
 		}
 	}
 
+
+	/**
+	 * Update information in this {@linkplain MessageBundleTreeDescriptor
+	 * message bundle tree} to reflect the latest information about the
+	 * {@linkplain MessageBundleDescriptor message bundle} with the given name.
+	 *
+	 * <p>The bundle may have been added, or updated (but not removed), so if
+	 * the bundle has already been classified in this tree (via {@link
+	 * #o_Expand(AvailObject)}, we may need to invalidate some of the tree's
+	 * lazy structures.</p>
+	 */
+	@Override
+	void o_FlushForNewOrChangedBundleNamed (
+		final AvailObject object,
+		final AvailObject message)
+	{
+		final AvailObject allBundles = object.slot(ALL_BUNDLES);
+		assert allBundles.hasKey(message);
+		if (!object.slot(UNCLASSIFIED).hasKey(message))
+		{
+			// It has been classified already, so flush the lazy structures
+			// for safety, moving everything back to unclassified.
+			final AvailObject emptyMap = MapDescriptor.empty();
+			object.setSlot(LAZY_COMPLETE, emptyMap);
+			object.setSlot(LAZY_INCOMPLETE, emptyMap);
+			object.setSlot(LAZY_INCOMPLETE_CASE_INSENSITIVE, emptyMap);
+			object.setSlot(LAZY_ACTIONS, emptyMap);
+			object.setSlot(LAZY_PREFILTER_MAP, emptyMap);
+			allBundles.makeImmutable();
+			object.setSlot(UNCLASSIFIED, allBundles);
+		}
+	}
 
 	/**
 	 * Create a new empty message bundle tree.

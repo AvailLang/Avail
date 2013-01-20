@@ -143,9 +143,9 @@ extends Descriptor
 
 		/**
 		 * A {@linkplain MapDescriptor map} from {@linkplain AtomDescriptor
-		 * atoms} to {@linkplain DefinitionDescriptor definitions} which
-		 * implement (or forward or declare abstract or declare as a macro} that
-		 * true name.
+		 * atoms} to {@linkplain SetDescriptor sets} of {@linkplain
+		 * DefinitionDescriptor definitions} which implement (or forward or
+		 * declare abstract or declare as a macro} that true name.
 		 */
 		METHODS,
 
@@ -241,21 +241,41 @@ extends Descriptor
 	void o_AddGrammaticalMessageRestrictions (
 		final AvailObject object,
 		final AvailObject methodName,
-		final AvailObject illegalArgMsgs)
+		final AvailObject illegalArgumentMessages)
 	{
-		assert !object.grammaticalRestrictions().hasKey(methodName)
-		: "Don't declare multiple restrictions on same message separately"
-			+ " in module.";
-		AvailObject grammaticalRestrictions = object.slot(
-			GRAMMATICAL_RESTRICTIONS);
+		AvailObject grammaticalRestrictions =
+			object.slot(GRAMMATICAL_RESTRICTIONS);
+		AvailObject fullIllegalArgumentMessages;
+		if (grammaticalRestrictions.hasKey(methodName))
+		{
+			fullIllegalArgumentMessages = illegalArgumentMessages;
+		}
+		else
+		{
+			fullIllegalArgumentMessages =
+				grammaticalRestrictions.mapAt(methodName);
+			fullIllegalArgumentMessages.makeImmutable();  // Safety.
+			for (int i = fullIllegalArgumentMessages.tupleSize(); i >= 1; i--)
+			{
+				fullIllegalArgumentMessages =
+					fullIllegalArgumentMessages.tupleAtPuttingCanDestroy(
+						i,
+						illegalArgumentMessages.tupleAt(i),
+						true);
+			}
+			grammaticalRestrictions =
+				grammaticalRestrictions.mapAtPuttingCanDestroy(
+					methodName,
+					illegalArgumentMessages,
+					true);
+		}
+		fullIllegalArgumentMessages.makeImmutable();
 		grammaticalRestrictions =
 			grammaticalRestrictions.mapAtPuttingCanDestroy(
 				methodName,
-				illegalArgMsgs,
+				fullIllegalArgumentMessages,
 				true);
-		object.setSlot(
-			GRAMMATICAL_RESTRICTIONS,
-			grammaticalRestrictions);
+		object.setSlot(GRAMMATICAL_RESTRICTIONS, grammaticalRestrictions);
 	}
 
 	@Override @AvailMethod
@@ -603,11 +623,10 @@ extends Descriptor
 		final AvailObject object,
 		final AvailObject bundleTree)
 	{
+		***
 		final AvailObject filteredBundleTree =
 			MessageBundleTreeDescriptor.newPc(1);
-		object.setSlot(
-			FILTERED_BUNDLE_TREE,
-			filteredBundleTree);
+		object.setSlot(FILTERED_BUNDLE_TREE, filteredBundleTree);
 		bundleTree.copyToRestrictedTo(
 			filteredBundleTree,
 			object.visibleNames());
@@ -617,24 +636,12 @@ extends Descriptor
 	void o_CleanUpAfterCompile (
 		final AvailObject object)
 	{
-		object.setSlot(
-			METHODS,
-			NullDescriptor.nullObject());
-		object.setSlot(
-			GRAMMATICAL_RESTRICTIONS,
-			NullDescriptor.nullObject());
-		object.setSlot(
-			VARIABLE_BINDINGS,
-			NullDescriptor.nullObject());
-		object.setSlot(
-			CONSTANT_BINDINGS,
-			NullDescriptor.nullObject());
-		object.setSlot(
-			FILTERED_BUNDLE_TREE,
-			NullDescriptor.nullObject());
-		object.setSlot(
-			TYPE_RESTRICTION_FUNCTIONS,
-			NullDescriptor.nullObject());
+		object.setSlot(METHODS, NullDescriptor.nullObject());
+		object.setSlot(GRAMMATICAL_RESTRICTIONS, NullDescriptor.nullObject());
+		object.setSlot(VARIABLE_BINDINGS, NullDescriptor.nullObject());
+		object.setSlot(CONSTANT_BINDINGS, NullDescriptor.nullObject());
+		object.setSlot(FILTERED_BUNDLE_TREE, NullDescriptor.nullObject());
+		object.setSlot(TYPE_RESTRICTION_FUNCTIONS, NullDescriptor.nullObject());
 	}
 
 	@Override @AvailMethod
@@ -666,12 +673,10 @@ extends Descriptor
 	{
 		for (final MapDescriptor.Entry entry : object.methods().mapIterable())
 		{
-			final AvailObject methodName = entry.key;
 			for (final AvailObject definition : entry.value)
 			{
-				anInterpreter.removeDefinition(
-					methodName,
-					definition);
+				assert definition.definitionMethod().equals(definition);
+				anInterpreter.removeDefinition(definition);
 			}
 		}
 		final AvailObject typeRestrictions = object.slot(

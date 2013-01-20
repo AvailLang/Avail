@@ -32,6 +32,7 @@
 
 package com.avail.descriptor;
 
+import static com.avail.descriptor.MessageBundleDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.TypeDescriptor.Types.MESSAGE_BUNDLE;
 import java.util.ArrayList;
 import java.util.List;
@@ -103,7 +104,7 @@ extends Descriptor
 	{
 		assert restrictions.isTuple();
 		restrictions.makeImmutable();
-		AvailObject merged = object.slot(ObjectSlots.GRAMMATICAL_RESTRICTIONS);
+		AvailObject merged = object.slot(GRAMMATICAL_RESTRICTIONS);
 		for (int i = merged.tupleSize(); i >= 1; i--)
 		{
 			merged = merged.tupleAtPuttingCanDestroy(
@@ -113,7 +114,7 @@ extends Descriptor
 					true),
 				true);
 		}
-		object.setSlot(ObjectSlots.GRAMMATICAL_RESTRICTIONS, merged);
+		object.setSlot(GRAMMATICAL_RESTRICTIONS, merged);
 	}
 
 	@Override @AvailMethod
@@ -122,7 +123,7 @@ extends Descriptor
 		final AvailObject obsoleteRestrictions)
 	{
 		assert obsoleteRestrictions.isTuple();
-		AvailObject reduced = object.slot(ObjectSlots.GRAMMATICAL_RESTRICTIONS);
+		AvailObject reduced = object.slot(GRAMMATICAL_RESTRICTIONS);
 		for (int i = reduced.tupleSize(); i >= 1; i--)
 		{
 			reduced = reduced.tupleAtPuttingCanDestroy(
@@ -132,15 +133,14 @@ extends Descriptor
 					true),
 				true);
 		}
-		object.setSlot(ObjectSlots.GRAMMATICAL_RESTRICTIONS, reduced);
+		object.setSlot(GRAMMATICAL_RESTRICTIONS, reduced);
 	}
 
 	@Override @AvailMethod
 	boolean o_HasGrammaticalRestrictions (
 		final AvailObject object)
 	{
-		final AvailObject restrictions =
-			object.slot(ObjectSlots.GRAMMATICAL_RESTRICTIONS);
+		final AvailObject restrictions = object.slot(GRAMMATICAL_RESTRICTIONS);
 		for (final AvailObject setForArgument : restrictions)
 		{
 			if (setForArgument.setSize() > 0)
@@ -155,34 +155,34 @@ extends Descriptor
 	AvailObject o_GrammaticalRestrictions (
 		final AvailObject object)
 	{
-		return object.slot(ObjectSlots.GRAMMATICAL_RESTRICTIONS);
+		return object.slot(GRAMMATICAL_RESTRICTIONS);
 	}
 
 	@Override @AvailMethod
 	AvailObject o_Message (
 		final AvailObject object)
 	{
-		return object.slot(ObjectSlots.MESSAGE);
+		return object.slot(MESSAGE);
 	}
 
 	@Override @AvailMethod
 	AvailObject o_MessageParts (
 		final AvailObject object)
 	{
-		return object.slot(ObjectSlots.MESSAGE_PARTS);
+		return object.slot(MESSAGE_PARTS);
 	}
 
 	@Override @AvailMethod
 	AvailObject o_ParsingInstructions (
 		final AvailObject object)
 	{
-		return object.slot(ObjectSlots.PARSING_INSTRUCTIONS);
+		return object.slot(PARSING_INSTRUCTIONS);
 	}
 
 	@Override boolean allowsImmutableToMutableReferenceInField (
 		final AbstractSlotsEnum e)
 	{
-		return e == ObjectSlots.GRAMMATICAL_RESTRICTIONS;
+		return e == GRAMMATICAL_RESTRICTIONS;
 	}
 
 	@Override
@@ -288,12 +288,10 @@ extends Descriptor
 		final AvailObject restrictions = tupleOfEmptySetsOfSize(
 			splitter.numberOfUnderscores());
 		final AvailObject result = mutable().create();
-		result.setSlot(ObjectSlots.MESSAGE, message);
-		result.setSlot(ObjectSlots.MESSAGE_PARTS, splitter.messageParts());
-		result.setSlot(ObjectSlots.GRAMMATICAL_RESTRICTIONS, restrictions);
-		result.setSlot(
-			ObjectSlots.PARSING_INSTRUCTIONS,
-			splitter.instructionsTuple());
+		result.setSlot(MESSAGE, message);
+		result.setSlot(MESSAGE_PARTS, splitter.messageParts());
+		result.setSlot(GRAMMATICAL_RESTRICTIONS, restrictions);
+		result.setSlot(PARSING_INSTRUCTIONS, splitter.instructionsTuple());
 		result.makeImmutable();
 		return result;
 	}

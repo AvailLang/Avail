@@ -44,7 +44,7 @@ import com.avail.descriptor.FiberDescriptor.ExecutionState;
 import com.avail.descriptor.SetDescriptor.SetIterator;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.exceptions.*;
-import com.avail.exceptions.UnsupportedOperationException;
+import com.avail.exceptions.AvailUnsupportedOperationException;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Interpreter;
 import com.avail.serialization.SerializerOperation;
@@ -81,7 +81,7 @@ extends AbstractDescriptor
 	}
 
 	/**
-	 * Answer a {@linkplain UnsupportedOperationException unsupported operation
+	 * Answer a {@linkplain AvailUnsupportedOperationException unsupported operation
 	 * exception} suitable to be thrown by the sender.  We don't throw it here,
 	 * since Java sadly has no way of indicating that a method <em>always</em>
 	 * throws an exception (i.e., doesn't return), forcing one to have to add
@@ -94,9 +94,9 @@ extends AbstractDescriptor
 	 * that the wrong kind of object is being used somewhere.
 	 * </p>
 	 *
-	 * @return an UnsupportedOperationException suitable to be thrown.
+	 * @return an AvailUnsupportedOperationException suitable to be thrown.
 	 */
-	public UnsupportedOperationException unsupportedOperationException ()
+	public AvailUnsupportedOperationException unsupportedOperationException ()
 	{
 		final String callerName;
 		try
@@ -107,7 +107,7 @@ extends AbstractDescriptor
 		{
 			callerName = e.getStackTrace()[1].getMethodName();
 		}
-		throw new UnsupportedOperationException(getClass(), callerName);
+		throw new AvailUnsupportedOperationException(getClass(), callerName);
 	}
 
 	/**
@@ -1175,17 +1175,17 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_RemoveImplementation (
+	void o_RemoveDefinition (
 		final AvailObject object,
-		final AvailObject implementation)
+		final AvailObject definition)
 	{
 		throw unsupportedOperationException();
 	}
 
 	@Override
-	boolean o_RemoveBundle (
+	boolean o_RemoveBundleNamed (
 		final AvailObject object,
-		final AvailObject bundle)
+		final AvailObject message)
 	{
 		throw unsupportedOperationException();
 	}
@@ -4710,5 +4710,22 @@ extends AbstractDescriptor
 	boolean o_IsByteArrayTuple (final AvailObject object)
 	{
 		return false;
+	}
+
+	@Override
+	AvailObject o_IncludeBundleNamed (
+		final AvailObject object,
+		final AvailObject message)
+	throws SignatureException
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	void o_FlushForNewOrChangedBundleNamed (
+		final AvailObject object,
+		final AvailObject message)
+	{
+		throw unsupportedOperationException();
 	}
 }

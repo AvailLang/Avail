@@ -42,7 +42,6 @@ import com.avail.AvailRuntime;
 import com.avail.annotations.*;
 import com.avail.descriptor.*;
 import com.avail.descriptor.FiberDescriptor.ExecutionState;
-import com.avail.exceptions.AvailRuntimeException;
 import com.avail.interpreter.*;
 import com.avail.interpreter.Primitive.*;
 import com.avail.interpreter.levelTwo.register.FixedRegister;

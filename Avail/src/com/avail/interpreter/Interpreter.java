@@ -35,7 +35,6 @@ package com.avail.interpreter;
 import static com.avail.descriptor.AvailObject.error;
 import static com.avail.interpreter.Primitive.Result.*;
 import static com.avail.exceptions.AvailErrorCode.*;
-import java.io.PrintStream;
 import java.util.*;
 import java.util.logging.*;
 import com.avail.AvailRuntime;
@@ -309,8 +308,7 @@ public abstract class Interpreter
 		assert methodName.isAtom();
 		if (extendGrammar)
 		{
-			module.filteredBundleTree().includeBundle(
-				MessageBundleDescriptor.newBundle(methodName));
+			module.filteredBundleTree().includeBundleNamed(methodName);
 		}
 	}
 
@@ -372,8 +370,9 @@ public abstract class Interpreter
 			newForward,
 			true);
 		assert methodName.isAtom();
-		module.filteredBundleTree().includeBundle(
-			MessageBundleDescriptor.newBundle(methodName));
+		final AvailObject filteredRoot = module.filteredBundleTree();
+		filteredRoot.includeBundleNamed(methodName);
+		filteredRoot.flushForNewOrChangedBundleNamed(methodName);
 	}
 
 	/**
@@ -462,8 +461,7 @@ public abstract class Interpreter
 		method.methodAddDefinition(newDefinition);
 		if (extendGrammar)
 		{
-			module.filteredBundleTree().includeBundle(
-				MessageBundleDescriptor.newBundle(methodName));
+			module.filteredBundleTree().includeBundleNamed(methodName);
 		}
 	}
 
@@ -477,8 +475,8 @@ public abstract class Interpreter
 	 * @param prefixFunctions
 	 *            The tuple of prefix functions.
 	 * @param macroBody
-	 *            A {@linkplain FunctionDescriptor function} that manipulates parse
-	 *            nodes.
+	 *            A {@linkplain FunctionDescriptor function} that manipulates
+	 *            parse nodes.
 	 * @throws SignatureException if the macro signature is invalid.
 	 */
 	public void addMacroBody (
@@ -500,11 +498,10 @@ public abstract class Interpreter
 		prefixFunctions.makeImmutable();
 		macroBody.makeImmutable();
 		// Add the macro definition.
-		final AvailObject macroDefinition =
-			MacroDefinitionDescriptor.create(
-				method,
-				prefixFunctions,
-				macroBody);
+		final AvailObject macroDefinition = MacroDefinitionDescriptor.create(
+			method,
+			prefixFunctions,
+			macroBody);
 		module.moduleAddDefinition(macroDefinition);
 		final AvailObject macroBodyType = macroBody.kind();
 		for (final AvailObject existingDefinition : method.definitionsTuple())
@@ -537,8 +534,7 @@ public abstract class Interpreter
 			}
 		}
 		method.methodAddDefinition(macroDefinition);
-		module.filteredBundleTree().includeBundle(
-			MessageBundleDescriptor.newBundle(methodName));
+		module.filteredBundleTree().includeBundleNamed(methodName);
 	}
 
 	/**
@@ -570,8 +566,7 @@ public abstract class Interpreter
 		typeRestrictionFunction.makeImmutable();
 		runtime.addTypeRestriction(methodName, typeRestrictionFunction);
 		module.addTypeRestriction(methodName, typeRestrictionFunction);
-		module.filteredBundleTree().includeBundle(
-			MessageBundleDescriptor.newBundle(methodName));
+		module.filteredBundleTree().includeBundleNamed(methodName);
 	}
 
 	/**
@@ -625,20 +620,18 @@ public abstract class Interpreter
 		final AvailObject illegalArgMsgs)
 	throws SignatureException
 	{
+		assert methodName.isAtom();
+		// Make these things safe for the VM to hold.
 		methodName.makeImmutable();
-		// So we can safely hold onto it in the VM
 		illegalArgMsgs.makeImmutable();
-		// So we can safely hold this data in the VM
 		final MessageSplitter splitter = new MessageSplitter(methodName.name());
 		final int numArgs = splitter.numberOfUnderscores();
 		assert numArgs == illegalArgMsgs.tupleSize()
 			: "Wrong number of entries in restriction tuple.";
-		assert methodName.isAtom();
 		// Fix precedence.
 		final AvailObject bundle =
-			module.filteredBundleTree().includeBundle(
-				MessageBundleDescriptor.newBundle(methodName));
-		module.filteredBundleTree().removeBundle(bundle);
+			module.filteredBundleTree().includeBundleNamed(methodName);
+		module.filteredBundleTree().removeBundleNamed(methodName);
 		bundle.addGrammaticalRestrictions(illegalArgMsgs);
 		module.addGrammaticalRestrictions(methodName, illegalArgMsgs);
 		module.filteredBundleTree().includeBundle(bundle);
@@ -789,7 +782,7 @@ public abstract class Interpreter
 	{
 		assert methodName.isAtom();
 
-		assert runtime.hasMethodsAt(methodName);
+		assert runtime.hasMethodAt(methodName);
 		final AvailObject method = runtime.methodAt(methodName);
 		assert !method.equalsNull();
 		if (!pendingForwards.hasElement(aForward))
@@ -804,32 +797,26 @@ public abstract class Interpreter
 		}
 		pendingForwards = pendingForwards.setWithoutElementCanDestroy(
 			aForward, true);
-		method.removeImplementation(aForward);
+		method.removeDefinition(aForward);
 		module.resolvedForwardWithName(aForward, methodName);
 	}
 
 	/**
-	 * Unbind the specified definition from the {@linkplain
-	 * AtomDescriptor method name}.
+	 * Unbind the specified definition from the system.
 	 *
-	 * @param methodName
-	 *            The {@linkplain AtomDescriptor true name} of a method.
 	 * @param definition
-	 *            An {@linkplain DefinitionDescriptor definition}.
+	 *            A {@linkplain DefinitionDescriptor definition}.
 	 */
 	public void removeDefinition (
-		final AvailObject methodName,
 		final AvailObject definition)
 	{
-		assert methodName.isAtom();
-
 		if (definition.isForwardDefinition())
 		{
 			pendingForwards = pendingForwards.setWithoutElementCanDestroy(
 				definition,
 				true);
 		}
-		runtime.removeMethod(methodName, definition);
+		runtime.removeDefinition(definition);
 	}
 
 

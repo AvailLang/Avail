@@ -2261,6 +2261,18 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
+	public AvailObject includeBundleNamed (
+		final AvailObject message)
+	throws SignatureException
+	{
+		return descriptor.o_IncludeBundleNamed(
+			this,
+			message);
+	}
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public boolean includesDefinition (
 		final AvailObject imp)
 	{
@@ -3663,21 +3675,21 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public void removeImplementation (
-		final AvailObject implementation)
+	public void removeDefinition (
+		final AvailObject definition)
 	{
-		descriptor.o_RemoveImplementation(this, implementation);
+		descriptor.o_RemoveDefinition(this, definition);
 	}
 
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public boolean removeBundle (
-		final AvailObject bundle)
+	public boolean removeBundleNamed (
+		final AvailObject message)
 	{
-		return descriptor.o_RemoveBundle(
+		return descriptor.o_RemoveBundleNamed(
 			this,
-			bundle);
+			message);
 	}
 
 	/**
@@ -6331,12 +6343,12 @@ implements Iterable<AvailObject>
 	}
 
 	/**
-	 * @param object
+	 * @param aParseNode
 	 * @return
 	 */
-	public boolean equalsParseNode (final AvailObject object)
+	public boolean equalsParseNode (final AvailObject aParseNode)
 	{
-		return false;
+		return descriptor.o_EqualsParseNode(this, aParseNode);
 	}
 
 	/**
@@ -6407,5 +6419,14 @@ implements Iterable<AvailObject>
 	public boolean isByteArrayTuple ()
 	{
 		return descriptor.o_IsByteArrayTuple(this);
+	}
+
+	/**
+	 * @param message
+	 */
+	public void flushForNewOrChangedBundleNamed (
+		final AvailObject message)
+	{
+		descriptor.o_FlushForNewOrChangedBundleNamed(this, message);
 	}
 }

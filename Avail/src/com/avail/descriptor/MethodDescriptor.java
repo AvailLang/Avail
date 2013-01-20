@@ -872,8 +872,7 @@ extends Descriptor
 		final AvailObject object,
 		final int aChunkIndex)
 	{
-		AvailObject indices =
-			object.slot(DEPENDENT_CHUNK_INDICES);
+		AvailObject indices = object.slot(DEPENDENT_CHUNK_INDICES);
 		indices = indices.setWithoutElementCanDestroy(
 			IntegerDescriptor.fromInt(aChunkIndex),
 			true);
@@ -885,7 +884,7 @@ extends Descriptor
 	 * invalidated.
 	 */
 	@Override @AvailMethod
-	void o_RemoveImplementation (
+	void o_RemoveDefinition (
 		final AvailObject object,
 		final AvailObject definition)
 	{
@@ -893,9 +892,7 @@ extends Descriptor
 		definitionsTuple = TupleDescriptor.without(
 			definitionsTuple,
 			definition);
-		object.setSlot(
-			DEFINITIONS_TUPLE,
-			definitionsTuple);
+		object.setSlot(DEFINITIONS_TUPLE, definitionsTuple);
 		membershipChanged(object);
 	}
 
@@ -1144,8 +1141,7 @@ extends Descriptor
 		final AvailObject object,
 		final AvailObject function)
 	{
-		final AvailObject oldTuple =
-			object.slot(TYPE_RESTRICTIONS_TUPLE);
+		final AvailObject oldTuple = object.slot(TYPE_RESTRICTIONS_TUPLE);
 		final AvailObject newTuple = oldTuple.appendCanDestroy(function, true);
 		object.setSlot(TYPE_RESTRICTIONS_TUPLE, newTuple);
 	}
@@ -1155,14 +1151,11 @@ extends Descriptor
 		final AvailObject object,
 		final AvailObject function)
 	{
-		final AvailObject oldTuple =
-			object.slot(TYPE_RESTRICTIONS_TUPLE);
+		final AvailObject oldTuple = object.slot(TYPE_RESTRICTIONS_TUPLE);
 		final AvailObject newTuple =
 			TupleDescriptor.without(oldTuple, function);
 		assert newTuple.tupleSize() == oldTuple.tupleSize() - 1;
-		object.setSlot(
-			TYPE_RESTRICTIONS_TUPLE,
-			newTuple);
+		object.setSlot(TYPE_RESTRICTIONS_TUPLE, newTuple);
 	}
 
 	@Override @AvailMethod
@@ -1178,8 +1171,7 @@ extends Descriptor
 		final AvailObject sealSignature)
 	{
 		assert sealSignature.isTuple();
-		final AvailObject oldTuple =
-			object.slot(SEALED_ARGUMENTS_TYPES_TUPLE);
+		final AvailObject oldTuple = object.slot(SEALED_ARGUMENTS_TYPES_TUPLE);
 		final AvailObject newTuple = oldTuple.appendCanDestroy(
 			sealSignature, true);
 		object.setSlot(SEALED_ARGUMENTS_TYPES_TUPLE, newTuple);
@@ -1190,8 +1182,7 @@ extends Descriptor
 		final AvailObject object,
 		final AvailObject tupleType)
 	{
-		final AvailObject oldTuple =
-			object.slot(SEALED_ARGUMENTS_TYPES_TUPLE);
+		final AvailObject oldTuple = object.slot(SEALED_ARGUMENTS_TYPES_TUPLE);
 		final AvailObject newTuple =
 			TupleDescriptor.without(oldTuple, tupleType);
 		assert newTuple.tupleSize() == oldTuple.tupleSize() - 1;
@@ -1209,21 +1200,15 @@ extends Descriptor
 	boolean o_IsMethodEmpty (
 		final AvailObject object)
 	{
-		final AvailObject definitionsTuple =
-			object.slot(DEFINITIONS_TUPLE);
-		if (definitionsTuple.tupleSize() > 0)
+		if (object.slot(DEFINITIONS_TUPLE).tupleSize() > 0)
 		{
 			return false;
 		}
-		final AvailObject typeRestrictionsTuple =
-			object.slot(TYPE_RESTRICTIONS_TUPLE);
-		if (typeRestrictionsTuple.tupleSize() > 0)
+		if (object.slot(TYPE_RESTRICTIONS_TUPLE).tupleSize() > 0)
 		{
 			return false;
 		}
-		final AvailObject sealedArgumentsTypesTuple =
-			object.slot(SEALED_ARGUMENTS_TYPES_TUPLE);
-		if (sealedArgumentsTypesTuple.tupleSize() > 0)
+		if (object.slot(SEALED_ARGUMENTS_TYPES_TUPLE).tupleSize() > 0)
 		{
 			return false;
 		}
@@ -1445,24 +1430,12 @@ extends Descriptor
 	{
 		assert messageName.isAtom();
 		final AvailObject result = mutable().create();
-		result.setSlot(
-			DEFINITIONS_TUPLE,
-			TupleDescriptor.empty());
-		result.setSlot(
-			DEPENDENT_CHUNK_INDICES,
-			SetDescriptor.empty());
-		result.setSlot(
-			NAME,
-			messageName);
-		result.setSlot(
-			PRIVATE_TESTING_TREE,
-			TupleDescriptor.empty());
-		result.setSlot(
-			TYPE_RESTRICTIONS_TUPLE,
-			TupleDescriptor.empty());
-		result.setSlot(
-			SEALED_ARGUMENTS_TYPES_TUPLE,
-			TupleDescriptor.empty());
+		result.setSlot(DEFINITIONS_TUPLE, TupleDescriptor.empty());
+		result.setSlot(DEPENDENT_CHUNK_INDICES, SetDescriptor.empty());
+		result.setSlot(NAME, messageName);
+		result.setSlot(PRIVATE_TESTING_TREE, TupleDescriptor.empty());
+		result.setSlot(TYPE_RESTRICTIONS_TUPLE, TupleDescriptor.empty());
+		result.setSlot(SEALED_ARGUMENTS_TYPES_TUPLE, TupleDescriptor.empty());
 		result.makeImmutable();
 		return result;
 	}

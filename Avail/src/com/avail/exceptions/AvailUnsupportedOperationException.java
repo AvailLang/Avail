@@ -1,5 +1,5 @@
 /**
- * UnsupportedOperationException.java
+ * AvailUnsupportedOperationException.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -35,20 +35,20 @@ package com.avail.exceptions;
 import com.avail.descriptor.*;
 
 /**
- * An {@code UnsupportedOperationException} is thrown whenever an {@linkplain
- * AvailObject Avail object}'s {@linkplain Descriptor descriptor} is asked to
- * perform an unsupported operation.
+ * An {@code AvailUnsupportedOperationException} is thrown whenever an
+ * {@linkplain AvailObject Avail object}'s {@linkplain Descriptor descriptor} is
+ * asked to perform an unsupported operation.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class UnsupportedOperationException
+public final class AvailUnsupportedOperationException
 extends RuntimeException
 {
 	/** The serial version identifier. */
 	private static final long serialVersionUID = 2275923459723009067L;
 
 	/**
-	 * Construct a new {@link UnsupportedOperationException}.
+	 * Construct a new {@link AvailUnsupportedOperationException}.
 	 *
 	 * @param descriptorClass
 	 *        The {@linkplain AbstractDescriptor descriptor}'s {@linkplain
@@ -56,7 +56,7 @@ extends RuntimeException
 	 * @param messageName
 	 *        The name of the unsupported operation.
 	 */
-	public UnsupportedOperationException (
+	public AvailUnsupportedOperationException (
 		final Class<? extends AbstractDescriptor> descriptorClass,
 		final String messageName)
 	{

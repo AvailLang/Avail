@@ -2329,20 +2329,20 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param implementation
+	 * @param definition
 	 */
-	abstract void o_RemoveImplementation (
+	abstract void o_RemoveDefinition (
 		AvailObject object,
-		AvailObject implementation);
+		AvailObject definition);
 
 	/**
 	 * @param object
-	 * @param bundle
+	 * @param message
 	 * @return
 	 */
-	abstract boolean o_RemoveBundle (
+	abstract boolean o_RemoveBundleNamed (
 		AvailObject object,
-		AvailObject bundle);
+		AvailObject message);
 
 	/**
 	 * @param object
@@ -5810,4 +5810,23 @@ public abstract class AbstractDescriptor
 	 * @return
 	 */
 	abstract boolean o_IsByteArrayTuple (final AvailObject object);
+
+	/**
+	 * @param object
+	 * @param message
+	 * @return
+	 * @throws SignatureException
+	 */
+	abstract AvailObject o_IncludeBundleNamed (
+		final AvailObject object,
+		final AvailObject message)
+	throws SignatureException;
+
+	/**
+	 * @param object
+	 * @param message
+	 */
+	abstract void o_FlushForNewOrChangedBundleNamed (
+		final AvailObject object,
+		final AvailObject message);
 }

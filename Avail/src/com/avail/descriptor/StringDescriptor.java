@@ -32,6 +32,7 @@
 
 package com.avail.descriptor;
 
+import static com.avail.descriptor.AvailObject.error;
 import com.avail.AvailRuntime;
 import com.avail.annotations.*;
 import com.avail.serialization.SerializerOperation;
@@ -48,6 +49,13 @@ import com.avail.utility.Generator;
 public abstract class StringDescriptor
 extends TupleDescriptor
 {
+	@Override @AvailMethod @ThreadSafe
+	protected final int o_TupleIntAt (final AvailObject object, final int index)
+	{
+		error("Strings store characters, not integers", object);
+		return 0;
+	}
+
 	@Override @AvailMethod @ThreadSafe
 	SerializerOperation o_SerializerOperation (
 		final AvailObject object)

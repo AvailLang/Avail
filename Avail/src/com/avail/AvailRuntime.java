@@ -106,12 +106,14 @@ implements ThreadFactory
 	 * hash code} for an immutable {@linkplain AvailObject value}.
 	 *
 	 * <p>Note that the implementation uses opportunistic locking internally, so
-	 * explicit synchronization here is not required.</p>
+	 * explicit synchronization here is not required.  However, synchronization
+	 * is included anyhow since that behavior is not part of Random's
+	 * specification.</p>
 	 *
 	 * @return A 32-bit pseudo-random number.
 	 */
 	@ThreadSafe
-	public static int nextHash ()
+	public static synchronized int nextHash ()
 	{
 		return rng.nextInt();
 	}
@@ -735,27 +737,32 @@ implements ThreadFactory
 		runtimeLock.writeLock().lock();
 		try
 		{
-			// Add all visible message bundles to the root message bundle tree.
-			for (final AvailObject name : aModule.visibleNames())
+			// All message bundles from the module should already be in the
+			// runtime, keyed by the original method name (i.e., unaffected by
+			// renamed imports).
+			for (final MapDescriptor.Entry bundleEntry
+				: aModule.filteredBundleTree().allBundles().mapIterable())
 			{
-				assert name.isAtom();
-				final AvailObject rootBundle = rootBundleTree.includeBundle(
-					MessageBundleDescriptor.newBundle(name));
-				final AvailObject bundle =
-					aModule.filteredBundleTree().includeBundle(
-						MessageBundleDescriptor.newBundle(name));
-				rootBundle.addGrammaticalRestrictions(
-					bundle.grammaticalRestrictions());
+				final AvailObject bundle = bundleEntry.value;
+				assert allBundles.hasKey(bundle.message());
+				assert allBundles.mapAt(bundle.message()).equals(bundle);
 			}
+//			// Add all visible message bundles to the root message bundle tree.
+//			for (final AvailObject name : aModule.visibleNames())
+//			{
+//				assert name.isAtom();
+//				final AvailObject bundleFromRoot =
+//					rootBundleTree.includeBundleNamed(name);
+//				final AvailObject bundle =
+//					aModule.filteredBundleTree().includeBundle(bundleFromRoot);
+//				bundleFromRoot.addGrammaticalRestrictions(
+//					bundle.grammaticalRestrictions());
+//				rootBundleTree.flushForNewOrChangedBundleNamed(name);
+//			}
 
 			// Finally add the module to the map of loaded modules.
 			modules = modules.mapAtPuttingCanDestroy(
 				aModule.name(), aModule, true);
-		}
-		catch (final SignatureException e)
-		{
-			// Shouldn't happen.
-			throw new RuntimeException(e);
 		}
 		finally
 		{
@@ -822,16 +829,16 @@ implements ThreadFactory
 	private AvailObject methods = MapDescriptor.empty();
 
 	/**
-	 * Are there any {@linkplain MethodDescriptor methods} bound to
-	 * the specified {@linkplain AtomDescriptor selector}?
+	 * Is there a {@linkplain MethodDescriptor method} bound to the specified
+	 * {@linkplain AtomDescriptor selector}?
 	 *
 	 * @param selector A {@linkplain AtomDescriptor selector}.
-	 * @return {@code true} if there are {@linkplain MethodDescriptor
-	 *         methods} bound to the specified {@linkplain
-	 *         AtomDescriptor selector}, {@code false} otherwise.
+	 * @return {@code true} if there is a {@linkplain MethodDescriptor method}
+	 *         bound to the specified {@linkplain AtomDescriptor selector},
+	 *         {@code false} otherwise.
 	 */
 	@ThreadSafe
-	public boolean hasMethodsAt (final AvailObject selector)
+	public boolean hasMethodAt (final AvailObject selector)
 	{
 		assert selector.isAtom();
 
@@ -940,47 +947,31 @@ implements ThreadFactory
 	}
 
 	/**
-	 * Unbind the specified implementation from the {@linkplain
-	 * AtomDescriptor selector}. If no implementations remain in the
-	 * {@linkplain MethodDescriptor method}, then forget the selector from the
-	 * method dictionary and the {@linkplain #rootBundleTree() root message
-	 * bundle tree}.
+	 * Unbind the specified {@linkplain DefinitionDescriptor definition} from
+	 * the runtime system.  If no definitions or grammatical restrictions remain
+	 * in its {@linkplain MethodDescriptor method}, then remove it from my
+	 * {@link #methods} map, and remove its {@linkplain MessageBundleDescriptor
+	 * message bundle} from my map of {@link #allBundles}.
 	 *
-	 * @param selector A {@linkplain AtomDescriptor selector}.
-	 * @param implementation An implementation.
+	 * @param definition A definition.
 	 */
 	@ThreadSafe
-	public void removeMethod (
-		final AvailObject selector,
-		final AvailObject implementation)
+	public void removeDefinition (
+		final AvailObject definition)
 	{
-		assert selector.isAtom();
-
 		runtimeLock.writeLock().lock();
 		try
 		{
-			if (methods.hasKey(selector))
+			final AvailObject method = definition.definitionMethod();
+			final AvailObject name = method.name();
+			assert methods.hasKey(name);
+			assert methods.mapAt(name).equals(method);
+			method.removeDefinition(definition);
+			if (method.isMethodEmpty())
 			{
-				final AvailObject method = methods.mapAt(selector);
-				method.removeImplementation(implementation);
-				if (method.isMethodEmpty())
-				{
-					methods = methods.mapWithoutKeyCanDestroy(selector, true);
-					rootBundleTree.removeBundle(
-						MessageBundleDescriptor.newBundle(selector));
-				}
-				if (method.isMethodEmpty())
-				{
-					methods = methods.mapWithoutKeyCanDestroy(
-						selector,
-						true);
-				}
+				methods = methods.mapWithoutKeyCanDestroy(name, true);
+				allBundles = allBundles.mapWithoutKeyCanDestroy(name, true);
 			}
-		}
-		catch (final SignatureException e)
-		{
-			// Shouldn't happen.
-			throw new RuntimeException(e);
 		}
 		finally
 		{
@@ -1107,29 +1098,30 @@ implements ThreadFactory
 	}
 
 	/**
-	 * The root {@linkplain MessageBundleTreeDescriptor message bundle tree}. It
-	 * contains the {@linkplain MessageBundleDescriptor message bundles}
-	 * exported by all loaded {@linkplain ModuleDescriptor modules}.
+	 * A {@linkplain MapDescriptor map} containing all {@linkplain
+	 * MessageBundleDescriptor message bundles}, keyed by the bundle's
+	 * original {@linkplain AvailObject#message() name}, even if various modules
+	 * have imported it with renaming.
 	 */
-	private AvailObject rootBundleTree = MessageBundleTreeDescriptor.newPc(1);
+	private AvailObject allBundles = MapDescriptor.empty();
 
 	/**
-	 * Answer a copy of the root {@linkplain MessageBundleTreeDescriptor message
-	 * bundle tree}.
+	 * Answer a {@linkplain MapDescriptor map} from {@linkplain AtomDescriptor
+	 * atoms} to {@linkplain MessageBundleDescriptor message bundles}.  It
+	 * should include bundles for every method currently defined, using the
+	 * original definition names as keys.
 	 *
-	 * @return A {@linkplain MessageBundleTreeDescriptor message bundle tree}
-	 *         that contains the {@linkplain MessageBundleDescriptor message
-	 *         bundles} exported by all loaded {@linkplain ModuleDescriptor
-	 *         modules}.
+	 * @return The specified immutable map.
 	 */
 	@ThreadSafe
-	public AvailObject rootBundleTree ()
+	public AvailObject allBundles ()
 	{
 		runtimeLock.readLock().lock();
 		try
 		{
-			final AvailObject copy = MessageBundleTreeDescriptor.newPc(1);
-			rootBundleTree.copyToRestrictedTo(copy, methods.keysAsSet());
+			final bundleMap = allBundles
+			final AvailObject result = MessageBundleTreeDescriptor.newPc(1);
+			rootBundleTree.copyToRestrictedTo(result, methods.keysAsSet());
 			return copy;
 		}
 		finally
@@ -1149,6 +1141,6 @@ implements ThreadFactory
 		moduleNameResolver = null;
 		modules = null;
 		methods = null;
-		rootBundleTree = null;
+		allBundles = null;
 	}
 }

@@ -95,7 +95,7 @@ public abstract class ParseNodeDescriptor extends Descriptor
 	}
 
 	/**
-	* The {@link #o_ApparentSendName(AvailObject) apparentSendName} of
+	 * The {@link #o_ApparentSendName(AvailObject) apparentSendName} of
 	 * something that isn't a {@linkplain SendNodeDescriptor send node} or
 	 * {@linkplain MacroSubstitutionNodeDescriptor macro substitution node} is
 	 * always the {@link NullDescriptor#nullObject() void} object.
@@ -109,14 +109,14 @@ public abstract class ParseNodeDescriptor extends Descriptor
 
 	/**
 	 * {@linkplain ParseNodeDescriptor parse nodes} must implement {@link
-	* AbstractDescriptor#o_Hash(AvailObject) hash}.
+	 * AbstractDescriptor#o_Hash(AvailObject) hash}.
 	 */
 	@Override @AvailMethod
 	abstract int o_Hash (final AvailObject object);
 
 	/**
 	 * {@linkplain ParseNodeDescriptor parse nodes} must implement {@link
-	* ParseNodeDescriptor#o_EqualsParseNode(AvailObject, AvailObject)}.
+	 * ParseNodeDescriptor#o_EqualsParseNode(AvailObject, AvailObject)}.
 	 */
 	@Override @AvailMethod
 	final boolean o_Equals (
