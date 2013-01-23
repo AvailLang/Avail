@@ -2624,7 +2624,7 @@ Semantic restriction "insertion sort_with_" is
 			++ “comparator[2]”
 			++ ")"
 	];
-	<<>, union… | ||tupleType||>
+	<union… | ⎣tupleType⎦..⎡tupleType⎤>
 ];
 
 /**
@@ -2784,8 +2784,8 @@ Method "quicksort_with_" is
 Seal method "quicksort_with_" at <tuple, [⊥, ⊥]→boolean>;
 
 /**
- * Construct and answer a sorted variant of {@param "aTuple"} using the
- * quicksort algorithm and specified comparison function.
+ * Take two sorted tuples and merge them into one sorted tuple based upon the
+ * criteria provided in the comparison function.
  *
  * @method "merge_with_"
  * @categories "Tuples"
@@ -2871,7 +2871,7 @@ Semantic restriction "merge sort_with_" is
 			++ “comparator[2]”
 			++ ")"
 	];
-	<<>, union… | ||tupleType||>
+	<union… | ⎣tupleType⎦..⎡tupleType⎤>
 ];
 
 Method "merge sort_with_" is
