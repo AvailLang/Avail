@@ -1,6 +1,6 @@
 /**
  * P_059_ContinuationStackData.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,15 +41,15 @@ import com.avail.interpreter.*;
  * tuple} containing the {@linkplain ContinuationDescriptor continuation}'s
  * stack data. Substitute an unassigned {@linkplain BottomTypeDescriptor
  * bottom}-typed {@linkplain VariableDescriptor variable} (unconstructible
- * from Avail) for any {@linkplain NullDescriptor#nullObject() null} values.
+ * from Avail) for any {@linkplain NilDescriptor#nil() null} values.
  */
 public class P_059_ContinuationStackData extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_059_ContinuationStackData().init(
-		1, CanFold, CannotFail);
+	public final static Primitive instance =
+		new P_059_ContinuationStackData().init(1, CanFold, CannotFail);
 
 	@Override
 	public Result attempt (
@@ -64,11 +64,11 @@ public class P_059_ContinuationStackData extends Primitive
 		for (int i = 1; i <= count; i++)
 		{
 			AvailObject entry = con.argOrLocalOrStackAt(i);
-			if (entry.equalsNull())
+			if (entry.equalsNil())
 			{
 				// Objects of this kind cannot be constructed from Avail
 				// code.
-				entry = ContinuationDescriptor.nullSubstitute();
+				entry = ContinuationDescriptor.nilSubstitute();
 			}
 			tuple.tupleAtPut(i, entry);
 		}

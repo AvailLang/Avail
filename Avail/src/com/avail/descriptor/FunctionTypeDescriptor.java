@@ -1,6 +1,6 @@
 /**
  * FunctionTypeDescriptor.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,6 +32,8 @@
 
 package com.avail.descriptor;
 
+import static com.avail.descriptor.FunctionTypeDescriptor.IntegerSlots.*;
+import static com.avail.descriptor.FunctionTypeDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.*;
 import com.avail.annotations.*;
@@ -47,13 +49,14 @@ import com.avail.serialization.SerializerOperation;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class FunctionTypeDescriptor
+public final class FunctionTypeDescriptor
 extends TypeDescriptor
 {
 	/**
 	 * The layout of integer slots for my instances.
 	 */
-	public enum IntegerSlots implements IntegerSlotsEnum
+	public enum IntegerSlots
+	implements IntegerSlotsEnum
 	{
 		/**
 		 * The hash, or zero ({@code 0}) if the hash has not yet been computed.
@@ -64,7 +67,8 @@ extends TypeDescriptor
 	/**
 	 * The layout of object slots for my instances.
 	 */
-	public enum ObjectSlots implements ObjectSlotsEnum
+	public enum ObjectSlots
+	implements ObjectSlotsEnum
 	{
 		/**
 		 * The normalized {@linkplain SetDescriptor set} of checked exceptions
@@ -89,46 +93,28 @@ extends TypeDescriptor
 		ARGS_TUPLE_TYPE
 	}
 
-	@Override @AvailMethod
-	int o_HashOrZero (
-		final AvailObject object)
-	{
-		return object.slot(IntegerSlots.HASH_OR_ZERO);
-	}
-
-	@Override @AvailMethod
-	void o_HashOrZero (
-		final AvailObject object,
-		final int value)
-	{
-		object.setSlot(IntegerSlots.HASH_OR_ZERO, value);
-	}
-
-	@Override @AvailMethod
-	AvailObject o_DeclaredExceptions (
-		final AvailObject object)
-	{
-		return object.slot(ObjectSlots.CHECKED_EXCEPTIONS);
-	}
-
-	@Override @AvailMethod
-	AvailObject o_ReturnType (
-		final AvailObject object)
-	{
-		return object.slot(ObjectSlots.RETURN_TYPE);
-	}
-
-	@Override @AvailMethod
-	AvailObject o_ArgsTupleType (
-		final AvailObject object)
-	{
-		return object.slot(ObjectSlots.ARGS_TUPLE_TYPE);
-	}
-
 	@Override boolean allowsImmutableToMutableReferenceInField (
 		final AbstractSlotsEnum e)
 	{
-		return e == IntegerSlots.HASH_OR_ZERO;
+		return e == HASH_OR_ZERO;
+	}
+
+	@Override @AvailMethod
+	AvailObject o_DeclaredExceptions (final AvailObject object)
+	{
+		return object.slot(CHECKED_EXCEPTIONS);
+	}
+
+	@Override @AvailMethod
+	AvailObject o_ReturnType (final AvailObject object)
+	{
+		return object.slot(RETURN_TYPE);
+	}
+
+	@Override @AvailMethod
+	AvailObject o_ArgsTupleType (final AvailObject object)
+	{
+		return object.slot(ARGS_TUPLE_TYPE);
 	}
 
 	/**
@@ -212,7 +198,7 @@ extends TypeDescriptor
 		final AvailObject tupleType = object.argsTupleType();
 		if (tupleType.equals(BottomTypeDescriptor.bottom()))
 		{
-			aStream.append("...");
+			aStream.append("…");
 		}
 		else
 		{
@@ -269,9 +255,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_Equals (
-		final AvailObject object,
-		final AvailObject another)
+	boolean o_Equals (final AvailObject object, final AvailObject another)
 	{
 		return another.equalsFunctionType(object);
 	}
@@ -289,21 +273,29 @@ extends TypeDescriptor
 		{
 			return false;
 		}
-		if (!object.argsTupleType().equals(aType.argsTupleType()))
+		if (!object.slot(ARGS_TUPLE_TYPE).equals(aType.slot(ARGS_TUPLE_TYPE)))
 		{
 			return false;
 		}
-		if (!object.returnType().equals(aType.returnType()))
+		if (!object.slot(RETURN_TYPE).equals(aType.slot(RETURN_TYPE)))
 		{
 			return false;
 		}
-		if (!object.declaredExceptions().equals(aType.declaredExceptions()))
+		if (!object.slot(CHECKED_EXCEPTIONS).equals(
+			aType.slot(CHECKED_EXCEPTIONS)))
 		{
 			return false;
 		}
-		// There are at least 2 references now.
-		object.becomeIndirectionTo(aType);
-		aType.makeImmutable();
+		if (!isShared())
+		{
+			aType.makeImmutable();
+			object.becomeIndirectionTo(aType);
+		}
+		else if (!aType.descriptor.isShared())
+		{
+			object.makeImmutable();
+			aType.becomeIndirectionTo(object);
+		}
 		return true;
 	}
 
@@ -314,21 +306,35 @@ extends TypeDescriptor
 	 * store it in hashOrZero. Note that the hash can (extremely rarely) be
 	 * zero, in which case the hash must be computed on demand every time it is
 	 * requested. Answer the raw hash value.
+	 *
+	 * @param object The object.
+	 * @return The hash.
 	 */
-	@Override @AvailMethod
-	int o_Hash (
-		final AvailObject object)
+	private int hash (final AvailObject object)
 	{
-		int hash = object.hashOrZero();
+		int hash = object.slot(HASH_OR_ZERO);
 		if (hash == 0)
 		{
 			hash = 0x63FC934;
-			hash ^= object.returnType().hash();
-			hash = hash * 23 ^ object.declaredExceptions().hash();
-			hash = hash * 29 ^ object.argsTupleType().hash();
-			object.hashOrZero(hash);
+			hash ^= object.slot(RETURN_TYPE).hash();
+			hash = hash * 23 ^ object.slot(CHECKED_EXCEPTIONS).hash();
+			hash = hash * 29 ^ object.slot(ARGS_TUPLE_TYPE).hash();
+			object.setSlot(HASH_OR_ZERO, hash);
 		}
 		return hash;
+	}
+
+	@Override @AvailMethod
+	int o_Hash (final AvailObject object)
+	{
+		if (isShared())
+		{
+			synchronized (object)
+			{
+				return hash(object);
+			}
+		}
+		return hash(object);
 	}
 
 	@Override @AvailMethod
@@ -336,7 +342,8 @@ extends TypeDescriptor
 		final AvailObject object,
 		final AvailObject functionType)
 	{
-		return functionType.argsTupleType().isSubtypeOf(object.argsTupleType());
+		return functionType.slot(ARGS_TUPLE_TYPE).isSubtypeOf(
+			object.slot(ARGS_TUPLE_TYPE));
 	}
 
 	@Override @AvailMethod
@@ -344,7 +351,7 @@ extends TypeDescriptor
 		final AvailObject object,
 		final List<AvailObject> argTypes)
 	{
-		final AvailObject tupleType = object.argsTupleType();
+		final AvailObject tupleType = object.slot(ARGS_TUPLE_TYPE);
 		for (int i = 1, end = argTypes.size(); i <= end; i++)
 		{
 			if (!argTypes.get(i - 1).isSubtypeOf(tupleType.typeAtIndex(i)))
@@ -360,7 +367,7 @@ extends TypeDescriptor
 		final AvailObject object,
 		final List<AvailObject> argValues)
 	{
-		final AvailObject tupleType = object.argsTupleType();
+		final AvailObject tupleType = object.slot(ARGS_TUPLE_TYPE);
 		for (int i = 1, end = argValues.size(); i <= end; i++)
 		{
 			final AvailObject arg = argValues.get(i - 1);
@@ -377,7 +384,7 @@ extends TypeDescriptor
 		final AvailObject object,
 		final AvailObject argTypes)
 	{
-		final AvailObject tupleType = object.argsTupleType();
+		final AvailObject tupleType = object.slot(ARGS_TUPLE_TYPE);
 		for (int i = 1, end = argTypes.tupleSize(); i <= end; i++)
 		{
 			if (!argTypes.tupleAt(i).isSubtypeOf(tupleType.typeAtIndex(i)))
@@ -393,24 +400,15 @@ extends TypeDescriptor
 		final AvailObject object,
 		final AvailObject arguments)
 	{
-		return arguments.isInstanceOf(object.argsTupleType());
+		return arguments.isInstanceOf(object.slot(ARGS_TUPLE_TYPE));
 	}
 
-	/**
-	 * Answer whether this method could ever be invoked with the given argument
-	 * types. Make sure to exclude methods where an argType and corresponding
-	 * method argument type have no common descendant except bottom. In that
-	 * case, no legal object could be passed that would cause the method to be
-	 * invoked. Don't check the number of arguments here.
-	 *
-	 * @see MethodDescriptor
-	 */
 	@Override @AvailMethod
 	boolean o_CouldEverBeInvokedWith (
 		final AvailObject object,
 		final List<AvailObject> argTypes)
 	{
-		final AvailObject tupleType = object.argsTupleType();
+		final AvailObject tupleType = object.slot(ARGS_TUPLE_TYPE);
 		for (int i = 1, end = argTypes.size(); i <= end; i++)
 		{
 			final AvailObject argType = tupleType.typeAtIndex(i);
@@ -426,9 +424,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_IsSubtypeOf (
-		final AvailObject object,
-		final AvailObject aType)
+	boolean o_IsSubtypeOf (final AvailObject object, final AvailObject aType)
 	{
 		return aType.isSupertypeOfFunctionType(object);
 	}
@@ -452,14 +448,15 @@ extends TypeDescriptor
 		{
 			return true;
 		}
-		if (!aFunctionType.returnType().isSubtypeOf(object.returnType()))
+		if (!aFunctionType.slot(RETURN_TYPE).isSubtypeOf(
+			object.slot(RETURN_TYPE)))
 		{
 			return false;
 		}
 		each_outer:
-		for (final AvailObject outer : aFunctionType.declaredExceptions())
+		for (final AvailObject outer : aFunctionType.slot(CHECKED_EXCEPTIONS))
 		{
-			for (final AvailObject inner : object.declaredExceptions())
+			for (final AvailObject inner : object.slot(CHECKED_EXCEPTIONS))
 			{
 				if (outer.isSubtypeOf(inner))
 				{
@@ -468,8 +465,8 @@ extends TypeDescriptor
 			}
 			return false;
 		}
-		return object.argsTupleType().isSubtypeOf(
-			aFunctionType.argsTupleType());
+		return object.slot(ARGS_TUPLE_TYPE).isSubtypeOf(
+			aFunctionType.slot(ARGS_TUPLE_TYPE));
 	}
 
 	@Override @AvailMethod
@@ -494,14 +491,16 @@ extends TypeDescriptor
 		final AvailObject aFunctionType)
 	{
 		final AvailObject tupleTypeUnion =
-			object.slot(ObjectSlots.ARGS_TUPLE_TYPE).typeUnion(
-				aFunctionType.slot(ObjectSlots.ARGS_TUPLE_TYPE));
+			object.slot(ARGS_TUPLE_TYPE).typeUnion(
+				aFunctionType.slot(ARGS_TUPLE_TYPE));
 		final AvailObject returnType =
-			object.returnType().typeIntersection(aFunctionType.returnType());
+			object.slot(RETURN_TYPE).typeIntersection(
+				aFunctionType.slot(RETURN_TYPE));
 		AvailObject exceptions = SetDescriptor.empty();
-		for (final AvailObject outer : object.declaredExceptions())
+		for (final AvailObject outer : object.slot(CHECKED_EXCEPTIONS))
 		{
-			for (final AvailObject inner : aFunctionType.declaredExceptions())
+			for (final AvailObject inner
+				: aFunctionType.slot(CHECKED_EXCEPTIONS))
 			{
 				exceptions = exceptions.setWithElementCanDestroy(
 					outer.typeIntersection(inner),
@@ -539,13 +538,13 @@ extends TypeDescriptor
 		// Subobjects may be shared with result.
 		object.makeSubobjectsImmutable();
 		final AvailObject tupleTypeIntersection =
-			object.slot(ObjectSlots.ARGS_TUPLE_TYPE).typeIntersection(
-				aFunctionType.slot(ObjectSlots.ARGS_TUPLE_TYPE));
+			object.slot(ARGS_TUPLE_TYPE).typeIntersection(
+				aFunctionType.slot(ARGS_TUPLE_TYPE));
 		final AvailObject returnType =
-			object.returnType().typeUnion(aFunctionType.returnType());
+			object.slot(RETURN_TYPE).typeUnion(aFunctionType.slot(RETURN_TYPE));
 		final AvailObject exceptions = normalizeExceptionSet(
-			object.declaredExceptions().setUnionCanDestroy(
-				aFunctionType.declaredExceptions(), true));
+			object.slot(CHECKED_EXCEPTIONS).setUnionCanDestroy(
+				aFunctionType.slot(CHECKED_EXCEPTIONS), true));
 		return createWithArgumentTupleType(
 			tupleTypeIntersection,
 			returnType,
@@ -553,10 +552,105 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod @ThreadSafe
-	SerializerOperation o_SerializerOperation (
-		final AvailObject object)
+	SerializerOperation o_SerializerOperation (final AvailObject object)
 	{
 		return SerializerOperation.FUNCTION_TYPE;
+	}
+
+	/**
+	 * The most general {@linkplain FunctionTypeDescriptor function type}.
+	 */
+	private static AvailObject mostGeneralType;
+
+	/**
+	 * The metatype of any function types.
+	 */
+	private static AvailObject meta;
+
+	/**
+	 * Create the top (i.e., most general) {@linkplain FunctionTypeDescriptor
+	 * function type}.
+	 */
+	static void createWellKnownObjects ()
+	{
+		mostGeneralType = forReturnType(TOP.o());
+		mostGeneralType.makeShared();
+		meta = InstanceMetaDescriptor.on(mostGeneralType);
+		meta.makeShared();
+	}
+
+	/**
+	 * Clear any static references to publicly accessible objects.
+	 */
+	static void clearWellKnownObjects ()
+	{
+		mostGeneralType = null;
+		meta = null;
+	}
+
+	/**
+	 * Answer the top (i.e., most general) {@linkplain FunctionTypeDescriptor
+	 * function type}.
+	 *
+	 * @return The function type "[...]->top".
+	 */
+	public static AvailObject mostGeneralType ()
+	{
+		return mostGeneralType;
+	}
+
+	/**
+	 * Answer the metatype for all function types.  This is just an {@linkplain
+	 * InstanceTypeDescriptor instance type} on the {@linkplain
+	 * #mostGeneralType() most general type}.
+	 *
+	 * @return The function type "[...]->top".
+	 */
+	public static AvailObject meta ()
+	{
+		return meta;
+	}
+
+	/**
+	 * Construct a new {@link FunctionTypeDescriptor}.
+	 *
+	 * @param mutability
+	 *        The {@linkplain Mutability mutability} of the new descriptor.
+	 */
+	private FunctionTypeDescriptor (final Mutability mutability)
+	{
+		super(mutability);
+	}
+
+	/** The mutable {@link FunctionTypeDescriptor}. */
+	private static final FunctionTypeDescriptor mutable =
+		new FunctionTypeDescriptor(Mutability.MUTABLE);
+
+
+	@Override
+	FunctionTypeDescriptor mutable ()
+	{
+		return mutable;
+	}
+
+	/** The immutable {@link FunctionTypeDescriptor}. */
+	private static final FunctionTypeDescriptor immutable =
+		new FunctionTypeDescriptor(Mutability.IMMUTABLE);
+
+	@Override
+	FunctionTypeDescriptor immutable ()
+	{
+		return immutable;
+	}
+
+	/** The shared {@link FunctionTypeDescriptor}. */
+	private static final FunctionTypeDescriptor shared =
+		new FunctionTypeDescriptor(Mutability.SHARED);
+
+	@Override
+	FunctionTypeDescriptor shared ()
+	{
+		return shared;
 	}
 
 	/**
@@ -644,11 +738,11 @@ extends TypeDescriptor
 		assert argsTupleType.isTupleType();
 		final AvailObject exceptionsReduced =
 			normalizeExceptionSet(exceptionSet);
-		final AvailObject type = mutable().create();
+		final AvailObject type = mutable.create();
 		type.setSlot(ObjectSlots.ARGS_TUPLE_TYPE, argsTupleType);
 		type.setSlot(ObjectSlots.CHECKED_EXCEPTIONS, exceptionsReduced);
 		type.setSlot(ObjectSlots.RETURN_TYPE, returnType);
-		type.hashOrZero(0);
+		type.setSlot(IntegerSlots.HASH_OR_ZERO, 0);
 		type.makeImmutable();
 		return type;
 	}
@@ -728,104 +822,5 @@ extends TypeDescriptor
 			returnType,
 			// TODO: [MvG] Probably should allow any exception.
 			SetDescriptor.empty());
-	}
-
-	/**
-	 * The most general {@linkplain FunctionTypeDescriptor function type}.
-	 */
-	private static AvailObject MostGeneralType;
-
-	/**
-	 * The metatype of any function types.
-	 */
-	private static AvailObject Meta;
-
-	/**
-	 * Create the top (i.e., most general) {@linkplain FunctionTypeDescriptor
-	 * function type}.
-	 */
-	static void createWellKnownObjects ()
-	{
-		MostGeneralType = forReturnType(TOP.o());
-		MostGeneralType.makeImmutable();
-		Meta = InstanceMetaDescriptor.on(MostGeneralType);
-		Meta.makeImmutable();
-	}
-
-	/**
-	 * Clear any static references to publicly accessible objects.
-	 */
-	static void clearWellKnownObjects ()
-	{
-		MostGeneralType = null;
-		Meta = null;
-	}
-
-	/**
-	 * Answer the top (i.e., most general) {@linkplain FunctionTypeDescriptor
-	 * function type}.
-	 *
-	 * @return The function type "[...]->top".
-	 */
-	public static AvailObject mostGeneralType ()
-	{
-		return MostGeneralType;
-	}
-
-	/**
-	 * Answer the metatype for all function types.  This is just an {@linkplain
-	 * InstanceTypeDescriptor instance type} on the {@linkplain
-	 * #mostGeneralType() most general type}.
-	 *
-	 * @return The function type "[...]->top".
-	 */
-	public static AvailObject meta ()
-	{
-		return Meta;
-	}
-
-
-	/**
-	 * Construct a new {@link FunctionTypeDescriptor}.
-	 *
-	 * @param isMutable
-	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
-	 *        object?
-	 */
-	protected FunctionTypeDescriptor (final boolean isMutable)
-	{
-		super(isMutable);
-	}
-
-	/**
-	 * The mutable {@link FunctionTypeDescriptor}.
-	 */
-	private static final FunctionTypeDescriptor mutable =
-		new FunctionTypeDescriptor(true);
-
-	/**
-	 * Answer the mutable {@link FunctionTypeDescriptor}.
-	 *
-	 * @return The mutable {@link FunctionTypeDescriptor}.
-	 */
-	public static FunctionTypeDescriptor mutable ()
-	{
-		return mutable;
-	}
-
-	/**
-	 * The immutable {@link FunctionTypeDescriptor}.
-	 */
-	private static final FunctionTypeDescriptor immutable =
-		new FunctionTypeDescriptor(false);
-
-	/**
-	 * Answer the immutable {@link FunctionTypeDescriptor}.
-	 *
-	 * @return The immutable {@link FunctionTypeDescriptor}.
-	 */
-	public static FunctionTypeDescriptor immutable ()
-	{
-		return immutable;
 	}
 }

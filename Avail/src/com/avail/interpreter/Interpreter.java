@@ -1,6 +1,6 @@
 /**
  * Interpreter.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -494,9 +494,9 @@ public abstract class Interpreter
 		assert macroBody.code().numArgs() == numArgs
 			: "Wrong number of arguments in macro definition";
 		// Make it so we can safely hold onto these things in the VM
-		methodName.makeImmutable();
-		prefixFunctions.makeImmutable();
-		macroBody.makeImmutable();
+		methodName.makeShared();
+		prefixFunctions.makeShared();
+		macroBody.makeShared();
 		// Add the macro definition.
 		final AvailObject macroDefinition = MacroDefinitionDescriptor.create(
 			method,
@@ -607,7 +607,7 @@ public abstract class Interpreter
 	 *
 	 * @param methodName
 	 *            An {@linkplain AtomDescriptor atom} that names a method.
-	 * @param illegalArgMsgs
+	 * @param excluded
 	 *            The {@linkplain TupleDescriptor tuple} of {@linkplain
 	 *            SetDescriptor sets} of {@linkplain AtomDescriptor atoms} that
 	 *            name methods.
@@ -617,23 +617,23 @@ public abstract class Interpreter
 	 */
 	public void atDisallowArgumentMessages (
 		final AvailObject methodName,
-		final AvailObject illegalArgMsgs)
+		final AvailObject excluded)
 	throws SignatureException
 	{
 		assert methodName.isAtom();
 		// Make these things safe for the VM to hold.
-		methodName.makeImmutable();
-		illegalArgMsgs.makeImmutable();
+		methodName.makeShared();
+		excluded.makeShared();
 		final MessageSplitter splitter = new MessageSplitter(methodName.name());
 		final int numArgs = splitter.numberOfUnderscores();
-		assert numArgs == illegalArgMsgs.tupleSize()
+		assert numArgs == excluded.tupleSize()
 			: "Wrong number of entries in restriction tuple.";
 		// Fix precedence.
 		final AvailObject bundle =
 			module.filteredBundleTree().includeBundleNamed(methodName);
 		module.filteredBundleTree().removeBundleNamed(methodName);
-		bundle.addGrammaticalRestrictions(illegalArgMsgs);
-		module.addGrammaticalRestrictions(methodName, illegalArgMsgs);
+		bundle.addGrammaticalRestrictions(excluded);
+		module.addGrammaticalRestrictions(methodName, excluded);
 		module.filteredBundleTree().includeBundle(bundle);
 	}
 
@@ -784,7 +784,7 @@ public abstract class Interpreter
 
 		assert runtime.hasMethodAt(methodName);
 		final AvailObject method = runtime.methodAt(methodName);
-		assert !method.equalsNull();
+		assert !method.equalsNil();
 		if (!pendingForwards.hasElement(aForward))
 		{
 			error("Inconsistent forward declaration handling code");

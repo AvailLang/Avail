@@ -1,6 +1,6 @@
 /**
  * PojoFieldDescriptor.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,6 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.PojoFieldDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.PojoFieldDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.PojoTypeDescriptor.unmarshal;
 import java.lang.reflect.*;
@@ -53,17 +52,6 @@ import com.avail.exceptions.*;
 public final class PojoFieldDescriptor
 extends Descriptor
 {
-	/** The layout of the integer slots. */
-	public enum IntegerSlots
-	implements IntegerSlotsEnum
-	{
-		/**
-		 * The {@linkplain AvailObject#hash() hash}, or zero ({@code 0}) if the
-		 * hash should be computed.
-		 */
-		HASH_OR_ZERO
-	}
-
 	/** The layout of the object slots. */
 	public enum ObjectSlots
 	implements ObjectSlotsEnum
@@ -85,13 +73,6 @@ extends Descriptor
 		 * VariableDescriptor variable}.
 		 */
 		KIND
-	}
-
-	@Override
-	boolean allowsImmutableToMutableReferenceInField (
-		final AbstractSlotsEnum e)
-	{
-		return e == HASH_OR_ZERO;
 	}
 
 	@Override
@@ -144,9 +125,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_Equals (
-		final AvailObject object,
-		final AvailObject another)
+	boolean o_Equals (final AvailObject object, final AvailObject another)
 	{
 		return another.equalsPojoField(
 			object.slot(FIELD), object.slot(RECEIVER));
@@ -194,19 +173,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_MakeImmutable (final AvailObject object)
-	{
-		object.descriptor = immutable;
-		object.slot(FIELD).makeImmutable();
-		object.slot(RECEIVER).makeImmutable();
-		object.slot(KIND).makeImmutable();
-		return object;
-	}
-
-	@Override
-	void o_SetValue (
-		final AvailObject object,
-		final AvailObject newValue)
+	void o_SetValue (final AvailObject object, final AvailObject newValue)
 	{
 		final Object receiver = object.slot(RECEIVER).javaObject();
 		final Field field = (Field) object.slot(FIELD).javaObject();
@@ -228,7 +195,7 @@ extends Descriptor
 		final AvailObject object,
 		final AvailObject newValue)
 	{
-		// Actually check this write anyhow.  Just in case.
+		// Actually check this write anyhow. Just in case.
 		final Object receiver = object.slot(RECEIVER).javaObject();
 		final Field field = (Field) object.slot(FIELD).javaObject();
 		final Class<?> classHint = field.getType();
@@ -286,32 +253,43 @@ extends Descriptor
 	/**
 	 * Construct a new {@link PojoFieldDescriptor}.
 	 *
-	 * @param isMutable
-	 *        Does the {@linkplain PojoFieldDescriptor descriptor} represent a
-	 *        mutable object?
+	 * @param mutability
+	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 */
-	public PojoFieldDescriptor (final boolean isMutable)
+	private PojoFieldDescriptor (final Mutability mutability)
 	{
-		super(isMutable);
+		super(mutability);
 	}
 
 	/** The mutable {@link PojoFieldDescriptor}. */
 	private static final PojoFieldDescriptor mutable =
-		new PojoFieldDescriptor(true);
+		new PojoFieldDescriptor(Mutability.MUTABLE);
 
-	/**
-	 * Answer the mutable {@link PojoFieldDescriptor}.
-	 *
-	 * @return The mutable {@link PojoFieldDescriptor}.
-	 */
-	public static PojoFieldDescriptor mutable ()
+	@Override
+	PojoFieldDescriptor mutable ()
 	{
 		return mutable;
 	}
 
 	/** The immutable {@link PojoFieldDescriptor}. */
 	private static final PojoFieldDescriptor immutable =
-		new PojoFieldDescriptor(false);
+		new PojoFieldDescriptor(Mutability.IMMUTABLE);
+
+	@Override
+	PojoFieldDescriptor immutable ()
+	{
+		return immutable;
+	}
+
+	/** The shared {@link PojoFieldDescriptor}. */
+	private static final PojoFieldDescriptor shared =
+		new PojoFieldDescriptor(Mutability.SHARED);
+
+	@Override
+	PojoFieldDescriptor shared ()
+	{
+		return shared;
+	}
 
 	/**
 	 * Create a {@linkplain PojoFieldDescriptor variable} that reads/writes
@@ -333,7 +311,6 @@ extends Descriptor
 		final AvailObject outerType)
 	{
 		final AvailObject newObject = mutable.create();
-		newObject.setSlot(HASH_OR_ZERO, 0);
 		newObject.setSlot(FIELD, field);
 		newObject.setSlot(RECEIVER, receiver);
 		newObject.setSlot(KIND, outerType);

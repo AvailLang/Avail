@@ -1,6 +1,6 @@
 /**
  * P_255_GrammaticalRestriction.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,14 +34,7 @@ package com.avail.interpreter.primitive;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.interpreter.Primitive.Flag.Unknown;
 import java.util.List;
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.FunctionTypeDescriptor;
-import com.avail.descriptor.IntegerRangeTypeDescriptor;
-import com.avail.descriptor.NullDescriptor;
-import com.avail.descriptor.SetDescriptor;
-import com.avail.descriptor.SetTypeDescriptor;
-import com.avail.descriptor.TupleDescriptor;
-import com.avail.descriptor.TupleTypeDescriptor;
+import com.avail.descriptor.*;
 import com.avail.exceptions.AmbiguousNameException;
 import com.avail.exceptions.SignatureException;
 import com.avail.interpreter.Interpreter;
@@ -107,7 +100,7 @@ public class P_255_GrammaticalRestriction extends Primitive
 		{
 			return interpreter.primitiveFailure(e);
 		}
-		return interpreter.primitiveSuccess(NullDescriptor.nullObject());
+		return interpreter.primitiveSuccess(NilDescriptor.nil());
 	}
 
 	@Override

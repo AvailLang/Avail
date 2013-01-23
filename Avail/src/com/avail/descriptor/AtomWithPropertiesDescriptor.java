@@ -1,6 +1,6 @@
 /**
  * AtomWithPropertiesDescriptor.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -55,18 +55,19 @@ import com.avail.serialization.Serializer;
  * a map from property keys to property values.
  * </p>
  *
- * @see AtomDescriptor
- *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
+ * @see AtomDescriptor
+ * @see AtomWithPropertiesSharedDescriptor
  */
 public class AtomWithPropertiesDescriptor
 extends AtomDescriptor
 {
-
 	/**
 	 * The layout of integer slots for my instances.
 	 */
-	public enum IntegerSlots implements IntegerSlotsEnum
+	public enum IntegerSlots
+	implements IntegerSlotsEnum
 	{
 		/**
 		 * The hash value of this {@linkplain AtomDescriptor atom}.  It is a
@@ -85,7 +86,8 @@ extends AtomDescriptor
 	/**
 	 * The layout of object slots for my instances.
 	 */
-	public enum ObjectSlots implements ObjectSlotsEnum
+	public enum ObjectSlots
+	implements ObjectSlotsEnum
 	{
 		/**
 		 * A string (non-uniquely) roughly identifying this atom.  It need not
@@ -116,12 +118,24 @@ extends AtomDescriptor
 		}
 	}
 
-	@Override boolean allowsImmutableToMutableReferenceInField (
-		final AbstractSlotsEnum e)
+	@Override
+	boolean allowsImmutableToMutableReferenceInField (final AbstractSlotsEnum e)
 	{
 		return super.allowsImmutableToMutableReferenceInField(e)
 			|| e == HASH_OR_ZERO
 			|| e == PROPERTY_MAP;
+	}
+
+	@Override
+	AvailObject o_MakeShared (final AvailObject object)
+	{
+		assert !isShared();
+		// The layout of the destination descriptor is the same, so nothing
+		// special needs to happen, i.e., object doesn't need to become an
+		// indirection.
+		object.descriptor = AtomWithPropertiesSharedDescriptor.shared;
+		object.slot(PROPERTY_MAP).makeShared();
+		return object;
 	}
 
 	/**
@@ -140,7 +154,7 @@ extends AtomDescriptor
 	{
 		assert key.isAtom();
 		AvailObject map = object.slot(PROPERTY_MAP);
-		if (value.equalsNull())
+		if (value.equalsNil())
 		{
 			map = map.mapWithoutKeyCanDestroy(key, true);
 		}
@@ -148,16 +162,19 @@ extends AtomDescriptor
 		{
 			map = map.mapAtPuttingCanDestroy(key, value, true);
 		}
+		if (isShared())
+		{
+			map = map.traversed().makeShared();
+		}
 		object.setSlot(PROPERTY_MAP, map);
 	}
-
 
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>
 	 * Extract the property value of this atom at the specified key.  Return
-	 * {@linkplain NullDescriptor#nullObject() the null object} if no such
+	 * {@linkplain NilDescriptor#nil() nil} if no such
 	 * property exists.
 	 * </p>
 	 */
@@ -172,7 +189,7 @@ extends AtomDescriptor
 		{
 			return map.mapAt(key);
 		}
-		return NullDescriptor.nullObject();
+		return NilDescriptor.nil();
 	}
 
 	/**
@@ -193,7 +210,7 @@ extends AtomDescriptor
 		final AvailObject name,
 		final AvailObject issuingModule)
 	{
-		final AvailObject instance = mutable().create();
+		final AvailObject instance = mutable.create();
 		instance.setSlot(NAME, name);
 		instance.setSlot(ISSUING_MODULE, issuingModule);
 		instance.setSlot(PROPERTY_MAP, MapDescriptor.empty());
@@ -227,7 +244,7 @@ extends AtomDescriptor
 		final AvailObject issuingModule,
 		final int originalHash)
 	{
-		final AvailObject instance = mutable().create();
+		final AvailObject instance = mutable.create();
 		instance.setSlot(NAME, name);
 		instance.setSlot(ISSUING_MODULE, issuingModule);
 		instance.setSlot(PROPERTY_MAP, MapDescriptor.empty());
@@ -239,43 +256,30 @@ extends AtomDescriptor
 	/**
 	 * Construct a new {@link AtomWithPropertiesDescriptor}.
 	 *
-	 * @param isMutable
-	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
-	 *        object?
+	 * @param mutability
+	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 */
-	protected AtomWithPropertiesDescriptor (final boolean isMutable)
+	protected AtomWithPropertiesDescriptor (final Mutability mutability)
 	{
-		super(isMutable);
+		super(mutability);
 	}
 
-	/**
-	 * The mutable {@link AtomWithPropertiesDescriptor}.
-	 */
+	/** The mutable {@link AtomWithPropertiesDescriptor}. */
 	private static final AtomWithPropertiesDescriptor mutable =
-		new AtomWithPropertiesDescriptor(true);
+		new AtomWithPropertiesDescriptor(Mutability.MUTABLE);
 
-	/**
-	 * Answer the mutable {@link AtomWithPropertiesDescriptor}.
-	 *
-	 * @return The mutable {@link AtomWithPropertiesDescriptor}.
-	 */
-	public static AtomWithPropertiesDescriptor mutable ()
+	@Override
+	AtomWithPropertiesDescriptor mutable ()
 	{
 		return mutable;
 	}
 
-	/**
-	 * The immutable {@link AtomWithPropertiesDescriptor}.
-	 */
+	/** The immutable {@link AtomWithPropertiesDescriptor}. */
 	private static final AtomWithPropertiesDescriptor immutable =
-		new AtomWithPropertiesDescriptor(false);
+		new AtomWithPropertiesDescriptor(Mutability.IMMUTABLE);
 
-	/**
-	 * Answer the immutable {@link AtomWithPropertiesDescriptor}.
-	 *
-	 * @return The immutable {@link AtomWithPropertiesDescriptor}.
-	 */
-	public static AtomWithPropertiesDescriptor immutable ()
+	@Override
+	AtomWithPropertiesDescriptor immutable ()
 	{
 		return immutable;
 	}

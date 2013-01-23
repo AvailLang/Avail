@@ -1,6 +1,6 @@
 /**
  * P_057_ExitContinuationWithResult.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -72,7 +72,7 @@ public class P_057_ExitContinuationWithResult extends Primitive
 		// continuation to always be mutable...
 		final AvailObject expectedType = function.kind().returnType();
 		final AvailObject caller = con.caller();
-		if (caller.equalsNull())
+		if (caller.equalsNil())
 		{
 			interpreter.exitProcessWith(result);
 			return CONTINUATION_CHANGED;

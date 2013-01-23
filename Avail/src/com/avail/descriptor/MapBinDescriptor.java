@@ -1,6 +1,6 @@
 /**
  * MapBinDescriptor.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -47,7 +47,8 @@ extends Descriptor
 	/**
 	 * The layout of integer slots for my instances.
 	 */
-	public enum IntegerSlots implements IntegerSlotsEnum
+	public enum IntegerSlots
+	implements IntegerSlotsEnum
 	{
 		/**
 		 * The sum of the hashes of the keys recursively within this bin.
@@ -61,19 +62,16 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	int o_MapBinKeysHash (
-		final AvailObject object)
+	int o_MapBinKeysHash (final AvailObject object)
 	{
 		return object.slot(IntegerSlots.KEYS_HASH);
 	}
 
 	@Override @AvailMethod
-	abstract int o_MapBinValuesHash (
-		final AvailObject object);
+	abstract int o_MapBinValuesHash (final AvailObject object);
 
 	@Override
-	boolean o_IsHashedMapBin (
-		final AvailObject object)
+	boolean o_IsHashedMapBin (final AvailObject object)
 	{
 		return false;
 	}
@@ -92,44 +90,30 @@ extends Descriptor
 	}
 
 	@Override
-	abstract MapIterable o_MapBinIterable (
-		final AvailObject object);
+	abstract MapIterable o_MapBinIterable (final AvailObject object);
 
 	/**
-	 * The level of my objects in their enclosing bin trees.
-	 *
-	 * @see #level()
+	 * The level of my objects in their enclosing bin trees. The top node is
+	 * level 0 (using hash bits 0..4), and the bottom hashed node is level 6
+	 * (using hash bits 30..34, the top three of which are always zero). There
+	 * can be a level 7 {@linkplain LinearMapBinDescriptor linear bin}, but it
+	 * represents elements which all have the same hash value, so it should
+	 * never be hashed.
 	 */
 	final byte level;
 
 	/**
-	 * Answer what level this descriptor's objects occupy in their hierarchy.
-	 * The top node is level 0 (using hash bits 0..4), and the bottom hashed
-	 * node is level 6 (using hash bits 30..34, the top three of which are
-	 * always zero).  There can be a level 7 {@linkplain LinearMapBinDescriptor
-	 * linear bin}, but it represents elements which all have the same hash
-	 * value, so it should never be hashed.
-	 *
-	 * @return The descriptor's level in a bin tree.
-	 */
-	byte level ()
-	{
-		return level;
-	}
-
-	/**
 	 * Construct a new {@link MapBinDescriptor}.
 	 *
-	 * @param isMutable
-	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
-	 *        object?
+	 * @param mutability
+	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 * @param level The depth of the bin in the hash tree.
 	 */
 	protected MapBinDescriptor (
-		final boolean isMutable,
+		final Mutability mutability,
 		final int level)
 	{
-		super(isMutable);
+		super(mutability);
 		this.level = (byte) level;
 	}
 }

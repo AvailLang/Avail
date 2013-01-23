@@ -1,6 +1,6 @@
 /**
  * LiteralNodeDescriptor.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,7 @@
 
 package com.avail.descriptor;
 
-
+import static com.avail.descriptor.LiteralNodeDescriptor.ObjectSlots.*;
 import java.util.List;
 import com.avail.annotations.*;
 import com.avail.compiler.AvailCodeGenerator;
@@ -46,15 +46,14 @@ import com.avail.utility.*;
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class LiteralNodeDescriptor
+public final class LiteralNodeDescriptor
 extends ParseNodeDescriptor
 {
 	/**
 	 * My slots of type {@link AvailObject}.
-	 *
-	 * @author Mark van Gulik &lt;mark@availlang.org&gt;
 	 */
-	public enum ObjectSlots implements ObjectSlotsEnum
+	public enum ObjectSlots
+	implements ObjectSlotsEnum
 	{
 		/**
 		 * The token that was transformed into this literal.
@@ -62,21 +61,26 @@ extends ParseNodeDescriptor
 		TOKEN,
 	}
 
-	/**
-	 * Getter for field token.
-	 */
+	@Override
+	public void printObjectOnAvoidingIndent (
+		final AvailObject object,
+		final StringBuilder builder,
+		final List<AvailObject> recursionList,
+		final int indent)
+	{
+		builder.append(object.token().string().asNativeString());
+	}
+
 	@Override @AvailMethod
-	AvailObject o_Token (
-		final AvailObject object)
+	AvailObject o_Token (final AvailObject object)
 	{
 		return object.slot(ObjectSlots.TOKEN);
 	}
 
-
 	@Override @AvailMethod
 	AvailObject o_ExpressionType (final AvailObject object)
 	{
-		final AvailObject token = object.token();
+		final AvailObject token = object.slot(TOKEN);
 		assert token.tokenType() == TokenType.LITERAL
 			|| token.tokenType() == TokenType.SYNTHETIC_LITERAL;
 		final AvailObject literal = token.literal();
@@ -87,8 +91,7 @@ extends ParseNodeDescriptor
 	@Override @AvailMethod
 	int o_Hash (final AvailObject object)
 	{
-		return
-			object.token().hash() ^ 0x9C860C0D;
+		return object.token().hash() ^ 0x9C860C0D;
 	}
 
 	@Override @AvailMethod
@@ -97,7 +100,7 @@ extends ParseNodeDescriptor
 		final AvailObject aParseNode)
 	{
 		return object.kind().equals(aParseNode.kind())
-			&& object.token().equals(aParseNode.token());
+			&& object.slot(TOKEN).equals(aParseNode.token());
 	}
 
 	@Override @AvailMethod
@@ -113,7 +116,7 @@ extends ParseNodeDescriptor
 		final AvailObject object,
 		final AvailCodeGenerator codeGenerator)
 	{
-		codeGenerator.emitPushLiteral(object.token().literal());
+		codeGenerator.emitPushLiteral(object.slot(TOKEN).literal());
 	}
 
 	@Override @AvailMethod
@@ -146,17 +149,6 @@ extends ParseNodeDescriptor
 		return ParseNodeKind.LITERAL_NODE;
 	}
 
-	@Override
-	public void printObjectOnAvoidingIndent (
-		final AvailObject object,
-		final StringBuilder builder,
-		final List<AvailObject> recursionList,
-		final int indent)
-	{
-		builder.append(object.token().string().asNativeString());
-	}
-
-
 	/**
 	 * Create a {@linkplain LiteralNodeDescriptor literal node} from a {@linkplain
 	 * LiteralTokenDescriptor literal token}.
@@ -166,16 +158,15 @@ extends ParseNodeDescriptor
 	 */
 	public static AvailObject fromTokenForDecompiler (final AvailObject token)
 	{
-		final AvailObject node = mutable().create();
-		node.setSlot(ObjectSlots.TOKEN, token);
+		final AvailObject node = mutable.create();
+		node.setSlot(TOKEN, token);
 		node.makeImmutable();
 		return node;
 	}
 
-
 	/**
-	 * Create a {@linkplain LiteralNodeDescriptor literal node} from a {@linkplain
-	 * LiteralTokenDescriptor literal token}.
+	 * Create a {@linkplain LiteralNodeDescriptor literal node} from a
+	 * {@linkplain LiteralTokenDescriptor literal token}.
 	 *
 	 * @param token The token that describes the literal.
 	 * @return The new literal node.
@@ -184,23 +175,21 @@ extends ParseNodeDescriptor
 	{
 		assert token.isInstanceOfKind(
 			LiteralTokenTypeDescriptor.mostGeneralType());
-		final AvailObject node = mutable().create();
-		node.setSlot(ObjectSlots.TOKEN, token);
+		final AvailObject node = mutable.create();
+		node.setSlot(TOKEN, token);
 		node.makeImmutable();
 		return node;
 	}
 
-
 	/**
 	 * Create a {@linkplain LiteralNodeDescriptor literal node} from an
-	 * {@link AvailObject}, the literal value itself.  Automatically wrap the
+	 * {@link AvailObject}, the literal value itself. Automatically wrap the
 	 * value inside a synthetic literal token.
 	 *
 	 * @param literalValue The value that this literal node should produce.
 	 * @return The new literal node.
 	 */
-	public static AvailObject syntheticFrom (
-		final AvailObject literalValue)
+	public static AvailObject syntheticFrom (final AvailObject literalValue)
 	{
 		final AvailObject token = LiteralTokenDescriptor.create(
 			literalValue.isString()
@@ -213,47 +202,34 @@ extends ParseNodeDescriptor
 		return fromToken(token);
 	}
 
-
 	/**
 	 * Construct a new {@link LiteralNodeDescriptor}.
 	 *
-	 * @param isMutable Whether my {@linkplain AvailObject instances} can
-	 *                  change.
+	 * @param mutability
+	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 */
-	public LiteralNodeDescriptor (final boolean isMutable)
+	public LiteralNodeDescriptor (final Mutability mutability)
 	{
-		super(isMutable);
+		super(mutability);
 	}
 
-	/**
-	 * The mutable {@link LiteralNodeDescriptor}.
-	 */
+	/** The mutable {@link LiteralNodeDescriptor}. */
 	private static final LiteralNodeDescriptor mutable =
-		new LiteralNodeDescriptor(true);
+		new LiteralNodeDescriptor(Mutability.MUTABLE);
 
-	/**
-	 * Answer the mutable {@link LiteralNodeDescriptor}.
-	 *
-	 * @return The mutable {@link LiteralNodeDescriptor}.
-	 */
-	public static LiteralNodeDescriptor mutable ()
+	@Override
+	LiteralNodeDescriptor mutable ()
 	{
 		return mutable;
 	}
 
-	/**
-	 * The immutable {@link LiteralNodeDescriptor}.
-	 */
-	private static final LiteralNodeDescriptor immutable =
-		new LiteralNodeDescriptor(false);
+	/** The shared {@link LiteralNodeDescriptor}. */
+	private static final LiteralNodeDescriptor shared =
+		new LiteralNodeDescriptor(Mutability.SHARED);
 
-	/**
-	 * Answer the immutable {@link LiteralNodeDescriptor}.
-	 *
-	 * @return The immutable {@link LiteralNodeDescriptor}.
-	 */
-	public static LiteralNodeDescriptor immutable ()
+	@Override
+	LiteralNodeDescriptor shared ()
 	{
-		return immutable;
+		return shared;
 	}
 }

@@ -1,6 +1,6 @@
 /**
  * LinearMapBinDescriptor.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,6 +34,7 @@ package com.avail.descriptor;
 
 import static com.avail.descriptor.LinearMapBinDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.LinearMapBinDescriptor.ObjectSlots.*;
+import static com.avail.descriptor.Mutability.*;
 import com.avail.annotations.*;
 import com.avail.descriptor.MapDescriptor.*;
 
@@ -45,13 +46,14 @@ import com.avail.descriptor.MapDescriptor.*;
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class LinearMapBinDescriptor
+final class LinearMapBinDescriptor
 extends MapBinDescriptor
 {
 	/**
 	 * The layout of integer slots for my instances.
 	 */
-	public enum IntegerSlots implements IntegerSlotsEnum
+	public enum IntegerSlots
+	implements IntegerSlotsEnum
 	{
 		/**
 		 * The sum of the hashes of the keys within this bin.
@@ -81,10 +83,11 @@ extends MapBinDescriptor
 	/**
 	 * The layout of object slots for my instances.
 	 */
-	public enum ObjectSlots implements ObjectSlotsEnum
+	public enum ObjectSlots
+	implements ObjectSlotsEnum
 	{
 		/**
-		 * The elements of this bin.  The elements are never sub-bins, since
+		 * The elements of this bin. The elements are never sub-bins, since
 		 * this is a {@linkplain LinearMapBinDescriptor linear bin}, a leaf bin.
 		 */
 		BIN_SLOT_AT_
@@ -142,9 +145,7 @@ extends MapBinDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_BinElementAt (
-		final AvailObject object,
-		final int subscript)
+	AvailObject o_BinElementAt (final AvailObject object, final int subscript)
 	{
 		return object.slot(BIN_SLOT_AT_, subscript);
 	}
@@ -159,20 +160,7 @@ extends MapBinDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_MakeImmutable (
-		final AvailObject object)
-	{
-		if (isMutable)
-		{
-			object.descriptor = isMutableLevel(false, level);
-			object.makeSubobjectsImmutable();
-		}
-		return object;
-	}
-
-	@Override @AvailMethod
-	int o_BinSize (
-		final AvailObject object)
+	int o_BinSize (final AvailObject object)
 	{
 		// Answer how many (key,value) pairs this bin contains.
 		return object.variableIntegerSlotsCount();
@@ -193,8 +181,8 @@ extends MapBinDescriptor
 				return object.slot(BIN_SLOT_AT_, i * 2);
 			}
 		}
-		// Not found.  Answer the null object.
-		return NullDescriptor.nullObject();
+		// Not found. Answer nil.
+		return NilDescriptor.nil();
 	}
 
 	@Override @AvailMethod
@@ -256,7 +244,7 @@ extends MapBinDescriptor
 					}
 					//trace(" (copy)");
 					newBin = AvailObjectRepresentation.newLike(
-						isMutableLevel(true, level),
+						descriptorFor(MUTABLE, level),
 						object,
 						0,
 						0);
@@ -319,7 +307,7 @@ extends MapBinDescriptor
 		//  Make a slightly larger linear bin and populate it.
 		//trace("%n\tGrowing");
 		final AvailObject result = AvailObjectRepresentation.newLike(
-			isMutableLevel(true, myLevel),
+			descriptorFor(MUTABLE, myLevel),
 			object,
 			2,
 			1);
@@ -328,14 +316,14 @@ extends MapBinDescriptor
 		result.setSlot(KEY_HASHES_, oldSize + 1, keyHash);
 		result.setSlot(BIN_SLOT_AT_, oldSize * 2 + 1, key);
 		result.setSlot(BIN_SLOT_AT_, oldSize * 2 + 2, value);
-		if (canDestroy && isMutable)
+		if (canDestroy && isMutable())
 		{
 			// Ensure destruction of the old object doesn't drag along anything
 			// shared, but don't go to the expense of marking anything in common
 			// as shared.
 			object.setToInvalidDescriptor();
 		}
-		else if (isMutable)
+		else if (isMutable())
 		{
 			object.makeSubobjectsImmutable();
 		}
@@ -344,8 +332,8 @@ extends MapBinDescriptor
 	}
 
 	/**
-	 * Remove the key from the bin object, if present.  Answer the resulting
-	 * bin.  The bin may be modified if it's mutable and canDestroy.
+	 * Remove the key from the bin object, if present. Answer the resulting
+	 * bin. The bin may be modified if it's mutable and canDestroy.
 	 */
 	@Override @AvailMethod
 	AvailObject o_MapBinRemoveKeyHashCanDestroy (
@@ -365,11 +353,11 @@ extends MapBinDescriptor
 				if (oldSize == 1)
 				{
 					//trace(" (last element)");
-					return NullDescriptor.nullObject();
+					return NilDescriptor.nil();
 				}
 				//trace(" (found)");
 				final AvailObject result = AvailObjectRepresentation.newLike(
-					isMutableLevel(true, level),
+					descriptorFor(MUTABLE, level),
 					object,
 					-2,
 					-1);
@@ -409,10 +397,9 @@ extends MapBinDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_MapBinKeyUnionKind (
-		final AvailObject object)
+	AvailObject o_MapBinKeyUnionKind (final AvailObject object)
 	{
-		// Answer the union of the types of this bin's keys.  I'm supposed to be
+		// Answer the union of the types of this bin's keys. I'm supposed to be
 		// small, so recalculate it per request.
 		AvailObject unionKind = BottomTypeDescriptor.bottom();
 		final int limit = object.variableIntegerSlotsCount();
@@ -425,10 +412,9 @@ extends MapBinDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_MapBinValueUnionKind (
-		final AvailObject object)
+	AvailObject o_MapBinValueUnionKind (final AvailObject object)
 	{
-		// Answer the union of the types of this bin's values.  I'm supposed to
+		// Answer the union of the types of this bin's values. I'm supposed to
 		// be small, so recalculate it per request.
 		AvailObject unionKind = BottomTypeDescriptor.bottom();
 		final int limit = object.variableIntegerSlotsCount();
@@ -440,9 +426,14 @@ extends MapBinDescriptor
 		return unionKind;
 	}
 
-	@Override @AvailMethod
-	int o_MapBinValuesHash (
-		final AvailObject object)
+	/**
+	 * Lazily compute and install the hash of the specified {@linkplain
+	 * LinearMapBinDescriptor object}.
+	 *
+	 * @param object An object.
+	 * @return A hash.
+	 */
+	private int mapBinValuesHash (final AvailObject object)
 	{
 		int valuesHash = object.slot(VALUES_HASH_OR_ZERO);
 		if (valuesHash == 0)
@@ -461,11 +452,22 @@ extends MapBinDescriptor
 		return valuesHash;
 	}
 
-	@Override
-	MapIterable o_MapBinIterable (
-		final AvailObject object)
+	@Override @AvailMethod
+	int o_MapBinValuesHash (final AvailObject object)
 	{
-		object.makeImmutable();
+		if (isShared())
+		{
+			synchronized (object)
+			{
+				return mapBinValuesHash(object);
+			}
+		}
+		return mapBinValuesHash(object);
+	}
+
+	@Override
+	MapIterable o_MapBinIterable (final AvailObject object)
+	{
 		return new MapIterable()
 		{
 			final int limit = object.variableIntegerSlotsCount();
@@ -498,7 +500,7 @@ extends MapBinDescriptor
 	 * @param myLevel The level at which to label the bin.
 	 * @return The new bin with only (key,value) in it.
 	 */
-	public static AvailObject createSingle (
+	static AvailObject createSingle (
 		final AvailObject key,
 		final int keyHash,
 		final AvailObject value,
@@ -506,7 +508,7 @@ extends MapBinDescriptor
 	{
 		//trace("%nnew Single");
 		final LinearMapBinDescriptor descriptor =
-			LinearMapBinDescriptor.isMutableLevel(true, myLevel);
+			LinearMapBinDescriptor.descriptorFor(MUTABLE, myLevel);
 		final AvailObject bin =
 			AvailObject.newObjectIndexedIntegerIndexedDescriptor(
 				2,
@@ -531,46 +533,68 @@ extends MapBinDescriptor
 	 * Answer a suitable descriptor for a linear bin with the specified
 	 * mutability and at the specified level.
 	 *
-	 * @param flag Whether the bins using the descriptor will be mutable.
+	 * @param flag The desired {@linkplain Mutability mutability}.
 	 * @param level The level for the bins using the descriptor.
 	 * @return The descriptor with the requested properties.
 	 */
-	static LinearMapBinDescriptor isMutableLevel (
-		final boolean flag,
+	private static LinearMapBinDescriptor descriptorFor (
+		final Mutability flag,
 		final byte level)
 	{
 		assert 0 <= level && level < numberOfLevels;
-		return descriptors[level * 2 + (flag ? 0 : 1)];
+		return descriptors[level * 3 + flag.ordinal()];
 	}
 
 	/**
 	 * Construct a new {@link LinearMapBinDescriptor}.
 	 *
-	 * @param isMutable
-	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
-	 *        object?
-	 * @param level The depth of the bin in the hash tree.
+	 * @param mutability
+	 *        The {@linkplain Mutability mutability} of the new descriptor.
+	 * @param level
+	 * The depth of the bin in the hash tree.
 	 */
-	LinearMapBinDescriptor (
-		final boolean isMutable,
+	private LinearMapBinDescriptor (
+		final Mutability mutability,
 		final int level)
 	{
-		super(isMutable, level);
+		super(mutability, level);
 	}
 
 	/**
-	 * The array of {@link LinearMapBinDescriptor}s.
+	 * {@link LinearMapBinDescriptor}s clustered by mutability and level.
 	 */
 	static final LinearMapBinDescriptor[] descriptors;
 
 	static
 	{
-		descriptors = new LinearMapBinDescriptor[numberOfLevels * 2];
+		descriptors = new LinearMapBinDescriptor[numberOfLevels * 3];
 		int target = 0;
 		for (int level = 0; level < numberOfLevels; level++)
 		{
-			descriptors[target++] = new LinearMapBinDescriptor(true, level);
-			descriptors[target++] = new LinearMapBinDescriptor(false, level);
+			descriptors[target++] =
+				new LinearMapBinDescriptor(MUTABLE, level);
+			descriptors[target++] =
+				new LinearMapBinDescriptor(IMMUTABLE, level);
+			descriptors[target++] =
+				new LinearMapBinDescriptor(SHARED, level);
 		}
+	}
+
+	@Override
+	LinearMapBinDescriptor mutable ()
+	{
+		return descriptorFor(MUTABLE, level);
+	}
+
+	@Override
+	LinearMapBinDescriptor immutable ()
+	{
+		return descriptorFor(IMMUTABLE, level);
+	}
+
+	@Override
+	LinearMapBinDescriptor shared ()
+	{
+		return descriptorFor(SHARED, level);
 	}
 }

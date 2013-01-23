@@ -1,6 +1,6 @@
 /*
  * Command.avail
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -446,14 +446,24 @@ Commands
 	"shoot NUMBER, NUMBER",
 	"shoot NUMBER, NUMBER, NUMBER",
 	"shoot NUMBER, NUMBER, NUMBER, NUMBER",
-	"shoot NUMBER, NUMBER, NUMBER, NUMBER, NUMBER"
+	"shoot NUMBER, NUMBER, NUMBER, NUMBER, NUMBER",
+	"fire NUMBER",
+	"fire NUMBER, NUMBER",
+	"fire NUMBER, NUMBER, NUMBER",
+	"fire NUMBER, NUMBER, NUMBER, NUMBER",
+	"fire NUMBER, NUMBER, NUMBER, NUMBER, NUMBER"
 are shooting;
 Commands
 	"shoot #NUMBER",
 	"shoot #NUMBER, #NUMBER",
 	"shoot #NUMBER, #NUMBER, #NUMBER",
 	"shoot #NUMBER, #NUMBER, #NUMBER, #NUMBER",
-	"shoot #NUMBER, #NUMBER, #NUMBER, #NUMBER, #NUMBER"
+	"shoot #NUMBER, #NUMBER, #NUMBER, #NUMBER, #NUMBER",
+	"fire #NUMBER",
+	"fire #NUMBER, #NUMBER",
+	"fire #NUMBER, #NUMBER, #NUMBER",
+	"fire #NUMBER, #NUMBER, #NUMBER, #NUMBER",
+	"fire #NUMBER, #NUMBER, #NUMBER, #NUMBER, #NUMBER"
 are shooting;
 
 /* Isn't it easier to "quit"? */

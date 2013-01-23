@@ -1,6 +1,6 @@
 /**
  * SelfPojoTypeDescriptor.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -77,6 +77,18 @@ extends PojoTypeDescriptor
 	}
 
 	@Override @AvailMethod
+	AvailObject o_JavaAncestors (final AvailObject object)
+	{
+		return object.slot(JAVA_ANCESTORS);
+	}
+
+	@Override @AvailMethod
+	AvailObject o_JavaClass (final AvailObject object)
+	{
+		return object.slot(JAVA_CLASS);
+	}
+
+	@Override @AvailMethod
 	boolean o_EqualsPojoType (
 		final AvailObject object,
 		final AvailObject aPojoType)
@@ -101,7 +113,7 @@ extends PojoTypeDescriptor
 	boolean o_IsAbstract (final AvailObject object)
 	{
 		final AvailObject javaClass = object.slot(JAVA_CLASS);
-		return javaClass.equalsNull()
+		return javaClass.equalsNil()
 			|| Modifier.isAbstract(
 				((Class<?>) javaClass.javaObject()).getModifiers());
 	}
@@ -117,7 +129,7 @@ extends PojoTypeDescriptor
 	@Override @AvailMethod
 	boolean o_IsPojoFusedType (final AvailObject object)
 	{
-		return object.slot(JAVA_CLASS).equalsNull();
+		return object.slot(JAVA_CLASS).equalsNil();
 	}
 
 	@Override @AvailMethod
@@ -143,29 +155,19 @@ extends PojoTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_JavaAncestors (final AvailObject object)
+	AvailObject o_PojoSelfType (final AvailObject object)
 	{
-		return object.slot(JAVA_ANCESTORS);
-	}
-
-	@Override @AvailMethod
-	AvailObject o_JavaClass (final AvailObject object)
-	{
-		return object.slot(JAVA_CLASS);
+		return object;
 	}
 
 	@Override @AvailMethod
 	AvailObject o_MakeImmutable (final AvailObject object)
 	{
-		object.descriptor = immutable;
-		object.slot(JAVA_CLASS).makeImmutable();
-		object.slot(JAVA_ANCESTORS).makeImmutable();
-		return object;
-	}
-
-	@Override @AvailMethod
-	AvailObject o_PojoSelfType (final AvailObject object)
-	{
+		if (isMutable())
+		{
+			// Make the object shared, since there's not an immutable variant.
+			return object.makeShared();
+		}
 		return object;
 	}
 
@@ -175,7 +177,7 @@ extends PojoTypeDescriptor
 		final @Nullable Class<?> ignoredClassHint)
 	{
 		final AvailObject javaClass = object.slot(JAVA_CLASS);
-		if (javaClass.equalsNull())
+		if (javaClass.equalsNil())
 		{
 			// TODO: [TLS] Answer the nearest mutual parent of the leaf types.
 			return Object.class;
@@ -184,8 +186,7 @@ extends PojoTypeDescriptor
 	}
 
 	@Override @AvailMethod @ThreadSafe
-	SerializerOperation o_SerializerOperation (
-		final AvailObject object)
+	SerializerOperation o_SerializerOperation (final AvailObject object)
 	{
 		return SerializerOperation.SELF_POJO_TYPE_REPRESENTATIVE;
 	}
@@ -217,7 +218,7 @@ extends PojoTypeDescriptor
 			}
 		}
 		return create(
-			NullDescriptor.nullObject(),
+			NilDescriptor.nil(),
 			ancestors.setUnionCanDestroy(otherAncestors, false));
 	}
 
@@ -278,7 +279,7 @@ extends PojoTypeDescriptor
 		final int indent)
 	{
 		final AvailObject javaClass = object.slot(JAVA_CLASS);
-		if (!javaClass.equalsNull())
+		if (!javaClass.equalsNil())
 		{
 			builder.append(((Class<?>) javaClass.javaObject()).getName());
 		}
@@ -322,32 +323,40 @@ extends PojoTypeDescriptor
 	/**
 	 * Construct a new {@link SelfPojoTypeDescriptor}.
 	 *
-	 * @param isMutable
-	 *        Does the {@linkplain SelfPojoTypeDescriptor descriptor}
-	 *        represent a mutable object?
+	 * @param mutability
+	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 */
-	public SelfPojoTypeDescriptor (final boolean isMutable)
+	public SelfPojoTypeDescriptor (final Mutability mutability)
 	{
-		super(isMutable);
+		super(mutability);
 	}
 
 	/** The mutable {@link SelfPojoTypeDescriptor}. */
 	private final static SelfPojoTypeDescriptor mutable =
-		new SelfPojoTypeDescriptor(true);
+		new SelfPojoTypeDescriptor(Mutability.MUTABLE);
 
-	/**
-	 * Answer the mutable {@link SelfPojoTypeDescriptor}.
-	 *
-	 * @return The mutable {@code SelfPojoTypeDescriptor}.
-	 */
-	static SelfPojoTypeDescriptor mutable ()
+	@Override
+	SelfPojoTypeDescriptor mutable ()
 	{
 		return mutable;
 	}
 
-	/** The immutable {@link SelfPojoTypeDescriptor}. */
-	private final static SelfPojoTypeDescriptor immutable =
-		new SelfPojoTypeDescriptor(false);
+	/** The shared {@link SelfPojoTypeDescriptor}. */
+	private final static SelfPojoTypeDescriptor shared =
+		new SelfPojoTypeDescriptor(Mutability.SHARED);
+
+	@Override
+	SelfPojoTypeDescriptor immutable ()
+	{
+		// There is no immutable descriptor.
+		return shared;
+	}
+
+	@Override
+	SelfPojoTypeDescriptor shared ()
+	{
+		return shared;
+	}
 
 	/**
 	 * Create a new {@link AvailObject} that represents a {@linkplain
@@ -391,9 +400,9 @@ extends PojoTypeDescriptor
 		assert selfPojo.isPojoSelfType();
 		final AvailObject pojoClass = selfPojo.javaClass();
 		final AvailObject mainClassName;
-		if (pojoClass.equalsNull())
+		if (pojoClass.equalsNil())
 		{
-			mainClassName = NullDescriptor.nullObject();
+			mainClassName = NilDescriptor.nil();
 		}
 		else
 		{
@@ -434,9 +443,9 @@ extends PojoTypeDescriptor
 	{
 		final AvailObject className = selfPojoProxy.tupleAt(1);
 		final AvailObject mainType;
-		if (className.equalsNull())
+		if (className.equalsNil())
 		{
-			mainType = NullDescriptor.nullObject();
+			mainType = NilDescriptor.nil();
 		}
 		else
 		{

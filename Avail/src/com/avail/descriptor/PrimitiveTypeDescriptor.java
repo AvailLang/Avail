@@ -1,6 +1,6 @@
 /**
  * PrimitiveTypeDescriptor.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,21 +41,21 @@ import com.avail.serialization.SerializerOperation;
 
 /**
  * The primitive types of Avail are different from the notion of primitive types
- * in other object-oriented languages.  Traditionally, a compiler or virtual
+ * in other object-oriented languages. Traditionally, a compiler or virtual
  * machine encodes representation knowledge about and makes other special
- * provisions about its primitive types.  Since <em>all</em> types are in a
+ * provisions about its primitive types. Since <em>all</em> types are in a
  * sense provided by the Avail system, it has no special primitive types that
  * fill that role – they're <em>all</em> special.
  *
  * <p>
  * Instead, the term "primitive type" in Avail refers to the top section of the
  * type lattice which partitions the rest of the lattice into broad categories
- * of essential disjoint subgraphs.  This includes the ultimate type {@linkplain
+ * of essential disjoint subgraphs. This includes the ultimate type {@linkplain
  * TypeDescriptor.Types#TOP top (⊤)}, the penultimate type {@linkplain
  * TypeDescriptor.Types#ANY any}, and various specialties such as {@linkplain
  * TypeDescriptor.Types#ATOM atom} and {@linkplain TypeDescriptor.Types#NUMBER
- * number}.  Type hierarchies that have a natural root don't bother with a
- * primitive type to delimit the hierarchy, using the natural root itself.  For
+ * number}. Type hierarchies that have a natural root don't bother with a
+ * primitive type to delimit the hierarchy, using the natural root itself. For
  * example, the tuple type whose instances include all tuples is a natural root
  * of the tuple types.
  * </p>
@@ -70,7 +70,8 @@ extends TypeDescriptor
 	/**
 	 * The layout of integer slots for my instances.
 	 */
-	public enum IntegerSlots implements IntegerSlotsEnum
+	public enum IntegerSlots
+	implements IntegerSlotsEnum
 	{
 		/**
 		 * The hash of this primitive type, computed at construction time.
@@ -86,7 +87,8 @@ extends TypeDescriptor
 	/**
 	 * The layout of object slots for my instances.
 	 */
-	public enum ObjectSlots implements ObjectSlotsEnum
+	public enum ObjectSlots
+	implements ObjectSlotsEnum
 	{
 		/**
 		 * The {@linkplain StringDescriptor name} of this primitive type.
@@ -99,51 +101,6 @@ extends TypeDescriptor
 		PARENT
 	}
 
-	@Override @AvailMethod
-	void o_Hash (
-		final AvailObject object,
-		final int value)
-	{
-		object.setSlot(HASH, value);
-	}
-
-	@Override @AvailMethod
-	void o_Name (
-		final AvailObject object,
-		final AvailObject value)
-	{
-		object.setSlot(NAME, value);
-	}
-
-	@Override @AvailMethod
-	void o_Parent (
-		final AvailObject object,
-		final AvailObject value)
-	{
-		object.setSlot(PARENT, value);
-	}
-
-	@Override @AvailMethod
-	int o_Hash (
-		final AvailObject object)
-	{
-		return object.slot(HASH);
-	}
-
-	@Override @AvailMethod
-	AvailObject o_Name (
-		final AvailObject object)
-	{
-		return object.slot(NAME);
-	}
-
-	@Override @AvailMethod
-	AvailObject o_Parent (
-		final AvailObject object)
-	{
-		return object.slot(PARENT);
-	}
-
 	@Override
 	public void printObjectOnAvoidingIndent (
 		final AvailObject object,
@@ -151,13 +108,35 @@ extends TypeDescriptor
 		final List<AvailObject> recursionList,
 		final int indent)
 	{
-		aStream.append(object.name().asNativeString());
+		aStream.append(object.slot(NAME).asNativeString());
 	}
 
 	@Override @AvailMethod
-	boolean o_Equals (
-		final AvailObject object,
-		final AvailObject another)
+	AvailObject o_Name (final AvailObject object)
+	{
+		return object.slot(NAME);
+	}
+
+	@Override @AvailMethod
+	AvailObject o_Parent (final AvailObject object)
+	{
+		return object.slot(PARENT);
+	}
+
+	@Override @AvailMethod
+	void o_Parent (final AvailObject object, final AvailObject value)
+	{
+		object.setSlot(PARENT, value);
+	}
+
+	@Override @AvailMethod
+	int o_Hash (final AvailObject object)
+	{
+		return object.slot(HASH);
+	}
+
+	@Override @AvailMethod
+	boolean o_Equals (final AvailObject object, final AvailObject another)
 	{
 		return another.equalsPrimitiveType(object);
 	}
@@ -172,11 +151,10 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_IsSubtypeOf (
-		final AvailObject object,
-		final AvailObject aType)
+	boolean o_IsSubtypeOf (final AvailObject object, final AvailObject aType)
 	{
-		// Check if object (a type) is a subtype of aType (should also be a type).
+		// Check if object (a type) is a subtype of aType (should also be a
+		// type).
 		return aType.isSupertypeOfPrimitiveTypeEnum(
 			Types.values()[object.slot(PRIMITIVE_TYPE_ORDINAL)]);
 	}
@@ -188,7 +166,6 @@ extends TypeDescriptor
 	{
 		// This primitive type is a supertype of aFunctionType if and only if
 		// this primitive type is a supertype of NONTYPE.
-
 		return object.isSupertypeOfPrimitiveTypeEnum(NONTYPE);
 	}
 
@@ -301,9 +278,8 @@ extends TypeDescriptor
 		final AvailObject object,
 		final AvailObject aSetType)
 	{
-		//  This primitive type is a supertype of aSetType if and only if this
-		//  primitive type is a supertype of NONTYPE.
-
+		// This primitive type is a supertype of aSetType if and only if this
+		// primitive type is a supertype of NONTYPE.
 		return object.isSupertypeOfPrimitiveTypeEnum(NONTYPE);
 	}
 
@@ -312,9 +288,8 @@ extends TypeDescriptor
 		final AvailObject object,
 		final AvailObject aTupleType)
 	{
-		//  This primitive type is a supertype of aTupleType if and only if this
-		//  primitive type is a supertype of NONTYPE.
-
+		// This primitive type is a supertype of aTupleType if and only if this
+		// primitive type is a supertype of NONTYPE.
 		return object.isSupertypeOfPrimitiveTypeEnum(NONTYPE);
 	}
 
@@ -412,25 +387,35 @@ extends TypeDescriptor
 	}
 
 	@Override
-	SerializerOperation o_SerializerOperation (
-		final AvailObject object)
+	SerializerOperation o_SerializerOperation (final AvailObject object)
 	{
 		// Any primitive type that can be serialized should occur in the special
 		// objects list.
 		throw unsupportedOperationException();
 	}
 
+	@Override
+	final AvailObject o_MakeImmutable (final AvailObject object)
+	{
+		if (isMutable())
+		{
+			// There is no immutable descriptor; use the shared one.
+			object.makeShared();
+		}
+		return object;
+	}
+
 	/**
 	 * Create a partially-initialized primitive type with the given name.  The
 	 * type's parent will be set later, to facilitate arbitrary construction
-	 * order.  Set these fields to the {@linkplain NullDescriptor null object}
-	 * to ensure pointer safety.
+	 * order.  Set these fields to {@linkplain NilDescriptor nil} to ensure
+	 * pointer safety.
 	 *
 	 * @param typeNameString
-	 *            The name to give the object being initialized.
+	 *        The name to give the object being initialized.
 	 * @param ordinal
-	 *            The unique ordinal number for this primitive type.
-	 * @return    The partially initialized type.
+	 *        The unique ordinal number for this primitive type.
+	 * @return The partially initialized type.
 	 */
 	AvailObject createPrimitiveObjectNamed (
 		final String typeNameString,
@@ -439,7 +424,7 @@ extends TypeDescriptor
 		final AvailObject name = StringDescriptor.from(typeNameString);
 		final AvailObject object = create();
 		object.setSlot(NAME, name);
-		object.setSlot(PARENT, NullDescriptor.nullObject());
+		object.setSlot(PARENT, NilDescriptor.nil());
 		object.setSlot(HASH, typeNameString.hashCode());
 		object.setSlot(PRIMITIVE_TYPE_ORDINAL, ordinal);
 		return object;
@@ -448,45 +433,38 @@ extends TypeDescriptor
 	/**
 	 * Construct a new {@link PrimitiveTypeDescriptor}.
 	 *
-	 * @param isMutable
-	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
-	 *        object?
+	 * @param mutability
+	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 */
-	protected PrimitiveTypeDescriptor (final boolean isMutable)
+	protected PrimitiveTypeDescriptor (final Mutability mutability)
 	{
-		super(isMutable);
+		super(mutability);
 	}
 
-	/**
-	 * The descriptor instance that describes a mutable primitive type.
-	 */
-	final private static PrimitiveTypeDescriptor mutable =
-		new PrimitiveTypeDescriptor(true);
+	/** The mutable {@link PrimitiveTypeDescriptor}. */
+	final static PrimitiveTypeDescriptor mutable =
+		new PrimitiveTypeDescriptor(Mutability.MUTABLE);
 
-	/**
-	 * Answer the descriptor instance that describes a mutable primitive type.
-	 *
-	 * @return a PrimitiveTypeDescriptor for mutable objects.
-	 */
-	public static PrimitiveTypeDescriptor mutable ()
+	@Override
+	PrimitiveTypeDescriptor mutable ()
 	{
 		return mutable;
 	}
 
-	/**
-	 * The descriptor instance that describes an immutable primitive type.
-	 */
-	final private static PrimitiveTypeDescriptor immutable =
-		new PrimitiveTypeDescriptor(false);
+	/** The shared {@link PrimitiveTypeDescriptor}. */
+	final private static PrimitiveTypeDescriptor shared =
+		new PrimitiveTypeDescriptor(Mutability.SHARED);
 
-	/**
-	 * Answer the descriptor instance that describes an immutable primitive
-	 * type.
-	 *
-	 * @return a PrimitiveTypeDescriptor for immutable objects.
-	 */
-	public static PrimitiveTypeDescriptor immutable ()
+	@Override
+	PrimitiveTypeDescriptor immutable ()
 	{
-		return immutable;
+		// There is no immutable descriptor.
+		return shared;
+	}
+
+	@Override
+	PrimitiveTypeDescriptor shared ()
+	{
+		return shared;
 	}
 }

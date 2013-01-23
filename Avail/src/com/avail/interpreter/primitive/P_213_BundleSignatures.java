@@ -1,6 +1,6 @@
 /**
  * P_213_BundleSignatures.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -62,7 +62,7 @@ public class P_213_BundleSignatures extends Primitive
 		final AvailObject bundle = args.get(0);
 		final AvailObject method =
 			interpreter.runtime().methodAt(bundle.message());
-		if (method.equalsNull())
+		if (method.equalsNil())
 		{
 			return interpreter.primitiveFailure(E_NO_METHOD);
 		}

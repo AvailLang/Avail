@@ -1,6 +1,6 @@
 /**
  * P_188_CreateCompiledCode.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -128,7 +128,7 @@ public class P_188_CreateCompiledCode extends Primitive
 					false),
 				localTypes,
 				outerTypes,
-				module != null ? module : NullDescriptor.nullObject(),
+				module != null ? module : NilDescriptor.nil(),
 				0));
 	}
 

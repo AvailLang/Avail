@@ -1,6 +1,6 @@
 /**
  * DeclarationNodeDescriptor.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -47,18 +47,20 @@ import com.avail.utility.*;
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class DeclarationNodeDescriptor extends ParseNodeDescriptor
+public final class DeclarationNodeDescriptor
+extends ParseNodeDescriptor
 {
 	/**
 	 * My slots of type {@link AvailObject}.
 	 *
 	 * @author Mark van Gulik &lt;mark@availlang.org&gt;
 	 */
-	public enum ObjectSlots implements ObjectSlotsEnum
+	public enum ObjectSlots
+	implements ObjectSlotsEnum
 	{
 		/**
-		 * The {@linkplain TokenDescriptor token} containing the name of the entity
-		 * being declared.
+		 * The {@linkplain TokenDescriptor token} containing the name of the
+		 * entity being declared.
 		 */
 		TOKEN,
 
@@ -68,14 +70,14 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 		DECLARED_TYPE,
 
 		/**
-		 * The optional {@linkplain ParseNodeDescriptor initialization expression},
-		 * or the {@link NullDescriptor#nullObject() null object} otherwise. Not
+		 * The optional {@linkplain ParseNodeDescriptor initialization
+		 * expression}, or {@link NilDescriptor#nil() nil} otherwise. Not
 		 * applicable to all kinds of declarations.
 		 */
 		INITIALIZATION_EXPRESSION,
 
 		/**
-		 * The {@link AvailObject} held directly by this declaration.  It can be
+		 * The {@link AvailObject} held directly by this declaration. It can be
 		 * either a module constant value or a module variable.
 		 */
 		LITERAL_OBJECT
@@ -190,7 +192,7 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 				final AvailCodeGenerator codeGenerator)
 			{
 				final AvailObject expr = declarationNode.initializationExpression();
-				if (!expr.equalsNull())
+				if (!expr.equalsNil())
 				{
 					expr.emitValueOn(codeGenerator);
 					codeGenerator.emitSetLocalOrOuter(declarationNode);
@@ -234,7 +236,7 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 					builder,
 					recursionList,
 					indent + 1);
-				if (!object.initializationExpression().equalsNull())
+				if (!object.initializationExpression().equalsNil())
 				{
 					builder.append(" := ");
 					object.initializationExpression().printOnAvoidingIndent(
@@ -328,7 +330,7 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 					builder,
 					recursionList,
 					indent + 1);
-				if (!object.initializationExpression().equalsNull())
+				if (!object.initializationExpression().equalsNil())
 				{
 					builder.append(" := ");
 					object.initializationExpression().printOnAvoidingIndent(
@@ -714,7 +716,7 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 		final AvailCodeGenerator codeGenerator)
 	{
 		object.emitEffectOn(codeGenerator);
-		codeGenerator.emitPushLiteral(NullDescriptor.nullObject());
+		codeGenerator.emitPushLiteral(NilDescriptor.nil());
 	}
 
 	@Override @AvailMethod
@@ -759,7 +761,7 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 		final Transformer1<AvailObject, AvailObject> aBlock)
 	{
 		AvailObject expression = object.initializationExpression();
-		if (!expression.equalsNull())
+		if (!expression.equalsNil())
 		{
 			expression = aBlock.value(expression);
 			object.initializationExpression(expression);
@@ -773,7 +775,7 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 		final Continuation1<AvailObject> aBlock)
 	{
 		final AvailObject expression = object.initializationExpression();
-		if (!expression.equalsNull())
+		if (!expression.equalsNil())
 		{
 			aBlock.value(expression);
 		}
@@ -826,10 +828,10 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 	 * @param initializationExpression
 	 *        An {@linkplain ParseNodeDescriptor expression} used for
 	 *        initializing the entity being declared, or {@linkplain
-	 *        NullDescriptor#nullObject() the null object} if none.
+	 *        NilDescriptor#nil() nil} if none.
 	 * @param literalObject
 	 *        An {@link AvailObject} that is the actual variable or constant
-	 *        being defined, or {@linkplain NullDescriptor#nullObject() the top
+	 *        being defined, or {@linkplain NilDescriptor#nil() the top
 	 *        object} if none.
 	 * @return The new {@linkplain DeclarationNodeDescriptor declaration}.
 	 */
@@ -842,11 +844,11 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 	{
 		assert token.isInstanceOf(Types.TOKEN.o());
 		assert declaredType.isType();
-		assert initializationExpression.equalsNull()
+		assert initializationExpression.equalsNil()
 			|| initializationExpression.isInstanceOfKind(
 				ParseNodeKind.EXPRESSION_NODE.create(Types.ANY.o()));
 
-		final AvailObject declaration = mutable().create();
+		final AvailObject declaration = mutable.create();
 		declaration.setSlot(
 			IntegerSlots.DECLARATION_KIND,
 			declarationKind.ordinal());
@@ -879,8 +881,8 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 			ARGUMENT,
 			token,
 			declaredType,
-			NullDescriptor.nullObject(),
-			NullDescriptor.nullObject());
+			NilDescriptor.nil(),
+			NilDescriptor.nil());
 	}
 
 	/**
@@ -896,7 +898,7 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 	 * @param initializationExpression
 	 *        An {@linkplain ParseNodeDescriptor expression} used for
 	 *        initializing the local variable, or {@linkplain
-	 *        NullDescriptor#nullObject() the null object} if none.
+	 *        NilDescriptor#nil() nil} if none.
 	 * @return The new local variable declaration.
 	 */
 	public static AvailObject newVariable (
@@ -909,7 +911,7 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 			token,
 			declaredType,
 			initializationExpression,
-			NullDescriptor.nullObject());
+			NilDescriptor.nil());
 	}
 
 	/**
@@ -933,8 +935,8 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 			LOCAL_VARIABLE,
 			token,
 			declaredType,
-			NullDescriptor.nullObject(),
-			NullDescriptor.nullObject());
+			NilDescriptor.nil(),
+			NilDescriptor.nil());
 	}
 
 	/**
@@ -958,7 +960,7 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 			token,
 			initializationExpression.expressionType(),
 			initializationExpression,
-			NullDescriptor.nullObject());
+			NilDescriptor.nil());
 	}
 
 	/**
@@ -984,8 +986,8 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 			PRIMITIVE_FAILURE_REASON,
 			token,
 			type,
-			NullDescriptor.nullObject(),
-			NullDescriptor.nullObject());
+			NilDescriptor.nil(),
+			NilDescriptor.nil());
 	}
 
 	/**
@@ -1011,8 +1013,8 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 			LABEL,
 			token,
 			declaredType,
-			NullDescriptor.nullObject(),
-			NullDescriptor.nullObject());
+			NilDescriptor.nil(),
+			NilDescriptor.nil());
 	}
 
 	/**
@@ -1073,43 +1075,31 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 	/**
 	 * Construct a new {@link DeclarationNodeDescriptor}.
 	 *
-	 * @param isMutable Whether my {@linkplain AvailObject instances} can
-	 *                  change.
+	 * @param mutability
+	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 */
-	public DeclarationNodeDescriptor (final boolean isMutable)
+	public DeclarationNodeDescriptor (final Mutability mutability)
 	{
-		super(isMutable);
+		super(mutability);
 	}
 
-	/**
-	 * The mutable {@link DeclarationNodeDescriptor}.
-	 */
+	/** The mutable {@link DeclarationNodeDescriptor}. */
 	private static final DeclarationNodeDescriptor mutable =
-		new DeclarationNodeDescriptor(true);
+		new DeclarationNodeDescriptor(Mutability.MUTABLE);
 
-	/**
-	 * Answer the mutable {@link DeclarationNodeDescriptor}.
-	 *
-	 * @return The mutable {@link DeclarationNodeDescriptor}.
-	 */
-	public static DeclarationNodeDescriptor mutable ()
+	@Override
+	DeclarationNodeDescriptor mutable ()
 	{
 		return mutable;
 	}
 
-	/**
-	 * The immutable {@link DeclarationNodeDescriptor}.
-	 */
-	private static final DeclarationNodeDescriptor immutable =
-		new DeclarationNodeDescriptor(false);
+	/** The shared {@link DeclarationNodeDescriptor}. */
+	private static final DeclarationNodeDescriptor shared =
+		new DeclarationNodeDescriptor(Mutability.SHARED);
 
-	/**
-	 * Answer the immutable {@link DeclarationNodeDescriptor}.
-	 *
-	 * @return The immutable {@link DeclarationNodeDescriptor}.
-	 */
-	public static DeclarationNodeDescriptor immutable ()
+	@Override
+	DeclarationNodeDescriptor shared ()
 	{
-		return immutable;
+		return shared;
 	}
 }

@@ -1,6 +1,6 @@
 /**
  * Descriptor.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,7 +44,6 @@ import com.avail.descriptor.FiberDescriptor.ExecutionState;
 import com.avail.descriptor.SetDescriptor.SetIterator;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.exceptions.*;
-import com.avail.exceptions.AvailUnsupportedOperationException;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Interpreter;
 import com.avail.serialization.SerializerOperation;
@@ -67,47 +66,18 @@ import com.avail.visitor.*;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class Descriptor
+abstract class Descriptor
 extends AbstractDescriptor
 {
 	/**
 	 * Construct a new {@link Descriptor}.
 	 *
-	 * @param isMutable Whether an instance of the descriptor can be modified.
+	 * @param mutability
+	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 */
-	public Descriptor (final boolean isMutable)
+	protected Descriptor (final Mutability mutability)
 	{
-		super(isMutable);
-	}
-
-	/**
-	 * Answer a {@linkplain AvailUnsupportedOperationException unsupported operation
-	 * exception} suitable to be thrown by the sender.  We don't throw it here,
-	 * since Java sadly has no way of indicating that a method <em>always</em>
-	 * throws an exception (i.e., doesn't return), forcing one to have to add
-	 * stupid dead statements like {@code return null;} after the
-	 * never-returning call.
-	 *
-	 * <p>
-	 * The exception indicates that the receiver does not meaningfully implement
-	 * the method that immediately invoked this.  This is a strong indication
-	 * that the wrong kind of object is being used somewhere.
-	 * </p>
-	 *
-	 * @return an AvailUnsupportedOperationException suitable to be thrown.
-	 */
-	public AvailUnsupportedOperationException unsupportedOperationException ()
-	{
-		final String callerName;
-		try
-		{
-			throw new Exception("just want the caller's frame");
-		}
-		catch (final Exception e)
-		{
-			callerName = e.getStackTrace()[1].getMethodName();
-		}
-		throw new AvailUnsupportedOperationException(getClass(), callerName);
+		super(mutability);
 	}
 
 	/**
@@ -312,14 +282,6 @@ extends AbstractDescriptor
 	void o_BinSize (
 		final AvailObject object,
 		final int value)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	void o_BinUnionTypeOrNull (
-		final AvailObject object,
-		final AvailObject value)
 	{
 		throw unsupportedOperationException();
 	}
@@ -613,14 +575,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_Hash (
-		final AvailObject object,
-		final int value)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
 	int o_HashFromTo (
 		final AvailObject object,
 		final int startIndex,
@@ -693,7 +647,7 @@ extends AbstractDescriptor
 		throw unsupportedOperationException();
 	}
 
-	@Override
+	@Override @Deprecated
 	void o_IsSaved (
 		final AvailObject object,
 		final boolean aBoolean)
@@ -1319,17 +1273,10 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_Start (
+	void o_SetStartingChunkAndReoptimizationCountdown (
 		final AvailObject object,
-		final int value)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	void o_StartingChunk (
-		final AvailObject object,
-		final AvailObject value)
+		final AvailObject chunk,
+		final int countdown)
 	{
 		throw unsupportedOperationException();
 	}
@@ -1346,14 +1293,6 @@ extends AbstractDescriptor
 	int o_StartSubtupleIndexInZone (
 		final AvailObject object,
 		final int zone)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	void o_String (
-		final AvailObject object,
-		final AvailObject value)
 	{
 		throw unsupportedOperationException();
 	}
@@ -1389,14 +1328,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final AvailObject aNumber,
 		final boolean canDestroy)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	void o_TokenType (
-		final AvailObject object,
-		final TokenDescriptor.TokenType value)
 	{
 		throw unsupportedOperationException();
 	}
@@ -1876,13 +1807,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	int o_ParsingPc (
-		final AvailObject object)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
 	void o_DisplayTestingTree (
 		final AvailObject object)
 	{
@@ -2044,7 +1968,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	int o_InvocationCount (
+	int o_CountdownToReoptimize (
 		final AvailObject object)
 	{
 		throw unsupportedOperationException();
@@ -2098,7 +2022,7 @@ extends AbstractDescriptor
 		throw unsupportedOperationException();
 	}
 
-	@Override
+	@Override @Deprecated
 	boolean o_IsSaved (
 		final AvailObject object)
 	{
@@ -2450,13 +2374,6 @@ extends AbstractDescriptor
 
 	@Override
 	AvailObject o_TypeTuple (
-		final AvailObject object)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	AvailObject o_Unclassified (
 		final AvailObject object)
 	{
 		throw unsupportedOperationException();
@@ -2844,7 +2761,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	boolean o_EqualsNull (
+	boolean o_EqualsNil (
 		final AvailObject object)
 	{
 		return false;
@@ -2868,26 +2785,36 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	AvailObject o_MakeImmutable (
-		final AvailObject object)
+	AvailObject o_MakeImmutable (final AvailObject object)
 	{
-		//  Make the object immutable so it can be shared safely.  If I was mutable I have to scan
-		//  my children and make them immutable as well (recursively down to immutable descendants).
-
-		if (isMutable)
+		// Make the object immutable. If I was mutable I have to scan my
+		// children and make them immutable as well (recursively down to
+		// immutable descendants).
+		if (isMutable())
 		{
-			object.descriptorId((short)(object.descriptorId() | 1));
+			object.descriptor = object.descriptor.immutable();
 			object.makeSubobjectsImmutable();
 		}
 		return object;
 	}
 
-	/**
-	 * A statically cached visitor instance to avoid having to create it at
-	 * runtime.
-	 */
-	static final AvailBeImmutableSubobjectVisitor beImmutableSubobjectVisitor =
-		new AvailBeImmutableSubobjectVisitor();
+	@Override
+	AvailObject o_MakeShared (final AvailObject object)
+	{
+		// Make the object shared. If I wasn't shared I have to scan my
+		// children and make them shared as well (recursively down to
+		// shared descendants).
+		if (!isShared())
+		{
+			object.descriptor = object.descriptor.shared();
+			object.makeSubobjectsShared();
+		}
+		return object;
+	}
+
+	/** A statically cached stateless visitor instance */
+	static final BeImmutableSubobjectVisitor beImmutableSubobjectVisitor =
+		new BeImmutableSubobjectVisitor();
 
 	/**
 	 * {@inheritDoc}
@@ -2899,10 +2826,28 @@ extends AbstractDescriptor
 	 * </p>
 	 */
 	@Override
-	void o_MakeSubobjectsImmutable (
-		final AvailObject object)
+	final void o_MakeSubobjectsImmutable (final AvailObject object)
 	{
 		object.scanSubobjects(beImmutableSubobjectVisitor);
+	}
+
+	/** A statically cached stateless visitor instance. */
+	static final BeSharedSubobjectVisitor beSharedSubobjectVisitor =
+		new BeSharedSubobjectVisitor();
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>
+	 * Make my subobjects be shared.  Don't change my own mutability state.
+	 * Also, ignore my mutability state, as it should be tested (and sometimes
+	 * set preemptively to shared) prior to invoking this method.
+	 * </p>
+	 */
+	@Override
+	final void o_MakeSubobjectsShared (final AvailObject object)
+	{
+		object.scanSubobjects(beSharedSubobjectVisitor);
 	}
 
 	@Override
@@ -3068,8 +3013,7 @@ extends AbstractDescriptor
 	 * Remove elementObject from the bin object, if present. Answer the
 	 * resulting bin. The bin may be modified if it's mutable and canDestroy.
 	 * In particular, an element is masquerading as a bin of size one, so the
-	 * answer must be either the object or null object (to indicate a size zero
-	 * bin).
+	 * answer must be either the object or nil (to indicate a size zero bin).
 	 *
 	 * @param object
 	 * @param elementObject
@@ -3087,7 +3031,7 @@ extends AbstractDescriptor
 
 		if (object.equals(elementObject))
 		{
-			return NullDescriptor.nullObject();
+			return NilDescriptor.nil();
 		}
 		if (!canDestroy)
 		{
@@ -3099,7 +3043,7 @@ extends AbstractDescriptor
 	/**
 	 * Sets only use explicit bins for collisions, otherwise they store the
 	 * element itself. This works because a bin can't be an element of a set.
-	 * Likewise, the null object can't be a member of a set and is treated like
+	 * Likewise, nil can't be a member of a set and is treated like
 	 * an empty bin.
 	 *
 	 * @param object
@@ -3131,13 +3075,6 @@ extends AbstractDescriptor
 		//  Answer how many elements this bin contains.  I act as a bin of size one.
 
 		return 1;
-	}
-
-	@Override
-	AvailObject o_BinUnionTypeOrNull (
-		final AvailObject object)
-	{
-		throw unsupportedOperationException();
 	}
 
 	@Override
@@ -3221,23 +3158,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_Expression (
-		final AvailObject object,
-		final AvailObject expression)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
 	AvailObject o_Expression (final AvailObject object)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	void o_Variable (
-		final AvailObject object,
-		final AvailObject variable)
 	{
 		throw unsupportedOperationException();
 	}
@@ -3248,20 +3169,17 @@ extends AbstractDescriptor
 		throw unsupportedOperationException();
 	}
 
-
 	@Override
 	AvailObject o_ArgumentsTuple (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}
 
-
 	@Override
 	AvailObject o_StatementsTuple (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}
-
 
 	@Override
 	AvailObject o_ResultType (final AvailObject object)
@@ -3498,15 +3416,6 @@ extends AbstractDescriptor
 
 
 	@Override
-	void o_Statements (
-		final AvailObject object,
-		final AvailObject statementsTuple)
-	{
-		throw unsupportedOperationException();
-	}
-
-
-	@Override
 	AvailObject o_Statements (
 		final AvailObject object)
 	{
@@ -3518,13 +3427,6 @@ extends AbstractDescriptor
 	void o_FlattenStatementsInto (
 		final AvailObject object,
 		final List<AvailObject> accumulatedStatements)
-	{
-		throw unsupportedOperationException();
-	}
-
-
-	@Override
-	void o_LineNumber (final AvailObject object, final int value)
 	{
 		throw unsupportedOperationException();
 	}
@@ -3567,13 +3469,6 @@ extends AbstractDescriptor
 
 	@Override
 	AvailObject o_Incomplete (final AvailObject object)
-	{
-		throw unsupportedOperationException();
-	}
-
-
-	@Override
-	AvailObject o_Actions (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}
@@ -4727,5 +4622,14 @@ extends AbstractDescriptor
 		final AvailObject message)
 	{
 		throw unsupportedOperationException();
+	}
+
+	@Override
+	void o_Lock (final AvailObject object, final Continuation0 critical)
+	{
+		synchronized (object)
+		{
+			critical.value();
+		}
 	}
 }

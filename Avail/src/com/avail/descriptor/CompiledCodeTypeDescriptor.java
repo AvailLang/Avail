@@ -1,6 +1,6 @@
 /**
  * CompiledCodeTypeDescriptor.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,15 +44,17 @@ import com.avail.serialization.SerializerOperation;
  * That is, a compiled code type is a subtype of another if and only if the
  * first's related function type is a subtype of another's function type.
  *
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class CompiledCodeTypeDescriptor
+public final class CompiledCodeTypeDescriptor
 extends TypeDescriptor
 {
 	/**
 	 * The layout of object slots for my instances.
 	 */
-	public enum ObjectSlots implements ObjectSlotsEnum
+	public enum ObjectSlots
+	implements ObjectSlotsEnum
 	{
 		/**
 		 * The type of function that this {@linkplain CompiledCodeTypeDescriptor
@@ -61,13 +63,6 @@ extends TypeDescriptor
 		 * respect to the function type's return type.
 		 */
 		FUNCTION_TYPE
-	}
-
-	@Override @AvailMethod
-	AvailObject o_FunctionType (
-		final AvailObject object)
-	{
-		return object.slot(FUNCTION_TYPE);
 	}
 
 	@Override
@@ -84,10 +79,14 @@ extends TypeDescriptor
 			(indent + 1));
 	}
 
+	@Override @AvailMethod
+	AvailObject o_FunctionType (final AvailObject object)
+	{
+		return object.slot(FUNCTION_TYPE);
+	}
+
 	@Override
-	boolean o_Equals (
-		final AvailObject object,
-		final AvailObject another)
+	boolean o_Equals (final AvailObject object, final AvailObject another)
 	{
 		return another.equalsCompiledCodeType(object);
 	}
@@ -96,7 +95,8 @@ extends TypeDescriptor
 	 * {@inheritDoc}
 	 *
 	 * <p>
-	 * Compiled code types compare for equality by comparing their functionTypes.
+	 * Compiled code types compare for equality by comparing their function
+	 * types.
 	 * </p>
 	 */
 	@Override @AvailMethod
@@ -118,9 +118,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_IsSubtypeOf (
-		final AvailObject object,
-		final AvailObject aType)
+	boolean o_IsSubtypeOf (final AvailObject object, final AvailObject aType)
 	{
 		return aType.isSupertypeOfCompiledCodeType(object);
 	}
@@ -210,35 +208,43 @@ extends TypeDescriptor
 		final AvailObject union = FunctionTypeDescriptor.create(
 			closType1.argsTupleType().typeIntersection(
 				closType2.argsTupleType()),
-				closType1.returnType().typeIntersection(closType2.returnType()));
+				closType1.returnType().typeIntersection(
+					closType2.returnType()));
 		return forFunctionType(union);
 	}
 
-	@Override
-	SerializerOperation o_SerializerOperation (
-		final AvailObject object)
+	@Override @AvailMethod
+	SerializerOperation o_SerializerOperation (final AvailObject object)
 	{
 		return SerializerOperation.COMPILED_CODE_TYPE;
 	}
 
+	@Override @AvailMethod
+	AvailObject o_MakeImmutable (final AvailObject object)
+	{
+		if (isMutable())
+		{
+			// Make the object shared.
+			return object.makeShared();
+		}
+		return object;
+	}
+
 	/**
 	 * Create a {@linkplain CompiledCodeTypeDescriptor compiled code type} based
-	 * on the passed {@linkplain FunctionTypeDescriptor function type}.  Ignore
+	 * on the passed {@linkplain FunctionTypeDescriptor function type}. Ignore
 	 * the function type's exception set.
 	 *
 	 * @param functionType
-	 *            A {@linkplain FunctionTypeDescriptor function type} on which to
-	 *            base the new {@linkplain CompiledCodeTypeDescriptor
-	 *            compiled code type}.
-	 * @return
-	 *            A new {@linkplain CompiledCodeTypeDescriptor}.
+	 *        A {@linkplain FunctionTypeDescriptor function type} on which to
+	 *        base the new {@linkplain CompiledCodeTypeDescriptor compiled code
+	 *        type}.
+	 * @return A new {@linkplain CompiledCodeTypeDescriptor}.
 	 */
-	public static AvailObject forFunctionType (
-		final AvailObject functionType)
+	public static AvailObject forFunctionType (final AvailObject functionType)
 	{
-		functionType.makeImmutable();
-		final AvailObject result = mutable().create();
-		result.setSlot(FUNCTION_TYPE, functionType);
+		final AvailObject result = mutable.create();
+		result.setSlot(FUNCTION_TYPE, functionType.makeImmutable());
 		result.makeImmutable();
 		return result;
 	}
@@ -252,24 +258,24 @@ extends TypeDescriptor
 	 */
 	public static AvailObject mostGeneralType ()
 	{
-		return MostGeneralType;
+		return mostGeneralType;
 	}
 
 	/**
-	 * The most general compiled code type.  Since compiled code types are
+	 * The most general compiled code type. Since compiled code types are
 	 * contravariant by argument types and contravariant by return type, the
 	 * most general type is the one taking bottom as the arguments list
 	 * (i.e., not specific enough to be able to call it), and having the return
 	 * type bottom.
 	 */
-	private static AvailObject MostGeneralType;
+	private static AvailObject mostGeneralType;
 
 	/**
-	 * The metatype for all compiled code types.  In particular, it's just the
+	 * The metatype for all compiled code types. In particular, it's just the
 	 * {@linkplain InstanceTypeDescriptor instance type} for the {@linkplain
-	 * #MostGeneralType most general compiled code type}.
+	 * #mostGeneralType most general compiled code type}.
 	 */
-	private static AvailObject Meta;
+	private static AvailObject meta;
 
 	/**
 	 * Answer the metatype for all compiled code types.
@@ -278,65 +284,64 @@ extends TypeDescriptor
 	 */
 	public static AvailObject meta ()
 	{
-		return Meta;
+		return meta;
 	}
 
-	public static void clearWellKnownObjects ()
-	{
-		MostGeneralType = null;
-		Meta = null;
-	}
-
+	/**
+	 * Create all well-known compiled code types.
+	 */
 	public static void createWellKnownObjects ()
 	{
-		MostGeneralType = forFunctionType(
+		mostGeneralType = forFunctionType(
 			FunctionTypeDescriptor.mostGeneralType());
-		MostGeneralType.makeImmutable();
-		Meta = InstanceMetaDescriptor.on(MostGeneralType);
-		Meta.makeImmutable();
+		mostGeneralType.makeShared();
+		meta = InstanceMetaDescriptor.on(mostGeneralType);
+		meta.makeShared();
 	}
 
+	/**
+	 * Discard all well-known compiled code types.
+	 */
+	public static void clearWellKnownObjects ()
+	{
+		mostGeneralType = null;
+		meta = null;
+	}
 	/**
 	 * Construct a new {@link CompiledCodeTypeDescriptor}.
 	 *
-	 * @param isMutable
-	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
-	 *        object?
+	 * @param mutability
+	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 */
-	protected CompiledCodeTypeDescriptor (final boolean isMutable)
+	private CompiledCodeTypeDescriptor (final Mutability mutability)
 	{
-		super(isMutable);
+		super(mutability);
 	}
 
-	/**
-	 * The mutable {@link CompiledCodeTypeDescriptor}.
-	 */
+	/** The mutable {@link CompiledCodeTypeDescriptor}. */
 	private static final TypeDescriptor mutable =
-		new CompiledCodeTypeDescriptor(true);
+		new CompiledCodeTypeDescriptor(Mutability.MUTABLE);
 
-	/**
-	 * Answer the mutable {@link CompiledCodeTypeDescriptor}.
-	 *
-	 * @return The mutable {@link CompiledCodeTypeDescriptor}.
-	 */
-	public static TypeDescriptor mutable ()
+	@Override
+	TypeDescriptor mutable ()
 	{
 		return mutable;
 	}
 
-	/**
-	 * The immutable {@link CompiledCodeTypeDescriptor}.
-	 */
-	private static final TypeDescriptor immutable =
-		new CompiledCodeTypeDescriptor(false);
+	/** The shared {@link CompiledCodeTypeDescriptor}. */
+	private static final TypeDescriptor shared =
+		new CompiledCodeTypeDescriptor(Mutability.SHARED);
 
-	/**
-	 * Answer the immutable {@link CompiledCodeTypeDescriptor}.
-	 *
-	 * @return The immutable {@link CompiledCodeTypeDescriptor}.
-	 */
-	public static TypeDescriptor immutable ()
+	@Override
+	TypeDescriptor immutable ()
 	{
-		return immutable;
+		// There is only a shared descriptor, not an immutable one.
+		return shared;
+	}
+
+	@Override
+	TypeDescriptor shared ()
+	{
+		return shared;
 	}
 }

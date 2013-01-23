@@ -1,6 +1,6 @@
 /**
  * MethodDescriptor.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -61,8 +61,9 @@ import com.avail.utility.*;
  * {@linkplain DefinitionDescriptor signatures}, but not both.</p>
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class MethodDescriptor
+public final class MethodDescriptor
 extends Descriptor
 {
 	/**
@@ -206,11 +207,10 @@ extends Descriptor
 	 * @param primitive The {@link Primitive} to use.
 	 * @return A function.
 	 */
-	public static AvailObject newPrimitiveFunction (
-		final Primitive primitive)
+	public static AvailObject newPrimitiveFunction (final Primitive primitive)
 	{
 		final L1InstructionWriter writer = new L1InstructionWriter(
-			NullDescriptor.nullObject(),
+			NilDescriptor.nil(),
 			0);
 		writer.primitiveNumber(primitive.primitiveNumber);
 		final AvailObject functionType = primitive.blockTypeRestriction();
@@ -257,7 +257,7 @@ extends Descriptor
 			writer.write(
 				new L1Instruction(
 					L1Operation.L1_doPushLiteral,
-					writer.addLiteral(NullDescriptor.nullObject())));
+					writer.addLiteral(NilDescriptor.nil())));
 		}
 		final AvailObject function = FunctionDescriptor.create(
 			writer.compiledCode(),
@@ -452,25 +452,20 @@ extends Descriptor
 	 */
 	public static void createWellKnownObjects ()
 	{
-		vmCrashAtom = AtomDescriptor.create(
-			StringDescriptor.from("vm crash_"),
-			NullDescriptor.nullObject());
+		vmCrashAtom = AtomDescriptor.createSpecialAtom(
+			StringDescriptor.from("vm crash_"));
 		vmCrashMethod = newVMCrashMethod();
-		vmFunctionApplyAtom = AtomDescriptor.create(
-			StringDescriptor.from("vm function apply_(«_‡,»)"),
-			NullDescriptor.nullObject());
+		vmFunctionApplyAtom = AtomDescriptor.createSpecialAtom(
+			StringDescriptor.from("vm function apply_(«_‡,»)"));
 		vmFunctionApplyMethod = newVMFunctionApplyMethod();
-		vmMethodDefinerAtom = AtomDescriptor.create(
-			StringDescriptor.from("vm method_is_"),
-			NullDescriptor.nullObject());
+		vmMethodDefinerAtom = AtomDescriptor.createSpecialAtom(
+			StringDescriptor.from("vm method_is_"));
 		vmMethodDefinerMethod = newVMMethodDefinerMethod();
-		vmMacroDefinerAtom = AtomDescriptor.create(
-			StringDescriptor.from("vm macro_is«_,»_"),
-			NullDescriptor.nullObject());
+		vmMacroDefinerAtom = AtomDescriptor.createSpecialAtom(
+			StringDescriptor.from("vm macro_is«_,»_"));
 		vmMacroDefinerMethod = newVMMacroDefinerMethod();
-		vmPublishAtomsAtom = AtomDescriptor.create(
-			StringDescriptor.from("vm publish atom set_(public=_)"),
-			NullDescriptor.nullObject());
+		vmPublishAtomsAtom = AtomDescriptor.createSpecialAtom(
+			StringDescriptor.from("vm publish atom set_(public=_)"));
 		vmPublishAtomsMethod = newVMPublishAtomsMethod();
 	}
 
@@ -546,21 +541,8 @@ extends Descriptor
 		DEPENDENT_CHUNK_INDICES
 	}
 
-	@Override @AvailMethod
-	AvailObject o_DefinitionsTuple (
-		final AvailObject object)
-	{
-		return object.slot(DEFINITIONS_TUPLE);
-	}
-
-	@Override @AvailMethod
-	AvailObject o_Name (
-		final AvailObject object)
-	{
-		return object.slot(NAME);
-	}
-
-	@Override boolean allowsImmutableToMutableReferenceInField (
+	@Override
+	boolean allowsImmutableToMutableReferenceInField (
 		final AbstractSlotsEnum e)
 	{
 		return e == DEFINITIONS_TUPLE
@@ -589,39 +571,58 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_Equals (
-		final AvailObject object,
-		final AvailObject another)
+	AvailObject o_Name (final AvailObject object)
 	{
-		// Methods compare by identity.
+		return object.slot(NAME);
+	}
+
+	@Override @AvailMethod
+	AvailObject o_DefinitionsTuple (final AvailObject object)
+	{
+		assert isShared();
+		synchronized (object)
+		{
+			return object.slot(DEFINITIONS_TUPLE);
+		}
+	}
+
+	@Override @AvailMethod
+	AvailObject o_TypeRestrictions (final AvailObject object)
+	{
+		return object.slot(TYPE_RESTRICTIONS_TUPLE);
+	}
+
+	@Override @AvailMethod
+	AvailObject o_SealedArgumentsTypesTuple (final AvailObject object)
+	{
+		return object.slot(SEALED_ARGUMENTS_TYPES_TUPLE);
+	}
+
+	@Override @AvailMethod
+	boolean o_Equals (final AvailObject object, final AvailObject another)
+	{
 		return another.traversed().sameAddressAs(object);
 	}
 
 	@Override @AvailMethod
-	int o_Hash (
-		final AvailObject object)
+	int o_Hash (final AvailObject object)
 	{
-		return object.name().hash() + 0x61AF3FC;
+		return object.slot(NAME).hash() + 0x61AF3FC;
 	}
 
-	/**
-	 * Make the object immutable so it can be shared safely.  If I was mutable I
-	 * have to scan my children and make them immutable as well (recursively
-	 * down to immutable descendants).  Actually, I allow some of my
-	 * slots to be mutable even when I'm immutable.
-	 */
 	@Override @AvailMethod
-	AvailObject o_MakeImmutable (
-		final AvailObject object)
+	AvailObject o_MakeImmutable (final AvailObject object)
 	{
-		object.descriptor = immutable();
-		object.name().makeImmutable();
+		if (isMutable())
+		{
+			// A method is always shared. Never make it immutable.
+			return object.makeShared();
+		}
 		return object;
 	}
 
 	@Override @AvailMethod
-	AvailObject o_Kind (
-		final AvailObject object)
+	AvailObject o_Kind (final AvailObject object)
 	{
 		return METHOD.o();
 	}
@@ -631,16 +632,19 @@ extends Descriptor
 		final AvailObject object,
 		final int aChunkIndex)
 	{
-		// Record the fact that the chunk indexed by aChunkIndex depends on
-		// this object not changing.
-		AvailObject indices =
-			object.slot(DEPENDENT_CHUNK_INDICES);
-		indices = indices.setWithElementCanDestroy(
-			IntegerDescriptor.fromInt(aChunkIndex),
-			true);
-		object.setSlot(
-			DEPENDENT_CHUNK_INDICES,
-			indices);
+		synchronized (object)
+		{
+			// Record the fact that the chunk indexed by aChunkIndex depends on
+			// this object not changing.
+			AvailObject indices =
+				object.slot(DEPENDENT_CHUNK_INDICES);
+			indices = indices.setWithElementCanDestroy(
+				IntegerDescriptor.fromInt(aChunkIndex),
+				true);
+			object.setSlot(
+				DEPENDENT_CHUNK_INDICES,
+				indices.traversed().makeShared());
+		}
 	}
 
 	@Override @AvailMethod
@@ -649,34 +653,39 @@ extends Descriptor
 		final AvailObject definition)
 	throws SignatureException
 	{
-		final AvailObject oldTuple = object.definitionsTuple();
-		if (oldTuple.tupleSize() > 0)
+		synchronized (object)
 		{
-			// Ensure that we're not mixing macro and non-macro signatures.
-			assert definition.isMacroDefinition()
-				== oldTuple.tupleAt(1).isMacroDefinition();
-		}
-		final AvailObject seals = object.slot(SEALED_ARGUMENTS_TYPES_TUPLE);
-		final AvailObject bodySignature = definition.bodySignature();
-		final AvailObject paramTypes = bodySignature.argsTupleType();
-		for (final AvailObject seal : seals)
-		{
-			final AvailObject sealType =
-				TupleTypeDescriptor.forTypes(TupleDescriptor.toArray(seal));
-			if (paramTypes.isSubtypeOf(sealType))
+			final AvailObject oldTuple = object.definitionsTuple();
+			if (oldTuple.tupleSize() > 0)
 			{
-				throw new SignatureException(AvailErrorCode.E_METHOD_IS_SEALED);
+				// Ensure that we're not mixing macro and non-macro signatures.
+				assert definition.isMacroDefinition()
+					== oldTuple.tupleAt(1).isMacroDefinition();
 			}
+			final AvailObject seals = object.slot(SEALED_ARGUMENTS_TYPES_TUPLE);
+			final AvailObject bodySignature = definition.bodySignature();
+			final AvailObject paramTypes = bodySignature.argsTupleType();
+			for (final AvailObject seal : seals)
+			{
+				final AvailObject sealType =
+					TupleTypeDescriptor.forTypes(TupleDescriptor.toArray(seal));
+				if (paramTypes.isSubtypeOf(sealType))
+				{
+					throw new SignatureException(
+						AvailErrorCode.E_METHOD_IS_SEALED);
+				}
+			}
+			final AvailObject newTuple =
+				oldTuple.appendCanDestroy(definition, true);
+			object.setSlot(
+				DEFINITIONS_TUPLE, newTuple.traversed().makeShared());
+			membershipChanged(object);
 		}
-		final AvailObject newTuple =
-			oldTuple.appendCanDestroy(definition, true);
-		object.setSlot(DEFINITIONS_TUPLE, newTuple);
-		membershipChanged(object);
 	}
 
 	/**
 	 * Look up all method definitions that could match the given argument
-	 * types.  Answer a {@linkplain List list} of {@linkplain
+	 * types. Answer a {@linkplain List list} of {@linkplain
 	 * MethodDefinitionDescriptor method signatures}.
 	 */
 	@Override @AvailMethod
@@ -686,6 +695,8 @@ extends Descriptor
 	{
 		List<AvailObject> result;
 		result = new ArrayList<AvailObject>(3);
+		// Use the accessor instead of reading the slot directly (to acquire the
+		// monitor first).
 		final AvailObject impsTuple = object.definitionsTuple();
 		for (int i = 1, end = impsTuple.tupleSize(); i <= end; i++)
 		{
@@ -708,10 +719,12 @@ extends Descriptor
 	 * disallow the definition (it could never actually be invoked because
 	 * bottom is uninstantiable).  Answer a {@linkplain List list} of
 	 * {@linkplain MethodDefinitionDescriptor method signatures}.
+	 *
 	 * <p>
 	 * Don't do coverage analysis yet (i.e., determining if one method would
 	 * always override a strictly more abstract method).  We can do that some
 	 * other day.
+	 * </p>
 	 */
 	@Override @AvailMethod
 	List<AvailObject> o_DefinitionsAtOrBelow (
@@ -720,6 +733,8 @@ extends Descriptor
 	{
 		List<AvailObject> result;
 		result = new ArrayList<AvailObject>(3);
+		// Use the accessor instead of reading the slot directly (to acquire the
+		// monitor first).
 		final AvailObject impsTuple = object.definitionsTuple();
 		for (int i = 1, end = impsTuple.tupleSize(); i <= end; i++)
 		{
@@ -740,6 +755,8 @@ extends Descriptor
 		final AvailObject object,
 		final AvailObject definition)
 	{
+		// Use the accessor instead of reading the slot directly (to acquire the
+		// monitor first).
 		for (final AvailObject eachDefinition : object.definitionsTuple())
 		{
 			if (eachDefinition.equals(definition))
@@ -753,7 +770,7 @@ extends Descriptor
 	/**
 	 * Look up the definition to invoke, given an array of argument types.
 	 * Use the testingTree to find the definition to invoke (answer void if
-	 * a lookup error occurs).  There may be more entries in the tuple of
+	 * a lookup error occurs). There may be more entries in the tuple of
 	 * argument types than we need, to allow the tuple to be a reusable buffer.
 	 */
 	@Override @AvailMethod
@@ -761,8 +778,13 @@ extends Descriptor
 		final AvailObject object,
 		final AvailObject argumentTypeTuple)
 	{
-		final AvailObject impsTuple = object.definitionsTuple();
-		final AvailObject tree = object.testingTree();
+		final AvailObject impsTuple;
+		final AvailObject tree;
+		synchronized (object)
+		{
+			impsTuple = object.slot(DEFINITIONS_TUPLE);
+			tree = object.testingTree();
+		}
 		int index = 1;
 		while (true)
 		{
@@ -772,7 +794,7 @@ extends Descriptor
 			if (lowBit == 1)
 			{
 				return test == 0
-					? NullDescriptor.nullObject()
+					? NilDescriptor.nil()
 					: impsTuple.tupleAt(test);
 			}
 			if (impsTuple.tupleAt(test).bodySignature()
@@ -797,8 +819,13 @@ extends Descriptor
 		final AvailObject object,
 		final List<AvailObject> argumentList)
 	{
-		final AvailObject impsTuple = object.definitionsTuple();
-		final AvailObject tree = object.testingTree();
+		final AvailObject impsTuple;
+		final AvailObject tree;
+		synchronized (object)
+		{
+			impsTuple = object.slot(DEFINITIONS_TUPLE);
+			tree = object.testingTree();
+		}
 		int index = 1;
 		while (true)
 		{
@@ -808,7 +835,7 @@ extends Descriptor
 			if (lowBit == 1)
 			{
 				return test == 0
-					? NullDescriptor.nullObject()
+					? NilDescriptor.nil()
 					: impsTuple.tupleAt(test);
 			}
 			if (impsTuple.tupleAt(test).bodySignature()
@@ -835,8 +862,13 @@ extends Descriptor
 		final AvailObject object,
 		final AvailObject argumentTuple)
 	{
-		final AvailObject impsTuple = object.definitionsTuple();
-		final AvailObject tree = object.testingTree();
+		final AvailObject impsTuple;
+		final AvailObject tree;
+		synchronized (object)
+		{
+			impsTuple = object.slot(DEFINITIONS_TUPLE);
+			tree = object.testingTree();
+		}
 		int index = 1;
 		while (true)
 		{
@@ -846,7 +878,7 @@ extends Descriptor
 			if (lowBit == 1)
 			{
 				return test == 0
-					? NullDescriptor.nullObject()
+					? NilDescriptor.nil()
 					: impsTuple.tupleAt(test);
 			}
 			if (impsTuple.tupleAt(test).bodySignature().acceptsTupleOfArguments(
@@ -862,7 +894,7 @@ extends Descriptor
 	}
 
 	/**
-	 * Remove the chunk from my set of dependent chunks.  This is probably
+	 * Remove the chunk from my set of dependent chunks. This is probably
 	 * because the chunk has been (A) removed by the garbage collector, or (B)
 	 * invalidated by a new definition in either me or another method that the
 	 * chunk is contingent on.
@@ -872,15 +904,20 @@ extends Descriptor
 		final AvailObject object,
 		final int aChunkIndex)
 	{
-		AvailObject indices = object.slot(DEPENDENT_CHUNK_INDICES);
-		indices = indices.setWithoutElementCanDestroy(
-			IntegerDescriptor.fromInt(aChunkIndex),
-			true);
-		object.setSlot(DEPENDENT_CHUNK_INDICES, indices);
+		synchronized (object)
+		{
+			AvailObject indices =
+				object.slot(DEPENDENT_CHUNK_INDICES);
+			indices = indices.setWithoutElementCanDestroy(
+				IntegerDescriptor.fromInt(aChunkIndex),
+				true);
+			object.setSlot(
+				DEPENDENT_CHUNK_INDICES, indices.traversed().makeShared());
+		}
 	}
 
 	/**
-	 * Remove the definition from me.  Causes dependent chunks to be
+	 * Remove the definition from me. Causes dependent chunks to be
 	 * invalidated.
 	 */
 	@Override @AvailMethod
@@ -888,18 +925,24 @@ extends Descriptor
 		final AvailObject object,
 		final AvailObject definition)
 	{
-		AvailObject definitionsTuple = object.definitionsTuple();
-		definitionsTuple = TupleDescriptor.without(
-			definitionsTuple,
-			definition);
-		object.setSlot(DEFINITIONS_TUPLE, definitionsTuple);
-		membershipChanged(object);
+		synchronized (object)
+		{
+			AvailObject definitionsTuple = object.slot(DEFINITIONS_TUPLE);
+			definitionsTuple = TupleDescriptor.without(
+				definitionsTuple,
+				definition);
+			object.setSlot(
+				DEFINITIONS_TUPLE,
+				definitionsTuple.traversed().makeShared());
+			membershipChanged(object);
+		}
 	}
 
 	@Override @AvailMethod
-	int o_NumArgs (
-		final AvailObject object)
+	int o_NumArgs (final AvailObject object)
 	{
+		// Use the accessor instead of reading the slot directly (to acquire the
+		// monitor first).
 		final AvailObject impsTuple = object.definitionsTuple();
 		if (impsTuple.tupleSize() >= 1)
 		{
@@ -907,7 +950,7 @@ extends Descriptor
 			final AvailObject argsTupleType = firstBody.argsTupleType();
 			return argsTupleType.sizeRange().lowerBound().extractInt();
 		}
-		// Deal with it the slow way by using the MessageSplitter.  This allows
+		// Deal with it the slow way by using the MessageSplitter. This allows
 		// the decompiler to continue to work even when a called method has no
 		// definitions.
 		try
@@ -927,9 +970,9 @@ extends Descriptor
 	 *
 	 * <p>
 	 * Check the argument types for validity and return the result type of the
-	 * message send.  Use not only the applicable {@linkplain
+	 * message send. Use not only the applicable {@linkplain
 	 * MethodDefinitionDescriptor method signatures}, but also any type
-	 * restriction functions.  The type restriction functions may choose to
+	 * restriction functions. The type restriction functions may choose to
 	 * {@linkplain P_352_RejectParsing}, indicating that the argument types are
 	 * mutually incompatible.
 	 * </p>
@@ -941,199 +984,211 @@ extends Descriptor
 		final Interpreter anAvailInterpreter,
 		final Continuation1<Generator<String>> failBlock)
 	{
-		// Filter the definitions down to those that are locally most
-		// specific.  Fail if more than one survives.
-		final AvailObject definitionsTuple = object.definitionsTuple();
-		if (definitionsTuple.tupleSize() > 0
-			&& !definitionsTuple.tupleAt(1).isMacroDefinition())
+		synchronized (object)
 		{
-			// This consists of method definitions.
-			for (int index = 1, end = argTypes.size(); index <= end; index++)
+			// Filter the definitions down to those that are locally most
+			// specific.  Fail if more than one survives.
+			final AvailObject definitionsTuple = object.slot(DEFINITIONS_TUPLE);
+			if (definitionsTuple.tupleSize() > 0
+				&& !definitionsTuple.tupleAt(1).isMacroDefinition())
 			{
-				final int finalIndex = index;
-				final AvailObject finalType = argTypes.get(finalIndex - 1);
-				if (finalType.equals(BottomTypeDescriptor.bottom())
-					|| finalType.equals(TOP.o()))
+				// This consists of method definitions.
+				for (
+					int index = 1, end = argTypes.size();
+					index <= end;
+					index++)
 				{
-					failBlock.value(new Generator<String> ()
+					final int finalIndex = index;
+					final AvailObject finalType = argTypes.get(finalIndex - 1);
+					if (finalType.equals(BottomTypeDescriptor.bottom())
+						|| finalType.equals(TOP.o()))
 					{
-						@Override
-						public String value()
+						failBlock.value(new Generator<String> ()
 						{
-							return "argument #"
-								+ Integer.toString(finalIndex)
-								+ " of message \""
-								+ object.name().name().asNativeString()
-								+ "\" to have a type other than "
-								+ argTypes.get(finalIndex - 1);
-						}
-					});
-					return NullDescriptor.nullObject();
+							@Override
+							public String value()
+							{
+								return "argument #"
+									+ Integer.toString(finalIndex)
+									+ " of message \""
+									+ object.slot(NAME).name().asNativeString()
+									+ "\" to have a type other than "
+									+ argTypes.get(finalIndex - 1);
+							}
+						});
+						return NilDescriptor.nil();
+					}
 				}
 			}
-		}
-		final List<AvailObject> satisfyingTypes =
-			object.filterByTypes(argTypes);
-		if (satisfyingTypes.size() == 0)
-		{
-			failBlock.value(new Generator<String> ()
+			final List<AvailObject> satisfyingTypes =
+				object.filterByTypes(argTypes);
+			if (satisfyingTypes.size() == 0)
 			{
-				@Override
-				public String value()
+				failBlock.value(new Generator<String> ()
 				{
-					final List<AvailObject> functionTypes =
-						new ArrayList<AvailObject>(2);
-					for (final AvailObject imp : definitionsTuple)
+					@Override
+					public String value()
 					{
-						functionTypes.add(imp.bodySignature());
-					}
-					final Formatter builder = new Formatter();
-					final List<Integer> allFailedIndices =
-						new ArrayList<Integer>(3);
-					each_arg:
-					for (int index = argTypes.size(); index >= 1; index--)
-					{
+						final List<AvailObject> functionTypes =
+							new ArrayList<AvailObject>(2);
+						for (final AvailObject imp : definitionsTuple)
+						{
+							functionTypes.add(imp.bodySignature());
+						}
+						final Formatter builder = new Formatter();
+						final List<Integer> allFailedIndices =
+							new ArrayList<Integer>(3);
+						each_arg:
+						for (int index = argTypes.size(); index >= 1; index--)
+						{
+							for (final AvailObject sig : functionTypes)
+							{
+								if (argTypes.get(index - 1).isSubtypeOf(
+									sig.argsTupleType().typeAtIndex(index)))
+								{
+									continue each_arg;
+								}
+							}
+							allFailedIndices.add(0, index);
+						}
+						builder.format(
+							"arguments at indices %s of message %s to match a "
+							+ "method definition.%n",
+							allFailedIndices,
+							object.slot(NAME).name().asNativeString());
+						builder.format(
+							"\tI got:%n\t\t%s%n",
+							argTypes);
+						builder.format(
+							"\tI expected%s:",
+							functionTypes.size() > 1 ? " one of" : "");
 						for (final AvailObject sig : functionTypes)
 						{
-							if (argTypes.get(index - 1).isSubtypeOf(
-								sig.argsTupleType().typeAtIndex(index)))
-							{
-								continue each_arg;
-							}
+							builder.format("%n\t\t%s", sig);
 						}
-						allFailedIndices.add(0, index);
+						final String builderString = builder.toString();
+						builder.close();
+						return builderString;
 					}
-					builder.format(
-						"arguments at indices %s of message %s to match a "
-						+ "method definition.%n",
-						allFailedIndices,
-						object.name().name().asNativeString());
-					builder.format(
-						"\tI got:%n\t\t%s%n",
-						argTypes);
-					builder.format(
-						"\tI expected%s:",
-						functionTypes.size() > 1 ? " one of" : "");
-					for (final AvailObject sig : functionTypes)
-					{
-						builder.format("%n\t\t%s", sig);
-					}
-					final String builderString = builder.toString();
-					builder.close();
-					return builderString;
-				}
-			});
-			return NullDescriptor.nullObject();
-		}
-		AvailObject intersection =
-			satisfyingTypes.get(0).bodySignature().returnType();
-		for (int i = satisfyingTypes.size() - 1; i >= 1; i--)
-		{
-			intersection = intersection.typeIntersection(
-				satisfyingTypes.get(i).bodySignature().returnType());
-		}
-		final AvailObject restrictions = object.typeRestrictions();
-		final Mutable<Boolean> anyFailures = new Mutable<Boolean>(false);
-		for (int i = restrictions.tupleSize(); i >= 1; i--)
-		{
-			final AvailObject restriction = restrictions.tupleAt(i);
-			if (restriction.kind().acceptsListOfArgValues(argTypes))
+				});
+				return NilDescriptor.nil();
+			}
+			AvailObject intersection =
+				satisfyingTypes.get(0).bodySignature().returnType();
+			for (int i = satisfyingTypes.size() - 1; i >= 1; i--)
 			{
-				try
+				intersection = intersection.typeIntersection(
+					satisfyingTypes.get(i).bodySignature().returnType());
+			}
+			final AvailObject restrictions =
+				object.slot(TYPE_RESTRICTIONS_TUPLE);
+			final Mutable<Boolean> anyFailures = new Mutable<Boolean>(false);
+			for (int i = restrictions.tupleSize(); i >= 1; i--)
+			{
+				final AvailObject restriction = restrictions.tupleAt(i);
+				if (restriction.kind().acceptsListOfArgValues(argTypes))
 				{
-					final AvailObject restrictionType =
-						anAvailInterpreter.runFunctionArguments(
-							restriction,
-							argTypes);
-					intersection = intersection.typeIntersection(
-						restrictionType);
-				}
-				catch (final AvailRejectedParseException e)
-				{
-					final AvailObject problem = e.rejectionString();
-					failBlock.value(
-						new Generator<String>()
-						{
-							@Override
-							public String value ()
+					try
+					{
+						final AvailObject restrictionType =
+							anAvailInterpreter.runFunctionArguments(
+								restriction,
+								argTypes);
+						intersection = intersection.typeIntersection(
+							restrictionType);
+					}
+					catch (final AvailRejectedParseException e)
+					{
+						final AvailObject problem = e.rejectionString();
+						failBlock.value(
+							new Generator<String>()
 							{
-								return
-									problem.asNativeString()
-									+ " (while parsing send of "
-									+ object.name().name().asNativeString()
-									+ ")";
-							}
-						});
-					anyFailures.value = true;
-				}
-				catch (final Exception e)
-				{
-					failBlock.value(
-						new Generator<String>()
-						{
-							@Override
-							public String value ()
+								@Override
+								public String value ()
+								{
+									return
+										problem.asNativeString()
+										+ " (while parsing send of "
+										+ object.slot(NAME).name()
+											.asNativeString()
+										+ ")";
+								}
+							});
+						anyFailures.value = true;
+					}
+					catch (final Exception e)
+					{
+						failBlock.value(
+							new Generator<String>()
 							{
-								return
-									"semantic restriction not to raise an "
-									+ "unhandled exception (while parsing send "
-									+ "of "
-									+ object.name().name().asNativeString()
-									+ "):\n\t"
-									+ e.toString();
-							}
-						});
+								@Override
+								public String value ()
+								{
+									return
+										"semantic restriction not to raise an "
+										+ "unhandled exception (while parsing "
+										+ "send of "
+										+ object.slot(NAME).name()
+											.asNativeString()
+										+ "):\n\t"
+										+ e.toString();
+								}
+							});
+					}
 				}
 			}
+			if (anyFailures.value)
+			{
+				return NilDescriptor.nil();
+			}
+			return intersection;
 		}
-		if (anyFailures.value)
-		{
-			return NullDescriptor.nullObject();
-		}
-		return intersection;
 	}
 
 	/**
-	 * Answer the cached privateTestingTree.  If there's a null object in that
-	 * slot, compute and cache the testing tree based on the definitionsTuple.
+	 * Answer the cached privateTestingTree. If there's a nil in that slot,
+	 * compute and cache the testing tree based on the definitionsTuple.
 	 * See {@linkplain #createTestingTree(AvailObject[], List, List, List)
 	 * createTestingTree(...)} for an interpretation of the resulting tuple of
 	 * integers.
 	 */
 	@Override @AvailMethod
-	AvailObject o_TestingTree (
-		final AvailObject object)
+	AvailObject o_TestingTree (final AvailObject object)
 	{
-		AvailObject result =
-			object.slot(PRIVATE_TESTING_TREE);
-		if (!result.equalsNull())
+		synchronized (object)
 		{
+			AvailObject result = object.slot(PRIVATE_TESTING_TREE);
+			if (result.equalsNil())
+			{
+				//  Compute the tree.
+				final AvailObject definitionsTuple =
+					object.slot(DEFINITIONS_TUPLE);
+				final int indicesSize = definitionsTuple.tupleSize();
+				final List<Integer> allIndices =
+					new ArrayList<Integer>(indicesSize);
+				for (int i = 0; i < indicesSize; i++)
+				{
+					allIndices.add(i);
+				}
+				final List<AvailObject> definitionsList =
+					new ArrayList<AvailObject>();
+				for (final AvailObject imp : definitionsTuple)
+				{
+					definitionsList.add(imp);
+				}
+				final List<Integer> instructions = new ArrayList<Integer>();
+				createTestingTree(
+					definitionsList.toArray(
+						new AvailObject[definitionsList.size()]),
+					new ArrayList<Integer>(),
+					allIndices,
+					instructions);
+				result = TupleDescriptor.fromIntegerList(instructions);
+				object.setSlot(
+					PRIVATE_TESTING_TREE, result.traversed().makeShared());
+			}
 			return result;
 		}
-		//  Compute the tree.
-		final AvailObject definitionsTuple = object.definitionsTuple();
-		final int indicesSize = definitionsTuple.tupleSize();
-		final List<Integer> allIndices = new ArrayList<Integer>(indicesSize);
-		for (int i = 0; i < indicesSize; i++)
-		{
-			allIndices.add(i);
-		}
-		final List<AvailObject> definitionsList =
-			new ArrayList<AvailObject>();
-		for (final AvailObject imp : definitionsTuple)
-		{
-			definitionsList.add(imp);
-		}
-		final List<Integer> instructions = new ArrayList<Integer>();
-		createTestingTree(
-			definitionsList.toArray(
-				new AvailObject[definitionsList.size()]),
-			new ArrayList<Integer>(),
-			allIndices,
-			instructions);
-		result = TupleDescriptor.fromIntegerList(instructions);
-		object.setSlot(PRIVATE_TESTING_TREE, result);
-		return result;
 	}
 
 	@Override @AvailMethod
@@ -1141,9 +1196,15 @@ extends Descriptor
 		final AvailObject object,
 		final AvailObject function)
 	{
-		final AvailObject oldTuple = object.slot(TYPE_RESTRICTIONS_TUPLE);
-		final AvailObject newTuple = oldTuple.appendCanDestroy(function, true);
-		object.setSlot(TYPE_RESTRICTIONS_TUPLE, newTuple);
+		synchronized (object)
+		{
+			final AvailObject oldTuple =
+				object.slot(TYPE_RESTRICTIONS_TUPLE);
+			final AvailObject newTuple =
+				oldTuple.appendCanDestroy(function, true);
+			object.setSlot(
+				TYPE_RESTRICTIONS_TUPLE, newTuple.traversed().makeShared());
+		}
 	}
 
 	@Override @AvailMethod
@@ -1151,18 +1212,17 @@ extends Descriptor
 		final AvailObject object,
 		final AvailObject function)
 	{
-		final AvailObject oldTuple = object.slot(TYPE_RESTRICTIONS_TUPLE);
-		final AvailObject newTuple =
-			TupleDescriptor.without(oldTuple, function);
-		assert newTuple.tupleSize() == oldTuple.tupleSize() - 1;
-		object.setSlot(TYPE_RESTRICTIONS_TUPLE, newTuple);
-	}
-
-	@Override @AvailMethod
-	AvailObject o_TypeRestrictions (
-		final AvailObject object)
-	{
-		return object.slot(TYPE_RESTRICTIONS_TUPLE);
+		synchronized (object)
+		{
+			final AvailObject oldTuple =
+				object.slot(TYPE_RESTRICTIONS_TUPLE);
+			final AvailObject newTuple =
+				TupleDescriptor.without(oldTuple, function);
+			assert newTuple.tupleSize() == oldTuple.tupleSize() - 1;
+			object.setSlot(
+				TYPE_RESTRICTIONS_TUPLE,
+				newTuple.traversed().makeShared());
+		}
 	}
 
 	@Override @AvailMethod
@@ -1170,11 +1230,17 @@ extends Descriptor
 		final AvailObject object,
 		final AvailObject sealSignature)
 	{
-		assert sealSignature.isTuple();
-		final AvailObject oldTuple = object.slot(SEALED_ARGUMENTS_TYPES_TUPLE);
-		final AvailObject newTuple = oldTuple.appendCanDestroy(
-			sealSignature, true);
-		object.setSlot(SEALED_ARGUMENTS_TYPES_TUPLE, newTuple);
+		synchronized (object)
+		{
+			assert sealSignature.isTuple();
+			final AvailObject oldTuple =
+				object.slot(SEALED_ARGUMENTS_TYPES_TUPLE);
+			final AvailObject newTuple = oldTuple.appendCanDestroy(
+				sealSignature, true);
+			object.setSlot(
+				SEALED_ARGUMENTS_TYPES_TUPLE,
+				newTuple.traversed().makeShared());
+		}
 	}
 
 	@Override @AvailMethod
@@ -1182,42 +1248,48 @@ extends Descriptor
 		final AvailObject object,
 		final AvailObject tupleType)
 	{
-		final AvailObject oldTuple = object.slot(SEALED_ARGUMENTS_TYPES_TUPLE);
-		final AvailObject newTuple =
-			TupleDescriptor.without(oldTuple, tupleType);
-		assert newTuple.tupleSize() == oldTuple.tupleSize() - 1;
-		object.setSlot(SEALED_ARGUMENTS_TYPES_TUPLE, newTuple);
+		synchronized (object)
+		{
+			final AvailObject oldTuple =
+				object.slot(SEALED_ARGUMENTS_TYPES_TUPLE);
+			final AvailObject newTuple =
+				TupleDescriptor.without(oldTuple, tupleType);
+			assert newTuple.tupleSize() == oldTuple.tupleSize() - 1;
+			object.setSlot(
+				SEALED_ARGUMENTS_TYPES_TUPLE,
+				newTuple.traversed().makeShared());
+		}
 	}
 
 	@Override @AvailMethod
-	AvailObject o_SealedArgumentsTypesTuple (
-		final AvailObject object)
+	boolean o_IsMethodEmpty (final AvailObject object)
 	{
-		return object.slot(SEALED_ARGUMENTS_TYPES_TUPLE);
-	}
-
-	@Override @AvailMethod
-	boolean o_IsMethodEmpty (
-		final AvailObject object)
-	{
-		if (object.slot(DEFINITIONS_TUPLE).tupleSize() > 0)
+		synchronized (object)
 		{
-			return false;
+			final AvailObject definitionsTuple =
+				object.slot(DEFINITIONS_TUPLE);
+			if (definitionsTuple.tupleSize() > 0)
+			{
+				return false;
+			}
+			final AvailObject typeRestrictionsTuple =
+				object.slot(TYPE_RESTRICTIONS_TUPLE);
+			if (typeRestrictionsTuple.tupleSize() > 0)
+			{
+				return false;
+			}
+			final AvailObject sealedArgumentsTypesTuple =
+				object.slot(SEALED_ARGUMENTS_TYPES_TUPLE);
+			if (sealedArgumentsTypesTuple.tupleSize() > 0)
+			{
+				return false;
+			}
+			return true;
 		}
-		if (object.slot(TYPE_RESTRICTIONS_TUPLE).tupleSize() > 0)
-		{
-			return false;
-		}
-		if (object.slot(SEALED_ARGUMENTS_TYPES_TUPLE).tupleSize() > 0)
-		{
-			return false;
-		}
-		return true;
 	}
 
 	@Override @AvailMethod @ThreadSafe
-	SerializerOperation o_SerializerOperation (
-		final AvailObject object)
+	SerializerOperation o_SerializerOperation (final AvailObject object)
 	{
 		return SerializerOperation.METHOD;
 	}
@@ -1242,18 +1314,18 @@ extends Descriptor
 	 * </p>
 	 *
 	 * @param imps
-	 *            The complete array of definitions to analyze.
+	 *        The complete array of definitions to analyze.
 	 * @param positives
-	 *            Zero-based indices of definitions that are consistent
-	 *            with the checks that have been performed to reach this point.
+	 *        Zero-based indices of definitions that are consistent with the
+	 *        checks that have been performed to reach this point.
 	 * @param possible
-	 *            Zero-based indices of definitions that have neither been
-	 *            shown to be consistent nor shown to be inconsistent with
-	 *            the checks that have been performed to reach this point.
+	 *        Zero-based indices of definitions that have neither been shown to
+	 *        be consistent nor shown to be inconsistent with the checks that
+	 *        have been performed to reach this point.
 	 * @param instructions
-	 *            An output list of Integer-encoded instructions.
+	 *        An output list of Integer-encoded instructions.
 	 */
-	static public void createTestingTree (
+	private static void createTestingTree (
 		final AvailObject[] imps,
 		final List<Integer> positives,
 		final List<Integer> possible,
@@ -1352,10 +1424,10 @@ extends Descriptor
 		}
 		final AvailObject bestSig = imps[bestIndex].bodySignature();
 
-		// First recurse assuming the test came out true.  Move all ancestors of
+		// First recurse assuming the test came out true. Move all ancestors of
 		// what was tested into the positive collection and out of the
-		// possibilities collection.  Also remove from the possibilities any
-		// signatures that are strictly disjoint from the tested signature.  By
+		// possibilities collection. Also remove from the possibilities any
+		// signatures that are strictly disjoint from the tested signature. By
 		// disjoint I mean that one or more arguments is bottom when the
 		// intersection of the signatures is computed.
 		List<Integer> newPossible = new ArrayList<Integer>(possible);
@@ -1395,7 +1467,7 @@ extends Descriptor
 		instructions.set(
 			startOfTrueSubtree - 1,
 			instructions.size() - startOfTrueSubtree);
-		// Now recurse assuming the test came out false.  Remove all descendants
+		// Now recurse assuming the test came out false. Remove all descendants
 		// of the tested signature from the possibility collection.
 		newPossible = new ArrayList<Integer>(possible);
 		for (final int index1 : possible)
@@ -1415,28 +1487,27 @@ extends Descriptor
 	}
 
 	/**
-	 * Answer a new {@linkplain MethodDescriptor method}.  Use the passed
-	 * {@linkplain AtomDescriptor atom} as its name.  A method is always
+	 * Answer a new {@linkplain MethodDescriptor method}. Use the passed
+	 * {@linkplain AtomDescriptor atom} as its name. A method is always
 	 * immutable, but its definitionsTuple, privateTestingTree, and
 	 * dependentsChunks can all be assigned to.
 	 *
 	 * @param messageName
-	 *            The atom acting as the message name.
-	 * @return
-	 *            A new method.
+	 *        The atom acting as the message name.
+	 * @return A new method.
 	 */
 	public static AvailObject newMethodWithName (
 		final AvailObject messageName)
 	{
 		assert messageName.isAtom();
-		final AvailObject result = mutable().create();
+		final AvailObject result = mutable.create();
 		result.setSlot(DEFINITIONS_TUPLE, TupleDescriptor.empty());
 		result.setSlot(DEPENDENT_CHUNK_INDICES, SetDescriptor.empty());
 		result.setSlot(NAME, messageName);
 		result.setSlot(PRIVATE_TESTING_TREE, TupleDescriptor.empty());
 		result.setSlot(TYPE_RESTRICTIONS_TUPLE, TupleDescriptor.empty());
 		result.setSlot(SEALED_ARGUMENTS_TYPES_TUPLE, TupleDescriptor.empty());
-		result.makeImmutable();
+		result.makeShared();
 		return result;
 	}
 
@@ -1449,9 +1520,9 @@ extends Descriptor
 	 *
 	 * @param object The method that changed.
 	 */
-	private static void membershipChanged (
-		final AvailObject object)
+	private static void membershipChanged (final AvailObject object)
 	{
+		assert Thread.holdsLock(object);
 		// Invalidate any affected level two chunks.
 		final AvailObject chunkIndices =
 			object.slot(DEPENDENT_CHUNK_INDICES);
@@ -1470,50 +1541,44 @@ extends Descriptor
 		// Clear the privateTestingTree cache.
 		object.setSlot(
 			PRIVATE_TESTING_TREE,
-			NullDescriptor.nullObject());
+			NilDescriptor.nil());
 	}
 
 	/**
 	 * Construct a new {@link MethodDescriptor}.
 	 *
-	 * @param isMutable
-	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
-	 *        object?
+	 * @param mutability
+	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 */
-	protected MethodDescriptor (final boolean isMutable)
+	private MethodDescriptor (final Mutability mutability)
 	{
-		super(isMutable);
+		super(mutability);
 	}
 
-	/**
-	 * The mutable {@link MethodDescriptor}.
-	 */
+	/** The mutable {@link MethodDescriptor}. */
 	private static final MethodDescriptor mutable =
-		new MethodDescriptor(true);
+		new MethodDescriptor(Mutability.MUTABLE);
 
-	/**
-	 * Answer the mutable {@link MethodDescriptor}.
-	 *
-	 * @return The mutable {@link MethodDescriptor}.
-	 */
-	public static MethodDescriptor mutable ()
+	@Override
+	MethodDescriptor mutable ()
 	{
 		return mutable;
 	}
 
-	/**
-	 * The immutable {@link MethodDescriptor}.
-	 */
-	private static final MethodDescriptor immutable =
-		new MethodDescriptor(false);
+	/** The immutable {@link MethodDescriptor}. */
+	private static final MethodDescriptor shared =
+		new MethodDescriptor(Mutability.SHARED);
 
-	/**
-	 * Answer the immutable {@link MethodDescriptor}.
-	 *
-	 * @return The immutable {@link MethodDescriptor}.
-	 */
-	public static MethodDescriptor immutable ()
+	@Override
+	MethodDescriptor immutable ()
 	{
-		return immutable;
+		// There is no immutable descriptor. Use the shared one.
+		return shared;
+	}
+
+	@Override
+	MethodDescriptor shared ()
+	{
+		return shared;
 	}
 }

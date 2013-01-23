@@ -1,5 +1,5 @@
 /**
- * L2Interpreter.java Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * L2Interpreter.java Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -212,7 +212,7 @@ final public class L2Interpreter extends Interpreter
 			AvailObject frame = pointers[CALLER.ordinal()];
 			if (frame != null)
 			{
-				while (!frame.equalsNull())
+				while (!frame.equalsNil())
 				{
 					frames.add(frame);
 					frame = frame.caller();
@@ -375,7 +375,7 @@ final public class L2Interpreter extends Interpreter
 	public void exitProcessWith (final AvailObject finalObject)
 	{
 		fiber.executionState(ExecutionState.TERMINATED);
-		fiber.continuation(NullDescriptor.nullObject());
+		fiber.continuation(NilDescriptor.nil());
 		exitNow = true;
 		exitValue = finalObject;
 		wipeObjectRegisters();
@@ -398,7 +398,7 @@ final public class L2Interpreter extends Interpreter
 		// this fiber, then allow the thread pool to grab the highest priority
 		// available fiber to run.
 		fiber.clearInterruptRequestFlags();
-		exitValue = NullDescriptor.nullObject();
+		exitValue = NilDescriptor.nil();
 		exitNow = true;
 	}
 
@@ -412,7 +412,7 @@ final public class L2Interpreter extends Interpreter
 	public L2Interpreter (final AvailRuntime runtime)
 	{
 		super(runtime);
-		pointers[0] = NullDescriptor.nullObject();
+		pointers[0] = NilDescriptor.nil();
 	}
 
 	/**
@@ -527,7 +527,7 @@ final public class L2Interpreter extends Interpreter
 
 	/**
 	 * Read from an object register. Register zero is reserved for read-only
-	 * use, and always contains the {@linkplain NullDescriptor#nullObject() null
+	 * use, and always contains the {@linkplain NilDescriptor#nil() null
 	 * object}.
 	 *
 	 * @param index
@@ -543,7 +543,7 @@ final public class L2Interpreter extends Interpreter
 
 	/**
 	 * Write to an object register. Register zero is reserved for read-only use,
-	 * and always contains the {@linkplain NullDescriptor#nullObject() null
+	 * and always contains the {@linkplain NilDescriptor#nil() null
 	 * object}.
 	 *
 	 * @param index
@@ -562,8 +562,8 @@ final public class L2Interpreter extends Interpreter
 
 	/**
 	 * Read from a {@linkplain FixedRegister fixed object register}. Register
-	 * zero is reserved for read-only use, and always contains the
-	 * {@linkplain NullDescriptor#nullObject() null object}.
+	 * zero is reserved for read-only use, and always contains
+	 * {@linkplain NilDescriptor#nil() nil}.
 	 *
 	 * @param fixedObjectRegister
 	 *            The fixed object register.
@@ -577,7 +577,7 @@ final public class L2Interpreter extends Interpreter
 
 	/**
 	 * Write to a fixed object register. Register zero is reserved for read-only
-	 * use, and always contains the {@linkplain NullDescriptor#nullObject() null
+	 * use, and always contains the {@linkplain NilDescriptor#nil() null
 	 * object}.
 	 *
 	 * @param fixedObjectRegister
@@ -595,7 +595,7 @@ final public class L2Interpreter extends Interpreter
 	/**
 	 * Write a Java null to an object register. Register zero is reserved for
 	 * read-only use, and always contains the Avail
-	 * {@linkplain NullDescriptor#nullObject() null object}.
+	 * {@linkplain NilDescriptor#nil() nil}.
 	 *
 	 * @param index
 	 *            The object register index to overwrite.
@@ -664,12 +664,12 @@ final public class L2Interpreter extends Interpreter
 	 * Return into the specified continuation with the given return value.
 	 * Verify that the return value matches the expected type already pushed on
 	 * the continuation's stack. If the continuation is
-	 * {@linkplain NullDescriptor#nullObject() the null object} then make sure
+	 * {@linkplain NilDescriptor#nil() nil} then make sure
 	 * the value gets returned from the main interpreter invocation.
 	 *
 	 * @param caller
 	 *            The {@linkplain ContinuationDescriptor continuation} to
-	 *            resume, or the null object.
+	 *            resume, or nil.
 	 * @param value
 	 *            The {@link AvailObject} to return.
 	 */
@@ -681,7 +681,7 @@ final public class L2Interpreter extends Interpreter
 		// optional, but not doing so may (1) hide bugs, and (2) leak
 		// references to values in registers.
 		wipeObjectRegisters();
-		if (caller.equalsNull())
+		if (caller.equalsNil())
 		{
 			exitProcessWith(value);
 			return;
@@ -799,7 +799,7 @@ final public class L2Interpreter extends Interpreter
 		argsBuffer.set(0, exceptionValue);
 		final int primNum = P_200_CatchException.instance.primitiveNumber;
 		AvailObject continuation = pointerAt(CALLER);
-		while (!continuation.equalsNull())
+		while (!continuation.equalsNil())
 		{
 			final AvailObject code = continuation.function().code();
 			if (code.primitiveNumber() == primNum)
@@ -844,7 +844,7 @@ final public class L2Interpreter extends Interpreter
 	{
 		final int primNum = P_200_CatchException.instance.primitiveNumber;
 		AvailObject continuation = pointerAt(CALLER);
-		while (!continuation.equalsNull())
+		while (!continuation.equalsNil())
 		{
 			final AvailObject code = continuation.function().code();
 			if (code.primitiveNumber() == primNum)
@@ -869,7 +869,7 @@ final public class L2Interpreter extends Interpreter
 				// Mark this frame: we don't want it to handle exceptions
 				// anymore.
 				failureVariable.setValue(marker);
-				return primitiveSuccess(NullDescriptor.nullObject());
+				return primitiveSuccess(NilDescriptor.nil());
 			}
 			continuation = continuation.caller();
 		}
@@ -918,9 +918,9 @@ final public class L2Interpreter extends Interpreter
 			// The chunk is invalid, so use the default chunk and patch up
 			// aFunction's code.
 			chunkToInvoke = L2ChunkDescriptor.unoptimizedChunk();
-			code.startingChunk(chunkToInvoke);
-			code.countdownToReoptimize(L2ChunkDescriptor
-				.countdownForInvalidatedCode());
+			code.setStartingChunkAndReoptimizationCountdown(
+				chunkToInvoke,
+				L2ChunkDescriptor.countdownForInvalidatedCode());
 		}
 		wipeObjectRegisters();
 		setChunk(chunkToInvoke, code);
@@ -986,8 +986,9 @@ final public class L2Interpreter extends Interpreter
 					}
 					updatedCaller.stackAtPut(stackp, primitiveResult);
 					pointerAtPut(CALLER, updatedCaller);
-					setChunk(updatedCaller.levelTwoChunk(), updatedCaller
-						.function().code());
+					setChunk(
+						updatedCaller.levelTwoChunk(),
+						updatedCaller.function().code());
 					offset(updatedCaller.levelTwoOffset());
 					return;
 				case FAILURE:
@@ -999,7 +1000,8 @@ final public class L2Interpreter extends Interpreter
 					return;
 			}
 		}
-		invokeWithoutPrimitiveFunctionArguments(theFunction, argsBuffer, caller);
+		invokeWithoutPrimitiveFunctionArguments(
+			theFunction, argsBuffer, caller);
 	}
 
 	/**
@@ -1032,7 +1034,7 @@ final public class L2Interpreter extends Interpreter
 			{
 				final StringBuilder stackString = new StringBuilder();
 				AvailObject chain = pointerAt(CALLER);
-				while (!chain.equalsNull())
+				while (!chain.equalsNil())
 				{
 					stackString.insert(0, "->");
 					stackString.insert(
@@ -1051,8 +1053,10 @@ final public class L2Interpreter extends Interpreter
 			if (debugL2)
 			{
 				int depth = 0;
-				for (AvailObject c = pointerAt(CALLER); !c.equalsNull(); c = c
-					.caller())
+				for (
+					AvailObject c = pointerAt(CALLER);
+					!c.equalsNil();
+					c = c.caller())
 				{
 					depth++;
 				}
@@ -1077,10 +1081,10 @@ final public class L2Interpreter extends Interpreter
 		final AvailObject function,
 		final List<AvailObject> arguments)
 	{
-		pointerAtPut(CALLER, NullDescriptor.nullObject());
+		pointerAtPut(CALLER, NilDescriptor.nil());
 		clearPointerAt(FUNCTION.ordinal());
 		// Keep the fiber's current continuation clear during execution.
-		fiber.continuation(NullDescriptor.nullObject());
+		fiber.continuation(NilDescriptor.nil());
 
 		final Result result = invokeFunctionArguments(function, arguments);
 		if (result == SUCCESS)
@@ -1112,7 +1116,7 @@ final public class L2Interpreter extends Interpreter
 		{
 			for (
 				AvailObject c = currentContinuation();
-				!c.equalsNull();
+				!c.equalsNil();
 				c = c.caller())
 			{
 				frames.add(c);
@@ -1140,7 +1144,7 @@ final public class L2Interpreter extends Interpreter
 				line--,
 				code.methodName().asNativeString(),
 				signatureBuilder.toString(),
-				code.module().equalsNull() ? "?" : code.module().name()
+				code.module().equalsNil() ? "?" : code.module().name()
 					.asNativeString(),
 				code.startingLineNumber()));
 			signatureBuilder.setLength(0);

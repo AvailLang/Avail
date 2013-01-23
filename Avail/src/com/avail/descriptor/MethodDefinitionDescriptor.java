@@ -1,6 +1,6 @@
 /**
  * MethodDefinitionDescriptor.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -48,7 +48,8 @@ extends DefinitionDescriptor
 	/**
 	 * The layout of object slots for my instances.
 	 */
-	public enum ObjectSlots implements ObjectSlotsEnum
+	public enum ObjectSlots
+	implements ObjectSlotsEnum
 	{
 		/**
 		 * Duplicated from parent.  The method in which this definition occurs.
@@ -69,38 +70,31 @@ extends DefinitionDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_BodySignature (
-		final AvailObject object)
+	AvailObject o_BodySignature (final AvailObject object)
 	{
 		return object.bodyBlock().kind();
 	}
 
 	@Override @AvailMethod
-	AvailObject o_BodyBlock (
-		final AvailObject object)
+	AvailObject o_BodyBlock (final AvailObject object)
 	{
 		return object.slot(ObjectSlots.BODY_BLOCK);
 	}
 
 	@Override @AvailMethod
-	int o_Hash (
-		final AvailObject object)
+	int o_Hash (final AvailObject object)
 	{
 		return (object.bodyBlock().hash() * 19) ^ 0x70B2B1A9;
 	}
 
 	@Override @AvailMethod
-	AvailObject o_Kind (
-		final AvailObject object)
+	AvailObject o_Kind (final AvailObject object)
 	{
-		//  Answer the object's type.
-
 		return METHOD_DEFINITION.o();
 	}
 
 	@Override @AvailMethod
-	boolean o_IsMethodDefinition (
-		final AvailObject object)
+	boolean o_IsMethodDefinition (final AvailObject object)
 	{
 		return true;
 	}
@@ -128,55 +122,51 @@ extends DefinitionDescriptor
 		final AvailObject method,
 		final AvailObject bodyBlock)
 	{
-		final AvailObject instance = mutable().create();
+		final AvailObject instance = mutable.create();
 		instance.setSlot(ObjectSlots.DEFINITION_METHOD, method);
 		instance.setSlot(ObjectSlots.BODY_BLOCK, bodyBlock);
 		instance.makeImmutable();
 		return instance;
 	}
 
-
 	/**
 	 * Construct a new {@link MethodDefinitionDescriptor}.
 	 *
-	 * @param isMutable
-	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
-	 *        object?
+	 * @param mutability
+	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 */
-	protected MethodDefinitionDescriptor (final boolean isMutable)
+	protected MethodDefinitionDescriptor (final Mutability mutability)
 	{
-		super(isMutable);
+		super(mutability);
 	}
 
-	/**
-	 * The mutable {@link MethodDefinitionDescriptor}.
-	 */
+	/** The mutable {@link MethodDefinitionDescriptor}. */
 	private static final MethodDefinitionDescriptor mutable =
-		new MethodDefinitionDescriptor(true);
+		new MethodDefinitionDescriptor(Mutability.MUTABLE);
 
-	/**
-	 * Answer the mutable {@link MethodDefinitionDescriptor}.
-	 *
-	 * @return The mutable {@link MethodDefinitionDescriptor}.
-	 */
-	public static MethodDefinitionDescriptor mutable ()
+	@Override
+	MethodDefinitionDescriptor mutable ()
 	{
 		return mutable;
 	}
 
-	/**
-	 * The immutable {@link MethodDefinitionDescriptor}.
-	 */
+	/** The immutable {@link MethodDefinitionDescriptor}. */
 	private static final MethodDefinitionDescriptor immutable =
-		new MethodDefinitionDescriptor(false);
+		new MethodDefinitionDescriptor(Mutability.IMMUTABLE);
 
-	/**
-	 * Answer the immutable {@link MethodDefinitionDescriptor}.
-	 *
-	 * @return The immutable {@link MethodDefinitionDescriptor}.
-	 */
-	public static MethodDefinitionDescriptor immutable ()
+	@Override
+	MethodDefinitionDescriptor immutable ()
 	{
 		return immutable;
+	}
+
+	/** The shared {@link MethodDefinitionDescriptor}. */
+	private static final MethodDefinitionDescriptor shared =
+		new MethodDefinitionDescriptor(Mutability.SHARED);
+
+	@Override
+	MethodDefinitionDescriptor shared ()
+	{
+		return shared;
 	}
 }

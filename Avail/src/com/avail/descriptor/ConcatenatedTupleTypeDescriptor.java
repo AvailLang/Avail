@@ -1,6 +1,6 @@
 /**
  * ConcatenatedTupleTypeDescriptor.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,13 +45,14 @@ import com.avail.serialization.SerializerOperation;
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class ConcatenatedTupleTypeDescriptor
+public final class ConcatenatedTupleTypeDescriptor
 extends TypeDescriptor
 {
 	/**
 	 * The layout of object slots for my instances.
 	 */
-	public enum ObjectSlots implements ObjectSlotsEnum
+	public enum ObjectSlots
+	implements ObjectSlotsEnum
 	{
 		/**
 		 * The type of the left tuple being concatenated.
@@ -65,9 +66,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_Equals (
-		final AvailObject object,
-		final AvailObject another)
+	boolean o_Equals (final AvailObject object, final AvailObject another)
 	{
 		return another.equalsTupleType(object);
 	}
@@ -77,8 +76,8 @@ extends TypeDescriptor
 		final AvailObject object,
 		final AvailObject aTupleType)
 	{
-		// Tuple types are equal iff their sizeRange, typeTuple, and defaultType
-		// match.
+		// Tuple types are equal iff their size range, leading type tuple, and
+		// default type match.
 		if (object.sameAddressAs(aTupleType))
 		{
 			return true;
@@ -126,14 +125,77 @@ extends TypeDescriptor
 	}
 
 	/**
+	 * Expand me into an actual TupleTypeDescriptor, converting my storage into
+	 * an indirection object to the actual tupleType.
+	 *
+	 * @param object
+	 *        The {@linkplain ConcatenatedTupleTypeDescriptor concatenated tuple
+	 *        type} to transform.
+	 */
+	private void becomeRealTupleType (final AvailObject object)
+	{
+		// There isn't even a shared descriptor -- we reify the tuple type upon
+		// sharing.
+		assert !isShared();
+		final AvailObject part1 = object.slot(FIRST_TUPLE_TYPE);
+		final AvailObject size1 = part1.sizeRange().upperBound();
+		int limit1;
+		if (size1.isFinite())
+		{
+			limit1 = size1.extractInt();
+		}
+		else
+		{
+			limit1 = max(
+				part1.typeTuple().tupleSize() + 1,
+				part1.sizeRange().lowerBound().extractInt());
+		}
+		final AvailObject part2 = object.slot(SECOND_TUPLE_TYPE);
+		final AvailObject size2 = part2.sizeRange().upperBound();
+		int limit2;
+		if (size2.isFinite())
+		{
+			limit2 = size2.extractInt();
+		}
+		else
+		{
+			limit2 = part2.typeTuple().tupleSize() + 1;
+		}
+		final int total = limit1 + limit2;
+		final AvailObject typeTuple =
+			ObjectTupleDescriptor.mutable.create(total);
+		// Make it pointer-safe first.
+		for (int i = 1; i <= total; i++)
+		{
+			typeTuple.tupleAtPut(i, NilDescriptor.nil());
+		}
+		final int section1 = min(
+			part1.sizeRange().lowerBound().extractInt(),
+			limit1);
+		for (int i = 1; i <= section1; i++)
+		{
+			typeTuple.tupleAtPut(i, part1.typeAtIndex(i));
+		}
+		for (int i = section1 + 1; i <= total; i++)
+		{
+			typeTuple.tupleAtPut(i, object.typeAtIndex(i));
+		}
+		final AvailObject newObject =
+			TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
+				object.sizeRange(),
+				typeTuple,
+				object.defaultType());
+		object.becomeIndirectionTo(newObject);
+	}
+
+	/**
 	 *
 	 * Answer a 32-bit long that is always the same for equal objects, but
 	 * statistically different for different objects.  This requires an object
 	 * creation, so don't call it from the garbage collector.
 	 */
 	@Override @AvailMethod
-	int o_Hash (
-		final AvailObject object)
+	int o_Hash (final AvailObject object)
 	{
 		becomeRealTupleType(object);
 		return object.hash();
@@ -144,9 +206,7 @@ extends TypeDescriptor
 	 * Answer bottom if the index is definitely out of bounds.
 	 */
 	@Override @AvailMethod
-	AvailObject o_TypeAtIndex (
-		final AvailObject object,
-		final int index)
+	AvailObject o_TypeAtIndex (final AvailObject object, final int index)
 	{
 		if (index <= 0)
 		{
@@ -232,8 +292,8 @@ extends TypeDescriptor
 			object.slot(FIRST_TUPLE_TYPE)
 				.unionOfTypesAtThrough(startIndex, endIndex);
 		final int startInSecond = startIndex - firstUpper.extractInt();
-		// TODO: This could fail if the lower bound lies outside the range of a
-		// 32-bit Java int.
+		// TODO: [MvG] This could fail if the lower bound lies outside the range
+		// of a 32-bit Java int.
 		final int endInSecond = endIndex
 			- object.slot(FIRST_TUPLE_TYPE)
 				.sizeRange().lowerBound().extractInt();
@@ -244,75 +304,12 @@ extends TypeDescriptor
 	}
 
 	/**
-	 * Expand me into an actual TupleTypeDescriptor, converting my storage into
-	 * an indirection object to the actual tupleType.  Answer void.
-	 *
-	 * @param object
-	 *            The {@linkplain ConcatenatedTupleTypeDescriptor concatenated
-	 *            tuple type} to transform
-	 */
-	private void becomeRealTupleType (
-		final AvailObject object)
-	{
-		final AvailObject part1 = object.slot(FIRST_TUPLE_TYPE);
-		final AvailObject size1 = part1.sizeRange().upperBound();
-		int limit1;
-		if (size1.isFinite())
-		{
-			limit1 = size1.extractInt();
-		}
-		else
-		{
-			limit1 = max(
-				part1.typeTuple().tupleSize() + 1,
-				part1.sizeRange().lowerBound().extractInt());
-		}
-		final AvailObject part2 = object.slot(SECOND_TUPLE_TYPE);
-		final AvailObject size2 = part2.sizeRange().upperBound();
-		int limit2;
-		if (size2.isFinite())
-		{
-			limit2 = size2.extractInt();
-		}
-		else
-		{
-			limit2 = part2.typeTuple().tupleSize() + 1;
-		}
-		final int total = limit1 + limit2;
-		final AvailObject typeTuple =
-			ObjectTupleDescriptor.mutable().create(total);
-		//  Make it pointer-safe first.
-		for (int i = 1; i <= total; i++)
-		{
-			typeTuple.tupleAtPut(i, NullDescriptor.nullObject());
-		}
-		final int section1 = min(
-			part1.sizeRange().lowerBound().extractInt(),
-			limit1);
-		for (int i = 1; i <= section1; i++)
-		{
-			typeTuple.tupleAtPut(i, part1.typeAtIndex(i));
-		}
-		for (int i = section1 + 1; i <= total; i++)
-		{
-			typeTuple.tupleAtPut(i, object.typeAtIndex(i));
-		}
-		final AvailObject newObject =
-			TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
-				object.sizeRange(),
-				typeTuple,
-				object.defaultType());
-		object.becomeIndirectionTo(newObject);
-	}
-
-	/**
 	 * Answer the type that my last element must have, if any.  Do not call this
 	 * from within a garbage collection, as it may need to allocate space for
 	 * computing a type union.
 	 */
 	@Override @AvailMethod
-	AvailObject o_DefaultType (
-		final AvailObject object)
+	AvailObject o_DefaultType (final AvailObject object)
 	{
 		final AvailObject a = object.slot(FIRST_TUPLE_TYPE);
 		final AvailObject b = object.slot(SECOND_TUPLE_TYPE);
@@ -345,8 +342,7 @@ extends TypeDescriptor
 	 * for its answer.
 	 */
 	@Override @AvailMethod
-	AvailObject o_SizeRange (
-		final AvailObject object)
+	AvailObject o_SizeRange (final AvailObject object)
 	{
 		final AvailObject a = object.slot(FIRST_TUPLE_TYPE).sizeRange();
 		final AvailObject b = object.slot(SECOND_TUPLE_TYPE).sizeRange();
@@ -367,8 +363,7 @@ extends TypeDescriptor
 	 * it allocates objects.
 	 */
 	@Override @AvailMethod
-	AvailObject o_TypeTuple (
-		final AvailObject object)
+	AvailObject o_TypeTuple (final AvailObject object)
 	{
 		becomeRealTupleType(object);
 		return object.typeTuple();
@@ -378,9 +373,7 @@ extends TypeDescriptor
 	 * Check if object is a subtype of aType.  They should both be types.
 	 */
 	@Override @AvailMethod
-	boolean o_IsSubtypeOf (
-		final AvailObject object,
-		final AvailObject aType)
+	boolean o_IsSubtypeOf (final AvailObject object, final AvailObject aType)
 	{
 		return aType.isSupertypeOfTupleType(object);
 	}
@@ -564,10 +557,8 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_IsTupleType (
-		final AvailObject object)
+	boolean o_IsTupleType (final AvailObject object)
 	{
-		// This is a tupleType.
 		return true;
 	}
 
@@ -579,6 +570,17 @@ extends TypeDescriptor
 		return object.serializerOperation();
 	}
 
+	@Override
+	AvailObject o_MakeShared (final AvailObject object)
+	{
+		// Before an object using this descriptor can be shared, it must first
+		// become (an indirection to) a proper tuple type.
+		assert !isShared();
+		becomeRealTupleType(object);
+		object.makeShared();
+		return object.traversed();
+	}
+
 	/**
 	 * Construct a lazy concatenated tuple type object to represent the type
 	 * that is the concatenation of the two tuple types.  Make the objects be
@@ -586,20 +588,19 @@ extends TypeDescriptor
 	 * objects <em>at the time it was built</em>.
 	 *
 	 * @param firstObject
-	 *            The first tuple type to concatenate.
+	 *        The first tuple type to concatenate.
 	 * @param secondObject
-	 *            The second tuple type to concatenate.
+	 *        The second tuple type to concatenate.
 	 * @return
-	 *            A simple representation of the tuple type whose instances are
-	 *            all the concatenations of instances of the two given tuple
-	 *            types.
+	 *        A simple representation of the tuple type whose instances are all
+	 *        the concatenations of instances of the two given tupletypes.
 	 */
 	public static AvailObject concatenatingAnd (
 		final AvailObject firstObject,
 		final AvailObject secondObject)
 	{
 		assert firstObject.isTupleType() && secondObject.isTupleType();
-		final AvailObject result = mutable().create();
+		final AvailObject result = mutable.create();
 		result.setSlot(FIRST_TUPLE_TYPE, firstObject.makeImmutable());
 		result.setSlot(SECOND_TUPLE_TYPE, secondObject.makeImmutable());
 		return result;
@@ -608,44 +609,37 @@ extends TypeDescriptor
 	/**
 	 * Construct a new {@link ConcatenatedTupleTypeDescriptor}.
 	 *
-	 * @param isMutable
-	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
-	 *        object?
+	 * @param mutability
+	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 */
-	protected ConcatenatedTupleTypeDescriptor (final boolean isMutable)
+	private ConcatenatedTupleTypeDescriptor (final Mutability mutability)
 	{
-		super(isMutable);
+		super(mutability);
 	}
 
-	/**
-	 * The mutable {@link ConcatenatedTupleTypeDescriptor}.
-	 */
+	/** The mutable {@link ConcatenatedTupleTypeDescriptor}. */
 	private static final ConcatenatedTupleTypeDescriptor mutable =
-		new ConcatenatedTupleTypeDescriptor(true);
+		new ConcatenatedTupleTypeDescriptor(Mutability.MUTABLE);
 
-	/**
-	 * Answer the mutable {@link ConcatenatedTupleTypeDescriptor}.
-	 *
-	 * @return The mutable {@link ConcatenatedTupleTypeDescriptor}.
-	 */
-	public static ConcatenatedTupleTypeDescriptor mutable ()
+	@Override
+	ConcatenatedTupleTypeDescriptor mutable ()
 	{
 		return mutable;
 	}
 
-	/**
-	 * The immutable {@link ConcatenatedTupleTypeDescriptor}.
-	 */
+	/** The immutable {@link ConcatenatedTupleTypeDescriptor}. */
 	private static final ConcatenatedTupleTypeDescriptor immutable =
-		new ConcatenatedTupleTypeDescriptor(false);
+		new ConcatenatedTupleTypeDescriptor(Mutability.IMMUTABLE);
 
-	/**
-	 * Answer the immutable {@link ConcatenatedTupleTypeDescriptor}.
-	 *
-	 * @return The immutable {@link ConcatenatedTupleTypeDescriptor}.
-	 */
-	public static ConcatenatedTupleTypeDescriptor immutable ()
+	@Override
+	ConcatenatedTupleTypeDescriptor immutable ()
 	{
 		return immutable;
+	}
+
+	@Override
+	ConcatenatedTupleTypeDescriptor shared ()
+	{
+		throw unsupportedOperationException();
 	}
 }

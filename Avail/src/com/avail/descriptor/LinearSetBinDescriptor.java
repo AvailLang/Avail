@@ -1,6 +1,6 @@
 /**
  * LinearSetBinDescriptor.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,6 +34,7 @@ package com.avail.descriptor;
 
 import static com.avail.descriptor.LinearSetBinDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.LinearSetBinDescriptor.IntegerSlots.*;
+import static com.avail.descriptor.Mutability.*;
 import static java.lang.Integer.bitCount;
 import com.avail.annotations.*;
 import com.avail.descriptor.SetDescriptor.SetIterator;
@@ -45,6 +46,7 @@ import com.avail.descriptor.SetDescriptor.SetIterator;
  * HashedSetBinDescriptor hashed bin} will be used instead.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public class LinearSetBinDescriptor
 extends SetBinDescriptor
@@ -52,7 +54,8 @@ extends SetBinDescriptor
 	/**
 	 * The layout of integer slots for my instances.
 	 */
-	public enum IntegerSlots implements IntegerSlotsEnum
+	public enum IntegerSlots
+	implements IntegerSlotsEnum
 	{
 		/**
 		 * The sum of the hashes of the elements within this bin.
@@ -69,7 +72,8 @@ extends SetBinDescriptor
 	/**
 	 * The layout of object slots for my instances.
 	 */
-	public enum ObjectSlots implements ObjectSlotsEnum
+	public enum ObjectSlots
+	implements ObjectSlotsEnum
 	{
 		/**
 		 * The elements of this bin.  The elements are never sub-bins, since
@@ -79,9 +83,7 @@ extends SetBinDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_BinElementAt (
-		final AvailObject object,
-		final int subscript)
+	AvailObject o_BinElementAt (final AvailObject object, final int subscript)
 	{
 		return object.slot(BIN_ELEMENT_AT_, subscript);
 	}
@@ -92,21 +94,7 @@ extends SetBinDescriptor
 		final int subscript,
 		final AvailObject value)
 	{
-		//  GENERATED setter method (indexed).
-
 		object.setSlot(BIN_ELEMENT_AT_, subscript, value);
-	}
-
-	@Override @AvailMethod
-	AvailObject o_MakeImmutable (
-		final AvailObject object)
-	{
-		if (isMutable)
-		{
-			object.descriptor = isMutableLevel(false, level);
-			object.makeSubobjectsImmutable();
-		}
-		return object;
 	}
 
 	@Override @AvailMethod
@@ -151,13 +139,13 @@ extends SetBinDescriptor
 				0,
 				0,
 				bitVector,
-				NullDescriptor.nullObject());
+				NilDescriptor.nil());
 			for (int i = 1; i <= newSize; i++)
 			{
 				result.setSlot(
 					HashedSetBinDescriptor.ObjectSlots.BIN_ELEMENT_AT_,
 					i,
-					NullDescriptor.nullObject());
+					NilDescriptor.nil());
 			}
 			AvailObject localAddResult;
 			for (int i = 0; i <= oldSize; i++)
@@ -194,7 +182,7 @@ extends SetBinDescriptor
 			oldSize + 1,
 			object.binHash() + elementObjectHash);
 		result.setSlot(BIN_ELEMENT_AT_, oldSize + 1, elementObject);
-		if (canDestroy && isMutable)
+		if (canDestroy && isMutable())
 		{
 			for (int i = 1; i <= oldSize; i++)
 			{
@@ -203,10 +191,10 @@ extends SetBinDescriptor
 					BIN_ELEMENT_AT_,
 					i,
 					object.slot(BIN_ELEMENT_AT_, i));
-				object.setSlot(BIN_ELEMENT_AT_, i, NullDescriptor.nullObject());
+				object.setSlot(BIN_ELEMENT_AT_, i, NilDescriptor.nil());
 			}
 		}
-		else if (isMutable)
+		else if (isMutable())
 		{
 			for (int i = 1; i <= oldSize; i++)
 			{
@@ -247,8 +235,8 @@ extends SetBinDescriptor
 	}
 
 	/**
-	 * Remove elementObject from the bin object, if present.  Answer the
-	 * resulting bin.  The bin may be modified if it's mutable and canDestroy.
+	 * Remove elementObject from the bin object, if present. Answer the
+	 * resulting bin. The bin may be modified if it's mutable and canDestroy.
 	 */
 	@Override @AvailMethod
 	AvailObject o_BinRemoveElementHashCanDestroy (
@@ -312,8 +300,7 @@ extends SetBinDescriptor
 		final AvailObject object,
 		final AvailObject potentialSuperset)
 	{
-		//  Check if object, a bin, holds a subset of aSet's elements.
-
+		// Check if object, a bin, holds a subset of aSet's elements.
 		for (
 			int physicalIndex = object.variableObjectSlotsCount();
 			physicalIndex >= 1;
@@ -329,20 +316,17 @@ extends SetBinDescriptor
 	}
 
 	@Override @AvailMethod
-	int o_BinSize (
-		final AvailObject object)
+	int o_BinSize (final AvailObject object)
 	{
 		// Answer how many elements this bin contains.
 		return object.variableObjectSlotsCount();
 	}
 
 	@Override @AvailMethod
-	AvailObject o_BinUnionKind (
-		final AvailObject object)
+	AvailObject o_BinUnionKind (final AvailObject object)
 	{
 		// Answer the nearest kind of the union of the types of this bin's
-		// elements.  I'm supposed to be small, so recalculate it per request.
-
+		// elements. I'm supposed to be small, so recalculate it per request.
 		AvailObject unionKind = object.slot(BIN_ELEMENT_AT_, 1).kind();
 		final int limit = object.variableObjectSlotsCount();
 		for (int index = 2; index <= limit; index++)
@@ -370,8 +354,7 @@ extends SetBinDescriptor
 	}
 
 	@Override
-	SetIterator o_SetBinIterator (
-		final AvailObject object)
+	SetIterator o_SetBinIterator (final AvailObject object)
 	{
 		return new SetIterator()
 		{
@@ -396,7 +379,7 @@ extends SetBinDescriptor
 
 	/**
 	 * Create a mutable linear bin at the specified level with the given size
-	 * and bin hash.  The caller is responsible for initializing the elements
+	 * and bin hash. The caller is responsible for initializing the elements
 	 * and making them immutable if necessary.
 	 *
 	 * @param level The level of the new bin.
@@ -409,14 +392,14 @@ extends SetBinDescriptor
 		final int size,
 		final int hash)
 	{
-		final AvailObject instance = isMutableLevel(true, level).create(size);
+		final AvailObject instance = descriptorFor(MUTABLE, level).create(size);
 		instance.setSlot(BIN_HASH, hash);
 		return instance;
 	}
 
 	/**
 	 * Create a mutable 2-element linear bin at the specified level and with the
-	 * specified elements.  The caller is responsible for making the elements
+	 * specified elements. The caller is responsible for making the elements
 	 * immutable if necessary.
 	 *
 	 * @param level The level of the new bin.
@@ -429,7 +412,7 @@ extends SetBinDescriptor
 		final AvailObject firstElement,
 		final AvailObject secondElement)
 	{
-		final AvailObject instance = isMutableLevel(true, level).create(2);
+		final AvailObject instance = descriptorFor(MUTABLE, level).create(2);
 		instance.setSlot(BIN_ELEMENT_AT_, 1, firstElement);
 		instance.setSlot(BIN_ELEMENT_AT_, 2, secondElement);
 		instance.setSlot(BIN_HASH, firstElement.hash() + secondElement.hash());
@@ -446,46 +429,68 @@ extends SetBinDescriptor
 	 * Answer a suitable descriptor for a linear bin with the specified
 	 * mutability and at the specified level.
 	 *
-	 * @param flag Whether the bins using the descriptor will be mutable.
+	 * @param flag The desired {@linkplain Mutability mutability}.
 	 * @param level The level for the bins using the descriptor.
 	 * @return The descriptor with the requested properties.
 	 */
-	static LinearSetBinDescriptor isMutableLevel (
-		final boolean flag,
+	private static LinearSetBinDescriptor descriptorFor (
+		final Mutability flag,
 		final byte level)
 	{
 		assert 0 <= level && level < numberOfLevels;
-		return descriptors[level * 2 + (flag ? 0 : 1)];
+		return descriptors[level * 3 + flag.ordinal()];
 	}
 
 	/**
 	 * Construct a new {@link LinearSetBinDescriptor}.
 	 *
-	 * @param isMutable
-	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
-	 *        object?
-	 * @param level The depth of the bin in the hash tree.
+	 * @param mutability
+	 *        The {@linkplain Mutability mutability} of the new descriptor.
+	 * @param level
+	 *        The depth of the bin in the hash tree.
 	 */
-	LinearSetBinDescriptor (
-		final boolean isMutable,
+	private LinearSetBinDescriptor (
+		final Mutability mutability,
 		final int level)
 	{
-		super(isMutable, level);
+		super(mutability, level);
 	}
 
 	/**
-	 * The array of {@link LinearSetBinDescriptor}s.
+	 * {@link LinearSetBinDescriptor}s clustered by mutability and level.
 	 */
 	static final LinearSetBinDescriptor[] descriptors;
 
 	static
 	{
-		descriptors = new LinearSetBinDescriptor[numberOfLevels * 2];
+		descriptors = new LinearSetBinDescriptor[numberOfLevels * 3];
 		int target = 0;
 		for (int level = 0; level < numberOfLevels; level++)
 		{
-			descriptors[target++] = new LinearSetBinDescriptor(true, level);
-			descriptors[target++] = new LinearSetBinDescriptor(false, level);
+			descriptors[target++] =
+				new LinearSetBinDescriptor(MUTABLE, level);
+			descriptors[target++] =
+				new LinearSetBinDescriptor(IMMUTABLE, level);
+			descriptors[target++] =
+				new LinearSetBinDescriptor(SHARED, level);
 		}
+	}
+
+	@Override
+	LinearSetBinDescriptor mutable ()
+	{
+		return descriptorFor(MUTABLE, level);
+	}
+
+	@Override
+	LinearSetBinDescriptor immutable ()
+	{
+		return descriptorFor(IMMUTABLE, level);
+	}
+
+	@Override
+	LinearSetBinDescriptor shared ()
+	{
+		return descriptorFor(SHARED, level);
 	}
 }

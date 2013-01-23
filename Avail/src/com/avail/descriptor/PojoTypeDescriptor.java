@@ -1,6 +1,6 @@
 /**
  * PojoTypeDescriptor.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -426,7 +426,7 @@ extends TypeDescriptor
 	 */
 	public static void createWellKnownObjects ()
 	{
-		mostGeneralType = forClass(Object.class);
+		mostGeneralType = forClass(Object.class).makeShared();
 		AvailObject javaAncestors = MapDescriptor.empty();
 		javaAncestors = javaAncestors.mapAtPuttingCanDestroy(
 			RawPojoDescriptor.rawObjectClass(),
@@ -440,39 +440,38 @@ extends TypeDescriptor
 			RawPojoDescriptor.equalityWrap(Serializable.class),
 			TupleDescriptor.empty(),
 			true);
-		arrayBaseAncestorMap = javaAncestors.makeImmutable();
+		arrayBaseAncestorMap = javaAncestors.makeShared();
 		mostGeneralArrayType = forArrayTypeWithSizeRange(
-			ANY.o(), IntegerRangeTypeDescriptor.wholeNumbers());
-		pojoBottom = BottomPojoTypeDescriptor.mutable().create();
-		selfAtom = AtomDescriptor.create(
-			StringDescriptor.from("pojo self"),
-			NullDescriptor.nullObject());
-		selfType = InstanceTypeDescriptor.on(selfAtom);
+			ANY.o(), IntegerRangeTypeDescriptor.wholeNumbers()).makeShared();
+		pojoBottom = BottomPojoTypeDescriptor.mutable.create().makeShared();
+		selfAtom = AtomDescriptor.createSpecialAtom(
+			StringDescriptor.from("pojo self"));
+		selfType = InstanceTypeDescriptor.on(selfAtom).makeShared();
 		byteRange = IntegerRangeTypeDescriptor.create(
 			IntegerDescriptor.fromInt(Byte.MIN_VALUE),
 			true,
 			IntegerDescriptor.fromInt(Byte.MAX_VALUE),
-			true).makeImmutable();
+			true).makeShared();
 		shortRange = IntegerRangeTypeDescriptor.create(
 			IntegerDescriptor.fromInt(Short.MIN_VALUE),
 			true,
 			IntegerDescriptor.fromInt(Short.MAX_VALUE),
-			true).makeImmutable();
+			true).makeShared();
 		intRange = IntegerRangeTypeDescriptor.create(
 			IntegerDescriptor.fromInt(Integer.MIN_VALUE),
 			true,
 			IntegerDescriptor.fromInt(Integer.MAX_VALUE),
-			true).makeImmutable();
+			true).makeShared();
 		longRange = IntegerRangeTypeDescriptor.create(
 			IntegerDescriptor.fromLong(Long.MIN_VALUE),
 			true,
 			IntegerDescriptor.fromLong(Long.MAX_VALUE),
-			true).makeImmutable();
+			true).makeShared();
 		charRange = IntegerRangeTypeDescriptor.create(
 			IntegerDescriptor.fromInt(Character.MIN_VALUE),
 			true,
 			IntegerDescriptor.fromInt(Character.MAX_VALUE),
-			true).makeImmutable();
+			true).makeShared();
 	}
 
 	/**
@@ -624,10 +623,6 @@ extends TypeDescriptor
 
 	@Override @AvailMethod
 	abstract AvailObject o_JavaClass (AvailObject object);
-
-	@Override @AvailMethod
-	abstract AvailObject o_MakeImmutable (
-		final AvailObject object);
 
 	@Override @AvailMethod
 	abstract Object o_MarshalToJava (
@@ -855,7 +850,7 @@ extends TypeDescriptor
 	 *        that were computed during a type union of two {@linkplain
 	 *        PojoTypeDescriptor pojo types}.
 	 * @return The most specific Java type in the set. Answer {@linkplain
-	 *         NullDescriptor nil} if there is not a single most specific type
+	 *         NilDescriptor nil} if there is not a single most specific type
 	 *         (this can only happen for interfaces).
 	 */
 	protected static AvailObject mostSpecificOf (
@@ -882,7 +877,7 @@ extends TypeDescriptor
 				final Class<?> javaClass = (Class<?>) rawType.javaObject();
 				if (!javaClass.isAssignableFrom(mostSpecific))
 				{
-					return NullDescriptor.nullObject();
+					return NilDescriptor.nil();
 				}
 			}
 		}
@@ -899,13 +894,12 @@ extends TypeDescriptor
 	/**
 	 * Construct a new {@link PojoTypeDescriptor}.
 	 *
-	 * @param isMutable
-	 *        Does the {@linkplain PojoTypeDescriptor descriptor}
-	 *        represent a mutable object?
+	 * @param mutability
+	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 */
-	protected PojoTypeDescriptor (final boolean isMutable)
+	protected PojoTypeDescriptor (final Mutability mutability)
 	{
-		super(isMutable);
+		super(mutability);
 	}
 
 	/**

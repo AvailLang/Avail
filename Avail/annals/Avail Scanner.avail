@@ -1,6 +1,6 @@
 /*
  * Stacks Stream Parser.avail
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -379,8 +379,8 @@ Public method "read from_while_" is
 	]
 	do
 	[
-		Next character from scanner;
 		buffer := buffer ++ <scanner's source's current element>;
+		Next character from scanner;
 	];
 	buffer
 ]:<character…|>;

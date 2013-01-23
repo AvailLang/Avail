@@ -1,6 +1,6 @@
 /**
  * L1Decompiler.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -412,13 +412,13 @@ public class L1Decompiler
 			}
 			else
 			{
-				if (value.equalsNull())
+				if (value.equalsNil())
 				{
-					// The last "statement" may just push the null object.
+					// The last "statement" may just push nil.
 					// Such a statement will be re-synthetized during code
 					// generation, so don't bother reconstructing it now.
 					assert pc > nybbles.tupleSize()
-					: "The null object can only be (implicitly) pushed at the "
+					: "nil can only be (implicitly) pushed at the "
 						+ "end of a sequence of statements";
 					endsWithPushNil = true;
 				}
@@ -492,7 +492,7 @@ public class L1Decompiler
 				final AvailObject duplicateExpression = popExpression();
 				assert duplicateExpression.isInstanceOfKind(
 					MARKER_NODE.mostGeneralType());
-				assert duplicateExpression.markerValue().equalsNull();
+				assert duplicateExpression.markerValue().equalsNil();
 				expressionStack.add(assignmentNode);
 			}
 		}
@@ -514,7 +514,7 @@ public class L1Decompiler
 				outerDecl = DeclarationNodeDescriptor.newModuleVariable(
 					token,
 					variableObject,
-					NullDescriptor.nullObject());
+					NilDescriptor.nil());
 			}
 			else
 			{
@@ -526,8 +526,8 @@ public class L1Decompiler
 				outerDecl.token(),
 				outerDecl);
 			final AvailObject valueExpr = popExpression();
-			final AvailObject assignmentNode = AssignmentNodeDescriptor.from(
-				variableUse, valueExpr, false);
+			final AvailObject assignmentNode =
+				AssignmentNodeDescriptor.from(variableUse, valueExpr, false);
 			if (expressionStack.isEmpty())
 			{
 				statements.add(assignmentNode);
@@ -541,7 +541,7 @@ public class L1Decompiler
 				final AvailObject duplicateExpression = popExpression();
 				assert duplicateExpression.isInstanceOfKind(
 					MARKER_NODE.mostGeneralType());
-				assert duplicateExpression.markerValue().equalsNull();
+				assert duplicateExpression.markerValue().equalsNil();
 				expressionStack.add(assignmentNode);
 			}
 		}
@@ -553,7 +553,7 @@ public class L1Decompiler
 		 *
 		 * <p>Pop the expression (that represents the right hand side of the
 		 * assignment), push a special {@linkplain MarkerNodeDescriptor marker}
-		 * whose markerValue is the {@linkplain NullDescriptor#nullObject() null
+		 * whose markerValue is the {@linkplain NilDescriptor#nil() null
 		 * object}, then push the right-hand side expression back onto the
 		 * expression stack.</p>
 		 */
@@ -562,7 +562,7 @@ public class L1Decompiler
 		{
 			final AvailObject rightSide = popExpression();
 			final AvailObject marker = MarkerNodeDescriptor.create(
-				NullDescriptor.nullObject());
+				NilDescriptor.nil());
 			pushExpression(marker);
 			pushExpression(rightSide);
 		}
@@ -581,7 +581,7 @@ public class L1Decompiler
 				DeclarationNodeDescriptor.newModuleVariable(
 					globalToken,
 					globalVar,
-					NullDescriptor.nullObject());
+					NilDescriptor.nil());
 			final AvailObject varUse = VariableUseNodeDescriptor.newUse(
 				globalToken,
 				decl);
@@ -640,7 +640,7 @@ public class L1Decompiler
 				DeclarationNodeDescriptor.newModuleVariable(
 					globalToken,
 					globalVar,
-					NullDescriptor.nullObject());
+					NilDescriptor.nil());
 
 			final AvailObject varUse = VariableUseNodeDescriptor.newUse(
 				globalToken,
@@ -660,7 +660,7 @@ public class L1Decompiler
 				final AvailObject duplicateExpression = popExpression();
 				assert duplicateExpression.isInstanceOfKind(
 					MARKER_NODE.mostGeneralType());
-				assert duplicateExpression.markerValue().equalsNull();
+				assert duplicateExpression.markerValue().equalsNil();
 				expressionStack.add(assignmentNode);
 			}
 		}

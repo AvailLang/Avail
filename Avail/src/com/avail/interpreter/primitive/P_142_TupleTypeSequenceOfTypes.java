@@ -76,7 +76,7 @@ public class P_142_TupleTypeSequenceOfTypes extends Primitive
 			ObjectTupleDescriptor.createUninitialized(tupleSize);
 		for (int i = 1; i <= tupleSize; i++)
 		{
-			tupleObject.tupleAtPut(i, NullDescriptor.nullObject());
+			tupleObject.tupleAtPut(i, NilDescriptor.nil());
 		}
 		for (int i = 1; i <= tupleSize; i++)
 		{

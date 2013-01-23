@@ -1,6 +1,6 @@
 /**
  * MapDescriptor.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -66,12 +66,14 @@ import com.avail.serialization.SerializerOperation;
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class MapDescriptor extends Descriptor
+public class MapDescriptor
+extends Descriptor
 {
 	/**
 	 * The layout of object slots for my instances.
 	 */
-	public enum ObjectSlots implements ObjectSlotsEnum
+	public enum ObjectSlots
+	implements ObjectSlotsEnum
 	{
 		/**
 		 * The topmost bin of this {@linkplain MapDescriptor map}.  Unlike the
@@ -88,21 +90,18 @@ public class MapDescriptor extends Descriptor
 	 * @param object The map from which to extract the root bin.
 	 * @return The map's bin.
 	 */
-	private static AvailObject rootBin (
-		final AvailObject object)
+	private static AvailObject rootBin (final AvailObject object)
 	{
 		return object.slot(ObjectSlots.ROOT_BIN);
 	}
 
 	/**
 	 * Replace the {@linkplain MapDescriptor map}'s root {@linkplain
-	 * MapBinDescriptor bin}.  The replacement may be the {@link
-	 * NullDescriptor#nullObject() null object} to indicate an empty map.
+	 * MapBinDescriptor bin}. The replacement may be {@link
+	 * NilDescriptor#nil() nil} to indicate an empty map.
 	 *
-	 * @param object
-	 *            The map (must not be an indirection).
-	 * @param bin
-	 *            The root bin for the map, or the null object.
+	 * @param object The map (must not be an indirection).
+	 * @param bin The root bin for the map, or nil.
 	 */
 	private static void rootBin (
 		final AvailObject object,
@@ -184,17 +183,13 @@ public class MapDescriptor extends Descriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_Equals (
-		final AvailObject object,
-		final AvailObject another)
+	boolean o_Equals (final AvailObject object, final AvailObject another)
 	{
 		return another.equalsMap(object);
 	}
 
 	@Override @AvailMethod
-	boolean o_EqualsMap (
-		final AvailObject object,
-		final AvailObject aMap)
+	boolean o_EqualsMap (final AvailObject object, final AvailObject aMap)
 	{
 		if (object.sameAddressAs(aMap))
 		{
@@ -219,12 +214,19 @@ public class MapDescriptor extends Descriptor
 				return false;
 			}
 		}
-		// They're equal (but occupy disjoint storage).  Replace one with an
-		// indirection to the other to reduce storage costs and the frequency
-		// of entry-wise comparisons.
-		object.becomeIndirectionTo(aMap);
-		// Mark as immutable, now that there are at least two references to it.
-		aMap.makeImmutable();
+		// They're equal, but occupy disjoint storage. If possible, then replace
+		// one with an indirection to the other to reduce storage costs and the
+		// frequency of entry-wise comparisons.
+		if (!isShared())
+		{
+			aMap.makeImmutable();
+			object.becomeIndirectionTo(aMap);
+		}
+		else if (!aMap.descriptor.isShared())
+		{
+			object.makeImmutable();
+			aMap.becomeIndirectionTo(object);
+		}
 		return true;
 	}
 
@@ -302,8 +304,7 @@ public class MapDescriptor extends Descriptor
 	}
 
 	@Override @AvailMethod
-	int o_Hash (
-		final AvailObject object)
+	int o_Hash (final AvailObject object)
 	{
 		// A map's hash is a simple function of its rootBin's keysHash and
 		// valuesHash.
@@ -316,15 +317,13 @@ public class MapDescriptor extends Descriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_IsMap (
-		final AvailObject object)
+	boolean o_IsMap (final AvailObject object)
 	{
 		return true;
 	}
 
 	@Override @AvailMethod
-	AvailObject o_Kind (
-		final AvailObject object)
+	AvailObject o_Kind (final AvailObject object)
 	{
 		final int size = object.mapSize();
 		final AvailObject sizeRange = InstanceTypeDescriptor.on(
@@ -337,16 +336,14 @@ public class MapDescriptor extends Descriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_MapAt (
-		final AvailObject object,
-		final AvailObject keyObject)
+	AvailObject o_MapAt (final AvailObject object, final AvailObject keyObject)
 	{
-		// Answer the value of the map at the specified key.  Fail if the key is
+		// Answer the value of the map at the specified key. Fail if the key is
 		// not present.
 		final AvailObject value = rootBin(object).mapBinAtHash(
 			keyObject,
 			keyObject.hash());
-		if (value.equalsNull())
+		if (value.equalsNil())
 		{
 			throw new MapException(AvailErrorCode.E_KEY_NOT_FOUND);
 		}
@@ -361,9 +358,9 @@ public class MapDescriptor extends Descriptor
 		final boolean canDestroy)
 	{
 		// Answer a map like this one but with keyObject->newValueObject instead
-		// of any existing mapping for keyObject.  The original map can be
+		// of any existing mapping for keyObject. The original map can be
 		// destroyed or recycled if canDestroy is true and it's mutable.
-		assert !newValueObject.equalsNull();
+		assert !newValueObject.equalsNil();
 		final AvailObject oldRoot = rootBin(object);
 		final AvailObject newRoot = oldRoot.mapBinAtHashPutLevelCanDestroy(
 			 keyObject,
@@ -384,8 +381,7 @@ public class MapDescriptor extends Descriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_KeysAsSet (
-		final AvailObject object)
+	AvailObject o_KeysAsSet (final AvailObject object)
 	{
 		// Answer a set with all my keys.  Mark the keys as immutable because
 		// they'll be shared with the new set.
@@ -404,15 +400,14 @@ public class MapDescriptor extends Descriptor
 	 * they'll be shared with the new tuple.
 	 */
 	@Override @AvailMethod
-	AvailObject o_ValuesAsTuple (
-		final AvailObject object)
+	AvailObject o_ValuesAsTuple (final AvailObject object)
 	{
 		final int size = object.mapSize();
-		final AvailObject result = ObjectTupleDescriptor.mutable().create(size);
+		final AvailObject result = ObjectTupleDescriptor.mutable.create(size);
 		for (int i = 1; i <= size; i++)
 		{
 			// Initialize it for when we have our own garbage collector again.
-			result.tupleAtPut(i, NullDescriptor.nullObject());
+			result.tupleAtPut(i, NilDescriptor.nil());
 		}
 		result.hashOrZero(0);
 		int index = 1;
@@ -431,7 +426,7 @@ public class MapDescriptor extends Descriptor
 		final AvailObject keyObject,
 		final boolean canDestroy)
 	{
-		// Answer a map like this one but with keyObject removed from it.  The
+		// Answer a map like this one but with keyObject removed from it. The
 		// original map can be destroyed if canDestroy is true and it's mutable.
 		if (!object.hasKey(keyObject))
 		{
@@ -447,7 +442,7 @@ public class MapDescriptor extends Descriptor
 			keyObject,
 			keyObject.hash(),
 			canDestroy);
-		if (canDestroy && isMutable)
+		if (canDestroy && isMutable())
 		{
 			rootBin(object, root);
 			return object;
@@ -456,39 +451,33 @@ public class MapDescriptor extends Descriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_HasKey (
-		final AvailObject object,
-		final AvailObject key)
+	boolean o_HasKey (final AvailObject object, final AvailObject key)
 	{
 		// Answer whether the map has the given key.
-		return !rootBin(object).mapBinAtHash(key, key.hash()).equalsNull();
+		return !rootBin(object).mapBinAtHash(key, key.hash()).equalsNil();
 	}
 
 	@Override @AvailMethod
-	int o_MapSize (
-		final AvailObject object)
+	int o_MapSize (final AvailObject object)
 	{
-		// Answer how many elements are in the set.  Delegate to the rootBin.
+		// Answer how many elements are in the set. Delegate to the rootBin.
 		return rootBin(object).binSize();
 	}
 
 	@Override @AvailMethod
-	MapDescriptor.MapIterable o_MapIterable (
-		final AvailObject object)
+	MapDescriptor.MapIterable o_MapIterable (final AvailObject object)
 	{
 		return rootBin(object).mapBinIterable();
 	}
 
 	@Override @AvailMethod @ThreadSafe
-	SerializerOperation o_SerializerOperation (
-		final AvailObject object)
+	SerializerOperation o_SerializerOperation (final AvailObject object)
 	{
 		return SerializerOperation.MAP;
 	}
 
 	@Override
-	public boolean o_ShowValueInNameForDebugger (
-		final AvailObject object)
+	public boolean o_ShowValueInNameForDebugger (final AvailObject object)
 	{
 		return false;
 	}
@@ -527,9 +516,7 @@ public class MapDescriptor extends Descriptor
 	 * @author Mark van Gulik &lt;mark@availlang.org&gt;
 	 */
 	public abstract static class MapIterable
-	implements
-		Iterator<Entry>,
-		Iterable<Entry>
+	implements Iterator<Entry>, Iterable<Entry>
 	{
 		/**
 		 * The {@link Entry} to be reused for each <key, value> pair while
@@ -563,39 +550,45 @@ public class MapDescriptor extends Descriptor
 	}
 
 	/**
-	 * The empty map (immutable).
-	 */
-	static AvailObject EmptyMap;
-
-	/**
-	 * Initialize the {@link #EmptyMap} static in addition to the usual statics.
-	 */
-	static void createWellKnownObjects ()
-	{
-		final AvailObject empty = mutable().create();
-		rootBin(empty, NullDescriptor.nullObject());
-		empty.makeImmutable();
-		EmptyMap = empty;
-	}
-
-	/**
-	 * Clear the {@link #EmptyMap} static in addition to the usual statics.
-	 */
-	static void clearWellKnownObjects ()
-	{
-		EmptyMap = null;
-	}
-
-	/**
-	 * Answer the (immutable) empty map.
+	 * Construct a new {@link MapDescriptor}.
 	 *
-	 * @return The empty map.
+	 * @param mutability
+	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 */
-	public static AvailObject empty ()
+	private MapDescriptor (final Mutability mutability)
 	{
-		return EmptyMap;
+		super(mutability);
 	}
 
+	/** The mutable {@link MapDescriptor}. */
+	private static final MapDescriptor mutable =
+		new MapDescriptor(Mutability.MUTABLE);
+
+	@Override
+	MapDescriptor mutable ()
+	{
+		return mutable;
+	}
+
+	/** The immutable {@link MapDescriptor}. */
+	private static final MapDescriptor immutable =
+		new MapDescriptor(Mutability.IMMUTABLE);
+
+	@Override
+	MapDescriptor immutable ()
+	{
+		return immutable;
+	}
+
+	/** The shared {@link MapDescriptor}. */
+	private static final MapDescriptor shared =
+		new MapDescriptor(Mutability.SHARED);
+
+	@Override
+	MapDescriptor shared ()
+	{
+		return shared;
+	}
 
 	/**
 	 * Create a new {@linkplain MapDescriptor map} whose contents correspond to
@@ -609,7 +602,7 @@ public class MapDescriptor extends Descriptor
 		final AvailObject tupleOfBindings)
 	{
 		assert tupleOfBindings.isTuple();
-		AvailObject newMap = EmptyMap;
+		AvailObject newMap = emptyMap;
 		for (final AvailObject binding : tupleOfBindings)
 		{
 			assert binding.isTuple();
@@ -629,10 +622,9 @@ public class MapDescriptor extends Descriptor
 	 * @param rootBin The rootBin to use in the new map.
 	 * @return A new mutable map.
 	 */
-	public static AvailObject createFromBin (
-		final AvailObject rootBin)
+	public static AvailObject createFromBin (final AvailObject rootBin)
 	{
-		final AvailObject newMap = MapDescriptor.mutable().create();
+		final AvailObject newMap = mutable.create();
 		rootBin(newMap, rootBin);
 		return newMap;
 	}
@@ -663,6 +655,10 @@ public class MapDescriptor extends Descriptor
 		{
 			destination.makeImmutable();
 		}
+		if (source.sameAddressAs(destination))
+		{
+			return destination;
+		}
 		if (source.mapSize() == 0)
 		{
 			return destination;
@@ -678,45 +674,34 @@ public class MapDescriptor extends Descriptor
 		return target;
 	}
 
+	/** The empty map. */
+	private static AvailObject emptyMap;
+
 	/**
-	 * Construct a new {@link MapDescriptor}.
+	 * Answer the empty map.
 	 *
-	 * @param isMutable
-	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
-	 *        object?
+	 * @return The empty map.
 	 */
-	protected MapDescriptor (final boolean isMutable)
+	public static AvailObject empty ()
 	{
-		super(isMutable);
+		return emptyMap;
 	}
 
 	/**
-	 * The mutable {@link MapDescriptor}.
+	 * Initialize the {@link #emptyMap} static in addition to the usual statics.
 	 */
-	private static final MapDescriptor mutable = new MapDescriptor(true);
-
-	/**
-	 * Answer the mutable {@link MapDescriptor}.
-	 *
-	 * @return The mutable {@link MapDescriptor}.
-	 */
-	public static MapDescriptor mutable ()
+	static void createWellKnownObjects ()
 	{
-		return mutable;
+		emptyMap = createFromBin(NilDescriptor.nil());
+		emptyMap.hash();
+		emptyMap.makeShared();
 	}
 
 	/**
-	 * The immutable {@link MapDescriptor}.
+	 * Clear the {@link #emptyMap} static in addition to the usual statics.
 	 */
-	private static final MapDescriptor immutable = new MapDescriptor(false);
-
-	/**
-	 * Answer the immutable {@link MapDescriptor}.
-	 *
-	 * @return The immutable {@link MapDescriptor}.
-	 */
-	public static MapDescriptor immutable ()
+	static void clearWellKnownObjects ()
 	{
-		return immutable;
+		emptyMap = null;
 	}
 }

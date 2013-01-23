@@ -1,6 +1,6 @@
 /**
  * AbstractAvailCompiler.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith. All rights reserved.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -559,7 +559,8 @@ public abstract class AbstractAvailCompiler
 			for (final ExpectedToken value : values())
 			{
 				assert value.lexeme == null;
-				value.lexeme = StringDescriptor.from(value.lexemeString);
+				value.lexeme =
+					StringDescriptor.from(value.lexemeString).makeShared();
 			}
 		}
 	}
@@ -727,7 +728,7 @@ public abstract class AbstractAvailCompiler
 		@Override
 		public String toString()
 		{
-			return "Task(@" + position + ", " + description + ")";
+			return description + "@pos(" + position + ")";
 		}
 
 		@Override
@@ -1732,8 +1733,7 @@ public abstract class AbstractAvailCompiler
 		try
 		{
 			workUnitsQueued++;
-			final Mutable<ParsingTask> task = new Mutable<ParsingTask>();
-			task.value = new ParsingTask(description, position)
+			workPoolExecutor.execute(new ParsingTask(description, position)
 			{
 				@Override
 				public void run ()
@@ -1774,8 +1774,7 @@ public abstract class AbstractAvailCompiler
 						}
 					}
 				}
-			};
-			workPoolExecutor.execute(task.value);
+			});
 		}
 		catch (final RejectedExecutionException e)
 		{
@@ -1991,7 +1990,7 @@ public abstract class AbstractAvailCompiler
 				module.addVariableBinding(
 					name,
 					var.makeImmutable());
-				if (!expression.initializationExpression().equalsNull())
+				if (!expression.initializationExpression().equalsNil())
 				{
 					final AvailObject decl =
 						DeclarationNodeDescriptor.newModuleVariable(
@@ -2545,7 +2544,7 @@ public abstract class AbstractAvailCompiler
 					firstArgOrNull,
 					firstArgOrNull == null
 						&& initialTokenPosition.position != start.position,
-					new Con<AvailObject>("Argument of message")
+					new Con<AvailObject>("Argument of message send")
 					{
 						@Override
 						public void value (
@@ -3245,7 +3244,7 @@ public abstract class AbstractAvailCompiler
 		final Mutable<Boolean> valid = new Mutable<Boolean>(true);
 		final AvailObject message = bundle.message();
 		final AvailObject method = interpreter.runtime().methodAt(message);
-		assert !method.equalsNull();
+		assert !method.equalsNil();
 		final AvailObject definitionsTuple = method.definitionsTuple();
 		assert definitionsTuple.tupleSize() > 0;
 
@@ -3317,10 +3316,18 @@ public abstract class AbstractAvailCompiler
 		final AvailObject method,
 		final Continuation1<Generator<String>> failBlock)
 	{
-		return method.validateArgumentTypesInterpreterIfFail(
-			argumentTypes,
-			interpreter,
-			failBlock);
+		interpreter.currentParserState = parserState;
+		try
+		{
+			return method.validateArgumentTypesInterpreterIfFail(
+				argumentTypes,
+				interpreter,
+				failBlock);
+		}
+		finally
+		{
+			interpreter.currentParserState = null;
+		}
 	}
 
 	/**
@@ -3580,6 +3587,7 @@ public abstract class AbstractAvailCompiler
 		if (state.value == null)
 		{
 			reportError(qualifiedName);
+			assert false;
 		}
 		if (!state.value.atEnd())
 		{
@@ -3596,6 +3604,7 @@ public abstract class AbstractAvailCompiler
 		{
 			state.value.expected(errorString);
 			reportError(qualifiedName);
+			assert false;
 		}
 
 		serializer.serialize(AtomDescriptor.moduleHeaderSectionAtom());
@@ -3702,6 +3711,7 @@ public abstract class AbstractAvailCompiler
 			if (interpretation.value == null)
 			{
 				reportError(qualifiedName);
+				assert false;
 			}
 			// Clear the section of the fragment cache associated with the
 			// (outermost) statement just parsed...
@@ -3786,6 +3796,7 @@ public abstract class AbstractAvailCompiler
 		if (parseModuleHeader(resolvedName, true) == null)
 		{
 			reportError(resolvedName);
+			assert false;
 		}
 	}
 

@@ -1,6 +1,6 @@
 /**
  * StringDescriptor.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,6 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.AvailObject.error;
 import com.avail.AvailRuntime;
 import com.avail.annotations.*;
 import com.avail.serialization.SerializerOperation;
@@ -50,13 +49,6 @@ public abstract class StringDescriptor
 extends TupleDescriptor
 {
 	@Override @AvailMethod @ThreadSafe
-	protected final int o_TupleIntAt (final AvailObject object, final int index)
-	{
-		error("Strings store characters, not integers", object);
-		return 0;
-	}
-
-	@Override @AvailMethod @ThreadSafe
 	SerializerOperation o_SerializerOperation (
 		final AvailObject object)
 	{
@@ -73,283 +65,14 @@ extends TupleDescriptor
 	}
 
 	/**
-	 * A tuple containing just the underscore character.
-	 */
-	private static AvailObject underscore;
-
-	/**
-	 * Return an Avail {@linkplain StringDescriptor string} of size one,
-	 * consisting of just the underscore character ("_").
-	 *
-	 * @return A tuple containing just the underscore character.
-	 */
-	public static AvailObject underscore ()
-	{
-		return underscore;
-	}
-
-	/**
-	 * A tuple containing just the open-guillemet character.
-	 */
-	private static AvailObject openGuillemet;
-
-	/**
-	 * Return an Avail {@linkplain StringDescriptor string} of size one,
-	 * consisting of just the open-guillemet character ("«").
-	 *
-	 * @return A tuple containing just the open-guillemet character.
-	 */
-	public static AvailObject openGuillemet ()
-	{
-		return openGuillemet;
-	}
-
-	/**
-	 * A tuple containing just the close-guillemet character.
-	 */
-	private static AvailObject closeGuillemet;
-
-	/**
-	 * Return an Avail {@linkplain StringDescriptor string} of size one,
-	 * consisting of just the close-guillemet character ("»").
-	 *
-	 * @return A tuple containing just the close-guillemet character.
-	 */
-	public static AvailObject closeGuillemet ()
-	{
-		return closeGuillemet;
-	}
-
-	/**
-	 * A tuple containing just the double-dagger character.
-	 */
-	private static AvailObject doubleDagger;
-
-	/**
-	 * Return an Avail {@linkplain StringDescriptor string} of size one,
-	 * consisting of just the double dagger character ("‡").
-	 *
-	 * @return A tuple containing just the double dagger character.
-	 */
-	public static AvailObject doubleDagger ()
-	{
-		return doubleDagger;
-	}
-
-	/**
-	 * A tuple containing just the back-quote character.
-	 */
-	private static AvailObject backQuote;
-
-	/**
-	 * Return an Avail {@linkplain StringDescriptor string} of size one,
-	 * consisting of just the back-quote character ("`").
-	 *
-	 * @return A tuple containing just the back-quote character.
-	 */
-	public static AvailObject backQuote ()
-	{
-		return backQuote;
-	}
-
-	/**
-	 * A tuple containing just the ellipsis character.
-	 */
-	private static AvailObject ellipsis;
-
-	/**
-	 * Return an Avail {@linkplain StringDescriptor string} of size one,
-	 * consisting of just the ellipsis character ("…").
-	 *
-	 * @return A tuple containing just the ellipsis character.
-	 */
-	public static AvailObject ellipsis ()
-	{
-		return ellipsis;
-	}
-
-	/**
-	 * A tuple containing just the octothorp character.
-	 */
-	private static AvailObject octothorp;
-
-	/**
-	 * Return an Avail {@linkplain StringDescriptor string} of size one,
-	 * consisting of just the octothorp character ("#").
-	 *
-	 * @return A tuple containing just the octothorp character.
-	 */
-	public static AvailObject octothorp ()
-	{
-		return octothorp;
-	}
-
-	/**
-	 * A tuple containing just the question mark character.
-	 */
-	private static AvailObject questionMark;
-
-	/**
-	 * Return an Avail {@linkplain StringDescriptor string} of size one,
-	 * consisting of just the question mark character ("?").
-	 *
-	 * @return A tuple containing just the question mark character.
-	 */
-	public static AvailObject questionMark ()
-	{
-		return questionMark;
-	}
-
-	/**
-	 * A tuple containing just the double question mark character.
-	 */
-	private static AvailObject doubleQuestionMark;
-
-	/**
-	 * Return an Avail {@linkplain StringDescriptor string} of size one,
-	 * consisting of just the double question mark character ("⁇").
-	 *
-	 * @return A tuple containing just the question mark character.
-	 */
-	public static AvailObject doubleQuestionMark ()
-	{
-		return doubleQuestionMark;
-	}
-
-	/**
-	 * A tuple containing just the exclamation mark character.
-	 */
-	private static AvailObject exclamationMark;
-
-	/**
-	 * Return an Avail {@linkplain StringDescriptor string} of size one,
-	 * consisting of just the exclamation mark character ("!").
-	 *
-	 * @return A tuple containing just the exclamation mark character.
-	 */
-	public static AvailObject exclamationMark ()
-	{
-		return exclamationMark;
-	}
-
-	/**
-	 * A tuple containing just the tilde character.
-	 */
-	private static AvailObject tilde;
-
-	/**
-	 * Return an Avail {@linkplain StringDescriptor string} of size one,
-	 * consisting of just the tilde character ("~").
-	 *
-	 * @return A tuple containing just the question mark character.
-	 */
-	public static AvailObject tilde ()
-	{
-		return tilde;
-	}
-
-	/**
-	 * A tuple containing just the vertical bar character.
-	 */
-	private static AvailObject verticalBar;
-
-	/**
-	 * Return an Avail {@linkplain StringDescriptor string} of size one,
-	 * consisting of just the vertical bar character ("|").
-	 *
-	 * @return A tuple containing just the vertical bar character.
-	 */
-	public static AvailObject verticalBar ()
-	{
-		return verticalBar;
-	}
-
-	/**
-	 * A tuple containing just the single-dagger (†) character.
-	 */
-	private static AvailObject singleDagger;
-
-	/**
-	 * Return an Avail {@linkplain StringDescriptor string} of size one,
-	 * consisting of just the (single-)dagger character ("†").
-	 *
-	 * @return A tuple containing just the single dagger character.
-	 */
-	public static AvailObject singleDagger ()
-	{
-		return singleDagger;
-	}
-
-	/**
-	 * A tuple containing just the section sign character.
-	 */
-	private static AvailObject sectionSign;
-
-	/**
-	 * Return an Avail {@linkplain StringDescriptor string} of size one,
-	 * consisting of just the section sign character ("§").
-	 *
-	 * @return A tuple containing just the section sign character.
-	 */
-	public static AvailObject sectionSign ()
-	{
-		return sectionSign;
-	}
-
-	/**
-	 * Create any instances statically well-known to the {@linkplain
-	 * AvailRuntime Avail runtime system}.
-	 */
-	static void createWellKnownObjects ()
-	{
-		underscore = from("_").makeImmutable();
-		openGuillemet = from("«").makeImmutable();
-		closeGuillemet = from("»").makeImmutable();
-		doubleDagger = from("‡").makeImmutable();
-		backQuote = from("`").makeImmutable();
-		ellipsis = from("…").makeImmutable();
-		octothorp = from("#").makeImmutable();
-		questionMark = from("?").makeImmutable();
-		doubleQuestionMark = from("⁇").makeImmutable();
-		exclamationMark = from("!").makeImmutable();
-		tilde = from("~").makeImmutable();
-		verticalBar = from("|").makeImmutable();
-		singleDagger = from("†").makeImmutable();
-		sectionSign = from("§").makeImmutable();
-	}
-
-	/**
-	 * Destroy or reset any instances statically well-known to the {@linkplain
-	 * AvailRuntime Avail runtime system}.
-	 */
-	static void clearWellKnownObjects ()
-	{
-		underscore = null;
-		openGuillemet = null;
-		closeGuillemet = null;
-		doubleDagger = null;
-		backQuote = null;
-		ellipsis = null;
-		octothorp = null;
-		questionMark = null;
-		doubleQuestionMark = null;
-		exclamationMark = null;
-		tilde = null;
-		verticalBar = null;
-		singleDagger = null;
-		sectionSign = null;
-	}
-
-	/**
 	 * Construct a new {@link StringDescriptor}.
 	 *
-	 * @param isMutable
-	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
-	 *        object?
+	 * @param mutability
+	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 */
-	protected StringDescriptor (final boolean isMutable)
+	protected StringDescriptor (final Mutability mutability)
 	{
-		super(isMutable);
+		super(mutability);
 	}
 
 	/**
@@ -365,8 +88,7 @@ extends TupleDescriptor
 	 * @param aNativeString A Java {@link String}.
 	 * @return A corresponding Avail {@linkplain StringDescriptor string}.
 	 */
-	public static AvailObject from (
-		final String aNativeString)
+	public static AvailObject from (final String aNativeString)
 	{
 		final int charCount = aNativeString.length();
 		if (charCount == 0)
@@ -395,12 +117,12 @@ extends TupleDescriptor
 		}
 		// Fall back to building a general object tuple containing Avail
 		// character objects.
-		final AvailObject tuple = ObjectTupleDescriptor.mutable().create(count);
+		final AvailObject tuple = ObjectTupleDescriptor.mutable.create(count);
 		// Make it pointer-safe first, since we'll be allocating character
 		// objects.
 		for (int i = 1; i <= count; i++)
 		{
-			tuple.tupleAtPut(i, NullDescriptor.nullObject());
+			tuple.tupleAtPut(i, NilDescriptor.nil());
 		}
 		index = 0;
 		count = 1;  // One-based tuple index
@@ -456,5 +178,245 @@ extends TupleDescriptor
 		return TwoByteStringDescriptor.generateTwoByteString(
 			size,
 			generator);
+	}
+
+	/** A tuple containing just the underscore character. */
+	private static AvailObject underscore;
+
+	/**
+	 * Return an Avail {@linkplain StringDescriptor string} of size one,
+	 * consisting of just the underscore character ("_").
+	 *
+	 * @return A tuple containing just the underscore character.
+	 */
+	public static AvailObject underscore ()
+	{
+		return underscore;
+	}
+
+	/** A tuple containing just the open-guillemet character. */
+	private static AvailObject openGuillemet;
+
+	/**
+	 * Return an Avail {@linkplain StringDescriptor string} of size one,
+	 * consisting of just the open-guillemet character ("«").
+	 *
+	 * @return A tuple containing just the open-guillemet character.
+	 */
+	public static AvailObject openGuillemet ()
+	{
+		return openGuillemet;
+	}
+
+	/** A tuple containing just the close-guillemet character. */
+	private static AvailObject closeGuillemet;
+
+	/**
+	 * Return an Avail {@linkplain StringDescriptor string} of size one,
+	 * consisting of just the close-guillemet character ("»").
+	 *
+	 * @return A tuple containing just the close-guillemet character.
+	 */
+	public static AvailObject closeGuillemet ()
+	{
+		return closeGuillemet;
+	}
+
+	/** A tuple containing just the double-dagger character. */
+	private static AvailObject doubleDagger;
+
+	/**
+	 * Return an Avail {@linkplain StringDescriptor string} of size one,
+	 * consisting of just the double dagger character ("‡").
+	 *
+	 * @return A tuple containing just the double dagger character.
+	 */
+	public static AvailObject doubleDagger ()
+	{
+		return doubleDagger;
+	}
+
+	/** A tuple containing just the back-quote character. */
+	private static AvailObject backQuote;
+
+	/**
+	 * Return an Avail {@linkplain StringDescriptor string} of size one,
+	 * consisting of just the back-quote character ("`").
+	 *
+	 * @return A tuple containing just the back-quote character.
+	 */
+	public static AvailObject backQuote ()
+	{
+		return backQuote;
+	}
+
+	/** A tuple containing just the ellipsis character. */
+	private static AvailObject ellipsis;
+
+	/**
+	 * Return an Avail {@linkplain StringDescriptor string} of size one,
+	 * consisting of just the ellipsis character ("…").
+	 *
+	 * @return A tuple containing just the ellipsis character.
+	 */
+	public static AvailObject ellipsis ()
+	{
+		return ellipsis;
+	}
+
+	/** A tuple containing just the octothorp character. */
+	private static AvailObject octothorp;
+
+	/**
+	 * Return an Avail {@linkplain StringDescriptor string} of size one,
+	 * consisting of just the octothorp character ("#").
+	 *
+	 * @return A tuple containing just the octothorp character.
+	 */
+	public static AvailObject octothorp ()
+	{
+		return octothorp;
+	}
+
+	/** A tuple containing just the question mark character. */
+	private static AvailObject questionMark;
+
+	/**
+	 * Return an Avail {@linkplain StringDescriptor string} of size one,
+	 * consisting of just the question mark character ("?").
+	 *
+	 * @return A tuple containing just the question mark character.
+	 */
+	public static AvailObject questionMark ()
+	{
+		return questionMark;
+	}
+
+	/** A tuple containing just the double question mark character. */
+	private static AvailObject doubleQuestionMark;
+
+	/**
+	 * Return an Avail {@linkplain StringDescriptor string} of size one,
+	 * consisting of just the double question mark character ("⁇").
+	 *
+	 * @return A tuple containing just the question mark character.
+	 */
+	public static AvailObject doubleQuestionMark ()
+	{
+		return doubleQuestionMark;
+	}
+
+	/** A tuple containing just the exclamation mark character. */
+	private static AvailObject exclamationMark;
+
+	/**
+	 * Return an Avail {@linkplain StringDescriptor string} of size one,
+	 * consisting of just the exclamation mark character ("!").
+	 *
+	 * @return A tuple containing just the exclamation mark character.
+	 */
+	public static AvailObject exclamationMark ()
+	{
+		return exclamationMark;
+	}
+
+	/** A tuple containing just the tilde character. */
+	private static AvailObject tilde;
+
+	/**
+	 * Return an Avail {@linkplain StringDescriptor string} of size one,
+	 * consisting of just the tilde character ("~").
+	 *
+	 * @return A tuple containing just the question mark character.
+	 */
+	public static AvailObject tilde ()
+	{
+		return tilde;
+	}
+
+	/** A tuple containing just the vertical bar character. */
+	private static AvailObject verticalBar;
+
+	/**
+	 * Return an Avail {@linkplain StringDescriptor string} of size one,
+	 * consisting of just the vertical bar character ("|").
+	 *
+	 * @return A tuple containing just the vertical bar character.
+	 */
+	public static AvailObject verticalBar ()
+	{
+		return verticalBar;
+	}
+
+	/** A tuple containing just the single-dagger (†) character. */
+	private static AvailObject singleDagger;
+
+	/**
+	 * Return an Avail {@linkplain StringDescriptor string} of size one,
+	 * consisting of just the (single-)dagger character ("†").
+	 *
+	 * @return A tuple containing just the single dagger character.
+	 */
+	public static AvailObject singleDagger ()
+	{
+		return singleDagger;
+	}
+
+	/** A tuple containing just the section sign character. */
+	private static AvailObject sectionSign;
+
+	/**
+	 * Return an Avail {@linkplain StringDescriptor string} of size one,
+	 * consisting of just the section sign character ("§").
+	 *
+	 * @return A tuple containing just the section sign character.
+	 */
+	public static AvailObject sectionSign ()
+	{
+		return sectionSign;
+	}
+
+	/**
+	 * Create any instances statically well-known to the {@linkplain
+	 * AvailRuntime Avail runtime system}.
+	 */
+	static void createWellKnownObjects ()
+	{
+		underscore = from("_").makeShared();
+		openGuillemet = from("«").makeShared();
+		closeGuillemet = from("»").makeShared();
+		doubleDagger = from("‡").makeShared();
+		backQuote = from("`").makeShared();
+		ellipsis = from("…").makeShared();
+		octothorp = from("#").makeShared();
+		questionMark = from("?").makeShared();
+		doubleQuestionMark = from("⁇").makeShared();
+		exclamationMark = from("!").makeShared();
+		tilde = from("~").makeShared();
+		verticalBar = from("|").makeShared();
+		singleDagger = from("†").makeShared();
+		sectionSign = from("§").makeShared();
+	}
+
+	/**
+	 * Destroy or reset any instances statically well-known to the {@linkplain
+	 * AvailRuntime Avail runtime system}.
+	 */
+	static void clearWellKnownObjects ()
+	{
+		underscore = null;
+		openGuillemet = null;
+		closeGuillemet = null;
+		doubleDagger = null;
+		backQuote = null;
+		ellipsis = null;
+		octothorp = null;
+		questionMark = null;
+		doubleQuestionMark = null;
+		exclamationMark = null;
+		tilde = null;
+		verticalBar = null;
+		singleDagger = null;
+		sectionSign = null;
 	}
 }

@@ -1,6 +1,6 @@
 /**
  * ObjectTupleDescriptor.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,13 +41,14 @@ import com.avail.annotations.*;
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class ObjectTupleDescriptor
+public final class ObjectTupleDescriptor
 extends TupleDescriptor
 {
 	/**
 	 * The layout of integer slots for my instances.
 	 */
-	public enum IntegerSlots implements IntegerSlotsEnum
+	public enum IntegerSlots
+	implements IntegerSlotsEnum
 	{
 		/**
 		 * The tuple's hash value or zero if not computed.  If the hash value
@@ -66,7 +67,8 @@ extends TupleDescriptor
 	/**
 	 * The layout of object slots for my instances.
 	 */
-	public enum ObjectSlots implements ObjectSlotsEnum
+	public enum ObjectSlots
+	implements ObjectSlotsEnum
 	{
 		/**
 		 * The tuple elements themselves.
@@ -75,9 +77,7 @@ extends TupleDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_TupleAt (
-		final AvailObject object,
-		final int subscript)
+	AvailObject o_TupleAt (final AvailObject object, final int subscript)
 	{
 		return object.slot(ObjectSlots.TUPLE_AT_, subscript);
 	}
@@ -99,8 +99,6 @@ extends TupleDescriptor
 		final AvailObject anotherObject,
 		final int startIndex2)
 	{
-		// Compare sections of two tuples.
-
 		return anotherObject.compareFromToWithObjectTupleStartingAt(
 			startIndex2,
 			(startIndex2 + endIndex1 - startIndex1),
@@ -117,28 +115,26 @@ extends TupleDescriptor
 		final int startIndex2)
 	{
 		// Compare sections of two object tuples.
-
 		if (object.sameAddressAs(anObjectTuple) && startIndex1 == startIndex2)
 		{
 			return true;
 		}
 		// Compare actual entries.
-		int index2 = startIndex2;
-		for (int index1 = startIndex1; index1 <= endIndex1; index1++)
+		for (
+			int index1 = startIndex1, index2 = startIndex2;
+			index1 <= endIndex1;
+			index1++, index2++)
 		{
 			if (!object.tupleAt(index1).equals(anObjectTuple.tupleAt(index2)))
 			{
 				return false;
 			}
-			index2++;
 		}
 		return true;
 	}
 
 	@Override @AvailMethod
-	boolean o_Equals (
-		final AvailObject object,
-		final AvailObject another)
+	boolean o_Equals (final AvailObject object, final AvailObject another)
 	{
 		return another.equalsObjectTuple(object);
 	}
@@ -148,10 +144,6 @@ extends TupleDescriptor
 		final AvailObject object,
 		final AvailObject anObjectTuple)
 	{
-		// Compare this object tuple and the given object tuple.
-		//
-		// Compare identity...
-
 		if (object.sameAddressAs(anObjectTuple))
 		{
 			return true;
@@ -172,17 +164,21 @@ extends TupleDescriptor
 		{
 			return false;
 		}
-		if (object.isBetterRepresentationThan(anObjectTuple))
+		if (anObjectTuple.isBetterRepresentationThan(object))
 		{
-			anObjectTuple.becomeIndirectionTo(object);
-			// Now there are at least two references to it.
-			object.makeImmutable();
+			if (!isShared())
+			{
+				anObjectTuple.makeImmutable();
+				object.becomeIndirectionTo(anObjectTuple);
+			}
 		}
 		else
 		{
-			object.becomeIndirectionTo(anObjectTuple);
-			// Now there are at least two references to it.
-			anObjectTuple.makeImmutable();
+			if (!anObjectTuple.descriptor.isShared())
+			{
+				object.makeImmutable();
+				anObjectTuple.becomeIndirectionTo(object);
+			}
 		}
 		return true;
 	}
@@ -199,11 +195,10 @@ extends TupleDescriptor
 		// clobber all fields of the original tuple that don't make it into the
 		// subrange.  Replace these clobbered fields with the integer 0 (always
 		// immutable) after dropping the reference count on replaced objects.
-
 		assert 1 <= startIndex && startIndex <= endIndex + 1;
 		final int originalSize = object.tupleSize();
 		assert 0 <= endIndex && endIndex <= originalSize;
-		if (isMutable && canDestroy)
+		if (isMutable() && canDestroy)
 		{
 			if (startIndex - 1 == endIndex)
 			{
@@ -276,8 +271,8 @@ extends TupleDescriptor
 			result = AvailObject.newObjectIndexedIntegerIndexedDescriptor(
 				1,
 				2,
-				SpliceTupleDescriptor.mutable());
-			if (isMutable && !canDestroy)
+				SpliceTupleDescriptor.mutable);
+			if (isMutable() && !canDestroy)
 			{
 				object.makeImmutable();
 			}
@@ -294,9 +289,7 @@ extends TupleDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_TruncateTo (
-		final AvailObject object,
-		final int newTupleSize)
+	AvailObject o_TruncateTo (final AvailObject object, final int newTupleSize)
 	{
 		// Shrink the current object on the right.  Assumes that elements beyond
 		// the new end have already been released if necessary.  Since my
@@ -305,7 +298,7 @@ extends TupleDescriptor
 		// compute the delta for the number of slots.  I must pad the unused
 		// space on the right with a dummy descriptor and slotsSize for the
 		// garbage collector.
-		assert isMutable;
+		assert isMutable();
 		final int delta = object.tupleSize() - newTupleSize;
 		if (delta == 0)
 		{
@@ -330,7 +323,7 @@ extends TupleDescriptor
 		// index we should have newValueObject.  This may destroy the original
 		// tuple if canDestroy is true.
 		assert index >= 1 && index <= object.tupleSize();
-		if (!canDestroy || !isMutable)
+		if (!canDestroy || !isMutable())
 		{
 			return object.copyAsMutableObjectTuple().tupleAtPuttingCanDestroy(
 				index,
@@ -344,25 +337,21 @@ extends TupleDescriptor
 	}
 
 	@Override @AvailMethod
-	int o_TupleIntAt (
-		final AvailObject object,
-		final int index)
+	int o_TupleIntAt (final AvailObject object, final int index)
 	{
 		// Answer the integer element at the given index in the tuple object.
 		return object.tupleAt(index).extractInt();
 	}
 
 	@Override @AvailMethod
-	int o_TupleSize (
-		final AvailObject object)
+	int o_TupleSize (final AvailObject object)
 	{
 		// Answer the number of elements in the object (as a Java int).
 		return object.variableObjectSlotsCount();
 	}
 
 	@Override @AvailMethod
-	int o_BitsPerEntry (
-		final AvailObject object)
+	int o_BitsPerEntry (final AvailObject object)
 	{
 		// Answer approximately how many bits per entry are taken up by this
 		// object.
@@ -394,48 +383,47 @@ extends TupleDescriptor
 	 */
 	public static AvailObject createUninitialized (final int size)
 	{
-		return mutable().create(size);
+		return mutable.create(size);
 	}
 
 	/**
 	 * Construct a new {@link ObjectTupleDescriptor}.
 	 *
-	 * @param isMutable
-	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
-	 *        object?
+	 * @param mutability
+	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 */
-	private ObjectTupleDescriptor (final boolean isMutable)
+	private ObjectTupleDescriptor (final Mutability mutability)
 	{
-		super(isMutable);
+		super(mutability);
 	}
 
-	/**
-	 * The mutable {@link ObjectTupleDescriptor}.
-	 */
-	private static final ObjectTupleDescriptor mutable = new ObjectTupleDescriptor(true);
+	/** The mutable {@link ObjectTupleDescriptor}. */
+	public static final ObjectTupleDescriptor mutable =
+		new ObjectTupleDescriptor(Mutability.MUTABLE);
 
-	/**
-	 * Answer the mutable {@link ObjectTupleDescriptor}.
-	 *
-	 * @return The mutable {@link ObjectTupleDescriptor}.
-	 */
-	public static ObjectTupleDescriptor mutable ()
+	@Override
+	ObjectTupleDescriptor mutable ()
 	{
 		return mutable;
 	}
 
-	/**
-	 * The immutable {@link ObjectTupleDescriptor}.
-	 */
-	private static final ObjectTupleDescriptor immutable = new ObjectTupleDescriptor(false);
+	/** The immutable {@link ObjectTupleDescriptor}. */
+	private static final ObjectTupleDescriptor immutable =
+		new ObjectTupleDescriptor(Mutability.IMMUTABLE);
 
-	/**
-	 * Answer the immutable {@link ObjectTupleDescriptor}.
-	 *
-	 * @return The immutable {@link ObjectTupleDescriptor}.
-	 */
-	public static ObjectTupleDescriptor immutable ()
+	@Override
+	ObjectTupleDescriptor immutable ()
 	{
 		return immutable;
+	}
+
+	/** The shared {@link ObjectTupleDescriptor}. */
+	private static final ObjectTupleDescriptor shared =
+		new ObjectTupleDescriptor(Mutability.SHARED);
+
+	@Override
+	ObjectTupleDescriptor shared ()
+	{
+		return shared;
 	}
 }

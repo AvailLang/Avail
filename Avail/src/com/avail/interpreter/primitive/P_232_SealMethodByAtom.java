@@ -71,7 +71,7 @@ extends Primitive
 		{
 			return interpreter.primitiveFailure(e);
 		}
-		return interpreter.primitiveSuccess(NullDescriptor.nullObject());
+		return interpreter.primitiveSuccess(NilDescriptor.nil());
 	}
 
 	@Override

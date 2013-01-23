@@ -1,6 +1,6 @@
 /**
  * MessageBundleTreeDescriptor.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -70,6 +70,7 @@ import com.avail.utility.Mutable;
  * </p>
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public class MessageBundleTreeDescriptor
 extends Descriptor
@@ -77,13 +78,14 @@ extends Descriptor
 	/**
 	 * The layout of integer slots for my instances.
 	 */
-	public enum IntegerSlots implements IntegerSlotsEnum
+	public enum IntegerSlots
+	implements IntegerSlotsEnum
 	{
 		/**
 		 * The subscript into the {@linkplain TupleDescriptor tuple} of encoded
-		 * parsing instructions.  These instructions are produced by the {@link
+		 * parsing instructions. These instructions are produced by the {@link
 		 * MessageSplitter} as a way to interpret the tokens, underscores, and
-		 * guillemet expressions of a method name.  There may be multiple
+		 * guillemet expressions of a method name. There may be multiple
 		 * potential method invocations being parsed <em>together</em> at this
 		 * position in the message bundle tree, but the parsing instructions
 		 * that have been encountered so far along this history must be the same
@@ -102,15 +104,16 @@ extends Descriptor
 	/**
 	 * The layout of object slots for my instances.
 	 */
-	public enum ObjectSlots implements ObjectSlotsEnum
+	public enum ObjectSlots
+	implements ObjectSlotsEnum
 	{
 		/**
 		 * A {@linkplain MapDescriptor map} from {@linkplain AtomDescriptor
 		 * atoms} that name methods to the {@linkplain MessageBundleDescriptor
-		 * message bundles} that assist with their parsing.  In particular, any
+		 * message bundles} that assist with their parsing. In particular, any
 		 * {@linkplain MessageBundleTreeDescriptor message bundle tree}
 		 * represents the current state of collective parsing of an invocation
-		 * of one or more thus far equivalent methods.  This is the collection
+		 * of one or more thus far equivalent methods. This is the collection
 		 * of such methods.
 		 */
 		ALL_BUNDLES,
@@ -118,9 +121,9 @@ extends Descriptor
 		/**
 		 * A {@linkplain MapDescriptor map} from {@linkplain AtomDescriptor
 		 * atoms} that name methods to the {@linkplain MessageBundleDescriptor
-		 * message bundles} that assist with their parsing.  In particular,
+		 * message bundles} that assist with their parsing. In particular,
 		 * these are methods that have not yet been categorized as complete,
-		 * incomplete, action, or prefilter.  They are categorized if and when
+		 * incomplete, action, or prefilter. They are categorized if and when
 		 * this message bundle tree is reached during parsing.
 		 */
 		UNCLASSIFIED,
@@ -128,7 +131,7 @@ extends Descriptor
 		/**
 		 * A {@linkplain MapDescriptor map} from {@linkplain AtomDescriptor
 		 * atoms} that name methods to the {@linkplain MessageBundleDescriptor
-		 * message bundles} that assist with their parsing.  In particular,
+		 * message bundles} that assist with their parsing. In particular,
 		 * these are methods for which an invocation has just been completely
 		 * parsed.
 		 */
@@ -253,6 +256,76 @@ extends Descriptor
 	}
 
 	@Override
+	boolean allowsImmutableToMutableReferenceInField (
+		final AbstractSlotsEnum e)
+	{
+		return e == HASH_OR_ZERO
+			|| e == LAZY_COMPLETE
+			|| e == LAZY_INCOMPLETE
+			|| e == LAZY_INCOMPLETE_CASE_INSENSITIVE
+			|| e == LAZY_ACTIONS
+			|| e == LAZY_PREFILTER_MAP
+			|| e == UNCLASSIFIED
+			|| e == ALL_BUNDLES;
+	}
+
+	@Override @AvailMethod
+	AvailObject o_AllBundles (final AvailObject object)
+	{
+		return object.slot(ALL_BUNDLES);
+	}
+
+	@Override @AvailMethod
+	AvailObject o_LazyComplete (final AvailObject object)
+	{
+		assert isShared();
+		synchronized (object)
+		{
+			return object.slot(LAZY_COMPLETE);
+		}
+	}
+
+	@Override @AvailMethod
+	AvailObject o_LazyIncomplete (final AvailObject object)
+	{
+		assert isShared();
+		synchronized (object)
+		{
+			return object.slot(LAZY_INCOMPLETE);
+		}
+	}
+
+	@Override @AvailMethod
+	AvailObject o_LazyIncompleteCaseInsensitive (final AvailObject object)
+	{
+		assert isShared();
+		synchronized (object)
+		{
+			return object.slot(LAZY_INCOMPLETE_CASE_INSENSITIVE);
+		}
+	}
+
+	@Override @AvailMethod
+	AvailObject o_LazyActions (final AvailObject object)
+	{
+		assert isShared();
+		synchronized (object)
+		{
+			return object.slot(LAZY_ACTIONS);
+		}
+	}
+
+	@Override @AvailMethod
+	AvailObject o_LazyPrefilterMap (final AvailObject object)
+	{
+		assert isShared();
+		synchronized (object)
+		{
+			return object.slot(LAZY_PREFILTER_MAP);
+		}
+	}
+
+	@Override
 	AvailObjectFieldHelper[] o_DescribeForDebugger (final AvailObject object)
 	{
 		object.expand();
@@ -293,85 +366,19 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	int o_ParsingPc (final AvailObject object)
+	AvailObject o_MakeImmutable (final AvailObject object)
 	{
-		return object.slot(PARSING_PC);
-	}
-
-	@Override @AvailMethod
-	AvailObject o_AllBundles (final AvailObject object)
-	{
-		return object.slot(ALL_BUNDLES);
-	}
-
-	@Override @AvailMethod
-	AvailObject o_Unclassified (final AvailObject object)
-	{
-		return object.slot(UNCLASSIFIED);
-	}
-
-	@Override @AvailMethod
-	AvailObject o_LazyComplete (final AvailObject object)
-	{
-		return object.slot(LAZY_COMPLETE);
-	}
-
-	@Override @AvailMethod
-	AvailObject o_LazyIncomplete (final AvailObject object)
-	{
-		return object.slot(LAZY_INCOMPLETE);
-	}
-
-	@Override @AvailMethod
-	AvailObject o_LazyIncompleteCaseInsensitive (
-		final AvailObject object)
-	{
-		return object.slot(LAZY_INCOMPLETE_CASE_INSENSITIVE);
-	}
-
-	@Override @AvailMethod
-	AvailObject o_LazyActions (final AvailObject object)
-	{
-		return object.slot(LAZY_ACTIONS);
-	}
-
-	@Override @AvailMethod
-	AvailObject o_LazyPrefilterMap (final AvailObject object)
-	{
-		return object.slot(LAZY_PREFILTER_MAP);
-	}
-
-	@Override boolean allowsImmutableToMutableReferenceInField (
-		final AbstractSlotsEnum e)
-	{
-		return e == LAZY_COMPLETE
-			|| e == LAZY_INCOMPLETE
-			|| e == LAZY_INCOMPLETE_CASE_INSENSITIVE
-			|| e == LAZY_ACTIONS
-			|| e == LAZY_PREFILTER_MAP
-			|| e == UNCLASSIFIED
-			|| e == ALL_BUNDLES;
-	}
-
-	/**
-	 * Make the object immutable so it can be shared safely.  If I was mutable I
-	 * have to scan my children and make them immutable as well (recursively
-	 * down to immutable descendants).
-	 */
-	@Override @AvailMethod
-	AvailObject o_MakeImmutable (
-		final AvailObject object)
-	{
-		object.descriptor = immutable();
-		// Don't bother scanning subobjects. They're allowed to be mutable even
-		// when object is immutable.
+		if (isMutable())
+		{
+			// Never actually make a message bundle tree immutable. They are
+			// always shared.
+			return object.makeShared();
+		}
 		return object;
 	}
 
 	@Override @AvailMethod
-	boolean o_Equals (
-		final AvailObject object,
-		final AvailObject another)
+	boolean o_Equals (final AvailObject object, final AvailObject another)
 	{
 		return another.traversed().sameAddressAs(object);
 	}
@@ -379,17 +386,21 @@ extends Descriptor
 	@Override @AvailMethod
 	int o_Hash (final AvailObject object)
 	{
-		int hash = object.slot(HASH_OR_ZERO);
-		if (hash == 0)
+		assert isShared();
+		synchronized (object)
 		{
-			do
+			int hash = object.slot(HASH_OR_ZERO);
+			if (hash == 0)
 			{
-				hash = AvailRuntime.nextHash();
+				do
+				{
+					hash = AvailRuntime.nextHash();
+				}
+				while (hash == 0);
+				object.setSlot(HASH_OR_ZERO, hash);
 			}
-			while (hash == 0);
-			object.setSlot(HASH_OR_ZERO, hash);
+			return hash;
 		}
-		return hash;
 	}
 
 	@Override @AvailMethod
@@ -401,22 +412,21 @@ extends Descriptor
 	@Override @AvailMethod
 	AvailObject o_Complete (final AvailObject object)
 	{
-		object.expand();
-		return object.lazyComplete();
+		synchronized (object)
+		{
+			object.expand();
+			return object.slot(LAZY_COMPLETE);
+		}
 	}
 
 	@Override @AvailMethod
 	AvailObject o_Incomplete (final AvailObject object)
 	{
-		object.expand();
-		return object.lazyIncomplete();
-	}
-
-	@Override @AvailMethod
-	AvailObject o_Actions (final AvailObject object)
-	{
-		object.expand();
-		return object.lazyActions();
+		synchronized (object)
+		{
+			object.expand();
+			return object.slot(LAZY_INCOMPLETE);
+		}
 	}
 
 	/**
@@ -428,24 +438,26 @@ extends Descriptor
 		final AvailObject message,
 		final AvailObject bundle)
 	{
-		AvailObject allBundles = object.slot(ALL_BUNDLES);
-		assert !allBundles.hasKey(message);
-		allBundles = allBundles.mapAtPuttingCanDestroy(
-			message,
-			bundle,
-			true);
-		object.setSlot(ALL_BUNDLES, allBundles);
-		AvailObject unclassified = object.unclassified();
-		assert !unclassified.hasKey(message);
-		unclassified = unclassified.mapAtPuttingCanDestroy(
-			message,
-			bundle,
-			true);
-		object.setSlot(UNCLASSIFIED, unclassified);
+		synchronized (object)
+		{
+			AvailObject allBundles = object.slot(ALL_BUNDLES);
+			allBundles = allBundles.mapAtPuttingCanDestroy(
+				message,
+				bundle,
+				true);
+			object.setSlot(ALL_BUNDLES, allBundles.traversed().makeShared());
+			AvailObject unclassified = object.slot(UNCLASSIFIED);
+			assert !unclassified.hasKey(message);
+			unclassified = unclassified.mapAtPuttingCanDestroy(
+				message,
+				bundle,
+				true);
+			object.setSlot(UNCLASSIFIED, unclassified.traversed().makeShared());
+		}
 	}
 
 	/**
-	 * Copy the visible message bundles to the filteredBundleTree.  The Avail
+	 * Copy the visible message bundles to the filteredBundleTree. The Avail
 	 * {@linkplain SetDescriptor set} of visible names ({@linkplain
 	 * AtomDescriptor atoms}) is in {@code visibleNames}.
 	 */
@@ -455,103 +467,75 @@ extends Descriptor
 		final AvailObject filteredBundleTree,
 		final AvailObject visibleNames)
 	{
-		assert object.parsingPc() == 1;
-		assert filteredBundleTree.parsingPc() == 1;
-
-		AvailObject filteredAllBundles = filteredBundleTree.allBundles();
-		AvailObject filteredUnclassified = filteredBundleTree.unclassified();
-		for (final MapDescriptor.Entry entry
-			: object.slot(ALL_BUNDLES).mapIterable())
+		synchronized (object)
 		{
-			final AvailObject message = entry.key;
-			final AvailObject bundle = entry.value;
-			if (visibleNames.hasElement(message)
-				&& !filteredAllBundles.hasKey(message))
+			assert object.slot(PARSING_PC) == 1;
+			final AvailObject filtered = filteredBundleTree.traversed();
+			assert filtered.slot(PARSING_PC) == 1;
+			AvailObject filteredAllBundles = filtered.slot(ALL_BUNDLES);
+			AvailObject filteredUnclassified = filtered.slot(UNCLASSIFIED);
+			for (final MapDescriptor.Entry entry
+				: object.slot(ALL_BUNDLES).mapIterable())
 			{
-				filteredAllBundles =
-					filteredAllBundles.mapAtPuttingCanDestroy(
-						message,
-						bundle,
-						true);
-				filteredUnclassified =
-					filteredUnclassified.mapAtPuttingCanDestroy(
-						message,
-						bundle,
-						true);
+				final AvailObject message = entry.key;
+				final AvailObject bundle = entry.value;
+				if (visibleNames.hasElement(message)
+					&& !filteredAllBundles.hasKey(message))
+				{
+					filteredAllBundles =
+						filteredAllBundles.mapAtPuttingCanDestroy(
+							message,
+							bundle,
+							true);
+					filteredUnclassified =
+						filteredUnclassified.mapAtPuttingCanDestroy(
+							message,
+							bundle,
+							true);
+				}
 			}
+			filtered.setSlot(
+				ALL_BUNDLES, filteredAllBundles.traversed().makeShared());
+			filtered.setSlot(
+				UNCLASSIFIED, filteredUnclassified.traversed().makeShared());
 		}
-		filteredBundleTree.setSlot(ALL_BUNDLES, filteredAllBundles);
-		filteredBundleTree.setSlot(UNCLASSIFIED, filteredUnclassified);
 	}
 
 	/**
 	 * If there isn't one already, add a bundle to correspond to the given
-	 * message name.  Answer the existing or new bundle.  If the bundle was
-	 * already present (and classified), treat it as changed by invalidating any
-	 * cached structures that might be using it.
-	 */
-	@Override @AvailMethod
-	AvailObject o_IncludeBundleNamed (
-		final AvailObject object,
-		final AvailObject message)
-	throws SignatureException
-	{
-		assert message.isAtom();
-		AvailObject allBundles = object.slot(ALL_BUNDLES);
-		if (allBundles.hasKey(message))
-		{
-			object.flushForNewOrChangedBundleNamed(message);
-			return object.slot(ALL_BUNDLES).mapAt(message);
-		}
-		final AvailObject newBundle =
-			MessageBundleDescriptor.newBundle(message);
-		allBundles = allBundles.mapAtPuttingCanDestroy(
-			message,
-			newBundle,
-			true);
-		object.setSlot(ALL_BUNDLES, allBundles);
-		AvailObject unclassified = object.slot(UNCLASSIFIED);
-		unclassified = unclassified.mapAtPuttingCanDestroy(
-			message,
-			newBundle,
-			true);
-		object.setSlot(UNCLASSIFIED, unclassified);
-		return newBundle;
-	}
-
-	/**
-	 * If there isn't one already with the same name, add the given bundle to
-	 * this tree.  Answer the existing or new bundle.
+	 * message. Answer the new or existing bundle.
 	 */
 	@Override @AvailMethod
 	AvailObject o_IncludeBundle (
 		final AvailObject object,
 		final AvailObject newBundle)
 	{
-		final AvailObject message = newBundle.message();
-		AvailObject allBundles = object.slot(ALL_BUNDLES);
-		if (allBundles.hasKey(message))
+		synchronized (object)
 		{
-			object.flushForNewOrChangedBundleNamed(message);
-			return object.slot(ALL_BUNDLES).mapAt(message);
+			final AvailObject message = newBundle.message();
+			AvailObject allBundles = object.slot(ALL_BUNDLES);
+			if (allBundles.hasKey(message))
+			{
+				return allBundles.mapAt(message);
+			}
+			allBundles = allBundles.mapAtPuttingCanDestroy(
+				message,
+				newBundle,
+				true);
+			object.setSlot(ALL_BUNDLES, allBundles.traversed().makeShared());
+			AvailObject unclassified = object.slot(UNCLASSIFIED);
+			unclassified = unclassified.mapAtPuttingCanDestroy(
+				message,
+				newBundle,
+				true);
+			object.setSlot(UNCLASSIFIED, unclassified.traversed().makeShared());
+			return newBundle;
 		}
-		allBundles = allBundles.mapAtPuttingCanDestroy(
-			message,
-			newBundle,
-			true);
-		object.setSlot(ALL_BUNDLES, allBundles);
-		AvailObject unclassified = object.slot(UNCLASSIFIED);
-		unclassified = unclassified.mapAtPuttingCanDestroy(
-			message,
-			newBundle,
-			true);
-		object.setSlot(UNCLASSIFIED, unclassified);
-		return newBundle;
 	}
 
 	/**
-	 * Remove the bundle with the given method name.  Answer true if this tree
-	 * is now empty (and therefore should probably be removed).
+	 * Remove the bundle with the given message name (expanded as parts).
+	 * Answer true if this tree is now empty and should be removed.
 	 */
 	@Override @AvailMethod
 	boolean o_RemoveBundleNamed (
@@ -559,36 +543,39 @@ extends Descriptor
 		final AvailObject message)
 	{
 		assert message.isAtom();
-		AvailObject allBundles = object.slot(ALL_BUNDLES);
-		if (allBundles.hasKey(message))
+		synchronized (object)
 		{
-			allBundles = allBundles.mapWithoutKeyCanDestroy(
-				message,
-				true);
-			object.setSlot(ALL_BUNDLES, allBundles);
-			AvailObject unclassified = object.unclassified();
-			if (unclassified.hasKey(message))
+			AvailObject allBundles = object.slot(ALL_BUNDLES);
+			if (allBundles.hasKey(message))
 			{
-				// Easy to do.
-				unclassified = unclassified.mapWithoutKeyCanDestroy(
+				allBundles = allBundles.mapWithoutKeyCanDestroy(
 					message,
-					true);
+					true).traversed().makeShared();
+				object.setSlot(ALL_BUNDLES, allBundles);
+				AvailObject unclassified = object.slot(UNCLASSIFIED);
+				if (unclassified.hasKey(message))
+				{
+					// Easy to do.
+					unclassified = unclassified.mapWithoutKeyCanDestroy(
+						message,
+						true).traversed().makeShared();
+				}
+				else
+				{
+					// Not so easy -- just clear everything.
+					final AvailObject emptyMap = MapDescriptor.empty();
+					object.setSlot(LAZY_COMPLETE, emptyMap);
+					object.setSlot(LAZY_INCOMPLETE, emptyMap);
+					object.setSlot(LAZY_INCOMPLETE_CASE_INSENSITIVE, emptyMap);
+					object.setSlot(LAZY_ACTIONS, emptyMap);
+					object.setSlot(LAZY_PREFILTER_MAP, emptyMap);
+					allBundles = allBundles.traversed().makeShared();
+					unclassified = allBundles;
+				}
+				object.setSlot(UNCLASSIFIED, unclassified);
 			}
-			else
-			{
-				// Not so easy -- just clear everything.
-				final AvailObject emptyMap = MapDescriptor.empty();
-				object.setSlot(LAZY_COMPLETE, emptyMap);
-				object.setSlot(LAZY_INCOMPLETE, emptyMap);
-				object.setSlot(LAZY_INCOMPLETE_CASE_INSENSITIVE, emptyMap);
-				object.setSlot(LAZY_ACTIONS, emptyMap);
-				object.setSlot(LAZY_PREFILTER_MAP, emptyMap);
-				allBundles.makeImmutable();
-				unclassified = allBundles;
-			}
-			object.setSlot(UNCLASSIFIED, unclassified);
+			return allBundles.mapSize() == 0;
 		}
-		return allBundles.mapSize() == 0;
 	}
 
 
@@ -598,44 +585,50 @@ extends Descriptor
 	@Override @AvailMethod
 	void o_Expand (final AvailObject object)
 	{
-		final AvailObject unclassified = object.slot(UNCLASSIFIED);
-		if (unclassified.mapSize() == 0)
+		synchronized (object)
 		{
-			return;
+			final AvailObject unclassified = object.slot(UNCLASSIFIED);
+			if (unclassified.mapSize() == 0)
+			{
+				return;
+			}
+			final Mutable<AvailObject> complete = new Mutable<AvailObject>(
+				object.slot(LAZY_COMPLETE));
+			final Mutable<AvailObject> incomplete = new Mutable<AvailObject>(
+				object.slot(LAZY_INCOMPLETE));
+			final Mutable<AvailObject> caseInsensitive =
+				new Mutable<AvailObject>(
+					object.slot(LAZY_INCOMPLETE_CASE_INSENSITIVE));
+			final Mutable<AvailObject> actionMap = new Mutable<AvailObject>(
+				object.slot(LAZY_ACTIONS));
+			final Mutable<AvailObject> prefilterMap = new Mutable<AvailObject>(
+				object.slot(LAZY_PREFILTER_MAP));
+			final int pc = object.slot(PARSING_PC);
+			// Fail fast if someone messes with this during iteration.
+			object.setSlot(UNCLASSIFIED, NilDescriptor.nil());
+			for (final MapDescriptor.Entry entry : unclassified.mapIterable())
+			{
+				final AvailObject message = entry.key;
+				final AvailObject bundle = entry.value;
+				updateForMessageAndBundle(
+					message,
+					bundle,
+					complete,
+					incomplete,
+					caseInsensitive,
+					actionMap,
+					prefilterMap,
+					pc);
+			}
+			object.setSlot(UNCLASSIFIED, MapDescriptor.empty());
+			object.setSlot(LAZY_COMPLETE, complete.value);
+			object.setSlot(LAZY_INCOMPLETE, incomplete.value);
+			object.setSlot(
+				LAZY_INCOMPLETE_CASE_INSENSITIVE,
+				caseInsensitive.value);
+			object.setSlot(LAZY_ACTIONS, actionMap.value);
+			object.setSlot(LAZY_PREFILTER_MAP, prefilterMap.value);
 		}
-		final Mutable<AvailObject> complete = new Mutable<AvailObject>(
-			object.slot(LAZY_COMPLETE));
-		final Mutable<AvailObject> incomplete = new Mutable<AvailObject>(
-			object.slot(LAZY_INCOMPLETE));
-		final Mutable<AvailObject> caseInsensitive = new Mutable<AvailObject>(
-			object.slot(LAZY_INCOMPLETE_CASE_INSENSITIVE));
-		final Mutable<AvailObject> actionMap = new Mutable<AvailObject>(
-			object.slot(LAZY_ACTIONS));
-		final Mutable<AvailObject> prefilterMap = new Mutable<AvailObject>(
-			object.slot(LAZY_PREFILTER_MAP));
-		final int pc = object.slot(PARSING_PC);
-		// Fail fast if someone messes with this during iteration.
-		object.setSlot(UNCLASSIFIED, NullDescriptor.nullObject());
-		for (final MapDescriptor.Entry entry : unclassified.mapIterable())
-		{
-			final AvailObject message = entry.key;
-			final AvailObject bundle = entry.value;
-			updateForMessageAndBundle(
-				message,
-				bundle,
-				complete,
-				incomplete,
-				caseInsensitive,
-				actionMap,
-				prefilterMap,
-				pc);
-		}
-		object.setSlot(UNCLASSIFIED, MapDescriptor.empty());
-		object.setSlot(LAZY_COMPLETE, complete.value);
-		object.setSlot(LAZY_INCOMPLETE, incomplete.value);
-		object.setSlot(LAZY_INCOMPLETE_CASE_INSENSITIVE, caseInsensitive.value);
-		object.setSlot(LAZY_ACTIONS, actionMap.value);
-		object.setSlot(LAZY_PREFILTER_MAP, prefilterMap.value);
 	}
 
 	/**
@@ -847,7 +840,7 @@ extends Descriptor
 	 */
 	public static AvailObject newPc (final int pc)
 	{
-		final AvailObject result = mutable().create();
+		final AvailObject result = mutable.create();
 		result.setSlot(PARSING_PC, pc);
 		result.setSlot(HASH_OR_ZERO, 0);
 		result.setSlot(ALL_BUNDLES, MapDescriptor.empty());
@@ -857,51 +850,45 @@ extends Descriptor
 		result.setSlot(LAZY_INCOMPLETE_CASE_INSENSITIVE, MapDescriptor.empty());
 		result.setSlot(LAZY_ACTIONS, MapDescriptor.empty());
 		result.setSlot(LAZY_PREFILTER_MAP, MapDescriptor.empty());
-		result.makeImmutable();
+		result.makeShared();
 		return result;
 	}
 
 	/**
 	 * Construct a new {@link MessageBundleTreeDescriptor}.
 	 *
-	 * @param isMutable
-	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
-	 *        object?
+	 * @param mutability
+	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 */
-	private MessageBundleTreeDescriptor (final boolean isMutable)
+	private MessageBundleTreeDescriptor (final Mutability mutability)
 	{
-		super(isMutable);
+		super(mutability);
 	}
 
-	/**
-	 * The mutable {@link MessageBundleTreeDescriptor}.
-	 */
+	/** The mutable {@link MessageBundleTreeDescriptor}. */
 	private static final MessageBundleTreeDescriptor mutable =
-		new MessageBundleTreeDescriptor(true);
+		new MessageBundleTreeDescriptor(Mutability.MUTABLE);
 
-	/**
-	 * Answer the mutable {@link MessageBundleTreeDescriptor}.
-	 *
-	 * @return The mutable {@link MessageBundleTreeDescriptor}.
-	 */
-	public static MessageBundleTreeDescriptor mutable ()
+	@Override
+	MessageBundleTreeDescriptor mutable ()
 	{
 		return mutable;
 	}
 
-	/**
-	 * The immutable {@link MessageBundleTreeDescriptor}.
-	 */
-	private static final MessageBundleTreeDescriptor immutable =
-		new MessageBundleTreeDescriptor(false);
+	/** The shared {@link MessageBundleTreeDescriptor}. */
+	private static final MessageBundleTreeDescriptor shared =
+		new MessageBundleTreeDescriptor(Mutability.SHARED);
 
-	/**
-	 * Answer the immutable {@link MessageBundleTreeDescriptor}.
-	 *
-	 * @return The immutable {@link MessageBundleTreeDescriptor}.
-	 */
-	public static MessageBundleTreeDescriptor immutable ()
+	@Override
+	MessageBundleTreeDescriptor immutable ()
 	{
-		return immutable;
+		// There is no immutable descriptor. Use the shared one.
+		return shared;
+	}
+
+	@Override
+	MessageBundleTreeDescriptor shared ()
+	{
+		return shared;
 	}
 }

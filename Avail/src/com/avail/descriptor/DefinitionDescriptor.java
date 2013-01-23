@@ -1,6 +1,6 @@
 /**
  * DefinitionDescriptor.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -57,7 +57,8 @@ extends Descriptor
 	/**
 	 * The layout of object slots for my instances.
 	 */
-	public enum ObjectSlots implements ObjectSlotsEnum
+	public enum ObjectSlots
+	implements ObjectSlotsEnum
 	{
 		/**
 		 * The {@link MethodDescriptor method} in which this definition occurs.
@@ -66,82 +67,62 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	public AvailObject o_DefinitionMethod (
-		final AvailObject object)
+	public AvailObject o_DefinitionMethod (final AvailObject object)
 	{
 		return object.slot(ObjectSlots.DEFINITION_METHOD);
 	}
 
 	@Override @AvailMethod
-	abstract AvailObject o_BodySignature (
-		final AvailObject object);
+	abstract AvailObject o_BodySignature (final AvailObject object);
 
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>
-	 * Compare by address (identity) for now. Eventually we can introduce value
-	 * semantics.
-	 * </p>
-	 */
 	@Override @AvailMethod
-	boolean o_Equals (
-		final AvailObject object,
-		final AvailObject another)
+	boolean o_Equals (final AvailObject object, final AvailObject another)
 	{
 		return another.traversed().sameAddressAs(object);
 	}
 
 	@Override @AvailMethod
-	abstract int o_Hash (
-		final AvailObject object);
+	abstract int o_Hash (final AvailObject object);
 
 	@Override @AvailMethod
-	abstract AvailObject o_Kind (
-		final AvailObject object);
+	abstract AvailObject o_Kind (final AvailObject object);
 
 	@Override @AvailMethod
-	boolean o_IsAbstractDefinition (
-		final AvailObject object)
+	boolean o_IsAbstractDefinition (final AvailObject object)
 	{
 		return false;
 	}
 
 	@Override @AvailMethod
-	boolean o_IsForwardDefinition (
-		final AvailObject object)
+	boolean o_IsForwardDefinition (final AvailObject object)
 	{
 		return false;
 	}
 
 	@Override @AvailMethod
-	boolean o_IsMethodDefinition (
-		final AvailObject object)
+	boolean o_IsMethodDefinition (final AvailObject object)
 	{
 		return false;
 	}
 
 	@Override @AvailMethod
-	boolean o_IsMacroDefinition (
-		final AvailObject object)
+	boolean o_IsMacroDefinition (final AvailObject object)
 	{
 		return false;
 	}
 
-	@Override
+	@Override @AvailMethod
 	abstract SerializerOperation o_SerializerOperation (
 		final AvailObject object);
-
 
 	/**
 	 * Construct a new {@link DefinitionDescriptor}.
 	 *
-	 * @param isMutable
-	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
-	 *        object?
+	 * @param mutability
+	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 */
-	protected DefinitionDescriptor (final boolean isMutable)
+	protected DefinitionDescriptor (final Mutability mutability)
 	{
-		super(isMutable);
+		super(mutability);
 	}
 }

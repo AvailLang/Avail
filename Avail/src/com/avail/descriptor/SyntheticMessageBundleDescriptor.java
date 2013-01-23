@@ -155,7 +155,7 @@ extends Descriptor
 		// The existing definitions are also printed in parentheses to help
 		// distinguish polymorphism from occurrences of non-polymorphic
 		// homonyms.
-		if (isMutable)
+		if (isMutable())
 		{
 			aStream.append("(mut)");
 		}
@@ -202,54 +202,55 @@ extends Descriptor
 		final AvailObject baseMessageBundle)
 	throws SignatureException
 	{
-		final AvailObject result = mutable().create();
+		final AvailObject result = mutable.create();
 		result.setSlot(ObjectSlots.BASE_MESSAGE_BUNDLE, baseMessageBundle);
 		result.setSlot(ObjectSlots.INCLUDED_DEFINITIONS, SetDescriptor.empty());
-		result.makeImmutable();
+		result.makeShared();
 		return result;
+	}
+
+	@Override
+	public boolean o_ShowValueInNameForDebugger (
+		final AvailObject object)
+	{
+		return false;
 	}
 
 	/**
 	 * Construct a new {@link SyntheticMessageBundleDescriptor}.
 	 *
-	 * @param isMutable
-	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
-	 *        object?
+	 * @param mutability
+	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 */
-	protected SyntheticMessageBundleDescriptor (final boolean isMutable)
+	private SyntheticMessageBundleDescriptor (final Mutability mutability)
 	{
-		super(isMutable);
+		super(mutability);
 	}
 
-	/**
-	 * The mutable {@link SyntheticMessageBundleDescriptor}.
-	 */
+	/** The mutable {@link SyntheticMessageBundleDescriptor}. */
 	private static final SyntheticMessageBundleDescriptor mutable =
-		new SyntheticMessageBundleDescriptor(true);
+		new SyntheticMessageBundleDescriptor(Mutability.MUTABLE);
 
-	/**
-	 * Answer the mutable {@link SyntheticMessageBundleDescriptor}.
-	 *
-	 * @return The mutable {@link SyntheticMessageBundleDescriptor}.
-	 */
-	public static SyntheticMessageBundleDescriptor mutable ()
+	@Override
+	SyntheticMessageBundleDescriptor mutable ()
 	{
 		return mutable;
 	}
 
-	/**
-	 * The immutable {@link SyntheticMessageBundleDescriptor}.
-	 */
-	private static final SyntheticMessageBundleDescriptor immutable =
-		new SyntheticMessageBundleDescriptor(false);
+	/** The shared {@link SyntheticMessageBundleDescriptor}. */
+	private static final SyntheticMessageBundleDescriptor shared =
+		new SyntheticMessageBundleDescriptor(Mutability.SHARED);
 
-	/**
-	 * Answer the immutable {@link SyntheticMessageBundleDescriptor}.
-	 *
-	 * @return The immutable {@link SyntheticMessageBundleDescriptor}.
-	 */
-	public static SyntheticMessageBundleDescriptor immutable ()
+	@Override
+	SyntheticMessageBundleDescriptor immutable ()
 	{
-		return immutable;
+		// There isn't an immutable descriptor, just the shared one.
+		return shared;
+	}
+
+	@Override
+	SyntheticMessageBundleDescriptor shared ()
+	{
+		return shared;
 	}
 }

@@ -1,6 +1,6 @@
 /**
  * SerializerTest.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -410,7 +410,7 @@ public final class SerializerTest
 	throws MalformedSerialStreamException
 	{
 		final L1InstructionWriter writer = new L1InstructionWriter(
-			NullDescriptor.nullObject(),
+			NilDescriptor.nil(),
 			0);
 		writer.argumentTypes(FLOAT.o());
 		writer.primitiveNumber(P_292_FloatFloor.instance.primitiveNumber);
@@ -418,7 +418,7 @@ public final class SerializerTest
 		writer.write(
 			new L1Instruction(
 				L1Operation.L1_doPushLiteral,
-				writer.addLiteral(NullDescriptor.nullObject())));
+				writer.addLiteral(NilDescriptor.nil())));
 		final AvailObject code = writer.compiledCode();
 		final AvailObject function = FunctionDescriptor.create(
 			code,

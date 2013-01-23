@@ -1,5 +1,6 @@
 /**
- * AbstractTypeDescriptor.java Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * AbstractTypeDescriptor.java
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -442,12 +443,11 @@ extends Descriptor
 	/**
 	 * Construct a new {@link TypeDescriptor}.
 	 *
-	 * @param isMutable
-	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
-	 *        object?
+	 * @param mutability
+	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 */
-	protected AbstractTypeDescriptor (final boolean isMutable)
+	protected AbstractTypeDescriptor (final Mutability mutability)
 	{
-		super(isMutable);
+		super(mutability);
 	}
 }

@@ -1,6 +1,6 @@
 /**
  * PojoFinalFieldDescriptor.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,6 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.PojoFinalFieldDescriptor.IntegerSlots.HASH_OR_ZERO;
 import static com.avail.descriptor.PojoFinalFieldDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.PojoTypeDescriptor.unmarshal;
 import java.lang.reflect.*;
@@ -57,17 +56,6 @@ import com.avail.exceptions.*;
 public final class PojoFinalFieldDescriptor
 extends Descriptor
 {
-	/** The layout of the integer slots. */
-	public enum IntegerSlots
-	implements IntegerSlotsEnum
-	{
-		/**
-		 * The {@linkplain AvailObject#hash() hash}, or zero ({@code 0}) if the
-		 * hash should be computed.
-		 */
-		HASH_OR_ZERO
-	}
-
 	/** The layout of the object slots. */
 	public enum ObjectSlots
 	implements ObjectSlotsEnum
@@ -97,13 +85,6 @@ extends Descriptor
 	}
 
 	@Override
-	boolean allowsImmutableToMutableReferenceInField (
-		final AbstractSlotsEnum e)
-	{
-		return e == HASH_OR_ZERO;
-	}
-
-	@Override
 	void o_ClearValue (final AvailObject object)
 	{
 		throw new VariableSetException(
@@ -111,9 +92,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_Equals (
-		final AvailObject object,
-		final AvailObject another)
+	boolean o_Equals (final AvailObject object, final AvailObject another)
 	{
 		return another.equalsPojoField(
 			object.slot(FIELD), object.slot(RECEIVER));
@@ -148,21 +127,8 @@ extends Descriptor
 		return object.slot(KIND);
 	}
 
-	@Override @AvailMethod
-	AvailObject o_MakeImmutable (final AvailObject object)
-	{
-		object.descriptor = immutable;
-		object.slot(FIELD).makeImmutable();
-		object.slot(RECEIVER).makeImmutable();
-		object.slot(CACHED_VALUE).makeImmutable();
-		object.slot(KIND).makeImmutable();
-		return object;
-	}
-
 	@Override
-	void o_SetValue (
-		final AvailObject object,
-		final AvailObject newValue)
+	void o_SetValue (final AvailObject object, final AvailObject newValue)
 	{
 		throw new VariableSetException(
 			AvailErrorCode.E_CANNOT_MODIFY_FINAL_JAVA_FIELD);
@@ -207,32 +173,43 @@ extends Descriptor
 	/**
 	 * Construct a new {@link PojoFinalFieldDescriptor}.
 	 *
-	 * @param isMutable
-	 *        Does the {@linkplain PojoFinalFieldDescriptor descriptor}
-	 *        represent a mutable object?
+	 * @param mutability
+	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 */
-	public PojoFinalFieldDescriptor (final boolean isMutable)
+	public PojoFinalFieldDescriptor (final Mutability mutability)
 	{
-		super(isMutable);
+		super(mutability);
 	}
 
 	/** The mutable {@link PojoFinalFieldDescriptor}. */
 	private static final PojoFinalFieldDescriptor mutable =
-		new PojoFinalFieldDescriptor(true);
+		new PojoFinalFieldDescriptor(Mutability.MUTABLE);
 
-	/**
-	 * Answer the mutable {@link PojoFinalFieldDescriptor}.
-	 *
-	 * @return The mutable {@link PojoFinalFieldDescriptor}.
-	 */
-	public static PojoFinalFieldDescriptor mutable ()
+	@Override
+	PojoFinalFieldDescriptor mutable ()
 	{
 		return mutable;
 	}
 
 	/** The immutable {@link PojoFinalFieldDescriptor}. */
 	private static final PojoFinalFieldDescriptor immutable =
-		new PojoFinalFieldDescriptor(false);
+		new PojoFinalFieldDescriptor(Mutability.IMMUTABLE);
+
+	@Override
+	PojoFinalFieldDescriptor immutable ()
+	{
+		return immutable;
+	}
+
+	/** The shared {@link PojoFinalFieldDescriptor}. */
+	private static final PojoFinalFieldDescriptor shared =
+		new PojoFinalFieldDescriptor(Mutability.SHARED);
+
+	@Override
+	PojoFinalFieldDescriptor shared ()
+	{
+		return shared;
+	}
 
 	/**
 	 * Create a {@linkplain PojoFinalFieldDescriptor variable} that reads
@@ -259,7 +236,6 @@ extends Descriptor
 		final AvailObject outerType)
 	{
 		final AvailObject newObject = mutable.create();
-		newObject.setSlot(HASH_OR_ZERO, 0);
 		newObject.setSlot(FIELD, field);
 		newObject.setSlot(RECEIVER, receiver);
 		newObject.setSlot(CACHED_VALUE, cachedValue);

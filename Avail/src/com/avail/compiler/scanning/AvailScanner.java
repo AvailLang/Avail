@@ -1,5 +1,5 @@
 /**
- * compiler/scanner/AvailScanner.java Copyright © 1993-2012, Mark van Gulik and Todd L Smith. All
+ * compiler/scanner/AvailScanner.java Copyright © 1993-2013, Mark van Gulik and Todd L Smith. All
  * rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -145,7 +145,7 @@ public class AvailScanner
 			startOfToken,
 			lineNumber,
 			tokenType);
-		token.makeImmutable();
+		token.makeShared();
 		outputTokens.add(token);
 		return token;
 	}
@@ -168,7 +168,7 @@ public class AvailScanner
 			lineNumber,
 			TokenType.LITERAL,
 			anAvailObject);
-		token.makeImmutable();
+		token.makeShared();
 		outputTokens.add(token);
 		return token;
 	}

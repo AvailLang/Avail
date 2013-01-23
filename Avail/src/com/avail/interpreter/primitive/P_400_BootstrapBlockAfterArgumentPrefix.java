@@ -94,7 +94,7 @@ public class P_400_BootstrapBlockAfterArgumentPrefix extends Primitive
 		{
 			return interpreter.primitiveFailure(error);
 		}
-		return interpreter.primitiveSuccess(NullDescriptor.nullObject());
+		return interpreter.primitiveSuccess(NilDescriptor.nil());
 	}
 
 	@Override

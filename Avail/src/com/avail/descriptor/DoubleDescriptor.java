@@ -1,6 +1,6 @@
 /**
  * DoubleDescriptor.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,13 +44,14 @@ import com.avail.serialization.SerializerOperation;
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class DoubleDescriptor
+public final class DoubleDescriptor
 extends AbstractNumberDescriptor
 {
 	/**
 	 * The layout of integer slots for my instances.
 	 */
-	public enum IntegerSlots implements IntegerSlotsEnum
+	public enum IntegerSlots
+	implements IntegerSlotsEnum
 	{
 		/**
 		 * The low 32 bits of a packed Java {@code double} value.
@@ -71,8 +72,7 @@ extends AbstractNumberDescriptor
 	 * @param object An Avail double-precision floating point number.
 	 * @return The corresponding Java double.
 	 */
-	private static double getDouble (
-		final AvailObject object)
+	private static double getDouble (final AvailObject object)
 	{
 		final int low = object.slot(IntegerSlots.LOW_INT);
 		final int high = object.slot(IntegerSlots.HIGH_INT);
@@ -231,7 +231,16 @@ extends AbstractNumberDescriptor
 		final boolean same = another.equalsDouble(getDouble(object));
 		if (same)
 		{
-			object.becomeIndirectionTo(another);
+			if (!isShared())
+			{
+				another.makeImmutable();
+				object.becomeIndirectionTo(another);
+			}
+			else if (!another.descriptor.isShared())
+			{
+				object.makeImmutable();
+				another.becomeIndirectionTo(object);
+			}
 		}
 		return same;
 	}
@@ -242,7 +251,7 @@ extends AbstractNumberDescriptor
 		final double aDouble)
 	{
 		// Java double equality is irreflexive, and therefore useless to us,
-		// since Avail sets (at least) require reflexive equality.  Compare the
+		// since Avail sets (at least) require reflexive equality. Compare the
 		// exact bits instead.
 		return Double.doubleToRawLongBits(getDouble(object))
 			== Double.doubleToRawLongBits(aDouble);
@@ -580,8 +589,7 @@ extends AbstractNumberDescriptor
 
 	@Override
 	@AvailMethod @ThreadSafe
-	SerializerOperation o_SerializerOperation (
-		final AvailObject object)
+	SerializerOperation o_SerializerOperation (final AvailObject object)
 	{
 		return SerializerOperation.DOUBLE;
 	}
@@ -605,10 +613,9 @@ extends AbstractNumberDescriptor
 	 *            The boxed Avail {@code DoubleDescriptor double-precision
 	 *            floating point object}.
 	 */
-	private static AvailObject privateDouble (
-		final double aDouble)
+	private static AvailObject privateDouble (final double aDouble)
 	{
-		final AvailObject result = mutable().create();
+		final AvailObject result = mutable.create();
 		final long castAsLong = Double.doubleToRawLongBits(aDouble);
 		result.setSlot(IntegerSlots.LOW_INT, (int)castAsLong);
 		result.setSlot(IntegerSlots.HIGH_INT, (int)(castAsLong >> 32));
@@ -625,8 +632,7 @@ extends AbstractNumberDescriptor
 	 *            The boxed Avail {@code DoubleDescriptor double-precision
 	 *            floating point object}.
 	 */
-	public static AvailObject fromDouble (
-		final double aDouble)
+	public static AvailObject fromDouble (final double aDouble)
 	{
 		if (Double.isNaN(aDouble))
 		{
@@ -659,15 +665,10 @@ extends AbstractNumberDescriptor
 		final AvailObject recyclable1,
 		final boolean canDestroy)
 	{
-		AvailObject result;
-		if (canDestroy && recyclable1.descriptor() == mutable())
-		{
-			result = recyclable1;
-		}
-		else
-		{
-			result = mutable().create();
-		}
+		final AvailObject result =
+			canDestroy && recyclable1.descriptor().isMutable()
+			? recyclable1
+			: mutable.create();
 		final long castAsLong = Double.doubleToRawLongBits(aDouble);
 		result.setSlot(IntegerSlots.LOW_INT, (int)castAsLong);
 		result.setSlot(IntegerSlots.HIGH_INT, (int)(castAsLong >> 32));
@@ -700,17 +701,17 @@ extends AbstractNumberDescriptor
 		final boolean canDestroy)
 	{
 		AvailObject result;
-		if (canDestroy && recyclable1.descriptor() == mutable())
+		if (canDestroy && recyclable1.descriptor().isMutable())
 		{
 			result = recyclable1;
 		}
-		else if (canDestroy && recyclable2.descriptor() == mutable())
+		else if (canDestroy && recyclable2.descriptor().isMutable())
 		{
 			result = recyclable2;
 		}
 		else
 		{
-			result = mutable().create();
+			result = mutable.create();
 		}
 		final long castAsLong = Double.doubleToRawLongBits(aDouble);
 		result.setSlot(IntegerSlots.LOW_INT, (int)castAsLong);
@@ -765,13 +766,13 @@ extends AbstractNumberDescriptor
 	static void createWellKnownObjects ()
 	{
 		Sign.POSITIVE.limitDoubleObject =
-			privateDouble(Double.POSITIVE_INFINITY).makeImmutable();
+			privateDouble(Double.POSITIVE_INFINITY).makeShared();
 		Sign.NEGATIVE.limitDoubleObject =
-			privateDouble(Double.NEGATIVE_INFINITY).makeImmutable();
+			privateDouble(Double.NEGATIVE_INFINITY).makeShared();
 		Sign.INDETERMINATE.limitDoubleObject =
-			privateDouble(Double.NaN).makeImmutable();
+			privateDouble(Double.NaN).makeShared();
 		Sign.ZERO.limitDoubleObject =
-			privateDouble(0.0d).makeImmutable();
+			privateDouble(0.0d).makeShared();
 	}
 
 	/**
@@ -789,42 +790,41 @@ extends AbstractNumberDescriptor
 	/**
 	 * Construct a new {@link DoubleDescriptor}.
 	 *
-	 * @param isMutable
-	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
-	 *        object?
+	 * @param mutability
+	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 */
-	protected DoubleDescriptor (final boolean isMutable)
+	protected DoubleDescriptor (final Mutability mutability)
 	{
-		super(isMutable);
+		super(mutability);
 	}
 
-	/**
-	 * The mutable {@link DoubleDescriptor}.
-	 */
-	private static final DoubleDescriptor mutable = new DoubleDescriptor(true);
+	/** The mutable {@link DoubleDescriptor}. */
+	private static final DoubleDescriptor mutable =
+		new DoubleDescriptor(Mutability.MUTABLE);
 
-	/**
-	 * Answer the mutable {@link DoubleDescriptor}.
-	 *
-	 * @return The mutable {@link DoubleDescriptor}.
-	 */
-	public static DoubleDescriptor mutable ()
+	@Override
+	DoubleDescriptor mutable ()
 	{
 		return mutable;
 	}
 
-	/**
-	 * The immutable {@link DoubleDescriptor}.
-	 */
-	private static final DoubleDescriptor immutable = new DoubleDescriptor(false);
+	/** The immutable {@link DoubleDescriptor}. */
+	private static final DoubleDescriptor immutable =
+		new DoubleDescriptor(Mutability.IMMUTABLE);
 
-	/**
-	 * Answer the immutable {@link DoubleDescriptor}.
-	 *
-	 * @return The immutable {@link DoubleDescriptor}.
-	 */
-	public static DoubleDescriptor immutable ()
+	@Override
+	DoubleDescriptor immutable ()
 	{
 		return immutable;
+	}
+
+	/** The shared {@link DoubleDescriptor}. */
+	private static final DoubleDescriptor shared =
+		new DoubleDescriptor(Mutability.SHARED);
+
+	@Override
+	DoubleDescriptor shared ()
+	{
+		return shared;
 	}
 }

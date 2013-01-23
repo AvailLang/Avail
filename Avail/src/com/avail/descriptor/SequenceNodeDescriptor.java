@@ -1,6 +1,6 @@
 /**
  * SequenceNodeDescriptor.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * modification, are permitted provided that the following conditions are met:
@@ -32,12 +32,13 @@
 
 package com.avail.descriptor;
 
-import java.util.List;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
+import static com.avail.descriptor.SequenceNodeDescriptor.ObjectSlots.*;
 import com.avail.annotations.*;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.utility.*;
+import java.util.List;
 
 /**
  * My instances represent a sequence of {@linkplain ParseNodeDescriptor parse
@@ -45,50 +46,33 @@ import com.avail.utility.*;
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class SequenceNodeDescriptor extends ParseNodeDescriptor
+public final class SequenceNodeDescriptor
+extends ParseNodeDescriptor
 {
 	/**
 	 * My slots of type {@link AvailObject}.
-	 *
-	 * @author Mark van Gulik &lt;mark@availlang.org&gt;
 	 */
-	public enum ObjectSlots implements ObjectSlotsEnum
+	public enum ObjectSlots
+	implements ObjectSlotsEnum
 	{
 		/**
 		 * The {@linkplain ParseNodeDescriptor statements} that should be considered
 		 * to execute sequentially, discarding each result except possibly for
 		 * that of the last statement.
 		 */
-		STATEMENTS,
+		STATEMENTS
 	}
 
-
-	/**
-	 * Setter for field statements.
-	 */
 	@Override @AvailMethod
-	void o_Statements (
-		final AvailObject object,
-		final AvailObject statementsTuple)
+	AvailObject o_Statements (final AvailObject object)
 	{
-		assert statementsTuple.tupleSize() > 0;
-		object.setSlot(ObjectSlots.STATEMENTS, statementsTuple);
-	}
-
-	/**
-	 * Getter for field statements.
-	 */
-	@Override @AvailMethod
-	AvailObject o_Statements (
-		final AvailObject object)
-	{
-		return object.slot(ObjectSlots.STATEMENTS);
+		return object.slot(STATEMENTS);
 	}
 
 	@Override @AvailMethod
 	AvailObject o_ExpressionType (final AvailObject object)
 	{
-		final AvailObject statements = object.statements();
+		final AvailObject statements = object.slot(STATEMENTS);
 		assert statements.tupleSize() > 0;
 		return statements.tupleAt(statements.tupleSize()).expressionType();
 	}
@@ -96,7 +80,7 @@ public class SequenceNodeDescriptor extends ParseNodeDescriptor
 	@Override @AvailMethod
 	int o_Hash (final AvailObject object)
 	{
-		return object.statements().hash() + 0xE38140CA;
+		return object.slot(STATEMENTS).hash() + 0xE38140CA;
 	}
 
 	@Override @AvailMethod
@@ -105,7 +89,7 @@ public class SequenceNodeDescriptor extends ParseNodeDescriptor
 		final AvailObject aParseNode)
 	{
 		return object.kind().equals(aParseNode.kind())
-			&& object.statements().equals(aParseNode.statements());
+			&& object.slot(STATEMENTS).equals(aParseNode.statements());
 	}
 
 	@Override @AvailMethod
@@ -113,7 +97,7 @@ public class SequenceNodeDescriptor extends ParseNodeDescriptor
 		final AvailObject object,
 		final AvailCodeGenerator codeGenerator)
 	{
-		final AvailObject statements = object.statements();
+		final AvailObject statements = object.slot(STATEMENTS);
 		final int statementsCount = statements.tupleSize();
 		assert statements.tupleSize() > 0;
 		for (int i = 1; i < statementsCount; i++)
@@ -128,7 +112,7 @@ public class SequenceNodeDescriptor extends ParseNodeDescriptor
 		final AvailObject object,
 		final AvailCodeGenerator codeGenerator)
 	{
-		for (final AvailObject statement : object.statements())
+		for (final AvailObject statement : object.slot(STATEMENTS))
 		{
 			statement.emitEffectOn(codeGenerator);
 		}
@@ -139,7 +123,7 @@ public class SequenceNodeDescriptor extends ParseNodeDescriptor
 		final AvailObject object,
 		final Transformer1<AvailObject, AvailObject> aBlock)
 	{
-		AvailObject statements = object.statements();
+		AvailObject statements = object.slot(STATEMENTS);
 		for (int i = 1; i <= statements.tupleSize(); i++)
 		{
 			statements = statements.tupleAtPuttingCanDestroy(
@@ -147,21 +131,19 @@ public class SequenceNodeDescriptor extends ParseNodeDescriptor
 				aBlock.value(statements.tupleAt(i)),
 				true);
 		}
-		object.statements(statements);
+		object.setSlot(STATEMENTS, statements);
 	}
-
 
 	@Override @AvailMethod
 	void o_ChildrenDo (
 		final AvailObject object,
 		final Continuation1<AvailObject> aBlock)
 	{
-		for (final AvailObject statement : object.statements())
+		for (final AvailObject statement : object.slot(STATEMENTS))
 		{
 			aBlock.value(statement);
 		}
 	}
-
 
 	@Override @AvailMethod
 	void o_ValidateLocally (
@@ -171,25 +153,22 @@ public class SequenceNodeDescriptor extends ParseNodeDescriptor
 		// Do nothing.
 	}
 
-
 	@Override @AvailMethod
 	void o_FlattenStatementsInto (
 		final AvailObject object,
 		final List<AvailObject> accumulatedStatements)
 	{
-		for (final AvailObject statement : object.statements())
+		for (final AvailObject statement : object.slot(STATEMENTS))
 		{
 			statement.flattenStatementsInto(accumulatedStatements);
 		}
 	}
 
 	@Override
-	ParseNodeKind o_ParseNodeKind (
-		final AvailObject object)
+	ParseNodeKind o_ParseNodeKind (final AvailObject object)
 	{
 		return SEQUENCE_NODE;
 	}
-
 
 	/**
 	 * Create a new {@linkplain SequenceNodeDescriptor sequence node} from the
@@ -203,51 +182,39 @@ public class SequenceNodeDescriptor extends ParseNodeDescriptor
 	 */
 	public static AvailObject newStatements (final AvailObject statements)
 	{
-		final AvailObject instance = mutable().create();
-		instance.statements(statements);
+		final AvailObject instance = mutable.create();
+		instance.setSlot(STATEMENTS, statements);
 		return instance;
 	}
 
 	/**
 	 * Construct a new {@link SequenceNodeDescriptor}.
 	 *
-	 * @param isMutable Whether my {@linkplain AvailObject instances} can
-	 *                  change.
+	 * @param mutability
+	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 */
-	public SequenceNodeDescriptor (final boolean isMutable)
+	private SequenceNodeDescriptor (final Mutability mutability)
 	{
-		super(isMutable);
+		super(mutability);
 	}
 
-	/**
-	 * The mutable {@link SequenceNodeDescriptor}.
-	 */
+	/** The mutable {@link SequenceNodeDescriptor}. */
 	private static final SequenceNodeDescriptor mutable =
-		new SequenceNodeDescriptor(true);
+		new SequenceNodeDescriptor(Mutability.MUTABLE);
 
-	/**
-	 * Answer the mutable {@link SequenceNodeDescriptor}.
-	 *
-	 * @return The mutable {@link SequenceNodeDescriptor}.
-	 */
-	public static SequenceNodeDescriptor mutable ()
+	@Override
+	SequenceNodeDescriptor mutable ()
 	{
 		return mutable;
 	}
 
-	/**
-	 * The immutable {@link SequenceNodeDescriptor}.
-	 */
-	private static final SequenceNodeDescriptor immutable =
-		new SequenceNodeDescriptor(false);
+	/** The shared {@link SequenceNodeDescriptor}. */
+	private static final SequenceNodeDescriptor shared =
+		new SequenceNodeDescriptor(Mutability.SHARED);
 
-	/**
-	 * Answer the immutable {@link SequenceNodeDescriptor}.
-	 *
-	 * @return The immutable {@link SequenceNodeDescriptor}.
-	 */
-	public static SequenceNodeDescriptor immutable ()
+	@Override
+	SequenceNodeDescriptor shared ()
 	{
-		return immutable;
+		return shared;
 	}
 }

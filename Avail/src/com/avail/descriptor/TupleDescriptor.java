@@ -1,6 +1,6 @@
 /**
  * TupleDescriptor.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -57,7 +57,8 @@ extends Descriptor
 	/**
 	 * The layout of integer slots for my instances.
 	 */
-	public enum IntegerSlots implements IntegerSlotsEnum
+	public enum IntegerSlots
+	implements IntegerSlotsEnum
 	{
 		/**
 		 * A slot to hold the cached hash value of a tuple.  If zero, then the
@@ -69,22 +70,40 @@ extends Descriptor
 		HASH_OR_ZERO
 	}
 
-	@Override @AvailMethod
-	void o_HashOrZero (final AvailObject object, final int value)
-	{
-		object.setSlot(IntegerSlots.HASH_OR_ZERO, value);
-	}
-
-	@Override @AvailMethod
-	int o_HashOrZero (final AvailObject object)
-	{
-		return object.slot(IntegerSlots.HASH_OR_ZERO);
-	}
-
-	@Override boolean allowsImmutableToMutableReferenceInField (
+	@Override
+	final boolean allowsImmutableToMutableReferenceInField (
 		final AbstractSlotsEnum e)
 	{
 		return e == IntegerSlots.HASH_OR_ZERO;
+	}
+
+	@Override @AvailMethod
+	final void o_HashOrZero (final AvailObject object, final int value)
+	{
+		if (isShared())
+		{
+			synchronized (object)
+			{
+				object.setSlot(IntegerSlots.HASH_OR_ZERO, value);
+			}
+		}
+		else
+		{
+			object.setSlot(IntegerSlots.HASH_OR_ZERO, value);
+		}
+	}
+
+	@Override @AvailMethod
+	final int o_HashOrZero (final AvailObject object)
+	{
+		if (isShared())
+		{
+			synchronized (object)
+			{
+				return object.slot(IntegerSlots.HASH_OR_ZERO);
+			}
+		}
+		return object.slot(IntegerSlots.HASH_OR_ZERO);
 	}
 
 	@Override
@@ -178,20 +197,12 @@ extends Descriptor
 		aStream.append('>');
 	}
 
-	@Override
-	String o_NameForDebugger (final AvailObject object)
-	{
-		return super.o_NameForDebugger(object) + ": tupleSize="
-			+ object.tupleSize();
-	}
-
 	@Override @AvailMethod
 	boolean o_EqualsAnyTuple (
 		final AvailObject object,
 		final AvailObject aTuple)
 	{
 		// Compare this arbitrary Tuple and the given arbitrary tuple.
-
 		if (object.sameAddressAs(aTuple))
 		{
 			return true;
@@ -215,14 +226,19 @@ extends Descriptor
 		}
 		if (object.isBetterRepresentationThan(aTuple))
 		{
-			aTuple.becomeIndirectionTo(object);
-			object.makeImmutable();
+			if (!aTuple.descriptor.isShared())
+			{
+				object.makeImmutable();
+				aTuple.becomeIndirectionTo(object);
+			}
 		}
 		else
 		{
-			object.becomeIndirectionTo(aTuple);
-			// Now that there are at least two references to it...
-			aTuple.makeImmutable();
+			if (!isShared())
+			{
+				aTuple.makeImmutable();
+				object.becomeIndirectionTo(aTuple);
+			}
 		}
 		return true;
 	}
@@ -233,7 +249,6 @@ extends Descriptor
 		final AvailObject aByteString)
 	{
 		// Default to generic tuple comparison.
-
 		return o_EqualsAnyTuple(object, aByteString);
 	}
 
@@ -243,7 +258,6 @@ extends Descriptor
 		final AvailObject aTuple)
 	{
 		// Default to generic tuple comparison.
-
 		return o_EqualsAnyTuple(object, aTuple);
 	}
 
@@ -253,7 +267,6 @@ extends Descriptor
 		final AvailObject aTuple)
 	{
 		// Default to generic tuple comparison.
-
 		return o_EqualsAnyTuple(object, aTuple);
 	}
 
@@ -263,7 +276,6 @@ extends Descriptor
 		final AvailObject aTuple)
 	{
 		// Default to generic comparison.
-
 		return o_EqualsAnyTuple(object, aTuple);
 	}
 
@@ -273,7 +285,6 @@ extends Descriptor
 		final AvailObject aTuple)
 	{
 		// Default to generic comparison.
-
 		return o_EqualsAnyTuple(object, aTuple);
 	}
 
@@ -283,7 +294,6 @@ extends Descriptor
 		final AvailObject aTwoByteString)
 	{
 		// Default to generic tuple comparison.
-
 		return o_EqualsAnyTuple(object, aTwoByteString);
 	}
 
@@ -295,7 +305,6 @@ extends Descriptor
 		// Given two objects that are known to be equal, is the first one in a
 		// better form (more compact, more efficient, older generation) than
 		// the second one?
-
 		return object.bitsPerEntry() < anotherObject.bitsPerEntry();
 	}
 
@@ -342,15 +351,18 @@ extends Descriptor
 		return true;
 	}
 
-	@Override @AvailMethod
-	int o_Hash (final AvailObject object)
+	/**
+	 * The hash value is stored raw in the object's hashOrZero slot if it
+	 * has been computed, otherwise that slot is zero. If a zero is
+	 * detected, compute the hash and store it in hashOrZero. Note that the
+	 * hash can (extremely rarely) be zero, in which case the hash has to be
+	 * computed each time.
+	 *
+	 * @param object An object.
+	 * @return The hash.
+	 */
+	private int hash (final AvailObject object)
 	{
-		// The hash value is stored raw in the object's hashOrZero slot if it
-		// has been computed, otherwise that slot is zero. If a zero is
-		// detected, compute the hash and store it in hashOrZero. Note that the
-		// hash can (extremely rarely) be zero, in which case the hash has to be
-		// computed each time.
-
 		int hash = object.hashOrZero();
 		if (hash == 0)
 		{
@@ -358,6 +370,19 @@ extends Descriptor
 			object.hashOrZero(hash);
 		}
 		return hash;
+	}
+
+	@Override @AvailMethod
+	int o_Hash (final AvailObject object)
+	{
+		if (isShared())
+		{
+			synchronized (object)
+			{
+				return hash(object);
+			}
+		}
+		return hash(object);
 	}
 
 	@Override @AvailMethod
@@ -395,14 +420,15 @@ extends Descriptor
 		final AvailObject aTuple,
 		final int startIndex2)
 	{
-		int index2 = startIndex2;
-		for (int index1 = startIndex1; index1 <= endIndex1; index1++)
+		for (
+			int index1 = startIndex1, index2 = startIndex2;
+			index1 <= endIndex1;
+			index1++, index2++)
 		{
 			if (!object.tupleAt(index1).equals(aTuple.tupleAt(index2)))
 			{
 				return false;
 			}
-			index2++;
 		}
 		return true;
 	}
@@ -480,7 +506,6 @@ extends Descriptor
 		final int startIndex2)
 	{
 		// Compare sections of two tuples. Default to generic comparison.
-
 		return o_CompareFromToWithAnyTupleStartingAt(
 			object,
 			startIndex1,
@@ -513,7 +538,6 @@ extends Descriptor
 		// Take a tuple of tuples and answer one big tuple constructed by
 		// concatenating the subtuples together. Optimized so that the resulting
 		// splice tuple's zones are not themselves splice tuples.
-
 		int zones = 0;
 		int newSize = 0;
 		for (int i = 1, end = object.tupleSize(); i <= end; i++)
@@ -537,12 +561,11 @@ extends Descriptor
 		// will never increase the number of zones, so there will always be
 		// room in the allocated chunk (maybe more than enough) for all the
 		// zones.
-
 		final AvailObject result =
 			AvailObject.newObjectIndexedIntegerIndexedDescriptor(
 				zones,
 				zones * 2,
-				SpliceTupleDescriptor.mutable());
+				SpliceTupleDescriptor.mutable);
 		int majorIndex = 0;
 		int zone = 1;
 		for (int i = 1, end = object.tupleSize(); i <= end; i++)
@@ -566,7 +589,7 @@ extends Descriptor
 					{
 						sub.setSubtupleForZoneTo(
 							originalZone,
-							NullDescriptor.nullObject());
+							NilDescriptor.nil());
 					}
 					zone++;
 				}
@@ -585,14 +608,14 @@ extends Descriptor
 				}
 				if (canDestroy && isMutable())
 				{
-					object.tupleAtPut(i, NullDescriptor.nullObject());
+					object.tupleAtPut(i, NilDescriptor.nil());
 				}
 			}
 		}
 		assert zone == zones + 1 : "Wrong number of zones";
 		assert majorIndex == newSize : "Wrong resulting tuple size";
 		result.hashOrZero(result.computeHashFromTo(1, majorIndex));
-		if (canDestroy && isMutable)
+		if (canDestroy && isMutable())
 		{
 			object.assertObjectUnreachableIfMutable();
 		}
@@ -613,22 +636,33 @@ extends Descriptor
 		// the subrange will have their reference counts decremented (i.e.,
 		// destroyed if mutable) and those tuple slots will be set to the null
 		// object.
-
 		assert 1 <= start && start <= end + 1;
 		assert 0 <= end && end <= object.tupleSize();
 		if (start - 1 == end)
 		{
-			if (isMutable && canDestroy)
+			if (isMutable() && canDestroy)
 			{
 				object.assertObjectUnreachableIfMutable();
 			}
 			return TupleDescriptor.empty();
 		}
+		if (isMutable() && canDestroy && (start == 1 || end - start < 20))
+		{
+			if (start != 1)
+			{
+				for (int i = 1; i <= end - start + 1; i++)
+				{
+					object.tupleAtPut(i, object.tupleAt(start + i - 1));
+				}
+			}
+			object.truncateTo(end - start + 1);
+			return object;
+		}
 		final AvailObject result =
 			AvailObject.newObjectIndexedIntegerIndexedDescriptor(
 				1,
 				2,
-				SpliceTupleDescriptor.mutable());
+				SpliceTupleDescriptor.mutable);
 		result.hashOrZero(object.computeHashFromTo(start, end));
 		result.forZoneSetSubtupleStartSubtupleIndexEndOfZone(
 			1,
@@ -640,14 +674,11 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	byte o_ExtractNybbleFromTupleAt (
-		final AvailObject object,
-		final int index)
+	byte o_ExtractNybbleFromTupleAt (final AvailObject object, final int index)
 	{
 		// Get the element at the given index in the tuple object, and extract a
-		// nybble from it.  Fail if it's not a nybble. Obviously overridden for
+		// nybble from it. Fail if it's not a nybble. Obviously overridden for
 		// speed in NybbleTupleDescriptor.
-
 		final int nyb = object.tupleIntAt(index);
 		if (!(nyb >= 0 && nyb <= 15))
 		{
@@ -664,7 +695,6 @@ extends Descriptor
 		final int endIndex)
 	{
 		// Compute object's hash value over the given range.
-
 		if (startIndex == 1 && endIndex == object.tupleSize())
 		{
 			return object.hash();
@@ -714,13 +744,9 @@ extends Descriptor
 				return false;
 			}
 		}
-
 		return true;
 	}
 
-	/**
-	 * @author Todd L Smith &lt;todd@availlang.org&gt;
-	 */
 	@Override @AvailMethod
 	boolean o_IsString (final AvailObject object)
 	{
@@ -845,7 +871,6 @@ extends Descriptor
 		// period of this cycle is 2^30. The element hash values are xored with
 		// a random constant (16r9EE570A6) before being used, to help prevent
 		// similar nested tuples from producing equal hashes.
-
 		int hash = 0;
 		for (int index = end; index >= start; index--)
 		{
@@ -856,8 +881,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	String o_AsNativeString (
-		final AvailObject object)
+	String o_AsNativeString (final AvailObject object)
 	{
 		final int size = object.tupleSize();
 		final StringBuilder builder = new StringBuilder(size);
@@ -872,11 +896,10 @@ extends Descriptor
 	 * Answer a mutable copy of object that holds arbitrary objects.
 	 */
 	@Override @AvailMethod
-	AvailObject o_CopyAsMutableObjectTuple (
-		final AvailObject object)
+	AvailObject o_CopyAsMutableObjectTuple (final AvailObject object)
 	{
 		final int size = object.tupleSize();
-		final AvailObject result = ObjectTupleDescriptor.mutable().create(size);
+		final AvailObject result = ObjectTupleDescriptor.mutable.create(size);
 		result.hashOrZero(object.hashOrZero());
 		for (int i = 1; i <= size; i++)
 		{
@@ -885,9 +908,6 @@ extends Descriptor
 		return result;
 	}
 
-	/**
-	 * @author Todd L Smith &lt;todd@availlang.org&gt;
-	 */
 	@Override
 	public Iterator<AvailObject> o_Iterator (final AvailObject object)
 	{
@@ -938,25 +958,58 @@ extends Descriptor
 	}
 
 	@Override
-	public boolean o_ShowValueInNameForDebugger (
-		final AvailObject object)
+	boolean o_ShowValueInNameForDebugger (final AvailObject object)
 	{
 		return object.isString();
 	}
 
 	/**
-	 * The empty tuple.
+	 * Construct a new tuple of arbitrary {@linkplain AvailObject Avail objects}
+	 * based on the given tuple, but with an additional element appended.  The
+	 * elements may end up being shared between the original and the copy, so
+	 * the client must ensure that either the elements are marked immutable, or
+	 * one of the copies is not kept after the call.
 	 */
-	static AvailObject EmptyTuple;
+	@Override @AvailMethod
+	public AvailObject o_AppendCanDestroy (
+		final AvailObject object,
+		final AvailObject newElement,
+		final boolean canDestroy)
+	{
+		final int originalSize = object.tupleSize();
+		final AvailObject newTuple = ObjectTupleDescriptor.mutable.create(
+			originalSize + 1);
+		for (int i = 1; i <= originalSize; i++)
+		{
+			newTuple.tupleAtPut(i, object.tupleAt(i));
+		}
+		newTuple.tupleAtPut(originalSize + 1, newElement);
+		return newTuple;
+	}
+
+	/** The empty tuple. */
+	static AvailObject emptyTuple;
+
+	/**
+	 * Return the empty {@linkplain TupleDescriptor tuple}.  Other empty tuples
+	 * can be created, but if you know the tuple is empty you can save time and
+	 * space by returning this one.
+	 *
+	 * @return The tuple of size zero.
+	 */
+	public static AvailObject empty ()
+	{
+		return emptyTuple;
+	}
 
 	/**
 	 * Create my cached empty tuple and various well known strings.
 	 */
 	static void createWellKnownObjects ()
 	{
-		EmptyTuple = NybbleTupleDescriptor.mutableObjectOfSize(0);
-		EmptyTuple.hashOrZero(0);
-		EmptyTuple.makeImmutable();
+		emptyTuple = NybbleTupleDescriptor.mutableObjectOfSize(0);
+		emptyTuple.hash();
+		emptyTuple.makeShared();
 }
 
 	/**
@@ -964,24 +1017,26 @@ extends Descriptor
 	 */
 	static void clearWellKnownObjects ()
 	{
-		EmptyTuple = null;
+		emptyTuple = null;
 	}
 
 	/**
-	 * Create a tuple with the specified elements.  The elements are not made
+	 * Create a tuple with the specified elements. The elements are not made
 	 * immutable first, nor is the new tuple.
 	 *
 	 * @param elements
-	 *            The array of AvailObjects from which to construct a tuple.
-	 * @return
-	 *            The new mutable tuple.
+	 *        The array of AvailObjects from which to construct a tuple.
+	 * @return The new mutable tuple.
 	 */
-	public static AvailObject from (
-		final AvailObject ... elements)
+	public static AvailObject from (final AvailObject... elements)
 	{
+		if (elements.length == 0)
+		{
+			return emptyTuple;
+		}
 		AvailObject tuple;
 		final int size = elements.length;
-		tuple = ObjectTupleDescriptor.mutable().create(size);
+		tuple = ObjectTupleDescriptor.mutable.create(size);
 		for (int i = 1; i <= size; i++)
 		{
 			tuple.tupleAtPut(i, elements[i - 1]);
@@ -999,15 +1054,14 @@ extends Descriptor
 	 *        to construct a tuple.
 	 * @return The corresponding tuple of objects.
 	 */
-	public static AvailObject fromList (
-		final List<AvailObject> list)
+	public static AvailObject fromList (final List<AvailObject> list)
 	{
 		final int size = list.size();
 		if (size == 0)
 		{
-			return TupleDescriptor.empty();
+			return emptyTuple;
 		}
-		final AvailObject tuple = ObjectTupleDescriptor.mutable().create(size);
+		final AvailObject tuple = ObjectTupleDescriptor.mutable.create(size);
 		for (int i = 0; i < size; i++)
 		{
 			tuple.tupleAtPut(i + 1, list.get(i));
@@ -1055,36 +1109,6 @@ extends Descriptor
 
 	/**
 	 * Construct a new tuple of arbitrary {@linkplain AvailObject Avail objects}
-	 * based on the given tuple, but with an additional element appended.  The
-	 * elements may end up being shared between the original and the copy, so
-	 * the client must ensure that either the elements are marked immutable, or
-	 * one of the copies is not kept after the call.
-	 *
-	 * @param newElement
-	 *            The new element that should be at the end of the new tuple.
-	 * @return
-	 *            The new mutable tuple of objects including all elements of the
-	 *            passed tuple plus the new element.
-	 */
-	@Override @AvailMethod
-	public AvailObject o_AppendCanDestroy (
-		final AvailObject object,
-		final AvailObject newElement,
-		final boolean canDestroy)
-	{
-		final int originalSize = object.tupleSize();
-		final AvailObject newTuple = ObjectTupleDescriptor.mutable().create(
-			originalSize + 1);
-		for (int i = 1; i <= originalSize; i++)
-		{
-			newTuple.tupleAtPut(i, object.tupleAt(i));
-		}
-		newTuple.tupleAtPut(originalSize + 1, newElement);
-		return newTuple;
-	}
-
-	/**
-	 * Construct a new tuple of arbitrary {@linkplain AvailObject Avail objects}
 	 * based on the given tuple, but with an occurrence of the specified element
 	 * missing, if it was present at all.  The elements may end up being shared
 	 * between the original and the copy, so the client must ensure that either
@@ -1092,13 +1116,12 @@ extends Descriptor
 	 * the call.  If the element is not found, then answer the original tuple.
 	 *
 	 * @param originalTuple
-	 *            The original tuple of {@linkplain AvailObject Avail objects}
-	 *            on which to base the new tuple.
+	 *        The original tuple of {@linkplain AvailObject Avail objects} on
+	 *        which to base the new tuple.
 	 * @param elementToExclude
-	 *            The element that should should have an occurrence excluded
-	 *            from the new tuple, if it was present.
-	 * @return
-	 *            The new tuple.
+	 *        The element that should should have an occurrence excluded from
+	 *        the new tuple, if it was present.
+	 * @return The new tuple.
 	 */
 	public static AvailObject without (
 		final AvailObject originalTuple,
@@ -1110,7 +1133,7 @@ extends Descriptor
 			if (originalTuple.tupleAt(seekIndex).equals(elementToExclude))
 			{
 				final AvailObject newTuple =
-					ObjectTupleDescriptor.mutable().create(originalSize - 1);
+					ObjectTupleDescriptor.mutable.create(originalSize - 1);
 				for (int i = 1; i < seekIndex; i++)
 				{
 					newTuple.tupleAtPut(i, originalTuple.tupleAt(i));
@@ -1126,20 +1149,18 @@ extends Descriptor
 	}
 
 	/**
-	 * Construct a new tuple of integers.  Use the most compact representation
+	 * Construct a new tuple of integers. Use the most compact representation
 	 * that can still represent each supplied {@link Integer}.
 	 *
 	 * @param list
-	 *            The list of Java {@linkplain Integer}s to assemble in a tuple.
-	 * @return
-	 *            A new mutable tuple of integers.
+	 *        The list of Java {@linkplain Integer}s to assemble in a tuple.
+	 * @return A new mutable tuple of integers.
 	 */
-	public static AvailObject fromIntegerList (
-		final List<Integer> list)
+	public static AvailObject fromIntegerList (final List<Integer> list)
 	{
 		if (list.size() == 0)
 		{
-			return empty();
+			return emptyTuple;
 		}
 		final AvailObject tuple;
 		final int minValue = min(list);
@@ -1165,7 +1186,7 @@ extends Descriptor
 				return tuple;
 			}
 		}
-		tuple = ObjectTupleDescriptor.mutable().create(list.size());
+		tuple = ObjectTupleDescriptor.mutable.create(list.size());
 		for (int i = 1; i <= list.size(); i++)
 		{
 			tuple.tupleAtPut(
@@ -1180,9 +1201,8 @@ extends Descriptor
 	 * an int.
 	 *
 	 * @param anInteger
-	 *            The exponent by which to raise the base {@link #multiplier}.
-	 * @return
-	 *            {@link #multiplier} raised to the specified power.
+	 *        The exponent by which to raise the base {@link #multiplier}.
+	 * @return {@link #multiplier} raised to the specified power.
 	 */
 	static int multiplierRaisedTo (final int anInteger)
 	{
@@ -1203,18 +1223,6 @@ extends Descriptor
 
 
 	/**
-	 * Return the empty {@linkplain TupleDescriptor tuple}.  Other empty tuples
-	 * can be created, but if you know the tuple is empty you can save time and
-	 * space by returning this one.
-	 *
-	 * @return The tuple of size zero.
-	 */
-	public static AvailObject empty ()
-	{
-		return EmptyTuple;
-	}
-
-	/**
 	 * The constant by which each element's hash should be XORed prior to
 	 * combining them.  This reduces the chance of systematic collisions due to
 	 * using the same elements in different patterns of nested tuples.
@@ -1224,12 +1232,11 @@ extends Descriptor
 	/**
 	 * Construct a new {@link TupleDescriptor}.
 	 *
-	 * @param isMutable
-	 *            Does the {@linkplain Descriptor descriptor} represent a
-	 *            mutable object?
+	 * @param mutability
+	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 */
-	protected TupleDescriptor (final boolean isMutable)
+	protected TupleDescriptor (final Mutability mutability)
 	{
-		super(isMutable);
+		super(mutability);
 	}
 }

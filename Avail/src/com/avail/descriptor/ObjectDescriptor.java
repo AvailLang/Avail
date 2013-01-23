@@ -1,6 +1,6 @@
 /**
  * ObjectDescriptor.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,16 +42,16 @@ import com.avail.serialization.SerializerOperation;
  * Avail {@linkplain ObjectTypeDescriptor user-defined object types} are novel.
  * They consist of a {@linkplain MapDescriptor map} of keys (field name
  * {@linkplain AtomDescriptor atoms}) and their associated field {@linkplain
- * TypeDescriptor types}.  Similarly, user-defined objects consist of a map from
- * field names to field values.  An object instance conforms to an object type
+ * TypeDescriptor types}. Similarly, user-defined objects consist of a map from
+ * field names to field values. An object instance conforms to an object type
  * if and only the instance's field keys are a superset of the type's field
  * keys, and for each field key in common the field value is an instance of the
  * field type.
  *
  * <p>
- * That suggests a simple strategy for representing user-defined objects:  Wrap
- * a map.  That's what we've done here.  It's not the only strategy, since there
- * are plenty of ways of accomplishing the same semantics.  But it's good enough
+ * That suggests a simple strategy for representing user-defined objects: Wrap
+ * a map. That's what we've done here.  It's not the only strategy, since there
+ * are plenty of ways of accomplishing the same semantics. But it's good enough
  * for now.
  * </p>
  *
@@ -59,11 +59,11 @@ import com.avail.serialization.SerializerOperation;
  * need to introduce a multiple-dispatch mechanism to deal with multimethods.
  * At that point we'll probably introduce a new representation where objects
  * contain a map from field names to slot numbers, plus a tuple holding those
- * slots (or just a variable number of slots in the object itself).  Then two
+ * slots (or just a variable number of slots in the object itself). Then two
  * objects with the same layout can use the same type-specific optimized code to
- * access the object's fields.  Conversely, objects with different field layouts
+ * access the object's fields. Conversely, objects with different field layouts
  * would be considered incompatible for the purpose of sharing optimized code,
- * even if the objects themselves were equal.  Technically, this would be
+ * even if the objects themselves were equal. Technically, this would be
  * receiver-layout-specific optimization, but since there isn't a single
  * receiver it would have to depend on the combined layouts of any user-defined
  * objects for which the optimized code needs fast access to state variables.
@@ -79,12 +79,13 @@ extends Descriptor
 	/**
 	 * The layout of object slots for my instances.
 	 */
-	public enum ObjectSlots implements ObjectSlotsEnum
+	public enum ObjectSlots
+	implements ObjectSlotsEnum
 	{
 		/**
-		 * A map from attribute keys to their corresponding values.  Attribute
+		 * A map from attribute keys to their corresponding values. Attribute
 		 * keys are {@linkplain AtomDescriptor atoms}, and the values can be
-		 * anything.  An object's type is derived from this map and the types of
+		 * anything. An object's type is derived from this map and the types of
 		 * the attribute values, so it's not quite right to say that the values
 		 * can be anything.
 		 */
@@ -98,8 +99,7 @@ extends Descriptor
 	}
 
 	@Override
-	boolean allowsImmutableToMutableReferenceInField (
-		final AbstractSlotsEnum e)
+	boolean allowsImmutableToMutableReferenceInField (final AbstractSlotsEnum e)
 	{
 		return e == KIND;
 	}
@@ -124,9 +124,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_Equals (
-		final AvailObject object,
-		final AvailObject another)
+	boolean o_Equals (final AvailObject object, final AvailObject another)
 	{
 		return another.equalsObject(object);
 	}
@@ -140,7 +138,7 @@ extends Descriptor
 		{
 			return true;
 		}
-		return object.fieldMap().equals(anObject.fieldMap());
+		return object.slot(FIELD_MAP).equals(anObject.slot(FIELD_MAP));
 	}
 
 	@Override @AvailMethod
@@ -156,22 +154,26 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	int o_Hash (
-		final AvailObject object)
+	int o_Hash (final AvailObject object)
 	{
 		// Answer the object's hash value.
-		return computeHashFromFieldMapHash(object.fieldMap().hash());
+		return computeHashFromFieldMapHash(object.slot(FIELD_MAP).hash());
 	}
 
-	@Override @AvailMethod
-	AvailObject o_Kind (
-		final AvailObject object)
+	/**
+	 * Lazily compute and install the kind of the specfied {@linkplain
+	 * ObjectDescriptor object}.
+	 *
+	 * @param object An object.
+	 * @return A type.
+	 */
+	private AvailObject kind (final AvailObject object)
 	{
 		AvailObject kind = object.slot(KIND);
-		if (kind.equalsNull())
+		if (kind.equalsNil())
 		{
 			object.makeImmutable();
-			final AvailObject valueMap = object.fieldMap();
+			final AvailObject valueMap = object.slot(FIELD_MAP);
 			AvailObject typeMap = MapDescriptor.empty();
 			for (final MapDescriptor.Entry entry : valueMap.mapIterable())
 			{
@@ -181,21 +183,36 @@ extends Descriptor
 					true);
 			}
 			kind = ObjectTypeDescriptor.objectTypeFromMap(typeMap);
+			if (isShared())
+			{
+				kind = kind.traversed().makeShared();
+			}
 			object.setSlot(KIND, kind);
 		}
 		return kind;
 	}
 
+	@Override @AvailMethod
+	AvailObject o_Kind (final AvailObject object)
+	{
+		if (isShared())
+		{
+			synchronized (object)
+			{
+				return kind(object);
+			}
+		}
+		return kind(object);
+	}
+
 	@Override @AvailMethod @ThreadSafe
-	SerializerOperation o_SerializerOperation (
-		final AvailObject object)
+	SerializerOperation o_SerializerOperation (final AvailObject object)
 	{
 		return SerializerOperation.OBJECT;
 	}
 
 	@Override
-	public boolean o_ShowValueInNameForDebugger (
-		final AvailObject object)
+	public boolean o_ShowValueInNameForDebugger (final AvailObject object)
 	{
 		return false;
 	}
@@ -248,7 +265,8 @@ extends Descriptor
 			}
 		}
 		first = true;
-		for (final MapDescriptor.Entry entry : object.fieldMap().mapIterable())
+		for (final MapDescriptor.Entry entry
+			: object.slot(FIELD_MAP).mapIterable())
 		{
 			if (!ignoreKeys.hasElement(entry.key))
 			{
@@ -284,12 +302,11 @@ extends Descriptor
 	 * @param map A map from keys to their corresponding values.
 	 * @return The new object.
 	 */
-	public static AvailObject objectFromMap (
-		final AvailObject map)
+	public static AvailObject objectFromMap (final AvailObject map)
 	{
-		final AvailObject result = mutable().create();
+		final AvailObject result = mutable.create();
 		result.setSlot(FIELD_MAP, map);
-		result.setSlot(KIND, NullDescriptor.nullObject());
+		result.setSlot(KIND, NilDescriptor.nil());
 		return result;
 	}
 
@@ -303,8 +320,7 @@ extends Descriptor
 	 *        value.
 	 * @return The new object.
 	 */
-	public static AvailObject objectFromTuple (
-		final AvailObject tuple)
+	public static AvailObject objectFromTuple (final AvailObject tuple)
 	{
 		AvailObject map = MapDescriptor.empty();
 		for (final AvailObject fieldAssignment : tuple)
@@ -333,42 +349,41 @@ extends Descriptor
 	/**
 	 * Construct a new {@link ObjectDescriptor}.
 	 *
-	 * @param isMutable
-	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
-	 *        object?
+	 * @param mutability
+	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 */
-	protected ObjectDescriptor (final boolean isMutable)
+	private ObjectDescriptor (final Mutability mutability)
 	{
-		super(isMutable);
+		super(mutability);
 	}
 
-	/**
-	 * The mutable {@link ObjectDescriptor}.
-	 */
-	private static final ObjectDescriptor mutable = new ObjectDescriptor(true);
+	/** The mutable {@link ObjectDescriptor}. */
+	private static final ObjectDescriptor mutable =
+		new ObjectDescriptor(Mutability.MUTABLE);
 
-	/**
-	 * Answer the mutable {@link ObjectDescriptor}.
-	 *
-	 * @return The mutable {@link ObjectDescriptor}.
-	 */
-	public static ObjectDescriptor mutable ()
+	@Override
+	ObjectDescriptor mutable ()
 	{
 		return mutable;
 	}
 
-	/**
-	 * The immutable {@link ObjectDescriptor}.
-	 */
-	private static final ObjectDescriptor immutable = new ObjectDescriptor(false);
+	/** The immutable {@link ObjectDescriptor}. */
+	private static final ObjectDescriptor immutable =
+		new ObjectDescriptor(Mutability.IMMUTABLE);
 
-	/**
-	 * Answer the immutable {@link ObjectDescriptor}.
-	 *
-	 * @return The immutable {@link ObjectDescriptor}.
-	 */
-	public static ObjectDescriptor immutable ()
+	@Override
+	ObjectDescriptor immutable ()
 	{
 		return immutable;
+	}
+
+	/** The shared {@link ObjectDescriptor}. */
+	private static final ObjectDescriptor shared =
+		new ObjectDescriptor(Mutability.SHARED);
+
+	@Override
+	ObjectDescriptor shared ()
+	{
+		return shared;
 	}
 }

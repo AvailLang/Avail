@@ -1,6 +1,6 @@
 /**
  * P_506_CreatePojoInstanceMethodFunction.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -150,7 +150,7 @@ public class P_506_CreatePojoInstanceMethodFunction extends Primitive
 		// primitive. This function will be embedded as a literal into
 		// an outer function that holds the (unexposed) method pojo.
 		L1InstructionWriter writer = new L1InstructionWriter(
-			NullDescriptor.nullObject(),
+			NilDescriptor.nil(),
 			0);
 		writer.primitiveNumber(
 			P_507_InvokeInstancePojoMethod.instance.primitiveNumber);
@@ -181,7 +181,7 @@ public class P_506_CreatePojoInstanceMethodFunction extends Primitive
 		// not want to expose to the Avail program are embedded in this
 		// function as literals.
 		writer = new L1InstructionWriter(
-			NullDescriptor.nullObject(),
+			NilDescriptor.nil(),
 			0);
 		final List<AvailObject> allParamTypes =
 			new ArrayList<AvailObject>(paramTypes.tupleSize() + 1);

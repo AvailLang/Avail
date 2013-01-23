@@ -1,6 +1,6 @@
 /**
  * MapTypeDescriptor.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,28 +32,31 @@
 
 package com.avail.descriptor;
 
+import static com.avail.descriptor.MapTypeDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.List;
+import com.avail.AvailRuntime;
 import com.avail.annotations.*;
 import com.avail.serialization.SerializerOperation;
 
 /**
  * An object instance of {@code MapTypeDescriptor} is a type which maps may
- * conform to.  The map type has a {@linkplain ObjectSlots#SIZE_RANGE size
+ * conform to. The map type has a {@linkplain ObjectSlots#SIZE_RANGE size
  * range}, and {@linkplain ObjectSlots#KEY_TYPE key} and {@linkplain
- * ObjectSlots#VALUE_TYPE value} types.  For a map to conform to a map type, it
+ * ObjectSlots#VALUE_TYPE value} types. For a map to conform to a map type, it
  * must be within the indicates size range and have keys and values of the
  * specified {@linkplain TypeDescriptor types}.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class MapTypeDescriptor
+public final class MapTypeDescriptor
 extends TypeDescriptor
 {
 	/**
 	 * The layout of object slots for my instances.
 	 */
-	public enum ObjectSlots implements ObjectSlotsEnum
+	public enum ObjectSlots
+	implements ObjectSlotsEnum
 	{
 		/**
 		 * The number of elements that a map can have while conforming to this
@@ -75,24 +78,21 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_KeyType (
-		final AvailObject object)
+	AvailObject o_KeyType (final AvailObject object)
 	{
-		return object.slot(ObjectSlots.KEY_TYPE);
+		return object.slot(KEY_TYPE);
 	}
 
 	@Override @AvailMethod
-	AvailObject o_SizeRange (
-		final AvailObject object)
+	AvailObject o_SizeRange (final AvailObject object)
 	{
-		return object.slot(ObjectSlots.SIZE_RANGE);
+		return object.slot(SIZE_RANGE);
 	}
 
 	@Override @AvailMethod
-	AvailObject o_ValueType (
-		final AvailObject object)
+	AvailObject o_ValueType (final AvailObject object)
 	{
-		return object.slot(ObjectSlots.VALUE_TYPE);
+		return object.slot(VALUE_TYPE);
 	}
 
 	@Override
@@ -102,9 +102,9 @@ extends TypeDescriptor
 		final List<AvailObject> recursionList,
 		final int indent)
 	{
-		if (object.keyType().equals(ANY.o())
-			&& object.valueType().equals(ANY.o())
-			&& object.sizeRange().equals(
+		if (object.slot(KEY_TYPE).equals(ANY.o())
+			&& object.slot(VALUE_TYPE).equals(ANY.o())
+			&& object.slot(SIZE_RANGE).equals(
 				IntegerRangeTypeDescriptor.wholeNumbers()))
 		{
 			aStream.append("map");
@@ -117,7 +117,7 @@ extends TypeDescriptor
 		object.valueType().printOnAvoidingIndent(
 			aStream, recursionList, indent + 1);
 		aStream.append('|');
-		final AvailObject sizeRange = object.sizeRange();
+		final AvailObject sizeRange = object.slot(SIZE_RANGE);
 		if (sizeRange.equals(IntegerRangeTypeDescriptor.wholeNumbers()))
 		{
 			aStream.append('}');
@@ -135,9 +135,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_Equals (
-		final AvailObject object,
-		final AvailObject another)
+	boolean o_Equals (final AvailObject object, final AvailObject another)
 	{
 		return another.equalsMapType(object);
 	}
@@ -147,39 +145,35 @@ extends TypeDescriptor
 		final AvailObject object,
 		final AvailObject aMapType)
 	{
-		//  Map types are equal iff their sizeRange, keyType, and valueType match.
-
 		if (object.sameAddressAs(aMapType))
 		{
 			return true;
 		}
-		return object.sizeRange().equals(aMapType.sizeRange()) && object.keyType().equals(aMapType.keyType()) && object.valueType().equals(aMapType.valueType());
+		return object.slot(SIZE_RANGE).equals(aMapType.sizeRange())
+			&& object.slot(KEY_TYPE).equals(aMapType.keyType())
+			&& object.slot(VALUE_TYPE).equals(aMapType.valueType());
 	}
 
 	@Override @AvailMethod
-	int o_Hash (
-		final AvailObject object)
+	int o_Hash (final AvailObject object)
 	{
-		//  Answer a 32-bit integer that is always the same for equal objects, but
-		//  statistically different for different objects.
-
-		return MapTypeDescriptor.computeHashForSizeRangeHashKeyTypeHashValueTypeHash(
-			object.sizeRange().hash(),
-			object.keyType().hash(),
-			object.valueType().hash());
+		// Answer a 32-bit integer that is always the same for equal objects,
+		// but statistically different for different objects.
+		return MapTypeDescriptor
+			.computeHashForSizeRangeHashKeyTypeHashValueTypeHash(
+				object.slot(SIZE_RANGE).hash(),
+				object.slot(KEY_TYPE).hash(),
+				object.slot(VALUE_TYPE).hash());
 	}
 
 	@Override @AvailMethod
-	boolean o_IsMapType (
-		final AvailObject object)
+	boolean o_IsMapType (final AvailObject object)
 	{
 		return true;
 	}
 
 	@Override @AvailMethod
-	boolean o_IsSubtypeOf (
-		final AvailObject object,
-		final AvailObject aType)
+	boolean o_IsSubtypeOf (final AvailObject object, final AvailObject aType)
 	{
 		// Check if object (a type) is a subtype of aType (should also be a
 		// type).
@@ -191,10 +185,11 @@ extends TypeDescriptor
 		final AvailObject object,
 		final AvailObject aMapType)
 	{
-		//  Map type A is a subtype of B if and only if their size ranges are covariant
-		//  and their key types and value types are each covariant.
-
-		return aMapType.sizeRange().isSubtypeOf(object.sizeRange()) && aMapType.keyType().isSubtypeOf(object.keyType()) && aMapType.valueType().isSubtypeOf(object.valueType());
+		// Map type A is a subtype of B if and only if their size ranges are
+		// covariant and their key types and value types are each covariant.
+		return aMapType.slot(SIZE_RANGE).isSubtypeOf(object.slot(SIZE_RANGE))
+			&& aMapType.slot(KEY_TYPE).isSubtypeOf(object.slot(KEY_TYPE))
+			&& aMapType.slot(VALUE_TYPE).isSubtypeOf(object.slot(VALUE_TYPE));
 	}
 
 	@Override @AvailMethod
@@ -202,8 +197,8 @@ extends TypeDescriptor
 		final AvailObject object,
 		final AvailObject another)
 	{
-		//  Answer the most general type that is still at least as specific as these.
-
+		// Answer the most general type that is still at least as specific as
+		// these.
 		if (object.isSubtypeOf(another))
 		{
 			return object;
@@ -220,16 +215,19 @@ extends TypeDescriptor
 		final AvailObject object,
 		final AvailObject aMapType)
 	{
-		//  Answer the most general type that is still at least as specific as these.
+		// Answer the most general type that is still at least as specific as
+		// these.
 		//
-		//  Note that the subcomponents must be made immutable in case one of the
-		//  input mapTypes is mutable (and may be destroyed *recursively* by
-		//  post-primitive code).
-
+		// Note that the subcomponents must be made immutable in case one of the
+		// input mapTypes is mutable (and may be destroyed *recursively* by
+		// post-primitive code).
 		return MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
-			object.sizeRange().typeIntersection(aMapType.sizeRange()).makeImmutable(),
-			object.keyType().typeIntersection(aMapType.keyType()).makeImmutable(),
-			object.valueType().typeIntersection(aMapType.valueType()).makeImmutable());
+			object.slot(SIZE_RANGE).typeIntersection(
+				aMapType.slot(SIZE_RANGE)).makeImmutable(),
+			object.slot(KEY_TYPE).typeIntersection(
+				aMapType.slot(KEY_TYPE)).makeImmutable(),
+			object.slot(VALUE_TYPE).typeIntersection(
+				aMapType.slot(VALUE_TYPE)).makeImmutable());
 	}
 
 	@Override @AvailMethod
@@ -237,8 +235,8 @@ extends TypeDescriptor
 		final AvailObject object,
 		final AvailObject another)
 	{
-		//  Answer the most specific type that is still at least as general as these.
-
+		// Answer the most specific type that is still at least as general as
+		// these.
 		if (object.equals(another))
 		{
 			return object;
@@ -259,23 +257,37 @@ extends TypeDescriptor
 		final AvailObject object,
 		final AvailObject aMapType)
 	{
-		//  Answer the most specific type that is still at least as general as these.
+		// Answer the most specific type that is still at least as general as
+		// these.
 		//
-		//  Note that the subcomponents must be made immutable in case one of the
-		//  input mapTypes is mutable (and may be destroyed *recursively* by
-		//  post-primitive code).
-
+		// Note that the subcomponents must be made immutable in case one of the
+		// input mapTypes is mutable (and may be destroyed *recursively* by
+		// post-primitive code).
 		return MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
-			object.sizeRange().typeUnion(aMapType.sizeRange()).makeImmutable(),
-			object.keyType().typeUnion(aMapType.keyType()).makeImmutable(),
-			object.valueType().typeUnion(aMapType.valueType()).makeImmutable());
+			object.slot(SIZE_RANGE).typeUnion(
+				aMapType.slot(SIZE_RANGE)).makeImmutable(),
+			object.slot(KEY_TYPE).typeUnion(
+				aMapType.slot(KEY_TYPE)).makeImmutable(),
+			object.slot(VALUE_TYPE).typeUnion(
+				aMapType.slot(VALUE_TYPE)).makeImmutable());
 	}
 
-	@Override
-	SerializerOperation o_SerializerOperation (
-		final AvailObject object)
+	@Override @AvailMethod
+	SerializerOperation o_SerializerOperation (final AvailObject object)
 	{
 		return SerializerOperation.MAP_TYPE;
+	}
+
+	@Override @AvailMethod
+	AvailObject o_MakeImmutable (final AvailObject object)
+	{
+		if (isMutable())
+		{
+			// Make the object shared, since there isn't an immutable
+			// descriptor.
+			return object.makeShared();
+		}
+		return object;
 	}
 
 	/**
@@ -283,14 +295,13 @@ extends TypeDescriptor
 	 * constituent parts.
 	 *
 	 * @param sizesHash
-	 *            The hash of the {@linkplain IntegerRangeTypeDescriptor integer
-	 *            range type} that constrains the map size.
+	 *        The hash of the {@linkplain IntegerRangeTypeDescriptor integer
+	 *        range type} that constrains the map size.
 	 * @param keyTypeHash
-	 *            The hash of the key type.
+	 *        The hash of the key type.
 	 * @param valueTypeHash
-	 *            The hash of the value type.
-	 * @return
-	 *            The hash of the resulting map type.
+	 *        The hash of the value type.
+	 * @return The hash of the resulting map type.
 	 */
 	private static int computeHashForSizeRangeHashKeyTypeHashValueTypeHash (
 		final int sizesHash,
@@ -300,10 +311,7 @@ extends TypeDescriptor
 		return sizesHash * 3 + keyTypeHash * 5 + valueTypeHash * 13;
 	}
 
-
-	/**
-	 * The most general map type.
-	 */
+	/** The most general map type. */
 	private static AvailObject mostGeneralType;
 
 	/**
@@ -331,23 +339,30 @@ extends TypeDescriptor
 		return meta;
 	}
 
-	public static void clearWellKnownObjects ()
-	{
-		mostGeneralType = null;
-		meta = null;
-	}
-
+	/**
+	 * Create all objects well-known to the {@linkplain AvailRuntime Avail
+	 * runtime}.
+	 */
 	public static void createWellKnownObjects ()
 	{
 		mostGeneralType = mapTypeForSizesKeyTypeValueType(
 			IntegerRangeTypeDescriptor.wholeNumbers(),
 			ANY.o(),
 			ANY.o());
-		mostGeneralType.makeImmutable();
+		mostGeneralType.makeShared();
 		meta = InstanceMetaDescriptor.on(mostGeneralType);
-		meta.makeImmutable();
+		meta.makeShared();
 	}
 
+	/**
+	 * Discard or reset all objects well-known to the {@linkplain AvailRuntime
+	 * Avail runtime}.
+	 */
+	public static void clearWellKnownObjects ()
+	{
+		mostGeneralType = null;
+		meta = null;
+	}
 
 	/**
 	 * Construct a new map type with the specified permitted range of number of
@@ -357,12 +372,12 @@ extends TypeDescriptor
 	 * bottom).
 	 *
 	 * @param sizeRange
-	 *            An {@linkplain IntegerRangeTypeDescriptor integer range type}
-	 *            specifying the permitted sizes of a map of the proposed type.
+	 *        An {@linkplain IntegerRangeTypeDescriptor integer range type}
+	 *        specifying the permitted sizes of a map of the proposed type.
 	 * @param keyType
-	 *            The type of all keys of maps of the proposed type.
+	 *        The type of all keys of maps of the proposed type.
 	 * @param valueType
-	 *            The type of all values of maps of the proposed type.
+	 *        The type of all values of maps of the proposed type.
 	 * @return The requested map type.
 	 */
 	public static AvailObject mapTypeForSizesKeyTypeValueType (
@@ -407,52 +422,48 @@ extends TypeDescriptor
 			newValueType = valueType;
 		}
 
-		final AvailObject result = mutable().create();
-		result.setSlot(ObjectSlots.SIZE_RANGE, newSizeRange);
-		result.setSlot(ObjectSlots.KEY_TYPE, newKeyType);
-		result.setSlot(ObjectSlots.VALUE_TYPE, newValueType);
+		final AvailObject result = mutable.create();
+		result.setSlot(SIZE_RANGE, newSizeRange);
+		result.setSlot(KEY_TYPE, newKeyType);
+		result.setSlot(VALUE_TYPE, newValueType);
 		return result;
 	}
 
 	/**
 	 * Construct a new {@link MapTypeDescriptor}.
 	 *
-	 * @param isMutable
-	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
-	 *        object?
+	 * @param mutability
+	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 */
-	protected MapTypeDescriptor (final boolean isMutable)
+	private MapTypeDescriptor (final Mutability mutability)
 	{
-		super(isMutable);
+		super(mutability);
 	}
 
-	/**
-	 * The mutable {@link MapTypeDescriptor}.
-	 */
-	private static final MapTypeDescriptor mutable = new MapTypeDescriptor(true);
+	/** The mutable {@link MapTypeDescriptor}. */
+	private static final MapTypeDescriptor mutable =
+		new MapTypeDescriptor(Mutability.MUTABLE);
 
-	/**
-	 * Answer the mutable {@link MapTypeDescriptor}.
-	 *
-	 * @return The mutable {@link MapTypeDescriptor}.
-	 */
-	public static MapTypeDescriptor mutable ()
+	@Override
+	MapTypeDescriptor mutable ()
 	{
 		return mutable;
 	}
 
-	/**
-	 * The immutable {@link MapTypeDescriptor}.
-	 */
-	private static final MapTypeDescriptor immutable = new MapTypeDescriptor(false);
+	/** The shared {@link MapTypeDescriptor}. */
+	private static final MapTypeDescriptor shared =
+		new MapTypeDescriptor(Mutability.SHARED);
 
-	/**
-	 * Answer the immutable {@link MapTypeDescriptor}.
-	 *
-	 * @return The immutable {@link MapTypeDescriptor}.
-	 */
-	public static MapTypeDescriptor immutable ()
+	@Override
+	MapTypeDescriptor immutable ()
 	{
-		return immutable;
+		// There is no immutable descriptor.
+		return shared;
+	}
+
+	@Override
+	MapTypeDescriptor shared ()
+	{
+		return shared;
 	}
 }

@@ -1,6 +1,6 @@
 /**
  * IntegerDescriptor.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -59,6 +59,7 @@ import com.avail.serialization.SerializerOperation;
  * </p>
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public class IntegerDescriptor
 extends ExtendedIntegerDescriptor
@@ -66,7 +67,8 @@ extends ExtendedIntegerDescriptor
 	/**
 	 * The layout of integer slots for my instances.
 	 */
-	public enum IntegerSlots implements IntegerSlotsEnum
+	public enum IntegerSlots
+	implements IntegerSlotsEnum
 	{
 		/**
 		 * <p>
@@ -89,23 +91,6 @@ extends ExtendedIntegerDescriptor
 		RAW_SIGNED_INT_AT_
 	}
 
-	@Override @AvailMethod
-	int o_RawSignedIntegerAt (
-		final AvailObject object,
-		final int subscript)
-	{
-		return object.slot(RAW_SIGNED_INT_AT_, subscript);
-	}
-
-	@Override @AvailMethod
-	void o_RawSignedIntegerAtPut (
-		final AvailObject object,
-		final int subscript,
-		final int value)
-	{
-		object.setSlot(RAW_SIGNED_INT_AT_, subscript, value);
-	}
-
 	@Override
 	public void printObjectOnAvoidingIndent (
 		final AvailObject object,
@@ -125,9 +110,22 @@ extends ExtendedIntegerDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_Equals (
+	int o_RawSignedIntegerAt (final AvailObject object, final int subscript)
+	{
+		return object.slot(RAW_SIGNED_INT_AT_, subscript);
+	}
+
+	@Override @AvailMethod
+	void o_RawSignedIntegerAtPut (
 		final AvailObject object,
-		final AvailObject another)
+		final int subscript,
+		final int value)
+	{
+		object.setSlot(RAW_SIGNED_INT_AT_, subscript, value);
+	}
+
+	@Override @AvailMethod
+	boolean o_Equals (final AvailObject object, final AvailObject another)
 	{
 		return another.equalsInteger(object);
 	}
@@ -205,8 +203,7 @@ extends ExtendedIntegerDescriptor
 	}
 
 	@Override @AvailMethod
-	int o_Hash (
-		final AvailObject object)
+	int o_Hash (final AvailObject object)
 	{
 		if (object.isUnsignedByte())
 		{
@@ -216,15 +213,13 @@ extends ExtendedIntegerDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_IsFinite (
-		final AvailObject object)
+	boolean o_IsFinite (final AvailObject object)
 	{
 		return true;
 	}
 
 	@Override @AvailMethod
-	AvailObject o_Kind (
-		final AvailObject object)
+	AvailObject o_Kind (final AvailObject object)
 	{
 		object.makeImmutable();
 		return IntegerRangeTypeDescriptor.singleInteger(object);
@@ -447,13 +442,12 @@ extends ExtendedIntegerDescriptor
 	}
 
 	@Override @AvailMethod
-	void o_TrimExcessInts (
-		final AvailObject object)
+	void o_TrimExcessInts (final AvailObject object)
 	{
 		// Remove any redundant ints from my end.  Since I'm stored in Little
 		// Endian representation, I can simply be truncated with no need to
 		// shift data around.
-		assert isMutable;
+		assert isMutable();
 		int size = object.integerSlotsCount();
 		if (size > 1)
 		{
@@ -511,7 +505,7 @@ extends ExtendedIntegerDescriptor
 		if (objectSize == anIntegerSize)
 		{
 			output =
-				isMutable
+				isMutable()
 					? object
 					: another.descriptor().isMutable()
 						? another
@@ -519,7 +513,7 @@ extends ExtendedIntegerDescriptor
 		}
 		else if (objectSize > anIntegerSize)
 		{
-			output = isMutable ? object : null;
+			output = isMutable() ? object : null;
 		}
 		else
 		{
@@ -674,7 +668,7 @@ extends ExtendedIntegerDescriptor
 		final AvailObject another)
 	{
 		AvailObject output = null;
-		if (isMutable)
+		if (isMutable())
 		{
 			output = object;
 		}
@@ -1834,8 +1828,7 @@ extends ExtendedIntegerDescriptor
 	 * object, which is an {@linkplain IntegerDescriptor Avail integer}.
 	 */
 	@Override @AvailMethod
-	public BigInteger o_AsBigInteger (
-		final AvailObject object)
+	public BigInteger o_AsBigInteger (final AvailObject object)
 	{
 		final int integerCount = object.integerSlotsCount();
 		if (integerCount <= 2)
@@ -1865,9 +1858,9 @@ extends ExtendedIntegerDescriptor
 		immutableByteObjects = new AvailObject [256];
 		for (int i = 0; i <= 255; i++)
 		{
-			final AvailObject object = mutable().create(1);
+			final AvailObject object = mutable.create(1);
 			object.rawSignedIntegerAtPut(1, i);
-			object.makeImmutable();
+			object.makeShared();
 			immutableByteObjects[i] = object;
 		}
 		hashesOfUnsignedBytes = new int [256];
@@ -1875,9 +1868,9 @@ extends ExtendedIntegerDescriptor
 		{
 			hashesOfUnsignedBytes[i] = computeHashOfInt(i);
 		}
-		negativeOne = mutable().create(1);
+		negativeOne = mutable.create(1);
 		negativeOne.rawSignedIntegerAtPut(1, -1);
-		negativeOne.makeImmutable();
+		negativeOne.makeShared();
 	}
 
 	/**
@@ -1899,7 +1892,6 @@ extends ExtendedIntegerDescriptor
 	 *
 	 * @param aLong A Java {@code long}.
 	 * @return An {@link AvailObject}.
-	 * @author Todd L Smith &lt;todd@availlang.org&gt;
 	 */
 	public static AvailObject fromLong (final long aLong)
 	{
@@ -1909,11 +1901,11 @@ extends ExtendedIntegerDescriptor
 		}
 		if (aLong == (int)aLong)
 		{
-			final AvailObject result = mutable().create(1);
+			final AvailObject result = mutable.create(1);
 			result.rawSignedIntegerAtPut(1, (int) aLong);
 			return result;
 		}
-		final AvailObject result = mutable().create(2);
+		final AvailObject result = mutable.create(2);
 		result.rawSignedIntegerAtPut(1, (int) aLong);
 		result.rawSignedIntegerAtPut(2, (int) (aLong >> 32L));
 		return result;
@@ -1926,8 +1918,7 @@ extends ExtendedIntegerDescriptor
 	 * @param bigInteger The BigInteger to convert.
 	 * @return An Avail integer representing the same number as the argument.
 	 */
-	public static AvailObject fromBigInteger (
-		final BigInteger bigInteger)
+	public static AvailObject fromBigInteger (final BigInteger bigInteger)
 	{
 		final byte[] bytes = bigInteger.toByteArray();
 		if (bytes.length < 8)
@@ -1936,7 +1927,7 @@ extends ExtendedIntegerDescriptor
 		}
 		final int signByte = ((bytes[0] >> 7) & 1) * 255;
 		final int intCount = (bytes.length + 4) >> 2;
-		final AvailObject result = mutable().create(intCount);
+		final AvailObject result = mutable.create(intCount);
 		// Start with the least significant bits.
 		int byteIndex = bytes.length - 1;
 		for (int destIndex = 1; destIndex <= intCount; destIndex++)
@@ -1964,7 +1955,6 @@ extends ExtendedIntegerDescriptor
 		return result;
 	}
 
-
 	/**
 	 * Answer an Avail {@linkplain IntegerDescriptor integer} that holds the
 	 * truncation of the {@code double} argument, rounded towards zero.
@@ -1974,8 +1964,7 @@ extends ExtendedIntegerDescriptor
 	 *            integer.
 	 * @return An Avail integer.
 	 */
-	public static AvailObject truncatedFromDouble (
-		final double aDouble)
+	public static AvailObject truncatedFromDouble (final double aDouble)
 	{
 		// Extract the top three 32-bit sections.  That guarantees 65 bits
 		// of mantissa, which is more than a double actually captures.
@@ -1989,7 +1978,7 @@ extends ExtendedIntegerDescriptor
 		truncated = abs(truncated);
 		final int exponent = getExponent(truncated);
 		final int slots = exponent + 31 / 32;  // probably needs work
-		AvailObject out = mutable().create(slots);
+		AvailObject out = mutable.create(slots);
 		truncated = scalb(truncated, (1 - slots) * 32);
 		for (int i = slots; i >= 1; --i)
 		{
@@ -2020,7 +2009,7 @@ extends ExtendedIntegerDescriptor
 		{
 			return immutableByteObjects[anInteger];
 		}
-		final AvailObject result = mutable().create(1);
+		final AvailObject result = mutable.create(1);
 		result.rawSignedIntegerAtPut(1, anInteger);
 		return result;
 	}
@@ -2212,50 +2201,47 @@ extends ExtendedIntegerDescriptor
 	 */
 	public static AvailObject createUninitialized (final int size)
 	{
-		return mutable().create(size);
+		return mutable.create(size);
 	}
 
 	/**
 	 * Construct a new {@link IntegerDescriptor}.
 	 *
-	 * @param isMutable
-	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
-	 *        object?
+	 * @param mutability
+	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 */
-	protected IntegerDescriptor (final boolean isMutable)
+	private IntegerDescriptor (final Mutability mutability)
 	{
-		super(isMutable);
+		super(mutability);
 	}
 
-	/**
-	 * The mutable {@link IntegerDescriptor}.
-	 */
-	private static final IntegerDescriptor mutable =
-		new IntegerDescriptor(true);
+	/** The mutable {@link IntegerDescriptor}. */
+	public static final IntegerDescriptor mutable =
+		new IntegerDescriptor(Mutability.MUTABLE);
 
-	/**
-	 * Answer the mutable {@link IntegerDescriptor}.
-	 *
-	 * @return The mutable {@link IntegerDescriptor}.
-	 */
-	public static IntegerDescriptor mutable ()
+	@Override
+	IntegerDescriptor mutable ()
 	{
 		return mutable;
 	}
 
-	/**
-	 * The immutable {@link IntegerDescriptor}.
-	 */
+	/** The immutable {@link IntegerDescriptor}. */
 	private static final IntegerDescriptor immutable =
-		new IntegerDescriptor(false);
+		new IntegerDescriptor(Mutability.IMMUTABLE);
 
-	/**
-	 * Answer the immutable {@link IntegerDescriptor}.
-	 *
-	 * @return The immutable {@link IntegerDescriptor}.
-	 */
-	public static IntegerDescriptor immutable ()
+	@Override
+	IntegerDescriptor immutable ()
 	{
 		return immutable;
+	}
+
+	/** The shared {@link IntegerDescriptor}. */
+	private static final IntegerDescriptor shared =
+		new IntegerDescriptor(Mutability.SHARED);
+
+	@Override
+	IntegerDescriptor shared ()
+	{
+		return shared;
 	}
 }

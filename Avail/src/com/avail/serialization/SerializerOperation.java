@@ -1,6 +1,6 @@
 /**
  * SerializerOperation.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -397,10 +397,10 @@ public enum SerializerOperation
 
 
 	/**
-	 * Produce the Avail {@linkplain NullDescriptor#nullObject() null object}
-	 * during deserialization.
+	 * Produce the Avail {@linkplain NilDescriptor#nil() nil} during
+	 * deserialization.
 	 */
-	NULL_OBJECT (15)
+	NIL (15)
 	{
 		@Override
 		AvailObject[] decompose (final AvailObject object)
@@ -413,7 +413,7 @@ public enum SerializerOperation
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
-			return NullDescriptor.nullObject();
+			return NilDescriptor.nil();
 		}
 	},
 
@@ -870,7 +870,7 @@ public enum SerializerOperation
 		AvailObject[] decompose (final AvailObject object)
 		{
 			final AvailObject module = object.issuingModule();
-			if (module.equalsNull())
+			if (module.equalsNil())
 			{
 				throw new RuntimeException("Atom has no issuing module");
 			}
@@ -930,7 +930,7 @@ public enum SerializerOperation
 				outerTypes.tupleAtPut(i, object.outerTypeAt(i));
 			}
 			final AvailObject module = object.module();
-			final AvailObject moduleName = module.equalsNull()
+			final AvailObject moduleName = module.equalsNil()
 				? TupleDescriptor.empty()
 				: module.name();
 			return array(
@@ -966,7 +966,7 @@ public enum SerializerOperation
 			final int numLocals = localTypes.tupleSize();
 
 			final AvailObject module = moduleName.tupleSize() == 0
-				? NullDescriptor.nullObject()
+				? NilDescriptor.nil()
 				: deserializer.moduleNamed(moduleName);
 			return CompiledCodeDescriptor.create(
 				nybbles,
@@ -1174,7 +1174,7 @@ public enum SerializerOperation
 			final AvailObject variable = subobjects[0];
 			final AvailObject value = subobjects[1];
 			variable.setValue(value);
-			return NullDescriptor.nullObject();
+			return NilDescriptor.nil();
 		}
 	},
 

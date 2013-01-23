@@ -100,7 +100,7 @@ public class P_410_BootstrapVariableUseMacro extends Primitive
 				DeclarationNodeDescriptor.newModuleVariable(
 					actualToken,
 					variableObject,
-					NullDescriptor.nullObject());
+					NilDescriptor.nil());
 			final AvailObject variableUse = VariableUseNodeDescriptor.newUse(
 				actualToken,
 				moduleVarDecl);
@@ -121,7 +121,7 @@ public class P_410_BootstrapVariableUseMacro extends Primitive
 			DeclarationNodeDescriptor.newModuleConstant(
 				actualToken,
 				variableObject,
-				NullDescriptor.nullObject());
+				NilDescriptor.nil());
 		final AvailObject variableUse = VariableUseNodeDescriptor.newUse(
 			actualToken,
 			moduleConstDecl);

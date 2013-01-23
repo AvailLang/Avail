@@ -1,6 +1,6 @@
 /*
  * Tuples.avail
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -51,15 +51,19 @@ Uses
 	"Types",
 	"Variables"
 Names
+	"all indices of_in_",
 	"all indices of_where_",
 	"distinct_",
 	"drop from_until_",
 	"drop from_while_",
 	"drop_from_",
+	"first index of_in_",
 	"first index of_where_",
 	"flatten_",
 	"last index of_where_",
 	"left fold_through_",
+	"merge sort_",
+	"merge sort_with_",
 	"quicksort_",
 	"quicksort_with_",
 	"right fold_through_",
@@ -2548,6 +2552,81 @@ Print: “z”;
 	[lowBound..upBound+1)
 ];*/
 
+
+
+
+/**
+ * An implementation of insertion sort that accepts a tuple to be sorted and
+ * the predicate that defines how sorting occurs.  This only used for sorting
+ * small tuples.
+ *
+ * @method "insertion sort_with_"
+ * @categories "category"
+ * @param "aTuple" "<any…|2..15>" 
+ *      the tuple to be sorted
+ * @param "comparator" "[⊥, ⊥]→boolean"
+ * 		A comparison function that accepts two elements of {@param "aTuple"}
+ *      and answers {@code "true"} if the first ≤ second and {@code "false"}
+ *      otherwise.
+ * @returnType "<any|2..15>"
+ *      the sorted tuple
+ * @raises "exceptionName" 
+ *      exceptionDescription
+ * @author "authorName"
+ */
+Private method "insertion sort_with_" is
+[
+	aTuple : <any…|2..10>,
+	comparator : [⊥, ⊥]→boolean
+ |
+	output : <any…|2..> := aTuple;
+	From 2 to |aTuple| do
+	[
+		i : [2..10]
+	 |
+		j : [1..9] := i-1;
+		k : [2..10] := i;
+		While [j > 1 ∧ [comparator(output[k],output[j])]]
+		do
+		[
+		 	output := output[k↔j];
+			↑k--;
+			↑j--;
+		];
+		output := if j = 1 ∧ [comparator(output[k],output[j])] then 
+			[output[k↔j]] else [output];
+	];
+	output
+]:<any…|2..>;
+
+
+Semantic restriction "insertion sort_with_" is
+[
+	tupleType : <any…|2..10>'s type,
+	comparator : [⊥, ⊥]→boolean's type
+|
+	union ::= ∪ tupleType[1..|tupleType's leading types|+1];
+	If comparator[1] ≠ ⊥ ∧ [¬union ⊆ comparator[1]] then
+	[
+		Reject parse, expected:
+			"first parameter of comparison function to accept all elements ∈ "
+			++ “union”
+			++ " of the specified tuple (but it only accepts "
+			++ “comparator[1]”
+			++ ")"
+	];
+	If comparator[2] ≠ ⊥ ∧ [¬union ⊆ comparator[2]] then
+	[
+		Reject parse, expected:
+			"second parameter of comparison function to accept all elements ∈ "
+			++ “union”
+			++ " of the specified tuple (but it only accepts "
+			++ “comparator[2]”
+			++ ")"
+	];
+	<<>, union… | ||tupleType||>
+];
+
 /**
  * Construct and answer a sorted variant of {@param "numbers"} using the
  * quicksort algorithm.
@@ -2667,7 +2746,15 @@ Method "quicksort_with_" is
 
 Method "quicksort_with_" is
 [
-	aTuple : <any…|2..>,
+	aTuple : <any…|2..10>,
+	comparator : [⊥, ⊥]→boolean
+ |
+	insertion sort aTuple with comparator
+];
+
+Method "quicksort_with_" is
+[
+	aTuple : <any…|11..>,
 	comparator : [⊥, ⊥]→boolean
 |
 	/* Choose the median of the first, middle, and last elements as the
@@ -2695,6 +2782,169 @@ Method "quicksort_with_" is
 ];
 
 Seal method "quicksort_with_" at <tuple, [⊥, ⊥]→boolean>;
+
+/**
+ * Construct and answer a sorted variant of {@param "aTuple"} using the
+ * quicksort algorithm and specified comparison function.
+ *
+ * @method "merge_with_"
+ * @categories "Tuples"
+ * @param "splitInput" "<tuple…|2>>" 
+ *      two ordered tuples to merge
+ * @param "comparator" "[⊥, ⊥]→boolean"
+ * 		A comparison function that accepts two elements of {@param "aTuple"}
+ * 		and answers {@code "true"} if the first ≤ second and {@code "false"}
+ * 		otherwise.
+ * @returnType "tuple"
+ *      merged tuple
+ * @author "Richard Arriaga"
+ */
+Private method "merge_with_" is
+[
+	splitInput : <tuple…|2>,
+	comparator : [⊥, ⊥]→boolean
+ |
+	i : natural number := 1;
+	j : natural number := 1;
+	k : natural number := 1;
+
+	output : tuple := splitInput[1] ++ splitInput[2];
+
+	While [i ≤ |splitInput[1]| ∧  [j ≤ |splitInput[2]|]]
+	do
+	[
+		If comparator(splitInput[1][i] ,splitInput[2][j]) then
+		[
+			output := output[k]→splitInput[1][i];
+			↑i++;
+		]
+		else
+		[
+			output := output[k]→splitInput[2][j];
+			↑j++;
+		];
+		↑k++;
+	];
+	if  i < |splitInput[1]| then [output[..k-1] ++ splitInput[1][i..]]
+	else [output[..k-1] ++ splitInput[2][j..]]
+]: tuple;
+
+/**
+ * Construct and answer a sorted variant of {@param "aTuple"} using the
+ * merge sort algorithm and specified comparison function.
+ *
+ * @method "merge sort_with_"
+ * @categories "Tuples"
+ * @param "aTuple" "<any…|16..>" 
+ *      two ordered tuples to merge
+ * @param "comparator" "[⊥, ⊥]→boolean"
+ * 		A comparison function that accepts two elements of {@param "aTuple"}
+ * 		and answers {@code "true"} if the first ≤ second and {@code "false"}
+ * 		otherwise.
+ * @returnType "tuple"
+ *      merged tuple
+ * @author "Richard Arriaga"
+ */
+Public abstract method "merge sort_with_" is [tuple, [⊥, ⊥]→boolean]→tuple;
+
+Semantic restriction "merge sort_with_" is
+[
+	tupleType : tuple meta,
+	comparator : [⊥, ⊥]→boolean's type
+|
+	union ::= ∪ tupleType[1..|tupleType's leading types|+1];
+	If comparator[1] ≠ ⊥ ∧ [¬union ⊆ comparator[1]] then
+	[
+		Reject parse, expected:
+			"first parameter of comparison function to accept all elements ∈ "
+			++ “union”
+			++ " of the specified tuple (but it only accepts "
+			++ “comparator[1]”
+			++ ")"
+	];
+	If comparator[2] ≠ ⊥ ∧ [¬union ⊆ comparator[2]] then
+	[
+		Reject parse, expected:
+			"second parameter of comparison function to accept all elements ∈ "
+			++ “union”
+			++ " of the specified tuple (but it only accepts "
+			++ “comparator[2]”
+			++ ")"
+	];
+	<<>, union… | ||tupleType||>
+];
+
+Method "merge sort_with_" is
+[
+	trivial : <any…|..1>,
+	comparator : [⊥, ⊥]→boolean
+|
+	trivial
+] : <any…|0..1>;
+
+Method "merge sort_with_" is
+[
+	aTuple : <any…|2..10>,
+	comparator : [⊥, ⊥]→boolean
+ |
+	insertion sort aTuple with comparator
+]: tuple;
+
+Public method "merge sort_with_" is
+[
+	aTuple : <any…|11..>,
+	comparator : [⊥, ⊥]→boolean
+ |
+		left : tuple := merge sort aTuple[..|aTuple | ÷ 2] with comparator;
+		right: tuple := merge sort aTuple[|aTuple | ÷ 2 + 1..] with comparator;
+		merge <left,right> with comparator
+]: tuple;
+
+/**
+ * Construct and answer a sorted variant of {@param "aTuple"} using the
+ * merge sort algorithm.
+ *
+ * @method "merge sort_"
+ * @categories "Tuples"
+ * @param "aTuple" "<number…|>" 
+ *      a tuple
+ * @returnType "<number…|>"
+ *      a sorted tuple
+ * @author "Richard Arriaga"
+ */
+Public abstract method "merge sort_" is [<number…|>]→<number…|>;
+
+/* Give quicksort higher precedence than concatenation. */
+Grammatical restriction "merge sort_" is <{"«_‡++»"}>;
+
+Semantic restriction "merge sort_" is
+[
+	tupleType : tuple meta
+|
+	union ::= ∪ tupleType[1..|tupleType's leading types|+1];
+	<<>, union… | ||tupleType||>
+];
+
+Method "merge sort_" is
+[
+	trivial : <⊥…|0>
+|
+	trivial
+] : <number…|0>;
+
+Method "merge sort_" is
+[
+	trivial : <number…|1>
+|
+	trivial
+] : <number…|1>;
+
+Method "merge sort_" is
+[
+	aTuple : <number…|2..>
+ |
+	merge sort aTuple with [n : number, m : number | n ≤ m]
+];
 
 /**
  * Construct and answer a tuple like {@param "aTuple"}, but with the leftmost
@@ -2926,3 +3176,347 @@ Semantic restriction "_[_..]else_" is
 		]
 	]
 ];
+
+/**
+ * A method that calculates all instances of overlap that a tuple has with
+ * itself.  
+ *
+ * @method "self overlap_"
+ * @categories "Tuples"
+ * @param "aTuple" "tuple" 
+ *      a tuple
+ * @returnType "{tuple→natural number|}"
+ *      a map keyed by the strict subtuples of the input tuple with values of 
+ *      the index on the full tuple that is one position beyond the overlap.
+ * @author "Richard Arriaga"
+ */
+Private method "self overlap_" is
+[
+	aTuple : <any…|1..>
+ |
+	overlap : {tuple→natural number|} := {};
+	position : natural number := 2;
+	current : natural number := 1;
+	While
+	[
+		|aTuple| > position
+	]
+	do
+	[
+		/*create a map for each state of a tuple, what it would be mapped back
+		 * to.  The key is a subtuple of the input tuple, the value is the 
+		 * index in the tuple it returns to for the most recent overlap
+		 */
+		If aTuple[current] = aTuple[position] then
+		[
+		 	↑current++;
+		] 
+		else
+		[
+			current := 1;
+		];
+		overlap := overlap + aTuple[..position]→current;
+		↑position++;
+	];
+	overlap
+]:{tuple→natural number|};
+
+/**
+ * Obtain the location of the start of the first occuring subtuple in a 
+ * tuple (a substring of a string).  This is the abstract implementation.
+ *
+ * @method "first index of_in_"
+ * @categories "Tuples"
+ * @param "aTuple" "tuple" 
+ *      the tuple to search for the subtuple
+ * @param "subtuple" "tuple"
+ * 		the subtuple to locate in aTuple
+ * @returnType "whole number"
+ *      the index of the start of the first subtuple, 0 if none.
+ * @author "Richard Arriaga"
+ */
+Public stable abstract method "first index of_in_" is [tuple,tuple]→whole number;
+
+/**
+ * Obtain the location of the start of the first occuring subtuple in a 
+ * tuple (a substring of a string). This implementation is called when both the 
+ * target tuple and the subtuple are empty 
+ *
+ * @method "first index of_in_"
+ * @categories "Tuples"
+ * @param "aTuple" "<any…|0>" 
+ *      the tuple to search for the subtuple
+ * @param "subtuple" "<any…|0>"
+ * 		the subtuple to locate in aTuple
+ * @returnType "0's type"
+ *      the index of the start of the first subtuple, 0 for this implementation.
+ * @author "Richard Arriaga"
+ */
+Method "first index of_in_" is
+[
+	subtuple : <any…|0>,
+	aTuple : <any…|0>
+ |
+	0
+]:0's type;
+
+/**
+ * Obtain the location of the start of the first occuring subtuple in a 
+ * tuple (a substring of a string).  The  This implementation is called when 
+ * both the target tuple is empty 
+ *
+ * @method "first index of_in_"
+ * @categories "Tuples"
+ * @param "aTuple" "<any…|1..>" 
+ *      the tuple to search for the subtuple
+ * @param "subtuple" "<any…|0>"
+ * 		the subtuple to locate in aTuple
+ * @returnType "0's type"
+ *      the index of the start of the first subtuple, 0 for this implementation.
+ * @author "Richard Arriaga"
+ */
+Method "first index of_in_" is
+[
+	subtuple : <any…|1..>,
+	aTuple : <any…|0>
+ |
+	0
+]:0's type;
+
+/**
+ * Obtain the location of the start of the first occuring subtuple in a 
+ * tuple (a substring of a string). This implementation is called when the 
+ * subtuple is empty 
+ *
+ * @method "first index of_in_"
+ * @categories "Tuples"
+ * @param "aTuple" "<any…|0>" 
+ *      the tuple to search for the subtuple
+ * @param "subtuple" "<any…|1..>"
+ * 		the subtuple to locate in aTuple
+ * @returnType "0's type"
+ *      the index of the start of the first subtuple, 0 for this implementation.
+ * @author "Richard Arriaga"
+ */
+Method "first index of_in_" is
+[
+	subtuple : <any…|0>,
+	aTuple : <any…|1..>
+ |
+	0
+]:0's type;
+
+/**
+ * Obtain the location of the start of the first occuring subtuple in a 
+ * tuple (a substring of a string).  The
+ * {@link "http://en.wikipedia.org/wiki/Knuth-Morris-Pratt_algorithm" 
+ * Knuth-Moris-Pratt algorithm} is used for this implementation. 
+ *
+ * @method "first index of_in_"
+ * @categories "Tuples"
+ * @param "aTuple" "<any…|1..>" 
+ *      the tuple to search for the subtuple
+ * @param "subtuple" "<any…|1..>"
+ * 		the subtuple to locate in aTuple
+ * @returnType "whole number"
+ *      the index of the start of the first subtuple, 0 if none.
+ * @author "Richard Arriaga"
+ */
+Method "first index of_in_" is
+[
+	subtuple : <any…|1..>,
+	aTuple : <any…|1..>
+ |
+
+	if |subtuple| > |aTuple| then [0]
+	else if [|subtuple| = 1] then
+	[
+		/* if the subtuple has only one element, no benefit from KMP, simply
+		 * walk through aTuple searching for first element that matches the 
+		 * single element of aSubtuple*/
+		first index of aTuple where
+		[
+			a : any
+		 |
+			a = subtuple[1]
+		]
+	]
+	else
+	[
+		found : boolean := false;
+		subtupleStart : whole number := 0;
+		tupleIndex : natural number := 1;
+		subtupleIndex : natural number := 1;
+		overlapTable : {tuple→natural number|} := self overlap subtuple;
+		Until 
+		[
+			found ∨ [tupleIndex + |subtuple| - subtupleIndex > |aTuple|]
+		]
+		do
+		[
+			If aTuple[tupleIndex] = subtuple[subtupleIndex] then
+			[
+				If subtupleIndex = |subtuple| then 
+				[
+					found := true;
+					subtupleStart := cast tupleIndex - subtupleIndex + 1 into 
+						[w : whole number | w];
+				]
+				else [↑subtupleIndex++;];
+				
+			]
+			else
+			[
+			 	subtupleIndex := overlapTable[subtuple[..subtupleIndex]] 
+			 		else [1];
+			];
+			↑tupleIndex++;
+		];
+		subtupleStart
+	]
+]:whole number;
+
+/**
+ * Obtain the location of the start of every instance of subtuple occuring in a 
+ * a string).  This is the abstract implemenation of this method.
+ *
+ * @method "all indices of_in_"
+ * @categories "Tuples"
+ * @param "aTuple" "tuple" 
+ *      the tuple to search for the subtuple
+ * @param "subtuple" "tuple"
+ * 		the subtuple to locate in aTuple
+ * @returnType "<natural number…|>"
+ *      a tuple of the indices of the start of every instance of subtuple, <> 
+ *      if none.
+ * @author "Richard Arriaga"
+ */
+Public stable abstract method "all indices of_in_" is 
+	[tuple,tuple]→<natural number…|>;
+
+/**
+ * Obtain the location of the start of every instance of subtuple occuring in a 
+ * a string).  This implementation is called when both the target tuple and the
+ * subtuple are empty 
+ *
+ * @method "all indices of_in_"
+ * @categories "Tuples"
+ * @param "aTuple" "<any…|0>" 
+ *      the tuple to search for the subtuple
+ * @param "subtuple" "<any…|0>"
+ * 		the subtuple to locate in aTuple
+ * @returnType "<>'s type"
+ *      the <> for this implementation.
+ * @author "Richard Arriaga"
+ */
+Method "all indices of_in_" is
+[
+	subtuple : <any…|0>,
+	aTuple : <any…|0>
+ |
+	<>
+]:<>'s type;
+
+/**
+ * Obtain the location of the start of every instance of subtuple occuring in a 
+ * a string).  This implementation is called when both the target tuple and the
+ * subtuple are empty 
+ *
+ * @method "first index of_in_"
+ * @categories "Tuples"
+ * @param "aTuple" "<any…|1..>" 
+ *      the tuple to search for the subtuple
+ * @param "subtuple" "<any…|0>"
+ * 		the subtuple to locate in aTuple
+ * @returnType "<>'s type"
+ *      the <> for this implementation.
+ * @author "Richard Arriaga"
+ */
+Method "all indices of_in_" is
+[
+	subtuple : <any…|1..>,
+	aTuple : <any…|0>
+ |
+	<>
+]:<>'s type;
+
+/**
+ * Obtain the location of the start of every instance of subtuple occuring in a 
+ * a string).  This implementation is called when both the target tuple and the
+ * subtuple are empty 
+ *
+ * @method "all indices of_in_"
+ * @categories "Tuples"
+ * @param "aTuple" "<any…|0>" 
+ *      the tuple to search for the subtuple
+ * @param "subtuple" "<any…|1..>"
+ * 		the subtuple to locate in aTuple
+ * @returnType "<>'s type"
+ *      the <> for this implementation.
+ * @author "Richard Arriaga"
+ */
+Method "all indices of_in_" is
+[
+	subtuple : <any…|0>,
+	aTuple : <any…|1..>
+ |
+	<>
+]:<>'s type;
+
+/**
+ * Obtain the location of the start of every instance of subtuple occuring in a 
+ * tuple (a substring of a string).  The 
+ * {@link "http://en.wikipedia.org/wiki/Knuth-Morris-Pratt_algorithm" 
+ * Knuth-Moris-Pratt algorithm} is used for this implementation. 
+ *
+ * @method "all indices of_in_"
+ * @categories "Tuples"
+ * @param "aTuple" "<any…|1..>" 
+ *      the tuple to search for the subtuple
+ * @param "subtuple" "<any…|1..>"
+ * 		the subtuple to locate in aTuple
+ * @returnType "<natural number…|>"
+ *      a tuple of the indices of the start of every instance of subtuple, <> 
+ *      if none.
+ * @author "Richard Arriaga"
+ */
+Method "all indices of_in_" is
+[
+	subtuple : <any…|1..>,
+	aTuple : <any…|1..>
+ |
+	if |subtuple| > |aTuple| then [<>]
+	else if [|subtuple| = 1] then
+	[
+		/* if the subtuple has only one element, no benefit from KMP, simply
+		 * walk through aTuple searching for first element that matches the 
+		 * single element of aSubtuple*/
+		all indices of aTuple where
+		[
+			a : any
+		 |
+			a = subtuple[1]
+		]
+	]
+	else
+	[
+		index : natural number := 1;
+		occurrences : <natural number…|> := <>;
+		w : whole number := 0;
+		While [
+			index + |subtuple| < |aTuple| 
+		]
+		do
+		[
+			w := first index of subtuple in aTuple[index..];
+			if w > 0 then 
+			[
+				occurrences := occurrences ++ <cast w + index - 1 into 
+					[n : natural number | n]>;
+				index := index + w + |subtuple| - 1;
+			]
+			else [index := index + |aTuple|;];
+		];
+		occurrences
+	]
+] : <natural number…|>;

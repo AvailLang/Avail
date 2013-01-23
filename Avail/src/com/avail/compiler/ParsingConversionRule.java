@@ -1,6 +1,6 @@
 /**
  * ParsingConversionRule.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -139,7 +139,7 @@ public enum ParsingConversionRule
 			{
 				startingParserState.expected(
 					e.rejectionString().asNativeString());
-				return NullDescriptor.nullObject();
+				return NilDescriptor.nil();
 			}
 		}
 	};
@@ -165,7 +165,9 @@ public enum ParsingConversionRule
 	 * @param startingParserState TODO
 	 * @return The converted value.
 	 */
-	public abstract AvailObject convert (AvailObject input, ParserState startingParserState);
+	public abstract AvailObject convert (
+		final AvailObject input,
+		final ParserState startingParserState);
 
 	/**
 	 * Construct a new {@link ParsingConversionRule}.

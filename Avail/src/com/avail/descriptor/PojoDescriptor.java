@@ -1,6 +1,6 @@
 /**
  * PojoDescriptor.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -49,42 +49,9 @@ import com.avail.annotations.*;
 public final class PojoDescriptor
 extends Descriptor
 {
-	/** The {@linkplain PojoDescriptor pojo} that wraps Java's {@code null}. */
-	private static AvailObject nullObject;
-
-	/**
-	 * Answer the {@linkplain PojoDescriptor pojo} that wraps Java's
-	 * {@code null}.
-	 *
-	 * @return The {@code null} pojo.
-	 */
-	public static AvailObject nullObject ()
-	{
-		return nullObject;
-	}
-
-	/**
-	 * Create any instances statically well-known to the {@linkplain
-	 * AvailRuntime Avail runtime system}.
-	 */
-	public static void createWellKnownObjects ()
-	{
-		nullObject = newPojo(
-			RawPojoDescriptor.rawNullObject(),
-			PojoTypeDescriptor.pojoBottom());
-	}
-
-	/**
-	 * Destroy or reset any instances statically well-known to the {@linkplain
-	 * AvailRuntime Avail runtime system}.
-	 */
-	public static void clearWellKnownObjects ()
-	{
-		nullObject = null;
-	}
-
 	/** The layout of the object slots. */
-	public enum ObjectSlots implements ObjectSlotsEnum
+	public enum ObjectSlots
+	implements ObjectSlotsEnum
 	{
 		/**
 		 * A {@linkplain RawPojoDescriptor raw pojo}.
@@ -99,30 +66,32 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_Equals (
-		final AvailObject object,
-		final AvailObject another)
+	boolean o_Equals (final AvailObject object, final AvailObject another)
 	{
 		return another.equalsPojo(object);
 	}
 
 	@Override @AvailMethod
-	boolean o_EqualsPojo (
-		final AvailObject object,
-		final AvailObject aPojo)
+	boolean o_EqualsPojo (final AvailObject object, final AvailObject aPojo)
 	{
 		if (!object.slot(RAW_POJO).equals(aPojo.slot(RAW_POJO))
 			|| !object.slot(KIND).equals(aPojo.slot(KIND)))
 		{
 			return false;
 		}
-
 		if (!object.sameAddressAs(aPojo))
 		{
-			object.becomeIndirectionTo(aPojo);
-			aPojo.makeImmutable();
+			if (!isShared())
+			{
+				aPojo.makeImmutable();
+				object.becomeIndirectionTo(aPojo);
+			}
+			else if (!aPojo.descriptor.isShared())
+			{
+				object.makeImmutable();
+				aPojo.becomeIndirectionTo(object);
+			}
 		}
-
 		return true;
 	}
 
@@ -147,15 +116,6 @@ extends Descriptor
 		return object.slot(KIND);
 	}
 
-	@Override @AvailMethod
-	AvailObject o_MakeImmutable (final AvailObject object)
-	{
-		object.descriptor = immutable();
-		object.slot(RAW_POJO).makeImmutable();
-		object.slot(KIND).makeImmutable();
-		return object;
-	}
-
 	@Override
 	Object o_MarshalToJava (
 		final AvailObject object,
@@ -171,8 +131,7 @@ extends Descriptor
 	}
 
 	@Override
-	public boolean o_ShowValueInNameForDebugger (
-		final AvailObject object)
+	public boolean o_ShowValueInNameForDebugger (final AvailObject object)
 	{
 		return false;
 	}
@@ -193,41 +152,42 @@ extends Descriptor
 	/**
 	 * Construct a new {@link PojoDescriptor}.
 	 *
-	 * @param isMutable
-	 *        Does the {@linkplain AbstractDescriptor descriptor} represent a
-	 *        mutable object?
+	 * @param mutability
+	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 */
-	private PojoDescriptor (final boolean isMutable)
+	private PojoDescriptor (final Mutability mutability)
 	{
-		super(isMutable);
+		super(mutability);
 	}
 
 	/** The mutable {@link PojoDescriptor}. */
 	private static final PojoDescriptor mutable =
-		new PojoDescriptor(true);
+		new PojoDescriptor(Mutability.MUTABLE);
 
-	/**
-	 * Answer the mutable {@link PojoDescriptor}.
-	 *
-	 * @return The mutable {@code PojoDescriptor}.
-	 */
-	public static PojoDescriptor mutable ()
+	@Override
+	PojoDescriptor mutable ()
 	{
 		return mutable;
 	}
 
 	/** The immutable {@link PojoDescriptor}. */
 	private static final PojoDescriptor immutable =
-		new PojoDescriptor(false);
+		new PojoDescriptor(Mutability.IMMUTABLE);
 
-	/**
-	 * Answer the immutable {@link PojoDescriptor}.
-	 *
-	 * @return The immutable {@code PojoDescriptor}.
-	 */
-	public static PojoDescriptor immutable ()
+	@Override
+	PojoDescriptor immutable ()
 	{
 		return immutable;
+	}
+
+	/** The shared {@link PojoDescriptor}. */
+	private static final PojoDescriptor shared =
+		new PojoDescriptor(Mutability.SHARED);
+
+	@Override
+	PojoDescriptor shared ()
+	{
+		return shared;
 	}
 
 	/**
@@ -247,5 +207,39 @@ extends Descriptor
 		newObject.setSlot(RAW_POJO, rawPojo);
 		newObject.setSlot(KIND, pojoType);
 		return newObject.makeImmutable();
+	}
+
+	/** The {@linkplain PojoDescriptor pojo} that wraps Java's {@code null}. */
+	private static AvailObject nullObject;
+
+	/**
+	 * Answer the {@linkplain PojoDescriptor pojo} that wraps Java's
+	 * {@code null}.
+	 *
+	 * @return The {@code null} pojo.
+	 */
+	public static AvailObject nullObject ()
+	{
+		return nullObject;
+	}
+
+	/**
+	 * Create any instances statically well-known to the {@linkplain
+	 * AvailRuntime Avail runtime system}.
+	 */
+	public static void createWellKnownObjects ()
+	{
+		nullObject = newPojo(
+			RawPojoDescriptor.rawNullObject(),
+			PojoTypeDescriptor.pojoBottom()).makeShared();
+	}
+
+	/**
+	 * Destroy or reset any instances statically well-known to the {@linkplain
+	 * AvailRuntime Avail runtime system}.
+	 */
+	public static void clearWellKnownObjects ()
+	{
+		nullObject = null;
 	}
 }

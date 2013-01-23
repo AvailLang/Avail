@@ -1,6 +1,6 @@
 /**
  * P_222_DefinitionForArgumentTypes.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -81,7 +81,7 @@ extends Primitive
 			assert false : "The method name was extracted from a real method!";
 		}
 		final AvailObject impl = method.lookupByTypesFromTuple(argTypes);
-		if (impl.equalsNull())
+		if (impl.equalsNil())
 		{
 			return interpreter.primitiveFailure(
 				E_METHOD_IMPLEMENTATION_LOOKUP_FAILED);
