@@ -381,11 +381,11 @@ public final class SerializerTest
 		final AvailObject atom1 = AtomDescriptor.create(
 			StringDescriptor.from("importAtom1"),
 			inputModule);
-		inputModule.atPrivateNameAdd(atom1.name(), atom1);
+		inputModule.addPrivateName(atom1.name(), atom1);
 		final AvailObject atom2 = AtomDescriptor.create(
 			StringDescriptor.from("currentAtom2"),
 			currentModule);
-		currentModule.atPrivateNameAdd(atom2.name(), atom2);
+		currentModule.addPrivateName(atom2.name(), atom2);
 		final AvailObject tuple = TupleDescriptor.from(atom1, atom2);
 
 		prepareToWrite();

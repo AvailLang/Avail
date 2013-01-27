@@ -364,30 +364,30 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_AtNameAdd (
+	void o_AddImportedName (
 		final AvailObject object,
 		final AvailObject stringName,
 		final AvailObject trueName)
 	{
-		o_Traversed(object).atNameAdd(stringName, trueName);
+		o_Traversed(object).addImportedName(stringName, trueName);
 	}
 
 	@Override
-	void o_AtNewNamePut (
+	void o_IntroduceNewName (
 		final AvailObject object,
 		final AvailObject stringName,
 		final AvailObject trueName)
 	{
-		o_Traversed(object).atNewNamePut(stringName, trueName);
+		o_Traversed(object).introduceNewName(stringName, trueName);
 	}
 
 	@Override
-	void o_AtPrivateNameAdd (
+	void o_AddPrivateName (
 		final AvailObject object,
 		final AvailObject stringName,
 		final AvailObject trueName)
 	{
-		o_Traversed(object).atPrivateNameAdd(stringName, trueName);
+		o_Traversed(object).addPrivateName(stringName, trueName);
 	}
 
 	@Override
@@ -2735,9 +2735,9 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	AvailObject o_Names (final AvailObject object)
+	AvailObject o_ImportedNames (final AvailObject object)
 	{
-		return o_Traversed(object).names();
+		return o_Traversed(object).importedNames();
 	}
 
 	@Override
@@ -4398,5 +4398,17 @@ extends AbstractDescriptor
 	void o_Lock (final AvailObject object, final Continuation0 critical)
 	{
 		o_Traversed(object).lock(critical);
+	}
+
+	@Override
+	AvailObject o_ModuleName (final AvailObject object)
+	{
+		return o_Traversed(object).moduleName();
+	}
+
+	@Override
+	AvailObject o_NamesSet (final AvailObject object)
+	{
+		return o_Traversed(object).namesSet();
 	}
 }

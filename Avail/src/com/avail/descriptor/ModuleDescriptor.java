@@ -125,7 +125,7 @@ extends Descriptor
 		 * at least clarify name conflicts. This field holds only those names
 		 * that have been imported from other modules.
 		 */
-		NAMES,
+		IMPORTED_NAMES,
 
 		/**
 		 * A {@linkplain MapDescriptor map} from {@linkplain StringDescriptor
@@ -182,12 +182,14 @@ extends Descriptor
 		CONSTANT_BINDINGS,
 
 		/**
-		 * The {@linkplain MessageBundleTreeDescriptor bundle tree} used to
-		 * parse multimethod {@linkplain SendNodeDescriptor sends} while
-		 * compiling this module. When the module has been fully compiled, this
-		 * slot is overwritten with {@linkplain NilDescriptor#nil() nil}.
+		 * A {@linkplain MapDescriptor map} from {@linkplain AtomDescriptor
+		 * atoms} that are visible during compilation to the {@linkplain
+		 * MessageBundleDescriptor message bundles} that describe how to parse
+		 * sends of the corresponding {@linkplain MethodDescriptor methods}.
+		 * This field will be cleared to {@link NilDescriptor#nil()} after the
+		 * module has been fully compiled.
 		 */
-		FILTERED_BUNDLE_TREE,
+		ALL_BUNDLES,
 
 		/**
 		 * A {@linkplain MapDescriptor map} from {@linkplain AtomDescriptor true
@@ -214,14 +216,14 @@ extends Descriptor
 		final AbstractSlotsEnum e)
 	{
 		return e == NEW_NAMES
-			|| e == NAMES
+			|| e == IMPORTED_NAMES
 			|| e == PRIVATE_NAMES
 			|| e == VISIBLE_NAMES
 			|| e == METHODS
 			|| e == GRAMMATICAL_RESTRICTIONS
 			|| e == VARIABLE_BINDINGS
 			|| e == CONSTANT_BINDINGS
-			|| e == FILTERED_BUNDLE_TREE
+			|| e == ALL_BUNDLES
 			|| e == TYPE_RESTRICTION_FUNCTIONS
 			|| e == SEALS
 			|| e == FLAGS_AND_COUNTER
@@ -263,7 +265,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_Name (final AvailObject object)
+	AvailObject o_ModuleName (final AvailObject object)
 	{
 		return object.slot(NAME);
 	}
@@ -296,11 +298,11 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_Names (final AvailObject object)
+	AvailObject o_ImportedNames (final AvailObject object)
 	{
 		synchronized (object)
 		{
-			return object.slot(NAMES);
+			return object.slot(IMPORTED_NAMES);
 		}
 	}
 
@@ -541,7 +543,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	void o_AtNameAdd (
+	void o_AddImportedName (
 		final AvailObject object,
 		final AvailObject stringName,
 		final AvailObject trueName)
@@ -549,7 +551,7 @@ extends Descriptor
 		// Add the trueName to the current public scope.
 		synchronized (object)
 		{
-			AvailObject names = object.slot(NAMES);
+			AvailObject names = object.slot(IMPORTED_NAMES);
 			AvailObject set;
 			if (names.hasKey(stringName))
 			{
@@ -561,7 +563,7 @@ extends Descriptor
 			}
 			set = set.setWithElementCanDestroy(trueName, false);
 			names = names.mapAtPuttingCanDestroy(stringName, set, true);
-			object.setSlot(NAMES, names.makeShared());
+			object.setSlot(IMPORTED_NAMES, names.makeShared());
 			AvailObject visibleNames = object.slot(VISIBLE_NAMES);
 			visibleNames = visibleNames.setWithElementCanDestroy(
 				trueName, true);
@@ -570,7 +572,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	void o_AtNewNamePut (
+	void o_IntroduceNewName (
 		final AvailObject object,
 		final AvailObject stringName,
 		final AvailObject trueName)
@@ -595,7 +597,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	void o_AtPrivateNameAdd (
+	void o_AddPrivateName (
 		final AvailObject object,
 		final AvailObject stringName,
 		final AvailObject trueName)
@@ -645,7 +647,7 @@ extends Descriptor
 	{
 		synchronized (object)
 		{
-			***
+//TODO[MvG] FIX THIS SOON
 			final AvailObject filteredBundleTree =
 				MessageBundleTreeDescriptor.newPc(1);
 			object.setSlot(
@@ -818,9 +820,9 @@ extends Descriptor
 					false);
 			}
 			final AvailObject publics;
-			if (object.slot(NAMES).hasKey(stringName))
+			if (object.slot(IMPORTED_NAMES).hasKey(stringName))
 			{
-				publics = object.slot(NAMES).mapAt(stringName);
+				publics = object.slot(IMPORTED_NAMES).mapAt(stringName);
 			}
 			else
 			{
@@ -855,7 +857,7 @@ extends Descriptor
 		object.setSlot(NAME, moduleName);
 		object.setSlot(VERSIONS, emptySet);
 		object.setSlot(NEW_NAMES, emptyMap);
-		object.setSlot(NAMES, emptyMap);
+		object.setSlot(IMPORTED_NAMES, emptyMap);
 		object.setSlot(PRIVATE_NAMES, emptyMap);
 		object.setSlot(VISIBLE_NAMES, emptySet);
 		object.setSlot(METHODS, emptyMap);

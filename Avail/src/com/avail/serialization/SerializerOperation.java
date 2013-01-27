@@ -2480,7 +2480,7 @@ public enum SerializerOperation
 				atomName,
 				currentModule);
 			atom.makeImmutable();
-			currentModule.atPrivateNameAdd(atomName, atom);
+			currentModule.addPrivateName(atomName, atom);
 			return atom;
 		}
 		// An atom in an imported module.

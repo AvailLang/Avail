@@ -613,13 +613,13 @@ public abstract class AbstractDescriptor
 		builder.append(shortenedName);
 		if (isMutable())
 		{
-			// Script capital M.
-			builder.append("\u2133");
+			// Circled Latin capital letter M.
+			builder.append("\u24C2");
 		}
 		else if (isShared())
 		{
-			// Mathematical S.
-			builder.append("\uD835\uDCAE");
+			// Circled Latin capital letter S.
+			builder.append("\u24C8");
 		}
 		final Class<Descriptor> cls = (Class<Descriptor>) this.getClass();
 		final ClassLoader loader = cls.getClassLoader();
@@ -1154,7 +1154,7 @@ public abstract class AbstractDescriptor
 	 * @param stringName
 	 * @param trueName
 	 */
-	abstract void o_AtNameAdd (
+	abstract void o_AddImportedName (
 		AvailObject object,
 		AvailObject stringName,
 		AvailObject trueName);
@@ -1164,7 +1164,7 @@ public abstract class AbstractDescriptor
 	 * @param stringName
 	 * @param trueName
 	 */
-	abstract void o_AtNewNamePut (
+	abstract void o_IntroduceNewName (
 		AvailObject object,
 		AvailObject stringName,
 		AvailObject trueName);
@@ -1174,7 +1174,7 @@ public abstract class AbstractDescriptor
 	 * @param stringName
 	 * @param trueName
 	 */
-	abstract void o_AtPrivateNameAdd (
+	abstract void o_AddPrivateName (
 		AvailObject object,
 		AvailObject stringName,
 		AvailObject trueName);
@@ -3422,7 +3422,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	abstract AvailObject o_Names (AvailObject object);
+	abstract AvailObject o_ImportedNames (AvailObject object);
 
 	/**
 	 * @param object
@@ -5801,4 +5801,16 @@ public abstract class AbstractDescriptor
 	abstract void o_Lock (
 		final AvailObject object,
 		final Continuation0 critical);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract AvailObject o_ModuleName (final AvailObject object);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract AvailObject o_NamesSet (final AvailObject object);
 }

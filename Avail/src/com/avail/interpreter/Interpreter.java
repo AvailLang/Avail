@@ -748,7 +748,7 @@ public abstract class Interpreter
 		{
 			trueName = AtomDescriptor.create(stringName, module);
 			trueName.makeImmutable();
-			module.atPrivateNameAdd(stringName, trueName);
+			module.addPrivateName(stringName, trueName);
 			return trueName;
 		}
 		if (who.setSize() == 1)

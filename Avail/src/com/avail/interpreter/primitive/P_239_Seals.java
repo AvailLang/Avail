@@ -1,5 +1,5 @@
 /**
- * P_246_PublishName.java
+ * P_239_Seals.java
  * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -32,31 +32,27 @@
 
 package com.avail.interpreter.primitive;
 
-import static com.avail.descriptor.TypeDescriptor.Types.TOP;
+import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.interpreter.Primitive.Flag.*;
-import static com.avail.exceptions.AvailErrorCode.E_COMPILATION_IS_OVER;
 import java.util.List;
+import com.avail.annotations.NotNull;
 import com.avail.descriptor.*;
-import com.avail.exceptions.AmbiguousNameException;
 import com.avail.interpreter.*;
 
 /**
- * <strong>Primitive 246:</strong> Publish the {@linkplain AtomDescriptor atom}
- * associated with the specified {@linkplain StringDescriptor string} as a
- * public name of the current {@linkplain ModuleDescriptor module}. This has the
- * same effect as listing the string in the "Names" section of the current
- * module. Fails if called at runtime (rather than during compilation).
+ * <strong>Primitive 239</strong>: Answer all seals placed upon the specified
+ * {@linkplain MethodDescriptor method}.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class P_246_PublishName
+public final class P_239_Seals
 extends Primitive
 {
 	/**
-	 * The sole instance of this primitive class.  Accessed through reflection.
+	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
-	public final static Primitive instance =
-		new P_246_PublishName().init(1, CanInline, HasSideEffect);
+	public final @NotNull static Primitive instance =
+		new P_239_Seals().init(1, CanInline, CannotFail);
 
 	@Override
 	public Result attempt (
@@ -64,23 +60,8 @@ extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
-		final AvailObject name = args.get(0);
-		final AvailObject module = interpreter.module();
-		if (module == null)
-		{
-			return interpreter.primitiveFailure(E_COMPILATION_IS_OVER);
-		}
-		try
-		{
-			final AvailObject trueName = interpreter.lookupName(name);
-			module.introduceNewName(name, trueName);
-			module.addImportedName(name, trueName);
-			return interpreter.primitiveSuccess(NilDescriptor.nil());
-		}
-		catch (final AmbiguousNameException e)
-		{
-			return interpreter.primitiveFailure(e);
-		}
+		final AvailObject method = args.get(0);
+		return interpreter.primitiveSuccess(method.sealedArgumentsTypesTuple());
 	}
 
 	@Override
@@ -88,7 +69,9 @@ extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				TupleTypeDescriptor.stringTupleType()),
-			TOP.o());
+				METHOD.o()),
+			TupleTypeDescriptor.zeroOrMoreOf(
+				TupleTypeDescriptor.zeroOrMoreOf(
+					InstanceMetaDescriptor.anyMeta())));
 	}
 }

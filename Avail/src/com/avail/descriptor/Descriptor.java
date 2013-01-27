@@ -227,7 +227,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_AtNameAdd (
+	void o_AddImportedName (
 		final AvailObject object,
 		final AvailObject stringName,
 		final AvailObject trueName)
@@ -236,7 +236,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_AtNewNamePut (
+	void o_IntroduceNewName (
 		final AvailObject object,
 		final AvailObject stringName,
 		final AvailObject trueName)
@@ -245,7 +245,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_AtPrivateNameAdd (
+	void o_AddPrivateName (
 		final AvailObject object,
 		final AvailObject stringName,
 		final AvailObject trueName)
@@ -2142,7 +2142,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	AvailObject o_Names (
+	AvailObject o_ImportedNames (
 		final AvailObject object)
 	{
 		throw unsupportedOperationException();
@@ -4631,5 +4631,19 @@ extends AbstractDescriptor
 		{
 			critical.value();
 		}
+	}
+
+
+	@Override
+	AvailObject o_ModuleName (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+
+	@Override
+	AvailObject o_NamesSet (final AvailObject object)
+	{
+		throw unsupportedOperationException();
 	}
 }

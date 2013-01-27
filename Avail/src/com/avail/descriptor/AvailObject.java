@@ -753,11 +753,11 @@ implements Iterable<AvailObject>
 	 * @param stringName
 	 * @param trueName
 	 */
-	public void atNameAdd (
+	public void addImportedName (
 		final AvailObject stringName,
 		final AvailObject trueName)
 	{
-		descriptor.o_AtNameAdd(
+		descriptor.o_AddImportedName(
 			this,
 			stringName,
 			trueName);
@@ -767,11 +767,11 @@ implements Iterable<AvailObject>
 	 * @param stringName
 	 * @param trueName
 	 */
-	public void atNewNamePut (
+	public void introduceNewName (
 		final AvailObject stringName,
 		final AvailObject trueName)
 	{
-		descriptor.o_AtNewNamePut(
+		descriptor.o_IntroduceNewName(
 			this,
 			stringName,
 			trueName);
@@ -781,11 +781,11 @@ implements Iterable<AvailObject>
 	 * @param stringName
 	 * @param trueName
 	 */
-	public void atPrivateNameAdd (
+	public void addPrivateName (
 		final AvailObject stringName,
 		final AvailObject trueName)
 	{
-		descriptor.o_AtPrivateNameAdd(
+		descriptor.o_AddPrivateName(
 			this,
 			stringName,
 			trueName);
@@ -3158,9 +3158,9 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public AvailObject names ()
+	public AvailObject importedNames ()
 	{
-		return descriptor.o_Names(this);
+		return descriptor.o_ImportedNames(this);
 	}
 
 	/**
@@ -6270,5 +6270,21 @@ implements Iterable<AvailObject>
 	public void lock (final Continuation0 critical)
 	{
 		descriptor.o_Lock(this, critical);
+	}
+
+	/**
+	 * @return
+	 */
+	public AvailObject moduleName ()
+	{
+		return descriptor.o_ModuleName(this);
+	}
+
+	/**
+	 * @return
+	 */
+	public AvailObject namesSet ()
+	{
+		return descriptor.o_NamesSet(this);
 	}
 }

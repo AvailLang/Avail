@@ -245,19 +245,19 @@ public abstract class AbstractAvailCompiler
 
 				final AvailObject modNames = modImport.tupleAt(2).setSize() > 0
 					? modImport.tupleAt(2)
-					: mod.names().keysAsSet();
+					: mod.importedNames().keysAsSet();
 				for (final AvailObject strName : modNames)
 				{
-					if (!mod.names().hasKey(strName))
+					if (!mod.importedNames().hasKey(strName))
 					{
 						return
 							"module \"" + ref.qualifiedName()
 							+ "\" to export " + strName;
 					}
-					final AvailObject trueNames = mod.names().mapAt(strName);
+					final AvailObject trueNames = mod.importedNames().mapAt(strName);
 					for (final AvailObject trueName : trueNames)
 					{
-						module.atNameAdd(strName, trueName);
+						module.addImportedName(strName, trueName);
 					}
 				}
 			}
@@ -298,19 +298,19 @@ public abstract class AbstractAvailCompiler
 
 				final AvailObject modNames = modImport.tupleAt(2).setSize() > 0
 					? modImport.tupleAt(2)
-					: mod.names().keysAsSet();
+					: mod.importedNames().keysAsSet();
 				for (final AvailObject strName : modNames)
 				{
-					if (!mod.names().hasKey(strName))
+					if (!mod.importedNames().hasKey(strName))
 					{
 						return
 							"module \"" + ref.qualifiedName()
 							+ "\" to export " + strName;
 					}
-					final AvailObject trueNames = mod.names().mapAt(strName);
+					final AvailObject trueNames = mod.importedNames().mapAt(strName);
 					for (final AvailObject trueName : trueNames)
 					{
-						module.atPrivateNameAdd(strName, trueName);
+						module.addPrivateName(strName, trueName);
 					}
 				}
 			}
@@ -321,8 +321,8 @@ public abstract class AbstractAvailCompiler
 				final AvailObject trueName = AtomDescriptor.create(
 					name,
 					module);
-				module.atNewNamePut(name, trueName);
-				module.atNameAdd(name, trueName);
+				module.introduceNewName(name, trueName);
+				module.addImportedName(name, trueName);
 			}
 
 			return null;
@@ -3446,7 +3446,7 @@ public abstract class AbstractAvailCompiler
 	{
 		// Output a function that publishes the initial public set of atoms.
 		final AvailObject sourceNames =
-			isPublic ? module.names() : module.privateNames();
+			isPublic ? module.importedNames() : module.privateNames();
 		AvailObject names = SetDescriptor.empty();
 		for (final MapDescriptor.Entry entry : sourceNames.mapIterable())
 		{

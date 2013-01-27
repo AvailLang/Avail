@@ -773,7 +773,7 @@ implements ThreadFactory
 
 			// Finally add the module to the map of loaded modules.
 			modules = modules.mapAtPuttingCanDestroy(
-				aModule.name(), aModule, true);
+				aModule.moduleName(), aModule, true);
 		}
 		finally
 		{
@@ -1130,10 +1130,12 @@ implements ThreadFactory
 		runtimeLock.readLock().lock();
 		try
 		{
-			final bundleMap = allBundles
-			final AvailObject result = MessageBundleTreeDescriptor.newPc(1);
-			rootBundleTree.copyToRestrictedTo(result, methods.keysAsSet());
-			return copy;
+			return allBundles;
+// TODO[MvG] FIX THIS SOON
+//			final bundleMap = allBundles
+//			final AvailObject result = MessageBundleTreeDescriptor.newPc(1);
+//			rootBundleTree.copyToRestrictedTo(result, methods.keysAsSet());
+//			return copy;
 		}
 		finally
 		{

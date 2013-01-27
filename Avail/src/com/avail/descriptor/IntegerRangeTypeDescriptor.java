@@ -141,9 +141,10 @@ extends TypeDescriptor
 	 * same type as the range [11..19], so they should hash the same.  Actually,
 	 * this is taken care of during instance creation - if an exclusive bound is
 	 * finite, it is converted to its inclusive equivalent.  Otherwise asking
-	 * for one of the bounds will yield a value which is either inside or
+	 * for one of the bounds would yield a value which is either inside or
 	 * outside depending on something that should not be observable (because it
 	 * serves to distinguish two representations of equal objects).
+	 * </p>
 	 */
 	@Override @AvailMethod
 	int o_Hash (final AvailObject object)

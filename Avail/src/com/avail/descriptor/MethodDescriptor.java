@@ -33,6 +33,7 @@
 package com.avail.descriptor;
 
 import static com.avail.descriptor.TypeDescriptor.Types.*;
+import static com.avail.descriptor.MethodDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.MethodDescriptor.ObjectSlots.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import static java.lang.Math.max;
@@ -488,16 +489,33 @@ extends Descriptor
 	}
 
 	/**
+	 * The layout of integer slots for my instances.
+	 */
+	public enum IntegerSlots
+	implements IntegerSlotsEnum
+	{
+		/**
+		 * The hash value for this method.
+		 */
+		@HideFieldInDebugger
+		HASH
+	}
+
+	/**
 	 * The fields that are of type {@code AvailObject}.
 	 */
 	public enum ObjectSlots
 	implements ObjectSlotsEnum
 	{
 		/**
-		 * The {@linkplain AtomDescriptor atom} that acts as the true name of
-		 * this {@linkplain MethodDescriptor method}.
+		 * All {@linkplain AtomDescriptor atoms} that act as names of this
+		 * {@linkplain MethodDescriptor method}.  When renaming happens during
+		 * import, the new name (atom) is added to this set.  Normally only one
+		 * such name is visible at any point in the code, but it may be the case
+		 * that multiple import paths make visible multiple names for the same
+		 * method.
 		 */
-		NAME,
+		NAMES_SET,
 
 		/**
 		 * The {@linkplain TupleDescriptor tuple} of {@linkplain
@@ -545,7 +563,8 @@ extends Descriptor
 	boolean allowsImmutableToMutableReferenceInField (
 		final AbstractSlotsEnum e)
 	{
-		return e == DEFINITIONS_TUPLE
+		return e == NAMES_SET
+			|| e == DEFINITIONS_TUPLE
 			|| e == PRIVATE_TESTING_TREE
 			|| e == DEPENDENT_CHUNK_INDICES
 			|| e == TYPE_RESTRICTIONS_TUPLE
@@ -571,9 +590,9 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_Name (final AvailObject object)
+	AvailObject o_NamesSet (final AvailObject object)
 	{
-		return object.slot(NAME);
+		return object.slot(NAMES_SET);
 	}
 
 	@Override @AvailMethod
@@ -607,7 +626,7 @@ extends Descriptor
 	@Override @AvailMethod
 	int o_Hash (final AvailObject object)
 	{
-		return object.slot(NAME).hash() + 0x61AF3FC;
+		return object.slot(HASH);
 	}
 
 	@Override @AvailMethod
@@ -1008,10 +1027,13 @@ extends Descriptor
 							@Override
 							public String value()
 							{
+								// Choose an arbitrary method name.
+								final AvailObject name =
+									object.slot(NAMES_SET).iterator().next();
 								return "argument #"
 									+ Integer.toString(finalIndex)
 									+ " of message \""
-									+ object.slot(NAME).name().asNativeString()
+									+ name.asNativeString()
 									+ "\" to have a type other than "
 									+ argTypes.get(finalIndex - 1);
 							}
@@ -1051,11 +1073,14 @@ extends Descriptor
 							}
 							allFailedIndices.add(0, index);
 						}
+						// Choose an arbitrary method name.
+						final AvailObject name =
+							object.slot(NAMES_SET).iterator().next();
 						builder.format(
 							"arguments at indices %s of message %s to match a "
 							+ "method definition.%n",
 							allFailedIndices,
-							object.slot(NAME).name().asNativeString());
+							name.asNativeString());
 						builder.format(
 							"\tI got:%n\t\t%s%n",
 							argTypes);
@@ -1106,11 +1131,14 @@ extends Descriptor
 								@Override
 								public String value ()
 								{
+									// Choose an arbitrary method name.
+									final AvailObject name =
+										object.slot(NAMES_SET)
+											.iterator().next();
 									return
 										problem.asNativeString()
 										+ " (while parsing send of "
-										+ object.slot(NAME).name()
-											.asNativeString()
+										+ name.asNativeString()
 										+ ")";
 								}
 							});
@@ -1124,12 +1152,15 @@ extends Descriptor
 								@Override
 								public String value ()
 								{
+									// Choose an arbitrary method name.
+									final AvailObject name =
+										object.slot(NAMES_SET)
+											.iterator().next();
 									return
 										"semantic restriction not to raise an "
 										+ "unhandled exception (while parsing "
 										+ "send of "
-										+ object.slot(NAME).name()
-											.asNativeString()
+										+ name.asNativeString()
 										+ "):\n\t"
 										+ e.toString();
 								}
@@ -1488,8 +1519,8 @@ extends Descriptor
 
 	/**
 	 * Answer a new {@linkplain MethodDescriptor method}. Use the passed
-	 * {@linkplain AtomDescriptor atom} as its name. A method is always
-	 * immutable, but its definitionsTuple, privateTestingTree, and
+	 * {@linkplain AtomDescriptor atom} as its initial name. A method is always
+	 * shared, but its names set, definitionsTuple, privateTestingTree, and
 	 * dependentsChunks can all be assigned to.
 	 *
 	 * @param messageName
@@ -1500,10 +1531,14 @@ extends Descriptor
 		final AvailObject messageName)
 	{
 		assert messageName.isAtom();
+
 		final AvailObject result = mutable.create();
+		result.setSlot(HASH, AvailRuntime.nextHash());
 		result.setSlot(DEFINITIONS_TUPLE, TupleDescriptor.empty());
 		result.setSlot(DEPENDENT_CHUNK_INDICES, SetDescriptor.empty());
-		result.setSlot(NAME, messageName);
+		final AvailObject namesSet = SetDescriptor.fromCollection(
+			Collections.singletonList(messageName));
+		result.setSlot(NAMES_SET, namesSet);
 		result.setSlot(PRIVATE_TESTING_TREE, TupleDescriptor.empty());
 		result.setSlot(TYPE_RESTRICTIONS_TUPLE, TupleDescriptor.empty());
 		result.setSlot(SEALED_ARGUMENTS_TYPES_TUPLE, TupleDescriptor.empty());

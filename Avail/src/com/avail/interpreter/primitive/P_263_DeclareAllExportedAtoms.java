@@ -42,7 +42,8 @@ import com.avail.interpreter.*;
  * <strong>Primitive 263</strong>: This private primitive is used to ensure that
  * a module can deserialize correctly.  It forces the given set of atoms to be
  * included in the current module's {@linkplain
- * com.avail.descriptor.ModuleDescriptor.ObjectSlots#NAMES public names} or
+ * com.avail.descriptor.ModuleDescriptor.ObjectSlots#IMPORTED_NAMES
+ * public names} or
  * {@linkplain com.avail.descriptor.ModuleDescriptor.ObjectSlots#PRIVATE_NAMES
  * private names}, depending on the value of the supplied {@linkplain
  * EnumerationTypeDescriptor#booleanObject() boolean} ({@link
@@ -75,14 +76,14 @@ extends Primitive
 		{
 			for (final AvailObject name : names)
 			{
-				module.atNameAdd(name.name(), name);
+				module.addImportedName(name.name(), name);
 			}
 		}
 		else
 		{
 			for (final AvailObject name : names)
 			{
-				module.atPrivateNameAdd(name.name(), name);
+				module.addPrivateName(name.name(), name);
 			}
 		}
 		return interpreter.primitiveSuccess(NilDescriptor.nil());
