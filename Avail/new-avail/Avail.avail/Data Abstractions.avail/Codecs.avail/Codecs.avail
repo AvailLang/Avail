@@ -1,5 +1,5 @@
 /*
- * Data Abstractions.avail
+ * Codecs.avail
  * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -30,19 +30,9 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Data Abstractions"
+System Module "Codecs"
 Versions
 	"dev"
 Extends
-	"Codecs",
-	"Common" =
-	(
-		"Data|data abstractions test suite"
-	),
-	"Graphs",
-	"Iterators",
-	"Optional",
-	"Pseudorandom Number Generation",
-	"Sequences",
-	"Streams"
+	"Abstract Codecs"
 Body
