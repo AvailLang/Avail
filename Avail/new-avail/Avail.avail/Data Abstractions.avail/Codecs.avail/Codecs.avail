@@ -34,5 +34,6 @@ System Module "Codecs"
 Versions
 	"dev"
 Extends
-	"Abstract Codecs"
+	"Abstract Codecs",
+	"UTF-8 Codec"
 Body

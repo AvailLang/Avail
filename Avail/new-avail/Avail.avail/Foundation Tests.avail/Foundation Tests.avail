@@ -38,5 +38,6 @@ Extends
 	"Common" = ("Foundation|foundation test suite"),
 	"Exception Tests" = ("exception test suite"),
 	"Function Tests" = ("function test suite"),
-	"Math Tests" = ("math test suite")
+	"Math Tests" = ("math test suite"),
+	"Tuple Tests" = ("tuple test suite")
 Body
