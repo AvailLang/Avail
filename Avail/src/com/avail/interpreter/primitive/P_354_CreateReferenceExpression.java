@@ -60,9 +60,9 @@ public class P_354_CreateReferenceExpression extends Primitive
 	{
 		assert args.size() == 1;
 		final AvailObject variable = args.get(0);
-		final AvailObject declaration = variable.declaration();
+		final A_BasicObject declaration = variable.declaration();
 		assert declaration != null;
-		final AvailObject declarationType = declaration.kind();
+		final A_BasicObject declarationType = declaration.kind();
 		if (!declarationType.parseNodeKindIsUnder(MODULE_VARIABLE_NODE)
 			&& !declarationType.parseNodeKindIsUnder(LOCAL_VARIABLE_NODE))
 		{
@@ -74,7 +74,7 @@ public class P_354_CreateReferenceExpression extends Primitive
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

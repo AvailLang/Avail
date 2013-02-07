@@ -55,14 +55,14 @@ public class P_060_Equality extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 2;
-		final AvailObject a = args.get(0);
+		final A_BasicObject a = args.get(0);
 		final AvailObject b = args.get(1);
 		return interpreter.primitiveSuccess(
 			AtomDescriptor.objectFromBoolean(a.equals(b)));
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

@@ -120,13 +120,13 @@ extends ParseNodeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_ArgumentsTuple (final AvailObject object)
+	A_Tuple o_ArgumentsTuple (final AvailObject object)
 	{
 		return object.slot(ARGUMENTS_TUPLE);
 	}
 
 	@Override @AvailMethod
-	AvailObject o_StatementsTuple (final AvailObject object)
+	A_Tuple o_StatementsTuple (final AvailObject object)
 	{
 		return object.slot(STATEMENTS_TUPLE);
 	}
@@ -146,13 +146,13 @@ extends ParseNodeDescriptor
 	@Override @AvailMethod
 	void o_NeededVariables (
 		final AvailObject object,
-		final AvailObject neededVariables)
+		final A_Tuple neededVariables)
 	{
 		object.setMutableSlot(NEEDED_VARIABLES, neededVariables);
 	}
 
 	@Override @AvailMethod
-	AvailObject o_DeclaredExceptions (final AvailObject object)
+	A_Set o_DeclaredExceptions (final AvailObject object)
 	{
 		return object.slot(DECLARED_EXCEPTIONS);
 	}
@@ -170,12 +170,12 @@ extends ParseNodeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_ExpressionType (final AvailObject object)
+	A_Type o_ExpressionType (final AvailObject object)
 	{
 		List<AvailObject> argumentTypes;
 		argumentTypes = new ArrayList<AvailObject>(
 				object.argumentsTuple().tupleSize());
-		for (final AvailObject argDeclaration : object.argumentsTuple())
+		for (final A_BasicObject argDeclaration : object.argumentsTuple())
 		{
 			argumentTypes.add(argDeclaration.declaredType());
 		}
@@ -205,7 +205,7 @@ extends ParseNodeDescriptor
 		final AvailObject compiledBlock = object.generate(newGenerator);
 		if (object.neededVariables().tupleSize() == 0)
 		{
-			final AvailObject function = FunctionDescriptor.create(
+			final A_Function function = FunctionDescriptor.create(
 				compiledBlock,
 				TupleDescriptor.empty());
 			function.makeImmutable();
@@ -234,7 +234,7 @@ extends ParseNodeDescriptor
 	@Override @AvailMethod
 	boolean o_EqualsParseNode (
 		final AvailObject object,
-		final AvailObject aParseNode)
+		final A_BasicObject aParseNode)
 	{
 		return object.kind().equals(aParseNode.kind())
 			&& object.argumentsTuple().equals(aParseNode.argumentsTuple())
@@ -279,7 +279,7 @@ extends ParseNodeDescriptor
 	 * @param object The block node to examine.
 	 * @return A list of between zero and one labels.
 	 */
-	private static List<AvailObject> labels (final AvailObject object)
+	private static List<AvailObject> labels (final A_BasicObject object)
 	{
 		final List<AvailObject> labels = new ArrayList<AvailObject>(1);
 		for (final AvailObject maybeLabel : object.statementsTuple())
@@ -300,7 +300,7 @@ extends ParseNodeDescriptor
 	 * @param object The block node to examine.
 	 * @return This block's local variable declarations.
 	 */
-	private static List<AvailObject> locals (final AvailObject object)
+	private static List<AvailObject> locals (final A_BasicObject object)
 	{
 		final List<AvailObject> locals = new ArrayList<AvailObject>(5);
 		for (final AvailObject maybeLocal : object.statementsTuple())
@@ -320,7 +320,7 @@ extends ParseNodeDescriptor
 		final AvailObject object,
 		final Transformer1<AvailObject, AvailObject> aBlock)
 	{
-		AvailObject arguments = object.argumentsTuple();
+		A_Tuple arguments = object.argumentsTuple();
 		for (int i = 1; i <= arguments.tupleSize(); i++)
 		{
 			arguments = arguments.tupleAtPuttingCanDestroy(
@@ -329,7 +329,7 @@ extends ParseNodeDescriptor
 				true);
 		}
 		object.setSlot(ARGUMENTS_TUPLE, arguments);
-		AvailObject statements = object.statementsTuple();
+		A_Tuple statements = object.statementsTuple();
 		for (int i = 1; i <= statements.tupleSize(); i++)
 		{
 			statements = statements.tupleAtPuttingCanDestroy(
@@ -360,7 +360,7 @@ extends ParseNodeDescriptor
 	@Override @AvailMethod
 	void o_ValidateLocally (
 		final AvailObject object,
-		final @Nullable AvailObject parent)
+		final @Nullable A_BasicObject parent)
 	{
 		// Make sure our neededVariables list has up-to-date information about
 		// the outer variables that are accessed in me, because they have to be
@@ -398,7 +398,7 @@ extends ParseNodeDescriptor
 		codeGenerator.stackShouldBeEmpty();
 		codeGenerator.primitive(object.primitive());
 		codeGenerator.stackShouldBeEmpty();
-		final AvailObject statementsTuple = object.statementsTuple();
+		final A_Tuple statementsTuple = object.statementsTuple();
 		final int statementsCount = statementsTuple.tupleSize();
 		if (statementsCount == 0)
 		{
@@ -411,9 +411,9 @@ extends ParseNodeDescriptor
 				statementsTuple.tupleAt(index).emitEffectOn(codeGenerator);
 				codeGenerator.stackShouldBeEmpty();
 			}
-			final AvailObject lastStatement =
+			final A_BasicObject lastStatement =
 				statementsTuple.tupleAt(statementsCount);
-			final AvailObject lastStatementType = lastStatement.kind();
+			final A_BasicObject lastStatementType = lastStatement.kind();
 			if (lastStatementType.parseNodeKindIsUnder(LABEL_NODE)
 				|| (lastStatementType.parseNodeKindIsUnder(ASSIGNMENT_NODE)
 					&& object.resultType().equals(TOP.o())))
@@ -459,8 +459,8 @@ extends ParseNodeDescriptor
 		final List<AvailObject> argumentsList,
 		final int primitive,
 		final List<AvailObject> statementsList,
-		final AvailObject resultType,
-		final AvailObject declaredExceptions,
+		final A_Type resultType,
+		final A_Set declaredExceptions,
 		final int lineNumber)
 	{
 		return newBlockNode(
@@ -497,16 +497,16 @@ extends ParseNodeDescriptor
 	 *            A block node.
 	 */
 	public static AvailObject newBlockNode (
-		final AvailObject arguments,
-		final AvailObject primitive,
-		final AvailObject statements,
-		final AvailObject resultType,
-		final AvailObject declaredExceptions,
+		final A_Tuple arguments,
+		final A_Number primitive,
+		final A_Tuple statements,
+		final A_Type resultType,
+		final A_Set declaredExceptions,
 		final int lineNumber)
 	{
 		final List<AvailObject> flattenedStatements =
 			new ArrayList<AvailObject>(statements.tupleSize() + 3);
-		for (final AvailObject statement : statements)
+		for (final A_BasicObject statement : statements)
 		{
 			statement.flattenStatementsInto(flattenedStatements);
 		}
@@ -514,7 +514,7 @@ extends ParseNodeDescriptor
 		// final statement.  Actually remove any bare literals, not just top.
 		for (int index = flattenedStatements.size() - 2; index >= 0; index--)
 		{
-			final AvailObject statement = flattenedStatements.get(index);
+			final A_BasicObject statement = flattenedStatements.get(index);
 			if (statement.isInstanceOfKind(LITERAL_NODE.mostGeneralType()))
 			{
 				flattenedStatements.remove(index);
@@ -617,10 +617,10 @@ extends ParseNodeDescriptor
 		final int indent)
 	{
 		// Optimize for one-liners...
-		final AvailObject argumentsTuple = object.argumentsTuple();
+		final A_Tuple argumentsTuple = object.argumentsTuple();
 		final int argCount = argumentsTuple.tupleSize();
 		final int primitive = object.primitive();
-		final AvailObject statementsTuple = object.statementsTuple();
+		final A_Tuple statementsTuple = object.statementsTuple();
 		final int statementsSize = statementsTuple.tupleSize();
 		@Nullable AvailObject explicitResultType = object.resultType();
 		if (statementsSize >= 1
@@ -698,7 +698,7 @@ extends ParseNodeDescriptor
 		}
 		for (int index = 1; index <= statementsSize; index++)
 		{
-			final AvailObject statement = statementsTuple.tupleAt(index);
+			final A_BasicObject statement = statementsTuple.tupleAt(index);
 			if (skipFailureDeclaration)
 			{
 				assert statement.isInstanceOf(

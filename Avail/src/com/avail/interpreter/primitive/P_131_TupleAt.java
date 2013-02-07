@@ -56,8 +56,8 @@ public class P_131_TupleAt extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 2;
-		final AvailObject tuple = args.get(0);
-		final AvailObject indexObject = args.get(1);
+		final A_Tuple tuple = args.get(0);
+		final A_Number indexObject = args.get(1);
 		if (!indexObject.isInt())
 		{
 			return interpreter.primitiveFailure(E_SUBSCRIPT_OUT_OF_BOUNDS);
@@ -72,7 +72,7 @@ public class P_131_TupleAt extends Primitive
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
@@ -82,21 +82,19 @@ public class P_131_TupleAt extends Primitive
 	}
 
 	@Override
-	public AvailObject returnTypeGuaranteedByVM (
-		final List<AvailObject> argumentTypes)
+	public A_Type returnTypeGuaranteedByVM (
+		final List<A_Type> argumentTypes)
 	{
-		final AvailObject tupleType = argumentTypes.get(0);
-		final AvailObject subscripts = argumentTypes.get(1);
+		final A_Type tupleType = argumentTypes.get(0);
+		final A_Type subscripts = argumentTypes.get(1);
 
-		final AvailObject lower = subscripts.lowerBound();
-		final AvailObject upper = subscripts.upperBound();
-		final int lowerInt = lower.isInt()
-			? lower.extractInt()
-			: 1;
+		final A_Number lower = subscripts.lowerBound();
+		final A_Number upper = subscripts.upperBound();
+		final int lowerInt = lower.isInt() ? lower.extractInt() : 1;
 		final int upperInt = upper.isInt()
 			? upper.extractInt()
 			: Integer.MAX_VALUE;
-		final AvailObject unionType =
+		final A_Type unionType =
 			tupleType.unionOfTypesAtThrough(lowerInt, upperInt);
 		unionType.makeImmutable();
 		return unionType;

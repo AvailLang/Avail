@@ -58,13 +58,13 @@ extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 2;
-		final AvailObject a = args.get(0);
+		final A_BasicObject a = args.get(0);
 		final AvailObject b = args.get(1);
 		return interpreter.primitiveSuccess(a.bitwiseAnd(b, true));
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

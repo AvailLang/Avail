@@ -55,13 +55,13 @@ public class P_215_BundleRestrictions extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
-		final AvailObject bundle = args.get(0);
+		final A_BasicObject bundle = args.get(0);
 		return interpreter.primitiveSuccess(
 			bundle.grammaticalRestrictions().makeImmutable());
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

@@ -55,9 +55,9 @@ public class P_135_ExtractSubtuple extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 3;
-		final AvailObject tuple = args.get(0);
-		final AvailObject start = args.get(1);
-		final AvailObject end = args.get(2);
+		final A_Tuple tuple = args.get(0);
+		final A_Number start = args.get(1);
+		final A_Number end = args.get(2);
 		if (!start.isInt() || !end.isInt())
 		{
 			return interpreter.primitiveFailure(E_SUBSCRIPT_OUT_OF_BOUNDS);
@@ -79,7 +79,7 @@ public class P_135_ExtractSubtuple extends Primitive
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

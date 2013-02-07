@@ -270,13 +270,13 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_AllBundles (final AvailObject object)
+	A_Map o_AllBundles (final AvailObject object)
 	{
 		return object.slot(ALL_BUNDLES);
 	}
 
 	@Override @AvailMethod
-	AvailObject o_LazyComplete (final AvailObject object)
+	A_Map o_LazyComplete (final AvailObject object)
 	{
 		assert isShared();
 		synchronized (object)
@@ -286,7 +286,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_LazyIncomplete (final AvailObject object)
+	A_Map o_LazyIncomplete (final AvailObject object)
 	{
 		assert isShared();
 		synchronized (object)
@@ -296,7 +296,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_LazyIncompleteCaseInsensitive (final AvailObject object)
+	A_Map o_LazyIncompleteCaseInsensitive (final AvailObject object)
 	{
 		assert isShared();
 		synchronized (object)
@@ -306,7 +306,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_LazyActions (final AvailObject object)
+	A_Map o_LazyActions (final AvailObject object)
 	{
 		assert isShared();
 		synchronized (object)
@@ -316,7 +316,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_LazyPrefilterMap (final AvailObject object)
+	A_Map o_LazyPrefilterMap (final AvailObject object)
 	{
 		assert isShared();
 		synchronized (object)
@@ -342,7 +342,7 @@ extends Descriptor
 		builder.append("BundleTree[pc=");
 		builder.append(object.slot(PARSING_PC));
 		builder.append("](");
-		final AvailObject allBundles = object.slot(ALL_BUNDLES);
+		final A_Map allBundles = object.slot(ALL_BUNDLES);
 		final int bundleCount = allBundles.mapSize();
 		if (bundleCount <= 10)
 		{
@@ -378,7 +378,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_Equals (final AvailObject object, final AvailObject another)
+	boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		return another.traversed().sameAddressAs(object);
 	}
@@ -404,13 +404,13 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_Kind (final AvailObject object)
+	A_Type o_Kind (final AvailObject object)
 	{
 		return MESSAGE_BUNDLE_TREE.o();
 	}
 
 	@Override @AvailMethod
-	AvailObject o_Complete (final AvailObject object)
+	A_Map o_Complete (final AvailObject object)
 	{
 		synchronized (object)
 		{
@@ -420,7 +420,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_Incomplete (final AvailObject object)
+	A_Map o_Incomplete (final AvailObject object)
 	{
 		synchronized (object)
 		{
@@ -440,13 +440,13 @@ extends Descriptor
 	{
 		synchronized (object)
 		{
-			AvailObject allBundles = object.slot(ALL_BUNDLES);
+			A_Map allBundles = object.slot(ALL_BUNDLES);
 			allBundles = allBundles.mapAtPuttingCanDestroy(
 				message,
 				bundle,
 				true);
 			object.setSlot(ALL_BUNDLES, allBundles.traversed().makeShared());
-			AvailObject unclassified = object.slot(UNCLASSIFIED);
+			A_Map unclassified = object.slot(UNCLASSIFIED);
 			assert !unclassified.hasKey(message);
 			unclassified = unclassified.mapAtPuttingCanDestroy(
 				message,
@@ -464,16 +464,16 @@ extends Descriptor
 	@Override @AvailMethod
 	void o_CopyToRestrictedTo (
 		final AvailObject object,
-		final AvailObject filteredBundleTree,
-		final AvailObject visibleNames)
+		final A_BasicObject filteredBundleTree,
+		final A_Set visibleNames)
 	{
 		synchronized (object)
 		{
 			assert object.slot(PARSING_PC) == 1;
 			final AvailObject filtered = filteredBundleTree.traversed();
 			assert filtered.slot(PARSING_PC) == 1;
-			AvailObject filteredAllBundles = filtered.slot(ALL_BUNDLES);
-			AvailObject filteredUnclassified = filtered.slot(UNCLASSIFIED);
+			A_Map filteredAllBundles = filtered.slot(ALL_BUNDLES);
+			A_Map filteredUnclassified = filtered.slot(UNCLASSIFIED);
 			for (final MapDescriptor.Entry entry
 				: object.slot(ALL_BUNDLES).mapIterable())
 			{
@@ -502,33 +502,43 @@ extends Descriptor
 	}
 
 	/**
-	 * If there isn't one already, add a bundle to correspond to the given
-	 * message. Answer the new or existing bundle.
+	 * If there isn't one already, create a bundle with the specified name.
+	 * Answer the new or existing bundle.
 	 */
 	@Override @AvailMethod
-	AvailObject o_IncludeBundle (
+	AvailObject o_IncludeBundleNamed (
 		final AvailObject object,
-		final AvailObject newBundle)
+		final A_Atom messageBundleName)
 	{
 		synchronized (object)
 		{
-			final AvailObject message = newBundle.message();
-			AvailObject allBundles = object.slot(ALL_BUNDLES);
-			if (allBundles.hasKey(message))
+			A_Map allBundles = object.slot(ALL_BUNDLES);
+			if (allBundles.hasKey(messageBundleName))
 			{
-				return allBundles.mapAt(message);
+				return allBundles.mapAt(messageBundleName);
+			}
+			final AvailObject newBundle;
+			try
+			{
+				newBundle =
+					MessageBundleDescriptor.newBundle(messageBundleName);
+			}
+			catch (final SignatureException e)
+			{
+				// Signature should have been pre-checked already.
+				throw new RuntimeException(e);
 			}
 			allBundles = allBundles.mapAtPuttingCanDestroy(
-				message,
+				messageBundleName,
 				newBundle,
 				true);
-			object.setSlot(ALL_BUNDLES, allBundles.traversed().makeShared());
-			AvailObject unclassified = object.slot(UNCLASSIFIED);
+			object.setSlot(ALL_BUNDLES, allBundles.makeShared());
+			A_Map unclassified = object.slot(UNCLASSIFIED);
 			unclassified = unclassified.mapAtPuttingCanDestroy(
-				message,
+				messageBundleName,
 				newBundle,
 				true);
-			object.setSlot(UNCLASSIFIED, unclassified.traversed().makeShared());
+			object.setSlot(UNCLASSIFIED, unclassified.makeShared());
 			return newBundle;
 		}
 	}
@@ -540,7 +550,7 @@ extends Descriptor
 	@Override @AvailMethod
 	boolean o_RemoveBundleNamed (
 		final AvailObject object,
-		final AvailObject message)
+		final A_Atom message)
 	{
 		assert message.isAtom();
 		synchronized (object)
@@ -563,7 +573,7 @@ extends Descriptor
 				else
 				{
 					// Not so easy -- just clear everything.
-					final AvailObject emptyMap = MapDescriptor.empty();
+					final A_Map emptyMap = MapDescriptor.empty();
 					object.setSlot(LAZY_COMPLETE, emptyMap);
 					object.setSlot(LAZY_INCOMPLETE, emptyMap);
 					object.setSlot(LAZY_INCOMPLETE_CASE_INSENSITIVE, emptyMap);
@@ -587,21 +597,20 @@ extends Descriptor
 	{
 		synchronized (object)
 		{
-			final AvailObject unclassified = object.slot(UNCLASSIFIED);
+			final A_Map unclassified = object.slot(UNCLASSIFIED);
 			if (unclassified.mapSize() == 0)
 			{
 				return;
 			}
-			final Mutable<AvailObject> complete = new Mutable<AvailObject>(
+			final Mutable<A_Map> complete = new Mutable<A_Map>(
 				object.slot(LAZY_COMPLETE));
-			final Mutable<AvailObject> incomplete = new Mutable<AvailObject>(
+			final Mutable<A_Map> incomplete = new Mutable<A_Map>(
 				object.slot(LAZY_INCOMPLETE));
-			final Mutable<AvailObject> caseInsensitive =
-				new Mutable<AvailObject>(
-					object.slot(LAZY_INCOMPLETE_CASE_INSENSITIVE));
-			final Mutable<AvailObject> actionMap = new Mutable<AvailObject>(
+			final Mutable<A_Map> caseInsensitive = new Mutable<A_Map>(
+				object.slot(LAZY_INCOMPLETE_CASE_INSENSITIVE));
+			final Mutable<A_Map> actionMap = new Mutable<A_Map>(
 				object.slot(LAZY_ACTIONS));
-			final Mutable<AvailObject> prefilterMap = new Mutable<AvailObject>(
+			final Mutable<A_Map> prefilterMap = new Mutable<A_Map>(
 				object.slot(LAZY_PREFILTER_MAP));
 			final int pc = object.slot(PARSING_PC);
 			// Fail fast if someone messes with this during iteration.
@@ -646,14 +655,14 @@ extends Descriptor
 	private static void updateForMessageAndBundle (
 		final AvailObject message,
 		final AvailObject bundle,
-		final Mutable<AvailObject> complete,
-		final Mutable<AvailObject> incomplete,
-		final Mutable<AvailObject> caseInsensitive,
-		final Mutable<AvailObject> actionMap,
-		final Mutable<AvailObject> prefilterMap,
+		final Mutable<A_Map> complete,
+		final Mutable<A_Map> incomplete,
+		final Mutable<A_Map> caseInsensitive,
+		final Mutable<A_Map> actionMap,
+		final Mutable<A_Map> prefilterMap,
 		final int pc)
 	{
-		final AvailObject instructions = bundle.parsingInstructions();
+		final A_Tuple instructions = bundle.parsingInstructions();
 		if (pc == instructions.tupleSize() + 1)
 		{
 			// It's past the end of the parsing instructions.
@@ -675,7 +684,7 @@ extends Descriptor
 			AvailObject subtree;
 			final AvailObject part = bundle.messageParts().tupleAt(
 				keywordIndex);
-			final Mutable<AvailObject> map = (op == PARSE_PART)
+			final Mutable<A_Map> map = (op == PARSE_PART)
 				? incomplete
 				: caseInsensitive;
 			if (map.value.hasKey(part))
@@ -690,12 +699,12 @@ extends Descriptor
 					subtree,
 					true);
 			}
-			subtree.includeBundle(bundle);
+			subtree.includeBundleNamed(bundle);
 			return;
 		}
 
 		// It's not a keyword parsing instruction.
-		final AvailObject instructionObject =
+		final A_Number instructionObject =
 			IntegerDescriptor.fromInt(instruction);
 		final List<Integer> nextPcs = op.successorPcs(instruction, pc);
 		final int checkArgumentIndex = op.checkArgumentIndex(instruction);
@@ -708,7 +717,7 @@ extends Descriptor
 			final AvailObject successor;
 			if (actionMap.value.hasKey(instructionObject))
 			{
-				final AvailObject successors =
+				final A_Tuple successors =
 					actionMap.value.mapAt(instructionObject);
 				assert successors.tupleSize() == 1;
 				successor = successors.tupleAt(1);
@@ -721,7 +730,7 @@ extends Descriptor
 					TupleDescriptor.from(successor),
 					true);
 			}
-			final AvailObject restrictionSet =
+			final A_Set restrictionSet =
 				bundle.grammaticalRestrictions().tupleAt(checkArgumentIndex);
 			// Add it to every existing branch where it's permitted.
 			for (final MapDescriptor.Entry prefilterEntry
@@ -729,7 +738,7 @@ extends Descriptor
 			{
 				if (!restrictionSet.hasElement(prefilterEntry.key))
 				{
-					prefilterEntry.value.includeBundle(bundle);
+					prefilterEntry.value.includeBundleNamed(bundle);
 				}
 			}
 			// Add branches for any new restrictions.  Pre-populate
@@ -749,7 +758,7 @@ extends Descriptor
 					for (final MapDescriptor.Entry existingEntry
 						: successor.allBundles().mapIterable())
 					{
-						newTarget.includeBundle(existingEntry.value);
+						newTarget.includeBundleNamed(existingEntry.value);
 					}
 					prefilterMap.value =
 						prefilterMap.value.mapAtPuttingCanDestroy(
@@ -762,7 +771,7 @@ extends Descriptor
 			// postponed, since we didn't want to add it under any
 			// new restrictions, and the actionMap is what gets
 			// visited to populate new restrictions.
-			successor.includeBundle(bundle);
+			successor.includeBundleNamed(bundle);
 
 			// Note:  DO NOT return here, since the action has to also be added
 			// to the actionMap (to deal with the case that a subexpression is
@@ -771,7 +780,7 @@ extends Descriptor
 		}
 
 		// It's an ordinary parsing instruction.
-		final AvailObject successors;
+		final A_Tuple successors;
 		if (actionMap.value.hasKey(instructionObject))
 		{
 			successors = actionMap.value.mapAt(instructionObject);
@@ -784,18 +793,16 @@ extends Descriptor
 			{
 				successorsList.add(newPc(nextPc));
 			}
-			successors = TupleDescriptor.fromList(
-				successorsList);
-			actionMap.value =
-				actionMap.value.mapAtPuttingCanDestroy(
-					instructionObject,
-					successors,
-					true);
+			successors = TupleDescriptor.fromList(successorsList);
+			actionMap.value = actionMap.value.mapAtPuttingCanDestroy(
+				instructionObject,
+				successors,
+				true);
 		}
 		assert successors.tupleSize() == nextPcs.size();
-		for (final AvailObject successor : successors)
+		for (final A_BasicObject successor : successors)
 		{
-			successor.includeBundle(bundle);
+			successor.includeBundleNamed(bundle);
 		}
 	}
 
@@ -813,7 +820,7 @@ extends Descriptor
 	@Override
 	void o_FlushForNewOrChangedBundleNamed (
 		final AvailObject object,
-		final AvailObject message)
+		final A_Atom message)
 	{
 		final AvailObject allBundles = object.slot(ALL_BUNDLES);
 		assert allBundles.hasKey(message);
@@ -821,7 +828,7 @@ extends Descriptor
 		{
 			// It has been classified already, so flush the lazy structures
 			// for safety, moving everything back to unclassified.
-			final AvailObject emptyMap = MapDescriptor.empty();
+			final A_Map emptyMap = MapDescriptor.empty();
 			object.setSlot(LAZY_COMPLETE, emptyMap);
 			object.setSlot(LAZY_INCOMPLETE, emptyMap);
 			object.setSlot(LAZY_INCOMPLETE_CASE_INSENSITIVE, emptyMap);

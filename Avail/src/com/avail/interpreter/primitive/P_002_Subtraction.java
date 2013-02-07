@@ -57,8 +57,8 @@ public class P_002_Subtraction extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 2;
-		final AvailObject a = args.get(0);
-		final AvailObject b = args.get(1);
+		final A_Number a = args.get(0);
+		final A_Number b = args.get(1);
 		try
 		{
 			return interpreter.primitiveSuccess(a.minusCanDestroy(b, true));
@@ -70,7 +70,7 @@ public class P_002_Subtraction extends Primitive
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
@@ -80,26 +80,26 @@ public class P_002_Subtraction extends Primitive
 	}
 
 	@Override
-	public AvailObject returnTypeGuaranteedByVM (
-		final List<AvailObject> argumentTypes)
+	public A_Type returnTypeGuaranteedByVM (
+		final List<A_Type> argumentTypes)
 	{
-		final AvailObject aType = argumentTypes.get(0);
-		final AvailObject bType = argumentTypes.get(1);
+		final A_Type aType = argumentTypes.get(0);
+		final A_Type bType = argumentTypes.get(1);
 
 		try
 		{
 			if (aType.isEnumeration() && bType.isEnumeration())
 			{
-				final AvailObject aInstances = aType.instances();
-				final AvailObject bInstances = bType.instances();
+				final A_Set aInstances = aType.instances();
+				final A_Set bInstances = bType.instances();
 				// Compute the Cartesian product as an enumeration if there will
 				// be few enough entries.
 				if (aInstances.setSize() * (long)bInstances.setSize() < 100)
 				{
-					AvailObject answers = SetDescriptor.empty();
-					for (final AvailObject aInstance : aInstances)
+					A_Set answers = SetDescriptor.empty();
+					for (final A_Number aInstance : aInstances)
 					{
-						for (final AvailObject bInstance : bInstances)
+						for (final A_Number bInstance : bInstances)
 						{
 							answers = answers.setWithElementCanDestroy(
 								aInstance.minusCanDestroy(bInstance, false),
@@ -112,10 +112,10 @@ public class P_002_Subtraction extends Primitive
 			}
 			if (aType.isIntegerRangeType() && bType.isIntegerRangeType())
 			{
-				final AvailObject low = aType.lowerBound().minusCanDestroy(
+				final A_Number low = aType.lowerBound().minusCanDestroy(
 					bType.upperBound(),
 					false);
-				final AvailObject high = aType.upperBound().minusCanDestroy(
+				final A_Number high = aType.upperBound().minusCanDestroy(
 					bType.lowerBound(),
 					false);
 				final boolean includesNegativeInfinity =

@@ -130,7 +130,7 @@ extends TokenDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_Kind (final AvailObject object)
+	A_Type o_Kind (final AvailObject object)
 	{
 		return LiteralTokenTypeDescriptor.create(
 			AbstractEnumerationTypeDescriptor.withInstance(object));
@@ -139,7 +139,7 @@ extends TokenDescriptor
 	@Override @AvailMethod
 	boolean o_IsInstanceOfKind (
 		final AvailObject object,
-		final AvailObject aTypeObject)
+		final A_Type aTypeObject)
 	{
 		if (aTypeObject.isSupertypeOfPrimitiveTypeEnum(TOKEN))
 		{
@@ -175,11 +175,11 @@ extends TokenDescriptor
 	 * @return The new token.
 	 */
 	public static AvailObject create (
-		final AvailObject string,
+		final A_String string,
 		final int start,
 		final int lineNumber,
 		final TokenType tokenType,
-		final AvailObject literal)
+		final A_BasicObject literal)
 	{
 		final AvailObject instance = mutable.create();
 		instance.setSlot(STRING, string);

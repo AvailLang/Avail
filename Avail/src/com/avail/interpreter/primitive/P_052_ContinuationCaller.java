@@ -56,9 +56,9 @@ public class P_052_ContinuationCaller extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
-		final AvailObject con = args.get(0);
-		final AvailObject caller = con.caller();
-		final AvailObject callerHolder = VariableDescriptor.forInnerType(
+		final A_BasicObject con = args.get(0);
+		final A_BasicObject caller = con.caller();
+		final A_BasicObject callerHolder = VariableDescriptor.forInnerType(
 			ContinuationTypeDescriptor.mostGeneralType());
 		if (!caller.equalsNil())
 		{
@@ -68,7 +68,7 @@ public class P_052_ContinuationCaller extends Primitive
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

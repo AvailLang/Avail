@@ -39,7 +39,7 @@ import com.avail.serialization.SerializerOperation;
 
 /**
  * My {@linkplain AvailObject object instances} are variables which can hold
- * any object that agrees with my {@linkplain #forInnerType(AvailObject) inner
+ * any object that agrees with my {@linkplain #forInnerType(A_BasicObject) inner
  * type}.  A variable may also hold no value at all.  Any attempt to read the
  * {@linkplain #o_GetValue(AvailObject) current value} of a variable that holds
  * no value will fail immediately.
@@ -127,9 +127,9 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	void o_SetValue (final AvailObject object, final AvailObject newValue)
+	void o_SetValue (final AvailObject object, final A_BasicObject newValue)
 	{
-		final AvailObject outerKind = object.slot(ObjectSlots.KIND);
+		final A_BasicObject outerKind = object.slot(ObjectSlots.KIND);
 		if (!newValue.isInstanceOf(outerKind.writeType()))
 		{
 			throw new VariableSetException(
@@ -155,13 +155,13 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	final AvailObject o_Kind (final AvailObject object)
+	final A_Type o_Kind (final AvailObject object)
 	{
 		return object.slot(ObjectSlots.KIND);
 	}
 
 	@Override @AvailMethod
-	final boolean o_Equals (final AvailObject object, final AvailObject another)
+	final boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		return another.equalsVariable(object);
 	}
@@ -202,7 +202,7 @@ extends Descriptor
 	 *        The type of objects the new variable can contain.
 	 * @return A new variable able to hold the specified type of objects.
 	 */
-	public static AvailObject forInnerType (final AvailObject innerType)
+	public static AvailObject forInnerType (final A_BasicObject innerType)
 	{
 		return VariableDescriptor.forOuterType(
 			VariableTypeDescriptor.wrapInnerType(innerType));
@@ -219,7 +219,7 @@ extends Descriptor
 	 *            A new variable of the given type.
 	 */
 	public static AvailObject forOuterType (
-		final AvailObject outerType)
+		final A_Type outerType)
 	{
 		final AvailObject result = mutable.create();
 		result.setSlot(ObjectSlots.KIND, outerType);

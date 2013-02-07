@@ -107,7 +107,7 @@ extends AbstractEnumerationTypeDescriptor
 	 *            The enumeration for which to extract the instances.
 	 * @return The instances of this enumeration.
 	 */
-	static final AvailObject getInstances (final AvailObject object)
+	static final A_Set getInstances (final AvailObject object)
 	{
 		return object.slot(INSTANCES);
 	}
@@ -121,13 +121,13 @@ extends AbstractEnumerationTypeDescriptor
 	 *        An enumeration.
 	 * @return The kind closest to the given enumeration.
 	 */
-	private AvailObject rawGetSuperkind (final AvailObject object)
+	private A_Type rawGetSuperkind (final AvailObject object)
 	{
-		AvailObject cached = object.slot(CACHED_SUPERKIND);
+		A_Type cached = object.slot(CACHED_SUPERKIND);
 		if (cached.equalsNil())
 		{
 			cached = BottomTypeDescriptor.bottom();
-			for (final AvailObject instance : getInstances(object))
+			for (final A_BasicObject instance : getInstances(object))
 			{
 				cached = cached.typeUnion(instance.kind());
 			}
@@ -148,7 +148,7 @@ extends AbstractEnumerationTypeDescriptor
 	 *        An enumeration.
 	 * @return The kind closest to the given enumeration.
 	 */
-	private final AvailObject getSuperkind (final AvailObject object)
+	private final A_Type getSuperkind (final AvailObject object)
 	{
 		if (isShared())
 		{
@@ -167,19 +167,19 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_ComputeSuperkind (final AvailObject object)
+	A_Type o_ComputeSuperkind (final AvailObject object)
 	{
 		return getSuperkind(object);
 	}
 
 	@Override @AvailMethod
-	AvailObject o_InstanceCount (final AvailObject object)
+	A_Number o_InstanceCount (final AvailObject object)
 	{
 		return IntegerDescriptor.fromInt(getInstances(object).setSize());
 	}
 
 	@Override @AvailMethod
-	AvailObject o_Instances (final AvailObject object)
+	A_Set o_Instances (final AvailObject object)
 	{
 		return getInstances(object);
 	}
@@ -214,7 +214,7 @@ extends AbstractEnumerationTypeDescriptor
 	 * </p>
 	 */
 	@Override @AvailMethod
-	boolean o_Equals (final AvailObject object, final AvailObject another)
+	boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		final boolean equal =
 			another.equalsEnumerationWithSet(getInstances(object));
@@ -225,7 +225,7 @@ extends AbstractEnumerationTypeDescriptor
 				another.makeImmutable();
 				object.becomeIndirectionTo(another);
 			}
-			else if (!another.descriptor.isShared())
+			else if (!another.descriptor().isShared())
 			{
 				object.makeImmutable();
 				another.becomeIndirectionTo(object);
@@ -237,7 +237,7 @@ extends AbstractEnumerationTypeDescriptor
 	@Override @AvailMethod
 	boolean o_EqualsEnumerationWithSet (
 		final AvailObject object,
-		final AvailObject aSet)
+		final A_Set aSet)
 	{
 		return getInstances(object).equals(aSet);
 	}
@@ -264,7 +264,7 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_IsInstanceOf (final AvailObject object, final AvailObject aType)
+	boolean o_IsInstanceOf (final AvailObject object, final A_Type aType)
 	{
 		if (aType.isInstanceMeta())
 		{
@@ -272,7 +272,7 @@ extends AbstractEnumerationTypeDescriptor
 			// (the only sort of metas that exist these days -- 2012.07.17).
 			// See if my instances comply with aType's instance (a type).
 			final AvailObject aTypeInstance = aType.instance();
-			final AvailObject instanceSet = getInstances(object);
+			final A_Set instanceSet = getInstances(object);
 			assert instanceSet.isSet();
 			if (aTypeInstance.isEnumeration())
 			{
@@ -307,21 +307,21 @@ extends AbstractEnumerationTypeDescriptor
 	 *         and {@code another}.
 	 */
 	@Override
-	final AvailObject computeIntersectionWith (
-		final AvailObject object,
-		final AvailObject another)
+	final A_Type computeIntersectionWith (
+		final A_Type object,
+		final A_Type another)
 	{
 		assert another.isType();
-		AvailObject set = SetDescriptor.empty();
-		final AvailObject elements = object.instances();
+		A_Set set = SetDescriptor.empty();
+		final A_Set elements = object.instances();
 		if (another.isEnumeration())
 		{
 			// Create a new enumeration containing all non-type elements that
 			// are simultaneously present in object and another, plus the type
 			// intersections of all pairs of types in the product of the sets.
 			// This should even correctly deal with bottom as an element.
-			final AvailObject otherElements = another.instances();
-			AvailObject myTypes = SetDescriptor.empty();
+			final A_Set otherElements = another.instances();
+			A_Set myTypes = SetDescriptor.empty();
 			for (final AvailObject element : elements)
 			{
 				if (element.isType())
@@ -337,7 +337,7 @@ extends AbstractEnumerationTypeDescriptor
 			// the types.
 			if (myTypes.setSize() > 0)
 			{
-				for (final AvailObject anotherElement : otherElements)
+				for (final A_BasicObject anotherElement : otherElements)
 				{
 					if (anotherElement.isType())
 					{
@@ -395,9 +395,9 @@ extends AbstractEnumerationTypeDescriptor
 	 *         and {@code another}.
 	 */
 	@Override
-	final AvailObject computeUnionWith (
-		final AvailObject object,
-		final AvailObject another)
+	final A_Type computeUnionWith (
+		final A_Type object,
+		final A_Type another)
 	{
 		if (another.isEnumeration())
 		{
@@ -409,8 +409,8 @@ extends AbstractEnumerationTypeDescriptor
 					false));
 		}
 		// Go up to my nearest kind, then compute the union with the given kind.
-		AvailObject union = another;
-		for (final AvailObject instance : object.instances())
+		A_Type union = another;
+		for (final A_BasicObject instance : object.instances())
 		{
 			union = union.typeUnion(instance.kind());
 		}
@@ -418,13 +418,13 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_FieldTypeMap (final AvailObject object)
+	A_Map o_FieldTypeMap (final AvailObject object)
 	{
 		return getSuperkind(object).fieldTypeMap();
 	}
 
 	@Override @AvailMethod
-	AvailObject o_LowerBound (final AvailObject object)
+	A_Number o_LowerBound (final AvailObject object)
 	{
 		return getSuperkind(object).lowerBound();
 	}
@@ -436,7 +436,7 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_UpperBound (final AvailObject object)
+	A_Number o_UpperBound (final AvailObject object)
 	{
 		return getSuperkind(object).upperBound();
 	}
@@ -460,7 +460,7 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_TypeAtIndex (
+	A_Type o_TypeAtIndex (
 		final AvailObject object,
 		final int index)
 	{
@@ -472,7 +472,7 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_UnionOfTypesAtThrough (
+	A_Type o_UnionOfTypesAtThrough (
 		final AvailObject object,
 		final int startIndex,
 		final int endIndex)
@@ -486,30 +486,30 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_DefaultType (final AvailObject object)
+	A_Type o_DefaultType (final AvailObject object)
 	{
 		assert object.isTupleType();
 		return getSuperkind(object).defaultType();
 	}
 
 	@Override @AvailMethod
-	AvailObject o_SizeRange (final AvailObject object)
+	A_Type o_SizeRange (final AvailObject object)
 	{
 		return getSuperkind(object).sizeRange();
 	}
 
 	@Override @AvailMethod
-	AvailObject o_TypeTuple (final AvailObject object)
+	A_Tuple o_TypeTuple (final AvailObject object)
 	{
 		return getSuperkind(object).typeTuple();
 	}
 
 	@Override @AvailMethod
-	boolean o_IsSubtypeOf (final AvailObject object, final AvailObject aType)
+	boolean o_IsSubtypeOf (final AvailObject object, final A_Type aType)
 	{
 		// Check if object (an enumeration) is a subtype of aType (should also
 		// be a type).  All members of me must also be instances of aType.
-		for (final AvailObject instance : object.instances())
+		for (final A_BasicObject instance : object.instances())
 		{
 			if (!instance.isInstanceOf(aType))
 			{
@@ -522,7 +522,7 @@ extends AbstractEnumerationTypeDescriptor
 	@Override @AvailMethod
 	boolean o_IsIntegerRangeType (final AvailObject object)
 	{
-		for (final AvailObject instance : object.instances())
+		for (final A_BasicObject instance : object.instances())
 		{
 			if (!instance.isExtendedInteger())
 			{
@@ -548,7 +548,7 @@ extends AbstractEnumerationTypeDescriptor
 	@Override @AvailMethod
 	boolean o_IsMapType (final AvailObject object)
 	{
-		for (final AvailObject instance : object.instances())
+		for (final A_BasicObject instance : object.instances())
 		{
 			if (!instance.isMap())
 			{
@@ -561,7 +561,7 @@ extends AbstractEnumerationTypeDescriptor
 	@Override @AvailMethod
 	boolean o_IsSetType (final AvailObject object)
 	{
-		for (final AvailObject instance : object.instances())
+		for (final A_BasicObject instance : object.instances())
 		{
 			if (!instance.isSet())
 			{
@@ -574,7 +574,7 @@ extends AbstractEnumerationTypeDescriptor
 	@Override @AvailMethod
 	boolean o_IsTupleType (final AvailObject object)
 	{
-		for (final AvailObject instance : object.instances())
+		for (final A_BasicObject instance : object.instances())
 		{
 			if (!instance.isTuple())
 			{
@@ -587,7 +587,7 @@ extends AbstractEnumerationTypeDescriptor
 	@Override @AvailMethod
 	boolean o_AcceptsArgTypesFromFunctionType (
 		final AvailObject object,
-		final AvailObject functionType)
+		final A_Type functionType)
 	{
 		return getSuperkind(object).acceptsArgTypesFromFunctionType(
 			functionType);
@@ -596,7 +596,7 @@ extends AbstractEnumerationTypeDescriptor
 	@Override @AvailMethod
 	boolean o_AcceptsListOfArgTypes (
 		final AvailObject object,
-		final List<AvailObject> argTypes)
+		final List<A_Type> argTypes)
 	{
 		return getSuperkind(object).acceptsListOfArgTypes(argTypes);
 	}
@@ -604,7 +604,7 @@ extends AbstractEnumerationTypeDescriptor
 	@Override @AvailMethod
 	boolean o_AcceptsListOfArgValues (
 		final AvailObject object,
-		final List<AvailObject> argValues)
+		final List<? extends A_BasicObject> argValues)
 	{
 		return getSuperkind(object).acceptsListOfArgValues(argValues);
 	}
@@ -612,7 +612,7 @@ extends AbstractEnumerationTypeDescriptor
 	@Override @AvailMethod
 	boolean o_AcceptsTupleOfArgTypes (
 		final AvailObject object,
-		final AvailObject argTypes)
+		final A_Tuple argTypes)
 	{
 		return getSuperkind(object).acceptsTupleOfArgTypes(argTypes);
 	}
@@ -620,31 +620,31 @@ extends AbstractEnumerationTypeDescriptor
 	@Override @AvailMethod
 	boolean o_AcceptsTupleOfArguments (
 		final AvailObject object,
-		final AvailObject arguments)
+		final A_BasicObject arguments)
 	{
 		return getSuperkind(object).acceptsTupleOfArguments(arguments);
 	}
 
 	@Override @AvailMethod
-	AvailObject o_ArgsTupleType (final AvailObject object)
+	A_Type o_ArgsTupleType (final AvailObject object)
 	{
 		return getSuperkind(object).argsTupleType();
 	}
 
 	@Override @AvailMethod
-	AvailObject o_DeclaredExceptions (final AvailObject object)
+	A_Set o_DeclaredExceptions (final AvailObject object)
 	{
 		return getSuperkind(object).declaredExceptions();
 	}
 
 	@Override @AvailMethod
-	AvailObject o_FunctionType (final AvailObject object)
+	A_Type o_FunctionType (final AvailObject object)
 	{
 		return getSuperkind(object).functionType();
 	}
 
 	@Override @AvailMethod
-	AvailObject o_ContentType (final AvailObject object)
+	A_Type o_ContentType (final AvailObject object)
 	{
 		return getSuperkind(object).contentType();
 	}
@@ -652,7 +652,7 @@ extends AbstractEnumerationTypeDescriptor
 	@Override @AvailMethod
 	boolean o_CouldEverBeInvokedWith (
 		final AvailObject object,
-		final List<AvailObject> argTypes)
+		final List<? extends A_Type> argTypes)
 	{
 		return getSuperkind(object).couldEverBeInvokedWith(argTypes);
 	}
@@ -660,14 +660,14 @@ extends AbstractEnumerationTypeDescriptor
 	@Override @AvailMethod
 	boolean o_IsBetterRepresentationThan (
 		final AvailObject object,
-		final AvailObject anotherObject)
+		final A_BasicObject anotherObject)
 	{
 		// An enumeration with a cached superkind is pretty good.
 		return !object.mutableSlot(CACHED_SUPERKIND).equalsNil();
 	}
 
 	@Override @AvailMethod
-	AvailObject o_KeyType (final AvailObject object)
+	A_Type o_KeyType (final AvailObject object)
 	{
 		return getSuperkind(object).keyType();
 	}
@@ -679,19 +679,19 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_Parent (final AvailObject object)
+	A_BasicObject o_Parent (final AvailObject object)
 	{
 		return getSuperkind(object).parent();
 	}
 
 	@Override @AvailMethod
-	AvailObject o_ReturnType (final AvailObject object)
+	A_Type o_ReturnType (final AvailObject object)
 	{
 		return getSuperkind(object).returnType();
 	}
 
 	@Override @AvailMethod
-	AvailObject o_ValueType (final AvailObject object)
+	A_Type o_ValueType (final AvailObject object)
 	{
 		return getSuperkind(object).valueType();
 	}
@@ -709,22 +709,22 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	@Override
-	AvailObject o_ReadType (final AvailObject object)
+	A_Type o_ReadType (final AvailObject object)
 	{
 		return getSuperkind(object).readType();
 	}
 
 	@Override
-	AvailObject o_WriteType (final AvailObject object)
+	A_Type o_WriteType (final AvailObject object)
 	{
 		return getSuperkind(object).writeType();
 	}
 
 	@Override
-	AvailObject o_ExpressionType (final AvailObject object)
+	A_Type o_ExpressionType (final AvailObject object)
 	{
-		AvailObject unionType = BottomTypeDescriptor.bottom();
-		for (final AvailObject instance : getInstances(object))
+		A_Type unionType = BottomTypeDescriptor.bottom();
+		for (final A_BasicObject instance : getInstances(object))
 		{
 			unionType = unionType.typeUnion(instance.expressionType());
 		}
@@ -753,7 +753,7 @@ extends AbstractEnumerationTypeDescriptor
 	 * @param normalizedSet The set of instances.
 	 * @return The resulting enumeration.
 	 */
-	static AvailObject fromNormalizedSet (final AvailObject normalizedSet)
+	static A_Type fromNormalizedSet (final A_Set normalizedSet)
 	{
 		assert normalizedSet.setSize() > 1;
 		final AvailObject result = mutable.create();
@@ -788,7 +788,7 @@ extends AbstractEnumerationTypeDescriptor
 	 */
 	static void createWellKnownObjects ()
 	{
-		final AvailObject tuple = TupleDescriptor.from(
+		final A_Tuple tuple = TupleDescriptor.from(
 			AtomDescriptor.trueObject(),
 			AtomDescriptor.falseObject());
 		booleanObject = withInstances(tuple.asSet()).makeShared();

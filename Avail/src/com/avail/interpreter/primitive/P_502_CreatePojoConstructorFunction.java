@@ -65,9 +65,9 @@ public class P_502_CreatePojoConstructorFunction extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 3;
-		final AvailObject pojoType = args.get(0);
-		final AvailObject paramTypes = args.get(1);
-		final AvailObject failFunction = args.get(2);
+		final A_Type pojoType = args.get(0);
+		final A_Tuple paramTypes = args.get(1);
+		final A_Function failFunction = args.get(2);
 		// Do not attempt to bind a constructor to an abstract pojo type.
 		if (pojoType.isAbstract())
 		{
@@ -75,17 +75,15 @@ public class P_502_CreatePojoConstructorFunction extends Primitive
 		}
 		// Marshal the argument types and look up the appropriate
 		// constructor.
-		final Class<?> javaClass =
-			(Class<?>) pojoType.javaClass().javaObject();
+		final Class<?> javaClass = (Class<?>) pojoType.javaClass().javaObject();
 		assert javaClass != null;
-		final Class<?>[] marshaledTypes =
-			new Class<?>[paramTypes.tupleSize()];
+		final Class<?>[] marshaledTypes = new Class<?>[paramTypes.tupleSize()];
 		try
 		{
 			for (int i = 0; i < marshaledTypes.length; i++)
 			{
-				marshaledTypes[i] = (Class<?>) paramTypes.tupleAt(
-					i + 1).marshalToJava(null);
+				marshaledTypes[i] =
+					(Class<?>) paramTypes.tupleAt(i + 1).marshalToJava(null);
 			}
 		}
 		catch (final MarshalingException e)
@@ -113,7 +111,7 @@ public class P_502_CreatePojoConstructorFunction extends Primitive
 			marshaledTypePojos.add(
 				RawPojoDescriptor.equalityWrap(paramClass));
 		}
-		final AvailObject marshaledTypesTuple =
+		final A_Tuple marshaledTypesTuple =
 			TupleDescriptor.fromList(marshaledTypePojos);
 		// Create a function wrapper for the pojo constructor invocation
 		// primitive. This function will be embedded as a literal into
@@ -126,10 +124,8 @@ public class P_502_CreatePojoConstructorFunction extends Primitive
 		writer.argumentTypes(
 			RAW_POJO.o(),
 			TupleTypeDescriptor.mostGeneralType(),
-			TupleTypeDescriptor.zeroOrMoreOf(
-				RAW_POJO.o()),
-			InstanceMetaDescriptor.on(
-				PojoTypeDescriptor.mostGeneralType()));
+			TupleTypeDescriptor.zeroOrMoreOf(RAW_POJO.o()),
+			InstanceMetaDescriptor.on(PojoTypeDescriptor.mostGeneralType()));
 		writer.returnType(PojoTypeDescriptor.mostGeneralType());
 		writer.write(new L1Instruction(
 			L1Operation.L1_doPushLiteral,
@@ -143,16 +139,14 @@ public class P_502_CreatePojoConstructorFunction extends Primitive
 			L1Operation.L1_doCall,
 			writer.addLiteral(MethodDescriptor.vmFunctionApplyMethod()),
 			writer.addLiteral(BottomTypeDescriptor.bottom())));
-		final AvailObject innerFunction = FunctionDescriptor.create(
+		final A_Function innerFunction = FunctionDescriptor.create(
 			writer.compiledCode(),
 			TupleDescriptor.empty()).makeImmutable();
 		// Create the outer function that pushes the arguments expected by
 		// the constructor invocation primitive. Various objects that we do
 		// not want to expose to the Avail program are embedded in this
 		// function as literals.
-		writer = new L1InstructionWriter(
-			NilDescriptor.nil(),
-			0);
+		writer = new L1InstructionWriter(NilDescriptor.nil(), 0);
 		writer.argumentTypesTuple(paramTypes);
 		writer.returnType(pojoType);
 		writer.write(new L1Instruction(
@@ -181,10 +175,9 @@ public class P_502_CreatePojoConstructorFunction extends Primitive
 			4));
 		writer.write(new L1Instruction(
 			L1Operation.L1_doCall,
-			writer.addLiteral(MethodDescriptor
-				.vmFunctionApplyMethod()),
+			writer.addLiteral(MethodDescriptor.vmFunctionApplyMethod()),
 			writer.addLiteral(pojoType)));
-		final AvailObject outerFunction = FunctionDescriptor.create(
+		final A_Function outerFunction = FunctionDescriptor.create(
 			writer.compiledCode(),
 			TupleDescriptor.empty()).makeImmutable();
 		// TODO: [TLS] When functions can be made non-reflective, then make
@@ -193,7 +186,7 @@ public class P_502_CreatePojoConstructorFunction extends Primitive
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

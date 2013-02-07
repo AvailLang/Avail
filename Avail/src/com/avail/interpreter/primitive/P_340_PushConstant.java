@@ -59,7 +59,7 @@ public class P_340_PushConstant extends Primitive
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		// This primitive is suitable for any block signature.
 		return BottomTypeDescriptor.bottom();

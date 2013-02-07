@@ -55,7 +55,7 @@ public class P_029_Instances extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
-		final AvailObject type = args.get(0);
+		final A_BasicObject type = args.get(0);
 		if (!type.isEnumeration())
 		{
 			return interpreter.primitiveFailure(E_NOT_AN_ENUMERATION);
@@ -64,7 +64,7 @@ public class P_029_Instances extends Primitive
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

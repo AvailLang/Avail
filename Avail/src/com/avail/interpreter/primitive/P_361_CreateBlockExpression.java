@@ -66,8 +66,8 @@ extends Primitive
 	{
 		assert args.size() == 5;
 		final AvailObject argDecls = args.get(0);
-		final AvailObject primitive = args.get(1);
-		final AvailObject statements = args.get(2);
+		final A_Number primitive = args.get(1);
+		final A_Tuple statements = args.get(2);
 		final AvailObject resultType = args.get(3);
 		final AvailObject exceptions = args.get(4);
 		// Verify that each element of "statements" is actually a statement,
@@ -75,7 +75,7 @@ extends Primitive
 		// "resultType".
 		final List<AvailObject> flat =
 			new ArrayList<AvailObject>(statements.tupleSize() + 3);
-		for (final AvailObject statement : statements)
+		for (final A_BasicObject statement : statements)
 		{
 			statement.flattenStatementsInto(flat);
 		}
@@ -95,7 +95,7 @@ extends Primitive
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

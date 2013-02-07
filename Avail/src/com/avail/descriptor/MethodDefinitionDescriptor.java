@@ -70,13 +70,13 @@ extends DefinitionDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_BodySignature (final AvailObject object)
+	A_Type o_BodySignature (final AvailObject object)
 	{
 		return object.bodyBlock().kind();
 	}
 
 	@Override @AvailMethod
-	AvailObject o_BodyBlock (final AvailObject object)
+	A_Function o_BodyBlock (final AvailObject object)
 	{
 		return object.slot(ObjectSlots.BODY_BLOCK);
 	}
@@ -88,7 +88,7 @@ extends DefinitionDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_Kind (final AvailObject object)
+	A_Type o_Kind (final AvailObject object)
 	{
 		return METHOD_DEFINITION.o();
 	}
@@ -120,7 +120,7 @@ extends DefinitionDescriptor
 	 */
 	public static AvailObject create (
 		final AvailObject method,
-		final AvailObject bodyBlock)
+		final A_Function bodyBlock)
 	{
 		final AvailObject instance = mutable.create();
 		instance.setSlot(ObjectSlots.DEFINITION_METHOD, method);

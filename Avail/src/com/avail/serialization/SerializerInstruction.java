@@ -122,7 +122,7 @@ final class SerializerInstruction
 	 * @return The array of {@code AvailObject}s for my operation's operands to
 	 *         interpret.
 	 */
-	AvailObject[] decomposed ()
+	A_BasicObject[] decomposed ()
 	{
 		return operation.decompose(object);
 	}

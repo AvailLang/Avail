@@ -132,7 +132,7 @@ extends SetBinDescriptor
 	void o_BinElementAtPut (
 		final AvailObject object,
 		final int subscript,
-		final AvailObject value)
+		final A_BasicObject value)
 	{
 		object.setSlot(BIN_ELEMENT_AT_, subscript, value);
 	}
@@ -144,9 +144,9 @@ extends SetBinDescriptor
 	 * @param object An object.
 	 * @return A type.
 	 */
-	private AvailObject binUnionKind (final AvailObject object)
+	private A_Type binUnionKind (final AvailObject object)
 	{
-		AvailObject union = object.slot(BIN_UNION_TYPE_OR_NULL);
+		A_Type union = object.slot(BIN_UNION_TYPE_OR_NULL);
 		if (union.equalsNil())
 		{
 			union = object.slot(BIN_ELEMENT_AT_, 1).binUnionKind();
@@ -166,7 +166,7 @@ extends SetBinDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_BinUnionKind (final AvailObject object)
+	A_Type o_BinUnionKind (final AvailObject object)
 	{
 		if (isShared())
 		{
@@ -181,7 +181,7 @@ extends SetBinDescriptor
 	@Override @AvailMethod
 	boolean o_BinElementsAreAllInstancesOfKind (
 		final AvailObject object,
-		final AvailObject kind)
+		final A_Type kind)
 	{
 		return object.binUnionKind().isSubtypeOf(kind);
 	}
@@ -193,9 +193,9 @@ extends SetBinDescriptor
 	 * exists.
 	 */
 	@Override @AvailMethod
-	AvailObject o_SetBinAddingElementHashLevelCanDestroy (
+	A_BasicObject o_SetBinAddingElementHashLevelCanDestroy (
 		final AvailObject object,
-		final AvailObject elementObject,
+		final A_BasicObject elementObject,
 		final int elementObjectHash,
 		final byte myLevel,
 		final boolean canDestroy)
@@ -209,10 +209,10 @@ extends SetBinDescriptor
 		final int masked = vector & logicalBitValue - 1;
 		final int physicalIndex = bitCount(masked) + 1;
 		final AvailObject objectToModify;
-		AvailObject typeUnion;
+		A_Type typeUnion;
 		if ((vector & logicalBitValue) != 0)
 		{
-			AvailObject entry = object.slot(BIN_ELEMENT_AT_, physicalIndex);
+			A_BasicObject entry = object.slot(BIN_ELEMENT_AT_, physicalIndex);
 			final int previousBinSize = entry.binSize();
 			final int previousHash = entry.binHash();
 			entry = entry.setBinAddingElementHashLevelCanDestroy(
@@ -305,7 +305,7 @@ extends SetBinDescriptor
 	@Override @AvailMethod
 	boolean o_BinHasElementWithHash (
 		final AvailObject object,
-		final AvailObject elementObject,
+		final A_BasicObject elementObject,
 		final int elementObjectHash)
 	{
 		// First, grab the appropriate 5 bits from the hash.
@@ -321,7 +321,7 @@ extends SetBinDescriptor
 		// zero-relative physicalIndex.
 		final int masked = vector & logicalBitValue - 1;
 		final int physicalIndex = bitCount(masked) + 1;
-		final AvailObject subBin = object.slot(BIN_ELEMENT_AT_, physicalIndex);
+		final A_BasicObject subBin = object.slot(BIN_ELEMENT_AT_, physicalIndex);
 		return subBin.binHasElementWithHash(
 			elementObject,
 			elementObjectHash);
@@ -334,7 +334,7 @@ extends SetBinDescriptor
 	@Override @AvailMethod
 	AvailObject o_BinRemoveElementHashCanDestroy (
 		final AvailObject object,
-		final AvailObject elementObject,
+		final A_BasicObject elementObject,
 		final int elementObjectHash,
 		final boolean canDestroy)
 	{
@@ -353,7 +353,7 @@ extends SetBinDescriptor
 		}
 		final int masked = vector & logicalBitValue - 1;
 		final int physicalIndex = bitCount(masked) + 1;
-		final AvailObject oldEntry =
+		final A_BasicObject oldEntry =
 			object.slot(BIN_ELEMENT_AT_, physicalIndex);
 		final int oldHash = oldEntry.binHash();
 		final int oldSize = oldEntry.binSize();
@@ -451,7 +451,7 @@ extends SetBinDescriptor
 	@Override @AvailMethod
 	boolean o_IsBinSubsetOf (
 		final AvailObject object,
-		final AvailObject potentialSuperset)
+		final A_Set potentialSuperset)
 	{
 		// TODO: [MvG] This could be much quicker in the case that some of the
 		// bins are shared between the sets.  Even if not, we should be able to
@@ -459,7 +459,7 @@ extends SetBinDescriptor
 		final int limit = object.objectSlotsCount() - numberOfFixedObjectSlots;
 		for (int index = 1; index <= limit; index++)
 		{
-			final AvailObject subBin = object.slot(BIN_ELEMENT_AT_, index);
+			final A_BasicObject subBin = object.slot(BIN_ELEMENT_AT_, index);
 			if (!subBin.isBinSubsetOf(potentialSuperset))
 			{
 				return false;
@@ -587,7 +587,7 @@ extends SetBinDescriptor
 		final int totalSize,
 		final int hash,
 		final int bitVector,
-		final AvailObject unionKindOrNull)
+		final A_Type unionKindOrNull)
 	{
 		assert bitCount(bitVector) == localSize;
 		final AvailObject instance =

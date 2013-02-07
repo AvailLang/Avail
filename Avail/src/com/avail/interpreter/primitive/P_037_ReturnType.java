@@ -54,12 +54,12 @@ public class P_037_ReturnType extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
-		final AvailObject functionType = args.get(0);
+		final A_Type functionType = args.get(0);
 		return interpreter.primitiveSuccess(functionType.returnType());
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
@@ -68,13 +68,13 @@ public class P_037_ReturnType extends Primitive
 	}
 
 	@Override
-	public AvailObject returnTypeGuaranteedByVM (
-		final List<AvailObject> argumentTypes)
+	public A_Type returnTypeGuaranteedByVM (
+		final List<A_Type> argumentTypes)
 	{
-		final AvailObject functionMeta = argumentTypes.get(0);
+		final A_Type functionMeta = argumentTypes.get(0);
 
-		final AvailObject functionType = functionMeta.instance();
-		final AvailObject returnType = functionType.returnType();
+		final A_Type functionType = functionMeta.instance();
+		final A_Type returnType = functionType.returnType();
 		return InstanceMetaDescriptor.on(returnType);
 	}
 }

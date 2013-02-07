@@ -79,7 +79,7 @@ public class AvailCodeGenerator
 	/**
 	 * The list of literal objects that have been encountered so far.
 	 */
-	List<AvailObject> literals = new ArrayList<AvailObject>(10);
+	List<A_BasicObject> literals = new ArrayList<A_BasicObject>(10);
 
 	/**
 	 * The current stack depth, which is the number of objects that have been
@@ -107,7 +107,7 @@ public class AvailCodeGenerator
 	 * The {@linkplain SetDescriptor set} of {@linkplain ObjectTypeDescriptor
 	 * exceptions} that this code may raise.
 	 */
-	AvailObject exceptionSet;
+	A_Set exceptionSet;
 
 	/**
 	 * Which {@linkplain Primitive primitive VM operation} should be invoked, or
@@ -132,7 +132,7 @@ public class AvailCodeGenerator
 	 * @return The index of the literal.
 	 */
 	public int indexOfLiteral (
-		final AvailObject aLiteral)
+		final A_BasicObject aLiteral)
 	{
 
 		int index;
@@ -201,7 +201,7 @@ public class AvailCodeGenerator
 		{
 			nybblesArray.add(new Integer(nybble));
 		}
-		final AvailObject nybbleTuple = TupleDescriptor.fromIntegerList(
+		final A_Tuple nybbleTuple = TupleDescriptor.fromIntegerList(
 			nybblesArray);
 		nybbleTuple.makeImmutable();
 		assert resultType.isType();
@@ -223,14 +223,14 @@ public class AvailCodeGenerator
 					VariableTypeDescriptor.wrapInnerType(argDeclType);
 			}
 		}
-		final AvailObject argsTuple = TupleDescriptor.from(argsArray);
-		final AvailObject localsTuple = TupleDescriptor.from(localsArray);
-		final AvailObject [] outerArray = new AvailObject[outerMap.size()];
+		final A_Tuple argsTuple = TupleDescriptor.from(argsArray);
+		final A_Tuple localsTuple = TupleDescriptor.from(localsArray);
+		final A_Type [] outerArray = new AvailObject[outerMap.size()];
 		for (final Map.Entry<AvailObject, Integer> entry : outerMap.entrySet())
 		{
 			final int i = entry.getValue();
-			final AvailObject argDecl = entry.getKey();
-			final AvailObject argDeclType = argDecl.declaredType();
+			final A_BasicObject argDecl = entry.getKey();
+			final A_Type argDeclType = argDecl.declaredType();
 			final DeclarationKind kind = argDecl.declarationKind();
 			if (kind == DeclarationKind.ARGUMENT
 				|| kind == DeclarationKind.LABEL)
@@ -243,7 +243,7 @@ public class AvailCodeGenerator
 					VariableTypeDescriptor.wrapInnerType(argDeclType);
 			}
 		}
-		final AvailObject outerTuple = TupleDescriptor.from(outerArray);
+		final A_Tuple outerTuple = TupleDescriptor.from(outerArray);
 		final AvailObject code = CompiledCodeDescriptor.create(
 			nybbleTuple,
 			varMap.size() - numArgs,
@@ -291,12 +291,12 @@ public class AvailCodeGenerator
 	 *        The module line number on which this block starts.
 	 */
 	public void startBlock (
-		final AvailObject arguments,
+		final A_Tuple arguments,
 		final List<AvailObject> locals,
 		final List<AvailObject> labels,
-		final AvailObject outerVars,
+		final A_Tuple outerVars,
 		final AvailObject theResultType,
-		final AvailObject theExceptionSet,
+		final A_Set theExceptionSet,
 		final int theLineNumber)
 	{
 		numArgs = arguments.tupleSize();
@@ -382,7 +382,7 @@ public class AvailCodeGenerator
 	public void emitCall (
 		final int nArgs,
 		final AvailObject method,
-		final AvailObject returnType)
+		final A_Type returnType)
 	{
 		final int messageIndex = indexOfLiteral(method);
 		final int returnIndex = indexOfLiteral(returnType);
@@ -406,9 +406,9 @@ public class AvailCodeGenerator
 	 */
 	public void emitCloseCode (
 		final AvailObject compiledCode,
-		final AvailObject neededVariables)
+		final A_Tuple neededVariables)
 	{
-		for (final AvailObject variableDeclaration : neededVariables)
+		for (final A_BasicObject variableDeclaration : neededVariables)
 		{
 			emitPushLocalOrOuter(variableDeclaration);
 		}
@@ -430,7 +430,7 @@ public class AvailCodeGenerator
 	 *            its value extracted.
 	 */
 	public void emitGetLiteral (
-		final AvailObject aLiteral)
+		final A_BasicObject aLiteral)
 	{
 		// Push one thing.
 		increaseDepth(1);
@@ -455,7 +455,7 @@ public class AvailCodeGenerator
 	 *            variable that should have its value extracted.
 	 */
 	public void emitGetLocalOrOuter (
-		final AvailObject localOrOuter)
+		final A_BasicObject localOrOuter)
 	{
 		// Push one thing.
 		increaseDepth(1);
@@ -487,7 +487,7 @@ public class AvailCodeGenerator
 	 * @param labelNode The label declaration.
 	 */
 	public void emitLabelDeclaration (
-		final AvailObject labelNode)
+		final A_BasicObject labelNode)
 	{
 		assert instructions.isEmpty()
 		: "Label must be first statement in block";
@@ -525,7 +525,7 @@ public class AvailCodeGenerator
 	 * @param aLiteral The object to push.
 	 */
 	public void emitPushLiteral (
-		final AvailObject aLiteral)
+		final A_BasicObject aLiteral)
 	{
 		//  Push one thing.
 		increaseDepth(1);
@@ -540,7 +540,7 @@ public class AvailCodeGenerator
 	 * @param variableDeclaration The variable declaration.
 	 */
 	public void emitPushLocalOrOuter (
-		final AvailObject variableDeclaration)
+		final A_BasicObject variableDeclaration)
 	{
 		//  Push a variable.
 
@@ -573,7 +573,7 @@ public class AvailCodeGenerator
 	 * @param aLiteral The variable in which to write.
 	 */
 	public void emitSetLiteral (
-		final AvailObject aLiteral)
+		final A_BasicObject aLiteral)
 	{
 		final int index = indexOfLiteral(aLiteral);
 		instructions.add(new AvailSetLiteralVariable(index));
@@ -590,7 +590,7 @@ public class AvailCodeGenerator
 	 *            in which to write.
 	 */
 	public void emitSetLocalOrOuter (
-		final AvailObject localOrOuter)
+		final A_BasicObject localOrOuter)
 	{
 		//  Set a variable to the value popped from the stack.
 

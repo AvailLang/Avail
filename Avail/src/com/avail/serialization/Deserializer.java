@@ -40,8 +40,8 @@ import java.util.*;
 
 /**
  * A {@link Deserializer} takes a stream of bytes and reconstructs objects that
- * had been previously {@linkplain Serializer#serialize(AvailObject) serialized}
- * with a {@link Serializer}.
+ * had been previously {@linkplain Serializer#serialize(A_BasicObject)
+ * serialized} with a {@link Serializer}.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
@@ -135,10 +135,10 @@ public class Deserializer
 	 * @return The module with the specified name.
 	 */
 	public AvailObject moduleNamed (
-		final AvailObject moduleName)
+		final A_String moduleName)
 	{
 		assert moduleName.isString();
-		if (moduleName.equals(currentModule.name()))
+		if (moduleName.equals(currentModule.moduleName()))
 		{
 			return currentModule;
 		}

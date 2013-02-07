@@ -113,14 +113,14 @@ extends ParseNodeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_ReturnType (final AvailObject object)
+	A_Type o_ReturnType (final AvailObject object)
 	{
 		return object.slot(RETURN_TYPE);
 	}
 
 
 	@Override @AvailMethod
-	AvailObject o_ExpressionType (final AvailObject object)
+	A_Type o_ExpressionType (final AvailObject object)
 	{
 		return object.slot(RETURN_TYPE);
 	}
@@ -138,7 +138,7 @@ extends ParseNodeDescriptor
 	@Override @AvailMethod
 	boolean o_EqualsParseNode (
 		final AvailObject object,
-		final AvailObject aParseNode)
+		final A_BasicObject aParseNode)
 	{
 		return object.kind().equals(aParseNode.kind())
 			&& object.slot(METHOD).equals(aParseNode.method())
@@ -158,9 +158,9 @@ extends ParseNodeDescriptor
 		final AvailObject object,
 		final AvailCodeGenerator codeGenerator)
 	{
-		final AvailObject arguments = object.slot(ARGUMENTS_LIST_NODE);
-		final AvailObject tuple = arguments.expressionsTuple();
-		for (final AvailObject argNode : tuple)
+		final A_BasicObject arguments = object.slot(ARGUMENTS_LIST_NODE);
+		final A_Tuple tuple = arguments.expressionsTuple();
+		for (final A_BasicObject argNode : tuple)
 		{
 			argNode.emitValueOn(codeGenerator);
 		}
@@ -192,7 +192,7 @@ extends ParseNodeDescriptor
 	@Override @AvailMethod
 	void o_ValidateLocally (
 		final AvailObject object,
-		final @Nullable AvailObject parent)
+		final @Nullable A_BasicObject parent)
 	{
 		// Do nothing.
 	}
@@ -221,7 +221,7 @@ extends ParseNodeDescriptor
 	public static AvailObject from (
 		final AvailObject method,
 		final AvailObject argsListNode,
-		final AvailObject returnType)
+		final A_Type returnType)
 	{
 		final AvailObject newObject = mutable.create();
 		newObject.setSlot(ARGUMENTS_LIST_NODE, argsListNode);

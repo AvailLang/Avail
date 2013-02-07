@@ -105,7 +105,7 @@ public abstract class Interpreter
 	}
 
 	/** The unresolved forward method declarations. */
-	private AvailObject pendingForwards = SetDescriptor.empty();
+	private A_Set pendingForwards = SetDescriptor.empty();
 
 	/**
 	 * A collection of bit flags indicating the reason for pausing the
@@ -138,7 +138,7 @@ public abstract class Interpreter
 	 * P_340_PushConstant} to get to the first literal in order to return it
 	 * from the primitive.
 	 */
-	private AvailObject primitiveCompiledCodeBeingAttempted;
+	private A_BasicObject primitiveCompiledCodeBeingAttempted;
 
 	/**
 	 * Answer the primitive {@linkplain CompiledCodeDescriptor compiled code}
@@ -150,7 +150,7 @@ public abstract class Interpreter
 	 *            The {@linkplain CompiledCodeDescriptor compiled code} whose
 	 *            primitive is being attempted.
 	 */
-	public final AvailObject primitiveCompiledCodeBeingAttempted ()
+	public final A_BasicObject primitiveCompiledCodeBeingAttempted ()
 	{
 		return primitiveCompiledCodeBeingAttempted;
 	}
@@ -231,10 +231,10 @@ public abstract class Interpreter
 	 *         If the signature is invalid.
 	 */
 	public void addMethodBody (
-			final AvailObject methodName,
-			final AvailObject bodyBlock,
-			final boolean extendGrammar)
-		throws SignatureException
+		final A_Atom methodName,
+		final A_Function bodyBlock,
+		final boolean extendGrammar)
+	throws SignatureException
 	{
 		assert methodName.isAtom();
 		assert bodyBlock.isFunction();
@@ -252,12 +252,12 @@ public abstract class Interpreter
 		final AvailObject newMethodDefinition =
 			MethodDefinitionDescriptor.create(method, bodyBlock);
 		module.moduleAddDefinition(newMethodDefinition);
-		final AvailObject bodySignature = bodyBlock.kind();
+		final A_Type bodySignature = bodyBlock.kind();
 		AvailObject forward = null;
-		final AvailObject impsTuple = method.definitionsTuple();
+		final A_Tuple impsTuple = method.definitionsTuple();
 		for (final AvailObject existingImp : impsTuple)
 		{
-			final AvailObject existingType = existingImp.bodySignature();
+			final A_Type existingType = existingImp.bodySignature();
 			final boolean same = existingType.argsTupleType().equals(
 				bodySignature.argsTupleType());
 			if (same)
@@ -324,8 +324,8 @@ public abstract class Interpreter
 	 * @throws SignatureException If the signature is malformed.
 	 */
 	public void addForwardStub (
-		final AvailObject methodName,
-		final AvailObject bodySignature)
+		final A_Atom methodName,
+		final A_Type bodySignature)
 	throws SignatureException
 	{
 		methodName.makeImmutable();
@@ -336,9 +336,9 @@ public abstract class Interpreter
 			method,
 			bodySignature);
 		module.moduleAddDefinition(newForward);
-		for (final AvailObject definition : method.definitionsTuple())
+		for (final A_BasicObject definition : method.definitionsTuple())
 		{
-			final AvailObject existingType = definition.bodySignature();
+			final A_Type existingType = definition.bodySignature();
 			final boolean same = existingType.argsTupleType().equals(
 				bodySignature.argsTupleType());
 			if (same)
@@ -370,7 +370,7 @@ public abstract class Interpreter
 			newForward,
 			true);
 		assert methodName.isAtom();
-		final AvailObject filteredRoot = module.filteredBundleTree();
+		final A_BasicObject filteredRoot = module.filteredBundleTree();
 		filteredRoot.includeBundleNamed(methodName);
 		filteredRoot.flushForNewOrChangedBundleNamed(methodName);
 	}
@@ -391,8 +391,8 @@ public abstract class Interpreter
 	 *         If the signature is malformed.
 	 */
 	public void addAbstractSignature (
-			final AvailObject methodName,
-			final AvailObject bodySignature,
+			final A_Atom methodName,
+			final A_Type bodySignature,
 			final boolean extendGrammar)
 		throws SignatureException
 	{
@@ -400,7 +400,7 @@ public abstract class Interpreter
 
 		final MessageSplitter splitter = new MessageSplitter(methodName.name());
 		final int numArgs = splitter.numberOfArguments();
-		final AvailObject bodyArgsSizes =
+		final A_Type bodyArgsSizes =
 			bodySignature.argsTupleType().sizeRange();
 		assert bodyArgsSizes.lowerBound().equals(
 				IntegerDescriptor.fromInt(numArgs))
@@ -420,7 +420,7 @@ public abstract class Interpreter
 		@Nullable AvailObject forward = null;
 		for (final AvailObject existingDefinition : method.definitionsTuple())
 		{
-			final AvailObject existingType = existingDefinition.bodySignature();
+			final A_Type existingType = existingDefinition.bodySignature();
 			final boolean same = existingType.argsTupleType().equals(
 				bodySignature.argsTupleType());
 			if (same)
@@ -480,9 +480,9 @@ public abstract class Interpreter
 	 * @throws SignatureException if the macro signature is invalid.
 	 */
 	public void addMacroBody (
-		final AvailObject methodName,
-		final AvailObject prefixFunctions,
-		final AvailObject macroBody)
+		final A_Atom methodName,
+		final A_Tuple prefixFunctions,
+		final A_Function macroBody)
 	throws SignatureException
 	{
 		assert methodName.isAtom();
@@ -503,10 +503,10 @@ public abstract class Interpreter
 			prefixFunctions,
 			macroBody);
 		module.moduleAddDefinition(macroDefinition);
-		final AvailObject macroBodyType = macroBody.kind();
-		for (final AvailObject existingDefinition : method.definitionsTuple())
+		final A_Type macroBodyType = macroBody.kind();
+		for (final A_BasicObject existingDefinition : method.definitionsTuple())
 		{
-			final AvailObject existingType = existingDefinition.bodySignature();
+			final A_Type existingType = existingDefinition.bodySignature();
 			final boolean same = existingType.argsTupleType().equals(
 				macroBodyType.argsTupleType());
 			if (same)
@@ -550,8 +550,8 @@ public abstract class Interpreter
 	 *         If the signature is invalid.
 	 */
 	public void addTypeRestriction (
-		final AvailObject methodName,
-		final AvailObject typeRestrictionFunction)
+		final A_Atom methodName,
+		final A_Function typeRestrictionFunction)
 	throws SignatureException
 	{
 		assert methodName.isAtom();
@@ -574,27 +574,27 @@ public abstract class Interpreter
 	 *
 	 * @param methodName
 	 *        The method name, an {@linkplain AtomDescriptor atom}.
-	 * @param seal
-	 *        The signature at which to seal the method.
+	 * @param argumentTypes
+	 *        The tuple of argument types at which to seal the method.
 	 * @throws SignatureException
 	 *         If the signature is invalid.
 	 */
 	public void addSeal (
-			final AvailObject methodName,
-			final AvailObject seal)
-		throws SignatureException
+		final A_Atom methodName,
+		final A_Tuple argumentTypes)
+	throws SignatureException
 	{
 		assert methodName.isAtom();
-		assert seal.isTuple();
+		assert argumentTypes.isTuple();
 		final MessageSplitter splitter = new MessageSplitter(methodName.name());
-		if (seal.tupleSize() != splitter.numberOfArguments())
+		if (argumentTypes.tupleSize() != splitter.numberOfArguments())
 		{
 			throw new SignatureException(E_INCORRECT_NUMBER_OF_ARGUMENTS);
 		}
 		methodName.makeImmutable();
-		seal.makeImmutable();
-		runtime.addSeal(methodName, seal);
-		module.addSeal(methodName, seal);
+		argumentTypes.makeImmutable();
+		runtime.addSeal(methodName, argumentTypes);
+		module.addSeal(methodName, argumentTypes);
 	}
 
 	/**
@@ -616,8 +616,8 @@ public abstract class Interpreter
 	 *            name.
 	 */
 	public void atDisallowArgumentMessages (
-		final AvailObject methodName,
-		final AvailObject excluded)
+		final A_Atom methodName,
+		final A_Tuple excluded)
 	throws SignatureException
 	{
 		assert methodName.isAtom();
@@ -634,7 +634,7 @@ public abstract class Interpreter
 		module.filteredBundleTree().removeBundleNamed(methodName);
 		bundle.addGrammaticalRestrictions(excluded);
 		module.addGrammaticalRestrictions(methodName, excluded);
-		module.filteredBundleTree().includeBundle(bundle);
+		module.filteredBundleTree().includeBundleNamed(bundle);
 	}
 
 	/**
@@ -648,14 +648,14 @@ public abstract class Interpreter
 	public final @Nullable AvailErrorCode addDeclaration (
 		final AvailObject declaration)
 	{
-		final AvailObject clientDataGlobalKey =
+		final A_Atom clientDataGlobalKey =
 			AtomDescriptor.clientDataGlobalKey();
-		final AvailObject compilerScopeMapKey =
+		final A_Atom compilerScopeMapKey =
 			AtomDescriptor.compilerScopeMapKey();
-		AvailObject fiberGlobals = fiber.fiberGlobals();
-		AvailObject clientData = fiberGlobals.mapAt(clientDataGlobalKey);
-		AvailObject bindings = clientData.mapAt(compilerScopeMapKey);
-		final AvailObject declarationName = declaration.token().string();
+		A_Map fiberGlobals = fiber.fiberGlobals();
+		A_Map clientData = fiberGlobals.mapAt(clientDataGlobalKey);
+		A_Map bindings = clientData.mapAt(compilerScopeMapKey);
+		final A_String declarationName = declaration.token().string();
 		if (bindings.hasKey(declarationName))
 		{
 			return E_LOCAL_DECLARATION_SHADOWS_ANOTHER;
@@ -706,7 +706,7 @@ public abstract class Interpreter
 	 *
 	 * @return The set of unresolved forward declarations.
 	 */
-	public AvailObject unresolvedForwards ()
+	public A_Set unresolvedForwards ()
 	{
 		return pendingForwards;
 	}
@@ -717,7 +717,7 @@ public abstract class Interpreter
 	 *
 	 * @return The filtered root bundle tree.
 	 */
-	public AvailObject rootBundleTree ()
+	public A_BasicObject rootBundleTree ()
 	{
 		return module.filteredBundleTree();
 	}
@@ -736,14 +736,13 @@ public abstract class Interpreter
 	 * @throws AmbiguousNameException
 	 *            If the string could represent several different true names.
 	 */
-	public AvailObject lookupName (
-			final AvailObject stringName)
-		throws AmbiguousNameException
+	public A_Atom lookupName (final A_String stringName)
+	throws AmbiguousNameException
 	{
 		assert stringName.isString();
 		//  Check if it's already defined somewhere...
-		final AvailObject who = module.trueNamesForStringName(stringName);
-		AvailObject trueName;
+		final A_Set who = module.trueNamesForStringName(stringName);
+		A_Atom trueName;
 		if (who.setSize() == 0)
 		{
 			trueName = AtomDescriptor.create(stringName, module);
@@ -763,42 +762,38 @@ public abstract class Interpreter
 	 *
 	 * @return The current executing fiber.
 	 */
-	public AvailObject fiber ()
+	public A_BasicObject fiber ()
 	{
 		return fiber;
 	}
 
 	/**
-	 * The given forward is in the fiber of being resolved. A real
+	 * The given forward is in the process of being resolved. A real
 	 * definition is about to be added to the method tables, so remove the
 	 * forward now.
 	 *
-	 * @param aForward A forward declaration.
+	 * @param forwardDefinition A forward declaration.
 	 * @param methodName A {@linkplain AtomDescriptor method name}.
 	 */
 	public void resolvedForwardWithName (
-		final AvailObject aForward,
-		final AvailObject methodName)
+		final AvailObject forwardDefinition,
+		final A_BasicObject methodName)
 	{
-		assert methodName.isAtom();
-
-		assert runtime.hasMethodAt(methodName);
-		final AvailObject method = runtime.methodAt(methodName);
-		assert !method.equalsNil();
-		if (!pendingForwards.hasElement(aForward))
+		final A_BasicObject method = forwardDefinition.definitionMethod();
+		if (!pendingForwards.hasElement(forwardDefinition))
 		{
 			error("Inconsistent forward declaration handling code");
 			return;
 		}
-		if (!method.includesDefinition(aForward))
+		if (!method.includesDefinition(forwardDefinition))
 		{
 			error("Inconsistent forward declaration handling code");
 			return;
 		}
 		pendingForwards = pendingForwards.setWithoutElementCanDestroy(
-			aForward, true);
-		method.removeDefinition(aForward);
-		module.resolvedForwardWithName(aForward, methodName);
+			forwardDefinition, true);
+		method.removeDefinition(forwardDefinition);
+		module.resolveForward(forwardDefinition);
 	}
 
 	/**
@@ -845,10 +840,10 @@ public abstract class Interpreter
 	 *        The result of performing a {@linkplain Primitive primitive}.
 	 * @return Primitive {@linkplain Result#SUCCESS success}.
 	 */
-	public Result primitiveSuccess (final AvailObject result)
+	public Result primitiveSuccess (final A_BasicObject result)
 	{
 		assert result != null;
-		primitiveResult = result;
+		primitiveResult = (AvailObject)result;
 		return SUCCESS;
 	}
 
@@ -863,7 +858,7 @@ public abstract class Interpreter
 	 */
 	public Result primitiveFailure (final AvailErrorCode code)
 	{
-		primitiveResult = code.numericCode();
+		primitiveResult = (AvailObject)code.numericCode();
 		return FAILURE;
 	}
 
@@ -880,7 +875,7 @@ public abstract class Interpreter
 	public Result primitiveFailure (
 		final AvailException exception)
 	{
-		primitiveResult = exception.numericCode();
+		primitiveResult = (AvailObject)exception.numericCode();
 		return FAILURE;
 	}
 
@@ -898,7 +893,7 @@ public abstract class Interpreter
 	public Result primitiveFailure (
 		final AvailRuntimeException exception)
 	{
-		primitiveResult = exception.numericCode();
+		primitiveResult = (AvailObject)exception.numericCode();
 		return FAILURE;
 	}
 
@@ -919,7 +914,7 @@ public abstract class Interpreter
 	/**
 	 * Answer the result that a primitive invocation has produced.
 	 *
-	 * @return The result that was {@link #primitiveSuccess(AvailObject)
+	 * @return The result that was {@link #primitiveSuccess(A_BasicObject)
 	 * recorded} during primitive execution.
 	 */
 	public AvailObject primitiveResult ()
@@ -930,13 +925,13 @@ public abstract class Interpreter
 	/**
 	 * Invoke an Avail primitive.  The primitive number and arguments are
 	 * passed.  If the primitive fails, use {@link
-	 * Interpreter#primitiveSuccess(AvailObject)} to set the primitiveResult to
+	 * Interpreter#primitiveSuccess(A_BasicObject)} to set the primitiveResult to
 	 * some object indicating what the problem was, and return primitiveFailed
 	 * immediately.  If the primitive causes the continuation to change (e.g.,
 	 * through block invocation, continuation restart, exception throwing, etc),
 	 * answer continuationChanged.  Otherwise the primitive succeeded, and we
 	 * simply capture the resulting value with {@link
-	 * Interpreter#primitiveSuccess(AvailObject)} and return {@link
+	 * Interpreter#primitiveSuccess(A_BasicObject)} and return {@link
 	 * Result#SUCCESS}.
 	 *
 	 * @param primitiveNumber The number of the primitive to invoke.
@@ -946,7 +941,7 @@ public abstract class Interpreter
 	 */
 	public final Result attemptPrimitive (
 		final int primitiveNumber,
-		final @Nullable AvailObject compiledCode,
+		final @Nullable A_BasicObject compiledCode,
 		final List<AvailObject> args)
 	{
 		final Primitive primitive =
@@ -995,7 +990,7 @@ public abstract class Interpreter
 	 *            current continuation was replaced.
 	 */
 	public abstract Result invokeFunctionArguments (
-		AvailObject aFunction,
+		A_Function aFunction,
 		List<AvailObject> args);
 
 	/**
@@ -1021,7 +1016,7 @@ public abstract class Interpreter
 	 * @param continuationToRestart
 	 */
 	public abstract void prepareToRestartContinuation (
-		final AvailObject continuationToRestart);
+		final A_BasicObject continuationToRestart);
 
 	/**
 	 * Raise an exception. Scan the stack of continuations until one is found
@@ -1071,9 +1066,9 @@ public abstract class Interpreter
 	 * @param caller The calling continuation.
 	 */
 	public abstract void invokeWithoutPrimitiveFunctionArguments (
-		AvailObject aFunction,
+		A_Function aFunction,
 		List<AvailObject> args,
-		final AvailObject caller);
+		final A_BasicObject caller);
 
 	/**
 	 * Run the given function with the provided arguments as a top-level action.
@@ -1084,7 +1079,7 @@ public abstract class Interpreter
 	 * @return The result of running the specified function to completion.
 	 */
 	public abstract AvailObject runFunctionArguments (
-		AvailObject aFunction,
+		A_Function aFunction,
 		List<AvailObject> arguments);
 
 	@Override

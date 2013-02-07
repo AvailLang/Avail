@@ -56,7 +56,7 @@ public class P_011_SetValue extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 2;
-		final AvailObject var = args.get(0);
+		final A_BasicObject var = args.get(0);
 		final AvailObject value = args.get(1);
 		if (!value.isInstanceOf(var.kind().writeType()))
 		{
@@ -68,7 +68,7 @@ public class P_011_SetValue extends Primitive
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

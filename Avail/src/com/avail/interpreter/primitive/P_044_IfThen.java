@@ -57,8 +57,8 @@ public class P_044_IfThen extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 2;
-		final AvailObject aBoolean = args.get(0);
-		final AvailObject trueBlock = args.get(1);
+		final A_Atom aBoolean = args.get(0);
+		final A_Function trueBlock = args.get(1);
 		assert trueBlock.code().numArgs() == 0;
 		if (aBoolean.extractBoolean())
 		{
@@ -70,7 +70,7 @@ public class P_044_IfThen extends Primitive
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

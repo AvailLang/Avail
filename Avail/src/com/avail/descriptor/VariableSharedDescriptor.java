@@ -127,7 +127,7 @@ extends VariableDescriptor
 	}
 
 	@Override @AvailMethod
-	void o_SetValue (final AvailObject object, final AvailObject newValue)
+	void o_SetValue (final AvailObject object, final A_BasicObject newValue)
 	{
 		synchronized (object)
 		{

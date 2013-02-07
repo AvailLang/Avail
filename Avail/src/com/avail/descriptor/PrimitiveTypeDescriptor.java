@@ -118,7 +118,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_Parent (final AvailObject object)
+	A_BasicObject o_Parent (final AvailObject object)
 	{
 		return object.slot(PARENT);
 	}
@@ -136,7 +136,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_Equals (final AvailObject object, final AvailObject another)
+	boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		return another.equalsPrimitiveType(object);
 	}
@@ -151,7 +151,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_IsSubtypeOf (final AvailObject object, final AvailObject aType)
+	boolean o_IsSubtypeOf (final AvailObject object, final A_Type aType)
 	{
 		// Check if object (a type) is a subtype of aType (should also be a
 		// type).
@@ -162,7 +162,7 @@ extends TypeDescriptor
 	@Override @AvailMethod
 	boolean o_IsSupertypeOfFunctionType (
 		final AvailObject object,
-		final AvailObject aFunctionType)
+		final A_Type aFunctionType)
 	{
 		// This primitive type is a supertype of aFunctionType if and only if
 		// this primitive type is a supertype of NONTYPE.
@@ -172,7 +172,7 @@ extends TypeDescriptor
 	@Override @AvailMethod
 	boolean o_IsSupertypeOfVariableType (
 		final AvailObject object,
-		final AvailObject aVariableType)
+		final A_BasicObject aVariableType)
 	{
 		// A primitive type is a supertype of a variable type if it is a
 		// supertype of NONTYPE.
@@ -182,7 +182,7 @@ extends TypeDescriptor
 	@Override @AvailMethod
 	boolean o_IsSupertypeOfContinuationType (
 		final AvailObject object,
-		final AvailObject aContinuationType)
+		final A_BasicObject aContinuationType)
 	{
 		// A primitive type is a supertype of a continuation type if it is a
 		// supertype of NONTYPE.
@@ -192,7 +192,7 @@ extends TypeDescriptor
 	@Override @AvailMethod
 	boolean o_IsSupertypeOfCompiledCodeType (
 		final AvailObject object,
-		final AvailObject aCompiledCodeType)
+		final A_Type aCompiledCodeType)
 	{
 		// A primitive type is a supertype of a compiled code type if it is a
 		// supertype of NONTYPE.
@@ -202,7 +202,7 @@ extends TypeDescriptor
 	@Override @AvailMethod
 	boolean o_IsSupertypeOfIntegerRangeType (
 		final AvailObject object,
-		final AvailObject anIntegerRangeType)
+		final A_Type anIntegerRangeType)
 	{
 		// Parent of the top integer range type is number, so continue
 		// searching there.
@@ -212,7 +212,7 @@ extends TypeDescriptor
 	@Override @AvailMethod
 	boolean o_IsSupertypeOfLiteralTokenType (
 		final AvailObject object,
-		final AvailObject aLiteralTokenType)
+		final A_BasicObject aLiteralTokenType)
 	{
 		// This primitive type is a supertype of aLiteralTokenType if and only
 		// if this primitive type is a supertype of TOKEN.
@@ -232,7 +232,7 @@ extends TypeDescriptor
 	@Override @AvailMethod
 	boolean o_IsSupertypeOfObjectType (
 		final AvailObject object,
-		final AvailObject anEagerObjectType)
+		final A_BasicObject anEagerObjectType)
 	{
 		// Check if I'm a supertype of the given eager object type. Only NONTYPE
 		// and its ancestors are supertypes of an object type.
@@ -250,7 +250,7 @@ extends TypeDescriptor
 	@Override
 	boolean o_IsSupertypeOfPojoBottomType (
 		final AvailObject object,
-		final AvailObject aPojoType)
+		final A_BasicObject aPojoType)
 	{
 		return object.isSupertypeOfPrimitiveTypeEnum(NONTYPE);
 	}
@@ -258,7 +258,7 @@ extends TypeDescriptor
 	@Override @AvailMethod
 	boolean o_IsSupertypeOfPojoType (
 		final AvailObject object,
-		final AvailObject aPojoType)
+		final A_BasicObject aPojoType)
 	{
 		return object.isSupertypeOfPrimitiveTypeEnum(NONTYPE);
 	}
@@ -296,15 +296,15 @@ extends TypeDescriptor
 	@Override @AvailMethod
 	boolean o_IsSupertypeOfEnumerationType (
 		final AvailObject object,
-		final AvailObject anEnumerationType)
+		final A_BasicObject anEnumerationType)
 	{
 		return InstanceMetaDescriptor.topMeta().isSubtypeOf(object);
 	}
 
 	@Override @AvailMethod
-	AvailObject o_TypeIntersection (
+	A_Type o_TypeIntersection (
 		final AvailObject object,
-		final AvailObject another)
+		final A_Type another)
 	{
 		if (object.isSubtypeOf(another))
 		{
@@ -318,9 +318,9 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_TypeUnion (
+	A_Type o_TypeUnion (
 		final AvailObject object,
-		final AvailObject another)
+		final A_Type another)
 	{
 		if (object.isSubtypeOf(another))
 		{
@@ -421,7 +421,7 @@ extends TypeDescriptor
 		final String typeNameString,
 		final int ordinal)
 	{
-		final AvailObject name = StringDescriptor.from(typeNameString);
+		final A_String name = StringDescriptor.from(typeNameString);
 		final AvailObject object = create();
 		object.setSlot(NAME, name);
 		object.setSlot(PARENT, NilDescriptor.nil());

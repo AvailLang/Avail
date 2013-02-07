@@ -71,7 +71,7 @@ extends ParseNodeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_ExpressionType (final AvailObject object)
+	A_Type o_ExpressionType (final AvailObject object)
 	{
 		// This shouldn't make a difference.
 		return TOP.o();
@@ -106,7 +106,7 @@ extends ParseNodeDescriptor
 	@Override @AvailMethod
 	boolean o_EqualsParseNode (
 		final AvailObject object,
-		final AvailObject aParseNode)
+		final A_BasicObject aParseNode)
 	{
 		return object.kind().equals(aParseNode.kind())
 			&& object.markerValue().equals(aParseNode.markerValue());
@@ -143,7 +143,7 @@ extends ParseNodeDescriptor
 	@Override @AvailMethod
 	void o_ValidateLocally (
 		final AvailObject object,
-		final @Nullable AvailObject parent)
+		final @Nullable A_BasicObject parent)
 	{
 		throw unsupportedOperationException();
 	}

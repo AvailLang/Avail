@@ -78,19 +78,19 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_KeyType (final AvailObject object)
+	A_Type o_KeyType (final AvailObject object)
 	{
 		return object.slot(KEY_TYPE);
 	}
 
 	@Override @AvailMethod
-	AvailObject o_SizeRange (final AvailObject object)
+	A_Type o_SizeRange (final AvailObject object)
 	{
 		return object.slot(SIZE_RANGE);
 	}
 
 	@Override @AvailMethod
-	AvailObject o_ValueType (final AvailObject object)
+	A_Type o_ValueType (final AvailObject object)
 	{
 		return object.slot(VALUE_TYPE);
 	}
@@ -117,7 +117,7 @@ extends TypeDescriptor
 		object.valueType().printOnAvoidingIndent(
 			aStream, recursionList, indent + 1);
 		aStream.append('|');
-		final AvailObject sizeRange = object.slot(SIZE_RANGE);
+		final A_Type sizeRange = object.slot(SIZE_RANGE);
 		if (sizeRange.equals(IntegerRangeTypeDescriptor.wholeNumbers()))
 		{
 			aStream.append('}');
@@ -135,7 +135,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_Equals (final AvailObject object, final AvailObject another)
+	boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		return another.equalsMapType(object);
 	}
@@ -173,7 +173,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_IsSubtypeOf (final AvailObject object, final AvailObject aType)
+	boolean o_IsSubtypeOf (final AvailObject object, final A_Type aType)
 	{
 		// Check if object (a type) is a subtype of aType (should also be a
 		// type).
@@ -193,9 +193,9 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_TypeIntersection (
+	A_Type o_TypeIntersection (
 		final AvailObject object,
-		final AvailObject another)
+		final A_Type another)
 	{
 		// Answer the most general type that is still at least as specific as
 		// these.
@@ -211,9 +211,9 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_TypeIntersectionOfMapType (
+	A_Type o_TypeIntersectionOfMapType (
 		final AvailObject object,
-		final AvailObject aMapType)
+		final A_Type aMapType)
 	{
 		// Answer the most general type that is still at least as specific as
 		// these.
@@ -231,9 +231,9 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_TypeUnion (
+	A_Type o_TypeUnion (
 		final AvailObject object,
-		final AvailObject another)
+		final A_Type another)
 	{
 		// Answer the most specific type that is still at least as general as
 		// these.
@@ -253,9 +253,9 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_TypeUnionOfMapType (
+	A_Type o_TypeUnionOfMapType (
 		final AvailObject object,
-		final AvailObject aMapType)
+		final A_Type aMapType)
 	{
 		// Answer the most specific type that is still at least as general as
 		// these.
@@ -312,14 +312,14 @@ extends TypeDescriptor
 	}
 
 	/** The most general map type. */
-	private static AvailObject mostGeneralType;
+	private static A_Type mostGeneralType;
 
 	/**
 	 * Answer the most general {@linkplain MapTypeDescriptor map type}.
 	 *
 	 * @return The most general map type.
 	 */
-	public static AvailObject mostGeneralType ()
+	public static A_Type mostGeneralType ()
 	{
 		return mostGeneralType;
 	}
@@ -327,14 +327,14 @@ extends TypeDescriptor
 	/**
 	 * The metatype for all map types.
 	 */
-	private static AvailObject meta;
+	private static A_Type meta;
 
 	/**
 	 * Answer the metatype for all map types.
 	 *
 	 * @return The statically referenced metatype.
 	 */
-	public static AvailObject meta ()
+	public static A_Type meta ()
 	{
 		return meta;
 	}
@@ -380,10 +380,10 @@ extends TypeDescriptor
 	 *        The type of all values of maps of the proposed type.
 	 * @return The requested map type.
 	 */
-	public static AvailObject mapTypeForSizesKeyTypeValueType (
-		final AvailObject sizeRange,
-		final AvailObject keyType,
-		final AvailObject valueType)
+	public static A_Type mapTypeForSizesKeyTypeValueType (
+		final A_Type sizeRange,
+		final A_Type keyType,
+		final A_Type valueType)
 	{
 		if (sizeRange.equals(BottomTypeDescriptor.bottom()))
 		{
@@ -394,13 +394,13 @@ extends TypeDescriptor
 		assert IntegerDescriptor.zero().lessOrEqual(sizeRange.lowerBound());
 		assert sizeRange.upperBound().isFinite() || !sizeRange.upperInclusive();
 
-		final AvailObject sizeRangeKind = sizeRange.isEnumeration()
+		final A_Type sizeRangeKind = sizeRange.isEnumeration()
 			? sizeRange.computeSuperkind()
 			: sizeRange;
 
-		final AvailObject newSizeRange;
-		final AvailObject newKeyType;
-		final AvailObject newValueType;
+		final A_Type newSizeRange;
+		final A_Type newKeyType;
+		final A_Type newValueType;
 		if (sizeRangeKind.upperBound().equals(IntegerDescriptor.zero()))
 		{
 			newSizeRange = sizeRangeKind;
@@ -422,7 +422,7 @@ extends TypeDescriptor
 			newValueType = valueType;
 		}
 
-		final AvailObject result = mutable.create();
+		final A_Type result = mutable.create();
 		result.setSlot(SIZE_RANGE, newSizeRange);
 		result.setSlot(KEY_TYPE, newKeyType);
 		result.setSlot(VALUE_TYPE, newValueType);

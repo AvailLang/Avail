@@ -84,7 +84,7 @@ extends TupleDescriptor
 		final AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
-		final AvailObject anotherObject,
+		final A_Tuple anotherObject,
 		final int startIndex2)
 	{
 		return anotherObject.compareFromToWithByteTupleStartingAt(
@@ -123,7 +123,7 @@ extends TupleDescriptor
 	@Override @AvailMethod
 	boolean o_Equals (
 		final AvailObject object,
-		final AvailObject another)
+		final A_BasicObject another)
 	{
 		return another.equalsByteTuple(object);
 	}
@@ -179,7 +179,7 @@ extends TupleDescriptor
 	@Override @AvailMethod
 	boolean o_IsInstanceOfKind (
 		final AvailObject object,
-		final AvailObject aType)
+		final A_Type aType)
 	{
 		if (aType.isSupertypeOfPrimitiveTypeEnum(NONTYPE))
 		{
@@ -195,7 +195,7 @@ extends TupleDescriptor
 			return false;
 		}
 		//  tuple's size is out of range.
-		final AvailObject typeTuple = aType.typeTuple();
+		final A_Tuple typeTuple = aType.typeTuple();
 		final int breakIndex = min(object.tupleSize(), typeTuple.tupleSize());
 		for (int i = 1; i <= breakIndex; i++)
 		{
@@ -204,7 +204,7 @@ extends TupleDescriptor
 				return false;
 			}
 		}
-		final AvailObject defaultTypeObject = aType.defaultType();
+		final A_Type defaultTypeObject = aType.defaultType();
 		if (IntegerRangeTypeDescriptor.bytes().isSubtypeOf(defaultTypeObject))
 		{
 			return true;
@@ -267,7 +267,7 @@ extends TupleDescriptor
 	{
 		//  Answer the element at the given index in the tuple object.
 		assert index >= 1 && index <= object.tupleSize();
-		return IntegerDescriptor.fromUnsignedByte(
+		return (AvailObject)IntegerDescriptor.fromUnsignedByte(
 			object.byteSlotAt(IntegerSlots.RAW_QUAD_AT_, index));
 	}
 
@@ -280,15 +280,15 @@ extends TupleDescriptor
 		// Set the byte at the given index to the given object (which should be
 		// an AvailObject that's an integer 0<=n<=255).
 		assert index >= 1 && index <= object.tupleSize();
-		final short theByte = aByteObject.extractUnsignedByte();
+		final short theByte = ((A_Number)aByteObject).extractUnsignedByte();
 		object.byteSlotAtPut(IntegerSlots.RAW_QUAD_AT_, index, theByte);
 	}
 
 	@Override @AvailMethod
-	AvailObject o_TupleAtPuttingCanDestroy (
+	A_Tuple o_TupleAtPuttingCanDestroy (
 		final AvailObject object,
 		final int index,
-		final AvailObject newValueObject,
+		final A_BasicObject newValueObject,
 		final boolean canDestroy)
 	{
 		// Answer a tuple with all the elements of object except at the given
@@ -311,7 +311,9 @@ extends TupleDescriptor
 				true);
 		}
 		// Clobber the object in place...
-		object.rawByteAtPut(index, newValueObject.extractUnsignedByte());
+		object.rawByteAtPut(
+			index,
+			((A_Number)newValueObject).extractUnsignedByte());
 		object.hashOrZero(0);
 		//  ...invalidate the hash value.
 		return object;
@@ -358,7 +360,7 @@ extends TupleDescriptor
 	 * @param object The byte tuple to copy.
 	 * @return The new mutable byte tuple.
 	 */
-	private AvailObject copyAsMutableByteTuple (
+	private A_Tuple copyAsMutableByteTuple (
 		final AvailObject object)
 	{
 		final AvailObject result = mutableObjectOfSize(object.tupleSize());

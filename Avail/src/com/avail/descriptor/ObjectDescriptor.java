@@ -105,16 +105,16 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_FieldMap (final AvailObject object)
+	A_Map o_FieldMap (final AvailObject object)
 	{
 		return object.slot(FIELD_MAP);
 	}
 
 	@Override @AvailMethod
-	AvailObject o_FieldTuple (final AvailObject object)
+	A_Tuple o_FieldTuple (final AvailObject object)
 	{
-		final AvailObject map = object.slot(FIELD_MAP);
-		final List<AvailObject> fieldAssignments = new ArrayList<AvailObject>(
+		final A_Map map = object.slot(FIELD_MAP);
+		final List<A_Tuple> fieldAssignments = new ArrayList<A_Tuple>(
 			map.mapSize());
 		for (final MapDescriptor.Entry entry : map.mapIterable())
 		{
@@ -124,7 +124,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_Equals (final AvailObject object, final AvailObject another)
+	boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		return another.equalsObject(object);
 	}
@@ -144,7 +144,7 @@ extends Descriptor
 	@Override @AvailMethod
 	boolean o_IsInstanceOfKind (
 		final AvailObject object,
-		final AvailObject aTypeObject)
+		final A_Type aTypeObject)
 	{
 		if (aTypeObject.isSupertypeOfPrimitiveTypeEnum(NONTYPE))
 		{
@@ -173,8 +173,8 @@ extends Descriptor
 		if (kind.equalsNil())
 		{
 			object.makeImmutable();
-			final AvailObject valueMap = object.slot(FIELD_MAP);
-			AvailObject typeMap = MapDescriptor.empty();
+			final A_Map valueMap = object.slot(FIELD_MAP);
+			A_Map typeMap = MapDescriptor.empty();
 			for (final MapDescriptor.Entry entry : valueMap.mapIterable())
 			{
 				typeMap = typeMap.mapAtPuttingCanDestroy(
@@ -193,7 +193,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_Kind (final AvailObject object)
+	A_Type o_Kind (final AvailObject object)
 	{
 		if (isShared())
 		{
@@ -212,7 +212,7 @@ extends Descriptor
 	}
 
 	@Override
-	public boolean o_ShowValueInNameForDebugger (final AvailObject object)
+	public boolean o_ShowValueInNameForDebugger (final A_BasicObject object)
 	{
 		return false;
 	}
@@ -224,13 +224,13 @@ extends Descriptor
 		final List<AvailObject> recursionList,
 		final int indent)
 	{
-		final AvailObject pair =
+		final A_Tuple pair =
 			ObjectTypeDescriptor.namesAndBaseTypesForType(object.kind());
-		final AvailObject names = pair.tupleAt(1);
-		final AvailObject baseTypes = pair.tupleAt(2);
+		final A_Set names = pair.tupleAt(1);
+		final A_Set baseTypes = pair.tupleAt(2);
 		boolean first = true;
 		builder.append("Instance of (");
-		for (final AvailObject name : names)
+		for (final A_String name : names)
 		{
 			if (!first)
 			{
@@ -250,10 +250,10 @@ extends Descriptor
 		{
 			builder.append(")");
 		}
-		AvailObject ignoreKeys = SetDescriptor.empty();
-		for (final AvailObject baseType : baseTypes)
+		A_Set ignoreKeys = SetDescriptor.empty();
+		for (final A_BasicObject baseType : baseTypes)
 		{
-			final AvailObject fieldTypes = baseType.fieldTypeMap();
+			final A_BasicObject fieldTypes = baseType.fieldTypeMap();
 			for (final MapDescriptor.Entry entry : fieldTypes.mapIterable())
 			{
 				if (InstanceTypeDescriptor.on(entry.key).equals(entry.value))
@@ -302,7 +302,7 @@ extends Descriptor
 	 * @param map A map from keys to their corresponding values.
 	 * @return The new object.
 	 */
-	public static AvailObject objectFromMap (final AvailObject map)
+	public static AvailObject objectFromMap (final A_Map map)
 	{
 		final AvailObject result = mutable.create();
 		result.setSlot(FIELD_MAP, map);
@@ -320,10 +320,10 @@ extends Descriptor
 	 *        value.
 	 * @return The new object.
 	 */
-	public static AvailObject objectFromTuple (final AvailObject tuple)
+	public static AvailObject objectFromTuple (final A_Tuple tuple)
 	{
-		AvailObject map = MapDescriptor.empty();
-		for (final AvailObject fieldAssignment : tuple)
+		A_Map map = MapDescriptor.empty();
+		for (final A_Tuple fieldAssignment : tuple)
 		{
 			final AvailObject fieldAtom = fieldAssignment.tupleAt(1);
 			final AvailObject fieldValue = fieldAssignment.tupleAt(2);
@@ -334,7 +334,7 @@ extends Descriptor
 
 	/**
 	 * Compute the hash of a user-defined object that would be {@linkplain
-	 * #objectFromMap(AvailObject) constructed} from a map with the given hash
+	 * #objectFromMap(A_Map) constructed} from a map with the given hash
 	 * value.
 	 *
 	 * @param fieldMapHash The hash of some map.

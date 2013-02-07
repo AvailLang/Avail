@@ -59,9 +59,9 @@ public class P_040_InvokeWithTuple extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 2;
-		final AvailObject block = args.get(0);
-		final AvailObject argTuple = args.get(1);
-		final AvailObject blockType = block.kind();
+		final A_Function block = args.get(0);
+		final A_Tuple argTuple = args.get(1);
+		final A_Type blockType = block.kind();
 		final int numArgs = argTuple.tupleSize();
 		if (block.code().numArgs() != numArgs)
 		{
@@ -70,7 +70,7 @@ public class P_040_InvokeWithTuple extends Primitive
 		}
 		final List<AvailObject> callArgs =
 			new ArrayList<AvailObject>(numArgs);
-		final AvailObject tupleType = blockType.argsTupleType();
+		final A_BasicObject tupleType = blockType.argsTupleType();
 		for (int i = 1; i <= numArgs; i++)
 		{
 			final AvailObject anArg = argTuple.tupleAt(i);
@@ -86,7 +86,7 @@ public class P_040_InvokeWithTuple extends Primitive
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

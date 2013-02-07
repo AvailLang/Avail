@@ -115,7 +115,7 @@ final class SerializerOperand
 	 */
 	public AvailObject read (final Deserializer deserializer)
 	{
-		return operandEncoding.read(deserializer);
+		return (AvailObject)operandEncoding.read(deserializer);
 	}
 
 	@Override

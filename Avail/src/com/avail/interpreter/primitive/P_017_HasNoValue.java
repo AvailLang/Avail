@@ -55,14 +55,14 @@ public class P_017_HasNoValue extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
-		final AvailObject var = args.get(0);
+		final A_BasicObject var = args.get(0);
 		return interpreter.primitiveSuccess(
 			AtomDescriptor.objectFromBoolean(
 				var.value().equalsNil()));
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

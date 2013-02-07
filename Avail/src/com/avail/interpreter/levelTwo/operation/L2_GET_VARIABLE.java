@@ -80,9 +80,8 @@ public class L2_GET_VARIABLE extends L2Operation
 			(L2WritePointerOperand) instruction.operands[1];
 		if (registers.hasTypeAt(sourceOperand.register))
 		{
-			final AvailObject oldType = registers.typeAt(
-				sourceOperand.register);
-			final AvailObject varType = oldType.typeIntersection(
+			final A_Type oldType = registers.typeAt(sourceOperand.register);
+			final A_Type varType = oldType.typeIntersection(
 				VariableTypeDescriptor.mostGeneralType());
 			registers.typeAtPut(sourceOperand.register, varType);
 			registers.typeAtPut(

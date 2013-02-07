@@ -59,8 +59,8 @@ public class P_018_GetClearing extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
-		final AvailObject var = args.get(0);
-		final AvailObject valueObject = var.value();
+		final A_BasicObject var = args.get(0);
+		final A_BasicObject valueObject = var.value();
 		if (valueObject.equalsNil())
 		{
 			return interpreter.primitiveFailure(
@@ -72,7 +72,7 @@ public class P_018_GetClearing extends Primitive
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
@@ -81,11 +81,11 @@ public class P_018_GetClearing extends Primitive
 	}
 
 	@Override
-	public AvailObject returnTypeGuaranteedByVM (
-		final List<AvailObject> argumentTypes)
+	public A_Type returnTypeGuaranteedByVM (
+		final List<A_Type> argumentTypes)
 	{
-		final AvailObject varType = argumentTypes.get(0);
-		final AvailObject readType = varType.readType();
+		final A_Type varType = argumentTypes.get(0);
+		final A_Type readType = varType.readType();
 		return readType.equals(TOP.o()) ? ANY.o() : readType;
 	}
 }

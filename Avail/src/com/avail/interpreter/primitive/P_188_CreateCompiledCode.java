@@ -55,13 +55,13 @@ public class P_188_CreateCompiledCode extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 7;
-		final AvailObject nybs = args.get(0);
-		final AvailObject primitive = args.get(1);
-		final AvailObject functionType = args.get(2);
-		final AvailObject allLiterals = args.get(3);
-		final AvailObject locals = args.get(4);
-		final AvailObject outers = args.get(5);
-		final AvailObject stack = args.get(6);
+		final A_Tuple nybs = args.get(0);
+		final A_Number primitive = args.get(1);
+		final A_Type functionType = args.get(2);
+		final A_Tuple allLiterals = args.get(3);
+		final A_Number locals = args.get(4);
+		final A_Number outers = args.get(5);
+		final A_Number stack = args.get(6);
 
 		final int nLocals = locals.extractInt();
 		final int nOuters = outers.extractInt();
@@ -77,7 +77,7 @@ public class P_188_CreateCompiledCode extends Primitive
 				return interpreter.primitiveFailure(
 					E_INVALID_PRIMITIVE_NUMBER);
 			}
-			final AvailObject restrictionSignature =
+			final A_Type restrictionSignature =
 				prim.blockTypeRestriction();
 			if (!restrictionSignature.isSubtypeOf(functionType))
 			{
@@ -86,7 +86,7 @@ public class P_188_CreateCompiledCode extends Primitive
 			}
 		}
 
-		final AvailObject localTypes =
+		final A_Tuple localTypes =
 			allLiterals.copyTupleFromToCanDestroy(
 				nLiteralsTotal - nLocals + 1,
 				nLiteralsTotal,
@@ -100,7 +100,7 @@ public class P_188_CreateCompiledCode extends Primitive
 			}
 		}
 
-		final AvailObject outerTypes =
+		final A_Tuple outerTypes =
 			allLiterals.copyTupleFromToCanDestroy(
 				nLiteralsTotal - nLocals - nOuters + 1,
 				nLiteralsTotal - nLocals,
@@ -133,7 +133,7 @@ public class P_188_CreateCompiledCode extends Primitive
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

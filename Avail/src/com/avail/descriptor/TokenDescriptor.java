@@ -154,7 +154,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_String (final AvailObject object)
+	A_String o_String (final AvailObject object)
 	{
 		return object.slot(STRING);
 	}
@@ -166,9 +166,9 @@ extends Descriptor
 	 * @param object A token.
 	 * @return The lowercase lexeme.
 	 */
-	private AvailObject lowerCaseString (final AvailObject object)
+	private A_String lowerCaseString (final AvailObject object)
 	{
-		AvailObject lowerCase = object.slot(LOWER_CASE_STRING);
+		A_String lowerCase = object.slot(LOWER_CASE_STRING);
 		if (lowerCase.equalsNil())
 		{
 			final String nativeOriginal = object.slot(STRING).asNativeString();
@@ -184,7 +184,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_LowerCaseString (final AvailObject object)
+	A_String o_LowerCaseString (final AvailObject object)
 	{
 		if (isShared())
 		{
@@ -216,7 +216,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_Kind (final AvailObject object)
+	A_Type o_Kind (final AvailObject object)
 	{
 		return TOKEN.o();
 	}
@@ -232,13 +232,13 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_Equals (final AvailObject object, final AvailObject another)
+	boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		return another.equalsToken(object);
 	}
 
 	@Override @AvailMethod
-	boolean o_EqualsToken (final AvailObject object, final AvailObject aToken)
+	boolean o_EqualsToken (final AvailObject object, final A_Token aToken)
 	{
 		return object.string().equals(aToken.string())
 			&& object.start() == aToken.start()
@@ -263,13 +263,13 @@ extends Descriptor
 	 * @param tokenType The type of token to create.
 	 * @return The new token.
 	 */
-	public static AvailObject create (
-		final AvailObject string,
+	public static A_Token create (
+		final A_String string,
 		final int start,
 		final int lineNumber,
 		final TokenType tokenType)
 	{
-		final AvailObject instance = mutable.create();
+		final A_Token instance = mutable.create();
 		instance.setSlot(STRING, string);
 		instance.setSlot(LOWER_CASE_STRING, NilDescriptor.nil());
 		instance.setSlot(START, start);

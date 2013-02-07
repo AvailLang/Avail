@@ -63,7 +63,7 @@ extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
-		final AvailObject readAhead = args.get(0);
+		final A_Number readAhead = args.get(0);
 		final int readAheadInt = readAhead.extractInt();
 		final Reader reader = AvailRuntime.current().standardInputReader();
 		try
@@ -78,7 +78,7 @@ extends Primitive
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

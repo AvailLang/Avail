@@ -78,19 +78,19 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_ReadType (final AvailObject object)
+	A_Type o_ReadType (final AvailObject object)
 	{
 		return object.slot(ObjectSlots.INNER_TYPE);
 	}
 
 	@Override @AvailMethod
-	AvailObject o_WriteType (final AvailObject object)
+	A_Type o_WriteType (final AvailObject object)
 	{
 		return object.slot(ObjectSlots.INNER_TYPE);
 	}
 
 	@Override @AvailMethod
-	boolean o_Equals (final AvailObject object, final AvailObject another)
+	boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		return another.equalsVariableType(object);
 	}
@@ -98,7 +98,7 @@ extends TypeDescriptor
 	@Override @AvailMethod
 	boolean o_EqualsVariableType (
 		final AvailObject object,
-		final AvailObject aType)
+		final A_Type aType)
 	{
 		if (object.sameAddressAs(aType))
 		{
@@ -116,7 +116,7 @@ extends TypeDescriptor
 				aType.makeImmutable();
 				object.becomeIndirectionTo(aType);
 			}
-			else if (!aType.descriptor.isShared())
+			else if (!aType.descriptor().isShared())
 			{
 				object.makeImmutable();
 				aType.becomeIndirectionTo(object);
@@ -133,7 +133,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_IsSubtypeOf (final AvailObject object, final AvailObject aType)
+	boolean o_IsSubtypeOf (final AvailObject object, final A_Type aType)
 	{
 		return aType.isSupertypeOfVariableType(object);
 	}
@@ -141,7 +141,7 @@ extends TypeDescriptor
 	@Override @AvailMethod
 	boolean o_IsSupertypeOfVariableType (
 		final AvailObject object,
-		final AvailObject aVariableType)
+		final A_BasicObject aVariableType)
 	{
 		final AvailObject innerType = object.slot(ObjectSlots.INNER_TYPE);
 
@@ -152,9 +152,9 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_TypeIntersection (
+	A_Type o_TypeIntersection (
 		final AvailObject object,
-		final AvailObject another)
+		final A_Type another)
 	{
 		if (object.isSubtypeOf(another))
 		{
@@ -168,11 +168,11 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_TypeIntersectionOfVariableType (
+	A_Type o_TypeIntersectionOfVariableType (
 		final AvailObject object,
-		final AvailObject aVariableType)
+		final A_Type aVariableType)
 	{
-		final AvailObject innerType = object.slot(ObjectSlots.INNER_TYPE);
+		final A_BasicObject innerType = object.slot(ObjectSlots.INNER_TYPE);
 		// The intersection of two variable types is a variable type whose
 		// read type is the type intersection of the two incoming read types and
 		// whose write type is the type union of the two incoming write types.
@@ -182,9 +182,9 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_TypeUnion (
+	A_Type o_TypeUnion (
 		final AvailObject object,
-		final AvailObject another)
+		final A_Type another)
 	{
 		if (object.isSubtypeOf(another))
 		{
@@ -198,11 +198,11 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_TypeUnionOfVariableType (
+	A_Type o_TypeUnionOfVariableType (
 		final AvailObject object,
-		final AvailObject aVariableType)
+		final A_Type aVariableType)
 	{
-		final AvailObject innerType = object.slot(ObjectSlots.INNER_TYPE);
+		final A_BasicObject innerType = object.slot(ObjectSlots.INNER_TYPE);
 
 		// The union of two variable types is a variable type whose
 		// read type is the type union of the two incoming read types and whose
@@ -238,7 +238,7 @@ extends TypeDescriptor
 	 * @return
 	 *        The new variable type.
 	 */
-	public static AvailObject wrapInnerType (final AvailObject innerType)
+	public static AvailObject wrapInnerType (final A_BasicObject innerType)
 	{
 		final AvailObject result = mutable.create();
 		result.setSlot(
@@ -257,9 +257,9 @@ extends TypeDescriptor
 	 *        The write type.
 	 * @return The new variable type.
 	 */
-	public static AvailObject fromReadAndWriteTypes (
-		final AvailObject readType,
-		final AvailObject writeType)
+	public static A_Type fromReadAndWriteTypes (
+		final A_Type readType,
+		final A_Type writeType)
 	{
 		if (readType.equals(writeType))
 		{
@@ -311,7 +311,7 @@ extends TypeDescriptor
 	 * The most general {@linkplain ReadWriteVariableTypeDescriptor variable
 	 * type}.
 	 */
-	private static AvailObject mostGeneralType;
+	private static A_Type mostGeneralType;
 
 	/**
 	 * Answer the most general {@linkplain ReadWriteVariableTypeDescriptor
@@ -320,7 +320,7 @@ extends TypeDescriptor
 	 * @return The most general {@linkplain ReadWriteVariableTypeDescriptor
 	 *         variable type}.
 	 */
-	public static AvailObject mostGeneralType ()
+	public static A_Type mostGeneralType ()
 	{
 		return mostGeneralType;
 	}
@@ -329,7 +329,7 @@ extends TypeDescriptor
 	 * The (instance) type of the most general {@linkplain
 	 * ReadWriteVariableTypeDescriptor variable} metatype.
 	 */
-	private static AvailObject meta;
+	private static A_Type meta;
 
 	/**
 	 * Answer the (instance) type of the most general {@linkplain
@@ -339,7 +339,7 @@ extends TypeDescriptor
 	 *         The instance type containing the most general {@linkplain
 	 *         ReadWriteVariableTypeDescriptor variable} metatype.
 	 */
-	public static AvailObject meta ()
+	public static A_Type meta ()
 	{
 		return meta;
 	}

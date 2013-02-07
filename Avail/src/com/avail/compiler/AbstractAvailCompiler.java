@@ -32,6 +32,7 @@
 package com.avail.compiler;
 
 import static com.avail.compiler.AbstractAvailCompiler.ExpectedToken.*;
+import static com.avail.compiler.ParsingOperation.*;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import static com.avail.descriptor.TokenDescriptor.TokenType.*;
 import static com.avail.descriptor.TupleDescriptor.toList;
@@ -79,8 +80,8 @@ public abstract class AbstractAvailCompiler
 		 * The versions for which the module undergoing compilation guarantees
 		 * support.
 		 */
-		public final List<AvailObject> versions =
-			new ArrayList<AvailObject>();
+		public final List<A_String> versions =
+			new ArrayList<A_String>();
 
 		/**
 		 * The {@linkplain ModuleDescriptor modules} extended by the module
@@ -91,8 +92,8 @@ public abstract class AbstractAvailCompiler
 		 * (and re-export), and whose third element is the set of conformant
 		 * versions.
 		 */
-		public final List<AvailObject> extendedModules =
-			new ArrayList<AvailObject>();
+		public final List<A_Tuple> extendedModules =
+			new ArrayList<A_Tuple>();
 
 		/**
 		 * The {@linkplain ModuleDescriptor modules} used by the module
@@ -102,21 +103,21 @@ public abstract class AbstractAvailCompiler
 		 * {@linkplain MethodDefinitionDescriptor method} names to import,
 		 * and whose third element is the set of conformant versions.
 		 */
-		public final List<AvailObject> usedModules =
-			new ArrayList<AvailObject>();
+		public final List<A_Tuple> usedModules =
+			new ArrayList<A_Tuple>();
 
 		/**
 		 * The {@linkplain AtomDescriptor names} defined and exported by the
 		 * {@linkplain ModuleDescriptor module} undergoing compilation.
 		 */
-		public final List<AvailObject> exportedNames =
-			new ArrayList<AvailObject>();
+		public final List<A_String> exportedNames =
+			new ArrayList<A_String>();
 
 		/**
 		 * The {@linkplain String pragma strings}.
 		 */
-		public final List<AvailObject> pragmas =
-			new ArrayList<AvailObject>();
+		public final List<A_String> pragmas =
+			new ArrayList<A_String>();
 
 		/**
 		 * Construct a new {@link AbstractAvailCompiler.ModuleHeader}.
@@ -159,35 +160,35 @@ public abstract class AbstractAvailCompiler
 		public void deserializeHeaderFrom (final Deserializer deserializer)
 		throws MalformedSerialStreamException
 		{
-			AvailObject object = deserializer.deserialize();
-			assert object != null;
-			if (!object.asNativeString().equals(moduleName.qualifiedName()))
+			final A_String name = deserializer.deserialize();
+			assert name != null;
+			if (!name.asNativeString().equals(moduleName.qualifiedName()))
 			{
 				throw new RuntimeException("Incorrect module name");
 			}
-			object = deserializer.deserialize();
-			assert object != null;
-			isSystemModule = object.extractBoolean();
-			object = deserializer.deserialize();
-			assert object != null;
+			final A_Atom theSystemFlag = deserializer.deserialize();
+			assert theSystemFlag != null;
+			isSystemModule = theSystemFlag.extractBoolean();
+			final A_Tuple theVersions = deserializer.deserialize();
+			assert theVersions != null;
 			versions.clear();
-			versions.addAll(toList(object));
-			object = deserializer.deserialize();
-			assert object != null;
+			versions.addAll(toList(theVersions));
+			final A_Tuple theExtended = deserializer.deserialize();
+			assert theExtended != null;
 			extendedModules.clear();
-			extendedModules.addAll(toList(object));
-			object = deserializer.deserialize();
-			assert object != null;
+			extendedModules.addAll(toList(theExtended));
+			final A_Tuple theUsed = deserializer.deserialize();
+			assert theUsed != null;
 			usedModules.clear();
-			usedModules.addAll(toList(object));
-			object = deserializer.deserialize();
-			assert object != null;
+			usedModules.addAll(toList(theUsed));
+			final A_Tuple theExported = deserializer.deserialize();
+			assert theExported != null;
 			exportedNames.clear();
-			exportedNames.addAll(toList(object));
-			object = deserializer.deserialize();
-			assert object != null;
+			exportedNames.addAll(toList(theExported));
+			final A_Tuple thePragmas = deserializer.deserialize();
+			assert thePragmas != null;
 			pragmas.clear();
-			pragmas.addAll(toList(object));
+			pragmas.addAll(toList(thePragmas));
 		}
 
 		/**
@@ -208,7 +209,7 @@ public abstract class AbstractAvailCompiler
 				resolver.resolve(moduleName);
 			assert qualifiedName != null;
 			module.versions(SetDescriptor.fromCollection(versions));
-			for (final AvailObject modImport : extendedModules)
+			for (final A_Tuple modImport : extendedModules)
 			{
 				assert modImport.isTuple();
 				assert modImport.tupleSize() == 3;
@@ -217,7 +218,7 @@ public abstract class AbstractAvailCompiler
 					qualifiedName.asSibling(
 						modImport.tupleAt(1).asNativeString()));
 				assert ref != null;
-				final AvailObject availRef = StringDescriptor.from(
+				final A_String availRef = StringDescriptor.from(
 					ref.qualifiedName());
 				if (!runtime.includesModuleNamed(availRef))
 				{
@@ -227,11 +228,11 @@ public abstract class AbstractAvailCompiler
 				}
 
 				final AvailObject mod = runtime.moduleAt(availRef);
-				final AvailObject reqVersions = modImport.tupleAt(3);
+				final A_Set reqVersions = modImport.tupleAt(3);
 				if (reqVersions.setSize() > 0)
 				{
-					final AvailObject modVersions = mod.versions();
-					final AvailObject intersection =
+					final A_Set modVersions = mod.versions();
+					final A_Set intersection =
 						modVersions.setIntersectionCanDestroy(
 							reqVersions, false);
 					if (intersection.setSize() == 0)
@@ -243,7 +244,7 @@ public abstract class AbstractAvailCompiler
 					}
 				}
 
-				final AvailObject modNames = modImport.tupleAt(2).setSize() > 0
+				final A_Set modNames = modImport.tupleAt(2).setSize() > 0
 					? modImport.tupleAt(2)
 					: mod.importedNames().keysAsSet();
 				for (final AvailObject strName : modNames)
@@ -254,14 +255,15 @@ public abstract class AbstractAvailCompiler
 							"module \"" + ref.qualifiedName()
 							+ "\" to export " + strName;
 					}
-					final AvailObject trueNames = mod.importedNames().mapAt(strName);
+					final A_Set trueNames =
+						mod.importedNames().mapAt(strName);
 					for (final AvailObject trueName : trueNames)
 					{
 						module.addImportedName(strName, trueName);
 					}
 				}
 			}
-			for (final AvailObject modImport : usedModules)
+			for (final A_Tuple modImport : usedModules)
 			{
 				assert modImport.isTuple();
 				assert modImport.tupleSize() == 3;
@@ -270,7 +272,7 @@ public abstract class AbstractAvailCompiler
 					qualifiedName.asSibling(
 						modImport.tupleAt(1).asNativeString()));
 				assert ref != null;
-				final AvailObject availRef = StringDescriptor.from(
+				final A_String availRef = StringDescriptor.from(
 					ref.qualifiedName());
 				if (!runtime.includesModuleNamed(availRef))
 				{
@@ -280,11 +282,11 @@ public abstract class AbstractAvailCompiler
 				}
 
 				final AvailObject mod = runtime.moduleAt(availRef);
-				final AvailObject reqVersions = modImport.tupleAt(3);
+				final A_Set reqVersions = modImport.tupleAt(3);
 				if (reqVersions.setSize() > 0)
 				{
-					final AvailObject modVersions = mod.versions();
-					final AvailObject intersection =
+					final A_Set modVersions = mod.versions();
+					final A_Set intersection =
 						modVersions.setIntersectionCanDestroy(
 							reqVersions, false);
 					if (intersection.setSize() == 0)
@@ -296,10 +298,10 @@ public abstract class AbstractAvailCompiler
 					}
 				}
 
-				final AvailObject modNames = modImport.tupleAt(2).setSize() > 0
+				final A_Set modNames = modImport.tupleAt(2).setSize() > 0
 					? modImport.tupleAt(2)
 					: mod.importedNames().keysAsSet();
-				for (final AvailObject strName : modNames)
+				for (final A_String strName : modNames)
 				{
 					if (!mod.importedNames().hasKey(strName))
 					{
@@ -307,15 +309,16 @@ public abstract class AbstractAvailCompiler
 							"module \"" + ref.qualifiedName()
 							+ "\" to export " + strName;
 					}
-					final AvailObject trueNames = mod.importedNames().mapAt(strName);
-					for (final AvailObject trueName : trueNames)
+					final A_Set trueNames =
+						mod.importedNames().mapAt(strName);
+					for (final A_Atom trueName : trueNames)
 					{
 						module.addPrivateName(strName, trueName);
 					}
 				}
 			}
 
-			for (final AvailObject name : exportedNames)
+			for (final A_String name : exportedNames)
 			{
 				assert name.isString();
 				final AvailObject trueName = AtomDescriptor.create(
@@ -355,7 +358,7 @@ public abstract class AbstractAvailCompiler
 	 * The complete {@linkplain List list} of {@linkplain TokenDescriptor
 	 * tokens} parsed from the source text.
 	 */
-	@InnerAccess List<AvailObject> tokens;
+	@InnerAccess List<A_Token> tokens;
 
 	/**
 	 * The position of the rightmost {@linkplain TokenDescriptor token} reached
@@ -391,6 +394,23 @@ public abstract class AbstractAvailCompiler
 	 * The original reason, if any, that a cancellation is taking place.
 	 */
 	@InnerAccess @Nullable volatile Throwable causeOfCancellation = null;
+
+	/**
+	 * The special {@linkplain AtomDescriptor atom} used to locate the
+	 * current parsing information in a fiber's globals.
+	 */
+	private final A_Atom clientDataGlobalKey =
+		AtomDescriptor.clientDataGlobalKey();
+
+
+	/**
+	 * The special {@linkplain AtomDescriptor atom} used to locate the
+	 * map of declarations that are in scope, within the {@linkplain
+	 * #clientDataGlobalKey current parsing information} stashed within a
+	 * fiber's globals.
+	 */
+	private final A_Atom compilerScopeMapKey =
+		AtomDescriptor.compilerScopeMapKey();
 
 	/**
 	 * Answer whether this is a {@linkplain AvailSystemCompiler system
@@ -599,7 +619,7 @@ public abstract class AbstractAvailCompiler
 					+ "\" to an existing file");
 		}
 		final String source = extractSource(qualifiedName, resolvedName);
-		final List<AvailObject> tokens = tokenize(
+		final List<A_Token> tokens = tokenize(
 			source,
 			stopAfterBodyToken);
 		AbstractAvailCompiler compiler;
@@ -640,7 +660,7 @@ public abstract class AbstractAvailCompiler
 		final L2Interpreter interpreter,
 		final ModuleName moduleName,
 		final String source,
-		final List<AvailObject> tokens)
+		final List<A_Token> tokens)
 	{
 		this.interpreter = interpreter;
 		this.moduleHeader = new ModuleHeader(moduleName);
@@ -922,7 +942,7 @@ public abstract class AbstractAvailCompiler
 		 * A {@linkplain MapDescriptor map} of interesting information used by
 		 * the compiler.
 		 */
-		public final AvailObject clientDataMap;
+		public final A_Map clientDataMap;
 
 		/**
 		 * Construct a new immutable {@link ParserState}.
@@ -935,7 +955,7 @@ public abstract class AbstractAvailCompiler
 		 */
 		ParserState (
 			final int position,
-			final AvailObject clientDataMap)
+			final A_Map clientDataMap)
 		{
 			this.position = position;
 			this.clientDataMap = clientDataMap;
@@ -993,7 +1013,7 @@ public abstract class AbstractAvailCompiler
 		 *
 		 * @return The token.
 		 */
-		AvailObject peekToken ()
+		A_Token peekToken ()
 		{
 			return tokens.get(position);
 		}
@@ -1011,7 +1031,7 @@ public abstract class AbstractAvailCompiler
 			{
 				return false;
 			}
-			final AvailObject token = peekToken();
+			final A_Token token = peekToken();
 			return token.tokenType() == expectedToken.tokenType()
 				&& token.string().equals(expectedToken.lexeme());
 		}
@@ -1030,7 +1050,7 @@ public abstract class AbstractAvailCompiler
 			final ExpectedToken expectedToken,
 			final Generator<String> expected)
 		{
-			final AvailObject token = peekToken();
+			final A_Token token = peekToken();
 			final boolean found = token.tokenType() == expectedToken.tokenType()
 					&& token.string().equals(expectedToken.lexeme());
 			if (!found)
@@ -1077,9 +1097,9 @@ public abstract class AbstractAvailCompiler
 		 * @return The actual {@linkplain LiteralTokenDescriptor literal token}
 		 *         or {@code null}.
 		 */
-		@Nullable AvailObject peekStringLiteral ()
+		@Nullable A_Token peekStringLiteral ()
 		{
-			final AvailObject token = peekToken();
+			final A_Token token = peekToken();
 			if (token.isInstanceOfKind(
 				LiteralTokenTypeDescriptor.create(
 					TupleTypeDescriptor.stringTupleType())))
@@ -1137,7 +1157,7 @@ public abstract class AbstractAvailCompiler
 		 *
 		 * @return The current module being compiled.
 		 */
-		public AvailObject currentModule ()
+		public A_BasicObject currentModule ()
 		{
 			return AbstractAvailCompiler.this.module;
 		}
@@ -1172,23 +1192,23 @@ public abstract class AbstractAvailCompiler
 	 *
 	 * @param start
 	 *        Where to start parsing.
-	 * @param stringTokens
+	 * @param strings
 	 *        The initially empty list of strings to populate.
 	 * @return The parser state after the list of strings, or {@code null} if
 	 *         the list of strings is malformed.
 	 */
 	private static @Nullable ParserState parseStringLiterals (
 		final ParserState start,
-		final List<AvailObject> stringTokens)
+		final List<A_String> strings)
 	{
-		assert stringTokens.isEmpty();
+		assert strings.isEmpty();
 
-		AvailObject token = start.peekStringLiteral();
+		A_Token token = start.peekStringLiteral();
 		if (token == null)
 		{
 			return start;
 		}
-		stringTokens.add(token.literal());
+		strings.add(token.literal());
 		ParserState state = start.afterToken();
 		while (state.peekToken(COMMA))
 		{
@@ -1200,7 +1220,7 @@ public abstract class AbstractAvailCompiler
 				return null;
 			}
 			state = state.afterToken();
-			stringTokens.add(token.literal());
+			strings.add(token.literal());
 		}
 		return state;
 	}
@@ -1230,14 +1250,14 @@ public abstract class AbstractAvailCompiler
 	 */
 	private static @Nullable ParserState parseImports (
 		final ParserState start,
-		final List<AvailObject> imports)
+		final List<A_Tuple> imports)
 	{
 		assert imports.isEmpty();
 
 		ParserState state = start;
 		do
 		{
-			final AvailObject token = state.peekStringLiteral();
+			final A_BasicObject token = state.peekStringLiteral();
 			if (token == null)
 			{
 				state.expected("another module name after comma");
@@ -1247,7 +1267,7 @@ public abstract class AbstractAvailCompiler
 			final AvailObject moduleName = token.literal();
 			state = state.afterToken();
 
-			final List<AvailObject> versions = new ArrayList<AvailObject>();
+			final List<A_String> versions = new ArrayList<A_String>();
 			if (state.peekToken(OPEN_PARENTHESIS))
 			{
 				state = state.afterToken();
@@ -1265,7 +1285,7 @@ public abstract class AbstractAvailCompiler
 				state = state.afterToken();
 			}
 
-			final List<AvailObject> names = new ArrayList<AvailObject>();
+			final List<A_String> names = new ArrayList<A_String>();
 			if (state.peekToken(EQUALS))
 			{
 				state = state.afterToken();
@@ -1366,7 +1386,7 @@ public abstract class AbstractAvailCompiler
 	 * @throws AvailCompilerException
 	 *         If tokenization failed for any reason.
 	 */
-	static List<AvailObject> tokenize (
+	static List<A_Token> tokenize (
 			final String source,
 			final boolean stopAfterBodyToken)
 		throws AvailCompilerException
@@ -1517,7 +1537,7 @@ public abstract class AbstractAvailCompiler
 	 */
 	void reportError (
 			final ModuleName qualifiedName,
-			final AvailObject token,
+			final A_BasicObject token,
 			final String banner,
 			final List<Generator<String>> problems)
 		throws AvailCompilerException
@@ -1833,7 +1853,7 @@ public abstract class AbstractAvailCompiler
 	 * @param moduleNameString
 	 *        The name of the {@linkplain ModuleDescriptor module}.
 	 */
-	void startModuleTransaction (final AvailObject moduleNameString)
+	void startModuleTransaction (final A_String moduleNameString)
 	{
 		assert module == null;
 		module = ModuleDescriptor.newModule(moduleNameString);
@@ -1843,7 +1863,7 @@ public abstract class AbstractAvailCompiler
 
 	/**
 	 * Rollback the {@linkplain ModuleDescriptor module} that was defined since
-	 * the most recent {@link #startModuleTransaction(AvailObject)}.
+	 * the most recent {@link #startModuleTransaction(A_String)}.
 	 */
 	void rollbackModuleTransaction ()
 	{
@@ -1855,7 +1875,7 @@ public abstract class AbstractAvailCompiler
 
 	/**
 	 * Commit the {@linkplain ModuleDescriptor module} that was defined since
-	 * the most recent {@link #startModuleTransaction(AvailObject)}. Simply
+	 * the most recent {@link #startModuleTransaction(A_String)}. Simply
 	 * clear the {@linkplain #module} field.
 	 */
 	void commitModuleTransaction ()
@@ -1875,7 +1895,7 @@ public abstract class AbstractAvailCompiler
 	 * @param lineNumber The line number to attach to the new function.
 	 * @return A zero-argument function.
 	 */
-	AvailObject createFunctionToRun (
+	A_Function createFunctionToRun (
 		final AvailObject expressionNode,
 		final int lineNumber)
 	{
@@ -1894,7 +1914,7 @@ public abstract class AbstractAvailCompiler
 		// variables/values are embedded directly as constants in the generated
 		// code), so build a function with no copied data.
 		assert compiledBlock.numOuters() == 0;
-		final AvailObject function = FunctionDescriptor.create(
+		final A_Function function = FunctionDescriptor.create(
 			compiledBlock,
 			TupleDescriptor.empty());
 		function.makeImmutable();
@@ -1917,7 +1937,7 @@ public abstract class AbstractAvailCompiler
 		final AvailObject expressionNode,
 		final int lineNumber)
 	{
-		final AvailObject function = createFunctionToRun(
+		final A_Function function = createFunctionToRun(
 			expressionNode,
 			lineNumber);
 		final AvailObject result = interpreter.runFunctionArguments(
@@ -1935,7 +1955,7 @@ public abstract class AbstractAvailCompiler
 	 *        The expression to compile and evaluate as a top-level statement in
 	 *        the module.
 	 */
-	void evaluateModuleStatement (final AvailObject expressionOrMacro)
+	void evaluateModuleStatement (final A_BasicObject expressionOrMacro)
 	{
 		final AvailObject expression = expressionOrMacro.stripMacro();
 		if (!expression.isInstanceOfKind(DECLARATION_NODE.mostGeneralType()))
@@ -1943,7 +1963,7 @@ public abstract class AbstractAvailCompiler
 			// Only record module statements that aren't declarations.  Users of
 			// the module don't care if a module variable or constant is only
 			// reachable from the module's methods.
-			final AvailObject function = createFunctionToRun(expression, 0);
+			final A_Function function = createFunctionToRun(expression, 0);
 			serializer.serialize(function);
 			interpreter.runFunctionArguments(
 				function,
@@ -1952,7 +1972,7 @@ public abstract class AbstractAvailCompiler
 		}
 		// It's a declaration (but the parser couldn't previously tell that it
 		// was at module scope)...
-		final AvailObject name = expression.token().string();
+		final A_String name = expression.token().string();
 		switch (expression.declarationKind())
 		{
 			case LOCAL_CONSTANT:
@@ -1976,7 +1996,7 @@ public abstract class AbstractAvailCompiler
 					VariableUseNodeDescriptor.newUse(expression.token(), decl),
 					LiteralNodeDescriptor.syntheticFrom(val),
 					false);
-				final AvailObject function = createFunctionToRun(
+				final A_Function function = createFunctionToRun(
 					assign,
 					expression.token().lineNumber());
 				serializer.serialize(function);
@@ -2003,7 +2023,7 @@ public abstract class AbstractAvailCompiler
 							decl),
 						expression.initializationExpression(),
 						false);
-					final AvailObject function = createFunctionToRun(
+					final A_Function function = createFunctionToRun(
 						assign,
 						expression.token().lineNumber());
 					serializer.serialize(function);
@@ -2036,7 +2056,7 @@ public abstract class AbstractAvailCompiler
 	 */
 	void expectedKeywordsOf (
 		final ParserState where,
-		final AvailObject incomplete,
+		final A_Map incomplete,
 		final boolean caseInsensitive)
 	{
 		where.expected(
@@ -2141,7 +2161,8 @@ public abstract class AbstractAvailCompiler
 			null,
 			start,
 			false,  // Nothing consumed yet.
-			Collections.<AvailObject> emptyList(),
+			Collections.<AvailObject>emptyList(),
+			Collections.<Integer>emptyList(),
 			continuation);
 	}
 
@@ -2171,7 +2192,8 @@ public abstract class AbstractAvailCompiler
 			leadingArgument,
 			initialTokenPosition,
 			false,  // Leading argument does not yet count as something parsed.
-			Collections.<AvailObject> emptyList(),
+			Collections.<AvailObject>emptyList(),
+			Collections.<Integer>emptyList(),
 			continuation);
 	}
 
@@ -2265,25 +2287,29 @@ public abstract class AbstractAvailCompiler
 	 *            assemble into a list that correlates with the top-level
 	 *            non-backquoted underscores and guillemet groups in the message
 	 *            name.
+	 * @param marksSoFar
+	 *            The stack of mark positions used to test if parsing certain
+	 *            subexpressions makes progress.
 	 * @param continuation
 	 *            What to do with a fully parsed send node.
 	 */
 	void parseRestOfSendNode (
 		final ParserState start,
-		final AvailObject bundleTree,
+		final A_BasicObject bundleTree,
 		final @Nullable AvailObject firstArgOrNull,
 		final ParserState initialTokenPosition,
 		final boolean consumedAnything,
 		final List<AvailObject> argsSoFar,
+		final List<Integer> marksSoFar,
 		final Con<AvailObject> continuation)
 	{
 		bundleTree.expand();
-		final AvailObject complete = bundleTree.lazyComplete();
-		final AvailObject incomplete = bundleTree.lazyIncomplete();
-		final AvailObject caseInsensitive =
+		final A_Map complete = bundleTree.lazyComplete();
+		final A_Map incomplete = bundleTree.lazyIncomplete();
+		final A_Map caseInsensitive =
 			bundleTree.lazyIncompleteCaseInsensitive();
-		final AvailObject actions = bundleTree.lazyActions();
-		final AvailObject prefilter = bundleTree.lazyPrefilterMap();
+		final A_Map actions = bundleTree.lazyActions();
+		final A_Map prefilter = bundleTree.lazyPrefilterMap();
 		final boolean anyComplete = complete.mapSize() > 0;
 		final boolean anyIncomplete = incomplete.mapSize() > 0;
 		final boolean anyCaseInsensitive = caseInsensitive.mapSize() > 0;
@@ -2311,6 +2337,7 @@ public abstract class AbstractAvailCompiler
 			for (final MapDescriptor.Entry entry : complete.mapIterable())
 			{
 				assert interpreter.runtime().hasMethodAt(entry.key);
+				assert marksSoFar.isEmpty();
 				completedSendNode(
 					initialTokenPosition,
 					start,
@@ -2323,14 +2350,14 @@ public abstract class AbstractAvailCompiler
 			&& firstArgOrNull == null
 			&& !start.atEnd())
 		{
-			final AvailObject keywordToken = start.peekToken();
+			final A_Token keywordToken = start.peekToken();
 			if (keywordToken.tokenType() == KEYWORD
 				|| keywordToken.tokenType() == OPERATOR)
 			{
-				final AvailObject keywordString = keywordToken.string();
+				final A_String keywordString = keywordToken.string();
 				if (incomplete.hasKey(keywordString))
 				{
-					final AvailObject subtree = incomplete.mapAt(keywordString);
+					final A_BasicObject subtree = incomplete.mapAt(keywordString);
 					eventuallyParseRestOfSendNode(
 						"Continue send after a keyword: " + keywordString,
 						start.afterToken(),
@@ -2339,6 +2366,7 @@ public abstract class AbstractAvailCompiler
 						initialTokenPosition,
 						true,  // Just consumed a token.
 						argsSoFar,
+						marksSoFar,
 						continuation);
 				}
 				else
@@ -2355,15 +2383,15 @@ public abstract class AbstractAvailCompiler
 			&& firstArgOrNull == null
 			&& !start.atEnd())
 		{
-			final AvailObject keywordToken = start.peekToken();
+			final A_Token keywordToken = start.peekToken();
 			if (keywordToken.tokenType() == KEYWORD
 				|| keywordToken.tokenType() == OPERATOR)
 			{
-				final AvailObject keywordString =
+				final A_String keywordString =
 					keywordToken.lowerCaseString();
 				if (caseInsensitive.hasKey(keywordString))
 				{
-					final AvailObject subtree =
+					final A_BasicObject subtree =
 						caseInsensitive.mapAt(keywordString);
 					eventuallyParseRestOfSendNode(
 						"Continue send after a case-insensitive keyword",
@@ -2373,6 +2401,7 @@ public abstract class AbstractAvailCompiler
 						initialTokenPosition,
 						true,  // Just consumed a token.
 						argsSoFar,
+						marksSoFar,
 						continuation);
 				}
 				else
@@ -2388,7 +2417,7 @@ public abstract class AbstractAvailCompiler
 		if (anyPrefilter)
 		{
 			System.out.println("PREFILTER ENCOUNTERED: " + prefilter);
-			final AvailObject latestArgument = last(argsSoFar);
+			final A_BasicObject latestArgument = last(argsSoFar);
 			if (latestArgument.isInstanceOfKind(SEND_NODE.mostGeneralType()))
 			{
 				final AvailObject methodName = latestArgument.method().name();
@@ -2403,6 +2432,7 @@ public abstract class AbstractAvailCompiler
 						initialTokenPosition,
 						consumedAnything,
 						argsSoFar,
+						marksSoFar,
 						continuation);
 					// Don't allow normal action processing, as it would ignore
 					// the restriction which we've been so careful to prefilter.
@@ -2418,7 +2448,7 @@ public abstract class AbstractAvailCompiler
 		{
 			for (final MapDescriptor.Entry entry : actions.mapIterable())
 			{
-				final AvailObject key = entry.key;
+				final A_Number key = entry.key;
 				final AvailObject value = entry.value;
 				eventuallyDo(
 					new Continuation0()
@@ -2431,6 +2461,7 @@ public abstract class AbstractAvailCompiler
 								key.extractInt(),
 								firstArgOrNull,
 								argsSoFar,
+								marksSoFar,
 								initialTokenPosition,
 								consumedAnything,
 								value,
@@ -2456,11 +2487,11 @@ public abstract class AbstractAvailCompiler
 	 *            The set of the local declarations that were used in the parse
 	 *            tree.
 	 */
-	AvailObject usesWhichLocalVariables (
+	A_Set usesWhichLocalVariables (
 		final AvailObject parseTree)
 	{
-		final Mutable<AvailObject> usedDeclarations =
-			new Mutable<AvailObject>(SetDescriptor.empty());
+		final Mutable<A_Set> usedDeclarations =
+			new Mutable<A_Set>(SetDescriptor.empty());
 		parseTree.childrenDo(new Continuation1<AvailObject>()
 		{
 			@Override
@@ -2498,6 +2529,8 @@ public abstract class AbstractAvailCompiler
 	 *            reject attempts to start with an argument (before a keyword).
 	 * @param argsSoFar
 	 *            The message arguments that have been parsed so far.
+	 * @param marksSoFar
+	 *            The parsing markers that have been recorded so far.
 	 * @param initialTokenPosition
 	 *            The position at which parsing of this message started. If it
 	 *            was parsed as a leading argument send (i.e., firstArgOrNull
@@ -2518,9 +2551,10 @@ public abstract class AbstractAvailCompiler
 		final int instruction,
 		final @Nullable AvailObject firstArgOrNull,
 		final List<AvailObject> argsSoFar,
+		final List<Integer> marksSoFar,
 		final ParserState initialTokenPosition,
 		final boolean consumedAnything,
-		final AvailObject successorTrees,
+		final A_Tuple successorTrees,
 		final Con<AvailObject> continuation)
 	{
 		final ParsingOperation op = ParsingOperation.decode(instruction);
@@ -2565,6 +2599,7 @@ public abstract class AbstractAvailCompiler
 								// consumed if it's not a leading argument...
 								firstArgOrNull == null,
 								newArgsSoFar,
+								marksSoFar,
 								continuation);
 						}
 					});
@@ -2584,6 +2619,7 @@ public abstract class AbstractAvailCompiler
 					initialTokenPosition,
 					consumedAnything,
 					newArgsSoFar,
+					marksSoFar,
 					continuation);
 				break;
 			}
@@ -2607,20 +2643,20 @@ public abstract class AbstractAvailCompiler
 					initialTokenPosition,
 					consumedAnything,
 					newArgsSoFar,
+					marksSoFar,
 					continuation);
 				break;
 			}
 			case SAVE_PARSE_POSITION:
 			{
-				// Push current parse position.
+				// Push current parse position on the mark stack.
 				assert successorTrees.tupleSize() == 1;
-				final AvailObject marker = MarkerNodeDescriptor.create(
-					IntegerDescriptor.fromInt(
-						firstArgOrNull == null
-							? start.position
-							: initialTokenPosition.position));
-				final List<AvailObject> newArgsSoFar =
-					PrefixSharingList.append(argsSoFar, marker);
+				final int marker =
+					firstArgOrNull == null
+						? start.position
+						: initialTokenPosition.position;
+				final List<Integer> newMarksSoFar =
+					PrefixSharingList.append(marksSoFar, marker);
 				eventuallyParseRestOfSendNode(
 					"Continue send after push parse position",
 					start,
@@ -2628,50 +2664,42 @@ public abstract class AbstractAvailCompiler
 					firstArgOrNull,
 					initialTokenPosition,
 					consumedAnything,
-					newArgsSoFar,
+					argsSoFar,
+					newMarksSoFar,
 					continuation);
 				break;
 			}
 			case DISCARD_SAVED_PARSE_POSITION:
 			{
-				// Under-pop saved parse position (from 2nd-to-top of stack).
+				// Pop from the mark stack.
 				assert successorTrees.tupleSize() == 1;
-				final AvailObject oldTop = last(argsSoFar);
-				final List<AvailObject> poppedOnce = withoutLast(argsSoFar);
-				assert last(poppedOnce).isMarkerNode();
-				final List<AvailObject> newArgsSoFar =
-					append(withoutLast(poppedOnce), oldTop);
 				eventuallyParseRestOfSendNode(
-					"Continue send after underpop saved position",
+					"Continue send after pop mark stack",
 					start,
 					successorTrees.tupleAt(1),
 					firstArgOrNull,
 					initialTokenPosition,
 					consumedAnything,
-					newArgsSoFar,
+					argsSoFar,
+					withoutLast(marksSoFar),
 					continuation);
 				break;
 			}
 			case ENSURE_PARSE_PROGRESS:
 			{
-				// Check parse progress (abort if parse position is still equal
-				// to value at 2nd-to-top of stack). Also update the entry to
-				// be the new parse position.
+				// Check for parser progress.  Abort this avenue of parsing if
+				// the parse position is still equal to the position on the
+				// mark stack.  Pop the old mark and push the new mark.
 				assert successorTrees.tupleSize() == 1;
-				final AvailObject top = last(argsSoFar);
-				final List<AvailObject> poppedOnce = withoutLast(argsSoFar);
-				final AvailObject oldMarker = last(poppedOnce);
-				if (oldMarker.markerValue().extractInt() == start.position)
+				final int oldMarker = last(marksSoFar);
+				if (oldMarker == start.position)
 				{
 					// No progress has been made.  Reject this path.
 					return;
 				}
-				final AvailObject newMarker = MarkerNodeDescriptor.create(
-					IntegerDescriptor.fromInt(start.position));
-				final List<AvailObject> newArgsSoFar =
-					append(
-						append(withoutLast(poppedOnce), newMarker),
-						top);
+				final int newMarker = start.position;
+				final List<Integer> newMarksSoFar =
+					append(withoutLast(marksSoFar), newMarker);
 				eventuallyParseRestOfSendNode(
 					"Continue send after check parse progress",
 					start,
@@ -2679,7 +2707,8 @@ public abstract class AbstractAvailCompiler
 					firstArgOrNull,
 					initialTokenPosition,
 					consumedAnything,
-					newArgsSoFar,
+					argsSoFar,
+					newMarksSoFar,
 					continuation);
 				break;
 			}
@@ -2696,11 +2725,11 @@ public abstract class AbstractAvailCompiler
 					// then reject the parse.
 					break;
 				}
-				final AvailObject newToken = parseRawTokenOrNull(start);
+				final A_Token newToken = parseRawTokenOrNull(start);
 				if (newToken != null)
 				{
 					final ParserState afterToken = start.afterToken();
-					final AvailObject syntheticToken =
+					final A_Token syntheticToken =
 						LiteralTokenDescriptor.create(
 							newToken.string(),
 							newToken.start(),
@@ -2719,33 +2748,18 @@ public abstract class AbstractAvailCompiler
 						initialTokenPosition,
 						true,
 						newArgsSoFar,
+						marksSoFar,
 						continuation);
 				}
 				break;
-			case POP:
-			{
-				// Pop the parse stack.
-				assert successorTrees.tupleSize() == 1;
-				final List<AvailObject> newArgsSoFar = withoutLast(argsSoFar);
-				eventuallyParseRestOfSendNode(
-					"Continue send after pop",
-					start,
-					successorTrees.tupleAt(1),
-					firstArgOrNull,
-					initialTokenPosition,
-					consumedAnything,
-					newArgsSoFar,
-					continuation);
-				break;
-			}
 			case PARSE_ARGUMENT_IN_MODULE_SCOPE:
 			{
 				// Parse an argument in the outermost (module) scope and
 				// continue.
 				assert successorTrees.tupleSize() == 1;
-				final AvailObject clientDataInGlobalScope =
+				final A_Map clientDataInGlobalScope =
 					start.clientDataMap.mapAtPuttingCanDestroy(
-						AtomDescriptor.compilerScopeMapKey(),
+						compilerScopeMapKey,
 						MapDescriptor.empty(),
 						false);
 				final ParserState startInGlobalScope = new ParserState(
@@ -2776,7 +2790,7 @@ public abstract class AbstractAvailCompiler
 								// scope, which is the case here, and there are
 								// references to local variables within the
 								// argument's parse tree.
-								final AvailObject usedLocals =
+								final A_Set usedLocals =
 									usesWhichLocalVariables(newArg);
 								if (usedLocals.setSize() > 0)
 								{
@@ -2790,10 +2804,10 @@ public abstract class AbstractAvailCompiler
 										{
 											final List<String> localNames =
 												new ArrayList<String>();
-											for (final AvailObject usedLocal
+											for (final A_BasicObject usedLocal
 												: usedLocals)
 											{
-												final AvailObject name =
+												final A_String name =
 													usedLocal.token().string();
 												localNames.add(
 													name.asNativeString());
@@ -2826,12 +2840,38 @@ public abstract class AbstractAvailCompiler
 								// consumed if it's not a leading argument...
 								firstArgOrNull == null,
 								newArgsSoFar,
+								marksSoFar,
 								continuation);
 						}
 					});
 				break;
 			}
-			case RESERVED_9:
+			case PUSH_TRUE:
+			case PUSH_FALSE:
+			{
+				final A_Atom booleanValue =
+					AtomDescriptor.objectFromBoolean(op == PUSH_TRUE);
+				final A_Token token =
+					LiteralTokenDescriptor.create(
+						StringDescriptor.from(booleanValue.toString()),
+						initialTokenPosition.peekToken().start(),
+						initialTokenPosition.peekToken().lineNumber(),
+						LITERAL,
+						booleanValue);
+				final AvailObject literalNode =
+					LiteralNodeDescriptor.fromToken(token);
+				eventuallyParseRestOfSendNode(
+					"Continue send after push boolean literal",
+					start,
+					successorTrees.tupleAt(1),
+					firstArgOrNull,
+					initialTokenPosition,
+					consumedAnything,
+					append(argsSoFar, literalNode),
+					marksSoFar,
+					continuation);
+				break;
+			}
 			case RESERVED_10:
 			case RESERVED_11:
 			case RESERVED_12:
@@ -2849,7 +2889,7 @@ public abstract class AbstractAvailCompiler
 			case JUMP:
 				for (int i = successorTrees.tupleSize(); i >= 1; i--)
 				{
-					final AvailObject successorTree = successorTrees.tupleAt(i);
+					final A_BasicObject successorTree = successorTrees.tupleAt(i);
 					eventuallyParseRestOfSendNode(
 						"Continue send after branch or jump (" +
 							(i == 1 ? "not taken)" : "taken)"),
@@ -2859,6 +2899,7 @@ public abstract class AbstractAvailCompiler
 						initialTokenPosition,
 						consumedAnything,
 						argsSoFar,
+						marksSoFar,
 						continuation);
 				}
 				break;
@@ -2884,6 +2925,7 @@ public abstract class AbstractAvailCompiler
 					initialTokenPosition,
 					consumedAnything,
 					argsSoFar,
+					marksSoFar,
 					continuation);
 				break;
 			}
@@ -2906,12 +2948,13 @@ public abstract class AbstractAvailCompiler
 					initialTokenPosition,
 					consumedAnything,
 					newArgsSoFar,
+					marksSoFar,
 					continuation);
 				break;
 			}
 			case PUSH_INTEGER_LITERAL:
 			{
-				final AvailObject integerValue = IntegerDescriptor.fromInt(
+				final A_Number integerValue = IntegerDescriptor.fromInt(
 					op.integerToPush(instruction));
 				final AvailObject token =
 					LiteralTokenDescriptor.create(
@@ -2925,27 +2968,22 @@ public abstract class AbstractAvailCompiler
 				final List<AvailObject> newArgsSoFar =
 					append(argsSoFar, literalNode);
 				eventuallyParseRestOfSendNode(
-					"Continue send after conversion",
+					"Continue send after push integer literal",
 					start,
 					successorTrees.tupleAt(1),
 					firstArgOrNull,
 					initialTokenPosition,
 					consumedAnything,
 					newArgsSoFar,
+					marksSoFar,
 					continuation);
 				break;
 			}
 			case PREPARE_TO_RUN_PREFIX_FUNCTION:
 			{
-				List<AvailObject> stackCopy = Collections.emptyList();
-				for (final AvailObject arg : argsSoFar)
-				{
-					if (!arg.isMarkerNode())
-					{
-						stackCopy = append(stackCopy, arg);
-					}
-				}
-				for (int i = op.fixupDepth(instruction); i > 0; i--)
+				List<AvailObject> stackCopy = argsSoFar;
+				// subtract one because zero is an invalid operand.
+				for (int i = op.fixupDepth(instruction) - 1; i > 0; i--)
 				{
 					// Pop the last element and append it to the second last.
 					final AvailObject value = last(stackCopy);
@@ -2967,6 +3005,7 @@ public abstract class AbstractAvailCompiler
 					initialTokenPosition,
 					consumedAnything,
 					append(argsSoFar, newListNode),
+					marksSoFar,
 					continuation);
 				break;
 			}
@@ -2975,14 +3014,11 @@ public abstract class AbstractAvailCompiler
 				// Extract the list node pushed by the
 				// PREPARE_TO_RUN_PREFIX_FUNCTION instruction that should have
 				// just run.
-				final AvailObject listNodeOfArgsSoFar = last(argsSoFar);
+				final A_BasicObject listNodeOfArgsSoFar = last(argsSoFar);
 				final List<AvailObject> listOfArgs = TupleDescriptor.toList(
 					listNodeOfArgsSoFar.expressionsTuple());
 
-				// Store the current parsing state in a special fiber global.
-				final AvailObject clientDataGlobalKey =
-					AtomDescriptor.clientDataGlobalKey();
-				AvailObject fiberGlobals = interpreter.fiber.fiberGlobals();
+				A_Map fiberGlobals = interpreter.fiber.fiberGlobals();
 				fiberGlobals = fiberGlobals.mapAtPuttingCanDestroy(
 					clientDataGlobalKey,
 					start.clientDataMap.makeImmutable(),
@@ -2991,8 +3027,8 @@ public abstract class AbstractAvailCompiler
 
 				// Call the appropriate prefix function(s).
 				assert successorTrees.tupleSize() == 1;
-				final AvailObject successorTree = successorTrees.tupleAt(1);
-				final AvailObject bundlesMap = successorTree.allBundles();
+				final A_BasicObject successorTree = successorTrees.tupleAt(1);
+				final A_BasicObject bundlesMap = successorTree.allBundles();
 				for (final MapDescriptor.Entry entry : bundlesMap.mapIterable())
 				{
 //					final AvailObject message = entry.value.message();
@@ -3103,6 +3139,7 @@ public abstract class AbstractAvailCompiler
 					initialTokenPosition,
 					consumedAnything,
 					withoutLast(argsSoFar),
+					marksSoFar,
 					continuation);
 				break;
 			}
@@ -3120,16 +3157,18 @@ public abstract class AbstractAvailCompiler
 	 * @param initialTokenPosition
 	 * @param consumedAnything
 	 * @param argsSoFar
+	 * @param marksSoFar
 	 * @param continuation
 	 */
 	@InnerAccess void eventuallyParseRestOfSendNode (
 		final String description,
 		final ParserState start,
-		final AvailObject bundleTree,
+		final A_BasicObject bundleTree,
 		final @Nullable AvailObject firstArgOrNull,
 		final ParserState initialTokenPosition,
 		final boolean consumedAnything,
 		final List<AvailObject> argsSoFar,
+		final List<Integer> marksSoFar,
 		final Con<AvailObject> continuation)
 	{
 		eventuallyDo(
@@ -3145,6 +3184,7 @@ public abstract class AbstractAvailCompiler
 						initialTokenPosition,
 						consumedAnything,
 						argsSoFar,
+						marksSoFar,
 						continuation);
 				}
 			},
@@ -3242,10 +3282,10 @@ public abstract class AbstractAvailCompiler
 		final Con<AvailObject> continuation)
 	{
 		final Mutable<Boolean> valid = new Mutable<Boolean>(true);
-		final AvailObject message = bundle.message();
+		final A_Atom message = bundle.message();
 		final AvailObject method = interpreter.runtime().methodAt(message);
 		assert !method.equalsNil();
-		final AvailObject definitionsTuple = method.definitionsTuple();
+		final A_Tuple definitionsTuple = method.definitionsTuple();
 		assert definitionsTuple.tupleSize() > 0;
 
 		if (definitionsTuple.tupleAt(1).isMacroDefinition())
@@ -3262,16 +3302,16 @@ public abstract class AbstractAvailCompiler
 			return;
 		}
 		// It invokes a method (not a macro).
-		final List<AvailObject> argTypes =
-			new ArrayList<AvailObject>(argumentExpressions.size());
-		for (final AvailObject argumentExpression : argumentExpressions)
+		final List<A_Type> argTypes =
+			new ArrayList<A_Type>(argumentExpressions.size());
+		for (final A_BasicObject argumentExpression : argumentExpressions)
 		{
 			argTypes.add(argumentExpression.expressionType());
 		}
 		// Parsing a method send can't affect the scope.
 		assert stateAfterCall.clientDataMap.equals(
 			stateBeforeCall.clientDataMap);
-		final AvailObject returnType = validateArgumentTypes(
+		final A_Type returnType = validateArgumentTypes(
 			stateAfterCall,
 			argTypes,
 			method,
@@ -3310,9 +3350,9 @@ public abstract class AbstractAvailCompiler
 	 * @param failBlock
 	 * @return The result type of the call site.
 	 */
-	final AvailObject validateArgumentTypes (
+	final A_Type validateArgumentTypes (
 		final ParserState parserState,
-		final List<AvailObject> argumentTypes,
+		final List<A_Type> argumentTypes,
 		final AvailObject method,
 		final Continuation1<Generator<String>> failBlock)
 	{
@@ -3355,8 +3395,8 @@ public abstract class AbstractAvailCompiler
 		final ParserState stateBeforeCall,
 		final ParserState stateAfterCall,
 		final List<AvailObject> argumentExpressions,
-		final AvailObject bundle,
-		final AvailObject method,
+		final A_BasicObject bundle,
+		final A_BasicObject method,
 		final Con<AvailObject> continuation);
 
 	/**
@@ -3375,13 +3415,13 @@ public abstract class AbstractAvailCompiler
 		final String methodName,
 		final int primitiveNumber)
 	{
-		final AvailObject availName = StringDescriptor.from(methodName);
+		final A_String availName = StringDescriptor.from(methodName);
 		final AvailObject nameLiteral =
 			LiteralNodeDescriptor.syntheticFrom(availName);
-		final AvailObject function =
+		final A_Function function =
 			MethodDescriptor.newPrimitiveFunction(
 				Primitive.byPrimitiveNumberOrFail(primitiveNumber));
-		final AvailObject send = SendNodeDescriptor.from(
+		final A_BasicObject send = SendNodeDescriptor.from(
 			MethodDescriptor.vmMethodDefinerMethod(),
 			ListNodeDescriptor.newExpressions(TupleDescriptor.from(
 				nameLiteral,
@@ -3410,21 +3450,21 @@ public abstract class AbstractAvailCompiler
 		final int[] primitiveNumbers)
 	{
 		assert primitiveNumbers.length > 0;
-		final AvailObject availName = StringDescriptor.from(macroName);
+		final A_String availName = StringDescriptor.from(macroName);
 		final AvailObject nameLiteral =
 			LiteralNodeDescriptor.syntheticFrom(availName);
-		final List<AvailObject> functionsList = new ArrayList<AvailObject>();
+		final List<A_Function> functionsList = new ArrayList<A_Function>();
 		for (final int primitiveNumber : primitiveNumbers)
 		{
 			functionsList.add(
 				MethodDescriptor.newPrimitiveFunction(
 					Primitive.byPrimitiveNumberOrFail(primitiveNumber)));
 		}
-		final AvailObject body =
+		final A_Function body =
 			functionsList.remove(functionsList.size() - 1);
-		final AvailObject functionsTuple =
+		final A_Tuple functionsTuple =
 			TupleDescriptor.fromList(functionsList);
-		final AvailObject send = SendNodeDescriptor.from(
+		final A_BasicObject send = SendNodeDescriptor.from(
 			MethodDescriptor.vmMacroDefinerMethod(),
 			ListNodeDescriptor.newExpressions(TupleDescriptor.from(
 				nameLiteral,
@@ -3445,9 +3485,9 @@ public abstract class AbstractAvailCompiler
 	private void serializePublicationFunction (final boolean isPublic)
 	{
 		// Output a function that publishes the initial public set of atoms.
-		final AvailObject sourceNames =
+		final A_BasicObject sourceNames =
 			isPublic ? module.importedNames() : module.privateNames();
-		AvailObject names = SetDescriptor.empty();
+		A_Set names = SetDescriptor.empty();
 		for (final MapDescriptor.Entry entry : sourceNames.mapIterable())
 		{
 			names = names.setUnionCanDestroy(entry.value, false);
@@ -3460,7 +3500,7 @@ public abstract class AbstractAvailCompiler
 					LiteralNodeDescriptor.syntheticFrom(
 						AtomDescriptor.objectFromBoolean(isPublic)))),
 			TOP.o());
-		final AvailObject function = createFunctionToRun(send, 0);
+		final A_Function function = createFunctionToRun(send, 0);
 		function.makeImmutable();
 		serializer.serialize(function);
 	}
@@ -3591,7 +3631,7 @@ public abstract class AbstractAvailCompiler
 		}
 		if (!state.value.atEnd())
 		{
-			final AvailObject token = state.value.peekToken();
+			final A_BasicObject token = state.value.peekToken();
 			progressBlock.value(
 				qualifiedName,
 				(long) token.lineNumber(),
@@ -3611,7 +3651,7 @@ public abstract class AbstractAvailCompiler
 		moduleHeader.serializeHeaderOn(serializer);
 
 		serializer.serialize(AtomDescriptor.moduleBodySectionAtom());
-		for (final AvailObject pragmaString : moduleHeader.pragmas)
+		for (final A_String pragmaString : moduleHeader.pragmas)
 		{
 			final String nativeString = pragmaString.asNativeString();
 			final String[] parts = nativeString.split("=", 3);
@@ -3741,7 +3781,7 @@ public abstract class AbstractAvailCompiler
 			}
 			if (!state.value.atEnd())
 			{
-				final AvailObject token = tokens.get(state.value.position - 1);
+				final A_BasicObject token = tokens.get(state.value.position - 1);
 				progressBlock.value(
 					qualifiedName,
 					(long) token.lineNumber(),
@@ -3754,7 +3794,7 @@ public abstract class AbstractAvailCompiler
 		{
 			final Formatter formatter = new Formatter();
 			formatter.format("the following forwards to be resolved:");
-			for (final AvailObject forward : interpreter.unresolvedForwards())
+			for (final A_BasicObject forward : interpreter.unresolvedForwards())
 			{
 				formatter.format("%n\t%s", forward);
 			}
@@ -3828,7 +3868,7 @@ public abstract class AbstractAvailCompiler
 		ParserState state = new ParserState(
 			0,
 			MapDescriptor.empty().mapAtPuttingCanDestroy(
-				AtomDescriptor.compilerScopeMapKey(),
+				compilerScopeMapKey,
 				MapDescriptor.empty(),
 				false));
 
@@ -3847,7 +3887,7 @@ public abstract class AbstractAvailCompiler
 			return null;
 		}
 		state = state.afterToken();
-		final AvailObject localNameToken = state.peekStringLiteral();
+		final A_BasicObject localNameToken = state.peekStringLiteral();
 		if (localNameToken == null)
 		{
 			state.expected("module name");
@@ -3855,7 +3895,7 @@ public abstract class AbstractAvailCompiler
 		}
 		if (!dependenciesOnly)
 		{
-			final AvailObject localName = localNameToken.literal();
+			final A_String localName = localNameToken.literal();
 			if (!qualifiedName.localName().equals(localName.asNativeString()))
 			{
 				state.expected("declared local module name to agree with "
@@ -3869,7 +3909,7 @@ public abstract class AbstractAvailCompiler
 		final List<ExpectedToken> expected = new ArrayList<ExpectedToken>(
 			Arrays.<ExpectedToken>asList(
 				VERSIONS, EXTENDS, USES, NAMES, PRAGMA, BODY));
-		final Set<AvailObject> seen = new HashSet<AvailObject>(6);
+		final Set<A_String> seen = new HashSet<A_String>(6);
 		final Generator<String> expectedMessage = new Generator<String>()
 		{
 			@Override
@@ -3899,8 +3939,8 @@ public abstract class AbstractAvailCompiler
 		// consumed.
 		while (true)
 		{
-			final AvailObject token = state.peekToken();
-			final AvailObject lexeme = token.string();
+			final A_Token token = state.peekToken();
+			final A_String lexeme = token.string();
 			int tokenIndex = 0;
 			for (final ExpectedToken expectedToken : expected)
 			{
@@ -4049,12 +4089,12 @@ public abstract class AbstractAvailCompiler
 	 */
 	void parseAndEvaluateExpressionYieldingInstanceOfThen (
 		final ParserState start,
-		final AvailObject someType,
+		final A_Type someType,
 		final Con<AvailObject> continuation)
 	{
-		final AvailObject clientDataInModuleScope =
+		final A_Map clientDataInModuleScope =
 			start.clientDataMap.mapAtPuttingCanDestroy(
-				AtomDescriptor.compilerScopeMapKey(),
+				compilerScopeMapKey,
 				MapDescriptor.empty(),
 				false);
 		final ParserState startInModuleScope = new ParserState(
@@ -4160,10 +4200,10 @@ public abstract class AbstractAvailCompiler
 	 * @return
 	 *            The token or {@code null}.
 	 */
-	protected @Nullable AvailObject parseRawTokenOrNull (
+	protected @Nullable A_Token parseRawTokenOrNull (
 		final ParserState start)
 	{
-		final AvailObject token = start.peekToken();
+		final A_Token token = start.peekToken();
 		switch (token.tokenType())
 		{
 			case KEYWORD:

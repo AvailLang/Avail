@@ -55,15 +55,16 @@ public class P_101_ElementInSet extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 2;
-		final AvailObject element = args.get(0);
-		final AvailObject set = args.get(1);
+		final A_BasicObject element = args.get(0);
+		final A_Set set = args.get(1);
+
 		return interpreter.primitiveSuccess(
 			AtomDescriptor.objectFromBoolean(
 				set.hasElement(element)));
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

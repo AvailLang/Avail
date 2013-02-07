@@ -95,7 +95,7 @@ extends TupleDescriptor
 		final AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
-		final AvailObject anotherObject,
+		final A_Tuple anotherObject,
 		final int startIndex2)
 	{
 		if (object.sameAddressAs(anotherObject) && startIndex1 == startIndex2)
@@ -290,7 +290,7 @@ extends TupleDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_Equals (final AvailObject object, final AvailObject another)
+	boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		return another.equalsAnyTuple(object);
 	}
@@ -298,7 +298,7 @@ extends TupleDescriptor
 	@Override @AvailMethod
 	boolean o_EqualsAnyTuple (
 		final AvailObject object,
-		final AvailObject anotherTuple)
+		final A_Tuple anotherTuple)
 	{
 		if (object.sameAddressAs(anotherTuple))
 		{
@@ -334,7 +334,7 @@ extends TupleDescriptor
 		}
 		else
 		{
-			if (!anotherTuple.descriptor.isShared())
+			if (!anotherTuple.descriptor().isShared())
 			{
 				object.makeImmutable();
 				anotherTuple.becomeIndirectionTo(object);
@@ -370,7 +370,7 @@ extends TupleDescriptor
 	 * true.
 	 */
 	@Override
-	public AvailObject
+	public A_BasicObject
 		o_ForZoneSetSubtupleStartSubtupleIndexEndOfZone (
 			final AvailObject object,
 			final int zone,
@@ -402,7 +402,7 @@ extends TupleDescriptor
 	void o_SetSubtupleForZoneTo (
 		final AvailObject object,
 		final int zoneIndex,
-		final AvailObject newTuple)
+		final A_Tuple newTuple)
 	{
 		assert isMutable();
 		object.setSlot(
@@ -528,7 +528,7 @@ extends TupleDescriptor
 	 * other optimizations hold).
 	 */
 	@Override @AvailMethod
-	AvailObject o_CopyTupleFromToCanDestroy (
+	A_Tuple o_CopyTupleFromToCanDestroy (
 		final AvailObject object,
 		final int start,
 		final int end,
@@ -595,7 +595,7 @@ extends TupleDescriptor
 			return NilDescriptor.nil();
 		}
 		final int zoneIndex = object.zoneForIndex(index);
-		final AvailObject subtuple = object.subtupleForZone(zoneIndex);
+		final A_Tuple subtuple = object.subtupleForZone(zoneIndex);
 		return subtuple.tupleAt(object.translateToZone(index, zoneIndex));
 	}
 
@@ -620,10 +620,10 @@ extends TupleDescriptor
 	 * canDestroy is true.
 	 */
 	@Override @AvailMethod
-	AvailObject o_TupleAtPuttingCanDestroy (
+	A_Tuple o_TupleAtPuttingCanDestroy (
 		final AvailObject object,
 		final int index,
-		final AvailObject newValueObject,
+		final A_BasicObject newValueObject,
 		final boolean canDestroy)
 	{
 		assert index >= 1 && index <= object.tupleSize();
@@ -635,8 +635,8 @@ extends TupleDescriptor
 				true);
 		}
 		final int zoneIndex = object.zoneForIndex(index);
-		final AvailObject oldSubtuple = object.subtupleForZone(zoneIndex);
-		final AvailObject newSubtuple = oldSubtuple.tupleAtPuttingCanDestroy(
+		final A_Tuple oldSubtuple = object.subtupleForZone(zoneIndex);
+		final A_Tuple newSubtuple = oldSubtuple.tupleAtPuttingCanDestroy(
 			object.translateToZone(index, zoneIndex),
 			newValueObject,
 			canDestroy);
@@ -659,7 +659,7 @@ extends TupleDescriptor
 			return 0;
 		}
 		final int zoneIndex = object.zoneForIndex(index);
-		final AvailObject subtuple = object.subtupleForZone(zoneIndex);
+		final A_Tuple subtuple = object.subtupleForZone(zoneIndex);
 		return subtuple.tupleIntAt(object.translateToZone(index, zoneIndex));
 	}
 
@@ -717,7 +717,7 @@ extends TupleDescriptor
 				0);
 			// Can only be nonzero for leftmost affected zone, and only if
 			// start > start of zone.
-			final AvailObject piece = object.subtupleForZone(zone);
+			final A_Tuple piece = object.subtupleForZone(zone);
 			final int startInPiece = object.startSubtupleIndexInZone(zone)
 				+ clipOffsetInZone;
 			final int endInPiece = min(
@@ -736,7 +736,7 @@ extends TupleDescriptor
 	 * Answer a mutable copy of object that is also a splice tuple.
 	 */
 	@Override @AvailMethod
-	AvailObject o_CopyAsMutableSpliceTuple (final AvailObject object)
+	A_Tuple o_CopyAsMutableSpliceTuple (final AvailObject object)
 	{
 		if (isMutable())
 		{

@@ -68,12 +68,12 @@ public class L2Translator implements L1OperationDispatcher
 	/**
 	 * The current {@link CompiledCodeDescriptor compiled code} being optimized.
 	 */
-	@InnerAccess @Nullable AvailObject code;
+	@InnerAccess @Nullable A_BasicObject code;
 
 	/**
 	 * The nybblecodes being optimized.
 	 */
-	@InnerAccess AvailObject nybbles;
+	@InnerAccess A_Tuple nybbles;
 
 	/**
 	 * The number of arguments expected by the code being optimized.
@@ -145,7 +145,7 @@ public class L2Translator implements L1OperationDispatcher
 	 *
 	 * @param code The {@linkplain CompiledCodeDescriptor code} to translate.
 	 */
-	public L2Translator (final @Nullable AvailObject code)
+	public L2Translator (final @Nullable A_BasicObject code)
 	{
 		this.code = code;
 		registers = new RegisterSet(this);
@@ -227,7 +227,7 @@ public class L2Translator implements L1OperationDispatcher
 	 *
 	 * @return The code being translated.
 	 */
-	public @Nullable AvailObject codeOrNull ()
+	public @Nullable A_BasicObject codeOrNull ()
 	{
 		return code;
 	}
@@ -238,9 +238,9 @@ public class L2Translator implements L1OperationDispatcher
 	 *
 	 * @return The code being translated.
 	 */
-	public AvailObject codeOrFail ()
+	public A_BasicObject codeOrFail ()
 	{
-		final AvailObject c = code;
+		final A_BasicObject c = code;
 		if (c == null)
 		{
 			throw new RuntimeException("L2Translator code was null");
@@ -320,12 +320,12 @@ public class L2Translator implements L1OperationDispatcher
 	 *         exemplifies the primitive that should be inlined, or {@code
 	 *         null}.
 	 */
-	private @Nullable List<AvailObject> primitivesToInlineForArgumentRegisters (
-		final AvailObject method,
+	private @Nullable List<A_Function> primitivesToInlineForArgumentRegisters (
+		final A_BasicObject method,
 		final List<L2ObjectRegister> args)
 	{
-		final List<AvailObject> argTypes =
-			new ArrayList<AvailObject>(args.size());
+		final List<A_Type> argTypes =
+			new ArrayList<A_Type>(args.size());
 		for (final L2ObjectRegister arg : args)
 		{
 			argTypes.add(
@@ -349,22 +349,22 @@ public class L2Translator implements L1OperationDispatcher
 	 *            The equivalent applicable primitive method bodies, or {@code
 	 *            null}.
 	 */
-	private @Nullable List<AvailObject> primitivesToInlineForWithArgumentTypes (
-		final AvailObject method,
-		final List<AvailObject> argTypes)
+	private @Nullable List<A_Function> primitivesToInlineForWithArgumentTypes (
+		final A_BasicObject method,
+		final List<A_Type> argTypes)
 	{
 		final List<AvailObject> imps =
 			method.definitionsAtOrBelow(argTypes);
-		final List<AvailObject> bodies = new ArrayList<AvailObject>(2);
+		final List<A_Function> bodies = new ArrayList<A_Function>(2);
 		int existingPrimitiveNumber = -1;
-		for (final AvailObject imp : imps)
+		for (final A_BasicObject imp : imps)
 		{
 			// If a forward or abstract method is possible, don't inline.
 			if (!imp.isMethodDefinition())
 			{
 				return null;
 			}
-			final AvailObject body = imp.bodyBlock();
+			final A_Function body = imp.bodyBlock();
 			final int primitiveNumber = body.code().primitiveNumber();
 			if (primitiveNumber == 0)
 			{
@@ -488,7 +488,7 @@ public class L2Translator implements L1OperationDispatcher
 	 * @param destinationRegister Where to move it.
 	 */
 	private void moveConstant (
-		final AvailObject value,
+		final A_BasicObject value,
 		final L2ObjectRegister destinationRegister)
 	{
 		if (value.equalsNil())
@@ -551,12 +551,12 @@ public class L2Translator implements L1OperationDispatcher
 	 *            The value if the primitive was folded, otherwise {@code
 	 *            null}.
 	 */
-	private @Nullable AvailObject emitInlinePrimitiveAttempt (
-		final AvailObject primitiveFunction,
-		final AvailObject method,
+	private @Nullable A_BasicObject emitInlinePrimitiveAttempt (
+		final A_Function primitiveFunction,
+		final A_BasicObject method,
 		final List<L2ObjectRegister> args,
 		final List<L2ObjectRegister> preserved,
-		final AvailObject expectedType,
+		final A_Type expectedType,
 		final L2ObjectRegister failureValueRegister,
 		final L2Instruction successLabel,
 		final Mutable<Boolean> canFailPrimitive)
@@ -598,7 +598,7 @@ public class L2Translator implements L1OperationDispatcher
 			final L2ObjectRegister arg = args.get(0);
 			if (registers.hasConstantAt(arg))
 			{
-				final AvailObject constant = registers.constantAt(arg);
+				final A_BasicObject constant = registers.constantAt(arg);
 				// Restriction might be too strong even on such a simple method.
 				if (constant.isInstanceOf(expectedType))
 				{
@@ -610,7 +610,7 @@ public class L2Translator implements L1OperationDispatcher
 			}
 			else if (registers.hasTypeAt(arg))
 			{
-				final AvailObject actualType = registers.typeAt(arg);
+				final A_Type actualType = registers.typeAt(arg);
 				if (actualType.isSubtypeOf(expectedType))
 				{
 					// It will always conform to the expected type.  Inline it.
@@ -659,14 +659,13 @@ public class L2Translator implements L1OperationDispatcher
 			assert success != CONTINUATION_CHANGED
 			: "This foldable primitive changed the continuation!";
 		}
-		final List<AvailObject> argTypes =
-			new ArrayList<AvailObject>(args.size());
+		final List<A_Type> argTypes = new ArrayList<A_Type>(args.size());
 		for (final L2ObjectRegister arg : args)
 		{
 			assert registers.hasTypeAt(arg);
 			argTypes.add(registers.typeAt(arg));
 		}
-		final AvailObject guaranteedReturnType =
+		final A_Type guaranteedReturnType =
 			primitive.returnTypeGuaranteedByVM(argTypes);
 		final boolean skipReturnCheck =
 			guaranteedReturnType.isSubtypeOf(expectedType);
@@ -753,8 +752,8 @@ public class L2Translator implements L1OperationDispatcher
 		assert preserved.size() == numSlots;
 		final List<L2ObjectRegister> args =
 			new ArrayList<L2ObjectRegister>(nArgs);
-		final List<AvailObject> argTypes =
-			new ArrayList<AvailObject>(nArgs);
+		final List<A_Type> argTypes =
+			new ArrayList<A_Type>(nArgs);
 		for (int i = nArgs; i >= 1; i--)
 		{
 			final L2ObjectRegister arg = readTopOfStackRegister();
@@ -768,7 +767,7 @@ public class L2Translator implements L1OperationDispatcher
 		}
 		stackp--;
 		preSlots.set(numArgs + numLocals + stackp - 1, expectedTypeReg);
-		final List<AvailObject> primFunctions =
+		final List<A_Function> primFunctions =
 			primitivesToInlineForArgumentRegisters(method, args);
 
 		final L2Instruction successLabel;
@@ -778,7 +777,7 @@ public class L2Translator implements L1OperationDispatcher
 			// Inline the primitive.  Attempt to fold it if the primitive says
 			// it's foldable and the arguments are all constants.
 			final Mutable<Boolean> canFailPrimitive = new Mutable<Boolean>();
-			final AvailObject folded = emitInlinePrimitiveAttempt(
+			final A_BasicObject folded = emitInlinePrimitiveAttempt(
 				primFunctions.get(0),
 				method,
 				args,
@@ -802,8 +801,8 @@ public class L2Translator implements L1OperationDispatcher
 			}
 		}
 		moveConstant(expectedType, expectedTypeReg);
-		final List<AvailObject> savedSlotTypes =
-			new ArrayList<AvailObject>(numSlots);
+		final List<A_Type> savedSlotTypes =
+			new ArrayList<A_Type>(numSlots);
 		final List<AvailObject> savedSlotConstants =
 			new ArrayList<AvailObject>(numSlots);
 		for (final L2ObjectRegister reg : preSlots)
@@ -922,7 +921,7 @@ public class L2Translator implements L1OperationDispatcher
 					{
 						final L2Register postSlot =
 							registers.continuationSlot(slotIndex);
-						final AvailObject type =
+						final A_Type type =
 							savedSlotTypes.get(slotIndex - 1);
 						if (type != null)
 						{
@@ -1587,7 +1586,7 @@ public class L2Translator implements L1OperationDispatcher
 				L2ChunkDescriptor.countdownForNewlyOptimizedCode());
 			addInstruction(L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO.instance);
 		}
-		final AvailObject tupleType = code.functionType().argsTupleType();
+		final A_BasicObject tupleType = code.functionType().argsTupleType();
 		for (int i = 1; i <= numArgs; i++)
 		{
 			registers.typeAtPut(
@@ -1660,7 +1659,7 @@ public class L2Translator implements L1OperationDispatcher
 		assert stackp == Integer.MIN_VALUE;
 
 		optimize();
-		final AvailObject newChunk = createChunk();
+		final A_BasicObject newChunk = createChunk();
 		assert code.startingChunk() == newChunk;
 	}
 }

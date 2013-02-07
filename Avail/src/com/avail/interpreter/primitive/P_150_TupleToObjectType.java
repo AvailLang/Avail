@@ -62,13 +62,13 @@ extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
-		final AvailObject tuple = args.get(0);
+		final A_Tuple tuple = args.get(0);
 		return interpreter.primitiveSuccess(
 			ObjectTypeDescriptor.objectTypeFromTuple(tuple));
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
@@ -80,12 +80,12 @@ extends Primitive
 	}
 
 	@Override
-	public AvailObject returnTypeGuaranteedByVM (
-		final List<AvailObject> argumentTypes)
+	public A_Type returnTypeGuaranteedByVM (
+		final List<A_Type> argumentTypes)
 	{
-		final AvailObject tupleType = argumentTypes.get(0);
-		final AvailObject tupleSizes = tupleType.sizeRange();
-		final AvailObject tupleSizeLowerBound = tupleSizes.lowerBound();
+		final A_Type tupleType = argumentTypes.get(0);
+		final A_Type tupleSizes = tupleType.sizeRange();
+		final A_Number tupleSizeLowerBound = tupleSizes.lowerBound();
 		if (!tupleSizeLowerBound.equals(tupleSizes.upperBound())
 			|| !tupleSizeLowerBound.isInt())
 		{
@@ -93,27 +93,27 @@ extends Primitive
 			return super.returnTypeGuaranteedByVM(argumentTypes);
 		}
 		final int tupleSize = tupleSizeLowerBound.extractInt();
-		AvailObject fieldTypeMap = MapDescriptor.empty();
+		A_Map fieldTypeMap = MapDescriptor.empty();
 		for (int i = 1; i <= tupleSize; i++)
 		{
-			final AvailObject pairType = tupleType.typeAtIndex(i);
+			final A_BasicObject pairType = tupleType.typeAtIndex(i);
 			assert pairType.sizeRange().lowerBound().extractInt() == 2;
 			assert pairType.sizeRange().upperBound().extractInt() == 2;
-			final AvailObject keyType = pairType.typeAtIndex(1);
+			final A_BasicObject keyType = pairType.typeAtIndex(1);
 			if (!keyType.isEnumeration()
 				|| !keyType.instanceCount().equals(IntegerDescriptor.one()))
 			{
 				// Can only strengthen if all key atoms are statically known.
 				return super.returnTypeGuaranteedByVM(argumentTypes);
 			}
-			final AvailObject keyValue = keyType.instance();
+			final A_BasicObject keyValue = keyType.instance();
 			if (fieldTypeMap.hasKey(keyValue))
 			{
 				// In case the semantics of this situation change.  Give up.
 				return super.returnTypeGuaranteedByVM(argumentTypes);
 			}
 			assert keyValue.isAtom();
-			final AvailObject valueMeta = pairType.typeAtIndex(2);
+			final A_BasicObject valueMeta = pairType.typeAtIndex(2);
 			assert valueMeta.isInstanceMeta();
 			final AvailObject valueType = valueMeta.instance();
 			fieldTypeMap = fieldTypeMap.mapAtPuttingCanDestroy(

@@ -58,8 +58,8 @@ public class P_058_RestartContinuation extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
-		final AvailObject con = args.get(0);
-		final AvailObject code = con.function().code();
+		final A_BasicObject con = args.get(0);
+		final A_BasicObject code = con.function().code();
 		assert con.stackp() == code.numArgsAndLocalsAndStack() + 1
 			: "Outer continuation should have been a label- rather than "
 				+ "call-continuation";
@@ -73,7 +73,7 @@ public class P_058_RestartContinuation extends Primitive
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

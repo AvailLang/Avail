@@ -59,8 +59,8 @@ extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 2;
-		final AvailObject baseInteger = args.get(0);
-		final AvailObject shiftFactor = args.get(1);
+		final A_Number baseInteger = args.get(0);
+		final A_Number shiftFactor = args.get(1);
 		return interpreter.primitiveSuccess(
 			baseInteger.bitShift(
 				shiftFactor,
@@ -68,7 +68,7 @@ extends Primitive
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

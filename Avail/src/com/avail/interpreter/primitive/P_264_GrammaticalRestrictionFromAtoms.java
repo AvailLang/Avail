@@ -66,14 +66,12 @@ extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 2;
-		final AvailObject atomSet = args.get(0);
-		final AvailObject exclusionsTuple = args.get(1);
+		final A_Set atomSet = args.get(0);
+		final A_Tuple exclusionsTuple = args.get(1);
 		try
 		{
-			final AvailObject atomSetAsTuple = atomSet.asTuple();
-			for (int i = atomSetAsTuple.tupleSize(); i >= 1; i--)
+			for (final A_Atom atom : atomSet)
 			{
-				final AvailObject atom = atomSetAsTuple.tupleAt(i);
 				interpreter.atDisallowArgumentMessages(
 					atom,
 					exclusionsTuple);
@@ -87,7 +85,7 @@ extends Primitive
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

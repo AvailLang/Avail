@@ -93,7 +93,7 @@ extends AbstractEnumerationTypeDescriptor
 	 * @param object An instance type.
 	 * @return The instance represented by the given instance type.
 	 */
-	private static AvailObject getInstance (final AvailObject object)
+	private static AvailObject getInstance (final A_Type object)
 	{
 		return object.slot(INSTANCE);
 	}
@@ -110,7 +110,7 @@ extends AbstractEnumerationTypeDescriptor
 	 *        {@linkplain AbstractEnumerationTypeDescriptor enumeration}) that
 	 *        is nearest the specified instance type.
 	 */
-	private static AvailObject getSuperkind (final AvailObject object)
+	private static A_Type getSuperkind (final A_Type object)
 	{
 		return getInstance(object).kind();
 	}
@@ -144,9 +144,9 @@ extends AbstractEnumerationTypeDescriptor
 	 *        another.
 	 */
 	@Override final
-	AvailObject computeIntersectionWith (
-		final AvailObject object,
-		final AvailObject another)
+	A_Type computeIntersectionWith (
+		final A_Type object,
+		final A_Type another)
 	{
 		if (another.isEnumeration())
 		{
@@ -188,9 +188,9 @@ extends AbstractEnumerationTypeDescriptor
 	 *        and {@code another}.
 	 */
 	@Override final
-	AvailObject computeUnionWith (
-		final AvailObject object,
-		final AvailObject another)
+	A_Type computeUnionWith (
+		final A_Type object,
+		final A_Type another)
 	{
 		if (another.isEnumeration())
 		{
@@ -221,7 +221,7 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_ComputeSuperkind (final AvailObject object)
+	A_Type o_ComputeSuperkind (final AvailObject object)
 	{
 		return getSuperkind(object);
 	}
@@ -235,7 +235,7 @@ extends AbstractEnumerationTypeDescriptor
 	 * </p>
 	 */
 	@Override @AvailMethod
-	boolean o_Equals (final AvailObject object, final AvailObject another)
+	boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		final boolean equal = another.equalsInstanceTypeFor(
 			getInstance(object));
@@ -246,7 +246,7 @@ extends AbstractEnumerationTypeDescriptor
 				another.makeImmutable();
 				object.becomeIndirectionTo(another);
 			}
-			else if (!another.descriptor.isShared())
+			else if (!another.descriptor().isShared())
 			{
 				object.makeImmutable();
 				another.becomeIndirectionTo(object);
@@ -290,7 +290,7 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_IsInstanceOf (final AvailObject object, final AvailObject aType)
+	boolean o_IsInstanceOf (final AvailObject object, final A_Type aType)
 	{
 		if (aType.isInstanceMeta())
 		{
@@ -306,13 +306,13 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_FieldTypeMap (final AvailObject object)
+	A_Map o_FieldTypeMap (final AvailObject object)
 	{
 		return getSuperkind(object).fieldTypeMap();
 	}
 
 	@Override @AvailMethod
-	AvailObject o_LowerBound (final AvailObject object)
+	A_Number o_LowerBound (final AvailObject object)
 	{
 		final AvailObject instance = getInstance(object);
 		assert instance.isExtendedInteger();
@@ -327,7 +327,7 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_UpperBound (final AvailObject object)
+	A_Number o_UpperBound (final AvailObject object)
 	{
 		final AvailObject instance = getInstance(object);
 		assert instance.isExtendedInteger();
@@ -342,12 +342,12 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_TypeAtIndex (final AvailObject object, final int index)
+	A_Type o_TypeAtIndex (final AvailObject object, final int index)
 	{
 		// This is only intended for a TupleType stand-in. Answer what type the
 		// given index would have in an object instance of me. Answer ⊥ if the
 		// index is out of bounds.
-		final AvailObject tuple = getInstance(object);
+		final A_Tuple tuple = getInstance(object);
 		assert tuple.isTuple();
 		if (1 <= index && index <= tuple.tupleSize())
 		{
@@ -358,7 +358,7 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_UnionOfTypesAtThrough (
+	A_Type o_UnionOfTypesAtThrough (
 		final AvailObject object,
 		final int startIndex,
 		final int endIndex)
@@ -366,7 +366,7 @@ extends AbstractEnumerationTypeDescriptor
 		// Answer the union of the types that object's instances could have in
 		// the given range of indices. Out-of-range indices are treated as ⊥,
 		// which don't affect the union (unless all indices are out of range).
-		final AvailObject tuple = getInstance(object);
+		final A_Tuple tuple = getInstance(object);
 		assert tuple.isTuple();
 		if (startIndex > endIndex)
 		{
@@ -382,7 +382,7 @@ extends AbstractEnumerationTypeDescriptor
 			return AbstractEnumerationTypeDescriptor.withInstance(
 				tuple.tupleAt(startIndex));
 		}
-		AvailObject set = SetDescriptor.empty();
+		A_Set set = SetDescriptor.empty();
 		for (
 			int i = max(startIndex, 1), end = min(endIndex, upperIndex);
 			i <= end;
@@ -396,9 +396,9 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_DefaultType (final AvailObject object)
+	A_Type o_DefaultType (final AvailObject object)
 	{
-		final AvailObject tuple = getInstance(object);
+		final A_Tuple tuple = getInstance(object);
 		assert tuple.isTuple();
 		final int tupleSize = tuple.tupleSize();
 		if (tupleSize == 0)
@@ -410,9 +410,9 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_SizeRange (final AvailObject object)
+	A_Type o_SizeRange (final AvailObject object)
 	{
-		final AvailObject instance = getInstance(object);
+		final A_BasicObject instance = getInstance(object);
 		if (instance.isTuple())
 		{
 			return IntegerRangeTypeDescriptor.singleInt(
@@ -433,14 +433,14 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_TypeTuple (final AvailObject object)
+	A_Tuple o_TypeTuple (final AvailObject object)
 	{
 		assert getInstance(object).isTuple();
 		return getSuperkind(object).typeTuple();
 	}
 
 	@Override @AvailMethod
-	boolean o_IsSubtypeOf (final AvailObject object, final AvailObject aType)
+	boolean o_IsSubtypeOf (final AvailObject object, final A_Type aType)
 	{
 		return getInstance(object).isInstanceOf(aType);
 	}
@@ -476,13 +476,13 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_InstanceCount (final AvailObject object)
+	A_Number o_InstanceCount (final AvailObject object)
 	{
 		return IntegerDescriptor.one();
 	}
 
 	@Override @AvailMethod
-	AvailObject o_Instances (final AvailObject object)
+	A_Set o_Instances (final AvailObject object)
 	{
 		return SetDescriptor.empty().setWithElementCanDestroy(
 			getInstance(object),
@@ -500,7 +500,7 @@ extends AbstractEnumerationTypeDescriptor
 	@Override @AvailMethod
 	boolean o_AcceptsArgTypesFromFunctionType (
 		final AvailObject object,
-		final AvailObject functionType)
+		final A_Type functionType)
 	{
 		return getSuperkind(object).acceptsArgTypesFromFunctionType(functionType);
 	}
@@ -508,7 +508,7 @@ extends AbstractEnumerationTypeDescriptor
 	@Override @AvailMethod
 	boolean o_AcceptsListOfArgTypes (
 		final AvailObject object,
-		final List<AvailObject> argTypes)
+		final List<A_Type> argTypes)
 	{
 		return getSuperkind(object).acceptsListOfArgTypes(argTypes);
 	}
@@ -516,7 +516,7 @@ extends AbstractEnumerationTypeDescriptor
 	@Override @AvailMethod
 	boolean o_AcceptsListOfArgValues (
 		final AvailObject object,
-		final List<AvailObject> argValues)
+		final List<? extends A_BasicObject> argValues)
 	{
 		return getSuperkind(object).acceptsListOfArgValues(argValues);
 	}
@@ -524,7 +524,7 @@ extends AbstractEnumerationTypeDescriptor
 	@Override @AvailMethod
 	boolean o_AcceptsTupleOfArgTypes (
 		final AvailObject object,
-		final AvailObject argTypes)
+		final A_Tuple argTypes)
 	{
 		return getSuperkind(object).acceptsTupleOfArgTypes(argTypes);
 	}
@@ -532,31 +532,31 @@ extends AbstractEnumerationTypeDescriptor
 	@Override @AvailMethod
 	boolean o_AcceptsTupleOfArguments (
 		final AvailObject object,
-		final AvailObject arguments)
+		final A_BasicObject arguments)
 	{
 		return getSuperkind(object).acceptsTupleOfArguments(arguments);
 	}
 
 	@Override @AvailMethod
-	AvailObject o_ArgsTupleType (final AvailObject object)
+	A_Type o_ArgsTupleType (final AvailObject object)
 	{
 		return getSuperkind(object).argsTupleType();
 	}
 
 	@Override @AvailMethod
-	AvailObject o_DeclaredExceptions (final AvailObject object)
+	A_Set o_DeclaredExceptions (final AvailObject object)
 	{
 		return getSuperkind(object).declaredExceptions();
 	}
 
 	@Override @AvailMethod
-	AvailObject o_FunctionType (final AvailObject object)
+	A_Type o_FunctionType (final AvailObject object)
 	{
 		return getSuperkind(object).functionType();
 	}
 
 	@Override @AvailMethod
-	AvailObject o_ContentType (final AvailObject object)
+	A_Type o_ContentType (final AvailObject object)
 	{
 		/*
 		 * Wow, this is weird. Ask a set for its type and you get an instance
@@ -572,13 +572,13 @@ extends AbstractEnumerationTypeDescriptor
 	@Override @AvailMethod
 	boolean o_CouldEverBeInvokedWith (
 		final AvailObject object,
-		final List<AvailObject> argTypes)
+		final List<? extends A_Type> argTypes)
 	{
 		return getSuperkind(object).couldEverBeInvokedWith(argTypes);
 	}
 
 	@Override @AvailMethod
-	AvailObject o_KeyType (final AvailObject object)
+	A_Type o_KeyType (final AvailObject object)
 	{
 		return getSuperkind(object).keyType();
 	}
@@ -590,37 +590,37 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_Parent (final AvailObject object)
+	A_BasicObject o_Parent (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}
 
 	@Override @AvailMethod
-	AvailObject o_ReturnType (final AvailObject object)
+	A_Type o_ReturnType (final AvailObject object)
 	{
 		return getSuperkind(object).returnType();
 	}
 
 	@Override @AvailMethod
-	AvailObject o_ValueType (final AvailObject object)
+	A_Type o_ValueType (final AvailObject object)
 	{
 		return getSuperkind(object).valueType();
 	}
 
 	@Override @AvailMethod
-	AvailObject o_ReadType (final AvailObject object)
+	A_Type o_ReadType (final AvailObject object)
 	{
 		return getSuperkind(object).readType();
 	}
 
 	@Override @AvailMethod
-	AvailObject o_WriteType (final AvailObject object)
+	A_Type o_WriteType (final AvailObject object)
 	{
 		return getSuperkind(object).writeType();
 	}
 
 	@Override @AvailMethod
-	AvailObject o_ExpressionType (final AvailObject object)
+	A_Type o_ExpressionType (final AvailObject object)
 	{
 		return getInstance(object).expressionType();
 	}
@@ -686,7 +686,7 @@ extends AbstractEnumerationTypeDescriptor
 	 * @param instance The object whose type to represent.
 	 * @return An {@link AvailObject} representing the type of the argument.
 	 */
-	public static AvailObject on (final AvailObject instance)
+	public static AvailObject on (final A_BasicObject instance)
 	{
 		assert !instance.isType();
 		final AvailObject result = mutable.create();

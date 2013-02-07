@@ -114,7 +114,7 @@ extends ParseNodeDescriptor
 		{
 			@Override
 			public void emitVariableValueForOn (
-				final AvailObject declarationNode,
+				final A_BasicObject declarationNode,
 				final AvailCodeGenerator codeGenerator)
 			{
 				codeGenerator.emitPushLocalOrOuter(declarationNode);
@@ -122,7 +122,7 @@ extends ParseNodeDescriptor
 
 			@Override
 			public void print (
-				final AvailObject object,
+				final A_BasicObject object,
 				final StringBuilder builder,
 				final List<AvailObject> recursionList,
 				final int indent)
@@ -147,7 +147,7 @@ extends ParseNodeDescriptor
 			 */
 			@Override
 			public void emitEffectForOn (
-				final AvailObject object,
+				final A_BasicObject object,
 				final AvailCodeGenerator codeGenerator)
 			{
 				codeGenerator.emitLabelDeclaration(object);
@@ -155,7 +155,7 @@ extends ParseNodeDescriptor
 
 			@Override
 			public void emitVariableValueForOn (
-				final AvailObject declarationNode,
+				final A_BasicObject declarationNode,
 				final AvailCodeGenerator codeGenerator)
 			{
 				codeGenerator.emitPushLocalOrOuter(declarationNode);
@@ -163,7 +163,7 @@ extends ParseNodeDescriptor
 
 			@Override
 			public void print (
-				final AvailObject object,
+				final A_BasicObject object,
 				final StringBuilder builder,
 				final List<AvailObject> recursionList,
 				final int indent)
@@ -171,7 +171,7 @@ extends ParseNodeDescriptor
 				builder.append('$');
 				builder.append(object.token().string().asNativeString());
 				builder.append(':');
-				final AvailObject functionType =
+				final A_BasicObject functionType =
 					object.declaredType().functionType();
 				functionType.returnType().printOnAvoidingIndent(
 					builder,
@@ -188,10 +188,10 @@ extends ParseNodeDescriptor
 		{
 			@Override
 			public void emitEffectForOn (
-				final AvailObject declarationNode,
+				final A_BasicObject declarationNode,
 				final AvailCodeGenerator codeGenerator)
 			{
-				final AvailObject expr = declarationNode.initializationExpression();
+				final A_BasicObject expr = declarationNode.initializationExpression();
 				if (!expr.equalsNil())
 				{
 					expr.emitValueOn(codeGenerator);
@@ -201,7 +201,7 @@ extends ParseNodeDescriptor
 
 			@Override
 			public void emitVariableAssignmentForOn (
-				final AvailObject declarationNode,
+				final A_BasicObject declarationNode,
 				final AvailCodeGenerator codeGenerator)
 			{
 				codeGenerator.emitSetLocalOrOuter(declarationNode);
@@ -209,7 +209,7 @@ extends ParseNodeDescriptor
 
 			@Override
 			public void emitVariableReferenceForOn (
-				final AvailObject declarationNode,
+				final A_BasicObject declarationNode,
 				final AvailCodeGenerator codeGenerator)
 			{
 				codeGenerator.emitPushLocalOrOuter(declarationNode);
@@ -217,7 +217,7 @@ extends ParseNodeDescriptor
 
 			@Override
 			public void emitVariableValueForOn (
-				final AvailObject declarationNode,
+				final A_BasicObject declarationNode,
 				final AvailCodeGenerator codeGenerator)
 			{
 				codeGenerator.emitGetLocalOrOuter(declarationNode);
@@ -225,7 +225,7 @@ extends ParseNodeDescriptor
 
 			@Override
 			public void print (
-				final AvailObject object,
+				final A_BasicObject object,
 				final StringBuilder builder,
 				final List<AvailObject> recursionList,
 				final int indent)
@@ -255,7 +255,7 @@ extends ParseNodeDescriptor
 		{
 			@Override
 			public void emitEffectForOn (
-				final AvailObject declarationNode,
+				final A_BasicObject declarationNode,
 				final AvailCodeGenerator codeGenerator)
 			{
 				declarationNode.initializationExpression()
@@ -265,7 +265,7 @@ extends ParseNodeDescriptor
 
 			@Override
 			public void emitVariableValueForOn (
-				final AvailObject declarationNode,
+				final A_BasicObject declarationNode,
 				final AvailCodeGenerator codeGenerator)
 			{
 				codeGenerator.emitGetLocalOrOuter(declarationNode);
@@ -273,7 +273,7 @@ extends ParseNodeDescriptor
 
 			@Override
 			public void print (
-				final AvailObject object,
+				final A_BasicObject object,
 				final StringBuilder builder,
 				final List<AvailObject> recursionList,
 				final int indent)
@@ -295,7 +295,7 @@ extends ParseNodeDescriptor
 		{
 			@Override
 			public void emitVariableAssignmentForOn (
-				final AvailObject declarationNode,
+				final A_BasicObject declarationNode,
 				final AvailCodeGenerator codeGenerator)
 			{
 				codeGenerator.emitSetLiteral(declarationNode.literalObject());
@@ -303,7 +303,7 @@ extends ParseNodeDescriptor
 
 			@Override
 			public void emitVariableReferenceForOn (
-				final AvailObject declarationNode,
+				final A_BasicObject declarationNode,
 				final AvailCodeGenerator codeGenerator)
 			{
 				codeGenerator.emitPushLiteral(declarationNode.literalObject());
@@ -311,7 +311,7 @@ extends ParseNodeDescriptor
 
 			@Override
 			public void emitVariableValueForOn (
-				final AvailObject declarationNode,
+				final A_BasicObject declarationNode,
 				final AvailCodeGenerator codeGenerator)
 			{
 				codeGenerator.emitGetLiteral(declarationNode.literalObject());
@@ -319,7 +319,7 @@ extends ParseNodeDescriptor
 
 			@Override
 			public void print (
-				final AvailObject object,
+				final A_BasicObject object,
 				final StringBuilder builder,
 				final List<AvailObject> recursionList,
 				final int indent)
@@ -349,7 +349,7 @@ extends ParseNodeDescriptor
 		{
 			@Override
 			public void emitVariableValueForOn (
-				final AvailObject declarationNode,
+				final A_BasicObject declarationNode,
 				final AvailCodeGenerator codeGenerator)
 			{
 				codeGenerator.emitGetLiteral(declarationNode.literalObject());
@@ -357,7 +357,7 @@ extends ParseNodeDescriptor
 
 			@Override
 			public void print (
-				final AvailObject object,
+				final A_BasicObject object,
 				final StringBuilder builder,
 				final List<AvailObject> recursionList,
 				final int indent)
@@ -382,7 +382,7 @@ extends ParseNodeDescriptor
 		{
 			@Override
 			public void emitEffectForOn (
-				final AvailObject declarationNode,
+				final A_BasicObject declarationNode,
 				final AvailCodeGenerator codeGenerator)
 			{
 				// Handled automatically by the primitive attempt.
@@ -390,7 +390,7 @@ extends ParseNodeDescriptor
 
 			@Override
 			public void emitVariableValueForOn (
-				final AvailObject declarationNode,
+				final A_BasicObject declarationNode,
 				final AvailCodeGenerator codeGenerator)
 			{
 				codeGenerator.emitGetLocalOrOuter(declarationNode);
@@ -398,7 +398,7 @@ extends ParseNodeDescriptor
 
 			@Override
 			public void print (
-				final AvailObject object,
+				final A_BasicObject object,
 				final StringBuilder builder,
 				final List<AvailObject> recursionList,
 				final int indent)
@@ -432,7 +432,7 @@ extends ParseNodeDescriptor
 		 * An Avail {@link StringDescriptor string} describing this kind of
 		 * declaration.
 		 */
-		private AvailObject kindName;
+		private A_BasicObject kindName;
 
 		/**
 		 * Construct a {@link DeclarationKind}.  Can only be invoked implicitly
@@ -507,7 +507,7 @@ extends ParseNodeDescriptor
 		 *
 		 * @return The associated {@code ParseNodeKind} enumeration value.
 		 */
-		public final AvailObject kindName ()
+		public final A_BasicObject kindName ()
 		{
 			assert kindName != null;
 			return kindName;
@@ -523,7 +523,7 @@ extends ParseNodeDescriptor
 		 * @return The Avail {@linkplain TypeDescriptor type} associated with
 		 *         this kind of entity.
 		 */
-		public AvailObject parseNodeTypeFor (
+		public A_BasicObject parseNodeTypeFor (
 			final AvailObject expressionType)
 		{
 			return kindEnumeration.create(expressionType);
@@ -537,7 +537,7 @@ extends ParseNodeDescriptor
 		 * @param codeGenerator Where to generate the assignment.
 		 */
 		public void emitVariableAssignmentForOn (
-			final AvailObject declarationNode,
+			final A_BasicObject declarationNode,
 			final AvailCodeGenerator codeGenerator)
 		{
 			error("Cannot assign to this " + name());
@@ -550,7 +550,7 @@ extends ParseNodeDescriptor
 		 * @param codeGenerator Where to emit the reference to this variable.
 		 */
 		public void emitVariableReferenceForOn (
-			final AvailObject declarationNode,
+			final A_BasicObject declarationNode,
 			final AvailCodeGenerator codeGenerator)
 		{
 			error("Cannot take a reference to this " + name());
@@ -563,7 +563,7 @@ extends ParseNodeDescriptor
 		 * @param codeGenerator Where to emit the use of this variable.
 		 */
 		public void emitVariableValueForOn (
-			final AvailObject declarationNode,
+			final A_BasicObject declarationNode,
 			final AvailCodeGenerator codeGenerator)
 		{
 			error("Cannot extract the value of this " + name());
@@ -577,7 +577,7 @@ extends ParseNodeDescriptor
 		 * @param codeGenerator Where to emit the declaration.
 		 */
 		public void emitEffectForOn (
-			final AvailObject object,
+			final A_BasicObject object,
 			final AvailCodeGenerator codeGenerator)
 		{
 			return;
@@ -592,7 +592,7 @@ extends ParseNodeDescriptor
 		 * @param indent The indentation depth.
 		 */
 		public abstract void print (
-			final AvailObject object,
+			final A_BasicObject object,
 			final StringBuilder builder,
 			final List<AvailObject> recursionList,
 			final int indent);
@@ -625,7 +625,7 @@ extends ParseNodeDescriptor
 	 * Getter for field name.
 	 */
 	@Override @AvailMethod
-	AvailObject o_Token (
+	A_Token o_Token (
 		final AvailObject object)
 	{
 		return object.slot(ObjectSlots.TOKEN);
@@ -687,7 +687,7 @@ extends ParseNodeDescriptor
 
 
 	@Override @AvailMethod
-	AvailObject o_ExpressionType (final AvailObject object)
+	A_Type o_ExpressionType (final AvailObject object)
 	{
 		return TOP.o();
 	}
@@ -734,7 +734,7 @@ extends ParseNodeDescriptor
 	@Override @AvailMethod
 	boolean o_EqualsParseNode (
 		final AvailObject object,
-		final AvailObject aParseNode)
+		final A_BasicObject aParseNode)
 	{
 		return object.sameAddressAs(aParseNode.traversed());
 	}
@@ -746,7 +746,7 @@ extends ParseNodeDescriptor
 	 * @param codeGenerator Where to emit the reference to this variable.
 	 */
 	public static void emitVariableReferenceOn (
-		final AvailObject declarationNode,
+		final A_BasicObject declarationNode,
 		final AvailCodeGenerator codeGenerator)
 	{
 		declarationNode.declarationKind().emitVariableReferenceForOn(
@@ -785,7 +785,7 @@ extends ParseNodeDescriptor
 	@Override @AvailMethod
 	void o_ValidateLocally (
 		final AvailObject object,
-		final @Nullable AvailObject parent)
+		final @Nullable A_BasicObject parent)
 	{
 		// Do nothing.
 	}
@@ -837,8 +837,8 @@ extends ParseNodeDescriptor
 	 */
 	private static AvailObject newDeclaration (
 		final DeclarationKind declarationKind,
-		final AvailObject token,
-		final AvailObject declaredType,
+		final A_Token token,
+		final A_Type declaredType,
 		final AvailObject initializationExpression,
 		final AvailObject literalObject)
 	{
@@ -874,8 +874,8 @@ extends ParseNodeDescriptor
 	 * @return The argument declaration.
 	 */
 	public static AvailObject newArgument (
-		final AvailObject token,
-		final AvailObject declaredType)
+		final A_Token token,
+		final A_Type declaredType)
 	{
 		return newDeclaration(
 			ARGUMENT,
@@ -902,8 +902,8 @@ extends ParseNodeDescriptor
 	 * @return The new local variable declaration.
 	 */
 	public static AvailObject newVariable (
-		final AvailObject token,
-		final AvailObject declaredType,
+		final A_Token token,
+		final A_Type declaredType,
 		final AvailObject initializationExpression)
 	{
 		return newDeclaration(
@@ -928,8 +928,8 @@ extends ParseNodeDescriptor
 	 * @return The new local variable declaration.
 	 */
 	public static AvailObject newVariable (
-		final AvailObject token,
-		final AvailObject declaredType)
+		final A_Token token,
+		final A_Type declaredType)
 	{
 		return newDeclaration(
 			LOCAL_VARIABLE,
@@ -952,7 +952,7 @@ extends ParseNodeDescriptor
 	 * @return The new local constant declaration.
 	 */
 	public static AvailObject newConstant (
-		final AvailObject token,
+		final A_Token token,
 		final AvailObject initializationExpression)
 	{
 		return newDeclaration(
@@ -979,7 +979,7 @@ extends ParseNodeDescriptor
 	 * @return The new local constant declaration.
 	 */
 	public static AvailObject newPrimitiveFailureVariable (
-		final AvailObject token,
+		final A_Token token,
 		final AvailObject type)
 	{
 		return newDeclaration(
@@ -1006,8 +1006,8 @@ extends ParseNodeDescriptor
 	 * @return The new label declaration.
 	 */
 	public static AvailObject newLabel (
-		final AvailObject token,
-		final AvailObject declaredType)
+		final A_Token token,
+		final A_Type declaredType)
 	{
 		return newDeclaration(
 			LABEL,
@@ -1033,7 +1033,7 @@ extends ParseNodeDescriptor
 	 * @return The new module variable declaration.
 	 */
 	public static AvailObject newModuleVariable(
-		final AvailObject token,
+		final A_Token token,
 		final AvailObject literalVariable,
 		final AvailObject initializationExpression)
 	{
@@ -1060,7 +1060,7 @@ extends ParseNodeDescriptor
 	 * @return The new module constant declaration.
 	 */
 	public static AvailObject newModuleConstant(
-		final AvailObject token,
+		final A_Token token,
 		final AvailObject literalVariable,
 		final AvailObject initializationExpression)
 	{

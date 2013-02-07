@@ -94,7 +94,7 @@ public class AvailObjectFieldHelper
 	/**
 	 * The object containing this field.
 	 */
-	public final @Nullable AvailObject parentObject;
+	public final @Nullable A_BasicObject parentObject;
 
 	/**
 	 * The actual value being presented with the given label.
@@ -130,7 +130,7 @@ public class AvailObjectFieldHelper
 	 *            The value found in that slot of the object.
 	 */
 	public AvailObjectFieldHelper (
-		final @Nullable AvailObject parentObject,
+		final @Nullable A_BasicObject parentObject,
 		final AbstractSlotsEnum slot,
 		final int subscript,
 		final Object value)
@@ -165,12 +165,12 @@ public class AvailObjectFieldHelper
 			else if (value instanceof AvailObject)
 			{
 				builder.append(' ');
-				builder.append(((AvailObject)value).nameForDebugger());
+				builder.append(((A_BasicObject)value).nameForDebugger());
 			}
 			else if (value instanceof AvailIntegerValueHelper)
 			{
 				AbstractDescriptor.describeIntegerSlot(
-					parentObject,
+					(AvailObject)parentObject,
 					((AvailIntegerValueHelper)value).intValue,
 					(IntegerSlotsEnum)slot,
 					builder);

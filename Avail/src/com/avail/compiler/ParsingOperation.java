@@ -47,11 +47,12 @@ import com.avail.descriptor.*;
 public enum ParsingOperation
 {
 	/*
-	 * Arity zero (0).
+	 * Arity zero entries:
 	 */
 
 	/**
-	 * {@code 0} - Parse an argument of a message send.
+	 * {@code 0} - Parse an argument of a message send, pushing the expression
+	 * onto the parse stack.
 	 */
 	PARSE_ARGUMENT(0),
 
@@ -72,43 +73,46 @@ public enum ParsingOperation
 
 	/**
 	 * {@code 3} - Push a {@linkplain MarkerNodeDescriptor marker} representing
-	 * the current parse position onto the parse stack.
+	 * the current parse position onto the mark stack.
 	 */
 	SAVE_PARSE_POSITION(3),
 
 	/**
-	 * {@code 4} - Underpop(1) a {@linkplain MarkerNodeDescriptor marker}
-	 * representing a saved parse position from the parse stack.
+	 * {@code 4} - Pop the top marker off the mark stack.
 	 */
 	DISCARD_SAVED_PARSE_POSITION(4),
 
 	/**
-	 * {@code 5} - Underpop(1) the parse stack for a {@linkplain
-	 * MarkerNodeDescriptor marker} representing a saved parse position. Compare
-	 * the saved parse position against the current parse position. Abort the
-	 * parse if no progress has been made. Otherwise underpush(1) a marker that
-	 * represents the current parse position.
+	 * {@code 5} - Pop the top marker off the mark stack and compare it to the
+	 * current parse position.  If they're the same, abort the current parse,
+	 * otherwise push the current parse position onto the mark stack in place of
+	 * the old marker and continue parsing.
 	 */
 	ENSURE_PARSE_PROGRESS(5),
 
 	/**
-	 * {@code 6} - Parse a {@linkplain TokenDescriptor raw token}.
+	 * {@code 6} - Parse a {@linkplain TokenDescriptor raw token}, leaving it
+	 * on the parse stack.
 	 */
 	PARSE_RAW_TOKEN(6),
 
 	/**
-	 * {@code 7} - Pop the parse stack (and discard the result).
+	 * {@code 7} - Parse an argument of a message send, using the outermost
+	 * (module) scope</em>.  Leave it on the parse stack.
 	 */
-	POP(7),
+	PARSE_ARGUMENT_IN_MODULE_SCOPE(7),
 
 	/**
-	 * {@code 9} - Parse an argument of a message send, using the outermost
-	 * (module) scope</em>.
+	 * {@code 8} - Push a {@link LiteralNodeDescriptor literal node}
+	 * containing the {@linkplain AtomDescriptor Avail false boolean}.
 	 */
-	PARSE_ARGUMENT_IN_MODULE_SCOPE(8),
+	PUSH_FALSE(8),
 
-	/** Reserved for future parsing concepts. */
-	RESERVED_9(9),
+	/**
+	 * {@code 9} - Push a {@link LiteralNodeDescriptor literal node}
+	 * containing the {@linkplain AtomDescriptor Avail true boolean}.
+	 */
+	PUSH_TRUE(9),
 
 	/** Reserved for future parsing concepts. */
 	RESERVED_10(10),
@@ -129,7 +133,7 @@ public enum ParsingOperation
 	RESERVED_15(15),
 
 	/*
-	 * Arity one (1).
+	 * Arity one entries:
 	 */
 
 	/**
@@ -237,10 +241,11 @@ public enum ParsingOperation
 	 * {@code 16*N+7} - A macro has been parsed up to a {@link
 	 * SectionCheckpoint} (§).  Make a copy of the parse stack, stripping out
 	 * {@link MarkerNodeDescriptor marker nodes}, then perform the equivalent of
-	 * an {@link #APPEND_ARGUMENT} on the copy, the specified number of times.
-	 * Make it into a single {@linkplain ListNodeDescriptor list node} and push
-	 * it onto the original parse stack.  It will be consumed by a subsequent
-	 * {@link #RUN_PREFIX_FUNCTION}.
+	 * an {@link #APPEND_ARGUMENT} on the copy, the specified number of times
+	 * minus one (because zero is not a legal operand).  Make it into a single
+	 * {@linkplain ListNodeDescriptor list node} and push it onto the original
+	 * parse stack.  It will be consumed by a subsequent {@link
+	 * #RUN_PREFIX_FUNCTION}.
 	 */
 	PREPARE_TO_RUN_PREFIX_FUNCTION(7)
 	{
@@ -329,7 +334,9 @@ public enum ParsingOperation
 		{
 			throw new UnsupportedOperationException();
 		}
-		return (operand << distinctInstructionsShift) + modulus;
+		final int result = (operand << distinctInstructionsShift) + modulus;
+		assert operand(result) == operand : "Overflow detected";
+		return result;
 	}
 
 	/**
@@ -363,11 +370,24 @@ public enum ParsingOperation
 	 * the operand.
 	 *
 	 * @param instruction
-	 * @return
+	 * @return The {@code int} value to push.
 	 */
 	public int integerToPush (final int instruction)
 	{
-		return 0;
+		 throw new RuntimeException("Parsing instruction is inappropriate");
+	}
+
+	/**
+	 * Assume that the instruction encodes an operand which is to be treated as
+	 * a boolean to be passed as an argument at an Avail call site.  Answer the
+	 * operand as a Java boolean.
+	 *
+	 * @param instruction
+	 * @return The {@code boolean} value to push.
+	 */
+	public boolean booleanToPush (final int instruction)
+	{
+		 throw new RuntimeException("Parsing instruction is inappropriate");
 	}
 
 	/**
@@ -376,17 +396,18 @@ public enum ParsingOperation
 	 */
 	public int fixupDepth (final int instruction)
 	{
-		return 0;
+		throw new RuntimeException("Parsing instruction is inappropriate");
 	}
 
 	/**
-	 * Answer which prefix function should be invoked by this
+	 * Answer the subscript of the prefix function that should be invoked.
+	 *
 	 * @param instruction
 	 * @return
 	 */
 	public int prefixFunctionSubscript (final int instruction)
 	{
-		return 0;
+		throw new RuntimeException("Parsing instruction is inappropriate");
 	}
 
 	/**
@@ -430,7 +451,7 @@ public enum ParsingOperation
 	 */
 	public ParsingConversionRule conversionRule (final int instruction)
 	{
-		return noConversion;
+		throw new RuntimeException("Parsing instruction is inappropriate");
 	}
 
 	/**

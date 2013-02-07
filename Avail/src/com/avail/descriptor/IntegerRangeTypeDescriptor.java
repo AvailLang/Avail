@@ -92,19 +92,19 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_LowerBound (final AvailObject object)
+	A_Number o_LowerBound (final AvailObject object)
 	{
 		return object.slot(LOWER_BOUND);
 	}
 
 	@Override @AvailMethod
-	AvailObject o_UpperBound (final AvailObject object)
+	A_Number o_UpperBound (final AvailObject object)
 	{
 		return object.slot(UPPER_BOUND);
 	}
 
 	@Override @AvailMethod
-	boolean o_Equals (final AvailObject object, final AvailObject another)
+	boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		return another.equalsIntegerRangeType(object);
 	}
@@ -112,7 +112,7 @@ extends TypeDescriptor
 	@Override @AvailMethod
 	boolean o_EqualsIntegerRangeType (
 		final AvailObject object,
-		final AvailObject another)
+		final A_Type another)
 	{
 		if (!object.slot(LOWER_BOUND).equals(another.lowerBound()))
 		{
@@ -169,7 +169,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_IsSubtypeOf (final AvailObject object, final AvailObject aType)
+	boolean o_IsSubtypeOf (final AvailObject object, final A_Type aType)
 	{
 		return aType.isSupertypeOfIntegerRangeType(object);
 	}
@@ -188,9 +188,9 @@ extends TypeDescriptor
 	@Override @AvailMethod
 	boolean o_IsSupertypeOfIntegerRangeType (
 		final AvailObject object,
-		final AvailObject possibleSub)
+		final A_Type possibleSub)
 	{
-		final AvailObject subMinObject = possibleSub.lowerBound();
+		final A_Number subMinObject = possibleSub.lowerBound();
 		final AvailObject superMinObject = object.slot(LOWER_BOUND);
 		if (subMinObject.lessThan(superMinObject))
 		{
@@ -202,8 +202,8 @@ extends TypeDescriptor
 		{
 			return false;
 		}
-		final AvailObject subMaxObject = possibleSub.upperBound();
-		final AvailObject superMaxObject = object.slot(UPPER_BOUND);
+		final A_Number subMaxObject = possibleSub.upperBound();
+		final A_Number superMaxObject = object.slot(UPPER_BOUND);
 		if (superMaxObject.lessThan(subMaxObject))
 		{
 			return false;
@@ -218,9 +218,9 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_TypeIntersection (
+	A_Type o_TypeIntersection (
 		final AvailObject object,
-		final AvailObject another)
+		final A_Type another)
 	{
 		if (object.isSubtypeOf(another))
 		{
@@ -234,11 +234,11 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_TypeIntersectionOfIntegerRangeType (
+	A_Type o_TypeIntersectionOfIntegerRangeType (
 		final AvailObject object,
-		final AvailObject another)
+		final A_Type another)
 	{
-		AvailObject minObject = object.slot(LOWER_BOUND);
+		A_Number minObject = object.slot(LOWER_BOUND);
 		boolean isMinInc = object.lowerInclusive();
 		if (another.lowerBound().equals(minObject))
 		{
@@ -249,7 +249,7 @@ extends TypeDescriptor
 			minObject = another.lowerBound();
 			isMinInc = another.lowerInclusive();
 		}
-		AvailObject maxObject = object.slot(UPPER_BOUND);
+		A_Number maxObject = object.slot(UPPER_BOUND);
 		boolean isMaxInc = object.upperInclusive();
 		if (another.upperBound().equals(maxObject))
 		{
@@ -269,9 +269,9 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_TypeUnion (
+	A_Type o_TypeUnion (
 		final AvailObject object,
-		final AvailObject another)
+		final A_Type another)
 	{
 		if (object.isSubtypeOf(another))
 		{
@@ -285,11 +285,11 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_TypeUnionOfIntegerRangeType (
+	A_Type o_TypeUnionOfIntegerRangeType (
 		final AvailObject object,
-		final AvailObject another)
+		final A_Type another)
 	{
-		AvailObject minObject = object.slot(LOWER_BOUND);
+		A_Number minObject = object.slot(LOWER_BOUND);
 		boolean isMinInc = object.lowerInclusive();
 		if (another.lowerBound().equals(minObject))
 		{
@@ -300,7 +300,7 @@ extends TypeDescriptor
 			minObject = another.lowerBound();
 			isMinInc = another.lowerInclusive();
 		}
-		AvailObject maxObject = object.slot(UPPER_BOUND);
+		A_Number maxObject = object.slot(UPPER_BOUND);
 		boolean isMaxInc = object.upperInclusive();
 		if (another.upperBound().equals(maxObject))
 		{
@@ -365,8 +365,8 @@ extends TypeDescriptor
 		final AvailObject object,
 		final int anInt)
 	{
-		final AvailObject lower = object.slot(LOWER_BOUND);
-		AvailObject asInteger = null;
+		final A_Number lower = object.slot(LOWER_BOUND);
+		A_Number asInteger = null;
 		if (lower.isInt())
 		{
 			if (anInt < lower.extractInt())
@@ -390,7 +390,7 @@ extends TypeDescriptor
 			}
 		}
 
-		final AvailObject upper = object.slot(UPPER_BOUND);
+		final A_Number upper = object.slot(UPPER_BOUND);
 		if (upper.isInt())
 		{
 			if (anInt > upper.extractInt())
@@ -670,7 +670,7 @@ extends TypeDescriptor
 	 *            A {@linkplain IntegerRangeTypeDescriptor range} containing a
 	 *            single value.
 	 */
-	public static AvailObject singleInteger (final AvailObject integerObject)
+	public static A_Type singleInteger (final A_Number integerObject)
 	{
 		integerObject.makeImmutable();
 		return IntegerRangeTypeDescriptor.create(
@@ -683,9 +683,9 @@ extends TypeDescriptor
 	 * @param anInt A Java <code>int</code>.
 	 * @return A range containing a single value.
 	 */
-	public static AvailObject singleInt (final int anInt)
+	public static A_Type singleInt (final int anInt)
 	{
-		final AvailObject integerObject = IntegerDescriptor.fromInt(anInt);
+		final A_Number integerObject = IntegerDescriptor.fromInt(anInt);
 		integerObject.makeImmutable();
 		return IntegerRangeTypeDescriptor.create(
 			integerObject, true, integerObject, true);
@@ -707,10 +707,10 @@ extends TypeDescriptor
 	 * @return
 	 *            The new normalized integer range type.
 	 */
-	public static AvailObject create (
-		final AvailObject lowerBound,
+	public static A_Type create (
+		final A_Number lowerBound,
 		final boolean lowerInclusive,
-		final AvailObject upperBound,
+		final A_Number upperBound,
 		final boolean upperInclusive)
 	{
 		if (lowerBound.sameAddressAs(upperBound))
@@ -722,7 +722,7 @@ extends TypeDescriptor
 					+ " construction parameters");
 			}
 		}
-		AvailObject low = lowerBound;
+		A_Number low = lowerBound;
 		boolean lowInc = lowerInclusive;
 		if (!lowInc)
 		{
@@ -733,7 +733,7 @@ extends TypeDescriptor
 				lowInc = true;
 			}
 		}
-		AvailObject high = upperBound;
+		A_Number high = upperBound;
 		boolean highInc = upperInclusive;
 		if (!highInc)
 		{

@@ -57,8 +57,8 @@ public class P_132_TupleReplaceAt extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 3;
-		final AvailObject tuple = args.get(0);
-		final AvailObject indexObject = args.get(1);
+		final A_Tuple tuple = args.get(0);
+		final A_Number indexObject = args.get(1);
 		final AvailObject value = args.get(2);
 		if (!indexObject.isInt())
 		{
@@ -76,7 +76,7 @@ public class P_132_TupleReplaceAt extends Primitive
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
@@ -87,14 +87,14 @@ public class P_132_TupleReplaceAt extends Primitive
 	}
 
 	@Override
-	public AvailObject returnTypeGuaranteedByVM (
-		final List<AvailObject> argumentTypes)
+	public A_Type returnTypeGuaranteedByVM (
+		final List<A_Type> argumentTypes)
 	{
-		final AvailObject originalTupleType = argumentTypes.get(0);
-		final AvailObject subscripts = argumentTypes.get(1);
-		final AvailObject newElementType = argumentTypes.get(2);
-		final AvailObject lowerBound = subscripts.lowerBound();
-		final AvailObject upperBound = subscripts.upperBound();
+		final A_Type originalTupleType = argumentTypes.get(0);
+		final A_Type subscripts = argumentTypes.get(1);
+		final A_Type newElementType = argumentTypes.get(2);
+		final A_Number lowerBound = subscripts.lowerBound();
+		final A_Number upperBound = subscripts.upperBound();
 		final boolean singleSubscript = lowerBound.equals(upperBound);
 		if (lowerBound.greaterThan(
 				IntegerDescriptor.fromUnsignedByte((short)100))
@@ -106,7 +106,7 @@ public class P_132_TupleReplaceAt extends Primitive
 			return super.returnTypeGuaranteedByVM(
 				argumentTypes);
 		}
-		final AvailObject originalTypeTuple = originalTupleType.typeTuple();
+		final A_Tuple originalTypeTuple = originalTupleType.typeTuple();
 		final int originalTypeTupleSize = originalTypeTuple.tupleSize();
 		final int minSubscript = lowerBound.isInt()
 			? max(lowerBound.extractInt(), 1)
@@ -114,8 +114,12 @@ public class P_132_TupleReplaceAt extends Primitive
 		final int maxSubscript = upperBound.isFinite()
 			? min(upperBound.extractInt(), originalTypeTupleSize)
 			: Integer.MAX_VALUE;
-		final List<AvailObject> typeList =
-			TupleDescriptor.toList(originalTypeTuple);
+		final List<A_Type> typeList =
+			new ArrayList<A_Type>(originalTypeTuple.tupleSize());
+		for (final A_Type element : originalTypeTuple)
+		{
+			typeList.add(element);
+		}
 		for (int i = 1; i < minSubscript; i++)
 		{
 			typeList.add(originalTupleType.typeAtIndex(i));
@@ -143,7 +147,7 @@ public class P_132_TupleReplaceAt extends Primitive
 		{
 			typeList.add(originalTupleType.typeAtIndex(i));
 		}
-		final AvailObject newDefaultType = upperBound.isFinite()
+		final A_Type newDefaultType = upperBound.isFinite()
 			? originalTupleType.defaultType()
 			: originalTupleType.defaultType().typeUnion(newElementType);
 		return TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(

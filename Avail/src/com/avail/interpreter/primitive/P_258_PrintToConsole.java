@@ -58,14 +58,14 @@ extends Primitive
 	{
 		assert args.size() == 1;
 
-		final AvailObject string = args.get(0);
+		final A_String string = args.get(0);
 		final PrintStream out = interpreter.runtime().standardOutputStream();
 		out.print(string.asNativeString());
 		return interpreter.primitiveSuccess(NilDescriptor.nil());
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

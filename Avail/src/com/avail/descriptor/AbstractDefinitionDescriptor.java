@@ -72,7 +72,7 @@ extends DefinitionDescriptor
 
 
 	@Override @AvailMethod
-	AvailObject o_BodySignature (final AvailObject object)
+	A_Type o_BodySignature (final AvailObject object)
 	{
 		return object.slot(ObjectSlots.BODY_SIGNATURE);
 	}
@@ -85,7 +85,7 @@ extends DefinitionDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_Kind (final AvailObject object)
+	A_Type o_Kind (final AvailObject object)
 	{
 		return Types.ABSTRACT_DEFINITION.o();
 	}
@@ -115,8 +115,8 @@ extends DefinitionDescriptor
 	 *            An abstract method signature.
 	 */
 	public static AvailObject create (
-		final AvailObject definitionMethod,
-		final AvailObject bodySignature)
+		final A_BasicObject definitionMethod,
+		final A_Type bodySignature)
 	{
 		final AvailObject instance = mutable.create();
 		instance.setSlot(ObjectSlots.DEFINITION_METHOD, definitionMethod);

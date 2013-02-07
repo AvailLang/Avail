@@ -59,8 +59,8 @@ public class P_505_BindPojoStaticField extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 2;
-		final AvailObject pojoType = args.get(0);
-		final AvailObject fieldName = args.get(1);
+		final A_Type pojoType = args.get(0);
+		final A_String fieldName = args.get(1);
 		final Field field;
 		// If pojoType is not a fused type, then it has an immediate class
 		// that should be used to recursively look up the field.
@@ -83,8 +83,8 @@ public class P_505_BindPojoStaticField extends Primitive
 		else
 		{
 			final Set<Field> fields = new HashSet<Field>();
-			final AvailObject ancestors = pojoType.javaAncestors();
-			for (final AvailObject ancestor : ancestors.keysAsSet())
+			final A_Map ancestors = pojoType.javaAncestors();
+			for (final A_BasicObject ancestor : ancestors.keysAsSet())
 			{
 				final Class<?> javaClass = (Class<?>) ancestor.javaObject();
 				try
@@ -118,7 +118,7 @@ public class P_505_BindPojoStaticField extends Primitive
 		// A static field cannot have a type parametric on type variables
 		// of the declaring class, so pass an empty map where the type
 		// variables are expected.
-		final AvailObject fieldType = PojoTypeDescriptor.resolve(
+		final A_Type fieldType = PojoTypeDescriptor.resolve(
 			field.getGenericType(),
 			MapDescriptor.empty());
 		final AvailObject var = PojoFieldDescriptor.forInnerType(
@@ -129,7 +129,7 @@ public class P_505_BindPojoStaticField extends Primitive
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

@@ -57,12 +57,12 @@ public class P_064_ObjectTypeToMap extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
-		final AvailObject objectType = args.get(0);
+		final A_BasicObject objectType = args.get(0);
 		return interpreter.primitiveSuccess(objectType.fieldTypeMap());
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

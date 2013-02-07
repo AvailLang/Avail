@@ -54,12 +54,12 @@ public class P_086_MapKeysAsSet extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
-		final AvailObject map = args.get(0);
+		final A_Map map = args.get(0);
 		return interpreter.primitiveSuccess(map.keysAsSet());
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

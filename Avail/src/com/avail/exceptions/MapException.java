@@ -40,8 +40,6 @@ import com.avail.descriptor.*;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @see MapDescriptor
  * @see MapBinDescriptor
- * @see HashedMapBinDescriptor
- * @see LinearMapBinDescriptor
  */
 public final class MapException
 extends AvailRuntimeException

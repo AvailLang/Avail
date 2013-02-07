@@ -65,10 +65,10 @@ public class P_506_CreatePojoInstanceMethodFunction extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 4;
-		final AvailObject pojoType = args.get(0);
-		final AvailObject methodName = args.get(1);
-		final AvailObject paramTypes = args.get(2);
-		final AvailObject failFunction = args.get(3);
+		final A_Type pojoType = args.get(0);
+		final A_String methodName = args.get(1);
+		final A_Tuple paramTypes = args.get(2);
+		final A_Function failFunction = args.get(3);
 		// Marshal the argument types.
 		final Class<?>[] marshaledTypes =
 			new Class<?>[paramTypes.tupleSize()];
@@ -108,8 +108,8 @@ public class P_506_CreatePojoInstanceMethodFunction extends Primitive
 		else
 		{
 			final Set<Method> methods = new HashSet<Method>();
-			final AvailObject ancestors = pojoType.javaAncestors();
-			for (final AvailObject ancestor : ancestors.keysAsSet())
+			final A_Map ancestors = pojoType.javaAncestors();
+			for (final A_BasicObject ancestor : ancestors.keysAsSet())
 			{
 				final Class<?> javaClass = (Class<?>) ancestor.javaObject();
 				try
@@ -144,7 +144,7 @@ public class P_506_CreatePojoInstanceMethodFunction extends Primitive
 			marshaledTypePojos.add(
 				RawPojoDescriptor.equalityWrap(paramClass));
 		}
-		final AvailObject marshaledTypesTuple =
+		final A_Tuple marshaledTypesTuple =
 			TupleDescriptor.fromList(marshaledTypePojos);
 		// Create a function wrapper for the pojo method invocation
 		// primitive. This function will be embedded as a literal into
@@ -173,18 +173,16 @@ public class P_506_CreatePojoInstanceMethodFunction extends Primitive
 			L1Operation.L1_doCall,
 			writer.addLiteral(MethodDescriptor.vmFunctionApplyMethod()),
 			writer.addLiteral(BottomTypeDescriptor.bottom())));
-		final AvailObject innerFunction = FunctionDescriptor.create(
+		final A_Function innerFunction = FunctionDescriptor.create(
 			writer.compiledCode(),
 			TupleDescriptor.empty()).makeImmutable();
 		// Create the outer function that pushes the arguments expected by
 		// the method invocation primitive. Various objects that we do
 		// not want to expose to the Avail program are embedded in this
 		// function as literals.
-		writer = new L1InstructionWriter(
-			NilDescriptor.nil(),
-			0);
-		final List<AvailObject> allParamTypes =
-			new ArrayList<AvailObject>(paramTypes.tupleSize() + 1);
+		writer = new L1InstructionWriter(NilDescriptor.nil(), 0);
+		final List<A_Type> allParamTypes =
+			new ArrayList<A_Type>(paramTypes.tupleSize() + 1);
 		allParamTypes.add(pojoType);
 		for (final AvailObject paramType : paramTypes)
 		{
@@ -192,7 +190,7 @@ public class P_506_CreatePojoInstanceMethodFunction extends Primitive
 		}
 		writer.argumentTypesTuple(
 			TupleDescriptor.fromList(allParamTypes));
-		final AvailObject returnType = PojoTypeDescriptor.resolve(
+		final A_Type returnType = PojoTypeDescriptor.resolve(
 			method.getGenericReturnType(),
 			pojoType.typeVariables());
 		writer.returnType(returnType);
@@ -221,7 +219,7 @@ public class P_506_CreatePojoInstanceMethodFunction extends Primitive
 			L1Operation.L1_doCall,
 			writer.addLiteral(MethodDescriptor.vmFunctionApplyMethod()),
 			writer.addLiteral(returnType)));
-		final AvailObject outerFunction = FunctionDescriptor.create(
+		final A_Function outerFunction = FunctionDescriptor.create(
 			writer.compiledCode(),
 			TupleDescriptor.empty()).makeImmutable();
 		// TODO: [TLS] When functions can be made non-reflective, then make
@@ -230,7 +228,7 @@ public class P_506_CreatePojoInstanceMethodFunction extends Primitive
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

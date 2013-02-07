@@ -115,7 +115,7 @@ implements L1OperationDispatcher
 	 */
 	private void pointerAtPut (
 		final int index,
-		final AvailObject value)
+		final A_BasicObject value)
 	{
 		interpreter.pointerAtPut(index, value);
 	}
@@ -161,7 +161,7 @@ implements L1OperationDispatcher
 	 *
 	 * @param value The value to push on the virtualized stack.
 	 */
-	private final void push (final AvailObject value)
+	private final void push (final A_BasicObject value)
 	{
 		int stackp = integerAt(stackpRegister());
 		stackp--;
@@ -201,8 +201,8 @@ implements L1OperationDispatcher
 	 */
 	private final AvailObject literalAt (final int literalIndex)
 	{
-		final AvailObject function = pointerAt(FUNCTION);
-		final AvailObject code = function.code();
+		final A_Function function = pointerAt(FUNCTION);
+		final A_BasicObject code = function.code();
 		return code.literalAt(literalIndex);
 	}
 
@@ -222,7 +222,7 @@ implements L1OperationDispatcher
 	public void reifyContinuation ()
 	{
 		final AvailObject function = pointerAt(FUNCTION);
-		final AvailObject code = function.code();
+		final A_BasicObject code = function.code();
 		final AvailObject chunk = interpreter.chunk();
 		assert chunk == L2ChunkDescriptor.unoptimizedChunk();
 		final AvailObject continuation =
@@ -247,7 +247,7 @@ implements L1OperationDispatcher
 	@Override
 	public void L1_doCall()
 	{
-		final AvailObject definitions = literalAt(getInteger());
+		final A_BasicObject definitions = literalAt(getInteger());
 		final AvailObject expectedReturnType = literalAt(getInteger());
 		final int numArgs = definitions.numArgs();
 		if (debugL1)
@@ -259,7 +259,7 @@ implements L1OperationDispatcher
 		{
 			argsBuffer.add(0, pop());
 		}
-		final AvailObject matching =
+		final A_BasicObject matching =
 			definitions.lookupByValuesFromList(argsBuffer);
 		if (matching.equalsNil())
 		{
@@ -326,9 +326,9 @@ implements L1OperationDispatcher
 	@Override
 	public void L1_doPushLastOuter ()
 	{
-		final AvailObject function = pointerAt(FUNCTION);
+		final A_Function function = pointerAt(FUNCTION);
 		final int outerIndex = getInteger();
-		final AvailObject outer = function.outerVarAt(outerIndex);
+		final A_BasicObject outer = function.outerVarAt(outerIndex);
 		if (outer.equalsNil())
 		{
 			error("Someone prematurely erased this outer var");
@@ -347,7 +347,7 @@ implements L1OperationDispatcher
 		final int numCopiedVars = getInteger();
 		final int literalIndexOfCode = getInteger();
 		final AvailObject codeToClose = literalAt(literalIndexOfCode);
-		final AvailObject newFunction = FunctionDescriptor.createExceptOuters(
+		final A_Function newFunction = FunctionDescriptor.createExceptOuters(
 			codeToClose,
 			numCopiedVars);
 		for (int i = numCopiedVars; i >= 1; i--)
@@ -372,7 +372,7 @@ implements L1OperationDispatcher
 	public void L1_doSetLocal ()
 	{
 		final int localIndex = argumentOrLocalRegister(getInteger());
-		final AvailObject localVariable = pointerAt(localIndex);
+		final A_BasicObject localVariable = pointerAt(localIndex);
 		final AvailObject value = pop();
 		// The value's reference from the stack is now from the variable.
 		localVariable.setValue(value);
@@ -382,7 +382,7 @@ implements L1OperationDispatcher
 	public void L1_doGetLocalClearing ()
 	{
 		final int localIndex = argumentOrLocalRegister(getInteger());
-		final AvailObject localVariable = pointerAt(localIndex);
+		final A_BasicObject localVariable = pointerAt(localIndex);
 		final AvailObject value = localVariable.getValue();
 		if (localVariable.traversed().descriptor().isMutable())
 		{
@@ -398,9 +398,9 @@ implements L1OperationDispatcher
 	@Override
 	public void L1_doPushOuter ()
 	{
-		final AvailObject function = pointerAt(FUNCTION);
+		final A_Function function = pointerAt(FUNCTION);
 		final int outerIndex = getInteger();
-		final AvailObject outer = function.outerVarAt(outerIndex);
+		final A_BasicObject outer = function.outerVarAt(outerIndex);
 		if (outer.equalsNil())
 		{
 			error("Someone prematurely erased this outer var");
@@ -419,9 +419,9 @@ implements L1OperationDispatcher
 	@Override
 	public void L1_doGetOuterClearing ()
 	{
-		final AvailObject function = pointerAt(FUNCTION);
+		final A_Function function = pointerAt(FUNCTION);
 		final int outerIndex = getInteger();
-		final AvailObject outerVariable = function.outerVarAt(outerIndex);
+		final A_BasicObject outerVariable = function.outerVarAt(outerIndex);
 		final AvailObject value = outerVariable.getValue();
 		if (outerVariable.traversed().descriptor().isMutable())
 		{
@@ -437,9 +437,9 @@ implements L1OperationDispatcher
 	@Override
 	public void L1_doSetOuter ()
 	{
-		final AvailObject function = pointerAt(FUNCTION);
+		final A_Function function = pointerAt(FUNCTION);
 		final int outerIndex = getInteger();
-		final AvailObject outerVariable = function.outerVarAt(outerIndex);
+		final A_BasicObject outerVariable = function.outerVarAt(outerIndex);
 		if (outerVariable.equalsNil())
 		{
 			error("Someone prematurely erased this outer var");
@@ -454,7 +454,7 @@ implements L1OperationDispatcher
 	public void L1_doGetLocal ()
 	{
 		final int localIndex = argumentOrLocalRegister(getInteger());
-		final AvailObject localVariable = pointerAt(localIndex);
+		final A_BasicObject localVariable = pointerAt(localIndex);
 		final AvailObject value = localVariable.getValue();
 		value.makeImmutable();
 		push(value);
@@ -477,9 +477,9 @@ implements L1OperationDispatcher
 	@Override
 	public void L1_doGetOuter ()
 	{
-		final AvailObject function = pointerAt(FUNCTION);
+		final A_Function function = pointerAt(FUNCTION);
 		final int outerIndex = getInteger();
-		final AvailObject outerVariable = function.outerVarAt(outerIndex);
+		final A_BasicObject outerVariable = function.outerVarAt(outerIndex);
 		final AvailObject outer = outerVariable.getValue();
 		if (outer.equalsNil())
 		{
@@ -493,9 +493,9 @@ implements L1OperationDispatcher
 	@Override
 	public void L1_doExtension ()
 	{
-		final AvailObject function = pointerAt(FUNCTION);
-		final AvailObject code = function.code();
-		final AvailObject nybbles = code.nybbles();
+		final A_Function function = pointerAt(FUNCTION);
+		final A_BasicObject code = function.code();
+		final A_Tuple nybbles = code.nybbles();
 		int pc = integerAt(pcRegister());
 		final byte nybble = nybbles.extractNybbleFromTupleAt(pc);
 		pc++;
@@ -507,7 +507,7 @@ implements L1OperationDispatcher
 	public void L1Ext_doPushLabel ()
 	{
 		final AvailObject function = pointerAt(FUNCTION);
-		final AvailObject code = function.code();
+		final A_BasicObject code = function.code();
 		final int numArgs = code.numArgs();
 		assert code.primitiveNumber() == 0;
 		final List<AvailObject> args = new ArrayList<AvailObject>(numArgs);
@@ -543,7 +543,7 @@ implements L1OperationDispatcher
 	public void L1Ext_doGetLiteral ()
 	{
 		final int literalIndex = getInteger();
-		final AvailObject literalVariable = literalAt(literalIndex);
+		final A_BasicObject literalVariable = literalAt(literalIndex);
 		// We don't need to make constant beImmutable because *code objects*
 		// are always immutable.
 		final AvailObject value = literalVariable.getValue();
@@ -555,7 +555,7 @@ implements L1OperationDispatcher
 	public void L1Ext_doSetLiteral ()
 	{
 		final int literalIndex = getInteger();
-		final AvailObject literalVariable = literalAt(literalIndex);
+		final A_BasicObject literalVariable = literalAt(literalIndex);
 		final AvailObject value = pop();
 		// The value's reference from the stack is now from the variable.
 		literalVariable.setValue(value);
@@ -580,7 +580,7 @@ implements L1OperationDispatcher
 	@Override
 	public void L1Implied_doReturn ()
 	{
-		final AvailObject caller = pointerAt(CALLER);
+		final A_BasicObject caller = pointerAt(CALLER);
 		final AvailObject value = pop();
 		interpreter.returnToCaller(caller, value);
 	}

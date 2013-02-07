@@ -62,11 +62,11 @@ public class P_410_BootstrapVariableUseMacro extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
-		final AvailObject variableNameLiteral = args.get(0);
+		final A_BasicObject variableNameLiteral = args.get(0);
 		assert variableNameLiteral.isInstanceOf(LITERAL_NODE.mostGeneralType());
-		final AvailObject literalToken = variableNameLiteral.token();
+		final A_Token literalToken = variableNameLiteral.token();
 		assert literalToken.tokenType() == TokenType.SYNTHETIC_LITERAL;
-		final AvailObject actualToken = literalToken.literal();
+		final A_Token actualToken = literalToken.literal();
 		assert actualToken.isInstanceOf(TOKEN.o());
 
 		if (actualToken.tokenType() != TokenType.KEYWORD)
@@ -75,10 +75,9 @@ public class P_410_BootstrapVariableUseMacro extends Primitive
 				StringDescriptor.from(
 					"variable name to be a keyword token"));
 		}
-		final AvailObject variableNameString = actualToken.string();
-		final AvailObject clientData =
-			interpreter.currentParserState.clientDataMap;
-		final AvailObject scopeMap =
+		final A_String variableNameString = actualToken.string();
+		final A_Map clientData = interpreter.currentParserState.clientDataMap;
+		final A_Map scopeMap =
 			clientData.mapAt(AtomDescriptor.compilerScopeMapKey());
 		if (scopeMap.hasKey(variableNameString))
 		{
@@ -90,7 +89,7 @@ public class P_410_BootstrapVariableUseMacro extends Primitive
 		}
 		// Not in a block scope. See if it's a module variable or module
 		// constant...
-		final AvailObject module =
+		final A_BasicObject module =
 			interpreter.currentParserState.currentModule();
 		if (module.variableBindings().hasKey(variableNameString))
 		{
@@ -129,7 +128,7 @@ public class P_410_BootstrapVariableUseMacro extends Primitive
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

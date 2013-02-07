@@ -700,6 +700,7 @@ public class LRUCache<K, V>
 	 *         execution of the user-supplied {@linkplain Transformer1
 	 *         transformer}.
 	 */
+	@SuppressWarnings("null")   // compensate for null code analysis bug
 	public V get (final K key) throws RuntimeException
 	{
 		assert key != null;
@@ -730,7 +731,7 @@ public class LRUCache<K, V>
 					future = new ValueFuture();
 					futures.put(key, future);
 
-					RuntimeException exception = null;
+					@Nullable RuntimeException exception = null;
 
 					// We must not hold any locks while computing the future.
 					unlock();

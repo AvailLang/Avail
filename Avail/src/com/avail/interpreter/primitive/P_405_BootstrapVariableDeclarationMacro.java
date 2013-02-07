@@ -62,8 +62,8 @@ public class P_405_BootstrapVariableDeclarationMacro extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 2;
-		final AvailObject variableNameLiteral = args.get(0);
-		final AvailObject typeLiteral = args.get(1);
+		final A_BasicObject variableNameLiteral = args.get(0);
+		final A_BasicObject typeLiteral = args.get(1);
 
 		final AvailObject type = typeLiteral.token().literal();
 		if (type.equals(TOP.o()) || type.equals(BottomTypeDescriptor.bottom()))
@@ -82,7 +82,7 @@ public class P_405_BootstrapVariableDeclarationMacro extends Primitive
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

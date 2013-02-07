@@ -68,7 +68,7 @@ public class L2_LOOKUP_BY_VALUES extends L2Operation
 		final int selectorIndex = interpreter.nextWord();
 		final int argumentsIndex = interpreter.nextWord();
 		final int resultingFunctionIndex = interpreter.nextWord();
-		final AvailObject vect = interpreter.vectorAt(argumentsIndex);
+		final A_Tuple vect = interpreter.vectorAt(argumentsIndex);
 		interpreter.argsBuffer.clear();
 		final int numArgs = vect.tupleSize();
 		for (int i = 1; i <= numArgs; i++)
@@ -76,7 +76,7 @@ public class L2_LOOKUP_BY_VALUES extends L2Operation
 			interpreter.argsBuffer.add(
 				interpreter.pointerAt(vect.tupleIntAt(i)));
 		}
-		final AvailObject selector =
+		final A_BasicObject selector =
 			interpreter.chunk().literalAt(selectorIndex);
 		if (debugL1)
 		{
@@ -84,7 +84,7 @@ public class L2_LOOKUP_BY_VALUES extends L2Operation
 				"  --- looking up: %s%n",
 				selector.name().name());
 		}
-		final AvailObject signatureToCall =
+		final A_BasicObject signatureToCall =
 			selector.lookupByValuesFromList(interpreter.argsBuffer);
 		if (signatureToCall.equalsNil())
 		{
@@ -118,22 +118,22 @@ public class L2_LOOKUP_BY_VALUES extends L2Operation
 		final List<L2ObjectRegister> argRegisters =
 			argsOperand.vector.registers();
 		final int numArgs = argRegisters.size();
-		final List<AvailObject> argTypeBounds =
-			new ArrayList<AvailObject>(numArgs);
+		final List<A_Type> argTypeBounds =
+			new ArrayList<A_Type>(numArgs);
 		for (final L2ObjectRegister argRegister : argRegisters)
 		{
-			final AvailObject type = registers.hasTypeAt(argRegister)
+			final A_Type type = registers.hasTypeAt(argRegister)
 				? registers.typeAt(argRegister)
 				: TOP.o();
 			argTypeBounds.add(type);
 		}
 		// Figure out what could be invoked at runtime given these argument
 		// type constraints.
-		final List<AvailObject> possibleFunctions =
-			new ArrayList<AvailObject>();
+		final List<A_Function> possibleFunctions =
+			new ArrayList<A_Function>();
 		final List<AvailObject> possibleSignatures =
 			selectorOperand.method.definitionsAtOrBelow(argTypeBounds);
-		for (final AvailObject signature : possibleSignatures)
+		for (final A_BasicObject signature : possibleSignatures)
 		{
 			if (signature.isMethodDefinition())
 			{
@@ -151,7 +151,7 @@ public class L2_LOOKUP_BY_VALUES extends L2Operation
 		}
 		else
 		{
-			final AvailObject enumType =
+			final A_Type enumType =
 				AbstractEnumerationTypeDescriptor.withInstances(
 					SetDescriptor.fromCollection(possibleFunctions));
 			registers.typeAtPut(destinationOperand.register, enumType);

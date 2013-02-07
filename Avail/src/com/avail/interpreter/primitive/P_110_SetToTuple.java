@@ -55,12 +55,12 @@ public class P_110_SetToTuple extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
-		final AvailObject set = args.get(0);
+		final A_Set set = args.get(0);
 		return interpreter.primitiveSuccess(set.asTuple());
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

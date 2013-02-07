@@ -56,8 +56,8 @@ public class P_015_Swap extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 2;
-		final AvailObject var1 = args.get(0);
-		final AvailObject var2 = args.get(1);
+		final A_BasicObject var1 = args.get(0);
+		final A_BasicObject var2 = args.get(1);
 		if (!var1.kind().equals(var2.kind()))
 		{
 			return interpreter.primitiveFailure(
@@ -71,7 +71,7 @@ public class P_015_Swap extends Primitive
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

@@ -66,11 +66,11 @@ extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 2;
-		final AvailObject handle = args.get(0);
-		final AvailObject size = args.get(1);
-		final AvailObject pojo =
+		final A_Atom handle = args.get(0);
+		final A_Number size = args.get(1);
+		final A_BasicObject pojo =
 			handle.getAtomProperty(AtomDescriptor.fileKey());
-		final AvailObject mode =
+		final A_BasicObject mode =
 			handle.getAtomProperty(AtomDescriptor.fileModeReadKey());
 		if (pojo.equalsNil() || mode.equalsNil())
 		{
@@ -114,7 +114,7 @@ extends Primitive
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
@@ -129,7 +129,7 @@ extends Primitive
 	}
 
 	@Override
-	protected AvailObject privateFailureVariableType ()
+	protected A_Type privateFailureVariableType ()
 	{
 		return AbstractEnumerationTypeDescriptor.withInstances(
 			TupleDescriptor.from(

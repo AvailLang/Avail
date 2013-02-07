@@ -53,7 +53,7 @@ public class L1Decompiler
 	 * The {@linkplain CompiledCodeDescriptor compiled code} which is being
 	 * decompiled.
 	 */
-	@InnerAccess AvailObject code;
+	@InnerAccess A_BasicObject code;
 
 	/**
 	 * {@linkplain ParseNodeDescriptor Parse nodes} which correspond with the
@@ -81,7 +81,7 @@ public class L1Decompiler
 	/**
 	 * The tuple of nybblecodes to decode.
 	 */
-	@InnerAccess AvailObject nybbles;
+	@InnerAccess A_Tuple nybbles;
 
 	/**
 	 * The current position in the instruction stream at which decompilation is
@@ -130,7 +130,7 @@ public class L1Decompiler
 	 *         decompilation of the code.
 	 */
 	public AvailObject parseWithOuterVarsTempGenerator (
-		final AvailObject aCodeObject,
+		final A_BasicObject aCodeObject,
 		final List<AvailObject> outerVars,
 		final Transformer1<String, String> tempBlock)
 	{
@@ -261,9 +261,9 @@ public class L1Decompiler
 		public void L1_doClose ()
 		{
 			final int nOuters = getInteger();
-			final AvailObject theCode = code.literalAt(getInteger());
+			final A_BasicObject theCode = code.literalAt(getInteger());
 			final List<AvailObject> theOuters = popExpressions(nOuters);
-			for (final AvailObject outer : theOuters)
+			for (final A_BasicObject outer : theOuters)
 			{
 				assert
 					outer.isInstanceOfKind(VARIABLE_USE_NODE.mostGeneralType())
@@ -489,7 +489,7 @@ public class L1Decompiler
 				// the code generator didn't do what we expected.  Remove that
 				// bogus marker and replace it with the (embedded) assignment
 				// node itself.
-				final AvailObject duplicateExpression = popExpression();
+				final A_BasicObject duplicateExpression = popExpression();
 				assert duplicateExpression.isInstanceOfKind(
 					MARKER_NODE.mostGeneralType());
 				assert duplicateExpression.markerValue().equalsNil();
@@ -507,7 +507,7 @@ public class L1Decompiler
 			{
 				// Writing into a synthetic literal (a byproduct of decompiling
 				// a block without decompiling its outer scopes).
-				final AvailObject token = outerExpr.token();
+				final A_Token token = outerExpr.token();
 				final AvailObject variableObject = token.literal();
 				assert variableObject.isInstanceOfKind(
 					VariableTypeDescriptor.mostGeneralType());
@@ -538,7 +538,7 @@ public class L1Decompiler
 				// the code generator didn't do what we expected.  Remove that
 				// bogus marker and replace it with the (embedded) assignment
 				// node itself.
-				final AvailObject duplicateExpression = popExpression();
+				final A_BasicObject duplicateExpression = popExpression();
 				assert duplicateExpression.isInstanceOfKind(
 					MARKER_NODE.mostGeneralType());
 				assert duplicateExpression.markerValue().equalsNil();
@@ -570,7 +570,7 @@ public class L1Decompiler
 		@Override
 		public void L1Ext_doGetLiteral ()
 		{
-			final AvailObject globalToken = TokenDescriptor.create(
+			final A_Token globalToken = TokenDescriptor.create(
 				StringDescriptor.from("SomeGlobal"),
 				0,
 				0,
@@ -600,7 +600,7 @@ public class L1Decompiler
 			}
 			else
 			{
-				final AvailObject labelToken = TokenDescriptor.create(
+				final A_Token labelToken = TokenDescriptor.create(
 					StringDescriptor.from(
 						tempGenerator.value("label")),
 					0,
@@ -629,7 +629,7 @@ public class L1Decompiler
 		@Override
 		public void L1Ext_doSetLiteral ()
 		{
-			final AvailObject globalToken = TokenDescriptor.create(
+			final A_Token globalToken = TokenDescriptor.create(
 				StringDescriptor.from("SomeGlobal"),
 				0,
 				0,
@@ -657,7 +657,7 @@ public class L1Decompiler
 				// the code generator didn't do what we expected.  Remove that
 				// bogus marker and replace it with the (embedded) assignment
 				// node itself.
-				final AvailObject duplicateExpression = popExpression();
+				final A_BasicObject duplicateExpression = popExpression();
 				assert duplicateExpression.isInstanceOfKind(
 					MARKER_NODE.mostGeneralType());
 				assert duplicateExpression.markerValue().equalsNil();
@@ -689,11 +689,11 @@ public class L1Decompiler
 	{
 		args = new ArrayList<AvailObject>(code.numArgs());
 		locals = new ArrayList<AvailObject>(code.numLocals());
-		final AvailObject tupleType = code.functionType().argsTupleType();
+		final A_Type tupleType = code.functionType().argsTupleType();
 		for (int i = 1, end = code.numArgs(); i <= end; i++)
 		{
 			final String argName = tempGenerator.value("arg");
-			final AvailObject token = TokenDescriptor.create(
+			final A_Token token = TokenDescriptor.create(
 				StringDescriptor.from(argName),
 				0,
 				0,
@@ -706,7 +706,7 @@ public class L1Decompiler
 		for (int i = 1, end = code.numLocals(); i <= end; i++)
 		{
 			final String localName = tempGenerator.value("local");
-			final AvailObject token = TokenDescriptor.create(
+			final A_Token token = TokenDescriptor.create(
 				StringDescriptor.from(localName),
 				0,
 				0,
@@ -727,7 +727,7 @@ public class L1Decompiler
 	 * @return The {@linkplain BlockNodeDescriptor block} that is the
 	 *         decompilation of the provided function.
 	 */
-	public static AvailObject parse (final AvailObject aFunction)
+	public static A_BasicObject parse (final A_Function aFunction)
 	{
 		final Map<String, Integer> counts = new HashMap<String, Integer>();
 		final Transformer1<String, String> generator =
@@ -747,8 +747,8 @@ public class L1Decompiler
 			new ArrayList<AvailObject>(aFunction.numOuterVars());
 		for (int i = 1; i <= aFunction.numOuterVars(); i++)
 		{
-			final AvailObject outerObject = aFunction.outerVarAt(i);
-			final AvailObject token = LiteralTokenDescriptor.create(
+			final A_BasicObject outerObject = aFunction.outerVarAt(i);
+			final A_Token token = LiteralTokenDescriptor.create(
 				StringDescriptor.from("Outer#" + i),
 				0,
 				0,

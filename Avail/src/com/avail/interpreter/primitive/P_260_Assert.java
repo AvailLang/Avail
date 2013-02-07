@@ -58,8 +58,8 @@ public class P_260_Assert extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 2;
-		final AvailObject predicate = args.get(0);
-		final AvailObject failureMessage = args.get(1);
+		final A_Atom predicate = args.get(0);
+		final A_String failureMessage = args.get(1);
 		if (predicate.equals(AtomDescriptor.falseObject()))
 		{
 			final List<String> stack = interpreter.dumpStack();
@@ -79,7 +79,7 @@ public class P_260_Assert extends Primitive
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

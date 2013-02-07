@@ -56,10 +56,11 @@ public class P_248_AddSemanticRestriction extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 2;
-		final AvailObject string = args.get(0);
-		final AvailObject function = args.get(1);
-		final AvailObject functionType = function.kind();
-		final AvailObject tupleType = functionType.argsTupleType();
+		final A_String string = args.get(0);
+		final A_Function function = args.get(1);
+
+		final A_Type functionType = function.kind();
+		final A_Type tupleType = functionType.argsTupleType();
 		for (int i = function.code().numArgs(); i >= 1; i--)
 		{
 			if (!tupleType.typeAtIndex(i).isInstanceOf(
@@ -90,7 +91,7 @@ public class P_248_AddSemanticRestriction extends Primitive
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

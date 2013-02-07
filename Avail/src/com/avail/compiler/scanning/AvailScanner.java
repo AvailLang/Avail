@@ -36,7 +36,6 @@ import java.util.*;
 import com.avail.annotations.*;
 import com.avail.compiler.AbstractAvailCompiler;
 import com.avail.descriptor.*;
-import com.avail.descriptor.TokenDescriptor;
 import com.avail.descriptor.TokenDescriptor.TokenType;
 
 /**
@@ -72,7 +71,7 @@ public class AvailScanner
 	/**
 	 * The tokens that have been parsed so far.
 	 */
-	List<AvailObject> outputTokens;
+	List<A_Token> outputTokens;
 
 	/**
 	 * Whether to stop scanning after encountering the keyword "Body".
@@ -137,10 +136,10 @@ public class AvailScanner
 	 * @return The newly added token.
 	 */
 	@InnerAccess
-	AvailObject addCurrentToken (
+	A_BasicObject addCurrentToken (
 		final TokenDescriptor.TokenType tokenType)
 	{
-		final AvailObject token = TokenDescriptor.create(
+		final A_Token token = TokenDescriptor.create(
 			StringDescriptor.from(currentTokenString()),
 			startOfToken,
 			lineNumber,
@@ -159,8 +158,8 @@ public class AvailScanner
 	 * @return The newly added token.
 	 */
 	@InnerAccess
-	AvailObject addCurrentLiteralToken (
-		final AvailObject anAvailObject)
+	A_BasicObject addCurrentLiteralToken (
+		final A_BasicObject anAvailObject)
 	{
 		final AvailObject token = LiteralTokenDescriptor.create(
 			StringDescriptor.from(currentTokenString()),
@@ -378,13 +377,13 @@ public class AvailScanner
 				}
 
 				// Now convert the thing to numeric form.
-				AvailObject result;
+				A_Number result;
 				if (!isReal)
 				{
 					// It's a positive integer.
 					scanner.position(scanner.startOfToken());
 					result = IntegerDescriptor.zero();
-					final AvailObject ten = IntegerDescriptor.ten();
+					final A_Number ten = IntegerDescriptor.ten();
 					while (scanner.peekIsDigit())
 					{
 						result = result.noFailTimesCanDestroy(ten, true);
@@ -563,7 +562,7 @@ public class AvailScanner
 					c = scanner.next();
 				}
 				final String string = stringBuilder.toString();
-				final AvailObject availValue = StringDescriptor.from(string);
+				final A_String availValue = StringDescriptor.from(string);
 				availValue.makeImmutable();
 				scanner.addCurrentLiteralToken(availValue);
 			}
@@ -662,7 +661,7 @@ public class AvailScanner
 				{
 					// no body
 				}
-				final AvailObject token =
+				final A_BasicObject token =
 					scanner.addCurrentToken(TokenType.KEYWORD);
 				if (scanner.stopAfterBodyToken
 					&& token.string().equals(
@@ -844,14 +843,14 @@ public class AvailScanner
 	 * @return A {@linkplain List list} of {@linkplain TokenDescriptor tokens}
 	 *         terminated by a token of type {@link TokenType#END_OF_FILE}.
 	 */
-	public List<AvailObject> scanString (
+	public List<A_Token> scanString (
 		final String string,
 		final boolean stopAfterBodyTokenFlag)
 	{
 		inputString = string;
 		position = 0;
 		lineNumber = 1;
-		outputTokens = new ArrayList<AvailObject>(100);
+		outputTokens = new ArrayList<A_Token>(100);
 		stopAfterBodyToken = stopAfterBodyTokenFlag;
 		while (!(stopAfterBodyToken ? encounteredBodyToken : atEnd()))
 		{

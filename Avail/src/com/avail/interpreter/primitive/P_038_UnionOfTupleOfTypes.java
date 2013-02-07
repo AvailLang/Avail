@@ -54,9 +54,9 @@ public class P_038_UnionOfTupleOfTypes extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
-		final AvailObject tupleOfTypes = args.get(0);
-		AvailObject unionObject = BottomTypeDescriptor.bottom();
-		for (final AvailObject aType : tupleOfTypes)
+		final A_Tuple tupleOfTypes = args.get(0);
+		A_Type unionObject = BottomTypeDescriptor.bottom();
+		for (final A_Type aType : tupleOfTypes)
 		{
 			unionObject = unionObject.typeUnion(aType);
 		}
@@ -64,7 +64,7 @@ public class P_038_UnionOfTupleOfTypes extends Primitive
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

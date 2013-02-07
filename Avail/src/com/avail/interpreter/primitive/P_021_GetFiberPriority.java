@@ -54,13 +54,13 @@ public class P_021_GetFiberPriority extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
-		final AvailObject fiber = args.get(0);
+		final A_BasicObject fiber = args.get(0);
 		return interpreter.primitiveSuccess(
 			fiber.priority());
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

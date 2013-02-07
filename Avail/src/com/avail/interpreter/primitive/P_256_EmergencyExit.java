@@ -57,7 +57,7 @@ public class P_256_EmergencyExit extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
-		final AvailObject errorMessageProducer = args.get(0);
+		final A_BasicObject errorMessageProducer = args.get(0);
 
 		final List<String> stack = interpreter.dumpStack();
 		final StringBuilder builder = new StringBuilder();
@@ -79,7 +79,7 @@ public class P_256_EmergencyExit extends Primitive
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

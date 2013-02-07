@@ -61,13 +61,13 @@ extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 2;
-		final AvailObject methodName = args.get(0);
-		final AvailObject sealSignature = args.get(1);
+		final A_String methodName = args.get(0);
+		final A_Tuple argumentTypes = args.get(1);
 		try
 		{
 			interpreter.addSeal(
 				interpreter.lookupName(methodName),
-				sealSignature);
+				argumentTypes);
 		}
 		catch (final AmbiguousNameException e)
 		{
@@ -81,7 +81,7 @@ extends Primitive
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

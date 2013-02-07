@@ -60,14 +60,14 @@ public enum SerializerOperation
 	ZERO_INTEGER (0)
 	{
 		@Override
-		AvailObject[] decompose (
+		A_BasicObject[] decompose (
 			final AvailObject object)
 		{
 			return array();
 		}
 
 		@Override
-		AvailObject compose (
+		A_BasicObject compose (
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
@@ -82,14 +82,14 @@ public enum SerializerOperation
 	ONE_INTEGER (1)
 	{
 		@Override
-		AvailObject[] decompose (
+		A_BasicObject[] decompose (
 			final AvailObject object)
 		{
 			return array();
 		}
 
 		@Override
-		AvailObject compose (
+		A_BasicObject compose (
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
@@ -104,14 +104,14 @@ public enum SerializerOperation
 	TWO_INTEGER (2)
 	{
 		@Override
-		AvailObject[] decompose (
+		A_BasicObject[] decompose (
 			final AvailObject object)
 		{
 			return array();
 		}
 
 		@Override
-		AvailObject compose (
+		A_BasicObject compose (
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
@@ -126,14 +126,14 @@ public enum SerializerOperation
 	THREE_INTEGER (3)
 	{
 		@Override
-		AvailObject[] decompose (
+		A_BasicObject[] decompose (
 			final AvailObject object)
 		{
 			return array();
 		}
 
 		@Override
-		AvailObject compose (
+		A_BasicObject compose (
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
@@ -148,14 +148,14 @@ public enum SerializerOperation
 	FOUR_INTEGER (4)
 	{
 		@Override
-		AvailObject[] decompose (
+		A_BasicObject[] decompose (
 			final AvailObject object)
 		{
 			return array();
 		}
 
 		@Override
-		AvailObject compose (
+		A_BasicObject compose (
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
@@ -170,14 +170,14 @@ public enum SerializerOperation
 	FIVE_INTEGER (5)
 	{
 		@Override
-		AvailObject[] decompose (
+		A_BasicObject[] decompose (
 			final AvailObject object)
 		{
 			return array();
 		}
 
 		@Override
-		AvailObject compose (
+		A_BasicObject compose (
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
@@ -192,14 +192,14 @@ public enum SerializerOperation
 	SIX_INTEGER (6)
 	{
 		@Override
-		AvailObject[] decompose (
+		A_BasicObject[] decompose (
 			final AvailObject object)
 		{
 			return array();
 		}
 
 		@Override
-		AvailObject compose (
+		A_BasicObject compose (
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
@@ -214,14 +214,14 @@ public enum SerializerOperation
 	SEVEN_INTEGER (7)
 	{
 		@Override
-		AvailObject[] decompose (
+		A_BasicObject[] decompose (
 			final AvailObject object)
 		{
 			return array();
 		}
 
 		@Override
-		AvailObject compose (
+		A_BasicObject compose (
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
@@ -236,14 +236,14 @@ public enum SerializerOperation
 	EIGHT_INTEGER (8)
 	{
 		@Override
-		AvailObject[] decompose (
+		A_BasicObject[] decompose (
 			final AvailObject object)
 		{
 			return array();
 		}
 
 		@Override
-		AvailObject compose (
+		A_BasicObject compose (
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
@@ -258,14 +258,14 @@ public enum SerializerOperation
 	NINE_INTEGER (9)
 	{
 		@Override
-		AvailObject[] decompose (
+		A_BasicObject[] decompose (
 			final AvailObject object)
 		{
 			return array();
 		}
 
 		@Override
-		AvailObject compose (
+		A_BasicObject compose (
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
@@ -280,14 +280,14 @@ public enum SerializerOperation
 	TEN_INTEGER (10)
 	{
 		@Override
-		AvailObject[] decompose (
+		A_BasicObject[] decompose (
 			final AvailObject object)
 		{
 			return array();
 		}
 
 		@Override
-		AvailObject compose (
+		A_BasicObject compose (
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
@@ -302,14 +302,14 @@ public enum SerializerOperation
 	BYTE_INTEGER (11, BYTE.as("only byte"))
 	{
 		@Override
-		AvailObject[] decompose (
+		A_BasicObject[] decompose (
 			final AvailObject object)
 		{
 			return array(object);
 		}
 
 		@Override
-		AvailObject compose (
+		A_BasicObject compose (
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
@@ -332,7 +332,7 @@ public enum SerializerOperation
 	SHORT_INTEGER (12, BYTE.as("high byte"), BYTE.as("low byte"))
 	{
 		@Override
-		AvailObject[] decompose (
+		A_BasicObject[] decompose (
 			final AvailObject object)
 		{
 			final int shortValue = object.extractUnsignedShort();
@@ -342,7 +342,7 @@ public enum SerializerOperation
 		}
 
 		@Override
-		AvailObject compose (
+		A_BasicObject compose (
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
@@ -359,14 +359,14 @@ public enum SerializerOperation
 	INT_INTEGER (13, SIGNED_INT.as("int's value"))
 	{
 		@Override
-		AvailObject[] decompose (
+		A_BasicObject[] decompose (
 			final AvailObject object)
 		{
 			return array(object);
 		}
 
 		@Override
-		AvailObject compose (
+		A_BasicObject compose (
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
@@ -380,14 +380,14 @@ public enum SerializerOperation
 	BIG_INTEGER (14, BIG_INTEGER_DATA.as("constituent ints"))
 	{
 		@Override
-		AvailObject[] decompose (
+		A_BasicObject[] decompose (
 			final AvailObject object)
 		{
 			return array(object);
 		}
 
 		@Override
-		AvailObject compose (
+		A_BasicObject compose (
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
@@ -403,13 +403,13 @@ public enum SerializerOperation
 	NIL (15)
 	{
 		@Override
-		AvailObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (final AvailObject object)
 		{
 			return array();
 		}
 
 		@Override
-		AvailObject compose (
+		A_BasicObject compose (
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
@@ -424,14 +424,14 @@ public enum SerializerOperation
 	CHECKPOINT (16, OBJECT_REFERENCE.as("object to checkpoint"))
 	{
 		@Override
-		AvailObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (final AvailObject object)
 		{
 			// Make sure the function actually gets written out.
 			return array(object);
 		}
 
 		@Override
-		AvailObject compose (
+		A_BasicObject compose (
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
@@ -447,7 +447,7 @@ public enum SerializerOperation
 	SPECIAL_OBJECT (17, COMPRESSED_SHORT.as("special object number"))
 	{
 		@Override
-		AvailObject[] decompose (
+		A_BasicObject[] decompose (
 			final AvailObject object)
 		{
 			return array(
@@ -456,7 +456,7 @@ public enum SerializerOperation
 		}
 
 		@Override
-		AvailObject compose (
+		A_BasicObject compose (
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
@@ -470,7 +470,7 @@ public enum SerializerOperation
 	SPECIAL_ATOM (18, COMPRESSED_SHORT.as("special atom number"))
 	{
 		@Override
-		AvailObject[] decompose (
+		A_BasicObject[] decompose (
 			final AvailObject object)
 		{
 			return array(
@@ -479,7 +479,7 @@ public enum SerializerOperation
 		}
 
 		@Override
-		AvailObject compose (
+		A_BasicObject compose (
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
@@ -494,7 +494,7 @@ public enum SerializerOperation
 	BYTE_CHARACTER (19, BYTE.as("Latin-1 code point"))
 	{
 		@Override
-		AvailObject[] decompose (
+		A_BasicObject[] decompose (
 			final AvailObject object)
 		{
 			return array(
@@ -502,7 +502,7 @@ public enum SerializerOperation
 		}
 
 		@Override
-		AvailObject compose (
+		A_BasicObject compose (
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
@@ -519,7 +519,7 @@ public enum SerializerOperation
 		UNCOMPRESSED_SHORT.as("BMP code point"))
 	{
 		@Override
-		AvailObject[] decompose (
+		A_BasicObject[] decompose (
 			final AvailObject object)
 		{
 			return array(
@@ -527,7 +527,7 @@ public enum SerializerOperation
 		}
 
 		@Override
-		AvailObject compose (
+		A_BasicObject compose (
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
@@ -546,7 +546,7 @@ public enum SerializerOperation
 		BYTE.as("SMP codepoint low byte"))
 	{
 		@Override
-		AvailObject[] decompose (
+		A_BasicObject[] decompose (
 			final AvailObject object)
 		{
 			final int codePoint = object.codePoint();
@@ -557,7 +557,7 @@ public enum SerializerOperation
 		}
 
 		@Override
-		AvailObject compose (
+		A_BasicObject compose (
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
@@ -569,13 +569,13 @@ public enum SerializerOperation
 	},
 
 	/**
-	 * A {@linkplain CharacterDescriptor character} whose code point requires
-	 * three bytes to represent (0..16777215, but technically only 0..1114111).
+	 * A {@linkplain FloatDescriptor float}.  Convert the raw bits to an int
+	 * for writing.
 	 */
 	FLOAT (22, SIGNED_INT.as("raw bits"))
 	{
 		@Override
-		AvailObject[] decompose (
+		A_BasicObject[] decompose (
 			final AvailObject object)
 		{
 			final float floatValue = object.extractFloat();
@@ -585,7 +585,7 @@ public enum SerializerOperation
 		}
 
 		@Override
-		AvailObject compose (
+		A_BasicObject compose (
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
@@ -604,7 +604,7 @@ public enum SerializerOperation
 		SIGNED_INT.as("lower raw bits"))
 	{
 		@Override
-		AvailObject[] decompose (
+		A_BasicObject[] decompose (
 			final AvailObject object)
 		{
 			final double doubleValue = object.extractDouble();
@@ -615,7 +615,7 @@ public enum SerializerOperation
 		}
 
 		@Override
-		AvailObject compose (
+		A_BasicObject compose (
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
@@ -636,14 +636,14 @@ public enum SerializerOperation
 	GENERAL_TUPLE (24, TUPLE_OF_OBJECTS.as("tuple elements"))
 	{
 		@Override
-		AvailObject[] decompose (
+		A_BasicObject[] decompose (
 			final AvailObject object)
 		{
 			return array(object);
 		}
 
 		@Override
-		AvailObject compose (
+		A_BasicObject compose (
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
@@ -660,14 +660,14 @@ public enum SerializerOperation
 		BYTE_CHARACTER_TUPLE.as("Latin-1 string"))
 	{
 		@Override
-		AvailObject[] decompose (
+		A_BasicObject[] decompose (
 			final AvailObject object)
 		{
 			return array(object);
 		}
 
 		@Override
-		AvailObject compose (
+		A_BasicObject compose (
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
@@ -684,14 +684,14 @@ public enum SerializerOperation
 		COMPRESSED_SHORT_CHARACTER_TUPLE.as("Basic Multilingual Plane string"))
 	{
 		@Override
-		AvailObject[] decompose (
+		A_BasicObject[] decompose (
 			final AvailObject object)
 		{
 			return array(object);
 		}
 
 		@Override
-		AvailObject compose (
+		A_BasicObject compose (
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
@@ -708,14 +708,14 @@ public enum SerializerOperation
 		COMPRESSED_ARBITRARY_CHARACTER_TUPLE.as("arbitrary string"))
 	{
 		@Override
-		AvailObject[] decompose (
+		A_BasicObject[] decompose (
 			final AvailObject object)
 		{
 			return array(object);
 		}
 
 		@Override
-		AvailObject compose (
+		A_BasicObject compose (
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
@@ -731,14 +731,14 @@ public enum SerializerOperation
 	BYTE_TUPLE(28, UNCOMPRESSED_BYTE_TUPLE.as("tuple of bytes"))
 	{
 		@Override
-		AvailObject[] decompose (
+		A_BasicObject[] decompose (
 			final AvailObject object)
 		{
 			return array(object);
 		}
 
 		@Override
-		AvailObject compose (
+		A_BasicObject compose (
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
@@ -754,14 +754,14 @@ public enum SerializerOperation
 	NYBBLE_TUPLE(29, UNCOMPRESSED_NYBBLE_TUPLE.as("tuple of nybbles"))
 	{
 		@Override
-		AvailObject[] decompose (
+		A_BasicObject[] decompose (
 			final AvailObject object)
 		{
 			return array(object);
 		}
 
 		@Override
-		AvailObject compose (
+		A_BasicObject compose (
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
@@ -776,13 +776,13 @@ public enum SerializerOperation
 	SET(30, TUPLE_OF_OBJECTS.as("tuple of objects"))
 	{
 		@Override
-		AvailObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (final AvailObject object)
 		{
 			return array(object.asTuple());
 		}
 
 		@Override
-		AvailObject compose (
+		A_BasicObject compose (
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
@@ -798,13 +798,13 @@ public enum SerializerOperation
 	MAP(31, GENERAL_MAP.as("map contents"))
 	{
 		@Override
-		AvailObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (final AvailObject object)
 		{
 			return array(object);
 		}
 
 		@Override
-		AvailObject compose (
+		A_BasicObject compose (
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
@@ -820,13 +820,13 @@ public enum SerializerOperation
 	OBJECT(32, GENERAL_MAP.as("field map"))
 	{
 		@Override
-		AvailObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (final AvailObject object)
 		{
 			return array(object.fieldMap());
 		}
 
 		@Override
-		AvailObject compose (
+		A_BasicObject compose (
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
@@ -842,13 +842,13 @@ public enum SerializerOperation
 	OBJECT_TYPE(33, GENERAL_MAP.as("field type map"))
 	{
 		@Override
-		AvailObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (final AvailObject object)
 		{
 			return array(object.fieldTypeMap());
 		}
 
 		@Override
-		AvailObject compose (
+		A_BasicObject compose (
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
@@ -867,18 +867,18 @@ public enum SerializerOperation
 		OBJECT_REFERENCE.as("module name"))
 	{
 		@Override
-		AvailObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (final AvailObject object)
 		{
-			final AvailObject module = object.issuingModule();
+			final A_BasicObject module = object.issuingModule();
 			if (module.equalsNil())
 			{
 				throw new RuntimeException("Atom has no issuing module");
 			}
-			return array(object.name(), module.name());
+			return array(object.name(), module.moduleName());
 		}
 
 		@Override
-		AvailObject compose (
+		A_BasicObject compose (
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
@@ -905,34 +905,34 @@ public enum SerializerOperation
 	{
 
 		@Override
-		AvailObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (final AvailObject object)
 		{
 			final int numLocals = object.numLocals();
 			final int numOuters = object.numOuters();
 			final int numRegularLiterals =
 				object.numLiterals() - numLocals - numOuters;
-			final AvailObject regularLiterals =
+			final A_Tuple regularLiterals =
 				ObjectTupleDescriptor.createUninitialized(numRegularLiterals);
 			for (int i = 1; i <= numRegularLiterals; i++)
 			{
 				regularLiterals.tupleAtPut(i, object.literalAt(i));
 			}
-			final AvailObject localTypes =
+			final A_Tuple localTypes =
 				ObjectTupleDescriptor.createUninitialized(numLocals);
 			for (int i = 1; i <= numLocals; i++)
 			{
-				localTypes.tupleAtPut(i, object.localTypeAt(i));
+				localTypes.objectTupleAtPut(i, object.localTypeAt(i));
 			}
-			final AvailObject outerTypes =
+			final A_Tuple outerTypes =
 				ObjectTupleDescriptor.createUninitialized(numOuters);
 			for (int i = 1; i <= numOuters; i++)
 			{
-				outerTypes.tupleAtPut(i, object.outerTypeAt(i));
+				outerTypes.objectTupleAtPut(i, object.outerTypeAt(i));
 			}
-			final AvailObject module = object.module();
-			final AvailObject moduleName = module.equalsNil()
+			final A_BasicObject module = object.module();
+			final A_BasicObject moduleName = module.equalsNil()
 				? TupleDescriptor.empty()
-				: module.name();
+				: module.moduleName();
 			return array(
 				IntegerDescriptor.fromInt(object.numArgsAndLocalsAndStack()),
 				IntegerDescriptor.fromInt(object.primitiveNumber()),
@@ -946,21 +946,21 @@ public enum SerializerOperation
 		}
 
 		@Override
-		AvailObject compose (
+		A_BasicObject compose (
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
 			final int numArgsAndLocalsAndStack = subobjects[0].extractInt();
 			final int primitive = subobjects[1].extractInt();
-			final AvailObject functionType = subobjects[2];
-			final AvailObject nybbles = subobjects[3];
-			final AvailObject regularLiterals = subobjects[4];
-			final AvailObject localTypes = subobjects[5];
-			final AvailObject outerTypes = subobjects[6];
-			final AvailObject moduleName = subobjects[7];
-			final AvailObject lineNumberInteger = subobjects[8];
+			final A_Type functionType = subobjects[2];
+			final A_Tuple nybbles = subobjects[3];
+			final A_Tuple regularLiterals = subobjects[4];
+			final A_Tuple localTypes = subobjects[5];
+			final A_Tuple outerTypes = subobjects[6];
+			final A_String moduleName = subobjects[7];
+			final A_Number lineNumberInteger = subobjects[8];
 
-			final AvailObject numArgsRange =
+			final A_Type numArgsRange =
 				functionType.argsTupleType().sizeRange();
 			final int numArgs = numArgsRange.lowerBound().extractInt();
 			final int numLocals = localTypes.tupleSize();
@@ -990,7 +990,7 @@ public enum SerializerOperation
 		OBJECT_REFERENCE.as("Compiled code"))
 	{
 		@Override
-		AvailObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (final AvailObject object)
 		{
 			assert object.numOuterVars() == 0;
 			return array(
@@ -998,7 +998,7 @@ public enum SerializerOperation
 		}
 
 		@Override
-		AvailObject compose (
+		A_BasicObject compose (
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
@@ -1016,10 +1016,10 @@ public enum SerializerOperation
 		TUPLE_OF_OBJECTS.as("Outer values"))
 	{
 		@Override
-		AvailObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (final AvailObject object)
 		{
 			final int numOuters = object.numOuterVars();
-			final AvailObject outers =
+			final A_Tuple outers =
 				ObjectTupleDescriptor.createUninitialized(numOuters);
 			for (int i = 1; i <= numOuters; i++)
 			{
@@ -1031,12 +1031,12 @@ public enum SerializerOperation
 		}
 
 		@Override
-		AvailObject compose (
+		A_BasicObject compose (
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
 			final AvailObject code = subobjects[0];
-			final AvailObject outers = subobjects[1];
+			final A_Tuple outers = subobjects[1];
 			return FunctionDescriptor.create(
 				code,
 				outers);
@@ -1052,14 +1052,14 @@ public enum SerializerOperation
 		OBJECT_REFERENCE.as("variable type"))
 	{
 		@Override
-		AvailObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (final AvailObject object)
 		{
 			return array(
 				object.kind());
 		}
 
 		@Override
-		AvailObject compose (
+		A_BasicObject compose (
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
@@ -1083,7 +1083,7 @@ public enum SerializerOperation
 		BYTE.as("token type code"))
 	{
 		@Override
-		AvailObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (final AvailObject object)
 		{
 			return array(
 				object.string(),
@@ -1093,7 +1093,7 @@ public enum SerializerOperation
 		}
 
 		@Override
-		AvailObject compose (
+		A_BasicObject compose (
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
@@ -1120,7 +1120,7 @@ public enum SerializerOperation
 		BYTE.as("token type code"))
 	{
 		@Override
-		AvailObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (final AvailObject object)
 		{
 			return array(
 				object.string(),
@@ -1131,7 +1131,7 @@ public enum SerializerOperation
 		}
 
 		@Override
-		AvailObject compose (
+		A_BasicObject compose (
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
@@ -1159,7 +1159,7 @@ public enum SerializerOperation
 		OBJECT_REFERENCE.as("value to assign"))
 	{
 		@Override
-		AvailObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (final AvailObject object)
 		{
 			return array(
 				object,
@@ -1167,11 +1167,11 @@ public enum SerializerOperation
 		}
 
 		@Override
-		AvailObject compose (
+		A_BasicObject compose (
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
-			final AvailObject variable = subobjects[0];
+			final A_BasicObject variable = subobjects[0];
 			final AvailObject value = subobjects[1];
 			variable.setValue(value);
 			return NilDescriptor.nil();
@@ -1189,7 +1189,7 @@ public enum SerializerOperation
 		COMPRESSED_SHORT.as("stack pointer"))
 	{
 		@Override
-		AvailObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (final AvailObject object)
 		{
 			final int frameSlotCount = object.numArgsAndLocalsAndStack();
 			final List<AvailObject> frameSlotsList =
@@ -1207,15 +1207,15 @@ public enum SerializerOperation
 		}
 
 		@Override
-		AvailObject compose (
+		A_BasicObject compose (
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
 			final AvailObject caller = subobjects[0];
-			final AvailObject function = subobjects[1];
-			final AvailObject frameSlots = subobjects[2];
-			final AvailObject pcInteger = subobjects[3];
-			final AvailObject stackpInteger = subobjects[4];
+			final A_Function function = subobjects[1];
+			final A_Tuple frameSlots = subobjects[2];
+			final A_Number pcInteger = subobjects[3];
+			final A_Number stackpInteger = subobjects[4];
 			final int frameSlotCount = frameSlots.tupleSize();
 			final AvailObject continuation =
 				ContinuationDescriptor.createExceptFrame(
@@ -1237,20 +1237,22 @@ public enum SerializerOperation
 
 	/**
 	 * A reference to a {@linkplain MethodDescriptor method} that should be
-	 * looked up by name (atom) during reconstruction.
+	 * looked up by name (atom) during reconstruction.  A method can have
+	 * multiple names, but only one is the original name, which is the one used
+	 * for serialization.
 	 */
 	METHOD (43,
-		OBJECT_REFERENCE.as("method's atomic name"))
+		OBJECT_REFERENCE.as("method's name"))
 	{
 		@Override
-		AvailObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (final AvailObject object)
 		{
 			assert object.isInstanceOf(Types.METHOD.o());
-			return array(object.name());
+			return array(object.originalName());
 		}
 
 		@Override
-		AvailObject compose (
+		A_BasicObject compose (
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
@@ -1268,7 +1270,7 @@ public enum SerializerOperation
 		OBJECT_REFERENCE.as("signature"))
 	{
 		@Override
-		AvailObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (final AvailObject object)
 		{
 			assert object.isMethodDefinition();
 			return array(
@@ -1277,11 +1279,11 @@ public enum SerializerOperation
 		}
 
 		@Override
-		AvailObject compose (
+		A_BasicObject compose (
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
-			final AvailObject definitionMethod = subobjects[0];
+			final A_BasicObject definitionMethod = subobjects[0];
 			final AvailObject signature = subobjects[1];
 			final List<AvailObject> definitions = new ArrayList<AvailObject>(1);
 			for (final AvailObject eachDefinition
@@ -1308,7 +1310,7 @@ public enum SerializerOperation
 		OBJECT_REFERENCE.as("signature"))
 	{
 		@Override
-		AvailObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (final AvailObject object)
 		{
 			assert object.isMacroDefinition();
 			return array(
@@ -1317,11 +1319,11 @@ public enum SerializerOperation
 		}
 
 		@Override
-		AvailObject compose (
+		A_BasicObject compose (
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
-			final AvailObject definitionMethod = subobjects[0];
+			final A_BasicObject definitionMethod = subobjects[0];
 			final AvailObject signature = subobjects[1];
 			final List<AvailObject> definitions = new ArrayList<AvailObject>(1);
 			for (final AvailObject eachDefinition
@@ -1348,7 +1350,7 @@ public enum SerializerOperation
 		OBJECT_REFERENCE.as("signature"))
 	{
 		@Override
-		AvailObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (final AvailObject object)
 		{
 			assert object.isAbstractDefinition();
 			return array(
@@ -1357,11 +1359,11 @@ public enum SerializerOperation
 		}
 
 		@Override
-		AvailObject compose (
+		A_BasicObject compose (
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
-			final AvailObject definitionMethod = subobjects[0];
+			final A_BasicObject definitionMethod = subobjects[0];
 			final AvailObject signature = subobjects[1];
 			final List<AvailObject> definitions = new ArrayList<AvailObject>(1);
 			for (final AvailObject eachDefinition
@@ -1388,7 +1390,7 @@ public enum SerializerOperation
 		OBJECT_REFERENCE.as("signature"))
 	{
 		@Override
-		AvailObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (final AvailObject object)
 		{
 			assert object.isForwardDefinition();
 			return array(
@@ -1397,11 +1399,11 @@ public enum SerializerOperation
 		}
 
 		@Override
-		AvailObject compose (
+		A_BasicObject compose (
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
-			final AvailObject definitionMethod = subobjects[0];
+			final A_BasicObject definitionMethod = subobjects[0];
 			final AvailObject signature = subobjects[1];
 			final List<AvailObject> definitions = new ArrayList<AvailObject>(1);
 			for (final AvailObject eachDefinition
@@ -1425,13 +1427,13 @@ public enum SerializerOperation
 	RESERVED_48 (48)
 	{
 		@Override
-		AvailObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (final AvailObject object)
 		{
 			throw new RuntimeException("Reserved serializer operation");
 		}
 
 		@Override
-		AvailObject compose (
+		A_BasicObject compose (
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
@@ -1445,13 +1447,13 @@ public enum SerializerOperation
 	RESERVED_49 (49)
 	{
 		@Override
-		AvailObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (final AvailObject object)
 		{
 			throw new RuntimeException("Reserved serializer operation");
 		}
 
 		@Override
-		AvailObject compose (
+		A_BasicObject compose (
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
@@ -1465,13 +1467,13 @@ public enum SerializerOperation
 	RESERVED_50 (50)
 	{
 		@Override
-		AvailObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (final AvailObject object)
 		{
 			throw new RuntimeException("Reserved serializer operation");
 		}
 
 		@Override
-		AvailObject compose (
+		A_BasicObject compose (
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
@@ -1485,13 +1487,13 @@ public enum SerializerOperation
 	RESERVED_51 (51)
 	{
 		@Override
-		AvailObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (final AvailObject object)
 		{
 			throw new RuntimeException("Reserved serializer operation");
 		}
 
 		@Override
-		AvailObject compose (
+		A_BasicObject compose (
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
@@ -1505,13 +1507,13 @@ public enum SerializerOperation
 	RESERVED_52 (52)
 	{
 		@Override
-		AvailObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (final AvailObject object)
 		{
 			throw new RuntimeException("Reserved serializer operation");
 		}
 
 		@Override
-		AvailObject compose (
+		A_BasicObject compose (
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
@@ -1525,13 +1527,13 @@ public enum SerializerOperation
 	RESERVED_53 (53)
 	{
 		@Override
-		AvailObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (final AvailObject object)
 		{
 			throw new RuntimeException("Reserved serializer operation");
 		}
 
 		@Override
-		AvailObject compose (
+		A_BasicObject compose (
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
@@ -1545,13 +1547,13 @@ public enum SerializerOperation
 	RESERVED_54 (54)
 	{
 		@Override
-		AvailObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (final AvailObject object)
 		{
 			throw new RuntimeException("Reserved serializer operation");
 		}
 
 		@Override
-		AvailObject compose (
+		A_BasicObject compose (
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
@@ -1565,13 +1567,13 @@ public enum SerializerOperation
 	RESERVED_55 (55)
 	{
 		@Override
-		AvailObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (final AvailObject object)
 		{
 			throw new RuntimeException("Reserved serializer operation");
 		}
 
 		@Override
-		AvailObject compose (
+		A_BasicObject compose (
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
@@ -1585,13 +1587,13 @@ public enum SerializerOperation
 	RESERVED_56 (56)
 	{
 		@Override
-		AvailObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (final AvailObject object)
 		{
 			throw new RuntimeException("Reserved serializer operation");
 		}
 
 		@Override
-		AvailObject compose (
+		A_BasicObject compose (
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
@@ -1605,13 +1607,13 @@ public enum SerializerOperation
 	RESERVED_57 (57)
 	{
 		@Override
-		AvailObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (final AvailObject object)
 		{
 			throw new RuntimeException("Reserved serializer operation");
 		}
 
 		@Override
-		AvailObject compose (
+		A_BasicObject compose (
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
@@ -1625,13 +1627,13 @@ public enum SerializerOperation
 	RESERVED_58 (58)
 	{
 		@Override
-		AvailObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (final AvailObject object)
 		{
 			throw new RuntimeException("Reserved serializer operation");
 		}
 
 		@Override
-		AvailObject compose (
+		A_BasicObject compose (
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
@@ -1645,13 +1647,13 @@ public enum SerializerOperation
 	RESERVED_59 (59)
 	{
 		@Override
-		AvailObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (final AvailObject object)
 		{
 			throw new RuntimeException("Reserved serializer operation");
 		}
 
 		@Override
-		AvailObject compose (
+		A_BasicObject compose (
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
@@ -1668,7 +1670,7 @@ public enum SerializerOperation
 		TUPLE_OF_OBJECTS.as("Checked exceptions"))
 	{
 		@Override
-		AvailObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (final AvailObject object)
 		{
 			return array(
 				object.argsTupleType(),
@@ -1677,13 +1679,13 @@ public enum SerializerOperation
 		}
 
 		@Override
-		AvailObject compose (
+		A_BasicObject compose (
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
-			final AvailObject argsTupleType = subobjects[0];
-			final AvailObject returnType = subobjects[1];
-			final AvailObject checkedExceptionsTuple = subobjects[2];
+			final A_Type argsTupleType = subobjects[0];
+			final A_Type returnType = subobjects[1];
+			final A_Tuple checkedExceptionsTuple = subobjects[2];
 			return FunctionTypeDescriptor.createWithArgumentTupleType(
 				argsTupleType,
 				returnType,
@@ -1700,7 +1702,7 @@ public enum SerializerOperation
 		OBJECT_REFERENCE.as("Default type"))
 	{
 		@Override
-		AvailObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (final AvailObject object)
 		{
 			return array (
 				object.sizeRange(),
@@ -1709,7 +1711,7 @@ public enum SerializerOperation
 		}
 
 		@Override
-		AvailObject compose (
+		A_BasicObject compose (
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
@@ -1732,7 +1734,7 @@ public enum SerializerOperation
 		OBJECT_REFERENCE.as("Upper bound"))
 	{
 		@Override
-		AvailObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (final AvailObject object)
 		{
 			final int flags = (object.lowerInclusive() ? 1 : 0)
 				+ (object.upperInclusive() ? 2 : 0);
@@ -1743,7 +1745,7 @@ public enum SerializerOperation
 		}
 
 		@Override
-		AvailObject compose (
+		A_BasicObject compose (
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
@@ -1766,13 +1768,13 @@ public enum SerializerOperation
 	RESERVED_63 (63)
 	{
 		@Override
-		AvailObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (final AvailObject object)
 		{
 			throw new RuntimeException("Reserved serializer operation");
 		}
 
 		@Override
-		AvailObject compose (
+		A_BasicObject compose (
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
@@ -1800,20 +1802,20 @@ public enum SerializerOperation
 		TUPLE_OF_OBJECTS.as("class parameterization"))
 	{
 		@Override
-		AvailObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (final AvailObject object)
 		{
 			assert object.isPojoType();
 			assert !object.isPojoFusedType();
 			final AvailObject rawPojoType = object.javaClass();
 			final Class<?> baseClass =
 				(Class<?>)rawPojoType.javaObject();
-			final AvailObject className =
+			final A_String className =
 				StringDescriptor.from(baseClass.getName());
-			final AvailObject ancestorMap = object.javaAncestors();
-			final AvailObject myParameters = ancestorMap.mapAt(rawPojoType);
-			final List<AvailObject> processedParameters =
-				new ArrayList<AvailObject>(myParameters.tupleSize());
-			for (final AvailObject parameter : myParameters)
+			final A_Map ancestorMap = object.javaAncestors();
+			final A_Tuple myParameters = ancestorMap.mapAt(rawPojoType);
+			final List<A_BasicObject> processedParameters =
+				new ArrayList<A_BasicObject>(myParameters.tupleSize());
+			for (final A_Type parameter : myParameters)
 			{
 				assert !parameter.isTuple();
 				if (parameter.isPojoSelfType())
@@ -1832,7 +1834,7 @@ public enum SerializerOperation
 		}
 
 		@Override
-		AvailObject compose (
+		A_BasicObject compose (
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
@@ -1893,20 +1895,20 @@ public enum SerializerOperation
 		GENERAL_MAP.as("ancestor parameterizations map"))
 	{
 		@Override
-		AvailObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (final AvailObject object)
 		{
 			assert object.isPojoType();
 			assert object.isPojoFusedType();
-			AvailObject symbolicMap = MapDescriptor.empty();
+			A_Map symbolicMap = MapDescriptor.empty();
 			for (final MapDescriptor.Entry entry
 				: object.javaAncestors().mapIterable())
 			{
 				final Class<?> baseClass =
 					(Class<?>)entry.key.javaObject();
-				final AvailObject className =
+				final A_String className =
 					StringDescriptor.from(baseClass.getName());
-				final List<AvailObject> processedParameters =
-					new ArrayList<AvailObject>(entry.value.tupleSize());
+				final List<A_BasicObject> processedParameters =
+					new ArrayList<A_BasicObject>(entry.value.tupleSize());
 				for (final AvailObject parameter : entry.value)
 				{
 					assert !parameter.isTuple();
@@ -1930,13 +1932,13 @@ public enum SerializerOperation
 		}
 
 		@Override
-		AvailObject compose (
+		A_BasicObject compose (
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
 			final ClassLoader classLoader =
 				deserializer.runtime().classLoader();
-			AvailObject ancestorMap = MapDescriptor.empty();
+			A_Map ancestorMap = MapDescriptor.empty();
 			try
 			{
 				for (final MapDescriptor.Entry entry
@@ -1990,16 +1992,16 @@ public enum SerializerOperation
 		OBJECT_REFERENCE.as("size range"))
 	{
 		@Override
-		AvailObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (final AvailObject object)
 		{
 			assert object.isPojoArrayType();
-			final AvailObject contentType = object.contentType();
-			final AvailObject sizeRange = object.sizeRange();
+			final A_Type contentType = object.contentType();
+			final A_Type sizeRange = object.sizeRange();
 			return array(contentType, sizeRange);
 		}
 
 		@Override
-		AvailObject compose (
+		A_BasicObject compose (
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
@@ -2024,14 +2026,14 @@ public enum SerializerOperation
 		TUPLE_OF_OBJECTS.as("class names"))
 	{
 		@Override
-		AvailObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (final AvailObject object)
 		{
 			throw new RuntimeException(
 				"Can't serialize a self pojo type directly");
 		}
 
 		@Override
-		AvailObject compose (
+		A_BasicObject compose (
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
@@ -2047,13 +2049,13 @@ public enum SerializerOperation
 	BOTTOM_POJO_TYPE (68)
 	{
 		@Override
-		AvailObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (final AvailObject object)
 		{
 			return array();
 		}
 
 		@Override
-		AvailObject compose (
+		A_BasicObject compose (
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
@@ -2069,13 +2071,13 @@ public enum SerializerOperation
 		OBJECT_REFERENCE.as("function type for code type"))
 	{
 		@Override
-		AvailObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (final AvailObject object)
 		{
 			return array(object.functionType());
 		}
 
 		@Override
-		AvailObject compose (
+		A_BasicObject compose (
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
@@ -2091,13 +2093,13 @@ public enum SerializerOperation
 		OBJECT_REFERENCE.as("function type for continuation type"))
 	{
 		@Override
-		AvailObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (final AvailObject object)
 		{
 			return array(object.functionType());
 		}
 
 		@Override
-		AvailObject compose (
+		A_BasicObject compose (
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
@@ -2113,13 +2115,13 @@ public enum SerializerOperation
 		TUPLE_OF_OBJECTS.as("set of instances"))
 	{
 		@Override
-		AvailObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (final AvailObject object)
 		{
 			return array(object.instances().asTuple());
 		}
 
 		@Override
-		AvailObject compose (
+		A_BasicObject compose (
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
@@ -2136,13 +2138,13 @@ public enum SerializerOperation
 		OBJECT_REFERENCE.as("type's instance"))
 	{
 		@Override
-		AvailObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (final AvailObject object)
 		{
 			return array(object.instance());
 		}
 
 		@Override
-		AvailObject compose (
+		A_BasicObject compose (
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
@@ -2159,13 +2161,13 @@ public enum SerializerOperation
 		OBJECT_REFERENCE.as("meta's instance"))
 	{
 		@Override
-		AvailObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (final AvailObject object)
 		{
 			return array(object.instance());
 		}
 
 		@Override
-		AvailObject compose (
+		A_BasicObject compose (
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
@@ -2181,7 +2183,7 @@ public enum SerializerOperation
 		OBJECT_REFERENCE.as("element type"))
 	{
 		@Override
-		AvailObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (final AvailObject object)
 		{
 			return array (
 				object.sizeRange(),
@@ -2189,7 +2191,7 @@ public enum SerializerOperation
 		}
 
 		@Override
-		AvailObject compose (
+		A_BasicObject compose (
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
@@ -2210,7 +2212,7 @@ public enum SerializerOperation
 		OBJECT_REFERENCE.as("value type"))
 	{
 		@Override
-		AvailObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (final AvailObject object)
 		{
 			return array (
 				object.sizeRange(),
@@ -2219,7 +2221,7 @@ public enum SerializerOperation
 		}
 
 		@Override
-		AvailObject compose (
+		A_BasicObject compose (
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
@@ -2240,14 +2242,14 @@ public enum SerializerOperation
 		OBJECT_REFERENCE.as("literal type"))
 	{
 		@Override
-		AvailObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (final AvailObject object)
 		{
 			return array (
 				object.literalType());
 		}
 
 		@Override
-		AvailObject compose (
+		A_BasicObject compose (
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
@@ -2263,7 +2265,7 @@ public enum SerializerOperation
 		OBJECT_REFERENCE.as("expression type"))
 	{
 		@Override
-		AvailObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (final AvailObject object)
 		{
 			return array (
 				IntegerDescriptor.fromInt(object.parseNodeKind().ordinal()),
@@ -2271,7 +2273,7 @@ public enum SerializerOperation
 		}
 
 		@Override
-		AvailObject compose (
+		A_BasicObject compose (
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
@@ -2291,16 +2293,16 @@ public enum SerializerOperation
 		OBJECT_REFERENCE.as("content type"))
 	{
 		@Override
-		AvailObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (final AvailObject object)
 		{
-			final AvailObject readType = object.readType();
+			final A_Type readType = object.readType();
 			assert readType.equals(object.writeType());
 			return array (
 				readType);
 		}
 
 		@Override
-		AvailObject compose (
+		A_BasicObject compose (
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
@@ -2316,10 +2318,10 @@ public enum SerializerOperation
 		OBJECT_REFERENCE.as("content type"))
 	{
 		@Override
-		AvailObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (final AvailObject object)
 		{
-			final AvailObject readType = object.readType();
-			final AvailObject writeType = object.writeType();
+			final A_Type readType = object.readType();
+			final A_Type writeType = object.writeType();
 			assert !readType.equals(writeType);
 			return array (
 				readType,
@@ -2327,7 +2329,7 @@ public enum SerializerOperation
 		}
 
 		@Override
-		AvailObject compose (
+		A_BasicObject compose (
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
@@ -2344,13 +2346,13 @@ public enum SerializerOperation
 	BOTTOM_TYPE (80)
 	{
 		@Override
-		AvailObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (final AvailObject object)
 		{
 			return array();
 		}
 
 		@Override
-		AvailObject compose (
+		A_BasicObject compose (
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
@@ -2414,7 +2416,7 @@ public enum SerializerOperation
 	 *            An array of {@code AvailObject}s whose entries agree with this
 	 *            {@link SerializerOperation}'s operands.
 	 */
-	abstract AvailObject[] decompose (
+	abstract A_BasicObject[] decompose (
 		final AvailObject object);
 
 	/**
@@ -2430,7 +2432,7 @@ public enum SerializerOperation
 	 * @return
 	 *            The new {@code AvailObject}.
 	 */
-	abstract AvailObject compose (
+	abstract A_BasicObject compose (
 		final AvailObject[] subobjects,
 		final Deserializer deserializer);
 
@@ -2446,11 +2448,11 @@ public enum SerializerOperation
 		final Serializer serializer)
 	{
 		serializer.writeByte(ordinal());
-		final AvailObject[] decomposed = decompose(object);
+		final A_BasicObject[] decomposed = decompose(object);
 		assert decomposed.length == operands.length;
 		for (int i = 0; i < decomposed.length; i++)
 		{
-			operands[i].write(decomposed[i], serializer);
+			operands[i].write((AvailObject)decomposed[i], serializer);
 		}
 	}
 
@@ -2466,11 +2468,11 @@ public enum SerializerOperation
 		final Deserializer deserializer)
 	{
 		final AvailObject currentModule = deserializer.currentModule();
-		if (moduleName.equals(currentModule.name()))
+		if (moduleName.equals(currentModule.moduleName()))
 		{
 			// An atom in the current module.  Create it if necessary.
 			// Check if it's already defined somewhere...
-			final AvailObject trueNames =
+			final A_Set trueNames =
 				currentModule.trueNamesForStringName(atomName);
 			if (trueNames.setSize() == 1)
 			{
@@ -2485,15 +2487,15 @@ public enum SerializerOperation
 		}
 		// An atom in an imported module.
 		final AvailObject module = deserializer.moduleNamed(moduleName);
-		final AvailObject newNames = module.newNames();
+		final A_Map newNames = module.newNames();
 		if (newNames.hasKey(atomName))
 		{
 			return newNames.mapAt(atomName);
 		}
-		final AvailObject privateNames = module.privateNames();
+		final A_Map privateNames = module.privateNames();
 		if (privateNames.hasKey(atomName))
 		{
-			final AvailObject candidates = privateNames.mapAt(atomName);
+			final A_Set candidates = privateNames.mapAt(atomName);
 			if (candidates.setSize() == 1)
 			{
 				return candidates.asTuple().tupleAt(1);
@@ -2533,10 +2535,10 @@ public enum SerializerOperation
 		{
 			subobjects[i] = operands[i].read(deserializer);
 		}
-		final AvailObject newObject =
+		final A_BasicObject newObject =
 			operation.compose(subobjects, deserializer);
 		newObject.makeImmutable();
-		deserializer.addObject(newObject);
+		deserializer.addObject((AvailObject)newObject);
 	}
 
 	/**
@@ -2547,8 +2549,8 @@ public enum SerializerOperation
 	 * @param objects The {@link AvailObject}s.
 	 * @return The same array of {@code AvailObject}s.
 	 */
-	static AvailObject[] array (
-		final AvailObject... objects)
+	static A_BasicObject[] array (
+		final A_BasicObject... objects)
 	{
 		return objects;
 	}

@@ -68,7 +68,7 @@ extends AbstractAvailCompiler
 		final L2Interpreter interpreter,
 		final ModuleName moduleName,
 		final String source,
-		final List<AvailObject> tokens)
+		final List<A_Token> tokens)
 	{
 		super(interpreter, moduleName, source, tokens);
 	}
@@ -156,20 +156,20 @@ extends AbstractAvailCompiler
 		final ParserState stateBeforeCall,
 		final ParserState stateAfterCall,
 		final List<AvailObject> passedArgumentExpressions,
-		final AvailObject bundle,
-		final AvailObject method,
+		final A_BasicObject bundle,
+		final A_BasicObject method,
 		final Con<AvailObject> continuation)
 	{
-		final AvailObject definitions = method.definitionsTuple();
+		final A_Tuple definitions = method.definitionsTuple();
 		assert definitions.tupleSize() == 1;
 		final AvailObject macroDefinition = definitions.tupleAt(1);
-		final AvailObject macroBody = macroDefinition.bodyBlock();
-		final AvailObject macroBodyKind = macroBody.kind();
+		final A_Function macroBody = macroDefinition.bodyBlock();
+		final A_Type macroBodyKind = macroBody.kind();
 		final List<AvailObject> argumentExpressions =
 			new ArrayList<AvailObject>(passedArgumentExpressions.size());
 		// Strip off macro substitution wrappers from the arguments.  These
 		// were preserved only long enough to test grammatical restrictions.
-		for (final AvailObject argumentExpression : passedArgumentExpressions)
+		for (final A_BasicObject argumentExpression : passedArgumentExpressions)
 		{
 			argumentExpressions.add(argumentExpression.stripMacro());
 		}
@@ -185,9 +185,9 @@ extends AbstractAvailCompiler
 							new ArrayList<Integer>();
 						for (int i = 1; i <= macroBody.code().numArgs(); i++)
 						{
-							final AvailObject type =
+							final A_Type type =
 								macroBodyKind.argsTupleType().typeAtIndex(i);
-							final AvailObject value =
+							final A_BasicObject value =
 								argumentExpressions.get(i - 1);
 							if (!value.isInstanceOf(type))
 							{

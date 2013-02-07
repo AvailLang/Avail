@@ -54,15 +54,15 @@ public class P_107_SetIsSubset extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 2;
-		final AvailObject set1 = args.get(0);
-		final AvailObject set2 = args.get(1);
+		final A_Set set1 = args.get(0);
+		final A_Set set2 = args.get(1);
+
 		return interpreter.primitiveSuccess(
-			AtomDescriptor.objectFromBoolean(
-				set1.isSubsetOf(set2)));
+			AtomDescriptor.objectFromBoolean(set1.isSubsetOf(set2)));
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

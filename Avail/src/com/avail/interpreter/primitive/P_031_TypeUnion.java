@@ -54,14 +54,14 @@ public class P_031_TypeUnion extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 2;
-		final AvailObject type1 = args.get(0);
+		final A_BasicObject type1 = args.get(0);
 		final AvailObject type2 = args.get(1);
 		return interpreter.primitiveSuccess(
 			type1.typeUnion(type2).makeImmutable());
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
@@ -71,11 +71,11 @@ public class P_031_TypeUnion extends Primitive
 	}
 
 	@Override
-	public AvailObject returnTypeGuaranteedByVM (
-		final List<AvailObject> argumentTypes)
+	public A_Type returnTypeGuaranteedByVM (
+		final List<A_Type> argumentTypes)
 	{
-		final AvailObject meta1 = argumentTypes.get(0);
-		final AvailObject meta2 = argumentTypes.get(1);
+		final A_Type meta1 = argumentTypes.get(0);
+		final A_Type meta2 = argumentTypes.get(1);
 
 		return meta1.typeUnion(meta2);  // by metavariance
 	}

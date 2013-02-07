@@ -62,8 +62,8 @@ public class P_407_BootstrapInitializingVariableDeclarationMacro extends Primiti
 		final Interpreter interpreter)
 	{
 		assert args.size() == 3;
-		final AvailObject variableNameLiteral = args.get(0);
-		final AvailObject typeLiteral = args.get(1);
+		final A_BasicObject variableNameLiteral = args.get(0);
+		final A_BasicObject typeLiteral = args.get(1);
 		final AvailObject initializingExpression = args.get(2);
 
 		final AvailObject type = typeLiteral.token().literal();
@@ -94,7 +94,7 @@ public class P_407_BootstrapInitializingVariableDeclarationMacro extends Primiti
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

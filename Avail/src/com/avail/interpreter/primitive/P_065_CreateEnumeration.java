@@ -54,14 +54,14 @@ public class P_065_CreateEnumeration extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
-		final AvailObject instanceSet = args.get(0);
-		final AvailObject enumeration =
+		final A_Set instanceSet = args.get(0);
+		final A_Type enumeration =
 			AbstractEnumerationTypeDescriptor.withInstances(instanceSet);
 		return interpreter.primitiveSuccess(enumeration);
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction()
+	protected A_Type privateBlockTypeRestriction()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
@@ -70,17 +70,17 @@ public class P_065_CreateEnumeration extends Primitive
 	}
 
 	@Override
-	public AvailObject returnTypeGuaranteedByVM (
-		final List<AvailObject> argumentTypes)
+	public A_Type returnTypeGuaranteedByVM (
+		final List<A_Type> argumentTypes)
 	{
-		final AvailObject setType = argumentTypes.get(0);
+		final A_Type setType = argumentTypes.get(0);
 		// The type restricting the set's elements (i.e., the set's element
 		// type) has as instances the same objects that might be members of the
 		// enumeration that the primitive would construct.  Therefore, answer
 		// the set's element type's type.  Note that this works especially well
 		// when the set's element type is an enumeration.
-		final AvailObject elementType = setType.contentType();
-		final AvailObject metaType = InstanceMetaDescriptor.on(elementType);
+		final A_Type elementType = setType.contentType();
+		final A_Type metaType = InstanceMetaDescriptor.on(elementType);
 		metaType.makeImmutable();
 		return metaType;
 	}

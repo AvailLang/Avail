@@ -195,7 +195,7 @@ public final class BootstrapGenerator
 	 * @return The localized name of the special object.
 	 */
 	private String specialObjectName (
-		final AvailObject specialObject)
+		final A_BasicObject specialObject)
 	{
 		final String name = namesBySpecialObject.get(specialObject);
 		assert name != null :
@@ -218,7 +218,7 @@ public final class BootstrapGenerator
 		final StringBuilder builder = new StringBuilder();
 		for (final String name : names)
 		{
-			final AvailObject specialObject = specialObjectsByName.get(name);
+			final A_BasicObject specialObject = specialObjectsByName.get(name);
 			builder.append("\n\t");
 			builder.append(String.format(
 				"/* %3d */", specialObjectIndexMap.get(specialObject)));
@@ -498,9 +498,9 @@ public final class BootstrapGenerator
 		final boolean forSemanticRestriction)
 	{
 		final StringBuilder builder = new StringBuilder();
-		final AvailObject functionType = primitive.blockTypeRestriction();
-		final AvailObject parameterTypes = functionType.argsTupleType();
-		final AvailObject parameterCount = parameterTypes.sizeRange();
+		final A_Type functionType = primitive.blockTypeRestriction();
+		final A_Type parameterTypes = functionType.argsTupleType();
+		final A_Type parameterCount = parameterTypes.sizeRange();
 		assert parameterCount.lowerBound().equals(
 				parameterCount.upperBound())
 			: String.format(
@@ -524,8 +524,8 @@ public final class BootstrapGenerator
 			{
 				argName = preamble.getString(parameterPrefix.name()) + i;
 			}
-			final AvailObject type = parameterTypes.typeAtIndex(i);
-			final AvailObject paramType = forSemanticRestriction
+			final A_Type type = parameterTypes.typeAtIndex(i);
+			final A_Type paramType = forSemanticRestriction
 				? InstanceMetaDescriptor.on(type)
 				: type;
 			final String typeName = specialObjectName(paramType);
@@ -626,7 +626,7 @@ public final class BootstrapGenerator
 	private String block (
 		final String declarations,
 		final String statements,
-		final @Nullable AvailObject returnType)
+		final @Nullable A_BasicObject returnType)
 	{
 		final StringBuilder builder = new StringBuilder();
 		builder.append("\n[\n");
@@ -787,7 +787,7 @@ public final class BootstrapGenerator
 	private void generatePrimitiveFailureFunction (
 		final PrintWriter writer)
 	{
-		final AvailObject functionType = FunctionTypeDescriptor.create(
+		final A_BasicObject functionType = FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
 				IntegerRangeTypeDescriptor.naturalNumbers()),
 			BottomTypeDescriptor.bottom());
@@ -855,7 +855,7 @@ public final class BootstrapGenerator
 		declarations.append('\t');
 		declarations.append(argName);
 		declarations.append(" : ");
-		final AvailObject functionType = FunctionTypeDescriptor.create(
+		final A_BasicObject functionType = FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
 				IntegerRangeTypeDescriptor.naturalNumbers()),
 			BottomTypeDescriptor.bottom());

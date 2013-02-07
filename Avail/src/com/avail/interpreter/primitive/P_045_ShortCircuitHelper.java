@@ -57,8 +57,8 @@ public class P_045_ShortCircuitHelper extends Primitive
 	{
 		assert args.size() == 2;
 		@SuppressWarnings("unused")
-		final AvailObject ignoredBool = args.get(0);
-		final AvailObject block = args.get(1);
+		final A_Atom ignoredBool = args.get(0);
+		final A_Function block = args.get(1);
 		assert block.code().numArgs() == 0;
 		return interpreter.invokeFunctionArguments (
 			block,
@@ -66,7 +66,7 @@ public class P_045_ShortCircuitHelper extends Primitive
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

@@ -54,14 +54,15 @@ public class P_102_SetUnion extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 2;
-		final AvailObject set1 = args.get(0);
-		final AvailObject set2 = args.get(1);
+		final A_Set set1 = args.get(0);
+		final A_Set set2 = args.get(1);
+
 		return interpreter.primitiveSuccess(
 			set1.setUnionCanDestroy(set2, true));
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

@@ -59,8 +59,8 @@ public class P_504_BindPojoInstanceField extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 2;
-		final AvailObject pojo = args.get(0);
-		final AvailObject fieldName = args.get(1);
+		final A_BasicObject pojo = args.get(0);
+		final A_String fieldName = args.get(1);
 		// Use the actual Java runtime type of the pojo to perform the
 		// reflective field lookup.
 		final Object object = pojo.rawPojo().javaObject();
@@ -81,7 +81,7 @@ public class P_504_BindPojoInstanceField extends Primitive
 			return interpreter.primitiveFailure(
 				E_JAVA_FIELD_NOT_AVAILABLE);
 		}
-		final AvailObject fieldType = PojoTypeDescriptor.resolve(
+		final A_Type fieldType = PojoTypeDescriptor.resolve(
 			field.getGenericType(),
 			pojo.kind().typeVariables());
 		final AvailObject var = PojoFieldDescriptor.forInnerType(
@@ -92,7 +92,7 @@ public class P_504_BindPojoInstanceField extends Primitive
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

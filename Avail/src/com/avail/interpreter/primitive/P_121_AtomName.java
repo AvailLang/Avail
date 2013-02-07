@@ -55,12 +55,12 @@ public class P_121_AtomName extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
-		final AvailObject atom = args.get(0);
+		final A_BasicObject atom = args.get(0);
 		return interpreter.primitiveSuccess(atom.name());
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

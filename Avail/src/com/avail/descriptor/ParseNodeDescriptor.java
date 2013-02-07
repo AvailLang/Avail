@@ -67,10 +67,10 @@ extends Descriptor
 	 *         that will be produced by this parse node.
 	 */
 	@Override @AvailMethod
-	abstract AvailObject o_ExpressionType (final AvailObject object);
+	abstract A_Type o_ExpressionType (final AvailObject object);
 
 	@Override @AvailMethod
-	final AvailObject o_Kind (final AvailObject object)
+	final A_Type o_Kind (final AvailObject object)
 	{
 		return object.parseNodeKind().create(object.expressionType());
 	}
@@ -78,7 +78,7 @@ extends Descriptor
 	@Override @AvailMethod
 	boolean o_IsInstanceOfKind (
 		final AvailObject object,
-		final AvailObject aType)
+		final A_Type aType)
 	{
 		if (PARSE_NODE.mostGeneralType().isSubtypeOf(aType))
 		{
@@ -113,10 +113,10 @@ extends Descriptor
 
 	/**
 	 * {@linkplain ParseNodeDescriptor parse nodes} must implement {@link
-	 * ParseNodeDescriptor#o_EqualsParseNode(AvailObject, AvailObject)}.
+	 * ParseNodeDescriptor#o_EqualsParseNode(AvailObject, A_BasicObject)}.
 	 */
 	@Override @AvailMethod
-	final boolean o_Equals (final AvailObject object, final AvailObject another)
+	final boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		return another.equalsParseNode(object);
 	}
@@ -127,7 +127,7 @@ extends Descriptor
 	@Override @AvailMethod
 	abstract boolean o_EqualsParseNode (
 		final AvailObject object,
-		final AvailObject aParseNode);
+		final A_BasicObject aParseNode);
 
 	/**
 	 * Emit the effect of this node.  By default that means to emit the value of
@@ -276,7 +276,7 @@ extends Descriptor
 	@Override @AvailMethod
 	abstract void o_ValidateLocally (
 		final AvailObject object,
-		final @Nullable AvailObject parent);
+		final @Nullable A_BasicObject parent);
 
 	@Override @AvailMethod
 	void o_FlattenStatementsInto (
@@ -308,7 +308,7 @@ extends Descriptor
 	}
 
 	@Override
-	public boolean o_ShowValueInNameForDebugger (final AvailObject object)
+	public boolean o_ShowValueInNameForDebugger (final A_BasicObject object)
 	{
 		return false;
 	}

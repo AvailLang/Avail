@@ -75,7 +75,7 @@ public class L2_CREATE_CONTINUATION extends L2Operation
 		final int destIndex = interpreter.nextWord();
 
 		final AvailObject function = interpreter.pointerAt(functionIndex);
-		final AvailObject code = function.code();
+		final A_BasicObject code = function.code();
 		final int frameSize = code.numArgsAndLocalsAndStack();
 
 		final AvailObject continuation =
@@ -88,7 +88,7 @@ public class L2_CREATE_CONTINUATION extends L2Operation
 				interpreter.chunk(),
 				wordcodeOffset);
 
-		final AvailObject slots = interpreter.vectorAt(slotsIndex);
+		final A_Tuple slots = interpreter.vectorAt(slotsIndex);
 		final int size = slots.tupleSize();
 		for (int i = 1; i <= size; i++)
 		{
@@ -110,7 +110,7 @@ public class L2_CREATE_CONTINUATION extends L2Operation
 			(L2WritePointerOperand) instruction.operands[6];
 		final L2ObjectRegister destinationRegister =
 			destinationOperand.register;
-		final AvailObject functionType = registers.typeAt(
+		final A_Type functionType = registers.typeAt(
 			functionOperand.register);
 		assert functionType.isSubtypeOf(
 			FunctionTypeDescriptor.mostGeneralType());

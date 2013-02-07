@@ -54,13 +54,13 @@ public class P_013_CreateVariableType extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
-		final AvailObject type = args.get(0);
+		final A_BasicObject type = args.get(0);
 		return interpreter.primitiveSuccess(
 			VariableTypeDescriptor.wrapInnerType(type));
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

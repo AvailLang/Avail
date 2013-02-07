@@ -36,6 +36,7 @@ import static com.avail.tools.bootstrap.Resources.*;
 import java.io.*;
 import java.util.*;
 import com.avail.AvailRuntime;
+import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.AvailObject;
 
 /**
@@ -74,7 +75,7 @@ extends PropertiesFileGenerator
 		final Set<String> keys = new HashSet<String>();
 		for (int i = 0; i < specialObjects.size(); i++)
 		{
-			final AvailObject specialObject = specialObjects.get(i);
+			final A_BasicObject specialObject = specialObjects.get(i);
 			if (specialObject != null)
 			{
 				final String text =

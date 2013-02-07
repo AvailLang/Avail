@@ -56,19 +56,19 @@ public class P_092_MapBindings extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
-		final AvailObject map = args.get(0);
-		final AvailObject[] bindings = new AvailObject[map.mapSize()];
+		final A_Map map = args.get(0);
+
+		final A_Tuple[] bindings = new A_Tuple[map.mapSize()];
 		int index = 0;
 		for (final MapDescriptor.Entry entry : map.mapIterable())
 		{
-			bindings[index++] = TupleDescriptor.from(
-				entry.key, entry.value);
+			bindings[index++] = TupleDescriptor.from(entry.key, entry.value);
 		}
 		return interpreter.primitiveSuccess(TupleDescriptor.from(bindings));
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

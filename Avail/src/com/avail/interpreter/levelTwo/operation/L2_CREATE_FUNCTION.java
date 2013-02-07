@@ -63,8 +63,8 @@ public class L2_CREATE_FUNCTION extends L2Operation
 		final int codeIndex = interpreter.nextWord();
 		final int outersIndex = interpreter.nextWord();
 		final int destIndex = interpreter.nextWord();
-		final AvailObject outersVector = interpreter.vectorAt(outersIndex);
-		final AvailObject function = FunctionDescriptor.createExceptOuters(
+		final A_Tuple outersVector = interpreter.vectorAt(outersIndex);
+		final A_Function function = FunctionDescriptor.createExceptOuters(
 			interpreter.chunk().literalAt(codeIndex),
 			outersVector.tupleSize());
 		for (int i = 1, end = outersVector.tupleSize(); i <= end; i++)
@@ -93,7 +93,7 @@ public class L2_CREATE_FUNCTION extends L2Operation
 		registers.propagateWriteTo(destinationOperand.register);
 		if (outersOperand.vector.allRegistersAreConstantsIn(registers))
 		{
-			final AvailObject function =
+			final A_Function function =
 				FunctionDescriptor.createExceptOuters(
 					codeOperand.object,
 					outersOperand.vector.registers().size());

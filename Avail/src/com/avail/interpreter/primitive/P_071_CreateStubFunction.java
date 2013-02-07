@@ -56,7 +56,7 @@ public class P_071_CreateStubFunction extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 2;
-		final AvailObject newFunctionType = args.get(0);
+		final A_BasicObject newFunctionType = args.get(0);
 		final AvailObject function = args.get(1);
 		return interpreter.primitiveSuccess(
 			FunctionDescriptor.createStubWithArgTypes(
@@ -64,7 +64,7 @@ public class P_071_CreateStubFunction extends Primitive
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

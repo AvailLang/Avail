@@ -63,18 +63,17 @@ extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
-		final AvailObject exception = args.get(0);
+		final A_BasicObject exception = args.get(0);
 		// Attach a stack dump to the exception.
-		final AvailObject fieldMap = exception.fieldMap();
+		final A_Map fieldMap = exception.fieldMap();
 		final List<String> stack = interpreter.dumpStack();
-		final List<AvailObject> frames =
-			new ArrayList<AvailObject>(stack.size());
+		final List<A_String> frames = new ArrayList<A_String>(stack.size());
 		for (int i = stack.size() - 1; i >= 0; i--)
 		{
 			frames.add(StringDescriptor.from(stack.get(i)));
 		}
-		final AvailObject stackDump = TupleDescriptor.fromList(frames);
-		final AvailObject newFieldMap = fieldMap.mapAtPuttingCanDestroy(
+		final A_Tuple stackDump = TupleDescriptor.fromList(frames);
+		final A_Map newFieldMap = fieldMap.mapAtPuttingCanDestroy(
 			ObjectTypeDescriptor.stackDumpAtom(), stackDump, false);
 		final AvailObject newException =
 			ObjectDescriptor.objectFromMap(newFieldMap);
@@ -83,7 +82,7 @@ extends Primitive
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
@@ -92,7 +91,7 @@ extends Primitive
 	}
 
 	@Override
-	protected AvailObject privateFailureVariableType ()
+	protected A_Type privateFailureVariableType ()
 	{
 		return ObjectTypeDescriptor.exceptionType();
 	}

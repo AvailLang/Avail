@@ -48,7 +48,7 @@ import com.avail.serialization.Serializer;
  * of that property, any Avail object.  Atoms without properties have a
  * {@linkplain AtomDescriptor representation} that does not include a slot for
  * the properties information, but adding a property causes it to transform (via
- * {@link AvailObject#becomeIndirectionTo(AvailObject)} into a {@linkplain
+ * {@link AvailObject#becomeIndirectionTo(A_BasicObject)} into a {@linkplain
  * AtomWithPropertiesDescriptor representation} that has a slot which contains
  * a map from property keys to property values.
  * </p>
@@ -145,7 +145,7 @@ extends AtomWithPropertiesDescriptor
 	@Override @AvailMethod
 	AvailObject o_GetAtomProperty (
 		final AvailObject object,
-		final AvailObject key)
+		final A_Atom key)
 	{
 		synchronized (object)
 		{
@@ -156,8 +156,8 @@ extends AtomWithPropertiesDescriptor
 	@Override @AvailMethod
 	void o_SetAtomProperty (
 		final AvailObject object,
-		final AvailObject key,
-		final AvailObject value)
+		final A_Atom key,
+		final A_BasicObject value)
 	{
 		synchronized (object)
 		{

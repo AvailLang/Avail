@@ -60,7 +60,7 @@ public class MessageSplitter
 	/**
 	 * The Avail string to be parsed.
 	 */
-	private final AvailObject messageName;
+	private final A_String messageName;
 
 	/**
 	 * The individual tokens ({@linkplain StringDescriptor strings})
@@ -101,8 +101,8 @@ public class MessageSplitter
 	 * another backquote.</li>
 	 * </ul></p>
 	 */
-	final List<AvailObject> messageParts =
-		new ArrayList<AvailObject>(10);
+	final List<A_String> messageParts =
+		new ArrayList<A_String>(10);
 
 	/** The current one-based parsing position in the list of tokens. */
 	private int messagePartPosition;
@@ -191,13 +191,51 @@ public class MessageSplitter
 		 * Return whether the {@link SectionCheckpoint} with the given index is
 		 * within this expression.
 		 *
-		 * @param sectionCheckpoint Which section checkpoint to look for.
+		 * @param sectionCheckpointNumber Which section checkpoint to look for.
 		 * @return Whether this expression recursively contains the given
 		 *         section checkpoint.
 		 */
-		boolean containsSectionCheckpoint (final int sectionCheckpoint)
+		final boolean containsSectionCheckpoint (
+			final int sectionCheckpointNumber)
 		{
+			final List<SectionCheckpoint> sectionCheckpoints =
+				new ArrayList<SectionCheckpoint>();
+			extractSectionCheckpointsInto(sectionCheckpoints);
+			for (final SectionCheckpoint checkpoint : sectionCheckpoints)
+			{
+				if (checkpoint.subscript == sectionCheckpointNumber)
+				{
+					return true;
+				}
+			}
 			return false;
+		}
+
+		/**
+		 * Return whether any {@link SectionCheckpoint} occurs within this
+		 * expression.
+		 *
+		 * @return Whether this expression recursively contains any section
+		 *         checkpoints.
+		 */
+		final boolean containsAnySectionCheckpoint ()
+		{
+			final List<SectionCheckpoint> sectionCheckpoints =
+				new ArrayList<SectionCheckpoint>();
+			extractSectionCheckpointsInto(sectionCheckpoints);
+			return !sectionCheckpoints.isEmpty();
+		}
+
+		/**
+		 * Extract all {@link SectionCheckpoint}s into the specified list.
+		 *
+		 * @param sectionCheckpoints
+		 *        Where to add section checkpoints found within this expression.
+		 */
+		void extractSectionCheckpointsInto (
+			final List<SectionCheckpoint> sectionCheckpoints)
+		{
+			// Do nothing by default.
 		}
 
 		/**
@@ -248,7 +286,7 @@ public class MessageSplitter
 		 *        If the argument type is inappropriate.
 		 */
 		abstract public void checkType (
-			final AvailObject argumentType,
+			final A_Type argumentType,
 			final int sectionNumber)
 		throws SignatureException;
 
@@ -279,10 +317,24 @@ public class MessageSplitter
 		 *        parsing instructions.
 		 * @param caseInsensitive
 		 *        Should keywords be matched case insensitively?
+		 * @param partialListsCount
+		 *        The number of lists that are partially constructed in the
+		 *        enclosing expressions.  In order to assemble arguments to pass
+		 *        to a prefix function at a {@link SectionCheckpoint section
+		 *        checkpoint}, this is the number of times that we have to pop
+		 *        a value off the stack, only to concatenate it to the
+		 *        <em>list</em> that's under it on the stack (replacing the
+		 *        old, unaltered list with the new list).  The new stack is
+		 *        converted into a {@linkplain ListNodeDescriptor list node} and
+		 *        pushed on the old stack in preparation for being passed to the
+		 *        prefix function associated with that section checkpoint.  If
+		 *        we're in a region that cannot have a section checkpoint, then
+		 *        pass {@link Integer#MIN_VALUE}.
 		 */
 		abstract void emitOn (
 			final List<Integer> list,
-			final boolean caseInsensitive);
+			final boolean caseInsensitive,
+			final int partialListsCount);
 
 		@Override
 		public String toString ()
@@ -344,7 +396,7 @@ public class MessageSplitter
 
 		@Override
 		public void checkType (
-			final AvailObject argumentType,
+			final A_Type argumentType,
 			final int sectionNumber)
 		{
 			assert false : "checkType() should not be called for Simple" +
@@ -354,7 +406,8 @@ public class MessageSplitter
 		@Override
 		void emitOn (
 			final List<Integer> list,
-			final boolean caseInsensitive)
+			final boolean caseInsensitive,
+			final int partialListsCount)
 		{
 			// Parse the specific keyword.
 			final ParsingOperation op =
@@ -379,7 +432,7 @@ public class MessageSplitter
 			final StringBuilder builder,
 			final int indent)
 		{
-			final AvailObject token = messageParts.get(tokenIndex - 1);
+			final A_String token = messageParts.get(tokenIndex - 1);
 			builder.append(token.asNativeString());
 		}
 	}
@@ -427,7 +480,7 @@ public class MessageSplitter
 		 */
 		@Override
 		public void checkType (
-			final AvailObject argumentType,
+			final A_Type argumentType,
 			final int sectionNumber)
 		throws SignatureException
 		{
@@ -447,7 +500,8 @@ public class MessageSplitter
 		@Override
 		void emitOn (
 			final List<Integer> list,
-			final boolean caseInsensitive)
+			final boolean caseInsensitive,
+			final int partialListsCount)
 		{
 			list.add(PARSE_ARGUMENT.encoding());
 			list.add(CHECK_ARGUMENT.encoding(absoluteUnderscoreIndex));
@@ -491,7 +545,8 @@ public class MessageSplitter
 		@Override
 		void emitOn (
 			final List<Integer> list,
-			final boolean caseInsensitive)
+			final boolean caseInsensitive,
+			final int partialListsCount)
 		{
 			list.add(PARSE_ARGUMENT_IN_MODULE_SCOPE.encoding());
 			list.add(CHECK_ARGUMENT.encoding(absoluteUnderscoreIndex));
@@ -536,7 +591,8 @@ public class MessageSplitter
 		@Override
 		void emitOn (
 			final List<Integer> list,
-			final boolean caseInsensitive)
+			final boolean caseInsensitive,
+			final int partialListsCount)
 		{
 			// First, parse a raw token. Next, record it in a list of lists
 			// that will later be used to check negative precedence
@@ -744,23 +800,17 @@ public class MessageSplitter
 		}
 
 		@Override
-		boolean containsSectionCheckpoint (final int sectionCheckpoint)
+		void extractSectionCheckpointsInto (
+			final List<SectionCheckpoint> sectionCheckpoints)
 		{
 			for (final Expression expression : expressionsBeforeDagger)
 			{
-				if (expression.containsSectionCheckpoint(sectionCheckpoint))
-				{
-					return true;
-				}
+				expression.extractSectionCheckpointsInto(sectionCheckpoints);
 			}
 			for (final Expression expression : expressionsAfterDagger)
 			{
-				if (expression.containsSectionCheckpoint(sectionCheckpoint))
-				{
-					return true;
-				}
+				expression.extractSectionCheckpointsInto(sectionCheckpoints);
 			}
-			return false;
 		}
 
 		/**
@@ -769,7 +819,7 @@ public class MessageSplitter
 		 */
 		@Override
 		public void checkType (
-			final AvailObject argumentType,
+			final A_Type argumentType,
 			final int sectionNumber)
 		throws SignatureException
 		{
@@ -799,15 +849,15 @@ public class MessageSplitter
 				// size ranges from the number of arguments left of the dagger
 				// up to that plus the number of arguments right of the dagger.
 				assert argumentType.isTupleType();
-				final AvailObject expectedLower = IntegerDescriptor.fromInt(
+				final A_Number expectedLower = IntegerDescriptor.fromInt(
 					argumentsBeforeDagger);
-				final AvailObject expectedUpper = IntegerDescriptor.fromInt(
+				final A_Number expectedUpper = IntegerDescriptor.fromInt(
 					argumentsBeforeDagger + argumentsAfterDagger);
-				final AvailObject typeTuple = argumentType.typeTuple();
+				final A_Tuple typeTuple = argumentType.typeTuple();
 				final int limit = typeTuple.tupleSize() + 1;
 				for (int i = 1; i <= limit; i++)
 				{
-					final AvailObject solutionType =
+					final A_BasicObject solutionType =
 						argumentType.typeAtIndex(i);
 					if (solutionType.equals(BottomTypeDescriptor.bottom()))
 					{
@@ -822,10 +872,9 @@ public class MessageSplitter
 					// Check that the solution that will reside at the current
 					// index accepts either a full group or a group up to the
 					// dagger.
-					final AvailObject solutionTypeSizes =
-						solutionType.sizeRange();
-					final AvailObject lower = solutionTypeSizes.lowerBound();
-					final AvailObject upper = solutionTypeSizes.upperBound();
+					final A_Type solutionTypeSizes = solutionType.sizeRange();
+					final A_Number lower = solutionTypeSizes.lowerBound();
+					final A_Number upper = solutionTypeSizes.upperBound();
 					if (!lower.equals(expectedLower)
 						|| !upper.equals(expectedUpper))
 					{
@@ -865,7 +914,8 @@ public class MessageSplitter
 		@Override
 		void emitOn (
 			final List<Integer> list,
-			final boolean caseInsensitive)
+			final boolean caseInsensitive,
+			final int partialListsCount)
 		{
 			if (!needsDoubleWrapping())
 			{
@@ -873,7 +923,7 @@ public class MessageSplitter
 				 * expressions rather than a list of fixed-length lists of
 				 * expressions.  The generated instructions should look like:
 				 *
-				 * push current parse position
+				 * push current parse position on the mark stack
 				 * push empty list
 				 * branch to @loopSkip
 				 * @loopStart:
@@ -887,7 +937,7 @@ public class MessageSplitter
 				 * @loopExit:
 				 * check progress and update saved position, or abort.
 				 * @loopSkip:
-				 * under-pop parse position (remove 2nd from top of stack)
+				 * discard the saved position from the mark stack.
 				 */
 				list.add(SAVE_PARSE_POSITION.encoding());
 				list.add(NEW_LIST.encoding());
@@ -895,14 +945,40 @@ public class MessageSplitter
 				final int loopStart = list.size() + 1;
 				for (final Expression expression : expressionsBeforeDagger)
 				{
-					expression.emitOn(list, caseInsensitive);
+					// If this is an argument then it doesn't matter what we
+					// adjust by, since an argument can't contain a checkpoint.
+					// If it's a group then it will start by pushing an empty
+					// list to accumulate repeated solutions.  We have to push
+					// that list of solutions onto our list of solutions if the
+					// group contains a checkpoint (even if the checkpoint is
+					// before any arguments), so it's +1.  Thus, it's a +1
+					// whether it's an argument or a group.
+					final int stackAdjustment =
+						expression.isArgumentOrGroup() ? 1 : 0;
+					expression.emitOn(
+						list,
+						caseInsensitive,
+						partialListsCount + stackAdjustment);
+					// Append as soon as the value's available (rather than
+					// leaving it on the stack until non-argument keywords and
+					// such have been parsed).  Either way works, since exactly
+					// one subexpression before the dagger must be an argument
+					// or group, but the stack adjustment logic is easier this
+					// way.
+					if (expression.isArgumentOrGroup())
+					{
+						// Add a raw answer (no sublist) to the outer list.
+						list.add(APPEND_ARGUMENT.encoding());
+					}
 				}
-				list.add(APPEND_ARGUMENT.encoding());
 				list.add(BRANCH.encoding(loopExit));
 				for (final Expression expression : expressionsAfterDagger)
 				{
 					assert !expression.isArgumentOrGroup();
-					expression.emitOn(list, caseInsensitive);
+					expression.emitOn(
+						list,
+						caseInsensitive,
+						partialListsCount + 1);
 				}
 				list.add(ENSURE_PARSE_PROGRESS.encoding());
 				list.add(JUMP.encoding(loopStart));
@@ -920,7 +996,7 @@ public class MessageSplitter
 				 * group, and the backward jump should be preceded by an append
 				 * to capture a solution.  Here's the code:
 				 *
-				 * push current parse position
+				 * push current parse position onto the mark stack
 				 * push empty list (the list of solutions)
 				 * branch to @loopSkip
 				 * @loopStart:
@@ -946,18 +1022,46 @@ public class MessageSplitter
 				list.add(NEW_LIST.encoding());
 				for (final Expression expression : expressionsBeforeDagger)
 				{
-					expression.emitOn(list, caseInsensitive);
+					// We always have to append the current (potentially
+					// partial) iteration to the outer list, so we always have
+					// at least a +1 adjustment for checkpoints.  The logic
+					// related to an additional adjustment of +1 is whether the
+					// subexpression could have produced a partially formed
+					// argument (never) or group at the point a checkpoint is
+					// reached.  Since we push arguments/groups as we go through
+					// our direct children, we only have to worry about this for
+					// the case of a group.  The group will deal with its own
+					// adjustments, so just deal with the fact that we have
+					// to append our latest solution (+1) after pushing the
+					// partially formed group (another +1).  Thus, it's a +2
+					// when it's an argument (doesn't matter) or a group.
+					final int stackAdjustment =
+						expression.isArgumentOrGroup() ? 2 : 1;
+					expression.emitOn(
+						list,
+						caseInsensitive,
+						partialListsCount + stackAdjustment);
 					if (expression.isArgumentOrGroup())
 					{
+						// Add to the current solution, which is a sublist.
 						list.add(APPEND_ARGUMENT.encoding());
 					}
 				}
 				list.add(BRANCH.encoding(loopExit));
 				for (final Expression expression : expressionsAfterDagger)
 				{
-					expression.emitOn(list, caseInsensitive);
+					// Adjust it the same way we did before the double dagger.
+					final int stackAdjustment =
+						expression.isArgumentOrGroup() ? 2 : 1;
+					expression.emitOn(
+						list,
+						caseInsensitive,
+						partialListsCount + stackAdjustment);
 					if (expression.isArgumentOrGroup())
 					{
+						// Same logic for arguments/groups before the double
+						// dagger.  Add it to the sublist holding the current
+						// partial solution.
 						list.add(APPEND_ARGUMENT.encoding());
 					}
 				}
@@ -1013,7 +1117,7 @@ public class MessageSplitter
 		{
 			assert argumentProvider != null;
 			final boolean needsDouble = needsDoubleWrapping();
-			final AvailObject groupArguments = argumentProvider.next();
+			final A_BasicObject groupArguments = argumentProvider.next();
 			final Iterator<AvailObject> occurrenceProvider =
 				groupArguments.expressionsTuple().iterator();
 			while (occurrenceProvider.hasNext())
@@ -1186,14 +1290,15 @@ public class MessageSplitter
 		}
 
 		@Override
-		boolean containsSectionCheckpoint(final int sectionCheckpoint)
+		void extractSectionCheckpointsInto (
+			final List<SectionCheckpoint> sectionCheckpoints)
 		{
-			return group.containsSectionCheckpoint(sectionCheckpoint);
+			group.extractSectionCheckpointsInto(sectionCheckpoints);
 		}
 
 		@Override
 		public void checkType (
-			final AvailObject argumentType,
+			final A_Type argumentType,
 			final int sectionNumber)
 		throws SignatureException
 		{
@@ -1209,7 +1314,8 @@ public class MessageSplitter
 		@Override
 		void emitOn (
 			final List<Integer> list,
-			final boolean caseInsensitive)
+			final boolean caseInsensitive,
+			final int partialListsCount)
 		{
 			/* push current parse position
 			 * push empty list
@@ -1236,14 +1342,20 @@ public class MessageSplitter
 			for (final Expression expression : group.expressionsBeforeDagger)
 			{
 				assert !expression.isArgumentOrGroup();
-				expression.emitOn(list, caseInsensitive);
+				// Note that even though the Counter cannot contain anything
+				// that would push data, the Counter region must not contain
+				// a section checkpoint.  There's no point, since the iteration
+				// would not be passed, in case it's confusing (number completed
+				// versus number started).
+				expression.emitOn(list, caseInsensitive, Integer.MIN_VALUE);
 			}
 			list.add(APPEND_ARGUMENT.encoding());
 			list.add(BRANCH.encoding(loopExit));
 			for (final Expression expression : group.expressionsAfterDagger)
 			{
 				assert !expression.isArgumentOrGroup();
-				expression.emitOn(list, caseInsensitive);
+				// Same as for the loop above for expressionsBeforeDagger.
+				expression.emitOn(list, caseInsensitive, Integer.MIN_VALUE);
 			}
 			list.add(ENSURE_PARSE_PROGRESS.encoding());
 			list.add(JUMP.encoding(loopStart));
@@ -1272,7 +1384,7 @@ public class MessageSplitter
 			final int indent)
 		{
 			assert argumentProvider != null;
-			final AvailObject countLiteral = argumentProvider.next();
+			final A_BasicObject countLiteral = argumentProvider.next();
 			assert countLiteral.isInstanceOf(
 				ParseNodeKind.LITERAL_NODE.mostGeneralType());
 			final int count = countLiteral.token().literal().extractInt();
@@ -1314,11 +1426,18 @@ public class MessageSplitter
 		final Group group;
 
 		/**
-		 * The one-based position in the instruction stream to branch to in
-		 * order to parse zero occurrences of this group. Set during the first
+		 * The one-based position in the instruction stream that is reached
+		 * whether this optional section is parsed or not.  Set during the first
 		 * pass of code generation.
 		 */
 		int groupSkip = -1;
+
+		/**
+		 * The one-based position of the instruction sequence that deals with
+		 * this section being absent.  Set during the first pass of code
+		 * generation.
+		 */
+		int absent = -1;
 
 		/**
 		 * Construct a new {@link Optional}.
@@ -1351,14 +1470,15 @@ public class MessageSplitter
 		}
 
 		@Override
-		boolean containsSectionCheckpoint(final int sectionCheckpoint)
+		void extractSectionCheckpointsInto (
+			final List<SectionCheckpoint> sectionCheckpoints)
 		{
-			return group.containsSectionCheckpoint(sectionCheckpoint);
+			group.extractSectionCheckpointsInto(sectionCheckpoints);
 		}
 
 		@Override
 		public void checkType (
-			final AvailObject argumentType,
+			final A_Type argumentType,
 			final int sectionNumber)
 		throws SignatureException
 		{
@@ -1374,33 +1494,38 @@ public class MessageSplitter
 		@Override
 		void emitOn (
 			final List<Integer> list,
-			final boolean caseInsensitive)
+			final boolean caseInsensitive,
+			final int partialListsCount)
 		{
-			/* push current parse position
-			 * push empty list
-			 * branch to @groupSkip
-			 * push empty list (represents group presence)
+			/* branch to @absent
+			 * push the current parse position on the mark stack
 			 * ...Stuff before dagger (i.e., all expressions).
-			 * append (add solution)
-			 * check progress and update saved position, or abort.
+			 * check progress and update saved position or abort.
+			 * discard the saved parse position from the mark stack.
+			 * push literal true
+			 * jump to @groupSkip
+			 * @absent:
+			 * push literal false
 			 * @groupSkip:
-			 * under-pop parse position (remove 2nd from top of stack)
-			 * convert (list->boolean)
 			 */
+			list.add(BRANCH.encoding(absent));
 			list.add(SAVE_PARSE_POSITION.encoding());
-			list.add(NEW_LIST.encoding());
-			list.add(BRANCH.encoding(groupSkip));
-			list.add(NEW_LIST.encoding());
 			for (final Expression expression : group.expressionsBeforeDagger)
 			{
 				assert !expression.isArgumentOrGroup();
-				expression.emitOn(list, caseInsensitive);
+				assert !expression.containsAnySectionCheckpoint();
+				// Optional regions can have section checkpoints, but there may
+				// not be any arguments or groups involved, so the stack needs
+				// no additional cleanup.
+				expression.emitOn(list, caseInsensitive, partialListsCount);
 			}
-			list.add(APPEND_ARGUMENT.encoding());
 			list.add(ENSURE_PARSE_PROGRESS.encoding());
-			groupSkip = list.size() + 1;
 			list.add(DISCARD_SAVED_PARSE_POSITION.encoding());
-			list.add(CONVERT.encoding(listToNonemptiness.number()));
+			list.add(PUSH_TRUE.encoding());
+			list.add(JUMP.encoding(groupSkip));
+			absent = list.size() + 1;
+			list.add(PUSH_FALSE.encoding());
+			groupSkip = list.size() + 1;
 		}
 
 		@Override
@@ -1421,7 +1546,7 @@ public class MessageSplitter
 			final int indent)
 		{
 			assert argumentProvider != null;
-			final AvailObject literal = argumentProvider.next();
+			final A_BasicObject literal = argumentProvider.next();
 			assert literal.isInstanceOf(
 				ParseNodeKind.LITERAL_NODE.mostGeneralType());
 			final boolean flag = literal.token().literal().extractBoolean();
@@ -1488,14 +1613,15 @@ public class MessageSplitter
 		}
 
 		@Override
-		boolean containsSectionCheckpoint(final int sectionCheckpoint)
+		void extractSectionCheckpointsInto (
+			final List<SectionCheckpoint> sectionCheckpoints)
 		{
-			return expression.containsSectionCheckpoint(sectionCheckpoint);
+			expression.extractSectionCheckpointsInto(sectionCheckpoints);
 		}
 
 		@Override
 		public void checkType (
-			final AvailObject argumentType,
+			final A_Type argumentType,
 			final int sectionNumber)
 		throws SignatureException
 		{
@@ -1507,20 +1633,18 @@ public class MessageSplitter
 		@Override
 		void emitOn (
 			final List<Integer> list,
-			final boolean caseInsensitive)
+			final boolean caseInsensitive,
+			final int partialListsCount)
 		{
-			/* push current parse position
-			 * push empty list (just to discard)
-			 * branch to @groupSkip
+			/* branch to @expressionSkip.
+			 * push current parse position on the mark stack.
 			 * ...Simple or stuff before dagger (i.e., all expressions).
 			 * check progress and update saved position, or abort.
-			 * @groupSkip:
-			 * under-pop parse position (remove 2nd from top of stack)
-			 * pop (empty list)
+			 * discard mark position
+			 * @expressionSkip:
 			 */
-			list.add(SAVE_PARSE_POSITION.encoding());
-			list.add(NEW_LIST.encoding());
 			list.add(BRANCH.encoding(expressionSkip));
+			list.add(SAVE_PARSE_POSITION.encoding());
 			final List<Expression> expressions;
 			if (expression instanceof Simple)
 			{
@@ -1537,12 +1661,17 @@ public class MessageSplitter
 			for (final Expression subexpression : expressions)
 			{
 				assert !subexpression.isArgumentOrGroup();
-				subexpression.emitOn(list, caseInsensitive);
+				// The partialListsCount stays the same, in case there's a
+				// section checkpoint marker within this completely optional
+				// region.  That's a reasonable way to indicate that a prefix
+				// function should only run when the optional section actually
+				// occurs.  Since no completely optional section can produce a
+				// value (argument, counter, etc), there's no problem.
+				subexpression.emitOn(list, caseInsensitive, partialListsCount);
 			}
 			list.add(ENSURE_PARSE_PROGRESS.encoding());
-			expressionSkip = list.size() + 1;
 			list.add(DISCARD_SAVED_PARSE_POSITION.encoding());
-			list.add(POP.encoding());
+			expressionSkip = list.size() + 1;
 		}
 
 		@Override
@@ -1624,14 +1753,15 @@ public class MessageSplitter
 		}
 
 		@Override
-		boolean containsSectionCheckpoint (final int sectionCheckpoint)
+		void extractSectionCheckpointsInto (
+			final List<SectionCheckpoint> sectionCheckpoints)
 		{
-			return expression.containsSectionCheckpoint(sectionCheckpoint);
+			expression.extractSectionCheckpointsInto(sectionCheckpoints);
 		}
 
 		@Override
 		public void checkType (
-			final AvailObject argumentType,
+			final A_Type argumentType,
 			final int sectionNumber)
 		throws SignatureException
 		{
@@ -1641,9 +1771,10 @@ public class MessageSplitter
 		@Override
 		void emitOn (
 			final List<Integer> list,
-			final boolean caseInsensitive)
+			final boolean caseInsensitive,
+			final int partialListsCount)
 		{
-			expression.emitOn(list, true);
+			expression.emitOn(list, true, partialListsCount);
 		}
 
 		@Override
@@ -1740,21 +1871,18 @@ public class MessageSplitter
 		}
 
 		@Override
-		boolean containsSectionCheckpoint (final int sectionCheckpoint)
+		void extractSectionCheckpointsInto (
+			final List<SectionCheckpoint> sectionCheckpoints)
 		{
 			for (final Expression alternative : alternatives)
 			{
-				if (alternative.containsSectionCheckpoint(sectionCheckpoint))
-				{
-					return true;
-				}
+				alternative.extractSectionCheckpointsInto(sectionCheckpoints);
 			}
-			return false;
 		}
 
 		@Override
 		public void checkType (
-			final AvailObject argumentType,
+			final A_Type argumentType,
 			final int sectionNumber)
 		throws SignatureException
 		{
@@ -1765,10 +1893,10 @@ public class MessageSplitter
 		@Override
 		void emitOn (
 			final List<Integer> list,
-			final boolean caseInsensitive)
+			final boolean caseInsensitive,
+			final int partialListsCount)
 		{
-			/* push current parse position
-			 * push empty list (just to discard)
+			/* push current parse position on the mark stack
 			 * branch to @branches[0]
 			 * ...First alternative.
 			 * jump to @branches[N-1] (the last branch label)
@@ -1778,10 +1906,8 @@ public class MessageSplitter
 			 * @branches[N-1]:
 			 * check progress and update saved position, or abort.
 			 * under-pop parse position (remove 2nd from top of stack)
-			 * pop (empty list)
 			 */
 			list.add(SAVE_PARSE_POSITION.encoding());
-			list.add(NEW_LIST.encoding());
 			for (int i = 0; i < alternatives.size(); i++)
 			{
 				// Generate a branch to the next alternative unless this is the
@@ -1790,7 +1916,16 @@ public class MessageSplitter
 				{
 					list.add(BRANCH.encoding(branches[i]));
 				}
-				alternatives.get(i).emitOn(list, caseInsensitive);
+				// The partialListsCount stays the same, in case there's a
+				// section checkpoint marker in one of the alternatives.  That's
+				// a reasonable way to indicate that a prefix function should
+				// only run when that alternative occurs.  Since no alternative
+				// can produce a value (argument, counter, etc), there's no
+				// problem.
+				alternatives.get(i).emitOn(
+					list,
+					caseInsensitive,
+					partialListsCount);
 				// Generate a jump to the last label unless this is the last
 				// alternative.
 				if (i < alternatives.size() - 1)
@@ -1802,7 +1937,6 @@ public class MessageSplitter
 			}
 			list.add(ENSURE_PARSE_PROGRESS.encoding());
 			list.add(DISCARD_SAVED_PARSE_POSITION.encoding());
-			list.add(POP.encoding());
 		}
 
 		@Override
@@ -1925,14 +2059,15 @@ public class MessageSplitter
 		}
 
 		@Override
-		boolean containsSectionCheckpoint (final int sectionCheckpoint)
+		void extractSectionCheckpointsInto (
+			final List<SectionCheckpoint> sectionCheckpoints)
 		{
-			return alternation.containsSectionCheckpoint(sectionCheckpoint);
+			alternation.extractSectionCheckpointsInto(sectionCheckpoints);
 		}
 
 		@Override
 		public void checkType (
-			final AvailObject argumentType,
+			final A_Type argumentType,
 			final int sectionNumber)
 		throws SignatureException
 		{
@@ -1953,7 +2088,8 @@ public class MessageSplitter
 		@Override
 		void emitOn (
 			final List<Integer> list,
-			final boolean caseInsensitive)
+			final boolean caseInsensitive,
+			final int partialListsCount)
 		{
 			/* branch to @target1.
 			 * ...do first alternative.
@@ -1991,7 +2127,10 @@ public class MessageSplitter
 				}
 				final Expression alternative =
 					alternation.alternatives().get(index);
-				alternative.emitOn(list, caseInsensitive);
+				// If a section checkpoint occurs within a numbered choice, we
+				// *do not* pass the choice number as an argument.  Therefore
+				// nothing new has been pushed for us to clean up at this point.
+				alternative.emitOn(list, caseInsensitive, partialListsCount);
 				list.add(PUSH_INTEGER_LITERAL.encoding(index + 1));
 				if (!last)
 				{
@@ -2021,7 +2160,7 @@ public class MessageSplitter
 			final int indent)
 		{
 			assert argumentProvider != null;
-			final AvailObject literal = argumentProvider.next();
+			final A_BasicObject literal = argumentProvider.next();
 			assert literal.isInstanceOf(
 				ParseNodeKind.LITERAL_NODE.mostGeneralType());
 			final int index = literal.token().literal().extractInt();
@@ -2070,14 +2209,15 @@ public class MessageSplitter
 		}
 
 		@Override
-		boolean containsSectionCheckpoint (final int sectionCheckpoint)
+		void extractSectionCheckpointsInto (
+			final List<SectionCheckpoint> sectionCheckpoints)
 		{
-			return sectionCheckpoint == subscript;
+			sectionCheckpoints.add(this);
 		}
 
 		@Override
 		public void checkType (
-			final AvailObject argumentType,
+			final A_Type argumentType,
 			final int sectionNumber)
 		throws SignatureException
 		{
@@ -2088,11 +2228,14 @@ public class MessageSplitter
 		@Override
 		void emitOn (
 			final List<Integer> list,
-			final boolean caseInsensitive)
+			final boolean caseInsensitive,
+			final int partialListsCount)
 		{
-			// Clean up any partially-constructed groups and invoke the
-			// appropriate prefix function.
-			list.add(PREPARE_TO_RUN_PREFIX_FUNCTION.encoding(-999999999)); //TODO[MvG]Finish
+			// Tidy up any partially-constructed groups and invoke the
+			// appropriate prefix function.  Note that we have to add one to the
+			// argument because zero is an invalid operand.
+			list.add(
+				PREPARE_TO_RUN_PREFIX_FUNCTION.encoding(partialListsCount + 1));
 			list.add(RUN_PREFIX_FUNCTION.encoding(subscript));
 		}
 
@@ -2117,7 +2260,7 @@ public class MessageSplitter
 	 * @throws SignatureException
 	 *         If the message name is malformed.
 	 */
-	public MessageSplitter (final AvailObject messageName)
+	public MessageSplitter (final A_String messageName)
 		throws SignatureException
 	{
 		this.messageName = messageName;
@@ -2141,7 +2284,7 @@ public class MessageSplitter
 			for (final Expression expression
 				: rootGroup.expressionsBeforeDagger)
 			{
-				expression.emitOn(instructions, false);
+				expression.emitOn(instructions, false, 0);
 			}
 		}
 		assert rootGroup.expressionsAfterDagger.isEmpty();
@@ -2156,13 +2299,13 @@ public class MessageSplitter
 	{
 		final List<String> partsList =
 			new ArrayList<String>(messageParts.size());
-		for (final AvailObject part : messageParts)
+		for (final A_String part : messageParts)
 		{
 			partsList.add(part.asNativeString());
 		}
-		final AvailObject instructionsTuple = instructionsTuple();
+		final A_Tuple instructionsTuple = instructionsTuple();
 		final List<Integer> instructionsList = new ArrayList<Integer>();
-		for (final AvailObject instruction : instructionsTuple)
+		for (final A_Number instruction : instructionsTuple)
 		{
 			instructionsList.add(instruction.extractInt());
 		}
@@ -2180,9 +2323,9 @@ public class MessageSplitter
 	 *
 	 * @return A tuple of strings.
 	 */
-	public AvailObject messageParts ()
+	public A_Tuple messageParts ()
 	{
-		final AvailObject tuple = TupleDescriptor.fromList(messageParts);
+		final A_Tuple tuple = TupleDescriptor.fromList(messageParts);
 		tuple.makeImmutable();
 		return tuple;
 	}
@@ -2200,7 +2343,7 @@ public class MessageSplitter
 	 *        The current indentation level.
 	 */
 	public void printSendNodeOnIndent(
-		final AvailObject sendNode,
+		final A_BasicObject sendNode,
 		final StringBuilder builder,
 		final int indent)
 	{
@@ -2268,10 +2411,11 @@ public class MessageSplitter
 			}
 			else if (isCharacterAnUnderscoreOrSpaceOrOperator(ch))
 			{
-				messageParts.add(messageName.copyTupleFromToCanDestroy(
-					position,
-					position,
-					false));
+				messageParts.add(
+					(A_String)(messageName.copyTupleFromToCanDestroy(
+						position,
+						position,
+						false)));
 				position++;
 			}
 			else
@@ -2283,10 +2427,11 @@ public class MessageSplitter
 				{
 					position++;
 				}
-				messageParts.add(messageName.copyTupleFromToCanDestroy(
-					start,
-					position - 1,
-					false));
+				messageParts.add(
+					(A_String)messageName.copyTupleFromToCanDestroy(
+						start,
+						position - 1,
+						false));
 			}
 		}
 	}
@@ -2321,7 +2466,7 @@ public class MessageSplitter
 			{
 				return group;
 			}
-			AvailObject token = messageParts.get(messagePartPosition - 1);
+			A_String token = messageParts.get(messagePartPosition - 1);
 			if (token.equals(closeGuillemet()))
 			{
 				return group;
@@ -2336,8 +2481,7 @@ public class MessageSplitter
 				}
 				messagePartPosition++;
 				final Argument argument;
-				@Nullable
-				final AvailObject nextToken =
+				@Nullable final A_String nextToken =
 					messagePartPosition > messageParts.size()
 						? null
 						: messageParts.get(messagePartPosition - 1);
@@ -2660,14 +2804,14 @@ public class MessageSplitter
 	 *            If the function type is inappropriate for the method name.
 	 */
 	public void checkImplementationSignature (
-		final AvailObject functionType,
+		final A_BasicObject functionType,
 		final int sectionNumber)
 	throws SignatureException
 	{
-		final AvailObject argsTupleType = functionType.argsTupleType();
-		final AvailObject sizes = argsTupleType.sizeRange();
-		final AvailObject lowerBound = sizes.lowerBound();
-		final AvailObject upperBound = sizes.upperBound();
+		final A_Type argsTupleType = functionType.argsTupleType();
+		final A_Type sizes = argsTupleType.sizeRange();
+		final A_Number lowerBound = sizes.lowerBound();
+		final A_Number upperBound = sizes.upperBound();
 		if (!lowerBound.equals(upperBound) || !lowerBound.isInt())
 		{
 			// Method definitions (and other definitions) should take a
@@ -2700,7 +2844,7 @@ public class MessageSplitter
 	 *            If the function type is inappropriate for the method name.
 	 */
 	public void checkImplementationSignature (
-		final AvailObject functionType)
+		final A_BasicObject functionType)
 	throws SignatureException
 	{
 		checkImplementationSignature(functionType, Integer.MAX_VALUE);

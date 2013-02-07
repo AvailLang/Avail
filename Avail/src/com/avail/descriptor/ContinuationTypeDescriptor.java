@@ -93,7 +93,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_FunctionType (final AvailObject object)
+	A_Type o_FunctionType (final AvailObject object)
 	{
 		return object.slot(ObjectSlots.FUNCTION_TYPE);
 	}
@@ -113,7 +113,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_Equals (final AvailObject object, final AvailObject another)
+	boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		return another.equalsContinuationType(object);
 	}
@@ -129,7 +129,7 @@ extends TypeDescriptor
 	@Override @AvailMethod
 	boolean o_EqualsContinuationType (
 		final AvailObject object,
-		final AvailObject aType)
+		final A_Type aType)
 	{
 		if (object.sameAddressAs(aType))
 		{
@@ -145,7 +145,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_IsSubtypeOf (final AvailObject object, final AvailObject aType)
+	boolean o_IsSubtypeOf (final AvailObject object, final A_Type aType)
 	{
 		return aType.isSupertypeOfContinuationType(object);
 	}
@@ -165,10 +165,10 @@ extends TypeDescriptor
 	@Override @AvailMethod
 	boolean o_IsSupertypeOfContinuationType (
 		final AvailObject object,
-		final AvailObject aContinuationType)
+		final A_BasicObject aContinuationType)
 	{
-		final AvailObject subFunctionType = aContinuationType.functionType();
-		final AvailObject superFunctionType = object.functionType();
+		final A_BasicObject subFunctionType = aContinuationType.functionType();
+		final A_BasicObject superFunctionType = object.functionType();
 		return
 		superFunctionType.returnType().isSubtypeOf(
 			subFunctionType.returnType())
@@ -177,9 +177,9 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_TypeIntersection (
+	A_Type o_TypeIntersection (
 		final AvailObject object,
-		final AvailObject another)
+		final A_Type another)
 	{
 		if (object.isSubtypeOf(another))
 		{
@@ -193,12 +193,12 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_TypeIntersectionOfContinuationType (
+	A_Type o_TypeIntersectionOfContinuationType (
 		final AvailObject object,
-		final AvailObject aContinuationType)
+		final A_Type aContinuationType)
 	{
-		final AvailObject closType1 = object.functionType();
-		final AvailObject closType2 = aContinuationType.functionType();
+		final A_Type closType1 = object.functionType();
+		final A_Type closType2 = aContinuationType.functionType();
 		if (closType1.equals(closType2))
 		{
 			return object;
@@ -207,16 +207,18 @@ extends TypeDescriptor
 		{
 			return BottomTypeDescriptor.bottom();
 		}
-		final AvailObject intersection = FunctionTypeDescriptor.create(
-			closType1.argsTupleType().typeUnion(closType2.argsTupleType()),
-			closType1.returnType().typeUnion(closType2.returnType()));
+		final A_Type intersection =
+			FunctionTypeDescriptor.createWithArgumentTupleType(
+				closType1.argsTupleType().typeUnion(closType2.argsTupleType()),
+				closType1.returnType().typeUnion(closType2.returnType()),
+				SetDescriptor.empty());
 		return forFunctionType(intersection);
 	}
 
 	@Override @AvailMethod
-	AvailObject o_TypeUnion (
+	A_Type o_TypeUnion (
 		final AvailObject object,
-		final AvailObject another)
+		final A_Type another)
 	{
 		if (object.isSubtypeOf(another))
 		{
@@ -230,21 +232,22 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_TypeUnionOfContinuationType (
+	A_Type o_TypeUnionOfContinuationType (
 		final AvailObject object,
-		final AvailObject aContinuationType)
+		final A_Type aContinuationType)
 	{
-		final AvailObject closType1 = object.functionType();
-		final AvailObject closType2 = aContinuationType.functionType();
+		final A_Type closType1 = object.functionType();
+		final A_Type closType2 = aContinuationType.functionType();
 		if (closType1.equals(closType2))
 		{
 			// Optimization only
 			return object;
 		}
-		final AvailObject union = FunctionTypeDescriptor.create(
+		final A_Type union = FunctionTypeDescriptor.createWithArgumentTupleType(
 			closType1.argsTupleType().typeIntersection(
 				closType2.argsTupleType()),
-				closType1.returnType().typeIntersection(closType2.returnType()));
+			closType1.returnType().typeIntersection(closType2.returnType()),
+			SetDescriptor.empty());
 		return forFunctionType(union);
 	}
 
@@ -265,7 +268,7 @@ extends TypeDescriptor
 	 *        type}.
 	 * @return A new {@linkplain ContinuationTypeDescriptor}.
 	 */
-	public static AvailObject forFunctionType (final AvailObject functionType)
+	public static A_Type forFunctionType (final A_Type functionType)
 	{
 		final AvailObject result = mutable.create();
 		result.setSlot(ObjectSlots.FUNCTION_TYPE, functionType.makeImmutable());
@@ -280,7 +283,7 @@ extends TypeDescriptor
 	 * @return A {@linkplain ContinuationTypeDescriptor continuation type} which
 	 *         has no supertypes that are themselves continuation types.
 	 */
-	public static AvailObject mostGeneralType ()
+	public static A_Type mostGeneralType ()
 	{
 		return mostGeneralType;
 	}
@@ -292,21 +295,21 @@ extends TypeDescriptor
 	 * (i.e., not specific enough to be able to call it), and having the return
 	 * type bottom.
 	 */
-	private static AvailObject mostGeneralType;
+	private static A_Type mostGeneralType;
 
 	/**
 	 * The metatype for all continuation types.  In particular, it's just the
 	 * {@linkplain InstanceTypeDescriptor instance type} for the {@linkplain
 	 * #mostGeneralType most general continuation type}.
 	 */
-	private static AvailObject meta;
+	private static A_Type meta;
 
 	/**
 	 * Answer the metatype for all continuation types.
 	 *
 	 * @return The statically referenced metatype.
 	 */
-	public static AvailObject meta ()
+	public static A_Type meta ()
 	{
 		return meta;
 	}

@@ -61,18 +61,18 @@ extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
-		final AvailObject atom = args.get(0);
+		final A_Atom atom = args.get(0);
 		if (AvailRuntime.isSpecialAtom(atom))
 		{
 			return interpreter.primitiveFailure(E_SPECIAL_ATOM);
 		}
-		final AvailObject issuer = atom.issuingModule();
+		final A_BasicObject issuer = atom.issuingModule();
 		assert !issuer.equalsNil();
 		return interpreter.primitiveSuccess(issuer);
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

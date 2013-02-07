@@ -101,7 +101,7 @@ extends TypeDescriptor
 		BLOCK_NODE(EXPRESSION_NODE)
 		{
 			@Override
-			AvailObject mostGeneralInnerType ()
+			A_Type mostGeneralInnerType ()
 			{
 				return FunctionTypeDescriptor.mostGeneralType();
 			}
@@ -111,7 +111,7 @@ extends TypeDescriptor
 		LITERAL_NODE(EXPRESSION_NODE)
 		{
 			@Override
-			AvailObject mostGeneralInnerType ()
+			A_Type mostGeneralInnerType ()
 			{
 				return Types.ANY.o();
 			}
@@ -123,7 +123,7 @@ extends TypeDescriptor
 		REFERENCE_NODE(EXPRESSION_NODE)
 		{
 			@Override
-			AvailObject mostGeneralInnerType ()
+			A_Type mostGeneralInnerType ()
 			{
 				return VariableTypeDescriptor.mostGeneralType();
 			}
@@ -139,7 +139,7 @@ extends TypeDescriptor
 		LIST_NODE(EXPRESSION_NODE)
 		{
 			@Override
-			AvailObject mostGeneralInnerType ()
+			A_Type mostGeneralInnerType ()
 			{
 				return TupleTypeDescriptor.mostGeneralType();
 			}
@@ -152,7 +152,7 @@ extends TypeDescriptor
 		VARIABLE_USE_NODE(EXPRESSION_NODE)
 		{
 			@Override
-			AvailObject mostGeneralInnerType ()
+			A_Type mostGeneralInnerType ()
 			{
 				return Types.ANY.o();
 			}
@@ -208,7 +208,7 @@ extends TypeDescriptor
 		 *
 		 * @return The most general inner type for this kind of parse node.
 		 */
-		AvailObject mostGeneralInnerType ()
+		A_Type mostGeneralInnerType ()
 		{
 			return Types.TOP.o();
 		}
@@ -251,9 +251,9 @@ extends TypeDescriptor
 		 *        which is of the type being constructed.
 		 * @return The new parse node type, whose kind is the receiver.
 		 */
-		final public AvailObject create (final AvailObject expressionType)
+		final public AvailObject create (final A_Type expressionType)
 		{
-			AvailObject boundedExpressionType = expressionType;
+			A_Type boundedExpressionType = expressionType;
 			final AvailObject type = mutable.create();
 			boundedExpressionType = expressionType.typeIntersection(
 				mostGeneralInnerType());
@@ -368,7 +368,7 @@ extends TypeDescriptor
 	 *         that will be produced by a parse node of this type.
 	 */
 	@Override @AvailMethod
-	AvailObject o_ExpressionType (final AvailObject object)
+	A_Type o_ExpressionType (final AvailObject object)
 	{
 		return object.slot(EXPRESSION_TYPE);
 	}
@@ -407,7 +407,7 @@ extends TypeDescriptor
 	 * </p>
 	 */
 	@Override @AvailMethod
-	boolean o_Equals (final AvailObject object, final AvailObject another)
+	boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		return another.equalsParseNodeType(object);
 	}
@@ -432,7 +432,7 @@ extends TypeDescriptor
  	}
 
 	@Override @AvailMethod
-	boolean o_IsSubtypeOf (final AvailObject object, final AvailObject aType)
+	boolean o_IsSubtypeOf (final AvailObject object, final A_Type aType)
 	{
 		return aType.isSupertypeOfParseNodeType(object);
 	}
@@ -453,9 +453,9 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_TypeIntersection (
+	A_Type o_TypeIntersection (
 		final AvailObject object,
-		final AvailObject another)
+		final A_Type another)
 	{
 		if (object.isSubtypeOf(another))
 		{
@@ -469,9 +469,9 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_TypeIntersectionOfParseNodeType (
+	A_Type o_TypeIntersectionOfParseNodeType (
 		final AvailObject object,
-		final AvailObject aParseNodeType)
+		final A_Type aParseNodeType)
 	{
 		if (object.isSubtypeOf(aParseNodeType))
 		{
@@ -487,7 +487,7 @@ extends TypeDescriptor
 		if (ancestor == myKind || ancestor == otherKind)
 		{
 			// One kind is the ancestor of the other.  We can work with that.
-			final AvailObject innerIntersection =
+			final A_Type innerIntersection =
 				object.slot(EXPRESSION_TYPE).typeIntersection(
 					aParseNodeType.slot(EXPRESSION_TYPE));
 			return (ancestor == myKind ? otherKind : myKind).create(
@@ -499,17 +499,17 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_TypeUnion (
+	A_Type o_TypeUnion (
 		final AvailObject object,
-		final AvailObject another)
+		final A_Type another)
 	{
 		return another.typeUnionOfParseNodeType(object);
 	}
 
 	@Override @AvailMethod
-	AvailObject o_TypeUnionOfParseNodeType (
+	A_Type o_TypeUnionOfParseNodeType (
 		final AvailObject object,
-		final AvailObject aParseNodeType)
+		final A_Type aParseNodeType)
 	{
 		if (object.isSubtypeOf(aParseNodeType))
 		{
@@ -648,8 +648,8 @@ extends TypeDescriptor
 		final int statementCount = flat.size();
 		for (int i = 0; i < statementCount; i++)
 		{
-			final AvailObject statement = flat.get(i);
-			final AvailObject kind = statement.kind();
+			final A_BasicObject statement = flat.get(i);
+			final A_BasicObject kind = statement.kind();
 			assert !kind.parseNodeKindIsUnder(SEQUENCE_NODE);
 			final boolean valid;
 			if (i + 1 < statementCount)

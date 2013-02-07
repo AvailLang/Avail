@@ -161,18 +161,18 @@ public final class SerializerTest
 	 * @return The result of serializing and deserializing the argument.
 	 * @throws MalformedSerialStreamException If the stream is malformed.
 	 */
-	private @Nullable AvailObject roundTrip (final AvailObject object)
+	private @Nullable AvailObject roundTrip (final A_BasicObject object)
 	throws MalformedSerialStreamException
 	{
 		prepareToWrite();
 		serializer.serialize(object);
 		prepareToReadBack();
-		final AvailObject newObject = deserializer.deserialize();
+		final A_BasicObject newObject = deserializer.deserialize();
 		assertTrue(
 			"Serialization stream was not fully emptied",
 			in.available() == 0);
 		assert deserializer.deserialize() == null;
-		return newObject;
+		return (AvailObject)newObject;
 	}
 
 	/**
@@ -187,10 +187,10 @@ public final class SerializerTest
 	 *            original.
 	 * @throws MalformedSerialStreamException If the stream is malformed.
 	 */
-	private void checkObject (final AvailObject object)
+	private void checkObject (final A_BasicObject object)
 	throws MalformedSerialStreamException
 	{
-		final AvailObject newObject = roundTrip(object);
+		final A_BasicObject newObject = roundTrip(object);
 		assertNotNull(newObject);
 		assertEquals(object, newObject);
 	}
@@ -303,11 +303,11 @@ public final class SerializerTest
 		for (int run = 0; run < 100; run++)
 		{
 			final int partsCount = 1 + random.nextInt(1000);
-			final List<AvailObject> parts =
-				new ArrayList<AvailObject>(partsCount);
+			final List<A_BasicObject> parts =
+				new ArrayList<A_BasicObject>(partsCount);
 			for (int partIndex = 0; partIndex < partsCount; partIndex++)
 			{
-				AvailObject newObject = null;
+				A_BasicObject newObject = null;
 				final int choice = (partIndex == partsCount - 1)
 					? random.nextInt(3) + 2
 					: random.nextInt(5);
@@ -328,8 +328,8 @@ public final class SerializerTest
 						// For a map.
 						size &= ~1;
 					}
-					final List<AvailObject> members =
-						new ArrayList<AvailObject>(size);
+					final List<A_BasicObject> members =
+						new ArrayList<A_BasicObject>(size);
 					for (int i = 0; i < size; i++)
 					{
 						members.add(parts.get(random.nextInt(partIndex)));
@@ -344,14 +344,15 @@ public final class SerializerTest
 					}
 					else if (choice == 4)
 					{
-						newObject = MapDescriptor.empty();
+						A_Map map = MapDescriptor.empty();
 						for (int i = 0; i < size; i+=2)
 						{
-							newObject = newObject.mapAtPuttingCanDestroy(
+							map = map.mapAtPuttingCanDestroy(
 								members.get(i),
 								members.get(i + 1),
 								true);
 						}
+						newObject = map;
 					}
 				}
 				assert newObject != null;
@@ -386,14 +387,14 @@ public final class SerializerTest
 			StringDescriptor.from("currentAtom2"),
 			currentModule);
 		currentModule.addPrivateName(atom2.name(), atom2);
-		final AvailObject tuple = TupleDescriptor.from(atom1, atom2);
+		final A_Tuple tuple = TupleDescriptor.from(atom1, atom2);
 
 		prepareToWrite();
 		serializer.serialize(tuple);
 		prepareToReadBack();
 		runtime.addModule(inputModule);
 		deserializer.currentModule(currentModule);
-		final AvailObject newObject = deserializer.deserialize();
+		final A_BasicObject newObject = deserializer.deserialize();
 		assertTrue(
 			"Serialization stream was not fully emptied",
 			in.available() == 0);
@@ -420,13 +421,13 @@ public final class SerializerTest
 				L1Operation.L1_doPushLiteral,
 				writer.addLiteral(NilDescriptor.nil())));
 		final AvailObject code = writer.compiledCode();
-		final AvailObject function = FunctionDescriptor.create(
+		final A_Function function = FunctionDescriptor.create(
 			code,
 			TupleDescriptor.empty());
-		final AvailObject newFunction = roundTrip(function);
+		final A_Function newFunction = roundTrip(function);
 		assertNotNull(newFunction);
 		assert newFunction != null;
-		final AvailObject code2 = newFunction.code();
+		final A_BasicObject code2 = newFunction.code();
 		assertEquals(code.numOuters(), code2.numOuters());
 		assertEquals(
 			code.numArgsAndLocalsAndStack(),

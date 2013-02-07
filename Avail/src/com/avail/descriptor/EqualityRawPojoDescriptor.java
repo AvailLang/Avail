@@ -74,7 +74,7 @@ extends RawPojoDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_Equals (final AvailObject object, final AvailObject another)
+	boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		return another.equalsEqualityRawPojo(object);
 	}

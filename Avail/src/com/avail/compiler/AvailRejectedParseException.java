@@ -52,15 +52,15 @@ extends RuntimeException
 	 * The {@linkplain StringDescriptor error message} indicating why a
 	 * particular parse was rejected.
 	 */
-	final AvailObject rejectionString;
+	final A_String rejectionString;
 
 	/**
-	 * Return the {@linkplain StringDescriptor error mesasge} indicating why
+	 * Return the {@linkplain StringDescriptor error message} indicating why
 	 * a particular parse was rejected.
 	 *
 	 * @return The reason the parse was rejected.
 	 */
-	public AvailObject rejectionString ()
+	public A_String rejectionString ()
 	{
 		return rejectionString;
 	}
@@ -73,7 +73,7 @@ extends RuntimeException
 	 *        a particular parse was rejected.
 	 */
 	public AvailRejectedParseException (
-		final AvailObject rejectionString)
+		final A_String rejectionString)
 	{
 		this.rejectionString = rejectionString;
 	}

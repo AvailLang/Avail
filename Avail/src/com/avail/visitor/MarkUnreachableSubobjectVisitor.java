@@ -32,6 +32,7 @@
 
 package com.avail.visitor;
 
+import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.AvailObject;
 
 /**
@@ -47,7 +48,7 @@ extends AvailSubobjectVisitor
 	/**
 	 * An object which we should <em>not</em> recurse into if encountered.
 	 */
-	private final AvailObject exclusion;
+	private final A_BasicObject exclusion;
 
 	/**
 	 * Construct a new {@link MarkUnreachableSubobjectVisitor}.
@@ -58,14 +59,14 @@ extends AvailSubobjectVisitor
 	 *        is necessary, as it's always already immutable.
 	 */
 	public MarkUnreachableSubobjectVisitor (
-		final AvailObject excludedObject)
+		final A_BasicObject excludedObject)
 	{
 		exclusion = excludedObject;
 	}
 
 	@Override
 	public void invoke (
-		final AvailObject parentObject,
+		final A_BasicObject parentObject,
 		final AvailObject childObject)
 	{
 //		if (!canDestroyObjects())

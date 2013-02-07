@@ -55,15 +55,15 @@ public class P_511_PojoArrayLength extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
-		final AvailObject pojo = args.get(0);
-		final AvailObject rawPojo = pojo.rawPojo();
+		final A_BasicObject pojo = args.get(0);
+		final A_BasicObject rawPojo = pojo.rawPojo();
 		final Object array = rawPojo.javaObject();
 		return interpreter.primitiveSuccess(
 			IntegerDescriptor.fromInt(Array.getLength(array)));
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

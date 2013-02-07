@@ -56,14 +56,14 @@ public class P_214_BundleHasRestrictions extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
-		final AvailObject bundle = args.get(0);
+		final A_BasicObject bundle = args.get(0);
 		return interpreter.primitiveSuccess(
 			AtomDescriptor.objectFromBoolean(
 				bundle.message().hasGrammaticalRestrictions()));
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

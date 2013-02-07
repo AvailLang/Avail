@@ -252,7 +252,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	void o_Priority (final AvailObject object, final AvailObject value)
+	void o_Priority (final AvailObject object, final A_Number value)
 	{
 		object.setMutableSlot(PRIORITY, value);
 	}
@@ -264,25 +264,19 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	void o_Name (final AvailObject object, final AvailObject value)
-	{
-		object.setMutableSlot(NAME, value);
-	}
-
-	@Override @AvailMethod
-	AvailObject o_FiberGlobals (final AvailObject object)
+	A_Map o_FiberGlobals (final AvailObject object)
 	{
 		return object.mutableSlot(FIBER_GLOBALS);
 	}
 
 	@Override @AvailMethod
-	void o_FiberGlobals (final AvailObject object, final AvailObject value)
+	void o_FiberGlobals (final AvailObject object, final A_Map value)
 	{
 		object.setMutableSlot(FIBER_GLOBALS, value);
 	}
 
 	@Override @AvailMethod
-	AvailObject o_BreakpointBlock (final AvailObject object)
+	A_BasicObject o_BreakpointBlock (final AvailObject object)
 	{
 		return object.mutableSlot(BREAKPOINT_BLOCK);
 	}
@@ -294,7 +288,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_Equals (final AvailObject object, final AvailObject another)
+	boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		// Compare fibers by address (identity).
 		return another.traversed().sameAddressAs(object);
@@ -336,7 +330,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_Kind (final AvailObject object)
+	A_Type o_Kind (final AvailObject object)
 	{
 		return Types.FIBER.o();
 	}
@@ -352,7 +346,7 @@ extends Descriptor
 	{
 		final AvailObject contObject = object.continuation();
 		int pc = contObject.pc();
-		final AvailObject nybbles = contObject.nybbles();
+		final A_Tuple nybbles = contObject.nybbles();
 		final byte firstNybble = nybbles.extractNybbleFromTupleAt(pc);
 		int value = 0;
 		pc++;
@@ -389,10 +383,12 @@ extends Descriptor
 		final ExecutionState initialState)
 	{
 		final AvailObject fiber = mutable.create();
-		fiber.name(StringDescriptor.from(String.format(
-			"unnamed, creation time = %d, hash = %d",
-			System.currentTimeMillis(),
-			fiber.hash())));
+		fiber.setSlot(
+			NAME,
+			StringDescriptor.from(String.format(
+				"unnamed, creation time = %d, hash = %d",
+				System.currentTimeMillis(),
+				fiber.hash())));
 		fiber.priority(IntegerDescriptor.fromUnsignedByte((short)50));
 		fiber.continuation(NilDescriptor.nil());
 		fiber.executionState(initialState);

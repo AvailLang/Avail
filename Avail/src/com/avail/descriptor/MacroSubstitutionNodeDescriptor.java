@@ -107,7 +107,7 @@ extends ParseNodeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_ExpressionType (final AvailObject object)
+	A_Type o_ExpressionType (final AvailObject object)
 	{
 		return object.slot(OUTPUT_PARSE_NODE).expressionType();
 	}
@@ -123,7 +123,7 @@ extends ParseNodeDescriptor
 	@Override @AvailMethod
 	boolean o_EqualsParseNode (
 		final AvailObject object,
-		final AvailObject aParseNode)
+		final A_BasicObject aParseNode)
 	{
 		return object.kind().equals(aParseNode.kind())
 			&& object.slot(MACRO_NAME).equals(aParseNode.apparentSendName())
@@ -174,7 +174,7 @@ extends ParseNodeDescriptor
 	@Override @AvailMethod
 	void o_ValidateLocally (
 		final AvailObject object,
-		final @Nullable AvailObject parent)
+		final @Nullable A_BasicObject parent)
 	{
 		// Do nothing.
 	}
@@ -211,7 +211,7 @@ extends ParseNodeDescriptor
 	 * @return The new macro substitution node.
 	 */
 	public static AvailObject fromNameAndNode(
-		final AvailObject macroName,
+		final A_Atom macroName,
 		final AvailObject outputParseNode)
 	{
 		final AvailObject newNode = mutable.create();

@@ -144,11 +144,11 @@ public final class ArithmeticTest
 	{
 		for (final float f1 : sampleFloats)
 		{
-			final AvailObject F1 = FloatDescriptor.fromFloat(f1);
+			final A_Number F1 = FloatDescriptor.fromFloat(f1);
 			assertEquals(F1, F1);
 			for (final float f2 : sampleFloats)
 			{
-				final AvailObject F2 = FloatDescriptor.fromFloat(f2);
+				final A_Number F2 = FloatDescriptor.fromFloat(f2);
 				assertEquals(
 					F1.plusCanDestroy(F2, false).extractFloat(),
 					f1+f2,
@@ -212,7 +212,7 @@ public final class ArithmeticTest
 		assertEquals(
 			bigIntHexString.toUpperCase(),
 			bigInt.toString(16).toUpperCase());
-		final AvailObject availInt =
+		final A_BasicObject availInt =
 			IntegerDescriptor.fromBigInteger(bigInt);
 		assertEquals(
 			bigInt.toString().toUpperCase(),
@@ -279,7 +279,7 @@ public final class ArithmeticTest
 	};
 
 	/**
-	 * Check that the {@linkplain AvailObject#bitShift(AvailObject, boolean)
+	 * Check that the {@linkplain AvailObject#bitShift(A_Number, boolean)
 	 * bit shift} operation defined in {@link AvailObject} produces a result
 	 * that agrees with {@link BigInteger}'s implementation.  Use the provided
 	 * {@code BigInteger} base and left shift {@code int}.
@@ -292,12 +292,11 @@ public final class ArithmeticTest
 		final int leftShift)
 	{
 		final BigInteger shiftedBigInt = base.shiftLeft(leftShift);
-		final AvailObject availInt = IntegerDescriptor.fromBigInteger(base);
-		final AvailObject availShift = IntegerDescriptor.fromInt(leftShift);
-		final AvailObject shiftedAvailInt =
-			availInt.bitShift(availShift, true);
-		final AvailObject availInt2 = IntegerDescriptor.fromBigInteger(base);
-		final AvailObject shiftedAvailInt2 =
+		final A_Number availInt = IntegerDescriptor.fromBigInteger(base);
+		final A_Number availShift = IntegerDescriptor.fromInt(leftShift);
+		final A_Number shiftedAvailInt = availInt.bitShift(availShift, true);
+		final A_BasicObject availInt2 = IntegerDescriptor.fromBigInteger(base);
+		final A_BasicObject shiftedAvailInt2 =
 			availInt2.bitShift(availShift, false);
 		assertEquals(shiftedAvailInt, shiftedAvailInt2);
 		assertEquals(

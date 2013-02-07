@@ -217,7 +217,7 @@ implements IntegerEnumSlotDescriptionEnum
 	 * calling {@link Interpreter#primitiveFailure(AvailObject)} and returning
 	 * its result from the primitive.  Otherwise it should set the interpreter's
 	 * primitive result by calling {@link
-	 * Interpreter#primitiveSuccess(AvailObject)} and then return its result
+	 * Interpreter#primitiveSuccess(A_BasicObject)} and then return its result
 	 * from the primitive.  For unusual primitives that replace the current
 	 * continuation, {@link Result#CONTINUATION_CHANGED} is more appropriate,
 	 * and the primitiveResult need not be set.  For primitives that need to
@@ -244,7 +244,7 @@ implements IntegerEnumSlotDescriptionEnum
 	 *             A function type that restricts the type of a block that uses
 	 *             this primitive.
 	 */
-	protected abstract AvailObject privateBlockTypeRestriction ();
+	protected abstract A_Type privateBlockTypeRestriction ();
 
 	/**
 	 * A {@linkplain FunctionTypeDescriptor function type} that restricts the
@@ -252,7 +252,7 @@ implements IntegerEnumSlotDescriptionEnum
 	 * the value provided by {@link #privateBlockTypeRestriction()}, to avoid
 	 * having to compute this function type multiple times.
 	 */
-	private AvailObject cachedBlockTypeRestriction;
+	private A_Type cachedBlockTypeRestriction;
 
 	/**
 	 * Return a function type that restricts actual primitive blocks defined
@@ -271,14 +271,14 @@ implements IntegerEnumSlotDescriptionEnum
 	 *            A function type that restricts the type of a block that uses
 	 *            this primitive.
 	 */
-	public final AvailObject blockTypeRestriction ()
+	public final A_Type blockTypeRestriction ()
 	{
 		if (cachedBlockTypeRestriction == null)
 		{
 			cachedBlockTypeRestriction = privateBlockTypeRestriction();
-			final AvailObject argsTupleType =
+			final A_Type argsTupleType =
 				cachedBlockTypeRestriction.argsTupleType();
-			final AvailObject sizeRange = argsTupleType.sizeRange();
+			final A_Type sizeRange = argsTupleType.sizeRange();
 			assert cachedBlockTypeRestriction.equals(
 					BottomTypeDescriptor.bottom())
 				|| (sizeRange.lowerBound().extractInt() == argCount()
@@ -298,8 +298,8 @@ implements IntegerEnumSlotDescriptionEnum
 	 * @return
 	 *            The return type guaranteed by the VM at some call site.
 	 */
-	public AvailObject returnTypeGuaranteedByVM (
-		final List<AvailObject> argumentTypes)
+	public A_Type returnTypeGuaranteedByVM (
+		final List<A_Type> argumentTypes)
 	{
 		return blockTypeRestriction().returnType();
 	}
@@ -318,7 +318,7 @@ implements IntegerEnumSlotDescriptionEnum
 	 *             A type which is at least as specific as the type of the
 	 *             failure variable declared in a block using this primitive.
 	 */
-	protected AvailObject privateFailureVariableType ()
+	protected A_Type privateFailureVariableType ()
 	{
 		return IntegerRangeTypeDescriptor.naturalNumbers();
 	}
@@ -329,7 +329,7 @@ implements IntegerEnumSlotDescriptionEnum
 	 * the primitive declaration of a block.  The actual variable's inner type
 	 * must this or a supertype.
 	 */
-	private AvailObject cachedFailureVariableType;
+	private A_Type cachedFailureVariableType;
 
 	/**
 	 * Return an Avail {@linkplain TypeDescriptor type} that a failure variable
@@ -340,7 +340,7 @@ implements IntegerEnumSlotDescriptionEnum
 	 *             A type which is at least as specific as the type of the
 	 *             failure variable declared in a block using this primitive.
 	 */
-	public final AvailObject failureVariableType ()
+	public final A_Type failureVariableType ()
 	{
 		if (cachedFailureVariableType == null)
 		{

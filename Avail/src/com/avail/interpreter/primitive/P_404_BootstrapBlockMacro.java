@@ -84,32 +84,32 @@ public class P_404_BootstrapBlockMacro extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 7;
-		final AvailObject optionalArgumentDeclarations = args.get(0);
-		final AvailObject optionalPrimitive = args.get(1);
-		final AvailObject optionalLabel = args.get(2);
-		final AvailObject statements = args.get(3);
-		final AvailObject optionalReturnExpression = args.get(4);
-		final AvailObject optionalReturnType = args.get(5);
-		final AvailObject optionalExceptionTypes = args.get(6);
+		final A_Tuple optionalArgumentDeclarations = args.get(0);
+		final A_Tuple optionalPrimitive = args.get(1);
+		final A_Tuple optionalLabel = args.get(2);
+		final A_Tuple statements = args.get(3);
+		final A_Tuple optionalReturnExpression = args.get(4);
+		final A_Tuple optionalReturnType = args.get(5);
+		final A_Tuple optionalExceptionTypes = args.get(6);
 
-		final AvailObject fiberGlobals = interpreter.fiber().fiberGlobals();
-		final AvailObject clientDataKey = AtomDescriptor.clientDataGlobalKey();
+		final A_Map fiberGlobals = interpreter.fiber().fiberGlobals();
+		final A_Atom clientDataKey = AtomDescriptor.clientDataGlobalKey();
 		if (!fiberGlobals.hasKey(clientDataKey))
 		{
 			return interpreter.primitiveFailure(E_COMPILATION_IS_OVER);
 		}
-		final AvailObject clientData = fiberGlobals.mapAt(clientDataKey);
-		final AvailObject scopeMapKey = AtomDescriptor.compilerScopeMapKey();
+		final A_Map clientData = fiberGlobals.mapAt(clientDataKey);
+		final A_Atom scopeMapKey = AtomDescriptor.compilerScopeMapKey();
 		if (!clientData.hasKey(scopeMapKey))
 		{
 			// It looks like somebody removed all the scope information.
 			return interpreter.primitiveFailure(E_COMPILATION_IS_OVER);
 		}
-		final AvailObject scopeMap = clientData.mapAt(scopeMapKey);
+		final A_Map scopeMap = clientData.mapAt(scopeMapKey);
 
 		final List<AvailObject> allStatements = new ArrayList<AvailObject>();
 
-		final AvailObject argumentDeclarationPairs =
+		final A_Tuple argumentDeclarationPairs =
 			optionalArgumentDeclarations.tupleSize() == 0
 				? TupleDescriptor.empty()
 				: optionalArgumentDeclarations.tupleAt(1);
@@ -118,9 +118,9 @@ public class P_404_BootstrapBlockMacro extends Primitive
 		final List<AvailObject> argumentDeclarationsList =
 			new ArrayList<AvailObject>(argumentDeclarationPairs.tupleSize());
 		{
-			for (final AvailObject declarationPair : argumentDeclarationPairs)
+			for (final A_Tuple declarationPair : argumentDeclarationPairs)
 			{
-				final AvailObject declarationName =
+				final A_String declarationName =
 					declarationPair.tupleAt(1).token().string();
 				if (!scopeMap.hasKey(declarationName))
 				{
@@ -135,10 +135,10 @@ public class P_404_BootstrapBlockMacro extends Primitive
 		int primNumber = 0;
 		boolean canHaveStatements = true;
 		assert optionalPrimitive.tupleSize() <= 1;
-		@Nullable AvailObject primitiveReturnType = null;
+		@Nullable A_Type primitiveReturnType = null;
 		if (optionalPrimitive.tupleSize() != 0)
 		{
-			final AvailObject primitivePart = optionalPrimitive.tupleAt(1);
+			final A_Tuple primitivePart = optionalPrimitive.tupleAt(1);
 			primNumber = primitivePart.tupleIntAt(1);
 			final Primitive primitive =
 				Primitive.byPrimitiveNumberOrNull(primNumber);
@@ -147,8 +147,7 @@ public class P_404_BootstrapBlockMacro extends Primitive
 				return interpreter.primitiveFailure(E_PRIMITIVE_NOT_SUPPORTED);
 			}
 			canHaveStatements = !primitive.hasFlag(CannotFail);
-			final AvailObject optionalFailurePairs =
-				optionalPrimitive.tupleAt(2);
+			final A_Tuple optionalFailurePairs = optionalPrimitive.tupleAt(2);
 			assert optionalFailurePairs.tupleSize() <= 1;
 			if ((optionalFailurePairs.tupleSize() == 1) != canHaveStatements)
 			{
@@ -157,7 +156,7 @@ public class P_404_BootstrapBlockMacro extends Primitive
 			}
 			if (optionalFailurePairs.tupleSize() == 1)
 			{
-				final AvailObject failureDeclarationName =
+				final A_String failureDeclarationName =
 					optionalFailurePairs.tupleAt(1).tupleAt(1);
 				if (!scopeMap.hasKey(failureDeclarationName))
 				{
@@ -172,11 +171,11 @@ public class P_404_BootstrapBlockMacro extends Primitive
 		}
 
 		// Deal with the label if present.
-		@Nullable AvailObject labelReturnType = null;
+		@Nullable A_Type labelReturnType = null;
 		assert optionalLabel.tupleSize() <= 1;
 		if (optionalLabel.tupleSize() == 1)
 		{
-			final AvailObject labelDeclarationName =
+			final A_String labelDeclarationName =
 				optionalLabel.tupleAt(1).tupleAt(1);
 			if (!scopeMap.hasKey(labelDeclarationName))
 			{
@@ -193,7 +192,7 @@ public class P_404_BootstrapBlockMacro extends Primitive
 			allStatements.add(statement);
 		}
 		assert optionalReturnExpression.tupleSize() <= 1;
-		final AvailObject deducedReturnType;
+		final A_Type deducedReturnType;
 		if (optionalReturnExpression.tupleSize() == 1)
 		{
 			final AvailObject returnExpression =
@@ -212,7 +211,7 @@ public class P_404_BootstrapBlockMacro extends Primitive
 				E_INFALLIBLE_PRIMITIVE_MUST_NOT_HAVE_STATEMENTS);
 		}
 
-		final @Nullable AvailObject declaredReturnType =
+		final @Nullable A_Type declaredReturnType =
 			optionalReturnType.tupleSize() != 0
 				? optionalReturnType.tupleAt(1)
 				: null;
@@ -248,11 +247,11 @@ public class P_404_BootstrapBlockMacro extends Primitive
 					E_RETURN_TYPE_IS_MANDATORY_WITH_PRIMITIVES_OR_LABELS);
 			}
 		}
-		final AvailObject returnType =
+		final A_Type returnType =
 			declaredReturnType != null
 				? declaredReturnType
 				: deducedReturnType;
-		final AvailObject exceptionsSet =
+		final A_Set exceptionsSet =
 			optionalExceptionTypes.tupleSize() == 0
 				? SetDescriptor.empty()
 				: optionalExceptionTypes.tupleAt(1).asSet();
@@ -268,7 +267,7 @@ public class P_404_BootstrapBlockMacro extends Primitive
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
@@ -324,7 +323,7 @@ public class P_404_BootstrapBlockMacro extends Primitive
 	}
 
 	@Override
-	protected AvailObject privateFailureVariableType ()
+	protected A_Type privateFailureVariableType ()
 	{
 		return AbstractEnumerationTypeDescriptor.withInstances(
 			TupleDescriptor.from(

@@ -56,9 +56,9 @@ public class P_027_SetFiberVariable extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 3;
-		final AvailObject fiber = args.get(0);
-		final AvailObject key = args.get(1);
-		final AvailObject value = args.get(2);
+		final A_BasicObject fiber = args.get(0);
+		final A_BasicObject key = args.get(1);
+		final A_BasicObject value = args.get(2);
 		fiber.fiberGlobals(
 			fiber.fiberGlobals().mapAtPuttingCanDestroy(
 				key.makeImmutable(),
@@ -68,7 +68,7 @@ public class P_027_SetFiberVariable extends Primitive
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

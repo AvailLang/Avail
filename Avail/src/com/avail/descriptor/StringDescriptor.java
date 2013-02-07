@@ -88,7 +88,7 @@ extends TupleDescriptor
 	 * @param aNativeString A Java {@link String}.
 	 * @return A corresponding Avail {@linkplain StringDescriptor string}.
 	 */
-	public static AvailObject from (final String aNativeString)
+	public static A_String from (final String aNativeString)
 	{
 		final int charCount = aNativeString.length();
 		if (charCount == 0)
@@ -117,19 +117,19 @@ extends TupleDescriptor
 		}
 		// Fall back to building a general object tuple containing Avail
 		// character objects.
-		final AvailObject tuple = ObjectTupleDescriptor.mutable.create(count);
+		final A_String tuple = ObjectTupleDescriptor.mutable.create(count);
 		// Make it pointer-safe first, since we'll be allocating character
 		// objects.
 		for (int i = 1; i <= count; i++)
 		{
-			tuple.tupleAtPut(i, NilDescriptor.nil());
+			tuple.objectTupleAtPut(i, NilDescriptor.nil());
 		}
 		index = 0;
 		count = 1;  // One-based tuple index
 		while (index < charCount)
 		{
 			final int codePoint = aNativeString.codePointAt(index);
-			tuple.tupleAtPut(
+			tuple.objectTupleAtPut(
 				count,
 				CharacterDescriptor.fromCodePoint(
 					codePoint));

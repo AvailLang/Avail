@@ -34,7 +34,8 @@ package com.avail.interpreter.levelTwo.operation;
 import static com.avail.descriptor.AvailObject.error;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import java.util.*;
-import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.A_Tuple;
+import com.avail.descriptor.A_Type;
 import com.avail.interpreter.Primitive.Result;
 import com.avail.interpreter.levelTwo.*;
 import com.avail.interpreter.levelTwo.operand.*;
@@ -95,7 +96,7 @@ public class L2_ATTEMPT_INLINE_PRIMITIVE_NO_CHECK extends L2Operation
 		final int unusedPreservedVector = interpreter.nextWord();
 		final int successOffset = interpreter.nextWord();
 
-		final AvailObject argsVect = interpreter.vectorAt(argsVector);
+		final A_Tuple argsVect = interpreter.vectorAt(argsVector);
 		interpreter.argsBuffer.clear();
 		for (int i = 1; i <= argsVect.tupleSize(); i++)
 		{
@@ -147,14 +148,14 @@ public class L2_ATTEMPT_INLINE_PRIMITIVE_NO_CHECK extends L2Operation
 		final L2WritePointerOperand failureValue =
 			(L2WritePointerOperand) instruction.operands[3];
 
-		final List<AvailObject> argTypes = new ArrayList<AvailObject>(3);
+		final List<A_Type> argTypes = new ArrayList<A_Type>(3);
 		for (final L2ObjectRegister arg : argumentsVector.vector)
 		{
 			assert registers.hasTypeAt(arg);
 			argTypes.add(registers.typeAt(arg));
 		}
 		// We can at least believe what the primitive itself says it returns.
-		final AvailObject guaranteedType =
+		final A_Type guaranteedType =
 			primitiveOperand.primitive.returnTypeGuaranteedByVM(
 				argTypes);
 

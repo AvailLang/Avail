@@ -54,12 +54,12 @@ public class P_113_SetTypeElementType extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
-		final AvailObject setType = args.get(0);
+		final A_Type setType = args.get(0);
 		return interpreter.primitiveSuccess(setType.contentType());
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

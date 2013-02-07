@@ -32,6 +32,8 @@
 package com.avail.interpreter.levelTwo.operation;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.levelTwo.*;
 
@@ -68,10 +70,9 @@ public class L2_EXPLODE_CONTINUATION extends L2Operation
 		final int explodedCallerIndex = interpreter.nextWord();
 		final int explodedFunctionIndex = interpreter.nextWord();
 
-		final AvailObject slots =
-			interpreter.vectorAt(explodedSlotsVectorIndex);
+		final A_Tuple slots = interpreter.vectorAt(explodedSlotsVectorIndex);
 		final int slotsCount = slots.tupleSize();
-		final AvailObject continuation =
+		final A_BasicObject continuation =
 			interpreter.pointerAt(continuationToExplodeIndex);
 		assert continuation.numArgsAndLocalsAndStack() == slotsCount;
 		for (int i = 1; i <= slotsCount; i++)

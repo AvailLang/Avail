@@ -36,7 +36,7 @@ import com.avail.descriptor.*;
 
 /**
  * An {@code L2RawInstructionDescriber} can {@linkplain #describe(
- * L2RawInstruction, AvailObject, StringBuilder) describe} an {@link
+ * L2RawInstruction, A_BasicObject, StringBuilder) describe} an {@link
  * L2RawInstruction}, properly interpreting the instruction's {@linkplain
  * L2Operation operation} and {@linkplain L2OperandType operands}.
  *
@@ -64,7 +64,7 @@ public class L2RawInstructionDescriber
 	 */
 	public void describe (
 			final L2RawInstruction rawInstruction,
-			final AvailObject chunk,
+			final A_BasicObject chunk,
 			final StringBuilder stream)
 	{
 		final L2Operation operation = rawInstruction.operation();

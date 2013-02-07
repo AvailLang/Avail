@@ -87,12 +87,12 @@ extends Descriptor
 	 * Extract the root {@linkplain MapBinDescriptor bin} from the {@linkplain
 	 * MapDescriptor map}.
 	 *
-	 * @param object The map from which to extract the root bin.
+	 * @param map The map from which to extract the root bin.
 	 * @return The map's bin.
 	 */
-	private static AvailObject rootBin (final AvailObject object)
+	private static AvailObject rootBin (final A_Map map)
 	{
-		return object.slot(ObjectSlots.ROOT_BIN);
+		return map.slot(ObjectSlots.ROOT_BIN);
 	}
 
 	/**
@@ -100,14 +100,14 @@ extends Descriptor
 	 * MapBinDescriptor bin}. The replacement may be {@link
 	 * NilDescriptor#nil() nil} to indicate an empty map.
 	 *
-	 * @param object The map (must not be an indirection).
+	 * @param map The map (must not be an indirection).
 	 * @param bin The root bin for the map, or nil.
 	 */
-	private static void rootBin (
-		final AvailObject object,
-		final AvailObject bin)
+	private static void setRootBin (
+		final A_Map map,
+		final A_BasicObject bin)
 	{
-		object.setSlot(ObjectSlots.ROOT_BIN, bin);
+		map.setSlot(ObjectSlots.ROOT_BIN, bin);
 	}
 
 	@Override
@@ -183,13 +183,13 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_Equals (final AvailObject object, final AvailObject another)
+	boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		return another.equalsMap(object);
 	}
 
 	@Override @AvailMethod
-	boolean o_EqualsMap (final AvailObject object, final AvailObject aMap)
+	boolean o_EqualsMap (final AvailObject object, final A_Map aMap)
 	{
 		if (object.sameAddressAs(aMap))
 		{
@@ -203,10 +203,10 @@ extends Descriptor
 		{
 			return false;
 		}
-		final AvailObject aMapRootBin = rootBin(aMap);
+		final A_BasicObject aMapRootBin = rootBin(aMap);
 		for (final MapDescriptor.Entry entry : object.mapIterable())
 		{
-			final AvailObject actualValue = aMapRootBin.mapBinAtHash(
+			final A_Map actualValue = aMapRootBin.mapBinAtHash(
 				entry.key,
 				entry.keyHash);
 			if (!entry.value.equals(actualValue))
@@ -222,7 +222,7 @@ extends Descriptor
 			aMap.makeImmutable();
 			object.becomeIndirectionTo(aMap);
 		}
-		else if (!aMap.descriptor.isShared())
+		else if (!aMap.descriptor().isShared())
 		{
 			object.makeImmutable();
 			aMap.becomeIndirectionTo(object);
@@ -233,7 +233,7 @@ extends Descriptor
 	@Override @AvailMethod
 	boolean o_IsInstanceOfKind (
 		final AvailObject object,
-		final AvailObject aTypeObject)
+		final A_Type aTypeObject)
 	{
 		if (aTypeObject.isSupertypeOfPrimitiveTypeEnum(NONTYPE))
 		{
@@ -247,8 +247,8 @@ extends Descriptor
 		{
 			return false;
 		}
-		final AvailObject keyType = aTypeObject.keyType();
-		final AvailObject valueType = aTypeObject.valueType();
+		final A_Type keyType = aTypeObject.keyType();
+		final A_Type valueType = aTypeObject.valueType();
 		final AvailObject rootBin = rootBin(object);
 		final boolean keysMatch =
 			keyType.equals(ANY.o())
@@ -308,7 +308,7 @@ extends Descriptor
 	{
 		// A map's hash is a simple function of its rootBin's keysHash and
 		// valuesHash.
-		final AvailObject root = rootBin(object);
+		final A_Map root = rootBin(object);
 		int h = root.mapBinKeysHash();
 		h ^= 0x45F78A7E;
 		h += root.mapBinValuesHash();
@@ -323,12 +323,12 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_Kind (final AvailObject object)
+	A_Type o_Kind (final AvailObject object)
 	{
 		final int size = object.mapSize();
-		final AvailObject sizeRange = InstanceTypeDescriptor.on(
+		final A_Type sizeRange = InstanceTypeDescriptor.on(
 			IntegerDescriptor.fromInt(size));
-		final AvailObject root = rootBin(object);
+		final A_Map root = rootBin(object);
 		return MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
 			sizeRange,
 			root.mapBinKeyUnionKind(),
@@ -336,7 +336,9 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_MapAt (final AvailObject object, final AvailObject keyObject)
+	AvailObject o_MapAt (
+		final AvailObject object,
+		final A_BasicObject keyObject)
 	{
 		// Answer the value of the map at the specified key. Fail if the key is
 		// not present.
@@ -351,26 +353,26 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_MapAtPuttingCanDestroy (
+	A_Map o_MapAtPuttingCanDestroy (
 		final AvailObject object,
-		final AvailObject keyObject,
-		final AvailObject newValueObject,
+		final A_BasicObject keyObject,
+		final A_BasicObject newValueObject,
 		final boolean canDestroy)
 	{
 		// Answer a map like this one but with keyObject->newValueObject instead
 		// of any existing mapping for keyObject. The original map can be
 		// destroyed or recycled if canDestroy is true and it's mutable.
 		assert !newValueObject.equalsNil();
-		final AvailObject oldRoot = rootBin(object);
-		final AvailObject newRoot = oldRoot.mapBinAtHashPutLevelCanDestroy(
-			 keyObject,
-			 keyObject.hash(),
-			 newValueObject,
-			 (byte)0,
-			 canDestroy);
+		final A_BasicObject oldRoot = rootBin(object);
+		final A_BasicObject newRoot = oldRoot.mapBinAtHashPutLevelCanDestroy(
+			keyObject,
+			keyObject.hash(),
+			newValueObject,
+			(byte)0,
+			canDestroy);
 		if (canDestroy & isMutable())
 		{
-			rootBin(object, newRoot);
+			setRootBin(object, newRoot);
 			return object;
 		}
 		else if (isMutable())
@@ -381,11 +383,11 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_KeysAsSet (final AvailObject object)
+	A_Set o_KeysAsSet (final AvailObject object)
 	{
 		// Answer a set with all my keys.  Mark the keys as immutable because
 		// they'll be shared with the new set.
-		AvailObject result = SetDescriptor.empty();
+		A_Set result = SetDescriptor.empty();
 		for (final Entry entry : object.mapIterable())
 		{
 			result = result.setWithElementCanDestroy(
@@ -400,20 +402,20 @@ extends Descriptor
 	 * they'll be shared with the new tuple.
 	 */
 	@Override @AvailMethod
-	AvailObject o_ValuesAsTuple (final AvailObject object)
+	A_Tuple o_ValuesAsTuple (final AvailObject object)
 	{
 		final int size = object.mapSize();
-		final AvailObject result = ObjectTupleDescriptor.mutable.create(size);
+		final A_Tuple result = ObjectTupleDescriptor.createUninitialized(size);
 		for (int i = 1; i <= size; i++)
 		{
 			// Initialize it for when we have our own garbage collector again.
-			result.tupleAtPut(i, NilDescriptor.nil());
+			result.objectTupleAtPut(i, NilDescriptor.nil());
 		}
 		result.hashOrZero(0);
 		int index = 1;
 		for (final Entry entry : object.mapIterable())
 		{
-			result.tupleAtPut(index, entry.value.makeImmutable());
+			result.objectTupleAtPut(index, entry.value.makeImmutable());
 			index++;
 		}
 		assert index == size + 1;
@@ -421,9 +423,9 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_MapWithoutKeyCanDestroy (
+	A_Map o_MapWithoutKeyCanDestroy (
 		final AvailObject object,
-		final AvailObject keyObject,
+		final A_BasicObject keyObject,
 		final boolean canDestroy)
 	{
 		// Answer a map like this one but with keyObject removed from it. The
@@ -437,21 +439,21 @@ extends Descriptor
 			}
 			return object;
 		}
-		AvailObject root = rootBin(object);
+		A_BasicObject root = rootBin(object);
 		root = root.mapBinRemoveKeyHashCanDestroy(
 			keyObject,
 			keyObject.hash(),
 			canDestroy);
 		if (canDestroy && isMutable())
 		{
-			rootBin(object, root);
+			setRootBin(object, root);
 			return object;
 		}
 		return createFromBin(root);
 	}
 
 	@Override @AvailMethod
-	boolean o_HasKey (final AvailObject object, final AvailObject key)
+	boolean o_HasKey (final AvailObject object, final A_BasicObject key)
 	{
 		// Answer whether the map has the given key.
 		return !rootBin(object).mapBinAtHash(key, key.hash()).equalsNil();
@@ -477,7 +479,7 @@ extends Descriptor
 	}
 
 	@Override
-	public boolean o_ShowValueInNameForDebugger (final AvailObject object)
+	public boolean o_ShowValueInNameForDebugger (final A_BasicObject object)
 	{
 		return false;
 	}
@@ -598,12 +600,12 @@ extends Descriptor
 	 *        A tuple of key-value bindings, i.e. 2-element tuples.
 	 * @return A new map.
 	 */
-	public static AvailObject newWithBindings (
-		final AvailObject tupleOfBindings)
+	public static A_Map newWithBindings (
+		final A_Tuple tupleOfBindings)
 	{
 		assert tupleOfBindings.isTuple();
-		AvailObject newMap = emptyMap;
-		for (final AvailObject binding : tupleOfBindings)
+		A_Map newMap = emptyMap;
+		for (final A_Tuple binding : tupleOfBindings)
 		{
 			assert binding.isTuple();
 			assert binding.tupleSize() == 2;
@@ -622,10 +624,10 @@ extends Descriptor
 	 * @param rootBin The rootBin to use in the new map.
 	 * @return A new mutable map.
 	 */
-	public static AvailObject createFromBin (final AvailObject rootBin)
+	public static A_Map createFromBin (final A_BasicObject rootBin)
 	{
-		final AvailObject newMap = mutable.create();
-		rootBin(newMap, rootBin);
+		final A_Map newMap = mutable.create();
+		setRootBin(newMap, rootBin);
 		return newMap;
 	}
 
@@ -643,9 +645,9 @@ extends Descriptor
 	 *        otherwise.
 	 * @return The resultant map.
 	 */
-	public static AvailObject combineMapsCanDestroy (
-		final AvailObject destination,
-		final AvailObject source,
+	public static A_BasicObject combineMapsCanDestroy (
+		final A_Map destination,
+		final A_Map source,
 		final boolean canDestroy)
 	{
 		assert destination.isMap();
@@ -663,7 +665,7 @@ extends Descriptor
 		{
 			return destination;
 		}
-		AvailObject target = destination;
+		A_Map target = destination;
 		for (final Entry entry : source.mapIterable())
 		{
 			target = target.mapAtPuttingCanDestroy(
@@ -675,14 +677,14 @@ extends Descriptor
 	}
 
 	/** The empty map. */
-	private static AvailObject emptyMap;
+	private static A_Map emptyMap;
 
 	/**
 	 * Answer the empty map.
 	 *
 	 * @return The empty map.
 	 */
-	public static AvailObject empty ()
+	public static A_Map empty ()
 	{
 		return emptyMap;
 	}

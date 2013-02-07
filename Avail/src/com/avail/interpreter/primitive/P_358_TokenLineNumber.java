@@ -56,13 +56,13 @@ public class P_358_TokenLineNumber extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
-		final AvailObject token = args.get(0);
+		final A_BasicObject token = args.get(0);
 		return interpreter.primitiveSuccess(
 			IntegerDescriptor.fromInt(token.lineNumber()));
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

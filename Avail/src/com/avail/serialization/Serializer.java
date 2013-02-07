@@ -40,7 +40,7 @@ import java.util.*;
 
 /**
  * A {@code Serializer} converts a series of objects passed individually to
- * {@link #serialize(AvailObject)} into a stream of bytes which, when replayed
+ * {@link #serialize(A_BasicObject)} into a stream of bytes which, when replayed
  * in a {@link Deserializer}, will reconstruct an analogous series of objects.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
@@ -67,14 +67,15 @@ public class Serializer
 	 * from each {@link AvailObject} to the {@link SerializerInstruction} that
 	 * will be output for it at the appropriate time.
 	 */
-	final Map<AvailObject, SerializerInstruction> encounteredObjects =
-		new HashMap<AvailObject, SerializerInstruction>(1000);
+	final Map<A_BasicObject, SerializerInstruction> encounteredObjects =
+		new HashMap<A_BasicObject, SerializerInstruction>(1000);
 
 	/**
 	 * All variables that must have their values assigned to them upon
 	 * deserialization.  The set is cleared at every checkpoint.
 	 */
-	final Set<AvailObject> variablesToAssign = new HashSet<AvailObject>(100);
+	final Set<A_BasicObject> variablesToAssign =
+		new HashSet<A_BasicObject>(100);
 
 	/**
 	 * The number of instructions that have been written to the {@link #output}.
@@ -162,7 +163,7 @@ public class Serializer
 	 * @return The object's zero-based index in {@code encounteredObjects}.
 	 */
 	SerializerInstruction instructionForObject (
-		final AvailObject object)
+		final A_BasicObject object)
 	{
 		return encounteredObjects.get(object);
 	}
@@ -180,7 +181,7 @@ public class Serializer
 	 *            object.
 	 */
 	int indexOfExistingObject (
-		final AvailObject object)
+		final A_BasicObject object)
 	{
 		final SerializerInstruction instruction =
 			encounteredObjects.get(object);
@@ -198,7 +199,7 @@ public class Serializer
 	 * @return The object's zero-based index in {@code encounteredObjects}.
 	 */
 	static int indexOfSpecialObject (
-		final AvailObject object)
+		final A_BasicObject object)
 	{
 		final Integer index = specialObjects.get(object);
 		if (index == null)
@@ -217,7 +218,7 @@ public class Serializer
 	 * @return The object's zero-based index in {@code encounteredObjects}.
 	 */
 	static int indexOfSpecialAtom (
-		final AvailObject object)
+		final A_BasicObject object)
 	{
 		final Integer index = specialAtoms.get(object);
 		if (index == null)
@@ -248,7 +249,7 @@ public class Serializer
 	 * @param object The object to trace.
 	 */
 	void traceOne (
-		final AvailObject object)
+		final A_BasicObject object)
 	{
 		final SerializerInstruction instruction;
 		if (encounteredObjects.containsKey(object))
@@ -277,7 +278,7 @@ public class Serializer
 				}
 			}
 			instruction = new SerializerInstruction(
-				object,
+				(AvailObject)object,
 				operation);
 			encounteredObjects.put(object, instruction);
 		}
@@ -313,7 +314,7 @@ public class Serializer
 			});
 			// Push actions for the subcomponents in reverse order to make the
 			// serialized file slightly easier to debug.  Any order is correct.
-			final AvailObject[] subobjects = instruction.decomposed();
+			final A_BasicObject[] subobjects = instruction.decomposed();
 			final SerializerOperand[] operands =
 				instruction.operation().operands();
 			assert subobjects.length == operands.length;
@@ -326,7 +327,7 @@ public class Serializer
 					public void value ()
 					{
 						operands[index].trace(
-							subobjects[index],
+							(AvailObject)subobjects[index],
 							Serializer.this);
 					}
 
@@ -341,7 +342,7 @@ public class Serializer
 				&& !object.value().equalsNil())
 			{
 				variablesToAssign.add(object);
-				// Output an action to the *start* of the workstack to trace
+				// Output an action to the *start* of the workStack to trace
 				// the variable's value.  This prevents recursion, but ensures
 				// that everything reachable, including through variables, will
 				// be traced.
@@ -419,7 +420,7 @@ public class Serializer
 	 * @param object An object to serialize.
 	 */
 	public void serialize (
-		final AvailObject object)
+		final A_BasicObject object)
 	{
 		traceOne(object);
 		while (!workStack.isEmpty())
@@ -427,12 +428,12 @@ public class Serializer
 			workStack.removeLast().value();
 		}
 		// Next, do all variable assignments...
-		for (final AvailObject variable : variablesToAssign)
+		for (final A_BasicObject variable : variablesToAssign)
 		{
 			assert !variable.value().equalsNil();
 			final SerializerInstruction assignment =
 				new SerializerInstruction(
-					variable,
+					(AvailObject)variable,
 					SerializerOperation.ASSIGN_TO_VARIABLE);
 			assignment.index(instructionsWritten);
 			instructionsWritten++;
@@ -443,7 +444,7 @@ public class Serializer
 		// Finally, write a checkpoint to say there's something ready for the
 		// deserializer to answer.
 		final SerializerInstruction checkpoint = new SerializerInstruction(
-			object,
+			(AvailObject)object,
 			SerializerOperation.CHECKPOINT);
 		checkpoint.index(instructionsWritten);
 		instructionsWritten++;

@@ -63,16 +63,16 @@ public class P_406_BootstrapConstantDeclarationMacro extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 2;
-		final AvailObject constantNameLiteralNode = args.get(0);
+		final A_BasicObject constantNameLiteralNode = args.get(0);
 		final AvailObject initializationExpression = args.get(1);
 
 		assert constantNameLiteralNode.isInstanceOfKind(
 			LITERAL_NODE.mostGeneralType());
-		final AvailObject syntheticLiteralNameToken =
+		final A_Token syntheticLiteralNameToken =
 			constantNameLiteralNode.token();
 		assert syntheticLiteralNameToken.isLiteralToken();
 		assert syntheticLiteralNameToken.tokenType() == SYNTHETIC_LITERAL;
-		final AvailObject innerNameToken = syntheticLiteralNameToken.literal();
+		final A_Token innerNameToken = syntheticLiteralNameToken.literal();
 		assert innerNameToken.isInstanceOfKind(TOKEN.o());
 
 		if (innerNameToken.tokenType() != KEYWORD)
@@ -81,7 +81,7 @@ public class P_406_BootstrapConstantDeclarationMacro extends Primitive
 				StringDescriptor.from(
 					"Constant name to be alphanumeric"));
 		}
-		final AvailObject initializationType =
+		final A_BasicObject initializationType =
 			initializationExpression.expressionType();
 		if (initializationType.equals(TOP.o()))
 		{
@@ -107,7 +107,7 @@ public class P_406_BootstrapConstantDeclarationMacro extends Primitive
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

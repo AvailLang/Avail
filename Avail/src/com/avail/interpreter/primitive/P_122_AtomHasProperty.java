@@ -58,19 +58,19 @@ public class P_122_AtomHasProperty extends Primitive
 	{
 		assert args.size() == 2;
 		final AvailObject propertyKey = args.get(0);
-		final AvailObject atom = args.get(1);
+		final A_BasicObject atom = args.get(1);
 		if (AvailRuntime.isSpecialAtom(atom)
 			|| AvailRuntime.isSpecialAtom(propertyKey))
 		{
 			return interpreter.primitiveFailure(E_SPECIAL_ATOM);
 		}
-		final AvailObject propertyValue = atom.getAtomProperty(propertyKey);
+		final A_BasicObject propertyValue = atom.getAtomProperty(propertyKey);
 		return interpreter.primitiveSuccess(
 			AtomDescriptor.objectFromBoolean(!propertyValue.equalsNil()));
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

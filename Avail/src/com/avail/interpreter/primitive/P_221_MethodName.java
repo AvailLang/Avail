@@ -58,12 +58,12 @@ public class P_221_MethodName extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
-		final AvailObject method = args.get(0);
+		final A_BasicObject method = args.get(0);
 		return interpreter.primitiveSuccess(method.name());
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

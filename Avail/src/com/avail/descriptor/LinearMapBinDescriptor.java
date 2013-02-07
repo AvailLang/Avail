@@ -129,8 +129,8 @@ extends MapBinDescriptor
 			for (int i = 1; i <= size; i++)
 			{
 				final int keyHash = object.slot(KEY_HASHES_, i);
-				final AvailObject key = object.slot(BIN_SLOT_AT_, i * 2 - 1);
-				final AvailObject value = object.slot(BIN_SLOT_AT_, i * 2);
+				final A_BasicObject key = object.slot(BIN_SLOT_AT_, i * 2 - 1);
+				final A_BasicObject value = object.slot(BIN_SLOT_AT_, i * 2);
 				assert key.hash() == keyHash;
 				computedKeyHashSum += keyHash;
 				computedValueHashSum += value.hash();
@@ -154,7 +154,7 @@ extends MapBinDescriptor
 	void o_BinElementAtPut (
 		final AvailObject object,
 		final int subscript,
-		final AvailObject value)
+		final A_BasicObject value)
 	{
 		object.setSlot(BIN_SLOT_AT_, subscript, value);
 	}
@@ -169,7 +169,7 @@ extends MapBinDescriptor
 	@Override
 	AvailObject o_MapBinAtHash (
 		final AvailObject object,
-		final AvailObject key,
+		final A_BasicObject key,
 		final int keyHash)
 	{
 		final int limit = object.variableIntegerSlotsCount();
@@ -186,11 +186,11 @@ extends MapBinDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_MapBinAtHashPutLevelCanDestroy (
+	A_BasicObject o_MapBinAtHashPutLevelCanDestroy (
 		final AvailObject object,
-		final AvailObject key,
+		final A_BasicObject key,
 		final int keyHash,
-		final AvailObject value,
+		final A_BasicObject value,
 		final byte myLevel,
 		final boolean canDestroy)
 	{
@@ -206,7 +206,7 @@ extends MapBinDescriptor
 			if (object.slot(KEY_HASHES_, i) == keyHash
 				&& object.slot(BIN_SLOT_AT_, i * 2 - 1).equals(key))
 			{
-				final AvailObject oldValue = object.slot(BIN_SLOT_AT_, i * 2);
+				final A_BasicObject oldValue = object.slot(BIN_SLOT_AT_, i * 2);
 				if (oldValue.equals(value))
 				{
 					// The (key,value) pair is present.
@@ -270,13 +270,13 @@ extends MapBinDescriptor
 				bitPosition = bitShift(anotherKeyHash, -5 * myLevel) & 31;
 				bitVector |= bitShift(1, bitPosition);
 			}
-			final AvailObject result =
+			final A_BasicObject result =
 				HashedMapBinDescriptor.createLevelBitVector(myLevel, bitVector);
 			for (int i = 0; i <= oldSize; i++)
 			{
-				final AvailObject eachKey;
+				final A_BasicObject eachKey;
 				final int eachHash;
-				final AvailObject eachValue;
+				final A_BasicObject eachValue;
 				if (i == 0)
 				{
 					eachKey = key;
@@ -290,7 +290,7 @@ extends MapBinDescriptor
 					eachValue = object.slot(BIN_SLOT_AT_, i * 2);
 				}
 				assert result.descriptor().isMutable();
-				final AvailObject localAddResult =
+				final A_BasicObject localAddResult =
 					result.mapBinAtHashPutLevelCanDestroy(
 						eachKey,
 						eachHash,
@@ -336,9 +336,9 @@ extends MapBinDescriptor
 	 * bin. The bin may be modified if it's mutable and canDestroy.
 	 */
 	@Override @AvailMethod
-	AvailObject o_MapBinRemoveKeyHashCanDestroy (
+	A_BasicObject o_MapBinRemoveKeyHashCanDestroy (
 		final AvailObject object,
-		final AvailObject key,
+		final A_BasicObject key,
 		final int keyHash,
 		final boolean canDestroy)
 	{
@@ -397,11 +397,11 @@ extends MapBinDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_MapBinKeyUnionKind (final AvailObject object)
+	A_Type o_MapBinKeyUnionKind (final AvailObject object)
 	{
 		// Answer the union of the types of this bin's keys. I'm supposed to be
 		// small, so recalculate it per request.
-		AvailObject unionKind = BottomTypeDescriptor.bottom();
+		A_Type unionKind = BottomTypeDescriptor.bottom();
 		final int limit = object.variableIntegerSlotsCount();
 		for (int index = 1; index <= limit; index++)
 		{
@@ -412,11 +412,11 @@ extends MapBinDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_MapBinValueUnionKind (final AvailObject object)
+	A_Type o_MapBinValueUnionKind (final AvailObject object)
 	{
 		// Answer the union of the types of this bin's values. I'm supposed to
 		// be small, so recalculate it per request.
-		AvailObject unionKind = BottomTypeDescriptor.bottom();
+		A_Type unionKind = BottomTypeDescriptor.bottom();
 		final int limit = object.variableIntegerSlotsCount();
 		for (int index = 1; index <= limit; index++)
 		{
@@ -500,13 +500,12 @@ extends MapBinDescriptor
 	 * @param myLevel The level at which to label the bin.
 	 * @return The new bin with only (key,value) in it.
 	 */
-	static AvailObject createSingle (
-		final AvailObject key,
+	static A_BasicObject createSingle (
+		final A_BasicObject key,
 		final int keyHash,
-		final AvailObject value,
+		final A_BasicObject value,
 		final byte myLevel)
 	{
-		//trace("%nnew Single");
 		final LinearMapBinDescriptor descriptor =
 			LinearMapBinDescriptor.descriptorFor(MUTABLE, myLevel);
 		final AvailObject bin =

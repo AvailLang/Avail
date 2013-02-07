@@ -55,12 +55,12 @@ public class P_349_ParseNodeTypeExpressionType extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
-		final AvailObject parseNodeType = args.get(0);
+		final A_BasicObject parseNodeType = args.get(0);
 		return interpreter.primitiveSuccess(parseNodeType.expressionType());
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

@@ -85,7 +85,7 @@ extends StringDescriptor
 		final AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
-		final AvailObject anotherObject,
+		final A_Tuple anotherObject,
 		final int startIndex2)
 	{
 		return anotherObject.compareFromToWithTwoByteStringStartingAt(
@@ -122,7 +122,7 @@ extends StringDescriptor
 	}
 
 	@Override
-	AvailObject o_CopyTupleFromToCanDestroy (
+	A_Tuple o_CopyTupleFromToCanDestroy (
 		final AvailObject object,
 		final int start,
 		final int end,
@@ -154,7 +154,7 @@ extends StringDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_Equals (final AvailObject object, final AvailObject another)
+	boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		return another.equalsTwoByteString(object);
 	}
@@ -275,10 +275,10 @@ extends StringDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_TupleAtPuttingCanDestroy (
+	A_Tuple o_TupleAtPuttingCanDestroy (
 		final AvailObject object,
 		final int index,
-		final AvailObject newValueObject,
+		final A_BasicObject newValueObject,
 		final boolean canDestroy)
 	{
 		// Answer a tuple with all the elements of object except at the given
@@ -297,8 +297,8 @@ extends StringDescriptor
 					return object;
 				}
 				// Clone it then modify the copy in place.
-				return copyAsMutableTwoByteString(object)
-					.tupleAtPuttingCanDestroy(
+				return
+					copyAsMutableTwoByteString(object).tupleAtPuttingCanDestroy(
 						index,
 						newValueObject,
 						true);
@@ -432,7 +432,7 @@ extends StringDescriptor
 	 *            A new {@linkplain TwoByteStringDescriptor two-byte string}
 	 *            with the same content as the argument.
 	 */
-	private AvailObject copyAsMutableTwoByteString (final AvailObject object)
+	private A_String copyAsMutableTwoByteString (final A_String object)
 	{
 		final AvailObject result = mutableObjectOfSize(object.tupleSize());
 		assert result.integerSlotsCount() == object.integerSlotsCount();

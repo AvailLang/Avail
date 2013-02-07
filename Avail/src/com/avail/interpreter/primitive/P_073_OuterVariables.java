@@ -55,26 +55,26 @@ public class P_073_OuterVariables extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
-		final AvailObject aFunction = args.get(0);
-		final AvailObject newTupleObject =
+		final A_Function aFunction = args.get(0);
+		final A_Tuple newTupleObject =
 			ObjectTupleDescriptor.createUninitialized(aFunction.numOuterVars());
 		for (int i = 1, end = aFunction.numOuterVars(); i <= end; i++)
 		{
-			final AvailObject outer = aFunction.outerVarAt(i);
+			final A_BasicObject outer = aFunction.outerVarAt(i);
 			if (outer.equalsNil())
 			{
-				newTupleObject.tupleAtPut(i, IntegerDescriptor.zero());
+				newTupleObject.objectTupleAtPut(i, IntegerDescriptor.zero());
 			}
 			else
 			{
-				newTupleObject.tupleAtPut(i, outer);
+				newTupleObject.objectTupleAtPut(i, outer);
 			}
 		}
 		return interpreter.primitiveSuccess(newTupleObject);
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

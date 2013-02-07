@@ -91,12 +91,26 @@ extends TupleDescriptor
 		object.setSlot(ObjectSlots.TUPLE_AT_, subscript, value);
 	}
 
+	/**
+	 * @param object
+	 * @param index
+	 * @param anObject
+	 */
+	@Override @AvailMethod
+	void o_ObjectTupleAtPut (
+		final AvailObject object,
+		final int index,
+		final A_BasicObject anObject)
+	{
+		object.setSlot(ObjectSlots.TUPLE_AT_, index, anObject);
+	}
+
 	@Override @AvailMethod
 	boolean o_CompareFromToWithStartingAt (
 		final AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
-		final AvailObject anotherObject,
+		final A_Tuple anotherObject,
 		final int startIndex2)
 	{
 		return anotherObject.compareFromToWithObjectTupleStartingAt(
@@ -134,7 +148,7 @@ extends TupleDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_Equals (final AvailObject object, final AvailObject another)
+	boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		return another.equalsObjectTuple(object);
 	}
@@ -184,7 +198,7 @@ extends TupleDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_CopyTupleFromToCanDestroy (
+	A_Tuple o_CopyTupleFromToCanDestroy (
 		final AvailObject object,
 		final int startIndex,
 		final int endIndex,
@@ -205,7 +219,7 @@ extends TupleDescriptor
 				object.assertObjectUnreachableIfMutable();
 				return TupleDescriptor.empty();
 			}
-			final AvailObject zeroObject = IntegerDescriptor.zero();
+			final A_Number zeroObject = IntegerDescriptor.zero();
 			object.hashOrZero(0);
 			if (startIndex == 1 || endIndex - startIndex < 30)
 			{
@@ -217,19 +231,19 @@ extends TupleDescriptor
 					}
 					for (int i = 1; i <= endIndex - startIndex + 1; i++)
 					{
-						object.tupleAtPut(
+						object.objectTupleAtPut(
 							i,
 							object.tupleAt(startIndex + i - 1));
 					}
 					for (int i = endIndex - startIndex + 2; i <= endIndex; i++)
 					{
-						object.tupleAtPut(i, zeroObject);
+						object.objectTupleAtPut(i, zeroObject);
 					}
 				}
 				for (int i = endIndex + 1; i <= originalSize; i++)
 				{
 					object.tupleAt(i).assertObjectUnreachableIfMutable();
-					object.tupleAtPut(i, zeroObject);
+					object.objectTupleAtPut(i, zeroObject);
 				}
 				object.truncateTo(endIndex - startIndex + 1);
 				// Clip remaining items off end, padding lost space with a
@@ -239,12 +253,12 @@ extends TupleDescriptor
 			for (int i = 1; i < startIndex; i++)
 			{
 				object.tupleAt(i).assertObjectUnreachableIfMutable();
-				object.tupleAtPut(i, zeroObject);
+				object.objectTupleAtPut(i, zeroObject);
 			}
 			for (int i = endIndex + 1; i <= originalSize; i++)
 			{
 				object.tupleAt(i).assertObjectUnreachableIfMutable();
-				object.tupleAtPut(i, zeroObject);
+				object.objectTupleAtPut(i, zeroObject);
 			}
 		}
 		if (startIndex - 1 == endIndex)
@@ -254,14 +268,14 @@ extends TupleDescriptor
 		// Compute the hash ahead of time, because asking an element to hash
 		// might trigger a garbage collection.
 		final int newHash = object.computeHashFromTo(startIndex, endIndex);
-		AvailObject result;
+		A_Tuple result;
 		if (endIndex - startIndex < 20)
 		{
 			result = mutable().create(endIndex - startIndex + 1);
 			result.hashOrZero(newHash);
 			for (int i = 1, end = endIndex - startIndex + 1; i <= end; i++)
 			{
-				result.tupleAtPut(
+				result.objectTupleAtPut(
 					i,
 					object.tupleAt(i + startIndex - 1).makeImmutable());
 			}
@@ -289,7 +303,7 @@ extends TupleDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_TruncateTo (final AvailObject object, final int newTupleSize)
+	A_Tuple o_TruncateTo (final AvailObject object, final int newTupleSize)
 	{
 		// Shrink the current object on the right.  Assumes that elements beyond
 		// the new end have already been released if necessary.  Since my
@@ -313,10 +327,10 @@ extends TupleDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_TupleAtPuttingCanDestroy (
+	A_Tuple o_TupleAtPuttingCanDestroy (
 		final AvailObject object,
 		final int index,
-		final AvailObject newValueObject,
+		final A_BasicObject newValueObject,
 		final boolean canDestroy)
 	{
 		// Answer a tuple with all the elements of object except at the given
@@ -330,7 +344,7 @@ extends TupleDescriptor
 				newValueObject,
 				true);
 		}
-		object.tupleAtPut(index, newValueObject);
+		object.objectTupleAtPut(index, newValueObject);
 		// Invalidate the hash value.
 		object.hashOrZero(0);
 		return object;

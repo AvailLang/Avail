@@ -82,10 +82,10 @@ extends Descriptor
 	 */
 	@Override @AvailMethod
 	abstract boolean o_BinElementsAreAllInstancesOfKind (
-		final AvailObject object, AvailObject kind);
+		final AvailObject object, A_Type kind);
 
 	@Override
-	public boolean o_ShowValueInNameForDebugger (final AvailObject object)
+	public boolean o_ShowValueInNameForDebugger (final A_BasicObject object)
 	{
 		return false;
 	}

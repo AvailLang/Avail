@@ -57,7 +57,7 @@ public class P_074_CreateFunction extends Primitive
 	{
 		assert args.size() == 2;
 		final AvailObject compiledCode = args.get(0);
-		final AvailObject outers = args.get(1);
+		final A_Tuple outers = args.get(1);
 		if (outers.tupleSize() != compiledCode.numOuters())
 		{
 			return interpreter.primitiveFailure(
@@ -68,7 +68,7 @@ public class P_074_CreateFunction extends Primitive
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

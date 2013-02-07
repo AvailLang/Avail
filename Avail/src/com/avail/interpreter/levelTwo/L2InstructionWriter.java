@@ -91,7 +91,7 @@ public class L2InstructionWriter
 	 *         previously {@link #write(L2RawInstruction) written} to the
 	 *         receiver.
 	 */
-	public AvailObject words()
+	public A_BasicObject words()
 	{
 		final byte [] byteArray = stream.toByteArray();
 		final int wordCount = byteArray.length >> 1;
@@ -105,7 +105,7 @@ public class L2InstructionWriter
 				break;
 			}
 		}
-		AvailObject words;
+		A_BasicObject words;
 		if (allBytes)
 		{
 			words = ByteTupleDescriptor.mutableObjectOfSize(wordCount);
@@ -117,7 +117,7 @@ public class L2InstructionWriter
 		}
 		else
 		{
-			final AvailObject[] array = new AvailObject[wordCount];
+			final A_Number[] array = new AvailObject[wordCount];
 			int dest = 0;
 			for (int source = 0; source < byteArray.length; source += 2)
 			{

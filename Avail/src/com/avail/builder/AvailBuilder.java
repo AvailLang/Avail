@@ -215,15 +215,15 @@ public final class AvailBuilder
 			final ModuleHeader header = compiler.moduleHeader;
 			final Set<ModuleName> importedModules = new HashSet<ModuleName>(
 				header.extendedModules.size() + header.usedModules.size());
-			for (final AvailObject extendedModule : header.extendedModules)
+			for (final A_Tuple extendedModule : header.extendedModules)
 			{
-				importedModules.add(resolution.asSibling(extendedModule
-					.tupleAt(1).asNativeString()));
+				importedModules.add(resolution.asSibling(
+					extendedModule.tupleAt(1).asNativeString()));
 			}
-			for (final AvailObject usedModule : header.usedModules)
+			for (final A_Tuple usedModule : header.usedModules)
 			{
-				importedModules.add(resolution.asSibling(usedModule.tupleAt(1)
-					.asNativeString()));
+				importedModules.add(resolution.asSibling(
+					usedModule.tupleAt(1).asNativeString()));
 			}
 
 			// Recurse into each import.
@@ -252,7 +252,7 @@ public final class AvailBuilder
 	/**
 	 * Compute {@linkplain ModuleDescriptor module} loading order from the
 	 * partial order implicitly specified by {@link #predecessors} and
-	 * {@link #successors}, emptying them in the fiber.
+	 * {@link #successors}, emptying them in the process.
 	 */
 	private void linearizeModuleImports ()
 	{
@@ -475,7 +475,7 @@ public final class AvailBuilder
 					deserializer.currentModule(module);
 					try
 					{
-						AvailObject tag = deserializer.deserialize();
+						A_BasicObject tag = deserializer.deserialize();
 						if (tag != null &&
 							!tag.equals(
 								AtomDescriptor.moduleHeaderSectionAtom()))
@@ -502,7 +502,7 @@ public final class AvailBuilder
 								"Expected module body tag");
 						}
 
-						AvailObject block;
+						A_Function block;
 						final List<AvailObject> noArgs =
 							Collections.emptyList();
 						// Run each zero-argument block.

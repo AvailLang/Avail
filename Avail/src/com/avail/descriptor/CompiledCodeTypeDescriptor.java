@@ -80,13 +80,13 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_FunctionType (final AvailObject object)
+	A_Type o_FunctionType (final AvailObject object)
 	{
 		return object.slot(FUNCTION_TYPE);
 	}
 
 	@Override
-	boolean o_Equals (final AvailObject object, final AvailObject another)
+	boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		return another.equalsCompiledCodeType(object);
 	}
@@ -102,7 +102,7 @@ extends TypeDescriptor
 	@Override @AvailMethod
 	boolean o_EqualsCompiledCodeType (
 		final AvailObject object,
-		final AvailObject aType)
+		final A_Type aType)
 	{
 		if (object.sameAddressAs(aType))
 		{
@@ -118,7 +118,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_IsSubtypeOf (final AvailObject object, final AvailObject aType)
+	boolean o_IsSubtypeOf (final AvailObject object, final A_Type aType)
 	{
 		return aType.isSupertypeOfCompiledCodeType(object);
 	}
@@ -133,17 +133,17 @@ extends TypeDescriptor
 	@Override @AvailMethod
 	boolean o_IsSupertypeOfCompiledCodeType (
 		final AvailObject object,
-		final AvailObject aCompiledCodeType)
+		final A_Type aCompiledCodeType)
 	{
-		final AvailObject subFunctionType = aCompiledCodeType.functionType();
-		final AvailObject superFunctionType = object.functionType();
+		final A_Type subFunctionType = aCompiledCodeType.functionType();
+		final A_Type superFunctionType = object.functionType();
 		return subFunctionType.isSubtypeOf(superFunctionType);
 	}
 
 	@Override @AvailMethod
-	AvailObject o_TypeIntersection (
+	A_Type o_TypeIntersection (
 		final AvailObject object,
-		final AvailObject another)
+		final A_Type another)
 	{
 		if (object.isSubtypeOf(another))
 		{
@@ -157,12 +157,12 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_TypeIntersectionOfCompiledCodeType (
+	A_Type o_TypeIntersectionOfCompiledCodeType (
 		final AvailObject object,
-		final AvailObject aCompiledCodeType)
+		final A_Type aCompiledCodeType)
 	{
-		final AvailObject closType1 = object.functionType();
-		final AvailObject closType2 = aCompiledCodeType.functionType();
+		final A_BasicObject closType1 = object.functionType();
+		final A_Type closType2 = aCompiledCodeType.functionType();
 		if (closType1.equals(closType2))
 		{
 			return object;
@@ -171,16 +171,18 @@ extends TypeDescriptor
 		{
 			return BottomTypeDescriptor.bottom();
 		}
-		final AvailObject intersection = FunctionTypeDescriptor.create(
-			closType1.argsTupleType().typeUnion(closType2.argsTupleType()),
-			closType1.returnType().typeUnion(closType2.returnType()));
+		final A_Type intersection =
+			FunctionTypeDescriptor.createWithArgumentTupleType(
+				closType1.argsTupleType().typeUnion(closType2.argsTupleType()),
+				closType1.returnType().typeUnion(closType2.returnType()),
+				SetDescriptor.empty());
 		return forFunctionType(intersection);
 	}
 
 	@Override @AvailMethod
-	AvailObject o_TypeUnion (
+	A_Type o_TypeUnion (
 		final AvailObject object,
-		final AvailObject another)
+		final A_Type another)
 	{
 		if (object.isSubtypeOf(another))
 		{
@@ -194,22 +196,24 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_TypeUnionOfCompiledCodeType (
+	A_Type o_TypeUnionOfCompiledCodeType (
 		final AvailObject object,
-		final AvailObject aCompiledCodeType)
+		final A_Type aCompiledCodeType)
 	{
-		final AvailObject closType1 = object.functionType();
-		final AvailObject closType2 = aCompiledCodeType.functionType();
+		final A_Type closType1 = object.functionType();
+		final A_Type closType2 = aCompiledCodeType.functionType();
 		if (closType1.equals(closType2))
 		{
 			// Optimization only
 			return object;
 		}
-		final AvailObject union = FunctionTypeDescriptor.create(
-			closType1.argsTupleType().typeIntersection(
-				closType2.argsTupleType()),
+		final A_BasicObject union =
+			FunctionTypeDescriptor.createWithArgumentTupleType(
+				closType1.argsTupleType().typeIntersection(
+					closType2.argsTupleType()),
 				closType1.returnType().typeIntersection(
-					closType2.returnType()));
+					closType2.returnType()),
+				SetDescriptor.empty());
 		return forFunctionType(union);
 	}
 
@@ -241,7 +245,7 @@ extends TypeDescriptor
 	 *        type}.
 	 * @return A new {@linkplain CompiledCodeTypeDescriptor}.
 	 */
-	public static AvailObject forFunctionType (final AvailObject functionType)
+	public static AvailObject forFunctionType (final A_BasicObject functionType)
 	{
 		final AvailObject result = mutable.create();
 		result.setSlot(FUNCTION_TYPE, functionType.makeImmutable());
@@ -275,14 +279,14 @@ extends TypeDescriptor
 	 * {@linkplain InstanceTypeDescriptor instance type} for the {@linkplain
 	 * #mostGeneralType most general compiled code type}.
 	 */
-	private static AvailObject meta;
+	private static A_BasicObject meta;
 
 	/**
 	 * Answer the metatype for all compiled code types.
 	 *
 	 * @return The statically referenced metatype.
 	 */
-	public static AvailObject meta ()
+	public static A_BasicObject meta ()
 	{
 		return meta;
 	}

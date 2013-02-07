@@ -63,7 +63,7 @@ public class P_408_BootstrapAssignmentMacro extends Primitive
 		final AvailObject variableUse = args.get(0);
 		final AvailObject valueExpression = args.get(1);
 
-		final AvailObject declaration = variableUse.declaration();
+		final A_BasicObject declaration = variableUse.declaration();
 		if (!declaration.declarationKind().isVariable())
 		{
 			throw new AvailRejectedParseException(
@@ -91,7 +91,7 @@ public class P_408_BootstrapAssignmentMacro extends Primitive
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

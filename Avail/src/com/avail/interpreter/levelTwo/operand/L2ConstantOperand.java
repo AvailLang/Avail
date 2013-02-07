@@ -59,9 +59,9 @@ public class L2ConstantOperand extends L2Operand
 	 * @param object The constant value.
 	 */
 	public L2ConstantOperand (
-		final AvailObject object)
+		final A_BasicObject object)
 	{
-		this.object = object;
+		this.object = (AvailObject)object;
 	}
 
 	@Override

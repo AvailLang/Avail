@@ -89,19 +89,19 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_ReadType (final AvailObject object)
+	A_Type o_ReadType (final AvailObject object)
 	{
 		return object.slot(READ_TYPE);
 	}
 
 	@Override @AvailMethod
-	AvailObject o_WriteType (final AvailObject object)
+	A_Type o_WriteType (final AvailObject object)
 	{
 		return object.slot(WRITE_TYPE);
 	}
 
 	@Override @AvailMethod
-	boolean o_Equals (final AvailObject object, final AvailObject another)
+	boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		return another.equalsVariableType(object);
 	}
@@ -109,7 +109,7 @@ extends TypeDescriptor
 	@Override @AvailMethod
 	boolean o_EqualsVariableType (
 		final AvailObject object,
-		final AvailObject aType)
+		final A_Type aType)
 	{
 		if (object.sameAddressAs(aType))
 		{
@@ -123,7 +123,7 @@ extends TypeDescriptor
 				aType.makeImmutable();
 				object.becomeIndirectionTo(aType);
 			}
-			else if (!aType.descriptor.isShared())
+			else if (!aType.descriptor().isShared())
 			{
 				object.makeImmutable();
 				aType.becomeIndirectionTo(object);
@@ -142,7 +142,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_IsSubtypeOf (final AvailObject object, final AvailObject aType)
+	boolean o_IsSubtypeOf (final AvailObject object, final A_Type aType)
 	{
 		return aType.isSupertypeOfVariableType(object);
 	}
@@ -150,7 +150,7 @@ extends TypeDescriptor
 	@Override @AvailMethod
 	boolean o_IsSupertypeOfVariableType (
 		final AvailObject object,
-		final AvailObject aVariableType)
+		final A_BasicObject aVariableType)
 	{
 		// Variable types are covariant by read capability and contravariant by
 		// write capability.
@@ -159,9 +159,9 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_TypeIntersection (
+	A_Type o_TypeIntersection (
 		final AvailObject object,
-		final AvailObject another)
+		final A_Type another)
 	{
 		if (object.isSubtypeOf(another))
 		{
@@ -175,9 +175,9 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_TypeIntersectionOfVariableType (
+	A_Type o_TypeIntersectionOfVariableType (
 		final AvailObject object,
-		final AvailObject aVariableType)
+		final A_Type aVariableType)
 	{
 		// The intersection of two variable types is variable type whose
 		// read type is the type intersection of the two incoming read types and
@@ -188,9 +188,9 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_TypeUnion (
+	A_Type o_TypeUnion (
 		final AvailObject object,
-		final AvailObject another)
+		final A_Type another)
 	{
 		if (object.isSubtypeOf(another))
 		{
@@ -204,9 +204,9 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_TypeUnionOfVariableType (
+	A_Type o_TypeUnionOfVariableType (
 		final AvailObject object,
-		final AvailObject aVariableType)
+		final A_Type aVariableType)
 	{
 		// The union of two variable types is a variable type whose
 		// read type is the type union of the two incoming read types and whose
@@ -287,15 +287,15 @@ extends TypeDescriptor
 	 *        The write type.
 	 * @return The new variable type.
 	 */
-	static AvailObject fromReadAndWriteTypes (
-		final AvailObject readType,
-		final AvailObject writeType)
+	static A_Type fromReadAndWriteTypes (
+		final A_Type readType,
+		final A_Type writeType)
 	{
 		if (readType.equals(writeType))
 		{
 			return VariableTypeDescriptor.wrapInnerType(readType);
 		}
-		final AvailObject result = mutable.create();
+		final A_Type result = mutable.create();
 		result.setSlot(READ_TYPE, readType);
 		result.setSlot(WRITE_TYPE, writeType);
 		return result;

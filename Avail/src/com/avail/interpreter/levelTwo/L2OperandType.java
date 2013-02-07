@@ -134,7 +134,7 @@ public enum L2OperandType
 	/**
 	 * The operand represents an {@linkplain L2ObjectRegister object register},
 	 * capable of holding any Avail object.  The specified index is passed to
-	 * {@link L2Interpreter#pointerAtPut(int, AvailObject)} to set the current
+	 * {@link L2Interpreter#pointerAtPut(int, A_BasicObject)} to set the current
 	 * value.  This operand must <em>only</em> be used for blindly writing a new
 	 * value to the register -- the previous value of the register may not be
 	 * read on behalf of this operand.  Writing to the register is compulsory.
@@ -152,7 +152,7 @@ public enum L2OperandType
 	 * The operand represents an {@linkplain L2ObjectRegister object register},
 	 * capable of holding any Avail object.  The specified index is passed to
 	 * {@link L2Interpreter#pointerAt(int)} to read the current value, and
-	 * {@link L2Interpreter#pointerAtPut(int, AvailObject)} to set a new value.
+	 * {@link L2Interpreter#pointerAtPut(int, A_BasicObject)} to set a new value.
 	 * A read before a write is not compulsory, but it is permitted.  Since a
 	 * read may precede the write, there's no point in making the write
 	 * compulsory, since it could just be writing the value that it read, and

@@ -64,8 +64,8 @@ public class L2_PREPARE_NEW_FRAME extends L2Operation
 	@Override
 	public void step (final L2Interpreter interpreter)
 	{
-		final AvailObject function = interpreter.pointerAt(FUNCTION);
-		final AvailObject code = function.code();
+		final A_Function function = interpreter.pointerAt(FUNCTION);
+		final A_BasicObject code = function.code();
 		final int numArgs = code.numArgs();
 		final int numLocals = code.numLocals();
 		final int numSlots = code.numArgsAndLocalsAndStack();
@@ -98,7 +98,7 @@ public class L2_PREPARE_NEW_FRAME extends L2Operation
 				.hasFlag(Flag.CannotFail);
 			final AvailObject primitiveFailureValue =
 				interpreter.pointerAt(PRIMITIVE_FAILURE);
-			final AvailObject primitiveFailureVariable =
+			final A_BasicObject primitiveFailureVariable =
 				interpreter.pointerAt(argumentOrLocalRegister(numArgs + 1));
 			primitiveFailureVariable.setValue(primitiveFailureValue);
 		}

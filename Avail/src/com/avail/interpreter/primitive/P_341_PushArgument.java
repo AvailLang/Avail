@@ -59,7 +59,7 @@ public class P_341_PushArgument extends Primitive
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		// This primitive is suitable for any actual one-argument function.
 		return FunctionTypeDescriptor.create(

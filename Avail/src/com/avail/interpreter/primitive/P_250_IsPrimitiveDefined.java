@@ -54,7 +54,7 @@ public class P_250_IsPrimitiveDefined extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
-		final AvailObject ordinal = args.get(0);
+		final A_Number ordinal = args.get(0);
 
 		final int index = ordinal.extractInt();
 		return interpreter.primitiveSuccess(
@@ -63,7 +63,7 @@ public class P_250_IsPrimitiveDefined extends Primitive
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

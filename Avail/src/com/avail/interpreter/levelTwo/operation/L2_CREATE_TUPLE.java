@@ -63,7 +63,7 @@ public class L2_CREATE_TUPLE extends L2Operation
 	{
 		final int valuesIndex = interpreter.nextWord();
 		final int destIndex = interpreter.nextWord();
-		final AvailObject indices = interpreter.vectorAt(valuesIndex);
+		final A_Tuple indices = interpreter.vectorAt(valuesIndex);
 		final int size = indices.tupleSize();
 		final AvailObject tuple =
 			ObjectTupleDescriptor.createUninitialized(size);
@@ -88,10 +88,9 @@ public class L2_CREATE_TUPLE extends L2Operation
 
 		final L2RegisterVector sourceVector = sourcesOperand.vector;
 		final int size = sourceVector.registers().size();
-		final AvailObject sizeRange =
-			IntegerDescriptor.fromInt(size).kind();
-		List<AvailObject> types;
-		types = new ArrayList<AvailObject>(sourceVector.registers().size());
+		final A_Type sizeRange = IntegerDescriptor.fromInt(size).kind();
+		final List<A_Type> types =
+			new ArrayList<A_Type>(sourceVector.registers().size());
 		for (final L2Register register : sourceVector.registers())
 		{
 			if (registers.hasTypeAt(register))
@@ -103,7 +102,7 @@ public class L2_CREATE_TUPLE extends L2Operation
 				types.add(ANY.o());
 			}
 		}
-		final AvailObject tupleType =
+		final A_Type tupleType =
 			TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 				sizeRange,
 				TupleDescriptor.fromList(types),
@@ -119,18 +118,14 @@ public class L2_CREATE_TUPLE extends L2Operation
 			{
 				constants.add(registers.constantAt(register));
 			}
-			final AvailObject tuple = TupleDescriptor.fromList(
-				constants);
+			final A_Tuple tuple = TupleDescriptor.fromList(constants);
 			tuple.makeImmutable();
 			assert tuple.isInstanceOf(tupleType);
-			registers.constantAtPut(
-				destinationOperand.register,
-				tuple);
+			registers.constantAtPut(destinationOperand.register, tuple);
 		}
 		else
 		{
-			registers.removeConstantAt(
-				destinationOperand.register);
+			registers.removeConstantAt(destinationOperand.register);
 		}
 	}
 }

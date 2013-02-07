@@ -58,9 +58,9 @@ public class P_142_TupleTypeSequenceOfTypes extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 3;
-		final AvailObject tupleType = args.get(0);
-		final AvailObject startIndex = args.get(1);
-		final AvailObject endIndex = args.get(2);
+		final A_Type tupleType = args.get(0);
+		final A_Number startIndex = args.get(1);
+		final A_Number endIndex = args.get(2);
 		if (!startIndex.isInt() || !endIndex.isInt())
 		{
 			return interpreter.primitiveFailure(E_SUBSCRIPT_OUT_OF_BOUNDS);
@@ -72,24 +72,23 @@ public class P_142_TupleTypeSequenceOfTypes extends Primitive
 		{
 			return interpreter.primitiveFailure(E_NEGATIVE_SIZE);
 		}
-		AvailObject tupleObject =
+		final A_Tuple tupleObject =
 			ObjectTupleDescriptor.createUninitialized(tupleSize);
 		for (int i = 1; i <= tupleSize; i++)
 		{
-			tupleObject.tupleAtPut(i, NilDescriptor.nil());
+			tupleObject.objectTupleAtPut(i, NilDescriptor.nil());
 		}
 		for (int i = 1; i <= tupleSize; i++)
 		{
-			tupleObject = tupleObject.tupleAtPuttingCanDestroy(
+			tupleObject.objectTupleAtPut(
 				i,
-				tupleType.typeAtIndex(startInt + i - 1).makeImmutable(),
-				true);
+				tupleType.typeAtIndex(startInt + i - 1).makeImmutable());
 		}
 		return interpreter.primitiveSuccess(tupleObject);
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

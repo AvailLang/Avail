@@ -84,7 +84,7 @@ public class RegisterSet
 		this.translator = translator;
 		final int numFixed = L2Translator.firstArgumentRegisterIndex;
 		final int numRegisters;
-		final AvailObject code = codeOrNull();
+		final A_BasicObject code = codeOrNull();
 		if (code == null)
 		{
 			numRegisters = numFixed;
@@ -119,8 +119,8 @@ public class RegisterSet
 	/**
 	 * The mapping from each register to its current type, if known.
 	 */
-	final Map<L2Register, AvailObject> registerTypes =
-		new HashMap<L2Register, AvailObject>(10);
+	final Map<L2Register, A_Type> registerTypes =
+		new HashMap<L2Register, A_Type>(10);
 
 	/**
 	 * The mapping from each register to its current value, if known.
@@ -156,7 +156,7 @@ public class RegisterSet
 	 *
 	 * @return The root compiled code being translated.
 	 */
-	public @Nullable AvailObject codeOrNull ()
+	public @Nullable A_BasicObject codeOrNull ()
 	{
 		return translator.codeOrNull();
 	}
@@ -168,7 +168,7 @@ public class RegisterSet
 	 *
 	 * @return The root compiled code being translated.
 	 */
-	public AvailObject codeOrFail ()
+	public A_BasicObject codeOrFail ()
 	{
 		return translator.codeOrFail();
 	}
@@ -208,12 +208,13 @@ public class RegisterSet
 	 */
 	public void constantAtPut (
 		final L2Register register,
-		final AvailObject value)
+		final A_BasicObject value)
 	{
-		registerConstants.put(register, value);
+		final AvailObject strongValue = (AvailObject) value;
+		registerConstants.put(register, strongValue);
 		registerTypes.put(
 			register,
-			AbstractEnumerationTypeDescriptor.withInstance(value));
+			AbstractEnumerationTypeDescriptor.withInstance(strongValue));
 		propagateWriteTo(register);
 	}
 
@@ -260,7 +261,7 @@ public class RegisterSet
 	 * @param register The register.
 	 * @return The type bound to the register, or null if not bound.
 	 */
-	public AvailObject typeAt (
+	public A_Type typeAt (
 		final L2Register register)
 	{
 		return registerTypes.get(register);
@@ -276,7 +277,7 @@ public class RegisterSet
 	 */
 	public void typeAtPut (
 		final L2Register register,
-		final AvailObject type)
+		final A_Type type)
 	{
 		registerTypes.put(register, type);
 	}
@@ -518,7 +519,7 @@ public class RegisterSet
 	L2ObjectRegister argumentOrLocal (
 		final int argumentNumber)
 	{
-		final AvailObject code = codeOrFail();
+		final A_BasicObject code = codeOrFail();
 		assert argumentNumber <= code.numArgs() + code.numLocals();
 		return continuationSlot(argumentNumber);
 	}

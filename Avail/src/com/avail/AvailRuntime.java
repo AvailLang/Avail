@@ -431,7 +431,7 @@ implements ThreadFactory
 	 *         {@code false} otherwise.
 	 */
 	@ThreadSafe
-	public static boolean isSpecialAtom (final AvailObject atom)
+	public static boolean isSpecialAtom (final A_BasicObject atom)
 	{
 		return specialAtomsSet.contains(atom);
 	}
@@ -442,135 +442,134 @@ implements ThreadFactory
 	public static void createWellKnownObjects ()
 	{
 		// Set up the special objects.
-		specialObjects[1] = ANY.o();
-		specialObjects[2] = EnumerationTypeDescriptor.booleanObject();
-		specialObjects[3] = CHARACTER.o();
-		specialObjects[4] = FunctionTypeDescriptor.mostGeneralType();
-		specialObjects[5] = FunctionTypeDescriptor.meta();
-		specialObjects[6] = CompiledCodeTypeDescriptor.mostGeneralType();
-		specialObjects[7] = VariableTypeDescriptor.mostGeneralType();
-		specialObjects[8] = VariableTypeDescriptor.meta();
-		specialObjects[9] = ContinuationTypeDescriptor.mostGeneralType();
-		specialObjects[10] = ContinuationTypeDescriptor.meta();
-		specialObjects[11] = ATOM.o();
-		specialObjects[12] = DOUBLE.o();
-		specialObjects[13] = IntegerRangeTypeDescriptor.extendedIntegers();
-		specialObjects[14] = InstanceMetaDescriptor.on(
-			TupleTypeDescriptor.zeroOrMoreOf(
-				InstanceMetaDescriptor.anyMeta()));
-		specialObjects[15] = FLOAT.o();
-		specialObjects[16] = NUMBER.o();
-		specialObjects[17] = IntegerRangeTypeDescriptor.integers();
-		specialObjects[18] = IntegerRangeTypeDescriptor.meta();
-		specialObjects[19] = MapTypeDescriptor.meta();
-		specialObjects[20] = MODULE.o();
-		specialObjects[21] = TupleDescriptor.fromIntegerList(
+		final A_BasicObject[] specials = new A_BasicObject[specialObjects.length];
+		specials[1] = ANY.o();
+		specials[2] = EnumerationTypeDescriptor.booleanObject();
+		specials[3] = CHARACTER.o();
+		specials[4] = FunctionTypeDescriptor.mostGeneralType();
+		specials[5] = FunctionTypeDescriptor.meta();
+		specials[6] = CompiledCodeTypeDescriptor.mostGeneralType();
+		specials[7] = VariableTypeDescriptor.mostGeneralType();
+		specials[8] = VariableTypeDescriptor.meta();
+		specials[9] = ContinuationTypeDescriptor.mostGeneralType();
+		specials[10] = ContinuationTypeDescriptor.meta();
+		specials[11] = ATOM.o();
+		specials[12] = DOUBLE.o();
+		specials[13] = IntegerRangeTypeDescriptor.extendedIntegers();
+		specials[14] = InstanceMetaDescriptor.on(
+			TupleTypeDescriptor.zeroOrMoreOf(InstanceMetaDescriptor.anyMeta()));
+		specials[15] = FLOAT.o();
+		specials[16] = NUMBER.o();
+		specials[17] = IntegerRangeTypeDescriptor.integers();
+		specials[18] = IntegerRangeTypeDescriptor.meta();
+		specials[19] = MapTypeDescriptor.meta();
+		specials[20] = MODULE.o();
+		specials[21] = TupleDescriptor.fromIntegerList(
 			AvailErrorCode.allNumericCodes());
-		specialObjects[22] = ObjectTypeDescriptor.mostGeneralType();
-		specialObjects[23] = ObjectTypeDescriptor.meta();
-		specialObjects[24] = ObjectTypeDescriptor.exceptionType();
-		specialObjects[25] = FIBER.o();
-		specialObjects[26] = SetTypeDescriptor.mostGeneralType();
-		specialObjects[27] = SetTypeDescriptor.meta();
-		specialObjects[28] = TupleTypeDescriptor.stringTupleType();
-		specialObjects[29] = BottomTypeDescriptor.bottom();
-		specialObjects[30] = InstanceMetaDescriptor.on(
-			BottomTypeDescriptor.bottom());
-		specialObjects[31] = NONTYPE.o();
-		specialObjects[32] = TupleTypeDescriptor.mostGeneralType();
-		specialObjects[33] = TupleTypeDescriptor.meta();
-		specialObjects[34] = InstanceMetaDescriptor.topMeta();
-		specialObjects[35] = TOP.o();
-		specialObjects[36] = IntegerRangeTypeDescriptor.wholeNumbers();
-		specialObjects[37] = IntegerRangeTypeDescriptor.naturalNumbers();
-		specialObjects[38] = IntegerRangeTypeDescriptor.characterCodePoints();
-		specialObjects[39] = MapTypeDescriptor.mostGeneralType();
-		specialObjects[40] = MESSAGE_BUNDLE.o();
-		specialObjects[41] = MESSAGE_BUNDLE_TREE.o();
-		specialObjects[42] = METHOD.o();
-		specialObjects[43] = DEFINITION.o();
-		specialObjects[44] = ABSTRACT_DEFINITION.o();
-		specialObjects[45] = FORWARD_DEFINITION.o();
-		specialObjects[46] = METHOD_DEFINITION.o();
-		specialObjects[47] = MACRO_DEFINITION.o();
-		specialObjects[48] = TupleTypeDescriptor.zeroOrMoreOf(
+		specials[22] = ObjectTypeDescriptor.mostGeneralType();
+		specials[23] = ObjectTypeDescriptor.meta();
+		specials[24] = ObjectTypeDescriptor.exceptionType();
+		specials[25] = FIBER.o();
+		specials[26] = SetTypeDescriptor.mostGeneralType();
+		specials[27] = SetTypeDescriptor.meta();
+		specials[28] = TupleTypeDescriptor.stringTupleType();
+		specials[29] = BottomTypeDescriptor.bottom();
+		specials[30] = InstanceMetaDescriptor.on(BottomTypeDescriptor.bottom());
+		specials[31] = NONTYPE.o();
+		specials[32] = TupleTypeDescriptor.mostGeneralType();
+		specials[33] = TupleTypeDescriptor.meta();
+		specials[34] = InstanceMetaDescriptor.topMeta();
+		specials[35] = TOP.o();
+		specials[36] = IntegerRangeTypeDescriptor.wholeNumbers();
+		specials[37] = IntegerRangeTypeDescriptor.naturalNumbers();
+		specials[38] = IntegerRangeTypeDescriptor.characterCodePoints();
+		specials[39] = MapTypeDescriptor.mostGeneralType();
+		specials[40] = MESSAGE_BUNDLE.o();
+		specials[41] = MESSAGE_BUNDLE_TREE.o();
+		specials[42] = METHOD.o();
+		specials[43] = DEFINITION.o();
+		specials[44] = ABSTRACT_DEFINITION.o();
+		specials[45] = FORWARD_DEFINITION.o();
+		specials[46] = METHOD_DEFINITION.o();
+		specials[47] = MACRO_DEFINITION.o();
+		specials[48] = TupleTypeDescriptor.zeroOrMoreOf(
 			FunctionTypeDescriptor.mostGeneralType());
-		specialObjects[50] = PARSE_NODE.mostGeneralType();
-		specialObjects[51] = SEQUENCE_NODE.mostGeneralType();
-		specialObjects[52] = EXPRESSION_NODE.mostGeneralType();
-		specialObjects[53] = ASSIGNMENT_NODE.mostGeneralType();
-		specialObjects[54] = BLOCK_NODE.mostGeneralType();
-		specialObjects[55] = LITERAL_NODE.mostGeneralType();
-		specialObjects[56] = REFERENCE_NODE.mostGeneralType();
-		specialObjects[57] = SEND_NODE.mostGeneralType();
-		specialObjects[58] = InstanceMetaDescriptor.on(
+		specials[50] = PARSE_NODE.mostGeneralType();
+		specials[51] = SEQUENCE_NODE.mostGeneralType();
+		specials[52] = EXPRESSION_NODE.mostGeneralType();
+		specials[53] = ASSIGNMENT_NODE.mostGeneralType();
+		specials[54] = BLOCK_NODE.mostGeneralType();
+		specials[55] = LITERAL_NODE.mostGeneralType();
+		specials[56] = REFERENCE_NODE.mostGeneralType();
+		specials[57] = SEND_NODE.mostGeneralType();
+		specials[58] = InstanceMetaDescriptor.on(
 			LiteralTokenTypeDescriptor.mostGeneralType());
-		specialObjects[59] = LIST_NODE.mostGeneralType();
-		specialObjects[60] = VARIABLE_USE_NODE.mostGeneralType();
-		specialObjects[61] = DECLARATION_NODE.mostGeneralType();
-		specialObjects[62] = ARGUMENT_NODE.mostGeneralType();
-		specialObjects[63] = LABEL_NODE.mostGeneralType();
-		specialObjects[64] = LOCAL_VARIABLE_NODE.mostGeneralType();
-		specialObjects[65] = LOCAL_CONSTANT_NODE.mostGeneralType();
-		specialObjects[66] = MODULE_VARIABLE_NODE.mostGeneralType();
-		specialObjects[67] = MODULE_CONSTANT_NODE.mostGeneralType();
-		specialObjects[68] = PRIMITIVE_FAILURE_REASON_NODE.mostGeneralType();
-		specialObjects[69] = InstanceMetaDescriptor.anyMeta();
-		specialObjects[70] = AtomDescriptor.trueObject();
-		specialObjects[71] = AtomDescriptor.falseObject();
-		specialObjects[72] =
+		specials[59] = LIST_NODE.mostGeneralType();
+		specials[60] = VARIABLE_USE_NODE.mostGeneralType();
+		specials[61] = DECLARATION_NODE.mostGeneralType();
+		specials[62] = ARGUMENT_NODE.mostGeneralType();
+		specials[63] = LABEL_NODE.mostGeneralType();
+		specials[64] = LOCAL_VARIABLE_NODE.mostGeneralType();
+		specials[65] = LOCAL_CONSTANT_NODE.mostGeneralType();
+		specials[66] = MODULE_VARIABLE_NODE.mostGeneralType();
+		specials[67] = MODULE_CONSTANT_NODE.mostGeneralType();
+		specials[68] = PRIMITIVE_FAILURE_REASON_NODE.mostGeneralType();
+		specials[69] = InstanceMetaDescriptor.anyMeta();
+		specials[70] = AtomDescriptor.trueObject();
+		specials[71] = AtomDescriptor.falseObject();
+		specials[72] =
 			TupleTypeDescriptor.zeroOrMoreOf(
 				TupleTypeDescriptor.stringTupleType());
-		specialObjects[73] =
+		specials[73] =
 			TupleTypeDescriptor.zeroOrMoreOf(
 				InstanceMetaDescriptor.topMeta());
-		specialObjects[74] =
+		specials[74] =
 			TupleTypeDescriptor.zeroOrMoreOf(
 				SetTypeDescriptor.setTypeForSizesContentType(
 					IntegerRangeTypeDescriptor.wholeNumbers(),
 					TupleTypeDescriptor.stringTupleType()));
-		specialObjects[75] =
+		specials[75] =
 			SetTypeDescriptor.setTypeForSizesContentType(
 				IntegerRangeTypeDescriptor.wholeNumbers(),
 				TupleTypeDescriptor.stringTupleType());
-		specialObjects[76] =
+		specials[76] =
 			FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					IntegerRangeTypeDescriptor.naturalNumbers()),
 				BottomTypeDescriptor.bottom());
-		specialObjects[77] = SetDescriptor.empty();
-		specialObjects[78] = InfinityDescriptor.negativeInfinity();
-		specialObjects[79] = InfinityDescriptor.positiveInfinity();
-		specialObjects[80] = PojoTypeDescriptor.mostGeneralType();
-		specialObjects[81] = PojoTypeDescriptor.pojoBottom();
-		specialObjects[82] = PojoDescriptor.nullObject();
-		specialObjects[83] = PojoTypeDescriptor.selfType();
-		specialObjects[84] = InstanceMetaDescriptor.on(
+		specials[77] = SetDescriptor.empty();
+		specials[78] = InfinityDescriptor.negativeInfinity();
+		specials[79] = InfinityDescriptor.positiveInfinity();
+		specials[80] = PojoTypeDescriptor.mostGeneralType();
+		specials[81] = PojoTypeDescriptor.pojoBottom();
+		specials[82] = PojoDescriptor.nullObject();
+		specials[83] = PojoTypeDescriptor.selfType();
+		specials[84] = InstanceMetaDescriptor.on(
 			PojoTypeDescriptor.mostGeneralType());
-		specialObjects[85] = InstanceMetaDescriptor.on(
+		specials[85] = InstanceMetaDescriptor.on(
 			PojoTypeDescriptor.mostGeneralArrayType());
-		specialObjects[86] = FunctionTypeDescriptor.forReturnType(
+		specials[86] = FunctionTypeDescriptor.forReturnType(
 			PojoTypeDescriptor.mostGeneralType());
-		specialObjects[87] = PojoTypeDescriptor.mostGeneralArrayType();
-		specialObjects[88] = PojoTypeDescriptor.selfAtom();
-		specialObjects[89] = PojoTypeDescriptor.forClass(Throwable.class);
-		specialObjects[90] = FunctionTypeDescriptor.create(
+		specials[87] = PojoTypeDescriptor.mostGeneralArrayType();
+		specials[88] = PojoTypeDescriptor.selfAtom();
+		specials[89] = PojoTypeDescriptor.forClass(Throwable.class);
+		specials[90] = FunctionTypeDescriptor.create(
 			TupleDescriptor.from(),
 			TOP.o());
-		specialObjects[91] = FunctionTypeDescriptor.create(
+		specials[91] = FunctionTypeDescriptor.create(
 			TupleDescriptor.from(),
 			EnumerationTypeDescriptor.booleanObject());
-		specialObjects[92] = VariableTypeDescriptor.wrapInnerType(
+		specials[92] = VariableTypeDescriptor.wrapInnerType(
 			ContinuationTypeDescriptor.mostGeneralType());
-		specialObjects[93] = MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
+		specials[93] = MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
 			IntegerRangeTypeDescriptor.wholeNumbers(),
 			ATOM.o(),
 			ANY.o());
-		specialObjects[94] = MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
+		specials[94] = MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
 			IntegerRangeTypeDescriptor.wholeNumbers(),
 			ATOM.o(),
 			InstanceMetaDescriptor.anyMeta());
-		specialObjects[95] =
+		specials[95] =
 			TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 				IntegerRangeTypeDescriptor.wholeNumbers(),
 				TupleDescriptor.from(),
@@ -578,123 +577,127 @@ implements ThreadFactory
 					IntegerRangeTypeDescriptor.singleInt(2),
 					TupleDescriptor.from(),
 					ANY.o()));
-		specialObjects[96] = MapDescriptor.empty();
-		specialObjects[97] = MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
+		specials[96] = MapDescriptor.empty();
+		specials[97] = MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
 			IntegerRangeTypeDescriptor.naturalNumbers(),
 			ANY.o(),
 			ANY.o());
-		specialObjects[98] = InstanceMetaDescriptor.on(
+		specials[98] = InstanceMetaDescriptor.on(
 			IntegerRangeTypeDescriptor.wholeNumbers());
-		specialObjects[99] = SetTypeDescriptor.setTypeForSizesContentType(
+		specials[99] = SetTypeDescriptor.setTypeForSizesContentType(
 			IntegerRangeTypeDescriptor.naturalNumbers(),
 			ANY.o());
-		specialObjects[100] =
+		specials[100] =
 			TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 				IntegerRangeTypeDescriptor.wholeNumbers(),
 				TupleDescriptor.from(),
 				TupleTypeDescriptor.mostGeneralType());
-		specialObjects[101] = IntegerRangeTypeDescriptor.nybbles();
-		specialObjects[102] =
+		specials[101] = IntegerRangeTypeDescriptor.nybbles();
+		specials[102] =
 			TupleTypeDescriptor.zeroOrMoreOf(
 				IntegerRangeTypeDescriptor.nybbles());
-		specialObjects[103] = IntegerRangeTypeDescriptor.unsignedShorts();
-		specialObjects[104] = TupleDescriptor.empty();
-		specialObjects[105] = FunctionTypeDescriptor.create(
+		specials[103] = IntegerRangeTypeDescriptor.unsignedShorts();
+		specials[104] = TupleDescriptor.empty();
+		specials[105] = FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
 				BottomTypeDescriptor.bottom()),
 			TOP.o());
-		specialObjects[106] = InstanceTypeDescriptor.on(
+		specials[106] = InstanceTypeDescriptor.on(
 			IntegerDescriptor.zero());
-		specialObjects[107] = FunctionTypeDescriptor.forReturnType(
+		specials[107] = FunctionTypeDescriptor.forReturnType(
 			InstanceMetaDescriptor.topMeta());
-		specialObjects[108] =
+		specials[108] =
 			TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 				IntegerRangeTypeDescriptor.wholeNumbers(),
 				TupleDescriptor.from(),
 				FunctionTypeDescriptor.forReturnType(
 					InstanceMetaDescriptor.topMeta()));
-		specialObjects[109] = FunctionTypeDescriptor.forReturnType(
+		specials[109] = FunctionTypeDescriptor.forReturnType(
 			PARSE_NODE.mostGeneralType());
-		specialObjects[110] = InstanceTypeDescriptor.on(
+		specials[110] = InstanceTypeDescriptor.on(
 			IntegerDescriptor.two());
-		specialObjects[111] = DoubleDescriptor.fromDouble(Math.E);
-		specialObjects[112] = InstanceTypeDescriptor.on(
+		specials[111] = DoubleDescriptor.fromDouble(Math.E);
+		specials[112] = InstanceTypeDescriptor.on(
 			DoubleDescriptor.fromDouble(Math.E));
-		specialObjects[113] = InstanceMetaDescriptor.on(
+		specials[113] = InstanceMetaDescriptor.on(
 			PARSE_NODE.mostGeneralType());
-		specialObjects[114] = SetTypeDescriptor.setTypeForSizesContentType(
+		specials[114] = SetTypeDescriptor.setTypeForSizesContentType(
 			IntegerRangeTypeDescriptor.wholeNumbers(),
 			ATOM.o());
-		specialObjects[115] = TOKEN.o();
-		specialObjects[116] = LiteralTokenTypeDescriptor.mostGeneralType();
-		specialObjects[117] =
+		specials[115] = TOKEN.o();
+		specials[116] = LiteralTokenTypeDescriptor.mostGeneralType();
+		specials[117] =
 			TupleTypeDescriptor.zeroOrMoreOf(
 				InstanceMetaDescriptor.anyMeta());
-		specialObjects[118] =
+		specials[118] =
 			IntegerRangeTypeDescriptor.create(
 				IntegerDescriptor.zero(),
 				true,
 				InfinityDescriptor.positiveInfinity(),
 				true);
-		specialObjects[119] =
+		specials[119] =
 			TupleTypeDescriptor.zeroOrMoreOf(
 				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 					IntegerRangeTypeDescriptor.singleInt(2),
 					TupleDescriptor.from(ATOM.o()),
 					InstanceMetaDescriptor.anyMeta()));
-		specialObjects[120] =
+		specials[120] =
 			TupleTypeDescriptor.zeroOrMoreOf(
 				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 					IntegerRangeTypeDescriptor.singleInt(2),
 					TupleDescriptor.from(ATOM.o()),
 					ANY.o()));
-		specialObjects[121] =
+		specials[121] =
 			TupleTypeDescriptor.zeroOrMoreOf(
 				PARSE_NODE.mostGeneralType());
-		specialObjects[122] =
+		specials[122] =
 			TupleTypeDescriptor.zeroOrMoreOf(
 				ARGUMENT_NODE.mostGeneralType());
-		specialObjects[123] =
+		specials[123] =
 			TupleTypeDescriptor.zeroOrMoreOf(
 				DECLARATION_NODE.mostGeneralType());
-		specialObjects[124] =
+		specials[124] =
 			VariableTypeDescriptor.fromReadAndWriteTypes(
 				TOP.o(),
 				EXPRESSION_NODE.create(BottomTypeDescriptor.bottom()));
-		specialObjects[125] =
+		specials[125] =
 			TupleTypeDescriptor.zeroOrMoreOf(
 				EXPRESSION_NODE.create(ANY.o()));
-		specialObjects[126] = EXPRESSION_NODE.create(ANY.o());
-		specialObjects[127] =
+		specials[126] = EXPRESSION_NODE.create(ANY.o());
+		specials[127] =
 			FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					PojoTypeDescriptor.forClass(Throwable.class)),
 				BottomTypeDescriptor.bottom());
-		specialObjects[128] =
+		specials[128] =
 			TupleTypeDescriptor.zeroOrMoreOf(
 				SetTypeDescriptor.setTypeForSizesContentType(
 					IntegerRangeTypeDescriptor.wholeNumbers(),
 					ATOM.o()));
 
+		System.arraycopy(specials, 0, specialObjects, 0, specials.length);
 
 		// Declare all special atoms
-		specialAtoms[0] = AtomDescriptor.trueObject();
-		specialAtoms[1] = AtomDescriptor.falseObject();
-		specialAtoms[2] = PojoTypeDescriptor.selfAtom();
-		specialAtoms[3] = ObjectTypeDescriptor.exceptionAtom();
-		specialAtoms[4] = MethodDescriptor.vmCrashAtom();
-		specialAtoms[5] = MethodDescriptor.vmFunctionApplyAtom();
-		specialAtoms[6] = MethodDescriptor.vmMethodDefinerAtom();
-		specialAtoms[7] = MethodDescriptor.vmMacroDefinerAtom();
-		specialAtoms[8] = MethodDescriptor.vmPublishAtomsAtom();
-		specialAtoms[9] = AtomDescriptor.moduleHeaderSectionAtom();
-		specialAtoms[10] = AtomDescriptor.moduleBodySectionAtom();
-		specialAtoms[11] = ObjectTypeDescriptor.stackDumpAtom();
-		specialAtoms[12] = AtomDescriptor.fileKey();
-		specialAtoms[13] = AtomDescriptor.fileModeReadKey();
-		specialAtoms[14] = AtomDescriptor.fileModeWriteKey();
-		specialAtoms[15] = CompiledCodeDescriptor.methodNameKeyAtom();
-		specialAtoms[16] = CompiledCodeDescriptor.lineNumberKeyAtom();
+		final A_Atom[] atoms = new A_Atom[specialAtoms.length];
+		atoms[0] = AtomDescriptor.trueObject();
+		atoms[1] = AtomDescriptor.falseObject();
+		atoms[2] = PojoTypeDescriptor.selfAtom();
+		atoms[3] = ObjectTypeDescriptor.exceptionAtom();
+		atoms[4] = MethodDescriptor.vmCrashAtom();
+		atoms[5] = MethodDescriptor.vmFunctionApplyAtom();
+		atoms[6] = MethodDescriptor.vmMethodDefinerAtom();
+		atoms[7] = MethodDescriptor.vmMacroDefinerAtom();
+		atoms[8] = MethodDescriptor.vmPublishAtomsAtom();
+		atoms[9] = AtomDescriptor.moduleHeaderSectionAtom();
+		atoms[10] = AtomDescriptor.moduleBodySectionAtom();
+		atoms[11] = ObjectTypeDescriptor.stackDumpAtom();
+		atoms[12] = AtomDescriptor.fileKey();
+		atoms[13] = AtomDescriptor.fileModeReadKey();
+		atoms[14] = AtomDescriptor.fileModeWriteKey();
+		atoms[15] = CompiledCodeDescriptor.methodNameKeyAtom();
+		atoms[16] = CompiledCodeDescriptor.lineNumberKeyAtom();
+
+		System.arraycopy(atoms, 0, specialAtoms, 0, atoms.length);
 
 		assert specialAtomsSet == null;
 		specialAtomsSet = new HashSet<AvailObject>(specialAtomsList);
@@ -702,7 +705,7 @@ implements ThreadFactory
 		specialAtomsSet = Collections.unmodifiableSet(specialAtomsSet);
 		for (int i = 0; i < specialObjects.length; i++)
 		{
-			final AvailObject object = specialObjects[i];
+			final A_BasicObject object = specialObjects[i];
 			if (object != null && object.isAtom())
 			{
 				assert specialAtomsSet.contains(object);
@@ -711,7 +714,7 @@ implements ThreadFactory
 		}
 		for (int i = 0; i < specialAtoms.length; i++)
 		{
-			final AvailObject object = specialAtoms[i];
+			final A_BasicObject object = specialAtoms[i];
 			if (object != null)
 			{
 				specialAtoms[i] = object.makeShared();
@@ -734,7 +737,7 @@ implements ThreadFactory
 	 * {@linkplain MapDescriptor map} from {@linkplain TupleDescriptor module
 	 * names} to {@linkplain ModuleDescriptor modules}.
 	 */
-	private AvailObject modules = MapDescriptor.empty();
+	private A_Map modules = MapDescriptor.empty();
 
 	/**
 	 * Add the specified {@linkplain ModuleDescriptor module} to the
@@ -792,7 +795,7 @@ implements ThreadFactory
 	 *          {@linkplain TupleDescriptor name}, {@code false} otherwise.
 	 */
 	@ThreadSafe
-	public boolean includesModuleNamed (final AvailObject moduleName)
+	public boolean includesModuleNamed (final A_String moduleName)
 	{
 		assert moduleName.isString();
 
@@ -815,7 +818,7 @@ implements ThreadFactory
 	 * @return A {@linkplain ModuleDescriptor module}.
 	 */
 	@ThreadSafe
-	public AvailObject moduleAt (final AvailObject moduleName)
+	public AvailObject moduleAt (final A_String moduleName)
 	{
 		assert moduleName.isString();
 
@@ -837,7 +840,7 @@ implements ThreadFactory
 	 * {@linkplain AtomDescriptor method name} to {@linkplain
 	 * MethodDescriptor method}.
 	 */
-	private AvailObject methods = MapDescriptor.empty();
+	private A_Map methods = MapDescriptor.empty();
 
 	/**
 	 * Is there a {@linkplain MethodDescriptor method} bound to the specified
@@ -876,12 +879,15 @@ implements ThreadFactory
 		runtimeLock.writeLock().lock();
 		try
 		{
-			final AvailObject methodName = method.name();
-			assert !methods.hasKey(methodName);
-			methods = methods.mapAtPuttingCanDestroy(
-				methodName,
-				method,
-				true);
+			for (final AvailObject methodName : method.namesSet())
+			{
+				assert !methods.hasKey(methodName);
+				methods = methods.mapAtPuttingCanDestroy(
+					methodName,
+					method,
+					true);
+			}
+			methods.makeShared();
 		}
 		finally
 		{
@@ -899,7 +905,7 @@ implements ThreadFactory
 	 */
 	@ThreadSafe
 	public AvailObject methodFor (
-		final AvailObject methodName)
+		final A_Atom methodName)
 	{
 		runtimeLock.writeLock().lock();
 		try
@@ -938,7 +944,7 @@ implements ThreadFactory
 	 *            or {@linkplain NilDescriptor nil}.
 	 */
 	@ThreadSafe
-	public AvailObject methodAt (final AvailObject selector)
+	public AvailObject methodAt (final A_Atom selector)
 	{
 		assert selector.isAtom();
 
@@ -1001,8 +1007,8 @@ implements ThreadFactory
 	 *            static types of arguments at call sites.
 	 */
 	public void addTypeRestriction (
-		final AvailObject methodName,
-		final AvailObject typeRestrictionFunction)
+		final A_Atom methodName,
+		final A_Function typeRestrictionFunction)
 	{
 		assert methodName.isAtom();
 		assert typeRestrictionFunction.isFunction();
@@ -1010,7 +1016,7 @@ implements ThreadFactory
 		runtimeLock.writeLock().lock();
 		try
 		{
-			final AvailObject method = methodFor(methodName);
+			final A_BasicObject method = methodFor(methodName);
 			method.addTypeRestriction(typeRestrictionFunction);
 		}
 		finally
@@ -1038,7 +1044,7 @@ implements ThreadFactory
 		runtimeLock.writeLock().lock();
 		try
 		{
-			final AvailObject method = methodFor(methodName);
+			final A_BasicObject method = methodFor(methodName);
 			method.removeTypeRestriction(typeRestrictionFunction);
 			if (method.isMethodEmpty())
 			{
@@ -1057,18 +1063,18 @@ implements ThreadFactory
 	 * @param methodName
 	 *        The method name, an {@linkplain AtomDescriptor atom}.
 	 * @param sealSignature
-	 *        The signature at which to seal the method.
+	 *        The tuple of types at which to seal the method.
 	 */
 	public void addSeal (
-		final AvailObject methodName,
-		final AvailObject sealSignature)
+		final A_Atom methodName,
+		final A_Tuple sealSignature)
 	{
 		assert methodName.isAtom();
 		assert sealSignature.isTuple();
 		runtimeLock.writeLock().lock();
 		try
 		{
-			final AvailObject method = methodFor(methodName);
+			final A_BasicObject method = methodFor(methodName);
 			method.addSealedArgumentsType(sealSignature);
 		}
 		finally
@@ -1095,7 +1101,7 @@ implements ThreadFactory
 		runtimeLock.writeLock().lock();
 		try
 		{
-			final AvailObject method = methodFor(methodName);
+			final A_BasicObject method = methodFor(methodName);
 			method.removeSealedArgumentsType(sealSignature);
 			if (method.isMethodEmpty())
 			{
@@ -1114,7 +1120,7 @@ implements ThreadFactory
 	 * original {@linkplain AvailObject#message() name}, even if various modules
 	 * have imported it with renaming.
 	 */
-	private AvailObject allBundles = MapDescriptor.empty();
+	private A_Map allBundles = MapDescriptor.empty();
 
 	/**
 	 * Answer a {@linkplain MapDescriptor map} from {@linkplain AtomDescriptor
@@ -1125,7 +1131,7 @@ implements ThreadFactory
 	 * @return The specified immutable map.
 	 */
 	@ThreadSafe
-	public AvailObject allBundles ()
+	public A_BasicObject allBundles ()
 	{
 		runtimeLock.readLock().lock();
 		try

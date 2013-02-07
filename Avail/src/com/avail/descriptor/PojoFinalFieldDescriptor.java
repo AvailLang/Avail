@@ -92,7 +92,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_Equals (final AvailObject object, final AvailObject another)
+	boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		return another.equalsPojoField(
 			object.slot(FIELD), object.slot(RECEIVER));
@@ -122,13 +122,13 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_Kind (final AvailObject object)
+	A_Type o_Kind (final AvailObject object)
 	{
 		return object.slot(KIND);
 	}
 
 	@Override
-	void o_SetValue (final AvailObject object, final AvailObject newValue)
+	void o_SetValue (final AvailObject object, final A_BasicObject newValue)
 	{
 		throw new VariableSetException(
 			AvailErrorCode.E_CANNOT_MODIFY_FINAL_JAVA_FIELD);
@@ -261,7 +261,7 @@ extends Descriptor
 	static AvailObject forInnerType (
 		final AvailObject field,
 		final AvailObject receiver,
-		final AvailObject innerType)
+		final A_Type innerType)
 	{
 		final Field javaField = (Field) field.javaObject();
 		assert Modifier.isFinal(javaField.getModifiers());

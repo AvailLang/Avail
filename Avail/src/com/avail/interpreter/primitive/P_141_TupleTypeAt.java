@@ -56,8 +56,8 @@ public class P_141_TupleTypeAt extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 2;
-		final AvailObject tupleType = args.get(0);
-		final AvailObject index = args.get(1);
+		final A_Type tupleType = args.get(0);
+		final A_Number index = args.get(1);
 		if (!index.isInt())
 		{
 			return interpreter.primitiveSuccess(
@@ -68,7 +68,7 @@ public class P_141_TupleTypeAt extends Primitive
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

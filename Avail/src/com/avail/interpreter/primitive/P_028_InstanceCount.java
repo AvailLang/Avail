@@ -54,12 +54,12 @@ public class P_028_InstanceCount extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
-		final AvailObject type = args.get(0);
+		final A_BasicObject type = args.get(0);
 		return interpreter.primitiveSuccess(type.instanceCount());
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

@@ -138,7 +138,7 @@ extends TypeDescriptor
 			recursionList,
 			indent + 1);
 		aStream.append("…|");
-		final AvailObject sizeRange = object.slot(SIZE_RANGE);
+		final A_Type sizeRange = object.slot(SIZE_RANGE);
 		sizeRange.lowerBound().printOnAvoidingIndent(
 			aStream,
 			recursionList,
@@ -155,25 +155,25 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_DefaultType (final AvailObject object)
+	A_Type o_DefaultType (final AvailObject object)
 	{
 		return object.slot(DEFAULT_TYPE);
 	}
 
 	@Override @AvailMethod
-	AvailObject o_SizeRange (final AvailObject object)
+	A_Type o_SizeRange (final AvailObject object)
 	{
 		return object.slot(SIZE_RANGE);
 	}
 
 	@Override @AvailMethod
-	AvailObject o_TypeTuple (final AvailObject object)
+	A_Tuple o_TypeTuple (final AvailObject object)
 	{
 		return object.slot(TYPE_TUPLE);
 	}
 
 	@Override @AvailMethod
-	boolean o_Equals (final AvailObject object, final AvailObject another)
+	boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		return another.equalsTupleType(object);
 	}
@@ -209,7 +209,7 @@ extends TypeDescriptor
 	@Override @AvailMethod
 	boolean o_IsBetterRepresentationThan (
 		final AvailObject object,
-		final AvailObject anotherObject)
+		final A_BasicObject anotherObject)
 	{
 		return !anotherObject.isBetterRepresentationThanTupleType(object);
 	}
@@ -217,7 +217,7 @@ extends TypeDescriptor
 	@Override @AvailMethod
 	boolean o_IsBetterRepresentationThanTupleType (
 		final AvailObject object,
-		final AvailObject aTupleType)
+		final A_BasicObject aTupleType)
 	{
 		return true;
 	}
@@ -234,7 +234,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_TypeAtIndex (
+	A_Type o_TypeAtIndex (
 		final AvailObject object,
 		final int index)
 	{
@@ -244,7 +244,7 @@ extends TypeDescriptor
 		{
 			return BottomTypeDescriptor.bottom();
 		}
-		final AvailObject upper = object.slot(SIZE_RANGE).upperBound();
+		final A_Number upper = object.slot(SIZE_RANGE).upperBound();
 		if (upper.isInt())
 		{
 			if (upper.extractInt() < index)
@@ -256,7 +256,7 @@ extends TypeDescriptor
 		{
 			return BottomTypeDescriptor.bottom();
 		}
-		final AvailObject leading = object.slot(TYPE_TUPLE);
+		final A_Tuple leading = object.slot(TYPE_TUPLE);
 		if (index <= leading.tupleSize())
 		{
 			return leading.tupleAt(index);
@@ -274,7 +274,7 @@ extends TypeDescriptor
 	 * </p>
 	 */
 	@Override @AvailMethod
-	AvailObject o_UnionOfTypesAtThrough (
+	A_Type o_UnionOfTypesAtThrough (
 		final AvailObject object,
 		final int startIndex,
 		final int endIndex)
@@ -287,16 +287,16 @@ extends TypeDescriptor
 		{
 			return object.typeAtIndex(startIndex);
 		}
-		final AvailObject upper = object.sizeRange().upperBound();
+		final A_Number upper = object.sizeRange().upperBound();
 		if (IntegerDescriptor.fromInt(startIndex).greaterThan(upper))
 		{
 			return BottomTypeDescriptor.bottom();
 		}
-		final AvailObject leading = object.typeTuple();
+		final A_Tuple leading = object.typeTuple();
 		final int interestingLimit = leading.tupleSize() + 1;
 		final int clipStart = max(min(startIndex, interestingLimit), 1);
 		final int clipEnd = max(min(endIndex, interestingLimit), 1);
-		AvailObject typeUnion = object.typeAtIndex(clipStart);
+		A_Type typeUnion = object.typeAtIndex(clipStart);
 		for (int i = clipStart + 1; i <= clipEnd; i++)
 		{
 			typeUnion = typeUnion.typeUnion(object.typeAtIndex(i));
@@ -307,7 +307,7 @@ extends TypeDescriptor
 	@Override @AvailMethod
 	boolean o_IsSubtypeOf (
 		final AvailObject object,
-		final AvailObject aType)
+		final A_Type aType)
 	{
 		return aType.isSupertypeOfTupleType(object);
 	}
@@ -334,17 +334,17 @@ extends TypeDescriptor
 		{
 			return false;
 		}
-		final AvailObject subTuple = aTupleType.typeTuple();
-		final AvailObject superTuple = object.slot(TYPE_TUPLE);
+		final A_Tuple subTuple = aTupleType.typeTuple();
+		final A_Tuple superTuple = object.slot(TYPE_TUPLE);
 		int end = max(subTuple.tupleSize(), superTuple.tupleSize()) + 1;
-		final AvailObject smallUpper = aTupleType.sizeRange().upperBound();
+		final A_Number smallUpper = aTupleType.sizeRange().upperBound();
 		if (smallUpper.isInt())
 		{
 			end = min(end, smallUpper.extractInt());
 		}
 		for (int i = 1; i <= end; i++)
 		{
-			AvailObject subType;
+			A_Type subType;
 			if (i <= subTuple.tupleSize())
 			{
 				subType = subTuple.tupleAt(i);
@@ -353,7 +353,7 @@ extends TypeDescriptor
 			{
 				subType = aTupleType.defaultType();
 			}
-			AvailObject superType;
+			A_Type superType;
 			if (i <= superTuple.tupleSize())
 			{
 				superType = superTuple.tupleAt(i);
@@ -371,9 +371,9 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_TypeIntersection (
+	A_Type o_TypeIntersection (
 		final AvailObject object,
-		final AvailObject another)
+		final A_Type another)
 	{
 		if (object.isSubtypeOf(another))
 		{
@@ -387,15 +387,15 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_TypeIntersectionOfTupleType (
+	A_Type o_TypeIntersectionOfTupleType (
 		final AvailObject object,
-		final AvailObject aTupleType)
+		final A_Type aTupleType)
 	{
-		AvailObject newSizesObject =
+		A_Type newSizesObject =
 			object.slot(SIZE_RANGE).typeIntersection(aTupleType.sizeRange());
-		final AvailObject lead1 = object.slot(TYPE_TUPLE);
-		final AvailObject lead2 = aTupleType.typeTuple();
-		AvailObject newLeading;
+		final A_Tuple lead1 = object.slot(TYPE_TUPLE);
+		final A_Tuple lead2 = aTupleType.typeTuple();
+		A_Tuple newLeading;
 		if (lead1.tupleSize() > lead2.tupleSize())
 		{
 			newLeading = lead1;
@@ -409,7 +409,7 @@ extends TypeDescriptor
 		final int newLeadingSize = newLeading.tupleSize();
 		for (int i = 1; i <= newLeadingSize; i++)
 		{
-			final AvailObject intersectionObject =
+			final A_Type intersectionObject =
 				object.typeAtIndex(i).typeIntersection(
 					aTupleType.typeAtIndex(i));
 			if (intersectionObject.equals(BottomTypeDescriptor.bottom()))
@@ -424,12 +424,12 @@ extends TypeDescriptor
 		// Make sure entries in newLeading are immutable, as
 		// typeIntersection(...)can answer one of its arguments.
 		newLeading.makeSubobjectsImmutable();
-		final AvailObject newDefault =
+		final A_Type newDefault =
 			object.typeAtIndex(newLeadingSize + 1).typeIntersection(
 				aTupleType.typeAtIndex(newLeadingSize + 1));
 		if (newDefault.equals(BottomTypeDescriptor.bottom()))
 		{
-			final AvailObject newLeadingSizeObject =
+			final A_Number newLeadingSizeObject =
 				IntegerDescriptor.fromInt(newLeadingSize);
 			if (newLeadingSizeObject.lessThan(newSizesObject.lowerBound()))
 			{
@@ -452,9 +452,9 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_TypeUnion (
+	A_Type o_TypeUnion (
 		final AvailObject object,
-		final AvailObject another)
+		final A_Type another)
 	{
 		if (object.isSubtypeOf(another))
 		{
@@ -468,15 +468,15 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_TypeUnionOfTupleType (
+	A_Type o_TypeUnionOfTupleType (
 		final AvailObject object,
-		final AvailObject aTupleType)
+		final A_Type aTupleType)
 	{
-		final AvailObject newSizesObject =
+		final A_Type newSizesObject =
 			object.slot(SIZE_RANGE).typeUnion(aTupleType.sizeRange());
-		final AvailObject lead1 = object.slot(TYPE_TUPLE);
-		final AvailObject lead2 = aTupleType.typeTuple();
-		AvailObject newLeading;
+		final A_Tuple lead1 = object.slot(TYPE_TUPLE);
+		final A_Tuple lead2 = aTupleType.typeTuple();
+		A_Tuple newLeading;
 		if (lead1.tupleSize() > lead2.tupleSize())
 		{
 			newLeading = lead1;
@@ -490,7 +490,7 @@ extends TypeDescriptor
 		final int newLeadingSize = newLeading.tupleSize();
 		for (int i = 1; i <= newLeadingSize; i++)
 		{
-			final AvailObject unionObject =
+			final A_Type unionObject =
 				object.typeAtIndex(i).typeUnion(aTupleType.typeAtIndex(i));
 			newLeading = newLeading.tupleAtPuttingCanDestroy(
 				i,
@@ -500,7 +500,7 @@ extends TypeDescriptor
 		// Make sure entries in newLeading are immutable, as typeUnion(...) can
 		// answer one of its arguments.
 		newLeading.makeSubobjectsImmutable();
-		final AvailObject newDefault =
+		final A_Type newDefault =
 			object.typeAtIndex(newLeadingSize + 1).typeUnion(
 				aTupleType.typeAtIndex(newLeadingSize + 1));
 		// Safety until all primitives are destructive
@@ -548,7 +548,7 @@ extends TypeDescriptor
 	}
 
 	/** The most general tuple type. */
-	private static AvailObject mostGeneralType;
+	private static A_Type mostGeneralType;
 
 	/**
 	 * Answer the most general tuple type.  This is the supertype of all other
@@ -556,13 +556,13 @@ extends TypeDescriptor
 	 *
 	 * @return The most general tuple type.
 	 */
-	public static AvailObject mostGeneralType ()
+	public static A_Type mostGeneralType ()
 	{
 		return mostGeneralType;
 	}
 
 	/** The most general string type (i.e., tuples of characters). */
-	private static AvailObject stringType;
+	private static A_Type stringType;
 
 	/**
 	 * Answer the most general string type.  This type subsumes strings of any
@@ -570,20 +570,20 @@ extends TypeDescriptor
 	 *
 	 * @return The string type.
 	 */
-	public static AvailObject stringTupleType ()
+	public static A_Type stringTupleType ()
 	{
 		return stringType;
 	}
 
 	/** The metatype for all tuple types. */
-	private static AvailObject meta;
+	private static A_Type meta;
 
 	/**
 	 * Answer the metatype for all tuple types.
 	 *
 	 * @return The statically referenced metatype.
 	 */
-	public static AvailObject meta ()
+	public static A_Type meta ()
 	{
 		return meta;
 	}
@@ -629,10 +629,10 @@ extends TypeDescriptor
 	 * @param defaultType The types of remaining elements of conforming tuples.
 	 * @return A canonized tuple type with the specified properties.
 	 */
-	public static AvailObject tupleTypeForSizesTypesDefaultType (
-		final AvailObject sizeRange,
-		final AvailObject typeTuple,
-		final AvailObject defaultType)
+	public static A_Type tupleTypeForSizesTypesDefaultType (
+		final A_Type sizeRange,
+		final A_Tuple typeTuple,
+		final A_Type defaultType)
 	{
 		if (sizeRange.equals(BottomTypeDescriptor.bottom()))
 		{
@@ -691,7 +691,7 @@ extends TypeDescriptor
 	 * @return A size [0..1] tuple type whose element has the given type.
 	 *
 	 */
-	public static AvailObject zeroOrOneOf (final AvailObject aType)
+	public static A_Type zeroOrOneOf (final A_Type aType)
 	{
 		return tupleTypeForSizesTypesDefaultType(
 			IntegerRangeTypeDescriptor.zeroOrOne(),
@@ -706,7 +706,7 @@ extends TypeDescriptor
 	 * @return A size [0..∞) tuple type whose elements have the given type.
 	 *
 	 */
-	public static AvailObject zeroOrMoreOf (final AvailObject aType)
+	public static A_Type zeroOrMoreOf (final A_Type aType)
 	{
 		return tupleTypeForSizesTypesDefaultType(
 			IntegerRangeTypeDescriptor.wholeNumbers(),
@@ -721,7 +721,7 @@ extends TypeDescriptor
 	 * @return A size [1..∞) tuple type whose elements have the given type.
 	 *
 	 */
-	public static AvailObject oneOrMoreOf (final AvailObject aType)
+	public static A_Type oneOrMoreOf (final A_Type aType)
 	{
 		return tupleTypeForSizesTypesDefaultType(
 			IntegerRangeTypeDescriptor.naturalNumbers(),
@@ -738,7 +738,7 @@ extends TypeDescriptor
 	 * @return A fixed-size tuple type.
 	 *
 	 */
-	public static AvailObject forTypes (final AvailObject... types)
+	public static A_Type forTypes (final A_Type... types)
 	{
 		return tupleTypeForSizesTypesDefaultType(
 			IntegerRangeTypeDescriptor.singleInt(types.length),
@@ -755,16 +755,16 @@ extends TypeDescriptor
 	 * @param defaultType The types of remaining elements of conforming tuples.
 	 * @return A tuple type with the specified properties.
 	 */
-	private static AvailObject privateTupleTypeForSizesTypesDefaultType (
-		final AvailObject sizeRange,
-		final AvailObject typeTuple,
-		final AvailObject defaultType)
+	private static A_Type privateTupleTypeForSizesTypesDefaultType (
+		final A_Type sizeRange,
+		final A_Tuple typeTuple,
+		final A_Type defaultType)
 	{
 		assert sizeRange.lowerBound().isFinite();
 		assert sizeRange.upperBound().isFinite() || !sizeRange.upperInclusive();
 		assert sizeRange.lowerBound().extractInt() >= 0;
 
-		final AvailObject sizeRangeKind = sizeRange.isEnumeration()
+		final A_Type sizeRangeKind = sizeRange.isEnumeration()
 			? sizeRange.computeSuperkind()
 			: sizeRange;
 		final int limit = min(

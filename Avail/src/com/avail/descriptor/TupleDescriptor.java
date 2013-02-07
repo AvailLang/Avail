@@ -123,7 +123,7 @@ extends Descriptor
 			aStream.append('"');
 			for (int i = 1, limit = object.tupleSize(); i <= limit; i++)
 			{
-				final AvailObject availChar = object.tupleAt(i);
+				final A_BasicObject availChar = object.tupleAt(i);
 				final int c = availChar.codePoint();
 				if (c == '\"' || c == '\\')
 				{
@@ -157,7 +157,7 @@ extends Descriptor
 		final List<String> strings = new ArrayList<String>(object.tupleSize());
 		int totalChars = 0;
 		boolean anyBreaks = false;
-		for (final AvailObject element : object)
+		for (final A_BasicObject element : object)
 		{
 			final StringBuilder localBuilder = new StringBuilder();
 			element.printOnAvoidingIndent(
@@ -200,7 +200,7 @@ extends Descriptor
 	@Override @AvailMethod
 	boolean o_EqualsAnyTuple (
 		final AvailObject object,
-		final AvailObject aTuple)
+		final A_Tuple aTuple)
 	{
 		// Compare this arbitrary Tuple and the given arbitrary tuple.
 		if (object.sameAddressAs(aTuple))
@@ -226,7 +226,7 @@ extends Descriptor
 		}
 		if (object.isBetterRepresentationThan(aTuple))
 		{
-			if (!aTuple.descriptor.isShared())
+			if (!aTuple.descriptor().isShared())
 			{
 				object.makeImmutable();
 				aTuple.becomeIndirectionTo(object);
@@ -300,7 +300,7 @@ extends Descriptor
 	@Override @AvailMethod
 	boolean o_IsBetterRepresentationThan (
 		final AvailObject object,
-		final AvailObject anotherObject)
+		final A_BasicObject anotherObject)
 	{
 		// Given two objects that are known to be equal, is the first one in a
 		// better form (more compact, more efficient, older generation) than
@@ -311,7 +311,7 @@ extends Descriptor
 	@Override @AvailMethod
 	boolean o_IsInstanceOfKind (
 		final AvailObject object,
-		final AvailObject aTypeObject)
+		final A_Type aTypeObject)
 	{
 		if (aTypeObject.isSupertypeOfPrimitiveTypeEnum(NONTYPE))
 		{
@@ -328,7 +328,7 @@ extends Descriptor
 			return false;
 		}
 		// The tuple's size is out of range.
-		final AvailObject typeTuple = aTypeObject.typeTuple();
+		final A_Tuple typeTuple = aTypeObject.typeTuple();
 		final int breakIndex = min(tupleSize, typeTuple.tupleSize());
 		for (int i = 1; i <= breakIndex; i++)
 		{
@@ -337,7 +337,7 @@ extends Descriptor
 				return false;
 			}
 		}
-		final AvailObject defaultTypeObject = aTypeObject.defaultType();
+		final A_Type defaultTypeObject = aTypeObject.defaultType();
 		if (!defaultTypeObject.isSupertypeOfPrimitiveTypeEnum(ANY))
 		{
 			for (int i = breakIndex + 1; i <= tupleSize; i++)
@@ -361,7 +361,7 @@ extends Descriptor
 	 * @param object An object.
 	 * @return The hash.
 	 */
-	private int hash (final AvailObject object)
+	private int hash (final A_Tuple object)
 	{
 		int hash = object.hashOrZero();
 		if (hash == 0)
@@ -386,9 +386,9 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_Kind (final AvailObject object)
+	A_Type o_Kind (final AvailObject object)
 	{
-		final AvailObject tupleOfTypes = object.copyAsMutableObjectTuple();
+		final A_Tuple tupleOfTypes = object.copyAsMutableObjectTuple();
 		final int tupleSize = object.tupleSize();
 		for (int i = 1; i <= tupleSize; i++)
 		{
@@ -409,7 +409,7 @@ extends Descriptor
 		final AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
-		final AvailObject anotherObject,
+		final A_Tuple anotherObject,
 		final int startIndex2);
 
 	@Override @AvailMethod
@@ -417,7 +417,7 @@ extends Descriptor
 		final AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
-		final AvailObject aTuple,
+		final A_Tuple aTuple,
 		final int startIndex2)
 	{
 		for (
@@ -531,7 +531,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_ConcatenateTuplesCanDestroy (
+	A_Tuple o_ConcatenateTuplesCanDestroy (
 		final AvailObject object,
 		final boolean canDestroy)
 	{
@@ -542,7 +542,7 @@ extends Descriptor
 		int newSize = 0;
 		for (int i = 1, end = object.tupleSize(); i <= end; i++)
 		{
-			final AvailObject sub = object.tupleAt(i);
+			final A_Tuple sub = object.tupleAt(i);
 			final int subZones = sub.tupleSize() == 0
 				? 0
 				: sub.traversed().isSplice()
@@ -624,7 +624,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_CopyTupleFromToCanDestroy (
+	A_Tuple o_CopyTupleFromToCanDestroy (
 		final AvailObject object,
 		final int start,
 		final int end,
@@ -708,19 +708,19 @@ extends Descriptor
 		final int index);
 
 	@Override @AvailMethod
-	abstract AvailObject o_TupleAtPuttingCanDestroy (
+	abstract A_Tuple o_TupleAtPuttingCanDestroy (
 		final AvailObject object,
 		final int index,
-		final AvailObject newValueObject,
+		final A_BasicObject newValueObject,
 		final boolean canDestroy);
 
 	@Override @AvailMethod
 	abstract int o_TupleIntAt (final AvailObject object, final int index);
 
 	@Override @AvailMethod
-	AvailObject o_AsSet (final AvailObject object)
+	A_Set o_AsSet (final AvailObject object)
 	{
-		AvailObject result = SetDescriptor.empty();
+		A_Set result = SetDescriptor.empty();
 		for (int i = 1, end = object.tupleSize(); i <= end; i++)
 		{
 			result = result.setWithElementCanDestroy(object.tupleAt(i), true);
@@ -847,7 +847,7 @@ extends Descriptor
 	 * @param object The object to hash.
 	 * @return The hash value.
 	 */
-	int computeHashForObject (final AvailObject object)
+	int computeHashForObject (final A_Tuple object)
 	{
 		return object.computeHashFromTo(1, object.tupleSize());
 	}
@@ -896,7 +896,7 @@ extends Descriptor
 	 * Answer a mutable copy of object that holds arbitrary objects.
 	 */
 	@Override @AvailMethod
-	AvailObject o_CopyAsMutableObjectTuple (final AvailObject object)
+	A_Tuple o_CopyAsMutableObjectTuple (final AvailObject object)
 	{
 		final int size = object.tupleSize();
 		final AvailObject result = ObjectTupleDescriptor.mutable.create(size);
@@ -958,7 +958,7 @@ extends Descriptor
 	}
 
 	@Override
-	boolean o_ShowValueInNameForDebugger (final AvailObject object)
+	boolean o_ShowValueInNameForDebugger (final A_BasicObject object)
 	{
 		return object.isString();
 	}
@@ -971,19 +971,19 @@ extends Descriptor
 	 * one of the copies is not kept after the call.
 	 */
 	@Override @AvailMethod
-	public AvailObject o_AppendCanDestroy (
+	public A_Tuple o_AppendCanDestroy (
 		final AvailObject object,
-		final AvailObject newElement,
+		final A_BasicObject newElement,
 		final boolean canDestroy)
 	{
 		final int originalSize = object.tupleSize();
-		final AvailObject newTuple = ObjectTupleDescriptor.mutable.create(
+		final A_Tuple newTuple = ObjectTupleDescriptor.createUninitialized(
 			originalSize + 1);
 		for (int i = 1; i <= originalSize; i++)
 		{
 			newTuple.tupleAtPut(i, object.tupleAt(i));
 		}
-		newTuple.tupleAtPut(originalSize + 1, newElement);
+		newTuple.objectTupleAtPut(originalSize + 1, newElement);
 		return newTuple;
 	}
 
@@ -1028,18 +1028,19 @@ extends Descriptor
 	 *        The array of AvailObjects from which to construct a tuple.
 	 * @return The new mutable tuple.
 	 */
-	public static AvailObject from (final AvailObject... elements)
+	public static A_Tuple from (
+		final A_BasicObject... elements)
 	{
 		if (elements.length == 0)
 		{
 			return emptyTuple;
 		}
-		AvailObject tuple;
+		A_Tuple tuple;
 		final int size = elements.length;
-		tuple = ObjectTupleDescriptor.mutable.create(size);
+		tuple = ObjectTupleDescriptor.createUninitialized(size);
 		for (int i = 1; i <= size; i++)
 		{
-			tuple.tupleAtPut(i, elements[i - 1]);
+			tuple.objectTupleAtPut(i, elements[i - 1]);
 		}
 		return tuple;
 	}
@@ -1054,17 +1055,18 @@ extends Descriptor
 	 *        to construct a tuple.
 	 * @return The corresponding tuple of objects.
 	 */
-	public static AvailObject fromList (final List<AvailObject> list)
+	public static <E extends A_BasicObject> A_Tuple fromList (
+		final List<E> list)
 	{
 		final int size = list.size();
 		if (size == 0)
 		{
 			return emptyTuple;
 		}
-		final AvailObject tuple = ObjectTupleDescriptor.mutable.create(size);
+		final A_Tuple tuple = ObjectTupleDescriptor.createUninitialized(size);
 		for (int i = 0; i < size; i++)
 		{
-			tuple.tupleAtPut(i + 1, list.get(i));
+			tuple.objectTupleAtPut(i + 1, list.get(i));
 		}
 		return tuple;
 	}
@@ -1077,10 +1079,11 @@ extends Descriptor
 	 *        A tuple.
 	 * @return The corresponding list of objects.
 	 */
-	public static List<AvailObject> toList (final AvailObject tuple)
+	public static List<AvailObject> toList (
+		final A_Tuple tuple)
 	{
-		final List<AvailObject> list = new ArrayList<AvailObject>(
-			tuple.tupleSize());
+		final List<AvailObject> list =
+			new ArrayList<AvailObject>(tuple.tupleSize());
 		for (final AvailObject element : tuple)
 		{
 			list.add(element);
@@ -1096,7 +1099,7 @@ extends Descriptor
 	 *        A tuple.
 	 * @return The corresponding Java array of AvailObjects.
 	 */
-	public static AvailObject[] toArray (final AvailObject tuple)
+	public static AvailObject[] toArray (final A_Tuple tuple)
 	{
 		final int size = tuple.tupleSize();
 		final AvailObject[] array = new AvailObject[size];
@@ -1123,16 +1126,16 @@ extends Descriptor
 	 *        the new tuple, if it was present.
 	 * @return The new tuple.
 	 */
-	public static AvailObject without (
-		final AvailObject originalTuple,
-		final AvailObject elementToExclude)
+	public static A_Tuple without (
+		final A_Tuple originalTuple,
+		final A_BasicObject elementToExclude)
 	{
 		final int originalSize = originalTuple.tupleSize();
 		for (int seekIndex = 1; seekIndex <= originalSize; seekIndex++)
 		{
 			if (originalTuple.tupleAt(seekIndex).equals(elementToExclude))
 			{
-				final AvailObject newTuple =
+				final A_Tuple newTuple =
 					ObjectTupleDescriptor.mutable.create(originalSize - 1);
 				for (int i = 1; i < seekIndex; i++)
 				{
@@ -1186,10 +1189,10 @@ extends Descriptor
 				return tuple;
 			}
 		}
-		tuple = ObjectTupleDescriptor.mutable.create(list.size());
+		tuple = ObjectTupleDescriptor.createUninitialized(list.size());
 		for (int i = 1; i <= list.size(); i++)
 		{
-			tuple.tupleAtPut(
+			tuple.objectTupleAtPut(
 				i,
 				IntegerDescriptor.fromInt(list.get(i - 1).intValue()));
 		}

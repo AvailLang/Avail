@@ -42,7 +42,7 @@ import com.avail.annotations.*;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd Smith &lt;todd@availlang.org&gt;
  */
-abstract class ExtendedIntegerDescriptor
+public abstract class ExtendedIntegerDescriptor
 extends AbstractNumberDescriptor
 {
 	@Override @AvailMethod

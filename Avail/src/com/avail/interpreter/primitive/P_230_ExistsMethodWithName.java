@@ -60,14 +60,14 @@ extends Primitive
 	{
 		assert args.size() == 1;
 		final AvailObject trueName = args.get(0);
-		final AvailObject method =
+		final A_BasicObject method =
 			interpreter.runtime().methodAt(trueName);
 		return interpreter.primitiveSuccess(AtomDescriptor.objectFromBoolean(
 			!method.equalsNil()));
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

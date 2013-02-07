@@ -56,13 +56,13 @@ public class P_217_MethodDefinitionBody extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
-		final AvailObject methSig = args.get(0);
+		final A_BasicObject methSig = args.get(0);
 		return interpreter.primitiveSuccess(
 			methSig.bodyBlock().makeImmutable());
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

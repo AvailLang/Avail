@@ -55,13 +55,13 @@ public class P_012_ClearValue extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
-		final AvailObject var = args.get(0);
+		final A_BasicObject var = args.get(0);
 		var.clearValue();
 		return interpreter.primitiveSuccess(NilDescriptor.nil());
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(VariableTypeDescriptor.mostGeneralType()),

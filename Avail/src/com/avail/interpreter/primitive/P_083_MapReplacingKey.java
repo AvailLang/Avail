@@ -57,9 +57,9 @@ public class P_083_MapReplacingKey extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 3;
-		final AvailObject map = args.get(0);
-		final AvailObject key = args.get(1);
-		final AvailObject value = args.get(2);
+		final A_Map map = args.get(0);
+		final A_BasicObject key = args.get(1);
+		final A_BasicObject value = args.get(2);
 		return interpreter.primitiveSuccess(map.mapAtPuttingCanDestroy(
 			key,
 			value,
@@ -67,7 +67,7 @@ public class P_083_MapReplacingKey extends Primitive
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
@@ -81,29 +81,29 @@ public class P_083_MapReplacingKey extends Primitive
 	}
 
 	@Override
-	public AvailObject returnTypeGuaranteedByVM (
-		final List<AvailObject> argumentTypes)
+	public A_Type returnTypeGuaranteedByVM (
+		final List<A_Type> argumentTypes)
 	{
-		final AvailObject mapType = argumentTypes.get(0);
-		final AvailObject addedKeyType = argumentTypes.get(1);
-		final AvailObject addedValueType = argumentTypes.get(2);
+		final A_Type mapType = argumentTypes.get(0);
+		final A_Type addedKeyType = argumentTypes.get(1);
+		final A_Type addedValueType = argumentTypes.get(2);
 
-		final AvailObject newKeyType =
+		final A_Type newKeyType =
 			mapType.keyType().typeUnion(addedKeyType);
-		final AvailObject newValueType =
+		final A_Type newValueType =
 			mapType.valueType().typeUnion(addedValueType);
-		final AvailObject oldSizes = mapType.sizeRange();
+		final A_Type oldSizes = mapType.sizeRange();
 		// Now there's at least one element.
-		final AvailObject newMin =
+		final A_Number newMin =
 			oldSizes.lowerBound().equals(IntegerDescriptor.zero())
 				? IntegerDescriptor.one()
 				: oldSizes.lowerBound();
 		// ...and at most one more element.  We add two and make the bound
 		// exclusive to accommodate positive infinity.
-		final AvailObject newMaxPlusOne =
+		final A_Number newMaxPlusOne =
 			oldSizes.upperBound().plusCanDestroy(
 				IntegerDescriptor.two(), false);
-		final AvailObject newSizes = IntegerRangeTypeDescriptor.create(
+		final A_Type newSizes = IntegerRangeTypeDescriptor.create(
 			newMin.makeImmutable(),
 			true,
 			newMaxPlusOne.makeImmutable(),

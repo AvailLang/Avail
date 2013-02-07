@@ -93,7 +93,7 @@ extends PojoTypeDescriptor
 	@Override @AvailMethod
 	boolean o_IsSubtypeOf (
 		final AvailObject object,
-		final AvailObject aPojoType)
+		final A_Type aPojoType)
 	{
 		return aPojoType.isSupertypeOfPojoBottomType(object);
 	}
@@ -101,7 +101,7 @@ extends PojoTypeDescriptor
 	@Override @AvailMethod
 	boolean o_IsSupertypeOfPojoType (
 		final AvailObject object,
-		final AvailObject aPojoType)
+		final A_BasicObject aPojoType)
 	{
 		return aPojoType.equalsPojoBottomType();
 	}
@@ -140,7 +140,7 @@ extends PojoTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_PojoSelfType (final AvailObject object)
+	A_Type o_PojoSelfType (final AvailObject object)
 	{
 		// The pojo bottom type is its own self type.
 		return object;
@@ -155,55 +155,55 @@ extends PojoTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_TypeIntersectionOfPojoType (
+	A_Type o_TypeIntersectionOfPojoType (
 		final AvailObject object,
-		final AvailObject aPojoType)
+		final A_Type aPojoType)
 	{
 		return object;
 	}
 
 	@Override
-	AvailObject o_TypeIntersectionOfPojoFusedType (
+	A_Type o_TypeIntersectionOfPojoFusedType (
 		final AvailObject object,
-		final AvailObject aFusedPojoType)
+		final A_Type aFusedPojoType)
 	{
 		throw unsupportedOperationException();
 	}
 
 	@Override
-	AvailObject o_TypeIntersectionOfPojoUnfusedType (
+	A_Type o_TypeIntersectionOfPojoUnfusedType (
 		final AvailObject object,
-		final AvailObject anUnfusedPojoType)
+		final A_Type anUnfusedPojoType)
 	{
 		throw unsupportedOperationException();
 	}
 
 	@Override @AvailMethod
-	AvailObject o_TypeUnionOfPojoType (
+	A_Type o_TypeUnionOfPojoType (
 		final AvailObject object,
-		final AvailObject aPojoType)
+		final A_Type aPojoType)
 	{
 		return aPojoType;
 	}
 
 	@Override
-	AvailObject o_TypeUnionOfPojoFusedType (
+	A_Type o_TypeUnionOfPojoFusedType (
 		final AvailObject object,
-		final AvailObject aFusedPojoType)
+		final A_Type aFusedPojoType)
 	{
 		throw unsupportedOperationException();
 	}
 
 	@Override
-	AvailObject o_TypeUnionOfPojoUnfusedType (
+	A_Type o_TypeUnionOfPojoUnfusedType (
 		final AvailObject object,
-		final AvailObject anUnfusedPojoType)
+		final A_Type anUnfusedPojoType)
 	{
 		throw unsupportedOperationException();
 	}
 
 	@Override
-	AvailObject o_TypeVariables (final AvailObject object)
+	A_Map o_TypeVariables (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}

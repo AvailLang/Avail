@@ -56,8 +56,8 @@ public class P_252_ForwardMethodDeclaration extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 2;
-		final AvailObject string = args.get(0);
-		final AvailObject blockSignature = args.get(1);
+		final A_String string = args.get(0);
+		final A_Type blockSignature = args.get(1);
 
 		// TODO: [MvG] Deal with errors more appropriately in
 		// addForwardStubFor(...).
@@ -80,7 +80,7 @@ public class P_252_ForwardMethodDeclaration extends Primitive
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

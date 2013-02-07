@@ -55,15 +55,14 @@ public class P_069_TypeNames extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
-		final AvailObject userType = args.get(0);
+		final A_Type userType = args.get(0);
 
-		final AvailObject names =
-			ObjectTypeDescriptor.namesForType(userType);
+		final A_Set names = ObjectTypeDescriptor.namesForType(userType);
 		return interpreter.primitiveSuccess(names);
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

@@ -58,7 +58,7 @@ public class P_289_FloatTruncatedAsInteger extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
-		final AvailObject a = args.get(0);
+		final A_Number a = args.get(0);
 		// Extract the top two 32-bit sections.  That guarantees 33 bits
 		// of mantissa, which is more than a float actually captures.
 		float f = a.extractFloat();
@@ -85,7 +85,7 @@ public class P_289_FloatTruncatedAsInteger extends Primitive
 		f = abs(f);
 		final int exponent = getExponent(f);
 		final int slots = exponent + 31 / 32;  // probably needs work
-		AvailObject out = IntegerDescriptor.createUninitialized(slots);
+		A_Number out = IntegerDescriptor.createUninitialized(slots);
 		f = scalb(f, (1 - slots) * 32);
 		for (int i = slots; i >= 1; --i)
 		{
@@ -103,7 +103,7 @@ public class P_289_FloatTruncatedAsInteger extends Primitive
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

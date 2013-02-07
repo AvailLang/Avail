@@ -62,14 +62,14 @@ extends Primitive
 		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		final AvailObject string = args.get(0);
+		final A_String string = args.get(0);
 		final PrintStream err = AvailRuntime.current().standardErrorStream();
 		err.print(string.asNativeString());
 		return interpreter.primitiveSuccess(NilDescriptor.nil());
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

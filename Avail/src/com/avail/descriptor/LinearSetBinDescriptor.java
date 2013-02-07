@@ -92,15 +92,15 @@ extends SetBinDescriptor
 	void o_BinElementAtPut (
 		final AvailObject object,
 		final int subscript,
-		final AvailObject value)
+		final A_BasicObject value)
 	{
 		object.setSlot(BIN_ELEMENT_AT_, subscript, value);
 	}
 
 	@Override @AvailMethod
-	AvailObject o_SetBinAddingElementHashLevelCanDestroy (
+	A_BasicObject o_SetBinAddingElementHashLevelCanDestroy (
 		final AvailObject object,
-		final AvailObject elementObject,
+		final A_BasicObject elementObject,
 		final int elementObjectHash,
 		final byte myLevel,
 		final boolean canDestroy)
@@ -128,7 +128,7 @@ extends SetBinDescriptor
 			int bitVector = bitShift(1, bitPosition);
 			for (int i = 1; i <= oldSize; i++)
 			{
-				final AvailObject element = object.slot(BIN_ELEMENT_AT_, i);
+				final A_BasicObject element = object.slot(BIN_ELEMENT_AT_, i);
 				bitPosition = bitShift(element.hash(), -5 * myLevel) & 31;
 				bitVector |= bitShift(1, bitPosition);
 			}
@@ -147,10 +147,10 @@ extends SetBinDescriptor
 					i,
 					NilDescriptor.nil());
 			}
-			AvailObject localAddResult;
+			A_BasicObject localAddResult;
 			for (int i = 0; i <= oldSize; i++)
 			{
-				final AvailObject eachElement;
+				final A_BasicObject eachElement;
 				final int eachHash;
 				if (i == 0)
 				{
@@ -220,7 +220,7 @@ extends SetBinDescriptor
 	@Override @AvailMethod
 	boolean o_BinHasElementWithHash (
 		final AvailObject object,
-		final AvailObject elementObject,
+		final A_BasicObject elementObject,
 		final int elementObjectHash)
 	{
 		final int limit = object.variableObjectSlotsCount();
@@ -241,7 +241,7 @@ extends SetBinDescriptor
 	@Override @AvailMethod
 	AvailObject o_BinRemoveElementHashCanDestroy (
 		final AvailObject object,
-		final AvailObject elementObject,
+		final A_BasicObject elementObject,
 		final int elementObjectHash,
 		final boolean canDestroy)
 	{
@@ -298,7 +298,7 @@ extends SetBinDescriptor
 	@Override @AvailMethod
 	boolean o_IsBinSubsetOf (
 		final AvailObject object,
-		final AvailObject potentialSuperset)
+		final A_Set potentialSuperset)
 	{
 		// Check if object, a bin, holds a subset of aSet's elements.
 		for (
@@ -323,11 +323,11 @@ extends SetBinDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_BinUnionKind (final AvailObject object)
+	A_Type o_BinUnionKind (final AvailObject object)
 	{
 		// Answer the nearest kind of the union of the types of this bin's
 		// elements. I'm supposed to be small, so recalculate it per request.
-		AvailObject unionKind = object.slot(BIN_ELEMENT_AT_, 1).kind();
+		A_Type unionKind = object.slot(BIN_ELEMENT_AT_, 1).kind();
 		final int limit = object.variableObjectSlotsCount();
 		for (int index = 2; index <= limit; index++)
 		{
@@ -340,7 +340,7 @@ extends SetBinDescriptor
 	@Override @AvailMethod
 	boolean o_BinElementsAreAllInstancesOfKind (
 		final AvailObject object,
-		final AvailObject kind)
+		final A_Type kind)
 	{
 		final int limit = object.variableObjectSlotsCount();
 		for (int index = 1; index <= limit; index++)
@@ -409,8 +409,8 @@ extends SetBinDescriptor
 	 */
 	public static AvailObject createPair (
 		final byte level,
-		final AvailObject firstElement,
-		final AvailObject secondElement)
+		final A_BasicObject firstElement,
+		final A_BasicObject secondElement)
 	{
 		final AvailObject instance = descriptorFor(MUTABLE, level).create(2);
 		instance.setSlot(BIN_ELEMENT_AT_, 1, firstElement);

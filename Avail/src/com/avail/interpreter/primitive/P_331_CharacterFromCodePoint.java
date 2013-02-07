@@ -55,14 +55,13 @@ public class P_331_CharacterFromCodePoint extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
-		final AvailObject codePoint = args.get(0);
+		final A_Number codePoint = args.get(0);
 		return interpreter.primitiveSuccess(
-			CharacterDescriptor.fromCodePoint(
-				codePoint.extractInt()));
+			CharacterDescriptor.fromCodePoint(codePoint.extractInt()));
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

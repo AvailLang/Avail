@@ -64,15 +64,15 @@ extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
-		final AvailObject name = args.get(0);
-		final AvailObject module = interpreter.module();
+		final A_String name = args.get(0);
+		final A_BasicObject module = interpreter.module();
 		if (module == null)
 		{
 			return interpreter.primitiveFailure(E_COMPILATION_IS_OVER);
 		}
 		try
 		{
-			final AvailObject trueName = interpreter.lookupName(name);
+			final A_Atom trueName = interpreter.lookupName(name);
 			module.introduceNewName(name, trueName);
 			module.addImportedName(name, trueName);
 			return interpreter.primitiveSuccess(NilDescriptor.nil());
@@ -84,7 +84,7 @@ extends Primitive
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

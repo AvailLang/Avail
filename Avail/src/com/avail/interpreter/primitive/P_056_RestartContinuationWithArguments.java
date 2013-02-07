@@ -63,16 +63,17 @@ public class P_056_RestartContinuationWithArguments extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 2;
-		final AvailObject con = args.get(0);
-		final AvailObject code = con.function().code();
-		final AvailObject arguments = args.get(1);
+		final A_BasicObject con = args.get(0);
+		final A_Tuple arguments = args.get(1);
+
+		final A_BasicObject code = con.function().code();
 		assert con.stackp() == code.numArgsAndLocalsAndStack() + 1
 			: "Outer continuation should have been a label- rather than "
 				+ "call-continuation";
 		assert con.pc() == 1
 			: "Labels must only occur at the start of a block.  "
 				+ "Only restart that kind of continuation.";
-		final AvailObject itsCode = con.function().code();
+		final A_BasicObject itsCode = con.function().code();
 		final int numArgs = itsCode.numArgs();
 		if (numArgs != arguments.tupleSize())
 		{
@@ -82,7 +83,7 @@ public class P_056_RestartContinuationWithArguments extends Primitive
 		// No need to make it immutable because current continuation's
 		// reference is lost by this.  We go ahead and make a mutable copy
 		// to allow the new arguments to be injected.
-		final AvailObject conCopy = con.ensureMutable();
+		final A_BasicObject conCopy = con.ensureMutable();
 		if (!itsCode.functionType().acceptsTupleOfArguments(arguments))
 		{
 			return interpreter.primitiveFailure(
@@ -97,7 +98,7 @@ public class P_056_RestartContinuationWithArguments extends Primitive
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

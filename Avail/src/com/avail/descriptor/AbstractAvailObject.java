@@ -81,7 +81,7 @@ abstract class AbstractAvailObject
 	 * @return Whether the objects occupy the same storage.
 	 */
 	public final boolean sameAddressAs (
-		final AbstractAvailObject anotherObject)
+		final A_BasicObject anotherObject)
 	{
 		// verifyToSpaceAddress();
 		// anotherObject.verifyToSpaceAddress();
@@ -146,7 +146,7 @@ abstract class AbstractAvailObject
 	 *
 	 * @return The number of variable integer slots.
 	 */
-	final int variableIntegerSlotsCount ()
+	public final int variableIntegerSlotsCount ()
 	{
 		return integerSlotsCount() - descriptor.numberOfFixedIntegerSlots();
 	}
@@ -330,7 +330,7 @@ abstract class AbstractAvailObject
 	 *
 	 * @return The number of variable object slots.
 	 */
-	final int variableObjectSlotsCount ()
+	public final int variableObjectSlotsCount ()
 	{
 		return objectSlotsCount() - descriptor.numberOfFixedObjectSlots();
 	}
@@ -353,7 +353,7 @@ abstract class AbstractAvailObject
 	 */
 	abstract void setSlot (
 		final ObjectSlotsEnum e,
-		final AvailObject anAvailObject);
+		final A_BasicObject anAvailObject);
 
 	/**
 	 * Extract the {@linkplain AvailObject object} at the specified slot of the
@@ -378,7 +378,7 @@ abstract class AbstractAvailObject
 	abstract void setSlot (
 		final ObjectSlotsEnum e,
 		final int subscript,
-		final AvailObject anAvailObject);
+		final A_BasicObject anAvailObject);
 
 	/**
 	 * Extract the {@linkplain AvailObject object} at the specified slot of the
@@ -400,7 +400,7 @@ abstract class AbstractAvailObject
 	 */
 	abstract void setMutableSlot (
 		final ObjectSlotsEnum e,
-		final AvailObject anAvailObject);
+		final A_BasicObject anAvailObject);
 
 	/**
 	 * Extract the {@linkplain AvailObject object} at the specified slot of the

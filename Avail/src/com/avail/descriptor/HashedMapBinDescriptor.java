@@ -79,7 +79,7 @@ extends MapBinDescriptor
 	 *
 	 * @param object A hashed bin used by maps.
 	 */
-	static void check (final AvailObject object)
+	static void check (final A_BasicObject object)
 	{
 		if (shouldCheck)
 		{
@@ -186,7 +186,7 @@ extends MapBinDescriptor
 	void o_BinElementAtPut (
 		final AvailObject object,
 		final int subscript,
-		final AvailObject value)
+		final A_BasicObject value)
 	{
 		object.setSlot(SUB_BINS_, subscript, value);
 	}
@@ -215,12 +215,12 @@ extends MapBinDescriptor
 	@Override @AvailMethod
 	boolean o_IsBinSubsetOf (
 		final AvailObject object,
-		final AvailObject potentialSuperset)
+		final A_Set potentialSuperset)
 	{
 		final int size = object.variableObjectSlotsCount();
 		for (int index = 1; index <= size; index++)
 		{
-			final AvailObject subBin = object.slot(SUB_BINS_, index);
+			final A_BasicObject subBin = object.slot(SUB_BINS_, index);
 			if (!subBin.isBinSubsetOf(potentialSuperset))
 			{
 				return false;
@@ -244,8 +244,8 @@ extends MapBinDescriptor
 	 */
 	private void computeKeyAndValueKinds (final AvailObject object)
 	{
-		AvailObject keyType = BottomTypeDescriptor.bottom();
-		AvailObject valueType = BottomTypeDescriptor.bottom();
+		A_Type keyType = BottomTypeDescriptor.bottom();
+		A_Type valueType = BottomTypeDescriptor.bottom();
 		final int binCount =
 			object.objectSlotsCount() - numberOfFixedObjectSlots;
 		for (int i = 1; i <= binCount; i++)
@@ -282,7 +282,7 @@ extends MapBinDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_MapBinKeyUnionKind (final AvailObject object)
+	A_Type o_MapBinKeyUnionKind (final AvailObject object)
 	{
 		if (isShared())
 		{
@@ -313,7 +313,7 @@ extends MapBinDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_MapBinValueUnionKind (final AvailObject object)
+	A_Type o_MapBinValueUnionKind (final AvailObject object)
 	{
 		if (isShared())
 		{
@@ -332,11 +332,11 @@ extends MapBinDescriptor
 	 * other references exists.
 	 */
 	@Override @AvailMethod
-	AvailObject o_MapBinAtHashPutLevelCanDestroy (
+	A_BasicObject o_MapBinAtHashPutLevelCanDestroy (
 		final AvailObject object,
-		final AvailObject key,
+		final A_BasicObject key,
 		final int keyHash,
-		final AvailObject value,
+		final A_BasicObject value,
 		final byte myLevel,
 		final boolean canDestroy)
 	{
@@ -361,7 +361,7 @@ extends MapBinDescriptor
 				physicalIndex);
 			final int oldSubBinSize = oldSubBin.binSize();
 			final int oldSubBinKeyHash = oldSubBin.mapBinKeysHash();
-			final AvailObject newSubBin =
+			final A_BasicObject newSubBin =
 				oldSubBin.mapBinAtHashPutLevelCanDestroy(
 					key,
 					keyHash,
@@ -411,7 +411,7 @@ extends MapBinDescriptor
 					i,
 					object.slot(SUB_BINS_,i));
 			}
-			final AvailObject newSingleBin =
+			final A_BasicObject newSingleBin =
 				LinearMapBinDescriptor.createSingle(
 					key,
 					keyHash,
@@ -449,7 +449,7 @@ extends MapBinDescriptor
 	@Override
 	AvailObject o_MapBinAtHash (
 		final AvailObject object,
-		final AvailObject key,
+		final A_BasicObject key,
 		final int keyHash)
 	{
 		// First, grab the appropriate 5 bits from the hash.
@@ -473,9 +473,9 @@ extends MapBinDescriptor
 	 * bin.  The bin may be modified if it's mutable and canDestroy.
 	 */
 	@Override @AvailMethod
-	AvailObject o_MapBinRemoveKeyHashCanDestroy (
+	A_BasicObject o_MapBinRemoveKeyHashCanDestroy (
 		final AvailObject object,
-		final AvailObject key,
+		final A_BasicObject key,
 		final int keyHash,
 		final boolean canDestroy)
 	{
@@ -503,7 +503,7 @@ extends MapBinDescriptor
 			physicalIndex);
 		final int oldSubBinKeysHash = oldSubBin.mapBinKeysHash();
 		final int oldSubBinSize = oldSubBin.binSize();
-		final AvailObject newSubBin = oldSubBin.mapBinRemoveKeyHashCanDestroy(
+		final A_BasicObject newSubBin = oldSubBin.mapBinRemoveKeyHashCanDestroy(
 			key,
 			keyHash,
 			canDestroy);

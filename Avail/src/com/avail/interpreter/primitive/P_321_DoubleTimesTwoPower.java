@@ -57,10 +57,10 @@ public class P_321_DoubleTimesTwoPower extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 2;
-		final AvailObject a = args.get(0);
-		final AvailObject b = args.get(1);
-		final AvailObject tenK = IntegerDescriptor.fromInt(10000);
-		final AvailObject minusTenK = IntegerDescriptor.fromInt(-10000);
+		final A_Number a = args.get(0);
+		final A_Number b = args.get(1);
+		final A_Number tenK = IntegerDescriptor.fromInt(10000);
+		final A_Number minusTenK = IntegerDescriptor.fromInt(-10000);
 		final int scale;
 		if (b.greaterOrEqual(tenK))
 		{
@@ -80,7 +80,7 @@ public class P_321_DoubleTimesTwoPower extends Primitive
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

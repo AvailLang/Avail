@@ -58,7 +58,7 @@ extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
-		final AvailObject filename = args.get(0);
+		final A_String filename = args.get(0);
 		final File file = new File(filename.asNativeString());
 		final boolean writable;
 		try
@@ -74,7 +74,7 @@ extends Primitive
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
@@ -83,7 +83,7 @@ extends Primitive
 	}
 
 	@Override
-	protected AvailObject privateFailureVariableType ()
+	protected A_Type privateFailureVariableType ()
 	{
 		return InstanceTypeDescriptor.on(E_PERMISSION_DENIED.numericCode());
 	}

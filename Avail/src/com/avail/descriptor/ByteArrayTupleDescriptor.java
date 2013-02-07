@@ -107,7 +107,7 @@ extends TupleDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_Equals (final AvailObject object, final AvailObject another)
+	boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		return another.equalsByteArrayTuple(object);
 	}
@@ -163,7 +163,7 @@ extends TupleDescriptor
 		final AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
-		final AvailObject anotherObject,
+		final A_Tuple anotherObject,
 		final int startIndex2)
 	{
 		return anotherObject.compareFromToWithByteArrayTupleStartingAt(
@@ -219,7 +219,7 @@ extends TupleDescriptor
 	@Override @AvailMethod
 	boolean o_IsInstanceOfKind (
 		final AvailObject object,
-		final AvailObject aType)
+		final A_Type aType)
 	{
 		if (aType.isSupertypeOfPrimitiveTypeEnum(NONTYPE))
 		{
@@ -235,7 +235,7 @@ extends TupleDescriptor
 			return false;
 		}
 		// tuple's size is out of range.
-		final AvailObject typeTuple = aType.typeTuple();
+		final A_Tuple typeTuple = aType.typeTuple();
 		final int breakIndex = min(object.tupleSize(), typeTuple.tupleSize());
 		for (int i = 1; i <= breakIndex; i++)
 		{
@@ -244,7 +244,7 @@ extends TupleDescriptor
 				return false;
 			}
 		}
-		final AvailObject defaultTypeObject = aType.defaultType();
+		final A_Type defaultTypeObject = aType.defaultType();
 		if (IntegerRangeTypeDescriptor.bytes().isSubtypeOf(defaultTypeObject))
 		{
 			return true;
@@ -264,7 +264,7 @@ extends TupleDescriptor
 	{
 		// Answer the element at the given index in the tuple object.
 		final byte[] array = (byte[]) object.slot(BYTE_ARRAY).javaObject();
-		return IntegerDescriptor.fromUnsignedByte(
+		return (AvailObject)IntegerDescriptor.fromUnsignedByte(
 			(short) (array[index - 1] & 0xFF));
 	}
 
@@ -285,10 +285,10 @@ extends TupleDescriptor
 
 	@Override
 	@AvailMethod
-	AvailObject o_TupleAtPuttingCanDestroy (
+	A_Tuple o_TupleAtPuttingCanDestroy (
 		final AvailObject object,
 		final int index,
-		final AvailObject newValueObject,
+		final A_BasicObject newValueObject,
 		final boolean canDestroy)
 	{
 		// Answer a tuple with all the elements of object except at the given
@@ -310,7 +310,7 @@ extends TupleDescriptor
 				true);
 		}
 		// Clobber the object in place...
-		final byte theByte = (byte) newValueObject.extractUnsignedByte();
+		final byte theByte = (byte) ((AvailObject)newValueObject).extractUnsignedByte();
 		final byte[] array = (byte[]) object.slot(BYTE_ARRAY).javaObject();
 		array[index - 1] = theByte;
 		object.hashOrZero(0);
@@ -436,7 +436,7 @@ extends TupleDescriptor
 	 * @param object The byte tuple to copy.
 	 * @return The new mutable byte tuple.
 	 */
-	private AvailObject copyAsMutableByteArrayTuple (
+	private A_Tuple copyAsMutableByteArrayTuple (
 		final AvailObject object)
 	{
 		final byte[] array = (byte[]) object.slot(BYTE_ARRAY).javaObject();

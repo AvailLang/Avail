@@ -55,14 +55,14 @@ public class P_259_ToString extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
-		final AvailObject objectToPrint = args.get(0);
+		final A_BasicObject objectToPrint = args.get(0);
 		final String string = objectToPrint.toString();
-		final AvailObject availString = StringDescriptor.from(string);
+		final A_String availString = StringDescriptor.from(string);
 		return interpreter.primitiveSuccess(availString);
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

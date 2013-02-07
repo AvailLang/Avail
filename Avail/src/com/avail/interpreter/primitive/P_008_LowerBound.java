@@ -56,12 +56,12 @@ public class P_008_LowerBound extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
-		final AvailObject range = args.get(0);
+		final A_Type range = args.get(0);
 		return interpreter.primitiveSuccess(range.lowerBound());
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

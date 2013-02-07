@@ -76,7 +76,7 @@ public class P_010_GetValue extends Primitive
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(VariableTypeDescriptor.mostGeneralType()),
@@ -84,11 +84,11 @@ public class P_010_GetValue extends Primitive
 	}
 
 	@Override
-	public AvailObject returnTypeGuaranteedByVM (
-		final List<AvailObject> argumentTypes)
+	public A_Type returnTypeGuaranteedByVM (
+		final List<A_Type> argumentTypes)
 	{
-		final AvailObject varType = argumentTypes.get(0);
-		final AvailObject readType = varType.readType();
+		final A_Type varType = argumentTypes.get(0);
+		final A_Type readType = varType.readType();
 		return readType.equals(TOP.o()) ? ANY.o() : readType;
 	}
 }

@@ -56,8 +56,8 @@ public class P_144_TupleTypeConcatenate extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 2;
-		final AvailObject tupleType1 = args.get(0);
-		final AvailObject tupleType2 = args.get(1);
+		final A_BasicObject tupleType1 = args.get(0);
+		final A_BasicObject tupleType2 = args.get(1);
 		return interpreter.primitiveSuccess(
 			ConcatenatedTupleTypeDescriptor.concatenatingAnd(
 				tupleType1,
@@ -65,7 +65,7 @@ public class P_144_TupleTypeConcatenate extends Primitive
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

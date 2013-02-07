@@ -66,7 +66,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_Equals (final AvailObject object, final AvailObject another)
+	boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		return another.equalsPojo(object);
 	}
@@ -99,7 +99,7 @@ extends Descriptor
 	int o_Hash (final AvailObject object)
 	{
 		int hash = object.slot(RAW_POJO).hash() ^ 0x749101DD;
-		hash *= AvailObject.multiplier;
+		hash *= A_BasicObject.multiplier;
 		hash += object.slot(KIND).hash();
 		return hash;
 	}
@@ -111,7 +111,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_Kind (final AvailObject object)
+	A_Type o_Kind (final AvailObject object)
 	{
 		return object.slot(KIND);
 	}
@@ -131,7 +131,7 @@ extends Descriptor
 	}
 
 	@Override
-	public boolean o_ShowValueInNameForDebugger (final AvailObject object)
+	public boolean o_ShowValueInNameForDebugger (final A_BasicObject object)
 	{
 		return false;
 	}
@@ -201,7 +201,7 @@ extends Descriptor
 	 */
 	public static AvailObject newPojo (
 		final AvailObject rawPojo,
-		final AvailObject pojoType)
+		final A_Type pojoType)
 	{
 		final AvailObject newObject = mutable.create();
 		newObject.setSlot(RAW_POJO, rawPojo);

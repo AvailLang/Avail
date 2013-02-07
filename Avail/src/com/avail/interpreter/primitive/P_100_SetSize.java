@@ -54,13 +54,14 @@ public class P_100_SetSize extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
-		final AvailObject set = args.get(0);
+		final A_Set set = args.get(0);
+
 		return interpreter.primitiveSuccess(
 			IntegerDescriptor.fromInt(set.setSize()));
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
@@ -69,10 +70,10 @@ public class P_100_SetSize extends Primitive
 	}
 
 	@Override
-	public AvailObject returnTypeGuaranteedByVM (
-		final List<AvailObject> argumentTypes)
+	public A_Type returnTypeGuaranteedByVM (
+		final List<A_Type> argumentTypes)
 	{
-		final AvailObject setType = argumentTypes.get(0);
+		final A_BasicObject setType = argumentTypes.get(0);
 		return setType.sizeRange();
 	}
 }

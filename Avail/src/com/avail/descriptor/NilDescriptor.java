@@ -51,7 +51,7 @@ extends Descriptor
 {
 	@Override
 	@AvailMethod @ThreadSafe
-	boolean o_Equals (final AvailObject object, final AvailObject another)
+	boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		return another.equalsNil();
 	}
@@ -76,15 +76,15 @@ extends Descriptor
 
 	@Override
 	@AvailMethod @ThreadSafe
-	AvailObject o_Kind (final AvailObject object)
+	A_Type o_Kind (final AvailObject object)
 	{
 		return TOP.o();
 	}
 
 	@Override @AvailMethod
-	AvailObject o_SetBinAddingElementHashLevelCanDestroy (
+	A_BasicObject o_SetBinAddingElementHashLevelCanDestroy (
 		final AvailObject object,
-		final AvailObject elementObject,
+		final A_BasicObject elementObject,
 		final int elementObjectHash,
 		final byte myLevel,
 		final boolean canDestroy)
@@ -104,7 +104,7 @@ extends Descriptor
 	@AvailMethod @ThreadSafe
 	boolean o_IsBinSubsetOf (
 		final AvailObject object,
-		final AvailObject potentialSuperset)
+		final A_Set potentialSuperset)
 	{
 		// Nil can't actually be a member of a set, so treat it as a structural
 		// component indicating an empty bin within a set. Since it's empty, it
@@ -116,7 +116,7 @@ extends Descriptor
 	@AvailMethod @ThreadSafe
 	AvailObject o_BinRemoveElementHashCanDestroy (
 		final AvailObject object,
-		final AvailObject elementObject,
+		final A_BasicObject elementObject,
 		final int elementObjectHash,
 		final boolean canDestroy)
 	{
@@ -143,7 +143,7 @@ extends Descriptor
 
 	@Override
 	@AvailMethod @ThreadSafe
-	AvailObject o_BinUnionKind (final AvailObject object)
+	A_Type o_BinUnionKind (final AvailObject object)
 	{
 		// Nil acts as an empty bin.
 		return BottomTypeDescriptor.bottom();
@@ -156,11 +156,11 @@ extends Descriptor
 	}
 
 	@Override
-	AvailObject o_MapBinAtHashPutLevelCanDestroy (
+	A_BasicObject o_MapBinAtHashPutLevelCanDestroy (
 		final AvailObject object,
-		final AvailObject key,
+		final A_BasicObject key,
 		final int keyHash,
-		final AvailObject value,
+		final A_BasicObject value,
 		final byte myLevel,
 		final boolean canDestroy)
 	{
@@ -172,13 +172,13 @@ extends Descriptor
 	}
 
 	@Override
-	AvailObject o_MapBinKeyUnionKind (final AvailObject object)
+	A_Type o_MapBinKeyUnionKind (final AvailObject object)
 	{
 		return BottomTypeDescriptor.bottom();
 	}
 
 	@Override
-	AvailObject o_MapBinValueUnionKind (final AvailObject object)
+	A_Type o_MapBinValueUnionKind (final AvailObject object)
 	{
 		return BottomTypeDescriptor.bottom();
 	}
@@ -186,7 +186,7 @@ extends Descriptor
 	@Override
 	AvailObject o_MapBinAtHash (
 		final AvailObject object,
-		final AvailObject key,
+		final A_BasicObject key,
 		final int keyHash)
 	{
 		return nil();
@@ -207,7 +207,7 @@ extends Descriptor
 	@Override
 	boolean o_BinElementsAreAllInstancesOfKind (
 		final AvailObject object,
-		final AvailObject kind)
+		final A_Type kind)
 	{
 		// Nil is treated as an empty bin, so its members all satisfy.. any
 		// property whatsoever.

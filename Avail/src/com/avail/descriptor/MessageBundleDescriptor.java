@@ -105,7 +105,7 @@ extends Descriptor
 	}
 
 	/**
-	 * Add a set of grammatical restrictions to the specified {@linkplain
+	 * Add a tuple of grammatical restrictions to the specified {@linkplain
 	 * MessageBundleDescriptor object}.
 	 *
 	 * @param object An object.
@@ -113,11 +113,11 @@ extends Descriptor
 	 */
 	private void addGrammaticalRestrictions  (
 		final AvailObject object,
-		final AvailObject restrictions)
+		final A_Tuple restrictions)
 	{
 		assert restrictions.isTuple();
 		restrictions.makeImmutable();
-		AvailObject merged = object.slot(GRAMMATICAL_RESTRICTIONS);
+		A_Tuple merged = object.slot(GRAMMATICAL_RESTRICTIONS);
 		for (int i = merged.tupleSize(); i >= 1; i--)
 		{
 			merged = merged.tupleAtPuttingCanDestroy(
@@ -137,7 +137,7 @@ extends Descriptor
 	@Override @AvailMethod
 	void o_AddGrammaticalRestrictions (
 		final AvailObject object,
-		final AvailObject restrictions)
+		final A_Tuple restrictions)
 	{
 		if (isShared())
 		{
@@ -153,7 +153,7 @@ extends Descriptor
 	}
 
 	/**
-	 * Remove a set of grammatical restrictions from the specified {@linkplain
+	 * Remove a tuple of grammatical restrictions from the specified {@linkplain
 	 * MessageBundleDescriptor object}.
 	 *
 	 * @param object An object.
@@ -161,10 +161,10 @@ extends Descriptor
 	 */
 	private void removeGrammaticalRestrictions  (
 		final AvailObject object,
-		final AvailObject obsoleteRestrictions)
+		final A_Tuple obsoleteRestrictions)
 	{
 		assert obsoleteRestrictions.isTuple();
-		AvailObject reduced = object.slot(GRAMMATICAL_RESTRICTIONS);
+		A_Tuple reduced = object.slot(GRAMMATICAL_RESTRICTIONS);
 		for (int i = reduced.tupleSize(); i >= 1; i--)
 		{
 			reduced = reduced.tupleAtPuttingCanDestroy(
@@ -184,7 +184,7 @@ extends Descriptor
 	@Override @AvailMethod
 	void o_RemoveGrammaticalRestrictions (
 		final AvailObject object,
-		final AvailObject obsoleteRestrictions)
+		final A_Tuple obsoleteRestrictions)
 	{
 		if (isShared())
 		{
@@ -202,9 +202,9 @@ extends Descriptor
 	@Override @AvailMethod
 	boolean o_HasGrammaticalRestrictions (final AvailObject object)
 	{
-		final AvailObject restrictions =
+		final A_Tuple restrictions =
 			object.mutableSlot(GRAMMATICAL_RESTRICTIONS);
-		for (final AvailObject setForArgument : restrictions)
+		for (final A_Set setForArgument : restrictions)
 		{
 			if (setForArgument.setSize() > 0)
 			{
@@ -215,25 +215,25 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_GrammaticalRestrictions (final AvailObject object)
+	A_Tuple o_GrammaticalRestrictions (final AvailObject object)
 	{
 		return object.mutableSlot(GRAMMATICAL_RESTRICTIONS);
 	}
 
 	@Override @AvailMethod
-	AvailObject o_Message (final AvailObject object)
+	A_Atom o_Message (final AvailObject object)
 	{
 		return object.slot(MESSAGE);
 	}
 
 	@Override @AvailMethod
-	AvailObject o_MessageParts (final AvailObject object)
+	A_Tuple o_MessageParts (final AvailObject object)
 	{
 		return object.slot(MESSAGE_PARTS);
 	}
 
 	@Override @AvailMethod
-	AvailObject o_ParsingInstructions (final AvailObject object)
+	A_Tuple o_ParsingInstructions (final AvailObject object)
 	{
 		return object.slot(PARSING_INSTRUCTIONS);
 	}
@@ -254,7 +254,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_Equals (final AvailObject object, final AvailObject another)
+	boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		return another.traversed().sameAddressAs(object);
 	}
@@ -266,7 +266,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_Kind (final AvailObject object)
+	A_Type o_Kind (final AvailObject object)
 	{
 		return MESSAGE_BUNDLE.o();
 	}
@@ -275,7 +275,7 @@ extends Descriptor
 	 * A list of tuples whose elements are all the empty set. Subscript N is an
 	 * immutable tuple of size N whose elements are all the empty set.
 	 */
-	static List<AvailObject> tuplesOfEmptySets;
+	static List<A_Tuple> tuplesOfEmptySets;
 
 	/**
 	 * Return an immutable tuple of the specified size consisting of empty sets.
@@ -283,13 +283,13 @@ extends Descriptor
 	 * @param size The size of the resulting tuple.
 	 * @return An immutable tuple of empty sets.
 	 */
-	static AvailObject tupleOfEmptySetsOfSize (final int size)
+	static A_Tuple tupleOfEmptySetsOfSize (final int size)
 	{
 		while (tuplesOfEmptySets.size() <= size)
 		{
-			final AvailObject lastTuple =
+			final A_Tuple lastTuple =
 				tuplesOfEmptySets.get(tuplesOfEmptySets.size() - 1);
-			final AvailObject newTuple = lastTuple.appendCanDestroy(
+			final A_Tuple newTuple = lastTuple.appendCanDestroy(
 				SetDescriptor.empty(),
 				true);
 			newTuple.makeShared();
@@ -303,7 +303,7 @@ extends Descriptor
 	 */
 	static void createWellKnownObjects ()
 	{
-		tuplesOfEmptySets = new ArrayList<AvailObject>(20);
+		tuplesOfEmptySets = new ArrayList<A_Tuple>(20);
 		tuplesOfEmptySets.add(TupleDescriptor.empty());
 	}
 
@@ -319,17 +319,17 @@ extends Descriptor
 	 * Create a new {@linkplain MessageBundleDescriptor message bundle} for the
 	 * given message.
 	 *
-	 * @param message The message name, an {@linkplain AtomDescriptor atom}.
+	 * @param methodName The message name, an {@linkplain AtomDescriptor atom}.
 	 * @return A new {@linkplain MessageBundleDescriptor message bundle}.
 	 * @throws SignatureException If the message name is malformed.
 	 */
-	public static AvailObject newBundle (final AvailObject message)
+	public static AvailObject newBundle (final A_Atom methodName)
 		throws SignatureException
 	{
-		assert message.isAtom();
-		final MessageSplitter splitter = new MessageSplitter(message.name());
+		assert methodName.isAtom();
+		final MessageSplitter splitter = new MessageSplitter(methodName.name());
 		final AvailObject result = mutable.create();
-		result.setSlot(MESSAGE, message);
+		result.setSlot(MESSAGE, methodName);
 		result.setSlot(MESSAGE_PARTS, splitter.messageParts());
 		result.setSlot(
 			GRAMMATICAL_RESTRICTIONS,

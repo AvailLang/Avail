@@ -39,6 +39,7 @@ import java.io.RandomAccessFile;
 import java.util.*;
 import com.avail.AvailRuntime;
 import com.avail.annotations.*;
+import com.avail.compiler.AbstractAvailCompiler.ParserState;
 import com.avail.serialization.*;
 
 /**
@@ -154,7 +155,7 @@ extends Descriptor
 			aStream.append(nativeName);
 			aStream.append('"');
 		}
-		final AvailObject issuer = object.slot(ISSUING_MODULE);
+		final A_BasicObject issuer = object.slot(ISSUING_MODULE);
 		if (!issuer.equalsNil())
 		{
 			aStream.append(" (from ");
@@ -164,15 +165,6 @@ extends Descriptor
 			aStream.append(')');
 		}
 	}
-
-	@Override @AvailMethod
-	void o_Name (
-		final AvailObject object,
-		final AvailObject value)
-	{
-		object.setSlot(NAME, value);
-	}
-
 
 	@Override @AvailMethod
 	AvailObject o_Name (final AvailObject object)
@@ -189,7 +181,7 @@ extends Descriptor
 	@Override @AvailMethod
 	boolean o_Equals (
 		final AvailObject object,
-		final AvailObject another)
+		final A_BasicObject another)
 	{
 		return another.traversed().sameAddressAs(object);
 	}
@@ -211,7 +203,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	final AvailObject o_Kind (final AvailObject object)
+	final A_Type o_Kind (final AvailObject object)
 	{
 		return ATOM.o();
 	}
@@ -236,7 +228,7 @@ extends Descriptor
 	@Override @AvailMethod
 	final boolean o_IsInstanceOfKind (
 		final AvailObject object,
-		final AvailObject aType)
+		final A_Type aType)
 	{
 		return aType.isSupertypeOfPrimitiveTypeEnum(ATOM);
 	}
@@ -279,8 +271,8 @@ extends Descriptor
 	@Override @AvailMethod
 	void o_SetAtomProperty (
 		final AvailObject object,
-		final AvailObject key,
-		final AvailObject value)
+		final A_Atom key,
+		final A_BasicObject value)
 	{
 		assert !isShared();
 		final AvailObject substituteAtom =
@@ -303,7 +295,7 @@ extends Descriptor
 	@Override @AvailMethod
 	AvailObject o_GetAtomProperty (
 		final AvailObject object,
-		final AvailObject key)
+		final A_Atom key)
 	{
 		return NilDescriptor.nil();
 	}
@@ -393,7 +385,7 @@ extends Descriptor
 	 *        was invoked.
 	 */
 	public static AvailObject create (
-		final AvailObject name,
+		final A_String name,
 		final AvailObject issuingModule)
 	{
 		final AvailObject instance = mutable.create();
@@ -417,7 +409,7 @@ extends Descriptor
 	 *        The new atom, not equal to any object in use before this method
 	 *        was invoked.
 	 */
-	public static AvailObject createSpecialAtom (final AvailObject name)
+	public static A_Atom createSpecialAtom (final A_BasicObject name)
 	{
 		final AvailObject instance = mutable.create();
 		instance.setSlot(NAME, name.makeShared());
@@ -430,12 +422,12 @@ extends Descriptor
 	/**
 	 * The atom representing the Avail concept "true".
 	 */
-	private static AvailObject trueObject;
+	private static A_Atom trueObject;
 
 	/**
 	 * The atom representing the Avail concept "false".
 	 */
-	private static AvailObject falseObject;
+	private static A_Atom falseObject;
 
 	/**
 	 * Convert a Java <code>boolean</code> into an Avail boolean.  There are
@@ -446,7 +438,7 @@ extends Descriptor
 	 * @param aBoolean A Java <code>boolean</code>
 	 * @return An Avail boolean.
 	 */
-	public static AvailObject objectFromBoolean (final boolean aBoolean)
+	public static A_Atom objectFromBoolean (final boolean aBoolean)
 	{
 		return aBoolean ? trueObject : falseObject;
 	}
@@ -455,56 +447,56 @@ extends Descriptor
 	 * The atom used as a property key under which to store information about
 	 * object type names.
 	 */
-	private static AvailObject objectTypeNamePropertyKey;
+	private static A_Atom objectTypeNamePropertyKey;
 
 	/**
 	 * The atom used as a tag in module files to indicate that the header
 	 * information follows.
 	 */
-	private static AvailObject moduleHeaderSectionAtom;
+	private static A_Atom moduleHeaderSectionAtom;
 
 	/**
 	 * The atom used as a tag in module files to indicate that the module's
 	 * body follows.
 	 */
-	private static AvailObject moduleBodySectionAtom;
+	private static A_Atom moduleBodySectionAtom;
 
 	/**
 	 * The atom used as a key in a {@link ParserState}'s {@linkplain
 	 * ParserState#clientDataMap} to store the current map of declarations that
 	 * are in scope.
 	 */
-	private static AvailObject compilerScopeMapKey;
+	private static A_Atom compilerScopeMapKey;
 
 	/**
 	 * The atom used as a key in a {@linkplain FiberDescriptor fiber}'s global
 	 * map to extract the current {@link ParserState}'s {@linkplain
 	 * ParserState#clientDataMap}.
 	 */
-	private static AvailObject clientDataGlobalKey;
+	private static A_Atom clientDataGlobalKey;
 
 	/**
 	 * The atom used as a property key under which to store a {@link
 	 * RandomAccessFile}.
 	 */
-	private static AvailObject fileKey;
+	private static A_Atom fileKey;
 
 	/**
 	 * The property key that indicates that a file is readable.
 	 */
-	private static AvailObject fileModeReadKey;
+	private static A_Atom fileModeReadKey;
 
 	/**
 	 * The property key that indicates that a file is writable.
 	 */
-	private static AvailObject fileModeWriteKey;
+	private static A_Atom fileModeWriteKey;
 
 	/**
 	 * Answer the atom representing the Avail concept "true".
 	 *
 	 * @return Avail's <code>true</code> boolean object.
 	 */
-	public static AvailObject trueObject ()
+	public static A_Atom trueObject ()
 	{
 		return trueObject;
 	}
@@ -514,7 +506,7 @@ extends Descriptor
 	 *
 	 * @return Avail's <code>false</code> boolean object.
 	 */
-	public static AvailObject falseObject ()
+	public static A_Atom falseObject ()
 	{
 		return falseObject;
 	}
@@ -524,11 +516,11 @@ extends Descriptor
 	 * ObjectTypeDescriptor object types}.  This property occurs within each
 	 * atom which occurs as a field type key of the object type.  The value is a
 	 * map from object type to name.  The naming information is set up via
-	 * {@link ObjectTypeDescriptor#setNameForType(AvailObject, AvailObject)}.
+	 * {@link ObjectTypeDescriptor#setNameForType(A_Type, A_String)}.
 	 *
 	 * @return An atom that's special because it's known by the virtual machine.
 	 */
-	public static AvailObject objectTypeNamePropertyKey ()
+	public static A_Atom objectTypeNamePropertyKey ()
 	{
 		return objectTypeNamePropertyKey;
 	}
@@ -539,7 +531,7 @@ extends Descriptor
 	 *
 	 * @return An atom that's special because it's known by the virtual machine.
 	 */
-	public static AvailObject moduleHeaderSectionAtom ()
+	public static A_Atom moduleHeaderSectionAtom ()
 	{
 		return moduleHeaderSectionAtom;
 	}
@@ -550,7 +542,7 @@ extends Descriptor
 	 *
 	 * @return An atom that's special because it's known by the virtual machine.
 	 */
-	public static AvailObject moduleBodySectionAtom ()
+	public static A_Atom moduleBodySectionAtom ()
 	{
 		return moduleBodySectionAtom;
 	}
@@ -562,7 +554,7 @@ extends Descriptor
 	 *
 	 * @return An atom to use as a key in a ParserState's client data map.
 	 */
-	public static AvailObject compilerScopeMapKey ()
+	public static A_Atom compilerScopeMapKey ()
 	{
 		return compilerScopeMapKey;
 	}
@@ -570,7 +562,7 @@ extends Descriptor
 	/**
 	 * Answer the atom used to locate the compiler's {@linkplain
 	 * ParserState#clientDataMap client data map} within the current fiber's
-	 * {@linkplain FiberDescriptor.ObjectSlots#PROCESS_GLOBALS global map}.
+	 * {@linkplain FiberDescriptor.ObjectSlots#FIBER_GLOBALS global map}.
 	 * Among other things, the client data map contains another map under the
 	 * key {@link #compilerScopeMapKey()} which holds the current declarations
 	 * that are in scope.
@@ -578,7 +570,7 @@ extends Descriptor
 	 * @return An atom to use as a key in a fiber's global map to extract the
 	 *         current ParserState's client data map.
 	 */
-	public static AvailObject clientDataGlobalKey ()
+	public static A_Atom clientDataGlobalKey ()
 	{
 		return clientDataGlobalKey;
 	}
@@ -589,7 +581,7 @@ extends Descriptor
 	 *
 	 * @return An atom that's special because it's known by the virtual machine.
 	 */
-	public static AvailObject fileKey ()
+	public static A_Atom fileKey ()
 	{
 		return fileKey;
 	}
@@ -599,7 +591,7 @@ extends Descriptor
 	 *
 	 * @return An atom that's special because it's known by the virtual machine.
 	 */
-	public static AvailObject fileModeReadKey ()
+	public static A_Atom fileModeReadKey ()
 	{
 		return fileModeReadKey;
 	}
@@ -609,7 +601,7 @@ extends Descriptor
 	 *
 	 * @return An atom that's special because it's known by the virtual machine.
 	 */
-	public static AvailObject fileModeWriteKey ()
+	public static A_Atom fileModeWriteKey ()
 	{
 		return fileModeWriteKey;
 	}

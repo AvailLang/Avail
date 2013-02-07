@@ -64,9 +64,10 @@ extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 2;
-		final AvailObject method = args.get(0);
-		final AvailObject argTypes = args.get(1);
-		final AvailObject name = method.name().name();
+		final A_BasicObject method = args.get(0);
+		final A_Tuple argTypes = args.get(1);
+		final A_Atom trueName = method.name();
+		final A_String name = trueName.name();
 		try
 		{
 			final MessageSplitter splitter = new MessageSplitter(name);
@@ -90,7 +91,7 @@ extends Primitive
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

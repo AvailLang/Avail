@@ -129,7 +129,7 @@ extends ParseNodeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_ExpressionType (final AvailObject object)
+	A_Type o_ExpressionType (final AvailObject object)
 	{
 		if (!isInline(object))
 		{
@@ -150,7 +150,7 @@ extends ParseNodeDescriptor
 	@Override @AvailMethod
 	boolean o_EqualsParseNode (
 		final AvailObject object,
-		final AvailObject aParseNode)
+		final A_BasicObject aParseNode)
 	{
 		return object.kind().equals(aParseNode.kind())
 			&& object.slot(VARIABLE).equals(aParseNode.variable())
@@ -162,7 +162,7 @@ extends ParseNodeDescriptor
 		final AvailObject object,
 		final AvailCodeGenerator codeGenerator)
 	{
-		final AvailObject declaration = object.slot(VARIABLE).declaration();
+		final A_BasicObject declaration = object.slot(VARIABLE).declaration();
 		final DeclarationKind declarationKind = declaration.declarationKind();
 		assert declarationKind.isVariable();
 		object.slot(EXPRESSION).emitValueOn(codeGenerator);
@@ -176,7 +176,7 @@ extends ParseNodeDescriptor
 		final AvailObject object,
 		final AvailCodeGenerator codeGenerator)
 	{
-		final AvailObject declaration = object.slot(VARIABLE).declaration();
+		final A_BasicObject declaration = object.slot(VARIABLE).declaration();
 		final DeclarationKind declarationKind = declaration.declarationKind();
 		assert declarationKind.isVariable();
 		object.slot(EXPRESSION).emitValueOn(codeGenerator);
@@ -207,9 +207,9 @@ extends ParseNodeDescriptor
 	@Override @AvailMethod
 	void o_ValidateLocally (
 		final AvailObject object,
-		final @Nullable AvailObject parent)
+		final @Nullable A_BasicObject parent)
 	{
-		final AvailObject variable = object.slot(VARIABLE);
+		final A_BasicObject variable = object.slot(VARIABLE);
 		final DeclarationKind kind = variable.declaration().declarationKind();
 		switch (kind)
 		{

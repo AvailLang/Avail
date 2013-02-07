@@ -80,7 +80,7 @@ extends ParseNodeDescriptor
 	 * Getter for field expressionsTuple.
 	 */
 	@Override @AvailMethod
-	AvailObject o_ExpressionsTuple (final AvailObject object)
+	A_Tuple o_ExpressionsTuple (final AvailObject object)
 	{
 		return object.slot(ObjectSlots.EXPRESSIONS_TUPLE);
 	}
@@ -92,17 +92,17 @@ extends ParseNodeDescriptor
 	 * @param object An object.
 	 * @return A type.
 	 */
-	private AvailObject expressionType (final AvailObject object)
+	private A_Type expressionType (final AvailObject object)
 	{
-		AvailObject tupleType = object.slot(TUPLE_TYPE);
+		A_Type tupleType = object.slot(TUPLE_TYPE);
 		if (tupleType.equalsNil())
 		{
-			final AvailObject expressionsTuple = object.expressionsTuple();
-			final List<AvailObject> types = new ArrayList<AvailObject>(
+			final A_Tuple expressionsTuple = object.expressionsTuple();
+			final List<A_Type> types = new ArrayList<A_Type>(
 				expressionsTuple.tupleSize());
 			for (final AvailObject expression : expressionsTuple)
 			{
-				final AvailObject expressionType = expression.expressionType();
+				final A_Type expressionType = expression.expressionType();
 				if (expressionType.equals(BottomTypeDescriptor.bottom()))
 				{
 					return BottomTypeDescriptor.bottom();
@@ -121,7 +121,7 @@ extends ParseNodeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_ExpressionType (final AvailObject object)
+	A_Type o_ExpressionType (final AvailObject object)
 	{
 		if (isShared())
 		{
@@ -142,7 +142,7 @@ extends ParseNodeDescriptor
 	{
 		builder.append("List(");
 		boolean first = true;
-		for (final AvailObject element : object.expressionsTuple())
+		for (final A_BasicObject element : object.expressionsTuple())
 		{
 			if (!first)
 			{
@@ -163,7 +163,7 @@ extends ParseNodeDescriptor
 	@Override @AvailMethod
 	boolean o_EqualsParseNode (
 		final AvailObject object,
-		final AvailObject aParseNode)
+		final A_BasicObject aParseNode)
 	{
 		return object.kind().equals(aParseNode.kind())
 			&& object.expressionsTuple().equals(aParseNode.expressionsTuple());
@@ -174,8 +174,8 @@ extends ParseNodeDescriptor
 		final AvailObject object,
 		final AvailCodeGenerator codeGenerator)
 	{
-		final AvailObject childNodes = object.expressionsTuple();
-		for (final AvailObject expr : childNodes)
+		final A_Tuple childNodes = object.expressionsTuple();
+		for (final A_BasicObject expr : childNodes)
 		{
 			expr.emitValueOn(codeGenerator);
 		}
@@ -187,7 +187,7 @@ extends ParseNodeDescriptor
 		final AvailObject object,
 		final Transformer1<AvailObject, AvailObject> aBlock)
 	{
-		AvailObject expressions = object.expressionsTuple();
+		A_Tuple expressions = object.expressionsTuple();
 		for (int i = 1; i <= expressions.tupleSize(); i++)
 		{
 			expressions = expressions.tupleAtPuttingCanDestroy(
@@ -214,7 +214,7 @@ extends ParseNodeDescriptor
 	@Override @AvailMethod
 	void o_ValidateLocally (
 		final AvailObject object,
-		final @Nullable AvailObject parent)
+		final @Nullable A_BasicObject parent)
 	{
 		// Do nothing.
 	}
@@ -236,8 +236,8 @@ extends ParseNodeDescriptor
 		final AvailObject object,
 		final AvailObject newParseNode)
 	{
-		final AvailObject oldTuple = object.slot(EXPRESSIONS_TUPLE);
-		final AvailObject newTuple = oldTuple.appendCanDestroy(
+		final A_Tuple oldTuple = object.slot(EXPRESSIONS_TUPLE);
+		final A_Tuple newTuple = oldTuple.appendCanDestroy(
 			newParseNode,
 			true);
 		return ListNodeDescriptor.newExpressions(newTuple);
@@ -292,7 +292,7 @@ extends ParseNodeDescriptor
 	 *        list node}.
 	 * @return The resulting list node.
 	 */
-	public static AvailObject newExpressions (final AvailObject expressions)
+	public static AvailObject newExpressions (final A_Tuple expressions)
 	{
 		final AvailObject instance = mutable.create();
 		instance.setSlot(EXPRESSIONS_TUPLE, expressions);

@@ -33,7 +33,7 @@ package com.avail.interpreter.levelTwo.operation;
 
 import static com.avail.interpreter.levelTwo.L2Interpreter.*;
 import static com.avail.interpreter.levelTwo.register.FixedRegister.*;
-import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.A_BasicObject;
 import com.avail.interpreter.levelTwo.*;
 
 /**
@@ -56,7 +56,7 @@ public class L2_REENTER_L1_CHUNK extends L2Operation
 	@Override
 	public void step (final L2Interpreter interpreter)
 	{
-		final AvailObject continuation = interpreter.pointerAt(CALLER);
+		final A_BasicObject continuation = interpreter.pointerAt(CALLER);
 		final int numSlots = continuation.numArgsAndLocalsAndStack();
 		for (int i = 1; i <= numSlots; i++)
 		{

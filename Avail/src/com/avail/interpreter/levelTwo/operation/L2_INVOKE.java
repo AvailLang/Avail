@@ -32,6 +32,8 @@
 package com.avail.interpreter.levelTwo.operation;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
+import com.avail.descriptor.A_Function;
+import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.levelTwo.*;
 import com.avail.optimizer.RegisterSet;
@@ -71,8 +73,8 @@ public class L2_INVOKE extends L2Operation
 		final int functionIndex = interpreter.nextWord();
 		final int argumentsIndex = interpreter.nextWord();
 		final AvailObject caller = interpreter.pointerAt(callerIndex);
-		final AvailObject function = interpreter.pointerAt(functionIndex);
-		final AvailObject vect = interpreter.vectorAt(argumentsIndex);
+		final A_Function function = interpreter.pointerAt(functionIndex);
+		final A_Tuple vect = interpreter.vectorAt(argumentsIndex);
 		interpreter.argsBuffer.clear();
 		final int vectSize = vect.tupleSize();
 		for (int i = 1; i <= vectSize; i++)

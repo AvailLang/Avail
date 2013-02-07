@@ -65,8 +65,8 @@ extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 2;
-		final AvailObject decl = args.get(0);
-		final AvailObject var = args.get(1);
+		final A_BasicObject decl = args.get(0);
+		final A_BasicObject var = args.get(1);
 		final AvailObject initializer = decl.initializationExpression();
 		boolean stored = false;
 		if (!initializer.equalsNil())
@@ -79,7 +79,7 @@ extends Primitive
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

@@ -92,7 +92,7 @@ extends TupleDescriptor
 		final AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
-		final AvailObject anotherObject,
+		final A_Tuple anotherObject,
 		final int startIndex2)
 	{
 		return anotherObject.compareFromToWithNybbleTupleStartingAt(
@@ -132,7 +132,7 @@ extends TupleDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_Equals (final AvailObject object, final AvailObject another)
+	boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		return another.equalsNybbleTuple(object);
 	}
@@ -182,7 +182,7 @@ extends TupleDescriptor
 	@Override @AvailMethod
 	boolean o_IsBetterRepresentationThan (
 		final AvailObject object,
-		final AvailObject anotherObject)
+		final A_BasicObject anotherObject)
 	{
 		// Given two objects that are known to be equal, is the first one in a
 		// better form (more compact, more efficient, older generation) than the
@@ -194,7 +194,7 @@ extends TupleDescriptor
 	@Override @AvailMethod
 	boolean o_IsInstanceOfKind (
 		final AvailObject object,
-		final AvailObject aType)
+		final A_Type aType)
 	{
 		if (aType.isSupertypeOfPrimitiveTypeEnum(NONTYPE))
 		{
@@ -210,7 +210,7 @@ extends TupleDescriptor
 			return false;
 		}
 		// Tuple's size is out of range.
-		final AvailObject typeTuple = aType.typeTuple();
+		final A_Tuple typeTuple = aType.typeTuple();
 		final int breakIndex = min(object.tupleSize(), typeTuple.tupleSize());
 		for (int i = 1; i <= breakIndex; i++)
 		{
@@ -219,7 +219,7 @@ extends TupleDescriptor
 				return false;
 			}
 		}
-		final AvailObject defaultTypeObject = aType.defaultType();
+		final A_Type defaultTypeObject = aType.defaultType();
 		if (IntegerRangeTypeDescriptor.nybbles().isSubtypeOf(defaultTypeObject))
 		{
 			return true;
@@ -327,7 +327,8 @@ extends TupleDescriptor
 	AvailObject o_TupleAt (final AvailObject object, final int index)
 	{
 		// Answer the element at the given index in the nybble tuple object.
-		return IntegerDescriptor.fromUnsignedByte(object.rawNybbleAt(index));
+		return (AvailObject)IntegerDescriptor.fromUnsignedByte(
+			object.rawNybbleAt(index));
 	}
 
 	@Override @AvailMethod
@@ -343,10 +344,10 @@ extends TupleDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_TupleAtPuttingCanDestroy (
+	A_Tuple o_TupleAtPuttingCanDestroy (
 		final AvailObject object,
 		final int nybbleIndex,
-		final AvailObject newValueObject,
+		final A_BasicObject newValueObject,
 		final boolean canDestroy)
 	{
 		// Answer a tuple with all the elements of object except at the given
@@ -375,7 +376,8 @@ extends TupleDescriptor
 				true);
 		}
 		// Ok, clobber the object in place...
-		object.rawNybbleAtPut(nybbleIndex, newValueObject.extractNybble());
+		final AvailObject strongValue = (AvailObject)newValueObject;
+		object.rawNybbleAtPut(nybbleIndex, strongValue.extractNybble());
 		object.hashOrZero(0);
 		//  ...invalidate the hash value. Probably cheaper than computing the
 		// difference or even testing for an actual change.
@@ -504,9 +506,9 @@ extends TupleDescriptor
 	 *         A new {@linkplain ByteTupleDescriptor byte tuple} with the same
 	 *         sequence of integers as the argument.
 	 */
-	private AvailObject copyAsMutableByteTuple (final AvailObject object)
+	private A_Tuple copyAsMutableByteTuple (final A_Tuple object)
 	{
-		final AvailObject result =
+		final A_Tuple result =
 			ByteTupleDescriptor.mutableObjectOfSize(object.tupleSize());
 		result.hashOrZero(object.hashOrZero());
 		for (int i = 1, end = result.tupleSize(); i <= end; i++)

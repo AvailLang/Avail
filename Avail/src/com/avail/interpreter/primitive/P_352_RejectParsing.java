@@ -55,12 +55,12 @@ public class P_352_RejectParsing extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
-		final AvailObject rejectionString = args.get(0);
+		final A_String rejectionString = args.get(0);
 		throw new AvailRejectedParseException(rejectionString);
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

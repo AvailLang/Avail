@@ -69,7 +69,7 @@ public final class ScannerTest
 		 * {@linkplain Case cases} may need to be created statically, before
 		 * initialization of the {@link AvailRuntime}.
 		 */
-		final Generator<AvailObject>[] tokenGenerators;
+		final Generator<A_Token>[] tokenGenerators;
 
 		/**
 		 * Construct a new {@link Case}.
@@ -81,9 +81,10 @@ public final class ScannerTest
 		 *            reference tokens with which to check the result of the
 		 *            lexical scanning.
 		 */
+		@SafeVarargs
 		private Case (
 			final String inputString,
-			final Generator<AvailObject>... tokenGenerators)
+			final Generator<A_Token>... tokenGenerators)
 		{
 			this.inputString = inputString;
 			this.tokenGenerators = tokenGenerators;
@@ -99,9 +100,10 @@ public final class ScannerTest
 		 *            that are expected from the lexical scanning.
 		 * @return The new {@link Case}.
 		 */
+		@SafeVarargs
 		static Case C (
 			final String inputString,
-			final Generator<AvailObject>... tokenGenerators)
+			final Generator<A_Token>... tokenGenerators)
 		{
 			return new Case(inputString, tokenGenerators);
 		}
@@ -128,7 +130,7 @@ public final class ScannerTest
 	 *            The type of token to construct.
 	 * @return The new token.
 	 */
-	static Generator<AvailObject> T (
+	static Generator<A_Token> T (
 		final String string,
 		final TokenType tokenType)
 	{
@@ -150,16 +152,16 @@ public final class ScannerTest
 	 *            within the entire input string.
 	 * @return The new token.
 	 */
-	static Generator<AvailObject> T (
+	static Generator<A_Token> T (
 		final String string,
 		final TokenType tokenType,
 		final int start)
 	{
-		return new Generator<AvailObject>()
+		return new Generator<A_Token>()
 		{
-			@Override public AvailObject value ()
+			@Override public A_Token value ()
 			{
-				final AvailObject token = TokenDescriptor.create(
+				final A_Token token = TokenDescriptor.create(
 					StringDescriptor.from(string),
 					start,
 					1,
@@ -179,7 +181,7 @@ public final class ScannerTest
 	 *            constructed.
 	 * @return The new keyword token.
 	 */
-	static Generator<AvailObject> K (final String string)
+	static Generator<A_Token> K (final String string)
 	{
 		return T(string, KEYWORD);
 	}
@@ -197,7 +199,7 @@ public final class ScannerTest
 	 *            within the entire input string.
 	 * @return The new keyword token.
 	 */
-	static Generator<AvailObject> K (
+	static Generator<A_Token> K (
 		final String string,
 		final int start)
 	{
@@ -214,7 +216,7 @@ public final class ScannerTest
 	 *            constructed.  An operator token is always a single character.
 	 * @return The new operator token.
 	 */
-	static Generator<AvailObject> O (
+	static Generator<A_Token> O (
 		final String string)
 	{
 		assert string.codePointCount(0, string.length()) == 1;
@@ -234,7 +236,7 @@ public final class ScannerTest
 	 *            within the entire input string.
 	 * @return The new operator token.
 	 */
-	static Generator<AvailObject> O (
+	static Generator<A_Token> O (
 		final String string,
 		final int start)
 	{
@@ -254,7 +256,7 @@ public final class ScannerTest
 	 *            have been constructed.
 	 * @return The new operator token.
 	 */
-	static Generator<AvailObject> L (
+	static Generator<A_Token> L (
 		final Object object,
 		final String string)
 	{
@@ -276,17 +278,17 @@ public final class ScannerTest
 	 *            token within the entire input string.
 	 * @return The new operator token.
 	 */
-	static Generator<AvailObject> L (
+	static Generator<A_Token> L (
 		final Object object,
 		final String string,
 		final int start)
 	{
-		return new Generator<AvailObject>()
+		return new Generator<A_Token>()
 		{
 			@Override
-			public AvailObject value ()
+			public A_Token value ()
 			{
-				final AvailObject literal;
+				final A_BasicObject literal;
 				if (object instanceof Double)
 				{
 					literal = DoubleDescriptor.fromDouble((Double)object);
@@ -312,7 +314,7 @@ public final class ScannerTest
 					literal = null;
 				}
 				assert literal != null;
-				final AvailObject token =
+				final A_Token token =
 					LiteralTokenDescriptor.create(
 						StringDescriptor.from(string),
 						start,
@@ -354,7 +356,6 @@ public final class ScannerTest
 	 * produces null, then the lexical scanner is supposed to fail to parse that
 	 * input string.
 	 */
-	@SuppressWarnings("unchecked")
 	private static final Case[] tests =
 	{
 		C(""),
@@ -415,7 +416,7 @@ public final class ScannerTest
 		C("`", O("`")),
 		C(";", O(";")),
 
-		C("\"cat", (Generator<AvailObject>)null),
+		C("\"cat", (Generator<A_Token>)null),
 		C("\"cat\"", L("cat","\"cat\"")),
 
 		C("\"ab\\(63)\"", L("abc","\"ab\\(63)\"")),
@@ -437,7 +438,7 @@ public final class ScannerTest
 		{
 			final String input = c.inputString;
 			final AvailScanner scanner = new AvailScanner();
-			List<AvailObject> scannedTokens = null;
+			List<A_Token> scannedTokens = null;
 			try
 			{
 				scannedTokens = scanner.scanString(input, false);
@@ -467,8 +468,8 @@ public final class ScannerTest
 					scannedTokens.size());
 				for (int i = 0; i < c.tokenGenerators.length; i++)
 				{
-					final AvailObject expected = c.tokenGenerators[i].value();
-					final AvailObject actual = scannedTokens.get(i);
+					final A_BasicObject expected = c.tokenGenerators[i].value();
+					final A_BasicObject actual = scannedTokens.get(i);
 					assertEquals(
 						c + ": Scanner produced a wrong token.",
 						expected,
@@ -496,7 +497,7 @@ public final class ScannerTest
 	@Test
 	public void testLiteralComparison ()
 	{
-		final AvailObject string = StringDescriptor.from("xxx");
+		final A_String string = StringDescriptor.from("xxx");
 		final List<AvailObject> literals = new ArrayList<AvailObject>(4);
 		literals.add(LiteralTokenDescriptor.create(
 			string,
@@ -524,7 +525,7 @@ public final class ScannerTest
 			DoubleDescriptor.fromDouble(2.5)));
 		for (int i = 0; i < literals.size(); i++)
 		{
-			final AvailObject lit_i = literals.get(i);
+			final A_BasicObject lit_i = literals.get(i);
 			for (int j = 0; j < literals.size(); j++)
 			{
 				final AvailObject lit_j = literals.get(j);

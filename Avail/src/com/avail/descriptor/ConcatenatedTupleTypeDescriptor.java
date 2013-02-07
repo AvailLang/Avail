@@ -66,7 +66,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_Equals (final AvailObject object, final AvailObject another)
+	boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		return another.equalsTupleType(object);
 	}
@@ -104,7 +104,7 @@ extends TypeDescriptor
 	@Override @AvailMethod
 	boolean o_IsBetterRepresentationThan (
 		final AvailObject object,
-		final AvailObject anotherObject)
+		final A_BasicObject anotherObject)
 	{
 		return false;
 	}
@@ -119,7 +119,7 @@ extends TypeDescriptor
 	@Override @AvailMethod
 	boolean o_IsBetterRepresentationThanTupleType (
 		final AvailObject object,
-		final AvailObject aTupleType)
+		final A_BasicObject aTupleType)
 	{
 		return false;
 	}
@@ -132,13 +132,13 @@ extends TypeDescriptor
 	 *        The {@linkplain ConcatenatedTupleTypeDescriptor concatenated tuple
 	 *        type} to transform.
 	 */
-	private void becomeRealTupleType (final AvailObject object)
+	private void becomeRealTupleType (final A_Type object)
 	{
 		// There isn't even a shared descriptor -- we reify the tuple type upon
 		// sharing.
 		assert !isShared();
-		final AvailObject part1 = object.slot(FIRST_TUPLE_TYPE);
-		final AvailObject size1 = part1.sizeRange().upperBound();
+		final A_Type part1 = object.slot(FIRST_TUPLE_TYPE);
+		final A_Number size1 = part1.sizeRange().upperBound();
 		int limit1;
 		if (size1.isFinite())
 		{
@@ -150,8 +150,8 @@ extends TypeDescriptor
 				part1.typeTuple().tupleSize() + 1,
 				part1.sizeRange().lowerBound().extractInt());
 		}
-		final AvailObject part2 = object.slot(SECOND_TUPLE_TYPE);
-		final AvailObject size2 = part2.sizeRange().upperBound();
+		final A_Type part2 = object.slot(SECOND_TUPLE_TYPE);
+		final A_Number size2 = part2.sizeRange().upperBound();
 		int limit2;
 		if (size2.isFinite())
 		{
@@ -162,25 +162,25 @@ extends TypeDescriptor
 			limit2 = part2.typeTuple().tupleSize() + 1;
 		}
 		final int total = limit1 + limit2;
-		final AvailObject typeTuple =
-			ObjectTupleDescriptor.mutable.create(total);
+		final A_Tuple typeTuple =
+			ObjectTupleDescriptor.createUninitialized(total);
 		// Make it pointer-safe first.
 		for (int i = 1; i <= total; i++)
 		{
-			typeTuple.tupleAtPut(i, NilDescriptor.nil());
+			typeTuple.objectTupleAtPut(i, NilDescriptor.nil());
 		}
 		final int section1 = min(
 			part1.sizeRange().lowerBound().extractInt(),
 			limit1);
 		for (int i = 1; i <= section1; i++)
 		{
-			typeTuple.tupleAtPut(i, part1.typeAtIndex(i));
+			typeTuple.objectTupleAtPut(i, part1.typeAtIndex(i));
 		}
 		for (int i = section1 + 1; i <= total; i++)
 		{
-			typeTuple.tupleAtPut(i, object.typeAtIndex(i));
+			typeTuple.objectTupleAtPut(i, object.typeAtIndex(i));
 		}
-		final AvailObject newObject =
+		final A_Type newObject =
 			TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 				object.sizeRange(),
 				typeTuple,
@@ -206,28 +206,28 @@ extends TypeDescriptor
 	 * Answer bottom if the index is definitely out of bounds.
 	 */
 	@Override @AvailMethod
-	AvailObject o_TypeAtIndex (final AvailObject object, final int index)
+	A_Type o_TypeAtIndex (final AvailObject object, final int index)
 	{
 		if (index <= 0)
 		{
 			return BottomTypeDescriptor.bottom();
 		}
 
-		final AvailObject firstUpper =
+		final A_Number firstUpper =
 			object.slot(FIRST_TUPLE_TYPE).sizeRange().upperBound();
-		final AvailObject secondUpper =
+		final A_Number secondUpper =
 			object.slot(SECOND_TUPLE_TYPE).sizeRange().upperBound();
-		final AvailObject totalUpper =
+		final A_Number totalUpper =
 			firstUpper.noFailPlusCanDestroy(secondUpper, false);
 		if (totalUpper.isFinite())
 		{
-			final AvailObject indexObject = IntegerDescriptor.fromInt(index);
+			final A_Number indexObject = IntegerDescriptor.fromInt(index);
 			if (indexObject.greaterThan(totalUpper))
 			{
 				return BottomTypeDescriptor.bottom();
 			}
 		}
-		final AvailObject firstLower =
+		final A_Number firstLower =
 			object.slot(FIRST_TUPLE_TYPE).sizeRange().lowerBound();
 		if (index <= firstLower.extractInt())
 		{
@@ -237,7 +237,7 @@ extends TypeDescriptor
 		// the index might represent a range of possible indices of the
 		// secondTupleType, depending on the spread between the first tuple
 		// type's lower and upper bounds. Compute the union of these types.
-		final AvailObject typeUnion =
+		final A_Type typeUnion =
 			object.slot(FIRST_TUPLE_TYPE).typeAtIndex(index);
 		int startIndex;
 		if (firstUpper.isFinite())
@@ -256,7 +256,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_UnionOfTypesAtThrough (
+	A_Type o_UnionOfTypesAtThrough (
 		final AvailObject object,
 		final int startIndex,
 		final int endIndex)
@@ -275,11 +275,11 @@ extends TypeDescriptor
 		{
 			return BottomTypeDescriptor.bottom();
 		}
-		final AvailObject firstUpper =
-			object.slot(FIRST_TUPLE_TYPE).sizeRange().upperBound();
-		final AvailObject secondUpper =
-			object.slot(SECOND_TUPLE_TYPE).sizeRange().upperBound();
-		final AvailObject totalUpper =
+		final A_Type firstTupleType = object.slot(FIRST_TUPLE_TYPE);
+		final A_Type secondTupleType = object.slot(SECOND_TUPLE_TYPE);
+		final A_Number firstUpper = firstTupleType.sizeRange().upperBound();
+		final A_Number secondUpper = secondTupleType.sizeRange().upperBound();
+		final A_Number totalUpper =
 			firstUpper.noFailPlusCanDestroy(secondUpper, false);
 		if (totalUpper.isFinite())
 		{
@@ -288,18 +288,15 @@ extends TypeDescriptor
 				return BottomTypeDescriptor.bottom();
 			}
 		}
-		AvailObject typeUnion =
-			object.slot(FIRST_TUPLE_TYPE)
-				.unionOfTypesAtThrough(startIndex, endIndex);
+		A_Type typeUnion =
+			firstTupleType.unionOfTypesAtThrough(startIndex, endIndex);
 		final int startInSecond = startIndex - firstUpper.extractInt();
 		// TODO: [MvG] This could fail if the lower bound lies outside the range
 		// of a 32-bit Java int.
-		final int endInSecond = endIndex
-			- object.slot(FIRST_TUPLE_TYPE)
-				.sizeRange().lowerBound().extractInt();
+		final int endInSecond =
+			endIndex - firstTupleType.sizeRange().lowerBound().extractInt();
 		typeUnion = typeUnion.typeUnion(
-			object.slot(SECOND_TUPLE_TYPE)
-				.unionOfTypesAtThrough(startInSecond, endInSecond));
+			secondTupleType.unionOfTypesAtThrough(startInSecond, endInSecond));
 		return typeUnion;
 	}
 
@@ -309,11 +306,11 @@ extends TypeDescriptor
 	 * computing a type union.
 	 */
 	@Override @AvailMethod
-	AvailObject o_DefaultType (final AvailObject object)
+	A_Type o_DefaultType (final AvailObject object)
 	{
-		final AvailObject a = object.slot(FIRST_TUPLE_TYPE);
-		final AvailObject b = object.slot(SECOND_TUPLE_TYPE);
-		final AvailObject bRange = b.sizeRange();
+		final A_Type a = object.slot(FIRST_TUPLE_TYPE);
+		final A_Type b = object.slot(SECOND_TUPLE_TYPE);
+		final A_Type bRange = b.sizeRange();
 		if (bRange.upperBound().equals(IntegerDescriptor.zero()))
 		{
 			return a.defaultType();
@@ -331,7 +328,7 @@ extends TypeDescriptor
 		{
 			highIndexInB = b.typeTuple().tupleSize() + 1;
 		}
-		final AvailObject typeUnion = a.defaultType().typeUnion(
+		final A_Type typeUnion = a.defaultType().typeUnion(
 			b.unionOfTypesAtThrough(1, highIndexInB));
 		return typeUnion;
 	}
@@ -342,11 +339,11 @@ extends TypeDescriptor
 	 * for its answer.
 	 */
 	@Override @AvailMethod
-	AvailObject o_SizeRange (final AvailObject object)
+	A_Type o_SizeRange (final AvailObject object)
 	{
-		final AvailObject a = object.slot(FIRST_TUPLE_TYPE).sizeRange();
-		final AvailObject b = object.slot(SECOND_TUPLE_TYPE).sizeRange();
-		final AvailObject upper = a.upperBound().noFailPlusCanDestroy(
+		final A_Type a = object.slot(FIRST_TUPLE_TYPE).sizeRange();
+		final A_Type b = object.slot(SECOND_TUPLE_TYPE).sizeRange();
+		final A_Number upper = a.upperBound().noFailPlusCanDestroy(
 			b.upperBound(), false);
 		return IntegerRangeTypeDescriptor.create(
 			a.lowerBound().noFailPlusCanDestroy(b.lowerBound(), false),
@@ -363,7 +360,7 @@ extends TypeDescriptor
 	 * it allocates objects.
 	 */
 	@Override @AvailMethod
-	AvailObject o_TypeTuple (final AvailObject object)
+	A_Tuple o_TypeTuple (final AvailObject object)
 	{
 		becomeRealTupleType(object);
 		return object.typeTuple();
@@ -373,7 +370,7 @@ extends TypeDescriptor
 	 * Check if object is a subtype of aType.  They should both be types.
 	 */
 	@Override @AvailMethod
-	boolean o_IsSubtypeOf (final AvailObject object, final AvailObject aType)
+	boolean o_IsSubtypeOf (final AvailObject object, final A_Type aType)
 	{
 		return aType.isSupertypeOfTupleType(object);
 	}
@@ -400,14 +397,14 @@ extends TypeDescriptor
 		{
 			return false;
 		}
-		final AvailObject subTuple = aTupleType.typeTuple();
-		final AvailObject superTuple = object.typeTuple();
+		final A_Tuple subTuple = aTupleType.typeTuple();
+		final A_Tuple superTuple = object.typeTuple();
 		for (
 			int i = 1, end = max(subTuple.tupleSize(), superTuple.tupleSize());
 			i <= end;
 			i++)
 		{
-			AvailObject subType;
+			A_Type subType;
 			if (i <= subTuple.tupleSize())
 			{
 				subType = subTuple.tupleAt(i);
@@ -416,7 +413,7 @@ extends TypeDescriptor
 			{
 				subType = aTupleType.defaultType();
 			}
-			AvailObject superType;
+			A_Type superType;
 			if (i <= superTuple.tupleSize())
 			{
 				superType = superTuple.tupleAt(i);
@@ -434,9 +431,9 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_TypeIntersection (
+	A_Type o_TypeIntersection (
 		final AvailObject object,
-		final AvailObject another)
+		final A_Type another)
 	{
 		if (object.isSubtypeOf(another))
 		{
@@ -450,15 +447,15 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_TypeIntersectionOfTupleType (
+	A_Type o_TypeIntersectionOfTupleType (
 		final AvailObject object,
-		final AvailObject aTupleType)
+		final A_Type aTupleType)
 	{
-		final AvailObject newSizesObject =
+		final A_Type newSizesObject =
 			object.sizeRange().typeIntersection(aTupleType.sizeRange());
-		final AvailObject lead1 = object.typeTuple();
-		final AvailObject lead2 = aTupleType.typeTuple();
-		AvailObject newLeading;
+		final A_Tuple lead1 = object.typeTuple();
+		final A_Tuple lead2 = aTupleType.typeTuple();
+		A_Tuple newLeading;
 		if (lead1.tupleSize() > lead2.tupleSize())
 		{
 			newLeading = lead1;
@@ -472,7 +469,7 @@ extends TypeDescriptor
 		final int newLeadingSize = newLeading.tupleSize();
 		for (int i = 1; i <= newLeadingSize; i++)
 		{
-			final AvailObject intersectionObject =
+			final A_Type intersectionObject =
 				object.typeAtIndex(i).typeIntersection(
 					aTupleType.typeAtIndex(i));
 			if (intersectionObject.equals(BottomTypeDescriptor.bottom()))
@@ -487,7 +484,7 @@ extends TypeDescriptor
 		// Make sure entries in newLeading are immutable, as typeIntersection
 		// can answer one of its arguments.
 		newLeading.makeSubobjectsImmutable();
-		final AvailObject newDefault =
+		final A_Type newDefault =
 			object.typeAtIndex(newLeadingSize + 1).typeIntersection(
 				aTupleType.typeAtIndex(newLeadingSize + 1));
 		newDefault.makeImmutable();
@@ -498,9 +495,9 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_TypeUnion (
+	A_Type o_TypeUnion (
 		final AvailObject object,
-		final AvailObject another)
+		final A_Type another)
 	{
 		if (object.isSubtypeOf(another))
 		{
@@ -514,15 +511,15 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_TypeUnionOfTupleType (
+	A_Type o_TypeUnionOfTupleType (
 		final AvailObject object,
-		final AvailObject aTupleType)
+		final A_Type aTupleType)
 	{
-		final AvailObject newSizesObject = object.sizeRange().typeUnion(
+		final A_Type newSizesObject = object.sizeRange().typeUnion(
 			aTupleType.sizeRange());
-		final AvailObject lead1 = object.typeTuple();
-		final AvailObject lead2 = aTupleType.typeTuple();
-		AvailObject newLeading;
+		final A_Tuple lead1 = object.typeTuple();
+		final A_Tuple lead2 = aTupleType.typeTuple();
+		A_Tuple newLeading;
 		if (lead1.tupleSize() > lead2.tupleSize())
 		{
 			newLeading = lead1;
@@ -536,7 +533,7 @@ extends TypeDescriptor
 		final int newLeadingSize = newLeading.tupleSize();
 		for (int i = 1; i <= newLeadingSize; i++)
 		{
-			final AvailObject unionObject = object.typeAtIndex(i).typeUnion(
+			final A_Type unionObject = object.typeAtIndex(i).typeUnion(
 				aTupleType.typeAtIndex(i));
 			newLeading = newLeading.tupleAtPuttingCanDestroy(
 				i,
@@ -546,7 +543,7 @@ extends TypeDescriptor
 		// Make sure entries in newLeading are immutable, as typeUnion can
 		// answer one of its arguments.
 		newLeading.makeSubobjectsImmutable();
-		final AvailObject newDefault =
+		final A_Type newDefault =
 			object.typeAtIndex(newLeadingSize + 1).typeUnion(
 				aTupleType.typeAtIndex(newLeadingSize + 1));
 		newDefault.makeImmutable();
@@ -596,8 +593,8 @@ extends TypeDescriptor
 	 *        the concatenations of instances of the two given tupletypes.
 	 */
 	public static AvailObject concatenatingAnd (
-		final AvailObject firstObject,
-		final AvailObject secondObject)
+		final A_BasicObject firstObject,
+		final A_BasicObject secondObject)
 	{
 		assert firstObject.isTupleType() && secondObject.isTupleType();
 		final AvailObject result = mutable.create();

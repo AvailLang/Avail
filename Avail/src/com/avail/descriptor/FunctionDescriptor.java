@@ -63,12 +63,6 @@ extends Descriptor
 	}
 
 	@Override
-	void o_Code (final AvailObject object, final AvailObject value)
-	{
-		object.setSlot(ObjectSlots.CODE, value);
-	}
-
-	@Override
 	AvailObject o_OuterVarAt (final AvailObject object, final int subscript)
 	{
 		return object.slot(ObjectSlots.OUTER_VAR_AT_, subscript);
@@ -111,7 +105,7 @@ extends Descriptor
 	}
 
 	@Override
-	boolean o_Equals (final AvailObject object, final AvailObject another)
+	boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		return another.equalsFunction(object);
 	}
@@ -161,7 +155,7 @@ extends Descriptor
 		// with 0 or something), it's ok because nobody could know what the hash
 		// value *used to be* for this function.
 
-		final AvailObject code = object.slot(ObjectSlots.CODE);
+		final A_BasicObject code = object.slot(ObjectSlots.CODE);
 		int hash = code.hash() ^ 0x1386D4F6;
 		for (int i = 1, end = object.numOuterVars(); i <= end; i++)
 		{
@@ -182,7 +176,7 @@ extends Descriptor
 	 * FunctionTypeDescriptor function type}.
 	 */
 	@Override
-	AvailObject o_Kind (final AvailObject object)
+	A_Type o_Kind (final AvailObject object)
 	{
 		return object.slot(ObjectSlots.CODE).functionType();
 	}
@@ -250,7 +244,7 @@ extends Descriptor
 	}
 
 	@Override
-	public boolean o_ShowValueInNameForDebugger (final AvailObject object)
+	public boolean o_ShowValueInNameForDebugger (final A_BasicObject object)
 	{
 		return true;
 	}
@@ -267,18 +261,18 @@ extends Descriptor
 	 *        invoked.
 	 * @return Any appropriate function.
 	 */
-	public static AvailObject createStubWithArgTypes (
-		final AvailObject functionType,
+	public static A_Function createStubWithArgTypes (
+		final A_BasicObject functionType,
 		final AvailObject function)
 	{
-		final AvailObject argTypes = functionType.argsTupleType();
+		final A_BasicObject argTypes = functionType.argsTupleType();
 		final int numArgs = argTypes.sizeRange().lowerBound().extractInt();
-		final AvailObject[] argTypesArray = new AvailObject[numArgs];
+		final A_Type[] argTypesArray = new AvailObject[numArgs];
 		for (int i = 1; i <= numArgs; i++)
 		{
 			argTypesArray[i - 1] = argTypes.typeAtIndex(i);
 		}
-		final AvailObject returnType = functionType.returnType();
+		final A_Type returnType = functionType.returnType();
 		final L1InstructionWriter writer = new L1InstructionWriter(
 			NilDescriptor.nil(),
 			0);
@@ -301,7 +295,7 @@ extends Descriptor
 				writer.addLiteral(method),
 				writer.addLiteral(returnType)));
 		final AvailObject code = writer.compiledCode();
-		final AvailObject newFunction = FunctionDescriptor.create(
+		final A_Function newFunction = FunctionDescriptor.create(
 			code,
 			TupleDescriptor.empty());
 		newFunction.makeImmutable();
@@ -318,23 +312,23 @@ extends Descriptor
 	 *        The function which the new function should invoke.
 	 * @return An appropriate function of one argument.
 	 */
-	public static AvailObject createStubTakingTupleFrom (
+	public static A_BasicObject createStubTakingTupleFrom (
 		final AvailObject function)
 	{
-		final AvailObject argTypes = function.functionType().argsTupleType();
+		final A_Type argTypes = function.functionType().argsTupleType();
 		final int numArgs = argTypes.sizeRange().lowerBound().extractInt();
-		final AvailObject[] argTypesArray = new AvailObject[numArgs];
+		final A_Type[] argTypesArray = new AvailObject[numArgs];
 		for (int i = 1; i <= numArgs; i++)
 		{
 			argTypesArray[i - 1] = argTypes.typeAtIndex(i);
 		}
-		final AvailObject tupleType =
+		final A_Type tupleType =
 			TupleTypeDescriptor.forTypes(argTypesArray);
-		final AvailObject returnType = function.functionType().returnType();
+		final A_Type returnType = function.functionType().returnType();
 		final L1InstructionWriter writer = new L1InstructionWriter(
 			NilDescriptor.nil(),
 			0);
-		writer.argumentTypes(new AvailObject[] {tupleType});
+		writer.argumentTypes(new A_Type[] {tupleType});
 		writer.returnType(returnType);
 		writer.write(
 			new L1Instruction(
@@ -352,7 +346,7 @@ extends Descriptor
 				writer.addLiteral(method),
 				writer.addLiteral(returnType)));
 		final AvailObject code = writer.compiledCode();
-		final AvailObject newFunction = FunctionDescriptor.create(
+		final A_BasicObject newFunction = FunctionDescriptor.create(
 			code,
 			TupleDescriptor.empty());
 		newFunction.makeImmutable();
@@ -366,12 +360,12 @@ extends Descriptor
 	 * @param copiedTuple The outer variables and constants to enclose.
 	 * @return A function.
 	 */
-	public static AvailObject create (
+	public static A_Function create (
 		final AvailObject code,
-		final AvailObject copiedTuple)
+		final A_Tuple copiedTuple)
 	{
 		final AvailObject object = mutable.create(copiedTuple.tupleSize());
-		object.code(code);
+		object.setSlot(ObjectSlots.CODE, code);
 		for (int i = copiedTuple.tupleSize(); i >= 1; -- i)
 		{
 			object.outerVarAtPut(i, copiedTuple.tupleAt(i));
@@ -387,13 +381,13 @@ extends Descriptor
 	 * @param outersCount The number of outer variables that will be enclosed.
 	 * @return A function without its outer variables initialized.
 	 */
-	public static AvailObject createExceptOuters (
-		final AvailObject code,
+	public static A_Function createExceptOuters (
+		final A_BasicObject code,
 		final int outersCount)
 	{
 		assert code.numOuters() == outersCount;
 		final AvailObject object = mutable.create(outersCount);
-		object.code(code);
+		object.setSlot(ObjectSlots.CODE, code);
 		return object;
 	}
 

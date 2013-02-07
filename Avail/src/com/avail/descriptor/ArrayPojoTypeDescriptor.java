@@ -123,7 +123,7 @@ extends PojoTypeDescriptor
 	}
 
 	@Override
-	AvailObject o_ContentType (final AvailObject object)
+	A_Type o_ContentType (final AvailObject object)
 	{
 		return object.slot(CONTENT_TYPE);
 	}
@@ -230,13 +230,13 @@ extends PojoTypeDescriptor
 		final AvailObject object,
 		final @Nullable Class<?> classHint)
 	{
-		final AvailObject elementType = object.slot(CONTENT_TYPE);
+		final A_BasicObject elementType = object.slot(CONTENT_TYPE);
 		return Array.newInstance(
 			(Class<?>) elementType.marshalToJava(classHint), 0).getClass();
 	}
 
 	@Override @AvailMethod
-	AvailObject o_PojoSelfType (final AvailObject object)
+	A_Type o_PojoSelfType (final AvailObject object)
 	{
 		return SelfPojoTypeDescriptor.create(
 			RawPojoDescriptor.equalityWrap(PojoArray.class),
@@ -244,7 +244,7 @@ extends PojoTypeDescriptor
 	}
 
 	@Override
-	AvailObject o_SizeRange (final AvailObject object)
+	A_Type o_SizeRange (final AvailObject object)
 	{
 		return object.slot(SIZE_RANGE);
 	}
@@ -257,9 +257,9 @@ extends PojoTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_TypeIntersectionOfPojoType (
+	A_Type o_TypeIntersectionOfPojoType (
 		final AvailObject object,
-		final AvailObject aPojoType)
+		final A_Type aPojoType)
 	{
 		if (aPojoType.isPojoSelfType())
 		{
@@ -280,25 +280,25 @@ extends PojoTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_TypeIntersectionOfPojoFusedType (
+	A_Type o_TypeIntersectionOfPojoFusedType (
 		final AvailObject object,
-		final AvailObject aFusedPojoType)
+		final A_Type aFusedPojoType)
 	{
 		throw unsupportedOperationException();
 	}
 
 	@Override @AvailMethod
-	AvailObject o_TypeIntersectionOfPojoUnfusedType (
+	A_Type o_TypeIntersectionOfPojoUnfusedType (
 		final AvailObject object,
-		final AvailObject anUnfusedPojoType)
+		final A_Type anUnfusedPojoType)
 	{
 		throw unsupportedOperationException();
 	}
 
 	@Override @AvailMethod
-	AvailObject o_TypeUnionOfPojoType (
+	A_Type o_TypeUnionOfPojoType (
 		final AvailObject object,
-		final AvailObject aPojoType)
+		final A_Type aPojoType)
 	{
 		if (aPojoType.isPojoSelfType())
 		{
@@ -308,11 +308,11 @@ extends PojoTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_TypeUnionOfPojoFusedType (
+	A_Type o_TypeUnionOfPojoFusedType (
 		final AvailObject object,
-		final AvailObject aFusedPojoType)
+		final A_Type aFusedPojoType)
 	{
-		final AvailObject intersectionAncestors = computeUnion(
+		final A_Map intersectionAncestors = computeUnion(
 			object, aFusedPojoType);
 		final AvailObject javaClass = mostSpecificOf(
 			intersectionAncestors.keysAsSet());
@@ -324,16 +324,16 @@ extends PojoTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_TypeUnionOfPojoUnfusedType (
+	A_Type o_TypeUnionOfPojoUnfusedType (
 		final AvailObject object,
-		final AvailObject anUnfusedPojoType)
+		final A_Type anUnfusedPojoType)
 	{
 		if (anUnfusedPojoType.isPojoSelfType())
 		{
 			return object.pojoSelfType().typeUnionOfPojoUnfusedType(
 				anUnfusedPojoType);
 		}
-		final AvailObject intersectionAncestors = computeUnion(
+		final A_Map intersectionAncestors = computeUnion(
 			object, anUnfusedPojoType);
 		final AvailObject javaClass = mostSpecificOf(
 			intersectionAncestors.keysAsSet());
@@ -345,7 +345,7 @@ extends PojoTypeDescriptor
 	}
 
 	@Override
-	AvailObject o_TypeVariables (final AvailObject object)
+	A_Map o_TypeVariables (final AvailObject object)
 	{
 		return MapDescriptor.empty();
 	}
@@ -440,10 +440,10 @@ extends PojoTypeDescriptor
 	 * @return The requested pojo array type.
 	 */
 	static AvailObject create (
-		final AvailObject elementType,
-		final AvailObject sizeRange)
+		final A_Type elementType,
+		final A_Type sizeRange)
 	{
-		AvailObject javaAncestors = PojoTypeDescriptor.arrayBaseAncestorMap();
+		A_Map javaAncestors = PojoTypeDescriptor.arrayBaseAncestorMap();
 		javaAncestors = javaAncestors.mapAtPuttingCanDestroy(
 			RawPojoDescriptor.equalityWrap(PojoArray.class),
 			TupleDescriptor.from(elementType),

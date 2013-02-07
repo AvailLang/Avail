@@ -65,12 +65,11 @@ public class P_508_CreatePojoStaticMethodFunction extends Primitive
 	{
 		assert args.size() == 4;
 		final AvailObject pojoType = args.get(0);
-		final AvailObject methodName = args.get(1);
-		final AvailObject paramTypes = args.get(2);
+		final A_String methodName = args.get(1);
+		final A_Tuple paramTypes = args.get(2);
 		final AvailObject failFunction = args.get(3);
 		// Marshal the argument types.
-		final Class<?>[] marshaledTypes =
-			new Class<?>[paramTypes.tupleSize()];
+		final Class<?>[] marshaledTypes = new Class<?>[paramTypes.tupleSize()];
 		try
 		{
 			for (int i = 0; i < marshaledTypes.length; i++)
@@ -107,8 +106,8 @@ public class P_508_CreatePojoStaticMethodFunction extends Primitive
 		else
 		{
 			final Set<Method> methods = new HashSet<Method>();
-			final AvailObject ancestors = pojoType.javaAncestors();
-			for (final AvailObject ancestor : ancestors.keysAsSet())
+			final A_Map ancestors = pojoType.javaAncestors();
+			for (final A_BasicObject ancestor : ancestors.keysAsSet())
 			{
 				final Class<?> javaClass = (Class<?>) ancestor.javaObject();
 				try
@@ -143,7 +142,7 @@ public class P_508_CreatePojoStaticMethodFunction extends Primitive
 			marshaledTypePojos.add(
 				RawPojoDescriptor.equalityWrap(paramClass));
 		}
-		final AvailObject marshaledTypesTuple =
+		final A_Tuple marshaledTypesTuple =
 			TupleDescriptor.fromList(marshaledTypePojos);
 		// Create a function wrapper for the pojo method invocation
 		// primitive. This function will be embedded as a literal into
@@ -172,7 +171,7 @@ public class P_508_CreatePojoStaticMethodFunction extends Primitive
 			L1Operation.L1_doCall,
 			writer.addLiteral(MethodDescriptor.vmFunctionApplyMethod()),
 			writer.addLiteral(BottomTypeDescriptor.bottom())));
-		final AvailObject innerFunction = FunctionDescriptor.create(
+		final A_Function innerFunction = FunctionDescriptor.create(
 			writer.compiledCode(),
 			TupleDescriptor.empty()).makeImmutable();
 		// Create the outer function that pushes the arguments expected by
@@ -183,7 +182,7 @@ public class P_508_CreatePojoStaticMethodFunction extends Primitive
 			NilDescriptor.nil(),
 			0);
 		writer.argumentTypesTuple(paramTypes);
-		final AvailObject returnType = PojoTypeDescriptor.resolve(
+		final A_Type returnType = PojoTypeDescriptor.resolve(
 			method.getGenericReturnType(),
 			pojoType.typeVariables());
 		writer.returnType(returnType);
@@ -214,7 +213,7 @@ public class P_508_CreatePojoStaticMethodFunction extends Primitive
 			L1Operation.L1_doCall,
 			writer.addLiteral(MethodDescriptor.vmFunctionApplyMethod()),
 			writer.addLiteral(returnType)));
-		final AvailObject outerFunction = FunctionDescriptor.create(
+		final A_Function outerFunction = FunctionDescriptor.create(
 			writer.compiledCode(),
 			TupleDescriptor.empty()).makeImmutable();
 		// TODO: [TLS] When functions can be made non-reflective, then make
@@ -223,7 +222,7 @@ public class P_508_CreatePojoStaticMethodFunction extends Primitive
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

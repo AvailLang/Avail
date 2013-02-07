@@ -62,7 +62,7 @@ enum SerializerOperandEncoding
 		}
 
 		@Override
-		AvailObject read (
+		A_BasicObject read (
 			final Deserializer deserializer)
 		{
 			return IntegerDescriptor.fromInt(deserializer.readByte());
@@ -112,7 +112,7 @@ enum SerializerOperandEncoding
 		}
 
 		@Override
-		AvailObject read (
+		A_BasicObject read (
 			final Deserializer deserializer)
 		{
 			final int firstByte = deserializer.readByte();
@@ -156,7 +156,7 @@ enum SerializerOperandEncoding
 		}
 
 		@Override
-		AvailObject read (
+		A_BasicObject read (
 			final Deserializer deserializer)
 		{
 			return IntegerDescriptor.fromInt(deserializer.readShort());
@@ -182,7 +182,7 @@ enum SerializerOperandEncoding
 		}
 
 		@Override
-		AvailObject read (
+		A_BasicObject read (
 			final Deserializer deserializer)
 		{
 			return IntegerDescriptor.fromInt(deserializer.readInt());
@@ -208,7 +208,7 @@ enum SerializerOperandEncoding
 		}
 
 		@Override
-		AvailObject read (
+		A_BasicObject read (
 			final Deserializer deserializer)
 		{
 			final int intValue = deserializer.readInt();
@@ -248,7 +248,7 @@ enum SerializerOperandEncoding
 		}
 
 		@Override
-		AvailObject read (
+		A_BasicObject read (
 			final Deserializer deserializer)
 		{
 			final int index = readCompressedPositiveInt(deserializer);
@@ -279,10 +279,10 @@ enum SerializerOperandEncoding
 		}
 
 		@Override
-		final AvailObject read (final Deserializer deserializer)
+		final A_BasicObject read (final Deserializer deserializer)
 		{
 			final int slotsCount = readCompressedPositiveInt(deserializer);
-			final AvailObject newInteger =
+			final A_Number newInteger =
 				IntegerDescriptor.createUninitialized(slotsCount);
 			for (int i = slotsCount; i >= 1; i--)
 			{
@@ -329,7 +329,7 @@ enum SerializerOperandEncoding
 		}
 
 		@Override
-		final AvailObject read (final Deserializer deserializer)
+		final A_BasicObject read (final Deserializer deserializer)
 		{
 			final int tupleSize = readCompressedPositiveInt(deserializer);
 			final AvailObject newTuple =
@@ -367,7 +367,7 @@ enum SerializerOperandEncoding
 		}
 
 		@Override
-		final AvailObject read (final Deserializer deserializer)
+		final A_BasicObject read (final Deserializer deserializer)
 		{
 			final int tupleSize = readCompressedPositiveInt(deserializer);
 			return StringDescriptor.mutableByteStringFromGenerator(
@@ -413,7 +413,7 @@ enum SerializerOperandEncoding
 		}
 
 		@Override
-		final AvailObject read (final Deserializer deserializer)
+		final A_BasicObject read (final Deserializer deserializer)
 		{
 			final int tupleSize = readCompressedPositiveInt(deserializer);
 			return StringDescriptor.mutableTwoByteStringFromGenerator(
@@ -454,7 +454,7 @@ enum SerializerOperandEncoding
 		}
 
 		@Override
-		final AvailObject read (final Deserializer deserializer)
+		final A_BasicObject read (final Deserializer deserializer)
 		{
 			final int tupleSize = readCompressedPositiveInt(deserializer);
 			final AvailObject[] elementsArray = new AvailObject[tupleSize];
@@ -487,7 +487,7 @@ enum SerializerOperandEncoding
 		}
 
 		@Override
-		final AvailObject read (final Deserializer deserializer)
+		final A_BasicObject read (final Deserializer deserializer)
 		{
 			final int tupleSize = readCompressedPositiveInt(deserializer);
 			final AvailObject tuple =
@@ -529,7 +529,7 @@ enum SerializerOperandEncoding
 		}
 
 		@Override
-		final AvailObject read (final Deserializer deserializer)
+		final A_BasicObject read (final Deserializer deserializer)
 		{
 			final int tupleSize = readCompressedPositiveInt(deserializer);
 			final AvailObject tuple =
@@ -582,10 +582,10 @@ enum SerializerOperandEncoding
 		}
 
 		@Override
-		AvailObject read (final Deserializer deserializer)
+		A_BasicObject read (final Deserializer deserializer)
 		{
 			final int mapSize = readCompressedPositiveInt(deserializer);
-			AvailObject map = MapDescriptor.empty();
+			A_Map map = MapDescriptor.empty();
 			for (int index = 1; index <= mapSize; index++)
 			{
 				map = map.mapAtPuttingCanDestroy(
@@ -635,7 +635,7 @@ enum SerializerOperandEncoding
 	 * @param deserializer  The {@code Deserializer} from which to read.
 	 * @return An AvailObject suitable for this kind of operand.
 	 */
-	abstract AvailObject read (
+	abstract A_BasicObject read (
 		final Deserializer deserializer);
 
 	/**

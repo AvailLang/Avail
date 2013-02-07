@@ -54,12 +54,12 @@ public class P_014_VariableReadType extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
-		final AvailObject type = args.get(0);
+		final A_BasicObject type = args.get(0);
 		return interpreter.primitiveSuccess(type.readType());
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
@@ -68,11 +68,11 @@ public class P_014_VariableReadType extends Primitive
 	}
 
 	@Override
-	public AvailObject returnTypeGuaranteedByVM (
-		final List<AvailObject> argumentTypes)
+	public A_Type returnTypeGuaranteedByVM (
+		final List<A_Type> argumentTypes)
 	{
-		final AvailObject varMeta = argumentTypes.get(0);
-		final AvailObject varType = varMeta.instance();
+		final A_BasicObject varMeta = argumentTypes.get(0);
+		final A_BasicObject varType = varMeta.instance();
 		return InstanceMetaDescriptor.on(varType.readType());
 	}
 }

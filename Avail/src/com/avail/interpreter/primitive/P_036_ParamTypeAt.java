@@ -55,8 +55,8 @@ public class P_036_ParamTypeAt extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 2;
-		final AvailObject functionType = args.get(0);
-		final AvailObject indexObject = args.get(1);
+		final A_Type functionType = args.get(0);
+		final A_Number indexObject = args.get(1);
 
 		if (!indexObject.isInt())
 		{
@@ -64,13 +64,13 @@ public class P_036_ParamTypeAt extends Primitive
 				E_SUBSCRIPT_OUT_OF_BOUNDS);
 		}
 		final int index = indexObject.extractInt();
-		final AvailObject argumentType =
+		final A_Type argumentType =
 			functionType.argsTupleType().typeAtIndex(index);
 		return interpreter.primitiveSuccess(argumentType);
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

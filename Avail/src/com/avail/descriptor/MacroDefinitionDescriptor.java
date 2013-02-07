@@ -102,21 +102,21 @@ extends DefinitionDescriptor
 	 * Answer my signature.
 	 */
 	@Override @AvailMethod
-	AvailObject o_BodySignature (
+	A_Type o_BodySignature (
 		final AvailObject object)
 	{
 		return object.bodyBlock().kind();
 	}
 
 	@Override @AvailMethod
-	AvailObject o_PrefixFunctions (
+	A_BasicObject o_PrefixFunctions (
 		final AvailObject object)
 	{
 		return object.slot(PREFIX_FUNCTIONS);
 	}
 
 	@Override @AvailMethod
-	AvailObject o_BodyBlock (
+	A_Function o_BodyBlock (
 		final AvailObject object)
 	{
 		return object.slot(BODY_BLOCK);
@@ -131,7 +131,7 @@ extends DefinitionDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_Kind (
+	A_Type o_Kind (
 		final AvailObject object)
 	{
 		return MACRO_DEFINITION.o();
@@ -170,8 +170,8 @@ extends DefinitionDescriptor
 	 */
 	public static AvailObject create (
 		final AvailObject method,
-		final AvailObject prefixFunctions,
-		final AvailObject bodyBlock)
+		final A_Tuple prefixFunctions,
+		final A_Function bodyBlock)
 	{
 		final AvailObject instance = mutable.create();
 		instance.setSlot(DEFINITION_METHOD, method);

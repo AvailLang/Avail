@@ -72,7 +72,7 @@ extends AbstractAvailCompiler
 		final L2Interpreter interpreter,
 		final ModuleName moduleName,
 		final String source,
-		final List<AvailObject> tokens)
+		final List<A_Token> tokens)
 	{
 		super(interpreter, moduleName, source, tokens);
 	}
@@ -98,18 +98,18 @@ extends AbstractAvailCompiler
 		final ParserState originalState,
 		final AvailObject declaration)
 	{
-		final AvailObject clientMap = originalState.clientDataMap;
-		final AvailObject scopeMapKey = AtomDescriptor.compilerScopeMapKey();
-		final AvailObject scopeMap = clientMap.hasKey(scopeMapKey)
+		final A_Map clientMap = originalState.clientDataMap;
+		final A_Atom scopeMapKey = AtomDescriptor.compilerScopeMapKey();
+		final A_Map scopeMap = clientMap.hasKey(scopeMapKey)
 			? clientMap.mapAt(scopeMapKey)
 			: MapDescriptor.empty();
-		final AvailObject name = declaration.token().string();
+		final A_String name = declaration.token().string();
 		assert !scopeMap.hasKey(name);
-		final AvailObject newScopeMap = scopeMap.mapAtPuttingCanDestroy(
+		final A_Map newScopeMap = scopeMap.mapAtPuttingCanDestroy(
 			name,
 			declaration,
 			false);
-		final AvailObject newClientMap = clientMap.mapAtPuttingCanDestroy(
+		final A_Map newClientMap = clientMap.mapAtPuttingCanDestroy(
 			scopeMapKey,
 			newScopeMap,
 			false);
@@ -131,11 +131,11 @@ extends AbstractAvailCompiler
 	 */
 	static @Nullable AvailObject lookupLocalDeclaration (
 		final ParserState state,
-		final AvailObject name)
+		final A_String name)
 	{
-		final AvailObject clientMap = state.clientDataMap;
-		final AvailObject scopeMapKey = AtomDescriptor.compilerScopeMapKey();
-		final AvailObject scopeMap = clientMap.hasKey(scopeMapKey)
+		final A_Map clientMap = state.clientDataMap;
+		final A_Atom scopeMapKey = AtomDescriptor.compilerScopeMapKey();
+		final A_Map scopeMap = clientMap.hasKey(scopeMapKey)
 			? clientMap.mapAt(scopeMapKey)
 			: MapDescriptor.empty();
 		if (scopeMap.hasKey(name))
@@ -405,7 +405,7 @@ extends AbstractAvailCompiler
 					final ParserState afterEquals = afterColon.afterToken();
 					final Mutable<AvailObject> varType =
 						new Mutable<AvailObject>();
-					final AvailObject declaration = varUse.declaration();
+					final A_BasicObject declaration = varUse.declaration();
 					boolean ok = false;
 					if (declaration.equalsNil())
 					{
@@ -525,7 +525,7 @@ extends AbstractAvailCompiler
 			return;
 		}
 		final ParserState afterDollar = start.afterToken();
-		final AvailObject token = afterDollar.peekToken();
+		final A_Token token = afterDollar.peekToken();
 		if (token.tokenType() != KEYWORD)
 		{
 			afterDollar.expected("name of label after $");
@@ -543,11 +543,11 @@ extends AbstractAvailCompiler
 					assert returnType != null;
 					final List<AvailObject> argTypes =
 						new ArrayList<AvailObject>(argDecls.size());
-					for (final AvailObject decl : argDecls)
+					for (final A_BasicObject decl : argDecls)
 					{
 						argTypes.add(decl.declaredType());
 					}
-					final AvailObject contType =
+					final A_Type contType =
 						ContinuationTypeDescriptor.forFunctionType(
 							FunctionTypeDescriptor.create(
 								TupleDescriptor.fromList(argTypes),
@@ -599,7 +599,8 @@ extends AbstractAvailCompiler
 					public void value ()
 					{
 						finishLabel.value(
-							afterName, BottomTypeDescriptor.bottom());
+							afterName,
+							(AvailObject)BottomTypeDescriptor.bottom());
 					}
 				},
 				"Default label return type",
@@ -624,7 +625,7 @@ extends AbstractAvailCompiler
 		final ParserState start,
 		final Con<AvailObject> continuation)
 	{
-		final AvailObject localName = start.peekToken();
+		final A_Token localName = start.peekToken();
 		if (localName.tokenType() != KEYWORD)
 		{
 			start.expected("a variable or constant declaration");
@@ -670,7 +671,7 @@ extends AbstractAvailCompiler
 									+ " declaration");
 								return;
 							}
-							final AvailObject expressionType =
+							final A_BasicObject expressionType =
 								initExpression.expressionType();
 							if (expressionType.equals(TOP.o())
 								|| expressionType.equals(
@@ -838,7 +839,7 @@ extends AbstractAvailCompiler
 		final ParserState start,
 		final Con<AvailObject> continuation)
 	{
-		final AvailObject localName = start.peekToken();
+		final A_Token localName = start.peekToken();
 		if (localName.tokenType() != KEYWORD)
 		{
 			start.expected("a primitive failure variable declaration");
@@ -987,7 +988,7 @@ extends AbstractAvailCompiler
 		final ParserState start,
 		final Con<AvailObject> continuation)
 	{
-		final AvailObject localName = start.peekToken();
+		final A_Token localName = start.peekToken();
 		if (localName.tokenType() != KEYWORD)
 		{
 			start.expected("block argument name then : and type");
@@ -1192,8 +1193,7 @@ extends AbstractAvailCompiler
 			return;
 		}
 
-		final Mutable<AvailObject> lastStatementType =
-			new Mutable<AvailObject>();
+		final Mutable<A_Type> lastStatementType = new Mutable<A_Type>();
 		if (statements.size() > 0)
 		{
 			final AvailObject stmt = statements.get(statements.size() - 1);
@@ -1217,7 +1217,7 @@ extends AbstractAvailCompiler
 
 		final List<AvailObject> argumentTypesList =
 			new ArrayList<AvailObject>(arguments.size());
-		for (final AvailObject argument : arguments)
+		for (final A_BasicObject argument : arguments)
 		{
 			argumentTypesList.add(argument.declaredType());
 		}
@@ -1226,13 +1226,13 @@ extends AbstractAvailCompiler
 			&& statements.get(0).isInstanceOfKind(LABEL_NODE.mostGeneralType()))
 		{
 			final AvailObject labelNode = statements.get(0);
-			final AvailObject labelType = labelNode.declaredType();
-			final AvailObject implicitBlockType =
+			final A_Type labelType = labelNode.declaredType();
+			final A_Type implicitBlockType =
 				FunctionTypeDescriptor.create(
 					TupleDescriptor.fromList(argumentTypesList),
 					lastStatementType.value,
 					SetDescriptor.empty());
-			final AvailObject implicitContType =
+			final A_Type implicitContType =
 				ContinuationTypeDescriptor.forFunctionType(implicitBlockType);
 			blockTypeGood = implicitContType.isSubtypeOf(labelType);
 		}
@@ -1290,13 +1290,13 @@ extends AbstractAvailCompiler
 				{
 					assert afterReturnType != null;
 					assert returnType != null;
-					final AvailObject explicitBlockType =
+					final A_Type explicitBlockType =
 						FunctionTypeDescriptor.create(
 							TupleDescriptor.fromList(argumentTypesList),
 							returnType);
 					if (thePrimitive != null)
 					{
-						final AvailObject intrinsicType =
+						final A_Type intrinsicType =
 							thePrimitive.blockTypeRestriction();
 						if (!intrinsicType.isSubtypeOf(explicitBlockType))
 						{
@@ -1345,10 +1345,10 @@ extends AbstractAvailCompiler
 						&& statements.get(0).kind().parseNodeKindIsUnder(
 							LABEL_NODE))
 					{
-						final AvailObject labelNode = statements.get(0);
+						final A_BasicObject labelNode = statements.get(0);
 						final AvailObject labelType =
 							labelNode.declaredType();
-						final AvailObject contType =
+						final A_Type contType =
 							ContinuationTypeDescriptor.forFunctionType(
 								explicitBlockType);
 						blockTypeGood2 = contType.isSubtypeOf(labelType);
@@ -1404,7 +1404,7 @@ extends AbstractAvailCompiler
 		final ParserState start,
 		final Con<AvailObject> continuation)
 	{
-		attempt(start, continuation, SetDescriptor.empty());
+		attempt(start, continuation, (AvailObject)SetDescriptor.empty());
 
 		if (start.peekToken(
 			CARET,
@@ -1428,7 +1428,7 @@ extends AbstractAvailCompiler
 	 */
 	@InnerAccess void parseMoreExceptionClausesThen (
 		final ParserState atNextException,
-		final AvailObject exceptionsAlready,
+		final A_Set exceptionsAlready,
 		final Con<AvailObject> continuation)
 	{
 		parseAndEvaluateExpressionYieldingInstanceOfThen(
@@ -1443,7 +1443,7 @@ extends AbstractAvailCompiler
 				{
 					assert afterException != null;
 					assert exceptionType != null;
-					final AvailObject newExceptionSet =
+					final A_Set newExceptionSet =
 						exceptionsAlready.setWithElementCanDestroy(
 							exceptionType,
 							false);
@@ -1451,7 +1451,7 @@ extends AbstractAvailCompiler
 					attempt(
 						afterException,
 						continuation,
-						newExceptionSet);
+						(AvailObject)newExceptionSet);
 					if (afterException.peekToken(
 						COMMA,
 						"Comma in exception declarations"))
@@ -1497,8 +1497,8 @@ extends AbstractAvailCompiler
 		final ParserState stateBeforeCall,
 		final ParserState stateAfterCall,
 		final List<AvailObject> argumentExpressions,
-		final AvailObject bundle,
-		final AvailObject method,
+		final A_BasicObject bundle,
+		final A_BasicObject method,
 		final Con<AvailObject> continuation)
 	{
 		stateAfterCall.expected(
@@ -1538,7 +1538,7 @@ extends AbstractAvailCompiler
 		attempt(
 			start,
 			continuation,
-			TupleDescriptor.from(IntegerDescriptor.zero()));
+			(AvailObject)TupleDescriptor.from(IntegerDescriptor.zero()));
 
 		// Now look for the declaration.
 		if (!start.peekToken(
@@ -1548,7 +1548,7 @@ extends AbstractAvailCompiler
 			return;
 		}
 		final ParserState afterPrimitiveKeyword = start.afterToken();
-		final AvailObject token = afterPrimitiveKeyword.peekToken();
+		final A_Token token = afterPrimitiveKeyword.peekToken();
 		if (token.tokenType() != LITERAL
 				|| !token.literal().isInstanceOfKind(
 					IntegerRangeTypeDescriptor.unsignedShorts())
@@ -1610,7 +1610,7 @@ extends AbstractAvailCompiler
 			attempt(
 				afterPrimitiveNumber.afterToken(),
 				continuation,
-				TupleDescriptor.from(
+				(AvailObject)TupleDescriptor.from(
 					IntegerDescriptor.fromInt(primitiveNumber)));
 		}
 
@@ -1666,7 +1666,7 @@ extends AbstractAvailCompiler
 					attempt(
 						afterCloseParenthesis.afterToken(),
 						continuation,
-						TupleDescriptor.from(
+						(AvailObject)TupleDescriptor.from(
 							IntegerDescriptor.fromInt(primitiveNumber),
 							declaration));
 				}
@@ -1731,7 +1731,7 @@ extends AbstractAvailCompiler
 						assert afterVar != null;
 						assert var != null;
 
-						final AvailObject declaration = var.declaration();
+						final A_BasicObject declaration = var.declaration();
 						String suffix = null;
 						if (declaration.equalsNil())
 						{
@@ -1798,7 +1798,7 @@ extends AbstractAvailCompiler
 		// See if more statements would be legal.
 		if (statements.size() > 0)
 		{
-			final AvailObject lastStatement =
+			final A_BasicObject lastStatement =
 				statements.get(statements.size() - 1);
 			if (lastStatement.expressionType().equals(
 				BottomTypeDescriptor.bottom()))
@@ -1851,7 +1851,7 @@ extends AbstractAvailCompiler
 					{
 						// Check for name collisions with declarations from the
 						// same block.
-						final AvailObject newName =
+						final A_String newName =
 							newStatement.token().string();
 						if (lookupLocalDeclaration(start, newName) != null)
 						{
@@ -1916,7 +1916,7 @@ extends AbstractAvailCompiler
 		final String explanation,
 		final Con<AvailObject> continuation)
 	{
-		final AvailObject token = start.peekToken();
+		final A_Token token = start.peekToken();
 		if (token.tokenType() != KEYWORD)
 		{
 			return;
@@ -1937,7 +1937,7 @@ extends AbstractAvailCompiler
 		}
 		// Not in a block scope. See if it's a module variable or module
 		// constant...
-		final AvailObject varName = token.string();
+		final A_String varName = token.string();
 		if (module.variableBindings().hasKey(varName))
 		{
 			final AvailObject variableObject = module.variableBindings().mapAt(

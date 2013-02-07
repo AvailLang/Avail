@@ -59,21 +59,20 @@ public class P_213_BundleSignatures extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
-		final AvailObject bundle = args.get(0);
-		final AvailObject method =
+		final A_BasicObject bundle = args.get(0);
+		final A_BasicObject method =
 			interpreter.runtime().methodAt(bundle.message());
 		if (method.equalsNil())
 		{
 			return interpreter.primitiveFailure(E_NO_METHOD);
 		}
-		final AvailObject definitions =
-			method.definitionsTuple().asSet();
+		final A_Set definitions = method.definitionsTuple().asSet();
 		definitions.makeImmutable();
 		return interpreter.primitiveSuccess(definitions);
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

@@ -73,10 +73,10 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	abstract AvailObject o_BodySignature (final AvailObject object);
+	abstract A_Type o_BodySignature (final AvailObject object);
 
 	@Override @AvailMethod
-	boolean o_Equals (final AvailObject object, final AvailObject another)
+	boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		return another.traversed().sameAddressAs(object);
 	}
@@ -85,7 +85,7 @@ extends Descriptor
 	abstract int o_Hash (final AvailObject object);
 
 	@Override @AvailMethod
-	abstract AvailObject o_Kind (final AvailObject object);
+	abstract A_Type o_Kind (final AvailObject object);
 
 	@Override @AvailMethod
 	boolean o_IsAbstractDefinition (final AvailObject object)

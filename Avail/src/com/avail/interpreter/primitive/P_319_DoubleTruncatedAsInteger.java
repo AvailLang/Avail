@@ -56,7 +56,7 @@ public class P_319_DoubleTruncatedAsInteger extends Primitive
 		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		final AvailObject a = args.get(0);
+		final A_Number a = args.get(0);
 		assert args.size() == 1;
 		// Extract the top three 32-bit sections.  That guarantees 65 bits
 		// of mantissa, which is more than a double actually captures.
@@ -71,7 +71,7 @@ public class P_319_DoubleTruncatedAsInteger extends Primitive
 		d = abs(d);
 		final int exponent = getExponent(d);
 		final int slots = exponent + 31 / 32;  // probably needs work
-		AvailObject out = IntegerDescriptor.createUninitialized(slots);
+		A_Number out = IntegerDescriptor.createUninitialized(slots);
 		d = scalb(d, (1 - slots) * 32);
 		for (int i = slots; i >= 1; --i)
 		{
@@ -89,7 +89,7 @@ public class P_319_DoubleTruncatedAsInteger extends Primitive
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

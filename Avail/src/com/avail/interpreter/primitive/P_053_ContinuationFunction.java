@@ -54,12 +54,12 @@ public class P_053_ContinuationFunction extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
-		final AvailObject con = args.get(0);
+		final A_BasicObject con = args.get(0);
 		return interpreter.primitiveSuccess(con.function());
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

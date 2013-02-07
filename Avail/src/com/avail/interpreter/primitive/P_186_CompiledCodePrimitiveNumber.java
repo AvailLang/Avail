@@ -54,13 +54,13 @@ public class P_186_CompiledCodePrimitiveNumber extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
-		final AvailObject cc = args.get(0);
+		final A_BasicObject cc = args.get(0);
 		return interpreter.primitiveSuccess(
 			IntegerDescriptor.fromInt(cc.primitiveNumber()));
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

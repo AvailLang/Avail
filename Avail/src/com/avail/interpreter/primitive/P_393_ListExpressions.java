@@ -62,12 +62,12 @@ extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
-		final AvailObject list = args.get(0);
+		final A_BasicObject list = args.get(0);
 		return interpreter.primitiveSuccess(list.expressionsTuple());
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

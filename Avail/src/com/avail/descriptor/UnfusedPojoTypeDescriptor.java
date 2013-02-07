@@ -119,8 +119,8 @@ extends PojoTypeDescriptor
 		{
 			return false;
 		}
-		final AvailObject ancestors = object.slot(JAVA_ANCESTORS);
-		final AvailObject otherAncestors = aPojoType.javaAncestors();
+		final A_Map ancestors = object.slot(JAVA_ANCESTORS);
+		final A_Map otherAncestors = aPojoType.javaAncestors();
 		if (ancestors.mapSize() != otherAncestors.mapSize())
 		{
 			return false;
@@ -131,8 +131,8 @@ extends PojoTypeDescriptor
 			{
 				return false;
 			}
-			final AvailObject params = ancestors.mapAt(ancestor);
-			final AvailObject otherParams = otherAncestors.mapAt(ancestor);
+			final A_Tuple params = ancestors.mapAt(ancestor);
+			final A_Tuple otherParams = otherAncestors.mapAt(ancestor);
 			final int limit = params.tupleSize();
 			assert limit == otherParams.tupleSize();
 			for (int i = 1; i <= limit; i++)
@@ -238,7 +238,7 @@ extends PojoTypeDescriptor
 	 * @param object An object.
 	 * @return The self type.
 	 */
-	private AvailObject pojoSelfType (final AvailObject object)
+	private A_Type pojoSelfType (final AvailObject object)
 	{
 		AvailObject selfType = object.slot(SELF_TYPE);
 		if (selfType.equalsNil())
@@ -256,7 +256,7 @@ extends PojoTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_PojoSelfType (final AvailObject object)
+	A_Type o_PojoSelfType (final AvailObject object)
 	{
 		if (isShared())
 		{
@@ -275,9 +275,9 @@ extends PojoTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_TypeIntersectionOfPojoType (
+	A_Type o_TypeIntersectionOfPojoType (
 		final AvailObject object,
-		final AvailObject aPojoType)
+		final A_Type aPojoType)
 	{
 		if (aPojoType.isPojoSelfType())
 		{
@@ -293,9 +293,9 @@ extends PojoTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_TypeIntersectionOfPojoFusedType (
+	A_Type o_TypeIntersectionOfPojoFusedType (
 		final AvailObject object,
-		final AvailObject aFusedPojoType)
+		final A_Type aFusedPojoType)
 	{
 		final Class<?> javaClass =
 			(Class<?>) object.slot(JAVA_CLASS).javaObject();
@@ -312,7 +312,7 @@ extends PojoTypeDescriptor
 		{
 			// If any of the fused pojo type's ancestors are Java classes, then
 			// the intersection is pojo bottom.
-			for (final AvailObject ancestor :
+			for (final A_BasicObject ancestor :
 				aFusedPojoType.javaAncestors().keysAsSet())
 			{
 				// Ignore java.lang.Object.
@@ -328,21 +328,21 @@ extends PojoTypeDescriptor
 				}
 			}
 		}
-		final AvailObject intersection =
+		final A_BasicObject intersection =
 			computeIntersection(object, aFusedPojoType);
 		if (intersection.equalsPojoBottomType())
 		{
-			return intersection;
+			return PojoTypeDescriptor.pojoBottom();
 		}
 		// The result will be a pojo fused type. Find the union of the key sets
 		// and the intersection of their parameterizations.
-		return FusedPojoTypeDescriptor.create(intersection);
+		return FusedPojoTypeDescriptor.create((A_Map)intersection);
 	}
 
 	@Override @AvailMethod
-	AvailObject o_TypeIntersectionOfPojoUnfusedType (
+	A_Type o_TypeIntersectionOfPojoUnfusedType (
 		final AvailObject object,
-		final AvailObject anUnfusedPojoType)
+		final A_Type anUnfusedPojoType)
 	{
 		final Class<?> javaClass =
 			(Class<?>) object.slot(JAVA_CLASS).javaObject();
@@ -363,21 +363,21 @@ extends PojoTypeDescriptor
 		{
 			return PojoTypeDescriptor.pojoBottom();
 		}
-		final AvailObject intersection =
+		final A_BasicObject intersection =
 			computeIntersection(object, anUnfusedPojoType);
 		if (intersection.equalsPojoBottomType())
 		{
-			return intersection;
+			return PojoTypeDescriptor.pojoBottom();
 		}
 		// The result will be a pojo fused type. Find the union of the key sets
 		// and the intersection of their parameterizations.
-		return FusedPojoTypeDescriptor.create(intersection);
+		return FusedPojoTypeDescriptor.create((A_Map)intersection);
 	}
 
 	@Override @AvailMethod
-	AvailObject o_TypeUnionOfPojoType (
+	A_Type o_TypeUnionOfPojoType (
 		final AvailObject object,
-		final AvailObject aPojoType)
+		final A_Type aPojoType)
 	{
 		if (aPojoType.isPojoSelfType())
 		{
@@ -387,11 +387,11 @@ extends PojoTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_TypeUnionOfPojoFusedType (
+	A_Type o_TypeUnionOfPojoFusedType (
 		final AvailObject object,
-		final AvailObject aFusedPojoType)
+		final A_Type aFusedPojoType)
 	{
-		final AvailObject intersectionAncestors = computeUnion(
+		final A_Map intersectionAncestors = computeUnion(
 			object, aFusedPojoType);
 		final AvailObject javaClass = mostSpecificOf(
 			intersectionAncestors.keysAsSet());
@@ -403,11 +403,11 @@ extends PojoTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_TypeUnionOfPojoUnfusedType (
+	A_Type o_TypeUnionOfPojoUnfusedType (
 		final AvailObject object,
-		final AvailObject anUnfusedPojoType)
+		final A_Type anUnfusedPojoType)
 	{
-		final AvailObject intersectionAncestors = computeUnion(
+		final A_Map intersectionAncestors = computeUnion(
 			object, anUnfusedPojoType);
 		final AvailObject javaClass = mostSpecificOf(
 			intersectionAncestors.keysAsSet());
@@ -425,9 +425,9 @@ extends PojoTypeDescriptor
 	 * @param object An object.
 	 * @return The type variables.
 	 */
-	private AvailObject typeVariables (final AvailObject object)
+	private A_Map typeVariables (final A_Type object)
 	{
-		AvailObject typeVars = object.slot(TYPE_VARIABLES);
+		A_Map typeVars = object.slot(TYPE_VARIABLES);
 		if (typeVars.equalsNil())
 		{
 			typeVars = MapDescriptor.empty();
@@ -436,7 +436,7 @@ extends PojoTypeDescriptor
 			{
 				final Class<?> ancestor = (Class<?>) entry.key.javaObject();
 				final TypeVariable<?>[] vars = ancestor.getTypeParameters();
-				final AvailObject typeArgs = entry.value;
+				final A_Tuple typeArgs = entry.value;
 				assert vars.length == typeArgs.tupleSize();
 				for (int i = 0; i < vars.length; i++)
 				{
@@ -457,7 +457,7 @@ extends PojoTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_TypeVariables (final AvailObject object)
+	A_Map o_TypeVariables (final AvailObject object)
 	{
 		if (isShared())
 		{
@@ -478,13 +478,13 @@ extends PojoTypeDescriptor
 	{
 		final AvailObject javaClass = object.slot(JAVA_CLASS);
 		builder.append(((Class<?>) javaClass.javaObject()).getName());
-		final AvailObject ancestors = object.slot(JAVA_ANCESTORS);
-		final AvailObject params = ancestors.mapAt(javaClass);
+		final A_Map ancestors = object.slot(JAVA_ANCESTORS);
+		final A_Tuple params = ancestors.mapAt(javaClass);
 		boolean first = true;
 		if (params.tupleSize() != 0)
 		{
 			builder.append('<');
-			for (final AvailObject param : params)
+			for (final A_BasicObject param : params)
 			{
 				if (!first)
 				{
@@ -556,7 +556,7 @@ extends PojoTypeDescriptor
 	 */
 	static AvailObject create (
 		final AvailObject javaClass,
-		final AvailObject javaAncestors)
+		final A_BasicObject javaAncestors)
 	{
 		final AvailObject newObject = mutable.create();
 		newObject.setSlot(HASH_OR_ZERO, 0);

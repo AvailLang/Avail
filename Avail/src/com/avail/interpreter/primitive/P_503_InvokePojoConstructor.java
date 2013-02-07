@@ -65,15 +65,14 @@ public class P_503_InvokePojoConstructor extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 4;
-		final AvailObject constructorPojo = args.get(0);
-		final AvailObject constructorArgs = args.get(1);
-		final AvailObject marshaledTypePojos = args.get(2);
-		final AvailObject expectedType = args.get(3);
+		final A_BasicObject constructorPojo = args.get(0);
+		final A_Tuple constructorArgs = args.get(1);
+		final A_Tuple marshaledTypePojos = args.get(2);
+		final A_Type expectedType = args.get(3);
 		final Constructor<?> constructor =
 			(Constructor<?>) constructorPojo.javaObject();
 		assert constructor != null;
-		final Object[] marshaledArgs =
-			new Object[constructorArgs.tupleSize()];
+		final Object[] marshaledArgs = new Object[constructorArgs.tupleSize()];
 		// Marshal the arguments.
 		try
 		{
@@ -81,8 +80,8 @@ public class P_503_InvokePojoConstructor extends Primitive
 			{
 				final Class<?> marshaledType = (Class<?>)
 					marshaledTypePojos.tupleAt(i + 1).javaObject();
-				marshaledArgs[i] = constructorArgs.tupleAt(
-					i + 1).marshalToJava(marshaledType);
+				marshaledArgs[i] =
+					constructorArgs.tupleAt(i + 1).marshalToJava(marshaledType);
 			}
 		}
 		catch (final MarshalingException e)
@@ -120,7 +119,7 @@ public class P_503_InvokePojoConstructor extends Primitive
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
@@ -134,7 +133,7 @@ public class P_503_InvokePojoConstructor extends Primitive
 	}
 
 	@Override
-	protected AvailObject privateFailureVariableType ()
+	protected A_Type privateFailureVariableType ()
 	{
 		return PojoTypeDescriptor.forClass(Throwable.class);
 	}

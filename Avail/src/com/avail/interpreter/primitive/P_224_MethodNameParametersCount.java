@@ -34,6 +34,7 @@ package com.avail.interpreter.primitive;
 
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
+import com.avail.annotations.Nullable;
 import com.avail.compiler.MessageSplitter;
 import com.avail.descriptor.*;
 import com.avail.exceptions.SignatureException;
@@ -61,8 +62,8 @@ extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
-		final AvailObject name = args.get(0);
-		MessageSplitter splitter = null;
+		final A_String name = args.get(0);
+		@Nullable MessageSplitter splitter = null;
 		try
 		{
 			splitter = new MessageSplitter(name);
@@ -77,7 +78,7 @@ extends Primitive
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

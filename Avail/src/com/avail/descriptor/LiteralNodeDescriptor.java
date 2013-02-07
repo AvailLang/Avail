@@ -72,15 +72,15 @@ extends ParseNodeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_Token (final AvailObject object)
+	A_Token o_Token (final AvailObject object)
 	{
 		return object.slot(ObjectSlots.TOKEN);
 	}
 
 	@Override @AvailMethod
-	AvailObject o_ExpressionType (final AvailObject object)
+	A_Type o_ExpressionType (final AvailObject object)
 	{
-		final AvailObject token = object.slot(TOKEN);
+		final A_Token token = object.slot(TOKEN);
 		assert token.tokenType() == TokenType.LITERAL
 			|| token.tokenType() == TokenType.SYNTHETIC_LITERAL;
 		final AvailObject literal = token.literal();
@@ -97,7 +97,7 @@ extends ParseNodeDescriptor
 	@Override @AvailMethod
 	boolean o_EqualsParseNode (
 		final AvailObject object,
-		final AvailObject aParseNode)
+		final A_BasicObject aParseNode)
 	{
 		return object.kind().equals(aParseNode.kind())
 			&& object.slot(TOKEN).equals(aParseNode.token());
@@ -138,7 +138,7 @@ extends ParseNodeDescriptor
 	@Override @AvailMethod
 	void o_ValidateLocally (
 		final AvailObject object,
-		final @Nullable AvailObject parent)
+		final @Nullable A_BasicObject parent)
 	{
 		// Do nothing.
 	}
@@ -156,7 +156,7 @@ extends ParseNodeDescriptor
 	 * @param token The token that describes the literal.
 	 * @return The new literal node.
 	 */
-	public static AvailObject fromTokenForDecompiler (final AvailObject token)
+	public static AvailObject fromTokenForDecompiler (final A_Token token)
 	{
 		final AvailObject node = mutable.create();
 		node.setSlot(TOKEN, token);
@@ -171,7 +171,7 @@ extends ParseNodeDescriptor
 	 * @param token The token that describes the literal.
 	 * @return The new literal node.
 	 */
-	public static AvailObject fromToken (final AvailObject token)
+	public static AvailObject fromToken (final A_Token token)
 	{
 		assert token.isInstanceOfKind(
 			LiteralTokenTypeDescriptor.mostGeneralType());
@@ -189,11 +189,11 @@ extends ParseNodeDescriptor
 	 * @param literalValue The value that this literal node should produce.
 	 * @return The new literal node.
 	 */
-	public static AvailObject syntheticFrom (final AvailObject literalValue)
+	public static AvailObject syntheticFrom (final A_BasicObject literalValue)
 	{
 		final AvailObject token = LiteralTokenDescriptor.create(
 			literalValue.isString()
-				? literalValue
+				? (A_String)literalValue
 				: StringDescriptor.from("Synthetic literal"),
 			0,
 			0,

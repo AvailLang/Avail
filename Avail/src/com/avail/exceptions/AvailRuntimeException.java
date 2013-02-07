@@ -32,6 +32,7 @@
 
 package com.avail.exceptions;
 
+import com.avail.descriptor.A_Number;
 import com.avail.descriptor.AvailObject;
 
 /**
@@ -66,7 +67,7 @@ extends RuntimeException
 	 *
 	 * @return The {@linkplain AvailObject numeric error code}.
 	 */
-	public AvailObject numericCode ()
+	public A_Number numericCode ()
 	{
 		return errorCode.numericCode();
 	}

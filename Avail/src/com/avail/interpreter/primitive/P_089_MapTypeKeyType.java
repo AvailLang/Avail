@@ -54,12 +54,12 @@ public class P_089_MapTypeKeyType extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
-		final AvailObject mapType = args.get(0);
+		final A_Type mapType = args.get(0);
 		return interpreter.primitiveSuccess(mapType.keyType());
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

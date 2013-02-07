@@ -58,14 +58,14 @@ public class P_125_AtomRemoveProperty extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 2;
-		final AvailObject atom = args.get(0);
+		final A_BasicObject atom = args.get(0);
 		final AvailObject propertyKey = args.get(1);
 		if (AvailRuntime.isSpecialAtom(atom)
 			|| AvailRuntime.isSpecialAtom(propertyKey))
 		{
 			return interpreter.primitiveFailure(E_SPECIAL_ATOM);
 		}
-		final AvailObject propertyValue = atom.getAtomProperty(propertyKey);
+		final A_BasicObject propertyValue = atom.getAtomProperty(propertyKey);
 		if (propertyValue.equalsNil())
 		{
 			return interpreter.primitiveFailure(E_KEY_NOT_FOUND);
@@ -75,7 +75,7 @@ public class P_125_AtomRemoveProperty extends Primitive
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

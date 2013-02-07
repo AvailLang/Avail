@@ -32,6 +32,7 @@
 
 package com.avail.visitor;
 
+import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.AvailObject;
 
 /**
@@ -47,7 +48,7 @@ extends AvailSubobjectVisitor
 {
 	@Override
 	public void invoke (
-		final AvailObject parentObject,
+		final A_BasicObject parentObject,
 		final AvailObject childObject)
 	{
 		childObject.makeImmutable();

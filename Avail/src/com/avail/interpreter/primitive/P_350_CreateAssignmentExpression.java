@@ -61,7 +61,7 @@ public class P_350_CreateAssignmentExpression extends Primitive
 		assert args.size() == 2;
 		final AvailObject variable = args.get(0);
 		final AvailObject expression = args.get(1);
-		final AvailObject declarationType =
+		final A_BasicObject declarationType =
 			variable.declaration().kind();
 		if (!declarationType.parseNodeKindIsUnder(MODULE_VARIABLE_NODE)
 			&& !declarationType.parseNodeKindIsUnder(LOCAL_VARIABLE_NODE))
@@ -83,7 +83,7 @@ public class P_350_CreateAssignmentExpression extends Primitive
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

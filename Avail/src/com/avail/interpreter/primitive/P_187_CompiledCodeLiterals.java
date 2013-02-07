@@ -56,18 +56,18 @@ public class P_187_CompiledCodeLiterals extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
-		final AvailObject cc = args.get(0);
-		AvailObject tupleObject = ObjectTupleDescriptor.createUninitialized(
-			cc.numLiterals());
+		final A_BasicObject code = args.get(0);
+
+		A_Tuple tupleObject = ObjectTupleDescriptor.createUninitialized(
+			code.numLiterals());
 		final int tupleSize = tupleObject.tupleSize();
 		for (int i = 1; i <= tupleSize; i++)
 		{
-			tupleObject.tupleAtPut(i, NilDescriptor.nil());
+			tupleObject.objectTupleAtPut(i, NilDescriptor.nil());
 		}
-		AvailObject literal;
 		for (int i = 1; i <= tupleSize; i++)
 		{
-			literal = cc.literalAt(i);
+			A_BasicObject literal = code.literalAt(i);
 			if (literal.equalsNil())
 			{
 				literal = IntegerDescriptor.zero();
@@ -81,7 +81,7 @@ public class P_187_CompiledCodeLiterals extends Primitive
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

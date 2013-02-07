@@ -54,12 +54,12 @@ public class P_109_TupleToSet extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
-		final AvailObject tuple = args.get(0);
+		final A_Tuple tuple = args.get(0);
 		return interpreter.primitiveSuccess(tuple.asSet());
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
@@ -68,16 +68,16 @@ public class P_109_TupleToSet extends Primitive
 	}
 
 	@Override
-	public AvailObject returnTypeGuaranteedByVM (
-		final List<AvailObject> argumentTypes)
+	public A_Type returnTypeGuaranteedByVM (
+		final List<A_Type> argumentTypes)
 	{
-		final AvailObject tupleType = argumentTypes.get(0);
+		final A_Type tupleType = argumentTypes.get(0);
 
-		final AvailObject unionType = tupleType.unionOfTypesAtThrough(
+		final A_Type unionType = tupleType.unionOfTypesAtThrough(
 			1,
 			Integer.MAX_VALUE);
 		unionType.makeImmutable();
-		final AvailObject tupleSizes = tupleType.sizeRange();
+		final A_Type tupleSizes = tupleType.sizeRange();
 		// Technically, if two tuple entries have disjoint types then the
 		// minimum set size is two.  Generalizing this leads to computing the
 		// Birkhoff chromatic polynomial of the graph whose vertices are the
@@ -90,16 +90,16 @@ public class P_109_TupleToSet extends Primitive
 		// elements.  We do neither optimization here, but we do note that only
 		// the empty tuple can produce the empty set, and the set size is never
 		// greater than the tuple size.
-		final AvailObject minSize =
+		final A_Number minSize =
 			tupleSizes.lowerBound().equals(IntegerDescriptor.zero())
 				? IntegerDescriptor.zero()
 				: IntegerDescriptor.one();
-		final AvailObject setSizes = IntegerRangeTypeDescriptor.create(
+		final A_Type setSizes = IntegerRangeTypeDescriptor.create(
 			minSize,
 			true,
 			tupleSizes.upperBound(),
 			tupleSizes.upperInclusive());
-		final AvailObject setType =
+		final A_Type setType =
 			SetTypeDescriptor.setTypeForSizesContentType(
 				setSizes,
 				unionType);

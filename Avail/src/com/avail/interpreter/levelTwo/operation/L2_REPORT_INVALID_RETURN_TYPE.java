@@ -33,6 +33,7 @@ package com.avail.interpreter.levelTwo.operation;
 
 import static com.avail.descriptor.AvailObject.error;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
+import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.*;
@@ -71,7 +72,7 @@ public class L2_REPORT_INVALID_RETURN_TYPE extends L2Operation
 		final int primitiveNumber = interpreter.nextWord();
 		final int actualValueRegister = interpreter.nextWord();
 		final int expectedTypeIndex = interpreter.nextWord();
-		final AvailObject actualValue =
+		final A_BasicObject actualValue =
 			interpreter.pointerAt(actualValueRegister);
 		final AvailObject expectedType =
 			interpreter.chunk().literalAt(expectedTypeIndex);

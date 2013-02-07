@@ -67,13 +67,13 @@ extends Primitive
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
 				AbstractEnumerationTypeDescriptor.withInstances(
 					SetDescriptor.fromCollection(
-						Arrays.asList(new AvailObject[]
+						Arrays.asList(new A_Number[]
 						{
 							E_HANDLER_SENTINEL.numericCode(),
 							E_UNWIND_SENTINEL.numericCode()
@@ -82,11 +82,11 @@ extends Primitive
 	}
 
 	@Override
-	protected AvailObject privateFailureVariableType ()
+	protected A_Type privateFailureVariableType ()
 	{
 		return AbstractEnumerationTypeDescriptor.withInstances(
 			SetDescriptor.fromCollection(
-				Arrays.asList(new AvailObject[]
+				Arrays.asList(new A_Number[]
 				{
 					E_CANNOT_MARK_HANDLER_FRAME.numericCode(),
 					E_NO_HANDLER_FRAME.numericCode()

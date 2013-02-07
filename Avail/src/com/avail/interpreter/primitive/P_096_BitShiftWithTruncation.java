@@ -60,9 +60,9 @@ extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 3;
-		final AvailObject baseInteger = args.get(0);
-		final AvailObject shiftFactor = args.get(1);
-		final AvailObject truncationBits = args.get(2);
+		final A_Number baseInteger = args.get(0);
+		final A_Number shiftFactor = args.get(1);
+		final A_Number truncationBits = args.get(2);
 		return interpreter.primitiveSuccess(
 			baseInteger.bitShiftLeftTruncatingToBits(
 				shiftFactor,
@@ -71,7 +71,7 @@ extends Primitive
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

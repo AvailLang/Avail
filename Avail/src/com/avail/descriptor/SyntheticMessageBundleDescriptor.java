@@ -97,43 +97,43 @@ extends Descriptor
 	boolean o_HasGrammaticalRestrictions (
 		final AvailObject object)
 	{
-		final AvailObject baseMessageBundle =
+		final A_BasicObject baseMessageBundle =
 			object.slot(ObjectSlots.BASE_MESSAGE_BUNDLE);
 		return baseMessageBundle.hasGrammaticalRestrictions();
 	}
 
 	@Override @AvailMethod
-	AvailObject o_GrammaticalRestrictions (
+	A_Tuple o_GrammaticalRestrictions (
 		final AvailObject object)
 	{
-		final AvailObject baseMessageBundle =
+		final A_BasicObject baseMessageBundle =
 			object.slot(ObjectSlots.BASE_MESSAGE_BUNDLE);
 		return baseMessageBundle.grammaticalRestrictions();
 	}
 
 	@Override @AvailMethod
-	AvailObject o_Message (
+	A_Atom o_Message (
 		final AvailObject object)
 	{
-		final AvailObject baseMessageBundle =
+		final A_BasicObject baseMessageBundle =
 			object.slot(ObjectSlots.BASE_MESSAGE_BUNDLE);
 		return baseMessageBundle.message();
 	}
 
 	@Override @AvailMethod
-	AvailObject o_MessageParts (
+	A_Tuple o_MessageParts (
 		final AvailObject object)
 	{
-		final AvailObject baseMessageBundle =
+		final A_BasicObject baseMessageBundle =
 			object.slot(ObjectSlots.BASE_MESSAGE_BUNDLE);
 		return baseMessageBundle.messageParts();
 	}
 
 	@Override @AvailMethod
-	AvailObject o_ParsingInstructions (
+	A_Tuple o_ParsingInstructions (
 		final AvailObject object)
 	{
-		final AvailObject baseMessageBundle =
+		final A_BasicObject baseMessageBundle =
 			object.slot(ObjectSlots.BASE_MESSAGE_BUNDLE);
 		return baseMessageBundle.parsingInstructions();
 	}
@@ -167,7 +167,7 @@ extends Descriptor
 	@Override @AvailMethod
 	boolean o_Equals (
 		final AvailObject object,
-		final AvailObject another)
+		final A_BasicObject another)
 	{
 		return another.traversed().sameAddressAs(object);
 	}
@@ -180,7 +180,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_Kind (
+	A_Type o_Kind (
 		final AvailObject object)
 	{
 		return MESSAGE_BUNDLE.o();
@@ -198,7 +198,7 @@ extends Descriptor
 	 * @return A new {@linkplain SyntheticMessageBundleDescriptor message bundle}.
 	 * @throws SignatureException If the message name is malformed.
 	 */
-	public static AvailObject newSyntheticBundle (
+	public static A_BasicObject newSyntheticBundle (
 		final AvailObject baseMessageBundle)
 	throws SignatureException
 	{
@@ -211,7 +211,7 @@ extends Descriptor
 
 	@Override
 	public boolean o_ShowValueInNameForDebugger (
-		final AvailObject object)
+		final A_BasicObject object)
 	{
 		return false;
 	}

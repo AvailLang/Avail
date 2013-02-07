@@ -276,7 +276,7 @@ extends Descriptor
 	 * @param object An object.
 	 * @return A pojo.
 	 */
-	private static final Object getPojo (final AvailObject object)
+	private static final Object getPojo (final A_BasicObject object)
 	{
 		pojosLock.lock();
 		try
@@ -293,7 +293,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_Equals (final AvailObject object, final AvailObject another)
+	boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		return another.equalsRawPojo(object);
 	}
@@ -398,7 +398,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	final AvailObject o_Kind (final AvailObject object)
+	final A_Type o_Kind (final AvailObject object)
 	{
 		return RAW_POJO.o();
 	}

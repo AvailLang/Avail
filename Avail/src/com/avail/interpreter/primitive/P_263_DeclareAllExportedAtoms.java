@@ -67,21 +67,21 @@ extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 2;
-		final AvailObject names = args.get(0);
-		final AvailObject isPublic = args.get(1);
+		final A_Set names = args.get(0);
+		final A_Atom isPublic = args.get(1);
 		final AvailObject module = interpreter.module();
 
 		assert module != null;
 		if (isPublic.extractBoolean())
 		{
-			for (final AvailObject name : names)
+			for (final A_Atom name : names)
 			{
 				module.addImportedName(name.name(), name);
 			}
 		}
 		else
 		{
-			for (final AvailObject name : names)
+			for (final A_Atom name : names)
 			{
 				module.addPrivateName(name.name(), name);
 			}
@@ -90,7 +90,7 @@ extends Primitive
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

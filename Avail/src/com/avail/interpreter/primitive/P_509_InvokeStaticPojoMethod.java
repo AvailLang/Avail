@@ -63,15 +63,14 @@ public class P_509_InvokeStaticPojoMethod extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 4;
-		final AvailObject methodPojo = args.get(0);
-		final AvailObject methodArgs = args.get(1);
-		final AvailObject marshaledTypePojos = args.get(2);
-		final AvailObject expectedType = args.get(3);
+		final A_BasicObject methodPojo = args.get(0);
+		final A_Tuple methodArgs = args.get(1);
+		final A_Tuple marshaledTypePojos = args.get(2);
+		final A_Type expectedType = args.get(3);
 		// Marshal the arguments and invoke the method.
 		final Method method = (Method) methodPojo.javaObject();
 		assert method != null;
-		final Object[] marshaledArgs =
-			new Object[methodArgs.tupleSize()];
+		final Object[] marshaledArgs = new Object[methodArgs.tupleSize()];
 		try
 		{
 			for (int i = 0; i < marshaledArgs.length; i++)
@@ -119,7 +118,7 @@ public class P_509_InvokeStaticPojoMethod extends Primitive
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
@@ -132,7 +131,7 @@ public class P_509_InvokeStaticPojoMethod extends Primitive
 	}
 
 	@Override
-	protected AvailObject privateFailureVariableType ()
+	protected A_Type privateFailureVariableType ()
 	{
 		return PojoTypeDescriptor.forClass(Throwable.class);
 	}

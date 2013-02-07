@@ -55,13 +55,13 @@ public class P_051_FunctionTypeToContinuationType extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
-		final AvailObject functionType = args.get(0);
+		final A_Type functionType = args.get(0);
 		return interpreter.primitiveSuccess(
 			ContinuationTypeDescriptor.forFunctionType(functionType));
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

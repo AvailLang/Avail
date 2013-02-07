@@ -90,7 +90,7 @@ extends TypeDescriptor
 		object.slot(CONTENT_TYPE).printOnAvoidingIndent(
 			aStream, recursionList, indent + 1);
 		aStream.append('|');
-		final AvailObject sizeRange = object.slot(SIZE_RANGE);
+		final A_Type sizeRange = object.slot(SIZE_RANGE);
 		if (sizeRange.equals(IntegerRangeTypeDescriptor.wholeNumbers()))
 		{
 			aStream.append('}');
@@ -108,19 +108,19 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_ContentType (final AvailObject object)
+	A_Type o_ContentType (final AvailObject object)
 	{
 		return object.slot(CONTENT_TYPE);
 	}
 
 	@Override @AvailMethod
-	AvailObject o_SizeRange (final AvailObject object)
+	A_Type o_SizeRange (final AvailObject object)
 	{
 		return object.slot(SIZE_RANGE);
 	}
 
 	@Override @AvailMethod
-	boolean o_Equals (final AvailObject object, final AvailObject another)
+	boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		return another.equalsSetType(object);
 	}
@@ -150,7 +150,7 @@ extends TypeDescriptor
 	@Override @AvailMethod
 	boolean o_IsSubtypeOf (
 		final AvailObject object,
-		final AvailObject aType)
+		final A_Type aType)
 	{
 		// Check if object (a type) is a subtype of aType (should also be a
 		// type).
@@ -172,9 +172,9 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_TypeIntersection (
+	A_Type o_TypeIntersection (
 		final AvailObject object,
-		final AvailObject another)
+		final A_Type another)
 	{
 		// Answer the most general type that is still at least as specific as
 		// these.
@@ -190,9 +190,9 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_TypeIntersectionOfSetType (
+	A_Type o_TypeIntersectionOfSetType (
 		final AvailObject object,
-		final AvailObject aSetType)
+		final A_Type aSetType)
 	{
 		return SetTypeDescriptor.setTypeForSizesContentType(
 			object.slot(SIZE_RANGE).typeIntersection(
@@ -202,9 +202,9 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_TypeUnion (
+	A_Type o_TypeUnion (
 		final AvailObject object,
-		final AvailObject another)
+		final A_Type another)
 	{
 		if (object.equals(another))
 		{
@@ -222,9 +222,9 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_TypeUnionOfSetType (
+	A_Type o_TypeUnionOfSetType (
 		final AvailObject object,
-		final AvailObject aSetType)
+		final A_Type aSetType)
 	{
 		return SetTypeDescriptor.setTypeForSizesContentType(
 			object.slot(SIZE_RANGE).typeUnion(aSetType.slot(SIZE_RANGE)),
@@ -255,14 +255,14 @@ extends TypeDescriptor
 	}
 
 	/** The most general set type. */
-	private static AvailObject mostGeneralType;
+	private static A_Type mostGeneralType;
 
 	/**
 	 * Answer the most general set type.
 	 *
 	 * @return The most general set type.
 	 */
-	public static AvailObject mostGeneralType ()
+	public static A_Type mostGeneralType ()
 	{
 		return mostGeneralType;
 	}
@@ -270,14 +270,14 @@ extends TypeDescriptor
 	/**
 	 * The metatype for all set types.
 	 */
-	private static AvailObject meta;
+	private static A_Type meta;
 
 	/**
 	 * Answer the metatype for all set types.
 	 *
 	 * @return The statically referenced metatype.
 	 */
-	public static AvailObject meta ()
+	public static A_Type meta ()
 	{
 		return meta;
 	}
@@ -315,9 +315,9 @@ extends TypeDescriptor
 	 *        The type that constrains my instances' elements.
 	 * @return An immutable set type as specified.
 	 */
-	public static AvailObject setTypeForSizesContentType (
-		final AvailObject sizeRange,
-		final AvailObject contentType)
+	public static A_Type setTypeForSizesContentType (
+		final A_Type sizeRange,
+		final A_Type contentType)
 	{
 		if (sizeRange.equals(BottomTypeDescriptor.bottom()))
 		{
@@ -327,12 +327,12 @@ extends TypeDescriptor
 		assert IntegerDescriptor.zero().lessOrEqual(sizeRange.lowerBound());
 		assert sizeRange.upperBound().isFinite() || !sizeRange.upperInclusive();
 
-		final AvailObject sizeRangeKind = sizeRange.isEnumeration()
+		final A_Type sizeRangeKind = sizeRange.isEnumeration()
 			? sizeRange.computeSuperkind()
 			: sizeRange;
 
-		final AvailObject newSizeRange;
-		final AvailObject newContentType;
+		final A_Type newSizeRange;
+		final A_Type newContentType;
 		if (sizeRangeKind.upperBound().equals(IntegerDescriptor.zero()))
 		{
 			newSizeRange = sizeRangeKind;

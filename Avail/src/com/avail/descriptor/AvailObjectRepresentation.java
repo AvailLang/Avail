@@ -42,6 +42,7 @@ import com.avail.visitor.MarkUnreachableSubobjectVisitor;
  */
 abstract class AvailObjectRepresentation
 extends AbstractAvailObject
+implements A_BasicObject
 {
 	/**
 	 * This static switch enables paranoid checks to ensure objects are only
@@ -71,14 +72,14 @@ extends AbstractAvailObject
 	 *
 	 * @param anotherObject An object.
 	 */
-	final void becomeIndirectionTo (final AvailObject anotherObject)
+	@Override
+	public final void becomeIndirectionTo (final A_BasicObject anotherObject)
 	{
 		assert !descriptor.isShared();
 		// Yes, this is really gross, but it's the simplest way to ensure that
 		// objectSlots can remain private ...
-		final AvailObject me = (AvailObject) this;
 		// verifyToSpaceAddress();
-		final AvailObject traversed = me.traversed();
+		final AvailObject traversed = traversed();
 		final AvailObject anotherTraversed = anotherObject.traversed();
 		if (traversed.sameAddressAs(anotherTraversed))
 		{
@@ -96,7 +97,7 @@ extends AbstractAvailObject
 		{
 //			if (canDestroyObjects())
 //			{
-				me.scanSubobjects(
+				scanSubobjects(
 					new MarkUnreachableSubobjectVisitor(anotherObject));
 //			}
 			descriptor = IndirectionDescriptor.mutable;
@@ -107,7 +108,7 @@ extends AbstractAvailObject
 			anotherObject.makeImmutable();
 			descriptor = IndirectionDescriptor.mutable;
 			objectSlots[0] = anotherTraversed;
-			me.makeImmutable();
+			makeImmutable();
 		}
 	}
 
@@ -130,7 +131,7 @@ extends AbstractAvailObject
 	}
 
 	@Override
-	final int slot (
+	public final int slot (
 		final BitField bitField)
 	{
 //		verifyToSpaceAddress();
@@ -140,7 +141,7 @@ extends AbstractAvailObject
 	}
 
 	@Override
-	final void setSlot (
+	public final void setSlot (
 		final BitField bitField,
 		final int anInteger)
 	{
@@ -162,7 +163,7 @@ extends AbstractAvailObject
 	 * @return The unsigned byte as a short.
 	 */
 	@Override
-	final short byteSlotAt (
+	public final short byteSlotAt (
 		final IntegerSlotsEnum field,
 		final int byteSubscript)
 	{
@@ -184,7 +185,7 @@ extends AbstractAvailObject
 	 * @param aByte The unsigned byte to write, passed as a short.
 	 */
 	@Override
-	final void byteSlotAtPut (
+	public final void byteSlotAtPut (
 		final IntegerSlotsEnum field,
 		final int byteSubscript,
 		final short aByte)
@@ -203,7 +204,7 @@ extends AbstractAvailObject
 	}
 
 	@Override
-	final int shortSlotAt (
+	public final int shortSlotAt (
 		final IntegerSlotsEnum field,
 		final int shortIndex)
 	{
@@ -214,7 +215,7 @@ extends AbstractAvailObject
 	}
 
 	@Override
-	final void shortSlotAtPut (
+	public final void shortSlotAtPut (
 		final IntegerSlotsEnum field,
 		final int shortIndex,
 		final int aShort)
@@ -237,7 +238,7 @@ extends AbstractAvailObject
 	}
 
 	@Override
-	final int slot (final IntegerSlotsEnum field)
+	public final int slot (final IntegerSlotsEnum field)
 	{
 //		verifyToSpaceAddress();
 		checkSlot(field);
@@ -245,7 +246,7 @@ extends AbstractAvailObject
 	}
 
 	@Override
-	final void setSlot (
+	public final void setSlot (
 		final IntegerSlotsEnum field,
 		final int anInteger)
 	{
@@ -256,7 +257,7 @@ extends AbstractAvailObject
 	}
 
 	@Override
-	final int slot (
+	public final int slot (
 		final IntegerSlotsEnum field,
 		final int subscript)
 	{
@@ -266,7 +267,7 @@ extends AbstractAvailObject
 	}
 
 	@Override
-	final void setSlot (
+	public final void setSlot (
 		final IntegerSlotsEnum field,
 		final int subscript,
 		final int anInteger)
@@ -278,7 +279,7 @@ extends AbstractAvailObject
 	}
 
 	@Override
-	final int mutableSlot (final IntegerSlotsEnum field)
+	public final int mutableSlot (final IntegerSlotsEnum field)
 	{
 //		verifyToSpaceAddress();
 		checkSlot(field);
@@ -293,7 +294,7 @@ extends AbstractAvailObject
 	}
 
 	@Override
-	final void setMutableSlot (
+	public final void setMutableSlot (
 		final IntegerSlotsEnum field,
 		final int anInteger)
 	{
@@ -314,7 +315,7 @@ extends AbstractAvailObject
 	}
 
 	@Override
-	final int mutableSlot (
+	public final int mutableSlot (
 		final IntegerSlotsEnum field,
 		final int subscript)
 	{
@@ -328,7 +329,7 @@ extends AbstractAvailObject
 	}
 
 	@Override
-	final void setMutableSlot (
+	public final void setMutableSlot (
 		final IntegerSlotsEnum field,
 		final int subscript,
 		final int anInteger)
@@ -356,7 +357,7 @@ extends AbstractAvailObject
 	}
 
 	@Override
-	final AvailObject slot (
+	public final AvailObject slot (
 		final ObjectSlotsEnum field)
 	{
 //		verifyToSpaceAddress();
@@ -367,21 +368,21 @@ extends AbstractAvailObject
 	}
 
 	@Override
-	final void setSlot (
+	public final void setSlot (
 		final ObjectSlotsEnum field,
-		final AvailObject anAvailObject)
+		final A_BasicObject anAvailObject)
 	{
-		assert !descriptor.isShared() || anAvailObject.descriptor.isShared();
+		assert !descriptor.isShared() || anAvailObject.descriptor().isShared();
 //		verifyToSpaceAddress();
 		checkSlot(field);
 		checkWriteForField(field);
 		// If the receiver is shared, then the new value must become shared
 		// before it can be stored.
-		objectSlots[field.ordinal()] = anAvailObject;
+		objectSlots[field.ordinal()] = (AvailObject)anAvailObject;
 	}
 
 	@Override
-	final AvailObject slot (
+	public final AvailObject slot (
 		final ObjectSlotsEnum field,
 		final int subscript)
 	{
@@ -393,22 +394,23 @@ extends AbstractAvailObject
 	}
 
 	@Override
-	final void setSlot (
+	public final void setSlot (
 		final ObjectSlotsEnum field,
 		final int subscript,
-		final AvailObject anAvailObject)
+		final A_BasicObject anAvailObject)
 	{
-		assert !descriptor.isShared() || anAvailObject.descriptor.isShared();
+		assert !descriptor.isShared() || anAvailObject.descriptor().isShared();
 //		verifyToSpaceAddress();
 		checkSlot(field);
 		checkWriteForField(field);
 		// If the receiver is shared, then the new value must become shared
 		// before it can be stored.
-		objectSlots[field.ordinal() + subscript - 1] = anAvailObject;
+		objectSlots[field.ordinal() + subscript - 1] =
+			(AvailObject)anAvailObject;
 	}
 
 	@Override
-	final AvailObject mutableSlot (final ObjectSlotsEnum field)
+	public final AvailObject mutableSlot (final ObjectSlotsEnum field)
 	{
 //		verifyToSpaceAddress();
 		checkSlot(field);
@@ -427,9 +429,9 @@ extends AbstractAvailObject
 	}
 
 	@Override
-	final void setMutableSlot (
+	public final void setMutableSlot (
 		final ObjectSlotsEnum field,
-		final AvailObject anAvailObject)
+		final A_BasicObject anAvailObject)
 	{
 //		verifyToSpaceAddress();
 		checkSlot(field);
@@ -446,12 +448,12 @@ extends AbstractAvailObject
 		}
 		else
 		{
-			objectSlots[field.ordinal()] = anAvailObject;
+			objectSlots[field.ordinal()] = (AvailObject)anAvailObject;
 		}
 	}
 
 	@Override
-	final AvailObject mutableSlot (
+	public final AvailObject mutableSlot (
 		final ObjectSlotsEnum field,
 		final int subscript)
 	{
@@ -473,7 +475,7 @@ extends AbstractAvailObject
 	}
 
 	@Override
-	final void setMutableSlot (
+	public final void setMutableSlot (
 		final ObjectSlotsEnum field,
 		final int subscript,
 		final AvailObject anAvailObject)

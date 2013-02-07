@@ -237,7 +237,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_FunctionType (final AvailObject object)
+	A_Type o_FunctionType (final AvailObject object)
 	{
 		return object.slot(FUNCTION_TYPE);
 	}
@@ -255,13 +255,13 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_Nybbles (final AvailObject object)
+	A_Tuple o_Nybbles (final AvailObject object)
 	{
 		return object.slot(NYBBLES);
 	}
 
 	@Override @AvailMethod
-	boolean o_Equals (final AvailObject object, final AvailObject another)
+	boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		return another.equalsCompiledCode(object);
 	}
@@ -309,7 +309,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_Kind (final AvailObject object)
+	A_Type o_Kind (final AvailObject object)
 	{
 		return CompiledCodeTypeDescriptor.forFunctionType(
 			object.functionType());
@@ -337,7 +337,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_LocalTypeAt (final AvailObject object, final int index)
+	A_Type o_LocalTypeAt (final AvailObject object, final int index)
 	{
 		assert 1 <= index && index <= object.numLocals();
 		return object.literalAt(
@@ -347,7 +347,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_OuterTypeAt (final AvailObject object, final int index)
+	A_Type o_OuterTypeAt (final AvailObject object, final int index)
 	{
 		assert 1 <= index && index <= object.numOuters();
 		return object.literalAt(
@@ -360,7 +360,7 @@ extends Descriptor
 	@Override @AvailMethod
 	void o_SetStartingChunkAndReoptimizationCountdown (
 		final AvailObject object,
-		final AvailObject chunk,
+		final A_BasicObject chunk,
 		final int countdown)
 	{
 		if (isShared())
@@ -481,8 +481,8 @@ extends Descriptor
 	@Override @AvailMethod
 	int o_StartingLineNumber (final AvailObject object)
 	{
-		final AvailObject properties = object.mutableSlot(PROPERTY_ATOM);
-		final AvailObject lineInteger =
+		final A_Atom properties = object.mutableSlot(PROPERTY_ATOM);
+		final A_Number lineInteger =
 			properties.getAtomProperty(lineNumberKeyAtom);
 		return lineInteger.equalsNil()
 			? 0
@@ -493,9 +493,9 @@ extends Descriptor
 	 * Answer the module in which this code occurs.
 	 */
 	@Override @AvailMethod
-	AvailObject o_Module (final AvailObject object)
+	A_BasicObject o_Module (final AvailObject object)
 	{
-		final AvailObject properties = object.mutableSlot(PROPERTY_ATOM);
+		final A_BasicObject properties = object.mutableSlot(PROPERTY_ATOM);
 		return properties.issuingModule();
 	}
 
@@ -514,7 +514,7 @@ extends Descriptor
 	@Override @AvailMethod @Deprecated
 	void o_PostFault (final AvailObject object)
 	{
-		final AvailObject chunk = object.startingChunk();
+		final A_BasicObject chunk = object.startingChunk();
 		if (chunk.isValid())
 		{
 			chunk.isSaved(true);
@@ -536,10 +536,10 @@ extends Descriptor
 	@Override @AvailMethod
 	void o_SetMethodName (
 		final AvailObject object,
-		final AvailObject methodName)
+		final A_String methodName)
 	{
 		methodName.makeImmutable();
-		final AvailObject propertyAtom = object.mutableSlot(PROPERTY_ATOM);
+		final A_Atom propertyAtom = object.mutableSlot(PROPERTY_ATOM);
 		propertyAtom.setAtomProperty(methodNameKeyAtom, methodName);
 		// Now scan all sub-blocks. Some literals will be functions and some
 		// will be compiled code objects.
@@ -567,21 +567,21 @@ extends Descriptor
 					"[#%d] of ",
 					counter);
 				counter++;
-				final AvailObject parts = TupleDescriptor.from(
+				final A_Tuple parts = TupleDescriptor.from(
 					StringDescriptor.from(prefix),
 					methodName);
-				final AvailObject newName =
+				final A_Tuple newName =
 					parts.concatenateTuplesCanDestroy(true);
-				subCode.setMethodName(newName);
+				subCode.setMethodName((A_String)newName);
 			}
 		}
 	}
 
 	@Override @AvailMethod
-	AvailObject o_MethodName (final AvailObject object)
+	A_String o_MethodName (final AvailObject object)
 	{
-		final AvailObject propertyAtom = object.mutableSlot(PROPERTY_ATOM);
-		final AvailObject methodName =
+		final A_BasicObject propertyAtom = object.mutableSlot(PROPERTY_ATOM);
+		final A_String methodName =
 			propertyAtom.getAtomProperty(methodNameKeyAtom);
 		if (methodName.equalsNil())
 		{
@@ -597,7 +597,7 @@ extends Descriptor
 	}
 
 	@Override
-	public boolean o_ShowValueInNameForDebugger (final AvailObject object)
+	public boolean o_ShowValueInNameForDebugger (final A_BasicObject object)
 	{
 		return false;
 	}
@@ -643,14 +643,14 @@ extends Descriptor
 	 * @return The new compiled code object.
 	 */
 	public static AvailObject create (
-		final AvailObject nybbles,
+		final A_Tuple nybbles,
 		final int locals,
 		final int stack,
-		final AvailObject functionType,
+		final A_Type functionType,
 		final int primitive,
-		final AvailObject literals,
-		final AvailObject localTypes,
-		final AvailObject outerTypes,
+		final A_Tuple literals,
+		final A_Tuple localTypes,
+		final A_Tuple outerTypes,
 		final AvailObject module,
 		final int lineNumber)
 	{
@@ -660,13 +660,12 @@ extends Descriptor
 			// specified primitive signatures.
 			assert primitive == (primitive & 0xFFFF);
 			final Primitive prim = Primitive.byPrimitiveNumberOrFail(primitive);
-			final AvailObject restrictionSignature =
-				prim.blockTypeRestriction();
+			final A_Type restrictionSignature = prim.blockTypeRestriction();
 			assert restrictionSignature.isSubtypeOf(functionType);
 		}
 
 		assert localTypes.tupleSize() == locals;
-		final AvailObject argCounts = functionType.argsTupleType().sizeRange();
+		final A_Type argCounts = functionType.argsTupleType().sizeRange();
 		final int numArgs = argCounts.lowerBound().extractInt();
 		assert argCounts.upperBound().extractInt() == numArgs;
 		final int literalsSize = literals.tupleSize();
@@ -712,7 +711,7 @@ extends Descriptor
 		}
 		assert dest == literalsSize + outersSize + locals + 1;
 
-		final AvailObject propertyAtom = AtomWithPropertiesDescriptor.create(
+		final A_Atom propertyAtom = AtomWithPropertiesDescriptor.create(
 			TupleDescriptor.empty(),
 			module);
 		code.setSlot(PROPERTY_ATOM, propertyAtom);
@@ -730,7 +729,7 @@ extends Descriptor
 	 * The key used to track a method name associated with the code. This
 	 * name is presented in stack traces.
 	 */
-	static AvailObject methodNameKeyAtom;
+	static A_Atom methodNameKeyAtom;
 
 	/**
 	 * Answer the key used to track a method name associated with the code. This
@@ -738,7 +737,7 @@ extends Descriptor
 	 *
 	 * @return A special atom.
 	 */
-	public static AvailObject methodNameKeyAtom ()
+	public static A_Atom methodNameKeyAtom ()
 	{
 		return methodNameKeyAtom;
 	}
@@ -747,7 +746,7 @@ extends Descriptor
 	 * The key used to track the first line number within the module on which
 	 * this code occurs.
 	 */
-	static AvailObject lineNumberKeyAtom;
+	static A_Atom lineNumberKeyAtom;
 
 	/**
 	 * Answer the key used to track the first line number within the module on
@@ -755,7 +754,7 @@ extends Descriptor
 	 *
 	 * @return A special atom.
 	 */
-	public static AvailObject lineNumberKeyAtom ()
+	public static A_Atom lineNumberKeyAtom ()
 	{
 		return lineNumberKeyAtom;
 	}

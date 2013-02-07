@@ -58,8 +58,8 @@ extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 2;
-		final AvailObject source = args.get(0);
-		final AvailObject destination = args.get(1);
+		final A_String source = args.get(0);
+		final A_String destination = args.get(1);
 		final File file = new File(source.asNativeString());
 		final boolean renamed;
 		try
@@ -78,7 +78,7 @@ extends Primitive
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
@@ -88,7 +88,7 @@ extends Primitive
 	}
 
 	@Override
-	protected AvailObject privateFailureVariableType ()
+	protected A_Type privateFailureVariableType ()
 	{
 		return AbstractEnumerationTypeDescriptor.withInstances(
 			TupleDescriptor.from(

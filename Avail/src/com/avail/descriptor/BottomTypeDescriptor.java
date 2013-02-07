@@ -70,11 +70,11 @@ extends AbstractEnumerationTypeDescriptor
 	@Override @AvailMethod
 	boolean o_Equals (
 		final AvailObject object,
-		final AvailObject another)
+		final A_BasicObject another)
 	{
 		final boolean equal = another.equalsEnumerationWithSet(
 			SetDescriptor.empty());
-		if (equal && !another.descriptor.isShared())
+		if (equal && !another.descriptor().isShared())
 		{
 			object.makeImmutable();
 			another.becomeIndirectionTo(object);
@@ -96,7 +96,7 @@ extends AbstractEnumerationTypeDescriptor
 	@Override @AvailMethod
 	boolean o_EqualsEnumerationWithSet (
 		final AvailObject object,
-		final AvailObject aSet)
+		final A_Set aSet)
 	{
 		return aSet.setSize() == 0;
 	}
@@ -114,9 +114,9 @@ extends AbstractEnumerationTypeDescriptor
 	 *            another.
 	 */
 	@Override final
-	AvailObject computeIntersectionWith (
-		final AvailObject object,
-		final AvailObject another)
+	A_Type computeIntersectionWith (
+		final A_Type object,
+		final A_Type another)
 	{
 		// Easy -- it's always the type bottom.
 		return object;
@@ -135,9 +135,9 @@ extends AbstractEnumerationTypeDescriptor
 	 *            another.
 	 */
 	@Override final
-	AvailObject computeUnionWith (
-		final AvailObject object,
-		final AvailObject another)
+	A_Type computeUnionWith (
+		final A_Type object,
+		final A_Type another)
 	{
 		// Easy -- it's always the other type.
 		assert another.isType();
@@ -145,7 +145,7 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_LowerBound (final AvailObject object)
+	A_Number o_LowerBound (final AvailObject object)
 	{
 		// Pretend we go from +∞ to -∞ exclusive. That should be a nice empty
 		// range.
@@ -161,7 +161,7 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_UpperBound (final AvailObject object)
+	A_Number o_UpperBound (final AvailObject object)
 	{
 		// Pretend we go from +∞ to -∞ exclusive. That should be a nice empty
 		// range.
@@ -177,7 +177,7 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_KeyType (final AvailObject object)
+	A_Type o_KeyType (final AvailObject object)
 	{
 		// Answer what type my keys are. Since I'm a degenerate map type,
 		// answer ⊥.
@@ -185,7 +185,7 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_SizeRange (final AvailObject object)
+	A_Type o_SizeRange (final AvailObject object)
 	{
 		// Answer what sizes my instances can be. Since I'm a degenerate
 		// map type, answer ⊥, a degenerate integer type.
@@ -193,7 +193,7 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_ValueType (
+	A_Type o_ValueType (
 		final AvailObject object)
 	{
 		// Answer what type my values are. Since I'm a degenerate map type,
@@ -202,7 +202,7 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_TypeAtIndex (final AvailObject object, final int index)
+	A_Type o_TypeAtIndex (final AvailObject object, final int index)
 	{
 		// Answer what type the given index would have in an object instance of
 		// me. Answer ⊥ if the index is out of bounds, which is always because
@@ -211,7 +211,7 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_UnionOfTypesAtThrough (
+	A_Type o_UnionOfTypesAtThrough (
 		final AvailObject object,
 		final int startIndex,
 		final int endIndex)
@@ -223,21 +223,21 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_DefaultType (final AvailObject object)
+	A_Type o_DefaultType (final AvailObject object)
 	{
 		// Since I'm a degenerate tuple type, I must answer ⊥.
 		return BottomTypeDescriptor.bottom();
 	}
 
 	@Override @AvailMethod
-	AvailObject o_TypeTuple (final AvailObject object)
+	A_Tuple o_TypeTuple (final AvailObject object)
 	{
 		// Since I'm a degenerate tuple type, I have no leading types.
 		return TupleDescriptor.empty();
 	}
 
 	@Override @AvailMethod
-	boolean o_IsSubtypeOf (final AvailObject object, final AvailObject aType)
+	boolean o_IsSubtypeOf (final AvailObject object, final A_Type aType)
 	{
 		return true;
 	}
@@ -270,7 +270,7 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_ArgsTupleType (final AvailObject object)
+	A_Type o_ArgsTupleType (final AvailObject object)
 	{
 		// Because ⊥ is a subtype of all other types, it is considered a
 		// function type. In particular, if ⊥ is viewed as a function type, it
@@ -280,14 +280,14 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_InstanceCount (final AvailObject object)
+	A_Number o_InstanceCount (final AvailObject object)
 	{
 		// ⊥ is the empty enumeration.
 		return IntegerDescriptor.zero();
 	}
 
 	@Override @AvailMethod
-	AvailObject o_Instances (final AvailObject object)
+	A_Set o_Instances (final AvailObject object)
 	{
 		// ⊥ is the empty enumeration.
 		return SetDescriptor.empty();
@@ -305,13 +305,13 @@ extends AbstractEnumerationTypeDescriptor
 	 * </p>
 	 */
 	@Override @AvailMethod
-	AvailObject o_ComputeSuperkind (final AvailObject object)
+	A_Type o_ComputeSuperkind (final AvailObject object)
 	{
 		return object;
 	}
 
 	@Override @AvailMethod
-	AvailObject o_FieldTypeMap (final AvailObject object)
+	A_Map o_FieldTypeMap (final AvailObject object)
 	{
 		// TODO: [MvG] It's unclear what to return here. Maybe raise an
 		// unchecked exception. Or if we ever implement more precise map types
@@ -343,7 +343,7 @@ extends AbstractEnumerationTypeDescriptor
 	@Override @AvailMethod
 	boolean o_AcceptsArgTypesFromFunctionType (
 		final AvailObject object,
-		final AvailObject functionType)
+		final A_Type functionType)
 	{
 		return true;
 	}
@@ -351,7 +351,7 @@ extends AbstractEnumerationTypeDescriptor
 	@Override @AvailMethod
 	boolean o_AcceptsListOfArgTypes (
 		final AvailObject object,
-		final List<AvailObject> argTypes)
+		final List<A_Type> argTypes)
 	{
 		return true;
 	}
@@ -359,7 +359,7 @@ extends AbstractEnumerationTypeDescriptor
 	@Override @AvailMethod
 	boolean o_AcceptsListOfArgValues (
 		final AvailObject object,
-		final List<AvailObject> argValues)
+		final List<? extends A_BasicObject> argValues)
 	{
 		return true;
 	}
@@ -367,7 +367,7 @@ extends AbstractEnumerationTypeDescriptor
 	@Override @AvailMethod
 	boolean o_AcceptsTupleOfArgTypes (
 		final AvailObject object,
-		final AvailObject argTypes)
+		final A_Tuple argTypes)
 	{
 		return true;
 	}
@@ -375,25 +375,25 @@ extends AbstractEnumerationTypeDescriptor
 	@Override @AvailMethod
 	boolean o_AcceptsTupleOfArguments (
 		final AvailObject object,
-		final AvailObject arguments)
+		final A_BasicObject arguments)
 	{
 		return true;
 	}
 
 	@Override @AvailMethod
-	AvailObject o_DeclaredExceptions (final AvailObject object)
+	A_Set o_DeclaredExceptions (final AvailObject object)
 	{
 		return SetDescriptor.empty();
 	}
 
 	@Override @AvailMethod
-	AvailObject o_FunctionType (final AvailObject object)
+	A_Type o_FunctionType (final AvailObject object)
 	{
 		return object;
 	}
 
 	@Override @AvailMethod
-	AvailObject o_ContentType (final AvailObject object)
+	A_Type o_ContentType (final AvailObject object)
 	{
 		return object;
 	}
@@ -401,7 +401,7 @@ extends AbstractEnumerationTypeDescriptor
 	@Override @AvailMethod
 	boolean o_CouldEverBeInvokedWith (
 		final AvailObject object,
-		final List<AvailObject> argTypes)
+		final List<? extends A_Type> argTypes)
 	{
 		return true;
 	}
@@ -409,7 +409,7 @@ extends AbstractEnumerationTypeDescriptor
 	@Override @AvailMethod
 	boolean o_IsInstanceOf (
 		final AvailObject object,
-		final AvailObject aType)
+		final A_Type aType)
 	{
 		// Bottom is an instance of every metatype except for itself.
 		assert aType.isType();
@@ -435,7 +435,7 @@ extends AbstractEnumerationTypeDescriptor
 	@Override @AvailMethod
 	boolean o_IsInstanceOfKind (
 		final AvailObject object,
-		final AvailObject aType)
+		final A_Type aType)
 	{
 		assert !aType.equals(bottom);
 		return aType.isSupertypeOfPrimitiveTypeEnum(ANY)
@@ -449,13 +449,13 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_Parent (final AvailObject object)
+	A_BasicObject o_Parent (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}
 
 	@Override @AvailMethod
-	AvailObject o_ReturnType (final AvailObject object)
+	A_Type o_ReturnType (final AvailObject object)
 	{
 		return object;
 	}
@@ -473,14 +473,14 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_ReadType (
+	A_Type o_ReadType (
 		final AvailObject object)
 	{
 		return TOP.o();
 	}
 
 	@Override @AvailMethod
-	AvailObject o_WriteType (
+	A_Type o_WriteType (
 		final AvailObject object)
 	{
 		return bottom;
@@ -511,7 +511,7 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	@Override
-	AvailObject o_ExpressionType (
+	A_Type o_ExpressionType (
 		final AvailObject object)
 	{
 		return object;
@@ -542,14 +542,14 @@ extends AbstractEnumerationTypeDescriptor
 	/**
 	 * The unique object that represents the type with no instances.
 	 */
-	private static AvailObject bottom;
+	private static A_Type bottom;
 
 	/**
 	 * Answer the unique type that has no instances.
 	 *
 	 * @return The type {@code bottom}.
 	 */
-	public static AvailObject bottom ()
+	public static A_Type bottom ()
 	{
 		return bottom;
 	}

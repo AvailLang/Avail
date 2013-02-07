@@ -57,14 +57,14 @@ public class L1InstructionWriter
 	/**
 	 * The collection of literal objects that have been accumulated thus far.
 	 */
-	final List<AvailObject> literals = new ArrayList<AvailObject>();
+	final List<A_BasicObject> literals = new ArrayList<A_BasicObject>();
 
 	/**
 	 * An inverse mapping of the literal objects encountered thus far.  The map
 	 * is from each literal object to its 1-based index.
 	 */
-	private final Map<AvailObject, Integer> reverseLiterals =
-		new HashMap<AvailObject, Integer>();
+	private final Map<A_BasicObject, Integer> reverseLiterals =
+		new HashMap<A_BasicObject, Integer>();
 
 	/**
 	 * Locate or record the specified literal object.  Answer its 1-based index.
@@ -72,7 +72,7 @@ public class L1InstructionWriter
 	 * @param literal The literal object to look up.
 	 * @return The object's 1-based literal index.
 	 */
-	public int addLiteral (final AvailObject literal)
+	public int addLiteral (final A_BasicObject literal)
 	{
 		Integer index = reverseLiterals.get(literal);
 		if (index == null)
@@ -88,12 +88,12 @@ public class L1InstructionWriter
 	 * The {@link List} of argument {@linkplain TypeDescriptor types} for this
 	 * {@linkplain CompiledCodeDescriptor compiled code}.
 	 */
-	private List<AvailObject> argumentTypes;
+	private List<A_Type> argumentTypes;
 
 	/**
 	 * @param argTypes
 	 */
-	public void argumentTypes (final AvailObject ... argTypes)
+	public void argumentTypes (final A_Type... argTypes)
 	{
 		assert localTypes.size() == 0
 		: "Must declare argument types before allocating locals";
@@ -110,11 +110,11 @@ public class L1InstructionWriter
 	 *            {@linkplain FunctionDescriptor} under construction will
 	 *            accept.
 	 */
-	public void argumentTypesTuple (final AvailObject argTypes)
+	public void argumentTypesTuple (final A_Tuple argTypes)
 	{
 		assert localTypes.size() == 0
 		: "Must declare argument types before allocating locals";
-		final List<AvailObject> types = new ArrayList<AvailObject>(
+		final List<A_Type> types = new ArrayList<A_Type>(
 			argTypes.tupleSize());
 		for (final AvailObject type : argTypes)
 		{
@@ -127,7 +127,7 @@ public class L1InstructionWriter
 	 * The return type of the {@linkplain FunctionDescriptor} under
 	 * construction.
 	 */
-	private AvailObject returnType;
+	private A_Type returnType;
 
 	/**
 	 * Set the return type that the {@linkplain FunctionDescriptor} under
@@ -135,7 +135,7 @@ public class L1InstructionWriter
 	 *
 	 * @param retType
 	 */
-	public void returnType (final AvailObject retType)
+	public void returnType (final A_Type retType)
 	{
 		this.returnType = retType;
 	}
@@ -236,7 +236,7 @@ public class L1InstructionWriter
 	 */
 	L1StackTracker stackTracker = new L1StackTracker ()
 	{
-		@Override AvailObject literalAt (final int literalIndex)
+		@Override A_BasicObject literalAt (final int literalIndex)
 		{
 			return literals.get(literalIndex - 1);
 		}

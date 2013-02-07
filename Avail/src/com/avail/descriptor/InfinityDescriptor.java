@@ -96,7 +96,7 @@ extends ExtendedIntegerDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_Equals (final AvailObject object, final AvailObject another)
+	boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		return another.equalsInfinity(getSign(object));
 	}
@@ -110,7 +110,7 @@ extends ExtendedIntegerDescriptor
 	@Override @AvailMethod
 	Order o_NumericCompareToInteger (
 		final AvailObject object,
-		final AvailObject anInteger)
+		final A_Number anInteger)
 	{
 		// Infinities are either above or below all integer, depending on sign.
 		return getSign(object) == Sign.POSITIVE ? MORE : LESS;
@@ -129,7 +129,7 @@ extends ExtendedIntegerDescriptor
 	@Override @AvailMethod
 	boolean o_IsInstanceOfKind (
 		final AvailObject object,
-		final AvailObject aType)
+		final A_Type aType)
 	{
 		if (aType.isSupertypeOfPrimitiveTypeEnum(NUMBER))
 		{
@@ -159,7 +159,7 @@ extends ExtendedIntegerDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_Kind (final AvailObject object)
+	A_Type o_Kind (final AvailObject object)
 	{
 		return IntegerRangeTypeDescriptor.singleInteger(object);
 	}
@@ -182,9 +182,9 @@ extends ExtendedIntegerDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_DivideCanDestroy (
+	A_Number o_DivideCanDestroy (
 		final AvailObject object,
-		final AvailObject aNumber,
+		final A_Number aNumber,
 		final boolean canDestroy)
 	{
 		return aNumber.divideIntoInfinityCanDestroy(
@@ -193,9 +193,9 @@ extends ExtendedIntegerDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_MinusCanDestroy (
+	A_Number o_MinusCanDestroy (
 		final AvailObject object,
-		final AvailObject aNumber,
+		final A_Number aNumber,
 		final boolean canDestroy)
 	{
 		return aNumber.subtractFromInfinityCanDestroy(
@@ -204,18 +204,18 @@ extends ExtendedIntegerDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_PlusCanDestroy (
+	A_Number o_PlusCanDestroy (
 		final AvailObject object,
-		final AvailObject aNumber,
+		final A_Number aNumber,
 		final boolean canDestroy)
 	{
 		return aNumber.addToInfinityCanDestroy(getSign(object), canDestroy);
 	}
 
 	@Override @AvailMethod
-	AvailObject o_TimesCanDestroy (
+	A_Number o_TimesCanDestroy (
 		final AvailObject object,
-		final AvailObject aNumber,
+		final A_Number aNumber,
 		final boolean canDestroy)
 	{
 		return aNumber.multiplyByInfinityCanDestroy(
@@ -230,7 +230,7 @@ extends ExtendedIntegerDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_AddToInfinityCanDestroy (
+	A_Number o_AddToInfinityCanDestroy (
 		final AvailObject object,
 		final Sign sign,
 		final boolean canDestroy)
@@ -244,18 +244,18 @@ extends ExtendedIntegerDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_AddToIntegerCanDestroy (
+	A_Number o_AddToIntegerCanDestroy (
 		final AvailObject object,
-		final AvailObject anInteger,
+		final A_Number anInteger,
 		final boolean canDestroy)
 	{
 		return object;
 	}
 
 	@Override @AvailMethod
-	AvailObject o_AddToDoubleCanDestroy (
+	A_Number o_AddToDoubleCanDestroy (
 		final AvailObject object,
-		final AvailObject doubleObject,
+		final A_Number doubleObject,
 		final boolean canDestroy)
 	{
 		return DoubleDescriptor.objectFromDoubleRecycling(
@@ -265,9 +265,9 @@ extends ExtendedIntegerDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_AddToFloatCanDestroy (
+	A_Number o_AddToFloatCanDestroy (
 		final AvailObject object,
-		final AvailObject floatObject,
+		final A_Number floatObject,
 		final boolean canDestroy)
 	{
 		return FloatDescriptor.objectFromFloatRecycling(
@@ -277,7 +277,7 @@ extends ExtendedIntegerDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_DivideIntoInfinityCanDestroy (
+	A_Number o_DivideIntoInfinityCanDestroy (
 		final AvailObject object,
 		final Sign sign,
 		final boolean canDestroy)
@@ -287,18 +287,18 @@ extends ExtendedIntegerDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_DivideIntoIntegerCanDestroy (
+	A_Number o_DivideIntoIntegerCanDestroy (
 		final AvailObject object,
-		final AvailObject anInteger,
+		final A_Number anInteger,
 		final boolean canDestroy)
 	{
 		return IntegerDescriptor.zero();
 	}
 
 	@Override @AvailMethod
-	public AvailObject o_DivideIntoDoubleCanDestroy (
+	public A_Number o_DivideIntoDoubleCanDestroy (
 		final AvailObject object,
-		final AvailObject doubleObject,
+		final A_Number doubleObject,
 		final boolean canDestroy)
 	{
 		return DoubleDescriptor.objectFromDoubleRecycling(
@@ -308,9 +308,9 @@ extends ExtendedIntegerDescriptor
 	}
 
 	@Override @AvailMethod
-	public AvailObject o_DivideIntoFloatCanDestroy (
+	public A_Number o_DivideIntoFloatCanDestroy (
 		final AvailObject object,
-		final AvailObject floatObject,
+		final A_Number floatObject,
 		final boolean canDestroy)
 	{
 		return FloatDescriptor.objectFromFloatRecycling(
@@ -320,7 +320,7 @@ extends ExtendedIntegerDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_MultiplyByInfinityCanDestroy (
+	A_Number o_MultiplyByInfinityCanDestroy (
 		final AvailObject object,
 		final Sign sign,
 		final boolean canDestroy)
@@ -331,9 +331,9 @@ extends ExtendedIntegerDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_MultiplyByIntegerCanDestroy (
+	A_Number o_MultiplyByIntegerCanDestroy (
 		final AvailObject object,
-		final AvailObject anInteger,
+		final A_Number anInteger,
 		final boolean canDestroy)
 	{
 		if (anInteger.equals(IntegerDescriptor.zero()))
@@ -348,9 +348,9 @@ extends ExtendedIntegerDescriptor
 	}
 
 	@Override @AvailMethod
-	public AvailObject o_MultiplyByDoubleCanDestroy (
+	public A_Number o_MultiplyByDoubleCanDestroy (
 		final AvailObject object,
-		final AvailObject doubleObject,
+		final A_Number doubleObject,
 		final boolean canDestroy)
 	{
 		return DoubleDescriptor.objectFromDoubleRecycling(
@@ -360,9 +360,9 @@ extends ExtendedIntegerDescriptor
 	}
 
 	@Override @AvailMethod
-	public AvailObject o_MultiplyByFloatCanDestroy (
+	public A_Number o_MultiplyByFloatCanDestroy (
 		final AvailObject object,
-		final AvailObject floatObject,
+		final A_Number floatObject,
 		final boolean canDestroy)
 	{
 		return FloatDescriptor.objectFromFloatRecycling(
@@ -372,7 +372,7 @@ extends ExtendedIntegerDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_SubtractFromInfinityCanDestroy (
+	A_Number o_SubtractFromInfinityCanDestroy (
 		final AvailObject object,
 		final Sign sign,
 		final boolean canDestroy)
@@ -388,9 +388,9 @@ extends ExtendedIntegerDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_SubtractFromIntegerCanDestroy (
+	A_Number o_SubtractFromIntegerCanDestroy (
 		final AvailObject object,
-		final AvailObject anInteger,
+		final A_Number anInteger,
 		final boolean canDestroy)
 	{
 		return object.isPositive()
@@ -399,9 +399,9 @@ extends ExtendedIntegerDescriptor
 	}
 
 	@Override @AvailMethod
-	public AvailObject o_SubtractFromDoubleCanDestroy (
+	public A_Number o_SubtractFromDoubleCanDestroy (
 		final AvailObject object,
-		final AvailObject doubleObject,
+		final A_Number doubleObject,
 		final boolean canDestroy)
 	{
 		return DoubleDescriptor.objectFromDoubleRecycling(
@@ -411,9 +411,9 @@ extends ExtendedIntegerDescriptor
 	}
 
 	@Override @AvailMethod
-	public AvailObject o_SubtractFromFloatCanDestroy (
+	public A_Number o_SubtractFromFloatCanDestroy (
 		final AvailObject object,
-		final AvailObject floatObject,
+		final A_Number floatObject,
 		final boolean canDestroy)
 	{
 		return FloatDescriptor.objectFromFloatRecycling(
@@ -423,7 +423,7 @@ extends ExtendedIntegerDescriptor
 	}
 
 	@Override @AvailMethod
-	Order o_NumericCompare (final AvailObject object, final AvailObject another)
+	Order o_NumericCompare (final AvailObject object, final A_Number another)
 	{
 		return another.numericCompareToInfinity(getSign(object)).reverse();
 	}
@@ -521,7 +521,7 @@ extends ExtendedIntegerDescriptor
 	 * @param sign
 	 * @return
 	 */
-	public static AvailObject fromSign (final Sign sign)
+	public static A_BasicObject fromSign (final Sign sign)
 	{
 		if (sign == Sign.POSITIVE)
 		{

@@ -62,10 +62,10 @@ public class P_249_SimpleMacroDeclaration extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 3;
-		final AvailObject string = args.get(0);
-		final AvailObject prefixFunctions = args.get(1);
-		final AvailObject function = args.get(2);
-		for (final AvailObject prefixFunction : prefixFunctions)
+		final A_String string = args.get(0);
+		final A_Tuple prefixFunctions = args.get(1);
+		final A_Function function = args.get(2);
+		for (final A_BasicObject prefixFunction : prefixFunctions)
 		{
 			if (!prefixFunction.kind().returnType().equals(TOP.o()))
 			{
@@ -109,7 +109,7 @@ public class P_249_SimpleMacroDeclaration extends Primitive
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

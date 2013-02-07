@@ -55,14 +55,14 @@ public class P_081_KeyInMap extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 2;
-		final AvailObject key = args.get(0);
-		final AvailObject map = args.get(1);
+		final A_BasicObject key = args.get(0);
+		final A_Map map = args.get(1);
 		return interpreter.primitiveSuccess(
 			AtomDescriptor.objectFromBoolean(map.hasKey(key)));
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

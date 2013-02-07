@@ -56,14 +56,14 @@ public class P_024_RequestTermination extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
-		final AvailObject fiber = args.get(0);
+		final A_BasicObject fiber = args.get(0);
 		fiber.setInterruptRequestFlag(
 			FiberDescriptor.IntegerSlots.TERMINATION_REQUESTED);
 		return interpreter.primitiveSuccess(NilDescriptor.nil());
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

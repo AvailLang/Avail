@@ -94,7 +94,7 @@ extends ParseNodeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_Token (final AvailObject object)
+	A_Token o_Token (final AvailObject object)
 	{
 		return object.slot(USE_TOKEN);
 	}
@@ -121,7 +121,7 @@ extends ParseNodeDescriptor
 
 
 	@Override @AvailMethod
-	AvailObject o_ExpressionType (final AvailObject object)
+	A_Type o_ExpressionType (final AvailObject object)
 	{
 		return object.slot(DECLARATION).declaredType();
 	}
@@ -139,7 +139,7 @@ extends ParseNodeDescriptor
 	@Override @AvailMethod
 	boolean o_EqualsParseNode (
 		final AvailObject object,
-		final AvailObject aParseNode)
+		final A_BasicObject aParseNode)
 	{
 		return object.kind().equals(aParseNode.kind())
 			&& object.slot(USE_TOKEN).equals(aParseNode.token())
@@ -152,7 +152,7 @@ extends ParseNodeDescriptor
 		final AvailObject object,
 		final AvailCodeGenerator codeGenerator)
 	{
-		final AvailObject declaration = object.slot(DECLARATION);
+		final A_BasicObject declaration = object.slot(DECLARATION);
 		declaration.declarationKind().emitVariableValueForOn(
 			declaration,
 			codeGenerator);
@@ -177,7 +177,7 @@ extends ParseNodeDescriptor
 	@Override @AvailMethod
 	void o_ValidateLocally (
 		final AvailObject object,
-		final @Nullable AvailObject parent)
+		final @Nullable A_BasicObject parent)
 	{
 		// Do nothing.
 	}
@@ -206,7 +206,7 @@ extends ParseNodeDescriptor
 	 * @return A new variable use node.
 	 */
 	public static AvailObject newUse (
-		final AvailObject theToken,
+		final A_Token theToken,
 		final AvailObject declaration)
 	{
 		assert theToken.isInstanceOfKind(TOKEN.o());

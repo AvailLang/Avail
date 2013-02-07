@@ -56,14 +56,14 @@ public class P_006_LessOrEqual extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 2;
-		final AvailObject a = args.get(0);
-		final AvailObject b = args.get(1);
+		final A_Number a = args.get(0);
+		final A_Number b = args.get(1);
 		return interpreter.primitiveSuccess(
 			AtomDescriptor.objectFromBoolean(a.lessOrEqual(b)));
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

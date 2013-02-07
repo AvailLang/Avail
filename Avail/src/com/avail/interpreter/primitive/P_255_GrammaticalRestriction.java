@@ -63,15 +63,15 @@ public class P_255_GrammaticalRestriction extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 2;
-		final AvailObject stringSet = args.get(0);
-		final AvailObject exclusionsTuple = args.get(1);
+		final A_Set stringSet = args.get(0);
+		final A_Tuple exclusionsTuple = args.get(1);
 		try
 		{
-			AvailObject disallowed = exclusionsTuple;
+			A_Tuple disallowed = exclusionsTuple;
 			for (int i = disallowed.tupleSize(); i >= 1; i--)
 			{
-				AvailObject setOfAtoms = SetDescriptor.empty();
-				for (final AvailObject string : exclusionsTuple.tupleAt(i))
+				A_Set setOfAtoms = SetDescriptor.empty();
+				for (final A_String string : exclusionsTuple.tupleAt(i))
 				{
 					setOfAtoms = setOfAtoms.setWithElementCanDestroy(
 						interpreter.lookupName(string),
@@ -83,10 +83,10 @@ public class P_255_GrammaticalRestriction extends Primitive
 					true);
 			}
 			disallowed.makeImmutable();
-			final AvailObject stringSetAsTuple = stringSet.asTuple();
+			final A_Tuple stringSetAsTuple = stringSet.asTuple();
 			for (int i = stringSetAsTuple.tupleSize(); i >= 1; i--)
 			{
-				final AvailObject string = stringSetAsTuple.tupleAt(i);
+				final A_String string = stringSetAsTuple.tupleAt(i);
 				interpreter.atDisallowArgumentMessages(
 					interpreter.lookupName(string),
 					disallowed);
@@ -104,7 +104,7 @@ public class P_255_GrammaticalRestriction extends Primitive
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

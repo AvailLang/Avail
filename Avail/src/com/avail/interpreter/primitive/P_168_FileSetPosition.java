@@ -62,20 +62,20 @@ extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 2;
-		final AvailObject handle = args.get(0);
-		final AvailObject filePosition = args.get(1);
+		final A_BasicObject handle = args.get(0);
+		final A_Number filePosition = args.get(1);
 		if (!filePosition.isLong())
 		{
 			return interpreter.primitiveFailure(E_SUBSCRIPT_OUT_OF_BOUNDS);
 		}
-		final AvailObject pojo =
+		final A_BasicObject pojo =
 			handle.getAtomProperty(AtomDescriptor.fileKey());
 		if (pojo.equalsNil())
 		{
 			return interpreter.primitiveFailure(E_INVALID_HANDLE);
 		}
 		final RandomAccessFile file = (RandomAccessFile) pojo.javaObject();
-		final AvailObject oneBased = filePosition.minusCanDestroy(
+		final A_Number oneBased = filePosition.minusCanDestroy(
 			IntegerDescriptor.one(), false);
 		try
 		{
@@ -89,7 +89,7 @@ extends Primitive
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
@@ -99,7 +99,7 @@ extends Primitive
 	}
 
 	@Override
-	protected AvailObject privateFailureVariableType ()
+	protected A_Type privateFailureVariableType ()
 	{
 		return AbstractEnumerationTypeDescriptor.withInstances(
 			TupleDescriptor.from(

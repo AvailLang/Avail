@@ -60,7 +60,7 @@ public class P_030_Type extends Primitive
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
@@ -69,10 +69,10 @@ public class P_030_Type extends Primitive
 	}
 
 	@Override
-	public AvailObject returnTypeGuaranteedByVM (
-		final List<AvailObject> argumentTypes)
+	public A_Type returnTypeGuaranteedByVM (
+		final List<A_Type> argumentTypes)
 	{
-		final AvailObject argType = argumentTypes.get(0);
+		final A_Type argType = argumentTypes.get(0);
 		return InstanceMetaDescriptor.on(argType);
 	}
 }

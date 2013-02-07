@@ -165,7 +165,7 @@ public class TypeConsistencyTest
 					}
 					final Node node = new Node(type.name(), parents)
 					{
-						@Override AvailObject get ()
+						@Override A_Type get ()
 						{
 							return type.o();
 						}
@@ -180,7 +180,7 @@ public class TypeConsistencyTest
 			"TOP_META",
 			primitiveTypes.get(Types.ANY))
 		{
-			@Override AvailObject get ()
+			@Override A_Type get ()
 			{
 				return InstanceMetaDescriptor.topMeta();
 			}
@@ -191,7 +191,7 @@ public class TypeConsistencyTest
 			"ANY_META",
 			TOP_META)
 		{
-			@Override AvailObject get ()
+			@Override A_Type get ()
 			{
 				return InstanceMetaDescriptor.anyMeta();
 			}
@@ -202,7 +202,7 @@ public class TypeConsistencyTest
 			"NONTYPE_META",
 			ANY_META)
 		{
-			@Override AvailObject get ()
+			@Override A_Type get ()
 			{
 				return InstanceMetaDescriptor.on(Types.NONTYPE.o());
 			}
@@ -213,7 +213,7 @@ public class TypeConsistencyTest
 			"TUPLE",
 			primitiveTypes.get(Types.NONTYPE))
 		{
-			@Override AvailObject get ()
+			@Override A_Type get ()
 			{
 				return TupleTypeDescriptor.mostGeneralType();
 			}
@@ -225,7 +225,7 @@ public class TypeConsistencyTest
 		 */
 		static final Node STRING = new Node("STRING", TUPLE)
 		{
-			@Override AvailObject get ()
+			@Override A_Type get ()
 			{
 				return TupleTypeDescriptor.stringTupleType();
 			}
@@ -234,7 +234,7 @@ public class TypeConsistencyTest
 		/** The type {@code tuple [1..1] of character} */
 		static final Node UNIT_STRING = new Node("UNIT_STRING", STRING)
 		{
-			@Override AvailObject get ()
+			@Override A_Type get ()
 			{
 				return StringDescriptor.from("x").kind();
 			}
@@ -243,7 +243,7 @@ public class TypeConsistencyTest
 		/** The type {@code type of <>} */
 		static final Node EMPTY_TUPLE = new Node("EMPTY_TUPLE", TUPLE, STRING)
 		{
-			@Override AvailObject get ()
+			@Override A_Type get ()
 			{
 				return TupleDescriptor.empty().kind();
 			}
@@ -254,7 +254,7 @@ public class TypeConsistencyTest
 			"SET",
 			primitiveTypes.get(Types.NONTYPE))
 		{
-			@Override AvailObject get ()
+			@Override A_Type get ()
 			{
 				return SetTypeDescriptor.mostGeneralType();
 			}
@@ -265,7 +265,7 @@ public class TypeConsistencyTest
 			"MOST_GENERAL_FUNCTION",
 			primitiveTypes.get(Types.NONTYPE))
 		{
-			@Override AvailObject get ()
+			@Override A_Type get ()
 			{
 				return FunctionTypeDescriptor.mostGeneralType();
 			}
@@ -278,7 +278,7 @@ public class TypeConsistencyTest
 			"NOTHING_TO_INT_FUNCTION",
 			MOST_GENERAL_FUNCTION)
 		{
-			@Override AvailObject get ()
+			@Override A_Type get ()
 			{
 				return FunctionTypeDescriptor.create(
 					TupleDescriptor.empty(),
@@ -293,7 +293,7 @@ public class TypeConsistencyTest
 			"INT_TO_INT_FUNCTION",
 			MOST_GENERAL_FUNCTION)
 		{
-			@Override AvailObject get ()
+			@Override A_Type get ()
 			{
 				return FunctionTypeDescriptor.create(
 					TupleDescriptor.from(IntegerRangeTypeDescriptor.integers()),
@@ -308,7 +308,7 @@ public class TypeConsistencyTest
 			"INTS_TO_INT_FUNCTION",
 			MOST_GENERAL_FUNCTION)
 		{
-			@Override AvailObject get ()
+			@Override A_Type get ()
 			{
 				return FunctionTypeDescriptor.create(
 					TupleDescriptor.from(
@@ -325,7 +325,7 @@ public class TypeConsistencyTest
 			INT_TO_INT_FUNCTION,
 			INTS_TO_INT_FUNCTION)
 		{
-			@Override AvailObject get ()
+			@Override A_Type get ()
 			{
 				return FunctionTypeDescriptor.createWithArgumentTupleType(
 					TupleTypeDescriptor.mostGeneralType(),
@@ -339,7 +339,7 @@ public class TypeConsistencyTest
 			"EXTENDED_INTEGER",
 			primitiveTypes.get(Types.NUMBER))
 		{
-			@Override AvailObject get ()
+			@Override A_Type get ()
 			{
 				return IntegerRangeTypeDescriptor.extendedIntegers();
 			}
@@ -350,7 +350,7 @@ public class TypeConsistencyTest
 			"WHOLE_NUMBER",
 			EXTENDED_INTEGER)
 		{
-			@Override AvailObject get ()
+			@Override A_Type get ()
 			{
 				return IntegerRangeTypeDescriptor.wholeNumbers();
 			}
@@ -361,7 +361,7 @@ public class TypeConsistencyTest
 			"SOME_ATOM_TYPE",
 			primitiveTypes.get(Types.ATOM))
 		{
-			@Override AvailObject get ()
+			@Override A_Type get ()
 			{
 				return InstanceTypeDescriptor.on(
 					AtomDescriptor.create(
@@ -378,7 +378,7 @@ public class TypeConsistencyTest
 			"ANOTHER_ATOM_TYPE",
 			primitiveTypes.get(Types.ATOM))
 		{
-			@Override AvailObject get ()
+			@Override A_Type get ()
 			{
 				return InstanceTypeDescriptor.on(
 					AtomDescriptor.create(
@@ -394,7 +394,7 @@ public class TypeConsistencyTest
 			"OBJECT_TYPE",
 			primitiveTypes.get(Types.NONTYPE))
 		{
-			@Override AvailObject get ()
+			@Override A_Type get ()
 			{
 				return ObjectTypeDescriptor.mostGeneralType();
 			}
@@ -407,7 +407,7 @@ public class TypeConsistencyTest
 			"NON_ROOT_OBJECT_TYPE",
 			OBJECT_TYPE)
 		{
-			@Override AvailObject get ()
+			@Override A_Type get ()
 			{
 				return ObjectTypeDescriptor.objectTypeFromMap(
 					MapDescriptor.empty().mapAtPuttingCanDestroy(
@@ -424,7 +424,7 @@ public class TypeConsistencyTest
 			"NON_ROOT_OBJECT_TYPE_WITH_INTEGERS",
 			NON_ROOT_OBJECT_TYPE)
 		{
-			@Override AvailObject get ()
+			@Override A_Type get ()
 			{
 				return ObjectTypeDescriptor.objectTypeFromMap(
 					MapDescriptor.empty().mapAtPuttingCanDestroy(
@@ -441,7 +441,7 @@ public class TypeConsistencyTest
 			"NON_ROOT_OBJECT_TYPE_WITH_DIFFERENT_KEY",
 			OBJECT_TYPE)
 		{
-			@Override AvailObject get ()
+			@Override A_Type get ()
 			{
 				return ObjectTypeDescriptor.objectTypeFromMap(
 					MapDescriptor.empty().mapAtPuttingCanDestroy(
@@ -459,7 +459,7 @@ public class TypeConsistencyTest
 			primitiveTypes.get(Types.NONTYPE))
 		{
 			@Override
-			AvailObject get ()
+			A_Type get ()
 			{
 				return PojoTypeDescriptor.mostGeneralType();
 			}
@@ -473,7 +473,7 @@ public class TypeConsistencyTest
 			MOST_GENERAL_POJO)
 		{
 			@Override
-			AvailObject get ()
+			A_Type get ()
 			{
 				return PojoTypeDescriptor.forClassWithTypeArguments(
 					Comparable.class,
@@ -490,7 +490,7 @@ public class TypeConsistencyTest
 			COMPARABLE_OF_JAVA_OBJECT_POJO)
 		{
 			@Override
-			AvailObject get ()
+			A_Type get ()
 			{
 				return PojoTypeDescriptor.forClassWithTypeArguments(
 					Comparable.class,
@@ -507,7 +507,7 @@ public class TypeConsistencyTest
 			COMPARABLE_OF_JAVA_INTEGER_POJO)
 		{
 			@Override
-			AvailObject get ()
+			A_Type get ()
 			{
 				return PojoTypeDescriptor.forClass(Integer.class);
 			}
@@ -521,7 +521,7 @@ public class TypeConsistencyTest
 			COMPARABLE_OF_JAVA_OBJECT_POJO)
 		{
 			@Override
-			AvailObject get ()
+			A_Type get ()
 			{
 				return PojoTypeDescriptor.forClassWithTypeArguments(
 					Comparable.class,
@@ -538,7 +538,7 @@ public class TypeConsistencyTest
 			COMPARABLE_OF_JAVA_STRING_POJO)
 		{
 			@Override
-			AvailObject get ()
+			A_Type get ()
 			{
 				return PojoTypeDescriptor.forClass(String.class);
 			}
@@ -557,7 +557,7 @@ public class TypeConsistencyTest
 			COMPARABLE_OF_JAVA_OBJECT_POJO)
 		{
 			@Override
-			AvailObject get ()
+			A_Type get ()
 			{
 				return PojoTypeDescriptor.forClassWithTypeArguments(
 					Enum.class,
@@ -576,7 +576,7 @@ public class TypeConsistencyTest
 			JAVA_ENUM_POJO)
 		{
 			@Override
-			AvailObject get ()
+			A_Type get ()
 			{
 				return PojoTypeDescriptor.forClass(Primitive.Result.class);
 			}
@@ -592,7 +592,7 @@ public class TypeConsistencyTest
 			MOST_GENERAL_POJO)
 		{
 			@Override
-			AvailObject get ()
+			A_Type get ()
 			{
 				return PojoTypeDescriptor.forClassWithTypeArguments(
 					Comparable.class,
@@ -610,7 +610,7 @@ public class TypeConsistencyTest
 			MOST_GENERAL_POJO)
 		{
 			@Override
-			AvailObject get ()
+			A_Type get ()
 			{
 				return PojoTypeDescriptor.forArrayTypeWithSizeRange(
 					PojoTypeDescriptor.mostGeneralType(),
@@ -627,7 +627,7 @@ public class TypeConsistencyTest
 			JAVA_OBJECT_ARRAY_POJO)
 		{
 			@Override
-			AvailObject get ()
+			A_Type get ()
 			{
 				return PojoTypeDescriptor.forArrayTypeWithSizeRange(
 					JAVA_STRING_POJO.t,
@@ -647,7 +647,7 @@ public class TypeConsistencyTest
 			JAVA_STRING_ARRAY_POJO)
 		{
 			@Override
-			AvailObject get ()
+			A_Type get ()
 			{
 				return PojoTypeDescriptor.pojoBottom();
 			}
@@ -660,7 +660,7 @@ public class TypeConsistencyTest
 			"FUNCTION_META",
 			NONTYPE_META)
 		{
-			@Override AvailObject get ()
+			@Override A_Type get ()
 			{
 				return FunctionTypeDescriptor.meta();
 			}
@@ -673,7 +673,7 @@ public class TypeConsistencyTest
 			"CONTINUATION_META",
 			NONTYPE_META)
 		{
-			@Override AvailObject get ()
+			@Override A_Type get ()
 			{
 				return ContinuationTypeDescriptor.meta();
 			}
@@ -686,7 +686,7 @@ public class TypeConsistencyTest
 			"INTEGER_META",
 			NONTYPE_META)
 		{
-			@Override AvailObject get ()
+			@Override A_Type get ()
 			{
 				return IntegerRangeTypeDescriptor.meta();
 			}
@@ -697,7 +697,7 @@ public class TypeConsistencyTest
 			"WHOLE_NUMBER_META",
 			INTEGER_META)
 		{
-			@Override AvailObject get ()
+			@Override A_Type get ()
 			{
 				return InstanceMetaDescriptor.on(
 					IntegerRangeTypeDescriptor.wholeNumbers());
@@ -713,7 +713,7 @@ public class TypeConsistencyTest
 			ANY_META,
 			TOP_META)
 		{
-			@Override AvailObject get ()
+			@Override A_Type get ()
 			{
 				return InstanceMetaDescriptor.on(
 					InstanceMetaDescriptor.on(
@@ -728,7 +728,7 @@ public class TypeConsistencyTest
 			"ROOT_VARIABLE",
 			primitiveTypes.get(Types.NONTYPE))
 		{
-			@Override AvailObject get ()
+			@Override A_Type get ()
 			{
 				return VariableTypeDescriptor.mostGeneralType();
 			}
@@ -742,7 +742,7 @@ public class TypeConsistencyTest
 			"INT_VARIABLE",
 			ROOT_VARIABLE)
 		{
-			@Override AvailObject get ()
+			@Override A_Type get ()
 			{
 				return VariableTypeDescriptor.wrapInnerType(
 					IntegerRangeTypeDescriptor.integers());
@@ -757,7 +757,7 @@ public class TypeConsistencyTest
 			"SOME_ATOM_VARIABLE",
 			ROOT_VARIABLE)
 		{
-			@Override AvailObject get ()
+			@Override A_Type get ()
 			{
 				return VariableTypeDescriptor.wrapInnerType(SOME_ATOM_TYPE.t);
 			}
@@ -772,7 +772,7 @@ public class TypeConsistencyTest
 			INT_VARIABLE,
 			SOME_ATOM_VARIABLE)
 		{
-			@Override AvailObject get ()
+			@Override A_Type get ()
 			{
 				return VariableTypeDescriptor.fromReadAndWriteTypes(
 					BottomTypeDescriptor.bottom(),
@@ -788,7 +788,7 @@ public class TypeConsistencyTest
 			"ANY_LITERAL_TOKEN",
 			primitiveTypes.get(Types.TOKEN))
 		{
-			@Override AvailObject get ()
+			@Override A_Type get ()
 			{
 				return LiteralTokenTypeDescriptor.mostGeneralType();
 			}
@@ -802,7 +802,7 @@ public class TypeConsistencyTest
 			"INT_LITERAL_TOKEN",
 			ANY_LITERAL_TOKEN)
 		{
-			@Override AvailObject get ()
+			@Override A_Type get ()
 			{
 				return LiteralTokenTypeDescriptor.create(
 					IntegerRangeTypeDescriptor.integers());
@@ -817,7 +817,7 @@ public class TypeConsistencyTest
 			"SOME_ATOM_LITERAL_TOKEN",
 			ANY_LITERAL_TOKEN)
 		{
-			@Override AvailObject get ()
+			@Override A_Type get ()
 			{
 				return LiteralTokenTypeDescriptor.create(SOME_ATOM_TYPE.t);
 			}
@@ -832,7 +832,7 @@ public class TypeConsistencyTest
 			INT_LITERAL_TOKEN,
 			SOME_ATOM_LITERAL_TOKEN)
 		{
-			@Override AvailObject get ()
+			@Override A_Type get ()
 			{
 				return LiteralTokenTypeDescriptor.create(
 					BottomTypeDescriptor.bottom());
@@ -846,7 +846,7 @@ public class TypeConsistencyTest
 			"MAP_META",
 			NONTYPE_META)
 		{
-			@Override AvailObject get ()
+			@Override A_Type get ()
 			{
 				return MapTypeDescriptor.meta();
 			}
@@ -859,7 +859,7 @@ public class TypeConsistencyTest
 			"SET_META",
 			NONTYPE_META)
 		{
-			@Override AvailObject get ()
+			@Override A_Type get ()
 			{
 				return SetTypeDescriptor.meta();
 			}
@@ -872,7 +872,7 @@ public class TypeConsistencyTest
 			"TUPLE_META",
 			NONTYPE_META)
 		{
-			@Override AvailObject get ()
+			@Override A_Type get ()
 			{
 				return TupleTypeDescriptor.meta();
 			}
@@ -889,7 +889,7 @@ public class TypeConsistencyTest
 			SET_META,
 			TUPLE_META)
 		{
-			@Override AvailObject get ()
+			@Override A_Type get ()
 			{
 				return InstanceMetaDescriptor.on(
 					BottomTypeDescriptor.bottom());
@@ -960,13 +960,13 @@ public class TypeConsistencyTest
 				parents.toArray(new Node[parents.size()]))
 			{
 				@Override
-				AvailObject get ()
+				A_Type get ()
 				{
-					final AvailObject innerType =
+					final A_Type innerType =
 						innerNode == null
 							? BottomTypeDescriptor.bottom()
 							: innerNode.t;
-					final AvailObject newType = parseNodeKind.create(innerType);
+					final A_Type newType = parseNodeKind.create(innerType);
 					assert newType.expressionType().equals(innerType)
 						: "parse node kind was not parameterized as expected";
 					return newType;
@@ -1182,7 +1182,7 @@ public class TypeConsistencyTest
 			"BOTTOM",
 			nonBottomTypes.toArray(new Node[0]))
 		{
-			@Override AvailObject get ()
+			@Override A_Type get ()
 			{
 				return BottomTypeDescriptor.bottom();
 			}
@@ -1195,7 +1195,7 @@ public class TypeConsistencyTest
 		final String name;
 
 		/** The Avail {@linkplain TypeDescriptor type} I represent in the graph. */
-		AvailObject t;
+		A_Type t;
 
 		/** A unique 0-based index for this {@code Node}. */
 		final int index;
@@ -1216,14 +1216,14 @@ public class TypeConsistencyTest
 		 * A cache of type unions where I'm the left participant and the right
 		 * participant (a Node) supplies its index for accessing the array.
 		 */
-		private AvailObject unionCache[];
+		private A_Type unionCache[];
 
 		/**
 		 * A cache of type intersections where I'm the left participant and the
 		 * right participant (a Node) supplies its index for accessing the
 		 * array.
 		 */
-		private AvailObject intersectionCache[];
+		private A_Type intersectionCache[];
 
 		/**
 		 * A cache of subtype tests where I'm the proposed subtype and the
@@ -1315,7 +1315,7 @@ public class TypeConsistencyTest
 		 * @return The {@link AvailObject} that is the {@linkplain
 		 *         TypeDescriptor type} that this {@link Node} represents.
 		 */
-		abstract AvailObject get ();
+		abstract A_Type get ();
 
 
 		/**
@@ -1325,14 +1325,14 @@ public class TypeConsistencyTest
 		 * @param rightNode
 		 *            The {@linkplain Node} for the right side of the union.
 		 * @return
-		 *            The {@linkplain AvailObject#typeUnion(AvailObject) type
+		 *            The {@linkplain AvailObject#typeUnion(A_Type) type
 		 *            union} of the receiver's {@link #t} and the argument's
 		 *            {@code t}.
 		 */
-		AvailObject union (final Node rightNode)
+		A_Type union (final Node rightNode)
 		{
 			final int rightIndex = rightNode.index;
-			AvailObject union = unionCache[rightIndex];
+			A_Type union = unionCache[rightIndex];
 			if (union == null)
 			{
 				union = t.typeUnion(rightNode.t).makeImmutable();
@@ -1351,14 +1351,14 @@ public class TypeConsistencyTest
 		 *            The {@linkplain Node} for the right side of the
 		 *            intersection.
 		 * @return
-		 *            The {@linkplain AvailObject#typeIntersection(AvailObject)
+		 *            The {@linkplain AvailObject#typeIntersection(A_Type)
 		 *            type intersection} of the receiver's {@link #t} and the
 		 *            argument's {@code t}.
 		 */
-		AvailObject intersect (final Node rightNode)
+		A_Type intersect (final Node rightNode)
 		{
 			final int rightIndex = rightNode.index;
-			AvailObject intersection = intersectionCache[rightIndex];
+			A_Type intersection = intersectionCache[rightIndex];
 			if (intersection == null)
 			{
 				intersection = t.typeIntersection(rightNode.t).makeImmutable();
@@ -1449,7 +1449,7 @@ public class TypeConsistencyTest
 	/**
 	 * Output a machine-readable representation of the graph as a sequence of
 	 * lines of text.  First output the number of nodes, then the single-quoted
-	 * node names in some order.  Then output all edges as parethesis-enclosed
+	 * node names in some order.  Then output all edges as parenthesis-enclosed
 	 * space-separated pairs of zero-based indices into the list of nodes.  The
 	 * first element is the subtype, the second is the supertype.  The graph has
 	 * not been reduced to eliminate redundant edges.
@@ -1467,7 +1467,7 @@ public class TypeConsistencyTest
 	 */
 	public static void dumpGraphTo (final PrintStream out)
 	{
-		final Set<AvailObject> allTypes = new HashSet<AvailObject>();
+		final Set<A_Type> allTypes = new HashSet<A_Type>();
 		for (final Node node : Node.values)
 		{
 			allTypes.add(node.t);
@@ -1476,9 +1476,9 @@ public class TypeConsistencyTest
 		{
 			for (final Node t2 : Node.values)
 			{
-				final AvailObject union12 = t1.union(t2);
+				final A_Type union12 = t1.union(t2);
 				allTypes.add(union12);
-				final AvailObject inter12 = t1.intersect(t2);
+				final A_Type inter12 = t1.intersect(t2);
 				allTypes.add(inter12);
 				for (final Node t3 : Node.values)
 				{
@@ -1489,8 +1489,8 @@ public class TypeConsistencyTest
 				}
 			}
 		}
-		final List<AvailObject> allTypesList = new ArrayList<AvailObject>(allTypes);
-		final Map<AvailObject,Integer> inverse = new HashMap<AvailObject,Integer>();
+		final List<A_Type> allTypesList = new ArrayList<A_Type>(allTypes);
+		final Map<A_Type,Integer> inverse = new HashMap<A_Type,Integer>();
 		final String[] names = new String[allTypes.size()];
 		for (int i = 0; i < allTypesList.size(); i++)
 		{
@@ -1769,12 +1769,12 @@ public class TypeConsistencyTest
 		{
 			for (final Node y : Node.values)
 			{
-				final AvailObject xy = x.union(y);
+				final A_BasicObject xy = x.union(y);
 				for (final Node z : Node.values)
 				{
-					final AvailObject xyUz = xy.typeUnion(z.t);
-					final AvailObject yz = y.union(z);
-					final AvailObject xUyz = x.t.typeUnion(yz);
+					final A_BasicObject xyUz = xy.typeUnion(z.t);
+					final A_Type yz = y.union(z);
+					final A_Type xUyz = x.t.typeUnion(yz);
 					if (!xyUz.equals(xUyz))
 					{
 						// These are useful trace points. Leave them in.
@@ -1850,8 +1850,8 @@ public class TypeConsistencyTest
 		{
 			for (final Node y : Node.values)
 			{
-				final AvailObject xy = x.intersect(y);
-				final AvailObject yx = y.intersect(x);
+				final A_Type xy = x.intersect(y);
+				final A_Type yx = y.intersect(x);
 				if (!xy.equals(yx))
 				{
 					// These are useful trace points. Leave them in.
@@ -1881,12 +1881,12 @@ public class TypeConsistencyTest
 		{
 			for (final Node y : Node.values)
 			{
-				final AvailObject xy = x.intersect(y);
+				final A_BasicObject xy = x.intersect(y);
 				for (final Node z : Node.values)
 				{
-					final AvailObject xyIz = xy.typeIntersection(z.t);
-					final AvailObject yz = y.intersect(z);
-					final AvailObject xIyz = x.t.typeIntersection(yz);
+					final A_Type xyIz = xy.typeIntersection(z.t);
+					final A_Type yz = y.intersect(z);
+					final A_Type xIyz = x.t.typeIntersection(yz);
 					if (!xyIz.equals(xIyz))
 					{
 						// These are useful trace points. Leave them in.
@@ -1923,7 +1923,7 @@ public class TypeConsistencyTest
 		 * @param type The type to transform.
 		 * @return The transformed type.
 		 */
-		abstract AvailObject transform(AvailObject type);
+		abstract A_Type transform(A_Type type);
 
 		/**
 		 * The name of the {@code TypeRelation}.
@@ -1954,10 +1954,10 @@ public class TypeConsistencyTest
 	{
 		for (final Node x : Node.values)
 		{
-			final AvailObject CoX = relation.transform(x.t);
+			final A_Type CoX = relation.transform(x.t);
 			for (final Node y : Node.values)
 			{
-				final AvailObject CoY = relation.transform(y.t);
+				final A_Type CoY = relation.transform(y.t);
 				assertT(
 					!x.subtype(y) || CoX.isSubtypeOf(CoY),
 					"covariance (%s): %s, %s",
@@ -1982,10 +1982,10 @@ public class TypeConsistencyTest
 	{
 		for (final Node x : Node.values)
 		{
-			final AvailObject ConX = relation.transform(x.t);
+			final A_Type ConX = relation.transform(x.t);
 			for (final Node y : Node.values)
 			{
-				final AvailObject ConY = relation.transform(y.t);
+				final A_Type ConY = relation.transform(y.t);
 				assertT(
 					!x.subtype(y) || ConY.isSubtypeOf(ConX),
 					"contravariance (%s): %s, %s",
@@ -2007,7 +2007,7 @@ public class TypeConsistencyTest
 		checkCovariance(new TypeRelation("function result")
 		{
 			@Override
-			public AvailObject transform (final AvailObject type)
+			public A_Type transform (final A_Type type)
 			{
 				return FunctionTypeDescriptor.create(
 					TupleDescriptor.empty(),
@@ -2028,7 +2028,7 @@ public class TypeConsistencyTest
 		checkCovariance(new TypeRelation("tuple entries")
 		{
 			@Override
-			AvailObject transform (final AvailObject type)
+			A_Type transform (final A_Type type)
 			{
 				return TupleTypeDescriptor.zeroOrMoreOf(
 					type);
@@ -2047,7 +2047,7 @@ public class TypeConsistencyTest
 		checkCovariance(new TypeRelation("pojo type parameters")
 		{
 			@Override
-			AvailObject transform (final AvailObject type)
+			A_Type transform (final A_Type type)
 			{
 				return PojoTypeDescriptor.forClassWithTypeArguments(
 					Comparable.class,
@@ -2069,7 +2069,7 @@ public class TypeConsistencyTest
 		checkContravariance(new TypeRelation("function argument")
 		{
 			@Override
-			AvailObject transform (final AvailObject type)
+			A_Type transform (final A_Type type)
 			{
 				return FunctionTypeDescriptor.create(
 					TupleDescriptor.from(type),
@@ -2092,7 +2092,7 @@ public class TypeConsistencyTest
 		checkCovariance(new TypeRelation("metacovariance")
 		{
 			@Override
-			AvailObject transform (final AvailObject type)
+			A_Type transform (final A_Type type)
 			{
 				return InstanceMetaDescriptor.on(type);
 			}
@@ -2113,11 +2113,11 @@ public class TypeConsistencyTest
 		{
 			for (final Node y : Node.values)
 			{
-				final AvailObject Tx = InstanceMetaDescriptor.on(x.t);
-				final AvailObject Ty = InstanceMetaDescriptor.on(y.t);
-				final AvailObject xuy = x.t.typeUnion(y.t);
-				final AvailObject T_xuy = InstanceMetaDescriptor.on(xuy);
-				final AvailObject TxuTy = Tx.typeUnion(Ty);
+				final A_Type Tx = InstanceMetaDescriptor.on(x.t);
+				final A_Type Ty = InstanceMetaDescriptor.on(y.t);
+				final A_Type xuy = x.t.typeUnion(y.t);
+				final A_BasicObject T_xuy = InstanceMetaDescriptor.on(xuy);
+				final A_BasicObject TxuTy = Tx.typeUnion(Ty);
 				assertEQ(
 					T_xuy,
 					TxuTy,
@@ -2145,11 +2145,11 @@ public class TypeConsistencyTest
 		{
 			for (final Node y : Node.values)
 			{
-				final AvailObject Tx = InstanceMetaDescriptor.on(x.t);
-				final AvailObject Ty = InstanceMetaDescriptor.on(y.t);
-				final AvailObject xny = x.t.typeIntersection(y.t);
-				final AvailObject T_xny = InstanceMetaDescriptor.on(xny);
-				final AvailObject TxnTy = Tx.typeIntersection(Ty);
+				final A_Type Tx = InstanceMetaDescriptor.on(x.t);
+				final A_Type Ty = InstanceMetaDescriptor.on(y.t);
+				final A_Type xny = x.t.typeIntersection(y.t);
+				final A_Type T_xny = InstanceMetaDescriptor.on(xny);
+				final A_Type TxnTy = Tx.typeIntersection(Ty);
 				assertEQ(
 					T_xny,
 					TxnTy,

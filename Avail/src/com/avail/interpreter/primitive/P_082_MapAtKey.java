@@ -56,8 +56,8 @@ public class P_082_MapAtKey extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 2;
-		final AvailObject map = args.get(0);
-		final AvailObject key = args.get(1);
+		final A_Map map = args.get(0);
+		final A_BasicObject key = args.get(1);
 		if (!map.hasKey(key))
 		{
 			return interpreter.primitiveFailure(E_KEY_NOT_FOUND);
@@ -66,7 +66,7 @@ public class P_082_MapAtKey extends Primitive
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
@@ -76,18 +76,18 @@ public class P_082_MapAtKey extends Primitive
 	}
 
 	@Override
-	public AvailObject returnTypeGuaranteedByVM (
-		final List<AvailObject> argumentTypes)
+	public A_Type returnTypeGuaranteedByVM (
+		final List<A_Type> argumentTypes)
 	{
-		final AvailObject mapType = argumentTypes.get(0);
-		final AvailObject keyType = argumentTypes.get(1);
+		final A_Type mapType = argumentTypes.get(0);
+		final A_Type keyType = argumentTypes.get(1);
 		if (mapType.isEnumeration() && keyType.isEnumeration())
 		{
-			AvailObject values = SetDescriptor.empty();
-			final AvailObject keyTypeInstances = keyType.instances();
-			for (final AvailObject mapInstance : mapType.instances())
+			A_Set values = SetDescriptor.empty();
+			final A_Set keyTypeInstances = keyType.instances();
+			for (final A_Map mapInstance : mapType.instances())
 			{
-				for (final AvailObject keyInstance : keyTypeInstances)
+				for (final A_BasicObject keyInstance : keyTypeInstances)
 				{
 					if (mapInstance.hasKey(keyInstance))
 					{

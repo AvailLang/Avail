@@ -58,7 +58,7 @@ public class P_124_AtomSetProperty extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 3;
-		final AvailObject atom = args.get(0);
+		final A_BasicObject atom = args.get(0);
 		final AvailObject propertyKey = args.get(1);
 		final AvailObject propertyValue = args.get(2);
 		if (AvailRuntime.isSpecialAtom(atom)
@@ -71,7 +71,7 @@ public class P_124_AtomSetProperty extends Primitive
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

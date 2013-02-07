@@ -228,7 +228,7 @@ extends Descriptor
 			aStream.append(tabString);
 			aStream.append("(INVALID)\n");
 		}
-		final AvailObject words = object.slot(WORDCODES);
+		final A_Tuple words = object.slot(WORDCODES);
 		final L2RawInstructionDescriber describer =
 			new L2RawInstructionDescriber();
 		for (int i = 1, limit = words.tupleSize(); i <= limit; )
@@ -332,13 +332,13 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_Wordcodes (final AvailObject object)
+	A_Tuple o_Wordcodes (final AvailObject object)
 	{
 		return object.mutableSlot(WORDCODES);
 	}
 
 	@Override @AvailMethod
-	AvailObject o_Vectors (final AvailObject object)
+	A_Tuple o_Vectors (final AvailObject object)
 	{
 		return object.mutableSlot(VECTORS);
 	}
@@ -350,7 +350,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_Equals (final AvailObject object, final AvailObject another)
+	boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		return another.traversed().sameAddressAs(object);
 	}
@@ -378,7 +378,7 @@ extends Descriptor
 		 * two chunks}' {@linkplain WeakChunkReference weak references} will be
 		 * placed upon expiration. There is no special process to remove them
 		 * from here. Rather, an element of this queue is consumed when needed
-		 * for {@linkplain L2ChunkDescriptor#allocate(AvailObject, List, List,
+		 * for {@linkplain L2ChunkDescriptor#allocate(A_BasicObject, List, List,
 		 * int, int, int, List, Set) allocation} of a new chunk. If this queue
 		 * is empty, a fresh index is allocated.
 		 *
@@ -553,7 +553,7 @@ extends Descriptor
 	 *
 	 * @param chunk A {@linkplain L2ChunkDescriptor Level Two chunk}.
 	 */
-	public static void moveToHead (final AvailObject chunk)
+	public static void moveToHead (final A_BasicObject chunk)
 	{
 		chunksLock.lock();
 		try
@@ -601,8 +601,8 @@ extends Descriptor
 	 * @return The new level two chunk.
 	 */
 	public static AvailObject allocate (
-		final @Nullable AvailObject code,
-		final List<AvailObject> listOfLiterals,
+		final @Nullable A_BasicObject code,
+		final List<A_BasicObject> listOfLiterals,
 		final List<List<Integer>> listOfVectors,
 		final int numObjects,
 		final int numIntegers,
@@ -619,10 +619,10 @@ extends Descriptor
 			vectorTuple.makeImmutable();
 			vectorTuples.add(vectorTuple);
 		}
-		final AvailObject vectorTuplesTuple =
+		final A_Tuple vectorTuplesTuple =
 			TupleDescriptor.fromList(vectorTuples);
 		vectorTuplesTuple.makeImmutable();
-		final AvailObject wordcodesTuple =
+		final A_Tuple wordcodesTuple =
 			TupleDescriptor.fromIntegerList(theWordcodes);
 		wordcodesTuple.makeImmutable();
 		final AvailObject chunk = mutable.create(listOfLiterals.size());
@@ -653,7 +653,7 @@ extends Descriptor
 				// so clean it up if necessary.
 				final WeakChunkReference oldReference =
 					(WeakChunkReference) recycledReference;
-				for (final AvailObject method : oldReference.contingentMethods)
+				for (final A_BasicObject method : oldReference.contingentMethods)
 				{
 					method.removeDependentChunkIndex(oldReference.index);
 				}
@@ -690,7 +690,7 @@ extends Descriptor
 				chunk,
 				L2ChunkDescriptor.countdownForNewlyOptimizedCode());
 		}
-		for (final AvailObject method : contingentSets)
+		for (final A_BasicObject method : contingentSets)
 		{
 			method.addDependentChunkIndex(index);
 		}
@@ -738,7 +738,7 @@ extends Descriptor
 				}
 			}
 			final Set<AvailObject> impSets = ref.contingentMethods;
-			for (final AvailObject method : impSets)
+			for (final A_BasicObject method : impSets)
 			{
 				method.removeDependentChunkIndex(chunkIndex);
 			}

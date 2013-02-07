@@ -52,7 +52,7 @@ extends RuntimeException
 	 * The {@linkplain StringDescriptor error message} describing the
 	 * assertion.
 	 */
-	private final AvailObject assertionString;
+	private final A_String assertionString;
 
 	/**
 	 * Return the {@linkplain StringDescriptor error message} describing the
@@ -60,7 +60,7 @@ extends RuntimeException
 	 *
 	 * @return The interpretation of the assertion.
 	 */
-	public AvailObject assertionString ()
+	public A_String assertionString ()
 	{
 		return assertionString;
 	}
@@ -73,7 +73,7 @@ extends RuntimeException
 	 *        assertion.
 	 */
 	public AvailAssertionFailedException (
-		final AvailObject assertionString)
+		final A_String assertionString)
 	{
 		assert assertionString.isString();
 		this.assertionString = assertionString;

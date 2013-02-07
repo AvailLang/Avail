@@ -55,12 +55,12 @@ public class P_359_LiteralTokenValue extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
-		final AvailObject literalToken = args.get(0);
+		final A_BasicObject literalToken = args.get(0);
 		return interpreter.primitiveSuccess(literalToken.literal());
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

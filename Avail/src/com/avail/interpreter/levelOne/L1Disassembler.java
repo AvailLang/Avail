@@ -50,7 +50,7 @@ public class L1Disassembler
 	 * The {@linkplain CompiledCodeDescriptor compiled code object} being
 	 * disassembled.
 	 */
-	AvailObject code;
+	A_BasicObject code;
 
 	/**
 	 * The {@link StringBuilder} onto which to describe the level one
@@ -75,7 +75,7 @@ public class L1Disassembler
 	 * pre-extracted from the {@linkplain CompiledCodeDescriptor compiled code
 	 * object}.
 	 */
-	AvailObject nybbles;
+	A_Tuple nybbles;
 
 	/**
 	 * The current level one offset into the code.
@@ -148,7 +148,7 @@ public class L1Disassembler
 	 *        The indentation level.
 	 */
 	public void disassemble (
-		final AvailObject theCode,
+		final A_BasicObject theCode,
 		final StringBuilder theBuilder,
 		final List<AvailObject> theRecursionList,
 		final int theIndent)

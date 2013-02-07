@@ -59,15 +59,16 @@ extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 2;
-		final AvailObject key = args.get(0);
-		final AvailObject fiber = args.get(1);
-		final AvailObject globals = fiber.fiberGlobals();
+		final A_Atom key = args.get(0);
+		final A_BasicObject fiber = args.get(1);
+
+		final A_Map globals = fiber.fiberGlobals();
 		return interpreter.primitiveSuccess(AtomDescriptor.objectFromBoolean(
 			globals.hasKey(key)));
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

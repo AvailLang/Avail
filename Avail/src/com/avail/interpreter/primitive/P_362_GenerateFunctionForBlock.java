@@ -94,7 +94,7 @@ extends Primitive
 		{
 			return interpreter.primitiveFailure(E_BLOCK_COMPILATION_FAILED);
 		}
-		final AvailObject function = FunctionDescriptor.create(
+		final A_Function function = FunctionDescriptor.create(
 			compiledCode,
 			TupleDescriptor.empty());
 		function.makeImmutable();
@@ -102,7 +102,7 @@ extends Primitive
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

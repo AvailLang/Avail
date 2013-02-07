@@ -59,13 +59,13 @@ public class P_207_CompleteMessages extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
-		final AvailObject bundleTree = args.get(0);
+		final A_BasicObject bundleTree = args.get(0);
 		return interpreter.primitiveSuccess(
 			bundleTree.complete().makeImmutable());
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

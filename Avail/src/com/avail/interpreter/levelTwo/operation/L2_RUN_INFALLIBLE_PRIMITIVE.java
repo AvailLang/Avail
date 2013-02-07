@@ -34,6 +34,7 @@ package com.avail.interpreter.levelTwo.operation;
 import static com.avail.descriptor.AvailObject.error;
 import static com.avail.interpreter.Primitive.Result.SUCCESS;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
+import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.Primitive.*;
@@ -79,7 +80,7 @@ public class L2_RUN_INFALLIBLE_PRIMITIVE extends L2Operation
 		final int argsVector = interpreter.nextWord();
 		final int expectedTypeRegister = interpreter.nextWord();
 		final int resultRegister = interpreter.nextWord();
-		final AvailObject argsVect = interpreter.vectorAt(argsVector);
+		final A_Tuple argsVect = interpreter.vectorAt(argsVector);
 		interpreter.argsBuffer.clear();
 		for (int i = 1; i <= argsVect.tupleSize(); i++)
 		{

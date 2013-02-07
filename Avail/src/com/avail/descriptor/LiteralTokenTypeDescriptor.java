@@ -79,7 +79,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_LiteralType (final AvailObject object)
+	A_Type o_LiteralType (final AvailObject object)
 	{
 		return object.slot(LITERAL_TYPE);
 	}
@@ -96,7 +96,7 @@ extends TypeDescriptor
 	}
 
 	@Override
-	boolean o_Equals (final AvailObject object, final AvailObject another)
+	boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		return another.equalsLiteralTokenType(object);
 	}
@@ -104,13 +104,13 @@ extends TypeDescriptor
 	@Override
 	boolean o_EqualsLiteralTokenType (
 		final AvailObject object,
-		final AvailObject aLiteralTokenType)
+		final A_BasicObject aLiteralTokenType)
 	{
 		return object.literalType().equals(aLiteralTokenType.literalType());
 	}
 
 	@Override
-	boolean o_IsSubtypeOf (final AvailObject object, final AvailObject aType)
+	boolean o_IsSubtypeOf (final AvailObject object, final A_Type aType)
 	{
 		// Check if object (a type) is a subtype of aType (should also be a
 		// type).
@@ -120,16 +120,16 @@ extends TypeDescriptor
 	@Override
 	boolean o_IsSupertypeOfLiteralTokenType (
 		final AvailObject object,
-		final AvailObject aLiteralTokenType)
+		final A_BasicObject aLiteralTokenType)
 	{
 		return aLiteralTokenType.literalType().isSubtypeOf(
 			object.literalType());
 	}
 
 	@Override @AvailMethod
-	AvailObject o_TypeIntersection (
+	A_Type o_TypeIntersection (
 		final AvailObject object,
-		final AvailObject another)
+		final A_Type another)
 	{
 		if (object.equals(another))
 		{
@@ -147,23 +147,23 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_TypeIntersectionOfLiteralTokenType (
+	A_Type o_TypeIntersectionOfLiteralTokenType (
 		final AvailObject object,
-		final AvailObject aLiteralTokenType)
+		final A_Type aLiteralTokenType)
 	{
 		// Note that the 'inner' type must be made immutable in case one of the
 		// input literal token types is mutable (and may be destroyed
 		// *recursively* by post-primitive code).
-		final AvailObject instance = object.literalType().typeIntersection(
+		final A_BasicObject instance = object.literalType().typeIntersection(
 			aLiteralTokenType.literalType());
 		instance.makeImmutable();
 		return LiteralTokenTypeDescriptor.create(instance);
 	}
 
 	@Override
-	AvailObject o_TypeUnion (
+	A_Type o_TypeUnion (
 		final AvailObject object,
-		final AvailObject another)
+		final A_Type another)
 	{
 		if (object.isSubtypeOf(another))
 		{
@@ -177,14 +177,14 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_TypeUnionOfLiteralTokenType (
+	A_Type o_TypeUnionOfLiteralTokenType (
 		final AvailObject object,
-		final AvailObject aLiteralTokenType)
+		final A_Type aLiteralTokenType)
 	{
 		// Note that the 'inner' type must be made immutable in case one of the
 		// input literal token types is mutable (and may be destroyed
 		// *recursively* by post-primitive code).
-		final AvailObject instance = object.literalType().typeUnion(
+		final A_Type instance = object.literalType().typeUnion(
 			aLiteralTokenType.literalType());
 		instance.makeImmutable();
 		return LiteralTokenTypeDescriptor.create(instance);
@@ -203,7 +203,7 @@ extends TypeDescriptor
 	 * @param literalType The type with which to constrain literal values.
 	 * @return A {@link LiteralTokenTypeDescriptor literal token type}.
 	 */
-	public static AvailObject create (final AvailObject literalType)
+	public static AvailObject create (final A_BasicObject literalType)
 	{
 		final AvailObject instance = mutable.create();
 		instance.setSlot(LITERAL_TYPE, literalType.makeImmutable());

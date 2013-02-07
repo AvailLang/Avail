@@ -54,13 +54,13 @@ public class P_136_ConcatenateTuples extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
-		final AvailObject tuples = args.get(0);
+		final A_Tuple tuples = args.get(0);
 		return interpreter.primitiveSuccess(
 			tuples.concatenateTuplesCanDestroy(true));
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
@@ -70,14 +70,14 @@ public class P_136_ConcatenateTuples extends Primitive
 	}
 
 	@Override
-	public AvailObject returnTypeGuaranteedByVM (
-		final List<AvailObject> argumentTypes)
+	public A_Type returnTypeGuaranteedByVM (
+		final List<A_Type> argumentTypes)
 	{
-		final AvailObject tuplesType = argumentTypes.get(0);
+		final A_Type tuplesType = argumentTypes.get(0);
 
-		final AvailObject tuplesSizes = tuplesType.sizeRange();
-		final AvailObject lowerBound = tuplesSizes.lowerBound();
-		final AvailObject upperBound = tuplesSizes.upperBound();
+		final A_Type tuplesSizes = tuplesType.sizeRange();
+		final A_Number lowerBound = tuplesSizes.lowerBound();
+		final A_Number upperBound = tuplesSizes.upperBound();
 		if (lowerBound.equals(upperBound))
 		{
 			// A fixed number of subtuples.  Must be finite, of course.
@@ -91,7 +91,7 @@ public class P_136_ConcatenateTuples extends Primitive
 			// A (reasonably small) collection of tuple types.
 			assert lowerBound.isInt();
 			final int bound = lowerBound.extractInt();
-			AvailObject concatenatedType =
+			A_Type concatenatedType =
 				InstanceTypeDescriptor.on(TupleDescriptor.empty());
 			for (int i = 1; i <= bound; i++)
 			{
@@ -106,27 +106,24 @@ public class P_136_ConcatenateTuples extends Primitive
 		if (tuplesType.typeTuple().tupleSize() == 0)
 		{
 			// The outer tuple type is homogeneous.
-			final AvailObject innerTupleType = tuplesType.defaultType();
+			final A_Type innerTupleType = tuplesType.defaultType();
 			if (innerTupleType.typeTuple().tupleSize() == 0)
 			{
 				// The inner tuple type is also homogeneous.
-				final AvailObject innerSizes =
-					innerTupleType.sizeRange();
-				final AvailObject minSize =
+				final A_Type innerSizes = innerTupleType.sizeRange();
+				final A_Number minSize =
 					tuplesSizes.lowerBound().timesCanDestroy(
 						innerSizes.lowerBound(),
 						false);
-				final AvailObject maxSize =
+				final A_Number maxSize =
 					tuplesSizes.upperBound().timesCanDestroy(
 						innerSizes.upperBound(),
 						false);
-				final AvailObject newSizeRange =
+				final A_Type newSizeRange =
 					IntegerRangeTypeDescriptor.create(
 						minSize,
 						true,
-						maxSize.plusCanDestroy(
-							IntegerDescriptor.one(),
-							true),
+						maxSize.plusCanDestroy(IntegerDescriptor.one(), true),
 						false);
 				return TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 					newSizeRange,

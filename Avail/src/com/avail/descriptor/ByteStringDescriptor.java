@@ -84,7 +84,7 @@ extends StringDescriptor
 		final AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
-		final AvailObject anotherObject,
+		final A_Tuple anotherObject,
 		final int startIndex2)
 	{
 		return anotherObject.compareFromToWithByteStringStartingAt(
@@ -123,7 +123,7 @@ extends StringDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_Equals (final AvailObject object, final AvailObject another)
+	boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		return another.equalsByteString(object);
 	}
@@ -244,10 +244,10 @@ extends StringDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_TupleAtPuttingCanDestroy (
+	A_Tuple o_TupleAtPuttingCanDestroy (
 		final AvailObject object,
 		final int index,
-		final AvailObject newValueObject,
+		final A_BasicObject newValueObject,
 		final boolean canDestroy)
 	{
 		// Answer a tuple with all the elements of object except at the given
@@ -409,7 +409,7 @@ extends StringDescriptor
 	 * @param object The {@linkplain AvailObject receiver}.
 	 * @return A mutable copy of the {@linkplain AvailObject receiver}.
 	 */
-	private AvailObject copyAsMutableByteString (
+	private A_String copyAsMutableByteString (
 		final AvailObject object)
 	{
 		final AvailObject result = mutableObjectOfSize(object.tupleSize());
@@ -433,10 +433,10 @@ extends StringDescriptor
 	 * @param object The {@linkplain AvailObject receiver}.
 	 * @return A mutable copy of the {@linkplain AvailObject receiver}.
 	 */
-	private AvailObject copyAsMutableTwoByteString (
-		final AvailObject object)
+	private A_String copyAsMutableTwoByteString (
+		final A_String object)
 	{
-		final AvailObject result =
+		final A_String result =
 			TwoByteStringDescriptor.mutableObjectOfSize(object.tupleSize());
 		result.hashOrZero(object.hashOrZero());
 		for (int i = 1, end = object.tupleSize(); i <= end; i++)

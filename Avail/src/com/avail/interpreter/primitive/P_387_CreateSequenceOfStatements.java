@@ -65,7 +65,7 @@ extends Primitive
 		final AvailObject statements = args.get(0);
 		final List<AvailObject> flat =
 			new ArrayList<AvailObject>(statements.tupleSize() + 3);
-		for (final AvailObject statement : statements)
+		for (final A_BasicObject statement : statements)
 		{
 			statement.flattenStatementsInto(flat);
 		}
@@ -78,7 +78,7 @@ extends Primitive
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

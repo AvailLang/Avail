@@ -57,7 +57,7 @@ public class P_059_ContinuationStackData extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
-		final AvailObject con = args.get(0);
+		final A_BasicObject con = args.get(0);
 		final int count = con.function().code().numArgsAndLocalsAndStack();
 		final AvailObject tuple = ObjectTupleDescriptor.createUninitialized(
 			count);
@@ -77,7 +77,7 @@ public class P_059_ContinuationStackData extends Primitive
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

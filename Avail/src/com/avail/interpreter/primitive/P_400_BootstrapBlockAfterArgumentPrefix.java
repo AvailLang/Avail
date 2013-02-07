@@ -63,9 +63,9 @@ public class P_400_BootstrapBlockAfterArgumentPrefix extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
-		final AvailObject allBlockArguments = args.get(0);
+		final A_Tuple allBlockArguments = args.get(0);
 
-		final AvailObject latestBlockArgument =
+		final A_Tuple latestBlockArgument =
 			allBlockArguments.tupleAt(allBlockArguments.tupleSize());
 		assert latestBlockArgument.tupleSize() == 2;
 		final AvailObject labelPhrase = latestBlockArgument.tupleAt(1);
@@ -74,8 +74,8 @@ public class P_400_BootstrapBlockAfterArgumentPrefix extends Primitive
 		assert labelPhrase.isInstanceOfKind(LITERAL_NODE.create(TOKEN.o()));
 		assert typePhrase.isInstanceOfKind(
 			LITERAL_NODE.create(InstanceMetaDescriptor.anyMeta()));
-		final AvailObject argToken = labelPhrase.token().token();
-		final AvailObject argType = typePhrase.token().literal();
+		final A_Token argToken = labelPhrase.token().token();
+		final A_Type argType = typePhrase.token().literal();
 		assert argType.isType();
 
 		if (argType.equals(TOP.o())
@@ -98,7 +98,7 @@ public class P_400_BootstrapBlockAfterArgumentPrefix extends Primitive
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

@@ -113,7 +113,7 @@ extends AbstractNumberDescriptor
 	 */
 	static Order compareDoubleAndInteger (
 		final double aDouble,
-		final AvailObject anInteger)
+		final A_Number anInteger)
 	{
 		if (Double.isNaN(aDouble))
 		{
@@ -149,9 +149,9 @@ extends AbstractNumberDescriptor
 		int exponentAdjustment = Math.max(exponent - 60, 0);
 		final double normalD = Math.scalb(floorD, -exponentAdjustment);
 		assert Long.MIN_VALUE < normalD && normalD < Long.MAX_VALUE;
-		final AvailObject normalInteger =
+		final A_Number normalInteger =
 			IntegerDescriptor.fromLong((long)normalD);
-		AvailObject integer = normalInteger;
+		A_Number integer = normalInteger;
 		while (exponentAdjustment > 60)
 		{
 			final int shift = Math.min(exponentAdjustment, 60);
@@ -184,7 +184,7 @@ extends AbstractNumberDescriptor
 	 */
 	static double addDoubleAndIntegerCanDestroy (
 		final double aDouble,
-		final AvailObject anInteger,
+		final A_Number anInteger,
 		final boolean canDestroy)
 	{
 		if (Double.isInfinite(aDouble))
@@ -203,9 +203,9 @@ extends AbstractNumberDescriptor
 		// zero and residue,  Add the truncation (as an integer) to the
 		// integer, convert to double, and add the residue (-1<r<1).
 		final double adjustment = Math.floor(aDouble);
-		final AvailObject adjustmentAsInteger =
+		final A_Number adjustmentAsInteger =
 			IntegerDescriptor.truncatedFromDouble(adjustment);
-		final AvailObject adjustedInteger =
+		final A_Number adjustedInteger =
 			anInteger.minusCanDestroy(adjustmentAsInteger, canDestroy);
 		final double adjustedIntegerAsDouble =
 			adjustedInteger.extractDouble();
@@ -226,7 +226,7 @@ extends AbstractNumberDescriptor
 	@Override @AvailMethod
 	boolean o_Equals (
 		final AvailObject object,
-		final AvailObject another)
+		final A_BasicObject another)
 	{
 		final boolean same = another.equalsDouble(getDouble(object));
 		if (same)
@@ -236,7 +236,7 @@ extends AbstractNumberDescriptor
 				another.makeImmutable();
 				object.becomeIndirectionTo(another);
 			}
-			else if (!another.descriptor.isShared())
+			else if (!another.descriptor().isShared())
 			{
 				object.makeImmutable();
 				another.becomeIndirectionTo(object);
@@ -266,7 +266,7 @@ extends AbstractNumberDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_Kind (final AvailObject object)
+	A_Type o_Kind (final AvailObject object)
 	{
 		return DOUBLE.o();
 	}
@@ -292,7 +292,7 @@ extends AbstractNumberDescriptor
 	@Override
 	Order o_NumericCompare (
 		final AvailObject object,
-		final AvailObject another)
+		final A_Number another)
 	{
 		return another.numericCompareToDouble(getDouble(object)).reverse();
 	}
@@ -300,15 +300,15 @@ extends AbstractNumberDescriptor
 	@Override
 	boolean o_IsInstanceOfKind (
 		final AvailObject object,
-		final AvailObject aType)
+		final A_Type aType)
 	{
 		return aType.isSupertypeOfPrimitiveTypeEnum(DOUBLE);
 	}
 
 	@Override
-	AvailObject o_DivideCanDestroy (
+	A_Number o_DivideCanDestroy (
 		final AvailObject object,
-		final AvailObject aNumber,
+		final A_Number aNumber,
 		final boolean canDestroy)
 	{
 		return aNumber.divideIntoDoubleCanDestroy(
@@ -317,9 +317,9 @@ extends AbstractNumberDescriptor
 	}
 
 	@Override
-	AvailObject o_MinusCanDestroy (
+	A_Number o_MinusCanDestroy (
 		final AvailObject object,
-		final AvailObject aNumber,
+		final A_Number aNumber,
 		final boolean canDestroy)
 	{
 		return aNumber.subtractFromDoubleCanDestroy(
@@ -328,9 +328,9 @@ extends AbstractNumberDescriptor
 	}
 
 	@Override
-	AvailObject o_PlusCanDestroy (
+	A_Number o_PlusCanDestroy (
 		final AvailObject object,
-		final AvailObject aNumber,
+		final A_Number aNumber,
 		final boolean canDestroy)
 	{
 		return aNumber.addToDoubleCanDestroy(
@@ -339,9 +339,9 @@ extends AbstractNumberDescriptor
 	}
 
 	@Override
-	AvailObject o_TimesCanDestroy (
+	A_Number o_TimesCanDestroy (
 		final AvailObject object,
-		final AvailObject aNumber,
+		final A_Number aNumber,
 		final boolean canDestroy)
 	{
 		return aNumber.multiplyByDoubleCanDestroy(
@@ -350,7 +350,7 @@ extends AbstractNumberDescriptor
 	}
 
 	@Override
-	AvailObject o_AddToInfinityCanDestroy (
+	A_Number o_AddToInfinityCanDestroy (
 		final AvailObject object,
 		final Sign sign,
 		final boolean canDestroy)
@@ -362,9 +362,9 @@ extends AbstractNumberDescriptor
 	}
 
 	@Override
-	AvailObject o_AddToIntegerCanDestroy (
+	A_Number o_AddToIntegerCanDestroy (
 		final AvailObject object,
-		final AvailObject anInteger,
+		final A_Number anInteger,
 		final boolean canDestroy)
 	{
 		final double sum = addDoubleAndIntegerCanDestroy(
@@ -375,9 +375,9 @@ extends AbstractNumberDescriptor
 	}
 
 	@Override
-	AvailObject o_AddToDoubleCanDestroy (
+	A_Number o_AddToDoubleCanDestroy (
 		final AvailObject object,
-		final AvailObject doubleObject,
+		final A_Number doubleObject,
 		final boolean canDestroy)
 	{
 		return objectFromDoubleRecycling(
@@ -388,9 +388,9 @@ extends AbstractNumberDescriptor
 	}
 
 	@Override
-	AvailObject o_AddToFloatCanDestroy (
+	A_Number o_AddToFloatCanDestroy (
 		final AvailObject object,
-		final AvailObject floatObject,
+		final A_Number floatObject,
 		final boolean canDestroy)
 	{
 		return objectFromDoubleRecycling(
@@ -400,7 +400,7 @@ extends AbstractNumberDescriptor
 	}
 
 	@Override
-	AvailObject o_DivideIntoInfinityCanDestroy (
+	A_Number o_DivideIntoInfinityCanDestroy (
 		final AvailObject object,
 		final Sign sign,
 		final boolean canDestroy)
@@ -412,9 +412,9 @@ extends AbstractNumberDescriptor
 	}
 
 	@Override
-	AvailObject o_DivideIntoIntegerCanDestroy (
+	A_Number o_DivideIntoIntegerCanDestroy (
 		final AvailObject object,
-		final AvailObject anInteger,
+		final A_Number anInteger,
 		final boolean canDestroy)
 	{
 		return objectFromDoubleRecycling(
@@ -424,9 +424,9 @@ extends AbstractNumberDescriptor
 	}
 
 	@Override
-	AvailObject o_DivideIntoDoubleCanDestroy (
+	A_Number o_DivideIntoDoubleCanDestroy (
 		final AvailObject object,
-		final AvailObject doubleObject,
+		final A_Number doubleObject,
 		final boolean canDestroy)
 	{
 		return objectFromDoubleRecycling(
@@ -437,9 +437,9 @@ extends AbstractNumberDescriptor
 	}
 
 	@Override
-	AvailObject o_DivideIntoFloatCanDestroy (
+	A_Number o_DivideIntoFloatCanDestroy (
 		final AvailObject object,
-		final AvailObject floatObject,
+		final A_Number floatObject,
 		final boolean canDestroy)
 	{
 		return objectFromDoubleRecycling(
@@ -449,7 +449,7 @@ extends AbstractNumberDescriptor
 	}
 
 	@Override
-	AvailObject o_MultiplyByInfinityCanDestroy (
+	A_Number o_MultiplyByInfinityCanDestroy (
 		final AvailObject object,
 		final Sign sign,
 		final boolean canDestroy)
@@ -461,9 +461,9 @@ extends AbstractNumberDescriptor
 	}
 
 	@Override
-	AvailObject o_MultiplyByIntegerCanDestroy (
+	A_Number o_MultiplyByIntegerCanDestroy (
 		final AvailObject object,
-		final AvailObject anInteger,
+		final A_Number anInteger,
 		final boolean canDestroy)
 	{
 		return objectFromDoubleRecycling(
@@ -473,9 +473,9 @@ extends AbstractNumberDescriptor
 	}
 
 	@Override
-	AvailObject o_MultiplyByDoubleCanDestroy (
+	A_Number o_MultiplyByDoubleCanDestroy (
 		final AvailObject object,
-		final AvailObject doubleObject,
+		final A_Number doubleObject,
 		final boolean canDestroy)
 	{
 		return objectFromDoubleRecycling(
@@ -486,9 +486,9 @@ extends AbstractNumberDescriptor
 	}
 
 	@Override
-	AvailObject o_MultiplyByFloatCanDestroy (
+	A_Number o_MultiplyByFloatCanDestroy (
 		final AvailObject object,
-		final AvailObject floatObject,
+		final A_Number floatObject,
 		final boolean canDestroy)
 	{
 		return objectFromDoubleRecycling(
@@ -498,7 +498,7 @@ extends AbstractNumberDescriptor
 	}
 
 	@Override
-	AvailObject o_SubtractFromInfinityCanDestroy (
+	A_Number o_SubtractFromInfinityCanDestroy (
 		final AvailObject object,
 		final Sign sign,
 		final boolean canDestroy)
@@ -510,9 +510,9 @@ extends AbstractNumberDescriptor
 	}
 
 	@Override
-	AvailObject o_SubtractFromIntegerCanDestroy (
+	A_Number o_SubtractFromIntegerCanDestroy (
 		final AvailObject object,
-		final AvailObject anInteger,
+		final A_Number anInteger,
 		final boolean canDestroy)
 	{
 		return objectFromDoubleRecycling(
@@ -525,9 +525,9 @@ extends AbstractNumberDescriptor
 	}
 
 	@Override
-	AvailObject o_SubtractFromDoubleCanDestroy (
+	A_Number o_SubtractFromDoubleCanDestroy (
 		final AvailObject object,
-		final AvailObject doubleObject,
+		final A_Number doubleObject,
 		final boolean canDestroy)
 	{
 		return objectFromDoubleRecycling(
@@ -538,9 +538,9 @@ extends AbstractNumberDescriptor
 	}
 
 	@Override
-	AvailObject o_SubtractFromFloatCanDestroy (
+	A_Number o_SubtractFromFloatCanDestroy (
 		final AvailObject object,
-		final AvailObject floatObject,
+		final A_Number floatObject,
 		final boolean canDestroy)
 	{
 		return objectFromDoubleRecycling(
@@ -574,7 +574,7 @@ extends AbstractNumberDescriptor
 	@Override
 	Order o_NumericCompareToInteger (
 		final AvailObject object,
-		final AvailObject anInteger)
+		final A_Number anInteger)
 	{
 		return compareDoubleAndInteger(getDouble(object), anInteger);
 	}
@@ -660,12 +660,12 @@ extends AbstractNumberDescriptor
 	 *            The boxed Avail {@code DoubleDescriptor double-precision
 	 *            floating point object}.
 	 */
-	public static AvailObject objectFromDoubleRecycling (
+	public static A_Number objectFromDoubleRecycling (
 		final double aDouble,
-		final AvailObject recyclable1,
+		final A_Number recyclable1,
 		final boolean canDestroy)
 	{
-		final AvailObject result =
+		final A_Number result =
 			canDestroy && recyclable1.descriptor().isMutable()
 			? recyclable1
 			: mutable.create();
@@ -694,13 +694,13 @@ extends AbstractNumberDescriptor
 	 *            The boxed Avail {@code DoubleDescriptor double-precision
 	 *            floating point object}.
 	 */
-	public static AvailObject objectFromDoubleRecycling (
+	public static A_Number objectFromDoubleRecycling (
 		final double aDouble,
-		final AvailObject recyclable1,
-		final AvailObject recyclable2,
+		final A_Number recyclable1,
+		final A_Number recyclable2,
 		final boolean canDestroy)
 	{
-		AvailObject result;
+		A_Number result;
 		if (canDestroy && recyclable1.descriptor().isMutable())
 		{
 			result = recyclable1;
@@ -755,7 +755,7 @@ extends AbstractNumberDescriptor
 	 *
 	 * @return The Avail object for double-precision (positive) zero.
 	 */
-	static AvailObject zero ()
+	static A_BasicObject zero ()
 	{
 		return Sign.ZERO.limitDoubleObject;
 	}

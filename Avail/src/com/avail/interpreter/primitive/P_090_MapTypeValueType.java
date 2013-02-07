@@ -54,12 +54,12 @@ public class P_090_MapTypeValueType extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
-		final AvailObject mapType = args.get(0);
+		final A_BasicObject mapType = args.get(0);
 		return interpreter.primitiveSuccess(mapType.valueType());
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

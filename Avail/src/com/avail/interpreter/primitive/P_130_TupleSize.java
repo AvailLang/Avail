@@ -54,13 +54,13 @@ public class P_130_TupleSize extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
-		final AvailObject tuple = args.get(0);
+		final A_Tuple tuple = args.get(0);
 		return interpreter.primitiveSuccess(
 			IntegerDescriptor.fromInt(tuple.tupleSize()));
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
@@ -69,10 +69,10 @@ public class P_130_TupleSize extends Primitive
 	}
 
 	@Override
-	public AvailObject returnTypeGuaranteedByVM (
-		final List<AvailObject> argumentTypes)
+	public A_Type returnTypeGuaranteedByVM (
+		final List<A_Type> argumentTypes)
 	{
-		final AvailObject tupleType = argumentTypes.get(0);
+		final A_BasicObject tupleType = argumentTypes.get(0);
 		return tupleType.sizeRange();
 	}
 }

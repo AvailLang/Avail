@@ -35,7 +35,9 @@ import static com.avail.interpreter.levelTwo.L2Interpreter.*;
 import static com.avail.interpreter.levelTwo.L2OperandType.PC;
 import static com.avail.interpreter.levelTwo.register.FixedRegister.*;
 import java.util.logging.Level;
-import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.A_Function;
+import com.avail.descriptor.A_Tuple;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelOne.L1Operation;
 import com.avail.interpreter.levelTwo.*;
@@ -65,9 +67,9 @@ public class L2_INTERPRET_UNTIL_INTERRUPT extends L2Operation
 	@Override
 	public void step (final L2Interpreter interpreter)
 	{
-		final AvailObject function = interpreter.pointerAt(FUNCTION);
-		final AvailObject code = function.code();
-		final AvailObject nybbles = code.nybbles();
+		final A_Function function = interpreter.pointerAt(FUNCTION);
+		final A_BasicObject code = function.code();
+		final A_Tuple nybbles = code.nybbles();
 		final int pc = interpreter.integerAt(pcRegister());
 
 		if (!interpreter.isInterruptRequested())
@@ -80,7 +82,7 @@ public class L2_INTERPRET_UNTIL_INTERRUPT extends L2Operation
 		if (debugL1)
 		{
 			for (
-				AvailObject c = interpreter.pointerAt(CALLER);
+				A_BasicObject c = interpreter.pointerAt(CALLER);
 				!c.equalsNil();
 				c = c.caller())
 			{

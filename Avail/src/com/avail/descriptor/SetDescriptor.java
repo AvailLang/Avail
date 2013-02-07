@@ -94,9 +94,9 @@ extends Descriptor
 	 * @param bin
 	 *        The root bin for the set, or nil.
 	 */
-	private static void rootBin (
-		final AvailObject object,
-		final AvailObject bin)
+	private static void setRootBin (
+		final A_Set object,
+		final A_BasicObject bin)
 	{
 		object.setSlot(ObjectSlots.ROOT_BIN, bin);
 	}
@@ -108,7 +108,7 @@ extends Descriptor
 		final List<AvailObject> recursionList,
 		final int indent)
 	{
-		final AvailObject tuple = object.asTuple();
+		final A_Tuple tuple = object.asTuple();
 		if (tuple.tupleSize() == 0)
 		{
 			aStream.append('∅');
@@ -137,13 +137,13 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_Equals (final AvailObject object, final AvailObject another)
+	boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		return another.equalsSet(object);
 	}
 
 	@Override @AvailMethod
-	boolean o_EqualsSet (final AvailObject object, final AvailObject aSet)
+	boolean o_EqualsSet (final AvailObject object, final A_Set aSet)
 	{
 		// First eliminate the trivial case of different sizes.
 		if (object.setSize() != aSet.setSize())
@@ -167,7 +167,7 @@ extends Descriptor
 			aSet.makeImmutable();
 			object.becomeIndirectionTo(aSet);
 		}
-		else if (!aSet.descriptor.isShared())
+		else if (!aSet.descriptor().isShared())
 		{
 			object.makeImmutable();
 			aSet.becomeIndirectionTo(object);
@@ -178,7 +178,7 @@ extends Descriptor
 	@Override @AvailMethod
 	boolean o_IsInstanceOfKind (
 		final AvailObject object,
-		final AvailObject aTypeObject)
+		final A_Type aTypeObject)
 	{
 		if (aTypeObject.isSupertypeOfPrimitiveTypeEnum(NONTYPE))
 		{
@@ -193,7 +193,7 @@ extends Descriptor
 		{
 			return false;
 		}
-		final AvailObject expectedContentType = aTypeObject.contentType();
+		final A_Type expectedContentType = aTypeObject.contentType();
 		if (expectedContentType.isEnumeration())
 		{
 			// Check the complete membership.
@@ -225,7 +225,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_Kind (final AvailObject object)
+	A_Type o_Kind (final AvailObject object)
 	{
 		final int size = object.setSize();
 		final AvailObject sizeRange = InstanceTypeDescriptor.on(
@@ -238,14 +238,14 @@ extends Descriptor
 	@Override @AvailMethod
 	boolean o_HasElement (
 		final AvailObject object,
-		final AvailObject elementObject)
+		final A_BasicObject elementObject)
 	{
 		return rootBin(object).binHasElementWithHash(
 			elementObject, elementObject.hash());
 	}
 
 	@Override @AvailMethod
-	boolean o_IsSubsetOf (final AvailObject object, final AvailObject another)
+	boolean o_IsSubsetOf (final AvailObject object, final A_Set another)
 	{
 		// Check if object is a subset of another.
 		if (object.setSize() > another.setSize())
@@ -267,15 +267,15 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_SetIntersectionCanDestroy (
+	A_Set o_SetIntersectionCanDestroy (
 		final AvailObject object,
-		final AvailObject otherSet,
+		final A_Set otherSet,
 		final boolean canDestroy)
 	{
 		// Compute the intersection of two sets. May destroy one of them if
 		// it's mutable and canDestroy is true.
-		AvailObject smaller;
-		AvailObject larger;
+		A_Set smaller;
+		A_Set larger;
 		if (object.setSize() <= otherSet.setSize())
 		{
 			smaller = object;
@@ -287,7 +287,7 @@ extends Descriptor
 			smaller = otherSet.traversed();
 		}
 		boolean intersected = false;
-		AvailObject result = smaller;
+		A_Set result = smaller;
 		for (final AvailObject element : smaller)
 		{
 			if (!larger.hasElement(element))
@@ -305,15 +305,15 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_SetMinusCanDestroy (
+	A_Set o_SetMinusCanDestroy (
 		final AvailObject object,
-		final AvailObject otherSet,
+		final A_Set otherSet,
 		final boolean canDestroy)
 	{
 		// Compute the asymmetric difference of two sets (a \ b).  May destroy
 		// one of them if it's mutable and canDestroy is true.
 		boolean intersected = false;
-		AvailObject result = object;
+		A_Set result = object;
 		for (final AvailObject element : object)
 		{
 			if (otherSet.hasElement(element))
@@ -331,15 +331,15 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_SetUnionCanDestroy (
+	A_Set o_SetUnionCanDestroy (
 		final AvailObject object,
-		final AvailObject otherSet,
+		final A_Set otherSet,
 		final boolean canDestroy)
 	{
 		// Compute the union of two sets. May destroy one of them if it's
 		// mutable and canDestroy is true.
-		AvailObject smaller;
-		AvailObject larger;
+		A_Set smaller;
+		A_Set larger;
 		if (object.setSize() <= otherSet.setSize())
 		{
 			smaller = object;
@@ -362,8 +362,8 @@ extends Descriptor
 		{
 			larger.makeImmutable();
 		}
-		AvailObject result = larger;
-		for (final AvailObject element : smaller)
+		A_Set result = larger;
+		for (final A_BasicObject element : smaller)
 		{
 			result = result.setWithElementCanDestroy(
 				element.makeImmutable(),
@@ -373,9 +373,9 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_SetWithElementCanDestroy (
+	A_Set o_SetWithElementCanDestroy (
 		final AvailObject object,
-		final AvailObject newElementObject,
+		final A_BasicObject newElementObject,
 		final boolean canDestroy)
 	{
 		// Ensure newElementObject is in the set, adding it if necessary. May
@@ -383,7 +383,7 @@ extends Descriptor
 		final int elementHash = newElementObject.hash();
 		final AvailObject root = rootBin(object);
 		final int oldSize = root.binSize();
-		final AvailObject newRootBin =
+		final A_BasicObject newRootBin =
 			root.setBinAddingElementHashLevelCanDestroy(
 				newElementObject,
 				elementHash,
@@ -397,7 +397,7 @@ extends Descriptor
 			}
 			return object;
 		}
-		AvailObject result;
+		A_Set result;
 		if (canDestroy & isMutable())
 		{
 			result = object;
@@ -406,14 +406,14 @@ extends Descriptor
 		{
 			result = mutable().create();
 		}
-		rootBin(result, newRootBin);
+		setRootBin(result, newRootBin);
 		return result;
 	}
 
 	@Override @AvailMethod
-	AvailObject o_SetWithoutElementCanDestroy (
+	A_Set o_SetWithoutElementCanDestroy (
 		final AvailObject object,
-		final AvailObject elementObjectToExclude,
+		final A_BasicObject elementObjectToExclude,
 		final boolean canDestroy)
 	{
 		// Ensure elementObjectToExclude is not in the set, removing it if
@@ -442,12 +442,12 @@ extends Descriptor
 		{
 			result = mutable().create();
 		}
-		rootBin(result, newRootBin);
+		setRootBin(result, newRootBin);
 		return result;
 	}
 
 	@Override
-	public boolean o_ShowValueInNameForDebugger (final AvailObject object)
+	public boolean o_ShowValueInNameForDebugger (final A_BasicObject object)
 	{
 		return false;
 	}
@@ -474,19 +474,19 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_AsTuple (final AvailObject object)
+	A_Tuple o_AsTuple (final AvailObject object)
 	{
 		final int size = object.setSize();
-		final AvailObject result = ObjectTupleDescriptor.mutable.create(size);
+		final A_Tuple result = ObjectTupleDescriptor.createUninitialized(size);
 		for (int i = 1; i <= size; i++)
 		{
 			// Initialize it for when we use our own garbage collection again.
-			result.tupleAtPut(i, NilDescriptor.nil());
+			result.objectTupleAtPut(i, NilDescriptor.nil());
 		}
 		int index = 1;
-		for (final AvailObject element : object)
+		for (final A_BasicObject element : object)
 		{
-			result.tupleAtPut(index, element.makeImmutable());
+			result.objectTupleAtPut(index, element.makeImmutable());
 			index++;
 		}
 		assert index == size + 1;
@@ -515,11 +515,11 @@ extends Descriptor
 	 * @param collection A collection.
 	 * @return A new mutable set containing the elements of the collection.
 	 */
-	public static AvailObject fromCollection (
-		final Collection<AvailObject> collection)
+	public static A_Set fromCollection (
+		final Collection<? extends A_BasicObject> collection)
 	{
-		AvailObject set = empty();
-		for (final AvailObject element : collection)
+		A_Set set = empty();
+		for (final A_BasicObject element : collection)
 		{
 			set = set.setWithElementCanDestroy(element, true);
 		}
@@ -568,14 +568,14 @@ extends Descriptor
 	}
 
 	/** The empty set. */
-	private static AvailObject emptySet;
+	private static A_Set emptySet;
 
 	/**
 	 * Answer the empty set.
 	 *
 	 * @return The empty set.
 	 */
-	public static AvailObject empty ()
+	public static A_Set empty ()
 	{
 		return emptySet;
 	}
@@ -586,7 +586,7 @@ extends Descriptor
 	static void createWellKnownObjects ()
 	{
 		emptySet = mutable.create();
-		rootBin(emptySet, NilDescriptor.nil());
+		setRootBin(emptySet, NilDescriptor.nil());
 		emptySet.hash();
 		emptySet.makeShared();
 	}

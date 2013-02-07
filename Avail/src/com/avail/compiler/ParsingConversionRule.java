@@ -72,9 +72,8 @@ public enum ParsingConversionRule
 			final AvailObject input,
 			final ParserState startingParserState)
 		{
-			final AvailObject expressions =
-				input.expressionsTuple();
-			final AvailObject count = IntegerDescriptor.fromInt(
+			final A_Tuple expressions = input.expressionsTuple();
+			final A_Number count = IntegerDescriptor.fromInt(
 				expressions.tupleSize());
 			final AvailObject token =
 				LiteralTokenDescriptor.create(
@@ -101,11 +100,10 @@ public enum ParsingConversionRule
 			final AvailObject input,
 			final ParserState startingParserState)
 		{
-			final AvailObject expressions =
+			final A_Tuple expressions =
 				input.expressionsTuple();
-			final AvailObject nonempty =
-				AtomDescriptor.objectFromBoolean(
-					expressions.tupleSize() > 0);
+			final A_Atom nonempty =
+				AtomDescriptor.objectFromBoolean(expressions.tupleSize() > 0);
 			final AvailObject token =
 				LiteralTokenDescriptor.create(
 					StringDescriptor.from(nonempty.toString()),

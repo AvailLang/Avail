@@ -64,16 +64,15 @@ public class P_507_InvokeInstancePojoMethod extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 4;
-		final AvailObject methodPojo = args.get(0);
-		final AvailObject receiverPojo = args.get(1);
-		final AvailObject methodArgs = args.get(2);
-		final AvailObject marshaledTypePojos = args.get(3);
+		final A_BasicObject methodPojo = args.get(0);
+		final A_BasicObject receiverPojo = args.get(1);
+		final A_Tuple methodArgs = args.get(2);
+		final A_Tuple marshaledTypePojos = args.get(3);
 		// Marshal the arguments and invoke the method.
 		final Method method = (Method) methodPojo.javaObject();
 		assert method != null;
 		final Object receiver = receiverPojo.rawPojo().javaObject();
-		final Object[] marshaledArgs =
-			new Object[methodArgs.tupleSize()];
+		final Object[] marshaledArgs = new Object[methodArgs.tupleSize()];
 		try
 		{
 			for (int i = 0; i < marshaledArgs.length; i++)
@@ -122,7 +121,7 @@ public class P_507_InvokeInstancePojoMethod extends Primitive
 			return interpreter.primitiveSuccess(
 				PojoDescriptor.nullObject());
 		}
-		final AvailObject expectedType = PojoTypeDescriptor.resolve(
+		final A_Type expectedType = PojoTypeDescriptor.resolve(
 			method.getGenericReturnType(),
 			receiverPojo.kind().typeVariables());
 		final AvailObject unmarshaled = PojoTypeDescriptor.unmarshal(
@@ -131,7 +130,7 @@ public class P_507_InvokeInstancePojoMethod extends Primitive
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
@@ -144,7 +143,7 @@ public class P_507_InvokeInstancePojoMethod extends Primitive
 	}
 
 	@Override
-	protected AvailObject privateFailureVariableType ()
+	protected A_Type privateFailureVariableType ()
 	{
 		return PojoTypeDescriptor.forClass(Throwable.class);
 	}

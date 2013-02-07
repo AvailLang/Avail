@@ -41,7 +41,7 @@ import com.avail.exceptions.MapException;
 import com.avail.interpreter.*;
 
 /**
- * <strong>Primitive 202</strong>: Get the {@linkplain
+ * <strong>Primitive 203</strong>: Get the {@linkplain
  * ObjectTypeDescriptor#stackDumpAtom() stack dump} associated with the
  * specified {@linkplain ObjectTypeDescriptor#exceptionType() exception}.
  *
@@ -62,7 +62,7 @@ extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
-		final AvailObject exception = args.get(0);
+		final A_BasicObject exception = args.get(0);
 		try
 		{
 			final AvailObject stackDump = exception.fieldMap().mapAt(
@@ -77,7 +77,7 @@ extends Primitive
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
@@ -87,7 +87,7 @@ extends Primitive
 	}
 
 	@Override
-	protected AvailObject privateFailureVariableType ()
+	protected A_Type privateFailureVariableType ()
 	{
 		return InstanceTypeDescriptor.on(
 			E_INCORRECT_ARGUMENT_TYPE.numericCode());

@@ -62,8 +62,8 @@ extends Primitive
 		assert args.size() == 2;
 		final AvailObject atom = args.get(0);
 		final AvailObject function = args.get(1);
-		final AvailObject functionType = function.kind();
-		final AvailObject tupleType = functionType.argsTupleType();
+		final A_BasicObject functionType = function.kind();
+		final A_BasicObject tupleType = functionType.argsTupleType();
 		for (int i = function.code().numArgs(); i >= 1; i--)
 		{
 			if (!tupleType.typeAtIndex(i).isInstanceOf(
@@ -88,7 +88,7 @@ extends Primitive
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

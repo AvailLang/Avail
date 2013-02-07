@@ -54,7 +54,7 @@ public class P_022_SetFiberPriority extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 2;
-		final AvailObject fiber = args.get(0);
+		final A_BasicObject fiber = args.get(0);
 		final AvailObject priority = args.get(0);
 		fiber.priority(priority);
 		return interpreter.primitiveSuccess(
@@ -62,7 +62,7 @@ public class P_022_SetFiberPriority extends Primitive
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

@@ -200,7 +200,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_Function (final AvailObject object)
+	A_Function o_Function (final AvailObject object)
 	{
 		return object.slot(FUNCTION);
 	}
@@ -218,7 +218,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_Equals (final AvailObject object, final AvailObject another)
+	boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		return another.equalsContinuation(object);
 	}
@@ -273,7 +273,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_Kind (final AvailObject object)
+	A_Type o_Kind (final AvailObject object)
 	{
 		return ContinuationTypeDescriptor.forFunctionType(
 			object.function().kind());
@@ -285,7 +285,7 @@ extends Descriptor
 	@Override @AvailMethod
 	void o_LevelTwoChunkOffset (
 		final AvailObject object,
-		final AvailObject chunk,
+		final A_BasicObject chunk,
 		final int offset)
 	{
 		if (isShared())
@@ -321,7 +321,7 @@ extends Descriptor
 	void o_StackAtPut (
 		final AvailObject object,
 		final int subscript,
-		final AvailObject anObject)
+		final A_BasicObject anObject)
 	{
 		object.setSlot(FRAME_AT_, subscript, anObject);
 	}
@@ -376,7 +376,7 @@ extends Descriptor
 	@Override @AvailMethod @Deprecated
 	void o_PostFault (final AvailObject object)
 	{
-		final AvailObject chunk = object.levelTwoChunk();
+		final A_BasicObject chunk = object.levelTwoChunk();
 		if (chunk.isValid())
 		{
 			chunk.isSaved(true);
@@ -414,7 +414,7 @@ extends Descriptor
 	}
 
 	@Override
-	public boolean o_ShowValueInNameForDebugger (final AvailObject object)
+	public boolean o_ShowValueInNameForDebugger (final A_BasicObject object)
 	{
 		return false;
 	}
@@ -477,13 +477,13 @@ extends Descriptor
 	public static AvailObject create (
 		final AvailObject function,
 		final AvailObject caller,
-		final AvailObject startingChunk,
+		final A_BasicObject startingChunk,
 		final int startingOffset,
 		final List<AvailObject> args,
 		final List<AvailObject> locals)
 	{
 		final ContinuationDescriptor descriptor = mutable;
-		final AvailObject code = function.code();
+		final A_BasicObject code = function.code();
 		final int frameSize = code.numArgsAndLocalsAndStack();
 		final AvailObject cont = descriptor.create(frameSize);
 		cont.setSlot(CALLER, caller);
@@ -528,14 +528,14 @@ extends Descriptor
 	 */
 	public static AvailObject createExceptFrame (
 		final int frameSize,
-		final AvailObject function,
+		final A_Function function,
 		final AvailObject caller,
 		final int pc,
 		final int stackp,
 		final AvailObject levelTwoChunk,
 		final int levelTwoOffset)
 	{
-		final AvailObject code = function.code();
+		final A_BasicObject code = function.code();
 		assert frameSize == code.numArgsAndLocalsAndStack();
 		final AvailObject cont = mutable.create(frameSize);
 		cont.setSlot(CALLER, caller);

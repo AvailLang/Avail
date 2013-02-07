@@ -125,7 +125,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_Equals (final AvailObject object, final AvailObject another)
+	boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		return another.equalsPojoField(
 			object.slot(FIELD), object.slot(RECEIVER));
@@ -146,7 +146,7 @@ extends Descriptor
 	{
 		final Object receiver = object.slot(RECEIVER).javaObject();
 		final Field field = (Field) object.slot(FIELD).javaObject();
-		final AvailObject expectedType = object.slot(KIND).readType();
+		final A_Type expectedType = object.slot(KIND).readType();
 		try
 		{
 			return unmarshal(field.get(receiver), expectedType);
@@ -167,13 +167,13 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_Kind (final AvailObject object)
+	A_Type o_Kind (final AvailObject object)
 	{
 		return object.slot(KIND);
 	}
 
 	@Override @AvailMethod
-	void o_SetValue (final AvailObject object, final AvailObject newValue)
+	void o_SetValue (final AvailObject object, final A_BasicObject newValue)
 	{
 		final Object receiver = object.slot(RECEIVER).javaObject();
 		final Field field = (Field) object.slot(FIELD).javaObject();
@@ -216,7 +216,7 @@ extends Descriptor
 	{
 		final Object receiver = object.slot(RECEIVER).javaObject();
 		final Field field = (Field) object.slot(FIELD).javaObject();
-		final AvailObject expectedType = object.slot(KIND).readType();
+		final A_Type expectedType = object.slot(KIND).readType();
 		try
 		{
 			return unmarshal(field.get(receiver), expectedType);
@@ -335,7 +335,7 @@ extends Descriptor
 	public static AvailObject forInnerType (
 		final AvailObject field,
 		final AvailObject receiver,
-		final AvailObject innerType)
+		final A_Type innerType)
 	{
 		final Field javaField = (Field) field.javaObject();
 		if (Modifier.isFinal(javaField.getModifiers()))

@@ -55,12 +55,12 @@ public class P_139_TupleTypeLeadingTypes extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
-		final AvailObject tupleType = args.get(0);
+		final A_BasicObject tupleType = args.get(0);
 		return interpreter.primitiveSuccess(tupleType.typeTuple());
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

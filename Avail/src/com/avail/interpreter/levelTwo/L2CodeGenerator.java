@@ -67,8 +67,8 @@ public final class L2CodeGenerator
 	 * The {@linkplain AvailObject literals} that will be embedded into the
 	 * created {@linkplain L2ChunkDescriptor chunk}.
 	 */
-	private final List<AvailObject> literals =
-		new ArrayList<AvailObject>(20);
+	private final List<A_BasicObject> literals =
+		new ArrayList<A_BasicObject>(20);
 
 	/**
 	 * Emit the specified {@linkplain AvailObject literal} into the instruction
@@ -76,7 +76,7 @@ public final class L2CodeGenerator
 	 *
 	 * @param literal A {@linkplain AvailObject literal}.
 	 */
-	public void emitLiteral (final AvailObject literal)
+	public void emitLiteral (final A_BasicObject literal)
 	{
 		final L2NamedOperandType expected = expectedNamedOperandTypes.remove(0);
 		final L2OperandType expectedOperandType = expected.operandType();
@@ -373,7 +373,7 @@ public final class L2CodeGenerator
 	 *        code} currently undergoing translation to Level Two.
 	 * @return The translated {@linkplain L2ChunkDescriptor chunk}.
 	 */
-	public AvailObject createChunkFor (final AvailObject code)
+	public AvailObject createChunkFor (final A_BasicObject code)
 	{
 		assert expectedNamedOperandTypes.isEmpty();
 		if (logger.isLoggable(Level.FINE))

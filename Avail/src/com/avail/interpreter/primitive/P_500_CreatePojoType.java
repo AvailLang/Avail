@@ -57,8 +57,8 @@ public class P_500_CreatePojoType extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 2;
-		final AvailObject className = args.get(0);
-		final AvailObject classParameters = args.get(1);
+		final A_String className = args.get(0);
+		final A_Tuple classParameters = args.get(1);
 		// Forbid access to the Avail implementation's packages.
 		final String nativeClassName = className.asNativeString();
 		if (nativeClassName.startsWith("com.avail"))
@@ -91,18 +91,14 @@ public class P_500_CreatePojoType extends Primitive
 		}
 		// Replace all occurrences of the pojo self type atom with actual
 		// pojo self types.
-		AvailObject realParameters =
-			classParameters.copyAsMutableObjectTuple();
+		A_Tuple realParameters = classParameters.copyAsMutableObjectTuple();
 		for (int i = 1; i <= classParameters.tupleSize(); i++)
 		{
-			final AvailObject originalParameter =
-				classParameters.tupleAt(i);
+			final A_BasicObject originalParameter = classParameters.tupleAt(i);
 			final AvailObject realParameter;
-			if (originalParameter.equals(
-				PojoTypeDescriptor.selfType()))
+			if (originalParameter.equals(PojoTypeDescriptor.selfType()))
 			{
-				realParameter =
-					PojoTypeDescriptor.selfTypeForClass(rawClass);
+				realParameter = PojoTypeDescriptor.selfTypeForClass(rawClass);
 			}
 			else
 			{
@@ -112,14 +108,14 @@ public class P_500_CreatePojoType extends Primitive
 				i, realParameter, true);
 		}
 		// Construct and answer the pojo type.
-		final AvailObject newPojoType =
+		final A_Type newPojoType =
 			PojoTypeDescriptor.forClassWithTypeArguments(
 				rawClass, realParameters);
 		return interpreter.primitiveSuccess(newPojoType);
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

@@ -54,15 +54,15 @@ public class P_033_IsSubtypeOf extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 2;
-		final AvailObject type1 = args.get(0);
-		final AvailObject type2 = args.get(1);
+		final A_Type type1 = args.get(0);
+		final A_Type type2 = args.get(1);
 		return interpreter.primitiveSuccess(
 			AtomDescriptor.objectFromBoolean(
 				type1.isSubtypeOf(type2)));
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

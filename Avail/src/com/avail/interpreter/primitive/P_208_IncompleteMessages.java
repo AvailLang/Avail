@@ -58,13 +58,13 @@ public class P_208_IncompleteMessages extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
-		final AvailObject bundleTree = args.get(0);
+		final A_BasicObject bundleTree = args.get(0);
 		return interpreter.primitiveSuccess(
 			bundleTree.incomplete().makeImmutable());
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

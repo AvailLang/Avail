@@ -56,8 +56,8 @@ public class P_004_Division extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 2;
-		final AvailObject a = args.get(0);
-		final AvailObject b = args.get(1);
+		final A_Number a = args.get(0);
+		final A_Number b = args.get(1);
 		try
 		{
 			return interpreter.primitiveSuccess(
@@ -70,7 +70,7 @@ public class P_004_Division extends Primitive
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

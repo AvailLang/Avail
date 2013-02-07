@@ -33,6 +33,7 @@
 package com.avail.interpreter.levelTwo.operation;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
+import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.levelTwo.*;
 
@@ -58,7 +59,7 @@ public class L2_JUMP_IF_KIND_OF_CONSTANT extends L2Operation
 		final int doIndex = interpreter.nextWord();
 		final int valueIndex = interpreter.nextWord();
 		final int typeConstIndex = interpreter.nextWord();
-		final AvailObject value = interpreter.pointerAt(valueIndex);
+		final A_BasicObject value = interpreter.pointerAt(valueIndex);
 		final AvailObject type =
 			interpreter.chunk().literalAt(typeConstIndex);
 		if (value.isInstanceOf(type))

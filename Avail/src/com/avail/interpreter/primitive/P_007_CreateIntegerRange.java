@@ -59,9 +59,9 @@ public class P_007_CreateIntegerRange extends Primitive
 	{
 		assert args.size() == 4;
 		final AvailObject min = args.get(0);
-		final AvailObject minInc = args.get(1);
+		final A_BasicObject minInc = args.get(1);
 		final AvailObject max = args.get(2);
-		final AvailObject maxInc = args.get(3);
+		final A_BasicObject maxInc = args.get(3);
 		return interpreter.primitiveSuccess(
 			IntegerRangeTypeDescriptor.create(
 				min,
@@ -71,7 +71,7 @@ public class P_007_CreateIntegerRange extends Primitive
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

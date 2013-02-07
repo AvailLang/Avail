@@ -55,13 +55,13 @@ public class P_080_MapSize extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
-		final AvailObject map = args.get(0);
+		final A_Map map = args.get(0);
 		return interpreter.primitiveSuccess(
 			IntegerDescriptor.fromInt(map.mapSize()));
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

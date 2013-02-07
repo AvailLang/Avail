@@ -72,7 +72,7 @@ public class L2_CLEAR_VARIABLE extends L2Operation
 		// If we haven't already guaranteed that this is a variable then we
 		// are probably not doing things right.
 		assert registers.hasTypeAt(variableOperand.register);
-		final AvailObject varType = registers.typeAt(
+		final A_Type varType = registers.typeAt(
 			variableOperand.register);
 		assert varType.isSubtypeOf(
 			VariableTypeDescriptor.mostGeneralType());

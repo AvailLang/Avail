@@ -57,7 +57,7 @@ class L2OperandDescriber implements L2OperandTypeDispatcher
 	 * The {@linkplain L2ChunkDescriptor level two chunk} containing the operation
 	 * and the operand to be described.
 	 */
-	private AvailObject _chunk;
+	private A_BasicObject _chunk;
 
 	/**
 	 * The {@link StringBuilder} on which to write an operand description.
@@ -87,7 +87,7 @@ class L2OperandDescriber implements L2OperandTypeDispatcher
 	private void printVector ()
 	{
 		print("Vec=(");
-		final AvailObject vector = _chunk.vectors().tupleAt(_operand);
+		final A_Tuple vector = _chunk.vectors().tupleAt(_operand);
 		for (int i = 1; i <= vector.tupleSize(); i++)
 		{
 			if (i > 1)
@@ -118,7 +118,7 @@ class L2OperandDescriber implements L2OperandTypeDispatcher
 	public void describeInOperandChunkOn (
 			final L2NamedOperandType namedOperandType,
 			final int operand,
-			final AvailObject chunk,
+			final A_BasicObject chunk,
 			final StringBuilder stream)
 	{
 		_name = namedOperandType.name();
@@ -157,7 +157,7 @@ class L2OperandDescriber implements L2OperandTypeDispatcher
 	@Override
 	public void doSelector()
 	{
-		final AvailObject method = _chunk.literalAt(_operand);
+		final A_BasicObject method = _chunk.literalAt(_operand);
 		print("Message(%s)", method.name().name().asNativeString());
 	}
 	@Override

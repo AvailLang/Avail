@@ -58,11 +58,11 @@ public class P_200_CatchException extends Primitive
 	{
 		assert args.size() == 3;
 		@SuppressWarnings("unused")
-		final AvailObject bodyBlock = args.get(0);
-		final AvailObject handlerBlocks = args.get(1);
+		final A_BasicObject bodyBlock = args.get(0);
+		final A_Tuple handlerBlocks = args.get(1);
 		@SuppressWarnings("unused")
-		final AvailObject optionalEnsureBlock = args.get(2);
-		for (final AvailObject block : handlerBlocks)
+		final A_BasicObject optionalEnsureBlock = args.get(2);
+		for (final A_BasicObject block : handlerBlocks)
 		{
 			if (!block.kind().argsTupleType().typeAtIndex(1).isSubtypeOf(
 				ObjectTypeDescriptor.exceptionType()))
@@ -74,7 +74,7 @@ public class P_200_CatchException extends Primitive
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
@@ -100,7 +100,7 @@ public class P_200_CatchException extends Primitive
 	}
 
 	@Override
-	protected AvailObject privateFailureVariableType ()
+	protected A_Type privateFailureVariableType ()
 	{
 		return AbstractEnumerationTypeDescriptor.withInstances(
 			TupleDescriptor.from(

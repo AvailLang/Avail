@@ -218,8 +218,8 @@ final public class L2Interpreter extends Interpreter
 					frame = frame.caller();
 				}
 			}
-			final AvailObject framesTuple = TupleDescriptor.fromList(frames);
-			final AvailObject outerTuple = TupleDescriptor.from(framesTuple);
+			final A_Tuple framesTuple = TupleDescriptor.fromList(frames);
+			final A_Tuple outerTuple = TupleDescriptor.from(framesTuple);
 			final List<AvailObjectFieldHelper> outerList =
 				new ArrayList<AvailObjectFieldHelper>();
 			assert outerTuple.tupleSize()
@@ -237,14 +237,14 @@ final public class L2Interpreter extends Interpreter
 		}
 		catch (final Throwable e)
 		{
-			final List<AvailObject> javaStackHelperStrings =
-				new ArrayList<AvailObject>();
+			final List<A_String> javaStackHelperStrings =
+				new ArrayList<A_String>();
 			for (final StackTraceElement stackTraceElement : e.getStackTrace())
 			{
 				javaStackHelperStrings.add(
 					StringDescriptor.from(stackTraceElement.toString()));
 			}
-			final AvailObject javaStackHelperTuple =
+			final A_Tuple javaStackHelperTuple =
 				TupleDescriptor.fromList(javaStackHelperStrings);
 			final List<AvailObjectFieldHelper> javaStackHelpers =
 				new ArrayList<AvailObjectFieldHelper>(1);
@@ -296,7 +296,7 @@ final public class L2Interpreter extends Interpreter
 	 */
 	private void setChunk (
 		final AvailObject chunk,
-		final AvailObject code)
+		final A_BasicObject code)
 	{
 		this.chunk = chunk;
 		chunkWords = chunk.wordcodes();
@@ -319,13 +319,13 @@ final public class L2Interpreter extends Interpreter
 	/**
 	 * The L2 instruction stream as a tuple of integers.
 	 */
-	private AvailObject chunkWords;
+	private A_Tuple chunkWords;
 
 	/**
 	 * This chunk's register vectors. A register vector is a tuple of integers
 	 * that represent {@link #pointers Avail object registers}.
 	 */
-	private AvailObject chunkVectors;
+	private A_Tuple chunkVectors;
 
 	/**
 	 * The registers that hold {@linkplain AvailObject Avail objects}.
@@ -501,9 +501,9 @@ final public class L2Interpreter extends Interpreter
 	 */
 	public int getInteger ()
 	{
-		final AvailObject function = pointerAt(FUNCTION);
-		final AvailObject code = function.code();
-		final AvailObject nybbles = code.nybbles();
+		final A_Function function = pointerAt(FUNCTION);
+		final A_BasicObject code = function.code();
+		final A_Tuple nybbles = code.nybbles();
 		int pc = integerAt(pcRegister());
 		final byte firstNybble = nybbles.extractNybbleFromTupleAt(pc);
 		pc++;
@@ -553,11 +553,11 @@ final public class L2Interpreter extends Interpreter
 	 */
 	public void pointerAtPut (
 		final int index,
-		final AvailObject anAvailObject)
+		final A_BasicObject anAvailObject)
 	{
 		assert index > 0;
 		assert anAvailObject != null;
-		pointers[index] = anAvailObject;
+		pointers[index] = (AvailObject)anAvailObject;
 	}
 
 	/**
@@ -587,7 +587,7 @@ final public class L2Interpreter extends Interpreter
 	 */
 	public void pointerAtPut (
 		final FixedRegister fixedObjectRegister,
-		final AvailObject anAvailObject)
+		final A_BasicObject anAvailObject)
 	{
 		pointerAtPut(fixedObjectRegister.ordinal(), anAvailObject);
 	}
@@ -655,7 +655,7 @@ final public class L2Interpreter extends Interpreter
 	 *            The vector's index.
 	 * @return A tuple of integers.
 	 */
-	public AvailObject vectorAt (final int index)
+	public A_Tuple vectorAt (final int index)
 	{
 		return chunkVectors.tupleAt(index);
 	}
@@ -674,7 +674,7 @@ final public class L2Interpreter extends Interpreter
 	 *            The {@link AvailObject} to return.
 	 */
 	public void returnToCaller (
-		final AvailObject caller,
+		final A_BasicObject caller,
 		final AvailObject value)
 	{
 		// Wipe out the existing registers for safety. This is technically
@@ -727,9 +727,9 @@ final public class L2Interpreter extends Interpreter
 
 	@Override
 	public void prepareToRestartContinuation (
-		final AvailObject continuationToRestart)
+		final A_BasicObject continuationToRestart)
 	{
-		AvailObject chunkToRestart = continuationToRestart.levelTwoChunk();
+		A_BasicObject chunkToRestart = continuationToRestart.levelTwoChunk();
 		if (!chunkToRestart.isValid())
 		{
 			// The chunk has become invalid, so use the default chunk and tweak
@@ -761,8 +761,8 @@ final public class L2Interpreter extends Interpreter
 	 *            The code about to be invoked.
 	 */
 	private void makeRoomForChunkRegisters (
-		final AvailObject theChunk,
-		final AvailObject theCode)
+		final A_BasicObject theChunk,
+		final A_BasicObject theCode)
 	{
 		final int neededObjectCount = max(
 			theChunk.numObjects(),
@@ -801,22 +801,22 @@ final public class L2Interpreter extends Interpreter
 		AvailObject continuation = pointerAt(CALLER);
 		while (!continuation.equalsNil())
 		{
-			final AvailObject code = continuation.function().code();
+			final A_BasicObject code = continuation.function().code();
 			if (code.primitiveNumber() == primNum)
 			{
 				assert code.numArgs() == 3;
-				final AvailObject failureVariable = continuation
-					.argOrLocalOrStackAt(4);
+				final A_BasicObject failureVariable =
+					continuation.argOrLocalOrStackAt(4);
 				// Allow scan a currently unmarked frame.
 				if (failureVariable.getValue().extractInt() == 0)
 				{
-					final AvailObject handlerTuple = continuation
-						.argOrLocalOrStackAt(2);
+					final A_Tuple handlerTuple =
+						continuation.argOrLocalOrStackAt(2);
 					assert handlerTuple.isTuple();
 					for (final AvailObject handler : handlerTuple)
 					{
-						if (exceptionValue.isInstanceOf(handler.kind()
-							.argsTupleType().typeAtIndex(1)))
+						if (exceptionValue.isInstanceOf(
+							handler.kind().argsTupleType().typeAtIndex(1)))
 						{
 							// Mark this frame: we don't want it to handle an
 							// exception raised from within one of its handlers.
@@ -843,14 +843,14 @@ final public class L2Interpreter extends Interpreter
 	public Result markNearestGuard (final AvailObject marker)
 	{
 		final int primNum = P_200_CatchException.instance.primitiveNumber;
-		AvailObject continuation = pointerAt(CALLER);
+		A_BasicObject continuation = pointerAt(CALLER);
 		while (!continuation.equalsNil())
 		{
-			final AvailObject code = continuation.function().code();
+			final A_BasicObject code = continuation.function().code();
 			if (code.primitiveNumber() == primNum)
 			{
 				assert code.numArgs() == 3;
-				final AvailObject failureVariable = continuation
+				final A_BasicObject failureVariable = continuation
 					.argOrLocalOrStackAt(4);
 				// Only allow certain state transitions.
 				if (marker.equals(E_HANDLER_SENTINEL.numericCode())
@@ -878,10 +878,10 @@ final public class L2Interpreter extends Interpreter
 
 	@Override
 	public Result invokeFunctionArguments (
-		final AvailObject aFunction,
+		final A_Function aFunction,
 		final List<AvailObject> args)
 	{
-		final AvailObject code = aFunction.code();
+		final A_BasicObject code = aFunction.code();
 		assert code.numArgs() == args.size();
 		final AvailObject caller = pointerAt(CALLER);
 		final int primNum = code.primitiveNumber();
@@ -906,9 +906,9 @@ final public class L2Interpreter extends Interpreter
 
 	@Override
 	public void invokeWithoutPrimitiveFunctionArguments (
-		final AvailObject aFunction,
+		final A_Function aFunction,
 		final List<AvailObject> args,
-		final AvailObject caller)
+		final A_BasicObject caller)
 	{
 		final AvailObject code = aFunction.code();
 		code.tallyInvocation();
@@ -950,10 +950,10 @@ final public class L2Interpreter extends Interpreter
 	 *            The calling continuation.
 	 */
 	public void invokePossiblePrimitiveWithReifiedCaller (
-		final AvailObject theFunction,
+		final A_Function theFunction,
 		final AvailObject caller)
 	{
-		final AvailObject theCode = theFunction.code();
+		final A_BasicObject theCode = theFunction.code();
 		final int primNum = theCode.primitiveNumber();
 		pointerAtPut(CALLER, caller);
 		if (primNum != 0)
@@ -1033,7 +1033,7 @@ final public class L2Interpreter extends Interpreter
 			if (logger.isLoggable(Level.FINEST))
 			{
 				final StringBuilder stackString = new StringBuilder();
-				AvailObject chain = pointerAt(CALLER);
+				A_BasicObject chain = pointerAt(CALLER);
 				while (!chain.equalsNil())
 				{
 					stackString.insert(0, "->");
@@ -1054,7 +1054,7 @@ final public class L2Interpreter extends Interpreter
 			{
 				int depth = 0;
 				for (
-					AvailObject c = pointerAt(CALLER);
+					A_BasicObject c = pointerAt(CALLER);
 					!c.equalsNil();
 					c = c.caller())
 				{
@@ -1078,7 +1078,7 @@ final public class L2Interpreter extends Interpreter
 
 	@Override
 	public AvailObject runFunctionArguments (
-		final AvailObject function,
+		final A_Function function,
 		final List<AvailObject> arguments)
 	{
 		pointerAtPut(CALLER, NilDescriptor.nil());
@@ -1125,11 +1125,11 @@ final public class L2Interpreter extends Interpreter
 		final List<String> strings = new ArrayList<String>(frames.size());
 		int line = frames.size();
 		final StringBuilder signatureBuilder = new StringBuilder(1000);
-		for (final AvailObject frame : frames)
+		for (final A_BasicObject frame : frames)
 		{
-			final AvailObject code = frame.function().code();
-			final AvailObject functionType = code.functionType();
-			final AvailObject paramsType = functionType.argsTupleType();
+			final A_BasicObject code = frame.function().code();
+			final A_BasicObject functionType = code.functionType();
+			final A_BasicObject paramsType = functionType.argsTupleType();
 			for (int i = 1, limit = paramsType.sizeRange().lowerBound()
 				.extractInt(); i <= limit; i++)
 			{

@@ -70,11 +70,11 @@ extends TypeDescriptor
 		final List<AvailObject> recursionList,
 		final int indent)
 	{
-		final AvailObject pair = namesAndBaseTypesForType(object);
-		final AvailObject names = pair.tupleAt(1);
-		final AvailObject baseTypes = pair.tupleAt(2);
+		final A_Tuple pair = namesAndBaseTypesForType(object);
+		final A_Set names = pair.tupleAt(1);
+		final A_Set baseTypes = pair.tupleAt(2);
 		boolean first = true;
-		for (final AvailObject name : names)
+		for (final A_String name : names)
 		{
 			if (!first)
 			{
@@ -90,10 +90,10 @@ extends TypeDescriptor
 		{
 			builder.append("Unnamed object type");
 		}
-		AvailObject ignoreKeys = SetDescriptor.empty();
+		A_Set ignoreKeys = SetDescriptor.empty();
 		for (final AvailObject baseType : baseTypes)
 		{
-			final AvailObject fieldTypes = baseType.slot(FIELD_TYPE_MAP);
+			final A_BasicObject fieldTypes = baseType.slot(FIELD_TYPE_MAP);
 			for (final MapDescriptor.Entry entry : fieldTypes.mapIterable())
 			{
 				if (InstanceTypeDescriptor.on(entry.key).equals(entry.value))
@@ -135,13 +135,13 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_FieldTypeMap (final AvailObject object)
+	A_Map o_FieldTypeMap (final AvailObject object)
 	{
 		return object.slot(FIELD_TYPE_MAP);
 	}
 
 	@Override
-	boolean o_Equals (final AvailObject object, final AvailObject another)
+	boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		return another.equalsObjectType(object);
 	}
@@ -162,10 +162,10 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_FieldTypeTuple (final AvailObject object)
+	A_Tuple o_FieldTypeTuple (final AvailObject object)
 	{
-		final AvailObject map = object.slot(FIELD_TYPE_MAP);
-		final List<AvailObject> fieldAssignments = new ArrayList<AvailObject>(
+		final A_Map map = object.slot(FIELD_TYPE_MAP);
+		final List<A_Tuple> fieldAssignments = new ArrayList<A_Tuple>(
 			map.mapSize());
 		for (final MapDescriptor.Entry entry : map.mapIterable())
 		{
@@ -179,8 +179,8 @@ extends TypeDescriptor
 		final AvailObject object,
 		final AvailObject potentialInstance)
 	{
-		final AvailObject typeMap = object.slot(FIELD_TYPE_MAP);
-		final AvailObject instMap = potentialInstance.fieldMap();
+		final A_Map typeMap = object.slot(FIELD_TYPE_MAP);
+		final A_Map instMap = potentialInstance.fieldMap();
 		if (instMap.mapSize() < typeMap.mapSize())
 		{
 			return false;
@@ -204,7 +204,7 @@ extends TypeDescriptor
 	@Override @AvailMethod
 	boolean o_IsSubtypeOf (
 		final AvailObject object,
-		final AvailObject aType)
+		final A_Type aType)
 	{
 		return aType.isSupertypeOfObjectType(object);
 	}
@@ -212,10 +212,10 @@ extends TypeDescriptor
 	@Override @AvailMethod
 	boolean o_IsSupertypeOfObjectType (
 		final AvailObject object,
-		final AvailObject anObjectType)
+		final A_BasicObject anObjectType)
 	{
-		final AvailObject m1 = object.slot(FIELD_TYPE_MAP);
-		final AvailObject m2 = anObjectType.fieldTypeMap();
+		final A_Map m1 = object.slot(FIELD_TYPE_MAP);
+		final A_Map m2 = anObjectType.fieldTypeMap();
 		if (m1.mapSize() > m2.mapSize())
 		{
 			return false;
@@ -237,9 +237,9 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_TypeIntersection (
+	A_Type o_TypeIntersection (
 		final AvailObject object,
-		final AvailObject another)
+		final A_Type another)
 	{
 		if (object.isSubtypeOf(another))
 		{
@@ -258,17 +258,17 @@ extends TypeDescriptor
 	 * types.
 	 */
 	@Override @AvailMethod
-	AvailObject o_TypeIntersectionOfObjectType (
+	A_Type o_TypeIntersectionOfObjectType (
 		final AvailObject object,
-		final AvailObject anObjectType)
+		final A_Type anObjectType)
 	{
-		final AvailObject map1 = object.slot(FIELD_TYPE_MAP);
-		final AvailObject map2 = anObjectType.slot(FIELD_TYPE_MAP);
-		AvailObject resultMap = MapDescriptor.empty();
+		final A_Map map1 = object.slot(FIELD_TYPE_MAP);
+		final A_Map map2 = anObjectType.slot(FIELD_TYPE_MAP);
+		A_Map resultMap = MapDescriptor.empty();
 		for (final MapDescriptor.Entry entry : map1.mapIterable())
 		{
-			final AvailObject key = entry.key;
-			AvailObject type = entry.value;
+			final A_Atom key = entry.key;
+			A_Type type = entry.value;
 			if (map2.hasKey(key))
 			{
 				type = type.typeIntersection(map2.mapAt(key));
@@ -298,9 +298,9 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_TypeUnion (
+	A_Type o_TypeUnion (
 		final AvailObject object,
-		final AvailObject another)
+		final A_Type another)
 	{
 		if (object.isSubtypeOf(another))
 		{
@@ -319,19 +319,19 @@ extends TypeDescriptor
 	 * Here we're finding the nearest common ancestor of two eager object types.
 	 */
 	@Override @AvailMethod
-	AvailObject o_TypeUnionOfObjectType (
+	A_Type o_TypeUnionOfObjectType (
 		final AvailObject object,
-		final AvailObject anObjectType)
+		final A_Type anObjectType)
 	{
-		final AvailObject map1 = object.slot(FIELD_TYPE_MAP);
-		final AvailObject map2 = anObjectType.slot(FIELD_TYPE_MAP);
-		AvailObject resultMap = MapDescriptor.empty();
+		final A_Map map1 = object.slot(FIELD_TYPE_MAP);
+		final A_Map map2 = anObjectType.slot(FIELD_TYPE_MAP);
+		A_Map resultMap = MapDescriptor.empty();
 		for (final MapDescriptor.Entry entry : map1.mapIterable())
 		{
 			final AvailObject key = entry.key;
 			if (map2.hasKey(key))
 			{
-				final AvailObject valueType = entry.value;
+				final A_BasicObject valueType = entry.value;
 				resultMap = resultMap.mapAtPuttingCanDestroy(
 					key,
 					valueType.typeUnion(map2.mapAt(key)),
@@ -366,7 +366,7 @@ extends TypeDescriptor
 	 * @param map The map from atoms to types.
 	 * @return The new {@linkplain ObjectTypeDescriptor object type}.
 	 */
-	public static AvailObject objectTypeFromMap (final AvailObject map)
+	public static AvailObject objectTypeFromMap (final A_Map map)
 	{
 		final AvailObject result = mutable.create();
 		result.setSlot(FIELD_TYPE_MAP, map);
@@ -383,10 +383,10 @@ extends TypeDescriptor
 	 *        {@linkplain TypeDescriptor type}.
 	 * @return The new object type.
 	 */
-	public static AvailObject objectTypeFromTuple (final AvailObject tuple)
+	public static AvailObject objectTypeFromTuple (final A_Tuple tuple)
 	{
-		AvailObject map = MapDescriptor.empty();
-		for (final AvailObject fieldDefinition : tuple)
+		A_Map map = MapDescriptor.empty();
+		for (final A_Tuple fieldDefinition : tuple)
 		{
 			final AvailObject fieldAtom = fieldDefinition.tupleAt(1);
 			final AvailObject type = fieldDefinition.tupleAt(2);
@@ -406,20 +406,19 @@ extends TypeDescriptor
 	 * @param aString A name.
 	 */
 	public static void setNameForType (
-		final AvailObject anObjectType,
-		final AvailObject aString)
+		final A_Type anObjectType,
+		final A_String aString)
 	{
 		assert aString.isString();
-		final AvailObject propertyKey =
-			AtomDescriptor.objectTypeNamePropertyKey();
+		final A_Atom propertyKey = AtomDescriptor.objectTypeNamePropertyKey();
 		int leastNames = Integer.MAX_VALUE;
-		AvailObject keyAtomWithLeastNames = null;
-		AvailObject keyAtomNamesMap = null;
+		A_Atom keyAtomWithLeastNames = null;
+		A_Map keyAtomNamesMap = null;
 		for (final MapDescriptor.Entry entry
 			: anObjectType.fieldTypeMap().mapIterable())
 		{
-			final AvailObject atom = entry.key;
-			final AvailObject namesMap = atom.getAtomProperty(propertyKey);
+			final A_Atom atom = entry.key;
+			final A_Map namesMap = atom.getAtomProperty(propertyKey);
 			if (namesMap.equalsNil())
 			{
 				keyAtomWithLeastNames = atom;
@@ -457,16 +456,15 @@ extends TypeDescriptor
 	 *         for which a strictly more specific named type is known, and (2)
 	 *         A set of object types corresponding to those names.
 	 */
-	public static AvailObject namesAndBaseTypesForType (
-		final AvailObject anObjectType)
+	public static A_Tuple namesAndBaseTypesForType (
+		final A_Type anObjectType)
 	{
-		final AvailObject propertyKey =
-			AtomDescriptor.objectTypeNamePropertyKey();
-		AvailObject applicableTypesAndNames = MapDescriptor.empty();
+		final A_Atom propertyKey = AtomDescriptor.objectTypeNamePropertyKey();
+		A_Map applicableTypesAndNames = MapDescriptor.empty();
 		for (final MapDescriptor.Entry entry
 			: anObjectType.fieldTypeMap().mapIterable())
 		{
-			final AvailObject map = entry.key.getAtomProperty(propertyKey);
+			final A_BasicObject map = entry.key.getAtomProperty(propertyKey);
 			if (!map.equalsNil())
 			{
 				for (final MapDescriptor.Entry innerEntry : map.mapIterable())
@@ -483,15 +481,15 @@ extends TypeDescriptor
 			}
 		}
 		applicableTypesAndNames.makeImmutable();
-		AvailObject filtered = applicableTypesAndNames;
+		A_Map filtered = applicableTypesAndNames;
 		for (final MapDescriptor.Entry childEntry
 			: applicableTypesAndNames.mapIterable())
 		{
-			final AvailObject childType = childEntry.key;
+			final A_Type childType = childEntry.key;
 			for (final MapDescriptor.Entry parentEntry
 				: applicableTypesAndNames.mapIterable())
 			{
-				final AvailObject parentType = parentEntry.key;
+				final A_Type parentType = parentEntry.key;
 				if (!childType.equals(parentType)
 					&& childType.isSubtypeOf(parentType))
 				{
@@ -501,8 +499,8 @@ extends TypeDescriptor
 				}
 			}
 		}
-		AvailObject names = SetDescriptor.empty();
-		AvailObject baseTypes = SetDescriptor.empty();
+		A_Set names = SetDescriptor.empty();
+		A_Set baseTypes = SetDescriptor.empty();
 		for (final MapDescriptor.Entry entry : filtered.mapIterable())
 		{
 			names = names.setWithElementCanDestroy(entry.value, true);
@@ -522,7 +520,7 @@ extends TypeDescriptor
 	 *         excluding names for which a strictly more specific named type is
 	 *         known.
 	 */
-	public static AvailObject namesForType (final AvailObject anObjectType)
+	public static A_Set namesForType (final A_Type anObjectType)
 	{
 		return namesAndBaseTypesForType(anObjectType).tupleAt(1);
 	}
@@ -538,8 +536,8 @@ extends TypeDescriptor
 	 *         object type}, excluding named types for which a strictly more
 	 *         specific named type is known.
 	 */
-	public static AvailObject namedBaseTypesForType (
-		final AvailObject anObjectType)
+	public static A_BasicObject namedBaseTypesForType (
+		final A_Type anObjectType)
 	{
 		return namesAndBaseTypesForType(anObjectType).tupleAt(2);
 	}
@@ -563,7 +561,7 @@ extends TypeDescriptor
 	/**
 	 * The metatype of all object types.
 	 */
-	private static AvailObject meta;
+	private static A_Type meta;
 
 	/**
 	 * Answer the metatype for all object types.  This is just an {@linkplain
@@ -572,7 +570,7 @@ extends TypeDescriptor
 	 *
 	 * @return The type of the most general object type.
 	 */
-	public static AvailObject meta ()
+	public static A_Type meta ()
 	{
 		return meta;
 	}
@@ -581,7 +579,7 @@ extends TypeDescriptor
 	 * The {@linkplain AtomDescriptor atom} that identifies the {@linkplain
 	 * #exceptionType exception type}.
 	 */
-	private static AvailObject exceptionAtom;
+	private static A_Atom exceptionAtom;
 
 	/**
 	 * Answer the {@linkplain AtomDescriptor atom} that identifies the
@@ -589,7 +587,7 @@ extends TypeDescriptor
 	 *
 	 * @return The special exception atom.
 	 */
-	public static AvailObject exceptionAtom ()
+	public static A_Atom exceptionAtom ()
 	{
 		return exceptionAtom;
 	}
@@ -599,7 +597,7 @@ extends TypeDescriptor
 	 * AtomDescriptor stack dump field} of an {@link #exceptionType() exception
 	 * type}.
 	 */
-	private static AvailObject stackDumpAtom;
+	private static A_Atom stackDumpAtom;
 
 	/**
 	 * Answer the {@linkplain AtomDescriptor atom} that identifies the
@@ -608,7 +606,7 @@ extends TypeDescriptor
 	 *
 	 * @return The special stack dump atom.
 	 */
-	public static AvailObject stackDumpAtom ()
+	public static A_Atom stackDumpAtom ()
 	{
 		return stackDumpAtom;
 	}
@@ -616,7 +614,7 @@ extends TypeDescriptor
 	/**
 	 * The most general exception type.
 	 */
-	private static AvailObject exceptionType;
+	private static A_Type exceptionType;
 
 	/**
 	 * Answer the most general exception type. This is just an {@linkplain
@@ -626,7 +624,7 @@ extends TypeDescriptor
 	 *
 	 * @return The most general exception type.
 	 */
-	public static AvailObject exceptionType ()
+	public static A_Type exceptionType ()
 	{
 		return exceptionType;
 	}

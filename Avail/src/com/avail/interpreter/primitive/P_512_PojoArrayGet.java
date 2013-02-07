@@ -59,9 +59,9 @@ public class P_512_PojoArrayGet extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 2;
-		final AvailObject pojo = args.get(0);
-		final AvailObject subscript = args.get(1);
-		final AvailObject rawPojo = pojo.rawPojo();
+		final A_BasicObject pojo = args.get(0);
+		final A_Number subscript = args.get(1);
+		final A_BasicObject rawPojo = pojo.rawPojo();
 		final Object array = rawPojo.javaObject();
 		final int index = subscript.extractInt();
 		if (index > Array.getLength(array))
@@ -83,7 +83,7 @@ public class P_512_PojoArrayGet extends Primitive
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

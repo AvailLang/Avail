@@ -147,7 +147,7 @@ extends PropertiesFileGenerator
 					{
 						parameters = "";
 					}
-					final AvailObject returnType =
+					final A_BasicObject returnType =
 						primitive.blockTypeRestriction().returnType();
 					final String returns;
 					if (!returnType.equals(TypeDescriptor.Types.TOP.o())

@@ -56,14 +56,15 @@ public class P_105_SetWith extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 2;
-		final AvailObject set = args.get(0);
-		final AvailObject newElement = args.get(1);
+		final A_Set set = args.get(0);
+		final A_BasicObject newElement = args.get(1);
+
 		return interpreter.primitiveSuccess(
 			set.setWithElementCanDestroy(newElement, true));
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

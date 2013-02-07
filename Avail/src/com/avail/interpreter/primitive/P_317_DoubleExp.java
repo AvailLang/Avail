@@ -57,7 +57,7 @@ public class P_317_DoubleExp extends Primitive
 	{
 		assert args.size() == 2;
 		@SuppressWarnings("unused")
-		final AvailObject euler = args.get(0);
+		final A_BasicObject euler = args.get(0);
 		final AvailObject a = args.get(1);
 		return interpreter.primitiveSuccess(
 			DoubleDescriptor.objectFromDoubleRecycling(
@@ -65,7 +65,7 @@ public class P_317_DoubleExp extends Primitive
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

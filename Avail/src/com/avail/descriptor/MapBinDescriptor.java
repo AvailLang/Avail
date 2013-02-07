@@ -79,12 +79,12 @@ extends Descriptor
 	@Override
 	abstract AvailObject o_MapBinAtHash (
 		final AvailObject object,
-		final AvailObject key,
+		final A_BasicObject key,
 		final int keyHash);
 
 	@Override
 	public boolean o_ShowValueInNameForDebugger (
-		final AvailObject object)
+		final A_BasicObject object)
 	{
 		return false;
 	}

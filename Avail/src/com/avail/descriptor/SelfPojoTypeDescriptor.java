@@ -95,7 +95,7 @@ extends PojoTypeDescriptor
 	{
 		// Callers have ensured that aPojoType is either an unfused pojo type
 		// or a self type.
-		final AvailObject other = aPojoType.pojoSelfType();
+		final A_BasicObject other = aPojoType.pojoSelfType();
 		return object.slot(JAVA_CLASS).equals(other.javaClass())
 			&& object.slot(JAVA_ANCESTORS).equals(other.javaAncestors());
 	}
@@ -112,7 +112,7 @@ extends PojoTypeDescriptor
 	@Override @AvailMethod
 	boolean o_IsAbstract (final AvailObject object)
 	{
-		final AvailObject javaClass = object.slot(JAVA_CLASS);
+		final A_BasicObject javaClass = object.slot(JAVA_CLASS);
 		return javaClass.equalsNil()
 			|| Modifier.isAbstract(
 				((Class<?>) javaClass.javaObject()).getModifiers());
@@ -141,21 +141,20 @@ extends PojoTypeDescriptor
 	@Override @AvailMethod
 	boolean o_IsSupertypeOfPojoType (
 		final AvailObject object,
-		final AvailObject aPojoType)
+		final A_BasicObject aPojoType)
 	{
 		// Check type compatibility by computing the set intersection of the
 		// ancestry of the arguments. If the result is not equal to the
 		// ancestry of object, then object is not a supertype of aPojoType.
-		final AvailObject ancestors = object.slot(JAVA_ANCESTORS);
-		final AvailObject otherAncestors =
-			aPojoType.pojoSelfType().javaAncestors();
-		final AvailObject intersection =
+		final A_Set ancestors = object.slot(JAVA_ANCESTORS);
+		final A_Set otherAncestors = aPojoType.pojoSelfType().javaAncestors();
+		final A_Set intersection =
 			ancestors.setIntersectionCanDestroy(otherAncestors, false);
 		return ancestors.equals(intersection);
 	}
 
 	@Override @AvailMethod
-	AvailObject o_PojoSelfType (final AvailObject object)
+	A_Type o_PojoSelfType (final AvailObject object)
 	{
 		return object;
 	}
@@ -176,7 +175,7 @@ extends PojoTypeDescriptor
 		final AvailObject object,
 		final @Nullable Class<?> ignoredClassHint)
 	{
-		final AvailObject javaClass = object.slot(JAVA_CLASS);
+		final A_BasicObject javaClass = object.slot(JAVA_CLASS);
 		if (javaClass.equalsNil())
 		{
 			// TODO: [TLS] Answer the nearest mutual parent of the leaf types.
@@ -192,13 +191,13 @@ extends PojoTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_TypeIntersectionOfPojoType (
+	A_Type o_TypeIntersectionOfPojoType (
 		final AvailObject object,
-		final AvailObject aPojoType)
+		final A_Type aPojoType)
 	{
-		final AvailObject other = aPojoType.pojoSelfType();
-		final AvailObject ancestors = object.slot(JAVA_ANCESTORS);
-		final AvailObject otherAncestors = other.javaAncestors();
+		final A_Type other = aPojoType.pojoSelfType();
+		final A_Set ancestors = object.slot(JAVA_ANCESTORS);
+		final A_Set otherAncestors = other.javaAncestors();
 		for (final AvailObject ancestor : ancestors)
 		{
 			final Class<?> javaClass = (Class<?>) ancestor.javaObject();
@@ -208,7 +207,7 @@ extends PojoTypeDescriptor
 				return PojoTypeDescriptor.pojoBottom();
 			}
 		}
-		for (final AvailObject ancestor : otherAncestors)
+		for (final A_BasicObject ancestor : otherAncestors)
 		{
 			final Class<?> javaClass = (Class<?>) ancestor.javaObject();
 			final int modifiers = javaClass.getModifiers();
@@ -223,50 +222,50 @@ extends PojoTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_TypeIntersectionOfPojoFusedType (
+	A_Type o_TypeIntersectionOfPojoFusedType (
 		final AvailObject object,
-		final AvailObject aFusedPojoType)
+		final A_Type aFusedPojoType)
 	{
 		throw unsupportedOperationException();
 	}
 
 	@Override @AvailMethod
-	AvailObject o_TypeIntersectionOfPojoUnfusedType (
+	A_Type o_TypeIntersectionOfPojoUnfusedType (
 		final AvailObject object,
-		final AvailObject anUnfusedPojoType)
+		final A_Type anUnfusedPojoType)
 	{
 		throw unsupportedOperationException();
 	}
 
 	@Override @AvailMethod
-	AvailObject o_TypeUnionOfPojoType (
+	A_Type o_TypeUnionOfPojoType (
 		final AvailObject object,
-		final AvailObject aPojoType)
+		final A_Type aPojoType)
 	{
-		final AvailObject intersection =
+		final A_Set intersection =
 			object.slot(JAVA_ANCESTORS).setIntersectionCanDestroy(
 				aPojoType.pojoSelfType().javaAncestors(), false);
 		return create(mostSpecificOf(intersection), intersection);
 	}
 
 	@Override @AvailMethod
-	AvailObject o_TypeUnionOfPojoFusedType (
+	A_Type o_TypeUnionOfPojoFusedType (
 		final AvailObject object,
-		final AvailObject aFusedPojoType)
+		final A_Type aFusedPojoType)
 	{
 		throw unsupportedOperationException();
 	}
 
 	@Override @AvailMethod
-	AvailObject o_TypeUnionOfPojoUnfusedType (
+	A_Type o_TypeUnionOfPojoUnfusedType (
 		final AvailObject object,
-		final AvailObject anUnfusedPojoType)
+		final A_Type anUnfusedPojoType)
 	{
 		throw unsupportedOperationException();
 	}
 
 	@Override
-	AvailObject o_TypeVariables (final AvailObject object)
+	A_Map o_TypeVariables (final AvailObject object)
 	{
 		return MapDescriptor.empty();
 	}
@@ -278,14 +277,14 @@ extends PojoTypeDescriptor
 		final List<AvailObject> recursionList,
 		final int indent)
 	{
-		final AvailObject javaClass = object.slot(JAVA_CLASS);
+		final A_BasicObject javaClass = object.slot(JAVA_CLASS);
 		if (!javaClass.equalsNil())
 		{
 			builder.append(((Class<?>) javaClass.javaObject()).getName());
 		}
 		else
 		{
-			final AvailObject ancestors = object.slot(JAVA_ANCESTORS);
+			final A_Set ancestors = object.slot(JAVA_ANCESTORS);
 			final List<AvailObject> childless = new ArrayList<AvailObject>(
 				childlessAmong(ancestors));
 			Collections.sort(
@@ -306,7 +305,7 @@ extends PojoTypeDescriptor
 				});
 			builder.append('(');
 			boolean first = true;
-			for (final AvailObject aClass : childless)
+			for (final A_BasicObject aClass : childless)
 			{
 				if (!first)
 				{
@@ -379,7 +378,7 @@ extends PojoTypeDescriptor
 	 */
 	static AvailObject create (
 		final AvailObject javaClass,
-		final AvailObject javaAncestors)
+		final A_Set javaAncestors)
 	{
 		final AvailObject newObject = mutable.create();
 		newObject.setSlot(JAVA_CLASS, javaClass);
@@ -394,39 +393,35 @@ extends PojoTypeDescriptor
 	 * @param selfPojo The self pojo to convert.
 	 * @return A 2-tuple suitable for serialization.
 	 */
-	public static AvailObject toSerializationProxy (
-		final AvailObject selfPojo)
+	public static A_Tuple toSerializationProxy (
+		final A_BasicObject selfPojo)
 	{
 		assert selfPojo.isPojoSelfType();
-		final AvailObject pojoClass = selfPojo.javaClass();
-		final AvailObject mainClassName;
+		final A_BasicObject pojoClass = selfPojo.javaClass();
+		final A_String mainClassName;
 		if (pojoClass.equalsNil())
 		{
 			mainClassName = NilDescriptor.nil();
 		}
 		else
 		{
-			final Class<?> javaClass =
-				(Class<?>)pojoClass.javaObject();
+			final Class<?> javaClass = (Class<?>)pojoClass.javaObject();
 			mainClassName = StringDescriptor.from(javaClass.getName());
 		}
-		AvailObject ancestorNames = SetDescriptor.empty();
-		for (final AvailObject ancestor : selfPojo.javaAncestors())
+		A_Set ancestorNames = SetDescriptor.empty();
+		for (final A_BasicObject ancestor : selfPojo.javaAncestors())
 		{
-			final Class<?> javaClass =
-				(Class<?>)ancestor.javaObject();
+			final Class<?> javaClass = (Class<?>)ancestor.javaObject();
 			ancestorNames = ancestorNames.setWithElementCanDestroy(
 				StringDescriptor.from(javaClass.getName()),
 				true);
 		}
-		return TupleDescriptor.from(
-			mainClassName,
-			ancestorNames);
+		return TupleDescriptor.from(mainClassName, ancestorNames);
 	}
 
 	/**
 	 * Convert a proxy previously created by {@link
-	 * #toSerializationProxy(AvailObject)} back into a self pojo type.
+	 * #toSerializationProxy(A_BasicObject)} back into a self pojo type.
 	 *
 	 * @param selfPojoProxy
 	 *            A 2-tuple with the class name (or null) and a set of ancestor
@@ -437,15 +432,15 @@ extends PojoTypeDescriptor
 	 * @throws ClassNotFoundException If a class can't be loaded.
 	 */
 	public static AvailObject fromSerializationProxy (
-		final AvailObject selfPojoProxy,
+		final A_Tuple selfPojoProxy,
 		final ClassLoader classLoader)
 	throws ClassNotFoundException
 	{
-		final AvailObject className = selfPojoProxy.tupleAt(1);
-		final AvailObject mainType;
+		final A_String className = selfPojoProxy.tupleAt(1);
+		final AvailObject mainRawType;
 		if (className.equalsNil())
 		{
-			mainType = NilDescriptor.nil();
+			mainRawType = NilDescriptor.nil();
 		}
 		else
 		{
@@ -453,10 +448,10 @@ extends PojoTypeDescriptor
 				className.asNativeString(),
 				true,
 				classLoader);
-			mainType = RawPojoDescriptor.equalityWrap(mainClass);
+			mainRawType = RawPojoDescriptor.equalityWrap(mainClass);
 		}
-		AvailObject ancestorTypes = SetDescriptor.empty();
-		for (final AvailObject ancestorClassName : selfPojoProxy.tupleAt(2))
+		A_Set ancestorTypes = SetDescriptor.empty();
+		for (final A_String ancestorClassName : selfPojoProxy.tupleAt(2))
 		{
 			final Class<?> ancestorClass = Class.forName(
 				ancestorClassName.asNativeString(),
@@ -466,7 +461,7 @@ extends PojoTypeDescriptor
 				RawPojoDescriptor.equalityWrap(ancestorClass),
 				true);
 		}
-		return SelfPojoTypeDescriptor.create(mainType, ancestorTypes);
+		return SelfPojoTypeDescriptor.create(mainRawType, ancestorTypes);
 	}
 
 }

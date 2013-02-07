@@ -64,15 +64,15 @@ extends ParseNodeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_Statements (final AvailObject object)
+	A_Tuple o_Statements (final AvailObject object)
 	{
 		return object.slot(STATEMENTS);
 	}
 
 	@Override @AvailMethod
-	AvailObject o_ExpressionType (final AvailObject object)
+	A_Type o_ExpressionType (final AvailObject object)
 	{
-		final AvailObject statements = object.slot(STATEMENTS);
+		final A_Tuple statements = object.slot(STATEMENTS);
 		assert statements.tupleSize() > 0;
 		return statements.tupleAt(statements.tupleSize()).expressionType();
 	}
@@ -86,7 +86,7 @@ extends ParseNodeDescriptor
 	@Override @AvailMethod
 	boolean o_EqualsParseNode (
 		final AvailObject object,
-		final AvailObject aParseNode)
+		final A_BasicObject aParseNode)
 	{
 		return object.kind().equals(aParseNode.kind())
 			&& object.slot(STATEMENTS).equals(aParseNode.statements());
@@ -97,7 +97,7 @@ extends ParseNodeDescriptor
 		final AvailObject object,
 		final AvailCodeGenerator codeGenerator)
 	{
-		final AvailObject statements = object.slot(STATEMENTS);
+		final A_Tuple statements = object.slot(STATEMENTS);
 		final int statementsCount = statements.tupleSize();
 		assert statements.tupleSize() > 0;
 		for (int i = 1; i < statementsCount; i++)
@@ -112,7 +112,7 @@ extends ParseNodeDescriptor
 		final AvailObject object,
 		final AvailCodeGenerator codeGenerator)
 	{
-		for (final AvailObject statement : object.slot(STATEMENTS))
+		for (final A_BasicObject statement : object.slot(STATEMENTS))
 		{
 			statement.emitEffectOn(codeGenerator);
 		}
@@ -123,7 +123,7 @@ extends ParseNodeDescriptor
 		final AvailObject object,
 		final Transformer1<AvailObject, AvailObject> aBlock)
 	{
-		AvailObject statements = object.slot(STATEMENTS);
+		A_Tuple statements = object.slot(STATEMENTS);
 		for (int i = 1; i <= statements.tupleSize(); i++)
 		{
 			statements = statements.tupleAtPuttingCanDestroy(
@@ -148,7 +148,7 @@ extends ParseNodeDescriptor
 	@Override @AvailMethod
 	void o_ValidateLocally (
 		final AvailObject object,
-		final @Nullable AvailObject parent)
+		final @Nullable A_BasicObject parent)
 	{
 		// Do nothing.
 	}
@@ -158,7 +158,7 @@ extends ParseNodeDescriptor
 		final AvailObject object,
 		final List<AvailObject> accumulatedStatements)
 	{
-		for (final AvailObject statement : object.slot(STATEMENTS))
+		for (final A_BasicObject statement : object.slot(STATEMENTS))
 		{
 			statement.flattenStatementsInto(accumulatedStatements);
 		}
@@ -180,7 +180,7 @@ extends ParseNodeDescriptor
 	 *        SequenceNodeDescriptor sequence node}.
 	 * @return The resulting sequence node.
 	 */
-	public static AvailObject newStatements (final AvailObject statements)
+	public static A_BasicObject newStatements (final AvailObject statements)
 	{
 		final AvailObject instance = mutable.create();
 		instance.setSlot(STATEMENTS, statements);

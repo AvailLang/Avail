@@ -57,9 +57,9 @@ public class P_026_LookupFiberVariable extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 2;
-		final AvailObject fiber = args.get(0);
-		final AvailObject key = args.get(1);
-		final AvailObject globals = fiber.fiberGlobals();
+		final A_BasicObject fiber = args.get(0);
+		final A_Atom key = args.get(1);
+		final A_Map globals = fiber.fiberGlobals();
 		if (!globals.hasKey(key))
 		{
 			return interpreter.primitiveFailure(
@@ -70,7 +70,7 @@ public class P_026_LookupFiberVariable extends Primitive
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
