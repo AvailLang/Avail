@@ -38,7 +38,8 @@ package com.avail.serialization;
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class MalformedSerialStreamException extends Exception
+public class MalformedSerialStreamException
+extends Exception
 {
 	/** The serial version identifier. */
 	private static final long serialVersionUID = 5622164630276718981L;

@@ -1,6 +1,6 @@
 /**
- * P_075_IsFiberVariable.java
- * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
+ * P_614_SetFiberName.java
+ * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,23 +35,24 @@ package com.avail.interpreter.primitive;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
+import com.avail.annotations.NotNull;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 
 /**
- * <strong>Primitive 75</strong>: Does the {@linkplain AtomDescriptor name}
- * refer to a {@linkplain FiberDescriptor fiber}-local variable?
+ * <strong>Primitive 614</strong>: Set the name of the specified {@linkplain
+ * FiberDescriptor fiber}.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class P_075_IsFiberVariable
+public final class P_614_SetFiberName
 extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
-	public final static Primitive instance =
-		new P_075_IsFiberVariable().init(2, CannotFail, CanInline);
+	public final @NotNull static Primitive instance =
+		new P_614_SetFiberName().init(2, CannotFail, CanInline, HasSideEffect);
 
 	@Override
 	public Result attempt (
@@ -59,11 +60,10 @@ extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 2;
-		final AvailObject key = args.get(0);
-		final AvailObject fiber = args.get(1);
-		final AvailObject globals = fiber.fiberGlobals();
-		return interpreter.primitiveSuccess(AtomDescriptor.objectFromBoolean(
-			globals.hasKey(key)));
+		final AvailObject fiber = args.get(0);
+		final AvailObject name = args.get(1);
+		fiber.name(name);
+		return interpreter.primitiveSuccess(NilDescriptor.nil());
 	}
 
 	@Override
@@ -71,8 +71,8 @@ extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				ATOM.o(),
-				FIBER.o()),
-			EnumerationTypeDescriptor.booleanObject());
+				FIBER.o(),
+				TupleTypeDescriptor.stringTupleType()),
+			TOP.o());
 	}
 }

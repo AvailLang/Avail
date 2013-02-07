@@ -62,8 +62,8 @@ extends Primitive
 	{
 		assert args.size() == 1;
 		final AvailObject filename = args.get(0);
-
-		final AvailObject handle = interpreter.createAtom(filename, true);
+		final AvailObject handle =
+			AtomWithPropertiesDescriptor.create(filename, NilDescriptor.nil());
 		try
 		{
 			final RandomAccessFile file = new RandomAccessFile(

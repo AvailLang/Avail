@@ -33,12 +33,14 @@ package com.avail.builder;
 
 import java.io.*;
 import java.util.*;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.atomic.*;
 import com.avail.*;
 import com.avail.annotations.*;
 import com.avail.compiler.*;
 import com.avail.compiler.AbstractAvailCompiler.ModuleHeader;
 import com.avail.descriptor.*;
-import com.avail.interpreter.levelTwo.L2Interpreter;
+import com.avail.interpreter.*;
 import com.avail.serialization.*;
 import com.avail.utility.*;
 
@@ -56,332 +58,1034 @@ public final class AvailBuilder
 	 * {@linkplain AvailBuilder builder} will install the target
 	 * {@linkplain ModuleDescriptor module} and its dependencies.
 	 */
-	private final AvailRuntime runtime;
+	final @InnerAccess AvailRuntime runtime;
 
 	/**
 	 * The {@link Repository} of compiled modules to populate and reuse in order
 	 * to accelerate builds.
 	 */
-	private final Repository repository;
-
-	/**
-	 * The {@linkplain ModuleName canonical name} of the
-	 * {@linkplain ModuleDescriptor module} that the {@linkplain AvailBuilder
-	 * builder} must (recursively) load into the {@linkplain AvailRuntime
-	 * runtime}.
-	 */
-	private final ModuleName target;
-
-	/** An {@linkplain L2Interpreter interpreter}. */
-	private final L2Interpreter interpreter;
+	final @InnerAccess Repository repository;
 
 	/**
 	 * Construct a new {@link AvailBuilder}.
 	 *
 	 * @param runtime
-	 *            The {@linkplain AvailRuntime runtime} into which the
-	 *            {@linkplain AvailBuilder builder} will install the target
-	 *            {@linkplain ModuleDescriptor module} and its dependencies.
+	 *        The {@linkplain AvailRuntime runtime} into which the {@linkplain
+	 *        AvailBuilder builder} will install the target {@linkplain
+	 *        ModuleDescriptor module} and its dependencies.
 	 * @param repository
-	 *            The {@link Repository} which holds compiled modules to
-	 *            accelerate builds.
-	 * @param target
-	 *            The {@linkplain ModuleName canonical name} of the
-	 *            {@linkplain ModuleDescriptor module} that the
-	 *            {@linkplain AvailBuilder builder} must (recursively) load into
-	 *            the {@linkplain AvailRuntime runtime}.
+	 *        The {@link Repository} which holds compiled modules to accelerate
+	 *        builds.
 	 */
 	public AvailBuilder (
 		final AvailRuntime runtime,
-		final Repository repository,
-		final ModuleName target)
+		final Repository repository)
 	{
 		this.runtime = runtime;
 		this.repository = repository;
-		this.target = target;
-		this.interpreter = new L2Interpreter(this.runtime);
 	}
 
 	/**
-	 * The path maintained by the
-	 * {@linkplain #traceModuleImports(ResolvedModuleName, ModuleName) tracer}
-	 * to prevent recursive tracing.
+	 * A {@code BuildState} represents the complete state of a build process.
+	 * It allows {@link AvailBuilder} to be stateless.
 	 */
-	private final
-	Set<ResolvedModuleName> recursionSet = new HashSet<ResolvedModuleName>();
-
-	/**
-	 * The path maintained by the
-	 * {@linkplain #traceModuleImports(ResolvedModuleName, ModuleName) tracer}
-	 * to prevent recursive tracing, as a list to simplify describing a
-	 * recursive chain of imports.
-	 */
-	private final
-	List<ResolvedModuleName> recursionList = new ArrayList<ResolvedModuleName>();
-
-	/**
-	 * The set of module names that have already been encountered and completely
-	 * recursed through.
-	 */
-	private final
-	Set<ResolvedModuleName> completionSet = new HashSet<ResolvedModuleName>();
-
-	/**
-	 * A {@linkplain Map map} from {@linkplain ResolvedModuleName resolved
-	 * module names} to their predecessors.
-	 */
-	private final
-	Map<ResolvedModuleName, Set<ResolvedModuleName>> predecessors = new HashMap<ResolvedModuleName, Set<ResolvedModuleName>>();
-
-	/**
-	 * A {@linkplain Map map} from {@linkplain ResolvedModuleName resolved
-	 * module names} to their successors.
-	 */
-	private final
-	Map<ResolvedModuleName, Set<ResolvedModuleName>> successors = new HashMap<ResolvedModuleName, Set<ResolvedModuleName>>();
-
-	/**
-	 * The {@linkplain ModuleName dependencies} of the {@linkplain #target
-	 * target}.
-	 */
-	private final
-	List<ModuleName> dependencies = new ArrayList<ModuleName>();
-
-	/**
-	 * Trace the imports of the {@linkplain ModuleDescriptor module} specified
-	 * by the given {@linkplain ModuleName module name}.
-	 *
-	 * @param resolvedSuccessor
-	 *            The resolved named of the module using or extending this
-	 *            module, or {@code null} if this module is the start of the
-	 *            recursive resolution (i.e., it will be the last one compiled).
-	 * @param qualifiedName
-	 *            A fully-qualified {@linkplain ModuleName module name}.
-	 * @throws AvailCompilerException
-	 *             If the {@linkplain AbstractAvailCompiler compiler} is unable
-	 *             to find a module declaration for this
-	 *             {@linkplain ModuleDescriptor module}.
-	 * @throws RecursiveDependencyException
-	 *             If the specified {@linkplain ModuleDescriptor module}
-	 *             recursively depends upon itself.
-	 * @throws UnresolvedDependencyException
-	 *             If the specified {@linkplain ModuleDescriptor module} name
-	 *             could not be resolved to a module.
-	 */
-	private void traceModuleImports (
-		final @Nullable ResolvedModuleName resolvedSuccessor,
-		final ModuleName qualifiedName) throws AvailCompilerException,
-		RecursiveDependencyException, UnresolvedDependencyException
+	private final class BuildState
 	{
-		final ResolvedModuleName resolution = runtime.moduleNameResolver()
-			.resolve(qualifiedName);
-		if (resolution == null)
-		{
-			assert resolvedSuccessor != null;
-			throw new UnresolvedDependencyException(
-				resolvedSuccessor,
-				qualifiedName.localName());
-		}
+		/**
+		 * The {@linkplain Throwable throwable} (if any) responsible for an
+		 * abnormal termination of the build.
+		 */
+		public volatile Throwable terminator;
 
-		// Detect recursion into this module.
-		recursionList.add(resolution);
-		if (recursionSet.contains(resolution))
+		/**
+		 * Fail the current build due to the specified {@linkplain Throwable
+		 * throwable}. Only the first throwable will be reported.
+		 *
+		 * @param killer
+		 *        A throwable responsible for build failure.
+		 */
+		public synchronized void failBuild (final Throwable killer)
 		{
-			throw new RecursiveDependencyException(recursionList);
-		}
-
-		// Prevent recursion into this module.
-		recursionSet.add(resolution);
-
-		if (!completionSet.contains(resolution))
-		{
-			assert !predecessors.containsKey(resolution);
-			assert !successors.containsKey(resolution);
-			predecessors.put(resolution, new HashSet<ResolvedModuleName>());
-			successors.put(resolution, new HashSet<ResolvedModuleName>());
-		}
-		if (resolvedSuccessor != null)
-		{
-			predecessors.get(resolvedSuccessor).add(resolution);
-			successors.get(resolution).add(resolvedSuccessor);
-		}
-
-		if (!completionSet.contains(resolution))
-		{
-			// Build the set of names of imported modules.
-			final AbstractAvailCompiler compiler = AbstractAvailCompiler
-				.create(qualifiedName, interpreter, true);
-			compiler.parseModuleHeader(qualifiedName);
-			final ModuleHeader header = compiler.moduleHeader;
-			final Set<ModuleName> importedModules = new HashSet<ModuleName>(
-				header.extendedModules.size() + header.usedModules.size());
-			for (final AvailObject extendedModule : header.extendedModules)
+			if (terminator == null)
 			{
-				importedModules.add(resolution.asSibling(extendedModule
-					.tupleAt(1).asNativeString()));
+				terminator = killer;
+				notifyAll();
 			}
-			for (final AvailObject usedModule : header.usedModules)
+		}
+
+		/**
+		 * The set of module names that have already been encountered and
+		 * completely recursed through.
+		 */
+		public final
+		Set<ResolvedModuleName> completionSet =
+			new HashSet<ResolvedModuleName>();
+
+		/**
+		 * A {@linkplain Map map} from {@linkplain ResolvedModuleName resolved
+		 * module names} to their predecessors.
+		 */
+		public final
+		Map<ResolvedModuleName, Set<ResolvedModuleName>> predecessors =
+			new HashMap<ResolvedModuleName, Set<ResolvedModuleName>>();
+
+		/**
+		 * A {@linkplain Map map} from {@linkplain ResolvedModuleName resolved
+		 * module names} to their successors.
+		 */
+		public final
+		Map<ResolvedModuleName, Set<ResolvedModuleName>> successors =
+			new HashMap<ResolvedModuleName, Set<ResolvedModuleName>>();
+
+		/**
+		 * The number of trace requests that have been scheduled.
+		 */
+		public int traceRequests = 0;
+
+		/**
+		 * The number of trace requests that have been completed.
+		 */
+		public int traceCompletions = 0;
+
+		/**
+		 * Construct a new {@link BuildState}.
+		 */
+		public BuildState ()
+		{
+			// No implementation required, but this prevents a synthetic
+			// accessor being generated in the enclosing class for this class's
+			// default constructor.
+		}
+
+		/**
+		 * Trace the imports of the {@linkplain ModuleDescriptor module}
+		 * specified by the given {@linkplain ModuleName module name}.
+		 *
+		 * @param qualifiedName
+		 *        A fully-qualified {@linkplain ModuleName module name}.
+		 * @param resolvedSuccessor
+		 *        The resolved name of the module using or extending this
+		 *        module, or {@code null} if this module is the start of the
+		 *        recursive resolution (i.e., it will be the last one compiled).
+		 * @param recursionSet
+		 *        An insertion-ordered {@linkplain Set set} that remembers all
+		 *        modules visited along this branch of the trace.
+		 * @throws IOException
+		 *         If the source module cannot be opened or read.
+		 * @throws AvailCompilerException
+		 *         If the {@linkplain AbstractAvailCompiler compiler} is unable
+		 *         to find a module declaration for this {@linkplain
+		 *         ModuleDescriptor module}.
+		 * @throws RecursiveDependencyException
+		 *         If the specified {@linkplain ModuleDescriptor module}
+		 *         recursively depends upon itself.
+		 * @throws UnresolvedDependencyException
+		 *         If the specified {@linkplain ModuleDescriptor module} name
+		 *         could not be resolved to a module.
+		 */
+		@InnerAccess void traceModuleImports (
+				final ModuleName qualifiedName,
+				final @Nullable ResolvedModuleName resolvedSuccessor,
+				final LinkedHashSet<ResolvedModuleName> recursionSet)
+			throws
+				IOException,
+				AvailCompilerException,
+				RecursiveDependencyException,
+				UnresolvedDependencyException
+		{
+			final ResolvedModuleName resolution =
+				runtime.moduleNameResolver().resolve(qualifiedName);
+			if (resolution == null)
 			{
-				importedModules.add(resolution.asSibling(usedModule.tupleAt(1)
-					.asNativeString()));
+				assert resolvedSuccessor != null;
+				throw new UnresolvedDependencyException(
+					resolvedSuccessor,
+					qualifiedName.localName());
 			}
 
-			// Recurse into each import.
-			for (final ModuleName moduleName : importedModules)
+			// Detect recursion into this module.
+			if (recursionSet.contains(resolution))
 			{
-				try
+				recursionSet.add(resolution);
+				throw new RecursiveDependencyException(recursionSet);
+			}
+
+			// Prevent recursion into this module.
+			recursionSet.add(resolution);
+
+			synchronized (this)
+			{
+				final boolean alreadyTraced =
+					completionSet.contains(resolution);
+
+				// If the module hasn't been traced yet, then set up its
+				// predecessor and successor sets.
+				if (!alreadyTraced)
 				{
-					traceModuleImports(resolution, moduleName);
+					assert !predecessors.containsKey(resolution);
+					assert !successors.containsKey(resolution);
+					predecessors.put(
+						resolution, new HashSet<ResolvedModuleName>());
+					successors.put(
+						resolution, new HashSet<ResolvedModuleName>());
 				}
-				catch (final RecursiveDependencyException e)
+
+				// Wire together the module and its successor.
+				if (resolvedSuccessor != null)
 				{
-					e.prependModule(resolution);
-					throw e;
+					predecessors.get(resolvedSuccessor).add(resolution);
+					successors.get(resolution).add(resolvedSuccessor);
 				}
-			}
 
-			// Prevent subsequent unnecessary visits.
-			completionSet.add(resolution);
-		}
-
-		// Permit reaching (but not scanning) this module again.
-		recursionSet.remove(resolution);
-		recursionList.remove(recursionList.size() - 1);
-	}
-
-	/**
-	 * Compute {@linkplain ModuleDescriptor module} loading order from the
-	 * partial order implicitly specified by {@link #predecessors} and
-	 * {@link #successors}, emptying them in the fiber.
-	 */
-	private void linearizeModuleImports ()
-	{
-		while (!predecessors.isEmpty())
-		{
-			for (final Map.Entry<ResolvedModuleName, Set<ResolvedModuleName>>
-				entry : new ArrayList<Map.Entry<ResolvedModuleName,
-						Set<ResolvedModuleName>>>(
-					predecessors.entrySet()))
-			{
-				final ResolvedModuleName key = entry.getKey();
-				if (entry.getValue().isEmpty())
+				// If the module has already been traced, then update the trace
+				// completion count and exit.
+				if (alreadyTraced)
 				{
-					dependencies.add(key);
-					predecessors.remove(key);
-					for (final ResolvedModuleName successor : successors
-						.get(key))
+					traceCompletions++;
+					// Avoid spurious wake-ups.
+					if (traceRequests == traceCompletions)
 					{
-						predecessors.get(successor).remove(key);
+						notifyAll();
 					}
-					successors.remove(key);
+					return;
+				}
+
+				// Arrange for early exit from unnecessary subsequent visits.
+				completionSet.add(resolution);
+			}
+
+			// Build the set of names of imported modules.
+			AbstractAvailCompiler.create(
+				resolution,
+				true,
+				new Continuation1<AbstractAvailCompiler>()
+				{
+					@Override
+					public void value (
+						final @Nullable AbstractAvailCompiler compiler)
+					{
+						assert compiler != null;
+						final ModuleHeader header =
+							compiler.parseModuleHeader();
+						final Set<ModuleName> importedModules =
+							new HashSet<ModuleName>(
+								header.extendedModules.size()
+									+ header.usedModules.size());
+						for (final AvailObject extendedModule
+							: header.extendedModules)
+						{
+							importedModules.add(resolution.asSibling(
+								extendedModule.tupleAt(1).asNativeString()));
+						}
+						for (final AvailObject usedModule
+							: header.usedModules)
+						{
+							importedModules.add(resolution.asSibling(
+								usedModule.tupleAt(1).asNativeString()));
+						}
+						// Update the count of trace requests and completions.
+						synchronized (BuildState.this)
+						{
+							traceRequests += importedModules.size();
+							traceCompletions++;
+							// Avoid spurious wake-ups.
+							if (traceRequests == traceCompletions)
+							{
+								BuildState.this.notifyAll();
+							}
+						}
+						// Recurse into each import.
+						for (final ModuleName moduleName : importedModules)
+						{
+							// Copy the recursion set to ensure the independence of each
+							// continuation of the tracing algorithm.
+							final LinkedHashSet<ResolvedModuleName> newSet =
+								new LinkedHashSet<ResolvedModuleName>(
+									recursionSet);
+							scheduleTraceModuleImports(
+								BuildState.this,
+								moduleName,
+								resolution,
+								newSet);
+						}
+					}
+				},
+				new Continuation1<Throwable>()
+				{
+					@Override
+					public void value (final @Nullable Throwable killer)
+					{
+						assert killer != null;
+						failBuild(killer);
+					}
+				});
+		}
+
+		/**
+		 * A {@linkplain Map map} from {@linkplain ResolvedModuleName resolved
+		 * module names} to {@linkplain AtomicInteger atomic counters} (of their
+		 * unbuilt predecessors).
+		 */
+		private Map<ResolvedModuleName, AtomicInteger> unbuiltPredecessors;
+
+		/**
+		 * Traverse {@linkplain #predecessors} to find the {@linkplain
+		 * ModuleDescriptor modules} that were determined to be
+		 * origins (i.e., modules with no predecessors).
+		 *
+		 * <p>This method has the side effect of preparing {@linkplain
+		 * #unbuiltPredecessors} for use. Possibly ugly, but more efficient than
+		 * yet another traversal of {@linkplain #predecessors}.
+		 * </p>
+		 *
+		 * @return The origin modules discovered during tracing.
+		 */
+		List<ResolvedModuleName> originModules ()
+		{
+			unbuiltPredecessors =
+				new HashMap<ResolvedModuleName, AtomicInteger>(
+					predecessors.size());
+			final List<ResolvedModuleName> originModules =
+				new ArrayList<ResolvedModuleName>(3);
+			for (final Map.Entry<ResolvedModuleName, Set<ResolvedModuleName>> e
+				: predecessors.entrySet())
+			{
+				final ResolvedModuleName name = e.getKey();
+				final Set<ResolvedModuleName> imports = e.getValue();
+				if (imports.isEmpty())
+				{
+					originModules.add(name);
+				}
+				unbuiltPredecessors.put(
+					name, new AtomicInteger(imports.size()));
+			}
+			return originModules;
+		}
+
+		/** The size, in bytes, of all source files that will be built. */
+		private long globalCodeSize = 0L;
+
+		/**
+		 * Answer the size, in bytes, of all source files that will be built.
+		 *
+		 * @return The size, in bytes, of all source files that will be built.
+		 */
+		@InnerAccess synchronized long globalCodeSize ()
+		{
+			if (globalCodeSize == 0L)
+			{
+				for (final ResolvedModuleName resolution : completionSet)
+				{
+					globalCodeSize += resolution.fileReference().length();
+				}
+			}
+			return globalCodeSize;
+		}
+
+		/** The number of bytes compiled so far. */
+		final @InnerAccess AtomicLong bytesCompiled = new AtomicLong(0L);
+
+		/** The number of module loads that have completed already. */
+		public int loadCompletions = 0;
+
+		/**
+		 * Adjust the unbuilt predecessors and schedule build tasks
+		 * appropriately.
+		 *
+		 * @param moduleName
+		 *        The {@linkplain ResolvedModuleName resolved name} of the
+		 *        module that just finished loading.
+		 * @param lastPosition
+		 *        The last local file position reported.
+		 * @param localTracker
+		 *        A {@linkplain Continuation4 continuation} that accepts
+		 *        <ol>
+		 *        <li>the name of the module undergoing {@linkplain
+		 *        AbstractAvailCompiler compilation},</li>
+		 *        <li>the current line number within the current module,</li>
+		 *        <li>the position of the ongoing parse (in bytes), and</li>
+		 *        <li>the size of the module in bytes.</li>
+		 *        </ol>
+		 * @param globalTracker
+		 *        A {@linkplain Continuation3 continuation} that accepts
+		 *        <ol>
+		 *        <li>the name of the module undergoing compilation,</li>
+		 *        <li>the number of bytes globally processed, and</li>
+		 *        <li>the global size (in bytes) of all modules that will be
+		 *        built.</li>
+		 *        </ol>
+		 */
+		@InnerAccess void postLoad (
+			final ResolvedModuleName moduleName,
+			final long lastPosition,
+			final Continuation4<ModuleName, Long, Long, Long> localTracker,
+			final Continuation3<ModuleName, Long, Long> globalTracker)
+
+		{
+			// Decrement the count of unbuilt predecessors of each successor
+			// module, scheduling it to load if this count reaches zero.
+			for (final ResolvedModuleName successorName
+				: successors.get(moduleName))
+			{
+				final int count =
+					unbuiltPredecessors.get(successorName).decrementAndGet();
+				if (count == 0)
+				{
+					scheduleLoadModule(
+						this, successorName, localTracker, globalTracker);
+				}
+			}
+			globalTracker.value(
+				moduleName,
+				bytesCompiled.addAndGet(
+					moduleName.fileReference().length() - lastPosition),
+				globalCodeSize());
+			synchronized (this)
+			{
+				loadCompletions++;
+				if (loadCompletions == completionSet.size())
+				{
+					notifyAll();
 				}
 			}
 		}
 
-		assert successors.isEmpty();
-	}
-
-	/**
-	 * Answer the size, in bytes, of all source files that will be built.
-	 *
-	 * @return The size, in bytes, of all source files that will be built.
-	 */
-	private long globalCodeSize ()
-	{
-		final ModuleNameResolver resolver = runtime.moduleNameResolver();
-		long globalCodeSize = 0L;
-		for (final ModuleName moduleName : dependencies)
+		/**
+		 * Load the specified {@linkplain ModuleDescriptor module} from the
+		 * {@linkplain Repository repository} and into the {@linkplain
+		 * AvailRuntime Avail runtime}.
+		 *
+		 * <p>
+		 * Note that the predecessors of this module must have already been
+		 * loaded.
+		 * </p>
+		 *
+		 * @param moduleName
+		 *        The {@linkplain ResolvedModuleName resolved name} of the
+		 *        module that should be loaded.
+		 * @param localTracker
+		 *        A {@linkplain Continuation4 continuation} that accepts
+		 *        <ol>
+		 *        <li>the name of the module undergoing {@linkplain
+		 *        AbstractAvailCompiler compilation},</li>
+		 *        <li>the current line number within the current module,</li>
+		 *        <li>the position of the ongoing parse (in bytes), and</li>
+		 *        <li>the size of the module in bytes.</li>
+		 *        </ol>
+		 * @param globalTracker
+		 *        A {@linkplain Continuation3 continuation} that accepts
+		 *        <ol>
+		 *        <li>the name of the module undergoing compilation,</li>
+		 *        <li>the number of bytes globally processed, and</li>
+		 *        <li>the global size (in bytes) of all modules that will be
+		 *        built.</li>
+		 *        </ol>
+		 * @throws AvailCompilerException
+		 *         If the compiler cannot build a module.
+		 * @throws MalformedSerialStreamException
+		 *         If the repository contains invalid serialized module data.
+		 */
+		private void loadRepositoryModule (
+				final ResolvedModuleName moduleName,
+				final Continuation4<ModuleName, Long, Long, Long> localTracker,
+				final Continuation3<ModuleName, Long, Long> globalTracker)
+			throws MalformedSerialStreamException
 		{
-			final ResolvedModuleName resolution = resolver.resolve(moduleName);
-			assert resolution != null;  //TODO[MvG] - needs work.
-			globalCodeSize += resolution.fileReference().length();
+			// Read the module data from the repository.
+			final File fileReference = moduleName.fileReference();
+			localTracker.value(moduleName, -1L, -1L, -1L);
+			final byte[] bytes = repository.get(
+				fileReference.getAbsolutePath(),
+				fileReference.lastModified());
+			final ByteArrayInputStream inputStream =
+				new ByteArrayInputStream(bytes);
+			final AvailObject module = ModuleDescriptor.newModule(
+				StringDescriptor.from(moduleName.qualifiedName()));
+			final AvailLoader loader = new AvailLoader(module);
+			final Deserializer deserializer = new Deserializer(
+				inputStream, runtime);
+			deserializer.currentModule(module);
+			try
+			{
+				AvailObject tag = deserializer.deserialize();
+				if (tag != null &&
+					!tag.equals(
+						AtomDescriptor.moduleHeaderSectionAtom()))
+				{
+					throw new RuntimeException(
+						"Expected module header tag");
+				}
+				final ModuleHeader header =
+					new ModuleHeader(moduleName);
+				header.deserializeHeaderFrom(deserializer);
+				module.isSystemModule(header.isSystemModule);
+				final String errorString = header.applyToModule(
+					module, runtime);
+				if (errorString != null)
+				{
+					throw new RuntimeException(errorString);
+				}
+				tag = deserializer.deserialize();
+				if (tag != null &&
+					!tag.equals(AtomDescriptor.moduleBodySectionAtom()))
+				{
+					throw new RuntimeException(
+						"Expected module body tag");
+				}
+			}
+			catch (final MalformedSerialStreamException|RuntimeException e)
+			{
+				module.removeFrom(loader);
+				throw e;
+			}
+
+			// Run each zero-argument block, one after another.
+			final Mutable<Continuation1<AvailObject>> runNext =
+				new Mutable<Continuation1<AvailObject>>();
+			final Mutable<Continuation1<Throwable>> fail =
+				new Mutable<Continuation1<Throwable>>();
+			runNext.value = new Continuation1<AvailObject>()
+			{
+				@Override
+				public void value (final @Nullable AvailObject ignored)
+				{
+					final AvailObject function;
+					try
+					{
+						function = deserializer.deserialize();
+					}
+					catch (
+						final MalformedSerialStreamException|RuntimeException e)
+					{
+						fail.value.value(e);
+						return;
+					}
+					if (function != null)
+					{
+						final AvailObject fiber =
+							FiberDescriptor.newLoaderFiber(loader);
+						fiber.resultContinuation(runNext.value);
+						fiber.failureContinuation(fail.value);
+						Interpreter.runOutermostFunction(
+							fiber,
+							function,
+							Collections.<AvailObject>emptyList());
+					}
+					else
+					{
+						runtime.addModule(module);
+						module.cleanUpAfterCompile();
+						postLoad(moduleName, 0L, localTracker, globalTracker);
+					}
+				}
+			};
+			fail.value = new Continuation1<Throwable>()
+			{
+				@Override
+				public void value (final @Nullable Throwable killer)
+				{
+					assert killer != null;
+					try
+					{
+						module.removeFrom(loader);
+					}
+					finally
+					{
+						failBuild(killer);
+					}
+				}
+			};
+			// The argument is ignored, so it doesn't matter what gets passed.
+			runNext.value.value(NilDescriptor.nil());
 		}
-		return globalCodeSize;
+
+		/**
+		 * Compile the specified {@linkplain ModuleDescriptor module}, store it
+		 * into the {@linkplain Repository repository}, and then load it into
+		 * the {@linkplain AvailRuntime Avail runtime}.
+		 *
+		 * <p>
+		 * Note that the predecessors of this module must have already been
+		 * loaded.
+		 * </p>
+		 *
+		 * @param moduleName
+		 *        The {@linkplain ResolvedModuleName resolved name} of the
+		 *        module that should be loaded.
+		 * @param localTracker
+		 *        A {@linkplain Continuation4 continuation} that accepts
+		 *        <ol>
+		 *        <li>the name of the module undergoing {@linkplain
+		 *        AbstractAvailCompiler compilation},</li>
+		 *        <li>the current line number within the current module,</li>
+		 *        <li>the position of the ongoing parse (in bytes), and</li>
+		 *        <li>the size of the module in bytes.</li>
+		 *        </ol>
+		 * @param globalTracker
+		 *        A {@linkplain Continuation3 continuation} that accepts
+		 *        <ol>
+		 *        <li>the name of the module undergoing compilation,</li>
+		 *        <li>the number of bytes globally processed, and</li>
+		 *        <li>the global size (in bytes) of all modules that will be
+		 *        built.</li>
+		 *        </ol>
+		 * @throws IOException
+		 *         If the source module cannot be opened or read.
+		 * @throws AvailCompilerException
+		 *         If the compiler cannot build a module.
+		 */
+		private void compileModule (
+				final ResolvedModuleName moduleName,
+				final Continuation4<ModuleName, Long, Long, Long> localTracker,
+				final Continuation3<ModuleName, Long, Long> globalTracker)
+			throws IOException, AvailCompilerException
+		{
+			final Mutable<Long> lastPosition = new Mutable<Long>(0L);
+			final Continuation1<AbstractAvailCompiler> continuation =
+				new Continuation1<AbstractAvailCompiler>()
+				{
+					@Override
+					public void value (
+						final @Nullable
+							AbstractAvailCompiler compiler)
+					{
+						assert compiler != null;
+						compiler.parseModule(
+							new Continuation4<ModuleName, Long, Long, Long>()
+							{
+								@Override
+								public void value (
+									final @Nullable ModuleName moduleName2,
+									final @Nullable Long lineNumber,
+									final @Nullable Long localPosition,
+									final @Nullable Long moduleSize)
+								{
+									assert moduleName2 != null;
+									assert lineNumber != null;
+									assert localPosition != null;
+									assert moduleSize != null;
+									assert moduleName.equals(moduleName2);
+									localTracker.value(
+										moduleName,
+										lineNumber,
+										localPosition,
+										moduleSize);
+									globalTracker.value(
+										moduleName,
+										bytesCompiled.addAndGet(
+											localPosition - lastPosition.value),
+										globalCodeSize());
+									lastPosition.value = localPosition;
+								}
+							},
+							new Continuation1<AvailObject>()
+							{
+								@Override
+								public void value (
+									final @Nullable AvailObject module)
+								{
+									final File fileReference =
+										moduleName.fileReference();
+									repository.put(
+										fileReference.getAbsolutePath(),
+										fileReference.lastModified(),
+										compiler.serializerOutputStream
+											.toByteArray());
+									postLoad(
+										moduleName,
+										lastPosition.value,
+										localTracker,
+										globalTracker);
+								}
+							},
+							new Continuation1<Throwable>()
+							{
+								@Override
+								public void value (
+									final @Nullable Throwable killer)
+								{
+									assert killer != null;
+									failBuild(killer);
+								}
+							});
+					}
+				};
+			AbstractAvailCompiler.create(
+				moduleName,
+				false,
+				continuation,
+				new Continuation1<Throwable>()
+				{
+					@Override
+					public void value (final @Nullable Throwable killer)
+					{
+						assert killer != null;
+						failBuild(killer);
+					}
+				});
+		}
+
+		/**
+		 * Load the specified {@linkplain ModuleDescriptor module} into the
+		 * {@linkplain AvailRuntime Avail runtime}. If a current compiled module
+		 * is available from the {@linkplain Repository repository}, then simply
+		 * load it. Otherwise, {@linkplain AbstractAvailCompiler compile} the
+		 * module, store it into the repository, and then load it.
+		 *
+		 * <p>
+		 * Note that the predecessors of this module must have already been
+		 * loaded.
+		 * </p>
+		 *
+		 * @param moduleName
+		 *        The {@linkplain ResolvedModuleName resolved name} of the
+		 *        module that should be loaded.
+		 * @param localTracker
+		 *        A {@linkplain Continuation4 continuation} that accepts
+		 *        <ol>
+		 *        <li>the name of the module undergoing {@linkplain
+		 *        AbstractAvailCompiler compilation},</li>
+		 *        <li>the current line number within the current module,</li>
+		 *        <li>the position of the ongoing parse (in bytes), and</li>
+		 *        <li>the size of the module in bytes.</li>
+		 *        </ol>
+		 * @param globalTracker
+		 *        A {@linkplain Continuation3 continuation} that accepts
+		 *        <ol>
+		 *        <li>the name of the module undergoing compilation,</li>
+		 *        <li>the number of bytes globally processed, and</li>
+		 *        <li>the global size (in bytes) of all modules that will be
+		 *        built.</li>
+		 *        </ol>
+		 * @throws IOException
+		 *         If the source module cannot be opened or read.
+		 * @throws AvailCompilerException
+		 *         If the compiler cannot build a module.
+		 * @throws MalformedSerialStreamException
+		 *         If the repository contains invalid serialized module data.
+		 */
+		@InnerAccess void loadModule (
+				final ResolvedModuleName moduleName,
+				final Continuation4<ModuleName, Long, Long, Long> localTracker,
+				final Continuation3<ModuleName, Long, Long> globalTracker)
+			throws
+				IOException,
+				AvailCompilerException,
+				MalformedSerialStreamException
+		{
+			globalTracker.value(
+				moduleName, bytesCompiled.get(), globalCodeSize());
+			// If the module is already loaded into the runtime, then we must
+			// not reload it.
+			if (!runtime.includesModuleNamed(
+				StringDescriptor.from(moduleName.qualifiedName())))
+			{
+				final File fileReference = moduleName.fileReference();
+				final String filePath = fileReference.getAbsolutePath();
+				final long moduleTimestamp = fileReference.lastModified();
+				// If the module is already compiled, then load the repository's
+				// version.
+				if (repository.hasKey(filePath, moduleTimestamp))
+				{
+					loadRepositoryModule(
+						moduleName,
+						localTracker,
+						globalTracker);
+				}
+				// Actually compile the module and cache its compiled form.
+				else
+				{
+					compileModule(moduleName, localTracker, globalTracker);
+				}
+			}
+		}
 	}
 
 	/**
-	 * Build the {@linkplain ModuleDescriptor target} and its dependencies
-	 * within a new {@linkplain AvailThread Avail thread}.
+	 * Scheduling tracing of the imports of the {@linkplain ModuleDescriptor
+	 * module} specified by the given {@linkplain ModuleName module name}.
 	 *
-	 * @param builder
-	 *            An {@linkplain AvailBuilder Avail builder}.
-	 * @param localTracker
-	 *            A {@linkplain Continuation4 continuation} that accepts
-	 *            <ol>
-	 *            <li>the {@linkplain ModuleName name} of the
-	 *            {@linkplain ModuleDescriptor module} undergoing
-	 *            {@linkplain AbstractAvailCompiler compilation},</li>
-	 *            <li>the current line number within the current module,</li>
-	 *            <li>the position of the ongoing parse (in bytes), and</li>
-	 *            <li>the size of the module in bytes.</li>
-	 *            </ol>
-	 * @param globalTracker
-	 *            A {@linkplain Continuation3 continuation} that accepts
-	 *            <ol>
-	 *            <li>the name of the module undergoing compilation,</li>
-	 *            <li>the number of bytes globally processed, and</li>
-	 *            <li>the global size (in bytes) of all modules that will be
-	 *            built.</li>
-	 *            </ol>
-	 * @throws AvailCompilerException
-	 *             If the compiler is unable to find a module declaration.
-	 * @throws InterruptedException
-	 *             If the builder thread is interrupted.
-	 * @throws RecursiveDependencyException
-	 *             If an encountered module recursively depends upon itself.
-	 * @throws UnresolvedDependencyException
-	 *             If a module name could not be resolved.
+	 * @param state
+	 *        The {@linkplain BuildState build state}.
+	 * @param qualifiedName
+	 *        A fully-qualified {@linkplain ModuleName module name}.
+	 * @param resolvedSuccessor
+	 *        The resolved name of the module using or extending this module,
+	 *        or {@code null} if this module is the start of the recursive
+	 *        resolution (i.e., it will be the last one compiled).
+	 * @param recursionSet
+	 *        An insertion-ordered {@linkplain Set set} that remembers all
+	 *        modules visited along this branch of the trace.
 	 */
-	public static void buildTargetInNewAvailThread (
-		final AvailBuilder builder,
+	@InnerAccess void scheduleTraceModuleImports (
+		final BuildState state,
+		final ModuleName qualifiedName,
+		final @Nullable ResolvedModuleName resolvedSuccessor,
+		final LinkedHashSet<ResolvedModuleName> recursionSet)
+	{
+		// Don't schedule any new tasks if an exception has been encountered.
+		if (state.terminator != null)
+		{
+			return;
+		}
+		runtime.execute(new AvailTask(
+			FiberDescriptor.loaderPriority,
+			new Continuation0()
+			{
+				@Override
+				public void value ()
+				{
+					// If an exception has been encountered, then exit quickly.
+					if (state.terminator != null)
+					{
+						return;
+					}
+					Throwable killer = null;
+					try
+					{
+						state.traceModuleImports(
+							qualifiedName,
+							resolvedSuccessor,
+							recursionSet);
+					}
+					catch (final RecursiveDependencyException e)
+					{
+						e.prependModule(runtime.moduleNameResolver().resolve(
+							qualifiedName));
+						killer = e;
+					}
+					catch (final Throwable e)
+					{
+						killer = e;
+					}
+					if (killer != null)
+					{
+						state.failBuild(killer);
+					}
+				}
+			}));
+	}
+
+	/**
+	 * Schedule a build of the specified {@linkplain ModuleDescriptor module},
+	 * on the assumption that its predecessors have already been built.
+	 *
+	 * @param state
+	 *        The current {@linkplain BuildState build state}.
+	 * @param target
+	 *        The {@linkplain ResolvedModuleName resolved name} of the module
+	 *        that should be loaded.
+	 * @param localTracker
+	 *        A {@linkplain Continuation4 continuation} that accepts
+	 *        <ol>
+	 *        <li>the name of the module undergoing {@linkplain
+	 *        AbstractAvailCompiler compilation},</li>
+	 *        <li>the current line number within the current module,</li>
+	 *        <li>the position of the ongoing parse (in bytes), and</li>
+	 *        <li>the size of the module in bytes.</li>
+	 *        </ol>
+	 * @param globalTracker
+	 *        A {@linkplain Continuation3 continuation} that accepts
+	 *        <ol>
+	 *        <li>the name of the module undergoing compilation,</li>
+	 *        <li>the number of bytes globally processed, and</li>
+	 *        <li>the global size (in bytes) of all modules that will be
+	 *        built.</li>
+	 *        </ol>
+	 */
+	@InnerAccess void scheduleLoadModule (
+		final BuildState state,
+		final ResolvedModuleName target,
 		final Continuation4<ModuleName, Long, Long, Long> localTracker,
 		final Continuation3<ModuleName, Long, Long> globalTracker)
-		throws AvailCompilerException, InterruptedException,
-		RecursiveDependencyException, UnresolvedDependencyException
 	{
-		final Mutable<Exception> killer = new Mutable<Exception>();
-		final AvailThread thread = builder.runtime.newThread(new Runnable()
+		// Don't schedule any new tasks if an exception has been encountered.
+		if (state.terminator != null)
 		{
-			@Override
-			public void run ()
+			return;
+		}
+		runtime.execute(new AvailTask(
+			FiberDescriptor.loaderPriority,
+			new Continuation0()
 			{
-				try
+				@Override
+				public void value ()
 				{
-					builder.buildTarget(localTracker, globalTracker);
+					// If an exception has been encountered, then exit quickly.
+					if (state.terminator != null)
+					{
+						return;
+					}
+					try
+					{
+						state.loadModule(target, localTracker, globalTracker);
+					}
+					catch (final Throwable killer)
+					{
+						state.failBuild(killer);
+					}
 				}
-				catch (final AvailCompilerException e)
-				{
-					killer.value = e;
-				}
-				catch (final TerminateCompilationException e)
-				{
-					killer.value = e;
-				}
-				catch (final RecursiveDependencyException e)
-				{
-					killer.value = e;
-				}
-				catch (final UnresolvedDependencyException e)
-				{
-					killer.value = e;
-				}
-				catch (final MalformedSerialStreamException e)
-				{
-					killer.value = e;
-				}
+			}));
+	}
+
+	/**
+	 * Build the {@linkplain ModuleDescriptor target} and its dependencies.
+	 *
+	 * @param target
+	 *        The {@linkplain ModuleName canonical name} of the module that the
+	 *        {@linkplain AvailBuilder builder} must (recursively) load into the
+	 *        {@linkplain AvailRuntime runtime}.
+	 * @param localTracker
+	 *        A {@linkplain Continuation4 continuation} that accepts
+	 *        <ol>
+	 *        <li>the name of the module undergoing {@linkplain
+	 *        AbstractAvailCompiler compilation},</li>
+	 *        <li>the current line number within the current module,</li>
+	 *        <li>the position of the ongoing parse (in bytes), and</li>
+	 *        <li>the size of the module in bytes.</li>
+	 *        </ol>
+	 * @param globalTracker
+	 *        A {@linkplain Continuation3 continuation} that accepts
+	 *        <ol>
+	 *        <li>the name of the module undergoing compilation,</li>
+	 *        <li>the number of bytes globally processed, and</li>
+	 *        <li>the global size (in bytes) of all modules that will be
+	 *        built.</li>
+	 *        </ol>
+	 * @throws Throwable
+	 *         If anything went wrong.
+	 */
+	@InnerAccess void buildTarget (
+			final ModuleName target,
+			final Continuation4<ModuleName, Long, Long, Long> localTracker,
+			final Continuation3<ModuleName, Long, Long> globalTracker)
+		throws Throwable
+	{
+		final BuildState state = new BuildState();
+		state.traceRequests = 1;
+		scheduleTraceModuleImports(
+			state,
+			target,
+			null,
+			new LinkedHashSet<ResolvedModuleName>());
+		// Wait until the parallel recursive trace completes.
+		synchronized (state)
+		{
+			while (
+				state.terminator == null
+				&& state.traceRequests != state.traceCompletions)
+			{
+				state.wait();
 			}
-		});
-		thread.run();
-		thread.join();
+			if (state.terminator != null)
+			{
+				throw state.terminator;
+			}
+		}
+		for (final ResolvedModuleName origin : state.originModules())
+		{
+			scheduleLoadModule(state, origin, localTracker, globalTracker);
+		}
+		// Wait until the parallel load completes.
+		synchronized (state)
+		{
+			while (
+				state.terminator == null
+				&& state.loadCompletions != state.completionSet.size())
+			{
+				state.wait();
+			}
+			if (state.terminator != null)
+			{
+				throw state.terminator;
+			}
+		}
+	}
+
+	/**
+	 * Schedule the recursive build of the {@linkplain ModuleDescriptor target}
+	 * and its dependencies. Any {@linkplain Exception exceptions} raised during
+	 * the build are rerouted to the current {@linkplain Thread thread} and
+	 * rethrown.
+	 *
+	 * @param target
+	 *        The {@linkplain ModuleName canonical name} of the module that the
+	 *        {@linkplain AvailBuilder builder} must (recursively) load into the
+	 *        {@linkplain AvailRuntime runtime}.
+	 * @param localTracker
+	 *        A {@linkplain Continuation4 continuation} that accepts
+	 *        <ol>
+	 *        <li>the name of the module currently undergoing {@linkplain
+	 *        AbstractAvailCompiler compilation} as part of the recursive build
+	 *        of target,</li>
+	 *        <li>the current line number within the current module,</li>
+	 *        <li>the position of the ongoing parse (in bytes), and</li>
+	 *        <li>the size of the module in bytes.</li>
+	 *        </ol>
+	 * @param globalTracker
+	 *        A {@linkplain Continuation3 continuation} that accepts
+	 *        <ol>
+	 *        <li>the name of the module undergoing compilation,</li>
+	 *        <li>the number of bytes globally processed, and</li>
+	 *        <li>the global size (in bytes) of all modules that will be
+	 *        built.</li>
+	 *        </ol>
+	 * @throws AvailCompilerException
+	 *         If an encountered module could not be built.
+	 * @throws RecursiveDependencyException
+	 *         If an encountered module recursively depends upon itself.
+	 * @throws UnresolvedDependencyException
+	 *         If a module name could not be resolved.
+	 * @throws FiberTerminationException
+	 *         If compilation has been terminated forcibly.
+	 * @throws InterruptedException
+	 *         If any {@linkplain AvailThread thread} is interrupted during the
+	 *         build.
+	 */
+	public void build (
+			final ModuleName target,
+			final Continuation4<ModuleName, Long, Long, Long> localTracker,
+			final Continuation3<ModuleName, Long, Long> globalTracker)
+		throws
+			AvailCompilerException,
+			RecursiveDependencyException,
+			UnresolvedDependencyException,
+			InterruptedException
+	{
+		final Mutable<Throwable> killer = new Mutable<Throwable>();
+		final Semaphore semaphore = new Semaphore(0);
+		runtime.execute(new AvailTask(
+			FiberDescriptor.loaderPriority,
+			new Continuation0()
+			{
+				@Override
+				public void value ()
+				{
+					try
+					{
+						buildTarget(target, localTracker, globalTracker);
+					}
+					catch (final Throwable e)
+					{
+						killer.value = e;
+					}
+					finally
+					{
+						semaphore.release();
+					}
+				}
+			}));
+		// Wait for the builder to finish.
+		semaphore.acquire();
 		if (killer.value != null)
 		{
 			if (killer.value instanceof AvailCompilerException)
 			{
 				throw (AvailCompilerException) killer.value;
 			}
-			else if (killer.value instanceof TerminateCompilationException)
+			else if (killer.value instanceof FiberTerminationException)
 			{
-				throw (TerminateCompilationException) killer.value;
+				throw (FiberTerminationException) killer.value;
 			}
 			else if (killer.value instanceof RecursiveDependencyException)
 			{
@@ -391,188 +1095,18 @@ public final class AvailBuilder
 			{
 				throw (UnresolvedDependencyException) killer.value;
 			}
-		}
-	}
-
-	/**
-	 * Build the {@linkplain ModuleDescriptor target} and its dependencies. Must
-	 * be called from an {@linkplain AvailThread Avail thread}.
-	 *
-	 * @param localTracker
-	 *            A {@linkplain Continuation4 continuation} that accepts
-	 *            <ol>
-	 *            <li>the {@linkplain ModuleName name} of the
-	 *            {@linkplain ModuleDescriptor module} undergoing
-	 *            {@linkplain AbstractAvailCompiler compilation},</li>
-	 *            <li>the current line number within the current module,</li>
-	 *            <li>the position of the ongoing parse (in bytes), and</li>
-	 *            <li>the size of the module in bytes.</li>
-	 *            </ol>
-	 * @param globalTracker
-	 *            A {@linkplain Continuation3 continuation} that accepts
-	 *            <ol>
-	 *            <li>the name of the module undergoing compilation,</li>
-	 *            <li>the number of bytes globally processed, and</li>
-	 *            <li>the global size (in bytes) of all modules that will be
-	 *            built.</li>
-	 *            </ol>
-	 * @throws AvailCompilerException
-	 *             If the compiler is unable to find a module declaration.
-	 * @throws RecursiveDependencyException
-	 *             If an encountered module recursively depends upon itself.
-	 * @throws UnresolvedDependencyException
-	 *             If a module name could not be resolved.
-	 * @throws MalformedSerialStreamException
-	 *             If the repository contains invalid serialized module data.
-	 */
-	public void buildTarget (
-		final Continuation4<ModuleName, Long, Long, Long> localTracker,
-		final Continuation3<ModuleName, Long, Long> globalTracker)
-		throws AvailCompilerException, RecursiveDependencyException,
-		UnresolvedDependencyException, MalformedSerialStreamException
-	{
-		final ModuleNameResolver resolver = runtime.moduleNameResolver();
-		traceModuleImports(null, target);
-		linearizeModuleImports();
-		final long globalCodeSize = globalCodeSize();
-		final Mutable<Long> globalPosition = new Mutable<Long>();
-		globalPosition.value = 0L;
-		for (final ModuleName moduleName : dependencies)
-		{
-			globalTracker.value(
-				moduleName,
-				globalPosition.value,
-				globalCodeSize);
-			final ResolvedModuleName resolved = resolver.resolve(moduleName);
-			if (resolved == null)
+			else if (killer.value instanceof Error)
 			{
-				throw new RuntimeException(
-					"Can't resolve module: " + moduleName);
+				throw (Error) killer.value;
 			}
-			if (!runtime.includesModuleNamed(
-				StringDescriptor.from(
-					resolved.qualifiedName())))
+			else if (killer.value instanceof RuntimeException)
 			{
-				final File fileReference = resolved.fileReference();
-				final String filePath = fileReference.getAbsolutePath();
-				final long moduleTimestamp = fileReference.lastModified();
-				if (repository.hasKey(filePath, moduleTimestamp))
-				{
-					// Module has already been compiled since last change.
-					localTracker.value(moduleName, -1L, -1L, -1L);
-					final byte[] bytes = repository.get(
-						filePath,
-						moduleTimestamp);
-
-					final ByteArrayInputStream inputStream =
-						new ByteArrayInputStream(bytes);
-					final AvailObject module = ModuleDescriptor.newModule(
-						StringDescriptor.from(resolved.qualifiedName()));
-					interpreter.setModule(module);
-					final Deserializer deserializer = new Deserializer(
-						inputStream,
-						runtime);
-					deserializer.currentModule(module);
-					try
-					{
-						AvailObject tag = deserializer.deserialize();
-						if (tag != null &&
-							!tag.equals(
-								AtomDescriptor.moduleHeaderSectionAtom()))
-						{
-							throw new RuntimeException(
-								"Expected module header tag");
-						}
-						final ModuleHeader header = new ModuleHeader(resolved);
-						header.deserializeHeaderFrom(deserializer);
-						module.isSystemModule(header.isSystemModule);
-						final String errorString = header.applyToModule(
-							module,
-							runtime);
-						if (errorString != null)
-						{
-							throw new RuntimeException(errorString);
-						}
-
-						tag = deserializer.deserialize();
-						if (tag != null &&
-							!tag.equals(AtomDescriptor.moduleBodySectionAtom()))
-						{
-							throw new RuntimeException(
-								"Expected module body tag");
-						}
-
-						AvailObject block;
-						final List<AvailObject> noArgs =
-							Collections.emptyList();
-						// Run each zero-argument block.
-						while ((block = deserializer.deserialize()) != null)
-						{
-							interpreter.runFunctionArguments(block, noArgs);
-						}
-						runtime.addModule(module);
-						module.cleanUpAfterCompile();
-						interpreter.setModule(null);
-					}
-					catch (final Exception e)
-					{
-						module.removeFrom(interpreter);
-						interpreter.setModule(null);
-						if (e instanceof AvailCompilerException)
-						{
-							throw (AvailCompilerException) e;
-						}
-						if (e instanceof MalformedSerialStreamException)
-						{
-							throw (MalformedSerialStreamException) e;
-						}
-						throw new RuntimeException(e);
-					}
-				}
-				else
-				{
-					// Actually compile the module and cache its compiled form.
-					final AbstractAvailCompiler compiler =
-						AbstractAvailCompiler.create(
-							moduleName,
-							interpreter,
-							false);
-					compiler.parseModule(
-						moduleName,
-						new Continuation4<ModuleName, Long, Long, Long>()
-						{
-							@Override
-							public void value (
-								final @Nullable ModuleName moduleName2,
-								final @Nullable Long lineNumber,
-								final @Nullable Long localPosition,
-								final @Nullable Long moduleSize)
-							{
-								assert moduleName2 != null;
-								assert lineNumber != null;
-								assert localPosition != null;
-								assert moduleSize != null;
-								assert moduleName.equals(moduleName2);
-								localTracker.value(
-									moduleName,
-									lineNumber,
-									localPosition,
-									moduleSize);
-								globalTracker.value(
-									moduleName,
-									globalPosition.value + localPosition,
-									globalCodeSize);
-							}
-						});
-					repository.put(
-						filePath,
-						moduleTimestamp,
-						compiler.serializerOutputStream.toByteArray());
-				}
+				throw (RuntimeException) killer.value;
 			}
-			globalPosition.value += resolved.fileReference().length();
+			else
+			{
+				throw new RuntimeException(killer.value);
+			}
 		}
-		assert globalPosition.value == globalCodeSize;
-		globalTracker.value(target, globalPosition.value, globalCodeSize);
 	}
 }

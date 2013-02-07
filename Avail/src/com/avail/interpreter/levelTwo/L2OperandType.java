@@ -33,7 +33,7 @@
 package com.avail.interpreter.levelTwo;
 
 import com.avail.descriptor.*;
-import com.avail.interpreter.Primitive;
+import com.avail.interpreter.*;
 import com.avail.interpreter.levelTwo.operand.L2CommentOperand;
 import com.avail.interpreter.levelTwo.register.*;
 
@@ -120,7 +120,7 @@ public enum L2OperandType
 	/**
 	 * The operand represents an {@linkplain L2ObjectRegister object register},
 	 * capable of holding any Avail object.  The specified index is passed to
-	 * {@link L2Interpreter#pointerAt(int)} to extract the current value.
+	 * {@link Interpreter#pointerAt(int)} to extract the current value.
 	 */
 	READ_POINTER(true, false)
 	{
@@ -134,7 +134,7 @@ public enum L2OperandType
 	/**
 	 * The operand represents an {@linkplain L2ObjectRegister object register},
 	 * capable of holding any Avail object.  The specified index is passed to
-	 * {@link L2Interpreter#pointerAtPut(int, AvailObject)} to set the current
+	 * {@link Interpreter#pointerAtPut(int, AvailObject)} to set the current
 	 * value.  This operand must <em>only</em> be used for blindly writing a new
 	 * value to the register -- the previous value of the register may not be
 	 * read on behalf of this operand.  Writing to the register is compulsory.
@@ -151,8 +151,8 @@ public enum L2OperandType
 	/**
 	 * The operand represents an {@linkplain L2ObjectRegister object register},
 	 * capable of holding any Avail object.  The specified index is passed to
-	 * {@link L2Interpreter#pointerAt(int)} to read the current value, and
-	 * {@link L2Interpreter#pointerAtPut(int, AvailObject)} to set a new value.
+	 * {@link Interpreter#pointerAt(int)} to read the current value, and
+	 * {@link Interpreter#pointerAtPut(int, AvailObject)} to set a new value.
 	 * A read before a write is not compulsory, but it is permitted.  Since a
 	 * read may precede the write, there's no point in making the write
 	 * compulsory, since it could just be writing the value that it read, and
@@ -170,7 +170,7 @@ public enum L2OperandType
 	/**
 	 * The operand represents an {@linkplain L2IntegerRegister integer
 	 * register}, capable of holding any {@code int}.  The specified index is
-	 * passed to {@link L2Interpreter#integerAt(int)} to extract the current
+	 * passed to {@link Interpreter#integerAt(int)} to extract the current
 	 * value.
 	 */
 	READ_INT(true, false)
@@ -186,7 +186,7 @@ public enum L2OperandType
 	 * The operand represents an {@linkplain L2IntegerRegister integer
 	 * register}, capable of holding any {@code int}.  The specified index is
 	 * passed (as the first argument) to {@link
-	 * L2Interpreter#integerAtPut(int, int)} to set the current value.  This
+	 * Interpreter#integerAtPut(int, int)} to set the current value.  This
 	 * operand must <em>only</em> be used for blindly writing a new value to the
 	 * register -- the previous value of the register may not be read on behalf
 	 * of this operand.  Writing to the register is compulsory.
@@ -203,9 +203,9 @@ public enum L2OperandType
 	/**
 	 * The operand represents an {@linkplain L2IntegerRegister integer
 	 * register}, capable of holding any {@code int}.  The specified index is
-	 * passed to {@link L2Interpreter#integerAt(int)} to read the current value,
+	 * passed to {@link Interpreter#integerAt(int)} to read the current value,
 	 * and (as the first argument) to {@link
-	 * L2Interpreter#integerAtPut(int, int)} to set a new value.  A read before
+	 * Interpreter#integerAtPut(int, int)} to set a new value.  A read before
 	 * a write is not compulsory, but it is permitted.  Since a read may precede
 	 * the write, there's no point in making the write compulsory, since it
 	 * could just be writing the value that it read, and that's essentially the

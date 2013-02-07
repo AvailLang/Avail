@@ -32,7 +32,7 @@
 package com.avail.interpreter.primitive;
 
 import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.exceptions.AvailErrorCode.E_TYPE_RESTRICTION_MUST_ACCEPT_ONLY_TYPES;
+import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.Unknown;
 import java.util.List;
 import com.avail.descriptor.*;
@@ -42,13 +42,14 @@ import com.avail.interpreter.*;
 /**
  * <strong>Primitive 248:</strong> Add a type restriction function.
  */
-public class P_248_AddSemanticRestriction extends Primitive
+public class P_248_AddSemanticRestriction
+extends Primitive
 {
 	/**
-	 * The sole instance of this primitive class.  Accessed through reflection.
+	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_248_AddSemanticRestriction().init(
-		2, Unknown);
+	public final static Primitive instance =
+		new P_248_AddSemanticRestriction().init(2, Unknown);
 
 	@Override
 	public Result attempt (
@@ -60,6 +61,11 @@ public class P_248_AddSemanticRestriction extends Primitive
 		final AvailObject function = args.get(1);
 		final AvailObject functionType = function.kind();
 		final AvailObject tupleType = functionType.argsTupleType();
+		final AvailLoader loader = FiberDescriptor.current().availLoader();
+		if (loader == null)
+		{
+			return interpreter.primitiveFailure(E_LOADING_IS_OVER);
+		}
 		for (int i = function.code().numArgs(); i >= 1; i--)
 		{
 			if (!tupleType.typeAtIndex(i).isInstanceOf(
@@ -71,8 +77,8 @@ public class P_248_AddSemanticRestriction extends Primitive
 		}
 		try
 		{
-			interpreter.addTypeRestriction(
-				interpreter.lookupName(string),
+			loader.addTypeRestriction(
+				loader.lookupName(string),
 				function);
 			function.code().setMethodName(
 				StringDescriptor.from(

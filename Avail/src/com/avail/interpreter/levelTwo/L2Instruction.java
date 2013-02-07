@@ -35,6 +35,7 @@ package com.avail.interpreter.levelTwo;
 import java.util.*;
 import com.avail.annotations.*;
 import com.avail.descriptor.*;
+import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.operand.*;
 import com.avail.interpreter.levelTwo.operation.L2_LABEL;
 import com.avail.optimizer.L2Translator;
@@ -43,7 +44,7 @@ import com.avail.utility.*;
 
 /**
  * {@code L2Instruction} is the foundation for all instructions understood by
- * the {@linkplain L2Interpreter level two Avail interpreter}. These
+ * the {@linkplain Interpreter level two Avail interpreter}. These
  * instructions are model objects generated and manipulated by the {@linkplain
  * L2Translator translator} and the {@linkplain L2CodeGenerator code generator}.
  *
@@ -174,9 +175,11 @@ public final class L2Instruction
 					{
 						@Override
 						public L2Register value (
-							final L2Register register,
-							final L2OperandType operandType)
+							final @Nullable L2Register register,
+							final @Nullable L2OperandType operandType)
 						{
+							assert register != null;
+							assert operandType != null;
 							sourceRegisters.add(register);
 							return register;
 						}
@@ -205,9 +208,11 @@ public final class L2Instruction
 					{
 						@Override
 						public L2Register value (
-							final L2Register register,
-							final L2OperandType operandType)
+							final @Nullable L2Register register,
+							final @Nullable L2OperandType operandType)
 						{
+							assert register != null;
+							assert operandType != null;
 							destinationRegisters.add(register);
 							return register;
 						}

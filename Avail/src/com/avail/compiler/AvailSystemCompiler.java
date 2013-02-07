@@ -39,11 +39,10 @@ import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.utility.PrefixSharingList.*;
 import java.util.*;
 import com.avail.annotations.*;
-import com.avail.builder.ModuleName;
+import com.avail.builder.*;
 import com.avail.descriptor.*;
-import com.avail.interpreter.Primitive;
+import com.avail.interpreter.*;
 import com.avail.interpreter.Primitive.Flag;
-import com.avail.interpreter.levelTwo.L2Interpreter;
 import com.avail.utility.*;
 
 /**
@@ -58,22 +57,19 @@ extends AbstractAvailCompiler
 	/**
 	 * Construct a new {@link AvailSystemCompiler}.
 	 *
-	 * @param interpreter
-	 *            The interpreter used to execute code during compilation.
 	 * @param moduleName
-	 *            The {@link ModuleName} of the module being parsed.
+	 *        The {@link ResolvedModuleName} of the module to compile.
 	 * @param source
-	 *            The {@link String} of source code to be parsed.
+	 *        The {@link String} of source code to be parsed.
 	 * @param tokens
-	 *            The list of {@linkplain TokenDescriptor tokens} to be parsed.
+	 *        The list of {@linkplain TokenDescriptor tokens} to be parsed.
 	 */
 	public AvailSystemCompiler (
-		final L2Interpreter interpreter,
-		final ModuleName moduleName,
+		final ResolvedModuleName moduleName,
 		final String source,
 		final List<AvailObject> tokens)
 	{
-		super(interpreter, moduleName, source, tokens);
+		super(moduleName, source, tokens);
 	}
 
 	@Override
@@ -98,12 +94,13 @@ extends AbstractAvailCompiler
 			{
 				@Override
 				public void value (
-					final @Nullable ParserState ignored,
+					final @Nullable ParserState realStart,
 					final @Nullable Con<AvailObject> whenFoundStatement)
 				{
+					assert realStart != null;
 					assert whenFoundStatement != null;
 					parseDeclarationThen(
-						start,
+						realStart,
 						new Con<AvailObject>("Semicolon after declaration")
 						{
 							@Override
@@ -125,7 +122,7 @@ extends AbstractAvailCompiler
 							}
 						});
 					parseAssignmentThen(
-						start,
+						realStart,
 						new Con<AvailObject>("Semicolon after assignment")
 						{
 							@Override
@@ -145,7 +142,7 @@ extends AbstractAvailCompiler
 							}
 						});
 					parseExpressionThen(
-						start,
+						realStart,
 						new Con<AvailObject>("Semicolon after expression")
 						{
 							@SuppressWarnings("null")
@@ -514,7 +511,7 @@ extends AbstractAvailCompiler
 			"colon for label's return type declaration"))
 		{
 			final ParserState afterColon = afterName.afterToken();
-			eventuallyDo(
+			workUnitDo(
 				new Continuation0()
 				{
 					@Override
@@ -527,11 +524,11 @@ extends AbstractAvailCompiler
 					}
 				},
 				"Label type",
-				afterColon.position);
+				afterColon);
 		}
 		else
 		{
-			eventuallyDo(
+			workUnitDo(
 				new Continuation0()
 				{
 					@Override
@@ -542,7 +539,7 @@ extends AbstractAvailCompiler
 					}
 				},
 				"Default label return type",
-				afterName.position);
+				afterName);
 		}
 	}
 
@@ -1504,7 +1501,7 @@ extends AbstractAvailCompiler
 			return;
 		}
 		final int primitiveNumber = token.literal().extractInt();
-		if (!interpreter.supportsPrimitive(primitiveNumber))
+		if (!Primitive.supportsPrimitive(primitiveNumber))
 		{
 			afterPrimitiveKeyword.expected(
 				"a supported primitive number, not #"
@@ -1515,7 +1512,7 @@ extends AbstractAvailCompiler
 		final Primitive prim =
 			Primitive.byPrimitiveNumberOrNull(primitiveNumber);
 		assert prim != null;
-		if (!interpreter.primitiveAcceptsThisManyArguments(
+		if (!Primitive.primitiveAcceptsThisManyArguments(
 			primitiveNumber, argCount))
 		{
 			afterPrimitiveKeyword.expected(

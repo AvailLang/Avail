@@ -57,6 +57,7 @@ Names
 	/*  11 */ "atom",
 	/*  54 */ "block phrase",
 	/*   2 */ "boolean",
+	/* 129 */ "byte",
 	/*   3 */ "character",
 	/*  38 */ "code point",
 	/*   9 */ "continuation",
@@ -107,7 +108,7 @@ Names
 	/*  37 */ "natural number",
 	/*  97 */ "non-empty map",
 	/*  99 */ "non-empty set",
-	/* 118 */ "nonnegative integer",
+	/* 118 */ "nonnegative extended integer",
 	/*  31 */ "nontype",
 	/*  81 */ "null",
 	/*  90 */ "nullary procedure",
@@ -131,6 +132,7 @@ Names
 	/*  91 */ "predicate function",
 	/*  76 */ "primitive failure function",
 	/*  68 */ "primitive failure reason phrase",
+	/* 131 */ "readable extended integer variable",
 	/* 107 */ "semantic restriction function",
 	/*  57 */ "send phrase",
 	/*  51 */ "sequence phrase",
@@ -151,6 +153,7 @@ Names
 	/*  74 */ "tuple of set of string",
 	/*  72 */ "tuple of string",
 	/* 100 */ "tuple of tuple",
+	/* 130 */ "tuple of tuple of any meta",
 	/*  73 */ "tuple of type",
 	/*  34 */ "type",
 	/* 112 */ "type of Euler number",
@@ -288,7 +291,7 @@ _set_of_atom                            ::= special object 114;
 _token                                  ::= special object 115;
 _literal_token                          ::= special object 116;
 _tuple_of_any_meta                      ::= special object 117;
-_nonnegative_integer                    ::= special object 118;
+_nonnegative_extended_integer           ::= special object 118;
 _field_type_tuple                       ::= special object 119;
 _field_tuple                            ::= special object 120;
 _phrase_tuple                           ::= special object 121;
@@ -299,6 +302,9 @@ _tuple_of_expressions_yielding_any      ::= special object 125;
 _expression_yielding_any                ::= special object 126;
 _pojo_failure_function                  ::= special object 127;
 _tuple_of_set_of_atom                   ::= special object 128;
+_byte                                   ::= special object 129;
+_tuple_of_tuple_of_any_meta             ::= special object 130;
+_readable_extended_integer_variable     ::= special object 131;
 
 /**
  * The practical abstract root of the Avail type lattice. `any` is the second
@@ -1001,9 +1007,9 @@ Primitive "tuple of any meta" is
 	_tuple_of_any_meta
 ];
 
-Primitive "nonnegative integer" is
+Primitive "nonnegative extended integer" is
 [
-	_nonnegative_integer
+	_nonnegative_extended_integer
 ];
 
 Primitive "field type tuple" is
@@ -1054,5 +1060,20 @@ Primitive "pojo failure function" is
 Primitive "tuple of set of atom" is
 [
 	_tuple_of_set_of_atom
+];
+
+Primitive "byte" is
+[
+	_byte
+];
+
+Primitive "tuple of tuple of any meta" is
+[
+	_tuple_of_tuple_of_any_meta
+];
+
+Primitive "readable extended integer variable" is
+[
+	_readable_extended_integer_variable
 ];
 

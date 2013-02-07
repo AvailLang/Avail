@@ -57,7 +57,7 @@ public class P_120_CreateAtom extends Primitive
 		assert args.size() == 1;
 		final AvailObject name = args.get(0);
 		return interpreter.primitiveSuccess(
-			interpreter.createAtom(name, false));
+			AtomDescriptor.create(name, ModuleDescriptor.current()));
 	}
 
 	@Override

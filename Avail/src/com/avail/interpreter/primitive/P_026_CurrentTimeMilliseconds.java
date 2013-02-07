@@ -1,5 +1,5 @@
 /**
- * P_021_GetFiberPriority.java
+ * P_026_CurrentTimeMilliseconds.java
  * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -34,37 +34,37 @@ package com.avail.interpreter.primitive;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
 import com.avail.descriptor.*;
-import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.*;
 
 /**
- * <strong>Primitive 21:</strong> Get the priority of a fiber.
+ * <strong>Primitive 26:</strong> Get the current time as milliseconds since
+ * the Unix Epoch.
  */
-public class P_021_GetFiberPriority extends Primitive
+public class P_026_CurrentTimeMilliseconds
+extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_021_GetFiberPriority().init(1, CannotFail, CanInline);
+		new P_026_CurrentTimeMilliseconds().init(
+			0, CannotFail, CanInline, HasSideEffect);
 
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 1;
-		final AvailObject fiber = args.get(0);
+		assert args.size() == 0;
 		return interpreter.primitiveSuccess(
-			fiber.priority());
+			IntegerDescriptor.fromLong(System.currentTimeMillis()));
 	}
 
 	@Override
 	protected AvailObject privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
-				Types.FIBER.o()),
+			TupleDescriptor.from(),
 			IntegerRangeTypeDescriptor.wholeNumbers());
 	}
 }

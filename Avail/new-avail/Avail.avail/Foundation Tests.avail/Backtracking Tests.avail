@@ -41,9 +41,7 @@ Names
 	"backtracking test suite"
 Body
 
-/* The test suite identifier. */
 "backtracking test suite" is a new atom;
-
 New test suite backtracking test suite extends foundation test suite;
 
 Test "Cartesian product" in backtracking test suite is

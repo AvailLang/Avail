@@ -32,6 +32,8 @@
 
 package com.avail.utility;
 
+import com.avail.annotations.Nullable;
+
 /**
  * Implementors of {@code Transformer0} provide a single arbitrary operation
  * that accepts zero arguments and produces a result.
@@ -47,5 +49,5 @@ public abstract class Transformer0 <X>
 	 *
 	 * @return The result of performing the operation.
 	 */
-	public abstract X value ();
+	public abstract @Nullable X value ();
 }

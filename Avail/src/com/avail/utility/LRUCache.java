@@ -700,7 +700,7 @@ public class LRUCache<K, V>
 	 *         execution of the user-supplied {@linkplain Transformer1
 	 *         transformer}.
 	 */
-	public V get (final K key) throws RuntimeException
+	public @Nullable V get (final K key) throws RuntimeException
 	{
 		assert key != null;
 

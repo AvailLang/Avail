@@ -34,6 +34,7 @@ package com.avail.interpreter.levelTwo.operation;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import com.avail.descriptor.AvailObject;
+import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.*;
 
 public class L2_JUMP_IF_KIND_OF_CONSTANT extends L2Operation
@@ -53,7 +54,7 @@ public class L2_JUMP_IF_KIND_OF_CONSTANT extends L2Operation
 	}
 
 	@Override
-	public void step (final L2Interpreter interpreter)
+	public void step (final Interpreter interpreter)
 	{
 		final int doIndex = interpreter.nextWord();
 		final int valueIndex = interpreter.nextWord();

@@ -1,5 +1,5 @@
 /**
- * P_027_SetFiberVariable.java
+ * P_601_GetFiberPriority.java
  * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -31,40 +31,33 @@
  */
 package com.avail.interpreter.primitive;
 
-import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
 import com.avail.descriptor.*;
+import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.*;
 
 /**
- * <strong>Primitive 27:</strong> Associate the given value with the given
- * {@linkplain AtomDescriptor name} (key) in the variables of the
- * given {@linkplain FiberDescriptor fiber}.
+ * <strong>Primitive 601:</strong> Get the priority of a fiber.
  */
-public class P_027_SetFiberVariable extends Primitive
+public class P_601_GetFiberPriority
+extends Primitive
 {
 	/**
-	 * The sole instance of this primitive class.  Accessed through reflection.
+	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_027_SetFiberVariable().init(
-		3, CanInline, HasSideEffect, CannotFail);
+	public final static Primitive instance =
+		new P_601_GetFiberPriority().init(1, CannotFail, CanInline);
 
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 3;
+		assert args.size() == 1;
 		final AvailObject fiber = args.get(0);
-		final AvailObject key = args.get(1);
-		final AvailObject value = args.get(2);
-		fiber.fiberGlobals(
-			fiber.fiberGlobals().mapAtPuttingCanDestroy(
-				key.makeImmutable(),
-				value.makeImmutable(),
-				true));
-		return interpreter.primitiveSuccess(NilDescriptor.nil());
+		return interpreter.primitiveSuccess(IntegerDescriptor.fromInt(
+			fiber.priority()));
 	}
 
 	@Override
@@ -72,9 +65,11 @@ public class P_027_SetFiberVariable extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				FIBER.o(),
-				ATOM.o(),
-				ANY.o()),
-			TOP.o());
+				Types.FIBER.o()),
+			IntegerRangeTypeDescriptor.create(
+				IntegerDescriptor.zero(),
+				true,
+				IntegerDescriptor.fromInt(255),
+				true));
 	}
 }

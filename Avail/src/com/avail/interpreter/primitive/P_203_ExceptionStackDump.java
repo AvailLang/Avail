@@ -54,7 +54,7 @@ extends Primitive
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
 	public final @NotNull static Primitive instance =
-		new P_203_ExceptionStackDump().init(1, CanFold);
+		new P_203_ExceptionStackDump().init(1, CanInline, CanFold);
 
 	@Override
 	public Result attempt (
@@ -71,7 +71,7 @@ extends Primitive
 		}
 		catch (final MapException e)
 		{
-			assert e.errorCode().equals(E_KEY_NOT_FOUND);
+			assert e.errorValue().equals(E_KEY_NOT_FOUND.numericCode());
 			return interpreter.primitiveFailure(E_INCORRECT_ARGUMENT_TYPE);
 		}
 	}

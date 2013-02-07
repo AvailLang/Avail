@@ -1,0 +1,947 @@
+/*
+ * Synchronization.avail
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+System Module "Synchronization"
+Versions
+	"dev"
+Uses
+	"Assertions",
+	"Atoms",
+	"Bootstrap",
+	"Control Structures",
+	"Definers",
+	"Enumeration Support",
+	"Exceptions",
+	"Functions",
+	"Literals",
+	"Logic",
+	"Math",
+	"Objects",
+	"Tuples",
+	"Types",
+	"Strings",
+	"Variables"
+Names
+	/* Mutexes. */
+	"monitor",
+	"non-reentrant mutex",
+	"reentrant mutex",
+	"_'s⁇owner's name",
+
+	/* Mutex construction. */
+	"a monitor named_",
+	"a monitor",
+	"a non-reentrant mutex",
+	"a non-reentrant mutex named_",
+	"a reentrant mutex",
+	"a reentrant mutex named_",
+
+	/* Conditions. */
+	"Await_",
+	"Signal_",
+	"Signal_if satisfied",
+	"a condition of_is_",
+	"condition",
+	"_is satisfied",
+
+	/* Structured synchronization. */
+	"Lock|lock_for_",
+
+	/* Exceptions. */
+	"condition exception",
+	"cannot-await-condition exception",
+	"cannot-signal-condition exception",
+	"condition-unsatisfied exception",
+	"reentry exception",
+	"synchronization exception",
+	"termination-requested exception",
+	"_'s⁇misused condition",
+	"_'s⁇reentered mutex",
+	"_'s⁇reentering fiber",
+
+	/* Low-level synchronization. */
+	"Atomically update_using_",
+	"Join_,then honor a termination request",
+	"Park current fiber,then honor a termination request",
+	"Raise termination-requested exception if appropriate",
+	"dequeue_from_",
+	"parking queue",
+	"priority enqueue_on_",
+	"synchronization device"
+Body
+
+/**
+ * Atomically update the specified variable to a value derived from its current
+ * value and the given function.
+ *
+ * @method "Atomically update_using_"
+ * @param "var" "variable"
+ * @param "f" "[any]→any"
+ */
+Public method "Atomically update_using_" is
+[
+	var : variable,
+	f : [any]→any
+|
+	Until
+	[
+		basis ::= ↓var;
+		value ::= f(basis);
+		atomically compare var to basis and, if equal, store value
+	];
+] : ⊤;
+
+Semantic restriction "Atomically update_using_" is
+[
+	var : variable's type,
+	f : [any]→any's type
+|
+	If ¬var's read type ⊆ f[1] then
+	[
+		Reject parse, expected:
+			format
+				"variable's read type (“①”) to be a subtype of the \
+				\|function's parameter type (“②”)"
+			with var's read type, f[1]
+	];
+	If ¬f's return type ⊆ var's write type then
+	[
+		Reject parse, expected:
+			format
+				"function's return type (“①”) to be a subtype of the \
+				\|variable's write type (“②”)"
+			with f's return type, var's write type
+	];
+	⊤
+];
+
+/**
+ * The type of a {@type "tuple"} of {@type "fiber"}s.
+ *
+ * @type "parking queue"
+ * @supertype "<fiber…|>"
+ */
+Public method "parking queue" is [<fiber…|>];
+
+/**
+ * Queue the specified {@type "fiber"} on the {@type "parking queue"}, spinning
+ * until it is possible to enqueue the fiber safely. Fibers are ordered first by
+ * {@method "_'⁇s priority" priority} then seniority on the queue.
+ *
+ * @method "priority enqueue_on_"
+ * @param "aFiber" "fiber"
+ *        The {@type "fiber"} to enqueue for possible parking.
+ * @param "queue" "parking queue"
+ *        A {@type "parking queue"}.
+ * @return "boolean"
+ *         {@method "true"} if the queue was empty at the time of enqueuing,
+ *         {@method "false"} otherwise.
+ */
+Public method "priority enqueue_on_" is
+[
+	aFiber : fiber,
+	queue : ↑parking queue
+|
+	lockAcquired : boolean;
+	/* Spin on compare-and-swap until the parking queue can be updated.
+	 * Order the fibers by descending priority, then ascending seniority on the
+	 * parking queue; the latter is accomplished automatically because merge
+	 * sort is stable.
+	 */
+	Until
+	[
+		basis ::= ↓queue;
+		sorted ::= merge sort basis ++ <aFiber>
+			with [a : fiber, b : fiber | a's priority ≥ b's priority];
+		swapped ::= atomically compare queue to basis and,
+			if equal, store sorted;
+		If swapped then [lockAcquired := basis is empty;];
+		swapped
+	];
+	lockAcquired
+] : boolean;
+
+/**
+ * Destructively dequeue the specified {@type "fiber"} from the {@type
+ * "parking queue"}, spinning until it is possible to remove the fiber safely.
+ *
+ * @method "Dequeue_from_"
+ * @param "aFiber" "fiber"
+ *        A fiber.
+ * @param "queue" "↑parking queue"
+ *        A parking queue.
+ * @return "boolean"
+ *         {@method "true"} if the queue was empty after the removal, {@method
+ *         "false"} otherwise.
+ */
+Public method "dequeue_from_" is
+[
+	aFiber : fiber,
+	queue : ↑parking queue
+|
+	lockReleased : boolean;
+	Until
+	[
+		basis ::= ↓queue;
+		sans ::= basis - aFiber;
+		swapped ::= atomically compare queue to basis and,
+			if equal, store sans;
+		If swapped then [lockReleased := sans is empty;];
+		swapped
+	];
+	lockReleased
+] : boolean;
+
+/**
+ * A termination-requested exception indicates that termination has been
+ * requested for the current fiber.
+ *
+ * @type "termination-requested exception"
+ * @type "exception"
+ */
+Public explicit class "termination-requested exception" extends exception;
+
+/**
+ * Raise a {@type "termination-requested exception"} iff {@method
+ * "termination requested" termination has been requested}.
+ *
+ * @method "Raise termination-requested exception if appropriate"
+ * @raises "termination-requested exception"
+ *         If {@method "termination requested" termination has been requested}.
+ */
+Public method "Raise termination-requested exception if appropriate" is
+[
+	If termination requested then
+	[
+		Raise a termination-requested exception
+	];
+] : ⊤;
+
+/**
+ * Park the {@method "current fiber"}. When the fiber awakens, honor an
+ * outstanding {@method "termination requested" termination request}. If
+ * termination has not been requested, then return control to the caller.
+ *
+ * @method "Park current fiber,then honor a termination request"
+ * @raises "termination-requested exception"
+ *         If {@method "termination requested" termination has been requested}.
+ */
+Public method "Park current fiber,then honor a termination request" is
+[
+	Park current fiber;
+	Raise termination-requested exception if appropriate;
+] : ⊤;
+
+/**
+ * Join the {@method "current fiber"} to the specified {@type "fiber"}. If the
+ * join is interrupted by a {@method "termination requested" termination
+ * request}, then honor it. If termination has not been requested, then return
+ * control to the caller.
+ *
+ * @method "Join_,then honor a termination request"
+ * @raises "termination-requested exception"
+ *         If {@method "termination requested" termination has been requested}.
+ */
+Public method "Join_,then honor a termination request" is
+[
+	joinee : fiber
+|
+	Join joinee;
+	Raise termination-requested exception if appropriate;
+];
+
+"name" is a new field atom;
+"owner" is a new field atom;
+"parked fibers" is a new field atom;
+
+/**
+ * A synchronization device controls concurrent access to protected resources.
+ *
+ * @type "synchronization device"
+ * @supertype "object"
+ */
+Public explicit class "synchronization device" extends object;
+
+/**
+ * A non-reentrant mutex is a mutual exclusion device that permits entry, but
+ * not reentry, by only one {@type "fiber"}.
+ *
+ * @type "non-reentrant mutex"
+ * @supertype "object"
+ */
+Public class "non-reentrant mutex" extends synchronization device
+	with fields
+		name : nonempty string
+	with mutable fields
+		owner : any,
+		referable parked fibers : parking queue;
+
+/**
+ * Answer the {@type "non-reentrant mutex" mutex}'s {@type "fiber" owner}'s
+ * name, or "«unnamed»" if unowned.
+ *
+ * @method "_'⁇s owner's name"
+ * @param "mutex" "non-reentrant mutex"
+ * @returns "string"
+ */
+Public method "_'s⁇owner's name" is
+[
+	mutex : non-reentrant mutex
+|
+	cast mutex's owner
+		into [f : fiber | f's name]
+		else ["«unowned»"]
+] : string;
+
+/* Always give preference to the specialized method "_'s⁇owner's name". */
+Grammatical restriction "_'s⁇name" is <{"_'s⁇owner"}>;
+
+Method "“_”" is
+[
+	mutex : non-reentrant mutex
+|
+	format "‘typeDesc’ (‘myName’) [owner=‘owner’; parked=“parked”]" with
+		typeDesc ::=
+			(a|an) ““mutex's type's names” (as list partitioned by " ∩ ")”,
+		myName ::= mutex's name,
+		owner ::=  mutex's owner's name,
+		parked ::= map mutex's parked fibers through [f : fiber | f's name]
+];
+
+/**
+ * Construct and answer a {@type "non-reentrant mutex"}.
+ *
+ * @method "a non-reentrant mutex named_"
+ * @param "myName" "nonempty string"
+ *        The name of the mutex, for improved diagnostics.
+ * @returns "non-reentrant mutex"
+ */
+Public method "a non-reentrant mutex named_" is
+[
+	myName : nonempty string
+|
+	/* The ownership memento 0 is used to indicate that a mutex is unowned.
+	 * It is non-canonical.
+	 */
+	a non-reentrant mutex with name ::= myName, owner := 0, parked fibers := <>
+] : non-reentrant mutex;
+
+/**
+ * Construct and answer a {@type "non-reentrant mutex"}.
+ *
+ * @method "a non-reentrant mutex"
+ * @returns "non-reentrant mutex"
+ */
+Public method "a non-reentrant mutex" is
+[
+	a non-reentrant mutex named "«unnamed»"
+] : non-reentrant mutex;
+
+/**
+ * A synchronization exception is raised when a {@type "synchronization device"}
+ * is misused in some fashion.
+ *
+ * @type "synchronization exception"
+ * @supertype "exception"
+ */
+Public explicit class "synchronization exception" extends exception;
+
+"reentered mutex" is a new field atom;
+"reentering fiber" is a new field atom;
+
+/**
+ * A reentry exception is raised when an attempt is made to reenter a {@type
+ * "non-reentrant mutex"}.
+ *
+ * @type "reentry exception"
+ * @supertype "synchronization exception"
+ */
+Public class "reentry exception" extends synchronization exception
+	with fields
+		public reentered mutex : non-reentrant mutex,
+		public reentering fiber : fiber;
+
+Semantic restriction "Lock|lock_for_" is
+[
+	mutex : synchronization device's type,
+	criticalSection : []→⊤'s type
+|
+	criticalSection's return type
+];
+
+/**
+ * Schedule the next {@type "fiber" waiter} to run, or simply release the
+ * specified {@type "non-reentrant mutex" mutex} if there are no waiters.
+ *
+ * @method "Schedule next parked fiber or release_"
+ * @param "mutex" "non-reentrant mutex"
+ */
+Private method "Schedule next parked fiber or release_" is
+[
+	mutex : non-reentrant mutex
+|
+	queue ::= ↑mutex's parked fibers;
+	/* Clear the ownership memento (for debugging clarity) and discard the
+	 * current fiber from the queue. If no other fibers remain enqueued,
+	 * then the lock is de facto released (the ownership memento is not
+	 * canonical).
+	 */
+	mutex's owner := 0;
+	lockReleased ::= dequeue current fiber from queue;
+	/* If any fibers are queued, then grab the first one (without removing
+	 * it from the queue), establish it as the owner, and unpark it.
+	 */
+	Unless lockReleased then
+	[
+		head ::= ↓queue[1];
+		mutex's owner := head;
+		Unpark head;
+	];
+] : ⊤;
+
+/**
+ * Acquire the {@type "non-reentrant mutex" mutex} or park until the mutex
+ * becomes available.
+ *
+ * @method "Acquire_"
+ * @param "mutex" "non-reentrant mutex"
+ * @raises "termination-requested exception"
+ *         If {@method "termination requested" termination has been requested}.
+ */
+Private method "Acquire_" is
+[
+	mutex : non-reentrant mutex
+|
+	/* Unconditionally add the current fiber to the parking queue. If the queue
+	 * was empty at the time of enqueuing, then the current fiber now holds the
+	 * lock.
+	 */
+	lockAcquired ::= priority enqueue current fiber on ↑mutex's parked fibers;
+	/* If the lock was acquired, then note the current fiber as the owner. Note
+	 * that this is an annotation; it is not canonical.
+	 */
+	If lockAcquired then
+	[
+		mutex's owner := current fiber;
+	]
+	/* Otherwise, park the current fiber. Loop until the mutex's ownership
+	 * memento reflects the current fiber.
+	 */
+	else
+	[
+		Until [mutex's owner = current fiber]
+		do
+		[
+			Park current fiber;
+			If termination requested then
+			[
+				Schedule next parked fiber or release mutex;
+				Raise a termination-requested exception
+			];
+		];
+	];
+] : ⊤;
+
+/**
+ * Acquire the {@linkplain "non-reentrant mutex"}, then execute the specified
+ * function as a critical section. {@type "fiber" Fibers} cannot concurrently
+ * execute the critical section; access is serialized by the mutex, and only one
+ * fiber may own the mutex at a given time.
+ *
+ * @method "Lock|lock_for_"
+ * @param "mutex" "non-reentrant mutex"
+ * @param "criticalSection"
+ *        The critical section.
+ * @raises "reentry exception"
+ *         If the owning fiber reenters the mutex.
+ * @raises "termination-requested exception"
+ *         If {@method "termination requested" termination has been requested}.
+ */
+Public method "Lock|lock_for_" is
+[
+	mutex : non-reentrant mutex,
+	criticalSection : []→⊤
+|
+	If mutex's owner = current fiber then
+	[
+		Raise a reentry exception with
+			reentered mutex ::= mutex,
+			reentering fiber ::= current fiber
+	];
+	Acquire mutex;
+	/* The current fiber now holds the lock, so run the critical section. */
+	Assert: mutex's owner = current fiber;
+	Guard criticalSection
+	ensure [Schedule next parked fiber or release mutex;];
+] : ⊤;
+
+"entry count" is a new field atom;
+
+/**
+ * A reentrant mutex is a mutual exclusion device that permits reentry.
+ *
+ * @type "reentrant mutex"
+ * @supertype "non-reentrant mutex"
+ */
+Public class "reentrant mutex" extends non-reentrant mutex
+	with mutable fields
+		referable entry count : whole number;
+
+Method "“_”" is
+[
+	mutex : reentrant mutex
+|
+	format "‘typeDesc’ (‘myName’) [owner=‘owner’ (x“x”); parked=“parked”]" with
+		typeDesc ::=
+			(a|an) ““mutex's type's names” (as list partitioned by " ∩ ")”,
+		myName ::= mutex's name,
+		owner ::=  mutex's owner's name,
+		x ::= mutex's entry count,
+		parked ::= map mutex's parked fibers through [f : fiber | f's name]
+];
+
+/**
+ * Construct and answer a {@type "reentrant mutex"}.
+ *
+ * @method "a reentrant mutex named_"
+ * @param "myName" "nonempty string"
+ *        The name of the mutex, for improved diagnostics.
+ * @returns "reentrant mutex"
+ */
+Public method "a reentrant mutex named_" is
+[
+	myName : nonempty string
+|
+	/* The ownership memento 0 is used to indicate that a mutex is unowned.
+	 * It is non-canonical.
+	 */
+	a reentrant mutex with
+		name ::= myName,
+		owner := 0,
+		entry count := 0,
+		parked fibers := <>
+] : reentrant mutex;
+
+/**
+ * Construct and answer a {@type "reentrant mutex"}.
+ *
+ * @method "a reentrant mutex"
+ * @returns "reentrant mutex"
+ */
+Public method "a reentrant mutex" is
+[
+	a reentrant mutex named "«unnamed»"
+] : reentrant mutex;
+
+/**
+ * Acquire the {@linkplain "reentrant mutex"}, then execute the specified
+ * function as a critical section. {@type "fiber" Fibers} cannot concurrently
+ * execute the critical section; access is serialized by the mutex, and only one
+ * fiber may own the mutex at a given time. The owner may reacquire the lock
+ * without incurring deadlock.
+ *
+ * @method "Lock|lock_for_"
+ * @param "mutex" "reentrant mutex"
+ * @param "criticalSection"
+ *        The critical section.
+ * @raises "termination-requested exception"
+ *         If {@method "termination requested" termination has been requested}.
+ */
+Public method "Lock|lock_for_" is
+[
+	mutex : reentrant mutex,
+	criticalSection : []→⊤
+|
+	queue ::= ↑mutex's parked fibers;
+	/* If the current fiber already owns the mutex, then avoid putting it back
+	 * onto the parking queue.
+	 */
+	If mutex's owner ≠ current fiber then [Acquire mutex;];
+	/* The current fiber now holds the lock, so run the critical section. */
+	Assert: mutex's owner = current fiber;
+	↑mutex's entry count++;
+	Guard criticalSection
+	ensure
+	[
+		/* Decrement the entry count. If it goes to zero, then prepare for
+		 * another fiber to take over.
+		 */
+		↑mutex's entry count--;
+		If mutex's entry count = 0 then
+		[
+			Schedule next parked fiber or release mutex;
+		];
+	];
+] : ⊤;
+
+"originating monitor" is a new field atom;
+"condition predicate" is a new field atom;
+
+/**
+ * A condition represents a situation that may be signaled or awaited from
+ * within a {@type "monitor"}. A condition maintains a {@type "parking queue"}
+ * of {@type "fiber"}s that are waiting for the condition to be signaled.
+ *
+ * @type "condition"
+ * @supertype "object"
+ */
+Public class "condition" extends object
+	with fields
+		originating monitor : reentrant mutex,
+		condition predicate : []→boolean
+	with mutable field
+		referable parked fibers : parking queue;
+
+"signaler fibers" is a new field atom;
+
+/**
+ * A monitor is a {@type "reentrant mutex"} that supports {@type "condition"}s.
+ *
+ * @type "monitor"
+ * @supertype "reentrant mutex"
+ */
+Public class "monitor" extends reentrant mutex
+	with mutable field
+		referable signaler fibers : parking queue;
+
+/* A condition's originating monitor is always a monitor, not merely a reentrant
+ * mutex, but we couldn't mention the monitor previously because of definition
+ * order.
+ */
+Semantic restriction "_'s⁇originating monitor" is
+[
+	aCondition : condition's type
+|
+	monitor
+];
+
+/**
+ * Construct and answer a {@type "monitor"}.
+ *
+ * @method "a monitor named_"
+ * @param "myName" "nonempty string"
+ *        The name of the monitor, for improved diagnostics.
+ * @returns "monitor"
+ */
+Public method "a monitor named_" is
+[
+	myName : nonempty string
+|
+	/* The ownership memento 0 is used to indicate that a monitor is unowned.
+	 * It is non-canonical.
+	 */
+	a monitor with
+		name ::= myName,
+		owner := 0,
+		entry count := 0,
+		parked fibers := <>,
+		signaler fibers := <>
+] : monitor;
+
+/**
+ * Construct and answer a {@type "monitor"}.
+ *
+ * @method "a monitor"
+ * @returns "monitor"
+ */
+Public method "a monitor" is
+[
+	a monitor named "«unnamed»"
+] : monitor;
+
+/**
+ * Schedule the next {@type "fiber" waiter} to run, giving preference to fibers
+ * that previously signaled {@type "condition"}s. If no fibers are waiting, then
+ * simply release the specified {@type "monitor" mutex}.
+ *
+ * @method "Schedule next parked fiber or release_"
+ * @param "mutex" "monitor"
+ */
+Private method "Schedule next parked fiber or release_" is
+[
+	mutex : monitor
+|
+	/* Clear the ownership memento (for debugging clarity) and discard the
+	 * current fiber from the queue. If no other fibers remain enqueued,
+	 * then the monitor is de facto released (the ownership memento is not
+	 * canonical).
+	 */
+	mutex's owner := 0;
+	signalers ::= ↑mutex's signaler fibers;
+	/* If there are any signaler fibers waiting, then select remove the first
+	 * one from the queue and give it ownership of the monitor.
+	 */
+	If ¬↓signalers is empty then
+	[
+		head ::= ↓signalers[1];
+		↓signalers ?= ↓signalers[2..];
+		Ignore: priority enqueue head on ↑mutex's parked fibers;
+		mutex's owner := head;
+		Unpark head;
+	]
+	else
+	[
+		queue ::= ↑mutex's parked fibers;
+		lockReleased ::= dequeue current fiber from queue;
+		/* If any fibers are queued, then grab the first one (without removing
+		 * it from the queue), establish it as the owner, and unpark it.
+		 */
+		Unless lockReleased then
+		[
+			head ::= ↓queue[1];
+			mutex's owner := head;
+			Unpark head;
+		];
+	];
+];
+
+/**
+ * Construct and answer a {@type "condition"}.
+ *
+ * @method "a condition of_is_"
+ * @param "aMonitor" "monitor"
+ *        The originating monitor.
+ * @param "predicate" "[]→boolean"
+ *        The predicate that should be asserted before signaling and after
+ *        waking.
+ * @returns "condition"
+ */
+Public method "a condition of_is_" is
+[
+	aMonitor : monitor,
+	predicate : []→boolean
+|
+	a condition with
+		originating monitor ::= aMonitor,
+		condition predicate ::= predicate,
+		parked fibers := <>
+];
+
+/**
+ * Is the {@type "condition"} currently satisfied?
+ *
+ * @method "_is satisfied"
+ * @param "aCondition" "condition"
+ * @returns "boolean"
+ *          {@method "true"} if the condition is satisfied, {@method "false"}
+ *          otherwise.
+ */
+Public method "_is satisfied" is
+[
+	aCondition : condition
+|
+	aCondition's condition predicate()
+] : boolean;
+
+"misused condition" is a new field atom;
+
+/**
+ * A condition exception indicates that a condition has been misused in some
+ * fashion.
+ *
+ * @type "condition exception"
+ * @supertype "synchronization exception"
+ */
+Public class "condition exception" extends synchronization exception
+	with field
+		public misused condition : condition;
+
+/**
+ * A cannot-await-condition exception indicates that a condition was awaited
+ * outside of a monitor.
+ *
+ * @type "cannot-await-condition exception"
+ * @supertype "condition exception"
+ */
+Public explicit class "cannot-await-condition exception"
+extends condition exception;
+
+/**
+ * Wait until the specified {@type "condition"} is {@method "_is satisfied"
+ * satisfied}. If the condition is satisfied already, then simply return control
+ * to the caller. Otherwise, park the current fiber.
+ *
+ * @method "Await_"
+ * @param "aCondition" "condition"
+ * @raises "cannot-await-condition exception"
+ *         If the current fiber does not own the condition's {@type "monitor"}.
+ * @raises "termination-requested exception"
+ *         If {@method "termination requested" termination has been requested}.
+ */
+Public method "Await_" is
+[
+	aCondition : condition
+|
+	/* If the current fiber is not the owner of the condition's originating
+	 * monitor, then raise an appropriate exception.
+	 */
+	If aCondition's originating monitor's owner ≠ current fiber then
+	[
+		Raise a cannot-await-condition exception with
+			misused condition ::= aCondition
+	];
+	/* If the predicate is true, then do nothing; simply return control to the
+	 * caller. Otherwise, put the current fiber onto the condition's parking
+	 * queue, schedule another fiber (or release the lock), and park.
+	 */
+	If ¬aCondition is satisfied then
+	[
+		mutex ::= aCondition's originating monitor;
+		/* Remember the ownership depth of the current fiber, so that it can be
+		 * restored later. Then clear the entry count (so that a fiber entering
+		 * just after a monitor release doesn't begin with an entry count
+		 * greater than one).
+		 */
+		savedEntryCount ::= mutex's entry count;
+		mutex's entry count := 0;
+		Ignore: priority enqueue current fiber on ↑aCondition's parked fibers;
+		Schedule next parked fiber or release mutex;
+		Until [mutex's owner = current fiber]
+		do [Park current fiber, then honor a termination request;];
+		/* Restore the entry count. */
+		mutex's entry count := savedEntryCount;
+		/* The current fiber owns the lock again, and has been signaled that the
+		 * condition is true. Assert this.
+		 */
+		Assert: aCondition is satisfied;
+	];
+] : ⊤;
+
+/**
+ * A cannot-signal-condition exception indicates that a condition was signaled
+ * outside of a {@type "monitor"}.
+ *
+ * @type "cannot-signal-condition exception"
+ * @supertype "condition exception"
+ */
+Public explicit class "cannot-signal-condition exception"
+extends condition exception;
+
+/**
+ * A condition-unsatisfied exception indicates that a condition was signaled
+ * despite being unsatisfied.
+ *
+ * @type "condition-unsatisfied exception"
+ * @supertype "condition exception"
+ */
+Public explicit class "condition-unsatisfied exception"
+extends condition exception;
+
+/**
+ * Signal that the specified {@type "condition"} is {@method "_is satisfied"
+ * satisfied}. If any fiber is {@method "Await_" awaiting} this signal, then
+ * schedule it to run and park the current fiber. A fiber blocked by this method
+ * is given preference over one blocked by {@method "Lock|lock_for_"} during a
+ * {@type "monitor"} transfer. If no fibers are awaiting this signal, then do
+ * not block the current fiber; instead return control to the caller.
+ *
+ * @method "Signal_"
+ * @param "aCondition" "condition"
+ * @raises "cannot-signal-condition exception"
+ *         If the current fiber is not the owner of the condition's monitor.
+ * @raises "condition-unsatisfied exception"
+ *         If the condition is not actually satisfied.
+ * @raises "termination-requested exception"
+ *         If {@method "termination requested" termination has been requested}.
+ */
+Public method "Signal_" is
+[
+	aCondition : condition
+|
+	/* If the current fiber is not the owner of the condition's originating
+	 * monitor, then raise an appropriate exception.
+	 */
+	If aCondition's originating monitor's owner ≠ current fiber then
+	[
+		Raise a cannot-signal-condition exception with
+			misused condition ::= aCondition
+	];
+	/* If the condition is not satisfied, then raise a condition-unsatisfied
+	 * exception.
+	 */
+	If ¬aCondition is satisfied then
+	[
+		Raise a condition-unsatisfied exception with
+			misused condition ::= aCondition
+	];
+	/* If any fibers are parked on this condition's parking queue, then remove
+	 * the first one and give it ownership of the monitor.
+	 */
+	queue ::= ↑aCondition's parked fibers;
+	If ¬↓queue is empty then
+	[
+		mutex ::= aCondition's originating monitor;
+		/* Remember the ownership depth of the current fiber, so that it can be
+		 * restored later.
+		 */
+		savedEntryCount ::= mutex's entry count;
+		/* Transfer the current fiber from the monitor's main queue and onto
+		 * the monitor's queue of signaler fibers. This will give it preference
+		 * during the next scheduling operation.
+		 */
+		Ignore: priority enqueue current fiber on ↑mutex's signaler fibers;
+		head ::= ↓queue[1];
+		↓queue ?= ↓queue[2..];
+		mutex's owner := head;
+		Unpark head;
+		/* Park the current fiber. */
+		Until [mutex's owner = current fiber]
+		do [Park current fiber, then honor a termination request;];
+		/* Restore the entry count. */
+		mutex's entry count := savedEntryCount;
+	];
+] : ⊤;
+
+/**
+ * Signal iff the specified {@type "condition"} is {@method "_is satisfied"
+ * satisfied}. If any fiber is {@method "Await_" awaiting} this signal, then
+ * schedule it to run and park the current fiber. A fiber blocked by this method
+ * is given preference over one blocked by {@method "Lock|lock_for_"} during a
+ * {@type "monitor"} transfer. If no fibers are awaiting this signal, then do
+ * not block the current fiber; instead return control to the caller.
+ *
+ * @method "Signal_if satisfied"
+ * @param "aCondition" "condition"
+ * @raises "cannot-signal-condition exception"
+ *         If the current fiber is not the owner of the condition's monitor.
+ * @raises "condition-unsatisfied exception"
+ *         If the condition is not actually satisfied.
+ */
+Public method "Signal_if satisfied" is
+[
+	aCondition : condition
+|
+	If aCondition is satisfied then [Signal aCondition;];
+] : ⊤;
+
+Grammatical restriction "a|an_«with«_«:»?:=_‡,»»" is
+	<{"condition", "monitor", "non-reentrant mutex", "reentrant mutex"}, ∅, ∅>;

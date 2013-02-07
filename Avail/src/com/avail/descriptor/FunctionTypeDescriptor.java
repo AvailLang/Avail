@@ -93,8 +93,8 @@ extends TypeDescriptor
 		ARGS_TUPLE_TYPE
 	}
 
-	@Override boolean allowsImmutableToMutableReferenceInField (
-		final AbstractSlotsEnum e)
+	@Override
+	boolean allowsImmutableToMutableReferenceInField (final AbstractSlotsEnum e)
 	{
 		return e == HASH_OR_ZERO;
 	}

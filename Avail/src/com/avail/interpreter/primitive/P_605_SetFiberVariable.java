@@ -1,5 +1,5 @@
 /**
- * P_076_RemoveFiberVariable.java
+ * P_605_SetFiberVariable.java
  * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -29,48 +29,42 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-
 package com.avail.interpreter.primitive;
 
 import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
-import com.avail.annotations.NotNull;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 
 /**
- * <strong>Primitive 76</strong>: Disassociate the given {@linkplain
- * AtomDescriptor name} (key) from the variables of the given {@linkplain
- * FiberDescriptor fiber}.
- *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * <strong>Primitive 605:</strong> Associate the given value with the given
+ * {@linkplain AtomDescriptor name} (key) in the variables of the
+ * given {@linkplain FiberDescriptor fiber}.
  */
-public final class P_076_RemoveFiberVariable
+public class P_605_SetFiberVariable
 extends Primitive
 {
 	/**
-	 * The sole instance of this primitive class. Accessed through reflection.
+	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	public final @NotNull static Primitive instance =
-		new P_076_RemoveFiberVariable().init(2, CanInline, HasSideEffect);
+	public final static Primitive instance = new P_605_SetFiberVariable().init(
+		3, CanInline, HasSideEffect, CannotFail);
 
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 2;
+		assert args.size() == 3;
 		final AvailObject fiber = args.get(0);
 		final AvailObject key = args.get(1);
-		final AvailObject globals = fiber.fiberGlobals();
-		if (!globals.hasKey(key))
-		{
-			return interpreter.primitiveFailure(
-				E_NO_SUCH_FIBER_VARIABLE);
-		}
-		fiber.fiberGlobals(globals.mapWithoutKeyCanDestroy(key, true));
+		final AvailObject value = args.get(2);
+		fiber.fiberGlobals(
+			fiber.fiberGlobals().mapAtPuttingCanDestroy(
+				key.makeImmutable(),
+				value.makeImmutable(),
+				true));
 		return interpreter.primitiveSuccess(NilDescriptor.nil());
 	}
 
@@ -80,7 +74,8 @@ extends Primitive
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
 				FIBER.o(),
-				ATOM.o()),
+				ATOM.o(),
+				ANY.o()),
 			TOP.o());
 	}
 }

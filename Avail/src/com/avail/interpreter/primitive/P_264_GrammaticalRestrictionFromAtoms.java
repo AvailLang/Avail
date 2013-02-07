@@ -33,6 +33,7 @@
 package com.avail.interpreter.primitive;
 
 import static com.avail.descriptor.TypeDescriptor.Types.*;
+import static com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
 import com.avail.annotations.NotNull;
@@ -68,20 +69,25 @@ extends Primitive
 		assert args.size() == 2;
 		final AvailObject atomSet = args.get(0);
 		final AvailObject exclusionsTuple = args.get(1);
-		try
+		final AvailLoader loader = FiberDescriptor.current().availLoader();
+		if (loader == null)
 		{
-			final AvailObject atomSetAsTuple = atomSet.asTuple();
-			for (int i = atomSetAsTuple.tupleSize(); i >= 1; i--)
+			return interpreter.primitiveFailure(E_LOADING_IS_OVER);
+		}
+		final AvailObject atomSetAsTuple = atomSet.asTuple();
+		for (int i = atomSetAsTuple.tupleSize(); i >= 1; i--)
+		{
+			final AvailObject atom = atomSetAsTuple.tupleAt(i);
+			try
 			{
-				final AvailObject atom = atomSetAsTuple.tupleAt(i);
-				interpreter.atDisallowArgumentMessages(
+				loader.addGrammaticalRestrictions(
 					atom,
 					exclusionsTuple);
 			}
-		}
-		catch (final SignatureException e)
-		{
-			return interpreter.primitiveFailure(e);
+			catch (final SignatureException e)
+			{
+				return interpreter.primitiveFailure(e);
+			}
 		}
 		return interpreter.primitiveSuccess(NilDescriptor.nil());
 	}

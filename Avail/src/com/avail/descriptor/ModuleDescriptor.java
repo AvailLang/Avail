@@ -37,8 +37,9 @@ import static com.avail.descriptor.ModuleDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.AvailObject.error;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.List;
+import com.avail.AvailRuntime;
 import com.avail.annotations.*;
-import com.avail.interpreter.levelTwo.L2Interpreter;
+import com.avail.interpreter.AvailLoader;
 
 /**
  * A {@linkplain ModuleDescriptor module} is the mechanism by which Avail code
@@ -713,9 +714,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	void o_RemoveFrom (
-		final AvailObject object,
-		final L2Interpreter anInterpreter)
+	void o_RemoveFrom (final AvailObject object, final AvailLoader loader)
 	{
 		synchronized (object)
 		{
@@ -725,9 +724,7 @@ extends Descriptor
 				final AvailObject methodName = entry.key;
 				for (final AvailObject definition : entry.value)
 				{
-					anInterpreter.removeDefinition(
-						methodName,
-						definition);
+					loader.removeDefinition(methodName, definition);
 				}
 			}
 			final AvailObject typeRestrictions = object.slot(
@@ -738,7 +735,7 @@ extends Descriptor
 				final AvailObject methodName = entry.key;
 				for (final AvailObject restriction : entry.value)
 				{
-					anInterpreter.runtime().removeTypeRestriction(
+					AvailRuntime.current().removeTypeRestriction(
 						methodName,
 						restriction);
 				}
@@ -749,7 +746,7 @@ extends Descriptor
 				final AvailObject methodName = entry.key;
 				for (final AvailObject seal : entry.value)
 				{
-					anInterpreter.runtime().removeSeal(
+					AvailRuntime.current().removeSeal(
 						methodName,
 						seal);
 				}
@@ -758,7 +755,7 @@ extends Descriptor
 	}
 
 	/**
-	 * The interpreter is in the fiber of resolving this forward declaration.
+	 * The interpreter is in the process of resolving this forward declaration.
 	 * Record the fact that this definition no longer needs to be cleaned up
 	 * if the rest of the module compilation fails.
 	 *
@@ -918,5 +915,25 @@ extends Descriptor
 	ModuleDescriptor shared ()
 	{
 		return shared;
+	}
+
+	/**
+	 * Answer the {@linkplain ModuleDescriptor module} currently undergoing
+	 * {@linkplain AvailLoader loading} on the {@linkplain
+	 * FiberDescriptor#current() current} {@linkplain FiberDescriptor fiber}.
+	 *
+	 * @return The module currently undergoing loading, or {@linkplain
+	 *         NilDescriptor#nil() nil} if the current fiber is not a loader
+	 *         fiber.
+	 */
+	public static AvailObject current ()
+	{
+		final AvailObject fiber = FiberDescriptor.current();
+		final AvailLoader loader = fiber.availLoader();
+		if (loader == null)
+		{
+			return NilDescriptor.nil();
+		}
+		return loader.module();
 	}
 }

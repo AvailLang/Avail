@@ -41,6 +41,7 @@ import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelOne.*;
 import com.avail.serialization.SerializerOperation;
+import com.avail.utility.Continuation0;
 
 /**
  * A {@linkplain CompiledCodeDescriptor compiled code} object is created
@@ -249,9 +250,20 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	int o_CountdownToReoptimize (final AvailObject object)
+	void o_DecrementCountdownToReoptimize (
+		final AvailObject object,
+		final Continuation0 continuation)
 	{
-		return object.mutableSlot(COUNTDOWN_TO_REOPTIMIZE);
+		synchronized (object)
+		{
+			// Do the decrement atomically (because of the monitor).
+			final int countdown = object.slot(COUNTDOWN_TO_REOPTIMIZE) - 1;
+			object.setSlot(COUNTDOWN_TO_REOPTIMIZE, countdown);
+			if (countdown == 0)
+			{
+				continuation.value();
+			}
+		}
 	}
 
 	@Override @AvailMethod

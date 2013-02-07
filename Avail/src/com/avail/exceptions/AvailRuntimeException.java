@@ -41,34 +41,23 @@ import com.avail.descriptor.AvailObject;
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public abstract class AvailRuntimeException
+public class AvailRuntimeException
 extends RuntimeException
 {
 	/** The serial version identifier. */
 	private static final long serialVersionUID = -8826389456392434347L;
 
-	/** The {@linkplain AvailErrorCode error code}. */
-	private final AvailErrorCode errorCode;
+	/** The {@linkplain AvailObject error value}. */
+	private final AvailObject errorValue;
 
 	/**
-	 * Answer the {@linkplain AvailErrorCode error code}.
+	 * Answer the {@linkplain AvailObject error value}.
 	 *
-	 * @return The {@linkplain AvailErrorCode error code}.
+	 * @return The error value.
 	 */
-	public AvailErrorCode errorCode ()
+	public AvailObject errorValue ()
 	{
-		return errorCode;
-	}
-
-	/**
-	 * Answer the numeric error code as an {@linkplain AvailObject Avail
-	 * object}.
-	 *
-	 * @return The {@linkplain AvailObject numeric error code}.
-	 */
-	public AvailObject numericCode ()
-	{
-		return errorCode.numericCode();
+		return errorValue;
 	}
 
 	/**
@@ -78,26 +67,56 @@ extends RuntimeException
 	 * @param errorCode
 	 *        The {@linkplain AvailErrorCode error code}.
 	 */
-	protected AvailRuntimeException (final AvailErrorCode errorCode)
+	public AvailRuntimeException (final AvailErrorCode errorCode)
 	{
-		this.errorCode = errorCode;
+		this.errorValue = errorCode.numericCode();
 	}
 
 	/**
 	 * Construct a new {@link AvailRuntimeException} with the specified
-	 * {@linkplain Throwable cause}.
+	 * {@linkplain AvailErrorCode error code} and {@linkplain Throwable cause}.
 	 *
 	 * @param errorCode
 	 *        The {@linkplain AvailErrorCode error code}.
 	 * @param cause
 	 *        The proximal {@linkplain Throwable cause} of the {@linkplain
-	 *        AvailRuntimeException exception}.
+	 *        AvailException exception}.
 	 */
-	protected AvailRuntimeException (
+	public AvailRuntimeException (
 		final AvailErrorCode errorCode,
 		final Throwable cause)
 	{
 		super(cause);
-		this.errorCode = errorCode;
+		this.errorValue = errorCode.numericCode();
+	}
+
+	/**
+	 * Construct a new {@link AvailRuntimeException} with the specified
+	 * arbitrary {@linkplain AvailObject error value}.
+	 *
+	 * @param errorValue The error value.
+	 */
+	public AvailRuntimeException (final AvailObject errorValue)
+	{
+		this.errorValue = errorValue;
+	}
+
+	/**
+	 * Construct a new {@link AvailRuntimeException} with the specified
+	 * arbitrary {@linkplain AvailObject error value} and {@linkplain Throwable
+	 * cause}.
+	 *
+	 * @param errorValue
+	 *        The error value.
+	 * @param cause
+	 *        The proximal {@linkplain Throwable cause} of the {@linkplain
+	 *        AvailException exception}.
+	 */
+	public AvailRuntimeException (
+		final AvailObject errorValue,
+		final Throwable cause)
+	{
+		super(cause);
+		this.errorValue = errorValue;
 	}
 }

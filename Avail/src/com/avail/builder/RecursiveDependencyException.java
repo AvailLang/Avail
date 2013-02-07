@@ -96,16 +96,16 @@ extends Exception
 	 * Construct a new {@link RecursiveDependencyException}.
 	 *
 	 * @param moduleNamesCycle
-	 *            The sequence of modules in which a circular dependency was
-	 *            detected.
+	 *        The sequence of modules in which a circular dependency was
+	 *        detected.
 	 */
 	RecursiveDependencyException (
-		final List<ResolvedModuleName> moduleNamesCycle)
+		final LinkedHashSet<ResolvedModuleName> moduleNamesCycle)
 	{
 		super(
 			String.format(
 				"module \""
-				+ moduleNamesCycle.get(0).qualifiedName()
+				+ moduleNamesCycle.iterator().next().qualifiedName()
 				+ "\" recursively depends upon itself: %s",
 				moduleNamesCycle));
 		for (final ResolvedModuleName mod : moduleNamesCycle)

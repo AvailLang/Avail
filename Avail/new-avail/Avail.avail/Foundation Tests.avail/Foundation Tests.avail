@@ -36,6 +36,7 @@ Versions
 Extends
 	"Backtracking Tests" = ("backtracking test suite"),
 	"Common" = ("Foundation|foundation test suite"),
+	"Concurrency Tests" = ("concurrency test suite"),
 	"Exception Tests" = ("exception test suite"),
 	"Function Tests" = ("function test suite"),
 	"Math Tests" = ("math test suite")

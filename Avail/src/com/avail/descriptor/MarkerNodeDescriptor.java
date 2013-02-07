@@ -159,7 +159,7 @@ extends ParseNodeDescriptor
 	{
 		final AvailObject instance = mutable.create();
 		instance.setSlot(MARKER_VALUE, markerValue);
-		instance.makeImmutable();
+		instance.makeShared();
 		return instance;
 	}
 

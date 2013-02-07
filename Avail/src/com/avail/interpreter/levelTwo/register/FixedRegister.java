@@ -33,8 +33,7 @@
 package com.avail.interpreter.levelTwo.register;
 
 import com.avail.descriptor.*;
-import com.avail.interpreter.Primitive;
-import com.avail.interpreter.levelTwo.L2Interpreter;
+import com.avail.interpreter.*;
 
 /**
  * A collection of representatives of {@link L2ObjectRegister}s, occupying
@@ -44,14 +43,13 @@ public enum FixedRegister
 {
 	/**
 	 * The enumeration value representing the fixed register reserved for
-	 * holding Avail's {@link NilDescriptor#nil() null value}.
-	 * Read only.
+	 * holding Avail's {@link NilDescriptor#nil() nil value}. Read only.
 	 */
 	NULL,
 
 	/**
 	 * The enumeration value representing the fixed register reserved for
-	 * holding the {@link L2Interpreter}'s calling {@linkplain
+	 * holding the {@link Interpreter}'s calling {@linkplain
 	 * ContinuationDescriptor continuation}.
 	 */
 	CALLER,

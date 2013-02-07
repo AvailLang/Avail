@@ -45,7 +45,6 @@ import com.avail.interpreter.*;
 import com.avail.interpreter.levelOne.*;
 import com.avail.interpreter.primitive.*;
 import com.avail.serialization.SerializerOperation;
-import com.avail.utility.*;
 
 /**
  * A method maintains all definitions that have the same name.  At
@@ -921,7 +920,7 @@ extends Descriptor
 	 * invalidated.
 	 */
 	@Override @AvailMethod
-	void o_RemoveImplementation (
+	void o_RemoveDefinition (
 		final AvailObject object,
 		final AvailObject definition)
 	{
@@ -962,186 +961,6 @@ extends Descriptor
 		catch (final SignatureException e)
 		{
 			throw new RuntimeException(e);
-		}
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>
-	 * Check the argument types for validity and return the result type of the
-	 * message send. Use not only the applicable {@linkplain
-	 * MethodDefinitionDescriptor method signatures}, but also any type
-	 * restriction functions. The type restriction functions may choose to
-	 * {@linkplain P_352_RejectParsing}, indicating that the argument types are
-	 * mutually incompatible.
-	 * </p>
-	 */
-	@Override @AvailMethod
-	AvailObject o_ValidateArgumentTypesInterpreterIfFail (
-		final AvailObject object,
-		final List<AvailObject> argTypes,
-		final Interpreter anAvailInterpreter,
-		final Continuation1<Generator<String>> failBlock)
-	{
-		synchronized (object)
-		{
-			// Filter the definitions down to those that are locally most
-			// specific.  Fail if more than one survives.
-			final AvailObject definitionsTuple = object.slot(DEFINITIONS_TUPLE);
-			if (definitionsTuple.tupleSize() > 0
-				&& !definitionsTuple.tupleAt(1).isMacroDefinition())
-			{
-				// This consists of method definitions.
-				for (
-					int index = 1, end = argTypes.size();
-					index <= end;
-					index++)
-				{
-					final int finalIndex = index;
-					final AvailObject finalType = argTypes.get(finalIndex - 1);
-					if (finalType.equals(BottomTypeDescriptor.bottom())
-						|| finalType.equals(TOP.o()))
-					{
-						failBlock.value(new Generator<String> ()
-						{
-							@Override
-							public String value()
-							{
-								return "argument #"
-									+ Integer.toString(finalIndex)
-									+ " of message \""
-									+ object.slot(NAME).name().asNativeString()
-									+ "\" to have a type other than "
-									+ argTypes.get(finalIndex - 1);
-							}
-						});
-						return NilDescriptor.nil();
-					}
-				}
-			}
-			final List<AvailObject> satisfyingTypes =
-				object.filterByTypes(argTypes);
-			if (satisfyingTypes.size() == 0)
-			{
-				failBlock.value(new Generator<String> ()
-				{
-					@Override
-					public String value()
-					{
-						final List<AvailObject> functionTypes =
-							new ArrayList<AvailObject>(2);
-						for (final AvailObject imp : definitionsTuple)
-						{
-							functionTypes.add(imp.bodySignature());
-						}
-						final Formatter builder = new Formatter();
-						final List<Integer> allFailedIndices =
-							new ArrayList<Integer>(3);
-						each_arg:
-						for (int index = argTypes.size(); index >= 1; index--)
-						{
-							for (final AvailObject sig : functionTypes)
-							{
-								if (argTypes.get(index - 1).isSubtypeOf(
-									sig.argsTupleType().typeAtIndex(index)))
-								{
-									continue each_arg;
-								}
-							}
-							allFailedIndices.add(0, index);
-						}
-						builder.format(
-							"arguments at indices %s of message %s to match a "
-							+ "method definition.%n",
-							allFailedIndices,
-							object.slot(NAME).name().asNativeString());
-						builder.format(
-							"\tI got:%n\t\t%s%n",
-							argTypes);
-						builder.format(
-							"\tI expected%s:",
-							functionTypes.size() > 1 ? " one of" : "");
-						for (final AvailObject sig : functionTypes)
-						{
-							builder.format("%n\t\t%s", sig);
-						}
-						final String builderString = builder.toString();
-						builder.close();
-						return builderString;
-					}
-				});
-				return NilDescriptor.nil();
-			}
-			AvailObject intersection =
-				satisfyingTypes.get(0).bodySignature().returnType();
-			for (int i = satisfyingTypes.size() - 1; i >= 1; i--)
-			{
-				intersection = intersection.typeIntersection(
-					satisfyingTypes.get(i).bodySignature().returnType());
-			}
-			final AvailObject restrictions =
-				object.slot(TYPE_RESTRICTIONS_TUPLE);
-			final Mutable<Boolean> anyFailures = new Mutable<Boolean>(false);
-			for (int i = restrictions.tupleSize(); i >= 1; i--)
-			{
-				final AvailObject restriction = restrictions.tupleAt(i);
-				if (restriction.kind().acceptsListOfArgValues(argTypes))
-				{
-					try
-					{
-						final AvailObject restrictionType =
-							anAvailInterpreter.runFunctionArguments(
-								restriction,
-								argTypes);
-						intersection = intersection.typeIntersection(
-							restrictionType);
-					}
-					catch (final AvailRejectedParseException e)
-					{
-						final AvailObject problem = e.rejectionString();
-						failBlock.value(
-							new Generator<String>()
-							{
-								@Override
-								public String value ()
-								{
-									return
-										problem.asNativeString()
-										+ " (while parsing send of "
-										+ object.slot(NAME).name()
-											.asNativeString()
-										+ ")";
-								}
-							});
-						anyFailures.value = true;
-					}
-					catch (final Exception e)
-					{
-						failBlock.value(
-							new Generator<String>()
-							{
-								@Override
-								public String value ()
-								{
-									return
-										"semantic restriction not to raise an "
-										+ "unhandled exception (while parsing send "
-										+ "of "
-										+ object.slot(NAME).name()
-											.asNativeString()
-										+ "):\n\t"
-										+ e.toString();
-								}
-							});
-					}
-				}
-			}
-			if (anyFailures.value)
-			{
-				return NilDescriptor.nil();
-			}
-			return intersection;
 		}
 	}
 

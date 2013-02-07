@@ -38,8 +38,7 @@ import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 
 /**
- * <strong>Primitive 6:</strong> Compare {@linkplain
- * ExtendedIntegerDescriptor extended integers} {@code a <= b}. Answer
+ * <strong>Primitive 6:</strong> Compare two extended integers and answer
  * a {@linkplain EnumerationTypeDescriptor#booleanObject() boolean}.
  */
 public class P_006_LessOrEqual extends Primitive

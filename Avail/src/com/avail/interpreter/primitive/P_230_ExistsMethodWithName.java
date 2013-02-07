@@ -35,6 +35,7 @@ package com.avail.interpreter.primitive;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
+import com.avail.AvailRuntime;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 
@@ -60,8 +61,7 @@ extends Primitive
 	{
 		assert args.size() == 1;
 		final AvailObject trueName = args.get(0);
-		final AvailObject method =
-			interpreter.runtime().methodsAt(trueName);
+		final AvailObject method = AvailRuntime.current().methodsAt(trueName);
 		return interpreter.primitiveSuccess(AtomDescriptor.objectFromBoolean(
 			!method.equalsNil()));
 	}

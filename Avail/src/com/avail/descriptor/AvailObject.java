@@ -35,12 +35,14 @@ package com.avail.descriptor;
 import java.io.*;
 import java.math.BigInteger;
 import java.util.*;
-import com.avail.AvailRuntime;
+import com.avail.*;
 import com.avail.annotations.*;
 import com.avail.compiler.*;
 import com.avail.descriptor.AbstractNumberDescriptor.Order;
 import com.avail.descriptor.AbstractNumberDescriptor.Sign;
 import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
+import com.avail.descriptor.FiberDescriptor.InterruptRequestFlag;
+import com.avail.descriptor.FiberDescriptor.SynchronizationFlag;
 import com.avail.descriptor.InfinityDescriptor.IntegerSlots;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.descriptor.FiberDescriptor.ExecutionState;
@@ -49,7 +51,6 @@ import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.exceptions.*;
 import com.avail.exceptions.ArithmeticException;
 import com.avail.interpreter.*;
-import com.avail.interpreter.levelTwo.L2Interpreter;
 import com.avail.serialization.*;
 import com.avail.utility.*;
 import com.avail.visitor.*;
@@ -2255,18 +2256,10 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public int interruptRequestFlags ()
-	{
-		return descriptor.o_InterruptRequestFlags(this);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
 	public void setInterruptRequestFlag (
-		final BitField value)
+		final InterruptRequestFlag flag)
 	{
-		descriptor.o_SetInterruptRequestFlag(this, value);
+		descriptor.o_SetInterruptRequestFlag(this, flag);
 	}
 
 	/**
@@ -2280,9 +2273,10 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public int countdownToReoptimize ()
+	public void decrementCountdownToReoptimize (
+		final Continuation0 continuation)
 	{
-		return descriptor.o_CountdownToReoptimize(this);
+		descriptor.o_DecrementCountdownToReoptimize(this, continuation);
 	}
 
 	/**
@@ -3411,7 +3405,7 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public AvailObject priority ()
+	public int priority ()
 	{
 		return descriptor.o_Priority(this);
 	}
@@ -3419,8 +3413,7 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public void priority (
-		final AvailObject value)
+	public void priority (final int value)
 	{
 		descriptor.o_Priority(this, value);
 	}
@@ -3632,19 +3625,17 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public void removeFrom (
-		final L2Interpreter anInterpreter)
+	public void removeFrom (final AvailLoader loader)
 	{
-		descriptor.o_RemoveFrom(this, anInterpreter);
+		descriptor.o_RemoveFrom(this, loader);
 	}
 
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public void removeImplementation (
-		final AvailObject implementation)
+	public void removeDefinition (final AvailObject implementation)
 	{
-		descriptor.o_RemoveImplementation(this, implementation);
+		descriptor.o_RemoveDefinition(this, implementation);
 	}
 
 	/**
@@ -4497,21 +4488,6 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public AvailObject validateArgumentTypesInterpreterIfFail (
-		final List<AvailObject> argTypes,
-		final Interpreter anAvailInterpreter,
-		final Continuation1<Generator<String>> failBlock)
-	{
-		return descriptor.o_ValidateArgumentTypesInterpreterIfFail(
-			this,
-			argTypes,
-			anAvailInterpreter,
-			failBlock);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
 	public AvailObject value ()
 	{
 		return descriptor.o_Value(this);
@@ -5138,6 +5114,7 @@ implements Iterable<AvailObject>
 	}
 
 	/**
+	 * @param expectedParseNodeKind
 	 * @return
 	 */
 	public boolean parseNodeKindIsUnder (
@@ -6223,10 +6200,209 @@ implements Iterable<AvailObject>
 
 	/**
 	 * @param critical
-	 * @return
 	 */
 	public void lock (final Continuation0 critical)
 	{
 		descriptor.o_Lock(this, critical);
+	}
+
+	/**
+	 * Answer the {@linkplain AvailLoader loader} bound to the {@linkplain
+	 * FiberDescriptor receiver}, or {@code null} if the receiver is not a
+	 * loader fiber.
+	 *
+	 * @return An Avail loader, or {@code null} if no Avail loader is
+	 *         associated with the specified fiber.
+	 */
+	public @Nullable AvailLoader availLoader ()
+	{
+		return descriptor.o_AvailLoader(this);
+	}
+
+	/**
+	 * @param loader
+	 */
+	public void availLoader (final @Nullable AvailLoader loader)
+	{
+		descriptor.o_AvailLoader(this, loader);
+	}
+
+	/**
+	 * Answer the {@linkplain Continuation1 continuation} that accepts the
+	 * result produced by the {@linkplain FiberDescriptor receiver}'s successful
+	 * completion.
+	 *
+	 * @return A continuation.
+	 */
+	public Continuation1<AvailObject> resultContinuation ()
+	{
+		return descriptor.o_ResultContinuation(this);
+	}
+
+	/**
+	 * Set the {@linkplain Continuation1 continuation} that accepts the result
+	 * produced by the {@linkplain FiberDescriptor receiver}'s successful
+	 * completion.
+	 *
+	 * @param continuation The result.
+	 */
+	public void resultContinuation (
+		final Continuation1<AvailObject> continuation)
+	{
+		descriptor.o_ResultContinuation(this, continuation);
+	}
+
+	/**
+	 * Answer the {@linkplain Continuation1 continuation} that accepts the
+	 * {@linkplain Throwable throwable} responsible for abnormal termination of
+	 * the {@linkplain FiberDescriptor receiver}.
+	 *
+	 * @return A continuation.
+	 */
+	public Continuation1<Throwable> failureContinuation ()
+	{
+		return descriptor.o_FailureContinuation(this);
+	}
+
+	/**
+	 * Set the {@linkplain Continuation1 continuation} that accepts the
+	 * {@linkplain Throwable throwable} responsible for abnormal termination of
+	 * the {@linkplain FiberDescriptor receiver}.
+	 *
+	 * @param continuation
+	 */
+	public void failureContinuation (
+		final Continuation1<Throwable> continuation)
+	{
+		descriptor.o_FailureContinuation(this, continuation);
+	}
+
+	/**
+	 * Is the specified {@linkplain InterruptRequestFlag interrupt request flag}
+	 * set for the {@linkplain FiberDescriptor receiver}?
+	 *
+	 * @param flag An interrupt request flag.
+	 * @return {@code true} if the interrupt request flag is set, {@code
+	 *         false} otherwise.
+	 */
+	public boolean interruptRequestFlag (final InterruptRequestFlag flag)
+	{
+		return descriptor.o_InterruptRequestFlag(this, flag);
+	}
+
+	/**
+	 * @param newValue
+	 * @return
+	 */
+	public AvailObject getAndSetValue (final AvailObject newValue)
+	{
+		return descriptor.o_GetAndSetValue(this, newValue);
+	}
+
+	/**
+	 * @param reference
+	 * @param newValue
+	 * @return
+	 */
+	public boolean compareAndSwapValues (
+		final AvailObject reference,
+		final AvailObject newValue)
+	{
+		return descriptor.o_CompareAndSwapValues(this, reference, newValue);
+	}
+
+	/**
+	 * @param addend
+	 * @return
+	 */
+	public AvailObject fetchAndAddValue (final AvailObject addend)
+	{
+		return descriptor.o_FetchAndAddValue(this, addend);
+	}
+
+	/**
+	 * @param flag
+	 * @return
+	 */
+	public boolean getAndClearInterruptRequestFlag (
+		final InterruptRequestFlag flag)
+	{
+		return descriptor.o_GetAndClearInterruptRequestFlag(this, flag);
+	}
+
+	/**
+	 * @param flag
+	 * @param newValue
+	 * @return
+	 */
+	public boolean getAndSetSynchronizationFlag (
+		final SynchronizationFlag flag,
+		final boolean newValue)
+	{
+		return descriptor.o_GetAndSetSynchronizationFlag(this, flag, newValue);
+	}
+
+	/**
+	 * @return
+	 */
+	public AvailObject fiberResult ()
+	{
+		return descriptor.o_FiberResult(this);
+	}
+
+	/**
+	 * @param result
+	 */
+	public void fiberResult (final AvailObject result)
+	{
+		descriptor.o_FiberResult(this, result);
+	}
+
+	/**
+	 * @return
+	 */
+	public AvailObject joiningFibers ()
+	{
+		return descriptor.o_JoiningFibers(this);
+	}
+
+	/**
+	 * @param joiners
+	 */
+	public void joiningFibers (final AvailObject joiners)
+	{
+		descriptor.o_JoiningFibers(this, joiners);
+	}
+
+	/**
+	 * @return
+	 */
+	public AvailObject joinee ()
+	{
+		return descriptor.o_Joinee(this);
+	}
+
+	/**
+	 * @param joinee
+	 */
+	public void joinee (final AvailObject joinee)
+	{
+		descriptor.o_Joinee(this, joinee);
+	}
+
+	/**
+	 * @return
+	 */
+	public @Nullable TimerTask wakeupTask ()
+	{
+		return descriptor.o_WakeupTask(this);
+	}
+
+	/**
+	 * @param task
+	 */
+	public void wakeupTask (final @Nullable TimerTask task)
+	{
+		descriptor.o_WakeupTask(this, task);
 	}
 }

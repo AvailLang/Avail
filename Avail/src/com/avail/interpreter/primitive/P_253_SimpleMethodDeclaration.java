@@ -32,16 +32,21 @@
 package com.avail.interpreter.primitive;
 
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
+import static com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER;
 import static com.avail.interpreter.Primitive.Flag.*;
+import static com.avail.interpreter.Primitive.Result.*;
 import java.util.List;
+import com.avail.*;
 import com.avail.descriptor.*;
 import com.avail.exceptions.*;
 import com.avail.interpreter.*;
+import com.avail.utility.Continuation0;
 
 /**
  * <strong>Primitive 253:</strong> Method definition.
  */
-public class P_253_SimpleMethodDeclaration extends Primitive
+public class P_253_SimpleMethodDeclaration
+extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
@@ -57,27 +62,45 @@ public class P_253_SimpleMethodDeclaration extends Primitive
 		assert args.size() == 2;
 		final AvailObject string = args.get(0);
 		final AvailObject function = args.get(1);
-
-		try
+		final AvailObject fiber = FiberDescriptor.current();
+		final AvailLoader loader = fiber.availLoader();
+		if (loader == null)
 		{
-			interpreter.addMethodBody(
-				interpreter.lookupName(string),
-				function,
-				true);
-			interpreter.fixupForPotentiallyInvalidCurrentChunk();
-			function.code().setMethodName(
-				StringDescriptor.from(
-					String.format("%s", string)));
+			return interpreter.primitiveFailure(E_LOADING_IS_OVER);
 		}
-		catch (final AmbiguousNameException e)
-		{
-			return interpreter.primitiveFailure(e);
-		}
-		catch (final SignatureException e)
-		{
-			return interpreter.primitiveFailure(e);
-		}
-		return interpreter.primitiveSuccess(NilDescriptor.nil());
+		interpreter.primitiveSuspend();
+		AvailRuntime.current().whenLevelOneSafeDo(
+			AvailTask.forUnboundFiber(
+				fiber,
+				new Continuation0()
+				{
+					@Override
+					public void value ()
+					{
+						Result state;
+						AvailObject result;
+						try
+						{
+							loader.addMethodBody(
+								loader.lookupName(string),
+								function,
+								true);
+							function.code().setMethodName(
+								StringDescriptor.from(
+									String.format("%s", string)));
+							state = SUCCESS;
+							result = NilDescriptor.nil();
+						}
+						catch (
+							final AmbiguousNameException|SignatureException e)
+						{
+							state = FAILURE;
+							result = e.errorValue();
+						}
+						Interpreter.resumeFromPrimitive(fiber, state, result);
+					}
+				}));
+		return FIBER_SUSPENDED;
 	}
 
 	@Override

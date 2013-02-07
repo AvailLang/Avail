@@ -34,9 +34,11 @@ package com.avail.interpreter.primitive;
 
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
+import static com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.*;
-import com.avail.compiler.AvailRejectedParseException;
+import com.avail.compiler.*;
+import com.avail.compiler.AbstractAvailCompiler.ParserState;
 import com.avail.descriptor.*;
 import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.interpreter.*;
@@ -68,7 +70,6 @@ public class P_409_BootstrapVariableUseMacro extends Primitive
 		assert literalToken.tokenType() == TokenType.SYNTHETIC_LITERAL;
 		final AvailObject actualToken = literalToken.literal();
 		assert actualToken.isInstanceOf(TOKEN.o());
-
 		if (actualToken.tokenType() != TokenType.KEYWORD)
 		{
 			throw new AvailRejectedParseException(
@@ -76,8 +77,14 @@ public class P_409_BootstrapVariableUseMacro extends Primitive
 					"(variable name to be a keyword token)"));
 		}
 		final AvailObject variableNameString = actualToken.string();
-		final AvailObject scopeMap =
-			interpreter.currentParserState.scopeMap;
+		final AvailLoader loader = FiberDescriptor.current().availLoader();
+		if (loader == null)
+		{
+			return interpreter.primitiveFailure(E_LOADING_IS_OVER);
+		}
+		// TODO: [MvG] Use fiber state, not the loader.
+		final ParserState parserState = loader.currentParserState;
+		final AvailObject scopeMap = parserState.scopeMap;
 		if (scopeMap.hasKey(variableNameString))
 		{
 			final AvailObject variableUse = VariableUseNodeDescriptor.newUse(
@@ -88,8 +95,7 @@ public class P_409_BootstrapVariableUseMacro extends Primitive
 		}
 		// Not in a block scope. See if it's a module variable or module
 		// constant...
-		final AvailObject module =
-			interpreter.currentParserState.currentModule();
+		final AvailObject module = parserState.currentModule();
 		if (module.variableBindings().hasKey(variableNameString))
 		{
 			final AvailObject variableObject = module.variableBindings().mapAt(

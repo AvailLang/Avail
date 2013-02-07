@@ -297,6 +297,7 @@ extends ParseNodeDescriptor
 		final AvailObject instance = mutable.create();
 		instance.setSlot(EXPRESSIONS_TUPLE, expressions);
 		instance.setSlot(TUPLE_TYPE, NilDescriptor.nil());
+		instance.makeShared();
 		return instance;
 	}
 

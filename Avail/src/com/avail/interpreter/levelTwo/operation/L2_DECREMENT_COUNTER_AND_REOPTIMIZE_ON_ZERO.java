@@ -31,49 +31,51 @@
  */
 package com.avail.interpreter.levelTwo.operation;
 
-import static com.avail.interpreter.levelTwo.L2Interpreter.argumentOrLocalRegister;
+import static com.avail.interpreter.Interpreter.argumentOrLocalRegister;
 import static com.avail.interpreter.levelTwo.register.FixedRegister.FUNCTION;
 import com.avail.descriptor.*;
+import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.*;
 import com.avail.optimizer.L2Translator;
+import com.avail.utility.*;
 
 /**
  * Explicitly decrement the current compiled code's countdown via {@link
  * AvailObject#countdownToReoptimize(int)}.  If it reaches zero then
  * re-optimize the code.
  */
-public class L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO extends L2Operation
+public class L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO
+extends L2Operation
 {
 	/**
 	 * Initialize the sole instance.
 	 */
 	public final static L2Operation instance =
-		new L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO();
-
-	static
-	{
-		instance.init();
-	}
+		new L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO().init();
 
 	@Override
-	public void step (final L2Interpreter interpreter)
+	public void step (final Interpreter interpreter)
 	{
 		final AvailObject theFunction = interpreter.pointerAt(FUNCTION);
 		final AvailObject theCode = theFunction.code();
-		final int newCount = theCode.countdownToReoptimize() - 1;
-		assert newCount >= 0;
-		if (newCount != 0)
+		final Mutable<Boolean> translated = new Mutable<Boolean>(false);
+		theCode.decrementCountdownToReoptimize(new Continuation0()
 		{
-			theCode.countdownToReoptimize(newCount);
-		}
-		else
+			@Override
+			public void value ()
+			{
+				theCode.countdownToReoptimize(
+					L2ChunkDescriptor.countdownForNewlyOptimizedCode());
+				final L2Translator translator = new L2Translator(theCode);
+				translator.translateOptimizationFor(
+					3,
+					interpreter);
+				translated.value = true;
+			}
+		});
+		// If translation actually happened, then run the function in Level Two.
+		if (translated.value)
 		{
-			theCode.countdownToReoptimize(
-				L2ChunkDescriptor.countdownForNewlyOptimizedCode());
-			final L2Translator translator = new L2Translator(theCode);
-			translator.translateOptimizationFor(
-				3,
-				interpreter);
 			interpreter.argsBuffer.clear();
 			final int nArgs = theCode.numArgs();
 			for (int i = 1; i <= nArgs; i++)
@@ -81,7 +83,7 @@ public class L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO extends L2Operation
 				interpreter.argsBuffer.add(
 					interpreter.pointerAt(argumentOrLocalRegister(i)));
 			}
-			interpreter.invokeFunctionArguments(
+			interpreter.invokeFunction(
 				theFunction,
 				interpreter.argsBuffer);
 		}

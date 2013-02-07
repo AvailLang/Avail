@@ -38,8 +38,7 @@ import com.avail.annotations.*;
 /**
  * A {@code RuntimeBitField} is constructed at class loading time and contains
  * any cached information needed to access a range of bits from an {@linkplain
- * IntegerSlotsEnum integer slot}.  It is instantiated from a {@link BitField}
- * annotation.
+ * IntegerSlotsEnum integer slot}.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */

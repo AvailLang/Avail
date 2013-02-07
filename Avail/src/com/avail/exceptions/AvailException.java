@@ -41,34 +41,23 @@ import com.avail.descriptor.AvailObject;
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public abstract class AvailException
+public class AvailException
 extends Exception
 {
 	/** The serial version identifier. */
 	private static final long serialVersionUID = 7650255850287561559L;
 
-	/** The {@linkplain AvailErrorCode error code}. */
-	private final AvailErrorCode errorCode;
+	/** The {@linkplain AvailObject error value}. */
+	private final AvailObject errorValue;
 
 	/**
-	 * Answer the {@linkplain AvailErrorCode error code}.
+	 * Answer the {@linkplain AvailObject error value}.
 	 *
-	 * @return The {@linkplain AvailErrorCode error code}.
+	 * @return The error value.
 	 */
-	public AvailErrorCode errorCode ()
+	public AvailObject errorValue ()
 	{
-		return errorCode;
-	}
-
-	/**
-	 * Answer the numeric error code as an {@linkplain AvailObject Avail
-	 * object}.
-	 *
-	 * @return The {@linkplain AvailObject numeric error code}.
-	 */
-	public AvailObject numericCode ()
-	{
-		return errorCode.numericCode();
+		return errorValue;
 	}
 
 	/**
@@ -78,14 +67,14 @@ extends Exception
 	 * @param errorCode
 	 *        The {@linkplain AvailErrorCode error code}.
 	 */
-	protected AvailException (final AvailErrorCode errorCode)
+	public AvailException (final AvailErrorCode errorCode)
 	{
-		this.errorCode = errorCode;
+		this.errorValue = errorCode.numericCode();
 	}
 
 	/**
 	 * Construct a new {@link AvailException} with the specified {@linkplain
-	 * Throwable cause}.
+	 * AvailErrorCode error code} and {@linkplain Throwable cause}.
 	 *
 	 * @param errorCode
 	 *        The {@linkplain AvailErrorCode error code}.
@@ -93,11 +82,40 @@ extends Exception
 	 *        The proximal {@linkplain Throwable cause} of the {@linkplain
 	 *        AvailException exception}.
 	 */
-	protected AvailException (
+	public AvailException (
 		final AvailErrorCode errorCode,
 		final Throwable cause)
 	{
 		super(cause);
-		this.errorCode = errorCode;
+		this.errorValue = errorCode.numericCode();
+	}
+
+	/**
+	 * Construct a new {@link AvailException} with the specified arbitrary
+	 * {@linkplain AvailObject error value}.
+	 *
+	 * @param errorValue The error value.
+	 */
+	public AvailException (final AvailObject errorValue)
+	{
+		this.errorValue = errorValue;
+	}
+
+	/**
+	 * Construct a new {@link AvailException} with the specified arbitrary
+	 * {@linkplain AvailObject error value} and {@linkplain Throwable cause}.
+	 *
+	 * @param errorValue
+	 *        The error value.
+	 * @param cause
+	 *        The proximal {@linkplain Throwable cause} of the {@linkplain
+	 *        AvailException exception}.
+	 */
+	public AvailException (
+		final AvailObject errorValue,
+		final Throwable cause)
+	{
+		super(cause);
+		this.errorValue = errorValue;
 	}
 }

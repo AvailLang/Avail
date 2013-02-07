@@ -419,9 +419,11 @@ Private method "Run each_,raising_on error" is
 ] : ⊤;
 
 Forward method "recursively visit_,on entering do_,on leaving do_" is
-[root unit test suite,
-	[root unit test suite]→tuple,
-	[root unit test suite]→⊤]→tuple;
+	[
+		root unit test suite,
+			[root unit test suite]→tuple,
+			[root unit test suite]→⊤
+	]→tuple;
 
 /**
 * Recursively visit the specified {@type "root unit test suite"} and its

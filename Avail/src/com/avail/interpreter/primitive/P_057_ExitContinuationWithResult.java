@@ -34,7 +34,7 @@ package com.avail.interpreter.primitive;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.exceptions.AvailErrorCode.E_CONTINUATION_EXPECTED_STRONGER_TYPE;
 import static com.avail.interpreter.Primitive.Flag.SwitchesContinuation;
-import static com.avail.interpreter.Primitive.Result.CONTINUATION_CHANGED;
+import static com.avail.interpreter.Primitive.Result.*;
 import java.util.List;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
@@ -76,7 +76,8 @@ public class P_057_ExitContinuationWithResult extends Primitive
 		final AvailObject caller = con.caller();
 		if (caller.equalsNil())
 		{
-			interpreter.exitProcessWith(result);
+			interpreter.terminateFiber(result);
+			// This looks strange, but it is correct.
 			return CONTINUATION_CHANGED;
 		}
 		final AvailObject linkStrengthenedType = caller.stackAt(

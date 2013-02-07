@@ -1,0 +1,160 @@
+/*
+ * Concurrency Tests.avail
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+System Module "Concurrency Tests"
+Versions
+	"dev"
+Uses
+	"Common",
+	"Foundation",
+	"Unit Testing"
+Names
+	"concurrency test suite"
+Body
+
+"concurrency test suite" is a new atom;
+New test suite, concurrency test suite, extends foundation test suite;
+
+Test "basic fork and join" in concurrency test suite is
+[
+	forked ::= invoke [Ignore: 0;] with <>, forked at priority 50;
+	Join forked;
+	Require: forked has terminated;
+];
+
+Test "fork and join with result" in concurrency test suite is
+[
+	forked ::= invoke [10 + 14] with <>, forked at priority 50;
+	Join forked;
+	Require: forked has terminated;
+	Require: forked has result;
+	Require: 24 = forked's result;
+];
+
+Test "fork and multiple join" in concurrency test suite is
+[
+	target ::= invoke [3^20] with <>, forked at priority 50;
+	waiters ::= map 1 to 10 through
+		[
+			ignored : [1..10]
+		|
+			invoke [Join target;] with <>, forked at priority 50
+		];
+	For each waiters do [f : fiber | Join f;];
+	Require: {true} = map waiters→set + target
+		through [f : fiber | f has terminated];
+	Require: target has result;
+	Require: 3^20 = target's result;
+];
+
+Test "request termination" in concurrency test suite is
+[
+	forked ::=
+		invoke
+		[
+			Until [termination requested] do [/* Nothing. */];
+			"仕上がります"
+		]
+		with <>,
+		forked at priority 50;
+	Request termination of forked;
+	Join forked;
+	Require: forked has terminated;
+	Require: forked has result;
+	Require: "仕上がります" = forked's result;
+];
+
+/*
+Test "for-each in parallel" in concurrency test suite is
+[
+	count : whole number := 0;
+	mutex ::= a non-reentrant mutex named "for-each lock";
+	For each of 1 to 10 in parallel do
+	[
+		i : [1..10]
+	|
+		Lock mutex for [count := count + i;];
+	];
+	Require: Σ 1 to 10 = count;
+];
+
+Test "for-each in parallel(worker exception)" in concurrency test suite is
+[
+	killer : worker exception;
+	Guard
+	[
+		For each of 1 to 10 in parallel do
+		[
+			i : [1..10]
+		|
+			Ignore: i ÷ (i - 1);
+		];
+	]
+	intercept
+	[
+		e : worker exception
+	|
+		killer := e;
+	];
+	Require: ↑killer is assigned;
+	Require: killer's causal exception ∈ cannot-divide-by-zero exception;
+];
+
+Test "map in parallel" in concurrency test suite is
+[
+	result ::= map 1 to 10 in parallel through [i : [1..10] | i × 5];
+	expected ::= map 1 to 10 through [i : [1..10] | i × 5];
+	Require: expected = result;
+];
+
+Test "map in parallel(worker exception)" in concurrency test suite is
+[
+	result ::=
+		guard [map 1 to 10 in parallel through [i : [1..10] | i ÷ (i - 1)]]
+		intercept [e : worker exception | e];
+	killer ::= cast result into [e : worker exception | e];
+	Require: killer's causal exception ∈ cannot-divide-by-zero exception;
+];
+*/
+
+Test "reenter non-reentrant mutex" in concurrency test suite is
+[
+	mutex ::= a non-reentrant mutex;
+	Lock mutex for [Lock mutex for [Raise an exception]]
+]
+must raise reentry exception;
+
+Test "reenter reentrant mutex" in concurrency test suite is
+[
+	mutex ::= a reentrant mutex;
+	Require: 5 = lock mutex for [lock mutex for [5]];
+];

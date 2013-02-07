@@ -1,6 +1,6 @@
 /**
- * P_025_CurrentFiber.java
- * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
+ * P_618_HasTerminated.java
+ * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,41 +29,51 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+
 package com.avail.interpreter.primitive;
 
-import static com.avail.descriptor.TypeDescriptor.Types.FIBER;
+import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
+import com.avail.annotations.NotNull;
 import com.avail.descriptor.*;
+import com.avail.descriptor.FiberDescriptor.ExecutionState;
 import com.avail.interpreter.*;
 
 /**
- * <strong>Primitive 25:</strong> Answer the currently running {@linkplain
- * FiberDescriptor fiber}.
+ * <strong>Primitive 618</strong>: Has the specified {@linkplain FiberDescriptor
+ * fiber} {@linkplain ExecutionState#indicatesTermination() terminated} for some
+ * reason?
+ *
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class P_025_CurrentFiber extends Primitive
+public final class P_618_HasTerminated
+extends Primitive
 {
 	/**
-	 * The sole instance of this primitive class.  Accessed through reflection.
+	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_025_CurrentFiber().init(
-		0, CanInline, CannotFail);
+	public final @NotNull static Primitive instance =
+		new P_618_HasTerminated().init(1, CannotFail, CanInline);
 
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 0;
+		assert args.size() == 1;
+		final AvailObject fiber = args.get(0);
 		return interpreter.primitiveSuccess(
-			interpreter.fiber().makeImmutable());
+			AtomDescriptor.objectFromBoolean(
+				fiber.executionState().indicatesTermination()));
 	}
 
 	@Override
 	protected AvailObject privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(),
-			FIBER.o());
+			TupleDescriptor.from(
+				FIBER.o()),
+			EnumerationTypeDescriptor.booleanObject());
 	}
 }

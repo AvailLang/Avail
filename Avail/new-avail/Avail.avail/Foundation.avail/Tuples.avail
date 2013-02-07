@@ -2563,33 +2563,30 @@ Print: “z”;
  * @method "insertion sort_with_"
  * @categories "category"
  * @param "aTuple" "<any…|2..15>" 
- *      the tuple to be sorted
+ *        The tuple to be sorted.
  * @param "comparator" "[⊥, ⊥]→boolean"
- * 		A comparison function that accepts two elements of {@param "aTuple"}
- *      and answers {@code "true"} if the first ≤ second and {@code "false"}
- *      otherwise.
- * @returnType "<any|2..15>"
- *      the sorted tuple
- * @raises "exceptionName" 
- *      exceptionDescription
- * @author "authorName"
+ *        A comparison function that accepts two elements of {@param "aTuple"}
+ *        and answers {@code "true"} if the first ≤ second and {@code "false"}
+ *        otherwise.
+ * @returns "<any|2..15>"
+ *          The sorted tuple.
  */
 Private method "insertion sort_with_" is
 [
 	aTuple : <any…|2..10>,
 	comparator : [⊥, ⊥]→boolean
- |
+|
 	output : <any…|2..> := aTuple;
 	From 2 to |aTuple| do
 	[
 		i : [2..10]
-	 |
+	|
 		j : [1..9] := i-1;
 		k : [2..10] := i;
 		While [j > 1 ∧ [comparator(output[k],output[j])]]
 		do
 		[
-		 	output := output[k↔j];
+			output := output[k↔j];
 			↑k--;
 			↑j--;
 		];
@@ -2597,7 +2594,7 @@ Private method "insertion sort_with_" is
 			[output[k↔j]] else [output];
 	];
 	output
-]:<any…|2..>;
+] : <any…|2..>;
 
 
 Semantic restriction "insertion sort_with_" is

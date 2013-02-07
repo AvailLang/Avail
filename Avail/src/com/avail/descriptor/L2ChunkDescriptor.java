@@ -111,7 +111,7 @@ extends Descriptor
 
 		/**
 		 * The number of {@linkplain L2ObjectRegister object registers} that
-		 * this chunk uses.
+		 * this chunk uses (including the fixed registers).
 		 */
 		static final BitField NUM_OBJECTS = bitField(
 			NUM_OBJECTS_AND_FLAGS,
@@ -506,7 +506,7 @@ extends Descriptor
 	{
 		// This is hard-coded, but cross-checked by
 		// L2Translator#createChunkForFirstInvocation().
-		return 9;
+		return 8;
 	}
 
 	/**
@@ -518,7 +518,9 @@ extends Descriptor
 	 */
 	public static int countdownForInvalidatedCode ()
 	{
+		// TODO
 		return 100;
+//		return 1000000000;
 	}
 
 	/**
@@ -530,7 +532,9 @@ extends Descriptor
 	 */
 	public static int countdownForNewCode ()
 	{
+		// TODO
 		return 10;
+//		return 1000000000;
 	}
 
 	/**
@@ -543,6 +547,7 @@ extends Descriptor
 	 */
 	public static int countdownForNewlyOptimizedCode ()
 	{
+		// TODO: [MvG] Set this to something sensible when optimization exists.
 		return 1000000000;
 	}
 

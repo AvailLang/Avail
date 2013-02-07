@@ -43,19 +43,7 @@ Names
 	"pRNG test suite"
 Body
 
-/* TODO: [TLS] Remove these constants once a macro is available for "$…". */
-_testSuite ::= $"pRNG test suite";
-
-/**
- * Answer the test suite identifier of the pseudorandom number generation
- * test suite.
- *
- * @method "pRNG test suite"
- * @returns "atom"
- *          The requested test suite identifier.
- */
-Public method "pRNG test suite" is [ _testSuite ];
-
+"pRNG test suite" is a new atom;
 New test suite pRNG test suite extends data abstractions test suite;
 
 /**
@@ -65,8 +53,8 @@ New test suite pRNG test suite extends data abstractions test suite;
  */
 rng : pRNG of whole number;
 
-Before running pRNG test suite, do [ rng := a Mersenne Twister; ];
-After running pRNG test suite, do [ Clear ↑rng; ];
+Before running pRNG test suite, do [rng := a Mersenne Twister;];
+After running pRNG test suite, do [Clear ↑rng;];
 
 Test "next integer within range" in pRNG test suite is
 [

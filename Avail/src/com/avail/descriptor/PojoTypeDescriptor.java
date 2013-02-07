@@ -382,8 +382,7 @@ extends TypeDescriptor
 	 * @param key An {@code LRUCacheKey}.
 	 * @return A pojo type.
 	 */
-	@InnerAccess static AvailObject computeValue (
-		final LRUCacheKey key)
+	@InnerAccess static AvailObject computeValue (final LRUCacheKey key)
 	{
 		// Java allows the operations defined in java.lang.Object to be
 		// performed on interface types, so interfaces are implicitly subtypes
@@ -413,9 +412,9 @@ extends TypeDescriptor
 			new Transformer1<LRUCacheKey, AvailObject>()
 			{
 				@Override
-				public AvailObject value (
-					final LRUCacheKey key)
+				public AvailObject value (final @Nullable LRUCacheKey key)
 				{
+					assert key != null;
 					return computeValue(key);
 				}
 			});

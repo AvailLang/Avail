@@ -1,5 +1,5 @@
 /**
- * P_026_LookupFiberVariable.java
+ * P_607_IsTerminationRequested.java
  * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -31,51 +31,44 @@
  */
 package com.avail.interpreter.primitive;
 
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.exceptions.AvailErrorCode.E_NO_SUCH_FIBER_VARIABLE;
-import static com.avail.interpreter.Primitive.Flag.CanInline;
+import static com.avail.interpreter.Primitive.Flag.*;
+import static com.avail.descriptor.FiberDescriptor.InterruptRequestFlag.*;
 import java.util.List;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 
 /**
- * <strong>Primitive 26:</strong> Lookup the given {@linkplain
- * AtomDescriptor name} (key) in the variables of the given
- * {@linkplain FiberDescriptor fiber}.
+ * <strong>Primitive 607:</strong> Has termination been requested for the
+ * current {@linkplain FiberDescriptor fiber}? Answer the current value of the
+ * appropriate interrupt flag and simultaneously clear it.
  */
-public class P_026_LookupFiberVariable extends Primitive
+public class P_607_IsTerminationRequested
+extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_026_LookupFiberVariable().init(
-		2, CanInline);
+	public final static Primitive instance =
+		new P_607_IsTerminationRequested().init(
+			0, CannotFail, CanInline, HasSideEffect);
 
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 2;
-		final AvailObject fiber = args.get(0);
-		final AvailObject key = args.get(1);
-		final AvailObject globals = fiber.fiberGlobals();
-		if (!globals.hasKey(key))
-		{
-			return interpreter.primitiveFailure(
-				E_NO_SUCH_FIBER_VARIABLE);
-		}
+		assert args.size() == 0;
 		return interpreter.primitiveSuccess(
-			globals.mapAt(key).makeImmutable());
+			AtomDescriptor.objectFromBoolean(
+				FiberDescriptor.current().getAndClearInterruptRequestFlag(
+					TERMINATION_REQUESTED)));
 	}
 
 	@Override
 	protected AvailObject privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
-				FIBER.o(),
-				ATOM.o()),
-			ANY.o());
+			TupleDescriptor.from(),
+			EnumerationTypeDescriptor.booleanObject());
 	}
 }
