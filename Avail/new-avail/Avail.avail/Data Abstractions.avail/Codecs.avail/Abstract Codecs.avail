@@ -1,0 +1,291 @@
+/*
+ * Abstract Codecs.avail
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+System Module "Abstract Codecs"
+Versions
+	"dev"
+Uses
+	"Foundation",
+	"Iterators"
+Names
+	"byte", /*TODO Remove me when the moment is right*/
+	"byte tuple",
+	"codec",
+	"correction instruction",
+	"decoder",
+	"decode_using_",
+	"decoding iterator",
+	"encoder",
+	"encode_using_",
+	"encoding iterator",
+	"finish decoding with_",
+	"ignore instruction",
+	"malformed-encoding exception",
+	"raise instruction",
+	"replace instruction",
+	"unsupported-character exception"
+Body
+
+/*TODO Remove this method, "byte" as it will soon be defined very early on with 
+ * the introduction of Threads.  It will be apparent when to remove this as 
+ * there will be an ambiguity when this module is run.
+ */
+Public method "byte" is [[0..255]];
+
+/**
+ * This method defines an alias for the type integer range [0..255] which is
+ * the size of one byte of data.
+ * 
+ * @method "byte tuple"
+ * @category "Codecs"
+ * @returnType "<[0..255]…|>"
+ * 	a byte
+ * @author "Richard Arriaga"
+ */
+Public method "byte tuple" is [<[0..255]…|>];
+
+"replacement character" is a new field atom;
+
+/**
+ * An object type that provides the decoder with a structured heirarchy of what
+ * action to take in the event a bad encoding is encountered.
+ * 
+ * @type "correction instruction"
+ * @supertype {@type "object" object}
+ * @category "Codecs"
+ * @author "Richard Arriaga"
+ */
+Public explicit class "correction instruction" extends object;
+
+/**
+ * An object type that provides the decoder with the instruction to take no
+ * action for the current encoded bytes.
+ * 
+ * @type "ignore instruction"
+ * @supertype {@type "correction instruction"}
+ * @category "Codecs"
+ * @author "Richard Arriaga"
+ */
+Public explicit class "ignore instruction" extends correction instruction;
+
+/**
+ * An object type that provides the decoder with the instruction to raise an
+ * an exception in the event a bad encoding is encountered.
+ * 
+ * @type "raise instruction"
+ * @supertype {@type "correction instruction"}
+ * @category "Codecs"
+ * @author "Richard Arriaga"
+ */
+Public explicit class "raise instruction" extends correction instruction;
+
+/**
+ * An object type that provides the decoder with the instruction to insert the
+ * replacement character in place of the bad encoding in the event a bad 
+ * encoding is encountered.
+ * 
+ * @type "replace instruction"
+ * @supertype {@type "correction instruction"}
+ * @category "Codecs"
+ * @field "replacement character" "character"
+ * 	The character that replaces the bad encoding.
+ * @author "Richard Arriaga"
+ */
+Public explicit class "replace instruction" extends correction instruction
+	with fields
+		replacement character : character;
+
+"unsupported character" is a new field atom;
+
+/**
+ * An exception that indicates a specific character is not supported by the 
+ * codec.  For example down tack, ⊤, is not supported by the ASCII codec.
+ * 
+ * @type "unsupported-character exception"
+ * @supertype {@type "exception" exception}
+ * @category "Codecs"
+ * @field "unsupported character" "character"
+ * 	The character that is not supported by the codec
+ * @author "Richard Arriaga"
+ */
+Public class "unsupported-character exception" extends exception
+	with fields
+		unsupported character : character;
+
+"encoding corrector" is a new field atom;
+
+/**
+ * A class that contains instructions for the encoding of data.
+ * 
+ * @type "encoder"
+ * @supertype {@type "object" object}
+ * @category "Codecs"
+ * @field "encoding corrector" "[character]→correction instruction"
+ * 	a function that takes a character and encodes it per the specifications of 
+ * 	the encoder
+ * @author "Richard Arriaga"
+ */
+Public class "encoder" extends object
+	with fields
+		encoding corrector : [character]→correction instruction;
+
+/**
+ * A method that encodes a string using the provided encoder.
+ * 
+ * @method "byte tuple"
+ * @category "Codecs"
+ * @param "string"
+ * 	The string to be encoded
+ * @param "encoder"
+ * 	The encoder used to encode the string
+ * @exception {@type "unsupported-character exception"}
+ * 	thrown when an encoding does not surrport the character being processed
+ * @returnType "<[0..255]…|>"
+ * 	a byte
+ * @author "Richard Arriaga"
+ */
+Public abstract method "encode_using_" is
+	[string, encoder]→byte tuple;
+
+"invalid encoding" is a new field atom;
+
+/**
+ * An exception that indicates the particular bytes attempting to be decoded
+ * does not adhere to the specification of the encoder.
+ * 
+ * @type "malformed-encoding exception"
+ * @supertype {@type "exception" exception}
+ * @category "Codecs"
+ * @field "invalid encoding" "byte tuple"
+ * 	the tuple of bytes that are not valid under the encoding specifications
+ * @author "Richard Arriaga"
+ */
+Public class "malformed-encoding exception" extends exception
+	with fields
+		invalid encoding : byte tuple;
+
+"decoding corrector" is a new field atom;
+
+/**
+ * A class that contains instructions for the encoding of data.
+ * 
+ * @type "decoder"
+ * @supertype {@type "object" object}
+ * @category "Codecs"
+ * @field "decoding corrector" "[byte tuple]→correction instruction"
+ * 	a function that takes a character and encodes it per the specifications of 
+ * 	the encoder
+ * @author "Richard Arriaga"
+ */
+Public class "decoder" extends object
+	with fields
+		decoding corrector : [byte tuple]→correction instruction;
+
+/**
+ * The method that accepts a byte tuple and the decoding specificaiton that
+ * transforms the byte tuple into a character.
+ * 
+ * @method "decode_using_"
+ * @category "Codecs"
+ * @param "byte tuple"
+ * @param "decoder"
+ * @returnType "string"
+ * 	the decoded string
+ * @raises {@type "malformed-encoding exception"}
+ * 	Thrown when the encoding specification is violated
+ * @author "Richard Arriaga"
+ */
+Public abstract method "decode_using_" is
+	[byte tuple, decoder]→string;
+
+/**
+ * The final method call when all the byte data has been read and no further 
+ * byte data is expected.  If the continuation contains data when it is awoken
+ * this method will return an exception as the final data is incomplete.  If 
+ * there is no data within the continuation, then the decoding is complete
+ * in a correct state.
+ * 
+ * @method "byte tuple"
+ * @category "Codecs"
+ * @param "decoder"
+ * 	the codec specification for decoding the byte tuple
+ * @returnType "string"
+ * 	the decoded string
+ * @raises {@type "malformed-encoding exception"}
+ * 	Thrown when the encoding specification is violated 
+ * @author "Richard Arriaga"
+ */
+Public abstract method "finish decoding with_" is
+	[decoder]→string;
+
+/**
+ * An object that is the intersection of both the encoder and decoder object
+ * types.  As it is the subtype of both encoder and decoder, it will have the 
+ * structure required to be used in methods that accept encoders as input as
+ * well as methods that accept decoders as input.
+ * 
+ * @type "codec"
+ * @supertype {@type "encoder" encoder} {@type "decoder" decoder}
+ * @category "Codecs"
+ * @author "Richard Arriaga"
+ */
+Public class "codec" extends encoder ∩ decoder;
+
+"coder" is a new field atom;
+"source" is a new field atom;
+
+/**
+ * An iterator with character data that is to be encoded into byte data.
+ * 
+ * @type "encoding iterator"
+ * @supertype {@type "iterator" iterator}
+ * @category "Codecs"
+ * @field "coder" "encoder"
+ * @field "source" "iterator"
+ * @author "Richard Arriaga"
+ */
+Public class "encoding iterator" extends iterator of character
+	with fields
+		coder : encoder;
+
+/**
+ * An iterator with byte data that is to be decoded into character data.
+ * 
+ * @type "decoding iterator"
+ * @supertype {@type "iterator" object}
+ * @category "Codecs"
+ * @field "coder" "decoder"
+ * @author "Richard Arriaga"
+ */
+Public class "decoding iterator" extends iterator of byte
+	with fields
+		coder : decoder;
