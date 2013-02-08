@@ -80,9 +80,9 @@ extends Primitive
 			{
 				// If the permit is unavailable and the fiber is parked, then
 				// unpark it.
-				if (fiber.executionState() == PARKED
-					&& fiber.getAndSetSynchronizationFlag(
-						PERMIT_UNAVAILABLE, false))
+				if (fiber.getAndSetSynchronizationFlag(
+						PERMIT_UNAVAILABLE, false)
+					&& fiber.executionState() == PARKED)
 				{
 					fiber.executionState(SUSPENDED);
 					Interpreter.resumeFromPrimitive(

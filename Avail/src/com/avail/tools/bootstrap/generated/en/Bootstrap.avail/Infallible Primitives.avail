@@ -61,10 +61,10 @@ Uses
 		"Print:_",
 		"Reject parse,expected:_",
 		"Request termination of_",
-		"Sleep for_milliseconds",
+		"Sleep for_millisecond|milliseconds",
 		"Terminate current fiber",
 		"Unpark_",
-		"Yield",
+		"Yield current fiber",
 		"[`…]→_",
 		"_'s⁇arguments",
 		"_'s⁇arity",
@@ -3231,7 +3231,7 @@ Primitive "Unpark_" is
  * Yield the current fiber. That is, give up the fiber's time slice so that
  * other processes of higher or equal priority may run.
  */
-Primitive "Yield" is
+Primitive "Yield current fiber" is
 [
 	Primitive 612;
 ] : ⊤;
@@ -3306,7 +3306,7 @@ Primitive "_has result" is
  * Parameters:
  *    delayMillis - The minimum number of milliseconds to sleep.
  */
-Primitive "Sleep for_milliseconds" is
+Primitive "Sleep for_millisecond|milliseconds" is
 [
 	delayMillis : nonnegative extended integer
 |

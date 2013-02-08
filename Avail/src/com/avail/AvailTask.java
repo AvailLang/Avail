@@ -74,80 +74,55 @@ implements Comparable<AvailTask>, Runnable
 		final boolean scheduled =
 			fiber.getAndSetSynchronizationFlag(SCHEDULED, true);
 		assert !scheduled;
-		final Continuation0 taskContinuation =
-			new Continuation0()
+		final Continuation0 taskContinuation = new Continuation0()
+		{
+			@Override
+			public void value ()
 			{
-				@Override
-				public void value ()
+				final Interpreter interpreter = Interpreter.current();
+				fiber.lock(new Continuation0()
 				{
-					final Interpreter interpreter = Interpreter.current();
-					fiber.lock(new Continuation0()
+					@Override
+					public void value ()
 					{
-						@Override
-						public void value ()
-						{
-							assert fiber.executionState().indicatesSuspension();
-							final boolean bound =
-								fiber.getAndSetSynchronizationFlag(BOUND, true);
-							assert !bound;
+						assert fiber.executionState().indicatesSuspension();
+						final boolean bound =
+							fiber.getAndSetSynchronizationFlag(BOUND, true);
+						assert !bound;
+						final boolean wasScheduled =
 							fiber.getAndSetSynchronizationFlag(
 								SCHEDULED, false);
-							fiber.executionState(RUNNING);
-							interpreter.fiber(fiber);
-						}
-					});
-					final Mutable<Continuation0> postExitContinuation =
-						new Mutable<Continuation0>();
-					try
-					{
-						continuation.value();
-						postExitContinuation.value =
-							interpreter.postExitContinuation();
+						assert wasScheduled;
+						fiber.executionState(RUNNING);
+						interpreter.fiber(fiber);
 					}
-					catch (final Throwable e)
-					{
-						// If execution failed for any reason, then terminate
-						// the fiber and invoke its failure continuation with
-						// the throwable.
-						interpreter.abortFiber();
-						fiber.failureContinuation().value(e);
-					}
-					finally
-					{
-						fiber.lock(new Continuation0()
-						{
-							@Override
-							public void value ()
-							{
-								final boolean bound =
-									fiber.getAndSetSynchronizationFlag(
-										BOUND, false);
-								assert bound;
-								interpreter.fiber(null);
-								interpreter.postExitContinuation(null);
-							}
-						});
-					}
-					fiber.lock(new Continuation0()
-					{
-						@Override
-						public void value ()
-						{
-							if (postExitContinuation.value != null)
-							{
-								postExitContinuation.value.value();
-							}
-							final ExecutionState state =
-								fiber.executionState();
-							assert state.indicatesTermination()
-								|| state.indicatesVoluntarySuspension()
-								|| (state.indicatesSuspension() &&
-									fiber.getAndSetSynchronizationFlag(
-										SCHEDULED, true));
-						}
-					});
+				});
+				final Mutable<Continuation0> postExitContinuation =
+					new Mutable<Continuation0>();
+				try
+				{
+					continuation.value();
+					postExitContinuation.value =
+						interpreter.postExitContinuation();
 				}
-			};
+				catch (final Throwable e)
+				{
+					// If execution failed for any reason, then terminate
+					// the fiber and invoke its failure continuation with
+					// the throwable.
+					interpreter.abortFiber();
+					fiber.failureContinuation().value(e);
+				}
+				finally
+				{
+					interpreter.postExitContinuation(null);
+				}
+				if (postExitContinuation.value != null)
+				{
+					postExitContinuation.value.value();
+				}
+			}
+		};
 		return new AvailTask(fiber.priority(), taskContinuation);
 	}
 
@@ -175,44 +150,28 @@ implements Comparable<AvailTask>, Runnable
 		final boolean scheduled =
 			fiber.getAndSetSynchronizationFlag(SCHEDULED, true);
 		assert !scheduled;
-		final Continuation0 taskContinuation =
-			new Continuation0()
+		final Continuation0 taskContinuation = new Continuation0()
+		{
+			@Override
+			public void value ()
 			{
-				@Override
-				public void value ()
+				final boolean wasScheduled = fiber.getAndSetSynchronizationFlag(
+					SCHEDULED, false);
+				assert wasScheduled;
+				try
 				{
-					fiber.getAndSetSynchronizationFlag(SCHEDULED, false);
-					try
-					{
-						continuation.value();
-					}
-					catch (final Throwable e)
-					{
-						// If execution failed for any reason, then terminate
-						// the fiber and invoke its failure continuation with
-						// the throwable.
-						fiber.executionState(ABORTED);
-						fiber.failureContinuation().value(e);
-					}
-					finally
-					{
-						fiber.lock(new Continuation0()
-						{
-							@Override
-							public void value ()
-							{
-								final ExecutionState state =
-									fiber.executionState();
-								assert state.indicatesTermination()
-									|| state.indicatesVoluntarySuspension()
-									|| (state.indicatesSuspension() &&
-										fiber.getAndSetSynchronizationFlag(
-											SCHEDULED, true));
-							}
-						});
-					}
+					continuation.value();
 				}
-			};
+				catch (final Throwable e)
+				{
+					// If execution failed for any reason, then terminate
+					// the fiber and invoke its failure continuation with
+					// the throwable.
+					fiber.executionState(ABORTED);
+					fiber.failureContinuation().value(e);
+				}
+			}
+		};
 		return new AvailTask(fiber.priority(), taskContinuation);
 	}
 

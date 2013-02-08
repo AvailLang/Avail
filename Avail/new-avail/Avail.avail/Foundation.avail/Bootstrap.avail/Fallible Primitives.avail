@@ -51,7 +51,7 @@ Uses
 		"Exit_with_",
 		"Forward method_is_",
 		"Grammatical restriction_is_",
-		"In_milliseconds,⁇invoke_with_,⁇forked at priority_",
+		"In_millisecond|milliseconds,⁇invoke_with_,⁇forked at priority_",
 		"Invoke_with_,⁇forked at priority_",
 		"Invoke|invoke_with_",
 		"Join_",
@@ -95,7 +95,7 @@ Uses
 		"eject_",
 		"function from_and_",
 		"generate_",
-		"in_milliseconds,⁇invoke_with_,⁇forked at priority_",
+		"in_millisecond|milliseconds,⁇invoke_with_,⁇forked at priority_",
 		"invoke_with_,⁇forked at priority_",
 		"message_contains groups",
 		"method definition of_for_",
@@ -1675,7 +1675,7 @@ Primitive "_'s⁇result" is
  *    arguments - The arguments to the function.
  *    priority - The priority of the new fiber.
  */
-Primitive "In_milliseconds,⁇invoke_with_,⁇forked at priority_" is
+Primitive "In_millisecond|milliseconds,⁇invoke_with_,⁇forked at priority_" is
 [
 	delayMillis : nonnegative extended integer,
 	aFunction : function,
@@ -1701,7 +1701,7 @@ Primitive "In_milliseconds,⁇invoke_with_,⁇forked at priority_" is
  * Returns:
  *    The new fiber.
  */
-Primitive "in_milliseconds,⁇invoke_with_,⁇forked at priority_" is
+Primitive "in_millisecond|milliseconds,⁇invoke_with_,⁇forked at priority_" is
 [
 	delayMillis : nonnegative extended integer,
 	aFunction : function,

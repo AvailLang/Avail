@@ -36,7 +36,6 @@ import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import static com.avail.descriptor.FiberDescriptor.ExecutionState.*;
 import static com.avail.descriptor.FiberDescriptor.InterruptRequestFlag.*;
-import static com.avail.descriptor.FiberDescriptor.SynchronizationFlag.*;
 import java.util.*;
 import com.avail.AvailRuntime;
 import com.avail.annotations.NotNull;

@@ -111,6 +111,11 @@ Public explicit class "worker exception" extends cascade exception;
  * @param "action" "[⊥, ⊥]→⊤"
  *        A function that accepts 1) an element of the tuple and 2) the index of
  *        that element.
+ * @raises "worker exception"
+ *         If any of the forked workers raise an exception.
+ * @raises "termination-requested exception"
+ *         If termination of the current fiber is requested during an internal
+ *         synchronization operation.
  */
 Public method "For each of⁇_in parallel do_" is
 [
@@ -207,6 +212,11 @@ Public method "For each of⁇_in parallel do_" is
  * @param "aTuple" "tuple"
  * @param "action" "[⊥]→⊤"
  *        A function that accepts the elements of the tuple.
+ * @raises "worker exception"
+ *         If any of the forked workers raise an exception.
+ * @raises "termination-requested exception"
+ *         If termination of the current fiber is requested during an internal
+ *         synchronization operation.
  */
 Public method "For each of⁇_in parallel do_" is
 [
@@ -249,6 +259,11 @@ Semantic restriction "For each of⁇_in parallel do_" is
  * @returns "tuple"
  *          A tuple of results of applications of {@param "transformer"} to the
  *          elements and indices of {@param "aTuple"}.
+ * @raises "worker exception"
+ *         If any of the forked workers raise an exception.
+ * @raises "termination-requested exception"
+ *         If termination of the current fiber is requested during an internal
+ *         synchronization operation.
  */
 Public method "map_in parallel through_" is
 [
@@ -354,7 +369,7 @@ Public method "map_in parallel through_" is
 			/* Make sure that the fiber has actually exited; it may only have
 			 * signaled, but not exited yet.
 			 */
-			Join aFiber;
+			Join aFiber, then honor a termination request;
 			result := eject ↑result ++ <aFiber's result>;
 			↑index++;
 			Restart loop
@@ -375,6 +390,11 @@ Public method "map_in parallel through_" is
  * @returns "tuple"
  *          A tuple of results of applications of {@param "transformer"} to the
  *          elements of {@param "aTuple"}.
+ * @raises "worker exception"
+ *         If any of the forked workers raise an exception.
+ * @raises "termination-requested exception"
+ *         If termination of the current fiber is requested during an internal
+ *         synchronization operation.
  */
 Public method "map_in parallel through_" is
 [

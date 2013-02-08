@@ -229,14 +229,18 @@ extends Descriptor
 
 		/**
 		 * A {@linkplain SetDescriptor set} of {@linkplain FiberDescriptor
-		 * fibers} waiting to join the current fiber.
+		 * fibers} waiting to join the current fiber. Access to this field is
+		 * synchronized by the {@linkplain Interpreter#joinLock global join
+		 * lock}.
 		 */
 		JOINING_FIBERS,
 
 		/**
 		 * The {@linkplain FiberDescriptor fiber} that this fiber is attempting
 		 * to join, or {@linkplain NilDescriptor nil} if this fiber is not in
-		 * the {@linkplain ExecutionState#JOINING state}.
+		 * the {@linkplain ExecutionState#JOINING state}. Access to this field
+		 * is synchronized by the {@linkplain Interpreter#joinLock global join
+		 * lock}.
 		 */
 		JOINEE,
 

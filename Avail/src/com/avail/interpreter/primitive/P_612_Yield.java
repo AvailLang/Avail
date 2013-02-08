@@ -64,18 +64,17 @@ extends Primitive
 		assert args.size() == 0;
 		final AvailObject fiber = FiberDescriptor.current();
 		final Result suspended = interpreter.primitiveSuspend();
-		Interpreter.current().postExitContinuation(
-			new Continuation0()
+		Interpreter.current().postExitContinuation(new Continuation0()
+		{
+			@Override
+			public void value ()
 			{
-				@Override
-				public void value ()
-				{
-					Interpreter.resumeFromPrimitive(
-						fiber,
-						Result.SUCCESS,
-						NilDescriptor.nil());
-				}
-			});
+				Interpreter.resumeFromPrimitive(
+					fiber,
+					Result.SUCCESS,
+					NilDescriptor.nil());
+			}
+		});
 		return suspended;
 	}
 

@@ -37,7 +37,6 @@ import static com.avail.descriptor.FiberDescriptor.InterruptRequestFlag.TERMINAT
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
-import java.util.concurrent.locks.ReentrantLock;
 import com.avail.annotations.NotNull;
 import com.avail.descriptor.*;
 import com.avail.descriptor.FiberDescriptor.*;
@@ -61,9 +60,6 @@ extends Primitive
 	public final @NotNull static Primitive instance =
 		new P_617_JoinFiber().init(1, Unknown);
 
-	/** The very seldom necessary master join lock. */
-	private static final ReentrantLock masterJoinLock = new ReentrantLock();
-
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,
@@ -78,76 +74,35 @@ extends Primitive
 		{
 			return interpreter.primitiveFailure(E_FIBER_CANNOT_JOIN_ITSELF);
 		}
-		// To prevent deadlock of the Java threads in the event that two fibers
-		// race to join each other, we take advantage of the fiber's hashing
-		// mechanism. Each fiber's hash is guaranteed unique, so use the hash
-		// ordering to ensure that two racing fibers observe the same locking
-		// order.
-		final long currentHash = current.hash() & 0xFFFFFFFFL;
-		final long joineeHash = joinee.hash() & 0xFFFFFFFFL;
-		final AvailObject outer, inner;
-		if (currentHash < joineeHash)
+		synchronized (Interpreter.joinLock)
 		{
-			outer = current;
-			inner = joinee;
-		}
-		else
-		{
-			outer = joinee;
-			inner = current;
-		}
-		// In the ultra-rare circumstance that the two fibers have the same hash
-		// value, then acquire the master join lock to break the tie.
-		if (currentHash == joineeHash)
-		{
-			masterJoinLock.lock();
-		}
-		try
-		{
-			// Acquire both locks.
-			outer.lock(new Continuation0()
+			current.lock(new Continuation0()
 			{
 				@Override
 				public void value ()
 				{
-					inner.lock(new Continuation0()
+					// If the target hasn't terminated and the current fiber
+					// hasn't been asked to terminate, then add the current
+					// fiber to the set of joining fibers. Notify the
+					// interpreter of its intention to join another fiber.
+					if (!joinee.executionState().indicatesTermination()
+						&& !current.interruptRequestFlag(
+							TERMINATION_REQUESTED))
 					{
-						@Override
-						public void value ()
-						{
-							// If the target hasn't terminated and the current
-							// fiber hasn't been asked to terminate, then add
-							// the current fiber to the set of joining fibers.
-							// Notify the interpreter of its intention to join
-							// another fiber.
-							if (!joinee.executionState().indicatesTermination()
-								&& !current.interruptRequestFlag(
-									TERMINATION_REQUESTED))
-							{
-								current.joinee(joinee);
-								joinee.joiningFibers(joinee.joiningFibers()
-									.setWithElementCanDestroy(
-										current,
-										true));
-								result.value = interpreter.primitiveJoin();
-							}
-							else
-							{
-								result.value = interpreter.primitiveSuccess(
-									NilDescriptor.nil());
-							}
-						}
-					});
+						current.joinee(joinee);
+						joinee.joiningFibers(joinee.joiningFibers()
+							.setWithElementCanDestroy(
+								current,
+								false));
+						result.value = interpreter.primitiveJoin();
+					}
+					else
+					{
+						result.value = interpreter.primitiveSuccess(
+							NilDescriptor.nil());
+					}
 				}
 			});
-		}
-		finally
-		{
-			// Don't forget to release the master join lock if it was acquired!
-			if (currentHash == joineeHash)
-			{
-				masterJoinLock.unlock();
-			}
 		}
 		return result.value;
 	}

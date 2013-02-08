@@ -33,6 +33,7 @@ package com.avail.interpreter;
 
 import static com.avail.descriptor.AvailObject.error;
 import static com.avail.descriptor.FiberDescriptor.ExecutionState.*;
+import static com.avail.descriptor.FiberDescriptor.SynchronizationFlag.BOUND;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Result.*;
 import static com.avail.interpreter.levelTwo.register.FixedRegister.*;
@@ -444,14 +445,19 @@ public final class Interpreter
 	{
 		assert !exitNow;
 		assert state.indicatesSuspension();
-		fiber.lock(new Continuation0()
+		final AvailObject aFiber = fiber;
+		aFiber.lock(new Continuation0()
 		{
 			@Override
 			public void value ()
 			{
-				assert fiber.executionState() == RUNNING;
-				fiber.executionState(state);
-				fiber.continuation(pointerAt(CALLER));
+				assert aFiber.executionState() == RUNNING;
+				aFiber.executionState(state);
+				aFiber.continuation(pointerAt(CALLER));
+				final boolean bound = aFiber.getAndSetSynchronizationFlag(
+					BOUND, false);
+				assert bound;
+				fiber = null;
 			}
 		});
 		exitNow = true;
@@ -528,6 +534,9 @@ public final class Interpreter
 		return primitiveCompiledCodeBeingAttempted;
 	}
 
+	/** The lock that synchronizes joins. */
+	public static final Object joinLock = new Object();
+
 	/**
 	 * Terminate the {@linkplain #fiber() current} {@linkplain FiberDescriptor
 	 * fiber}, using the specified {@linkplain AvailObject object} as its final
@@ -547,18 +556,20 @@ public final class Interpreter
 		assert !exitNow;
 		assert finalObject != null;
 		assert state.indicatesTermination();
-		final Mutable<AvailObject> joining = new Mutable<AvailObject>();
-		fiber.lock(new Continuation0()
+		final AvailObject aFiber = fiber;
+		aFiber.lock(new Continuation0()
 		{
 			@Override
 			public void value ()
 			{
-				assert fiber.executionState() == RUNNING;
-				fiber.executionState(state);
-				fiber.continuation(NilDescriptor.nil());
-				fiber.fiberResult(finalObject);
-				joining.value = fiber.joiningFibers().makeShared();
-				fiber.joiningFibers(SetDescriptor.empty());
+				assert aFiber.executionState() == RUNNING;
+				aFiber.executionState(state);
+				aFiber.continuation(NilDescriptor.nil());
+				aFiber.fiberResult(finalObject);
+				final boolean bound = aFiber.getAndSetSynchronizationFlag(
+					BOUND, false);
+				assert bound;
+				fiber = null;
 			}
 		});
 		exitNow = true;
@@ -570,27 +581,39 @@ public final class Interpreter
 			@Override
 			public void value ()
 			{
-				// Wake up all fibers trying to join this one.
-				for (final AvailObject joiner : joining.value)
+				synchronized (Interpreter.joinLock)
 				{
-					joiner.lock(new Continuation0()
+					final AvailObject joining =
+						aFiber.joiningFibers().makeShared();
+					aFiber.joiningFibers(SetDescriptor.empty());
+					// Wake up all fibers trying to join this one.
+					for (final AvailObject joiner : joining)
 					{
-						@Override
-						public void value ()
+						joiner.lock(new Continuation0()
 						{
-							// A termination request could have moved the joiner
-							// out of the JOINING state.
-							if (joiner.executionState() == JOINING)
+							@Override
+							public void value ()
 							{
-								joiner.executionState(SUSPENDED);
-								joiner.joinee(NilDescriptor.nil());
-								Interpreter.resumeFromPrimitive(
-									joiner,
-									SUCCESS,
-									NilDescriptor.nil());
+								// A termination request could have moved the
+								// joiner out of the JOINING state.
+								if (joiner.executionState() == JOINING)
+								{
+									assert joiner.joinee().equals(aFiber);
+									joiner.joinee(NilDescriptor.nil());
+									joiner.executionState(SUSPENDED);
+									Interpreter.resumeFromPrimitive(
+										joiner,
+										SUCCESS,
+										NilDescriptor.nil());
+								}
+								else
+								{
+									assert joiner.executionState()
+										.indicatesTermination();
+								}
 							}
-						}
-					});
+						});
+					}
 				}
 			}
 		});
@@ -1084,6 +1107,10 @@ public final class Interpreter
 				assert aFiber.executionState() == RUNNING;
 				aFiber.executionState(INTERRUPTED);
 				aFiber.continuation(continuation);
+				final boolean bound = fiber.getAndSetSynchronizationFlag(
+					BOUND, false);
+				assert bound;
+				fiber = null;
 			}
 		});
 		exitNow = true;

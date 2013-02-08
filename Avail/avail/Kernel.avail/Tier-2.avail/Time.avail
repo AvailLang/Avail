@@ -40,5 +40,5 @@ Body
 
 Method "current time in milliseconds" is
 [
-	Primitive 20;
+	Primitive 26;
 ] : whole number;

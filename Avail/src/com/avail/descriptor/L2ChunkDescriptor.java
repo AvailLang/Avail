@@ -518,9 +518,7 @@ extends Descriptor
 	 */
 	public static int countdownForInvalidatedCode ()
 	{
-		// TODO
 		return 100;
-//		return 1000000000;
 	}
 
 	/**
@@ -532,9 +530,7 @@ extends Descriptor
 	 */
 	public static int countdownForNewCode ()
 	{
-		// TODO
 		return 10;
-//		return 1000000000;
 	}
 
 	/**

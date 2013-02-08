@@ -81,7 +81,7 @@ Test "request termination" in concurrency test suite is
 	forked ::=
 		invoke
 		[
-			Until [termination requested] do [/* Nothing. */];
+			Until [termination requested] do [Yield current fiber;];
 			"仕上がります"
 		]
 		with <>,
@@ -93,7 +93,6 @@ Test "request termination" in concurrency test suite is
 	Require: "仕上がります" = forked's result;
 ];
 
-/*
 Test "for-each in parallel" in concurrency test suite is
 [
 	count : whole number := 0;
@@ -144,7 +143,6 @@ Test "map in parallel(worker exception)" in concurrency test suite is
 	killer ::= cast result into [e : worker exception | e];
 	Require: killer's causal exception ∈ cannot-divide-by-zero exception;
 ];
-*/
 
 Test "reenter non-reentrant mutex" in concurrency test suite is
 [
