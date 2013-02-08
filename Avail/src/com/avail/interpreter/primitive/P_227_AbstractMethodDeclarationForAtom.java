@@ -65,12 +65,9 @@ extends Primitive
 		final AvailObject blockSignature = args.get(1);
 		try
 		{
-			final AvailObject module = interpreter.module();
 			interpreter.addAbstractSignature(
 				atom,
-				blockSignature,
-				atom.issuingModule().equals(
-					module != null ? module : NilDescriptor.nil()));
+				blockSignature);
 			interpreter.fixupForPotentiallyInvalidCurrentChunk();
 		}
 		catch (final SignatureException e)

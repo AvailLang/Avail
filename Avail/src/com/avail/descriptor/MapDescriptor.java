@@ -167,12 +167,54 @@ extends Descriptor
 				first = false;
 			}
 			aStream.append("\n");
-			for (int i = indent; i > 0; i--)
+			for (int i = indent - 1; i > 0; i--)
 			{
 				aStream.append('\t');
 			}
 		}
 		aStream.append('}');
+	}
+
+	/**
+	 * Synthetic slots to display.
+	 */
+	enum FakeMapSlots implements ObjectSlotsEnum
+	{
+		/**
+		 * A fake slot to present in the debugging view for each key of the map.
+		 * It is always followed by its corresponding {@link #VALUE} slot.
+		 */
+		KEY,
+
+		/**
+		 * A fake slot to present in the debugging view for each value in the
+		 * map.  It is always preceded by its corresponding {@link #KEY} slot.
+		 */
+		VALUE
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * Use the {@linkplain MapIterable map iterable} to build the list of keys
+	 * and values to present.  Hide the bin structure.
+	 */
+	@Override
+	AvailObjectFieldHelper[] o_DescribeForDebugger (
+		final AvailObject object)
+	{
+		final List<AvailObjectFieldHelper> fields =
+			new ArrayList<AvailObjectFieldHelper>();
+		int counter = 1;
+		for (final Entry entry : object.mapIterable())
+		{
+			fields.add(new AvailObjectFieldHelper(
+				object, FakeMapSlots.KEY, counter, entry.key));
+			fields.add(new AvailObjectFieldHelper(
+				object, FakeMapSlots.VALUE, counter, entry.value));
+			counter++;
+		}
+		return fields.toArray(new AvailObjectFieldHelper[fields.size()]);
 	}
 
 	@Override

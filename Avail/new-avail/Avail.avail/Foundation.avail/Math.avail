@@ -713,13 +713,13 @@ Semantic restriction "_mod_" is
 ];
 
 /** TODO[MvG] REMOVE **/
-Grammatical restriction "cow_" is <{"moo"}>;
+/*
 /*Method "cow_" is [x : integer | x + 1];*/
 Method "moo" is [123];
 /*Print: cow moo;*/
 Print: cow 2;
 Breakpoint;
-
+*/
 
 
 
@@ -1206,19 +1206,6 @@ z4 : integer := xi << y;
 Assert: z4 = 2;
 
 
-/*** TODO[MvG]: Debug parsing problem then remove: ***/
-www ::= whole number's type;
-rrr ::= <www…|0..∞>;
-fff ::= [www]
-→
-1
-/*rrr;
-Private forward method "_positive range pairs"
-	is fff;
-
-/***************/
-
-
 Private forward method "_positive range pairs"
 	is [whole number's type] → <whole number's type…|0..∞>;
 
@@ -1542,5 +1529,3 @@ Semantic restriction "_<<_keeping_bits" is
 
 Public method "negative integer" is [(-∞..-1]];
 Public method "nonpositive integer" is [(-∞..0]];
-
-****************** TODO[MvG] Remove close comment */

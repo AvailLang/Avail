@@ -85,7 +85,7 @@ extends ParseNodeDescriptor
 		try
 		{
 			splitter = new MessageSplitter(
-				object.method().name().name());
+				object.method().originalName().name());
 		}
 		catch (final SignatureException e)
 		{

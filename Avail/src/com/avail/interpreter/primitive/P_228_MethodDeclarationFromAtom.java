@@ -63,12 +63,9 @@ extends Primitive
 		final AvailObject block = args.get(1);
 		try
 		{
-			final AvailObject module = interpreter.module();
 			interpreter.addMethodBody(
 				atom,
-				block,
-				atom.issuingModule().equals(
-					module != null ? module : NilDescriptor.nil()));
+				block);
 			interpreter.fixupForPotentiallyInvalidCurrentChunk();
 		}
 		catch (final SignatureException e)

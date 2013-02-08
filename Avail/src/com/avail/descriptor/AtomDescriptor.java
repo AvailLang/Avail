@@ -159,7 +159,7 @@ extends Descriptor
 		if (!issuer.equalsNil())
 		{
 			aStream.append(" (from ");
-			final String issuerName = issuer.name().asNativeString();
+			final String issuerName = issuer.moduleName().asNativeString();
 			aStream.append(
 				issuerName.substring(issuerName.lastIndexOf('/') + 1));
 			aStream.append(')');

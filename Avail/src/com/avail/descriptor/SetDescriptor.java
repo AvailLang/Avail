@@ -136,6 +136,40 @@ extends Descriptor
 			+ object.setSize();
 	}
 
+	/**
+	 * Synthetic slots to display.
+	 */
+	enum FakeSetSlots implements ObjectSlotsEnum
+	{
+		/**
+		 * A fake slot to present in the debugging view for each of the elements
+		 * of this set.
+		 */
+		ELEMENT
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * Use the {@linkplain SetIterator set iterator} to build the list of values
+	 * (in arbitrary order).  Hide the bin structure.
+	 */
+	@Override
+	AvailObjectFieldHelper[] o_DescribeForDebugger (
+		final AvailObject object)
+	{
+		final List<AvailObjectFieldHelper> fields =
+			new ArrayList<AvailObjectFieldHelper>();
+		int counter = 1;
+		for (final AvailObject element : object)
+		{
+			fields.add(new AvailObjectFieldHelper(
+				object, FakeSetSlots.ELEMENT, counter, element));
+			counter++;
+		}
+		return fields.toArray(new AvailObjectFieldHelper[fields.size()]);
+	}
+
 	@Override @AvailMethod
 	boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{

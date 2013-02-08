@@ -55,8 +55,21 @@ extends Descriptor
 	implements ObjectSlotsEnum
 	{
 		/**
+		 * The {@linkplain MethodDescriptor method} for which this is a message
+		 * bundle.  That is, if a use of this bundle is parsed, the resulting
+		 * {@linkplain SendNodeDescriptor send node} will be an invocation of
+		 * the method in this slot.  Note that this bundle's {@link #MESSAGE} is
+		 * not necessarily the same as the method's {@linkplain
+		 * MethodDescriptor.ObjectSlots#ORIGINAL_NAME original name}, due to
+		 * renaming imports.
+		 */
+		METHOD,
+
+		/**
 		 * An {@linkplain AtomDescriptor atom} which is the "true name" of this
-		 * method.
+		 * method.  Due to import renaming, this might not be the same as the
+		 * {@linkplain MethodDescriptor.ObjectSlots#ORIGINAL_NAME original name}
+		 * of the referenced {@linkplain #METHOD method}.
 		 */
 		MESSAGE,
 
@@ -102,6 +115,36 @@ extends Descriptor
 		final AbstractSlotsEnum e)
 	{
 		return e == ObjectSlots.GRAMMATICAL_RESTRICTIONS;
+	}
+
+	@Override @AvailMethod
+	AvailObject o_BundleMethod (final AvailObject object)
+	{
+		return object.mutableSlot(METHOD);
+	}
+
+	@Override @AvailMethod
+	A_Tuple o_GrammaticalRestrictions (final AvailObject object)
+	{
+		return object.mutableSlot(GRAMMATICAL_RESTRICTIONS);
+	}
+
+	@Override @AvailMethod
+	A_Atom o_Message (final AvailObject object)
+	{
+		return object.slot(MESSAGE);
+	}
+
+	@Override @AvailMethod
+	A_Tuple o_MessageParts (final AvailObject object)
+	{
+		return object.slot(MESSAGE_PARTS);
+	}
+
+	@Override @AvailMethod
+	A_Tuple o_ParsingInstructions (final AvailObject object)
+	{
+		return object.slot(PARSING_INSTRUCTIONS);
 	}
 
 	/**
@@ -214,30 +257,6 @@ extends Descriptor
 		return false;
 	}
 
-	@Override @AvailMethod
-	A_Tuple o_GrammaticalRestrictions (final AvailObject object)
-	{
-		return object.mutableSlot(GRAMMATICAL_RESTRICTIONS);
-	}
-
-	@Override @AvailMethod
-	A_Atom o_Message (final AvailObject object)
-	{
-		return object.slot(MESSAGE);
-	}
-
-	@Override @AvailMethod
-	A_Tuple o_MessageParts (final AvailObject object)
-	{
-		return object.slot(MESSAGE_PARTS);
-	}
-
-	@Override @AvailMethod
-	A_Tuple o_ParsingInstructions (final AvailObject object)
-	{
-		return object.slot(PARSING_INSTRUCTIONS);
-	}
-
 	@Override
 	public void printObjectOnAvoidingIndent (
 		final AvailObject object,
@@ -320,23 +339,26 @@ extends Descriptor
 	 * given message.
 	 *
 	 * @param methodName The message name, an {@linkplain AtomDescriptor atom}.
+	 * @param method The method that this bundle represents.
 	 * @return A new {@linkplain MessageBundleDescriptor message bundle}.
 	 * @throws SignatureException If the message name is malformed.
 	 */
-	public static AvailObject newBundle (final A_Atom methodName)
-		throws SignatureException
+	public static AvailObject newBundle (
+		final A_Atom methodName,
+		final A_BasicObject method)
+	throws SignatureException
 	{
 		assert methodName.isAtom();
+
 		final MessageSplitter splitter = new MessageSplitter(methodName.name());
 		final AvailObject result = mutable.create();
+		result.setSlot(METHOD, method);
 		result.setSlot(MESSAGE, methodName);
 		result.setSlot(MESSAGE_PARTS, splitter.messageParts());
 		result.setSlot(
 			GRAMMATICAL_RESTRICTIONS,
 			tupleOfEmptySetsOfSize(splitter.numberOfUnderscores()));
-		result.setSlot(
-			PARSING_INSTRUCTIONS,
-			splitter.instructionsTuple());
+		result.setSlot(PARSING_INSTRUCTIONS, splitter.instructionsTuple());
 		result.makeShared();
 		return result;
 	}

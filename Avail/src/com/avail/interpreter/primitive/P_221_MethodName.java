@@ -59,7 +59,7 @@ public class P_221_MethodName extends Primitive
 	{
 		assert args.size() == 1;
 		final A_BasicObject method = args.get(0);
-		return interpreter.primitiveSuccess(method.name());
+		return interpreter.primitiveSuccess(method.originalName());
 	}
 
 	@Override

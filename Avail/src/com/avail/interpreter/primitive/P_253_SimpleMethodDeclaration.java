@@ -62,8 +62,7 @@ public class P_253_SimpleMethodDeclaration extends Primitive
 		{
 			interpreter.addMethodBody(
 				interpreter.lookupName(string),
-				function,
-				true);
+				function);
 			interpreter.fixupForPotentiallyInvalidCurrentChunk();
 			function.code().setMethodName(string);
 		}

@@ -299,7 +299,7 @@ extends AbstractDescriptor
 	@Override
 	void o_MethodAddDefinition (
 		final AvailObject object,
-		final AvailObject definition)
+		final A_BasicObject definition)
 	throws SignatureException
 	{
 		o_Traversed(object).methodAddDefinition(definition);
@@ -348,19 +348,18 @@ extends AbstractDescriptor
 	@Override
 	void o_ModuleAddDefinition (
 		final AvailObject object,
-		final AvailObject definition)
+		final A_BasicObject definition)
 	{
 		o_Traversed(object).moduleAddDefinition(
 			definition);
 	}
 
 	@Override
-	void o_AtMessageAddBundle (
+	void o_AddBundle (
 		final AvailObject object,
-		final AvailObject message,
-		final AvailObject bundle)
+		final A_BasicObject bundle)
 	{
-		o_Traversed(object).atMessageAddBundle(message, bundle);
+		o_Traversed(object).addBundle(bundle);
 	}
 
 	@Override
@@ -473,9 +472,9 @@ extends AbstractDescriptor
 	@Override
 	void o_BuildFilteredBundleTreeFrom (
 		final AvailObject object,
-		final A_BasicObject bundleTree)
+		final A_Map bundleMap)
 	{
-		o_Traversed(object).buildFilteredBundleTreeFrom(bundleTree);
+		o_Traversed(object).buildFilteredBundleTreeFrom(bundleMap);
 	}
 
 	@Override
@@ -636,16 +635,6 @@ extends AbstractDescriptor
 		final AvailObject value)
 	{
 		o_Traversed(object).continuation(value);
-	}
-
-	@Override
-	void o_CopyToRestrictedTo (
-		final AvailObject object,
-		final A_BasicObject filteredBundleTree,
-		final A_Set visibleNames)
-	{
-		o_Traversed(object)
-				.copyToRestrictedTo(filteredBundleTree, visibleNames);
 	}
 
 	@Override
@@ -1083,10 +1072,11 @@ extends AbstractDescriptor
 	@Override
 	AvailObject o_IncludeBundleNamed (
 		final AvailObject object,
-		final A_Atom messageBundleName)
+		final A_Atom messageBundleName,
+		final A_BasicObject method)
 	{
 		return o_Traversed(object).includeBundleNamed(
-			messageBundleName);
+			messageBundleName, method);
 	}
 
 	@Override
@@ -2696,9 +2686,9 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	A_BasicObject o_Methods (final AvailObject object)
+	A_Set o_MethodDefinitions (final AvailObject object)
 	{
-		return o_Traversed(object).methods();
+		return o_Traversed(object).methodDefinitions();
 	}
 
 	@Override
@@ -4365,7 +4355,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	AvailObject o_ModuleName (final AvailObject object)
+	A_String o_ModuleName (final AvailObject object)
 	{
 		return o_Traversed(object).moduleName();
 	}
@@ -4377,7 +4367,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	AvailObject o_OriginalName (final AvailObject object)
+	A_Atom o_OriginalName (final AvailObject object)
 	{
 		return o_Traversed(object).originalName();
 	}
@@ -4389,5 +4379,11 @@ extends AbstractDescriptor
 		final A_BasicObject anObject)
 	{
 		o_Traversed(object).objectTupleAtPut(index, anObject);
+	}
+
+	@Override
+	AvailObject o_BundleMethod (final AvailObject object)
+	{
+		return o_Traversed(object).bundleMethod();
 	}
 }

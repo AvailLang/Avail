@@ -94,6 +94,6 @@ public class L2SelectorOperand extends L2Operand
 	@Override
 	public String toString ()
 	{
-		return String.format("Selector(%s)", method.name().name());
+		return String.format("Selector(%s)", method.originalName().name());
 	}
 }

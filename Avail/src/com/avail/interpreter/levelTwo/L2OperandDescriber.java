@@ -158,7 +158,7 @@ class L2OperandDescriber implements L2OperandTypeDispatcher
 	public void doSelector()
 	{
 		final A_BasicObject method = _chunk.literalAt(_operand);
-		print("Message(%s)", method.name().name().asNativeString());
+		print("Message(%s)", method.originalName().name().asNativeString());
 	}
 	@Override
 	public void doReadPointer()

@@ -1144,7 +1144,7 @@ final public class L2Interpreter extends Interpreter
 				line--,
 				code.methodName().asNativeString(),
 				signatureBuilder.toString(),
-				code.module().equalsNil() ? "?" : code.module().name()
+				code.module().equalsNil() ? "?" : code.module().moduleName()
 					.asNativeString(),
 				code.startingLineNumber()));
 			signatureBuilder.setLength(0);

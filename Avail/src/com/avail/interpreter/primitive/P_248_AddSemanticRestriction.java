@@ -72,9 +72,12 @@ public class P_248_AddSemanticRestriction extends Primitive
 		}
 		try
 		{
+			final A_Atom atom = interpreter.lookupName(string);
+			final AvailObject method = interpreter.runtime().methodFor(atom);
 			interpreter.addTypeRestriction(
-				interpreter.lookupName(string),
-				function);
+				atom,
+				function,
+				method);
 			function.code().setMethodName(
 				StringDescriptor.from(
 					String.format("Semantic restriction of %s", string)));

@@ -168,7 +168,7 @@ extends AbstractDescriptor
 	@Override
 	void o_MethodAddDefinition (
 		final AvailObject object,
-		final AvailObject definition)
+		final A_BasicObject definition)
 	throws SignatureException
 	{
 		throw unsupportedOperationException();
@@ -212,16 +212,15 @@ extends AbstractDescriptor
 	@Override
 	void o_ModuleAddDefinition (
 		final AvailObject object,
-		final AvailObject definition)
+		final A_BasicObject definition)
 	{
 		throw unsupportedOperationException();
 	}
 
 	@Override
-	void o_AtMessageAddBundle (
+	void o_AddBundle (
 		final AvailObject object,
-		final AvailObject message,
-		final AvailObject bundle)
+		final A_BasicObject bundle)
 	{
 		throw unsupportedOperationException();
 	}
@@ -305,7 +304,7 @@ extends AbstractDescriptor
 	@Override
 	void o_BuildFilteredBundleTreeFrom (
 		final AvailObject object,
-		final A_BasicObject bundleTree)
+		final A_Map bundleMap)
 	{
 		throw unsupportedOperationException();
 	}
@@ -432,15 +431,6 @@ extends AbstractDescriptor
 	void o_Continuation (
 		final AvailObject object,
 		final AvailObject value)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	void o_CopyToRestrictedTo (
-		final AvailObject object,
-		final A_BasicObject filteredBundleTree,
-		final A_Set visibleNames)
 	{
 		throw unsupportedOperationException();
 	}
@@ -602,7 +592,8 @@ extends AbstractDescriptor
 	@Override
 	AvailObject o_IncludeBundleNamed (
 		final AvailObject object,
-		final A_Atom messageBundleName)
+		final A_Atom messageBundleName,
+		final A_BasicObject method)
 	{
 		throw unsupportedOperationException();
 	}
@@ -2112,7 +2103,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	A_BasicObject o_Methods (
+	A_Set o_MethodDefinitions (
 		final AvailObject object)
 	{
 		throw unsupportedOperationException();
@@ -4609,7 +4600,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	AvailObject o_ModuleName (final AvailObject object)
+	A_String o_ModuleName (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}
@@ -4621,7 +4612,13 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	AvailObject o_OriginalName (final AvailObject object)
+	A_Atom o_OriginalName (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	AvailObject o_BundleMethod (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}

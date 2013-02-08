@@ -252,7 +252,7 @@ implements L1OperationDispatcher
 		final int numArgs = definitions.numArgs();
 		if (debugL1)
 		{
-			System.out.printf(" (%s)", definitions.name().name());
+			System.out.printf(" (%s)", definitions.originalName().name());
 		}
 		argsBuffer.clear();
 		for (int i = numArgs; i >= 1; i--)
@@ -265,7 +265,7 @@ implements L1OperationDispatcher
 		{
 			error(
 				"Ambiguous or invalid lookup of %s",
-				definitions.name().name());
+				definitions.originalName().name());
 			return;
 		}
 		if (matching.isForwardDefinition())
@@ -273,14 +273,14 @@ implements L1OperationDispatcher
 			error(
 				"Attempted to execute forward method %s "
 				+ "before it was defined.",
-				definitions.name().name());
+				definitions.originalName().name());
 			return;
 		}
 		if (matching.isAbstractDefinition())
 		{
 			error(
 				"Attempted to execute an abstract method %s.",
-				definitions.name().name());
+				definitions.originalName().name());
 			return;
 		}
 		// Leave the expected return type pushed on the stack.  This will be

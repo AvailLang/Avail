@@ -201,7 +201,7 @@ extends AbstractAvailCompiler
 							+ "\texpected = %s%n"
 							+ "\targuments = %s%n",
 							disagreements,
-							method.name(),
+							method.originalName(),
 							macroBodyKind,
 							argumentExpressions);
 					}
@@ -243,7 +243,7 @@ extends AbstractAvailCompiler
 			{
 				stateAfterCall.expected(
 					"macro body ("
-					+ method.name().name()
+					+ method.originalName().name()
 					+ ") to produce a parse node");
 			}
 		}

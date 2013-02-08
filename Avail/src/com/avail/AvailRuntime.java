@@ -751,29 +751,21 @@ implements ThreadFactory
 		runtimeLock.writeLock().lock();
 		try
 		{
-			// All message bundles from the module should already be in the
-			// runtime, keyed by the original method name (i.e., unaffected by
-			// renamed imports).
+			// Some of the module's message bundles may have been added to the
+			// runtime's allBundles map already.  Add any that have not.
 			for (final MapDescriptor.Entry bundleEntry
 				: aModule.filteredBundleTree().allBundles().mapIterable())
 			{
+				final AvailObject message = bundleEntry.key;
 				final AvailObject bundle = bundleEntry.value;
-				assert allBundles.hasKey(bundle.message());
-				assert allBundles.mapAt(bundle.message()).equals(bundle);
+				assert bundle.message().equals(message);
+				if (!allBundles.hasKey(message))
+				{
+					allBundles = allBundles.mapAtPuttingCanDestroy(
+						message, bundle, true);
+				}
+				allBundles.makeShared();
 			}
-//			// Add all visible message bundles to the root message bundle tree.
-//			for (final AvailObject name : aModule.visibleNames())
-//			{
-//				assert name.isAtom();
-//				final AvailObject bundleFromRoot =
-//					rootBundleTree.includeBundleNamed(name);
-//				final AvailObject bundle =
-//					aModule.filteredBundleTree().includeBundle(bundleFromRoot);
-//				bundleFromRoot.addGrammaticalRestrictions(
-//					bundle.grammaticalRestrictions());
-//				rootBundleTree.flushForNewOrChangedBundleNamed(name);
-//			}
-
 			// Finally add the module to the map of loaded modules.
 			modules = modules.mapAtPuttingCanDestroy(
 				aModule.moduleName(), aModule, true);
@@ -881,11 +873,13 @@ implements ThreadFactory
 		{
 			for (final AvailObject methodName : method.namesSet())
 			{
-				assert !methods.hasKey(methodName);
-				methods = methods.mapAtPuttingCanDestroy(
-					methodName,
-					method,
-					true);
+				if (!methods.hasKey(methodName))
+				{
+					methods = methods.mapAtPuttingCanDestroy(
+						methodName,
+						method,
+						true);
+				}
 			}
 			methods.makeShared();
 		}
@@ -974,13 +968,13 @@ implements ThreadFactory
 	 */
 	@ThreadSafe
 	public void removeDefinition (
-		final AvailObject definition)
+		final A_BasicObject definition)
 	{
 		runtimeLock.writeLock().lock();
 		try
 		{
-			final AvailObject method = definition.definitionMethod();
-			final AvailObject name = method.name();
+			final A_BasicObject method = definition.definitionMethod();
+			final A_Atom name = method.originalName();
 			assert methods.hasKey(name);
 			assert methods.mapAt(name).equals(method);
 			method.removeDefinition(definition);
@@ -1117,31 +1111,27 @@ implements ThreadFactory
 	/**
 	 * A {@linkplain MapDescriptor map} containing all {@linkplain
 	 * MessageBundleDescriptor message bundles}, keyed by the bundle's
-	 * original {@linkplain AvailObject#message() name}, even if various modules
+	 * {@linkplain AvailObject#message() message name}, even if various modules
 	 * have imported it with renaming.
 	 */
 	private A_Map allBundles = MapDescriptor.empty();
 
 	/**
 	 * Answer a {@linkplain MapDescriptor map} from {@linkplain AtomDescriptor
-	 * atoms} to {@linkplain MessageBundleDescriptor message bundles}.  It
-	 * should include bundles for every method currently defined, using the
-	 * original definition names as keys.
+	 * atoms} to {@linkplain MessageBundleDescriptor message bundles}.  Note
+	 * that bundles have exactly one name, although they wrap {@linkplain
+	 * MethodDescriptor methods} that may have multiple names due to renaming
+	 * imports.
 	 *
-	 * @return The specified immutable map.
+	 * @return The specified shared (i.e., immutable, thread-safe) map.
 	 */
 	@ThreadSafe
-	public A_BasicObject allBundles ()
+	public A_Map allBundles ()
 	{
 		runtimeLock.readLock().lock();
 		try
 		{
 			return allBundles;
-// TODO[MvG] FIX THIS SOON
-//			final bundleMap = allBundles
-//			final AvailObject result = MessageBundleTreeDescriptor.newPc(1);
-//			rootBundleTree.copyToRestrictedTo(result, methods.keysAsSet());
-//			return copy;
 		}
 		finally
 		{

@@ -592,11 +592,11 @@ extends Descriptor
 			aStream.append('s');
 		}
 		aStream.append(" of ");
-		aStream.append(object.name().name().asNativeString());
+		aStream.append(object.originalName().name().asNativeString());
 	}
 
 	@Override @AvailMethod
-	AvailObject o_OriginalName (final AvailObject object)
+	A_Atom o_OriginalName (final AvailObject object)
 	{
 		return object.slot(ORIGINAL_NAME);
 	}
@@ -680,7 +680,7 @@ extends Descriptor
 	@Override @AvailMethod
 	void o_MethodAddDefinition (
 		final AvailObject object,
-		final AvailObject definition)
+		final A_BasicObject definition)
 	throws SignatureException
 	{
 		synchronized (object)
@@ -942,7 +942,7 @@ extends Descriptor
 		try
 		{
 			final MessageSplitter splitter =
-				new MessageSplitter(object.name().name());
+				new MessageSplitter(object.originalName().name());
 			return splitter.numberOfArguments();
 		}
 		catch (final SignatureException e)

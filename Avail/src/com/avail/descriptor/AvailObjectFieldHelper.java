@@ -54,7 +54,7 @@ import com.avail.annotations.Nullable;
  *   <li>Qualified name: com.avail.descriptor.AvailIntegerValueHelper</li>
  *   <li>Description: Hide integer value field</li>
  *   <li>Structure type: Single value</li>
- *   <li>Code: {@code new Object[0]}</li>
+ *   <li>Code: {@code return new Object[0];}</li>
  *   </ul>
  * </li>
  * <li>Preferences... &rarr; Java &rarr; Debug &rarr; Logical Structures &rarr;
@@ -63,7 +63,7 @@ import com.avail.annotations.Nullable;
  *   <li>Qualified name: com.avail.descriptor.AvailObject</li>
  *   <li>Description: Present Avail objects</li>
  *   <li>Structure type: Single value</li>
- *   <li>Code: {@code describeForDebugger()}</li>
+ *   <li>Code: {@code return describeForDebugger();}</li>
  *   </ul>
  * </li>
  * <li>Preferences... &rarr; Java &rarr; Debug &rarr; Logical Structures &rarr;
@@ -72,7 +72,7 @@ import com.avail.annotations.Nullable;
  *   <li>Qualified name: com.avail.descriptor.AvailObjectFieldHelper</li>
  *   <li>Description: Present helper's value's fields instead of the helper</li>
  *   <li>Structure type: Single value</li>
- *   <li>Code: {@code value}</li>
+ *   <li>Code: {@code return value;}</li>
  *   </ul>
  * </li>
  * <li>Preferences... &rarr; Java &rarr; Debug &rarr; Detail Formatters &rarr;

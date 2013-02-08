@@ -224,16 +224,12 @@ public abstract class Interpreter
 	 *        A {@linkplain AtomDescriptor method name}.
 	 * @param bodyBlock
 	 *        The {@linkplain FunctionDescriptor body block}.
-	 * @param extendGrammar
-	 *        {@code true} if the method name should be added to the current
-	 *        module's bundle tree, {@code false} otherwise.
 	 * @throws SignatureException
 	 *         If the signature is invalid.
 	 */
 	public void addMethodBody (
 		final A_Atom methodName,
-		final A_Function bodyBlock,
-		final boolean extendGrammar)
+		final A_Function bodyBlock)
 	throws SignatureException
 	{
 		assert methodName.isAtom();
@@ -305,11 +301,10 @@ public abstract class Interpreter
 			resolvedForwardWithName(forward, methodName);
 		}
 		method.methodAddDefinition(newMethodDefinition);
-		assert methodName.isAtom();
-		if (extendGrammar)
-		{
-			module.filteredBundleTree().includeBundleNamed(methodName);
-		}
+		runtime.addMethod(method);
+		final A_BasicObject filteredRoot = module.filteredBundleTree();
+		filteredRoot.includeBundleNamed(methodName, method);
+		filteredRoot.flushForNewOrChangedBundleNamed(methodName);
 	}
 
 
@@ -328,8 +323,8 @@ public abstract class Interpreter
 		final A_Type bodySignature)
 	throws SignatureException
 	{
-		methodName.makeImmutable();
-		bodySignature.makeImmutable();
+		methodName.makeShared();
+		bodySignature.makeShared();
 		//  Add the stubbed method definition.
 		final AvailObject method = runtime.methodFor(methodName);
 		final AvailObject newForward = ForwardDefinitionDescriptor.create(
@@ -366,12 +361,12 @@ public abstract class Interpreter
 			}
 		}
 		method.methodAddDefinition(newForward);
+		runtime.addMethod(method);
 		pendingForwards = pendingForwards.setWithElementCanDestroy(
 			newForward,
 			true);
-		assert methodName.isAtom();
 		final A_BasicObject filteredRoot = module.filteredBundleTree();
-		filteredRoot.includeBundleNamed(methodName);
+		filteredRoot.includeBundleNamed(methodName, method);
 		filteredRoot.flushForNewOrChangedBundleNamed(methodName);
 	}
 
@@ -384,24 +379,20 @@ public abstract class Interpreter
 	 *        A {@linkplain AtomDescriptor method name}.
 	 * @param bodySignature
 	 *        The {@linkplain MethodDefinitionDescriptor method signature}.
-	 * @param extendGrammar
-	 *        {@code true} if the method name should be added to the current
-	 *        module's bundle tree, {@code false} otherwise.
 	 * @throws SignatureException
 	 *         If the signature is malformed.
 	 */
 	public void addAbstractSignature (
 			final A_Atom methodName,
-			final A_Type bodySignature,
-			final boolean extendGrammar)
+			final A_Type bodySignature)
 		throws SignatureException
 	{
-		assert methodName.isAtom();
+		methodName.makeShared();
+		bodySignature.makeShared();
 
 		final MessageSplitter splitter = new MessageSplitter(methodName.name());
 		final int numArgs = splitter.numberOfArguments();
-		final A_Type bodyArgsSizes =
-			bodySignature.argsTupleType().sizeRange();
+		final A_Type bodyArgsSizes = bodySignature.argsTupleType().sizeRange();
 		assert bodyArgsSizes.lowerBound().equals(
 				IntegerDescriptor.fromInt(numArgs))
 			: "Wrong number of arguments in abstract method signature";
@@ -409,11 +400,9 @@ public abstract class Interpreter
 				IntegerDescriptor.fromInt(numArgs))
 			: "Wrong number of arguments in abstract method signature";
 		//  Make it so we can safely hold onto these things in the VM
-		methodName.makeImmutable();
-		bodySignature.makeImmutable();
 		//  Add the method definition.
 		final AvailObject method = runtime.methodFor(methodName);
-		final AvailObject newDefinition = AbstractDefinitionDescriptor.create(
+		final A_BasicObject newDefinition = AbstractDefinitionDescriptor.create(
 			method,
 			bodySignature);
 		module.moduleAddDefinition(newDefinition);
@@ -459,10 +448,10 @@ public abstract class Interpreter
 			resolvedForwardWithName(forward, methodName);
 		}
 		method.methodAddDefinition(newDefinition);
-		if (extendGrammar)
-		{
-			module.filteredBundleTree().includeBundleNamed(methodName);
-		}
+		runtime.addMethod(method);
+		final A_BasicObject filteredRoot = module.filteredBundleTree();
+		filteredRoot.includeBundleNamed(methodName, method);
+		filteredRoot.flushForNewOrChangedBundleNamed(methodName);
 	}
 
 	/**
@@ -534,7 +523,10 @@ public abstract class Interpreter
 			}
 		}
 		method.methodAddDefinition(macroDefinition);
-		module.filteredBundleTree().includeBundleNamed(methodName);
+		runtime.addMethod(method);
+		final A_BasicObject filteredRoot = module.filteredBundleTree();
+		filteredRoot.includeBundleNamed(methodName, method);
+		filteredRoot.flushForNewOrChangedBundleNamed(methodName);
 	}
 
 	/**
@@ -551,23 +543,25 @@ public abstract class Interpreter
 	 */
 	public void addTypeRestriction (
 		final A_Atom methodName,
-		final A_Function typeRestrictionFunction)
+		final A_Function typeRestrictionFunction,
+		final A_BasicObject method)
 	throws SignatureException
 	{
-		assert methodName.isAtom();
 		assert typeRestrictionFunction.isFunction();
+		methodName.makeShared();
+		typeRestrictionFunction.makeShared();
 		final MessageSplitter splitter = new MessageSplitter(methodName.name());
 		final int numArgs = splitter.numberOfArguments();
 		if (typeRestrictionFunction.code().numArgs() != numArgs)
 		{
 			throw new SignatureException(E_INCORRECT_NUMBER_OF_ARGUMENTS);
 		}
-		methodName.makeImmutable();
-		typeRestrictionFunction.makeImmutable();
 		runtime.addTypeRestriction(methodName, typeRestrictionFunction);
 		module.addTypeRestriction(methodName, typeRestrictionFunction);
-		module.filteredBundleTree().includeBundleNamed(methodName);
-	}
+		final A_BasicObject filteredRoot = module.filteredBundleTree();
+		filteredRoot.includeBundleNamed(methodName, method);
+		filteredRoot.flushForNewOrChangedBundleNamed(methodName);
+}
 
 	/**
 	 * Add a seal to the method associated with the given method name.
@@ -601,7 +595,7 @@ public abstract class Interpreter
 	 * The modularity scheme should prevent all intermodular method conflicts.
 	 * Precedence is specified as an array of message sets that are not allowed
 	 * to be messages generating the arguments of this message.  For example,
-	 * &lt;&#123;'_+_'&#125; , &#123;'_+_' , '_*_'&#125;&gt; for the '_*_'
+	 * &lt;&#123;"_+_"&#125; , &#123;"_+_" , "_*_"&#125;&gt; for the "_*_"
 	 * operator makes * bind tighter than + and also groups multiple *'s
 	 * left-to-right.
 	 *
@@ -620,7 +614,6 @@ public abstract class Interpreter
 		final A_Tuple excluded)
 	throws SignatureException
 	{
-		assert methodName.isAtom();
 		// Make these things safe for the VM to hold.
 		methodName.makeShared();
 		excluded.makeShared();
@@ -628,13 +621,13 @@ public abstract class Interpreter
 		final int numArgs = splitter.numberOfUnderscores();
 		assert numArgs == excluded.tupleSize()
 			: "Wrong number of entries in restriction tuple.";
-		// Fix precedence.
+		final AvailObject method = runtime.methodFor(methodName);
+		final A_BasicObject filteredRoot = module.filteredBundleTree();
 		final AvailObject bundle =
-			module.filteredBundleTree().includeBundleNamed(methodName);
-		module.filteredBundleTree().removeBundleNamed(methodName);
+			filteredRoot.includeBundleNamed(methodName, method);
 		bundle.addGrammaticalRestrictions(excluded);
 		module.addGrammaticalRestrictions(methodName, excluded);
-		module.filteredBundleTree().includeBundleNamed(bundle);
+		filteredRoot.flushForNewOrChangedBundleNamed(methodName);
 	}
 
 	/**
@@ -803,7 +796,7 @@ public abstract class Interpreter
 	 *            A {@linkplain DefinitionDescriptor definition}.
 	 */
 	public void removeDefinition (
-		final AvailObject definition)
+		final A_BasicObject definition)
 	{
 		if (definition.isForwardDefinition())
 		{

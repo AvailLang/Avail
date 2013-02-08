@@ -1056,11 +1056,11 @@ public abstract class AbstractDescriptor
 	 * @param definition The definition to be added.
 	 * @throws SignatureException
 	 *         If the definition could not be added.
-	 * @see AvailObject#methodAddDefinition(AvailObject)
+	 * @see AvailObject#methodAddDefinition(A_BasicObject)
 	 */
 	abstract void o_MethodAddDefinition (
 			AvailObject object,
-			AvailObject definition)
+			A_BasicObject definition)
 		throws SignatureException;
 
 	/**
@@ -1137,17 +1137,15 @@ public abstract class AbstractDescriptor
 	 */
 	abstract void o_ModuleAddDefinition (
 		AvailObject object,
-		AvailObject definition);
+		A_BasicObject definition);
 
 	/**
 	 * @param object
-	 * @param message
 	 * @param bundle
 	 */
-	abstract void o_AtMessageAddBundle (
+	abstract void o_AddBundle (
 		AvailObject object,
-		AvailObject message,
-		AvailObject bundle);
+		A_BasicObject bundle);
 
 	/**
 	 * @param object
@@ -1228,11 +1226,11 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param bundleTree
+	 * @param bundleMap
 	 */
 	abstract void o_BuildFilteredBundleTreeFrom (
 		AvailObject object,
-		A_BasicObject bundleTree);
+		A_Map bundleMap);
 
 	/**
 	 * @param object
@@ -1476,16 +1474,6 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param filteredBundleTree
-	 * @param visibleNames
-	 */
-	abstract void o_CopyToRestrictedTo (
-		AvailObject object,
-		A_BasicObject filteredBundleTree,
-		A_Set visibleNames);
-
-	/**
-	 * @param object
 	 * @param start
 	 * @param end
 	 * @param canDestroy
@@ -1715,11 +1703,13 @@ public abstract class AbstractDescriptor
 	/**
 	 * @param object
 	 * @param messageBundleName
+	 * @param method TODO
 	 * @return
 	 */
 	abstract AvailObject o_IncludeBundleNamed (
 		AvailObject object,
-		A_Atom messageBundleName);
+		A_Atom messageBundleName,
+		A_BasicObject method);
 
 	/**
 	 * @param object
@@ -3383,7 +3373,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	abstract A_BasicObject o_Methods (AvailObject object);
+	abstract A_Set o_MethodDefinitions (AvailObject object);
 
 	/**
 	 * @param object
@@ -5768,7 +5758,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	abstract AvailObject o_ModuleName (final AvailObject object);
+	abstract A_String o_ModuleName (final AvailObject object);
 
 	/**
 	 * @param object
@@ -5780,7 +5770,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	abstract AvailObject o_OriginalName (final AvailObject object);
+	abstract A_Atom o_OriginalName (final AvailObject object);
 
 	/**
 	 * @param availObject
@@ -5791,4 +5781,10 @@ public abstract class AbstractDescriptor
 		final AvailObject availObject,
 		final int index,
 		final A_BasicObject anObject);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract AvailObject o_BundleMethod (final AvailObject object);
 }

@@ -622,7 +622,7 @@ implements
 	 */
 	@Override
 	public void methodAddDefinition (
-			final AvailObject definition)
+			final A_BasicObject definition)
 		throws SignatureException
 	{
 		descriptor.o_MethodAddDefinition(this, definition);
@@ -754,7 +754,7 @@ implements
 	 */
 	@Override
 	public void moduleAddDefinition (
-		final AvailObject definition)
+		final A_BasicObject definition)
 	{
 		descriptor.o_ModuleAddDefinition(
 			this,
@@ -762,17 +762,14 @@ implements
 	}
 
 	/**
-	 * @param message
 	 * @param bundle
 	 */
 	@Override
-	public void atMessageAddBundle (
-		final AvailObject message,
-		final AvailObject bundle)
+	public void addBundle (
+		final A_BasicObject bundle)
 	{
-		descriptor.o_AtMessageAddBundle(
+		descriptor.o_AddBundle(
 			this,
-			message,
 			bundle);
 	}
 
@@ -992,9 +989,9 @@ implements
 	 */
 	@Override
 	public void buildFilteredBundleTreeFrom (
-		final A_BasicObject bundleTree)
+		final A_Map bundleMap)
 	{
-		descriptor.o_BuildFilteredBundleTreeFrom(this, bundleTree);
+		descriptor.o_BuildFilteredBundleTreeFrom(this, bundleMap);
 	}
 
 	/**
@@ -1418,20 +1415,6 @@ implements
 	public A_Tuple copyAsMutableSpliceTuple ()
 	{
 		return descriptor.o_CopyAsMutableSpliceTuple(this);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	@Override
-	public void copyToRestrictedTo (
-		final A_BasicObject filteredBundleTree,
-		final A_Set visibleNames)
-	{
-		descriptor.o_CopyToRestrictedTo(
-			this,
-			filteredBundleTree,
-			visibleNames);
 	}
 
 	/**
@@ -2353,11 +2336,12 @@ implements
 	 */
 	@Override
 	public AvailObject includeBundleNamed (
-		final A_Atom messageName)
+		final A_Atom messageName,
+		final A_BasicObject method)
 	{
 		return descriptor.o_IncludeBundleNamed(
 			this,
-			messageName);
+			messageName, method);
 	}
 
 	/**
@@ -3214,9 +3198,9 @@ implements
 	 * Dispatch to the descriptor.
 	 */
 	@Override
-	public A_BasicObject methods ()
+	public A_Set methodDefinitions ()
 	{
-		return descriptor.o_Methods(this);
+		return descriptor.o_MethodDefinitions(this);
 	}
 
 	/**
@@ -6799,7 +6783,7 @@ implements
 	 * @return
 	 */
 	@Override
-	public AvailObject moduleName ()
+	public A_String moduleName ()
 	{
 		return descriptor.o_ModuleName(this);
 	}
@@ -6817,8 +6801,17 @@ implements
 	 * @return
 	 */
 	@Override
-	public AvailObject originalName ()
+	public A_Atom originalName ()
 	{
 		return descriptor.o_OriginalName(this);
+	}
+
+	/**
+	 * @return
+	 */
+	@Override
+	public AvailObject bundleMethod ()
+	{
+		return descriptor.o_BundleMethod(this);
 	}
 }

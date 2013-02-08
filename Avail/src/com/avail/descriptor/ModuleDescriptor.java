@@ -148,7 +148,7 @@ extends Descriptor
 		 * definitions} which implement methods and macros (and forward
 		 * declarations, abstract declarations, etc.).
 		 */
-		METHODS_SET,
+		METHOD_DEFINITIONS_SET,
 
 		/**
 		 * A {@linkplain MapDescriptor map} from a parent {@linkplain
@@ -216,7 +216,7 @@ extends Descriptor
 			|| e == IMPORTED_NAMES
 			|| e == PRIVATE_NAMES
 			|| e == VISIBLE_NAMES
-			|| e == METHODS_SET
+			|| e == METHOD_DEFINITIONS_SET
 			|| e == GRAMMATICAL_RESTRICTIONS
 			|| e == VARIABLE_BINDINGS
 			|| e == CONSTANT_BINDINGS
@@ -235,7 +235,7 @@ extends Descriptor
 		final int indent)
 	{
 		builder.append("Module: ");
-		builder.append(object.name().toString());
+		builder.append(object.moduleName().toString());
 	}
 
 	@Override @AvailMethod
@@ -262,7 +262,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_ModuleName (final AvailObject object)
+	A_String o_ModuleName (final AvailObject object)
 	{
 		return object.slot(NAME);
 	}
@@ -322,22 +322,22 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	A_BasicObject o_Methods (final AvailObject object)
+	A_Set o_MethodDefinitions (final AvailObject object)
 	{
 		synchronized (object)
 		{
-			return object.slot(METHODS_SET);
+			return object.slot(METHOD_DEFINITIONS_SET);
 		}
 	}
 
-	@Override @AvailMethod
-	A_Tuple o_GrammaticalRestrictions (final AvailObject object)
-	{
-		synchronized (object)
-		{
-			return object.slot(GRAMMATICAL_RESTRICTIONS);
-		}
-	}
+//	@Override @AvailMethod
+//	A_Tuple o_GrammaticalRestrictions (final AvailObject object)
+//	{
+//		synchronized (object)
+//		{
+//			return object.slot(GRAMMATICAL_RESTRICTIONS);
+//		}
+//	}
 
 	@Override @AvailMethod
 	A_Map o_VariableBindings (final AvailObject object)
@@ -376,14 +376,12 @@ extends Descriptor
 		{
 			assert constantBinding.kind().isSubtypeOf(
 				VariableTypeDescriptor.mostGeneralType());
-			A_Map constantBindings = object.slot(
-				CONSTANT_BINDINGS);
+			A_Map constantBindings = object.slot(CONSTANT_BINDINGS);
 			constantBindings = constantBindings.mapAtPuttingCanDestroy(
 				name,
 				constantBinding,
 				true);
-			object.setSlot(
-				CONSTANT_BINDINGS, constantBindings.makeShared());
+			object.setSlot(CONSTANT_BINDINGS, constantBindings.makeShared());
 		}
 	}
 
@@ -433,13 +431,13 @@ extends Descriptor
 	@Override @AvailMethod
 	void o_ModuleAddDefinition (
 		final AvailObject object,
-		final AvailObject definition)
+		final A_BasicObject definition)
 	{
 		synchronized (object)
 		{
-			A_Set methods = object.slot(METHODS_SET);
+			A_Set methods = object.slot(METHOD_DEFINITIONS_SET);
 			methods = methods.setWithElementCanDestroy(definition, false);
-			object.setSlot(METHODS_SET, methods.makeShared());
+			object.setSlot(METHOD_DEFINITIONS_SET, methods.makeShared());
 		}
 	}
 
@@ -612,43 +610,13 @@ extends Descriptor
 		}
 	}
 
-	/**
-	 * Construct a {@linkplain MessageBundleTreeDescriptor bundle tree} that has
-	 * been filtered to contain just those {@linkplain MessageBundleDescriptor
-	 * message bundles} that are visible in the current module.  Store the
-	 * resulting bundle tree as this module's {@linkplain
-	 * ObjectSlots#FILTERED_BUNDLE_TREE filtered bundle tree}.
-	 *
-	 * @param object The module.
-	 * @param bundleTree
-	 *        The root {@linkplain MessageBundleTreeDescriptor bundle tree} for
-	 *        which to make a filtered copy.
-	 */
-	@Override @AvailMethod
-	void o_BuildFilteredBundleTreeFrom (
-		final AvailObject object,
-		final A_BasicObject bundleTree)
-	{
-		synchronized (object)
-		{
-			final A_BasicObject filteredBundleTree =
-				MessageBundleTreeDescriptor.newPc(1);
-			object.setSlot(
-				FILTERED_BUNDLE_TREE,
-				filteredBundleTree.makeShared());
-			bundleTree.copyToRestrictedTo(
-				filteredBundleTree,
-				object.visibleNames());
-		}
-	}
-
 	@Override @AvailMethod
 	void o_CleanUpAfterCompile (
 		final AvailObject object)
 	{
 		synchronized (object)
 		{
-			object.setSlot(METHODS_SET, NilDescriptor.nil());
+			object.setSlot(METHOD_DEFINITIONS_SET, NilDescriptor.nil());
 			object.setSlot(GRAMMATICAL_RESTRICTIONS, NilDescriptor.nil());
 			object.setSlot(VARIABLE_BINDINGS, NilDescriptor.nil());
 			object.setSlot(CONSTANT_BINDINGS, NilDescriptor.nil());
@@ -701,14 +669,9 @@ extends Descriptor
 	{
 		synchronized (object)
 		{
-			for (final MapDescriptor.Entry entry
-				: object.methods().mapIterable())
+			for (final A_BasicObject definition : object.methodDefinitions())
 			{
-				for (final AvailObject definition : entry.value)
-				{
-					assert definition.definitionMethod().equals(entry.key);
-					anInterpreter.removeDefinition(definition);
-				}
+				anInterpreter.removeDefinition(definition);
 			}
 			final A_BasicObject typeRestrictions = object.slot(
 				TYPE_RESTRICTION_FUNCTIONS);
@@ -756,12 +719,12 @@ extends Descriptor
 		synchronized (object)
 		{
 			assert forwardDeclaration.isInstanceOfKind(FORWARD_DEFINITION.o());
-			A_Set methods = object.slot(METHODS_SET);
+			A_Set methods = object.slot(METHOD_DEFINITIONS_SET);
 			assert methods.hasElement(forwardDeclaration);
 			methods = methods.setWithoutElementCanDestroy(
 				forwardDeclaration,
 				false);
-			object.setSlot(METHODS_SET, methods.makeShared());
+			object.setSlot(METHOD_DEFINITIONS_SET, methods.makeShared());
 		}
 	}
 
@@ -820,6 +783,35 @@ extends Descriptor
 	}
 
 	/**
+	 * Populate my {@linkplain MessageBundleTreeDescriptor bundle tree} to have
+	 * the {@linkplain MessageBundleDescriptor message bundles} that are visible
+	 * in the current module.
+	 *
+	 * @param object The module.
+	 * @param bundleMap
+	 *        A {@linkplain MapDescriptor map} from bundle name ({@linkplain
+	 *        AtomDescriptor atom}) to the corresponding message bundle.
+	 */
+	@Override @AvailMethod
+	void o_BuildFilteredBundleTreeFrom (
+		final AvailObject object,
+		final A_Map bundleMap)
+	{
+		synchronized (object)
+		{
+			final A_BasicObject filteredBundleTree =
+				object.slot(FILTERED_BUNDLE_TREE);
+			for (final A_Atom visibleName : object.visibleNames())
+			{
+				if (bundleMap.hasKey(visibleName))
+				{
+					filteredBundleTree.addBundle(bundleMap.mapAt(visibleName));
+				}
+			}
+		}
+	}
+
+	/**
 	 * Construct a new empty {@linkplain ModuleDescriptor module}.
 	 *
 	 * @param moduleName
@@ -837,7 +829,7 @@ extends Descriptor
 		object.setSlot(IMPORTED_NAMES, emptyMap);
 		object.setSlot(PRIVATE_NAMES, emptyMap);
 		object.setSlot(VISIBLE_NAMES, emptySet);
-		object.setSlot(METHODS_SET, emptySet);
+		object.setSlot(METHOD_DEFINITIONS_SET, emptySet);
 		object.setSlot(GRAMMATICAL_RESTRICTIONS, emptyMap);
 		object.setSlot(VARIABLE_BINDINGS, emptyMap);
 		object.setSlot(CONSTANT_BINDINGS, emptyMap);

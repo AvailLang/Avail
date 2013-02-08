@@ -34,6 +34,7 @@ package com.avail.descriptor;
 
 import static com.avail.descriptor.AvailObject.*;
 import static com.avail.descriptor.Mutability.*;
+import static com.avail.descriptor.ByteStringDescriptor.IntegerSlots.*;
 import com.avail.annotations.*;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.*;
@@ -203,7 +204,7 @@ extends StringDescriptor
 	{
 		//  Answer the byte that encodes the character at the given index.
 		assert index >= 1 && index <= object.tupleSize();
-		return object.byteSlotAt(IntegerSlots.RAW_QUAD_AT_, index);
+		return object.byteSlotAt(RAW_QUAD_AT_, index);
 	}
 
 	@Override @AvailMethod
@@ -215,7 +216,7 @@ extends StringDescriptor
 		//  Set the character at the given index based on the given byte.
 		assert isMutable();
 		assert index >= 1 && index <= object.tupleSize();
-		object.byteSlotAtPut(IntegerSlots.RAW_QUAD_AT_, index, anInteger);
+		object.byteSlotAtPut(RAW_QUAD_AT_, index, anInteger);
 	}
 
 	@Override @AvailMethod
@@ -224,8 +225,7 @@ extends StringDescriptor
 		// Answer the element at the given index in the tuple object.  It's a
 		// one-byte character.
 		assert index >= 1 && index <= object.tupleSize();
-		final short codePoint =
-			object.byteSlotAt(IntegerSlots.RAW_QUAD_AT_, index);
+		final short codePoint = object.byteSlotAt(RAW_QUAD_AT_, index);
 		return CharacterDescriptor.fromByteCodePoint(codePoint);
 	}
 
@@ -240,7 +240,7 @@ extends StringDescriptor
 		assert isMutable();
 		assert index >= 1 && index <= object.tupleSize();
 		final short codePoint = (short) aCharacterObject.codePoint();
-		object.byteSlotAtPut(IntegerSlots.RAW_QUAD_AT_, index, codePoint);
+		object.byteSlotAtPut(RAW_QUAD_AT_, index, codePoint);
 	}
 
 	@Override @AvailMethod
@@ -348,6 +348,170 @@ extends StringDescriptor
 		return object.asNativeString();
 	}
 
+	@Override
+	A_Tuple o_CopyTupleFromToCanDestroy (
+		final AvailObject object,
+		final int start,
+		final int end,
+		final boolean canDestroy)
+	{
+		if (end - start < 50)
+		{
+			// Make a simple copy of a small region.
+			return generateByteString(
+				end - start + 1,
+				new Generator<Integer>()
+				{
+					private int sourceIndex = start;
+
+					@Override
+					public Integer value ()
+					{
+						return (int)object.byteSlotAt(
+							RAW_QUAD_AT_, sourceIndex++);
+					}
+				});
+		}
+		return super.o_CopyTupleFromToCanDestroy(
+			object,
+			start,
+			end,
+			canDestroy);
+	}
+
+
+	/**
+	 * Create an object of the appropriate size, whose descriptor is an instance
+	 * of {@link ByteStringDescriptor}.  Note that it can only store Latin-1
+	 * characters (i.e., those having Unicode code points 0..255).  Run the
+	 * generator for each position in ascending order to produce the code
+	 * points with which to populate the string.
+	 *
+	 * @param size The size of byte string to create.
+	 * @param generator A generator to provide code points to store.
+	 * @return The new Avail {@linkplain ByteStringDescriptor string}.
+	 */
+	static AvailObject generateByteString(
+		final int size,
+		final Generator<Integer> generator)
+	{
+		final ByteStringDescriptor descriptor = descriptorFor(MUTABLE, size);
+		final AvailObject result = descriptor.mutableObjectOfSize(size);
+		// Aggregate four writes at a time for the bulk of the string.
+		int index;
+		for (index = 1; index <= size - 3; index += 4)
+		{
+			final int byte1 = generator.value();
+			assert (byte1 & 255) == byte1;
+			final int byte2 = generator.value();
+			assert (byte2 & 255) == byte2;
+			final int byte3 = generator.value();
+			assert (byte3 & 255) == byte3;
+			final int byte4 = generator.value();
+			assert (byte4 & 255) == byte4;
+			// Use little-endian, since that's what byteSlotAtPut(...) uses.
+			final int combined =
+				byte1
+				+ (byte2 << 8)
+				+ (byte3 << 16)
+				+ (byte4 << 24);
+			result.setSlot(RAW_QUAD_AT_, (index + 3) >> 2, combined);
+		}
+		// Do the last 0-3 writes the slow way.
+		for (; index <= size; index++)
+		{
+			final int b = generator.value();
+			assert (b & 255) == b;
+			result.rawByteForCharacterAtPut(index, (short) b);
+		}
+		return result;
+	}
+
+	/**
+	 * Answer a mutable copy of the {@linkplain AvailObject receiver} that also
+	 * only holds byte {@linkplain CharacterDescriptor characters}.
+	 *
+	 * @param object The {@linkplain AvailObject receiver}.
+	 * @return A mutable copy of the {@linkplain AvailObject receiver}.
+	 */
+	private A_String copyAsMutableByteString (
+		final AvailObject object)
+	{
+		final AvailObject result = mutableObjectOfSize(object.tupleSize());
+		assert result.integerSlotsCount() == object.integerSlotsCount();
+		result.hashOrZero(object.hashOrZero());
+		// Copy four bytes at a time.
+		for (int i = 1, end = object.variableIntegerSlotsCount(); i <= end; i++)
+		{
+			result.setSlot(RAW_QUAD_AT_, i, object.slot(RAW_QUAD_AT_, i));
+		}
+		return result;
+	}
+
+	/**
+	 * Answer a mutable copy of the {@linkplain AvailObject receiver} that holds
+	 * 16-bit characters.
+	 *
+	 * @param object The {@linkplain AvailObject receiver}.
+	 * @return A mutable copy of the {@linkplain AvailObject receiver}.
+	 */
+	private A_String copyAsMutableTwoByteString (
+		final A_String object)
+	{
+		final A_String result =
+			TwoByteStringDescriptor.mutableObjectOfSize(object.tupleSize());
+		result.hashOrZero(object.hashOrZero());
+		for (int i = 1, end = object.tupleSize(); i <= end; i++)
+		{
+			result.rawShortForCharacterAtPut(
+				i,
+				object.rawByteForCharacterAt(i));
+		}
+		return result;
+	}
+
+	/**
+	 * Answer a new {@linkplain ByteStringDescriptor object} capacious enough to
+	 * hold the specified number of elements.
+	 *
+	 * @param size The desired number of elements.
+	 * @return A new {@linkplain ByteStringDescriptor object}.
+	 */
+	private AvailObject mutableObjectOfSize (final int size)
+	{
+		assert isMutable();
+		assert (size + unusedBytesOfLastWord & 3) == 0;
+		final AvailObject result = create((size + 3) >> 2);
+		return result;
+	}
+
+	/**
+	 * Convert the specified Java {@link String} of purely Latin-1 characters
+	 * into an Avail {@linkplain ByteStringDescriptor string}.
+	 *
+	 * @param aNativeByteString
+	 *            A Java {@link String} whose code points are all 0..255.
+	 * @return
+	 *            A corresponding Avail {@linkplain ByteStringDescriptor
+	 *            string}.
+	 */
+	static AvailObject mutableObjectFromNativeByteString(
+		final String aNativeByteString)
+	{
+		return generateByteString(
+			aNativeByteString.length(),
+			new Generator<Integer>()
+			{
+				private int sourceIndex = 0;
+
+				@Override
+				public Integer value ()
+				{
+					return (int)aNativeByteString.charAt(sourceIndex++);
+				}
+			});
+	}
+
 	/**
 	 * Construct a new {@link ByteStringDescriptor}.
 	 *
@@ -403,67 +567,6 @@ extends StringDescriptor
 	}
 
 	/**
-	 * Answer a mutable copy of the {@linkplain AvailObject receiver} that also
-	 * only holds byte {@linkplain CharacterDescriptor characters}.
-	 *
-	 * @param object The {@linkplain AvailObject receiver}.
-	 * @return A mutable copy of the {@linkplain AvailObject receiver}.
-	 */
-	private A_String copyAsMutableByteString (
-		final AvailObject object)
-	{
-		final AvailObject result = mutableObjectOfSize(object.tupleSize());
-		assert result.integerSlotsCount() == object.integerSlotsCount();
-		result.hashOrZero(object.hashOrZero());
-		// Copy four bytes at a time.
-		for (int i = 1, end = object.variableIntegerSlotsCount(); i <= end; i++)
-		{
-			result.setSlot(
-				IntegerSlots.RAW_QUAD_AT_,
-				i,
-				object.slot(IntegerSlots.RAW_QUAD_AT_, i));
-		}
-		return result;
-	}
-
-	/**
-	 * Answer a mutable copy of the {@linkplain AvailObject receiver} that holds
-	 * 16-bit characters.
-	 *
-	 * @param object The {@linkplain AvailObject receiver}.
-	 * @return A mutable copy of the {@linkplain AvailObject receiver}.
-	 */
-	private A_String copyAsMutableTwoByteString (
-		final A_String object)
-	{
-		final A_String result =
-			TwoByteStringDescriptor.mutableObjectOfSize(object.tupleSize());
-		result.hashOrZero(object.hashOrZero());
-		for (int i = 1, end = object.tupleSize(); i <= end; i++)
-		{
-			result.rawShortForCharacterAtPut(
-				i,
-				object.rawByteForCharacterAt(i));
-		}
-		return result;
-	}
-
-	/**
-	 * Answer a new {@linkplain ByteStringDescriptor object} capacious enough to
-	 * hold the specified number of elements.
-	 *
-	 * @param size The desired number of elements.
-	 * @return A new {@linkplain ByteStringDescriptor object}.
-	 */
-	private AvailObject mutableObjectOfSize (final int size)
-	{
-		assert isMutable();
-		assert (size + unusedBytesOfLastWord & 3) == 0;
-		final AvailObject result = create((size + 3) >> 2);
-		return result;
-	}
-
-	/**
 	 * Answer the appropriate {@linkplain ByteStringDescriptor descriptor} to
 	 * represent an {@linkplain AvailObject object} of the specified mutability
 	 * and size.
@@ -481,82 +584,5 @@ extends StringDescriptor
 		final int size)
 	{
 		return descriptors[(size & 3) * 3 + flag.ordinal()];
-	}
-
-	/**
-	 * Convert the specified Java {@link String} of purely Latin-1 characters
-	 * into an Avail {@linkplain ByteStringDescriptor string}.
-	 *
-	 * @param aNativeByteString
-	 *            A Java {@link String} whose code points are all 0..255.
-	 * @return
-	 *            A corresponding Avail {@linkplain ByteStringDescriptor
-	 *            string}.
-	 */
-	static AvailObject mutableObjectFromNativeByteString(
-		final String aNativeByteString)
-	{
-		return generateByteString(
-			aNativeByteString.length(),
-			new Generator<Integer>()
-			{
-				private int sourceIndex = 0;
-
-				@Override
-				public Integer value ()
-				{
-					return (int)aNativeByteString.charAt(sourceIndex++);
-				}
-			});
-	}
-
-	/**
-	 * Create an object of the appropriate size, whose descriptor is an instance
-	 * of {@link ByteStringDescriptor}.  Note that it can only store Latin-1
-	 * characters (i.e., those having Unicode code points 0..255).  Run the
-	 * generator for each position in ascending order to produce the code
-	 * points with which to populate the string.
-	 *
-	 * @param size The size of byte string to create.
-	 * @param generator A generator to provide code points to store.
-	 * @return The new Avail {@linkplain ByteStringDescriptor string}.
-	 */
-	static AvailObject generateByteString(
-		final int size,
-		final Generator<Integer> generator)
-	{
-		final ByteStringDescriptor descriptor = descriptorFor(MUTABLE, size);
-		final AvailObject result = descriptor.mutableObjectOfSize(size);
-		// Aggregate four writes at a time for the bulk of the string.
-		int index;
-		for (index = 1; index <= size - 3; index += 4)
-		{
-			final int byte1 = generator.value();
-			assert (byte1 & 255) == byte1;
-			final int byte2 = generator.value();
-			assert (byte2 & 255) == byte2;
-			final int byte3 = generator.value();
-			assert (byte3 & 255) == byte3;
-			final int byte4 = generator.value();
-			assert (byte4 & 255) == byte4;
-			// Use little-endian, since that's what byteSlotAtPut(...) uses.
-			final int combined =
-				byte1
-				+ (byte2 << 8)
-				+ (byte3 << 16)
-				+ (byte4 << 24);
-			result.setSlot(
-				IntegerSlots.RAW_QUAD_AT_,
-				(index + 3) >> 2,
-				combined);
-		}
-		// Do the last 0-3 writes the slow way.
-		for (; index <= size; index++)
-		{
-			final int b = generator.value();
-			assert (b & 255) == b;
-			result.rawByteForCharacterAtPut(index, (short) b);
-		}
-		return result;
 	}
 }

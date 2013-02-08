@@ -648,6 +648,7 @@ extends Descriptor
 		}
 		if (isMutable() && canDestroy && (start == 1 || end - start < 20))
 		{
+			// Reuse the existing tuple to hold the smaller one.
 			if (start != 1)
 			{
 				for (int i = 1; i <= end - start + 1; i++)

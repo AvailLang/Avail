@@ -38,6 +38,7 @@ import static com.avail.descriptor.TokenDescriptor.TokenType.*;
 import static com.avail.descriptor.TupleDescriptor.toList;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.utility.PrefixSharingList.*;
+import static java.lang.Math.min;
 import java.io.*;
 import java.util.*;
 import java.util.concurrent.*;
@@ -1699,21 +1700,33 @@ public abstract class AbstractAvailCompiler
 						parts2.add(part);
 					}
 				});
-			if (parts1.size() != parts2.size())
+			final boolean isBlock =
+				node1.value.kind().parseNodeKindIsUnder(BLOCK_NODE);
+			if (parts1.size() != parts2.size() && !isBlock)
 			{
 				// Different structure at this level.
 				return;
 			}
-			final List<Integer> differentIndices =
-				new ArrayList<Integer>();
-			for (int i = 0; i < parts1.size(); i++)
+			final List<Integer> differentIndices = new ArrayList<Integer>();
+			for (int i = 0; i < min(parts1.size(), parts2.size()); i++)
 			{
 				if (!parts1.get(i).equals(parts2.get(i)))
 				{
 					differentIndices.add(i);
 				}
 			}
-			if (differentIndices.size() != 1)
+			if (isBlock)
+			{
+				if (differentIndices.size() == 0)
+				{
+					// Statement or argument lists are probably different sizes.
+					// Use the block itself.
+					return;
+				}
+				// Show the first argument or statement that differs.
+				// Fall through.
+			}
+			else if (differentIndices.size() != 1)
 			{
 				// More than one part differs, so we can't drill deeper.
 				return;
@@ -1767,7 +1780,6 @@ public abstract class AbstractAvailCompiler
 						// Don't actually run tasks if canceling.
 						if (!canceling)
 						{
-//							System.out.println(task.value);  //TODO[MvG] Remove
 							continuation.value();
 						}
 					}
@@ -2416,11 +2428,12 @@ public abstract class AbstractAvailCompiler
 		}
 		if (anyPrefilter)
 		{
-			System.out.println("PREFILTER ENCOUNTERED: " + prefilter);
+//			System.out.println("PREFILTER ENCOUNTERED: " + prefilter);
 			final A_BasicObject latestArgument = last(argsSoFar);
 			if (latestArgument.isInstanceOfKind(SEND_NODE.mostGeneralType()))
 			{
-				final AvailObject methodName = latestArgument.method().name();
+				//TODO[MvG] This probably isn't right...
+				final A_Atom methodName = latestArgument.method().originalName();
 				if (prefilter.hasKey(methodName))
 				{
 					eventuallyParseRestOfSendNode(
@@ -3724,7 +3737,7 @@ public abstract class AbstractAvailCompiler
 				});
 			assert workPool.isEmpty();
 
-			if (canceling)
+			if (canceling && causeOfCancellation != null)
 			{
 				reportError(
 					qualifiedName,

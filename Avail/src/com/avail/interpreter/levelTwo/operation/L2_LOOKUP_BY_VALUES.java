@@ -76,16 +76,16 @@ public class L2_LOOKUP_BY_VALUES extends L2Operation
 			interpreter.argsBuffer.add(
 				interpreter.pointerAt(vect.tupleIntAt(i)));
 		}
-		final A_BasicObject selector =
+		final A_BasicObject method =
 			interpreter.chunk().literalAt(selectorIndex);
 		if (debugL1)
 		{
 			System.out.printf(
 				"  --- looking up: %s%n",
-				selector.name().name());
+				method.originalName().name());
 		}
 		final A_BasicObject signatureToCall =
-			selector.lookupByValuesFromList(interpreter.argsBuffer);
+			method.lookupByValuesFromList(interpreter.argsBuffer);
 		if (signatureToCall.equalsNil())
 		{
 			error("Unable to find unique definition for call");

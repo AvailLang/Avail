@@ -771,7 +771,7 @@ public class L2Translator implements L1OperationDispatcher
 			primitivesToInlineForArgumentRegisters(method, args);
 
 		final L2Instruction successLabel;
-		successLabel = newLabel("success: " + method.name().name());
+		successLabel = newLabel("success: " + method.originalName().name());
 		if (primFunctions != null)
 		{
 			// Inline the primitive.  Attempt to fold it if the primitive says
@@ -811,7 +811,7 @@ public class L2Translator implements L1OperationDispatcher
 			savedSlotConstants.add(registers.constantAt(reg));
 		}
 		final L2Instruction postCallLabel =
-			newLabel("postCall " + method.name().name());
+			newLabel("postCall " + method.originalName().name());
 		addInstruction(
 			L2_CREATE_CONTINUATION.instance,
 			new L2ReadPointerOperand(registers.fixed(CALLER)),

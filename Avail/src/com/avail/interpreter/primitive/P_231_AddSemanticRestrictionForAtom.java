@@ -75,7 +75,8 @@ extends Primitive
 		}
 		try
 		{
-			interpreter.addTypeRestriction(atom, function);
+			final AvailObject method = interpreter.runtime().methodFor(atom);
+			interpreter.addTypeRestriction(atom, function, method);
 			function.code().setMethodName(
 				StringDescriptor.from(
 					String.format("Semantic restriction of %s", atom.name())));

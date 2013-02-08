@@ -387,7 +387,7 @@ public interface A_BasicObject
 	 * @throws SignatureException
 	 *         If the definition could not be added.
 	 */
-	void methodAddDefinition (AvailObject definition)
+	void methodAddDefinition (A_BasicObject definition)
 		throws SignatureException;
 
 	/**
@@ -409,15 +409,13 @@ public interface A_BasicObject
 	/**
 	 * @param definition
 	 */
-	void moduleAddDefinition (AvailObject definition);
+	void moduleAddDefinition (A_BasicObject definition);
 
 	/**
-	 * @param message
 	 * @param bundle
 	 */
-	void atMessageAddBundle (
-		AvailObject message,
-		AvailObject bundle);
+	void addBundle (
+		A_BasicObject bundle);
 
 	/**
 	 * @param stringName
@@ -530,7 +528,7 @@ public interface A_BasicObject
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	void buildFilteredBundleTreeFrom (A_BasicObject bundleTree);
+	void buildFilteredBundleTreeFrom (A_Map bundleMap);
 
 	/**
 	 * Dispatch to the descriptor.
@@ -601,13 +599,6 @@ public interface A_BasicObject
 	 * Dispatch to the descriptor.
 	 */
 	A_BasicObject copyAsMutableContinuation ();
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	void copyToRestrictedTo (
-		A_BasicObject filteredBundleTree,
-		A_Set visibleNames);
 
 	/**
 	 * Dispatch to the descriptor.
@@ -1002,8 +993,9 @@ public interface A_BasicObject
 
 	/**
 	 * Dispatch to the descriptor.
+	 * @param method TODO
 	 */
-	AvailObject includeBundleNamed (A_Atom messageName);
+	AvailObject includeBundleNamed (A_Atom messageName, A_BasicObject method);
 
 	/**
 	 * Dispatch to the descriptor.
@@ -1334,7 +1326,7 @@ public interface A_BasicObject
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	A_BasicObject methods ();
+	A_Set methodDefinitions ();
 
 	/**
 	 * Dispatch to the descriptor.
@@ -2802,7 +2794,7 @@ public interface A_BasicObject
 	/**
 	 * @return
 	 */
-	A_BasicObject moduleName ();
+	A_String moduleName ();
 
 	/**
 	 * @return
@@ -2812,7 +2804,7 @@ public interface A_BasicObject
 	/**
 	 * @return
 	 */
-	A_BasicObject originalName ();
+	A_Atom originalName ();
 
 	/**
 	 * @return
@@ -2867,4 +2859,8 @@ public interface A_BasicObject
 	 */
 	int mapBinValuesHash ();
 
+	/**
+	 * @return
+	 */
+	AvailObject bundleMethod ();
 }

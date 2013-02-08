@@ -433,71 +433,29 @@ extends Descriptor
 	 * Add the given message/bundle pair.
 	 */
 	@Override @AvailMethod
-	void o_AtMessageAddBundle (
+	void o_AddBundle (
 		final AvailObject object,
-		final AvailObject message,
-		final AvailObject bundle)
+		final A_BasicObject bundle)
 	{
 		synchronized (object)
 		{
 			A_Map allBundles = object.slot(ALL_BUNDLES);
-			allBundles = allBundles.mapAtPuttingCanDestroy(
-				message,
-				bundle,
-				true);
-			object.setSlot(ALL_BUNDLES, allBundles.traversed().makeShared());
-			A_Map unclassified = object.slot(UNCLASSIFIED);
-			assert !unclassified.hasKey(message);
-			unclassified = unclassified.mapAtPuttingCanDestroy(
-				message,
-				bundle,
-				true);
-			object.setSlot(UNCLASSIFIED, unclassified.traversed().makeShared());
-		}
-	}
-
-	/**
-	 * Copy the visible message bundles to the filteredBundleTree. The Avail
-	 * {@linkplain SetDescriptor set} of visible names ({@linkplain
-	 * AtomDescriptor atoms}) is in {@code visibleNames}.
-	 */
-	@Override @AvailMethod
-	void o_CopyToRestrictedTo (
-		final AvailObject object,
-		final A_BasicObject filteredBundleTree,
-		final A_Set visibleNames)
-	{
-		synchronized (object)
-		{
-			assert object.slot(PARSING_PC) == 1;
-			final AvailObject filtered = filteredBundleTree.traversed();
-			assert filtered.slot(PARSING_PC) == 1;
-			A_Map filteredAllBundles = filtered.slot(ALL_BUNDLES);
-			A_Map filteredUnclassified = filtered.slot(UNCLASSIFIED);
-			for (final MapDescriptor.Entry entry
-				: object.slot(ALL_BUNDLES).mapIterable())
+			final A_Atom message = bundle.message();
+			if (!allBundles.hasKey(message))
 			{
-				final AvailObject message = entry.key;
-				final AvailObject bundle = entry.value;
-				if (visibleNames.hasElement(message)
-					&& !filteredAllBundles.hasKey(message))
-				{
-					filteredAllBundles =
-						filteredAllBundles.mapAtPuttingCanDestroy(
-							message,
-							bundle,
-							true);
-					filteredUnclassified =
-						filteredUnclassified.mapAtPuttingCanDestroy(
-							message,
-							bundle,
-							true);
-				}
+				allBundles = allBundles.mapAtPuttingCanDestroy(
+					message,
+					bundle,
+					true);
+				object.setSlot(ALL_BUNDLES, allBundles.makeShared());
+				A_Map unclassified = object.slot(UNCLASSIFIED);
+				assert !unclassified.hasKey(message);
+				unclassified = unclassified.mapAtPuttingCanDestroy(
+					message,
+					bundle,
+					true);
+				object.setSlot(UNCLASSIFIED, unclassified.makeShared());
 			}
-			filtered.setSlot(
-				ALL_BUNDLES, filteredAllBundles.traversed().makeShared());
-			filtered.setSlot(
-				UNCLASSIFIED, filteredUnclassified.traversed().makeShared());
 		}
 	}
 
@@ -508,7 +466,8 @@ extends Descriptor
 	@Override @AvailMethod
 	AvailObject o_IncludeBundleNamed (
 		final AvailObject object,
-		final A_Atom messageBundleName)
+		final A_Atom messageBundleName,
+		final A_BasicObject method)
 	{
 		synchronized (object)
 		{
@@ -520,8 +479,9 @@ extends Descriptor
 			final AvailObject newBundle;
 			try
 			{
-				newBundle =
-					MessageBundleDescriptor.newBundle(messageBundleName);
+				newBundle = MessageBundleDescriptor.newBundle(
+					messageBundleName,
+					method);
 			}
 			catch (final SignatureException e)
 			{
@@ -630,13 +590,13 @@ extends Descriptor
 					pc);
 			}
 			object.setSlot(UNCLASSIFIED, MapDescriptor.empty());
-			object.setSlot(LAZY_COMPLETE, complete.value);
-			object.setSlot(LAZY_INCOMPLETE, incomplete.value);
+			object.setSlot(LAZY_COMPLETE, complete.value.makeShared());
+			object.setSlot(LAZY_INCOMPLETE, incomplete.value.makeShared());
 			object.setSlot(
 				LAZY_INCOMPLETE_CASE_INSENSITIVE,
-				caseInsensitive.value);
-			object.setSlot(LAZY_ACTIONS, actionMap.value);
-			object.setSlot(LAZY_PREFILTER_MAP, prefilterMap.value);
+				caseInsensitive.value.makeShared());
+			object.setSlot(LAZY_ACTIONS, actionMap.value.makeShared());
+			object.setSlot(LAZY_PREFILTER_MAP, prefilterMap.value.makeShared());
 		}
 	}
 
@@ -662,6 +622,16 @@ extends Descriptor
 		final Mutable<A_Map> prefilterMap,
 		final int pc)
 	{
+		//TODO[MvG] Let the bundles directly hold methods in addition to the
+		//name by which they're referring to it.
+		if (bundle.bundleMethod().definitionsTuple().tupleSize() == 0)
+		{
+			// There are no definitions of this method, so there's no reason
+			// to try to parse it.  This can happen when grammatical
+			// restrictions are defined before a method is implemented, a
+			// reasonably common situation.
+			return;
+		}
 		final A_Tuple instructions = bundle.parsingInstructions();
 		if (pc == instructions.tupleSize() + 1)
 		{
@@ -699,7 +669,7 @@ extends Descriptor
 					subtree,
 					true);
 			}
-			subtree.includeBundleNamed(bundle);
+			subtree.addBundle(bundle);
 			return;
 		}
 
@@ -738,7 +708,7 @@ extends Descriptor
 			{
 				if (!restrictionSet.hasElement(prefilterEntry.key))
 				{
-					prefilterEntry.value.includeBundleNamed(bundle);
+					prefilterEntry.value.addBundle(bundle);
 				}
 			}
 			// Add branches for any new restrictions.  Pre-populate
@@ -758,7 +728,7 @@ extends Descriptor
 					for (final MapDescriptor.Entry existingEntry
 						: successor.allBundles().mapIterable())
 					{
-						newTarget.includeBundleNamed(existingEntry.value);
+						newTarget.addBundle(existingEntry.value);
 					}
 					prefilterMap.value =
 						prefilterMap.value.mapAtPuttingCanDestroy(
@@ -771,7 +741,7 @@ extends Descriptor
 			// postponed, since we didn't want to add it under any
 			// new restrictions, and the actionMap is what gets
 			// visited to populate new restrictions.
-			successor.includeBundleNamed(bundle);
+			successor.addBundle(bundle);
 
 			// Note:  DO NOT return here, since the action has to also be added
 			// to the actionMap (to deal with the case that a subexpression is
@@ -802,7 +772,7 @@ extends Descriptor
 		assert successors.tupleSize() == nextPcs.size();
 		for (final A_BasicObject successor : successors)
 		{
-			successor.includeBundleNamed(bundle);
+			successor.addBundle(bundle);
 		}
 	}
 
