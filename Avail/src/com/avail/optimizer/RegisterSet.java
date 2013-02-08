@@ -36,6 +36,7 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
 import com.avail.annotations.Nullable;
 import com.avail.descriptor.*;
+import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.*;
 import com.avail.interpreter.levelTwo.operand.L2Operand;
 import com.avail.interpreter.levelTwo.register.*;
@@ -443,22 +444,24 @@ public class RegisterSet
 	 * pairs (e.g., <a,b>[1]).
 	 */
 	final Transformer2<L2Register, L2OperandType, L2Register> normalizer =
-	new Transformer2<L2Register, L2OperandType, L2Register>()
-	{
-		@Override
-		public L2Register value (
-			final L2Register register,
-			final L2OperandType operandType)
+		new Transformer2<L2Register, L2OperandType, L2Register>()
 		{
-			return normalize(register, operandType);
-		}
-	};
+			@Override
+			public L2Register value (
+				final @Nullable L2Register register,
+				final @Nullable L2OperandType operandType)
+			{
+				assert register != null;
+				assert operandType != null;
+				return normalize(register, operandType);
+			}
+		};
 
 	/**
 	 * Answer an {@link L2ObjectRegister} representing the specified
 	 * architectural register.  This is not physical machine level architectural
 	 * register, but rather an abstract representation that the {@link
-	 * L2Interpreter} uses at execution time.  Not even that, really, since this
+	 * Interpreter} uses at execution time.  Not even that, really, since this
 	 * is still code generation time.  The register is a placeholder, subject to
 	 * register splitting, value propagation and whatever else happens.  Only
 	 * level one code actually treats the registers as architectural at runtime.

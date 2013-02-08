@@ -40,7 +40,7 @@ import com.avail.interpreter.*;
 
 /**
  * <strong>Primitive 263</strong>: This private primitive is used to ensure that
- * a module can deserialize correctly.  It forces the given set of atoms to be
+ * a module can deserialize correctly. It forces the given set of atoms to be
  * included in the current module's {@linkplain
  * com.avail.descriptor.ModuleDescriptor.ObjectSlots#NAMES public names} or
  * {@linkplain com.avail.descriptor.ModuleDescriptor.ObjectSlots#PRIVATE_NAMES
@@ -68,9 +68,8 @@ extends Primitive
 		assert args.size() == 2;
 		final AvailObject names = args.get(0);
 		final AvailObject isPublic = args.get(1);
-		final AvailObject module = interpreter.module();
-
-		assert module != null;
+		final AvailObject module = ModuleDescriptor.current();
+		assert !module.equalsNil();
 		if (isPublic.extractBoolean())
 		{
 			for (final AvailObject name : names)

@@ -93,6 +93,12 @@ extends ParseNodeDescriptor
 		DECLARATION
 	}
 
+	@Override
+	boolean allowsImmutableToMutableReferenceInField (final AbstractSlotsEnum e)
+	{
+		return e == FLAGS;
+	}
+
 	@Override @AvailMethod
 	AvailObject o_Token (final AvailObject object)
 	{
@@ -110,15 +116,31 @@ extends ParseNodeDescriptor
 		final AvailObject object,
 		final boolean isLastUse)
 	{
-		object.setSlot(LAST_USE, isLastUse ? 1 : 0);
+		if (isShared())
+		{
+			synchronized (object)
+			{
+				object.setSlot(LAST_USE, isLastUse ? 1 : 0);
+			}
+		}
+		else
+		{
+			object.setSlot(LAST_USE, isLastUse ? 1 : 0);
+		}
 	}
 
 	@Override @AvailMethod
 	boolean o_IsLastUse (final AvailObject object)
 	{
+		if (isShared())
+		{
+			synchronized (object)
+			{
+				return object.slot(LAST_USE) != 0;
+			}
+		}
 		return object.slot(LAST_USE) != 0;
 	}
-
 
 	@Override @AvailMethod
 	AvailObject o_ExpressionType (final AvailObject object)
@@ -130,8 +152,7 @@ extends ParseNodeDescriptor
 	int o_Hash (final AvailObject object)
 	{
 		return
-			((object.isLastUse() ? 1 : 0) * multiplier
-				+ object.slot(USE_TOKEN).hash()) * multiplier
+			(object.slot(USE_TOKEN).hash()) * multiplier
 				+ object.slot(DECLARATION).hash()
 			^ 0x62CE7BA2;
 	}
@@ -214,7 +235,8 @@ extends ParseNodeDescriptor
 		final AvailObject newUse = mutable.create();
 		newUse.setSlot(USE_TOKEN, theToken);
 		newUse.setSlot(DECLARATION, declaration);
-		newUse.isLastUse(false);
+		newUse.setSlot(FLAGS, 0);
+		newUse.makeShared();
 		return newUse;
 	}
 

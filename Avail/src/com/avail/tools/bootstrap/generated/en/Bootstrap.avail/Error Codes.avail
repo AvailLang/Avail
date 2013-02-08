@@ -70,13 +70,14 @@ Names
 	/*   2 */ "cannot subtract like infinities code",
 	/*   8 */ "cannot swap contents of differently typed variables code",
 	/*  51 */ "case insensitive expression canonization code",
-	/*  70 */ "compilation is over code",
 	/*  14 */ "continuation expected stronger type code",
 	/*  36 */ "declaration kind does not support assignment code",
 	/*  37 */ "declaration kind does not support reference code",
 	/*  53 */ "double question mark must follow a simple or simple group code",
 	/*  38 */ "exclamation mark must follow an alternation group code",
 	/*  46 */ "expected operator after backquote code",
+	/*  60 */ "fiber cannot join itself code",
+	/*  59 */ "fiber result unavailable code",
 	/*  27 */ "function disagrees with primitive restriction code",
 	/*  80 */ "handler sentinel code",
 	/*  12 */ "incorrect argument type code",
@@ -92,6 +93,7 @@ Names
 	/*  33 */ "invalid special object number code",
 	/*  21 */ "key not found code",
 	/*  58 */ "label macro must occur inside a block code",
+	/*  70 */ "loading is over code",
 	/*  28 */ "local type literal is not a type code",
 	/*  34 */ "macro argument must be a parse node code",
 	/*  71 */ "method definition lookup failed code",
@@ -416,7 +418,17 @@ Primitive "label macro must occur inside a block code" is
 	58
 ];
 
-Primitive "compilation is over code" is
+Primitive "fiber result unavailable code" is
+[
+	59
+];
+
+Primitive "fiber cannot join itself code" is
+[
+	60
+];
+
+Primitive "loading is over code" is
 [
 	70
 ];

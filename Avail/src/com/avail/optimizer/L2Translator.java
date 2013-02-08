@@ -58,7 +58,8 @@ import com.avail.utility.*;
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class L2Translator implements L1OperationDispatcher
+public class L2Translator
+implements L1OperationDispatcher
 {
 	/**
 	 * Whether detailed optimization information should be logged.
@@ -109,7 +110,7 @@ public class L2Translator implements L1OperationDispatcher
 	/**
 	 * The interpreter that tripped the optimization request.
 	 */
-	@InnerAccess L2Interpreter interpreter;
+	@InnerAccess Interpreter interpreter;
 
 	/**
 	 * The current sequence of level two instructions.
@@ -647,7 +648,7 @@ public class L2Translator implements L1OperationDispatcher
 				argValues);
 			if (success == SUCCESS)
 			{
-				final AvailObject value = interpreter.primitiveResult();
+				final AvailObject value = interpreter.latestResult();
 				if (value.isInstanceOf(expectedType))
 				{
 					value.makeImmutable();
@@ -656,8 +657,7 @@ public class L2Translator implements L1OperationDispatcher
 					return value;
 				}
 			}
-			assert success != CONTINUATION_CHANGED
-			: "This foldable primitive changed the continuation!";
+			assert success == SUCCESS || success == FAILURE;
 		}
 		final List<AvailObject> argTypes =
 			new ArrayList<AvailObject>(args.size());
@@ -775,7 +775,7 @@ public class L2Translator implements L1OperationDispatcher
 		successLabel = newLabel("success: " + method.name().name());
 		if (primFunctions != null)
 		{
-			// Inline the primitive.  Attempt to fold it if the primitive says
+			// Inline the primitive. Attempt to fold it if the primitive says
 			// it's foldable and the arguments are all constants.
 			final Mutable<Boolean> canFailPrimitive = new Mutable<Boolean>();
 			final AvailObject folded = emitInlinePrimitiveAttempt(
@@ -826,7 +826,8 @@ public class L2Translator implements L1OperationDispatcher
 		// Look up the method body to invoke.
 		final List<AvailObject> possibleMethods =
 			method.definitionsAtOrBelow(argTypes);
-		if (possibleMethods.size() == 1 && possibleMethods.get(0).isMethodDefinition())
+		if (possibleMethods.size() == 1
+			&& possibleMethods.get(0).isMethodDefinition())
 		{
 			// If there was only one possible definition to invoke, don't
 			// bother looking it up at runtime.
@@ -1372,9 +1373,7 @@ public class L2Translator implements L1OperationDispatcher
 		addInstruction(L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO.instance);
 		addInstruction(L2_PREPARE_NEW_FRAME.instance);
 		addLabel(loopStart);
-		addInstruction(
-			L2_INTERPRET_UNTIL_INTERRUPT.instance,
-			new L2PcOperand(reenterFromCallLabel));
+		addInstruction(L2_INTERPRET_UNTIL_INTERRUPT.instance);
 		addInstruction(
 			L2_PROCESS_INTERRUPT.instance,
 			new L2ReadPointerOperand(registers.fixed(CALLER)));
@@ -1438,7 +1437,6 @@ public class L2Translator implements L1OperationDispatcher
 		generatedInstructionCount += originals.size();
 		keptInstructionCount += survived;
 		removedInstructionCount += originals.size() - survived;
-		simpleColorRegisters();
 	}
 
 	/**
@@ -1549,6 +1547,87 @@ public class L2Translator implements L1OperationDispatcher
 	}
 
 	/**
+	 * Emit an interrupt {@linkplain
+	 * L2_JUMP_IF_NOT_INTERRUPT check}-and-{@linkplain L2_PROCESS_INTERRUPT
+	 * process} off-ramp. May only be called when the architectural registers
+	 * reflect an inter-nybblecode state.
+	 */
+	private void emitInterruptOffRamp ()
+	{
+		final L2Instruction postInterruptLabel = newLabel("postInterrupt");
+		final L2Instruction noInterruptLabel = newLabel("noInterrupt");
+		final L2ObjectRegister reifiedRegister = registers.newObject();
+		addInstruction(
+			L2_JUMP_IF_NOT_INTERRUPT.instance,
+			new L2PcOperand(noInterruptLabel));
+		// Capture numSlots into a local final variable for use with
+		// L2_EXPLODE_CONTINUATION's propagation logic.
+		final int nSlots = numSlots;
+		final List<L2ObjectRegister> slots =
+			new ArrayList<L2ObjectRegister>(nSlots);
+		for (int slotIndex = 1; slotIndex <= nSlots; slotIndex++)
+		{
+			slots.add(registers.continuationSlot(slotIndex));
+		}
+		final List<AvailObject> savedSlotTypes =
+			new ArrayList<AvailObject>(nSlots);
+		final List<AvailObject> savedSlotConstants =
+			new ArrayList<AvailObject>(nSlots);
+		for (final L2ObjectRegister reg : slots)
+		{
+			savedSlotTypes.add(registers.typeAt(reg));
+			savedSlotConstants.add(registers.constantAt(reg));
+		}
+		addInstruction(
+			L2_CREATE_CONTINUATION.instance,
+			new L2ReadPointerOperand(registers.fixed(CALLER)),
+			new L2ReadPointerOperand(registers.fixed(FUNCTION)),
+			new L2ImmediateOperand(pc),
+			new L2ImmediateOperand(stackp),
+			new L2ReadVectorOperand(createVector(slots)),
+			new L2PcOperand(postInterruptLabel),
+			new L2WritePointerOperand(reifiedRegister));
+		addInstruction(
+			L2_PROCESS_INTERRUPT.instance,
+			new L2ReadPointerOperand(reifiedRegister));
+		addLabel(postInterruptLabel);
+		addInstruction(
+			L2_REENTER_L2_CHUNK.instance,
+			new L2WritePointerOperand(registers.fixed(CALLER)));
+		addInstruction(
+			new Continuation0()
+			{
+				@Override
+				public void value ()
+				{
+					for (int slotIndex = 1; slotIndex <= nSlots; slotIndex++)
+					{
+						final L2Register slot =
+							registers.continuationSlot(slotIndex);
+						final AvailObject type =
+							savedSlotTypes.get(slotIndex - 1);
+						if (type != null)
+						{
+							registers.typeAtPut(slot, type);
+						}
+						final AvailObject constant =
+							savedSlotConstants.get(slotIndex - 1);
+						if (constant != null)
+						{
+							registers.constantAtPut(slot, constant);
+						}
+					}
+				}
+			},
+			L2_EXPLODE_CONTINUATION.instance,
+			new L2ReadPointerOperand(registers.fixed(CALLER)),
+			new L2WriteVectorOperand(createVector(slots)),
+			new L2WritePointerOperand(registers.fixed(CALLER)),
+			new L2WritePointerOperand(registers.fixed(FUNCTION)));
+		addLabel(noInterruptLabel);
+	}
+
+	/**
 	 * Translate the previously supplied {@linkplain CompiledCodeDescriptor
 	 * Level One compiled code object} into a sequence of {@linkplain
 	 * L2Instruction Level Two instructions}. The optimization level specifies
@@ -1563,11 +1642,11 @@ public class L2Translator implements L1OperationDispatcher
 	 * @param optLevel
 	 *            The optimization level.
 	 * @param anL2Interpreter
-	 *            An {@link L2Interpreter}.
+	 *            An {@link Interpreter}.
 	 */
 	public void translateOptimizationFor (
 		final int optLevel,
-		final L2Interpreter anL2Interpreter)
+		final Interpreter anL2Interpreter)
 	{
 		optimizationLevel = optLevel;
 		interpreter = anL2Interpreter;
@@ -1585,7 +1664,8 @@ public class L2Translator implements L1OperationDispatcher
 			// Optimize it again if it's called frequently enough.
 			code.countdownToReoptimize(
 				L2ChunkDescriptor.countdownForNewlyOptimizedCode());
-			addInstruction(L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO.instance);
+			addInstruction(
+				L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO.instance);
 		}
 		final AvailObject tupleType = code.functionType().argsTupleType();
 		for (int i = 1; i <= numArgs; i++)
@@ -1596,7 +1676,7 @@ public class L2Translator implements L1OperationDispatcher
 		}
 		pc = 1;
 		stackp = code.maxStackDepth() + 1;
-		// Just past end.  This is not the same offset it would have during
+		// Just past end. This is not the same offset it would have during
 		// execution.
 		final List<L2ObjectRegister> initialRegisters =
 			new ArrayList<L2ObjectRegister>(FixedRegister.values().length);
@@ -1634,6 +1714,7 @@ public class L2Translator implements L1OperationDispatcher
 				new L2ReadPointerOperand(
 					registers.fixed(PRIMITIVE_FAILURE)));
 		}
+		// Store nil into each of the stack slots.
 		for (
 			int stackSlot = 1, end = code.maxStackDepth();
 			stackSlot <= end;
@@ -1643,9 +1724,13 @@ public class L2Translator implements L1OperationDispatcher
 				NilDescriptor.nil(),
 				stackRegister(stackSlot, true));
 		}
-		// Now translate all the instructions.  We already wrote a label as
+		// Check for interrupts. If an interrupt is discovered, then reify and
+		// process the interrupt. When the chunk resumes, it will explode the
+		// continuation again.
+		emitInterruptOffRamp();
+		// Now translate all the instructions. We already wrote a label as
 		// the first instruction so that L1Ext_doPushLabel can always find
-		// it.  Since we only translate one method at a time, the first
+		// it. Since we only translate one method at a time, the first
 		// instruction always represents the start of this compiledCode.
 		while (pc <= nybbles.tupleSize())
 		{
@@ -1659,7 +1744,10 @@ public class L2Translator implements L1OperationDispatcher
 		assert pc == nybbles.tupleSize() + 1;
 		assert stackp == Integer.MIN_VALUE;
 
-		optimize();
+		// TODO [TLS/MvG]: Fix and re-enable! The algorithm assumes linearity
+		// and doesn't handle branches, which is way wrong.
+//		optimize();
+		simpleColorRegisters();
 		final AvailObject newChunk = createChunk();
 		assert code.startingChunk() == newChunk;
 	}

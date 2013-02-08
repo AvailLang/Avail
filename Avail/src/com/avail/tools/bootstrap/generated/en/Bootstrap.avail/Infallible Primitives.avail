@@ -57,9 +57,14 @@ Uses
 		"Error:_",
 		"If_then_",
 		"If|if_then_else_",
+		"Park current fiber",
 		"Print:_",
 		"Reject parse,expected:_",
+		"Request termination of_",
+		"Sleep for_millisecond|milliseconds",
 		"Terminate current fiber",
+		"Unpark_",
+		"Yield current fiber",
 		"[`…]→_",
 		"_'s⁇arguments",
 		"_'s⁇arity",
@@ -94,11 +99,13 @@ Uses
 		"_'s⁇parameters'type",
 		"_'s⁇primitive number",
 		"_'s⁇priority",
+		"_'s⁇priority:=_",
 		"_'s⁇program counter",
 		"_'s⁇public names",
 		"_'s⁇read type",
 		"_'s⁇referent",
 		"_'s⁇return type",
+		"_'s⁇seals",
 		"_'s⁇semantic type",
 		"_'s⁇stack",
 		"_'s⁇stack pointer",
@@ -126,6 +133,8 @@ Uses
 		"_bit∧_",
 		"_bit∨_",
 		"_bit⊕_",
+		"_has result",
+		"_has terminated",
 		"_is a primitive",
 		"_is unassigned",
 		"_→character",
@@ -172,10 +181,9 @@ Uses
 		"new↑_",
 		"primfail`«_:_`»",
 		"primitive description of_",
-		"request termination of_",
 		"semantic restrictions for_given_",
-		"set_'s⁇priority to_",
 		"special atoms",
+		"termination requested",
 		"{_`|_}",
 		"{_→_`|_}",
 		"‘_’",
@@ -385,87 +393,8 @@ Primitive "_'s⁇write type" is
  */
 Primitive "milliseconds since the Epoch" is
 [
-	Primitive 20;
+	Primitive 26;
 ] : whole number;
-
-/**
- * Extract the priority of a fiber.  The priority is a whole number.  A fiber
- * with higher priority may receive a larger share of the available CPU time
- * than one with a low priority.
- *
- * Parameters:
- *    aFiber - The fiber from which to extract the priority.
- * Returns:
- *    A whole number representing the priority of the fiber.
- */
-Primitive "_'s⁇priority" is
-[
-	aFiber : fiber
-|
-	Primitive 21;
-] : whole number;
-
-/**
- * Modify the priority of a fiber.  The priority is a whole number.  A fiber
- * with higher priority may receive a larger share of the available CPU time
- * than one with a low priority.
- *
- * Parameters:
- *    aFiber - The fiber to reprioritize.
- *    priority - The new priority.
- */
-Primitive "set_'s⁇priority to_" is
-[
-	aFiber : fiber,
-	priority : whole number
-|
-	Primitive 22;
-] : ⊤;
-
-/**
- * Request termination of the specified fiber. Termination is consensual only;
- * cooperation of the fiber is required to affect termination.
- *
- * Parameters:
- *    victim - A fiber.
- */
-Primitive "request termination of_" is
-[
-	victim : fiber
-|
-	Primitive 24;
-] : ⊤;
-
-/**
- * Answer the current fiber.
- *
- * Returns:
- *    The current fiber.
- */
-Primitive "current fiber" is
-[
-	Primitive 25;
-] : fiber;
-
-/**
- * Set the value bound to `key` in the specified fiber's environment,
- * overwriting any previous value. Since the fiber's environment essentially
- * contains fiber-local variables (i.e. bindings from atoms to arbitrary
- * values), this operation effectively writes a fiber-local variable.
- *
- * Parameters:
- *    aFiber - The fiber whose environment should be consulted.
- *    key - The key whose value should be (over)written.
- *    value - The new value.
- */
-Primitive "_[_]:=_" is
-[
-	aFiber : fiber,
-	key : atom,
-	value : any
-|
-	Primitive 27;
-] : ⊤;
 
 /**
  * Answer the number of instances of the specified type. This is `∞` for all
@@ -481,7 +410,7 @@ Primitive "`|_`|" is
 	aType : type
 |
 	Primitive 28;
-] : nonnegative integer;
+] : nonnegative extended integer;
 
 /**
  * Answer the precise instance type of the supplied value. This is the most
@@ -1014,24 +943,6 @@ Primitive "_'s⁇outer variables" is
 |
 	Primitive 73;
 ] : tuple;
-
-/**
- * Does `aFiber`'s environment have a value bound to `key`? This effectively
- * ascertains whether a fiber-local variable exists for the specified fiber.
- *
- * Parameters:
- *    key - The key whose existence should be queried.
- *    aFiber - The fiber whose environment should be queried.
- * Returns:
- *    `true` if the fiber binds a value to `key`, `false` otherwise.
- */
-Primitive "_∈_" is
-[
-	key : atom,
-	aFiber : fiber
-|
-	Primitive 75;
-] : boolean;
 
 /**
  * Answer the cardinality of the specified map.
@@ -2015,6 +1926,21 @@ Primitive "method exists named_" is
 ] : boolean;
 
 /**
+ * Answer all seals applied to the specified method.
+ *
+ * Parameters:
+ *    aMethod - A method.
+ * Returns:
+ *    A tuple comprising the seals applied to `aMethod`.
+ */
+Primitive "_'s⁇seals" is
+[
+	aMethod : method
+|
+	Primitive 239;
+] : tuple of tuple of any meta;
+
+/**
  * Answer the public names introduced by the specified module.
  *
  * Parameters:
@@ -2177,17 +2103,6 @@ Primitive "Error:_" is
 |
 	Primitive 265;
 ] : ⊤;
-
-/**
- * Terminate the current fiber.
- *
- * This method is for use by the exception handling machinery only. It should
- * only be invoked from an unhandled exception handler.
- */
-Primitive "Terminate current fiber" is
-[
-	Primitive 266;
-] : ⊥;
 
 /**
  * Compute and answer the numeric argument as a single-precision floating point
@@ -3162,4 +3077,239 @@ Primitive "`|_`|" is
 |
 	Primitive 511;
 ] : whole number;
+
+/**
+ * Answer the current fiber.
+ *
+ * Returns:
+ *    The current fiber.
+ */
+Primitive "current fiber" is
+[
+	Primitive 600;
+] : fiber;
+
+/**
+ * Extract the priority of a fiber. A fiber with higher priority may receive a
+ * larger share of the available CPU time than one with a low priority.
+ *
+ * Parameters:
+ *    aFiber - The fiber from which to extract the priority.
+ * Returns:
+ *    A whole number representing the priority of the fiber.
+ */
+Primitive "_'s⁇priority" is
+[
+	aFiber : fiber
+|
+	Primitive 601;
+] : byte;
+
+/**
+ * Modify the priority of a fiber. A fiber with higher priority may receive a
+ * larger share of the available CPU time than one with a low priority.
+ *
+ * Parameters:
+ *    aFiber - The fiber to prioritize.
+ *    priority - The new priority.
+ */
+Primitive "_'s⁇priority:=_" is
+[
+	aFiber : fiber,
+	priority : byte
+|
+	Primitive 602;
+] : ⊤;
+
+/**
+ * Does `aFiber`'s environment have a value bound to `key`? This effectively
+ * ascertains whether a fiber-local variable exists for the specified fiber.
+ *
+ * Parameters:
+ *    key - The key whose existence should be queried.
+ *    aFiber - The fiber whose environment should be queried.
+ * Returns:
+ *    `true` if the fiber binds a value to `key`, `false` otherwise.
+ */
+Primitive "_∈_" is
+[
+	key : atom,
+	aFiber : fiber
+|
+	Primitive 603;
+] : boolean;
+
+/**
+ * Set the value bound to `key` in the specified fiber's environment,
+ * overwriting any previous value. Since the fiber's environment essentially
+ * contains fiber-local variables (i.e. bindings from atoms to arbitrary
+ * values), this operation effectively writes a fiber-local variable.
+ *
+ * Parameters:
+ *    aFiber - The fiber whose environment should be consulted.
+ *    key - The key whose value should be (over)written.
+ *    value - The new value.
+ */
+Primitive "_[_]:=_" is
+[
+	aFiber : fiber,
+	key : atom,
+	value : any
+|
+	Primitive 605;
+] : ⊤;
+
+/**
+ * Has termination of the current fiber been requested? Answer the current value
+ * of the appropriate interrupt request flag and simultaneously clear it.
+ *
+ * Returns:
+ *    `true` if termination of the current fiber has been requested, `false`
+ *    otherwise.
+ */
+Primitive "termination requested" is
+[
+	Primitive 607;
+] : boolean;
+
+/**
+ * Request termination of the specified fiber, unparking the fiber at the same
+ * time. Termination is consensual only; cooperation of the fiber is required to
+ * affect actual termination.
+ *
+ * Parameters:
+ *    victim - A fiber.
+ */
+Primitive "Request termination of_" is
+[
+	victim : fiber
+|
+	Primitive 608;
+] : ⊤;
+
+/**
+ * Terminate the current fiber.
+ */
+Primitive "Terminate current fiber" is
+[
+	Primitive 609;
+] : ⊥;
+
+/**
+ * Attempt to acquire the permit associated with the current fiber. If the
+ * permit is available, then consume it and return immediately. If the permit is
+ * not available, then park the current fiber. A fiber suspended in this fashion
+ * may be resumed only by calling `Unpark_`. A newly unparked fiber should
+ * always recheck the basis for its having parked, to see if it should park
+ * again. Low-level synchronization mechanisms may require the ability to
+ * spuriously unpark in order to ensure correctness.
+ */
+Primitive "Park current fiber" is
+[
+	Primitive 610;
+] : ⊤;
+
+/**
+ * Unpark the specified fiber. If the permit associated with the fiber is
+ * available, then simply continue. If the permit is not available, then restore
+ * the permit and schedule resumption of the fiber. A newly unparked fiber
+ * should always recheck the basis for its having parked, to see if it should
+ * park again. Low-level synchronization mechanisms may require the ability to
+ * spuriously unpark in order to ensure correctness.
+ *
+ * Parameters:
+ *    aFiber - A fiber.
+ */
+Primitive "Unpark_" is
+[
+	aFiber : fiber
+|
+	Primitive 611;
+] : ⊤;
+
+/**
+ * Yield the current fiber. That is, give up the fiber's time slice so that
+ * other processes of higher or equal priority may run.
+ */
+Primitive "Yield current fiber" is
+[
+	Primitive 612;
+] : ⊤;
+
+/**
+ * Answer the name of the specified fiber.
+ *
+ * Parameters:
+ *    aFiber - A fiber.
+ * Returns:
+ *    The fiber's name.
+ */
+Primitive "_'s⁇name" is
+[
+	aFiber : fiber
+|
+	Primitive 613;
+] : string;
+
+/**
+ * Set the name of the specified fiber.
+ *
+ * Parameters:
+ *    aFiber - A fiber.
+ *    name - The fiber's new name.
+ */
+Primitive "_'s⁇name:=_" is
+[
+	aFiber : fiber,
+	name : string
+|
+	Primitive 614;
+] : ⊤;
+
+/**
+ * Has the specified fiber terminated?
+ *
+ * Parameters:
+ *    aFiber - A fiber.
+ * Returns:
+ *    `true` if the fiber has terminated, `false` otherwise.
+ */
+Primitive "_has terminated" is
+[
+	aFiber : fiber
+|
+	Primitive 618;
+] : boolean;
+
+/**
+ * Does the specified fiber have a result ready?
+ *
+ * Parameters:
+ *    aFiber - A fiber.
+ * Returns:
+ *    `true` if the fiber has terminated and produced a result, `false`
+ *    otherwise.
+ */
+Primitive "_has result" is
+[
+	aFiber : fiber
+|
+	Primitive 619;
+] : boolean;
+
+/**
+ * Cause the current fiber to sleep for the specified number of milliseconds.
+ * The fiber will sleep for at least the specified amount of time, and a best
+ * effort will be made to awaken the fiber as soon as the delay has expired.
+ * No real-time guarantees are made.
+ *
+ * Parameters:
+ *    delayMillis - The minimum number of milliseconds to sleep.
+ */
+Primitive "Sleep for_millisecond|milliseconds" is
+[
+	delayMillis : nonnegative extended integer
+|
+	Primitive 621;
+] : ⊤;
 

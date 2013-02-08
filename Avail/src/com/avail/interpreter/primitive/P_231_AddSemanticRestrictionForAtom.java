@@ -73,17 +73,22 @@ extends Primitive
 					E_TYPE_RESTRICTION_MUST_ACCEPT_ONLY_TYPES);
 			}
 		}
+		final AvailLoader loader = FiberDescriptor.current().availLoader();
+		if (loader == null)
+		{
+			return interpreter.primitiveFailure(E_LOADING_IS_OVER);
+		}
 		try
 		{
-			interpreter.addTypeRestriction(atom, function);
-			function.code().setMethodName(
-				StringDescriptor.from(
-					String.format("Semantic restriction of %s", atom.name())));
+			loader.addTypeRestriction(atom, function);
 		}
 		catch (final SignatureException e)
 		{
 			return interpreter.primitiveFailure(e);
 		}
+		function.code().setMethodName(
+			StringDescriptor.from(
+				String.format("Semantic restriction of %s", atom.name())));
 		return interpreter.primitiveSuccess(NilDescriptor.nil());
 	}
 

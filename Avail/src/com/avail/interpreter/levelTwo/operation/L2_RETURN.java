@@ -34,6 +34,7 @@ package com.avail.interpreter.levelTwo.operation;
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_POINTER;
 import static com.avail.interpreter.levelTwo.register.FixedRegister.CALLER;
 import com.avail.descriptor.AvailObject;
+import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.*;
 
 /**
@@ -55,7 +56,7 @@ public class L2_RETURN extends L2Operation
 	}
 
 	@Override
-	public void step (final L2Interpreter interpreter)
+	public void step (final Interpreter interpreter)
 	{
 		// Return to the calling continuation with the given value.
 		final int continuationIndex = interpreter.nextWord();

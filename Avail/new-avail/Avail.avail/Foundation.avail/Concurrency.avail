@@ -1,0 +1,433 @@
+/*
+ * Concurrency.avail
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+System Module "Concurrency"
+Versions
+	"dev"
+Uses
+	"Bootstrap",
+	"Collections",
+	"Control Structures",
+	"Definers",
+	"Exceptions",
+	"Functions",
+	"Literals",
+	"Logic",
+	"Math",
+	"Objects",
+	"Synchronization",
+	"Tuples",
+	"Types",
+	"Variables"
+Names
+	/* Simplified forking. */
+	"Fork_",
+	"fork_",
+
+	/* Parallel constructs. */
+	"For each of⁇_in parallel do_",
+	"map_in parallel through_",
+
+	/* Exceptions. */
+	"worker exception"
+Body
+
+/**
+ * Fork a new {@type "fiber"} to apply the specified arity-0 {@type "function"}.
+ * The new fiber will run at the same {@method "_'s⁇priority" priority} as the
+ * {@method "current fiber"}.
+ *
+ * @method "Fork_"
+ * @param "aFunction" "[]→⊤"
+ */
+Public method "Fork_" is
+[
+	aFunction : []→⊤
+|
+	Invoke aFunction with <> forked at priority current fiber's priority;
+] : ⊤;
+
+/**
+ * Fork a new {@type "fiber"} to apply the specified arity-0 {@type "function"}.
+ * The new fiber will run at the same {@method "_'s⁇priority" priority} as the
+ * {@method "current fiber"}.
+ *
+ * @method "Fork_"
+ * @param "aFunction" "[]→⊤"
+ * @returns "fiber"
+ *          The new fiber.
+ */
+Public method "fork_" is
+[
+	aFunction : []→⊤
+|
+	invoke aFunction with <> forked at priority current fiber's priority
+] : fiber;
+
+/**
+ * A worker exception indicates that a worker forked by a parallel construct
+ * raised an exception.
+ *
+ * @type "worker exception"
+ */
+Public explicit class "worker exception" extends cascade exception;
+
+/**
+ * Concurrently apply {@param "action"} to each consecutive element of {@param
+ * "aTuple"}. Wait until all forked fibers have completed before returning
+ * control to the caller.
+ * 
+ * @method "For each of⁇_in parallel do_"
+ * @param "aTuple" "tuple"
+ * @param "action" "[⊥, ⊥]→⊤"
+ *        A function that accepts 1) an element of the tuple and 2) the index of
+ *        that element.
+ * @raises "worker exception"
+ *         If any of the forked workers raise an exception.
+ * @raises "termination-requested exception"
+ *         If termination of the current fiber is requested during an internal
+ *         synchronization operation.
+ */
+Public method "For each of⁇_in parallel do_" is
+[
+	aTuple : tuple,
+	action : [⊥, ⊥]→⊤
+|
+	fibers : <fiber…|> := <>;
+	/* Pre-increment the workers started counter, to prevent races between the
+	 * master and the workers. This prevents a race between queuing workers and
+	 * workers completing.
+	 */
+	workersStarted : whole number := 1;
+	workersFinished : whole number := 0;
+	/* The first exception raised by a worker fiber will be stored here. */
+	killer : exception;
+	/* This monitor controls the interaction between the master and the
+	 * workers.
+	 */
+	mutex ::= a monitor named "parallel for-each monitor";
+	done ::= a condition of mutex
+		is [↑killer is assigned ∨ [workersStarted = workersFinished]];
+	/* Fork a fiber for each element. */
+	index : natural number := 1;
+	end ::= |aTuple|;
+	newFiberPriority ::= 0 max current fiber's priority - 1;
+	[
+		$loop;
+		If index ≤ end then
+		[
+			Lock mutex for [↑workersStarted++;];
+			element ::= aTuple[index];
+			theIndex ::= index;
+			newFiber ::=
+				invoke
+				[
+					Guard
+					[
+						killed ::= lock mutex for [↑killer is assigned];
+						If ¬killed then
+						[
+							action(element, theIndex);
+							Lock mutex for
+							[
+								↑workersFinished++;
+								Signal done if satisfied;
+							];
+						];
+					]
+					intercept
+					[
+						e : exception
+					|
+						Lock mutex for
+						[
+							/* Only capture the first exception. */
+							If ↑killer is unassigned then
+							[
+								killer := e;
+								Signal done;
+							];
+						];
+					];
+				]
+				with <>,
+				forked at priority newFiberPriority;
+			newFiber's name := "parallel for-each fiber #" ++ “index”;
+			fibers := eject ↑fibers ++ <newFiber>;
+			↑index++;
+			Restart loop
+		];
+	]();
+	/* Increment the workers finished counter, to counteract the effect of the
+	 * pre-increment of the workers started counter, and then await the
+	 * condition.
+	 */
+	Lock mutex for
+	[
+		↑workersFinished++;
+		Await done;
+	];
+	/* If there were any exceptions, then raise the one that was captured. */
+	If ↑killer is assigned then
+	[
+		Raise a worker exception with causal exception ::= killer
+	];
+] : ⊤;
+
+/**
+ * Concurrently apply {@param "action"} to each consecutive element of {@param
+ * "aTuple"}. Wait until all forked fibers have completed before returning
+ * control to the caller.
+ * 
+ * @method "For each of⁇_in parallel do_"
+ * @param "aTuple" "tuple"
+ * @param "action" "[⊥]→⊤"
+ *        A function that accepts the elements of the tuple.
+ * @raises "worker exception"
+ *         If any of the forked workers raise an exception.
+ * @raises "termination-requested exception"
+ *         If termination of the current fiber is requested during an internal
+ *         synchronization operation.
+ */
+Public method "For each of⁇_in parallel do_" is
+[
+	aTuple : tuple,
+	action : [⊥]→⊤
+|
+	For each of aTuple in parallel do
+	[
+		element : any,
+		ignoredIndex : natural number
+	|
+		action(element);
+	];
+] : ⊤;
+
+/**
+ * Ensure that the function will accept all elements and indices of the tuple.
+ * If the tuple is certainly nonempty and the function certainly does not
+ * complete if applied, then answer ⊥.
+ */
+Semantic restriction "For each of⁇_in parallel do_" is
+[
+	tupleType : tuple meta,
+	action : function meta
+|
+	Require: action accepts tupleType;
+	if ⎣tupleType⎦ > 0 ∧ [action's return type = ⊥] then [⊥] else [⊤]
+];
+
+/**
+ * Concurrently apply {@param "transformer"} to each consecutive element of
+ * {@param "aTuple"}, collecting the results into a new tuple (and preserving
+ * ordering of the transformed elements). Answer this tuple.
+ *
+ * @method "map_in parallel through_"
+ * @param "aTuple" "tuple"
+ * @param "transformer" "[⊥, ⊥]→any"
+ *        A function that accepts 1) an element of the tuple and 2) the index of
+ *        that element.
+ * @returns "tuple"
+ *          A tuple of results of applications of {@param "transformer"} to the
+ *          elements and indices of {@param "aTuple"}.
+ * @raises "worker exception"
+ *         If any of the forked workers raise an exception.
+ * @raises "termination-requested exception"
+ *         If termination of the current fiber is requested during an internal
+ *         synchronization operation.
+ */
+Public method "map_in parallel through_" is
+[
+	aTuple : tuple,
+	transformer : [⊥, ⊥]→any
+|
+	fibers : <fiber…|> := <>;
+	/* Pre-increment the workers started counter, to prevent races between the
+	 * master and the workers. This prevents a race between queuing workers and
+	 * workers completing.
+	 */
+	workersStarted : whole number := 1;
+	workersFinished : whole number := 0;
+	/* The first exception raised by a worker fiber will be stored here. */
+	killer : exception;
+	/* This monitor controls the interaction between the master and the
+	 * workers.
+	 */
+	mutex ::= a monitor named "parallel map monitor";
+	done ::= a condition of mutex
+		is [↑killer is assigned ∨ [workersStarted = workersFinished]];
+	/* Fork a fiber for each element. */
+	index : natural number := 1;
+	end ::= |aTuple|;
+	newFiberPriority ::= 0 max current fiber's priority - 1;
+	[
+		$loop;
+		If index ≤ end then
+		[
+			Lock mutex for [↑workersStarted++;];
+			element ::= aTuple[index];
+			theIndex ::= index;
+			newFiber ::=
+				invoke
+				[
+					guard
+					[
+						killed ::= lock mutex for [↑killer is assigned];
+						if ¬killed then
+						[
+							result ::= transformer(element, theIndex);
+							Lock mutex for
+							[
+								↑workersFinished++;
+								Signal done if satisfied;
+							];
+							result
+						]
+						/* Doesn't matter what we actually answer here, since
+						 * the value will never be read by the master.
+						 */
+						else [0]
+					]
+					intercept
+					[
+						e : exception
+					|
+						Lock mutex for
+						[
+							/* Only capture the first exception. */
+							If ↑killer is unassigned then
+							[
+								killer := e;
+								Signal done;
+							];
+						];
+						/* Doesn't matter what we actually answer here, since
+						 * the value will never be read by the master.
+						 */
+						0
+					]
+				]
+				with <>,
+				forked at priority newFiberPriority;
+			newFiber's name := "parallel map fiber #" ++ “index”;
+			fibers := eject ↑fibers ++ <newFiber>;
+			↑index++;
+			Restart loop
+		];
+	]();
+	result : tuple := <>;
+	/* Increment the workers finished counter, to counteract the effect of the
+	 * pre-increment of the workers started counter, and then await the
+	 * condition.
+	 */
+	Lock mutex for
+	[
+		↑workersFinished++;
+		Await done;
+	];
+	/* If there were any exceptions, then raise the one that was captured. */
+	If ↑killer is assigned then
+	[
+		Raise a worker exception with causal exception ::= killer
+	];
+	/* Otherwise, collect the results into a tuple. */
+	index := 1;
+	[
+		$loop;
+		If index ≤ end then
+		[
+			aFiber ::= fibers[index];
+			/* Make sure that the fiber has actually exited; it may only have
+			 * signaled, but not exited yet.
+			 */
+			Join aFiber, then honor a termination request;
+			result := eject ↑result ++ <aFiber's result>;
+			↑index++;
+			Restart loop
+		];
+	]();
+	result
+];
+
+/**
+ * Concurrently apply {@param "transformer"} to each consecutive element of
+ * {@param "aTuple"}, collecting the results into a new tuple (and preserving
+ * ordering of the transformed elements). Answer this tuple.
+ *
+ * @method "map_in parallel through_"
+ * @param "aTuple" "tuple"
+ * @param "transformer" "[⊥]→any"
+ *        A function that accepts an element of the tuple.
+ * @returns "tuple"
+ *          A tuple of results of applications of {@param "transformer"} to the
+ *          elements of {@param "aTuple"}.
+ * @raises "worker exception"
+ *         If any of the forked workers raise an exception.
+ * @raises "termination-requested exception"
+ *         If termination of the current fiber is requested during an internal
+ *         synchronization operation.
+ */
+Public method "map_in parallel through_" is
+[
+	aTuple : tuple,
+	transformer : [⊥]→any
+|
+	map aTuple in parallel through
+	[
+		element : any,
+		ignoredIndex : natural number
+	|
+		transformer(element)
+	]
+];
+
+/**
+ * Ensure that the function will accept all elements and indices of the tuple.
+ * If the tuple is certainly nonempty, then the function cannot answer ⊥.
+ */
+Semantic restriction "map_in parallel through_" is
+[
+	tupleType : tuple meta,
+	transformer : […]→any's type
+|
+	Require: transformer accepts tupleType;
+	If ⎣tupleType⎦ > 0 then
+	[
+		If transformer's return type = ⊥ then
+		[
+			Reject parse, expected:
+				"repeatedly applied function to have a return type other than\
+				\| ⊥"
+		];
+	];
+	<<>, transformer's return type… | ||tupleType||>
+];

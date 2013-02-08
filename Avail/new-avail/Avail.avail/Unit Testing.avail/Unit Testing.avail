@@ -40,7 +40,7 @@ Extends
 		"After running_,⁇do_",
 		"Before running each test in_,⁇do_",
 		"Before running_,⁇do_",
-		"New test suite_extends_",
+		"New test suite,⁇_,⁇extends_",
 		"Test_in_is_«must raise_»",
 		"_is a new test suite"
 	),
@@ -112,7 +112,7 @@ For each
 		"After running_,⁇do_",
 		"Before running each test in_,⁇do_",
 		"Before running_,⁇do_",
-		"New test suite_extends_",
+		"New test suite,⁇_,⁇extends_",
 		"Test_in_is_«must raise_»",
 		"all test suites in_",
 		"all tests in_",

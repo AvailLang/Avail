@@ -34,7 +34,7 @@ package com.avail.interpreter.levelTwo.operation;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import static com.avail.interpreter.levelTwo.register.FixedRegister.PRIMITIVE_FAILURE;
 import com.avail.descriptor.AvailObject;
-import com.avail.interpreter.Primitive;
+import com.avail.interpreter.*;
 import com.avail.interpreter.Primitive.Flag;
 import com.avail.interpreter.levelTwo.*;
 import com.avail.interpreter.levelTwo.register.FixedRegister;
@@ -73,7 +73,7 @@ public class L2_INVOKE_AFTER_FAILED_PRIMITIVE extends L2Operation
 	}
 
 	@Override
-	public void step (final L2Interpreter interpreter)
+	public void step (final Interpreter interpreter)
 	{
 		// The continuation is required to have already been reified.
 		final int callerIndex = interpreter.nextWord();

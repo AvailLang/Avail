@@ -1,5 +1,5 @@
 /**
- * P_023_IsTerminationRequested.java
+ * P_605_SetFiberVariable.java
  * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -31,38 +31,51 @@
  */
 package com.avail.interpreter.primitive;
 
-import static com.avail.exceptions.AvailErrorCode.E_NO_IMPLEMENTATION;
-import static com.avail.interpreter.Primitive.Flag.Unknown;
+import static com.avail.descriptor.TypeDescriptor.Types.*;
+import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 
 /**
- * <strong>Primitive 23:</strong> Has termination been requested for the
- * current {@linkplain FiberDescriptor fiber}?
+ * <strong>Primitive 605:</strong> Associate the given value with the given
+ * {@linkplain AtomDescriptor name} (key) in the variables of the
+ * given {@linkplain FiberDescriptor fiber}.
  */
-public class P_023_IsTerminationRequested extends Primitive
+public class P_605_SetFiberVariable
+extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_023_IsTerminationRequested().init(
-		0, Unknown);
+	public final static Primitive instance = new P_605_SetFiberVariable().init(
+		3, CanInline, HasSideEffect, CannotFail);
 
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 0;
-		return interpreter.primitiveFailure(E_NO_IMPLEMENTATION);
+		assert args.size() == 3;
+		final AvailObject fiber = args.get(0);
+		final AvailObject key = args.get(1);
+		final AvailObject value = args.get(2);
+		fiber.fiberGlobals(
+			fiber.fiberGlobals().mapAtPuttingCanDestroy(
+				key.makeImmutable(),
+				value.makeImmutable(),
+				true));
+		return interpreter.primitiveSuccess(NilDescriptor.nil());
 	}
 
 	@Override
 	protected AvailObject privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(),
-			EnumerationTypeDescriptor.booleanObject());
+			TupleDescriptor.from(
+				FIBER.o(),
+				ATOM.o(),
+				ANY.o()),
+			TOP.o());
 	}
 }

@@ -32,18 +32,33 @@
 
 package com.avail;
 
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import com.avail.interpreter.Interpreter;
+
 /**
  * An {@code AvailThread} is a {@linkplain Thread thread} managed by a
  * particular {@linkplain AvailRuntime Avail runtime}. Instances may obtain the
  * managing runtime through the static accessor {@link AvailRuntime#current()}.
- * New instances should be obtained through the factory method
- * {@link AvailRuntime#newThread(Runnable)}.
+ * New instances will be created as necessary by an Avail runtime's {@linkplain
+ * ScheduledThreadPoolExecutor executor}.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public final class AvailThread
 extends Thread
 {
+	/**
+	 * The {@linkplain AvailRuntime Avail runtime} that owns this {@linkplain
+	 * AvailThread thread}.
+	 */
+	public final AvailRuntime runtime;
+
+	/**
+	 * The {@linkplain Interpreter interpreter} permanently bound to this
+	 * {@linkplain AvailThread thread}.
+	 */
+	public final Interpreter interpreter;
+
 	/**
 	 * Construct a new {@link AvailThread}.
 	 *
@@ -53,11 +68,10 @@ extends Thread
 	 * @param runnable
 	 *        The {@code Runnable runnable} that the new thread should execute.
 	 */
-	AvailThread (
-		final AvailRuntime runtime,
-		final Runnable runnable)
+	AvailThread (final AvailRuntime runtime, final Runnable runnable)
 	{
 		super(runnable);
-		AvailRuntime.setCurrent(runtime);
+		this.runtime = runtime;
+		this.interpreter = new Interpreter(runtime);
 	}
 }

@@ -393,21 +393,22 @@ public enum AvailErrorCode
 	E_LABEL_MACRO_MUST_OCCUR_INSIDE_A_BLOCK (58),
 
 	/**
-	 * TODO: Recycle!
+	 * The {@linkplain FiberDescriptor fiber} being interrogated has not (or
+	 * did not) produce a result.
 	 */
-//	E_??? (59),
+	E_FIBER_RESULT_UNAVAILABLE (59),
 
 	/**
-	 * TODO: Recycle!
+	 * A {@linkplain FiberDescriptor fiber} attempted to join itself.
 	 */
-//	E_??? (60),
+	E_FIBER_CANNOT_JOIN_ITSELF (60),
 
 	/**
-	 * Compilation is over. The interpreter is now operating in runtime mode.
+	 * Module loading is over. The interpreter is now operating in runtime mode.
 	 * This usually means that an attempt was made to modify module metadata at
 	 * runtime.
 	 */
-	E_COMPILATION_IS_OVER (70),
+	E_LOADING_IS_OVER (70),
 
 	/**
 	 * Method lookup failed.

@@ -32,6 +32,7 @@
 package com.avail.interpreter.primitive;
 
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
+import static com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER;
 import static com.avail.interpreter.Primitive.Flag.Unknown;
 import java.util.List;
 import com.avail.descriptor.*;
@@ -47,13 +48,14 @@ import com.avail.interpreter.*;
  * distinction is only apparent when guillemet notation is used to accept
  * tuples of arguments.
  */
-public class P_255_GrammaticalRestriction extends Primitive
+public class P_255_GrammaticalRestriction
+extends Primitive
 {
 	/**
-	 * The sole instance of this primitive class.  Accessed through reflection.
+	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_255_GrammaticalRestriction().init(
-		2, Unknown);
+	public final static Primitive instance =
+		new P_255_GrammaticalRestriction().init(2, Unknown);
 
 	@Override
 	public Result attempt (
@@ -63,40 +65,52 @@ public class P_255_GrammaticalRestriction extends Primitive
 		assert args.size() == 2;
 		final AvailObject stringSet = args.get(0);
 		final AvailObject exclusionsTuple = args.get(1);
-		try
+		final AvailLoader loader = FiberDescriptor.current().availLoader();
+		if (loader == null)
 		{
-			AvailObject disallowed = exclusionsTuple;
-			for (int i = disallowed.tupleSize(); i >= 1; i--)
+			return interpreter.primitiveFailure(E_LOADING_IS_OVER);
+		}
+		AvailObject disallowed = exclusionsTuple;
+		for (int i = disallowed.tupleSize(); i >= 1; i--)
+		{
+			AvailObject setOfAtoms = SetDescriptor.empty();
+			for (final AvailObject string : exclusionsTuple.tupleAt(i))
 			{
-				AvailObject setOfAtoms = SetDescriptor.empty();
-				for (final AvailObject string : exclusionsTuple.tupleAt(i))
+				try
 				{
 					setOfAtoms = setOfAtoms.setWithElementCanDestroy(
-						interpreter.lookupName(string),
+						loader.lookupName(string),
 						true);
 				}
-				disallowed = disallowed.tupleAtPuttingCanDestroy(
-					i,
-					setOfAtoms,
-					true);
+				catch (final AmbiguousNameException e)
+				{
+					return interpreter.primitiveFailure(e);
+				}
 			}
-			disallowed.makeImmutable();
-			final AvailObject stringSetAsTuple = stringSet.asTuple();
-			for (int i = stringSetAsTuple.tupleSize(); i >= 1; i--)
+			disallowed = disallowed.tupleAtPuttingCanDestroy(
+				i,
+				setOfAtoms,
+				true);
+		}
+		disallowed.makeImmutable();
+		final AvailObject stringSetAsTuple = stringSet.asTuple();
+		for (int i = stringSetAsTuple.tupleSize(); i >= 1; i--)
+		{
+			final AvailObject string = stringSetAsTuple.tupleAt(i);
+			try
 			{
-				final AvailObject string = stringSetAsTuple.tupleAt(i);
-				interpreter.atDisallowArgumentMessages(
-					interpreter.lookupName(string),
+				loader.addGrammaticalRestrictions(
+					loader.lookupName(string),
 					disallowed);
 			}
-		}
-		catch (final AmbiguousNameException e)
-		{
-			return interpreter.primitiveFailure(e);
-		}
-		catch (final SignatureException e)
-		{
-			return interpreter.primitiveFailure(e);
+			catch (final AmbiguousNameException e)
+			{
+				return interpreter.primitiveFailure(e);
+			}
+			catch (final SignatureException e)
+			{
+				return interpreter.primitiveFailure(e);
+			}
 		}
 		return interpreter.primitiveSuccess(NilDescriptor.nil());
 	}

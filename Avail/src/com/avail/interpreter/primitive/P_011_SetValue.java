@@ -32,17 +32,18 @@
 package com.avail.interpreter.primitive;
 
 import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.exceptions.AvailErrorCode.E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
 import com.avail.descriptor.*;
+import com.avail.exceptions.VariableSetException;
 import com.avail.interpreter.*;
 
 /**
  * <strong>Primitive 11:</strong> Assign the {@linkplain AvailObject value}
  * to the {@linkplain VariableDescriptor variable}.
  */
-public class P_011_SetValue extends Primitive
+public class P_011_SetValue
+extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
@@ -58,12 +59,14 @@ public class P_011_SetValue extends Primitive
 		assert args.size() == 2;
 		final AvailObject var = args.get(0);
 		final AvailObject value = args.get(1);
-		if (!value.isInstanceOf(var.kind().writeType()))
+		try
 		{
-			return interpreter.primitiveFailure(
-				E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE);
+			var.setValue(value);
 		}
-		var.setValue(value);
+		catch (final VariableSetException e)
+		{
+			return interpreter.primitiveFailure(e);
+		}
 		return interpreter.primitiveSuccess(NilDescriptor.nil());
 	}
 

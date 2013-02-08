@@ -34,7 +34,7 @@ package com.avail.interpreter.primitive;
 
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.interpreter.Primitive.Flag.*;
-import static com.avail.exceptions.AvailErrorCode.E_COMPILATION_IS_OVER;
+import static com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER;
 import java.util.List;
 import com.avail.descriptor.*;
 import com.avail.exceptions.AmbiguousNameException;
@@ -45,7 +45,7 @@ import com.avail.interpreter.*;
  * associated with the specified {@linkplain StringDescriptor string} as a
  * public name of the current {@linkplain ModuleDescriptor module}. This has the
  * same effect as listing the string in the "Names" section of the current
- * module. Fails if called at runtime (rather than during compilation).
+ * module. Fails if called at runtime.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
@@ -65,14 +65,15 @@ extends Primitive
 	{
 		assert args.size() == 1;
 		final AvailObject name = args.get(0);
-		final AvailObject module = interpreter.module();
-		if (module == null)
+		final AvailLoader loader = FiberDescriptor.current().availLoader();
+		final AvailObject module;
+		if (loader == null || (module = loader.module()).equalsNil())
 		{
-			return interpreter.primitiveFailure(E_COMPILATION_IS_OVER);
+			return interpreter.primitiveFailure(E_LOADING_IS_OVER);
 		}
 		try
 		{
-			final AvailObject trueName = interpreter.lookupName(name);
+			final AvailObject trueName = loader.lookupName(name);
 			module.atNewNamePut(name, trueName);
 			module.atNameAdd(name, trueName);
 			return interpreter.primitiveSuccess(NilDescriptor.nil());

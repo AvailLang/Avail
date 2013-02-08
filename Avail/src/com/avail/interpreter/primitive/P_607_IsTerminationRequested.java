@@ -1,5 +1,5 @@
 /**
- * P_021_GetFiberPriority.java
+ * P_607_IsTerminationRequested.java
  * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -32,39 +32,43 @@
 package com.avail.interpreter.primitive;
 
 import static com.avail.interpreter.Primitive.Flag.*;
+import static com.avail.descriptor.FiberDescriptor.InterruptRequestFlag.*;
 import java.util.List;
 import com.avail.descriptor.*;
-import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.*;
 
 /**
- * <strong>Primitive 21:</strong> Get the priority of a fiber.
+ * <strong>Primitive 607:</strong> Has termination been requested for the
+ * current {@linkplain FiberDescriptor fiber}? Answer the current value of the
+ * appropriate interrupt flag and simultaneously clear it.
  */
-public class P_021_GetFiberPriority extends Primitive
+public class P_607_IsTerminationRequested
+extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_021_GetFiberPriority().init(1, CannotFail, CanInline);
+		new P_607_IsTerminationRequested().init(
+			0, CannotFail, CanInline, HasSideEffect);
 
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 1;
-		final AvailObject fiber = args.get(0);
+		assert args.size() == 0;
 		return interpreter.primitiveSuccess(
-			fiber.priority());
+			AtomDescriptor.objectFromBoolean(
+				FiberDescriptor.current().getAndClearInterruptRequestFlag(
+					TERMINATION_REQUESTED)));
 	}
 
 	@Override
 	protected AvailObject privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
-				Types.FIBER.o()),
-			IntegerRangeTypeDescriptor.wholeNumbers());
+			TupleDescriptor.from(),
+			EnumerationTypeDescriptor.booleanObject());
 	}
 }

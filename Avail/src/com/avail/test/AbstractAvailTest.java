@@ -133,8 +133,7 @@ public class AbstractAvailTest
 	 * @throws Exception
 	 *         If an {@linkplain Exception exception} occurs.
 	 */
-	protected void compile (final ModuleName target)
-		throws Exception
+	protected void compile (final ModuleName target) throws Exception
 	{
 		try
 		{
@@ -142,10 +141,9 @@ public class AbstractAvailTest
 			final Repository repository = Repository.createTemporary();
 			final AvailBuilder builder = new AvailBuilder(
 				runtime,
-				repository,
-				target);
-			AvailBuilder.buildTargetInNewAvailThread(
-				builder,
+				repository);
+			builder.build(
+				target,
 				new Continuation4<ModuleName, Long, Long, Long>()
 				{
 					@Override

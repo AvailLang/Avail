@@ -160,7 +160,7 @@ extends ParseNodeDescriptor
 	{
 		final AvailObject node = mutable.create();
 		node.setSlot(TOKEN, token);
-		node.makeImmutable();
+		node.makeShared();
 		return node;
 	}
 
@@ -177,7 +177,7 @@ extends ParseNodeDescriptor
 			LiteralTokenTypeDescriptor.mostGeneralType());
 		final AvailObject node = mutable.create();
 		node.setSlot(TOKEN, token);
-		node.makeImmutable();
+		node.makeShared();
 		return node;
 	}
 

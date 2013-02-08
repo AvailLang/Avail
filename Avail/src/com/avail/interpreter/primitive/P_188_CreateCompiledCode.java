@@ -41,13 +41,14 @@ import com.avail.interpreter.*;
  * <strong>Primitive 188:</strong> Answer a {@linkplain
  * CompiledCodeDescriptor compiled code} with the given data.
  */
-public class P_188_CreateCompiledCode extends Primitive
+public class P_188_CreateCompiledCode
+extends Primitive
 {
 	/**
-	 * The sole instance of this primitive class.  Accessed through reflection.
+	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_188_CreateCompiledCode().init(
-		7, CanFold);
+	public final static Primitive instance =
+		new P_188_CreateCompiledCode().init(7, CanFold);
 
 	@Override
 	public Result attempt (
@@ -114,7 +115,6 @@ public class P_188_CreateCompiledCode extends Primitive
 			}
 		}
 
-		final AvailObject module = interpreter.module();
 		return interpreter.primitiveSuccess(
 			CompiledCodeDescriptor.create(
 				nybs,
@@ -128,7 +128,7 @@ public class P_188_CreateCompiledCode extends Primitive
 					false),
 				localTypes,
 				outerTypes,
-				module != null ? module : NilDescriptor.nil(),
+				ModuleDescriptor.current(),
 				0));
 	}
 

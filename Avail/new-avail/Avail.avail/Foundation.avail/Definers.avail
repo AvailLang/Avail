@@ -158,7 +158,8 @@ Public method "Method_is stable at_" is
 	theMethod ::= method for methodName;
 	resultType ::= functionType's return type's type;
 	argDecls : <<>, argument phrase…|whole number> := <>;
-	setContents : <<>, send phrase⇒nonnegative integer…|whole number> := <>;
+	setContents :
+		<<>, send phrase⇒nonnegative extended integer…|whole number> := <>;
 	instances : <<>, send phrase⇒any…|whole number> := <>;
 	/* Construct the tuples of argument declarations, the contents of the
 	 * instance count set, and the tuple of instances.
@@ -172,11 +173,13 @@ Public method "Method_is stable at_" is
 		argDecls := cast concatenate <eject ↑argDecls, <argDecl>>
 			into [t : <<>, argument phrase…|whole number> | t];
 		instanceCount ::=
-			send instanceCountM with «<«↓argDecl»>» : nonnegative integer;
+			send instanceCountM
+			with «<«↓argDecl»>»
+			: nonnegative extended integer;
 		setContents :=
 			cast concatenate <eject ↑setContents, <instanceCount>> into
 			[
-				t : <<>, send phrase⇒nonnegative integer…|whole number>
+				t : <<>, send phrase⇒nonnegative extended integer…|whole number>
 			|
 				t
 			];

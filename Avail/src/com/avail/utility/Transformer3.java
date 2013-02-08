@@ -32,6 +32,8 @@
 
 package com.avail.utility;
 
+import com.avail.annotations.Nullable;
+
 /**
  * Implementors of {@code Transformer3} provide a single arbitrary operation
  * that accepts three arguments and produces a result.
@@ -52,5 +54,8 @@ public abstract class Transformer3 <W,X,Y,Z>
 	 * @param arg3 The third argument to the operation.
 	 * @return The result of performing the operation.
 	 */
-	public abstract Z value (W arg1, X arg2, Y arg3);
+	public abstract @Nullable Z value (
+		@Nullable W arg1,
+		@Nullable X arg2,
+		@Nullable Y arg3);
 }

@@ -59,7 +59,7 @@ Extends
 Uses
 	"Common" = ("Data|data abstractions test suite"),
 	"Foundation",
-	"Unit Testing" = ("New test suite_extends_")
+	"Unit Testing" = ("New test suite,⁇_,⁇extends_")
 Names
 	"an empty sequence",
 	"empty sequence",

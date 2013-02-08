@@ -96,13 +96,19 @@ extends Descriptor
 		final List<AvailObject> recursionList,
 		final int indent)
 	{
-		if (isMutable())
+		switch (mutability)
 		{
-			aStream.append("Mutable function with code: ");
-		}
-		else
-		{
-			aStream.append("Immutable function with code: ");
+			case MUTABLE:
+				aStream.append("Mutable function with code: ");
+				break;
+			case IMMUTABLE:
+				aStream.append("Immutable function with code: ");
+				break;
+			case SHARED:
+				aStream.append("Shared function with code: ");
+				break;
+			default:
+				assert false;
 		}
 		L1Decompiler.parse(object).printOnAvoidingIndent(
 			aStream,

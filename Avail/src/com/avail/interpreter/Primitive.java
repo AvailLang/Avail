@@ -39,7 +39,6 @@ import java.util.*;
 import java.util.regex.*;
 import com.avail.annotations.*;
 import com.avail.descriptor.*;
-import com.avail.interpreter.levelTwo.*;
 import com.avail.interpreter.levelTwo.operation.L2_ATTEMPT_INLINE_PRIMITIVE;
 import com.avail.interpreter.primitive.*;
 import com.avail.optimizer.*;
@@ -93,7 +92,7 @@ implements IntegerEnumSlotDescriptionEnum
 		 * primitive executing, so the {@linkplain Interpreter interpreter}
 		 * should switch processes now.
 		 */
-		SUSPENDED;
+		FIBER_SUSPENDED;
 	}
 
 	/**
@@ -115,7 +114,7 @@ implements IntegerEnumSlotDescriptionEnum
 		 * The primitive can be safely inlined. In particular, it simply
 		 * computes a value or changes the state of something and does not
 		 * replace the current continuation in unusual ways. Thus, it is
-		 * suitable for directly embedding in {@linkplain L2Interpreter Level
+		 * suitable for directly embedding in {@linkplain Interpreter Level
 		 * Two} code by the {@linkplain L2Translator Level Two translator},
 		 * without the need to reify the current continuation.
 		 *
@@ -220,8 +219,9 @@ implements IntegerEnumSlotDescriptionEnum
 	 * Interpreter#primitiveSuccess(AvailObject)} and then return its result
 	 * from the primitive.  For unusual primitives that replace the current
 	 * continuation, {@link Result#CONTINUATION_CHANGED} is more appropriate,
-	 * and the primitiveResult need not be set.  For primitives that need to
-	 * cause a context switch, {@link Result#SUSPENDED} should be returned.
+	 * and the latestResult need not be set.  For primitives that need to
+	 * cause a context switch, {@link Result#FIBER_SUSPENDED} should be
+	 * returned.
 	 *
 	 * @param args The {@linkplain List list} of arguments to the primitive.
 	 * @param interpreter The {@link Interpreter} that is executing.
@@ -275,7 +275,8 @@ implements IntegerEnumSlotDescriptionEnum
 	{
 		if (cachedBlockTypeRestriction == null)
 		{
-			cachedBlockTypeRestriction = privateBlockTypeRestriction();
+			cachedBlockTypeRestriction =
+				privateBlockTypeRestriction().makeShared();
 			final AvailObject argsTupleType =
 				cachedBlockTypeRestriction.argsTupleType();
 			final AvailObject sizeRange = argsTupleType.sizeRange();
@@ -564,6 +565,43 @@ implements IntegerEnumSlotDescriptionEnum
 			}
 		}
 		return byPrimitiveNumber[primitiveNumber];
+	}
+
+	/**
+	 * Does the {@linkplain Interpreter interpreter} provide a {@linkplain
+	 * Primitive primitive} with the specified primitive number?
+	 *
+	 * @param primitiveNumber
+	 *        The primitive number.
+	 * @return {@code true} if there is a {@linkplain Primitive primitive}
+	 *         with the specified primitive number, {@code false} otherwise.
+	 */
+	public static boolean supportsPrimitive (final int primitiveNumber)
+	{
+		final Primitive primitive = Primitive.byPrimitiveNumberOrNull(
+			primitiveNumber);
+		return primitive != null && !primitive.hasFlag(Flag.Private);
+	}
+
+	/**
+	 * Answer whether the specified primitive accepts the specified number of
+	 * arguments.  Note that some primitives expect a variable number of
+	 * arguments.
+	 *
+	 * @param primitiveNumber Which primitive.
+	 * @param argCount The number of arguments that we should check is legal for
+	 *                 this primitive.
+	 * @return Whether the primitive accepts the specified number of arguments.
+	 */
+	public static boolean primitiveAcceptsThisManyArguments (
+		final int primitiveNumber,
+		final int argCount)
+	{
+		final Primitive primitive =
+			Primitive.byPrimitiveNumberOrNull(primitiveNumber);
+		assert primitive != null;
+		final int expected = primitive.argCount();
+		return expected == -1 || expected == argCount;
 	}
 
 	/**

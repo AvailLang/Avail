@@ -67,8 +67,13 @@ public class P_403_BootstrapLabelMacro extends Primitive
 		assert args.size() == 2;
 		final AvailObject labelName = args.get(0);
 		final AvailObject type = args.get(1);
-
-		final ParserState parserState = interpreter.currentParserState;
+		final AvailLoader loader = FiberDescriptor.current().availLoader();
+		if (loader == null)
+		{
+			return interpreter.primitiveFailure(E_LOADING_IS_OVER);
+		}
+		// TODO: [MvG] Use fiber state, not the loader.
+		final ParserState parserState = loader.currentParserState;
 		final AvailObject blockMacroArguments =
 			parserState.innermostBlockArguments;
 		if (blockMacroArguments == null || blockMacroArguments.equalsNil())

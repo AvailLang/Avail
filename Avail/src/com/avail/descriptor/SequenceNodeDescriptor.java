@@ -184,6 +184,7 @@ extends ParseNodeDescriptor
 	{
 		final AvailObject instance = mutable.create();
 		instance.setSlot(STATEMENTS, statements);
+		instance.makeShared();
 		return instance;
 	}
 

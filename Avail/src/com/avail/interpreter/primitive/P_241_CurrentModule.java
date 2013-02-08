@@ -33,7 +33,7 @@
 package com.avail.interpreter.primitive;
 
 import static com.avail.descriptor.TypeDescriptor.Types.MODULE;
-import static com.avail.exceptions.AvailErrorCode.E_COMPILATION_IS_OVER;
+import static com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER;
 import static com.avail.interpreter.Primitive.Flag.CanInline;
 import java.util.List;
 import com.avail.descriptor.*;
@@ -50,10 +50,10 @@ public final class P_241_CurrentModule
 extends Primitive
 {
 	/**
-	 * The sole instance of this primitive class.  Accessed through reflection.
+	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_241_CurrentModule().init(
-		0, CanInline);
+	public final static Primitive instance =
+		new P_241_CurrentModule().init(0, CanInline);
 
 	@Override
 	public Result attempt (
@@ -61,10 +61,10 @@ extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 0;
-		final AvailObject module = interpreter.module();
-		if (module == null)
+		final AvailObject module = ModuleDescriptor.current();
+		if (module.equalsNil())
 		{
-			return interpreter.primitiveFailure(E_COMPILATION_IS_OVER);
+			return interpreter.primitiveFailure(E_LOADING_IS_OVER);
 		}
 		return interpreter.primitiveSuccess(module);
 	}

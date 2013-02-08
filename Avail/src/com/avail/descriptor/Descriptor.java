@@ -39,13 +39,13 @@ import com.avail.compiler.*;
 import com.avail.descriptor.AbstractNumberDescriptor.*;
 import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
 import com.avail.descriptor.MapDescriptor.*;
+import com.avail.descriptor.FiberDescriptor.*;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.descriptor.FiberDescriptor.ExecutionState;
 import com.avail.descriptor.SetDescriptor.SetIterator;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.exceptions.*;
-import com.avail.interpreter.Interpreter;
-import com.avail.interpreter.levelTwo.L2Interpreter;
+import com.avail.interpreter.*;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.*;
 import com.avail.visitor.*;
@@ -634,7 +634,7 @@ extends AbstractDescriptor
 	@Override
 	void o_SetInterruptRequestFlag (
 		final AvailObject object,
-		final BitField value)
+		final InterruptRequestFlag flag)
 	{
 		throw unsupportedOperationException();
 	}
@@ -970,9 +970,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_Priority (
-		final AvailObject object,
-		final AvailObject value)
+	void o_Priority (final AvailObject object, final int value)
 	{
 		throw unsupportedOperationException();
 	}
@@ -1121,15 +1119,13 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_RemoveFrom (
-		final AvailObject object,
-		final L2Interpreter anInterpreter)
+	void o_RemoveFrom (final AvailObject object, final AvailLoader loader)
 	{
 		throw unsupportedOperationException();
 	}
 
 	@Override
-	void o_RemoveImplementation (
+	void o_RemoveDefinition (
 		final AvailObject object,
 		final AvailObject implementation)
 	{
@@ -1627,16 +1623,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	AvailObject o_ValidateArgumentTypesInterpreterIfFail (
-		final AvailObject object,
-		final List<AvailObject> argTypes,
-		final Interpreter anAvailInterpreter,
-		final Continuation1<Generator<String>> failBlock)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
 	void o_Value (
 		final AvailObject object,
 		final AvailObject value)
@@ -1961,15 +1947,9 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	int o_InterruptRequestFlags (
-		final AvailObject object)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	int o_CountdownToReoptimize (
-		final AvailObject object)
+	void o_DecrementCountdownToReoptimize (
+		final AvailObject object,
+		final Continuation0 continuation)
 	{
 		throw unsupportedOperationException();
 	}
@@ -2254,8 +2234,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	AvailObject o_Priority (
-		final AvailObject object)
+	int o_Priority (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}
@@ -4597,9 +4576,159 @@ extends AbstractDescriptor
 	@Override
 	void o_Lock (final AvailObject object, final Continuation0 critical)
 	{
-		synchronized (object)
+		// Only bother to acquire the monitor if it's shared.
+		if (isShared())
+		{
+			synchronized (object)
+			{
+				critical.value();
+			}
+		}
+		else
 		{
 			critical.value();
 		}
+	}
+
+	@Override
+	@Nullable AvailLoader o_AvailLoader (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	void o_AvailLoader (
+		final AvailObject object,
+		final @Nullable AvailLoader loader)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	Continuation1<AvailObject> o_ResultContinuation (
+		final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	void o_ResultContinuation (
+		final AvailObject object,
+		final Continuation1<AvailObject> continuation)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	Continuation1<Throwable> o_FailureContinuation (
+		final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	void o_FailureContinuation (
+		final AvailObject object,
+		final Continuation1<Throwable> continuation)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	boolean o_InterruptRequestFlag (
+		final AvailObject object,
+		final InterruptRequestFlag flag)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	AvailObject o_GetAndSetValue (
+		final AvailObject object,
+		final AvailObject newValue)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	boolean o_CompareAndSwapValues (
+		final AvailObject object,
+		final AvailObject reference,
+		final AvailObject newValue)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	AvailObject o_FetchAndAddValue (
+		final AvailObject object,
+		final AvailObject addend)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	boolean o_GetAndClearInterruptRequestFlag (
+		final AvailObject object,
+		final InterruptRequestFlag flag)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	boolean o_GetAndSetSynchronizationFlag (
+		final AvailObject object,
+		final SynchronizationFlag flag,
+		final boolean newValue)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	AvailObject o_FiberResult (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	void o_FiberResult (final AvailObject object, final AvailObject result)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	AvailObject o_JoiningFibers (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	void o_JoiningFibers (final AvailObject object, final AvailObject joiners)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	AvailObject o_Joinee (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	void o_Joinee (final AvailObject object, final AvailObject joinee)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	@Nullable TimerTask o_WakeupTask (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	void o_WakeupTask (final AvailObject object, final @Nullable TimerTask task)
+	{
+		throw unsupportedOperationException();
 	}
 }

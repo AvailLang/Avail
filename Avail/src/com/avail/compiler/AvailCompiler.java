@@ -37,10 +37,9 @@ import static com.avail.descriptor.TokenDescriptor.TokenType.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.*;
 import com.avail.annotations.Nullable;
-import com.avail.builder.ModuleName;
+import com.avail.builder.*;
 import com.avail.descriptor.*;
-import com.avail.interpreter.levelTwo.L2Interpreter;
-import com.avail.utility.Generator;
+import com.avail.utility.*;
 
 /**
  * I parse a source file to create a {@linkplain ModuleDescriptor module}.
@@ -54,23 +53,20 @@ extends AbstractAvailCompiler
 	/**
 	 * Construct a new {@link AvailCompiler}.
 	 *
-	 * @param interpreter
-	 *            The interpreter used to execute code during compilation.
 	 * @param moduleName
-	 *            The {@link ModuleName} of the module being compiled.
+	 *        The {@link ResolvedModuleName} of the module to compile.
 	 * @param source
-	 *            The {@link String} containing the module's source.
+	 *        The {@link String} containing the module's source.
 	 * @param tokens
-	 *            The {@link List} of {@linkplain TokenDescriptor tokens}
-	 *            scanned from the module's source.
+	 *        The {@link List} of {@linkplain TokenDescriptor tokens} scanned
+	 *        from the module's source.
 	 */
 	public AvailCompiler (
-		final L2Interpreter interpreter,
-		final ModuleName moduleName,
+		final ResolvedModuleName moduleName,
 		final String source,
 		final List<AvailObject> tokens)
 	{
-		super(interpreter, moduleName, source, tokens);
+		super(moduleName, source, tokens);
 	}
 
 	/**
@@ -91,12 +87,13 @@ extends AbstractAvailCompiler
 			{
 				@Override
 				public void value (
-					final @Nullable ParserState ignored,
+					final @Nullable ParserState realStart,
 					final @Nullable Con<AvailObject> whenFoundStatement)
 				{
+					assert realStart != null;
 					assert whenFoundStatement != null;
 					parseExpressionThen(
-						start,
+						realStart,
 						new Con<AvailObject>("End of statement")
 						{
 							@Override
@@ -208,59 +205,67 @@ extends AbstractAvailCompiler
 				});
 			return;
 		}
+		// Declarations introduced in the macro should now be moved
+		// out of scope.
+		// TODO: [MvG] Use a fiber to store the parser state.
+		final ParserState reportedStateDuringValidation = new ParserState(
+			stateAfterCall.position - 1,
+			stateBeforeCall.scopeMap,
+			stateBeforeCall.innermostBlockArguments);
+		final ParserState stateAfter = new ParserState(
+			stateAfterCall.position,
+			stateBeforeCall.scopeMap,
+			stateBeforeCall.innermostBlockArguments);
 		// A macro can't have semantic restrictions, so just run it.
-		try
-		{
-			// Declarations introduced in the macro should now be moved
-			// out of scope.
-			final ParserState reportedStateDuringValidation = new ParserState(
-				stateAfterCall.position - 1,
-				stateBeforeCall.scopeMap,
-				stateBeforeCall.innermostBlockArguments);
-			final ParserState stateAfter = new ParserState(
-				stateAfterCall.position,
-				stateBeforeCall.scopeMap,
-				stateBeforeCall.innermostBlockArguments);
-			interpreter.currentParserState = reportedStateDuringValidation;
-			AvailObject replacement;
-			try
+		evaluateFunctionThen(
+			macroBody,
+			argumentExpressions,
+			false,
+			new Continuation1<AvailObject>()
 			{
-				replacement = interpreter.runFunctionArguments(
-					macroBody,
-					argumentExpressions);
-			}
-			finally
+				@Override
+				public void value (final @Nullable AvailObject replacement)
+				{
+					assert replacement != null;
+					if (replacement.isInstanceOfKind(
+						PARSE_NODE.mostGeneralType()))
+					{
+						final AvailObject substitution =
+							MacroSubstitutionNodeDescriptor.fromNameAndNode(
+								bundle.message(),
+								replacement);
+						attempt(stateAfter, continuation, substitution);
+					}
+					else
+					{
+						stateAfterCall.expected(
+							"macro body ("
+							+ method.name().name()
+							+ ") to produce a parse node");
+					}
+				}
+			},
+			new Continuation1<Throwable>()
 			{
-				interpreter.currentParserState = null;
-			}
-			if (replacement.isInstanceOfKind(PARSE_NODE.mostGeneralType()))
-			{
-				final AvailObject substitution =
-					MacroSubstitutionNodeDescriptor.fromNameAndNode(
-						bundle.message(),
-						replacement);
-				attempt(stateAfter, continuation, substitution);
-			}
-			else
-			{
-				stateAfterCall.expected(
-					"macro body ("
-					+ method.name().name()
-					+ ") to produce a parse node");
-			}
-		}
-		catch (final AvailRejectedParseException e)
-		{
-			stateAfterCall.expected(e.rejectionString().asNativeString());
-		}
-		catch (final Exception e)
-		{
-			stateAfterCall.expected(
-				"evaluation of macro body not to raise an unhandled "
-				+ "exception:\n\t"
-				+ e);
-		}
-		return;
+				@Override
+				public void value (final @Nullable Throwable e)
+				{
+					if (e instanceof AvailRejectedParseException)
+					{
+						final AvailRejectedParseException rej =
+							(AvailRejectedParseException) e;
+						stateAfterCall.expected(
+							rej.rejectionString().asNativeString());
+					}
+					else
+					{
+						stateAfterCall.expected(
+							"evaluation of macro body not to raise an "
+							+ "unhandled exception:\n\t"
+							+ e);
+					}
+				}
+			});
 	}
 
 	/**

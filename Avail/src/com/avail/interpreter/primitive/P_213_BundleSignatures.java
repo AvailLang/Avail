@@ -35,6 +35,7 @@ import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode.E_NO_METHOD;
 import static com.avail.interpreter.Primitive.Flag.CanInline;
 import java.util.List;
+import com.avail.AvailRuntime;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 
@@ -61,7 +62,7 @@ public class P_213_BundleSignatures extends Primitive
 		assert args.size() == 1;
 		final AvailObject bundle = args.get(0);
 		final AvailObject method =
-			interpreter.runtime().methodsAt(bundle.message());
+			AvailRuntime.current().methodsAt(bundle.message());
 		if (method.equalsNil())
 		{
 			return interpreter.primitiveFailure(E_NO_METHOD);

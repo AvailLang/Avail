@@ -378,10 +378,9 @@ extends JFrame
 				runtime = new AvailRuntime(resolver);
 				final AvailBuilder builder = new AvailBuilder(
 					runtime,
-					repository,
-					new ModuleName(targetModuleName));
-				AvailBuilder.buildTargetInNewAvailThread(
-					builder,
+					repository);
+				builder.build(
+					new ModuleName(targetModuleName),
 					new Continuation4<ModuleName, Long, Long, Long>()
 					{
 						@Override
@@ -445,7 +444,7 @@ extends JFrame
 					});
 				return null;
 			}
-			catch (final TerminateCompilationException e)
+			catch (final FiberTerminationException e)
 			{
 				terminator = e;
 				return null;

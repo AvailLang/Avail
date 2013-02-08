@@ -85,9 +85,8 @@ extends Primitive
 		final AvailObject compiledCode;
 		try
 		{
-			final AvailObject module = interpreter.module();
 			final AvailCodeGenerator codeGenerator = new AvailCodeGenerator(
-				module != null ? module : NilDescriptor.nil());
+				ModuleDescriptor.current());
 			compiledCode = block.generate(codeGenerator);
 		}
 		catch (final Exception e)

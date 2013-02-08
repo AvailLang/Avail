@@ -1,6 +1,6 @@
 /**
- * TerminateCompilationException.java
- * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
+ * P_619_HasResult.java
+ * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,17 +30,48 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.compiler;
+package com.avail.interpreter.primitive;
+
+import static com.avail.descriptor.TypeDescriptor.Types.*;
+import static com.avail.interpreter.Primitive.Flag.*;
+import java.util.List;
+import com.avail.annotations.NotNull;
+import com.avail.descriptor.*;
+import com.avail.interpreter.*;
 
 /**
- * Throw a {@code TerminateCompilationException} to request termination of the
- * {@link AvailCompiler} without production of an error message.
+ * <strong>Primitive 619</strong>: Has the specified {@linkplain FiberDescriptor
+ * fiber} produced a result yet?
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class TerminateCompilationException
-extends RuntimeException
+public final class P_619_HasResult
+extends Primitive
 {
-	/** The serial version identifier. */
-	private static final long serialVersionUID = 6048283627858078215L;
+	/**
+	 * The sole instance of this primitive class. Accessed through reflection.
+	 */
+	public final @NotNull static Primitive instance =
+		new P_619_HasResult().init(1, CannotFail, CanInline);
+
+	@Override
+	public Result attempt (
+		final List<AvailObject> args,
+		final Interpreter interpreter)
+	{
+		assert args.size() == 1;
+		final AvailObject fiber = args.get(0);
+		return interpreter.primitiveSuccess(
+			AtomDescriptor.objectFromBoolean(
+				!fiber.fiberResult().equalsNil()));
+	}
+
+	@Override
+	protected AvailObject privateBlockTypeRestriction ()
+	{
+		return FunctionTypeDescriptor.create(
+			TupleDescriptor.from(
+				FIBER.o()),
+			EnumerationTypeDescriptor.booleanObject());
+	}
 }

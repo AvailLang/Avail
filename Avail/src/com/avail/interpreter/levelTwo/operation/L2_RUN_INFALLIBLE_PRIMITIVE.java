@@ -35,7 +35,7 @@ import static com.avail.descriptor.AvailObject.error;
 import static com.avail.interpreter.Primitive.Result.SUCCESS;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import com.avail.descriptor.AvailObject;
-import com.avail.interpreter.Primitive;
+import com.avail.interpreter.*;
 import com.avail.interpreter.Primitive.*;
 import com.avail.interpreter.levelTwo.*;
 import com.avail.interpreter.levelTwo.operand.*;
@@ -73,7 +73,7 @@ public class L2_RUN_INFALLIBLE_PRIMITIVE extends L2Operation
 	}
 
 	@Override
-	public void step (final L2Interpreter interpreter)
+	public void step (final Interpreter interpreter)
 	{
 		final int primNumber = interpreter.nextWord();
 		final int argsVector = interpreter.nextWord();
@@ -100,8 +100,8 @@ public class L2_RUN_INFALLIBLE_PRIMITIVE extends L2Operation
 		final AvailObject expectedType =
 			interpreter.pointerAt(expectedTypeRegister);
 		final long start = System.nanoTime();
-		final boolean checkOk =
-			interpreter.primitiveResult.isInstanceOf(expectedType);
+		final AvailObject result = interpreter.latestResult();
+		final boolean checkOk = result.isInstanceOf(expectedType);
 		final long checkTimeNanos = System.nanoTime() - start;
 		Primitive.byPrimitiveNumberOrFail(primNumber)
 			.addMicrosecondsCheckingResultType(checkTimeNanos / 1000L);
@@ -112,12 +112,10 @@ public class L2_RUN_INFALLIBLE_PRIMITIVE extends L2Operation
 				"primitive %s's result (%s) did not agree with"
 				+ " semantic restriction's expected type (%s)",
 				Primitive.byPrimitiveNumberOrFail(primNumber).name(),
-				interpreter.primitiveResult,
+				result,
 				expectedType);
 		}
-		interpreter.pointerAtPut(
-			resultRegister,
-			interpreter.primitiveResult);
+		interpreter.pointerAtPut(resultRegister, result);
 	}
 
 	@Override

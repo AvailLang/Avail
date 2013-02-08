@@ -90,7 +90,7 @@ extends ParseNodeDescriptor
 		catch (final SignatureException e)
 		{
 			builder.append("*** Malformed selector: ");
-			builder.append(e.errorCode().name());
+			builder.append(e.errorValue().name());
 			builder.append("***");
 			return;
 		}
@@ -227,6 +227,7 @@ extends ParseNodeDescriptor
 		newObject.setSlot(ARGUMENTS_LIST_NODE, argsListNode);
 		newObject.setSlot(METHOD, method);
 		newObject.setSlot(RETURN_TYPE, returnType);
+		newObject.makeShared();
 		return newObject;
 	}
 

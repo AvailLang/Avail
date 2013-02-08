@@ -32,6 +32,8 @@
 
 package com.avail.utility;
 
+import com.avail.annotations.Nullable;
+
 /**
  * Implementors of {@code Transformer2} provide a single arbitrary operation
  * that accepts two arguments and produces a result.
@@ -50,5 +52,7 @@ public abstract class Transformer2 <X,Y,Z>
 	 * @param arg2 The second argument to the operation.
 	 * @return The result of performing the operation.
 	 */
-	public abstract Z value (X arg1, Y arg2);
+	public abstract @Nullable Z value (
+		@Nullable X arg1,
+		@Nullable Y arg2);
 }

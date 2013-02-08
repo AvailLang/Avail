@@ -32,6 +32,7 @@
 package com.avail.interpreter.levelTwo.operation;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_POINTER;
+import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelOne.L1Operation;
 import com.avail.interpreter.levelTwo.*;
 
@@ -56,7 +57,7 @@ public class L2_MAKE_SUBOBJECTS_IMMUTABLE extends L2Operation
 	}
 
 	@Override
-	public void step (final L2Interpreter interpreter)
+	public void step (final Interpreter interpreter)
 	{
 		final int objectIndex = interpreter.nextWord();
 		interpreter.pointerAt(objectIndex).makeSubobjectsImmutable();

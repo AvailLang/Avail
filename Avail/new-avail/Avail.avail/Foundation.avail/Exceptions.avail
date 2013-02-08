@@ -64,6 +64,7 @@ Names
 	"_'s⁇stack summary",
 	"_'s⁇unhandled exception handler",
 	"_'s⁇unhandled exception handler is_",
+	"“_”(stack summary)",
 
 	/* System exception categories. */
 	"arithmetic exception",
@@ -327,7 +328,7 @@ Public method "cascade_" is
 	exceptionType : exception's type
 |
 	cascade exception ∩ exceptionType
-] : cascade exception 's type;
+] : cascade exception's type;
 
 Grammatical restriction "cascade_" is <{"exception"}>;
 
@@ -339,7 +340,7 @@ Semantic restriction "cascade_" is
 ];
 
 /**
- * Answer an {@type "cascade exception"} based on {@param "newException"} and
+ * Answer a {@type "cascade exception"} based on {@param "newException"} and
  * caused by {@param "originalException"}.
  *
  * @method "_caused by_"
@@ -867,7 +868,11 @@ System exception "incorrect-type-for-numbered-choice" (57)
 	extends bad-message exception;
 System exception "label-macro-must-occur-inside-a-block" (58)
 	extends bad-phrase exception;
-System exception "compilation-is-over" (70)
+System exception "fiber-result-unavailable" (59)
+	extends element-access exception;
+System exception "fiber-cannot-join-itself" (60)
+	extends bad-argument exception;
+System exception "loading-is-over" (70)
 	extends system exception;
 System exception "method-implementation-lookup-failed" (71)
 	extends element-access exception;
@@ -1016,10 +1021,18 @@ Set early failure function to
 		error name ::= exceptionType's error name's instance
 ] : ⊥;
 
-Private method "“_”(stack summary)" is
+/**
+ * Obtain a printed representation of the specified {@type "exception"}'s stack
+ * summary, suitable for printing.
+ *
+ * @method "“_”(stack summary)"
+ * @param "e" "exception"
+ */
+Public method "“_”(stack summary)" is
 [
-	dump : <string…|>
+	e : exception
 |
+	dump ::= e's stack summary;
 	text : string := "";
 	From |dump| to 1 by -1 do
 	[
@@ -1045,7 +1058,7 @@ current fiber's unhandled exception handler is
 			format "Unhandled exception during compilation of “①”:\n"
 			with m's name;
 	]
-	intercept [e : compilation-is-over exception |];
+	intercept [e : loading-is-over exception |];
 	e : exception := unhandled;
 	firstTime : boolean := true;
 	While [↑e is assigned] do
@@ -1055,7 +1068,7 @@ current fiber's unhandled exception handler is
 			else ["“ex”:\n"];
 		firstTime := false;
 		Error: format spec with ex ::= e;
-		Error: “e's stack summary” (stack summary);
+		Error: “e” (stack summary);
 		Cast e into
 		[
 			cascade : cascade exception

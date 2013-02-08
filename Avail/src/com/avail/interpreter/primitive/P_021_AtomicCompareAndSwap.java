@@ -1,6 +1,6 @@
 /**
- * P_024_RequestTermination.java
- * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
+ * P_021_AtomicCompareAndSwap.java
+ * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,37 +29,52 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+
 package com.avail.interpreter.primitive;
 
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
+import com.avail.annotations.NotNull;
 import com.avail.descriptor.*;
+import com.avail.exceptions.*;
 import com.avail.interpreter.*;
 
 /**
- * <strong>Primitive 24:</strong> Request termination of the given
- * {@linkplain FiberDescriptor fiber}. Ignore if the fiber is already
- * terminated.
+ * <strong>Primitive 21</strong>: Atomically read and conditionally overwrite
+ * the specified {@linkplain VariableDescriptor variable}. The overwrite occurs
+ * only if the value read from the variable equals the reference value.
+ *
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class P_024_RequestTermination extends Primitive
+public final class P_021_AtomicCompareAndSwap
+extends Primitive
 {
 	/**
-	 * The sole instance of this primitive class.  Accessed through reflection.
+	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_024_RequestTermination().init(
-		1, CanInline, CannotFail, HasSideEffect);
+	public final @NotNull static Primitive instance =
+		new P_021_AtomicCompareAndSwap().init(3, CanInline, HasSideEffect);
 
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 1;
-		final AvailObject fiber = args.get(0);
-		fiber.setInterruptRequestFlag(
-			FiberDescriptor.IntegerSlots.TERMINATION_REQUESTED);
-		return interpreter.primitiveSuccess(NilDescriptor.nil());
+		assert args.size() == 3;
+		final AvailObject var = args.get(0);
+		final AvailObject reference = args.get(1);
+		final AvailObject newValue = args.get(2);
+		try
+		{
+			return interpreter.primitiveSuccess(
+				AtomDescriptor.objectFromBoolean(
+					var.compareAndSwapValues(reference, newValue)));
+		}
+		catch (final VariableGetException|VariableSetException e)
+		{
+			return interpreter.primitiveFailure(e);
+		}
 	}
 
 	@Override
@@ -67,7 +82,9 @@ public class P_024_RequestTermination extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				FIBER.o()),
-			TOP.o());
+				VariableTypeDescriptor.mostGeneralType(),
+				ANY.o(),
+				ANY.o()),
+			EnumerationTypeDescriptor.booleanObject());
 	}
 }

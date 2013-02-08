@@ -33,22 +33,27 @@ package com.avail.interpreter.primitive;
 
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.PARSE_NODE;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
+import static com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER;
 import static com.avail.interpreter.Primitive.Flag.Unknown;
+import static com.avail.interpreter.Primitive.Result.*;
 import java.util.List;
+import com.avail.*;
 import com.avail.descriptor.*;
 import com.avail.exceptions.*;
 import com.avail.interpreter.*;
+import com.avail.utility.Continuation0;
 
 /**
  * <strong>Primitive 249:</strong> Simple macro definition.
  */
-public class P_249_SimpleMacroDeclaration extends Primitive
+public class P_249_SimpleMacroDeclaration
+extends Primitive
 {
 	/**
-	 * The sole instance of this primitive class.  Accessed through reflection.
+	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_249_SimpleMacroDeclaration().init(
-		2, Unknown);
+	public final static Primitive instance =
+		new P_249_SimpleMacroDeclaration().init(2, Unknown);
 
 	@Override
 	public Result attempt (
@@ -60,6 +65,12 @@ public class P_249_SimpleMacroDeclaration extends Primitive
 		final AvailObject function = args.get(1);
 		final AvailObject blockType = function.kind();
 		final AvailObject tupleType = blockType.argsTupleType();
+		final AvailObject fiber = FiberDescriptor.current();
+		final AvailLoader loader = fiber.availLoader();
+		if (loader == null)
+		{
+			return interpreter.primitiveFailure(E_LOADING_IS_OVER);
+		}
 		for (int i = function.code().numArgs(); i >= 1; i--)
 		{
 			if (!tupleType.typeAtIndex(i).isSubtypeOf(
@@ -73,28 +84,39 @@ public class P_249_SimpleMacroDeclaration extends Primitive
 //					E_MACRO_ARGUMENT_MUST_BE_A_PARSE_NODE);
 			}
 		}
-		try
-		{
-			interpreter.addMacroBody(
-				interpreter.lookupName(string), function);
-			// Even though a macro is always monomorphic and therefore
-			// effectively permanent (and probably unlikely to ever be inlined),
-			// we may as well do the fixup call here.  Designs change.
-			interpreter.fixupForPotentiallyInvalidCurrentChunk();
-			function.code().setMethodName(
-				StringDescriptor.from(
-					String.format("Macro body of %s", string)));
 
-		}
-		catch (final AmbiguousNameException e)
-		{
-			return interpreter.primitiveFailure(e);
-		}
-		catch (final SignatureException e)
-		{
-			return interpreter.primitiveFailure(e);
-		}
-		return interpreter.primitiveSuccess(NilDescriptor.nil());
+		interpreter.primitiveSuspend();
+		AvailRuntime.current().whenLevelOneSafeDo(
+			AvailTask.forUnboundFiber(
+				fiber,
+				new Continuation0()
+				{
+					@Override
+					public void value ()
+					{
+						Result state;
+						AvailObject result;
+						try
+						{
+							loader.addMacroBody(
+								loader.lookupName(string),
+								function);
+							function.code().setMethodName(
+								StringDescriptor.from(
+									String.format("Macro body of %s", string)));
+							state = SUCCESS;
+							result = NilDescriptor.nil();
+						}
+						catch (
+							final AmbiguousNameException|SignatureException e)
+						{
+							state = FAILURE;
+							result = e.errorValue();
+						}
+						Interpreter.resumeFromPrimitive(fiber, state, result);
+					}
+				}));
+		return FIBER_SUSPENDED;
 	}
 
 	@Override

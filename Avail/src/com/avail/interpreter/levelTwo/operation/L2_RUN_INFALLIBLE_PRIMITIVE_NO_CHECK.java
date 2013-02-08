@@ -35,7 +35,7 @@ import static com.avail.interpreter.Primitive.Result.SUCCESS;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import java.util.*;
 import com.avail.descriptor.AvailObject;
-import com.avail.interpreter.Primitive;
+import com.avail.interpreter.*;
 import com.avail.interpreter.Primitive.*;
 import com.avail.interpreter.levelTwo.*;
 import com.avail.interpreter.levelTwo.operand.*;
@@ -72,7 +72,7 @@ public class L2_RUN_INFALLIBLE_PRIMITIVE_NO_CHECK extends L2Operation
 	}
 
 	@Override
-	public void step (final L2Interpreter interpreter)
+	public void step (final Interpreter interpreter)
 	{
 		final int primNumber = interpreter.nextWord();
 		final int argsVector = interpreter.nextWord();
@@ -98,7 +98,7 @@ public class L2_RUN_INFALLIBLE_PRIMITIVE_NO_CHECK extends L2Operation
 		assert res == SUCCESS;
 		interpreter.pointerAtPut(
 			resultRegister,
-			interpreter.primitiveResult);
+			interpreter.latestResult());
 	}
 
 	@Override

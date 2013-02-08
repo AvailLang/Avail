@@ -32,6 +32,8 @@
 
 package com.avail.utility;
 
+import com.avail.annotations.Nullable;
+
 /**
  * Support explicit mutable wrapping of variables.  This is used specifically
  * for allowing non-final variables to be used by inner classes.  The uses were
@@ -61,7 +63,7 @@ public class Mutable<T>
 	 * something "final Mutable<Integer> x = new Mutable<Integer>();" and
 	 * then have code within inner classes like "x.value = 5" or "x.value++".
 	 */
-	public T value;
+	public @Nullable T value;
 
 	/**
 	 * Zero-argument constructor.
@@ -76,7 +78,7 @@ public class Mutable<T>
 	 *
 	 * @param value The initial value.
 	 */
-	public Mutable(T value)
+	public Mutable(@Nullable final T value)
 	{
 		this.value = value;
 	}

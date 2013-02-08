@@ -32,6 +32,8 @@
 
 package com.avail.descriptor;
 
+import static com.avail.descriptor.VariableDescriptor.IntegerSlots.*;
+import static com.avail.descriptor.VariableDescriptor.ObjectSlots.*;
 import com.avail.AvailRuntime;
 import com.avail.annotations.*;
 import com.avail.exceptions.*;
@@ -86,14 +88,14 @@ extends Descriptor
 	boolean allowsImmutableToMutableReferenceInField (
 		final AbstractSlotsEnum e)
 	{
-		return e == ObjectSlots.VALUE
-			|| e == IntegerSlots.HASH_OR_ZERO;
+		return e == VALUE
+			|| e == HASH_OR_ZERO;
 	}
 
 	@Override @AvailMethod
 	int o_Hash (final AvailObject object)
 	{
-		int hash = object.slot(IntegerSlots.HASH_OR_ZERO);
+		int hash = object.slot(HASH_OR_ZERO);
 		if (hash == 0)
 		{
 			do
@@ -101,7 +103,7 @@ extends Descriptor
 				hash = AvailRuntime.nextHash();
 			}
 			while (hash == 0);
-			object.setSlot(IntegerSlots.HASH_OR_ZERO, hash);
+			object.setSlot(HASH_OR_ZERO, hash);
 		}
 		return hash;
 	}
@@ -109,19 +111,23 @@ extends Descriptor
 	@Override @AvailMethod
 	AvailObject o_Value (final AvailObject object)
 	{
-		return object.slot(ObjectSlots.VALUE);
+		return object.slot(VALUE);
 	}
 
 	@Override @AvailMethod
 	AvailObject o_GetValue (final AvailObject object)
 	{
-		// Answer the current value of the variable.  Fail if no value is
+		// Answer the current value of the variable. Fail if no value is
 		// currently assigned.
-		final AvailObject value = object.slot(ObjectSlots.VALUE);
+		final AvailObject value = object.slot(VALUE);
 		if (value.equalsNil())
 		{
 			throw new VariableGetException(
 				AvailErrorCode.E_CANNOT_READ_UNASSIGNED_VARIABLE);
+		}
+		if (mutability == Mutability.IMMUTABLE)
+		{
+			value.makeImmutable();
 		}
 		return value;
 	}
@@ -129,13 +135,13 @@ extends Descriptor
 	@Override @AvailMethod
 	void o_SetValue (final AvailObject object, final AvailObject newValue)
 	{
-		final AvailObject outerKind = object.slot(ObjectSlots.KIND);
+		final AvailObject outerKind = object.slot(KIND);
 		if (!newValue.isInstanceOf(outerKind.writeType()))
 		{
 			throw new VariableSetException(
 				AvailErrorCode.E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE);
 		}
-		object.setSlot(ObjectSlots.VALUE, newValue);
+		object.setSlot(VALUE, newValue);
 	}
 
 	@Override @AvailMethod
@@ -143,21 +149,111 @@ extends Descriptor
 		final AvailObject object,
 		final AvailObject newValue)
 	{
-		object.setSlot(ObjectSlots.VALUE, newValue);
+		object.setSlot(VALUE, newValue);
+	}
+
+	@Override @AvailMethod
+	AvailObject o_GetAndSetValue (
+		final AvailObject object,
+		final AvailObject newValue)
+	{
+		final AvailObject outerKind = object.slot(KIND);
+		if (!newValue.isInstanceOf(outerKind.writeType()))
+		{
+			throw new VariableSetException(
+				AvailErrorCode.E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE);
+		}
+		// The variable is not visible to multiple fibers, and cannot become
+		// visible to any other fiber except by an act of the current fiber,
+		// therefore do not worry about atomicity.
+		final AvailObject value = object.slot(VALUE);
+		if (value.equalsNil())
+		{
+			throw new VariableGetException(
+				AvailErrorCode.E_CANNOT_READ_UNASSIGNED_VARIABLE);
+		}
+		object.setSlot(VALUE, newValue);
+		if (mutability == Mutability.MUTABLE)
+		{
+			value.makeImmutable();
+		}
+		return value;
+	}
+
+	@Override @AvailMethod
+	boolean o_CompareAndSwapValues (
+		final AvailObject object,
+		final AvailObject reference,
+		final AvailObject newValue)
+	{
+		final AvailObject outerKind = object.slot(KIND);
+		if (!newValue.isInstanceOf(outerKind.writeType()))
+		{
+			throw new VariableSetException(
+				AvailErrorCode.E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE);
+		}
+		// The variable is not visible to multiple fibers, and cannot become
+		// visible to any other fiber except by an act of the current fiber,
+		// therefore do not worry about atomicity.
+		final AvailObject value = object.slot(VALUE);
+		if (value.equalsNil())
+		{
+			throw new VariableGetException(
+				AvailErrorCode.E_CANNOT_READ_UNASSIGNED_VARIABLE);
+		}
+		final boolean swap = value.equals(reference);
+		if (swap)
+		{
+			object.setSlot(VALUE, newValue);
+		}
+		if (mutability == Mutability.MUTABLE)
+		{
+			value.makeImmutable();
+		}
+		return swap;
+	}
+
+	@Override @AvailMethod
+	AvailObject o_FetchAndAddValue (
+		final AvailObject object,
+		final AvailObject addend)
+	{
+		final AvailObject outerKind = object.slot(KIND);
+		assert outerKind.isSubtypeOf(
+			IntegerRangeTypeDescriptor.extendedIntegers());
+		// The variable is not visible to multiple fibers, and cannot become
+		// visible to any other fiber except by an act of the current fiber,
+		// therefore do not worry about atomicity.
+		final AvailObject value = object.slot(VALUE);
+		if (value.equalsNil())
+		{
+			throw new VariableGetException(
+				AvailErrorCode.E_CANNOT_READ_UNASSIGNED_VARIABLE);
+		}
+		final AvailObject newValue = value.plusCanDestroy(addend, true);
+		if (!newValue.isInstanceOf(outerKind.writeType()))
+		{
+			throw new VariableSetException(
+				AvailErrorCode.E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE);
+		}
+		object.setSlot(VALUE, newValue);
+		if (mutability == Mutability.MUTABLE)
+		{
+			value.makeImmutable();
+		}
+		return value;
 	}
 
 	@Override @AvailMethod
 	void o_ClearValue (final AvailObject object)
 	{
-		// Clear the variable (make it have no current value).
-		// Eventually, the previous contents should drop a reference.
-		object.setSlot(ObjectSlots.VALUE, NilDescriptor.nil());
+		object.setSlot(VALUE, NilDescriptor.nil());
 	}
 
 	@Override @AvailMethod
 	final AvailObject o_Kind (final AvailObject object)
 	{
-		return object.slot(ObjectSlots.KIND);
+		return object.slot(KIND);
 	}
 
 	@Override @AvailMethod
@@ -182,7 +278,7 @@ extends Descriptor
 		if (isMutable())
 		{
 			object.descriptor = immutable;
-			object.slot(ObjectSlots.KIND).makeImmutable();
+			object.slot(KIND).makeImmutable();
 		}
 		return object;
 	}
@@ -222,9 +318,9 @@ extends Descriptor
 		final AvailObject outerType)
 	{
 		final AvailObject result = mutable.create();
-		result.setSlot(ObjectSlots.KIND, outerType);
-		result.setSlot(IntegerSlots.HASH_OR_ZERO, 0);
-		result.setSlot(ObjectSlots.VALUE, NilDescriptor.nil());
+		result.setSlot(KIND, outerType);
+		result.setSlot(HASH_OR_ZERO, 0);
+		result.setSlot(VALUE, NilDescriptor.nil());
 		return result;
 	}
 

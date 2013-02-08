@@ -41,17 +41,7 @@ Names
 	"math test suite"
 Body
 
-_testSuite ::= $"math test suite";
-
-/**
- * Answer the test suite identifier of the math test suite.
- * 
- * @method "math test suite"
- * @returns "atom"
- *          The requested test suite identifier.
- */
-Public method "math test suite" is [ _testSuite ];
-
+"math test suite" is a new atom;
 New test suite math test suite extends foundation test suite;
 
 Test "integer range bounds" in math test suite is

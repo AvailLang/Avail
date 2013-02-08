@@ -41,17 +41,7 @@ Names
 	"function test suite"
 Body
 
-_testSuite ::= $"function test suite";
-
-/**
- * Answer the test suite identifier of the function test suite.
- *
- * @method "function test suite"
- * @returns "atom"
- *          The requested test suite identifier.
- */
-Public method "function test suite" is [ _testSuite ];
-
+"function test suite" is a new atom;
 New test suite function test suite extends foundation test suite;
 
 Test "partial application basics" in function test suite is

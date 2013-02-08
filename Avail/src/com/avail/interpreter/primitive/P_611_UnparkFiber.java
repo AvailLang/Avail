@@ -1,6 +1,6 @@
 /**
- * P_022_SetFiberPriority.java
- * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
+ * P_611_UnparkFiber.java
+ * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,36 +29,70 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+
 package com.avail.interpreter.primitive;
 
+import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.interpreter.Primitive.Flag.*;
+import static com.avail.descriptor.FiberDescriptor.ExecutionState.*;
+import static com.avail.descriptor.FiberDescriptor.SynchronizationFlag.PERMIT_UNAVAILABLE;
 import java.util.List;
+import com.avail.annotations.NotNull;
 import com.avail.descriptor.*;
-import com.avail.descriptor.TypeDescriptor.Types;
+import com.avail.descriptor.FiberDescriptor.SynchronizationFlag;
 import com.avail.interpreter.*;
+import com.avail.utility.Continuation0;
 
 /**
- * <strong>Primitive 22:</strong> Set the priority of a fiber.
+ * <strong>Primitive 611</strong>: Unpark the specified {@linkplain
+ * FiberDescriptor fiber}. If the {@linkplain
+ * SynchronizationFlag#PERMIT_UNAVAILABLE permit} associated with the fiber is
+ * available, then simply continue. If the permit is not available, then restore
+ * the permit and schedule {@linkplain
+ * Interpreter#resumeFromPrimitive(AvailObject, Result, AvailObject) resumption}
+ * of the fiber. A newly unparked fiber should always recheck the basis for its
+ * having parked, to see if it should park again. Low-level synchronization
+ * mechanisms may require the ability to spuriously unpark in order to ensure
+ * correctness.
+ *
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class P_022_SetFiberPriority extends Primitive
+public final class P_611_UnparkFiber
+extends Primitive
 {
 	/**
-	 * The sole instance of this primitive class.  Accessed through reflection.
+	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_022_SetFiberPriority().init(
-		2, CannotFail);
+	public final @NotNull static Primitive instance =
+		new P_611_UnparkFiber().init(1, CannotFail, CanInline, HasSideEffect);
 
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 2;
+		assert args.size() == 1;
 		final AvailObject fiber = args.get(0);
-		final AvailObject priority = args.get(0);
-		fiber.priority(priority);
-		return interpreter.primitiveSuccess(
-			NilDescriptor.nil());
+		fiber.lock(new Continuation0()
+		{
+			@Override
+			public void value ()
+			{
+				// If the permit is unavailable and the fiber is parked, then
+				// unpark it.
+				if (fiber.getAndSetSynchronizationFlag(
+						PERMIT_UNAVAILABLE, false)
+					&& fiber.executionState() == PARKED)
+				{
+					fiber.executionState(SUSPENDED);
+					Interpreter.resumeFromPrimitive(
+						fiber,
+						Result.SUCCESS,
+						NilDescriptor.nil());
+				}
+			}
+		});
+		return interpreter.primitiveSuccess(NilDescriptor.nil());
 	}
 
 	@Override
@@ -66,8 +100,7 @@ public class P_022_SetFiberPriority extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				Types.FIBER.o(),
-				IntegerRangeTypeDescriptor.wholeNumbers()),
-			Types.TOP.o());
+				FIBER.o()),
+			TOP.o());
 	}
 }

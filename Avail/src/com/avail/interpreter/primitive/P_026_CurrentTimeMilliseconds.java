@@ -1,5 +1,5 @@
 /**
- * P_025_CurrentFiber.java
+ * P_026_CurrentTimeMilliseconds.java
  * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -31,23 +31,24 @@
  */
 package com.avail.interpreter.primitive;
 
-import static com.avail.descriptor.TypeDescriptor.Types.FIBER;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 
 /**
- * <strong>Primitive 25:</strong> Answer the currently running {@linkplain
- * FiberDescriptor fiber}.
+ * <strong>Primitive 26:</strong> Get the current time as milliseconds since
+ * the Unix Epoch.
  */
-public class P_025_CurrentFiber extends Primitive
+public class P_026_CurrentTimeMilliseconds
+extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_025_CurrentFiber().init(
-		0, CanInline, CannotFail);
+	public final static Primitive instance =
+		new P_026_CurrentTimeMilliseconds().init(
+			0, CannotFail, CanInline, HasSideEffect);
 
 	@Override
 	public Result attempt (
@@ -56,7 +57,7 @@ public class P_025_CurrentFiber extends Primitive
 	{
 		assert args.size() == 0;
 		return interpreter.primitiveSuccess(
-			interpreter.fiber().makeImmutable());
+			IntegerDescriptor.fromLong(System.currentTimeMillis()));
 	}
 
 	@Override
@@ -64,6 +65,6 @@ public class P_025_CurrentFiber extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(),
-			FIBER.o());
+			IntegerRangeTypeDescriptor.wholeNumbers());
 	}
 }
