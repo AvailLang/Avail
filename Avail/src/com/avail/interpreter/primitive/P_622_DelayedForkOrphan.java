@@ -114,6 +114,9 @@ extends Primitive
 		// into this field, and none of them should fail because of a Java
 		// exception.
 		orphan.failureContinuation(current.failureContinuation());
+		// Share and inherit any heritable variables.
+		orphan.heritableFiberGlobals(
+			current.heritableFiberGlobals().makeShared());
 		// If the requested sleep time is 0 milliseconds, then fork immediately.
 		if (sleepMillis.equals(IntegerDescriptor.zero()))
 		{

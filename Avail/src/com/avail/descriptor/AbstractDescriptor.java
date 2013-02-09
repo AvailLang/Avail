@@ -5899,4 +5899,18 @@ public abstract class AbstractDescriptor
 	 * @param task
 	 */
 	abstract void o_WakeupTask (AvailObject object, @Nullable TimerTask task);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract AvailObject o_HeritableFiberGlobals (AvailObject object);
+
+	/**
+	 * @param object
+	 * @param globals
+	 */
+	abstract void o_HeritableFiberGlobals (
+		AvailObject object,
+		AvailObject globals);
 }

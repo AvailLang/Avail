@@ -4033,11 +4033,10 @@ public abstract class AbstractAvailCompiler
 					assert workUnitsQueued == workUnitsCompleted;
 				}
 
-				if (unambiguousStatement.expressionType().equals(
-					BottomTypeDescriptor.bottom()))
+				if (!unambiguousStatement.expressionType().equals(TOP.o()))
 				{
 					afterStatement.expected(
-						"top-level statement not to have type ⊥");
+						"top-level statement to have type ⊤");
 					reportError();
 					assert false;
 				}

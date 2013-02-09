@@ -104,6 +104,9 @@ extends Primitive
 		// into this field, and none of them should fail because of a Java
 		// exception.
 		orphan.failureContinuation(current.failureContinuation());
+		// Share and inherit any heritable variables.
+		orphan.heritableFiberGlobals(
+			current.heritableFiberGlobals().makeShared());
 		// Schedule the fiber to run the specified function.
 		Interpreter.runOutermostFunction(
 			orphan,

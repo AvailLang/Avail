@@ -553,7 +553,6 @@ public final class Interpreter
 		final AvailObject finalObject,
 		final ExecutionState state)
 	{
-		assert !exitNow;
 		assert finalObject != null;
 		assert state.indicatesTermination();
 		final AvailObject aFiber = fiber;

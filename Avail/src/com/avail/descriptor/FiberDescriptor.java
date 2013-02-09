@@ -183,12 +183,19 @@ extends Descriptor
 		NAME,
 
 		/**
-		 * A map from {@linkplain AtomDescriptor atoms} to values.  Each fiber
+		 * A map from {@linkplain AtomDescriptor atoms} to values. Each fiber
 		 * has its own unique such map, which allows processes to record
 		 * fiber-specific values. The atom identities ensure modularity and
 		 * non-interference of these keys.
 		 */
 		FIBER_GLOBALS,
+
+		/**
+		 * A map from {@linkplain AtomDescriptor atoms} to heritable values.
+		 * When a fiber forks a new fiber, the new fiber inherits this map. The
+		 * atom identities ensure modularity and non-interference of these keys.
+		 */
+		HERITABLE_FIBER_GLOBALS,
 
 		/**
 		 * The result of running this {@linkplain FiberDescriptor fiber} to
@@ -649,9 +656,23 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	void o_FiberGlobals (final AvailObject object, final AvailObject value)
+	void o_FiberGlobals (final AvailObject object, final AvailObject globals)
 	{
-		object.setMutableSlot(FIBER_GLOBALS, value);
+		object.setMutableSlot(FIBER_GLOBALS, globals);
+	}
+
+	@Override @AvailMethod
+	AvailObject o_HeritableFiberGlobals (final AvailObject object)
+	{
+		return object.mutableSlot(HERITABLE_FIBER_GLOBALS);
+	}
+
+	@Override @AvailMethod
+	void o_HeritableFiberGlobals (
+		final AvailObject object,
+		final AvailObject globals)
+	{
+		object.setMutableSlot(HERITABLE_FIBER_GLOBALS, globals);
 	}
 
 	@Override @AvailMethod
@@ -987,6 +1008,7 @@ extends Descriptor
 		fiber.setSlot(FLAGS, 0);
 		fiber.setSlot(BREAKPOINT_BLOCK, NilDescriptor.nil());
 		fiber.setSlot(FIBER_GLOBALS, MapDescriptor.empty());
+		fiber.setSlot(HERITABLE_FIBER_GLOBALS, MapDescriptor.empty());
 		fiber.setSlot(RESULT, NilDescriptor.nil());
 		fiber.setSlot(LOADER, NilDescriptor.nil());
 		fiber.setSlot(RESULT_CONTINUATION, NilDescriptor.nil());
@@ -1024,6 +1046,7 @@ extends Descriptor
 		fiber.setSlot(FLAGS, 0);
 		fiber.setSlot(BREAKPOINT_BLOCK, NilDescriptor.nil());
 		fiber.setSlot(FIBER_GLOBALS, MapDescriptor.empty());
+		fiber.setSlot(HERITABLE_FIBER_GLOBALS, MapDescriptor.empty());
 		fiber.setSlot(RESULT, NilDescriptor.nil());
 		fiber.setSlot(LOADER, RawPojoDescriptor.identityWrap(loader));
 		fiber.setSlot(RESULT_CONTINUATION, NilDescriptor.nil());

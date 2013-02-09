@@ -51,9 +51,11 @@ Uses
 	"Types",
 	"Variables"
 Names
+	"Current fiber's unhandled exception handler is_",
 	"Guard|guard_«intercept_»«ensure_»",
 	"Raise_",
 	"cascade_",
+	"current fiber's unhandled exception handler",
 	"causal exception",
 	"descriptive_",
 	"error message",
@@ -62,8 +64,6 @@ Names
 	"_'s⁇causal exception",
 	"_'s⁇error message",
 	"_'s⁇stack summary",
-	"_'s⁇unhandled exception handler",
-	"_'s⁇unhandled exception handler is_",
 	"“_”(stack summary)",
 
 	/* System exception categories. */
@@ -128,44 +128,51 @@ Public method "_'s⁇stack summary" is
 "error message" is a new atom;
 
 /**
- * Answer the field atom that represents a fiber's unhandled exception handler.
+ * Answer the heritable fiber-local atom that represents a fiber's unhandled
+ * exception handler.
  *
  * @method "unhandled exception handler"
  * @returns "atom"
  */
-"unhandled exception handler" is a new atom;
+"unhandled exception handler" is a new heritable fiber-local atom;
 
 /**
- * Answer the unhandled exception handler for the specified fiber.
+ * Answer the unhandled exception handler for the current fiber.
  *
- * @method "_'s⁇unhandled exception handler"
- * @param "aFiber" "fiber"
+ * @method "current fiber's unhandled exception handler"
  */
-Public method "_'s⁇unhandled exception handler" is
+Public method "current fiber's unhandled exception handler" is
 [
-	aFiber : fiber
-|
-	cast aFiber[unhandled exception handler] into [t : [exception]→⊥ | t]
+	cast current fiber[unhandled exception handler] into [t : [exception]→⊥ | t]
 ] : [exception]→⊥;
 
 /**
- * Establish {@param "handler"} as the function that the specified fiber will
+ * Establish {@param "handler"} as the function that the current fiber will
  * apply in the event of an unhandled exception.
  * 
- * @method "_'s⁇unhandled exception handler is_"
- * @param "aFiber" "fiber"
+ * @method "Current fiber's unhandled exception handler is_"
  * @param "handler"
  *    The unhandled exception handler. When an unhandled exception is trapped by
  *    the VM, the exception machinery will arrange to apply this function with
  *    the unhandled exception.
  */
-Public method "_'s⁇unhandled exception handler is_" is
+Public method "Current fiber's unhandled exception handler is_" is
 [
-	aFiber : fiber,
 	handler : [exception]→⊥
 |
-	aFiber[unhandled exception handler] := handler;
+	current fiber[unhandled exception handler] := handler;
 ] : ⊤;
+
+/* This function that "Raise_" should invoke if the current fiber does not have
+ * an unhandled exception handler. This will be updated after all other
+ * exception machinery has been built.
+ */
+noUnhandledExceptionHandler : [exception]→⊥ :=
+	[
+		anException : exception
+	|
+		Crash: "unhandled exception: " ++ “anException”
+	];
 
 /**
  * Raise the specified {@type "exception"}. The virtual machine scans the
@@ -193,13 +200,12 @@ Public method "Raise_" is
 	Primitive 201 (unhandledException : exception);
 	If unhandled exception handler ∈ current fiber then
 	[
-		handler ::= cast current fiber[unhandled exception handler]
-			into [ t : [exception]→⊥ | t ];
+		handler ::= current fiber's unhandled exception handler;
 		handler(unhandledException)
 	]
 	else
 	[
-		Crash: "unhandled exception: " ++ “anException”
+		noUnhandledExceptionHandler(anException)
 	]
 ] : ⊥;
 
@@ -1044,43 +1050,46 @@ Public method "“_”(stack summary)" is
 	text
 ];
 
-current fiber's unhandled exception handler is
-[
-	unhandled : exception
-|
-	/* If the error was encountered during compilation, then which module was
-	 * being compiled.
-	 */
-	Guard
+/* This completes the behavior of "Raise_" in the event that no unhandled
+ * exception handler has been specified for the current fiber.
+ */
+noUnhandledExceptionHandler :=
 	[
-		m ::= current module;
-		Error:
-			format "Unhandled exception during compilation of “①”:\n"
-			with m's name;
-	]
-	intercept [e : loading-is-over exception |];
-	e : exception := unhandled;
-	firstTime : boolean := true;
-	While [↑e is assigned] do
-	[
-		spec ::= if firstTime
-			then ["unhandled exception [“ex”]:\n"]
-			else ["“ex”:\n"];
-		firstTime := false;
-		Error: format spec with ex ::= e;
-		Error: “e” (stack summary);
-		Cast e into
+		unhandled : exception
+	|
+		/* If the error was encountered during compilation, then indicate which
+		 * module was being compiled.
+		 */
+		Guard
 		[
-			cascade : cascade exception
-		|
-			Error: "\ncaused by…\n";
-			e := cascade's causal exception;
+			m ::= current module;
+			Error:
+				format "Unhandled exception during compilation of “①”:\n"
+				with m's name;
 		]
-		else
+		intercept [e : loading-is-over exception |];
+		e : exception := unhandled;
+		firstTime : boolean := true;
+		While [↑e is assigned] do
 		[
-			Clear ↑e;
+			spec ::= if firstTime
+				then ["unhandled exception [“ex”]:\n"]
+				else ["“ex”:\n"];
+			firstTime := false;
+			Error: format spec with ex ::= e;
+			Error: “e” (stack summary);
+			Cast e into
+			[
+				cascade : cascade exception
+			|
+				Error: "\ncaused by…\n";
+				e := cascade's causal exception;
+			]
+			else
+			[
+				Clear ↑e;
+			];
 		];
+		Error: "\nThe current fiber will be terminated.\n";
+		Terminate current fiber
 	];
-	Error: "\nThe current fiber will be terminated.\n";
-	Terminate current fiber
-];

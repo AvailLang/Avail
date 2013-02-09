@@ -112,6 +112,9 @@ extends Primitive
 		// into this field, and none of them should fail because of a Java
 		// exception.
 		newFiber.failureContinuation(current.failureContinuation());
+		// Share and inherit any heritable variables.
+		newFiber.heritableFiberGlobals(
+			current.heritableFiberGlobals().makeShared());
 		// Share the fiber, since it will be visible in the caller.
 		newFiber.makeShared();
 		// If the requested sleep time is 0 milliseconds, then fork immediately.

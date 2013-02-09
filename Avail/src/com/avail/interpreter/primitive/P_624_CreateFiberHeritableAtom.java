@@ -1,5 +1,5 @@
 /**
- * P_612_Yield.java
+ * P_624_CreateFiberHeritableAtom.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -38,50 +38,48 @@ import java.util.List;
 import com.avail.annotations.NotNull;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
-import com.avail.utility.Continuation0;
 
 /**
- * <strong>Primitive 612</strong>: Yield the current {@linkplain FiberDescriptor
- * fiber} so that higher priority fibers and senior fibers can run.
+ * <strong>Primitive 624</strong>: Create a new {@linkplain AtomDescriptor atom}
+ * with the given name that represents a {@linkplain
+ * AtomDescriptor#heritableKey() heritable} {@linkplain FiberDescriptor fiber}
+ * variable.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class P_612_Yield
+public final class P_624_CreateFiberHeritableAtom
 extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
 	public final @NotNull static Primitive instance =
-		new P_612_Yield().init(0, CannotFail, Unknown);
+		new P_624_CreateFiberHeritableAtom().init(
+			1, CannotFail, CanInline);
 
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 0;
-		final AvailObject fiber = FiberDescriptor.current();
-		final Result suspended = interpreter.primitiveSuspend();
-		Interpreter.current().postExitContinuation(new Continuation0()
-		{
-			@Override
-			public void value ()
-			{
-				Interpreter.resumeFromPrimitive(
-					fiber,
-					Result.SUCCESS,
-					NilDescriptor.nil());
-			}
-		});
-		return suspended;
+		assert args.size() == 1;
+		final AvailObject name = args.get(0);
+		final AvailObject key = AtomDescriptor.create(
+			name, ModuleDescriptor.current());
+		// The value doesn't matter, as it will never be examined. So we could
+		// set it to anything here, but "true" seems intuitive.
+		key.setAtomProperty(
+			AtomDescriptor.heritableKey(),
+			AtomDescriptor.trueObject());
+		return interpreter.primitiveSuccess(key);
 	}
 
 	@Override
 	protected AvailObject privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(),
-			TOP.o());
+			TupleDescriptor.from(
+				TupleTypeDescriptor.stringTupleType()),
+			ATOM.o());
 	}
 }

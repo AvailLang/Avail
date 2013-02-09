@@ -58,6 +58,7 @@ Uses
 		"Macro_is_",
 		"Mark for_character|characters of read ahead",
 		"Publish new name:_",
+		"Remove current fiber[_]",
 		"Remove_[_]",
 		"Reset to mark",
 		"Restart_",
@@ -81,6 +82,7 @@ Uses
 		"_×_",
 		"_÷_",
 		"_∈_",
+		"_∈current fiber",
 		"`|message_'s⁇parameters`|",
 		"`«(_:=_)`»",
 		"`«[_`|Primitive__]:_^_`»",
@@ -91,6 +93,8 @@ Uses
 		"atomically read_and add_",
 		"atomically read_and store_",
 		"constructor_<«_‡,»>(fail with_)",
+		"current fiber[_]",
+		"current fiber[_]:=_",
 		"current module",
 		"eject_",
 		"function from_and_",
@@ -1552,20 +1556,36 @@ Primitive "_[_]:=_" is
 ] : ⊤;
 
 /**
- * Answer the value bound to `key` in the specified fiber's environment. Since
+ * Does the current fiber's environment have a value bound to `key`? This
+ * effectively ascertains whether a fiber-local variable exists for the
+ * specified fiber.
+ *
+ * Parameters:
+ *    key - The key whose existence should be queried.
+ * Returns:
+ *    `true` if the current fiber binds a value to `key`, `false` otherwise.
+ */
+Primitive "_∈current fiber" is
+[
+	key : atom
+|
+	Primitive 603 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode
+] : boolean;
+
+/**
+ * Answer the value bound to `key` in the current fiber's environment. Since
  * the fiber's environment essentially contains fiber-local variables (i.e.
  * bindings from atoms to arbitrary values), this operation effectively reads a
  * fiber-local variable.
  *
  * Parameters:
- *    aFiber - The fiber whose environment should be consulted.
  *    key - The key whose value should be obtained.
  * Returns:
- *    The value bound to `key` within the fiber's environment.
+ *    The value bound to `key` within the current fiber's environment.
  */
-Primitive "_[_]" is
+Primitive "current fiber[_]" is
 [
-	aFiber : fiber,
 	key : atom
 |
 	Primitive 604 (failureCode : natural number);
@@ -1573,15 +1593,33 @@ Primitive "_[_]" is
 ] : any;
 
 /**
- * Remove the binding indicated by `key` from `aFiber`'s environment.
+ * Set the value bound to `key` in the current fiber's environment,
+ * overwriting any previous value. Since the fiber's environment essentially
+ * contains fiber-local variables (i.e. bindings from atoms to arbitrary
+ * values), this operation effectively writes a fiber-local variable.
  *
  * Parameters:
- *    aFiber - The fiber whose environment should be updated.
+ *    key - The key whose value should be (over)written.
+ *    value - The new value.
+ */
+Primitive "current fiber[_]:=_" is
+[
+	key : atom,
+	value : any
+|
+	Primitive 605 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode
+] : ⊤;
+
+/**
+ * Remove the binding indicated by `key` from the current fiber's
+ * environment.
+ *
+ * Parameters:
  *    key - The key whose binding should be removed.
  */
-Primitive "Remove_[_]" is
+Primitive "Remove current fiber[_]" is
 [
-	aFiber : fiber,
 	key : atom
 |
 	Primitive 606 (failureCode : natural number);
@@ -1666,7 +1704,7 @@ Primitive "_'s⁇result" is
  * When at least the specified number of milliseconds have elapsed, fork a new
  * fiber at the specified priority. The new fiber will invoke the given function
  * with the supplied arguments. A best effort will be made to start the fiber as
- * soon as the delay has expired, no real-time guarantees are made.
+ * soon as the delay has expired, but no real-time guarantees are made.
  *
  * Parameters:
  *    delayMillis - The minimum number of milliseconds to delay the start of the new
@@ -1690,7 +1728,7 @@ Primitive "In_millisecond|milliseconds,⁇invoke_with_,⁇forked at priority_" i
  * When at least the specified number of milliseconds have elapsed, fork a new
  * fiber at the specified priority. The new fiber will invoke the given function
  * with the supplied arguments. A best effort will be made to start the fiber as
- * soon as the delay has expired, no real-time guarantees are made.
+ * soon as the delay has expired, but no real-time guarantees are made.
  *
  * Parameters:
  *    delayMillis - The minimum number of milliseconds to delay the start of the new

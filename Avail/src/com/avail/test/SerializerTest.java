@@ -54,6 +54,12 @@ import com.avail.serialization.*;
 public final class SerializerTest
 {
 	/**
+	 * The {@link AvailRuntime} for use by the {@link #serializer} or the
+	 * {@link #deserializer}.
+	 */
+	static AvailRuntime runtime;
+
+	/**
 	 * Test fixture: clear and then create all special objects well-known to the
 	 * Avail runtime.
 	 */
@@ -62,6 +68,20 @@ public final class SerializerTest
 	{
 		AvailObject.clearAllWellKnownObjects();
 		AvailObject.createAllWellKnownObjects();
+		final ModuleRoots roots = new ModuleRoots(
+			"avail=" + new File("avail").getAbsolutePath());
+		final RenamesFileParser parser =
+			new RenamesFileParser(new StringReader(""), roots);
+		ModuleNameResolver resolver;
+		try
+		{
+			resolver = parser.parse();
+		}
+		catch (final RenamesFileParserException e)
+		{
+			throw new RuntimeException(e);
+		}
+		runtime = new AvailRuntime(resolver);
 	}
 
 	/**
@@ -70,14 +90,10 @@ public final class SerializerTest
 	@AfterClass
 	public static void clearAllWellKnownObjects ()
 	{
+		runtime.destroy();
+		runtime = null;
 		AvailObject.clearAllWellKnownObjects();
 	}
-
-	/**
-	 * The {@link AvailRuntime} for use by the {@link #serializer} or the
-	 * {@link #deserializer}.
-	 */
-	AvailRuntime runtime;
 
 	/**
 	 * The stream onto which the serializer writes its bytes.
@@ -100,32 +116,10 @@ public final class SerializerTest
 	Deserializer deserializer;
 
 	/**
-	 * Create a new instance of {@link AvailRuntime} for testing.
-	 */
-	void createRuntime ()
-	{
-		final ModuleRoots roots = new ModuleRoots(
-			"avail=" + new File("avail").getAbsolutePath());
-		final RenamesFileParser parser =
-			new RenamesFileParser(new StringReader(""), roots);
-		ModuleNameResolver resolver;
-		try
-		{
-			resolver = parser.parse();
-		}
-		catch (final RenamesFileParserException e)
-		{
-			throw new RuntimeException(e);
-		}
-		runtime = new AvailRuntime(resolver);
-	}
-
-	/**
 	 * Get ready to write objects to the {@link #serializer}.
 	 */
 	private void prepareToWrite ()
 	{
-		createRuntime();
 		out = new ByteArrayOutputStream(1000);
 		serializer = new Serializer(out);
 		deserializer = null;
@@ -148,7 +142,6 @@ public final class SerializerTest
 //			}
 //		}
 //		System.out.println();
-		createRuntime();
 		in = new ByteArrayInputStream(bytes);
 		deserializer = new Deserializer(in, runtime);
 		serializer = null;
@@ -441,33 +434,4 @@ public final class SerializerTest
 			assertEquals(code.literalAt(i), code2.literalAt(i));
 		}
 	}
-
-//	@Test
-//	public void testRandomSimpleObjects2 ()
-//	throws MalformedSerialStreamException
-//	{
-//		testRandomSimpleObjects();
-//	}
-//
-//	@Test
-//	public void testRandomSimpleObjects3 ()
-//	throws MalformedSerialStreamException
-//	{
-//		testRandomSimpleObjects();
-//	}
-//
-//	@Test
-//	public void testRandomSimpleObjects4 ()
-//	throws MalformedSerialStreamException
-//	{
-//		testRandomSimpleObjects();
-//	}
-//
-//	@Test
-//	public void testRandomSimpleObjects5 ()
-//	throws MalformedSerialStreamException
-//	{
-//		testRandomSimpleObjects();
-//	}
-
 }

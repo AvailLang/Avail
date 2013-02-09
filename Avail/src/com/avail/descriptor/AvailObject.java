@@ -6405,4 +6405,20 @@ implements Iterable<AvailObject>
 	{
 		descriptor.o_WakeupTask(this, task);
 	}
+
+	/**
+	 * @return
+	 */
+	public AvailObject heritableFiberGlobals ()
+	{
+		return descriptor.o_HeritableFiberGlobals(this);
+	}
+
+	/**
+	 * @param globals
+	 */
+	public void heritableFiberGlobals (final AvailObject globals)
+	{
+		descriptor.o_HeritableFiberGlobals(this, globals);
+	}
 }

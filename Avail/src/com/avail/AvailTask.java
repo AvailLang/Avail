@@ -102,8 +102,6 @@ implements Comparable<AvailTask>, Runnable
 				try
 				{
 					continuation.value();
-					postExitContinuation.value =
-						interpreter.postExitContinuation();
 				}
 				catch (final Throwable e)
 				{
@@ -115,6 +113,8 @@ implements Comparable<AvailTask>, Runnable
 				}
 				finally
 				{
+					postExitContinuation.value =
+						interpreter.postExitContinuation();
 					interpreter.postExitContinuation(null);
 				}
 				if (postExitContinuation.value != null)

@@ -44,6 +44,19 @@ Body
 "concurrency test suite" is a new atom;
 New test suite, concurrency test suite, extends foundation test suite;
 
+Test "reenter non-reentrant mutex" in concurrency test suite is
+[
+	mutex ::= a non-reentrant mutex;
+	Lock mutex for [Lock mutex for [Raise an exception]]
+]
+must raise reentry exception;
+
+Test "reenter reentrant mutex" in concurrency test suite is
+[
+	mutex ::= a reentrant mutex;
+	Require: 5 = lock mutex for [lock mutex for [5]];
+];
+
 Test "basic fork and join" in concurrency test suite is
 [
 	forked ::= invoke [Ignore: 0;] with <>, forked at priority 50;
@@ -91,6 +104,105 @@ Test "request termination" in concurrency test suite is
 	Require: forked has terminated;
 	Require: forked has result;
 	Require: "仕上がります" = forked's result;
+];
+
+Test "heritable fiber variables" in concurrency test suite is
+[
+	h1 ::= new heritable atom named "h1";
+	h2 ::= new heritable atom named "h2";
+	u1 ::= new atom named "u1";
+	u2 ::= new atom named "u2";
+	fiberLocals ::=
+	{
+		h1 → 100,
+		h2 → {"United States" → "Washington, D.C."},
+		u1 → ∅,
+		u2 → "golem"
+	};
+	For each of fiberLocals do
+	[
+		key : atom,
+		value : any
+	|
+		current fiber[key] := value;
+	];
+	inherited : {atom→any|} := {};
+	forked ::=
+		invoke
+		[
+			For each of fiberLocals' keys do
+			[
+				key : atom
+			|
+				If key ∈ current fiber then
+				[
+					inherited := inherited + key→current fiber[key];
+				];
+			];
+		]
+		with <>,
+		forked at priority 50;
+	Join forked;
+	Require: forked has terminated;
+	Require: ¬forked has result;
+	Require: h1 ∈ inherited;
+	Require: fiberLocals[h1] = inherited[h1];
+	Require: h2 ∈ inherited;
+	Require: fiberLocals[h2] = inherited[h2];
+	Require: ¬u1 ∈ inherited;
+	Require: ¬u2 ∈ inherited;
+];
+
+Test "heritable fiber variables(orphan)" in concurrency test suite is
+[
+	h1 ::= new heritable atom named "h1";
+	h2 ::= new heritable atom named "h2";
+	u1 ::= new atom named "u1";
+	u2 ::= new atom named "u2";
+	fiberLocals ::=
+	{
+		h1 → ∅,
+		h2 → "golem",
+		u1 → 100,
+		u2 → {"United States" → "Washington, D.C."}
+	};
+	For each of fiberLocals do
+	[
+		key : atom,
+		value : any
+	|
+		current fiber[key] := value;
+	];
+	mutex ::= a monitor named "heritable fiber variables";
+	isDone : boolean := false;
+	done ::= a condition of mutex is [isDone];
+	inherited : {atom→any|} := {};
+	Invoke
+	[
+		For each of fiberLocals' keys do
+		[
+			key : atom
+		|
+			If key ∈ current fiber then
+			[
+				inherited := inherited + key→current fiber[key];
+			];
+		];
+		Lock mutex for
+		[
+			isDone := true;
+			Signal done;
+		];
+	]
+	with <>,
+	forked at priority 50;
+	Lock mutex for [Await done;];
+	Require: h1 ∈ inherited;
+	Require: fiberLocals[h1] = inherited[h1];
+	Require: h2 ∈ inherited;
+	Require: fiberLocals[h2] = inherited[h2];
+	Require: ¬u1 ∈ inherited;
+	Require: ¬u2 ∈ inherited;
 ];
 
 Test "for-each in parallel" in concurrency test suite is
@@ -142,17 +254,4 @@ Test "map in parallel(worker exception)" in concurrency test suite is
 		intercept [e : worker exception | e];
 	killer ::= cast result into [e : worker exception | e];
 	Require: killer's causal exception ∈ cannot-divide-by-zero exception;
-];
-
-Test "reenter non-reentrant mutex" in concurrency test suite is
-[
-	mutex ::= a non-reentrant mutex;
-	Lock mutex for [Lock mutex for [Raise an exception]]
-]
-must raise reentry exception;
-
-Test "reenter reentrant mutex" in concurrency test suite is
-[
-	mutex ::= a reentrant mutex;
-	Require: 5 = lock mutex for [lock mutex for [5]];
 ];

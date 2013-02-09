@@ -1519,5 +1519,29 @@ public final class AvailRuntime
 		executor.shutdownNow();
 		fileExecutor.shutdownNow();
 		socketExecutor.shutdownNow();
+		try
+		{
+			executor.awaitTermination(100, TimeUnit.MILLISECONDS);
+		}
+		catch (final InterruptedException e)
+		{
+			// Ignore.
+		}
+		try
+		{
+			fileExecutor.awaitTermination(100, TimeUnit.MILLISECONDS);
+		}
+		catch (final InterruptedException e)
+		{
+			// Ignore.
+		}
+		try
+		{
+			socketExecutor.awaitTermination(100, TimeUnit.MILLISECONDS);
+		}
+		catch (final InterruptedException e)
+		{
+			// Ignore.
+		}
 	}
 }

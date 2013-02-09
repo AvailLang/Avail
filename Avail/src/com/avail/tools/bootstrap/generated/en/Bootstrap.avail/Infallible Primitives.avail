@@ -127,7 +127,6 @@ Uses
 		"_<_",
 		"_=_",
 		"_[_]",
-		"_[_]:=_",
 		"_\\_",
 		"_^_",
 		"_bit∧_",
@@ -175,9 +174,10 @@ Uses
 		"ln_",
 		"method exists named_",
 		"milliseconds since the Epoch",
-		"new atom_",
+		"new atom named_",
 		"new_[_]",
 		"new_applying_",
+		"new⁇heritable«fiber-local»⁇atom named_",
 		"new↑_",
 		"primfail`«_:_`»",
 		"primitive description of_",
@@ -1484,7 +1484,7 @@ Primitive "_'s⁇element|member type" is
  *    A new atom, distinct from every other atom answered by a different
  *    invocation of this primitive.
  */
-Primitive "new atom_" is
+Primitive "new atom named_" is
 [
 	debugName : string
 |
@@ -3122,44 +3122,6 @@ Primitive "_'s⁇priority:=_" is
 ] : ⊤;
 
 /**
- * Does `aFiber`'s environment have a value bound to `key`? This effectively
- * ascertains whether a fiber-local variable exists for the specified fiber.
- *
- * Parameters:
- *    key - The key whose existence should be queried.
- *    aFiber - The fiber whose environment should be queried.
- * Returns:
- *    `true` if the fiber binds a value to `key`, `false` otherwise.
- */
-Primitive "_∈_" is
-[
-	key : atom,
-	aFiber : fiber
-|
-	Primitive 603;
-] : boolean;
-
-/**
- * Set the value bound to `key` in the specified fiber's environment,
- * overwriting any previous value. Since the fiber's environment essentially
- * contains fiber-local variables (i.e. bindings from atoms to arbitrary
- * values), this operation effectively writes a fiber-local variable.
- *
- * Parameters:
- *    aFiber - The fiber whose environment should be consulted.
- *    key - The key whose value should be (over)written.
- *    value - The new value.
- */
-Primitive "_[_]:=_" is
-[
-	aFiber : fiber,
-	key : atom,
-	value : any
-|
-	Primitive 605;
-] : ⊤;
-
-/**
  * Has termination of the current fiber been requested? Answer the current value
  * of the appropriate interrupt request flag and simultaneously clear it.
  *
@@ -3312,4 +3274,27 @@ Primitive "Sleep for_millisecond|milliseconds" is
 |
 	Primitive 621;
 ] : ⊤;
+
+/**
+ * Construct and answer a new atom. Associate with the atom the supplied string,
+ * which should be a name used for debugging purposes only. Atoms have identity
+ * and all atoms are distinct, regardless of whether their debug names are
+ * equal. When this atom occurs as a key within a fiber's environment, any new
+ * fibers created by this fiber will also include this key and the associated
+ * value at creation time.
+ *
+ * Parameters:
+ *    debugName - A name to associate with the atom for debugging purposes.
+ *       This name does not participate in atom comparison.
+ * Returns:
+ *    A new atom, distinct from every other atom answered by a different
+ *    invocation of this primitive, that represents a heritable fiber-local
+ *    variable.
+ */
+Primitive "new⁇heritable«fiber-local»⁇atom named_" is
+[
+	debugName : string
+|
+	Primitive 624;
+] : atom;
 
