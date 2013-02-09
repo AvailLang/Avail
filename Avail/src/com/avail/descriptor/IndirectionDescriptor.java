@@ -4507,4 +4507,22 @@ extends AbstractDescriptor
 	{
 		o_Traversed(object).heritableFiberGlobals(globals);
 	}
+
+	@Override
+	boolean o_GeneralFlag (final AvailObject object, final GeneralFlag flag)
+	{
+		return o_Traversed(object).generalFlag(flag);
+	}
+
+	@Override
+	void o_SetGeneralFlag (final AvailObject object, final GeneralFlag flag)
+	{
+		o_Traversed(object).setGeneralFlag(flag);
+	}
+
+	@Override
+	void o_ClearGeneralFlag (final AvailObject object, final GeneralFlag flag)
+	{
+		o_Traversed(object).clearGeneralFlag(flag);
+	}
 }

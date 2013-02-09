@@ -79,10 +79,10 @@ public class P_043_IfThenElse extends Primitive
 			TupleDescriptor.from(
 				EnumerationTypeDescriptor.booleanObject(),
 				FunctionTypeDescriptor.create(
-					TupleDescriptor.from(),
+					TupleDescriptor.empty(),
 					TOP.o()),
 				FunctionTypeDescriptor.create(
-					TupleDescriptor.from(),
+					TupleDescriptor.empty(),
 					TOP.o())),
 			TOP.o());
 	}

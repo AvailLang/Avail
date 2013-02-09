@@ -111,6 +111,7 @@ Extends
 		"constructor_<«_‡,»>(fail with_)",
 		"continuation",
 		"current fiber",
+		"current fiber is applying a semantic restriction",
 		"current fiber[_]",
 		"current fiber[_]:=_",
 		"current module",

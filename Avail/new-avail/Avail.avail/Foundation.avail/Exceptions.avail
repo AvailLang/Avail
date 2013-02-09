@@ -1057,13 +1057,14 @@ noUnhandledExceptionHandler :=
 	[
 		unhandled : exception
 	|
+		msg : string := "";
 		/* If the error was encountered during compilation, then indicate which
 		 * module was being compiled.
 		 */
 		Guard
 		[
 			m ::= current module;
-			Error:
+			msg :=
 				format "Unhandled exception during compilation of “①”:\n"
 				with m's name;
 		]
@@ -1076,13 +1077,13 @@ noUnhandledExceptionHandler :=
 				then ["unhandled exception [“ex”]:\n"]
 				else ["“ex”:\n"];
 			firstTime := false;
-			Error: format spec with ex ::= e;
-			Error: “e” (stack summary);
+			msg := eject ↑msg ++ format spec with ex ::= e;
+			msg := eject ↑msg ++ “e” (stack summary);
 			Cast e into
 			[
 				cascade : cascade exception
 			|
-				Error: "\ncaused by…\n";
+				msg := eject ↑msg ++ "\ncaused by…\n";
 				e := cascade's causal exception;
 			]
 			else
@@ -1090,6 +1091,19 @@ noUnhandledExceptionHandler :=
 				Clear ↑e;
 			];
 		];
-		Error: "\nThe current fiber will be terminated.\n";
-		Terminate current fiber
+		msg := eject ↑msg ++ "\nThe current fiber will be terminated.\n";
+		/* If the current fiber was launched in order to apply a semantic
+		 * restriction, then reject the current parse. Otherwise, emit the
+		 * error message to the stardard error stream and terminate the current
+		 * fiber.
+		 */
+		If current fiber is applying a semantic restriction then
+		[
+			Reject parse, expected: msg
+		]
+		else
+		[
+			Error: msg;
+			Terminate current fiber
+		]
 	];

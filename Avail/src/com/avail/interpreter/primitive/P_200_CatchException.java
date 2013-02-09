@@ -79,7 +79,7 @@ public class P_200_CatchException extends Primitive
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
 				FunctionTypeDescriptor.create(
-					TupleDescriptor.from(),
+					TupleDescriptor.empty(),
 					TOP.o()),
 				TupleTypeDescriptor.zeroOrMoreOf(
 					FunctionTypeDescriptor.create(
@@ -92,9 +92,9 @@ public class P_200_CatchException extends Primitive
 						true,
 						IntegerDescriptor.fromInt(1),
 						true),
-					TupleDescriptor.from(),
+					TupleDescriptor.empty(),
 					FunctionTypeDescriptor.create(
-						TupleDescriptor.from(),
+						TupleDescriptor.empty(),
 						TOP.o()))),
 			TOP.o());
 	}

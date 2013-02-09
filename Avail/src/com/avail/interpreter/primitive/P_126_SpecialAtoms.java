@@ -65,7 +65,7 @@ public class P_126_SpecialAtoms extends Primitive
 	protected AvailObject privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(),
+			TupleDescriptor.empty(),
 			SetTypeDescriptor.setTypeForSizesContentType(
 				IntegerRangeTypeDescriptor.wholeNumbers(),
 				ATOM.o()));

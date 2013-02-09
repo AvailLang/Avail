@@ -207,6 +207,7 @@ Names
 	"concatenate_",
 	"constructor_<«_‡,»>(fail with_)",
 	"current fiber",
+	"current fiber is applying a semantic restriction",
 	"current fiber[_]",
 	"current fiber[_]:=_",
 	"current module",

@@ -82,7 +82,7 @@ extends Primitive
 	protected AvailObject privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(),
+			TupleDescriptor.empty(),
 			CHARACTER.o());
 	}
 }

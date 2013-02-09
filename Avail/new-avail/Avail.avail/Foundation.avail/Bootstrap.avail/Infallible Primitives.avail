@@ -167,6 +167,7 @@ Uses
 		"arg`«_:_`»",
 		"concatenate_",
 		"current fiber",
+		"current fiber is applying a semantic restriction",
 		"enumeration of_",
 		"function accepting_and returning_",
 		"integer range from_(inclusive=_)to_(inclusive=_)",
@@ -3297,4 +3298,17 @@ Primitive "new⁇heritable«fiber-local»⁇atom named_" is
 |
 	Primitive 624;
 ] : atom;
+
+/**
+ * Ascertain whether the current fiber was forked (by the compiler) in order to
+ * evaluate a semantic restriction.
+ *
+ * Returns:
+ *    `true` if the current fiber is applying a semantic restriction, `false`
+ *    otherwise.
+ */
+Primitive "current fiber is applying a semantic restriction" is
+[
+	Primitive 625;
+] : boolean;
 

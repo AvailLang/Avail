@@ -4745,4 +4745,22 @@ extends AbstractDescriptor
 	{
 		throw unsupportedOperationException();
 	}
+
+	@Override
+	boolean o_GeneralFlag (final AvailObject object, final GeneralFlag flag)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	void o_SetGeneralFlag (final AvailObject object, final GeneralFlag flag)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	void o_ClearGeneralFlag (final AvailObject object, final GeneralFlag flag)
+	{
+		throw unsupportedOperationException();
+	}
 }

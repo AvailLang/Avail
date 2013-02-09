@@ -72,7 +72,7 @@ public class P_045_ShortCircuitHelper extends Primitive
 			TupleDescriptor.from(
 				EnumerationTypeDescriptor.booleanObject(),
 				FunctionTypeDescriptor.create(
-					TupleDescriptor.from(),
+					TupleDescriptor.empty(),
 					EnumerationTypeDescriptor.booleanObject())),
 			EnumerationTypeDescriptor.booleanObject());
 	}

@@ -132,6 +132,33 @@ extends Descriptor
 	}
 
 	/**
+	 * The general flags. Bits [8..31] of a {@linkplain FiberDescriptor fiber}'s
+	 * flags slot are reserved for general flags.
+	 */
+	public static enum GeneralFlag
+	{
+		/**
+		 * Was the fiber started to apply a semantic restriction?
+		 */
+		APPLYING_SEMANTIC_RESTRICTION (0);
+
+		/** The {@linkplain BitField bit field}. */
+		final BitField bitField;
+
+		/**
+		 * Construct a new {@link GeneralFlag}.
+		 *
+		 * @param index
+		 *        The bit index into the sub-slot containing the synchronization
+		 *        flags.
+		 */
+		private GeneralFlag (final int index)
+		{
+			this.bitField = bitField(FLAGS, index + 8, 1);
+		}
+	}
+
+	/**
 	 * The layout of integer slots for my instances.
 	 */
 	public enum IntegerSlots
@@ -616,13 +643,74 @@ extends Descriptor
 	{
 		final int value;
 		final int newBit = newValue ? 1 : 0;
-		// Always synchronized, for safety.
-		synchronized (object)
+		if (isShared())
+		{
+			synchronized (object)
+			{
+				value = object.slot(flag.bitField);
+				object.setSlot(flag.bitField, newBit);
+			}
+		}
+		else
 		{
 			value = object.slot(flag.bitField);
 			object.setSlot(flag.bitField, newBit);
 		}
 		return value == 1;
+	}
+
+	@Override @AvailMethod
+	boolean o_GeneralFlag (final AvailObject object, final GeneralFlag flag)
+	{
+		final int value;
+		if (isShared())
+		{
+			synchronized (object)
+			{
+				value = object.slot(flag.bitField);
+			}
+		}
+		else
+		{
+			value = object.slot(flag.bitField);
+		}
+		return value == 1;
+	}
+
+	@Override @AvailMethod
+	void o_SetGeneralFlag (
+		final AvailObject object,
+		final GeneralFlag flag)
+	{
+		if (isShared())
+		{
+			synchronized (object)
+			{
+				object.setSlot(flag.bitField, 1);
+			}
+		}
+		else
+		{
+			object.setSlot(flag.bitField, 1);
+		}
+	}
+
+	@Override @AvailMethod
+	void o_ClearGeneralFlag (
+		final AvailObject object,
+		final GeneralFlag flag)
+	{
+		if (isShared())
+		{
+			synchronized (object)
+			{
+				object.setSlot(flag.bitField, 0);
+			}
+		}
+		else
+		{
+			object.setSlot(flag.bitField, 0);
+		}
 	}
 
 	@Override @AvailMethod

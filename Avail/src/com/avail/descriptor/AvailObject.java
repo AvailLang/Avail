@@ -41,6 +41,7 @@ import com.avail.compiler.*;
 import com.avail.descriptor.AbstractNumberDescriptor.Order;
 import com.avail.descriptor.AbstractNumberDescriptor.Sign;
 import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
+import com.avail.descriptor.FiberDescriptor.GeneralFlag;
 import com.avail.descriptor.FiberDescriptor.InterruptRequestFlag;
 import com.avail.descriptor.FiberDescriptor.SynchronizationFlag;
 import com.avail.descriptor.InfinityDescriptor.IntegerSlots;
@@ -6420,5 +6421,30 @@ implements Iterable<AvailObject>
 	public void heritableFiberGlobals (final AvailObject globals)
 	{
 		descriptor.o_HeritableFiberGlobals(this, globals);
+	}
+
+	/**
+	 * @param flag
+	 * @return
+	 */
+	public boolean generalFlag (final GeneralFlag flag)
+	{
+		return descriptor.o_GeneralFlag(this, flag);
+	}
+
+	/**
+	 * @param flag
+	 */
+	public void setGeneralFlag (final GeneralFlag flag)
+	{
+		descriptor.o_SetGeneralFlag(this, flag);
+	}
+
+	/**
+	 * @param flag
+	 */
+	public void clearGeneralFlag (final GeneralFlag flag)
+	{
+		descriptor.o_ClearGeneralFlag(this, flag);
 	}
 }

@@ -691,10 +691,10 @@ public final class AvailRuntime
 		specialObjects[88] = PojoTypeDescriptor.selfAtom();
 		specialObjects[89] = PojoTypeDescriptor.forClass(Throwable.class);
 		specialObjects[90] = FunctionTypeDescriptor.create(
-			TupleDescriptor.from(),
+			TupleDescriptor.empty(),
 			TOP.o());
 		specialObjects[91] = FunctionTypeDescriptor.create(
-			TupleDescriptor.from(),
+			TupleDescriptor.empty(),
 			EnumerationTypeDescriptor.booleanObject());
 		specialObjects[92] = VariableTypeDescriptor.wrapInnerType(
 			ContinuationTypeDescriptor.mostGeneralType());
@@ -709,10 +709,10 @@ public final class AvailRuntime
 		specialObjects[95] =
 			TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 				IntegerRangeTypeDescriptor.wholeNumbers(),
-				TupleDescriptor.from(),
+				TupleDescriptor.empty(),
 				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 					IntegerRangeTypeDescriptor.singleInt(2),
-					TupleDescriptor.from(),
+					TupleDescriptor.empty(),
 					ANY.o()));
 		specialObjects[96] = MapDescriptor.empty();
 		specialObjects[97] = MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
@@ -727,7 +727,7 @@ public final class AvailRuntime
 		specialObjects[100] =
 			TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 				IntegerRangeTypeDescriptor.wholeNumbers(),
-				TupleDescriptor.from(),
+				TupleDescriptor.empty(),
 				TupleTypeDescriptor.mostGeneralType());
 		specialObjects[101] = IntegerRangeTypeDescriptor.nybbles();
 		specialObjects[102] =
@@ -746,7 +746,7 @@ public final class AvailRuntime
 		specialObjects[108] =
 			TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 				IntegerRangeTypeDescriptor.wholeNumbers(),
-				TupleDescriptor.from(),
+				TupleDescriptor.empty(),
 				FunctionTypeDescriptor.forReturnType(
 					InstanceMetaDescriptor.topMeta()));
 		specialObjects[109] = FunctionTypeDescriptor.forReturnType(
