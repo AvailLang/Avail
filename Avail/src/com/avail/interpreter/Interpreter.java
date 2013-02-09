@@ -601,6 +601,7 @@ public final class Interpreter
 									joiner.joinee(NilDescriptor.nil());
 									joiner.executionState(SUSPENDED);
 									Interpreter.resumeFromPrimitive(
+										AvailRuntime.current(),
 										joiner,
 										SUCCESS,
 										NilDescriptor.nil());
@@ -1587,6 +1588,8 @@ public final class Interpreter
 	 * {@linkplain AvailObject#failureContinuation() failure continuation} with
 	 * the terminal {@linkplain Throwable throwable}.
 	 *
+	 * @param runtime
+	 *        An {@linkplain AvailRuntime Avail runtime}.
 	 * @param aFiber
 	 *        The fiber to run.
 	 * @param continuation
@@ -1594,13 +1597,14 @@ public final class Interpreter
 	 *        running the fiber for a while. Pass in the interpreter to use.
 	 */
 	private static void executeFiber (
+		final AvailRuntime runtime,
 		final AvailObject aFiber,
 		final Continuation1<Interpreter> continuation)
 	{
 		assert aFiber.executionState().indicatesSuspension();
 		// We cannot simply run the specified function, we must queue a task to
 		// run when Level One safety is no longer required.
-		AvailRuntime.current().whenLevelOneUnsafeDo(
+		runtime.whenLevelOneUnsafeDo(
 			AvailTask.forFiberResumption(
 				aFiber,
 				new Continuation0()
@@ -1658,6 +1662,8 @@ public final class Interpreter
 	 * {@linkplain Continuation1 continuation} will be invoked with the
 	 * terminal {@linkplain Throwable throwable}.</p>
 	 *
+	 * @param runtime
+	 *        An {@linkplain AvailRuntime Avail runtime}.
 	 * @param aFiber
 	 *        The fiber to run.
 	 * @param function
@@ -1666,12 +1672,14 @@ public final class Interpreter
 	 *        The arguments for the function.
 	 */
 	public static void runOutermostFunction (
+		final AvailRuntime runtime,
 		final AvailObject aFiber,
 		final AvailObject function,
 		final List<AvailObject> arguments)
 	{
 		assert aFiber.executionState() == UNSTARTED;
 		executeFiber(
+			runtime,
 			aFiber,
 			new Continuation1<Interpreter>()
 			{
@@ -1719,6 +1727,7 @@ public final class Interpreter
 		assert aFiber.executionState() == INTERRUPTED;
 		assert !aFiber.continuation().equalsNil();
 		executeFiber(
+			AvailRuntime.current(),
 			aFiber,
 			new Continuation1<Interpreter>()
 			{
@@ -1752,6 +1761,8 @@ public final class Interpreter
 	 * {@linkplain Continuation1 continuation} will be invoked with the
 	 * terminal {@linkplain Throwable throwable}.</p>
 	 *
+	 * @param runtime
+	 *        An {@linkplain AvailRuntime Avail runtime}.
 	 * @param aFiber
 	 *        The fiber to run.
 	 * @param state
@@ -1761,6 +1772,7 @@ public final class Interpreter
 	 *        The result of the primitive.
 	 */
 	public static void resumeFromPrimitive (
+		final AvailRuntime runtime,
 		final AvailObject aFiber,
 		final Result state,
 		final AvailObject result)
@@ -1769,6 +1781,7 @@ public final class Interpreter
 		assert !aFiber.continuation().equalsNil();
 		assert aFiber.executionState() == SUSPENDED;
 		executeFiber(
+			runtime,
 			aFiber,
 			new Continuation1<Interpreter>()
 			{

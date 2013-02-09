@@ -36,6 +36,7 @@ import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.*;
+import com.avail.AvailRuntime;
 import com.avail.annotations.*;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
@@ -111,6 +112,7 @@ extends Primitive
 		// since it will be visible to the caller.
 		newFiber.makeShared();
 		Interpreter.runOutermostFunction(
+			AvailRuntime.current(),
 			newFiber,
 			function,
 			callArgs);

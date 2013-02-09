@@ -2153,7 +2153,7 @@ public abstract class AbstractAvailCompiler
 		final AvailObject fiber = FiberDescriptor.newLoaderFiber(loader);
 		fiber.resultContinuation(onSuccess);
 		fiber.failureContinuation(onFailure);
-		Interpreter.runOutermostFunction(fiber, function, args);
+		Interpreter.runOutermostFunction(runtime, fiber, function, args);
 	}
 
 	/**
@@ -2181,7 +2181,7 @@ public abstract class AbstractAvailCompiler
 		fiber.setGeneralFlag(GeneralFlag.APPLYING_SEMANTIC_RESTRICTION);
 		fiber.resultContinuation(onSuccess);
 		fiber.failureContinuation(onFailure);
-		Interpreter.runOutermostFunction(fiber, function, args);
+		Interpreter.runOutermostFunction(runtime, fiber, function, args);
 	}
 
 	/**

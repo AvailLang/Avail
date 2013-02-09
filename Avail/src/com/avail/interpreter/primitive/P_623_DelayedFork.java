@@ -121,6 +121,7 @@ extends Primitive
 		if (sleepMillis.equals(IntegerDescriptor.zero()))
 		{
 			Interpreter.runOutermostFunction(
+				AvailRuntime.current(),
 				newFiber,
 				function,
 				callArgs);
@@ -130,6 +131,7 @@ extends Primitive
 		else if (sleepMillis.lessOrEqual(IntegerDescriptor.fromLong(
 			Long.MAX_VALUE)))
 		{
+			final AvailRuntime runtime = AvailRuntime.current();
 			AvailRuntime.current().timer.schedule(
 				new TimerTask()
 				{
@@ -142,6 +144,7 @@ extends Primitive
 							TERMINATION_REQUESTED))
 						{
 							Interpreter.runOutermostFunction(
+								runtime,
 								newFiber,
 								function,
 								callArgs);

@@ -121,6 +121,7 @@ extends Primitive
 		if (sleepMillis.equals(IntegerDescriptor.zero()))
 		{
 			Interpreter.runOutermostFunction(
+				AvailRuntime.current(),
 				orphan,
 				function,
 				callArgs);
@@ -128,6 +129,7 @@ extends Primitive
 		// Otherwise, schedule the fiber to start later.
 		else
 		{
+			final AvailRuntime runtime = AvailRuntime.current();
 			AvailRuntime.current().timer.schedule(
 				new TimerTask()
 				{
@@ -137,6 +139,7 @@ extends Primitive
 						// Don't check for the termination requested interrupt
 						// here, since no fiber could have signaled it.
 						Interpreter.runOutermostFunction(
+							runtime,
 							orphan,
 							function,
 							callArgs);

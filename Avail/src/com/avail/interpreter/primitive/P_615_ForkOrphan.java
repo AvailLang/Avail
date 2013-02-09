@@ -36,6 +36,7 @@ import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.*;
+import com.avail.AvailRuntime;
 import com.avail.annotations.*;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
@@ -109,6 +110,7 @@ extends Primitive
 			current.heritableFiberGlobals().makeShared());
 		// Schedule the fiber to run the specified function.
 		Interpreter.runOutermostFunction(
+			AvailRuntime.current(),
 			orphan,
 			function,
 			callArgs);

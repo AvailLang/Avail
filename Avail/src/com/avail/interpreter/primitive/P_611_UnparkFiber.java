@@ -37,6 +37,7 @@ import static com.avail.interpreter.Primitive.Flag.*;
 import static com.avail.descriptor.FiberDescriptor.ExecutionState.*;
 import static com.avail.descriptor.FiberDescriptor.SynchronizationFlag.PERMIT_UNAVAILABLE;
 import java.util.List;
+import com.avail.AvailRuntime;
 import com.avail.annotations.NotNull;
 import com.avail.descriptor.*;
 import com.avail.descriptor.FiberDescriptor.SynchronizationFlag;
@@ -48,12 +49,12 @@ import com.avail.utility.Continuation0;
  * FiberDescriptor fiber}. If the {@linkplain
  * SynchronizationFlag#PERMIT_UNAVAILABLE permit} associated with the fiber is
  * available, then simply continue. If the permit is not available, then restore
- * the permit and schedule {@linkplain
- * Interpreter#resumeFromPrimitive(AvailObject, Result, AvailObject) resumption}
- * of the fiber. A newly unparked fiber should always recheck the basis for its
- * having parked, to see if it should park again. Low-level synchronization
- * mechanisms may require the ability to spuriously unpark in order to ensure
- * correctness.
+ * the permit and schedule {@linkplain Interpreter
+ * #resumeFromPrimitive(AvailRuntime, AvailObject, Result, AvailObject)
+ * resumption} of the fiber. A newly unparked fiber should always recheck the
+ * basis for its having parked, to see if it should park again. Low-level
+ * synchronization mechanisms may require the ability to spuriously unpark in
+ * order to ensure correctness.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
@@ -86,6 +87,7 @@ extends Primitive
 				{
 					fiber.executionState(SUSPENDED);
 					Interpreter.resumeFromPrimitive(
+						AvailRuntime.current(),
 						fiber,
 						Result.SUCCESS,
 						NilDescriptor.nil());

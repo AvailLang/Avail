@@ -567,6 +567,7 @@ public final class AvailBuilder
 						fiber.resultContinuation(runNext.value);
 						fiber.failureContinuation(fail.value);
 						Interpreter.runOutermostFunction(
+							runtime,
 							fiber,
 							function,
 							Collections.<AvailObject>emptyList());
