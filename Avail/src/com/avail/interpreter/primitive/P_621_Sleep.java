@@ -85,6 +85,7 @@ extends Primitive
 			Long.MAX_VALUE)))
 		{
 			// Otherwise, delay the resumption of this task.
+			final AvailRuntime runtime = AvailRuntime.current();
 			final TimerTask task = new TimerTask()
 			{
 				@Override
@@ -104,6 +105,7 @@ extends Primitive
 								fiber.wakeupTask(null);
 								fiber.executionState(SUSPENDED);
 								Interpreter.resumeFromPrimitive(
+									runtime,
 									fiber,
 									Result.SUCCESS,
 									NilDescriptor.nil());
@@ -131,6 +133,7 @@ extends Primitive
 							{
 								fiber.executionState(SUSPENDED);
 								Interpreter.resumeFromPrimitive(
+									runtime,
 									fiber,
 									Result.SUCCESS,
 									NilDescriptor.nil());

@@ -32,10 +32,10 @@
 
 package com.avail.interpreter.primitive;
 
-import static com.avail.descriptor.FiberDescriptor.SynchronizationFlag.SCHEDULED;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
+import com.avail.AvailRuntime;
 import com.avail.annotations.NotNull;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
@@ -70,6 +70,7 @@ extends Primitive
 			public void value ()
 			{
 				Interpreter.resumeFromPrimitive(
+					AvailRuntime.current(),
 					fiber,
 					Result.SUCCESS,
 					NilDescriptor.nil());
@@ -82,7 +83,7 @@ extends Primitive
 	protected AvailObject privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(),
+			TupleDescriptor.empty(),
 			TOP.o());
 	}
 }

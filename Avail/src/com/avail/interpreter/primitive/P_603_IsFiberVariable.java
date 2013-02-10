@@ -33,8 +33,10 @@
 package com.avail.interpreter.primitive;
 
 import static com.avail.descriptor.TypeDescriptor.Types.*;
+import static com.avail.exceptions.AvailErrorCode.E_SPECIAL_ATOM;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
+import com.avail.AvailRuntime;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 
@@ -51,17 +53,25 @@ extends Primitive
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_603_IsFiberVariable().init(2, CannotFail, CanInline);
+		new P_603_IsFiberVariable().init(1, CanInline);
 
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 2;
+		assert args.size() == 1;
 		final AvailObject key = args.get(0);
-		final AvailObject fiber = args.get(1);
-		final AvailObject globals = fiber.fiberGlobals();
+		if (AvailRuntime.isSpecialAtom(key))
+		{
+			return interpreter.primitiveFailure(E_SPECIAL_ATOM);
+		}
+		final AvailObject fiber = FiberDescriptor.current();
+		// Choose the correct map based on the heritability of the key.
+		final AvailObject globals =
+			key.getAtomProperty(AtomDescriptor.heritableKey()).equalsNil()
+			? fiber.fiberGlobals()
+			: fiber.heritableFiberGlobals();
 		return interpreter.primitiveSuccess(AtomDescriptor.objectFromBoolean(
 			globals.hasKey(key)));
 	}
@@ -71,8 +81,7 @@ extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				ATOM.o(),
-				FIBER.o()),
+				ATOM.o()),
 			EnumerationTypeDescriptor.booleanObject());
 	}
 }

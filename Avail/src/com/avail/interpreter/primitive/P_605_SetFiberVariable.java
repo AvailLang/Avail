@@ -32,15 +32,17 @@
 package com.avail.interpreter.primitive;
 
 import static com.avail.descriptor.TypeDescriptor.Types.*;
+import static com.avail.exceptions.AvailErrorCode.E_SPECIAL_ATOM;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
+import com.avail.AvailRuntime;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 
 /**
  * <strong>Primitive 605:</strong> Associate the given value with the given
  * {@linkplain AtomDescriptor name} (key) in the variables of the
- * given {@linkplain FiberDescriptor fiber}.
+ * current {@linkplain FiberDescriptor fiber}.
  */
 public class P_605_SetFiberVariable
 extends Primitive
@@ -49,22 +51,37 @@ extends Primitive
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
 	public final static Primitive instance = new P_605_SetFiberVariable().init(
-		3, CanInline, HasSideEffect, CannotFail);
+		2, CanInline, HasSideEffect);
 
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 3;
-		final AvailObject fiber = args.get(0);
-		final AvailObject key = args.get(1);
-		final AvailObject value = args.get(2);
-		fiber.fiberGlobals(
-			fiber.fiberGlobals().mapAtPuttingCanDestroy(
-				key.makeImmutable(),
-				value.makeImmutable(),
-				true));
+		assert args.size() == 2;
+		final AvailObject key = args.get(0);
+		final AvailObject value = args.get(1);
+		if (AvailRuntime.isSpecialAtom(key))
+		{
+			return interpreter.primitiveFailure(E_SPECIAL_ATOM);
+		}
+		final AvailObject fiber = FiberDescriptor.current();
+		if (key.getAtomProperty(AtomDescriptor.heritableKey()).equalsNil())
+		{
+			fiber.fiberGlobals(
+				fiber.fiberGlobals().mapAtPuttingCanDestroy(
+					key.makeImmutable(),
+					value.makeImmutable(),
+					true));
+		}
+		else
+		{
+			fiber.heritableFiberGlobals(
+				fiber.heritableFiberGlobals().mapAtPuttingCanDestroy(
+					key.makeImmutable(),
+					value.makeImmutable(),
+					true));
+		}
 		return interpreter.primitiveSuccess(NilDescriptor.nil());
 	}
 
@@ -73,7 +90,6 @@ extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				FIBER.o(),
 				ATOM.o(),
 				ANY.o()),
 			TOP.o());

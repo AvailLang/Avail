@@ -37,6 +37,7 @@ import static com.avail.descriptor.FiberDescriptor.InterruptRequestFlag.TERMINAT
 import static com.avail.descriptor.FiberDescriptor.SynchronizationFlag.*;
 import static com.avail.descriptor.FiberDescriptor.ExecutionState.SUSPENDED;
 import java.util.*;
+import com.avail.AvailRuntime;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 import com.avail.utility.Continuation0;
@@ -98,6 +99,7 @@ extends Primitive
 							{
 								fiber.executionState(SUSPENDED);
 								Interpreter.resumeFromPrimitive(
+									AvailRuntime.current(),
 									fiber,
 									Result.SUCCESS,
 									NilDescriptor.nil());
@@ -118,6 +120,7 @@ extends Primitive
 										false));
 							fiber.executionState(SUSPENDED);
 							Interpreter.resumeFromPrimitive(
+								AvailRuntime.current(),
 								fiber,
 								Result.SUCCESS,
 								NilDescriptor.nil());
@@ -133,6 +136,7 @@ extends Primitive
 							fiber.wakeupTask(null);
 							fiber.executionState(SUSPENDED);
 							Interpreter.resumeFromPrimitive(
+								AvailRuntime.current(),
 								fiber,
 								Result.SUCCESS,
 								NilDescriptor.nil());

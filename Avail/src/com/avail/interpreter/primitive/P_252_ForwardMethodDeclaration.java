@@ -94,7 +94,11 @@ extends Primitive
 							state = FAILURE;
 							result = e.errorValue();
 						}
-						Interpreter.resumeFromPrimitive(fiber, state, result);
+						Interpreter.resumeFromPrimitive(
+							AvailRuntime.current(),
+							fiber,
+							state,
+							result);
 					}
 				}));
 		return FIBER_SUSPENDED;

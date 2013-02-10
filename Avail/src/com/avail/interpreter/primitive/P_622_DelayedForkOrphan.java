@@ -114,10 +114,14 @@ extends Primitive
 		// into this field, and none of them should fail because of a Java
 		// exception.
 		orphan.failureContinuation(current.failureContinuation());
+		// Share and inherit any heritable variables.
+		orphan.heritableFiberGlobals(
+			current.heritableFiberGlobals().makeShared());
 		// If the requested sleep time is 0 milliseconds, then fork immediately.
 		if (sleepMillis.equals(IntegerDescriptor.zero()))
 		{
 			Interpreter.runOutermostFunction(
+				AvailRuntime.current(),
 				orphan,
 				function,
 				callArgs);
@@ -125,6 +129,7 @@ extends Primitive
 		// Otherwise, schedule the fiber to start later.
 		else
 		{
+			final AvailRuntime runtime = AvailRuntime.current();
 			AvailRuntime.current().timer.schedule(
 				new TimerTask()
 				{
@@ -134,6 +139,7 @@ extends Primitive
 						// Don't check for the termination requested interrupt
 						// here, since no fiber could have signaled it.
 						Interpreter.runOutermostFunction(
+							runtime,
 							orphan,
 							function,
 							callArgs);

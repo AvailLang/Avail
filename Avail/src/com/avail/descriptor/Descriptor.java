@@ -4731,4 +4731,36 @@ extends AbstractDescriptor
 	{
 		throw unsupportedOperationException();
 	}
+
+	@Override
+	AvailObject o_HeritableFiberGlobals (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	void o_HeritableFiberGlobals (
+		final AvailObject object,
+		final AvailObject globals)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	boolean o_GeneralFlag (final AvailObject object, final GeneralFlag flag)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	void o_SetGeneralFlag (final AvailObject object, final GeneralFlag flag)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	void o_ClearGeneralFlag (final AvailObject object, final GeneralFlag flag)
+	{
+		throw unsupportedOperationException();
+	}
 }

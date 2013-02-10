@@ -42,6 +42,7 @@ import com.avail.compiler.*;
 import com.avail.descriptor.AbstractNumberDescriptor.Order;
 import com.avail.descriptor.AbstractNumberDescriptor.Sign;
 import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
+import com.avail.descriptor.FiberDescriptor.GeneralFlag;
 import com.avail.descriptor.FiberDescriptor.InterruptRequestFlag;
 import com.avail.descriptor.FiberDescriptor.SynchronizationFlag;
 import com.avail.descriptor.InfinityDescriptor.IntegerSlots;
@@ -5899,4 +5900,37 @@ public abstract class AbstractDescriptor
 	 * @param task
 	 */
 	abstract void o_WakeupTask (AvailObject object, @Nullable TimerTask task);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract AvailObject o_HeritableFiberGlobals (AvailObject object);
+
+	/**
+	 * @param object
+	 * @param globals
+	 */
+	abstract void o_HeritableFiberGlobals (
+		AvailObject object,
+		AvailObject globals);
+
+	/**
+	 * @param object
+	 * @param flag
+	 * @return
+	 */
+	abstract boolean o_GeneralFlag (AvailObject object, GeneralFlag flag);
+
+	/**
+	 * @param object
+	 * @param flag
+	 */
+	abstract void o_SetGeneralFlag (AvailObject object, GeneralFlag flag);
+
+	/**
+	 * @param object
+	 * @param flag
+	 */
+	abstract void o_ClearGeneralFlag (AvailObject object, GeneralFlag flag);
 }

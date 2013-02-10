@@ -1,6 +1,6 @@
 /**
- * P_232_SealMethodByAtom.java
- * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
+ * P_625_IsApplyingSemanticRestriction.java
+ * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,64 +32,46 @@
 
 package com.avail.interpreter.primitive;
 
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER;
 import static com.avail.interpreter.Primitive.Flag.*;
+import static com.avail.descriptor.FiberDescriptor.GeneralFlag.APPLYING_SEMANTIC_RESTRICTION;
 import java.util.List;
+import com.avail.annotations.NotNull;
 import com.avail.descriptor.*;
-import com.avail.exceptions.*;
 import com.avail.interpreter.*;
 
 /**
- * <strong>Primitive 232</strong>: Seal the named {@linkplain MethodDescriptor
- * method} at the specified {@linkplain TupleTypeDescriptor signature}. No
- * further definitions may be added below this signature.
+ * <strong>Primitive 625</strong>: Is the {@linkplain FiberDescriptor#current()
+ * current} {@linkplain FiberDescriptor fiber} running a semantic restriction?
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class P_232_SealMethodByAtom
+public final class P_625_IsApplyingSemanticRestriction
 extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
-	public final static Primitive instance =
-		new P_232_SealMethodByAtom().init(2, CanInline, HasSideEffect);
+	public final @NotNull static Primitive instance =
+		new P_625_IsApplyingSemanticRestriction().init(
+			0, CannotFail, CanInline, CanFold);
 
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 2;
-		final AvailObject methodName = args.get(0);
-		final AvailObject sealSignature = args.get(1);
-		final AvailLoader loader = FiberDescriptor.current().availLoader();
-		if (loader == null)
-		{
-			return interpreter.primitiveFailure(E_LOADING_IS_OVER);
-		}
-		try
-		{
-			loader.addSeal(methodName, sealSignature);
-		}
-		catch (final SignatureException e)
-		{
-			return interpreter.primitiveFailure(e);
-		}
-		return interpreter.primitiveSuccess(NilDescriptor.nil());
+		assert args.size() == 0;
+		return interpreter.primitiveSuccess(
+			AtomDescriptor.objectFromBoolean(
+				FiberDescriptor.current().generalFlag(
+					APPLYING_SEMANTIC_RESTRICTION)));
 	}
 
 	@Override
 	protected AvailObject privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
-				ATOM.o(),
-				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
-					IntegerRangeTypeDescriptor.wholeNumbers(),
-					TupleDescriptor.empty(),
-					InstanceMetaDescriptor.anyMeta())),
-			TOP.o());
+			TupleDescriptor.empty(),
+			EnumerationTypeDescriptor.booleanObject());
 	}
 }

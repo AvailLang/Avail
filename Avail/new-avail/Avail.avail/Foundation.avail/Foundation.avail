@@ -43,6 +43,7 @@ Extends
 	),
 	"Atoms" =
 	(
+		"«Public»?_is a new⁇heritable«fiber-local»⁇atom",
 		"«Public»?_is a|an new⁇field⁇atom",
 		"_[_]else_"
 	),
@@ -80,6 +81,7 @@ Extends
 		"Publish new name:_",
 		"Reject parse,expected:_",
 		"Remove_[_]",
+		"Remove current fiber[_]",
 		"Reset to mark",
 		"Restart_",
 		"Restart_with_",
@@ -109,6 +111,9 @@ Extends
 		"constructor_<«_‡,»>(fail with_)",
 		"continuation",
 		"current fiber",
+		"current fiber is applying a semantic restriction",
+		"current fiber[_]",
+		"current fiber[_]:=_",
 		"current module",
 		"declaration phrase",
 		"double",
@@ -155,9 +160,10 @@ Extends
 		"module constant phrase",
 		"module variable phrase",
 		"natural number",
-		"new atom_",
+		"new atom named_",
 		"new_[_]",
 		"new_applying_",
+		"new⁇heritable«fiber-local»⁇atom named_",
 		"new↑_",
 		"next character",
 		"nontype",
@@ -325,6 +331,7 @@ Extends
 		"_→set",
 		"_→tuple",
 		"_⇒_",
+		"_∈current fiber",
 		"_∈_",
 		"_∩_",
 		"_∪_",
@@ -371,6 +378,7 @@ Extends
 		"For each of⁇_in parallel do_",
 		"Fork_",
 		"fork_",
+		"current fiber[_]else_",
 		"map_in parallel through_",
 		"worker exception"
 	),
@@ -527,6 +535,7 @@ Extends
 	),
 	"Exceptions" =
 	(
+		"Current fiber's unhandled exception handler is_",
 		"Java-class-not-available exception",
 		"Java-field-not-available exception",
 		"Java-field-reference-is-ambiguous exception",
@@ -564,6 +573,7 @@ Extends
 		"causal exception",
 		"code-generation exception",
 		"continuation-expected-stronger-type exception",
+		"current fiber's unhandled exception handler",
 		"declaration-kind-does-not-support-assignment exception",
 		"declaration-kind-does-not-support-reference exception",
 		"definition exception",
@@ -640,8 +650,6 @@ Extends
 		"_'s⁇causal exception",
 		"_'s⁇error message",
 		"_'s⁇stack summary",
-		"_'s⁇unhandled exception handler",
-		"_'s⁇unhandled exception handler is_",
 		"“_”(stack summary)"
 	),
 	"Functions" =

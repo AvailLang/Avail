@@ -36,6 +36,7 @@ import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.*;
+import com.avail.AvailRuntime;
 import com.avail.annotations.*;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
@@ -104,10 +105,14 @@ extends Primitive
 		// into this field, and none of them should fail because of a Java
 		// exception.
 		newFiber.failureContinuation(current.failureContinuation());
+		// Share and inherit any heritable variables.
+		newFiber.heritableFiberGlobals(
+			current.heritableFiberGlobals().makeShared());
 		// Schedule the fiber to run the specified function. Share the fiber,
 		// since it will be visible to the caller.
 		newFiber.makeShared();
 		Interpreter.runOutermostFunction(
+			AvailRuntime.current(),
 			newFiber,
 			function,
 			callArgs);

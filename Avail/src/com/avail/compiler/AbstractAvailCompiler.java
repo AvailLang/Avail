@@ -48,6 +48,7 @@ import com.avail.annotations.*;
 import com.avail.builder.*;
 import com.avail.compiler.scanning.*;
 import com.avail.descriptor.*;
+import com.avail.descriptor.FiberDescriptor.GeneralFlag;
 import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.interpreter.*;
 import com.avail.interpreter.primitive.P_352_RejectParsing;
@@ -2152,7 +2153,35 @@ public abstract class AbstractAvailCompiler
 		final AvailObject fiber = FiberDescriptor.newLoaderFiber(loader);
 		fiber.resultContinuation(onSuccess);
 		fiber.failureContinuation(onFailure);
-		Interpreter.runOutermostFunction(fiber, function, args);
+		Interpreter.runOutermostFunction(runtime, fiber, function, args);
+	}
+
+	/**
+	 * Evaluate the specified semantic restriction {@linkplain
+	 * FunctionDescriptor function} in the module's context; lexically enclosing
+	 * variables are not considered in scope, but module variables and constants
+	 * are in scope.
+	 *
+	 * @param function
+	 *        A function.
+	 * @param args
+	 *        The arguments to the function.
+	 * @param onSuccess
+	 *        What to do with the result of the evaluation.
+	 * @param onFailure
+	 *        What to do with a terminal {@linkplain Throwable throwable}.
+	 */
+	protected void evaluateSemanticRestrictionFunctionThen (
+		final AvailObject function,
+		final List<AvailObject> args,
+		final Continuation1<AvailObject> onSuccess,
+		final Continuation1<Throwable> onFailure)
+	{
+		final AvailObject fiber = FiberDescriptor.newLoaderFiber(loader);
+		fiber.setGeneralFlag(GeneralFlag.APPLYING_SEMANTIC_RESTRICTION);
+		fiber.resultContinuation(onSuccess);
+		fiber.failureContinuation(onFailure);
+		Interpreter.runOutermostFunction(runtime, fiber, function, args);
 	}
 
 	/**
@@ -3593,10 +3622,9 @@ public abstract class AbstractAvailCompiler
 		for (final AvailObject restriction : restrictionsToTry)
 		{
 			startWorkUnit();
-			evaluateFunctionThen(
+			evaluateSemanticRestrictionFunctionThen(
 				restriction,
 				argTypes,
-				false,
 				intersectAndDecrement,
 				failed);
 		}
@@ -4033,11 +4061,10 @@ public abstract class AbstractAvailCompiler
 					assert workUnitsQueued == workUnitsCompleted;
 				}
 
-				if (unambiguousStatement.expressionType().equals(
-					BottomTypeDescriptor.bottom()))
+				if (!unambiguousStatement.expressionType().equals(TOP.o()))
 				{
 					afterStatement.expected(
-						"top-level statement not to have type ⊥");
+						"top-level statement to have type ⊤");
 					reportError();
 					assert false;
 				}

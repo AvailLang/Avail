@@ -486,6 +486,12 @@ extends Descriptor
 	private static AvailObject fileModeWriteKey;
 
 	/**
+	 * The property key that indicates that a {@linkplain FiberDescriptor fiber}
+	 * global is inheritable.
+	 */
+	private static AvailObject heritableKey;
+
+	/**
 	 * Answer the atom representing the Avail concept "true".
 	 *
 	 * @return Avail's <code>true</code> boolean object.
@@ -573,6 +579,17 @@ extends Descriptor
 	}
 
 	/**
+	 * Answer the property key that indicates that a {@linkplain FiberDescriptor
+	 * fiber} global is inheritable.
+
+	 * @return An atom that's special because it's known by the virtual machine.
+	 */
+	public static AvailObject heritableKey ()
+	{
+		return heritableKey;
+	}
+
+	/**
 	 * Create the true and false singletons.
 	 */
 	static void createWellKnownObjects ()
@@ -590,6 +607,8 @@ extends Descriptor
 			StringDescriptor.from("file mode read"));
 		fileModeWriteKey = createSpecialAtom(
 			StringDescriptor.from("file mode write"));
+		heritableKey = createSpecialAtom(
+			StringDescriptor.from("heritability"));
 	}
 
 	/**
@@ -605,5 +624,6 @@ extends Descriptor
 		fileKey = null;
 		fileModeReadKey = null;
 		fileModeWriteKey = null;
+		heritableKey = null;
 	}
 }

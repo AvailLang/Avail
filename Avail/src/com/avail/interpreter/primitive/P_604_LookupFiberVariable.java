@@ -32,15 +32,16 @@
 package com.avail.interpreter.primitive;
 
 import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.exceptions.AvailErrorCode.E_NO_SUCH_FIBER_VARIABLE;
+import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.CanInline;
 import java.util.List;
+import com.avail.AvailRuntime;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 
 /**
  * <strong>Primitive 604:</strong> Lookup the given {@linkplain
- * AtomDescriptor name} (key) in the variables of the given
+ * AtomDescriptor name} (key) in the variables of the current
  * {@linkplain FiberDescriptor fiber}.
  */
 public class P_604_LookupFiberVariable
@@ -50,17 +51,25 @@ extends Primitive
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_604_LookupFiberVariable().init(2, CanInline);
+		new P_604_LookupFiberVariable().init(1, CanInline);
 
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 2;
-		final AvailObject fiber = args.get(0);
-		final AvailObject key = args.get(1);
-		final AvailObject globals = fiber.fiberGlobals();
+		assert args.size() == 1;
+		final AvailObject key = args.get(0);
+		if (AvailRuntime.isSpecialAtom(key))
+		{
+			return interpreter.primitiveFailure(E_SPECIAL_ATOM);
+		}
+		final AvailObject fiber = FiberDescriptor.current();
+		// Choose the correct map based on the heritability of the key.
+		final AvailObject globals =
+			key.getAtomProperty(AtomDescriptor.heritableKey()).equalsNil()
+			? fiber.fiberGlobals()
+			: fiber.heritableFiberGlobals();
 		if (!globals.hasKey(key))
 		{
 			return interpreter.primitiveFailure(
@@ -75,7 +84,6 @@ extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				FIBER.o(),
 				ATOM.o()),
 			ANY.o());
 	}

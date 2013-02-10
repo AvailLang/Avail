@@ -36,6 +36,7 @@ import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.*;
+import com.avail.AvailRuntime;
 import com.avail.annotations.*;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
@@ -104,8 +105,12 @@ extends Primitive
 		// into this field, and none of them should fail because of a Java
 		// exception.
 		orphan.failureContinuation(current.failureContinuation());
+		// Share and inherit any heritable variables.
+		orphan.heritableFiberGlobals(
+			current.heritableFiberGlobals().makeShared());
 		// Schedule the fiber to run the specified function.
 		Interpreter.runOutermostFunction(
+			AvailRuntime.current(),
 			orphan,
 			function,
 			callArgs);

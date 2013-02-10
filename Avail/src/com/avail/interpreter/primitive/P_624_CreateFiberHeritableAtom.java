@@ -1,6 +1,6 @@
 /**
- * P_232_SealMethodByAtom.java
- * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
+ * P_624_CreateFiberHeritableAtom.java
+ * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,51 +33,45 @@
 package com.avail.interpreter.primitive;
 
 import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
+import com.avail.annotations.NotNull;
 import com.avail.descriptor.*;
-import com.avail.exceptions.*;
 import com.avail.interpreter.*;
 
 /**
- * <strong>Primitive 232</strong>: Seal the named {@linkplain MethodDescriptor
- * method} at the specified {@linkplain TupleTypeDescriptor signature}. No
- * further definitions may be added below this signature.
+ * <strong>Primitive 624</strong>: Create a new {@linkplain AtomDescriptor atom}
+ * with the given name that represents a {@linkplain
+ * AtomDescriptor#heritableKey() heritable} {@linkplain FiberDescriptor fiber}
+ * variable.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class P_232_SealMethodByAtom
+public final class P_624_CreateFiberHeritableAtom
 extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
-	public final static Primitive instance =
-		new P_232_SealMethodByAtom().init(2, CanInline, HasSideEffect);
+	public final @NotNull static Primitive instance =
+		new P_624_CreateFiberHeritableAtom().init(
+			1, CannotFail, CanInline);
 
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 2;
-		final AvailObject methodName = args.get(0);
-		final AvailObject sealSignature = args.get(1);
-		final AvailLoader loader = FiberDescriptor.current().availLoader();
-		if (loader == null)
-		{
-			return interpreter.primitiveFailure(E_LOADING_IS_OVER);
-		}
-		try
-		{
-			loader.addSeal(methodName, sealSignature);
-		}
-		catch (final SignatureException e)
-		{
-			return interpreter.primitiveFailure(e);
-		}
-		return interpreter.primitiveSuccess(NilDescriptor.nil());
+		assert args.size() == 1;
+		final AvailObject name = args.get(0);
+		final AvailObject key = AtomDescriptor.create(
+			name, ModuleDescriptor.current());
+		// The value doesn't matter, as it will never be examined. So we could
+		// set it to anything here, but "true" seems intuitive.
+		key.setAtomProperty(
+			AtomDescriptor.heritableKey(),
+			AtomDescriptor.trueObject());
+		return interpreter.primitiveSuccess(key);
 	}
 
 	@Override
@@ -85,11 +79,7 @@ extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				ATOM.o(),
-				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
-					IntegerRangeTypeDescriptor.wholeNumbers(),
-					TupleDescriptor.empty(),
-					InstanceMetaDescriptor.anyMeta())),
-			TOP.o());
+				TupleTypeDescriptor.stringTupleType()),
+			ATOM.o());
 	}
 }
