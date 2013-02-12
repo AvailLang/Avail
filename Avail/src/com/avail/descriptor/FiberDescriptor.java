@@ -307,7 +307,7 @@ extends Descriptor
 			@Override
 			protected void init ()
 			{
-				successors = EnumSet.<ExecutionState>of(RUNNING);
+				successors = EnumSet.of(RUNNING);
 			}
 		},
 
@@ -319,7 +319,7 @@ extends Descriptor
 			@Override
 			protected void init ()
 			{
-				successors = EnumSet.<ExecutionState>of(
+				successors = EnumSet.of(
 					SUSPENDED,
 					INTERRUPTED,
 					PARKED,
@@ -343,7 +343,7 @@ extends Descriptor
 			@Override
 			protected void init ()
 			{
-				successors = EnumSet.<ExecutionState>of(
+				successors = EnumSet.of(
 					RUNNING,
 					ABORTED,
 					ASLEEP);
@@ -364,7 +364,7 @@ extends Descriptor
 			@Override
 			protected void init ()
 			{
-				successors = EnumSet.<ExecutionState>of(RUNNING);
+				successors = EnumSet.of(RUNNING);
 			}
 		},
 
@@ -388,7 +388,7 @@ extends Descriptor
 			@Override
 			protected void init ()
 			{
-				successors = EnumSet.<ExecutionState>of(SUSPENDED);
+				successors = EnumSet.of(SUSPENDED);
 			}
 		},
 
@@ -412,7 +412,7 @@ extends Descriptor
 			@Override
 			protected void init ()
 			{
-				successors = EnumSet.<ExecutionState>of(SUSPENDED);
+				successors = EnumSet.of(SUSPENDED);
 			}
 		},
 
@@ -436,7 +436,7 @@ extends Descriptor
 			@Override
 			protected void init ()
 			{
-				successors = EnumSet.<ExecutionState>of(SUSPENDED);
+				successors = EnumSet.of(SUSPENDED);
 			}
 		},
 
@@ -449,6 +449,12 @@ extends Descriptor
 			public boolean indicatesTermination ()
 			{
 				return true;
+			}
+
+			@Override
+			protected void init ()
+			{
+				successors = EnumSet.of(ABORTED);
 			}
 		},
 

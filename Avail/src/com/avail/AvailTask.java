@@ -108,7 +108,15 @@ implements Comparable<AvailTask>, Runnable
 					// If execution failed for any reason, then terminate
 					// the fiber and invoke its failure continuation with
 					// the throwable.
-					interpreter.abortFiber();
+					if (!fiber.executionState().indicatesTermination())
+					{
+						assert interpreter.fiber == fiber;
+						interpreter.abortFiber();
+					}
+					else
+					{
+						fiber.executionState(ABORTED);
+					}
 					fiber.failureContinuation().value(e);
 				}
 				finally

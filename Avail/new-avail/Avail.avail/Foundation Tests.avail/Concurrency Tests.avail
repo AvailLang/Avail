@@ -89,7 +89,44 @@ Test "fork and multiple join" in concurrency test suite is
 	Require: 3^20 = target's result;
 ];
 
-Test "request termination" in concurrency test suite is
+Test "basic binary semaphore" in concurrency test suite is
+[
+	sem ::= a semaphore with 0 out of 1 permits;
+	forked ::= invoke [Signal sem;] with <>, forked at priority 50;
+	Await sem;
+	Join forked;
+	Require: forked has terminated;
+];
+
+Test "basic counting semaphore" in concurrency test suite is
+[
+	count ::= 10;
+	sem ::= a semaphore with 0 out of count permits;
+	fibers ::=
+		map 1 to 10 through
+		[
+			ignored : [1..10]
+		|
+			invoke [Signal sem;] with <>, forked at priority 50
+		];
+	Await sem count times;
+	For each of fibers do
+	[
+		forked : fiber
+	|
+		Join forked;
+		Require: forked has terminated;
+	];
+];
+
+Test "signal too many times" in concurrency test suite is
+[
+	sem ::= a semaphore with 0 out of 0 permits;
+	Signal sem;
+]
+must raise cannot-exceed-maximum-permits exception;
+
+Test "request termination of running fiber" in concurrency test suite is
 [
 	forked ::=
 		invoke
