@@ -566,6 +566,7 @@ Method "decode_using_" is
  /*TODO Create method that overrides abstract "decode_using_"
   * Chnage all inputs to codec objects.  Utilize the each input buffer for the other
   * ie decoder for encoder and encoder for decoder*/
+	"pickles"
 ]:string;
 
 /*TODO Create method that overrides abstract "finish decoding with_"*/
