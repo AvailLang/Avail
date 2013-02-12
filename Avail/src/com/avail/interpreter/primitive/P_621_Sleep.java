@@ -81,11 +81,11 @@ extends Primitive
 		// If the requested sleep time isn't colossally big, then arrange for
 		// the fiber to resume later. If the delay is too big, then the fiber
 		// will only awaken due to interruption.
+		final AvailRuntime runtime = AvailRuntime.current();
 		if (sleepMillis.lessOrEqual(IntegerDescriptor.fromLong(
 			Long.MAX_VALUE)))
 		{
 			// Otherwise, delay the resumption of this task.
-			final AvailRuntime runtime = AvailRuntime.current();
 			final TimerTask task = new TimerTask()
 			{
 				@Override
@@ -131,7 +131,7 @@ extends Primitive
 							if (fiber.interruptRequestFlag(
 								TERMINATION_REQUESTED))
 							{
-								fiber.executionState(SUSPENDED);
+								assert fiber.executionState() == SUSPENDED;
 								Interpreter.resumeFromPrimitive(
 									runtime,
 									fiber,
@@ -141,9 +141,42 @@ extends Primitive
 							}
 							fiber.wakeupTask(task);
 							fiber.executionState(ASLEEP);
-							AvailRuntime.current().timer.schedule(
+							runtime.timer.schedule(
 								task,
 								sleepMillis.extractLong());
+						}
+					});
+				}
+			});
+		}
+		// The delay was too big, so put the fiber to sleep forever.
+		else
+		{
+			// Once the fiber has been unbound, transition it to sleeping.
+			interpreter.postExitContinuation(new Continuation0()
+			{
+				@Override
+				public void value ()
+				{
+					fiber.lock(new Continuation0()
+					{
+						@Override
+						public void value ()
+						{
+							// If termination has been requested, then schedule
+							// the resumption of this fiber.
+							if (fiber.interruptRequestFlag(
+								TERMINATION_REQUESTED))
+							{
+								assert fiber.executionState() == SUSPENDED;
+								Interpreter.resumeFromPrimitive(
+									runtime,
+									fiber,
+									Result.SUCCESS,
+									NilDescriptor.nil());
+								return;
+							}
+							fiber.executionState(ASLEEP);
 						}
 					});
 				}

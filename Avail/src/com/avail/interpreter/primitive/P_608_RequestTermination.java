@@ -129,11 +129,14 @@ extends Primitive
 							// Set the interrupt request flag.
 							fiber.setInterruptRequestFlag(
 								TERMINATION_REQUESTED);
-							// Try to cancel the task. This is best effort only.
+							// Try to cancel the task (if any). This is best
+							// effort only.
 							final TimerTask task = fiber.wakeupTask();
-							assert task != null;
-							task.cancel();
-							fiber.wakeupTask(null);
+							if (task != null)
+							{
+								task.cancel();
+								fiber.wakeupTask(null);
+							}
 							fiber.executionState(SUSPENDED);
 							Interpreter.resumeFromPrimitive(
 								AvailRuntime.current(),

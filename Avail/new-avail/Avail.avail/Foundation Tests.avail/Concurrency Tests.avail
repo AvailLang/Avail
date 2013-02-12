@@ -126,23 +126,6 @@ Test "signal too many times" in concurrency test suite is
 ]
 must raise cannot-exceed-maximum-permits exception;
 
-Test "request termination of running fiber" in concurrency test suite is
-[
-	forked ::=
-		invoke
-		[
-			Until [termination requested] do [Yield current fiber;];
-			"仕上がります"
-		]
-		with <>,
-		forked at priority 50;
-	Request termination of forked;
-	Join forked;
-	Require: forked has terminated;
-	Require: forked has result;
-	Require: "仕上がります" = forked's result;
-];
-
 Test "heritable fiber variables" in concurrency test suite is
 [
 	h1 ::= new heritable atom named "h1";
@@ -442,4 +425,100 @@ Test "map in parallel(worker exception)" in concurrency test suite is
 		intercept [e : worker exception | e];
 	killer ::= cast result into [e : worker exception | e];
 	Require: killer's causal exception ∈ cannot-divide-by-zero exception;
+];
+
+Test "request termination of running fiber" in concurrency test suite is
+[
+	/* Try it a few times so that races can resolve differently. */
+	Repeat
+	[
+		forked ::=
+			invoke
+			[
+				Until [termination requested] do [Yield current fiber;];
+				"仕上がります"
+			]
+			with <>,
+			forked at priority 50;
+		Request termination of forked;
+		Join forked;
+		Require: forked has terminated;
+		Require: forked has result;
+		Require: "仕上がります" = forked's result;
+	] 10 times;
+];
+
+Test "request termination of parked fiber" in concurrency test suite is
+[
+	/* Try it a few times so that races can resolve differently. */
+	Repeat
+	[
+		forked ::=
+			invoke [Do [Park current fiber;] until [termination requested];]
+			with <>,
+			forked at priority 50;
+		Request termination of forked;
+		Join forked;
+		Require: forked has terminated;
+	] 10 times;
+];
+
+Test "request termination of joining fiber" in concurrency test suite is
+[
+	/* Try it a few times so that races can resolve differently. */
+	Repeat
+	[
+		forked ::=
+			invoke [Do [Park current fiber;] until [termination requested];]
+			with <>,
+			forked at priority 50;
+		joiner ::=
+			invoke [Join forked;]
+			with <>,
+			forked at priority 50;
+		Request termination of joiner;
+		Join joiner;
+		Require: joiner has terminated;
+		Require: ¬forked has terminated;
+		Request termination of forked;
+		Join forked;
+		Require: forked has terminated;
+	] 10 times;
+];
+
+Test "request termination of sleeping fiber"
+	in concurrency test suite is
+[
+	/* Try it a few times so that races can resolve differently. */
+	Repeat
+	[
+		forked ::=
+			invoke
+			[
+				Do [Sleep for 1000000 milliseconds;]
+				until [termination requested];
+			]
+			with <>,
+			forked at priority 50;
+		Request termination of forked;
+		Join forked;
+		Require: forked has terminated;
+	] 10 times;
+];
+
+Test "request termination of permanently sleeping fiber"
+	in concurrency test suite is
+[
+	/* Try it a few times so that races can resolve differently. */
+	Repeat
+	[
+		forked ::=
+			invoke
+				[Do [Sleep for ∞ milliseconds;] until [termination requested];]
+			with <>,
+			forked at priority 50;
+		Request termination of forked;
+		Join forked;
+		Require: forked has terminated;
+	] 10 times;
 ];
