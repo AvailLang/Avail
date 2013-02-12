@@ -168,6 +168,28 @@ public final class AvailRuntime
 			new ThreadPoolExecutor.CallerRunsPolicy());
 
 	/**
+	 * Open an {@linkplain AsynchronousFileChannel asynchronous file channel}
+	 * for the specified {@linkplain Path path} and {@linkplain OpenOption
+	 * open options}.
+	 *
+	 * @param path A path.
+	 * @param openOptions The open options.
+	 * @return An asynchronous file channel.
+	 * @throws IOException
+	 *         If the open fails for any reason.
+	 */
+	public AsynchronousFileChannel openFile (
+			final Path path,
+			final OpenOption... openOptions)
+		throws IOException
+	{
+		return AsynchronousFileChannel.open(
+			path,
+			new HashSet<OpenOption>(Arrays.asList(openOptions)),
+			fileExecutor);
+	}
+
+	/**
 	 * The {@linkplain ThreadPoolExecutor thread pool executor} for asynchronous
 	 * socket operations performed on behalf of this {@linkplain AvailRuntime
 	 * Avail runtime}.
@@ -202,25 +224,30 @@ public final class AvailRuntime
 	}
 
 	/**
-	 * Open an {@linkplain AsynchronousFileChannel asynchronous file channel}
-	 * for the specified {@linkplain Path path} and {@linkplain OpenOption
-	 * open options}.
+	 * Open an {@linkplain AsynchronousServerSocketChannel asynchronous server
+	 * socket channel}.
 	 *
-	 * @param path A path.
-	 * @param openOptions The open options.
-	 * @return An asynchronous file channel.
+	 * @return An asynchronous server socket channel.
 	 * @throws IOException
-	 *         If the open fails for any reason.
+	 *         If the open fails for some reason.
 	 */
-	public AsynchronousFileChannel openFile (
-			final Path path,
-			final OpenOption... openOptions)
+	public AsynchronousServerSocketChannel openServerSocket ()
 		throws IOException
 	{
-		return AsynchronousFileChannel.open(
-			path,
-			new HashSet<OpenOption>(Arrays.asList(openOptions)),
-			fileExecutor);
+		return AsynchronousServerSocketChannel.open(socketGroup);
+	}
+
+	/**
+	 * Open an {@linkplain AsynchronousSocketChannel asynchronous socket
+	 * channel}.
+	 *
+	 * @return An asynchronous socket channel.
+	 * @throws IOException
+	 *         If the open fails for some reason.
+	 */
+	public AsynchronousSocketChannel openSocket () throws IOException
+	{
+		return AsynchronousSocketChannel.open(socketGroup);
 	}
 
 	/**

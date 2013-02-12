@@ -34,6 +34,7 @@ package com.avail.descriptor;
 
 import java.io.*;
 import java.math.BigInteger;
+import java.nio.ByteBuffer;
 import java.util.*;
 import com.avail.*;
 import com.avail.annotations.*;
@@ -6446,5 +6447,51 @@ implements Iterable<AvailObject>
 	public void clearGeneralFlag (final GeneralFlag flag)
 	{
 		descriptor.o_ClearGeneralFlag(this, flag);
+	}
+
+	/**
+	 * @return
+	 */
+	public ByteBuffer byteBuffer ()
+	{
+		return descriptor.o_ByteBuffer(this);
+	}
+
+	/**
+	 * @param aByteBufferTuple
+	 * @return
+	 */
+	public boolean equalsByteBufferTuple (final AvailObject aByteBufferTuple)
+	{
+		return descriptor.o_EqualsByteBufferTuple(this, aByteBufferTuple);
+	}
+
+	/**
+	 * @param startIndex1
+	 * @param endIndex1
+	 * @param aByteBufferTuple
+	 * @param startIndex2
+	 * @return
+	 */
+	public boolean compareFromToWithByteBufferTupleStartingAt (
+		final int startIndex1,
+		final int endIndex1,
+		final AvailObject aByteBufferTuple,
+		final int startIndex2)
+	{
+		return descriptor.o_CompareFromToWithByteBufferTupleStartingAt(
+			this,
+			startIndex1,
+			endIndex1,
+			aByteBufferTuple,
+			startIndex2);
+	}
+
+	/**
+	 * @return
+	 */
+	public boolean isByteBufferTuple ()
+	{
+		return descriptor.o_IsByteBufferTuple(this);
 	}
 }

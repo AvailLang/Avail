@@ -1,5 +1,5 @@
 /**
- * ByteArrayTupleDescriptor.java
+ * ByteBufferTupleDescriptor.java
  * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -33,21 +33,22 @@
 package com.avail.descriptor;
 
 import static com.avail.descriptor.AvailObject.multiplier;
-import static com.avail.descriptor.ByteArrayTupleDescriptor.IntegerSlots.*;
-import static com.avail.descriptor.ByteArrayTupleDescriptor.ObjectSlots.*;
+import static com.avail.descriptor.ByteBufferTupleDescriptor.IntegerSlots.*;
+import static com.avail.descriptor.ByteBufferTupleDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.TypeDescriptor.Types.NONTYPE;
 import static java.lang.Math.min;
-import java.util.Arrays;
+import java.nio.ByteBuffer;
 import com.avail.annotations.*;
 
 /**
- * {@code ByteArrayTupleDescriptor} represents a tuple of integers that happen
+ * {@code ByteBufferTupleDescriptor} represents a tuple of integers that happen
  * to fall in the range {@code [0..255]}. Unlike {@link ByteTupleDescriptor}, it
- * is backed by a {@linkplain RawPojoDescriptor thinly wrapped} byte array.
+ * is backed by a {@linkplain RawPojoDescriptor thinly wrapped} {@linkplain
+ * ByteBuffer byte buffer}.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class ByteArrayTupleDescriptor
+public class ByteBufferTupleDescriptor
 extends TupleDescriptor
 {
 	/**
@@ -76,16 +77,17 @@ extends TupleDescriptor
 	implements ObjectSlotsEnum
 	{
 		/**
-		 * A {@linkplain RawPojoDescriptor raw pojo} wrapping the byte array
-		 * that backs this {@linkplain ByteArrayTupleDescriptor tuple}.
+		 * A {@linkplain RawPojoDescriptor raw pojo} wrapping the {@linkplain
+		 * ByteBuffer byte buffer} that backs this {@linkplain
+		 * ByteBufferTupleDescriptor tuple}.
 		 */
-		BYTE_ARRAY
+		BYTE_BUFFER
 	}
 
 	@Override @AvailMethod
-	byte[] o_ByteArray (final AvailObject object)
+	ByteBuffer o_ByteBuffer (final AvailObject object)
 	{
-		return (byte[]) object.slot(BYTE_ARRAY).javaObject();
+		return (ByteBuffer) object.slot(BYTE_BUFFER).javaObject();
 	}
 
 	@Override @AvailMethod
@@ -95,12 +97,13 @@ extends TupleDescriptor
 		final int end)
 	{
 		// See comment in superclass. This method must produce the same value.
-		final byte[] array = (byte[]) object.slot(BYTE_ARRAY).javaObject();
+		final ByteBuffer buffer =
+			(ByteBuffer) object.slot(BYTE_BUFFER).javaObject();
 		int hash = 0;
 		for (int index = end - 1, first = start - 1; index >= first; index--)
 		{
 			final int itemHash = IntegerDescriptor.hashOfUnsignedByte(
-				(short) (array[index] & 0x7F)) ^ preToggle;
+				(short) (buffer.get(index) & 0x7F)) ^ preToggle;
 			hash = hash * multiplier + itemHash;
 		}
 		return hash * multiplier;
@@ -109,36 +112,36 @@ extends TupleDescriptor
 	@Override @AvailMethod
 	boolean o_Equals (final AvailObject object, final AvailObject another)
 	{
-		return another.equalsByteArrayTuple(object);
+		return another.equalsByteBufferTuple(object);
 	}
 
 	@Override @AvailMethod
-	boolean o_EqualsByteArrayTuple (
+	boolean o_EqualsByteBufferTuple (
 		final AvailObject object,
-		final AvailObject aByteArrayTuple)
+		final AvailObject aByteBufferTuple)
 	{
 		// First, check for object-structure (address) identity.
-		if (object.sameAddressAs(aByteArrayTuple))
+		if (object.sameAddressAs(aByteBufferTuple))
 		{
 			return true;
 		}
-		if (object.slot(BYTE_ARRAY).sameAddressAs(
-			aByteArrayTuple.slot(BYTE_ARRAY)))
+		if (object.slot(BYTE_BUFFER).sameAddressAs(
+			aByteBufferTuple.slot(BYTE_BUFFER)))
 		{
 			return true;
 		}
-		if (object.tupleSize() != aByteArrayTuple.tupleSize())
+		if (object.tupleSize() != aByteBufferTuple.tupleSize())
 		{
 			return false;
 		}
-		if (object.hash() != aByteArrayTuple.hash())
+		if (object.hash() != aByteBufferTuple.hash())
 		{
 			return false;
 		}
-		if (!object.compareFromToWithByteArrayTupleStartingAt(
+		if (!object.compareFromToWithByteBufferTupleStartingAt(
 			1,
 			object.tupleSize(),
-			aByteArrayTuple,
+			aByteBufferTuple,
 			1))
 		{
 			return false;
@@ -148,13 +151,13 @@ extends TupleDescriptor
 		// frequency of byte-wise comparisons.
 		if (!isShared())
 		{
-			aByteArrayTuple.makeImmutable();
-			object.becomeIndirectionTo(aByteArrayTuple);
+			aByteBufferTuple.makeImmutable();
+			object.becomeIndirectionTo(aByteBufferTuple);
 		}
-		else if (!aByteArrayTuple.descriptor.isShared())
+		else if (!aByteBufferTuple.descriptor.isShared())
 		{
 			object.makeImmutable();
-			aByteArrayTuple.becomeIndirectionTo(object);
+			aByteBufferTuple.becomeIndirectionTo(object);
 		}
 		return true;
 	}
@@ -167,7 +170,7 @@ extends TupleDescriptor
 		final AvailObject anotherObject,
 		final int startIndex2)
 	{
-		return anotherObject.compareFromToWithByteArrayTupleStartingAt(
+		return anotherObject.compareFromToWithByteBufferTupleStartingAt(
 			startIndex2,
 			startIndex2 + endIndex1 - startIndex1,
 			object,
@@ -175,21 +178,21 @@ extends TupleDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_CompareFromToWithByteArrayTupleStartingAt (
+	boolean o_CompareFromToWithByteBufferTupleStartingAt (
 		final AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
-		final AvailObject aByteArrayTuple,
+		final AvailObject aByteBufferTuple,
 		final int startIndex2)
 	{
-		if (object.sameAddressAs(aByteArrayTuple) && startIndex1 == startIndex2)
+		if (object.sameAddressAs(aByteBufferTuple) && startIndex1 == startIndex2)
 		{
 			return true;
 		}
-		final byte[] array1 =
-			(byte[]) object.slot(BYTE_ARRAY).javaObject();
-		final byte[] array2 =
-			(byte[]) aByteArrayTuple.slot(BYTE_ARRAY).javaObject();
+		final ByteBuffer buffer1 =
+			(ByteBuffer) object.slot(BYTE_BUFFER).javaObject();
+		final ByteBuffer buffer2 =
+			(ByteBuffer) aByteBufferTuple.slot(BYTE_BUFFER).javaObject();
 		for (
 			int index1 = startIndex1 - 1,
 				index2 = startIndex2 - 1,
@@ -197,7 +200,7 @@ extends TupleDescriptor
 			index1 <= lastIndex;
 			index1++, index2++)
 		{
-			if (array1[index1] != array2[index2])
+			if (buffer1.get(index1) != buffer2.get(index2))
 			{
 				return false;
 			}
@@ -212,7 +215,7 @@ extends TupleDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_IsByteArrayTuple (final AvailObject object)
+	boolean o_IsByteBufferTuple (final AvailObject object)
 	{
 		return true;
 	}
@@ -264,9 +267,10 @@ extends TupleDescriptor
 	AvailObject o_TupleAt (final AvailObject object, final int index)
 	{
 		// Answer the element at the given index in the tuple object.
-		final byte[] array = (byte[]) object.slot(BYTE_ARRAY).javaObject();
+		final ByteBuffer buffer =
+			(ByteBuffer) object.slot(BYTE_BUFFER).javaObject();
 		return IntegerDescriptor.fromUnsignedByte(
-			(short) (array[index - 1] & 0x7F));
+			(short) (buffer.get(index - 1) & 0x7F));
 	}
 
 	@Override @AvailMethod
@@ -280,12 +284,12 @@ extends TupleDescriptor
 		assert isMutable();
 		assert index >= 1 && index <= object.tupleSize();
 		final byte theByte = (byte) aByteObject.extractUnsignedByte();
-		final byte[] array = (byte[]) object.slot(BYTE_ARRAY).javaObject();
-		array[index - 1] = theByte;
+		final ByteBuffer buffer =
+			(ByteBuffer) object.slot(BYTE_BUFFER).javaObject();
+		buffer.put(index - 1, theByte);
 	}
 
-	@Override
-	@AvailMethod
+	@Override @AvailMethod
 	AvailObject o_TupleAtPuttingCanDestroy (
 		final AvailObject object,
 		final int index,
@@ -305,15 +309,17 @@ extends TupleDescriptor
 		}
 		if (!canDestroy || !isMutable())
 		{
-			return copyAsMutableByteArrayTuple(object).tupleAtPuttingCanDestroy(
-				index,
-				newValueObject,
-				true);
+			return copyAsMutableByteBufferTuple(object)
+				.tupleAtPuttingCanDestroy(
+					index,
+					newValueObject,
+					true);
 		}
 		// Clobber the object in place...
 		final byte theByte = (byte) newValueObject.extractUnsignedByte();
-		final byte[] array = (byte[]) object.slot(BYTE_ARRAY).javaObject();
-		array[index - 1] = theByte;
+		final ByteBuffer buffer =
+			(ByteBuffer) object.slot(BYTE_BUFFER).javaObject();
+		buffer.put(index - 1, theByte);
 		object.hashOrZero(0);
 		//  ...invalidate the hash value.
 		return object;
@@ -326,8 +332,9 @@ extends TupleDescriptor
 	{
 		// Answer the byte at the given index.
 		assert index >= 1 && index <= object.tupleSize();
-		final byte[] array = (byte[]) object.slot(BYTE_ARRAY).javaObject();
-		return (short) (array[index - 1] & 0x7F);
+		final ByteBuffer buffer =
+			(ByteBuffer) object.slot(BYTE_BUFFER).javaObject();
+		return (short) (buffer.get(index - 1) & 0x7F);
 	}
 
 	@Override @AvailMethod
@@ -340,17 +347,18 @@ extends TupleDescriptor
 		assert isMutable();
 		assert index >= 1 && index <= object.tupleSize();
 		final byte theByte = (byte) anInteger;
-		final byte[] array = (byte[]) object.slot(BYTE_ARRAY).javaObject();
-		array[index - 1] = theByte;
+		final ByteBuffer buffer =
+			(ByteBuffer) object.slot(BYTE_BUFFER).javaObject();
+		buffer.put(index - 1, theByte);
 	}
 
-	@Override
-	@AvailMethod
+	@Override @AvailMethod
 	int o_TupleIntAt (final AvailObject object, final int index)
 	{
 		// Answer the integer element at the given index in the tuple object.
-		final byte[] array = (byte[]) object.slot(BYTE_ARRAY).javaObject();
-		return array[index - 1] & 0x7F;
+		final ByteBuffer buffer =
+			(ByteBuffer) object.slot(BYTE_BUFFER).javaObject();
+		return buffer.get(index - 1) & 0x7F;
 	}
 
 	@Override @AvailMethod
@@ -361,11 +369,13 @@ extends TupleDescriptor
 		return 8;
 	}
 
-	@Override @AvailMethod
+	@Override
+	@AvailMethod
 	int o_TupleSize (final AvailObject object)
 	{
-		final byte[] array = (byte[]) object.slot(BYTE_ARRAY).javaObject();
-		return array.length;
+		final ByteBuffer buffer =
+			(ByteBuffer) object.slot(BYTE_BUFFER).javaObject();
+		return buffer.limit();
 	}
 
 	@Override @AvailMethod
@@ -374,7 +384,7 @@ extends TupleDescriptor
 		if (isMutable())
 		{
 			object.descriptor = immutable;
-			object.slot(BYTE_ARRAY).makeImmutable();
+			object.slot(BYTE_BUFFER).makeImmutable();
 		}
 		return object;
 	}
@@ -385,48 +395,48 @@ extends TupleDescriptor
 		if (!isShared())
 		{
 			object.descriptor = shared;
-			object.slot(BYTE_ARRAY).makeShared();
+			object.slot(BYTE_BUFFER).makeShared();
 		}
 		return object;
 	}
 
 	/**
-	 * Construct a new {@link ByteArrayTupleDescriptor}.
+	 * Construct a new {@link ByteBufferTupleDescriptor}.
 	 *
 	 * @param mutability
 	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 */
-	protected ByteArrayTupleDescriptor (final Mutability mutability)
+	public ByteBufferTupleDescriptor (final Mutability mutability)
 	{
 		super(mutability);
 	}
 
-	/** The mutable {@link ByteArrayTupleDescriptor}. */
-	private static final ByteArrayTupleDescriptor mutable =
-		new ByteArrayTupleDescriptor(Mutability.MUTABLE);
+	/** The mutable {@link ByteBufferTupleDescriptor}. */
+	private static final ByteBufferTupleDescriptor mutable =
+		new ByteBufferTupleDescriptor(Mutability.MUTABLE);
 
 	@Override
-	ByteArrayTupleDescriptor mutable ()
+	AbstractDescriptor mutable ()
 	{
 		return mutable;
 	}
 
-	/** The immutable {@link ByteArrayTupleDescriptor}. */
-	private static final ByteArrayTupleDescriptor immutable =
-		new ByteArrayTupleDescriptor(Mutability.IMMUTABLE);
+	/** The immutable {@link ByteBufferTupleDescriptor}. */
+	private static final ByteBufferTupleDescriptor immutable =
+		new ByteBufferTupleDescriptor(Mutability.IMMUTABLE);
 
 	@Override
-	ByteArrayTupleDescriptor immutable ()
+	AbstractDescriptor immutable ()
 	{
 		return immutable;
 	}
 
-	/** The shared {@link ByteArrayTupleDescriptor}. */
-	private static final ByteArrayTupleDescriptor shared =
-		new ByteArrayTupleDescriptor(Mutability.SHARED);
+	/** The shared {@link ByteBufferTupleDescriptor}. */
+	private static final ByteBufferTupleDescriptor shared =
+		new ByteBufferTupleDescriptor(Mutability.SHARED);
 
 	@Override
-	ByteArrayTupleDescriptor shared ()
+	AbstractDescriptor shared ()
 	{
 		return shared;
 	}
@@ -437,29 +447,33 @@ extends TupleDescriptor
 	 * @param object The byte tuple to copy.
 	 * @return The new mutable byte tuple.
 	 */
-	private AvailObject copyAsMutableByteArrayTuple (
+	private AvailObject copyAsMutableByteBufferTuple (
 		final AvailObject object)
 	{
-		final byte[] array = (byte[]) object.slot(BYTE_ARRAY).javaObject();
-		final byte[] copy = Arrays.copyOf(array, array.length);
-		final AvailObject result = forByteArray(copy);
+		final ByteBuffer buffer =
+			(ByteBuffer) object.slot(BYTE_BUFFER).javaObject();
+		final ByteBuffer copy = ByteBuffer.allocateDirect(buffer.capacity());
+		buffer.position(0);
+		buffer.limit(buffer.capacity());
+		copy.put(buffer);
+		final AvailObject result = forByteBuffer(copy);
 		result.setSlot(HASH_OR_ZERO, object.hashOrZero());
 		return result;
 	}
 
 	/**
-	 * Create a new {@link ByteArrayTupleDescriptor} for the specified byte
-	 * array.
+	 * Create a new {@link ByteBufferTupleDescriptor} for the specified
+	 * {@linkplain ByteBuffer byte buffer}.
 	 *
-	 * @param array A Java byte array.
-	 * @return The requested {@linkplain ByteArrayTupleDescriptor tuple}.
+	 * @param buffer A byte buffer.
+	 * @return The requested {@linkplain ByteBufferTupleDescriptor tuple}.
 	 */
-	public static AvailObject forByteArray (final byte[] array)
+	public static AvailObject forByteBuffer (final ByteBuffer buffer)
 	{
-		final AvailObject wrapped = RawPojoDescriptor.identityWrap(array);
+		final AvailObject wrapped = RawPojoDescriptor.identityWrap(buffer);
 		final AvailObject newObject = mutable.create();
 		newObject.setSlot(HASH_OR_ZERO, 0);
-		newObject.setSlot(BYTE_ARRAY, wrapped);
+		newObject.setSlot(BYTE_BUFFER, wrapped);
 		return newObject;
 	}
 }
