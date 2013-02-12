@@ -248,8 +248,6 @@ Method "utf-_encode_" is
 	cp : [128..2047]
  |
 	leading : byte := ((cp << -6) bit∧ 31) + 192;
-Print: "HERE!\n";
-Print: format "((cp bit∨ 63) + 128)=“①”\n" with ((cp bit∧ 63) + 128);
 	secondary : byte := (cp bit∧ 63) + 128;
 	<leading, secondary>
 ]:<byte…|1..4>;
@@ -306,12 +304,6 @@ Method "utf-_encode_" is
 	quaternary : byte := (cp bit∧ 63) + 128;
 	<leading,secondary,tertiary,quaternary>
 ]:<byte…|1..4>;
-s : string := <¢𤭢>;
-Print: "Encode then decode " ++ s ++ " using UTF-8:\n";
-q : code point := ¢𤭢's code point;
-Print: format "𤭢's code point=“①”\n" with q;
-Print: format "encode 𤭢=“①”\n" with utf-8 encode q;
-Print: format "decode 4 from (encode 𤭢)=‘①’\n" with <utf-8 decode 4 from (utf-8 encode q)>;
 
 "encoded input buffer" is a new field atom;
 "encoded input position" is a new field atom;
