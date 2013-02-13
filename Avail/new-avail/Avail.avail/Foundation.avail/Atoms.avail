@@ -40,10 +40,11 @@ Uses
 	"Early Enumeration Support",
 	"Early Literals",
 	"Early Logic"
+Extends
+	"Collections" = ("_[_]else_")
 Names
 	"«Public»?_is a new⁇heritable«fiber-local»⁇atom",
-	"«Public»?_is a|an new⁇field⁇atom",
-	"_[_]else_"
+	"«Public»?_is a|an new⁇field⁇atom"
 Body
 
 /**
