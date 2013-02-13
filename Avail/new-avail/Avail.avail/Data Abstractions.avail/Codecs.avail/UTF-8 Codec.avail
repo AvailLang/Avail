@@ -305,8 +305,6 @@ Method "utf-_encode_" is
 	<leading,secondary,tertiary,quaternary>
 ]:<byte…|1..4>;
 
-"encoded input buffer" is a new field atom;
-"encoded input position" is a new field atom;
 "code point range" is a new field atom;
 
 /**
@@ -324,13 +322,9 @@ Method "utf-_encode_" is
  */
 Public class "utf8 decoder" extends decoder
 	with fields
-		code point range : [1..1114111]
-	with mutable fields
-		encoded input buffer : <byte…|>,
-		encoded input position : natural number;
+		code point range : [1..1114111];
 
 "decoded input buffer" is a new field atom;
-"decoded input position" is a new field atom;
 
 /**
  * A class that contains UTF-8 instructions for the encoding character data 
@@ -347,8 +341,7 @@ Public class "utf8 decoder" extends decoder
  */
 Public class "utf8 encoder" extends encoder
 	with mutable fields
-		decoded input buffer : <character…|>,
-		decoded input position : natural number;
+		decoded input buffer : <character…|>;
 
 "state" is a new field atom;
 "source exhausted" is a new field atom;
@@ -465,6 +458,16 @@ Private method "_'⁇s next secondary byte" is
 	]
 ]:byte;
 
+/**
+ * An exception that indicates the particular bytes attempting to be decoded
+ * does not adhere to the specification of the encoder.
+ * 
+ * @type "codec-buffer-out-of-data exception"
+ * @supertype {@type "exception" exception}
+ * @category "Codecs"
+ * @author "Richard Arriaga"
+ */
+Explicit class "codec-buffer-out-of-data exception" extends exception;
 
 singleByteUTF8DecoderFunction ::=
 [
@@ -514,7 +517,7 @@ utf8DecoderFunction ::=
 						invalid encoding ::= accumulator
 				];
 				utf8's state := start;
-				/*TODO create gimme data exception at abstract level*/
+				Raise a codec-buffer-out-of-data exception
 			];
 		]();
 		encodedBytes : <byte…|2..4> := cast accumulator into
@@ -532,7 +535,7 @@ utf8DecoderFunction ::=
  * @method "decode_using_"
  * @category "Codecs"
  * @param "byte tuple"
- * @param "decoder"
+ * @param "codec"
  * @returnType "string"
  * 	the decoded string
  * @raises {@type "malformed-encoding exception"}
@@ -544,6 +547,7 @@ Method "decode_using_" is
 	input : byte tuple, 
 	utf8 : utf8 codec
  |
+ 	utf8's decoded input buffer := <>;
 	utf8's encoded input buffer := input;
 	utf8's encoded input position := 1;
 	While 
@@ -555,10 +559,64 @@ Method "decode_using_" is
 		utf8's decoded input buffer := utf8's decoded input buffer++ 
 			<utf8DecoderFunction[utf8's next input byte's primary type](utf8)>;
 	];
- /*TODO Create method that overrides abstract "decode_using_"
-  * Chnage all inputs to codec objects.  Utilize the each input buffer for the other
-  * ie decoder for encoder and encoder for decoder*/
-	"pickles"
+	utf8's decoded input buffer
 ]:string;
 
-/*TODO Create method that overrides abstract "finish decoding with_"*/
+/**
+ * The method that accepts a byte tuple and the decoding specificaiton that
+ * transforms the byte tuple into a character.
+ * 
+ * @method "finish decoding with_"
+ * @category "Codecs"
+ * @param "utf8" "codec"
+ * @returnType "string"
+ * 	the decoded string
+ * @raises {@type "malformed-encoding exception"}
+ * 	Thrown when the encoding specification is violated
+ * @author "Richard Arriaga"
+ */
+Method "finish decoding with_" is
+[
+	utf8 : utf8 codec
+ |
+ 	utf8's decoded input buffer := <>;
+	utf8's encoded input position := 1;
+	While 
+	[
+		utf8's encoded input position ≤ |utf8's encoded input buffer|
+	]
+	do
+	[
+		utf8's decoded input buffer := utf8's decoded input buffer++ 
+			<utf8DecoderFunction[utf8's next input byte's primary type](utf8)>;
+	];
+	utf8's decoded input buffer
+]:string;
+	
+/**
+ * Decode data from an iterator
+ *
+ * @method "decode data from_"
+ * @categories "codec"
+ * @param "iter" "decoding iterator" 
+ *		a decoding iterator
+ * @returnType "string"
+ *		the decoded string
+ * @author "Richard Arriaga"
+ *
+Private method "decode data from_" is
+[
+ iter : decoding iterator
+ |
+ 	Guard
+ 	[
+ 	 	decode take at most 1000 from iter using iter's coder;
+ 	]
+ 	intercept
+ 	[
+ 	 	e : codec-buffer-out-of-data exception
+	 |
+	 	
+	];
+ ]:string;
+*/

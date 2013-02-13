@@ -41,6 +41,8 @@ Names
 	"byte tuple",
 	"codec",
 	"correction instruction",
+	"decoded input buffer",
+	"decoded input position",
 	"decoder",
 	"decode_using_",
 	"decoding iterator",
@@ -54,6 +56,14 @@ Names
 	"raise instruction",
 	"replace instruction",
 	"unsupported-character exception",
+	"_'s⁇decoded input position",
+	"_'s⁇decoded input position:=_",
+	"_'s⁇decoding corrector",
+	"_'s⁇encoded input buffer",
+	"_'s⁇encoded input buffer:=_",
+	"_'s⁇encoded input position",
+	"_'s⁇encoded input position:=_",
+	"_'s⁇encoding corrector",
 	"_'s⁇invalid encoding"
 	
 Body
@@ -145,6 +155,7 @@ Public class "unsupported-character exception" extends exception
 		unsupported character : character;
 
 "encoding corrector" is a new field atom;
+"decoded input position" is a new field atom;
 
 /**
  * A class that contains instructions for the encoding of data.
@@ -159,7 +170,9 @@ Public class "unsupported-character exception" extends exception
  */
 Public class "encoder" extends object
 	with fields
-		encoding corrector : [character]→correction instruction;
+		public encoding corrector : [character]→correction instruction
+	with mutable fields
+		public decoded input position : natural number;
 
 /**
  * A method that encodes a string using the provided encoder.
@@ -177,7 +190,7 @@ Public class "encoder" extends object
  * @author "Richard Arriaga"
  */
 Public abstract method "encode_using_" is
-	[string, encoder]→byte tuple;
+	[tuple, encoder]→byte tuple;
 
 "invalid encoding" is a new field atom;
 
@@ -197,6 +210,8 @@ Public class "malformed-encoding exception" extends exception
 		public invalid encoding : byte tuple;
 
 "decoding corrector" is a new field atom;
+"encoded input buffer" is a new field atom;
+"encoded input position" is a new field atom;
 
 /**
  * A class that contains instructions for the encoding of data.
@@ -211,7 +226,10 @@ Public class "malformed-encoding exception" extends exception
  */
 Public class "decoder" extends object
 	with fields
-		decoding corrector : [byte tuple]→correction instruction;
+		public decoding corrector : [byte tuple]→correction instruction
+	with mutable fields
+		public encoded input buffer : byte tuple,
+		public encoded input position : natural number;
 
 /**
  * The method that accepts a byte tuple and the decoding specificaiton that
@@ -267,7 +285,7 @@ Public class "codec" extends encoder ∩ decoder;
 "source" is a new field atom;
 
 /**
- * An iterator with character data that is to be encoded into byte data.
+ * An iterator with data that is to be encoded into byte data.
  * 
  * @type "encoding iterator"
  * @supertype {@type "iterator" iterator}
@@ -276,14 +294,16 @@ Public class "codec" extends encoder ∩ decoder;
  * @field "source" "iterator"
  * @author "Richard Arriaga"
  */
-Public class "encoding iterator" extends iterator of any
+Public class "encoding iterator" extends buffered iterator
 	with fields
 		coder : encoder,
-		source : iterator of any;
+		source : iterator;
+
+/*TODO create one constructor method, user must specify buffer size*/ 
 
 /**
- * Ensure that the specified iterator is not exhausted, then advance its state.
- *
+ * 
+ * TODO figure out how to comment this
  * @method "Advance_"
  * @param "anIterator" "encoding iterator"
  *        An encoding iterator.
@@ -291,46 +311,13 @@ Public class "encoding iterator" extends iterator of any
  *         If the iterator is exhausted.
  * @author "Richard Arriaga"
  */
-encoding iterator's advance method is
+encoding iterator's next buffer method is
 [
 	anIterator : encoding iterator
 |
-	Unless anIterator's source is exhausted then
-	[
-		Advance anIterator's source;
-	]
-	else
-	[
-		Raise an exhausted-iterator exception
-	];
-] : ⊤;
-
-/**
- * Ensure that the specified iterator is not exhausted, then answer its current
- * element.
- *
- * @method "_'s⁇current element"
- * @param "anIterator" "encoding iterator"
- *        An iterator.
- * @returns "any"
- *          The current element of the specified iterator.
- * @raises "exhausted-iterator exception"
- *         If the iterator is exhausted.
- * @author "Richard Arriaga"
- */
-encoding iterator's current element method is
-[
-	anIterator : encoding iterator
-|
-	unless anIterator's source is exhausted then
-	[
-		anIterator's source's current element
-	]
-	else
-	[
-		Raise an exhausted-iterator exception
-	]
-] : any;
+	encode take at most anIterator's maximum buffer size from anIterator's 
+		source using anIterator's coder
+] : byte tuple;
 
 /**
  * An iterator with byte data that is to be decoded into character data.
@@ -341,10 +328,13 @@ encoding iterator's current element method is
  * @field "coder" "decoder"
  * @author "Richard Arriaga"
  */
-Public class "decoding iterator" extends iterator of byte
+Public class "decoding iterator" extends buffered iterator ∩ iterator of byte
 	with fields
 		coder : decoder,
 		source : iterator of byte;
+
+/*TODO create two constructor methods, one with the a user specified buffer size 
+ * and one with the default buffer size is 32,768*/
 
 /**
  * Ensure that the specified iterator is not exhausted, then advance its state.
@@ -356,19 +346,13 @@ Public class "decoding iterator" extends iterator of byte
  *         If the iterator is exhausted.
  * @author "Richard Arriaga"
  */
-decoding iterator's advance method is
+decoding iterator's next buffer method is
 [
 	anIterator : decoding iterator
 |
-	Unless anIterator's source is exhausted then
-	[
-		Advance anIterator's source;
-	]
-	else
-	[
-		Raise an exhausted-iterator exception
-	];
-] : ⊤;
+	decode take at most anIterator's maximum buffer size from anIterator's 
+		source using anIterator's coder
+] : tuple;
 
 /**
  * Ensure that the specified iterator is not exhausted, then answer its current
