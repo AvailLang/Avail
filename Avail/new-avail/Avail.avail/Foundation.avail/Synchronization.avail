@@ -968,10 +968,10 @@ Public method "Signal_if satisfied" is
 "availability" is a new field atom;
 
 /**
- * A semaphore is a {@type "synchronization device"} that describes how many of
- * a restricted resource are currently available.
+ * A counting semaphore is a {@type "synchronization device"} that describes how
+ * many of a restricted resource are currently available.
  *
- * @type "sempahore"
+ * @type "counting sempahore"
  * @supertype "synchronization device"
  */
 Public class "semaphore" extends synchronization device
@@ -1006,13 +1006,7 @@ Semantic restriction "_'s⁇available permits:=_" is
 	⊤
 ];
 
-/**
- * A counting semaphore supports an arbitrary count of restricted resources.
- *
- * @type "counting semaphore"
- * @supertype "semaphore"
- */
-Public class "counting semaphore" extends semaphore;
+Public method "counting semaphore" is [semaphore];
 
 /**
  * A binary semaphore supports but a single permit, and it is therefore suitable

@@ -36,6 +36,7 @@ import static com.avail.descriptor.Mutability.*;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
 import java.math.BigInteger;
+import java.nio.ByteBuffer;
 import java.util.*;
 import com.avail.annotations.*;
 import com.avail.compiler.*;
@@ -5933,4 +5934,40 @@ public abstract class AbstractDescriptor
 	 * @param flag
 	 */
 	abstract void o_ClearGeneralFlag (AvailObject object, GeneralFlag flag);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract ByteBuffer o_ByteBuffer (AvailObject object);
+
+	/**
+	 * @param object
+	 * @param aByteBufferTuple
+	 * @return
+	 */
+	abstract boolean o_EqualsByteBufferTuple (
+		AvailObject object,
+		AvailObject aByteBufferTuple);
+
+	/**
+	 * @param object
+	 * @param startIndex1
+	 * @param endIndex1
+	 * @param aByteBufferTuple
+	 * @param startIndex2
+	 * @return
+	 */
+	abstract boolean o_CompareFromToWithByteBufferTupleStartingAt (
+		AvailObject object,
+		int startIndex1,
+		int endIndex1,
+		AvailObject aByteBufferTuple,
+		int startIndex2);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract boolean o_IsByteBufferTuple (AvailObject object);
 }

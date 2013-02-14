@@ -375,11 +375,15 @@ Extends
 	),
 	"Concurrency" =
 	(
+		"Cancel_",
 		"For each of⁇_in parallel do_",
 		"Fork_",
 		"fork_",
 		"current fiber[_]else_",
+		"future",
+		"future of_",
 		"map_in parallel through_",
+		"the future of_",
 		"worker exception"
 	),
 	"Control Structures" =

@@ -36,6 +36,7 @@ import static com.avail.descriptor.AtomDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.AtomDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.io.RandomAccessFile;
+import java.nio.channels.*;
 import java.util.*;
 import com.avail.AvailRuntime;
 import com.avail.annotations.*;
@@ -486,6 +487,18 @@ extends Descriptor
 	private static AvailObject fileModeWriteKey;
 
 	/**
+	 * The atom used as a property key under which to store an {@link
+	 * AsynchronousServerSocketChannel asynchronous server socket channel}.
+	 */
+	private static AvailObject serverSocketKey;
+
+	/**
+	 * The atom used as a property key under which to store an {@link
+	 * AsynchronousSocketChannel asynchronous socket channel}.
+	 */
+	private static AvailObject socketKey;
+
+	/**
 	 * The property key that indicates that a {@linkplain FiberDescriptor fiber}
 	 * global is inheritable.
 	 */
@@ -579,6 +592,28 @@ extends Descriptor
 	}
 
 	/**
+	 * Answer the atom used as a property key under which to store an {@link
+	 * AsynchronousServerSocketChannel asynchronous server socket channel}.
+	 *
+	 * @return An atom that's special because it's known by the virtual machine.
+	 */
+	public static AvailObject serverSocketKey ()
+	{
+		return serverSocketKey;
+	}
+
+	/**
+	 * Answer the atom used as a property key under which to store an {@link
+	 * AsynchronousSocketChannel asynchronous socket channel}.
+	 *
+	 * @return An atom that's special because it's known by the virtual machine.
+	 */
+	public static AvailObject socketKey ()
+	{
+		return socketKey;
+	}
+
+	/**
 	 * Answer the property key that indicates that a {@linkplain FiberDescriptor
 	 * fiber} global is inheritable.
 
@@ -607,6 +642,9 @@ extends Descriptor
 			StringDescriptor.from("file mode read"));
 		fileModeWriteKey = createSpecialAtom(
 			StringDescriptor.from("file mode write"));
+		serverSocketKey = createSpecialAtom(
+			StringDescriptor.from("server socket key"));
+		socketKey = createSpecialAtom(StringDescriptor.from("socket key"));
 		heritableKey = createSpecialAtom(
 			StringDescriptor.from("heritability"));
 	}
@@ -624,6 +662,8 @@ extends Descriptor
 		fileKey = null;
 		fileModeReadKey = null;
 		fileModeWriteKey = null;
+		serverSocketKey = null;
+		socketKey = null;
 		heritableKey = null;
 	}
 }

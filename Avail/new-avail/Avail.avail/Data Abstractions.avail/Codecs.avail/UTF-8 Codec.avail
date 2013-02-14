@@ -38,7 +38,7 @@ Uses
 	"Foundation",
 	"Iterators"
 Names
-	"encoded-buffer-exhausted",
+	"encoded-buffer-exhausted exception",
 	"utf8 codec",
 	"utf8 decoder",
 	"utf8 encoder"
@@ -367,14 +367,14 @@ Public class "utf8 codec" extends utf8 encoder ∩ utf8 decoder
  * An exception that indicates the particular bytes attempting to be decoded
  * does not adhere to the specification of the encoder.
  * 
- * @type "encoded-buffer-exhausted"
+ * @type "encoded-buffer-exhausted exception"
  * @supertype {@type "exception" exception}
  * @category "Codecs"
  * @field "invalid encoding" "byte tuple"
  * 	the tuple of bytes that are not valid under the encoding specifications
  * @author "Richard Arriaga"
  */
-Public class "encoded-buffer-exhausted" extends exception;
+Public explicit class "encoded-buffer-exhausted exception" extends exception;
 
 
 /**
@@ -386,7 +386,7 @@ Public class "encoded-buffer-exhausted" extends exception;
  *      a utf8 decoder 
  * @returnType "⊤"
  *      none
- * @raises {@type "encoded-buffer-exhausted"} 
+ * @raises {@type "encoded-buffer-exhausted exception"} 
  *      the encoded input buffer is exhausted
  * @author "Richard Arriaga"
  */
@@ -395,7 +395,7 @@ Private method "Advance_'⁇s encoded input position" is
 	utf8 : utf8 codec
  |
  	If |utf8's encoded input buffer| = utf8's encoded input position then
- 	[Raise an encoded-buffer-exhausted]
+ 	[Raise an encoded-buffer-exhausted exception]
  	else
  	[utf8's encoded input position := utf8's encoded input position + 1;];
  ]:⊤;

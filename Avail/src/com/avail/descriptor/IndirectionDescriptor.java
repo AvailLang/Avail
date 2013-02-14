@@ -34,6 +34,7 @@ package com.avail.descriptor;
 
 import static com.avail.descriptor.IndirectionDescriptor.ObjectSlots.*;
 import java.math.BigInteger;
+import java.nio.ByteBuffer;
 import java.util.*;
 import com.avail.annotations.*;
 import com.avail.compiler.*;
@@ -4524,5 +4525,40 @@ extends AbstractDescriptor
 	void o_ClearGeneralFlag (final AvailObject object, final GeneralFlag flag)
 	{
 		o_Traversed(object).clearGeneralFlag(flag);
+	}
+
+	@Override
+	ByteBuffer o_ByteBuffer (final AvailObject object)
+	{
+		return o_Traversed(object).byteBuffer();
+	}
+
+	@Override
+	boolean o_EqualsByteBufferTuple (
+		final AvailObject object,
+		final AvailObject aByteBufferTuple)
+	{
+		return o_Traversed(object).equalsByteBufferTuple(aByteBufferTuple);
+	}
+
+	@Override
+	boolean o_CompareFromToWithByteBufferTupleStartingAt (
+		final AvailObject object,
+		final int startIndex1,
+		final int endIndex1,
+		final AvailObject aByteBufferTuple,
+		final int startIndex2)
+	{
+		return o_Traversed(object).compareFromToWithByteBufferTupleStartingAt(
+			startIndex1,
+			endIndex1,
+			aByteBufferTuple,
+			startIndex2);
+	}
+
+	@Override
+	boolean o_IsByteBufferTuple (final AvailObject object)
+	{
+		return o_Traversed(object).isByteBufferTuple();
 	}
 }

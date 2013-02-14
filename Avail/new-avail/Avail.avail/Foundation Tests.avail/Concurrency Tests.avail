@@ -376,6 +376,26 @@ Test "heritable fiber variables(delayed fork,orphan)"
 	Require: ¬u2 ∈ inherited;
 ];
 
+Test "basic future" in concurrency test suite is
+[
+	f : future of whole number := the future of [10^100];
+	Require: 10^100 = f's value;
+];
+
+Test "future raises" in concurrency test suite is
+[
+	f : future of whole number := the future of
+	[
+		u : whole number := 1;
+		v : whole number := 0;
+		u ÷ v
+	];
+	killer : worker exception;
+	Guard [Ignore: f's value;]
+	intercept [e : worker exception | killer := e;];
+	Require: ↑killer is assigned;
+];
+
 Test "for-each in parallel" in concurrency test suite is
 [
 	count : whole number := 0;

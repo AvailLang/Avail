@@ -33,6 +33,7 @@
 package com.avail.descriptor;
 
 import java.math.BigInteger;
+import java.nio.ByteBuffer;
 import java.util.*;
 import com.avail.annotations.*;
 import com.avail.compiler.*;
@@ -4762,5 +4763,36 @@ extends AbstractDescriptor
 	void o_ClearGeneralFlag (final AvailObject object, final GeneralFlag flag)
 	{
 		throw unsupportedOperationException();
+	}
+
+	@Override
+	ByteBuffer o_ByteBuffer (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	boolean o_EqualsByteBufferTuple (
+		final AvailObject object,
+		final AvailObject aByteBufferTuple)
+	{
+		return false;
+	}
+
+	@Override
+	boolean o_CompareFromToWithByteBufferTupleStartingAt (
+		final AvailObject object,
+		final int startIndex1,
+		final int endIndex1,
+		final AvailObject aByteBufferTuple,
+		final int startIndex2)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	boolean o_IsByteBufferTuple (final AvailObject object)
+	{
+		return false;
 	}
 }

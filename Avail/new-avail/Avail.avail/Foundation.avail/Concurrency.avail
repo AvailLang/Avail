@@ -34,10 +34,12 @@ System Module "Concurrency"
 Versions
 	"dev"
 Uses
+	"Atoms",
 	"Bootstrap",
 	"Collections",
 	"Control Structures",
 	"Definers",
+	"Enumeration Support",
 	"Exceptions",
 	"Functions",
 	"Literals",
@@ -59,6 +61,12 @@ Names
 	/* Parallel constructs. */
 	"For each of⁇_in parallel do_",
 	"map_in parallel through_",
+
+	/* Futures. */
+	"Cancel_",
+	"future",
+	"future of_",
+	"the future of_",
 
 	/* Exceptions. */
 	"worker exception"
@@ -138,6 +146,162 @@ Public method "fork_" is
  * @type "worker exception"
  */
 Public explicit class "worker exception" extends cascade exception;
+
+"expected type" is a new field atom;
+"future monitor" is a new field atom;
+"completeness" is a new field atom;
+"worker fiber" is a new field atom;
+"product" is a new field atom;
+"killer" is a new field atom;
+
+/**
+ * A future is a proxy for an operation that may not have completed yet. If
+ * asked for its value prematurely, then it will block the current fiber until
+ * the value becomes available.
+ *
+ * @type "future"
+ * @supertype "object"
+ */
+Public class "future" extends object
+	with fields
+		expected type : any's type,
+		future monitor : monitor,
+		completeness : condition
+	with mutable fields
+		referable worker fiber : fiber,
+		product : any,
+		referable killer : exception;
+
+/**
+ * Construct and answer a future type that answers futures that produce values
+ * of the specified type.
+ *
+ * @method "future of_"
+ * @param "expectedType" "any's type"
+ *        The type of value produced by futures of the answered type.
+ * @returns "future's type"
+ *          The requested future type.
+ */
+Public method "future of_" is
+[
+	expectedType : any's type
+|
+	extend future with expected type : expectedType's type
+] : future's type;
+
+/**
+ * Answer the {@type "future"} of applying the specified {@type "function"} in
+ * a new {@type "fiber"}.
+ *
+ * @method "the future of_"
+ * @param "aFunction" "[]→any"
+ *        The future whose result is desired.
+ * @returns "future"
+ *          The requested future.
+ */
+Public method "the future of_" is
+[
+	aFunction : []→any
+|
+	result : any;
+	ex : exception;
+	worker : fiber;
+	mutex ::= a monitor named "future monitor";
+	cond ::= a condition of mutex is [↑ex is assigned ∨ [↑result is assigned]];
+	worker :=
+		fork
+		[
+			Raise termination-requested exception if appropriate;
+			Lock mutex for
+			[
+				Guard [result := aFunction();]
+				intercept [e : exception | ex := e;]
+				ensure
+				[
+					/* Discard the fiber, to be nice to memory. */
+					Clear ↑worker;
+					Signal cond;
+				];
+			];
+		];
+	a future with
+		expected type ::= aFunction's type's return type,
+		future monitor ::= mutex,
+		completeness ::= cond,
+		worker fiber ::= ↑worker,
+		product ::= ↑result,
+		killer ::= ↑ex
+] : future;
+
+Semantic restriction "the future of_" is
+[
+	functionType : []→any's type
+|
+	extend future with expected type : functionType's return type's type
+];
+
+/**
+ * Obtain the value of the specified {@type "future"}, parking the current fiber
+ * until a value is available if necessary. This method is idempotent.
+ *
+ * @method "_'s⁇value"
+ * @param "aFuture" "future"
+ * @returns "any"
+ *          The result produced by the future.
+ * @raises "worker exception"
+ *         If the {@type "fiber"} forked to evaluate the future raised an
+ *         {@type "exception"}.
+ */
+Method "_'s⁇value" is
+[
+	aFuture : future
+|
+	lock aFuture's future monitor for
+	[
+		Await aFuture's completeness;
+		If ↑aFuture's killer is assigned then
+		[
+			Raise a worker exception with
+				causal exception ::= aFuture's killer
+		];
+		aFuture's product
+	]
+] : any;
+
+Semantic restriction "_'s⁇value" is
+[
+	futureType : future's type
+|
+	futureType's expected type's instance
+];
+
+/**
+ * Cancel evaluation of the specified {@type "future"}. Cancellation is
+ * best-effort only; the {@type "fiber"} responsible for evaluation of the
+ * future is not obligated to honor a termination request. Cancellation of a
+ * resolved future has no effect. Only the first cancellation attempt is
+ * permitted to have an effect. Subsequent cancellation attempts are silently
+ * ignored.
+ *
+ * @method "Cancel_"
+ * @param "aFuture" "future"
+ */
+Public method "Cancel_" is
+[
+	aFuture : future
+|
+	/* Opportunistically read the future's worker fiber. If the variable has
+	 * become unassigned, then do nothing. Otherwise, clear the variable and
+	 * request termination of the worker.
+	 */
+	Guard
+	[
+		worker ::= aFuture's worker fiber;
+		Clear ↑aFuture's worker fiber;
+		Request termination of worker;
+	]
+	intercept [e : cannot-read-unassigned-variable exception | /* Nothing. */];
+] : ⊤;
 
 /**
  * Concurrently apply {@param "action"} to each consecutive element of {@param
@@ -469,3 +633,5 @@ Semantic restriction "map_in parallel through_" is
 	];
 	<<>, transformer's return type… | ||tupleType||>
 ];
+
+Grammatical restriction "a|an_«with«_«:»?:=_‡,»»" is <{"future"}, ∅, ∅>;
