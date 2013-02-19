@@ -40,8 +40,7 @@ Uses
 Names
 	"encoded-buffer-exhausted exception",
 	"utf8 codec",
-	"utf8 decoder",
-	"utf8 encoder"
+	"a UTF-_codec"
 Body
 
 /**
@@ -196,7 +195,7 @@ Method "utf-_decode_from_" is
  * This method defines the encoding of the UTF-8 unicode character.  This is for
  * the abstract for the entire code point range.  
  * 
- * @method "encode_"
+ * @method "utf-_encode_"
  * @categories "Codec"
  * @param "cp" "code point"
  * 		the code point of the character being encoded.
@@ -211,7 +210,7 @@ Private abstract  method "utf-_encode_" is [8's type,code point]→<byte…|1..4
  * the code point range [0..127].  The left most bit in the resultant byte will 
  * be 0 as this is the only byte code whose leading byte is the only byte.
  *
- * @method "encode_"
+ * @method "utf-_encode_"
  * @categories "Codec"
  * @param "ascii" "[0..127]"
  * 		the ascii unicode code point
@@ -234,7 +233,7 @@ Method "utf-_encode_" is
  * take the form 10xxxxxx.  The resulting form of this encoding is
  * 110xxxxx10xxxxxx
  *
- * @method "encode_"
+ * @method "utf-_encode_"
  * @categories "Codec"
  * @param "cp" "[128..2047]"
  * 		the unicode code point
@@ -259,7 +258,7 @@ Method "utf-_encode_" is
  * take the form 10xxxxxx.  The resulting form of this encoding is
  * 1110xxxx10xxxxxx10xxxxxx
  *
- * @method "encode_"
+ * @method "utf-_encode_"
  * @categories "Codec"
  * @param "cp" "[2048..65534]"
  * 		the unicode code point
@@ -285,7 +284,7 @@ Method "utf-_encode_" is
  * take the form 10xxxxxx.  The resulting form of this encoding is
  * 11110xxx10xxxxxx10xxxxxx10xxxxxx
  *
- * @method "encode_"
+ * @method "utf-_encode_"
  * @categories "Codec"
  * @param "cp" "[65536..1114111]"
  * 		the unicode code point
@@ -314,17 +313,16 @@ Method "utf-_encode_" is
  * @type "utf8 decoder"
  * @supertype {@type "object" decoder}
  * @category "Codecs"
- * @field "encoded input buffer" "<byte…|>"
- * 	a buffer that holds bytes that represensts the encoded data.
  * @field "encoded input position" "natural number"
  * 	the current position in the encoded input buffer
  * @author "Richard Arriaga"
  */
-Public class "utf8 decoder" extends decoder
+Class "utf8 decoder" extends decoder
 	with fields
-		code point range : [1..1114111];
+		code point range : [1..1114111]'s type;
 
 "decoded input buffer" is a new field atom;
+"decoded input position" is a new field atom;
 
 /**
  * A class that contains UTF-8 instructions for the encoding character data 
@@ -339,9 +337,10 @@ Public class "utf8 decoder" extends decoder
  * 	the current position in the decoded input buffer
  * @author "Richard Arriaga"
  */
-Public class "utf8 encoder" extends encoder
+Class "utf8 encoder" extends encoder
 	with mutable fields
-		decoded input buffer : <character…|>;
+		decoded input buffer : <character…|>,
+		decoded input position : natural number;
 
 "state" is a new field atom;
 "source exhausted" is a new field atom;
@@ -363,6 +362,38 @@ Public class "utf8 codec" extends utf8 encoder ∩ utf8 decoder
 	with mutable fields
 		state : continuation,
 		source exhausted : boolean;
+
+/**
+ * A UTF-8 codec constructor
+ *
+ * @method "a UTF-_codec"
+ * @categories "Codec"
+ * @param "spec" "8's type" 
+ *		The specification classification number for UTF
+ * @returnType "utf8 codec"
+ *		a UTF-8 codec
+ * @author "Richard Arriaga"
+ */
+Public method "a UTF-_codec" is
+[
+ 	spec : 8's type
+ |
+	 a utf8 codec with
+		code point range ::= [1..1114111],
+		decoding corrector ::= [bt : byte tuple |
+	     a replace instruction with 
+	     	replacement character ::= ¢�
+	 ]:replace instruction,
+	 encoding corrector ::= [c : character |
+	     a raise instruction with 
+	     	raise exception ::= an unsupported-character exception with 
+	     		error message ::= <c> ++ 
+	     			" is not a supported character for UTF-8 encoding",
+	     		unsupported character ::= c
+	 ]: raise instruction
+ ]:utf8 codec;
+
+
 /**
  * An exception that indicates the particular bytes attempting to be decoded
  * does not adhere to the specification of the encoder.
@@ -418,7 +449,9 @@ Private method "_'⁇s next input byte's primary type" is
  utf8 : utf8 codec
  |
 	If utf8's encoded input position > 1 then
-		[Advance utf8's encoded input position;];
+	[
+		Advance utf8's encoded input position;
+	];
 	next : byte := utf8's encoded input buffer[utf8's encoded input position];
 	if next bit∧ 128 = 0 then [1]
 	else if [next bit∧ 224 = 192] then [2]
@@ -552,12 +585,19 @@ Method "decode_using_" is
 	utf8's encoded input position := 1;
 	While 
 	[
-		utf8's encoded input position ≤ |utf8's encoded input buffer|
+		utf8's encoded input position < |utf8's encoded input buffer|
 	]
 	do
 	[
-		utf8's decoded input buffer := utf8's decoded input buffer++ 
-			<utf8DecoderFunction[utf8's next input byte's primary type](utf8)>;
+		Guard
+		[utf8's decoded input buffer := utf8's decoded input buffer ++ 
+			<utf8DecoderFunction[utf8's next input byte's primary type](utf8)>;]
+		intercept
+		[
+			e : encoded-buffer-exhausted exception
+		 |
+		 	/*Do Something?*/
+		];
 	];
 	utf8's decoded input buffer
 ]:string;
@@ -593,30 +633,31 @@ Method "finish decoding with_" is
 	utf8's decoded input buffer
 ]:string;
 	
-/**
- * Decode data from an iterator
- *
- * @method "decode data from_"
- * @categories "codec"
- * @param "iter" "decoding iterator" 
- *		a decoding iterator
- * @returnType "string"
- *		the decoded string
- * @author "Richard Arriaga"
- *
-Private method "decode data from_" is
+Grammatical restriction "a|an_«with«_«:»?:=_‡,»»" is
+<{
+ 	"utf8 codec"
+}, ∅, ∅>;
+
+/* Decoder test work
+encodeMe : string := "⊤⊥↓↑÷±∅∊>∰∡℀badcatΩ™﷼₭௹L$€¢₨?⸘#‱⁉«»";
+Print: "string to encode: \n     " ++ encodeMe ++ "\n";
+encodedTuple : byte tuple := <>;
+For each of encodeMe do 
 [
- iter : decoding iterator
- |
- 	Guard
- 	[
- 	 	decode take at most 1000 from iter using iter's coder;
- 	]
- 	intercept
- 	[
- 	 	e : codec-buffer-out-of-data exception
-	 |
-	 	
-	];
- ]:string;
-*/
+ 	c : character 
+ | 
+ 	encodedTuple := encodedTuple ++ utf-8 encode c's code point;
+];
+Print: format "encodedTuple=“①”\n" with encodedTuple;
+
+decoded : string := decode encodedTuple using a UTF-8 codec;
+Print: "encoded string decoded: \n     " ++ decoded ++ "\n";
+Print: format "decoded = original is “①”\n" with decoded = encodeMe ;
+
+src : iterator of byte := an iterator over encodedTuple;
+Print: format "src=“①”\n" with src;
+di ::= a decoding iterator of src using a UTF-8 codec;
+
+decodedIt : string := take at most |encodeMe| from di;
+Print: decodedIt ++ "\n";
+Print: format "buffer decoded = original is “①”\n" with decodedIt = encodeMe;*/

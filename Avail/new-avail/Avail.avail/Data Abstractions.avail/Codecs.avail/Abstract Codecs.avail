@@ -37,34 +37,40 @@ Uses
 	"Foundation",
 	"Iterators"
 Names
+	"a decoding iterator of_using_",
+	"a decoding iterator that buffers_element|elements of_using_",
 	"byte", /*TODO Remove me when the moment is right*/
 	"byte tuple",
 	"codec",
 	"correction instruction",
-	"decoded input buffer",
-	"decoded input position",
 	"decoder",
 	"decode_using_",
+	"decoding corrector",
 	"decoding iterator",
 	"encoder",
 	"encode_using_",
+	"encoding corrector",
 	"encoding iterator",
 	"finish decoding with_",
 	"ignore instruction",
 	"invalid encoding",
 	"malformed-encoding exception",
+	"raise exception",
 	"raise instruction",
 	"replace instruction",
+	"replacement character",
+	"unsupported character",
 	"unsupported-character exception",
-	"_'s⁇decoded input position",
-	"_'s⁇decoded input position:=_",
 	"_'s⁇decoding corrector",
 	"_'s⁇encoded input buffer",
 	"_'s⁇encoded input buffer:=_",
 	"_'s⁇encoded input position",
 	"_'s⁇encoded input position:=_",
 	"_'s⁇encoding corrector",
-	"_'s⁇invalid encoding"
+	"_'s⁇invalid encoding",
+	"_'s⁇raise exception",
+	"_'s⁇replacement character",
+	"_'s⁇unsupported character"
 	
 Body
 
@@ -85,8 +91,6 @@ Public method "byte" is [[0..255]];
  * @author "Richard Arriaga"
  */
 Public method "byte tuple" is [<[0..255]…|>];
-
-"replacement character" is a new field atom;
 
 /**
  * An object type that provides the decoder with a structured heirarchy of what
@@ -110,6 +114,26 @@ Public explicit class "correction instruction" extends object;
  */
 Public explicit class "ignore instruction" extends correction instruction;
 
+Public "unsupported character" is a new field atom;
+
+/**
+ * An exception that indicates a specific character is not supported by the 
+ * codec.  For example down tack, ⊤, is not supported by the ASCII codec.
+ * 
+ * @type "unsupported-character exception"
+ * @supertype {@type "exception" exception}
+ * @category "Codecs"
+ * @field "unsupported character" "character"
+ * 	The character that is not supported by the codec
+ * @author "Richard Arriaga"
+ */
+Public explicit class "unsupported-character exception" 
+	extends descriptive exception
+		with field
+			public unsupported character : character;
+
+Public "raise exception" is a new field atom;
+
 /**
  * An object type that provides the decoder with the instruction to raise an
  * an exception in the event a bad encoding is encountered.
@@ -119,7 +143,11 @@ Public explicit class "ignore instruction" extends correction instruction;
  * @category "Codecs"
  * @author "Richard Arriaga"
  */
-Public explicit class "raise instruction" extends correction instruction;
+Public explicit class "raise instruction" extends correction instruction
+	with fields
+		public raise exception : unsupported-character exception;
+
+Public "replacement character" is a new field atom;
 
 /**
  * An object type that provides the decoder with the instruction to insert the
@@ -135,27 +163,9 @@ Public explicit class "raise instruction" extends correction instruction;
  */
 Public explicit class "replace instruction" extends correction instruction
 	with fields
-		replacement character : character;
+		public replacement character : character;
 
-"unsupported character" is a new field atom;
-
-/**
- * An exception that indicates a specific character is not supported by the 
- * codec.  For example down tack, ⊤, is not supported by the ASCII codec.
- * 
- * @type "unsupported-character exception"
- * @supertype {@type "exception" exception}
- * @category "Codecs"
- * @field "unsupported character" "character"
- * 	The character that is not supported by the codec
- * @author "Richard Arriaga"
- */
-Public class "unsupported-character exception" extends exception
-	with fields
-		unsupported character : character;
-
-"encoding corrector" is a new field atom;
-"decoded input position" is a new field atom;
+Public "encoding corrector" is a new field atom;
 
 /**
  * A class that contains instructions for the encoding of data.
@@ -170,14 +180,13 @@ Public class "unsupported-character exception" extends exception
  */
 Public class "encoder" extends object
 	with fields
-		public encoding corrector : [character]→correction instruction
-	with mutable fields
-		public decoded input position : natural number;
+		public encoding corrector : [character]→correction instruction;
+
 
 /**
  * A method that encodes a string using the provided encoder.
  * 
- * @method "byte tuple"
+ * @method "byte encode_using_"
  * @category "Codecs"
  * @param "string"
  * 	The string to be encoded
@@ -205,11 +214,11 @@ Public abstract method "encode_using_" is
  * 	the tuple of bytes that are not valid under the encoding specifications
  * @author "Richard Arriaga"
  */
-Public class "malformed-encoding exception" extends exception
+Public explicit class "malformed-encoding exception" extends exception
 	with fields
 		public invalid encoding : byte tuple;
 
-"decoding corrector" is a new field atom;
+Public "decoding corrector" is a new field atom;
 "encoded input buffer" is a new field atom;
 "encoded input position" is a new field atom;
 
@@ -281,8 +290,7 @@ Public abstract method "finish decoding with_" is
  */
 Public class "codec" extends encoder ∩ decoder;
 
-"coder" is a new field atom;
-"source" is a new field atom;
+"internal encoder" is a new field atom;
 
 /**
  * An iterator with data that is to be encoded into byte data.
@@ -290,14 +298,14 @@ Public class "codec" extends encoder ∩ decoder;
  * @type "encoding iterator"
  * @supertype {@type "iterator" iterator}
  * @category "Codecs"
- * @field "coder" "encoder"
+ * @field "internal encoder" "encoder"
  * @field "source" "iterator"
  * @author "Richard Arriaga"
  */
 Public class "encoding iterator" extends buffered iterator
 	with fields
-		coder : encoder,
-		source : iterator;
+		element source : iterator, 
+		internal encoder : encoder;
 
 /*TODO create one constructor method, user must specify buffer size*/ 
 
@@ -316,8 +324,10 @@ encoding iterator's next buffer method is
 	anIterator : encoding iterator
 |
 	encode take at most anIterator's maximum buffer size from anIterator's 
-		source using anIterator's coder
+		element source using anIterator's internal encoder
 ] : byte tuple;
+
+"internal decoder" is a new field atom;
 
 /**
  * An iterator with byte data that is to be decoded into character data.
@@ -325,58 +335,94 @@ encoding iterator's next buffer method is
  * @type "decoding iterator"
  * @supertype {@type "iterator" object}
  * @category "Codecs"
- * @field "coder" "decoder"
+ * @field "internal decoder" "decoder"
  * @author "Richard Arriaga"
  */
-Public class "decoding iterator" extends buffered iterator ∩ iterator of byte
-	with fields
-		coder : decoder,
-		source : iterator of byte;
+Public class "decoding iterator" extends 
+	buffered iterator ∩ iterator of character
+		with fields
+			element source : iterator of byte,
+			internal decoder : decoder,
+			maximum buffer size : [4096..∞);
 
 /*TODO create two constructor methods, one with the a user specified buffer size 
- * and one with the default buffer size is 32,768*/
-
+ * and one with the default buffer size is 32,768. Use "take«at most»?_from_"
+ * at the decoded iterator level to obtain decoded data.  Following two
+ * methods are first attempt*/
+	
 /**
+ * A constructor method to create a decoding iterator with a variable buffer 
+ * size
+ *
+ * @method "a decoding iterator that buffers_element|elements of_using_"
+ * @categories "Codec"
+ * @param "size" "natural number" 
+ *		the size of the iterator buffer
+ * @param "src" "iterator of byte" 
+ *		the source iterator to be decoded
+ * @param "dc" "decoder" 
+ *		the codec that is used to complete the decoding of the iterator
+ * @returnType "decoding iterator"
+ *		a decoding iterator
+ * @raises "exceptionName" 
+ *		exceptionDescription
+ * @author "Richard Arriaga"
+ */
+Public method "a decoding iterator that buffers_element|elements of_using_" is
+[
+ 	size : [4096..∞),
+ 	src : iterator of byte,
+ 	dc : decoder
+ |
+	a decoding iterator with
+		element type ::= character,
+		element source ::= src,
+		maximum buffer size ::= size,
+		internal decoder ::= dc
+]:decoding iterator;
+	
+/**
+ * A constructor method to create a decoding iterator with a fixed buffer size
+ * of 32,768.
+ *
+ * @method "a decoding iterator of_using_"
+ * @categories "Codec"
+ * @param "src" "iterator of byte" 
+ *		the source iterator to be decoded
+ * @returnType "decoding iterator"
+ *		a decoding iterator
+ * @raises "exceptionName" 
+ *		exceptionDescription
+ * @author "Richard Arriaga"
+ */
+Public method "a decoding iterator of_using_" is
+[
+ 	src : iterator of byte,
+ 	cdc : codec
+ |
+ 	a decoding iterator that buffers 32768 elements of src using cdc
+]:decoding iterator;
+
+
+/*
  * Ensure that the specified iterator is not exhausted, then advance its state.
  *
- * @method "Advance_"
  * @param "anIterator" "decoding iterator"
  *        An encoding iterator.
- * @raises "exhausted-iterator exception"
- *         If the iterator is exhausted.
  * @author "Richard Arriaga"
  */
 decoding iterator's next buffer method is
 [
 	anIterator : decoding iterator
 |
-	decode take at most anIterator's maximum buffer size from anIterator's 
-		source using anIterator's coder
+	next ::= take at most anIterator's maximum buffer size from anIterator's 
+		element source;
+	if next is empty then [finish decoding with anIterator's internal decoder]
+	else [decode next using anIterator's internal decoder]
 ] : tuple;
 
-/**
- * Ensure that the specified iterator is not exhausted, then answer its current
- * element.
- *
- * @method "_'s⁇current element"
- * @param "anIterator" "decoding iterator"
- *        An iterator.
- * @returns "any"
- *          The current element of the specified iterator.
- * @raises "exhausted-iterator exception"
- *         If the iterator is exhausted.
- * @author "Richard Arriaga"
- */
-decoding iterator's current element method is
-[
-	anIterator : decoding iterator
-|
-	unless anIterator's source is exhausted then
-	[
-		anIterator's source's current element
-	]
-	else
-	[
-		Raise an exhausted-iterator exception
-	]
-] : any;
+ Grammatical restriction "a|an_«with«_«:»?:=_‡,»»" is
+	<{
+	 	"decoding iterator",
+	 	"encoding iterator"
+	}, ∅, ∅>;
