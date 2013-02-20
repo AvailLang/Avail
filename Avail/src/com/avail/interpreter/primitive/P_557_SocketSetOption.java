@@ -66,7 +66,7 @@ extends Primitive
 	 */
 	@SuppressWarnings("rawtypes")
 	private static final SocketOption[] socketOptions =
-		{null, SO_SNDBUF, SO_RCVBUF, SO_KEEPALIVE, SO_REUSEADDR, TCP_NODELAY};
+		{null, SO_RCVBUF, SO_REUSEADDR, SO_SNDBUF, SO_KEEPALIVE, TCP_NODELAY};
 
 	@SuppressWarnings("unchecked")
 	@Override

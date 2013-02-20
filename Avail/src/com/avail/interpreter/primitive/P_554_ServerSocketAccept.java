@@ -115,6 +115,7 @@ extends Primitive
 		final AvailRuntime runtime = AvailRuntime.current();
 		try
 		{
+			final AvailObject module = ModuleDescriptor.current();
 			socket.accept(
 				null,
 				new CompletionHandler<AsynchronousSocketChannel, Void>()
@@ -133,7 +134,7 @@ extends Primitive
 							final AvailObject newHandle =
 								AtomWithPropertiesDescriptor.create(
 									name,
-									ModuleDescriptor.current());
+									module);
 							final AvailObject newPojo =
 								RawPojoDescriptor.identityWrap(newSocket);
 							newHandle.setAtomProperty(
@@ -197,12 +198,12 @@ extends Primitive
 				FunctionTypeDescriptor.create(
 					TupleDescriptor.from(
 						ATOM.o()),
-					TOP.o())),
+					TOP.o()),
 				FunctionTypeDescriptor.create(
 					TupleDescriptor.from(
 						AbstractEnumerationTypeDescriptor.withInstance(
 							E_IO_ERROR.numericCode())),
-					TOP.o(),
+					TOP.o()),
 				IntegerRangeTypeDescriptor.bytes()),
 			FIBER.o());
 	}
