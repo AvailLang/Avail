@@ -434,7 +434,7 @@ extends AbstractTypeDescriptor
 	@Override @AvailMethod
 	abstract boolean o_AcceptsTupleOfArguments (
 		final AvailObject object,
-		final A_BasicObject arguments);
+		final A_Tuple arguments);
 
 	@Override @AvailMethod
 	abstract A_Type o_ArgsTupleType (

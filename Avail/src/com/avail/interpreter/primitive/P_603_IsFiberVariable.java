@@ -1,5 +1,5 @@
 /**
- * P_021_GetFiberPriority.java
+ * P_603_IsFiberVariable.java
  * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -29,34 +29,41 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+
 package com.avail.interpreter.primitive;
 
+import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
 import com.avail.descriptor.*;
-import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.*;
 
 /**
- * <strong>Primitive 21:</strong> Get the priority of a fiber.
+ * <strong>Primitive 603</strong>: Does the {@linkplain AtomDescriptor name}
+ * refer to a {@linkplain FiberDescriptor fiber}-local variable?
+ *
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class P_021_GetFiberPriority extends Primitive
+public final class P_603_IsFiberVariable
+extends Primitive
 {
 	/**
-	 * The sole instance of this primitive class.  Accessed through reflection.
+	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_021_GetFiberPriority().init(1, CannotFail, CanInline);
+		new P_603_IsFiberVariable().init(2, CannotFail, CanInline);
 
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 1;
-		final A_BasicObject fiber = args.get(0);
-		return interpreter.primitiveSuccess(
-			fiber.priority());
+		assert args.size() == 2;
+		final AvailObject key = args.get(0);
+		final A_BasicObject fiber = args.get(1);
+		final A_Map globals = fiber.fiberGlobals();
+		return interpreter.primitiveSuccess(AtomDescriptor.objectFromBoolean(
+			globals.hasKey(key)));
 	}
 
 	@Override
@@ -64,7 +71,8 @@ public class P_021_GetFiberPriority extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				Types.FIBER.o()),
-			IntegerRangeTypeDescriptor.wholeNumbers());
+				ATOM.o(),
+				FIBER.o()),
+			EnumerationTypeDescriptor.booleanObject());
 	}
 }

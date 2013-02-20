@@ -33,10 +33,11 @@ package com.avail.interpreter.levelTwo.operation;
 
 import static com.avail.descriptor.AvailObject.error;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
-import static com.avail.interpreter.levelTwo.L2Interpreter.debugL1;
+import static com.avail.interpreter.Interpreter.debugL1;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import java.util.*;
 import com.avail.descriptor.*;
+import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.*;
 import com.avail.interpreter.levelTwo.operand.*;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
@@ -52,18 +53,14 @@ public class L2_LOOKUP_BY_VALUES extends L2Operation
 	/**
 	 * Initialize the sole instance.
 	 */
-	public final static L2Operation instance = new L2_LOOKUP_BY_VALUES();
-
-	static
-	{
-		instance.init(
+	public final static L2Operation instance =
+		new L2_LOOKUP_BY_VALUES().init(
 			SELECTOR.is("method"),
 			READ_VECTOR.is("arguments"),
 			WRITE_POINTER.is("looked up function"));
-	}
 
 	@Override
-	public void step (final L2Interpreter interpreter)
+	public void step (final Interpreter interpreter)
 	{
 		final int selectorIndex = interpreter.nextWord();
 		final int argumentsIndex = interpreter.nextWord();

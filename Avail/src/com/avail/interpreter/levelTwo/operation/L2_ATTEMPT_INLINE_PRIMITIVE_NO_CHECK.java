@@ -31,11 +31,11 @@
  */
 package com.avail.interpreter.levelTwo.operation;
 
-import static com.avail.descriptor.AvailObject.error;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import java.util.*;
 import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.A_Type;
+import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive.Result;
 import com.avail.interpreter.levelTwo.*;
 import com.avail.interpreter.levelTwo.operand.*;
@@ -66,27 +66,23 @@ import com.avail.optimizer.RegisterSet;
  * successful primitive invocations and failed invocations.
  * </p>
  */
-public class L2_ATTEMPT_INLINE_PRIMITIVE_NO_CHECK extends L2Operation
+public class L2_ATTEMPT_INLINE_PRIMITIVE_NO_CHECK
+extends L2Operation
 {
 	/**
 	 * Initialize the sole instance.
 	 */
 	public final static L2Operation instance =
-		new L2_ATTEMPT_INLINE_PRIMITIVE_NO_CHECK();
-
-	static
-	{
-		instance.init(
+		new L2_ATTEMPT_INLINE_PRIMITIVE_NO_CHECK().init(
 			PRIMITIVE.is("primitive to attempt"),
 			READ_VECTOR.is("arguments"),
 			WRITE_POINTER.is("primitive result"),
 			WRITE_POINTER.is("primitive failure value"),
 			READWRITE_VECTOR.is("preserved fields"),
 			PC.is("if primitive succeeds"));
-	}
 
 	@Override
-	public void step (final L2Interpreter interpreter)
+	public void step (final Interpreter interpreter)
 	{
 		final int primNumber = interpreter.nextWord();
 		final int argsVector = interpreter.nextWord();
@@ -114,23 +110,15 @@ public class L2_ATTEMPT_INLINE_PRIMITIVE_NO_CHECK extends L2Operation
 		{
 			case SUCCESS:
 				interpreter.pointerAtPut(
-					resultRegister,
-					interpreter.primitiveResult);
+					resultRegister, interpreter.latestResult());
 				interpreter.offset(successOffset);
 				break;
 			case FAILURE:
 				interpreter.pointerAtPut(
-					failureValueRegister,
-					interpreter.primitiveResult);
-				break;
-			case CONTINUATION_CHANGED:
-				error(
-					"attemptPrimitive wordcode should never set up "
-					+ "a new continuation",
-					primNumber);
+					failureValueRegister, interpreter.latestResult());
 				break;
 			default:
-				error("Unrecognized return type from attemptPrimitive()");
+				assert false;
 		}
 	}
 

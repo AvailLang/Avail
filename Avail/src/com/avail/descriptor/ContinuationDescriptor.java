@@ -37,8 +37,8 @@ import static com.avail.descriptor.ContinuationDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.ContinuationDescriptor.ObjectSlots.*;
 import com.avail.AvailRuntime;
 import com.avail.annotations.*;
+import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelOne.L1Operation;
-import com.avail.interpreter.levelTwo.L2Interpreter;
 import com.avail.interpreter.primitive.*;
 import com.avail.serialization.SerializerOperation;
 
@@ -131,7 +131,7 @@ extends Descriptor
 
 		/**
 		 * The {@linkplain L2ChunkDescriptor Level Two chunk} which can be
-		 * resumed directly by the {@link L2Interpreter} to effect continued
+		 * resumed directly by the {@link Interpreter} to effect continued
 		 * execution.
 		 */
 		LEVEL_TWO_CHUNK,
@@ -329,7 +329,7 @@ extends Descriptor
 
 	/**
 	 * If immutable, copy the object as mutable, otherwise answer the original
-	 * mutable continuation.  This is used by the {@linkplain L2Interpreter
+	 * mutable continuation.  This is used by the {@linkplain Interpreter
 	 * interpreter} to ensure it is always executing a mutable continuation and
 	 * is therefore always able to directly modify it.
 	 */
@@ -400,7 +400,7 @@ extends Descriptor
 			object.makeSubobjectsImmutable();
 		}
 		return AvailObjectRepresentation.newLike(
-			mutable(),
+			mutable,
 			object,
 			0,
 			0);
@@ -529,10 +529,10 @@ extends Descriptor
 	public static AvailObject createExceptFrame (
 		final int frameSize,
 		final A_Function function,
-		final AvailObject caller,
+		final A_BasicObject caller,
 		final int pc,
 		final int stackp,
-		final AvailObject levelTwoChunk,
+		final A_BasicObject levelTwoChunk,
 		final int levelTwoOffset)
 	{
 		final A_BasicObject code = function.code();

@@ -33,6 +33,7 @@
 package com.avail.interpreter.primitive;
 
 import static com.avail.descriptor.TypeDescriptor.Types.*;
+import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
 import com.avail.descriptor.*;
@@ -63,11 +64,15 @@ extends Primitive
 		assert args.size() == 2;
 		final AvailObject atom = args.get(0);
 		final AvailObject blockSignature = args.get(1);
+
+		final AvailLoader loader = FiberDescriptor.current().availLoader();
+		if (loader == null)
+		{
+			return interpreter.primitiveFailure(E_LOADING_IS_OVER);
+		}
 		try
 		{
-			interpreter.addAbstractSignature(
-				atom,
-				blockSignature);
+			loader.addAbstractSignature(atom, blockSignature);
 			interpreter.fixupForPotentiallyInvalidCurrentChunk();
 		}
 		catch (final SignatureException e)
@@ -85,5 +90,14 @@ extends Primitive
 				ATOM.o(),
 				FunctionTypeDescriptor.meta()),
 			TOP.o());
+	}
+
+	@Override
+	protected A_Type privateFailureVariableType ()
+	{
+		return AbstractEnumerationTypeDescriptor.withInstances(
+			TupleDescriptor.from(
+				E_LOADING_IS_OVER.numericCode()
+			).asSet());
 	}
 }

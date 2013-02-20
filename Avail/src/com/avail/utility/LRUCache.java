@@ -701,7 +701,7 @@ public class LRUCache<K, V>
 	 *         transformer}.
 	 */
 	@SuppressWarnings("null")   // compensate for null code analysis bug
-	public V get (final K key) throws RuntimeException
+	public @Nullable V get (final K key) throws RuntimeException
 	{
 		assert key != null;
 

@@ -39,6 +39,7 @@ Uses
 Names
 	"root suite",
 	"root suite:=_",
+	"suite lock",
 	"suites by atom",
 	"suites by atom:=_",
 	"tests by atom",
@@ -46,15 +47,15 @@ Names
 Body
 
 /**
- * The unit tests, organized by test identifier.
+ * The lock that guards the unit test suite's data structures.
  *
- * @global "testsByAtom" "{atom→unit test|}"
+ * @global "suite lock" "non-reentrant mutex"
  */
-testsByAtom : {atom→unit test|} := {};
-Public variable ↑testsByAtom is "tests by atom";
+suiteLock : non-reentrant mutex := a non-reentrant mutex named "suite lock";
+Public method "suite lock" is [suiteLock];
 
 /**
- * The root unit test suite.
+ * The root unit test suite, guarded by the {@method "suite lock"}.
  *
  * @global "rootSuite" "root unit test suite"
  */
@@ -69,9 +70,19 @@ rootSuite : root unit test suite := a root unit test suite with
 Public variable ↑rootSuite is "root suite";
 
 /**
- * The declared unit test suites, keyed by atom.
+ * The declared unit test suites, keyed by atom, guarded by the {@method
+ * "suite lock"}.
  *
  * @global "suitesByAtom" "{atom→unit test suite|}"
  */
 suitesByAtom : {atom→unit test suite|} := {};
 Public variable ↑suitesByAtom is "suites by atom";
+
+/**
+ * The unit tests, organized by test identifier, guarded by the {@method
+ * "test lock"}.
+ *
+ * @global "testsByAtom" "{atom→unit test|}"
+ */
+testsByAtom : {atom→unit test|} := {};
+Public variable ↑testsByAtom is "tests by atom";

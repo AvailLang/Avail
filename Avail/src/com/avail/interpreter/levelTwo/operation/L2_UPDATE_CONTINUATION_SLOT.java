@@ -33,6 +33,7 @@ package com.avail.interpreter.levelTwo.operation;
 
 import static com.avail.descriptor.AvailObject.error;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
+import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.*;
 
 /**
@@ -47,18 +48,13 @@ public class L2_UPDATE_CONTINUATION_SLOT extends L2Operation
 	 * Initialize the sole instance.
 	 */
 	public final static L2Operation instance =
-		new L2_UPDATE_CONTINUATION_SLOT();
-
-	static
-	{
-		instance.init(
+		new L2_UPDATE_CONTINUATION_SLOT().init(
 			READWRITE_POINTER.is("continuation"),
 			IMMEDIATE.is("slot index"),
 			READ_POINTER.is("replacement value"));
-	}
 
 	@Override
-	public void step (final L2Interpreter interpreter)
+	public void step (final Interpreter interpreter)
 	{
 		// TODO [MvG] Implement.
 		@SuppressWarnings("unused")

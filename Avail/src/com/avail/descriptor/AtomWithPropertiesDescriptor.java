@@ -207,8 +207,8 @@ extends AtomDescriptor
 	 *            method was invoked.
 	 */
 	public static AvailObject create (
-		final AvailObject name,
-		final AvailObject issuingModule)
+		final A_String name,
+		final A_BasicObject issuingModule)
 	{
 		final AvailObject instance = mutable.create();
 		instance.setSlot(NAME, name);
@@ -240,8 +240,8 @@ extends AtomDescriptor
 	 *            method was invoked.
 	 */
 	public static AvailObject createWithNameAndModuleAndHash (
-		final AvailObject name,
-		final AvailObject issuingModule,
+		final A_String name,
+		final A_BasicObject issuingModule,
 		final int originalHash)
 	{
 		final AvailObject instance = mutable.create();

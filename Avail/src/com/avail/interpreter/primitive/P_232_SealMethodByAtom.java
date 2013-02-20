@@ -33,6 +33,7 @@
 package com.avail.interpreter.primitive;
 
 import static com.avail.descriptor.TypeDescriptor.Types.*;
+import static com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
 import com.avail.descriptor.*;
@@ -63,9 +64,14 @@ extends Primitive
 		assert args.size() == 2;
 		final AvailObject methodName = args.get(0);
 		final AvailObject sealSignature = args.get(1);
+		final AvailLoader loader = FiberDescriptor.current().availLoader();
+		if (loader == null)
+		{
+			return interpreter.primitiveFailure(E_LOADING_IS_OVER);
+		}
 		try
 		{
-			interpreter.addSeal(methodName, sealSignature);
+			loader.addSeal(methodName, sealSignature);
 		}
 		catch (final SignatureException e)
 		{

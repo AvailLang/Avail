@@ -31,8 +31,7 @@
  */
 package com.avail.interpreter.levelTwo.operation;
 
-import static com.avail.interpreter.levelTwo.L2Interpreter.*;
-import static com.avail.interpreter.levelTwo.L2OperandType.PC;
+import static com.avail.interpreter.Interpreter.*;
 import static com.avail.interpreter.levelTwo.register.FixedRegister.*;
 import java.util.logging.Level;
 import com.avail.descriptor.A_BasicObject;
@@ -47,7 +46,7 @@ import com.avail.optimizer.RegisterSet;
 /**
  * Execute a single nybblecode of the current continuation, found in {@link
  * FixedRegister#CALLER caller register}.  If no interrupt is indicated,
- * move the L2 {@link L2Interpreter#offset()} back to the same instruction
+ * move the L2 {@link Interpreter#offset()} back to the same instruction
  * (which always occupies a single word, so the address is implicit).
  */
 public class L2_INTERPRET_UNTIL_INTERRUPT extends L2Operation
@@ -56,16 +55,10 @@ public class L2_INTERPRET_UNTIL_INTERRUPT extends L2Operation
 	 * Initialize the sole instance.
 	 */
 	public final static L2Operation instance =
-		new L2_INTERPRET_UNTIL_INTERRUPT();
-
-	static
-	{
-		instance.init(
-			PC.is("return here after a call"));
-	}
+		new L2_INTERPRET_UNTIL_INTERRUPT().init();
 
 	@Override
-	public void step (final L2Interpreter interpreter)
+	public void step (final Interpreter interpreter)
 	{
 		final A_Function function = interpreter.pointerAt(FUNCTION);
 		final A_BasicObject code = function.code();
@@ -76,6 +69,13 @@ public class L2_INTERPRET_UNTIL_INTERRUPT extends L2Operation
 		{
 			// Branch back to this (operandless) instruction by default.
 			interpreter.offset(interpreter.offset() - 1);
+		}
+		else
+		{
+			// Reify the current L2 state before suspension due to interrupt.
+			// Don't execute another L1 instruction.
+			interpreter.levelOneStepper.reifyContinuation();
+			return;
 		}
 
 		int depth = 0;

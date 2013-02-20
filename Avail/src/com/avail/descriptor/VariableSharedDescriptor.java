@@ -147,6 +147,53 @@ extends VariableDescriptor
 	}
 
 	@Override @AvailMethod
+	AvailObject o_GetAndSetValue (
+		final AvailObject object,
+		final AvailObject newValue)
+	{
+		// Because the separate read and write operations are performed within
+		// the critical section, atomicity is ensured.
+		synchronized (object)
+		{
+			return super.o_GetAndSetValue(
+				object,
+				newValue.traversed().makeShared());
+		}
+	}
+
+	@Override @AvailMethod
+	boolean o_CompareAndSwapValues (
+		final AvailObject object,
+		final AvailObject reference,
+		final AvailObject newValue)
+	{
+		// Because the separate read, compare, and write operations are all
+		// performed within the critical section, atomicity is ensured.
+		synchronized (object)
+		{
+			return super.o_CompareAndSwapValues(
+				object,
+				reference,
+				newValue.traversed().makeShared());
+		}
+	}
+
+	@Override @AvailMethod
+	AvailObject o_FetchAndAddValue (
+		final AvailObject object,
+		final AvailObject addend)
+	{
+		// Because the separate read and write operations are all performed
+		// within the critical section, atomicity is ensured.
+		synchronized (object)
+		{
+			return super.o_FetchAndAddValue(
+				object,
+				addend.traversed().makeShared());
+		}
+	}
+
+	@Override @AvailMethod
 	void o_ClearValue (final AvailObject object)
 	{
 		synchronized (object)

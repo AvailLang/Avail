@@ -33,6 +33,7 @@ package com.avail.interpreter.levelTwo.operation;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import com.avail.descriptor.*;
+import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.*;
 import com.avail.interpreter.levelTwo.operand.*;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
@@ -47,18 +48,14 @@ public class L2_CREATE_FUNCTION extends L2Operation
 	/**
 	 * Initialize the sole instance.
 	 */
-	public final static L2Operation instance = new L2_CREATE_FUNCTION();
-
-	static
-	{
-		instance.init(
+	public final static L2Operation instance =
+		new L2_CREATE_FUNCTION().init(
 			CONSTANT.is("compiled code"),
 			READ_VECTOR.is("captured variables"),
 			WRITE_POINTER.is("new function"));
-	}
 
 	@Override
-	public void step (final L2Interpreter interpreter)
+	public void step (final Interpreter interpreter)
 	{
 		final int codeIndex = interpreter.nextWord();
 		final int outersIndex = interpreter.nextWord();

@@ -34,6 +34,7 @@ package com.avail.interpreter.levelTwo.operation;
 
 import static com.avail.descriptor.AvailObject.error;
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_POINTER;
+import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.*;
 
 public class L2_RESUME_CONTINUATION extends L2Operation
@@ -41,16 +42,12 @@ public class L2_RESUME_CONTINUATION extends L2Operation
 	/**
 	 * Initialize the sole instance.
 	 */
-	public final static L2Operation instance = new L2_RESUME_CONTINUATION();
-
-	static
-	{
-		instance.init(
+	public final static L2Operation instance =
+		new L2_RESUME_CONTINUATION().init(
 			READ_POINTER.is("continuation to resume"));
-	}
 
 	@Override
-	public void step (final L2Interpreter interpreter)
+	public void step (final Interpreter interpreter)
 	{
 		@SuppressWarnings("unused")
 		final int continuationIndex = interpreter.nextWord();

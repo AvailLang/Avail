@@ -32,22 +32,21 @@
 package com.avail.interpreter.primitive;
 
 import static com.avail.descriptor.TypeDescriptor.Types.ATOM;
-import static com.avail.exceptions.AvailErrorCode.E_COMPILATION_IS_OVER;
+import static com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER;
 import static com.avail.interpreter.Primitive.Flag.CanInline;
 import java.util.List;
-import com.avail.compiler.AvailCompiler;
 import com.avail.descriptor.*;
 import com.avail.exceptions.*;
 import com.avail.interpreter.*;
 
 /**
- * <strong>Primitive 245:</strong> Look up the {@linkplain
- * AtomDescriptor true name} bound to the specified {@linkplain
- * TupleDescriptor name} in the {@linkplain ModuleDescriptor module}
- * currently under {@linkplain AvailCompiler compilation}, creating the
- * true name if necessary.
+ * <strong>Primitive 245:</strong> Look up the {@linkplain AtomDescriptor true
+ * name} bound to the specified {@linkplain TupleDescriptor name} in the
+ * {@linkplain ModuleDescriptor module} currently being {@linkplain
+ * AvailLoader loaded}, creating the true name if necessary.
  */
-public class P_245_LookupName extends Primitive
+public class P_245_LookupName
+extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
@@ -62,15 +61,14 @@ public class P_245_LookupName extends Primitive
 	{
 		assert args.size() == 1;
 		final AvailObject name = args.get(0);
-		if (interpreter.module() == null)
+		final AvailLoader loader = FiberDescriptor.current().availLoader();
+		if (loader == null)
 		{
-			return interpreter.primitiveFailure(
-				E_COMPILATION_IS_OVER);
+			return interpreter.primitiveFailure(E_LOADING_IS_OVER);
 		}
 		try
 		{
-			return interpreter.primitiveSuccess(
-				interpreter.lookupName(name));
+			return interpreter.primitiveSuccess(loader.lookupName(name));
 		}
 		catch (final AmbiguousNameException e)
 		{

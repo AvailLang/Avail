@@ -83,7 +83,7 @@ public class P_131_TupleAt extends Primitive
 
 	@Override
 	public A_Type returnTypeGuaranteedByVM (
-		final List<A_Type> argumentTypes)
+		final List<? extends A_Type> argumentTypes)
 	{
 		final A_Type tupleType = argumentTypes.get(0);
 		final A_Type subscripts = argumentTypes.get(1);

@@ -666,7 +666,9 @@ Private method "Generate and install_mutator for mutable_" is
 			 * object type iff one is not already present.
 			 */
 			theMethod ::= method for methodAtom;
-			¬theMethod has definition for <objectType>
+			varType ::= cast fieldType into [t : variable's type | t];
+			readType ::= cast varType's read type into [t : any's type | t];
+			¬theMethod has definition for <objectType, readType>
 		];
 	If defineMutator then
 	[

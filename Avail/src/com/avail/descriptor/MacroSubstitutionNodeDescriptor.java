@@ -217,7 +217,7 @@ extends ParseNodeDescriptor
 		final AvailObject newNode = mutable.create();
 		newNode.setSlot(MACRO_NAME, macroName);
 		newNode.setSlot(OUTPUT_PARSE_NODE, outputParseNode);
-		newNode.makeImmutable();
+		newNode.makeShared();
 		return newNode;
 	}
 

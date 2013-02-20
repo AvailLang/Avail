@@ -34,6 +34,7 @@ package com.avail.interpreter.levelTwo.operation;
 
 import static com.avail.descriptor.AvailObject.error;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
+import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.*;
 
 public class L2_DIVIDE_OBJECT_BY_OBJECT extends L2Operation
@@ -42,20 +43,15 @@ public class L2_DIVIDE_OBJECT_BY_OBJECT extends L2Operation
 	 * Initialize the sole instance.
 	 */
 	public final static L2Operation instance =
-		new L2_DIVIDE_OBJECT_BY_OBJECT();
-
-	static
-	{
-		instance.init(
+		new L2_DIVIDE_OBJECT_BY_OBJECT().init(
 			READ_POINTER.is("dividend"),
 			READ_POINTER.is("divisor"),
 			WRITE_POINTER.is("quotient"),
 			WRITE_POINTER.is("remainder"),
 			PC.is("if out of range"));
-	}
 
 	@Override
-	public void step (final L2Interpreter interpreter)
+	public void step (final Interpreter interpreter)
 	{
 		@SuppressWarnings("unused")
 		final int divideIndex = interpreter.nextWord();

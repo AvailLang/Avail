@@ -81,7 +81,7 @@ public class P_001_Addition extends Primitive
 
 	@Override
 	public A_Type returnTypeGuaranteedByVM (
-		final List<A_Type> argumentTypes)
+		final List<? extends A_Type> argumentTypes)
 	{
 		final A_Type aType = argumentTypes.get(0);
 		final A_Type bType = argumentTypes.get(1);

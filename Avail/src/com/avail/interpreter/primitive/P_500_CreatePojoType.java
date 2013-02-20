@@ -35,6 +35,7 @@ import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.CanFold;
 import java.lang.reflect.TypeVariable;
 import java.util.List;
+import com.avail.AvailRuntime;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 
@@ -73,7 +74,7 @@ public class P_500_CreatePojoType extends Primitive
 			rawClass = Class.forName(
 				className.asNativeString(),
 				true,
-				interpreter.runtime().classLoader());
+				AvailRuntime.current().classLoader());
 		}
 		catch (final ClassNotFoundException e)
 		{

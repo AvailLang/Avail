@@ -33,6 +33,7 @@ package com.avail.interpreter.levelTwo.operation;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import com.avail.descriptor.AvailObject;
+import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.*;
 import com.avail.interpreter.levelTwo.operand.*;
 import com.avail.interpreter.levelTwo.register.L2Register;
@@ -53,17 +54,13 @@ public class L2_MOVE extends L2Operation
 	/**
 	 * Initialize the sole instance.
 	 */
-	public final static L2Operation instance = new L2_MOVE();
-
-	static
-	{
-		instance.init(
+	public final static L2Operation instance =
+		new L2_MOVE().init(
 			READ_POINTER.is("source"),
 			WRITE_POINTER.is("destination"));
-	}
 
 	@Override
-	public void step (final L2Interpreter interpreter)
+	public void step (final Interpreter interpreter)
 	{
 		final int fromIndex = interpreter.nextWord();
 		final int destIndex = interpreter.nextWord();

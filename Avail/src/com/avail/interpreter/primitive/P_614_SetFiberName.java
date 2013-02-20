@@ -1,6 +1,6 @@
 /**
- * P_024_RequestTermination.java
- * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
+ * P_614_SetFiberName.java
+ * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,36 +29,40 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+
 package com.avail.interpreter.primitive;
 
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
+import com.avail.annotations.NotNull;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 
 /**
- * <strong>Primitive 24:</strong> Request termination of the given
- * {@linkplain FiberDescriptor fiber}. Ignore if the fiber is already
- * terminated.
+ * <strong>Primitive 614</strong>: Set the name of the specified {@linkplain
+ * FiberDescriptor fiber}.
+ *
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class P_024_RequestTermination extends Primitive
+public final class P_614_SetFiberName
+extends Primitive
 {
 	/**
-	 * The sole instance of this primitive class.  Accessed through reflection.
+	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_024_RequestTermination().init(
-		1, CanInline, CannotFail, HasSideEffect);
+	public final @NotNull static Primitive instance =
+		new P_614_SetFiberName().init(2, CannotFail, CanInline, HasSideEffect);
 
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 1;
-		final A_BasicObject fiber = args.get(0);
-		fiber.setInterruptRequestFlag(
-			FiberDescriptor.IntegerSlots.TERMINATION_REQUESTED);
+		assert args.size() == 2;
+		final AvailObject fiber = args.get(0);
+		final AvailObject name = args.get(1);
+		fiber.name(name);
 		return interpreter.primitiveSuccess(NilDescriptor.nil());
 	}
 
@@ -67,7 +71,8 @@ public class P_024_RequestTermination extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				FIBER.o()),
+				FIBER.o(),
+				TupleTypeDescriptor.stringTupleType()),
 			TOP.o());
 	}
 }

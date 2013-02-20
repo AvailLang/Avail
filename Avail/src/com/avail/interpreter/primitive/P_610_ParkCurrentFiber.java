@@ -1,6 +1,6 @@
 /**
- * P_075_IsFiberVariable.java
- * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
+ * P_610_ParkCurrentFiber.java
+ * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,46 +34,74 @@ package com.avail.interpreter.primitive;
 
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.interpreter.Primitive.Flag.*;
+import static com.avail.descriptor.FiberDescriptor.InterruptRequestFlag.TERMINATION_REQUESTED;
+import static com.avail.descriptor.FiberDescriptor.SynchronizationFlag.PERMIT_UNAVAILABLE;
 import java.util.List;
+import com.avail.annotations.NotNull;
 import com.avail.descriptor.*;
+import com.avail.descriptor.FiberDescriptor.*;
 import com.avail.interpreter.*;
+import com.avail.utility.*;
 
 /**
- * <strong>Primitive 75</strong>: Does the {@linkplain AtomDescriptor name}
- * refer to a {@linkplain FiberDescriptor fiber}-local variable?
+ * <strong>Primitive 610</strong>: Attempt to acquire the {@linkplain
+ * SynchronizationFlag#PERMIT_UNAVAILABLE permit} associated with the
+ * {@linkplain FiberDescriptor#current() current} {@linkplain FiberDescriptor
+ * fiber}. If the permit is available, then consume it and return immediately.
+ * If the permit is not available, then {@linkplain ExecutionState#PARKED park}
+ * the current fiber. A fiber suspended in this fashion may be resumed only by
+ * calling {@link P_611_UnparkFiber}. A newly unparked fiber should always
+ * recheck the basis for its having parked, to see if it should park again.
+ * Low-level synchronization mechanisms may require the ability to spuriously
+ * unpark in order to ensure correctness.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class P_075_IsFiberVariable
+public final class P_610_ParkCurrentFiber
 extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
-	public final static Primitive instance =
-		new P_075_IsFiberVariable().init(2, CannotFail, CanInline);
+	public final @NotNull static Primitive instance =
+		new P_610_ParkCurrentFiber().init(0, CannotFail, Unknown);
 
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 2;
-		final A_Atom key = args.get(0);
-		final A_BasicObject fiber = args.get(1);
-
-		final A_Map globals = fiber.fiberGlobals();
-		return interpreter.primitiveSuccess(AtomDescriptor.objectFromBoolean(
-			globals.hasKey(key)));
+		assert args.size() == 0;
+		final A_BasicObject fiber = FiberDescriptor.current();
+		final Mutable<Result> result = new Mutable<Result>();
+		fiber.lock(new Continuation0()
+		{
+			@Override
+			public void value ()
+			{
+				// If termination hasn't been requested and the permit is not
+				// available, then park this fiber.
+				if (!fiber.interruptRequestFlag(TERMINATION_REQUESTED)
+					&& fiber.getAndSetSynchronizationFlag(
+						PERMIT_UNAVAILABLE, true))
+				{
+					result.value = interpreter.primitivePark();
+				}
+				else
+				{
+					result.value = interpreter.primitiveSuccess(
+						NilDescriptor.nil());
+				}
+			}
+		});
+		return result.value;
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
-				ATOM.o(),
-				FIBER.o()),
-			EnumerationTypeDescriptor.booleanObject());
+			TupleDescriptor.from(),
+			TOP.o());
 	}
 }

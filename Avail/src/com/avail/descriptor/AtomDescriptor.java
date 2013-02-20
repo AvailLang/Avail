@@ -386,7 +386,7 @@ extends Descriptor
 	 */
 	public static AvailObject create (
 		final A_String name,
-		final AvailObject issuingModule)
+		final A_BasicObject issuingModule)
 	{
 		final AvailObject instance = mutable.create();
 		instance.setSlot(NAME, name);
@@ -409,7 +409,7 @@ extends Descriptor
 	 *        The new atom, not equal to any object in use before this method
 	 *        was invoked.
 	 */
-	public static A_Atom createSpecialAtom (final A_BasicObject name)
+	public static A_Atom createSpecialAtom (final A_String name)
 	{
 		final AvailObject instance = mutable.create();
 		instance.setSlot(NAME, name.makeShared());

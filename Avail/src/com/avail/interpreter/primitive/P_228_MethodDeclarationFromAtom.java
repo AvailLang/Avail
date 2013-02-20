@@ -33,14 +33,18 @@
 package com.avail.interpreter.primitive;
 
 import static com.avail.descriptor.TypeDescriptor.Types.*;
+import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
+import static com.avail.interpreter.Primitive.Result.*;
 import java.util.List;
+import com.avail.*;
 import com.avail.descriptor.*;
 import com.avail.exceptions.SignatureException;
 import com.avail.interpreter.*;
+import com.avail.utility.Continuation0;
 
 /**
- * <strong>Primitive 228</strong>: Method definition.
+ * <strong>Primitive 228</strong>: Define a concrete method implementation.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
@@ -59,20 +63,44 @@ extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 2;
-		final AvailObject atom = args.get(0);
-		final AvailObject block = args.get(1);
-		try
+		final A_Atom atom = args.get(0);
+		final A_Function block = args.get(1);
+		final A_BasicObject fiber = FiberDescriptor.current();
+		final AvailLoader loader = fiber.availLoader();
+		final A_BasicObject module;
+		if (loader == null || (module = loader.module()).equalsNil())
 		{
-			interpreter.addMethodBody(
-				atom,
-				block);
-			interpreter.fixupForPotentiallyInvalidCurrentChunk();
+			return interpreter.primitiveFailure(E_LOADING_IS_OVER);
 		}
-		catch (final SignatureException e)
-		{
-			return interpreter.primitiveFailure(e);
-		}
-		return interpreter.primitiveSuccess(NilDescriptor.nil());
+		interpreter.primitiveSuspend();
+		AvailRuntime.current().whenLevelOneSafeDo(
+			AvailTask.forUnboundFiber(
+				fiber,
+				new Continuation0()
+				{
+					@Override
+					public void value ()
+					{
+						Result state;
+						A_BasicObject result;
+						try
+						{
+							loader.addMethodBody(
+								atom,
+								block,
+								atom.issuingModule().equals(module));
+							state = SUCCESS;
+							result = NilDescriptor.nil();
+						}
+						catch (final SignatureException e)
+						{
+							state = FAILURE;
+							result = e.numericCode();
+						}
+						Interpreter.resumeFromPrimitive(fiber, state, result);
+					}
+				}));
+		return FIBER_SUSPENDED;
 	}
 
 	@Override

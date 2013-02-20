@@ -60,7 +60,7 @@ public class P_045_ShortCircuitHelper extends Primitive
 		final A_Atom ignoredBool = args.get(0);
 		final A_Function block = args.get(1);
 		assert block.code().numArgs() == 0;
-		return interpreter.invokeFunctionArguments (
+		return interpreter.invokeFunction (
 			block,
 			Collections.<AvailObject>emptyList());
 	}

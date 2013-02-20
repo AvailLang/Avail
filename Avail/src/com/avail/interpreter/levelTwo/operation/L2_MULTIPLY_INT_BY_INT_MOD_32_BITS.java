@@ -34,6 +34,7 @@ package com.avail.interpreter.levelTwo.operation;
 
 import static com.avail.descriptor.AvailObject.error;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
+import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.*;
 
 public class L2_MULTIPLY_INT_BY_INT_MOD_32_BITS extends L2Operation
@@ -42,17 +43,12 @@ public class L2_MULTIPLY_INT_BY_INT_MOD_32_BITS extends L2Operation
 	 * Initialize the sole instance.
 	 */
 	public final static L2Operation instance =
-		new L2_MULTIPLY_INT_BY_INT_MOD_32_BITS();
-
-	static
-	{
-		instance.init(
+		new L2_MULTIPLY_INT_BY_INT_MOD_32_BITS().init(
 			READ_INT.is("multiplier"),
 			READWRITE_INT.is("multiplicand"));
-	}
 
 	@Override
-	public void step (final L2Interpreter interpreter)
+	public void step (final Interpreter interpreter)
 	{
 		@SuppressWarnings("unused")
 		final int integerIndex = interpreter.nextWord();

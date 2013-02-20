@@ -35,7 +35,7 @@ package com.avail.interpreter.levelOne;
 import static com.avail.descriptor.AvailObject.error;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import java.util.*;
-import com.avail.annotations.InnerAccess;
+import com.avail.annotations.*;
 import com.avail.descriptor.*;
 import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.utility.Transformer1;
@@ -734,8 +734,9 @@ public class L1Decompiler
 			new Transformer1<String, String>()
 			{
 				@Override
-				public String value (final String prefix)
+				public String value (final @Nullable String prefix)
 				{
+					assert prefix != null;
 					Integer newCount = counts.get(prefix);
 					newCount = newCount == null ? 1 : newCount + 1;
 					counts.put(prefix, newCount);

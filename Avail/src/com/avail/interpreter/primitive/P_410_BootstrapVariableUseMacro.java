@@ -34,8 +34,10 @@ package com.avail.interpreter.primitive;
 
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
+import static com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.*;
+import com.avail.annotations.Nullable;
 import com.avail.compiler.AvailRejectedParseException;
 import com.avail.descriptor.*;
 import com.avail.descriptor.TokenDescriptor.TokenType;
@@ -76,7 +78,9 @@ public class P_410_BootstrapVariableUseMacro extends Primitive
 					"variable name to be a keyword token"));
 		}
 		final A_String variableNameString = actualToken.string();
-		final A_Map clientData = interpreter.currentParserState.clientDataMap;
+		final A_Map fiberGlobals = interpreter.fiber().fiberGlobals();
+		final A_Map clientData = fiberGlobals.mapAt(
+			AtomDescriptor.clientDataGlobalKey());
 		final A_Map scopeMap =
 			clientData.mapAt(AtomDescriptor.compilerScopeMapKey());
 		if (scopeMap.hasKey(variableNameString))
@@ -89,8 +93,12 @@ public class P_410_BootstrapVariableUseMacro extends Primitive
 		}
 		// Not in a block scope. See if it's a module variable or module
 		// constant...
-		final A_BasicObject module =
-			interpreter.currentParserState.currentModule();
+		final @Nullable AvailLoader loader = interpreter.fiber().availLoader();
+		if (loader == null)
+		{
+			return interpreter.primitiveFailure(E_LOADING_IS_OVER);
+		}
+		final A_BasicObject module = loader.module();
 		if (module.variableBindings().hasKey(variableNameString))
 		{
 			final AvailObject variableObject = module.variableBindings().mapAt(

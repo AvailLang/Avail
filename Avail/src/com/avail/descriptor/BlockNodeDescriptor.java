@@ -530,7 +530,7 @@ extends ParseNodeDescriptor
 		block.setSlot(NEEDED_VARIABLES, NilDescriptor.nil());
 		block.setSlot(DECLARED_EXCEPTIONS, declaredExceptions);
 		block.setSlot(STARTING_LINE_NUMBER, lineNumber);
-		block.makeImmutable();
+		block.makeShared();
 		return block;
 	}
 

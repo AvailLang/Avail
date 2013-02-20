@@ -82,7 +82,7 @@ public class P_083_MapReplacingKey extends Primitive
 
 	@Override
 	public A_Type returnTypeGuaranteedByVM (
-		final List<A_Type> argumentTypes)
+		final List<? extends A_Type> argumentTypes)
 	{
 		final A_Type mapType = argumentTypes.get(0);
 		final A_Type addedKeyType = argumentTypes.get(1);

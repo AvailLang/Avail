@@ -954,7 +954,7 @@ Public stable method "_is a letter" is
 		]
 	]
 
-	/* TODO: I believe this implementation (adapted from Mark's code) is
+	/* TODO: [LAS] I believe this implementation (adapted from Mark's code) is
 	 * incomplete, however I have not yet been able to find a complete listing
 	 * of unicode "letters" by code point. 
 	 */

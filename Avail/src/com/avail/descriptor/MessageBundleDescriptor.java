@@ -384,14 +384,11 @@ extends Descriptor
 		return mutable;
 	}
 
-	/** The immutable {@link MessageBundleDescriptor}. */
-	private static final MessageBundleDescriptor immutable =
-		new MessageBundleDescriptor(Mutability.IMMUTABLE);
-
 	@Override
 	MessageBundleDescriptor immutable ()
 	{
-		return immutable;
+		// There is no immutable variant.
+		return shared;
 	}
 
 	/** The shared {@link MessageBundleDescriptor}. */

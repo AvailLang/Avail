@@ -33,10 +33,11 @@
 package com.avail.interpreter.levelTwo;
 
 import static com.avail.descriptor.AvailObject.error;
+import static com.avail.interpreter.Interpreter.*;
 import static com.avail.interpreter.levelTwo.register.FixedRegister.*;
-import static com.avail.interpreter.levelTwo.L2Interpreter.*;
 import java.util.*;
 import com.avail.descriptor.*;
+import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelOne.*;
 import com.avail.interpreter.levelTwo.operation.L2_INTERPRET_UNTIL_INTERRUPT;
 import com.avail.interpreter.levelTwo.register.FixedRegister;
@@ -44,7 +45,7 @@ import com.avail.interpreter.levelTwo.register.FixedRegister;
 /**
  * This class is used to simulate the effect of level one nybblecodes during
  * execution of the {@link L2_INTERPRET_UNTIL_INTERRUPT} instruction, on behalf
- * of a {@link L2Interpreter}.
+ * of a {@link Interpreter}.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
@@ -52,9 +53,9 @@ public final class L1InstructionStepper
 implements L1OperationDispatcher
 {
 	/**
-	 * The {@link L2Interpreter} on whose behalf to step level one nybblecodes.
+	 * The {@link Interpreter} on whose behalf to step level one nybblecodes.
 	 */
-	L2Interpreter interpreter;
+	Interpreter interpreter;
 
 	/**
 	 * A reusable buffer for holding arguments for method invocations.
@@ -65,10 +66,10 @@ implements L1OperationDispatcher
 	 * Construct a new {@link L1InstructionStepper}.
 	 *
 	 * @param interpreter
-	 *            The {@link L2Interpreter} on whose behalf to step through
+	 *            The {@link Interpreter} on whose behalf to step through
 	 *            level one nybblecode instructions.
 	 */
-	public L1InstructionStepper (final L2Interpreter interpreter)
+	public L1InstructionStepper (final Interpreter interpreter)
 	{
 		this.interpreter = interpreter;
 		argsBuffer = interpreter.argsBuffer;
@@ -211,7 +212,7 @@ implements L1OperationDispatcher
 	 * In particular, the {@link L1InstructionStepper} treats the object
 	 * registers immediately following the fixed registers as holding the
 	 * exploded content of the current continuation.  The {@link
-	 * L2Interpreter#pcRegister()} and {@link L2Interpreter#stackpRegister()}
+	 * Interpreter#pcRegister()} and {@link Interpreter#stackpRegister()}
 	 * are also part of the state manipulated by the L1 stepper.
 	 *
 	 * <p>
@@ -223,7 +224,7 @@ implements L1OperationDispatcher
 	{
 		final AvailObject function = pointerAt(FUNCTION);
 		final A_BasicObject code = function.code();
-		final AvailObject chunk = interpreter.chunk();
+		final A_BasicObject chunk = interpreter.chunk();
 		assert chunk == L2ChunkDescriptor.unoptimizedChunk();
 		final AvailObject continuation =
 			ContinuationDescriptor.createExceptFrame(

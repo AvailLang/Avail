@@ -109,7 +109,7 @@ extends DefinitionDescriptor
 	}
 
 	@Override @AvailMethod
-	A_BasicObject o_PrefixFunctions (
+	A_Tuple o_PrefixFunctions (
 		final AvailObject object)
 	{
 		return object.slot(PREFIX_FUNCTIONS);
@@ -177,7 +177,7 @@ extends DefinitionDescriptor
 		instance.setSlot(DEFINITION_METHOD, method);
 		instance.setSlot(PREFIX_FUNCTIONS, prefixFunctions);
 		instance.setSlot(BODY_BLOCK, bodyBlock);
-		instance.makeImmutable();
+		instance.makeShared();
 		return instance;
 	}
 
@@ -202,14 +202,11 @@ extends DefinitionDescriptor
 		return mutable;
 	}
 
-	/** The immutable {@link MacroDefinitionDescriptor}. */
-	private static final MacroDefinitionDescriptor immutable =
-		new MacroDefinitionDescriptor(Mutability.IMMUTABLE);
-
 	@Override
 	MacroDefinitionDescriptor immutable ()
 	{
-		return immutable;
+		// There is no immutable variant.
+		return shared;
 	}
 
 	/** The shared {@link MacroDefinitionDescriptor}. */

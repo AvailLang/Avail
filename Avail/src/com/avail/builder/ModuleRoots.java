@@ -61,6 +61,7 @@ import com.avail.descriptor.ModuleDescriptor;
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@ThreadSafe
 public final class ModuleRoots
 {
 	/** The Avail {@linkplain ModuleDescriptor module} path. */

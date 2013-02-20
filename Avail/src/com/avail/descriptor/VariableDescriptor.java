@@ -39,8 +39,8 @@ import com.avail.serialization.SerializerOperation;
 
 /**
  * My {@linkplain AvailObject object instances} are variables which can hold
- * any object that agrees with my {@linkplain #forInnerType(A_BasicObject) inner
- * type}.  A variable may also hold no value at all.  Any attempt to read the
+ * any object that agrees with my {@linkplain #forInnerType(A_Type) inner type}.
+ * A variable may also hold no value at all.  Any attempt to read the
  * {@linkplain #o_GetValue(AvailObject) current value} of a variable that holds
  * no value will fail immediately.
  *
@@ -202,7 +202,7 @@ extends Descriptor
 	 *        The type of objects the new variable can contain.
 	 * @return A new variable able to hold the specified type of objects.
 	 */
-	public static AvailObject forInnerType (final A_BasicObject innerType)
+	public static AvailObject forInnerType (final A_Type innerType)
 	{
 		return VariableDescriptor.forOuterType(
 			VariableTypeDescriptor.wrapInnerType(innerType));

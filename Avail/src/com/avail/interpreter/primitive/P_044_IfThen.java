@@ -62,7 +62,7 @@ public class P_044_IfThen extends Primitive
 		assert trueBlock.code().numArgs() == 0;
 		if (aBoolean.extractBoolean())
 		{
-			return interpreter.invokeFunctionArguments (
+			return interpreter.invokeFunction (
 				trueBlock,
 				Collections.<AvailObject>emptyList());
 		}

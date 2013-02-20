@@ -32,11 +32,10 @@
 package com.avail.interpreter.levelTwo.operation;
 
 import static com.avail.descriptor.AvailObject.error;
-import static com.avail.interpreter.Primitive.Result.*;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.AvailObject;
-import com.avail.interpreter.Primitive;
+import com.avail.interpreter.*;
 import com.avail.interpreter.Primitive.Result;
 import com.avail.interpreter.levelTwo.*;
 import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
@@ -73,11 +72,7 @@ public class L2_ATTEMPT_INLINE_PRIMITIVE extends L2Operation
 	 * Initialize the sole instance.
 	 */
 	public final static L2Operation instance =
-		new L2_ATTEMPT_INLINE_PRIMITIVE();
-
-	static
-	{
-		instance.init(
+		new L2_ATTEMPT_INLINE_PRIMITIVE().init(
 			PRIMITIVE.is("primitive to attempt"),
 			READ_VECTOR.is("arguments"),
 			READ_POINTER.is("expected type"),
@@ -85,10 +80,9 @@ public class L2_ATTEMPT_INLINE_PRIMITIVE extends L2Operation
 			WRITE_POINTER.is("primitive failure value"),
 			READWRITE_VECTOR.is("preserved fields"),
 			PC.is("if primitive succeeds"));
-	}
 
 	@Override
-	public void step (final L2Interpreter interpreter)
+	public void step (final Interpreter interpreter)
 	{
 		final int primNumber = interpreter.nextWord();
 		final int argsVector = interpreter.nextWord();
@@ -112,47 +106,36 @@ public class L2_ATTEMPT_INLINE_PRIMITIVE extends L2Operation
 			primNumber,
 			null,
 			interpreter.argsBuffer);
-		if (res == SUCCESS)
+		switch (res)
 		{
-			final AvailObject expectedType =
-				interpreter.pointerAt(expectedTypeRegister);
-			final long start = System.nanoTime();
-			final boolean checkOk =
-				interpreter.primitiveResult.isInstanceOf(expectedType);
-			final long checkTimeNanos = System.nanoTime() - start;
-			Primitive.byPrimitiveNumberOrFail(primNumber)
-				.addMicrosecondsCheckingResultType(checkTimeNanos / 1000L);
-			if (!checkOk)
-			{
-				// TODO [MvG] This will have to be handled better some day.
-				error(
-					"primitive %s's result (%s) did not agree with"
-					+ " semantic restriction's expected type (%s)",
-					Primitive.byPrimitiveNumberOrFail(primNumber).name(),
-					interpreter.primitiveResult,
-					expectedType);
-			}
-			interpreter.pointerAtPut(
-				resultRegister,
-				interpreter.primitiveResult);
-			interpreter.offset(successOffset);
-		}
-		else if (res == FAILURE)
-		{
-			interpreter.pointerAtPut(
-				failureValueRegister,
-				interpreter.primitiveResult);
-		}
-		else if (res == CONTINUATION_CHANGED)
-		{
-			error(
-				"attemptPrimitive wordcode should never set up "
-				+ "a new continuation",
-				primNumber);
-		}
-		else
-		{
-			error("Unrecognized return type from attemptPrimitive()");
+			case SUCCESS:
+				final AvailObject expectedType =
+					interpreter.pointerAt(expectedTypeRegister);
+				final long start = System.nanoTime();
+				final AvailObject result = interpreter.latestResult();
+				final boolean checkOk = result.isInstanceOf(expectedType);
+				final long checkTimeNanos = System.nanoTime() - start;
+				Primitive.byPrimitiveNumberOrFail(primNumber)
+					.addMicrosecondsCheckingResultType(checkTimeNanos / 1000L);
+				if (!checkOk)
+				{
+					// TODO [MvG] This will have to be handled better some day.
+					error(
+						"primitive %s's result (%s) did not agree with"
+						+ " semantic restriction's expected type (%s)",
+						Primitive.byPrimitiveNumberOrFail(primNumber).name(),
+						result,
+						expectedType);
+				}
+				interpreter.pointerAtPut(resultRegister, result);
+				interpreter.offset(successOffset);
+				break;
+			case FAILURE:
+				interpreter.pointerAtPut(
+					failureValueRegister, interpreter.latestResult());
+				break;
+			default:
+				assert false;
 		}
 	}
 

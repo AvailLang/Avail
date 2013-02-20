@@ -34,6 +34,7 @@ package com.avail.interpreter.levelTwo.operation;
 
 import static com.avail.descriptor.AvailObject.error;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
+import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.*;
 
 public class L2_JUMP_IF_EQUALS_CONSTANT extends L2Operation
@@ -42,18 +43,13 @@ public class L2_JUMP_IF_EQUALS_CONSTANT extends L2Operation
 	 * Initialize the sole instance.
 	 */
 	public final static L2Operation instance =
-		new L2_JUMP_IF_EQUALS_CONSTANT();
-
-	static
-	{
-		instance.init(
+		new L2_JUMP_IF_EQUALS_CONSTANT().init(
 			PC.is("target"),
 			READ_POINTER.is("value"),
 			CONSTANT.is("constant"));
-	}
 
 	@Override
-	public void step (final L2Interpreter interpreter)
+	public void step (final Interpreter interpreter)
 	{
 		@SuppressWarnings("unused")
 		final int doIndex = interpreter.nextWord();

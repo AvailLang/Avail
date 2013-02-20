@@ -33,6 +33,7 @@
 package com.avail.interpreter.levelTwo.operation;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.PC;
+import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.*;
 
 public class L2_JUMP extends L2Operation
@@ -40,16 +41,12 @@ public class L2_JUMP extends L2Operation
 	/**
 	 * Initialize the sole instance.
 	 */
-	public final static L2Operation instance = new L2_JUMP();
-
-	static
-	{
-		instance.init(
+	public final static L2Operation instance =
+		new L2_JUMP().init(
 			PC.is("target"));
-	}
 
 	@Override
-	public void step (final L2Interpreter interpreter)
+	public void step (final Interpreter interpreter)
 	{
 		final int doIndex = interpreter.nextWord();
 		interpreter.offset(doIndex);

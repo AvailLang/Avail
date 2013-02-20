@@ -33,6 +33,7 @@ package com.avail.interpreter.levelTwo.operation;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_POINTER;
 import com.avail.descriptor.*;
+import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.*;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.optimizer.RegisterSet;
@@ -45,22 +46,18 @@ public class L2_SET_VARIABLE extends L2Operation
 	/**
 	 * Initialize the sole instance.
 	 */
-	public final static L2Operation instance = new L2_SET_VARIABLE();
-
-	static
-	{
-		instance.init(
+	public final static L2Operation instance =
+		new L2_SET_VARIABLE().init(
 			READ_POINTER.is("variable"),
 			READ_POINTER.is("value to write"));
-	}
 
 	@Override
-	public void step (final L2Interpreter interpreter)
+	public void step (final Interpreter interpreter)
 	{
-		final int setIndex = interpreter.nextWord();
-		final int sourceIndex = interpreter.nextWord();
-		interpreter.pointerAt(setIndex).setValue(
-			interpreter.pointerAt(sourceIndex));
+		final int variableIndex = interpreter.nextWord();
+		final int valueIndex = interpreter.nextWord();
+		interpreter.pointerAt(variableIndex).setValue(
+			interpreter.pointerAt(valueIndex));
 	}
 
 	@Override

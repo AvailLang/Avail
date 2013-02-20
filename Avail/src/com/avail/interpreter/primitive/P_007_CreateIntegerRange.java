@@ -39,10 +39,10 @@ import com.avail.interpreter.*;
 /**
  * <strong>Primitive 7:</strong> Answer the {@linkplain
  * IntegerRangeTypeDescriptor integer range} constrained by the specified
- * {@linkplain ExtendedIntegerDescriptor upper and lower bounds}. The
- * provided {@linkplain EnumerationTypeDescriptor#booleanObject() booleans}
- * indicate whether their corresponding bounds are inclusive ({@code true})
- * or exclusive ({@code false}).
+ * upper and lower bounds. The provided {@linkplain
+ * EnumerationTypeDescriptor#booleanObject() booleans} indicate whether their
+ * corresponding bounds are inclusive ({@code true}) or exclusive ({@code
+ * false}).
  */
 public class P_007_CreateIntegerRange extends Primitive
 {

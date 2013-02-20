@@ -264,7 +264,7 @@ extends Descriptor
 	@Override @AvailMethod
 	boolean o_EqualsByteArrayTuple (
 		final AvailObject object,
-		final AvailObject aTuple)
+		final A_Tuple aTuple)
 	{
 		// Default to generic tuple comparison.
 		return o_EqualsAnyTuple(object, aTuple);
@@ -470,7 +470,7 @@ extends Descriptor
 		final AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
-		final AvailObject aByteTuple,
+		final A_Tuple aByteTuple,
 		final int startIndex2)
 	{
 		return o_CompareFromToWithAnyTupleStartingAt(

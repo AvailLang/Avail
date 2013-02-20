@@ -79,7 +79,7 @@ extends A_BasicObject, Iterable<AvailObject>
 	boolean compareFromToWithByteArrayTupleStartingAt (
 		int i,
 		int tupleSize,
-		AvailObject aByteArrayTuple,
+		A_Tuple aByteArrayTuple,
 		int j);
 
 	/**
@@ -293,12 +293,19 @@ extends A_BasicObject, Iterable<AvailObject>
 		boolean canDestroy);
 
 	/**
-	 * Dispatch to the descriptor.
+	 * Answer the specified element of the tuple.  It must be an {@linkplain
+	 * IntegerDescriptor integer} in the range [-2^31..2^31), and is returned as
+	 * a Java {@code int}.
+	 *
+	 * @param index Which 1-based index to use to subscript the tuple.
+	 * @return The {@code int} form of the specified tuple element.
 	 */
 	int tupleIntAt (int index);
 
 	/**
-	 * Dispatch to the descriptor.
+	 * Answer the number of elements in this tuple.
+	 *
+	 * @return The maximum valid 1-based index for this tuple.
 	 */
 	int tupleSize ();
 
@@ -311,7 +318,8 @@ extends A_BasicObject, Iterable<AvailObject>
 	A_Set asSet ();
 
 	/**
-	 * Dispatch to the descriptor.
+	 * Answer whether this is a {@linkplain SpliceTupleDescriptor splice tuple}.
+	 * @return Whether this is a splice tuple.
 	 */
 	boolean isSplice ();
 
@@ -343,7 +351,11 @@ extends A_BasicObject, Iterable<AvailObject>
 		boolean canDestroy);
 
 	/**
-	 * Dispatch to the descriptor.
+	 * Only valid for {@linkplain SpliceTupleDescriptor splice tuples}.  Extract
+	 * the tuple which the zone with the specified index is based on.
+	 *
+	 * @param zone Which zone of the splice tuple is of interest.
+	 * @return The tuple on which that zone is based.
 	 */
 	A_BasicObject subtupleForZone (int zone);
 }

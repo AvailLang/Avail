@@ -40,14 +40,16 @@ import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.AbstractNumberDescriptor.Order;
 import com.avail.descriptor.AbstractNumberDescriptor.Sign;
 import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
+import com.avail.descriptor.FiberDescriptor.SynchronizationFlag;
 import com.avail.descriptor.MapDescriptor.MapIterable;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.descriptor.FiberDescriptor.ExecutionState;
+import com.avail.descriptor.FiberDescriptor.InterruptRequestFlag;
 import com.avail.descriptor.SetDescriptor.SetIterator;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.exceptions.SignatureException;
+import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.Interpreter;
-import com.avail.interpreter.levelTwo.L2Interpreter;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.*;
 import com.avail.visitor.AvailSubobjectVisitor;
@@ -283,7 +285,7 @@ extends AbstractDescriptor
 	@Override
 	boolean o_AcceptsTupleOfArguments (
 		final AvailObject object,
-		final A_BasicObject arguments)
+		final A_Tuple arguments)
 	{
 		return o_Traversed(object).acceptsTupleOfArguments(arguments);
 	}
@@ -632,7 +634,7 @@ extends AbstractDescriptor
 	@Override
 	void o_Continuation (
 		final AvailObject object,
-		final AvailObject value)
+		final A_BasicObject value)
 	{
 		o_Traversed(object).continuation(value);
 	}
@@ -1082,7 +1084,7 @@ extends AbstractDescriptor
 	@Override
 	boolean o_IncludesDefinition (
 		final AvailObject object,
-		final AvailObject definition)
+		final A_BasicObject definition)
 	{
 		return o_Traversed(object).includesDefinition(definition);
 	}
@@ -1096,7 +1098,7 @@ extends AbstractDescriptor
 	@Override
 	void o_SetInterruptRequestFlag (
 		final AvailObject object,
-		final BitField value)
+		final InterruptRequestFlag value)
 	{
 		o_Traversed(object).setInterruptRequestFlag(value);
 	}
@@ -1453,7 +1455,7 @@ extends AbstractDescriptor
 	@Override
 	void o_Priority (
 		final AvailObject object,
-		final A_Number value)
+		final int value)
 	{
 		o_Traversed(object).priority(value);
 	}
@@ -1600,9 +1602,9 @@ extends AbstractDescriptor
 	@Override
 	void o_RemoveFrom (
 		final AvailObject object,
-		final L2Interpreter anInterpreter)
+		final AvailLoader aLoader)
 	{
-		o_Traversed(object).removeFrom(anInterpreter);
+		o_Traversed(object).removeFrom(aLoader);
 	}
 
 	@Override
@@ -1632,7 +1634,7 @@ extends AbstractDescriptor
 	@Override
 	void o_ResolveForward (
 		final AvailObject object,
-		final AvailObject forwardDefinition)
+		final A_BasicObject forwardDefinition)
 	{
 		o_Traversed(object).resolveForward(
 			forwardDefinition);
@@ -2374,12 +2376,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	int o_GetInteger (final AvailObject object)
-	{
-		return o_Traversed(object).getInteger();
-	}
-
-	@Override
 	AvailObject o_GetValue (final AvailObject object)
 	{
 		return o_Traversed(object).getValue();
@@ -2422,15 +2418,11 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	int o_InterruptRequestFlags (final AvailObject object)
+	void o_DecrementCountdownToReoptimize (
+		final AvailObject object,
+		final Continuation0 continuation)
 	{
-		return o_Traversed(object).interruptRequestFlags();
-	}
-
-	@Override
-	int o_CountdownToReoptimize (final AvailObject object)
-	{
-		return o_Traversed(object).countdownToReoptimize();
+		o_Traversed(object).decrementCountdownToReoptimize(continuation);
 	}
 
 	@Override
@@ -2800,7 +2792,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	AvailObject o_Priority (final AvailObject object)
+	int o_Priority (final AvailObject object)
 	{
 		return o_Traversed(object).priority();
 	}
@@ -4302,7 +4294,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	A_BasicObject o_PrefixFunctions (
+	A_Tuple o_PrefixFunctions (
 		final AvailObject object)
 	{
 		return o_Traversed(object).prefixFunctions();
@@ -4311,7 +4303,7 @@ extends AbstractDescriptor
 	@Override
 	boolean o_EqualsByteArrayTuple (
 		final AvailObject object,
-		final AvailObject aByteArrayTuple)
+		final A_Tuple aByteArrayTuple)
 	{
 		return o_Traversed(object).equalsByteArrayTuple(aByteArrayTuple);
 	}
@@ -4321,7 +4313,7 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final int i,
 		final int tupleSize,
-		final AvailObject aByteArrayTuple,
+		final A_Tuple aByteArrayTuple,
 		final int j)
 	{
 		return o_Traversed(object).compareFromToWithByteArrayTupleStartingAt(
@@ -4385,5 +4377,150 @@ extends AbstractDescriptor
 	AvailObject o_BundleMethod (final AvailObject object)
 	{
 		return o_Traversed(object).bundleMethod();
+	}
+
+	@Override
+	AvailObject o_GetAndSetValue (
+		final AvailObject object,
+		final AvailObject newValue)
+	{
+		return o_Traversed(object).getAndSetValue(newValue);
+	}
+
+	@Override
+	boolean o_CompareAndSwapValues (
+		final AvailObject object,
+		final AvailObject reference,
+		final AvailObject newValue)
+	{
+		return o_Traversed(object).compareAndSwapValues(reference, newValue);
+	}
+
+	@Override
+	AvailObject o_FetchAndAddValue (
+		final AvailObject object,
+		final AvailObject addend)
+	{
+		return o_Traversed(object).fetchAndAddValue(addend);
+	}
+
+	@Override
+	Continuation1<Throwable> o_FailureContinuation (final AvailObject object)
+	{
+		return o_Traversed(object).failureContinuation();
+	}
+
+	@Override
+	Continuation1<AvailObject> o_ResultContinuation (final AvailObject object)
+	{
+		return o_Traversed(object).resultContinuation();
+	}
+
+	@Override
+	void o_ResultContinuation (
+		final AvailObject object,
+		final Continuation1<AvailObject> continuation)
+	{
+		o_Traversed(object).resultContinuation(continuation);
+	}
+
+	@Override
+	void o_FailureContinuation (
+		final AvailObject object,
+		final Continuation1<Throwable> continuation)
+	{
+		o_Traversed(object).failureContinuation(continuation);
+	}
+
+	@Override
+	@Nullable
+	AvailLoader o_AvailLoader (final AvailObject object)
+	{
+		return o_Traversed(object).availLoader();
+	}
+
+	@Override
+	void o_AvailLoader (final AvailObject object, @Nullable final AvailLoader loader)
+	{
+		o_Traversed(object).availLoader(loader);
+	}
+
+	@Override
+	boolean o_InterruptRequestFlag (
+		final AvailObject object,
+		final InterruptRequestFlag flag)
+	{
+		return o_Traversed(object).interruptRequestFlag(flag);
+	}
+
+	@Override
+	boolean o_GetAndClearInterruptRequestFlag (
+		final AvailObject object,
+		final InterruptRequestFlag flag)
+	{
+		return o_Traversed(object).getAndClearInterruptRequestFlag(flag);
+	}
+
+	@Override
+	boolean o_GetAndSetSynchronizationFlag (
+		final AvailObject object,
+		final SynchronizationFlag flag,
+		final boolean newValue)
+	{
+		return o_Traversed(object).getAndSetSynchronizationFlag(flag, newValue);
+	}
+
+	@Override
+	AvailObject o_FiberResult (final AvailObject object)
+	{
+		return o_Traversed(object).fiberResult();
+	}
+
+	@Override
+	void o_FiberResult (final AvailObject object, final A_BasicObject result)
+	{
+		o_Traversed(object).fiberResult(result);
+	}
+
+	@Override
+	A_Set o_JoiningFibers (final AvailObject object)
+	{
+		return o_Traversed(object).joiningFibers();
+	}
+
+	@Override
+	AvailObject o_Joinee (final AvailObject object)
+	{
+		return o_Traversed(object).joinee();
+	}
+
+	@Override
+	void o_Joinee (final AvailObject object, final AvailObject joinee)
+	{
+		o_Traversed(object).joinee(joinee);
+	}
+
+	@Override
+	@Nullable TimerTask o_WakeupTask (final AvailObject object)
+	{
+		return o_Traversed(object).wakeupTask();
+	}
+
+	@Override
+	void o_WakeupTask (final AvailObject object, @Nullable final TimerTask task)
+	{
+		o_Traversed(object).wakeupTask(task);
+	}
+
+	@Override
+	void o_Name (final AvailObject object, final A_String value)
+	{
+		o_Traversed(object).name(value);
+	}
+
+	@Override
+	void o_JoiningFibers (final AvailObject object, final A_Set joiners)
+	{
+		o_Traversed(object).joiningFibers(joiners);
 	}
 }

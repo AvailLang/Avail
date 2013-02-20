@@ -227,6 +227,7 @@ extends ParseNodeDescriptor
 		newObject.setSlot(ARGUMENTS_LIST_NODE, argsListNode);
 		newObject.setSlot(METHOD, method);
 		newObject.setSlot(RETURN_TYPE, returnType);
+		newObject.makeShared();
 		return newObject;
 	}
 

@@ -31,14 +31,14 @@
 
 package com.avail.interpreter.levelTwo;
 
-import java.util.*;
 import com.avail.descriptor.L2ChunkDescriptor;
+import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.operand.*;
 import com.avail.optimizer.*;
 import com.avail.interpreter.levelTwo.register.*;
 
 /**
- * The instruction set for the {@linkplain L2Interpreter level two Avail
+ * The instruction set for the {@linkplain Interpreter level two Avail
  * interpreter}.  Avail programs can only see as far down as the level one
  * nybblecode representation.  Level two translations are invisibly created as
  * necessary to boost performance of frequently executed code.  Technically
@@ -129,11 +129,11 @@ public abstract class L2Operation
 	}
 
 	/**
-	 * The set of {@linkplain L2Operation operations} that have been encountered
-	 * thus far, organized as an array indexed by the operations' {@linkplain
-	 * #ordinal ordinals}.  The array might be padded with nulls.
+	 * The {@linkplain L2Operation operations} that have been encountered thus
+	 * far, organized as an array indexed by the operations' {@linkplain
+	 * #ordinal ordinals}. The array might be padded with nulls.
 	 */
-	static L2Operation[] values = new L2Operation[0];  // grown by replacement
+	static final L2Operation[] values = new L2Operation[200];
 
 	/**
 	 * Answer an array of {@linkplain L2Operation operations} which have been
@@ -163,33 +163,36 @@ public abstract class L2Operation
 	 *
 	 * @param theNamedOperandTypes
 	 *            The named operand types that this operation expects.
+	 * @return The receiver.
 	 */
-	public void init (
-		final L2NamedOperandType... theNamedOperandTypes)
+	public L2Operation init (final L2NamedOperandType... theNamedOperandTypes)
 	{
-		assert namedOperandTypes == null;
-		namedOperandTypes = theNamedOperandTypes;
-		name = this.getClass().getSimpleName();
-		if (numValues >= values.length)
+		// Static class initialization causes this to happen, and L2Operation
+		// subclasses may be first encountered by separate threads. Therefore we
+		// must synchronize on some common object. I have chosen the values
+		// array.
+		synchronized (values)
 		{
-			values = Arrays.copyOf(values, numValues * 2 + 10);
+			assert namedOperandTypes == null;
+			namedOperandTypes = theNamedOperandTypes;
+			name = this.getClass().getSimpleName();
+			ordinal = numValues;
+			values[ordinal] = this;
+			numValues++;
 		}
-		ordinal = numValues;
-		values[ordinal] = this;
-		numValues++;
+		return this;
 	}
 
 	/**
-	 * Execute this {@link L2Operation} within an {@link L2Interpreter}.  The
+	 * Execute this {@link L2Operation} within an {@link Interpreter}.  The
 	 * {@linkplain L2Operand operands} are encoded as integers in the wordcode
-	 * stream, extracted with {@link L2Interpreter#nextWord()}.
+	 * stream, extracted with {@link Interpreter#nextWord()}.
 	 *
 	 * @param interpreter
-	 *            The {@linkplain L2Interpreter interpreter} on behalf of which
+	 *            The {@linkplain Interpreter interpreter} on behalf of which
 	 *            to perform this operation.
 	 */
-	public abstract void step (
-		final L2Interpreter interpreter);
+	public abstract void step (final Interpreter interpreter);
 
 	/**
 	 * @param instruction

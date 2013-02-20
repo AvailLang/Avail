@@ -55,7 +55,7 @@ public class P_016_CreateVariable extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
-		final A_BasicObject innerType = args.get(0);
+		final A_Type innerType = args.get(0);
 		return interpreter.primitiveSuccess(
 			VariableDescriptor.forInnerType(innerType));
 	}

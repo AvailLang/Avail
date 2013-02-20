@@ -71,7 +71,7 @@ public class P_136_ConcatenateTuples extends Primitive
 
 	@Override
 	public A_Type returnTypeGuaranteedByVM (
-		final List<A_Type> argumentTypes)
+		final List<? extends A_Type> argumentTypes)
 	{
 		final A_Type tuplesType = argumentTypes.get(0);
 

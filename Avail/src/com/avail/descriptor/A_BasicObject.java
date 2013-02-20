@@ -35,17 +35,20 @@ package com.avail.descriptor;
 import java.math.BigInteger;
 import java.util.List;
 import java.util.Set;
+import java.util.TimerTask;
 import com.avail.annotations.Nullable;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.AbstractNumberDescriptor.Sign;
 import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
 import com.avail.descriptor.FiberDescriptor.ExecutionState;
+import com.avail.descriptor.FiberDescriptor.InterruptRequestFlag;
+import com.avail.descriptor.FiberDescriptor.SynchronizationFlag;
 import com.avail.descriptor.InfinityDescriptor.IntegerSlots;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.descriptor.SetDescriptor.SetIterator;
 import com.avail.exceptions.SignatureException;
+import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.Interpreter;
-import com.avail.interpreter.levelTwo.L2Interpreter;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.Continuation0;
 import com.avail.utility.Continuation1;
@@ -362,7 +365,7 @@ public interface A_BasicObject
 	 *         general than the types of the corresponding elements of the
 	 *         {@code arguments} tuple, {@code false} otherwise.
 	 */
-	boolean acceptsTupleOfArguments (A_BasicObject arguments);
+	boolean acceptsTupleOfArguments (A_Tuple arguments);
 
 	/**
 	 * Add the {@linkplain L2ChunkDescriptor chunk} with the given index to the
@@ -593,7 +596,7 @@ public interface A_BasicObject
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	void continuation (AvailObject value);
+	void continuation (A_BasicObject value);
 
 	/**
 	 * Dispatch to the descriptor.
@@ -953,11 +956,6 @@ public interface A_BasicObject
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	int getInteger ();
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
 	AvailObject getValue ();
 
 	/**
@@ -1000,7 +998,7 @@ public interface A_BasicObject
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	boolean includesDefinition (AvailObject imp);
+	boolean includesDefinition (A_BasicObject imp);
 
 	/**
 	 * Dispatch to the descriptor.
@@ -1020,22 +1018,7 @@ public interface A_BasicObject
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	int interruptRequestFlags ();
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	void setInterruptRequestFlag (BitField value);
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
 	void clearInterruptRequestFlags ();
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	int countdownToReoptimize ();
 
 	/**
 	 * Dispatch to the descriptor.
@@ -1439,12 +1422,7 @@ public interface A_BasicObject
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	A_BasicObject priority ();
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	void priority (A_Number value);
+	int priority ();
 
 	/**
 	 * Dispatch to the descriptor.
@@ -1551,11 +1529,6 @@ public interface A_BasicObject
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	void removeFrom (L2Interpreter anInterpreter);
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
 	void removeDefinition (A_BasicObject definition);
 
 	/**
@@ -1572,7 +1545,7 @@ public interface A_BasicObject
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	void resolveForward (AvailObject forwardDefinition);
+	void resolveForward (A_BasicObject forwardDefinition);
 
 	/**
 	 * Dispatch to the descriptor.
@@ -2763,13 +2736,7 @@ public interface A_BasicObject
 	/**
 	 * @return
 	 */
-	A_BasicObject prefixFunctions ();
-
-	/**
-	 * @param aByteArrayTuple
-	 * @return
-	 */
-	boolean equalsByteArrayTuple (AvailObject aByteArrayTuple);
+	A_Tuple prefixFunctions ();
 
 	/**
 	 * @return
@@ -2799,7 +2766,7 @@ public interface A_BasicObject
 	/**
 	 * @return
 	 */
-	A_BasicObject namesSet ();
+	A_Set namesSet ();
 
 	/**
 	 * @return
@@ -2863,4 +2830,140 @@ public interface A_BasicObject
 	 * @return
 	 */
 	AvailObject bundleMethod ();
+
+	/**
+	 * @return
+	 */
+	Continuation1<Throwable> failureContinuation ();
+
+	/**
+	 * @param scheduled
+	 * @param b
+	 * @return
+	 */
+	boolean getAndSetSynchronizationFlag (
+		SynchronizationFlag scheduled,
+		boolean b);
+
+	/**
+	 * @param onSuccess
+	 */
+	void resultContinuation (Continuation1<AvailObject> onSuccess);
+
+	/**
+	 * @param onFailure
+	 */
+	void failureContinuation (Continuation1<Throwable> onFailure);
+
+	/**
+	 * @param finalObject
+	 */
+	void fiberResult (A_BasicObject finalObject);
+
+	/**
+	 * @return
+	 */
+	Continuation1<AvailObject> resultContinuation ();
+
+	/**
+	 * @param flag
+	 * @return
+	 */
+	boolean interruptRequestFlag (InterruptRequestFlag flag);
+
+	/**
+	 * @param newValue
+	 * @return
+	 */
+	AvailObject getAndSetValue (AvailObject newValue);
+
+	/**
+	 * @param reference
+	 * @param newValue
+	 * @return
+	 */
+	boolean compareAndSwapValues (AvailObject reference, AvailObject newValue);
+
+	/**
+	 * @param addend
+	 * @return
+	 */
+	AvailObject fetchAndAddValue (AvailObject addend);
+
+	/**
+	 * @param flag
+	 * @return
+	 */
+	boolean getAndClearInterruptRequestFlag (InterruptRequestFlag flag);
+
+	/**
+	 * @return
+	 */
+	AvailObject fiberResult ();
+
+	/**
+	 * @return
+	 */
+	A_Set joiningFibers ();
+
+	/**
+	 * @return
+	 */
+	AvailObject joinee ();
+
+	/**
+	 * @param joinee
+	 */
+	void joinee (AvailObject joinee);
+
+	/**
+	 * @return
+	 */
+	@Nullable TimerTask wakeupTask ();
+
+	/**
+	 * @param task
+	 */
+	void wakeupTask (@Nullable TimerTask task);
+
+	/**
+	 * @param flag
+	 */
+	void setInterruptRequestFlag (InterruptRequestFlag flag);
+
+	/**
+	 * @param continuation
+	 */
+	void decrementCountdownToReoptimize (Continuation0 continuation);
+
+	/**
+	 * @param value
+	 */
+	void priority (int value);
+
+	/**
+	 * @return
+	 */
+	@Nullable AvailLoader availLoader ();
+
+	/**
+	 * @param loader
+	 */
+	void availLoader (@Nullable AvailLoader loader);
+
+	/**
+	 * @param aByteArrayTuple
+	 * @return
+	 */
+	boolean equalsByteArrayTuple (A_Tuple aByteArrayTuple);
+
+	/**
+	 * @param newName
+	 */
+	void name (A_String newName);
+
+	/**
+	 * @param empty
+	 */
+	void joiningFibers (A_Set empty);
 }

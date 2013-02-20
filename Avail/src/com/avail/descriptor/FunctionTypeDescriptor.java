@@ -93,8 +93,8 @@ extends TypeDescriptor
 		ARGS_TUPLE_TYPE
 	}
 
-	@Override boolean allowsImmutableToMutableReferenceInField (
-		final AbstractSlotsEnum e)
+	@Override
+	boolean allowsImmutableToMutableReferenceInField (final AbstractSlotsEnum e)
 	{
 		return e == HASH_OR_ZERO;
 	}
@@ -398,7 +398,7 @@ extends TypeDescriptor
 	@Override @AvailMethod
 	boolean o_AcceptsTupleOfArguments (
 		final AvailObject object,
-		final A_BasicObject arguments)
+		final A_Tuple arguments)
 	{
 		return arguments.isInstanceOf(object.slot(ARGS_TUPLE_TYPE));
 	}

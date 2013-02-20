@@ -69,7 +69,7 @@ public class P_109_TupleToSet extends Primitive
 
 	@Override
 	public A_Type returnTypeGuaranteedByVM (
-		final List<A_Type> argumentTypes)
+		final List<? extends A_Type> argumentTypes)
 	{
 		final A_Type tupleType = argumentTypes.get(0);
 

@@ -34,6 +34,7 @@ package com.avail.interpreter.levelTwo.operation;
 import static com.avail.descriptor.AvailObject.error;
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_POINTER;
 import com.avail.descriptor.*;
+import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.*;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.optimizer.RegisterSet;
@@ -46,16 +47,12 @@ public class L2_CLEAR_VARIABLE extends L2Operation
 	/**
 	 * Initialize the sole instance.
 	 */
-	public final static L2Operation instance = new L2_CLEAR_VARIABLE();
-
-	static
-	{
-		instance.init(
+	public final static L2Operation instance =
+		new L2_CLEAR_VARIABLE().init(
 			READ_POINTER.is("variable"));
-	}
 
 	@Override
-	public void step (final L2Interpreter interpreter)
+	public void step (final Interpreter interpreter)
 	{
 		@SuppressWarnings("unused")
 		final int clearIndex = interpreter.nextWord();

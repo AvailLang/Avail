@@ -69,7 +69,7 @@ public class P_014_VariableReadType extends Primitive
 
 	@Override
 	public A_Type returnTypeGuaranteedByVM (
-		final List<A_Type> argumentTypes)
+		final List<? extends A_Type> argumentTypes)
 	{
 		final A_BasicObject varMeta = argumentTypes.get(0);
 		final A_BasicObject varType = varMeta.instance();

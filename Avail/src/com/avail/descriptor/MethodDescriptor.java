@@ -33,7 +33,6 @@
 package com.avail.descriptor;
 
 import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.descriptor.MethodDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.MethodDescriptor.ObjectSlots.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import static java.lang.Math.max;
@@ -46,7 +45,6 @@ import com.avail.interpreter.*;
 import com.avail.interpreter.levelOne.*;
 import com.avail.interpreter.primitive.*;
 import com.avail.serialization.SerializerOperation;
-import com.avail.utility.*;
 
 /**
  * A method maintains all definitions that have the same name.  At
@@ -489,19 +487,6 @@ extends Descriptor
 	}
 
 	/**
-	 * The layout of integer slots for my instances.
-	 */
-	public enum IntegerSlots
-	implements IntegerSlotsEnum
-	{
-		/**
-		 * The hash value for this method.
-		 */
-		@HideFieldInDebugger
-		HASH
-	}
-
-	/**
 	 * The fields that are of type {@code AvailObject}.
 	 */
 	public enum ObjectSlots
@@ -638,7 +623,7 @@ extends Descriptor
 	@Override @AvailMethod
 	int o_Hash (final AvailObject object)
 	{
-		return object.slot(HASH);
+		return object.slot(ORIGINAL_NAME).hash() + 0x061AF3FC;
 	}
 
 	@Override @AvailMethod
@@ -782,7 +767,7 @@ extends Descriptor
 	@Override @AvailMethod
 	boolean o_IncludesDefinition (
 		final AvailObject object,
-		final AvailObject definition)
+		final A_BasicObject definition)
 	{
 		// Use the accessor instead of reading the slot directly (to acquire the
 		// monitor first).
@@ -948,201 +933,6 @@ extends Descriptor
 		catch (final SignatureException e)
 		{
 			throw new RuntimeException(e);
-		}
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>
-	 * Check the argument types for validity and return the result type of the
-	 * message send. Use not only the applicable {@linkplain
-	 * MethodDefinitionDescriptor method signatures}, but also any type
-	 * restriction functions. The type restriction functions may choose to
-	 * {@linkplain P_352_RejectParsing}, indicating that the argument types are
-	 * mutually incompatible.
-	 * </p>
-	 */
-	@Override @AvailMethod
-	A_Type o_ValidateArgumentTypesInterpreterIfFail (
-		final AvailObject object,
-		final List<A_Type> argTypes,
-		final Interpreter anAvailInterpreter,
-		final Continuation1<Generator<String>> failBlock)
-	{
-		synchronized (object)
-		{
-			// Filter the definitions down to those that are locally most
-			// specific.  Fail if more than one survives.
-			final A_Tuple definitionsTuple = object.slot(DEFINITIONS_TUPLE);
-			if (definitionsTuple.tupleSize() > 0
-				&& !definitionsTuple.tupleAt(1).isMacroDefinition())
-			{
-				// This consists of method definitions.
-				for (
-					int index = 1, end = argTypes.size();
-					index <= end;
-					index++)
-				{
-					final int finalIndex = index;
-					final A_Type finalType = argTypes.get(finalIndex - 1);
-					if (finalType.equals(BottomTypeDescriptor.bottom())
-						|| finalType.equals(TOP.o()))
-					{
-						failBlock.value(new Generator<String> ()
-						{
-							@Override
-							public String value()
-							{
-								// Choose an arbitrary method name.
-								final A_String name =
-									object.slot(NAMES_SET).iterator().next();
-								return "argument #"
-									+ Integer.toString(finalIndex)
-									+ " of message \""
-									+ name.asNativeString()
-									+ "\" to have a type other than "
-									+ argTypes.get(finalIndex - 1);
-							}
-						});
-						return NilDescriptor.nil();
-					}
-				}
-			}
-			final List<AvailObject> satisfyingTypes =
-				object.filterByTypes(argTypes);
-			if (satisfyingTypes.size() == 0)
-			{
-				failBlock.value(new Generator<String> ()
-				{
-					@Override
-					public String value()
-					{
-						final List<A_Type> functionTypes =
-							new ArrayList<A_Type>(2);
-						for (final A_BasicObject imp : definitionsTuple)
-						{
-							functionTypes.add(imp.bodySignature());
-						}
-						final Formatter builder = new Formatter();
-						final List<Integer> allFailedIndices =
-							new ArrayList<Integer>(3);
-						each_arg:
-						for (int index = argTypes.size(); index >= 1; index--)
-						{
-							for (final A_BasicObject sig : functionTypes)
-							{
-								if (argTypes.get(index - 1).isSubtypeOf(
-									sig.argsTupleType().typeAtIndex(index)))
-								{
-									continue each_arg;
-								}
-							}
-							allFailedIndices.add(0, index);
-						}
-						// Choose an arbitrary method name.
-						final A_Atom name =
-							object.slot(NAMES_SET).iterator().next();
-						builder.format(
-							"arguments at indices %s of message %s to match a "
-							+ "method definition.%n",
-							allFailedIndices,
-							name.name().asNativeString());
-						builder.format(
-							"\tI got:%n\t\t%s%n",
-							argTypes);
-						builder.format(
-							"\tI expected%s:",
-							functionTypes.size() > 1 ? " one of" : "");
-						for (final A_BasicObject sig : functionTypes)
-						{
-							builder.format("%n\t\t%s", sig);
-						}
-						final String builderString = builder.toString();
-						builder.close();
-						return builderString;
-					}
-				});
-				return NilDescriptor.nil();
-			}
-			A_Type intersection =
-				satisfyingTypes.get(0).bodySignature().returnType();
-			for (int i = satisfyingTypes.size() - 1; i >= 1; i--)
-			{
-				intersection = intersection.typeIntersection(
-					satisfyingTypes.get(i).bodySignature().returnType());
-			}
-			final A_Tuple restrictions = object.slot(TYPE_RESTRICTIONS_TUPLE);
-			final Mutable<Boolean> anyFailures = new Mutable<Boolean>(false);
-			for (int i = restrictions.tupleSize(); i >= 1; i--)
-			{
-				final A_Function restriction = restrictions.tupleAt(i);
-				if (restriction.kind().acceptsListOfArgValues(argTypes))
-				{
-					try
-					{
-						final List<AvailObject> strongArgTypes =
-							new ArrayList<AvailObject>(argTypes.size());
-						for (final A_Type argType : argTypes)
-						{
-							strongArgTypes.add((AvailObject)argType);
-						}
-						final AvailObject restrictionType =
-							anAvailInterpreter.runFunctionArguments(
-								restriction,
-								strongArgTypes);
-						intersection = intersection.typeIntersection(
-							restrictionType);
-					}
-					catch (final AvailRejectedParseException e)
-					{
-						final A_String problem = e.rejectionString();
-						failBlock.value(
-							new Generator<String>()
-							{
-								@Override
-								public String value ()
-								{
-									// Use the original method name.
-									final A_String name =
-										object.slot(ORIGINAL_NAME);
-									return
-										problem.asNativeString()
-										+ " (while parsing send of "
-										+ name.asNativeString()
-										+ ")";
-								}
-							});
-						anyFailures.value = true;
-					}
-					catch (final Exception e)
-					{
-						failBlock.value(
-							new Generator<String>()
-							{
-								@Override
-								public String value ()
-								{
-									// Choose an arbitrary method name.
-									final A_String name =
-										object.slot(ORIGINAL_NAME);
-									return
-										"semantic restriction not to raise an "
-										+ "unhandled exception (while parsing "
-										+ "send of "
-										+ name.asNativeString()
-										+ "):\n\t"
-										+ e.toString();
-								}
-							});
-					}
-				}
-			}
-			if (anyFailures.value)
-			{
-				return NilDescriptor.nil();
-			}
-			return intersection;
 		}
 	}
 
@@ -1484,7 +1274,7 @@ extends Descriptor
 
 	/**
 	 * Answer a new {@linkplain MethodDescriptor method}. Use the passed
-	 * {@linkplain AtomDescriptor atom} as its initial name. A method is always
+	 * {@linkplain AtomDescriptor atom} as its original name. A method is always
 	 * shared, but its names set, definitionsTuple, privateTestingTree, and
 	 * dependentsChunks can all be assigned to.
 	 *
@@ -1498,7 +1288,6 @@ extends Descriptor
 		assert messageName.isAtom();
 
 		final AvailObject result = mutable.create();
-		result.setSlot(HASH, AvailRuntime.nextHash());
 		result.setSlot(DEFINITIONS_TUPLE, TupleDescriptor.empty());
 		result.setSlot(DEPENDENT_CHUNK_INDICES, SetDescriptor.empty());
 		result.setSlot(ORIGINAL_NAME, messageName);

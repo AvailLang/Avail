@@ -39,8 +39,7 @@ import com.avail.exceptions.ArithmeticException;
 import com.avail.interpreter.*;
 
 /**
- * <strong>Primitive 4:</strong> Compute {@linkplain
- * ExtendedIntegerDescriptor extended integer} a divided by b.
+ * <strong>Primitive 4:</strong> Divide an extended integer by another one.
  */
 public class P_004_Division extends Primitive
 {

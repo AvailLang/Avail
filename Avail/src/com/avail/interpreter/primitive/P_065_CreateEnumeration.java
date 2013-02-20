@@ -71,7 +71,7 @@ public class P_065_CreateEnumeration extends Primitive
 
 	@Override
 	public A_Type returnTypeGuaranteedByVM (
-		final List<A_Type> argumentTypes)
+		final List<? extends A_Type> argumentTypes)
 	{
 		final A_Type setType = argumentTypes.get(0);
 		// The type restricting the set's elements (i.e., the set's element

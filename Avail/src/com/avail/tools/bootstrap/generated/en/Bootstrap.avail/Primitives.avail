@@ -1,6 +1,6 @@
 /*
  * Primitives.avail
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -71,7 +71,6 @@ Names
 	"Restart_with_",
 	"Seal method_at_",
 	"Semantic restriction_is_",
-	"Terminate current fiber",
 	"[`…]→_",
 	"_'s⁇arguments",
 	"_'s⁇arity",
@@ -107,7 +106,6 @@ Names
 	"_'s⁇outer variables",
 	"_'s⁇parameters'type",
 	"_'s⁇primitive number",
-	"_'s⁇priority",
 	"_'s⁇program counter",
 	"_'s⁇public names",
 	"_'s⁇read type",
@@ -188,7 +186,6 @@ Names
 	"atom for_",
 	"concatenate_",
 	"constructor_<«_‡,»>(fail with_)",
-	"current fiber",
 	"current module",
 	"eject_",
 	"enumeration of_",
@@ -203,7 +200,6 @@ Names
 	"method exists named_",
 	"method for_",
 	"method_._(«_‡,»)(fail with_)",
-	"milliseconds since the Epoch",
 	"new atom_",
 	"new_[_]",
 	"new_applying_",
@@ -211,15 +207,12 @@ Names
 	"next character",
 	"primfail`«_:_`»",
 	"primitive description of_",
-	"request termination of_",
 	"semantic restrictions for_given_",
 	"send_with_:_",
 	"seq`«_`»",
-	"set_'s⁇priority to_",
 	"special atoms",
 	"static method_._(«_‡,»)(fail with_)",
 	"swap_and_",
-	"termination requested",
 	"{_`|_}",
 	"{_→_`|_}",
 	"‘_’",

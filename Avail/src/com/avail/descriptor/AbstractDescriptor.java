@@ -42,6 +42,8 @@ import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.AbstractNumberDescriptor.Order;
 import com.avail.descriptor.AbstractNumberDescriptor.Sign;
 import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
+import com.avail.descriptor.FiberDescriptor.InterruptRequestFlag;
+import com.avail.descriptor.FiberDescriptor.SynchronizationFlag;
 import com.avail.descriptor.InfinityDescriptor.IntegerSlots;
 import com.avail.descriptor.MapDescriptor.MapIterable;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
@@ -50,8 +52,8 @@ import com.avail.descriptor.SetDescriptor.SetIterator;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.exceptions.AvailUnsupportedOperationException;
 import com.avail.exceptions.SignatureException;
+import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.Interpreter;
-import com.avail.interpreter.levelTwo.L2Interpreter;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.*;
 import com.avail.visitor.AvailSubobjectVisitor;
@@ -1029,11 +1031,11 @@ public abstract class AbstractDescriptor
 	 * @return {@code true} if the arguments of the receiver are, pairwise, more
 	 *         general than the types of the corresponding elements of the
 	 *         {@code arguments} tuple, {@code false} otherwise.
-	 * @see AvailObject#acceptsTupleOfArguments(A_BasicObject)
+	 * @see AvailObject#acceptsTupleOfArguments(A_Tuple)
 	 */
 	abstract boolean o_AcceptsTupleOfArguments (
 		AvailObject object,
-		A_BasicObject arguments);
+		A_Tuple arguments);
 
 	/**
 	 *
@@ -1470,7 +1472,7 @@ public abstract class AbstractDescriptor
 	 */
 	abstract void o_Continuation (
 		AvailObject object,
-		AvailObject value);
+		A_BasicObject value);
 
 	/**
 	 * @param object
@@ -1718,7 +1720,7 @@ public abstract class AbstractDescriptor
 	 */
 	abstract boolean o_IncludesDefinition (
 		AvailObject object,
-		AvailObject definition);
+		A_BasicObject definition);
 
 	/**
 	 * @param object
@@ -1727,14 +1729,6 @@ public abstract class AbstractDescriptor
 	abstract void o_Index (
 		AvailObject object,
 		int value);
-
-	/**
-	 * @param object
-	 * @param value
-	 */
-	abstract void o_SetInterruptRequestFlag (
-		AvailObject object,
-		BitField value);
 
 	/**
 	 * @param object
@@ -2151,7 +2145,7 @@ public abstract class AbstractDescriptor
 	 */
 	abstract void o_Priority (
 		AvailObject object,
-		A_Number value);
+		int value);
 
 	/**
 	 * @param object
@@ -2314,11 +2308,11 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param anInterpreter
+	 * @param aLoader
 	 */
 	abstract void o_RemoveFrom (
 		AvailObject object,
-		L2Interpreter anInterpreter);
+		AvailLoader aLoader);
 
 	/**
 	 * @param object
@@ -2351,7 +2345,7 @@ public abstract class AbstractDescriptor
 	 */
 	abstract void o_ResolveForward (
 		AvailObject object,
-		AvailObject forwardDefinition);
+		A_BasicObject forwardDefinition);
 
 	/**
 	 * @param object
@@ -3184,12 +3178,6 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	abstract int o_GetInteger (AvailObject object);
-
-	/**
-	 * @param object
-	 * @return
-	 */
 	abstract AvailObject o_GetValue (AvailObject object);
 
 	/**
@@ -3225,15 +3213,11 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @return
+	 * @param continuation
 	 */
-	abstract int o_InterruptRequestFlags (AvailObject object);
-
-	/**
-	 * @param object
-	 * @return
-	 */
-	abstract int o_CountdownToReoptimize (AvailObject object);
+	abstract void o_DecrementCountdownToReoptimize (
+		AvailObject object,
+		Continuation0 continuation);
 
 	/**
 	 * @param object
@@ -3485,7 +3469,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	abstract AvailObject o_Priority (AvailObject object);
+	abstract int o_Priority (AvailObject object);
 
 	/**
 	 * @param object
@@ -5699,7 +5683,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	abstract A_BasicObject o_PrefixFunctions (
+	abstract A_Tuple o_PrefixFunctions (
 		final AvailObject object);
 
 	/**
@@ -5709,7 +5693,7 @@ public abstract class AbstractDescriptor
 	 */
 	abstract boolean o_EqualsByteArrayTuple (
 		final AvailObject object,
-		final AvailObject aByteArrayTuple);
+		final A_Tuple aByteArrayTuple);
 
 	/**
 	 * @param object
@@ -5723,7 +5707,7 @@ public abstract class AbstractDescriptor
 		final AvailObject object,
 		final int i,
 		final int tupleSize,
-		final AvailObject aByteArrayTuple,
+		final A_Tuple aByteArrayTuple,
 		final int j);
 
 	/**
@@ -5787,4 +5771,168 @@ public abstract class AbstractDescriptor
 	 * @return
 	 */
 	abstract AvailObject o_BundleMethod (final AvailObject object);
+
+	/**
+	 * @param object
+	 * @param newValue
+	 * @return
+	 */
+	abstract AvailObject o_GetAndSetValue (
+		AvailObject object,
+		AvailObject newValue);
+
+	/**
+	 * @param object
+	 * @param reference
+	 * @param newValue
+	 * @return
+	 */
+	abstract boolean o_CompareAndSwapValues (
+		AvailObject object,
+		AvailObject reference,
+		AvailObject newValue);
+
+	/**
+	 * @param object
+	 * @param addend
+	 * @return
+	 */
+	abstract AvailObject o_FetchAndAddValue (
+		final AvailObject object,
+		final AvailObject addend);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract Continuation1<Throwable> o_FailureContinuation (
+		AvailObject object);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract Continuation1<AvailObject> o_ResultContinuation (
+		AvailObject object);
+
+	/**
+	 * @param object
+	 * @param continuation
+	 */
+	abstract void o_ResultContinuation (
+		AvailObject object,
+		Continuation1<AvailObject> continuation);
+
+	/**
+	 * @param object
+	 * @param continuation
+	 */
+	abstract void o_FailureContinuation (
+		AvailObject object,
+		Continuation1<Throwable> continuation);
+
+	/**
+	 * @param object
+	 * @param flag
+	 */
+	abstract void o_SetInterruptRequestFlag (
+		AvailObject object,
+		InterruptRequestFlag flag);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract @Nullable AvailLoader o_AvailLoader (AvailObject object);
+
+	/**
+	 * @param object
+	 * @param loader
+	 */
+	abstract void o_AvailLoader (
+		AvailObject object,
+		@Nullable AvailLoader loader);
+
+	/**
+	 * @param object
+	 * @param flag
+	 * @return
+	 */
+	abstract boolean o_InterruptRequestFlag (
+		AvailObject object,
+		InterruptRequestFlag flag);
+
+	/**
+	 * @param object
+	 * @param flag
+	 * @return
+	 */
+	abstract boolean o_GetAndClearInterruptRequestFlag (
+		AvailObject object,
+		InterruptRequestFlag flag);
+
+	/**
+	 * @param object
+	 * @param flag
+	 * @param newValue
+	 * @return
+	 */
+	abstract boolean o_GetAndSetSynchronizationFlag (
+		AvailObject object,
+		SynchronizationFlag flag,
+		boolean newValue);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract AvailObject o_FiberResult (final AvailObject object);
+
+	/**
+	 * @param object
+	 * @param result
+	 */
+	abstract void o_FiberResult (AvailObject object, A_BasicObject result);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract A_Set o_JoiningFibers (AvailObject object);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract AvailObject o_Joinee (AvailObject object);
+
+	/**
+	 * @param object
+	 * @param joinee
+	 */
+	abstract void o_Joinee (AvailObject object, AvailObject joinee);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract @Nullable TimerTask o_WakeupTask (AvailObject object);
+
+	/**
+	 * @param object
+	 * @param task
+	 */
+	abstract void o_WakeupTask (AvailObject object, @Nullable TimerTask task);
+
+	/**
+	 * @param object
+	 * @param value
+	 */
+	abstract void o_Name (final AvailObject object, final A_String value);
+
+	/**
+	 * @param object
+	 * @param joiners
+	 */
+	abstract void o_JoiningFibers (AvailObject object, A_Set joiners);
 }

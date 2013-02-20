@@ -1,6 +1,6 @@
 /**
- * P_026_LookupFiberVariable.java
- * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
+ * P_620_FiberResult.java
+ * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,44 +29,60 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+
 package com.avail.interpreter.primitive;
 
 import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.exceptions.AvailErrorCode.E_NO_SUCH_FIBER_VARIABLE;
-import static com.avail.interpreter.Primitive.Flag.CanInline;
+import static com.avail.exceptions.AvailErrorCode.*;
+import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
+import com.avail.annotations.NotNull;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
+import com.avail.utility.*;
 
 /**
- * <strong>Primitive 26:</strong> Lookup the given {@linkplain
- * AtomDescriptor name} (key) in the variables of the given
+ * <strong>Primitive 620</strong>: Answer the result of the specified
  * {@linkplain FiberDescriptor fiber}.
+ *
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class P_026_LookupFiberVariable extends Primitive
+public final class P_620_FiberResult
+extends Primitive
 {
 	/**
-	 * The sole instance of this primitive class.  Accessed through reflection.
+	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_026_LookupFiberVariable().init(
-		2, CanInline);
+	public final @NotNull static Primitive instance =
+		new P_620_FiberResult().init(1, CanInline);
 
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 2;
-		final A_BasicObject fiber = args.get(0);
-		final A_Atom key = args.get(1);
-		final A_Map globals = fiber.fiberGlobals();
-		if (!globals.hasKey(key))
+		assert args.size() == 1;
+		final AvailObject fiber = args.get(0);
+		final Mutable<Result> result = new Mutable<Result>();
+		fiber.lock(new Continuation0()
 		{
-			return interpreter.primitiveFailure(
-				E_NO_SUCH_FIBER_VARIABLE);
-		}
-		return interpreter.primitiveSuccess(
-			globals.mapAt(key).makeImmutable());
+			@Override
+			public void value ()
+			{
+				if (!fiber.executionState().indicatesTermination()
+					|| fiber.fiberResult().equalsNil())
+				{
+					result.value = interpreter.primitiveFailure(
+						E_FIBER_RESULT_UNAVAILABLE);
+				}
+				else
+				{
+					result.value = interpreter.primitiveSuccess(
+						fiber.fiberResult());
+				}
+			}
+		});
+		return result.value;
 	}
 
 	@Override
@@ -74,8 +90,7 @@ public class P_026_LookupFiberVariable extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				FIBER.o(),
-				ATOM.o()),
+				FIBER.o()),
 			ANY.o());
 	}
 }

@@ -33,6 +33,7 @@ package com.avail.interpreter.levelTwo.operation;
 
 import static com.avail.descriptor.AvailObject.error;
 import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_VECTOR;
+import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.*;
 import com.avail.optimizer.RegisterSet;
 
@@ -46,16 +47,12 @@ public class L2_ENTER_L2_CHUNK extends L2Operation
 	/**
 	 * Initialize the sole instance.
 	 */
-	public final static L2Operation instance = new L2_ENTER_L2_CHUNK();
-
-	static
-	{
-		instance.init(
+	public final static L2Operation instance =
+		new L2_ENTER_L2_CHUNK().init(
 			WRITE_VECTOR.is("fixed and arguments"));
-	}
 
 	@Override
-	public void step (final L2Interpreter interpreter)
+	public void step (final Interpreter interpreter)
 	{
 		error("Enter chunk wordcode is not executable\n");
 	}

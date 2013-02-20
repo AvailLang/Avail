@@ -31,10 +31,10 @@
  */
 package com.avail.interpreter.levelTwo.operation;
 
-import static com.avail.interpreter.levelTwo.L2Interpreter.*;
+import static com.avail.interpreter.Interpreter.*;
 import static com.avail.interpreter.levelTwo.register.FixedRegister.*;
 import com.avail.descriptor.*;
-import com.avail.interpreter.Primitive;
+import com.avail.interpreter.*;
 import com.avail.interpreter.Primitive.Flag;
 import com.avail.interpreter.levelTwo.*;
 import com.avail.optimizer.RegisterSet;
@@ -54,15 +54,11 @@ public class L2_PREPARE_NEW_FRAME extends L2Operation
 	/**
 	 * Initialize the sole instance.
 	 */
-	public final static L2Operation instance = new L2_PREPARE_NEW_FRAME();
-
-	static
-	{
-		instance.init();
-	}
+	public final static L2Operation instance =
+		new L2_PREPARE_NEW_FRAME().init();
 
 	@Override
-	public void step (final L2Interpreter interpreter)
+	public void step (final Interpreter interpreter)
 	{
 		final A_Function function = interpreter.pointerAt(FUNCTION);
 		final A_BasicObject code = function.code();

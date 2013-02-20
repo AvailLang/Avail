@@ -32,6 +32,7 @@
 
 package com.avail.interpreter.levelTwo.register;
 
+import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.*;
 import com.avail.optimizer.L2Translator;
 
@@ -46,14 +47,14 @@ import com.avail.optimizer.L2Translator;
 public class L2Register
 {
 	/**
-	 * A coloring number to be used by the {@linkplain L2Interpreter
+	 * A coloring number to be used by the {@linkplain Interpreter
 	 * interpreter} at runtime to identify the storage location of a
 	 * {@linkplain L2Register register}.
 	 */
 	private int finalIndex = -1;
 
 	/**
-	 * Answer the coloring number to be used by the {@linkplain L2Interpreter
+	 * Answer the coloring number to be used by the {@linkplain Interpreter
 	 * interpreter} at runtime to identify the storage location of a {@linkplain
 	 * L2Register register}.
 	 *
@@ -65,7 +66,7 @@ public class L2Register
 	}
 
 	/**
-	 * Set the coloring number to be used by the {@linkplain L2Interpreter
+	 * Set the coloring number to be used by the {@linkplain Interpreter
 	 * interpreter} at runtime to identify the storage location of a {@linkplain
 	 * L2Register register}.
 	 *

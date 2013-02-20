@@ -33,6 +33,7 @@ package com.avail.interpreter.levelTwo.operation;
 
 import static com.avail.descriptor.AvailObject.error;
 import static com.avail.interpreter.levelTwo.L2OperandType.COMMENT;
+import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.*;
 
 /**
@@ -45,16 +46,12 @@ public class L2_LABEL extends L2Operation
 	/**
 	 * Initialize the sole instance.
 	 */
-	public final static L2Operation instance = new L2_LABEL();
-
-	static
-	{
-		instance.init(
+	public final static L2Operation instance =
+		new L2_LABEL().init(
 			COMMENT.is("Name of label"));
-	}
 
 	@Override
-	public void step (final L2Interpreter interpreter)
+	public void step (final Interpreter interpreter)
 	{
 		error("Label wordcode is not executable\n");
 	}

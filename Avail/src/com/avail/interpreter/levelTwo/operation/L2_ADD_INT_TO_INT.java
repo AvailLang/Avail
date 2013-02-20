@@ -33,6 +33,7 @@
 package com.avail.interpreter.levelTwo.operation;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
+import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.*;
 
 /**
@@ -46,18 +47,14 @@ public class L2_ADD_INT_TO_INT extends L2Operation
 	/**
 	 * Initialize the sole instance.
 	 */
-	public final static L2Operation instance = new L2_ADD_INT_TO_INT();
-
-	static
-	{
-		instance.init(
+	public final static L2Operation instance =
+		new L2_ADD_INT_TO_INT().init(
 			READ_INT.is("addend"),
 			READWRITE_INT.is("augend"),
 			PC.is("if out of range"));
-	}
 
 	@Override
-	public void step (final L2Interpreter interpreter)
+	public void step (final Interpreter interpreter)
 	{
 		final int addIndex = interpreter.nextWord();
 		final int destIndex = interpreter.nextWord();

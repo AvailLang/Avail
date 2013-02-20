@@ -32,6 +32,7 @@
 package com.avail.interpreter.levelTwo.operation;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.PC;
+import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.*;
 
 /**
@@ -44,16 +45,12 @@ public class L2_JUMP_IF_NOT_INTERRUPT extends L2Operation
 	/**
 	 * Initialize the sole instance.
 	 */
-	public final static L2Operation instance = new L2_JUMP_IF_NOT_INTERRUPT();
-
-	static
-	{
-		instance.init(
+	public final static L2Operation instance =
+		new L2_JUMP_IF_NOT_INTERRUPT().init(
 			PC.is("target if not interrupt"));
-	}
 
 	@Override
-	public void step (final L2Interpreter interpreter)
+	public void step (final Interpreter interpreter)
 	{
 		final int ifNotIndex = interpreter.nextWord();
 		if (!interpreter.isInterruptRequested())

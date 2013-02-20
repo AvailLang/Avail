@@ -69,7 +69,7 @@ public class P_037_ReturnType extends Primitive
 
 	@Override
 	public A_Type returnTypeGuaranteedByVM (
-		final List<A_Type> argumentTypes)
+		final List<? extends A_Type> argumentTypes)
 	{
 		final A_Type functionMeta = argumentTypes.get(0);
 

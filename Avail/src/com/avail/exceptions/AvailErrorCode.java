@@ -32,14 +32,14 @@
 
 package com.avail.exceptions;
 
-import static com.avail.interpreter.Primitive.Flag.*;
 import java.lang.reflect.*;
 import java.util.*;
 import com.avail.AvailRuntime;
 import com.avail.compiler.MessageSplitter;
 import com.avail.descriptor.*;
 import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
-import com.avail.interpreter.*;
+import com.avail.interpreter.Primitive;
+import com.avail.interpreter.Primitive.Flag;
 
 /**
  * {@code AvailErrorCode} is an enumeration of all possible failures of
@@ -55,32 +55,32 @@ public enum AvailErrorCode
 	E_REQUIRED_FAILURE (0),
 
 	/**
-	 * Cannot {@linkplain AvailObject#plusCanDestroy(A_Number, boolean)} add}
+	 * Cannot {@linkplain A_Number#plusCanDestroy(A_Number, boolean)} add}
 	 * {@linkplain InfinityDescriptor infinities} of unlike sign.
 	 */
 	E_CANNOT_ADD_UNLIKE_INFINITIES (1),
 
 	/**
-	 * Cannot {@linkplain AvailObject#minusCanDestroy(A_Number, boolean)
+	 * Cannot {@linkplain A_Number#minusCanDestroy(A_Number, boolean)
 	 * subtract} {@linkplain InfinityDescriptor infinities} of unlike sign.
 	 */
 	E_CANNOT_SUBTRACT_LIKE_INFINITIES (2),
 
 	/**
-	 * Cannot {@linkplain AvailObject#timesCanDestroy(A_Number, boolean)
+	 * Cannot {@linkplain A_Number#timesCanDestroy(A_Number, boolean)
 	 * multiply} {@linkplain IntegerDescriptor#zero() zero} and {@linkplain
 	 * InfinityDescriptor infinity}.
 	 */
 	E_CANNOT_MULTIPLY_ZERO_AND_INFINITY (3),
 
 	/**
-	 * Cannot {@linkplain AvailObject#divideCanDestroy(A_Number, boolean)
+	 * Cannot {@linkplain A_Number#divideCanDestroy(A_Number, boolean)
 	 * divide} by {@linkplain IntegerDescriptor#zero() zero}.
 	 */
 	E_CANNOT_DIVIDE_BY_ZERO (4),
 
 	/**
-	 * Cannot {@linkplain AvailObject#divideCanDestroy(A_Number, boolean)
+	 * Cannot {@linkplain A_Number#divideCanDestroy(A_Number, boolean)
 	 * divide} two {@linkplain InfinityDescriptor infinities}.
 	 */
 	E_CANNOT_DIVIDE_INFINITIES (5),
@@ -388,7 +388,7 @@ public enum AvailErrorCode
 	E_INCORRECT_TYPE_FOR_NUMBERED_CHOICE (57),
 
 	/**
-	 * A {@link Primitive} has the flag {@linkplain #CannotFail}, so it should
+	 * A {@link Primitive} has the flag {@link Flag#CannotFail}, so it should
 	 * not have any statements to run in the event of a failed primitive.
 	 */
 	E_INFALLIBLE_PRIMITIVE_MUST_NOT_HAVE_STATEMENTS (58),
@@ -401,8 +401,8 @@ public enum AvailErrorCode
 	E_MACRO_PREFIX_FUNCTIONS_MUST_RETURN_TOP (59),
 
 	/**
-	 * A {@link Primitive} either has the flag {@linkplain #CannotFail} and has
-	 * a failure variable, or it does not have that flag and has no failure
+	 * A {@link Primitive} either has the flag {@linkplain Flag#CannotFail} and
+	 * has a failure variable, or it does not have that flag and has no failure
 	 * variable.
 	 */
 	E_PRIMITIVE_FALLIBILITY_DISAGREES_WITH_FAILURE_VARIABLE (60),
@@ -451,11 +451,11 @@ public enum AvailErrorCode
 //	E_??? (69),
 
 	/**
-	 * Compilation is over. The interpreter is now operating in runtime mode.
+	 * Module loading is over. The interpreter is now operating in runtime mode.
 	 * This usually means that an attempt was made to modify module metadata at
 	 * runtime.
 	 */
-	E_COMPILATION_IS_OVER (70),
+	E_LOADING_IS_OVER (70),
 
 	/**
 	 * Method lookup failed.
@@ -472,6 +472,13 @@ public enum AvailErrorCode
 	 * The primitive is not implemented.
 	 */
 	E_NO_IMPLEMENTATION (73),
+
+//	E_??? (74)
+//	E_??? (75)
+//	E_??? (76)
+//	E_??? (77)
+//	E_??? (78)
+//	E_??? (79)
 
 	/**
 	 * The continuation whose primitive failure variable is set to this value is
@@ -499,6 +506,33 @@ public enum AvailErrorCode
 	 */
 	E_UNWIND_SENTINEL (83),
 
+//	E_??? (84)
+//	E_??? (85)
+//	E_??? (86)
+//	E_??? (87)
+//	E_??? (88)
+//	E_??? (89)
+
+	/**
+	 * The {@linkplain FiberDescriptor fiber} being interrogated has not (or
+	 * did not) produce a result.
+	 */
+	E_FIBER_RESULT_UNAVAILABLE (90),
+
+	/**
+	 * A {@linkplain FiberDescriptor fiber} attempted to join itself.
+	 */
+	E_FIBER_CANNOT_JOIN_ITSELF (91),
+
+//	E_??? (92)
+//	E_??? (93)
+//	E_??? (94)
+//	E_??? (95)
+//	E_??? (96)
+//	E_??? (97)
+//	E_??? (98)
+//	E_??? (99)
+
 	/**
 	 * A proposed {@linkplain BlockNodeDescriptor block expression} contains
 	 * one or more invalid statements.
@@ -521,9 +555,6 @@ public enum AvailErrorCode
 	 */
 	E_BLOCK_COMPILATION_FAILED (103),
 
-	/**
-	 * TODO: Recycle!
-	 */
 //	E_??? (104),
 
 	/**
@@ -532,9 +563,6 @@ public enum AvailErrorCode
 	 */
 	E_SEQUENCE_CONTAINS_INVALID_STATEMENTS (105),
 
-	/**
-	 * TODO: Recycle!
-	 */
 //	E_??? (106),
 
 	/**
@@ -556,9 +584,6 @@ public enum AvailErrorCode
 	 */
 	E_JAVA_METHOD_NOT_AVAILABLE (502),
 
-	/**
-	 * TODO: Recycle!
-	 */
 //	E_??? (503),
 
 	/**

@@ -143,7 +143,7 @@ extends DefinitionDescriptor
 		final AvailObject instance = mutable.create();
 		instance.setSlot(ObjectSlots.DEFINITION_METHOD, definitionMethod);
 		instance.setSlot(ObjectSlots.BODY_SIGNATURE, bodySignature);
-		instance.makeImmutable();
+		instance.makeShared();
 		return instance;
 	}
 
@@ -168,14 +168,11 @@ extends DefinitionDescriptor
 		return mutable;
 	}
 
-	/** The immutable {@link ForwardDefinitionDescriptor}. */
-	private static final ForwardDefinitionDescriptor immutable =
-		new ForwardDefinitionDescriptor(Mutability.IMMUTABLE);
-
 	@Override
 	ForwardDefinitionDescriptor immutable ()
 	{
-		return immutable;
+		// There is no immutable variant.
+		return shared;
 	}
 
 	/** The shared {@link ForwardDefinitionDescriptor}. */

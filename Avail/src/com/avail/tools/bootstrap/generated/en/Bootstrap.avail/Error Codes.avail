@@ -1,6 +1,6 @@
 /*
  * Error Codes.avail
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -70,7 +70,6 @@ Names
 	/*   2 */ "cannot subtract like infinities code",
 	/*   8 */ "cannot swap contents of differently typed variables code",
 	/*  51 */ "case insensitive expression canonization code",
-	/*  70 */ "compilation is over code",
 	/*  14 */ "continuation expected stronger type code",
 	/*  36 */ "declaration kind does not support assignment code",
 	/*  37 */ "declaration kind does not support reference code",
@@ -78,7 +77,8 @@ Names
 	/*  53 */ "double question mark must follow a simple or simple group code",
 	/*  38 */ "exclamation mark must follow an alternation group code",
 	/*  46 */ "expected operator after backquote code",
-	/*  61 */ "final expression should agree with declared return type code",
+	/*  91 */ "fiber cannot join itself code",
+	/*  90 */ "fiber result unavailable code",
 	/*  27 */ "function disagrees with primitive restriction code",
 	/*  80 */ "handler sentinel code",
 	/*  12 */ "incorrect argument type code",
@@ -95,6 +95,7 @@ Names
 	/*  21 */ "key not found code",
 	/*  58 */ "label macro must occur inside a block code",
 	/*  63 */ "label type should agree with declared return type code",
+	/*  70 */ "loading is over code",
 	/*  66 */ "local declaration shadows another code",
 	/*  28 */ "local type literal is not a type code",
 	/*  34 */ "macro argument must be a parse node code",
@@ -434,7 +435,7 @@ Primitive "primitive fallibility disagrees with failure variable code" is
 	60
 ];
 
-Primitive "final expression should agree with declared return type code" is
+Primitive "fiber cannot join itself code" is
 [
 	61
 ];
@@ -464,7 +465,7 @@ Primitive "local declaration shadows another code" is
 	66
 ];
 
-Primitive "compilation is over code" is
+Primitive "loading is over code" is
 [
 	70
 ];
@@ -502,6 +503,16 @@ Primitive "no handler frame code" is
 Primitive "unwind sentinel code" is
 [
 	83
+];
+
+Primitive "fiber result unavailable code" is
+[
+	90
+];
+
+Primitive "fiber cannot join itself code" is
+[
+	91
 ];
 
 Primitive "block contains invalid statements code" is

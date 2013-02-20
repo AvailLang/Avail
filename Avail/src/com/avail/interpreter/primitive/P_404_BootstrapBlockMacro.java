@@ -96,14 +96,14 @@ public class P_404_BootstrapBlockMacro extends Primitive
 		final A_Atom clientDataKey = AtomDescriptor.clientDataGlobalKey();
 		if (!fiberGlobals.hasKey(clientDataKey))
 		{
-			return interpreter.primitiveFailure(E_COMPILATION_IS_OVER);
+			return interpreter.primitiveFailure(E_LOADING_IS_OVER);
 		}
 		final A_Map clientData = fiberGlobals.mapAt(clientDataKey);
 		final A_Atom scopeMapKey = AtomDescriptor.compilerScopeMapKey();
 		if (!clientData.hasKey(scopeMapKey))
 		{
 			// It looks like somebody removed all the scope information.
-			return interpreter.primitiveFailure(E_COMPILATION_IS_OVER);
+			return interpreter.primitiveFailure(E_LOADING_IS_OVER);
 		}
 		final A_Map scopeMap = clientData.mapAt(scopeMapKey);
 
@@ -125,7 +125,7 @@ public class P_404_BootstrapBlockMacro extends Primitive
 				if (!scopeMap.hasKey(declarationName))
 				{
 					// The argument binding is missing.
-					return interpreter.primitiveFailure(E_COMPILATION_IS_OVER);
+					return interpreter.primitiveFailure(E_LOADING_IS_OVER);
 				}
 				argumentDeclarationsList.add(scopeMap.mapAt(declarationName));
 			}
@@ -161,7 +161,7 @@ public class P_404_BootstrapBlockMacro extends Primitive
 				if (!scopeMap.hasKey(failureDeclarationName))
 				{
 					// The primitive failure variable binding is missing.
-					return interpreter.primitiveFailure(E_COMPILATION_IS_OVER);
+					return interpreter.primitiveFailure(E_LOADING_IS_OVER);
 				}
 				final AvailObject failureDeclaration =
 					scopeMap.mapAt(failureDeclarationName);
@@ -180,7 +180,7 @@ public class P_404_BootstrapBlockMacro extends Primitive
 			if (!scopeMap.hasKey(labelDeclarationName))
 			{
 				// The label binding is missing.
-				return interpreter.primitiveFailure(E_COMPILATION_IS_OVER);
+				return interpreter.primitiveFailure(E_LOADING_IS_OVER);
 			}
 			final AvailObject label = scopeMap.mapAt(labelDeclarationName);
 			allStatements.add(label);
@@ -328,7 +328,7 @@ public class P_404_BootstrapBlockMacro extends Primitive
 		return AbstractEnumerationTypeDescriptor.withInstances(
 			TupleDescriptor.from(
 				E_PRIMITIVE_NOT_SUPPORTED.numericCode(),
-				E_COMPILATION_IS_OVER.numericCode(),
+				E_LOADING_IS_OVER.numericCode(),
 				E_PRIMITIVE_FALLIBILITY_DISAGREES_WITH_FAILURE_VARIABLE.numericCode(),
 				E_INFALLIBLE_PRIMITIVE_MUST_NOT_HAVE_STATEMENTS.numericCode(),
 				E_FINAL_EXPRESSION_SHOULD_AGREE_WITH_DECLARED_RETURN_TYPE.numericCode(),

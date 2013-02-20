@@ -121,7 +121,7 @@ extends DefinitionDescriptor
 		final AvailObject instance = mutable.create();
 		instance.setSlot(ObjectSlots.DEFINITION_METHOD, definitionMethod);
 		instance.setSlot(ObjectSlots.BODY_SIGNATURE, bodySignature);
-		instance.makeImmutable();
+		instance.makeShared();
 		return instance;
 	}
 
@@ -146,19 +146,16 @@ extends DefinitionDescriptor
 		return mutable;
 	}
 
-	/** The immutable {@link AbstractDefinitionDescriptor}. */
-	private static final AbstractDefinitionDescriptor immutable =
-		new AbstractDefinitionDescriptor(Mutability.IMMUTABLE);
+	/** The shared {@link AbstractDefinitionDescriptor}. */
+	private static final AbstractDefinitionDescriptor shared =
+		new AbstractDefinitionDescriptor(Mutability.SHARED);
 
 	@Override
 	AbstractDefinitionDescriptor immutable ()
 	{
-		return immutable;
+		// There is no immutable variant.
+		return shared;
 	}
-
-	/** The shared {@link AbstractDefinitionDescriptor}. */
-	private static final AbstractDefinitionDescriptor shared =
-		new AbstractDefinitionDescriptor(Mutability.SHARED);
 
 	@Override
 	AbstractDefinitionDescriptor shared ()

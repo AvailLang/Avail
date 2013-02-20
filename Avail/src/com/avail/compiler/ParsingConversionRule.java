@@ -35,6 +35,7 @@ package com.avail.compiler;
 import static com.avail.descriptor.TokenDescriptor.TokenType.LITERAL;
 import com.avail.compiler.AbstractAvailCompiler.ParserState;
 import com.avail.descriptor.*;
+import com.avail.utility.Continuation1;
 
 /**
  * A {@code ParsingConversionRule} describes how to convert the argument at the
@@ -51,11 +52,13 @@ public enum ParsingConversionRule
 	noConversion(0)
 	{
 		@Override
-		public AvailObject convert (
+		public void convert (
 			final AvailObject input,
-			final ParserState startingParserState)
+			final ParserState startingParserState,
+			final Continuation1<AvailObject> continuation,
+			final Continuation1<Throwable> onFailure)
 		{
-			return input;
+			continuation.value(input);
 		}
 	},
 
@@ -68,9 +71,11 @@ public enum ParsingConversionRule
 	listToSize(1)
 	{
 		@Override
-		public AvailObject convert (
+		public void convert (
 			final AvailObject input,
-			final ParserState startingParserState)
+			final ParserState startingParserState,
+			final Continuation1<AvailObject> continuation,
+			final Continuation1<Throwable> onFailure)
 		{
 			final A_Tuple expressions = input.expressionsTuple();
 			final A_Number count = IntegerDescriptor.fromInt(
@@ -82,7 +87,7 @@ public enum ParsingConversionRule
 					startingParserState.peekToken().lineNumber(),
 					LITERAL,
 					count);
-			return LiteralNodeDescriptor.fromToken(token);
+			continuation.value(LiteralNodeDescriptor.fromToken(token));
 		}
 	},
 
@@ -96,9 +101,11 @@ public enum ParsingConversionRule
 	listToNonemptiness(2)
 	{
 		@Override
-		public AvailObject convert (
+		public void convert (
 			final AvailObject input,
-			final ParserState startingParserState)
+			final ParserState startingParserState,
+			final Continuation1<AvailObject> continuation,
+			final Continuation1<Throwable> onFailure)
 		{
 			final A_Tuple expressions =
 				input.expressionsTuple();
@@ -111,7 +118,7 @@ public enum ParsingConversionRule
 					startingParserState.peekToken().lineNumber(),
 					LITERAL,
 					nonempty);
-			return LiteralNodeDescriptor.fromToken(token);
+			continuation.value(LiteralNodeDescriptor.fromToken(token));
 		}
 	},
 
@@ -123,22 +130,16 @@ public enum ParsingConversionRule
 	evaluateExpression(3)
 	{
 		@Override
-		public AvailObject convert (
+		public void convert (
 			final AvailObject input,
-			final ParserState startingParserState)
+			final ParserState startingParserState,
+			final Continuation1<AvailObject> continuation,
+			final Continuation1<Throwable> onFailure)
 		{
-			try
-			{
-				final AvailObject value =
-					startingParserState.evaluate(input);
-				return LiteralNodeDescriptor.syntheticFrom(value);
-			}
-			catch (final AvailRejectedParseException e)
-			{
-				startingParserState.expected(
-					e.rejectionString().asNativeString());
-				return NilDescriptor.nil();
-			}
+			startingParserState.evaluatePhraseThen(
+				input,
+				continuation,
+				onFailure);
 		}
 	};
 
@@ -159,13 +160,20 @@ public enum ParsingConversionRule
 	 * Convert an input {@link AvailObject} into an output AvailObject, using
 	 * the specific conversion rule's implementation.
 	 *
-	 * @param input The value to be converted.
-	 * @param startingParserState TODO
-	 * @return The converted value.
+	 * @param input
+	 *            The parse node to be converted.
+	 * @param startingParserState
+	 *            The parser state at which the conversion should take place.
+	 * @param continuation
+	 *            What to do with the replacement parse node.
+	 * @param onFailure
+	 *            What to do if a problem happens during conversion.
 	 */
-	public abstract AvailObject convert (
+	public abstract void convert (
 		final AvailObject input,
-		final ParserState startingParserState);
+		final ParserState startingParserState,
+		final Continuation1<AvailObject> continuation,
+		final Continuation1<Throwable> onFailure);
 
 	/**
 	 * Construct a new {@link ParsingConversionRule}.

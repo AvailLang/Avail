@@ -620,7 +620,7 @@ extends AbstractEnumerationTypeDescriptor
 	@Override @AvailMethod
 	boolean o_AcceptsTupleOfArguments (
 		final AvailObject object,
-		final A_BasicObject arguments)
+		final A_Tuple arguments)
 	{
 		return getSuperkind(object).acceptsTupleOfArguments(arguments);
 	}

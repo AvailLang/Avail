@@ -59,7 +59,6 @@ Uses
 		"If|if_then_else_",
 		"Print:_",
 		"Reject parse,expected:_",
-		"Terminate current fiber",
 		"[`…]→_",
 		"_'s⁇arguments",
 		"_'s⁇arity",
@@ -93,7 +92,6 @@ Uses
 		"_'s⁇outer variables",
 		"_'s⁇parameters'type",
 		"_'s⁇primitive number",
-		"_'s⁇priority",
 		"_'s⁇program counter",
 		"_'s⁇public names",
 		"_'s⁇read type",
@@ -120,7 +118,6 @@ Uses
 		"_<_",
 		"_=_",
 		"_[_]",
-		"_[_]:=_",
 		"_\\_",
 		"_^_",
 		"_bit∧_",
@@ -158,23 +155,19 @@ Uses
 		"`«↓_`»(_)",
 		"arg`«_:_`»",
 		"concatenate_",
-		"current fiber",
 		"enumeration of_",
 		"function accepting_and returning_",
 		"integer range from_(inclusive=_)to_(inclusive=_)",
 		"literal token⇒_",
 		"ln_",
 		"method exists named_",
-		"milliseconds since the Epoch",
 		"new atom_",
 		"new_[_]",
 		"new_applying_",
 		"new↑_",
 		"primfail`«_:_`»",
 		"primitive description of_",
-		"request termination of_",
 		"semantic restrictions for_given_",
-		"set_'s⁇priority to_",
 		"special atoms",
 		"{_`|_}",
 		"{_→_`|_}",
@@ -375,99 +368,6 @@ Primitive "_'s⁇write type" is
 ] : type;
 
 /**
- * Answer the number of milliseconds which have elapsed since midnight
- * Coordinated Universal Time (UTC) of Thursday, January 1, 1970 (i.e. the Unix
- * Epoch).
- *
- * Returns:
- *    The current time as the number of milliseconds which have elapsed since
- *    the Unix Epoch.
- */
-Primitive "milliseconds since the Epoch" is
-[
-	Primitive 20;
-] : whole number;
-
-/**
- * Extract the priority of a fiber.  The priority is a whole number.  A fiber
- * with higher priority may receive a larger share of the available CPU time
- * than one with a low priority.
- *
- * Parameters:
- *    aFiber - The fiber from which to extract the priority.
- * Returns:
- *    A whole number representing the priority of the fiber.
- */
-Primitive "_'s⁇priority" is
-[
-	aFiber : fiber
-|
-	Primitive 21;
-] : whole number;
-
-/**
- * Modify the priority of a fiber.  The priority is a whole number.  A fiber
- * with higher priority may receive a larger share of the available CPU time
- * than one with a low priority.
- *
- * Parameters:
- *    aFiber - The fiber to reprioritize.
- *    priority - The new priority.
- */
-Primitive "set_'s⁇priority to_" is
-[
-	aFiber : fiber,
-	priority : whole number
-|
-	Primitive 22;
-] : ⊤;
-
-/**
- * Request termination of the specified fiber. Termination is consensual only;
- * cooperation of the fiber is required to affect termination.
- *
- * Parameters:
- *    victim - A fiber.
- */
-Primitive "request termination of_" is
-[
-	victim : fiber
-|
-	Primitive 24;
-] : ⊤;
-
-/**
- * Answer the current fiber.
- *
- * Returns:
- *    The current fiber.
- */
-Primitive "current fiber" is
-[
-	Primitive 25;
-] : fiber;
-
-/**
- * Set the value bound to `key` in the specified fiber's environment,
- * overwriting any previous value. Since the fiber's environment essentially
- * contains fiber-local variables (i.e. bindings from atoms to arbitrary
- * values), this operation effectively writes a fiber-local variable.
- *
- * Parameters:
- *    aFiber - The fiber whose environment should be consulted.
- *    key - The key whose value should be (over)written.
- *    value - The new value.
- */
-Primitive "_[_]:=_" is
-[
-	aFiber : fiber,
-	key : atom,
-	value : any
-|
-	Primitive 27;
-] : ⊤;
-
-/**
  * Answer the number of instances of the specified type. This is `∞` for all
  * types except for enumerations.
  *
@@ -481,7 +381,7 @@ Primitive "`|_`|" is
 	aType : type
 |
 	Primitive 28;
-] : nonnegative integer;
+] : nonnegative extended integer;
 
 /**
  * Answer the precise instance type of the supplied value. This is the most
@@ -1014,24 +914,6 @@ Primitive "_'s⁇outer variables" is
 |
 	Primitive 73;
 ] : tuple;
-
-/**
- * Does `aFiber`'s environment have a value bound to `key`? This effectively
- * ascertains whether a fiber-local variable exists for the specified fiber.
- *
- * Parameters:
- *    key - The key whose existence should be queried.
- *    aFiber - The fiber whose environment should be queried.
- * Returns:
- *    `true` if the fiber binds a value to `key`, `false` otherwise.
- */
-Primitive "_∈_" is
-[
-	key : atom,
-	aFiber : fiber
-|
-	Primitive 75;
-] : boolean;
 
 /**
  * Answer the cardinality of the specified map.
@@ -2177,17 +2059,6 @@ Primitive "Error:_" is
 |
 	Primitive 265;
 ] : ⊤;
-
-/**
- * Terminate the current fiber.
- *
- * This method is for use by the exception handling machinery only. It should
- * only be invoked from an unhandled exception handler.
- */
-Primitive "Terminate current fiber" is
-[
-	Primitive 266;
-] : ⊥;
 
 /**
  * Compute and answer the numeric argument as a single-precision floating point

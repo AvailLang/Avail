@@ -35,7 +35,7 @@ import static com.avail.descriptor.AvailObject.error;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.AvailObject;
-import com.avail.interpreter.Primitive;
+import com.avail.interpreter.*;
 import com.avail.interpreter.levelTwo.*;
 
 /**
@@ -56,18 +56,13 @@ public class L2_REPORT_INVALID_RETURN_TYPE extends L2Operation
 	 * Initialize the sole instance.
 	 */
 	public final static L2Operation instance =
-		new L2_REPORT_INVALID_RETURN_TYPE();
-
-	static
-	{
-		instance.init(
+		new L2_REPORT_INVALID_RETURN_TYPE().init(
 			PRIMITIVE.is("failed primitive"),
 			READ_POINTER.is("actual value"),
 			CONSTANT.is("expected type"));
-	}
 
 	@Override
-	public void step (final L2Interpreter interpreter)
+	public void step (final Interpreter interpreter)
 	{
 		final int primitiveNumber = interpreter.nextWord();
 		final int actualValueRegister = interpreter.nextWord();
@@ -76,7 +71,6 @@ public class L2_REPORT_INVALID_RETURN_TYPE extends L2Operation
 			interpreter.pointerAt(actualValueRegister);
 		final AvailObject expectedType =
 			interpreter.chunk().literalAt(expectedTypeIndex);
-		assert !interpreter.primitiveResult.isInstanceOf(expectedType);
 		error(
 			"primitive %s's result (%s) did not agree with"
 			+ " semantic restriction's expected type (%s)",

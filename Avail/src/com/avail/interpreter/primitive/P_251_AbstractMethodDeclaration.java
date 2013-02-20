@@ -32,6 +32,7 @@
 package com.avail.interpreter.primitive;
 
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
+import static com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER;
 import static com.avail.interpreter.Primitive.Flag.Unknown;
 import java.util.List;
 import com.avail.descriptor.*;
@@ -61,7 +62,12 @@ public class P_251_AbstractMethodDeclaration extends Primitive
 		final AvailObject blockSignature = args.get(1);
 		try
 		{
-			interpreter.addAbstractSignature(
+			final AvailLoader loader = FiberDescriptor.current().availLoader();
+			if (loader == null)
+			{
+				return interpreter.primitiveFailure(E_LOADING_IS_OVER);
+			}
+			loader.addAbstractSignature(
 				interpreter.lookupName(string),
 				blockSignature);
 			interpreter.fixupForPotentiallyInvalidCurrentChunk();

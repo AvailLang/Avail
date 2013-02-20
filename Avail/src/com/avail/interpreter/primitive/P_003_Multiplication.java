@@ -39,8 +39,7 @@ import com.avail.exceptions.ArithmeticException;
 import com.avail.interpreter.*;
 
 /**
- * <strong>Primitive 3:</strong> Multiply {@linkplain
- * ExtendedIntegerDescriptor extended integers} a and b.
+ * <strong>Primitive 3:</strong> Multiply two extended integers.
  */
 public class P_003_Multiplication extends Primitive
 {

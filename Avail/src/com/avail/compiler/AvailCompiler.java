@@ -38,8 +38,9 @@ import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.*;
 import com.avail.annotations.Nullable;
 import com.avail.builder.ModuleName;
+import com.avail.builder.ResolvedModuleName;
 import com.avail.descriptor.*;
-import com.avail.interpreter.levelTwo.L2Interpreter;
+import com.avail.utility.Continuation1;
 import com.avail.utility.Generator;
 
 /**
@@ -54,8 +55,6 @@ extends AbstractAvailCompiler
 	/**
 	 * Construct a new {@link AvailCompiler}.
 	 *
-	 * @param interpreter
-	 *            The interpreter used to execute code during compilation.
 	 * @param moduleName
 	 *            The {@link ModuleName} of the module being compiled.
 	 * @param source
@@ -65,12 +64,11 @@ extends AbstractAvailCompiler
 	 *            scanned from the module's source.
 	 */
 	public AvailCompiler (
-		final L2Interpreter interpreter,
-		final ModuleName moduleName,
+		final ResolvedModuleName moduleName,
 		final String source,
 		final List<A_Token> tokens)
 	{
-		super(interpreter, moduleName, source, tokens);
+		super(moduleName, source, tokens);
 	}
 
 	/**
@@ -91,12 +89,13 @@ extends AbstractAvailCompiler
 			{
 				@Override
 				public void value (
-					final @Nullable ParserState ignored,
+					final @Nullable ParserState realStart,
 					final @Nullable Con<AvailObject> whenFoundStatement)
 				{
+					assert realStart != null;
 					assert whenFoundStatement != null;
 					parseExpressionThen(
-						start,
+						realStart,
 						new Con<AvailObject>("End of statement")
 						{
 							@Override
@@ -208,57 +207,65 @@ extends AbstractAvailCompiler
 				});
 			return;
 		}
+		// Declarations introduced in the macro should now be moved
+		// out of scope.
+		// TODO: [MvG] Use a fiber to store the parser state.
+		final ParserState reportedStateDuringValidation = new ParserState(
+			stateAfterCall.position - 1,
+			stateBeforeCall.clientDataMap);
+		final ParserState stateAfter = new ParserState(
+			stateAfterCall.position,
+			stateBeforeCall.clientDataMap);
 		// A macro can't have semantic restrictions, so just run it.
-		try
-		{
-			// Declarations introduced in the macro should now be moved
-			// out of scope.
-			final ParserState reportedStateDuringValidation = new ParserState(
-				stateAfterCall.position - 1,
-				stateBeforeCall.clientDataMap);
-			final ParserState stateAfter = new ParserState(
-				stateAfterCall.position,
-				stateBeforeCall.clientDataMap);
-			interpreter.currentParserState = reportedStateDuringValidation;
-			AvailObject replacement;
-			try
+		evaluateFunctionThen(
+			macroBody,
+			argumentExpressions,
+			false,
+			new Continuation1<AvailObject>()
 			{
-				replacement = interpreter.runFunctionArguments(
-					macroBody,
-					argumentExpressions);
-			}
-			finally
+				@Override
+				public void value (final @Nullable AvailObject replacement)
+				{
+					assert replacement != null;
+					if (replacement.isInstanceOfKind(
+						PARSE_NODE.mostGeneralType()))
+					{
+						final AvailObject substitution =
+							MacroSubstitutionNodeDescriptor.fromNameAndNode(
+								bundle.message(),
+								replacement);
+						attempt(stateAfter, continuation, substitution);
+					}
+					else
+					{
+						stateAfterCall.expected(
+							"macro body ("
+							+ method.name().name()
+							+ ") to produce a parse node");
+					}
+				}
+			},
+			new Continuation1<Throwable>()
 			{
-				interpreter.currentParserState = null;
-			}
-			if (replacement.isInstanceOfKind(PARSE_NODE.mostGeneralType()))
-			{
-				final AvailObject substitution =
-					MacroSubstitutionNodeDescriptor.fromNameAndNode(
-						bundle.message(),
-						replacement);
-				attempt(stateAfter, continuation, substitution);
-			}
-			else
-			{
-				stateAfterCall.expected(
-					"macro body ("
-					+ method.originalName().name()
-					+ ") to produce a parse node");
-			}
-		}
-		catch (final AvailRejectedParseException e)
-		{
-			stateAfterCall.expected(e.rejectionString().asNativeString());
-		}
-		catch (final Exception e)
-		{
-			stateAfterCall.expected(
-				"evaluation of macro body not to raise an unhandled "
-				+ "exception:\n\t"
-				+ e);
-		}
-		return;
+				@Override
+				public void value (final @Nullable Throwable e)
+				{
+					if (e instanceof AvailRejectedParseException)
+					{
+						final AvailRejectedParseException rej =
+							(AvailRejectedParseException) e;
+						stateAfterCall.expected(
+							rej.rejectionString().asNativeString());
+					}
+					else
+					{
+						stateAfterCall.expected(
+							"evaluation of macro body not to raise an "
+							+ "unhandled exception:\n\t"
+							+ e);
+					}
+				}
+			});
 	}
 
 	/**

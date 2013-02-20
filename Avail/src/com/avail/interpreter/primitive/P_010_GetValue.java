@@ -32,10 +32,10 @@
 package com.avail.interpreter.primitive;
 
 import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.exceptions.AvailErrorCode.E_CANNOT_READ_UNASSIGNED_VARIABLE;
 import static com.avail.interpreter.Primitive.Flag.CanInline;
 import java.util.List;
 import com.avail.descriptor.*;
+import com.avail.exceptions.VariableGetException;
 import com.avail.interpreter.*;
 
 /**
@@ -47,7 +47,8 @@ import com.avail.interpreter.*;
  * going to erase it if it's mutable anyhow, only the second case requires
  * any real work.
  */
-public class P_010_GetValue extends Primitive
+public class P_010_GetValue
+extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
@@ -62,17 +63,14 @@ public class P_010_GetValue extends Primitive
 	{
 		assert args.size() == 1;
 		final AvailObject var = args.get(0);
-		final AvailObject value = var.value();
-		if (value.equalsNil())
+		try
 		{
-			return interpreter.primitiveFailure(
-				E_CANNOT_READ_UNASSIGNED_VARIABLE);
+			return interpreter.primitiveSuccess(var.getValue());
 		}
-		if (!var.descriptor().isMutable())
+		catch (final VariableGetException e)
 		{
-			value.makeImmutable();
+			return interpreter.primitiveFailure(e);
 		}
-		return interpreter.primitiveSuccess(value);
 	}
 
 	@Override
@@ -85,7 +83,7 @@ public class P_010_GetValue extends Primitive
 
 	@Override
 	public A_Type returnTypeGuaranteedByVM (
-		final List<A_Type> argumentTypes)
+		final List<? extends A_Type> argumentTypes)
 	{
 		final A_Type varType = argumentTypes.get(0);
 		final A_Type readType = varType.readType();

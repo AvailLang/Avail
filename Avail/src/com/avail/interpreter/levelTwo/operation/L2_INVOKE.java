@@ -35,6 +35,7 @@ import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import com.avail.descriptor.A_Function;
 import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.AvailObject;
+import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.*;
 import com.avail.optimizer.RegisterSet;
 
@@ -55,18 +56,14 @@ public class L2_INVOKE extends L2Operation
 	/**
 	 * Initialize the sole instance.
 	 */
-	public final static L2Operation instance = new L2_INVOKE();
-
-	static
-	{
-		instance.init(
+	public final static L2Operation instance =
+		new L2_INVOKE().init(
 			READ_POINTER.is("continuation"),
 			READ_POINTER.is("function"),
 			READ_VECTOR.is("arguments"));
-	}
 
 	@Override
-	public void step (final L2Interpreter interpreter)
+	public void step (final Interpreter interpreter)
 	{
 		// Assume the current continuation is already reified.
 		final int callerIndex = interpreter.nextWord();

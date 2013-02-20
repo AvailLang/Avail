@@ -35,6 +35,7 @@ import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import java.util.*;
 import com.avail.descriptor.*;
+import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.*;
 import com.avail.interpreter.levelTwo.operand.*;
 import com.avail.interpreter.levelTwo.register.*;
@@ -49,17 +50,13 @@ public class L2_CREATE_TUPLE extends L2Operation
 	/**
 	 * Initialize the sole instance.
 	 */
-	public final static L2Operation instance = new L2_CREATE_TUPLE();
-
-	static
-	{
-		instance.init(
+	public final static L2Operation instance =
+		new L2_CREATE_TUPLE().init(
 			READ_VECTOR.is("elements"),
 			WRITE_POINTER.is("tuple"));
-	}
 
 	@Override
-	public void step (final L2Interpreter interpreter)
+	public void step (final Interpreter interpreter)
 	{
 		final int valuesIndex = interpreter.nextWord();
 		final int destIndex = interpreter.nextWord();

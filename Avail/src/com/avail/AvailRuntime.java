@@ -35,13 +35,26 @@ package com.avail;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.io.*;
+import java.nio.channels.AsynchronousChannelGroup;
+import java.nio.channels.AsynchronousFileChannel;
+import java.nio.channels.AsynchronousSocketChannel;
+import java.nio.file.OpenOption;
+import java.nio.file.Path;
 import java.util.*;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import com.avail.annotations.*;
 import com.avail.builder.*;
 import com.avail.descriptor.*;
+import com.avail.descriptor.FiberDescriptor.ExecutionState;
 import com.avail.exceptions.*;
+import com.avail.utility.Continuation0;
 
 /**
  * An {@code AvailRuntime} comprises the {@linkplain ModuleDescriptor
@@ -52,47 +65,16 @@ import com.avail.exceptions.*;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public final class AvailRuntime
-implements ThreadFactory
 {
 	/**
-	 * The {@linkplain InheritableThreadLocal thread-local} {@linkplain
-	 * AvailRuntime Avail runtime}
-	 */
-	private static final InheritableThreadLocal<AvailRuntime> current =
-		new InheritableThreadLocal<AvailRuntime>();
-
-	/**
-	 * Set the {@linkplain #current() current} {@linkplain AvailRuntime Avail
-	 * runtime} for the {@linkplain Thread#currentThread() current} {@linkplain
-	 * AvailThread thread}.
-	 *
-	 * @param runtime
-	 *        An Avail runtime.
-	 */
-	static final void setCurrent (final AvailRuntime runtime)
-	{
-		current.set(runtime);
-	}
-
-	/**
 	 * Answer the {@linkplain AvailRuntime Avail runtime} associated with the
-	 * current {@linkplain Thread thread}. If the {@linkplain
-	 * Thread#currentThread() current thread} is not an {@link AvailThread},
-	 * then answer {@code null}.
+	 * current {@linkplain Thread thread}.
 	 *
-	 * @return The current Avail runtime, or {@code null} if the the current
-	 *         thread is not an {@code AvailThread}.
+	 * @return The Avail runtime of the current thread.
 	 */
 	public static final AvailRuntime current ()
 	{
-		return current.get();
-	}
-
-	@Override
-	public AvailThread newThread (final @Nullable Runnable runnable)
-	{
-		assert runnable != null;
-		return new AvailThread(this, runnable);
+		return ((AvailThread) Thread.currentThread()).runtime;
 	}
 
 	/**
@@ -115,6 +97,172 @@ implements ThreadFactory
 	public static synchronized int nextHash ()
 	{
 		return rng.nextInt();
+	}
+
+	/**
+	 * The source of {@linkplain FiberDescriptor fiber} identifiers.
+	 */
+	private final AtomicInteger fiberIdGenerator = new AtomicInteger(1);
+
+	/**
+	 * Answer the next unused {@linkplain FiberDescriptor fiber} identifier.
+	 * Fiber identifiers will not repeat for 2^32-1 invocations.
+	 *
+	 * @return The next fiber identifier.
+	 */
+	@ThreadSafe
+	public int nextFiberId ()
+	{
+		return fiberIdGenerator.getAndIncrement();
+	}
+
+	/**
+	 * The {@linkplain ThreadFactory thread factory} for creating {@link
+	 * AvailThread}s on behalf of this {@linkplain AvailRuntime Avail runtime}.
+	 */
+	private final ThreadFactory threadFactory =
+		new ThreadFactory()
+		{
+			@Override
+			public AvailThread newThread (final @Nullable Runnable runnable)
+			{
+				assert runnable != null;
+				return new AvailThread(AvailRuntime.this, runnable);
+			}
+		};
+
+	/** The number of available processors. */
+	private static final int availableProcessors =
+		Runtime.getRuntime().availableProcessors();
+
+	/**
+	 * The {@linkplain ThreadPoolExecutor thread pool executor} for
+	 * this {@linkplain AvailRuntime Avail runtime}.
+	 */
+	private final ThreadPoolExecutor executor =
+		new ThreadPoolExecutor(
+			availableProcessors << 2,
+			availableProcessors << 2,
+			30000L,
+			TimeUnit.MILLISECONDS,
+			new PriorityBlockingQueue<Runnable>(100),
+			threadFactory,
+			new ThreadPoolExecutor.CallerRunsPolicy());
+
+	/**
+	 * Schedule the specified {@linkplain AvailTask task} for eventual
+	 * execution. The implementation is free to run the task immediately or
+	 * delay its execution arbitrarily. The task is guaranteed to execute on an
+	 * {@linkplain AvailThread Avail thread}.
+	 *
+	 * @param task A task.
+	 */
+	public void execute (final AvailTask task)
+	{
+		executor.execute(task);
+	}
+
+	/**
+	 * The {@linkplain ThreadPoolExecutor thread pool executor} for asynchronous
+	 * file operations performed on behalf of this {@linkplain AvailRuntime
+	 * Avail runtime}.
+	 */
+	private final ThreadPoolExecutor fileExecutor =
+		new ThreadPoolExecutor(
+			availableProcessors,
+			availableProcessors << 1,
+			30000L,
+			TimeUnit.MILLISECONDS,
+			new LinkedBlockingQueue<Runnable>(),
+			threadFactory,
+			new ThreadPoolExecutor.CallerRunsPolicy());
+
+	/**
+	 * The {@linkplain ThreadPoolExecutor thread pool executor} for asynchronous
+	 * socket operations performed on behalf of this {@linkplain AvailRuntime
+	 * Avail runtime}.
+	 */
+	private final ThreadPoolExecutor socketExecutor =
+		new ThreadPoolExecutor(
+			availableProcessors,
+			availableProcessors << 1,
+			30000L,
+			TimeUnit.MILLISECONDS,
+			new LinkedBlockingQueue<Runnable>(),
+			threadFactory,
+			new ThreadPoolExecutor.CallerRunsPolicy());
+
+	/**
+	 * The {@linkplain AsynchronousChannelGroup asynchronous channel group}
+	 * that manages {@linkplain AsynchronousSocketChannel asynchronous socket
+	 * channels} on behalf of this {@linkplain AvailRuntime Avail runtime}.
+	 */
+	public final AsynchronousChannelGroup socketGroup;
+
+	{
+		try
+		{
+			socketGroup = AsynchronousChannelGroup.withCachedThreadPool(
+				socketExecutor, availableProcessors);
+		}
+		catch (final IOException e)
+		{
+			throw new RuntimeException(e);
+		}
+	}
+
+	/**
+	 * Open an {@linkplain AsynchronousFileChannel asynchronous file channel}
+	 * for the specified {@linkplain Path path} and {@linkplain OpenOption
+	 * open options}.
+	 *
+	 * @param path A path.
+	 * @param openOptions The open options.
+	 * @return An asynchronous file channel.
+	 * @throws IOException
+	 *         If the open fails for any reason.
+	 */
+	public AsynchronousFileChannel openFile (
+			final Path path,
+			final OpenOption... openOptions)
+		throws IOException
+	{
+		return AsynchronousFileChannel.open(
+			path,
+			new HashSet<OpenOption>(Arrays.asList(openOptions)),
+			fileExecutor);
+	}
+
+	/**
+	 * The {@linkplain Timer timer} that managed scheduled {@linkplain
+	 * TimerTask tasks} for this {@linkplain AvailRuntime runtime}. The timer
+	 * thread is not an {@linkplain AvailThread Avail thread}, and therefore
+	 * cannot directly execute {@linkplain FiberDescriptor fibers}. It may,
+	 * however, schedule fiber-related tasks.
+	 */
+	public final Timer timer = new Timer(
+		String.format("timer for %s", this),
+		true);
+
+	/**
+	 * The number of clock ticks since this {@linkplain AvailRuntime runtime}
+	 * was created.
+	 */
+	public volatile long clock = 0L;
+
+	{
+		// Schedule a fixed-rate timer task to increment the runtime clock.
+		timer.scheduleAtFixedRate(
+			new TimerTask()
+			{
+				@Override
+				public void run ()
+				{
+					clock++;
+				}
+			},
+			1,
+			1);
 	}
 
 	/**
@@ -756,8 +904,8 @@ implements ThreadFactory
 			for (final MapDescriptor.Entry bundleEntry
 				: aModule.filteredBundleTree().allBundles().mapIterable())
 			{
-				final AvailObject message = bundleEntry.key;
-				final AvailObject bundle = bundleEntry.value;
+				final A_Atom message = bundleEntry.key;
+				final A_BasicObject bundle = bundleEntry.value;
 				assert bundle.message().equals(message);
 				if (!allBundles.hasKey(message))
 				{
@@ -844,7 +992,7 @@ implements ThreadFactory
 	 *         {@code false} otherwise.
 	 */
 	@ThreadSafe
-	public boolean hasMethodAt (final AvailObject selector)
+	public boolean hasMethodAt (final A_Atom selector)
 	{
 		assert selector.isAtom();
 
@@ -974,14 +1122,22 @@ implements ThreadFactory
 		try
 		{
 			final A_BasicObject method = definition.definitionMethod();
-			final A_Atom name = method.originalName();
-			assert methods.hasKey(name);
-			assert methods.mapAt(name).equals(method);
 			method.removeDefinition(definition);
 			if (method.isMethodEmpty())
 			{
-				methods = methods.mapWithoutKeyCanDestroy(name, true);
-				allBundles = allBundles.mapWithoutKeyCanDestroy(name, true);
+				for (final AvailObject methodName : method.namesSet())
+				{
+					assert methods.hasKey(methodName);
+					assert methods.mapAt(methodName).equals(method);
+					assert allBundles.hasKey(methodName);
+					assert allBundles.mapAt(methodName).method().equals(method);
+					methods = methods.mapWithoutKeyCanDestroy(
+						methodName, true);
+					allBundles = allBundles.mapWithoutKeyCanDestroy(
+						methodName, true);
+				}
+				methods.makeShared();
+				allBundles.makeShared();
 			}
 		}
 		finally
@@ -1111,8 +1267,9 @@ implements ThreadFactory
 	/**
 	 * A {@linkplain MapDescriptor map} containing all {@linkplain
 	 * MessageBundleDescriptor message bundles}, keyed by the bundle's
-	 * {@linkplain AvailObject#message() message name}, even if various modules
-	 * have imported it with renaming.
+	 * {@linkplain AvailObject#message() name}.  This structure allows the same
+	 * {@linkplain MethodDescriptor method} (referenced by the bundle) to occur
+	 * under multiple names to support renamed imports.
 	 */
 	private A_Map allBundles = MapDescriptor.empty();
 
@@ -1131,6 +1288,7 @@ implements ThreadFactory
 		runtimeLock.readLock().lock();
 		try
 		{
+			assert allBundles.descriptor().isShared();
 			return allBundles;
 		}
 		finally
@@ -1140,16 +1298,223 @@ implements ThreadFactory
 	}
 
 	/**
+	 * The {@linkplain ReentrantLock lock} that guards access to the Level One
+	 * {@linkplain #levelOneSafeTasks -safe} and {@linkplain
+	 * #levelOneUnsafeTasks -unsafe} queues and counters.
+	 *
+	 * <p>For example, a {@linkplain L2ChunkDescriptor Level Two chunk} may not
+	 * be {@linkplain L2ChunkDescriptor#invalidateChunkAtIndex(int) invalidated}
+	 * while any {@linkplain FiberDescriptor fiber} is {@linkplain
+	 * ExecutionState#RUNNING running} a Level Two chunk. These two activities
+	 * are mutually exclusive.</p>
+	 */
+	@InnerAccess final ReentrantLock levelOneSafeLock = new ReentrantLock();
+
+	/**
+	 * The {@linkplain Queue queue} of Level One-safe {@linkplain Runnable
+	 * tasks}. A Level One-safe task requires that no {@linkplain
+	 * #levelOneUnsafeTasks Level One-unsafe tasks} are running.
+	 *
+	 * <p>For example, a {@linkplain L2ChunkDescriptor Level Two chunk} may not
+	 * be {@linkplain L2ChunkDescriptor#invalidateChunkAtIndex(int) invalidated}
+	 * while any {@linkplain FiberDescriptor fiber} is {@linkplain
+	 * ExecutionState#RUNNING running} a Level Two chunk. These two activities
+	 * are mutually exclusive.</p>
+	 */
+	@InnerAccess Queue<AvailTask> levelOneSafeTasks =
+		new ArrayDeque<AvailTask>();
+
+	/**
+	 * The {@linkplain Queue queue} of Level One-unsafe {@linkplain
+	 * Runnable tasks}. A Level One-unsafe task requires that no
+	 * {@linkplain #levelOneSafeTasks Level One-safe tasks} are running.
+	 */
+	@InnerAccess Queue<AvailTask> levelOneUnsafeTasks =
+		new ArrayDeque<AvailTask>();
+
+	/**
+	 * The number of {@linkplain #levelOneSafeTasks Level One-safe tasks} that
+	 * have been {@linkplain #executor scheduled for execution} but have not
+	 * yet reached completion.
+	 */
+	@InnerAccess int incompleteLevelOneSafeTasks = 0;
+
+	/**
+	 * The number of {@linkplain #levelOneUnsafeTasks Level One-unsafe tasks}
+	 * that have been {@linkplain #executor scheduled for execution} but have
+	 * not yet reached completion.
+	 */
+	@InnerAccess int incompleteLevelOneUnsafeTasks = 0;
+
+	/**
+	 * Has {@linkplain #whenLevelOneUnsafeDo(AvailTask) Level One safety}
+	 * been requested?
+	 */
+	@InnerAccess volatile boolean levelOneSafetyRequested = false;
+
+	/**
+	 * Has {@linkplain #whenLevelOneUnsafeDo(AvailTask) Level One safety}
+	 * been requested?
+	 *
+	 * @return {@code true} if Level One safety has been requested, {@code
+	 *         false} otherwise.
+	 */
+	public boolean levelOneSafetyRequested ()
+	{
+		return levelOneSafetyRequested;
+	}
+
+	/**
+	 * Request that the specified {@linkplain Continuation0 continuation} be
+	 * executed as a Level One-safe task at such a time as there are no Level
+	 * One-unsafe tasks running.
+	 *
+	 * @param safeTask
+	 *        What to do when Level One safety is ensured.
+	 */
+	public void whenLevelOneSafeDo (final AvailTask safeTask)
+	{
+		final AvailTask wrapped = new AvailTask(
+			safeTask.priority,
+			new Continuation0()
+			{
+				@Override
+				public void value ()
+				{
+					try
+					{
+						safeTask.run();
+					}
+					finally
+					{
+						levelOneSafeLock.lock();
+						try
+						{
+							incompleteLevelOneSafeTasks--;
+							if (incompleteLevelOneSafeTasks == 0)
+							{
+								assert incompleteLevelOneUnsafeTasks == 0;
+								levelOneSafetyRequested = false;
+								incompleteLevelOneUnsafeTasks =
+									levelOneUnsafeTasks.size();
+								for (final AvailTask task : levelOneUnsafeTasks)
+								{
+									execute(task);
+								}
+								levelOneUnsafeTasks.clear();
+							}
+						}
+						finally
+						{
+							levelOneSafeLock.unlock();
+						}
+					}
+				}
+			});
+		levelOneSafeLock.lock();
+		try
+		{
+			levelOneSafetyRequested = true;
+			if (incompleteLevelOneUnsafeTasks == 0)
+			{
+				incompleteLevelOneSafeTasks++;
+				executor.execute(wrapped);
+			}
+			else
+			{
+				levelOneSafeTasks.add(wrapped);
+			}
+		}
+		finally
+		{
+			levelOneSafeLock.unlock();
+		}
+	}
+
+	/**
+	 * Request that the specified {@linkplain Continuation0 continuation} be
+	 * executed as a Level One-unsafe task at such a time as there are no Level
+	 * One-safe tasks running.
+	 *
+	 * @param unsafeTask
+	 *        What to do when Level One safety is not required.
+	 */
+	public void whenLevelOneUnsafeDo (final AvailTask unsafeTask)
+	{
+		final AvailTask wrapped = new AvailTask(
+			unsafeTask.priority,
+			new Continuation0()
+			{
+				@Override
+				public void value ()
+				{
+					try
+					{
+						unsafeTask.run();
+					}
+					finally
+					{
+						levelOneSafeLock.lock();
+						try
+						{
+							incompleteLevelOneUnsafeTasks--;
+							if (incompleteLevelOneUnsafeTasks == 0)
+							{
+								assert incompleteLevelOneSafeTasks == 0;
+								incompleteLevelOneSafeTasks =
+									levelOneSafeTasks.size();
+								for (final AvailTask task : levelOneSafeTasks)
+								{
+									execute(task);
+								}
+								levelOneSafeTasks.clear();
+							}
+						}
+						finally
+						{
+							levelOneSafeLock.unlock();
+						}
+					}
+				}
+			});
+		levelOneSafeLock.lock();
+		try
+		{
+			// Hasten the execution of pending Level One-safe tasks by
+			// postponing this task if there are any Level One-safe tasks
+			// waiting to run.
+			if (incompleteLevelOneSafeTasks == 0
+				&& levelOneSafeTasks.isEmpty())
+			{
+				assert !levelOneSafetyRequested;
+				incompleteLevelOneUnsafeTasks++;
+				executor.execute(wrapped);
+			}
+			else
+			{
+				levelOneUnsafeTasks.add(wrapped);
+			}
+		}
+		finally
+		{
+			levelOneSafeLock.unlock();
+		}
+	}
+
+	/**
 	 * Destroy all data structures used by this {@code AvailRuntime}.  Also
 	 * disassociate it from the current {@link Thread}'s local storage.
 	 */
 	public void destroy ()
 	{
-		current.set(null);
 		clearWellKnownObjects();
 		moduleNameResolver = null;
 		modules = null;
 		methods = null;
 		allBundles = null;
+		timer.cancel();
+		executor.shutdownNow();
+		fileExecutor.shutdownNow();
+		socketExecutor.shutdownNow();
 	}
 }

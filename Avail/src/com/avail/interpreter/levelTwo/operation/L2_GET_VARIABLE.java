@@ -33,6 +33,7 @@ package com.avail.interpreter.levelTwo.operation;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import com.avail.descriptor.*;
+import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.*;
 import com.avail.interpreter.levelTwo.operand.*;
 import com.avail.optimizer.RegisterSet;
@@ -50,17 +51,13 @@ public class L2_GET_VARIABLE extends L2Operation
 	/**
 	 * Initialize the sole instance.
 	 */
-	public final static L2Operation instance = new L2_GET_VARIABLE();
-
-	static
-	{
-		instance.init(
+	public final static L2Operation instance =
+		new L2_GET_VARIABLE().init(
 			READ_POINTER.is("variable"),
 			WRITE_POINTER.is("extracted value"));
-	}
 
 	@Override
-	public void step (final L2Interpreter interpreter)
+	public void step (final Interpreter interpreter)
 	{
 		final int getIndex = interpreter.nextWord();
 		final int destIndex = interpreter.nextWord();

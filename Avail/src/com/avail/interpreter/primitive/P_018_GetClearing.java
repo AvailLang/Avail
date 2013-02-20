@@ -82,7 +82,7 @@ public class P_018_GetClearing extends Primitive
 
 	@Override
 	public A_Type returnTypeGuaranteedByVM (
-		final List<A_Type> argumentTypes)
+		final List<? extends A_Type> argumentTypes)
 	{
 		final A_Type varType = argumentTypes.get(0);
 		final A_Type readType = varType.readType();

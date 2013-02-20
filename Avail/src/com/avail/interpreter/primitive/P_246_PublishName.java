@@ -34,7 +34,7 @@ package com.avail.interpreter.primitive;
 
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.interpreter.Primitive.Flag.*;
-import static com.avail.exceptions.AvailErrorCode.E_COMPILATION_IS_OVER;
+import static com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER;
 import java.util.List;
 import com.avail.descriptor.*;
 import com.avail.exceptions.AmbiguousNameException;
@@ -66,9 +66,9 @@ extends Primitive
 		assert args.size() == 1;
 		final A_String name = args.get(0);
 		final A_BasicObject module = interpreter.module();
-		if (module == null)
+		if (module.equalsNil())
 		{
-			return interpreter.primitiveFailure(E_COMPILATION_IS_OVER);
+			return interpreter.primitiveFailure(E_LOADING_IS_OVER);
 		}
 		try
 		{

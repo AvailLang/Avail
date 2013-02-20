@@ -41,9 +41,7 @@ Names
 	"exception test suite"
 Body
 
-/* The test suite identifier. */
 "exception test suite" is a new atom;
-
 New test suite exception test suite extends foundation test suite;
 
 Test "one intercept,no exception(side-effect)" in exception test suite is

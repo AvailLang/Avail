@@ -40,7 +40,8 @@ import com.avail.interpreter.*;
  * <strong>Primitive 250:</strong> Is there a {@linkplain Primitive
  * primitive} with the specified ordinal?
  */
-public class P_250_IsPrimitiveDefined extends Primitive
+public class P_250_IsPrimitiveDefined
+extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
@@ -58,8 +59,7 @@ public class P_250_IsPrimitiveDefined extends Primitive
 
 		final int index = ordinal.extractInt();
 		return interpreter.primitiveSuccess(
-			AtomDescriptor.objectFromBoolean(
-				interpreter.supportsPrimitive(index)));
+			AtomDescriptor.objectFromBoolean(supportsPrimitive(index)));
 	}
 
 	@Override

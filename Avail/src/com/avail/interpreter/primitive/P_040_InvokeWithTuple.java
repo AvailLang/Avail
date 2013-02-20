@@ -82,7 +82,7 @@ public class P_040_InvokeWithTuple extends Primitive
 			//  Transfer the argument into callArgs.
 			callArgs.add(anArg);
 		}
-		return interpreter.invokeFunctionArguments(block, callArgs);
+		return interpreter.invokeFunction(block, callArgs);
 	}
 
 	@Override

@@ -299,6 +299,8 @@ Semantic restriction "__" is
 	]
 ];
 
+nameLock : non-reentrant mutex := a non-reentrant mutex named "name lock";
+
 /**
  * A map from {@type "unit"}s to the names that should be used to describe them.
  *
@@ -321,8 +323,10 @@ Public method "Prefer_for printing_" is
 	symbol : string,
 	aUnit : unit
 |
-	namesByUnit := eject ↑namesByUnit + aUnit→symbol;
+	Lock nameLock for [namesByUnit := namesByUnit + aUnit→symbol;];
 ] : ⊤;
+
+symbolLock : non-reentrant mutex := a non-reentrant mutex named "symbol lock";
 
 /**
  * A map from {@type "unit"}s to the symbols that should be used to describe
@@ -360,7 +364,7 @@ Public method "Prefer_for printing_in a dimensioned quantity" is
 	[
 		/* No implementation required. */
 	];
-	symbolsByUnit := eject ↑symbolsByUnit + aUnit→symbol;
+	Lock symbolLock for [symbolsByUnit := symbolsByUnit + aUnit→symbol;];
 ] : ⊤;
 
 /* This table is used by "unit map“_”". The first character can technically be
@@ -1822,6 +1826,9 @@ Public explicit class "no-such-conversion exception" extends exception
 		public source unit : unit,
 		public target unit : unit;
 
+converterLock : non-reentrant mutex :=
+	a non-reentrant mutex named "converter lock";
+
 /**
  * The table of defined conversions.
  *
@@ -1930,8 +1937,11 @@ Public method "Conversion method is_,⁇inverse is_" is
 		Assert: quantityType's metric = crossUnitType;
 		Assert: unitType = crossQuantityType's metric;
 		key ::= <quantityType's metric's instance, unitType's instance>;
-		converters := eject ↑converters + key→aFunction;
-		converters := eject ↑converters + <key[2], key[1]>→inverseFunction;
+		Lock converterLock for
+		[
+			converters := converters + key→aFunction;
+			converters := converters + <key[2], key[1]>→inverseFunction;
+		];
 	];
 ] : ⊤;
 

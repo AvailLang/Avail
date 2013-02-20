@@ -858,7 +858,7 @@ extends ParseNodeDescriptor
 			ObjectSlots.INITIALIZATION_EXPRESSION,
 			initializationExpression);
 		declaration.setSlot(ObjectSlots.LITERAL_OBJECT, literalObject);
-		declaration.makeImmutable();
+		declaration.makeShared();
 		return declaration;
 	}
 

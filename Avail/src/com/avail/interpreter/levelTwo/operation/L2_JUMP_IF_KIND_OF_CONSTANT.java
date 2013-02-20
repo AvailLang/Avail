@@ -35,6 +35,7 @@ package com.avail.interpreter.levelTwo.operation;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.AvailObject;
+import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.*;
 
 public class L2_JUMP_IF_KIND_OF_CONSTANT extends L2Operation
@@ -43,18 +44,13 @@ public class L2_JUMP_IF_KIND_OF_CONSTANT extends L2Operation
 	 * Initialize the sole instance.
 	 */
 	public final static L2Operation instance =
-		new L2_JUMP_IF_KIND_OF_CONSTANT();
-
-	static
-	{
-		instance.init(
+		new L2_JUMP_IF_KIND_OF_CONSTANT().init(
 			PC.is("target"),
 			READ_POINTER.is("object"),
 			CONSTANT.is("constant type"));
-	}
 
 	@Override
-	public void step (final L2Interpreter interpreter)
+	public void step (final Interpreter interpreter)
 	{
 		final int doIndex = interpreter.nextWord();
 		final int valueIndex = interpreter.nextWord();

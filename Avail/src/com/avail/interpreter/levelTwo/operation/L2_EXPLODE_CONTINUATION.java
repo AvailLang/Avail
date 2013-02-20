@@ -35,6 +35,7 @@ import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.AvailObject;
+import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.*;
 
 /**
@@ -48,19 +49,15 @@ public class L2_EXPLODE_CONTINUATION extends L2Operation
 	/**
 	 * Initialize the sole instance.
 	 */
-	public final static L2Operation instance = new L2_EXPLODE_CONTINUATION();
-
-	static
-	{
-		instance.init(
+	public final static L2Operation instance =
+		new L2_EXPLODE_CONTINUATION().init(
 			READ_POINTER.is("continuation to explode"),
 			WRITE_VECTOR.is("exploded continuation slots"),
 			WRITE_POINTER.is("exploded caller"),
 			WRITE_POINTER.is("exploded function"));
-	}
 
 	@Override
-	public void step (final L2Interpreter interpreter)
+	public void step (final Interpreter interpreter)
 	{
 		// Expand the current continuation's slots into the specified vector
 		// of destination registers.  Also explode the level one pc, stack

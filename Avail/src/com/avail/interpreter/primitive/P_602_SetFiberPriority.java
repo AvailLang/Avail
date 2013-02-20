@@ -1,5 +1,5 @@
 /**
- * P_020_CurrentTimeMilliseconds.java
+ * P_602_SetFiberPriority.java
  * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -32,37 +32,46 @@
 package com.avail.interpreter.primitive;
 
 import static com.avail.interpreter.Primitive.Flag.*;
+import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.List;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 
 /**
- * <strong>Primitive 20:</strong> Get the current time as milliseconds since
- * the Unix Epoch.
+ * <strong>Primitive 602:</strong> Set the priority of a fiber.
  */
-public class P_020_CurrentTimeMilliseconds extends Primitive
+public class P_602_SetFiberPriority
+extends Primitive
 {
 	/**
-	 * The sole instance of this primitive class.  Accessed through reflection.
+	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_020_CurrentTimeMilliseconds().init(
-		0, CannotFail, CanInline, HasSideEffect);
+	public final static Primitive instance = new P_602_SetFiberPriority().init(
+		2, CannotFail);
 
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 0;
-		return interpreter.primitiveSuccess(
-			IntegerDescriptor.fromLong(System.currentTimeMillis()));
+		assert args.size() == 2;
+		final AvailObject fiber = args.get(0);
+		final AvailObject priority = args.get(0);
+		fiber.priority(priority.extractInt());
+		return interpreter.primitiveSuccess(NilDescriptor.nil());
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(),
-			IntegerRangeTypeDescriptor.wholeNumbers());
+			TupleDescriptor.from(
+				FIBER.o(),
+				IntegerRangeTypeDescriptor.create(
+					IntegerDescriptor.zero(),
+					true,
+					IntegerDescriptor.fromInt(255),
+					true)),
+			TOP.o());
 	}
 }

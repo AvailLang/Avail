@@ -42,7 +42,7 @@ Names
 	"After running_,⁇do_",
 	"Before running each test in_,⁇do_",
 	"Before running_,⁇do_",
-	"New test suite_extends_",
+	"New test suite,⁇_,⁇extends_",
 	"Test_in_is_«must raise_»",
 	"_is a new test suite"
 Body
@@ -50,7 +50,7 @@ Body
 /**
  * Define a unit test suite.
  *
- * @method "New test suite_extends_"
+ * @method "New test suite,⁇_,⁇extends_"
  * @param "id" "atom"
  *        The identifier of the test suite.
  * @param "parentID" "atom"
@@ -65,49 +65,53 @@ Body
  *         If the (optional) parent test suite identifiers does not reference an
  *         existing unit test suite.
  */
-Public method "New test suite_extends_" is
+Public method "New test suite,⁇_,⁇extends_" is
 [
 	id : atom,
 	parentID : atom
 |
-	If id = parentID then
+	Lock suite lock for
 	[
-		Raise a bad-argument exception
-	];
-	If id ∈ suites by atom then
-	[
-		Raise a test-suite-already-exists exception with suite ID ::= id
-	];
-	isRootTestSuite ::= parentID = root test suite ID;
-	parent ::= if isRootTestSuite
-		then [root suite]
+		If id = parentID then
+		[
+			Raise a bad-argument exception
+		];
+		If id ∈ suites by atom then
+		[
+			Raise a test-suite-already-exists exception with suite ID ::= id
+		];
+		suite ::= a unit test suite with
+			suite ID ::= id,
+			parent suite ID ::= parentID,
+			child suite IDs ::= <>,
+			suite fixture setup ::= <>,
+			suite fixture tear down ::= <>,
+			test fixture setup ::= <>,
+			test fixture tear down ::= <>,
+			unit tests ::= <>;
+		isRootTestSuite ::= parentID = root test suite ID;
+		parent ::= if isRootTestSuite
+			then [root suite]
+			else
+			[
+				suites by atom[parentID] else
+				[
+					Raise a no-such-test-suite exception with
+						suite ID ::= parentID
+				]
+			];
+		suites by atom := suites by atom + id→suite;
+		childSuites : <atom…|> := parent's child suite IDs ++ <id>;
+		If isRootTestSuite then
+		[
+			root suite := root suite's child suite IDs ::= childSuites;
+		]
 		else
 		[
-			suites by atom[parentID] else
-			[
-				Raise a no-such-test-suite exception with suite ID ::= parentID
-			]
+			updatedParent ::= cast parent's child suite IDs ::= childSuites
+				into [t : unit test suite | t];
+			suites by atom := suites by atom + parentID→updatedParent;
 		];
-	suite ::= a unit test suite with
-		suite ID ::= id,
-		parent suite ID ::= parentID,
-		child suite IDs ::= <>,
-		suite fixture setup ::= <>,
-		suite fixture tear down ::= <>,
-		test fixture setup ::= <>,
-		test fixture tear down ::= <>,
-		unit tests ::= <>;
-	suites by atom := suites by atom + id→suite;
-	childSuites : <atom…|> := parent's child suite IDs ++ <id>;
-	If isRootTestSuite then
-	[
-		root suite := root suite's child suite IDs ::= childSuites;
-	]
-	else
-	[
-		updatedParent ::= cast parent's child suite IDs ::= childSuites
-			into [t : unit test suite | t];
-		suites by atom := suites by atom + parentID→updatedParent;
 	];
 ] : ⊤;
 
@@ -147,11 +151,14 @@ Public method "Before running_,⁇do_" is
 	id : atom,
 	setup : []→⊤
 |
-	suite ::= suites by atom[id]
-		else [Raise a no-such-test-suite exception with suite ID ::= id];
-	before ::= suite's suite fixture setup ++ <setup>;
-	suites by atom :=
-		suites by atom + id→suite's suite fixture setup ::= before;
+	Lock suite lock for
+	[
+		suite ::= suites by atom[id]
+			else [Raise a no-such-test-suite exception with suite ID ::= id];
+		before ::= suite's suite fixture setup ++ <setup>;
+		suites by atom :=
+			suites by atom + id→suite's suite fixture setup ::= before;
+	];
 ] : ⊤;
 
 Private method "fixture semantic restriction function" is
@@ -191,10 +198,14 @@ Public method "Before running each test in_,⁇do_" is
 	id : atom,
 	setup : []→⊤
 |
-	suite ::= suites by atom[id]
-		else [Raise a no-such-test-suite exception with suite ID ::= id];
-	before ::= suite's test fixture setup ++ <setup>;
-	suites by atom := suites by atom + id→suite's test fixture setup ::= before;
+	Lock suite lock for
+	[
+		suite ::= suites by atom[id]
+			else [Raise a no-such-test-suite exception with suite ID ::= id];
+		before ::= suite's test fixture setup ++ <setup>;
+		suites by atom :=
+			suites by atom + id→suite's test fixture setup ::= before;
+	];
 ] : ⊤;
 
 Semantic restriction "Before running each test in_,⁇do_"
@@ -217,11 +228,14 @@ Public method "After running_,⁇do_" is
 	id : atom,
 	tearDown : []→⊤
 |
-	suite ::= suites by atom[id]
-		else [Raise a no-such-test-suite exception with suite ID ::= id];
-	after ::= suite's suite fixture tear down ++ <tearDown>;
-	suites by atom :=
-		suites by atom + id→suite's suite fixture tear down ::= after;
+	Lock suite lock for
+	[
+		suite ::= suites by atom[id]
+			else [Raise a no-such-test-suite exception with suite ID ::= id];
+		after ::= suite's suite fixture tear down ++ <tearDown>;
+		suites by atom :=
+			suites by atom + id→suite's suite fixture tear down ::= after;
+	];
 ] : ⊤;
 
 Semantic restriction "After running_,⁇do_"
@@ -246,11 +260,14 @@ Public method "After running each test in_,⁇do_" is
 	id : atom,
 	tearDown : []→⊤
 |
-	suite ::= suites by atom[id]
-		else [Raise a no-such-test-suite exception with suite ID ::= id];
-	after ::= suite's test fixture tear down ++ <tearDown>;
-	suites by atom :=
-		suites by atom + id→suite's test fixture tear down ::= after;
+	Lock suite lock for
+	[
+		suite ::= suites by atom[id]
+			else [Raise a no-such-test-suite exception with suite ID ::= id];
+		after ::= suite's test fixture tear down ++ <tearDown>;
+		suites by atom :=
+			suites by atom + id→suite's test fixture tear down ::= after;
+	];
 ] : ⊤;
 
 Semantic restriction "After running each test in_,⁇do_"
@@ -284,24 +301,27 @@ Public method "Test_in_is_«must raise_»" is
 	test : []→⊤,
 	optionalException : <exception's type…|0..1>
 |
-	suite ::= suites by atom[suiteID] else
-		[
-			Raise a no-such-test-suite exception with suite ID ::= suiteID
-		];
-	trueName ::= atom for name;
-	If trueName ∈ tests by atom then
+	Lock suite lock for
 	[
-		Raise a test-already-exists exception with test ID ::= trueName
+		trueName ::= atom for name;
+			If trueName ∈ tests by atom then
+			[
+				Raise a test-already-exists exception with test ID ::= trueName
+			];
+			unitTest ::= a unit test with
+				test ID ::= trueName,
+				suite ID ::= suiteID,
+				body ::= test,
+				expected exception type ::= optionalException;
+		tests by atom := tests by atom + trueName→unitTest;
+		suite ::= suites by atom[suiteID] else
+			[
+				Raise a no-such-test-suite exception with suite ID ::= suiteID
+			];
+		suiteTests ::= suite's unit tests ++ <unitTest>;
+		suites by atom :=
+			suites by atom + suiteID→suite's unit tests ::= suiteTests;
 	];
-	unitTest ::= a unit test with
-		test ID ::= trueName,
-		suite ID ::= suiteID,
-		body ::= test,
-		expected exception type ::= optionalException;
-	tests by atom := tests by atom + trueName→unitTest;
-	suiteTests ::= suite's unit tests ++ <unitTest>;
-	suites by atom :=
-		suites by atom + suiteID→suite's unit tests ::= suiteTests;
 ] : ⊤;
 
 /**
@@ -320,7 +340,16 @@ Semantic restriction "Test_in_is_«must raise_»" is
 	test : []→⊤'s type,
 	optionalException : <exception's type…|0..1>'s type
 |
-	If test's return type ≠ ⊤ then
+	If ⎡optionalException⎤ = 1 then
+	[
+		If ¬test's return type ∈ {⊤, ⊥} then
+		[
+			Reject parse, expected:
+				format "test function's return type to be ⊤ or ⊥ (not “①”)"
+					with test's return type
+		];
+	]
+	else if [test's return type ≠ ⊤] then
 	[
 		Reject parse, expected:
 			format "test function's return type to be ⊤ (not “①”)"

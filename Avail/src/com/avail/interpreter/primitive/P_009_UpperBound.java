@@ -37,8 +37,7 @@ import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 
 /**
- * <strong>Primitive 9:</strong> Answer the {@linkplain
- * ExtendedIntegerDescriptor upper bound}. The client can ask the
+ * <strong>Primitive 9:</strong> Answer the upper bound. The client can ask the
  * {@linkplain IntegerRangeTypeDescriptor integer range} if it includes the
  * answer to determine whether it is inclusive or exclusive.
  */

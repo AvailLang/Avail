@@ -1,5 +1,5 @@
 /**
- * P_022_SetFiberPriority.java
+ * P_601_GetFiberPriority.java
  * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -38,27 +38,26 @@ import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.*;
 
 /**
- * <strong>Primitive 22:</strong> Set the priority of a fiber.
+ * <strong>Primitive 601:</strong> Get the priority of a fiber.
  */
-public class P_022_SetFiberPriority extends Primitive
+public class P_601_GetFiberPriority
+extends Primitive
 {
 	/**
-	 * The sole instance of this primitive class.  Accessed through reflection.
+	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_022_SetFiberPriority().init(
-		2, CannotFail);
+	public final static Primitive instance =
+		new P_601_GetFiberPriority().init(1, CannotFail, CanInline);
 
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 2;
-		final A_BasicObject fiber = args.get(0);
-		final AvailObject priority = args.get(0);
-		fiber.priority(priority);
-		return interpreter.primitiveSuccess(
-			NilDescriptor.nil());
+		assert args.size() == 1;
+		final AvailObject fiber = args.get(0);
+		return interpreter.primitiveSuccess(IntegerDescriptor.fromInt(
+			fiber.priority()));
 	}
 
 	@Override
@@ -66,8 +65,11 @@ public class P_022_SetFiberPriority extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				Types.FIBER.o(),
-				IntegerRangeTypeDescriptor.wholeNumbers()),
-			Types.TOP.o());
+				Types.FIBER.o()),
+			IntegerRangeTypeDescriptor.create(
+				IntegerDescriptor.zero(),
+				true,
+				IntegerDescriptor.fromInt(255),
+				true));
 	}
 }

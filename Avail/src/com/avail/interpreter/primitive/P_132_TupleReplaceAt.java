@@ -88,7 +88,7 @@ public class P_132_TupleReplaceAt extends Primitive
 
 	@Override
 	public A_Type returnTypeGuaranteedByVM (
-		final List<A_Type> argumentTypes)
+		final List<? extends A_Type> argumentTypes)
 	{
 		final A_Type originalTupleType = argumentTypes.get(0);
 		final A_Type subscripts = argumentTypes.get(1);

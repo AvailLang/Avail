@@ -39,6 +39,7 @@ import java.util.LinkedList;
 import java.util.Map;
 import com.avail.annotations.*;
 import com.avail.descriptor.ModuleDescriptor;
+import com.avail.utility.*;
 
 /**
  * A {@code ModuleNameResolver} resolves fully-qualified references to Avail
@@ -77,6 +78,7 @@ import com.avail.descriptor.ModuleDescriptor;
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@ThreadSafe
 public final class ModuleNameResolver
 {
 	/**
@@ -86,7 +88,7 @@ public final class ModuleNameResolver
 	public static final String availExtension = ".avail";
 
 	/** The {@linkplain ModuleRoots Avail module roots}. */
-	private final ModuleRoots moduleRoots;
+	final ModuleRoots moduleRoots;
 
 	/**
 	 * Answer the {@linkplain ModuleRoots Avail module roots}.
@@ -112,8 +114,7 @@ public final class ModuleNameResolver
 	 * A {@linkplain Map map} from fully-qualified module names to their
 	 * canonical names.
 	 */
-	private final Map<String, String> renames =
-		new HashMap<String, String>();
+	private final Map<String, String> renames = new HashMap<String, String>();
 
 	/**
 	 * Does the {@linkplain ModuleNameResolver resolver} have a transformation
@@ -150,7 +151,7 @@ public final class ModuleNameResolver
 	 * @param localName A local module name.
 	 * @return A filename that specifies the module within the package.
 	 */
-	private String filenameFor (
+	String filenameFor (
 		final String packageName,
 		final String localName)
 	{
@@ -166,8 +167,7 @@ public final class ModuleNameResolver
 	 * @return The canonical name that should be used in place of the
 	 *         fully-qualified {@linkplain ModuleName module name}.
 	 */
-	private ModuleName canonicalNameFor (
-		final ModuleName qualifiedName)
+	ModuleName canonicalNameFor (final ModuleName qualifiedName)
 	{
 		final String substitute = renames.get(qualifiedName.qualifiedName());
 		if (substitute != null)
@@ -177,6 +177,121 @@ public final class ModuleNameResolver
 
 		return qualifiedName;
 	}
+
+	/**
+	 * A {@linkplain LRUCache cache} of {@linkplain ResolvedModuleName resolved
+	 * module names}, keyed by fully-qualified {@linkplain ModuleName module
+	 * names}.
+	 */
+	private final LRUCache<ModuleName, ResolvedModuleName> resolutionCache =
+		new LRUCache<ModuleName, ResolvedModuleName>(
+			100,
+			100,
+			new Transformer1<ModuleName, ResolvedModuleName>()
+			{
+				@Override
+				public @Nullable ResolvedModuleName value (
+					final @Nullable ModuleName qualifiedName)
+				{
+					assert qualifiedName != null;
+					File resolution = null;
+
+					// First attempt to lookup the fully-qualified name in the
+					// map of renaming rules. Apply the rule if it exists.
+					ModuleName canonicalName = canonicalNameFor(qualifiedName);
+
+					// Really resolve the local name. Start by splitting the
+					// module group into its components.
+					final String[] components =
+						canonicalName.packageName().split("/");
+					assert components.length > 1;
+					assert components[0].isEmpty();
+
+					// Build a search stack of trials at ascending tiers of
+					// enclosing packages.
+					final Deque<File> searchStack = new LinkedList<File>();
+					final Deque<String> canonicalNames =
+						new LinkedList<String>();
+					final String enclosingRoot = canonicalName.moduleRoot();
+					canonicalNames.push("/" + enclosingRoot);
+					searchStack.push(
+						moduleRoots.rootDirectoryFor(enclosingRoot));
+					for (int index = 2; index < components.length; index++)
+					{
+						assert !components[index].isEmpty();
+						canonicalNames.push(String.format(
+							"%s/%s",
+							canonicalNames.peekFirst(),
+							components[index]));
+						searchStack.push(new File(
+							searchStack.peekFirst(),
+							components[index] + availExtension));
+					}
+
+					// Explore the search stack from most enclosing package to
+					// least enclosing.
+					while (!searchStack.isEmpty())
+					{
+						canonicalName = new ModuleName(
+							canonicalNames.pop(), canonicalName.localName());
+						final File trial = new File(filenameFor(
+							searchStack.pop().getPath(),
+							canonicalName.localName()));
+						if (trial.exists())
+						{
+							resolution = trial;
+							break;
+						}
+					}
+
+					// If resolution failed, then one final option is available:
+					// search the other root directories.
+					if (resolution == null)
+					{
+						for (final String root : moduleRoots.rootNames())
+						{
+							if (!root.equals(enclosingRoot))
+							{
+								canonicalName = new ModuleName(String.format(
+									"/%s/%s", root, canonicalName.localName()));
+								final File trial = new File(
+									moduleRoots.rootDirectoryFor(root),
+									canonicalName.localName() + availExtension);
+								if (trial.exists())
+								{
+									resolution = trial;
+									break;
+								}
+							}
+						}
+					}
+
+					// We found a candidate.
+					if (resolution != null)
+					{
+						// If the candidate is a package, then substitute the
+						// package representative.
+						final boolean isPackage = resolution.isDirectory();
+						if (isPackage)
+						{
+							resolution = new File(
+								resolution,
+								canonicalName.localName() + availExtension);
+							if (!resolution.isFile())
+							{
+								// Alas, the package representative did not
+								// exist.
+								return null;
+							}
+						}
+						return new ResolvedModuleName(
+							canonicalName, isPackage, resolution);
+					}
+
+					// Resolution failed.
+					return null;
+				}
+			});
 
 	/**
 	 * Resolve a fully-qualified module name (as a reference to the {@linkplain
@@ -190,94 +305,6 @@ public final class ModuleNameResolver
 	 */
 	public @Nullable ResolvedModuleName resolve (final ModuleName qualifiedName)
 	{
-		File resolution = null;
-
-		// First attempt to lookup the fully-qualified name in the map of
-		// renaming rules. Apply the rule if it exists.
-		ModuleName canonicalName = canonicalNameFor(qualifiedName);
-
-		// Really resolve the local name. Start by splitting the module
-		// group into its components.
-		final String[] components = canonicalName.packageName().split("/");
-		assert components.length > 1;
-		assert components[0].isEmpty();
-
-		// Build a search stack of trials at ascending tiers of enclosing
-		// packages.
-		final Deque<File> searchStack = new LinkedList<File>();
-		final Deque<String> canonicalNames = new LinkedList<String>();
-		final String enclosingRoot = canonicalName.moduleRoot();
-		canonicalNames.push("/" + enclosingRoot);
-		searchStack.push(moduleRoots.rootDirectoryFor(enclosingRoot));
-		for (int index = 2; index < components.length; index++)
-		{
-			assert !components[index].isEmpty();
-			canonicalNames.push(String.format(
-				"%s/%s", canonicalNames.peekFirst(), components[index]));
-			searchStack.push(new File(
-				searchStack.peekFirst(),
-				components[index] + availExtension));
-		}
-
-		// Explore the search stack from most enclosing package to
-		// least enclosing.
-		while (!searchStack.isEmpty())
-		{
-			canonicalName = new ModuleName(
-				canonicalNames.pop(), canonicalName.localName());
-			final File trial = new File(filenameFor(
-				searchStack.pop().getPath(), canonicalName.localName()));
-			if (trial.exists())
-			{
-				resolution = trial;
-				break;
-			}
-		}
-
-		// If resolution failed, then one final option is available: search
-		// the other root directories.
-		if (resolution == null)
-		{
-			for (final String root : moduleRoots.rootNames())
-			{
-				if (!root.equals(enclosingRoot))
-				{
-					canonicalName = new ModuleName(String.format(
-						"/%s/%s", root, canonicalName.localName()));
-					final File trial = new File(
-						moduleRoots.rootDirectoryFor(root),
-						canonicalName.localName() + availExtension);
-					if (trial.exists())
-					{
-						resolution = trial;
-						break;
-					}
-				}
-			}
-		}
-
-		if (resolution != null)
-		{
-			final boolean isPackage = resolution.isDirectory();
-
-			// We found a candidate. If it is a package, then substitute
-			// the package representative.
-			if (isPackage)
-			{
-				resolution = new File(
-					resolution, canonicalName.localName() + availExtension);
-				if (!resolution.isFile())
-				{
-					// Alas, the package representative did not exist.
-					return null;
-				}
-			}
-
-			return new ResolvedModuleName(
-				canonicalName, isPackage, resolution);
-		}
-
-		// Resolution failed.
-		return null;
+		return resolutionCache.get(qualifiedName);
 	}
 }

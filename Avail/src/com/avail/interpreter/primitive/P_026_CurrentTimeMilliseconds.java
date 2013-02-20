@@ -1,5 +1,5 @@
 /**
- * TerminateCompilationException.java
+ * P_026_CurrentTimeMilliseconds.java
  * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -29,18 +29,42 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.interpreter.primitive;
 
-package com.avail.compiler;
+import static com.avail.interpreter.Primitive.Flag.*;
+import java.util.List;
+import com.avail.descriptor.*;
+import com.avail.interpreter.*;
 
 /**
- * Throw a {@code TerminateCompilationException} to request termination of the
- * {@link AvailCompiler} without production of an error message.
- *
- * @author Todd L Smith &lt;todd@availlang.org&gt;
+ * <strong>Primitive 26:</strong> Get the current time as milliseconds since
+ * the Unix Epoch.
  */
-public class TerminateCompilationException
-extends RuntimeException
+public class P_026_CurrentTimeMilliseconds
+extends Primitive
 {
-	/** The serial version identifier. */
-	private static final long serialVersionUID = 6048283627858078215L;
+	/**
+	 * The sole instance of this primitive class.  Accessed through reflection.
+	 */
+	public final static Primitive instance =
+		new P_026_CurrentTimeMilliseconds().init(
+			0, CannotFail, CanInline, HasSideEffect);
+
+	@Override
+	public Result attempt (
+		final List<AvailObject> args,
+		final Interpreter interpreter)
+	{
+		assert args.size() == 0;
+		return interpreter.primitiveSuccess(
+			IntegerDescriptor.fromLong(System.currentTimeMillis()));
+	}
+
+	@Override
+	protected A_Type privateBlockTypeRestriction ()
+	{
+		return FunctionTypeDescriptor.create(
+			TupleDescriptor.from(),
+			IntegerRangeTypeDescriptor.wholeNumbers());
+	}
 }

@@ -37,7 +37,7 @@ import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_Function;
 import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.AvailObject;
-import com.avail.interpreter.Primitive;
+import com.avail.interpreter.*;
 import com.avail.interpreter.Primitive.Flag;
 import com.avail.interpreter.levelTwo.*;
 import com.avail.interpreter.levelTwo.register.FixedRegister;
@@ -64,19 +64,14 @@ public class L2_INVOKE_AFTER_FAILED_PRIMITIVE extends L2Operation
 	 * Initialize the sole instance.
 	 */
 	public final static L2Operation instance =
-		new L2_INVOKE_AFTER_FAILED_PRIMITIVE();
-
-	static
-	{
-		instance.init(
+		new L2_INVOKE_AFTER_FAILED_PRIMITIVE().init(
 			READ_POINTER.is("continuation"),
 			READ_POINTER.is("function"),
 			READ_VECTOR.is("arguments"),
 			READ_POINTER.is("primitive failure value"));
-	}
 
 	@Override
-	public void step (final L2Interpreter interpreter)
+	public void step (final Interpreter interpreter)
 	{
 		// The continuation is required to have already been reified.
 		final int callerIndex = interpreter.nextWord();

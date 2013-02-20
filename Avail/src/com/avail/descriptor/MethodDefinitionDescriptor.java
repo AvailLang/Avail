@@ -125,7 +125,7 @@ extends DefinitionDescriptor
 		final AvailObject instance = mutable.create();
 		instance.setSlot(ObjectSlots.DEFINITION_METHOD, method);
 		instance.setSlot(ObjectSlots.BODY_BLOCK, bodyBlock);
-		instance.makeImmutable();
+		instance.makeShared();
 		return instance;
 	}
 
@@ -150,14 +150,10 @@ extends DefinitionDescriptor
 		return mutable;
 	}
 
-	/** The immutable {@link MethodDefinitionDescriptor}. */
-	private static final MethodDefinitionDescriptor immutable =
-		new MethodDefinitionDescriptor(Mutability.IMMUTABLE);
-
 	@Override
 	MethodDefinitionDescriptor immutable ()
 	{
-		return immutable;
+		return shared;
 	}
 
 	/** The shared {@link MethodDefinitionDescriptor}. */

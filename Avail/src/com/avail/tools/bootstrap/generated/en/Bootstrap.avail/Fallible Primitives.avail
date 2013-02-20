@@ -1,6 +1,6 @@
 /*
  * Fallible Primitives.avail
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -97,7 +97,6 @@ Uses
 		"seq`«_`»",
 		"static method_._(«_‡,»)(fail with_)",
 		"swap_and_",
-		"termination requested",
 		"↓_",
 		"↓_`?=_",
 		"∪_[_.._]"
@@ -299,40 +298,6 @@ Primitive "eject_" is
 ] : any;
 
 /**
- * Has termination of the current fiber been requested?
- *
- * Returns:
- *    `true` if termination of the current fiber has been requested, `false`
- *    otherwise.
- */
-Primitive "termination requested" is
-[
-	Primitive 23 (failureCode : natural number);
-	Private invoke _fail_primitive with failureCode
-] : boolean;
-
-/**
- * Answer the value bound to `key` in the specified fiber's environment. Since
- * the fiber's environment essentially contains fiber-local variables (i.e.
- * bindings from atoms to arbitrary values), this operation effectively reads a
- * fiber-local variable.
- *
- * Parameters:
- *    aFiber - The fiber whose environment should be consulted.
- *    key - The key whose value should be obtained.
- * Returns:
- *    The value bound to `key` within the fiber's environment.
- */
-Primitive "_[_]" is
-[
-	aFiber : fiber,
-	key : atom
-|
-	Primitive 26 (failureCode : natural number);
-	Private invoke _fail_primitive with failureCode
-] : any;
-
-/**
  * Answer the instances of the enumeration.
  *
  * Parameters:
@@ -460,22 +425,6 @@ Primitive "function from_and_" is
 	Primitive 74 (failureCode : natural number);
 	Private invoke _fail_primitive with failureCode
 ] : function;
-
-/**
- * Remove the binding indicated by `key` from `aFiber`'s environment.
- *
- * Parameters:
- *    aFiber - The fiber whose environment should be updated.
- *    key - The key whose binding should be removed.
- */
-Primitive "Remove_[_]" is
-[
-	aFiber : fiber,
-	key : atom
-|
-	Primitive 76 (failureCode : natural number);
-	Private invoke _fail_primitive with failureCode
-] : ⊤;
 
 /**
  * Answer the value bound to `aMap` in `key`.
@@ -678,7 +627,7 @@ Primitive "∪_[_.._]" is
 [
 	aTupleType : tuple meta,
 	startIndex : natural number,
-	endIndex : nonnegative integer
+	endIndex : nonnegative extended integer
 |
 	Primitive 143 (failureCode : natural number);
 	Private invoke _fail_primitive with failureCode
@@ -821,7 +770,7 @@ Primitive "Abstract method_is_" is
 	methodName : atom,
 	signature : function meta
 |
-	Primitive 227 (failureCode : natural number);
+	Primitive 227 (failureCode : null);
 	Private invoke _fail_primitive with failureCode
 ] : ⊤;
 

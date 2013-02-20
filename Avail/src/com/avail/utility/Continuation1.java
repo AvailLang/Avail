@@ -36,7 +36,7 @@ import com.avail.annotations.Nullable;
 
 
 /**
- * Implementors of {@code Continuation3} provide a single arbitrary operation
+ * Implementors of {@code Continuation1} provide a single arbitrary operation
  * that accepts one argument.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
