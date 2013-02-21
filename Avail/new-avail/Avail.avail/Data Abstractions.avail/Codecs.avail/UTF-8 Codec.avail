@@ -40,7 +40,8 @@ Uses
 Names
 	"encoded-buffer-exhausted exception",
 	"utf8 codec",
-	"a UTF-_codec"
+	"a UTF-_codec",
+	"utf-_encode_"
 Body
 
 /**
@@ -203,7 +204,7 @@ Method "utf-_decode_from_" is
  *      a tuple of bytes representing the UTF-8 encoded character
  * @author "Richard Arriaga"
  */
-Private abstract  method "utf-_encode_" is [8's type,code point]→<byte…|1..4>;
+Public abstract  method "utf-_encode_" is [8's type,code point]→<byte…|1..4>;  /*TODO Change back to private*/
 
 /**
  * This method defines the encoding of the UTF-8 ascii character.  This is for
@@ -431,6 +432,35 @@ Private method "Advance_'⁇s encoded input position" is
  	[utf8's encoded input position := utf8's encoded input position + 1;];
  ]:⊤;
 
+ /**
+ * determines the primary byte type
+ *
+ * @method "_'s⁇primary type"
+ * @categories "codec"
+ * @param "b" "byte" 
+ *		the primary byte to be tested
+ * @returnType "[1..4]"
+ *		how many bytes needed in encoding
+ * @raises "exceptionName" 
+ *		exceptionDescription
+ * @author "Richard Arriaga"
+ */
+Private method "_'s⁇primary type" is
+[
+ 	b : byte
+ |
+	if b bit∧ 128 = 0 then [1]
+	else if [b bit∧ 224 = 192] then [2]
+	else if [b bit∧ 240 = 224] then [3]
+	else if [b bit∧ 248 = 240] then [4]
+	else 
+	[
+		Raise a malformed-encoding exception with 
+			invalid encoding ::= <b>
+	]
+ ]:[1..4];
+
+ 
 /**
  * methodDescription
  *
@@ -448,20 +478,9 @@ Private method "_'⁇s next input byte's primary type" is
 [
  utf8 : utf8 codec
  |
-	If utf8's encoded input position > 1 then
-	[
-		Advance utf8's encoded input position;
-	];
+	Advance utf8's encoded input position;
 	next : byte := utf8's encoded input buffer[utf8's encoded input position];
-	if next bit∧ 128 = 0 then [1]
-	else if [next bit∧ 224 = 192] then [2]
-	else if [next bit∧ 240 = 224] then [3]
-	else if [next bit∧ 248 = 240] then [4]
-	else 
-	[
-		Raise a malformed-encoding exception with 
-			invalid encoding ::= <next>
-	]
+	next's primary type
  ]:[1..4];
 
 /**
@@ -559,8 +578,6 @@ utf8DecoderFunction ::=
 	]: character
 ];
 
-/*TODO Create method that gives data to codec from source.*/
-
 /**
  * The method that accepts a byte tuple and the decoding specificaiton that
  * transforms the byte tuple into a character.
@@ -583,6 +600,12 @@ Method "decode_using_" is
  	utf8's decoded input buffer := <>;
 	utf8's encoded input buffer := input;
 	utf8's encoded input position := 1;
+	If utf8's encoded input position ≤ |utf8's encoded input buffer| then
+	[
+	 	current ::= utf8's encoded input buffer[1];
+	 	utf8's decoded input buffer := utf8's decoded input buffer ++ 
+	 		<utf8DecoderFunction[current's primary type](utf8)>;
+	];
 	While 
 	[
 		utf8's encoded input position < |utf8's encoded input buffer|
@@ -596,7 +619,7 @@ Method "decode_using_" is
 		[
 			e : encoded-buffer-exhausted exception
 		 |
-		 	/*Do Something?*/
+		 	utf8's encoded input position := utf8's encoded input position + 1;
 		];
 	];
 	utf8's decoded input buffer
@@ -620,15 +643,21 @@ Method "finish decoding with_" is
 	utf8 : utf8 codec
  |
  	utf8's decoded input buffer := <>;
-	utf8's encoded input position := 1;
 	While 
 	[
 		utf8's encoded input position ≤ |utf8's encoded input buffer|
 	]
 	do
 	[
-		utf8's decoded input buffer := utf8's decoded input buffer++ 
-			<utf8DecoderFunction[utf8's next input byte's primary type](utf8)>;
+		Guard
+		[utf8's decoded input buffer := utf8's decoded input buffer ++ 
+			<utf8DecoderFunction[utf8's next input byte's primary type](utf8)>;]
+		intercept
+		[
+			e : encoded-buffer-exhausted exception
+		 |
+		 	utf8's encoded input position := |utf8's encoded input buffer| + 1;
+		];
 	];
 	utf8's decoded input buffer
 ]:string;
@@ -638,8 +667,8 @@ Grammatical restriction "a|an_«with«_«:»?:=_‡,»»" is
  	"utf8 codec"
 }, ∅, ∅>;
 
-/* Decoder test work
-encodeMe : string := "⊤⊥↓↑÷±∅∊>∰∡℀badcatΩ™﷼₭௹L$€¢₨?⸘#‱⁉«»";
+/*Decoder test work
+encodeMe : string := "⊤⊥↓↑ ÷±∅∊>∰∡℀badcatΩ™﷼₭௹L$€¢₨?⸘#‱⁉«»";
 Print: "string to encode: \n     " ++ encodeMe ++ "\n";
 encodedTuple : byte tuple := <>;
 For each of encodeMe do 
@@ -658,6 +687,6 @@ src : iterator of byte := an iterator over encodedTuple;
 Print: format "src=“①”\n" with src;
 di ::= a decoding iterator of src using a UTF-8 codec;
 
-decodedIt : string := take at most |encodeMe| from di;
+decodedIt : string := take at most ∞ from di;
 Print: decodedIt ++ "\n";
 Print: format "buffer decoded = original is “①”\n" with decodedIt = encodeMe;*/

@@ -39,7 +39,6 @@ Uses
 Names
 	"a decoding iterator of_using_",
 	"a decoding iterator that buffers_element|elements of_using_",
-	"byte", /*TODO Remove me when the moment is right*/
 	"byte tuple",
 	"codec",
 	"correction instruction",
@@ -73,12 +72,6 @@ Names
 	"_'s⁇unsupported character"
 	
 Body
-
-/*TODO Remove this method, "byte" as it will soon be defined very early on with 
- * the introduction of Threads.  It will be apparent when to remove this as 
- * there will be an ambiguity when this module is run.
- */
-Public method "byte" is [[0..255]];
 
 /**
  * This method defines an alias for the type integer range [0..255] which is
