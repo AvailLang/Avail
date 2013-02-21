@@ -58,12 +58,6 @@ Names
 	
 Body
 
-/*TODO Remove this method, "byte" as it will soon be defined very early on with 
- * the introduction of Threads.  It will be apparent when to remove this as 
- * there will be an ambiguity when this module is run.
- */
-Public method "byte" is [[0..255]];
-
 /**
  * This method defines an alias for the type integer range [0..255] which is
  * the size of one byte of data.
