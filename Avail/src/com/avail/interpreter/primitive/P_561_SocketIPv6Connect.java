@@ -216,12 +216,12 @@ extends Primitive
 				IntegerRangeTypeDescriptor.unsignedShorts(),
 				FunctionTypeDescriptor.create(
 					TupleDescriptor.empty(),
-					TOP.o())),
+					TOP.o()),
 				FunctionTypeDescriptor.create(
 					TupleDescriptor.from(
 						AbstractEnumerationTypeDescriptor.withInstance(
 							E_IO_ERROR.numericCode())),
-					TOP.o(),
+					TOP.o()),
 				IntegerRangeTypeDescriptor.bytes()),
 			FIBER.o());
 	}

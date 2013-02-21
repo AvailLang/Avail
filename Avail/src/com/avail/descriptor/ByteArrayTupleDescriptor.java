@@ -100,7 +100,7 @@ extends TupleDescriptor
 		for (int index = end - 1, first = start - 1; index >= first; index--)
 		{
 			final int itemHash = IntegerDescriptor.hashOfUnsignedByte(
-				(short) (array[index] & 0x7F)) ^ preToggle;
+				(short) (array[index] & 0xFF)) ^ preToggle;
 			hash = hash * multiplier + itemHash;
 		}
 		return hash * multiplier;
@@ -327,7 +327,7 @@ extends TupleDescriptor
 		// Answer the byte at the given index.
 		assert index >= 1 && index <= object.tupleSize();
 		final byte[] array = (byte[]) object.slot(BYTE_ARRAY).javaObject();
-		return (short) (array[index - 1] & 0x7F);
+		return (short) (array[index - 1] & 0xFF);
 	}
 
 	@Override @AvailMethod
@@ -350,7 +350,7 @@ extends TupleDescriptor
 	{
 		// Answer the integer element at the given index in the tuple object.
 		final byte[] array = (byte[]) object.slot(BYTE_ARRAY).javaObject();
-		return array[index - 1] & 0x7F;
+		return array[index - 1] & 0xFF;
 	}
 
 	@Override @AvailMethod
