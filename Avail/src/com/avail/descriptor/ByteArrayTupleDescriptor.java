@@ -266,7 +266,7 @@ extends TupleDescriptor
 		// Answer the element at the given index in the tuple object.
 		final byte[] array = (byte[]) object.slot(BYTE_ARRAY).javaObject();
 		return IntegerDescriptor.fromUnsignedByte(
-			(short) (array[index - 1] & 0x7F));
+			(short) (array[index - 1] & 0xFF));
 	}
 
 	@Override @AvailMethod
