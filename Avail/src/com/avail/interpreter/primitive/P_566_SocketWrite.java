@@ -1,5 +1,5 @@
 /**
- * P_565_SocketWrite.java
+ * P_566_SocketWrite.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -44,10 +44,9 @@ import com.avail.annotations.*;
 import com.avail.descriptor.*;
 import com.avail.exceptions.AvailErrorCode;
 import com.avail.interpreter.*;
-import com.avail.utility.Mutable;
 
 /**
- * <strong>Primitive 565</strong>: Initiate an asynchronous write from the
+ * <strong>Primitive 566</strong>: Initiate an asynchronous write from the
  * {@linkplain AsynchronousSocketChannel socket} referenced by the specified
  * {@linkplain AtomDescriptor handle}. Create a new {@linkplain FiberDescriptor
  * fiber} to respond to the asynchronous completion of the operation; the fiber
@@ -60,14 +59,14 @@ import com.avail.utility.Mutable;
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class P_565_SocketWrite
+public final class P_566_SocketWrite
 extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
 	public final @NotNull static Primitive instance =
-		new P_565_SocketWrite().init(5, CanInline, HasSideEffect);
+		new P_566_SocketWrite().init(5, CanInline, HasSideEffect);
 
 	@Override
 	public Result attempt (
@@ -98,12 +97,25 @@ extends Primitive
 			buffer = tuple.byteBuffer();
 			buffer.rewind();
 		}
-		else
+		else if (tuple.isByteArrayTuple())
+		{
+			buffer = ByteBuffer.wrap(tuple.byteArray());
+		}
+		else if (tuple.isByteTuple())
 		{
 			buffer = ByteBuffer.allocateDirect(tuple.tupleSize());
 			for (int i = 1, end = tuple.tupleSize(); i <= end; i++)
 			{
 				buffer.put((byte) tuple.rawByteAt(i));
+			}
+			buffer.flip();
+		}
+		else
+		{
+			buffer = ByteBuffer.allocateDirect(tuple.tupleSize());
+			for (int i = 1, end = tuple.tupleSize(); i <= end; i++)
+			{
+				buffer.put((byte) tuple.tupleAt(i).extractInt());
 			}
 			buffer.flip();
 		}
@@ -129,9 +141,9 @@ extends Primitive
 		final AvailRuntime runtime = AvailRuntime.current();
 		try
 		{
-			final Mutable<CompletionHandler<Integer, Void>> handler =
-				new Mutable<CompletionHandler<Integer, Void>>();
-			handler.value =
+			socket.write(
+				buffer,
+				null,
 				new CompletionHandler<Integer, Void>()
 				{
 					@Override
@@ -148,7 +160,7 @@ extends Primitive
 							// writing.
 							if (buffer.hasRemaining())
 							{
-								socket.write(buffer, null, handler.value);
+								socket.write(buffer, null, this);
 							}
 							// Otherwise, report success.
 							else
@@ -181,8 +193,7 @@ extends Primitive
 									E_IO_ERROR.numericCode()));
 						}
 					}
-				};
-			socket.write(buffer, null, handler.value);
+				});
 		}
 		catch (final IllegalStateException e)
 		{
@@ -209,5 +220,17 @@ extends Primitive
 					TOP.o()),
 				IntegerRangeTypeDescriptor.bytes()),
 			FIBER.o());
+	}
+
+
+	@Override
+	protected AvailObject privateFailureVariableType ()
+	{
+		return AbstractEnumerationTypeDescriptor.withInstances(
+			TupleDescriptor.from(
+				E_INVALID_HANDLE.numericCode(),
+				E_SPECIAL_ATOM.numericCode(),
+				E_IO_ERROR.numericCode()
+			).asSet());
 	}
 }

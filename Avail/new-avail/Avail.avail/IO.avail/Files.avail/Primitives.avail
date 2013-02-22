@@ -82,7 +82,6 @@ Names
 	"Synchronize_with file system",
 
 	/* File cleanup. */
-	"Close_",
 	"Using|using_,⁇do_",
 
 	/* File exceptions. */
@@ -553,7 +552,7 @@ Public explicit class "file-closed exception" extends I/O exception;
  * @raises "file-closed exception"
  *    If {@param "f"} has already been closed.
  */
-Public method "Close_" is
+Method "Close_" is
 [
 	f : file
 |

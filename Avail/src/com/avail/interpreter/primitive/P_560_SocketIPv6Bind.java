@@ -1,5 +1,5 @@
 /**
- * P_555_ServerSocketClose.java
+ * P_560_SocketIPv6Bind.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -36,7 +36,8 @@ import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.io.IOException;
-import java.nio.channels.AsynchronousServerSocketChannel;
+import java.net.*;
+import java.nio.channels.AsynchronousSocketChannel;
 import java.util.List;
 import com.avail.AvailRuntime;
 import com.avail.annotations.NotNull;
@@ -44,30 +45,34 @@ import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 
 /**
- * <strong>Primitive 555</strong>: Close the {@linkplain
- * AsynchronousServerSocketChannel asynchronous server socket} referenced by the
- * specified {@linkplain AtomDescriptor handle}.
+ * <strong>Primitive 560</strong>: Bind the {@linkplain
+ * AsynchronousSocketChannel asynchronous socket channel} referenced by the
+ * specified {@linkplain AtomDescriptor handle} to an {@linkplain Inet6Address
+ * IPv6 address} and port. The bytes of the address are specified in network
+ * byte order, i.e., big-endian.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class P_555_ServerSocketClose
+public final class P_560_SocketIPv6Bind
 extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
 	public final @NotNull static Primitive instance =
-		new P_555_ServerSocketClose().init(1, CanInline, HasSideEffect);
+		new P_560_SocketIPv6Bind().init(3, CanInline, HasSideEffect);
 
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 1;
+		assert args.size() == 3;
 		final AvailObject handle = args.get(0);
+		final AvailObject addressTuple = args.get(1);
+		final AvailObject port = args.get(2);
 		final AvailObject pojo =
-			handle.getAtomProperty(AtomDescriptor.serverSocketKey());
+			handle.getAtomProperty(AtomDescriptor.socketKey());
 		if (pojo.equalsNil())
 		{
 			return interpreter.primitiveFailure(
@@ -75,16 +80,42 @@ extends Primitive
 				? E_SPECIAL_ATOM
 				: E_INVALID_HANDLE);
 		}
-		final AsynchronousServerSocketChannel socket =
-			(AsynchronousServerSocketChannel) pojo.javaObject();
+		final AsynchronousSocketChannel socket =
+			(AsynchronousSocketChannel) pojo.javaObject();
+		// Build the big-endian address byte array.
+		final byte[] addressBytes = new byte[16];
+		for (int i = 0; i < addressBytes.length; i++)
+		{
+			final AvailObject addressByte = addressTuple.tupleAt(i + 1);
+			addressBytes[i] = (byte) addressByte.extractUnsignedByte();
+		}
 		try
 		{
-			socket.close();
+			final Inet4Address inetAddress = (Inet4Address)
+				InetAddress.getByAddress(addressBytes);
+			final SocketAddress address =
+				new InetSocketAddress(inetAddress, port.extractUnsignedShort());
+			socket.bind(address);
 			return interpreter.primitiveSuccess(NilDescriptor.nil());
+		}
+		catch (final IllegalStateException e)
+		{
+			return interpreter.primitiveFailure(E_INVALID_HANDLE);
+		}
+		catch (final UnknownHostException e)
+		{
+			// This shouldn't actually happen, since we carefully enforce the
+			// range of addresses.
+			assert false;
+			return interpreter.primitiveFailure(E_IO_ERROR);
 		}
 		catch (final IOException e)
 		{
 			return interpreter.primitiveFailure(E_IO_ERROR);
+		}
+		catch (final SecurityException e)
+		{
+			return interpreter.primitiveFailure(E_PERMISSION_DENIED);
 		}
 	}
 
@@ -93,8 +124,17 @@ extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-					ATOM.o()),
-				TOP.o());
+				ATOM.o(),
+				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
+					IntegerRangeTypeDescriptor.create(
+						IntegerDescriptor.fromInt(16),
+						true,
+						IntegerDescriptor.fromInt(16),
+						true),
+					TupleDescriptor.empty(),
+					IntegerRangeTypeDescriptor.bytes()),
+				IntegerRangeTypeDescriptor.unsignedShorts()),
+			TOP.o());
 	}
 
 	@Override
@@ -104,7 +144,8 @@ extends Primitive
 			TupleDescriptor.from(
 				E_INVALID_HANDLE.numericCode(),
 				E_SPECIAL_ATOM.numericCode(),
-				E_IO_ERROR.numericCode()
+				E_IO_ERROR.numericCode(),
+				E_PERMISSION_DENIED.numericCode()
 			).asSet());
 	}
 }

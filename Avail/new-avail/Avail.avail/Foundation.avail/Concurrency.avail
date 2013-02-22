@@ -72,6 +72,85 @@ Names
 	"worker exception"
 Body
 
+/**
+ * Require that the specified function type is applicable to the specified
+ * argument types. If the function type is not sufficiently well known, then
+ * no checks are possible. Otherwise, reject a parse if appropriate.
+ *
+ * @method "Require:_accepts_"
+ * @param "functionType" "function's type"
+ * @param "argumentsType" "tuple's type"
+ */
+Private method "Require:forked_accepts_" is
+[
+	functionType : function's type,
+	argumentsType : tuple's type
+|
+	parametersType ::= functionType's parameters' type;
+	parametersSizes ::= ||parametersType||;
+	/* If `parameterSizes` = ⊥, then `parametersType` = ⊥. In this case, we
+	 * cannot statically ascertain anything interesting about the function and
+	 * the arguments to apply.
+	 */
+	If parametersSizes ≠ ⊥ then
+	[
+		argumentsSizes ::= ||argumentsType||;
+		validSizes ::= parametersSizes ∩ argumentsSizes;
+		If validSizes = ⊥ then
+		[
+			Reject parse, expected:
+				"size of argument tuple to be compatible with size of applied\
+				\| function's parameter tuple"
+		];
+	];
+];
+
+Semantic restriction "Invoke_with_,⁇forked at priority_" is
+[
+	functionType : function's type,
+	argumentsType : tuple's type,
+	priorityType : [0..255]'s type
+|
+	Require: forked functionType accepts argumentsType;
+	⊤
+];
+
+Semantic restriction "invoke_with_,⁇forked at priority_" is
+[
+	functionType : function's type,
+	argumentsType : tuple's type,
+	priorityType : [0..255]'s type
+|
+	Require: forked functionType accepts argumentsType;
+	⊤
+];
+
+Semantic restriction
+	"In_millisecond|milliseconds,⁇invoke_with_,⁇forked at priority_"
+is
+[
+	delayType : [0..∞]'s type,
+	functionType : function's type,
+	argumentsType : tuple's type,
+	priorityType : [0..255]'s type
+|
+	Require: forked functionType accepts argumentsType;
+	⊤
+];
+
+Semantic restriction
+	"in_millisecond|milliseconds,⁇invoke_with_,⁇forked at priority_"
+is
+[
+	delayType : [0..∞]'s type,
+	functionType : function's type,
+	argumentsType : tuple's type,
+	priorityType : [0..255]'s type
+|
+	Require: forked functionType accepts argumentsType;
+	⊤
+];
+
 /* Disambiguate fiber-local access and atom property access. They are already
  * disambiguated by types, so this is not strictly necessary.
  */

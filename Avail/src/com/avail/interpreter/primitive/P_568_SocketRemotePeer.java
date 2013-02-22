@@ -1,5 +1,5 @@
 /**
- * P_624_CreateFiberHeritableAtom.java
+ * P_568_SocketRemotePeer.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -33,32 +33,33 @@
 package com.avail.interpreter.primitive;
 
 import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.exceptions.AvailErrorCode.E_AMBIGUOUS_NAME;
-import static com.avail.exceptions.AvailErrorCode.E_ATOM_ALREADY_EXISTS;
+import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
+import java.io.IOException;
+import java.net.*;
+import java.nio.channels.*;
 import java.util.List;
+import com.avail.AvailRuntime;
 import com.avail.annotations.NotNull;
 import com.avail.descriptor.*;
-import com.avail.exceptions.AvailErrorCode;
 import com.avail.interpreter.*;
-import com.avail.utility.*;
 
 /**
- * <strong>Primitive 624</strong>: Create a new {@linkplain AtomDescriptor atom}
- * with the given name that represents a {@linkplain
- * AtomDescriptor#heritableKey() heritable} {@linkplain FiberDescriptor fiber}
- * variable.
+ * <strong>Primitive 568</strong>: Answer the {@linkplain InetSocketAddress
+ * socket address} of the remote peer of the {@linkplain
+ * AsynchronousSocketChannel asynchronous socket channel} referenced by the
+ * specified {@linkplain AtomDescriptor handle}.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class P_624_CreateFiberHeritableAtom
+public final class P_568_SocketRemotePeer
 extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
 	public final @NotNull static Primitive instance =
-		new P_624_CreateFiberHeritableAtom().init(1, CanInline);
+		new P_568_SocketRemotePeer().init(1, CanInline);
 
 	@Override
 	public Result attempt (
@@ -66,53 +67,38 @@ extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
-		final AvailObject name = args.get(0);
-		final AvailObject module = ModuleDescriptor.current();
-		final Mutable<AvailObject> trueName = new Mutable<AvailObject>();
-		final Mutable<AvailErrorCode> errorCode = new Mutable<AvailErrorCode>();
-		if (!module.equalsNil())
+		final AvailObject handle = args.get(0);
+		final AvailObject pojo =
+			handle.getAtomProperty(AtomDescriptor.socketKey());
+		if (pojo.equalsNil())
 		{
-			module.lock(
-				new Continuation0()
-				{
-					@Override
-					public void value ()
-					{
-						final AvailObject trueNames =
-							module.trueNamesForStringName(name);
-						if (trueNames.setSize() == 0)
-						{
-							trueName.value = AtomDescriptor.create(
-								name, module);
-							trueName.value.setAtomProperty(
-								AtomDescriptor.heritableKey(),
-								AtomDescriptor.trueObject());
-							module.atPrivateNameAdd(name, trueName.value);
-						}
-						else if (trueNames.setSize() == 1)
-						{
-							errorCode.value = E_ATOM_ALREADY_EXISTS;
-						}
-						else
-						{
-							errorCode.value = E_AMBIGUOUS_NAME;
-						}
-					}
-				});
+			return interpreter.primitiveFailure(
+				AvailRuntime.isSpecialAtom(handle)
+				? E_SPECIAL_ATOM
+				: E_INVALID_HANDLE);
 		}
-		else
+		final AsynchronousSocketChannel socket =
+			(AsynchronousSocketChannel) pojo.javaObject();
+		final InetSocketAddress peer;
+		try
 		{
-			trueName.value = AtomDescriptor.create(name, NilDescriptor.nil());
-			trueName.value.setAtomProperty(
-				AtomDescriptor.heritableKey(),
-				AtomDescriptor.trueObject());
+			peer = (InetSocketAddress) socket.getRemoteAddress();
 		}
-		if (errorCode.value != null)
+		catch (final ClosedChannelException e)
 		{
-			return interpreter.primitiveFailure(errorCode.value);
+			return interpreter.primitiveFailure(E_INVALID_HANDLE);
 		}
-		assert trueName.value != null;
-		return interpreter.primitiveSuccess(trueName.value.makeShared());
+		catch (final IOException e)
+		{
+			return interpreter.primitiveFailure(E_IO_ERROR);
+		}
+		final InetAddress address = peer.getAddress();
+		final byte[] addressBytes = address.getAddress();
+		final AvailObject addressTuple =
+			ByteArrayTupleDescriptor.forByteArray(addressBytes);
+		final AvailObject port = IntegerDescriptor.fromInt(peer.getPort());
+		return interpreter.primitiveSuccess(
+			TupleDescriptor.from(addressTuple, port));
 	}
 
 	@Override
@@ -120,7 +106,28 @@ extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				TupleTypeDescriptor.stringTupleType()),
-			ATOM.o());
+				ATOM.o()),
+			TupleTypeDescriptor.forTypes(
+				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
+					IntegerRangeTypeDescriptor.create(
+						IntegerDescriptor.fromInt(4),
+						true,
+						IntegerDescriptor.fromInt(16),
+						true),
+					TupleDescriptor.empty(),
+					IntegerRangeTypeDescriptor.bytes()),
+				IntegerRangeTypeDescriptor.unsignedShorts()));
+	}
+
+
+	@Override
+	protected AvailObject privateFailureVariableType ()
+	{
+		return AbstractEnumerationTypeDescriptor.withInstances(
+			TupleDescriptor.from(
+				E_INVALID_HANDLE.numericCode(),
+				E_SPECIAL_ATOM.numericCode(),
+				E_IO_ERROR.numericCode()
+			).asSet());
 	}
 }

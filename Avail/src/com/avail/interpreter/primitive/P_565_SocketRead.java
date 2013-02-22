@@ -1,5 +1,5 @@
 /**
- * P_561_SocketIPv6Connect.java
+ * P_565_SocketRead.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -36,7 +36,7 @@ import static com.avail.descriptor.FiberDescriptor.InterruptRequestFlag.TERMINAT
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
-import java.net.*;
+import java.nio.ByteBuffer;
 import java.nio.channels.*;
 import java.util.*;
 import com.avail.AvailRuntime;
@@ -46,41 +46,42 @@ import com.avail.exceptions.AvailErrorCode;
 import com.avail.interpreter.*;
 
 /**
- * <strong>Primitive 560</strong>: Connect the {@linkplain
- * AsynchronousSocketChannel asynchronous socket} reference by the specified
- * {@linkplain AtomDescriptor handle} to an {@linkplain Inet6Address IPv6
- * address} and port. Create a new {@linkplain FiberDescriptor fiber} to respond
- * to the asynchronous completion of the operation; the fiber will run at the
- * specified {@linkplain IntegerRangeTypeDescriptor#bytes() priority}. If the
- * operation succeeds, then eventually start the new fiber to apply the
- * {@linkplain FunctionDescriptor success function}. If the operation fails,
- * then eventually start the new fiber to apply the {@linkplain
+ * <strong>Primitive 565</strong>: Initiate an asynchronous read from the
+ * {@linkplain AsynchronousSocketChannel socket} referenced by the specified
+ * {@linkplain AtomDescriptor handle}. Create a new {@linkplain FiberDescriptor
+ * fiber} to respond to the asynchronous completion of the operation; the fiber
+ * will run at the specified {@linkplain IntegerRangeTypeDescriptor#bytes()
+ * priority}. If the operation succeeds, then eventually start the new fiber to
+ * apply the {@linkplain FunctionDescriptor success function} to the {@linkplain
+ * ByteBufferTupleDescriptor result tuple} and a {@linkplain
+ * EnumerationTypeDescriptor#booleanObject() boolean} that is {@linkplain
+ * AtomDescriptor#trueObject() true} if the socket is exhausted. If the
+ * operation fails, then eventually start the new fiber to apply the {@linkplain
  * FunctionDescriptor failure function} to the {@linkplain IntegerDescriptor
  * numeric} {@linkplain AvailErrorCode error code}. Answer the new fiber.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class P_561_SocketIPv6Connect
+public final class P_565_SocketRead
 extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
 	public final @NotNull static Primitive instance =
-		new P_561_SocketIPv6Connect().init(6, CanInline, HasSideEffect);
+		new P_565_SocketRead().init(5, CanInline, HasSideEffect);
 
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 6;
-		final AvailObject handle = args.get(0);
-		final AvailObject addressTuple = args.get(1);
-		final AvailObject port = args.get(2);
-		final AvailObject succeed = args.get(3);
-		final AvailObject fail = args.get(4);
-		final AvailObject priority = args.get(5);
+		assert args.size() == 5;
+		final AvailObject size = args.get(0);
+		final AvailObject handle = args.get(1);
+		final AvailObject succeed = args.get(2);
+		final AvailObject fail = args.get(3);
+		final AvailObject priority = args.get(4);
 		final AvailObject pojo =
 			handle.getAtomProperty(AtomDescriptor.socketKey());
 		if (pojo.equalsNil())
@@ -92,32 +93,7 @@ extends Primitive
 		}
 		final AsynchronousSocketChannel socket =
 			(AsynchronousSocketChannel) pojo.javaObject();
-		// Build the big-endian address byte array.
-		final byte[] addressBytes = new byte[16];
-		for (int i = 0; i < addressBytes.length; i++)
-		{
-			final AvailObject addressByte = addressTuple.tupleAt(i + 1);
-			addressBytes[i] = (byte) addressByte.extractUnsignedByte();
-		}
-		final SocketAddress address;
-		try
-		{
-			final Inet6Address inetAddress = (Inet6Address)
-				InetAddress.getByAddress(addressBytes);
-			address = new InetSocketAddress(
-				inetAddress, port.extractUnsignedShort());
-		}
-		catch (final IllegalStateException e)
-		{
-			return interpreter.primitiveFailure(E_INVALID_HANDLE);
-		}
-		catch (final UnknownHostException e)
-		{
-			// This shouldn't actually happen, since we carefully enforce the
-			// range of addresses.
-			assert false;
-			return interpreter.primitiveFailure(E_IO_ERROR);
-		}
+		final ByteBuffer buffer = ByteBuffer.allocateDirect(size.extractInt());
 		final AvailObject current = FiberDescriptor.current();
 		final AvailObject newFiber =
 			FiberDescriptor.newFiber(priority.extractInt());
@@ -136,20 +112,21 @@ extends Primitive
 		newFiber.makeShared();
 		succeed.makeShared();
 		fail.makeShared();
-		// Now start the asynchronous connect.
+		// Now start the asynchronous read.
 		final AvailRuntime runtime = AvailRuntime.current();
 		try
 		{
-			socket.connect(
-				address,
+			socket.read(
+				buffer,
 				null,
-				new CompletionHandler<Void, Void>()
+				new CompletionHandler<Integer, Void>()
 				{
 					@Override
 					public void completed (
-						final @Nullable Void unused1,
-						final @Nullable Void unused2)
+						final @Nullable Integer bytesRead,
+						final @Nullable Void unused)
 					{
+						assert bytesRead != null;
 						// If termination has not been requested, then start the
 						// fiber.
 						if (!newFiber.getAndClearInterruptRequestFlag(
@@ -159,14 +136,18 @@ extends Primitive
 								runtime,
 								newFiber,
 								succeed,
-								Collections.<AvailObject>emptyList());
+								Arrays.asList(
+									ByteBufferTupleDescriptor.forByteBuffer(
+										buffer),
+									AtomDescriptor.objectFromBoolean(
+										bytesRead == -1)));
 						}
 					}
 
 					@Override
 					public void failed (
 						final @Nullable Throwable killer,
-						final @Nullable Void unused)
+						final @Nullable Void attachment)
 					{
 						assert killer != null;
 						// If termination has not been requested, then start the
@@ -186,15 +167,14 @@ extends Primitive
 		}
 		catch (final IllegalArgumentException e)
 		{
-			return interpreter.primitiveFailure(E_INCORRECT_ARGUMENT_TYPE);
+			// This should only happen if the buffer is read only, which is
+			// impossible by construction here.
+			assert false;
+			return interpreter.primitiveFailure(E_IO_ERROR);
 		}
 		catch (final IllegalStateException e)
 		{
 			return interpreter.primitiveFailure(E_INVALID_HANDLE);
-		}
-		catch (final SecurityException e)
-		{
-			return interpreter.primitiveFailure(E_PERMISSION_DENIED);
 		}
 		return interpreter.primitiveSuccess(newFiber);
 	}
@@ -204,18 +184,17 @@ extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
+				IntegerRangeTypeDescriptor.create(
+					IntegerDescriptor.zero(),
+					true,
+					IntegerDescriptor.fromInt(Integer.MAX_VALUE),
+					true),
 				ATOM.o(),
-				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
-					IntegerRangeTypeDescriptor.create(
-						IntegerDescriptor.fromInt(16),
-						true,
-						IntegerDescriptor.fromInt(16),
-						true),
-					TupleDescriptor.empty(),
-					IntegerRangeTypeDescriptor.bytes()),
-				IntegerRangeTypeDescriptor.unsignedShorts(),
 				FunctionTypeDescriptor.create(
-					TupleDescriptor.empty(),
+					TupleDescriptor.from(
+						TupleTypeDescriptor.zeroOrMoreOf(
+							IntegerRangeTypeDescriptor.bytes()),
+						EnumerationTypeDescriptor.booleanObject()),
 					TOP.o()),
 				FunctionTypeDescriptor.create(
 					TupleDescriptor.from(
@@ -233,9 +212,7 @@ extends Primitive
 			TupleDescriptor.from(
 				E_INVALID_HANDLE.numericCode(),
 				E_SPECIAL_ATOM.numericCode(),
-				E_INCORRECT_ARGUMENT_TYPE.numericCode(),
-				E_IO_ERROR.numericCode(),
-				E_PERMISSION_DENIED.numericCode()
+				E_IO_ERROR.numericCode()
 			).asSet());
 	}
 }

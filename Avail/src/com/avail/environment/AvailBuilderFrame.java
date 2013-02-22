@@ -396,8 +396,10 @@ extends JFrame
 							assert moduleSize != null;
 							if (Thread.currentThread().isInterrupted())
 							{
-								assert runner == Thread.currentThread();
-								throw new CancellationException();
+								if (runner == Thread.currentThread())
+								{
+									throw new CancellationException();
+								}
 							}
 							invokeLater(new Runnable()
 							{
@@ -426,8 +428,10 @@ extends JFrame
 							assert globalCodeSize != null;
 							if (Thread.currentThread().isInterrupted())
 							{
-								assert runner == Thread.currentThread();
-								throw new CancellationException();
+								if (runner == Thread.currentThread())
+								{
+									throw new CancellationException();
+								}
 							}
 							invokeLater(new Runnable()
 							{

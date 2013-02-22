@@ -35,6 +35,7 @@ package com.avail.tools.bootstrap;
 import static com.avail.tools.bootstrap.Resources.*;
 import java.io.*;
 import java.util.*;
+import com.avail.descriptor.AvailObject;
 import com.avail.exceptions.AvailErrorCode;
 
 /**
@@ -47,6 +48,13 @@ import com.avail.exceptions.AvailErrorCode;
 public final class ErrorCodeNamesGenerator
 extends PropertiesFileGenerator
 {
+	/* Initialize Avail. */
+	static
+	{
+		AvailObject.clearAllWellKnownObjects();
+		AvailObject.createAllWellKnownObjects();
+	}
+
 	/**
 	 * Write the names of the properties, whose unspecified values should be
 	 * the Avail names of the corresponding {@linkplain AvailErrorCode

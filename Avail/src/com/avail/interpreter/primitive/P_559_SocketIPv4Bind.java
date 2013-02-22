@@ -1,5 +1,5 @@
 /**
- * P_559_SocketIPv6Bind.java
+ * P_559_SocketIPv4Bind.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -37,7 +37,7 @@ import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.io.IOException;
 import java.net.*;
-import java.nio.channels.AsynchronousSocketChannel;
+import java.nio.channels.*;
 import java.util.List;
 import com.avail.AvailRuntime;
 import com.avail.annotations.NotNull;
@@ -45,22 +45,22 @@ import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 
 /**
- * <strong>Primitive 558</strong>: Bind the {@linkplain
+ * <strong>Primitive 559</strong>: Bind the {@linkplain
  * AsynchronousSocketChannel asynchronous socket channel} referenced by the
- * specified {@linkplain AtomDescriptor handle} to an {@linkplain Inet6Address
- * IPv6 address} and port. The bytes of the address are specified in network
+ * specified {@linkplain AtomDescriptor handle} to an {@linkplain Inet4Address
+ * IPv4 address} and port. The bytes of the address are specified in network
  * byte order, i.e., big-endian.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class P_559_SocketIPv6Bind
+public final class P_559_SocketIPv4Bind
 extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
 	public final @NotNull static Primitive instance =
-		new P_559_SocketIPv6Bind().init(3, CanInline, HasSideEffect);
+		new P_559_SocketIPv4Bind().init(3, CanInline, HasSideEffect);
 
 	@Override
 	public Result attempt (
@@ -83,7 +83,7 @@ extends Primitive
 		final AsynchronousSocketChannel socket =
 			(AsynchronousSocketChannel) pojo.javaObject();
 		// Build the big-endian address byte array.
-		final byte[] addressBytes = new byte[16];
+		final byte[] addressBytes = new byte[4];
 		for (int i = 0; i < addressBytes.length; i++)
 		{
 			final AvailObject addressByte = addressTuple.tupleAt(i + 1);
@@ -127,9 +127,9 @@ extends Primitive
 				ATOM.o(),
 				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 					IntegerRangeTypeDescriptor.create(
-						IntegerDescriptor.fromInt(16),
+						IntegerDescriptor.fromInt(4),
 						true,
-						IntegerDescriptor.fromInt(16),
+						IntegerDescriptor.fromInt(4),
 						true),
 					TupleDescriptor.empty(),
 					IntegerRangeTypeDescriptor.bytes()),

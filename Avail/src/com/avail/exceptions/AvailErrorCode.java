@@ -427,6 +427,13 @@ public enum AvailErrorCode
 	E_NO_IMPLEMENTATION (73),
 
 	/**
+	 * A {@linkplain ModuleDescriptor module} already has an {@linkplain
+	 * AtomDescriptor atom} associated with a particular {@linkplain
+	 * StringDescriptor name}.
+	 */
+	E_ATOM_ALREADY_EXISTS (74),
+
+	/**
 	 * The continuation whose primitive failure variable is set to this value is
 	 * no longer eligible to run an exception handler (because it already has,
 	 * is currently doing so, or has successfully run its guarded function to

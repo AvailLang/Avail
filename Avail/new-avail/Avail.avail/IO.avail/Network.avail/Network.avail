@@ -1,5 +1,5 @@
 /*
- * Common.avail
+ * Network.avail
  * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -30,22 +30,13 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Common"
+System Module "Network"
 Versions
 	"dev"
-Uses
-	"Foundation",
-	"Unit Testing"
-Names
-	"Close_",
-	"I/O test suite",
-	"test directory"
+Extends
+	"Address",
+	"Client",
+	"Options",
+	"Server",
+	"Test"
 Body
-
-"I/O test suite" is a new atom;
-I/O test suite is a new test suite;
-
-Public method "test directory" is
-[
-	"new-avail/Avail.avail/IO.avail/Files.avail/test"
-];

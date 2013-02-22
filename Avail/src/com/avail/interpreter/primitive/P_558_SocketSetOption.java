@@ -1,5 +1,5 @@
 /**
- * P_566_SocketClose.java
+ * P_558_SocketSetOption.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -32,10 +32,12 @@
 
 package com.avail.interpreter.primitive;
 
+import static java.net.StandardSocketOptions.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.io.IOException;
+import java.net.SocketOption;
 import java.nio.channels.*;
 import java.util.List;
 import com.avail.AvailRuntime;
@@ -44,28 +46,37 @@ import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 
 /**
- * <strong>Primitive 566</strong>: Close the {@linkplain
- * AsynchronousSocketChannel asynchronous socket} referenced by the specified
- * {@linkplain AtomDescriptor handle}.
+ * <strong>Primitive 558</strong>: Set the socket options for the
+ * {@linkplain AsynchronousSocketChannel asynchronous socket channel} referenced
+ * by the specified {@linkplain AtomDescriptor handle}.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class P_566_SocketClose
+public final class P_558_SocketSetOption
 extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
 	public final @NotNull static Primitive instance =
-		new P_566_SocketClose().init(1, CanInline, HasSideEffect);
+		new P_558_SocketSetOption().init(2, CanInline, HasSideEffect);
 
+	/**
+	 * A one-based list of the standard socket options.
+	 */
+	@SuppressWarnings("rawtypes")
+	private static final SocketOption[] socketOptions =
+		{null, SO_RCVBUF, SO_REUSEADDR, SO_SNDBUF, SO_KEEPALIVE, TCP_NODELAY};
+
+	@SuppressWarnings("unchecked")
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 1;
+		assert args.size() == 2;
 		final AvailObject handle = args.get(0);
+		final AvailObject options = args.get(1);
 		final AvailObject pojo =
 			handle.getAtomProperty(AtomDescriptor.socketKey());
 		if (pojo.equalsNil())
@@ -79,8 +90,34 @@ extends Primitive
 			(AsynchronousSocketChannel) pojo.javaObject();
 		try
 		{
-			socket.close();
+			for (final MapDescriptor.Entry entry : options.mapIterable())
+			{
+				@SuppressWarnings("rawtypes")
+				final SocketOption option =
+					socketOptions[entry.key.extractInt()];
+				final Object value;
+				if (option.type().equals(Boolean.class)
+					&& entry.value.isBoolean())
+				{
+					value = entry.value.extractBoolean();
+				}
+				else if (option.type().equals(Integer.class)
+					&& entry.value.isInt())
+				{
+					value = entry.value.extractInt();
+				}
+				else
+				{
+					return interpreter.primitiveFailure(
+						E_INCORRECT_ARGUMENT_TYPE);
+				}
+				socket.setOption(option, value);
+			}
 			return interpreter.primitiveSuccess(NilDescriptor.nil());
+		}
+		catch (final IllegalArgumentException e)
+		{
+			return interpreter.primitiveFailure(E_INCORRECT_ARGUMENT_TYPE);
 		}
 		catch (final IOException e)
 		{
@@ -93,9 +130,22 @@ extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-					ATOM.o()),
-				TOP.o());
+				ATOM.o(),
+				MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
+					IntegerRangeTypeDescriptor.create(
+						IntegerDescriptor.zero(),
+						true,
+						IntegerDescriptor.fromInt(socketOptions.length - 1),
+						true),
+					IntegerRangeTypeDescriptor.create(
+						IntegerDescriptor.one(),
+						true,
+						IntegerDescriptor.fromInt(socketOptions.length - 1),
+						true),
+					ANY.o())),
+			TOP.o());
 	}
+
 
 	@Override
 	protected AvailObject privateFailureVariableType ()
@@ -104,6 +154,7 @@ extends Primitive
 			TupleDescriptor.from(
 				E_INVALID_HANDLE.numericCode(),
 				E_SPECIAL_ATOM.numericCode(),
+				E_INCORRECT_ARGUMENT_TYPE.numericCode(),
 				E_IO_ERROR.numericCode()
 			).asSet());
 	}

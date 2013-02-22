@@ -54,6 +54,7 @@ Names
 	"Current fiber's unhandled exception handler is_",
 	"Guard|guard_«intercept_»«ensure_»",
 	"Raise_",
+	"Raise an exception for_",
 	"cascade_",
 	"current fiber's unhandled exception handler",
 	"causal exception",
@@ -886,6 +887,8 @@ System exception "method-is-sealed" (72)
 	extends definition exception;
 System exception "no-implementation" (73)
 	extends bad-primitive exception;
+System exception "atom-already-exists" (74)
+	extends definition exception;
 System exception "handler-sentinel" (80)
 	extends system exception;
 System exception "cannot-mark-handler-frame" (81)
@@ -1025,6 +1028,22 @@ Set early failure function to
 	Raise an exceptionType with
 		error code ::= errorCode,
 		error name ::= exceptionType's error name's instance
+] : ⊥;
+
+/**
+ * Raise the right exception for the specified system error code.
+ *
+ * @method "Raise an exception for_"
+ * @param "errorCode" "natural number"
+ *        A system error code.
+ * @raises "exception"
+ *         The appropriate exception for the specified error code.
+ */
+Public method "Raise an exception for_" is
+[
+	errorCode : natural number
+|
+	early failure function(errorCode)
 ] : ⊥;
 
 /**

@@ -45,15 +45,9 @@ Extends
 Uses
 	"Origin"
 Names
-	/*  23 */ "I/O error code",
-	/* 500 */ "Java class not available code",
-	/* 505 */ "Java field not available code",
-	/* 506 */ "Java field reference is ambiguous code",
-	/* 504 */ "Java marshaling failed code",
-	/* 502 */ "Java method not available code",
-	/* 508 */ "Java method reference is ambiguous code",
 	/*  54 */ "alternative must not contain arguments code",
 	/*  35 */ "ambiguous name code",
+	/*  74 */ "atom already exists code",
 	/* 103 */ "block compilation failed code",
 	/* 100 */ "block contains invalid statements code",
 	/* 101 */ "block is invalid code",
@@ -63,7 +57,7 @@ Names
 	/*   4 */ "cannot divide by zero code",
 	/*   5 */ "cannot divide infinities code",
 	/*  81 */ "cannot mark handler frame code",
-	/* 507 */ "cannot modify final Java field code",
+	/* 507 */ "cannot modify final java field code",
 	/*   3 */ "cannot multiply zero and infinity code",
 	/*   6 */ "cannot read unassigned variable code",
 	/*   7 */ "cannot store incorrectly typed value code",
@@ -90,22 +84,29 @@ Names
 	/*  43 */ "incorrect use of double dagger code",
 	/*  25 */ "invalid handle code",
 	/*  26 */ "invalid primitive number code",
-	/*  33 */ "invalid special object number code",
+	/*  23 */ "io error code",
+	/* 500 */ "java class not available code",
+	/* 505 */ "java field not available code",
+	/* 506 */ "java field reference is ambiguous code",
+	/* 504 */ "java marshaling failed code",
+	/* 502 */ "java method not available code",
+	/* 508 */ "java method reference is ambiguous code",
 	/*  21 */ "key not found code",
 	/*  58 */ "label macro must occur inside a block code",
 	/*  70 */ "loading is over code",
 	/*  28 */ "local type literal is not a type code",
 	/*  34 */ "macro argument must be a parse node code",
-	/*  71 */ "method definition lookup failed code",
+	/*  71 */ "method implementation lookup failed code",
 	/*  72 */ "method is sealed code",
 	/*  45 */ "method name is not canonical code",
 	/*  13 */ "method return type not as forward declared code",
 	/*  22 */ "negative size code",
-	/*  73 */ "no definition code",
 	/*  82 */ "no handler frame code",
+	/*  73 */ "no implementation code",
 	/*  19 */ "no method code",
+	/*  33 */ "no special object code",
 	/*   9 */ "no such fiber variable code",
-	/*  17 */ "not enumeration code",
+	/*  17 */ "not an enumeration code",
 	/*  49 */ "octothorp must follow a simple group code",
 	/*  29 */ "outer type literal is not a type code",
 	/*  24 */ "permission denied code",
@@ -127,17 +128,11 @@ Names
 	/*  20 */ "wrong number of outers code"
 Body
 
-/**
- * Adding ∞ and -∞ is undefined.
- */
 Primitive "cannot add unlike infinities code" is
 [
 	1
 ];
 
-/**
- * Subtracting infinities with like signs is undefined.
- */
 Primitive "cannot subtract like infinities code" is
 [
 	2
@@ -208,7 +203,7 @@ Primitive "primitive not supported code" is
 	15
 ];
 
-Primitive "not enumeration code" is
+Primitive "not an enumeration code" is
 [
 	17
 ];
@@ -238,7 +233,7 @@ Primitive "negative size code" is
 	22
 ];
 
-Primitive "I/O error code" is
+Primitive "io error code" is
 [
 	23
 ];
@@ -288,7 +283,7 @@ Primitive "incorrect type for group code" is
 	32
 ];
 
-Primitive "invalid special object number code" is
+Primitive "no special object code" is
 [
 	33
 ];
@@ -433,7 +428,7 @@ Primitive "loading is over code" is
 	70
 ];
 
-Primitive "method definition lookup failed code" is
+Primitive "method implementation lookup failed code" is
 [
 	71
 ];
@@ -443,9 +438,14 @@ Primitive "method is sealed code" is
 	72
 ];
 
-Primitive "no definition code" is
+Primitive "no implementation code" is
 [
 	73
+];
+
+Primitive "atom already exists code" is
+[
+	74
 ];
 
 Primitive "handler sentinel code" is
@@ -493,7 +493,7 @@ Primitive "sequence contains invalid statements code" is
 	105
 ];
 
-Primitive "Java class not available code" is
+Primitive "java class not available code" is
 [
 	500
 ];
@@ -503,32 +503,32 @@ Primitive "pojo type is abstract code" is
 	501
 ];
 
-Primitive "Java method not available code" is
+Primitive "java method not available code" is
 [
 	502
 ];
 
-Primitive "Java marshaling failed code" is
+Primitive "java marshaling failed code" is
 [
 	504
 ];
 
-Primitive "Java field not available code" is
+Primitive "java field not available code" is
 [
 	505
 ];
 
-Primitive "Java field reference is ambiguous code" is
+Primitive "java field reference is ambiguous code" is
 [
 	506
 ];
 
-Primitive "cannot modify final Java field code" is
+Primitive "cannot modify final java field code" is
 [
 	507
 ];
 
-Primitive "Java method reference is ambiguous code" is
+Primitive "java method reference is ambiguous code" is
 [
 	508
 ];

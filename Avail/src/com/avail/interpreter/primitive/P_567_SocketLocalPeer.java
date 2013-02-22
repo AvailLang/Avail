@@ -1,5 +1,5 @@
 /**
- * P_557_SocketSetOption.java
+ * P_567_SocketLocalPeer.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -32,12 +32,11 @@
 
 package com.avail.interpreter.primitive;
 
-import static java.net.StandardSocketOptions.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.io.IOException;
-import java.net.SocketOption;
+import java.net.*;
 import java.nio.channels.*;
 import java.util.List;
 import com.avail.AvailRuntime;
@@ -46,37 +45,29 @@ import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 
 /**
- * <strong>Primitive 556</strong>: Set the socket options for the
- * {@linkplain AsynchronousSocketChannel asynchronous socket channel} referenced
- * by the specified {@linkplain AtomDescriptor handle}.
+ * <strong>Primitive 567</strong>: Answer the {@linkplain InetSocketAddress
+ * socket address} of the local peer of the {@linkplain
+ * AsynchronousSocketChannel asynchronous socket channel} referenced by the
+ * specified {@linkplain AtomDescriptor handle}.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class P_557_SocketSetOption
+public final class P_567_SocketLocalPeer
 extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
 	public final @NotNull static Primitive instance =
-		new P_557_SocketSetOption().init(2, CanInline, HasSideEffect);
+		new P_567_SocketLocalPeer().init(1, CanInline);
 
-	/**
-	 * A one-based list of the standard socket options.
-	 */
-	@SuppressWarnings("rawtypes")
-	private static final SocketOption[] socketOptions =
-		{null, SO_RCVBUF, SO_REUSEADDR, SO_SNDBUF, SO_KEEPALIVE, TCP_NODELAY};
-
-	@SuppressWarnings("unchecked")
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 2;
+		assert args.size() == 1;
 		final AvailObject handle = args.get(0);
-		final AvailObject options = args.get(1);
 		final AvailObject pojo =
 			handle.getAtomProperty(AtomDescriptor.socketKey());
 		if (pojo.equalsNil())
@@ -88,41 +79,26 @@ extends Primitive
 		}
 		final AsynchronousSocketChannel socket =
 			(AsynchronousSocketChannel) pojo.javaObject();
+		final InetSocketAddress peer;
 		try
 		{
-			for (final MapDescriptor.Entry entry : options.mapIterable())
-			{
-				@SuppressWarnings("rawtypes")
-				final SocketOption option =
-					socketOptions[entry.key.extractInt()];
-				final Object value;
-				if (option.type().equals(Boolean.class)
-					&& entry.value.isBoolean())
-				{
-					value = entry.value.extractBoolean();
-				}
-				else if (option.type().equals(Integer.class)
-					&& entry.value.isInt())
-				{
-					value = entry.value.extractInt();
-				}
-				else
-				{
-					return interpreter.primitiveFailure(
-						E_INCORRECT_ARGUMENT_TYPE);
-				}
-				socket.setOption(option, value);
-			}
-			return interpreter.primitiveSuccess(NilDescriptor.nil());
+			peer = (InetSocketAddress) socket.getLocalAddress();
 		}
-		catch (final IllegalArgumentException e)
+		catch (final ClosedChannelException e)
 		{
-			return interpreter.primitiveFailure(E_INCORRECT_ARGUMENT_TYPE);
+			return interpreter.primitiveFailure(E_INVALID_HANDLE);
 		}
 		catch (final IOException e)
 		{
 			return interpreter.primitiveFailure(E_IO_ERROR);
 		}
+		final InetAddress address = peer.getAddress();
+		final byte[] addressBytes = address.getAddress();
+		final AvailObject addressTuple =
+			ByteArrayTupleDescriptor.forByteArray(addressBytes);
+		final AvailObject port = IntegerDescriptor.fromInt(peer.getPort());
+		return interpreter.primitiveSuccess(
+			TupleDescriptor.from(addressTuple, port));
 	}
 
 	@Override
@@ -130,20 +106,17 @@ extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				ATOM.o(),
-				MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
+				ATOM.o()),
+			TupleTypeDescriptor.forTypes(
+				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 					IntegerRangeTypeDescriptor.create(
-						IntegerDescriptor.zero(),
+						IntegerDescriptor.fromInt(4),
 						true,
-						IntegerDescriptor.fromInt(socketOptions.length - 1),
+						IntegerDescriptor.fromInt(16),
 						true),
-					IntegerRangeTypeDescriptor.create(
-						IntegerDescriptor.one(),
-						true,
-						IntegerDescriptor.fromInt(socketOptions.length - 1),
-						true),
-					ANY.o())),
-			TOP.o());
+					TupleDescriptor.empty(),
+					IntegerRangeTypeDescriptor.bytes()),
+				IntegerRangeTypeDescriptor.unsignedShorts()));
 	}
 
 
@@ -154,7 +127,6 @@ extends Primitive
 			TupleDescriptor.from(
 				E_INVALID_HANDLE.numericCode(),
 				E_SPECIAL_ATOM.numericCode(),
-				E_INCORRECT_ARGUMENT_TYPE.numericCode(),
 				E_IO_ERROR.numericCode()
 			).asSet());
 	}

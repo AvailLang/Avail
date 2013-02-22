@@ -1,0 +1,288 @@
+/*
+ * Options.avail
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+System Module "Options"
+Versions
+	"dev"
+Uses
+	"Foundation"
+Names
+	/* Types. */
+	"client socket option",
+	"server socket option",
+	"socket option",
+
+	/* Options. */
+	"Nagle's algorithm disablement",
+	"keep alive",
+	"receive buffer size",
+	"address reusability",
+	"transmission buffer size",
+
+	/* Setting socket options (not defined here). */
+	"_'s⁇«_:=_‡,»",
+
+	/* Private to "Network". */
+	"Require:_are sensible",
+	"_'s⁇option`#"
+Body
+
+/* Define the valid server socket options. */
+"option`#" is a new atom;
+"option name" is a new atom;
+Class "private socket option" extends object
+	with field
+		option# : [1..5],
+		option name : nonempty string;
+
+/* The private names chosen here reflect the traditional option names. */
+_so_rcvbuf ::= a private socket option with
+	option# ::= 1,
+	option name ::= "receive buffer size";
+_so_reuseaddr ::= a private socket option with
+	option# ::= 2,
+	option name ::= "address reusability";
+_so_sndbuf ::= a private socket option with
+	option# ::= 3,
+	option name ::= "transmission buffer size";
+_so_keepalive ::= a private socket option with
+	option# ::= 4,
+	option name ::= "keep alive";
+_tcp_nodelay ::= a private socket option with
+	option# ::= 5,
+	option name ::= "Nagle's algorithm disablement";
+
+_server_socket_option ::= {_so_rcvbuf, _so_reuseaddr}ᵀ;
+_client_socket_option ::=
+	{_so_rcvbuf, _so_reuseaddr, _so_sndbuf, _so_keepalive, _tcp_nodelay}ᵀ;
+_socket_option ::= _server_socket_option ∪ _client_socket_option;
+
+/**
+ * A socket option describes some user-configurable aspect of the behavior of a
+ * socket.
+ *
+ * @type "socket option"
+ */
+Public method "socket option" is [_socket_option];
+
+/**
+ * A server socket option describes some user-configurable aspect of the
+ * behavior of a server socket.
+ *
+ * @type "server socket option"
+ * @supertype "socket option"
+ */
+Public method "server socket option" is [_server_socket_option];
+
+/**
+ * Answer a socket option that represents the size of the socket receive buffer.
+ *
+ * The value associated with this option must be a {@method "whole number"}
+ * that is the size, in bytes, of the receive buffer. Increasing this value
+ * provides better throughput for high-traffic connections; decreasing this
+ * value reduces the backlog of inbound data. This value is merely a hint, and
+ * may be ignored or adjusted by the implementation.
+ *
+ * For datagram sockets, the size of the receive buffer may also define the
+ * maximum size of an inbound datagram. The network implementation may, or may
+ * not, accept datagrams larger than the recevier buffer.
+ *
+ * For stream sockets used with TCP/IP, the size of the receive buffer may be
+ * advertised to the remote peer as the size of the TCP receive window, or
+ * otherwise used in the calculation of this window size.
+ *
+ * If not explicitly specified, then the network implementation will use a
+ * default receive buffer size. Any attempt to exceed the maximum receive buffer
+ * size supported by the network implementation causes the system-dependent
+ * maximum receive buffer size to be used instead.
+ *
+ * The network implementation allows this option to be set before the socket is
+ * bound. Whether the receive buffer size may be changed after the socket is
+ * bound is implementation dependent.
+ *
+ * @method "receive buffer size"
+ * @returns "socket option"
+ */
+Public method "receive buffer size" is [_so_rcvbuf];
+
+/**
+ * Answer a socket option that represents whether the socket address may be
+ * reused.
+ *
+ * The value associated with the option must be a {@method "boolean"} that
+ * describes the enablement of the option.
+ *
+ * For datagram sockets, then option determines whether a socket address may be
+ * bound by multiple applications. This option should be enabled to permit use
+ * of the socket for IP multicasting.
+ *
+ * For stream sockets used with TCP/IP, the option determines whether a socket
+ * address currently associated to a previous connection that is in the {@code
+ * TIME_WAIT} state is eligble for reuse. Some network implementations may
+ * ignore this option.
+ *
+ * The network implementation allows this option to be set before the socket is
+ * bound, and changing its value after binding has no effect.
+ *
+ * @method "address reusability"
+ * @returns "socket option"
+ */
+Public method "address reusability" is [_so_reuseaddr];
+
+/**
+ * A client socket option describes some user-configurable aspect of the
+ * behavior of a client socket.
+ *
+ * @type "client socket option"
+ * @supertype "socket option"
+ */
+Public method "client socket option" is [_client_socket_option];
+
+/**
+ * Answer a socket option that represents the size of the socket transmission
+ * buffer.
+ *
+ * The value associated with this option must be a {@method "whole number"}
+ * that is the size, in bytes, of the transmission buffer. Increasing this value
+ * provides better throughput for high-traffic connections. This value is merely
+ * a hint, and may be ignored or adjusted by the implementation.
+ *
+ * For datagram sockets, the size of the transmission buffer may also define the
+ * maximum size of an outbound datagram. The network implementation may, or may
+ * not, accept datagrams larger than the recevier buffer.
+ *
+ * If not explicitly specified, then the network implementation will use a
+ * default transmission buffer size. Any attempt to exceed the maximum receive
+ * buffer size supported by the network implementation causes the
+ * system-dependent maximum transmission buffer size to be used instead.
+ *
+ * The network implementation allows this option to be set before the socket is
+ * bound. Whether the transmission buffer size may be changed after the socket
+ * is bound is implementation dependent.
+ *
+ * @method "transmission buffer size"
+ * @returns "socket option"
+ */
+Public method "transmission buffer size" is [_so_sndbuf];
+
+/**
+ * Answer a socket option that represents whether a keep-alive mechanism is
+ * enabled.
+ *
+ * The value associated with the option must be a {@method "boolean"} that
+ * describes the enablement of the option.
+ *
+ * When the option is enabled, then the network implementation will periodically
+ * ensure the liveness of the connection using is system-dependent keep-alive
+ * mechanism.
+ *
+ * If not explicitly specified, then the network implementation will use a
+ * default of {@method "false"}.
+ *
+ * @method "keep alive"
+ * @returns "socket option"
+ */
+Public method "keep alive" is [_so_keepalive];
+
+/**
+ * Answer a socket option that represents whether the Nagle algorithm, for
+ * controling TCP/IP congestion by coalescence of small packets, is diseabled.
+ *
+ * The value associated with the option must be a {@method "boolean"} that
+ * describes the enablement of the option. This option should not be set to
+ * {@method "true"} unless use of Nagle's algorithm is known to degrade
+ * performance.
+ *
+ * If not explicitly specified, then the network implementation will use a
+ * default of {@method "false"}, meaning that Nagle's algorithm will be enabled.
+ *
+ * The network implementation allows this option to be set at any time. Once
+ * set, however, it is system-dependent whether it can be subsequently disabled
+ * again.
+ *
+ * @method "Nagle's algorithm"
+ * @returns "socket option"
+ */
+Public method "Nagle's algorithm disablement" is [_tcp_nodelay];
+
+Method "“_”" is [o : private socket option | o's option name];
+
+/**
+ * Ensure that the specified bindings from {@type "socket option"}s to values
+ * are sensible. Intended for use only by a semantic restriction.
+ *
+ * @method "Require:_are sensible"
+ * @param "options" "<<server socket option, any…|2>…|>'s type"
+ */
+Public method "Require:_are sensible" is
+[
+	options : <<socket option, any…|2>…|>'s type
+|
+	seen : {socket option|} := ∅;
+	From 1 to relevant |options| do
+	[
+		index : natural number
+	|
+		def ::= options[index];
+		optionType ::= def[1];
+		valueType ::= def[2];
+		If |optionType| ≠ 1 then
+		[
+			Reject parse, expected:
+				"all server socket options to be known statically"
+		];
+		option ::= optionType's instance;
+		If option ∈ seen then
+		[
+			Reject parse, expected:
+				format "option \"“①”\" to appear only once"
+				with option
+		];
+		expectedValueType ::=
+			choose option
+			from socket option
+			where
+				receive buffer size is [whole number],
+				address reusability is [boolean],
+				transmission buffer size is [whole number],
+				keep alive is [boolean],
+				Nagle's algorithm disablement is [boolean];
+		If ¬valueType ⊆ expectedValueType then
+		[
+			Reject parse, expected:
+				format
+					"value of option \"“①”\" to be a subtype of “②” (not “③”)"
+				with option, expectedValueType, valueType
+		];
+		seen := eject ↑seen + option;
+	];
+] : ⊤;

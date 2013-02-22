@@ -1,5 +1,5 @@
 /**
- * P_556_SocketOpen.java
+ * P_556_ServerSocketClose.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -36,7 +36,7 @@ import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.io.IOException;
-import java.nio.channels.*;
+import java.nio.channels.AsynchronousServerSocketChannel;
 import java.util.List;
 import com.avail.AvailRuntime;
 import com.avail.annotations.NotNull;
@@ -44,20 +44,20 @@ import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 
 /**
- * <strong>Primitive 555</strong>: Open an {@linkplain
- * AsynchronousSocketChannel asynchronous socket channel}. Answer a
- * {@linkplain AtomDescriptor handle} that uniquely identifies the socket.
+ * <strong>Primitive 556</strong>: Close the {@linkplain
+ * AsynchronousServerSocketChannel asynchronous server socket} referenced by the
+ * specified {@linkplain AtomDescriptor handle}.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class P_556_SocketOpen
+public final class P_556_ServerSocketClose
 extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
 	public final @NotNull static Primitive instance =
-		new P_556_SocketOpen().init(1, CanInline, HasSideEffect);
+		new P_556_ServerSocketClose().init(1, CanInline, HasSideEffect);
 
 	@Override
 	public Result attempt (
@@ -65,18 +65,22 @@ extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
-		final AvailObject name = args.get(0);
+		final AvailObject handle = args.get(0);
+		final AvailObject pojo =
+			handle.getAtomProperty(AtomDescriptor.serverSocketKey());
+		if (pojo.equalsNil())
+		{
+			return interpreter.primitiveFailure(
+				AvailRuntime.isSpecialAtom(handle)
+				? E_SPECIAL_ATOM
+				: E_INVALID_HANDLE);
+		}
+		final AsynchronousServerSocketChannel socket =
+			(AsynchronousServerSocketChannel) pojo.javaObject();
 		try
 		{
-			final AvailObject handle =
-				AtomWithPropertiesDescriptor.create(
-					name,
-					ModuleDescriptor.current());
-			final AsynchronousSocketChannel channel =
-				AvailRuntime.current().openSocket();
-			final AvailObject pojo = RawPojoDescriptor.identityWrap(channel);
-			handle.setAtomProperty(AtomDescriptor.socketKey(), pojo);
-			return interpreter.primitiveSuccess(handle);
+			socket.close();
+			return interpreter.primitiveSuccess(NilDescriptor.nil());
 		}
 		catch (final IOException e)
 		{
@@ -89,14 +93,18 @@ extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				TupleTypeDescriptor.oneOrMoreOf(CHARACTER.o())),
-			ATOM.o());
+					ATOM.o()),
+				TOP.o());
 	}
 
 	@Override
 	protected AvailObject privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.withInstance(
-			E_IO_ERROR.numericCode());
+		return AbstractEnumerationTypeDescriptor.withInstances(
+			TupleDescriptor.from(
+				E_INVALID_HANDLE.numericCode(),
+				E_SPECIAL_ATOM.numericCode(),
+				E_IO_ERROR.numericCode()
+			).asSet());
 	}
 }

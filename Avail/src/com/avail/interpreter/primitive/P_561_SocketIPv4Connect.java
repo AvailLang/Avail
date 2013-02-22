@@ -1,5 +1,5 @@
 /**
- * P_558_SocketIPv4Bind.java
+ * P_561_SocketIPv4Connect.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -32,45 +32,55 @@
 
 package com.avail.interpreter.primitive;
 
+import static com.avail.descriptor.FiberDescriptor.InterruptRequestFlag.TERMINATION_REQUESTED;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
-import java.io.IOException;
 import java.net.*;
 import java.nio.channels.*;
-import java.util.List;
+import java.util.*;
 import com.avail.AvailRuntime;
-import com.avail.annotations.NotNull;
+import com.avail.annotations.*;
 import com.avail.descriptor.*;
+import com.avail.exceptions.AvailErrorCode;
 import com.avail.interpreter.*;
 
 /**
- * <strong>Primitive 557</strong>: Bind the {@linkplain
- * AsynchronousSocketChannel asynchronous socket channel} referenced by the
- * specified {@linkplain AtomDescriptor handle} to an {@linkplain Inet4Address
- * IPv4 address} and port. The bytes of the address are specified in network
- * byte order, i.e., big-endian.
+ * <strong>Primitive 561</strong>: Connect the {@linkplain
+ * AsynchronousSocketChannel asynchronous socket} referenced by the specified
+ * {@linkplain AtomDescriptor handle} to an {@linkplain Inet4Address IPv4
+ * address} and port. Create a new {@linkplain FiberDescriptor fiber} to respond
+ * to the asynchronous completion of the operation; the fiber will run at the
+ * specified {@linkplain IntegerRangeTypeDescriptor#bytes() priority}. If the
+ * operation succeeds, then eventually start the new fiber to apply the
+ * {@linkplain FunctionDescriptor success function}. If the operation fails,
+ * then eventually start the new fiber to apply the {@linkplain
+ * FunctionDescriptor failure function} to the {@linkplain IntegerDescriptor
+ * numeric} {@linkplain AvailErrorCode error code}. Answer the new fiber.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class P_558_SocketIPv4Bind
+public final class P_561_SocketIPv4Connect
 extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
 	public final @NotNull static Primitive instance =
-		new P_558_SocketIPv4Bind().init(3, CanInline, HasSideEffect);
+		new P_561_SocketIPv4Connect().init(6, CanInline, HasSideEffect);
 
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 3;
+		assert args.size() == 6;
 		final AvailObject handle = args.get(0);
 		final AvailObject addressTuple = args.get(1);
 		final AvailObject port = args.get(2);
+		final AvailObject succeed = args.get(3);
+		final AvailObject fail = args.get(4);
+		final AvailObject priority = args.get(5);
 		final AvailObject pojo =
 			handle.getAtomProperty(AtomDescriptor.socketKey());
 		if (pojo.equalsNil())
@@ -89,14 +99,13 @@ extends Primitive
 			final AvailObject addressByte = addressTuple.tupleAt(i + 1);
 			addressBytes[i] = (byte) addressByte.extractUnsignedByte();
 		}
+		final SocketAddress address;
 		try
 		{
 			final Inet4Address inetAddress = (Inet4Address)
 				InetAddress.getByAddress(addressBytes);
-			final SocketAddress address =
-				new InetSocketAddress(inetAddress, port.extractUnsignedShort());
-			socket.bind(address);
-			return interpreter.primitiveSuccess(NilDescriptor.nil());
+			address = new InetSocketAddress(
+				inetAddress, port.extractUnsignedShort());
 		}
 		catch (final IllegalStateException e)
 		{
@@ -109,14 +118,85 @@ extends Primitive
 			assert false;
 			return interpreter.primitiveFailure(E_IO_ERROR);
 		}
-		catch (final IOException e)
+		final AvailObject current = FiberDescriptor.current();
+		final AvailObject newFiber =
+			FiberDescriptor.newFiber(priority.extractInt());
+		// If the current fiber is an Avail fiber, then the new one should be
+		// also.
+		newFiber.availLoader(current.availLoader());
+		// Don't inherit the success continuation, but inherit the failure
+		// continuation. Only loader fibers should have something real plugged
+		// into this field, and none of them should fail because of a Java
+		// exception.
+		newFiber.failureContinuation(current.failureContinuation());
+		// Share and inherit any heritable variables.
+		newFiber.heritableFiberGlobals(
+			current.heritableFiberGlobals().makeShared());
+		// Share everything that will potentially be visible to the fiber.
+		newFiber.makeShared();
+		succeed.makeShared();
+		fail.makeShared();
+		// Now start the asynchronous connect.
+		final AvailRuntime runtime = AvailRuntime.current();
+		try
 		{
-			return interpreter.primitiveFailure(E_IO_ERROR);
+			socket.connect(
+				address,
+				null,
+				new CompletionHandler<Void, Void>()
+				{
+					@Override
+					public void completed (
+						final @Nullable Void unused1,
+						final @Nullable Void unused2)
+					{
+						// If termination has not been requested, then start the
+						// fiber.
+						if (!newFiber.getAndClearInterruptRequestFlag(
+							TERMINATION_REQUESTED))
+						{
+							Interpreter.runOutermostFunction(
+								runtime,
+								newFiber,
+								succeed,
+								Collections.<AvailObject>emptyList());
+						}
+					}
+
+					@Override
+					public void failed (
+						final @Nullable Throwable killer,
+						final @Nullable Void unused)
+					{
+						assert killer != null;
+						// If termination has not been requested, then start the
+						// fiber.
+						if (!newFiber.getAndClearInterruptRequestFlag(
+							TERMINATION_REQUESTED))
+						{
+							Interpreter.runOutermostFunction(
+								runtime,
+								newFiber,
+								fail,
+								Collections.singletonList(
+									E_IO_ERROR.numericCode()));
+						}
+					}
+				});
+		}
+		catch (final IllegalArgumentException e)
+		{
+			return interpreter.primitiveFailure(E_INCORRECT_ARGUMENT_TYPE);
+		}
+		catch (final IllegalStateException e)
+		{
+			return interpreter.primitiveFailure(E_INVALID_HANDLE);
 		}
 		catch (final SecurityException e)
 		{
 			return interpreter.primitiveFailure(E_PERMISSION_DENIED);
 		}
+		return interpreter.primitiveSuccess(newFiber);
 	}
 
 	@Override
@@ -133,8 +213,17 @@ extends Primitive
 						true),
 					TupleDescriptor.empty(),
 					IntegerRangeTypeDescriptor.bytes()),
-				IntegerRangeTypeDescriptor.unsignedShorts()),
-			TOP.o());
+				IntegerRangeTypeDescriptor.unsignedShorts(),
+				FunctionTypeDescriptor.create(
+					TupleDescriptor.empty(),
+					TOP.o()),
+				FunctionTypeDescriptor.create(
+					TupleDescriptor.from(
+						AbstractEnumerationTypeDescriptor.withInstance(
+							E_IO_ERROR.numericCode())),
+					TOP.o()),
+				IntegerRangeTypeDescriptor.bytes()),
+			FIBER.o());
 	}
 
 	@Override
@@ -144,6 +233,7 @@ extends Primitive
 			TupleDescriptor.from(
 				E_INVALID_HANDLE.numericCode(),
 				E_SPECIAL_ATOM.numericCode(),
+				E_INCORRECT_ARGUMENT_TYPE.numericCode(),
 				E_IO_ERROR.numericCode(),
 				E_PERMISSION_DENIED.numericCode()
 			).asSet());

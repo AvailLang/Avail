@@ -41,6 +41,10 @@ Names
 	"concurrency test suite"
 Body
 
+hx : non-reentrant mutex := a non-reentrant mutex named "hname mutex";
+hn : natural number := 1;
+Private method "next hname" is [lock hx for ["h" ++ “(↑hn++)”]];
+
 "concurrency test suite" is a new atom;
 New test suite, concurrency test suite, extends foundation test suite;
 
@@ -128,8 +132,8 @@ must raise cannot-exceed-maximum-permits exception;
 
 Test "heritable fiber variables" in concurrency test suite is
 [
-	h1 ::= new heritable atom named "h1";
-	h2 ::= new heritable atom named "h2";
+	h1 ::= new heritable atom named next hname;
+	h2 ::= new heritable atom named next hname;
 	u1 ::= new atom named "u1";
 	u2 ::= new atom named "u2";
 	fiberLocals ::=
@@ -175,8 +179,8 @@ Test "heritable fiber variables" in concurrency test suite is
 
 Test "heritable fiber variables(orphan)" in concurrency test suite is
 [
-	h1 ::= new heritable atom named "h1";
-	h2 ::= new heritable atom named "h2";
+	h1 ::= new heritable atom named next hname;
+	h2 ::= new heritable atom named next hname;
 	u1 ::= new atom named "u1";
 	u2 ::= new atom named "u2";
 	fiberLocals ::=
@@ -266,8 +270,8 @@ Test "delayed fork(orphan)" in concurrency test suite is
 
 Test "heritable fiber variables(delayed fork)" in concurrency test suite is
 [
-	h1 ::= new heritable atom named "h1";
-	h2 ::= new heritable atom named "h2";
+	h1 ::= new heritable atom named next hname;
+	h2 ::= new heritable atom named next hname;
 	u1 ::= new atom named "u1";
 	u2 ::= new atom named "u2";
 	fiberLocals ::=
@@ -320,8 +324,8 @@ Test "heritable fiber variables(delayed fork)" in concurrency test suite is
 Test "heritable fiber variables(delayed fork,orphan)"
 	in concurrency test suite is
 [
-	h1 ::= new heritable atom named "h1";
-	h2 ::= new heritable atom named "h2";
+	h1 ::= new heritable atom named next hname;
+	h2 ::= new heritable atom named next hname;
 	u1 ::= new atom named "u1";
 	u2 ::= new atom named "u2";
 	fiberLocals ::=

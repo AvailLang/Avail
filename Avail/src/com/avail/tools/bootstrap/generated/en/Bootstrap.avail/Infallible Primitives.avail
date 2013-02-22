@@ -178,7 +178,6 @@ Uses
 		"new atom named_",
 		"new_[_]",
 		"new_applying_",
-		"new⁇heritable«fiber-local»⁇atom named_",
 		"new↑_",
 		"primfail`«_:_`»",
 		"primitive description of_",
@@ -3275,29 +3274,6 @@ Primitive "Sleep for_millisecond|milliseconds" is
 |
 	Primitive 621;
 ] : ⊤;
-
-/**
- * Construct and answer a new atom. Associate with the atom the supplied string,
- * which should be a name used for debugging purposes only. Atoms have identity
- * and all atoms are distinct, regardless of whether their debug names are
- * equal. When this atom occurs as a key within a fiber's environment, any new
- * fibers created by this fiber will also include this key and the associated
- * value at creation time.
- *
- * Parameters:
- *    debugName - A name to associate with the atom for debugging purposes.
- *       This name does not participate in atom comparison.
- * Returns:
- *    A new atom, distinct from every other atom answered by a different
- *    invocation of this primitive, that represents a heritable fiber-local
- *    variable.
- */
-Primitive "new⁇heritable«fiber-local»⁇atom named_" is
-[
-	debugName : string
-|
-	Primitive 624;
-] : atom;
 
 /**
  * Ascertain whether the current fiber was forked (by the compiler) in order to

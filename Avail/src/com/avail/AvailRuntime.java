@@ -214,8 +214,8 @@ public final class AvailRuntime
 	{
 		try
 		{
-			socketGroup = AsynchronousChannelGroup.withCachedThreadPool(
-				socketExecutor, availableProcessors);
+			socketGroup = AsynchronousChannelGroup.withThreadPool(
+				socketExecutor);
 		}
 		catch (final IOException e)
 		{
@@ -1564,7 +1564,7 @@ public final class AvailRuntime
 		}
 		try
 		{
-			socketExecutor.awaitTermination(100, TimeUnit.MILLISECONDS);
+			socketGroup.awaitTermination(100, TimeUnit.MILLISECONDS);
 		}
 		catch (final InterruptedException e)
 		{

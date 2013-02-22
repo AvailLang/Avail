@@ -1,5 +1,5 @@
 /**
- * P_562_SocketShutdownInput.java
+ * P_555_ServerSocketAddress.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -36,7 +36,8 @@ import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.io.IOException;
-import java.nio.channels.AsynchronousSocketChannel;
+import java.net.*;
+import java.nio.channels.*;
 import java.util.List;
 import com.avail.AvailRuntime;
 import com.avail.annotations.NotNull;
@@ -44,20 +45,21 @@ import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 
 /**
- * <strong>Primitive 561</strong>: Disallow further reading from the {@linkplain
- * AsynchronousSocketChannel asynchronous socket} referenced by the specified
- * {@linkplain AtomDescriptor handle}.
+ * <strong>Primitive 567</strong>: Answer the {@linkplain InetSocketAddress
+ * socket address} of the {@linkplain AsynchronousServerSocketChannel
+ * asynchronous server socket channel} referenced by the specified {@linkplain
+ * AtomDescriptor handle}.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class P_562_SocketShutdownInput
+public final class P_555_ServerSocketAddress
 extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
 	public final @NotNull static Primitive instance =
-		new P_562_SocketShutdownInput().init(1, CanInline, HasSideEffect);
+		new P_555_ServerSocketAddress().init(1, CanInline);
 
 	@Override
 	public Result attempt (
@@ -67,7 +69,7 @@ extends Primitive
 		assert args.size() == 1;
 		final AvailObject handle = args.get(0);
 		final AvailObject pojo =
-			handle.getAtomProperty(AtomDescriptor.socketKey());
+			handle.getAtomProperty(AtomDescriptor.serverSocketKey());
 		if (pojo.equalsNil())
 		{
 			return interpreter.primitiveFailure(
@@ -75,14 +77,14 @@ extends Primitive
 				? E_SPECIAL_ATOM
 				: E_INVALID_HANDLE);
 		}
-		final AsynchronousSocketChannel socket =
-			(AsynchronousSocketChannel) pojo.javaObject();
+		final AsynchronousServerSocketChannel socket =
+			(AsynchronousServerSocketChannel) pojo.javaObject();
+		final InetSocketAddress peer;
 		try
 		{
-			socket.shutdownInput();
-			return interpreter.primitiveSuccess(NilDescriptor.nil());
+			peer = (InetSocketAddress) socket.getLocalAddress();
 		}
-		catch (final IllegalStateException e)
+		catch (final ClosedChannelException e)
 		{
 			return interpreter.primitiveFailure(E_INVALID_HANDLE);
 		}
@@ -90,6 +92,13 @@ extends Primitive
 		{
 			return interpreter.primitiveFailure(E_IO_ERROR);
 		}
+		final InetAddress address = peer.getAddress();
+		final byte[] addressBytes = address.getAddress();
+		final AvailObject addressTuple =
+			ByteArrayTupleDescriptor.forByteArray(addressBytes);
+		final AvailObject port = IntegerDescriptor.fromInt(peer.getPort());
+		return interpreter.primitiveSuccess(
+			TupleDescriptor.from(addressTuple, port));
 	}
 
 	@Override
@@ -98,8 +107,18 @@ extends Primitive
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
 				ATOM.o()),
-			TOP.o());
+			TupleTypeDescriptor.forTypes(
+				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
+					IntegerRangeTypeDescriptor.create(
+						IntegerDescriptor.fromInt(4),
+						true,
+						IntegerDescriptor.fromInt(16),
+						true),
+					TupleDescriptor.empty(),
+					IntegerRangeTypeDescriptor.bytes()),
+				IntegerRangeTypeDescriptor.unsignedShorts()));
 	}
+
 
 	@Override
 	protected AvailObject privateFailureVariableType ()

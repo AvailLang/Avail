@@ -105,6 +105,7 @@ Uses
 		"method definition of_for_",
 		"method for_",
 		"method_._(«_‡,»)(fail with_)",
+		"new⁇heritable«fiber-local»⁇atom named_",
 		"next character",
 		"send_with_:_",
 		"seq`«_`»",
@@ -337,6 +338,9 @@ Primitive "atomically read_and store_" is
  *    reference - The value against which the content of `var` should be
  *       compared.
  *    newValue - The new value to conditionally store into `var`.
+ * Returns:
+ *    `true` if the operation succeeded and `newValue` was stored into `var`,
+ *    `false` otherwise.
  */
 Primitive "atomically compare_to_and,⁇if equal,⁇store_" is
 [
@@ -1749,4 +1753,28 @@ Primitive "in_millisecond|milliseconds,⁇invoke_with_,⁇forked at priority_" i
 	Primitive 623 (failureCode : natural number);
 	Private invoke _fail_primitive with failureCode
 ] : fiber;
+
+/**
+ * Construct and answer a new atom. Associate with the atom the supplied string,
+ * which should be a name used for debugging purposes only. Atoms have identity
+ * and all atoms are distinct, regardless of whether their debug names are
+ * equal. When this atom occurs as a key within a fiber's environment, any new
+ * fibers created by this fiber will also include this key and the associated
+ * value at creation time.
+ *
+ * Parameters:
+ *    debugName - A name to associate with the atom for debugging purposes.
+ *       This name does not participate in atom comparison.
+ * Returns:
+ *    A new atom, distinct from every other atom answered by a different
+ *    invocation of this primitive, that represents a heritable fiber-local
+ *    variable.
+ */
+Primitive "new⁇heritable«fiber-local»⁇atom named_" is
+[
+	debugName : string
+|
+	Primitive 624 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode
+] : atom;
 
