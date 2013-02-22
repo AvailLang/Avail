@@ -38,10 +38,11 @@ Uses
 	"Foundation",
 	"Iterators"
 Names
+	"a utf8 encoding iterator that buffers_characters of_using_",
 	"encoded-buffer-exhausted exception",
 	"utf8 codec",
-	"a UTF-_codec",
-	"utf-_encode_"
+	"utf8 encoding iterator",
+	"a UTF-_codec"
 Body
 
 /**
@@ -204,7 +205,7 @@ Method "utf-_decode_from_" is
  *      a tuple of bytes representing the UTF-8 encoded character
  * @author "Richard Arriaga"
  */
-Public abstract  method "utf-_encode_" is [8's type,code point]→<byte…|1..4>;  /*TODO Change back to private*/
+Private abstract  method "utf-_encode_" is [8's type,code point]→<byte…|1..4>;
 
 /**
  * This method defines the encoding of the UTF-8 ascii character.  This is for
@@ -462,7 +463,8 @@ Private method "_'s⁇primary type" is
 
  
 /**
- * methodDescription
+ * Returns the next byte from the codec.  The byte is expected to be a leading
+ * byte in the UTF-8 encoding.
  *
  * @method "_'⁇s current byte's primary type"
  * @categories "Codecs"
@@ -472,7 +474,7 @@ Private method "_'s⁇primary type" is
  *      the size of the expected byte tuple
  * @raises "malformed" 
  *      exceptionDescription
- * @author "authorName"
+ * @author "Richard Arriaga"
  */
 Private method "_'⁇s next input byte's primary type" is
 [
@@ -661,32 +663,103 @@ Method "finish decoding with_" is
 	];
 	utf8's decoded input buffer
 ]:string;
+
+/**
+ * A method that encodes a string using the provided encoder.
+ * 
+ * @method "byte encode_using_"
+ * @category "Codecs"
+ * @param "string"
+ * 	The string to be encoded
+ * @param "encoder"
+ * 	The encoder used to encode the string
+ * @exception {@type "unsupported-character exception"}
+ * 	thrown when an encoding does not surrport the character being processed
+ * @returnType "<[0..255]…|>"
+ * 	a byte
+ * @author "Richard Arriaga"
+ */
+Method "encode_using_" is
+[
+	input : <character…|>, 
+	utf8 : utf8 codec
+ |
+ 	output : byte tuple := <>;
+ 	For each of input do
+ 	[
+ 	 	c : character 
+ 	 | 
+ 	 	output := output ++ utf-8 encode c's code point;
+	];
+ 	output
+]:byte tuple;
 	
+/**
+ * An iterator with data that is to be encoded into byte data.
+ * 
+ * @type "encoding iterator"
+ * @supertype {@type "iterator" iterator}
+ * @category "Codecs"
+ * @field "internal encoder" "encoder"
+ * @field "source" "iterator"
+ * @author "Richard Arriaga"
+ */
+Public class "utf8 encoding iterator" extends encoding iterator
+	with fields
+		element source : iterator of character, 
+		internal encoder : utf8 encoder;
+/**
+ * A constructor method to create a decoding iterator with a variable buffer 
+ * size
+ *
+ * @method "a decoding iterator that buffers_element|elements of_using_"
+ * @categories "Codec"
+ * @param "size" "natural number" 
+ *		the size of the iterator buffer
+ * @param "src" "iterator of byte" 
+ *		the source iterator to be decoded
+ * @param "dc" "decoder" 
+ *		the codec that is used to complete the decoding of the iterator
+ * @returnType "decoding iterator"
+ *		a decoding iterator
+ * @raises "exceptionName" 
+ *		exceptionDescription
+ * @author "Richard Arriaga"
+ */
+Public method 
+	"a utf8 encoding iterator that buffers_characters of_using_" is
+[
+ 	size : [2..∞),
+ 	src : iterator of character,
+ 	ec : utf8 encoder
+ |
+	a utf8 encoding iterator with
+		element type ::= byte,
+		element source ::= src,
+		maximum buffer size ::= size,
+		internal encoder ::= ec
+]:utf8 encoding iterator; 	
+
 Grammatical restriction "a|an_«with«_«:»?:=_‡,»»" is
 <{
- 	"utf8 codec"
+ 	"utf8 codec", "utf8 encoding iterator"
 }, ∅, ∅>;
 
-/*Decoder test work
-encodeMe : string := "⊤⊥↓↑ ÷±∅∊>∰∡℀badcatΩ™﷼₭௹L$€¢₨?⸘#‱⁉«»";
-Print: "string to encode: \n     " ++ encodeMe ++ "\n";
-encodedTuple : byte tuple := <>;
-For each of encodeMe do 
-[
- 	c : character 
- | 
- 	encodedTuple := encodedTuple ++ utf-8 encode c's code point;
-];
-Print: format "encodedTuple=“①”\n" with encodedTuple;
-
-decoded : string := decode encodedTuple using a UTF-8 codec;
-Print: "encoded string decoded: \n     " ++ decoded ++ "\n";
-Print: format "decoded = original is “①”\n" with decoded = encodeMe ;
-
-src : iterator of byte := an iterator over encodedTuple;
-Print: format "src=“①”\n" with src;
-di ::= a decoding iterator of src using a UTF-8 codec;
-
-decodedIt : string := take at most ∞ from di;
-Print: decodedIt ++ "\n";
-Print: format "buffer decoded = original is “①”\n" with decodedIt = encodeMe;*/
+/* Decoder usage instructions
+ * Can now UTF-8 to decode open files as well as encode character data using
+ * UFT-8.  To encode, create a utf8 encoding iterator with the method:
+ *		"a utf8 encoding iterator that buffers_characters of_using_"
+ * from that iterator encoded byte data can be obtained via the method: 
+ *		"take«at most»?_from_"
+ * To decode data. create a decoding iterator using either method:
+ *		"a decoding iterator that buffers_element|elements of_using_"
+ *		"a decoding iterator of_using_"
+ * from that iterator decoded character data can be obtained via the method:
+ *		"take«at most»?_from_"
+ * An example of decoding data from a UTF-8 file would be:
+ *		characterData ::= take at most ∞ from a decoding iterator of a file 
+ *			iterator for filename using a UTF-8 codec;
+ * An example of encoding character data using UTF-8 would be:
+ *		byteData ::= take at most ∞ from a utf8 encoding iterator that buffers 
+ *			10 characters of an iterator of character using a UTF-8 codec;
+ */

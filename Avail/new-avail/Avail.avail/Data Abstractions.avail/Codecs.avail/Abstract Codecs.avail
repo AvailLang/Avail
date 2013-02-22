@@ -39,6 +39,7 @@ Uses
 Names
 	"a decoding iterator of_using_",
 	"a decoding iterator that buffers_element|elements of_using_",
+	"an encoding iterator that buffers_element|elements of_using_",
 	"byte tuple",
 	"codec",
 	"correction instruction",
@@ -52,6 +53,7 @@ Names
 	"encoding iterator",
 	"finish decoding with_",
 	"ignore instruction",
+	"internal encoder",
 	"invalid encoding",
 	"malformed-encoding exception",
 	"raise exception",
@@ -283,7 +285,7 @@ Public abstract method "finish decoding with_" is
  */
 Public class "codec" extends encoder ∩ decoder;
 
-"internal encoder" is a new field atom;
+Public "internal encoder" is a new field atom;
 
 /**
  * An iterator with data that is to be encoded into byte data.
@@ -295,21 +297,44 @@ Public class "codec" extends encoder ∩ decoder;
  * @field "source" "iterator"
  * @author "Richard Arriaga"
  */
-Public class "encoding iterator" extends buffered iterator
+Public class "encoding iterator" extends buffered iterator ∩ iterator of byte
 	with fields
 		element source : iterator, 
 		internal encoder : encoder;
 
-/*TODO create one constructor method, user must specify buffer size*/ 
-
 /**
+ * A constructor method to create a decoding iterator with a variable buffer 
+ * size
+ *
+ * @method "a decoding iterator that buffers_element|elements of_using_"
+ * @categories "Codec"
+ * @param "size" "natural number" 
+ *		the size of the iterator buffer
+ * @param "src" "iterator of byte" 
+ *		the source iterator to be decoded
+ * @param "dc" "decoder" 
+ *		the codec that is used to complete the decoding of the iterator
+ * @returnType "decoding iterator"
+ *		a decoding iterator
+ * @raises "exceptionName" 
+ *		exceptionDescription
+ * @author "Richard Arriaga"
+ */
+Public method "an encoding iterator that buffers_element|elements of_using_" is
+[
+ 	size : [2..∞),
+ 	src : iterator,
+ 	ec : encoder
+ |
+	an encoding iterator with
+		element type ::= byte,
+		element source ::= src,
+		maximum buffer size ::= size,
+		internal encoder ::= ec
+]:encoding iterator; 
+
+/*
  * 
- * TODO figure out how to comment this
- * @method "Advance_"
- * @param "anIterator" "encoding iterator"
- *        An encoding iterator.
- * @raises "exhausted-iterator exception"
- *         If the iterator is exhausted.
  * @author "Richard Arriaga"
  */
 encoding iterator's next buffer method is
@@ -338,10 +363,8 @@ Public class "decoding iterator" extends
 			internal decoder : decoder,
 			maximum buffer size : [4096..∞);
 
-/*TODO create two constructor methods, one with the a user specified buffer size 
- * and one with the default buffer size is 32,768. Use "take«at most»?_from_"
- * at the decoded iterator level to obtain decoded data.  Following two
- * methods are first attempt*/
+/* Use "take«at most»?_from_" at the decoded iterator level to obtain decoded 
+ * data.  Following two methods are first attempt*/
 	
 /**
  * A constructor method to create a decoding iterator with a variable buffer 
