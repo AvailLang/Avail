@@ -203,8 +203,8 @@ public final class AvailRuntime
 	{
 		try
 		{
-			socketGroup = AsynchronousChannelGroup.withCachedThreadPool(
-				socketExecutor, availableProcessors);
+			socketGroup = AsynchronousChannelGroup.withThreadPool(
+				socketExecutor);
 		}
 		catch (final IOException e)
 		{
@@ -1175,8 +1175,9 @@ public final class AvailRuntime
 				{
 					assert methods.hasKey(methodName);
 					assert methods.mapAt(methodName).equals(method);
-					assert allBundles.hasKey(methodName);
-					assert allBundles.mapAt(methodName).method().equals(method);
+//TODO[MvG] Fix the way bundles work.
+//					assert allBundles.hasKey(methodName);
+//					assert allBundles.mapAt(methodName).method().equals(method);
 					methods = methods.mapWithoutKeyCanDestroy(
 						methodName, true);
 					allBundles = allBundles.mapWithoutKeyCanDestroy(
@@ -1554,16 +1555,13 @@ public final class AvailRuntime
 	@SuppressWarnings("null")
 	public void destroy ()
 	{
-		System.out.format("destroy=%sms\n", System.nanoTime() / 1000000);
 		timer.cancel();
 		executor.shutdownNow();
 		fileExecutor.shutdownNow();
 		socketExecutor.shutdownNow();
 		try
 		{
-			System.out.format("ex1=%sms\n", System.nanoTime() / 1000000);
 			executor.awaitTermination(10, TimeUnit.SECONDS);
-			System.out.format("ex2=%sms\n", System.nanoTime() / 1000000);
 		}
 		catch (final InterruptedException e)
 		{
@@ -1571,9 +1569,7 @@ public final class AvailRuntime
 		}
 		try
 		{
-			System.out.format("f1=%sms\n", System.nanoTime() / 1000000);
 			fileExecutor.awaitTermination(10, TimeUnit.SECONDS);
-			System.out.format("f2=%sms\n", System.nanoTime() / 1000000);
 		}
 		catch (final InterruptedException e)
 		{
@@ -1581,9 +1577,7 @@ public final class AvailRuntime
 		}
 		try
 		{
-			System.out.format("s1=%sms\n", System.nanoTime() / 1000000);
-			socketExecutor.awaitTermination(10, TimeUnit.SECONDS);
-			System.out.format("s2=%sms\n", System.nanoTime() / 1000000);
+			socketGroup.awaitTermination(10, TimeUnit.SECONDS);
 		}
 		catch (final InterruptedException e)
 		{

@@ -1,5 +1,5 @@
 /**
- * P_560_SocketIPv4Connect.java
+ * P_561_SocketIPv4Connect.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -46,7 +46,7 @@ import com.avail.exceptions.AvailErrorCode;
 import com.avail.interpreter.*;
 
 /**
- * <strong>Primitive 559</strong>: Connect the {@linkplain
+ * <strong>Primitive 561</strong>: Connect the {@linkplain
  * AsynchronousSocketChannel asynchronous socket} referenced by the specified
  * {@linkplain AtomDescriptor handle} to an {@linkplain Inet4Address IPv4
  * address} and port. Create a new {@linkplain FiberDescriptor fiber} to respond
@@ -60,14 +60,14 @@ import com.avail.interpreter.*;
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class P_560_SocketIPv4Connect
+public final class P_561_SocketIPv4Connect
 extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_560_SocketIPv4Connect().init(6, CanInline, HasSideEffect);
+		new P_561_SocketIPv4Connect().init(6, CanInline, HasSideEffect);
 
 	@Override
 	public Result attempt (
@@ -119,7 +119,7 @@ extends Primitive
 			return interpreter.primitiveFailure(E_IO_ERROR);
 		}
 		final A_BasicObject current = FiberDescriptor.current();
-		final A_BasicObject newFiber =
+		final AvailObject newFiber =
 			FiberDescriptor.newFiber(priority.extractInt());
 		// If the current fiber is an Avail fiber, then the new one should be
 		// also.
@@ -178,8 +178,8 @@ extends Primitive
 								runtime,
 								newFiber,
 								fail,
-								Collections.singletonList(
-									(AvailObject)E_IO_ERROR.numericCode()));
+								Collections.singletonList((AvailObject)
+									E_IO_ERROR.numericCode()));
 						}
 					}
 				});

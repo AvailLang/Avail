@@ -58,7 +58,8 @@ extends AbstractAvailTest
 	 * @throws Exception
 	 *         If an {@linkplain Exception exception} occurs.
 	 */
-	@Test
+//TODO[MvG] - Restore test when it's actually supported.
+//	@Test
 	public void availMacroTest () throws Exception
 	{
 		final long startTime = System.currentTimeMillis();

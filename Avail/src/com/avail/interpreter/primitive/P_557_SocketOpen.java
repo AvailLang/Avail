@@ -1,5 +1,5 @@
 /**
- * P_556_SocketOpen.java
+ * P_557_SocketOpen.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -43,20 +43,20 @@ import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 
 /**
- * <strong>Primitive 555</strong>: Open an {@linkplain
+ * <strong>Primitive 557</strong>: Open an {@linkplain
  * AsynchronousSocketChannel asynchronous socket channel}. Answer a
  * {@linkplain AtomDescriptor handle} that uniquely identifies the socket.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class P_556_SocketOpen
+public final class P_557_SocketOpen
 extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_556_SocketOpen().init(1, CanInline, HasSideEffect);
+		new P_557_SocketOpen().init(1, CanInline, HasSideEffect);
 
 	@Override
 	public Result attempt (

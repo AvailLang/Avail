@@ -1,5 +1,5 @@
 /*
- * IO.avail
+ * Client.avail
  * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -30,13 +30,9 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "IO"
+System Module "Client"
 Versions
 	"dev"
 Extends
-	"Common",
-	"Exceptions",
-	"Files",
-	"Network",
-	"Standard Input"
+	"Primitives"
 Body

@@ -1679,10 +1679,9 @@ public final class Interpreter
 						switch (state)
 						{
 							case TERMINATED:
-								// If the fiber has terminated, then report its
-								// result via its result continuation.
-								aFiber.resultContinuation().value(
-									aFiber.fiberResult());
+								// The task must arrange to supply the result
+								// to its continuation after the post-exit
+								// continuation runs.
 								break;
 							case SUSPENDED:
 							case INTERRUPTED:
@@ -1957,6 +1956,14 @@ public final class Interpreter
 		return builder.toString();
 	}
 
+	/*
+	 * TODO TODO TODO
+	 * These methods must be integrated against what's in AvailLoader (or moved
+	 * wholesale if there isn't a corresponding implementation). Any primitives
+	 * using these methods must first check to see if loading is still in
+	 * progress (look up uses of E_LOADING_IS_OVER to see how to do this).
+	 */
+
 	/**
 	 * Add a type restriction to the method associated with the given method
 	 * name.
@@ -1989,73 +1996,6 @@ public final class Interpreter
 		module().addTypeRestriction(methodName, typeRestrictionFunction);
 		final A_BasicObject filteredRoot = module().filteredBundleTree();
 		filteredRoot.includeBundleNamed(methodName, method);
-		filteredRoot.flushForNewOrChangedBundleNamed(methodName);
-}
-
-	/**
-	 * Add a seal to the method associated with the given method name.
-	 *
-	 * @param methodName
-	 *        The method name, an {@linkplain AtomDescriptor atom}.
-	 * @param argumentTypes
-	 *        The tuple of argument types at which to seal the method.
-	 * @throws SignatureException
-	 *         If the signature is invalid.
-	 */
-	public void addSeal (
-		final A_Atom methodName,
-		final A_Tuple argumentTypes)
-	throws SignatureException
-	{
-		assert methodName.isAtom();
-		assert argumentTypes.isTuple();
-		final MessageSplitter splitter = new MessageSplitter(methodName.name());
-		if (argumentTypes.tupleSize() != splitter.numberOfArguments())
-		{
-			throw new SignatureException(E_INCORRECT_NUMBER_OF_ARGUMENTS);
-		}
-		methodName.makeImmutable();
-		argumentTypes.makeImmutable();
-		runtime.addSeal(methodName, argumentTypes);
-		module().addSeal(methodName, argumentTypes);
-	}
-
-	/**
-	 * The modularity scheme should prevent all intermodular method conflicts.
-	 * Precedence is specified as an array of message sets that are not allowed
-	 * to be messages generating the arguments of this message.  For example,
-	 * &lt;&#123;"_+_"&#125; , &#123;"_+_" , "_*_"&#125;&gt; for the "_*_"
-	 * operator makes * bind tighter than + and also groups multiple *'s
-	 * left-to-right.
-	 *
-	 * @param methodName
-	 *            An {@linkplain AtomDescriptor atom} that names a method.
-	 * @param excluded
-	 *            The {@linkplain TupleDescriptor tuple} of {@linkplain
-	 *            SetDescriptor sets} of {@linkplain AtomDescriptor atoms} that
-	 *            name methods.
-	 * @throws SignatureException
-	 *            If one of the specified names is inappropriate as a method
-	 *            name.
-	 */
-	public void atDisallowArgumentMessages (
-		final A_Atom methodName,
-		final A_Tuple excluded)
-	throws SignatureException
-	{
-		// Make these things safe for the VM to hold.
-		methodName.makeShared();
-		excluded.makeShared();
-		final MessageSplitter splitter = new MessageSplitter(methodName.name());
-		final int numArgs = splitter.numberOfUnderscores();
-		assert numArgs == excluded.tupleSize()
-			: "Wrong number of entries in restriction tuple.";
-		final AvailObject method = runtime.methodFor(methodName);
-		final A_BasicObject filteredRoot = module().filteredBundleTree();
-		final AvailObject bundle =
-			filteredRoot.includeBundleNamed(methodName, method);
-		bundle.addGrammaticalRestrictions(excluded);
-		module().addGrammaticalRestrictions(methodName, excluded);
 		filteredRoot.flushForNewOrChangedBundleNamed(methodName);
 	}
 
@@ -2100,39 +2040,6 @@ public final class Interpreter
 	}
 
 	/**
-	 * Create a new atom with the given name.  The name does not have to be
-	 * unique, as it is only used as a visual hint about the purpose of an atom.
-	 *
-	 * @param nameString
-	 *        A {@linkplain StringDescriptor string} describing the atom.
-	 * @param withProperties
-	 *        {@code true} if the atom definitely requires properties, {@code
-	 *        false} otherwise.
-	 * @return A new atom.
-	 */
-	public AvailObject createAtom (
-		final A_String nameString,
-		final boolean withProperties)
-	{
-		if (withProperties)
-		{
-			return AtomWithPropertiesDescriptor.create(nameString, module());
-		}
-		return AtomDescriptor.create(nameString, module());
-	}
-
-	/**
-	 * Answer the current module's filtered bundle tree used for parsing.  It
-	 * only includes bundles visible in the current module.
-	 *
-	 * @return The filtered root bundle tree.
-	 */
-	public A_BasicObject rootBundleTree ()
-	{
-		return module().filteredBundleTree();
-	}
-
-	/**
 	 * Look up the given {@linkplain TupleDescriptor string} in the current
 	 * {@linkplain ModuleDescriptor module}'s namespace. Answer the
 	 * {@linkplain AtomDescriptor true name} associated with the string,
@@ -2165,31 +2072,5 @@ public final class Interpreter
 			return who.asTuple().tupleAt(1);
 		}
 		throw new AmbiguousNameException();
-	}
-
-	/**
-	 * Does the {@linkplain Interpreter interpreter} provide a {@linkplain
-	 * Primitive primitive} with the specified primitive number?
-	 *
-	 * @param primitiveNumber
-	 *            The primitive number.
-	 * @return
-	 *            {@code true} if there is a {@linkplain Primitive primitive}
-	 *            with the specified primitive number, {@code false} otherwise.
-	 */
-	public boolean supportsPrimitive (final int primitiveNumber)
-	{
-		final Primitive primitive = Primitive.byPrimitiveNumberOrNull(
-			primitiveNumber);
-		return primitive != null && !primitive.hasFlag(Flag.Private);
-	}
-
-	/**
-	 * Deal with the possibility that the current continuation may have just
-	 * been invalidated by invoking a primitive.
-	 */
-	public void fixupForPotentiallyInvalidCurrentChunk ()
-	{
-		prepareToResumeContinuation(pointerAt(CALLER));
 	}
 }

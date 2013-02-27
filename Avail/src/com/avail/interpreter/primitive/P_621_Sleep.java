@@ -82,8 +82,6 @@ extends Primitive
 		// will only awaken due to interruption.
 		final AvailRuntime runtime = AvailRuntime.current();
 		if (sleepMillis.isLong())
-		if (sleepMillis.lessOrEqual(IntegerDescriptor.fromLong(
-			Long.MAX_VALUE)))
 		{
 			// Otherwise, delay the resumption of this task.
 			final TimerTask task = new TimerTask()

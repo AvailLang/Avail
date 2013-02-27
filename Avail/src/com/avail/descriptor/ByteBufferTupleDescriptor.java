@@ -335,7 +335,7 @@ extends TupleDescriptor
 		assert index >= 1 && index <= object.tupleSize();
 		final ByteBuffer buffer =
 			(ByteBuffer) object.slot(BYTE_BUFFER).javaObject();
-		return (short) (buffer.get(index - 1) & 0x7F);
+		return (short) (buffer.get(index - 1) & 0xFF);
 	}
 
 	@Override @AvailMethod
@@ -359,7 +359,7 @@ extends TupleDescriptor
 		// Answer the integer element at the given index in the tuple object.
 		final ByteBuffer buffer =
 			(ByteBuffer) object.slot(BYTE_BUFFER).javaObject();
-		return buffer.get(index - 1) & 0x7F;
+		return buffer.get(index - 1) & 0xFF;
 	}
 
 	@Override @AvailMethod

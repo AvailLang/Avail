@@ -130,6 +130,20 @@ implements Comparable<AvailTask>, Runnable
 				{
 					con.value();
 				}
+				// If the fiber has terminated, then report its
+				// result via its result continuation.
+				fiber.lock(new Continuation0()
+				{
+					@Override
+					public void value ()
+					{
+						if (fiber.executionState() == TERMINATED)
+						{
+							fiber.resultContinuation().value(
+								fiber.fiberResult());
+						}
+					}
+				});
 			}
 		};
 		return new AvailTask(fiber.priority(), taskContinuation);

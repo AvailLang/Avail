@@ -33,10 +33,14 @@
 package com.avail.interpreter.primitive;
 
 import static com.avail.descriptor.TypeDescriptor.Types.*;
+import static com.avail.exceptions.AvailErrorCode.E_AMBIGUOUS_NAME;
+import static com.avail.exceptions.AvailErrorCode.E_ATOM_ALREADY_EXISTS;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
 import com.avail.descriptor.*;
+import com.avail.exceptions.AvailErrorCode;
 import com.avail.interpreter.*;
+import com.avail.utility.*;
 
 /**
  * <strong>Primitive 624</strong>: Create a new {@linkplain AtomDescriptor atom}
@@ -63,14 +67,56 @@ extends Primitive
 	{
 		assert args.size() == 1;
 		final AvailObject name = args.get(0);
-		final AvailObject key = AtomDescriptor.create(
-			name, ModuleDescriptor.current());
-		// The value doesn't matter, as it will never be examined. So we could
-		// set it to anything here, but "true" seems intuitive.
-		key.setAtomProperty(
-			AtomDescriptor.heritableKey(),
-			AtomDescriptor.trueObject());
-		return interpreter.primitiveSuccess(key);
+		final AvailObject module = ModuleDescriptor.current();
+		final MutableOrNull<A_Atom> trueName =
+			new MutableOrNull<A_Atom>();
+		final MutableOrNull<AvailErrorCode> errorCode =
+			new MutableOrNull<AvailErrorCode>();
+		if (!module.equalsNil())
+		{
+			module.lock(
+				new Continuation0()
+				{
+					@Override
+					public void value ()
+					{
+						final A_Set trueNames =
+							module.trueNamesForStringName(name);
+						if (trueNames.setSize() == 0)
+						{
+							final A_Atom newName = AtomDescriptor.create(
+								name, module);
+							newName.setAtomProperty(
+								AtomDescriptor.heritableKey(),
+								AtomDescriptor.trueObject());
+							module.addPrivateName(name, newName);
+							trueName.value = newName;
+						}
+						else if (trueNames.setSize() == 1)
+						{
+							errorCode.value = E_ATOM_ALREADY_EXISTS;
+						}
+						else
+						{
+							errorCode.value = E_AMBIGUOUS_NAME;
+						}
+					}
+				});
+		}
+		else
+		{
+			final A_Atom newName =
+				AtomDescriptor.create(name, NilDescriptor.nil());
+			newName.setAtomProperty(
+				AtomDescriptor.heritableKey(),
+				AtomDescriptor.trueObject());
+			trueName.value = newName;
+		}
+		if (errorCode.value != null)
+		{
+			return interpreter.primitiveFailure(errorCode.value());
+		}
+		return interpreter.primitiveSuccess(trueName.value().makeShared());
 	}
 
 	@Override

@@ -1,5 +1,5 @@
 /**
- * P_565_SocketWrite.java
+ * P_565_SocketRead.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -40,34 +40,36 @@ import java.nio.ByteBuffer;
 import java.nio.channels.*;
 import java.util.*;
 import com.avail.AvailRuntime;
-import com.avail.annotations.*;
+import com.avail.annotations.Nullable;
 import com.avail.descriptor.*;
 import com.avail.exceptions.AvailErrorCode;
 import com.avail.interpreter.*;
-import com.avail.utility.MutableOrNull;
 
 /**
- * <strong>Primitive 565</strong>: Initiate an asynchronous write from the
+ * <strong>Primitive 565</strong>: Initiate an asynchronous read from the
  * {@linkplain AsynchronousSocketChannel socket} referenced by the specified
  * {@linkplain AtomDescriptor handle}. Create a new {@linkplain FiberDescriptor
  * fiber} to respond to the asynchronous completion of the operation; the fiber
  * will run at the specified {@linkplain IntegerRangeTypeDescriptor#bytes()
  * priority}. If the operation succeeds, then eventually start the new fiber to
- * apply the {@linkplain FunctionDescriptor success function}. If the operation
- * fails, then eventually start the new fiber to apply the {@linkplain
+ * apply the {@linkplain FunctionDescriptor success function} to the {@linkplain
+ * ByteBufferTupleDescriptor result tuple} and a {@linkplain
+ * EnumerationTypeDescriptor#booleanObject() boolean} that is {@linkplain
+ * AtomDescriptor#trueObject() true} if the socket is exhausted. If the
+ * operation fails, then eventually start the new fiber to apply the {@linkplain
  * FunctionDescriptor failure function} to the {@linkplain IntegerDescriptor
  * numeric} {@linkplain AvailErrorCode error code}. Answer the new fiber.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class P_565_SocketWrite
+public final class P_565_SocketRead
 extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_565_SocketWrite().init(5, CanInline, HasSideEffect);
+		new P_565_SocketRead().init(5, CanInline, HasSideEffect);
 
 	@Override
 	public Result attempt (
@@ -75,7 +77,7 @@ extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 5;
-		final AvailObject tuple = args.get(0);
+		final AvailObject size = args.get(0);
 		final AvailObject handle = args.get(1);
 		final AvailObject succeed = args.get(2);
 		final AvailObject fail = args.get(3);
@@ -91,22 +93,7 @@ extends Primitive
 		}
 		final AsynchronousSocketChannel socket =
 			(AsynchronousSocketChannel) pojo.javaObject();
-		// Obtain a buffer for writing.
-		final ByteBuffer buffer;
-		if (tuple.isByteBufferTuple())
-		{
-			buffer = tuple.byteBuffer();
-			buffer.rewind();
-		}
-		else
-		{
-			buffer = ByteBuffer.allocateDirect(tuple.tupleSize());
-			for (int i = 1, end = tuple.tupleSize(); i <= end; i++)
-			{
-				buffer.put((byte) tuple.rawByteAt(i));
-			}
-			buffer.flip();
-		}
+		final ByteBuffer buffer = ByteBuffer.allocateDirect(size.extractInt());
 		final A_BasicObject current = FiberDescriptor.current();
 		final AvailObject newFiber =
 			FiberDescriptor.newFiber(priority.extractInt());
@@ -125,40 +112,36 @@ extends Primitive
 		newFiber.makeShared();
 		succeed.makeShared();
 		fail.makeShared();
-		// Now start the asynchronous write.
+		// Now start the asynchronous read.
 		final AvailRuntime runtime = AvailRuntime.current();
 		try
 		{
-			final MutableOrNull<CompletionHandler<Integer, Void>> handler =
-				new MutableOrNull<CompletionHandler<Integer, Void>>();
-			handler.value =
+			socket.read(
+				buffer,
+				null,
 				new CompletionHandler<Integer, Void>()
 				{
 					@Override
 					public void completed (
-						final @Nullable Integer bytesWritten,
-						final @Nullable Void attachment)
+						final @Nullable Integer bytesRead,
+						final @Nullable Void unused)
 					{
-						// If termination has been requested, then take no
-						// further action.
+						assert bytesRead != null;
+						// If termination has not been requested, then start the
+						// fiber.
 						if (!newFiber.getAndClearInterruptRequestFlag(
 							TERMINATION_REQUESTED))
 						{
-							// If not all bytes have been written yet, then keep
-							// writing.
-							if (buffer.hasRemaining())
-							{
-								socket.write(buffer, null, handler.value);
-							}
-							// Otherwise, report success.
-							else
-							{
-								Interpreter.runOutermostFunction(
-									runtime,
-									newFiber,
-									succeed,
-									Collections.<AvailObject>emptyList());
-							}
+							Interpreter.runOutermostFunction(
+								runtime,
+								newFiber,
+								succeed,
+								Arrays.asList(
+									ByteBufferTupleDescriptor.forByteBuffer(
+										buffer),
+									(AvailObject)
+										AtomDescriptor.objectFromBoolean(
+											bytesRead == -1)));
 						}
 					}
 
@@ -178,11 +161,17 @@ extends Primitive
 								newFiber,
 								fail,
 								Collections.singletonList(
-									(AvailObject)E_IO_ERROR.numericCode()));
+									(AvailObject) E_IO_ERROR.numericCode()));
 						}
 					}
-				};
-			socket.write(buffer, null, handler.value);
+				});
+		}
+		catch (final IllegalArgumentException e)
+		{
+			// This should only happen if the buffer is read only, which is
+			// impossible by construction here.
+			assert false;
+			return interpreter.primitiveFailure(E_IO_ERROR);
 		}
 		catch (final IllegalStateException e)
 		{
@@ -196,11 +185,17 @@ extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				TupleTypeDescriptor.zeroOrMoreOf(
-					IntegerRangeTypeDescriptor.bytes()),
+				IntegerRangeTypeDescriptor.create(
+					IntegerDescriptor.zero(),
+					true,
+					IntegerDescriptor.fromInt(Integer.MAX_VALUE),
+					true),
 				ATOM.o(),
 				FunctionTypeDescriptor.create(
-					TupleDescriptor.empty(),
+					TupleDescriptor.from(
+						TupleTypeDescriptor.zeroOrMoreOf(
+							IntegerRangeTypeDescriptor.bytes()),
+						EnumerationTypeDescriptor.booleanObject()),
 					TOP.o()),
 				FunctionTypeDescriptor.create(
 					TupleDescriptor.from(
@@ -209,5 +204,16 @@ extends Primitive
 					TOP.o()),
 				IntegerRangeTypeDescriptor.bytes()),
 			FIBER.o());
+	}
+
+	@Override
+	protected A_Type privateFailureVariableType ()
+	{
+		return AbstractEnumerationTypeDescriptor.withInstances(
+			TupleDescriptor.from(
+				E_INVALID_HANDLE.numericCode(),
+				E_SPECIAL_ATOM.numericCode(),
+				E_IO_ERROR.numericCode()
+			).asSet());
 	}
 }

@@ -168,6 +168,7 @@ Invoke [
 		<71, "method-implementation-lookup-failed">,
 		<72, "method-is-sealed">,
 		<73, "no-implementation">,
+		<74, "atom-already-exists">,
 		<80, "handler-sentinel">,
 		<81, "cannot-mark-handler-frame">,
 		<82, "no-handler-frame">,

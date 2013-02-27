@@ -1,0 +1,360 @@
+/*
+ * Primitives.avail
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+System Module "Primitives"
+Versions
+	"dev"
+Extends
+	"Address" = ("_'s⁇address"),
+	"Common" = ("Close_")
+Uses
+	"Address",
+	"Client",
+	"Foundation",
+	"Network Common",
+	"Options"
+Names
+	/* Types. */
+	"server socket",
+
+	/* Constructors. */
+	"a server socket«named_»",
+
+	/* Binding. */
+	"Bind_to_«with a backlog of_connection|connections»",
+
+	/* Accepting. */
+	"a fiber waiting until_accepts a new connection«named_»,⁇\
+		\|on success doing_,⁇\
+		\|on failure doing_«,⁇forked at priority_»"
+Body
+
+/* The default name for unspecified optional names. */
+defaultName ::= "«unnamed»";
+
+/**
+ * A server socket is capable of receiving incoming connections.
+ *
+ * @type "server socket"
+ */
+Public explicit class "server socket" extends object
+	with field
+		handle : atom;
+
+/**
+ * Answer the name of the {@type "server socket"}. This is the name that was
+ * provided when the server socket was first requested.
+ *
+ * @method "_'s⁇name"
+ * @param "s" "server socket"
+ * @returns "nonempty string"
+ */
+Method "_'s⁇name" is
+[
+	s : server socket
+|
+	s's handle's name
+] : string;
+
+Semantic restriction "_'s⁇name" is
+[
+	s : server socket's type
+|
+	nonempty string
+];
+
+/**
+ * Construct and answer a {@type "server socket"}.
+ *
+ * @method "a server socket«named_»"
+ * @param "optionalName" "<nonempty string…|0..1>"
+ *        An optional string that describes the purpose of the server socket at
+ *        a high level, provided for debugging purposes only. If not specified,
+ *        then the default name {@code "«unnamed»"} is used.
+ */
+Public method "a server socket«named_»" is
+[
+	optionalName : <nonempty string…|0..1>
+|
+	name ::= optionalName[1] else [defaultName];
+	h ::=
+		[
+			nm : nonempty string
+		|
+			Primitive 550 (code : {I/O-error code}ᵀ);
+			Raise an exception for code
+		] : atom (name);
+	a server socket with handle ::= h
+] : server socket;
+
+/**
+ * Set {@type "server socket option" socket options} for the specified
+ * {@type "server socket"}.
+ *
+ * @method "_'s⁇«_:=_‡,»"
+ * @param "s" "server socket"
+ * @param "options" "<<server socket option, any…|2>…|1..2>"
+ */
+Method "_'s⁇«_:=_‡,»" is
+[
+	s : server socket,
+	options : <<server socket option, any…|2>…|1..2>
+|
+	optionMap ::=
+		map options through
+		[
+			binding : <server socket option, any…|2>
+		|
+			<binding[1]'s option#, binding[2]>
+		]→map;
+	[
+		h : atom,
+		m : {[1..2]→any|0..2}
+	|
+		Primitive 551 (code :
+			{
+				invalid-handle code,
+				special-atom code,
+				incorrect-argument-type code,
+				I/O-error code
+			}ᵀ);
+		Raise an exception for code
+	] : ⊤ (s's handle, optionMap);
+] : ⊤;
+
+Semantic restriction "_'s⁇«_:=_‡,»" is
+[
+	socketType : server socket's type,
+	options : <<server socket option, any…|2>…|>'s type
+|
+	Require: options are sensible;
+	⊤
+];
+
+/**
+ * Bind a {@type "server socket"} to a local {@type "IP address"} and port.
+ *
+ * @method "Bind_to_on port_with a backlog of_"
+ * @param "s" "server socket"
+ * @param "ipAddress" "IP address"
+ * @param "port" "[0..65535]"
+ * @param "backlog" "whole number"
+ *        The maximum number of pending connections on the server socket. If
+ *        {@code 0}, then a system-dependent default will be chosen.
+ */
+Private abstract method "Bind_to_on port_with a backlog of_"
+	is [server socket, IP address, [0..65535], whole number]→⊤;
+
+Method "Bind_to_on port_with a backlog of_" is
+[
+	s : server socket,
+	ipAddress : IPv4 address,
+	port : [0..65535],
+	backlog : whole number
+|
+	[
+		h : atom,
+		octets : <byte…|4>,
+		portNumber : [0..65535],
+		n : [-2^31..2^31-1]
+	|
+		Primitive 552 (code :
+		{
+			invalid-handle code,
+			special-atom code,
+			I/O-error code,
+			permission-denied code
+		}ᵀ);
+		Raise an exception for code
+	] : ⊤ (s's handle, ipAddress's octets, port, backlog bit∧ (2^31-1));
+] : ⊤;
+
+Method "Bind_to_on port_with a backlog of_" is
+[
+	s : server socket,
+	ipAddress : IPv6 address,
+	port : [0..65535],
+	backlog : whole number
+|
+	[
+		h : atom,
+		octets : <byte…|16>,
+		portNumber : [0..65535],
+		n : [-2^31..2^31-1]
+	|
+		Primitive 553 (code :
+		{
+			invalid-handle code,
+			special-atom code,
+			I/O-error code,
+			permission-denied code
+		}ᵀ);
+		Raise an exception for code
+	] : ⊤ (s's handle, ipAddress's octets, port, backlog bit∧ (2^31-1));
+] : ⊤;
+
+/**
+ * Bind a {@type "server socket"} to a local {@type "socket address"}.
+ *
+ * @method "Bind_to_«with a backlog of_connection|connections»"
+ * @param "s" "server socket"
+ * @param "localAddress" "socket address"
+ * @param "optionalBacklog" "<whole number…|0..1>"
+ *        If specified, then the maximum number of pending connections on the
+ *        server socket. If not specified, then a system-dependent default will
+ *        be chosen.
+ */
+Public method "Bind_to_«with a backlog of_connection|connections»" is
+[
+	s : server socket,
+	localAddress : socket address,
+	optionalBacklog : <whole number…|0..1>
+|
+	addr ::= localAddress's address;
+	port ::= localAddress's port;
+	backlog ::= optionalBacklog[1] else [0];
+	Bind s to addr on port port with a backlog of backlog;
+] : ⊤;
+
+/**
+ * Asynchronously accept an incoming connection on the specified {@type
+ * "server socket"}. If the operation is successful, then fork a new {@type
+ * "fiber"} to apply {@param "success"} to the newly connected {@type
+ * "client socket"}. If the operation is unsuccessful, then fork a new fiber to
+ * apply {@param "failure"} to the error code that classifies the failure.
+ * Answer the new fiber.
+ *
+ * @method
+ *    "a fiber waiting until_accepts a new connection«named_»,⁇\
+ *    \|on success doing_,⁇\
+ *    \|on failure doing_«,⁇forked at priority_»"
+ * @param "s" "server socket"
+ * @param "optionalName" "<nonempty string…|0..1>"
+ *        An optional string that describes the purpose of the client socket at
+ *        a high level, provided for debugging purposes only. If not specified,
+ *        then the default name {@code "«unnamed»"} is used.
+ * @param "success" "[client socket]→⊤"
+ *        The function to apply to the newly connected client socket.
+ * @param "failure" "[natural number]→⊤"
+ *        The function to apply to the error code that classifies the failure of
+ *        the asynchronous accept operation.
+ * @param "optionalPriority" "<byte…|0..1>"
+ *        If specified, then the priority of the new fiber. If not specified,
+ *        then the new fiber will run at the same priority as the {@method
+ *        "current fiber"}.
+ * @returns "fiber"
+ *          The new fiber which may eventually apply either {@param "success"}
+ *          or {@param "failure"}.
+ */
+Public method
+	"a fiber waiting until_accepts a new connection«named_»,⁇\
+	\|on success doing_,⁇\
+	\|on failure doing_«,⁇forked at priority_»"
+is
+[
+	s : server socket,
+	optionalName : <nonempty string…|0..1>,
+	success : [client socket]→⊤,
+	failure : [natural number]→⊤,
+	optionalPriority : <byte…|0..1>
+|
+	name ::= optionalName[1] else [defaultName];
+	priority ::= optionalPriority[1] else [current fiber's priority];
+	wrapper ::= [h : atom | success(a client socket with handle ::= h);];
+	aFiber ::=
+		[
+			h : atom,
+			nm : nonempty string,
+			f1 : [atom]→⊤,
+			f2 : [I/O-error code's type]→⊤,
+			p : byte
+		|
+			Primitive 554 (code :
+			{
+				invalid-handle code,
+				special-atom code,
+				I/O-error code
+			}ᵀ);
+			Raise an exception for code
+		] : fiber (s's handle, name, wrapper, failure, priority);
+	aFiber
+] : fiber;
+
+/**
+ * Answer the {@type "socket address"} to which the specified {@type
+ * "server socket"} is bound.
+ *
+ * @method "_'s⁇address"
+ * @param "s" "server socket"
+ * @returns "socket address"
+ */
+Method "_'s⁇address" is
+[
+	s : server socket
+|
+	pair ::=
+		[
+			h : atom
+		|
+			Primitive 555 (code :
+			{
+				invalid-handle code,
+				special-atom code,
+				I/O-error code
+			}ᵀ);
+			Raise an exception for code
+		] : <<byte…|4..16>, [0..65535]…|2> (s's handle);
+	a socket address from pair[1] and pair[2]
+] : socket address;
+
+/**
+ * Close the specified {@type "server socket"}.
+ *
+ * @method "Close_"
+ * @param "s" "server socket"
+ */
+Method "Close_" is
+[
+	s : server socket
+|
+	[
+		h : atom
+	|
+		Primitive 556 (code :
+		{
+			invalid-handle code,
+			special-atom code,
+			I/O-error code
+		}ᵀ);
+		Raise an exception for code
+	] : ⊤ (s's handle);
+] : ⊤;

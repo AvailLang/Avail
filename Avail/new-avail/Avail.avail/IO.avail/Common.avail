@@ -37,6 +37,7 @@ Uses
 	"Foundation",
 	"Unit Testing"
 Names
+	"Close_",
 	"I/O test suite",
 	"test directory"
 Body

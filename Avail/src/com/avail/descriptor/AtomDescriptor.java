@@ -309,6 +309,12 @@ extends Descriptor
 	}
 
 	@Override
+	boolean o_IsBoolean (final AvailObject object)
+	{
+		return object.isInstanceOf(EnumerationTypeDescriptor.booleanObject());
+	}
+
+	@Override
 	final Object o_MarshalToJava (
 		final AvailObject object,
 		final @Nullable Class<?> ignoredClassHint)

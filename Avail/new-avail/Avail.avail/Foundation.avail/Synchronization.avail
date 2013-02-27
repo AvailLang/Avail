@@ -107,8 +107,101 @@ Names
 	"dequeue_from_",
 	"parking queue",
 	"priority enqueue_on_",
-	"synchronization device"
+	"synchronization device",
+	"unsafely atomically read_and store_",
+	"unsafely atomically compare_to_and,⁇if equal,⁇store_"
 Body
+
+Semantic restriction "atomically read_and store_" is
+[
+	varType : variable's type,
+	valueType : any's type
+|
+	If ¬valueType ⊆ varType's write type then
+	[
+		Reject parse, expected:
+			format
+				"value's type “①” to be a subtype of variable's write type “②”"
+			with valueType, varType's write type
+	];
+	⊤
+];
+
+Semantic restriction "atomically compare_to_and,⁇if equal,⁇store_" is
+[
+	varType : variable's type,
+	referenceType : any's type,
+	valueType : any's type
+|
+	If ¬referenceType ⊆ varType's read type then
+	[
+		Reject parse, expected:
+			format
+				"reference value's type “①” to be a subtype of variable's \
+				\|read type “②”"
+			with referenceType, varType's read type
+	];
+	If ¬valueType ⊆ varType's write type then
+	[
+		Reject parse, expected:
+			format
+				"replacement value's type “①” to be a subtype of variable's \
+				\|write type “②”"
+			with valueType, varType's write type
+	];
+	⊤
+];
+
+/**
+ * Atomically read the value of {@param "var"} and store {@param "newValue"}.
+ * No semantic restriction for this operation exists to ensure that the
+ * assignment is possible, so it is suitable for generic use.
+ *
+ * @method "unsafely atomically read_and store_"
+ * @param "var" "variable"
+ *        A variable.
+ * @param "newValue" "any"
+ *        The new value to store into `var`.
+ * @returns "any"
+ *          The value originally stored in `var`.
+ */
+Public method "unsafely atomically read_and store_" is
+[
+	var : variable,
+	newValue : any
+|
+	Primitive 20 (failureCode : natural number);
+	Raise an exception for failureCode
+] : any;
+
+/**
+ * Atomically read the value of {@param "var"}, compare it to {@param
+ * "reference"}, and, if they are discovered to be equal, store {@param
+ * "newValue"} into {@param "var"}. No semantic restriction for this operation
+ * exists to ensure that the assignment is possible, so it is suitable for
+ * generic use.
+ *
+ * @method "unsafely atomically compare_to_and,⁇if equal,⁇store_"
+ * @param "var" "variable"
+ *        A variable.
+ * @param "reference"
+ *        The value against which the content of {@param "var"} should be
+ *        compared.
+ * @param "newValue" "any"
+ *        The new value to store into `var`.
+ * @returns "boolean"
+ *          {@method "true"} if the operation succeeded and {@param "newValue"}
+ *          was stored into {@param "var"}, {@method "false"} otherwise.
+ */
+Public method "unsafely atomically compare_to_and,⁇if equal,⁇store_" is
+[
+	var : variable,
+	reference : any,
+	newValue : any
+|
+	Primitive 21 (failureCode : natural number);
+	Raise an exception for failureCode
+] : boolean;
 
 /**
  * Atomically update the specified variable to a value derived from its current
@@ -127,7 +220,7 @@ Public method "Atomically update_using_" is
 	[
 		basis ::= ↓var;
 		value ::= f(basis);
-		atomically compare var to basis and, if equal, store value
+		unsafely atomically compare var to basis and, if equal, store value
 	];
 ] : ⊤;
 
@@ -715,21 +808,22 @@ Private method "Schedule next parked fiber or release_" is
 	 * canonical).
 	 */
 	mutex's owner := 0;
+	queue ::= ↑mutex's parked fibers;
 	signalers ::= ↑mutex's signaler fibers;
-	/* If there are any signaler fibers waiting, then select remove the first
-	 * one from the queue and give it ownership of the monitor.
+	/* If there are any signaler fibers waiting, then remove the first one from
+	 * the queue and give it ownership of the monitor. Remove the current fiber
+	 * from the parking queue.
 	 */
 	If ¬↓signalers is empty then
 	[
 		head ::= ↓signalers[1];
 		↓signalers ?= ↓signalers[2..];
-		Ignore: priority enqueue head on ↑mutex's parked fibers;
+		Ignore: dequeue current fiber from queue;
 		mutex's owner := head;
 		Unpark head;
 	]
 	else
 	[
-		queue ::= ↑mutex's parked fibers;
 		lockReleased ::= dequeue current fiber from queue;
 		/* If any fibers are queued, then grab the first one (without removing
 		 * it from the queue), establish it as the owner, and unpark it.
@@ -923,13 +1017,15 @@ Public method "Signal_" is
 		 * restored later.
 		 */
 		savedEntryCount ::= mutex's entry count;
-		/* Transfer the current fiber from the monitor's main queue and onto
-		 * the monitor's queue of signaler fibers. This will give it preference
-		 * during the next scheduling operation.
+		/* Place the current fiber from onto the monitor's queue of signaler
+		 * fibers, also leaving it on the main queue. This will give it
+		 * preference during the next scheduling operation.
 		 */
 		Ignore: priority enqueue current fiber on ↑mutex's signaler fibers;
 		head ::= ↓queue[1];
 		↓queue ?= ↓queue[2..];
+		/* Place the next fiber back onto the monitor's main queue. */
+		Ignore: priority enqueue head on ↑mutex's parked fibers;
 		mutex's owner := head;
 		Unpark head;
 		/* Park the current fiber. */
@@ -1085,8 +1181,9 @@ Method "Await_" is
 |
 	Lock sem's internal monitor for
 	[
-		If sem's available permits = 0 then [Await sem's availability;]
-		else [↑sem's available permits--;];
+		If sem's available permits = 0 then [Await sem's availability;];
+		Assert: sem's available permits > 0;
+		↑sem's available permits--;
 	];
 ] : ⊤;
 

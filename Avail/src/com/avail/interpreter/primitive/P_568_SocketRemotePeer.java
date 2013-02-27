@@ -1,5 +1,5 @@
 /**
- * P_563_SocketShutdownOutput.java
+ * P_568_SocketRemotePeer.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -36,27 +36,29 @@ import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.io.IOException;
-import java.nio.channels.AsynchronousSocketChannel;
+import java.net.*;
+import java.nio.channels.*;
 import java.util.List;
 import com.avail.AvailRuntime;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 
 /**
- * <strong>Primitive 562</strong>: Disallow further writing to the {@linkplain
- * AsynchronousSocketChannel asynchronous socket} referenced by the specified
- * {@linkplain AtomDescriptor handle}.
+ * <strong>Primitive 568</strong>: Answer the {@linkplain InetSocketAddress
+ * socket address} of the remote peer of the {@linkplain
+ * AsynchronousSocketChannel asynchronous socket channel} referenced by the
+ * specified {@linkplain AtomDescriptor handle}.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class P_563_SocketShutdownOutput
+public final class P_568_SocketRemotePeer
 extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_563_SocketShutdownOutput().init(1, CanInline, HasSideEffect);
+		new P_568_SocketRemotePeer().init(1, CanInline);
 
 	@Override
 	public Result attempt (
@@ -76,12 +78,12 @@ extends Primitive
 		}
 		final AsynchronousSocketChannel socket =
 			(AsynchronousSocketChannel) pojo.javaObject();
+		final InetSocketAddress peer;
 		try
 		{
-			socket.shutdownOutput();
-			return interpreter.primitiveSuccess(NilDescriptor.nil());
+			peer = (InetSocketAddress) socket.getRemoteAddress();
 		}
-		catch (final IllegalStateException e)
+		catch (final ClosedChannelException e)
 		{
 			return interpreter.primitiveFailure(E_INVALID_HANDLE);
 		}
@@ -89,6 +91,13 @@ extends Primitive
 		{
 			return interpreter.primitiveFailure(E_IO_ERROR);
 		}
+		final InetAddress address = peer.getAddress();
+		final byte[] addressBytes = address.getAddress();
+		final AvailObject addressTuple =
+			ByteArrayTupleDescriptor.forByteArray(addressBytes);
+		final A_Number port = IntegerDescriptor.fromInt(peer.getPort());
+		return interpreter.primitiveSuccess(
+			TupleDescriptor.from(addressTuple, port));
 	}
 
 	@Override
@@ -97,7 +106,16 @@ extends Primitive
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
 				ATOM.o()),
-			TOP.o());
+			TupleTypeDescriptor.forTypes(
+				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
+					IntegerRangeTypeDescriptor.create(
+						IntegerDescriptor.fromInt(4),
+						true,
+						IntegerDescriptor.fromInt(16),
+						true),
+					TupleDescriptor.empty(),
+					IntegerRangeTypeDescriptor.bytes()),
+				IntegerRangeTypeDescriptor.unsignedShorts()));
 	}
 
 

@@ -1,0 +1,253 @@
+/*
+ * Address.avail
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+System Module "Address"
+Versions
+	"dev"
+Uses
+	"Foundation"
+Names
+	/* Types. */
+	"IP address",
+	"IPv4 address",
+	"IPv6 address",
+	"socket address",
+
+	/* General IP address construction. */
+	"an IP address from_",
+
+	/* IPv4 address construction. */
+	"«_‡.»",
+
+	/* Socket address construction. */
+	"a socket address from_and_",
+	"«_‡.»:_",
+
+	/* Accessors. */
+	"_'s⁇address",
+	"_'s⁇octets",
+	"_'s⁇port"
+Body
+
+"octets" is a new field atom;
+
+/**
+ * An Internet Protocol (IP) address is a 32- or 128-bit unsigned integer label
+ * that is used to identify a device participating in an IP network.
+ *
+ * @type "IP Address"
+ */
+Public class "IP address" extends object
+	with field
+		public octets : <byte…|4..16>;
+
+/**
+ * An Internet Protocol version 4 (IPv4) address is a 32-bit unsigned integer
+ * label that is used to identify a device participating in an IPv4 network.
+ *
+ * @type "IPv4 address"
+ * @supertype "IP address"
+ */
+Public class "IPv4 address" extends object
+	with field
+		octets : <byte…|4>;
+
+Method "“_”" is
+[
+	addr : IPv4 address
+|
+	format "“①”.“②”.“③”.“④”" with unchecked addr's octets
+] : nonempty string;
+
+/**
+ * Construct and answer an {@type "IP address"} from the specified {@method
+ * "tuple"} of {@method "byte"}s.
+ *
+ * @method "an IP address from_"
+ * @param "o" "<byte…|4..16>"
+ * @returns "IPv4 address"
+ */
+Public stable abstract method "an IP address from_"
+	is [<byte…|4..16>]→IP address;
+
+Semantic restriction "an IP address from_" is
+[
+	o : <byte…|4..16>'s type
+|
+	extend IP address with octets : o
+];
+
+Method "an IP address from_" is
+[
+	o : <byte…|5..13>
+|
+	Raise an incorrect-argument-type exception
+] : ⊥;
+
+Method "an IP address from_" is
+[
+	o : <byte…|4>
+|
+	an IPv4 address with octets ::= o
+] : IPv4 address;
+
+/**
+ * Construct and answer an {@type "IPv4 address"} using the standard dotted
+ * decimal notation.
+ *
+ * @method "_._._._"
+ * @param "o" "<byte…|4>"
+ * @returns "IPv4 address"
+ */
+Public method "«_‡.»" is
+[
+	o : <byte…|4>
+|
+	an IPv4 address with octets ::= o
+] : IPv4 address;
+
+Semantic restriction "«_‡.»" is
+[
+	o : <byte…|4>'s type
+|
+	extend IPv4 address with octets : o
+];
+
+/**
+ * An Internet Protocol version 6 (IPv6) address is a 128-bit unsigned integer
+ * label that is used to identify a device participating in an IPv6 network.
+ *
+ * @type "IPv6 address"
+ * @supertype "IP address"
+ */
+Public class "IPv6 address" extends object
+	with field
+		octets : <byte…|16>;
+
+Method "an IP address from_" is
+[
+	o : <byte…|16>
+|
+	an IPv6 address with octets ::= o
+] : IPv6 address;
+
+"address" is a new field atom;
+"port" is a new field atom;
+
+/**
+ * A socket address combines an {@type "IP address"} with a port number.
+ *
+ * @type "socket address"
+ */
+Public class "socket address" extends object
+	with field
+		public address : IP address,
+		public port : [0..65535];
+
+/**
+ * Construct and answer a {@type "socket address"} from the specified {@method
+ * "tuple"} of {@method "byte"}s and port number
+ *
+ * @method "a socket address from_and_"
+ * @param "o" "<byte…|4..16>"
+ * @param "portNumber" "[0..65535]"
+ * @returns "socket address"
+ */
+Public stable abstract method "a socket address from_and_"
+	is [<byte…|4..16>, [0..65535]]→socket address;
+
+Semantic restriction "a socket address from_and_" is
+[
+	o : <byte…|4..16>'s type,
+	portNumber : [0..65535]'s type
+|
+	extend socket address with
+		address : (extend IP address with octets : o),
+		port : portNumber
+];
+
+Method "a socket address from_and_" is
+[
+	o : <byte…|5..13>,
+	portNumber : [0..65535]
+|
+	Raise an incorrect-argument-type exception
+] : ⊥;
+
+Method "a socket address from_and_" is
+[
+	o : <byte…|4>,
+	portNumber : [0..65535]
+|
+	a socket address with
+		address ::= an IPv4 address with octets ::= o,
+		port ::= portNumber
+] : socket address;
+
+Method "a socket address from_and_" is
+[
+	o : <byte…|16>,
+	portNumber : [0..65535]
+|
+	a socket address with
+		address ::= an IPv6 address with octets ::= o,
+		port ::= portNumber
+] : socket address;
+
+/**
+ * Construct and answer a {@type "socket address"} using the standard dotted
+ * decimal notation.
+ *
+ * @method "_._._._:_"
+ * @param "o" "<byte…|4>"
+ * @param "portNumber" "[0..65535]"
+ * @returns "socket address"
+ */
+Public method "«_‡.»:_" is
+[
+	o : <byte…|4>,
+	portNumber : [0..65535]
+|
+	a socket address with
+		address ::= an IPv4 address with octets ::= o,
+		port ::= portNumber
+] : socket address;
+
+Semantic restriction "«_‡.»:_" is
+[
+	o : <byte…|4>'s type,
+	portNumber : [0..65535]'s type
+|
+	extend socket address with
+		address : (extend IPv4 address with octets : o),
+		port : portNumber
+];

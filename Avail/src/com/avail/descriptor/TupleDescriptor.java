@@ -270,6 +270,15 @@ extends Descriptor
 		return o_EqualsAnyTuple(object, aTuple);
 	}
 
+	@Override
+	boolean o_EqualsByteBufferTuple (
+		final AvailObject object,
+		final A_Tuple aTuple)
+	{
+		// Default to generic tuple comparison.
+		return o_EqualsAnyTuple(object, aTuple);
+	}
+
 	@Override @AvailMethod
 	boolean o_EqualsNybbleTuple (
 		final AvailObject object,
@@ -478,6 +487,23 @@ extends Descriptor
 			startIndex1,
 			endIndex1,
 			aByteTuple,
+			startIndex2);
+	}
+
+	@Override
+	boolean o_CompareFromToWithByteBufferTupleStartingAt (
+		final AvailObject object,
+		final int startIndex1,
+		final int endIndex1,
+		final A_Tuple aByteBufferTuple,
+		final int startIndex2)
+	{
+		// Compare sections of two tuples. Default to generic comparison.
+		return o_CompareFromToWithAnyTupleStartingAt(
+			object,
+			startIndex1,
+			endIndex1,
+			aByteBufferTuple,
 			startIndex2);
 	}
 
@@ -732,19 +758,6 @@ extends Descriptor
 	@Override @AvailMethod
 	boolean o_IsTuple (final AvailObject object)
 	{
-		return true;
-	}
-
-	@Override @AvailMethod
-	boolean o_IsByteTuple (final AvailObject object)
-	{
-		for (int i = object.tupleSize(); i >= 1; i--)
-		{
-			if (!object.tupleAt(i).isUnsignedByte())
-			{
-				return false;
-			}
-		}
 		return true;
 	}
 

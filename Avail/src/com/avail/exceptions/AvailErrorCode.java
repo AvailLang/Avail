@@ -485,7 +485,13 @@ public enum AvailErrorCode
 	 */
 	E_NO_IMPLEMENTATION (73),
 
-//	E_??? (74) -- reserved for Todd.
+	/**
+	 * A {@linkplain ModuleDescriptor module} already has an {@linkplain
+	 * AtomDescriptor atom} associated with a particular {@linkplain
+	 * StringDescriptor name}.
+	 */
+	E_ATOM_ALREADY_EXISTS (74),
+
 //	E_??? (75)
 //	E_??? (76)
 //	E_??? (77)

@@ -337,6 +337,9 @@ Primitive "atomically read_and store_" is
  *    reference - The value against which the content of `var` should be
  *       compared.
  *    newValue - The new value to conditionally store into `var`.
+ * Returns:
+ *    `true` if the operation succeeded and `newValue` was stored into `var`,
+ *    `false` otherwise.
  */
 Primitive "atomically compare_to_and,⁇if equal,⁇store_" is
 [
