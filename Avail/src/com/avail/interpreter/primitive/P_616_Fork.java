@@ -36,7 +36,6 @@ import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.*;
-import com.avail.annotations.*;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 
@@ -53,7 +52,7 @@ extends Primitive
 	/**
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
-	public final @NotNull static Primitive instance =
+	public final static Primitive instance =
 		new P_616_Fork().init(3, CanInline, HasSideEffect);
 
 	@Override
@@ -62,9 +61,9 @@ extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 3;
-		final AvailObject function = args.get(0);
-		final AvailObject argTuple = args.get(1);
-		final AvailObject priority = args.get(2);
+		final A_Function function = args.get(0);
+		final A_Tuple argTuple = args.get(1);
+		final A_Number priority = args.get(2);
 		// Ensure that the function is callable with the specified arguments.
 		final int numArgs = argTuple.tupleSize();
 		if (function.code().numArgs() != numArgs)
@@ -94,7 +93,7 @@ extends Primitive
 			arg.makeShared();
 		}
 		final A_BasicObject current = FiberDescriptor.current();
-		final AvailObject newFiber =
+		final A_BasicObject newFiber =
 			FiberDescriptor.newFiber(priority.extractInt());
 		// If the current fiber is an Avail fiber, then the new one should be
 		// also.
@@ -104,10 +103,14 @@ extends Primitive
 		// into this field, and none of them should fail because of a Java
 		// exception.
 		newFiber.failureContinuation(current.failureContinuation());
+		// Share and inherit any heritable variables.
+		newFiber.heritableFiberGlobals(
+			current.heritableFiberGlobals().makeShared());
 		// Schedule the fiber to run the specified function. Share the fiber,
 		// since it will be visible to the caller.
 		newFiber.makeShared();
 		Interpreter.runOutermostFunction(
+			interpreter.runtime(),
 			newFiber,
 			function,
 			callArgs);

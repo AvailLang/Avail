@@ -138,41 +138,64 @@ public class L1Disassembler
 	 * Parse the given compiled code object into a sequence of L1 instructions,
 	 * printing them on the provided stream.
 	 *
-	 * @param theCode
+	 * @param code
 	 *        The {@linkplain CompiledCodeDescriptor code} to decompile.
-	 * @param theBuilder
+	 * @param builder
 	 *        Where to write the decompilation.
-	 * @param theRecursionList
+	 * @param recursionList
 	 *        Which objects are already being visited.
-	 * @param theIndent
+	 * @param indent
 	 *        The indentation level.
 	 */
-	public void disassemble (
-		final A_BasicObject theCode,
-		final StringBuilder theBuilder,
-		final List<AvailObject> theRecursionList,
-		final int theIndent)
+	@SuppressWarnings("unused")
+	public static void disassemble (
+		final A_BasicObject code,
+		final StringBuilder builder,
+		final List<AvailObject> recursionList,
+		final int indent)
 	{
-		this.code = theCode;
-		this.builder = theBuilder;
-		this.recursionList = theRecursionList;
-		this.indent = theIndent;
+		// The constructor does all the work...
+		new L1Disassembler(code, builder, recursionList, indent);
+	}
 
-		this.nybbles = theCode.nybbles();
+	/**
+	 * Parse the given compiled code object into a sequence of L1 instructions,
+	 * printing them on the provided stream.
+	 *
+	 * @param code
+	 *        The {@linkplain CompiledCodeDescriptor code} to decompile.
+	 * @param builder
+	 *        Where to write the decompilation.
+	 * @param recursionList
+	 *        Which objects are already being visited.
+	 * @param indent
+	 *        The indentation level.
+	 */
+	private L1Disassembler (
+		final A_BasicObject code,
+		final StringBuilder builder,
+		final List<AvailObject> recursionList,
+		final int indent)
+	{
+		this.code = code;
+		this.builder = builder;
+		this.recursionList = recursionList;
+		this.indent = indent;
+		this.nybbles = code.nybbles();
 		this.pc = 1;
 		boolean first = true;
 		while (pc <= nybbles.tupleSize())
 		{
 			if (!first)
 			{
-				theBuilder.append("\n");
+				builder.append("\n");
 			}
 			first = false;
-			for (int i = theIndent; i > 0; i--)
+			for (int i = indent; i > 0; i--)
 			{
-				theBuilder.append("\t");
+				builder.append("\t");
 			}
-			theBuilder.append(pc + ": ");
+			builder.append(pc + ": ");
 			int nybble = nybbles.extractNybbleFromTupleAt(pc++);
 			if (nybble == L1Operation.L1_doExtension.ordinal())
 			{
@@ -180,19 +203,19 @@ public class L1Disassembler
 			}
 			final L1Operation operation = L1Operation.values()[nybble];
 			final L1OperandType[] operandTypes = operation.operandTypes();
-			theBuilder.append(operation.name());
+			builder.append(operation.name());
 			if (operandTypes.length > 0)
 			{
-				theBuilder.append("(");
+				builder.append("(");
 				for (int i = 0; i < operandTypes.length; i++)
 				{
 					if (i > 0)
 					{
-						theBuilder.append(", ");
+						builder.append(", ");
 					}
 					operandTypes[i].dispatch(operandTypePrinter);
 				}
-				theBuilder.append(")");
+				builder.append(")");
 			}
 		}
 	}

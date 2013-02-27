@@ -88,7 +88,7 @@ extends Primitive
 				ATOM.o(),
 				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 					IntegerRangeTypeDescriptor.wholeNumbers(),
-					TupleDescriptor.from(),
+					TupleDescriptor.empty(),
 					InstanceMetaDescriptor.anyMeta())),
 			TOP.o());
 	}

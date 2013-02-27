@@ -632,7 +632,7 @@ extends AbstractNumberDescriptor
 	 *            The boxed Avail {@code DoubleDescriptor double-precision
 	 *            floating point object}.
 	 */
-	public static AvailObject fromDouble (final double aDouble)
+	public static A_Number fromDouble (final double aDouble)
 	{
 		if (Double.isNaN(aDouble))
 		{
@@ -725,9 +725,9 @@ extends AbstractNumberDescriptor
 	 *
 	 * @return The Avail object for double-precision positive infinity.
 	 */
-	static AvailObject positiveInfinity ()
+	static A_Number positiveInfinity ()
 	{
-		return Sign.POSITIVE.limitDoubleObject;
+		return Sign.POSITIVE.limitDoubleObject();
 	}
 
 	/**
@@ -735,9 +735,9 @@ extends AbstractNumberDescriptor
 	 *
 	 * @return The Avail object for double-precision negative infinity.
 	 */
-	static AvailObject negativeInfinity ()
+	static A_Number negativeInfinity ()
 	{
-		return Sign.NEGATIVE.limitDoubleObject;
+		return Sign.NEGATIVE.limitDoubleObject();
 	}
 
 	/**
@@ -745,9 +745,9 @@ extends AbstractNumberDescriptor
 	 *
 	 * @return The Avail object for double-precision not-a-number.
 	 */
-	static AvailObject notANumber ()
+	static A_Number notANumber ()
 	{
-		return Sign.INDETERMINATE.limitDoubleObject;
+		return Sign.INDETERMINATE.limitDoubleObject();
 	}
 
 	/**
@@ -755,9 +755,9 @@ extends AbstractNumberDescriptor
 	 *
 	 * @return The Avail object for double-precision (positive) zero.
 	 */
-	static A_BasicObject zero ()
+	static A_Number zero ()
 	{
-		return Sign.ZERO.limitDoubleObject;
+		return Sign.ZERO.limitDoubleObject();
 	}
 
 	/**

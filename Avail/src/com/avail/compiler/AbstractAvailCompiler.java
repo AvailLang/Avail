@@ -47,10 +47,12 @@ import java.nio.file.*;
 import java.util.*;
 import com.avail.AvailRuntime;
 import com.avail.AvailTask;
-import com.avail.annotations.*;
+import com.avail.annotations.Nullable;
+import com.avail.annotations.InnerAccess;
 import com.avail.builder.*;
 import com.avail.compiler.scanning.*;
 import com.avail.descriptor.*;
+import com.avail.descriptor.FiberDescriptor.GeneralFlag;
 import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.interpreter.*;
 import com.avail.interpreter.primitive.P_352_RejectParsing;
@@ -377,9 +379,11 @@ public abstract class AbstractAvailCompiler
 	 *
 	 * @return A loader.
 	 */
-	public @Nullable AvailLoader loader ()
+	public AvailLoader loader ()
 	{
-		return loader;
+		final AvailLoader theLoader = loader;
+		assert theLoader != null;
+		return theLoader;
 	}
 
 	/**
@@ -532,7 +536,7 @@ public abstract class AbstractAvailCompiler
 		/**
 		 * The {@linkplain StringDescriptor Avail string} form of the lexeme.
 		 */
-		private AvailObject lexeme;
+		private @Nullable A_String lexeme;
 
 		/** The {@linkplain TokenType token type}. */
 		private final TokenType tokenType;
@@ -542,10 +546,11 @@ public abstract class AbstractAvailCompiler
 		 *
 		 * @return The lexeme.
 		 */
-		public AvailObject lexeme ()
+		public A_String lexeme ()
 		{
-			assert lexeme != null;
-			return lexeme;
+			final A_String lex = lexeme;
+			assert lex != null;
+			return lex;
 		}
 
 		/**
@@ -802,7 +807,7 @@ public abstract class AbstractAvailCompiler
 	 * The {@linkplain Throwable throwable} (if any) responsible for an
 	 * abnormal termination of compilation.
 	 */
-	@InnerAccess volatile Throwable terminator;
+	@InnerAccess volatile @Nullable Throwable terminator;
 
 	/**
 	 * Announce that compilation has failed because of the specified {@linkplain
@@ -823,7 +828,9 @@ public abstract class AbstractAvailCompiler
 		if (terminator == null)
 		{
 			terminator = throwable;
-			failureReporter.value();
+			final Continuation0 reporter = failureReporter;
+			assert reporter != null;
+			reporter.value();
 		}
 	}
 
@@ -840,7 +847,7 @@ public abstract class AbstractAvailCompiler
 	/**
 	 * What to do when there are no more work units.
 	 */
-	@InnerAccess volatile Continuation0 noMoreWorkUnits = null;
+	@InnerAccess volatile @Nullable Continuation0 noMoreWorkUnits = null;
 
 	/**
 	 * Execute {@code #tryBlock}, passing a {@linkplain
@@ -866,8 +873,10 @@ public abstract class AbstractAvailCompiler
 		// Augment the start position with a variant that incorporates the
 		// solution-accepting continuation.
 		final Mutable<Integer> count = new Mutable<Integer>(0);
-		final Mutable<AvailObject> solution = new Mutable<AvailObject>();
-		final Mutable<ParserState> afterStatement = new Mutable<ParserState>();
+		final MutableOrNull<AvailObject> solution =
+			new MutableOrNull<AvailObject>();
+		final MutableOrNull<ParserState> afterStatement =
+			new MutableOrNull<ParserState>();
 		noMoreWorkUnits = new Continuation0()
 		{
 			@Override
@@ -919,13 +928,13 @@ public abstract class AbstractAvailCompiler
 					}
 					else
 					{
-						// Indicate the problem on the last token of the
+						// Indicate the problem at the last token of the
 						// ambiguous expression.
 						reportAmbiguousInterpretations(
 							new ParserState(
 								afterSolution.position - 1,
 								afterSolution.clientDataMap),
-							solution.value,
+							solution.value(),
 							aSolution);
 						assert false;
 					}
@@ -1405,8 +1414,8 @@ public abstract class AbstractAvailCompiler
 			fail.value(e);
 			return;
 		}
-		final Mutable<CompletionHandler<Integer, Void>> handler =
-			new Mutable<CompletionHandler<Integer,Void>>(null);
+		final MutableOrNull<CompletionHandler<Integer, Void>> handler =
+			new MutableOrNull<CompletionHandler<Integer,Void>>();
 		handler.value =
 			new CompletionHandler<Integer, Void>()
 			{
@@ -1527,7 +1536,7 @@ public abstract class AbstractAvailCompiler
 			final boolean stopAfterBodyToken)
 		throws AvailCompilerException
 	{
-		return new AvailScanner().scanString(source, stopAfterBodyToken);
+		return AvailScanner.scanString(source, stopAfterBodyToken);
 	}
 
 	/**
@@ -1965,6 +1974,7 @@ public abstract class AbstractAvailCompiler
 					if (quiescent)
 					{
 						final Continuation0 noMore = noMoreWorkUnits;
+						assert noMore != null;
 						noMoreWorkUnits = null;
 						noMore.value();
 					}
@@ -2094,8 +2104,8 @@ public abstract class AbstractAvailCompiler
 	 */
 	void rollbackModuleTransaction ()
 	{
-		assert module != null;
-		module.removeFrom(loader);
+		assert !module.equalsNil();
+		module.removeFrom(loader());
 		module = NilDescriptor.nil();
 	}
 
@@ -2105,7 +2115,7 @@ public abstract class AbstractAvailCompiler
 	 */
 	void commitModuleTransaction ()
 	{
-		assert module != null;
+		assert !module.equalsNil();
 		runtime.addModule(module);
 		module.cleanUpAfterCompile();
 	}
@@ -2130,9 +2140,7 @@ public abstract class AbstractAvailCompiler
 			SetDescriptor.empty(),
 			lineNumber);
 		BlockNodeDescriptor.recursivelyValidate(block);
-		final AvailCodeGenerator codeGenerator = new AvailCodeGenerator(
-			module);
-		final AvailObject compiledBlock = block.generate(codeGenerator);
+		final A_BasicObject compiledBlock = block.generateInModule(module);
 		// The block is guaranteed context-free (because imported
 		// variables/values are embedded directly as constants in the generated
 		// code), so build a function with no copied data.
@@ -2175,10 +2183,38 @@ public abstract class AbstractAvailCompiler
 				serializer.serialize(function);
 			}
 		}
-		final A_BasicObject fiber = FiberDescriptor.newLoaderFiber(loader);
+		final A_BasicObject fiber = FiberDescriptor.newLoaderFiber(loader());
 		fiber.resultContinuation(onSuccess);
 		fiber.failureContinuation(onFailure);
-		Interpreter.runOutermostFunction(fiber, function, args);
+		Interpreter.runOutermostFunction(runtime, fiber, function, args);
+	}
+
+	/**
+	 * Evaluate the specified semantic restriction {@linkplain
+	 * FunctionDescriptor function} in the module's context; lexically enclosing
+	 * variables are not considered in scope, but module variables and constants
+	 * are in scope.
+	 *
+	 * @param function
+	 *        A function.
+	 * @param args
+	 *        The arguments to the function.
+	 * @param onSuccess
+	 *        What to do with the result of the evaluation.
+	 * @param onFailure
+	 *        What to do with a terminal {@linkplain Throwable throwable}.
+	 */
+	protected void evaluateSemanticRestrictionFunctionThen (
+		final A_Function function,
+		final List<AvailObject> args,
+		final Continuation1<AvailObject> onSuccess,
+		final Continuation1<Throwable> onFailure)
+	{
+		final AvailObject fiber = FiberDescriptor.newLoaderFiber(loader());
+		fiber.setGeneralFlag(GeneralFlag.APPLYING_SEMANTIC_RESTRICTION);
+		fiber.resultContinuation(onSuccess);
+		fiber.failureContinuation(onFailure);
+		Interpreter.runOutermostFunction(runtime, fiber, function, args);
 	}
 
 	/**
@@ -2402,7 +2438,7 @@ public abstract class AbstractAvailCompiler
 					for (final MapDescriptor.Entry entry
 						: incomplete.mapIterable())
 					{
-						final String string = entry.key.asNativeString();
+						final String string = entry.key().asNativeString();
 						if (detail)
 						{
 							final StringBuilder buffer = new StringBuilder();
@@ -2410,7 +2446,7 @@ public abstract class AbstractAvailCompiler
 							buffer.append(" (");
 							boolean first = true;
 							for (final MapDescriptor.Entry successorBundleEntry
-								: entry.value.allBundles().mapIterable())
+								: entry.value().allBundles().mapIterable())
 							{
 								if (first)
 								{
@@ -2421,7 +2457,7 @@ public abstract class AbstractAvailCompiler
 									buffer.append(", ");
 								}
 								buffer.append(
-									successorBundleEntry.key.toString());
+									successorBundleEntry.key().toString());
 							}
 							buffer.append(")");
 							sorted.add(buffer.toString());
@@ -2655,13 +2691,13 @@ public abstract class AbstractAvailCompiler
 			// recursion.
 			for (final MapDescriptor.Entry entry : complete.mapIterable())
 			{
-				assert runtime.hasMethodAt(entry.key);
+				assert runtime.hasMethodAt(entry.key());
 				assert marksSoFar.isEmpty();
 				completedSendNode(
 					initialTokenPosition,
 					start,
 					argsSoFar,
-					entry.value,
+					entry.value(),
 					continuation);
 			}
 		}
@@ -2756,7 +2792,7 @@ public abstract class AbstractAvailCompiler
 					// the restriction which we've been so careful to prefilter.
 					assert actions.mapSize() == 1;
 					assert ParsingOperation.decode(
-							actions.mapIterable().next().key.extractInt())
+							actions.mapIterable().next().key().extractInt())
 						== ParsingOperation.CHECK_ARGUMENT;
 					return;
 				}
@@ -2766,8 +2802,8 @@ public abstract class AbstractAvailCompiler
 		{
 			for (final MapDescriptor.Entry entry : actions.mapIterable())
 			{
-				final A_Number key = entry.key;
-				final A_Tuple value = entry.value;
+				final A_Number key = entry.key();
+				final A_Tuple value = entry.value();
 				workUnitDo(
 					new Continuation0()
 					{
@@ -2788,7 +2824,7 @@ public abstract class AbstractAvailCompiler
 					},
 					//TODO[MvG]: Reduce back to a string constant at some point.
 					"Continue with instruction: "
-						+ ParsingOperation.decode(entry.key.extractInt()),
+						+ ParsingOperation.decode(entry.key().extractInt()),
 					start);
 			}
 		}
@@ -3162,7 +3198,8 @@ public abstract class AbstractAvailCompiler
 						@Override
 						public void value (final Throwable arg)
 						{
-							// TODO Auto-generated method stub
+							//TODO[MvG] - Deal with failed conversion (this can
+							// only happen during an eval conversion).
 						}
 					});
 				break;
@@ -3255,7 +3292,7 @@ public abstract class AbstractAvailCompiler
 				final List<AvailObject> listOfArgs = TupleDescriptor.toList(
 					listNodeOfArgsSoFar.expressionsTuple());
 				final A_BasicObject fiber =
-					FiberDescriptor.newLoaderFiber(loader);
+					FiberDescriptor.newLoaderFiber(loader());
 				A_Map fiberGlobals = fiber.fiberGlobals();
 				fiberGlobals = fiberGlobals.mapAtPuttingCanDestroy(
 					clientDataGlobalKey,
@@ -3304,6 +3341,7 @@ public abstract class AbstractAvailCompiler
 					}
 				});
 				Interpreter.runOutermostFunction(
+					runtime,
 					fiber,
 					prefixFunction,
 					listOfArgs);
@@ -3338,8 +3376,10 @@ public abstract class AbstractAvailCompiler
 		final Continuation1<A_Type> onSuccess,
 		final Continuation1<Generator<String>> onFailure)
 	{
-		final Mutable<A_Tuple> definitionsTuple = new Mutable<A_Tuple>();
-		final Mutable<A_Tuple> restrictions = new Mutable<A_Tuple>();
+		final MutableOrNull<A_Tuple> definitionsTuple =
+			new MutableOrNull<A_Tuple>();
+		final MutableOrNull<A_Tuple> restrictions =
+			new MutableOrNull<A_Tuple>();
 		method.lock(new Continuation0()
 		{
 			@Override
@@ -3351,8 +3391,8 @@ public abstract class AbstractAvailCompiler
 		});
 		// Filter the definitions down to those that are locally most specific.
 		// Fail if more than one survives.
-		if (definitionsTuple.value.tupleSize() > 0
-			&& !definitionsTuple.value.tupleAt(1).isMacroDefinition())
+		if (definitionsTuple.value().tupleSize() > 0 &&
+			!definitionsTuple.value().tupleAt(1).isMacroDefinition())
 		{
 			// This consists of method definitions.
 			for (
@@ -3394,7 +3434,7 @@ public abstract class AbstractAvailCompiler
 				public String value()
 				{
 					final List<A_Type> functionTypes = new ArrayList<A_Type>(2);
-					for (final AvailObject imp : definitionsTuple.value)
+					for (final AvailObject imp : definitionsTuple.value())
 					{
 						functionTypes.add(imp.bodySignature());
 					}
@@ -3446,10 +3486,10 @@ public abstract class AbstractAvailCompiler
 		}
 		// Determine which semantic restrictions are relevant.
 		final List<A_Function> restrictionsToTry =
-			new ArrayList<A_Function>(restrictions.value.tupleSize());
-		for (int i = 1, end = restrictions.value.tupleSize(); i <= end; i++)
+			new ArrayList<A_Function>(restrictions.value().tupleSize());
+		for (int i = 1, end = restrictions.value().tupleSize(); i <= end; i++)
 		{
-			final A_Function restriction = restrictions.value.tupleAt(i);
+			final A_Function restriction = restrictions.value().tupleAt(i);
 			if (restriction.kind().acceptsListOfArgValues(argTypes))
 			{
 				restrictionsToTry.add(restriction);
@@ -3527,7 +3567,7 @@ public abstract class AbstractAvailCompiler
 											return
 												problem.asNativeString()
 												+ " (while parsing send of "
-												+ method.name().name()
+												+ method.originalName().name()
 													.asNativeString()
 												+ ")";
 										}
@@ -3565,10 +3605,9 @@ public abstract class AbstractAvailCompiler
 		for (final A_Function restriction : restrictionsToTry)
 		{
 			startWorkUnit();
-			evaluateFunctionThen(
+			evaluateSemanticRestrictionFunctionThen(
 				restriction,
 				strongArgs,
-				false,
 				intersectAndDecrement,
 				failed);
 		}
@@ -4007,7 +4046,7 @@ public abstract class AbstractAvailCompiler
 		A_Set names = SetDescriptor.empty();
 		for (final MapDescriptor.Entry entry : sourceNames.mapIterable())
 		{
-			names = names.setUnionCanDestroy(entry.value, false);
+			names = names.setUnionCanDestroy(entry.value(), false);
 		}
 		final AvailObject send = SendNodeDescriptor.from(
 			MethodDescriptor.vmPublishAtomsMethod(),
@@ -4128,7 +4167,10 @@ public abstract class AbstractAvailCompiler
 		else if (!afterHeader.atEnd())
 		{
 			final A_Token token = afterHeader.peekToken();
-			progressReporter.value(
+			final Continuation4<ModuleName, Long, Long, Long> reporter =
+				progressReporter;
+			assert reporter != null;
+			reporter.value(
 				moduleHeader.moduleName,
 				(long) token.lineNumber(),
 				(long) token.start(),
@@ -4174,7 +4216,9 @@ public abstract class AbstractAvailCompiler
 					}
 					else
 					{
-						successReporter.value();
+						final Continuation0 reporter = successReporter;
+						assert reporter != null;
+						reporter.value();
 					}
 				}
 			});
@@ -4191,8 +4235,8 @@ public abstract class AbstractAvailCompiler
 	 */
 	@InnerAccess void parseModuleBody (final ParserState afterHeader)
 	{
-		final Mutable<Con<AvailObject>> parseOutermost =
-			new Mutable<Con<AvailObject>>();
+		final MutableOrNull<Con<AvailObject>> parseOutermost =
+			new MutableOrNull<Con<AvailObject>>();
 		parseOutermost.value = new Con<AvailObject>("Outermost statement")
 		{
 			@Override
@@ -4207,11 +4251,10 @@ public abstract class AbstractAvailCompiler
 					assert workUnitsQueued == workUnitsCompleted;
 				}
 
-				if (unambiguousStatement.expressionType().equals(
-					BottomTypeDescriptor.bottom()))
+				if (!unambiguousStatement.expressionType().equals(TOP.o()))
 				{
 					afterStatement.expected(
-						"top-level statement not to have type ⊥");
+						"top-level statement to have type ⊤");
 					reportError();
 					assert false;
 				}
@@ -4232,7 +4275,11 @@ public abstract class AbstractAvailCompiler
 							{
 								final A_Token token =
 									tokens.get(afterStatement.position - 1);
-								progressReporter.value(
+								final
+									Continuation4<ModuleName, Long, Long, Long>
+										reporter = progressReporter;
+								assert reporter != null;
+								reporter.value(
 									moduleHeader.moduleName,
 									(long) token.lineNumber(),
 									(long) token.start() + 2,
@@ -4248,20 +4295,20 @@ public abstract class AbstractAvailCompiler
 											new ParserState(
 												afterStatement.position,
 												afterHeader.clientDataMap),
-											parseOutermost.value);
+											parseOutermost.value());
 									}
 								});
 							}
 							// Otherwise, make sure that all forwards were
 							// resolved.
-							else if (loader.pendingForwards.setSize() != 0)
+							else if (loader().pendingForwards.setSize() != 0)
 							{
 								@SuppressWarnings("resource")
 								final Formatter formatter = new Formatter();
 								formatter.format(
 									"the following forwards to be resolved:");
 								for (final AvailObject forward
-									: loader.pendingForwards)
+									: loader().pendingForwards)
 								{
 									formatter.format("%n\t%s", forward);
 								}
@@ -4272,7 +4319,9 @@ public abstract class AbstractAvailCompiler
 							// Otherwise, report success.
 							else
 							{
-								successReporter.value();
+								final Continuation0 reporter = successReporter;
+								assert reporter != null;
+								reporter.value();
 							}
 						}
 					},
@@ -4289,7 +4338,7 @@ public abstract class AbstractAvailCompiler
 		};
 		greatestGuess = 0;
 		greatExpectations.clear();
-		parseOutermostStatement(afterHeader, parseOutermost.value);
+		parseOutermostStatement(afterHeader, parseOutermost.value());
 	}
 
 	/**
@@ -4300,19 +4349,20 @@ public abstract class AbstractAvailCompiler
 	 * number on which the last complete statement concluded, the position of
 	 * the ongoing parse (in bytes), and the size of the module (in bytes).
 	 */
-	@InnerAccess Continuation4<ModuleName, Long, Long, Long> progressReporter;
+	@InnerAccess @Nullable Continuation4<ModuleName, Long, Long, Long>
+		progressReporter;
 
 	/**
 	 * The {@linkplain Continuation1 continuation} that reports success of
 	 * compilation.
 	 */
-	@InnerAccess Continuation0 successReporter;
+	@InnerAccess @Nullable Continuation0 successReporter;
 
 	/**
 	 * The {@linkplain Continuation0 continuation} that reports failure of
 	 * compilation.
 	 */
-	@InnerAccess Continuation0 failureReporter;
+	@InnerAccess @Nullable Continuation0 failureReporter;
 
 	/**
 	 * Parse a {@linkplain ModuleHeader module header} from the {@linkplain

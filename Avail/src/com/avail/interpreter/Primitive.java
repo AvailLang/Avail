@@ -252,7 +252,7 @@ implements IntegerEnumSlotDescriptionEnum
 	 * the value provided by {@link #privateBlockTypeRestriction()}, to avoid
 	 * having to compute this function type multiple times.
 	 */
-	private A_Type cachedBlockTypeRestriction;
+	private @Nullable A_Type cachedBlockTypeRestriction;
 
 	/**
 	 * Return a function type that restricts actual primitive blocks defined
@@ -273,19 +273,18 @@ implements IntegerEnumSlotDescriptionEnum
 	 */
 	public final A_Type blockTypeRestriction ()
 	{
+		A_Type restriction = cachedBlockTypeRestriction;
 		if (cachedBlockTypeRestriction == null)
 		{
-			cachedBlockTypeRestriction =
-				privateBlockTypeRestriction().makeShared();
-			final A_Type argsTupleType =
-				cachedBlockTypeRestriction.argsTupleType();
+			restriction = privateBlockTypeRestriction().makeShared();
+			cachedBlockTypeRestriction = restriction;
+			final A_Type argsTupleType = restriction.argsTupleType();
 			final A_Type sizeRange = argsTupleType.sizeRange();
-			assert cachedBlockTypeRestriction.equals(
-					BottomTypeDescriptor.bottom())
+			assert restriction.equals(BottomTypeDescriptor.bottom())
 				|| (sizeRange.lowerBound().extractInt() == argCount()
 					&& sizeRange.upperBound().extractInt() == argCount());
 		}
-		return cachedBlockTypeRestriction;
+		return restriction;
 	}
 
 	/**
@@ -330,7 +329,7 @@ implements IntegerEnumSlotDescriptionEnum
 	 * the primitive declaration of a block.  The actual variable's inner type
 	 * must this or a supertype.
 	 */
-	private A_Type cachedFailureVariableType;
+	private @Nullable A_Type cachedFailureVariableType;
 
 	/**
 	 * Return an Avail {@linkplain TypeDescriptor type} that a failure variable
@@ -343,12 +342,14 @@ implements IntegerEnumSlotDescriptionEnum
 	 */
 	public final A_Type failureVariableType ()
 	{
-		if (cachedFailureVariableType == null)
+		A_Type failureType = cachedFailureVariableType;
+		if (failureType == null)
 		{
-			cachedFailureVariableType = privateFailureVariableType();
-			assert cachedFailureVariableType.isType();
+			failureType = privateFailureVariableType();
+			assert failureType.isType();
+			cachedFailureVariableType = failureType;
 		}
-		return cachedFailureVariableType;
+		return failureType;
 	}
 
 	/**
@@ -381,7 +382,7 @@ implements IntegerEnumSlotDescriptionEnum
 	 * The flags that indicate to the {@link L2Translator} how an invocation of
 	 * this primitive should be handled.
 	 */
-	private EnumSet<Flag> primitiveFlags;
+	private final EnumSet<Flag> primitiveFlags = EnumSet.noneOf(Flag.class);
 
 	/**
 	 * Test whether the specified {@link Flag} is set for this primitive.
@@ -425,7 +426,7 @@ implements IntegerEnumSlotDescriptionEnum
 	/**
 	 * The cached mapping from primitive numbers to absolute class names.
 	 */
-	private static Map<Short, String> primitiveNames;
+	private static @Nullable Map<Short, String> primitiveNames;
 
 	/**
 	 * Find all primitive names by scanning the relevant jars or classpath
@@ -441,7 +442,7 @@ implements IntegerEnumSlotDescriptionEnum
 			assert classLoader != null;
 			final Enumeration<URL> resources = classLoader.getResources(
 				packageName.replace('.', File.separatorChar));
-			primitiveNames = new HashMap<Short, String>();
+			final Map<Short, String> names = new HashMap<Short, String>();
 			final Pattern pattern =
 				Pattern.compile("P_(\\d+)_(\\w+)\\.class");
 			for (final URL resource : Collections.list(resources))
@@ -459,8 +460,8 @@ implements IntegerEnumSlotDescriptionEnum
 						final String primNumString = matcher.group(1);
 						final String primNameString = matcher.group(2);
 						final Short primNum = Short.valueOf(primNumString);
-						assert !primitiveNames.containsKey(primNum);
-						primitiveNames.put(
+						assert !names.containsKey(primNum);
+						names.put(
 							primNum,
 							packageName
 								+ ".P_" + primNumString
@@ -468,6 +469,7 @@ implements IntegerEnumSlotDescriptionEnum
 					}
 				}
 			}
+			primitiveNames = names;
 		}
 		catch (final UnsupportedEncodingException e)
 		{
@@ -520,12 +522,14 @@ implements IntegerEnumSlotDescriptionEnum
 			{
 				if (!searchedByPrimitiveNumber[primitiveNumber])
 				{
-					if (primitiveNames == null)
+					Map<Short, String> names = primitiveNames;
+					if (names == null)
 					{
 						findPrimitives();
+						names = primitiveNames;
+						assert names != null;
 					}
-					assert primitiveNames != null;
-					final String className = primitiveNames.get(
+					final String className = names.get(
 						Short.valueOf((short)primitiveNumber));
 					if (className != null)
 					{
@@ -651,7 +655,7 @@ implements IntegerEnumSlotDescriptionEnum
 			"$1");
 		primitiveNumber = Short.valueOf(numericPart);
 		argCount = theArgCount;
-		primitiveFlags = EnumSet.noneOf(Flag.class);
+		assert primitiveFlags.isEmpty();
 		for (final Flag flag : flags)
 		{
 			primitiveFlags.add(flag);

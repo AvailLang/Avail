@@ -37,7 +37,6 @@ import static com.avail.descriptor.FiberDescriptor.InterruptRequestFlag.TERMINAT
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
-import com.avail.annotations.NotNull;
 import com.avail.descriptor.*;
 import com.avail.descriptor.FiberDescriptor.*;
 import com.avail.interpreter.*;
@@ -57,7 +56,7 @@ extends Primitive
 	/**
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
-	public final @NotNull static Primitive instance =
+	public final static Primitive instance =
 		new P_617_JoinFiber().init(1, Unknown);
 
 	@Override
@@ -66,8 +65,8 @@ extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
-		final AvailObject joinee = args.get(0);
-		final Mutable<Result> result = new Mutable<Result>();
+		final A_BasicObject joinee = args.get(0);
+		final MutableOrNull<Result> result = new MutableOrNull<Result>();
 		final A_BasicObject current = FiberDescriptor.current();
 		// Forbid auto-joining.
 		if (current.equals(joinee))
@@ -104,7 +103,7 @@ extends Primitive
 				}
 			});
 		}
-		return result.value;
+		return result.value();
 	}
 
 	@Override

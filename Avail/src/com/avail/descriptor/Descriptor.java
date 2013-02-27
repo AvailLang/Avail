@@ -33,12 +33,14 @@
 package com.avail.descriptor;
 
 import java.math.BigInteger;
+import java.nio.ByteBuffer;
 import java.util.*;
 import com.avail.annotations.*;
 import com.avail.compiler.*;
 import com.avail.descriptor.AbstractNumberDescriptor.*;
 import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
 import com.avail.descriptor.MapDescriptor.*;
+import com.avail.descriptor.FiberDescriptor.GeneralFlag;
 import com.avail.descriptor.FiberDescriptor.InterruptRequestFlag;
 import com.avail.descriptor.FiberDescriptor.SynchronizationFlag;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
@@ -47,7 +49,6 @@ import com.avail.descriptor.SetDescriptor.SetIterator;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.exceptions.*;
 import com.avail.interpreter.AvailLoader;
-import com.avail.interpreter.Interpreter;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.*;
 import com.avail.visitor.*;
@@ -619,7 +620,7 @@ extends AbstractDescriptor
 	@Override
 	void o_SetInterruptRequestFlag (
 		final AvailObject object,
-		final InterruptRequestFlag value)
+		final InterruptRequestFlag flag)
 	{
 		throw unsupportedOperationException();
 	}
@@ -1599,16 +1600,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final int index,
 		final int value)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	A_Type o_ValidateArgumentTypesInterpreterIfFail (
-		final AvailObject object,
-		final List<A_Type> argTypes,
-		final Interpreter anAvailInterpreter,
-		final Continuation1<Generator<String>> failBlock)
 	{
 		throw unsupportedOperationException();
 	}
@@ -3305,9 +3296,9 @@ extends AbstractDescriptor
 
 
 	@Override
-	AvailObject o_Generate (
+	A_BasicObject o_GenerateInModule (
 		final AvailObject object,
-		final AvailCodeGenerator codeGenerator)
+		final A_BasicObject module)
 	{
 		throw unsupportedOperationException();
 	}
@@ -4582,7 +4573,15 @@ extends AbstractDescriptor
 	@Override
 	void o_Lock (final AvailObject object, final Continuation0 critical)
 	{
-		synchronized (object)
+		// Only bother to acquire the monitor if it's shared.
+		if (isShared())
+		{
+			synchronized (object)
+			{
+				critical.value();
+			}
+		}
+		else
 		{
 			critical.value();
 		}
@@ -4630,9 +4629,9 @@ extends AbstractDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_FetchAndAddValue (
+	A_Number o_FetchAndAddValue (
 		final AvailObject object,
-		final AvailObject addend)
+		final A_Number addend)
 	{
 		throw unsupportedOperationException();
 	}
@@ -4727,7 +4726,7 @@ extends AbstractDescriptor
 	}
 
 	@Override @AvailMethod
-	void o_Joinee (final AvailObject object, final AvailObject joinee)
+	void o_Joinee (final AvailObject object, final A_BasicObject joinee)
 	{
 		throw unsupportedOperationException();
 	}
@@ -4754,5 +4753,68 @@ extends AbstractDescriptor
 	void o_JoiningFibers (final AvailObject object, final A_Set joiners)
 	{
 		throw unsupportedOperationException();
+	}
+
+	@Override
+	A_Map o_HeritableFiberGlobals (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	void o_HeritableFiberGlobals (
+		final AvailObject object,
+		final A_Map globals)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	boolean o_GeneralFlag (final AvailObject object, final GeneralFlag flag)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	void o_SetGeneralFlag (final AvailObject object, final GeneralFlag flag)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	void o_ClearGeneralFlag (final AvailObject object, final GeneralFlag flag)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	ByteBuffer o_ByteBuffer (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	boolean o_EqualsByteBufferTuple (
+		final AvailObject object,
+		final A_Tuple aByteBufferTuple)
+	{
+		return false;
+	}
+
+	@Override
+	boolean o_CompareFromToWithByteBufferTupleStartingAt (
+		final AvailObject object,
+		final int startIndex1,
+		final int endIndex1,
+		final A_Tuple aByteBufferTuple,
+		final int startIndex2)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	boolean o_IsByteBufferTuple (final AvailObject object)
+	{
+		return false;
 	}
 }

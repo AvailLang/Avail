@@ -31,6 +31,7 @@
 
 package com.avail.interpreter.levelTwo;
 
+import com.avail.annotations.Nullable;
 import com.avail.descriptor.L2ChunkDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.operand.*;
@@ -53,7 +54,7 @@ public abstract class L2Operation
 	 * The {@linkplain L2NamedOperandType named operand types} that this
 	 * {@linkplain L2Operation operation} expects.
 	 */
-	protected L2NamedOperandType[] namedOperandTypes;
+	protected @Nullable L2NamedOperandType[] namedOperandTypes;
 
 	/**
 	 * Answer the {@linkplain L2NamedOperandType named operand types} that this
@@ -63,14 +64,16 @@ public abstract class L2Operation
 	 */
 	public L2NamedOperandType[] operandTypes ()
 	{
-		return namedOperandTypes;
+		final L2NamedOperandType[] types = namedOperandTypes;
+		assert types != null;
+		return types;
 	}
 
 	/**
 	 * The name of this level two operation.  This is initialized to be the
 	 * {@linkplain Class#getSimpleName() simple name} of the {@link Class}.
 	 */
-	private String name;
+	private @Nullable String name;
 
 	/**
 	 * Answer the name of this {@linkplain L2Operation}.
@@ -80,7 +83,9 @@ public abstract class L2Operation
 	 */
 	public String name ()
 	{
-		return name;
+		final String string = name;
+		assert string != null;
+		return string;
 	}
 
 	/**

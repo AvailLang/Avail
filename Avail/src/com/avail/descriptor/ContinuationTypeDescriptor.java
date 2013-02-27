@@ -277,6 +277,15 @@ extends TypeDescriptor
 	}
 
 	/**
+	 * The most general continuation type.  Since continuation types are
+	 * contravariant by argument types and contravariant by return type, the
+	 * most general type is the one taking bottom as the arguments list
+	 * (i.e., not specific enough to be able to call it), and having the return
+	 * type bottom.
+	 */
+	private static @Nullable A_Type mostGeneralType;
+
+	/**
 	 * Answer the most general {@linkplain ContinuationTypeDescriptor
 	 * continuation type}.
 	 *
@@ -285,24 +294,17 @@ extends TypeDescriptor
 	 */
 	public static A_Type mostGeneralType ()
 	{
-		return mostGeneralType;
+		final A_Type type = mostGeneralType;
+		assert type != null;
+		return type;
 	}
-
-	/**
-	 * The most general continuation type.  Since continuation types are
-	 * contravariant by argument types and contravariant by return type, the
-	 * most general type is the one taking bottom as the arguments list
-	 * (i.e., not specific enough to be able to call it), and having the return
-	 * type bottom.
-	 */
-	private static A_Type mostGeneralType;
 
 	/**
 	 * The metatype for all continuation types.  In particular, it's just the
 	 * {@linkplain InstanceTypeDescriptor instance type} for the {@linkplain
 	 * #mostGeneralType most general continuation type}.
 	 */
-	private static A_Type meta;
+	private static @Nullable A_Type meta;
 
 	/**
 	 * Answer the metatype for all continuation types.
@@ -311,7 +313,9 @@ extends TypeDescriptor
 	 */
 	public static A_Type meta ()
 	{
-		return meta;
+		final A_Type type = meta;
+		assert type != null;
+		return type;
 	}
 
 	/**
@@ -322,10 +326,8 @@ extends TypeDescriptor
 	{
 		mostGeneralType = forFunctionType(
 			FunctionTypeDescriptor.forReturnType(
-				BottomTypeDescriptor.bottom()));
-		mostGeneralType.makeShared();
-		meta = InstanceMetaDescriptor.on(mostGeneralType);
-		meta.makeShared();
+				BottomTypeDescriptor.bottom())).makeShared();
+		meta = InstanceMetaDescriptor.on(mostGeneralType()).makeShared();
 	}
 
 	/**

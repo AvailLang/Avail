@@ -36,7 +36,7 @@ import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.*;
-import com.avail.annotations.*;
+import com.avail.AvailRuntime;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 
@@ -54,7 +54,7 @@ extends Primitive
 	/**
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
-	public final @NotNull static Primitive instance =
+	public final static Primitive instance =
 		new P_615_ForkOrphan().init(3, CanInline, HasSideEffect);
 
 	@Override
@@ -63,9 +63,9 @@ extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 3;
-		final AvailObject function = args.get(0);
-		final AvailObject argTuple = args.get(1);
-		final AvailObject priority = args.get(2);
+		final A_Function function = args.get(0);
+		final A_Tuple argTuple = args.get(1);
+		final A_Number priority = args.get(2);
 		// Ensure that the function is callable with the specified arguments.
 		final int numArgs = argTuple.tupleSize();
 		if (function.code().numArgs() != numArgs)
@@ -104,8 +104,12 @@ extends Primitive
 		// into this field, and none of them should fail because of a Java
 		// exception.
 		orphan.failureContinuation(current.failureContinuation());
+		// Share and inherit any heritable variables.
+		orphan.heritableFiberGlobals(
+			current.heritableFiberGlobals().makeShared());
 		// Schedule the fiber to run the specified function.
 		Interpreter.runOutermostFunction(
+			AvailRuntime.current(),
 			orphan,
 			function,
 			callArgs);

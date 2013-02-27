@@ -33,12 +33,15 @@ package com.avail.interpreter.primitive;
 
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.PARSE_NODE;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
-import static com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER;
+import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.Unknown;
+import static com.avail.interpreter.Primitive.Result.*;
 import java.util.List;
+import com.avail.*;
 import com.avail.descriptor.*;
 import com.avail.exceptions.*;
 import com.avail.interpreter.*;
+import com.avail.utility.Continuation0;
 
 /**
  * <strong>Primitive 249:</strong> Simple macro definition.  The first argument
@@ -49,13 +52,14 @@ import com.avail.interpreter.*;
  * complete macro.  It is constrained to answer a {@linkplain
  * ParseNodeDescriptor parse node}.
  */
-public class P_249_SimpleMacroDeclaration extends Primitive
+public class P_249_SimpleMacroDeclaration
+extends Primitive
 {
 	/**
-	 * The sole instance of this primitive class.  Accessed through reflection.
+	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_249_SimpleMacroDeclaration().init(
-		3, Unknown);
+	public final static Primitive instance =
+		new P_249_SimpleMacroDeclaration().init(3, Unknown);
 
 	@Override
 	public Result attempt (
@@ -66,52 +70,100 @@ public class P_249_SimpleMacroDeclaration extends Primitive
 		final A_String string = args.get(0);
 		final A_Tuple prefixFunctions = args.get(1);
 		final A_Function function = args.get(2);
-		for (final A_BasicObject prefixFunction : prefixFunctions)
+		final A_BasicObject fiber = FiberDescriptor.current();
+		final AvailLoader loader = fiber.availLoader();
+		if (loader == null)
 		{
-			if (!prefixFunction.kind().returnType().equals(TOP.o()))
+			return interpreter.primitiveFailure(E_LOADING_IS_OVER);
+		}
+		for (final A_Function prefixFunction : prefixFunctions)
+		{
+			final int numArgs = prefixFunction.code().numArgs();
+			final A_Type kind = prefixFunction.kind();
+			final A_Type argsKind = kind.argsTupleType();
+			for (int argIndex = 1; argIndex <= numArgs; argIndex++)
+			{
+				if (!argsKind.typeAtIndex(argIndex).isSubtypeOf(
+					PARSE_NODE.mostGeneralType()))
+				{
+					return interpreter.primitiveFailure(
+						E_MACRO_PREFIX_FUNCTION_ARGUMENT_MUST_BE_A_PARSE_NODE);
+				}
+			}
+			if (!kind.returnType().equals(TOP.o()))
 			{
 				return interpreter.primitiveFailure(
-					AvailErrorCode.E_MACRO_PREFIX_FUNCTIONS_MUST_RETURN_TOP);
+					E_MACRO_PREFIX_FUNCTIONS_MUST_RETURN_TOP);
 			}
 		}
-		try
+		final int numArgs = function.code().numArgs();
+		final A_Type kind = function.kind();
+		final A_Type argsKind = kind.argsTupleType();
+		for (int argIndex = 1; argIndex <= numArgs; argIndex++)
 		{
-			final AvailLoader loader = FiberDescriptor.current().availLoader();
-			if (loader == null)
+			if (!argsKind.typeAtIndex(argIndex).isSubtypeOf(
+				PARSE_NODE.mostGeneralType()))
 			{
-				return interpreter.primitiveFailure(E_LOADING_IS_OVER);
+				return interpreter.primitiveFailure(
+					E_MACRO_ARGUMENT_MUST_BE_A_PARSE_NODE);
 			}
-			loader.addMacroBody(
-				interpreter.lookupName(string),
-				prefixFunctions,
-				function);
-			// Even though a macro is always monomorphic and therefore
-			// effectively permanent (and probably unlikely to ever be inlined),
-			// we may as well do the fixup call here.  Designs change.
-			interpreter.fixupForPotentiallyInvalidCurrentChunk();
-			for (int i = 1; i <= prefixFunctions.tupleSize(); i++)
-			{
-				prefixFunctions.tupleAt(i).code().setMethodName(
-					StringDescriptor.from(
-						String.format(
-							"Macro prefix #%d of %s",
-							i,
-							string)));
-			}
-			function.code().setMethodName(
-				StringDescriptor.from(
-					String.format("Macro body of %s", string)));
-
 		}
-		catch (final AmbiguousNameException e)
+		if (!kind.returnType().isSubtypeOf(PARSE_NODE.mostGeneralType()))
 		{
-			return interpreter.primitiveFailure(e);
+			return interpreter.primitiveFailure(
+				AvailErrorCode.E_MACRO_MUST_RETURN_A_PARSE_NODE);
 		}
-		catch (final SignatureException e)
-		{
-			return interpreter.primitiveFailure(e);
-		}
-		return interpreter.primitiveSuccess(NilDescriptor.nil());
+		interpreter.primitiveSuspend();
+		AvailRuntime.current().whenLevelOneSafeDo(
+			AvailTask.forUnboundFiber(
+				fiber,
+				new Continuation0()
+				{
+					@Override
+					public void value ()
+					{
+						Result state;
+						A_BasicObject result;
+						try
+						{
+							loader.addMacroBody(
+								loader.lookupName(string),
+								prefixFunctions,
+								function);
+							int counter = 1;
+							for (final A_Function prefixFunction
+								: prefixFunctions)
+							{
+								prefixFunction.code().setMethodName(
+									StringDescriptor.from(
+										String.format(
+											"Macro prefix #%d of %s",
+											counter++,
+											string)));
+							}
+							function.code().setMethodName(
+								StringDescriptor.from(
+									String.format("Macro body of %s", string)));
+							function.code().setMethodName(
+								StringDescriptor.from(
+									String.format("Macro body of %s", string)));
+							state = SUCCESS;
+							result = NilDescriptor.nil();
+						}
+						catch (
+							final AmbiguousNameException|SignatureException e)
+						{
+							state = FAILURE;
+							result = e.numericCode();
+						}
+						Interpreter.resumeFromPrimitive(
+							AvailRuntime.current(),
+							fiber,
+							state,
+							result);
+					}
+				}));
+		return FIBER_SUSPENDED;
 	}
 
 	@Override
@@ -126,4 +178,18 @@ public class P_249_SimpleMacroDeclaration extends Primitive
 					PARSE_NODE.mostGeneralType())),
 			TOP.o());
 	}
+
+//	@Override
+//	protected A_Type privateFailureVariableType ()
+//	{
+//		return AbstractEnumerationTypeDescriptor.withInstances(
+//			TupleDescriptor.from(
+//				E_LOADING_IS_OVER.numericCode(),
+//				E_MACRO_PREFIX_FUNCTION_ARGUMENT_MUST_BE_A_PARSE_NODE.numericCode(),
+//				E_MACRO_PREFIX_FUNCTIONS_MUST_RETURN_TOP.numericCode(),
+//				E_MACRO_ARGUMENT_MUST_BE_A_PARSE_NODE.numericCode(),
+//				E_MACRO_MUST_RETURN_A_PARSE_NODE.numericCode()
+//			).asSet());
+//	}
+
 }

@@ -34,13 +34,15 @@ package com.avail.descriptor;
 
 import java.io.*;
 import java.math.BigInteger;
+import java.nio.ByteBuffer;
 import java.util.*;
-import com.avail.AvailRuntime;
+import com.avail.*;
 import com.avail.annotations.*;
 import com.avail.compiler.*;
 import com.avail.descriptor.AbstractNumberDescriptor.Order;
 import com.avail.descriptor.AbstractNumberDescriptor.Sign;
 import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
+import com.avail.descriptor.FiberDescriptor.GeneralFlag;
 import com.avail.descriptor.FiberDescriptor.InterruptRequestFlag;
 import com.avail.descriptor.FiberDescriptor.SynchronizationFlag;
 import com.avail.descriptor.InfinityDescriptor.IntegerSlots;
@@ -480,12 +482,6 @@ implements
 	 */
 	@Override
 	public final int hash ()
-	{
-		return descriptor.o_Hash(this);
-	}
-
-	@Override
-	public final int hashCode ()
 	{
 		return descriptor.o_Hash(this);
 	}
@@ -1640,30 +1636,6 @@ implements
 	public AvailObject ensureMutable ()
 	{
 		return descriptor.o_EnsureMutable(this);
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>
-	 * This comparison operation takes an {@link Object} as its argument to
-	 * avoid accidentally calling this with, say, a {@link String} literal.
-	 * We mark it as deprecated to ensure we don't accidentally invoke
-	 * this method when we really mean the version that takes an {@code
-	 * AvailObject} as an argument.  Eclipse conveniently shows such invocations
-	 * with a <strike>strike-out</strike>.  That's a convenient warning for the
-	 * programmer, but we also fail if this method actually gets invoked AND
-	 * the argument is not an {@code AvailObject}.  That means we don't allow
-	 * AvailObjects to be added to Java {@linkplain Set sets} and such, at least
-	 * when they're intermixed with things that are not AvailObjects.
-	 * </p>
-	 */
-	@Override
-	@Deprecated
-	public boolean equals (final @Nullable Object another)
-	{
-		assert another instanceof AvailObject;
-		return descriptor.o_Equals(this, (AvailObject)another);
 	}
 
 	/**
@@ -4825,22 +4797,6 @@ implements
 	 * Dispatch to the descriptor.
 	 */
 	@Override
-	public A_Type validateArgumentTypesInterpreterIfFail (
-		final List<A_Type> argTypes,
-		final Interpreter anAvailInterpreter,
-		final Continuation1<Generator<String>> failBlock)
-	{
-		return descriptor.o_ValidateArgumentTypesInterpreterIfFail(
-			this,
-			argTypes,
-			anAvailInterpreter,
-			failBlock);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	@Override
 	public AvailObject value ()
 	{
 		return descriptor.o_Value(this);
@@ -5160,14 +5116,14 @@ implements
 	}
 
 	/**
-	 * @param codeGenerator
+	 * @param module
 	 * @return
 	 */
 	@Override
-	public AvailObject generate (
-		final AvailCodeGenerator codeGenerator)
+	public A_BasicObject generateInModule (
+		final A_BasicObject module)
 	{
-		return descriptor.o_Generate(this, codeGenerator);
+		return descriptor.o_GenerateInModule(this, module);
 	}
 
 	/**
@@ -6928,7 +6884,7 @@ implements
 	 * @return
 	 */
 	@Override
-	public AvailObject fetchAndAddValue (final AvailObject addend)
+	public A_Number fetchAndAddValue (final A_Number addend)
 	{
 		return descriptor.o_FetchAndAddValue(this, addend);
 	}
@@ -6997,7 +6953,7 @@ implements
 	 * @param joinee
 	 */
 	@Override
-	public void joinee (final AvailObject joinee)
+	public void joinee (final A_BasicObject joinee)
 	{
 		descriptor.o_Joinee(this, joinee);
 	}
@@ -7020,9 +6976,108 @@ implements
 		descriptor.o_WakeupTask(this, task);
 	}
 
+	/**
+	 * @param joiners
+	 */
 	@Override
 	public void joiningFibers (final A_Set joiners)
 	{
 		descriptor.o_JoiningFibers(this, joiners);
+	}
+
+	/**
+	 * @return
+	 */
+	@Override
+	public A_Map heritableFiberGlobals ()
+	{
+		return descriptor.o_HeritableFiberGlobals(this);
+	}
+
+	/**
+	 * @param globals
+	 */
+	@Override
+	public void heritableFiberGlobals (final A_Map globals)
+	{
+		descriptor.o_HeritableFiberGlobals(this, globals);
+	}
+
+	/**
+	 * @param flag
+	 * @return
+	 */
+	@Override
+	public boolean generalFlag (final GeneralFlag flag)
+	{
+		return descriptor.o_GeneralFlag(this, flag);
+	}
+
+	/**
+	 * @param flag
+	 */
+	@Override
+	public void setGeneralFlag (final GeneralFlag flag)
+	{
+		descriptor.o_SetGeneralFlag(this, flag);
+	}
+
+	/**
+	 * @param flag
+	 */
+	@Override
+	public void clearGeneralFlag (final GeneralFlag flag)
+	{
+		descriptor.o_ClearGeneralFlag(this, flag);
+	}
+
+	/**
+	 * @return
+	 */
+	@Override
+	public ByteBuffer byteBuffer ()
+	{
+		return descriptor.o_ByteBuffer(this);
+	}
+
+	/**
+	 * @param aByteBufferTuple
+	 * @return
+	 */
+	@Override
+	public boolean equalsByteBufferTuple (final A_Tuple aByteBufferTuple)
+	{
+		return descriptor.o_EqualsByteBufferTuple(this, aByteBufferTuple);
+	}
+
+	/**
+	 * @param startIndex1
+	 * @param endIndex1
+	 * @param aByteBufferTuple
+	 * @param startIndex2
+	 * @return
+	 */
+	@Override
+	public boolean compareFromToWithByteBufferTupleStartingAt (
+		final int startIndex1,
+		final int endIndex1,
+		final A_Tuple aByteBufferTuple,
+		final int startIndex2)
+	{
+		return descriptor.o_CompareFromToWithByteBufferTupleStartingAt(
+			this,
+			startIndex1,
+			endIndex1,
+			aByteBufferTuple,
+			startIndex2);
+	}
+
+	/**
+	 * @return
+	 */
+	@Override
+	public boolean isByteBufferTuple ()
+	{
+		return descriptor.o_IsByteBufferTuple(this);
 	}
 }

@@ -32,6 +32,8 @@
 
 package com.avail.descriptor;
 
+import java.util.Set;
+import com.avail.annotations.Nullable;
 import com.avail.visitor.MarkUnreachableSubobjectVisitor;
 
 /**
@@ -642,6 +644,36 @@ implements A_BasicObject
 	 * slots.
 	 */
 	private static final int[] emptyIntegerSlots = new int[0];
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>
+	 * This comparison operation takes an {@link Object} as its argument to
+	 * avoid accidentally calling this with, say, a {@link String} literal.
+	 * We mark it as deprecated to ensure we don't accidentally invoke
+	 * this method when we really mean the version that takes an {@code
+	 * AvailObject} as an argument.  Eclipse conveniently shows such invocations
+	 * with a <strike>strike-out</strike>.  That's a convenient warning for the
+	 * programmer, but we also fail if this method actually gets invoked AND
+	 * the argument is not an {@code A_BasicObject}.  That means we don't allow
+	 * AvailObjects to be added to Java {@linkplain Set sets} and such, at least
+	 * when they're intermixed with things that are not AvailObjects.
+	 * </p>
+	 */
+	@Override
+	@Deprecated
+	public boolean equals (final @Nullable Object another)
+	{
+		assert another instanceof AvailObject;
+		return descriptor.o_Equals((AvailObject)this, (AvailObject)another);
+	}
+
+	@Override
+	public final int hashCode ()
+	{
+		return descriptor.o_Hash((AvailObject)this);
+	}
 
 	/**
 	 * Construct a new {@link AvailObjectRepresentation}.

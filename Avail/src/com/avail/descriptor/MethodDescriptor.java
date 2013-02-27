@@ -69,7 +69,7 @@ extends Descriptor
 	 * A special {@linkplain AtomDescriptor atom} used to name the VM's method
 	 * to crash during early bootstrapping problems.
 	 */
-	private static A_Atom vmCrashAtom;
+	private static @Nullable A_Atom vmCrashAtom;
 
 	/**
 	 * Answer the {@linkplain AtomDescriptor atom} used by the VM to name the
@@ -79,7 +79,9 @@ extends Descriptor
 	 */
 	public static A_Atom vmCrashAtom ()
 	{
-		return vmCrashAtom;
+		final A_Atom atom = vmCrashAtom;
+		assert atom != null;
+		return atom;
 	}
 
 	/**
@@ -87,7 +89,7 @@ extends Descriptor
 	 * MethodDefinitionDescriptor function} that invokes {@linkplain
 	 * P_256_EmergencyExit}. Needed by some hand-built bootstrap functions.
 	 */
-	private static AvailObject vmCrashMethod;
+	private static @Nullable AvailObject vmCrashMethod;
 
 	/**
 	 * Answer a {@linkplain MethodDescriptor method}
@@ -99,7 +101,9 @@ extends Descriptor
 	 */
 	public static AvailObject vmCrashMethod ()
 	{
-		return vmCrashMethod;
+		final AvailObject method = vmCrashMethod;
+		assert method != null;
+		return method;
 	}
 
 	/**
@@ -118,7 +122,7 @@ extends Descriptor
 		// essential here, as certain parts of the virtual machine (like the
 		// decompiler) use the name to figure out how many arguments a method
 		// accepts.
-		final AvailObject method = newMethodWithName(vmCrashAtom);
+		final AvailObject method = newMethodWithName(vmCrashAtom());
 		try
 		{
 			method.methodAddDefinition(
@@ -136,7 +140,7 @@ extends Descriptor
 	/**
 	 * The (special) name of the VM-built pre-bootstrap method-defining method.
 	 */
-	private static A_Atom vmMethodDefinerAtom;
+	private static @Nullable A_Atom vmMethodDefinerAtom;
 
 	/**
 	 * Answer the (special) {@linkplain AtomDescriptor name} of the VM method
@@ -146,13 +150,15 @@ extends Descriptor
 	 */
 	public static A_Atom vmMethodDefinerAtom ()
 	{
-		return vmMethodDefinerAtom;
+		final A_Atom atom = vmMethodDefinerAtom;
+		assert atom != null;
+		return atom;
 	}
 
 	/**
 	 * The special pre-bootstrap method-defining method constructed by the VM.
 	 */
-	private static AvailObject vmMethodDefinerMethod;
+	private static @Nullable AvailObject vmMethodDefinerMethod;
 
 	/**
 	 * Answer the special pre-bootstrap method-defining method that was created
@@ -162,13 +168,15 @@ extends Descriptor
 	 */
 	public static AvailObject vmMethodDefinerMethod ()
 	{
-		return vmMethodDefinerMethod;
+		final AvailObject method = vmMethodDefinerMethod;
+		assert method != null;
+		return method;
 	}
 
 	/**
 	 * The (special) name of the VM-built pre-bootstrap macro-defining method.
 	 */
-	private static A_Atom vmMacroDefinerAtom;
+	private static @Nullable A_Atom vmMacroDefinerAtom;
 
 	/**
 	 * Answer the (special) {@linkplain AtomDescriptor name} of the VM method
@@ -178,13 +186,15 @@ extends Descriptor
 	 */
 	public static A_Atom vmMacroDefinerAtom ()
 	{
-		return vmMacroDefinerAtom;
+		final A_Atom atom = vmMacroDefinerAtom;
+		assert atom != null;
+		return atom;
 	}
 
 	/**
 	 * The special pre-bootstrap macro-defining method constructed by the VM.
 	 */
-	private static AvailObject vmMacroDefinerMethod;
+	private static @Nullable AvailObject vmMacroDefinerMethod;
 
 	/**
 	 * Answer the special pre-bootstrap macro-defining method that was created
@@ -194,7 +204,9 @@ extends Descriptor
 	 */
 	public static AvailObject vmMacroDefinerMethod ()
 	{
-		return vmMacroDefinerMethod;
+		final AvailObject method = vmMacroDefinerMethod;
+		assert method != null;
+		return method;
 	}
 
 	/**
@@ -277,7 +289,7 @@ extends Descriptor
 			P_253_SimpleMethodDeclaration.instance);
 		final A_Function fromAtomFunction = newPrimitiveFunction(
 			P_228_MethodDeclarationFromAtom.instance);
-		final AvailObject method = newMethodWithName(vmMethodDefinerAtom);
+		final AvailObject method = newMethodWithName(vmMethodDefinerAtom());
 		try
 		{
 			method.methodAddDefinition(
@@ -303,7 +315,7 @@ extends Descriptor
 	{
 		final A_Function fromStringFunction = newPrimitiveFunction(
 			P_249_SimpleMacroDeclaration.instance);
-		final AvailObject method = newMethodWithName(vmMacroDefinerAtom);
+		final AvailObject method = newMethodWithName(vmMacroDefinerAtom());
 		try
 		{
 			method.methodAddDefinition(
@@ -320,7 +332,7 @@ extends Descriptor
 	/**
 	 * The (special) name of the VM-built function application method.
 	 */
-	private static A_Atom vmFunctionApplyAtom;
+	private static @Nullable A_Atom vmFunctionApplyAtom;
 
 	/**
 	 * Answer the (special) {@linkplain AtomDescriptor name} of the VM's
@@ -330,7 +342,9 @@ extends Descriptor
 	 */
 	public static A_Atom vmFunctionApplyAtom ()
 	{
-		return vmFunctionApplyAtom;
+		final A_Atom atom = vmFunctionApplyAtom;
+		assert atom != null;
+		return atom;
 	}
 
 	/**
@@ -339,7 +353,7 @@ extends Descriptor
 	 * P_040_InvokeWithTuple} (function application). Needed by some hand-built
 	 * functions.
 	 */
-	private static AvailObject vmFunctionApplyMethod;
+	private static @Nullable AvailObject vmFunctionApplyMethod;
 
 	/**
 	 * A {@linkplain MethodDescriptor method} containing a {@linkplain
@@ -351,7 +365,9 @@ extends Descriptor
 	 */
 	public static AvailObject vmFunctionApplyMethod ()
 	{
-		return vmFunctionApplyMethod;
+		final AvailObject method = vmFunctionApplyMethod;
+		assert method != null;
+		return method;
 	}
 
 	/**
@@ -366,7 +382,7 @@ extends Descriptor
 			newPrimitiveFunction(P_040_InvokeWithTuple.instance);
 
 		// Create the new method.
-		final AvailObject method = newMethodWithName(vmFunctionApplyAtom);
+		final AvailObject method = newMethodWithName(vmFunctionApplyAtom());
 		try
 		{
 			method.methodAddDefinition(
@@ -384,7 +400,7 @@ extends Descriptor
 	/**
 	 * The (special) name of the VM-built atom-set publication method.
 	 */
-	private static A_Atom vmPublishAtomsAtom;
+	private static @Nullable A_Atom vmPublishAtomsAtom;
 
 	/**
 	 * Answer the (special) {@linkplain AtomDescriptor name} of the VM's
@@ -394,7 +410,9 @@ extends Descriptor
 	 */
 	public static A_Atom vmPublishAtomsAtom ()
 	{
-		return vmPublishAtomsAtom;
+		final A_Atom atom = vmPublishAtomsAtom;
+		assert atom != null;
+		return atom;
 	}
 
 	/**
@@ -403,7 +421,7 @@ extends Descriptor
 	 * P_263_DeclareAllExportedAtoms} (atom-set publication). Needed by the
 	 * module compilation system.
 	 */
-	private static AvailObject vmPublishAtomsMethod;
+	private static @Nullable AvailObject vmPublishAtomsMethod;
 
 	/**
 	 * A {@linkplain MethodDescriptor method} containing a {@linkplain
@@ -415,7 +433,9 @@ extends Descriptor
 	 */
 	public static AvailObject vmPublishAtomsMethod ()
 	{
-		return vmPublishAtomsMethod;
+		final AvailObject method = vmPublishAtomsMethod;
+		assert method != null;
+		return method;
 	}
 
 	/**
@@ -430,7 +450,7 @@ extends Descriptor
 			newPrimitiveFunction(P_263_DeclareAllExportedAtoms.instance);
 
 		// Create the new method.
-		final AvailObject method = newMethodWithName(vmPublishAtomsAtom);
+		final AvailObject method = newMethodWithName(vmPublishAtomsAtom());
 		try
 		{
 			method.methodAddDefinition(

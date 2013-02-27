@@ -490,7 +490,7 @@ extends SetBinDescriptor
 		 * The next value that will returned by {@link #next()}, or null if the
 		 * iterator is exhausted.
 		 */
-		AvailObject currentElement;
+		private @Nullable AvailObject currentElement;
 
 		/**
 		 * Construct a new {@link SetIterator} over the elements recursively

@@ -429,7 +429,7 @@ extends Descriptor
 	 * A substitute for {@linkplain AvailObject nil}, for use by
 	 * {@link P_059_ContinuationStackData}.
 	 */
-	private static AvailObject nilSubstitute;
+	private static @Nullable AvailObject nilSubstitute;
 
 	/**
 	 * Answer a substitute for {@linkplain AvailObject nil}. This is
@@ -439,7 +439,9 @@ extends Descriptor
 	 */
 	public static AvailObject nilSubstitute ()
 	{
-		return nilSubstitute;
+		final AvailObject sub = nilSubstitute;
+		assert sub != null;
+		return sub;
 	}
 
 	/**

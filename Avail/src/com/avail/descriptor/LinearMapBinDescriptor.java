@@ -476,9 +476,10 @@ extends MapBinDescriptor
 			@Override
 			public final Entry next ()
 			{
-				entry.keyHash = object.slot(KEY_HASHES_, nextIndex);
-				entry.key = object.slot(BIN_SLOT_AT_, nextIndex * 2 - 1);
-				entry.value = object.slot(BIN_SLOT_AT_, nextIndex * 2);
+				entry.setKeyAndHashAndValue(
+					object.slot(BIN_SLOT_AT_, nextIndex * 2 - 1),
+					object.slot(KEY_HASHES_, nextIndex),
+					object.slot(BIN_SLOT_AT_, nextIndex * 2));
 				nextIndex++;
 				return entry;
 			}

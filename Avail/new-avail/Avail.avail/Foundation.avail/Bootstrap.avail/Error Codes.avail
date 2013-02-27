@@ -79,7 +79,6 @@ Names
 	/*  46 */ "expected operator after backquote code",
 	/*  91 */ "fiber cannot join itself code",
 	/*  90 */ "fiber result unavailable code",
-	/*  61 */ "final expression should agree with declared return type code",
 	/*  27 */ "function disagrees with primitive restriction code",
 	/*  80 */ "handler sentinel code",
 	/*  12 */ "incorrect argument type code",
@@ -100,6 +99,8 @@ Names
 	/*  66 */ "local declaration shadows another code",
 	/*  28 */ "local type literal is not a type code",
 	/*  34 */ "macro argument must be a parse node code",
+	/*  68 */ "macro must return a parse node code",
+	/*  67 */ "macro prefix function argument must be a parse node code",
 	/*  59 */ "macro prefix functions must return top code",
 	/*  71 */ "method definition lookup failed code",
 	/*  72 */ "method is sealed code",
@@ -436,7 +437,7 @@ Primitive "primitive fallibility disagrees with failure variable code" is
 	60
 ];
 
-Primitive "final expression should agree with declared return type code" is
+Primitive "fiber cannot join itself code" is
 [
 	61
 ];
@@ -466,14 +467,14 @@ Primitive "local declaration shadows another code" is
 	66
 ];
 
-Primitive "fiber result unavailable code" is
+Primitive "macro prefix function argument must be a parse node code" is
 [
-	59
+	67
 ];
 
-Primitive "fiber cannot join itself code" is
+Primitive "macro must return a parse node code" is
 [
-	60
+	68
 ];
 
 Primitive "loading is over code" is

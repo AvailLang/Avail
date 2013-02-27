@@ -57,7 +57,7 @@ implements Comparable<AvailTask>, Runnable
 	 * and invokes the {@linkplain AvailObject#failureContinuation() failure
 	 * continuation} with the terminal {@linkplain Throwable throwable}.
 	 *
-	 * @param aFiber
+	 * @param fiber
 	 *        A fiber.
 	 * @param continuation
 	 *        What to do to resume execution of the fiber.
@@ -67,12 +67,12 @@ implements Comparable<AvailTask>, Runnable
 	 *         then runs the specified continuation.
 	 */
 	public static final AvailTask forFiberResumption (
-		final A_BasicObject aFiber,
+		final A_BasicObject fiber,
 		final Continuation0 continuation)
 	{
-		assert aFiber.executionState().indicatesSuspension();
+		assert fiber.executionState().indicatesSuspension();
 		final boolean scheduled =
-			aFiber.getAndSetSynchronizationFlag(SCHEDULED, true);
+			fiber.getAndSetSynchronizationFlag(SCHEDULED, true);
 		assert !scheduled;
 		final Continuation0 taskContinuation = new Continuation0()
 		{
@@ -80,50 +80,59 @@ implements Comparable<AvailTask>, Runnable
 			public void value ()
 			{
 				final Interpreter interpreter = Interpreter.current();
-				aFiber.lock(new Continuation0()
+				fiber.lock(new Continuation0()
 				{
 					@Override
 					public void value ()
 					{
-						assert aFiber.executionState().indicatesSuspension();
+						assert fiber.executionState().indicatesSuspension();
 						final boolean bound =
-							aFiber.getAndSetSynchronizationFlag(BOUND, true);
+							fiber.getAndSetSynchronizationFlag(BOUND, true);
 						assert !bound;
 						final boolean wasScheduled =
-							aFiber.getAndSetSynchronizationFlag(
+							fiber.getAndSetSynchronizationFlag(
 								SCHEDULED, false);
 						assert wasScheduled;
-						aFiber.executionState(RUNNING);
-						interpreter.fiber(aFiber);
+						fiber.executionState(RUNNING);
+						interpreter.fiber(fiber);
 					}
 				});
-				final Mutable<Continuation0> postExitContinuation =
-					new Mutable<Continuation0>();
+				final MutableOrNull<Continuation0> postExitContinuation =
+					new MutableOrNull<Continuation0>();
 				try
 				{
 					continuation.value();
-					postExitContinuation.value =
-						interpreter.postExitContinuation();
 				}
 				catch (final Throwable e)
 				{
 					// If execution failed for any reason, then terminate
 					// the fiber and invoke its failure continuation with
 					// the throwable.
-					interpreter.abortFiber();
-					aFiber.failureContinuation().value(e);
+					if (!fiber.executionState().indicatesTermination())
+					{
+						assert interpreter.fiber == fiber;
+						interpreter.abortFiber();
+					}
+					else
+					{
+						fiber.executionState(ABORTED);
+					}
+					fiber.failureContinuation().value(e);
 				}
 				finally
 				{
+					postExitContinuation.value =
+						interpreter.postExitContinuation();
 					interpreter.postExitContinuation(null);
 				}
-				if (postExitContinuation.value != null)
+				final @Nullable Continuation0 con = postExitContinuation.value;
+				if (con != null)
 				{
-					postExitContinuation.value.value();
+					con.value();
 				}
 			}
 		};
-		return new AvailTask(aFiber.priority(), taskContinuation);
+		return new AvailTask(fiber.priority(), taskContinuation);
 	}
 
 	/**

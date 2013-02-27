@@ -74,7 +74,19 @@ implements L1OperationDispatcher
 	/**
 	 * The nybblecodes being optimized.
 	 */
-	@InnerAccess A_Tuple nybbles;
+	private @Nullable A_Tuple nybbles;
+
+	/**
+	 * Answer the current raw function's nybblecodes.
+	 *
+	 * @return A tuple of integers in the range [0..15].
+	 */
+	@InnerAccess A_Tuple nybbles ()
+	{
+		final A_Tuple theNybbles = nybbles;
+		assert theNybbles != null;
+		return theNybbles;
+	}
 
 	/**
 	 * The number of arguments expected by the code being optimized.
@@ -108,9 +120,21 @@ implements L1OperationDispatcher
 	@InnerAccess int optimizationLevel;
 
 	/**
-	 * The interpreter that tripped the optimization request.
+	 * The {@link Interpreter} that tripped the translation request.
 	 */
-	@InnerAccess Interpreter interpreter;
+	private @Nullable Interpreter interpreter;
+
+	/**
+	 * Answer the current {@link Interpreter}.  Fail if there isn't one.
+	 *
+	 * @return The interpreter that's triggering translation.
+	 */
+	@InnerAccess Interpreter interpreter ()
+	{
+		final Interpreter theInterpreter = interpreter;
+		assert theInterpreter != null;
+		return theInterpreter;
+	}
 
 	/**
 	 * The current sequence of level two instructions.
@@ -273,7 +297,9 @@ implements L1OperationDispatcher
 	 */
 	private int getInteger ()
 	{
-		final byte firstNybble = nybbles.extractNybbleFromTupleAt(pc);
+		final A_Tuple theNybbles = nybbles;
+		assert theNybbles != null;
+		final byte firstNybble = theNybbles.extractNybbleFromTupleAt(pc);
 		pc++;
 		int value = 0;
 		final byte[] counts =
@@ -282,7 +308,7 @@ implements L1OperationDispatcher
 		};
 		for (int count = counts[firstNybble]; count > 0; count--, pc++)
 		{
-			value = (value << 4) + nybbles.extractNybbleFromTupleAt(pc);
+			value = (value << 4) + theNybbles.extractNybbleFromTupleAt(pc);
 		}
 		final byte[] offsets =
 		{
@@ -428,7 +454,7 @@ implements L1OperationDispatcher
 		final int stackIndex,
 		final boolean toWrite)
 	{
-		assert 1 <= stackIndex && stackIndex <= code.maxStackDepth();
+		assert 1 <= stackIndex && stackIndex <= codeOrFail().maxStackDepth();
 		return registers.continuationSlot(
 			numArgs + numLocals + stackIndex);
 	}
@@ -443,7 +469,7 @@ implements L1OperationDispatcher
 	 */
 	private L2ObjectRegister writeTopOfStackRegister ()
 	{
-		assert 1 <= stackp && stackp <= code.maxStackDepth();
+		assert 1 <= stackp && stackp <= codeOrFail().maxStackDepth();
 		return stackRegister(stackp, true);
 	}
 
@@ -457,7 +483,7 @@ implements L1OperationDispatcher
 	 */
 	private L2ObjectRegister readTopOfStackRegister ()
 	{
-		assert 1 <= stackp && stackp <= code.maxStackDepth();
+		assert 1 <= stackp && stackp <= codeOrFail().maxStackDepth();
 		return stackRegister(stackp, false);
 	}
 
@@ -642,13 +668,13 @@ implements L1OperationDispatcher
 			{
 				argValues.add(registers.constantAt(argReg));
 			}
-			final Result success = interpreter.attemptPrimitive(
+			final Result success = interpreter().attemptPrimitive(
 				primitiveNumber,
 				primitiveFunction.code(),
 				argValues);
 			if (success == SUCCESS)
 			{
-				final AvailObject value = interpreter.latestResult();
+				final AvailObject value = interpreter().latestResult();
 				if (value.isInstanceOf(expectedType))
 				{
 					value.makeImmutable();
@@ -776,7 +802,8 @@ implements L1OperationDispatcher
 		{
 			// Inline the primitive. Attempt to fold it if the primitive says
 			// it's foldable and the arguments are all constants.
-			final Mutable<Boolean> canFailPrimitive = new Mutable<Boolean>();
+			final Mutable<Boolean> canFailPrimitive =
+				new Mutable<Boolean>(false);
 			final A_BasicObject folded = emitInlinePrimitiveAttempt(
 				primFunctions.get(0),
 				method,
@@ -965,8 +992,8 @@ implements L1OperationDispatcher
 	@Override
 	public void L1_doCall ()
 	{
-		final AvailObject method = code.literalAt(getInteger());
-		final AvailObject expectedType = code.literalAt(getInteger());
+		final AvailObject method = codeOrFail().literalAt(getInteger());
+		final AvailObject expectedType = codeOrFail().literalAt(getInteger());
 		generateCall(method, expectedType);
 	}
 
@@ -978,7 +1005,7 @@ implements L1OperationDispatcher
 		// that's the literal at index m of the current compiledCode.
 
 		final int count = getInteger();
-		final AvailObject codeLiteral = code.literalAt(getInteger());
+		final AvailObject codeLiteral = codeOrFail().literalAt(getInteger());
 		final List<L2ObjectRegister> outers =
 			new ArrayList<L2ObjectRegister>(count);
 		for (int i = count; i >= 1; i--)
@@ -1012,7 +1039,7 @@ implements L1OperationDispatcher
 	{
 		// The extension nybblecode was encountered.  Read another nybble and
 		// add 16 to get the L1Operation's ordinal.
-		final byte nybble = nybbles.extractNybbleFromTupleAt(pc);
+		final byte nybble = nybbles().extractNybbleFromTupleAt(pc);
 		pc++;
 		L1Operation.values()[nybble + 16].dispatch(this);
 	}
@@ -1104,7 +1131,7 @@ implements L1OperationDispatcher
 	public void L1_doPop ()
 	{
 		// Remove the top item from the stack.
-		assert stackp == code.maxStackDepth()
+		assert stackp == codeOrFail().maxStackDepth()
 		: "Pop should only only occur at end of statement";
 		moveConstant(NilDescriptor.nil(), writeTopOfStackRegister());
 		stackp++;
@@ -1150,7 +1177,7 @@ implements L1OperationDispatcher
 	public void L1_doPushLiteral ()
 	{
 		// [n] - Push the literal indexed by n in the current compiledCode.
-		final AvailObject constant = code.literalAt(getInteger());
+		final AvailObject constant = codeOrFail().literalAt(getInteger());
 		stackp--;
 		moveConstant(constant, writeTopOfStackRegister());
 	}
@@ -1244,7 +1271,7 @@ implements L1OperationDispatcher
 		// [n] - Push the value of the variable that's literal number n in the
 		// current compiledCode.
 		final L2ObjectRegister tempReg = registers.newObject();
-		final AvailObject constant = code.literalAt(getInteger());
+		final AvailObject constant = codeOrFail().literalAt(getInteger());
 		stackp--;
 		moveConstant(constant, tempReg);
 		addInstruction(
@@ -1280,7 +1307,7 @@ implements L1OperationDispatcher
 			new L2ReadPointerOperand(registers.fixed(CALLER)),
 			new L2ReadPointerOperand(registers.fixed(FUNCTION)),
 			new L2ImmediateOperand(1),
-			new L2ImmediateOperand(code.maxStackDepth() + 1),
+			new L2ImmediateOperand(codeOrFail().maxStackDepth() + 1),
 			new L2ReadVectorOperand(createVector(vectorWithOnlyArgsPreserved)),
 			new L2PcOperand(startLabel),
 			new L2WritePointerOperand(destReg));
@@ -1306,7 +1333,7 @@ implements L1OperationDispatcher
 	{
 		// [n] - Pop the stack and assign this value to the variable that's the
 		// literal indexed by n in the current compiledCode.
-		final AvailObject constant = code.literalAt(getInteger());
+		final AvailObject constant = codeOrFail().literalAt(getInteger());
 		final L2ObjectRegister tempReg = registers.newObject();
 		moveConstant(constant, tempReg);
 		addInstruction(
@@ -1331,7 +1358,7 @@ implements L1OperationDispatcher
 			L2_RETURN.instance,
 			new L2ReadPointerOperand(registers.fixed(CALLER)),
 			new L2ReadPointerOperand(readTopOfStackRegister()));
-		assert stackp == code.maxStackDepth();
+		assert stackp == codeOrFail().maxStackDepth();
 		stackp = Integer.MIN_VALUE;
 	}
 
@@ -1346,7 +1373,7 @@ implements L1OperationDispatcher
 		final L2CodeGenerator codeGen = new L2CodeGenerator();
 		codeGen.setInstructions(instructions);
 		codeGen.addContingentMethods(contingentMethods);
-		final AvailObject chunk = codeGen.createChunkFor(code);
+		final AvailObject chunk = codeGen.createChunkFor(codeOrNull());
 		return chunk;
 	}
 
@@ -1417,7 +1444,7 @@ implements L1OperationDispatcher
 		}
 		if (debugOptimized)
 		{
-			System.out.printf("%nOPTIMIZED: %s\n", code);
+			System.out.printf("%nOPTIMIZED: %s\n", codeOrFail());
 			final Set<L2Instruction> kept =
 				new HashSet<L2Instruction>(instructions);
 			for (final L2Instruction instruction : originals)
@@ -1649,24 +1676,26 @@ implements L1OperationDispatcher
 	{
 		optimizationLevel = optLevel;
 		interpreter = anL2Interpreter;
-		nybbles = code.nybbles();
-		numArgs = code.numArgs();
-		numLocals = code.numLocals();
-		numSlots = code.numArgsAndLocalsAndStack();
+		final A_BasicObject theCode = code;
+		assert theCode != null;
+		nybbles = theCode.nybbles();
+		numArgs = theCode.numArgs();
+		numLocals = theCode.numLocals();
+		numSlots = theCode.numArgsAndLocalsAndStack();
 		contingentMethods.clear();
 		registers.constantAtPut(
 			registers.fixed(NULL),
 			NilDescriptor.nil());
-		registers.typeAtPut(registers.fixed(FUNCTION), code.functionType());
+		registers.typeAtPut(registers.fixed(FUNCTION), theCode.functionType());
 		if (optLevel == 0)
 		{
 			// Optimize it again if it's called frequently enough.
-			code.countdownToReoptimize(
+			theCode.countdownToReoptimize(
 				L2ChunkDescriptor.countdownForNewlyOptimizedCode());
 			addInstruction(
 				L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO.instance);
 		}
-		final A_BasicObject tupleType = code.functionType().argsTupleType();
+		final A_BasicObject tupleType = theCode.functionType().argsTupleType();
 		for (int i = 1; i <= numArgs; i++)
 		{
 			registers.typeAtPut(
@@ -1674,7 +1703,7 @@ implements L1OperationDispatcher
 				tupleType.typeAtIndex(i));
 		}
 		pc = 1;
-		stackp = code.maxStackDepth() + 1;
+		stackp = theCode.maxStackDepth() + 1;
 		// Just past end. This is not the same offset it would have during
 		// execution.
 		final List<L2ObjectRegister> initialRegisters =
@@ -1696,11 +1725,11 @@ implements L1OperationDispatcher
 		{
 			addInstruction(
 				L2_CREATE_VARIABLE.instance,
-				new L2ConstantOperand(code.localTypeAt(local)),
+				new L2ConstantOperand(theCode.localTypeAt(local)),
 				new L2WritePointerOperand(
 					registers.argumentOrLocal(numArgs + local)));
 		}
-		final int prim = code.primitiveNumber();
+		final int prim = theCode.primitiveNumber();
 		if (prim != 0)
 		{
 			assert !Primitive.byPrimitiveNumberOrFail(prim).hasFlag(
@@ -1715,7 +1744,7 @@ implements L1OperationDispatcher
 		}
 		// Store nil into each of the stack slots.
 		for (
-			int stackSlot = 1, end = code.maxStackDepth();
+			int stackSlot = 1, end = theCode.maxStackDepth();
 			stackSlot <= end;
 			stackSlot++)
 		{
@@ -1731,16 +1760,16 @@ implements L1OperationDispatcher
 		// the first instruction so that L1Ext_doPushLabel can always find
 		// it. Since we only translate one method at a time, the first
 		// instruction always represents the start of this compiledCode.
-		while (pc <= nybbles.tupleSize())
+		while (pc <= nybbles().tupleSize())
 		{
-			final byte nybble = nybbles.extractNybbleFromTupleAt(pc);
+			final byte nybble = nybbles().extractNybbleFromTupleAt(pc);
 			pc++;
 			L1Operation.values()[nybble].dispatch(this);
 		}
 		// Translate the implicit L1_doReturn instruction that terminates
 		// the instruction sequence.
 		L1Operation.L1Implied_Return.dispatch(this);
-		assert pc == nybbles.tupleSize() + 1;
+		assert pc == nybbles().tupleSize() + 1;
 		assert stackp == Integer.MIN_VALUE;
 
 		// TODO [TLS/MvG]: Fix and re-enable! The algorithm assumes linearity
@@ -1748,6 +1777,6 @@ implements L1OperationDispatcher
 //		optimize();
 		simpleColorRegisters();
 		final A_BasicObject newChunk = createChunk();
-		assert code.startingChunk() == newChunk;
+		assert theCode.startingChunk() == newChunk;
 	}
 }

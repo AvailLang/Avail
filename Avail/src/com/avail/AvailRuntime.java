@@ -37,6 +37,7 @@ import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.io.*;
 import java.nio.channels.AsynchronousChannelGroup;
 import java.nio.channels.AsynchronousFileChannel;
+import java.nio.channels.AsynchronousServerSocketChannel;
 import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.file.OpenOption;
 import java.nio.file.Path;
@@ -141,10 +142,10 @@ public final class AvailRuntime
 	 */
 	private final ThreadPoolExecutor executor =
 		new ThreadPoolExecutor(
+			availableProcessors,
 			availableProcessors << 2,
-			availableProcessors << 2,
-			30000L,
-			TimeUnit.MILLISECONDS,
+			10L,
+			TimeUnit.SECONDS,
 			new PriorityBlockingQueue<Runnable>(100),
 			threadFactory,
 			new ThreadPoolExecutor.CallerRunsPolicy());
@@ -171,8 +172,8 @@ public final class AvailRuntime
 		new ThreadPoolExecutor(
 			availableProcessors,
 			availableProcessors << 1,
-			30000L,
-			TimeUnit.MILLISECONDS,
+			10L,
+			TimeUnit.SECONDS,
 			new LinkedBlockingQueue<Runnable>(),
 			threadFactory,
 			new ThreadPoolExecutor.CallerRunsPolicy());
@@ -186,8 +187,8 @@ public final class AvailRuntime
 		new ThreadPoolExecutor(
 			availableProcessors,
 			availableProcessors << 1,
-			30000L,
-			TimeUnit.MILLISECONDS,
+			10L,
+			TimeUnit.SECONDS,
 			new LinkedBlockingQueue<Runnable>(),
 			threadFactory,
 			new ThreadPoolExecutor.CallerRunsPolicy());
@@ -231,6 +232,33 @@ public final class AvailRuntime
 			path,
 			new HashSet<OpenOption>(Arrays.asList(openOptions)),
 			fileExecutor);
+	}
+
+	/**
+	 * Open an {@linkplain AsynchronousServerSocketChannel asynchronous server
+	 * socket channel}.
+	 *
+	 * @return An asynchronous server socket channel.
+	 * @throws IOException
+	 *         If the open fails for some reason.
+	 */
+	public AsynchronousServerSocketChannel openServerSocket ()
+		throws IOException
+	{
+		return AsynchronousServerSocketChannel.open(socketGroup);
+	}
+
+	/**
+	 * Open an {@linkplain AsynchronousSocketChannel asynchronous socket
+	 * channel}.
+	 *
+	 * @return An asynchronous socket channel.
+	 * @throws IOException
+	 *         If the open fails for some reason.
+	 */
+	public AsynchronousSocketChannel openSocket () throws IOException
+	{
+		return AsynchronousSocketChannel.open(socketGroup);
 	}
 
 	/**
@@ -541,20 +569,20 @@ public final class AvailRuntime
 	 * The {@linkplain AtomDescriptor special atoms} known to the {@linkplain
 	 * AvailRuntime runtime}.
 	 */
-	private static final AvailObject[] specialAtoms =
+	private static final A_Atom[] specialAtoms =
 		new AvailObject[20];
 
 	/**
 	 * The {@linkplain AtomDescriptor special atoms} known to the {@linkplain
 	 * AvailRuntime runtime}.
 	 */
-	private static final List<AvailObject> specialAtomsList =
+	private static final List<A_Atom> specialAtomsList =
 		Collections.unmodifiableList(Arrays.asList(specialAtoms));
 
 	/**
 	 * The {@link Set} of special {@linkplain AtomDescriptor atoms}.
 	 */
-	private static Set<AvailObject> specialAtomsSet;
+	private static @Nullable Set<A_Atom> specialAtomsSet;
 
 	/**
 	 * Answer the {@linkplain AtomDescriptor special atoms} known to the
@@ -564,7 +592,7 @@ public final class AvailRuntime
 	 * @return The special atoms list.
 	 */
 	@ThreadSafe
-	public static List<AvailObject> specialAtoms()
+	public static List<A_Atom> specialAtoms()
 	{
 		return specialAtomsList;
 	}
@@ -581,7 +609,9 @@ public final class AvailRuntime
 	@ThreadSafe
 	public static boolean isSpecialAtom (final A_BasicObject atom)
 	{
-		return specialAtomsSet.contains(atom);
+		final Set<A_Atom> set = specialAtomsSet;
+		assert set != null;
+		return set.contains(atom);
 	}
 
 	/**
@@ -702,10 +732,10 @@ public final class AvailRuntime
 		specials[88] = PojoTypeDescriptor.selfAtom();
 		specials[89] = PojoTypeDescriptor.forClass(Throwable.class);
 		specials[90] = FunctionTypeDescriptor.create(
-			TupleDescriptor.from(),
+			TupleDescriptor.empty(),
 			TOP.o());
 		specials[91] = FunctionTypeDescriptor.create(
-			TupleDescriptor.from(),
+			TupleDescriptor.empty(),
 			EnumerationTypeDescriptor.booleanObject());
 		specials[92] = VariableTypeDescriptor.wrapInnerType(
 			ContinuationTypeDescriptor.mostGeneralType());
@@ -720,10 +750,10 @@ public final class AvailRuntime
 		specials[95] =
 			TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 				IntegerRangeTypeDescriptor.wholeNumbers(),
-				TupleDescriptor.from(),
+				TupleDescriptor.empty(),
 				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 					IntegerRangeTypeDescriptor.singleInt(2),
-					TupleDescriptor.from(),
+					TupleDescriptor.empty(),
 					ANY.o()));
 		specials[96] = MapDescriptor.empty();
 		specials[97] = MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
@@ -738,7 +768,7 @@ public final class AvailRuntime
 		specials[100] =
 			TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 				IntegerRangeTypeDescriptor.wholeNumbers(),
-				TupleDescriptor.from(),
+				TupleDescriptor.empty(),
 				TupleTypeDescriptor.mostGeneralType());
 		specials[101] = IntegerRangeTypeDescriptor.nybbles();
 		specials[102] =
@@ -757,7 +787,7 @@ public final class AvailRuntime
 		specials[108] =
 			TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 				IntegerRangeTypeDescriptor.wholeNumbers(),
-				TupleDescriptor.from(),
+				TupleDescriptor.empty(),
 				FunctionTypeDescriptor.forReturnType(
 					InstanceMetaDescriptor.topMeta()));
 		specials[109] = FunctionTypeDescriptor.forReturnType(
@@ -822,6 +852,13 @@ public final class AvailRuntime
 				SetTypeDescriptor.setTypeForSizesContentType(
 					IntegerRangeTypeDescriptor.wholeNumbers(),
 					ATOM.o()));
+		specials[129] = IntegerRangeTypeDescriptor.bytes();
+		specials[130] = TupleTypeDescriptor.zeroOrMoreOf(
+			TupleTypeDescriptor.zeroOrMoreOf(
+				InstanceMetaDescriptor.anyMeta()));
+		specials[131] = VariableTypeDescriptor.fromReadAndWriteTypes(
+			IntegerRangeTypeDescriptor.extendedIntegers(),
+			BottomTypeDescriptor.bottom());
 
 		System.arraycopy(specials, 0, specialObjects, 0, specials.length);
 
@@ -848,16 +885,20 @@ public final class AvailRuntime
 		System.arraycopy(atoms, 0, specialAtoms, 0, atoms.length);
 
 		assert specialAtomsSet == null;
-		specialAtomsSet = new HashSet<AvailObject>(specialAtomsList);
-		specialAtomsSet.remove(null);
+		final Set<A_Atom> set = new HashSet<A_Atom>(specialAtomsList);
+		set.remove(null);
+		specialAtomsSet = set;
 		specialAtomsSet = Collections.unmodifiableSet(specialAtomsSet);
 		for (int i = 0; i < specialObjects.length; i++)
 		{
 			final A_BasicObject object = specialObjects[i];
-			if (object != null && object.isAtom())
+			if (object != null)
 			{
-				assert specialAtomsSet.contains(object);
 				specialObjects[i] = object.makeShared();
+				if (object.isAtom())
+				{
+					assert set.contains(object);
+				}
 			}
 		}
 		for (int i = 0; i < specialAtoms.length; i++)
@@ -899,21 +940,26 @@ public final class AvailRuntime
 		runtimeLock.writeLock().lock();
 		try
 		{
+			assert !modules.hasKey(aModule.moduleName());
 			// Some of the module's message bundles may have been added to the
-			// runtime's allBundles map already.  Add any that have not.
+			// runtime's allBundles map already.  Add any that have not, but
+			// only if they're publicly visible.
 			for (final MapDescriptor.Entry bundleEntry
 				: aModule.filteredBundleTree().allBundles().mapIterable())
 			{
-				final A_Atom message = bundleEntry.key;
-				final A_BasicObject bundle = bundleEntry.value;
+				final A_Atom message = bundleEntry.key();
+				final A_BasicObject bundle = bundleEntry.value();
 				assert bundle.message().equals(message);
-				if (!allBundles.hasKey(message))
+				if (aModule.visibleNames().hasElement(message))
 				{
-					allBundles = allBundles.mapAtPuttingCanDestroy(
-						message, bundle, true);
+					if (!allBundles.hasKey(message))
+					{
+						allBundles = allBundles.mapAtPuttingCanDestroy(
+							message, bundle, true);
+					}
 				}
-				allBundles.makeShared();
 			}
+			allBundles.makeShared();
 			// Finally add the module to the map of loaded modules.
 			modules = modules.mapAtPuttingCanDestroy(
 				aModule.moduleName(), aModule, true);
@@ -1366,73 +1412,6 @@ public final class AvailRuntime
 
 	/**
 	 * Request that the specified {@linkplain Continuation0 continuation} be
-	 * executed as a Level One-safe task at such a time as there are no Level
-	 * One-unsafe tasks running.
-	 *
-	 * @param safeTask
-	 *        What to do when Level One safety is ensured.
-	 */
-	public void whenLevelOneSafeDo (final AvailTask safeTask)
-	{
-		final AvailTask wrapped = new AvailTask(
-			safeTask.priority,
-			new Continuation0()
-			{
-				@Override
-				public void value ()
-				{
-					try
-					{
-						safeTask.run();
-					}
-					finally
-					{
-						levelOneSafeLock.lock();
-						try
-						{
-							incompleteLevelOneSafeTasks--;
-							if (incompleteLevelOneSafeTasks == 0)
-							{
-								assert incompleteLevelOneUnsafeTasks == 0;
-								levelOneSafetyRequested = false;
-								incompleteLevelOneUnsafeTasks =
-									levelOneUnsafeTasks.size();
-								for (final AvailTask task : levelOneUnsafeTasks)
-								{
-									execute(task);
-								}
-								levelOneUnsafeTasks.clear();
-							}
-						}
-						finally
-						{
-							levelOneSafeLock.unlock();
-						}
-					}
-				}
-			});
-		levelOneSafeLock.lock();
-		try
-		{
-			levelOneSafetyRequested = true;
-			if (incompleteLevelOneUnsafeTasks == 0)
-			{
-				incompleteLevelOneSafeTasks++;
-				executor.execute(wrapped);
-			}
-			else
-			{
-				levelOneSafeTasks.add(wrapped);
-			}
-		}
-		finally
-		{
-			levelOneSafeLock.unlock();
-		}
-	}
-
-	/**
-	 * Request that the specified {@linkplain Continuation0 continuation} be
 	 * executed as a Level One-unsafe task at such a time as there are no Level
 	 * One-safe tasks running.
 	 *
@@ -1502,19 +1481,118 @@ public final class AvailRuntime
 	}
 
 	/**
+	 * Request that the specified {@linkplain Continuation0 continuation} be
+	 * executed as a Level One-safe task at such a time as there are no Level
+	 * One-unsafe tasks running.
+	 *
+	 * @param safeTask
+	 *        What to do when Level One safety is ensured.
+	 */
+	public void whenLevelOneSafeDo (final AvailTask safeTask)
+	{
+		final AvailTask wrapped = new AvailTask(
+			safeTask.priority,
+			new Continuation0()
+			{
+				@Override
+				public void value ()
+				{
+					try
+					{
+						safeTask.run();
+					}
+					finally
+					{
+						levelOneSafeLock.lock();
+						try
+						{
+							incompleteLevelOneSafeTasks--;
+							if (incompleteLevelOneSafeTasks == 0)
+							{
+								assert incompleteLevelOneUnsafeTasks == 0;
+								levelOneSafetyRequested = false;
+								incompleteLevelOneUnsafeTasks =
+									levelOneUnsafeTasks.size();
+								for (final AvailTask task : levelOneUnsafeTasks)
+								{
+									execute(task);
+								}
+								levelOneUnsafeTasks.clear();
+							}
+						}
+						finally
+						{
+							levelOneSafeLock.unlock();
+						}
+					}
+				}
+			});
+		levelOneSafeLock.lock();
+		try
+		{
+			levelOneSafetyRequested = true;
+			if (incompleteLevelOneUnsafeTasks == 0)
+			{
+				incompleteLevelOneSafeTasks++;
+				executor.execute(wrapped);
+			}
+			else
+			{
+				levelOneSafeTasks.add(wrapped);
+			}
+		}
+		finally
+		{
+			levelOneSafeLock.unlock();
+		}
+	}
+
+	/**
 	 * Destroy all data structures used by this {@code AvailRuntime}.  Also
 	 * disassociate it from the current {@link Thread}'s local storage.
 	 */
+	@SuppressWarnings("null")
 	public void destroy ()
 	{
-		clearWellKnownObjects();
-		moduleNameResolver = null;
-		modules = null;
-		methods = null;
-		allBundles = null;
+		System.out.format("destroy=%sms\n", System.nanoTime() / 1000000);
 		timer.cancel();
 		executor.shutdownNow();
 		fileExecutor.shutdownNow();
 		socketExecutor.shutdownNow();
+		try
+		{
+			System.out.format("ex1=%sms\n", System.nanoTime() / 1000000);
+			executor.awaitTermination(10, TimeUnit.SECONDS);
+			System.out.format("ex2=%sms\n", System.nanoTime() / 1000000);
+		}
+		catch (final InterruptedException e)
+		{
+			// Ignore.
+		}
+		try
+		{
+			System.out.format("f1=%sms\n", System.nanoTime() / 1000000);
+			fileExecutor.awaitTermination(10, TimeUnit.SECONDS);
+			System.out.format("f2=%sms\n", System.nanoTime() / 1000000);
+		}
+		catch (final InterruptedException e)
+		{
+			// Ignore.
+		}
+		try
+		{
+			System.out.format("s1=%sms\n", System.nanoTime() / 1000000);
+			socketExecutor.awaitTermination(10, TimeUnit.SECONDS);
+			System.out.format("s2=%sms\n", System.nanoTime() / 1000000);
+		}
+		catch (final InterruptedException e)
+		{
+			// Ignore.
+		}
+		moduleNameResolver = null;
+		modules = null;
+		methods = null;
+		allBundles = null;
+		clearWellKnownObjects();
 	}
 }

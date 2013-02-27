@@ -210,7 +210,7 @@ extends Descriptor
 	}
 
 	/** The {@linkplain PojoDescriptor pojo} that wraps Java's {@code null}. */
-	private static AvailObject nullObject;
+	private static @Nullable AvailObject nullObject;
 
 	/**
 	 * Answer the {@linkplain PojoDescriptor pojo} that wraps Java's
@@ -220,7 +220,9 @@ extends Descriptor
 	 */
 	public static AvailObject nullObject ()
 	{
-		return nullObject;
+		final AvailObject theNullObject = nullObject;
+		assert theNullObject != null;
+		return theNullObject;
 	}
 
 	/**

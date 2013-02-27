@@ -44,6 +44,19 @@ Body
 "concurrency test suite" is a new atom;
 New test suite, concurrency test suite, extends foundation test suite;
 
+Test "reenter non-reentrant mutex" in concurrency test suite is
+[
+	mutex ::= a non-reentrant mutex;
+	Lock mutex for [Lock mutex for [Raise an exception]]
+]
+must raise reentry exception;
+
+Test "reenter reentrant mutex" in concurrency test suite is
+[
+	mutex ::= a reentrant mutex;
+	Require: 5 = lock mutex for [lock mutex for [5]];
+];
+
 Test "basic fork and join" in concurrency test suite is
 [
 	forked ::= invoke [Ignore: 0;] with <>, forked at priority 50;
@@ -76,21 +89,311 @@ Test "fork and multiple join" in concurrency test suite is
 	Require: 3^20 = target's result;
 ];
 
-Test "request termination" in concurrency test suite is
+Test "basic binary semaphore" in concurrency test suite is
 [
+	sem ::= a semaphore with 0 out of 1 permits;
+	forked ::= invoke [Signal sem;] with <>, forked at priority 50;
+	Await sem;
+	Join forked;
+	Require: forked has terminated;
+];
+
+Test "basic counting semaphore" in concurrency test suite is
+[
+	count ::= 10;
+	sem ::= a semaphore with 0 out of count permits;
+	fibers ::=
+		map 1 to 10 through
+		[
+			ignored : [1..10]
+		|
+			invoke [Signal sem;] with <>, forked at priority 50
+		];
+	Await sem count times;
+	For each of fibers do
+	[
+		forked : fiber
+	|
+		Join forked;
+		Require: forked has terminated;
+	];
+];
+
+Test "signal too many times" in concurrency test suite is
+[
+	sem ::= a semaphore with 0 out of 0 permits;
+	Signal sem;
+]
+must raise cannot-exceed-maximum-permits exception;
+
+Test "heritable fiber variables" in concurrency test suite is
+[
+	h1 ::= new heritable atom named "h1";
+	h2 ::= new heritable atom named "h2";
+	u1 ::= new atom named "u1";
+	u2 ::= new atom named "u2";
+	fiberLocals ::=
+	{
+		h1 → 100,
+		h2 → {"United States" → "Washington, D.C."},
+		u1 → ∅,
+		u2 → "golem"
+	};
+	For each of fiberLocals do
+	[
+		key : atom,
+		value : any
+	|
+		current fiber[key] := value;
+	];
+	inherited : {atom→any|} := {};
 	forked ::=
 		invoke
 		[
-			Until [termination requested] do [Yield current fiber;];
-			"仕上がります"
+			For each of fiberLocals' keys do
+			[
+				key : atom
+			|
+				If key ∈ current fiber then
+				[
+					inherited := inherited + key→current fiber[key];
+				];
+			];
 		]
 		with <>,
 		forked at priority 50;
-	Request termination of forked;
 	Join forked;
 	Require: forked has terminated;
-	Require: forked has result;
-	Require: "仕上がります" = forked's result;
+	Require: ¬forked has result;
+	Require: h1 ∈ inherited;
+	Require: fiberLocals[h1] = inherited[h1];
+	Require: h2 ∈ inherited;
+	Require: fiberLocals[h2] = inherited[h2];
+	Require: ¬u1 ∈ inherited;
+	Require: ¬u2 ∈ inherited;
+];
+
+Test "heritable fiber variables(orphan)" in concurrency test suite is
+[
+	h1 ::= new heritable atom named "h1";
+	h2 ::= new heritable atom named "h2";
+	u1 ::= new atom named "u1";
+	u2 ::= new atom named "u2";
+	fiberLocals ::=
+	{
+		h1 → ∅,
+		h2 → "golem",
+		u1 → 100,
+		u2 → {"United States" → "Washington, D.C."}
+	};
+	For each of fiberLocals do
+	[
+		key : atom,
+		value : any
+	|
+		current fiber[key] := value;
+	];
+	mutex ::= a monitor named "heritable fiber variables";
+	isDone : boolean := false;
+	done ::= a condition of mutex is [isDone];
+	inherited : {atom→any|} := {};
+	Invoke
+	[
+		For each of fiberLocals' keys do
+		[
+			key : atom
+		|
+			If key ∈ current fiber then
+			[
+				inherited := inherited + key→current fiber[key];
+			];
+		];
+		Lock mutex for
+		[
+			isDone := true;
+			Signal done;
+		];
+	]
+	with <>,
+	forked at priority 50;
+	Lock mutex for [Await done;];
+	Require: h1 ∈ inherited;
+	Require: fiberLocals[h1] = inherited[h1];
+	Require: h2 ∈ inherited;
+	Require: fiberLocals[h2] = inherited[h2];
+	Require: ¬u1 ∈ inherited;
+	Require: ¬u2 ∈ inherited;
+];
+
+Test "sleep" in concurrency test suite is
+[
+	delay ::= 10;
+	then ::= milliseconds since the Epoch;
+	Sleep for delay milliseconds;
+	now ::= milliseconds since the Epoch;
+	Require: now - then ≥ delay;
+];
+
+Test "delayed fork" in concurrency test suite is
+[
+	delay ::= 10;
+	then ::= milliseconds since the Epoch;
+	now : integer;
+	forked ::=
+		in delay milliseconds,
+			invoke [now := milliseconds since the Epoch;]
+			with <>,
+			forked at priority 50;
+	Join forked;
+	Require: forked has terminated;
+	Require: ¬forked has result;
+	Require: ↑now is assigned;
+	Require: now - then ≥ delay;
+];
+
+Test "delayed fork(orphan)" in concurrency test suite is
+[
+	delay ::= 10;
+	then ::= milliseconds since the Epoch;
+	now : integer;
+	In delay milliseconds,
+		invoke [now := milliseconds since the Epoch;]
+		with <>,
+		forked at priority 50;
+	While [↑now is unassigned] do [Yield current fiber;];
+	Require: now - then ≥ delay;
+];
+
+Test "heritable fiber variables(delayed fork)" in concurrency test suite is
+[
+	h1 ::= new heritable atom named "h1";
+	h2 ::= new heritable atom named "h2";
+	u1 ::= new atom named "u1";
+	u2 ::= new atom named "u2";
+	fiberLocals ::=
+	{
+		h1 → 100,
+		h2 → {"United States" → "Washington, D.C."},
+		u1 → ∅,
+		u2 → "golem"
+	};
+	For each of fiberLocals do
+	[
+		key : atom,
+		value : any
+	|
+		current fiber[key] := value;
+	];
+	inherited : {atom→any|} := {};
+	delay ::= 10;
+	then ::= milliseconds since the Epoch;
+	now : integer;
+	forked ::=
+		in delay milliseconds,
+		invoke
+		[
+			now := milliseconds since the Epoch;
+			For each of fiberLocals' keys do
+			[
+				key : atom
+			|
+				If key ∈ current fiber then
+				[
+					inherited := inherited + key→current fiber[key];
+				];
+			];
+		]
+		with <>,
+		forked at priority 50;
+	Join forked;
+	Require: forked has terminated;
+	Require: ¬forked has result;
+	Require: now - then ≥ delay;
+	Require: h1 ∈ inherited;
+	Require: fiberLocals[h1] = inherited[h1];
+	Require: h2 ∈ inherited;
+	Require: fiberLocals[h2] = inherited[h2];
+	Require: ¬u1 ∈ inherited;
+	Require: ¬u2 ∈ inherited;
+];
+
+Test "heritable fiber variables(delayed fork,orphan)"
+	in concurrency test suite is
+[
+	h1 ::= new heritable atom named "h1";
+	h2 ::= new heritable atom named "h2";
+	u1 ::= new atom named "u1";
+	u2 ::= new atom named "u2";
+	fiberLocals ::=
+	{
+		h1 → ∅,
+		h2 → "golem",
+		u1 → 100,
+		u2 → {"United States" → "Washington, D.C."}
+	};
+	For each of fiberLocals do
+	[
+		key : atom,
+		value : any
+	|
+		current fiber[key] := value;
+	];
+	mutex ::= a monitor named "heritable fiber variables";
+	isDone : boolean := false;
+	done ::= a condition of mutex is [isDone];
+	inherited : {atom→any|} := {};
+	delay ::= 10;
+	then ::= milliseconds since the Epoch;
+	now : integer;
+	In delay milliseconds,
+		invoke
+		[
+			now := milliseconds since the Epoch;
+			For each of fiberLocals' keys do
+			[
+				key : atom
+			|
+				If key ∈ current fiber then
+				[
+					inherited := inherited + key→current fiber[key];
+				];
+			];
+			Lock mutex for
+			[
+				isDone := true;
+				Signal done;
+			];
+		]
+		with <>,
+		forked at priority 50;
+	Lock mutex for [Await done;];
+	Require: now - then ≥ delay;
+	Require: h1 ∈ inherited;
+	Require: fiberLocals[h1] = inherited[h1];
+	Require: h2 ∈ inherited;
+	Require: fiberLocals[h2] = inherited[h2];
+	Require: ¬u1 ∈ inherited;
+	Require: ¬u2 ∈ inherited;
+];
+
+Test "basic future" in concurrency test suite is
+[
+	f : future of whole number := the future of [10^100];
+	Require: 10^100 = f's value;
+];
+
+Test "future raises" in concurrency test suite is
+[
+	f : future of whole number := the future of
+	[
+		u : whole number := 1;
+		v : whole number := 0;
+		u ÷ v
+	];
+	killer : worker exception;
+	Guard [Ignore: f's value;]
+	intercept [e : worker exception | killer := e;];
+	Require: ↑killer is assigned;
 ];
 
 Test "for-each in parallel" in concurrency test suite is
@@ -144,15 +447,98 @@ Test "map in parallel(worker exception)" in concurrency test suite is
 	Require: killer's causal exception ∈ cannot-divide-by-zero exception;
 ];
 
-Test "reenter non-reentrant mutex" in concurrency test suite is
+Test "request termination of running fiber" in concurrency test suite is
 [
-	mutex ::= a non-reentrant mutex;
-	Lock mutex for [Lock mutex for [Raise an exception]]
-]
-must raise reentry exception;
+	/* Try it a few times so that races can resolve differently. */
+	Repeat
+	[
+		forked ::=
+			invoke
+			[
+				Until [termination requested] do [Yield current fiber;];
+				"仕上がります"
+			]
+			with <>,
+			forked at priority 50;
+		Request termination of forked;
+		Join forked;
+		Require: forked has terminated;
+		Require: forked has result;
+		Require: "仕上がります" = forked's result;
+	] 10 times;
+];
 
-Test "reenter reentrant mutex" in concurrency test suite is
+Test "request termination of parked fiber" in concurrency test suite is
 [
-	mutex ::= a reentrant mutex;
-	Require: 5 = lock mutex for [lock mutex for [5]];
+	/* Try it a few times so that races can resolve differently. */
+	Repeat
+	[
+		forked ::=
+			invoke [Do [Park current fiber;] until [termination requested];]
+			with <>,
+			forked at priority 50;
+		Request termination of forked;
+		Join forked;
+		Require: forked has terminated;
+	] 10 times;
+];
+
+Test "request termination of joining fiber" in concurrency test suite is
+[
+	/* Try it a few times so that races can resolve differently. */
+	Repeat
+	[
+		forked ::=
+			invoke [Do [Park current fiber;] until [termination requested];]
+			with <>,
+			forked at priority 50;
+		joiner ::=
+			invoke [Join forked;]
+			with <>,
+			forked at priority 50;
+		Request termination of joiner;
+		Join joiner;
+		Require: joiner has terminated;
+		Require: ¬forked has terminated;
+		Request termination of forked;
+		Join forked;
+		Require: forked has terminated;
+	] 10 times;
+];
+
+Test "request termination of sleeping fiber"
+	in concurrency test suite is
+[
+	/* Try it a few times so that races can resolve differently. */
+	Repeat
+	[
+		forked ::=
+			invoke
+			[
+				Do [Sleep for 1000000 milliseconds;]
+				until [termination requested];
+			]
+			with <>,
+			forked at priority 50;
+		Request termination of forked;
+		Join forked;
+		Require: forked has terminated;
+	] 10 times;
+];
+
+Test "request termination of permanently sleeping fiber"
+	in concurrency test suite is
+[
+	/* Try it a few times so that races can resolve differently. */
+	Repeat
+	[
+		forked ::=
+			invoke
+				[Do [Sleep for ∞ milliseconds;] until [termination requested];]
+			with <>,
+			forked at priority 50;
+		Request termination of forked;
+		Join forked;
+		Require: forked has terminated;
+	] 10 times;
 ];

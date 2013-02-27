@@ -87,12 +87,38 @@ extends Descriptor
 		/**
 		 * The {@link #limitDouble} as an Avail object.
 		 */
-		protected AvailObject limitDoubleObject;
+		protected @Nullable A_Number limitDoubleObject;
+
+		/**
+		 *  Answer the Avail {@link DoubleDescriptor double-precision} value
+		 *  that typifies this value.
+		 *
+		 * @return An Avail double.
+		 */
+		protected A_Number limitDoubleObject ()
+		{
+			final A_Number limit = limitDoubleObject;
+			assert limit != null;
+			return limit;
+		}
 
 		/**
 		 * The {@link #limitFloat} as an Avail object.
 		 */
-		protected AvailObject limitFloatObject;
+		protected @Nullable AvailObject limitFloatObject;
+
+		/**
+		 *  Answer the Avail {@link FloatDescriptor single-precision} value
+		 *  that typifies this value.
+		 *
+		 * @return An Avail float.
+		 */
+		protected A_Number limitFloatObject ()
+		{
+			final A_Number limit = limitFloatObject;
+			assert limit != null;
+			return limit;
+		}
 
 		/**
 		 * Construct a new {@link Sign}.
@@ -163,7 +189,7 @@ extends Descriptor
 		 * same values that yielded the receiver, but with the arguments
 		 * reversed.
 		 */
-		private Order reverse;
+		private @Nullable Order reverse;
 
 		static
 		{
@@ -181,7 +207,9 @@ extends Descriptor
 		 */
 		public final Order reverse ()
 		{
-			return reverse;
+			final Order rev = reverse;
+			assert rev != null;
+			return rev;
 		}
 
 		/**

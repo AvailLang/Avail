@@ -73,11 +73,5 @@ extends Thread
 		super(runnable);
 		this.runtime = runtime;
 		this.interpreter = new Interpreter(runtime);
-		setDaemon(false);
-		setName(String.format(
-			"%s-%d [from %s]",
-			this.getClass().getSimpleName(),
-			System.identityHashCode(this),
-			Thread.currentThread().getName()));
 	}
 }

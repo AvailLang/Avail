@@ -515,7 +515,7 @@ extends AbstractNumberDescriptor
 	 * @param aFloat The Java {@code float} to box.
 	 * @return The boxed Avail {@linkplain FloatDescriptor float}.
 	 */
-	public static AvailObject fromFloat (final float aFloat)
+	public static A_Number fromFloat (final float aFloat)
 	{
 		if (Float.isNaN(aFloat))
 		{
@@ -601,9 +601,9 @@ extends AbstractNumberDescriptor
 	 *
 	 * @return The Avail object for float positive infinity.
 	 */
-	static AvailObject positiveInfinity ()
+	static A_Number positiveInfinity ()
 	{
-		return Sign.POSITIVE.limitFloatObject;
+		return Sign.POSITIVE.limitFloatObject();
 	}
 
 	/**
@@ -611,9 +611,9 @@ extends AbstractNumberDescriptor
 	 *
 	 * @return The Avail object for float negative infinity.
 	 */
-	static AvailObject negativeInfinity ()
+	static A_Number negativeInfinity ()
 	{
-		return Sign.NEGATIVE.limitFloatObject;
+		return Sign.NEGATIVE.limitFloatObject();
 	}
 
 	/**
@@ -621,9 +621,9 @@ extends AbstractNumberDescriptor
 	 *
 	 * @return The Avail object for float not-a-number.
 	 */
-	static AvailObject notANumber ()
+	static A_Number notANumber ()
 	{
-		return Sign.INDETERMINATE.limitFloatObject;
+		return Sign.INDETERMINATE.limitFloatObject();
 	}
 
 	/**
@@ -631,9 +631,9 @@ extends AbstractNumberDescriptor
 	 *
 	 * @return The Avail object for float (positive) zero.
 	 */
-	static A_BasicObject zero ()
+	static A_Number zero ()
 	{
-		return Sign.ZERO.limitFloatObject;
+		return Sign.ZERO.limitFloatObject();
 	}
 
 	/**

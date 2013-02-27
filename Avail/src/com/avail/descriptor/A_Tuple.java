@@ -32,6 +32,7 @@
 
 package com.avail.descriptor;
 
+import java.nio.ByteBuffer;
 import java.util.Iterator;
 import java.util.Set;
 
@@ -358,4 +359,10 @@ extends A_BasicObject, Iterable<AvailObject>
 	 * @return The tuple on which that zone is based.
 	 */
 	A_BasicObject subtupleForZone (int zone);
+
+
+	/**
+	 * @return
+	 */
+	public ByteBuffer byteBuffer ();
 }

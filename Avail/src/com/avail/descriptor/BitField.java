@@ -91,7 +91,7 @@ implements Comparable<BitField>
 	 * default {@linkplain AbstractDescriptor#printObjectOnAvoidingIndent(
 	 * AvailObject, StringBuilder, List, int) object printing} mechanism.
 	 */
-	String name;
+	@Nullable String name;
 
 	/**
 	 * Construct a new {@link BitField}.

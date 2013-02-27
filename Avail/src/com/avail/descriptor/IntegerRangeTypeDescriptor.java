@@ -351,7 +351,7 @@ extends TypeDescriptor
 		{
 			return Long.TYPE;
 		}
-		else if (object.isSubtypeOf(integers))
+		else if (object.isSubtypeOf(integers()))
 		{
 			return BigInteger.class;
 		}
@@ -431,31 +431,31 @@ extends TypeDescriptor
 	}
 
 	/** The range [0..255]. */
-	static AvailObject bytes;
-
-	/** The range [0..1]. */
-	static AvailObject zeroOrOne;
+	static @Nullable A_Type bytes;
 
 	/** The range of Unicode code points, [0..1114111]. */
-	static AvailObject characterCodePoints;
+	static @Nullable A_Type characterCodePoints;
 
 	/** The range of integers including infinities, [-∞..∞]. */
-	static AvailObject extendedIntegers;
+	static @Nullable A_Type extendedIntegers;
 
 	/** The range of integers not including infinities, (∞..∞). */
-	static AvailObject integers;
+	static @Nullable A_Type integers;
 
 	/** The range of natural numbers, [1..∞). */
-	static AvailObject naturalNumbers;
+	static @Nullable A_Type naturalNumbers;
 
 	/** The range [0..15]. */
-	static AvailObject nybbles;
+	static @Nullable A_Type nybbles;
 
 	/** The range [0..65535]. */
-	static AvailObject unsignedShorts;
+	static @Nullable A_Type unsignedShorts;
 
 	/** The range of whole numbers, [0..∞). */
-	static AvailObject wholeNumbers;
+	static @Nullable A_Type wholeNumbers;
+
+	/** The range [0..1]. */
+	static @Nullable A_Type zeroOrOne;
 
 	/**
 	 * The metatype for integers. This is an {@linkplain InstanceTypeDescriptor
@@ -463,7 +463,7 @@ extends TypeDescriptor
 	 * extended integer}, and therefore has all integer range types as
 	 * instances.
 	 */
-	static AvailObject meta;
+	static @Nullable A_Type meta;
 
 	/**
 	 * Create all objects well-known to the {@linkplain AvailRuntime Avail
@@ -516,7 +516,7 @@ extends TypeDescriptor
 			true,
 			InfinityDescriptor.positiveInfinity(),
 			false).makeShared();
-		meta = InstanceMetaDescriptor.on(extendedIntegers).makeShared();
+		meta = InstanceMetaDescriptor.on(extendedIntegers()).makeShared();
 	}
 
 	/**
@@ -561,23 +561,15 @@ extends TypeDescriptor
 	}
 
 	/**
-	 * Return the range [0..1].
-	 *
-	 * @return The integer range that includes just zero and one.
-	 */
-	public static AvailObject zeroOrOne ()
-	{
-		return zeroOrOne;
-	}
-
-	/**
 	 * Return the range [0..255].
 	 *
 	 * @return The unsigned byte range.
 	 */
-	public static AvailObject bytes ()
+	public static A_Type bytes ()
 	{
-		return bytes;
+		final A_Type type = bytes;
+		assert type != null;
+		return type;
 	}
 
 	/**
@@ -585,9 +577,11 @@ extends TypeDescriptor
 	 *
 	 * @return The range of Unicode code points.
 	 */
-	public static AvailObject characterCodePoints ()
+	public static A_Type characterCodePoints ()
 	{
-		return characterCodePoints;
+		final A_Type type = characterCodePoints;
+		assert type != null;
+		return type;
 	}
 
 	/**
@@ -595,9 +589,11 @@ extends TypeDescriptor
 	 *
 	 * @return The range of integers including infinities.
 	 */
-	public static AvailObject extendedIntegers ()
+	public static A_Type extendedIntegers ()
 	{
-		return extendedIntegers;
+		final A_Type type = extendedIntegers;
+		assert type != null;
+		return type;
 	}
 
 	/**
@@ -605,9 +601,11 @@ extends TypeDescriptor
 	 *
 	 * @return The range of finite integers.
 	 */
-	public static AvailObject integers ()
+	public static A_Type integers ()
 	{
-		return integers;
+		final A_Type type = integers;
+		assert type != null;
+		return type;
 	}
 
 	/**
@@ -615,9 +613,11 @@ extends TypeDescriptor
 	 *
 	 * @return The range of positive finite integers.
 	 */
-	public static AvailObject naturalNumbers ()
+	public static A_Type naturalNumbers ()
 	{
-		return naturalNumbers;
+		final A_Type type = naturalNumbers;
+		assert type != null;
+		return type;
 	}
 
 	/**
@@ -625,9 +625,11 @@ extends TypeDescriptor
 	 *
 	 * @return The non-negative integers that can be represented in 4 bits.
 	 */
-	public static AvailObject nybbles ()
+	public static A_Type nybbles ()
 	{
-		return nybbles;
+		final A_Type type = nybbles;
+		assert type != null;
+		return type;
 	}
 
 	/**
@@ -635,9 +637,11 @@ extends TypeDescriptor
 	 *
 	 * @return The non-negative integers that can be represented in 16 bits.
 	 */
-	public static AvailObject unsignedShorts ()
+	public static A_Type unsignedShorts ()
 	{
-		return unsignedShorts;
+		final A_Type type = unsignedShorts;
+		assert type != null;
+		return type;
 	}
 
 	/**
@@ -645,9 +649,23 @@ extends TypeDescriptor
 	 *
 	 * @return The non-negative finite integers.
 	 */
-	public static AvailObject wholeNumbers ()
+	public static A_Type wholeNumbers ()
 	{
-		return wholeNumbers;
+		final A_Type type = wholeNumbers;
+		assert type != null;
+		return type;
+	}
+
+	/**
+	 * Return the range [0..1].
+	 *
+	 * @return The integer range that includes just zero and one.
+	 */
+	public static A_Type zeroOrOne ()
+	{
+		final A_Type type = zeroOrOne;
+		assert type != null;
+		return type;
 	}
 
 	/**
@@ -655,9 +673,11 @@ extends TypeDescriptor
 	 *
 	 * @return The integer metatype.
 	 */
-	public static AvailObject meta ()
+	public static A_Type meta ()
 	{
-		return meta;
+		final A_Type type = meta;
+		assert type != null;
+		return type;
 	}
 
 	/**

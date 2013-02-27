@@ -36,13 +36,13 @@ import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
-import com.avail.annotations.NotNull;
+import com.avail.AvailRuntime;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 
 /**
  * <strong>Primitive 606</strong>: Disassociate the given {@linkplain
- * AtomDescriptor name} (key) from the variables of the given {@linkplain
+ * AtomDescriptor name} (key) from the variables of the current {@linkplain
  * FiberDescriptor fiber}.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
@@ -53,24 +53,43 @@ extends Primitive
 	/**
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
-	public final @NotNull static Primitive instance =
-		new P_606_RemoveFiberVariable().init(2, CanInline, HasSideEffect);
+	public final static Primitive instance =
+		new P_606_RemoveFiberVariable().init(1, CanInline, HasSideEffect);
 
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 2;
-		final A_BasicObject fiber = args.get(0);
-		final A_Atom key = args.get(1);
-		final A_Map globals = fiber.fiberGlobals();
+		assert args.size() == 1;
+		final A_Atom key = args.get(0);
+		if (AvailRuntime.isSpecialAtom(key))
+		{
+			return interpreter.primitiveFailure(E_SPECIAL_ATOM);
+		}
+		final A_BasicObject fiber = FiberDescriptor.current();
+		// Choose the correct map based on the heritability of the key.
+		final boolean heritable =
+			!key.getAtomProperty(AtomDescriptor.heritableKey()).equalsNil();
+		final A_Map globals =
+			heritable
+			? fiber.heritableFiberGlobals()
+			: fiber.fiberGlobals();
 		if (!globals.hasKey(key))
 		{
 			return interpreter.primitiveFailure(
 				E_NO_SUCH_FIBER_VARIABLE);
 		}
-		fiber.fiberGlobals(globals.mapWithoutKeyCanDestroy(key, true));
+		if (heritable)
+		{
+			fiber.heritableFiberGlobals(
+				globals.mapWithoutKeyCanDestroy(key, true));
+		}
+		else
+		{
+			fiber.fiberGlobals(
+				globals.mapWithoutKeyCanDestroy(key, true));
+		}
 		return interpreter.primitiveSuccess(NilDescriptor.nil());
 	}
 
@@ -79,7 +98,6 @@ extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				FIBER.o(),
 				ATOM.o()),
 			TOP.o());
 	}

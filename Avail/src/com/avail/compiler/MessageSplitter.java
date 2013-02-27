@@ -2362,10 +2362,9 @@ public class MessageSplitter
 	 * @return The tuple of integers encoding parse instructions for this
 	 *         message.
 	 */
-	public AvailObject instructionsTuple ()
+	public A_Tuple instructionsTuple ()
 	{
-		final AvailObject tuple = TupleDescriptor.fromIntegerList(
-			instructions);
+		final A_Tuple tuple = TupleDescriptor.fromIntegerList(instructions);
 		tuple.makeImmutable();
 		return tuple;
 	}

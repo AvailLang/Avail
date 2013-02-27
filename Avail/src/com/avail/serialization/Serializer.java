@@ -59,8 +59,8 @@ public class Serializer
 	 * Special system {@link AtomDescriptor atoms} that aren't already in the
 	 * list of {@linkplain AvailRuntime#specialAtoms() special atoms}.
 	 */
-	static final Map<AvailObject, Integer> specialAtoms =
-		new HashMap<AvailObject, Integer>(100);
+	static final Map<A_Atom, Integer> specialAtoms =
+		new HashMap<A_Atom, Integer>(100);
 
 	/**
 	 * This keeps track of all objects that have been encountered.  It's a map
@@ -381,10 +381,10 @@ public class Serializer
 			}
 		}
 		// And build the inverse of AvailRuntime#specialAtoms().
-		final List<AvailObject> atomList = AvailRuntime.specialAtoms();
+		final List<A_Atom> atomList = AvailRuntime.specialAtoms();
 		for (int i = 0; i < atomList.size(); i++)
 		{
-			final AvailObject specialAtom = atomList.get(i);
+			final A_Atom specialAtom = atomList.get(i);
 			if (specialAtom != null)
 			{
 				specialAtoms.put(specialAtom, i);

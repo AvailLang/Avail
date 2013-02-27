@@ -221,7 +221,7 @@ extends TypeDescriptor
 		/**
 		 * The most general type for this kind of parse node.
 		 */
-		private AvailObject mostGeneralType;
+		private @Nullable A_Type mostGeneralType;
 
 		/**
 		 * Construct a new {@link ParseNodeKind}.
@@ -282,17 +282,19 @@ extends TypeDescriptor
 		}
 
 		/**
-		 * Answer a {@linkplain ParseNodeTypeDescriptor parse node type} whose kind
-		 * is the receiver and whose expression type is {@linkplain
+		 * Answer a {@linkplain ParseNodeTypeDescriptor parse node type} whose
+		 * kind is the receiver and whose expression type is {@linkplain
 		 * TypeDescriptor.Types#TOP top}. This is the most general parse node
 		 * type of that kind.
 		 *
 		 * @return The new parse node type, whose kind is the receiver and whose
 		 *         expression type is {@linkplain TypeDescriptor.Types#TOP top}.
 		 */
-		final public AvailObject mostGeneralType ()
+		final public A_Type mostGeneralType ()
 		{
-			return mostGeneralType;
+			final A_Type type = mostGeneralType;
+			assert type != null;
+			return type;
 		}
 
 		/**
@@ -305,18 +307,18 @@ extends TypeDescriptor
 		final public ParseNodeKind commonAncestorWith (
 			final ParseNodeKind another)
 		{
-			ParseNodeKind a = this;
-			ParseNodeKind b = another;
+			@NotNull ParseNodeKind a = this;
+			@NotNull ParseNodeKind b = another;
 			while (a != b)
 			{
 				final int diff = b.depth - a.depth;
 				if (diff <= 0)
 				{
-					a = a.parentKind;
+					a = a.parentKind();
 				}
 				if (diff >= 0)
 				{
-					b = b.parentKind;
+					b = b.parentKind();
 				}
 			}
 			return a;

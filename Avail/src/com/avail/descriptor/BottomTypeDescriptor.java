@@ -437,7 +437,7 @@ extends AbstractEnumerationTypeDescriptor
 		final AvailObject object,
 		final A_Type aType)
 	{
-		assert !aType.equals(bottom);
+		assert !aType.equals(bottom());
 		return aType.isSupertypeOfPrimitiveTypeEnum(ANY)
 			|| aType.isSubtypeOf(InstanceMetaDescriptor.topMeta());
 	}
@@ -483,7 +483,7 @@ extends AbstractEnumerationTypeDescriptor
 	A_Type o_WriteType (
 		final AvailObject object)
 	{
-		return bottom;
+		return bottom();
 	}
 
 	@Override
@@ -542,7 +542,7 @@ extends AbstractEnumerationTypeDescriptor
 	/**
 	 * The unique object that represents the type with no instances.
 	 */
-	private static A_Type bottom;
+	private static @Nullable A_Type bottom;
 
 	/**
 	 * Answer the unique type that has no instances.
@@ -551,7 +551,9 @@ extends AbstractEnumerationTypeDescriptor
 	 */
 	public static A_Type bottom ()
 	{
-		return bottom;
+		final A_Type b = bottom;
+		assert b != null;
+		return b;
 	}
 
 	/**

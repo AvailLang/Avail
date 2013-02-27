@@ -42,7 +42,7 @@ import com.avail.descriptor.AvailObject;
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public abstract class AvailRuntimeException
+public class AvailRuntimeException
 extends RuntimeException
 {
 	/** The serial version identifier. */
@@ -50,16 +50,6 @@ extends RuntimeException
 
 	/** The {@linkplain AvailErrorCode error code}. */
 	private final AvailErrorCode errorCode;
-
-	/**
-	 * Answer the {@linkplain AvailErrorCode error code}.
-	 *
-	 * @return The {@linkplain AvailErrorCode error code}.
-	 */
-	public AvailErrorCode errorCode ()
-	{
-		return errorCode;
-	}
 
 	/**
 	 * Answer the numeric error code as an {@linkplain AvailObject Avail
@@ -79,22 +69,22 @@ extends RuntimeException
 	 * @param errorCode
 	 *        The {@linkplain AvailErrorCode error code}.
 	 */
-	protected AvailRuntimeException (final AvailErrorCode errorCode)
+	public AvailRuntimeException (final AvailErrorCode errorCode)
 	{
 		this.errorCode = errorCode;
 	}
 
 	/**
 	 * Construct a new {@link AvailRuntimeException} with the specified
-	 * {@linkplain Throwable cause}.
+	 * {@linkplain AvailErrorCode error code} and {@linkplain Throwable cause}.
 	 *
 	 * @param errorCode
 	 *        The {@linkplain AvailErrorCode error code}.
 	 * @param cause
 	 *        The proximal {@linkplain Throwable cause} of the {@linkplain
-	 *        AvailRuntimeException exception}.
+	 *        AvailException exception}.
 	 */
-	protected AvailRuntimeException (
+	public AvailRuntimeException (
 		final AvailErrorCode errorCode,
 		final Throwable cause)
 	{

@@ -232,9 +232,9 @@ public class LRUCache<K, V>
 				keysBySoftReference.remove(reference);
 
 				final V referent = reference.get();
-				if (referent != null && retirementAction != null)
+				if (referent != null)
 				{
-					retirementAction.value(key, referent);
+					retire(key, referent);
 				}
 			}
 
@@ -318,7 +318,7 @@ public class LRUCache<K, V>
 	 * The {@linkplain Continuation2 action} responsible for retiring a binding
 	 * expired from the {@linkplain LRUCache cache}.
 	 */
-	@InnerAccess final Continuation2<K, V> retirementAction;
+	@InnerAccess final @Nullable Continuation2<K, V> retirementAction;
 
 	/**
 	 * A {@code ValueFuture} synchronously provides a value for the key
@@ -378,7 +378,7 @@ public class LRUCache<K, V>
 		 * The result of the computation of the {@linkplain
 		 * LRUCache.ValueFuture future}.
 		 */
-		private V result;
+		private @Nullable V result;
 
 		/**
 		 * Establish the argument as the result of the {@linkplain ValueFuture
@@ -407,7 +407,7 @@ public class LRUCache<K, V>
 		 * encountered during execution of the user-supplied {@linkplain
 		 * Transformer1 transformer}.
 		 */
-		private volatile RuntimeException exception;
+		private volatile @Nullable RuntimeException exception;
 
 		/**
 		 * Establish the argument as the {@linkplain RuntimeException
@@ -433,7 +433,7 @@ public class LRUCache<K, V>
 		}
 
 		@Override
-		public V get () throws RuntimeException
+		public @Nullable V get () throws RuntimeException
 		{
 			// Because the completion flag is volatile and one-way, we can
 			// safely check it without first acquiring the lock.
@@ -572,6 +572,20 @@ public class LRUCache<K, V>
 	}
 
 	/**
+	 *
+	 * @param key
+	 * @param referent
+	 */
+	@InnerAccess void retire (final K key, final V referent)
+	{
+		final Continuation2<K, V> retire = retirementAction;
+		if (retire != null)
+		{
+			retire.value(key, referent);
+		}
+	}
+
+	/**
 	 * The {@link Condition} used to make a thread wait until all futures have
 	 * been completed. A thread waiting on it will be signaled every time a
 	 * future is removed from {@linkplain #futures the map of futures}.
@@ -606,9 +620,9 @@ public class LRUCache<K, V>
 				final K key = entry.getKey();
 				final SoftReference<V> reference = entry.getValue();
 				final V referent = reference.get();
-				if (referent != null && retirementAction != null)
+				if (referent != null)
 				{
-					retirementAction.value(key, referent);
+					retire(key, referent);
 				}
 			}
 		}

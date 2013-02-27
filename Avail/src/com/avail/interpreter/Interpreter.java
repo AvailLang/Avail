@@ -1,21 +1,20 @@
 /**
- * Interpreter.java
- * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
+ * Interpreter.java Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
  * * Redistributions of source code must retain the above copyright notice, this
- *   list of conditions and the following disclaimer.
+ * list of conditions and the following disclaimer.
  *
  * * Redistributions in binary form must reproduce the above copyright notice,
- *   this list of conditions and the following disclaimer in the documentation
- *   and/or other materials provided with the distribution.
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
  *
  * * Neither the name of the copyright holder nor the names of the contributors
- *   may be used to endorse or promote products derived from this software
- *   without specific prior written permission.
+ * may be used to endorse or promote products derived from this software without
+ * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -243,9 +242,9 @@ public final class Interpreter
 	private final AvailRuntime runtime;
 
 	/**
-	 * Answer this interpreter's permanently bound runtime.
+	 * Answer the {@link AvailRuntime} permanently used by this interpreter.
 	 *
-	 * @return the runtime
+	 * @return This interpreter's runtime.
 	 */
 	public AvailRuntime runtime ()
 	{
@@ -271,7 +270,7 @@ public final class Interpreter
 	/**
 	 * The {@link FiberDescriptor} being executed by this interpreter.
 	 */
-	public A_BasicObject fiber;
+	public @Nullable A_BasicObject fiber;
 
 	/**
 	 * Return the current {@linkplain FiberDescriptor fiber}.
@@ -280,8 +279,9 @@ public final class Interpreter
 	 */
 	public A_BasicObject fiber ()
 	{
-		assert fiber != null;
-		return fiber;
+		final A_BasicObject f = fiber;
+		assert f != null;
+		return f;
 	}
 
 	/**
@@ -322,7 +322,7 @@ public final class Interpreter
 	 * AvailErrorCode error code} produced by a {@linkplain Result#FAILURE
 	 * failed} primitive.
 	 */
-	private AvailObject latestResult;
+	private @Nullable AvailObject latestResult;
 
 	/**
 	 * Set the latest result due to a {@linkplain Result#SUCCESS successful}
@@ -348,8 +348,9 @@ public final class Interpreter
 	 */
 	public AvailObject latestResult ()
 	{
-		assert latestResult != null;
-		return latestResult;
+		final AvailObject result = latestResult;
+		assert result != null;
+		return result;
 	}
 
 	/**
@@ -362,7 +363,7 @@ public final class Interpreter
 	 */
 	public Result primitiveSuccess (final A_BasicObject result)
 	{
-		assert fiber.executionState() == RUNNING;
+		assert fiber().executionState() == RUNNING;
 		assert result != null;
 		latestResult(result);
 		return SUCCESS;
@@ -379,7 +380,7 @@ public final class Interpreter
 	 */
 	public Result primitiveFailure (final AvailErrorCode code)
 	{
-		assert fiber.executionState() == RUNNING;
+		assert fiber().executionState() == RUNNING;
 		latestResult(code.numericCode());
 		assert latestResult != null;
 		return FAILURE;
@@ -397,7 +398,7 @@ public final class Interpreter
 	 */
 	public Result primitiveFailure (final AvailException exception)
 	{
-		assert fiber.executionState() == RUNNING;
+		assert fiber().executionState() == RUNNING;
 		latestResult(exception.numericCode());
 		assert latestResult != null;
 		return FAILURE;
@@ -416,7 +417,7 @@ public final class Interpreter
 	 */
 	public Result primitiveFailure (final AvailRuntimeException exception)
 	{
-		assert fiber.executionState() == RUNNING;
+		assert fiber().executionState() == RUNNING;
 		latestResult(exception.numericCode());
 		assert latestResult != null;
 		return FAILURE;
@@ -432,7 +433,7 @@ public final class Interpreter
 	 */
 	public Result primitiveFailure (final A_BasicObject result)
 	{
-		assert fiber.executionState() == RUNNING;
+		assert fiber().executionState() == RUNNING;
 		assert result != null;
 		latestResult(result);
 		return FAILURE;
@@ -448,7 +449,7 @@ public final class Interpreter
 	 * A {@linkplain Continuation0 continuation} to run after a {@linkplain
 	 * FiberDescriptor fiber} exits and is unbound.
 	 */
-	private Continuation0 postExitContinuation;
+	private @Nullable Continuation0 postExitContinuation;
 
 	/**
 	 * Answer the {@linkplain Continuation0 continuation}, if any, to run after
@@ -492,7 +493,7 @@ public final class Interpreter
 	{
 		assert !exitNow;
 		assert state.indicatesSuspension();
-		final A_BasicObject aFiber = fiber;
+		final A_BasicObject aFiber = fiber();
 		aFiber.lock(new Continuation0()
 		{
 			@Override
@@ -565,7 +566,7 @@ public final class Interpreter
 	 * P_340_PushConstant} to get to the first literal in order to return it
 	 * from the primitive.
 	 */
-	private A_BasicObject primitiveCompiledCodeBeingAttempted;
+	private @Nullable A_BasicObject primitiveCompiledCodeBeingAttempted;
 
 	/**
 	 * Answer the {@linkplain Primitive primitive} {@linkplain
@@ -578,7 +579,9 @@ public final class Interpreter
 	 */
 	public A_BasicObject primitiveCompiledCodeBeingAttempted ()
 	{
-		return primitiveCompiledCodeBeingAttempted;
+		final A_BasicObject code = primitiveCompiledCodeBeingAttempted;
+		assert code != null;
+		return code;
 	}
 
 	/** The lock that synchronizes joins. */
@@ -603,7 +606,7 @@ public final class Interpreter
 		assert !exitNow;
 		assert finalObject != null;
 		assert state.indicatesTermination();
-		final A_BasicObject aFiber = fiber;
+		final A_BasicObject aFiber = fiber();
 		aFiber.lock(new Continuation0()
 		{
 			@Override
@@ -630,8 +633,7 @@ public final class Interpreter
 			{
 				synchronized (Interpreter.joinLock)
 				{
-					final A_Set joining =
-						aFiber.joiningFibers().makeShared();
+					final A_Set joining = aFiber.joiningFibers().makeShared();
 					aFiber.joiningFibers(SetDescriptor.empty());
 					// Wake up all fibers trying to join this one.
 					for (final A_BasicObject joiner : joining)
@@ -649,6 +651,7 @@ public final class Interpreter
 									joiner.joinee(NilDescriptor.nil());
 									joiner.executionState(SUSPENDED);
 									Interpreter.resumeFromPrimitive(
+										AvailRuntime.current(),
 										joiner,
 										SUCCESS,
 										NilDescriptor.nil());
@@ -691,12 +694,12 @@ public final class Interpreter
 	/**
 	 * Invoke an Avail primitive.  The primitive number and arguments are
 	 * passed.  If the primitive fails, use {@link
-	 * Interpreter#primitiveSuccess(A_BasicObject)} to set the primitiveResult to
-	 * some object indicating what the problem was, and return primitiveFailed
-	 * immediately.  If the primitive causes the continuation to change (e.g.,
-	 * through block invocation, continuation restart, exception throwing, etc),
-	 * answer continuationChanged.  Otherwise the primitive succeeded, and we
-	 * simply capture the resulting value with {@link
+	 * Interpreter#primitiveSuccess(A_BasicObject)} to set the primitiveResult
+	 * to some object indicating what the problem was, and return
+	 * primitiveFailed immediately.  If the primitive causes the continuation to
+	 * change (e.g., through block invocation, continuation restart, exception
+	 * throwing, etc), answer continuationChanged.  Otherwise the primitive
+	 * succeeded, and we simply capture the resulting value with {@link
 	 * Interpreter#primitiveSuccess(A_BasicObject)} and return {@link
 	 * Result#SUCCESS}.
 	 *
@@ -730,7 +733,7 @@ public final class Interpreter
 		{
 			final String failPart = success == FAILURE
 				? " (" + AvailErrorCode.byNumericCode(
-					latestResult.extractInt())
+					latestResult().extractInt())
 					+ ")"
 				: "";
 			logger.finer(String.format(
@@ -743,7 +746,7 @@ public final class Interpreter
 	}
 
 	/** The {@link L2ChunkDescriptor} being executed. */
-	private A_BasicObject chunk;
+	private @Nullable A_BasicObject chunk;
 
 	/**
 	 * Return the currently executing {@linkplain L2ChunkDescriptor Level Two
@@ -754,7 +757,9 @@ public final class Interpreter
 	 */
 	public A_BasicObject chunk ()
 	{
-		return chunk;
+		final A_BasicObject c = chunk;
+		assert c != null;
+		return c;
 	}
 
 	/**
@@ -776,7 +781,7 @@ public final class Interpreter
 	/**
 	 * The L2 instruction stream as a tuple of integers.
 	 */
-	private A_Tuple chunkWords;
+	private @Nullable A_Tuple chunkWords;
 
 	/**
 	 * Extract the next word from the Level Two instruction stream.
@@ -786,7 +791,9 @@ public final class Interpreter
 	public int nextWord ()
 	{
 		final int theOffset = offset;
-		final int word = chunkWords.tupleIntAt(theOffset);
+		final A_Tuple words = chunkWords;
+		assert words != null;
+		final int word = words.tupleIntAt(theOffset);
 		offset = theOffset + 1;
 		return word;
 	}
@@ -795,7 +802,7 @@ public final class Interpreter
 	 * This chunk's register vectors. A register vector is a tuple of integers
 	 * that represent {@link #pointers Avail object registers}.
 	 */
-	private A_Tuple chunkVectors;
+	private @Nullable A_Tuple chunkVectors;
 
 	/**
 	 * Answer the vector in the current chunk which has the given index. A
@@ -807,7 +814,9 @@ public final class Interpreter
 	 */
 	public A_Tuple vectorAt (final int index)
 	{
-		return chunkVectors.tupleAt(index);
+		final A_Tuple vectors = chunkVectors;
+		assert vectors != null;
+		return vectors.tupleAt(index);
 	}
 
 	/**
@@ -1145,7 +1154,7 @@ public final class Interpreter
 	public void processInterrupt (final A_BasicObject continuation)
 	{
 		assert !exitNow;
-		final A_BasicObject aFiber = fiber;
+		final A_BasicObject aFiber = fiber();
 		aFiber.lock(new Continuation0()
 		{
 			@Override
@@ -1154,7 +1163,7 @@ public final class Interpreter
 				assert aFiber.executionState() == RUNNING;
 				aFiber.executionState(INTERRUPTED);
 				aFiber.continuation(continuation);
-				final boolean bound = fiber.getAndSetSynchronizationFlag(
+				final boolean bound = fiber().getAndSetSynchronizationFlag(
 					BOUND, false);
 				assert bound;
 				fiber = null;
@@ -1444,7 +1453,7 @@ public final class Interpreter
 					assert !Primitive.byPrimitiveNumberOrFail(primNum).hasFlag(
 						Flag.CannotFail);
 					assert latestResult != null;
-					pointerAtPut(PRIMITIVE_FAILURE, latestResult);
+					pointerAtPut(PRIMITIVE_FAILURE, latestResult());
 					break;
 				case FIBER_SUSPENDED:
 					assert exitNow;
@@ -1545,24 +1554,24 @@ public final class Interpreter
 					assert exitNow;
 					return;
 				case SUCCESS:
-					assert chunk.isValid();
+					assert chunk().isValid();
 					final A_BasicObject updatedCaller =
 						continuation.ensureMutable();
 					final int stackp = updatedCaller.stackp();
 					final A_Type expectedType =
 						updatedCaller.stackAt(stackp);
-					assert latestResult != null;
-					if (!latestResult.isInstanceOf(expectedType))
+					final AvailObject result = latestResult();
+					if (!result.isInstanceOf(expectedType))
 					{
 						// TODO: [MvG] Remove after debugging.
-						latestResult.isInstanceOf(expectedType);
+						result.isInstanceOf(expectedType);
 						error(String.format(
 							"Return value (%s) does not agree with "
 							+ "expected type (%s)",
-							latestResult,
+							result,
 							expectedType));
 					}
-					updatedCaller.stackAtPut(stackp, latestResult);
+					updatedCaller.stackAtPut(stackp, result);
 					pointerAtPut(CALLER, updatedCaller);
 					setChunk(
 						updatedCaller.levelTwoChunk(),
@@ -1570,8 +1579,7 @@ public final class Interpreter
 						updatedCaller.levelTwoOffset());
 					return;
 				case FAILURE:
-					assert latestResult != null;
-					pointerAtPut(PRIMITIVE_FAILURE, latestResult);
+					pointerAtPut(PRIMITIVE_FAILURE, latestResult());
 					break;
 			}
 		}
@@ -1618,7 +1626,7 @@ public final class Interpreter
 				logger.finest(String.format(
 					"executing %s (chunk#=%d, pc=%d) [stack: %s]",
 					operation.name(),
-					chunk.index(),
+					chunk().index(),
 					offset - 1,
 					stackString));
 			}
@@ -1636,6 +1644,8 @@ public final class Interpreter
 	 * {@linkplain A_BasicObject#failureContinuation() failure continuation} with
 	 * the terminal {@linkplain Throwable throwable}.
 	 *
+	 * @param runtime
+	 *        An {@linkplain AvailRuntime Avail runtime}.
 	 * @param aFiber
 	 *        The fiber to run.
 	 * @param continuation
@@ -1643,13 +1653,14 @@ public final class Interpreter
 	 *        running the fiber for a while. Pass in the interpreter to use.
 	 */
 	private static void executeFiber (
+		final AvailRuntime runtime,
 		final A_BasicObject aFiber,
 		final Continuation1<Interpreter> continuation)
 	{
 		assert aFiber.executionState().indicatesSuspension();
 		// We cannot simply run the specified function, we must queue a task to
 		// run when Level One safety is no longer required.
-		AvailRuntime.current().whenLevelOneUnsafeDo(
+		runtime.whenLevelOneUnsafeDo(
 			AvailTask.forFiberResumption(
 				aFiber,
 				new Continuation0()
@@ -1707,6 +1718,8 @@ public final class Interpreter
 	 * {@linkplain Continuation1 continuation} will be invoked with the
 	 * terminal {@linkplain Throwable throwable}.</p>
 	 *
+	 * @param runtime
+	 *        An {@linkplain AvailRuntime Avail runtime}.
 	 * @param aFiber
 	 *        The fiber to run.
 	 * @param function
@@ -1715,12 +1728,14 @@ public final class Interpreter
 	 *        The arguments for the function.
 	 */
 	public static void runOutermostFunction (
+		final AvailRuntime runtime,
 		final A_BasicObject aFiber,
 		final A_Function function,
 		final List<AvailObject> arguments)
 	{
 		assert aFiber.executionState() == UNSTARTED;
 		executeFiber(
+			runtime,
 			aFiber,
 			new Continuation1<Interpreter>()
 			{
@@ -1768,6 +1783,7 @@ public final class Interpreter
 		assert aFiber.executionState() == INTERRUPTED;
 		assert !aFiber.continuation().equalsNil();
 		executeFiber(
+			AvailRuntime.current(),
 			aFiber,
 			new Continuation1<Interpreter>()
 			{
@@ -1801,6 +1817,8 @@ public final class Interpreter
 	 * {@linkplain Continuation1 continuation} will be invoked with the
 	 * terminal {@linkplain Throwable throwable}.</p>
 	 *
+	 * @param runtime
+	 *        An {@linkplain AvailRuntime Avail runtime}.
 	 * @param aFiber
 	 *        The fiber to run.
 	 * @param state
@@ -1810,6 +1828,7 @@ public final class Interpreter
 	 *        The result of the primitive.
 	 */
 	public static void resumeFromPrimitive (
+		final AvailRuntime runtime,
 		final A_BasicObject aFiber,
 		final Result state,
 		final A_BasicObject result)
@@ -1818,6 +1837,7 @@ public final class Interpreter
 		assert !aFiber.continuation().equalsNil();
 		assert aFiber.executionState() == SUSPENDED;
 		executeFiber(
+			runtime,
 			aFiber,
 			new Continuation1<Interpreter>()
 			{
@@ -2054,7 +2074,7 @@ public final class Interpreter
 			AtomDescriptor.clientDataGlobalKey();
 		final A_Atom compilerScopeMapKey =
 			AtomDescriptor.compilerScopeMapKey();
-		A_Map fiberGlobals = fiber.fiberGlobals();
+		A_Map fiberGlobals = fiber().fiberGlobals();
 		A_Map clientData = fiberGlobals.mapAt(clientDataGlobalKey);
 		A_Map bindings = clientData.mapAt(compilerScopeMapKey);
 		final A_String declarationName = declaration.token().string();
@@ -2075,7 +2095,7 @@ public final class Interpreter
 			clientData,
 			true);
 		fiberGlobals.makeImmutable();
-		fiber.fiberGlobals(fiberGlobals);
+		fiber().fiberGlobals(fiberGlobals);
 		return null;
 	}
 
@@ -2172,5 +2192,4 @@ public final class Interpreter
 	{
 		prepareToResumeContinuation(pointerAt(CALLER));
 	}
-
 }

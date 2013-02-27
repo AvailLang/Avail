@@ -192,7 +192,7 @@ extends AbstractEnumerationTypeDescriptor
 		final int indent)
 	{
 		// Print boolean specially.
-		if (object.equals(booleanObject))
+		if (object.equals(booleanObject()))
 		{
 			aStream.append("boolean");
 			return;
@@ -701,7 +701,7 @@ extends AbstractEnumerationTypeDescriptor
 		final AvailObject object,
 		final @Nullable Class<?> ignoredClassHint)
 	{
-		if (object.isSubtypeOf(booleanObject))
+		if (object.isSubtypeOf(booleanObject()))
 		{
 			return java.lang.Boolean.TYPE;
 		}
@@ -767,7 +767,7 @@ extends AbstractEnumerationTypeDescriptor
 	 * pseudo-type, and Java's other non-primitive boxed {@link #booleanObject}
 	 * class.
 	 */
-	private static AvailObject booleanObject;
+	private static @Nullable A_Type booleanObject;
 
 	/**
 	 * Return Avail's boolean type.
@@ -775,9 +775,11 @@ extends AbstractEnumerationTypeDescriptor
 	 * @return The {@linkplain EnumerationTypeDescriptor enumeration} that
 	 *         acts as Avail's boolean type.
 	 */
-	public static AvailObject booleanObject ()
+	public static A_Type booleanObject ()
 	{
-		return booleanObject;
+		final A_Type bool = booleanObject;
+		assert bool != null;
+		return bool;
 	}
 
 	/**

@@ -45,7 +45,7 @@ import com.avail.interpreter.*;
  * associated with the specified {@linkplain StringDescriptor string} as a
  * public name of the current {@linkplain ModuleDescriptor module}. This has the
  * same effect as listing the string in the "Names" section of the current
- * module. Fails if called at runtime (rather than during compilation).
+ * module. Fails if called at runtime.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
@@ -65,8 +65,9 @@ extends Primitive
 	{
 		assert args.size() == 1;
 		final A_String name = args.get(0);
-		final A_BasicObject module = interpreter.module();
-		if (module.equalsNil())
+		final AvailLoader loader = FiberDescriptor.current().availLoader();
+		final A_BasicObject module;
+		if (loader == null || (module = loader.module()).equalsNil())
 		{
 			return interpreter.primitiveFailure(E_LOADING_IS_OVER);
 		}

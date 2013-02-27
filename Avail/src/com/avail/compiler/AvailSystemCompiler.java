@@ -401,7 +401,7 @@ extends AbstractAvailCompiler
 
 					final ParserState afterEquals = afterColon.afterToken();
 					final Mutable<AvailObject> varType =
-						new Mutable<AvailObject>();
+						new Mutable<AvailObject>(NilDescriptor.nil());
 					final A_BasicObject declaration = varUse.declaration();
 					boolean ok = false;
 					if (declaration.equalsNil())
@@ -1190,7 +1190,8 @@ extends AbstractAvailCompiler
 			return;
 		}
 
-		final Mutable<A_Type> lastStatementType = new Mutable<A_Type>();
+		final Mutable<A_Type> lastStatementType =
+			new Mutable<A_Type>(NilDescriptor.nil());
 		if (statements.size() > 0)
 		{
 			final AvailObject stmt = statements.get(statements.size() - 1);

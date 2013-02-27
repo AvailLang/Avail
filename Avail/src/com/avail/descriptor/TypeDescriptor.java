@@ -33,6 +33,7 @@
 package com.avail.descriptor;
 
 import static com.avail.descriptor.TypeDescriptor.Types.*;
+import java.util.Arrays;
 import java.util.List;
 import com.avail.annotations.*;
 import com.avail.compiler.*;
@@ -254,7 +255,20 @@ extends AbstractTypeDescriptor
 		/**
 		 * The {@link Types} object representing this type's supertype.
 		 */
-		public final Types parent;
+		public final @Nullable Types parent;
+
+		/**
+		 * Answer the parent {@link Types} object.  Fail if this is the top
+		 * type.
+		 *
+		 * @return The parent of this Types object.
+		 */
+		public final Types parent ()
+		{
+			final Types p = parent;
+			assert p != null;
+			return p;
+		}
 
 		/**
 		 * The descriptor to instantiate.  This allows {@link TopTypeDescriptor}
@@ -264,9 +278,9 @@ extends AbstractTypeDescriptor
 		protected final PrimitiveTypeDescriptor descriptor;
 
 		/**
-		 * The {@link AvailObject} itself that this
+		 * The {@link AvailObject} itself that this represents.
 		 */
-		private AvailObject o;
+		private @Nullable AvailObject o;
 
 
 		/**
@@ -308,7 +322,9 @@ extends AbstractTypeDescriptor
 		 */
 		public AvailObject o ()
 		{
-			return o;
+			final AvailObject obj = o;
+			assert obj != null;
+			return obj;
 		}
 
 		/**
@@ -923,7 +939,8 @@ extends AbstractTypeDescriptor
 	 * true precisely when x is a subtype of y.  The indices are ordinals of
 	 * primitive types.
 	 */
-	static boolean supertypeTable [][];
+	static final boolean supertypeTable [][] =
+		new boolean [Types.values().length][];
 
 	/**
 	 * Create any cached {@link AvailObject}s.
@@ -942,14 +959,13 @@ extends AbstractTypeDescriptor
 			spec.set_o(o);
 		}
 		// Connect and name the objects.
-		supertypeTable = new boolean [Types.values().length][];
 		for (final Types spec : Types.values())
 		{
 			final A_BasicObject o = spec.o();
 			o.parent(
 				spec.parent == null
 					 ? NilDescriptor.nil()
-					: spec.parent.o());
+					: spec.parent().o());
 			final boolean[] row = new boolean [Types.values().length];
 			supertypeTable[spec.ordinal()] = row;
 			Types pointer = spec;
@@ -969,8 +985,8 @@ extends AbstractTypeDescriptor
 		{
 			if (spec.parent != null)
 			{
-				assert spec.o().isSubtypeOf(spec.parent.o());
-				assert spec.o().isInstanceOfKind(spec.parent.o().kind());
+				assert spec.o().isSubtypeOf(spec.parent().o());
+				assert spec.o().isInstanceOfKind(spec.parent().o().kind());
 			}
 		}
 	}
@@ -984,7 +1000,7 @@ extends AbstractTypeDescriptor
 		{
 			spec.set_o(null);
 		}
-		supertypeTable = null;
+		Arrays.fill(supertypeTable, null);
 	}
 
 	/**

@@ -49,10 +49,13 @@ Names
 	"encoding iterator",
 	"finish decoding with_",
 	"ignore instruction",
+	"invalid encoding",
 	"malformed-encoding exception",
 	"raise instruction",
 	"replace instruction",
-	"unsupported-character exception"
+	"unsupported-character exception",
+	"_'s⁇invalid encoding"
+	
 Body
 
 /*TODO Remove this method, "byte" as it will soon be defined very early on with 
@@ -77,7 +80,7 @@ Public method "byte tuple" is [<[0..255]…|>];
 
 /**
  * An object type that provides the decoder with a structured heirarchy of what
- * action to take in the event a bad encoding is encountered.
+ * action to take upon decoding something.
  * 
  * @type "correction instruction"
  * @supertype {@type "object" object}
@@ -191,7 +194,7 @@ Public abstract method "encode_using_" is
  */
 Public class "malformed-encoding exception" extends exception
 	with fields
-		invalid encoding : byte tuple;
+		public invalid encoding : byte tuple;
 
 "decoding corrector" is a new field atom;
 
@@ -273,9 +276,61 @@ Public class "codec" extends encoder ∩ decoder;
  * @field "source" "iterator"
  * @author "Richard Arriaga"
  */
-Public class "encoding iterator" extends iterator of character
+Public class "encoding iterator" extends iterator of any
 	with fields
-		coder : encoder;
+		coder : encoder,
+		source : iterator of any;
+
+/**
+ * Ensure that the specified iterator is not exhausted, then advance its state.
+ *
+ * @method "Advance_"
+ * @param "anIterator" "encoding iterator"
+ *        An encoding iterator.
+ * @raises "exhausted-iterator exception"
+ *         If the iterator is exhausted.
+ * @author "Richard Arriaga"
+ */
+encoding iterator's advance method is
+[
+	anIterator : encoding iterator
+|
+	Unless anIterator's source is exhausted then
+	[
+		Advance anIterator's source;
+	]
+	else
+	[
+		Raise an exhausted-iterator exception
+	];
+] : ⊤;
+
+/**
+ * Ensure that the specified iterator is not exhausted, then answer its current
+ * element.
+ *
+ * @method "_'s⁇current element"
+ * @param "anIterator" "encoding iterator"
+ *        An iterator.
+ * @returns "any"
+ *          The current element of the specified iterator.
+ * @raises "exhausted-iterator exception"
+ *         If the iterator is exhausted.
+ * @author "Richard Arriaga"
+ */
+encoding iterator's current element method is
+[
+	anIterator : encoding iterator
+|
+	unless anIterator's source is exhausted then
+	[
+		anIterator's source's current element
+	]
+	else
+	[
+		Raise an exhausted-iterator exception
+	]
+] : any;
 
 /**
  * An iterator with byte data that is to be decoded into character data.
@@ -288,4 +343,56 @@ Public class "encoding iterator" extends iterator of character
  */
 Public class "decoding iterator" extends iterator of byte
 	with fields
-		coder : decoder;
+		coder : decoder,
+		source : iterator of byte;
+
+/**
+ * Ensure that the specified iterator is not exhausted, then advance its state.
+ *
+ * @method "Advance_"
+ * @param "anIterator" "decoding iterator"
+ *        An encoding iterator.
+ * @raises "exhausted-iterator exception"
+ *         If the iterator is exhausted.
+ * @author "Richard Arriaga"
+ */
+decoding iterator's advance method is
+[
+	anIterator : decoding iterator
+|
+	Unless anIterator's source is exhausted then
+	[
+		Advance anIterator's source;
+	]
+	else
+	[
+		Raise an exhausted-iterator exception
+	];
+] : ⊤;
+
+/**
+ * Ensure that the specified iterator is not exhausted, then answer its current
+ * element.
+ *
+ * @method "_'s⁇current element"
+ * @param "anIterator" "decoding iterator"
+ *        An iterator.
+ * @returns "any"
+ *          The current element of the specified iterator.
+ * @raises "exhausted-iterator exception"
+ *         If the iterator is exhausted.
+ * @author "Richard Arriaga"
+ */
+decoding iterator's current element method is
+[
+	anIterator : decoding iterator
+|
+	unless anIterator's source is exhausted then
+	[
+		anIterator's source's current element
+	]
+	else
+	[
+		Raise an exhausted-iterator exception
+	]
+] : any;

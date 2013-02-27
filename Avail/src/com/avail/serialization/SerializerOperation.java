@@ -1904,12 +1904,12 @@ public enum SerializerOperation
 				: object.javaAncestors().mapIterable())
 			{
 				final Class<?> baseClass =
-					(Class<?>)entry.key.javaObject();
+					(Class<?>)entry.key().javaObject();
 				final A_String className =
 					StringDescriptor.from(baseClass.getName());
 				final List<A_BasicObject> processedParameters =
-					new ArrayList<A_BasicObject>(entry.value.tupleSize());
-				for (final AvailObject parameter : entry.value)
+					new ArrayList<A_BasicObject>(entry.value().tupleSize());
+				for (final AvailObject parameter : entry.value())
 				{
 					assert !parameter.isTuple();
 					if (parameter.isPojoSelfType())
@@ -1945,14 +1945,14 @@ public enum SerializerOperation
 					: subobjects[0].mapIterable())
 				{
 					final Class<?> baseClass = Class.forName(
-						entry.key.asNativeString(),
+						entry.key().asNativeString(),
 						true,
 						classLoader);
 					final AvailObject rawPojo =
 						RawPojoDescriptor.equalityWrap(baseClass);
 					final List<AvailObject> processedParameters =
-						new ArrayList<AvailObject>(entry.value.tupleSize());
-					for (final AvailObject parameter : entry.value)
+						new ArrayList<AvailObject>(entry.value().tupleSize());
+					for (final AvailObject parameter : entry.value())
 					{
 						if (parameter.isTuple())
 						{
@@ -2468,6 +2468,7 @@ public enum SerializerOperation
 		final Deserializer deserializer)
 	{
 		final AvailObject currentModule = deserializer.currentModule();
+		assert currentModule != null;
 		if (moduleName.equals(currentModule.moduleName()))
 		{
 			// An atom in the current module.  Create it if necessary.

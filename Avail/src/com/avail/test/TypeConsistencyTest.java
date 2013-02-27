@@ -411,7 +411,7 @@ public class TypeConsistencyTest
 			{
 				return ObjectTypeDescriptor.objectTypeFromMap(
 					MapDescriptor.empty().mapAtPuttingCanDestroy(
-						SOME_ATOM_TYPE.t,
+						SOME_ATOM_TYPE.t(),
 						TypeDescriptor.Types.ANY.o(),
 						false));
 			}
@@ -428,7 +428,7 @@ public class TypeConsistencyTest
 			{
 				return ObjectTypeDescriptor.objectTypeFromMap(
 					MapDescriptor.empty().mapAtPuttingCanDestroy(
-						SOME_ATOM_TYPE.t,
+						SOME_ATOM_TYPE.t(),
 						IntegerRangeTypeDescriptor.integers(),
 						false));
 			}
@@ -445,7 +445,7 @@ public class TypeConsistencyTest
 			{
 				return ObjectTypeDescriptor.objectTypeFromMap(
 					MapDescriptor.empty().mapAtPuttingCanDestroy(
-						ANOTHER_ATOM_TYPE.t,
+						ANOTHER_ATOM_TYPE.t(),
 						TypeDescriptor.Types.ANY.o(),
 						false));
 			}
@@ -630,7 +630,7 @@ public class TypeConsistencyTest
 			A_Type get ()
 			{
 				return PojoTypeDescriptor.forArrayTypeWithSizeRange(
-					JAVA_STRING_POJO.t,
+					JAVA_STRING_POJO.t(),
 					IntegerRangeTypeDescriptor.wholeNumbers());
 			}
 		};
@@ -759,7 +759,7 @@ public class TypeConsistencyTest
 		{
 			@Override A_Type get ()
 			{
-				return VariableTypeDescriptor.wrapInnerType(SOME_ATOM_TYPE.t);
+				return VariableTypeDescriptor.wrapInnerType(SOME_ATOM_TYPE.t());
 			}
 		};
 
@@ -819,7 +819,7 @@ public class TypeConsistencyTest
 		{
 			@Override A_Type get ()
 			{
-				return LiteralTokenTypeDescriptor.create(SOME_ATOM_TYPE.t);
+				return LiteralTokenTypeDescriptor.create(SOME_ATOM_TYPE.t());
 			}
 		};
 
@@ -1195,7 +1195,19 @@ public class TypeConsistencyTest
 		final String name;
 
 		/** The Avail {@linkplain TypeDescriptor type} I represent in the graph. */
-		A_Type t;
+		@Nullable A_Type t;
+
+		/**
+		 * Answer the actual type that this Node represents.
+		 *
+		 * @return The {@link TypeDescriptor} type held by this node.
+		 */
+		final A_Type t ()
+		{
+			final A_Type type = t;
+			assert type != null;
+			return type;
+		}
 
 		/** A unique 0-based index for this {@code Node}. */
 		final int index;
@@ -1203,34 +1215,34 @@ public class TypeConsistencyTest
 		/** The supernodes in the graph. */
 		final Node [] supernodes;
 
-		/** The subnodes in the graph, as an {@link EnumSet}. */
-		private Set<Node> subnodes;
+		/** The set of subnodes in the graph. */
+		private final Set<Node> subnodes = new HashSet<Node>();
 
 		/** Every node from which this node descends. */
 		final Set<Node> allAncestors;
 
-		/** Every node descended from this on, as an {@link EnumSet}. */
-		Set<Node> allDescendants;
+		/** Every node descended from this one. */
+		final Set<Node> allDescendants = new HashSet<Node>();
 
 		/**
 		 * A cache of type unions where I'm the left participant and the right
 		 * participant (a Node) supplies its index for accessing the array.
 		 */
-		private A_Type unionCache[];
+		private A_Type unionCache[] = new A_Type[0];
 
 		/**
 		 * A cache of type intersections where I'm the left participant and the
 		 * right participant (a Node) supplies its index for accessing the
 		 * array.
 		 */
-		private A_Type intersectionCache[];
+		private A_Type intersectionCache[] = new A_Type[0];
 
 		/**
 		 * A cache of subtype tests where I'm the proposed subtype and the
 		 * argument is the proposed supertype.  The value stored indicates if
 		 * I am a subtype of the argument.
 		 */
-		private Boolean subtypeCache[];
+		private Boolean subtypeCache[] = new Boolean[0];
 
 		/**
 		 * Construct a new {@link Node}, capturing a varargs list of known
@@ -1273,11 +1285,6 @@ public class TypeConsistencyTest
 		 */
 		static
 		{
-			for (final Node node : values)
-			{
-				node.subnodes = new HashSet<Node>();
-				node.allDescendants = new HashSet<Node>();
-			}
 			for (final Node node : values)
 			{
 				for (final Node supernode : node.supernodes)
@@ -1335,9 +1342,9 @@ public class TypeConsistencyTest
 			A_Type union = unionCache[rightIndex];
 			if (union == null)
 			{
-				union = t.typeUnion(rightNode.t).makeImmutable();
-				assertTrue(t.isSubtypeOf(union));
-				assertTrue(rightNode.t.isSubtypeOf(union));
+				union = t().typeUnion(rightNode.t()).makeImmutable();
+				assertTrue(t().isSubtypeOf(union));
+				assertTrue(rightNode.t().isSubtypeOf(union));
 				unionCache[rightIndex] = union;
 			}
 			return union;
@@ -1361,9 +1368,10 @@ public class TypeConsistencyTest
 			A_Type intersection = intersectionCache[rightIndex];
 			if (intersection == null)
 			{
-				intersection = t.typeIntersection(rightNode.t).makeImmutable();
-				assertTrue(intersection.isSubtypeOf(t));
-				assertTrue(intersection.isSubtypeOf(rightNode.t));
+				intersection =
+					t().typeIntersection(rightNode.t()).makeImmutable();
+				assertTrue(intersection.isSubtypeOf(t()));
+				assertTrue(intersection.isSubtypeOf(rightNode.t()));
 				intersectionCache[rightIndex] = intersection;
 			}
 			return intersection;
@@ -1386,7 +1394,7 @@ public class TypeConsistencyTest
 			Boolean subtype = subtypeCache[rightIndex];
 			if (subtype == null)
 			{
-				subtype = t.isSubtypeOf(rightNode.t);
+				subtype = t().isSubtypeOf(rightNode.t());
 				subtypeCache[rightIndex] = subtype;
 			}
 			return subtype;
@@ -1421,9 +1429,9 @@ public class TypeConsistencyTest
 			for (final Node node : values)
 			{
 				node.t = null;
-				node.unionCache = null;
-				node.intersectionCache = null;
-				node.subtypeCache = null;
+				node.unionCache = new A_Type[0];
+				node.intersectionCache = new A_Type[0];
+				node.subtypeCache = new Boolean[0];
 			}
 		}
 
@@ -1482,10 +1490,10 @@ public class TypeConsistencyTest
 				allTypes.add(inter12);
 				for (final Node t3 : Node.values)
 				{
-					allTypes.add(union12.typeUnion(t3.t));
-					allTypes.add(t3.t.typeUnion(union12));
-					allTypes.add(inter12.typeIntersection(t3.t));
-					allTypes.add(t3.t.typeIntersection(inter12));
+					allTypes.add(union12.typeUnion(t3.t()));
+					allTypes.add(t3.t().typeUnion(union12));
+					allTypes.add(inter12.typeIntersection(t3.t()));
+					allTypes.add(t3.t().typeIntersection(inter12));
 				}
 			}
 		}
@@ -1609,7 +1617,7 @@ public class TypeConsistencyTest
 					y);
 				assertEQ(
 					x == y,
-					x.t.equals(y.t),
+					x.t().equals(y.t()),
 					"graph model (not unique) %s, %s",
 					x,
 					y);
@@ -1628,6 +1636,12 @@ public class TypeConsistencyTest
 	{
 		for (final Node x : Node.values)
 		{
+			//TODO[MvG]Remove
+			if (!x.subtype(x))
+			{
+				x.subtype(x);
+			}
+
 			assertT(
 				x.subtype(x),
 				"subtype reflexivity: %s",
@@ -1721,7 +1735,7 @@ public class TypeConsistencyTest
 		{
 			assertEQ(
 				x.union(x),
-				x.t,
+				x.t(),
 				"union reflexivity: %s",
 				x);
 		}
@@ -1743,8 +1757,8 @@ public class TypeConsistencyTest
 				if (!x.union(y).equals(y.union(x)))
 				{
 					// These are useful trace points. Leave them in.
-					x.t.typeUnion(y.t);
-					y.t.typeUnion(x.t);
+					x.t().typeUnion(y.t());
+					y.t().typeUnion(x.t());
 					assertEQ(
 						x.union(y),
 						y.union(x),
@@ -1772,14 +1786,14 @@ public class TypeConsistencyTest
 				final A_BasicObject xy = x.union(y);
 				for (final Node z : Node.values)
 				{
-					final A_BasicObject xyUz = xy.typeUnion(z.t);
+					final A_BasicObject xyUz = xy.typeUnion(z.t());
 					final A_Type yz = y.union(z);
-					final A_Type xUyz = x.t.typeUnion(yz);
+					final A_Type xUyz = x.t().typeUnion(yz);
 					if (!xyUz.equals(xUyz))
 					{
 						// These are useful trace points. Leave them in.
-						xy.typeUnion(z.t);
-						x.t.typeUnion(yz);
+						xy.typeUnion(z.t());
+						x.t().typeUnion(yz);
 						xyUz.equals(xUyz);
 						assertEQ(
 							xyUz,
@@ -1831,7 +1845,7 @@ public class TypeConsistencyTest
 		{
 			assertEQ(
 				x.intersect(x),
-				x.t,
+				x.t(),
 				"intersection reflexivity: %s",
 				x);
 		}
@@ -1855,8 +1869,8 @@ public class TypeConsistencyTest
 				if (!xy.equals(yx))
 				{
 					// These are useful trace points. Leave them in.
-					x.t.typeIntersection(y.t);
-					y.t.typeIntersection(x.t);
+					x.t().typeIntersection(y.t());
+					y.t().typeIntersection(x.t());
 					assertEQ(
 						xy,
 						yx,
@@ -1884,16 +1898,16 @@ public class TypeConsistencyTest
 				final A_BasicObject xy = x.intersect(y);
 				for (final Node z : Node.values)
 				{
-					final A_Type xyIz = xy.typeIntersection(z.t);
+					final A_Type xyIz = xy.typeIntersection(z.t());
 					final A_Type yz = y.intersect(z);
-					final A_Type xIyz = x.t.typeIntersection(yz);
+					final A_Type xIyz = x.t().typeIntersection(yz);
 					if (!xyIz.equals(xIyz))
 					{
 						// These are useful trace points. Leave them in.
-						x.t.typeIntersection(y.t);
-						y.t.typeIntersection(z.t);
-						xy.typeIntersection(z.t);
-						x.t.typeIntersection(yz);
+						x.t().typeIntersection(y.t());
+						y.t().typeIntersection(z.t());
+						xy.typeIntersection(z.t());
+						x.t().typeIntersection(yz);
 						xyIz.equals(xIyz);
 						assertEQ(
 							xyIz,
@@ -1954,10 +1968,10 @@ public class TypeConsistencyTest
 	{
 		for (final Node x : Node.values)
 		{
-			final A_Type CoX = relation.transform(x.t);
+			final A_Type CoX = relation.transform(x.t());
 			for (final Node y : Node.values)
 			{
-				final A_Type CoY = relation.transform(y.t);
+				final A_Type CoY = relation.transform(y.t());
 				assertT(
 					!x.subtype(y) || CoX.isSubtypeOf(CoY),
 					"covariance (%s): %s, %s",
@@ -1982,10 +1996,10 @@ public class TypeConsistencyTest
 	{
 		for (final Node x : Node.values)
 		{
-			final A_Type ConX = relation.transform(x.t);
+			final A_Type ConX = relation.transform(x.t());
 			for (final Node y : Node.values)
 			{
-				final A_Type ConY = relation.transform(y.t);
+				final A_Type ConY = relation.transform(y.t());
 				assertT(
 					!x.subtype(y) || ConY.isSubtypeOf(ConX),
 					"contravariance (%s): %s, %s",
@@ -2113,9 +2127,9 @@ public class TypeConsistencyTest
 		{
 			for (final Node y : Node.values)
 			{
-				final A_Type Tx = InstanceMetaDescriptor.on(x.t);
-				final A_Type Ty = InstanceMetaDescriptor.on(y.t);
-				final A_Type xuy = x.t.typeUnion(y.t);
+				final A_Type Tx = InstanceMetaDescriptor.on(x.t());
+				final A_Type Ty = InstanceMetaDescriptor.on(y.t());
+				final A_Type xuy = x.t().typeUnion(y.t());
 				final A_BasicObject T_xuy = InstanceMetaDescriptor.on(xuy);
 				final A_BasicObject TxuTy = Tx.typeUnion(Ty);
 				assertEQ(
@@ -2145,9 +2159,9 @@ public class TypeConsistencyTest
 		{
 			for (final Node y : Node.values)
 			{
-				final A_Type Tx = InstanceMetaDescriptor.on(x.t);
-				final A_Type Ty = InstanceMetaDescriptor.on(y.t);
-				final A_Type xny = x.t.typeIntersection(y.t);
+				final A_Type Tx = InstanceMetaDescriptor.on(x.t());
+				final A_Type Ty = InstanceMetaDescriptor.on(y.t());
+				final A_Type xny = x.t().typeIntersection(y.t());
 				final A_Type T_xny = InstanceMetaDescriptor.on(xny);
 				final A_Type TxnTy = Tx.typeIntersection(Ty);
 				assertEQ(

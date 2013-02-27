@@ -432,7 +432,7 @@ extends ParseNodeDescriptor
 		 * An Avail {@link StringDescriptor string} describing this kind of
 		 * declaration.
 		 */
-		private A_BasicObject kindName;
+		private @Nullable A_BasicObject kindName;
 
 		/**
 		 * Construct a {@link DeclarationKind}.  Can only be invoked implicitly
@@ -509,8 +509,9 @@ extends ParseNodeDescriptor
 		 */
 		public final A_BasicObject kindName ()
 		{
-			assert kindName != null;
-			return kindName;
+			final A_BasicObject string = kindName;
+			assert string != null;
+			return string;
 		}
 
 		/**

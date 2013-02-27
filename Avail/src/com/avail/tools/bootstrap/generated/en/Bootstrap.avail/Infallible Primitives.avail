@@ -57,8 +57,14 @@ Uses
 		"Error:_",
 		"If_then_",
 		"If|if_then_else_",
+		"Park current fiber",
 		"Print:_",
 		"Reject parse,expected:_",
+		"Request termination of_",
+		"Sleep for_millisecond|milliseconds",
+		"Terminate current fiber",
+		"Unpark_",
+		"Yield current fiber",
 		"[`…]→_",
 		"_'s⁇arguments",
 		"_'s⁇arity",
@@ -92,11 +98,14 @@ Uses
 		"_'s⁇outer variables",
 		"_'s⁇parameters'type",
 		"_'s⁇primitive number",
+		"_'s⁇priority",
+		"_'s⁇priority:=_",
 		"_'s⁇program counter",
 		"_'s⁇public names",
 		"_'s⁇read type",
 		"_'s⁇referent",
 		"_'s⁇return type",
+		"_'s⁇seals",
 		"_'s⁇semantic type",
 		"_'s⁇stack",
 		"_'s⁇stack pointer",
@@ -123,6 +132,8 @@ Uses
 		"_bit∧_",
 		"_bit∨_",
 		"_bit⊕_",
+		"_has result",
+		"_has terminated",
 		"_is a primitive",
 		"_is unassigned",
 		"_→character",
@@ -155,20 +166,25 @@ Uses
 		"`«↓_`»(_)",
 		"arg`«_:_`»",
 		"concatenate_",
+		"current fiber",
+		"current fiber is applying a semantic restriction",
 		"enumeration of_",
 		"function accepting_and returning_",
 		"integer range from_(inclusive=_)to_(inclusive=_)",
 		"literal token⇒_",
 		"ln_",
 		"method exists named_",
-		"new atom_",
+		"milliseconds since the Epoch",
+		"new atom named_",
 		"new_[_]",
 		"new_applying_",
+		"new⁇heritable«fiber-local»⁇atom named_",
 		"new↑_",
 		"primfail`«_:_`»",
 		"primitive description of_",
 		"semantic restrictions for_given_",
 		"special atoms",
+		"termination requested",
 		"{_`|_}",
 		"{_→_`|_}",
 		"‘_’",
@@ -366,6 +382,20 @@ Primitive "_'s⁇write type" is
 |
 	Primitive 19;
 ] : type;
+
+/**
+ * Answer the number of milliseconds which have elapsed since midnight
+ * Coordinated Universal Time (UTC) of Thursday, January 1, 1970 (i.e. the Unix
+ * Epoch).
+ *
+ * Returns:
+ *    The current time as the number of milliseconds which have elapsed since
+ *    the Unix Epoch.
+ */
+Primitive "milliseconds since the Epoch" is
+[
+	Primitive 26;
+] : whole number;
 
 /**
  * Answer the number of instances of the specified type. This is `∞` for all
@@ -1455,7 +1485,7 @@ Primitive "_'s⁇element|member type" is
  *    A new atom, distinct from every other atom answered by a different
  *    invocation of this primitive.
  */
-Primitive "new atom_" is
+Primitive "new atom named_" is
 [
 	debugName : string
 |
@@ -1895,6 +1925,21 @@ Primitive "method exists named_" is
 |
 	Primitive 230;
 ] : boolean;
+
+/**
+ * Answer all seals applied to the specified method.
+ *
+ * Parameters:
+ *    aMethod - A method.
+ * Returns:
+ *    A tuple comprising the seals applied to `aMethod`.
+ */
+Primitive "_'s⁇seals" is
+[
+	aMethod : method
+|
+	Primitive 239;
+] : tuple of tuple of any meta;
 
 /**
  * Answer the public names introduced by the specified module.
@@ -3033,4 +3078,237 @@ Primitive "`|_`|" is
 |
 	Primitive 511;
 ] : whole number;
+
+/**
+ * Answer the current fiber.
+ *
+ * Returns:
+ *    The current fiber.
+ */
+Primitive "current fiber" is
+[
+	Primitive 600;
+] : fiber;
+
+/**
+ * Extract the priority of a fiber. A fiber with higher priority may receive a
+ * larger share of the available CPU time than one with a low priority.
+ *
+ * Parameters:
+ *    aFiber - The fiber from which to extract the priority.
+ * Returns:
+ *    A whole number representing the priority of the fiber.
+ */
+Primitive "_'s⁇priority" is
+[
+	aFiber : fiber
+|
+	Primitive 601;
+] : byte;
+
+/**
+ * Modify the priority of a fiber. A fiber with higher priority may receive a
+ * larger share of the available CPU time than one with a low priority.
+ *
+ * Parameters:
+ *    aFiber - The fiber to prioritize.
+ *    priority - The new priority.
+ */
+Primitive "_'s⁇priority:=_" is
+[
+	aFiber : fiber,
+	priority : byte
+|
+	Primitive 602;
+] : ⊤;
+
+/**
+ * Has termination of the current fiber been requested? Answer the current value
+ * of the appropriate interrupt request flag and simultaneously clear it.
+ *
+ * Returns:
+ *    `true` if termination of the current fiber has been requested, `false`
+ *    otherwise.
+ */
+Primitive "termination requested" is
+[
+	Primitive 607;
+] : boolean;
+
+/**
+ * Request termination of the specified fiber, unparking the fiber at the same
+ * time. Termination is consensual only; cooperation of the fiber is required to
+ * affect actual termination.
+ *
+ * Parameters:
+ *    victim - A fiber.
+ */
+Primitive "Request termination of_" is
+[
+	victim : fiber
+|
+	Primitive 608;
+] : ⊤;
+
+/**
+ * Terminate the current fiber.
+ */
+Primitive "Terminate current fiber" is
+[
+	Primitive 609;
+] : ⊥;
+
+/**
+ * Attempt to acquire the permit associated with the current fiber. If the
+ * permit is available, then consume it and return immediately. If the permit is
+ * not available, then park the current fiber. A fiber suspended in this fashion
+ * may be resumed only by calling `Unpark_`. A newly unparked fiber should
+ * always recheck the basis for its having parked, to see if it should park
+ * again. Low-level synchronization mechanisms may require the ability to
+ * spuriously unpark in order to ensure correctness.
+ */
+Primitive "Park current fiber" is
+[
+	Primitive 610;
+] : ⊤;
+
+/**
+ * Unpark the specified fiber. If the permit associated with the fiber is
+ * available, then simply continue. If the permit is not available, then restore
+ * the permit and schedule resumption of the fiber. A newly unparked fiber
+ * should always recheck the basis for its having parked, to see if it should
+ * park again. Low-level synchronization mechanisms may require the ability to
+ * spuriously unpark in order to ensure correctness.
+ *
+ * Parameters:
+ *    aFiber - A fiber.
+ */
+Primitive "Unpark_" is
+[
+	aFiber : fiber
+|
+	Primitive 611;
+] : ⊤;
+
+/**
+ * Yield the current fiber. That is, give up the fiber's time slice so that
+ * other processes of higher or equal priority may run.
+ */
+Primitive "Yield current fiber" is
+[
+	Primitive 612;
+] : ⊤;
+
+/**
+ * Answer the name of the specified fiber.
+ *
+ * Parameters:
+ *    aFiber - A fiber.
+ * Returns:
+ *    The fiber's name.
+ */
+Primitive "_'s⁇name" is
+[
+	aFiber : fiber
+|
+	Primitive 613;
+] : string;
+
+/**
+ * Set the name of the specified fiber.
+ *
+ * Parameters:
+ *    aFiber - A fiber.
+ *    name - The fiber's new name.
+ */
+Primitive "_'s⁇name:=_" is
+[
+	aFiber : fiber,
+	name : string
+|
+	Primitive 614;
+] : ⊤;
+
+/**
+ * Has the specified fiber terminated?
+ *
+ * Parameters:
+ *    aFiber - A fiber.
+ * Returns:
+ *    `true` if the fiber has terminated, `false` otherwise.
+ */
+Primitive "_has terminated" is
+[
+	aFiber : fiber
+|
+	Primitive 618;
+] : boolean;
+
+/**
+ * Does the specified fiber have a result ready?
+ *
+ * Parameters:
+ *    aFiber - A fiber.
+ * Returns:
+ *    `true` if the fiber has terminated and produced a result, `false`
+ *    otherwise.
+ */
+Primitive "_has result" is
+[
+	aFiber : fiber
+|
+	Primitive 619;
+] : boolean;
+
+/**
+ * Cause the current fiber to sleep for the specified number of milliseconds.
+ * The fiber will sleep for at least the specified amount of time, and a best
+ * effort will be made to awaken the fiber as soon as the delay has expired.
+ * No real-time guarantees are made.
+ *
+ * Parameters:
+ *    delayMillis - The minimum number of milliseconds to sleep.
+ */
+Primitive "Sleep for_millisecond|milliseconds" is
+[
+	delayMillis : nonnegative extended integer
+|
+	Primitive 621;
+] : ⊤;
+
+/**
+ * Construct and answer a new atom. Associate with the atom the supplied string,
+ * which should be a name used for debugging purposes only. Atoms have identity
+ * and all atoms are distinct, regardless of whether their debug names are
+ * equal. When this atom occurs as a key within a fiber's environment, any new
+ * fibers created by this fiber will also include this key and the associated
+ * value at creation time.
+ *
+ * Parameters:
+ *    debugName - A name to associate with the atom for debugging purposes.
+ *       This name does not participate in atom comparison.
+ * Returns:
+ *    A new atom, distinct from every other atom answered by a different
+ *    invocation of this primitive, that represents a heritable fiber-local
+ *    variable.
+ */
+Primitive "new⁇heritable«fiber-local»⁇atom named_" is
+[
+	debugName : string
+|
+	Primitive 624;
+] : atom;
+
+/**
+ * Ascertain whether the current fiber was forked (by the compiler) in order to
+ * evaluate a semantic restriction.
+ *
+ * Returns:
+ *    `true` if the current fiber is applying a semantic restriction, `false`
+ *    otherwise.
+ */
+Primitive "current fiber is applying a semantic restriction" is
+[
+	Primitive 625;
+] : boolean;
 

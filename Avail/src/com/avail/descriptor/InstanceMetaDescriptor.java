@@ -587,21 +587,23 @@ extends AbstractEnumerationTypeDescriptor
 	/**
 	 * ⊤'s type, cached statically for convenience.
 	 */
-	private static AvailObject topMeta;
+	private static @Nullable A_Type topMeta;
 
 	/**
 	 * Any's type, cached statically for convenience.
 	 */
-	private static AvailObject anyMeta;
+	private static @Nullable A_Type anyMeta;
 
 	/**
 	 * Answer any's type, a metatype.
 	 *
 	 * @return any's type.
 	 */
-	public static AvailObject anyMeta ()
+	public static A_Type anyMeta ()
 	{
-		return anyMeta;
+		final A_Type type = anyMeta;
+		assert type != null;
+		return type;
 	}
 
 	/**
@@ -609,9 +611,11 @@ extends AbstractEnumerationTypeDescriptor
 	 *
 	 * @return ⊤'s type.
 	 */
-	public static AvailObject topMeta ()
+	public static A_Type topMeta ()
 	{
-		return topMeta;
+		final A_Type type = topMeta;
+		assert type != null;
+		return type;
 	}
 
 	/**

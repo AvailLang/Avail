@@ -989,7 +989,7 @@ extends Descriptor
 	}
 
 	/** The empty tuple. */
-	static AvailObject emptyTuple;
+	static @Nullable AvailObject emptyTuple;
 
 	/**
 	 * Return the empty {@linkplain TupleDescriptor tuple}.  Other empty tuples
@@ -1000,7 +1000,9 @@ extends Descriptor
 	 */
 	public static AvailObject empty ()
 	{
-		return emptyTuple;
+		final AvailObject tuple = emptyTuple;
+		assert tuple != null;
+		return tuple;
 	}
 
 	/**
@@ -1008,9 +1010,9 @@ extends Descriptor
 	 */
 	static void createWellKnownObjects ()
 	{
-		emptyTuple = NybbleTupleDescriptor.mutableObjectOfSize(0);
-		emptyTuple.hash();
-		emptyTuple.makeShared();
+		final A_Tuple tuple = NybbleTupleDescriptor.mutableObjectOfSize(0);
+		tuple.hash();
+		emptyTuple = tuple.makeShared();
 }
 
 	/**
@@ -1034,7 +1036,7 @@ extends Descriptor
 	{
 		if (elements.length == 0)
 		{
-			return emptyTuple;
+			return empty();
 		}
 		A_Tuple tuple;
 		final int size = elements.length;
@@ -1062,7 +1064,7 @@ extends Descriptor
 		final int size = list.size();
 		if (size == 0)
 		{
-			return emptyTuple;
+			return empty();
 		}
 		final A_Tuple tuple = ObjectTupleDescriptor.createUninitialized(size);
 		for (int i = 0; i < size; i++)
@@ -1160,11 +1162,11 @@ extends Descriptor
 	 *        The list of Java {@linkplain Integer}s to assemble in a tuple.
 	 * @return A new mutable tuple of integers.
 	 */
-	public static AvailObject fromIntegerList (final List<Integer> list)
+	public static A_Tuple fromIntegerList (final List<Integer> list)
 	{
 		if (list.size() == 0)
 		{
-			return emptyTuple;
+			return empty();
 		}
 		final AvailObject tuple;
 		final int minValue = min(list);

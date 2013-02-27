@@ -40,9 +40,11 @@ Uses
 	"Early Enumeration Support",
 	"Early Literals",
 	"Early Logic"
+Extends
+	"Collections" = ("_[_]else_")
 Names
-	"«Public»?_is a|an new⁇field⁇atom",
-	"_[_]else_"
+	"«Public»?_is a new⁇heritable«fiber-local»⁇atom",
+	"«Public»?_is a|an new⁇field⁇atom"
 Body
 
 /**
@@ -73,33 +75,6 @@ Method "_[_]else_" is
 ] : any;
 
 /**
- * Answer the value associated with the property {@param "key"} of {@param
- * "aFiber"}. If no such property exists, then answer the result of applying
- * {@param "else"}.
- *
- * @method "_[_]else_"
- * @param "aFiber" "fiber"
- *        A fiber.
- * @param "key" "atom"
- *        The property key.
- * @param "else" "[]→any"
- *        The function to apply if {@param "key"} is not a property of {@param
- *        "aFiber"}.
- * @returns Either the requested property value or the result of applying
- *          {@param "else"}.
- */
-Method "_[_]else_" is
-[
-	aFiber : fiber,
-	key : atom,
-	else : function accepting <> and returning any
-|
-	if key ∈ aFiber
-	then [aFiber[key]]
-	else else
-] : any;
-
-/**
  * Define a method named {@param "atomName"} that answers the eponymously
  * referenced atom in the module currently undergoing compilation. If this name
  * already refers to an atom in scope, i.e., either one 1) imported through the
@@ -123,6 +98,64 @@ Public method "«Public»?_is a|an new⁇field⁇atom" is
 ] : ⊤;
 
 Semantic restriction "«Public»?_is a|an new⁇field⁇atom" is
+[
+	publicType : boolean's type,
+	nameType : string's type
+|
+	public ::= cast publicType's instance into [t : boolean | t];
+	If public ∧ [|nameType| ≠ 1] then
+	[
+		Reject parse, expected:
+			"public modifier to be provided only when the atom name \
+			\|is statically known"
+	];
+	publicNames ::= current module's public names;
+	If |nameType| = 1 then
+	[
+		name ::= cast nameType's instance into [t : string | t];
+		If |message name's parameters| ≠ 0 then
+		[
+			t : tuple := concatenate <
+				"\"",
+				name,
+				"\" not to specify any parameters">;
+			s : string;
+			↓↑s ?= t;
+			Reject parse, expected: s
+		];
+		If public ∧ [¬name ∈ publicNames] then
+		[
+			t : tuple := concatenate <
+				"\"",
+				name,
+				"\" to be included in the module's \"Names\" section">;
+			s : string;
+			↓↑s ?= t;
+			Reject parse, expected: s
+		];
+	];
+	⊤
+];
+
+/**
+ * Define a method named {@param "atomName"} that answers a new atom suitable
+ * for use as a heritable fiber environment key.
+ *
+ * @method "«Public»?_is a new⁇heritable«fiber-local»⁇atom"
+ * @param "atomName" "string"
+ *        The atom's name, provided primarily for debugging purposes.
+ */
+Public method "«Public»?_is a new⁇heritable«fiber-local»⁇atom" is
+[
+	isPublic : boolean,
+	atomName : string
+|
+	theAtom ::= new heritable fiber-local atom named atomName;
+	Method atomName is [theAtom];
+	Semantic restriction atomName is [theAtom's type];
+] : ⊤;
+
+Semantic restriction "«Public»?_is a new⁇heritable«fiber-local»⁇atom" is
 [
 	publicType : boolean's type,
 	nameType : string's type

@@ -459,13 +459,13 @@ extends ExtendedIntegerDescriptor
 	 * The Avail {@linkplain ExtendedIntegerDescriptor extended integer}
 	 * representing positive infinity.
 	 */
-	private static AvailObject positiveInfinity;
+	private static @Nullable A_Number positiveInfinity;
 
 	/**
 	 * The Avail {@linkplain ExtendedIntegerDescriptor extended integer}
 	 * representing negative infinity.
 	 */
-	private static AvailObject negativeInfinity;
+	private static @Nullable A_Number negativeInfinity;
 
 	/**
 	 * Create the positive and negative infinities.
@@ -499,9 +499,11 @@ extends ExtendedIntegerDescriptor
 	 *
 	 * @return Positive infinity.
 	 */
-	public static AvailObject positiveInfinity ()
+	public static A_Number positiveInfinity ()
 	{
-		return positiveInfinity;
+		final A_Number pos = positiveInfinity;
+		assert pos != null;
+		return pos;
 	}
 
 	/**
@@ -509,9 +511,11 @@ extends ExtendedIntegerDescriptor
 	 *
 	 * @return Negative infinity.
 	 */
-	public static AvailObject negativeInfinity ()
+	public static A_Number negativeInfinity ()
 	{
-		return negativeInfinity;
+		final A_Number neg = negativeInfinity;
+		assert neg != null;
+		return neg;
 	}
 
 	/**
@@ -521,15 +525,15 @@ extends ExtendedIntegerDescriptor
 	 * @param sign
 	 * @return
 	 */
-	public static A_BasicObject fromSign (final Sign sign)
+	public static A_Number fromSign (final Sign sign)
 	{
 		if (sign == Sign.POSITIVE)
 		{
-			return positiveInfinity;
+			return positiveInfinity();
 		}
 		if (sign == Sign.NEGATIVE)
 		{
-			return negativeInfinity;
+			return negativeInfinity();
 		}
 		throw new RuntimeException("Invalid sign for infinity");
 	}

@@ -125,10 +125,10 @@ extends Descriptor
 		{
 			aStream.append(first ? "" : ", ");
 			final int entryStart = aStream.length();
-			entry.key.printOnAvoidingIndent(
+			entry.key().printOnAvoidingIndent(
 				aStream, recursionList, indent + 2);
 			aStream.append("→");
-			entry.value.printOnAvoidingIndent(
+			entry.value().printOnAvoidingIndent(
 				aStream, recursionList, indent + 1);
 			if (aStream.length() - startPosition > 100
 				|| aStream.indexOf("\n", entryStart) != -1)
@@ -151,7 +151,7 @@ extends Descriptor
 					aStream.append('\t');
 				}
 				final int entryStart = aStream.length();
-				entry.key.printOnAvoidingIndent(
+				entry.key().printOnAvoidingIndent(
 					aStream, recursionList, indent + 2);
 				if (aStream.indexOf("\n", entryStart) != -1)
 				{
@@ -162,7 +162,7 @@ extends Descriptor
 					}
 				}
 				aStream.append("→");
-				entry.value.printOnAvoidingIndent(
+				entry.value().printOnAvoidingIndent(
 					aStream, recursionList, indent + 1);
 				first = false;
 			}
@@ -203,18 +203,18 @@ extends Descriptor
 	AvailObjectFieldHelper[] o_DescribeForDebugger (
 		final AvailObject object)
 	{
-		final List<AvailObjectFieldHelper> fields =
-			new ArrayList<AvailObjectFieldHelper>();
-		int counter = 1;
+		final AvailObjectFieldHelper[] fields =
+			new AvailObjectFieldHelper[object.mapSize() * 2];
+		int counter = 0;
 		for (final Entry entry : object.mapIterable())
 		{
-			fields.add(new AvailObjectFieldHelper(
-				object, FakeMapSlots.KEY, counter, entry.key));
-			fields.add(new AvailObjectFieldHelper(
-				object, FakeMapSlots.VALUE, counter, entry.value));
+			fields[counter * 2] = new AvailObjectFieldHelper(
+				object, FakeMapSlots.KEY, counter + 1, entry.key());
+			fields[counter * 2 + 1] = new AvailObjectFieldHelper(
+				object, FakeMapSlots.VALUE, counter + 1, entry.value());
 			counter++;
 		}
-		return fields.toArray(new AvailObjectFieldHelper[fields.size()]);
+		return fields;
 	}
 
 	@Override
@@ -249,9 +249,9 @@ extends Descriptor
 		for (final MapDescriptor.Entry entry : object.mapIterable())
 		{
 			final A_Map actualValue = aMapRootBin.mapBinAtHash(
-				entry.key,
-				entry.keyHash);
-			if (!entry.value.equals(actualValue))
+				entry.key(),
+				entry.keyHash());
+			if (!entry.value().equals(actualValue))
 			{
 				return false;
 			}
@@ -310,7 +310,7 @@ extends Descriptor
 			// assert keysMatch && !valuesMatch;
 			for (final Entry entry : object.mapIterable())
 			{
-				if (!entry.value.isInstanceOf(valueType))
+				if (!entry.value().isInstanceOf(valueType))
 				{
 					return false;
 				}
@@ -323,7 +323,7 @@ extends Descriptor
 				// assert !keysMatch && valuesMatch;
 				for (final Entry entry : object.mapIterable())
 				{
-					if (!entry.key.isInstanceOf(keyType))
+					if (!entry.key().isInstanceOf(keyType))
 					{
 						return false;
 					}
@@ -334,8 +334,8 @@ extends Descriptor
 				// assert !keysMatch && !valuesMatch;
 				for (final Entry entry : object.mapIterable())
 				{
-					if (!entry.key.isInstanceOf(keyType)
-						|| !entry.value.isInstanceOf(valueType))
+					if (!entry.key().isInstanceOf(keyType)
+						|| !entry.value().isInstanceOf(valueType))
 					{
 						return false;
 					}
@@ -433,7 +433,7 @@ extends Descriptor
 		for (final Entry entry : object.mapIterable())
 		{
 			result = result.setWithElementCanDestroy(
-				entry.key.makeImmutable(),
+				entry.key().makeImmutable(),
 				true);
 		}
 		return result;
@@ -457,7 +457,7 @@ extends Descriptor
 		int index = 1;
 		for (final Entry entry : object.mapIterable())
 		{
-			result.objectTupleAtPut(index, entry.value.makeImmutable());
+			result.objectTupleAtPut(index, entry.value().makeImmutable());
 			index++;
 		}
 		assert index == size + 1;
@@ -533,23 +533,68 @@ extends Descriptor
 	 *
 	 * @author Mark van Gulik &lt;mark@availlang.org&gt;
 	 */
-	public static class Entry
+	public static final class Entry
 	{
 		/**
 		 * The key at some {@link MapIterable}'s current position.
 		 */
-		public AvailObject key;
+		private @Nullable AvailObject key;
 
 		/**
 		 * The hash of the key at some {@link MapIterable}'s current position.
 		 */
-		public int keyHash;
+		private int keyHash;
 
 		/**
 		 * The value associated with the key at some {@link MapIterable}'s
 		 * current position.
 		 */
-		public AvailObject value;
+		private @Nullable AvailObject value;
+
+		/**
+		 * Update my fields.
+		 *
+		 * @param key The key to set.
+		 * @param keyHash the hash of the key.
+		 * @param value The value to set.
+		 */
+		public void setKeyAndHashAndValue (
+			final @Nullable AvailObject key,
+			final int keyHash,
+			final @Nullable AvailObject value)
+		{
+			this.key = key;
+			this.keyHash = keyHash;
+			this.value = value;
+		}
+
+		/**
+		 * @return The entry's key.
+		 */
+		public AvailObject key ()
+		{
+			final AvailObject k = key;
+			assert k != null;
+			return k;
+		}
+
+		/**
+		 * @return The entry's key's precomputed hash value.
+		 */
+		public int keyHash ()
+		{
+			return keyHash;
+		}
+
+		/**
+		 * @return The entry's value.
+		 */
+		public AvailObject value ()
+		{
+			final AvailObject v = value;
+			assert v != null;
+			return v;
+		}
 	}
 
 	/**
@@ -646,7 +691,7 @@ extends Descriptor
 		final A_Tuple tupleOfBindings)
 	{
 		assert tupleOfBindings.isTuple();
-		A_Map newMap = emptyMap;
+		A_Map newMap = empty();
 		for (final A_Tuple binding : tupleOfBindings)
 		{
 			assert binding.isTuple();
@@ -711,15 +756,15 @@ extends Descriptor
 		for (final Entry entry : source.mapIterable())
 		{
 			target = target.mapAtPuttingCanDestroy(
-				entry.key,
-				entry.value,
+				entry.key(),
+				entry.value(),
 				true);
 		}
 		return target;
 	}
 
 	/** The empty map. */
-	private static A_Map emptyMap;
+	private static @Nullable A_Map emptyMap;
 
 	/**
 	 * Answer the empty map.
@@ -728,7 +773,9 @@ extends Descriptor
 	 */
 	public static A_Map empty ()
 	{
-		return emptyMap;
+		final A_Map map = emptyMap;
+		assert map != null;
+		return map;
 	}
 
 	/**
@@ -736,9 +783,9 @@ extends Descriptor
 	 */
 	static void createWellKnownObjects ()
 	{
-		emptyMap = createFromBin(NilDescriptor.nil());
-		emptyMap.hash();
-		emptyMap.makeShared();
+		final A_Map map = createFromBin(NilDescriptor.nil());
+		map.hash();
+		emptyMap = map.makeShared();
 	}
 
 	/**

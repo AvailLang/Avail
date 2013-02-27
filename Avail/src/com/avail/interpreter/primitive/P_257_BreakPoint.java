@@ -73,7 +73,7 @@ public class P_257_BreakPoint extends Primitive
 	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(),
+			TupleDescriptor.empty(),
 			TOP.o());
 	}
 }

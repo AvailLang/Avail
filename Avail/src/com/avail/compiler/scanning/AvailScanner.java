@@ -843,7 +843,22 @@ public class AvailScanner
 	 * @return A {@linkplain List list} of {@linkplain TokenDescriptor tokens}
 	 *         terminated by a token of type {@link TokenType#END_OF_FILE}.
 	 */
-	public List<A_Token> scanString (
+	public static List<A_Token> scanString (
+		final String string,
+		final boolean stopAfterBodyTokenFlag)
+	{
+		final AvailScanner scanner =
+			new AvailScanner(string, stopAfterBodyTokenFlag);
+		return scanner.outputTokens;
+	}
+
+	/**
+	 * Construct a new {@link AvailScanner}.
+	 *
+	 * @param string The {@link String} to parse.
+	 * @param stopAfterBodyTokenFlag Whether to skip parsing the body.
+	 */
+	private AvailScanner (
 		final String string,
 		final boolean stopAfterBodyTokenFlag)
 	{
@@ -860,7 +875,6 @@ public class AvailScanner
 		}
 		startOfToken = position;
 		addCurrentToken(TokenType.END_OF_FILE);
-		return outputTokens;
 	}
 
 	/**

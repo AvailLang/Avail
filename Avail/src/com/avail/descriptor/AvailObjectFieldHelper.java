@@ -99,7 +99,7 @@ public class AvailObjectFieldHelper
 	/**
 	 * The actual value being presented with the given label.
 	 */
-	public final Object value;
+	public final @Nullable Object value;
 
 	/**
 	 * The slot of the parent object in which the value occurs.
@@ -114,7 +114,7 @@ public class AvailObjectFieldHelper
 	/**
 	 * The name to present for this field.
 	 */
-	private String name;
+	private @Nullable String name;
 
 	/** Construct a new {@link AvailObjectFieldHelper}.
 	 *
@@ -133,7 +133,7 @@ public class AvailObjectFieldHelper
 		final @Nullable A_BasicObject parentObject,
 		final AbstractSlotsEnum slot,
 		final int subscript,
-		final Object value)
+		final @Nullable Object value)
 	{
 		this.parentObject = parentObject;
 		this.slot = slot;
@@ -148,7 +148,8 @@ public class AvailObjectFieldHelper
 	 */
 	public String name ()
 	{
-		if (name == null)
+		String string = name;
+		if (string == null)
 		{
 			final StringBuilder builder = new StringBuilder();
 			builder.append(slot.name());
@@ -158,16 +159,17 @@ public class AvailObjectFieldHelper
 				builder.append(subscript);
 				builder.append(']');
 			}
-			if (value == null)
+			final Object val = value;
+			if (val == null)
 			{
 				builder.append(" = Java null");
 			}
-			else if (value instanceof AvailObject)
+			else if (val instanceof AvailObject)
 			{
 				builder.append(' ');
 				builder.append(((A_BasicObject)value).nameForDebugger());
 			}
-			else if (value instanceof AvailIntegerValueHelper)
+			else if (val instanceof AvailIntegerValueHelper)
 			{
 				AbstractDescriptor.describeIntegerSlot(
 					(AvailObject)parentObject,
@@ -179,10 +181,11 @@ public class AvailObjectFieldHelper
 			{
 				builder.append(String.format(
 					"*** UNKNOWN FIELD VALUE TYPE: %s ***",
-					value.getClass().getCanonicalName()));
+					val.getClass().getCanonicalName()));
 			}
-			name = builder.toString();
+			string = builder.toString();
+			name = string;
 		}
-		return name;
+		return string;
 	}
 }

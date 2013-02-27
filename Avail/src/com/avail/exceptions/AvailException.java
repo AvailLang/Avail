@@ -42,19 +42,19 @@ import com.avail.descriptor.AvailObject;
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public abstract class AvailException
+public class AvailException
 extends Exception
 {
 	/** The serial version identifier. */
 	private static final long serialVersionUID = 7650255850287561559L;
 
-	/** The {@linkplain AvailErrorCode error code}. */
+	/** The {@linkplain AvailObject error value}. */
 	private final AvailErrorCode errorCode;
 
 	/**
 	 * Answer the {@linkplain AvailErrorCode error code}.
 	 *
-	 * @return The {@linkplain AvailErrorCode error code}.
+	 * @return The error code.
 	 */
 	public AvailErrorCode errorCode ()
 	{
@@ -79,14 +79,14 @@ extends Exception
 	 * @param errorCode
 	 *        The {@linkplain AvailErrorCode error code}.
 	 */
-	protected AvailException (final AvailErrorCode errorCode)
+	public AvailException (final AvailErrorCode errorCode)
 	{
 		this.errorCode = errorCode;
 	}
 
 	/**
 	 * Construct a new {@link AvailException} with the specified {@linkplain
-	 * Throwable cause}.
+	 * AvailErrorCode error code} and {@linkplain Throwable cause}.
 	 *
 	 * @param errorCode
 	 *        The {@linkplain AvailErrorCode error code}.
@@ -94,7 +94,7 @@ extends Exception
 	 *        The proximal {@linkplain Throwable cause} of the {@linkplain
 	 *        AvailException exception}.
 	 */
-	protected AvailException (
+	public AvailException (
 		final AvailErrorCode errorCode,
 		final Throwable cause)
 	{

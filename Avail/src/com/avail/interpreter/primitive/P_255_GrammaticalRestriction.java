@@ -32,11 +32,13 @@
 package com.avail.interpreter.primitive;
 
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
+import static com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER;
 import static com.avail.interpreter.Primitive.Flag.Unknown;
 import java.util.List;
 import com.avail.descriptor.*;
 import com.avail.exceptions.AmbiguousNameException;
 import com.avail.exceptions.SignatureException;
+import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 
@@ -49,13 +51,14 @@ import com.avail.interpreter.Primitive;
  * distinction is only apparent when guillemet notation is used to accept
  * tuples of arguments.
  */
-public class P_255_GrammaticalRestriction extends Primitive
+public class P_255_GrammaticalRestriction
+extends Primitive
 {
 	/**
-	 * The sole instance of this primitive class.  Accessed through reflection.
+	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_255_GrammaticalRestriction().init(
-		2, Unknown);
+	public final static Primitive instance =
+		new P_255_GrammaticalRestriction().init(2, Unknown);
 
 	@Override
 	public Result attempt (
@@ -65,40 +68,55 @@ public class P_255_GrammaticalRestriction extends Primitive
 		assert args.size() == 2;
 		final A_Set stringSet = args.get(0);
 		final A_Tuple exclusionsTuple = args.get(1);
-		try
+		final AvailLoader loader = FiberDescriptor.current().availLoader();
+		if (loader == null)
 		{
-			A_Tuple disallowed = exclusionsTuple;
-			for (int i = disallowed.tupleSize(); i >= 1; i--)
+			return interpreter.primitiveFailure(E_LOADING_IS_OVER);
+		}
+		final A_Tuple stringSetAsTuple = stringSet.asTuple();
+		A_Tuple disallowed = exclusionsTuple;
+		for (int i = disallowed.tupleSize(); i >= 1; i--)
+		{
+			A_Set setOfAtoms = SetDescriptor.empty();
+			for (final A_String string : exclusionsTuple.tupleAt(i))
 			{
-				A_Set setOfAtoms = SetDescriptor.empty();
-				for (final A_String string : exclusionsTuple.tupleAt(i))
+				try
 				{
 					setOfAtoms = setOfAtoms.setWithElementCanDestroy(
-						interpreter.lookupName(string),
+						loader.lookupName(string),
 						true);
 				}
-				disallowed = disallowed.tupleAtPuttingCanDestroy(
-					i,
-					setOfAtoms,
-					true);
+				catch (final AmbiguousNameException e)
+				{
+					return interpreter.primitiveFailure(e);
+				}
 			}
-			disallowed.makeImmutable();
-			final A_Tuple stringSetAsTuple = stringSet.asTuple();
-			for (int i = stringSetAsTuple.tupleSize(); i >= 1; i--)
+			disallowed = disallowed.tupleAtPuttingCanDestroy(
+				i,
+				setOfAtoms,
+				true);
+		}
+		disallowed.makeImmutable();
+		//TODO[MvG] This should be done in a "red zone" continuation.
+		for (final A_String string : stringSetAsTuple)
+		{
+			try
 			{
-				final A_String string = stringSetAsTuple.tupleAt(i);
-				interpreter.atDisallowArgumentMessages(
-					interpreter.lookupName(string),
+				//TODO[MvG] Obsolete?  See also P_264_...
+//				interpreter.atDisallowArgumentMessages(
+//					interpreter.lookupName(string),
+				loader.addGrammaticalRestrictions(
+					loader.lookupName(string),
 					disallowed);
 			}
-		}
-		catch (final AmbiguousNameException e)
-		{
-			return interpreter.primitiveFailure(e);
-		}
-		catch (final SignatureException e)
-		{
-			return interpreter.primitiveFailure(e);
+			catch (final AmbiguousNameException e)
+			{
+				return interpreter.primitiveFailure(e);
+			}
+			catch (final SignatureException e)
+			{
+				return interpreter.primitiveFailure(e);
+			}
 		}
 		return interpreter.primitiveSuccess(NilDescriptor.nil());
 	}

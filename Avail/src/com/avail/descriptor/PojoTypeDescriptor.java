@@ -187,7 +187,7 @@ extends TypeDescriptor
 	}
 
 	/** The most general {@linkplain PojoTypeDescriptor pojo type}. */
-	private static A_Type mostGeneralType;
+	private static @Nullable A_Type mostGeneralType;
 
 	/**
 	 * Answer the most general {@linkplain PojoTypeDescriptor pojo
@@ -197,14 +197,16 @@ extends TypeDescriptor
 	 */
 	public static A_Type mostGeneralType ()
 	{
-		return mostGeneralType;
+		final A_Type type = mostGeneralType;
+		assert type != null;
+		return type;
 	}
 
 	/**
 	 * The most general {@linkplain PojoTypeDescriptor pojo array
 	 * type}.
 	 */
-	private static AvailObject mostGeneralArrayType;
+	private static @Nullable A_Type mostGeneralArrayType;
 
 	/**
 	 * Answer the most general {@linkplain PojoTypeDescriptor pojo array
@@ -212,16 +214,18 @@ extends TypeDescriptor
 	 *
 	 * @return The most general pojo array type.
 	 */
-	public static AvailObject mostGeneralArrayType ()
+	public static A_Type mostGeneralArrayType ()
 	{
-		return mostGeneralArrayType;
+		final A_Type type = mostGeneralArrayType;
+		assert type != null;
+		return type;
 	}
 
 	/**
 	 * The most specific {@linkplain PojoTypeDescriptor pojo type},
 	 * other than {@linkplain BottomTypeDescriptor#bottom() bottom}.
 	 */
-	private static AvailObject pojoBottom;
+	private static @Nullable A_Type pojoBottom;
 
 	/**
 	 * Answer the most specific {@linkplain PojoTypeDescriptor pojo
@@ -229,9 +233,11 @@ extends TypeDescriptor
 	 *
 	 * @return The most specific pojo type.
 	 */
-	public static AvailObject pojoBottom ()
+	public static A_Type pojoBottom ()
 	{
-		return pojoBottom;
+		final A_Type type = pojoBottom;
+		assert type != null;
+		return type;
 	}
 
 	/**
@@ -239,7 +245,7 @@ extends TypeDescriptor
 	 * InstanceTypeDescriptor instance type} represents the self type of a
 	 * {@linkplain Class Java class or interface}.
 	 */
-	private static A_Atom selfAtom;
+	private static @Nullable A_Atom selfAtom;
 
 	/**
 	 * Answer a special {@linkplain AtomDescriptor atom} whose {@linkplain
@@ -250,14 +256,16 @@ extends TypeDescriptor
 	 */
 	public static A_Atom selfAtom ()
 	{
-		return selfAtom;
+		final A_Atom atom = selfAtom;
+		assert atom != null;
+		return atom;
 	}
 
 	/**
 	 * A special {@linkplain InstanceTypeDescriptor instance type} that
 	 * represents the self type of a {@linkplain Class Java class or interface}.
 	 */
-	private static AvailObject selfType;
+	private static @Nullable A_Type selfType;
 
 	/**
 	 * Answer a special {@linkplain InstanceTypeDescriptor instance type} that
@@ -265,9 +273,11 @@ extends TypeDescriptor
 	 *
 	 * @return The pojo self type atom.
 	 */
-	public static AvailObject selfType ()
+	public static A_Type selfType ()
 	{
-		return selfType;
+		final A_Type type = selfType;
+		assert type != null;
+		return type;
 	}
 
 	/**
@@ -276,7 +286,7 @@ extends TypeDescriptor
 	 * contain the entry for {@link PojoArray}, as this has to be specialized
 	 * per pojo array type.
 	 */
-	private static AvailObject arrayBaseAncestorMap;
+	private static @Nullable A_Map arrayBaseAncestorMap;
 
 	/**
 	 * Answer the {@link #arrayBaseAncestorMap base ancestor map} for array pojo
@@ -284,16 +294,18 @@ extends TypeDescriptor
 	 *
 	 * @return The map for array pojo types.
 	 */
-	static AvailObject arrayBaseAncestorMap ()
+	static A_Map arrayBaseAncestorMap ()
 	{
-		return arrayBaseAncestorMap;
+		final A_Map map = arrayBaseAncestorMap;
+		assert map != null;
+		return map;
 	}
 
 	/**
 	 * The {@linkplain IntegerRangeTypeDescriptor integer range type} that
 	 * corresponds to Java {@code byte}.
 	 */
-	private static AvailObject byteRange;
+	private static @Nullable A_Type byteRange;
 
 	/**
 	 * Answer the {@linkplain IntegerRangeTypeDescriptor integer range type}
@@ -301,9 +313,11 @@ extends TypeDescriptor
 	 *
 	 * @return {@code [-128..127]}.
 	 */
-	public static AvailObject byteRange ()
+	public static A_Type byteRange ()
 	{
-		return byteRange;
+		final A_Type type = byteRange;
+		assert type != null;
+		return type;
 	}
 
 	/**
@@ -311,16 +325,18 @@ extends TypeDescriptor
 	 * corresponds to Java {@code short}.
 	 */
 
-	private static AvailObject shortRange;
+	private static @Nullable A_Type shortRange;
 	/**
 	 * Answer the {@linkplain IntegerRangeTypeDescriptor integer range type}
 	 * that corresponds to Java {@code short}.
 	 *
 	 * @return {@code [-32768..32767]}.
 	 */
-	public static AvailObject shortRange ()
+	public static A_Type shortRange ()
 	{
-		return shortRange;
+		final A_Type type = shortRange;
+		assert type != null;
+		return type;
 	}
 
 	/**
@@ -328,7 +344,7 @@ extends TypeDescriptor
 	 * corresponds to Java {@code int}.
 	 */
 
-	private static AvailObject intRange;
+	private static @Nullable A_Type intRange;
 
 	/**
 	 * Answer the {@linkplain IntegerRangeTypeDescriptor integer range type}
@@ -336,16 +352,18 @@ extends TypeDescriptor
 	 *
 	 * @return {@code [-2147483648..2147483647]}.
 	 */
-	public static AvailObject intRange ()
+	public static A_Type intRange ()
 	{
-		return intRange;
+		final A_Type type = intRange;
+		assert type != null;
+		return type;
 	}
 
 	/**
 	 * The {@linkplain IntegerRangeTypeDescriptor integer range type} that
 	 * corresponds to Java {@code long}.
 	 */
-	private static AvailObject longRange;
+	private static @Nullable A_Type longRange;
 
 	/**
 	 * Answer the {@linkplain IntegerRangeTypeDescriptor integer range type}
@@ -353,16 +371,18 @@ extends TypeDescriptor
 	 *
 	 * @return {@code [-9223372036854775808..9223372036854775807]}.
 	 */
-	public static AvailObject longRange ()
+	public static A_Type longRange ()
 	{
-		return longRange;
+		final A_Type type = longRange;
+		assert type != null;
+		return type;
 	}
 
 	/**
 	 * The {@linkplain IntegerRangeTypeDescriptor integer range type} that
 	 * corresponds to Java {@code char}.
 	 */
-	private static A_BasicObject charRange;
+	private static @Nullable A_Type charRange;
 
 	/**
 	 * Answer the {@linkplain IntegerRangeTypeDescriptor integer range type}
@@ -370,9 +390,11 @@ extends TypeDescriptor
 	 *
 	 * @return {@code [0..65535]}.
 	 */
-	public static A_BasicObject charRange ()
+	public static A_Type charRange ()
 	{
-		return charRange;
+		final A_Type type = charRange;
+		assert type != null;
+		return type;
 	}
 
 	/**
@@ -445,7 +467,7 @@ extends TypeDescriptor
 		pojoBottom = BottomPojoTypeDescriptor.mutable.create().makeShared();
 		selfAtom = AtomDescriptor.createSpecialAtom(
 			StringDescriptor.from("pojo self"));
-		selfType = InstanceTypeDescriptor.on(selfAtom).makeShared();
+		selfType = InstanceTypeDescriptor.on(selfAtom()).makeShared();
 		byteRange = IntegerRangeTypeDescriptor.create(
 			IntegerDescriptor.fromInt(Byte.MIN_VALUE),
 			true,
@@ -1017,19 +1039,19 @@ extends TypeDescriptor
 				}
 				else if (aClass.equals(Byte.TYPE))
 				{
-					return byteRange;
+					return byteRange();
 				}
 				else if (aClass.equals(Short.TYPE))
 				{
-					return shortRange;
+					return shortRange();
 				}
 				else if (aClass.equals(Integer.TYPE))
 				{
-					return intRange;
+					return intRange();
 				}
 				else if (aClass.equals(Long.TYPE))
 				{
-					return longRange;
+					return longRange();
 				}
 				else if (aClass.equals(Float.TYPE))
 				{

@@ -354,7 +354,7 @@ extends Descriptor
 					builder.append(", ");
 				}
 				first = false;
-				builder.append(entry.key.name());
+				builder.append(entry.key().name());
 			}
 		}
 		else
@@ -577,8 +577,8 @@ extends Descriptor
 			object.setSlot(UNCLASSIFIED, NilDescriptor.nil());
 			for (final MapDescriptor.Entry entry : unclassified.mapIterable())
 			{
-				final AvailObject message = entry.key;
-				final AvailObject bundle = entry.value;
+				final AvailObject message = entry.key();
+				final AvailObject bundle = entry.value();
 				updateForMessageAndBundle(
 					message,
 					bundle,
@@ -706,9 +706,9 @@ extends Descriptor
 			for (final MapDescriptor.Entry prefilterEntry
 				: prefilterMap.value.mapIterable())
 			{
-				if (!restrictionSet.hasElement(prefilterEntry.key))
+				if (!restrictionSet.hasElement(prefilterEntry.key()))
 				{
-					prefilterEntry.value.addBundle(bundle);
+					prefilterEntry.value().addBundle(bundle);
 				}
 			}
 			// Add branches for any new restrictions.  Pre-populate
@@ -728,7 +728,7 @@ extends Descriptor
 					for (final MapDescriptor.Entry existingEntry
 						: successor.allBundles().mapIterable())
 					{
-						newTarget.addBundle(existingEntry.value);
+						newTarget.addBundle(existingEntry.value());
 					}
 					prefilterMap.value =
 						prefilterMap.value.mapAtPuttingCanDestroy(

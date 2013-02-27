@@ -158,16 +158,16 @@ extends Descriptor
 	AvailObjectFieldHelper[] o_DescribeForDebugger (
 		final AvailObject object)
 	{
-		final List<AvailObjectFieldHelper> fields =
-			new ArrayList<AvailObjectFieldHelper>();
-		int counter = 1;
+		final AvailObjectFieldHelper[] fields =
+			new AvailObjectFieldHelper[object.setSize()];
+		int counter = 0;
 		for (final AvailObject element : object)
 		{
-			fields.add(new AvailObjectFieldHelper(
-				object, FakeSetSlots.ELEMENT, counter, element));
+			fields[counter] = new AvailObjectFieldHelper(
+				object, FakeSetSlots.ELEMENT, counter + 1, element);
 			counter++;
 		}
-		return fields.toArray(new AvailObjectFieldHelper[fields.size()]);
+		return fields;
 	}
 
 	@Override @AvailMethod
@@ -602,7 +602,7 @@ extends Descriptor
 	}
 
 	/** The empty set. */
-	private static A_Set emptySet;
+	private static @Nullable A_Set emptySet;
 
 	/**
 	 * Answer the empty set.
@@ -611,7 +611,9 @@ extends Descriptor
 	 */
 	public static A_Set empty ()
 	{
-		return emptySet;
+		final A_Set set = emptySet;
+		assert set != null;
+		return set;
 	}
 
 	/**
@@ -619,10 +621,10 @@ extends Descriptor
 	 */
 	static void createWellKnownObjects ()
 	{
-		emptySet = mutable.create();
-		setRootBin(emptySet, NilDescriptor.nil());
-		emptySet.hash();
-		emptySet.makeShared();
+		final A_Set set = mutable.create();
+		setRootBin(set, NilDescriptor.nil());
+		set.hash();
+		emptySet = set.makeShared();
 	}
 
 	/**

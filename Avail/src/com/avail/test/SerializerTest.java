@@ -54,6 +54,22 @@ import com.avail.serialization.*;
 public final class SerializerTest
 {
 	/**
+	 * The {@link AvailRuntime} for use by the {@link #serializer} or the
+	 * {@link #deserializer}.
+	 */
+	static @Nullable AvailRuntime runtime;
+
+	/**
+	 * @return The {@link AvailRuntime} used by the serializer and deserializer.
+	 */
+	final AvailRuntime runtime ()
+	{
+		final AvailRuntime theRuntime = runtime;
+		assert theRuntime != null;
+		return theRuntime;
+	}
+
+	/**
 	 * Test fixture: clear and then create all special objects well-known to the
 	 * Avail runtime.
 	 */
@@ -62,48 +78,6 @@ public final class SerializerTest
 	{
 		AvailObject.clearAllWellKnownObjects();
 		AvailObject.createAllWellKnownObjects();
-	}
-
-	/**
-	 * Test fixture: clear all special objects.
-	 */
-	@AfterClass
-	public static void clearAllWellKnownObjects ()
-	{
-		AvailObject.clearAllWellKnownObjects();
-	}
-
-	/**
-	 * The {@link AvailRuntime} for use by the {@link #serializer} or the
-	 * {@link #deserializer}.
-	 */
-	AvailRuntime runtime;
-
-	/**
-	 * The stream onto which the serializer writes its bytes.
-	 */
-	ByteArrayOutputStream out;
-
-	/**
-	 * The {@link Serializer} which converts objects to bytes.
-	 */
-	Serializer serializer;
-
-	/**
-	 * The source of bytes for the {@link Deserializer}.
-	 */
-	ByteArrayInputStream in;
-
-	/**
-	 * The {@link Deserializer} which (re)produces objects from bytes.
-	 */
-	Deserializer deserializer;
-
-	/**
-	 * Create a new instance of {@link AvailRuntime} for testing.
-	 */
-	void createRuntime ()
-	{
 		final ModuleRoots roots = new ModuleRoots(
 			"avail=" + new File("avail").getAbsolutePath());
 		final RenamesFileParser parser =
@@ -121,13 +95,75 @@ public final class SerializerTest
 	}
 
 	/**
+	 * Test fixture: clear all special objects.
+	 */
+	@AfterClass
+	public static void clearAllWellKnownObjects ()
+	{
+		final AvailRuntime theRuntime = runtime;
+		assert theRuntime != null;
+		theRuntime.destroy();
+		runtime = null;
+		AvailObject.clearAllWellKnownObjects();
+	}
+
+	/**
+	 * The stream onto which the serializer writes its bytes.
+	 */
+	@Nullable ByteArrayOutputStream out;
+
+	/**
+	 * The {@link Serializer} which converts objects to bytes.
+	 */
+	@Nullable Serializer serializer;
+
+	/**
+	 * @return The {@link Serializer} used by this test class.
+	 */
+	public Serializer serializer ()
+	{
+		final Serializer theSerializer = serializer;
+		assert theSerializer != null;
+		return theSerializer;
+	}
+
+	/**
+	 * The source of bytes for the {@link Deserializer}.
+	 */
+	@Nullable ByteArrayInputStream in;
+
+	/**
+	 * @return The {@link ByteArrayInputStream} used by the deserializer.
+	 */
+	public ByteArrayInputStream in ()
+	{
+		final ByteArrayInputStream theInput = in;
+		assert theInput != null;
+		return theInput;
+	}
+
+	/**
+	 * The {@link Deserializer} which (re)produces objects from bytes.
+	 */
+	@Nullable Deserializer deserializer;
+
+	/**
+	 * @return The {@link Deserializer} used by this test class.
+	 */
+	public Deserializer deserializer ()
+	{
+		final Deserializer theDeserializer = deserializer;
+		assert theDeserializer != null;
+		return theDeserializer;
+	}
+
+	/**
 	 * Get ready to write objects to the {@link #serializer}.
 	 */
 	private void prepareToWrite ()
 	{
-		createRuntime();
-		out = new ByteArrayOutputStream(1000);
-		serializer = new Serializer(out);
+		serializer = new Serializer(
+			out = new ByteArrayOutputStream(1000));
 		deserializer = null;
 	}
 
@@ -137,7 +173,9 @@ public final class SerializerTest
 	 */
 	private void prepareToReadBack ()
 	{
-		final byte[] bytes = out.toByteArray();
+		final ByteArrayOutputStream theByteStream = out;
+		assert theByteStream != null;
+		final byte[] bytes = theByteStream.toByteArray();
 //		int count = 1;
 //		for (final byte b : bytes)
 //		{
@@ -148,9 +186,9 @@ public final class SerializerTest
 //			}
 //		}
 //		System.out.println();
-		createRuntime();
-		in = new ByteArrayInputStream(bytes);
-		deserializer = new Deserializer(in, runtime);
+		deserializer = new Deserializer(
+			in = new ByteArrayInputStream(bytes),
+			runtime());
 		serializer = null;
 	}
 
@@ -165,13 +203,13 @@ public final class SerializerTest
 	throws MalformedSerialStreamException
 	{
 		prepareToWrite();
-		serializer.serialize(object);
+		serializer().serialize(object);
 		prepareToReadBack();
-		final A_BasicObject newObject = deserializer.deserialize();
+		final A_BasicObject newObject = deserializer().deserialize();
 		assertTrue(
 			"Serialization stream was not fully emptied",
-			in.available() == 0);
-		assert deserializer.deserialize() == null;
+			in().available() == 0);
+		assert deserializer().deserialize() == null;
 		return (AvailObject)newObject;
 	}
 
@@ -390,14 +428,14 @@ public final class SerializerTest
 		final A_Tuple tuple = TupleDescriptor.from(atom1, atom2);
 
 		prepareToWrite();
-		serializer.serialize(tuple);
+		serializer().serialize(tuple);
 		prepareToReadBack();
-		runtime.addModule(inputModule);
-		deserializer.currentModule(currentModule);
-		final A_BasicObject newObject = deserializer.deserialize();
+		runtime().addModule(inputModule);
+		deserializer().currentModule(currentModule);
+		final A_BasicObject newObject = deserializer().deserialize();
 		assertTrue(
 			"Serialization stream was not fully emptied",
-			in.available() == 0);
+			in().available() == 0);
 		assertEquals(tuple, newObject);
 	}
 
@@ -442,33 +480,4 @@ public final class SerializerTest
 			assertEquals(code.literalAt(i), code2.literalAt(i));
 		}
 	}
-
-//	@Test
-//	public void testRandomSimpleObjects2 ()
-//	throws MalformedSerialStreamException
-//	{
-//		testRandomSimpleObjects();
-//	}
-//
-//	@Test
-//	public void testRandomSimpleObjects3 ()
-//	throws MalformedSerialStreamException
-//	{
-//		testRandomSimpleObjects();
-//	}
-//
-//	@Test
-//	public void testRandomSimpleObjects4 ()
-//	throws MalformedSerialStreamException
-//	{
-//		testRandomSimpleObjects();
-//	}
-//
-//	@Test
-//	public void testRandomSimpleObjects5 ()
-//	throws MalformedSerialStreamException
-//	{
-//		testRandomSimpleObjects();
-//	}
-
 }

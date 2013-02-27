@@ -96,7 +96,7 @@ Method "_'s⁇position" is
 	 * argument. In this way the memento is specific to a particular iterator
 	 * and position.
 	 */
-	position ::= new atom "current position";
+	position ::= new atom named "current position";
 	position[iterator id] := anIterator;
 	position[adapted stream] := anIterator's adapted stream;
 	position

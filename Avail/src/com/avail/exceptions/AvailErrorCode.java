@@ -446,8 +446,20 @@ public enum AvailErrorCode
 	 */
 	E_LOCAL_DECLARATION_SHADOWS_ANOTHER (66),
 
-//	E_??? (67),
-//	E_??? (68),
+	/**
+	 * A {@linkplain MacroDefinitionDescriptor macro}'s {@linkplain
+	 * FunctionDescriptor prefix function} must restrict each parameter to be at
+	 * least as specific as a {@linkplain ParseNodeDescriptor parse node}.
+	 */
+	E_MACRO_PREFIX_FUNCTION_ARGUMENT_MUST_BE_A_PARSE_NODE (67),
+
+	/**
+	 * A {@linkplain MacroDefinitionDescriptor macro} {@linkplain
+	 * FunctionDescriptor body} must produce a {@linkplain ParseNodeDescriptor
+	 * parse node}.
+	 */
+	E_MACRO_MUST_RETURN_A_PARSE_NODE (68),
+
 //	E_??? (69),
 
 	/**
@@ -473,7 +485,7 @@ public enum AvailErrorCode
 	 */
 	E_NO_IMPLEMENTATION (73),
 
-//	E_??? (74)
+//	E_??? (74) -- reserved for Todd.
 //	E_??? (75)
 //	E_??? (76)
 //	E_??? (77)

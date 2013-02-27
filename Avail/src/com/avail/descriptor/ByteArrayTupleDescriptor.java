@@ -41,9 +41,9 @@ import java.util.Arrays;
 import com.avail.annotations.*;
 
 /**
- * {@code ByteTupleDescriptor} represents a tuple of integers that happen to
- * fall in the range 0..255. Unlike {@link ByteTupleDescriptor}, it is backed
- * by a {@linkplain RawPojoDescriptor thinly wrapped} byte array.
+ * {@code ByteArrayTupleDescriptor} represents a tuple of integers that happen
+ * to fall in the range {@code [0..255]}. Unlike {@link ByteTupleDescriptor}, it
+ * is backed by a {@linkplain RawPojoDescriptor thinly wrapped} byte array.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
@@ -77,7 +77,7 @@ extends TupleDescriptor
 	{
 		/**
 		 * A {@linkplain RawPojoDescriptor raw pojo} wrapping the byte array
-		 * that backs this {@link ByteArrayTupleDescriptor}.
+		 * that backs this {@linkplain ByteArrayTupleDescriptor tuple}.
 		 */
 		BYTE_ARRAY
 	}
@@ -122,7 +122,8 @@ extends TupleDescriptor
 		{
 			return true;
 		}
-		if (object.slot(BYTE_ARRAY) == aByteArrayTuple.slot(BYTE_ARRAY))
+		if (object.slot(BYTE_ARRAY).sameAddressAs(
+			aByteArrayTuple.slot(BYTE_ARRAY)))
 		{
 			return true;
 		}

@@ -294,7 +294,7 @@ extends Descriptor
 	 * A list of tuples whose elements are all the empty set. Subscript N is an
 	 * immutable tuple of size N whose elements are all the empty set.
 	 */
-	static List<A_Tuple> tuplesOfEmptySets;
+	static List<A_Tuple> tuplesOfEmptySets = new ArrayList<A_Tuple>();
 
 	/**
 	 * Return an immutable tuple of the specified size consisting of empty sets.
@@ -331,7 +331,7 @@ extends Descriptor
 	 */
 	static void clearWellKnownObjects ()
 	{
-		tuplesOfEmptySets = null;
+		tuplesOfEmptySets.clear();
 	}
 
 	/**

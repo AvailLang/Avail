@@ -222,7 +222,7 @@ extends TypeDescriptor
 	}
 
 	/** The most general literal token type */
-	private static AvailObject mostGeneralType;
+	private static @Nullable A_Type mostGeneralType;
 
 	/**
 	 * Answer the most general literal token type, specifically the literal
@@ -231,9 +231,11 @@ extends TypeDescriptor
 	 *
 	 * @return The most general literal token type.
 	 */
-	public static AvailObject mostGeneralType()
+	public static A_Type mostGeneralType()
 	{
-		return mostGeneralType;
+		final A_Type type = mostGeneralType;
+		assert type != null;
+		return type;
 	}
 
 	public static void clearWellKnownObjects ()
@@ -243,8 +245,7 @@ extends TypeDescriptor
 
 	public static void createWellKnownObjects ()
 	{
-		mostGeneralType = create(ANY.o());
-		mostGeneralType.makeShared();
+		mostGeneralType = create(ANY.o()).makeShared();
 	}
 
 	/**

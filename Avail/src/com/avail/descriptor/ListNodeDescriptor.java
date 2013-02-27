@@ -252,7 +252,7 @@ extends ParseNodeDescriptor
 	/**
 	 * The empty {@link ListNodeDescriptor list node}.
 	 */
-	private static AvailObject empty;
+	private static @Nullable AvailObject empty;
 
 
 	/**
@@ -262,7 +262,9 @@ extends ParseNodeDescriptor
 	 */
 	public static AvailObject empty ()
 	{
-		return empty;
+		final AvailObject list = empty;
+		assert list != null;
+		return list;
 	}
 
 	/**
@@ -270,8 +272,7 @@ extends ParseNodeDescriptor
 	 */
 	static void createWellKnownObjects ()
 	{
-		empty = newExpressions(TupleDescriptor.empty());
-		empty.makeShared();
+		empty = newExpressions(TupleDescriptor.empty()).makeShared();
 	}
 
 	/**

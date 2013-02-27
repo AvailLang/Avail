@@ -49,7 +49,8 @@ import com.avail.optimizer.RegisterSet;
  * move the L2 {@link Interpreter#offset()} back to the same instruction
  * (which always occupies a single word, so the address is implicit).
  */
-public class L2_INTERPRET_UNTIL_INTERRUPT extends L2Operation
+public class L2_INTERPRET_UNTIL_INTERRUPT
+extends L2Operation
 {
 	/**
 	 * Initialize the sole instance.

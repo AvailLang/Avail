@@ -56,7 +56,7 @@ public class Deserializer
 	/**
 	 * The most recently object produced by deserialization.
 	 */
-	protected AvailObject producedObject;
+	protected @Nullable AvailObject producedObject;
 
 	/**
 	 * The {@link AvailRuntime} whose scope is used to decode references to
@@ -67,7 +67,7 @@ public class Deserializer
 	/**
 	 * The current {@linkplain ModuleDescriptor module}.
 	 */
-	private AvailObject currentModule;
+	private @Nullable AvailObject currentModule;
 
 	/**
 	 * Answer the deserializer's instance of {@link AvailRuntime} used for
@@ -99,7 +99,7 @@ public class Deserializer
 	 * @param index The special atom's ordinal.
 	 * @return The special atom known to the virtual machine's runtime.
 	 */
-	protected AvailObject specialAtom (final int index)
+	protected A_Atom specialAtom (final int index)
 	{
 		return AvailRuntime.specialAtoms().get(index);
 	}
@@ -138,9 +138,10 @@ public class Deserializer
 		final A_String moduleName)
 	{
 		assert moduleName.isString();
-		if (moduleName.equals(currentModule.moduleName()))
+		final AvailObject current = currentModule;
+		if (current != null && moduleName.equals(current.moduleName()))
 		{
-			return currentModule;
+			return current;
 		}
 		if (!runtime.includesModuleNamed(moduleName))
 		{
@@ -167,7 +168,7 @@ public class Deserializer
 	 *
 	 * @return The current module.
 	 */
-	public AvailObject currentModule ()
+	public @Nullable AvailObject currentModule ()
 	{
 		return currentModule;
 	}

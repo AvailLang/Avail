@@ -87,7 +87,9 @@ public class PrefixSharingList<E> extends AbstractList<E>
 			return lastElement;
 		}
 		cacheFlatListOrMore();
-		return cachedFlatListOrMore.get(index);
+		final List<E> flat = cachedFlatListOrMore;
+		assert flat != null;
+		return flat.get(index);
 	}
 
 	/**
@@ -125,6 +127,7 @@ public class PrefixSharingList<E> extends AbstractList<E>
 			if (pointer.allButLast instanceof PrefixSharingList<?>)
 			{
 				pointer = (PrefixSharingList<E>)pointer.allButLast;
+				assert pointer != null;
 				final @Nullable List<E> pointerFlatList =
 					pointer.cachedFlatListOrMore;
 				if (pointerFlatList != null)
@@ -154,6 +157,7 @@ public class PrefixSharingList<E> extends AbstractList<E>
 			if (pointer.allButLast instanceof PrefixSharingList<?>)
 			{
 				pointer = (PrefixSharingList<E>)pointer.allButLast;
+				assert pointer != null;
 			}
 			else
 			{
@@ -228,7 +232,7 @@ public class PrefixSharingList<E> extends AbstractList<E>
 		assert size <= originalList.size();
 		this.size = size;
 		this.allButLast = null;
-		this.lastElement = allButLast.get(size - 1);
+		this.lastElement = originalList.get(size - 1);
 		this.cachedFlatListOrMore = allButLast;
 	}
 
@@ -266,13 +270,14 @@ public class PrefixSharingList<E> extends AbstractList<E>
 		{
 			final PrefixSharingList<E2>strongOriginal =
 				(PrefixSharingList<E2>)originalList;
-			if (strongOriginal.allButLast != null)
+			final List<E2> butLast = strongOriginal.allButLast;
+			if (butLast != null)
 			{
-				return strongOriginal.allButLast;
+				return butLast;
 			}
-			return new PrefixSharingList<E2>(
-				strongOriginal.cachedFlatListOrMore,
-				originalList.size() - 1);
+			final List<E2> flat = strongOriginal.cachedFlatListOrMore;
+			assert flat != null;
+			return new PrefixSharingList<E2>(flat, originalList.size() - 1);
 		}
 		if (originalList.size() <= 1)
 		{

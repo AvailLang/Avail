@@ -34,6 +34,7 @@ package com.avail.interpreter.levelOne;
 
 import static com.avail.descriptor.AvailObject.error;
 import static java.lang.Math.max;
+import com.avail.annotations.Nullable;
 import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.AvailObject;
 
@@ -48,7 +49,17 @@ abstract class L1StackTracker implements L1OperationDispatcher
 	/**
 	 * The operands of the {@link L1Instruction} being traced.
 	 */
-	int [] currentOperands = null;
+	@Nullable int [] currentOperands = null;
+
+	/**
+	 * @return The current {@link L1Instruction}'s encoded operands.
+	 */
+	int [] currentOperands ()
+	{
+		final int [] operands = currentOperands;
+		assert operands != null;
+		return operands;
+	}
 
 	/**
 	 * The number of items that will have been pushed on the stack at this
@@ -128,7 +139,7 @@ abstract class L1StackTracker implements L1OperationDispatcher
 	@Override
 	public void L1_doCall ()
 	{
-		currentDepth += 1 - literalAt(currentOperands[0]).numArgs();
+		currentDepth += 1 - literalAt(currentOperands()[0]).numArgs();
 	}
 
 	@Override
@@ -158,7 +169,7 @@ abstract class L1StackTracker implements L1OperationDispatcher
 	@Override
 	public void L1_doClose ()
 	{
-		currentDepth += 1 - currentOperands[0];
+		currentDepth += 1 - currentOperands()[0];
 	}
 
 	@Override
@@ -206,7 +217,7 @@ abstract class L1StackTracker implements L1OperationDispatcher
 	@Override
 	public void L1_doMakeTuple ()
 	{
-		currentDepth += 1 - currentOperands[0];
+		currentDepth += 1 - currentOperands()[0];
 	}
 
 	@Override

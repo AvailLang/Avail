@@ -36,12 +36,14 @@ import static com.avail.descriptor.Mutability.*;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
 import java.math.BigInteger;
+import java.nio.ByteBuffer;
 import java.util.*;
 import com.avail.annotations.*;
-import com.avail.compiler.AvailCodeGenerator;
+import com.avail.compiler.*;
 import com.avail.descriptor.AbstractNumberDescriptor.Order;
 import com.avail.descriptor.AbstractNumberDescriptor.Sign;
 import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
+import com.avail.descriptor.FiberDescriptor.GeneralFlag;
 import com.avail.descriptor.FiberDescriptor.InterruptRequestFlag;
 import com.avail.descriptor.FiberDescriptor.SynchronizationFlag;
 import com.avail.descriptor.InfinityDescriptor.IntegerSlots;
@@ -53,7 +55,6 @@ import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.exceptions.AvailUnsupportedOperationException;
 import com.avail.exceptions.SignatureException;
 import com.avail.interpreter.AvailLoader;
-import com.avail.interpreter.Interpreter;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.*;
 import com.avail.visitor.AvailSubobjectVisitor;
@@ -1705,7 +1706,7 @@ public abstract class AbstractDescriptor
 	/**
 	 * @param object
 	 * @param messageBundleName
-	 * @param method TODO
+	 * @param method
 	 * @return
 	 */
 	abstract AvailObject o_IncludeBundleNamed (
@@ -1729,6 +1730,14 @@ public abstract class AbstractDescriptor
 	abstract void o_Index (
 		AvailObject object,
 		int value);
+
+	/**
+	 * @param object
+	 * @param flag
+	 */
+	abstract void o_SetInterruptRequestFlag (
+		AvailObject object,
+		InterruptRequestFlag flag);
 
 	/**
 	 * @param object
@@ -2907,19 +2916,6 @@ public abstract class AbstractDescriptor
 		AvailObject object,
 		int index,
 		int value);
-
-	/**
-	 * @param object
-	 * @param argTypes
-	 * @param anAvailInterpreter
-	 * @param failBlock
-	 * @return
-	 */
-	abstract A_Type o_ValidateArgumentTypesInterpreterIfFail (
-		AvailObject object,
-		List<A_Type> argTypes,
-		Interpreter anAvailInterpreter,
-		Continuation1<Generator<String>> failBlock);
 
 	/**
 	 * @param object
@@ -4498,12 +4494,12 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param codeGenerator
+	 * @param module
 	 * @return
 	 */
-	abstract AvailObject o_Generate (
+	abstract A_BasicObject o_GenerateInModule (
 		AvailObject object,
-		AvailCodeGenerator codeGenerator);
+		A_BasicObject module);
 
 	/**
 	 * @param object
@@ -5797,9 +5793,9 @@ public abstract class AbstractDescriptor
 	 * @param addend
 	 * @return
 	 */
-	abstract AvailObject o_FetchAndAddValue (
+	abstract A_Number o_FetchAndAddValue (
 		final AvailObject object,
-		final AvailObject addend);
+		final A_Number addend);
 
 	/**
 	 * @param object
@@ -5830,14 +5826,6 @@ public abstract class AbstractDescriptor
 	abstract void o_FailureContinuation (
 		AvailObject object,
 		Continuation1<Throwable> continuation);
-
-	/**
-	 * @param object
-	 * @param flag
-	 */
-	abstract void o_SetInterruptRequestFlag (
-		AvailObject object,
-		InterruptRequestFlag flag);
 
 	/**
 	 * @param object
@@ -5910,7 +5898,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @param joinee
 	 */
-	abstract void o_Joinee (AvailObject object, AvailObject joinee);
+	abstract void o_Joinee (AvailObject object, A_BasicObject joinee);
 
 	/**
 	 * @param object
@@ -5935,4 +5923,73 @@ public abstract class AbstractDescriptor
 	 * @param joiners
 	 */
 	abstract void o_JoiningFibers (AvailObject object, A_Set joiners);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract A_Map o_HeritableFiberGlobals (AvailObject object);
+
+	/**
+	 * @param object
+	 * @param globals
+	 */
+	abstract void o_HeritableFiberGlobals (
+		AvailObject object,
+		A_Map globals);
+
+	/**
+	 * @param object
+	 * @param flag
+	 * @return
+	 */
+	abstract boolean o_GeneralFlag (AvailObject object, GeneralFlag flag);
+
+	/**
+	 * @param object
+	 * @param flag
+	 */
+	abstract void o_SetGeneralFlag (AvailObject object, GeneralFlag flag);
+
+	/**
+	 * @param object
+	 * @param flag
+	 */
+	abstract void o_ClearGeneralFlag (AvailObject object, GeneralFlag flag);
+
+	/**
+	 * @param object
+	 * @param aByteBufferTuple
+	 * @return
+	 */
+	abstract boolean o_EqualsByteBufferTuple (
+		AvailObject object,
+		A_Tuple aByteBufferTuple);
+
+	/**
+	 * @param object
+	 * @param startIndex1
+	 * @param endIndex1
+	 * @param aByteBufferTuple
+	 * @param startIndex2
+	 * @return
+	 */
+	abstract boolean o_CompareFromToWithByteBufferTupleStartingAt (
+		AvailObject object,
+		int startIndex1,
+		int endIndex1,
+		A_Tuple aByteBufferTuple,
+		int startIndex2);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract ByteBuffer o_ByteBuffer (AvailObject object);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract boolean o_IsByteBufferTuple (AvailObject object);
 }

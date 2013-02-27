@@ -561,8 +561,8 @@ enum SerializerOperandEncoding
 		{
 			for (final MapDescriptor.Entry entry : object.mapIterable())
 			{
-				serializer.traceOne(entry.key);
-				serializer.traceOne(entry.value);
+				serializer.traceOne(entry.key());
+				serializer.traceOne(entry.value());
 			}
 		}
 
@@ -573,10 +573,10 @@ enum SerializerOperandEncoding
 			for (final MapDescriptor.Entry entry : object.mapIterable())
 			{
 				writeCompressedPositiveInt(
-					serializer.indexOfExistingObject(entry.key),
+					serializer.indexOfExistingObject(entry.key()),
 					serializer);
 				writeCompressedPositiveInt(
-					serializer.indexOfExistingObject(entry.value),
+					serializer.indexOfExistingObject(entry.value()),
 					serializer);
 			}
 		}

@@ -390,7 +390,7 @@ extends Descriptor
 		 * L2ChunkDescriptor#createWellKnownObjects()}.
 		 * </p>
 		 */
-		static ReferenceQueue<AvailObject> recyclingQueue =
+		static @Nullable ReferenceQueue<AvailObject> recyclingQueue =
 			new ReferenceQueue<AvailObject>();
 
 		/**
@@ -444,7 +444,7 @@ extends Descriptor
 	 * The {@linkplain ReentrantLock lock} that guards access to the table of
 	 * {@linkplain L2ChunkDescriptor chunks}.
 	 */
-	private static ReentrantLock chunksLock;
+	private static final ReentrantLock chunksLock = new ReentrantLock();
 
 	/**
 	 * The special {@linkplain L2ChunkDescriptor level two chunk} that is used
@@ -452,7 +452,7 @@ extends Descriptor
 	 * CompiledCodeDescriptor compiled code} has been executed some number of
 	 * times.
 	 */
-	private static AvailObject unoptimizedChunk;
+	private static @Nullable A_BasicObject unoptimizedChunk;
 
 	/**
 	 * Return the special {@linkplain L2ChunkDescriptor level two chunk} that is
@@ -462,9 +462,11 @@ extends Descriptor
 	 *
 	 * @return The special {@linkplain #unoptimizedChunk unoptimized chunk}.
 	 */
-	public static AvailObject unoptimizedChunk ()
+	public static A_BasicObject unoptimizedChunk ()
 	{
-		return unoptimizedChunk;
+		final A_BasicObject chunk = unoptimizedChunk;
+		assert chunk != null;
+		return chunk;
 	}
 
 	/**
@@ -473,14 +475,13 @@ extends Descriptor
 	 */
 	static void createWellKnownObjects ()
 	{
-		chunksLock = new ReentrantLock();
 		WeakChunkReference.recyclingQueue = new ReferenceQueue<AvailObject>();
 		assert allChunksWeakly.isEmpty();
-		unoptimizedChunk =
-			new L2Translator(null).createChunkForFirstInvocation();
-		unoptimizedChunk.makeShared();
+		final AvailObject unoptimized =
+			new L2Translator(null).createChunkForFirstInvocation().makeShared();
+		assert unoptimized.slot(INDEX) == 0;
 		assert allChunksWeakly.size() == 1;
-		assert unoptimizedChunk.slot(INDEX) == 0;
+		unoptimizedChunk = unoptimized;
 	}
 
 	/**
@@ -492,7 +493,6 @@ extends Descriptor
 		unoptimizedChunk = null;
 		allChunksWeakly.clear();
 		WeakChunkReference.recyclingQueue = null;
-		chunksLock = null;
 	}
 
 	/**
@@ -611,11 +611,11 @@ extends Descriptor
 		final List<Integer> theWordcodes,
 		final Set<AvailObject> contingentSets)
 	{
-		final List<AvailObject> vectorTuples =
-			new ArrayList<AvailObject>(listOfVectors.size());
+		final List<A_BasicObject> vectorTuples =
+			new ArrayList<A_BasicObject>(listOfVectors.size());
 		for (final List<Integer> vector : listOfVectors)
 		{
-			final AvailObject vectorTuple =
+			final A_Tuple vectorTuple =
 				TupleDescriptor.fromIntegerList(vector);
 			vectorTuple.makeImmutable();
 			vectorTuples.add(vectorTuple);
@@ -644,8 +644,11 @@ extends Descriptor
 		chunksLock.lock();
 		try
 		{
+			final ReferenceQueue<AvailObject> queue =
+				WeakChunkReference.recyclingQueue;
+			assert queue != null;
 			final Reference<? extends AvailObject> recycledReference =
-				WeakChunkReference.recyclingQueue.poll();
+				queue.poll();
 			if (recycledReference != null)
 			{
 				// Recycle the reference. Nobody referred to the chunk, so it

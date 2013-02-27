@@ -222,7 +222,7 @@ implements L1OperationDispatcher
 	 */
 	public void reifyContinuation ()
 	{
-		final AvailObject function = pointerAt(FUNCTION);
+		final A_Function function = pointerAt(FUNCTION);
 		final A_BasicObject code = function.code();
 		final A_BasicObject chunk = interpreter.chunk();
 		assert chunk == L2ChunkDescriptor.unoptimizedChunk();

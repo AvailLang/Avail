@@ -78,7 +78,7 @@ extends Descriptor
 		 * {@linkplain RawPojoDescriptor Avail pojos} will be placed when the
 		 * Java garbage collector reclaims them.
 		 */
-		static ReferenceQueue<AvailObject> recyclingQueue;
+		static @Nullable ReferenceQueue<AvailObject> recyclingQueue;
 
 		/**
 		 * The {@linkplain RawPojoDescriptor.IntegerSlots#INDEX index} of
@@ -124,13 +124,13 @@ extends Descriptor
 	 * #allPojosStrongly strong} and {@linkplain #allPojosWeakly weak} pojo
 	 * tables.
 	 */
-	protected static ReentrantLock pojosLock;
+	protected static final ReentrantLock pojosLock = new ReentrantLock();
 
 	/**
 	 * A {@linkplain RawPojoDescriptor raw pojo} for {@link Object}'s
 	 * {@linkplain Class class}.
 	 */
-	private static AvailObject rawObjectClass;
+	private static @Nullable AvailObject rawObjectClass;
 
 	/**
 	 * Answer a {@linkplain RawPojoDescriptor raw pojo} for {@link Object}'s
@@ -140,11 +140,13 @@ extends Descriptor
 	 */
 	public static AvailObject rawObjectClass ()
 	{
-		return rawObjectClass;
+		final AvailObject cls = rawObjectClass;
+		assert cls != null;
+		return cls;
 	}
 
 	/** The {@code null} {@linkplain PojoDescriptor pojo}. */
-	private static AvailObject rawNullObject;
+	private static @Nullable AvailObject rawNullObject;
 
 	/**
 	 * Answer the {@code null} {@linkplain RawPojoDescriptor pojo}.
@@ -153,7 +155,9 @@ extends Descriptor
 	 */
 	public static AvailObject rawNullObject ()
 	{
-		return rawNullObject;
+		final AvailObject nullObj = rawNullObject;
+		assert nullObj != null;
+		return nullObj;
 	}
 
 	/**
@@ -165,9 +169,7 @@ extends Descriptor
 		assert allPojosStrongly.isEmpty();
 		assert allPojosWeakly.isEmpty();
 		assert WeakPojoReference.recyclingQueue == null;
-		assert pojosLock == null;
 		WeakPojoReference.recyclingQueue = new ReferenceQueue<AvailObject>();
-		pojosLock = new ReentrantLock();
 		rawObjectClass = equalityWrap(Object.class).makeShared();
 		rawNullObject = identityWrap(null).makeShared();
 	}
@@ -181,7 +183,6 @@ extends Descriptor
 		allPojosStrongly.clear();
 		allPojosWeakly.clear();
 		WeakPojoReference.recyclingQueue = null;
-		pojosLock = null;
 		rawObjectClass = null;
 		rawNullObject = null;
 	}
@@ -206,7 +207,10 @@ extends Descriptor
 
 			// Consume all defunct weak references from the queue.
 			Reference<? extends AvailObject> ref;
-			while ((ref = WeakPojoReference.recyclingQueue.poll()) != null)
+			final ReferenceQueue<AvailObject> refQueue =
+				WeakPojoReference.recyclingQueue;
+			assert refQueue != null;
+			while ((ref = refQueue.poll()) != null)
 			{
 				assert ref.get() == null;
 				final WeakPojoReference oldRef = (WeakPojoReference) ref;

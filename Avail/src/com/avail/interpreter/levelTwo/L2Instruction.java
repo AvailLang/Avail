@@ -75,7 +75,7 @@ public final class L2Instruction
 	 * An optional action to perform in place of the regular {@link
 	 * #propagateTypesFor(L2Translator)}.
 	 */
-	public final Continuation0 propagationAction;
+	public final @Nullable Continuation0 propagationAction;
 
 	/**
 	 * The position of the {@linkplain L2Instruction instruction} in its
@@ -147,6 +147,7 @@ public final class L2Instruction
 		final L2Operand... operands)
 	{
 		final L2NamedOperandType[] operandTypes = operation.namedOperandTypes;
+		assert operandTypes != null;
 		assert operandTypes.length == operands.length;
 		for (int i = 0; i < operands.length; i++)
 		{
@@ -287,13 +288,14 @@ public final class L2Instruction
 	 */
 	public void propagateTypesFor (final L2Translator translator)
 	{
-		if (propagationAction == null)
+		final Continuation0 action = propagationAction;
+		if (action == null)
 		{
 			operation.propagateTypesInFor(this, translator.registers());
 		}
 		else
 		{
-			propagationAction.value();
+			action.value();
 		}
 	}
 
@@ -325,13 +327,14 @@ public final class L2Instruction
 	{
 		final StringBuilder builder = new StringBuilder();
 		builder.append(operation.name());
-		assert operands.length == operation.namedOperandTypes.length;
+		final L2NamedOperandType[] types = operation.operandTypes();
+		assert operands.length == types.length;
 		for (int i = 0; i < operands.length; i++)
 		{
 			builder.append(i == 0 ? ": " : ", ");
 			assert operands[i].operandType() ==
-				operation.namedOperandTypes[i].operandType();
-			builder.append(operation.namedOperandTypes[i].name());
+				types[i].operandType();
+			builder.append(types[i].name());
 			builder.append("=");
 			builder.append(operands[i]);
 		}

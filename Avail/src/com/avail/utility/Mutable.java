@@ -32,7 +32,6 @@
 
 package com.avail.utility;
 
-import com.avail.annotations.Nullable;
 
 /**
  * Support explicit mutable wrapping of variables.  This is used specifically
@@ -60,25 +59,17 @@ public class Mutable<T>
 {
 	/**
 	 * Expose a public field for readability.  For instance, one could declare
-	 * something "final Mutable<Integer> x = new Mutable<Integer>();" and
+	 * something "final Mutable<Integer> x = new Mutable<Integer>(9);" and
 	 * then have code within inner classes like "x.value = 5" or "x.value++".
 	 */
-	public @Nullable T value;
-
-	/**
-	 * Zero-argument constructor.
-	 */
-	public Mutable()
-	{
-		super();
-	}
+	public T value;
 
 	/**
 	 * Constructor that takes an initial value.
 	 *
 	 * @param value The initial value.
 	 */
-	public Mutable(@Nullable final T value)
+	public Mutable(final T value)
 	{
 		this.value = value;
 	}
@@ -86,6 +77,6 @@ public class Mutable<T>
 	@Override
 	public String toString ()
 	{
-		return value == null ? "null" : value.toString();
+		return value.toString();
 	}
 }

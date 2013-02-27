@@ -34,6 +34,7 @@ package com.avail.interpreter.levelOne;
 
 import java.io.ByteArrayOutputStream;
 import java.util.*;
+import com.avail.annotations.Nullable;
 import com.avail.descriptor.*;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.Primitive.Flag;
@@ -88,7 +89,7 @@ public class L1InstructionWriter
 	 * The {@link List} of argument {@linkplain TypeDescriptor types} for this
 	 * {@linkplain CompiledCodeDescriptor compiled code}.
 	 */
-	private List<A_Type> argumentTypes;
+	private List<A_Type> argumentTypes = new ArrayList<A_Type>();
 
 	/**
 	 * @param argTypes
@@ -97,7 +98,10 @@ public class L1InstructionWriter
 	{
 		assert localTypes.size() == 0
 		: "Must declare argument types before allocating locals";
-		this.argumentTypes = Arrays.asList(argTypes);
+		for (final A_Type argType : argTypes)
+		{
+			argumentTypes.add(argType);
+		}
 	}
 
 	/**
@@ -127,7 +131,7 @@ public class L1InstructionWriter
 	 * The return type of the {@linkplain FunctionDescriptor} under
 	 * construction.
 	 */
-	private A_Type returnType;
+	@Nullable private A_Type returnType;
 
 	/**
 	 * Set the return type that the {@linkplain FunctionDescriptor} under
@@ -138,6 +142,17 @@ public class L1InstructionWriter
 	public void returnType (final A_Type retType)
 	{
 		this.returnType = retType;
+	}
+
+	/**
+	 * Answer the return type that the {@linkplain FunctionDescriptor} under
+	 * construction will produce.
+	 */
+	private A_Type returnType ()
+	{
+		final A_Type type = returnType;
+		assert type != null;
+		return type;
 	}
 
 	/**
@@ -155,8 +170,6 @@ public class L1InstructionWriter
 	 */
 	public int createLocal (final AvailObject localType)
 	{
-		assert argumentTypes != null
-		: "Must declare argument types before allocating locals";
 		assert localType.isInstanceOf(InstanceMetaDescriptor.topMeta());
 		localTypes.add(localType);
 		return localTypes.size() + argumentTypes.size();
@@ -373,7 +386,7 @@ public class L1InstructionWriter
 			stackTracker.maxDepth(),
 			FunctionTypeDescriptor.create(
 				TupleDescriptor.fromList(argumentTypes),
-				returnType),
+				returnType()),
 			primitiveNumber,
 			TupleDescriptor.fromList(literals),
 			TupleDescriptor.fromList(localTypes),

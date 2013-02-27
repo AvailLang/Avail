@@ -36,6 +36,7 @@ import static com.avail.descriptor.AtomDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.AtomDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.io.RandomAccessFile;
+import java.nio.channels.*;
 import java.util.*;
 import com.avail.AvailRuntime;
 import com.avail.annotations.*;
@@ -211,11 +212,11 @@ extends Descriptor
 	@Override @AvailMethod
 	final boolean o_ExtractBoolean (final AvailObject object)
 	{
-		if (object.equals(trueObject))
+		if (object.equals(trueObject()))
 		{
 			return true;
 		}
-		assert object.equals(falseObject);
+		assert object.equals(falseObject());
 		return false;
 	}
 
@@ -312,11 +313,11 @@ extends Descriptor
 		final AvailObject object,
 		final @Nullable Class<?> ignoredClassHint)
 	{
-		if (object.equals(trueObject))
+		if (object.equals(trueObject()))
 		{
 			return Boolean.TRUE;
 		}
-		if (object.equals(falseObject))
+		if (object.equals(falseObject()))
 		{
 			return Boolean.FALSE;
 		}
@@ -422,12 +423,12 @@ extends Descriptor
 	/**
 	 * The atom representing the Avail concept "true".
 	 */
-	private static A_Atom trueObject;
+	private static @Nullable A_Atom trueObject;
 
 	/**
 	 * The atom representing the Avail concept "false".
 	 */
-	private static A_Atom falseObject;
+	private static @Nullable A_Atom falseObject;
 
 	/**
 	 * Convert a Java <code>boolean</code> into an Avail boolean.  There are
@@ -447,49 +448,67 @@ extends Descriptor
 	 * The atom used as a property key under which to store information about
 	 * object type names.
 	 */
-	private static A_Atom objectTypeNamePropertyKey;
+	private static @Nullable A_Atom objectTypeNamePropertyKey;
 
 	/**
 	 * The atom used as a tag in module files to indicate that the header
 	 * information follows.
 	 */
-	private static A_Atom moduleHeaderSectionAtom;
+	private static @Nullable A_Atom moduleHeaderSectionAtom;
 
 	/**
 	 * The atom used as a tag in module files to indicate that the module's
 	 * body follows.
 	 */
-	private static A_Atom moduleBodySectionAtom;
+	private static @Nullable A_Atom moduleBodySectionAtom;
 
 	/**
 	 * The atom used as a key in a {@link ParserState}'s {@linkplain
 	 * ParserState#clientDataMap} to store the current map of declarations that
 	 * are in scope.
 	 */
-	private static A_Atom compilerScopeMapKey;
+	private static @Nullable A_Atom compilerScopeMapKey;
 
 	/**
 	 * The atom used as a key in a {@linkplain FiberDescriptor fiber}'s global
 	 * map to extract the current {@link ParserState}'s {@linkplain
 	 * ParserState#clientDataMap}.
 	 */
-	private static A_Atom clientDataGlobalKey;
+	private static @Nullable A_Atom clientDataGlobalKey;
 
 	/**
 	 * The atom used as a property key under which to store a {@link
 	 * RandomAccessFile}.
 	 */
-	private static A_Atom fileKey;
+	private static @Nullable A_Atom fileKey;
 
 	/**
 	 * The property key that indicates that a file is readable.
 	 */
-	private static A_Atom fileModeReadKey;
+	private static @Nullable A_Atom fileModeReadKey;
 
 	/**
 	 * The property key that indicates that a file is writable.
 	 */
-	private static A_Atom fileModeWriteKey;
+	private static @Nullable A_Atom fileModeWriteKey;
+
+	/**
+	 * The atom used as a property key under which to store an {@link
+	 * AsynchronousServerSocketChannel asynchronous server socket channel}.
+	 */
+	private static @Nullable A_Atom serverSocketKey;
+
+	/**
+	 * The atom used as a property key under which to store an {@link
+	 * AsynchronousSocketChannel asynchronous socket channel}.
+	 */
+	private static @Nullable A_Atom socketKey;
+
+	/**
+	 * The property key that indicates that a {@linkplain FiberDescriptor fiber}
+	 * global is inheritable.
+	 */
+	private static @Nullable A_Atom heritableKey;
 
 	/**
 	 * Answer the atom representing the Avail concept "true".
@@ -498,7 +517,9 @@ extends Descriptor
 	 */
 	public static A_Atom trueObject ()
 	{
-		return trueObject;
+		final A_Atom atom = trueObject;
+		assert atom != null;
+		return atom;
 	}
 
 	/**
@@ -508,7 +529,9 @@ extends Descriptor
 	 */
 	public static A_Atom falseObject ()
 	{
-		return falseObject;
+		final A_Atom atom = falseObject;
+		assert atom != null;
+		return atom;
 	}
 
 	/**
@@ -522,7 +545,9 @@ extends Descriptor
 	 */
 	public static A_Atom objectTypeNamePropertyKey ()
 	{
-		return objectTypeNamePropertyKey;
+		final A_Atom atom = objectTypeNamePropertyKey;
+		assert atom != null;
+		return atom;
 	}
 
 	/**
@@ -533,7 +558,9 @@ extends Descriptor
 	 */
 	public static A_Atom moduleHeaderSectionAtom ()
 	{
-		return moduleHeaderSectionAtom;
+		final A_Atom atom = moduleHeaderSectionAtom;
+		assert atom != null;
+		return atom;
 	}
 
 	/**
@@ -544,7 +571,9 @@ extends Descriptor
 	 */
 	public static A_Atom moduleBodySectionAtom ()
 	{
-		return moduleBodySectionAtom;
+		final A_Atom atom = moduleBodySectionAtom;
+		assert atom != null;
+		return atom;
 	}
 
 	/**
@@ -556,7 +585,9 @@ extends Descriptor
 	 */
 	public static A_Atom compilerScopeMapKey ()
 	{
-		return compilerScopeMapKey;
+		final A_Atom atom = compilerScopeMapKey;
+		assert atom != null;
+		return atom;
 	}
 
 	/**
@@ -572,7 +603,9 @@ extends Descriptor
 	 */
 	public static A_Atom clientDataGlobalKey ()
 	{
-		return clientDataGlobalKey;
+		final A_Atom atom = clientDataGlobalKey;
+		assert atom != null;
+		return atom;
 	}
 
 	/**
@@ -583,7 +616,9 @@ extends Descriptor
 	 */
 	public static A_Atom fileKey ()
 	{
-		return fileKey;
+		final A_Atom atom = fileKey;
+		assert atom != null;
+		return atom;
 	}
 
 	/**
@@ -593,7 +628,9 @@ extends Descriptor
 	 */
 	public static A_Atom fileModeReadKey ()
 	{
-		return fileModeReadKey;
+		final A_Atom atom = fileModeReadKey;
+		assert atom != null;
+		return atom;
 	}
 
 	/**
@@ -603,7 +640,48 @@ extends Descriptor
 	 */
 	public static A_Atom fileModeWriteKey ()
 	{
-		return fileModeWriteKey;
+		final A_Atom atom = fileModeWriteKey;
+		assert atom != null;
+		return atom;
+	}
+
+	/**
+	 * Answer the atom used as a property key under which to store an {@link
+	 * AsynchronousServerSocketChannel asynchronous server socket channel}.
+	 *
+	 * @return An atom that's special because it's known by the virtual machine.
+	 */
+	public static A_Atom serverSocketKey ()
+	{
+		final A_Atom atom = serverSocketKey;
+		assert atom != null;
+		return atom;
+	}
+
+	/**
+	 * Answer the atom used as a property key under which to store an {@link
+	 * AsynchronousSocketChannel asynchronous socket channel}.
+	 *
+	 * @return An atom that's special because it's known by the virtual machine.
+	 */
+	public static A_Atom socketKey ()
+	{
+		final A_Atom atom = socketKey;
+		assert atom != null;
+		return atom;
+	}
+
+	/**
+	 * Answer the property key that indicates that a {@linkplain FiberDescriptor
+	 * fiber} global is inheritable.
+
+	 * @return An atom that's special because it's known by the virtual machine.
+	 */
+	public static A_Atom heritableKey ()
+	{
+		final A_Atom atom = heritableKey;
+		assert atom != null;
+		return atom;
 	}
 
 	/**
@@ -628,6 +706,11 @@ extends Descriptor
 			StringDescriptor.from("file mode read"));
 		fileModeWriteKey = createSpecialAtom(
 			StringDescriptor.from("file mode write"));
+		serverSocketKey = createSpecialAtom(
+			StringDescriptor.from("server socket key"));
+		socketKey = createSpecialAtom(StringDescriptor.from("socket key"));
+		heritableKey = createSpecialAtom(
+			StringDescriptor.from("heritability"));
 	}
 
 	/**
@@ -645,5 +728,8 @@ extends Descriptor
 		fileKey = null;
 		fileModeReadKey = null;
 		fileModeWriteKey = null;
+		serverSocketKey = null;
+		socketKey = null;
+		heritableKey = null;
 	}
 }

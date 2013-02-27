@@ -32,6 +32,7 @@
 
 package com.avail.interpreter.levelTwo;
 
+import com.avail.annotations.Nullable;
 import com.avail.descriptor.*;
 import com.avail.interpreter.Primitive;
 
@@ -46,7 +47,7 @@ class L2OperandDescriber implements L2OperandTypeDispatcher
 	/**
 	 * The {@link String name} of this {@link L2NamedOperandType}.
 	 */
-	private String _name;
+	private @Nullable String _name;
 
 	/**
 	 * The numeric operand being described.
@@ -54,15 +55,26 @@ class L2OperandDescriber implements L2OperandTypeDispatcher
 	private int _operand;
 
 	/**
-	 * The {@linkplain L2ChunkDescriptor level two chunk} containing the operation
-	 * and the operand to be described.
+	 * The {@linkplain L2ChunkDescriptor level two chunk} containing the
+	 * operation and the operand to be described.
 	 */
-	private A_BasicObject _chunk;
+	private @Nullable A_BasicObject _chunk;
+
+	/**
+	 * @return The current {@linkplain L2ChunkDescriptor chunk} containing the
+	 *         instruction being described
+	 */
+	private A_BasicObject chunk ()
+	{
+		final A_BasicObject chunk = _chunk;
+		assert chunk != null;
+		return chunk;
+	}
 
 	/**
 	 * The {@link StringBuilder} on which to write an operand description.
 	 */
-	private StringBuilder _description;
+	private @Nullable StringBuilder _description;
 
 
 	/**
@@ -77,7 +89,9 @@ class L2OperandDescriber implements L2OperandTypeDispatcher
 		final String format,
 		final Object... arguments)
 	{
-		_description.append(String.format(format, arguments));
+		final StringBuilder builder = _description;
+		assert builder != null;
+		builder.append(String.format(format, arguments));
 	}
 
 	/**
@@ -86,17 +100,19 @@ class L2OperandDescriber implements L2OperandTypeDispatcher
 	 */
 	private void printVector ()
 	{
+		final StringBuilder builder = _description;
+		assert builder != null;
 		print("Vec=(");
-		final A_Tuple vector = _chunk.vectors().tupleAt(_operand);
+		final A_Tuple vector = chunk().vectors().tupleAt(_operand);
 		for (int i = 1; i <= vector.tupleSize(); i++)
 		{
 			if (i > 1)
 			{
-				_description.append(",");
+				builder.append(",");
 			}
-			_description.append(vector.tupleIntAt(i));
+			builder.append(vector.tupleIntAt(i));
 		}
-		_description.append(")");
+		builder.append(")");
 	}
 
 	/**
@@ -136,7 +152,7 @@ class L2OperandDescriber implements L2OperandTypeDispatcher
 	@Override
 	public void doConstant()
 	{
-		print("Const(%s)", _chunk.literalAt(_operand));
+		print("Const(%s)", chunk().literalAt(_operand));
 	}
 	@Override
 	public void doImmediate()
@@ -157,7 +173,7 @@ class L2OperandDescriber implements L2OperandTypeDispatcher
 	@Override
 	public void doSelector()
 	{
-		final A_BasicObject method = _chunk.literalAt(_operand);
+		final A_BasicObject method = chunk().literalAt(_operand);
 		print("Message(%s)", method.originalName().name().asNativeString());
 	}
 	@Override

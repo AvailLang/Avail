@@ -38,7 +38,6 @@ import static com.avail.descriptor.FiberDescriptor.ExecutionState.*;
 import static com.avail.descriptor.FiberDescriptor.InterruptRequestFlag.*;
 import java.util.*;
 import com.avail.AvailRuntime;
-import com.avail.annotations.NotNull;
 import com.avail.descriptor.*;
 import com.avail.descriptor.FiberDescriptor.*;
 import com.avail.interpreter.*;
@@ -60,7 +59,7 @@ extends Primitive
 	/**
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
-	public final @NotNull static Primitive instance =
+	public final static Primitive instance =
 		new P_621_Sleep().init(1, CannotFail, Unknown);
 
 	@Override
@@ -81,6 +80,8 @@ extends Primitive
 		// If the requested sleep time isn't colossally big, then arrange for
 		// the fiber to resume later. If the delay is too big, then the fiber
 		// will only awaken due to interruption.
+		final AvailRuntime runtime = AvailRuntime.current();
+		if (sleepMillis.isLong())
 		if (sleepMillis.lessOrEqual(IntegerDescriptor.fromLong(
 			Long.MAX_VALUE)))
 		{
@@ -104,6 +105,7 @@ extends Primitive
 								fiber.wakeupTask(null);
 								fiber.executionState(SUSPENDED);
 								Interpreter.resumeFromPrimitive(
+									runtime,
 									fiber,
 									Result.SUCCESS,
 									NilDescriptor.nil());
@@ -129,8 +131,9 @@ extends Primitive
 							if (fiber.interruptRequestFlag(
 								TERMINATION_REQUESTED))
 							{
-								fiber.executionState(SUSPENDED);
+								assert fiber.executionState() == SUSPENDED;
 								Interpreter.resumeFromPrimitive(
+									runtime,
 									fiber,
 									Result.SUCCESS,
 									NilDescriptor.nil());
@@ -138,9 +141,42 @@ extends Primitive
 							}
 							fiber.wakeupTask(task);
 							fiber.executionState(ASLEEP);
-							AvailRuntime.current().timer.schedule(
+							runtime.timer.schedule(
 								task,
 								sleepMillis.extractLong());
+						}
+					});
+				}
+			});
+		}
+		// The delay was too big, so put the fiber to sleep forever.
+		else
+		{
+			// Once the fiber has been unbound, transition it to sleeping.
+			interpreter.postExitContinuation(new Continuation0()
+			{
+				@Override
+				public void value ()
+				{
+					fiber.lock(new Continuation0()
+					{
+						@Override
+						public void value ()
+						{
+							// If termination has been requested, then schedule
+							// the resumption of this fiber.
+							if (fiber.interruptRequestFlag(
+								TERMINATION_REQUESTED))
+							{
+								assert fiber.executionState() == SUSPENDED;
+								Interpreter.resumeFromPrimitive(
+									runtime,
+									fiber,
+									Result.SUCCESS,
+									NilDescriptor.nil());
+								return;
+							}
+							fiber.executionState(ASLEEP);
 						}
 					});
 				}

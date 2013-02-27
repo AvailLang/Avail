@@ -96,10 +96,10 @@ extends TypeDescriptor
 			final A_BasicObject fieldTypes = baseType.slot(FIELD_TYPE_MAP);
 			for (final MapDescriptor.Entry entry : fieldTypes.mapIterable())
 			{
-				if (InstanceTypeDescriptor.on(entry.key).equals(entry.value))
+				if (InstanceTypeDescriptor.on(entry.key()).equals(entry.value()))
 				{
 					ignoreKeys = ignoreKeys.setWithElementCanDestroy(
-						entry.key,
+						entry.key(),
 						true);
 				}
 			}
@@ -108,7 +108,7 @@ extends TypeDescriptor
 		for (final MapDescriptor.Entry entry
 			: object.slot(FIELD_TYPE_MAP).mapIterable())
 		{
-			if (!ignoreKeys.hasElement(entry.key))
+			if (!ignoreKeys.hasElement(entry.key()))
 			{
 				if (first)
 				{
@@ -124,9 +124,9 @@ extends TypeDescriptor
 				{
 					builder.append('\t');
 				}
-				builder.append(entry.key.name().asNativeString());
+				builder.append(entry.key().name().asNativeString());
 				builder.append(" : ");
-				entry.value.printOnAvoidingIndent(
+				entry.value().printOnAvoidingIndent(
 					builder,
 					recursionList,
 					indent + 1);
@@ -169,7 +169,7 @@ extends TypeDescriptor
 			map.mapSize());
 		for (final MapDescriptor.Entry entry : map.mapIterable())
 		{
-			fieldAssignments.add(TupleDescriptor.from(entry.key, entry.value));
+			fieldAssignments.add(TupleDescriptor.from(entry.key(), entry.value()));
 		}
 		return TupleDescriptor.fromList(fieldAssignments);
 	}
@@ -187,8 +187,8 @@ extends TypeDescriptor
 		}
 		for (final MapDescriptor.Entry entry : typeMap.mapIterable())
 		{
-			final AvailObject fieldKey = entry.key;
-			final AvailObject fieldType = entry.value;
+			final AvailObject fieldKey = entry.key();
+			final AvailObject fieldType = entry.value();
 			if (!instMap.hasKey(fieldKey))
 			{
 				return false;
@@ -222,8 +222,8 @@ extends TypeDescriptor
 		}
 		for (final MapDescriptor.Entry entry : m1.mapIterable())
 		{
-			final AvailObject fieldKey = entry.key;
-			final AvailObject fieldType = entry.value;
+			final AvailObject fieldKey = entry.key();
+			final AvailObject fieldType = entry.value();
 			if (!m2.hasKey(fieldKey))
 			{
 				return false;
@@ -267,8 +267,8 @@ extends TypeDescriptor
 		A_Map resultMap = MapDescriptor.empty();
 		for (final MapDescriptor.Entry entry : map1.mapIterable())
 		{
-			final A_Atom key = entry.key;
-			A_Type type = entry.value;
+			final A_Atom key = entry.key();
+			A_Type type = entry.value();
 			if (map2.hasKey(key))
 			{
 				type = type.typeIntersection(map2.mapAt(key));
@@ -284,8 +284,8 @@ extends TypeDescriptor
 		}
 		for (final MapDescriptor.Entry entry : map2.mapIterable())
 		{
-			final AvailObject key = entry.key;
-			final AvailObject type = entry.value;
+			final AvailObject key = entry.key();
+			final AvailObject type = entry.value();
 			if (!map1.hasKey(key))
 			{
 				resultMap = resultMap.mapAtPuttingCanDestroy(
@@ -328,10 +328,10 @@ extends TypeDescriptor
 		A_Map resultMap = MapDescriptor.empty();
 		for (final MapDescriptor.Entry entry : map1.mapIterable())
 		{
-			final AvailObject key = entry.key;
+			final AvailObject key = entry.key();
 			if (map2.hasKey(key))
 			{
-				final A_BasicObject valueType = entry.value;
+				final A_BasicObject valueType = entry.value();
 				resultMap = resultMap.mapAtPuttingCanDestroy(
 					key,
 					valueType.typeUnion(map2.mapAt(key)),
@@ -417,7 +417,7 @@ extends TypeDescriptor
 		for (final MapDescriptor.Entry entry
 			: anObjectType.fieldTypeMap().mapIterable())
 		{
-			final A_Atom atom = entry.key;
+			final A_Atom atom = entry.key();
 			final A_Map namesMap = atom.getAtomProperty(propertyKey);
 			if (namesMap.equalsNil())
 			{
@@ -464,17 +464,17 @@ extends TypeDescriptor
 		for (final MapDescriptor.Entry entry
 			: anObjectType.fieldTypeMap().mapIterable())
 		{
-			final A_BasicObject map = entry.key.getAtomProperty(propertyKey);
+			final A_BasicObject map = entry.key().getAtomProperty(propertyKey);
 			if (!map.equalsNil())
 			{
 				for (final MapDescriptor.Entry innerEntry : map.mapIterable())
 				{
-					if (anObjectType.isSubtypeOf(innerEntry.key))
+					if (anObjectType.isSubtypeOf(innerEntry.key()))
 					{
 						applicableTypesAndNames =
 							applicableTypesAndNames.mapAtPuttingCanDestroy(
-								innerEntry.key,
-								innerEntry.value,
+								innerEntry.key(),
+								innerEntry.value(),
 								true);
 					}
 				}
@@ -485,11 +485,11 @@ extends TypeDescriptor
 		for (final MapDescriptor.Entry childEntry
 			: applicableTypesAndNames.mapIterable())
 		{
-			final A_Type childType = childEntry.key;
+			final A_Type childType = childEntry.key();
 			for (final MapDescriptor.Entry parentEntry
 				: applicableTypesAndNames.mapIterable())
 			{
-				final A_Type parentType = parentEntry.key;
+				final A_Type parentType = parentEntry.key();
 				if (!childType.equals(parentType)
 					&& childType.isSubtypeOf(parentType))
 				{
@@ -503,8 +503,8 @@ extends TypeDescriptor
 		A_Set baseTypes = SetDescriptor.empty();
 		for (final MapDescriptor.Entry entry : filtered.mapIterable())
 		{
-			names = names.setWithElementCanDestroy(entry.value, true);
-			baseTypes = baseTypes.setWithElementCanDestroy(entry.key, true);
+			names = names.setWithElementCanDestroy(entry.value(), true);
+			baseTypes = baseTypes.setWithElementCanDestroy(entry.key(), true);
 		}
 		return TupleDescriptor.from(names, baseTypes);
 	}
@@ -545,7 +545,7 @@ extends TypeDescriptor
 	/**
 	 * The most general {@linkplain ObjectTypeDescriptor object type}.
 	 */
-	private static AvailObject mostGeneralType;
+	private static @Nullable A_Type mostGeneralType;
 
 	/**
 	 * Answer the top (i.e., most general) {@linkplain ObjectTypeDescriptor
@@ -553,15 +553,17 @@ extends TypeDescriptor
 	 *
 	 * @return The object type that makes no constraints on its fields.
 	 */
-	public static AvailObject mostGeneralType ()
+	public static A_Type mostGeneralType ()
 	{
-		return mostGeneralType;
+		final A_Type type = mostGeneralType;
+		assert type != null;
+		return type;
 	}
 
 	/**
 	 * The metatype of all object types.
 	 */
-	private static A_Type meta;
+	private static @Nullable A_Type meta;
 
 	/**
 	 * Answer the metatype for all object types.  This is just an {@linkplain
@@ -572,14 +574,16 @@ extends TypeDescriptor
 	 */
 	public static A_Type meta ()
 	{
-		return meta;
+		final A_Type type = meta;
+		assert type != null;
+		return type;
 	}
 
 	/**
 	 * The {@linkplain AtomDescriptor atom} that identifies the {@linkplain
 	 * #exceptionType exception type}.
 	 */
-	private static A_Atom exceptionAtom;
+	private static @Nullable A_Atom exceptionAtom;
 
 	/**
 	 * Answer the {@linkplain AtomDescriptor atom} that identifies the
@@ -589,7 +593,9 @@ extends TypeDescriptor
 	 */
 	public static A_Atom exceptionAtom ()
 	{
-		return exceptionAtom;
+		final A_Atom atom = exceptionAtom;
+		assert atom != null;
+		return atom;
 	}
 
 	/**
@@ -597,7 +603,7 @@ extends TypeDescriptor
 	 * AtomDescriptor stack dump field} of an {@link #exceptionType() exception
 	 * type}.
 	 */
-	private static A_Atom stackDumpAtom;
+	private static @Nullable A_Atom stackDumpAtom;
 
 	/**
 	 * Answer the {@linkplain AtomDescriptor atom} that identifies the
@@ -608,13 +614,15 @@ extends TypeDescriptor
 	 */
 	public static A_Atom stackDumpAtom ()
 	{
-		return stackDumpAtom;
+		final A_Atom atom = stackDumpAtom;
+		assert atom != null;
+		return atom;
 	}
 
 	/**
 	 * The most general exception type.
 	 */
-	private static A_Type exceptionType;
+	private static @Nullable A_Type exceptionType;
 
 	/**
 	 * Answer the most general exception type. This is just an {@linkplain
@@ -626,7 +634,9 @@ extends TypeDescriptor
 	 */
 	public static A_Type exceptionType ()
 	{
-		return exceptionType;
+		final A_Type type = exceptionType;
+		assert type != null;
+		return type;
 	}
 
 	/**
@@ -635,20 +645,18 @@ extends TypeDescriptor
 	 */
 	static void createWellKnownObjects ()
 	{
-		mostGeneralType = objectTypeFromMap(MapDescriptor.empty());
-		mostGeneralType.makeShared();
-		meta = InstanceMetaDescriptor.on(mostGeneralType);
-		meta.makeShared();
+		mostGeneralType = objectTypeFromMap(MapDescriptor.empty()).makeShared();
+		meta = InstanceMetaDescriptor.on(mostGeneralType()).makeShared();
 		exceptionAtom = AtomDescriptor.create(
 			StringDescriptor.from("explicit-exception"),
 			NilDescriptor.nil());
-		exceptionType = objectTypeFromTuple(
+		final A_Type type = objectTypeFromTuple(
 			TupleDescriptor.from(
 				TupleDescriptor.from(
 					exceptionAtom,
-					InstanceTypeDescriptor.on(exceptionAtom))));
-		setNameForType(exceptionType, StringDescriptor.from("exception"));
-		exceptionType.makeShared();
+					InstanceTypeDescriptor.on(exceptionAtom()))));
+		setNameForType(type, StringDescriptor.from("exception"));
+		exceptionType = type.makeShared();
 		stackDumpAtom = AtomDescriptor.createSpecialAtom(
 			StringDescriptor.from("stack dump"));
 	}

@@ -320,7 +320,7 @@ extends Descriptor
 	}
 
 	/** The first 256 Unicode characters. */
-	private static AvailObject[] byteCharacters;
+	private static AvailObject[] byteCharacters = new AvailObject [0];
 
 	/** The hashes of the first 256 Unicode characters. */
 	private static final int[] hashesOfByteCharacters = new int[256];
@@ -356,6 +356,6 @@ extends Descriptor
 	 */
 	static void clearWellKnownObjects ()
 	{
-		byteCharacters = null;
+		byteCharacters = new AvailObject [0];
 	}
 }

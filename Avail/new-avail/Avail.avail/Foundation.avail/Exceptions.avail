@@ -1,6 +1,6 @@
 /*
  * Exceptions.avail
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -51,9 +51,11 @@ Uses
 	"Types",
 	"Variables"
 Names
+	"Current fiber's unhandled exception handler is_",
 	"Guard|guard_«intercept_»«ensure_»",
 	"Raise_",
 	"cascade_",
+	"current fiber's unhandled exception handler",
 	"causal exception",
 	"descriptive_",
 	"error message",
@@ -62,8 +64,7 @@ Names
 	"_'s⁇causal exception",
 	"_'s⁇error message",
 	"_'s⁇stack summary",
-	"_'s⁇unhandled exception handler",
-	"_'s⁇unhandled exception handler is_",
+	"“_”(stack summary)",
 
 	/* System exception categories. */
 	"arithmetic exception",
@@ -127,44 +128,51 @@ Public method "_'s⁇stack summary" is
 "error message" is a new atom;
 
 /**
- * Answer the field atom that represents a fiber's unhandled exception handler.
+ * Answer the heritable fiber-local atom that represents a fiber's unhandled
+ * exception handler.
  *
  * @method "unhandled exception handler"
  * @returns "atom"
  */
-"unhandled exception handler" is a new atom;
+"unhandled exception handler" is a new heritable fiber-local atom;
 
 /**
- * Answer the unhandled exception handler for the specified fiber.
+ * Answer the unhandled exception handler for the current fiber.
  *
- * @method "_'s⁇unhandled exception handler"
- * @param "aFiber" "fiber"
+ * @method "current fiber's unhandled exception handler"
  */
-Public method "_'s⁇unhandled exception handler" is
+Public method "current fiber's unhandled exception handler" is
 [
-	aFiber : fiber
-|
-	cast aFiber[unhandled exception handler] into [t : [exception]→⊥ | t]
+	cast current fiber[unhandled exception handler] into [t : [exception]→⊥ | t]
 ] : [exception]→⊥;
 
 /**
- * Establish {@param "handler"} as the function that the specified fiber will
+ * Establish {@param "handler"} as the function that the current fiber will
  * apply in the event of an unhandled exception.
  * 
- * @method "_'s⁇unhandled exception handler is_"
- * @param "aFiber" "fiber"
+ * @method "Current fiber's unhandled exception handler is_"
  * @param "handler"
  *    The unhandled exception handler. When an unhandled exception is trapped by
  *    the VM, the exception machinery will arrange to apply this function with
  *    the unhandled exception.
  */
-Public method "_'s⁇unhandled exception handler is_" is
+Public method "Current fiber's unhandled exception handler is_" is
 [
-	aFiber : fiber,
 	handler : [exception]→⊥
 |
-	aFiber[unhandled exception handler] := handler;
+	current fiber[unhandled exception handler] := handler;
 ] : ⊤;
+
+/* This function that "Raise_" should invoke if the current fiber does not have
+ * an unhandled exception handler. This will be updated after all other
+ * exception machinery has been built.
+ */
+noUnhandledExceptionHandler : [exception]→⊥ :=
+	[
+		anException : exception
+	|
+		Crash: "unhandled exception: " ++ “anException”
+	];
 
 /**
  * Raise the specified {@type "exception"}. The virtual machine scans the
@@ -192,13 +200,12 @@ Public method "Raise_" is
 	Primitive 201 (unhandledException : exception);
 	If unhandled exception handler ∈ current fiber then
 	[
-		handler ::= cast current fiber[unhandled exception handler]
-			into [ t : [exception]→⊥ | t ];
+		handler ::= current fiber's unhandled exception handler;
 		handler(unhandledException)
 	]
 	else
 	[
-		Crash: "unhandled exception: " ++ “anException”
+		noUnhandledExceptionHandler(anException)
 	]
 ] : ⊥;
 
@@ -327,7 +334,7 @@ Public method "cascade_" is
 	exceptionType : exception's type
 |
 	cascade exception ∩ exceptionType
-] : cascade exception 's type;
+] : cascade exception's type;
 
 Grammatical restriction "cascade_" is <{"exception"}>;
 
@@ -339,7 +346,7 @@ Semantic restriction "cascade_" is
 ];
 
 /**
- * Answer an {@type "cascade exception"} based on {@param "newException"} and
+ * Answer a {@type "cascade exception"} based on {@param "newException"} and
  * caused by {@param "originalException"}.
  *
  * @method "_caused by_"
@@ -883,7 +890,11 @@ System exception "declaration-type-must-not-be-top-or-bottom" (65)
 	extends definition exception;
 System exception "local-declaration-shadows-another" (66)
 	extends definition exception;
-System exception "compilation-is-over" (70)
+System exception "macro-prefix-function-argument-must-be-a-parse-node" (67)
+	extends definition exception;
+System exception "macro-must-return-a-parse-node" (68)
+	extends definition exception;
+System exception "loading-is-over" (70)
 	extends system exception;
 System exception "method-implementation-lookup-failed" (71)
 	extends element-access exception;
@@ -898,6 +909,10 @@ System exception "cannot-mark-handler-frame" (81)
 System exception "no-handler-frame" (82)
 	extends system exception;
 System exception "unwind-sentinel" (83)
+	extends system exception;
+System exception "fiber-result-unavailable" (90)
+	extends system exception;
+System exception "fiber-cannot-join-itself" (91)
 	extends system exception;
 System exception "block-contains-invalid-statements" (100)
 	extends bad-phrase exception;
@@ -1032,10 +1047,18 @@ Set early failure function to
 		error name ::= exceptionType's error name's instance
 ] : ⊥;
 
-Private method "“_”(stack summary)" is
+/**
+ * Obtain a printed representation of the specified {@type "exception"}'s stack
+ * summary, suitable for printing.
+ *
+ * @method "“_”(stack summary)"
+ * @param "e" "exception"
+ */
+Public method "“_”(stack summary)" is
 [
-	dump : <string…|>
+	e : exception
 |
+	dump ::= e's stack summary;
 	text : string := "";
 	From |dump| to 1 by -1 do
 	[
@@ -1047,43 +1070,60 @@ Private method "“_”(stack summary)" is
 	text
 ];
 
-current fiber's unhandled exception handler is
-[
-	unhandled : exception
-|
-	/* If the error was encountered during compilation, then which module was
-	 * being compiled.
-	 */
-	Guard
+/* This completes the behavior of "Raise_" in the event that no unhandled
+ * exception handler has been specified for the current fiber.
+ */
+noUnhandledExceptionHandler :=
 	[
-		m ::= current module;
-		Error:
-			format "Unhandled exception during compilation of “①”:\n"
-			with m's name;
-	]
-	intercept [e : compilation-is-over exception |];
-	e : exception := unhandled;
-	firstTime : boolean := true;
-	While [↑e is assigned] do
-	[
-		spec ::= if firstTime
-			then ["unhandled exception [“ex”]:\n"]
-			else ["“ex”:\n"];
-		firstTime := false;
-		Error: format spec with ex ::= e;
-		Error: “e's stack summary” (stack summary);
-		Cast e into
+		unhandled : exception
+	|
+		msg : string := "";
+		/* If the error was encountered during compilation, then indicate which
+		 * module was being compiled.
+		 */
+		Guard
 		[
-			cascade : cascade exception
-		|
-			Error: "\ncaused by…\n";
-			e := cascade's causal exception;
+			m ::= current module;
+			msg :=
+				format "Unhandled exception during compilation of “①”:\n"
+				with m's name;
+		]
+		intercept [e : loading-is-over exception |];
+		e : exception := unhandled;
+		firstTime : boolean := true;
+		While [↑e is assigned] do
+		[
+			spec ::= if firstTime
+				then ["unhandled exception [“ex”]:\n"]
+				else ["“ex”:\n"];
+			firstTime := false;
+			msg := eject ↑msg ++ format spec with ex ::= e;
+			msg := eject ↑msg ++ “e” (stack summary);
+			Cast e into
+			[
+				cascade : cascade exception
+			|
+				msg := eject ↑msg ++ "\ncaused by…\n";
+				e := cascade's causal exception;
+			]
+			else
+			[
+				Clear ↑e;
+			];
+		];
+		msg := eject ↑msg ++ "\nThe current fiber will be terminated.\n";
+		/* If the current fiber was launched in order to apply a semantic
+		 * restriction, then reject the current parse. Otherwise, emit the
+		 * error message to the stardard error stream and terminate the current
+		 * fiber.
+		 */
+		If current fiber is applying a semantic restriction then
+		[
+			Reject parse, expected: msg
 		]
 		else
 		[
-			Clear ↑e;
-		];
+			Error: msg;
+			Terminate current fiber
+		]
 	];
-	Error: "\nThe current fiber will be terminated.\n";
-	Terminate current fiber
-];

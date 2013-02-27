@@ -41,6 +41,7 @@ import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.AbstractNumberDescriptor.Sign;
 import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
 import com.avail.descriptor.FiberDescriptor.ExecutionState;
+import com.avail.descriptor.FiberDescriptor.GeneralFlag;
 import com.avail.descriptor.FiberDescriptor.InterruptRequestFlag;
 import com.avail.descriptor.FiberDescriptor.SynchronizationFlag;
 import com.avail.descriptor.InfinityDescriptor.IntegerSlots;
@@ -48,11 +49,9 @@ import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.descriptor.SetDescriptor.SetIterator;
 import com.avail.exceptions.SignatureException;
 import com.avail.interpreter.AvailLoader;
-import com.avail.interpreter.Interpreter;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.Continuation0;
 import com.avail.utility.Continuation1;
-import com.avail.utility.Generator;
 import com.avail.utility.Transformer1;
 import com.avail.visitor.AvailSubobjectVisitor;
 
@@ -991,7 +990,7 @@ public interface A_BasicObject
 
 	/**
 	 * Dispatch to the descriptor.
-	 * @param method TODO
+	 * @param method
 	 */
 	AvailObject includeBundleNamed (A_Atom messageName, A_BasicObject method);
 
@@ -1859,14 +1858,6 @@ public interface A_BasicObject
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	A_Type validateArgumentTypesInterpreterIfFail (
-		List<A_Type> argTypes,
-		Interpreter anAvailInterpreter,
-		Continuation1<Generator<String>> failBlock);
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
 	AvailObject value ();
 
 	/**
@@ -2037,10 +2028,10 @@ public interface A_BasicObject
 	void validateLocally (@Nullable A_BasicObject parent);
 
 	/**
-	 * @param codeGenerator
+	 * @param module
 	 * @return
 	 */
-	A_BasicObject generate (AvailCodeGenerator codeGenerator);
+	A_BasicObject generateInModule (A_BasicObject module);
 
 	/**
 	 * @param newParseNode
@@ -2856,9 +2847,9 @@ public interface A_BasicObject
 	void failureContinuation (Continuation1<Throwable> onFailure);
 
 	/**
-	 * @param finalObject
+	 * @param result
 	 */
-	void fiberResult (A_BasicObject finalObject);
+	void fiberResult (A_BasicObject result);
 
 	/**
 	 * @return
@@ -2888,7 +2879,7 @@ public interface A_BasicObject
 	 * @param addend
 	 * @return
 	 */
-	AvailObject fetchAndAddValue (AvailObject addend);
+	A_Number fetchAndAddValue (A_Number addend);
 
 	/**
 	 * @param flag
@@ -2914,7 +2905,7 @@ public interface A_BasicObject
 	/**
 	 * @param joinee
 	 */
-	void joinee (AvailObject joinee);
+	void joinee (A_BasicObject joinee);
 
 	/**
 	 * @return
@@ -2966,4 +2957,54 @@ public interface A_BasicObject
 	 * @param empty
 	 */
 	void joiningFibers (A_Set empty);
+
+	/**
+	 * @param aByteBufferTuple
+	 * @return
+	 */
+	boolean equalsByteBufferTuple (A_Tuple aByteBufferTuple);
+
+	/**
+	 * @return
+	 */
+	boolean isByteBufferTuple ();
+
+	/**
+	 * @param startIndex1
+	 * @param endIndex1
+	 * @param aByteBufferTuple
+	 * @param startIndex2
+	 * @return
+	 */
+	boolean compareFromToWithByteBufferTupleStartingAt (
+		int startIndex1,
+		int endIndex1,
+		A_Tuple aByteBufferTuple,
+		int startIndex2);
+
+	/**
+	 * @return
+	 */
+	A_Map heritableFiberGlobals ();
+
+	/**
+	 * @param globals
+	 */
+	void heritableFiberGlobals (A_Map globals);
+
+	/**
+	 * @param flag
+	 * @return
+	 */
+	boolean generalFlag (GeneralFlag flag);
+
+	/**
+	 * @param flag
+	 */
+	void setGeneralFlag (GeneralFlag flag);
+
+	/**
+	 * @param flag
+	 */
+	void clearGeneralFlag (GeneralFlag flag);
 }

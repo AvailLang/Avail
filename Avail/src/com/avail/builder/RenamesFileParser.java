@@ -535,7 +535,7 @@ public final class RenamesFileParser
 	 * {@linkplain RenamesFileParser parser} is to populate the resolver with
 	 * renaming rules.
 	 */
-	private ModuleNameResolver resolver;
+	private volatile @Nullable ModuleNameResolver resolver;
 
 	/**
 	 * Parse a rename rule (<em>renameRule</em>) and install an appropriate
@@ -571,13 +571,15 @@ public final class RenamesFileParser
 				+ "file path");
 		}
 
-		if (resolver.hasRenameRuleFor(modulePath))
+		final ModuleNameResolver theResolver = resolver;
+		assert theResolver != null;
+		if (theResolver.hasRenameRuleFor(modulePath))
 		{
 			throw new RenamesFileParserException(
 				"duplicate rename rule for \"" + modulePath + "\" "
 				+ "is not allowed");
 		}
-		resolver.addRenameRule(modulePath, filePath.lexeme);
+		theResolver.addRenameRule(modulePath, filePath.lexeme);
 	}
 
 	/**
@@ -619,9 +621,11 @@ public final class RenamesFileParser
 	public ModuleNameResolver parse ()
 		throws RenamesFileParserException
 	{
-		if (resolver == null)
+		ModuleNameResolver theResolver = resolver;
+		if (theResolver == null)
 		{
-			resolver = new ModuleNameResolver(roots);
+			theResolver = new ModuleNameResolver(roots);
+			resolver = theResolver;
 			try
 			{
 				parseRenamesFile();
@@ -631,7 +635,6 @@ public final class RenamesFileParser
 				throw new RenamesFileParserException(e);
 			}
 		}
-
-		return resolver;
+		return theResolver;
 	}
 }

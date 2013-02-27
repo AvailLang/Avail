@@ -105,7 +105,8 @@ public class L1Decompiler
 	 * The list of completely decompiled {@linkplain ParseNodeDescriptor
 	 * statements}.
 	 */
-	@InnerAccess List<AvailObject> statements = new ArrayList<AvailObject>();
+	@InnerAccess final List<AvailObject> statements =
+		new ArrayList<AvailObject>();
 
 	/**
 	 * A flag to indicate that the last instruction was a push of the null
@@ -114,10 +115,13 @@ public class L1Decompiler
 	@InnerAccess boolean endsWithPushNil = false;
 
 	/**
-	 * Parse the given compiled code object.  Its outer vars map to the given
-	 * Array of expressions, and temp names are allocated via tempBlock.  The
-	 * tempBlock takes a prefix string which can thereby distinguish arguments,
-	 * locals, and labels.  Answer the resulting AvailBlockNode.
+	 * The decompiled {@linkplain BlockNodeDescriptor block node}.
+	 */
+	@InnerAccess AvailObject block;
+
+	/**
+	 * Create a new decompiler suitable for decoding the given raw function,
+	 * tuple of outer variable declarations, and temporary name generator.
 	 *
 	 * @param aCodeObject
 	 *        The {@linkplain CompiledCodeDescriptor code} to decompile.
@@ -126,23 +130,47 @@ public class L1Decompiler
 	 * @param tempBlock
 	 *        A {@linkplain Transformer1 transformer} that takes a prefix and
 	 *        generates a suitably unique temporary variable name.
-	 * @return The {@linkplain BlockNodeDescriptor block node} that is the
-	 *         decompilation of the code.
 	 */
-	public AvailObject parseWithOuterVarsTempGenerator (
+	public L1Decompiler (
 		final A_BasicObject aCodeObject,
 		final List<AvailObject> outerVars,
 		final Transformer1<String, String> tempBlock)
 	{
-
 		code = aCodeObject;
+		nybbles = code.nybbles();
 		outers = outerVars;
 		tempGenerator = tempBlock;
-		buildArgsAndLocals();
-
+		args = new ArrayList<AvailObject>(code.numArgs());
+		locals = new ArrayList<AvailObject>(code.numLocals());
+		final A_Type tupleType = code.functionType().argsTupleType();
+		for (int i = 1, end = code.numArgs(); i <= end; i++)
+		{
+			final String argName = tempGenerator.value("arg");
+			final A_Token token = TokenDescriptor.create(
+				StringDescriptor.from(argName),
+				0,
+				0,
+				TokenType.KEYWORD);
+			final AvailObject decl = DeclarationNodeDescriptor.newArgument(
+				token,
+				tupleType.typeAtIndex(i));
+			args.add(decl);
+		}
+		for (int i = 1, end = code.numLocals(); i <= end; i++)
+		{
+			final String localName = tempGenerator.value("local");
+			final A_Token token = TokenDescriptor.create(
+				StringDescriptor.from(localName),
+				0,
+				0,
+				TokenType.KEYWORD);
+			final AvailObject decl = DeclarationNodeDescriptor.newVariable(
+				token,
+				code.localTypeAt(i).writeType());
+			locals.add(decl);
+		}
 		statements.addAll(locals);
 		//  Add all local declaration statements at the start.
-		nybbles = code.nybbles();
 		pc = 1;
 		while (pc <= nybbles.tupleSize())
 		{
@@ -154,13 +182,24 @@ public class L1Decompiler
 		assert expressionStack.size() == 0
 		: "There should be nothing on the stack after the final return";
 
-		return BlockNodeDescriptor.newBlockNode(
+		block = BlockNodeDescriptor.newBlockNode(
 			args,
 			code.primitiveNumber(),
 			statements,
-			aCodeObject.functionType().returnType(),
-			aCodeObject.functionType().declaredExceptions(),
+			code.functionType().returnType(),
+			code.functionType().declaredExceptions(),
 			0);
+	}
+
+	/**
+	 * Answer the {@linkplain BlockNodeDescriptor block node} which is a
+	 * decompilation of the previously supplied raw function.
+	 *
+	 * @return A block node which is a decompilation of the raw function.
+	 */
+	public AvailObject block ()
+	{
+		return block;
 	}
 
 	/**
@@ -271,10 +310,11 @@ public class L1Decompiler
 					|| outer.isInstanceOfKind(LITERAL_NODE.mostGeneralType());
 			}
 			final AvailObject blockNode =
-				new L1Decompiler().parseWithOuterVarsTempGenerator(
+				new L1Decompiler(
 					theCode,
 					theOuters,
-					tempGenerator);
+					tempGenerator
+				).block();
 			pushExpression(blockNode);
 		}
 
@@ -404,10 +444,11 @@ public class L1Decompiler
 					functionOuters.add(literalNode);
 				}
 				final AvailObject blockNode =
-					new L1Decompiler().parseWithOuterVarsTempGenerator(
+					new L1Decompiler(
 						value.code(),
 						functionOuters,
-						tempGenerator);
+						tempGenerator
+					).block();
 				pushExpression(blockNode);
 			}
 			else
@@ -683,42 +724,6 @@ public class L1Decompiler
 	};
 
 	/**
-	 * Create any necessary variable declaration nodes.
-	 */
-	private void buildArgsAndLocals ()
-	{
-		args = new ArrayList<AvailObject>(code.numArgs());
-		locals = new ArrayList<AvailObject>(code.numLocals());
-		final A_Type tupleType = code.functionType().argsTupleType();
-		for (int i = 1, end = code.numArgs(); i <= end; i++)
-		{
-			final String argName = tempGenerator.value("arg");
-			final A_Token token = TokenDescriptor.create(
-				StringDescriptor.from(argName),
-				0,
-				0,
-				TokenType.KEYWORD);
-			final AvailObject decl = DeclarationNodeDescriptor.newArgument(
-				token,
-				tupleType.typeAtIndex(i));
-			args.add(decl);
-		}
-		for (int i = 1, end = code.numLocals(); i <= end; i++)
-		{
-			final String localName = tempGenerator.value("local");
-			final A_Token token = TokenDescriptor.create(
-				StringDescriptor.from(localName),
-				0,
-				0,
-				TokenType.KEYWORD);
-			final AvailObject decl = DeclarationNodeDescriptor.newVariable(
-				token,
-				code.localTypeAt(i).writeType());
-			locals.add(decl);
-		}
-	}
-
-	/**
 	 * Parse the given statically constructed function.  It treats outer
 	 * variables as literals.  Answer the resulting {@linkplain
 	 * BlockNodeDescriptor block}.
@@ -759,9 +764,10 @@ public class L1Decompiler
 				LiteralNodeDescriptor.fromTokenForDecompiler(token);
 			functionOuters.add(literalNode);
 		}
-		return new L1Decompiler().parseWithOuterVarsTempGenerator(
-			aFunction.code(),
-			functionOuters,
-			generator);
+		return new L1Decompiler(
+				aFunction.code(),
+				functionOuters,
+				generator
+			).block();
 	}
 }

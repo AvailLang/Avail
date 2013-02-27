@@ -38,7 +38,10 @@ Uses
 	"Foundation",
 	"Iterators"
 Names
-/* TODO: Exports */
+	"encoded-buffer-exhausted exception",
+	"utf8 codec",
+	"utf8 decoder",
+	"utf8 encoder"
 Body
 
 /**
@@ -77,7 +80,8 @@ Private method "transform_as a UTF8 continuation byte" is
  *      the unicode character represented by the code point
  * @author "Richard Arriaga"
  */
-Private abstract  method "decode_from_" is [[1..4],<byte…|1..4>]→character;
+Private abstract  method "utf-_decode_from_" is 
+	[8's type,[1..4],<byte…|1..4>]→character;
 
 /**
  * This method defines the decoding of the UTF-8 single byte code.  This is for
@@ -95,8 +99,9 @@ Private abstract  method "decode_from_" is [[1..4],<byte…|1..4>]→character;
  *      the unicode character represented by the code point
  * @author "Richard Arriaga"
  */
-Method "decode_from_" is
+Method "utf-_decode_from_" is
 [
+	specification : 8's type,
 	bytesExpected : 1's type,
 	accumulator : <byte…|1..4>
  |
@@ -118,8 +123,9 @@ Method "decode_from_" is
  *      the unicode character represented by the code point
  * @author "Richard Arriaga"
  */
-Method "decode_from_" is
+Method "utf-_decode_from_" is
 [
+	specification : 8's type,
 	bytesExpected : 2's type,
 	accumulator : <byte…|1..4>
  |
@@ -143,8 +149,9 @@ Method "decode_from_" is
  *      the unicode character represented by the code point
  * @author "Richard Arriaga"
  */
-Method "decode_from_" is
+Method "utf-_decode_from_" is
 [
+	specification : 8's type,
 	bytesExpected : 3's type,
 	accumulator : <byte…|1..4>
  |
@@ -170,8 +177,9 @@ Method "decode_from_" is
  *      the unicode character represented by the code point
  * @author "Richard Arriaga"
  */
-Method "decode_from_" is
+Method "utf-_decode_from_" is
 [
+	specification : 8's type,
 	bytesExpected : 4's type,
 	accumulator : <byte…|1..4>
  |
@@ -185,6 +193,20 @@ Method "decode_from_" is
 ]:character;
 
 /**
+ * This method defines the encoding of the UTF-8 unicode character.  This is for
+ * the abstract for the entire code point range.  
+ * 
+ * @method "encode_"
+ * @categories "Codec"
+ * @param "cp" "code point"
+ * 		the code point of the character being encoded.
+ * @returnType "<byte…|1..4>"
+ *      a tuple of bytes representing the UTF-8 encoded character
+ * @author "Richard Arriaga"
+ */
+Private abstract  method "utf-_encode_" is [8's type,code point]→<byte…|1..4>;
+
+/**
  * This method defines the encoding of the UTF-8 ascii character.  This is for
  * the code point range [0..127].  The left most bit in the resultant byte will 
  * be 0 as this is the only byte code whose leading byte is the only byte.
@@ -193,16 +215,17 @@ Method "decode_from_" is
  * @categories "Codec"
  * @param "ascii" "[0..127]"
  * 		the ascii unicode code point
- * @returnType "[0..127]"
- *      the UTF-8 encoded character byte
+ * @returnType "<byte…|1..4>"
+ *      a tuple of bytes representing the UTF-8 encoded character
  * @author "Richard Arriaga"
  */
-Method "encode_" is
+Method "utf-_encode_" is
 [
+	specification : 8's type,
 	cp : [0..127]
  |
-	cp
-]:[0..127];
+	<cp>
+]:<byte…|1..4>;
 
 /**
  * This method defines the encoding of the UTF-8 two byte code.  This is for
@@ -215,17 +238,19 @@ Method "encode_" is
  * @categories "Codec"
  * @param "cp" "[128..2047]"
  * 		the unicode code point
- * @returnType "[49280..57279]"
- *      the UTF-8 encoded character bytes (2 bytes)
+ * @returnType "<byte…|1..4>"
+ *      a tuple of bytes representing the UTF-8 encoded character
  * @author "Richard Arriaga"
  */
-Method "encode_" is
+Method "utf-_encode_" is
 [
+	specification : 8's type,
 	cp : [128..2047]
  |
-	/*TODO Implement me*/
- 57278
-]:[49280..57279];
+	leading : byte := ((cp << -6) bit∧ 31) + 192;
+	secondary : byte := (cp bit∧ 63) + 128;
+	<leading, secondary>
+]:<byte…|1..4>;
 
 /**
  * This method defines the encoding of the UTF-8 three byte code.  This is for
@@ -238,17 +263,20 @@ Method "encode_" is
  * @categories "Codec"
  * @param "cp" "[2048..65534]"
  * 		the unicode code point
- * @returnType "[14712960..15712191]"
- *      the UTF-8 encoded character bytes (3 bytes)
+ * @returnType "<byte…|1..4>"
+ *      a tuple of bytes representing the UTF-8 encoded character
  * @author "Richard Arriaga"
  */
-Method "encode_" is
+Method "utf-_encode_" is
 [
+	specification : 8's type,
 	cp : [2048..65534]
 |
-	/*TODO Implement me.  Exception for [55296..57343] as surrogate*/
-15712190
-]:[14712960..15712191];
+	leading : byte := ((cp << -12) bit∧ 15) + 224; 
+	secondary : byte := ((cp << -6) bit∧ 63) + 128; 
+	tertiary : byte := (cp bit∧ 63) + 128;
+	<leading,secondary,tertiary>
+]:<byte…|1..4>;
 
 /**
  * This method defines the decoding of the UTF-8 four byte code.  This is for
@@ -261,14 +289,276 @@ Method "encode_" is
  * @categories "Codec"
  * @param "cp" "[65536..1114111]"
  * 		the unicode code point
- * @returnType "[4034953344..4156538815]"
- *      the UTF-8 encoded character bytes (4 bytes)
+ * @returnType "<byte…|1..4>"
+ *      a tuple of bytes representing the UTF-8 encoded character
  * @author "Richard Arriaga"
  */
-Method "encode_" is
+Method "utf-_encode_" is
 [
+	specification : 8's type,
 	cp : [65536..1114111]
 |
-	/*TODO Implement me.*/
-4156538814
-]:[4034953344..4156538815];
+	leading : byte := ((cp << -18) bit∧ 7) + 240;
+	secondary : byte := ((cp << -12) bit∧ 63) + 128; 
+	tertiary : byte := ((cp << -6) bit∧ 63) + 128; 
+	quaternary : byte := (cp bit∧ 63) + 128;
+	<leading,secondary,tertiary,quaternary>
+]:<byte…|1..4>;
+
+"encoded input buffer" is a new field atom;
+"encoded input position" is a new field atom;
+"code point range" is a new field atom;
+
+/**
+ * A class that contains UTF-8 instructions for the decoding character data 
+ * from byte tuples.
+ * 
+ * @type "utf8 decoder"
+ * @supertype {@type "object" decoder}
+ * @category "Codecs"
+ * @field "encoded input buffer" "<byte…|>"
+ * 	a buffer that holds bytes that represensts the encoded data.
+ * @field "encoded input position" "natural number"
+ * 	the current position in the encoded input buffer
+ * @author "Richard Arriaga"
+ */
+Public class "utf8 decoder" extends decoder
+	with fields
+		code point range : [1..1114111]
+	with mutable fields
+		encoded input buffer : <byte…|>,
+		encoded input position : natural number;
+
+"decoded input buffer" is a new field atom;
+"decoded input position" is a new field atom;
+
+/**
+ * A class that contains UTF-8 instructions for the encoding character data 
+ * into byte tuples.
+ * 
+ * @type "utf8 encoder"
+ * @supertype {@type "object" encoder}
+ * @category "Codecs"
+ * @field "decoded input buffer" "<byte…|>"
+ * 	a buffer that holds characters waiting to be encoded.
+ * @field "decoded input position" "natural number"
+ * 	the current position in the decoded input buffer
+ * @author "Richard Arriaga"
+ */
+Public class "utf8 encoder" extends encoder
+	with mutable fields
+		decoded input buffer : <character…|>,
+		decoded input position : natural number;
+
+"state" is a new field atom;
+"source exhausted" is a new field atom;
+
+/**
+ * An object that represents both the encoder and decoder for UTF-8.
+ * 
+ * @type "utf8 codec"
+ * @supertype {@type "utf8 encoder" encoder} {@type "utf8 decoder" decoder}
+ * @category "Codecs"
+ * @field "state" "continuation"
+ * 	a continuation that can be resumed once more data is received if more data 
+ * 	is needed from the source
+ * @field "source exhausted" "boolean"
+ * 	indicates if there is no more data to be had from the source. 
+ * @author "Richard Arriaga"
+ */
+Public class "utf8 codec" extends utf8 encoder ∩ utf8 decoder
+	with mutable fields
+		state : continuation,
+		source exhausted : boolean;
+/**
+ * An exception that indicates the particular bytes attempting to be decoded
+ * does not adhere to the specification of the encoder.
+ * 
+ * @type "encoded-buffer-exhausted exception"
+ * @supertype {@type "exception" exception}
+ * @category "Codecs"
+ * @field "invalid encoding" "byte tuple"
+ * 	the tuple of bytes that are not valid under the encoding specifications
+ * @author "Richard Arriaga"
+ */
+Public explicit class "encoded-buffer-exhausted exception" extends exception;
+
+
+/**
+ * Advance the utf8's decode input buffer position
+ *
+ * @method "Advance_'⁇s encoded input position"
+ * @categories "Codecs"
+ * @param "utf8" "utf8 decoder" 
+ *      a utf8 decoder 
+ * @returnType "⊤"
+ *      none
+ * @raises {@type "encoded-buffer-exhausted exception"} 
+ *      the encoded input buffer is exhausted
+ * @author "Richard Arriaga"
+ */
+Private method "Advance_'⁇s encoded input position" is
+[
+	utf8 : utf8 codec
+ |
+ 	If |utf8's encoded input buffer| = utf8's encoded input position then
+ 	[Raise an encoded-buffer-exhausted exception]
+ 	else
+ 	[utf8's encoded input position := utf8's encoded input position + 1;];
+ ]:⊤;
+
+/**
+ * methodDescription
+ *
+ * @method "_'⁇s current byte's primary type"
+ * @categories "Codecs"
+ * @param "utf8" "utf8 decoder" 
+ *      a utf8 decoder
+ * @returnType "[1..4]"
+ *      the size of the expected byte tuple
+ * @raises "malformed" 
+ *      exceptionDescription
+ * @author "authorName"
+ */
+Private method "_'⁇s next input byte's primary type" is
+[
+ utf8 : utf8 codec
+ |
+	If utf8's encoded input position > 1 then
+		[Advance utf8's encoded input position;];
+	next : byte := utf8's encoded input buffer[utf8's encoded input position];
+	if next bit∧ 128 = 0 then [1]
+	else if [next bit∧ 224 = 192] then [2]
+	else if [next bit∧ 240 = 224] then [3]
+	else if [next bit∧ 248 = 240] then [4]
+	else 
+	[
+		Raise a malformed-encoding exception with 
+			invalid encoding ::= <next>
+	]
+ ]:[1..4];
+
+/**
+ * The next byte in the utf8 decoder buffer
+ *
+ * @method "_'⁇s next secondary byte"
+ * @categories "category"
+ * @param "utf8" "utf8 decoder" 
+ *      a utf-8 decoder
+ * @returnType "byte"
+ *      A byte of the form 10xxxxxx
+ * @raises "malformed-encoding exception"}" 
+ *      returned byte is not of type 10xxxxxx
+ * @author "Richard Arriaga"
+ */
+Private method "_'⁇s next secondary byte" is
+[
+	utf8 : utf8 codec
+ |
+	Advance utf8's encoded input position;
+	next : byte := utf8's encoded input buffer[utf8's encoded input position];
+	if next bit∧ 192 = 128 then [next] 
+	else 
+	[
+		Raise a malformed-encoding exception with 
+			invalid encoding ::= <next>
+	]
+]:byte;
+
+
+singleByteUTF8DecoderFunction ::=
+[
+	utf8 : utf8 codec
+ |
+	utf-8 decode 1 from 
+		<utf8's encoded input buffer[utf8's encoded input position]>
+]: character;
+
+utf8DecoderFunction ::= 
+<singleByteUTF8DecoderFunction> ++ map 2 to 4 through
+[
+	bytesExpected : [2..4]
+ |
+	[
+		utf8 : utf8 codec
+	 |	
+		accumulator : <byte…|1..> := 
+			<utf8's encoded input buffer[utf8's encoded input position]>;
+		[
+			$start;
+			While 
+			[
+				|accumulator| < bytesExpected ∧ 
+					[utf8's encoded input position ≤ 
+						|utf8's encoded input buffer|]
+			]
+			do
+			[
+			 	nextByte : byte;
+				Guard [nextByte := utf8's next secondary byte;]
+				intercept
+				[
+					e : malformed-encoding exception
+				 |
+					/*TODO If at new primary byte, replace malformed byte tuple
+					 * with replacement character.  rollback input counter*/
+				];
+			/*TODO catch malformed data exception*/
+				accumulator := accumulator ++ <nextByte>;
+			];
+			If |accumulator| < bytesExpected then
+			[
+				If utf8's source exhausted then
+				[
+					Raise a malformed-encoding exception with
+						invalid encoding ::= accumulator
+				];
+				utf8's state := start;
+				/*TODO create gimme data exception at abstract level*/
+			];
+		]();
+		encodedBytes : <byte…|2..4> := cast accumulator into
+			[b : <byte…|2..4> | b];
+		utf-8 decode bytesExpected from encodedBytes
+	]: character
+];
+
+/*TODO Create method that gives data to codec from source.*/
+
+/**
+ * The method that accepts a byte tuple and the decoding specificaiton that
+ * transforms the byte tuple into a character.
+ * 
+ * @method "decode_using_"
+ * @category "Codecs"
+ * @param "byte tuple"
+ * @param "decoder"
+ * @returnType "string"
+ * 	the decoded string
+ * @raises {@type "malformed-encoding exception"}
+ * 	Thrown when the encoding specification is violated
+ * @author "Richard Arriaga"
+ */
+Method "decode_using_" is
+[
+	input : byte tuple, 
+	utf8 : utf8 codec
+ |
+	utf8's encoded input buffer := input;
+	utf8's encoded input position := 1;
+	While 
+	[
+		utf8's encoded input position ≤ |utf8's encoded input buffer|
+	]
+	do
+	[
+		utf8's decoded input buffer := utf8's decoded input buffer++ 
+			<utf8DecoderFunction[utf8's next input byte's primary type](utf8)>;
+	];
+ /*TODO Create method that overrides abstract "decode_using_"
+  * Chnage all inputs to codec objects.  Utilize the each input buffer for the other
+  * ie decoder for encoder and encoder for decoder*/
+	"pickles"
+]:string;
+
+/*TODO Create method that overrides abstract "finish decoding with_"*/

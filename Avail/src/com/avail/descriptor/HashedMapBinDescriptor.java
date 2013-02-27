@@ -658,8 +658,7 @@ extends MapBinDescriptor
 				assert binStack.isEmpty();
 				assert subscriptStack.isEmpty();
 				//entry.keyHash = 0;
-				entry.key = null;
-				entry.value = null;
+				entry.setKeyAndHashAndValue(null, 0, null);
 			}
 			else
 			{
@@ -682,11 +681,12 @@ extends MapBinDescriptor
 			assert !binStack.isEmpty();
 			final AvailObject linearBin = binStack.getLast().traversed();
 			final Integer linearIndex = subscriptStack.getLast();
-			entry.keyHash = linearBin.slot(
-				LinearMapBinDescriptor.IntegerSlots.KEY_HASHES_,
-				linearIndex);
-			entry.key = linearBin.binElementAt(linearIndex * 2 - 1);
-			entry.value = linearBin.binElementAt(linearIndex * 2);
+			entry.setKeyAndHashAndValue(
+				linearBin.binElementAt(linearIndex * 2 - 1),
+				linearBin.slot(
+					LinearMapBinDescriptor.IntegerSlots.KEY_HASHES_,
+					linearIndex),
+				linearBin.binElementAt(linearIndex * 2));
 			// Got the result.  Now advance the state...
 			if (linearIndex < linearBin.variableIntegerSlotsCount())
 			{

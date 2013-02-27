@@ -560,33 +560,7 @@ extends TypeDescriptor
 	/**
 	 * The most general {@linkplain FunctionTypeDescriptor function type}.
 	 */
-	private static A_Type mostGeneralType;
-
-	/**
-	 * The metatype of any function types.
-	 */
-	private static A_Type meta;
-
-	/**
-	 * Create the top (i.e., most general) {@linkplain FunctionTypeDescriptor
-	 * function type}.
-	 */
-	static void createWellKnownObjects ()
-	{
-		mostGeneralType = forReturnType(TOP.o());
-		mostGeneralType.makeShared();
-		meta = InstanceMetaDescriptor.on(mostGeneralType);
-		meta.makeShared();
-	}
-
-	/**
-	 * Clear any static references to publicly accessible objects.
-	 */
-	static void clearWellKnownObjects ()
-	{
-		mostGeneralType = null;
-		meta = null;
-	}
+	private static @Nullable A_Type mostGeneralType;
 
 	/**
 	 * Answer the top (i.e., most general) {@linkplain FunctionTypeDescriptor
@@ -596,8 +570,15 @@ extends TypeDescriptor
 	 */
 	public static A_Type mostGeneralType ()
 	{
-		return mostGeneralType;
+		final A_Type type = mostGeneralType;
+		assert type != null;
+		return type;
 	}
+
+	/**
+	 * The metatype of any function types.
+	 */
+	private static @Nullable A_Type meta;
 
 	/**
 	 * Answer the metatype for all function types.  This is just an {@linkplain
@@ -608,7 +589,28 @@ extends TypeDescriptor
 	 */
 	public static A_Type meta ()
 	{
-		return meta;
+		final A_Type type = meta;
+		assert type != null;
+		return type;
+	}
+
+	/**
+	 * Create the top (i.e., most general) {@linkplain FunctionTypeDescriptor
+	 * function type}.
+	 */
+	static void createWellKnownObjects ()
+	{
+		mostGeneralType = forReturnType(TOP.o()).makeShared();
+		meta = InstanceMetaDescriptor.on(mostGeneralType()).makeShared();
+	}
+
+	/**
+	 * Clear any static references to publicly accessible objects.
+	 */
+	static void clearWellKnownObjects ()
+	{
+		mostGeneralType = null;
+		meta = null;
 	}
 
 	/**

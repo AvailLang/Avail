@@ -367,7 +367,7 @@ extends Descriptor
 	 * @return A function.
 	 */
 	public static A_Function create (
-		final AvailObject code,
+		final A_BasicObject code,
 		final A_Tuple copiedTuple)
 	{
 		final AvailObject object = mutable.create(copiedTuple.tupleSize());

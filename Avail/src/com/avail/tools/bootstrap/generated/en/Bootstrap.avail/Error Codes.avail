@@ -99,6 +99,8 @@ Names
 	/*  66 */ "local declaration shadows another code",
 	/*  28 */ "local type literal is not a type code",
 	/*  34 */ "macro argument must be a parse node code",
+	/*  68 */ "macro must return a parse node code",
+	/*  67 */ "macro prefix function argument must be a parse node code",
 	/*  59 */ "macro prefix functions must return top code",
 	/*  71 */ "method definition lookup failed code",
 	/*  72 */ "method is sealed code",
@@ -463,6 +465,16 @@ Primitive "declaration type must not be top or bottom code" is
 Primitive "local declaration shadows another code" is
 [
 	66
+];
+
+Primitive "macro prefix function argument must be a parse node code" is
+[
+	67
+];
+
+Primitive "macro must return a parse node code" is
+[
+	68
 ];
 
 Primitive "loading is over code" is

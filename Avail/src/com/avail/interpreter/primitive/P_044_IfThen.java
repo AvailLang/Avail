@@ -76,7 +76,7 @@ public class P_044_IfThen extends Primitive
 			TupleDescriptor.from(
 				EnumerationTypeDescriptor.booleanObject(),
 				FunctionTypeDescriptor.create(
-					TupleDescriptor.from(),
+					TupleDescriptor.empty(),
 					TOP.o())),
 			TOP.o());
 	}

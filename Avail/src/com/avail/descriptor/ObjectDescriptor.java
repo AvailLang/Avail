@@ -118,7 +118,7 @@ extends Descriptor
 			map.mapSize());
 		for (final MapDescriptor.Entry entry : map.mapIterable())
 		{
-			fieldAssignments.add(TupleDescriptor.from(entry.key, entry.value));
+			fieldAssignments.add(TupleDescriptor.from(entry.key(), entry.value()));
 		}
 		return TupleDescriptor.fromList(fieldAssignments);
 	}
@@ -178,8 +178,8 @@ extends Descriptor
 			for (final MapDescriptor.Entry entry : valueMap.mapIterable())
 			{
 				typeMap = typeMap.mapAtPuttingCanDestroy(
-					entry.key,
-					AbstractEnumerationTypeDescriptor.withInstance(entry.value),
+					entry.key(),
+					AbstractEnumerationTypeDescriptor.withInstance(entry.value()),
 					true);
 			}
 			kind = ObjectTypeDescriptor.objectTypeFromMap(typeMap);
@@ -256,10 +256,10 @@ extends Descriptor
 			final A_BasicObject fieldTypes = baseType.fieldTypeMap();
 			for (final MapDescriptor.Entry entry : fieldTypes.mapIterable())
 			{
-				if (InstanceTypeDescriptor.on(entry.key).equals(entry.value))
+				if (InstanceTypeDescriptor.on(entry.key()).equals(entry.value()))
 				{
 					ignoreKeys = ignoreKeys.setWithElementCanDestroy(
-						entry.key,
+						entry.key(),
 						true);
 				}
 			}
@@ -268,7 +268,7 @@ extends Descriptor
 		for (final MapDescriptor.Entry entry
 			: object.slot(FIELD_MAP).mapIterable())
 		{
-			if (!ignoreKeys.hasElement(entry.key))
+			if (!ignoreKeys.hasElement(entry.key()))
 			{
 				if (first)
 				{
@@ -284,9 +284,9 @@ extends Descriptor
 				{
 					builder.append('\t');
 				}
-				builder.append(entry.key.name().asNativeString());
+				builder.append(entry.key().name().asNativeString());
 				builder.append(" = ");
-				entry.value.printOnAvoidingIndent(
+				entry.value().printOnAvoidingIndent(
 					builder,
 					recursionList,
 					indent + 1);

@@ -37,7 +37,6 @@ import static com.avail.exceptions.AvailErrorCode.*;
 import com.avail.AvailRuntime;
 import com.avail.annotations.*;
 import com.avail.compiler.*;
-import com.avail.compiler.AbstractAvailCompiler.ParserState;
 import com.avail.descriptor.*;
 import com.avail.exceptions.*;
 import com.avail.utility.*;
@@ -433,7 +432,7 @@ public final class AvailLoader
 		// Add the macro definition.
 		final AvailObject macroDefinition = MacroDefinitionDescriptor.create(
 			method,
-			TupleDescriptor.empty(), //TODO[MvG] Obviously need the prefix functions here
+			prefixFunctions,
 			macroBody);
 		module().moduleAddDefinition(macroDefinition);
 		final A_Type macroBodyType = macroBody.kind();
@@ -640,7 +639,7 @@ public final class AvailLoader
 	{
 		assert stringName.isString();
 		//  Check if it's already defined somewhere...
-		final Mutable<A_Atom> atom = new Mutable<A_Atom>();
+		final MutableOrNull<A_Atom> atom = new MutableOrNull<A_Atom>();
 		final AvailObject theModule = module;
 		theModule.lock(
 			new Continuation0()
@@ -668,14 +667,6 @@ public final class AvailLoader
 		{
 			throw new AmbiguousNameException();
 		}
-		return atom.value;
+		return atom.value();
 	}
-
-	/**
-	 * The {@link ParserState}, if any, at which parsing is currently taking
-	 * place.  Since parsing can happen in parallel, it indicates the location
-	 * of the current compilation step directly leading to execution of code in
-	 * this {@code Interpreter}.
-	 */
-	public ParserState currentParserState = null;
 }

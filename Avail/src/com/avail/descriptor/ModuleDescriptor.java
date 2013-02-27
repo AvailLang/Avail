@@ -426,6 +426,8 @@ extends Descriptor
 			object.setSlot(
 				GRAMMATICAL_RESTRICTIONS,
 				grammaticalRestrictions.makeShared());
+			final A_BasicObject bundleTree = object.slot(FILTERED_BUNDLE_TREE);
+			bundleTree.flushForNewOrChangedBundleNamed(methodName);
 		}
 	}
 
@@ -680,8 +682,8 @@ extends Descriptor
 			for (final MapDescriptor.Entry entry
 				: typeRestrictions.mapIterable())
 			{
-				final AvailObject methodName = entry.key;
-				for (final AvailObject restriction : entry.value)
+				final AvailObject methodName = entry.key();
+				for (final AvailObject restriction : entry.value())
 				{
 					runtime.removeTypeRestriction(methodName, restriction);
 				}
@@ -689,8 +691,8 @@ extends Descriptor
 			final A_BasicObject seals = object.slot(SEALS);
 			for (final MapDescriptor.Entry entry : seals.mapIterable())
 			{
-				final AvailObject methodName = entry.key;
-				for (final AvailObject seal : entry.value)
+				final AvailObject methodName = entry.key();
+				for (final AvailObject seal : entry.value())
 				{
 					runtime.removeSeal(methodName, seal);
 				}

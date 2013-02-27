@@ -179,9 +179,9 @@ extends VariableDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_FetchAndAddValue (
+	A_Number o_FetchAndAddValue (
 		final AvailObject object,
-		final AvailObject addend)
+		final A_Number addend)
 	{
 		// Because the separate read and write operations are all performed
 		// within the critical section, atomicity is ensured.

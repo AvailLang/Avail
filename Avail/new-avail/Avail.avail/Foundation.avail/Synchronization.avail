@@ -51,6 +51,17 @@ Uses
 	"Strings",
 	"Variables"
 Names
+	/* Semaphores. */
+	"Await__time|times",
+	"Signal__time|times",
+	"binary semaphore",
+	"counting semaphore",
+	"semaphore",
+	"_'s⁇maximum permits",
+
+	/* Semaphore construction. */
+	"a semaphore«named_»with_«out of_»permit|permits",
+
 	/* Mutexes. */
 	"monitor",
 	"non-reentrant mutex",
@@ -58,12 +69,9 @@ Names
 	"_'s⁇owner's name",
 
 	/* Mutex construction. */
-	"a monitor named_",
-	"a monitor",
-	"a non-reentrant mutex",
-	"a non-reentrant mutex named_",
-	"a reentrant mutex",
-	"a reentrant mutex named_",
+	"a monitor«named_»",
+	"a non-reentrant mutex«named_»",
+	"a reentrant mutex«named_»",
 
 	/* Conditions. */
 	"Await_",
@@ -79,12 +87,15 @@ Names
 	/* Exceptions. */
 	"condition exception",
 	"cannot-await-condition exception",
+	"cannot-exceed-maximum-permits exception",
 	"cannot-signal-condition exception",
 	"condition-unsatisfied exception",
 	"reentry exception",
+	"semaphore exception",
 	"synchronization exception",
 	"termination-requested exception",
 	"_'s⁇misused condition",
+	"_'s⁇misused semaphore",
 	"_'s⁇reentered mutex",
 	"_'s⁇reentering fiber",
 
@@ -337,34 +348,40 @@ Method "“_”" is
 		parked ::= map mutex's parked fibers through [f : fiber | f's name]
 ];
 
+/* The default name of a synchronization device, if no name is specified at
+ * construction time.
+ */
+defaultName ::= "«unnamed»";
+
 /**
  * Construct and answer a {@type "non-reentrant mutex"}.
  *
- * @method "a non-reentrant mutex named_"
- * @param "myName" "nonempty string"
- *        The name of the mutex, for improved diagnostics.
+ * @method "a non-reentrant mutex«named_»"
+ * @param "optionalName" "<nonempty string…|0..1>"
+ *        If specified, then the name of the mutex, for improved diagnostics.
+ *        If not specified, then {@code "«unnamed»"}.
  * @returns "non-reentrant mutex"
  */
-Public method "a non-reentrant mutex named_" is
+Public method "a non-reentrant mutex«named_»" is
 [
-	myName : nonempty string
+	optionalName : <nonempty string…|0..1>
 |
+	myName ::= optionalName[1] else [defaultName];
 	/* The ownership memento 0 is used to indicate that a mutex is unowned.
 	 * It is non-canonical.
 	 */
 	a non-reentrant mutex with name ::= myName, owner := 0, parked fibers := <>
 ] : non-reentrant mutex;
 
-/**
- * Construct and answer a {@type "non-reentrant mutex"}.
- *
- * @method "a non-reentrant mutex"
- * @returns "non-reentrant mutex"
- */
-Public method "a non-reentrant mutex" is
+Semantic restriction "a non-reentrant mutex«named_»" is
 [
-	a non-reentrant mutex named "«unnamed»"
-] : non-reentrant mutex;
+	optionalName : <nonempty string…|0..1>'s type
+|
+	myName ::= if ⎣optionalName⎦ = 1
+		then [optionalName[1]]
+		else [defaultName's type];
+	extend non-reentrant mutex with name : myName
+];
 
 /**
  * A synchronization exception is raised when a {@type "synchronization device"}
@@ -389,14 +406,6 @@ Public class "reentry exception" extends synchronization exception
 	with fields
 		public reentered mutex : non-reentrant mutex,
 		public reentering fiber : fiber;
-
-Semantic restriction "Lock|lock_for_" is
-[
-	mutex : synchronization device's type,
-	criticalSection : []→⊤'s type
-|
-	criticalSection's return type
-];
 
 /**
  * Schedule the next {@type "fiber" waiter} to run, or simply release the
@@ -479,7 +488,7 @@ Private method "Acquire_" is
  *
  * @method "Lock|lock_for_"
  * @param "mutex" "non-reentrant mutex"
- * @param "criticalSection"
+ * @param "criticalSection" "[]→⊤"
  *        The critical section.
  * @raises "reentry exception"
  *         If the owning fiber reenters the mutex.
@@ -503,6 +512,14 @@ Public method "Lock|lock_for_" is
 	Guard criticalSection
 	ensure [Schedule next parked fiber or release mutex;];
 ] : ⊤;
+
+Semantic restriction "Lock|lock_for_" is
+[
+	mutex : synchronization device's type,
+	criticalSection : []→⊤'s type
+|
+	criticalSection's return type
+];
 
 "entry count" is a new field atom;
 
@@ -532,15 +549,17 @@ Method "“_”" is
 /**
  * Construct and answer a {@type "reentrant mutex"}.
  *
- * @method "a reentrant mutex named_"
+ * @method "a reentrant mutex«named_»"
  * @param "myName" "nonempty string"
- *        The name of the mutex, for improved diagnostics.
+ *        If specified, then the name of the mutex, for improved diagnostics.
+ *        If not specified, then {@code "«unnamed»"}.
  * @returns "reentrant mutex"
  */
-Public method "a reentrant mutex named_" is
+Public method "a reentrant mutex«named_»" is
 [
-	myName : nonempty string
+	optionalName : <nonempty string…|0..1>
 |
+	myName ::= optionalName[1] else [defaultName];
 	/* The ownership memento 0 is used to indicate that a mutex is unowned.
 	 * It is non-canonical.
 	 */
@@ -551,16 +570,15 @@ Public method "a reentrant mutex named_" is
 		parked fibers := <>
 ] : reentrant mutex;
 
-/**
- * Construct and answer a {@type "reentrant mutex"}.
- *
- * @method "a reentrant mutex"
- * @returns "reentrant mutex"
- */
-Public method "a reentrant mutex" is
+Semantic restriction "a reentrant mutex«named_»" is
 [
-	a reentrant mutex named "«unnamed»"
-] : reentrant mutex;
+	optionalName : <nonempty string…|0..1>'s type
+|
+	myName ::= if ⎣optionalName⎦ = 1
+		then [optionalName[1]]
+		else [defaultName's type];
+	extend reentrant mutex with name : myName
+];
 
 /**
  * Acquire the {@linkplain "reentrant mutex"}, then execute the specified
@@ -649,13 +667,15 @@ Semantic restriction "_'s⁇originating monitor" is
  *
  * @method "a monitor named_"
  * @param "myName" "nonempty string"
- *        The name of the monitor, for improved diagnostics.
+ *        If specified, then the name of the monitor, for improved diagnostics.
+ *        If not specified, then {@code "«unnamed»"}.
  * @returns "monitor"
  */
-Public method "a monitor named_" is
+Public method "a monitor«named_»" is
 [
-	myName : nonempty string
+	optionalName : <nonempty string…|0..1>
 |
+	myName ::= optionalName[1] else [defaultName];
 	/* The ownership memento 0 is used to indicate that a monitor is unowned.
 	 * It is non-canonical.
 	 */
@@ -667,16 +687,15 @@ Public method "a monitor named_" is
 		signaler fibers := <>
 ] : monitor;
 
-/**
- * Construct and answer a {@type "monitor"}.
- *
- * @method "a monitor"
- * @returns "monitor"
- */
-Public method "a monitor" is
+Semantic restriction "a monitor«named_»" is
 [
-	a monitor named "«unnamed»"
-] : monitor;
+	optionalName : <nonempty string…|0..1>'s type
+|
+	myName ::= if ⎣optionalName⎦ = 1
+		then [optionalName[1]]
+		else [defaultName's type];
+	extend monitor with name : myName
+];
 
 /**
  * Schedule the next {@type "fiber" waiter} to run, giving preference to fibers
@@ -943,5 +962,281 @@ Public method "Signal_if satisfied" is
 	If aCondition is satisfied then [Signal aCondition;];
 ] : ⊤;
 
+"maximum permits" is a new field atom;
+"available permits" is a new field atom;
+"internal monitor" is a new field atom;
+"availability" is a new field atom;
+
+/**
+ * A counting semaphore is a {@type "synchronization device"} that describes how
+ * many of a restricted resource are currently available.
+ *
+ * @type "counting sempahore"
+ * @supertype "synchronization device"
+ */
+Public class "semaphore" extends synchronization device
+	with fields
+		name : nonempty string,
+		public maximum permits : [0..∞],
+		internal monitor : monitor,
+		availability : condition
+	with mutable field
+		referable available permits : extended integer;
+
+Semantic restriction "_'s⁇available permits" is
+[
+	sem : semaphore's type
+|
+	sem's maximum permits
+];
+
+Semantic restriction "_'s⁇available permits:=_" is
+[
+	sem : semaphore's type,
+	permits : extended integer's type
+|
+	If ¬permits ⊆ sem's maximum permits then
+	[
+		Reject parse, expected:
+			format
+				"new count of available permits ⊆ “①” \
+				\|(but “②” is not a subtype)"
+			with sem's maximum permits, permits
+	];
+	⊤
+];
+
+Public method "counting semaphore" is [semaphore];
+
+/**
+ * A binary semaphore supports but a single permit, and it is therefore suitable
+ * for use as a mutual exclusion device.
+ *
+ * @type "binary semaphore"
+ * @type "semaphore"
+ */
+Public class "binary semaphore" extends semaphore
+	with field
+		maximum permits : [0..1];
+
+/**
+ * Construct and answer a {@type "semaphore"}.
+ *
+ * @method "a semaphore«named_»with_«out of_»permit|permits"
+ * @param "optionalName" "<nonempty string…|0..1>"
+ *        If specified, then the name of the semaphore, for improved
+ *        diagnostics. If not specified, then {@code "«unnamed»"} is used.
+ * @param "permits" "[0..∞]"
+ *        The number of permits initially available.
+ * @param "optionalMaximumPermits" "<[0..∞]…|0..1>"
+ *        If specified, then the maximum number of permits supported by the new
+ *        semaphore. If not specified, then {@method "∞"}.
+ * @returns "semaphore"
+ */
+Public method "a semaphore«named_»with_«out of_»permit|permits" is
+[
+	optionalName : <nonempty string…|0..1>,
+	permits : [0..∞],
+	optionalMaximumPermits : <[0..∞]…|0..1>
+|
+	myName ::= optionalName[1] else [defaultName];
+	maximumPermits ::= optionalMaximumPermits[1] else [∞];
+	mutex ::= a monitor named "monitor for semaphore named " ++ myName;
+	/* Create a variable explicitly so that the condition can reference it. */
+	availablePermits : extended integer := permits;
+	cond ::= a condition of mutex is [availablePermits > 0];
+	Assert: permits ≤ maximumPermits;
+	a semaphore with
+		name ::= myName,
+		maximum permits ::= maximumPermits,
+		internal monitor ::= mutex,
+		availability ::= cond,
+		available permits ::= ↑availablePermits
+] : semaphore;
+
+Semantic restriction "a semaphore«named_»with_«out of_»permit|permits" is
+[
+	optionalName : <nonempty string…|0..1>'s type,
+	permits : [0..∞]'s type,
+	optionalMaximumPermits : <[0..∞]…|0..1>'s type
+|
+	myName ::= if ⎣optionalName⎦ = 1
+		then [optionalName[1]]
+		else [defaultName's type];
+	maximumPermits ::= if ⎣optionalMaximumPermits⎦ = 1
+		then [optionalMaximumPermits[1]]
+		else [∞'s type];
+	extend semaphore with name : myName, maximum permits : maximumPermits
+];
+
+/**
+ * Wait until the specified {@type "semaphore"} has an available permit. If a
+ * permit is already available, then consume it immediately and return control
+ * to the caller. Otherwise, park the current fiber.
+ *
+ * @method "Await_"
+ * @param "sem" "semaphore"
+ * @raises "termination-requested exception"
+ *         If {@method "termination requested" termination has been requested}.
+ */
+Method "Await_" is
+[
+	sem : semaphore
+|
+	Lock sem's internal monitor for
+	[
+		If sem's available permits = 0 then [Await sem's availability;]
+		else [↑sem's available permits--;];
+	];
+] : ⊤;
+
+/**
+ * Wait until the specified number of permits become available from the {@type
+ * "semaphore"}.
+ *
+ * @method "Await__time|times"
+ * @param "sem" "semaphore"
+ * @param "permits" "whole number"
+ *        The number of permits to consume.
+ * @see "Await_"
+ */
+Public method "Await__time|times" is
+[
+	sem : semaphore,
+	permits : whole number
+|
+	Repeat [Await sem;] permits times;
+] : ⊤;
+
+"misused semaphore" is a new field atom;
+
+/**
+ * A semaphore exception indicates that a semaphore has been used
+ * inappropriately.
+ *
+ * @type "semaphore exception"
+ * @supertype "synchronization exception"
+ */
+Public class "semaphore exception" extends synchronization exception
+	with field
+		public misused semaphore : semaphore;
+
+/**
+ * A cannot-exceed-maximum-permits exception is raised by {@method "Signal_"}
+ * when the specified semaphore already has the maximum number of permits.
+ *
+ * @type "cannot-exceed-maximum-permits exception"
+ * @supertype "semaphore exception"
+ */
+Public explicit class "cannot-exceed-maximum-permits exception"
+extends semaphore exception
+	with field
+		public misused semaphore : semaphore;
+
+/**
+ * Release a permit back to the specified {@type "semaphore"}. If any fibers are
+ * {@method "Await_" awaiting} a permit, then schedule one to run and park the
+ * current fiber. A fiber blocked by this method is given preference over one
+ * blocked by {@method "Await_"}. If no fibers are awaiting the release of a
+ * permit, then do not block the current fiber; instead return control to the
+ * caller.
+ *
+ * @method "Signal_"
+ * @param "sem" "semaphore"
+ * @raises "cannot-exceed-maximum-permits exception"
+ *         If releasing a permit would exceed the maximum number of permits
+ *         allowed by the specified semaphore.
+ * @raises "termination-requested exception"
+ *         If {@method "termination requested" termination has been requested}.
+ */
+Method "Signal_" is
+[
+	sem : semaphore
+|
+	Lock sem's internal monitor for
+	[
+		If sem's available permits = sem's maximum permits then
+		[
+			Raise a cannot-exceed-maximum-permits exception
+				with misused semaphore ::= sem
+		];
+		↑sem's available permits++;
+		Signal sem's availability;
+	];
+] : ⊤;
+
+/**
+ * Release the specified number of permits back to the {@type "semaphore"}. If
+ * any fibers are {@method "Await_" awaiting} a permit, then schedule as many to
+ * run as permits have been released and park the current fiber. A fiber blocked
+ * by this method is given preference over one blocked by {@method "Await_"}. If
+ * no fibers are awaiting the release of a permit, then do not block the current
+ * fiber; instead return control to the caller. If not all permits can be
+ * released, then release as many as possible before raising a {@type
+ * "cannot-exceed-maximum-permits exception"}.
+ *
+ * @method "Signal__time|times"
+ * @param "sem" "semaphore"
+ * @param "permits" "whole number"
+ *        The number of permits to release.
+ * @raises "cannot-exceed-maximum-permits exception"
+ *         If releasing a permit would exceed the maximum number of permits
+ *         allowed by the specified semaphore.
+ * @raises "termination-requested exception"
+ *         If {@method "termination requested" termination has been requested}.
+ * @see "Signal_"
+ */
+Public method "Signal__time|times" is
+[
+	sem : semaphore,
+	permits : whole number
+|
+	Lock sem's internal monitor for
+	[
+		If sem's available permits + permits > sem's maximum permits then
+		[
+			sem's available permits := sem's maximum permits;
+			Raise a cannot-exceed-maximum-permits exception
+				with misused semaphore ::= sem
+		];
+		sem's available permits := sem's available permits + permits;
+		Signal sem's availability;
+	];
+] : ⊤;
+
+/**
+ * {@method "Await_" Acquire a permit} from the {@type "semaphore"}, then
+ * execute the specified function (as a critical section), then {@method
+ * "Signal_" release the permit}. If the semaphore is a {@type
+ * "binary semaphore"}, then multiple {@type "fiber"}s cannot concurrently
+ * execute the critical section; access is serialized. For a general {@type
+ * "counting semaphore"}, as may fibers as there are available permits are
+ * permitted to occupy the critical section concurrently.
+ *
+ * @method "Lock|lock_for_"
+ * @param "sem" "semaphore"
+ * @param "criticalSection" "[]→⊤"
+ *        The critical section.
+ * @raises "termination-requested exception"
+ *         If {@method "termination requested" termination has been requested}.
+ */
+Method "Lock|lock_for_" is
+[
+	sem : semaphore,
+	criticalSection : []→⊤
+|
+	Await sem;
+	criticalSection();
+	Signal sem;
+] : ⊤;
+
 Grammatical restriction "a|an_«with«_«:»?:=_‡,»»" is
-	<{"condition", "monitor", "non-reentrant mutex", "reentrant mutex"}, ∅, ∅>;
+	<{
+		"binary semaphore",
+		"condition",
+		"counting semaphore",
+		"monitor",
+		"non-reentrant mutex",
+		"reentrant mutex",
+		"semaphore"
+	}, ∅, ∅>;

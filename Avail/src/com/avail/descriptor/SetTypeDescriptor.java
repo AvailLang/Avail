@@ -255,7 +255,7 @@ extends TypeDescriptor
 	}
 
 	/** The most general set type. */
-	private static A_Type mostGeneralType;
+	private static @Nullable A_Type mostGeneralType;
 
 	/**
 	 * Answer the most general set type.
@@ -264,13 +264,15 @@ extends TypeDescriptor
 	 */
 	public static A_Type mostGeneralType ()
 	{
-		return mostGeneralType;
+		final A_Type type = mostGeneralType;
+		assert type != null;
+		return type;
 	}
 
 	/**
 	 * The metatype for all set types.
 	 */
-	private static A_Type meta;
+	private static @Nullable A_Type meta;
 
 	/**
 	 * Answer the metatype for all set types.
@@ -279,7 +281,9 @@ extends TypeDescriptor
 	 */
 	public static A_Type meta ()
 	{
-		return meta;
+		final A_Type type = meta;
+		assert type != null;
+		return type;
 	}
 
 	/**
@@ -289,11 +293,10 @@ extends TypeDescriptor
 	public static void createWellKnownObjects ()
 	{
 		mostGeneralType = setTypeForSizesContentType(
-			IntegerRangeTypeDescriptor.wholeNumbers(),
-			ANY.o());
-		mostGeneralType.makeShared();
-		meta = InstanceMetaDescriptor.on(mostGeneralType);
-		meta.makeShared();
+				IntegerRangeTypeDescriptor.wholeNumbers(),
+				ANY.o()
+			).makeShared();
+		meta = InstanceMetaDescriptor.on(mostGeneralType());
 	}
 
 	/**

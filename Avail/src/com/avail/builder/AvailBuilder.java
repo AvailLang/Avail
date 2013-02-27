@@ -95,7 +95,7 @@ public final class AvailBuilder
 		 * The {@linkplain Throwable throwable} (if any) responsible for an
 		 * abnormal termination of the build.
 		 */
-		public volatile Throwable terminator;
+		public volatile @Nullable Throwable terminator;
 
 		/**
 		 * Fail the current build due to the specified {@linkplain Throwable
@@ -155,6 +155,8 @@ public final class AvailBuilder
 			// No implementation required, but this prevents a synthetic
 			// accessor being generated in the enclosing class for this class's
 			// default constructor.
+			unbuiltPredecessors =
+				new HashMap<ResolvedModuleName, AtomicInteger>();
 		}
 
 		/**
@@ -326,7 +328,8 @@ public final class AvailBuilder
 		 * module names} to {@linkplain AtomicInteger atomic counters} (of their
 		 * unbuilt predecessors).
 		 */
-		private Map<ResolvedModuleName, AtomicInteger> unbuiltPredecessors;
+		private final Map<ResolvedModuleName, AtomicInteger>
+			unbuiltPredecessors;
 
 		/**
 		 * Traverse {@linkplain #predecessors} to find the {@linkplain
@@ -342,9 +345,7 @@ public final class AvailBuilder
 		 */
 		List<ResolvedModuleName> originModules ()
 		{
-			unbuiltPredecessors =
-				new HashMap<ResolvedModuleName, AtomicInteger>(
-					predecessors.size());
+			assert unbuiltPredecessors.size() == 0;
 			final List<ResolvedModuleName> originModules =
 				new ArrayList<ResolvedModuleName>(3);
 			for (final Map.Entry<ResolvedModuleName, Set<ResolvedModuleName>> e
@@ -540,10 +541,10 @@ public final class AvailBuilder
 			}
 
 			// Run each zero-argument block, one after another.
-			final Mutable<Continuation1<AvailObject>> runNext =
-				new Mutable<Continuation1<AvailObject>>();
-			final Mutable<Continuation1<Throwable>> fail =
-				new Mutable<Continuation1<Throwable>>();
+			final MutableOrNull<Continuation1<AvailObject>> runNext =
+				new MutableOrNull<Continuation1<AvailObject>>();
+			final MutableOrNull<Continuation1<Throwable>> fail =
+				new MutableOrNull<Continuation1<Throwable>>();
 			runNext.value = new Continuation1<AvailObject>()
 			{
 				@Override
@@ -557,16 +558,17 @@ public final class AvailBuilder
 					catch (
 						final MalformedSerialStreamException|RuntimeException e)
 					{
-						fail.value.value(e);
+						fail.value().value(e);
 						return;
 					}
 					if (function != null)
 					{
 						final AvailObject fiber =
 							FiberDescriptor.newLoaderFiber(loader);
-						fiber.resultContinuation(runNext.value);
-						fiber.failureContinuation(fail.value);
+						fiber.resultContinuation(runNext.value());
+						fiber.failureContinuation(fail.value());
 						Interpreter.runOutermostFunction(
+							runtime,
 							fiber,
 							function,
 							Collections.<AvailObject>emptyList());
@@ -596,7 +598,7 @@ public final class AvailBuilder
 				}
 			};
 			// The argument is ignored, so it doesn't matter what gets passed.
-			runNext.value.value(NilDescriptor.nil());
+			runNext.value().value(NilDescriptor.nil());
 		}
 
 		/**
@@ -673,7 +675,8 @@ public final class AvailBuilder
 									globalTracker.value(
 										moduleName,
 										bytesCompiled.addAndGet(
-											localPosition - lastPosition.value),
+											localPosition
+												- lastPosition.value),
 										globalCodeSize());
 									lastPosition.value = localPosition;
 								}
@@ -971,15 +974,16 @@ public final class AvailBuilder
 		// Wait until the parallel recursive trace completes.
 		synchronized (state)
 		{
+			@Nullable Throwable term;
 			while (
-				state.terminator == null
+				(term = state.terminator) == null
 				&& state.traceRequests != state.traceCompletions)
 			{
 				state.wait();
 			}
-			if (state.terminator != null)
+			if (term != null)
 			{
-				throw state.terminator;
+				throw term;
 			}
 		}
 		for (final ResolvedModuleName origin : state.originModules())
@@ -989,15 +993,16 @@ public final class AvailBuilder
 		// Wait until the parallel load completes.
 		synchronized (state)
 		{
+			@Nullable Throwable term;
 			while (
-				state.terminator == null
+				(term = state.terminator) == null
 				&& state.loadCompletions != state.completionSet.size())
 			{
 				state.wait();
 			}
-			if (state.terminator != null)
+			if (term != null)
 			{
-				throw state.terminator;
+				throw term;
 			}
 		}
 	}
@@ -1052,7 +1057,7 @@ public final class AvailBuilder
 			UnresolvedDependencyException,
 			InterruptedException
 	{
-		final Mutable<Throwable> killer = new Mutable<Throwable>();
+		final MutableOrNull<Throwable> killer = new MutableOrNull<Throwable>();
 		final Semaphore semaphore = new Semaphore(0);
 		runtime.execute(new AvailTask(
 			FiberDescriptor.loaderPriority,
@@ -1077,35 +1082,36 @@ public final class AvailBuilder
 			}));
 		// Wait for the builder to finish.
 		semaphore.acquire();
-		if (killer.value != null)
+		final Throwable killer_v = killer.value;
+		if (killer_v != null)
 		{
-			if (killer.value instanceof AvailCompilerException)
+			if (killer_v instanceof AvailCompilerException)
 			{
-				throw (AvailCompilerException) killer.value;
+				throw (AvailCompilerException) killer_v;
 			}
-			else if (killer.value instanceof FiberTerminationException)
+			else if (killer_v instanceof FiberTerminationException)
 			{
-				throw (FiberTerminationException) killer.value;
+				throw (FiberTerminationException) killer_v;
 			}
-			else if (killer.value instanceof RecursiveDependencyException)
+			else if (killer_v instanceof RecursiveDependencyException)
 			{
-				throw (RecursiveDependencyException) killer.value;
+				throw (RecursiveDependencyException) killer_v;
 			}
-			else if (killer.value instanceof UnresolvedDependencyException)
+			else if (killer_v instanceof UnresolvedDependencyException)
 			{
-				throw (UnresolvedDependencyException) killer.value;
+				throw (UnresolvedDependencyException) killer_v;
 			}
-			else if (killer.value instanceof Error)
+			else if (killer_v instanceof Error)
 			{
-				throw (Error) killer.value;
+				throw (Error) killer_v;
 			}
-			else if (killer.value instanceof RuntimeException)
+			else if (killer_v instanceof RuntimeException)
 			{
-				throw (RuntimeException) killer.value;
+				throw (RuntimeException) killer_v;
 			}
 			else
 			{
-				throw new RuntimeException(killer.value);
+				throw new RuntimeException(killer_v);
 			}
 		}
 	}

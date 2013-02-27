@@ -34,12 +34,14 @@ package com.avail.descriptor;
 
 import static com.avail.descriptor.IndirectionDescriptor.ObjectSlots.*;
 import java.math.BigInteger;
+import java.nio.ByteBuffer;
 import java.util.*;
 import com.avail.annotations.*;
-import com.avail.compiler.AvailCodeGenerator;
+import com.avail.compiler.*;
 import com.avail.descriptor.AbstractNumberDescriptor.Order;
 import com.avail.descriptor.AbstractNumberDescriptor.Sign;
 import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
+import com.avail.descriptor.FiberDescriptor.GeneralFlag;
 import com.avail.descriptor.FiberDescriptor.SynchronizationFlag;
 import com.avail.descriptor.MapDescriptor.MapIterable;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
@@ -49,7 +51,6 @@ import com.avail.descriptor.SetDescriptor.SetIterator;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.exceptions.SignatureException;
 import com.avail.interpreter.AvailLoader;
-import com.avail.interpreter.Interpreter;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.*;
 import com.avail.visitor.AvailSubobjectVisitor;
@@ -1098,9 +1099,9 @@ extends AbstractDescriptor
 	@Override
 	void o_SetInterruptRequestFlag (
 		final AvailObject object,
-		final InterruptRequestFlag value)
+		final InterruptRequestFlag flag)
 	{
-		o_Traversed(object).setInterruptRequestFlag(value);
+		o_Traversed(object).setInterruptRequestFlag(flag);
 	}
 
 	@Override
@@ -2109,19 +2110,6 @@ extends AbstractDescriptor
 		final int value)
 	{
 		o_Traversed(object).untranslatedDataAtPut(index, value);
-	}
-
-	@Override
-	A_Type o_ValidateArgumentTypesInterpreterIfFail (
-		final AvailObject object,
-		final List<A_Type> argTypes,
-		final Interpreter anAvailInterpreter,
-		final Continuation1<Generator<String>> failBlock)
-	{
-		return o_Traversed(object).validateArgumentTypesInterpreterIfFail(
-			argTypes,
-			anAvailInterpreter,
-			failBlock);
 	}
 
 	@Override
@@ -3143,11 +3131,11 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	AvailObject o_Generate (
+	A_BasicObject o_GenerateInModule (
 		final AvailObject object,
-		final AvailCodeGenerator codeGenerator)
+		final A_BasicObject module)
 	{
-		return o_Traversed(object).generate(codeGenerator);
+		return o_Traversed(object).generateInModule(module);
 	}
 
 	@Override
@@ -4397,9 +4385,9 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	AvailObject o_FetchAndAddValue (
+	A_Number o_FetchAndAddValue (
 		final AvailObject object,
-		final AvailObject addend)
+		final A_Number addend)
 	{
 		return o_Traversed(object).fetchAndAddValue(addend);
 	}
@@ -4495,7 +4483,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_Joinee (final AvailObject object, final AvailObject joinee)
+	void o_Joinee (final AvailObject object, final A_BasicObject joinee)
 	{
 		o_Traversed(object).joinee(joinee);
 	}
@@ -4522,5 +4510,72 @@ extends AbstractDescriptor
 	void o_JoiningFibers (final AvailObject object, final A_Set joiners)
 	{
 		o_Traversed(object).joiningFibers(joiners);
+	}
+
+	@Override
+	A_Map o_HeritableFiberGlobals (final AvailObject object)
+	{
+		return o_Traversed(object).heritableFiberGlobals();
+	}
+
+	@Override
+	void o_HeritableFiberGlobals (
+		final AvailObject object,
+		final A_Map globals)
+	{
+		o_Traversed(object).heritableFiberGlobals(globals);
+	}
+
+	@Override
+	boolean o_GeneralFlag (final AvailObject object, final GeneralFlag flag)
+	{
+		return o_Traversed(object).generalFlag(flag);
+	}
+
+	@Override
+	void o_SetGeneralFlag (final AvailObject object, final GeneralFlag flag)
+	{
+		o_Traversed(object).setGeneralFlag(flag);
+	}
+
+	@Override
+	void o_ClearGeneralFlag (final AvailObject object, final GeneralFlag flag)
+	{
+		o_Traversed(object).clearGeneralFlag(flag);
+	}
+
+	@Override
+	ByteBuffer o_ByteBuffer (final AvailObject object)
+	{
+		return o_Traversed(object).byteBuffer();
+	}
+
+	@Override
+	boolean o_EqualsByteBufferTuple (
+		final AvailObject object,
+		final A_Tuple aByteBufferTuple)
+	{
+		return o_Traversed(object).equalsByteBufferTuple(aByteBufferTuple);
+	}
+
+	@Override
+	boolean o_CompareFromToWithByteBufferTupleStartingAt (
+		final AvailObject object,
+		final int startIndex1,
+		final int endIndex1,
+		final A_Tuple aByteBufferTuple,
+		final int startIndex2)
+	{
+		return o_Traversed(object).compareFromToWithByteBufferTupleStartingAt(
+			startIndex1,
+			endIndex1,
+			aByteBufferTuple,
+			startIndex2);
+	}
+
+	@Override
+	boolean o_IsByteBufferTuple (final AvailObject object)
+	{
+		return o_Traversed(object).isByteBufferTuple();
 	}
 }

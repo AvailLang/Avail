@@ -132,6 +132,33 @@ extends Descriptor
 	}
 
 	/**
+	 * The general flags. Bits [8..31] of a {@linkplain FiberDescriptor fiber}'s
+	 * flags slot are reserved for general flags.
+	 */
+	public static enum GeneralFlag
+	{
+		/**
+		 * Was the fiber started to apply a semantic restriction?
+		 */
+		APPLYING_SEMANTIC_RESTRICTION (0);
+
+		/** The {@linkplain BitField bit field}. */
+		final BitField bitField;
+
+		/**
+		 * Construct a new {@link GeneralFlag}.
+		 *
+		 * @param index
+		 *        The bit index into the sub-slot containing the synchronization
+		 *        flags.
+		 */
+		private GeneralFlag (final int index)
+		{
+			this.bitField = bitField(FLAGS, index + 8, 1);
+		}
+	}
+
+	/**
 	 * The layout of integer slots for my instances.
 	 */
 	public enum IntegerSlots
@@ -183,12 +210,19 @@ extends Descriptor
 		NAME,
 
 		/**
-		 * A map from {@linkplain AtomDescriptor atoms} to values.  Each fiber
+		 * A map from {@linkplain AtomDescriptor atoms} to values. Each fiber
 		 * has its own unique such map, which allows processes to record
 		 * fiber-specific values. The atom identities ensure modularity and
 		 * non-interference of these keys.
 		 */
 		FIBER_GLOBALS,
+
+		/**
+		 * A map from {@linkplain AtomDescriptor atoms} to heritable values.
+		 * When a fiber forks a new fiber, the new fiber inherits this map. The
+		 * atom identities ensure modularity and non-interference of these keys.
+		 */
+		HERITABLE_FIBER_GLOBALS,
 
 		/**
 		 * The result of running this {@linkplain FiberDescriptor fiber} to
@@ -229,14 +263,18 @@ extends Descriptor
 
 		/**
 		 * A {@linkplain SetDescriptor set} of {@linkplain FiberDescriptor
-		 * fibers} waiting to join the current fiber.
+		 * fibers} waiting to join the current fiber. Access to this field is
+		 * synchronized by the {@linkplain Interpreter#joinLock global join
+		 * lock}.
 		 */
 		JOINING_FIBERS,
 
 		/**
 		 * The {@linkplain FiberDescriptor fiber} that this fiber is attempting
 		 * to join, or {@linkplain NilDescriptor nil} if this fiber is not in
-		 * the {@linkplain ExecutionState#JOINING state}.
+		 * the {@linkplain ExecutionState#JOINING state}. Access to this field
+		 * is synchronized by the {@linkplain Interpreter#joinLock global join
+		 * lock}.
 		 */
 		JOINEE,
 
@@ -267,9 +305,9 @@ extends Descriptor
 			}
 
 			@Override
-			protected void init ()
+			protected Set<ExecutionState> privateSuccessors ()
 			{
-				successors = EnumSet.<ExecutionState>of(RUNNING);
+				return EnumSet.of(RUNNING);
 			}
 		},
 
@@ -279,9 +317,9 @@ extends Descriptor
 		RUNNING
 		{
 			@Override
-			protected void init ()
+			protected Set<ExecutionState> privateSuccessors ()
 			{
-				successors = EnumSet.<ExecutionState>of(
+				return EnumSet.of(
 					SUSPENDED,
 					INTERRUPTED,
 					PARKED,
@@ -303,9 +341,9 @@ extends Descriptor
 			}
 
 			@Override
-			protected void init ()
+			protected Set<ExecutionState> privateSuccessors ()
 			{
-				successors = EnumSet.<ExecutionState>of(
+				return EnumSet.of(
 					RUNNING,
 					ABORTED,
 					ASLEEP);
@@ -324,9 +362,9 @@ extends Descriptor
 			}
 
 			@Override
-			protected void init ()
+			protected Set<ExecutionState> privateSuccessors ()
 			{
-				successors = EnumSet.<ExecutionState>of(RUNNING);
+				return EnumSet.of(RUNNING);
 			}
 		},
 
@@ -348,9 +386,9 @@ extends Descriptor
 			}
 
 			@Override
-			protected void init ()
+			protected Set<ExecutionState> privateSuccessors ()
 			{
-				successors = EnumSet.<ExecutionState>of(SUSPENDED);
+				return EnumSet.of(SUSPENDED);
 			}
 		},
 
@@ -372,9 +410,9 @@ extends Descriptor
 			}
 
 			@Override
-			protected void init ()
+			protected Set<ExecutionState> privateSuccessors ()
 			{
-				successors = EnumSet.<ExecutionState>of(SUSPENDED);
+				return EnumSet.of(SUSPENDED);
 			}
 		},
 
@@ -396,9 +434,9 @@ extends Descriptor
 			}
 
 			@Override
-			protected void init ()
+			protected Set<ExecutionState> privateSuccessors ()
 			{
-				successors = EnumSet.<ExecutionState>of(SUSPENDED);
+				return EnumSet.of(SUSPENDED);
 			}
 		},
 
@@ -411,6 +449,12 @@ extends Descriptor
 			public boolean indicatesTermination ()
 			{
 				return true;
+			}
+
+			@Override
+			protected Set<ExecutionState> privateSuccessors ()
+			{
+				return EnumSet.of(ABORTED);
 			}
 		},
 
@@ -427,23 +471,34 @@ extends Descriptor
 		};
 
 		/** The valid successor {@linkplain ExecutionState states}. */
-		protected Set<ExecutionState> successors;
+		protected @Nullable Set<ExecutionState> successors = null;
 
-		// Initialize all of the successors.
-		static
+		/**
+		 * Determine if this is a valid successor state.
+		 *
+		 * @param newState The proposed successor state.
+		 * @return Whether the transition is permitted.
+		 */
+		boolean mayTransitionTo (final ExecutionState newState)
 		{
-			for (final ExecutionState state : values())
+			Set<ExecutionState> allowed = successors;
+			if (allowed == null)
 			{
-				state.init();
+				allowed = privateSuccessors();
+				successors = allowed;
 			}
+			return allowed.contains(newState);
 		}
 
 		/**
-		 * Set up the successor {@linkplain ExecutionState states}.
+		 * Answer my legal successor {@linkplain ExecutionState states}.  None
+		 * by default.
+		 *
+		 * @return A {@link Set} of {@link ExecutionState}s.
 		 */
-		protected void init ()
+		protected Set<ExecutionState> privateSuccessors ()
 		{
-			// Do nothing.
+			return Collections.emptySet();
 		}
 
 		/**
@@ -506,7 +561,7 @@ extends Descriptor
 			{
 				final ExecutionState current = ExecutionState.values()
 					[object.mutableSlot(EXECUTION_STATE)];
-				assert current.successors.contains(value);
+				assert current.mayTransitionTo(value);
 				object.setSlot(EXECUTION_STATE, value.ordinal());
 			}
 		}
@@ -514,7 +569,7 @@ extends Descriptor
 		{
 			final ExecutionState current = ExecutionState.values()
 				[object.mutableSlot(EXECUTION_STATE)];
-			assert current.successors.contains(value);
+			assert current.mayTransitionTo(value);
 			object.setSlot(EXECUTION_STATE, value.ordinal());
 		}
 	}
@@ -605,13 +660,74 @@ extends Descriptor
 	{
 		final int value;
 		final int newBit = newValue ? 1 : 0;
-		// Always synchronized, for safety.
-		synchronized (object)
+		if (isShared())
+		{
+			synchronized (object)
+			{
+				value = object.slot(flag.bitField);
+				object.setSlot(flag.bitField, newBit);
+			}
+		}
+		else
 		{
 			value = object.slot(flag.bitField);
 			object.setSlot(flag.bitField, newBit);
 		}
 		return value == 1;
+	}
+
+	@Override @AvailMethod
+	boolean o_GeneralFlag (final AvailObject object, final GeneralFlag flag)
+	{
+		final int value;
+		if (isShared())
+		{
+			synchronized (object)
+			{
+				value = object.slot(flag.bitField);
+			}
+		}
+		else
+		{
+			value = object.slot(flag.bitField);
+		}
+		return value == 1;
+	}
+
+	@Override @AvailMethod
+	void o_SetGeneralFlag (
+		final AvailObject object,
+		final GeneralFlag flag)
+	{
+		if (isShared())
+		{
+			synchronized (object)
+			{
+				object.setSlot(flag.bitField, 1);
+			}
+		}
+		else
+		{
+			object.setSlot(flag.bitField, 1);
+		}
+	}
+
+	@Override @AvailMethod
+	void o_ClearGeneralFlag (
+		final AvailObject object,
+		final GeneralFlag flag)
+	{
+		if (isShared())
+		{
+			synchronized (object)
+			{
+				object.setSlot(flag.bitField, 0);
+			}
+		}
+		else
+		{
+			object.setSlot(flag.bitField, 0);
+		}
 	}
 
 	@Override @AvailMethod
@@ -645,9 +761,9 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	void o_FiberGlobals (final AvailObject object, final A_Map value)
+	void o_FiberGlobals (final AvailObject object, final A_Map globals)
 	{
-		object.setMutableSlot(FIBER_GLOBALS, value);
+		object.setMutableSlot(FIBER_GLOBALS, globals);
 	}
 
 	@Override @AvailMethod
@@ -660,6 +776,20 @@ extends Descriptor
 	void o_FiberResult (final AvailObject object, final A_BasicObject result)
 	{
 		object.setMutableSlot(RESULT, result);
+	}
+
+	@Override @AvailMethod
+	A_Map o_HeritableFiberGlobals (final AvailObject object)
+	{
+		return object.mutableSlot(HERITABLE_FIBER_GLOBALS);
+	}
+
+	@Override @AvailMethod
+	void o_HeritableFiberGlobals (
+		final AvailObject object,
+		final A_Map globals)
+	{
+		object.setMutableSlot(HERITABLE_FIBER_GLOBALS, globals);
 	}
 
 	@Override @AvailMethod
@@ -790,7 +920,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	void o_Joinee (final AvailObject object, final AvailObject joinee)
+	void o_Joinee (final AvailObject object, final A_BasicObject joinee)
 	{
 		object.setMutableSlot(JOINEE, joinee);
 	}
@@ -951,6 +1081,7 @@ extends Descriptor
 		fiber.setSlot(FLAGS, 0);
 		fiber.setSlot(BREAKPOINT_BLOCK, NilDescriptor.nil());
 		fiber.setSlot(FIBER_GLOBALS, MapDescriptor.empty());
+		fiber.setSlot(HERITABLE_FIBER_GLOBALS, MapDescriptor.empty());
 		fiber.setSlot(RESULT, NilDescriptor.nil());
 		fiber.setSlot(LOADER, NilDescriptor.nil());
 		fiber.setSlot(RESULT_CONTINUATION, NilDescriptor.nil());
@@ -988,6 +1119,7 @@ extends Descriptor
 		fiber.setSlot(FLAGS, 0);
 		fiber.setSlot(BREAKPOINT_BLOCK, NilDescriptor.nil());
 		fiber.setSlot(FIBER_GLOBALS, MapDescriptor.empty());
+		fiber.setSlot(HERITABLE_FIBER_GLOBALS, MapDescriptor.empty());
 		fiber.setSlot(RESULT, NilDescriptor.nil());
 		fiber.setSlot(LOADER, RawPojoDescriptor.identityWrap(loader));
 		fiber.setSlot(RESULT_CONTINUATION, NilDescriptor.nil());
@@ -1006,6 +1138,6 @@ extends Descriptor
 	 */
 	public static A_BasicObject current ()
 	{
-		return ((AvailThread) Thread.currentThread()).interpreter.fiber;
+		return ((AvailThread) Thread.currentThread()).interpreter.fiber();
 	}
 }

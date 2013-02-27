@@ -37,6 +37,7 @@ import static com.avail.descriptor.FiberDescriptor.InterruptRequestFlag.TERMINAT
 import static com.avail.descriptor.FiberDescriptor.SynchronizationFlag.*;
 import static com.avail.descriptor.FiberDescriptor.ExecutionState.SUSPENDED;
 import java.util.*;
+import com.avail.AvailRuntime;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 import com.avail.utility.Continuation0;
@@ -62,7 +63,7 @@ extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
-		final AvailObject fiber = args.get(0);
+		final A_BasicObject fiber = args.get(0);
 		// This sucks, but is necessary. Just in case the fiber is joining, we
 		// must acquire the join lock before attempting to acquire the fiber's
 		// own lock.
@@ -98,6 +99,7 @@ extends Primitive
 							{
 								fiber.executionState(SUSPENDED);
 								Interpreter.resumeFromPrimitive(
+									AvailRuntime.current(),
 									fiber,
 									Result.SUCCESS,
 									NilDescriptor.nil());
@@ -110,7 +112,7 @@ extends Primitive
 							// If the fiber is trying to join another fiber,
 							// then remove the fiber from its joinee's set of
 							// joiners. Then resume it.
-							final AvailObject joinee = fiber.joinee();
+							final A_BasicObject joinee = fiber.joinee();
 							joinee.joiningFibers(
 								joinee.joiningFibers()
 									.setWithoutElementCanDestroy(
@@ -118,6 +120,7 @@ extends Primitive
 										false));
 							fiber.executionState(SUSPENDED);
 							Interpreter.resumeFromPrimitive(
+								AvailRuntime.current(),
 								fiber,
 								Result.SUCCESS,
 								NilDescriptor.nil());
@@ -126,13 +129,17 @@ extends Primitive
 							// Set the interrupt request flag.
 							fiber.setInterruptRequestFlag(
 								TERMINATION_REQUESTED);
-							// Try to cancel the task. This is best effort only.
+							// Try to cancel the task (if any). This is best
+							// effort only.
 							final TimerTask task = fiber.wakeupTask();
-							assert task != null;
-							task.cancel();
-							fiber.wakeupTask(null);
+							if (task != null)
+							{
+								task.cancel();
+								fiber.wakeupTask(null);
+							}
 							fiber.executionState(SUSPENDED);
 							Interpreter.resumeFromPrimitive(
+								AvailRuntime.current(),
 								fiber,
 								Result.SUCCESS,
 								NilDescriptor.nil());

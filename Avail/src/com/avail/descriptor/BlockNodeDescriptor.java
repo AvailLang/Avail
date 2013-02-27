@@ -200,9 +200,8 @@ extends ParseNodeDescriptor
 		final AvailObject object,
 		final AvailCodeGenerator codeGenerator)
 	{
-		final AvailCodeGenerator newGenerator = new AvailCodeGenerator(
-			codeGenerator.module());
-		final AvailObject compiledBlock = object.generate(newGenerator);
+		final A_BasicObject compiledBlock =
+			object.generateInModule(codeGenerator.module());
 		if (object.neededVariables().tupleSize() == 0)
 		{
 			final A_Function function = FunctionDescriptor.create(
@@ -376,60 +375,29 @@ extends ParseNodeDescriptor
 	 *
 	 * @param object
 	 *            The {@linkplain BlockNodeDescriptor block node}.
-	 * @param codeGenerator
-	 *            A {@linkplain AvailCodeGenerator code generator}
+	 * @param module
+	 *            The {@linkplain ModuleDescriptor module} which is intended to
+	 *            hold the resulting code.
 	 * @return
 	 *            An {@link AvailObject} of type {@linkplain FunctionDescriptor
 	 *            function}.
 	 */
 	@Override @AvailMethod
-	AvailObject o_Generate (
+	A_BasicObject o_GenerateInModule (
 		final AvailObject object,
-		final AvailCodeGenerator codeGenerator)
+		final A_BasicObject module)
 	{
-		codeGenerator.startBlock(
+		return AvailCodeGenerator.generateFunction(
+			module,
 			object.argumentsTuple(),
-			locals(object),
+			object.primitive(),
+			BlockNodeDescriptor.locals(object),
 			labels(object),
 			object.neededVariables(),
+			object.statementsTuple(),
 			object.resultType(),
 			object.declaredExceptions(),
 			object.slot(STARTING_LINE_NUMBER));
-		codeGenerator.stackShouldBeEmpty();
-		codeGenerator.primitive(object.primitive());
-		codeGenerator.stackShouldBeEmpty();
-		final A_Tuple statementsTuple = object.statementsTuple();
-		final int statementsCount = statementsTuple.tupleSize();
-		if (statementsCount == 0)
-		{
-			codeGenerator.emitPushLiteral(NilDescriptor.nil());
-		}
-		else
-		{
-			for (int index = 1; index < statementsCount; index++)
-			{
-				statementsTuple.tupleAt(index).emitEffectOn(codeGenerator);
-				codeGenerator.stackShouldBeEmpty();
-			}
-			final A_BasicObject lastStatement =
-				statementsTuple.tupleAt(statementsCount);
-			final A_BasicObject lastStatementType = lastStatement.kind();
-			if (lastStatementType.parseNodeKindIsUnder(LABEL_NODE)
-				|| (lastStatementType.parseNodeKindIsUnder(ASSIGNMENT_NODE)
-					&& object.resultType().equals(TOP.o())))
-			{
-				// Either the block 1) ends with the label declaration or
-				// 2) is top-valued and ends with an assignment. Push the top
-				// object as the return value.
-				lastStatement.emitEffectOn(codeGenerator);
-				codeGenerator.emitPushLiteral(NilDescriptor.nil());
-			}
-			else
-			{
-				lastStatement.emitValueOn(codeGenerator);
-			}
-		}
-		return codeGenerator.endBlock();
 	}
 
 	/**

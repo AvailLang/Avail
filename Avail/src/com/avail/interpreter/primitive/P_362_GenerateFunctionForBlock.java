@@ -37,7 +37,6 @@ import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
-import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 
@@ -82,12 +81,10 @@ extends Primitive
 			return interpreter.primitiveFailure(
 				E_BLOCK_MUST_NOT_CONTAIN_OUTERS);
 		}
-		final AvailObject compiledCode;
+		final A_BasicObject compiledCode;
 		try
 		{
-			final AvailCodeGenerator codeGenerator = new AvailCodeGenerator(
-				ModuleDescriptor.current());
-			compiledCode = block.generate(codeGenerator);
+			compiledCode = block.generateInModule(ModuleDescriptor.current());
 		}
 		catch (final Exception e)
 		{

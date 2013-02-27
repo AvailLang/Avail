@@ -434,9 +434,9 @@ extends PojoTypeDescriptor
 			for (final MapDescriptor.Entry entry
 				: object.slot(JAVA_ANCESTORS).mapIterable())
 			{
-				final Class<?> ancestor = (Class<?>) entry.key.javaObject();
+				final Class<?> ancestor = (Class<?>) entry.key().javaObject();
 				final TypeVariable<?>[] vars = ancestor.getTypeParameters();
-				final A_Tuple typeArgs = entry.value;
+				final A_Tuple typeArgs = entry.value();
 				assert vars.length == typeArgs.tupleSize();
 				for (int i = 0; i < vars.length; i++)
 				{

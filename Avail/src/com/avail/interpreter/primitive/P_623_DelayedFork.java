@@ -38,7 +38,6 @@ import static com.avail.interpreter.Primitive.Flag.*;
 import static com.avail.descriptor.FiberDescriptor.InterruptRequestFlag.TERMINATION_REQUESTED;
 import java.util.*;
 import com.avail.AvailRuntime;
-import com.avail.annotations.*;
 import com.avail.descriptor.*;
 import com.avail.descriptor.FiberDescriptor.InterruptRequestFlag;
 import com.avail.interpreter.*;
@@ -61,7 +60,7 @@ extends Primitive
 	/**
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
-	public final @NotNull static Primitive instance =
+	public final static Primitive instance =
 		new P_623_DelayedFork().init(4, CanInline, HasSideEffect);
 
 	@Override
@@ -70,10 +69,10 @@ extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 4;
-		final AvailObject sleepMillis = args.get(0);
-		final AvailObject function = args.get(1);
-		final AvailObject argTuple = args.get(2);
-		final AvailObject priority = args.get(3);
+		final A_Number sleepMillis = args.get(0);
+		final A_Function function = args.get(1);
+		final A_Tuple argTuple = args.get(2);
+		final A_Number priority = args.get(3);
 		// Ensure that the function is callable with the specified arguments.
 		final int numArgs = argTuple.tupleSize();
 		if (function.code().numArgs() != numArgs)
@@ -97,7 +96,7 @@ extends Primitive
 		// Now that we know that the call will really happen, share the function
 		// and the arguments.
 		function.makeShared();
-		for (final AvailObject arg : callArgs)
+		for (final A_BasicObject arg : callArgs)
 		{
 			arg.makeShared();
 		}
@@ -112,21 +111,25 @@ extends Primitive
 		// into this field, and none of them should fail because of a Java
 		// exception.
 		newFiber.failureContinuation(current.failureContinuation());
+		// Share and inherit any heritable variables.
+		newFiber.heritableFiberGlobals(
+			current.heritableFiberGlobals().makeShared());
 		// Share the fiber, since it will be visible in the caller.
 		newFiber.makeShared();
 		// If the requested sleep time is 0 milliseconds, then fork immediately.
 		if (sleepMillis.equals(IntegerDescriptor.zero()))
 		{
 			Interpreter.runOutermostFunction(
+				AvailRuntime.current(),
 				newFiber,
 				function,
 				callArgs);
 		}
 		// Otherwise, if the delay time isn't colossal, then schedule the fiber
 		// to start later.
-		else if (sleepMillis.lessOrEqual(IntegerDescriptor.fromLong(
-			Long.MAX_VALUE)))
+		else if (sleepMillis.isLong())
 		{
+			final AvailRuntime runtime = AvailRuntime.current();
 			AvailRuntime.current().timer.schedule(
 				new TimerTask()
 				{
@@ -139,6 +142,7 @@ extends Primitive
 							TERMINATION_REQUESTED))
 						{
 							Interpreter.runOutermostFunction(
+								runtime,
 								newFiber,
 								function,
 								callArgs);

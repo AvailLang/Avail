@@ -37,7 +37,6 @@ import static com.avail.interpreter.Primitive.Flag.*;
 import static com.avail.descriptor.FiberDescriptor.InterruptRequestFlag.TERMINATION_REQUESTED;
 import static com.avail.descriptor.FiberDescriptor.SynchronizationFlag.PERMIT_UNAVAILABLE;
 import java.util.List;
-import com.avail.annotations.NotNull;
 import com.avail.descriptor.*;
 import com.avail.descriptor.FiberDescriptor.*;
 import com.avail.interpreter.*;
@@ -63,7 +62,7 @@ extends Primitive
 	/**
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
-	public final @NotNull static Primitive instance =
+	public final static Primitive instance =
 		new P_610_ParkCurrentFiber().init(0, CannotFail, Unknown);
 
 	@Override
@@ -73,7 +72,7 @@ extends Primitive
 	{
 		assert args.size() == 0;
 		final A_BasicObject fiber = FiberDescriptor.current();
-		final Mutable<Result> result = new Mutable<Result>();
+		final MutableOrNull<Result> result = new MutableOrNull<Result>();
 		fiber.lock(new Continuation0()
 		{
 			@Override
@@ -94,14 +93,14 @@ extends Primitive
 				}
 			}
 		});
-		return result.value;
+		return result.value();
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(),
+			TupleDescriptor.empty(),
 			TOP.o());
 	}
 }

@@ -36,7 +36,6 @@ import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
-import com.avail.annotations.NotNull;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 import com.avail.utility.*;
@@ -53,7 +52,7 @@ extends Primitive
 	/**
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
-	public final @NotNull static Primitive instance =
+	public final static Primitive instance =
 		new P_620_FiberResult().init(1, CanInline);
 
 	@Override
@@ -62,8 +61,8 @@ extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
-		final AvailObject fiber = args.get(0);
-		final Mutable<Result> result = new Mutable<Result>();
+		final A_BasicObject fiber = args.get(0);
+		final MutableOrNull<Result> result = new MutableOrNull<Result>();
 		fiber.lock(new Continuation0()
 		{
 			@Override
@@ -82,7 +81,7 @@ extends Primitive
 				}
 			}
 		});
-		return result.value;
+		return result.value();
 	}
 
 	@Override

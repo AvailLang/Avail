@@ -33,7 +33,7 @@
 package com.avail.interpreter.primitive;
 
 import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.exceptions.AvailErrorCode.*;
+import static com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER;
 import static com.avail.interpreter.Primitive.Flag.*;
 import static com.avail.interpreter.Primitive.Result.*;
 import java.util.List;
@@ -97,7 +97,11 @@ extends Primitive
 							state = FAILURE;
 							result = e.numericCode();
 						}
-						Interpreter.resumeFromPrimitive(fiber, state, result);
+						Interpreter.resumeFromPrimitive(
+							AvailRuntime.current(),
+							fiber,
+							state,
+							result);
 					}
 				}));
 		return FIBER_SUSPENDED;

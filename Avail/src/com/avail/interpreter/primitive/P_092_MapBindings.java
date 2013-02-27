@@ -62,7 +62,7 @@ public class P_092_MapBindings extends Primitive
 		int index = 0;
 		for (final MapDescriptor.Entry entry : map.mapIterable())
 		{
-			bindings[index++] = TupleDescriptor.from(entry.key, entry.value);
+			bindings[index++] = TupleDescriptor.from(entry.key(), entry.value());
 		}
 		return interpreter.primitiveSuccess(TupleDescriptor.from(bindings));
 	}

@@ -529,7 +529,7 @@ extends TypeDescriptor
 		final AvailObject object,
 		final @Nullable Class<?> ignoredClassHint)
 	{
-		if (object.isSubtypeOf(stringType))
+		if (object.isSubtypeOf(stringTupleType()))
 		{
 			return String.class;
 		}
@@ -548,7 +548,7 @@ extends TypeDescriptor
 	}
 
 	/** The most general tuple type. */
-	private static A_Type mostGeneralType;
+	private static @Nullable A_Type mostGeneralType;
 
 	/**
 	 * Answer the most general tuple type.  This is the supertype of all other
@@ -558,11 +558,13 @@ extends TypeDescriptor
 	 */
 	public static A_Type mostGeneralType ()
 	{
-		return mostGeneralType;
+		final A_Type type = mostGeneralType;
+		assert type != null;
+		return type;
 	}
 
 	/** The most general string type (i.e., tuples of characters). */
-	private static A_Type stringType;
+	private static @Nullable A_Type stringTupleType;
 
 	/**
 	 * Answer the most general string type.  This type subsumes strings of any
@@ -572,11 +574,13 @@ extends TypeDescriptor
 	 */
 	public static A_Type stringTupleType ()
 	{
-		return stringType;
+		final A_Type type = stringTupleType;
+		assert type != null;
+		return type;
 	}
 
 	/** The metatype for all tuple types. */
-	private static A_Type meta;
+	private static @Nullable A_Type meta;
 
 	/**
 	 * Answer the metatype for all tuple types.
@@ -585,7 +589,9 @@ extends TypeDescriptor
 	 */
 	public static A_Type meta ()
 	{
-		return meta;
+		final A_Type type = meta;
+		assert type != null;
+		return type;
 	}
 
 	/**
@@ -593,12 +599,9 @@ extends TypeDescriptor
 	 */
 	public static void createWellKnownObjects ()
 	{
-		mostGeneralType = zeroOrMoreOf(ANY.o());
-		mostGeneralType.makeShared();
-		stringType = zeroOrMoreOf(CHARACTER.o());
-		stringType.makeShared();
-		meta = InstanceMetaDescriptor.on(mostGeneralType);
-		meta.makeShared();
+		mostGeneralType = zeroOrMoreOf(ANY.o()).makeShared();
+		stringTupleType = zeroOrMoreOf(CHARACTER.o()).makeShared();
+		meta = InstanceMetaDescriptor.on(mostGeneralType()).makeShared();
 	}
 
 	/**
@@ -608,7 +611,7 @@ extends TypeDescriptor
 	public static void clearWellKnownObjects ()
 	{
 		mostGeneralType = null;
-		stringType = null;
+		stringTupleType = null;
 		meta = null;
 	}
 

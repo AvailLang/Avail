@@ -118,11 +118,12 @@ extends JFrame
 			}
 
 			// Clear the build input stream.
-			inputStream.clear();
+			inputStream().clear();
 
 			// Build the target module in a Swing worker thread.
-			buildTask = new BuildTask(selectedModule);
-			buildTask.execute();
+			final BuildTask task = new BuildTask(selectedModule);
+			buildTask = task;
+			task.execute();
 			cancelAction.setEnabled(true);
 			cleanAction.setEnabled(false);
 		}
@@ -268,7 +269,7 @@ extends JFrame
 		{
 			if (inputField.isFocusOwner())
 			{
-				inputStream.update();
+				inputStream().update();
 			}
 		}
 
@@ -338,22 +339,33 @@ extends JFrame
 		 * The fully-qualified name of the target {@linkplain ModuleDescriptor
 		 * module}.
 		 */
-		private final String targetModuleName;
+		private final @Nullable String targetModuleName;
+
+		/**
+		 * @return The name of the target module.
+		 */
+		private String targetModuleName ()
+		{
+			final String name = targetModuleName;
+			assert name != null;
+			return name;
+		}
 
 		/**
 		 * The {@linkplain Thread thread} running the {@linkplain BuildTask
 		 * build task}.
 		 */
-		@InnerAccess Thread runner;
+		@InnerAccess @Nullable Thread runner;
 
 		/**
 		 * Cancel the {@linkplain BuildTask build task}.
 		 */
 		public void cancel ()
 		{
-			if (runner != null)
+			final Thread thread = runner;
+			if (thread != null)
 			{
-				runner.interrupt();
+				thread.interrupt();
 			}
 		}
 
@@ -364,7 +376,7 @@ extends JFrame
 		private long stopTimeMillis;
 
 		/** The {@linkplain Throwable exception} that terminated the build. */
-		private Throwable terminator;
+		private @Nullable Throwable terminator;
 
 		@Override
 		protected @Nullable Void doInBackground () throws Exception
@@ -380,7 +392,7 @@ extends JFrame
 					runtime,
 					repository);
 				builder.build(
-					new ModuleName(targetModuleName),
+					new ModuleName(targetModuleName()),
 					new Continuation4<ModuleName, Long, Long, Long>()
 					{
 						@Override
@@ -852,10 +864,22 @@ extends JFrame
 	@InnerAccess final ModuleNameResolver resolver;
 
 	/** The current {@linkplain BuildTask build task}. */
-	@InnerAccess volatile BuildTask buildTask;
+	@InnerAccess volatile @Nullable BuildTask buildTask;
 
 	/** The {@linkplain BuildInputStream standard input stream}. */
-	@InnerAccess BuildInputStream inputStream;
+	private @Nullable BuildInputStream inputStream;
+
+	/**
+	 * Answer the {@linkplain BuildInputStream standard input stream}.
+	 *
+	 * @return The input stream.
+	 */
+	@InnerAccess BuildInputStream inputStream ()
+	{
+		final BuildInputStream stream = inputStream;
+		assert stream != null;
+		return stream;
+	}
 
 	/*
 	 * UI components.

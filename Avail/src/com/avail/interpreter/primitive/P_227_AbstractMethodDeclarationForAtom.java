@@ -32,13 +32,16 @@
 
 package com.avail.interpreter.primitive;
 
+import static com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
+import static com.avail.interpreter.Primitive.Result.*;
 import java.util.List;
+import com.avail.*;
 import com.avail.descriptor.*;
 import com.avail.exceptions.SignatureException;
 import com.avail.interpreter.*;
+import com.avail.utility.Continuation0;
 
 /**
  * <strong>Primitive 227</strong>: Declare method as {@linkplain
@@ -62,24 +65,46 @@ extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 2;
-		final AvailObject atom = args.get(0);
-		final AvailObject blockSignature = args.get(1);
-
-		final AvailLoader loader = FiberDescriptor.current().availLoader();
-		if (loader == null)
+		final A_Atom atom = args.get(0);
+		final A_Type blockSignature = args.get(1);
+		final A_BasicObject fiber = FiberDescriptor.current();
+		final AvailLoader loader = fiber.availLoader();
+		if (loader == null || loader.module().equalsNil())
 		{
 			return interpreter.primitiveFailure(E_LOADING_IS_OVER);
 		}
-		try
-		{
-			loader.addAbstractSignature(atom, blockSignature);
-			interpreter.fixupForPotentiallyInvalidCurrentChunk();
-		}
-		catch (final SignatureException e)
-		{
-			return interpreter.primitiveFailure(e);
-		}
-		return interpreter.primitiveSuccess(NilDescriptor.nil());
+		interpreter.primitiveSuspend();
+		AvailRuntime.current().whenLevelOneSafeDo(
+			AvailTask.forUnboundFiber(
+				fiber,
+				new Continuation0()
+				{
+					@Override
+					public void value ()
+					{
+						Result state;
+						A_BasicObject result;
+						try
+						{
+							loader.addAbstractSignature(
+								atom,
+								blockSignature);
+							state = SUCCESS;
+							result = NilDescriptor.nil();
+						}
+						catch (final SignatureException e)
+						{
+							state = FAILURE;
+							result = e.numericCode();
+						}
+						Interpreter.resumeFromPrimitive(
+							AvailRuntime.current(),
+							fiber,
+							state,
+							result);
+					}
+				}));
+		return FIBER_SUSPENDED;
 	}
 
 	@Override
@@ -92,12 +117,12 @@ extends Primitive
 			TOP.o());
 	}
 
-	@Override
-	protected A_Type privateFailureVariableType ()
-	{
-		return AbstractEnumerationTypeDescriptor.withInstances(
-			TupleDescriptor.from(
-				E_LOADING_IS_OVER.numericCode()
-			).asSet());
-	}
+//	@Override
+//	protected A_Type privateFailureVariableType ()
+//	{
+//		return AbstractEnumerationTypeDescriptor.withInstances(
+//			TupleDescriptor.from(
+//				E_LOADING_IS_OVER.numericCode()
+//			).asSet());
+//	}
 }

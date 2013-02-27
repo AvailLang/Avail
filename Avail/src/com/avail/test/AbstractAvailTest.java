@@ -88,13 +88,13 @@ public class AbstractAvailTest
 	 * The {@linkplain ModuleRoots Avail module roots}. This should be set by a
 	 * static initializer in each subclass.
 	 */
-	protected static ModuleRoots roots;
+	protected static @Nullable ModuleRoots roots;
 
 	/** The {@linkplain ModuleNameResolver module name resolver}. */
-	private ModuleNameResolver resolver;
+	private @Nullable ModuleNameResolver resolver;
 
 	/** The {@linkplain AvailRuntime Avail runtime}. */
-	private AvailRuntime runtime;
+	private @Nullable AvailRuntime runtime;
 
 	/**
 	 * Test fixture: clear and then create all special objects well-known to the
@@ -109,8 +109,12 @@ public class AbstractAvailTest
 	{
 		AvailObject.clearAllWellKnownObjects();
 		AvailObject.createAllWellKnownObjects();
-		resolver = new RenamesFileParser(new StringReader(""), roots).parse();
-		runtime = new AvailRuntime(resolver);
+		final ModuleRoots theRoots = roots;
+		assert theRoots != null;
+		final ModuleNameResolver theResolver =
+			new RenamesFileParser(new StringReader(""), theRoots).parse();
+		resolver = theResolver;
+		runtime = new AvailRuntime(theResolver);
 	}
 
 	/**
@@ -120,7 +124,9 @@ public class AbstractAvailTest
 	public void clearAllWellKnownObjects ()
 	{
 		AvailObject.clearAllWellKnownObjects();
-		runtime.destroy();
+		final AvailRuntime theRuntime = runtime;
+		assert theRuntime != null;
+		theRuntime.destroy();
 		runtime = null;
 	}
 
@@ -137,10 +143,13 @@ public class AbstractAvailTest
 	{
 		try
 		{
-			final Mutable<ModuleName> lastModule = new Mutable<ModuleName>();
+			final MutableOrNull<ModuleName> lastModule =
+				new MutableOrNull<ModuleName>();
 			final Repository repository = Repository.createTemporary();
+			final AvailRuntime theRuntime = runtime;
+			assert theRuntime != null;
 			final AvailBuilder builder = new AvailBuilder(
-				runtime,
+				theRuntime,
 				repository);
 			builder.build(
 				target,
@@ -185,8 +194,10 @@ public class AbstractAvailTest
 		}
 		catch (final AvailCompilerException e)
 		{
+			final ModuleNameResolver theResolver = resolver;
+			assert theResolver != null;
 			final ResolvedModuleName resolvedName =
-				resolver.resolve(e.moduleName());
+				theResolver.resolve(e.moduleName());
 			if (resolvedName == null)
 			{
 				System.err.printf("%s%n", e.getMessage());

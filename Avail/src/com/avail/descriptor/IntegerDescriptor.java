@@ -1855,22 +1855,23 @@ extends ExtendedIntegerDescriptor
 	 */
 	static void createWellKnownObjects ()
 	{
-		immutableByteObjects = new AvailObject [256];
+		final AvailObject[] bytes = new AvailObject [256];
 		for (int i = 0; i <= 255; i++)
 		{
 			final AvailObject object = mutable.create(1);
 			object.rawSignedIntegerAtPut(1, i);
-			object.makeShared();
-			immutableByteObjects[i] = object;
+			bytes[i] = object.makeShared();
 		}
-		hashesOfUnsignedBytes = new int [256];
+		immutableByteObjects = bytes;
+		final int[] hashes = new int [256];
 		for (int i = 0; i <= 255; i++)
 		{
-			hashesOfUnsignedBytes[i] = computeHashOfInt(i);
+			hashes[i] = computeHashOfInt(i);
 		}
-		negativeOne = mutable.create(1);
-		negativeOne.rawSignedIntegerAtPut(1, -1);
-		negativeOne.makeShared();
+		hashesOfUnsignedBytes = hashes;
+		final AvailObject neg = mutable.create(1);
+		neg.rawSignedIntegerAtPut(1, -1);
+		negativeOne = neg.makeShared();
 	}
 
 	/**
@@ -1897,7 +1898,7 @@ extends ExtendedIntegerDescriptor
 	{
 		if (aLong == (aLong & 255))
 		{
-			return immutableByteObjects[(int) aLong];
+			return immutableByteObjects()[(int) aLong];
 		}
 		if (aLong == (int)aLong)
 		{
@@ -2007,7 +2008,7 @@ extends ExtendedIntegerDescriptor
 	{
 		if (anInteger == (anInteger & 255))
 		{
-			return immutableByteObjects[anInteger];
+			return immutableByteObjects()[anInteger];
 		}
 		final AvailObject result = mutable.create(1);
 		result.rawSignedIntegerAtPut(1, anInteger);
@@ -2024,7 +2025,7 @@ extends ExtendedIntegerDescriptor
 	public static A_Number fromUnsignedByte (final short anInteger)
 	{
 		assert anInteger >= 0 && anInteger <= 255;
-		return immutableByteObjects[anInteger];
+		return immutableByteObjects()[anInteger];
 	}
 
 	/**
@@ -2074,7 +2075,9 @@ extends ExtendedIntegerDescriptor
 	 */
 	public static A_Number negativeOne ()
 	{
-		return negativeOne;
+		final A_Number neg = negativeOne;
+		assert neg != null;
+		return neg;
 	}
 
 	/**
@@ -2085,7 +2088,7 @@ extends ExtendedIntegerDescriptor
 	 */
 	public static A_Number zero ()
 	{
-		return immutableByteObjects[0];
+		return immutableByteObjects()[0];
 	}
 
 	/**
@@ -2096,7 +2099,7 @@ extends ExtendedIntegerDescriptor
 	 */
 	public static A_Number one ()
 	{
-		return immutableByteObjects[1];
+		return immutableByteObjects()[1];
 	}
 
 	/**
@@ -2107,7 +2110,7 @@ extends ExtendedIntegerDescriptor
 	 */
 	public static A_Number two ()
 	{
-		return immutableByteObjects[2];
+		return immutableByteObjects()[2];
 	}
 
 	/**
@@ -2118,7 +2121,7 @@ extends ExtendedIntegerDescriptor
 	 */
 	public static A_Number ten ()
 	{
-		return immutableByteObjects[10];
+		return immutableByteObjects()[10];
 	}
 
 	/**
@@ -2132,7 +2135,9 @@ extends ExtendedIntegerDescriptor
 	 */
 	static int hashOfUnsignedByte (final short anInteger)
 	{
-		return hashesOfUnsignedBytes[anInteger];
+		final int[] hashes = hashesOfUnsignedBytes;
+		assert hashes != null;
+		return hashes[anInteger];
 	}
 
 	/**
@@ -2176,12 +2181,12 @@ extends ExtendedIntegerDescriptor
 	 * An array of 256 {@code int}s, corresponding to the hashes of the values
 	 * 0..255 inclusive.  Initialized via {@link #clearWellKnownObjects()}.
 	 */
-	static int hashesOfUnsignedBytes[] = null;
+	static @Nullable int hashesOfUnsignedBytes[] = null;
 
 	/**
 	 * The Avail integer negative one (-1).
 	 */
-	static A_Number negativeOne = null;
+	static @Nullable A_Number negativeOne = null;
 
 	/**
 	 * An array of 256 immutable {@linkplain IntegerDescriptor integers},
@@ -2189,8 +2194,20 @@ extends ExtendedIntegerDescriptor
 	 * of calculations much more efficient than naively constructing a fresh
 	 * {@link AvailObject} unconditionally.
 	 */
-	static A_Number [] immutableByteObjects = null;
+	static @Nullable A_Number [] immutableByteObjects = null;
 
+	/**
+	 * Answer the array of Avail {@linkplain IntegerDescriptor integers} small
+	 * enough to fit in an unsigned byte (i.e., in [0..255]).
+	 *
+	 * @return The array of Avail integers.
+	 */
+	static A_Number [] immutableByteObjects ()
+	{
+		final A_Number [] bytes = immutableByteObjects;
+		assert bytes != null;
+		return bytes;
+	}
 
 	/**
 	 * Create an {@linkplain IntegerDescriptor integer} of the specified size,

@@ -64,7 +64,7 @@ extends Primitive
 	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(),
+			TupleDescriptor.empty(),
 			IntegerRangeTypeDescriptor.wholeNumbers());
 	}
 }

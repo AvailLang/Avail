@@ -495,7 +495,7 @@ extends Descriptor
 	{
 		final A_Atom properties = object.mutableSlot(PROPERTY_ATOM);
 		final A_Number lineInteger =
-			properties.getAtomProperty(lineNumberKeyAtom);
+			properties.getAtomProperty(lineNumberKeyAtom());
 		return lineInteger.equalsNil()
 			? 0
 			: lineInteger.extractInt();
@@ -552,7 +552,7 @@ extends Descriptor
 	{
 		methodName.makeImmutable();
 		final A_Atom propertyAtom = object.mutableSlot(PROPERTY_ATOM);
-		propertyAtom.setAtomProperty(methodNameKeyAtom, methodName);
+		propertyAtom.setAtomProperty(methodNameKeyAtom(), methodName);
 		// Now scan all sub-blocks. Some literals will be functions and some
 		// will be compiled code objects.
 		int counter = 1;
@@ -594,7 +594,7 @@ extends Descriptor
 	{
 		final A_BasicObject propertyAtom = object.mutableSlot(PROPERTY_ATOM);
 		final A_String methodName =
-			propertyAtom.getAtomProperty(methodNameKeyAtom);
+			propertyAtom.getAtomProperty(methodNameKeyAtom());
 		if (methodName.equalsNil())
 		{
 			return StringDescriptor.from("Unknown function");
@@ -632,7 +632,7 @@ extends Descriptor
 			builder.append('\t');
 		}
 		builder.append("Nybblecodes:\n");
-		new L1Disassembler().disassemble(
+		L1Disassembler.disassemble(
 			object,
 			builder,
 			recursionList,
@@ -663,7 +663,7 @@ extends Descriptor
 		final A_Tuple literals,
 		final A_Tuple localTypes,
 		final A_Tuple outerTypes,
-		final AvailObject module,
+		final A_BasicObject module,
 		final int lineNumber)
 	{
 		if (primitive != 0)
@@ -728,7 +728,7 @@ extends Descriptor
 			module);
 		code.setSlot(PROPERTY_ATOM, propertyAtom);
 		propertyAtom.setAtomProperty(
-			lineNumberKeyAtom,
+			lineNumberKeyAtom(),
 			IntegerDescriptor.fromInt(lineNumber));
 		int hash = propertyAtom.hash();
 		hash ^= -0x3087B215;
@@ -741,7 +741,7 @@ extends Descriptor
 	 * The key used to track a method name associated with the code. This
 	 * name is presented in stack traces.
 	 */
-	static A_Atom methodNameKeyAtom;
+	static @Nullable A_Atom methodNameKeyAtom;
 
 	/**
 	 * Answer the key used to track a method name associated with the code. This
@@ -751,14 +751,16 @@ extends Descriptor
 	 */
 	public static A_Atom methodNameKeyAtom ()
 	{
-		return methodNameKeyAtom;
+		final A_Atom atom = methodNameKeyAtom;
+		assert atom != null;
+		return atom;
 	}
 
 	/**
 	 * The key used to track the first line number within the module on which
 	 * this code occurs.
 	 */
-	static A_Atom lineNumberKeyAtom;
+	static @Nullable A_Atom lineNumberKeyAtom;
 
 	/**
 	 * Answer the key used to track the first line number within the module on
@@ -768,7 +770,9 @@ extends Descriptor
 	 */
 	public static A_Atom lineNumberKeyAtom ()
 	{
-		return lineNumberKeyAtom;
+		final A_Atom atom = lineNumberKeyAtom;
+		assert atom != null;
+		return atom;
 	}
 
 	/**

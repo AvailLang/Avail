@@ -437,11 +437,10 @@ public final class ScannerTest
 		for (final Case c : tests)
 		{
 			final String input = c.inputString;
-			final AvailScanner scanner = new AvailScanner();
 			List<A_Token> scannedTokens = null;
 			try
 			{
-				scannedTokens = scanner.scanString(input, false);
+				scannedTokens = AvailScanner.scanString(input, false);
 				if (c.tokenGenerators.length == 1
 					&& c.tokenGenerators[0] == null)
 				{

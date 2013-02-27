@@ -37,7 +37,6 @@ import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.*;
 import com.avail.AvailRuntime;
-import com.avail.annotations.*;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 
@@ -56,7 +55,7 @@ extends Primitive
 	/**
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
-	public final @NotNull static Primitive instance =
+	public final static Primitive instance =
 		new P_622_DelayedForkOrphan().init(4, CanInline, HasSideEffect);
 
 	@Override
@@ -114,10 +113,14 @@ extends Primitive
 		// into this field, and none of them should fail because of a Java
 		// exception.
 		orphan.failureContinuation(current.failureContinuation());
+		// Share and inherit any heritable variables.
+		orphan.heritableFiberGlobals(
+			current.heritableFiberGlobals().makeShared());
 		// If the requested sleep time is 0 milliseconds, then fork immediately.
 		if (sleepMillis.equals(IntegerDescriptor.zero()))
 		{
 			Interpreter.runOutermostFunction(
+				AvailRuntime.current(),
 				orphan,
 				function,
 				callArgs);
@@ -125,6 +128,7 @@ extends Primitive
 		// Otherwise, schedule the fiber to start later.
 		else
 		{
+			final AvailRuntime runtime = AvailRuntime.current();
 			AvailRuntime.current().timer.schedule(
 				new TimerTask()
 				{
@@ -134,6 +138,7 @@ extends Primitive
 						// Don't check for the termination requested interrupt
 						// here, since no fiber could have signaled it.
 						Interpreter.runOutermostFunction(
+							runtime,
 							orphan,
 							function,
 							callArgs);

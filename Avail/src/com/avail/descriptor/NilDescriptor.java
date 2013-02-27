@@ -306,7 +306,7 @@ extends Descriptor
 	}
 
 	/** The sole instance of {@linkplain #nil() nil}. */
-	private static AvailObject soleInstance;
+	private static @Nullable AvailObject soleInstance;
 
 	/**
 	 * Answer the sole instance of nil.
@@ -315,7 +315,9 @@ extends Descriptor
 	 */
 	public static AvailObject nil ()
 	{
-		return soleInstance;
+		final AvailObject instance = soleInstance;
+		assert instance != null;
+		return instance;
 	}
 
 	/**

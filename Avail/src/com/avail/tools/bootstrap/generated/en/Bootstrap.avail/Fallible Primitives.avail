@@ -51,10 +51,14 @@ Uses
 		"Exit_with_",
 		"Forward method_is_",
 		"Grammatical restriction_is_",
+		"In_millisecond|milliseconds,⁇invoke_with_,⁇forked at priority_",
+		"Invoke_with_,⁇forked at priority_",
 		"Invoke|invoke_with_",
+		"Join_",
 		"Macro_is«_,»_",
 		"Mark for_character|characters of read ahead",
 		"Publish new name:_",
+		"Remove current fiber[_]",
 		"Remove_[_]",
 		"Reset to mark",
 		"Restart_",
@@ -63,6 +67,7 @@ Uses
 		"Semantic restriction_is_",
 		"_'s⁇instances",
 		"_'s⁇issuing module",
+		"_'s⁇result",
 		"_+_",
 		"_-_",
 		"_._→variable",
@@ -77,17 +82,25 @@ Uses
 		"_×_",
 		"_÷_",
 		"_∈_",
+		"_∈current fiber",
 		"`|message_'s⁇parameters`|",
 		"`«(_:=_)`»",
 		"`«[_`|Primitive__]:_^_`»",
 		"`«_:=_`»",
 		"`«↑_`»",
 		"atom for_",
+		"atomically compare_to_and,⁇if equal,⁇store_",
+		"atomically read_and add_",
+		"atomically read_and store_",
 		"constructor_<«_‡,»>(fail with_)",
+		"current fiber[_]",
+		"current fiber[_]:=_",
 		"current module",
 		"eject_",
 		"function from_and_",
 		"generate_",
+		"in_millisecond|milliseconds,⁇invoke_with_,⁇forked at priority_",
+		"invoke_with_,⁇forked at priority_",
 		"message_contains groups",
 		"method definition of_for_",
 		"method for_",
@@ -296,6 +309,63 @@ Primitive "eject_" is
 	Primitive 18 (failureCode : natural number);
 	Private invoke _fail_primitive with failureCode
 ] : any;
+
+/**
+ * Atomically read the value of `var` and store `newValue`.
+ *
+ * Parameters:
+ *    var - A variable.
+ *    newValue - The new value to store into `var`.
+ * Returns:
+ *    The value originally stored in `var`.
+ */
+Primitive "atomically read_and store_" is
+[
+	var : variable,
+	newValue : any
+|
+	Primitive 20 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode
+] : any;
+
+/**
+ * Atomically read the value of `var`, compare it to `reference`, and, if
+ * they are discovered to be equal, store `newValue`.
+ *
+ * Parameters:
+ *    var - A variable.
+ *    reference - The value against which the content of `var` should be
+ *       compared.
+ *    newValue - The new value to conditionally store into `var`.
+ */
+Primitive "atomically compare_to_and,⁇if equal,⁇store_" is
+[
+	var : variable,
+	reference : any,
+	newValue : any
+|
+	Primitive 21 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode
+] : boolean;
+
+/**
+ * Atomically compute the sum of the value stored in `var` and `addend`,
+ * and store the sum back into `var`.
+ *
+ * Parameters:
+ *    var - A variable containing the augend.
+ *    addend - The addend.
+ * Returns:
+ *    The augend, i.e., the value originally stored in `var`.
+ */
+Primitive "atomically read_and add_" is
+[
+	var : readable extended integer variable,
+	addend : extended integer
+|
+	Primitive 22 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode
+] : extended integer;
 
 /**
  * Answer the instances of the enumeration.
@@ -770,7 +840,7 @@ Primitive "Abstract method_is_" is
 	methodName : atom,
 	signature : function meta
 |
-	Primitive 227 (failureCode : null);
+	Primitive 227 (failureCode : natural number);
 	Private invoke _fail_primitive with failureCode
 ] : ⊤;
 
@@ -1492,4 +1562,199 @@ Primitive "_[_]:=_" is
 	Primitive 513 (failureCode : natural number);
 	Private invoke _fail_primitive with failureCode
 ] : ⊤;
+
+/**
+ * Does the current fiber's environment have a value bound to `key`? This
+ * effectively ascertains whether a fiber-local variable exists for the
+ * specified fiber.
+ *
+ * Parameters:
+ *    key - The key whose existence should be queried.
+ * Returns:
+ *    `true` if the current fiber binds a value to `key`, `false` otherwise.
+ */
+Primitive "_∈current fiber" is
+[
+	key : atom
+|
+	Primitive 603 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode
+] : boolean;
+
+/**
+ * Answer the value bound to `key` in the current fiber's environment. Since
+ * the fiber's environment essentially contains fiber-local variables (i.e.
+ * bindings from atoms to arbitrary values), this operation effectively reads a
+ * fiber-local variable.
+ *
+ * Parameters:
+ *    key - The key whose value should be obtained.
+ * Returns:
+ *    The value bound to `key` within the current fiber's environment.
+ */
+Primitive "current fiber[_]" is
+[
+	key : atom
+|
+	Primitive 604 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode
+] : any;
+
+/**
+ * Set the value bound to `key` in the current fiber's environment,
+ * overwriting any previous value. Since the fiber's environment essentially
+ * contains fiber-local variables (i.e. bindings from atoms to arbitrary
+ * values), this operation effectively writes a fiber-local variable.
+ *
+ * Parameters:
+ *    key - The key whose value should be (over)written.
+ *    value - The new value.
+ */
+Primitive "current fiber[_]:=_" is
+[
+	key : atom,
+	value : any
+|
+	Primitive 605 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode
+] : ⊤;
+
+/**
+ * Remove the binding indicated by `key` from the current fiber's
+ * environment.
+ *
+ * Parameters:
+ *    key - The key whose binding should be removed.
+ */
+Primitive "Remove current fiber[_]" is
+[
+	key : atom
+|
+	Primitive 606 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode
+] : ⊤;
+
+/**
+ * Fork a new fiber at the specified priority. The new fiber will invoke the
+ * given function with the supplied arguments.
+ *
+ * Parameters:
+ *    aFunction - A function.
+ *    arguments - The arguments to the function.
+ *    priority - The priority of the new fiber.
+ */
+Primitive "Invoke_with_,⁇forked at priority_" is
+[
+	aFunction : function,
+	arguments : tuple,
+	priority : byte
+|
+	Primitive 615 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode
+] : ⊤;
+
+/**
+ * Fork a new fiber at the specified priority. The new fiber will invoke the
+ * given function with the supplied arguments.
+ *
+ * Parameters:
+ *    aFunction - A function.
+ *    arguments - The arguments to the function.
+ *    priority - The priority of the new fiber.
+ * Returns:
+ *    The new fiber.
+ */
+Primitive "invoke_with_,⁇forked at priority_" is
+[
+	aFunction : function,
+	arguments : tuple,
+	priority : byte
+|
+	Primitive 616 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode
+] : fiber;
+
+/**
+ * Wait for the specified fiber to terminate. If the fiber has already
+ * terminated, then return immediately; otherwise, suspend the current fiber.
+ *
+ * Parameters:
+ *    aFiber - A fiber.
+ */
+Primitive "Join_" is
+[
+	aFiber : fiber
+|
+	Primitive 617 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode
+] : ⊤;
+
+/**
+ * Answer the result of running the specified fiber to successful completion.
+ * This method may only be called safely after an affirmative answer from
+ * `_has result`.
+ *
+ * Parameters:
+ *    aFiber - A fiber.
+ * Returns:
+ *    The result yielded by the specified fiber. This is the value produced by
+ *    the fiber's outermost continuation, i.e., its base function.
+ */
+Primitive "_'s⁇result" is
+[
+	aFiber : fiber
+|
+	Primitive 620 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode
+] : any;
+
+/**
+ * When at least the specified number of milliseconds have elapsed, fork a new
+ * fiber at the specified priority. The new fiber will invoke the given function
+ * with the supplied arguments. A best effort will be made to start the fiber as
+ * soon as the delay has expired, but no real-time guarantees are made.
+ *
+ * Parameters:
+ *    delayMillis - The minimum number of milliseconds to delay the start of the new
+ *       fiber.
+ *    aFunction - A function.
+ *    arguments - The arguments to the function.
+ *    priority - The priority of the new fiber.
+ */
+Primitive "In_millisecond|milliseconds,⁇invoke_with_,⁇forked at priority_" is
+[
+	delayMillis : nonnegative extended integer,
+	aFunction : function,
+	arguments : tuple,
+	priority : byte
+|
+	Primitive 622 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode
+] : ⊤;
+
+/**
+ * When at least the specified number of milliseconds have elapsed, fork a new
+ * fiber at the specified priority. The new fiber will invoke the given function
+ * with the supplied arguments. A best effort will be made to start the fiber as
+ * soon as the delay has expired, but no real-time guarantees are made.
+ *
+ * Parameters:
+ *    delayMillis - The minimum number of milliseconds to delay the start of the new
+ *       fiber.
+ *    aFunction - A function.
+ *    arguments - The arguments to the function.
+ *    priority - The priority of the new fiber.
+ * Returns:
+ *    The new fiber.
+ */
+Primitive "in_millisecond|milliseconds,⁇invoke_with_,⁇forked at priority_" is
+[
+	delayMillis : nonnegative extended integer,
+	aFunction : function,
+	arguments : tuple,
+	priority : byte
+|
+	Primitive 623 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode
+] : fiber;
 
