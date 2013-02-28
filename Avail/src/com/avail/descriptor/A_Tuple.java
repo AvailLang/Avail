@@ -325,14 +325,6 @@ extends A_BasicObject, Iterable<AvailObject>
 	boolean isSplice ();
 
 	/**
-	 * Construct a Java {@linkplain String string} from the receiver, an Avail
-	 * {@linkplain StringDescriptor string}.
-	 *
-	 * @return The corresponding Java string.
-	 */
-	String asNativeString ();
-
-	/**
 	 * Answer an {@linkplain Iterator iterator} suitable for traversing the
 	 * elements of the {@linkplain AvailObject receiver} with a Java
 	 * <em>foreach</em> construct.

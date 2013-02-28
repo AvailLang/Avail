@@ -1,5 +1,5 @@
 /**
- * A_String.java
+ * Mutable.java
  * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -30,24 +30,60 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.descriptor;
+package com.avail.utility;
+
+import com.avail.annotations.Nullable;
 
 /**
- * {@code A_String} is an interface that specifies the string-specific
- * operations that an {@link AvailObject} must implement.  It's a sub-interface
- * of {@link A_Tuple} (which is itself a sub-interface of {@link A_BasicObject}.
+ * Just like {@link Mutable}, but allows {@linkplain #value} to hold {@code
+ * null}.  Also provides a default constructor.
  *
- * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @author Mark van Gulik&lt;mark@availlang.org&gt;
+ * @param <T> The type of mutable object.
  */
-public interface A_String
-extends A_Tuple
+public class MutableOrNull<T>
 {
 	/**
-	 * Construct a Java {@linkplain String string} from the receiver, an Avail
-	 * {@linkplain StringDescriptor string}.
-	 *
-	 * @return The corresponding Java string.
+	 * Expose a public field for readability.  For instance, one could declare
+	 * something "final Mutable<Integer> x = new Mutable<Integer>();" and
+	 * then have code within inner classes like "x.value = 5" or "x.value++".
 	 */
-	String asNativeString ();
+	public @Nullable T value;
 
+	/**
+	 * Zero-argument constructor.
+	 */
+	public MutableOrNull ()
+	{
+		super();
+	}
+
+	/**
+	 * Constructor that takes an initial value.
+	 *
+	 * @param value The initial value.
+	 */
+	public MutableOrNull (@Nullable final T value)
+	{
+		this.value = value;
+	}
+
+	/**
+	 * Return the value, asserting that it is not {@code null}.
+	 *
+	 * @return The non-null value.
+	 */
+	public T value ()
+	{
+		final T v = value;
+		assert v != null;
+		return v;
+	}
+
+	@Override
+	public String toString ()
+	{
+		final T v = value;
+		return v == null ? "null" : v.toString();
+	}
 }
