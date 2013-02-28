@@ -64,6 +64,11 @@ public class P_400_BootstrapBlockAfterArgumentPrefix extends Primitive
 	{
 		assert args.size() == 1;
 		final A_Tuple allBlockArguments = args.get(0);
+		final AvailLoader loader = FiberDescriptor.current().availLoader();
+		if (loader == null)
+		{
+			return interpreter.primitiveFailure(E_LOADING_IS_OVER);
+		}
 
 		final A_Tuple latestBlockArgument =
 			allBlockArguments.tupleAt(allBlockArguments.tupleSize());
@@ -89,7 +94,7 @@ public class P_400_BootstrapBlockAfterArgumentPrefix extends Primitive
 			DeclarationNodeDescriptor.newArgument(argToken, argType);
 
 		// Add the binding and we're done.
-		final AvailErrorCode error = interpreter.addDeclaration(argDeclaration);
+		final AvailErrorCode error = loader.addDeclaration(argDeclaration);
 		if (error != null)
 		{
 			return interpreter.primitiveFailure(error);

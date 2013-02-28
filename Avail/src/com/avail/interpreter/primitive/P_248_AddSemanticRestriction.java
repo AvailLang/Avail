@@ -77,7 +77,7 @@ extends Primitive
 		}
 		try
 		{
-			final A_Atom atom = interpreter.lookupName(string);
+			final A_Atom atom = loader.lookupName(string);
 			loader.addTypeRestriction(atom, function);
 			function.code().setMethodName(
 				StringDescriptor.from(

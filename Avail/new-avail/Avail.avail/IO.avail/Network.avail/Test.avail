@@ -163,7 +163,7 @@ Test "basic connection" in network test suite is
 	[
 		Close server;
 		Close client;
-		If ↑accepted is assigned then [Close accepted;];
+		Close accepted;
 	];
 ];
 

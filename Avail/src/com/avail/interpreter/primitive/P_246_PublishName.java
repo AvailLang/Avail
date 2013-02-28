@@ -73,7 +73,7 @@ extends Primitive
 		}
 		try
 		{
-			final A_Atom trueName = interpreter.lookupName(name);
+			final A_Atom trueName = loader.lookupName(name);
 			module.introduceNewName(name, trueName);
 			module.addImportedName(name, trueName);
 			return interpreter.primitiveSuccess(NilDescriptor.nil());

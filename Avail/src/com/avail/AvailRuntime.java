@@ -1552,7 +1552,6 @@ public final class AvailRuntime
 	 * Destroy all data structures used by this {@code AvailRuntime}.  Also
 	 * disassociate it from the current {@link Thread}'s local storage.
 	 */
-	@SuppressWarnings("null")
 	public void destroy ()
 	{
 		timer.cancel();

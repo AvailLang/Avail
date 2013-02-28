@@ -513,8 +513,6 @@ public final class AvailLoader
 		final AvailObject method = runtime.methodFor(methodName);
 		typeRestrictionFunction.makeShared();
 		runtime.addTypeRestriction(methodName, typeRestrictionFunction);
-		final AvailObject newBundle =
-			MessageBundleDescriptor.newBundle(methodName, method);
 		final AvailObject theModule = module;
 		theModule.lock(new Continuation0()
 		{
@@ -523,7 +521,10 @@ public final class AvailLoader
 			{
 				theModule.addTypeRestriction(
 					methodName, typeRestrictionFunction);
-				theModule.filteredBundleTree().addBundle(newBundle);
+				final A_BasicObject filteredRoot =
+					module().filteredBundleTree();
+				filteredRoot.includeBundleNamed(methodName, method);
+				filteredRoot.flushForNewOrChangedBundleNamed(methodName);
 			}
 		});
 	}
@@ -600,6 +601,47 @@ public final class AvailLoader
 					methodName, illegalArgMsgs);
 			}
 		});
+	}
+
+	/**
+	 * Attempt to add the declaration to the compiler scope information within
+	 * the client data stored in this interpreter's current fiber.
+	 *
+	 * @param declaration A {@link DeclarationNodeDescriptor declaration}.
+	 * @return {@code Null} if successful, otherwise an {@link AvailErrorCode}
+	 *         indicating the problem.
+	 */
+	public final @Nullable AvailErrorCode addDeclaration (
+		final AvailObject declaration)
+	{
+		final A_Atom clientDataGlobalKey =
+			AtomDescriptor.clientDataGlobalKey();
+		final A_Atom compilerScopeMapKey =
+			AtomDescriptor.compilerScopeMapKey();
+		final A_BasicObject fiber = FiberDescriptor.current();
+		A_Map fiberGlobals = fiber.fiberGlobals();
+		A_Map clientData = fiberGlobals.mapAt(clientDataGlobalKey);
+		A_Map bindings = clientData.mapAt(compilerScopeMapKey);
+		final A_String declarationName = declaration.token().string();
+		if (bindings.hasKey(declarationName))
+		{
+			return E_LOCAL_DECLARATION_SHADOWS_ANOTHER;
+		}
+		bindings = bindings.mapAtPuttingCanDestroy(
+			declarationName,
+			declaration,
+			true);
+		clientData = clientData.mapAtPuttingCanDestroy(
+			compilerScopeMapKey,
+			bindings,
+			true);
+		fiberGlobals = fiberGlobals.mapAtPuttingCanDestroy(
+			clientDataGlobalKey,
+			clientData,
+			true);
+		fiberGlobals.makeImmutable();
+		fiber.fiberGlobals(fiberGlobals);
+		return null;
 	}
 
 	/**
