@@ -2180,7 +2180,9 @@ public abstract class AbstractAvailCompiler
 				serializer.serialize(function);
 			}
 		}
-		final A_BasicObject fiber = FiberDescriptor.newLoaderFiber(loader());
+		final A_BasicObject fiber = FiberDescriptor.newLoaderFiber(
+			function.kind().returnType(),
+			loader());
 		fiber.resultContinuation(onSuccess);
 		fiber.failureContinuation(onFailure);
 		Interpreter.runOutermostFunction(runtime, fiber, function, args);
@@ -2207,7 +2209,9 @@ public abstract class AbstractAvailCompiler
 		final Continuation1<AvailObject> onSuccess,
 		final Continuation1<Throwable> onFailure)
 	{
-		final AvailObject fiber = FiberDescriptor.newLoaderFiber(loader());
+		final AvailObject fiber = FiberDescriptor.newLoaderFiber(
+			function.kind().returnType(),
+			loader());
 		fiber.setGeneralFlag(GeneralFlag.APPLYING_SEMANTIC_RESTRICTION);
 		fiber.resultContinuation(onSuccess);
 		fiber.failureContinuation(onFailure);
@@ -3289,8 +3293,9 @@ public abstract class AbstractAvailCompiler
 				final A_BasicObject listNodeOfArgsSoFar = last(argsSoFar);
 				final List<AvailObject> listOfArgs = TupleDescriptor.toList(
 					listNodeOfArgsSoFar.expressionsTuple());
-				final A_BasicObject fiber =
-					FiberDescriptor.newLoaderFiber(loader());
+				final A_BasicObject fiber = FiberDescriptor.newLoaderFiber(
+					prefixFunction.kind().returnType(),
+					loader());
 				A_Map fiberGlobals = fiber.fiberGlobals();
 				fiberGlobals = fiberGlobals.mapAtPuttingCanDestroy(
 					clientDataGlobalKey,
@@ -3416,7 +3421,7 @@ public abstract class AbstractAvailCompiler
 							return "argument #"
 								+ Integer.toString(finalIndex)
 								+ " of message \""
-								+ method.name().name().asNativeString()
+								+ method.originalName().name().asNativeString()
 								+ "\" to have a type other than "
 								+ argTypes.get(finalIndex - 1);
 						}
@@ -3460,7 +3465,7 @@ public abstract class AbstractAvailCompiler
 						"arguments at indices %s of message %s to match a "
 						+ "method definition.%n",
 						allFailedIndices,
-						method.name().name().asNativeString());
+						method.originalName().name().asNativeString());
 					builder.format(
 						"\tI got:%n\t\t%s%n",
 						argTypes);
@@ -3586,7 +3591,7 @@ public abstract class AbstractAvailCompiler
 												+ "raise an unhandled "
 												+ "exception (while parsing "
 												+ "send of "
-												+ method.name().name()
+												+ method.originalName().name()
 													.asNativeString()
 												+ "):\n\t"
 												+ e.toString();

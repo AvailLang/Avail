@@ -239,7 +239,7 @@ extends AbstractAvailCompiler
 					{
 						stateAfterCall.expected(
 							"macro body ("
-							+ method.name().name()
+							+ method.originalName().name()
 							+ ") to produce a parse node");
 					}
 				}

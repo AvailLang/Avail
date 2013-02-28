@@ -143,6 +143,14 @@ extends AbstractTypeDescriptor
 	}
 
 	@Override @AvailMethod
+	final A_Type o_TypeIntersectionOfFiberType (
+		final AvailObject object,
+		final A_Type aFiberType)
+	{
+		return computeIntersectionWith(object, aFiberType);
+	}
+
+	@Override @AvailMethod
 	final A_Type o_TypeIntersectionOfFunctionType (
 		final AvailObject object,
 		final A_Type aFunctionType)
@@ -254,6 +262,14 @@ extends AbstractTypeDescriptor
 		final A_Type aLiteralTokenType)
 	{
 		return computeUnionWith(object, aLiteralTokenType);
+	}
+
+	@Override @AvailMethod
+	final A_Type o_TypeUnionOfFiberType (
+		final AvailObject object,
+		final A_Type aFiberType)
+	{
+		return computeUnionWith(object, aFiberType);
 	}
 
 	@Override @AvailMethod
@@ -474,6 +490,14 @@ extends AbstractTypeDescriptor
 	}
 
 	@Override @AvailMethod
+	final boolean o_IsSupertypeOfFiberType (
+		final AvailObject object,
+		final A_Type aFiberType)
+	{
+		return false;
+	}
+
+	@Override @AvailMethod
 	final boolean o_IsSupertypeOfFunctionType (
 		final AvailObject object,
 		final A_Type aFunctionType)
@@ -588,7 +612,7 @@ extends AbstractTypeDescriptor
 	@Override
 	boolean o_IsSupertypeOfPojoBottomType (
 		final AvailObject object,
-		final A_BasicObject aPojoType)
+		final A_Type aPojoType)
 	{
 		return false;
 	}

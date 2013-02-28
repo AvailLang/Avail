@@ -337,11 +337,11 @@ extends AbstractEnumerationTypeDescriptor
 			// the types.
 			if (myTypes.setSize() > 0)
 			{
-				for (final A_BasicObject anotherElement : otherElements)
+				for (final AvailObject anotherElement : otherElements)
 				{
 					if (anotherElement.isType())
 					{
-						for (final AvailObject myType : myTypes)
+						for (final A_Type myType : myTypes)
 						{
 							set = set.setWithElementCanDestroy(
 								anotherElement.typeIntersection(myType),

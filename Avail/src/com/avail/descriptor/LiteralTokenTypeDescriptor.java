@@ -104,7 +104,7 @@ extends TypeDescriptor
 	@Override
 	boolean o_EqualsLiteralTokenType (
 		final AvailObject object,
-		final A_BasicObject aLiteralTokenType)
+		final A_Type aLiteralTokenType)
 	{
 		return object.literalType().equals(aLiteralTokenType.literalType());
 	}

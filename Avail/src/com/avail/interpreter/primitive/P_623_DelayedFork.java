@@ -101,8 +101,9 @@ extends Primitive
 			arg.makeShared();
 		}
 		final A_BasicObject current = FiberDescriptor.current();
-		final A_BasicObject newFiber =
-			FiberDescriptor.newFiber(priority.extractInt());
+		final A_BasicObject newFiber = FiberDescriptor.newFiber(
+			function.kind().returnType(),
+			priority.extractInt());
 		// If the current fiber is an Avail fiber, then the new one should be
 		// also.
 		newFiber.availLoader(current.availLoader());
@@ -167,6 +168,6 @@ extends Primitive
 				FunctionTypeDescriptor.forReturnType(TOP.o()),
 				TupleTypeDescriptor.mostGeneralType(),
 				IntegerRangeTypeDescriptor.bytes()),
-			FIBER.o());
+			FiberTypeDescriptor.mostGeneralType());
 	}
 }

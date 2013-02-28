@@ -731,9 +731,19 @@ public interface A_BasicObject
 	 * @param aFunction The function used in the comparison.
 	 * @return {@code true} if the receiver is a function and of value equal to
 	 *         the argument, {@code false} otherwise.
-	 * @see AvailObject#equalsFunction(AvailObject)
 	 */
 	boolean equalsFunction (AvailObject aFunction);
+
+	/**
+	 * Answer whether the receiver, an {@linkplain AvailObject object}, and the
+	 * argument, a {@linkplain FiberTypeDescriptor fiber type}, are equal in
+	 * value.
+	 *
+	 * @param aFiberType A fiber type.
+	 * @return {@code true} if the receiver is a fiber type and of value equal
+	 *         to the argument, {@code false} otherwise.
+	 */
+	boolean equalsFiberType (A_Type aFiberType);
 
 	/**
 	 * Answer whether the receiver, an {@linkplain AvailObject object}, and the
@@ -1703,140 +1713,7 @@ public interface A_BasicObject
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	A_Type typeIntersection (A_Type another);
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	A_Type typeIntersectionOfFunctionType (
-		A_Type aFunctionType);
-
-	/**
-	 * @param aCompiledCodeType
-	 * @return
-	 */
-	A_Type typeIntersectionOfCompiledCodeType (
-		A_Type aCompiledCodeType);
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	A_Type typeIntersectionOfVariableType (
-		A_Type aVariableType);
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	A_Type typeIntersectionOfContinuationType (
-		A_Type aContinuationType);
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	A_Type typeIntersectionOfIntegerRangeType (
-		A_Type anIntegerRangeType);
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	A_Type typeIntersectionOfMapType (A_Type aMapType);
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	A_Type typeIntersectionOfObjectType (
-		A_Type anObjectType);
-
-	/**
-	 * @param aParseNodeType
-	 * @return
-	 */
-	A_Type typeIntersectionOfParseNodeType (
-		A_Type aParseNodeType);
-
-	/**
-	 * @param aPojoType
-	 * @return
-	 */
-	A_Type typeIntersectionOfPojoType (
-		A_Type aPojoType);
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	A_Type typeIntersectionOfSetType (A_Type aSetType);
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	A_Type typeIntersectionOfTupleType (
-		A_Type aTupleType);
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
 	A_Tuple typeTuple ();
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	A_Type typeUnion (A_Type another);
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	A_Type typeUnionOfFunctionType (
-		A_Type aFunctionType);
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	A_Type typeUnionOfVariableType (
-		A_Type aVariableType);
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	A_Type typeUnionOfContinuationType (
-		A_Type aContinuationType);
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	A_Type typeUnionOfIntegerRangeType (
-		A_Type anIntegerRangeType);
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	A_Type typeUnionOfMapType (A_Type aMapType);
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	A_Type typeUnionOfObjectType (A_Type anObjectType);
-
-	/**
-	 * @param aParseNodeType
-	 * @return
-	 */
-	A_Type typeUnionOfParseNodeType (A_Type aParseNodeType);
-
-	/**
-	 * @param aPojoType
-	 * @return
-	 */
-	A_Type typeUnionOfPojoType (A_Type aPojoType);
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	A_Type typeUnionOfSetType (A_Type aSetType);
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	A_Type typeUnionOfTupleType (A_Type aTupleType);
 
 	/**
 	 * Dispatch to the descriptor.
@@ -1923,7 +1800,7 @@ public interface A_BasicObject
 	/**
 	 * @return
 	 */
-	A_BasicObject resultType ();
+	A_Type resultType ();
 
 	/**
 	 * @param neededVariables
@@ -2193,20 +2070,6 @@ public interface A_BasicObject
 		A_Type aCompiledCodeType);
 
 	/**
-	 * @param aCompiledCodeType
-	 * @return
-	 */
-	boolean isSupertypeOfCompiledCodeType (
-		A_Type aCompiledCodeType);
-
-	/**
-	 * @param aCompiledCodeType
-	 * @return
-	 */
-	A_Type typeUnionOfCompiledCodeType (
-		A_Type aCompiledCodeType);
-
-	/**
 	 * @param key
 	 * @param value
 	 */
@@ -2415,12 +2278,6 @@ public interface A_BasicObject
 	boolean isPojoFusedType ();
 
 	/**
-	 * @param aPojoType
-	 * @return
-	 */
-	boolean isSupertypeOfPojoBottomType (A_BasicObject aPojoType);
-
-	/**
 	 * @return
 	 */
 	boolean equalsPojoBottomType ();
@@ -2429,34 +2286,6 @@ public interface A_BasicObject
 	 * @return
 	 */
 	AvailObject javaAncestors ();
-
-	/**
-	 * @param aFusedPojoType
-	 * @return
-	 */
-	A_Type typeIntersectionOfPojoFusedType (
-		A_Type aFusedPojoType);
-
-	/**
-	 * @param anUnfusedPojoType
-	 * @return
-	 */
-	A_Type typeIntersectionOfPojoUnfusedType (
-		A_Type anUnfusedPojoType);
-
-	/**
-	 * @param aFusedPojoType
-	 * @return
-	 */
-	A_Type typeUnionOfPojoFusedType (
-		A_Type aFusedPojoType);
-
-	/**
-	 * @param anUnfusedPojoType
-	 * @return
-	 */
-	A_Type typeUnionOfPojoUnfusedType (
-		A_Type anUnfusedPojoType);
 
 	/**
 	 * @return
@@ -2540,20 +2369,6 @@ public interface A_BasicObject
 	A_Type literalType ();
 
 	/**
-	 * @param aLiteralTokenType
-	 * @return
-	 */
-	A_Type typeIntersectionOfLiteralTokenType (
-		A_Type aLiteralTokenType);
-
-	/**
-	 * @param aLiteralTokenType
-	 * @return
-	 */
-	A_Type typeUnionOfLiteralTokenType (
-		A_Type aLiteralTokenType);
-
-	/**
 	 * @return
 	 */
 	boolean isLiteralTokenType ();
@@ -2563,7 +2378,7 @@ public interface A_BasicObject
 	 * @return
 	 */
 	boolean equalsLiteralTokenType (
-		A_BasicObject aLiteralTokenType);
+		A_Type aLiteralTokenType);
 
 	/**
 	 * @param anObjectType

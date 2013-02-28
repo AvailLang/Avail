@@ -95,8 +95,9 @@ extends Primitive
 			(AsynchronousSocketChannel) pojo.javaObject();
 		final ByteBuffer buffer = ByteBuffer.allocateDirect(size.extractInt());
 		final A_BasicObject current = FiberDescriptor.current();
-		final AvailObject newFiber =
-			FiberDescriptor.newFiber(priority.extractInt());
+		final AvailObject newFiber = FiberDescriptor.newFiber(
+			succeed.kind().returnType().typeUnion(fail.kind().returnType()),
+			priority.extractInt());
 		// If the current fiber is an Avail fiber, then the new one should be
 		// also.
 		newFiber.availLoader(current.availLoader());
@@ -203,7 +204,7 @@ extends Primitive
 							E_IO_ERROR.numericCode())),
 					TOP.o()),
 				IntegerRangeTypeDescriptor.bytes()),
-			FIBER.o());
+			FiberTypeDescriptor.mostGeneralType());
 	}
 
 	@Override

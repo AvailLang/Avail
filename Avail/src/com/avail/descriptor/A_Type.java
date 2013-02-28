@@ -66,6 +66,11 @@ extends A_BasicObject
 	/**
 	 * Dispatch to the descriptor.
 	 */
+	boolean isSupertypeOfFiberType (A_Type aFiberType);
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	boolean isSupertypeOfFunctionType (A_Type aFunctionType);
 
 	/**
@@ -126,6 +131,213 @@ extends A_BasicObject
 	 */
 	boolean isSupertypeOfEnumerationType (
 		A_BasicObject anEnumerationType);
+
+	/**
+	 * @param aCompiledCodeType
+	 * @return
+	 */
+	boolean isSupertypeOfCompiledCodeType (
+		A_Type aCompiledCodeType);
+
+	/**
+	 * @param aPojoType
+	 * @return
+	 */
+	boolean isSupertypeOfPojoBottomType (A_Type aPojoType);
+
+	/**
+	 * @param aCompiledCodeType
+	 * @return
+	 */
+	A_Type typeUnionOfCompiledCodeType (
+		A_Type aCompiledCodeType);
+
+	/**
+	 * @param aFusedPojoType
+	 * @return
+	 */
+	A_Type typeIntersectionOfPojoFusedType (
+		A_Type aFusedPojoType);
+
+	/**
+	 * @param anUnfusedPojoType
+	 * @return
+	 */
+	A_Type typeIntersectionOfPojoUnfusedType (
+		A_Type anUnfusedPojoType);
+
+	/**
+	 * @param aFusedPojoType
+	 * @return
+	 */
+	A_Type typeUnionOfPojoFusedType (
+		A_Type aFusedPojoType);
+
+	/**
+	 * @param anUnfusedPojoType
+	 * @return
+	 */
+	A_Type typeUnionOfPojoUnfusedType (
+		A_Type anUnfusedPojoType);
+
+	/**
+	 * @param aLiteralTokenType
+	 * @return
+	 */
+	A_Type typeIntersectionOfLiteralTokenType (
+		A_Type aLiteralTokenType);
+
+	/**
+	 * @param aLiteralTokenType
+	 * @return
+	 */
+	A_Type typeUnionOfLiteralTokenType (
+		A_Type aLiteralTokenType);
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	A_Type typeIntersection (A_Type another);
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	A_Type typeIntersectionOfFiberType (
+		A_Type aFiberType);
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	A_Type typeIntersectionOfFunctionType (
+		A_Type aFunctionType);
+
+	/**
+	 * @param aCompiledCodeType
+	 * @return
+	 */
+	A_Type typeIntersectionOfCompiledCodeType (
+		A_Type aCompiledCodeType);
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	A_Type typeIntersectionOfVariableType (
+		A_Type aVariableType);
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	A_Type typeIntersectionOfContinuationType (
+		A_Type aContinuationType);
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	A_Type typeIntersectionOfIntegerRangeType (
+		A_Type anIntegerRangeType);
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	A_Type typeIntersectionOfMapType (A_Type aMapType);
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	A_Type typeIntersectionOfObjectType (
+		A_Type anObjectType);
+
+	/**
+	 * @param aParseNodeType
+	 * @return
+	 */
+	A_Type typeIntersectionOfParseNodeType (
+		A_Type aParseNodeType);
+
+	/**
+	 * @param aPojoType
+	 * @return
+	 */
+	A_Type typeIntersectionOfPojoType (
+		A_Type aPojoType);
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	A_Type typeIntersectionOfSetType (A_Type aSetType);
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	A_Type typeIntersectionOfTupleType (
+		A_Type aTupleType);
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	A_Type typeUnion (A_Type another);
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	A_Type typeUnionOfFiberType (
+		A_Type aFiberType);
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	A_Type typeUnionOfFunctionType (
+		A_Type aFunctionType);
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	A_Type typeUnionOfVariableType (
+		A_Type aVariableType);
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	A_Type typeUnionOfContinuationType (
+		A_Type aContinuationType);
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	A_Type typeUnionOfIntegerRangeType (
+		A_Type anIntegerRangeType);
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	A_Type typeUnionOfMapType (A_Type aMapType);
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	A_Type typeUnionOfObjectType (A_Type anObjectType);
+
+	/**
+	 * @param aParseNodeType
+	 * @return
+	 */
+	A_Type typeUnionOfParseNodeType (A_Type aParseNodeType);
+
+	/**
+	 * @param aPojoType
+	 * @return
+	 */
+	A_Type typeUnionOfPojoType (A_Type aPojoType);
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	A_Type typeUnionOfSetType (A_Type aSetType);
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	A_Type typeUnionOfTupleType (A_Type aTupleType);
 
 	/**
 	 * Answer whether these are acceptable arguments for invoking a {@linkplain

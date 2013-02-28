@@ -1803,6 +1803,15 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
+	 * @param aType
+	 * @return
+	 */
+	abstract boolean o_IsSupertypeOfFiberType (
+		AvailObject object,
+		A_Type aType);
+
+	/**
+	 * @param object
 	 * @param aFunctionType
 	 * @return
 	 */
@@ -2691,6 +2700,15 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
+	 * @param aType
+	 * @return
+	 */
+	abstract A_Type o_TypeIntersectionOfFiberType (
+		AvailObject object,
+		A_Type aType);
+
+	/**
+	 * @param object
 	 * @param aFunctionType
 	 * @return
 	 */
@@ -2796,6 +2814,13 @@ public abstract class AbstractDescriptor
 	abstract A_Type o_TypeUnion (
 		AvailObject object,
 		A_Type another);
+
+	/**
+	 * @param object
+	 * @param aType
+	 * @return
+	 */
+	abstract A_Type o_TypeUnionOfFiberType (AvailObject object, A_Type aType);
 
 	/**
 	 * @param object
@@ -3699,6 +3724,18 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * Answer whether the arguments, an {@linkplain AvailObject object} and a
+	 * {@linkplain FiberTypeDescriptor fiber type}, are equal in value.
+	 *
+	 * @param object The receiver.
+	 * @param aType A fiber type.
+	 * @return {@code true} if the receiver is a fiber type and of value equal
+	 *         to the argument, {@code false} otherwise.
+	 * @see AvailObject#equalsFiberType(AvailObject)
+	 */
+	abstract boolean o_EqualsFiberType (AvailObject object, A_Type aType);
+
+	/**
+	 * Answer whether the arguments, an {@linkplain AvailObject object} and a
 	 * {@linkplain FunctionDescriptor function}, are equal in value.
 	 *
 	 * @param object The receiver.
@@ -4356,7 +4393,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	abstract AvailObject o_ResultType (AvailObject object);
+	abstract A_Type o_ResultType (AvailObject object);
 
 	/**
 	 * @param object
@@ -5184,7 +5221,7 @@ public abstract class AbstractDescriptor
 	 */
 	abstract boolean o_IsSupertypeOfPojoBottomType (
 		final AvailObject object,
-		final A_BasicObject aPojoType);
+		final A_Type aPojoType);
 
 	/**
 	 * @param object
@@ -5456,7 +5493,7 @@ public abstract class AbstractDescriptor
 	 */
 	abstract boolean o_EqualsLiteralTokenType (
 		final AvailObject object,
-		final A_BasicObject aLiteralTokenType);
+		final A_Type aLiteralTokenType);
 
 	/**
 	 * @param object

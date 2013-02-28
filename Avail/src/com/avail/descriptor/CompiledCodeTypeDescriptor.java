@@ -243,7 +243,7 @@ extends TypeDescriptor
 	 *        A {@linkplain FunctionTypeDescriptor function type} on which to
 	 *        base the new {@linkplain CompiledCodeTypeDescriptor compiled code
 	 *        type}.
-	 * @return A new {@linkplain CompiledCodeTypeDescriptor}.
+	 * @return A new {@linkplain CompiledCodeTypeDescriptor compiled code type}.
 	 */
 	public static AvailObject forFunctionType (final A_BasicObject functionType)
 	{

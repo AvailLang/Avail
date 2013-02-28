@@ -542,7 +542,12 @@ public enum AvailErrorCode
 	 */
 	E_FIBER_CANNOT_JOIN_ITSELF (91),
 
-//	E_??? (92)
+	/**
+	 * A {@linkplain FiberDescriptor fiber} produced a result of an incorrect
+	 * type, in violation of its {@linkplain FiberTypeDescriptor fiber type}.
+	 */
+	E_FIBER_PRODUCED_INCORRECTLY_TYPED_RESULT (92),
+
 //	E_??? (93)
 //	E_??? (94)
 //	E_??? (95)

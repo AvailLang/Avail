@@ -123,7 +123,13 @@ Test "basic connection" in network test suite is
 			server's address reusability := true;
 			Bind server to serverAddr;
 			a fiber waiting until server accepts a new connection,
-				on success doing [c : client socket | accepted := c;],
+				on success doing
+				[
+					c : client socket
+				|
+					c's address reusability := true;
+					accepted := c;
+				],
 				on failure doing [c : natural number | killer := c;]
 		]
 		intercept
@@ -180,7 +186,14 @@ Test "basic transmission" in network test suite is
 		server's address reusability := true;
 		Bind server to serverAddr;
 		Ignore: a fiber waiting until server accepts a new connection,
-			on success doing [c : client socket | accepted := c; Signal sem;],
+			on success doing
+			[
+				c : client socket
+			|
+				c's address reusability := true;
+				accepted := c;
+				Signal sem;
+			],
 			on failure doing [c : natural number | killer := c; Signal sem;];
 	]
 	intercept
@@ -207,6 +220,7 @@ Test "basic transmission" in network test suite is
 	|
 		Close server;
 		Close client;
+		If ↑accepted is assigned then [Close accepted;];
 		Raise e
 	];
 	Repeat

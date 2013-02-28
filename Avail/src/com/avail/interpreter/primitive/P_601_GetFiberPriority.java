@@ -34,7 +34,6 @@ package com.avail.interpreter.primitive;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
 import com.avail.descriptor.*;
-import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.*;
 
 /**
@@ -65,7 +64,7 @@ extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				Types.FIBER.o()),
+				FiberTypeDescriptor.mostGeneralType()),
 			IntegerRangeTypeDescriptor.create(
 				IntegerDescriptor.zero(),
 				true,

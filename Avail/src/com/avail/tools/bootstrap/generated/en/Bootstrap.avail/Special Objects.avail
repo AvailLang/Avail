@@ -76,6 +76,7 @@ Names
 	/*  18 */ "extended integer meta",
 	/*  71 */ "false",
 	/*  25 */ "fiber",
+	/* 132 */ "fiber meta",
 	/*  93 */ "field map",
 	/* 120 */ "field tuple",
 	/*  94 */ "field type map",
@@ -307,6 +308,7 @@ _tuple_of_set_of_atom                   ::= special object 128;
 _byte                                   ::= special object 129;
 _tuple_of_tuple_of_any_meta             ::= special object 130;
 _readable_extended_integer_variable     ::= special object 131;
+_fiber_meta                             ::= special object 132;
 
 /**
  * The practical abstract root of the Avail type lattice. `any` is the second
@@ -1082,5 +1084,10 @@ Primitive "tuple of tuple of any meta" is
 Primitive "readable extended integer variable" is
 [
 	_readable_extended_integer_variable
+];
+
+Primitive "fiber meta" is
+[
+	_fiber_meta
 ];
 

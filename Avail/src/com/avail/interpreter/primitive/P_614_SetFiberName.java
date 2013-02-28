@@ -70,7 +70,7 @@ extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				FIBER.o(),
+				FiberTypeDescriptor.mostGeneralType(),
 				TupleTypeDescriptor.stringTupleType()),
 			TOP.o());
 	}

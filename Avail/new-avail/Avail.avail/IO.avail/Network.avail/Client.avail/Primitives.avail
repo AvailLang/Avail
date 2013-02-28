@@ -398,6 +398,21 @@ is
 		forked at priority priority
 ] : fiber;
 
+Semantic restriction
+	"a fiber connecting_to_,⁇\
+	\|on success doing_,⁇\
+	\|on failure doing_«⁇,forked at priority_»"
+is
+[
+	s : client socket's type,
+	peerAddress : socket address's type,
+	success : []→⊤'s type,
+	failure : [natural number]→⊤'s type,
+	optionalPriority : <byte…|0..1>'s type
+|
+	fiber→(success's return type ∪ failure's return type)
+];
+
 /**
  * Asynchronously read data from a {@type "client socket"}. If the operation is
  * successful, then fork a new {@type "fiber"} to apply {@param "success"} to
@@ -430,7 +445,8 @@ is
 Public method
 	"a fiber reading_byte|bytes from_,⁇\
 	\|on success doing_,⁇\
-	\|on failure doing_«⁇,forked at priority_»" is
+	\|on failure doing_«⁇,forked at priority_»"
+is
 [
 	count : whole number,
 	s : client socket,
@@ -456,6 +472,21 @@ Public method
 		Raise an exception for code
 	] : fiber (adjustedCount, s's handle, success, failure, priority)
 ] : fiber;
+
+Semantic restriction
+	"a fiber reading_byte|bytes from_,⁇\
+	\|on success doing_,⁇\
+	\|on failure doing_«⁇,forked at priority_»"
+is
+[
+	count : whole number's type,
+	s : client socket's type,
+	success : []→⊤'s type,
+	failure : [natural number]→⊤'s type,
+	optionalPriority : <byte…|0..1>'s type
+|
+	fiber→(success's return type ∪ failure's return type)
+];
 
 /**
  * Asynchronously write data to a {@type "client socket"}. If the operation is
@@ -487,7 +518,8 @@ Public method
 Public method
 	"a fiber writing_to_,⁇\
 	\|on success doing_,⁇\
-	\|on failure doing_«⁇,forked at priority_»" is
+	\|on failure doing_«⁇,forked at priority_»"
+is
 [
 	data : <byte…|>,
 	s : client socket,
@@ -512,6 +544,21 @@ Public method
 		Raise an exception for code
 	] : fiber (data, s's handle, success, failure, priority)
 ] : fiber;
+
+Semantic restriction
+	"a fiber writing_to_,⁇\
+	\|on success doing_,⁇\
+	\|on failure doing_«⁇,forked at priority_»"
+is
+[
+	data : <byte…|>'s type,
+	s : client socket's type,
+	success : []→⊤'s type,
+	failure : [natural number]→⊤'s type,
+	optionalPriority : <byte…|0..1>'s type
+|
+	fiber→(success's return type ∪ failure's return type)
+];
 
 /**
  * Answer the local {@type "socket address"} to which the specified {@type

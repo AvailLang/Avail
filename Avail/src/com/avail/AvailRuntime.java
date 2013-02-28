@@ -620,7 +620,8 @@ public final class AvailRuntime
 	public static void createWellKnownObjects ()
 	{
 		// Set up the special objects.
-		final A_BasicObject[] specials = new A_BasicObject[specialObjects.length];
+		final A_BasicObject[] specials =
+			new A_BasicObject[specialObjects.length];
 		specials[1] = ANY.o();
 		specials[2] = EnumerationTypeDescriptor.booleanObject();
 		specials[3] = CHARACTER.o();
@@ -647,7 +648,7 @@ public final class AvailRuntime
 		specials[22] = ObjectTypeDescriptor.mostGeneralType();
 		specials[23] = ObjectTypeDescriptor.meta();
 		specials[24] = ObjectTypeDescriptor.exceptionType();
-		specials[25] = FIBER.o();
+		specials[25] = FiberTypeDescriptor.mostGeneralType();
 		specials[26] = SetTypeDescriptor.mostGeneralType();
 		specials[27] = SetTypeDescriptor.meta();
 		specials[28] = TupleTypeDescriptor.stringTupleType();
@@ -859,6 +860,7 @@ public final class AvailRuntime
 		specials[131] = VariableTypeDescriptor.fromReadAndWriteTypes(
 			IntegerRangeTypeDescriptor.extendedIntegers(),
 			BottomTypeDescriptor.bottom());
+		specials[132] = FiberTypeDescriptor.meta();
 
 		System.arraycopy(specials, 0, specialObjects, 0, specials.length);
 

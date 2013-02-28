@@ -132,7 +132,7 @@ extends ParseNodeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_ResultType (final AvailObject object)
+	A_Type o_ResultType (final AvailObject object)
 	{
 		return object.slot(RESULT_TYPE);
 	}
@@ -590,7 +590,7 @@ extends ParseNodeDescriptor
 		final int primitive = object.primitive();
 		final A_Tuple statementsTuple = object.statementsTuple();
 		final int statementsSize = statementsTuple.tupleSize();
-		@Nullable AvailObject explicitResultType = object.resultType();
+		@Nullable A_Type explicitResultType = object.resultType();
 		if (statementsSize >= 1
 			&& statementsTuple.tupleAt(statementsSize).expressionType()
 				.equals(explicitResultType))

@@ -331,7 +331,7 @@ extends TypeDescriptor
 			final AvailObject key = entry.key();
 			if (map2.hasKey(key))
 			{
-				final A_BasicObject valueType = entry.value();
+				final A_Type valueType = entry.value();
 				resultMap = resultMap.mapAtPuttingCanDestroy(
 					key,
 					valueType.typeUnion(map2.mapAt(key)),

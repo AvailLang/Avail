@@ -40,7 +40,6 @@ import java.util.*;
 import java.util.concurrent.ThreadPoolExecutor;
 import com.avail.*;
 import com.avail.annotations.*;
-import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.*;
 import com.avail.utility.*;
 
@@ -197,6 +196,12 @@ extends Descriptor
 	public enum ObjectSlots
 	implements ObjectSlotsEnum
 	{
+		/**
+		 * The result type of this {@linkplain FiberDescriptor fiber}'s
+		 * {@linkplain FiberTypeDescriptor type}.
+		 */
+		RESULT_TYPE,
+
 		/**
 		 * The current {@linkplain ContinuationDescriptor state of execution} of
 		 * the fiber.
@@ -875,7 +880,8 @@ extends Descriptor
 			@Override
 			public void value (final @Nullable Throwable ignored)
 			{
-				// TODO: [TLS] Log something, maybe?
+				// Do nothing; errors in fibers should be handled by Avail
+				// code.
 			}
 		};
 
@@ -996,7 +1002,7 @@ extends Descriptor
 	@Override @AvailMethod
 	AvailObject o_Kind (final AvailObject object)
 	{
-		return Types.FIBER.o();
+		return FiberTypeDescriptor.forResultType(object.slot(RESULT_TYPE));
 	}
 
 	@Override @AvailMethod
@@ -1060,15 +1066,21 @@ extends Descriptor
 
 	/**
 	 * Construct an {@linkplain ExecutionState#UNSTARTED unstarted} {@linkplain
-	 * FiberDescriptor fiber} with the specified initial priority.
+	 * FiberDescriptor fiber} with the specified {@linkplain A_Type result type}
+	 * and initial priority.
 	 *
+	 * @param resultType
+	 *        The expected result type.
 	 * @param priority
 	 *        The initial priority.
 	 * @return The new fiber.
 	 */
-	public static AvailObject newFiber (final int priority)
+	public static AvailObject newFiber (
+		final A_Type resultType,
+		final int priority)
 	{
 		final AvailObject fiber = FiberDescriptor.mutable.create();
+		fiber.setSlot(RESULT_TYPE, resultType.makeImmutable());
 		fiber.setSlot(
 			NAME,
 			StringDescriptor.from(String.format(
@@ -1094,19 +1106,24 @@ extends Descriptor
 
 	/**
 	 * Construct an {@linkplain ExecutionState#UNSTARTED unstarted} {@linkplain
-	 * FiberDescriptor fiber} with the specified {@linkplain
-	 * AvailLoader Avail loader}. The priority is initially set to {@linkplain
-	 * #loaderPriority}.
+	 * FiberDescriptor fiber} with the specified {@linkplain A_Type result type}
+	 * and {@linkplain AvailLoader Avail loader}. The priority is initially set
+	 * to {@linkplain #loaderPriority}.
 	 *
+	 * @param resultType
+	 *        The expected result type.
 	 * @param loader
 	 *        An Avail loader.
 	 * @return The new fiber.
 	 */
-	public static AvailObject newLoaderFiber (final AvailLoader loader)
+	public static AvailObject newLoaderFiber (
+		final A_Type resultType,
+		final AvailLoader loader)
 	{
 		final AvailObject fiber = FiberDescriptor.mutable.create();
 		final AvailObject module = loader.module();
 		assert module != null;
+		fiber.setSlot(RESULT_TYPE, resultType.makeImmutable());
 		fiber.setSlot(
 			NAME,
 			StringDescriptor.from(String.format(

@@ -152,6 +152,11 @@ extends Descriptor
 		final A_Type aType);
 
 	@Override @AvailMethod
+	abstract boolean o_IsSupertypeOfFiberType (
+		final AvailObject object,
+		final A_Type aFunctionType);
+
+	@Override @AvailMethod
 	abstract boolean o_IsSupertypeOfFunctionType (
 		final AvailObject object,
 		final A_Type aFunctionType);
@@ -219,7 +224,7 @@ extends Descriptor
 	@Override @AvailMethod
 	abstract boolean o_IsSupertypeOfPojoBottomType (
 		final AvailObject object,
-		final A_BasicObject aPojoType);
+		final A_Type aPojoType);
 
 	@Override @AvailMethod
 	boolean o_IsSupertypeOfBottom (
@@ -284,6 +289,11 @@ extends Descriptor
 	abstract A_Type o_TypeIntersection (
 		final AvailObject object,
 		final A_Type another);
+
+	@Override @AvailMethod
+	abstract A_Type o_TypeIntersectionOfFiberType (
+		final AvailObject object,
+		final A_Type aFiberType);
 
 	@Override @AvailMethod
 	abstract A_Type o_TypeIntersectionOfFunctionType (
@@ -352,6 +362,11 @@ extends Descriptor
 	abstract A_Type o_TypeUnion (
 		final AvailObject object,
 		final A_Type another);
+
+	@Override @AvailMethod
+	abstract A_Type o_TypeUnionOfFiberType (
+		final AvailObject object,
+		final A_Type aFiberType);
 
 	@Override @AvailMethod
 	abstract A_Type o_TypeUnionOfFunctionType (

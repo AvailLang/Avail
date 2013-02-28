@@ -72,6 +72,7 @@ Names
 	/*  38 */ "exclamation mark must follow an alternation group code",
 	/*  46 */ "expected operator after backquote code",
 	/*  91 */ "fiber cannot join itself code",
+	/*  92 */ "fiber produced incorrectly typed result code",
 	/*  90 */ "fiber result unavailable code",
 	/*  27 */ "function disagrees with primitive restriction code",
 	/*  80 */ "handler sentinel code",
@@ -525,6 +526,11 @@ Primitive "fiber result unavailable code" is
 Primitive "fiber cannot join itself code" is
 [
 	91
+];
+
+Primitive "fiber produced incorrectly typed result code" is
+[
+	92
 ];
 
 Primitive "block contains invalid statements code" is

@@ -762,6 +762,12 @@ extends AbstractDescriptor
 	}
 
 	@Override
+	boolean o_EqualsFiberType (final AvailObject object, final A_Type aType)
+	{
+		return o_Traversed(object).equalsFiberType(aType);
+	}
+
+	@Override
 	boolean o_EqualsFunction (
 		final AvailObject object,
 		final AvailObject aFunction)
@@ -1189,6 +1195,14 @@ extends AbstractDescriptor
 	{
 		return o_Traversed(object).isSupertypeOfCompiledCodeType(
 			aCompiledCodeType);
+	}
+
+	@Override
+	boolean o_IsSupertypeOfFiberType (
+		final AvailObject object,
+		final A_Type aFiberType)
+	{
+		return o_Traversed(object).isSupertypeOfFiberType(aFiberType);
 	}
 
 	@Override
@@ -1895,6 +1909,15 @@ extends AbstractDescriptor
 	}
 
 	@Override
+	A_Type o_TypeIntersectionOfFiberType (
+		final AvailObject object,
+		final A_Type aFiberType)
+	{
+		return o_Traversed(object).typeIntersectionOfFiberType(
+			aFiberType);
+	}
+
+	@Override
 	A_Type o_TypeIntersectionOfFunctionType (
 		final AvailObject object,
 		final A_Type aFunctionType)
@@ -1994,6 +2017,14 @@ extends AbstractDescriptor
 		final A_Type another)
 	{
 		return o_Traversed(object).typeUnion(another);
+	}
+
+	@Override
+	A_Type o_TypeUnionOfFiberType (
+		final AvailObject object,
+		final A_Type aFiberType)
+	{
+		return o_Traversed(object).typeUnionOfFiberType(aFiberType);
 	}
 
 	@Override
@@ -2990,7 +3021,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	AvailObject o_ResultType (final AvailObject object)
+	A_Type o_ResultType (final AvailObject object)
 	{
 		return o_Traversed(object).resultType();
 	}
@@ -3795,7 +3826,7 @@ extends AbstractDescriptor
 	@Override
 	boolean o_IsSupertypeOfPojoBottomType (
 		final AvailObject object,
-		final A_BasicObject aPojoType)
+		final A_Type aPojoType)
 	{
 		return o_Traversed(object).isSupertypeOfPojoBottomType(aPojoType);
 	}
@@ -4079,7 +4110,7 @@ extends AbstractDescriptor
 	@Override
 	boolean o_EqualsLiteralTokenType (
 		final AvailObject object,
-		final A_BasicObject aLiteralTokenType)
+		final A_Type aLiteralTokenType)
 	{
 		return o_Traversed(object).equalsLiteralTokenType(aLiteralTokenType);
 	}

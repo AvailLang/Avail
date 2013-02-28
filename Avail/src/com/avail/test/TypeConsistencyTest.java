@@ -260,6 +260,17 @@ public class TypeConsistencyTest
 			}
 		};
 
+		/** The most general fiber type. */
+		static final Node FIBER = new Node(
+			"FIBER",
+			primitiveTypes.get(Types.NONTYPE))
+		{
+			@Override A_Type get ()
+			{
+				return FiberTypeDescriptor.mostGeneralType();
+			}
+		};
+
 		/** The most general function type. */
 		static final Node MOST_GENERAL_FUNCTION = new Node(
 			"MOST_GENERAL_FUNCTION",
@@ -878,9 +889,23 @@ public class TypeConsistencyTest
 			}
 		};
 
+		/**
+		 * The metatype for fiber types.
+		 */
+		static final Node FIBER_META = new Node(
+			"FIBER_META",
+			NONTYPE_META)
+		{
+			@Override A_Type get ()
+			{
+				return FiberTypeDescriptor.meta();
+			}
+		};
+
 		/** The type of {@code bottom}.  This is the most specific meta. */
 		static final Node BOTTOM_TYPE = new Node(
 			"BOTTOM_TYPE",
+			FIBER_META,
 			FUNCTION_META,
 			CONTINUATION_META,
 			WHOLE_NUMBER_META,
@@ -1052,6 +1077,7 @@ public class TypeConsistencyTest
 							nontypeNode,
 							atomNode,
 							anotherAtomNode,
+							FIBER,
 							MOST_GENERAL_FUNCTION,
 							NOTHING_TO_INT_FUNCTION,
 							INT_TO_INT_FUNCTION,
@@ -1103,6 +1129,7 @@ public class TypeConsistencyTest
 							nontypeNode,
 							atomNode,
 							anotherAtomNode,
+							FIBER,
 							MOST_GENERAL_FUNCTION,
 							NOTHING_TO_INT_FUNCTION,
 							INT_TO_INT_FUNCTION,
@@ -1138,6 +1165,7 @@ public class TypeConsistencyTest
 							nontypeNode,
 							atomNode,
 							anotherAtomNode,
+							FIBER,
 							MOST_GENERAL_FUNCTION,
 							NOTHING_TO_INT_FUNCTION,
 							INT_TO_INT_FUNCTION,
@@ -1783,10 +1811,10 @@ public class TypeConsistencyTest
 		{
 			for (final Node y : Node.values)
 			{
-				final A_BasicObject xy = x.union(y);
+				final A_Type xy = x.union(y);
 				for (final Node z : Node.values)
 				{
-					final A_BasicObject xyUz = xy.typeUnion(z.t());
+					final A_Type xyUz = xy.typeUnion(z.t());
 					final A_Type yz = y.union(z);
 					final A_Type xUyz = x.t().typeUnion(yz);
 					if (!xyUz.equals(xUyz))
@@ -1895,7 +1923,7 @@ public class TypeConsistencyTest
 		{
 			for (final Node y : Node.values)
 			{
-				final A_BasicObject xy = x.intersect(y);
+				final A_Type xy = x.intersect(y);
 				for (final Node z : Node.values)
 				{
 					final A_Type xyIz = xy.typeIntersection(z.t());
@@ -2008,6 +2036,24 @@ public class TypeConsistencyTest
 					y);
 			}
 		}
+	}
+
+	/**
+	 * Test that the subtype relation covaries with fiber result type.
+	 *
+	 * @see #checkCovariance(TypeRelation)
+	 */
+	@Test
+	public void testFiberResultCovariance ()
+	{
+		checkCovariance(new TypeRelation("fiber result")
+		{
+			@Override
+			public A_Type transform (final A_Type type)
+			{
+				return FiberTypeDescriptor.forResultType(type);
+			}
+		});
 	}
 
 	/**

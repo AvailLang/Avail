@@ -1,5 +1,5 @@
 /**
- * P_613_FiberName.java
+ * P_627_FiberTypeResultType.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -32,26 +32,26 @@
 
 package com.avail.interpreter.primitive;
 
-import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
+import com.avail.annotations.NotNull;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 
 /**
- * <strong>Primitive 613</strong>: Answer the name of the specified {@linkplain
- * FiberDescriptor fiber}.
+ * <strong>Primitive 627</strong>: Answer the result type of the specified
+ * {@linkplain FiberTypeDescriptor fiber type}.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class P_613_FiberName
+public final class P_627_FiberTypeResultType
 extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
-	public final static Primitive instance =
-		new P_613_FiberName().init(1, CannotFail, CanInline);
+	public final @NotNull static Primitive instance =
+		new P_627_FiberTypeResultType().init(1, CannotFail, CanFold, CanInline);
 
 	@Override
 	public Result attempt (
@@ -59,8 +59,8 @@ extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
-		final AvailObject fiber = args.get(0);
-		return interpreter.primitiveSuccess(fiber.name());
+		final A_Type fiberType = args.get(0);
+		return interpreter.primitiveSuccess(fiberType.resultType());
 	}
 
 	@Override
@@ -68,7 +68,7 @@ extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				FiberTypeDescriptor.mostGeneralType()),
-			TupleTypeDescriptor.stringTupleType());
+				FiberTypeDescriptor.meta()),
+			InstanceMetaDescriptor.topMeta());
 	}
 }

@@ -160,6 +160,16 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
+	boolean o_IsSupertypeOfFiberType (
+		final AvailObject object,
+		final A_Type aFiberType)
+	{
+		// This primitive type is a supertype of aFiberType if and only if
+		// this primitive type is a supertype of NONTYPE.
+		return object.isSupertypeOfPrimitiveTypeEnum(NONTYPE);
+	}
+
+	@Override @AvailMethod
 	boolean o_IsSupertypeOfFunctionType (
 		final AvailObject object,
 		final A_Type aFunctionType)
@@ -250,7 +260,7 @@ extends TypeDescriptor
 	@Override
 	boolean o_IsSupertypeOfPojoBottomType (
 		final AvailObject object,
-		final A_BasicObject aPojoType)
+		final A_Type aPojoType)
 	{
 		return object.isSupertypeOfPrimitiveTypeEnum(NONTYPE);
 	}
@@ -373,7 +383,6 @@ extends TypeDescriptor
 					case NONTYPE:
 					case NUMBER:
 					case POWER_STRING_TOKEN:
-					case FIBER:
 					case RAW_POJO:
 					case DEFINITION:
 					case TOKEN:

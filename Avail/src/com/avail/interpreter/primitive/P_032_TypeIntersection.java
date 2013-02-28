@@ -54,8 +54,8 @@ public class P_032_TypeIntersection extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 2;
-		final A_BasicObject type1 = args.get(0);
-		final AvailObject type2 = args.get(1);
+		final A_Type type1 = args.get(0);
+		final A_Type type2 = args.get(1);
 		return interpreter.primitiveSuccess(
 			type1.typeIntersection(type2).makeImmutable());
 	}

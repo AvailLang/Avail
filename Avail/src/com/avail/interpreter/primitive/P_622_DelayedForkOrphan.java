@@ -103,8 +103,9 @@ extends Primitive
 			arg.makeShared();
 		}
 		final A_BasicObject current = FiberDescriptor.current();
-		final A_BasicObject orphan =
-			FiberDescriptor.newFiber(priority.extractInt());
+		final A_BasicObject orphan = FiberDescriptor.newFiber(
+			function.kind().returnType(),
+			priority.extractInt());
 		// If the current fiber is an Avail fiber, then the new one should be
 		// also.
 		orphan.availLoader(current.availLoader());

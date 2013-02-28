@@ -172,7 +172,7 @@ extends TypeDescriptor
 		final AvailObject object,
 		final A_Type aVariableType)
 	{
-		final A_BasicObject innerType = object.slot(ObjectSlots.INNER_TYPE);
+		final A_Type innerType = object.slot(ObjectSlots.INNER_TYPE);
 		// The intersection of two variable types is a variable type whose
 		// read type is the type intersection of the two incoming read types and
 		// whose write type is the type union of the two incoming write types.
@@ -202,7 +202,7 @@ extends TypeDescriptor
 		final AvailObject object,
 		final A_Type aVariableType)
 	{
-		final A_BasicObject innerType = object.slot(ObjectSlots.INNER_TYPE);
+		final A_Type innerType = object.slot(ObjectSlots.INNER_TYPE);
 
 		// The union of two variable types is a variable type whose
 		// read type is the type union of the two incoming read types and whose

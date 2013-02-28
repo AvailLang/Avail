@@ -578,7 +578,7 @@ extends TypeDescriptor
 	@Override @AvailMethod
 	final boolean o_IsSupertypeOfPojoBottomType (
 		final AvailObject object,
-		final A_BasicObject aPojoType)
+		final A_Type aPojoType)
 	{
 		// Every pojo type is a supertype of pojo bottom.
 		return true;

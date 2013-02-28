@@ -104,6 +104,7 @@ Uses
 		"_'s⁇public names",
 		"_'s⁇read type",
 		"_'s⁇referent",
+		"_'s⁇result type",
 		"_'s⁇return type",
 		"_'s⁇seals",
 		"_'s⁇semantic type",
@@ -169,6 +170,7 @@ Uses
 		"current fiber",
 		"current fiber is applying a semantic restriction",
 		"enumeration of_",
+		"fiber→_",
 		"function accepting_and returning_",
 		"integer range from_(inclusive=_)to_(inclusive=_)",
 		"literal token⇒_",
@@ -3311,4 +3313,34 @@ Primitive "current fiber is applying a semantic restriction" is
 [
 	Primitive 625;
 ] : boolean;
+
+/**
+ * Construct and answer a fiber type whose result type is `resultType`.
+ *
+ * Parameters:
+ *    resultType - A type.
+ * Returns:
+ *    The requested fiber type.
+ */
+Primitive "fiber→_" is
+[
+	resultType : type
+|
+	Primitive 626;
+] : fiber meta;
+
+/**
+ * Answer the result type of the specified fiber type.
+ *
+ * Parameters:
+ *    fiberType - A fiber type.
+ * Returns:
+ *    The argument's result type.
+ */
+Primitive "_'s⁇result type" is
+[
+	fiberType : fiber meta
+|
+	Primitive 627;
+] : type;
 

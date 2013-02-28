@@ -76,8 +76,17 @@ extends Primitive
 				}
 				else
 				{
-					result.value = interpreter.primitiveSuccess(
-						fiber.fiberResult());
+					final AvailObject fiberResult = fiber.fiberResult();
+					if (!fiberResult.isInstanceOf(fiber.kind().resultType()))
+					{
+						result.value = interpreter.primitiveFailure(
+							E_FIBER_PRODUCED_INCORRECTLY_TYPED_RESULT);
+					}
+					else
+					{
+						result.value = interpreter.primitiveSuccess(
+							fiber.fiberResult());
+					}
 				}
 			}
 		});
@@ -89,7 +98,7 @@ extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				FIBER.o()),
+				FiberTypeDescriptor.mostGeneralType()),
 			ANY.o());
 	}
 }

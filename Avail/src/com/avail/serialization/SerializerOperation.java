@@ -1642,14 +1642,15 @@ public enum SerializerOperation
 	},
 
 	/**
-	 * Reserved for future use.
+	 * A {@linkplain FiberTypeDescriptor fiber type}.
 	 */
-	RESERVED_59 (59)
+	FIBER_TYPE (59,
+		OBJECT_REFERENCE.as("Result type"))
 	{
 		@Override
 		A_BasicObject[] decompose (final AvailObject object)
 		{
-			throw new RuntimeException("Reserved serializer operation");
+			return array(object.resultType());
 		}
 
 		@Override
@@ -1657,7 +1658,8 @@ public enum SerializerOperation
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
-			throw new RuntimeException("Reserved serializer operation");
+			final A_Type resultType = subobjects[0];
+			return FiberTypeDescriptor.forResultType(resultType);
 		}
 	},
 

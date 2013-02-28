@@ -497,9 +497,9 @@ extends TypeDescriptor
 			object.slot(RETURN_TYPE).typeIntersection(
 				aFunctionType.returnType());
 		A_Set exceptions = SetDescriptor.empty();
-		for (final A_BasicObject outer : object.slot(DECLARED_EXCEPTIONS))
+		for (final A_Type outer : object.slot(DECLARED_EXCEPTIONS))
 		{
-			for (final AvailObject inner
+			for (final A_Type inner
 				: aFunctionType.declaredExceptions())
 			{
 				exceptions = exceptions.setWithElementCanDestroy(

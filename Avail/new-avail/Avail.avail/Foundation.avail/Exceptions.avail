@@ -917,6 +917,8 @@ System exception "fiber-result-unavailable" (90)
 	extends system exception;
 System exception "fiber-cannot-join-itself" (91)
 	extends system exception;
+System exception "fiber-produced-incorrectly-typed-result" (92)
+	extends element-access exception;
 System exception "block-contains-invalid-statements" (100)
 	extends bad-phrase exception;
 System exception "block-is-invalid" (101)

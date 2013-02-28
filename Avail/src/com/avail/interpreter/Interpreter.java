@@ -1213,6 +1213,8 @@ public final class Interpreter
 		final A_Type expectedType = caller.stackAt(stackp);
 		if (!value.isInstanceOf(expectedType))
 		{
+			// TODO: [MvG] Remove after debugging.
+			value.isInstanceOf(expectedType);
 			error(String.format(
 				"Return value (%s) does not agree with expected type (%s)",
 				value,

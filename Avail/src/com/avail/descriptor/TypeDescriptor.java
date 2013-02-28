@@ -243,14 +243,7 @@ extends AbstractTypeDescriptor
 		 * and doing other things that occasionally require their kind to be
 		 * extracted.
 		 */
-		RAW_POJO(NONTYPE),
-
-		/**
-		 * {@linkplain FiberDescriptor Processes} are the way Avail represents
-		 * independent execution.
-		 */
-		FIBER(NONTYPE);
-
+		RAW_POJO(NONTYPE);
 
 		/**
 		 * The {@link Types} object representing this type's supertype.
@@ -355,6 +348,14 @@ extends AbstractTypeDescriptor
 		final A_Type aType)
 	{
 		return object.kind().isSubtypeOf(aType);
+	}
+
+	@Override @AvailMethod
+	boolean o_IsSupertypeOfFiberType (
+		final AvailObject object,
+		final A_Type aFiberType)
+	{
+		return false;
 	}
 
 	@Override @AvailMethod
@@ -486,9 +487,17 @@ extends AbstractTypeDescriptor
 	@Override
 	boolean o_IsSupertypeOfPojoBottomType (
 		final AvailObject object,
-		final A_BasicObject aPojoType)
+		final A_Type aPojoType)
 	{
 		return false;
+	}
+
+	@Override @AvailMethod
+	A_Type o_TypeIntersectionOfFiberType (
+		final AvailObject object,
+		final A_Type aFiberType)
+	{
+		return BottomTypeDescriptor.bottom();
 	}
 
 	@Override @AvailMethod
@@ -585,6 +594,14 @@ extends AbstractTypeDescriptor
 		final A_Type aTupleType)
 	{
 		return BottomTypeDescriptor.bottom();
+	}
+
+	@Override @AvailMethod
+	A_Type o_TypeUnionOfFiberType (
+		final AvailObject object,
+		final A_Type aFiberType)
+	{
+		return object.typeUnion(NONTYPE.o());
 	}
 
 	@Override @AvailMethod

@@ -126,6 +126,7 @@ implements
 		FloatDescriptor.createWellKnownObjects();
 		DoubleDescriptor.createWellKnownObjects();
 		MessageBundleDescriptor.createWellKnownObjects();
+		FiberTypeDescriptor.createWellKnownObjects();
 
 		AvailRuntime.createWellKnownObjects();
 		Serializer.createWellKnownObjects();
@@ -175,6 +176,7 @@ implements
 		FloatDescriptor.clearWellKnownObjects();
 		DoubleDescriptor.clearWellKnownObjects();
 		MessageBundleDescriptor.clearWellKnownObjects();
+		FiberTypeDescriptor.clearWellKnownObjects();
 
 		AvailRuntime.clearWellKnownObjects();
 		Serializer.clearWellKnownObjects();
@@ -1721,6 +1723,12 @@ implements
 		return descriptor.o_EqualsCharacterWithCodePoint(this, aCodePoint);
 	}
 
+	@Override
+	public boolean equalsFiberType (final A_Type aFiberType)
+	{
+		return descriptor.o_EqualsFiberType(this, aFiberType);
+	}
+
 	/**
 	 * Answer whether the receiver, an {@linkplain AvailObject object}, and the
 	 * argument, a {@linkplain FunctionDescriptor function}, are equal in value.
@@ -2720,6 +2728,15 @@ implements
 		final A_BasicObject aContinuationType)
 	{
 		return descriptor.o_IsSupertypeOfContinuationType(this, aContinuationType);
+	}
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	@Override
+	public boolean isSupertypeOfFiberType (final A_Type aFiberType)
+	{
+		return descriptor.o_IsSupertypeOfFiberType(this, aFiberType);
 	}
 
 	/**
@@ -4499,6 +4516,18 @@ implements
 	 * Dispatch to the descriptor.
 	 */
 	@Override
+	public A_Type typeIntersectionOfFiberType (
+		final A_Type aFiberType)
+	{
+		return descriptor.o_TypeIntersectionOfFiberType(
+			this,
+			aFiberType);
+	}
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	@Override
 	public A_Type typeIntersectionOfFunctionType (
 		final A_Type aFunctionType)
 	{
@@ -4631,6 +4660,18 @@ implements
 		final A_Type another)
 	{
 		return descriptor.o_TypeUnion(this, another);
+	}
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	@Override
+	public A_Type typeUnionOfFiberType (
+		final A_Type aFiberType)
+	{
+		return descriptor.o_TypeUnionOfFiberType(
+			this,
+			aFiberType);
 	}
 
 	/**
@@ -4925,7 +4966,7 @@ implements
 	 * @return
 	 */
 	@Override
-	public AvailObject resultType ()
+	public A_Type resultType ()
 	{
 		return descriptor.o_ResultType(this);
 	}
@@ -6060,7 +6101,7 @@ implements
 	 */
 	@Override
 	public boolean isSupertypeOfPojoBottomType (
-		final A_BasicObject aPojoType)
+		final A_Type aPojoType)
 	{
 		return descriptor.o_IsSupertypeOfPojoBottomType(this, aPojoType);
 	}
@@ -6380,7 +6421,7 @@ implements
 	 */
 	@Override
 	public boolean equalsLiteralTokenType (
-		final A_BasicObject aLiteralTokenType)
+		final A_Type aLiteralTokenType)
 	{
 		return descriptor.o_EqualsLiteralTokenType(this, aLiteralTokenType);
 	}

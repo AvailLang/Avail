@@ -72,6 +72,13 @@ Names
 	"worker exception"
 Body
 
+Semantic restriction "_'s⁇result" is
+[
+	fiberType : fiber's type
+|
+	fiberType's result type
+];
+
 /**
  * Require that the specified function type is applicable to the specified
  * argument types. If the function type is not sufficiently well known, then
@@ -122,7 +129,7 @@ Semantic restriction "invoke_with_,⁇forked at priority_" is
 	priorityType : [0..255]'s type
 |
 	Require: forked functionType accepts argumentsType;
-	⊤
+	fiber→(functionType's return type)
 ];
 
 Semantic restriction
@@ -148,7 +155,7 @@ is
 	priorityType : [0..255]'s type
 |
 	Require: forked functionType accepts argumentsType;
-	⊤
+	fiber→(functionType's return type)
 ];
 
 /* Disambiguate fiber-local access and atom property access. They are already
@@ -217,6 +224,13 @@ Public method "fork_" is
 |
 	invoke aFunction with <> forked at priority current fiber's priority
 ] : fiber;
+
+Semantic restriction "fork_" is
+[
+	functionType : []→⊤'s type
+|
+	fiber→(functionType's return type)
+];
 
 /**
  * A worker exception indicates that a worker forked by a parallel construct

@@ -175,6 +175,7 @@ Invoke [
 		<83, "unwind-sentinel">,
 		<90, "fiber-result-unavailable">,
 		<91, "fiber-cannot-join-itself">,
+		<92, "fiber-produced-incorrectly-typed-result">,
 		<100, "block-contains-invalid-statements">,
 		<101, "block-is-invalid">,
 		<102, "block-must-not-contain-outers">,

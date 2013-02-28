@@ -682,6 +682,14 @@ extends AbstractDescriptor
 	}
 
 	@Override
+	boolean o_IsSupertypeOfFiberType (
+		final AvailObject object,
+		final A_Type aType)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
 	boolean o_IsSupertypeOfFunctionType (
 		final AvailObject object,
 		final A_Type aFunctionType)
@@ -1395,6 +1403,14 @@ extends AbstractDescriptor
 	}
 
 	@Override
+	A_Type o_TypeIntersectionOfFiberType (
+		final AvailObject object,
+		final A_Type aFiberType)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
 	A_Type o_TypeIntersectionOfFunctionType (
 		final AvailObject object,
 		final A_Type aFunctionType)
@@ -1486,6 +1502,14 @@ extends AbstractDescriptor
 	A_Type o_TypeUnion (
 		final AvailObject object,
 		final A_Type another)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	A_Type o_TypeUnionOfFiberType (
+		final AvailObject object,
+		final A_Type aFiberType)
 	{
 		throw unsupportedOperationException();
 	}
@@ -2457,6 +2481,14 @@ extends AbstractDescriptor
 	}
 
 	@Override
+	boolean o_EqualsFiberType (
+		final AvailObject object,
+		final A_Type aFiberType)
+	{
+		return false;
+	}
+
+	@Override
 	boolean o_EqualsFunctionType (
 		final AvailObject object,
 		final A_Type aFunctionType)
@@ -3137,7 +3169,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	AvailObject o_ResultType (final AvailObject object)
+	A_Type o_ResultType (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}
@@ -4002,7 +4034,7 @@ extends AbstractDescriptor
 	@Override
 	boolean o_IsSupertypeOfPojoBottomType (
 		final AvailObject object,
-		final A_BasicObject aPojoType)
+		final A_Type aPojoType)
 	{
 		throw unsupportedOperationException();
 	}
@@ -4295,7 +4327,7 @@ extends AbstractDescriptor
 	@Override
 	boolean o_EqualsLiteralTokenType (
 		final AvailObject object,
-		final A_BasicObject aLiteralTokenType)
+		final A_Type aLiteralTokenType)
 	{
 		return false;
 	}

@@ -564,7 +564,9 @@ public final class AvailBuilder
 					if (function != null)
 					{
 						final AvailObject fiber =
-							FiberDescriptor.newLoaderFiber(loader);
+							FiberDescriptor.newLoaderFiber(
+								function.kind().returnType(),
+								loader);
 						fiber.resultContinuation(runNext.value());
 						fiber.failureContinuation(fail.value());
 						Interpreter.runOutermostFunction(
