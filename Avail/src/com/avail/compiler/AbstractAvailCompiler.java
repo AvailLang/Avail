@@ -1581,8 +1581,9 @@ public abstract class AbstractAvailCompiler
 			new Transformer1<AvailObject, AvailObject>()
 			{
 				@Override
-				public AvailObject value (final AvailObject child)
+				public AvailObject value (final @Nullable AvailObject child)
 				{
+					assert child != null;
 					assert child.isInstanceOfKind(PARSE_NODE.mostGeneralType());
 					return treeMapWithParent(
 						child,
@@ -1927,15 +1928,12 @@ public abstract class AbstractAvailCompiler
 	 * potentially call the {@linkplain #noMoreWorkUnits unambiguous
 	 * statement}.
 	 *
-	 * @param state
-	 *        A parser state with an unambiguous statement continuation.
 	 * @param continuation
 	 *        What to do as a work unit.
 	 * @return A new continuation. It accepts an argument of some kind, which
 	 *         will be passed forward to the argument continuation.
 	 */
 	protected <ArgType> Continuation1<ArgType> workUnitCompletion (
-		final ParserState state,
 		final Continuation1<ArgType> continuation)
 	{
 		assert noMoreWorkUnits != null;
@@ -2005,7 +2003,6 @@ public abstract class AbstractAvailCompiler
 	{
 		startWorkUnit();
 		final Continuation1<AvailObject> workUnit = workUnitCompletion(
-			where,
 			new Continuation1<AvailObject>()
 			{
 				@Override
@@ -3175,8 +3172,9 @@ public abstract class AbstractAvailCompiler
 					{
 						@Override
 						public void value (
-							final AvailObject replacementExpression)
+							final @Nullable AvailObject replacementExpression)
 						{
+							assert replacementExpression != null;
 							final List<AvailObject> newArgsSoFar =
 								append(
 									withoutLast(argsSoFar),
@@ -3196,7 +3194,7 @@ public abstract class AbstractAvailCompiler
 					new Continuation1<Throwable>()
 					{
 						@Override
-						public void value (final Throwable arg)
+						public void value (final @Nullable Throwable arg)
 						{
 							//TODO[MvG] - Deal with failed conversion (this can
 							// only happen during an eval conversion).
@@ -3299,34 +3297,37 @@ public abstract class AbstractAvailCompiler
 					start.clientDataMap.makeImmutable(),
 					true);
 				fiber.fiberGlobals(fiberGlobals);
-				fiber.resultContinuation(new Continuation1<AvailObject>()
-				{
-					@Override
-					public void value (final AvailObject ignoredResult)
+				fiber.resultContinuation(workUnitCompletion(
+					new Continuation1<AvailObject>()
 					{
-						// The prefix function ran successfully.
-						final AvailObject replacementClientDataMap =
-							fiber.fiberGlobals().mapAt(clientDataGlobalKey);
-						final ParserState newState = new ParserState(
-							start.position,
-							replacementClientDataMap);
-						eventuallyParseRestOfSendNode(
-							"Continue after successfully prefix function (§)",
-							newState,
-							successorTrees.tupleAt(1),
-							firstArgOrNull,
-							initialTokenPosition,
-							consumedAnything,
-							argsSoFar,
-							marksSoFar,
-							continuation);
-					}
-				});
+						@Override
+						public void value (
+							final @Nullable AvailObject ignoredResult)
+						{
+							// The prefix function ran successfully.
+							final AvailObject replacementClientDataMap =
+								fiber.fiberGlobals().mapAt(clientDataGlobalKey);
+							final ParserState newState = new ParserState(
+								start.position,
+								replacementClientDataMap);
+							eventuallyParseRestOfSendNode(
+								"Continue after successful prefix function (§)",
+								newState,
+								successorTrees.tupleAt(1),
+								firstArgOrNull,
+								initialTokenPosition,
+								consumedAnything,
+								argsSoFar,
+								marksSoFar,
+								continuation);
+						}
+					}));
 				fiber.failureContinuation(new Continuation1<Throwable>()
 				{
 					@Override
-					public void value (final Throwable throwable)
+					public void value (final @Nullable Throwable throwable)
 					{
+						assert throwable != null;
 						// The prefix function failed in some way.
 						start.expected(new Generator<String>()
 						{
@@ -3340,6 +3341,7 @@ public abstract class AbstractAvailCompiler
 						});
 					}
 				});
+				startWorkUnit();
 				Interpreter.runOutermostFunction(
 					runtime,
 					fiber,
@@ -3509,7 +3511,6 @@ public abstract class AbstractAvailCompiler
 		final Mutable<Boolean> anyFailures = new Mutable<Boolean>(false);
 		final Continuation1<AvailObject> intersectAndDecrement =
 			workUnitCompletion(
-				state,
 				new Continuation1<AvailObject>()
 				{
 					@Override
@@ -3535,7 +3536,6 @@ public abstract class AbstractAvailCompiler
 				});
 		final Continuation1<Throwable> failed =
 			workUnitCompletion(
-				state,
 				new Continuation1<Throwable>()
 				{
 					@Override
@@ -4764,7 +4764,6 @@ public abstract class AbstractAvailCompiler
 						start.peekToken().lineNumber(),
 						false,
 						workUnitCompletion(
-							afterExpression,
 							new Continuation1<AvailObject>()
 							{
 								@Override
