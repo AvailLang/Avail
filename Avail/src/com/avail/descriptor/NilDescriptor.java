@@ -306,7 +306,7 @@ extends Descriptor
 	}
 
 	/** The sole instance of {@linkplain #nil() nil}. */
-	private static @Nullable AvailObject soleInstance;
+	private static final AvailObject soleInstance = shared.create();
 
 	/**
 	 * Answer the sole instance of nil.
@@ -315,24 +315,6 @@ extends Descriptor
 	 */
 	public static AvailObject nil ()
 	{
-		final AvailObject instance = soleInstance;
-		assert instance != null;
-		return instance;
-	}
-
-	/**
-	 * Create the sole instance of the {@linkplain #nil() nil}.
-	 */
-	static void createWellKnownObjects ()
-	{
-		soleInstance = shared.create();
-	}
-
-	/**
-	 * Discard the sole instance of the {@linkplain #nil() nil}.
-	 */
-	static void clearWellKnownObjects ()
-	{
-		soleInstance = null;
+		return soleInstance;
 	}
 }

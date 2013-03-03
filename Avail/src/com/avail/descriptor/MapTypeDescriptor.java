@@ -35,7 +35,6 @@ package com.avail.descriptor;
 import static com.avail.descriptor.MapTypeDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.List;
-import com.avail.AvailRuntime;
 import com.avail.annotations.*;
 import com.avail.serialization.SerializerOperation;
 
@@ -311,62 +310,6 @@ extends TypeDescriptor
 		return sizesHash * 3 + keyTypeHash * 5 + valueTypeHash * 13;
 	}
 
-	/** The most general map type. */
-	private static @Nullable A_Type mostGeneralType;
-
-	/**
-	 * Answer the most general {@linkplain MapTypeDescriptor map type}.
-	 *
-	 * @return The most general map type.
-	 */
-	public static A_Type mostGeneralType ()
-	{
-		final A_Type type = mostGeneralType;
-		assert type != null;
-		return type;
-	}
-
-	/**
-	 * The metatype for all map types.
-	 */
-	private static @Nullable A_Type meta;
-
-	/**
-	 * Answer the metatype for all map types.
-	 *
-	 * @return The statically referenced metatype.
-	 */
-	public static A_Type meta ()
-	{
-		final A_Type type = meta;
-		assert type != null;
-		return type;
-	}
-
-	/**
-	 * Create all objects well-known to the {@linkplain AvailRuntime Avail
-	 * runtime}.
-	 */
-	public static void createWellKnownObjects ()
-	{
-		mostGeneralType = mapTypeForSizesKeyTypeValueType(
-				IntegerRangeTypeDescriptor.wholeNumbers(),
-				ANY.o(),
-				ANY.o()
-			).makeShared();
-		meta = InstanceMetaDescriptor.on(mostGeneralType()).makeShared();
-	}
-
-	/**
-	 * Discard or reset all objects well-known to the {@linkplain AvailRuntime
-	 * Avail runtime}.
-	 */
-	public static void clearWellKnownObjects ()
-	{
-		mostGeneralType = null;
-		meta = null;
-	}
-
 	/**
 	 * Construct a new map type with the specified permitted range of number of
 	 * elements, the specified types of keys, and the specified types of values.
@@ -468,5 +411,38 @@ extends TypeDescriptor
 	MapTypeDescriptor shared ()
 	{
 		return shared;
+	}
+
+	/** The most general map type. */
+	private static final A_Type mostGeneralType =
+		mapTypeForSizesKeyTypeValueType(
+			IntegerRangeTypeDescriptor.wholeNumbers(),
+			ANY.o(),
+			ANY.o()).makeShared();
+
+	/**
+	 * Answer the most general {@linkplain MapTypeDescriptor map type}.
+	 *
+	 * @return The most general map type.
+	 */
+	public static A_Type mostGeneralType ()
+	{
+		return mostGeneralType;
+	}
+
+	/**
+	 * The metatype for all map types.
+	 */
+	private static final A_Type meta =
+		InstanceMetaDescriptor.on(mostGeneralType).makeShared();
+
+	/**
+	 * Answer the metatype for all map types.
+	 *
+	 * @return The statically referenced metatype.
+	 */
+	public static A_Type meta ()
+	{
+		return meta;
 	}
 }

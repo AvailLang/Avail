@@ -36,7 +36,6 @@ import static com.avail.descriptor.TupleTypeDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static java.lang.Math.*;
 import java.util.List;
-import com.avail.AvailRuntime;
 import com.avail.annotations.*;
 import com.avail.serialization.SerializerOperation;
 
@@ -547,74 +546,6 @@ extends TypeDescriptor
 		return object;
 	}
 
-	/** The most general tuple type. */
-	private static @Nullable A_Type mostGeneralType;
-
-	/**
-	 * Answer the most general tuple type.  This is the supertype of all other
-	 * tuple types.
-	 *
-	 * @return The most general tuple type.
-	 */
-	public static A_Type mostGeneralType ()
-	{
-		final A_Type type = mostGeneralType;
-		assert type != null;
-		return type;
-	}
-
-	/** The most general string type (i.e., tuples of characters). */
-	private static @Nullable A_Type stringTupleType;
-
-	/**
-	 * Answer the most general string type.  This type subsumes strings of any
-	 * size.
-	 *
-	 * @return The string type.
-	 */
-	public static A_Type stringTupleType ()
-	{
-		final A_Type type = stringTupleType;
-		assert type != null;
-		return type;
-	}
-
-	/** The metatype for all tuple types. */
-	private static @Nullable A_Type meta;
-
-	/**
-	 * Answer the metatype for all tuple types.
-	 *
-	 * @return The statically referenced metatype.
-	 */
-	public static A_Type meta ()
-	{
-		final A_Type type = meta;
-		assert type != null;
-		return type;
-	}
-
-	/**
-	 * Create objects well-known to the {@linkplain AvailRuntime Avail runtime}.
-	 */
-	public static void createWellKnownObjects ()
-	{
-		mostGeneralType = zeroOrMoreOf(ANY.o()).makeShared();
-		stringTupleType = zeroOrMoreOf(CHARACTER.o()).makeShared();
-		meta = InstanceMetaDescriptor.on(mostGeneralType()).makeShared();
-	}
-
-	/**
-	 * Discard or reset objects well-known to the {@linkplain AvailRuntime
-	 * Avail runtime}.
-	 */
-	public static void clearWellKnownObjects ()
-	{
-		mostGeneralType = null;
-		stringTupleType = null;
-		meta = null;
-	}
-
 	/**
 	 * Create the tuple type specified by the arguments. The size range
 	 * indicates the allowable tuple sizes for conforming tuples, the type tuple
@@ -847,5 +778,49 @@ extends TypeDescriptor
 	TupleTypeDescriptor shared ()
 	{
 		return shared;
+	}
+
+	/** The most general tuple type. */
+	private static final A_Type mostGeneralType =
+		zeroOrMoreOf(ANY.o()).makeShared();
+
+	/**
+	 * Answer the most general tuple type.  This is the supertype of all other
+	 * tuple types.
+	 *
+	 * @return The most general tuple type.
+	 */
+	public static A_Type mostGeneralType ()
+	{
+		return mostGeneralType;
+	}
+
+	/** The most general string type (i.e., tuples of characters). */
+	private static final A_Type stringTupleType =
+		zeroOrMoreOf(CHARACTER.o()).makeShared();
+
+	/**
+	 * Answer the most general string type.  This type subsumes strings of any
+	 * size.
+	 *
+	 * @return The string type.
+	 */
+	public static A_Type stringTupleType ()
+	{
+		return stringTupleType;
+	}
+
+	/** The metatype for all tuple types. */
+	private static final A_Type meta =
+		InstanceMetaDescriptor.on(mostGeneralType).makeShared();
+
+	/**
+	 * Answer the metatype for all tuple types.
+	 *
+	 * @return The statically referenced metatype.
+	 */
+	public static A_Type meta ()
+	{
+		return meta;
 	}
 }

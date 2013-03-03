@@ -320,13 +320,22 @@ extends Descriptor
 	}
 
 	/** The first 256 Unicode characters. */
-	private static AvailObject[] byteCharacters = new AvailObject [0];
+	private static final AvailObject[] byteCharacters;
+
+	static
+	{
+		byteCharacters = new AvailObject[256];
+		for (int i = 0; i < byteCharacters.length; i++)
+		{
+			final AvailObject object = mutable.create();
+			object.setSlot(CODE_POINT, i);
+			object.makeShared();
+			byteCharacters[i] = object;
+		}
+	}
 
 	/** The hashes of the first 256 Unicode characters. */
 	private static final int[] hashesOfByteCharacters = new int[256];
-
-	/** The maximum code point value as an {@code int}. */
-	public static final int maxCodePointInt = Character.MAX_CODE_POINT;
 
 	static
 	{
@@ -336,26 +345,6 @@ extends Descriptor
 		}
 	}
 
-	/**
-	 * Create the first 256 Unicode characters.
-	 */
-	static void createWellKnownObjects ()
-	{
-		byteCharacters = new AvailObject[256];
-		for (int i = 0; i <= 255; i++)
-		{
-			final AvailObject object = mutable.create();
-			object.setSlot(CODE_POINT, i);
-			object.makeShared();
-			byteCharacters[i] = object;
-		}
-	}
-
-	/**
-	 * Discard the first 256 Unicode characters.
-	 */
-	static void clearWellKnownObjects ()
-	{
-		byteCharacters = new AvailObject [0];
-	}
+	/** The maximum code point value as an {@code int}. */
+	public static final int maxCodePointInt = Character.MAX_CODE_POINT;
 }

@@ -580,21 +580,7 @@ public abstract class AbstractAvailCompiler
 			this.tokenType = tokenType;
 		}
 
-		/**
-		 * Release any AvailObjects held statically by this class.
-		 */
-		public static void clearWellKnownObjects ()
-		{
-			for (final ExpectedToken value : values())
-			{
-				value.lexeme = null;
-			}
-		}
-
-		/**
-		 * Create AvailObjects to hold statically by this class.
-		 */
-		public static void createWellKnownObjects ()
+		static
 		{
 			for (final ExpectedToken value : values())
 			{
@@ -3577,7 +3563,7 @@ public abstract class AbstractAvailCompiler
 										}
 									});
 							}
-							else
+							else if (e instanceof FiberTerminationException)
 							{
 								onFailure.value(
 									new Generator<String>()
@@ -3596,6 +3582,32 @@ public abstract class AbstractAvailCompiler
 												+ e.toString();
 										}
 									});
+							}
+							else if (e instanceof AvailAssertionFailedException)
+							{
+								final AvailAssertionFailedException ex =
+									(AvailAssertionFailedException) e;
+								onFailure.value(
+									new Generator<String>()
+									{
+										@Override
+										public String value ()
+										{
+											return
+												"assertion failed "
+												+ " (while parsing send of "
+												+ method.originalName().name()
+													.asNativeString()
+												+ "):\n\t"
+												+ ex
+													.assertionString()
+													.asNativeString();
+										}
+									});
+							}
+							else
+							{
+								compilationFailed(e);
 							}
 						}
 					}

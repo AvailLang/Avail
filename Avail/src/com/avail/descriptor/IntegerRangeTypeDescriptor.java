@@ -36,7 +36,6 @@ import static com.avail.descriptor.IntegerRangeTypeDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.AvailObject.error;
 import java.math.BigInteger;
 import java.util.List;
-import com.avail.AvailRuntime;
 import com.avail.annotations.*;
 import com.avail.serialization.SerializerOperation;
 
@@ -430,113 +429,6 @@ extends TypeDescriptor
 		return object;
 	}
 
-	/** The range [0..255]. */
-	static @Nullable A_Type bytes;
-
-	/** The range of Unicode code points, [0..1114111]. */
-	static @Nullable A_Type characterCodePoints;
-
-	/** The range of integers including infinities, [-∞..∞]. */
-	static @Nullable A_Type extendedIntegers;
-
-	/** The range of integers not including infinities, (∞..∞). */
-	static @Nullable A_Type integers;
-
-	/** The range of natural numbers, [1..∞). */
-	static @Nullable A_Type naturalNumbers;
-
-	/** The range [0..15]. */
-	static @Nullable A_Type nybbles;
-
-	/** The range [0..65535]. */
-	static @Nullable A_Type unsignedShorts;
-
-	/** The range of whole numbers, [0..∞). */
-	static @Nullable A_Type wholeNumbers;
-
-	/** The range [0..1]. */
-	static @Nullable A_Type zeroOrOne;
-
-	/**
-	 * The metatype for integers. This is an {@linkplain InstanceTypeDescriptor
-	 * instance type} whose base instance is {@linkplain #extendedIntegers
-	 * extended integer}, and therefore has all integer range types as
-	 * instances.
-	 */
-	static @Nullable A_Type meta;
-
-	/**
-	 * Create all objects well-known to the {@linkplain AvailRuntime Avail
-	 * runtime}.
-	 */
-	static void createWellKnownObjects ()
-	{
-		zeroOrOne = create(
-			IntegerDescriptor.zero(),
-			true,
-			IntegerDescriptor.one(),
-			true).makeShared();
-		bytes = create(
-			IntegerDescriptor.zero(),
-			true,
-			IntegerDescriptor.fromUnsignedByte((short)255),
-			true).makeShared();
-		characterCodePoints = create(
-			IntegerDescriptor.zero(),
-			true,
-			IntegerDescriptor.fromInt(CharacterDescriptor.maxCodePointInt),
-			true).makeShared();
-		extendedIntegers = create(
-			InfinityDescriptor.negativeInfinity(),
-			true,
-			InfinityDescriptor.positiveInfinity(),
-			true).makeShared();
-		integers = create(
-			InfinityDescriptor.negativeInfinity(),
-			false,
-			InfinityDescriptor.positiveInfinity(),
-			false).makeShared();
-		naturalNumbers = create(
-			IntegerDescriptor.one(),
-			true,
-			InfinityDescriptor.positiveInfinity(),
-			false).makeShared();
-		nybbles = create(
-			IntegerDescriptor.zero(),
-			true,
-			IntegerDescriptor.fromUnsignedByte((short)15),
-			true).makeShared();
-		unsignedShorts = create(
-			IntegerDescriptor.zero(),
-			true,
-			IntegerDescriptor.fromInt(65535),
-			true).makeShared();
-		wholeNumbers = create(
-			IntegerDescriptor.zero(),
-			true,
-			InfinityDescriptor.positiveInfinity(),
-			false).makeShared();
-		meta = InstanceMetaDescriptor.on(extendedIntegers()).makeShared();
-	}
-
-	/**
-	 * Discard or reset all objects well-known to the {@linkplain AvailRuntime
-	 * Avail runtime}.
-	 */
-	static void clearWellKnownObjects ()
-	{
-		zeroOrOne = null;
-		bytes = null;
-		characterCodePoints = null;
-		extendedIntegers = null;
-		integers = null;
-		naturalNumbers = null;
-		nybbles = null;
-		unsignedShorts = null;
-		wholeNumbers = null;
-		meta = null;
-	}
-
 	/**
 	 * Compute the hash of the {@link IntegerRangeTypeDescriptor} that has the
 	 * specified information.
@@ -558,126 +450,6 @@ extends TypeDescriptor
 				? (upperInclusive ? 0x1503045E : 0x053A6C17)
 				: upperInclusive ? 0x1DB2D751 : 0x1130427D;
 		return lowerBoundHash * 29 ^ flagsHash ^ upperBoundHash;
-	}
-
-	/**
-	 * Return the range [0..255].
-	 *
-	 * @return The unsigned byte range.
-	 */
-	public static A_Type bytes ()
-	{
-		final A_Type type = bytes;
-		assert type != null;
-		return type;
-	}
-
-	/**
-	 * Return the range of Unicode code points, [0..1114111].
-	 *
-	 * @return The range of Unicode code points.
-	 */
-	public static A_Type characterCodePoints ()
-	{
-		final A_Type type = characterCodePoints;
-		assert type != null;
-		return type;
-	}
-
-	/**
-	 * Return the range of integers including infinities, [-∞..∞].
-	 *
-	 * @return The range of integers including infinities.
-	 */
-	public static A_Type extendedIntegers ()
-	{
-		final A_Type type = extendedIntegers;
-		assert type != null;
-		return type;
-	}
-
-	/**
-	 * Return the range of integers not including infinities, (∞..∞).
-	 *
-	 * @return The range of finite integers.
-	 */
-	public static A_Type integers ()
-	{
-		final A_Type type = integers;
-		assert type != null;
-		return type;
-	}
-
-	/**
-	 * Return the range of natural numbers, [1..∞).
-	 *
-	 * @return The range of positive finite integers.
-	 */
-	public static A_Type naturalNumbers ()
-	{
-		final A_Type type = naturalNumbers;
-		assert type != null;
-		return type;
-	}
-
-	/**
-	 * Return the range [0..15].
-	 *
-	 * @return The non-negative integers that can be represented in 4 bits.
-	 */
-	public static A_Type nybbles ()
-	{
-		final A_Type type = nybbles;
-		assert type != null;
-		return type;
-	}
-
-	/**
-	 * Return the range [0..65535].
-	 *
-	 * @return The non-negative integers that can be represented in 16 bits.
-	 */
-	public static A_Type unsignedShorts ()
-	{
-		final A_Type type = unsignedShorts;
-		assert type != null;
-		return type;
-	}
-
-	/**
-	 * Return the range of whole numbers, [0..∞).
-	 *
-	 * @return The non-negative finite integers.
-	 */
-	public static A_Type wholeNumbers ()
-	{
-		final A_Type type = wholeNumbers;
-		assert type != null;
-		return type;
-	}
-
-	/**
-	 * Return the range [0..1].
-	 *
-	 * @return The integer range that includes just zero and one.
-	 */
-	public static A_Type zeroOrOne ()
-	{
-		final A_Type type = zeroOrOne;
-		assert type != null;
-		return type;
-	}
-
-	/**
-	 * Return the metatype for all integer range types.
-	 *
-	 * @return The integer metatype.
-	 */
-	public static A_Type meta ()
-	{
-		final A_Type type = meta;
-		assert type != null;
-		return type;
 	}
 
 	/**
@@ -887,5 +659,177 @@ extends TypeDescriptor
 	AbstractDescriptor shared ()
 	{
 		return lookupDescriptor(false, lowerInclusive, upperInclusive);
+	}
+
+	/** The range [0..1]. */
+	private static final A_Type zeroOrOne = create(
+		IntegerDescriptor.zero(),
+		true,
+		IntegerDescriptor.one(),
+		true).makeShared();
+
+	/**
+	 * Return the range [0..1].
+	 *
+	 * @return The integer range that includes just zero and one.
+	 */
+	public static A_Type zeroOrOne ()
+	{
+		return zeroOrOne;
+	}
+
+	/** The range [0..255]. */
+	private static final A_Type bytes = create(
+		IntegerDescriptor.zero(),
+		true,
+		IntegerDescriptor.fromUnsignedByte((short)255),
+		true).makeShared();
+
+	/**
+	 * Return the range [0..255].
+	 *
+	 * @return The unsigned byte range.
+	 */
+	public static A_Type bytes ()
+	{
+		return bytes;
+	}
+
+	/** The range of Unicode code points, [0..1114111]. */
+	private static final A_Type characterCodePoints = create(
+		IntegerDescriptor.zero(),
+		true,
+		IntegerDescriptor.fromInt(CharacterDescriptor.maxCodePointInt),
+		true).makeShared();
+
+	/**
+	 * Return the range of Unicode code points, [0..1114111].
+	 *
+	 * @return The range of Unicode code points.
+	 */
+	public static A_Type characterCodePoints ()
+	{
+		return characterCodePoints;
+	}
+
+	/** The range of integers including infinities, [-∞..∞]. */
+	private static final A_Type extendedIntegers = create(
+		InfinityDescriptor.negativeInfinity(),
+		true,
+		InfinityDescriptor.positiveInfinity(),
+		true).makeShared();
+
+	/**
+	 * Return the range of integers including infinities, [-∞..∞].
+	 *
+	 * @return The range of integers including infinities.
+	 */
+	public static A_Type extendedIntegers ()
+	{
+		return extendedIntegers;
+	}
+
+	/** The range of integers not including infinities, (∞..∞). */
+	private static final A_Type integers = create(
+		InfinityDescriptor.negativeInfinity(),
+		false,
+		InfinityDescriptor.positiveInfinity(),
+		false).makeShared();
+
+	/**
+	 * Return the range of integers not including infinities, (∞..∞).
+	 *
+	 * @return The range of finite integers.
+	 */
+	public static A_Type integers ()
+	{
+		return integers;
+	}
+
+	/** The range of natural numbers, [1..∞). */
+	private static final A_Type naturalNumbers = create(
+		IntegerDescriptor.one(),
+		true,
+		InfinityDescriptor.positiveInfinity(),
+		false).makeShared();
+
+	/**
+	 * Return the range of natural numbers, [1..∞).
+	 *
+	 * @return The range of positive finite integers.
+	 */
+	public static A_Type naturalNumbers ()
+	{
+		return naturalNumbers;
+	}
+
+	/** The range [0..15]. */
+	private static final A_Type nybbles = create(
+		IntegerDescriptor.zero(),
+		true,
+		IntegerDescriptor.fromUnsignedByte((short)15),
+		true).makeShared();
+
+	/**
+	 * Return the range [0..15].
+	 *
+	 * @return The non-negative integers that can be represented in 4 bits.
+	 */
+	public static A_Type nybbles ()
+	{
+		return nybbles;
+	}
+
+	/** The range [0..65535]. */
+	private static final A_Type unsignedShorts = create(
+		IntegerDescriptor.zero(),
+		true,
+		IntegerDescriptor.fromInt(65535),
+		true).makeShared();
+
+	/**
+	 * Return the range [0..65535].
+	 *
+	 * @return The non-negative integers that can be represented in 16 bits.
+	 */
+	public static A_Type unsignedShorts ()
+	{
+		return unsignedShorts;
+	}
+
+	/** The range of whole numbers, [0..∞). */
+	private static final A_Type wholeNumbers = create(
+		IntegerDescriptor.zero(),
+		true,
+		InfinityDescriptor.positiveInfinity(),
+		false).makeShared();
+
+	/**
+	 * Return the range of whole numbers, [0..∞).
+	 *
+	 * @return The non-negative finite integers.
+	 */
+	public static A_Type wholeNumbers ()
+	{
+		return wholeNumbers;
+	}
+
+	/**
+	 * The metatype for integers. This is an {@linkplain InstanceTypeDescriptor
+	 * instance type} whose base instance is {@linkplain #extendedIntegers
+	 * extended integer}, and therefore has all integer range types as
+	 * instances.
+	 */
+	private static final A_Type meta =
+		InstanceMetaDescriptor.on(extendedIntegers).makeShared();
+
+	/**
+	 * Return the metatype for all integer range types.
+	 *
+	 * @return The integer metatype.
+	 */
+	public static A_Type meta ()
+	{
+		return meta;
 	}
 }

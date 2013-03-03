@@ -33,13 +33,10 @@
 package com.avail.descriptor;
 
 import static com.avail.descriptor.TypeDescriptor.Types.*;
-import java.io.Serializable;
 import java.lang.reflect.*;
 import java.math.BigInteger;
 import java.util.*;
-import com.avail.AvailRuntime;
 import com.avail.annotations.*;
-import com.avail.descriptor.ArrayPojoTypeDescriptor.PojoArray;
 import com.avail.exceptions.*;
 import com.avail.utility.*;
 
@@ -186,9 +183,6 @@ extends TypeDescriptor
 		}
 	}
 
-	/** The most general {@linkplain PojoTypeDescriptor pojo type}. */
-	private static @Nullable A_Type mostGeneralType;
-
 	/**
 	 * Answer the most general {@linkplain PojoTypeDescriptor pojo
 	 * type}.
@@ -197,16 +191,8 @@ extends TypeDescriptor
 	 */
 	public static A_Type mostGeneralType ()
 	{
-		final A_Type type = mostGeneralType;
-		assert type != null;
-		return type;
+		return UnfusedPojoTypeDescriptor.mostGeneralType;
 	}
-
-	/**
-	 * The most general {@linkplain PojoTypeDescriptor pojo array
-	 * type}.
-	 */
-	private static @Nullable A_Type mostGeneralArrayType;
 
 	/**
 	 * Answer the most general {@linkplain PojoTypeDescriptor pojo array
@@ -216,16 +202,15 @@ extends TypeDescriptor
 	 */
 	public static A_Type mostGeneralArrayType ()
 	{
-		final A_Type type = mostGeneralArrayType;
-		assert type != null;
-		return type;
+		return ArrayPojoTypeDescriptor.mostGeneralType;
 	}
 
 	/**
 	 * The most specific {@linkplain PojoTypeDescriptor pojo type},
 	 * other than {@linkplain BottomTypeDescriptor#bottom() bottom}.
 	 */
-	private static @Nullable A_Type pojoBottom;
+	private static final A_Type pojoBottom =
+		BottomPojoTypeDescriptor.mutable.create().makeShared();
 
 	/**
 	 * Answer the most specific {@linkplain PojoTypeDescriptor pojo
@@ -235,9 +220,7 @@ extends TypeDescriptor
 	 */
 	public static A_Type pojoBottom ()
 	{
-		final A_Type type = pojoBottom;
-		assert type != null;
-		return type;
+		return pojoBottom;
 	}
 
 	/**
@@ -245,7 +228,8 @@ extends TypeDescriptor
 	 * InstanceTypeDescriptor instance type} represents the self type of a
 	 * {@linkplain Class Java class or interface}.
 	 */
-	private static @Nullable A_Atom selfAtom;
+	private static final A_Atom selfAtom = AtomDescriptor.createSpecialAtom(
+		StringDescriptor.from("pojo self"));
 
 	/**
 	 * Answer a special {@linkplain AtomDescriptor atom} whose {@linkplain
@@ -256,16 +240,15 @@ extends TypeDescriptor
 	 */
 	public static A_Atom selfAtom ()
 	{
-		final A_Atom atom = selfAtom;
-		assert atom != null;
-		return atom;
+		return selfAtom;
 	}
 
 	/**
 	 * A special {@linkplain InstanceTypeDescriptor instance type} that
 	 * represents the self type of a {@linkplain Class Java class or interface}.
 	 */
-	private static @Nullable A_Type selfType;
+	private static final A_Type selfType =
+		InstanceTypeDescriptor.on(selfAtom).makeShared();
 
 	/**
 	 * Answer a special {@linkplain InstanceTypeDescriptor instance type} that
@@ -275,37 +258,18 @@ extends TypeDescriptor
 	 */
 	public static A_Type selfType ()
 	{
-		final A_Type type = selfType;
-		assert type != null;
-		return type;
-	}
-
-	/**
-	 * The {@linkplain MapDescriptor map} used by {@linkplain
-	 * ArrayPojoTypeDescriptor array pojo types}.  Note that this map does not
-	 * contain the entry for {@link PojoArray}, as this has to be specialized
-	 * per pojo array type.
-	 */
-	private static @Nullable A_Map arrayBaseAncestorMap;
-
-	/**
-	 * Answer the {@link #arrayBaseAncestorMap base ancestor map} for array pojo
-	 * types.
-	 *
-	 * @return The map for array pojo types.
-	 */
-	static A_Map arrayBaseAncestorMap ()
-	{
-		final A_Map map = arrayBaseAncestorMap;
-		assert map != null;
-		return map;
+		return selfType;
 	}
 
 	/**
 	 * The {@linkplain IntegerRangeTypeDescriptor integer range type} that
 	 * corresponds to Java {@code byte}.
 	 */
-	private static @Nullable A_Type byteRange;
+	private static final A_Type byteRange = IntegerRangeTypeDescriptor.create(
+		IntegerDescriptor.fromInt(Byte.MIN_VALUE),
+		true,
+		IntegerDescriptor.fromInt(Byte.MAX_VALUE),
+		true).makeShared();
 
 	/**
 	 * Answer the {@linkplain IntegerRangeTypeDescriptor integer range type}
@@ -315,17 +279,19 @@ extends TypeDescriptor
 	 */
 	public static A_Type byteRange ()
 	{
-		final A_Type type = byteRange;
-		assert type != null;
-		return type;
+		return byteRange;
 	}
 
 	/**
 	 * The {@linkplain IntegerRangeTypeDescriptor integer range type} that
 	 * corresponds to Java {@code short}.
 	 */
+	private static final A_Type shortRange = IntegerRangeTypeDescriptor.create(
+		IntegerDescriptor.fromInt(Short.MIN_VALUE),
+		true,
+		IntegerDescriptor.fromInt(Short.MAX_VALUE),
+		true).makeShared();
 
-	private static @Nullable A_Type shortRange;
 	/**
 	 * Answer the {@linkplain IntegerRangeTypeDescriptor integer range type}
 	 * that corresponds to Java {@code short}.
@@ -334,17 +300,18 @@ extends TypeDescriptor
 	 */
 	public static A_Type shortRange ()
 	{
-		final A_Type type = shortRange;
-		assert type != null;
-		return type;
+		return shortRange;
 	}
 
 	/**
 	 * The {@linkplain IntegerRangeTypeDescriptor integer range type} that
 	 * corresponds to Java {@code int}.
 	 */
-
-	private static @Nullable A_Type intRange;
+	private static final A_Type intRange = IntegerRangeTypeDescriptor.create(
+		IntegerDescriptor.fromInt(Integer.MIN_VALUE),
+		true,
+		IntegerDescriptor.fromInt(Integer.MAX_VALUE),
+		true).makeShared();
 
 	/**
 	 * Answer the {@linkplain IntegerRangeTypeDescriptor integer range type}
@@ -354,16 +321,18 @@ extends TypeDescriptor
 	 */
 	public static A_Type intRange ()
 	{
-		final A_Type type = intRange;
-		assert type != null;
-		return type;
+		return intRange;
 	}
 
 	/**
 	 * The {@linkplain IntegerRangeTypeDescriptor integer range type} that
 	 * corresponds to Java {@code long}.
 	 */
-	private static @Nullable A_Type longRange;
+	private static final A_Type longRange = IntegerRangeTypeDescriptor.create(
+		IntegerDescriptor.fromLong(Long.MIN_VALUE),
+		true,
+		IntegerDescriptor.fromLong(Long.MAX_VALUE),
+		true).makeShared();
 
 	/**
 	 * Answer the {@linkplain IntegerRangeTypeDescriptor integer range type}
@@ -373,16 +342,18 @@ extends TypeDescriptor
 	 */
 	public static A_Type longRange ()
 	{
-		final A_Type type = longRange;
-		assert type != null;
-		return type;
+		return longRange;
 	}
 
 	/**
 	 * The {@linkplain IntegerRangeTypeDescriptor integer range type} that
 	 * corresponds to Java {@code char}.
 	 */
-	private static @Nullable A_Type charRange;
+	private static final A_Type charRange = IntegerRangeTypeDescriptor.create(
+		IntegerDescriptor.fromInt(Character.MIN_VALUE),
+		true,
+		IntegerDescriptor.fromInt(Character.MAX_VALUE),
+		true).makeShared();
 
 	/**
 	 * Answer the {@linkplain IntegerRangeTypeDescriptor integer range type}
@@ -392,9 +363,7 @@ extends TypeDescriptor
 	 */
 	public static A_Type charRange ()
 	{
-		final A_Type type = charRange;
-		assert type != null;
-		return type;
+		return charRange;
 	}
 
 	/**
@@ -440,87 +409,6 @@ extends TypeDescriptor
 					return computeValue(key);
 				}
 			});
-
-	/**
-	 * Create any instances statically well-known to the {@linkplain
-	 * AvailRuntime Avail runtime system}.
-	 */
-	public static void createWellKnownObjects ()
-	{
-		mostGeneralType = forClass(Object.class).makeShared();
-		A_Map javaAncestors = MapDescriptor.empty();
-		javaAncestors = javaAncestors.mapAtPuttingCanDestroy(
-			RawPojoDescriptor.rawObjectClass(),
-			TupleDescriptor.empty(),
-			true);
-		javaAncestors = javaAncestors.mapAtPuttingCanDestroy(
-			RawPojoDescriptor.equalityWrap(Cloneable.class),
-			TupleDescriptor.empty(),
-			true);
-		javaAncestors = javaAncestors.mapAtPuttingCanDestroy(
-			RawPojoDescriptor.equalityWrap(Serializable.class),
-			TupleDescriptor.empty(),
-			true);
-		arrayBaseAncestorMap = javaAncestors.makeShared();
-		mostGeneralArrayType = forArrayTypeWithSizeRange(
-			ANY.o(), IntegerRangeTypeDescriptor.wholeNumbers()).makeShared();
-		pojoBottom = BottomPojoTypeDescriptor.mutable.create().makeShared();
-		selfAtom = AtomDescriptor.createSpecialAtom(
-			StringDescriptor.from("pojo self"));
-		selfType = InstanceTypeDescriptor.on(selfAtom()).makeShared();
-		byteRange = IntegerRangeTypeDescriptor.create(
-			IntegerDescriptor.fromInt(Byte.MIN_VALUE),
-			true,
-			IntegerDescriptor.fromInt(Byte.MAX_VALUE),
-			true).makeShared();
-		shortRange = IntegerRangeTypeDescriptor.create(
-			IntegerDescriptor.fromInt(Short.MIN_VALUE),
-			true,
-			IntegerDescriptor.fromInt(Short.MAX_VALUE),
-			true).makeShared();
-		intRange = IntegerRangeTypeDescriptor.create(
-			IntegerDescriptor.fromInt(Integer.MIN_VALUE),
-			true,
-			IntegerDescriptor.fromInt(Integer.MAX_VALUE),
-			true).makeShared();
-		longRange = IntegerRangeTypeDescriptor.create(
-			IntegerDescriptor.fromLong(Long.MIN_VALUE),
-			true,
-			IntegerDescriptor.fromLong(Long.MAX_VALUE),
-			true).makeShared();
-		charRange = IntegerRangeTypeDescriptor.create(
-			IntegerDescriptor.fromInt(Character.MIN_VALUE),
-			true,
-			IntegerDescriptor.fromInt(Character.MAX_VALUE),
-			true).makeShared();
-	}
-
-	/**
-	 * Destroy or reset any instances statically well-known to the {@linkplain
-	 * AvailRuntime Avail runtime system}.
-	 */
-	public static void clearWellKnownObjects ()
-	{
-		try
-		{
-			cache.clear();
-		}
-		catch (final InterruptedException e)
-		{
-			throw new RuntimeException(e);
-		}
-		mostGeneralType = null;
-		mostGeneralArrayType = null;
-		pojoBottom = null;
-		selfAtom = null;
-		selfType = null;
-		arrayBaseAncestorMap = null;
-		byteRange = null;
-		shortRange = null;
-		intRange = null;
-		longRange = null;
-		charRange = null;
-	}
 
 	@Override @AvailMethod
 	final boolean o_Equals (

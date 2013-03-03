@@ -763,48 +763,6 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	/**
-	 * Avail's boolean type, the equivalent of Java's primitive {@code boolean}
-	 * pseudo-type, and Java's other non-primitive boxed {@link #booleanObject}
-	 * class.
-	 */
-	private static @Nullable A_Type booleanObject;
-
-	/**
-	 * Return Avail's boolean type.
-	 *
-	 * @return The {@linkplain EnumerationTypeDescriptor enumeration} that
-	 *         acts as Avail's boolean type.
-	 */
-	public static A_Type booleanObject ()
-	{
-		final A_Type bool = booleanObject;
-		assert bool != null;
-		return bool;
-	}
-
-	/**
-	 * Create the boolean type, which is simply an {@linkplain
-	 * EnumerationTypeDescriptor instance union} of {@linkplain
-	 * AtomDescriptor#trueObject()} and {@linkplain
-	 * AtomDescriptor#falseObject()}.
-	 */
-	static void createWellKnownObjects ()
-	{
-		final A_Tuple tuple = TupleDescriptor.from(
-			AtomDescriptor.trueObject(),
-			AtomDescriptor.falseObject());
-		booleanObject = withInstances(tuple.asSet()).makeShared();
-	}
-
-	/**
-	 * Release any well-known objects held by this class.
-	 */
-	static void clearWellKnownObjects ()
-	{
-		booleanObject = null;
-	}
-
-	/**
 	 * Construct a new {@link EnumerationTypeDescriptor}.
 	 *
 	 * @param mutability
@@ -843,5 +801,31 @@ extends AbstractEnumerationTypeDescriptor
 	AbstractEnumerationTypeDescriptor shared ()
 	{
 		return shared;
+	}
+
+	/**
+	 * Avail's boolean type, the equivalent of Java's primitive {@code boolean}
+	 * pseudo-type, and Java's other non-primitive boxed {@link #booleanObject}
+	 * class.
+	 */
+	private static final A_Type booleanObject;
+
+	static
+	{
+		final A_Tuple tuple = TupleDescriptor.from(
+			AtomDescriptor.trueObject(),
+			AtomDescriptor.falseObject());
+		booleanObject = withInstances(tuple.asSet()).makeShared();
+	}
+
+	/**
+	 * Return Avail's boolean type.
+	 *
+	 * @return The {@linkplain EnumerationTypeDescriptor enumeration} that
+	 *         acts as Avail's boolean type.
+	 */
+	public static A_Type booleanObject ()
+	{
+		return booleanObject;
 	}
 }

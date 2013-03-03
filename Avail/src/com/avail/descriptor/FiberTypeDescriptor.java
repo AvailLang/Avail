@@ -36,7 +36,6 @@ import static com.avail.descriptor.FiberTypeDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import java.util.List;
 import com.avail.annotations.AvailMethod;
-import com.avail.annotations.Nullable;
 import com.avail.annotations.ThreadSafe;
 import com.avail.serialization.SerializerOperation;
 
@@ -243,7 +242,8 @@ extends TypeDescriptor
 	/**
 	 * The most general {@linkplain FiberTypeDescriptor fiber type}.
 	 */
-	private static @Nullable A_Type mostGeneralType;
+	private static final A_Type mostGeneralType =
+		forResultType(TOP.o()).makeShared();
 
 	/**
 	 * Answer the most general {@linkplain FiberDescriptor fiber type}.
@@ -252,44 +252,22 @@ extends TypeDescriptor
 	 */
 	public static final A_Type mostGeneralType ()
 	{
-		final A_Type type = mostGeneralType;
-		assert mostGeneralType != null;
-		return type;
+		return mostGeneralType;
 	}
 
 	/**
 	 * The metatype for all {@linkplain FiberTypeDescriptor fiber types}.
 	 */
-	private static @Nullable A_Type meta;
-
+	private static final A_Type meta =
+		InstanceMetaDescriptor.on(mostGeneralType).makeShared();
 
 	/**
 	 * Answer the metatype for all {@linkplain FiberTypeDescriptor fiber types}.
 	 *
 	 * @return The metatype for all fiber types.
 	 */
-	public static final @Nullable A_Type meta ()
+	public static final A_Type meta ()
 	{
-		final A_Type type = meta;
-		assert meta != null;
-		return type;
-	}
-
-	/**
-	 * Create well-known objects.
-	 */
-	public static void createWellKnownObjects ()
-	{
-		mostGeneralType = forResultType(TOP.o()).makeShared();
-		meta = InstanceMetaDescriptor.on(mostGeneralType()).makeShared();
-	}
-
-	/**
-	 * Clear well-known objects.
-	 */
-	public static void clearWellKnownObjects ()
-	{
-		mostGeneralType = null;
-		meta = null;
+		return meta;
 	}
 }

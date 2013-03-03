@@ -66,447 +66,6 @@ public final class MethodDescriptor
 extends Descriptor
 {
 	/**
-	 * A special {@linkplain AtomDescriptor atom} used to name the VM's method
-	 * to crash during early bootstrapping problems.
-	 */
-	private static @Nullable A_Atom vmCrashAtom;
-
-	/**
-	 * Answer the {@linkplain AtomDescriptor atom} used by the VM to name the
-	 * method which is invoked in the event of a bootstrapping problem.
-	 *
-	 * @return The atom.
-	 */
-	public static A_Atom vmCrashAtom ()
-	{
-		final A_Atom atom = vmCrashAtom;
-		assert atom != null;
-		return atom;
-	}
-
-	/**
-	 * A {@linkplain MethodDescriptor method} containing a {@linkplain
-	 * MethodDefinitionDescriptor function} that invokes {@linkplain
-	 * P_256_EmergencyExit}. Needed by some hand-built bootstrap functions.
-	 */
-	private static @Nullable AvailObject vmCrashMethod;
-
-	/**
-	 * Answer a {@linkplain MethodDescriptor method}
-	 * containing a {@linkplain MethodDefinitionDescriptor function} that
-	 * invokes {@linkplain P_256_EmergencyExit}. Needed by some hand-built
-	 * bootstrap functions.
-	 *
-	 * @return A method.
-	 */
-	public static AvailObject vmCrashMethod ()
-	{
-		final AvailObject method = vmCrashMethod;
-		assert method != null;
-		return method;
-	}
-
-	/**
-	 * Construct the {@linkplain MethodDescriptor method}
-	 * for bootstrap emergency exit.
-	 *
-	 * @return A method.
-	 */
-	private static AvailObject newVMCrashMethod ()
-	{
-		assert P_256_EmergencyExit.instance.hasFlag(CannotFail);
-		final A_Function newFunction =
-			newPrimitiveFunction(P_256_EmergencyExit.instance);
-
-		// Create the new method. Note that the underscore is
-		// essential here, as certain parts of the virtual machine (like the
-		// decompiler) use the name to figure out how many arguments a method
-		// accepts.
-		final AvailObject method = newMethodWithName(vmCrashAtom());
-		try
-		{
-			method.methodAddDefinition(
-				MethodDefinitionDescriptor.create(method, newFunction));
-		}
-		catch (final SignatureException e)
-		{
-			assert false : "This should not be possible!";
-			throw new RuntimeException(e);
-		}
-
-		return method;
-	}
-
-	/**
-	 * The (special) name of the VM-built pre-bootstrap method-defining method.
-	 */
-	private static @Nullable A_Atom vmMethodDefinerAtom;
-
-	/**
-	 * Answer the (special) {@linkplain AtomDescriptor name} of the VM method
-	 * used to bootstrap new methods.
-	 *
-	 * @return The name of the bootstrap method-defining method.
-	 */
-	public static A_Atom vmMethodDefinerAtom ()
-	{
-		final A_Atom atom = vmMethodDefinerAtom;
-		assert atom != null;
-		return atom;
-	}
-
-	/**
-	 * The special pre-bootstrap method-defining method constructed by the VM.
-	 */
-	private static @Nullable AvailObject vmMethodDefinerMethod;
-
-	/**
-	 * Answer the special pre-bootstrap method-defining method that was created
-	 * and installed into the {@link AvailRuntime} automatically.
-	 *
-	 * @return The bootstrap method-defining method.
-	 */
-	public static AvailObject vmMethodDefinerMethod ()
-	{
-		final AvailObject method = vmMethodDefinerMethod;
-		assert method != null;
-		return method;
-	}
-
-	/**
-	 * The (special) name of the VM-built pre-bootstrap macro-defining method.
-	 */
-	private static @Nullable A_Atom vmMacroDefinerAtom;
-
-	/**
-	 * Answer the (special) {@linkplain AtomDescriptor name} of the VM method
-	 * used to bootstrap new macros.
-	 *
-	 * @return The name of the bootstrap macro-defining method.
-	 */
-	public static A_Atom vmMacroDefinerAtom ()
-	{
-		final A_Atom atom = vmMacroDefinerAtom;
-		assert atom != null;
-		return atom;
-	}
-
-	/**
-	 * The special pre-bootstrap macro-defining method constructed by the VM.
-	 */
-	private static @Nullable AvailObject vmMacroDefinerMethod;
-
-	/**
-	 * Answer the special pre-bootstrap macro-defining method that was created
-	 * and installed into the {@link AvailRuntime} automatically.
-	 *
-	 * @return The bootstrap macro-defining method.
-	 */
-	public static AvailObject vmMacroDefinerMethod ()
-	{
-		final AvailObject method = vmMacroDefinerMethod;
-		assert method != null;
-		return method;
-	}
-
-	/**
-	 * Construct a bootstrapped {@linkplain FunctionDescriptor function} that
-	 * uses the specified primitive.  The primitive failure code should invoke
-	 * the {@link #vmCrashMethod} with a tuple of passed arguments followed by
-	 * the primitive failure value.
-	 *
-	 * @param primitive The {@link Primitive} to use.
-	 * @return A function.
-	 */
-	public static A_Function newPrimitiveFunction (final Primitive primitive)
-	{
-		final L1InstructionWriter writer = new L1InstructionWriter(
-			NilDescriptor.nil(),
-			0);
-		writer.primitiveNumber(primitive.primitiveNumber);
-		final A_Type functionType = primitive.blockTypeRestriction();
-		final A_Type argsTupleType = functionType.argsTupleType();
-		final int numArgs = argsTupleType.sizeRange().upperBound().extractInt();
-		final A_Type [] argTypes = new AvailObject[numArgs];
-		for (int i = 0; i < argTypes.length; i++)
-		{
-			argTypes[i] = argsTupleType.typeAtIndex(i + 1);
-		}
-		writer.argumentTypes(argTypes);
-		writer.returnType(functionType.returnType());
-		if (!primitive.hasFlag(CannotFail))
-		{
-			// Produce failure code.  First declare the local that holds
-			// primitive failure information.
-			final int failureLocal = writer.createLocal(
-				VariableTypeDescriptor.wrapInnerType(
-					IntegerRangeTypeDescriptor.naturalNumbers()));
-			for (int i = 1; i <= argTypes.length; i++)
-			{
-				writer.write(
-					new L1Instruction(L1Operation.L1_doPushLastLocal, i));
-			}
-			// Get the failure code.
-			writer.write(
-				new L1Instruction(
-					L1Operation.L1_doGetLocal,
-					failureLocal));
-			// Put the arguments and failure code into a tuple.
-			writer.write(
-				new L1Instruction(
-					L1Operation.L1_doMakeTuple,
-					argTypes.length + 1));
-			writer.write(
-				new L1Instruction(
-					L1Operation.L1_doCall,
-					writer.addLiteral(vmCrashMethod()),
-					writer.addLiteral(BottomTypeDescriptor.bottom())));
-		}
-		else
-		{
-			// Primitive cannot fail, but be nice to the decompiler.
-			writer.write(
-				new L1Instruction(
-					L1Operation.L1_doPushLiteral,
-					writer.addLiteral(NilDescriptor.nil())));
-		}
-		final A_Function function = FunctionDescriptor.create(
-			writer.compiledCode(),
-			TupleDescriptor.empty());
-		function.makeImmutable();
-		return function;
-	}
-
-	/**
-	 * Construct the {@linkplain MethodDescriptor methods} for bootstrapping
-	 * method definition.
-	 *
-	 * @return A method.
-	 */
-	private static AvailObject newVMMethodDefinerMethod ()
-	{
-		final A_Function fromStringFunction = newPrimitiveFunction(
-			P_253_SimpleMethodDeclaration.instance);
-		final A_Function fromAtomFunction = newPrimitiveFunction(
-			P_228_MethodDeclarationFromAtom.instance);
-		final AvailObject method = newMethodWithName(vmMethodDefinerAtom());
-		try
-		{
-			method.methodAddDefinition(
-				MethodDefinitionDescriptor.create(method, fromAtomFunction));
-			method.methodAddDefinition(
-				MethodDefinitionDescriptor.create(method, fromStringFunction));
-		}
-		catch (final SignatureException e)
-		{
-			assert false : "This should not be possible!";
-			throw new RuntimeException(e);
-		}
-		return method;
-	}
-
-	/**
-	 * Construct the {@linkplain MethodDescriptor method} for bootstrapping
-	 * macro definition.
-	 *
-	 * @return A method.
-	 */
-	private static AvailObject newVMMacroDefinerMethod ()
-	{
-		final A_Function fromStringFunction = newPrimitiveFunction(
-			P_249_SimpleMacroDeclaration.instance);
-		final AvailObject method = newMethodWithName(vmMacroDefinerAtom());
-		try
-		{
-			method.methodAddDefinition(
-				MethodDefinitionDescriptor.create(method, fromStringFunction));
-		}
-		catch (final SignatureException e)
-		{
-			assert false : "This should not be possible!";
-			throw new RuntimeException(e);
-		}
-		return method;
-	}
-
-	/**
-	 * The (special) name of the VM-built function application method.
-	 */
-	private static @Nullable A_Atom vmFunctionApplyAtom;
-
-	/**
-	 * Answer the (special) {@linkplain AtomDescriptor name} of the VM's
-	 * function application method.
-	 *
-	 * @return The name of the VM's function application method.
-	 */
-	public static A_Atom vmFunctionApplyAtom ()
-	{
-		final A_Atom atom = vmFunctionApplyAtom;
-		assert atom != null;
-		return atom;
-	}
-
-	/**
-	 * A {@linkplain MethodDescriptor method} containing a {@linkplain
-	 * MethodDefinitionDescriptor definition} that invokes {@link
-	 * P_040_InvokeWithTuple} (function application). Needed by some hand-built
-	 * functions.
-	 */
-	private static @Nullable AvailObject vmFunctionApplyMethod;
-
-	/**
-	 * A {@linkplain MethodDescriptor method} containing a {@linkplain
-	 * MethodDefinitionDescriptor definition} that invokes {@link
-	 * P_040_InvokeWithTuple} (function application). Needed by some hand-built
-	 * functions.
-	 *
-	 * @return A method.
-	 */
-	public static AvailObject vmFunctionApplyMethod ()
-	{
-		final AvailObject method = vmFunctionApplyMethod;
-		assert method != null;
-		return method;
-	}
-
-	/**
-	 * Construct the {@linkplain MethodDescriptor method} for bootstrapping
-	 * function application.
-	 *
-	 * @return A method.
-	 */
-	private static AvailObject newVMFunctionApplyMethod ()
-	{
-		final A_Function newFunction =
-			newPrimitiveFunction(P_040_InvokeWithTuple.instance);
-
-		// Create the new method.
-		final AvailObject method = newMethodWithName(vmFunctionApplyAtom());
-		try
-		{
-			method.methodAddDefinition(
-				MethodDefinitionDescriptor.create(method, newFunction));
-		}
-		catch (final SignatureException e)
-		{
-			assert false : "This should not be possible!";
-			throw new RuntimeException(e);
-		}
-
-		return method;
-	}
-
-	/**
-	 * The (special) name of the VM-built atom-set publication method.
-	 */
-	private static @Nullable A_Atom vmPublishAtomsAtom;
-
-	/**
-	 * Answer the (special) {@linkplain AtomDescriptor name} of the VM's
-	 * function which publishes a set of atoms from the current module.
-	 *
-	 * @return The name of the VM's function application method.
-	 */
-	public static A_Atom vmPublishAtomsAtom ()
-	{
-		final A_Atom atom = vmPublishAtomsAtom;
-		assert atom != null;
-		return atom;
-	}
-
-	/**
-	 * A {@linkplain MethodDescriptor method} containing a {@linkplain
-	 * MethodDefinitionDescriptor definition} that invokes {@link
-	 * P_263_DeclareAllExportedAtoms} (atom-set publication). Needed by the
-	 * module compilation system.
-	 */
-	private static @Nullable AvailObject vmPublishAtomsMethod;
-
-	/**
-	 * A {@linkplain MethodDescriptor method} containing a {@linkplain
-	 * MethodDefinitionDescriptor definition} that invokes {@link
-	 * P_263_DeclareAllExportedAtoms} (atom-set publication). Needed by the
-	 * module compilation system.
-	 *
-	 * @return A method.
-	 */
-	public static AvailObject vmPublishAtomsMethod ()
-	{
-		final AvailObject method = vmPublishAtomsMethod;
-		assert method != null;
-		return method;
-	}
-
-	/**
-	 * Construct the {@linkplain MethodDescriptor method} for publishing a set
-	 * of atoms from the current module.
-	 *
-	 * @return A method.
-	 */
-	private static AvailObject newVMPublishAtomsMethod ()
-	{
-		final A_Function newFunction =
-			newPrimitiveFunction(P_263_DeclareAllExportedAtoms.instance);
-
-		// Create the new method.
-		final AvailObject method = newMethodWithName(vmPublishAtomsAtom());
-		try
-		{
-			method.methodAddDefinition(
-				MethodDefinitionDescriptor.create(method, newFunction));
-		}
-		catch (final SignatureException e)
-		{
-			assert false : "This should not be possible!";
-			throw new RuntimeException(e);
-		}
-
-		return method;
-	}
-
-	/**
-	 * Create any instances statically well-known to the {@linkplain
-	 * AvailRuntime Avail runtime system}.
-	 */
-	public static void createWellKnownObjects ()
-	{
-		vmCrashAtom = AtomDescriptor.createSpecialAtom(
-			StringDescriptor.from("vm crash_"));
-		vmCrashMethod = newVMCrashMethod();
-		vmFunctionApplyAtom = AtomDescriptor.createSpecialAtom(
-			StringDescriptor.from("vm function apply_(«_‡,»)"));
-		vmFunctionApplyMethod = newVMFunctionApplyMethod();
-		vmMethodDefinerAtom = AtomDescriptor.createSpecialAtom(
-			StringDescriptor.from("vm method_is_"));
-		vmMethodDefinerMethod = newVMMethodDefinerMethod();
-		vmMacroDefinerAtom = AtomDescriptor.createSpecialAtom(
-			StringDescriptor.from("vm macro_is«_,»_"));
-		vmMacroDefinerMethod = newVMMacroDefinerMethod();
-		vmPublishAtomsAtom = AtomDescriptor.createSpecialAtom(
-			StringDescriptor.from("vm publish atom set_(public=_)"));
-		vmPublishAtomsMethod = newVMPublishAtomsMethod();
-	}
-
-	/**
-	 * Destroy or reset any instances statically well-known to the {@linkplain
-	 * AvailRuntime Avail runtime system}.
-	 */
-	public static void clearWellKnownObjects ()
-	{
-		vmCrashAtom = null;
-		vmCrashMethod = null;
-		vmFunctionApplyAtom = null;
-		vmFunctionApplyMethod = null;
-		vmMethodDefinerAtom = null;
-		vmMethodDefinerMethod = null;
-		vmMacroDefinerAtom = null;
-		vmMacroDefinerMethod = null;
-		vmPublishAtomsAtom = null;
-		vmPublishAtomsMethod = null;
-	}
-
-	/**
 	 * The fields that are of type {@code AvailObject}.
 	 */
 	public enum ObjectSlots
@@ -1392,5 +951,398 @@ extends Descriptor
 	MethodDescriptor shared ()
 	{
 		return shared;
+	}
+
+	/**
+	 * Construct a bootstrapped {@linkplain FunctionDescriptor function} that
+	 * uses the specified primitive.  The primitive failure code should invoke
+	 * the {@link #vmCrashMethod} with a tuple of passed arguments followed by
+	 * the primitive failure value.
+	 *
+	 * @param primitive The {@link Primitive} to use.
+	 * @return A function.
+	 */
+	public static A_Function newPrimitiveFunction (final Primitive primitive)
+	{
+		final L1InstructionWriter writer = new L1InstructionWriter(
+			NilDescriptor.nil(),
+			0);
+		writer.primitiveNumber(primitive.primitiveNumber);
+		final A_Type functionType = primitive.blockTypeRestriction();
+		final A_Type argsTupleType = functionType.argsTupleType();
+		final int numArgs = argsTupleType.sizeRange().upperBound().extractInt();
+		final A_Type [] argTypes = new AvailObject[numArgs];
+		for (int i = 0; i < argTypes.length; i++)
+		{
+			argTypes[i] = argsTupleType.typeAtIndex(i + 1);
+		}
+		writer.argumentTypes(argTypes);
+		writer.returnType(functionType.returnType());
+		if (!primitive.hasFlag(CannotFail))
+		{
+			// Produce failure code.  First declare the local that holds
+			// primitive failure information.
+			final int failureLocal = writer.createLocal(
+				VariableTypeDescriptor.wrapInnerType(
+					IntegerRangeTypeDescriptor.naturalNumbers()));
+			for (int i = 1; i <= argTypes.length; i++)
+			{
+				writer.write(
+					new L1Instruction(L1Operation.L1_doPushLastLocal, i));
+			}
+			// Get the failure code.
+			writer.write(
+				new L1Instruction(
+					L1Operation.L1_doGetLocal,
+					failureLocal));
+			// Put the arguments and failure code into a tuple.
+			writer.write(
+				new L1Instruction(
+					L1Operation.L1_doMakeTuple,
+					argTypes.length + 1));
+			writer.write(
+				new L1Instruction(
+					L1Operation.L1_doCall,
+					writer.addLiteral(vmCrashMethod()),
+					writer.addLiteral(BottomTypeDescriptor.bottom())));
+		}
+		else
+		{
+			// Primitive cannot fail, but be nice to the decompiler.
+			writer.write(
+				new L1Instruction(
+					L1Operation.L1_doPushLiteral,
+					writer.addLiteral(NilDescriptor.nil())));
+		}
+		final A_Function function = FunctionDescriptor.create(
+			writer.compiledCode(),
+			TupleDescriptor.empty());
+		function.makeImmutable();
+		return function;
+	}
+
+	/**
+	 * A special {@linkplain AtomDescriptor atom} used to name the VM's method
+	 * to crash during early bootstrapping problems.
+	 */
+	private static final A_Atom vmCrashAtom = AtomDescriptor.createSpecialAtom(
+		StringDescriptor.from("vm crash_"));
+
+	/**
+	 * Answer the {@linkplain AtomDescriptor atom} used by the VM to name the
+	 * method which is invoked in the event of a bootstrapping problem.
+	 *
+	 * @return The atom.
+	 */
+	public static A_Atom vmCrashAtom ()
+	{
+		return vmCrashAtom;
+	}
+
+	/**
+	 * A {@linkplain MethodDescriptor method} containing a {@linkplain
+	 * MethodDefinitionDescriptor function} that invokes {@linkplain
+	 * P_256_EmergencyExit}. Needed by some hand-built bootstrap functions.
+	 */
+	private static final AvailObject vmCrashMethod = newVMCrashMethod();
+
+	/**
+	 * Answer a {@linkplain MethodDescriptor method}
+	 * containing a {@linkplain MethodDefinitionDescriptor function} that
+	 * invokes {@linkplain P_256_EmergencyExit}. Needed by some hand-built
+	 * bootstrap functions.
+	 *
+	 * @return A method.
+	 */
+	public static AvailObject vmCrashMethod ()
+	{
+		return vmCrashMethod;
+	}
+
+	/**
+	 * Construct the {@linkplain MethodDescriptor method}
+	 * for bootstrap emergency exit.
+	 *
+	 * @return A method.
+	 */
+	private static AvailObject newVMCrashMethod ()
+	{
+		assert P_256_EmergencyExit.instance.hasFlag(CannotFail);
+		final A_Function newFunction =
+			newPrimitiveFunction(P_256_EmergencyExit.instance);
+
+		// Create the new method. Note that the underscore is
+		// essential here, as certain parts of the virtual machine (like the
+		// decompiler) use the name to figure out how many arguments a method
+		// accepts.
+		final AvailObject method = newMethodWithName(vmCrashAtom());
+		try
+		{
+			method.methodAddDefinition(
+				MethodDefinitionDescriptor.create(method, newFunction));
+		}
+		catch (final SignatureException e)
+		{
+			assert false : "This should not be possible!";
+			throw new RuntimeException(e);
+		}
+
+		return method;
+	}
+
+	/**
+	 * The (special) name of the VM-built pre-bootstrap method-defining method.
+	 */
+	private static final A_Atom vmMethodDefinerAtom =
+		AtomDescriptor.createSpecialAtom(
+			StringDescriptor.from("vm method_is_"));
+
+	/**
+	 * Answer the (special) {@linkplain AtomDescriptor name} of the VM method
+	 * used to bootstrap new methods.
+	 *
+	 * @return The name of the bootstrap method-defining method.
+	 */
+	public static A_Atom vmMethodDefinerAtom ()
+	{
+		return vmMethodDefinerAtom;
+	}
+
+	/**
+	 * The special pre-bootstrap method-defining method constructed by the VM.
+	 */
+	private static final AvailObject vmMethodDefinerMethod =
+		newVMMethodDefinerMethod();
+
+	/**
+	 * Answer the special pre-bootstrap method-defining method that was created
+	 * and installed into the {@link AvailRuntime} automatically.
+	 *
+	 * @return The bootstrap method-defining method.
+	 */
+	public static AvailObject vmMethodDefinerMethod ()
+	{
+		return vmMethodDefinerMethod;
+	}
+
+	/**
+	 * The (special) name of the VM-built pre-bootstrap macro-defining method.
+	 */
+	private static final A_Atom vmMacroDefinerAtom =
+		AtomDescriptor.createSpecialAtom(
+			StringDescriptor.from("vm macro_is«_,»_"));
+
+	/**
+	 * Answer the (special) {@linkplain AtomDescriptor name} of the VM method
+	 * used to bootstrap new macros.
+	 *
+	 * @return The name of the bootstrap macro-defining method.
+	 */
+	public static A_Atom vmMacroDefinerAtom ()
+	{
+		return vmMacroDefinerAtom;
+	}
+
+	/**
+	 * The special pre-bootstrap macro-defining method constructed by the VM.
+	 */
+	private static final AvailObject vmMacroDefinerMethod =
+		newVMMacroDefinerMethod();
+
+	/**
+	 * Answer the special pre-bootstrap macro-defining method that was created
+	 * and installed into the {@link AvailRuntime} automatically.
+	 *
+	 * @return The bootstrap macro-defining method.
+	 */
+	public static AvailObject vmMacroDefinerMethod ()
+	{
+		return vmMacroDefinerMethod;
+	}
+
+	/**
+	 * Construct the {@linkplain MethodDescriptor methods} for bootstrapping
+	 * method definition.
+	 *
+	 * @return A method.
+	 */
+	private static AvailObject newVMMethodDefinerMethod ()
+	{
+		final A_Function fromStringFunction = newPrimitiveFunction(
+			P_253_SimpleMethodDeclaration.instance);
+		final A_Function fromAtomFunction = newPrimitiveFunction(
+			P_228_MethodDeclarationFromAtom.instance);
+		final AvailObject method = newMethodWithName(vmMethodDefinerAtom());
+		try
+		{
+			method.methodAddDefinition(
+				MethodDefinitionDescriptor.create(method, fromAtomFunction));
+			method.methodAddDefinition(
+				MethodDefinitionDescriptor.create(method, fromStringFunction));
+		}
+		catch (final SignatureException e)
+		{
+			assert false : "This should not be possible!";
+			throw new RuntimeException(e);
+		}
+		return method;
+	}
+
+	/**
+	 * Construct the {@linkplain MethodDescriptor method} for bootstrapping
+	 * macro definition.
+	 *
+	 * @return A method.
+	 */
+	private static AvailObject newVMMacroDefinerMethod ()
+	{
+		final A_Function fromStringFunction = newPrimitiveFunction(
+			P_249_SimpleMacroDeclaration.instance);
+		final AvailObject method = newMethodWithName(vmMacroDefinerAtom());
+		try
+		{
+			method.methodAddDefinition(
+				MethodDefinitionDescriptor.create(method, fromStringFunction));
+		}
+		catch (final SignatureException e)
+		{
+			assert false : "This should not be possible!";
+			throw new RuntimeException(e);
+		}
+		return method;
+	}
+
+	/**
+	 * The (special) name of the VM-built function application method.
+	 */
+	private static final A_Atom vmFunctionApplyAtom =
+		AtomDescriptor.createSpecialAtom(
+			StringDescriptor.from("vm function apply_(«_‡,»)"));
+
+	/**
+	 * Answer the (special) {@linkplain AtomDescriptor name} of the VM's
+	 * function application method.
+	 *
+	 * @return The name of the VM's function application method.
+	 */
+	public static A_Atom vmFunctionApplyAtom ()
+	{
+		return vmFunctionApplyAtom;
+	}
+
+	/**
+	 * A {@linkplain MethodDescriptor method} containing a {@linkplain
+	 * MethodDefinitionDescriptor definition} that invokes {@link
+	 * P_040_InvokeWithTuple} (function application). Needed by some hand-built
+	 * functions.
+	 */
+	private static final AvailObject vmFunctionApplyMethod =
+		newVMFunctionApplyMethod();
+
+	/**
+	 * A {@linkplain MethodDescriptor method} containing a {@linkplain
+	 * MethodDefinitionDescriptor definition} that invokes {@link
+	 * P_040_InvokeWithTuple} (function application). Needed by some hand-built
+	 * functions.
+	 *
+	 * @return A method.
+	 */
+	public static AvailObject vmFunctionApplyMethod ()
+	{
+		return vmFunctionApplyMethod;
+	}
+
+	/**
+	 * Construct the {@linkplain MethodDescriptor method} for bootstrapping
+	 * function application.
+	 *
+	 * @return A method.
+	 */
+	private static AvailObject newVMFunctionApplyMethod ()
+	{
+		final A_Function newFunction =
+			newPrimitiveFunction(P_040_InvokeWithTuple.instance);
+
+		// Create the new method.
+		final AvailObject method = newMethodWithName(vmFunctionApplyAtom());
+		try
+		{
+			method.methodAddDefinition(
+				MethodDefinitionDescriptor.create(method, newFunction));
+		}
+		catch (final SignatureException e)
+		{
+			assert false : "This should not be possible!";
+			throw new RuntimeException(e);
+		}
+
+		return method;
+	}
+
+	/**
+	 * The (special) name of the VM-built atom-set publication method.
+	 */
+	private static final A_Atom vmPublishAtomsAtom =
+		AtomDescriptor.createSpecialAtom(
+			StringDescriptor.from("vm publish atom set_(public=_)"));
+
+	/**
+	 * Answer the (special) {@linkplain AtomDescriptor name} of the VM's
+	 * function which publishes a set of atoms from the current module.
+	 *
+	 * @return The name of the VM's function application method.
+	 */
+	public static A_Atom vmPublishAtomsAtom ()
+	{
+		return vmPublishAtomsAtom;
+	}
+
+	/**
+	 * A {@linkplain MethodDescriptor method} containing a {@linkplain
+	 * MethodDefinitionDescriptor definition} that invokes {@link
+	 * P_263_DeclareAllExportedAtoms} (atom-set publication). Needed by the
+	 * module compilation system.
+	 */
+	private static final AvailObject vmPublishAtomsMethod =
+		newVMPublishAtomsMethod();
+
+	/**
+	 * A {@linkplain MethodDescriptor method} containing a {@linkplain
+	 * MethodDefinitionDescriptor definition} that invokes {@link
+	 * P_263_DeclareAllExportedAtoms} (atom-set publication). Needed by the
+	 * module compilation system.
+	 *
+	 * @return A method.
+	 */
+	public static AvailObject vmPublishAtomsMethod ()
+	{
+		return vmPublishAtomsMethod;
+	}
+
+	/**
+	 * Construct the {@linkplain MethodDescriptor method} for publishing a set
+	 * of atoms from the current module.
+	 *
+	 * @return A method.
+	 */
+	private static AvailObject newVMPublishAtomsMethod ()
+	{
+		final A_Function newFunction =
+			newPrimitiveFunction(P_263_DeclareAllExportedAtoms.instance);
+
+		// Create the new method.
+		final AvailObject method = newMethodWithName(vmPublishAtomsAtom());
+		try
+		{
+			method.methodAddDefinition(
+				MethodDefinitionDescriptor.create(method, newFunction));
+		}
+		catch (final SignatureException e)
+		{
+			assert false : "This should not be possible!";
+			throw new RuntimeException(e);
+		}
+
+		return method;
 	}
 }

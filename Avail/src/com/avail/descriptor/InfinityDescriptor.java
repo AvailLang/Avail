@@ -456,69 +456,6 @@ extends ExtendedIntegerDescriptor
 	}
 
 	/**
-	 * The Avail {@linkplain ExtendedIntegerDescriptor extended integer}
-	 * representing positive infinity.
-	 */
-	private static @Nullable A_Number positiveInfinity;
-
-	/**
-	 * The Avail {@linkplain ExtendedIntegerDescriptor extended integer}
-	 * representing negative infinity.
-	 */
-	private static @Nullable A_Number negativeInfinity;
-
-	/**
-	 * Create the positive and negative infinities.
-	 */
-	static void createWellKnownObjects ()
-	{
-		final AvailObject positive = mutable.create();
-		positive.setSlot(
-			IntegerSlots.SIGN,
-			Sign.POSITIVE.ordinal());
-		positiveInfinity = positive.makeShared();
-
-		final AvailObject negative = mutable.create();
-		negative.setSlot(
-			IntegerSlots.SIGN,
-			Sign.NEGATIVE.ordinal());
-		negativeInfinity = negative.makeShared();
-	}
-
-	/**
-	 * Release the positive and negative infinities.
-	 */
-	static void clearWellKnownObjects ()
-	{
-		positiveInfinity = null;
-		negativeInfinity = null;
-	}
-
-	/**
-	 * Answer the positive infinity object.
-	 *
-	 * @return Positive infinity.
-	 */
-	public static A_Number positiveInfinity ()
-	{
-		final A_Number pos = positiveInfinity;
-		assert pos != null;
-		return pos;
-	}
-
-	/**
-	 * Answer the negative infinity object.
-	 *
-	 * @return Negative infinity.
-	 */
-	public static A_Number negativeInfinity ()
-	{
-		final A_Number neg = negativeInfinity;
-		assert neg != null;
-		return neg;
-	}
-
-	/**
 	 * Return an infinity with the given sign.  Only valid for {@link
 	 * Sign#POSITIVE} and {@link Sign#NEGATIVE}.
 	 *
@@ -574,5 +511,55 @@ extends ExtendedIntegerDescriptor
 	InfinityDescriptor shared ()
 	{
 		return shared;
+	}
+
+	/**
+	 * The Avail {@linkplain ExtendedIntegerDescriptor extended integer}
+	 * representing positive infinity.
+	 */
+	private static final A_Number positiveInfinity;
+
+	static
+	{
+		final AvailObject positive = mutable.create();
+		positive.setSlot(
+			IntegerSlots.SIGN,
+			Sign.POSITIVE.ordinal());
+		positiveInfinity = positive.makeShared();
+	}
+
+	/**
+	 * Answer the positive infinity object.
+	 *
+	 * @return Positive infinity.
+	 */
+	public static A_Number positiveInfinity ()
+	{
+		return positiveInfinity;
+	}
+
+	/**
+	 * The Avail {@linkplain ExtendedIntegerDescriptor extended integer}
+	 * representing negative infinity.
+	 */
+	private static final A_Number negativeInfinity;
+
+	static
+	{
+		final AvailObject negative = mutable.create();
+		negative.setSlot(
+			IntegerSlots.SIGN,
+			Sign.NEGATIVE.ordinal());
+		negativeInfinity = negative.makeShared();
+	}
+
+	/**
+	 * Answer the negative infinity object.
+	 *
+	 * @return Negative infinity.
+	 */
+	public static A_Number negativeInfinity ()
+	{
+		return negativeInfinity;
 	}
 }

@@ -1848,46 +1848,6 @@ extends ExtendedIntegerDescriptor
 	}
 
 	/**
-	 * Create any instances of {@link AvailObject} that need to be present for
-	 * basic Avail operations like arithmetic to work correctly.  In particular,
-	 * generate the array of immutable Avail {@linkplain IntegerDescriptor
-	 * integers} in the range 0..255, inclusive.
-	 */
-	static void createWellKnownObjects ()
-	{
-		final AvailObject[] bytes = new AvailObject [256];
-		for (int i = 0; i <= 255; i++)
-		{
-			final AvailObject object = mutable.create(1);
-			object.rawSignedIntegerAtPut(1, i);
-			bytes[i] = object.makeShared();
-		}
-		immutableByteObjects = bytes;
-		final int[] hashes = new int [256];
-		for (int i = 0; i <= 255; i++)
-		{
-			hashes[i] = computeHashOfInt(i);
-		}
-		hashesOfUnsignedBytes = hashes;
-		final AvailObject neg = mutable.create(1);
-		neg.rawSignedIntegerAtPut(1, -1);
-		negativeOne = neg.makeShared();
-	}
-
-	/**
-	 * Clear any instances that are no longer essential when there is no longer
-	 * a need for any {@link AvailObject}s.  Also create any simple tables of
-	 * non-AvailObjects, such as the table of hash values for all unsigned
-	 * bytes.
-	 */
-	static void clearWellKnownObjects ()
-	{
-		immutableByteObjects = null;
-		hashesOfUnsignedBytes = null;
-		negativeOne = null;
-	}
-
-	/**
 	 * Convert the specified Java {@code long} into an Avail {@linkplain
 	 * IntegerDescriptor integer}.
 	 *
@@ -1898,7 +1858,7 @@ extends ExtendedIntegerDescriptor
 	{
 		if (aLong == (aLong & 255))
 		{
-			return immutableByteObjects()[(int) aLong];
+			return immutableByteObjects[(int) aLong];
 		}
 		if (aLong == (int)aLong)
 		{
@@ -2008,7 +1968,7 @@ extends ExtendedIntegerDescriptor
 	{
 		if (anInteger == (anInteger & 255))
 		{
-			return immutableByteObjects()[anInteger];
+			return immutableByteObjects[anInteger];
 		}
 		final AvailObject result = mutable.create(1);
 		result.rawSignedIntegerAtPut(1, anInteger);
@@ -2025,7 +1985,7 @@ extends ExtendedIntegerDescriptor
 	public static A_Number fromUnsignedByte (final short anInteger)
 	{
 		assert anInteger >= 0 && anInteger <= 255;
-		return immutableByteObjects()[anInteger];
+		return immutableByteObjects[anInteger];
 	}
 
 	/**
@@ -2088,7 +2048,7 @@ extends ExtendedIntegerDescriptor
 	 */
 	public static A_Number zero ()
 	{
-		return immutableByteObjects()[0];
+		return immutableByteObjects[0];
 	}
 
 	/**
@@ -2099,7 +2059,7 @@ extends ExtendedIntegerDescriptor
 	 */
 	public static A_Number one ()
 	{
-		return immutableByteObjects()[1];
+		return immutableByteObjects[1];
 	}
 
 	/**
@@ -2110,7 +2070,7 @@ extends ExtendedIntegerDescriptor
 	 */
 	public static A_Number two ()
 	{
-		return immutableByteObjects()[2];
+		return immutableByteObjects[2];
 	}
 
 	/**
@@ -2121,7 +2081,7 @@ extends ExtendedIntegerDescriptor
 	 */
 	public static A_Number ten ()
 	{
-		return immutableByteObjects()[10];
+		return immutableByteObjects[10];
 	}
 
 	/**
@@ -2178,38 +2138,6 @@ extends ExtendedIntegerDescriptor
 	}
 
 	/**
-	 * An array of 256 {@code int}s, corresponding to the hashes of the values
-	 * 0..255 inclusive.  Initialized via {@link #clearWellKnownObjects()}.
-	 */
-	static @Nullable int hashesOfUnsignedBytes[] = null;
-
-	/**
-	 * The Avail integer negative one (-1).
-	 */
-	static @Nullable A_Number negativeOne = null;
-
-	/**
-	 * An array of 256 immutable {@linkplain IntegerDescriptor integers},
-	 * corresponding with the indices 0..255 inclusive.  These make many kinds
-	 * of calculations much more efficient than naively constructing a fresh
-	 * {@link AvailObject} unconditionally.
-	 */
-	static @Nullable A_Number [] immutableByteObjects = null;
-
-	/**
-	 * Answer the array of Avail {@linkplain IntegerDescriptor integers} small
-	 * enough to fit in an unsigned byte (i.e., in [0..255]).
-	 *
-	 * @return The array of Avail integers.
-	 */
-	static A_Number [] immutableByteObjects ()
-	{
-		final A_Number [] bytes = immutableByteObjects;
-		assert bytes != null;
-		return bytes;
-	}
-
-	/**
 	 * Create an {@linkplain IntegerDescriptor integer} of the specified size,
 	 * but with uninitialized slots.
 	 *
@@ -2260,5 +2188,53 @@ extends ExtendedIntegerDescriptor
 	IntegerDescriptor shared ()
 	{
 		return shared;
+	}
+
+	/**
+	 * An array of 256 {@code int}s, corresponding to the hashes of the values
+	 * 0..255 inclusive.
+	 */
+	private static final int[] hashesOfUnsignedBytes;
+
+	static
+	{
+		final int[] hashes = new int [256];
+		for (int i = 0; i <= 255; i++)
+		{
+			hashes[i] = computeHashOfInt(i);
+		}
+		hashesOfUnsignedBytes = hashes;
+	}
+
+	/**
+	 * An array of 256 immutable {@linkplain IntegerDescriptor integers},
+	 * corresponding with the indices 0..255 inclusive.  These make many kinds
+	 * of calculations much more efficient than naively constructing a fresh
+	 * {@link AvailObject} unconditionally.
+	 */
+	private static final A_Number[] immutableByteObjects;
+
+	static
+	{
+		final AvailObject[] bytes = new AvailObject [256];
+		for (int i = 0; i <= 255; i++)
+		{
+			final AvailObject object = mutable.create(1);
+			object.rawSignedIntegerAtPut(1, i);
+			bytes[i] = object.makeShared();
+		}
+		immutableByteObjects = bytes;
+	}
+
+	/**
+	 * The Avail integer negative one (-1).
+	 */
+	private static final A_Number negativeOne;
+
+	static
+	{
+		final AvailObject neg = mutable.create(1);
+		neg.rawSignedIntegerAtPut(1, -1);
+		negativeOne = neg.makeShared();
 	}
 }

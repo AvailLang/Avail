@@ -33,7 +33,6 @@
 package com.avail.descriptor;
 
 import static com.avail.descriptor.TypeDescriptor.Types.*;
-import java.util.Arrays;
 import java.util.List;
 import com.avail.annotations.*;
 import com.avail.compiler.*;
@@ -65,14 +64,6 @@ extends AbstractTypeDescriptor
 	 * The {@code TypeDescriptor.Types} enumeration provides a place and a way
 	 * to statically declare the upper stratum of Avail's type lattice,
 	 * specifically all {@linkplain PrimitiveTypeDescriptor primitive types}.
-	 *
-	 * <p>
-	 * Since Java classes are loaded on first use, we postpone creation of the
-	 * actual AvailObjects until an explicit call to {@linkplain
-	 * TypeDescriptor#createWellKnownObjects()}.  The Avail objects are
-	 * extracted from the {@code Types} objects via the {@linkplain #o()}
-	 * method.
-	 * </p>
 	 *
 	 * @author Mark van Gulik &lt;mark@availlang.org&gt;
 	 */
@@ -180,14 +171,6 @@ extends AbstractTypeDescriptor
 		 * consumed by the {@linkplain AbstractAvailCompiler parser}.
 		 */
 		TOKEN(NONTYPE),
-
-		/**
-		 * This type is the kind of all {@linkplain PowerStringTokenDescriptor
-		 * power string tokens}, which represent occurrences of power strings
-		 * in the Avail text.  They are discovered during lexical scanning, but
-		 * immediately invoke the {@linkplain AbstractAvailCompiler compiler}.
-		 */
-		POWER_STRING_TOKEN(TOKEN),
 
 		/**
 		 * The general kind of {@linkplain DefinitionDescriptor method
@@ -328,6 +311,60 @@ extends AbstractTypeDescriptor
 		void set_o (final @Nullable AvailObject object)
 		{
 			this.o = object;
+		}
+
+		/**
+		 * A two-dimensional table of booleans such that supertypeTable[x][y] is
+		 * true precisely when x is a subtype of y.  The indices are ordinals of
+		 * primitive types.
+		 */
+		static final boolean[][] supertypeTable =
+			new boolean [Types.values().length][];
+
+		static
+		{
+			// Build all the objects with null fields.
+			for (final Types spec : Types.values())
+			{
+				final String name = spec == TOP
+					? "⊤"
+					: spec.name().toLowerCase().replace('_', ' ');
+				final AvailObject o = spec.descriptor.createPrimitiveObjectNamed(
+					name,
+					spec.ordinal());
+				spec.set_o(o);
+			}
+			// Connect and name the objects.
+			for (final Types spec : Types.values())
+			{
+				final A_BasicObject o = spec.o();
+				o.parent(
+					spec.parent == null
+						 ? NilDescriptor.nil()
+						: spec.parent().o());
+				final boolean[] row = new boolean [Types.values().length];
+				supertypeTable[spec.ordinal()] = row;
+				Types pointer = spec;
+				while (pointer != null)
+				{
+					row[pointer.ordinal()] = true;
+					pointer = pointer.parent;
+				}
+			}
+			// Now make all the objects shared.
+			for (final Types spec : Types.values())
+			{
+				spec.o().makeShared();
+			}
+			// Sanity check them for metacovariance: a<=b -> a.type<=b.type
+			for (final Types spec : Types.values())
+			{
+				if (spec.parent != null)
+				{
+					assert spec.o().isSubtypeOf(spec.parent().o());
+					assert spec.o().isInstanceOfKind(spec.parent().o().kind());
+				}
+			}
 		}
 	}
 
@@ -949,75 +986,6 @@ extends AbstractTypeDescriptor
 		final int anInt)
 	{
 		return false;
-	}
-
-	/**
-	 * A two-dimensional table of booleans such that supertypeTable[x][y] is
-	 * true precisely when x is a subtype of y.  The indices are ordinals of
-	 * primitive types.
-	 */
-	static final boolean supertypeTable [][] =
-		new boolean [Types.values().length][];
-
-	/**
-	 * Create any cached {@link AvailObject}s.
-	 */
-	static void createWellKnownObjects ()
-	{
-		// Build all the objects with null fields.
-		for (final Types spec : Types.values())
-		{
-			final String name = spec == TOP
-				? "⊤"
-				: spec.name().toLowerCase().replace('_', ' ');
-			final AvailObject o = spec.descriptor.createPrimitiveObjectNamed(
-				name,
-				spec.ordinal());
-			spec.set_o(o);
-		}
-		// Connect and name the objects.
-		for (final Types spec : Types.values())
-		{
-			final A_BasicObject o = spec.o();
-			o.parent(
-				spec.parent == null
-					 ? NilDescriptor.nil()
-					: spec.parent().o());
-			final boolean[] row = new boolean [Types.values().length];
-			supertypeTable[spec.ordinal()] = row;
-			Types pointer = spec;
-			while (pointer != null)
-			{
-				row[pointer.ordinal()] = true;
-				pointer = pointer.parent;
-			}
-		}
-		// Now make all the objects shared.
-		for (final Types spec : Types.values())
-		{
-			spec.o().makeShared();
-		}
-		// Sanity check them for metacovariance: a<=b -> a.type<=b.type
-		for (final Types spec : Types.values())
-		{
-			if (spec.parent != null)
-			{
-				assert spec.o().isSubtypeOf(spec.parent().o());
-				assert spec.o().isInstanceOfKind(spec.parent().o().kind());
-			}
-		}
-	}
-
-	/**
-	 * Release all references to {@link AvailObject}s held by this class.
-	 */
-	static void clearWellKnownObjects ()
-	{
-		for (final Types spec : Types.values())
-		{
-			spec.set_o(null);
-		}
-		Arrays.fill(supertypeTable, null);
 	}
 
 	/**

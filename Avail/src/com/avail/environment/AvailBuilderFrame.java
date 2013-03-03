@@ -386,7 +386,6 @@ extends JFrame
 			AvailRuntime runtime = null;
 			try
 			{
-				AvailObject.createAllWellKnownObjects();
 				runtime = new AvailRuntime(resolver);
 				final AvailBuilder builder = new AvailBuilder(
 					runtime,
@@ -513,7 +512,6 @@ extends JFrame
 				{
 					runtime.destroy();
 				}
-				AvailObject.clearAllWellKnownObjects();
 				stopTimeMillis = System.currentTimeMillis();
 			}
 		}

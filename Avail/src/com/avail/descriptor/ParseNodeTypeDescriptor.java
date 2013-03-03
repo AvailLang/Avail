@@ -221,7 +221,8 @@ extends TypeDescriptor
 		/**
 		 * The most general type for this kind of parse node.
 		 */
-		private @Nullable A_Type mostGeneralType;
+		private final A_Type mostGeneralType =
+			create(mostGeneralInnerType()).makeShared();
 
 		/**
 		 * Construct a new {@link ParseNodeKind}.
@@ -264,24 +265,6 @@ extends TypeDescriptor
 		}
 
 		/**
-		 * Populate any necessary references to {@link AvailObject}s held by
-		 * this {@link ParseNodeKind}.
-		 */
-		void createWellKnownObjects ()
-		{
-			mostGeneralType = create(mostGeneralInnerType()).makeShared();
-		}
-
-		/**
-		 * Release all references to {@link AvailObject}s held by this {@link
-		 * ParseNodeKind}.
-		 */
-		void clearWellKnownObjects ()
-		{
-			mostGeneralType = null;
-		}
-
-		/**
 		 * Answer a {@linkplain ParseNodeTypeDescriptor parse node type} whose
 		 * kind is the receiver and whose expression type is {@linkplain
 		 * TypeDescriptor.Types#TOP top}. This is the most general parse node
@@ -290,11 +273,9 @@ extends TypeDescriptor
 		 * @return The new parse node type, whose kind is the receiver and whose
 		 *         expression type is {@linkplain TypeDescriptor.Types#TOP top}.
 		 */
-		final public A_Type mostGeneralType ()
+		public final A_Type mostGeneralType ()
 		{
-			final A_Type type = mostGeneralType;
-			assert type != null;
-			return type;
+			return mostGeneralType;
 		}
 
 		/**
@@ -328,7 +309,7 @@ extends TypeDescriptor
 		 * An array where index (t1 * #values) + t2 indicates whether t1 is a
 		 * subkind of t2.
 		 */
-		private static final boolean compatibility[] =
+		private static final boolean[] compatibility =
 			new boolean [values().length * values().length];
 
 		static
@@ -567,29 +548,6 @@ extends TypeDescriptor
 			builder,
 			recursionList,
 			indent + 1);
-	}
-
-	/**
-	 * Populate any necessary references to {@link AvailObject}s held by this
-	 * class.
-	 */
-	public static void createWellKnownObjects ()
-	{
-		for (final ParseNodeKind kind : ParseNodeKind.values())
-		{
-			kind.createWellKnownObjects();
-		}
-	}
-
-	/**
-	 * Release all references to {@link AvailObject}s held by this class.
-	 */
-	public static void clearWellKnownObjects ()
-	{
-		for (final ParseNodeKind kind : ParseNodeKind.values())
-		{
-			kind.clearWellKnownObjects();
-		}
 	}
 
 	/**

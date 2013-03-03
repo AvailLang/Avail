@@ -221,33 +221,6 @@ extends TypeDescriptor
 		return object;
 	}
 
-	/** The most general literal token type */
-	private static @Nullable A_Type mostGeneralType;
-
-	/**
-	 * Answer the most general literal token type, specifically the literal
-	 * token type whose literal tokens' literal values are constrained by
-	 * {@link TypeDescriptor.Types#ANY any}.
-	 *
-	 * @return The most general literal token type.
-	 */
-	public static A_Type mostGeneralType()
-	{
-		final A_Type type = mostGeneralType;
-		assert type != null;
-		return type;
-	}
-
-	public static void clearWellKnownObjects ()
-	{
-		mostGeneralType = null;
-	}
-
-	public static void createWellKnownObjects ()
-	{
-		mostGeneralType = create(ANY.o()).makeShared();
-	}
-
 	/**
 	 * Construct a new {@link LiteralTokenTypeDescriptor}.
 	 *
@@ -284,5 +257,20 @@ extends TypeDescriptor
 	LiteralTokenTypeDescriptor shared ()
 	{
 		return shared;
+	}
+
+	/** The most general literal token type */
+	private static final A_Type mostGeneralType = create(ANY.o()).makeShared();
+
+	/**
+	 * Answer the most general literal token type, specifically the literal
+	 * token type whose literal tokens' literal values are constrained by
+	 * {@link TypeDescriptor.Types#ANY any}.
+	 *
+	 * @return The most general literal token type.
+	 */
+	public static A_Type mostGeneralType()
+	{
+		return mostGeneralType;
 	}
 }

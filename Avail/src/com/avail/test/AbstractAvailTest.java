@@ -107,8 +107,6 @@ public class AbstractAvailTest
 	public void initializeAllWellKnownObjects ()
 		throws RenamesFileParserException
 	{
-		AvailObject.clearAllWellKnownObjects();
-		AvailObject.createAllWellKnownObjects();
 		final ModuleRoots theRoots = roots;
 		assert theRoots != null;
 		final ModuleNameResolver theResolver =

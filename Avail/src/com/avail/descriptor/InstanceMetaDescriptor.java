@@ -585,58 +585,6 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	/**
-	 * ⊤'s type, cached statically for convenience.
-	 */
-	private static @Nullable A_Type topMeta;
-
-	/**
-	 * Any's type, cached statically for convenience.
-	 */
-	private static @Nullable A_Type anyMeta;
-
-	/**
-	 * Answer any's type, a metatype.
-	 *
-	 * @return any's type.
-	 */
-	public static A_Type anyMeta ()
-	{
-		final A_Type type = anyMeta;
-		assert type != null;
-		return type;
-	}
-
-	/**
-	 * Answer ⊤'s type, the most general metatype.
-	 *
-	 * @return ⊤'s type.
-	 */
-	public static A_Type topMeta ()
-	{
-		final A_Type type = topMeta;
-		assert type != null;
-		return type;
-	}
-
-	/**
-	 * Create the convenience statics for top's type and any's type.
-	 */
-	static void createWellKnownObjects ()
-	{
-		topMeta = on(TOP.o()).makeShared();
-		anyMeta = on(ANY.o()).makeShared();
-	}
-
-	/**
-	 * Release the convenience statics that hold top's type and any's type.
-	 */
-	static void clearWellKnownObjects ()
-	{
-		topMeta = null;
-		anyMeta = null;
-	}
-
-	/**
 	 * Construct a new {@link InstanceMetaDescriptor}.
 	 *
 	 * @param mutability
@@ -675,6 +623,36 @@ extends AbstractEnumerationTypeDescriptor
 	AbstractEnumerationTypeDescriptor shared ()
 	{
 		return shared;
+	}
+
+	/**
+	 * ⊤'s type, cached statically for convenience.
+	 */
+	private static final A_Type topMeta = on(TOP.o()).makeShared();
+
+	/**
+	 * Answer ⊤'s type, the most general metatype.
+	 *
+	 * @return ⊤'s type.
+	 */
+	public static A_Type topMeta ()
+	{
+		return topMeta;
+	}
+
+	/**
+	 * Any's type, cached statically for convenience.
+	 */
+	private static final A_Type anyMeta = on(ANY.o()).makeShared();
+
+	/**
+	 * Answer any's type, a metatype.
+	 *
+	 * @return any's type.
+	 */
+	public static A_Type anyMeta ()
+	{
+		return anyMeta;
 	}
 
 	/**
