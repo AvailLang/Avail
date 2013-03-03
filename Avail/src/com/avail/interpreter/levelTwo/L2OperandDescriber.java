@@ -58,15 +58,15 @@ class L2OperandDescriber implements L2OperandTypeDispatcher
 	 * The {@linkplain L2ChunkDescriptor level two chunk} containing the
 	 * operation and the operand to be described.
 	 */
-	private @Nullable A_BasicObject _chunk;
+	private @Nullable A_Chunk _chunk;
 
 	/**
 	 * @return The current {@linkplain L2ChunkDescriptor chunk} containing the
 	 *         instruction being described
 	 */
-	private A_BasicObject chunk ()
+	private A_Chunk chunk ()
 	{
-		final A_BasicObject chunk = _chunk;
+		final A_Chunk chunk = _chunk;
 		assert chunk != null;
 		return chunk;
 	}
@@ -134,7 +134,7 @@ class L2OperandDescriber implements L2OperandTypeDispatcher
 	public void describeInOperandChunkOn (
 			final L2NamedOperandType namedOperandType,
 			final int operand,
-			final A_BasicObject chunk,
+			final A_Chunk chunk,
 			final StringBuilder stream)
 	{
 		_name = namedOperandType.name();
@@ -173,7 +173,7 @@ class L2OperandDescriber implements L2OperandTypeDispatcher
 	@Override
 	public void doSelector()
 	{
-		final A_BasicObject method = chunk().literalAt(_operand);
+		final A_Method method = chunk().literalAt(_operand);
 		print("Message(%s)", method.originalName().name().asNativeString());
 	}
 	@Override

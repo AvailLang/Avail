@@ -57,10 +57,9 @@ public class P_059_ContinuationStackData extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
-		final A_BasicObject con = args.get(0);
+		final A_Continuation con = args.get(0);
 		final int count = con.function().code().numArgsAndLocalsAndStack();
-		final AvailObject tuple = ObjectTupleDescriptor.createUninitialized(
-			count);
+		final A_Tuple tuple = ObjectTupleDescriptor.createUninitialized(count);
 		for (int i = 1; i <= count; i++)
 		{
 			AvailObject entry = con.argOrLocalOrStackAt(i);

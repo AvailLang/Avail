@@ -123,7 +123,6 @@ public class AbstractAvailTest
 	@After
 	public void clearAllWellKnownObjects ()
 	{
-		AvailObject.clearAllWellKnownObjects();
 		final AvailRuntime theRuntime = runtime;
 		assert theRuntime != null;
 		theRuntime.destroy();

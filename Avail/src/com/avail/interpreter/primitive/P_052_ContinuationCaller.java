@@ -56,8 +56,8 @@ public class P_052_ContinuationCaller extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
-		final A_BasicObject con = args.get(0);
-		final A_BasicObject caller = con.caller();
+		final A_Continuation con = args.get(0);
+		final A_Continuation caller = con.caller();
 		final A_BasicObject callerHolder = VariableDescriptor.forInnerType(
 			ContinuationTypeDescriptor.mostGeneralType());
 		if (!caller.equalsNil())

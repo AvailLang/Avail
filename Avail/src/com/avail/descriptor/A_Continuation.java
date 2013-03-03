@@ -1,5 +1,5 @@
 /**
- * L2_REENTER_L1_CHUNK.java
+ * A_Continuation.java
  * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -29,49 +29,89 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.avail.interpreter.levelTwo.operation;
 
-import static com.avail.interpreter.Interpreter.*;
-import static com.avail.interpreter.levelTwo.register.FixedRegister.*;
-import com.avail.descriptor.A_Continuation;
-import com.avail.interpreter.Interpreter;
-import com.avail.interpreter.levelTwo.*;
+package com.avail.descriptor;
 
 /**
- * Arrive here by returning from a called method into unoptimized (level
- * one) code.  Explode the current continuation's slots into the registers
- * that level one expects.
+ * {@code A_Continuation} is an interface that specifies the operations specific
+ * to {@linkplain ContinuationDescriptor continuations} in Avail.  It's a
+ * sub-interface of {@link A_BasicObject}, the interface that defines the
+ * behavior that all AvailObjects are required to support.
+ *
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class L2_REENTER_L1_CHUNK extends L2Operation
+public interface A_Continuation
+extends A_BasicObject
 {
 	/**
-	 * Initialize the sole instance.
+	 * Dispatch to the descriptor.
 	 */
-	public final static L2Operation instance =
-		new L2_REENTER_L1_CHUNK().init();
+	AvailObject argOrLocalOrStackAt (int index);
 
-	@Override
-	public void step (final Interpreter interpreter)
-	{
-		final A_Continuation continuation = interpreter.pointerAt(CALLER);
-		final int numSlots = continuation.numArgsAndLocalsAndStack();
-		for (int i = 1; i <= numSlots; i++)
-		{
-			interpreter.pointerAtPut(
-				argumentOrLocalRegister(i),
-				continuation.stackAt(i));
-		}
-		interpreter.integerAtPut(pcRegister(), continuation.pc());
-		interpreter.integerAtPut(
-			stackpRegister(),
-			argumentOrLocalRegister(continuation.stackp()));
-		interpreter.pointerAtPut(FUNCTION, continuation.function());
-		interpreter.pointerAtPut(CALLER, continuation.caller());
-	}
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	void argOrLocalOrStackAtPut (int index, AvailObject value);
 
-	@Override
-	public boolean hasSideEffect ()
-	{
-		return true;
-	}
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	A_Continuation caller ();
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	A_Function function ();
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	int pc ();
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	int stackp ();
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	void levelTwoChunkOffset (A_Chunk chunk, int offset);
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	AvailObject stackAt (int slotIndex);
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	void stackAtPut (int slotIndex, A_BasicObject anObject);
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	AvailObject ensureMutable ();
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	A_Chunk levelTwoChunk ();
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	int levelTwoOffset ();
+
+	/**
+	 * Also defined in {@link A_RawFunction}.
+	 *
+	 * @return
+	 */
+	int numArgsAndLocalsAndStack ();
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	A_BasicObject copyAsMutableContinuation ();
 }

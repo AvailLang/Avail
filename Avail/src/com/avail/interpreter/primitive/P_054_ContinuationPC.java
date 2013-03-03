@@ -57,7 +57,7 @@ public class P_054_ContinuationPC extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
-		final A_BasicObject con = args.get(0);
+		final A_Continuation con = args.get(0);
 		return interpreter.primitiveSuccess(
 			IntegerDescriptor.fromInt(con.pc()));
 	}

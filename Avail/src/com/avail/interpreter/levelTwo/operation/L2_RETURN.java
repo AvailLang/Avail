@@ -33,7 +33,7 @@ package com.avail.interpreter.levelTwo.operation;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_POINTER;
 import static com.avail.interpreter.levelTwo.register.FixedRegister.CALLER;
-import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.A_Continuation;
 import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.*;
@@ -60,7 +60,7 @@ public class L2_RETURN extends L2Operation
 		final int valueIndex = interpreter.nextWord();
 		assert continuationIndex == CALLER.ordinal();
 
-		final A_BasicObject caller = interpreter.pointerAt(continuationIndex);
+		final A_Continuation caller = interpreter.pointerAt(continuationIndex);
 		final AvailObject valueObject = interpreter.pointerAt(valueIndex);
 		interpreter.returnToCaller(caller, valueObject);
 	}

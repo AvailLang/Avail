@@ -383,7 +383,7 @@ extends ParseNodeDescriptor
 	 *            function}.
 	 */
 	@Override @AvailMethod
-	A_BasicObject o_GenerateInModule (
+	A_RawFunction o_GenerateInModule (
 		final AvailObject object,
 		final A_BasicObject module)
 	{

@@ -33,8 +33,8 @@ package com.avail.interpreter.levelTwo.operation;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import static com.avail.interpreter.levelTwo.register.FixedRegister.PRIMITIVE_FAILURE;
-import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_Function;
+import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.*;
@@ -89,7 +89,7 @@ public class L2_INVOKE_AFTER_FAILED_PRIMITIVE extends L2Operation
 			interpreter.argsBuffer.add(
 				interpreter.pointerAt(vect.tupleIntAt(i)));
 		}
-		final A_BasicObject codeToCall = function.code();
+		final A_RawFunction codeToCall = function.code();
 		final int primNum = codeToCall.primitiveNumber();
 		assert primNum != 0;
 		assert !Primitive.byPrimitiveNumberOrFail(primNum).hasFlag(

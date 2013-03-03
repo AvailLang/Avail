@@ -192,7 +192,7 @@ extends TypeDescriptor
 	@Override @AvailMethod
 	boolean o_IsSupertypeOfContinuationType (
 		final AvailObject object,
-		final A_BasicObject aContinuationType)
+		final A_Type aContinuationType)
 	{
 		// A primitive type is a supertype of a continuation type if it is a
 		// supertype of NONTYPE.

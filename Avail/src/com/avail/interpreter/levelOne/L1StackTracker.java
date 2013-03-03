@@ -35,7 +35,6 @@ package com.avail.interpreter.levelOne;
 import static com.avail.descriptor.AvailObject.error;
 import static java.lang.Math.max;
 import com.avail.annotations.Nullable;
-import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.AvailObject;
 
 /**
@@ -133,8 +132,7 @@ abstract class L1StackTracker implements L1OperationDispatcher
 	 * @param literalIndex The literal's index.
 	 * @return The literal {@link AvailObject}.
 	 */
-	abstract A_BasicObject literalAt (int literalIndex);
-
+	abstract AvailObject literalAt (int literalIndex);
 
 	@Override
 	public void L1_doCall ()

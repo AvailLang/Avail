@@ -56,7 +56,7 @@ public class P_050_ContinuationTypeToFunctionType extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
-		final A_BasicObject continuationType = args.get(0);
+		final A_Type continuationType = args.get(0);
 		return interpreter.primitiveSuccess(
 			continuationType.functionType());
 	}

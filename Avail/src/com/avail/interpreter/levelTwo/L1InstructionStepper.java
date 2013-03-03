@@ -141,7 +141,7 @@ implements L1OperationDispatcher
 	 */
 	private void pointerAtPut (
 		final FixedRegister fixedRegister,
-		final AvailObject value)
+		final A_BasicObject value)
 	{
 		interpreter.pointerAtPut(fixedRegister, value);
 	}
@@ -203,7 +203,7 @@ implements L1OperationDispatcher
 	private final AvailObject literalAt (final int literalIndex)
 	{
 		final A_Function function = pointerAt(FUNCTION);
-		final A_BasicObject code = function.code();
+		final A_RawFunction code = function.code();
 		return code.literalAt(literalIndex);
 	}
 
@@ -223,12 +223,11 @@ implements L1OperationDispatcher
 	public void reifyContinuation ()
 	{
 		final A_Function function = pointerAt(FUNCTION);
-		final A_BasicObject code = function.code();
-		final A_BasicObject chunk = interpreter.chunk();
+		final A_RawFunction code = function.code();
+		final A_Chunk chunk = interpreter.chunk();
 		assert chunk == L2ChunkDescriptor.unoptimizedChunk();
-		final AvailObject continuation =
+		final A_Continuation continuation =
 			ContinuationDescriptor.createExceptFrame(
-				code.numArgsAndLocalsAndStack(),
 				function,
 				pointerAt(CALLER),
 				integerAt(pcRegister()),
@@ -248,12 +247,12 @@ implements L1OperationDispatcher
 	@Override
 	public void L1_doCall()
 	{
-		final A_BasicObject definitions = literalAt(getInteger());
-		final AvailObject expectedReturnType = literalAt(getInteger());
-		final int numArgs = definitions.numArgs();
+		final A_Method method = literalAt(getInteger());
+		final A_Type expectedReturnType = literalAt(getInteger());
+		final int numArgs = method.numArgs();
 		if (debugL1)
 		{
-			System.out.printf(" (%s)", definitions.originalName().name());
+			System.out.printf(" (%s)", method.originalName().name());
 		}
 		argsBuffer.clear();
 		for (int i = numArgs; i >= 1; i--)
@@ -261,12 +260,12 @@ implements L1OperationDispatcher
 			argsBuffer.add(0, pop());
 		}
 		final A_BasicObject matching =
-			definitions.lookupByValuesFromList(argsBuffer);
+			method.lookupByValuesFromList(argsBuffer);
 		if (matching.equalsNil())
 		{
 			error(
 				"Ambiguous or invalid lookup of %s",
-				definitions.originalName().name());
+				method.originalName().name());
 			return;
 		}
 		if (matching.isForwardDefinition())
@@ -274,14 +273,14 @@ implements L1OperationDispatcher
 			error(
 				"Attempted to execute forward method %s "
 				+ "before it was defined.",
-				definitions.originalName().name());
+				method.originalName().name());
 			return;
 		}
 		if (matching.isAbstractDefinition())
 		{
 			error(
 				"Attempted to execute an abstract method %s.",
-				definitions.originalName().name());
+				method.originalName().name());
 			return;
 		}
 		// Leave the expected return type pushed on the stack.  This will be
@@ -495,7 +494,7 @@ implements L1OperationDispatcher
 	public void L1_doExtension ()
 	{
 		final A_Function function = pointerAt(FUNCTION);
-		final A_BasicObject code = function.code();
+		final A_RawFunction code = function.code();
 		final A_Tuple nybbles = code.nybbles();
 		int pc = integerAt(pcRegister());
 		final byte nybble = nybbles.extractNybbleFromTupleAt(pc);
@@ -508,7 +507,7 @@ implements L1OperationDispatcher
 	public void L1Ext_doPushLabel ()
 	{
 		final AvailObject function = pointerAt(FUNCTION);
-		final A_BasicObject code = function.code();
+		final A_RawFunction code = function.code();
 		final int numArgs = code.numArgs();
 		assert code.primitiveNumber() == 0;
 		final List<AvailObject> args = new ArrayList<AvailObject>(numArgs);
@@ -581,7 +580,7 @@ implements L1OperationDispatcher
 	@Override
 	public void L1Implied_doReturn ()
 	{
-		final A_BasicObject caller = pointerAt(CALLER);
+		final A_Continuation caller = pointerAt(CALLER);
 		final AvailObject value = pop();
 		interpreter.returnToCaller(caller, value);
 	}

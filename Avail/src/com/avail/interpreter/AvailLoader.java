@@ -104,7 +104,7 @@ public final class AvailLoader
 	{
 		assert methodName.isAtom();
 
-		final A_BasicObject method = forwardDefinition.definitionMethod();
+		final A_Method method = forwardDefinition.definitionMethod();
 		if (!pendingForwards.hasElement(forwardDefinition))
 		{
 			error("Inconsistent forward declaration handling code");
@@ -153,7 +153,7 @@ public final class AvailLoader
 		methodName.makeShared();
 		bodyBlock.makeShared();
 		//  Add the method definition.
-		final AvailObject method = runtime.methodFor(methodName);
+		final A_Method method = runtime.methodFor(methodName);
 		final AvailObject newMethodDefinition =
 			MethodDefinitionDescriptor.create(method, bodyBlock);
 		final A_Type bodySignature = bodyBlock.kind();
@@ -246,7 +246,7 @@ public final class AvailLoader
 		methodName.makeShared();
 		bodySignature.makeShared();
 		//  Add the stubbed method definition.
-		final AvailObject method = runtime.methodFor(methodName);
+		final A_Method method = runtime.methodFor(methodName);
 		for (final AvailObject definition :
 			method.definitionsTuple())
 		{
@@ -332,7 +332,7 @@ public final class AvailLoader
 		methodName.makeShared();
 		bodySignature.makeShared();
 		//  Add the method definition.
-		final AvailObject method = runtime.methodFor(methodName);
+		final A_Method method = runtime.methodFor(methodName);
 		final A_BasicObject newDefinition = AbstractDefinitionDescriptor.create(
 			method,
 			bodySignature);
@@ -420,7 +420,7 @@ public final class AvailLoader
 		assert methodName.isAtom();
 		assert macroBody.isFunction();
 
-		final AvailObject method = runtime.methodFor(methodName);
+		final A_Method method = runtime.methodFor(methodName);
 		final MessageSplitter splitter = new MessageSplitter(methodName.name());
 		final int numArgs = splitter.numberOfArguments();
 		assert macroBody.code().numArgs() == numArgs
@@ -510,7 +510,7 @@ public final class AvailLoader
 			throw new SignatureException(E_INCORRECT_NUMBER_OF_ARGUMENTS);
 		}
 		methodName.makeShared();
-		final AvailObject method = runtime.methodFor(methodName);
+		final A_Method method = runtime.methodFor(methodName);
 		typeRestrictionFunction.makeShared();
 		runtime.addTypeRestriction(methodName, typeRestrictionFunction);
 		final AvailObject theModule = module;
@@ -586,7 +586,7 @@ public final class AvailLoader
 		assert numArgs == illegalArgMsgs.tupleSize()
 			: "Wrong number of entries in restriction tuple.";
 		assert methodName.isAtom();
-		final AvailObject method = runtime.methodFor(methodName);
+		final A_Method method = runtime.methodFor(methodName);
 		final AvailObject theModule = module;
 		theModule.lock(new Continuation0()
 		{

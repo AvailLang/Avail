@@ -61,7 +61,7 @@ public class L2_PREPARE_NEW_FRAME extends L2Operation
 	public void step (final Interpreter interpreter)
 	{
 		final A_Function function = interpreter.pointerAt(FUNCTION);
-		final A_BasicObject code = function.code();
+		final A_RawFunction code = function.code();
 		final int numArgs = code.numArgs();
 		final int numLocals = code.numLocals();
 		final int numSlots = code.numArgsAndLocalsAndStack();

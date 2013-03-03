@@ -119,7 +119,7 @@ extends DefinitionDescriptor
 	 *            A method signature.
 	 */
 	public static AvailObject create (
-		final AvailObject method,
+		final A_Method method,
 		final A_Function bodyBlock)
 	{
 		final AvailObject instance = mutable.create();

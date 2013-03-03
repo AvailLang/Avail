@@ -1,5 +1,5 @@
 /**
- * L2_REENTER_L1_CHUNK.java
+ * A_RawFunction.java
  * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -29,49 +29,70 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.avail.interpreter.levelTwo.operation;
 
-import static com.avail.interpreter.Interpreter.*;
-import static com.avail.interpreter.levelTwo.register.FixedRegister.*;
-import com.avail.descriptor.A_Continuation;
-import com.avail.interpreter.Interpreter;
-import com.avail.interpreter.levelTwo.*;
+package com.avail.descriptor;
+
+import com.avail.utility.Continuation0;
 
 /**
- * Arrive here by returning from a called method into unoptimized (level
- * one) code.  Explode the current continuation's slots into the registers
- * that level one expects.
+ * {@code A_RawFunction} is an interface that specifies the operations specific
+ * to raw functions in Avail.  It's a sub-interface of {@link A_BasicObject},
+ * the interface that defines the behavior that all AvailObjects are required to
+ * support.
+ *
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class L2_REENTER_L1_CHUNK extends L2Operation
+public interface A_RawFunction
+extends A_BasicObject
 {
+	public void countdownToReoptimize(int value);
+
+	public long totalInvocations ();
+
+	public AvailObject literalAt (int index);
+
+	public A_Type functionType ();
+
+	public void decrementCountdownToReoptimize (Continuation0 continuation);
+
+	public A_Tuple nybbles ();
+
+	public A_Type localTypeAt (int index);
+
+	public A_Type outerTypeAt (int index);
+
+	public void setStartingChunkAndReoptimizationCountdown (
+		A_BasicObject chunk,
+		int countdown);
+
+	public int maxStackDepth ();
+
+	public int numArgs ();
+
 	/**
-	 * Initialize the sole instance.
+	 * Also defined in {@link A_Continuation}.
+	 *
+	 * @return
 	 */
-	public final static L2Operation instance =
-		new L2_REENTER_L1_CHUNK().init();
+	public int numArgsAndLocalsAndStack ();
 
-	@Override
-	public void step (final Interpreter interpreter)
-	{
-		final A_Continuation continuation = interpreter.pointerAt(CALLER);
-		final int numSlots = continuation.numArgsAndLocalsAndStack();
-		for (int i = 1; i <= numSlots; i++)
-		{
-			interpreter.pointerAtPut(
-				argumentOrLocalRegister(i),
-				continuation.stackAt(i));
-		}
-		interpreter.integerAtPut(pcRegister(), continuation.pc());
-		interpreter.integerAtPut(
-			stackpRegister(),
-			argumentOrLocalRegister(continuation.stackp()));
-		interpreter.pointerAtPut(FUNCTION, continuation.function());
-		interpreter.pointerAtPut(CALLER, continuation.caller());
-	}
+	public int numLiterals ();
 
-	@Override
-	public boolean hasSideEffect ()
-	{
-		return true;
-	}
+	public int numLocals ();
+
+	public int numOuters ();
+
+	public int primitiveNumber();
+
+	public A_Chunk startingChunk ();
+
+	public void tallyInvocation ();
+
+	public int startingLineNumber ();
+
+	public A_BasicObject module ();
+
+	public void setMethodName (A_String methodName);
+
+	public A_String methodName ();
 }

@@ -56,8 +56,8 @@ extends L2Operation
 	@Override
 	public void step (final Interpreter interpreter)
 	{
-		final AvailObject theFunction = interpreter.pointerAt(FUNCTION);
-		final A_BasicObject theCode = theFunction.code();
+		final A_Function theFunction = interpreter.pointerAt(FUNCTION);
+		final A_RawFunction theCode = theFunction.code();
 		final Mutable<Boolean> translated = new Mutable<Boolean>(false);
 		theCode.decrementCountdownToReoptimize(new Continuation0()
 		{

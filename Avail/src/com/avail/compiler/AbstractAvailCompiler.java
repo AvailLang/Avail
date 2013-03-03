@@ -2137,7 +2137,7 @@ public abstract class AbstractAvailCompiler
 			SetDescriptor.empty(),
 			lineNumber);
 		BlockNodeDescriptor.recursivelyValidate(block);
-		final A_BasicObject compiledBlock = block.generateInModule(module);
+		final A_RawFunction compiledBlock = block.generateInModule(module);
 		// The block is guaranteed context-free (because imported
 		// variables/values are embedded directly as constants in the generated
 		// code), so build a function with no copied data.
@@ -3377,7 +3377,7 @@ public abstract class AbstractAvailCompiler
 	 *        What to do if validation fails.
 	 */
 	private void validateArgumentTypes (
-		final AvailObject method,
+		final A_Method method,
 		final List<A_Type> argTypes,
 		final ParserState state,
 		final Continuation1<A_Type> onSuccess,
@@ -3650,7 +3650,7 @@ public abstract class AbstractAvailCompiler
 		{
 			final Mutable<Boolean> valid = new Mutable<Boolean>(true);
 			final A_Atom message = bundle.message();
-			final AvailObject method = runtime.methodAt(message);
+			final A_Method method = runtime.methodAt(message);
 			assert !method.equalsNil();
 			final A_Tuple definitionsTuple = method.definitionsTuple();
 			assert definitionsTuple.tupleSize() > 0;
@@ -3931,7 +3931,7 @@ public abstract class AbstractAvailCompiler
 		final ParserState stateAfterCall,
 		final List<AvailObject> argumentExpressions,
 		final A_BasicObject bundle,
-		final A_BasicObject method,
+		final A_Method method,
 		final Con<AvailObject> continuation);
 
 	/**
@@ -4445,42 +4445,6 @@ public abstract class AbstractAvailCompiler
 			}
 		});
 	}
-
-////	/**
-////	 * Parse a {@linkplain ModuleDescriptor module} header for the specified
-////	 * {@linkplain ModuleName module name}. Populate {@link
-////	 * ModuleHeader#extendedModules} and {@link ModuleHeader#usedModules}.
-////	 *
-////	 * @param qualifiedName
-////	 *        The expected module name.
-////	 * @throws AvailCompilerException
-////	 *         If compilation fails.
-////	 * @author Todd L Smith &lt;todd@availlang.org&gt;
-////	 */
-////	public void parseModuleHeader (final ModuleName qualifiedName)
-////		throws AvailCompilerException
-////	{
-////		progressBlock = null;
-////		greatestGuess = -1;
-////		greatExpectations.clear();
-////		final ResolvedModuleName resolvedName =
-////			loader.runtime().moduleNameResolver().resolve(qualifiedName);
-////		if (resolvedName == null)
-////		{
-////			throw new AvailCompilerException(
-////				qualifiedName,
-////				0,
-////				0,
-////				"Unable to resolve fully-qualified module name \""
-////					+ qualifiedName.qualifiedName()
-////					+ "\" to an existing file");
-////		}
-////		if (parseModuleHeader(resolvedName, true) == null)
-////		{
-////			reportError(resolvedName);
-////			assert false;
-////		}
-////	}
 
 	/**
 	 * Parse the header of the module from the token stream. If successful,

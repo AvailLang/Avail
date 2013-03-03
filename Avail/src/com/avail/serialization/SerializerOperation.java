@@ -1217,9 +1217,8 @@ public enum SerializerOperation
 			final A_Number pcInteger = subobjects[3];
 			final A_Number stackpInteger = subobjects[4];
 			final int frameSlotCount = frameSlots.tupleSize();
-			final AvailObject continuation =
+			final A_Continuation continuation =
 				ContinuationDescriptor.createExceptFrame(
-					frameSlotCount,
 					function,
 					caller,
 					pcInteger.extractInt(),
@@ -1283,7 +1282,7 @@ public enum SerializerOperation
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
-			final A_BasicObject definitionMethod = subobjects[0];
+			final A_Method definitionMethod = subobjects[0];
 			final AvailObject signature = subobjects[1];
 			final List<AvailObject> definitions = new ArrayList<AvailObject>(1);
 			for (final AvailObject eachDefinition
@@ -1323,8 +1322,8 @@ public enum SerializerOperation
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
-			final A_BasicObject definitionMethod = subobjects[0];
-			final AvailObject signature = subobjects[1];
+			final A_Method definitionMethod = subobjects[0];
+			final A_Type signature = subobjects[1];
 			final List<AvailObject> definitions = new ArrayList<AvailObject>(1);
 			for (final AvailObject eachDefinition
 				: definitionMethod.definitionsTuple())
@@ -1363,8 +1362,8 @@ public enum SerializerOperation
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
-			final A_BasicObject definitionMethod = subobjects[0];
-			final AvailObject signature = subobjects[1];
+			final A_Method definitionMethod = subobjects[0];
+			final A_Type signature = subobjects[1];
 			final List<AvailObject> definitions = new ArrayList<AvailObject>(1);
 			for (final AvailObject eachDefinition
 				: definitionMethod.definitionsTuple())
@@ -1403,8 +1402,8 @@ public enum SerializerOperation
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
-			final A_BasicObject definitionMethod = subobjects[0];
-			final AvailObject signature = subobjects[1];
+			final A_Method definitionMethod = subobjects[0];
+			final A_Type signature = subobjects[1];
 			final List<AvailObject> definitions = new ArrayList<AvailObject>(1);
 			for (final AvailObject eachDefinition
 				: definitionMethod.definitionsTuple())

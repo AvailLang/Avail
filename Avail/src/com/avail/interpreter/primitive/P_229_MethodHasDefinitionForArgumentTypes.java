@@ -63,7 +63,7 @@ extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 2;
-		final A_BasicObject method = args.get(0);
+		final A_Method method = args.get(0);
 		final A_Tuple argTypes = args.get(1);
 		final A_Atom trueName = method.originalName();
 		final A_String name = trueName.name();

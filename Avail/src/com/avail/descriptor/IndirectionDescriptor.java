@@ -481,22 +481,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_Caller (
-		final AvailObject object,
-		final AvailObject value)
-	{
-		o_Traversed(object).caller(value);
-	}
-
-	@Override
-	void o_Function (
-		final AvailObject object,
-		final AvailObject value)
-	{
-		o_Traversed(object).function(value);
-	}
-
-	@Override
 	void o_CodePoint (final AvailObject object, final int value)
 	{
 		o_Traversed(object).codePoint(value);
@@ -1182,7 +1166,7 @@ extends AbstractDescriptor
 	@Override
 	boolean o_IsSupertypeOfContinuationType (
 		final AvailObject object,
-		final A_BasicObject aContinuationType)
+		final A_Type aContinuationType)
 	{
 		return o_Traversed(object).isSupertypeOfContinuationType(
 			aContinuationType);
@@ -1291,7 +1275,7 @@ extends AbstractDescriptor
 	@Override
 	void o_LevelTwoChunkOffset (
 		final AvailObject object,
-		final A_BasicObject chunk,
+		final A_Chunk chunk,
 		final int offset)
 	{
 		o_Traversed(object).levelTwoChunkOffset(chunk, offset);
@@ -1450,12 +1434,6 @@ extends AbstractDescriptor
 		final AvailObject value)
 	{
 		o_Traversed(object).parent(value);
-	}
-
-	@Override
-	void o_Pc (final AvailObject object, final int value)
-	{
-		o_Traversed(object).pc(value);
 	}
 
 	@Override
@@ -1756,12 +1734,6 @@ extends AbstractDescriptor
 		final A_BasicObject anObject)
 	{
 		o_Traversed(object).stackAtPut(slotIndex, anObject);
-	}
-
-	@Override
-	void o_Stackp (final AvailObject object, final int value)
-	{
-		o_Traversed(object).stackp(value);
 	}
 
 	@Override
@@ -2212,7 +2184,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	AvailObject o_Caller (final AvailObject object)
+	A_Continuation o_Caller (final AvailObject object)
 	{
 		return o_Traversed(object).caller();
 	}
@@ -2242,7 +2214,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	AvailObject o_Code (final AvailObject object)
+	A_RawFunction o_Code (final AvailObject object)
 	{
 		return o_Traversed(object).code();
 	}
@@ -2631,7 +2603,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	AvailObject o_LevelTwoChunk (final AvailObject object)
+	A_Chunk o_LevelTwoChunk (final AvailObject object)
 	{
 		return o_Traversed(object).levelTwoChunk();
 	}
@@ -2877,7 +2849,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	AvailObject o_StartingChunk (final AvailObject object)
+	A_Chunk o_StartingChunk (final AvailObject object)
 	{
 		return o_Traversed(object).startingChunk();
 	}
@@ -3098,7 +3070,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	AvailObject o_Method (final AvailObject object)
+	A_Method o_Method (final AvailObject object)
 	{
 		return o_Traversed(object).method();
 	}
@@ -3162,7 +3134,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	A_BasicObject o_GenerateInModule (
+	A_RawFunction o_GenerateInModule (
 		final AvailObject object,
 		final A_BasicObject module)
 	{
@@ -3475,7 +3447,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	final AvailObject o_SealedArgumentsTypesTuple (
+	final A_Tuple o_SealedArgumentsTypesTuple (
 		final AvailObject object)
 	{
 		return o_Traversed(object).sealedArgumentsTypesTuple();
@@ -4306,7 +4278,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	AvailObject o_DefinitionMethod (
+	A_Method o_DefinitionMethod (
 		final AvailObject object)
 	{
 		return o_Traversed(object).definitionMethod();

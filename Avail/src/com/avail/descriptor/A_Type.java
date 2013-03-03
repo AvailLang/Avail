@@ -61,7 +61,7 @@ extends A_BasicObject
 	 * Dispatch to the descriptor.
 	 */
 	boolean isSupertypeOfContinuationType (
-		A_BasicObject aContinuationType);
+		A_Type aContinuationType);
 
 	/**
 	 * Dispatch to the descriptor.
@@ -388,4 +388,8 @@ extends A_BasicObject
 	 */
 	A_Map typeVariables ();
 
+	/**
+	 * @return
+	 */
+	A_Type functionType ();
 }

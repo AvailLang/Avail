@@ -56,7 +56,7 @@ public class P_187_CompiledCodeLiterals extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
-		final A_BasicObject code = args.get(0);
+		final A_RawFunction code = args.get(0);
 
 		A_Tuple tupleObject = ObjectTupleDescriptor.createUninitialized(
 			code.numLiterals());

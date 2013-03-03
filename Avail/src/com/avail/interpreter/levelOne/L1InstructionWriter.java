@@ -58,7 +58,7 @@ public class L1InstructionWriter
 	/**
 	 * The collection of literal objects that have been accumulated thus far.
 	 */
-	final List<A_BasicObject> literals = new ArrayList<A_BasicObject>();
+	final List<AvailObject> literals = new ArrayList<AvailObject>();
 
 	/**
 	 * An inverse mapping of the literal objects encountered thus far.  The map
@@ -78,7 +78,7 @@ public class L1InstructionWriter
 		Integer index = reverseLiterals.get(literal);
 		if (index == null)
 		{
-			literals.add(literal);
+			literals.add((AvailObject)literal);
 			index = literals.size();
 			reverseLiterals.put(literal, index);
 		}
@@ -145,8 +145,10 @@ public class L1InstructionWriter
 	}
 
 	/**
-	 * Answer the return type that the {@linkplain FunctionDescriptor} under
-	 * construction will produce.
+	 * Answer the return type that the {@linkplain CompiledCodeDescriptor code}
+	 * under construction will produce.
+	 *
+	 * @return The return type.
 	 */
 	private A_Type returnType ()
 	{
@@ -249,7 +251,7 @@ public class L1InstructionWriter
 	 */
 	L1StackTracker stackTracker = new L1StackTracker ()
 	{
-		@Override A_BasicObject literalAt (final int literalIndex)
+		@Override AvailObject literalAt (final int literalIndex)
 		{
 			return literals.get(literalIndex - 1);
 		}

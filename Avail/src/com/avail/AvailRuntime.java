@@ -309,7 +309,9 @@ public final class AvailRuntime
 	 */
 	public ModuleNameResolver moduleNameResolver ()
 	{
-		return moduleNameResolver;
+		final ModuleNameResolver resolver = moduleNameResolver;
+		assert resolver != null;
+		return resolver;
 	}
 
 	/**
@@ -320,7 +322,7 @@ public final class AvailRuntime
 	@ThreadSafe
 	public ModuleRoots moduleRoots ()
 	{
-		return moduleNameResolver.moduleRoots();
+		return moduleNameResolver().moduleRoots();
 	}
 
 	/**
@@ -942,7 +944,7 @@ public final class AvailRuntime
 		runtimeLock.writeLock().lock();
 		try
 		{
-			assert !modules.hasKey(aModule.moduleName());
+			assert !includesModuleNamed(aModule.moduleName());
 			// Some of the module's message bundles may have been added to the
 			// runtime's allBundles map already.  Add any that have not, but
 			// only if they're publicly visible.
@@ -1062,7 +1064,7 @@ public final class AvailRuntime
 	 */
 	@ThreadSafe
 	public void addMethod (
-		final AvailObject method)
+		final A_Method method)
 	{
 		runtimeLock.writeLock().lock();
 		try
@@ -1094,7 +1096,7 @@ public final class AvailRuntime
 	 * @return The corresponding {@linkplain MethodDescriptor method}.
 	 */
 	@ThreadSafe
-	public AvailObject methodFor (
+	public A_Method methodFor (
 		final A_Atom methodName)
 	{
 		runtimeLock.writeLock().lock();
@@ -1134,7 +1136,7 @@ public final class AvailRuntime
 	 *            or {@linkplain NilDescriptor nil}.
 	 */
 	@ThreadSafe
-	public AvailObject methodAt (final A_Atom selector)
+	public A_Method methodAt (final A_Atom selector)
 	{
 		assert selector.isAtom();
 
@@ -1169,7 +1171,7 @@ public final class AvailRuntime
 		runtimeLock.writeLock().lock();
 		try
 		{
-			final A_BasicObject method = definition.definitionMethod();
+			final A_Method method = definition.definitionMethod();
 			method.removeDefinition(definition);
 			if (method.isMethodEmpty())
 			{
@@ -1215,7 +1217,7 @@ public final class AvailRuntime
 		runtimeLock.writeLock().lock();
 		try
 		{
-			final A_BasicObject method = methodFor(methodName);
+			final A_Method method = methodFor(methodName);
 			method.addTypeRestriction(typeRestrictionFunction);
 		}
 		finally
@@ -1235,15 +1237,15 @@ public final class AvailRuntime
 	 *            static types of arguments at call sites.
 	 */
 	public void removeTypeRestriction (
-		final AvailObject methodName,
-		final AvailObject typeRestrictionFunction)
+		final A_Atom methodName,
+		final A_Function typeRestrictionFunction)
 	{
 		assert methodName.isAtom();
 		assert typeRestrictionFunction.isFunction();
 		runtimeLock.writeLock().lock();
 		try
 		{
-			final A_BasicObject method = methodFor(methodName);
+			final A_Method method = methodFor(methodName);
 			method.removeTypeRestriction(typeRestrictionFunction);
 			if (method.isMethodEmpty())
 			{
@@ -1273,7 +1275,7 @@ public final class AvailRuntime
 		runtimeLock.writeLock().lock();
 		try
 		{
-			final A_BasicObject method = methodFor(methodName);
+			final A_Method method = methodFor(methodName);
 			method.addSealedArgumentsType(sealSignature);
 		}
 		finally
@@ -1292,15 +1294,13 @@ public final class AvailRuntime
 	 *        seals remaining, even at this very signature.
 	 */
 	public void removeSeal (
-		final AvailObject methodName,
-		final AvailObject sealSignature)
+		final A_Atom methodName,
+		final A_Tuple sealSignature)
 	{
-		assert methodName.isAtom();
-		assert sealSignature.isTuple();
 		runtimeLock.writeLock().lock();
 		try
 		{
-			final A_BasicObject method = methodFor(methodName);
+			final A_Method method = methodFor(methodName);
 			method.removeSealedArgumentsType(sealSignature);
 			if (method.isMethodEmpty())
 			{

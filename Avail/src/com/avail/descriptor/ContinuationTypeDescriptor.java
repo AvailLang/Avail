@@ -55,16 +55,6 @@ import com.avail.serialization.SerializerOperation;
  * </p>
  *
  * <p>
- * TODO: [MvG] Continuation types should be parameterizable with generalized
- * function types. This would allow {@link P_058_RestartContinuation} to be
- * performed even if the specific argument types were not known, but {@link
- * P_056_RestartContinuationWithArguments} would be forbidden. {@link
- * P_057_ExitContinuationWithResult} would be unaffected. Make sure to update
- * type computations and type compatibility tests appropriately to accommodate
- * the contained generalized function types.
- * </p>
- *
- * <p>
  * TODO: [MvG] If/when function types support checked exceptions we won't need
  * to mention them in continuation types, since invoking a continuation in any
  * way (restart, exit, resume) causes exception obligations/permissions to be
@@ -165,9 +155,9 @@ extends TypeDescriptor
 	@Override @AvailMethod
 	boolean o_IsSupertypeOfContinuationType (
 		final AvailObject object,
-		final A_BasicObject aContinuationType)
+		final A_Type aContinuationType)
 	{
-		final A_BasicObject subFunctionType = aContinuationType.functionType();
+		final A_Type subFunctionType = aContinuationType.functionType();
 		final A_BasicObject superFunctionType = object.functionType();
 		return
 		superFunctionType.returnType().isSubtypeOf(
@@ -197,20 +187,21 @@ extends TypeDescriptor
 		final AvailObject object,
 		final A_Type aContinuationType)
 	{
-		final A_Type closType1 = object.functionType();
-		final A_Type closType2 = aContinuationType.functionType();
-		if (closType1.equals(closType2))
+		final A_Type functionType1 = object.functionType();
+		final A_Type functionType2 = aContinuationType.functionType();
+		if (functionType1.equals(functionType2))
 		{
 			return object;
 		}
-		if (closType1.numArgs() != closType2.numArgs())
-		{
-			return BottomTypeDescriptor.bottom();
-		}
+		final A_Type argsTupleType =
+			functionType1.argsTupleType().typeIntersection(
+				functionType2.argsTupleType());
+		final A_Type returnType = functionType1.returnType().typeIntersection(
+			functionType2.returnType());
 		final A_Type intersection =
 			FunctionTypeDescriptor.createWithArgumentTupleType(
-				closType1.argsTupleType().typeUnion(closType2.argsTupleType()),
-				closType1.returnType().typeUnion(closType2.returnType()),
+				argsTupleType,
+				returnType,
 				SetDescriptor.empty());
 		return forFunctionType(intersection);
 	}
@@ -236,17 +227,18 @@ extends TypeDescriptor
 		final AvailObject object,
 		final A_Type aContinuationType)
 	{
-		final A_Type closType1 = object.functionType();
-		final A_Type closType2 = aContinuationType.functionType();
-		if (closType1.equals(closType2))
+		final A_Type functionType1 = object.functionType();
+		final A_Type functionType2 = aContinuationType.functionType();
+		if (functionType1.equals(functionType2))
 		{
 			// Optimization only
 			return object;
 		}
 		final A_Type union = FunctionTypeDescriptor.createWithArgumentTupleType(
-			closType1.argsTupleType().typeIntersection(
-				closType2.argsTupleType()),
-			closType1.returnType().typeIntersection(closType2.returnType()),
+			functionType1.argsTupleType().typeIntersection(
+				functionType2.argsTupleType()),
+			functionType1.returnType().typeIntersection(
+				functionType2.returnType()),
 			SetDescriptor.empty());
 		return forFunctionType(union);
 	}

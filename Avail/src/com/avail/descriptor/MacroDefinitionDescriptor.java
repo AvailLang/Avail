@@ -169,7 +169,7 @@ extends DefinitionDescriptor
 	 *            A macro signature.
 	 */
 	public static AvailObject create (
-		final AvailObject method,
+		final A_Method method,
 		final A_Tuple prefixFunctions,
 		final A_Function bodyBlock)
 	{

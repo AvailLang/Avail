@@ -47,7 +47,6 @@ import com.avail.descriptor.FiberDescriptor.SynchronizationFlag;
 import com.avail.descriptor.InfinityDescriptor.IntegerSlots;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.descriptor.SetDescriptor.SetIterator;
-import com.avail.exceptions.SignatureException;
 import com.avail.interpreter.AvailLoader;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.Continuation0;
@@ -367,32 +366,6 @@ public interface A_BasicObject
 	boolean acceptsTupleOfArguments (A_Tuple arguments);
 
 	/**
-	 * Add the {@linkplain L2ChunkDescriptor chunk} with the given index to the
-	 * receiver's list of chunks that depend on it.  The receiver is a
-	 * {@linkplain MethodDescriptor method}.  A change in the method's
-	 * membership (e.g., adding a new method definition) will cause the chunk
-	 * to be invalidated.
-	 *
-	 * @param aChunkIndex
-	 */
-	void addDependentChunkIndex (int aChunkIndex);
-
-	/**
-	 * Add the {@linkplain DefinitionDescriptor definition} to the receiver, a
-	 * {@linkplain MethodDefinitionDescriptor method}.  Causes dependent chunks
-	 * to be invalidated.
-	 *
-	 * Macro signatures and non-macro signatures should not be combined in the
-	 * same method.
-	 *
-	 * @param definition The definition to be added.
-	 * @throws SignatureException
-	 *         If the definition could not be added.
-	 */
-	void methodAddDefinition (A_BasicObject definition)
-		throws SignatureException;
-
-	/**
 	 * Add a set of {@linkplain MessageBundleDescriptor grammatical
 	 * restrictions} to the receiver.
 	 *
@@ -535,37 +508,12 @@ public interface A_BasicObject
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	A_BasicObject caller ();
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	void caller (AvailObject value);
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
 	void cleanUpAfterCompile ();
 
 	/**
 	 * Dispatch to the descriptor.
 	 */
 	void clearValue ();
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	A_Function function ();
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	void function (AvailObject value);
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	A_Type functionType ();
 
 	/**
 	 * Dispatch to the descriptor.
@@ -596,11 +544,6 @@ public interface A_BasicObject
 	 * Dispatch to the descriptor.
 	 */
 	void continuation (A_BasicObject value);
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	A_BasicObject copyAsMutableContinuation ();
 
 	/**
 	 * Dispatch to the descriptor.
@@ -639,11 +582,6 @@ public interface A_BasicObject
 	 * Dispatch to the descriptor.
 	 */
 	int endSubtupleIndexInZone (int zone);
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	AvailObject ensureMutable ();
 
 	/**
 	 * {@inheritDoc}
@@ -946,11 +884,6 @@ public interface A_BasicObject
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	List<AvailObject> filterByTypes (List<A_Type> argTypes);
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
 	A_BasicObject filteredBundleTree ();
 
 	/**
@@ -989,25 +922,9 @@ public interface A_BasicObject
 
 	/**
 	 * Dispatch to the descriptor.
-	 */
-	List<AvailObject> definitionsAtOrBelow (
-		List<? extends A_Type> argTypes);
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	A_Tuple definitionsTuple ();
-
-	/**
-	 * Dispatch to the descriptor.
 	 * @param method
 	 */
 	AvailObject includeBundleNamed (A_Atom messageName, A_BasicObject method);
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	boolean includesDefinition (A_BasicObject imp);
 
 	/**
 	 * Dispatch to the descriptor.
@@ -1017,22 +934,7 @@ public interface A_BasicObject
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	int index ();
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	void index (int value);
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
 	void clearInterruptRequestFlags ();
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	void countdownToReoptimize (int value);
 
 	/**
 	 * Dispatch to the descriptor.
@@ -1173,16 +1075,6 @@ public interface A_BasicObject
 	boolean isPositive ();
 
 	/**
-	 * Dispatch to the descriptor.
-	 */
-	boolean isSaved ();
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	void isSaved (boolean aBoolean);
-
-	/**
 	 * Is the {@linkplain AvailObject receiver} an Avail set?
 	 *
 	 * @return {@code true} if the receiver is a set, {@code false} otherwise.
@@ -1226,59 +1118,7 @@ public interface A_BasicObject
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	boolean isValid ();
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	A_BasicObject levelTwoChunk ();
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	void levelTwoChunkOffset (A_BasicObject chunk, int offset);
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	int levelTwoOffset ();
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
 	AvailObject literal ();
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	AvailObject literalAt (int index);
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	AvailObject argOrLocalOrStackAt (int index);
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	void argOrLocalOrStackAtPut (int index, AvailObject value);
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	A_Type localTypeAt (int index);
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	AvailObject lookupByTypesFromTuple (
-		A_Tuple argumentTypeTuple);
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	AvailObject lookupByValuesFromList (
-		List<? extends A_BasicObject> argumentList);
 
 	/**
 	 * Dispatch to the descriptor.
@@ -1299,11 +1139,6 @@ public interface A_BasicObject
 	 * Dispatch to the descriptor.
 	 */
 	void makeSubobjectsShared ();
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	int maxStackDepth ();
 
 	/**
 	 * Dispatch to the descriptor.
@@ -1346,57 +1181,7 @@ public interface A_BasicObject
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	int numArgs ();
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	int numArgsAndLocalsAndStack ();
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
 	int numberOfZones ();
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	int numDoubles ();
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	int numIntegers ();
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	int numLiterals ();
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	int numLocals ();
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	int numObjects ();
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	int numOuters ();
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	A_Tuple nybbles ();
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	A_Type outerTypeAt (int index);
 
 	/**
 	 * Dispatch to the descriptor.
@@ -1411,22 +1196,7 @@ public interface A_BasicObject
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	int pc ();
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	void pc (int value);
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
 	void postFault ();
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	int primitiveNumber ();
 
 	/**
 	 * Dispatch to the descriptor.
@@ -1533,16 +1303,6 @@ public interface A_BasicObject
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	void removeDependentChunkIndex (int aChunkIndex);
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	void removeDefinition (A_BasicObject definition);
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
 	boolean removeBundleNamed (A_Atom message);
 
 	/**
@@ -1611,39 +1371,7 @@ public interface A_BasicObject
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	AvailObject stackAt (int slotIndex);
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	void stackAtPut (int slotIndex, A_BasicObject anObject);
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	int stackp ();
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	void stackp (int value);
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
 	int start ();
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	A_BasicObject startingChunk ();
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	void setStartingChunkAndReoptimizationCountdown (
-		A_BasicObject chunk,
-		int countdown);
 
 	/**
 	 * Dispatch to the descriptor.
@@ -1664,11 +1392,6 @@ public interface A_BasicObject
 	 * Dispatch to the descriptor.
 	 */
 	A_String string ();
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	A_Tuple testingTree ();
 
 	/**
 	 * Dispatch to the descriptor.
@@ -1750,22 +1473,12 @@ public interface A_BasicObject
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	A_Tuple vectors ();
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
 	void verify ();
 
 	/**
 	 * Dispatch to the descriptor.
 	 */
 	A_Set visibleNames ();
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	A_Tuple wordcodes ();
 
 	/**
 	 * Dispatch to the descriptor.
@@ -1861,7 +1574,7 @@ public interface A_BasicObject
 	/**
 	 * @return
 	 */
-	A_BasicObject method ();
+	A_Method method ();
 
 	/**
 	 * @return
@@ -1908,7 +1621,7 @@ public interface A_BasicObject
 	 * @param module
 	 * @return
 	 */
-	A_BasicObject generateInModule (A_BasicObject module);
+	A_RawFunction generateInModule (A_BasicObject module);
 
 	/**
 	 * @param newParseNode
@@ -2124,36 +1837,6 @@ public interface A_BasicObject
 	boolean isRawPojo ();
 
 	/**
-	 * @param restrictionSignature
-	 */
-	void addTypeRestriction (A_Function restrictionSignature);
-
-	/**
-	 * @param restrictionSignature
-	 */
-	void removeTypeRestriction (A_Function function);
-
-	/**
-	 * @return
-	 */
-	A_Tuple typeRestrictions ();
-
-	/**
-	 * @param tupleType
-	 */
-	void addSealedArgumentsType (A_Tuple typeTuple);
-
-	/**
-	 * @param tupleType
-	 */
-	void removeSealedArgumentsType (A_Tuple typeTuple);
-
-	/**
-	 * @return
-	 */
-	A_BasicObject sealedArgumentsTypesTuple ();
-
-	/**
 	 * @param methodNameAtom
 	 * @param typeRestrictionFunction
 	 */
@@ -2176,11 +1859,6 @@ public interface A_BasicObject
 	void addVariableBinding (
 		A_String name,
 		AvailObject variableBinding);
-
-	/**
-	 * @return
-	 */
-	boolean isMethodEmpty ();
 
 	/**
 	 * @return
@@ -2341,16 +2019,6 @@ public interface A_BasicObject
 	/**
 	 * @return
 	 */
-	long totalInvocations ();
-
-	/**
-	 *
-	 */
-	void tallyInvocation ();
-
-	/**
-	 * @return
-	 */
 	A_Tuple fieldTypeTuple ();
 
 	/**
@@ -2443,26 +2111,6 @@ public interface A_BasicObject
 	int allocateFromCounter ();
 
 	/**
-	 * @param methodName
-	 */
-	void setMethodName (A_String methodName);
-
-	/**
-	 * @return
-	 */
-	int startingLineNumber ();
-
-	/**
-	 * @return
-	 */
-	A_BasicObject module ();
-
-	/**
-	 * @return
-	 */
-	A_String methodName ();
-
-	/**
 	 * @param kind
 	 * @return
 	 */
@@ -2537,7 +2185,7 @@ public interface A_BasicObject
 	 *
 	 * @return The definition's method.
 	 */
-	A_BasicObject definitionMethod ();
+	A_Method definitionMethod ();
 
 	/**
 	 * @return
@@ -2568,16 +2216,6 @@ public interface A_BasicObject
 	 * @return
 	 */
 	A_String moduleName ();
-
-	/**
-	 * @return
-	 */
-	A_Set namesSet ();
-
-	/**
-	 * @return
-	 */
-	A_Atom originalName ();
 
 	/**
 	 * @return
@@ -2736,11 +2374,6 @@ public interface A_BasicObject
 	 * @param flag
 	 */
 	void setInterruptRequestFlag (InterruptRequestFlag flag);
-
-	/**
-	 * @param continuation
-	 */
-	void decrementCountdownToReoptimize (Continuation0 continuation);
 
 	/**
 	 * @param value

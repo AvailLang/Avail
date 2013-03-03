@@ -281,7 +281,7 @@ extends TypeDescriptor
 	public static void createWellKnownObjects ()
 	{
 		mostGeneralType = forResultType(TOP.o()).makeShared();
-		meta = InstanceMetaDescriptor.on(mostGeneralType).makeShared();
+		meta = InstanceMetaDescriptor.on(mostGeneralType()).makeShared();
 	}
 
 	/**

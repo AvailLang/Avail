@@ -76,9 +76,13 @@ extends AvailObjectRepresentation
 implements
 	A_BasicObject,
 		A_Atom,
+		A_Continuation,
+		A_Chunk,
 		A_Function,
 		A_Map,
+		A_Method,
 		A_Number,
+		A_RawFunction,
 		A_Set,
 		A_Token,
 		A_Tuple,
@@ -997,19 +1001,9 @@ implements
 	 * Dispatch to the descriptor.
 	 */
 	@Override
-	public AvailObject caller ()
+	public A_Continuation caller ()
 	{
 		return descriptor.o_Caller(this);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	@Override
-	public void caller (
-		final AvailObject value)
-	{
-		descriptor.o_Caller(this, value);
 	}
 
 	/**
@@ -1043,16 +1037,6 @@ implements
 	 * Dispatch to the descriptor.
 	 */
 	@Override
-	public void function (
-		final AvailObject value)
-	{
-		descriptor.o_Function(this, value);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	@Override
 	public A_Type functionType ()
 	{
 		return descriptor.o_FunctionType(this);
@@ -1062,7 +1046,7 @@ implements
 	 * Dispatch to the descriptor.
 	 */
 	@Override
-	public AvailObject code ()
+	public A_RawFunction code ()
 	{
 		return descriptor.o_Code(this);
 	}
@@ -2725,9 +2709,11 @@ implements
 	 */
 	@Override
 	public boolean isSupertypeOfContinuationType (
-		final A_BasicObject aContinuationType)
+		final A_Type aContinuationType)
 	{
-		return descriptor.o_IsSupertypeOfContinuationType(this, aContinuationType);
+		return descriptor.o_IsSupertypeOfContinuationType(
+			this,
+			aContinuationType);
 	}
 
 	/**
@@ -2936,7 +2922,7 @@ implements
 	 * Dispatch to the descriptor.
 	 */
 	@Override
-	public AvailObject levelTwoChunk ()
+	public A_Chunk levelTwoChunk ()
 	{
 		return descriptor.o_LevelTwoChunk(this);
 	}
@@ -2946,7 +2932,7 @@ implements
 	 */
 	@Override
 	public void levelTwoChunkOffset (
-		final A_BasicObject chunk,
+		final A_Chunk chunk,
 		final int offset)
 	{
 		descriptor.o_LevelTwoChunkOffset(
@@ -3514,16 +3500,6 @@ implements
 	public int pc ()
 	{
 		return descriptor.o_Pc(this);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	@Override
-	public void pc (
-		final int value)
-	{
-		descriptor.o_Pc(this, value);
 	}
 
 	/**
@@ -4122,16 +4098,6 @@ implements
 	 * Dispatch to the descriptor.
 	 */
 	@Override
-	public void stackp (
-		final int value)
-	{
-		descriptor.o_Stackp(this, value);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	@Override
 	public int start ()
 	{
 		return descriptor.o_Start(this);
@@ -4141,7 +4107,7 @@ implements
 	 * Dispatch to the descriptor.
 	 */
 	@Override
-	public AvailObject startingChunk ()
+	public A_Chunk startingChunk ()
 	{
 		return descriptor.o_StartingChunk(this);
 	}
@@ -5075,7 +5041,7 @@ implements
 	 * @return
 	 */
 	@Override
-	public AvailObject method ()
+	public A_Method method ()
 	{
 		return descriptor.o_Method(this);
 	}
@@ -5161,7 +5127,7 @@ implements
 	 * @return
 	 */
 	@Override
-	public A_BasicObject generateInModule (
+	public A_RawFunction generateInModule (
 		final A_BasicObject module)
 	{
 		return descriptor.o_GenerateInModule(this, module);
@@ -5616,7 +5582,7 @@ implements
 	 * @return
 	 */
 	@Override
-	public AvailObject sealedArgumentsTypesTuple ()
+	public A_Tuple sealedArgumentsTypesTuple ()
 	{
 		return descriptor.o_SealedArgumentsTypesTuple(this);
 	}
@@ -6690,7 +6656,7 @@ implements
 	 * @return The definition's method.
 	 */
 	@Override
-	public AvailObject definitionMethod ()
+	public A_Method definitionMethod ()
 	{
 		return descriptor.o_DefinitionMethod(this);
 	}

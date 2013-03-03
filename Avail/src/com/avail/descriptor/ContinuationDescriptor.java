@@ -153,18 +153,6 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	void o_Caller (final AvailObject object, final AvailObject value)
-	{
-		object.setSlot(CALLER, value);
-	}
-
-	@Override @AvailMethod
-	void o_Function (final AvailObject object, final AvailObject value)
-	{
-		object.setSlot(FUNCTION, value);
-	}
-
-	@Override @AvailMethod
 	AvailObject o_ArgOrLocalOrStackAt (
 		final AvailObject object,
 		final int subscript)
@@ -182,19 +170,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	void o_Pc (final AvailObject object, final int value)
-	{
-		object.setSlot(PROGRAM_COUNTER, value);
-	}
-
-	@Override @AvailMethod
-	void o_Stackp (final AvailObject object, final int value)
-	{
-		object.setSlot(STACK_POINTER, value);
-	}
-
-	@Override @AvailMethod
-	AvailObject o_Caller (final AvailObject object)
+	A_Continuation o_Caller (final AvailObject object)
 	{
 		return object.slot(CALLER);
 	}
@@ -285,7 +261,7 @@ extends Descriptor
 	@Override @AvailMethod
 	void o_LevelTwoChunkOffset (
 		final AvailObject object,
-		final A_BasicObject chunk,
+		final A_Chunk chunk,
 		final int offset)
 	{
 		if (isShared())
@@ -340,7 +316,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_LevelTwoChunk (final AvailObject object)
+	A_Chunk o_LevelTwoChunk (final AvailObject object)
 	{
 		return object.mutableSlot(LEVEL_TWO_CHUNK);
 	}
@@ -376,7 +352,7 @@ extends Descriptor
 	@Override @AvailMethod @Deprecated
 	void o_PostFault (final AvailObject object)
 	{
-		final A_BasicObject chunk = object.levelTwoChunk();
+		final A_Chunk chunk = object.levelTwoChunk();
 		if (chunk.isValid())
 		{
 			chunk.isSaved(true);
@@ -479,19 +455,19 @@ extends Descriptor
 	public static AvailObject create (
 		final AvailObject function,
 		final AvailObject caller,
-		final A_BasicObject startingChunk,
+		final A_Chunk startingChunk,
 		final int startingOffset,
 		final List<AvailObject> args,
 		final List<AvailObject> locals)
 	{
 		final ContinuationDescriptor descriptor = mutable;
-		final A_BasicObject code = function.code();
+		final A_RawFunction code = function.code();
 		final int frameSize = code.numArgsAndLocalsAndStack();
 		final AvailObject cont = descriptor.create(frameSize);
 		cont.setSlot(CALLER, caller);
 		cont.setSlot(FUNCTION, function);
-		cont.pc(1);
-		cont.stackp(frameSize + 1);
+		cont.setSlot(PROGRAM_COUNTER, 1);
+		cont.setSlot(STACK_POINTER, frameSize + 1);
 		cont.levelTwoChunkOffset(startingChunk, startingOffset);
 		for (int i = code.numArgsAndLocalsAndStack(); i >= 1; i--)
 		{
@@ -518,28 +494,26 @@ extends Descriptor
 	/**
 	 * Create a mutable continuation with the specified fields.  Leave the stack
 	 * frame slots uninitialized.
-	 *
-	 * @param frameSize The number of stack frame slots.
 	 * @param function The function being invoked/resumed.
 	 * @param caller The calling continuation of this continuation.
 	 * @param pc The level one program counter.
 	 * @param stackp The level one stack depth register.
 	 * @param levelTwoChunk The level two chunk to execute.
 	 * @param levelTwoOffset The level two chunk offset at which to resume.
+	 *
 	 * @return A new mutable continuation.
 	 */
-	public static AvailObject createExceptFrame (
-		final int frameSize,
+	public static A_Continuation createExceptFrame (
 		final A_Function function,
-		final A_BasicObject caller,
+		final A_Continuation caller,
 		final int pc,
 		final int stackp,
-		final A_BasicObject levelTwoChunk,
+		final A_Chunk levelTwoChunk,
 		final int levelTwoOffset)
 	{
-		final A_BasicObject code = function.code();
-		assert frameSize == code.numArgsAndLocalsAndStack();
-		final AvailObject cont = mutable.create(frameSize);
+		final A_RawFunction code = function.code();
+		final int frameSize = code.numArgsAndLocalsAndStack();
+		final A_Continuation cont = mutable.create(frameSize);
 		cont.setSlot(CALLER, caller);
 		cont.setSlot(FUNCTION, function);
 		cont.setSlot(PROGRAM_COUNTER, pc);

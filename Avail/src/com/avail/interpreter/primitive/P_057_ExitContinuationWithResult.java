@@ -57,7 +57,7 @@ public class P_057_ExitContinuationWithResult extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 2;
-		final A_BasicObject con = args.get(0);
+		final A_Continuation con = args.get(0);
 		final AvailObject result = args.get(1);
 		final A_Function function = con.function();
 		assert con.stackp() == function.code().numArgsAndLocalsAndStack() + 1
@@ -71,14 +71,14 @@ public class P_057_ExitContinuationWithResult extends Primitive
 		// (if necessary) because the interpreter requires the current
 		// continuation to always be mutable...
 		final A_Type expectedType = function.kind().returnType();
-		final A_BasicObject caller = con.caller();
+		final A_Continuation caller = con.caller();
 		if (caller.equalsNil())
 		{
 			interpreter.terminateFiber(result);
 			// This looks strange, but it is correct.
 			return CONTINUATION_CHANGED;
 		}
-		final AvailObject linkStrengthenedType = caller.stackAt(
+		final A_Type linkStrengthenedType = caller.stackAt(
 			caller.stackp());
 		assert linkStrengthenedType.isSubtypeOf(expectedType);
 		if (!result.isInstanceOf(expectedType))

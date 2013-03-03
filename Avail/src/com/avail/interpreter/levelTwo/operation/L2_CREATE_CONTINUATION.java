@@ -71,13 +71,12 @@ public class L2_CREATE_CONTINUATION extends L2Operation
 		final int wordcodeOffset = interpreter.nextWord();
 		final int destIndex = interpreter.nextWord();
 
-		final AvailObject function = interpreter.pointerAt(functionIndex);
-		final A_BasicObject code = function.code();
+		final A_Function function = interpreter.pointerAt(functionIndex);
+		final A_RawFunction code = function.code();
 		final int frameSize = code.numArgsAndLocalsAndStack();
 
-		final AvailObject continuation =
+		final A_Continuation continuation =
 			ContinuationDescriptor.createExceptFrame(
-				frameSize,
 				function,
 				interpreter.pointerAt(senderIndex),
 				pcIndex,

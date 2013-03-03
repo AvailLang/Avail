@@ -107,7 +107,7 @@ extends ParseNodeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_Method (final AvailObject object)
+	A_Method o_Method (final AvailObject object)
 	{
 		return object.slot(METHOD);
 	}
@@ -219,7 +219,7 @@ extends ParseNodeDescriptor
 	 * @return A new send node.
 	 */
 	public static AvailObject from (
-		final AvailObject method,
+		final A_Method method,
 		final AvailObject argsListNode,
 		final A_Type returnType)
 	{

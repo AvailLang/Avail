@@ -46,7 +46,7 @@ extends A_BasicObject
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	AvailObject code ();
+	A_RawFunction code ();
 
 	/**
 	 * Dispatch to the descriptor.

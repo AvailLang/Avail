@@ -78,7 +78,7 @@ extends Descriptor
 	}
 
 	@Override
-	AvailObject o_Code (final AvailObject object)
+	A_RawFunction o_Code (final AvailObject object)
 	{
 		return object.slot(ObjectSlots.CODE);
 	}
@@ -388,7 +388,7 @@ extends Descriptor
 	 * @return A function without its outer variables initialized.
 	 */
 	public static A_Function createExceptOuters (
-		final A_BasicObject code,
+		final A_RawFunction code,
 		final int outersCount)
 	{
 		assert code.numOuters() == outersCount;

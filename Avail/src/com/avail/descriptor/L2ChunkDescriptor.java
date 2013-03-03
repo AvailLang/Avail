@@ -378,7 +378,7 @@ extends Descriptor
 		 * two chunks}' {@linkplain WeakChunkReference weak references} will be
 		 * placed upon expiration. There is no special process to remove them
 		 * from here. Rather, an element of this queue is consumed when needed
-		 * for {@linkplain L2ChunkDescriptor#allocate(A_BasicObject, List, List,
+		 * for {@linkplain L2ChunkDescriptor#allocate(A_RawFunction, List, List,
 		 * int, int, int, List, Set) allocation} of a new chunk. If this queue
 		 * is empty, a fresh index is allocated.
 		 *
@@ -452,7 +452,7 @@ extends Descriptor
 	 * CompiledCodeDescriptor compiled code} has been executed some number of
 	 * times.
 	 */
-	private static @Nullable A_BasicObject unoptimizedChunk;
+	private static @Nullable A_Chunk unoptimizedChunk;
 
 	/**
 	 * Return the special {@linkplain L2ChunkDescriptor level two chunk} that is
@@ -462,9 +462,9 @@ extends Descriptor
 	 *
 	 * @return The special {@linkplain #unoptimizedChunk unoptimized chunk}.
 	 */
-	public static A_BasicObject unoptimizedChunk ()
+	public static A_Chunk unoptimizedChunk ()
 	{
-		final A_BasicObject chunk = unoptimizedChunk;
+		final A_Chunk chunk = unoptimizedChunk;
 		assert chunk != null;
 		return chunk;
 	}
@@ -602,7 +602,7 @@ extends Descriptor
 	 * @return The new level two chunk.
 	 */
 	public static AvailObject allocate (
-		final @Nullable A_BasicObject code,
+		final @Nullable A_RawFunction code,
 		final List<A_BasicObject> listOfLiterals,
 		final List<List<Integer>> listOfVectors,
 		final int numObjects,
@@ -657,7 +657,7 @@ extends Descriptor
 				// so clean it up if necessary.
 				final WeakChunkReference oldReference =
 					(WeakChunkReference) recycledReference;
-				for (final A_BasicObject method : oldReference.contingentMethods)
+				for (final A_Method method : oldReference.contingentMethods)
 				{
 					method.removeDependentChunkIndex(oldReference.index);
 				}
@@ -694,7 +694,7 @@ extends Descriptor
 				chunk,
 				L2ChunkDescriptor.countdownForNewlyOptimizedCode());
 		}
-		for (final A_BasicObject method : contingentSets)
+		for (final A_Method method : contingentSets)
 		{
 			method.addDependentChunkIndex(index);
 		}
@@ -742,7 +742,7 @@ extends Descriptor
 				}
 			}
 			final Set<AvailObject> impSets = ref.contingentMethods;
-			for (final A_BasicObject method : impSets)
+			for (final A_Method method : impSets)
 			{
 				method.removeDependentChunkIndex(chunkIndex);
 			}

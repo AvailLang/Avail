@@ -629,7 +629,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_SealedArgumentsTypesTuple (final AvailObject object)
+	A_Tuple o_SealedArgumentsTypesTuple (final AvailObject object)
 	{
 		return object.slot(SEALED_ARGUMENTS_TYPES_TUPLE);
 	}

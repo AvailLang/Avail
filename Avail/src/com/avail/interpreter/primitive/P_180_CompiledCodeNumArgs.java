@@ -54,9 +54,9 @@ public class P_180_CompiledCodeNumArgs extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
-		final A_BasicObject cc = args.get(0);
+		final A_RawFunction code = args.get(0);
 		return interpreter.primitiveSuccess(
-			IntegerDescriptor.fromInt(cc.numArgs()));
+			IntegerDescriptor.fromInt(code.numArgs()));
 	}
 
 	@Override

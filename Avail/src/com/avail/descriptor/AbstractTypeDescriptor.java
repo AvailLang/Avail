@@ -169,7 +169,7 @@ extends Descriptor
 	@Override @AvailMethod
 	abstract boolean o_IsSupertypeOfContinuationType (
 		final AvailObject object,
-		final A_BasicObject aContinuationType);
+		final A_Type aContinuationType);
 
 	@Override @AvailMethod
 	abstract boolean o_IsSupertypeOfCompiledCodeType (

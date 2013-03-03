@@ -313,22 +313,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_Caller (
-		final AvailObject object,
-		final AvailObject value)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	void o_Function (
-		final AvailObject object,
-		final AvailObject value)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
 	void o_CodePoint (
 		final AvailObject object,
 		final int value)
@@ -668,7 +652,7 @@ extends AbstractDescriptor
 	@Override
 	boolean o_IsSupertypeOfContinuationType (
 		final AvailObject object,
-		final A_BasicObject aContinuationType)
+		final A_Type aContinuationType)
 	{
 		throw unsupportedOperationException();
 	}
@@ -772,7 +756,7 @@ extends AbstractDescriptor
 	@Override
 	void o_LevelTwoChunkOffset (
 		final AvailObject object,
-		final A_BasicObject chunk,
+		final A_Chunk chunk,
 		final int offset)
 	{
 		throw unsupportedOperationException();
@@ -926,14 +910,6 @@ extends AbstractDescriptor
 	void o_Parent (
 		final AvailObject object,
 		final AvailObject value)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	void o_Pc (
-		final AvailObject object,
-		final int value)
 	{
 		throw unsupportedOperationException();
 	}
@@ -1237,14 +1213,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final int slotIndex,
 		final A_BasicObject anObject)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	void o_Stackp (
-		final AvailObject object,
-		final int value)
 	{
 		throw unsupportedOperationException();
 	}
@@ -1694,7 +1662,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	AvailObject o_Caller (
+	A_Continuation o_Caller (
 		final AvailObject object)
 	{
 		throw unsupportedOperationException();
@@ -1729,7 +1697,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	AvailObject o_Code (
+	A_RawFunction o_Code (
 		final AvailObject object)
 	{
 		throw unsupportedOperationException();
@@ -2044,7 +2012,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	AvailObject o_LevelTwoChunk (
+	A_Chunk o_LevelTwoChunk (
 		final AvailObject object)
 	{
 		throw unsupportedOperationException();
@@ -2303,7 +2271,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	AvailObject o_StartingChunk (
+	A_Chunk o_StartingChunk (
 		final AvailObject object)
 	{
 		throw unsupportedOperationException();
@@ -3250,7 +3218,7 @@ extends AbstractDescriptor
 
 
 	@Override
-	AvailObject o_Method(final AvailObject object)
+	A_Method o_Method(final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}
@@ -3328,7 +3296,7 @@ extends AbstractDescriptor
 
 
 	@Override
-	A_BasicObject o_GenerateInModule (
+	A_RawFunction o_GenerateInModule (
 		final AvailObject object,
 		final A_BasicObject module)
 	{
@@ -3674,7 +3642,7 @@ extends AbstractDescriptor
 
 
 	@Override
-	AvailObject o_SealedArgumentsTypesTuple (final AvailObject object)
+	A_Tuple o_SealedArgumentsTypesTuple (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}
@@ -4553,7 +4521,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	AvailObject o_DefinitionMethod (final AvailObject object)
+	A_Method o_DefinitionMethod (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}

@@ -50,7 +50,7 @@ public class L1Disassembler
 	 * The {@linkplain CompiledCodeDescriptor compiled code object} being
 	 * disassembled.
 	 */
-	A_BasicObject code;
+	A_RawFunction code;
 
 	/**
 	 * The {@link StringBuilder} onto which to describe the level one
@@ -149,7 +149,7 @@ public class L1Disassembler
 	 */
 	@SuppressWarnings("unused")
 	public static void disassemble (
-		final A_BasicObject code,
+		final A_RawFunction code,
 		final StringBuilder builder,
 		final List<AvailObject> recursionList,
 		final int indent)
@@ -172,7 +172,7 @@ public class L1Disassembler
 	 *        The indentation level.
 	 */
 	private L1Disassembler (
-		final A_BasicObject code,
+		final A_RawFunction code,
 		final StringBuilder builder,
 		final List<AvailObject> recursionList,
 		final int indent)

@@ -73,7 +73,7 @@ public class L2_LOOKUP_BY_VALUES extends L2Operation
 			interpreter.argsBuffer.add(
 				interpreter.pointerAt(vect.tupleIntAt(i)));
 		}
-		final A_BasicObject method =
+		final A_Method method =
 			interpreter.chunk().literalAt(selectorIndex);
 		if (debugL1)
 		{

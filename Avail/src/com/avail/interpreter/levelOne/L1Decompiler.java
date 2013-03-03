@@ -53,7 +53,7 @@ public class L1Decompiler
 	 * The {@linkplain CompiledCodeDescriptor compiled code} which is being
 	 * decompiled.
 	 */
-	@InnerAccess A_BasicObject code;
+	@InnerAccess A_RawFunction code;
 
 	/**
 	 * {@linkplain ParseNodeDescriptor Parse nodes} which correspond with the
@@ -132,7 +132,7 @@ public class L1Decompiler
 	 *        generates a suitably unique temporary variable name.
 	 */
 	public L1Decompiler (
-		final A_BasicObject aCodeObject,
+		final A_RawFunction aCodeObject,
 		final List<AvailObject> outerVars,
 		final Transformer1<String, String> tempBlock)
 	{
@@ -300,7 +300,7 @@ public class L1Decompiler
 		public void L1_doClose ()
 		{
 			final int nOuters = getInteger();
-			final A_BasicObject theCode = code.literalAt(getInteger());
+			final A_RawFunction theCode = code.literalAt(getInteger());
 			final List<AvailObject> theOuters = popExpressions(nOuters);
 			for (final A_BasicObject outer : theOuters)
 			{

@@ -34,8 +34,9 @@ package com.avail.interpreter.levelTwo.operation;
 import static com.avail.interpreter.Interpreter.*;
 import static com.avail.interpreter.levelTwo.register.FixedRegister.*;
 import java.util.logging.Level;
-import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.A_Continuation;
 import com.avail.descriptor.A_Function;
+import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.A_Tuple;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelOne.L1Operation;
@@ -62,7 +63,7 @@ extends L2Operation
 	public void step (final Interpreter interpreter)
 	{
 		final A_Function function = interpreter.pointerAt(FUNCTION);
-		final A_BasicObject code = function.code();
+		final A_RawFunction code = function.code();
 		final A_Tuple nybbles = code.nybbles();
 		final int pc = interpreter.integerAt(pcRegister());
 
@@ -83,7 +84,7 @@ extends L2Operation
 		if (debugL1)
 		{
 			for (
-				A_BasicObject c = interpreter.pointerAt(CALLER);
+				A_Continuation c = interpreter.pointerAt(CALLER);
 				!c.equalsNil();
 				c = c.caller())
 			{

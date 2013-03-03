@@ -67,7 +67,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	public AvailObject o_DefinitionMethod (final AvailObject object)
+	public A_Method o_DefinitionMethod (final AvailObject object)
 	{
 		return object.slot(ObjectSlots.DEFINITION_METHOD);
 	}

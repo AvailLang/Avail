@@ -85,7 +85,7 @@ public class RegisterSet
 		this.translator = translator;
 		final int numFixed = L2Translator.firstArgumentRegisterIndex;
 		final int numRegisters;
-		final A_BasicObject code = codeOrNull();
+		final A_RawFunction code = codeOrNull();
 		if (code == null)
 		{
 			numRegisters = numFixed;
@@ -157,7 +157,7 @@ public class RegisterSet
 	 *
 	 * @return The root compiled code being translated.
 	 */
-	public @Nullable A_BasicObject codeOrNull ()
+	public @Nullable A_RawFunction codeOrNull ()
 	{
 		return translator.codeOrNull();
 	}
@@ -169,7 +169,7 @@ public class RegisterSet
 	 *
 	 * @return The root compiled code being translated.
 	 */
-	public A_BasicObject codeOrFail ()
+	public A_RawFunction codeOrFail ()
 	{
 		return translator.codeOrFail();
 	}
@@ -522,7 +522,7 @@ public class RegisterSet
 	L2ObjectRegister argumentOrLocal (
 		final int argumentNumber)
 	{
-		final A_BasicObject code = codeOrFail();
+		final A_RawFunction code = codeOrFail();
 		assert argumentNumber <= code.numArgs() + code.numLocals();
 		return continuationSlot(argumentNumber);
 	}

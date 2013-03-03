@@ -208,8 +208,8 @@ public final class Interpreter
 	 */
 	public AvailObjectFieldHelper[] describeForDebugger ()
 	{
-		final List<AvailObject> frames = new ArrayList<AvailObject>(50);
-		AvailObject frame = pointers[CALLER.ordinal()];
+		final List<A_Continuation> frames = new ArrayList<A_Continuation>(50);
+		A_Continuation frame = pointers[CALLER.ordinal()];
 		if (frame != null)
 		{
 			while (!frame.equalsNil())
@@ -565,7 +565,7 @@ public final class Interpreter
 	 * P_340_PushConstant} to get to the first literal in order to return it
 	 * from the primitive.
 	 */
-	private @Nullable A_BasicObject primitiveCompiledCodeBeingAttempted;
+	private @Nullable A_RawFunction primitiveCompiledCodeBeingAttempted;
 
 	/**
 	 * Answer the {@linkplain Primitive primitive} {@linkplain
@@ -576,9 +576,9 @@ public final class Interpreter
 	 * @return The {@linkplain CompiledCodeDescriptor compiled code} whose
 	 *         primitive is being attempted.
 	 */
-	public A_BasicObject primitiveCompiledCodeBeingAttempted ()
+	public A_RawFunction primitiveCompiledCodeBeingAttempted ()
 	{
-		final A_BasicObject code = primitiveCompiledCodeBeingAttempted;
+		final A_RawFunction code = primitiveCompiledCodeBeingAttempted;
 		assert code != null;
 		return code;
 	}
@@ -709,7 +709,7 @@ public final class Interpreter
 	 */
 	public final Result attemptPrimitive (
 		final int primitiveNumber,
-		final @Nullable A_BasicObject compiledCode,
+		final @Nullable A_RawFunction compiledCode,
 		final List<AvailObject> args)
 	{
 		final Primitive primitive =
@@ -745,7 +745,7 @@ public final class Interpreter
 	}
 
 	/** The {@link L2ChunkDescriptor} being executed. */
-	private @Nullable A_BasicObject chunk;
+	private @Nullable A_Chunk chunk;
 
 	/**
 	 * Return the currently executing {@linkplain L2ChunkDescriptor Level Two
@@ -754,9 +754,9 @@ public final class Interpreter
 	 * @return The {@linkplain L2ChunkDescriptor Level Two chunk} that is
 	 *         currently being executed.
 	 */
-	public A_BasicObject chunk ()
+	public A_Chunk chunk ()
 	{
-		final A_BasicObject c = chunk;
+		final A_Chunk c = chunk;
 		assert c != null;
 		return c;
 	}
@@ -839,8 +839,8 @@ public final class Interpreter
 	 *        The offset at which to begin executing the chunk.
 	 */
 	private void setChunk (
-		final A_BasicObject chunkToResume,
-		final A_BasicObject code,
+		final A_Chunk chunkToResume,
+		final A_RawFunction code,
 		final int newOffset)
 	{
 		this.chunk = chunkToResume;
@@ -930,7 +930,7 @@ public final class Interpreter
 	public int getInteger ()
 	{
 		final A_Function function = pointerAt(FUNCTION);
-		final A_BasicObject code = function.code();
+		final A_RawFunction code = function.code();
 		final A_Tuple nybbles = code.nybbles();
 		int pc = integerAt(pcRegister());
 		final byte firstNybble = nybbles.extractNybbleFromTupleAt(pc);
@@ -1150,7 +1150,7 @@ public final class Interpreter
 	 * @param continuation
 	 *        The reified continuation to save into the current fiber.
 	 */
-	public void processInterrupt (final A_BasicObject continuation)
+	public void processInterrupt (final A_Continuation continuation)
 	{
 		assert !exitNow;
 		final A_BasicObject aFiber = fiber();
@@ -1196,7 +1196,7 @@ public final class Interpreter
 	 *        The {@link AvailObject} to return.
 	 */
 	public void returnToCaller (
-		final A_BasicObject caller,
+		final A_Continuation caller,
 		final A_BasicObject value)
 	{
 		// Wipe out the existing registers for safety. This is technically
@@ -1220,7 +1220,7 @@ public final class Interpreter
 				value,
 				expectedType));
 		}
-		final A_BasicObject updatedCaller = caller.ensureMutable();
+		final A_Continuation updatedCaller = caller.ensureMutable();
 		updatedCaller.stackAtPut(stackp, value);
 		prepareToResumeContinuation(updatedCaller);
 	}
@@ -1231,9 +1231,9 @@ public final class Interpreter
 	 *
 	 * @param updatedCaller The continuation to resume.
 	 */
-	public void prepareToResumeContinuation (final A_BasicObject updatedCaller)
+	public void prepareToResumeContinuation (final A_Continuation updatedCaller)
 	{
-		A_BasicObject chunkToResume = updatedCaller.levelTwoChunk();
+		A_Chunk chunkToResume = updatedCaller.levelTwoChunk();
 		if (!chunkToResume.isValid())
 		{
 			// The chunk has become invalid, so use the default chunk and tweak
@@ -1258,9 +1258,9 @@ public final class Interpreter
 	 * @param continuationToRestart
 	 */
 	public void prepareToRestartContinuation (
-		final A_BasicObject continuationToRestart)
+		final A_Continuation continuationToRestart)
 	{
-		A_BasicObject chunkToRestart = continuationToRestart.levelTwoChunk();
+		A_Chunk chunkToRestart = continuationToRestart.levelTwoChunk();
 		if (!chunkToRestart.isValid())
 		{
 			// The chunk has become invalid, so use the default chunk and tweak
@@ -1291,8 +1291,8 @@ public final class Interpreter
 	 *        The code about to be invoked.
 	 */
 	private void makeRoomForChunkRegisters (
-		final A_BasicObject theChunk,
-		final A_BasicObject theCode)
+		final A_Chunk theChunk,
+		final A_RawFunction theCode)
 	{
 		final int neededObjectCount = max(
 			theChunk.numObjects(),
@@ -1339,10 +1339,10 @@ public final class Interpreter
 		assert argsBuffer.size() == 1;
 		argsBuffer.set(0, exceptionValue);
 		final int primNum = P_200_CatchException.instance.primitiveNumber;
-		A_BasicObject continuation = pointerAt(CALLER);
+		A_Continuation continuation = pointerAt(CALLER);
 		while (!continuation.equalsNil())
 		{
-			final A_BasicObject code = continuation.function().code();
+			final A_RawFunction code = continuation.function().code();
 			if (code.primitiveNumber() == primNum)
 			{
 				assert code.numArgs() == 3;
@@ -1392,10 +1392,10 @@ public final class Interpreter
 	public Result markNearestGuard (final AvailObject marker)
 	{
 		final int primNum = P_200_CatchException.instance.primitiveNumber;
-		A_BasicObject continuation = pointerAt(CALLER);
+		A_Continuation continuation = pointerAt(CALLER);
 		while (!continuation.equalsNil())
 		{
-			final A_BasicObject code = continuation.function().code();
+			final A_RawFunction code = continuation.function().code();
 			if (code.primitiveNumber() == primNum)
 			{
 				assert code.numArgs() == 3;
@@ -1441,7 +1441,7 @@ public final class Interpreter
 		final A_Function aFunction,
 		final List<AvailObject> args)
 	{
-		final A_BasicObject code = aFunction.code();
+		final A_RawFunction code = aFunction.code();
 		assert code.numArgs() == args.size();
 		final A_BasicObject caller = pointerAt(CALLER);
 		final int primNum = code.primitiveNumber();
@@ -1495,10 +1495,10 @@ public final class Interpreter
 		final List<AvailObject> args,
 		final A_BasicObject caller)
 	{
-		final A_BasicObject code = aFunction.code();
+		final A_RawFunction code = aFunction.code();
 		assert code.primitiveNumber() == 0 || latestResult != null;
 		code.tallyInvocation();
-		A_BasicObject chunkToInvoke = code.startingChunk();
+		A_Chunk chunkToInvoke = code.startingChunk();
 		if (!chunkToInvoke.isValid())
 		{
 			// The chunk is invalid, so use the default chunk and patch up
@@ -1536,9 +1536,9 @@ public final class Interpreter
 	 */
 	public void invokePossiblePrimitiveWithReifiedCaller (
 		final A_Function handler,
-		final A_BasicObject continuation)
+		final A_Continuation continuation)
 	{
-		final A_BasicObject theCode = handler.code();
+		final A_RawFunction theCode = handler.code();
 		final int primNum = theCode.primitiveNumber();
 		pointerAtPut(CALLER, continuation);
 		if (primNum != 0)
@@ -1556,7 +1556,7 @@ public final class Interpreter
 					return;
 				case SUCCESS:
 					assert chunk().isValid();
-					final A_BasicObject updatedCaller =
+					final A_Continuation updatedCaller =
 						continuation.ensureMutable();
 					final int stackp = updatedCaller.stackp();
 					final A_Type expectedType =
@@ -1614,7 +1614,7 @@ public final class Interpreter
 			if (logger.isLoggable(Level.FINEST))
 			{
 				final StringBuilder stackString = new StringBuilder();
-				A_BasicObject chain = pointerAt(CALLER);
+				A_Continuation chain = pointerAt(CALLER);
 				while (!chain.equalsNil())
 				{
 					stackString.insert(0, "->");
@@ -1851,7 +1851,7 @@ public final class Interpreter
 							assert aFiber == interpreter.fiber;
 							assert aFiber.executionState() == RUNNING;
 							assert !aFiber.continuation().equalsNil();
-							final A_BasicObject updatedCaller =
+							final A_Continuation updatedCaller =
 								aFiber.continuation().ensureMutable();
 							final int stackp = updatedCaller.stackp();
 							final A_Type expectedType =
@@ -1895,9 +1895,9 @@ public final class Interpreter
 	 */
 	public List<String> dumpStack ()
 	{
-		final List<AvailObject> frames = new ArrayList<AvailObject>(20);
+		final List<A_Continuation> frames = new ArrayList<A_Continuation>(20);
 		for (
-			AvailObject c = currentContinuation();
+			A_Continuation c = currentContinuation();
 			!c.equalsNil();
 			c = c.caller())
 		{
@@ -1906,9 +1906,9 @@ public final class Interpreter
 		final List<String> strings = new ArrayList<String>(frames.size());
 		int line = frames.size();
 		final StringBuilder signatureBuilder = new StringBuilder(1000);
-		for (final A_BasicObject frame : frames)
+		for (final A_Continuation frame : frames)
 		{
-			final A_BasicObject code = frame.function().code();
+			final A_RawFunction code = frame.function().code();
 			final A_Type functionType = code.functionType();
 			final A_Type paramsType = functionType.argsTupleType();
 			for (int i = 1,

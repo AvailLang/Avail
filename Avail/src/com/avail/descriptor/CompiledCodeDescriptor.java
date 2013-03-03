@@ -446,7 +446,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_StartingChunk (final AvailObject object)
+	A_Chunk o_StartingChunk (final AvailObject object)
 	{
 		return object.mutableSlot(STARTING_CHUNK);
 	}
@@ -526,7 +526,7 @@ extends Descriptor
 	@Override @AvailMethod @Deprecated
 	void o_PostFault (final AvailObject object)
 	{
-		final A_BasicObject chunk = object.startingChunk();
+		final A_Chunk chunk = object.startingChunk();
 		if (chunk.isValid())
 		{
 			chunk.isSaved(true);
@@ -559,7 +559,7 @@ extends Descriptor
 		for (int i = 1, limit = object.numLiterals(); i <= limit; i++)
 		{
 			final AvailObject literal = object.literalAt(i);
-			final AvailObject subCode;
+			final A_RawFunction subCode;
 			if (literal.isFunction())
 			{
 				subCode = literal.code();

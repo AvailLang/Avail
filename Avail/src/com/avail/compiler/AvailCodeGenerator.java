@@ -187,7 +187,7 @@ public class AvailCodeGenerator
 	 *                           function is purported to begin.
 	 * @return A function.
 	 */
-	public static A_BasicObject generateFunction (
+	public static A_RawFunction generateFunction (
 		final A_BasicObject module,
 		final A_Tuple argumentsTuple,
 		final int primitive,
@@ -302,7 +302,7 @@ public class AvailCodeGenerator
 	 *
 	 * @return A {@linkplain CompiledCodeDescriptor compiled code} object.
 	 */
-	private A_BasicObject endBlock ()
+	private A_RawFunction endBlock ()
 	{
 		fixFinalUses();
 		final ByteArrayOutputStream nybbles = new ByteArrayOutputStream(50);

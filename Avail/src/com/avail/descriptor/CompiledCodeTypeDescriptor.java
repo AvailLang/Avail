@@ -161,22 +161,13 @@ extends TypeDescriptor
 		final AvailObject object,
 		final A_Type aCompiledCodeType)
 	{
-		final A_BasicObject closType1 = object.functionType();
-		final A_Type closType2 = aCompiledCodeType.functionType();
-		if (closType1.equals(closType2))
+		final A_Type functionType1 = object.functionType();
+		final A_Type functionType2 = aCompiledCodeType.functionType();
+		if (functionType1.equals(functionType2))
 		{
 			return object;
 		}
-		if (closType1.numArgs() != closType2.numArgs())
-		{
-			return BottomTypeDescriptor.bottom();
-		}
-		final A_Type intersection =
-			FunctionTypeDescriptor.createWithArgumentTupleType(
-				closType1.argsTupleType().typeUnion(closType2.argsTupleType()),
-				closType1.returnType().typeUnion(closType2.returnType()),
-				SetDescriptor.empty());
-		return forFunctionType(intersection);
+		return forFunctionType(functionType1.typeIntersection(functionType2));
 	}
 
 	@Override @AvailMethod
@@ -200,21 +191,14 @@ extends TypeDescriptor
 		final AvailObject object,
 		final A_Type aCompiledCodeType)
 	{
-		final A_Type closType1 = object.functionType();
-		final A_Type closType2 = aCompiledCodeType.functionType();
-		if (closType1.equals(closType2))
+		final A_Type functionType1 = object.functionType();
+		final A_Type functionType2 = aCompiledCodeType.functionType();
+		if (functionType1.equals(functionType2))
 		{
 			// Optimization only
 			return object;
 		}
-		final A_BasicObject union =
-			FunctionTypeDescriptor.createWithArgumentTupleType(
-				closType1.argsTupleType().typeIntersection(
-					closType2.argsTupleType()),
-				closType1.returnType().typeIntersection(
-					closType2.returnType()),
-				SetDescriptor.empty());
-		return forFunctionType(union);
+		return forFunctionType(functionType1.typeUnion(functionType2));
 	}
 
 	@Override @AvailMethod

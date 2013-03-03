@@ -155,7 +155,7 @@ extends AbstractAvailCompiler
 		final ParserState stateAfterCall,
 		final List<AvailObject> passedArgumentExpressions,
 		final A_BasicObject bundle,
-		final A_BasicObject method,
+		final A_Method method,
 		final Con<AvailObject> continuation)
 	{
 		final A_Tuple definitions = method.definitionsTuple();

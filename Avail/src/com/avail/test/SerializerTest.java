@@ -458,14 +458,14 @@ public final class SerializerTest
 			new L1Instruction(
 				L1Operation.L1_doPushLiteral,
 				writer.addLiteral(NilDescriptor.nil())));
-		final AvailObject code = writer.compiledCode();
+		final A_RawFunction code = writer.compiledCode();
 		final A_Function function = FunctionDescriptor.create(
 			code,
 			TupleDescriptor.empty());
 		final A_Function newFunction = roundTrip(function);
 		assertNotNull(newFunction);
 		assert newFunction != null;
-		final A_BasicObject code2 = newFunction.code();
+		final A_RawFunction code2 = newFunction.code();
 		assertEquals(code.numOuters(), code2.numOuters());
 		assertEquals(
 			code.numArgsAndLocalsAndStack(),

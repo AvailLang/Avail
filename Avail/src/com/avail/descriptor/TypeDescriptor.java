@@ -379,7 +379,7 @@ extends AbstractTypeDescriptor
 	@Override @AvailMethod
 	boolean o_IsSupertypeOfContinuationType (
 		final AvailObject object,
-		final A_BasicObject aContinuationType)
+		final A_Type aContinuationType)
 	{
 		return false;
 	}

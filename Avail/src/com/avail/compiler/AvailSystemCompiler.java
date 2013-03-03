@@ -1496,7 +1496,7 @@ extends AbstractAvailCompiler
 		final ParserState stateAfterCall,
 		final List<AvailObject> argumentExpressions,
 		final A_BasicObject bundle,
-		final A_BasicObject method,
+		final A_Method method,
 		final Con<AvailObject> continuation)
 	{
 		stateAfterCall.expected(

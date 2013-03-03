@@ -1239,22 +1239,6 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @param value
 	 */
-	abstract void o_Caller (
-		AvailObject object,
-		AvailObject value);
-
-	/**
-	 * @param object
-	 * @param value
-	 */
-	abstract void o_Function (
-		AvailObject object,
-		AvailObject value);
-
-	/**
-	 * @param object
-	 * @param value
-	 */
 	abstract void o_CodePoint (
 		AvailObject object,
 		int value);
@@ -1790,7 +1774,7 @@ public abstract class AbstractDescriptor
 	 */
 	abstract boolean o_IsSupertypeOfContinuationType (
 		AvailObject object,
-		A_BasicObject aContinuationType);
+		A_Type aContinuationType);
 
 	/**
 	 * @param object
@@ -1907,7 +1891,7 @@ public abstract class AbstractDescriptor
 	 */
 	abstract void o_LevelTwoChunkOffset (
 		AvailObject object,
-		A_BasicObject chunk,
+		A_Chunk chunk,
 		int offset);
 
 	/**
@@ -2126,12 +2110,6 @@ public abstract class AbstractDescriptor
 	abstract void o_Parent (
 		AvailObject object,
 		AvailObject value);
-
-	/**
-	 * @param object
-	 * @param value
-	 */
-	abstract void o_Pc (AvailObject object, int value);
 
 	/**
 	 * Add the {@linkplain AvailObject operands} and answer the result.
@@ -2477,12 +2455,6 @@ public abstract class AbstractDescriptor
 		AvailObject object,
 		int slotIndex,
 		A_BasicObject anObject);
-
-	/**
-	 * @param object
-	 * @param value
-	 */
-	abstract void o_Stackp (AvailObject object, int value);
 
 	/**
 	 * @param object
@@ -3018,7 +2990,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	abstract AvailObject o_Caller (AvailObject object);
+	abstract A_Continuation o_Caller (AvailObject object);
 
 	/**
 	 * @param object
@@ -3046,7 +3018,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	abstract AvailObject o_Code (AvailObject object);
+	abstract A_RawFunction o_Code (AvailObject object);
 
 	/**
 	 * @param object
@@ -3324,7 +3296,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	abstract AvailObject o_LevelTwoChunk (AvailObject object);
+	abstract A_Chunk o_LevelTwoChunk (AvailObject object);
 
 	/**
 	 * @param object
@@ -3550,7 +3522,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	abstract AvailObject o_StartingChunk (AvailObject object);
+	abstract A_Chunk o_StartingChunk (AvailObject object);
 
 	/**
 	 * @param object
@@ -3730,7 +3702,7 @@ public abstract class AbstractDescriptor
 	 * @param aType A fiber type.
 	 * @return {@code true} if the receiver is a fiber type and of value equal
 	 *         to the argument, {@code false} otherwise.
-	 * @see AvailObject#equalsFiberType(AvailObject)
+	 * @see AvailObject#equalsFiberType(A_Type)
 	 */
 	abstract boolean o_EqualsFiberType (AvailObject object, A_Type aType);
 
@@ -4464,7 +4436,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	abstract AvailObject o_Method (AvailObject object);
+	abstract A_Method o_Method (AvailObject object);
 
 	/**
 	 * @param object
@@ -4534,7 +4506,7 @@ public abstract class AbstractDescriptor
 	 * @param module
 	 * @return
 	 */
-	abstract A_BasicObject o_GenerateInModule (
+	abstract A_RawFunction o_GenerateInModule (
 		AvailObject object,
 		A_BasicObject module);
 
@@ -4870,7 +4842,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	abstract AvailObject o_SealedArgumentsTypesTuple (
+	abstract A_Tuple o_SealedArgumentsTypesTuple (
 		AvailObject object);
 
 	/**
@@ -5709,7 +5681,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	abstract AvailObject o_DefinitionMethod (
+	abstract A_Method o_DefinitionMethod (
 		final AvailObject object);
 
 	/**

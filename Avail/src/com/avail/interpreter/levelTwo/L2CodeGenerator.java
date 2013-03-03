@@ -373,7 +373,7 @@ public final class L2CodeGenerator
 	 *        code} currently undergoing translation to Level Two.
 	 * @return The translated {@linkplain L2ChunkDescriptor chunk}.
 	 */
-	public AvailObject createChunkFor (final A_BasicObject code)
+	public AvailObject createChunkFor (final A_RawFunction code)
 	{
 		assert expectedNamedOperandTypes.isEmpty();
 		if (logger.isLoggable(Level.FINE))

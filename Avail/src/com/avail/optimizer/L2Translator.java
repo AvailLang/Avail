@@ -69,7 +69,7 @@ implements L1OperationDispatcher
 	/**
 	 * The current {@link CompiledCodeDescriptor compiled code} being optimized.
 	 */
-	@InnerAccess @Nullable A_BasicObject code;
+	@InnerAccess @Nullable A_RawFunction code;
 
 	/**
 	 * The nybblecodes being optimized.
@@ -170,7 +170,7 @@ implements L1OperationDispatcher
 	 *
 	 * @param code The {@linkplain CompiledCodeDescriptor code} to translate.
 	 */
-	public L2Translator (final @Nullable A_BasicObject code)
+	public L2Translator (final @Nullable A_RawFunction code)
 	{
 		this.code = code;
 		registers = new RegisterSet(this);
@@ -252,7 +252,7 @@ implements L1OperationDispatcher
 	 *
 	 * @return The code being translated.
 	 */
-	public @Nullable A_BasicObject codeOrNull ()
+	public @Nullable A_RawFunction codeOrNull ()
 	{
 		return code;
 	}
@@ -263,9 +263,9 @@ implements L1OperationDispatcher
 	 *
 	 * @return The code being translated.
 	 */
-	public A_BasicObject codeOrFail ()
+	public A_RawFunction codeOrFail ()
 	{
-		final A_BasicObject c = code;
+		final A_RawFunction c = code;
 		if (c == null)
 		{
 			throw new RuntimeException("L2Translator code was null");
@@ -348,7 +348,7 @@ implements L1OperationDispatcher
 	 *         null}.
 	 */
 	private @Nullable List<A_Function> primitivesToInlineForArgumentRegisters (
-		final A_BasicObject method,
+		final A_Method method,
 		final List<L2ObjectRegister> args)
 	{
 		final List<A_Type> argTypes =
@@ -377,11 +377,10 @@ implements L1OperationDispatcher
 	 *            null}.
 	 */
 	private @Nullable List<A_Function> primitivesToInlineForWithArgumentTypes (
-		final A_BasicObject method,
+		final A_Method method,
 		final List<A_Type> argTypes)
 	{
-		final List<AvailObject> imps =
-			method.definitionsAtOrBelow(argTypes);
+		final List<AvailObject> imps = method.definitionsAtOrBelow(argTypes);
 		final List<A_Function> bodies = new ArrayList<A_Function>(2);
 		int existingPrimitiveNumber = -1;
 		for (final A_BasicObject imp : imps)
@@ -1676,7 +1675,7 @@ implements L1OperationDispatcher
 	{
 		optimizationLevel = optLevel;
 		interpreter = anL2Interpreter;
-		final A_BasicObject theCode = code;
+		final A_RawFunction theCode = code;
 		assert theCode != null;
 		nybbles = theCode.nybbles();
 		numArgs = theCode.numArgs();
