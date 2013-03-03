@@ -59,10 +59,10 @@ public class P_401_BootstrapArgumentMacro extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 2;
-		final AvailObject argumentName = args.get(0);
-		final AvailObject type = args.get(1);
+		final A_Token argumentName = args.get(0);
+		final A_Type type = args.get(1);
 
-		final AvailObject argumentDeclaration =
+		final A_Phrase argumentDeclaration =
 			DeclarationNodeDescriptor.newArgument(
 				argumentName,
 				type);

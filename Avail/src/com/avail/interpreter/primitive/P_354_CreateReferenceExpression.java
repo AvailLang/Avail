@@ -59,17 +59,17 @@ public class P_354_CreateReferenceExpression extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
-		final AvailObject variable = args.get(0);
-		final A_BasicObject declaration = variable.declaration();
+		final A_Phrase variableUse = args.get(0);
+		final A_Phrase declaration = variableUse.declaration();
 		assert declaration != null;
-		final A_BasicObject declarationType = declaration.kind();
+		final A_Type declarationType = declaration.kind();
 		if (!declarationType.parseNodeKindIsUnder(MODULE_VARIABLE_NODE)
 			&& !declarationType.parseNodeKindIsUnder(LOCAL_VARIABLE_NODE))
 		{
 			return interpreter.primitiveFailure(
 				E_DECLARATION_KIND_DOES_NOT_SUPPORT_REFERENCE);
 		}
-		final AvailObject reference = ReferenceNodeDescriptor.fromUse(variable);
+		final A_Phrase reference = ReferenceNodeDescriptor.fromUse(variableUse);
 		return interpreter.primitiveSuccess(reference);
 	}
 

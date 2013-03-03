@@ -105,7 +105,7 @@ extends ParseNodeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_Variable (final AvailObject object)
+	A_Phrase o_Variable (final AvailObject object)
 	{
 		return object.slot(VARIABLE);
 	}
@@ -150,7 +150,7 @@ extends ParseNodeDescriptor
 	@Override @AvailMethod
 	boolean o_EqualsParseNode (
 		final AvailObject object,
-		final A_BasicObject aParseNode)
+		final A_Phrase aParseNode)
 	{
 		return object.kind().equals(aParseNode.kind())
 			&& object.slot(VARIABLE).equals(aParseNode.variable())
@@ -198,7 +198,7 @@ extends ParseNodeDescriptor
 	@Override @AvailMethod
 	void o_ChildrenDo (
 		final AvailObject object,
-		final Continuation1<AvailObject> aBlock)
+		final Continuation1<A_Phrase> aBlock)
 	{
 		aBlock.value(object.slot(EXPRESSION));
 		aBlock.value(object.slot(VARIABLE));
@@ -207,9 +207,9 @@ extends ParseNodeDescriptor
 	@Override @AvailMethod
 	void o_ValidateLocally (
 		final AvailObject object,
-		final @Nullable A_BasicObject parent)
+		final @Nullable A_Phrase parent)
 	{
-		final A_BasicObject variable = object.slot(VARIABLE);
+		final A_Phrase variable = object.slot(VARIABLE);
 		final DeclarationKind kind = variable.declaration().declarationKind();
 		switch (kind)
 		{
@@ -251,9 +251,9 @@ extends ParseNodeDescriptor
 	 *        otherwise.
 	 * @return The new assignment node.
 	 */
-	public static AvailObject from (
-		final AvailObject variableUse,
-		final AvailObject expression,
+	public static A_Phrase from (
+		final A_Phrase variableUse,
+		final A_Phrase expression,
 		final boolean isInline)
 	{
 		final AvailObject assignment = mutable.create();

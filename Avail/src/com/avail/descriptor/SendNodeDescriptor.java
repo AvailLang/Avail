@@ -138,7 +138,7 @@ extends ParseNodeDescriptor
 	@Override @AvailMethod
 	boolean o_EqualsParseNode (
 		final AvailObject object,
-		final A_BasicObject aParseNode)
+		final A_Phrase aParseNode)
 	{
 		return object.kind().equals(aParseNode.kind())
 			&& object.slot(METHOD).equals(aParseNode.method())
@@ -184,7 +184,7 @@ extends ParseNodeDescriptor
 	@Override @AvailMethod
 	void o_ChildrenDo (
 		final AvailObject object,
-		final Continuation1<AvailObject> aBlock)
+		final Continuation1<A_Phrase> aBlock)
 	{
 		aBlock.value(object.slot(ARGUMENTS_LIST_NODE));
 	}
@@ -192,7 +192,7 @@ extends ParseNodeDescriptor
 	@Override @AvailMethod
 	void o_ValidateLocally (
 		final AvailObject object,
-		final @Nullable A_BasicObject parent)
+		final @Nullable A_Phrase parent)
 	{
 		// Do nothing.
 	}
@@ -218,9 +218,9 @@ extends ParseNodeDescriptor
 	 *        The target method's expected return type.
 	 * @return A new send node.
 	 */
-	public static AvailObject from (
+	public static A_Phrase from (
 		final A_Method method,
-		final AvailObject argsListNode,
+		final A_Phrase argsListNode,
 		final A_Type returnType)
 	{
 		final AvailObject newObject = mutable.create();

@@ -58,10 +58,10 @@ public class P_007_CreateIntegerRange extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 4;
-		final AvailObject min = args.get(0);
-		final A_BasicObject minInc = args.get(1);
-		final AvailObject max = args.get(2);
-		final A_BasicObject maxInc = args.get(3);
+		final A_Number min = args.get(0);
+		final A_Atom minInc = args.get(1);
+		final A_Number max = args.get(2);
+		final A_Atom maxInc = args.get(3);
 		return interpreter.primitiveSuccess(
 			IntegerRangeTypeDescriptor.create(
 				min,

@@ -46,6 +46,74 @@ import com.avail.descriptor.TypeDescriptor.Types;
 public interface A_Type
 extends A_BasicObject
 {
+	/**
+	 * Answer whether the {@linkplain AvailObject#argsTupleType() argument
+	 * types} supported by the specified {@linkplain FunctionTypeDescriptor
+	 * function type} are acceptable argument types for invoking a {@linkplain
+	 * FunctionDescriptor function} whose type is the receiver.
+	 *
+	 * @param functionType A function type.
+	 * @return {@code true} if the arguments of the receiver are, pairwise, more
+	 *         general than those of {@code functionType}, {@code false}
+	 *         otherwise.
+	 */
+	boolean acceptsArgTypesFromFunctionType (
+		A_Type functionType);
+
+	/**
+	 * Answer whether these are acceptable {@linkplain TypeDescriptor argument
+	 * types} for invoking a {@linkplain FunctionDescriptor function} whose type
+	 * is the receiver.
+	 *
+	 * @param argTypes A list containing the argument types to be checked.
+	 * @return {@code true} if the arguments of the receiver are, pairwise, more
+	 *         general than those within the {@code argTypes} list, {@code
+	 *         false} otherwise.
+	 */
+	boolean acceptsListOfArgTypes (List<A_Type> argTypes);
+
+	/**
+	 * Answer whether these are acceptable {@linkplain TypeDescriptor argument
+	 * types} for invoking a {@linkplain FunctionDescriptor function} that is an
+	 * instance of the receiver. There may be more entries in the {@linkplain
+	 * TupleDescriptor tuple} than are required by the {@linkplain
+	 * FunctionTypeDescriptor function type}.
+	 *
+	 * @param argTypes A tuple containing the argument types to be checked.
+	 * @return {@code true} if the arguments of the receiver are, pairwise, more
+	 *         general than the corresponding elements of the {@code argTypes}
+	 *         tuple, {@code false} otherwise.
+	 */
+	boolean acceptsTupleOfArgTypes (A_Tuple argTypes);
+
+	/**
+	 * Answer whether these are acceptable arguments for invoking a {@linkplain
+	 * FunctionDescriptor function} that is an instance of the receiver. There
+	 * may be more entries in the {@linkplain TupleDescriptor tuple} than are
+	 * required by the {@linkplain FunctionTypeDescriptor function type}.
+	 *
+	 * @param arguments A tuple containing the argument values to be checked.
+	 * @return {@code true} if the arguments of the receiver are, pairwise, more
+	 *         general than the types of the corresponding elements of the
+	 *         {@code arguments} tuple, {@code false} otherwise.
+	 */
+	boolean acceptsTupleOfArguments (A_Tuple arguments);
+
+	/**
+	 * Also declared in {@link A_Phrase} for {@linkplain BlockNodeDescriptor
+	 * block phrases} and {@linkplain SendNodeDescriptor send phrases}.
+	 *
+	 * @return The set of declared exception types.
+	 */
+	A_Set declaredExceptions ();
+
+	/**
+	 * Also declared in {@link A_Phrase} for {@linkplain BlockNodeDescriptor
+	 * block phrases} and {@linkplain SendNodeDescriptor send phrases}.
+	 */
+	A_Type returnType ();
+
+
 
 	/**
 	 * Dispatch to the descriptor.

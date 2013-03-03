@@ -158,7 +158,7 @@ extends TypeDescriptor
 		final A_Type aContinuationType)
 	{
 		final A_Type subFunctionType = aContinuationType.functionType();
-		final A_BasicObject superFunctionType = object.functionType();
+		final A_Type superFunctionType = object.functionType();
 		return
 		superFunctionType.returnType().isSubtypeOf(
 			subFunctionType.returnType())

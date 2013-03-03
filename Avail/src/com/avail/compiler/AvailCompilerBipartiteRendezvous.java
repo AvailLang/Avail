@@ -72,8 +72,8 @@ public class AvailCompilerBipartiteRendezvous
 	/**
 	 * The actions that are waiting to run when new solutions arrive.
 	 */
-	final List<Con<AvailObject>> actions =
-		new ArrayList<Con<AvailObject>>(3);
+	final List<Con<A_Phrase>> actions =
+		new ArrayList<Con<A_Phrase>>(3);
 
 	/**
 	 * Record a new solution, and also run any waiting actions with it.
@@ -84,7 +84,7 @@ public class AvailCompilerBipartiteRendezvous
 	{
 		solution.parseNode.makeImmutable();
 		solutions.add(solution);
-		for (final Con<AvailObject> action : actions)
+		for (final Con<A_Phrase> action : actions)
 		{
 			action.value(
 				solution.endState(),
@@ -97,7 +97,7 @@ public class AvailCompilerBipartiteRendezvous
 	 *
 	 * @param action The new action.
 	 */
-	void addAction(final Con<AvailObject> action)
+	void addAction(final Con<A_Phrase> action)
 	{
 		actions.add(action);
 		for (final AvailCompilerCachedSolution solution : solutions)

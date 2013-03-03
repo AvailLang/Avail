@@ -64,7 +64,7 @@ extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 2;
-		final A_BasicObject handle = args.get(0);
+		final A_Atom handle = args.get(0);
 		final A_Number size = args.get(1);
 
 		final A_BasicObject pojo =

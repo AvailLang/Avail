@@ -507,7 +507,7 @@ extends Descriptor
 	@Override @AvailMethod
 	A_BasicObject o_Module (final AvailObject object)
 	{
-		final A_BasicObject properties = object.mutableSlot(PROPERTY_ATOM);
+		final A_Atom properties = object.mutableSlot(PROPERTY_ATOM);
 		return properties.issuingModule();
 	}
 
@@ -592,7 +592,7 @@ extends Descriptor
 	@Override @AvailMethod
 	A_String o_MethodName (final AvailObject object)
 	{
-		final A_BasicObject propertyAtom = object.mutableSlot(PROPERTY_ATOM);
+		final A_Atom propertyAtom = object.mutableSlot(PROPERTY_ATOM);
 		final A_String methodName =
 			propertyAtom.getAtomProperty(methodNameKeyAtom());
 		if (methodName.equalsNil())

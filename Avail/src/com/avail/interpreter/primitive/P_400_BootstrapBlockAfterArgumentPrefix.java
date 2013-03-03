@@ -73,8 +73,8 @@ public class P_400_BootstrapBlockAfterArgumentPrefix extends Primitive
 		final A_Tuple latestBlockArgument =
 			allBlockArguments.tupleAt(allBlockArguments.tupleSize());
 		assert latestBlockArgument.tupleSize() == 2;
-		final AvailObject labelPhrase = latestBlockArgument.tupleAt(1);
-		final AvailObject typePhrase = latestBlockArgument.tupleAt(2);
+		final A_Phrase labelPhrase = latestBlockArgument.tupleAt(1);
+		final A_Phrase typePhrase = latestBlockArgument.tupleAt(2);
 
 		assert labelPhrase.isInstanceOfKind(LITERAL_NODE.create(TOKEN.o()));
 		assert typePhrase.isInstanceOfKind(
@@ -90,7 +90,7 @@ public class P_400_BootstrapBlockAfterArgumentPrefix extends Primitive
 				E_DECLARATION_TYPE_MUST_NOT_BE_TOP_OR_BOTTOM);
 		}
 
-		final AvailObject argDeclaration =
+		final A_Phrase argDeclaration =
 			DeclarationNodeDescriptor.newArgument(argToken, argType);
 
 		// Add the binding and we're done.

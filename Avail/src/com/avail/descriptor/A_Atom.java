@@ -51,4 +51,26 @@ extends A_BasicObject, Iterable<AvailObject>
 	 */
 	@Override
 	AvailObject name ();
+
+	/**
+	 * @return
+	 */
+	A_BasicObject issuingModule ();
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	boolean extractBoolean ();
+
+	/**
+	 * @param key
+	 * @param value
+	 */
+	void setAtomProperty (A_Atom key, A_BasicObject value);
+
+	/**
+	 * @param key
+	 * @return
+	 */
+	AvailObject getAtomProperty (A_Atom key);
 }

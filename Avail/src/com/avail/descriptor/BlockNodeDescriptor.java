@@ -138,7 +138,7 @@ extends ParseNodeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_NeededVariables (final AvailObject object)
+	A_Tuple o_NeededVariables (final AvailObject object)
 	{
 		return object.mutableSlot(NEEDED_VARIABLES);
 	}
@@ -233,7 +233,7 @@ extends ParseNodeDescriptor
 	@Override @AvailMethod
 	boolean o_EqualsParseNode (
 		final AvailObject object,
-		final A_BasicObject aParseNode)
+		final A_Phrase aParseNode)
 	{
 		return object.kind().equals(aParseNode.kind())
 			&& object.argumentsTuple().equals(aParseNode.argumentsTuple())
@@ -343,7 +343,7 @@ extends ParseNodeDescriptor
 	@Override @AvailMethod
 	void o_ChildrenDo (
 		final AvailObject object,
-		final Continuation1<AvailObject> aBlock)
+		final Continuation1<A_Phrase> aBlock)
 	{
 		for (final AvailObject argument : object.argumentsTuple())
 		{
@@ -359,7 +359,7 @@ extends ParseNodeDescriptor
 	@Override @AvailMethod
 	void o_ValidateLocally (
 		final AvailObject object,
-		final @Nullable A_BasicObject parent)
+		final @Nullable A_Phrase parent)
 	{
 		// Make sure our neededVariables list has up-to-date information about
 		// the outer variables that are accessed in me, because they have to be
@@ -423,10 +423,10 @@ extends ParseNodeDescriptor
 	 * @return
 	 *            A block node.
 	 */
-	public static AvailObject newBlockNode (
-		final List<AvailObject> argumentsList,
+	public static A_Phrase newBlockNode (
+		final List<A_Phrase> argumentsList,
 		final int primitive,
-		final List<AvailObject> statementsList,
+		final List<A_Phrase> statementsList,
 		final A_Type resultType,
 		final A_Set declaredExceptions,
 		final int lineNumber)
@@ -510,16 +510,16 @@ extends ParseNodeDescriptor
 	 *            The {@linkplain BlockNodeDescriptor block node} to validate.
 	 */
 	public static void recursivelyValidate (
-		final AvailObject blockNode)
+		final A_Phrase blockNode)
 	{
 		treeDoWithParent(
 			blockNode,
-			new Continuation2<AvailObject, AvailObject>()
+			new Continuation2<A_Phrase, A_Phrase>()
 			{
 				@Override
 				public void value (
-					final @Nullable AvailObject node,
-					final @Nullable AvailObject parent)
+					final @Nullable A_Phrase node,
+					final @Nullable A_Phrase parent)
 				{
 					assert node != null;
 					node.validateLocally(parent);
@@ -537,20 +537,20 @@ extends ParseNodeDescriptor
 	 */
 	private void collectNeededVariablesOfOuterBlocks (final AvailObject object)
 	{
-		final Set<AvailObject> neededDeclarations = new HashSet<AvailObject>();
-		final Set<AvailObject> providedByMe = new HashSet<AvailObject>();
+		final Set<A_Phrase> neededDeclarations = new HashSet<A_Phrase>();
+		final Set<A_Phrase> providedByMe = new HashSet<A_Phrase>();
 		providedByMe.addAll(allLocallyDefinedVariables(object));
-		object.childrenDo(new Continuation1<AvailObject>()
+		object.childrenDo(new Continuation1<A_Phrase>()
 		{
 			@Override
-			public void value (final @Nullable AvailObject node)
+			public void value (final @Nullable A_Phrase node)
 			{
 				assert node != null;
 				assert !node.isInstanceOfKind(SEQUENCE_NODE.mostGeneralType())
 				: "Sequence nodes should have been eliminated by this point";
 				if (node.isInstanceOfKind(BLOCK_NODE.mostGeneralType()))
 				{
-					for (final AvailObject declaration : node.neededVariables())
+					for (final A_Phrase declaration : node.neededVariables())
 					{
 						if (!providedByMe.contains(declaration))
 						{
@@ -562,7 +562,7 @@ extends ParseNodeDescriptor
 				node.childrenDo(this);
 				if (node.isInstanceOfKind(VARIABLE_USE_NODE.mostGeneralType()))
 				{
-					final AvailObject declaration = node.declaration();
+					final A_Phrase declaration = node.declaration();
 					if (!providedByMe.contains(declaration)
 						&& declaration.declarationKind() != MODULE_VARIABLE
 						&& declaration.declarationKind() != MODULE_CONSTANT)
@@ -574,7 +574,7 @@ extends ParseNodeDescriptor
 		});
 		object.neededVariables(
 			TupleDescriptor.fromList(
-				new ArrayList<AvailObject>(neededDeclarations)));
+				new ArrayList<A_Phrase>(neededDeclarations)));
 	}
 
 	@Override

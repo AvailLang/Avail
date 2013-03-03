@@ -80,7 +80,7 @@ extends ParseNodeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_Variable (final AvailObject object)
+	A_Phrase o_Variable (final AvailObject object)
 	{
 		return object.slot(VARIABLE);
 	}
@@ -92,8 +92,8 @@ extends ParseNodeDescriptor
 	@Override @AvailMethod
 	A_Type o_ExpressionType (final AvailObject object)
 	{
-		final A_BasicObject variable = object.slot(VARIABLE);
-		final A_BasicObject declaration = variable.declaration();
+		final A_Phrase variable = object.slot(VARIABLE);
+		final A_Phrase declaration = variable.declaration();
 		final DeclarationKind kind = declaration.declarationKind();
 		if (kind == DeclarationKind.MODULE_VARIABLE)
 		{
@@ -106,7 +106,7 @@ extends ParseNodeDescriptor
 	@Override @AvailMethod
 	boolean o_EqualsParseNode (
 		final AvailObject object,
-		final A_BasicObject aParseNode)
+		final A_Phrase aParseNode)
 	{
 		return object.kind().equals(aParseNode.kind())
 			&& object.slot(VARIABLE).equals(aParseNode.variable());
@@ -140,7 +140,7 @@ extends ParseNodeDescriptor
 	@Override @AvailMethod
 	void o_ChildrenDo (
 		final AvailObject object,
-		final Continuation1<AvailObject> aBlock)
+		final Continuation1<A_Phrase> aBlock)
 	{
 		aBlock.value(object.slot(VARIABLE));
 	}
@@ -148,7 +148,7 @@ extends ParseNodeDescriptor
 	@Override @AvailMethod
 	void o_ValidateLocally (
 		final AvailObject object,
-		final @Nullable A_BasicObject parent)
+		final @Nullable A_Phrase parent)
 	{
 		final A_BasicObject decl = object.slot(VARIABLE).declaration();
 		switch (decl.declarationKind())
@@ -185,7 +185,7 @@ extends ParseNodeDescriptor
 	 *        A variable use node for which to construct a reference node.
 	 * @return The new reference node.
 	 */
-	public static AvailObject fromUse (final AvailObject variableUse)
+	public static A_Phrase fromUse (final A_Phrase variableUse)
 	{
 		final AvailObject newReferenceNode = mutable.create();
 		newReferenceNode.setSlot(VARIABLE, variableUse);

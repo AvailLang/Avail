@@ -106,7 +106,7 @@ extends ParseNodeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_Declaration (final AvailObject object)
+	A_Phrase o_Declaration (final AvailObject object)
 	{
 		return object.slot(DECLARATION);
 	}
@@ -160,7 +160,7 @@ extends ParseNodeDescriptor
 	@Override @AvailMethod
 	boolean o_EqualsParseNode (
 		final AvailObject object,
-		final A_BasicObject aParseNode)
+		final A_Phrase aParseNode)
 	{
 		return object.kind().equals(aParseNode.kind())
 			&& object.slot(USE_TOKEN).equals(aParseNode.token())
@@ -190,7 +190,7 @@ extends ParseNodeDescriptor
 	@Override @AvailMethod
 	void o_ChildrenDo (
 		final AvailObject object,
-		final Continuation1<AvailObject> aBlock)
+		final Continuation1<A_Phrase> aBlock)
 	{
 		// Do nothing.
 	}
@@ -198,7 +198,7 @@ extends ParseNodeDescriptor
 	@Override @AvailMethod
 	void o_ValidateLocally (
 		final AvailObject object,
-		final @Nullable A_BasicObject parent)
+		final @Nullable A_Phrase parent)
 	{
 		// Do nothing.
 	}
@@ -228,7 +228,7 @@ extends ParseNodeDescriptor
 	 */
 	public static AvailObject newUse (
 		final A_Token theToken,
-		final AvailObject declaration)
+		final A_Phrase declaration)
 	{
 		assert theToken.isInstanceOfKind(TOKEN.o());
 		assert declaration.isInstanceOfKind(DECLARATION_NODE.mostGeneralType());

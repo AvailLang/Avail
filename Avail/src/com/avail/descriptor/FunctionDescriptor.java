@@ -268,10 +268,10 @@ extends Descriptor
 	 * @return Any appropriate function.
 	 */
 	public static A_Function createStubWithArgTypes (
-		final A_BasicObject functionType,
-		final AvailObject function)
+		final A_Type functionType,
+		final A_Function function)
 	{
-		final A_BasicObject argTypes = functionType.argsTupleType();
+		final A_Type argTypes = functionType.argsTupleType();
 		final int numArgs = argTypes.sizeRange().lowerBound().extractInt();
 		final A_Type[] argTypesArray = new AvailObject[numArgs];
 		for (int i = 1; i <= numArgs; i++)

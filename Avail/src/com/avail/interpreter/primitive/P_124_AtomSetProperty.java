@@ -58,8 +58,8 @@ public class P_124_AtomSetProperty extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 3;
-		final A_BasicObject atom = args.get(0);
-		final AvailObject propertyKey = args.get(1);
+		final A_Atom atom = args.get(0);
+		final A_Atom propertyKey = args.get(1);
 		final AvailObject propertyValue = args.get(2);
 		if (AvailRuntime.isSpecialAtom(atom)
 			|| AvailRuntime.isSpecialAtom(propertyKey))

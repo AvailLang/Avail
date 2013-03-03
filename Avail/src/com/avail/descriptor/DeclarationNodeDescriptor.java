@@ -171,7 +171,7 @@ extends ParseNodeDescriptor
 				builder.append('$');
 				builder.append(object.token().string().asNativeString());
 				builder.append(':');
-				final A_BasicObject functionType =
+				final A_Type functionType =
 					object.declaredType().functionType();
 				functionType.returnType().printOnAvoidingIndent(
 					builder,
@@ -735,7 +735,7 @@ extends ParseNodeDescriptor
 	@Override @AvailMethod
 	boolean o_EqualsParseNode (
 		final AvailObject object,
-		final A_BasicObject aParseNode)
+		final A_Phrase aParseNode)
 	{
 		return object.sameAddressAs(aParseNode.traversed());
 	}
@@ -773,7 +773,7 @@ extends ParseNodeDescriptor
 	@Override @AvailMethod
 	void o_ChildrenDo (
 		final AvailObject object,
-		final Continuation1<AvailObject> aBlock)
+		final Continuation1<A_Phrase> aBlock)
 	{
 		final AvailObject expression = object.initializationExpression();
 		if (!expression.equalsNil())
@@ -786,7 +786,7 @@ extends ParseNodeDescriptor
 	@Override @AvailMethod
 	void o_ValidateLocally (
 		final AvailObject object,
-		final @Nullable A_BasicObject parent)
+		final @Nullable A_Phrase parent)
 	{
 		// Do nothing.
 	}
@@ -836,12 +836,12 @@ extends ParseNodeDescriptor
 	 *        object} if none.
 	 * @return The new {@linkplain DeclarationNodeDescriptor declaration}.
 	 */
-	private static AvailObject newDeclaration (
+	private static A_Phrase newDeclaration (
 		final DeclarationKind declarationKind,
 		final A_Token token,
 		final A_Type declaredType,
-		final AvailObject initializationExpression,
-		final AvailObject literalObject)
+		final A_Phrase initializationExpression,
+		final A_BasicObject literalObject)
 	{
 		assert token.isInstanceOf(Types.TOKEN.o());
 		assert declaredType.isType();
@@ -874,7 +874,7 @@ extends ParseNodeDescriptor
 	 *        The {@linkplain TypeDescriptor type} of the entity being declared.
 	 * @return The argument declaration.
 	 */
-	public static AvailObject newArgument (
+	public static A_Phrase newArgument (
 		final A_Token token,
 		final A_Type declaredType)
 	{
@@ -902,10 +902,10 @@ extends ParseNodeDescriptor
 	 *        NilDescriptor#nil() nil} if none.
 	 * @return The new local variable declaration.
 	 */
-	public static AvailObject newVariable (
+	public static A_Phrase newVariable (
 		final A_Token token,
 		final A_Type declaredType,
-		final AvailObject initializationExpression)
+		final A_Phrase initializationExpression)
 	{
 		return newDeclaration(
 			LOCAL_VARIABLE,
@@ -928,7 +928,7 @@ extends ParseNodeDescriptor
 	 *        declared.
 	 * @return The new local variable declaration.
 	 */
-	public static AvailObject newVariable (
+	public static A_Phrase newVariable (
 		final A_Token token,
 		final A_Type declaredType)
 	{
@@ -952,9 +952,9 @@ extends ParseNodeDescriptor
 	 *        provide the value of the local constant.
 	 * @return The new local constant declaration.
 	 */
-	public static AvailObject newConstant (
+	public static A_Phrase newConstant (
 		final A_Token token,
-		final AvailObject initializationExpression)
+		final A_Phrase initializationExpression)
 	{
 		return newDeclaration(
 			LOCAL_CONSTANT,
@@ -979,9 +979,9 @@ extends ParseNodeDescriptor
 	 *        provide the value of the local constant.
 	 * @return The new local constant declaration.
 	 */
-	public static AvailObject newPrimitiveFailureVariable (
+	public static A_Phrase newPrimitiveFailureVariable (
 		final A_Token token,
-		final AvailObject type)
+		final A_Type type)
 	{
 		return newDeclaration(
 			PRIMITIVE_FAILURE_REASON,
@@ -1006,7 +1006,7 @@ extends ParseNodeDescriptor
 	 *        the label occurs.
 	 * @return The new label declaration.
 	 */
-	public static AvailObject newLabel (
+	public static A_Phrase newLabel (
 		final A_Token token,
 		final A_Type declaredType)
 	{
@@ -1033,10 +1033,10 @@ extends ParseNodeDescriptor
 	 *        The expression (or null) used to initialize this module variable.
 	 * @return The new module variable declaration.
 	 */
-	public static AvailObject newModuleVariable(
+	public static A_Phrase newModuleVariable(
 		final A_Token token,
-		final AvailObject literalVariable,
-		final AvailObject initializationExpression)
+		final A_BasicObject literalVariable,
+		final A_Phrase initializationExpression)
 	{
 		return newDeclaration(
 			MODULE_VARIABLE,
@@ -1060,10 +1060,10 @@ extends ParseNodeDescriptor
 	 *        The expression used to initialize this module constant.
 	 * @return The new module constant declaration.
 	 */
-	public static AvailObject newModuleConstant(
+	public static A_Phrase newModuleConstant(
 		final A_Token token,
-		final AvailObject literalVariable,
-		final AvailObject initializationExpression)
+		final A_BasicObject literalVariable,
+		final A_Phrase initializationExpression)
 	{
 		return newDeclaration(
 			MODULE_CONSTANT,

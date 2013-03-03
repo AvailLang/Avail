@@ -64,7 +64,7 @@ public class P_410_BootstrapVariableUseMacro extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
-		final A_BasicObject variableNameLiteral = args.get(0);
+		final A_Phrase variableNameLiteral = args.get(0);
 		assert variableNameLiteral.isInstanceOf(LITERAL_NODE.mostGeneralType());
 		final A_Token literalToken = variableNameLiteral.token();
 		assert literalToken.tokenType() == TokenType.SYNTHETIC_LITERAL;
@@ -101,14 +101,14 @@ public class P_410_BootstrapVariableUseMacro extends Primitive
 		final A_BasicObject module = loader.module();
 		if (module.variableBindings().hasKey(variableNameString))
 		{
-			final AvailObject variableObject = module.variableBindings().mapAt(
-				variableNameString);
-			final AvailObject moduleVarDecl =
+			final A_BasicObject variableObject =
+				module.variableBindings().mapAt(variableNameString);
+			final A_Phrase moduleVarDecl =
 				DeclarationNodeDescriptor.newModuleVariable(
 					actualToken,
 					variableObject,
 					NilDescriptor.nil());
-			final AvailObject variableUse = VariableUseNodeDescriptor.newUse(
+			final A_Phrase variableUse = VariableUseNodeDescriptor.newUse(
 				actualToken,
 				moduleVarDecl);
 			variableUse.makeImmutable();
@@ -122,14 +122,14 @@ public class P_410_BootstrapVariableUseMacro extends Primitive
 					+ variableNameString.toString()
 					+ " to be in scope"));
 		}
-		final AvailObject variableObject = module.constantBindings().mapAt(
-			variableNameString);
-		final AvailObject moduleConstDecl =
+		final A_BasicObject variableObject =
+			module.constantBindings().mapAt(variableNameString);
+		final A_Phrase moduleConstDecl =
 			DeclarationNodeDescriptor.newModuleConstant(
 				actualToken,
 				variableObject,
 				NilDescriptor.nil());
-		final AvailObject variableUse = VariableUseNodeDescriptor.newUse(
+		final A_Phrase variableUse = VariableUseNodeDescriptor.newUse(
 			actualToken,
 			moduleConstDecl);
 		return interpreter.primitiveSuccess(variableUse);

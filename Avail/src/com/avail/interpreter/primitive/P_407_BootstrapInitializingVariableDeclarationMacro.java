@@ -62,11 +62,11 @@ public class P_407_BootstrapInitializingVariableDeclarationMacro extends Primiti
 		final Interpreter interpreter)
 	{
 		assert args.size() == 3;
-		final A_BasicObject variableNameLiteral = args.get(0);
-		final A_BasicObject typeLiteral = args.get(1);
-		final AvailObject initializingExpression = args.get(2);
+		final A_Phrase variableNameLiteral = args.get(0);
+		final A_Phrase typeLiteral = args.get(1);
+		final A_Phrase initializingExpression = args.get(2);
 
-		final AvailObject type = typeLiteral.token().literal();
+		final A_Type type = typeLiteral.token().literal();
 		if (type.equals(TOP.o()) || type.equals(BottomTypeDescriptor.bottom()))
 		{
 			throw new AvailRejectedParseException(
@@ -84,7 +84,7 @@ public class P_407_BootstrapInitializingVariableDeclarationMacro extends Primiti
 						initializingExpression.expressionType(),
 						type)));
 		}
-		final AvailObject variableDeclaration =
+		final A_Phrase variableDeclaration =
 			DeclarationNodeDescriptor.newVariable(
 				variableNameLiteral.token().literal(), // contains another token
 				type,

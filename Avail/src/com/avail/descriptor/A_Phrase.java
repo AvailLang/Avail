@@ -1,5 +1,5 @@
 /**
- * P_122_AtomHasProperty.java
+ * A_Phrase.java
  * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -29,53 +29,58 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.avail.interpreter.primitive;
 
-import static com.avail.descriptor.TypeDescriptor.Types.ATOM;
-import static com.avail.exceptions.AvailErrorCode.E_SPECIAL_ATOM;
-import static com.avail.interpreter.Primitive.Flag.CanInline;
-import java.util.List;
-import com.avail.AvailRuntime;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
+package com.avail.descriptor;
 
 /**
- * <strong>Primitive 122:</strong> Answer whether the second {@linkplain
- * AtomDescriptor atom} has a property whose key is the first atom.
+ * {@code A_Atom} is an interface that specifies the atom-specific operations
+ * that an {@link AvailObject} must implement.  It's a sub-interface of {@link
+ * A_BasicObject}, the interface that defines the behavior that all AvailObjects
+ * are required to support.
+ *
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class P_122_AtomHasProperty extends Primitive
+public interface A_Phrase
+extends A_BasicObject, Iterable<AvailObject>
 {
 	/**
-	 * The sole instance of this primitive class.  Accessed through reflection.
+	 * Also declared in {@link A_Type} for {@linkplain FunctionTypeDescriptor
+	 * function types}.
+	 *
+	 * @return The set of declared exception types.
 	 */
-	public final static Primitive instance = new P_122_AtomHasProperty().init(
-		2, CanInline);
+	A_Set declaredExceptions ();
 
-	@Override
-	public Result attempt (
-		final List<AvailObject> args,
-		final Interpreter interpreter)
-	{
-		assert args.size() == 2;
-		final A_Atom propertyKey = args.get(0);
-		final A_Atom atom = args.get(1);
-		if (AvailRuntime.isSpecialAtom(atom)
-			|| AvailRuntime.isSpecialAtom(propertyKey))
-		{
-			return interpreter.primitiveFailure(E_SPECIAL_ATOM);
-		}
-		final A_BasicObject propertyValue = atom.getAtomProperty(propertyKey);
-		return interpreter.primitiveSuccess(
-			AtomDescriptor.objectFromBoolean(!propertyValue.equalsNil()));
-	}
+	/**
+	 * Also declared in {@link A_Type} for {@linkplain FunctionTypeDescriptor
+	 * function types}.
+	 */
+	A_Type returnType ();
 
-	@Override
-	protected A_Type privateBlockTypeRestriction ()
-	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
-				ATOM.o(),
-				ATOM.o()),
-			EnumerationTypeDescriptor.booleanObject());
-	}
+	/**
+	 * @param newParseNode
+	 * @return
+	 */
+	A_Phrase copyWith (A_Phrase newParseNode);
+
+	/**
+	 * @param neededVariables
+	 */
+	void neededVariables (A_Tuple neededVariables);
+
+	/**
+	 * @return
+	 */
+	A_Tuple neededVariables ();
+
+	/**
+	 * @return
+	 */
+	A_Phrase declaration ();
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	A_Phrase variable ();
+
 }

@@ -63,8 +63,8 @@ public class P_406_BootstrapConstantDeclarationMacro extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 2;
-		final A_BasicObject constantNameLiteralNode = args.get(0);
-		final AvailObject initializationExpression = args.get(1);
+		final A_Phrase constantNameLiteralNode = args.get(0);
+		final A_Phrase initializationExpression = args.get(1);
 
 		assert constantNameLiteralNode.isInstanceOfKind(
 			LITERAL_NODE.mostGeneralType());
@@ -81,7 +81,7 @@ public class P_406_BootstrapConstantDeclarationMacro extends Primitive
 				StringDescriptor.from(
 					"Constant name to be alphanumeric"));
 		}
-		final A_BasicObject initializationType =
+		final A_Type initializationType =
 			initializationExpression.expressionType();
 		if (initializationType.equals(TOP.o()))
 		{
@@ -98,7 +98,7 @@ public class P_406_BootstrapConstantDeclarationMacro extends Primitive
 					+ " other than ⊥"));
 		}
 
-		final AvailObject constantDeclaration =
+		final A_Phrase constantDeclaration =
 			DeclarationNodeDescriptor.newConstant(
 				innerNameToken,
 				initializationExpression);

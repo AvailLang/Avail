@@ -107,7 +107,7 @@ public class P_404_BootstrapBlockMacro extends Primitive
 		}
 		final A_Map scopeMap = clientData.mapAt(scopeMapKey);
 
-		final List<AvailObject> allStatements = new ArrayList<AvailObject>();
+		final List<A_Phrase> allStatements = new ArrayList<A_Phrase>();
 
 		final A_Tuple argumentDeclarationPairs =
 			optionalArgumentDeclarations.tupleSize() == 0
@@ -115,8 +115,8 @@ public class P_404_BootstrapBlockMacro extends Primitive
 				: optionalArgumentDeclarations.tupleAt(1);
 		// Look up the names of the argument that were declared in the first
 		// prefix function.
-		final List<AvailObject> argumentDeclarationsList =
-			new ArrayList<AvailObject>(argumentDeclarationPairs.tupleSize());
+		final List<A_Phrase> argumentDeclarationsList =
+			new ArrayList<A_Phrase>(argumentDeclarationPairs.tupleSize());
 		{
 			for (final A_Tuple declarationPair : argumentDeclarationPairs)
 			{
@@ -163,7 +163,7 @@ public class P_404_BootstrapBlockMacro extends Primitive
 					// The primitive failure variable binding is missing.
 					return interpreter.primitiveFailure(E_LOADING_IS_OVER);
 				}
-				final AvailObject failureDeclaration =
+				final A_Phrase failureDeclaration =
 					scopeMap.mapAt(failureDeclarationName);
 				allStatements.add(failureDeclaration);
 			}
@@ -182,12 +182,12 @@ public class P_404_BootstrapBlockMacro extends Primitive
 				// The label binding is missing.
 				return interpreter.primitiveFailure(E_LOADING_IS_OVER);
 			}
-			final AvailObject label = scopeMap.mapAt(labelDeclarationName);
+			final A_Phrase label = scopeMap.mapAt(labelDeclarationName);
 			allStatements.add(label);
 			labelReturnType = label.declaredType().functionType().returnType();
 		}
 
-		for (final AvailObject statement : statements)
+		for (final A_Phrase statement : statements)
 		{
 			allStatements.add(statement);
 		}
@@ -195,7 +195,7 @@ public class P_404_BootstrapBlockMacro extends Primitive
 		final A_Type deducedReturnType;
 		if (optionalReturnExpression.tupleSize() == 1)
 		{
-			final AvailObject returnExpression =
+			final A_Phrase returnExpression =
 				optionalReturnExpression.tupleAt(1);
 			allStatements.add(returnExpression);
 			deducedReturnType = returnExpression.expressionType();
@@ -255,7 +255,7 @@ public class P_404_BootstrapBlockMacro extends Primitive
 			optionalExceptionTypes.tupleSize() == 0
 				? SetDescriptor.empty()
 				: optionalExceptionTypes.tupleAt(1).asSet();
-		final AvailObject block = BlockNodeDescriptor.newBlockNode(
+		final A_Phrase block = BlockNodeDescriptor.newBlockNode(
 			allStatements,
 			primNumber,
 			allStatements,

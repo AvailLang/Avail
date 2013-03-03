@@ -80,27 +80,27 @@ extends AbstractAvailCompiler
 	@Override
 	void parseOutermostStatement (
 		final ParserState start,
-		final Con<AvailObject> continuation)
+		final Con<A_Phrase> continuation)
 	{
 		tryIfUnambiguousThen(
 			start,
-			new Con<Con<AvailObject>>("Detect ambiguity")
+			new Con<Con<A_Phrase>>("Detect ambiguity")
 			{
 				@Override
 				public void value (
 					final @Nullable ParserState realStart,
-					final @Nullable Con<AvailObject> whenFoundStatement)
+					final @Nullable Con<A_Phrase> whenFoundStatement)
 				{
 					assert realStart != null;
 					assert whenFoundStatement != null;
 					parseExpressionThen(
 						realStart,
-						new Con<AvailObject>("End of statement")
+						new Con<A_Phrase>("End of statement")
 						{
 							@Override
 							public void value (
 								final @Nullable ParserState afterExpression,
-								final @Nullable AvailObject expression)
+								final @Nullable A_Phrase expression)
 							{
 								assert afterExpression != null;
 								assert expression != null;
@@ -126,15 +126,15 @@ extends AbstractAvailCompiler
 	@Override
 	void parseExpressionUncachedThen (
 		final ParserState start,
-		final Con<AvailObject> continuation)
+		final Con<A_Phrase> continuation)
 	{
-		final Con<AvailObject> newContinuation =
-			new Con<AvailObject>("Optional leading argument send")
+		final Con<A_Phrase> newContinuation =
+			new Con<A_Phrase>("Optional leading argument send")
 			{
 				@Override
 				public void value (
 					final @Nullable ParserState afterSubexpression,
-					final @Nullable AvailObject subexpression)
+					final @Nullable A_Phrase subexpression)
 				{
 					assert afterSubexpression != null;
 					assert subexpression != null;
@@ -153,10 +153,10 @@ extends AbstractAvailCompiler
 	void completedSendNodeForMacro (
 		final ParserState stateBeforeCall,
 		final ParserState stateAfterCall,
-		final List<AvailObject> passedArgumentExpressions,
+		final List<A_Phrase> passedArgumentExpressions,
 		final A_BasicObject bundle,
 		final A_Method method,
-		final Con<AvailObject> continuation)
+		final Con<A_Phrase> continuation)
 	{
 		final A_Tuple definitions = method.definitionsTuple();
 		assert definitions.tupleSize() == 1;
@@ -277,12 +277,12 @@ extends AbstractAvailCompiler
 	 */
 	private void parseSimpleThen (
 		final ParserState start,
-		final Con<AvailObject> continuation)
+		final Con<A_Phrase> continuation)
 	{
 		// Try a literal.
 		if (start.peekToken().tokenType() == LITERAL)
 		{
-			final AvailObject literalNode =
+			final A_Phrase literalNode =
 				LiteralNodeDescriptor.fromToken(start.peekToken());
 			attempt(start.afterToken(), continuation, literalNode);
 		}

@@ -163,7 +163,7 @@ extends ParseNodeDescriptor
 	@Override @AvailMethod
 	boolean o_EqualsParseNode (
 		final AvailObject object,
-		final A_BasicObject aParseNode)
+		final A_Phrase aParseNode)
 	{
 		return object.kind().equals(aParseNode.kind())
 			&& object.expressionsTuple().equals(aParseNode.expressionsTuple());
@@ -202,7 +202,7 @@ extends ParseNodeDescriptor
 	@Override @AvailMethod
 	void o_ChildrenDo (
 		final AvailObject object,
-		final Continuation1<AvailObject> aBlock)
+		final Continuation1<A_Phrase> aBlock)
 	{
 		for (final AvailObject expression : object.expressionsTuple())
 		{
@@ -214,7 +214,7 @@ extends ParseNodeDescriptor
 	@Override @AvailMethod
 	void o_ValidateLocally (
 		final AvailObject object,
-		final @Nullable A_BasicObject parent)
+		final @Nullable A_Phrase parent)
 	{
 		// Do nothing.
 	}
@@ -232,9 +232,9 @@ extends ParseNodeDescriptor
 	 *         appended.
 	 */
 	@Override @AvailMethod
-	AvailObject o_CopyWith (
+	A_Phrase o_CopyWith (
 		final AvailObject object,
-		final AvailObject newParseNode)
+		final A_Phrase newParseNode)
 	{
 		final A_Tuple oldTuple = object.slot(EXPRESSIONS_TUPLE);
 		final A_Tuple newTuple = oldTuple.appendCanDestroy(

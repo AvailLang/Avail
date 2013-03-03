@@ -54,7 +54,7 @@ public class AvailCompilerCachedSolution
 	/**
 	 * A parse node that ends at the specified ending position.
 	 */
-	final AvailObject parseNode;
+	final A_Phrase parseNode;
 
 
 	/**
@@ -74,7 +74,7 @@ public class AvailCompilerCachedSolution
 	 *
 	 * @return a parse node.
 	 */
-	AvailObject parseNode ()
+	A_Phrase parseNode ()
 	{
 		return parseNode;
 	}
@@ -105,7 +105,7 @@ public class AvailCompilerCachedSolution
 	 */
 	AvailCompilerCachedSolution (
 		final ParserState endState,
-		final AvailObject parseNode)
+		final A_Phrase parseNode)
 	{
 		this.endState = endState;
 		this.parseNode = parseNode;

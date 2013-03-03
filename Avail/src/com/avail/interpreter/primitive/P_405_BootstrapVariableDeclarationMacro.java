@@ -65,7 +65,7 @@ public class P_405_BootstrapVariableDeclarationMacro extends Primitive
 		final A_BasicObject variableNameLiteral = args.get(0);
 		final A_BasicObject typeLiteral = args.get(1);
 
-		final AvailObject type = typeLiteral.token().literal();
+		final A_Type type = typeLiteral.token().literal();
 		if (type.equals(TOP.o()) || type.equals(BottomTypeDescriptor.bottom()))
 		{
 			throw new AvailRejectedParseException(
@@ -73,7 +73,7 @@ public class P_405_BootstrapVariableDeclarationMacro extends Primitive
 					"variable's declared type to be something other than "
 					+ type));
 		}
-		final AvailObject variableDeclaration =
+		final A_Phrase variableDeclaration =
 			DeclarationNodeDescriptor.newVariable(
 				variableNameLiteral.token().literal(), // contains another token
 				type);

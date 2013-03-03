@@ -2975,7 +2975,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	AvailObject o_Variable (final AvailObject object)
+	A_Phrase o_Variable (final AvailObject object)
 	{
 		return o_Traversed(object).variable();
 	}
@@ -3007,7 +3007,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	AvailObject o_NeededVariables (final AvailObject object)
+	A_Tuple o_NeededVariables (final AvailObject object)
 	{
 		return o_Traversed(object).neededVariables();
 	}
@@ -3082,7 +3082,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	AvailObject o_Declaration (final AvailObject object)
+	A_Phrase o_Declaration (final AvailObject object)
 	{
 		return o_Traversed(object).declaration();
 	}
@@ -3120,7 +3120,7 @@ extends AbstractDescriptor
 	@Override
 	void o_ChildrenDo (
 		final AvailObject object,
-		final Continuation1<AvailObject> aBlock)
+		final Continuation1<A_Phrase> aBlock)
 	{
 		o_Traversed(object).childrenDo(aBlock);
 	}
@@ -3128,7 +3128,7 @@ extends AbstractDescriptor
 	@Override
 	void o_ValidateLocally (
 		final AvailObject object,
-		final @Nullable A_BasicObject parent)
+		final @Nullable A_Phrase parent)
 	{
 		o_Traversed(object).validateLocally(parent);
 	}
@@ -3142,9 +3142,9 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	AvailObject o_CopyWith (
+	A_Phrase o_CopyWith (
 		final AvailObject object,
-		final AvailObject newParseNode)
+		final A_Phrase newParseNode)
 	{
 		return o_Traversed(object).copyWith(newParseNode);
 	}
@@ -3468,7 +3468,7 @@ extends AbstractDescriptor
 	void o_AddConstantBinding (
 		final AvailObject object,
 		final A_String name,
-		final AvailObject constantBinding)
+		final A_BasicObject constantBinding)
 	{
 		o_Traversed(object).addConstantBinding(
 			name,
@@ -3479,7 +3479,7 @@ extends AbstractDescriptor
 	void o_AddVariableBinding (
 		final AvailObject object,
 		final A_String name,
-		final AvailObject variableBinding)
+		final A_BasicObject variableBinding)
 	{
 		o_Traversed(object).addVariableBinding(
 			name,
@@ -4265,7 +4265,7 @@ extends AbstractDescriptor
 	@Override
 	boolean o_EqualsParseNode (
 		final AvailObject object,
-		final A_BasicObject aParseNode)
+		final A_Phrase aParseNode)
 	{
 		return o_Traversed(object).equalsParseNode(aParseNode);
 	}

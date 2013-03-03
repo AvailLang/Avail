@@ -866,15 +866,15 @@ public abstract class AbstractAvailCompiler
 	 */
 	void tryIfUnambiguousThen (
 		final ParserState start,
-		final Con<Con<AvailObject>> tryBlock,
-		final Con<AvailObject> supplyAnswer)
+		final Con<Con<A_Phrase>> tryBlock,
+		final Con<A_Phrase> supplyAnswer)
 	{
 		assert noMoreWorkUnits == null;
 		// Augment the start position with a variant that incorporates the
 		// solution-accepting continuation.
 		final Mutable<Integer> count = new Mutable<Integer>(0);
-		final MutableOrNull<AvailObject> solution =
-			new MutableOrNull<AvailObject>();
+		final MutableOrNull<A_Phrase> solution =
+			new MutableOrNull<A_Phrase>();
 		final MutableOrNull<ParserState> afterStatement =
 			new MutableOrNull<ParserState>();
 		noMoreWorkUnits = new Continuation0()
@@ -911,12 +911,12 @@ public abstract class AbstractAvailCompiler
 		attempt(
 			realStart,
 			tryBlock,
-			new Con<AvailObject>("Record solution")
+			new Con<A_Phrase>("Record solution")
 			{
 				@Override
 				public void value (
 					final @Nullable ParserState afterSolution,
-					final @Nullable AvailObject aSolution)
+					final @Nullable A_Phrase aSolution)
 				{
 					assert afterSolution != null;
 					assert aSolution != null;
@@ -1214,7 +1214,7 @@ public abstract class AbstractAvailCompiler
 		 * @param onFailure What to do instead if there was a problem.
 		 */
 		void evaluatePhraseThen (
-			final AvailObject expression,
+			final A_Phrase expression,
 			final Continuation1<AvailObject> continuation,
 			final Continuation1<Throwable> onFailure)
 		{
@@ -1760,13 +1760,13 @@ public abstract class AbstractAvailCompiler
 	 */
 	@InnerAccess void reportAmbiguousInterpretations (
 		final ParserState where,
-		final AvailObject interpretation1,
-		final AvailObject interpretation2)
+		final A_Phrase interpretation1,
+		final A_Phrase interpretation2)
 	{
-		final Mutable<AvailObject> node1 =
-			new Mutable<AvailObject>(interpretation1);
-		final Mutable<AvailObject> node2 =
-			new Mutable<AvailObject>(interpretation2);
+		final Mutable<A_Phrase> node1 =
+			new Mutable<A_Phrase>(interpretation1);
+		final Mutable<A_Phrase> node2 =
+			new Mutable<A_Phrase>(interpretation2);
 		findParseTreeDiscriminants(node1, node2);
 		where.expected(
 			new Generator<String>()
@@ -1803,8 +1803,8 @@ public abstract class AbstractAvailCompiler
 	 *            Updated to hold the most specific difference.
 	 */
 	private void findParseTreeDiscriminants (
-		final Mutable<AvailObject> node1,
-		final Mutable<AvailObject> node2)
+		final Mutable<A_Phrase> node1,
+		final Mutable<A_Phrase> node2)
 	{
 		while (true)
 		{
@@ -1822,20 +1822,20 @@ public abstract class AbstractAvailCompiler
 				// They're sends of different messages, so don't go any deeper.
 				return;
 			}
-			final List<AvailObject> parts1 = new ArrayList<AvailObject>();
-			node1.value.childrenDo(new Continuation1<AvailObject>()
+			final List<A_Phrase> parts1 = new ArrayList<A_Phrase>();
+			node1.value.childrenDo(new Continuation1<A_Phrase>()
 			{
 				@Override
-				public void value (final @Nullable AvailObject part)
+				public void value (final @Nullable A_Phrase part)
 				{
 					parts1.add(part);
 				}
 			});
-			final List<AvailObject> parts2 = new ArrayList<AvailObject>();
-			node2.value.childrenDo(new Continuation1<AvailObject>()
+			final List<A_Phrase> parts2 = new ArrayList<A_Phrase>();
+			node2.value.childrenDo(new Continuation1<A_Phrase>()
 				{
 					@Override
-					public void value (final @Nullable AvailObject part)
+					public void value (final @Nullable A_Phrase part)
 					{
 						parts2.add(part);
 					}
@@ -2126,11 +2126,11 @@ public abstract class AbstractAvailCompiler
 	 * @return A zero-argument function.
 	 */
 	A_Function createFunctionToRun (
-		final AvailObject expressionNode,
+		final A_Phrase expressionNode,
 		final int lineNumber)
 	{
-		final AvailObject block = BlockNodeDescriptor.newBlockNode(
-			Collections.<AvailObject>emptyList(),
+		final A_Phrase block = BlockNodeDescriptor.newBlockNode(
+			Collections.<A_Phrase>emptyList(),
 			0,
 			Collections.singletonList(expressionNode),
 			TOP.o(),
@@ -2237,7 +2237,7 @@ public abstract class AbstractAvailCompiler
 	 *        What to do with a terminal {@linkplain Throwable throwable}.
 	 */
 	@InnerAccess void evaluatePhraseThen (
-		final AvailObject expressionNode,
+		final A_Phrase expressionNode,
 		final int lineNumber,
 		final boolean shouldSerialize,
 		final Continuation1<AvailObject> onSuccess,
@@ -2272,7 +2272,7 @@ public abstract class AbstractAvailCompiler
 		final Continuation0 onSuccess,
 		final Continuation1<Throwable> onFailure)
 	{
-		final AvailObject expression = expressionOrMacro.stripMacro();
+		final A_Phrase expression = expressionOrMacro.stripMacro();
 		if (!expression.isInstanceOfKind(DECLARATION_NODE.mostGeneralType()))
 		{
 			// Only record module statements that aren't declarations. Users of
@@ -2310,19 +2310,19 @@ public abstract class AbstractAvailCompiler
 						public void value (final @Nullable AvailObject val)
 						{
 							assert val != null;
-							final AvailObject var =
+							final A_BasicObject var =
 								VariableDescriptor.forInnerType(
 									AbstractEnumerationTypeDescriptor
 										.withInstance(val));
 							module.addConstantBinding(name, var);
 							// Create a module variable declaration (i.e.,
 							// cheat) JUST for this initializing assignment.
-							final AvailObject decl =
+							final A_Phrase decl =
 								DeclarationNodeDescriptor.newModuleVariable(
 									expression.token(),
 									var,
 									expression.initializationExpression());
-							final AvailObject assign =
+							final A_Phrase assign =
 								AssignmentNodeDescriptor.from(
 									VariableUseNodeDescriptor.newUse(
 										expression.token(), decl),
@@ -2344,17 +2344,17 @@ public abstract class AbstractAvailCompiler
 			}
 			case LOCAL_VARIABLE:
 			{
-				final AvailObject var = VariableDescriptor.forInnerType(
+				final A_BasicObject var = VariableDescriptor.forInnerType(
 					expression.declaredType());
 				module.addVariableBinding(name, var);
 				if (!expression.initializationExpression().equalsNil())
 				{
-					final AvailObject decl =
+					final A_Phrase decl =
 						DeclarationNodeDescriptor.newModuleVariable(
 							expression.token(),
 							var,
 							expression.initializationExpression());
-					final AvailObject assign = AssignmentNodeDescriptor.from(
+					final A_Phrase assign = AssignmentNodeDescriptor.from(
 						VariableUseNodeDescriptor.newUse(
 							expression.token(),
 							decl),
@@ -2509,7 +2509,7 @@ public abstract class AbstractAvailCompiler
 	 */
 	protected void parseLeadingKeywordSendThen (
 		final ParserState start,
-		final Con<AvailObject> continuation)
+		final Con<A_Phrase> continuation)
 	{
 		parseRestOfSendNode(
 			start,
@@ -2517,7 +2517,7 @@ public abstract class AbstractAvailCompiler
 			null,
 			start,
 			false,  // Nothing consumed yet.
-			Collections.<AvailObject>emptyList(),
+			Collections.<A_Phrase>emptyList(),
 			Collections.<Integer>emptyList(),
 			continuation);
 	}
@@ -2536,9 +2536,9 @@ public abstract class AbstractAvailCompiler
 	 */
 	void parseLeadingArgumentSendAfterThen (
 		final ParserState start,
-		final AvailObject leadingArgument,
+		final A_Phrase leadingArgument,
 		final ParserState initialTokenPosition,
-		final Con<AvailObject> continuation)
+		final Con<A_Phrase> continuation)
 	{
 		assert start.position != initialTokenPosition.position;
 		assert leadingArgument != null;
@@ -2548,7 +2548,7 @@ public abstract class AbstractAvailCompiler
 			leadingArgument,
 			initialTokenPosition,
 			false,  // Leading argument does not yet count as something parsed.
-			Collections.<AvailObject>emptyList(),
+			Collections.<A_Phrase>emptyList(),
 			Collections.<Integer>emptyList(),
 			continuation);
 	}
@@ -2571,8 +2571,8 @@ public abstract class AbstractAvailCompiler
 	void parseOptionalLeadingArgumentSendAfterThen (
 		final ParserState startOfLeadingArgument,
 		final ParserState afterLeadingArgument,
-		final AvailObject node,
-		final Con<AvailObject> continuation)
+		final A_Phrase node,
+		final Con<A_Phrase> continuation)
 	{
 		// It's optional, so try it with no wrapping.
 		attempt(afterLeadingArgument, continuation, node);
@@ -2586,12 +2586,12 @@ public abstract class AbstractAvailCompiler
 		// Try to wrap it in a leading-argument message send.
 		attempt(
 			afterLeadingArgument,
-			new Con<AvailObject>("Possible leading argument send")
+			new Con<A_Phrase>("Possible leading argument send")
 			{
 				@Override
 				public void value (
 					final @Nullable ParserState afterLeadingArgument2,
-					final @Nullable AvailObject node2)
+					final @Nullable A_Phrase node2)
 				{
 					assert afterLeadingArgument2 != null;
 					assert node2 != null;
@@ -2599,12 +2599,12 @@ public abstract class AbstractAvailCompiler
 						afterLeadingArgument2,
 						node2,
 						startOfLeadingArgument,
-						new Con<AvailObject>("Leading argument send")
+						new Con<A_Phrase>("Leading argument send")
 						{
 							@Override
 							public void value (
 								final @Nullable ParserState afterSend,
-								final @Nullable AvailObject leadingSend)
+								final @Nullable A_Phrase leadingSend)
 							{
 								assert afterSend != null;
 								assert leadingSend != null;
@@ -2652,12 +2652,12 @@ public abstract class AbstractAvailCompiler
 	void parseRestOfSendNode (
 		final ParserState start,
 		final A_BasicObject bundleTree,
-		final @Nullable AvailObject firstArgOrNull,
+		final @Nullable A_Phrase firstArgOrNull,
 		final ParserState initialTokenPosition,
 		final boolean consumedAnything,
-		final List<AvailObject> argsSoFar,
+		final List<A_Phrase> argsSoFar,
 		final List<Integer> marksSoFar,
-		final Con<AvailObject> continuation)
+		final Con<A_Phrase> continuation)
 	{
 		bundleTree.expand();
 		final A_Map complete = bundleTree.lazyComplete();
@@ -2866,13 +2866,13 @@ public abstract class AbstractAvailCompiler
 	void runParsingInstructionThen (
 		final ParserState start,
 		final int instruction,
-		final @Nullable AvailObject firstArgOrNull,
-		final List<AvailObject> argsSoFar,
+		final @Nullable A_Phrase firstArgOrNull,
+		final List<A_Phrase> argsSoFar,
 		final List<Integer> marksSoFar,
 		final ParserState initialTokenPosition,
 		final boolean consumedAnything,
 		final A_Tuple successorTrees,
-		final Con<AvailObject> continuation)
+		final Con<A_Phrase> continuation)
 	{
 		final ParsingOperation op = ParsingOperation.decode(instruction);
 //		System.out.format(
@@ -2895,16 +2895,16 @@ public abstract class AbstractAvailCompiler
 					firstArgOrNull,
 					firstArgOrNull == null
 						&& initialTokenPosition.position != start.position,
-					new Con<AvailObject>("Argument of message send")
+					new Con<A_Phrase>("Argument of message send")
 					{
 						@Override
 						public void value (
 							final @Nullable ParserState afterArg,
-							final @Nullable AvailObject newArg)
+							final @Nullable A_Phrase newArg)
 						{
 							assert afterArg != null;
 							assert newArg != null;
-							final List<AvailObject> newArgsSoFar =
+							final List<A_Phrase> newArgsSoFar =
 								append(argsSoFar, newArg);
 							eventuallyParseRestOfSendNode(
 								"Continue send after argument",
@@ -2926,7 +2926,7 @@ public abstract class AbstractAvailCompiler
 			{
 				// Push an empty list node and continue.
 				assert successorTrees.tupleSize() == 1;
-				final List<AvailObject> newArgsSoFar =
+				final List<A_Phrase> newArgsSoFar =
 					append(argsSoFar, ListNodeDescriptor.empty());
 				eventuallyParseRestOfSendNode(
 					"Continue send after push empty",
@@ -2946,11 +2946,11 @@ public abstract class AbstractAvailCompiler
 				// second last thing. Pop both and push the new list (the
 				// original list must not change), then continue.
 				assert successorTrees.tupleSize() == 1;
-				final AvailObject value = last(argsSoFar);
-				final List<AvailObject> poppedOnce = withoutLast(argsSoFar);
-				final AvailObject oldNode = last(poppedOnce);
-				final AvailObject listNode = oldNode.copyWith(value);
-				final List<AvailObject> newArgsSoFar =
+				final A_Phrase value = last(argsSoFar);
+				final List<A_Phrase> poppedOnce = withoutLast(argsSoFar);
+				final A_Phrase oldNode = last(poppedOnce);
+				final A_Phrase listNode = oldNode.copyWith(value);
+				final List<A_Phrase> newArgsSoFar =
 					append(withoutLast(poppedOnce), listNode);
 				eventuallyParseRestOfSendNode(
 					"Continue send after append",
@@ -3053,9 +3053,9 @@ public abstract class AbstractAvailCompiler
 							newToken.lineNumber(),
 							SYNTHETIC_LITERAL,
 							newToken);
-					final AvailObject literalNode =
+					final A_Phrase literalNode =
 						LiteralNodeDescriptor.fromToken(syntheticToken);
-					final List<AvailObject> newArgsSoFar =
+					final List<A_Phrase> newArgsSoFar =
 						append(argsSoFar, literalNode);
 					eventuallyParseRestOfSendNode(
 						"Continue send after raw token for ellipsis",
@@ -3086,14 +3086,13 @@ public abstract class AbstractAvailCompiler
 			{
 				final A_Atom booleanValue =
 					AtomDescriptor.objectFromBoolean(op == PUSH_TRUE);
-				final A_Token token =
-					LiteralTokenDescriptor.create(
-						StringDescriptor.from(booleanValue.toString()),
-						initialTokenPosition.peekToken().start(),
-						initialTokenPosition.peekToken().lineNumber(),
-						LITERAL,
-						booleanValue);
-				final AvailObject literalNode =
+				final A_Token token = LiteralTokenDescriptor.create(
+					StringDescriptor.from(booleanValue.toString()),
+					initialTokenPosition.peekToken().start(),
+					initialTokenPosition.peekToken().lineNumber(),
+					LITERAL,
+					booleanValue);
+				final A_Phrase literalNode =
 					LiteralNodeDescriptor.fromToken(token);
 				eventuallyParseRestOfSendNode(
 					"Continue send after push boolean literal",
@@ -3124,7 +3123,8 @@ public abstract class AbstractAvailCompiler
 			case JUMP:
 				for (int i = successorTrees.tupleSize(); i >= 1; i--)
 				{
-					final A_BasicObject successorTree = successorTrees.tupleAt(i);
+					final A_BasicObject successorTree =
+						successorTrees.tupleAt(i);
 					eventuallyParseRestOfSendNode(
 						"Continue send after branch or jump (" +
 							(i == 1 ? "not taken)" : "taken)"),
@@ -3168,18 +3168,18 @@ public abstract class AbstractAvailCompiler
 			{
 				// Convert the argument.
 				assert successorTrees.tupleSize() == 1;
-				final AvailObject input = last(argsSoFar);
+				final A_Phrase input = last(argsSoFar);
 				op.conversionRule(instruction).convert(
 					input,
 					initialTokenPosition,
-					new Continuation1<AvailObject>()
+					new Continuation1<A_Phrase>()
 					{
 						@Override
 						public void value (
-							final @Nullable AvailObject replacementExpression)
+							final @Nullable A_Phrase replacementExpression)
 						{
 							assert replacementExpression != null;
-							final List<AvailObject> newArgsSoFar =
+							final List<A_Phrase> newArgsSoFar =
 								append(
 									withoutLast(argsSoFar),
 									replacementExpression);
@@ -3210,16 +3210,15 @@ public abstract class AbstractAvailCompiler
 			{
 				final A_Number integerValue = IntegerDescriptor.fromInt(
 					op.integerToPush(instruction));
-				final AvailObject token =
-					LiteralTokenDescriptor.create(
-						StringDescriptor.from(integerValue.toString()),
-						initialTokenPosition.peekToken().start(),
-						initialTokenPosition.peekToken().lineNumber(),
-						LITERAL,
-						integerValue);
-				final AvailObject literalNode =
+				final A_Token token = LiteralTokenDescriptor.create(
+					StringDescriptor.from(integerValue.toString()),
+					initialTokenPosition.peekToken().start(),
+					initialTokenPosition.peekToken().lineNumber(),
+					LITERAL,
+					integerValue);
+				final A_Phrase literalNode =
 					LiteralNodeDescriptor.fromToken(token);
-				final List<AvailObject> newArgsSoFar =
+				final List<A_Phrase> newArgsSoFar =
 					append(argsSoFar, literalNode);
 				eventuallyParseRestOfSendNode(
 					"Continue send after push integer literal",
@@ -3235,19 +3234,19 @@ public abstract class AbstractAvailCompiler
 			}
 			case PREPARE_TO_RUN_PREFIX_FUNCTION:
 			{
-				List<AvailObject> stackCopy = argsSoFar;
+				List<A_Phrase> stackCopy = argsSoFar;
 				// subtract one because zero is an invalid operand.
 				for (int i = op.fixupDepth(instruction) - 1; i > 0; i--)
 				{
 					// Pop the last element and append it to the second last.
-					final AvailObject value = last(stackCopy);
-					final List<AvailObject> poppedOnce = withoutLast(stackCopy);
-					final AvailObject oldNode = last(poppedOnce);
-					final AvailObject listNode = oldNode.copyWith(value);
+					final A_Phrase value = last(stackCopy);
+					final List<A_Phrase> poppedOnce = withoutLast(stackCopy);
+					final A_Phrase oldNode = last(poppedOnce);
+					final A_Phrase listNode = oldNode.copyWith(value);
 					stackCopy = append(withoutLast(poppedOnce), listNode);
 				}
 				// Convert the List to an Avail list node.
-				final AvailObject newListNode =
+				final A_Phrase newListNode =
 					ListNodeDescriptor.newExpressions(
 						TupleDescriptor.fromList(stackCopy));
 				assert successorTrees.tupleSize() == 1;
@@ -3310,7 +3309,7 @@ public abstract class AbstractAvailCompiler
 							final @Nullable AvailObject ignoredResult)
 						{
 							// The prefix function ran successfully.
-							final AvailObject replacementClientDataMap =
+							final A_Map replacementClientDataMap =
 								fiber.fiberGlobals().mapAt(clientDataGlobalKey);
 							final ParserState newState = new ParserState(
 								start.position,
@@ -3644,9 +3643,9 @@ public abstract class AbstractAvailCompiler
 		void completedSendNode (
 			final ParserState stateBeforeCall,
 			final ParserState stateAfterCall,
-			final List<AvailObject> argumentExpressions,
+			final List<A_Phrase> argumentExpressions,
 			final AvailObject bundle,
-			final Con<AvailObject> continuation)
+			final Con<A_Phrase> continuation)
 		{
 			final Mutable<Boolean> valid = new Mutable<Boolean>(true);
 			final A_Atom message = bundle.message();
@@ -3671,7 +3670,7 @@ public abstract class AbstractAvailCompiler
 			// It invokes a method (not a macro).
 			final List<A_Type> argTypes =
 				new ArrayList<A_Type>(argumentExpressions.size());
-			for (final A_BasicObject argumentExpression : argumentExpressions)
+			for (final A_Phrase argumentExpression : argumentExpressions)
 			{
 				argTypes.add(argumentExpression.expressionType());
 			}
@@ -3692,7 +3691,7 @@ public abstract class AbstractAvailCompiler
 					public void value (final @Nullable A_Type returnType)
 					{
 						assert returnType != null;
-						final AvailObject sendNode = SendNodeDescriptor.from(
+						final A_Phrase sendNode = SendNodeDescriptor.from(
 							method,
 							ListNodeDescriptor.newExpressions(
 								TupleDescriptor.fromList(argumentExpressions)),
@@ -3734,9 +3733,9 @@ public abstract class AbstractAvailCompiler
 		void parseSendArgumentWithExplanationThen (
 			final ParserState start,
 			final String explanation,
-			final @Nullable AvailObject firstArgOrNull,
+			final @Nullable A_Phrase firstArgOrNull,
 			final boolean canReallyParse,
-			final Con<AvailObject> continuation)
+			final Con<A_Phrase> continuation)
 		{
 			if (firstArgOrNull == null)
 			{
@@ -3748,12 +3747,12 @@ public abstract class AbstractAvailCompiler
 				{
 					parseExpressionThen(
 						start,
-						new Con<AvailObject>("Argument expression")
+						new Con<A_Phrase>("Argument expression")
 						{
 							@Override
 							public void value (
 								final @Nullable ParserState afterArgument,
-								final @Nullable AvailObject argument)
+								final @Nullable A_Phrase argument)
 							{
 								assert afterArgument != null;
 								assert argument != null;
@@ -3807,12 +3806,12 @@ public abstract class AbstractAvailCompiler
 	 */
 	private void parseArgumentInModuleScopeThen (
 		final ParserState start,
-		final @Nullable AvailObject firstArgOrNull,
-		final List<AvailObject> argsSoFar,
+		final @Nullable A_Phrase firstArgOrNull,
+		final List<A_Phrase> argsSoFar,
 		final List<Integer> marksSoFar,
 		final ParserState initialTokenPosition,
 		final A_Tuple successorTrees,
-		final Con<AvailObject> continuation)
+		final Con<A_Phrase> continuation)
 	{
 		// Parse an argument in the outermost (module) scope and continue.
 		assert successorTrees.tupleSize() == 1;
@@ -3830,12 +3829,12 @@ public abstract class AbstractAvailCompiler
 			firstArgOrNull,
 			firstArgOrNull == null
 				&& initialTokenPosition.position != start.position,
-			new Con<AvailObject>("Global-scoped argument of message")
+			new Con<A_Phrase>("Global-scoped argument of message")
 			{
 				@Override
 				public void value (
 					final @Nullable ParserState afterArg,
-					final @Nullable AvailObject newArg)
+					final @Nullable A_Phrase newArg)
 				{
 					assert afterArg != null;
 					assert newArg != null;
@@ -3883,7 +3882,7 @@ public abstract class AbstractAvailCompiler
 							return;
 						}
 					}
-					final List<AvailObject> newArgsSoFar =
+					final List<A_Phrase> newArgsSoFar =
 						append(argsSoFar, newArg);
 					final ParserState afterArgButInScope =
 						new ParserState(
@@ -3929,10 +3928,10 @@ public abstract class AbstractAvailCompiler
 	abstract void completedSendNodeForMacro (
 		final ParserState stateBeforeCall,
 		final ParserState stateAfterCall,
-		final List<AvailObject> argumentExpressions,
+		final List<A_Phrase> argumentExpressions,
 		final A_BasicObject bundle,
 		final A_Method method,
-		final Con<AvailObject> continuation);
+		final Con<A_Phrase> continuation);
 
 	/**
 	 * Create a bootstrap primitive method. Use the primitive's type declaration
@@ -3954,12 +3953,12 @@ public abstract class AbstractAvailCompiler
 		final Continuation0 continuation)
 	{
 		final A_String availName = StringDescriptor.from(methodName);
-		final AvailObject nameLiteral =
+		final A_Phrase nameLiteral =
 			LiteralNodeDescriptor.syntheticFrom(availName);
 		final A_Function function =
 			MethodDescriptor.newPrimitiveFunction(
 				Primitive.byPrimitiveNumberOrFail(primitiveNumber));
-		final A_BasicObject send = SendNodeDescriptor.from(
+		final A_Phrase send = SendNodeDescriptor.from(
 			MethodDescriptor.vmMethodDefinerMethod(),
 			ListNodeDescriptor.newExpressions(TupleDescriptor.from(
 				nameLiteral,
@@ -4003,7 +4002,7 @@ public abstract class AbstractAvailCompiler
 	{
 		assert primitiveNumbers.length > 0;
 		final A_String availName = StringDescriptor.from(macroName);
-		final AvailObject nameLiteral =
+		final A_Phrase nameLiteral =
 			LiteralNodeDescriptor.syntheticFrom(availName);
 		final List<A_Function> functionsList = new ArrayList<A_Function>();
 		for (final int primitiveNumber : primitiveNumbers)
@@ -4014,7 +4013,7 @@ public abstract class AbstractAvailCompiler
 		}
 		final A_Function body = functionsList.remove(functionsList.size() - 1);
 		final A_Tuple functionsTuple = TupleDescriptor.fromList(functionsList);
-		final A_BasicObject send = SendNodeDescriptor.from(
+		final A_Phrase send = SendNodeDescriptor.from(
 			MethodDescriptor.vmMacroDefinerMethod(),
 			ListNodeDescriptor.newExpressions(TupleDescriptor.from(
 				nameLiteral,
@@ -4053,7 +4052,7 @@ public abstract class AbstractAvailCompiler
 		{
 			names = names.setUnionCanDestroy(entry.value(), false);
 		}
-		final AvailObject send = SendNodeDescriptor.from(
+		final A_Phrase send = SendNodeDescriptor.from(
 			MethodDescriptor.vmPublishAtomsMethod(),
 			ListNodeDescriptor.newExpressions(
 				TupleDescriptor.from(
@@ -4240,14 +4239,14 @@ public abstract class AbstractAvailCompiler
 	 */
 	@InnerAccess void parseModuleBody (final ParserState afterHeader)
 	{
-		final MutableOrNull<Con<AvailObject>> parseOutermost =
-			new MutableOrNull<Con<AvailObject>>();
-		parseOutermost.value = new Con<AvailObject>("Outermost statement")
+		final MutableOrNull<Con<A_Phrase>> parseOutermost =
+			new MutableOrNull<Con<A_Phrase>>();
+		parseOutermost.value = new Con<A_Phrase>("Outermost statement")
 		{
 			@Override
 			public void value (
 				final @Nullable ParserState afterStatement,
-				final @Nullable AvailObject unambiguousStatement)
+				final @Nullable A_Phrase unambiguousStatement)
 			{
 				assert afterStatement != null;
 				assert unambiguousStatement != null;
@@ -4312,7 +4311,7 @@ public abstract class AbstractAvailCompiler
 								final Formatter formatter = new Formatter();
 								formatter.format(
 									"the following forwards to be resolved:");
-								for (final AvailObject forward
+								for (final A_BasicObject forward
 									: loader().pendingForwards)
 								{
 									formatter.format("%n\t%s", forward);
@@ -4488,7 +4487,7 @@ public abstract class AbstractAvailCompiler
 			return null;
 		}
 		state = state.afterToken();
-		final A_BasicObject localNameToken = state.peekStringLiteral();
+		final A_Token localNameToken = state.peekStringLiteral();
 		if (localNameToken == null)
 		{
 			state.expected("module name");
@@ -4632,7 +4631,7 @@ public abstract class AbstractAvailCompiler
 	 */
 	void parseExpressionThen (
 		final ParserState start,
-		final Con<AvailObject> originalContinuation)
+		final Con<A_Phrase> originalContinuation)
 	{
 		synchronized (fragmentCache)
 		{
@@ -4649,12 +4648,12 @@ public abstract class AbstractAvailCompiler
 						{
 							parseExpressionUncachedThen(
 								start,
-								new Con<AvailObject>("Uncached expression")
+								new Con<A_Phrase>("Uncached expression")
 								{
 									@Override
 									public void value (
 										final @Nullable ParserState afterExpr,
-										final @Nullable AvailObject expr)
+										final @Nullable A_Phrase expr)
 									{
 										assert afterExpr != null;
 										assert expr != null;
@@ -4704,13 +4703,13 @@ public abstract class AbstractAvailCompiler
 			clientDataInModuleScope);
 		parseExpressionThen(
 			startWithoutScope,
-			new Con<AvailObject>("Evaluate expression")
+			new Con<A_Phrase>("Evaluate expression")
 			{
 				@SuppressWarnings("null")
 				@Override
 				public void value (
 					final @Nullable ParserState afterExpression,
-					final @Nullable AvailObject expression)
+					final @Nullable A_Phrase expression)
 				{
 					if (!expression.expressionType().isSubtypeOf(someType))
 					{
@@ -4794,7 +4793,7 @@ public abstract class AbstractAvailCompiler
 	 */
 	abstract void parseOutermostStatement (
 		final ParserState start,
-		final Con<AvailObject> continuation);
+		final Con<A_Phrase> continuation);
 
 	/**
 	 * Parse an expression, without directly using the
@@ -4807,7 +4806,7 @@ public abstract class AbstractAvailCompiler
 	 */
 	abstract void parseExpressionUncachedThen (
 		final ParserState start,
-		final Con<AvailObject> continuation);
+		final Con<A_Phrase> continuation);
 
 	/**
 	 * Parse and return an occurrence of a raw keyword, literal, or operator
@@ -4852,12 +4851,12 @@ public abstract class AbstractAvailCompiler
 		final String description,
 		final ParserState start,
 		final A_BasicObject bundleTree,
-		final @Nullable AvailObject firstArgOrNull,
+		final @Nullable A_Phrase firstArgOrNull,
 		final ParserState initialTokenPosition,
 		final boolean consumedAnything,
-		final List<AvailObject> argsSoFar,
+		final List<A_Phrase> argsSoFar,
 		final List<Integer> marksSoFar,
-		final Con<AvailObject> continuation)
+		final Con<A_Phrase> continuation)
 	{
 		workUnitDo(
 			new Continuation0()
@@ -4892,19 +4891,19 @@ public abstract class AbstractAvailCompiler
 	 *            tree.
 	 */
 	A_Set usesWhichLocalVariables (
-		final AvailObject parseTree)
+		final A_Phrase parseTree)
 	{
 		final Mutable<A_Set> usedDeclarations =
 			new Mutable<A_Set>(SetDescriptor.empty());
-		parseTree.childrenDo(new Continuation1<AvailObject>()
+		parseTree.childrenDo(new Continuation1<A_Phrase>()
 		{
 			@Override
-			public void value (final @Nullable AvailObject node)
+			public void value (final @Nullable A_Phrase node)
 			{
 				assert node != null;
 				if (node.isInstanceOfKind(VARIABLE_USE_NODE.mostGeneralType()))
 				{
-					final AvailObject declaration = node.declaration();
+					final A_Phrase declaration = node.declaration();
 					if (!declaration.declarationKind().isModuleScoped())
 					{
 						usedDeclarations.value =

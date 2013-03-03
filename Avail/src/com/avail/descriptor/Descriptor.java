@@ -3119,7 +3119,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	AvailObject o_Variable (final AvailObject object)
+	A_Phrase o_Variable (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}
@@ -3153,7 +3153,7 @@ extends AbstractDescriptor
 
 
 	@Override
-	AvailObject o_NeededVariables (final AvailObject object)
+	A_Tuple o_NeededVariables (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}
@@ -3232,7 +3232,7 @@ extends AbstractDescriptor
 
 
 	@Override
-	AvailObject o_Declaration (final AvailObject object)
+	A_Phrase o_Declaration (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}
@@ -3280,7 +3280,7 @@ extends AbstractDescriptor
 	@Override
 	void o_ChildrenDo (
 		final AvailObject object,
-		final Continuation1<AvailObject> aBlock)
+		final Continuation1<A_Phrase> aBlock)
 	{
 		throw unsupportedOperationException();
 	}
@@ -3289,7 +3289,7 @@ extends AbstractDescriptor
 	@Override
 	void o_ValidateLocally (
 		final AvailObject object,
-		final @Nullable A_BasicObject parent)
+		final @Nullable A_Phrase parent)
 	{
 		throw unsupportedOperationException();
 	}
@@ -3305,9 +3305,9 @@ extends AbstractDescriptor
 
 
 	@Override
-	AvailObject o_CopyWith (
+	A_Phrase o_CopyWith (
 		final AvailObject object,
-		final AvailObject newParseNode)
+		final A_Phrase newParseNode)
 	{
 		throw unsupportedOperationException();
 	}
@@ -3662,7 +3662,7 @@ extends AbstractDescriptor
 	void o_AddConstantBinding (
 		final AvailObject object,
 		final A_String name,
-		final AvailObject constantBinding)
+		final A_BasicObject constantBinding)
 	{
 		throw unsupportedOperationException();
 	}
@@ -3672,7 +3672,7 @@ extends AbstractDescriptor
 	void o_AddVariableBinding (
 		final AvailObject object,
 		final A_String name,
-		final AvailObject variableBinding)
+		final A_BasicObject variableBinding)
 	{
 		throw unsupportedOperationException();
 	}
@@ -4509,7 +4509,7 @@ extends AbstractDescriptor
 	@Override
 	boolean o_EqualsParseNode (
 		final AvailObject object,
-		final A_BasicObject aParseNode)
+		final A_Phrase aParseNode)
 	{
 		return false;
 	}

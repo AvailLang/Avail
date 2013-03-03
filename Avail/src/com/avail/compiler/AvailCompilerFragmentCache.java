@@ -35,6 +35,7 @@ package com.avail.compiler;
 import java.util.*;
 import com.avail.compiler.AbstractAvailCompiler.Con;
 import com.avail.compiler.AbstractAvailCompiler.ParserState;
+import com.avail.descriptor.A_Phrase;
 import com.avail.descriptor.AvailObject;
 
 /**
@@ -115,7 +116,7 @@ public class AvailCompilerFragmentCache
 	 */
 	void addAction (
 			final ParserState state,
-			final Con<AvailObject> action)
+			final Con<A_Phrase> action)
 	{
 		solutions.get(state).addAction(action);
 	}

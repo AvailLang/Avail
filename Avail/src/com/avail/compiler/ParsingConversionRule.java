@@ -53,9 +53,9 @@ public enum ParsingConversionRule
 	{
 		@Override
 		public void convert (
-			final AvailObject input,
+			final A_Phrase input,
 			final ParserState startingParserState,
-			final Continuation1<AvailObject> continuation,
+			final Continuation1<A_Phrase> continuation,
 			final Continuation1<Throwable> onFailure)
 		{
 			continuation.value(input);
@@ -72,9 +72,9 @@ public enum ParsingConversionRule
 	{
 		@Override
 		public void convert (
-			final AvailObject input,
+			final A_Phrase input,
 			final ParserState startingParserState,
-			final Continuation1<AvailObject> continuation,
+			final Continuation1<A_Phrase> continuation,
 			final Continuation1<Throwable> onFailure)
 		{
 			final A_Tuple expressions = input.expressionsTuple();
@@ -102,9 +102,9 @@ public enum ParsingConversionRule
 	{
 		@Override
 		public void convert (
-			final AvailObject input,
+			final A_Phrase input,
 			final ParserState startingParserState,
-			final Continuation1<AvailObject> continuation,
+			final Continuation1<A_Phrase> continuation,
 			final Continuation1<Throwable> onFailure)
 		{
 			final A_Tuple expressions =
@@ -131,14 +131,23 @@ public enum ParsingConversionRule
 	{
 		@Override
 		public void convert (
-			final AvailObject input,
+			final A_Phrase input,
 			final ParserState startingParserState,
-			final Continuation1<AvailObject> continuation,
+			final Continuation1<A_Phrase> continuation,
 			final Continuation1<Throwable> onFailure)
 		{
 			startingParserState.evaluatePhraseThen(
 				input,
-				continuation,
+				new Continuation1<AvailObject>()
+				{
+					@Override
+					public void value (final AvailObject value)
+					{
+						// Wrap it as a literal phrase and pass it along.
+						continuation.value(
+							LiteralNodeDescriptor.syntheticFrom(value));
+					}
+				},
 				onFailure);
 		}
 	};
@@ -170,9 +179,9 @@ public enum ParsingConversionRule
 	 *            What to do if a problem happens during conversion.
 	 */
 	public abstract void convert (
-		final AvailObject input,
+		final A_Phrase input,
 		final ParserState startingParserState,
-		final Continuation1<AvailObject> continuation,
+		final Continuation1<A_Phrase> continuation,
 		final Continuation1<Throwable> onFailure);
 
 	/**

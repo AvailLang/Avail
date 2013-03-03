@@ -92,7 +92,7 @@ extends AbstractAvailCompiler
 	 */
 	ParserState withDeclaration (
 		final ParserState originalState,
-		final AvailObject declaration)
+		final A_Phrase declaration)
 	{
 		final A_Map clientMap = originalState.clientDataMap;
 		final A_Atom scopeMapKey = AtomDescriptor.compilerScopeMapKey();
@@ -149,27 +149,27 @@ extends AbstractAvailCompiler
 	@Override
 	void parseOutermostStatement (
 		final ParserState start,
-		final Con<AvailObject> continuation)
+		final Con<A_Phrase> continuation)
 	{
 		tryIfUnambiguousThen(
 			start,
-			new Con<Con<AvailObject>>("Detect ambiguity")
+			new Con<Con<A_Phrase>>("Detect ambiguity")
 			{
 				@Override
 				public void value (
 					final @Nullable ParserState realStart,
-					final @Nullable Con<AvailObject> whenFoundStatement)
+					final @Nullable Con<A_Phrase> whenFoundStatement)
 				{
 					assert realStart != null;
 					assert whenFoundStatement != null;
 					parseDeclarationThen(
 						realStart,
-						new Con<AvailObject>("Semicolon after declaration")
+						new Con<A_Phrase>("Semicolon after declaration")
 						{
 							@Override
 							public void value (
 								final @Nullable ParserState afterDeclaration,
-								final @Nullable AvailObject declaration)
+								final @Nullable A_Phrase declaration)
 							{
 								assert afterDeclaration != null;
 								if (afterDeclaration.peekToken(
@@ -186,12 +186,12 @@ extends AbstractAvailCompiler
 						});
 					parseAssignmentThen(
 						realStart,
-						new Con<AvailObject>("Semicolon after assignment")
+						new Con<A_Phrase>("Semicolon after assignment")
 						{
 							@Override
 							public void value (
 								final @Nullable ParserState afterAssignment,
-								final @Nullable AvailObject assignment)
+								final @Nullable A_Phrase assignment)
 							{
 								assert afterAssignment != null;
 								if (afterAssignment.peekToken(
@@ -206,13 +206,13 @@ extends AbstractAvailCompiler
 						});
 					parseExpressionThen(
 						realStart,
-						new Con<AvailObject>("Semicolon after expression")
+						new Con<A_Phrase>("Semicolon after expression")
 						{
 							@SuppressWarnings("null")
 							@Override
 							public void value (
 								final @Nullable ParserState afterExpression,
-								final @Nullable AvailObject expression)
+								final @Nullable A_Phrase expression)
 							{
 								if (!afterExpression.peekToken(
 									SEMICOLON,
@@ -247,17 +247,17 @@ extends AbstractAvailCompiler
 	void parseInnerStatement (
 		final ParserState start,
 		final boolean canBeLabel,
-		final @Nullable List<AvailObject> argDecls,
-		final Con<AvailObject> continuation)
+		final @Nullable List<A_Phrase> argDecls,
+		final Con<A_Phrase> continuation)
 	{
 		parseDeclarationThen(
 			start,
-			new Con<AvailObject>("Semicolon after declaration")
+			new Con<A_Phrase>("Semicolon after declaration")
 			{
 				@Override
 				public void value (
 					final @Nullable ParserState afterDeclaration,
-					final @Nullable AvailObject declaration)
+					final @Nullable A_Phrase declaration)
 				{
 					assert afterDeclaration != null;
 					if (afterDeclaration.peekToken(
@@ -274,12 +274,12 @@ extends AbstractAvailCompiler
 			});
 		parseAssignmentThen(
 			start,
-			new Con<AvailObject>("Semicolon after assignment")
+			new Con<A_Phrase>("Semicolon after assignment")
 			{
 				@Override
 				public void value (
 					final @Nullable ParserState afterAssignment,
-					final @Nullable AvailObject assignment)
+					final @Nullable A_Phrase assignment)
 				{
 					assert afterAssignment != null;
 					assert assignment != null;
@@ -295,12 +295,12 @@ extends AbstractAvailCompiler
 			});
 		parseExpressionThen(
 			start,
-			new Con<AvailObject>("Semicolon after expression")
+			new Con<A_Phrase>("Semicolon after expression")
 			{
 				@Override
 				public void value (
 					final @Nullable ParserState afterExpression,
-					final @Nullable AvailObject expression)
+					final @Nullable A_Phrase expression)
 				{
 					assert afterExpression != null;
 					assert expression != null;
@@ -337,12 +337,12 @@ extends AbstractAvailCompiler
 			parseLabelThen(
 				start,
 				argDecls,
-				new Con<AvailObject>("Semicolon after label")
+				new Con<A_Phrase>("Semicolon after label")
 				{
 					@Override
 					public void value (
 						final @Nullable ParserState afterDeclaration,
-						final @Nullable AvailObject label)
+						final @Nullable A_Phrase label)
 					{
 						assert afterDeclaration != null;
 						if (afterDeclaration.peekToken(
@@ -368,7 +368,7 @@ extends AbstractAvailCompiler
 	 */
 	void parseAssignmentThen (
 		final ParserState start,
-		final Con<AvailObject> continuation)
+		final Con<A_Phrase> continuation)
 	{
 		if (start.peekToken().tokenType() != KEYWORD)
 		{
@@ -378,12 +378,12 @@ extends AbstractAvailCompiler
 		parseVariableUseWithExplanationThen(
 			start,
 			"for an assignment",
-			new Con<AvailObject>("Variable use for assignment")
+			new Con<A_Phrase>("Variable use for assignment")
 			{
 				@Override
 				public void value (
 					final @Nullable ParserState afterVar,
-					final @Nullable AvailObject varUse)
+					final @Nullable A_Phrase varUse)
 				{
 					assert afterVar != null;
 					assert varUse != null;
@@ -400,9 +400,9 @@ extends AbstractAvailCompiler
 					}
 
 					final ParserState afterEquals = afterColon.afterToken();
-					final Mutable<AvailObject> varType =
-						new Mutable<AvailObject>(NilDescriptor.nil());
-					final A_BasicObject declaration = varUse.declaration();
+					final Mutable<A_Type> varType =
+						new Mutable<A_Type>(NilDescriptor.nil());
+					final A_Phrase declaration = varUse.declaration();
 					boolean ok = false;
 					if (declaration.equalsNil())
 					{
@@ -442,13 +442,13 @@ extends AbstractAvailCompiler
 					}
 					parseExpressionThen(
 						afterEquals,
-						new Con<AvailObject>(
+						new Con<A_Phrase>(
 							"Expression for right side of assignment")
 						{
 							@Override
 							public void value (
 								final @Nullable ParserState afterExpr,
-								final @Nullable AvailObject expr)
+								final @Nullable A_Phrase expr)
 							{
 								assert afterExpr != null;
 								assert expr != null;
@@ -469,7 +469,7 @@ extends AbstractAvailCompiler
 								if (expr.expressionType().isSubtypeOf(
 									varType.value))
 								{
-									final AvailObject assignment =
+									final A_Phrase assignment =
 										AssignmentNodeDescriptor.from(
 											varUse, expr, false);
 									attempt(
@@ -511,8 +511,8 @@ extends AbstractAvailCompiler
 	 */
 	void parseLabelThen (
 		final ParserState start,
-		final @Nullable List<AvailObject> argDecls,
-		final Con<AvailObject> continuation)
+		final @Nullable List<A_Phrase> argDecls,
+		final Con<A_Phrase> continuation)
 	{
 		assert argDecls != null;
 		if (!start.peekToken(
@@ -538,9 +538,9 @@ extends AbstractAvailCompiler
 				{
 					assert afterExpression != null;
 					assert returnType != null;
-					final List<AvailObject> argTypes =
-						new ArrayList<AvailObject>(argDecls.size());
-					for (final A_BasicObject decl : argDecls)
+					final List<A_Type> argTypes =
+						new ArrayList<A_Type>(argDecls.size());
+					for (final A_Phrase decl : argDecls)
 					{
 						argTypes.add(decl.declaredType());
 					}
@@ -549,7 +549,7 @@ extends AbstractAvailCompiler
 							FunctionTypeDescriptor.create(
 								TupleDescriptor.fromList(argTypes),
 								returnType));
-					final AvailObject label =
+					final A_Phrase label =
 						DeclarationNodeDescriptor.newLabel(
 							token,
 							contType);
@@ -620,7 +620,7 @@ extends AbstractAvailCompiler
 	 */
 	void parseDeclarationThen (
 		final ParserState start,
-		final Con<AvailObject> continuation)
+		final Con<A_Phrase> continuation)
 	{
 		final A_Token localName = start.peekToken();
 		if (localName.tokenType() != KEYWORD)
@@ -648,12 +648,12 @@ extends AbstractAvailCompiler
 				final ParserState afterEquals = afterSecondColon.afterToken();
 				parseExpressionThen(
 					afterEquals,
-					new Con<AvailObject>("Complete var ::= expr")
+					new Con<A_Phrase>("Complete var ::= expr")
 					{
 						@Override
 						public void value (
 							final @Nullable ParserState afterInitExpression,
-							final @Nullable AvailObject initExpression)
+							final @Nullable A_Phrase initExpression)
 						{
 							assert afterInitExpression != null;
 							assert initExpression != null;
@@ -668,7 +668,7 @@ extends AbstractAvailCompiler
 									+ " declaration");
 								return;
 							}
-							final A_BasicObject expressionType =
+							final A_Type expressionType =
 								initExpression.expressionType();
 							if (expressionType.equals(TOP.o())
 								|| expressionType.equals(
@@ -680,7 +680,7 @@ extends AbstractAvailCompiler
 									+ expressionType.toString());
 								return;
 							}
-							final AvailObject constantDeclaration =
+							final A_Phrase constantDeclaration =
 								DeclarationNodeDescriptor.newConstant(
 									localName,
 									initExpression);
@@ -724,7 +724,7 @@ extends AbstractAvailCompiler
 					}
 					else
 					{
-						final AvailObject simpleDeclaration =
+						final A_Phrase simpleDeclaration =
 							DeclarationNodeDescriptor.newVariable(
 								localName,
 								type);
@@ -753,12 +753,12 @@ extends AbstractAvailCompiler
 
 					parseExpressionThen(
 						afterEquals,
-						new Con<AvailObject>("After expr of var : type := expr")
+						new Con<A_Phrase>("After expr of var : type := expr")
 						{
 							@Override
 							public void value (
 								final @Nullable ParserState afterInit,
-								final @Nullable AvailObject initExpr)
+								final @Nullable A_Phrase initExpr)
 							{
 								assert afterInit != null;
 								assert initExpr != null;
@@ -780,7 +780,7 @@ extends AbstractAvailCompiler
 								}
 								if (initExpr.expressionType().isSubtypeOf(type))
 								{
-									final AvailObject initDecl =
+									final A_Phrase initDecl =
 										DeclarationNodeDescriptor.newVariable(
 											localName,
 											type,
@@ -834,7 +834,7 @@ extends AbstractAvailCompiler
 	 */
 	void parsePrimitiveFailureDeclarationThen (
 		final ParserState start,
-		final Con<AvailObject> continuation)
+		final Con<A_Phrase> continuation)
 	{
 		final A_Token localName = start.peekToken();
 		if (localName.tokenType() != KEYWORD)
@@ -879,7 +879,7 @@ extends AbstractAvailCompiler
 							+ " another declaration");
 						return;
 					}
-					final AvailObject declaration =
+					final A_Phrase declaration =
 						DeclarationNodeDescriptor.newPrimitiveFailureVariable(
 							localName,
 							type);
@@ -905,19 +905,19 @@ extends AbstractAvailCompiler
 	 */
 	void parseAdditionalBlockArgumentsAfterThen (
 		final ParserState start,
-		final List<AvailObject> argsSoFar,
-		final Con<List<AvailObject>> continuation)
+		final List<A_Phrase> argsSoFar,
+		final Con<List<A_Phrase>> continuation)
 	{
 		if (start.peekToken(COMMA, "comma and more block arguments"))
 		{
 			parseBlockArgumentThen(
 				start.afterToken(),
-				new Con<AvailObject>("Additional block argument")
+				new Con<A_Phrase>("Additional block argument")
 				{
 					@Override
 					public void value (
 						final @Nullable ParserState afterArgument,
-						final @Nullable AvailObject arg)
+						final @Nullable A_Phrase arg)
 					{
 						assert afterArgument != null;
 						assert arg != null;
@@ -951,18 +951,18 @@ extends AbstractAvailCompiler
 	 */
 	private void parseBlockArgumentsThen (
 		final ParserState start,
-		final Con<List<AvailObject>> continuation)
+		final Con<List<A_Phrase>> continuation)
 	{
 		// Try it with no arguments.
-		attempt(start, continuation, new ArrayList<AvailObject>());
+		attempt(start, continuation, Collections.<A_Phrase>emptyList());
 		parseBlockArgumentThen(
 			start,
-			new Con<AvailObject>("Block argument")
+			new Con<A_Phrase>("Block argument")
 			{
 				@Override
 				public void value (
 					final @Nullable ParserState afterFirstArg,
-					final @Nullable AvailObject firstArg)
+					final @Nullable A_Phrase firstArg)
 				{
 					assert afterFirstArg != null;
 					parseAdditionalBlockArgumentsAfterThen(
@@ -983,7 +983,7 @@ extends AbstractAvailCompiler
 	 */
 	void parseBlockArgumentThen (
 		final ParserState start,
-		final Con<AvailObject> continuation)
+		final Con<A_Phrase> continuation)
 	{
 		final A_Token localName = start.peekToken();
 		if (localName.tokenType() != KEYWORD)
@@ -1028,7 +1028,7 @@ extends AbstractAvailCompiler
 								+ " declaration");
 							return;
 						}
-						final AvailObject decl =
+						final A_Phrase decl =
 							DeclarationNodeDescriptor.newArgument(
 								localName,
 								type);
@@ -1051,7 +1051,7 @@ extends AbstractAvailCompiler
 	 */
 	private void parseBlockThen (
 		final ParserState startOfBlock,
-		final Con<AvailObject> continuation)
+		final Con<A_Phrase> continuation)
 	{
 		if (!startOfBlock.peekToken(OPEN_SQUARE))
 		{
@@ -1061,12 +1061,12 @@ extends AbstractAvailCompiler
 		}
 		parseBlockArgumentsThen(
 			startOfBlock.afterToken(),
-			new Con<List<AvailObject>>("Block arguments")
+			new Con<List<A_Phrase>>("Block arguments")
 			{
 				@Override
 				public void value (
 					final @Nullable ParserState afterArguments,
-					final @Nullable List<AvailObject> arguments)
+					final @Nullable List<A_Phrase> arguments)
 				{
 					assert afterArguments != null;
 					assert arguments != null;
@@ -1074,13 +1074,13 @@ extends AbstractAvailCompiler
 					parseOptionalPrimitiveForArgCountThen(
 						afterArguments,
 						arguments.size(),
-						new Con<AvailObject>("Optional primitive declaration")
+						new Con<A_Tuple>("Optional primitive declaration")
 						{
 							@Override
 							public void value (
 								final @Nullable
 									ParserState afterOptionalPrimitive,
-								final @Nullable AvailObject primitiveAndFailure)
+								final @Nullable A_Tuple primitiveAndFailure)
 							{
 								assert afterOptionalPrimitive != null;
 								assert primitiveAndFailure != null;
@@ -1103,7 +1103,7 @@ extends AbstractAvailCompiler
 										afterOptionalPrimitive,
 										arguments,
 										primitive,
-										Collections.<AvailObject>emptyList(),
+										Collections.<A_Phrase>emptyList(),
 										startOfBlock,
 										continuation);
 									return;
@@ -1115,10 +1115,10 @@ extends AbstractAvailCompiler
 									primitive == 0,
 									arguments,
 									primitive == 0
-										? Collections.<AvailObject>emptyList()
-										: Collections.singletonList(
+										? Collections.<A_Phrase>emptyList()
+										: Collections.<A_Phrase>singletonList(
 											primitiveAndFailure.tupleAt(2)),
-									new Con<List<AvailObject>>(
+									new Con<List<A_Phrase>>(
 										"Block statements")
 									{
 										@Override
@@ -1126,7 +1126,7 @@ extends AbstractAvailCompiler
 											final @Nullable
 												ParserState afterStatements,
 											final @Nullable
-												List<AvailObject> statements)
+												List<A_Phrase> statements)
 										{
 											assert afterStatements != null;
 											assert statements != null;
@@ -1164,11 +1164,11 @@ extends AbstractAvailCompiler
 	 */
 	@InnerAccess void finishBlockThen (
 		final ParserState afterStatements,
-		final List<AvailObject> arguments,
+		final List<A_Phrase> arguments,
 		final int primitiveNumber,
-		final List<AvailObject> statements,
+		final List<A_Phrase> statements,
 		final ParserState startOfBlock,
-		final Con<AvailObject> continuation)
+		final Con<A_Phrase> continuation)
 	{
 		if (!afterStatements.peekToken(
 			CLOSE_SQUARE,
@@ -1194,7 +1194,7 @@ extends AbstractAvailCompiler
 			new Mutable<A_Type>(NilDescriptor.nil());
 		if (statements.size() > 0)
 		{
-			final AvailObject stmt = statements.get(statements.size() - 1);
+			final A_Phrase stmt = statements.get(statements.size() - 1);
 			if (stmt.isInstanceOfKind(DECLARATION_NODE.mostGeneralType()))
 			{
 				lastStatementType.value = TOP.o();
@@ -1213,9 +1213,9 @@ extends AbstractAvailCompiler
 			afterClose.position,
 			startOfBlock.clientDataMap);
 
-		final List<AvailObject> argumentTypesList =
-			new ArrayList<AvailObject>(arguments.size());
-		for (final A_BasicObject argument : arguments)
+		final List<A_Type> argumentTypesList =
+			new ArrayList<A_Type>(arguments.size());
+		for (final A_Phrase argument : arguments)
 		{
 			argumentTypesList.add(argument.declaredType());
 		}
@@ -1223,7 +1223,7 @@ extends AbstractAvailCompiler
 		if (statements.size() > 0
 			&& statements.get(0).isInstanceOfKind(LABEL_NODE.mostGeneralType()))
 		{
-			final AvailObject labelNode = statements.get(0);
+			final A_Phrase labelNode = statements.get(0);
 			final A_Type labelType = labelNode.declaredType();
 			final A_Type implicitBlockType =
 				FunctionTypeDescriptor.create(
@@ -1245,16 +1245,16 @@ extends AbstractAvailCompiler
 		{
 			parseOptionalBlockExceptionsClauseThen(
 				stateOutsideBlock,
-				new Con<AvailObject>("Block checked exceptions")
+				new Con<A_Set>("Block checked exceptions")
 				{
 					@Override
 					public void value(
 						final @Nullable ParserState afterExceptions,
-						final @Nullable AvailObject checkedExceptions)
+						final @Nullable A_Set checkedExceptions)
 					{
 						assert afterExceptions != null;
 						assert checkedExceptions != null;
-						final AvailObject blockNode =
+						final A_Phrase blockNode =
 							BlockNodeDescriptor.newBlockNode(
 								arguments,
 								primitiveNumber,
@@ -1343,9 +1343,8 @@ extends AbstractAvailCompiler
 						&& statements.get(0).kind().parseNodeKindIsUnder(
 							LABEL_NODE))
 					{
-						final A_BasicObject labelNode = statements.get(0);
-						final AvailObject labelType =
-							labelNode.declaredType();
+						final A_Phrase labelNode = statements.get(0);
+						final A_Type labelType = labelNode.declaredType();
 						final A_Type contType =
 							ContinuationTypeDescriptor.forFunctionType(
 								explicitBlockType);
@@ -1355,17 +1354,16 @@ extends AbstractAvailCompiler
 					{
 						parseOptionalBlockExceptionsClauseThen(
 							afterReturnType,
-							new Con<AvailObject>("Block checked exceptions")
+							new Con<A_Set>("Block checked exceptions")
 							{
 								@Override
 								public void value(
 									final @Nullable ParserState afterExceptions,
-									final @Nullable
-										AvailObject checkedExceptions)
+									final @Nullable A_Set checkedExceptions)
 								{
 									assert afterExceptions != null;
 									assert checkedExceptions != null;
-									final AvailObject blockNode =
+									final A_Phrase blockNode =
 										BlockNodeDescriptor.newBlockNode(
 											arguments,
 											primitiveNumber,
@@ -1400,9 +1398,9 @@ extends AbstractAvailCompiler
 	 */
 	@InnerAccess void parseOptionalBlockExceptionsClauseThen (
 		final ParserState start,
-		final Con<AvailObject> continuation)
+		final Con<A_Set> continuation)
 	{
-		attempt(start, continuation, (AvailObject)SetDescriptor.empty());
+		attempt(start, continuation, SetDescriptor.empty());
 
 		if (start.peekToken(
 			CARET,
@@ -1427,7 +1425,7 @@ extends AbstractAvailCompiler
 	@InnerAccess void parseMoreExceptionClausesThen (
 		final ParserState atNextException,
 		final A_Set exceptionsAlready,
-		final Con<AvailObject> continuation)
+		final Con<A_Set> continuation)
 	{
 		parseAndEvaluateExpressionYieldingInstanceOfThen(
 			atNextException,
@@ -1449,7 +1447,7 @@ extends AbstractAvailCompiler
 					attempt(
 						afterException,
 						continuation,
-						(AvailObject)newExceptionSet);
+						newExceptionSet);
 					if (afterException.peekToken(
 						COMMA,
 						"Comma in exception declarations"))
@@ -1466,15 +1464,15 @@ extends AbstractAvailCompiler
 	@Override
 	void parseExpressionUncachedThen (
 		final ParserState start,
-		final Con<AvailObject> continuation)
+		final Con<A_Phrase> continuation)
 	{
-		final Con<AvailObject> newContinuation =
-			new Con<AvailObject>("Optional leading argument send")
+		final Con<A_Phrase> newContinuation =
+			new Con<A_Phrase>("Optional leading argument send")
 			{
 				@Override
 				public void value (
 					final @Nullable ParserState afterSubexpression,
-					final @Nullable AvailObject subexpression)
+					final @Nullable A_Phrase subexpression)
 				{
 					assert afterSubexpression != null;
 					assert subexpression != null;
@@ -1494,10 +1492,10 @@ extends AbstractAvailCompiler
 	void completedSendNodeForMacro (
 		final ParserState stateBeforeCall,
 		final ParserState stateAfterCall,
-		final List<AvailObject> argumentExpressions,
+		final List<A_Phrase> argumentExpressions,
 		final A_BasicObject bundle,
 		final A_Method method,
-		final Con<AvailObject> continuation)
+		final Con<A_Phrase> continuation)
 	{
 		stateAfterCall.expected(
 			new Generator<String>()
@@ -1530,13 +1528,13 @@ extends AbstractAvailCompiler
 	void parseOptionalPrimitiveForArgCountThen (
 		final ParserState start,
 		final int argCount,
-		final Con<AvailObject> continuation)
+		final Con<A_Tuple> continuation)
 	{
 		// Try it first without looking for the primitive declaration.
 		attempt(
 			start,
 			continuation,
-			(AvailObject)TupleDescriptor.from(IntegerDescriptor.zero()));
+			TupleDescriptor.from(IntegerDescriptor.zero()));
 
 		// Now look for the declaration.
 		if (!start.peekToken(
@@ -1608,7 +1606,7 @@ extends AbstractAvailCompiler
 			attempt(
 				afterPrimitiveNumber.afterToken(),
 				continuation,
-				(AvailObject)TupleDescriptor.from(
+				TupleDescriptor.from(
 					IntegerDescriptor.fromInt(primitiveNumber)));
 		}
 
@@ -1623,12 +1621,12 @@ extends AbstractAvailCompiler
 			afterPrimitiveNumber.afterToken();
 		parsePrimitiveFailureDeclarationThen(
 			afterOpenParenthesis,
-			new Con<AvailObject>("after declaring primitive failure variable")
+			new Con<A_Phrase>("after declaring primitive failure variable")
 			{
 				@Override
 				public void value (
 					final @Nullable ParserState afterDeclaration,
-					final @Nullable AvailObject declaration)
+					final @Nullable A_Phrase declaration)
 				{
 					assert afterDeclaration != null;
 					assert declaration != null;
@@ -1664,7 +1662,7 @@ extends AbstractAvailCompiler
 					attempt(
 						afterCloseParenthesis.afterToken(),
 						continuation,
-						(AvailObject)TupleDescriptor.from(
+						TupleDescriptor.from(
 							IntegerDescriptor.fromInt(primitiveNumber),
 							declaration));
 				}
@@ -1681,7 +1679,7 @@ extends AbstractAvailCompiler
 	 */
 	private void parseSimpleThen (
 		final ParserState start,
-		final Con<AvailObject> continuation)
+		final Con<A_Phrase> continuation)
 	{
 		// Try a variable use.
 		parseVariableUseWithExplanationThen(start, "", continuation);
@@ -1711,7 +1709,7 @@ extends AbstractAvailCompiler
 	 */
 	void parseReferenceThen (
 		final ParserState start,
-		final Con<AvailObject> continuation)
+		final Con<A_Phrase> continuation)
 	{
 		if (start.peekToken(UP_ARROW))
 		{
@@ -1719,17 +1717,17 @@ extends AbstractAvailCompiler
 			parseVariableUseWithExplanationThen(
 				afterUpArrow,
 				"in reference expression",
-				new Con<AvailObject>("Variable for reference")
+				new Con<A_Phrase>("Variable for reference")
 				{
 					@Override
 					public void value (
 						final @Nullable ParserState afterVar,
-						final @Nullable AvailObject var)
+						final @Nullable A_Phrase var)
 					{
 						assert afterVar != null;
 						assert var != null;
 
-						final A_BasicObject declaration = var.declaration();
+						final A_Phrase declaration = var.declaration();
 						String suffix = null;
 						if (declaration.equalsNil())
 						{
@@ -1786,9 +1784,9 @@ extends AbstractAvailCompiler
 	void parseStatementsThen (
 		final ParserState start,
 		final boolean canHaveLabel,
-		final @Nullable List<AvailObject> argDecls,
-		final List<AvailObject> statements,
-		final Con<List<AvailObject>> continuation)
+		final @Nullable List<A_Phrase> argDecls,
+		final List<A_Phrase> statements,
+		final Con<List<A_Phrase>> continuation)
 	{
 		// Try it with the current list of statements.
 		attempt(start, continuation, statements);
@@ -1796,7 +1794,7 @@ extends AbstractAvailCompiler
 		// See if more statements would be legal.
 		if (statements.size() > 0)
 		{
-			final A_BasicObject lastStatement =
+			final A_Phrase lastStatement =
 				statements.get(statements.size() - 1);
 			if (lastStatement.expressionType().equals(
 				BottomTypeDescriptor.bottom()))
@@ -1834,12 +1832,12 @@ extends AbstractAvailCompiler
 			start,
 			canHaveLabel && statements.isEmpty(),
 			argDecls,
-			new Con<AvailObject>("Another statement")
+			new Con<A_Phrase>("Another statement")
 			{
 				@Override
 				public void value (
 					final @Nullable ParserState afterStatement,
-					final @Nullable AvailObject newStatement)
+					final @Nullable A_Phrase newStatement)
 				{
 					assert afterStatement != null;
 					assert newStatement != null;
@@ -1860,8 +1858,8 @@ extends AbstractAvailCompiler
 							return;
 						}
 					}
-					final List<AvailObject> newStatements =
-						new ArrayList<AvailObject>(statements);
+					final List<A_Phrase> newStatements =
+						new ArrayList<A_Phrase>(statements);
 					newStatements.add(newStatement);
 					parseStatementsThen(
 						afterStatement,
@@ -1876,19 +1874,19 @@ extends AbstractAvailCompiler
 		// semicolon).
 		parseExpressionThen(
 			start,
-			new Con<AvailObject>("Final expression")
+			new Con<A_Phrase>("Final expression")
 			{
 				@Override
 				public void value (
 					final @Nullable ParserState afterFinalExpression,
-					final @Nullable AvailObject finalExpression)
+					final @Nullable A_Phrase finalExpression)
 				{
 					assert afterFinalExpression != null;
 					assert finalExpression != null;
 					if (!finalExpression.expressionType().equals(TOP.o()))
 					{
-						final List<AvailObject> newStatements =
-							new ArrayList<AvailObject>(statements);
+						final List<A_Phrase> newStatements =
+							new ArrayList<A_Phrase>(statements);
 						newStatements.add(finalExpression);
 						attempt(
 							afterFinalExpression,
@@ -1912,7 +1910,7 @@ extends AbstractAvailCompiler
 	private void parseVariableUseWithExplanationThen (
 		final ParserState start,
 		final String explanation,
-		final Con<AvailObject> continuation)
+		final Con<A_Phrase> continuation)
 	{
 		final A_Token token = start.peekToken();
 		if (token.tokenType() != KEYWORD)
@@ -1921,12 +1919,12 @@ extends AbstractAvailCompiler
 		}
 		final ParserState afterVar = start.afterToken();
 		// First check if it's in a block scope...
-		final AvailObject localDecl = lookupLocalDeclaration(
+		final A_Phrase localDecl = lookupLocalDeclaration(
 			start,
 			token.string());
 		if (localDecl != null)
 		{
-			final AvailObject varUse = VariableUseNodeDescriptor.newUse(
+			final A_Phrase varUse = VariableUseNodeDescriptor.newUse(
 				token,
 				localDecl);
 			attempt(afterVar, continuation, varUse);
@@ -1938,14 +1936,14 @@ extends AbstractAvailCompiler
 		final A_String varName = token.string();
 		if (module.variableBindings().hasKey(varName))
 		{
-			final AvailObject variableObject = module.variableBindings().mapAt(
+			final A_BasicObject variableObject = module.variableBindings().mapAt(
 				varName);
-			final AvailObject moduleVarDecl =
+			final A_Phrase moduleVarDecl =
 				DeclarationNodeDescriptor.newModuleVariable(
 					token,
 					variableObject,
 					NilDescriptor.nil());
-			final AvailObject varUse = VariableUseNodeDescriptor.newUse(
+			final A_Phrase varUse = VariableUseNodeDescriptor.newUse(
 				token,
 				moduleVarDecl);
 			attempt(afterVar, continuation, varUse);
@@ -1953,14 +1951,14 @@ extends AbstractAvailCompiler
 		}
 		if (module.constantBindings().hasKey(varName))
 		{
-			final AvailObject variableObject = module.constantBindings().mapAt(
-				varName);
-			final AvailObject moduleConstDecl =
+			final A_BasicObject variableObject =
+				module.constantBindings().mapAt(varName);
+			final A_Phrase moduleConstDecl =
 				DeclarationNodeDescriptor.newModuleConstant(
 					token,
 					variableObject,
 					NilDescriptor.nil());
-			final AvailObject varUse = VariableUseNodeDescriptor.newUse(
+			final A_Phrase varUse = VariableUseNodeDescriptor.newUse(
 				token,
 				moduleConstDecl);
 			attempt(afterVar, continuation, varUse);

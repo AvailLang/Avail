@@ -4347,7 +4347,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	abstract AvailObject o_Variable (AvailObject object);
+	abstract A_Phrase o_Variable (AvailObject object);
 
 	/**
 	 * @param object
@@ -4379,7 +4379,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	abstract AvailObject o_NeededVariables (AvailObject object);
+	abstract A_Tuple o_NeededVariables (AvailObject object);
 
 	/**
 	 * @param object
@@ -4448,7 +4448,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	abstract AvailObject o_Declaration (AvailObject object);
+	abstract A_Phrase o_Declaration (AvailObject object);
 
 	/**
 	 * @param object
@@ -4491,7 +4491,7 @@ public abstract class AbstractDescriptor
 	 */
 	abstract void o_ChildrenDo (
 		AvailObject object,
-		Continuation1<AvailObject> aBlock);
+		Continuation1<A_Phrase> aBlock);
 
 	/**
 	 * @param object
@@ -4499,7 +4499,7 @@ public abstract class AbstractDescriptor
 	 */
 	abstract void o_ValidateLocally (
 		AvailObject object,
-		@Nullable A_BasicObject parent);
+		@Nullable A_Phrase parent);
 
 	/**
 	 * @param object
@@ -4515,9 +4515,9 @@ public abstract class AbstractDescriptor
 	 * @param newParseNode
 	 * @return
 	 */
-	abstract AvailObject o_CopyWith (
+	abstract A_Phrase o_CopyWith (
 		AvailObject object,
-		AvailObject newParseNode);
+		A_Phrase newParseNode);
 
 	/**
 	 * @param object
@@ -4863,7 +4863,7 @@ public abstract class AbstractDescriptor
 	abstract void o_AddConstantBinding (
 		AvailObject object,
 		A_String name,
-		AvailObject constantBinding);
+		A_BasicObject constantBinding);
 
 	/**
 	 * @param object
@@ -4873,7 +4873,7 @@ public abstract class AbstractDescriptor
 	abstract void o_AddVariableBinding (
 		AvailObject object,
 		A_String name,
-		AvailObject variableBinding);
+		A_BasicObject variableBinding);
 
 	/**
 	 * @param object
@@ -5668,7 +5668,7 @@ public abstract class AbstractDescriptor
 	 */
 	abstract boolean o_EqualsParseNode (
 		final AvailObject object,
-		final A_BasicObject aParseNode);
+		final A_Phrase aParseNode);
 
 	/**
 	 * @param object

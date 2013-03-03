@@ -61,13 +61,13 @@ public class P_402_BootstrapPrimitiveFailureDeclarationMacro extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 2;
-		final AvailObject failureVariableName = args.get(0);
-		final AvailObject type = args.get(1);
+		final A_Token failureVariableName = args.get(0);
+		final A_Type type = args.get(1);
 
 		//TODO[MvG]: Eventually prevent ⊥ from being an accepted type.  For
 		//other bootstrap macro primitives, too.
 
-		final AvailObject failureDeclaration =
+		final A_Phrase failureDeclaration =
 			DeclarationNodeDescriptor.newPrimitiveFailureVariable(
 				failureVariableName,
 				type);

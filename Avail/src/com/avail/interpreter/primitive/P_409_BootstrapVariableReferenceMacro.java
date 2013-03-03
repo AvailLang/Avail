@@ -60,9 +60,9 @@ public class P_409_BootstrapVariableReferenceMacro extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
-		final AvailObject variableUse = args.get(0);
+		final A_Phrase variableUse = args.get(0);
 
-		final A_BasicObject declaration = variableUse.declaration();
+		final A_Phrase declaration = variableUse.declaration();
 		if (!declaration.declarationKind().isVariable())
 		{
 			throw new AvailRejectedParseException(
@@ -70,7 +70,7 @@ public class P_409_BootstrapVariableReferenceMacro extends Primitive
 					"a variable that supports reference-taking, not a "
 					+ declaration.declarationKind().nativeKindName()));
 		}
-		final AvailObject reference = ReferenceNodeDescriptor.fromUse(
+		final A_Phrase reference = ReferenceNodeDescriptor.fromUse(
 			variableUse);
 		reference.makeImmutable();
 		return interpreter.primitiveSuccess(reference);

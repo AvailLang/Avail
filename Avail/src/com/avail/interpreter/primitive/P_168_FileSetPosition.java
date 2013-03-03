@@ -62,7 +62,7 @@ extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 2;
-		final A_BasicObject handle = args.get(0);
+		final A_Atom handle = args.get(0);
 		final A_Number filePosition = args.get(1);
 		if (!filePosition.isLong())
 		{

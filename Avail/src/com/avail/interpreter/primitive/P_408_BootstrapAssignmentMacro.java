@@ -60,8 +60,8 @@ public class P_408_BootstrapAssignmentMacro extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 2;
-		final AvailObject variableUse = args.get(0);
-		final AvailObject valueExpression = args.get(1);
+		final A_Phrase variableUse = args.get(0);
+		final A_Phrase valueExpression = args.get(1);
 
 		final A_BasicObject declaration = variableUse.declaration();
 		if (!declaration.declarationKind().isVariable())
@@ -82,7 +82,7 @@ public class P_408_BootstrapAssignmentMacro extends Primitive
 						valueExpression.expressionType(),
 						declaration.declaredType().expressionType())));
 		}
-		final AvailObject assignment = AssignmentNodeDescriptor.from(
+		final A_Phrase assignment = AssignmentNodeDescriptor.from(
 			variableUse,
 			valueExpression,
 			false);

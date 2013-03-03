@@ -612,7 +612,7 @@ public final class AvailLoader
 	 *         indicating the problem.
 	 */
 	public final @Nullable AvailErrorCode addDeclaration (
-		final AvailObject declaration)
+		final A_Phrase declaration)
 	{
 		final A_Atom clientDataGlobalKey =
 			AtomDescriptor.clientDataGlobalKey();

@@ -82,6 +82,7 @@ implements
 		A_Map,
 		A_Method,
 		A_Number,
+		A_Phrase,
 		A_RawFunction,
 		A_Set,
 		A_Token,
@@ -4905,7 +4906,7 @@ implements
 	 * Dispatch to the descriptor.
 	 */
 	@Override
-	public AvailObject variable ()
+	public A_Phrase variable ()
 	{
 		return descriptor.o_Variable(this);
 	}
@@ -4950,7 +4951,7 @@ implements
 	 * @return
 	 */
 	@Override
-	public AvailObject neededVariables ()
+	public A_Tuple neededVariables ()
 	{
 		return descriptor.o_NeededVariables(this);
 	}
@@ -5059,7 +5060,7 @@ implements
 	 * @return
 	 */
 	@Override
-	public AvailObject declaration ()
+	public A_Phrase declaration ()
 	{
 		return descriptor.o_Declaration(this);
 	}
@@ -5106,7 +5107,7 @@ implements
 	 */
 	@Override
 	public void childrenDo (
-		final Continuation1<AvailObject> aBlock)
+		final Continuation1<A_Phrase> aBlock)
 	{
 		descriptor.o_ChildrenDo(this, aBlock);
 	}
@@ -5115,7 +5116,7 @@ implements
 	 * @param parent
 	 */
 	@Override
-	public void validateLocally (final @Nullable A_BasicObject parent)
+	public void validateLocally (final @Nullable A_Phrase parent)
 	{
 		descriptor.o_ValidateLocally(
 			this,
@@ -5138,7 +5139,7 @@ implements
 	 * @return
 	 */
 	@Override
-	public AvailObject copyWith (final AvailObject newParseNode)
+	public A_Phrase copyWith (final A_Phrase newParseNode)
 	{
 		return descriptor.o_CopyWith(this, newParseNode);
 	}
@@ -5609,7 +5610,7 @@ implements
 	@Override
 	public void addConstantBinding (
 		final A_String name,
-		final AvailObject constantBinding)
+		final A_BasicObject constantBinding)
 	{
 		descriptor.o_AddConstantBinding(
 			this,
@@ -5624,7 +5625,7 @@ implements
 	@Override
 	public void addVariableBinding (
 		final A_String name,
-		final AvailObject variableBinding)
+		final A_BasicObject variableBinding)
 	{
 		descriptor.o_AddVariableBinding(
 			this,
@@ -6635,7 +6636,7 @@ implements
 	 * @return
 	 */
 	@Override
-	public boolean equalsParseNode (final A_BasicObject aParseNode)
+	public boolean equalsParseNode (final A_Phrase aParseNode)
 	{
 		return descriptor.o_EqualsParseNode(this, aParseNode);
 	}

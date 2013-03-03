@@ -113,7 +113,7 @@ extends Descriptor
 
 	/**
 	 * {@linkplain ParseNodeDescriptor parse nodes} must implement {@link
-	 * ParseNodeDescriptor#o_EqualsParseNode(AvailObject, A_BasicObject)}.
+	 * ParseNodeDescriptor#o_EqualsParseNode(AvailObject, A_Phrase)}.
 	 */
 	@Override @AvailMethod
 	final boolean o_Equals (final AvailObject object, final A_BasicObject another)
@@ -127,7 +127,7 @@ extends Descriptor
 	@Override @AvailMethod
 	abstract boolean o_EqualsParseNode (
 		final AvailObject object,
-		final A_BasicObject aParseNode);
+		final A_Phrase aParseNode);
 
 	/**
 	 * Emit the effect of this node.  By default that means to emit the value of
@@ -262,7 +262,7 @@ extends Descriptor
 	@Override @AvailMethod
 	abstract void o_ChildrenDo (
 		final AvailObject object,
-		final Continuation1<AvailObject> aBlock);
+		final Continuation1<A_Phrase> aBlock);
 
 	/**
 	 * Validate this node, throwing an exception if there is a problem.
@@ -276,7 +276,7 @@ extends Descriptor
 	@Override @AvailMethod
 	abstract void o_ValidateLocally (
 		final AvailObject object,
-		final @Nullable A_BasicObject parent);
+		final @Nullable A_Phrase parent);
 
 	@Override @AvailMethod
 	void o_FlattenStatementsInto (
@@ -338,15 +338,15 @@ extends Descriptor
 	 *        This node's parent, or {@code null}.
 	 */
 	public static void treeDoWithParent (
-		final AvailObject object,
-		final Continuation2<AvailObject, AvailObject> aBlock,
-		final @Nullable AvailObject parentNode)
+		final A_Phrase object,
+		final Continuation2<A_Phrase, A_Phrase> aBlock,
+		final @Nullable A_Phrase parentNode)
 	{
 		object.childrenDo(
-			new Continuation1<AvailObject>()
+			new Continuation1<A_Phrase>()
 			{
 				@Override
-				public void value (final @Nullable AvailObject child)
+				public void value (final @Nullable A_Phrase child)
 				{
 					assert child != null;
 					assert child.isInstanceOfKind(PARSE_NODE.mostGeneralType());

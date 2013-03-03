@@ -56,8 +56,8 @@ public class P_071_CreateStubFunction extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 2;
-		final A_BasicObject newFunctionType = args.get(0);
-		final AvailObject function = args.get(1);
+		final A_Type newFunctionType = args.get(0);
+		final A_Function function = args.get(1);
 		return interpreter.primitiveSuccess(
 			FunctionDescriptor.createStubWithArgTypes(
 				newFunctionType, function));
