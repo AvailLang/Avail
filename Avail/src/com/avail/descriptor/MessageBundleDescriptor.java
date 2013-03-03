@@ -291,50 +291,6 @@ extends Descriptor
 	}
 
 	/**
-	 * A list of tuples whose elements are all the empty set. Subscript N is an
-	 * immutable tuple of size N whose elements are all the empty set.
-	 */
-	static List<A_Tuple> tuplesOfEmptySets = new ArrayList<A_Tuple>();
-
-	/**
-	 * Return an immutable tuple of the specified size consisting of empty sets.
-	 *
-	 * @param size The size of the resulting tuple.
-	 * @return An immutable tuple of empty sets.
-	 */
-	static A_Tuple tupleOfEmptySetsOfSize (final int size)
-	{
-		while (tuplesOfEmptySets.size() <= size)
-		{
-			final A_Tuple lastTuple =
-				tuplesOfEmptySets.get(tuplesOfEmptySets.size() - 1);
-			final A_Tuple newTuple = lastTuple.appendCanDestroy(
-				SetDescriptor.empty(),
-				true);
-			newTuple.makeShared();
-			tuplesOfEmptySets.add(newTuple);
-		}
-		return tuplesOfEmptySets.get(size);
-	}
-
-	/**
-	 * Create a list of reusable immutable tuples of empty sets.
-	 */
-	static void createWellKnownObjects ()
-	{
-		tuplesOfEmptySets = new ArrayList<A_Tuple>(20);
-		tuplesOfEmptySets.add(TupleDescriptor.empty());
-	}
-
-	/**
-	 * Discard the cache of tuples of empty sets.
-	 */
-	static void clearWellKnownObjects ()
-	{
-		tuplesOfEmptySets.clear();
-	}
-
-	/**
 	 * Create a new {@linkplain MessageBundleDescriptor message bundle} for the
 	 * given message.
 	 *
@@ -399,5 +355,38 @@ extends Descriptor
 	MessageBundleDescriptor shared ()
 	{
 		return shared;
+	}
+
+	/**
+	 * A list of tuples whose elements are all the empty set. Subscript N is an
+	 * immutable tuple of size N whose elements are all the empty set.
+	 */
+	private static final List<A_Tuple> tuplesOfEmptySets =
+		new ArrayList<A_Tuple>(20);
+
+	static
+	{
+		tuplesOfEmptySets.add(TupleDescriptor.empty());
+	}
+
+	/**
+	 * Return an immutable tuple of the specified size consisting of empty sets.
+	 *
+	 * @param size The size of the resulting tuple.
+	 * @return An immutable tuple of empty sets.
+	 */
+	private static A_Tuple tupleOfEmptySetsOfSize (final int size)
+	{
+		while (tuplesOfEmptySets.size() <= size)
+		{
+			final A_Tuple lastTuple =
+				tuplesOfEmptySets.get(tuplesOfEmptySets.size() - 1);
+			final A_Tuple newTuple = lastTuple.appendCanDestroy(
+				SetDescriptor.empty(),
+				true);
+			newTuple.makeShared();
+			tuplesOfEmptySets.add(newTuple);
+		}
+		return tuplesOfEmptySets.get(size);
 	}
 }

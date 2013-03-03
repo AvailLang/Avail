@@ -601,7 +601,7 @@ extends AbstractNumberDescriptor
 	 *
 	 * @return The Avail object for float positive infinity.
 	 */
-	static A_Number positiveInfinity ()
+	public static A_Number positiveInfinity ()
 	{
 		return Sign.POSITIVE.limitFloatObject();
 	}
@@ -611,7 +611,7 @@ extends AbstractNumberDescriptor
 	 *
 	 * @return The Avail object for float negative infinity.
 	 */
-	static A_Number negativeInfinity ()
+	public static A_Number negativeInfinity ()
 	{
 		return Sign.NEGATIVE.limitFloatObject();
 	}
@@ -621,7 +621,7 @@ extends AbstractNumberDescriptor
 	 *
 	 * @return The Avail object for float not-a-number.
 	 */
-	static A_Number notANumber ()
+	public static A_Number notANumber ()
 	{
 		return Sign.INDETERMINATE.limitFloatObject();
 	}
@@ -631,35 +631,9 @@ extends AbstractNumberDescriptor
 	 *
 	 * @return The Avail object for float (positive) zero.
 	 */
-	static A_Number zero ()
+	public static A_Number zero ()
 	{
 		return Sign.ZERO.limitFloatObject();
-	}
-
-	/**
-	 * Create the {@code float} special values.
-	 */
-	static void createWellKnownObjects ()
-	{
-		Sign.POSITIVE.limitFloatObject =
-			privateFloat(Float.POSITIVE_INFINITY).makeShared();
-		Sign.NEGATIVE.limitFloatObject =
-			privateFloat(Float.NEGATIVE_INFINITY).makeShared();
-		Sign.INDETERMINATE.limitFloatObject =
-			privateFloat(Float.NaN).makeShared();
-		Sign.ZERO.limitFloatObject =
-			privateFloat(0.0f).makeShared();
-	}
-
-	/**
-	 * Release the {@code float} special values.
-	 */
-	static void clearWellKnownObjects ()
-	{
-		Sign.POSITIVE.limitFloatObject = null;
-		Sign.NEGATIVE.limitFloatObject = null;
-		Sign.INDETERMINATE.limitFloatObject = null;
-		Sign.ZERO.limitFloatObject = null;
 	}
 
 	/**
@@ -701,5 +675,17 @@ extends AbstractNumberDescriptor
 	FloatDescriptor shared ()
 	{
 		return shared;
+	}
+
+	static
+	{
+		Sign.POSITIVE.limitFloatObject =
+			privateFloat(Float.POSITIVE_INFINITY).makeShared();
+		Sign.NEGATIVE.limitFloatObject =
+			privateFloat(Float.NEGATIVE_INFINITY).makeShared();
+		Sign.INDETERMINATE.limitFloatObject =
+			privateFloat(Float.NaN).makeShared();
+		Sign.ZERO.limitFloatObject =
+			privateFloat(0.0f).makeShared();
 	}
 }

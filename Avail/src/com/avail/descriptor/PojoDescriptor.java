@@ -34,7 +34,6 @@ package com.avail.descriptor;
 
 import static com.avail.descriptor.PojoDescriptor.ObjectSlots.*;
 import java.util.List;
-import com.avail.AvailRuntime;
 import com.avail.annotations.*;
 
 /**
@@ -210,7 +209,9 @@ extends Descriptor
 	}
 
 	/** The {@linkplain PojoDescriptor pojo} that wraps Java's {@code null}. */
-	private static @Nullable AvailObject nullObject;
+	private static final AvailObject nullObject = newPojo(
+		RawPojoDescriptor.rawNullObject(),
+		PojoTypeDescriptor.pojoBottom()).makeShared();
 
 	/**
 	 * Answer the {@linkplain PojoDescriptor pojo} that wraps Java's
@@ -220,28 +221,6 @@ extends Descriptor
 	 */
 	public static AvailObject nullObject ()
 	{
-		final AvailObject theNullObject = nullObject;
-		assert theNullObject != null;
-		return theNullObject;
-	}
-
-	/**
-	 * Create any instances statically well-known to the {@linkplain
-	 * AvailRuntime Avail runtime system}.
-	 */
-	public static void createWellKnownObjects ()
-	{
-		nullObject = newPojo(
-			RawPojoDescriptor.rawNullObject(),
-			PojoTypeDescriptor.pojoBottom()).makeShared();
-	}
-
-	/**
-	 * Destroy or reset any instances statically well-known to the {@linkplain
-	 * AvailRuntime Avail runtime system}.
-	 */
-	public static void clearWellKnownObjects ()
-	{
-		nullObject = null;
+		return nullObject;
 	}
 }

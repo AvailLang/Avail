@@ -45,7 +45,6 @@ import com.avail.annotations.*;
 public abstract class AbstractNumberDescriptor
 extends Descriptor
 {
-
 	/**
 	 * An enumeration used to describe the sign of a quantity.
 	 */
@@ -152,8 +151,6 @@ extends Descriptor
 		{
 			return limitFloat;
 		}
-
-
 	}
 
 	/**

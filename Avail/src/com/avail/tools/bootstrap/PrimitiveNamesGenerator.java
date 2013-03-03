@@ -51,13 +51,6 @@ import com.avail.interpreter.Primitive.Flag;
 public final class PrimitiveNamesGenerator
 extends PropertiesFileGenerator
 {
-	/* Initialize Avail. */
-	static
-	{
-		AvailObject.clearAllWellKnownObjects();
-		AvailObject.createAllWellKnownObjects();
-	}
-
 	/**
 	 * Write the names of the properties, whose unspecified values should be
 	 * the Avail names of the corresponding {@linkplain Primitive primitives}.

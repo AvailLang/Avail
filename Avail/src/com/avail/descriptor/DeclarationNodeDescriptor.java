@@ -598,26 +598,13 @@ extends ParseNodeDescriptor
 			final List<AvailObject> recursionList,
 			final int indent);
 
-		/**
-		 * Release any AvailObjects held statically by this class.
-		 */
-		public static void clearWellKnownObjects ()
-		{
-			for (final DeclarationKind kind : values())
-			{
-				kind.kindName = null;
-			}
-		}
-
-		/**
-		 * Create AvailObjects to hold statically by this class.
-		 */
-		public static void createWellKnownObjects ()
+		static
 		{
 			for (final DeclarationKind kind : values())
 			{
 				assert kind.kindName == null;
-				kind.kindName = StringDescriptor.from(kind.nativeKindName);
+				kind.kindName =
+					StringDescriptor.from(kind.nativeKindName).makeShared();
 			}
 		}
 	}

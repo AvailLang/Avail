@@ -1002,7 +1002,14 @@ extends Descriptor
 	}
 
 	/** The empty tuple. */
-	static @Nullable AvailObject emptyTuple;
+	private static final AvailObject emptyTuple;
+
+	static
+	{
+		final A_Tuple tuple = NybbleTupleDescriptor.mutableObjectOfSize(0);
+		tuple.hash();
+		emptyTuple = tuple.makeShared();
+	}
 
 	/**
 	 * Return the empty {@linkplain TupleDescriptor tuple}.  Other empty tuples
@@ -1013,27 +1020,7 @@ extends Descriptor
 	 */
 	public static AvailObject empty ()
 	{
-		final AvailObject tuple = emptyTuple;
-		assert tuple != null;
-		return tuple;
-	}
-
-	/**
-	 * Create my cached empty tuple and various well known strings.
-	 */
-	static void createWellKnownObjects ()
-	{
-		final A_Tuple tuple = NybbleTupleDescriptor.mutableObjectOfSize(0);
-		tuple.hash();
-		emptyTuple = tuple.makeShared();
-}
-
-	/**
-	 * Clear my cached empty tuple and various well known strings.
-	 */
-	static void clearWellKnownObjects ()
-	{
-		emptyTuple = null;
+		return emptyTuple;
 	}
 
 	/**

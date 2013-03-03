@@ -35,7 +35,6 @@ package com.avail.descriptor;
 import java.util.*;
 import static com.avail.descriptor.ContinuationDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.ContinuationDescriptor.ObjectSlots.*;
-import com.avail.AvailRuntime;
 import com.avail.annotations.*;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelOne.L1Operation;
@@ -402,44 +401,6 @@ extends Descriptor
 	}
 
 	/**
-	 * A substitute for {@linkplain AvailObject nil}, for use by
-	 * {@link P_059_ContinuationStackData}.
-	 */
-	private static @Nullable AvailObject nilSubstitute;
-
-	/**
-	 * Answer a substitute for {@linkplain AvailObject nil}. This is
-	 * primarily for use by {@link P_059_ContinuationStackData}.
-	 *
-	 * @return An immutable bottom-typed variable.
-	 */
-	public static AvailObject nilSubstitute ()
-	{
-		final AvailObject sub = nilSubstitute;
-		assert sub != null;
-		return sub;
-	}
-
-	/**
-	 * Create any instances statically well-known to the {@linkplain
-	 * AvailRuntime Avail runtime system}.
-	 */
-	public static void createWellKnownObjects ()
-	{
-		nilSubstitute = VariableDescriptor.forInnerType(
-			BottomTypeDescriptor.bottom()).makeShared();
-	}
-
-	/**
-	 * Destroy or reset any instances statically well-known to the {@linkplain
-	 * AvailRuntime Avail runtime system}.
-	 */
-	public static void clearWellKnownObjects ()
-	{
-		nilSubstitute = null;
-	}
-
-	/**
 	 * Create a new continuation with the given data.  The continuation should
 	 * represent the state upon entering the new context - i.e., set the pc to
 	 * the first instruction, clear the stack, and set up all local variables.
@@ -562,5 +523,24 @@ extends Descriptor
 	ContinuationDescriptor shared ()
 	{
 		return shared;
+	}
+
+	/**
+	 * A substitute for {@linkplain AvailObject nil}, for use by
+	 * {@link P_059_ContinuationStackData}.
+	 */
+	private static final AvailObject nilSubstitute =
+		VariableDescriptor.forInnerType(
+			BottomTypeDescriptor.bottom()).makeShared();
+
+	/**
+	 * Answer a substitute for {@linkplain AvailObject nil}. This is
+	 * primarily for use by {@link P_059_ContinuationStackData}.
+	 *
+	 * @return An immutable bottom-typed variable.
+	 */
+	public static AvailObject nilSubstitute ()
+	{
+		return nilSubstitute;
 	}
 }

@@ -32,7 +32,6 @@
 
 package com.avail.descriptor;
 
-import com.avail.AvailRuntime;
 import com.avail.annotations.*;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.Generator;
@@ -170,7 +169,7 @@ extends TupleDescriptor
 	}
 
 	/** A tuple containing just the underscore character. */
-	private static @Nullable A_String underscore;
+	private static final A_String underscore = from("_").makeShared();
 
 	/**
 	 * Return an Avail {@linkplain StringDescriptor string} of size one,
@@ -180,13 +179,11 @@ extends TupleDescriptor
 	 */
 	public static A_String underscore ()
 	{
-		final A_String string = underscore;
-		assert string != null;
-		return string;
+		return underscore;
 	}
 
 	/** A tuple containing just the open-guillemet character. */
-	private static @Nullable A_String openGuillemet;
+	private static final A_String openGuillemet = from("«").makeShared();
 
 	/**
 	 * Return an Avail {@linkplain StringDescriptor string} of size one,
@@ -196,13 +193,11 @@ extends TupleDescriptor
 	 */
 	public static A_String openGuillemet ()
 	{
-		final A_String string = openGuillemet;
-		assert string != null;
-		return string;
+		return openGuillemet;
 	}
 
 	/** A tuple containing just the close-guillemet character. */
-	private static @Nullable A_String closeGuillemet;
+	private static final A_String closeGuillemet = from("»").makeShared();
 
 	/**
 	 * Return an Avail {@linkplain StringDescriptor string} of size one,
@@ -212,13 +207,11 @@ extends TupleDescriptor
 	 */
 	public static A_String closeGuillemet ()
 	{
-		final A_String string = closeGuillemet;
-		assert string != null;
-		return string;
+		return closeGuillemet;
 	}
 
 	/** A tuple containing just the double-dagger character. */
-	private static @Nullable A_String doubleDagger;
+	private static final A_String doubleDagger = from("‡").makeShared();
 
 	/**
 	 * Return an Avail {@linkplain StringDescriptor string} of size one,
@@ -228,13 +221,11 @@ extends TupleDescriptor
 	 */
 	public static A_String doubleDagger ()
 	{
-		final A_String string = doubleDagger;
-		assert string != null;
-		return string;
+		return doubleDagger;
 	}
 
 	/** A tuple containing just the back-quote character. */
-	private static @Nullable A_String backQuote;
+	private static final A_String backQuote = from("`").makeShared();
 
 	/**
 	 * Return an Avail {@linkplain StringDescriptor string} of size one,
@@ -244,13 +235,11 @@ extends TupleDescriptor
 	 */
 	public static A_String backQuote ()
 	{
-		final A_String string = backQuote;
-		assert string != null;
-		return string;
+		return backQuote;
 	}
 
 	/** A tuple containing just the ellipsis character. */
-	private static @Nullable A_String ellipsis;
+	private static final A_String ellipsis = from("…").makeShared();
 
 	/**
 	 * Return an Avail {@linkplain StringDescriptor string} of size one,
@@ -260,13 +249,11 @@ extends TupleDescriptor
 	 */
 	public static A_String ellipsis ()
 	{
-		final A_String string = ellipsis;
-		assert string != null;
-		return string;
+		return ellipsis;
 	}
 
 	/** A tuple containing just the octothorp character. */
-	private static @Nullable A_String octothorp;
+	private static final A_String octothorp = from("#").makeShared();
 
 	/**
 	 * Return an Avail {@linkplain StringDescriptor string} of size one,
@@ -276,13 +263,11 @@ extends TupleDescriptor
 	 */
 	public static A_String octothorp ()
 	{
-		final A_String string = octothorp;
-		assert string != null;
-		return string;
+		return octothorp;
 	}
 
 	/** A tuple containing just the question mark character. */
-	private static @Nullable A_String questionMark;
+	private static final A_String questionMark = from("?").makeShared();
 
 	/**
 	 * Return an Avail {@linkplain StringDescriptor string} of size one,
@@ -292,13 +277,11 @@ extends TupleDescriptor
 	 */
 	public static A_String questionMark ()
 	{
-		final A_String string = questionMark;
-		assert string != null;
-		return string;
+		return questionMark;
 	}
 
 	/** A tuple containing just the double question mark character. */
-	private static @Nullable A_String doubleQuestionMark;
+	private static final A_String doubleQuestionMark = from("⁇").makeShared();
 
 	/**
 	 * Return an Avail {@linkplain StringDescriptor string} of size one,
@@ -308,13 +291,11 @@ extends TupleDescriptor
 	 */
 	public static A_String doubleQuestionMark ()
 	{
-		final A_String string = doubleQuestionMark;
-		assert string != null;
-		return string;
+		return doubleQuestionMark;
 	}
 
 	/** A tuple containing just the exclamation mark character. */
-	private static @Nullable A_String exclamationMark;
+	private static final A_String exclamationMark = from("!").makeShared();
 
 	/**
 	 * Return an Avail {@linkplain StringDescriptor string} of size one,
@@ -324,13 +305,11 @@ extends TupleDescriptor
 	 */
 	public static A_String exclamationMark ()
 	{
-		final A_String string = exclamationMark;
-		assert string != null;
-		return string;
+		return exclamationMark;
 	}
 
 	/** A tuple containing just the tilde character. */
-	private static @Nullable A_String tilde;
+	private static final A_String tilde = from("~").makeShared();
 
 	/**
 	 * Return an Avail {@linkplain StringDescriptor string} of size one,
@@ -340,13 +319,11 @@ extends TupleDescriptor
 	 */
 	public static A_String tilde ()
 	{
-		final A_String string = tilde;
-		assert string != null;
-		return string;
+		return tilde;
 	}
 
 	/** A tuple containing just the vertical bar character. */
-	private static @Nullable A_String verticalBar;
+	private static final A_String verticalBar = from("|").makeShared();
 
 	/**
 	 * Return an Avail {@linkplain StringDescriptor string} of size one,
@@ -356,13 +333,11 @@ extends TupleDescriptor
 	 */
 	public static A_String verticalBar ()
 	{
-		final A_String string = verticalBar;
-		assert string != null;
-		return string;
+		return verticalBar;
 	}
 
 	/** A tuple containing just the single-dagger (†) character. */
-	private static @Nullable A_String singleDagger;
+	private static final A_String singleDagger = from("†").makeShared();
 
 	/**
 	 * Return an Avail {@linkplain StringDescriptor string} of size one,
@@ -372,13 +347,11 @@ extends TupleDescriptor
 	 */
 	public static A_String singleDagger ()
 	{
-		final A_String string = singleDagger;
-		assert string != null;
-		return string;
+		return singleDagger;
 	}
 
 	/** A tuple containing just the section sign character. */
-	private static @Nullable A_String sectionSign;
+	private static final A_String sectionSign = from("§").makeShared();
 
 	/**
 	 * Return an Avail {@linkplain StringDescriptor string} of size one,
@@ -388,9 +361,7 @@ extends TupleDescriptor
 	 */
 	public static A_String sectionSign ()
 	{
-		final A_String string = sectionSign;
-		assert string != null;
-		return string;
+		return sectionSign;
 	}
 
 	/**
@@ -402,49 +373,5 @@ extends TupleDescriptor
 	protected StringDescriptor (final Mutability mutability)
 	{
 		super(mutability);
-	}
-
-	/**
-	 * Create any instances statically well-known to the {@linkplain
-	 * AvailRuntime Avail runtime system}.
-	 */
-	static void createWellKnownObjects ()
-	{
-		underscore = from("_").makeShared();
-		openGuillemet = from("«").makeShared();
-		closeGuillemet = from("»").makeShared();
-		doubleDagger = from("‡").makeShared();
-		backQuote = from("`").makeShared();
-		ellipsis = from("…").makeShared();
-		octothorp = from("#").makeShared();
-		questionMark = from("?").makeShared();
-		doubleQuestionMark = from("⁇").makeShared();
-		exclamationMark = from("!").makeShared();
-		tilde = from("~").makeShared();
-		verticalBar = from("|").makeShared();
-		singleDagger = from("†").makeShared();
-		sectionSign = from("§").makeShared();
-	}
-
-	/**
-	 * Destroy or reset any instances statically well-known to the {@linkplain
-	 * AvailRuntime Avail runtime system}.
-	 */
-	static void clearWellKnownObjects ()
-	{
-		underscore = null;
-		openGuillemet = null;
-		closeGuillemet = null;
-		doubleDagger = null;
-		backQuote = null;
-		ellipsis = null;
-		octothorp = null;
-		questionMark = null;
-		doubleQuestionMark = null;
-		exclamationMark = null;
-		tilde = null;
-		verticalBar = null;
-		singleDagger = null;
-		sectionSign = null;
 	}
 }

@@ -364,11 +364,7 @@ public class Serializer
 		}
 	}
 
-
-	/**
-	 * Create any cached {@link AvailObject}s.
-	 */
-	public static void createWellKnownObjects ()
+	static
 	{
 		// Build the inverse of AvailRuntime#specialObjects().
 		final List<AvailObject> objectList = AvailRuntime.specialObjects();
@@ -391,16 +387,6 @@ public class Serializer
 			}
 		}
 	}
-
-	/**
-	 * Release all references to {@link AvailObject}s held by this class.
-	 */
-	public static void clearWellKnownObjects ()
-	{
-		specialObjects.clear();
-		specialAtoms.clear();
-	}
-
 
 	/**
 	 * Construct a new {@link Serializer}.

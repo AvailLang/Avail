@@ -381,16 +381,8 @@ extends Descriptor
 		 * for {@linkplain L2ChunkDescriptor#allocate(A_RawFunction, List, List,
 		 * int, int, int, List, Set) allocation} of a new chunk. If this queue
 		 * is empty, a fresh index is allocated.
-		 *
-		 * <p>
-		 * Note that this is not defined as final, since we must ensure that an
-		 * invocation of the virtual machine does not interfere with subsequent
-		 * invocations (for clean tests), and we construct a new {@link
-		 * ReferenceQueue} as part of {@link
-		 * L2ChunkDescriptor#createWellKnownObjects()}.
-		 * </p>
 		 */
-		static @Nullable ReferenceQueue<AvailObject> recyclingQueue =
+		static final ReferenceQueue<AvailObject> recyclingQueue =
 			new ReferenceQueue<AvailObject>();
 
 		/**
@@ -439,61 +431,6 @@ extends Descriptor
 	 */
 	private static final List<WeakChunkReference> allChunksWeakly =
 		new ArrayList<WeakChunkReference>(100);
-
-	/**
-	 * The {@linkplain ReentrantLock lock} that guards access to the table of
-	 * {@linkplain L2ChunkDescriptor chunks}.
-	 */
-	private static final ReentrantLock chunksLock = new ReentrantLock();
-
-	/**
-	 * The special {@linkplain L2ChunkDescriptor level two chunk} that is used
-	 * to interpret level one nybblecodes until a piece of {@linkplain
-	 * CompiledCodeDescriptor compiled code} has been executed some number of
-	 * times.
-	 */
-	private static @Nullable A_Chunk unoptimizedChunk;
-
-	/**
-	 * Return the special {@linkplain L2ChunkDescriptor level two chunk} that is
-	 * used to interpret level one nybblecodes until a piece of {@linkplain
-	 * CompiledCodeDescriptor compiled code} has been executed some threshold
-	 * number of times.
-	 *
-	 * @return The special {@linkplain #unoptimizedChunk unoptimized chunk}.
-	 */
-	public static A_Chunk unoptimizedChunk ()
-	{
-		final A_Chunk chunk = unoptimizedChunk;
-		assert chunk != null;
-		return chunk;
-	}
-
-	/**
-	 * Create any statically well-known instances that are needed by the Avail
-	 * runtime system.
-	 */
-	static void createWellKnownObjects ()
-	{
-		WeakChunkReference.recyclingQueue = new ReferenceQueue<AvailObject>();
-		assert allChunksWeakly.isEmpty();
-		final AvailObject unoptimized =
-			new L2Translator(null).createChunkForFirstInvocation().makeShared();
-		assert unoptimized.slot(INDEX) == 0;
-		assert allChunksWeakly.size() == 1;
-		unoptimizedChunk = unoptimized;
-	}
-
-	/**
-	 * Disconnect any statically well-known instances that were needed by the
-	 * Avail runtime system.
-	 */
-	static void clearWellKnownObjects ()
-	{
-		unoptimizedChunk = null;
-		allChunksWeakly.clear();
-		WeakChunkReference.recyclingQueue = null;
-	}
 
 	/**
 	 * The level two wordcode offset to which to jump when returning into a
@@ -548,27 +485,10 @@ extends Descriptor
 	}
 
 	/**
-	 * The specified chunk has just been used. Use this fact if possible to
-	 * balance an LRU cache of chunks in such a way that the least recently used
-	 * ones are more likely to be evicted.
-	 *
-	 * @param chunk A {@linkplain L2ChunkDescriptor Level Two chunk}.
+	 * The {@linkplain ReentrantLock lock} that guards access to the table of
+	 * {@linkplain L2ChunkDescriptor chunks}.
 	 */
-	public static void moveToHead (final A_BasicObject chunk)
-	{
-		chunksLock.lock();
-		try
-		{
-			// Do nothing for now.
-			// TODO: [MvG] Move it to the head of a ring that holds chunks
-			// weakly but explicitly evicts & invalidates the oldest entry
-			// sometimes.
-		}
-		finally
-		{
-			chunksLock.unlock();
-		}
-	}
+	private static final ReentrantLock chunksLock = new ReentrantLock();
 
 	/**
 	 * Allocate and set up a new {@linkplain L2ChunkDescriptor level two chunk}
@@ -676,7 +596,6 @@ extends Descriptor
 				contingentSets);
 			allChunksWeakly.set(index, newReference);
 			chunk.makeImmutable();
-			moveToHead(chunk);
 		}
 		finally
 		{
@@ -793,5 +712,33 @@ extends Descriptor
 	L2ChunkDescriptor shared ()
 	{
 		return shared;
+	}
+
+	/**
+	 * The special {@linkplain L2ChunkDescriptor level two chunk} that is used
+	 * to interpret level one nybblecodes until a piece of {@linkplain
+	 * CompiledCodeDescriptor compiled code} has been executed some number of
+	 * times.
+	 */
+	private static final A_Chunk unoptimizedChunk =
+		new L2Translator(null).createChunkForFirstInvocation().makeShared();
+
+	static
+	{
+		assert unoptimizedChunk.slot(INDEX) == 0;
+		assert allChunksWeakly.size() == 1;
+	}
+
+	/**
+	 * Return the special {@linkplain L2ChunkDescriptor level two chunk} that is
+	 * used to interpret level one nybblecodes until a piece of {@linkplain
+	 * CompiledCodeDescriptor compiled code} has been executed some threshold
+	 * number of times.
+	 *
+	 * @return The special {@linkplain #unoptimizedChunk unoptimized chunk}.
+	 */
+	public static A_Chunk unoptimizedChunk ()
+	{
+		return unoptimizedChunk;
 	}
 }

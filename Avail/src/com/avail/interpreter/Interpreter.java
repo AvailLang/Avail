@@ -847,7 +847,6 @@ public final class Interpreter
 		chunkWords = chunkToResume.wordcodes();
 		chunkVectors = chunkToResume.vectors();
 		makeRoomForChunkRegisters(chunkToResume, code);
-		L2ChunkDescriptor.moveToHead(chunkToResume);
 		this.offset = newOffset;
 		if (logger.isLoggable(Level.FINER))
 		{

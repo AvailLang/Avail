@@ -429,12 +429,14 @@ extends Descriptor
 	/**
 	 * The atom representing the Avail concept "true".
 	 */
-	private static @Nullable A_Atom trueObject;
+	private static final A_Atom trueObject =
+		createSpecialAtom(StringDescriptor.from("true"));
 
 	/**
 	 * The atom representing the Avail concept "false".
 	 */
-	private static @Nullable A_Atom falseObject;
+	private static final A_Atom falseObject =
+		createSpecialAtom(StringDescriptor.from("false"));
 
 	/**
 	 * Convert a Java <code>boolean</code> into an Avail boolean.  There are
@@ -454,67 +456,78 @@ extends Descriptor
 	 * The atom used as a property key under which to store information about
 	 * object type names.
 	 */
-	private static @Nullable A_Atom objectTypeNamePropertyKey;
+	private static final A_Atom objectTypeNamePropertyKey = createSpecialAtom(
+		StringDescriptor.from("object names"));
 
 	/**
 	 * The atom used as a tag in module files to indicate that the header
 	 * information follows.
 	 */
-	private static @Nullable A_Atom moduleHeaderSectionAtom;
+	private static final A_Atom moduleHeaderSectionAtom = createSpecialAtom(
+		StringDescriptor.from("Module header section"));
 
 	/**
 	 * The atom used as a tag in module files to indicate that the module's
 	 * body follows.
 	 */
-	private static @Nullable A_Atom moduleBodySectionAtom;
+	private static final A_Atom moduleBodySectionAtom = createSpecialAtom(
+		StringDescriptor.from("Module body section"));
 
 	/**
 	 * The atom used as a key in a {@link ParserState}'s {@linkplain
 	 * ParserState#clientDataMap} to store the current map of declarations that
 	 * are in scope.
 	 */
-	private static @Nullable A_Atom compilerScopeMapKey;
+	private static final A_Atom compilerScopeMapKey = createSpecialAtom(
+		StringDescriptor.from("Compilation scope"));
 
 	/**
 	 * The atom used as a key in a {@linkplain FiberDescriptor fiber}'s global
 	 * map to extract the current {@link ParserState}'s {@linkplain
 	 * ParserState#clientDataMap}.
 	 */
-	private static @Nullable A_Atom clientDataGlobalKey;
+	private static final A_Atom clientDataGlobalKey = createSpecialAtom(
+		StringDescriptor.from("Compiler client data"));
 
 	/**
 	 * The atom used as a property key under which to store a {@link
 	 * RandomAccessFile}.
 	 */
-	private static @Nullable A_Atom fileKey;
+	private static final A_Atom fileKey = createSpecialAtom(
+		StringDescriptor.from("file key"));
 
 	/**
 	 * The property key that indicates that a file is readable.
 	 */
-	private static @Nullable A_Atom fileModeReadKey;
+	private static final A_Atom fileModeReadKey = createSpecialAtom(
+		StringDescriptor.from("file mode read"));
 
 	/**
 	 * The property key that indicates that a file is writable.
 	 */
-	private static @Nullable A_Atom fileModeWriteKey;
+	private static final A_Atom fileModeWriteKey = createSpecialAtom(
+		StringDescriptor.from("file mode write"));
 
 	/**
 	 * The atom used as a property key under which to store an {@link
 	 * AsynchronousServerSocketChannel asynchronous server socket channel}.
 	 */
-	private static @Nullable A_Atom serverSocketKey;
+	private static final A_Atom serverSocketKey = createSpecialAtom(
+		StringDescriptor.from("server socket key"));
 
 	/**
 	 * The atom used as a property key under which to store an {@link
 	 * AsynchronousSocketChannel asynchronous socket channel}.
 	 */
-	private static @Nullable A_Atom socketKey;
+	private static final A_Atom socketKey = createSpecialAtom(
+		StringDescriptor.from("socket key"));
 
 	/**
 	 * The property key that indicates that a {@linkplain FiberDescriptor fiber}
 	 * global is inheritable.
 	 */
-	private static @Nullable A_Atom heritableKey;
+	private static final A_Atom heritableKey = createSpecialAtom(
+		StringDescriptor.from("heritability"));
 
 	/**
 	 * Answer the atom representing the Avail concept "true".
@@ -523,9 +536,7 @@ extends Descriptor
 	 */
 	public static A_Atom trueObject ()
 	{
-		final A_Atom atom = trueObject;
-		assert atom != null;
-		return atom;
+		return trueObject;
 	}
 
 	/**
@@ -535,9 +546,7 @@ extends Descriptor
 	 */
 	public static A_Atom falseObject ()
 	{
-		final A_Atom atom = falseObject;
-		assert atom != null;
-		return atom;
+		return falseObject;
 	}
 
 	/**
@@ -551,9 +560,7 @@ extends Descriptor
 	 */
 	public static A_Atom objectTypeNamePropertyKey ()
 	{
-		final A_Atom atom = objectTypeNamePropertyKey;
-		assert atom != null;
-		return atom;
+		return objectTypeNamePropertyKey;
 	}
 
 	/**
@@ -564,9 +571,7 @@ extends Descriptor
 	 */
 	public static A_Atom moduleHeaderSectionAtom ()
 	{
-		final A_Atom atom = moduleHeaderSectionAtom;
-		assert atom != null;
-		return atom;
+		return moduleHeaderSectionAtom;
 	}
 
 	/**
@@ -577,9 +582,7 @@ extends Descriptor
 	 */
 	public static A_Atom moduleBodySectionAtom ()
 	{
-		final A_Atom atom = moduleBodySectionAtom;
-		assert atom != null;
-		return atom;
+		return moduleBodySectionAtom;
 	}
 
 	/**
@@ -591,9 +594,7 @@ extends Descriptor
 	 */
 	public static A_Atom compilerScopeMapKey ()
 	{
-		final A_Atom atom = compilerScopeMapKey;
-		assert atom != null;
-		return atom;
+		return compilerScopeMapKey;
 	}
 
 	/**
@@ -609,9 +610,7 @@ extends Descriptor
 	 */
 	public static A_Atom clientDataGlobalKey ()
 	{
-		final A_Atom atom = clientDataGlobalKey;
-		assert atom != null;
-		return atom;
+		return clientDataGlobalKey;
 	}
 
 	/**
@@ -622,9 +621,7 @@ extends Descriptor
 	 */
 	public static A_Atom fileKey ()
 	{
-		final A_Atom atom = fileKey;
-		assert atom != null;
-		return atom;
+		return fileKey;
 	}
 
 	/**
@@ -634,9 +631,7 @@ extends Descriptor
 	 */
 	public static A_Atom fileModeReadKey ()
 	{
-		final A_Atom atom = fileModeReadKey;
-		assert atom != null;
-		return atom;
+		return fileModeReadKey;
 	}
 
 	/**
@@ -646,9 +641,7 @@ extends Descriptor
 	 */
 	public static A_Atom fileModeWriteKey ()
 	{
-		final A_Atom atom = fileModeWriteKey;
-		assert atom != null;
-		return atom;
+		return fileModeWriteKey;
 	}
 
 	/**
@@ -659,9 +652,7 @@ extends Descriptor
 	 */
 	public static A_Atom serverSocketKey ()
 	{
-		final A_Atom atom = serverSocketKey;
-		assert atom != null;
-		return atom;
+		return serverSocketKey;
 	}
 
 	/**
@@ -672,9 +663,7 @@ extends Descriptor
 	 */
 	public static A_Atom socketKey ()
 	{
-		final A_Atom atom = socketKey;
-		assert atom != null;
-		return atom;
+		return socketKey;
 	}
 
 	/**
@@ -685,57 +674,6 @@ extends Descriptor
 	 */
 	public static A_Atom heritableKey ()
 	{
-		final A_Atom atom = heritableKey;
-		assert atom != null;
-		return atom;
-	}
-
-	/**
-	 * Create the true and false singletons.
-	 */
-	static void createWellKnownObjects ()
-	{
-		trueObject = createSpecialAtom(StringDescriptor.from("true"));
-		falseObject = createSpecialAtom(StringDescriptor.from("false"));
-		objectTypeNamePropertyKey = createSpecialAtom(
-			StringDescriptor.from("object names"));
-		moduleHeaderSectionAtom = createSpecialAtom(
-			StringDescriptor.from("Module header section"));
-		moduleBodySectionAtom = createSpecialAtom(
-			StringDescriptor.from("Module body section"));
-		compilerScopeMapKey = createSpecialAtom(
-			StringDescriptor.from("Compilation scope"));
-		clientDataGlobalKey = createSpecialAtom(
-			StringDescriptor.from("Compiler client data"));
-		fileKey = createSpecialAtom(StringDescriptor.from("file key"));
-		fileModeReadKey = createSpecialAtom(
-			StringDescriptor.from("file mode read"));
-		fileModeWriteKey = createSpecialAtom(
-			StringDescriptor.from("file mode write"));
-		serverSocketKey = createSpecialAtom(
-			StringDescriptor.from("server socket key"));
-		socketKey = createSpecialAtom(StringDescriptor.from("socket key"));
-		heritableKey = createSpecialAtom(
-			StringDescriptor.from("heritability"));
-	}
-
-	/**
-	 * Release the atom singletons known to the VM.
-	 */
-	static void clearWellKnownObjects ()
-	{
-		trueObject = null;
-		falseObject = null;
-		objectTypeNamePropertyKey = null;
-		moduleHeaderSectionAtom = null;
-		moduleBodySectionAtom = null;
-		compilerScopeMapKey = null;
-		clientDataGlobalKey = null;
-		fileKey = null;
-		fileModeReadKey = null;
-		fileModeWriteKey = null;
-		serverSocketKey = null;
-		socketKey = null;
-		heritableKey = null;
+		return heritableKey;
 	}
 }

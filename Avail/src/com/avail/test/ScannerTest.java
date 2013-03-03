@@ -327,26 +327,6 @@ public final class ScannerTest
 	}
 
 	/**
-	 * Test fixture: clear and then create all special objects well-known to the
-	 * Avail runtime.
-	 */
-	@BeforeClass
-	public static void initializeAllWellKnownObjects ()
-	{
-		AvailObject.clearAllWellKnownObjects();
-		AvailObject.createAllWellKnownObjects();
-	}
-
-	/**
-	 * Test fixture: clear all special objects.
-	 */
-	@AfterClass
-	public static void clearAllWellKnownObjects ()
-	{
-		AvailObject.clearAllWellKnownObjects();
-	}
-
-	/**
 	 * The collection of test cases with which to test the {@link AvailScanner}.
 	 * The first item of each {@link Case} is the string to be scanned, and the
 	 * remaining values represent the tokens that the scanner should produce

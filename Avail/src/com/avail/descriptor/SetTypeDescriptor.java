@@ -35,7 +35,6 @@ package com.avail.descriptor;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.descriptor.SetTypeDescriptor.ObjectSlots.*;
 import java.util.List;
-import com.avail.AvailRuntime;
 import com.avail.annotations.*;
 import com.avail.serialization.SerializerOperation;
 
@@ -254,61 +253,6 @@ extends TypeDescriptor
 		return object;
 	}
 
-	/** The most general set type. */
-	private static @Nullable A_Type mostGeneralType;
-
-	/**
-	 * Answer the most general set type.
-	 *
-	 * @return The most general set type.
-	 */
-	public static A_Type mostGeneralType ()
-	{
-		final A_Type type = mostGeneralType;
-		assert type != null;
-		return type;
-	}
-
-	/**
-	 * The metatype for all set types.
-	 */
-	private static @Nullable A_Type meta;
-
-	/**
-	 * Answer the metatype for all set types.
-	 *
-	 * @return The statically referenced metatype.
-	 */
-	public static A_Type meta ()
-	{
-		final A_Type type = meta;
-		assert type != null;
-		return type;
-	}
-
-	/**
-	 * Create objects statically well-known to the {@linkplain AvailRuntime
-	 * Avail runtime}.
-	 */
-	public static void createWellKnownObjects ()
-	{
-		mostGeneralType = setTypeForSizesContentType(
-				IntegerRangeTypeDescriptor.wholeNumbers(),
-				ANY.o()
-			).makeShared();
-		meta = InstanceMetaDescriptor.on(mostGeneralType());
-	}
-
-	/**
-	 * Destroy or reset objects statically well-known to the {@linkplain
-	 * AvailRuntime Avail runtime}.
-	 */
-	public static void clearWellKnownObjects ()
-	{
-		mostGeneralType = null;
-		meta = null;
-	}
-
 	/**
 	 * Create a set type with the given range of sizes and content type.
 	 *
@@ -407,5 +351,36 @@ extends TypeDescriptor
 	SetTypeDescriptor shared ()
 	{
 		return shared;
+	}
+
+	/** The most general set type. */
+	private static final A_Type mostGeneralType = setTypeForSizesContentType(
+		IntegerRangeTypeDescriptor.wholeNumbers(),
+		ANY.o()).makeShared();
+
+	/**
+	 * Answer the most general set type.
+	 *
+	 * @return The most general set type.
+	 */
+	public static A_Type mostGeneralType ()
+	{
+		return mostGeneralType;
+	}
+
+	/**
+	 * The metatype for all set types.
+	 */
+	private static final A_Type meta =
+		InstanceMetaDescriptor.on(mostGeneralType);
+
+	/**
+	 * Answer the metatype for all set types.
+	 *
+	 * @return The statically referenced metatype.
+	 */
+	public static A_Type meta ()
+	{
+		return meta;
 	}
 }

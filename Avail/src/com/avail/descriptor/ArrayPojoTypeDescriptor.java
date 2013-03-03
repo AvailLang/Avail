@@ -34,6 +34,7 @@ package com.avail.descriptor;
 
 import static com.avail.descriptor.ArrayPojoTypeDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.ArrayPojoTypeDescriptor.ObjectSlots.*;
+import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import java.io.Serializable;
 import java.lang.reflect.Array;
 import java.util.List;
@@ -424,6 +425,36 @@ extends PojoTypeDescriptor
 	}
 
 	/**
+	 * The {@linkplain MapDescriptor map} used by {@linkplain
+	 * ArrayPojoTypeDescriptor array pojo types}.  Note that this map does not
+	 * contain the entry for {@link PojoArray}, as this has to be specialized
+	 * per pojo array type.
+	 */
+	private static @Nullable A_Map arrayBaseAncestorMap;
+
+	static
+	{
+		A_Map javaAncestors = MapDescriptor.empty();
+		javaAncestors = javaAncestors.mapAtPuttingCanDestroy(
+			RawPojoDescriptor.rawObjectClass(),
+			TupleDescriptor.empty(),
+			true);
+		javaAncestors = javaAncestors.mapAtPuttingCanDestroy(
+			RawPojoDescriptor.equalityWrap(Cloneable.class),
+			TupleDescriptor.empty(),
+			true);
+		javaAncestors = javaAncestors.mapAtPuttingCanDestroy(
+			RawPojoDescriptor.equalityWrap(Serializable.class),
+			TupleDescriptor.empty(),
+			true);
+		arrayBaseAncestorMap = javaAncestors.makeShared();
+	}
+
+	/** The most general {@linkplain PojoTypeDescriptor pojo array type}. */
+	static final A_Type mostGeneralType = forArrayTypeWithSizeRange(
+		ANY.o(), IntegerRangeTypeDescriptor.wholeNumbers()).makeShared();
+
+	/**
 	 * Create a new {@link AvailObject} that represents a {@linkplain
 	 * ArrayPojoTypeDescriptor pojo array type}.
 	 *
@@ -443,7 +474,7 @@ extends PojoTypeDescriptor
 		final A_Type elementType,
 		final A_Type sizeRange)
 	{
-		A_Map javaAncestors = PojoTypeDescriptor.arrayBaseAncestorMap();
+		A_Map javaAncestors = arrayBaseAncestorMap;
 		javaAncestors = javaAncestors.mapAtPuttingCanDestroy(
 			RawPojoDescriptor.equalityWrap(PojoArray.class),
 			TupleDescriptor.from(elementType),

@@ -279,7 +279,7 @@ extends TypeDescriptor
 		final Types primitiveTypeEnum)
 	{
 		final boolean[] row =
-			TypeDescriptor.supertypeTable[primitiveTypeEnum.ordinal()];
+			TypeDescriptor.Types.supertypeTable[primitiveTypeEnum.ordinal()];
 		return row[object.slot(PRIMITIVE_TYPE_ORDINAL)];
 	}
 
@@ -382,7 +382,6 @@ extends TypeDescriptor
 					case MODULE:
 					case NONTYPE:
 					case NUMBER:
-					case POWER_STRING_TOKEN:
 					case RAW_POJO:
 					case DEFINITION:
 					case TOKEN:

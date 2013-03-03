@@ -558,62 +558,6 @@ extends TypeDescriptor
 	}
 
 	/**
-	 * The most general {@linkplain FunctionTypeDescriptor function type}.
-	 */
-	private static @Nullable A_Type mostGeneralType;
-
-	/**
-	 * Answer the top (i.e., most general) {@linkplain FunctionTypeDescriptor
-	 * function type}.
-	 *
-	 * @return The function type "[...]->top".
-	 */
-	public static A_Type mostGeneralType ()
-	{
-		final A_Type type = mostGeneralType;
-		assert type != null;
-		return type;
-	}
-
-	/**
-	 * The metatype of any function types.
-	 */
-	private static @Nullable A_Type meta;
-
-	/**
-	 * Answer the metatype for all function types.  This is just an {@linkplain
-	 * InstanceTypeDescriptor instance type} on the {@linkplain
-	 * #mostGeneralType() most general type}.
-	 *
-	 * @return The function type "[...]->top".
-	 */
-	public static A_Type meta ()
-	{
-		final A_Type type = meta;
-		assert type != null;
-		return type;
-	}
-
-	/**
-	 * Create the top (i.e., most general) {@linkplain FunctionTypeDescriptor
-	 * function type}.
-	 */
-	static void createWellKnownObjects ()
-	{
-		mostGeneralType = forReturnType(TOP.o()).makeShared();
-		meta = InstanceMetaDescriptor.on(mostGeneralType()).makeShared();
-	}
-
-	/**
-	 * Clear any static references to publicly accessible objects.
-	 */
-	static void clearWellKnownObjects ()
-	{
-		mostGeneralType = null;
-		meta = null;
-	}
-
-	/**
 	 * Construct a new {@link FunctionTypeDescriptor}.
 	 *
 	 * @param mutability
@@ -653,6 +597,41 @@ extends TypeDescriptor
 	FunctionTypeDescriptor shared ()
 	{
 		return shared;
+	}
+
+	/**
+	 * The most general {@linkplain FunctionTypeDescriptor function type}.
+	 */
+	private static final A_Type mostGeneralType =
+		forReturnType(TOP.o()).makeShared();
+
+	/**
+	 * Answer the top (i.e., most general) {@linkplain FunctionTypeDescriptor
+	 * function type}.
+	 *
+	 * @return The function type "[...]->top".
+	 */
+	public static A_Type mostGeneralType ()
+	{
+		return mostGeneralType;
+	}
+
+	/**
+	 * The metatype of any function types.
+	 */
+	private static final A_Type meta =
+		InstanceMetaDescriptor.on(mostGeneralType).makeShared();
+
+	/**
+	 * Answer the metatype for all function types.  This is just an {@linkplain
+	 * InstanceTypeDescriptor instance type} on the {@linkplain
+	 * #mostGeneralType() most general type}.
+	 *
+	 * @return The function type "[...]->top".
+	 */
+	public static A_Type meta ()
+	{
+		return meta;
 	}
 
 	/**

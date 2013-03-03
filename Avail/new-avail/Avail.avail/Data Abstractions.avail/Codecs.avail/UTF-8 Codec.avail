@@ -132,7 +132,7 @@ Method "utf-_decode_from_" is
  |
 	leadingByte : byte := 31 bit∧ accumulator[1];
 	secondByte : byte := transform accumulator[2] as a UTF8 continuation byte;
-	leadingByte << 6 + secondByte → character
+	(leadingByte << 6) + secondByte → character
 ]:character;
 
 /**
@@ -160,7 +160,7 @@ Method "utf-_decode_from_" is
 	leadingByte : byte := 15 bit∧ accumulator[1];
 	secondByte : byte := transform accumulator[2] as a UTF8 continuation byte;
 	thirdByte : byte := transform accumulator[3] as a UTF8 continuation byte;
-	leadingByte << 12 + secondByte << 6 + thirdByte → character
+	(leadingByte << 12) + (secondByte << 6) + thirdByte → character
 ]:character;
 
 /**

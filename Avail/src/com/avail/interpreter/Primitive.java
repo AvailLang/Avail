@@ -353,21 +353,6 @@ implements IntegerEnumSlotDescriptionEnum
 	}
 
 	/**
-	 * Clear all cached block type restrictions and failure variable types.
-	 */
-	public static void clearCachedData ()
-	{
-		for (final Primitive primitive : byPrimitiveNumber)
-		{
-			if (primitive != null)
-			{
-				primitive.cachedBlockTypeRestriction = null;
-				primitive.cachedFailureVariableType = null;
-			}
-		}
-	}
-
-	/**
 	 * This primitive's number.  The Avail source code refers to this primitive
 	 * by number.
 	 */

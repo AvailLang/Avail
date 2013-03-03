@@ -37,7 +37,6 @@ import static com.avail.descriptor.TypeDescriptor.Types.RAW_POJO;
 import java.lang.ref.*;
 import java.util.*;
 import java.util.concurrent.locks.ReentrantLock;
-import com.avail.AvailRuntime;
 import com.avail.annotations.*;
 
 /**
@@ -78,7 +77,8 @@ extends Descriptor
 		 * {@linkplain RawPojoDescriptor Avail pojos} will be placed when the
 		 * Java garbage collector reclaims them.
 		 */
-		static @Nullable ReferenceQueue<AvailObject> recyclingQueue;
+		static @Nullable ReferenceQueue<AvailObject> recyclingQueue =
+			new ReferenceQueue<AvailObject>();
 
 		/**
 		 * The {@linkplain RawPojoDescriptor.IntegerSlots#INDEX index} of
@@ -125,67 +125,6 @@ extends Descriptor
 	 * tables.
 	 */
 	protected static final ReentrantLock pojosLock = new ReentrantLock();
-
-	/**
-	 * A {@linkplain RawPojoDescriptor raw pojo} for {@link Object}'s
-	 * {@linkplain Class class}.
-	 */
-	private static @Nullable AvailObject rawObjectClass;
-
-	/**
-	 * Answer a {@linkplain RawPojoDescriptor raw pojo} for {@link Object}'s
-	 * {@linkplain Class class}.
-	 *
-	 * @return A raw pojo that represents {@code Object}.
-	 */
-	public static AvailObject rawObjectClass ()
-	{
-		final AvailObject cls = rawObjectClass;
-		assert cls != null;
-		return cls;
-	}
-
-	/** The {@code null} {@linkplain PojoDescriptor pojo}. */
-	private static @Nullable AvailObject rawNullObject;
-
-	/**
-	 * Answer the {@code null} {@linkplain RawPojoDescriptor pojo}.
-	 *
-	 * @return The {@code null} pojo.
-	 */
-	public static AvailObject rawNullObject ()
-	{
-		final AvailObject nullObj = rawNullObject;
-		assert nullObj != null;
-		return nullObj;
-	}
-
-	/**
-	 * Create any instances statically well-known to the {@linkplain
-	 * AvailRuntime Avail runtime system}.
-	 */
-	public static void createWellKnownObjects ()
-	{
-		assert allPojosStrongly.isEmpty();
-		assert allPojosWeakly.isEmpty();
-		assert WeakPojoReference.recyclingQueue == null;
-		WeakPojoReference.recyclingQueue = new ReferenceQueue<AvailObject>();
-		rawObjectClass = equalityWrap(Object.class).makeShared();
-		rawNullObject = identityWrap(null).makeShared();
-	}
-
-	/**
-	 * Destroy or reset any instances statically well-known to the {@linkplain
-	 * AvailRuntime Avail runtime system}.
-	 */
-	public static void clearWellKnownObjects ()
-	{
-		allPojosStrongly.clear();
-		allPojosWeakly.clear();
-		WeakPojoReference.recyclingQueue = null;
-		rawObjectClass = null;
-		rawNullObject = null;
-	}
 
 	/**
 	 * Compact the {@linkplain #allPojosStrongly strong} and {@linkplain
@@ -490,6 +429,38 @@ extends Descriptor
 	RawPojoDescriptor shared ()
 	{
 		return shared;
+	}
+
+	/**
+	 * A {@linkplain RawPojoDescriptor raw pojo} for {@link Object}'s
+	 * {@linkplain Class class}.
+	 */
+	private static final AvailObject rawObjectClass =
+		equalityWrap(Object.class).makeShared();
+
+	/**
+	 * Answer a {@linkplain RawPojoDescriptor raw pojo} for {@link Object}'s
+	 * {@linkplain Class class}.
+	 *
+	 * @return A raw pojo that represents {@code Object}.
+	 */
+	public static AvailObject rawObjectClass ()
+	{
+		return rawObjectClass;
+	}
+
+	/** The {@code null} {@linkplain PojoDescriptor pojo}. */
+	private static final AvailObject rawNullObject =
+		identityWrap(null).makeShared();
+
+	/**
+	 * Answer the {@code null} {@linkplain RawPojoDescriptor pojo}.
+	 *
+	 * @return The {@code null} pojo.
+	 */
+	public static AvailObject rawNullObject ()
+	{
+		return rawNullObject;
 	}
 
 	/**

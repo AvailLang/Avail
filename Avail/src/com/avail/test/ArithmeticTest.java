@@ -45,26 +45,6 @@ import com.avail.descriptor.*;
 public final class ArithmeticTest
 {
 	/**
-	 * Test fixture: clear and then create all special objects well-known to the
-	 * Avail runtime.
-	 */
-	@BeforeClass
-	public static void initializeAllWellKnownObjects ()
-	{
-		AvailObject.clearAllWellKnownObjects();
-		AvailObject.createAllWellKnownObjects();
-	}
-
-	/**
-	 * Test fixture: clear all special objects.
-	 */
-	@AfterClass
-	public static void clearAllWellKnownObjects ()
-	{
-		AvailObject.clearAllWellKnownObjects();
-	}
-
-	/**
 	 * An array of doubles with which to test the arithmetic primitives.
 	 */
 	static final double[] sampleDoubles =

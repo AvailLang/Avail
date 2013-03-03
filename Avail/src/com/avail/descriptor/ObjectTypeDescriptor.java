@@ -541,138 +541,6 @@ extends TypeDescriptor
 	{
 		return namesAndBaseTypesForType(anObjectType).tupleAt(2);
 	}
-
-	/**
-	 * The most general {@linkplain ObjectTypeDescriptor object type}.
-	 */
-	private static @Nullable A_Type mostGeneralType;
-
-	/**
-	 * Answer the top (i.e., most general) {@linkplain ObjectTypeDescriptor
-	 * object type}.
-	 *
-	 * @return The object type that makes no constraints on its fields.
-	 */
-	public static A_Type mostGeneralType ()
-	{
-		final A_Type type = mostGeneralType;
-		assert type != null;
-		return type;
-	}
-
-	/**
-	 * The metatype of all object types.
-	 */
-	private static @Nullable A_Type meta;
-
-	/**
-	 * Answer the metatype for all object types.  This is just an {@linkplain
-	 * InstanceTypeDescriptor instance type} on the {@linkplain
-	 * #mostGeneralType() most general type}.
-	 *
-	 * @return The type of the most general object type.
-	 */
-	public static A_Type meta ()
-	{
-		final A_Type type = meta;
-		assert type != null;
-		return type;
-	}
-
-	/**
-	 * The {@linkplain AtomDescriptor atom} that identifies the {@linkplain
-	 * #exceptionType exception type}.
-	 */
-	private static @Nullable A_Atom exceptionAtom;
-
-	/**
-	 * Answer the {@linkplain AtomDescriptor atom} that identifies the
-	 * {@linkplain #exceptionType() exception type}.
-	 *
-	 * @return The special exception atom.
-	 */
-	public static A_Atom exceptionAtom ()
-	{
-		final A_Atom atom = exceptionAtom;
-		assert atom != null;
-		return atom;
-	}
-
-	/**
-	 * The {@linkplain AtomDescriptor atom} that identifies the {@linkplain
-	 * AtomDescriptor stack dump field} of an {@link #exceptionType() exception
-	 * type}.
-	 */
-	private static @Nullable A_Atom stackDumpAtom;
-
-	/**
-	 * Answer the {@linkplain AtomDescriptor atom} that identifies the
-	 * {@linkplain AtomDescriptor stack dump field} of an {@link
-	 * #exceptionType() exception type}.
-	 *
-	 * @return The special stack dump atom.
-	 */
-	public static A_Atom stackDumpAtom ()
-	{
-		final A_Atom atom = stackDumpAtom;
-		assert atom != null;
-		return atom;
-	}
-
-	/**
-	 * The most general exception type.
-	 */
-	private static @Nullable A_Type exceptionType;
-
-	/**
-	 * Answer the most general exception type. This is just an {@linkplain
-	 * InstanceTypeDescriptor instance type} on an {@linkplain
-	 * ObjectTypeDescriptor object type} that contains a well-known {@linkplain
-	 * #exceptionAtom() atom}.
-	 *
-	 * @return The most general exception type.
-	 */
-	public static A_Type exceptionType ()
-	{
-		final A_Type type = exceptionType;
-		assert type != null;
-		return type;
-	}
-
-	/**
-	 * Create the top (i.e., most general) {@linkplain ObjectTypeDescriptor
-	 * object type}.
-	 */
-	static void createWellKnownObjects ()
-	{
-		mostGeneralType = objectTypeFromMap(MapDescriptor.empty()).makeShared();
-		meta = InstanceMetaDescriptor.on(mostGeneralType()).makeShared();
-		exceptionAtom = AtomDescriptor.create(
-			StringDescriptor.from("explicit-exception"),
-			NilDescriptor.nil());
-		final A_Type type = objectTypeFromTuple(
-			TupleDescriptor.from(
-				TupleDescriptor.from(
-					exceptionAtom,
-					InstanceTypeDescriptor.on(exceptionAtom()))));
-		setNameForType(type, StringDescriptor.from("exception"));
-		exceptionType = type.makeShared();
-		stackDumpAtom = AtomDescriptor.createSpecialAtom(
-			StringDescriptor.from("stack dump"));
-	}
-
-	/**
-	 * Clear any static references to publicly accessible objects.
-	 */
-	static void clearWellKnownObjects ()
-	{
-		mostGeneralType = null;
-		meta = null;
-		exceptionAtom = null;
-		exceptionType = null;
-		stackDumpAtom = null;
-	}
-
 	/**
 	 * Construct a new {@link ObjectTypeDescriptor}.
 	 *
@@ -709,5 +577,110 @@ extends TypeDescriptor
 	ObjectTypeDescriptor shared ()
 	{
 		return shared;
+	}
+
+
+	/**
+	 * The most general {@linkplain ObjectTypeDescriptor object type}.
+	 */
+	private static final A_Type mostGeneralType =
+		objectTypeFromMap(MapDescriptor.empty()).makeShared();
+
+	/**
+	 * Answer the top (i.e., most general) {@linkplain ObjectTypeDescriptor
+	 * object type}.
+	 *
+	 * @return The object type that makes no constraints on its fields.
+	 */
+	public static A_Type mostGeneralType ()
+	{
+		return mostGeneralType;
+	}
+
+	/**
+	 * The metatype of all object types.
+	 */
+	private static final A_Type meta =
+		InstanceMetaDescriptor.on(mostGeneralType).makeShared();
+
+	/**
+	 * Answer the metatype for all object types.  This is just an {@linkplain
+	 * InstanceTypeDescriptor instance type} on the {@linkplain
+	 * #mostGeneralType() most general type}.
+	 *
+	 * @return The type of the most general object type.
+	 */
+	public static A_Type meta ()
+	{
+		return meta;
+	}
+
+	/**
+	 * The {@linkplain AtomDescriptor atom} that identifies the {@linkplain
+	 * #exceptionType exception type}.
+	 */
+	private static final A_Atom exceptionAtom =
+		AtomDescriptor.create(
+			StringDescriptor.from("explicit-exception"),
+			NilDescriptor.nil());
+
+	/**
+	 * Answer the {@linkplain AtomDescriptor atom} that identifies the
+	 * {@linkplain #exceptionType() exception type}.
+	 *
+	 * @return The special exception atom.
+	 */
+	public static A_Atom exceptionAtom ()
+	{
+		return exceptionAtom;
+	}
+
+	/**
+	 * The {@linkplain AtomDescriptor atom} that identifies the {@linkplain
+	 * AtomDescriptor stack dump field} of an {@link #exceptionType() exception
+	 * type}.
+	 */
+	private static final A_Atom stackDumpAtom =
+		AtomDescriptor.createSpecialAtom(StringDescriptor.from("stack dump"));
+
+	/**
+	 * Answer the {@linkplain AtomDescriptor atom} that identifies the
+	 * {@linkplain AtomDescriptor stack dump field} of an {@link
+	 * #exceptionType() exception type}.
+	 *
+	 * @return The special stack dump atom.
+	 */
+	public static A_Atom stackDumpAtom ()
+	{
+		return stackDumpAtom;
+	}
+
+	/**
+	 * The most general exception type.
+	 */
+	private static final A_Type exceptionType;
+
+	static
+	{
+		final A_Type type = objectTypeFromTuple(
+			TupleDescriptor.from(
+				TupleDescriptor.from(
+					exceptionAtom,
+					InstanceTypeDescriptor.on(exceptionAtom))));
+		setNameForType(type, StringDescriptor.from("exception"));
+		exceptionType = type.makeShared();
+	}
+
+	/**
+	 * Answer the most general exception type. This is just an {@linkplain
+	 * InstanceTypeDescriptor instance type} on an {@linkplain
+	 * ObjectTypeDescriptor object type} that contains a well-known {@linkplain
+	 * #exceptionAtom() atom}.
+	 *
+	 * @return The most general exception type.
+	 */
+	public static A_Type exceptionType ()
+	{
+		return exceptionType;
 	}
 }

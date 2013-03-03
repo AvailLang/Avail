@@ -238,66 +238,6 @@ extends TypeDescriptor
 	}
 
 	/**
-	 * The most general compiled code type. Since compiled code types are
-	 * contravariant by argument types and contravariant by return type, the
-	 * most general type is the one taking bottom as the arguments list
-	 * (i.e., not specific enough to be able to call it), and having the return
-	 * type bottom.
-	 */
-	private static @Nullable A_Type mostGeneralType;
-
-	/**
-	 * Answer the most general {@linkplain CompiledCodeTypeDescriptor compiled
-	 * code type}.
-	 *
-	 * @return A {@linkplain CompiledCodeTypeDescriptor compiled code type}
-	 *         which has no supertypes that are themselves compiled code types.
-	 */
-	public static A_Type mostGeneralType ()
-	{
-		final A_Type type = mostGeneralType;
-		assert type != null;
-		return type;
-	}
-
-	/**
-	 * The metatype for all compiled code types. In particular, it's just the
-	 * {@linkplain InstanceTypeDescriptor instance type} for the {@linkplain
-	 * #mostGeneralType most general compiled code type}.
-	 */
-	private static @Nullable A_Type meta;
-
-	/**
-	 * Answer the metatype for all compiled code types.
-	 *
-	 * @return The statically referenced metatype.
-	 */
-	public static A_Type meta ()
-	{
-		final A_Type type = meta;
-		assert type != null;
-		return type;
-	}
-
-	/**
-	 * Create all well-known compiled code types.
-	 */
-	public static void createWellKnownObjects ()
-	{
-		mostGeneralType = forFunctionType(
-			FunctionTypeDescriptor.mostGeneralType()).makeShared();
-		meta = InstanceMetaDescriptor.on(mostGeneralType()).makeShared();
-	}
-
-	/**
-	 * Discard all well-known compiled code types.
-	 */
-	public static void clearWellKnownObjects ()
-	{
-		mostGeneralType = null;
-		meta = null;
-	}
-	/**
 	 * Construct a new {@link CompiledCodeTypeDescriptor}.
 	 *
 	 * @param mutability
@@ -333,5 +273,45 @@ extends TypeDescriptor
 	TypeDescriptor shared ()
 	{
 		return shared;
+	}
+
+	/**
+	 * The most general compiled code type. Since compiled code types are
+	 * contravariant by argument types and contravariant by return type, the
+	 * most general type is the one taking bottom as the arguments list
+	 * (i.e., not specific enough to be able to call it), and having the return
+	 * type bottom.
+	 */
+	private static final A_Type mostGeneralType = forFunctionType(
+		FunctionTypeDescriptor.mostGeneralType()).makeShared();
+
+	/**
+	 * Answer the most general {@linkplain CompiledCodeTypeDescriptor compiled
+	 * code type}.
+	 *
+	 * @return A {@linkplain CompiledCodeTypeDescriptor compiled code type}
+	 *         which has no supertypes that are themselves compiled code types.
+	 */
+	public static A_Type mostGeneralType ()
+	{
+		return mostGeneralType;
+	}
+
+	/**
+	 * The metatype for all compiled code types. In particular, it's just the
+	 * {@linkplain InstanceTypeDescriptor instance type} for the {@linkplain
+	 * #mostGeneralType most general compiled code type}.
+	 */
+	private static final A_Type meta =
+		InstanceMetaDescriptor.on(mostGeneralType).makeShared();
+
+	/**
+	 * Answer the metatype for all compiled code types.
+	 *
+	 * @return The statically referenced metatype.
+	 */
+	public static A_Type meta ()
+	{
+		return meta;
 	}
 }

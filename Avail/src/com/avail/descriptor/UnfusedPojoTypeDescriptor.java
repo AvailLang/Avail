@@ -538,6 +538,10 @@ extends PojoTypeDescriptor
 		return shared;
 	}
 
+	/** The most general {@linkplain PojoTypeDescriptor pojo type}. */
+	static final A_Type mostGeneralType =
+		forClass(Object.class).makeShared();
+
 	/**
 	 * Create a new {@link AvailObject} that represents an {@linkplain
 	 * UnfusedPojoTypeDescriptor unparameterized pojo type}.

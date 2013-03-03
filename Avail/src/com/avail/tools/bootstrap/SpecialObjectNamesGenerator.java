@@ -48,13 +48,6 @@ import com.avail.descriptor.AvailObject;
 public final class SpecialObjectNamesGenerator
 extends PropertiesFileGenerator
 {
-	/* Initialize Avail. */
-	static
-	{
-		AvailObject.clearAllWellKnownObjects();
-		AvailObject.createAllWellKnownObjects();
-	}
-
 	/**
 	 * Write the names of the properties, whose unspecified values should be
 	 * the Avail names of the corresponding special objects.

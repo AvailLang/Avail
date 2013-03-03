@@ -76,8 +76,6 @@ public final class SerializerTest
 	@BeforeClass
 	public static void initializeAllWellKnownObjects ()
 	{
-		AvailObject.clearAllWellKnownObjects();
-		AvailObject.createAllWellKnownObjects();
 		final ModuleRoots roots = new ModuleRoots(
 			"avail=" + new File("avail").getAbsolutePath());
 		final RenamesFileParser parser =
@@ -104,7 +102,6 @@ public final class SerializerTest
 		assert theRuntime != null;
 		theRuntime.destroy();
 		runtime = null;
-		AvailObject.clearAllWellKnownObjects();
 	}
 
 	/**

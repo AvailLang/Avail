@@ -250,40 +250,6 @@ extends ParseNodeDescriptor
 	}
 
 	/**
-	 * The empty {@link ListNodeDescriptor list node}.
-	 */
-	private static @Nullable AvailObject empty;
-
-
-	/**
-	 * Answer the empty {@link ListNodeDescriptor list node}.
-	 *
-	 * @return The empty list node.
-	 */
-	public static AvailObject empty ()
-	{
-		final AvailObject list = empty;
-		assert list != null;
-		return list;
-	}
-
-	/**
-	 * Create the empty {@link ListNodeDescriptor list node}.
-	 */
-	static void createWellKnownObjects ()
-	{
-		empty = newExpressions(TupleDescriptor.empty()).makeShared();
-	}
-
-	/**
-	 * Discard the empty {@link ListNodeDescriptor list node}.
-	 */
-	static void clearWellKnownObjects ()
-	{
-		empty = null;
-	}
-
-	/**
 	 * Create a new {@linkplain ListNodeDescriptor list node} from the given
 	 * {@linkplain TupleDescriptor tuple} of {@linkplain ParseNodeDescriptor
 	 * expressions}.
@@ -331,5 +297,19 @@ extends ParseNodeDescriptor
 	ListNodeDescriptor shared ()
 	{
 		return shared;
+	}
+
+	/** The empty {@link ListNodeDescriptor list node}. */
+	private static final AvailObject empty =
+		newExpressions(TupleDescriptor.empty()).makeShared();
+
+	/**
+	 * Answer the empty {@link ListNodeDescriptor list node}.
+	 *
+	 * @return The empty list node.
+	 */
+	public static AvailObject empty ()
+	{
+		return empty;
 	}
 }

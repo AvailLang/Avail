@@ -64,7 +64,6 @@ extends AbstractNumberDescriptor
 		HIGH_INT
 	}
 
-
 	/**
 	 * Extract the Java {@code double} from the argument, an {@link
 	 * DoubleDescriptor Avail double}.
@@ -725,7 +724,7 @@ extends AbstractNumberDescriptor
 	 *
 	 * @return The Avail object for double-precision positive infinity.
 	 */
-	static A_Number positiveInfinity ()
+	public static A_Number positiveInfinity ()
 	{
 		return Sign.POSITIVE.limitDoubleObject();
 	}
@@ -735,7 +734,7 @@ extends AbstractNumberDescriptor
 	 *
 	 * @return The Avail object for double-precision negative infinity.
 	 */
-	static A_Number negativeInfinity ()
+	public static A_Number negativeInfinity ()
 	{
 		return Sign.NEGATIVE.limitDoubleObject();
 	}
@@ -745,7 +744,7 @@ extends AbstractNumberDescriptor
 	 *
 	 * @return The Avail object for double-precision not-a-number.
 	 */
-	static A_Number notANumber ()
+	public static A_Number notANumber ()
 	{
 		return Sign.INDETERMINATE.limitDoubleObject();
 	}
@@ -755,37 +754,10 @@ extends AbstractNumberDescriptor
 	 *
 	 * @return The Avail object for double-precision (positive) zero.
 	 */
-	static A_Number zero ()
+	public static A_Number zero ()
 	{
 		return Sign.ZERO.limitDoubleObject();
 	}
-
-	/**
-	 * Create the {@code double} special values.
-	 */
-	static void createWellKnownObjects ()
-	{
-		Sign.POSITIVE.limitDoubleObject =
-			privateDouble(Double.POSITIVE_INFINITY).makeShared();
-		Sign.NEGATIVE.limitDoubleObject =
-			privateDouble(Double.NEGATIVE_INFINITY).makeShared();
-		Sign.INDETERMINATE.limitDoubleObject =
-			privateDouble(Double.NaN).makeShared();
-		Sign.ZERO.limitDoubleObject =
-			privateDouble(0.0d).makeShared();
-	}
-
-	/**
-	 * Release the special {@code double} values.
-	 */
-	static void clearWellKnownObjects ()
-	{
-		Sign.POSITIVE.limitDoubleObject = null;
-		Sign.NEGATIVE.limitDoubleObject = null;
-		Sign.INDETERMINATE.limitDoubleObject = null;
-		Sign.ZERO.limitDoubleObject = null;
-	}
-
 
 	/**
 	 * Construct a new {@link DoubleDescriptor}.
@@ -826,5 +798,17 @@ extends AbstractNumberDescriptor
 	DoubleDescriptor shared ()
 	{
 		return shared;
+	}
+
+	static
+	{
+		Sign.POSITIVE.limitDoubleObject =
+			privateDouble(Double.POSITIVE_INFINITY).makeShared();
+		Sign.NEGATIVE.limitDoubleObject =
+			privateDouble(Double.NEGATIVE_INFINITY).makeShared();
+		Sign.INDETERMINATE.limitDoubleObject =
+			privateDouble(Double.NaN).makeShared();
+		Sign.ZERO.limitDoubleObject =
+			privateDouble(0.0d).makeShared();
 	}
 }

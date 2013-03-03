@@ -540,39 +540,6 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	/**
-	 * The unique object that represents the type with no instances.
-	 */
-	private static @Nullable A_Type bottom;
-
-	/**
-	 * Answer the unique type that has no instances.
-	 *
-	 * @return The type {@code bottom}.
-	 */
-	public static A_Type bottom ()
-	{
-		final A_Type b = bottom;
-		assert b != null;
-		return b;
-	}
-
-	/**
-	 * Create the unique object that represents the type with no instances.
-	 */
-	static void createWellKnownObjects ()
-	{
-		bottom = shared.create();
-	}
-
-	/**
-	 * Discard any statically held objects.
-	 */
-	static void clearWellKnownObjects ()
-	{
-		bottom = null;
-	}
-
-	/**
 	 * Construct a new {@link BottomTypeDescriptor}.
 	 */
 	private BottomTypeDescriptor ()
@@ -600,5 +567,20 @@ extends AbstractEnumerationTypeDescriptor
 	BottomTypeDescriptor shared ()
 	{
 		return shared;
+	}
+
+	/**
+	 * The unique object that represents the type with no instances.
+	 */
+	private static final A_Type bottom = shared.create();
+
+	/**
+	 * Answer the unique type that has no instances.
+	 *
+	 * @return The type {@code bottom}.
+	 */
+	public static A_Type bottom ()
+	{
+		return bottom;
 	}
 }

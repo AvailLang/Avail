@@ -602,24 +602,9 @@ extends Descriptor
 	}
 
 	/** The empty set. */
-	private static @Nullable A_Set emptySet;
+	private static final A_Set emptySet;
 
-	/**
-	 * Answer the empty set.
-	 *
-	 * @return The empty set.
-	 */
-	public static A_Set empty ()
-	{
-		final A_Set set = emptySet;
-		assert set != null;
-		return set;
-	}
-
-	/**
-	 * Initialize the {@link #emptySet} static in addition to the usual statics.
-	 */
-	static void createWellKnownObjects ()
+	static
 	{
 		final A_Set set = mutable.create();
 		setRootBin(set, NilDescriptor.nil());
@@ -628,10 +613,12 @@ extends Descriptor
 	}
 
 	/**
-	 * Clear the {@link #emptySet} static in addition to the usual statics.
+	 * Answer the empty set.
+	 *
+	 * @return The empty set.
 	 */
-	static void clearWellKnownObjects ()
+	public static A_Set empty ()
 	{
-		emptySet = null;
+		return emptySet;
 	}
 }

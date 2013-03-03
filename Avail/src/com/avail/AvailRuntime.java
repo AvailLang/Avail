@@ -616,10 +616,7 @@ public final class AvailRuntime
 		return set.contains(atom);
 	}
 
-	/**
-	 * Set up the special objects table.
-	 */
-	public static void createWellKnownObjects ()
+	static
 	{
 		// Set up the special objects.
 		final A_BasicObject[] specials =
@@ -913,16 +910,6 @@ public final class AvailRuntime
 				specialAtoms[i] = object.makeShared();
 			}
 		}
-	}
-
-	/**
-	 * Release any statically held objects.
-	 */
-	public static void clearWellKnownObjects ()
-	{
-		Arrays.fill(specialObjects, null);
-		Arrays.fill(specialAtoms, null);
-		specialAtomsSet = null;
 	}
 
 	/**
@@ -1588,6 +1575,5 @@ public final class AvailRuntime
 		modules = null;
 		methods = null;
 		allBundles = null;
-		clearWellKnownObjects();
 	}
 }

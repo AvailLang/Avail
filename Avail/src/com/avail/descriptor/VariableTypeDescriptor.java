@@ -311,7 +311,9 @@ extends TypeDescriptor
 	 * The most general {@linkplain ReadWriteVariableTypeDescriptor variable
 	 * type}.
 	 */
-	private static @Nullable A_Type mostGeneralType;
+	private static final A_Type mostGeneralType = fromReadAndWriteTypes(
+		TOP.o(),
+		BottomTypeDescriptor.bottom()).makeShared();
 
 	/**
 	 * Answer the most general {@linkplain ReadWriteVariableTypeDescriptor
@@ -322,16 +324,15 @@ extends TypeDescriptor
 	 */
 	public static A_Type mostGeneralType ()
 	{
-		final A_Type type = mostGeneralType;
-		assert type != null;
-		return type;
+		return mostGeneralType;
 	}
 
 	/**
 	 * The (instance) type of the most general {@linkplain
 	 * ReadWriteVariableTypeDescriptor variable} metatype.
 	 */
-	private static @Nullable A_Type meta;
+	private static final A_Type meta =
+		InstanceMetaDescriptor.on(mostGeneralType).makeShared();
 
 	/**
 	 * Answer the (instance) type of the most general {@linkplain
@@ -343,29 +344,6 @@ extends TypeDescriptor
 	 */
 	public static A_Type meta ()
 	{
-		final A_Type type = meta;
-		assert type != null;
-		return type;
-	}
-
-	/**
-	 * Forget any registered objects.
-	 */
-	public static void clearWellKnownObjects ()
-	{
-		mostGeneralType = null;
-		meta = null;
-	}
-
-	/**
-	 * Register objects.
-	 */
-	public static void createWellKnownObjects ()
-	{
-		mostGeneralType = fromReadAndWriteTypes(
-				TOP.o(),
-				BottomTypeDescriptor.bottom()
-			).makeShared();
-		meta = InstanceMetaDescriptor.on(mostGeneralType()).makeShared();
+		return meta;
 	}
 }

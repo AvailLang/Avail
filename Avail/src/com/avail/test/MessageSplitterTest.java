@@ -53,27 +53,6 @@ import com.avail.exceptions.SignatureException;
 public class MessageSplitterTest
 {
 	/**
-	 * Test fixture: clear and then create all special objects well-known to the
-	 * Avail runtime.
-	 */
-	@Before
-	public void initializeAllWellKnownObjects ()
-	{
-		AvailObject.clearAllWellKnownObjects();
-		AvailObject.createAllWellKnownObjects();
-	}
-
-	/**
-	 * Test fixture: clear and then create all special objects well-known to the
-	 * Avail runtime.
-	 */
-	@After
-	public void clearAllWellKnownObjects ()
-	{
-		AvailObject.clearAllWellKnownObjects();
-	}
-
-	/**
 	 * This is a helper class for building test cases.
 	 */
 	static class Case

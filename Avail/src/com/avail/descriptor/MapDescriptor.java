@@ -764,7 +764,14 @@ extends Descriptor
 	}
 
 	/** The empty map. */
-	private static @Nullable A_Map emptyMap;
+	private static final A_Map emptyMap;
+
+	static
+	{
+		final A_Map map = createFromBin(NilDescriptor.nil());
+		map.hash();
+		emptyMap = map.makeShared();
+	}
 
 	/**
 	 * Answer the empty map.
@@ -773,26 +780,6 @@ extends Descriptor
 	 */
 	public static A_Map empty ()
 	{
-		final A_Map map = emptyMap;
-		assert map != null;
-		return map;
-	}
-
-	/**
-	 * Initialize the {@link #emptyMap} static in addition to the usual statics.
-	 */
-	static void createWellKnownObjects ()
-	{
-		final A_Map map = createFromBin(NilDescriptor.nil());
-		map.hash();
-		emptyMap = map.makeShared();
-	}
-
-	/**
-	 * Clear the {@link #emptyMap} static in addition to the usual statics.
-	 */
-	static void clearWellKnownObjects ()
-	{
-		emptyMap = null;
+		return emptyMap;
 	}
 }

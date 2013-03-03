@@ -738,66 +738,6 @@ extends Descriptor
 	}
 
 	/**
-	 * The key used to track a method name associated with the code. This
-	 * name is presented in stack traces.
-	 */
-	static @Nullable A_Atom methodNameKeyAtom;
-
-	/**
-	 * Answer the key used to track a method name associated with the code. This
-	 * name is presented in stack traces.
-	 *
-	 * @return A special atom.
-	 */
-	public static A_Atom methodNameKeyAtom ()
-	{
-		final A_Atom atom = methodNameKeyAtom;
-		assert atom != null;
-		return atom;
-	}
-
-	/**
-	 * The key used to track the first line number within the module on which
-	 * this code occurs.
-	 */
-	static @Nullable A_Atom lineNumberKeyAtom;
-
-	/**
-	 * Answer the key used to track the first line number within the module on
-	 * which this code occurs.
-	 *
-	 * @return A special atom.
-	 */
-	public static A_Atom lineNumberKeyAtom ()
-	{
-		final A_Atom atom = lineNumberKeyAtom;
-		assert atom != null;
-		return atom;
-	}
-
-	/**
-	 * Create any statically known {@link AvailObject}s related to compiled
-	 * code.
-	 */
-	static void createWellKnownObjects ()
-	{
-		methodNameKeyAtom = AtomDescriptor.createSpecialAtom(
-			StringDescriptor.from("code method name key"));
-		lineNumberKeyAtom = AtomDescriptor.createSpecialAtom(
-			StringDescriptor.from("code line number key"));
-	}
-
-	/**
-	 * Release any statically known {@link AvailObject}s related to compiled
-	 * code.
-	 */
-	static void clearWellKnownObjects ()
-	{
-		methodNameKeyAtom = null;
-		lineNumberKeyAtom = null;
-	}
-
-	/**
 	 * Construct a new {@link CompiledCodeDescriptor}.
 	 *
 	 * @param mutability
@@ -836,5 +776,43 @@ extends Descriptor
 	CompiledCodeDescriptor shared ()
 	{
 		return shared;
+	}
+
+	/**
+	 * The key used to track a method name associated with the code. This
+	 * name is presented in stack traces.
+	 */
+	private static final A_Atom methodNameKeyAtom =
+		AtomDescriptor.createSpecialAtom(
+			StringDescriptor.from("code method name key"));
+
+	/**
+	 * Answer the key used to track a method name associated with the code. This
+	 * name is presented in stack traces.
+	 *
+	 * @return A special atom.
+	 */
+	public static A_Atom methodNameKeyAtom ()
+	{
+		return methodNameKeyAtom;
+	}
+
+	/**
+	 * The key used to track the first line number within the module on which
+	 * this code occurs.
+	 */
+	private static final A_Atom lineNumberKeyAtom =
+		AtomDescriptor.createSpecialAtom(
+			StringDescriptor.from("code line number key"));
+
+	/**
+	 * Answer the key used to track the first line number within the module on
+	 * which this code occurs.
+	 *
+	 * @return A special atom.
+	 */
+	public static A_Atom lineNumberKeyAtom ()
+	{
+		return lineNumberKeyAtom;
 	}
 }

@@ -1256,21 +1256,21 @@ public class TypeConsistencyTest
 		 * A cache of type unions where I'm the left participant and the right
 		 * participant (a Node) supplies its index for accessing the array.
 		 */
-		private A_Type unionCache[] = new A_Type[0];
+		private A_Type[] unionCache = new A_Type[0];
 
 		/**
 		 * A cache of type intersections where I'm the left participant and the
 		 * right participant (a Node) supplies its index for accessing the
 		 * array.
 		 */
-		private A_Type intersectionCache[] = new A_Type[0];
+		private A_Type[] intersectionCache = new A_Type[0];
 
 		/**
 		 * A cache of subtype tests where I'm the proposed subtype and the
 		 * argument is the proposed supertype.  The value stored indicates if
 		 * I am a subtype of the argument.
 		 */
-		private Boolean subtypeCache[] = new Boolean[0];
+		private Boolean[] subtypeCache = new Boolean[0];
 
 		/**
 		 * Construct a new {@link Node}, capturing a varargs list of known
@@ -1472,8 +1472,6 @@ public class TypeConsistencyTest
 	@BeforeClass
 	public static void initializeAllWellKnownObjects ()
 	{
-		AvailObject.clearAllWellKnownObjects();
-		AvailObject.createAllWellKnownObjects();
 		Node.createTypes();
 		System.out.format("Checking %d types%n", Node.values.size());
 
@@ -1570,7 +1568,6 @@ public class TypeConsistencyTest
 	@AfterClass
 	public static void clearAllWellKnownObjects ()
 	{
-		AvailObject.clearAllWellKnownObjects();
 		Node.eraseTypes();
 	}
 
