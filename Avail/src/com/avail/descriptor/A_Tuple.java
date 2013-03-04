@@ -103,7 +103,7 @@ extends A_BasicObject, Iterable<AvailObject>
 	boolean compareFromToWithByteStringStartingAt (
 		int startIndex1,
 		int endIndex1,
-		AvailObject aByteString,
+		A_String aByteString,
 		int startIndex2);
 
 	/**
@@ -126,7 +126,7 @@ extends A_BasicObject, Iterable<AvailObject>
 	boolean compareFromToWithByteTupleStartingAt (
 		int startIndex1,
 		int endIndex1,
-		AvailObject aByteTuple,
+		A_Tuple aByteTuple,
 		int startIndex2);
 
 	/**
@@ -149,7 +149,7 @@ extends A_BasicObject, Iterable<AvailObject>
 	boolean compareFromToWithNybbleTupleStartingAt (
 		int startIndex1,
 		int endIndex1,
-		AvailObject aNybbleTuple,
+		A_Tuple aNybbleTuple,
 		int startIndex2);
 
 	/**
@@ -172,7 +172,7 @@ extends A_BasicObject, Iterable<AvailObject>
 	boolean compareFromToWithObjectTupleStartingAt (
 		int startIndex1,
 		int endIndex1,
-		AvailObject anObjectTuple,
+		A_Tuple anObjectTuple,
 		int startIndex2);
 
 	/**
@@ -217,7 +217,7 @@ extends A_BasicObject, Iterable<AvailObject>
 	boolean compareFromToWithTwoByteStringStartingAt (
 		int startIndex1,
 		int endIndex1,
-		AvailObject aTwoByteString,
+		A_String aTwoByteString,
 		int startIndex2);
 
 	/**
@@ -352,9 +352,120 @@ extends A_BasicObject, Iterable<AvailObject>
 	 */
 	A_BasicObject subtupleForZone (int zone);
 
-
 	/**
 	 * @return
 	 */
 	public ByteBuffer byteBuffer ();
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	int endOfZone (int zone);
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	int endSubtupleIndexInZone (int zone);
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	A_BasicObject forZoneSetSubtupleStartSubtupleIndexEndOfZone (
+		int zone,
+		AvailObject newSubtuple,
+		int startSubtupleIndex,
+		int endOfZone);
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	void setSubtupleForZoneTo (
+		int zoneIndex,
+		A_Tuple newTuple);
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	int sizeOfZone (int zone);
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	int startOfZone (int zone);
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	int startSubtupleIndexInZone (int zone);
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	int translateToZone (int tupleIndex, int zoneIndex);
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	int zoneForIndex (int index);
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	int numberOfZones ();
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	int bitsPerEntry ();
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	void verify ();
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	void rawNybbleAtPut (int index, byte aNybble);
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	short rawByteAt (int index);
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	void rawByteAtPut (int index, short anInteger);
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	short rawByteForCharacterAt (int index);
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	void rawByteForCharacterAtPut (int index, short anInteger);
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	byte rawNybbleAt (int index);
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	int rawShortForCharacterAt (int index);
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	void rawShortForCharacterAtPut (int index, int anInteger);
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	A_Tuple truncateTo (int newTupleSize);
+
 }

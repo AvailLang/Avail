@@ -112,7 +112,7 @@ extends ParseNodeDescriptor
 		final AvailObject object,
 		final AvailCodeGenerator codeGenerator)
 	{
-		for (final A_BasicObject statement : object.slot(STATEMENTS))
+		for (final A_Phrase statement : object.slot(STATEMENTS))
 		{
 			statement.emitEffectOn(codeGenerator);
 		}
@@ -121,7 +121,7 @@ extends ParseNodeDescriptor
 	@Override @AvailMethod
 	void o_ChildrenMap (
 		final AvailObject object,
-		final Transformer1<AvailObject, AvailObject> aBlock)
+		final Transformer1<A_Phrase, A_Phrase> aBlock)
 	{
 		A_Tuple statements = object.slot(STATEMENTS);
 		for (int i = 1; i <= statements.tupleSize(); i++)
@@ -156,9 +156,9 @@ extends ParseNodeDescriptor
 	@Override @AvailMethod
 	void o_FlattenStatementsInto (
 		final AvailObject object,
-		final List<AvailObject> accumulatedStatements)
+		final List<A_Phrase> accumulatedStatements)
 	{
-		for (final A_BasicObject statement : object.slot(STATEMENTS))
+		for (final A_Phrase statement : object.slot(STATEMENTS))
 		{
 			statement.flattenStatementsInto(accumulatedStatements);
 		}

@@ -56,10 +56,10 @@ public class P_214_BundleHasRestrictions extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
-		final A_BasicObject bundle = args.get(0);
+		final A_Bundle bundle = args.get(0);
 		return interpreter.primitiveSuccess(
 			AtomDescriptor.objectFromBoolean(
-				bundle.message().hasGrammaticalRestrictions()));
+				bundle.hasGrammaticalRestrictions()));
 	}
 
 	@Override

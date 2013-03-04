@@ -795,7 +795,7 @@ extends TypeDescriptor
 	abstract void printObjectOnAvoidingIndent (
 		AvailObject object,
 		StringBuilder builder,
-		List<AvailObject> recursionList,
+		List<A_BasicObject> recursionList,
 		int indent);
 
 	/**

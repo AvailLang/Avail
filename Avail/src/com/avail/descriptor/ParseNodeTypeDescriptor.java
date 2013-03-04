@@ -406,7 +406,7 @@ extends TypeDescriptor
 	@Override @AvailMethod
 	boolean o_EqualsParseNodeType (
 		final AvailObject object,
-		final AvailObject aParseNodeType)
+		final A_Type aParseNodeType)
 	{
 		return object.slot(KIND)
 				== aParseNodeType.slot(KIND)
@@ -528,7 +528,7 @@ extends TypeDescriptor
 	public void printObjectOnAvoidingIndent (
 		final AvailObject object,
 		final StringBuilder builder,
-		final List<AvailObject> recursionList,
+		final List<A_BasicObject> recursionList,
 		final int indent)
 	{
 		final ParseNodeKind kind = object.parseNodeKind();
@@ -602,14 +602,14 @@ extends TypeDescriptor
 	 *         otherwise.
 	 */
 	public static boolean containsOnlyStatements (
-		final List<AvailObject> flat,
-		final AvailObject resultType)
+		final List<A_Phrase> flat,
+		final A_Type resultType)
 	{
 		final int statementCount = flat.size();
 		for (int i = 0; i < statementCount; i++)
 		{
-			final A_BasicObject statement = flat.get(i);
-			final A_BasicObject kind = statement.kind();
+			final A_Phrase statement = flat.get(i);
+			final A_Type kind = statement.kind();
 			assert !kind.parseNodeKindIsUnder(SEQUENCE_NODE);
 			final boolean valid;
 			if (i + 1 < statementCount)

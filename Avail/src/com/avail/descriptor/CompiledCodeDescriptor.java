@@ -281,7 +281,7 @@ extends Descriptor
 	@Override @AvailMethod
 	boolean o_EqualsCompiledCode (
 		final AvailObject object,
-		final AvailObject aCompiledCode)
+		final A_RawFunction aCompiledCode)
 	{
 		// Compiled code now (2012.06.14) compares by identity because it may
 		// have to track references to the source code.
@@ -505,7 +505,7 @@ extends Descriptor
 	 * Answer the module in which this code occurs.
 	 */
 	@Override @AvailMethod
-	A_BasicObject o_Module (final AvailObject object)
+	A_Module o_Module (final AvailObject object)
 	{
 		final A_Atom properties = object.mutableSlot(PROPERTY_ATOM);
 		return properties.issuingModule();
@@ -618,7 +618,7 @@ extends Descriptor
 	public void printObjectOnAvoidingIndent (
 		final AvailObject object,
 		final StringBuilder builder,
-		final List<AvailObject> recursionList,
+		final List<A_BasicObject> recursionList,
 		final int indent)
 	{
 		super.printObjectOnAvoidingIndent(

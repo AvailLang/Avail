@@ -107,7 +107,7 @@ extends TupleDescriptor
 		final AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
-		final AvailObject aNybbleTuple,
+		final A_Tuple aNybbleTuple,
 		final int startIndex2)
 	{
 		if (object.sameAddressAs(aNybbleTuple) && startIndex1 == startIndex2)
@@ -140,7 +140,7 @@ extends TupleDescriptor
 	@Override @AvailMethod
 	boolean o_EqualsNybbleTuple (
 		final AvailObject object,
-		final AvailObject aNybbleTuple)
+		final A_Tuple aNybbleTuple)
 	{
 		// First, check for object-structure (address) identity.
 		if (object.sameAddressAs(aNybbleTuple))
@@ -171,7 +171,7 @@ extends TupleDescriptor
 			aNybbleTuple.makeImmutable();
 			object.becomeIndirectionTo(aNybbleTuple);
 		}
-		else if (!aNybbleTuple.descriptor.isShared())
+		else if (!aNybbleTuple.descriptor().isShared())
 		{
 			object.makeImmutable();
 			aNybbleTuple.becomeIndirectionTo(object);

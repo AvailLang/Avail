@@ -88,9 +88,14 @@ extends A_BasicObject
 
 	public void tallyInvocation ();
 
+	/**
+	 * Also defined in {@link A_Phrase} for block nodes.
+	 *
+	 * @return
+	 */
 	public int startingLineNumber ();
 
-	public A_BasicObject module ();
+	public A_Module module ();
 
 	public void setMethodName (A_String methodName);
 

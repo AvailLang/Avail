@@ -99,7 +99,7 @@ extends Descriptor
 	 * always the {@link NilDescriptor#nil() void} object.
 	 */
 	@Override @AvailMethod
-	AvailObject o_ApparentSendName (final AvailObject object)
+	A_Atom o_ApparentSendName (final AvailObject object)
 	{
 		return NilDescriptor.nil();
 	}
@@ -194,7 +194,7 @@ extends Descriptor
 	 *         to the passed parse node, possibly the same object.
 	 */
 	@Override @AvailMethod
-	AvailObject o_CopyMutableParseNode (final AvailObject object)
+	A_Phrase o_CopyMutableParseNode (final AvailObject object)
 	{
 		if (isMutable())
 		{
@@ -247,7 +247,7 @@ extends Descriptor
 	@Override @AvailMethod
 	abstract void o_ChildrenMap (
 		final AvailObject object,
-		final Transformer1<AvailObject, AvailObject> aBlock);
+		final Transformer1<A_Phrase, A_Phrase> aBlock);
 
 	/**
 	 * Visit every node constituting this parse tree, invoking the passed {@link
@@ -281,7 +281,7 @@ extends Descriptor
 	@Override @AvailMethod
 	void o_FlattenStatementsInto (
 		final AvailObject object,
-		final List<AvailObject> accumulatedStatements)
+		final List<A_Phrase> accumulatedStatements)
 	{
 		accumulatedStatements.add(object);
 	}

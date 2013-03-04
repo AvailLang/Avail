@@ -75,7 +75,7 @@ extends TypeDescriptor
 	public void printObjectOnAvoidingIndent (
 		final AvailObject object,
 		final StringBuilder aStream,
-		final List<AvailObject> recursionList,
+		final List<A_BasicObject> recursionList,
 		final int indent)
 	{
 		if (object.slot(CONTENT_TYPE).equals(ANY.o())
@@ -127,7 +127,7 @@ extends TypeDescriptor
 	@Override @AvailMethod
 	boolean o_EqualsSetType (
 		final AvailObject object,
-		final AvailObject aSetType)
+		final A_Type aSetType)
 	{
 		// Set types are equal iff both their sizeRange and contentType match.
 		if (object.sameAddressAs(aSetType))

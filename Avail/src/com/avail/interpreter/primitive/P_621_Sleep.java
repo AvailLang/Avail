@@ -76,7 +76,7 @@ extends Primitive
 		{
 			return interpreter.primitiveSuccess(NilDescriptor.nil());
 		}
-		final A_BasicObject fiber = FiberDescriptor.current();
+		final A_Fiber fiber = FiberDescriptor.current();
 		// If the requested sleep time isn't colossally big, then arrange for
 		// the fiber to resume later. If the delay is too big, then the fiber
 		// will only awaken due to interruption.

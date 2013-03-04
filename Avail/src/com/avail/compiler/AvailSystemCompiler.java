@@ -1493,7 +1493,7 @@ extends AbstractAvailCompiler
 		final ParserState stateBeforeCall,
 		final ParserState stateAfterCall,
 		final List<A_Phrase> argumentExpressions,
-		final A_BasicObject bundle,
+		final A_Bundle bundle,
 		final A_Method method,
 		final Con<A_Phrase> continuation)
 	{

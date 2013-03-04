@@ -98,7 +98,7 @@ public class P_410_BootstrapVariableUseMacro extends Primitive
 		{
 			return interpreter.primitiveFailure(E_LOADING_IS_OVER);
 		}
-		final A_BasicObject module = loader.module();
+		final A_Module module = loader.module();
 		if (module.variableBindings().hasKey(variableNameString))
 		{
 			final A_BasicObject variableObject =

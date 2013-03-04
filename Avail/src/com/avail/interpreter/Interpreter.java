@@ -269,16 +269,16 @@ public final class Interpreter
 	/**
 	 * The {@link FiberDescriptor} being executed by this interpreter.
 	 */
-	public @Nullable A_BasicObject fiber;
+	public @Nullable A_Fiber fiber;
 
 	/**
 	 * Return the current {@linkplain FiberDescriptor fiber}.
 	 *
 	 * @return The current executing fiber.
 	 */
-	public A_BasicObject fiber ()
+	public A_Fiber fiber ()
 	{
-		final A_BasicObject f = fiber;
+		final A_Fiber f = fiber;
 		assert f != null;
 		return f;
 	}
@@ -291,7 +291,7 @@ public final class Interpreter
 	 * @param newFiber
 	 *        The fiber to run.
 	 */
-	public void fiber (final @Nullable A_BasicObject newFiber)
+	public void fiber (final @Nullable A_Fiber newFiber)
 	{
 		assert fiber == null ^ newFiber == null;
 		assert newFiber == null || newFiber.executionState() == RUNNING;
@@ -492,7 +492,7 @@ public final class Interpreter
 	{
 		assert !exitNow;
 		assert state.indicatesSuspension();
-		final A_BasicObject aFiber = fiber();
+		final A_Fiber aFiber = fiber();
 		aFiber.lock(new Continuation0()
 		{
 			@Override
@@ -605,7 +605,7 @@ public final class Interpreter
 		assert !exitNow;
 		assert finalObject != null;
 		assert state.indicatesTermination();
-		final A_BasicObject aFiber = fiber();
+		final A_Fiber aFiber = fiber();
 		aFiber.lock(new Continuation0()
 		{
 			@Override
@@ -635,7 +635,7 @@ public final class Interpreter
 					final A_Set joining = aFiber.joiningFibers().makeShared();
 					aFiber.joiningFibers(SetDescriptor.empty());
 					// Wake up all fibers trying to join this one.
-					for (final A_BasicObject joiner : joining)
+					for (final A_Fiber joiner : joining)
 					{
 						joiner.lock(new Continuation0()
 						{
@@ -1152,7 +1152,7 @@ public final class Interpreter
 	public void processInterrupt (final A_Continuation continuation)
 	{
 		assert !exitNow;
-		final A_BasicObject aFiber = fiber();
+		final A_Fiber aFiber = fiber();
 		aFiber.lock(new Continuation0()
 		{
 			@Override
@@ -1438,15 +1438,21 @@ public final class Interpreter
 	 */
 	public Result invokeFunction (
 		final A_Function aFunction,
-		final List<AvailObject> args)
+		final List<? extends A_BasicObject> args)
 	{
 		final A_RawFunction code = aFunction.code();
 		assert code.numArgs() == args.size();
-		final A_BasicObject caller = pointerAt(CALLER);
+		final A_Continuation caller = pointerAt(CALLER);
 		final int primNum = code.primitiveNumber();
 		if (primNum != 0)
 		{
-			final Result result = attemptPrimitive(primNum, code, args);
+			final List<AvailObject> strongArgs =
+				new ArrayList<AvailObject>(args.size());
+			for (final A_BasicObject arg : args)
+			{
+				strongArgs.add((AvailObject)arg);
+			}
+			final Result result = attemptPrimitive(primNum, code, strongArgs);
 			switch (result)
 			{
 				case FAILURE:
@@ -1491,7 +1497,7 @@ public final class Interpreter
 	 */
 	public void invokeWithoutPrimitiveFunctionArguments (
 		final A_Function aFunction,
-		final List<AvailObject> args,
+		final List<? extends A_BasicObject> args,
 		final A_BasicObject caller)
 	{
 		final A_RawFunction code = aFunction.code();
@@ -1639,9 +1645,9 @@ public final class Interpreter
 	 * suspended} {@linkplain FiberDescriptor fiber} to execute for a while as a
 	 * {@linkplain AvailRuntime#whenLevelOneUnsafeDo(AvailTask) Level One-unsafe
 	 * task} for a while. If the fiber completes normally, then call its
-	 * {@linkplain A_BasicObject#resultContinuation() result continuation} with
+	 * {@linkplain A_Fiber#resultContinuation() result continuation} with
 	 * its final answer. If the fiber terminates abnormally, then call its
-	 * {@linkplain A_BasicObject#failureContinuation() failure continuation} with
+	 * {@linkplain A_Fiber#failureContinuation() failure continuation} with
 	 * the terminal {@linkplain Throwable throwable}.
 	 *
 	 * @param runtime
@@ -1654,7 +1660,7 @@ public final class Interpreter
 	 */
 	private static void executeFiber (
 		final AvailRuntime runtime,
-		final A_BasicObject aFiber,
+		final A_Fiber aFiber,
 		final Continuation1<Interpreter> continuation)
 	{
 		assert aFiber.executionState().indicatesSuspension();
@@ -1728,9 +1734,9 @@ public final class Interpreter
 	 */
 	public static void runOutermostFunction (
 		final AvailRuntime runtime,
-		final A_BasicObject aFiber,
+		final A_Fiber aFiber,
 		final A_Function function,
-		final List<AvailObject> arguments)
+		final List<? extends A_BasicObject> arguments)
 	{
 		assert aFiber.executionState() == UNSTARTED;
 		executeFiber(
@@ -1777,7 +1783,7 @@ public final class Interpreter
 	 *
 	 * @param aFiber The fiber to run.
 	 */
-	public static void resumeFromInterrupt (final A_BasicObject aFiber)
+	public static void resumeFromInterrupt (final A_Fiber aFiber)
 	{
 		assert aFiber.executionState() == INTERRUPTED;
 		assert !aFiber.continuation().equalsNil();
@@ -1828,7 +1834,7 @@ public final class Interpreter
 	 */
 	public static void resumeFromPrimitive (
 		final AvailRuntime runtime,
-		final A_BasicObject aFiber,
+		final A_Fiber aFiber,
 		final Result state,
 		final A_BasicObject result)
 	{
@@ -1943,7 +1949,7 @@ public final class Interpreter
 			String.format(
 				"%s [%s]",
 				getClass().getSimpleName(),
-				fiber().name()));
+				fiber().fiberName()));
 		final List<String> stack = dumpStack();
 		for (final String frame : stack)
 		{

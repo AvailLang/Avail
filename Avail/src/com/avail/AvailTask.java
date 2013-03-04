@@ -67,7 +67,7 @@ implements Comparable<AvailTask>, Runnable
 	 *         then runs the specified continuation.
 	 */
 	public static final AvailTask forFiberResumption (
-		final A_BasicObject fiber,
+		final A_Fiber fiber,
 		final Continuation0 continuation)
 	{
 		assert fiber.executionState().indicatesSuspension();
@@ -166,7 +166,7 @@ implements Comparable<AvailTask>, Runnable
 	 *         errors appropriately.
 	 */
 	public static final AvailTask forUnboundFiber (
-		final A_BasicObject fiber,
+		final A_Fiber fiber,
 		final Continuation0 continuation)
 	{
 		assert fiber.executionState() == SUSPENDED;

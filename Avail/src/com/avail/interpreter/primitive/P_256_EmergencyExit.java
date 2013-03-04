@@ -64,7 +64,7 @@ public class P_256_EmergencyExit extends Primitive
 		builder.append(
 			String.format(
 				"A fiber (%s) has exited: %s",
-				interpreter.fiber().name(),
+				interpreter.fiber().fiberName(),
 				errorMessageProducer));
 		for (final String frame : stack)
 		{

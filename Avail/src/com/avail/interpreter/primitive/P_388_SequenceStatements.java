@@ -60,7 +60,7 @@ extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
-		final A_BasicObject seq = args.get(0);
+		final A_Phrase seq = args.get(0);
 		return interpreter.primitiveSuccess(seq.statements());
 	}
 

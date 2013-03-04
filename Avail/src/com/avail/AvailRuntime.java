@@ -298,7 +298,7 @@ public final class AvailRuntime
 	 * {@linkplain AvailRuntime runtime} should use to resolve unqualified
 	 * {@linkplain ModuleDescriptor module} names.
 	 */
-	private ModuleNameResolver moduleNameResolver;
+	private final ModuleNameResolver moduleNameResolver;
 
 	/**
 	 * Answer the {@linkplain ModuleNameResolver module name resolver} that this
@@ -939,7 +939,7 @@ public final class AvailRuntime
 				: aModule.filteredBundleTree().allBundles().mapIterable())
 			{
 				final A_Atom message = bundleEntry.key();
-				final A_BasicObject bundle = bundleEntry.value();
+				final A_Bundle bundle = bundleEntry.value();
 				assert bundle.message().equals(message);
 				if (aModule.visibleNames().hasElement(message))
 				{
@@ -1571,9 +1571,9 @@ public final class AvailRuntime
 		{
 			// Ignore.
 		}
-		moduleNameResolver = null;
-		modules = null;
-		methods = null;
-		allBundles = null;
+		//moduleNameResolver = null;
+		modules = NilDescriptor.nil();
+		methods = NilDescriptor.nil();
+		allBundles = NilDescriptor.nil();
 	}
 }

@@ -154,20 +154,20 @@ extends AbstractAvailCompiler
 		final ParserState stateBeforeCall,
 		final ParserState stateAfterCall,
 		final List<A_Phrase> passedArgumentExpressions,
-		final A_BasicObject bundle,
+		final A_Bundle bundle,
 		final A_Method method,
 		final Con<A_Phrase> continuation)
 	{
 		final A_Tuple definitions = method.definitionsTuple();
 		assert definitions.tupleSize() == 1;
-		final AvailObject macroDefinition = definitions.tupleAt(1);
+		final A_BasicObject macroDefinition = definitions.tupleAt(1);
 		final A_Function macroBody = macroDefinition.bodyBlock();
 		final A_Type macroBodyKind = macroBody.kind();
-		final List<AvailObject> argumentExpressions =
-			new ArrayList<AvailObject>(passedArgumentExpressions.size());
+		final List<A_Phrase> argumentExpressions =
+			new ArrayList<A_Phrase>(passedArgumentExpressions.size());
 		// Strip off macro substitution wrappers from the arguments.  These
 		// were preserved only long enough to test grammatical restrictions.
-		for (final A_BasicObject argumentExpression : passedArgumentExpressions)
+		for (final A_Phrase argumentExpression : passedArgumentExpressions)
 		{
 			argumentExpressions.add(argumentExpression.stripMacro());
 		}
@@ -185,7 +185,7 @@ extends AbstractAvailCompiler
 						{
 							final A_Type type =
 								macroBodyKind.argsTupleType().typeAtIndex(i);
-							final A_BasicObject value =
+							final A_Phrase value =
 								argumentExpressions.get(i - 1);
 							if (!value.isInstanceOf(type))
 							{

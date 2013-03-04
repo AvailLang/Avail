@@ -133,7 +133,7 @@ extends TupleDescriptor
 		final AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
-		final AvailObject aByteString,
+		final A_String aByteString,
 		final int startIndex2)
 	{
 		for (
@@ -170,7 +170,7 @@ extends TupleDescriptor
 		final AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
-		final AvailObject aByteTuple,
+		final A_Tuple aByteTuple,
 		final int startIndex2)
 	{
 		for (
@@ -207,7 +207,7 @@ extends TupleDescriptor
 		final AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
-		final AvailObject aNybbleTuple,
+		final A_Tuple aNybbleTuple,
 		final int startIndex2)
 	{
 		if (object.sameAddressAs(aNybbleTuple) && startIndex1 == startIndex2)
@@ -253,7 +253,7 @@ extends TupleDescriptor
 		final AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
-		final AvailObject anObjectTuple,
+		final A_Tuple anObjectTuple,
 		final int startIndex2)
 	{
 		if (object.sameAddressAs(anObjectTuple) && startIndex1 == startIndex2)

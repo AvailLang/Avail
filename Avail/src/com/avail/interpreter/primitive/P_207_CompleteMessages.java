@@ -59,7 +59,7 @@ public class P_207_CompleteMessages extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
-		final A_BasicObject bundleTree = args.get(0);
+		final A_BundleTree bundleTree = args.get(0);
 		return interpreter.primitiveSuccess(
 			bundleTree.complete().makeImmutable());
 	}

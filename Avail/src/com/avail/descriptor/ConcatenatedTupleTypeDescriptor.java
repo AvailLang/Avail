@@ -74,7 +74,7 @@ extends TypeDescriptor
 	@Override @AvailMethod
 	boolean o_EqualsTupleType (
 		final AvailObject object,
-		final AvailObject aTupleType)
+		final A_Type aTupleType)
 	{
 		// Tuple types are equal iff their size range, leading type tuple, and
 		// default type match.

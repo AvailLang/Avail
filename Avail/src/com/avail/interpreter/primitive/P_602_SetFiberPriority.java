@@ -55,7 +55,7 @@ extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 2;
-		final AvailObject fiber = args.get(0);
+		final A_Fiber fiber = args.get(0);
 		final AvailObject priority = args.get(0);
 		fiber.priority(priority.extractInt());
 		return interpreter.primitiveSuccess(NilDescriptor.nil());

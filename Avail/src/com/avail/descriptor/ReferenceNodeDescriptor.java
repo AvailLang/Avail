@@ -72,7 +72,7 @@ extends ParseNodeDescriptor
 	public void printObjectOnAvoidingIndent (
 		final AvailObject object,
 		final StringBuilder builder,
-		final List<AvailObject> recursionList,
+		final List<A_BasicObject> recursionList,
 		final int indent)
 	{
 		builder.append("↑");
@@ -123,7 +123,7 @@ extends ParseNodeDescriptor
 		final AvailObject object,
 		final AvailCodeGenerator codeGenerator)
 	{
-		final A_BasicObject declaration = object.slot(VARIABLE).declaration();
+		final A_Phrase declaration = object.slot(VARIABLE).declaration();
 		declaration.declarationKind().emitVariableReferenceForOn(
 			declaration,
 			codeGenerator);
@@ -132,7 +132,7 @@ extends ParseNodeDescriptor
 	@Override @AvailMethod
 	void o_ChildrenMap (
 		final AvailObject object,
-		final Transformer1<AvailObject, AvailObject> aBlock)
+		final Transformer1<A_Phrase, A_Phrase> aBlock)
 	{
 		object.setSlot(VARIABLE, aBlock.value(object.slot(VARIABLE)));
 	}

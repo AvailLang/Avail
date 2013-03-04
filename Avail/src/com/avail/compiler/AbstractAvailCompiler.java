@@ -1546,28 +1546,28 @@ public abstract class AbstractAvailCompiler
 	 *        the consistency of declaration references.
 	 * @return A replacement for this node, possibly this node itself.
 	 */
-	static AvailObject treeMapWithParent (
-		final AvailObject object,
+	static A_Phrase treeMapWithParent (
+		final A_Phrase object,
 		final Transformer3<
-				AvailObject,
-				AvailObject,
-				List<AvailObject>,
-				AvailObject>
+				A_Phrase,
+				A_Phrase,
+				List<A_Phrase>,
+				A_Phrase>
 			aBlock,
-		final AvailObject parentNode,
-		final List<AvailObject> outerNodes,
-		final Map<AvailObject, AvailObject> nodeMap)
+		final A_Phrase parentNode,
+		final List<A_Phrase> outerNodes,
+		final Map<A_Phrase, A_Phrase> nodeMap)
 	{
 		if (nodeMap.containsKey(object))
 		{
 			return object;
 		}
-		final AvailObject objectCopy = object.copyMutableParseNode();
+		final A_Phrase objectCopy = object.copyMutableParseNode();
 		objectCopy.childrenMap(
-			new Transformer1<AvailObject, AvailObject>()
+			new Transformer1<A_Phrase, A_Phrase>()
 			{
 				@Override
-				public AvailObject value (final @Nullable AvailObject child)
+				public A_Phrase value (final @Nullable A_Phrase child)
 				{
 					assert child != null;
 					assert child.isInstanceOfKind(PARSE_NODE.mostGeneralType());
@@ -1579,7 +1579,7 @@ public abstract class AbstractAvailCompiler
 						nodeMap);
 				}
 			});
-		final AvailObject transformed = aBlock.value(
+		final A_Phrase transformed = aBlock.value(
 			objectCopy,
 			parentNode,
 			outerNodes);
@@ -2154,7 +2154,7 @@ public abstract class AbstractAvailCompiler
 	 */
 	protected void evaluateFunctionThen (
 		final A_Function function,
-		final List<AvailObject> args,
+		final List<? extends A_BasicObject> args,
 		final boolean shouldSerialize,
 		final Continuation1<AvailObject> onSuccess,
 		final Continuation1<Throwable> onFailure)
@@ -2166,7 +2166,7 @@ public abstract class AbstractAvailCompiler
 				serializer.serialize(function);
 			}
 		}
-		final A_BasicObject fiber = FiberDescriptor.newLoaderFiber(
+		final A_Fiber fiber = FiberDescriptor.newLoaderFiber(
 			function.kind().returnType(),
 			loader());
 		fiber.resultContinuation(onSuccess);
@@ -2195,7 +2195,7 @@ public abstract class AbstractAvailCompiler
 		final Continuation1<AvailObject> onSuccess,
 		final Continuation1<Throwable> onFailure)
 	{
-		final AvailObject fiber = FiberDescriptor.newLoaderFiber(
+		final A_Fiber fiber = FiberDescriptor.newLoaderFiber(
 			function.kind().returnType(),
 			loader());
 		fiber.setGeneralFlag(GeneralFlag.APPLYING_SEMANTIC_RESTRICTION);
@@ -2254,7 +2254,7 @@ public abstract class AbstractAvailCompiler
 	 *        What to do with a terminal {@linkplain Throwable throwable}.
 	 */
 	void evaluateModuleStatementThen (
-		final A_BasicObject expressionOrMacro,
+		final A_Phrase expressionOrMacro,
 		final Continuation0 onSuccess,
 		final Continuation1<Throwable> onFailure)
 	{
@@ -2637,7 +2637,7 @@ public abstract class AbstractAvailCompiler
 	 */
 	void parseRestOfSendNode (
 		final ParserState start,
-		final A_BasicObject bundleTree,
+		final A_BundleTree bundleTree,
 		final @Nullable A_Phrase firstArgOrNull,
 		final ParserState initialTokenPosition,
 		final boolean consumedAnything,
@@ -2755,7 +2755,7 @@ public abstract class AbstractAvailCompiler
 		if (anyPrefilter)
 		{
 //			System.out.println("PREFILTER ENCOUNTERED: " + prefilter);
-			final A_BasicObject latestArgument = last(argsSoFar);
+			final A_Phrase latestArgument = last(argsSoFar);
 			if (latestArgument.isInstanceOfKind(SEND_NODE.mostGeneralType()))
 			{
 				//TODO[MvG] This probably isn't right...  I'm pretty sure a
@@ -3109,7 +3109,7 @@ public abstract class AbstractAvailCompiler
 			case JUMP:
 				for (int i = successorTrees.tupleSize(); i >= 1; i--)
 				{
-					final A_BasicObject successorTree =
+					final A_BundleTree successorTree =
 						successorTrees.tupleAt(i);
 					eventuallyParseRestOfSendNode(
 						"Continue send after branch or jump (" +
@@ -3260,12 +3260,13 @@ public abstract class AbstractAvailCompiler
 				// any of the paths.  That's essential both for polymorphic
 				// macros and just for macros whose names share a common prefix.
 				assert successorTrees.tupleSize() == 1;
-				final A_BasicObject successorTree = successorTrees.tupleAt(1);
+				final A_BundleTree successorTree = successorTrees.tupleAt(1);
 				final A_Map bundlesMap = successorTree.allBundles();
 				assert bundlesMap.mapSize() == 1;
-				final A_BasicObject bundle =
+				final A_Bundle bundle =
 					bundlesMap.valuesAsTuple().tupleAt(1);
-				final A_Tuple definitions = bundle.method().definitionsTuple();
+				final A_Tuple definitions =
+					bundle.bundleMethod().definitionsTuple();
 				assert definitions.tupleSize() == 1;
 				final A_BasicObject definition = definitions.tupleAt(1);
 				assert definition.isMacroDefinition();
@@ -3275,10 +3276,10 @@ public abstract class AbstractAvailCompiler
 				final A_Function prefixFunction =
 					prefixFunctions.tupleAt(prefixFunctionSubscript);
 
-				final A_BasicObject listNodeOfArgsSoFar = last(argsSoFar);
+				final A_Phrase listNodeOfArgsSoFar = last(argsSoFar);
 				final List<AvailObject> listOfArgs = TupleDescriptor.toList(
 					listNodeOfArgsSoFar.expressionsTuple());
-				final A_BasicObject fiber = FiberDescriptor.newLoaderFiber(
+				final A_Fiber fiber = FiberDescriptor.newLoaderFiber(
 					prefixFunction.kind().returnType(),
 					loader());
 				A_Map fiberGlobals = fiber.fiberGlobals();
@@ -3874,8 +3875,7 @@ public abstract class AbstractAvailCompiler
 								{
 									final List<String> localNames =
 										new ArrayList<String>();
-									for (final A_BasicObject usedLocal
-										: usedLocals)
+									for (final A_Phrase usedLocal : usedLocals)
 									{
 										final A_String name =
 											usedLocal.token().string();
@@ -3941,7 +3941,7 @@ public abstract class AbstractAvailCompiler
 		final ParserState stateBeforeCall,
 		final ParserState stateAfterCall,
 		final List<A_Phrase> argumentExpressions,
-		final A_BasicObject bundle,
+		final A_Bundle bundle,
 		final A_Method method,
 		final Con<A_Phrase> continuation);
 
@@ -4862,7 +4862,7 @@ public abstract class AbstractAvailCompiler
 	@InnerAccess void eventuallyParseRestOfSendNode (
 		final String description,
 		final ParserState start,
-		final A_BasicObject bundleTree,
+		final A_BundleTree bundleTree,
 		final @Nullable A_Phrase firstArgOrNull,
 		final ParserState initialTokenPosition,
 		final boolean consumedAnything,

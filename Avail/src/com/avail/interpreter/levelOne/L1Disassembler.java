@@ -63,7 +63,7 @@ public class L1Disassembler
 	 * into while printing the {@linkplain L1Instruction level one
 	 * instructions}.
 	 */
-	List<AvailObject> recursionList;
+	List<A_BasicObject> recursionList;
 
 	/**
 	 * The number of tabs to output after each line break.
@@ -151,7 +151,7 @@ public class L1Disassembler
 	public static void disassemble (
 		final A_RawFunction code,
 		final StringBuilder builder,
-		final List<AvailObject> recursionList,
+		final List<A_BasicObject> recursionList,
 		final int indent)
 	{
 		// The constructor does all the work...
@@ -174,7 +174,7 @@ public class L1Disassembler
 	private L1Disassembler (
 		final A_RawFunction code,
 		final StringBuilder builder,
-		final List<AvailObject> recursionList,
+		final List<A_BasicObject> recursionList,
 		final int indent)
 	{
 		this.code = code;

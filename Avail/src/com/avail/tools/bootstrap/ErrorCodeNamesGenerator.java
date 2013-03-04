@@ -35,7 +35,6 @@ package com.avail.tools.bootstrap;
 import static com.avail.tools.bootstrap.Resources.*;
 import java.io.*;
 import java.util.*;
-import com.avail.descriptor.AvailObject;
 import com.avail.exceptions.AvailErrorCode;
 
 /**

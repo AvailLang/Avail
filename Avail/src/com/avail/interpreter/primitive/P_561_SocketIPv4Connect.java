@@ -75,13 +75,13 @@ extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 6;
-		final AvailObject handle = args.get(0);
-		final AvailObject addressTuple = args.get(1);
-		final AvailObject port = args.get(2);
-		final AvailObject succeed = args.get(3);
-		final AvailObject fail = args.get(4);
-		final AvailObject priority = args.get(5);
-		final AvailObject pojo =
+		final A_Atom handle = args.get(0);
+		final A_Tuple addressTuple = args.get(1);
+		final A_Number port = args.get(2);
+		final A_Function succeed = args.get(3);
+		final A_Function fail = args.get(4);
+		final A_Number priority = args.get(5);
+		final A_BasicObject pojo =
 			handle.getAtomProperty(AtomDescriptor.socketKey());
 		if (pojo.equalsNil())
 		{
@@ -96,7 +96,7 @@ extends Primitive
 		final byte[] addressBytes = new byte[4];
 		for (int i = 0; i < addressBytes.length; i++)
 		{
-			final AvailObject addressByte = addressTuple.tupleAt(i + 1);
+			final A_Number addressByte = addressTuple.tupleAt(i + 1);
 			addressBytes[i] = (byte) addressByte.extractUnsignedByte();
 		}
 		final SocketAddress address;
@@ -118,8 +118,8 @@ extends Primitive
 			assert false;
 			return interpreter.primitiveFailure(E_IO_ERROR);
 		}
-		final A_BasicObject current = FiberDescriptor.current();
-		final AvailObject newFiber = FiberDescriptor.newFiber(
+		final A_Fiber current = FiberDescriptor.current();
+		final A_Fiber newFiber = FiberDescriptor.newFiber(
 			succeed.kind().returnType().typeUnion(fail.kind().returnType()),
 			priority.extractInt());
 		// If the current fiber is an Avail fiber, then the new one should be

@@ -748,13 +748,13 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_Name (final AvailObject object)
+	AvailObject o_FiberName (final AvailObject object)
 	{
 		return object.mutableSlot(NAME);
 	}
 
 	@Override @AvailMethod
-	void o_Name (final AvailObject object, final A_String value)
+	void o_FiberName (final AvailObject object, final A_String value)
 	{
 		object.setMutableSlot(NAME, value);
 	}
@@ -1075,11 +1075,11 @@ extends Descriptor
 	 *        The initial priority.
 	 * @return The new fiber.
 	 */
-	public static AvailObject newFiber (
+	public static A_Fiber newFiber (
 		final A_Type resultType,
 		final int priority)
 	{
-		final AvailObject fiber = FiberDescriptor.mutable.create();
+		final A_Fiber fiber = FiberDescriptor.mutable.create();
 		fiber.setSlot(RESULT_TYPE, resultType.makeImmutable());
 		fiber.setSlot(
 			NAME,
@@ -1116,12 +1116,12 @@ extends Descriptor
 	 *        An Avail loader.
 	 * @return The new fiber.
 	 */
-	public static AvailObject newLoaderFiber (
+	public static A_Fiber newLoaderFiber (
 		final A_Type resultType,
 		final AvailLoader loader)
 	{
-		final AvailObject fiber = FiberDescriptor.mutable.create();
-		final AvailObject module = loader.module();
+		final A_Fiber fiber = FiberDescriptor.mutable.create();
+		final A_Module module = loader.module();
 		assert module != null;
 		fiber.setSlot(RESULT_TYPE, resultType.makeImmutable());
 		fiber.setSlot(
@@ -1153,7 +1153,7 @@ extends Descriptor
 	 *
 	 * @return A fiber.
 	 */
-	public static A_BasicObject current ()
+	public static A_Fiber current ()
 	{
 		return ((AvailThread) Thread.currentThread()).interpreter.fiber();
 	}

@@ -77,12 +77,12 @@ extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 5;
-		final AvailObject handle = args.get(0);
-		final AvailObject name = args.get(1);
-		final AvailObject succeed = args.get(2);
-		final AvailObject fail = args.get(3);
-		final AvailObject priority = args.get(4);
-		final AvailObject pojo =
+		final A_Atom handle = args.get(0);
+		final A_String name = args.get(1);
+		final A_Function succeed = args.get(2);
+		final A_Function fail = args.get(3);
+		final A_Number priority = args.get(4);
+		final A_BasicObject pojo =
 			handle.getAtomProperty(AtomDescriptor.serverSocketKey());
 		if (pojo.equalsNil())
 		{
@@ -93,8 +93,8 @@ extends Primitive
 		}
 		final AsynchronousServerSocketChannel socket =
 			(AsynchronousServerSocketChannel) pojo.javaObject();
-		final A_BasicObject current = FiberDescriptor.current();
-		final A_BasicObject newFiber = FiberDescriptor.newFiber(
+		final A_Fiber current = FiberDescriptor.current();
+		final A_Fiber newFiber = FiberDescriptor.newFiber(
 			succeed.kind().returnType().typeUnion(fail.kind().returnType()),
 			priority.extractInt());
 		// If the current fiber is an Avail fiber, then the new one should be

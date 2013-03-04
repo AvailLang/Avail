@@ -139,7 +139,7 @@ extends Descriptor
 	void printObjectOnAvoidingIndent (
 		final AvailObject object,
 		final StringBuilder builder,
-		final List<AvailObject> recursionList,
+		final List<A_BasicObject> recursionList,
 		final int indent)
 	{
 		builder.append(String.valueOf(object.slot(RAW_POJO).javaObject()));

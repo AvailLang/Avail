@@ -143,7 +143,7 @@ extends AbstractDescriptor
 	void printObjectOnAvoidingIndent (
 		final AvailObject object,
 		final StringBuilder aStream,
-		final List<AvailObject> recursionList,
+		final List<A_BasicObject> recursionList,
 		final int indent)
 	{
 		object.traversed().printOnAvoidingIndent(
@@ -338,7 +338,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_AddGrammaticalMessageRestrictions (
+	void o_AddGrammaticalRestrictions (
 		final AvailObject object,
 		final A_Atom methodName,
 		final A_Tuple illegalArgMsgs)
@@ -360,7 +360,7 @@ extends AbstractDescriptor
 	@Override
 	void o_AddBundle (
 		final AvailObject object,
-		final A_BasicObject bundle)
+		final A_Bundle bundle)
 	{
 		o_Traversed(object).addBundle(bundle);
 	}
@@ -521,7 +521,7 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
-		final AvailObject aByteString,
+		final A_String aByteString,
 		final int startIndex2)
 	{
 		return o_Traversed(object).compareFromToWithByteStringStartingAt(
@@ -536,7 +536,7 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
-		final AvailObject aByteTuple,
+		final A_Tuple aByteTuple,
 		final int startIndex2)
 	{
 		return o_Traversed(object).compareFromToWithByteTupleStartingAt(
@@ -551,7 +551,7 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
-		final AvailObject aNybbleTuple,
+		final A_Tuple aNybbleTuple,
 		final int startIndex2)
 	{
 		return o_Traversed(object).compareFromToWithNybbleTupleStartingAt(
@@ -566,7 +566,7 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
-		final AvailObject anObjectTuple,
+		final A_Tuple anObjectTuple,
 		final int startIndex2)
 	{
 		return o_Traversed(object).compareFromToWithObjectTupleStartingAt(
@@ -581,7 +581,7 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
-		final AvailObject aTwoByteString,
+		final A_String aTwoByteString,
 		final int startIndex2)
 	{
 		return o_Traversed(object).compareFromToWithTwoByteStringStartingAt(
@@ -724,7 +724,7 @@ extends AbstractDescriptor
 	@Override
 	boolean o_EqualsByteString (
 		final AvailObject object,
-		final AvailObject aByteString)
+		final A_String aByteString)
 	{
 		return o_Traversed(object).equalsByteString(aByteString);
 	}
@@ -732,7 +732,7 @@ extends AbstractDescriptor
 	@Override
 	boolean o_EqualsByteTuple (
 		final AvailObject object,
-		final AvailObject aByteTuple)
+		final A_Tuple aByteTuple)
 	{
 		return o_Traversed(object).equalsByteTuple(aByteTuple);
 	}
@@ -754,7 +754,7 @@ extends AbstractDescriptor
 	@Override
 	boolean o_EqualsFunction (
 		final AvailObject object,
-		final AvailObject aFunction)
+		final A_Function aFunction)
 	{
 		return o_Traversed(object).equalsFunction(aFunction);
 	}
@@ -770,7 +770,7 @@ extends AbstractDescriptor
 	@Override
 	boolean o_EqualsCompiledCode (
 		final AvailObject object,
-		final AvailObject aCompiledCode)
+		final A_RawFunction aCompiledCode)
 	{
 		return o_Traversed(object).equalsCompiledCode(aCompiledCode);
 	}
@@ -794,7 +794,7 @@ extends AbstractDescriptor
 	@Override
 	boolean o_EqualsContinuation (
 		final AvailObject object,
-		final AvailObject aContinuation)
+		final A_Continuation aContinuation)
 	{
 		return o_Traversed(object).equalsContinuation(aContinuation);
 	}
@@ -842,7 +842,7 @@ extends AbstractDescriptor
 	@Override
 	boolean o_EqualsInteger (
 		final AvailObject object,
-		final AvailObject anAvailInteger)
+		final A_Number anAvailInteger)
 	{
 		return o_Traversed(object).equalsInteger(anAvailInteger);
 	}
@@ -866,7 +866,7 @@ extends AbstractDescriptor
 	@Override
 	boolean o_EqualsMapType (
 		final AvailObject object,
-		final AvailObject aMapType)
+		final A_Type aMapType)
 	{
 		return o_Traversed(object).equalsMapType(aMapType);
 	}
@@ -874,7 +874,7 @@ extends AbstractDescriptor
 	@Override
 	boolean o_EqualsNybbleTuple (
 		final AvailObject object,
-		final AvailObject aNybbleTuple)
+		final A_Tuple aNybbleTuple)
 	{
 		return o_Traversed(object).equalsNybbleTuple(aNybbleTuple);
 	}
@@ -890,7 +890,7 @@ extends AbstractDescriptor
 	@Override
 	boolean o_EqualsObjectTuple (
 		final AvailObject object,
-		final AvailObject anObjectTuple)
+		final A_Tuple anObjectTuple)
 	{
 		return o_Traversed(object).equalsObjectTuple(anObjectTuple);
 	}
@@ -914,7 +914,7 @@ extends AbstractDescriptor
 	@Override
 	boolean o_EqualsPrimitiveType (
 		final AvailObject object,
-		final AvailObject aPrimitiveType)
+		final A_Type aPrimitiveType)
 	{
 		return o_Traversed(object).equalsPrimitiveType(aPrimitiveType);
 	}
@@ -938,7 +938,7 @@ extends AbstractDescriptor
 	@Override
 	boolean o_EqualsSetType (
 		final AvailObject object,
-		final AvailObject aSetType)
+		final A_Type aSetType)
 	{
 		return o_Traversed(object).equalsSetType(aSetType);
 	}
@@ -946,7 +946,7 @@ extends AbstractDescriptor
 	@Override
 	boolean o_EqualsTupleType (
 		final AvailObject object,
-		final AvailObject aTupleType)
+		final A_Type aTupleType)
 	{
 		return o_Traversed(object).equalsTupleType(aTupleType);
 	}
@@ -954,7 +954,7 @@ extends AbstractDescriptor
 	@Override
 	boolean o_EqualsTwoByteString (
 		final AvailObject object,
-		final AvailObject aTwoByteString)
+		final A_String aTwoByteString)
 	{
 		return o_Traversed(object).equalsTwoByteString(aTwoByteString);
 	}
@@ -2361,7 +2361,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	A_BasicObject o_FilteredBundleTree (final AvailObject object)
+	A_BundleTree o_FilteredBundleTree (final AvailObject object)
 	{
 		return o_Traversed(object).filteredBundleTree();
 	}
@@ -2969,7 +2969,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	AvailObject o_Expression (final AvailObject object)
+	A_Phrase o_Expression (final AvailObject object)
 	{
 		return o_Traversed(object).expression();
 	}
@@ -3037,14 +3037,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_InitializationExpression (
-		final AvailObject object,
-		final AvailObject initializationExpression)
-	{
-		o_Traversed(object).initializationExpression(initializationExpression);
-	}
-
-	@Override
 	AvailObject o_LiteralObject (final AvailObject object)
 	{
 		return o_Traversed(object).literalObject();
@@ -3063,7 +3055,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	AvailObject o_ArgumentsListNode (
+	A_Phrase o_ArgumentsListNode (
 		final AvailObject object)
 	{
 		return o_Traversed(object).argumentsListNode();
@@ -3112,7 +3104,7 @@ extends AbstractDescriptor
 	@Override
 	void o_ChildrenMap (
 		final AvailObject object,
-		final Transformer1<AvailObject, AvailObject> aBlock)
+		final Transformer1<A_Phrase, A_Phrase> aBlock)
 	{
 		o_Traversed(object).childrenMap(aBlock);
 	}
@@ -3172,7 +3164,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	AvailObject o_CopyMutableParseNode (
+	A_Phrase o_CopyMutableParseNode (
 		final AvailObject object)
 	{
 		return o_Traversed(object).copyMutableParseNode();
@@ -3193,7 +3185,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	AvailObject o_ApparentSendName (
+	A_Atom o_ApparentSendName (
 		final AvailObject object)
 	{
 		return o_Traversed(object).apparentSendName();
@@ -3208,7 +3200,7 @@ extends AbstractDescriptor
 	@Override
 	void o_FlattenStatementsInto (
 		final AvailObject object,
-		final List<AvailObject> accumulatedStatements)
+		final List<A_Phrase> accumulatedStatements)
 	{
 		o_Traversed(object).flattenStatementsInto(accumulatedStatements);
 	}
@@ -3382,7 +3374,7 @@ extends AbstractDescriptor
 	@Override
 	boolean o_EqualsParseNodeType (
 		final AvailObject object,
-		final AvailObject aParseNodeType)
+		final A_Type aParseNodeType)
 	{
 		return o_Traversed(object).equalsParseNodeType(aParseNodeType);
 	}
@@ -3783,7 +3775,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	AvailObject o_IssuingModule (
+	A_Module o_IssuingModule (
 		final AvailObject object)
 	{
 		return o_Traversed(object).issuingModule();
@@ -4169,7 +4161,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	A_BasicObject o_Module (final AvailObject object)
+	A_Module o_Module (final AvailObject object)
 	{
 		return o_Traversed(object).module();
 	}
@@ -4224,13 +4216,6 @@ extends AbstractDescriptor
 		final boolean isSystemModule)
 	{
 		o_Traversed(object).isSystemModule(isSystemModule);
-	}
-
-	@Override
-	boolean o_IsMarkerNode (
-		final AvailObject object)
-	{
-		return o_Traversed(object).isMarkerNode();
 	}
 
 	@Override
@@ -4580,5 +4565,17 @@ extends AbstractDescriptor
 	boolean o_IsByteBufferTuple (final AvailObject object)
 	{
 		return o_Traversed(object).isByteBufferTuple();
+	}
+
+	@Override
+	A_String o_FiberName (final AvailObject object)
+	{
+		return o_Traversed(object).fiberName();
+	}
+
+	@Override
+	void o_FiberName (final AvailObject object, final A_String value)
+	{
+		o_Traversed(object).fiberName(value);
 	}
 }

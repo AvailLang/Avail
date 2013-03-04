@@ -55,7 +55,7 @@ public class P_351_ParseNodeExpressionType extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
-		final A_BasicObject parseNode = args.get(0);
+		final A_Phrase parseNode = args.get(0);
 		return interpreter.primitiveSuccess(parseNode.expressionType());
 	}
 

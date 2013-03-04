@@ -78,7 +78,7 @@ extends ParseNodeDescriptor
 	public void printObjectOnAvoidingIndent (
 		final AvailObject object,
 		final StringBuilder builder,
-		final List<AvailObject> recursionList,
+		final List<A_BasicObject> recursionList,
 		final int indent)
 	{
 		final MessageSplitter splitter;
@@ -101,7 +101,7 @@ extends ParseNodeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_ArgumentsListNode (final AvailObject object)
+	A_Phrase o_ArgumentsListNode (final AvailObject object)
 	{
 		return object.slot(ARGUMENTS_LIST_NODE);
 	}
@@ -148,7 +148,7 @@ extends ParseNodeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_ApparentSendName (final AvailObject object)
+	A_Atom o_ApparentSendName (final AvailObject object)
 	{
 		return object.slot(METHOD).name();
 	}
@@ -158,9 +158,9 @@ extends ParseNodeDescriptor
 		final AvailObject object,
 		final AvailCodeGenerator codeGenerator)
 	{
-		final A_BasicObject arguments = object.slot(ARGUMENTS_LIST_NODE);
+		final A_Phrase arguments = object.slot(ARGUMENTS_LIST_NODE);
 		final A_Tuple tuple = arguments.expressionsTuple();
-		for (final A_BasicObject argNode : tuple)
+		for (final A_Phrase argNode : tuple)
 		{
 			argNode.emitValueOn(codeGenerator);
 		}
@@ -174,7 +174,7 @@ extends ParseNodeDescriptor
 	@Override @AvailMethod
 	void o_ChildrenMap (
 		final AvailObject object,
-		final Transformer1<AvailObject, AvailObject> aBlock)
+		final Transformer1<A_Phrase, A_Phrase> aBlock)
 	{
 		object.setSlot(
 			ARGUMENTS_LIST_NODE,

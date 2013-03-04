@@ -73,9 +73,9 @@ extends Primitive
 		// Verify that each element of "statements" is actually a statement,
 		// and that the last statement's expression type agrees with
 		// "resultType".
-		final List<AvailObject> flat =
-			new ArrayList<AvailObject>(statements.tupleSize() + 3);
-		for (final A_BasicObject statement : statements)
+		final List<A_Phrase> flat =
+			new ArrayList<A_Phrase>(statements.tupleSize() + 3);
+		for (final A_Phrase statement : statements)
 		{
 			statement.flattenStatementsInto(flat);
 		}

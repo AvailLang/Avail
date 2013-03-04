@@ -59,7 +59,7 @@ extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
-		final A_BasicObject block = args.get(0);
+		final A_Phrase block = args.get(0);
 		return interpreter.primitiveSuccess(
 			IntegerDescriptor.fromInt(block.primitive()));
 	}

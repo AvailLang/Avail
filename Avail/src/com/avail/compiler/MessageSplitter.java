@@ -516,7 +516,7 @@ public class MessageSplitter
 			assert arguments != null;
 			arguments.next().printOnAvoidingIndent(
 				builder,
-				new ArrayList<AvailObject>(),
+				new ArrayList<A_BasicObject>(),
 				indent + 1);
 		}
 
@@ -563,7 +563,7 @@ public class MessageSplitter
 			// Describe the token that was parsed as this raw token argument.
 			arguments.next().printOnAvoidingIndent(
 				builder,
-				new ArrayList<AvailObject>(),
+				new ArrayList<A_BasicObject>(),
 				indent + 1);
 			builder.append("†");
 		}
@@ -616,7 +616,7 @@ public class MessageSplitter
 			// Describe the token that was parsed as this raw token argument.
 			arguments.next().printOnAvoidingIndent(
 				builder,
-				new ArrayList<AvailObject>(),
+				new ArrayList<A_BasicObject>(),
 				indent + 1);
 		}
 	}
@@ -1117,7 +1117,7 @@ public class MessageSplitter
 		{
 			assert argumentProvider != null;
 			final boolean needsDouble = needsDoubleWrapping();
-			final A_BasicObject groupArguments = argumentProvider.next();
+			final A_Phrase groupArguments = argumentProvider.next();
 			final Iterator<AvailObject> occurrenceProvider =
 				groupArguments.expressionsTuple().iterator();
 			while (occurrenceProvider.hasNext())
@@ -1384,7 +1384,7 @@ public class MessageSplitter
 			final int indent)
 		{
 			assert argumentProvider != null;
-			final A_BasicObject countLiteral = argumentProvider.next();
+			final A_Phrase countLiteral = argumentProvider.next();
 			assert countLiteral.isInstanceOf(
 				ParseNodeKind.LITERAL_NODE.mostGeneralType());
 			final int count = countLiteral.token().literal().extractInt();
@@ -1546,7 +1546,7 @@ public class MessageSplitter
 			final int indent)
 		{
 			assert argumentProvider != null;
-			final A_BasicObject literal = argumentProvider.next();
+			final A_Phrase literal = argumentProvider.next();
 			assert literal.isInstanceOf(
 				ParseNodeKind.LITERAL_NODE.mostGeneralType());
 			final boolean flag = literal.token().literal().extractBoolean();
@@ -2160,7 +2160,7 @@ public class MessageSplitter
 			final int indent)
 		{
 			assert argumentProvider != null;
-			final A_BasicObject literal = argumentProvider.next();
+			final A_Phrase literal = argumentProvider.next();
 			assert literal.isInstanceOf(
 				ParseNodeKind.LITERAL_NODE.mostGeneralType());
 			final int index = literal.token().literal().extractInt();
@@ -2343,7 +2343,7 @@ public class MessageSplitter
 	 *        The current indentation level.
 	 */
 	public void printSendNodeOnIndent(
-		final A_BasicObject sendNode,
+		final A_Phrase sendNode,
 		final StringBuilder builder,
 		final int indent)
 	{

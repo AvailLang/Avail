@@ -97,7 +97,7 @@ extends Descriptor
 	boolean o_HasGrammaticalRestrictions (
 		final AvailObject object)
 	{
-		final A_BasicObject baseMessageBundle =
+		final A_Bundle baseMessageBundle =
 			object.slot(ObjectSlots.BASE_MESSAGE_BUNDLE);
 		return baseMessageBundle.hasGrammaticalRestrictions();
 	}
@@ -106,7 +106,7 @@ extends Descriptor
 	A_Tuple o_GrammaticalRestrictions (
 		final AvailObject object)
 	{
-		final A_BasicObject baseMessageBundle =
+		final A_Bundle baseMessageBundle =
 			object.slot(ObjectSlots.BASE_MESSAGE_BUNDLE);
 		return baseMessageBundle.grammaticalRestrictions();
 	}
@@ -115,7 +115,7 @@ extends Descriptor
 	A_Atom o_Message (
 		final AvailObject object)
 	{
-		final A_BasicObject baseMessageBundle =
+		final A_Bundle baseMessageBundle =
 			object.slot(ObjectSlots.BASE_MESSAGE_BUNDLE);
 		return baseMessageBundle.message();
 	}
@@ -124,7 +124,7 @@ extends Descriptor
 	A_Tuple o_MessageParts (
 		final AvailObject object)
 	{
-		final A_BasicObject baseMessageBundle =
+		final A_Bundle baseMessageBundle =
 			object.slot(ObjectSlots.BASE_MESSAGE_BUNDLE);
 		return baseMessageBundle.messageParts();
 	}
@@ -133,7 +133,7 @@ extends Descriptor
 	A_Tuple o_ParsingInstructions (
 		final AvailObject object)
 	{
-		final A_BasicObject baseMessageBundle =
+		final A_Bundle baseMessageBundle =
 			object.slot(ObjectSlots.BASE_MESSAGE_BUNDLE);
 		return baseMessageBundle.parsingInstructions();
 	}
@@ -149,7 +149,7 @@ extends Descriptor
 	public void printObjectOnAvoidingIndent (
 		final AvailObject object,
 		final StringBuilder aStream,
-		final List<AvailObject> recursionList,
+		final List<A_BasicObject> recursionList,
 		final int indent)
 	{
 		// The existing definitions are also printed in parentheses to help

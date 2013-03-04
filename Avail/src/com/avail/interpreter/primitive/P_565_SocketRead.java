@@ -77,12 +77,12 @@ extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 5;
-		final AvailObject size = args.get(0);
-		final AvailObject handle = args.get(1);
-		final AvailObject succeed = args.get(2);
-		final AvailObject fail = args.get(3);
-		final AvailObject priority = args.get(4);
-		final AvailObject pojo =
+		final A_Number size = args.get(0);
+		final A_Atom handle = args.get(1);
+		final A_Function succeed = args.get(2);
+		final A_Function fail = args.get(3);
+		final A_Number priority = args.get(4);
+		final A_BasicObject pojo =
 			handle.getAtomProperty(AtomDescriptor.socketKey());
 		if (pojo.equalsNil())
 		{
@@ -94,8 +94,8 @@ extends Primitive
 		final AsynchronousSocketChannel socket =
 			(AsynchronousSocketChannel) pojo.javaObject();
 		final ByteBuffer buffer = ByteBuffer.allocateDirect(size.extractInt());
-		final A_BasicObject current = FiberDescriptor.current();
-		final AvailObject newFiber = FiberDescriptor.newFiber(
+		final A_Fiber current = FiberDescriptor.current();
+		final A_Fiber newFiber = FiberDescriptor.newFiber(
 			succeed.kind().returnType().typeUnion(fail.kind().returnType()),
 			priority.extractInt());
 		// If the current fiber is an Avail fiber, then the new one should be
@@ -140,9 +140,8 @@ extends Primitive
 								Arrays.asList(
 									ByteBufferTupleDescriptor.forByteBuffer(
 										buffer),
-									(AvailObject)
-										AtomDescriptor.objectFromBoolean(
-											bytesRead == -1)));
+									AtomDescriptor.objectFromBoolean(
+										bytesRead == -1)));
 						}
 					}
 
@@ -162,7 +161,7 @@ extends Primitive
 								newFiber,
 								fail,
 								Collections.singletonList(
-									(AvailObject) E_IO_ERROR.numericCode()));
+									E_IO_ERROR.numericCode()));
 						}
 					}
 				});

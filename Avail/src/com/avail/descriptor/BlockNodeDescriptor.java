@@ -172,10 +172,9 @@ extends ParseNodeDescriptor
 	@Override @AvailMethod
 	A_Type o_ExpressionType (final AvailObject object)
 	{
-		List<AvailObject> argumentTypes;
-		argumentTypes = new ArrayList<AvailObject>(
-				object.argumentsTuple().tupleSize());
-		for (final A_BasicObject argDeclaration : object.argumentsTuple())
+		final List<A_Type> argumentTypes =
+			new ArrayList<A_Type>(object.argumentsTuple().tupleSize());
+		for (final A_Phrase argDeclaration : object.argumentsTuple())
 		{
 			argumentTypes.add(argDeclaration.declaredType());
 		}
@@ -249,75 +248,10 @@ extends ParseNodeDescriptor
 		return ParseNodeKind.BLOCK_NODE;
 	}
 
-	/**
-	 * Return a {@linkplain List list} of all {@linkplain
-	 * DeclarationNodeDescriptor declaration nodes} defined by this block.
-	 * This includes arguments, locals, and labels.
-	 *
-	 * @param object The Avail block node to scan.
-	 * @return The list of declarations.
-	 */
-	private static List<AvailObject> allLocallyDefinedVariables (
-		final AvailObject object)
-	{
-		final List<AvailObject> declarations = new ArrayList<AvailObject>(10);
-		for (final AvailObject argumentDeclaration : object.argumentsTuple())
-		{
-			declarations.add(argumentDeclaration);
-		}
-		declarations.addAll(locals(object));
-		declarations.addAll(labels(object));
-		return declarations;
-	}
-
-
-	/**
-	 * Answer the labels present in this block's list of statements. There is
-	 * either zero or one label, and it must be the first statement.
-	 *
-	 * @param object The block node to examine.
-	 * @return A list of between zero and one labels.
-	 */
-	private static List<AvailObject> labels (final A_BasicObject object)
-	{
-		final List<AvailObject> labels = new ArrayList<AvailObject>(1);
-		for (final AvailObject maybeLabel : object.statementsTuple())
-		{
-			if (maybeLabel.isInstanceOfKind(LABEL_NODE.mostGeneralType()))
-			{
-				labels.add(maybeLabel);
-			}
-		}
-		return labels;
-	}
-
-
-	/**
-	 * Answer the declarations of this block's local variables.  Do not include
-	 * the label declaration if present, nor argument declarations.
-	 *
-	 * @param object The block node to examine.
-	 * @return This block's local variable declarations.
-	 */
-	private static List<AvailObject> locals (final A_BasicObject object)
-	{
-		final List<AvailObject> locals = new ArrayList<AvailObject>(5);
-		for (final AvailObject maybeLocal : object.statementsTuple())
-		{
-			if (maybeLocal.isInstanceOfKind(DECLARATION_NODE.mostGeneralType())
-				&& !maybeLocal.isInstanceOfKind(LABEL_NODE.mostGeneralType()))
-			{
-				locals.add(maybeLocal);
-			}
-		}
-		return locals;
-	}
-
-
 	@Override @AvailMethod
 	void o_ChildrenMap (
 		final AvailObject object,
-		final Transformer1<AvailObject, AvailObject> aBlock)
+		final Transformer1<A_Phrase, A_Phrase> aBlock)
 	{
 		A_Tuple arguments = object.argumentsTuple();
 		for (int i = 1; i <= arguments.tupleSize(); i++)
@@ -401,6 +335,68 @@ extends ParseNodeDescriptor
 	}
 
 	/**
+	 * Return a {@linkplain List list} of all {@linkplain
+	 * DeclarationNodeDescriptor declaration nodes} defined by this block.
+	 * This includes arguments, locals, and labels.
+	 *
+	 * @param object The Avail block node to scan.
+	 * @return The list of declarations.
+	 */
+	private static List<A_Phrase> allLocallyDefinedVariables (
+		final A_Phrase object)
+	{
+		final List<A_Phrase> declarations = new ArrayList<A_Phrase>(10);
+		for (final A_Phrase argumentDeclaration : object.argumentsTuple())
+		{
+			declarations.add(argumentDeclaration);
+		}
+		declarations.addAll(locals(object));
+		declarations.addAll(labels(object));
+		return declarations;
+	}
+
+	/**
+	 * Answer the labels present in this block's list of statements. There is
+	 * either zero or one label, and it must be the first statement.
+	 *
+	 * @param object The block node to examine.
+	 * @return A list of between zero and one labels.
+	 */
+	private static List<A_Phrase> labels (final A_Phrase object)
+	{
+		final List<A_Phrase> labels = new ArrayList<A_Phrase>(1);
+		for (final AvailObject maybeLabel : object.statementsTuple())
+		{
+			if (maybeLabel.isInstanceOfKind(LABEL_NODE.mostGeneralType()))
+			{
+				labels.add(maybeLabel);
+			}
+		}
+		return labels;
+	}
+
+	/**
+	 * Answer the declarations of this block's local variables.  Do not include
+	 * the label declaration if present, nor argument declarations.
+	 *
+	 * @param object The block node to examine.
+	 * @return This block's local variable declarations.
+	 */
+	private static List<A_Phrase> locals (final A_Phrase object)
+	{
+		final List<A_Phrase> locals = new ArrayList<A_Phrase>(5);
+		for (final A_Phrase maybeLocal : object.statementsTuple())
+		{
+			if (maybeLocal.isInstanceOfKind(DECLARATION_NODE.mostGeneralType())
+				&& !maybeLocal.isInstanceOfKind(LABEL_NODE.mostGeneralType()))
+			{
+				locals.add(maybeLocal);
+			}
+		}
+		return locals;
+	}
+
+	/**
 	 * Construct a {@linkplain BlockNodeDescriptor block node}.
 	 *
 	 * @param argumentsList
@@ -472,9 +468,9 @@ extends ParseNodeDescriptor
 		final A_Set declaredExceptions,
 		final int lineNumber)
 	{
-		final List<AvailObject> flattenedStatements =
-			new ArrayList<AvailObject>(statements.tupleSize() + 3);
-		for (final A_BasicObject statement : statements)
+		final List<A_Phrase> flattenedStatements =
+			new ArrayList<A_Phrase>(statements.tupleSize() + 3);
+		for (final A_Phrase statement : statements)
 		{
 			statement.flattenStatementsInto(flattenedStatements);
 		}
@@ -581,7 +577,7 @@ extends ParseNodeDescriptor
 	public void printObjectOnAvoidingIndent (
 		final AvailObject object,
 		final StringBuilder builder,
-		final List<AvailObject> recursionList,
+		final List<A_BasicObject> recursionList,
 		final int indent)
 	{
 		// Optimize for one-liners...
@@ -666,7 +662,7 @@ extends ParseNodeDescriptor
 		}
 		for (int index = 1; index <= statementsSize; index++)
 		{
-			final A_BasicObject statement = statementsTuple.tupleAt(index);
+			final A_Phrase statement = statementsTuple.tupleAt(index);
 			if (skipFailureDeclaration)
 			{
 				assert statement.isInstanceOf(

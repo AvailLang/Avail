@@ -58,7 +58,7 @@ extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
-		final A_BasicObject fiber = args.get(0);
+		final A_Fiber fiber = args.get(0);
 		return interpreter.primitiveSuccess(
 			AtomDescriptor.objectFromBoolean(
 				!fiber.fiberResult().equalsNil()));

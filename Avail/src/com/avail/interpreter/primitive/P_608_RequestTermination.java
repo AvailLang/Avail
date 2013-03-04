@@ -63,7 +63,7 @@ extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
-		final A_BasicObject fiber = args.get(0);
+		final A_Fiber fiber = args.get(0);
 		// This sucks, but is necessary. Just in case the fiber is joining, we
 		// must acquire the join lock before attempting to acquire the fiber's
 		// own lock.
@@ -112,7 +112,7 @@ extends Primitive
 							// If the fiber is trying to join another fiber,
 							// then remove the fiber from its joinee's set of
 							// joiners. Then resume it.
-							final A_BasicObject joinee = fiber.joinee();
+							final A_Fiber joinee = fiber.joinee();
 							joinee.joiningFibers(
 								joinee.joiningFibers()
 									.setWithoutElementCanDestroy(

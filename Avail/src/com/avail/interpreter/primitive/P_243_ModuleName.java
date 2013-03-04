@@ -59,7 +59,7 @@ extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
-		final A_BasicObject module = args.get(0);
+		final A_Module module = args.get(0);
 		return interpreter.primitiveSuccess(module.moduleName());
 	}
 

@@ -95,7 +95,7 @@ extends ExtendedIntegerDescriptor
 	public void printObjectOnAvoidingIndent (
 		final AvailObject object,
 		final StringBuilder aStream,
-		final List<AvailObject> recursionList,
+		final List<A_BasicObject> recursionList,
 		final int indent)
 	{
 		final int integerCount = object.integerSlotsCount();
@@ -136,7 +136,7 @@ extends ExtendedIntegerDescriptor
 	@Override @AvailMethod
 	boolean o_EqualsInteger (
 		final AvailObject object,
-		final AvailObject anAvailInteger)
+		final A_Number anAvailInteger)
 	{
 		final int slotsCount = object.integerSlotsCount();
 		if (slotsCount != anAvailInteger.integerSlotsCount())

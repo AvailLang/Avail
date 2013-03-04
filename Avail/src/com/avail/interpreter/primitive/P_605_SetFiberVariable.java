@@ -65,7 +65,7 @@ extends Primitive
 		{
 			return interpreter.primitiveFailure(E_SPECIAL_ATOM);
 		}
-		final A_BasicObject fiber = FiberDescriptor.current();
+		final A_Fiber fiber = FiberDescriptor.current();
 		if (key.getAtomProperty(AtomDescriptor.heritableKey()).equalsNil())
 		{
 			fiber.fiberGlobals(

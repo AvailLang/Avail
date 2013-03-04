@@ -121,4 +121,15 @@ extends A_BasicObject, Iterable<AvailObject>
 	 */
 	int setSize ();
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	boolean isSubsetOf (A_Set another);
+
+	/**
+	 * @param kind
+	 * @return
+	 */
+	boolean setElementsAreAllInstancesOfKind (AvailObject kind);
+
 }

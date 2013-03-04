@@ -204,7 +204,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_AddGrammaticalMessageRestrictions (
+	void o_AddGrammaticalRestrictions (
 		final AvailObject object,
 		final A_Atom methodName,
 		final A_Tuple illegalArgMsgs)
@@ -223,7 +223,7 @@ extends AbstractDescriptor
 	@Override
 	void o_AddBundle (
 		final AvailObject object,
-		final A_BasicObject bundle)
+		final A_Bundle bundle)
 	{
 		throw unsupportedOperationException();
 	}
@@ -347,7 +347,7 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
-		final AvailObject aByteString,
+		final A_String aByteString,
 		final int startIndex2)
 	{
 		throw unsupportedOperationException();
@@ -358,7 +358,7 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
-		final AvailObject aByteTuple,
+		final A_Tuple aByteTuple,
 		final int startIndex2)
 	{
 		throw unsupportedOperationException();
@@ -369,7 +369,7 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
-		final AvailObject aNybbleTuple,
+		final A_Tuple aNybbleTuple,
 		final int startIndex2)
 	{
 		throw unsupportedOperationException();
@@ -380,7 +380,7 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
-		final AvailObject anObjectTuple,
+		final A_Tuple anObjectTuple,
 		final int startIndex2)
 	{
 		throw unsupportedOperationException();
@@ -391,7 +391,7 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
-		final AvailObject aTwoByteString,
+		final A_String aTwoByteString,
 		final int startIndex2)
 	{
 		throw unsupportedOperationException();
@@ -1865,7 +1865,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	A_BasicObject o_FilteredBundleTree (
+	A_BundleTree o_FilteredBundleTree (
 		final AvailObject object)
 	{
 		throw unsupportedOperationException();
@@ -2419,7 +2419,7 @@ extends AbstractDescriptor
 	@Override
 	boolean o_EqualsByteString (
 		final AvailObject object,
-		final AvailObject aString)
+		final A_String aString)
 	{
 		return false;
 	}
@@ -2427,7 +2427,7 @@ extends AbstractDescriptor
 	@Override
 	boolean o_EqualsByteTuple (
 		final AvailObject object,
-		final AvailObject aTuple)
+		final A_Tuple aTuple)
 	{
 		return false;
 	}
@@ -2443,7 +2443,7 @@ extends AbstractDescriptor
 	@Override
 	boolean o_EqualsFunction (
 		final AvailObject object,
-		final AvailObject aFunction)
+		final A_Function aFunction)
 	{
 		return false;
 	}
@@ -2467,7 +2467,7 @@ extends AbstractDescriptor
 	@Override
 	boolean o_EqualsCompiledCode (
 		final AvailObject object,
-		final AvailObject aCompiledCode)
+		final A_RawFunction aCompiledCode)
 	{
 		return false;
 	}
@@ -2491,7 +2491,7 @@ extends AbstractDescriptor
 	@Override
 	boolean o_EqualsContinuation (
 		final AvailObject object,
-		final AvailObject aContinuation)
+		final A_Continuation aContinuation)
 	{
 		return false;
 	}
@@ -2539,7 +2539,7 @@ extends AbstractDescriptor
 	@Override
 	boolean o_EqualsInteger (
 		final AvailObject object,
-		final AvailObject anAvailInteger)
+		final A_Number anAvailInteger)
 	{
 		return false;
 	}
@@ -2563,7 +2563,7 @@ extends AbstractDescriptor
 	@Override
 	boolean o_EqualsMapType (
 		final AvailObject object,
-		final AvailObject aMapType)
+		final A_Type aMapType)
 	{
 		return false;
 	}
@@ -2571,7 +2571,7 @@ extends AbstractDescriptor
 	@Override
 	boolean o_EqualsNybbleTuple (
 		final AvailObject object,
-		final AvailObject aTuple)
+		final A_Tuple aTuple)
 	{
 		return false;
 	}
@@ -2587,7 +2587,7 @@ extends AbstractDescriptor
 	@Override
 	boolean o_EqualsObjectTuple (
 		final AvailObject object,
-		final AvailObject aTuple)
+		final A_Tuple aTuple)
 	{
 		return false;
 	}
@@ -2595,7 +2595,7 @@ extends AbstractDescriptor
 	@Override
 	boolean o_EqualsParseNodeType (
 		final AvailObject object,
-		final AvailObject aParseNodeType)
+		final A_Type aParseNodeType)
 	{
 		return false;
 	}
@@ -2619,7 +2619,7 @@ extends AbstractDescriptor
 	@Override
 	boolean o_EqualsPrimitiveType (
 		final AvailObject object,
-		final AvailObject aPrimitiveType)
+		final A_Type aPrimitiveType)
 	{
 		return false;
 	}
@@ -2643,7 +2643,7 @@ extends AbstractDescriptor
 	@Override
 	boolean o_EqualsSetType (
 		final AvailObject object,
-		final AvailObject aSetType)
+		final A_Type aSetType)
 	{
 		return false;
 	}
@@ -2651,7 +2651,7 @@ extends AbstractDescriptor
 	@Override
 	boolean o_EqualsTupleType (
 		final AvailObject object,
-		final AvailObject aTupleType)
+		final A_Type aTupleType)
 	{
 		return false;
 	}
@@ -2659,7 +2659,7 @@ extends AbstractDescriptor
 	@Override
 	boolean o_EqualsTwoByteString (
 		final AvailObject object,
-		final AvailObject aString)
+		final A_String aString)
 	{
 		return false;
 	}
@@ -3113,7 +3113,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	AvailObject o_Expression (final AvailObject object)
+	A_Phrase o_Expression (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}
@@ -3182,15 +3182,6 @@ extends AbstractDescriptor
 
 	@Override
 	AvailObject o_InitializationExpression (final AvailObject object)
-	{
-		throw unsupportedOperationException();
-	}
-
-
-	@Override
-	void o_InitializationExpression (
-		final AvailObject object,
-		final AvailObject initializationExpression)
 	{
 		throw unsupportedOperationException();
 	}
@@ -3268,7 +3259,7 @@ extends AbstractDescriptor
 	@Override
 	void o_ChildrenMap (
 		final AvailObject object,
-		final Transformer1<AvailObject, AvailObject> aBlock)
+		final Transformer1<A_Phrase, A_Phrase> aBlock)
 	{
 		throw unsupportedOperationException();
 	}
@@ -3339,7 +3330,7 @@ extends AbstractDescriptor
 
 
 	@Override
-	AvailObject o_CopyMutableParseNode (
+	A_Phrase o_CopyMutableParseNode (
 		final AvailObject object)
 	{
 		throw unsupportedOperationException();
@@ -3363,7 +3354,7 @@ extends AbstractDescriptor
 
 
 	@Override
-	AvailObject o_ApparentSendName (
+	A_Atom o_ApparentSendName (
 		final AvailObject object)
 	{
 		throw unsupportedOperationException();
@@ -3381,7 +3372,7 @@ extends AbstractDescriptor
 	@Override
 	void o_FlattenStatementsInto (
 		final AvailObject object,
-		final List<AvailObject> accumulatedStatements)
+		final List<A_Phrase> accumulatedStatements)
 	{
 		throw unsupportedOperationException();
 	}
@@ -3987,7 +3978,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	AvailObject o_IssuingModule (
+	A_Module o_IssuingModule (
 		final AvailObject object)
 	{
 		throw unsupportedOperationException();
@@ -4241,7 +4232,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	AvailObject o_ArgumentsListNode (
+	A_Phrase o_ArgumentsListNode (
 		final AvailObject object)
 	{
 		throw unsupportedOperationException();
@@ -4382,7 +4373,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	A_BasicObject o_Module (final AvailObject object)
+	A_Module o_Module (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}
@@ -4453,13 +4444,6 @@ extends AbstractDescriptor
 		final boolean isSystemModule)
 	{
 		throw unsupportedOperationException();
-	}
-
-	@Override
-	boolean o_IsMarkerNode (
-		final AvailObject object)
-	{
-		return false;
 	}
 
 	@Override
@@ -4816,5 +4800,25 @@ extends AbstractDescriptor
 	boolean o_IsByteBufferTuple (final AvailObject object)
 	{
 		return false;
+	}
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	@Override
+	A_String o_FiberName (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	/**
+	 * @param object
+	 * @param value
+	 */
+	@Override
+	void o_FiberName (final AvailObject object, final A_String value)
+	{
+		throw unsupportedOperationException();
 	}
 }

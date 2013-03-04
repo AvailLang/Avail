@@ -63,7 +63,7 @@ public class P_408_BootstrapAssignmentMacro extends Primitive
 		final A_Phrase variableUse = args.get(0);
 		final A_Phrase valueExpression = args.get(1);
 
-		final A_BasicObject declaration = variableUse.declaration();
+		final A_Phrase declaration = variableUse.declaration();
 		if (!declaration.declarationKind().isVariable())
 		{
 			throw new AvailRejectedParseException(

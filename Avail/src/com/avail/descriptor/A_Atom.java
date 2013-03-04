@@ -41,7 +41,7 @@ package com.avail.descriptor;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public interface A_Atom
-extends A_BasicObject, Iterable<AvailObject>
+extends A_BasicObject
 {
 	/**
 	 * Dispatch to the descriptor.
@@ -55,7 +55,7 @@ extends A_BasicObject, Iterable<AvailObject>
 	/**
 	 * @return
 	 */
-	A_BasicObject issuingModule ();
+	A_Module issuingModule ();
 
 	/**
 	 * Dispatch to the descriptor.

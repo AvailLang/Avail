@@ -64,10 +64,10 @@ extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 4;
-		final AvailObject sleepMillis = args.get(0);
-		final AvailObject function = args.get(1);
-		final AvailObject argTuple = args.get(2);
-		final AvailObject priority = args.get(3);
+		final A_Number sleepMillis = args.get(0);
+		final A_Function function = args.get(1);
+		final A_Tuple argTuple = args.get(2);
+		final A_Number priority = args.get(3);
 		// Ensure that the function is callable with the specified arguments.
 		final int numArgs = argTuple.tupleSize();
 		if (function.code().numArgs() != numArgs)
@@ -102,8 +102,8 @@ extends Primitive
 		{
 			arg.makeShared();
 		}
-		final A_BasicObject current = FiberDescriptor.current();
-		final A_BasicObject orphan = FiberDescriptor.newFiber(
+		final A_Fiber current = FiberDescriptor.current();
+		final A_Fiber orphan = FiberDescriptor.newFiber(
 			function.kind().returnType(),
 			priority.extractInt());
 		// If the current fiber is an Avail fiber, then the new one should be

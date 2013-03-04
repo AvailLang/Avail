@@ -217,7 +217,7 @@ public final class AvailLoader
 			public void value ()
 			{
 				theRuntime.addMethod(method);
-				final A_BasicObject filteredRoot =
+				final A_BundleTree filteredRoot =
 					module().filteredBundleTree();
 				filteredRoot.includeBundleNamed(methodName, method);
 				filteredRoot.flushForNewOrChangedBundleNamed(methodName);
@@ -280,12 +280,12 @@ public final class AvailLoader
 				}
 			}
 		}
-		final AvailObject newForward = ForwardDefinitionDescriptor.create(
+		final A_BasicObject newForward = ForwardDefinitionDescriptor.create(
 			method,
 			bodySignature);
 		method.methodAddDefinition(newForward);
-		final AvailObject theModule = module;
-		final A_BasicObject filteredRoot = theModule.filteredBundleTree();
+		final A_Module theModule = module;
+		final A_BundleTree filteredRoot = theModule.filteredBundleTree();
 		theModule.lock(new Continuation0()
 		{
 			@Override
@@ -387,7 +387,7 @@ public final class AvailLoader
 			public void value ()
 			{
 				theRuntime.addMethod(method);
-				final A_BasicObject filteredRoot =
+				final A_BundleTree filteredRoot =
 					theModule.filteredBundleTree();
 				filteredRoot.includeBundleNamed(methodName, method);
 				filteredRoot.flushForNewOrChangedBundleNamed(methodName);
@@ -474,7 +474,7 @@ public final class AvailLoader
 			public void value ()
 			{
 				theRuntime.addMethod(method);
-				final A_BasicObject filteredRoot =
+				final A_BundleTree filteredRoot =
 					theModule.filteredBundleTree();
 				filteredRoot.includeBundleNamed(methodName, method);
 				filteredRoot.flushForNewOrChangedBundleNamed(methodName);
@@ -521,8 +521,7 @@ public final class AvailLoader
 			{
 				theModule.addTypeRestriction(
 					methodName, typeRestrictionFunction);
-				final A_BasicObject filteredRoot =
-					module().filteredBundleTree();
+				final A_BundleTree filteredRoot = module().filteredBundleTree();
 				filteredRoot.includeBundleNamed(methodName, method);
 				filteredRoot.flushForNewOrChangedBundleNamed(methodName);
 			}
@@ -593,7 +592,7 @@ public final class AvailLoader
 			@Override
 			public void value ()
 			{
-				final AvailObject bundle =
+				final A_Bundle bundle =
 					theModule.filteredBundleTree().includeBundleNamed(
 						methodName, method);
 				bundle.addGrammaticalRestrictions(illegalArgMsgs);
@@ -618,7 +617,7 @@ public final class AvailLoader
 			AtomDescriptor.clientDataGlobalKey();
 		final A_Atom compilerScopeMapKey =
 			AtomDescriptor.compilerScopeMapKey();
-		final A_BasicObject fiber = FiberDescriptor.current();
+		final A_Fiber fiber = FiberDescriptor.current();
 		A_Map fiberGlobals = fiber.fiberGlobals();
 		A_Map clientData = fiberGlobals.mapAt(clientDataGlobalKey);
 		A_Map bindings = clientData.mapAt(compilerScopeMapKey);

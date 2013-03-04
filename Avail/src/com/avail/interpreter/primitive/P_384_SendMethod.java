@@ -60,7 +60,7 @@ extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
-		final A_BasicObject send = args.get(0);
+		final A_Phrase send = args.get(0);
 		return interpreter.primitiveSuccess(send.method());
 	}
 

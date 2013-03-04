@@ -33,6 +33,7 @@
 package com.avail.descriptor;
 
 import java.util.List;
+import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.descriptor.TypeDescriptor.Types;
 
 /**
@@ -73,6 +74,18 @@ extends A_BasicObject
 	boolean acceptsListOfArgTypes (List<A_Type> argTypes);
 
 	/**
+	 * Answer whether these are acceptable arguments for invoking a {@linkplain
+	 * FunctionDescriptor function} whose type is the receiver.
+	 *
+	 * @param argValues A list containing the argument values to be checked.
+	 * @return {@code true} if the arguments of the receiver are, pairwise, more
+	 *         general than the types of the values within the {@code argValues}
+	 *         list, {@code false} otherwise.
+	 */
+	boolean acceptsListOfArgValues (
+		List<? extends A_BasicObject> argValues);
+
+	/**
 	 * Answer whether these are acceptable {@linkplain TypeDescriptor argument
 	 * types} for invoking a {@linkplain FunctionDescriptor function} that is an
 	 * instance of the receiver. There may be more entries in the {@linkplain
@@ -100,6 +113,13 @@ extends A_BasicObject
 	boolean acceptsTupleOfArguments (A_Tuple arguments);
 
 	/**
+	 * Answer the type of elements that this set type's sets may hold.
+	 *
+	 * @return The set type's content type.
+	 */
+	A_Type contentType ();
+
+	/**
 	 * Also declared in {@link A_Phrase} for {@linkplain BlockNodeDescriptor
 	 * block phrases} and {@linkplain SendNodeDescriptor send phrases}.
 	 *
@@ -108,12 +128,20 @@ extends A_BasicObject
 	A_Set declaredExceptions ();
 
 	/**
-	 * Also declared in {@link A_Phrase} for {@linkplain BlockNodeDescriptor
-	 * block phrases} and {@linkplain SendNodeDescriptor send phrases}.
+	 * Return the parse node type's expression type, which is the type of object
+	 * that will be produced by parse nodes of that type.
+	 *
+	 * <p>Also implemented in {@link A_Phrase} (for parse node instances).</p>
+	 *
+	 * @return The {@linkplain TypeDescriptor type} of the {@link AvailObject}
+	 *         that will be produced by this type of parse node.
 	 */
-	A_Type returnType ();
+	A_Type expressionType ();
 
-
+	/**
+	 * @return
+	 */
+	A_Type functionType ();
 
 	/**
 	 * Dispatch to the descriptor.
@@ -212,6 +240,35 @@ extends A_BasicObject
 	 * @return
 	 */
 	boolean isSupertypeOfPojoBottomType (A_Type aPojoType);
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	A_Type keyType ();
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	A_Number lowerBound ();
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	boolean lowerInclusive ();
+
+	/**
+	 * Also declared in {@link A_Phrase} for {@linkplain ParseNodeDescriptor
+	 * parse nodes}, not just parse node types.
+	 *
+	 * @return
+	 */
+	ParseNodeKind parseNodeKind ();
+
+	/**
+	 * Also declared in {@link A_Phrase} for {@linkplain BlockNodeDescriptor
+	 * block phrases} and {@linkplain SendNodeDescriptor send phrases}.
+	 */
+	A_Type returnType ();
 
 	/**
 	 * @param aCompiledCodeType
@@ -408,33 +465,9 @@ extends A_BasicObject
 	A_Type typeUnionOfTupleType (A_Type aTupleType);
 
 	/**
-	 * Answer whether these are acceptable arguments for invoking a {@linkplain
-	 * FunctionDescriptor function} whose type is the receiver.
-	 *
-	 * @param argValues A list containing the argument values to be checked.
-	 * @return {@code true} if the arguments of the receiver are, pairwise, more
-	 *         general than the types of the values within the {@code argValues}
-	 *         list, {@code false} otherwise.
+	 * @return
 	 */
-	boolean acceptsListOfArgValues (
-		List<? extends A_BasicObject> argValues);
-
-	/**
-	 * Answer the type of elements that this set type's sets may hold.
-	 *
-	 * @return The set type's content type.
-	 */
-	A_Type contentType ();
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	A_Number lowerBound ();
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	boolean lowerInclusive ();
+	A_Map typeVariables ();
 
 	/**
 	 * Dispatch to the descriptor.
@@ -445,19 +478,4 @@ extends A_BasicObject
 	 * Dispatch to the descriptor.
 	 */
 	boolean upperInclusive ();
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	A_Type keyType ();
-
-	/**
-	 * @return
-	 */
-	A_Map typeVariables ();
-
-	/**
-	 * @return
-	 */
-	A_Type functionType ();
 }

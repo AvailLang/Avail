@@ -473,7 +473,7 @@ extends PojoTypeDescriptor
 	void printObjectOnAvoidingIndent (
 		final AvailObject object,
 		final StringBuilder builder,
-		final List<AvailObject> recursionList,
+		final List<A_BasicObject> recursionList,
 		final int indent)
 	{
 		final AvailObject javaClass = object.slot(JAVA_CLASS);

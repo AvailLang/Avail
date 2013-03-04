@@ -1,6 +1,6 @@
 /**
- * P_613_FiberName.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * A_Bundle.java
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,44 +30,61 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.interpreter.primitive;
-
-import static com.avail.interpreter.Primitive.Flag.*;
-import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
+package com.avail.descriptor;
 
 /**
- * <strong>Primitive 613</strong>: Answer the name of the specified {@linkplain
- * FiberDescriptor fiber}.
+ * {@code A_Bundle} is an interface that specifies the {@linkplain
+ * MessageBundleDescriptor message-bundle}-specific operations that an {@link
+ * AvailObject} must implement.  It's a sub-interface of {@link A_BasicObject},
+ * the interface that defines the behavior that all AvailObjects are required to
+ * support.
  *
- * @author Todd L Smith &lt;todd@availlang.org&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public final class P_613_FiberName
-extends Primitive
+public interface A_Bundle
+extends A_BasicObject
 {
+
 	/**
-	 * The sole instance of this primitive class. Accessed through reflection.
+	 * @return
 	 */
-	public final static Primitive instance =
-		new P_613_FiberName().init(1, CannotFail, CanInline);
+	AvailObject bundleMethod ();
 
-	@Override
-	public Result attempt (
-		final List<AvailObject> args,
-		final Interpreter interpreter)
-	{
-		assert args.size() == 1;
-		final A_Fiber fiber = args.get(0);
-		return interpreter.primitiveSuccess(fiber.fiberName());
-	}
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	A_Tuple grammaticalRestrictions ();
 
-	@Override
-	protected A_Type privateBlockTypeRestriction ()
-	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
-				FiberTypeDescriptor.mostGeneralType()),
-			TupleTypeDescriptor.stringTupleType());
-	}
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	A_Atom message ();
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	A_Tuple messageParts ();
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	A_Tuple parsingInstructions ();
+
+	/**
+	 * Add a set of {@linkplain MessageBundleDescriptor grammatical
+	 * restrictions} to the receiver.
+	 *
+	 * @param restrictions The set of grammatical restrictions to be added.
+	 */
+	void addGrammaticalRestrictions (A_Tuple restrictions);
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	void removeGrammaticalRestrictions (A_Tuple obsoleteRestrictions);
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	boolean hasGrammaticalRestrictions ();
 }

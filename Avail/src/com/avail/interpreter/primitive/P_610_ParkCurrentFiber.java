@@ -71,7 +71,7 @@ extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 0;
-		final A_BasicObject fiber = FiberDescriptor.current();
+		final A_Fiber fiber = FiberDescriptor.current();
 		final MutableOrNull<Result> result = new MutableOrNull<Result>();
 		fiber.lock(new Continuation0()
 		{

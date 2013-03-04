@@ -56,7 +56,7 @@ public class P_212_BundleMessageParts extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
-		final A_BasicObject bundle = args.get(0);
+		final A_Bundle bundle = args.get(0);
 		return interpreter.primitiveSuccess(
 			bundle.messageParts().makeImmutable());
 	}

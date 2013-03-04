@@ -592,7 +592,7 @@ public abstract class AbstractDescriptor
 	void printObjectOnAvoidingIndent (
 		final AvailObject object,
 		final StringBuilder builder,
-		final List<AvailObject> recursionList,
+		final List<A_BasicObject> recursionList,
 		final int indent)
 	{
 		builder.append('a');
@@ -1129,7 +1129,7 @@ public abstract class AbstractDescriptor
 	 * @param methodName
 	 * @param illegalArgMsgs
 	 */
-	abstract void o_AddGrammaticalMessageRestrictions (
+	abstract void o_AddGrammaticalRestrictions (
 		AvailObject object,
 		A_Atom methodName,
 		A_Tuple illegalArgMsgs);
@@ -1148,7 +1148,7 @@ public abstract class AbstractDescriptor
 	 */
 	abstract void o_AddBundle (
 		AvailObject object,
-		A_BasicObject bundle);
+		A_Bundle bundle);
 
 	/**
 	 * @param object
@@ -1314,13 +1314,13 @@ public abstract class AbstractDescriptor
 	 *        The inclusive lower bound of the byte string's subrange.
 	 * @return {@code true} if the contents of the subranges match exactly,
 	 *         {@code false} otherwise.
-	 * @see AvailObject#compareFromToWithByteStringStartingAt(int, int, AvailObject, int)
+	 * @see AvailObject#compareFromToWithByteStringStartingAt(int, int, A_String, int)
 	 */
 	abstract boolean o_CompareFromToWithByteStringStartingAt (
 		AvailObject object,
 		int startIndex1,
 		int endIndex1,
-		AvailObject aByteString,
+		A_String aByteString,
 		int startIndex2);
 
 	/**
@@ -1341,13 +1341,13 @@ public abstract class AbstractDescriptor
 	 *        The inclusive lower bound of the byte tuple's subrange.
 	 * @return {@code true} if the contents of the subranges match exactly,
 	 *         {@code false} otherwise.
-	 * @see AvailObject#compareFromToWithByteTupleStartingAt(int, int, AvailObject, int)
+	 * @see AvailObject#compareFromToWithByteTupleStartingAt(int, int, A_Tuple, int)
 	 */
 	abstract boolean o_CompareFromToWithByteTupleStartingAt (
 		AvailObject object,
 		int startIndex1,
 		int endIndex1,
-		AvailObject aByteTuple,
+		A_Tuple aByteTuple,
 		int startIndex2);
 
 	/**
@@ -1368,13 +1368,13 @@ public abstract class AbstractDescriptor
 	 *        The inclusive lower bound of the nybble tuple's subrange.
 	 * @return {@code true} if the contents of the subranges match exactly,
 	 *         {@code false} otherwise.
-	 * @see AvailObject#compareFromToWithNybbleTupleStartingAt(int, int, AvailObject, int)
+	 * @see AvailObject#compareFromToWithNybbleTupleStartingAt(int, int, A_Tuple, int)
 	 */
 	abstract boolean o_CompareFromToWithNybbleTupleStartingAt (
 		AvailObject object,
 		int startIndex1,
 		int endIndex1,
-		AvailObject aNybbleTuple,
+		A_Tuple aNybbleTuple,
 		int startIndex2);
 
 	/**
@@ -1395,13 +1395,13 @@ public abstract class AbstractDescriptor
 	 *        The inclusive lower bound of the object tuple's subrange.
 	 * @return {@code true} if the contents of the subranges match exactly,
 	 *         {@code false} otherwise.
-	 * @see AvailObject#compareFromToWithObjectTupleStartingAt(int, int, AvailObject, int)
+	 * @see AvailObject#compareFromToWithObjectTupleStartingAt(int, int, A_Tuple, int)
      */
 	abstract boolean o_CompareFromToWithObjectTupleStartingAt (
 		AvailObject object,
 		int startIndex1,
 		int endIndex1,
-		AvailObject anObjectTuple,
+		A_Tuple anObjectTuple,
 		int startIndex2);
 
 	/**
@@ -1422,13 +1422,13 @@ public abstract class AbstractDescriptor
 	 *        The inclusive lower bound of the two-byte string's subrange.
 	 * @return {@code true} if the contents of the subranges match exactly,
 	 *         {@code false} otherwise.
-	 * @see AvailObject#compareFromToWithTwoByteStringStartingAt(int, int, AvailObject, int)
+	 * @see AvailObject#compareFromToWithTwoByteStringStartingAt(int, int, A_String, int)
      */
 	abstract boolean o_CompareFromToWithTwoByteStringStartingAt (
 		AvailObject object,
 		int startIndex1,
 		int endIndex1,
-		AvailObject aTwoByteString,
+		A_String aTwoByteString,
 		int startIndex2);
 
 	/**
@@ -3165,7 +3165,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	abstract A_BasicObject o_FilteredBundleTree (AvailObject object);
+	abstract A_BundleTree o_FilteredBundleTree (AvailObject object);
 
 	/**
 	 * @param object
@@ -3660,11 +3660,11 @@ public abstract class AbstractDescriptor
 	 * @param aByteString The byte string used in the comparison.
 	 * @return {@code true} if the receiver is a byte string and of value equal
 	 *         to the argument, {@code false} otherwise.
-	 * @see AvailObject#equalsByteString(AvailObject)
+	 * @see AvailObject#equalsByteString(A_String)
 	 */
 	abstract boolean o_EqualsByteString (
 		AvailObject object,
-		AvailObject aByteString);
+		A_String aByteString);
 
 	/**
 	 * Answer whether the arguments, an {@linkplain AvailObject object}, and a
@@ -3674,11 +3674,11 @@ public abstract class AbstractDescriptor
 	 * @param aByteTuple The byte tuple used in the comparison.
 	 * @return {@code true} if the receiver is a byte tuple and of value equal
 	 *         to the argument, {@code false} otherwise.
-	 * @see AvailObject#equalsByteString(AvailObject)
+	 * @see AvailObject#equalsByteString(A_String)
 	 */
 	abstract boolean o_EqualsByteTuple (
 		AvailObject object,
-		AvailObject aByteTuple);
+		A_Tuple aByteTuple);
 
 	/**
 	 * Answer whether the receiver, an {@linkplain AvailObject object}, is a
@@ -3714,11 +3714,11 @@ public abstract class AbstractDescriptor
 	 * @param aFunction The function used in the comparison.
 	 * @return {@code true} if the receiver is a function and of value equal to
 	 *         the argument, {@code false} otherwise.
-	 * @see AvailObject#equalsFunction(AvailObject)
+	 * @see AvailObject#equalsFunction(A_Function)
 	 */
 	abstract boolean o_EqualsFunction (
 		AvailObject object,
-		AvailObject aFunction);
+		A_Function aFunction);
 
 	/**
 	 * Answer whether the arguments, an {@linkplain AvailObject object} and a
@@ -3750,11 +3750,11 @@ public abstract class AbstractDescriptor
 	 * @param aCompiledCode The compiled code used in the comparison.
 	 * @return {@code true} if the receiver is a compiled code and of value
 	 *         equal to the argument, {@code false} otherwise.
-	 * @see AvailObject#equalsCompiledCode(AvailObject)
+	 * @see AvailObject#equalsCompiledCode(A_RawFunction)
 	 */
 	abstract boolean o_EqualsCompiledCode (
 		AvailObject object,
-		AvailObject aCompiledCode);
+		A_RawFunction aCompiledCode);
 
 	/**
 	 * Answer whether the arguments, an {@linkplain AvailObject object} and a
@@ -3790,7 +3790,7 @@ public abstract class AbstractDescriptor
 	 */
 	abstract boolean o_EqualsContinuation (
 		AvailObject object,
-		AvailObject aContinuation);
+		A_Continuation aContinuation);
 
 	/**
 	 * @param object
@@ -3850,7 +3850,7 @@ public abstract class AbstractDescriptor
 	 */
 	abstract boolean o_EqualsInteger (
 		AvailObject object,
-		AvailObject anAvailInteger);
+		A_Number anAvailInteger);
 
 	/**
 	 * @param object
@@ -3877,7 +3877,7 @@ public abstract class AbstractDescriptor
 	 */
 	abstract boolean o_EqualsMapType (
 		AvailObject object,
-		AvailObject aMapType);
+		A_Type aMapType);
 
 	/**
 	 * @param object
@@ -3886,7 +3886,7 @@ public abstract class AbstractDescriptor
 	 */
 	abstract boolean o_EqualsNybbleTuple (
 		AvailObject object,
-		AvailObject aTuple);
+		A_Tuple aTuple);
 
 	/**
 	 * @param object
@@ -3904,7 +3904,7 @@ public abstract class AbstractDescriptor
 	 */
 	abstract boolean o_EqualsObjectTuple (
 		AvailObject object,
-		AvailObject aTuple);
+		A_Tuple aTuple);
 
 	/**
 	 * @param object
@@ -3913,7 +3913,7 @@ public abstract class AbstractDescriptor
 	 */
 	abstract boolean o_EqualsParseNodeType (
 		AvailObject object,
-		AvailObject aParseNodeType);
+		A_Type aParseNodeType);
 
 	/**
 	 * @param object
@@ -3940,7 +3940,7 @@ public abstract class AbstractDescriptor
 	 */
 	abstract boolean o_EqualsPrimitiveType (
 		final AvailObject object,
-		final AvailObject aPrimitiveType);
+		final A_Type aPrimitiveType);
 
 	/**
 	 * @param object
@@ -3967,7 +3967,7 @@ public abstract class AbstractDescriptor
 	 */
 	abstract boolean o_EqualsSetType (
 		AvailObject object,
-		AvailObject aSetType);
+		A_Type aSetType);
 
 	/**
 	 * @param object
@@ -3976,7 +3976,7 @@ public abstract class AbstractDescriptor
 	 */
 	abstract boolean o_EqualsTupleType (
 		AvailObject object,
-		AvailObject aTupleType);
+		A_Type aTupleType);
 
 	/**
 	 * @param object
@@ -3985,7 +3985,7 @@ public abstract class AbstractDescriptor
 	 */
 	abstract boolean o_EqualsTwoByteString (
 		AvailObject object,
-		AvailObject aString);
+		A_String aString);
 
 	/**
 	 * @param object
@@ -4341,7 +4341,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	abstract AvailObject o_Expression (AvailObject object);
+	abstract A_Phrase o_Expression (AvailObject object);
 
 	/**
 	 * @param object
@@ -4399,14 +4399,6 @@ public abstract class AbstractDescriptor
 	 */
 	abstract DeclarationKind o_DeclarationKind (
 		AvailObject object);
-
-	/**
-	 * @param object
-	 * @param initializationExpression
-	 */
-	abstract void o_InitializationExpression (
-		AvailObject object,
-		AvailObject initializationExpression);
 
 	/**
 	 * @param object
@@ -4481,7 +4473,7 @@ public abstract class AbstractDescriptor
 	 */
 	abstract void o_ChildrenMap (
 		AvailObject object,
-		Transformer1<AvailObject, AvailObject> aBlock);
+		Transformer1<A_Phrase, A_Phrase> aBlock);
 
 	/**
 	 * Visit my child parse nodes with aBlock.
@@ -4545,7 +4537,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	abstract AvailObject o_CopyMutableParseNode (
+	abstract A_Phrase o_CopyMutableParseNode (
 		AvailObject object);
 
 	/**
@@ -4566,7 +4558,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	abstract AvailObject o_ApparentSendName (
+	abstract A_Atom o_ApparentSendName (
 		AvailObject object);
 
 	/**
@@ -4582,7 +4574,7 @@ public abstract class AbstractDescriptor
 	 */
 	abstract void o_FlattenStatementsInto (
 		AvailObject object,
-		List<AvailObject> accumulatedStatements);
+		List<A_Phrase> accumulatedStatements);
 
 	/**
 	 * @param object
@@ -5177,7 +5169,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	abstract AvailObject o_IssuingModule (
+	abstract A_Module o_IssuingModule (
 		final AvailObject object);
 
 	/**
@@ -5407,7 +5399,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	abstract AvailObject o_ArgumentsListNode (
+	abstract A_Phrase o_ArgumentsListNode (
 		final AvailObject object);
 
 	/**
@@ -5554,7 +5546,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	abstract A_BasicObject o_Module (
+	abstract A_Module o_Module (
 		final AvailObject object);
 
 	/**
@@ -5622,13 +5614,6 @@ public abstract class AbstractDescriptor
 	abstract void o_IsSystemModule (
 		final AvailObject object,
 		final boolean isSystemModule);
-
-	/**
-	 * @param object
-	 * @return
-	 */
-	abstract boolean o_IsMarkerNode (
-		final AvailObject object);
 
 	/**
 	 * @param object
@@ -6001,4 +5986,16 @@ public abstract class AbstractDescriptor
 	 * @return
 	 */
 	abstract boolean o_IsByteBufferTuple (AvailObject object);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract A_String o_FiberName (AvailObject object);
+
+	/**
+	 * @param object
+	 * @param value
+	 */
+	abstract void o_FiberName (AvailObject object, A_String value);
 }

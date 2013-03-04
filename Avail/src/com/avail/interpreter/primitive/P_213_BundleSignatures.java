@@ -59,7 +59,7 @@ public class P_213_BundleSignatures extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
-		final A_BasicObject bundle = args.get(0);
+		final A_Bundle bundle = args.get(0);
 		final A_Method method =
 			interpreter.runtime().methodAt(bundle.message());
 		if (method.equalsNil())

@@ -132,7 +132,7 @@ extends Descriptor
 	public final void printObjectOnAvoidingIndent (
 		final AvailObject object,
 		final StringBuilder aStream,
-		final List<AvailObject> recursionList,
+		final List<A_BasicObject> recursionList,
 		final int indent)
 	{
 		final String nativeName = object.name().asNativeString();
@@ -156,7 +156,7 @@ extends Descriptor
 			aStream.append(nativeName);
 			aStream.append('"');
 		}
-		final A_BasicObject issuer = object.slot(ISSUING_MODULE);
+		final A_Module issuer = object.slot(ISSUING_MODULE);
 		if (!issuer.equalsNil())
 		{
 			aStream.append(" (from ");
@@ -174,7 +174,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_IssuingModule (final AvailObject object)
+	A_Module o_IssuingModule (final AvailObject object)
 	{
 		return object.slot(ISSUING_MODULE);
 	}

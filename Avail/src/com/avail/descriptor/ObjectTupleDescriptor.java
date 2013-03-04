@@ -125,7 +125,7 @@ extends TupleDescriptor
 		final AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
-		final AvailObject anObjectTuple,
+		final A_Tuple anObjectTuple,
 		final int startIndex2)
 	{
 		// Compare sections of two object tuples.
@@ -156,7 +156,7 @@ extends TupleDescriptor
 	@Override @AvailMethod
 	boolean o_EqualsObjectTuple (
 		final AvailObject object,
-		final AvailObject anObjectTuple)
+		final A_Tuple anObjectTuple)
 	{
 		if (object.sameAddressAs(anObjectTuple))
 		{
@@ -188,7 +188,7 @@ extends TupleDescriptor
 		}
 		else
 		{
-			if (!anObjectTuple.descriptor.isShared())
+			if (!anObjectTuple.descriptor().isShared())
 			{
 				object.makeImmutable();
 				anObjectTuple.becomeIndirectionTo(object);

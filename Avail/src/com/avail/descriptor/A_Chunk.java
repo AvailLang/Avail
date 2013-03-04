@@ -42,7 +42,7 @@ package com.avail.descriptor;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public interface A_Chunk
-extends A_BasicObject, Iterable<AvailObject>
+extends A_BasicObject
 {
 	/**
 	 * Dispatch to the descriptor.

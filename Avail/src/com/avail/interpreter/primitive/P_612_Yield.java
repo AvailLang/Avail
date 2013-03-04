@@ -61,7 +61,7 @@ extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 0;
-		final A_BasicObject fiber = FiberDescriptor.current();
+		final A_Fiber fiber = FiberDescriptor.current();
 		final Result suspended = interpreter.primitiveSuspend();
 		Interpreter.current().postExitContinuation(new Continuation0()
 		{

@@ -188,7 +188,7 @@ extends AbstractEnumerationTypeDescriptor
 	void printObjectOnAvoidingIndent (
 		final AvailObject object,
 		final StringBuilder aStream,
-		final List<AvailObject> recursionList,
+		final List<A_BasicObject> recursionList,
 		final int indent)
 	{
 		// Print boolean specially.
@@ -724,7 +724,7 @@ extends AbstractEnumerationTypeDescriptor
 	A_Type o_ExpressionType (final AvailObject object)
 	{
 		A_Type unionType = BottomTypeDescriptor.bottom();
-		for (final A_BasicObject instance : getInstances(object))
+		for (final A_Phrase instance : getInstances(object))
 		{
 			unionType = unionType.typeUnion(instance.expressionType());
 		}

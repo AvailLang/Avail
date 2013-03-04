@@ -1,6 +1,6 @@
 /**
- * P_613_FiberName.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * A_BundleTree.java
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,44 +30,83 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.interpreter.primitive;
-
-import static com.avail.interpreter.Primitive.Flag.*;
-import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
+package com.avail.descriptor;
 
 /**
- * <strong>Primitive 613</strong>: Answer the name of the specified {@linkplain
- * FiberDescriptor fiber}.
+ * {@code A_BundleTree} is an interface that specifies the {@linkplain
+ * MessageBundleTreeDescriptor message-bundle-tree}-specific operations that an
+ * {@link AvailObject} must implement.  It's a sub-interface of {@link
+ * A_BasicObject}, the interface that defines the behavior that all AvailObjects
+ * are required to support.
  *
- * @author Todd L Smith &lt;todd@availlang.org&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public final class P_613_FiberName
-extends Primitive
+public interface A_BundleTree
+extends A_BasicObject
 {
 	/**
-	 * The sole instance of this primitive class. Accessed through reflection.
+	 * @return
 	 */
-	public final static Primitive instance =
-		new P_613_FiberName().init(1, CannotFail, CanInline);
+	A_Map allBundles ();
 
-	@Override
-	public Result attempt (
-		final List<AvailObject> args,
-		final Interpreter interpreter)
-	{
-		assert args.size() == 1;
-		final A_Fiber fiber = args.get(0);
-		return interpreter.primitiveSuccess(fiber.fiberName());
-	}
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	A_Map lazyComplete ();
 
-	@Override
-	protected A_Type privateBlockTypeRestriction ()
-	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
-				FiberTypeDescriptor.mostGeneralType()),
-			TupleTypeDescriptor.stringTupleType());
-	}
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	A_Map lazyIncomplete ();
+
+	/**
+	 * @return
+	 */
+	A_Map lazyIncompleteCaseInsensitive ();
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	A_Map lazyActions ();
+
+	/**
+	 * @return
+	 */
+	A_Map lazyPrefilterMap ();
+
+	/**
+	 * @return
+	 */
+	A_Map complete ();
+
+	/**
+	 * @return
+	 */
+	A_Map incomplete ();
+
+	/**
+	 * @param bundle
+	 */
+	void addBundle (A_Bundle bundle);
+
+	/**
+	 * Dispatch to the descriptor.
+	 * @param method
+	 */
+	AvailObject includeBundleNamed (A_Atom messageName, A_BasicObject method);
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	boolean removeBundleNamed (A_Atom message);
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	void expand ();
+
+	/**
+	 * @param message
+	 */
+	void flushForNewOrChangedBundleNamed (A_Atom message);
 }

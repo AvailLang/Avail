@@ -79,7 +79,7 @@ public class P_400_BootstrapBlockAfterArgumentPrefix extends Primitive
 		assert labelPhrase.isInstanceOfKind(LITERAL_NODE.create(TOKEN.o()));
 		assert typePhrase.isInstanceOfKind(
 			LITERAL_NODE.create(InstanceMetaDescriptor.anyMeta()));
-		final A_Token argToken = labelPhrase.token().token();
+		final A_Token argToken = labelPhrase.token();
 		final A_Type argType = typePhrase.token().literal();
 		assert argType.isType();
 

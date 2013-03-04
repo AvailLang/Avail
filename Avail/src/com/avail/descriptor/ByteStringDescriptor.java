@@ -100,7 +100,7 @@ extends StringDescriptor
 		final AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
-		final AvailObject aByteString,
+		final A_String aByteString,
 		final int startIndex2)
 	{
 		// Compare sections of two byte strings.
@@ -132,7 +132,7 @@ extends StringDescriptor
 	@Override @AvailMethod
 	boolean o_EqualsByteString (
 		final AvailObject object,
-		final AvailObject aByteString)
+		final A_String aByteString)
 	{
 		// First, check for object-structure (address) identity.
 		if (object.sameAddressAs(aByteString))
@@ -163,7 +163,7 @@ extends StringDescriptor
 			aByteString.makeImmutable();
 			object.becomeIndirectionTo(aByteString);
 		}
-		else if (!aByteString.descriptor.isShared())
+		else if (!aByteString.descriptor().isShared())
 		{
 			object.makeImmutable();
 			aByteString.becomeIndirectionTo(object);

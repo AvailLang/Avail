@@ -87,7 +87,7 @@ extends Descriptor
 	public void printObjectOnAvoidingIndent (
 		final AvailObject object,
 		final StringBuilder aStream,
-		final List<AvailObject> recursionList,
+		final List<A_BasicObject> recursionList,
 		final int indent)
 	{
 		switch (mutability)
@@ -119,7 +119,7 @@ extends Descriptor
 	@Override
 	boolean o_EqualsFunction (
 		final AvailObject object,
-		final AvailObject aFunction)
+		final A_Function aFunction)
 	{
 		if (!object.code().equals(aFunction.code()))
 		{
@@ -144,7 +144,7 @@ extends Descriptor
 			aFunction.makeImmutable();
 			object.becomeIndirectionTo(aFunction);
 		}
-		else if (!aFunction.descriptor.isShared())
+		else if (!aFunction.descriptor().isShared())
 		{
 			object.makeImmutable();
 			aFunction.becomeIndirectionTo(object);

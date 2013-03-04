@@ -99,7 +99,7 @@ extends TupleDescriptor
 		final AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
-		final AvailObject aByteTuple,
+		final A_Tuple aByteTuple,
 		final int startIndex2)
 	{
 		if (object.sameAddressAs(aByteTuple) && startIndex1 == startIndex2)
@@ -131,7 +131,7 @@ extends TupleDescriptor
 	@Override @AvailMethod
 	boolean o_EqualsByteTuple (
 		final AvailObject object,
-		final AvailObject aByteTuple)
+		final A_Tuple aByteTuple)
 	{
 		// First, check for object-structure (address) identity.
 		if (object.sameAddressAs(aByteTuple))
@@ -162,7 +162,7 @@ extends TupleDescriptor
 			aByteTuple.makeImmutable();
 			object.becomeIndirectionTo(aByteTuple);
 		}
-		else if (!aByteTuple.descriptor.isShared())
+		else if (!aByteTuple.descriptor().isShared())
 		{
 			object.makeImmutable();
 			aByteTuple.becomeIndirectionTo(object);

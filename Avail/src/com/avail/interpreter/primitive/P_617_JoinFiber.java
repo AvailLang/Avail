@@ -65,9 +65,9 @@ extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
-		final A_BasicObject joinee = args.get(0);
+		final A_Fiber joinee = args.get(0);
 		final MutableOrNull<Result> result = new MutableOrNull<Result>();
-		final A_BasicObject current = FiberDescriptor.current();
+		final A_Fiber current = FiberDescriptor.current();
 		// Forbid auto-joining.
 		if (current.equals(joinee))
 		{

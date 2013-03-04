@@ -98,7 +98,7 @@ extends TypeDescriptor
 	public void printObjectOnAvoidingIndent (
 		final AvailObject object,
 		final StringBuilder aStream,
-		final List<AvailObject> recursionList,
+		final List<A_BasicObject> recursionList,
 		final int indent)
 	{
 		if (object.slot(KEY_TYPE).equals(ANY.o())
@@ -142,7 +142,7 @@ extends TypeDescriptor
 	@Override @AvailMethod
 	boolean o_EqualsMapType (
 		final AvailObject object,
-		final AvailObject aMapType)
+		final A_Type aMapType)
 	{
 		if (object.sameAddressAs(aMapType))
 		{

@@ -58,7 +58,7 @@ public class P_208_IncompleteMessages extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
-		final A_BasicObject bundleTree = args.get(0);
+		final A_BundleTree bundleTree = args.get(0);
 		return interpreter.primitiveSuccess(
 			bundleTree.incomplete().makeImmutable());
 	}

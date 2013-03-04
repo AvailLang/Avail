@@ -94,7 +94,7 @@ extends TypeDescriptor
 	public void printObjectOnAvoidingIndent (
 		final AvailObject object,
 		final StringBuilder aStream,
-		final List<AvailObject> recursionList,
+		final List<A_BasicObject> recursionList,
 		final int indent)
 	{
 		if (object.slot(TYPE_TUPLE).tupleSize() == 0)
@@ -188,7 +188,7 @@ extends TypeDescriptor
 	@Override @AvailMethod
 	boolean o_EqualsTupleType (
 		final AvailObject object,
-		final AvailObject aTupleType)
+		final A_Type aTupleType)
 	{
 		if (object.sameAddressAs(aTupleType))
 		{

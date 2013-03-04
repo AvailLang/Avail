@@ -32,6 +32,13 @@
 
 package com.avail.descriptor;
 
+import java.util.List;
+import com.avail.annotations.Nullable;
+import com.avail.compiler.AvailCodeGenerator;
+import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
+import com.avail.utility.Continuation1;
+import com.avail.utility.Transformer1;
+
 /**
  * {@code A_Atom} is an interface that specifies the atom-specific operations
  * that an {@link AvailObject} must implement.  It's a sub-interface of {@link
@@ -41,8 +48,50 @@ package com.avail.descriptor;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public interface A_Phrase
-extends A_BasicObject, Iterable<AvailObject>
+extends A_BasicObject
 {
+	/**
+	 * @return
+	 */
+	A_Atom apparentSendName ();
+
+	/**
+	 * @return
+	 */
+	A_Phrase argumentsListNode ();
+
+	/**
+	 * @return
+	 */
+	A_Tuple argumentsTuple ();
+
+	/**
+	 * @param aBlock
+	 */
+	void childrenDo (Continuation1<A_Phrase> aBlock);
+
+	/**
+	 * @param aBlock
+	 */
+	void childrenMap (
+		Transformer1<A_Phrase, A_Phrase> aBlock);
+
+	/**
+	 * @return
+	 */
+	A_Phrase copyMutableParseNode ();
+
+	/**
+	 * @param newParseNode
+	 * @return
+	 */
+	A_Phrase copyWith (A_Phrase newParseNode);
+
+	/**
+	 * @return
+	 */
+	A_Phrase declaration ();
+
 	/**
 	 * Also declared in {@link A_Type} for {@linkplain FunctionTypeDescriptor
 	 * function types}.
@@ -52,16 +101,79 @@ extends A_BasicObject, Iterable<AvailObject>
 	A_Set declaredExceptions ();
 
 	/**
-	 * Also declared in {@link A_Type} for {@linkplain FunctionTypeDescriptor
-	 * function types}.
-	 */
-	A_Type returnType ();
-
-	/**
-	 * @param newParseNode
 	 * @return
 	 */
-	A_Phrase copyWith (A_Phrase newParseNode);
+	AvailObject declaredType ();
+
+	/**
+	 * @param codeGenerator
+	 */
+	void emitEffectOn (AvailCodeGenerator codeGenerator);
+
+	/**
+	 * @param codeGenerator
+	 */
+	void emitValueOn (AvailCodeGenerator codeGenerator);
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	A_Phrase expression ();
+
+	/**
+	 * @return
+	 */
+	A_Tuple expressionsTuple ();
+
+	/**
+	 * Return the parse node's expression type, which is the type of object that
+	 * will be produced by this parse node.
+	 *
+	 * <p>Also implemented in {@link A_Type} (for parse node types).</p>
+	 *
+	 * @return The {@linkplain TypeDescriptor type} of the {@link AvailObject}
+	 *         that will be produced by this parse node.
+	 */
+	A_Type expressionType ();
+
+	/**
+	 * @param accumulatedStatements
+	 */
+	void flattenStatementsInto (
+		List<A_Phrase> accumulatedStatements);
+
+	/**
+	 * @param module
+	 * @return
+	 */
+	A_RawFunction generateInModule (A_BasicObject module);
+
+	/**
+	 * @param isLastUse
+	 */
+	void isLastUse (boolean isLastUse);
+
+	/**
+	 * @return
+	 */
+	boolean isLastUse ();
+
+	/**
+	 * @return
+	 */
+	A_BasicObject markerValue ();
+
+	/**
+	 * Answer this send node's method.  TODO[MvG] - Use a bundle instead.
+	 *
+	 * @return
+	 */
+	A_Method method ();
+
+	/**
+	 * @return
+	 */
+	A_Tuple neededVariables ();
 
 	/**
 	 * @param neededVariables
@@ -71,16 +183,68 @@ extends A_BasicObject, Iterable<AvailObject>
 	/**
 	 * @return
 	 */
-	A_Tuple neededVariables ();
+	A_BasicObject outputParseNode ();
+
+	/**
+	 * Also declared in {@link A_Type} for {@linkplain ParseNodeTypeDescriptor
+	 * parse node types}.
+	 *
+	 * @return
+	 */
+	ParseNodeKind parseNodeKind ();
 
 	/**
 	 * @return
 	 */
-	A_Phrase declaration ();
+	int primitive ();
 
 	/**
-	 * Dispatch to the descriptor.
+	 * Also declared in {@link A_Type} for {@linkplain FunctionTypeDescriptor
+	 * function types}.
+	 *
+	 * @return The type of this {@linkplain SendNodeDescriptor send node}.
+	 */
+	A_Type returnType ();
+
+	/**
+	 * Also defined in {@link A_RawFunction}.
+	 *
+	 * @return The source code line number on which this {@linkplain
+	 * BlockNodeDescriptor block} begins.
+	 */
+	public int startingLineNumber ();
+
+	/**
+	 * @return
+	 */
+	A_Tuple statements ();
+
+	/**
+	 * @return
+	 */
+	A_Tuple statementsTuple ();
+
+	/**
+	 * @return
+	 */
+	AvailObject stripMacro ();
+
+	/**
+	 * @return
+	 */
+	A_Token token ();
+
+	/**
+	 * @param parent
+	 */
+	void validateLocally (@Nullable A_Phrase parent);
+
+	/**
+	 * Answer the {@linkplain DeclarationNodeDescriptor variable declaration}
+	 * being used by this {@linkplain ReferenceNodeDescriptor reference} or
+	 * {@linkplain AssignmentNodeDescriptor assignment}.
+	 *
+	 * @return The variable.
 	 */
 	A_Phrase variable ();
-
 }

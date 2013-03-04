@@ -201,7 +201,7 @@ extends Descriptor
 	@Override @AvailMethod
 	boolean o_EqualsContinuation (
 		final AvailObject object,
-		final AvailObject aContinuation)
+		final A_Continuation aContinuation)
 	{
 		if (object.sameAddressAs(aContinuation))
 		{

@@ -66,7 +66,7 @@ extends Primitive
 		assert args.size() == 1;
 		final A_String name = args.get(0);
 		final AvailLoader loader = FiberDescriptor.current().availLoader();
-		final A_BasicObject module;
+		final A_Module module;
 		if (loader == null || (module = loader.module()).equalsNil())
 		{
 			return interpreter.primitiveFailure(E_LOADING_IS_OVER);

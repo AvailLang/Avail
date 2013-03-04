@@ -62,10 +62,10 @@ extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
-		final AvailObject statements = args.get(0);
-		final List<AvailObject> flat =
-			new ArrayList<AvailObject>(statements.tupleSize() + 3);
-		for (final A_BasicObject statement : statements)
+		final A_Tuple statements = args.get(0);
+		final List<A_Phrase> flat =
+			new ArrayList<A_Phrase>(statements.tupleSize() + 3);
+		for (final A_Phrase statement : statements)
 		{
 			statement.flattenStatementsInto(flat);
 		}

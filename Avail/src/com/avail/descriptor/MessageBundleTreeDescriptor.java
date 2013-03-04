@@ -336,7 +336,7 @@ extends Descriptor
 	void printObjectOnAvoidingIndent (
 		final AvailObject object,
 		final StringBuilder builder,
-		final List<AvailObject> recursionList,
+		final List<A_BasicObject> recursionList,
 		final int indent)
 	{
 		builder.append("BundleTree[pc=");
@@ -435,7 +435,7 @@ extends Descriptor
 	@Override @AvailMethod
 	void o_AddBundle (
 		final AvailObject object,
-		final A_BasicObject bundle)
+		final A_Bundle bundle)
 	{
 		synchronized (object)
 		{
@@ -613,8 +613,8 @@ extends Descriptor
 	 * @param pc
 	 */
 	private static void updateForMessageAndBundle (
-		final AvailObject message,
-		final AvailObject bundle,
+		final A_Atom message,
+		final A_Bundle bundle,
 		final Mutable<A_Map> complete,
 		final Mutable<A_Map> incomplete,
 		final Mutable<A_Map> caseInsensitive,
@@ -651,9 +651,8 @@ extends Descriptor
 			// It's a parsing instruction that matches some specific keyword.
 			assert op == PARSE_PART
 				|| op == PARSE_PART_CASE_INSENSITIVELY;
-			AvailObject subtree;
-			final AvailObject part = bundle.messageParts().tupleAt(
-				keywordIndex);
+			A_BundleTree subtree;
+			final A_String part = bundle.messageParts().tupleAt(keywordIndex);
 			final Mutable<A_Map> map = (op == PARSE_PART)
 				? incomplete
 				: caseInsensitive;
@@ -714,7 +713,7 @@ extends Descriptor
 			// Add branches for any new restrictions.  Pre-populate
 			// with every bundle present thus far, since none of
 			// them had this restriction.
-			for (final AvailObject restriction : restrictionSet)
+			for (final A_Atom restriction : restrictionSet)
 			{
 				if (!prefilterMap.value.hasKey(restriction))
 				{
@@ -746,7 +745,7 @@ extends Descriptor
 			// Note:  DO NOT return here, since the action has to also be added
 			// to the actionMap (to deal with the case that a subexpression is
 			// a non-send, or a send that is not forbidden in this position by
-			// any potential parent sends.
+			// *any* potential parent sends.
 		}
 
 		// It's an ordinary parsing instruction.
@@ -757,8 +756,8 @@ extends Descriptor
 		}
 		else
 		{
-			final List<AvailObject> successorsList =
-				new ArrayList<AvailObject>(nextPcs.size());
+			final List<A_BundleTree> successorsList =
+				new ArrayList<A_BundleTree>(nextPcs.size());
 			for (final int nextPc : nextPcs)
 			{
 				successorsList.add(newPc(nextPc));
@@ -770,7 +769,7 @@ extends Descriptor
 				true);
 		}
 		assert successors.tupleSize() == nextPcs.size();
-		for (final A_BasicObject successor : successors)
+		for (final A_BundleTree successor : successors)
 		{
 			successor.addBundle(bundle);
 		}

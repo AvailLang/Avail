@@ -110,7 +110,7 @@ extends Descriptor
 	public void printObjectOnAvoidingIndent (
 		final AvailObject object,
 		final StringBuilder aStream,
-		final List<AvailObject> recursionList,
+		final List<A_BasicObject> recursionList,
 		final int indent)
 	{
 		if (object.tupleSize() == 0)
@@ -246,7 +246,7 @@ extends Descriptor
 	@Override @AvailMethod
 	boolean o_EqualsByteString (
 		final AvailObject object,
-		final AvailObject aByteString)
+		final A_String aByteString)
 	{
 		// Default to generic tuple comparison.
 		return o_EqualsAnyTuple(object, aByteString);
@@ -255,7 +255,7 @@ extends Descriptor
 	@Override @AvailMethod
 	boolean o_EqualsByteTuple (
 		final AvailObject object,
-		final AvailObject aTuple)
+		final A_Tuple aTuple)
 	{
 		// Default to generic tuple comparison.
 		return o_EqualsAnyTuple(object, aTuple);
@@ -282,7 +282,7 @@ extends Descriptor
 	@Override @AvailMethod
 	boolean o_EqualsNybbleTuple (
 		final AvailObject object,
-		final AvailObject aTuple)
+		final A_Tuple aTuple)
 	{
 		// Default to generic comparison.
 		return o_EqualsAnyTuple(object, aTuple);
@@ -291,7 +291,7 @@ extends Descriptor
 	@Override @AvailMethod
 	boolean o_EqualsObjectTuple (
 		final AvailObject object,
-		final AvailObject aTuple)
+		final A_Tuple aTuple)
 	{
 		// Default to generic comparison.
 		return o_EqualsAnyTuple(object, aTuple);
@@ -300,7 +300,7 @@ extends Descriptor
 	@Override @AvailMethod
 	boolean o_EqualsTwoByteString (
 		final AvailObject object,
-		final AvailObject aTwoByteString)
+		final A_String aTwoByteString)
 	{
 		// Default to generic tuple comparison.
 		return o_EqualsAnyTuple(object, aTwoByteString);
@@ -314,7 +314,8 @@ extends Descriptor
 		// Given two objects that are known to be equal, is the first one in a
 		// better form (more compact, more efficient, older generation) than
 		// the second one?
-		return object.bitsPerEntry() < anotherObject.bitsPerEntry();
+		final A_Tuple anotherTuple = (A_Tuple)anotherObject;
+		return object.bitsPerEntry() < anotherTuple.bitsPerEntry();
 	}
 
 	@Override @AvailMethod
@@ -447,7 +448,7 @@ extends Descriptor
 		final AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
-		final AvailObject aByteString,
+		final A_String aByteString,
 		final int startIndex2)
 	{
 		return o_CompareFromToWithAnyTupleStartingAt(
@@ -463,7 +464,7 @@ extends Descriptor
 		final AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
-		final AvailObject aByteTuple,
+		final A_Tuple aByteTuple,
 		final int startIndex2)
 	{
 		return o_CompareFromToWithAnyTupleStartingAt(
@@ -512,7 +513,7 @@ extends Descriptor
 		final AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
-		final AvailObject aNybbleTuple,
+		final A_Tuple aNybbleTuple,
 		final int startIndex2)
 	{
 		return o_CompareFromToWithAnyTupleStartingAt(
@@ -528,7 +529,7 @@ extends Descriptor
 		final AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
-		final AvailObject anObjectTuple,
+		final A_Tuple anObjectTuple,
 		final int startIndex2)
 	{
 		// Compare sections of two tuples. Default to generic comparison.
@@ -545,7 +546,7 @@ extends Descriptor
 		final AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
-		final AvailObject aTwoByteString,
+		final A_String aTwoByteString,
 		final int startIndex2)
 	{
 		return o_CompareFromToWithAnyTupleStartingAt(

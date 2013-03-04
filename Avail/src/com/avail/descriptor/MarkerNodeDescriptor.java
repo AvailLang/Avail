@@ -81,7 +81,7 @@ extends ParseNodeDescriptor
 	void printObjectOnAvoidingIndent (
 		final AvailObject object,
 		final StringBuilder builder,
-		final List<AvailObject> recursionList,
+		final List<A_BasicObject> recursionList,
 		final int indent)
 	{
 		builder.append("Marker(");
@@ -118,16 +118,10 @@ extends ParseNodeDescriptor
 		return MARKER_NODE;
 	}
 
-	@Override
-	boolean o_IsMarkerNode (final AvailObject object)
-	{
-		return true;
-	}
-
 	@Override @AvailMethod
 	void o_ChildrenMap (
 		final AvailObject object,
-		final Transformer1<AvailObject, AvailObject> aBlock)
+		final Transformer1<A_Phrase, A_Phrase> aBlock)
 	{
 		throw unsupportedOperationException();
 	}

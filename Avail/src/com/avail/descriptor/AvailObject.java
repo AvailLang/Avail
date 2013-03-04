@@ -36,7 +36,6 @@ import java.io.*;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.util.*;
-import com.avail.*;
 import com.avail.annotations.*;
 import com.avail.compiler.*;
 import com.avail.descriptor.AbstractNumberDescriptor.Order;
@@ -76,11 +75,15 @@ extends AvailObjectRepresentation
 implements
 	A_BasicObject,
 		A_Atom,
+		A_Bundle,
+		A_BundleTree,
 		A_Continuation,
 		A_Chunk,
+		A_Fiber,
 		A_Function,
 		A_Map,
 		A_Method,
+		A_Module,
 		A_Number,
 		A_Phrase,
 		A_RawFunction,
@@ -122,7 +125,7 @@ implements
 	@Override
 	public void printOnAvoidingIndent (
 		final StringBuilder builder,
-		final List<AvailObject> recursionList,
+		final List<A_BasicObject> recursionList,
 		final int indent)
 	{
 		try
@@ -215,7 +218,8 @@ implements
 	public String toString ()
 	{
 		final StringBuilder stringBuilder = new StringBuilder(100);
-		final List<AvailObject> recursionList = new ArrayList<AvailObject>(10);
+		final List<A_BasicObject> recursionList =
+			new ArrayList<A_BasicObject>(10);
 		printOnAvoidingIndent(stringBuilder, recursionList, 1);
 		assert recursionList.size() == 0;
 		return stringBuilder.toString();
@@ -649,7 +653,7 @@ implements
 		final A_Atom methodName,
 		final A_Tuple illegalArgMsgs)
 	{
-		descriptor.o_AddGrammaticalMessageRestrictions(
+		descriptor.o_AddGrammaticalRestrictions(
 			this,
 			methodName,
 			illegalArgMsgs);
@@ -672,7 +676,7 @@ implements
 	 */
 	@Override
 	public void addBundle (
-		final A_BasicObject bundle)
+		final A_Bundle bundle)
 	{
 		descriptor.o_AddBundle(
 			this,
@@ -1057,7 +1061,7 @@ implements
 	public boolean compareFromToWithByteStringStartingAt (
 		final int startIndex1,
 		final int endIndex1,
-		final AvailObject aByteString,
+		final A_String aByteString,
 		final int startIndex2)
 	{
 		return descriptor.o_CompareFromToWithByteStringStartingAt(
@@ -1089,7 +1093,7 @@ implements
 	public boolean compareFromToWithByteTupleStartingAt (
 		final int startIndex1,
 		final int endIndex1,
-		final AvailObject aByteTuple,
+		final A_Tuple aByteTuple,
 		final int startIndex2)
 	{
 		return descriptor.o_CompareFromToWithByteTupleStartingAt(
@@ -1121,7 +1125,7 @@ implements
 	public boolean compareFromToWithNybbleTupleStartingAt (
 		final int startIndex1,
 		final int endIndex1,
-		final AvailObject aNybbleTuple,
+		final A_Tuple aNybbleTuple,
 		final int startIndex2)
 	{
 		return descriptor.o_CompareFromToWithNybbleTupleStartingAt(
@@ -1153,7 +1157,7 @@ implements
 	public boolean compareFromToWithObjectTupleStartingAt (
 		final int startIndex1,
 		final int endIndex1,
-		final AvailObject anObjectTuple,
+		final A_Tuple anObjectTuple,
 		final int startIndex2)
 	{
 		return descriptor.o_CompareFromToWithObjectTupleStartingAt(
@@ -1185,7 +1189,7 @@ implements
 	public boolean compareFromToWithTwoByteStringStartingAt (
 		final int startIndex1,
 		final int endIndex1,
-		final AvailObject aTwoByteString,
+		final A_String aTwoByteString,
 		final int startIndex2)
 	{
 		return descriptor.o_CompareFromToWithTwoByteStringStartingAt(
@@ -1574,7 +1578,7 @@ implements
 	 */
 	@Override
 	public boolean equalsByteString (
-		final AvailObject aByteString)
+		final A_String aByteString)
 	{
 		return descriptor.o_EqualsByteString(this, aByteString);
 	}
@@ -1590,7 +1594,7 @@ implements
 	 */
 	@Override
 	public boolean equalsByteTuple (
-		final AvailObject aByteTuple)
+		final A_Tuple aByteTuple)
 	{
 		return descriptor.o_EqualsByteTuple(this, aByteTuple);
 	}
@@ -1623,11 +1627,11 @@ implements
 	 * @param aFunction The function used in the comparison.
 	 * @return {@code true} if the receiver is a function and of value equal to
 	 *         the argument, {@code false} otherwise.
-	 * @see AvailObject#equalsFunction(AvailObject)
+	 * @see AvailObject#equalsFunction(A_Function)
 	 */
 	@Override
 	public boolean equalsFunction (
-		final AvailObject aFunction)
+		final A_Function aFunction)
 	{
 		return descriptor.o_EqualsFunction(this, aFunction);
 	}
@@ -1665,7 +1669,7 @@ implements
 	 */
 	@Override
 	public boolean equalsCompiledCode (
-		final AvailObject aCompiledCode)
+		final A_RawFunction aCompiledCode)
 	{
 		return descriptor.o_EqualsCompiledCode(this, aCompiledCode);
 	}
@@ -1704,7 +1708,7 @@ implements
 	 */
 	@Override
 	public boolean equalsContinuation (
-		final AvailObject aContinuation)
+		final A_Continuation aContinuation)
 	{
 		return descriptor.o_EqualsContinuation(this, aContinuation);
 	}
@@ -1760,7 +1764,7 @@ implements
 	 */
 	@Override
 	public boolean equalsInteger (
-		final AvailObject anAvailInteger)
+		final A_Number anAvailInteger)
 	{
 		return descriptor.o_EqualsInteger(this, anAvailInteger);
 	}
@@ -1790,7 +1794,7 @@ implements
 	 */
 	@Override
 	public boolean equalsMapType (
-		final AvailObject aMapType)
+		final A_Type aMapType)
 	{
 		return descriptor.o_EqualsMapType(this, aMapType);
 	}
@@ -1800,7 +1804,7 @@ implements
 	 */
 	@Override
 	public boolean equalsNybbleTuple (
-		final AvailObject aNybbleTuple)
+		final A_Tuple aNybbleTuple)
 	{
 		return descriptor.o_EqualsNybbleTuple(this, aNybbleTuple);
 	}
@@ -1820,7 +1824,7 @@ implements
 	 */
 	@Override
 	public boolean equalsObjectTuple (
-		final AvailObject anObjectTuple)
+		final A_Tuple anObjectTuple)
 	{
 		return descriptor.o_EqualsObjectTuple(this, anObjectTuple);
 	}
@@ -1831,7 +1835,7 @@ implements
 	 */
 	@Override
 	public boolean equalsParseNodeType (
-		final AvailObject aParseNodeType)
+		final A_Type aParseNodeType)
 	{
 		return descriptor.o_EqualsParseNodeType(this, aParseNodeType);
 	}
@@ -1861,7 +1865,7 @@ implements
 	 */
 	@Override
 	public boolean equalsPrimitiveType (
-		final AvailObject aPrimitiveType)
+		final A_Type aPrimitiveType)
 	{
 		return descriptor.o_EqualsPrimitiveType(this, aPrimitiveType);
 	}
@@ -1891,7 +1895,7 @@ implements
 	 */
 	@Override
 	public boolean equalsSetType (
-		final AvailObject aSetType)
+		final A_Type aSetType)
 	{
 		return descriptor.o_EqualsSetType(this, aSetType);
 	}
@@ -1901,7 +1905,7 @@ implements
 	 */
 	@Override
 	public boolean equalsTupleType (
-		final AvailObject aTupleType)
+		final A_Type aTupleType)
 	{
 		return descriptor.o_EqualsTupleType(this, aTupleType);
 	}
@@ -1911,7 +1915,7 @@ implements
 	 */
 	@Override
 	public boolean equalsTwoByteString (
-		final AvailObject aTwoByteString)
+		final A_String aTwoByteString)
 	{
 		return descriptor.o_EqualsTwoByteString(this, aTwoByteString);
 	}
@@ -2062,7 +2066,7 @@ implements
 	 * Dispatch to the descriptor.
 	 */
 	@Override
-	public A_BasicObject filteredBundleTree ()
+	public A_BundleTree filteredBundleTree ()
 	{
 		return descriptor.o_FilteredBundleTree(this);
 	}
@@ -3738,6 +3742,7 @@ implements
 	 *
 	 * @param loader
 	 */
+	@Override
 	public void removeFrom (final AvailLoader loader)
 	{
 		descriptor.o_RemoveFrom(this, loader);
@@ -4799,7 +4804,7 @@ implements
 	 * Dispatch to the descriptor.
 	 */
 	@Override
-	public AvailObject expression ()
+	public A_Phrase expression ()
 	{
 		return descriptor.o_Expression(this);
 	}
@@ -4895,16 +4900,6 @@ implements
 	}
 
 	/**
-	 * @param initializationExpression
-	 */
-	@Override
-	public void initializationExpression (
-		final AvailObject initializationExpression)
-	{
-		descriptor.o_InitializationExpression(this, initializationExpression);
-	}
-
-	/**
 	 * @return
 	 */
 	@Override
@@ -4935,7 +4930,7 @@ implements
 	 * @return
 	 */
 	@Override
-	public AvailObject argumentsListNode ()
+	public A_Phrase argumentsListNode ()
 	{
 		return descriptor.o_ArgumentsListNode(this);
 	}
@@ -4999,7 +4994,7 @@ implements
 	 */
 	@Override
 	public void childrenMap (
-		final Transformer1<AvailObject, AvailObject> aBlock)
+		final Transformer1<A_Phrase, A_Phrase> aBlock)
 	{
 		descriptor.o_ChildrenMap(this, aBlock);
 	}
@@ -5077,7 +5072,7 @@ implements
 	 * @return
 	 */
 	@Override
-	public AvailObject copyMutableParseNode ()
+	public A_Phrase copyMutableParseNode ()
 	{
 		return descriptor.o_CopyMutableParseNode(this);
 	}
@@ -5104,7 +5099,7 @@ implements
 	 * @return
 	 */
 	@Override
-	public AvailObject apparentSendName ()
+	public A_Atom apparentSendName ()
 	{
 		return descriptor.o_ApparentSendName(this);
 	}
@@ -5123,7 +5118,7 @@ implements
 	 */
 	@Override
 	public void flattenStatementsInto (
-		final List<AvailObject> accumulatedStatements)
+		final List<A_Phrase> accumulatedStatements)
 	{
 		descriptor.o_FlattenStatementsInto(this, accumulatedStatements);
 	}
@@ -5950,7 +5945,7 @@ implements
 	 * @return
 	 */
 	@Override
-	public AvailObject issuingModule ()
+	public A_Module issuingModule ()
 	{
 		return descriptor.o_IssuingModule(this);
 	}
@@ -6418,7 +6413,7 @@ implements
 	 * @return
 	 */
 	@Override
-	public A_BasicObject module ()
+	public A_Module module ()
 	{
 		return descriptor.o_Module(this);
 	}
@@ -6481,15 +6476,6 @@ implements
 		final boolean isSystemModule)
 	{
 		descriptor.o_IsSystemModule(this, isSystemModule);
-	}
-
-	/**
-	 * @return
-	 */
-	@Override
-	public boolean isMarkerNode ()
-	{
-		return descriptor.o_IsMarkerNode(this);
 	}
 
 	/**
@@ -6989,5 +6975,23 @@ implements
 	public boolean isByteBufferTuple ()
 	{
 		return descriptor.o_IsByteBufferTuple(this);
+	}
+
+	/**
+	 * @return
+	 */
+	@Override
+	public A_String fiberName ()
+	{
+		return descriptor.o_FiberName(this);
+	}
+
+	/**
+	 * @param value
+	 */
+	@Override
+	public void fiberName (final A_String value)
+	{
+		descriptor.o_FiberName(this, value);
 	}
 }

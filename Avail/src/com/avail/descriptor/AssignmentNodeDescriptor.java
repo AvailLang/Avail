@@ -93,7 +93,7 @@ extends ParseNodeDescriptor
 	void printObjectOnAvoidingIndent (
 		final AvailObject object,
 		final StringBuilder builder,
-		final List<AvailObject> recursionList,
+		final List<A_BasicObject> recursionList,
 		final int indent)
 	{
 		builder.append(object.slot(VARIABLE).token().string().asNativeString());
@@ -111,7 +111,7 @@ extends ParseNodeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_Expression (final AvailObject object)
+	A_Phrase o_Expression (final AvailObject object)
 	{
 		return object.slot(EXPRESSION);
 	}
@@ -162,7 +162,7 @@ extends ParseNodeDescriptor
 		final AvailObject object,
 		final AvailCodeGenerator codeGenerator)
 	{
-		final A_BasicObject declaration = object.slot(VARIABLE).declaration();
+		final A_Phrase declaration = object.slot(VARIABLE).declaration();
 		final DeclarationKind declarationKind = declaration.declarationKind();
 		assert declarationKind.isVariable();
 		object.slot(EXPRESSION).emitValueOn(codeGenerator);
@@ -176,7 +176,7 @@ extends ParseNodeDescriptor
 		final AvailObject object,
 		final AvailCodeGenerator codeGenerator)
 	{
-		final A_BasicObject declaration = object.slot(VARIABLE).declaration();
+		final A_Phrase declaration = object.slot(VARIABLE).declaration();
 		final DeclarationKind declarationKind = declaration.declarationKind();
 		assert declarationKind.isVariable();
 		object.slot(EXPRESSION).emitValueOn(codeGenerator);
@@ -189,7 +189,7 @@ extends ParseNodeDescriptor
 	@Override @AvailMethod
 	void o_ChildrenMap (
 		final AvailObject object,
-		final Transformer1<AvailObject, AvailObject> aBlock)
+		final Transformer1<A_Phrase, A_Phrase> aBlock)
 	{
 		object.setSlot(EXPRESSION, aBlock.value(object.slot(EXPRESSION)));
 		object.setSlot(VARIABLE, aBlock.value(object.slot(VARIABLE)));

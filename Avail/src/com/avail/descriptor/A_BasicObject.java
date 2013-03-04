@@ -35,23 +35,14 @@ package com.avail.descriptor;
 import java.math.BigInteger;
 import java.util.List;
 import java.util.Set;
-import java.util.TimerTask;
 import com.avail.annotations.Nullable;
-import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.AbstractNumberDescriptor.Sign;
 import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
-import com.avail.descriptor.FiberDescriptor.ExecutionState;
-import com.avail.descriptor.FiberDescriptor.GeneralFlag;
-import com.avail.descriptor.FiberDescriptor.InterruptRequestFlag;
-import com.avail.descriptor.FiberDescriptor.SynchronizationFlag;
 import com.avail.descriptor.InfinityDescriptor.IntegerSlots;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.descriptor.SetDescriptor.SetIterator;
-import com.avail.interpreter.AvailLoader;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.Continuation0;
-import com.avail.utility.Continuation1;
-import com.avail.utility.Transformer1;
 import com.avail.visitor.AvailSubobjectVisitor;
 
 /**
@@ -258,7 +249,7 @@ public interface A_BasicObject
 	 */
 	void printOnAvoidingIndent (
 		StringBuilder builder,
-		List<AvailObject> recursionList,
+		List<A_BasicObject> recursionList,
 		int indent);
 
 	/**
@@ -311,57 +302,6 @@ public interface A_BasicObject
 	 * cycle based on this multiplicative generator is 2^30.
 	 */
 	static final int multiplier = 1664525;
-
-	/**
-	 * Add a set of {@linkplain MessageBundleDescriptor grammatical
-	 * restrictions} to the receiver.
-	 *
-	 * @param restrictions The set of grammatical restrictions to be added.
-	 */
-	void addGrammaticalRestrictions (A_Tuple restrictions);
-
-	/**
-	 * @param methodName
-	 * @param illegalArgMsgs
-	 */
-	void addGrammaticalRestrictions (
-		A_Atom methodName,
-		A_Tuple illegalArgMsgs);
-
-	/**
-	 * @param definition
-	 */
-	void moduleAddDefinition (A_BasicObject definition);
-
-	/**
-	 * @param bundle
-	 */
-	void addBundle (
-		A_BasicObject bundle);
-
-	/**
-	 * @param stringName
-	 * @param trueName
-	 */
-	void addImportedName (
-		A_String stringName,
-		A_Atom trueName);
-
-	/**
-	 * @param stringName
-	 * @param trueName
-	 */
-	void introduceNewName (
-		A_String stringName,
-		A_Atom trueName);
-
-	/**
-	 * @param stringName
-	 * @param trueName
-	 */
-	void addPrivateName (
-		A_String stringName,
-		A_Atom trueName);
 
 	/**
 	 * Dispatch to the descriptor.
@@ -420,11 +360,6 @@ public interface A_BasicObject
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	int bitsPerEntry ();
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
 	void bitVector (int value);
 
 	/**
@@ -440,26 +375,6 @@ public interface A_BasicObject
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	A_BasicObject breakpointBlock ();
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	void breakpointBlock (AvailObject value);
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	void buildFilteredBundleTreeFrom (A_Map bundleMap);
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	void cleanUpAfterCompile ();
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
 	void clearValue ();
 
 	/**
@@ -471,26 +386,6 @@ public interface A_BasicObject
 	 * Dispatch to the descriptor.
 	 */
 	void codePoint (int value);
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	A_Map lazyComplete ();
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	A_Map constantBindings ();
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	AvailObject continuation ();
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	void continuation (A_BasicObject value);
 
 	/**
 	 * Dispatch to the descriptor.
@@ -519,16 +414,6 @@ public interface A_BasicObject
 	 * Dispatch to the descriptor.
 	 */
 	void elementAtPut (int index, A_BasicObject value);
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	int endOfZone (int zone);
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	int endSubtupleIndexInZone (int zone);
 
 	/**
 	 * {@inheritDoc}
@@ -586,7 +471,7 @@ public interface A_BasicObject
 	 * @return {@code true} if the receiver is a byte string and of value equal
 	 *         to the argument, {@code false} otherwise.
 	 */
-	boolean equalsByteString (AvailObject aByteString);
+	boolean equalsByteString (A_String aByteString);
 
 	/**
 	 * Answer whether the receiver, an {@linkplain AvailObject object}, and the
@@ -597,7 +482,7 @@ public interface A_BasicObject
 	 * @return {@code true} if the receiver is a byte tuple and of value equal
 	 *         to the argument, {@code false} otherwise.
 	 */
-	boolean equalsByteTuple (AvailObject aByteTuple);
+	boolean equalsByteTuple (A_Tuple aByteTuple);
 
 	/**
 	 * Answer whether the receiver, an {@linkplain AvailObject object}, is a
@@ -617,7 +502,7 @@ public interface A_BasicObject
 	 * @return {@code true} if the receiver is a function and of value equal to
 	 *         the argument, {@code false} otherwise.
 	 */
-	boolean equalsFunction (AvailObject aFunction);
+	boolean equalsFunction (A_Function aFunction);
 
 	/**
 	 * Answer whether the receiver, an {@linkplain AvailObject object}, and the
@@ -656,7 +541,7 @@ public interface A_BasicObject
 	 * @return {@code true} if the receiver is a compiled code and of value
 	 *         equal to the argument, {@code false} otherwise.
 	 */
-	boolean equalsCompiledCode (AvailObject aCompiledCode);
+	boolean equalsCompiledCode (A_RawFunction aCompiledCode);
 
 	/**
 	 * Answer whether the arguments, an {@linkplain AvailObject object} and a
@@ -680,7 +565,7 @@ public interface A_BasicObject
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	boolean equalsContinuation (AvailObject aContinuation);
+	boolean equalsContinuation (A_Continuation aContinuation);
 
 	/**
 	 * Dispatch to the descriptor.
@@ -701,12 +586,12 @@ public interface A_BasicObject
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	boolean equalsMapType (AvailObject aMapType);
+	boolean equalsMapType (A_Type aMapType);
 
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	boolean equalsNybbleTuple (AvailObject aNybbleTuple);
+	boolean equalsNybbleTuple (A_Tuple aNybbleTuple);
 
 	/**
 	 * Dispatch to the descriptor.
@@ -716,13 +601,13 @@ public interface A_BasicObject
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	boolean equalsObjectTuple (AvailObject anObjectTuple);
+	boolean equalsObjectTuple (A_Tuple anObjectTuple);
 
 	/**
 	 * @param aParseNodeType
 	 * @return
 	 */
-	boolean equalsParseNodeType (AvailObject aParseNodeType);
+	boolean equalsParseNodeType (A_Type aParseNodeType);
 
 	/**
 	 * @param aPojo
@@ -739,7 +624,7 @@ public interface A_BasicObject
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	boolean equalsPrimitiveType (AvailObject aPrimitiveType);
+	boolean equalsPrimitiveType (A_Type aPrimitiveType);
 
 	/**
 	 * @param aRawPojo
@@ -776,42 +661,27 @@ public interface A_BasicObject
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	boolean equalsInteger (AvailObject anAvailInteger);
+	boolean equalsInteger (A_Number anAvailInteger);
 
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	boolean equalsSetType (AvailObject aSetType);
+	boolean equalsSetType (A_Type aSetType);
 
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	boolean equalsTupleType (AvailObject aTupleType);
+	boolean equalsTupleType (A_Type aTupleType);
 
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	boolean equalsTwoByteString (AvailObject aTwoByteString);
+	boolean equalsTwoByteString (A_String aTwoByteString);
 
 	/**
 	 * Dispatch to the descriptor.
 	 */
 	boolean equalsNil ();
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	ExecutionState executionState ();
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	void executionState (ExecutionState value);
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	void expand ();
 
 	/**
 	 * Dispatch to the descriptor.
@@ -822,20 +692,6 @@ public interface A_BasicObject
 	 * Dispatch to the descriptor.
 	 */
 	A_Map fieldTypeMap ();
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	A_BasicObject filteredBundleTree ();
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	A_BasicObject forZoneSetSubtupleStartSubtupleIndexEndOfZone (
-		int zone,
-		AvailObject newSubtuple,
-		int startSubtupleIndex,
-		int endOfZone);
 
 	/**
 	 * Dispatch to the descriptor.
@@ -856,27 +712,6 @@ public interface A_BasicObject
 	 * Dispatch to the descriptor.
 	 */
 	boolean hasObjectInstance (AvailObject potentialInstance);
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	boolean hasGrammaticalRestrictions ();
-
-	/**
-	 * Dispatch to the descriptor.
-	 * @param method
-	 */
-	AvailObject includeBundleNamed (A_Atom messageName, A_BasicObject method);
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	A_Map lazyIncomplete ();
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	void clearInterruptRequestFlags ();
 
 	/**
 	 * Dispatch to the descriptor.
@@ -1029,11 +864,6 @@ public interface A_BasicObject
 	boolean isSetType ();
 
 	/**
-	 * Dispatch to the descriptor.
-	 */
-	boolean isSubsetOf (A_Set another);
-
-	/**
 	 * Is the {@linkplain AvailObject receiver} an Avail string?
 	 *
 	 * @return {@code true} if the receiver is an Avail string, {@code false}
@@ -1084,46 +914,11 @@ public interface A_BasicObject
 
 	/**
 	 * Dispatch to the descriptor.
-	 */
-	A_Atom message ();
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	A_Tuple messageParts ();
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	A_Set methodDefinitions ();
-
-	/**
-	 * Dispatch to the descriptor.
 	 *
 	 * TODO[MvG] - Break this accidental polymorphism for better clarity of
 	 * intention.
 	 */
 	AvailObject name ();
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	A_Map importedNames ();
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	boolean nameVisible (AvailObject trueName);
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	A_Map newNames ();
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	int numberOfZones ();
 
 	/**
 	 * Dispatch to the descriptor.
@@ -1143,11 +938,6 @@ public interface A_BasicObject
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	int priority ();
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
 	A_BasicObject privateAddElement (A_BasicObject element);
 
 	/**
@@ -1161,61 +951,6 @@ public interface A_BasicObject
 	A_BasicObject privateExcludeElementKnownIndex (
 		A_BasicObject element,
 		int knownIndex);
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	A_Map privateNames ();
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	A_Map fiberGlobals ();
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	void fiberGlobals (A_Map value);
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	short rawByteAt (int index);
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	void rawByteAtPut (int index, short anInteger);
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	short rawByteForCharacterAt (int index);
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	void rawByteForCharacterAtPut (int index, short anInteger);
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	byte rawNybbleAt (int index);
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	void rawNybbleAtPut (int index, byte aNybble);
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	int rawShortForCharacterAt (int index);
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	void rawShortForCharacterAtPut (int index, int anInteger);
 
 	/**
 	 * Dispatch to the descriptor.
@@ -1245,35 +980,7 @@ public interface A_BasicObject
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	boolean removeBundleNamed (A_Atom message);
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	void removeGrammaticalRestrictions (
-		A_Tuple obsoleteRestrictions);
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	void resolveForward (A_BasicObject forwardDefinition);
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	A_Tuple grammaticalRestrictions ();
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
 	void scanSubobjects (AvailSubobjectVisitor visitor);
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	void setSubtupleForZoneTo (
-		int zoneIndex,
-		A_Tuple newTuple);
 
 	/**
 	 * Dispatch to the descriptor.
@@ -1293,17 +1000,7 @@ public interface A_BasicObject
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	int sizeOfZone (int zone);
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
 	A_Type sizeRange ();
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	A_Map lazyActions ();
 
 	/**
 	 * Dispatch to the descriptor.
@@ -1313,27 +1010,7 @@ public interface A_BasicObject
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	int startOfZone (int zone);
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	int startSubtupleIndexInZone (int zone);
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	void step ();
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
 	A_String string ();
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	int translateToZone (int tupleIndex, int zoneIndex);
 
 	/**
 	 * Dispatch to the descriptor.
@@ -1344,16 +1021,6 @@ public interface A_BasicObject
 	 * Dispatch to the descriptor.
 	 */
 	void trimExcessInts ();
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	A_Set trueNamesForStringName (A_String stringName);
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	A_Tuple truncateTo (int newTupleSize);
 
 	/**
 	 * Dispatch to the descriptor.
@@ -1403,59 +1070,9 @@ public interface A_BasicObject
 	void value (A_BasicObject value);
 
 	/**
-	 * Dispatch to the descriptor.
-	 */
-	A_Map variableBindings ();
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	void verify ();
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	A_Set visibleNames ();
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	int zoneForIndex (int index);
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	A_Tuple parsingInstructions ();
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	A_BasicObject expression ();
-
-	/**
-	 * @return
-	 */
-	A_BasicObject argumentsTuple ();
-
-	/**
-	 * @return
-	 */
-	A_Tuple statementsTuple ();
-
-	/**
 	 * @return
 	 */
 	A_Type resultType ();
-
-	/**
-	 * @return
-	 */
-	int primitive ();
-
-	/**
-	 * @return
-	 */
-	AvailObject declaredType ();
 
 	/**
 	 * @return
@@ -1468,12 +1085,6 @@ public interface A_BasicObject
 	AvailObject initializationExpression ();
 
 	/**
-	 * @param initializationExpression
-	 */
-	void initializationExpression (
-		AvailObject initializationExpression);
-
-	/**
 	 * @return
 	 */
 	A_BasicObject literalObject ();
@@ -1481,84 +1092,7 @@ public interface A_BasicObject
 	/**
 	 * @return
 	 */
-	A_Token token ();
-
-	/**
-	 * @return
-	 */
-	A_BasicObject markerValue ();
-
-	/**
-	 * @return
-	 */
-	A_BasicObject argumentsListNode ();
-
-	/**
-	 * @return
-	 */
-	A_Method method ();
-
-	/**
-	 * @return
-	 */
-	A_Tuple expressionsTuple ();
-
-	/**
-	 * @return
-	 */
-	A_Type expressionType ();
-
-	/**
-	 * @param codeGenerator
-	 */
-	void emitEffectOn (AvailCodeGenerator codeGenerator);
-
-	/**
-	 * @param codeGenerator
-	 */
-	void emitValueOn (AvailCodeGenerator codeGenerator);
-
-	/**
-	 * @param aBlock
-	 */
-	void childrenMap (
-		Transformer1<AvailObject, AvailObject> aBlock);
-
-	/**
-	 * @param aBlock
-	 */
-	void childrenDo (Continuation1<A_Phrase> aBlock);
-
-	/**
-	 * @param parent
-	 */
-	void validateLocally (@Nullable A_Phrase parent);
-
-	/**
-	 * @param module
-	 * @return
-	 */
-	A_RawFunction generateInModule (A_BasicObject module);
-
-	/**
-	 * @param isLastUse
-	 */
-	void isLastUse (boolean isLastUse);
-
-	/**
-	 * @return
-	 */
-	boolean isLastUse ();
-
-	/**
-	 * @return
-	 */
 	boolean isMacroDefinition ();
-
-	/**
-	 * @return
-	 */
-	AvailObject copyMutableParseNode ();
 
 	/**
 	 * Dispatch to the descriptor.
@@ -1568,33 +1102,7 @@ public interface A_BasicObject
 	/**
 	 * @return
 	 */
-	A_BasicObject outputParseNode ();
-
-	/**
-	 * @return
-	 */
-	A_BasicObject apparentSendName ();
-
-	/**
-	 * @return
-	 */
-	A_Tuple statements ();
-
-	/**
-	 * @param accumulatedStatements
-	 */
-	void flattenStatementsInto (
-		List<AvailObject> accumulatedStatements);
-
-	/**
-	 * @return
-	 */
 	int lineNumber ();
-
-	/**
-	 * @return
-	 */
-	A_Map allBundles ();
 
 	/**
 	 * @return
@@ -1605,16 +1113,6 @@ public interface A_BasicObject
 	 * @return
 	 */
 	MapDescriptor.MapIterable mapIterable ();
-
-	/**
-	 * @return
-	 */
-	A_Map complete ();
-
-	/**
-	 * @return
-	 */
-	A_Map incomplete ();
 
 	/**
 	 * @return
@@ -1705,21 +1203,6 @@ public interface A_BasicObject
 	A_Type writeType ();
 
 	/**
-	 * @param value
-	 */
-	void versions (A_BasicObject value);
-
-	/**
-	 * @return
-	 */
-	A_Set versions ();
-
-	/**
-	 * @return
-	 */
-	ParseNodeKind parseNodeKind ();
-
-	/**
 	 * @return
 	 */
 	boolean parseNodeKindIsUnder (
@@ -1729,30 +1212,6 @@ public interface A_BasicObject
 	 * @return
 	 */
 	boolean isRawPojo ();
-
-	/**
-	 * @param methodNameAtom
-	 * @param typeRestrictionFunction
-	 */
-	void addTypeRestriction (
-		A_Atom methodNameAtom,
-		A_Function typeRestrictionFunction);
-
-	/**
-	 * @param name
-	 * @param constantBinding
-	 */
-	void addConstantBinding (
-		A_String name,
-		A_BasicObject constantBinding);
-
-	/**
-	 * @param name
-	 * @param variableBinding
-	 */
-	void addVariableBinding (
-		A_String name,
-		A_BasicObject variableBinding);
 
 	/**
 	 * @return
@@ -1813,11 +1272,6 @@ public interface A_BasicObject
 	 * @param aMap
 	 */
 	void upperBoundMap (A_BasicObject aMap);
-
-	/**
-	 * @return
-	 */
-	A_Map lazyPrefilterMap ();
 
 	/**
 	 * @return
@@ -1893,11 +1347,6 @@ public interface A_BasicObject
 	/**
 	 * @return
 	 */
-	A_Map lazyIncompleteCaseInsensitive ();
-
-	/**
-	 * @return
-	 */
 	A_String lowerCaseString ();
 
 	/**
@@ -1914,11 +1363,6 @@ public interface A_BasicObject
 	 * @return
 	 */
 	A_Tuple fieldTuple ();
-
-	/**
-	 * @return
-	 */
-	boolean isSystemModule ();
 
 	/**
 	 * @return
@@ -1977,14 +1421,6 @@ public interface A_BasicObject
 		boolean canDestroy);
 
 	/**
-	 * @param methodName
-	 * @param sealSignature
-	 */
-	void addSeal (
-		A_Atom methodName,
-		A_Tuple sealSignature);
-
-	/**
 	 * @return
 	 */
 	boolean isInstanceMeta ();
@@ -1995,21 +1431,10 @@ public interface A_BasicObject
 	AvailObject instance ();
 
 	/**
-	 * @return
-	 */
-	int allocateFromCounter ();
-
-	/**
 	 * @param kind
 	 * @return
 	 */
 	boolean binElementsAreAllInstancesOfKind (A_Type kind);
-
-	/**
-	 * @param kind
-	 * @return
-	 */
-	boolean setElementsAreAllInstancesOfKind (AvailObject kind);
 
 	/**
 	 * @return
@@ -2021,16 +1446,6 @@ public interface A_BasicObject
 	 * @return
 	 */
 	boolean rangeIncludesInt (int anInt);
-
-	/**
-	 * @param isSystemModule
-	 */
-	void isSystemModule (boolean isSystemModule);
-
-	/**
-	 * @return
-	 */
-	boolean isMarkerNode ();
 
 	/**
 	 * @param shiftFactor
@@ -2064,11 +1479,6 @@ public interface A_BasicObject
 	boolean equalsParseNode (A_Phrase aParseNode);
 
 	/**
-	 * @return
-	 */
-	AvailObject stripMacro ();
-
-	/**
 	 * Answer the {@link MethodDescriptor method} that this {@link
 	 * DefinitionDescriptor definition} is for.
 	 *
@@ -2092,19 +1502,9 @@ public interface A_BasicObject
 	boolean isByteArrayTuple ();
 
 	/**
-	 * @param message
-	 */
-	void flushForNewOrChangedBundleNamed (A_Atom message);
-
-	/**
 	 * @param critical
 	 */
 	void lock (Continuation0 critical);
-
-	/**
-	 * @return
-	 */
-	A_String moduleName ();
 
 	/**
 	 * @return
@@ -2160,51 +1560,6 @@ public interface A_BasicObject
 	int mapBinValuesHash ();
 
 	/**
-	 * @return
-	 */
-	AvailObject bundleMethod ();
-
-	/**
-	 * @return
-	 */
-	Continuation1<Throwable> failureContinuation ();
-
-	/**
-	 * @param scheduled
-	 * @param b
-	 * @return
-	 */
-	boolean getAndSetSynchronizationFlag (
-		SynchronizationFlag scheduled,
-		boolean b);
-
-	/**
-	 * @param onSuccess
-	 */
-	void resultContinuation (Continuation1<AvailObject> onSuccess);
-
-	/**
-	 * @param onFailure
-	 */
-	void failureContinuation (Continuation1<Throwable> onFailure);
-
-	/**
-	 * @param result
-	 */
-	void fiberResult (A_BasicObject result);
-
-	/**
-	 * @return
-	 */
-	Continuation1<AvailObject> resultContinuation ();
-
-	/**
-	 * @param flag
-	 * @return
-	 */
-	boolean interruptRequestFlag (InterruptRequestFlag flag);
-
-	/**
 	 * @param newValue
 	 * @return
 	 */
@@ -2224,62 +1579,6 @@ public interface A_BasicObject
 	A_Number fetchAndAddValue (A_Number addend);
 
 	/**
-	 * @param flag
-	 * @return
-	 */
-	boolean getAndClearInterruptRequestFlag (InterruptRequestFlag flag);
-
-	/**
-	 * @return
-	 */
-	AvailObject fiberResult ();
-
-	/**
-	 * @return
-	 */
-	A_Set joiningFibers ();
-
-	/**
-	 * @return
-	 */
-	AvailObject joinee ();
-
-	/**
-	 * @param joinee
-	 */
-	void joinee (A_BasicObject joinee);
-
-	/**
-	 * @return
-	 */
-	@Nullable TimerTask wakeupTask ();
-
-	/**
-	 * @param task
-	 */
-	void wakeupTask (@Nullable TimerTask task);
-
-	/**
-	 * @param flag
-	 */
-	void setInterruptRequestFlag (InterruptRequestFlag flag);
-
-	/**
-	 * @param value
-	 */
-	void priority (int value);
-
-	/**
-	 * @return
-	 */
-	@Nullable AvailLoader availLoader ();
-
-	/**
-	 * @param loader
-	 */
-	void availLoader (@Nullable AvailLoader loader);
-
-	/**
 	 * @param aByteArrayTuple
 	 * @return
 	 */
@@ -2289,11 +1588,6 @@ public interface A_BasicObject
 	 * @param newName
 	 */
 	void name (A_String newName);
-
-	/**
-	 * @param empty
-	 */
-	void joiningFibers (A_Set empty);
 
 	/**
 	 * @param aByteBufferTuple
@@ -2318,30 +1612,4 @@ public interface A_BasicObject
 		int endIndex1,
 		A_Tuple aByteBufferTuple,
 		int startIndex2);
-
-	/**
-	 * @return
-	 */
-	A_Map heritableFiberGlobals ();
-
-	/**
-	 * @param globals
-	 */
-	void heritableFiberGlobals (A_Map globals);
-
-	/**
-	 * @param flag
-	 * @return
-	 */
-	boolean generalFlag (GeneralFlag flag);
-
-	/**
-	 * @param flag
-	 */
-	void setGeneralFlag (GeneralFlag flag);
-
-	/**
-	 * @param flag
-	 */
-	void clearGeneralFlag (GeneralFlag flag);
 }

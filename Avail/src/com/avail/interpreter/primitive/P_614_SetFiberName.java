@@ -59,9 +59,9 @@ extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 2;
-		final A_BasicObject fiber = args.get(0);
+		final A_Fiber fiber = args.get(0);
 		final A_String name = args.get(1);
-		fiber.name(name);
+		fiber.fiberName(name);
 		return interpreter.primitiveSuccess(NilDescriptor.nil());
 	}
 

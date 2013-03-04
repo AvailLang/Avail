@@ -65,7 +65,7 @@ extends Primitive
 		assert args.size() == 2;
 		final A_Atom atom = args.get(0);
 		final A_Function block = args.get(1);
-		final A_BasicObject fiber = FiberDescriptor.current();
+		final A_Fiber fiber = FiberDescriptor.current();
 		final AvailLoader loader = fiber.availLoader();
 		final A_BasicObject module;
 		if (loader == null || (module = loader.module()).equalsNil())

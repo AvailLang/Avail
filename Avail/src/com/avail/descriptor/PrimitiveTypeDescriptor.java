@@ -105,7 +105,7 @@ extends TypeDescriptor
 	public void printObjectOnAvoidingIndent (
 		final AvailObject object,
 		final StringBuilder aStream,
-		final List<AvailObject> recursionList,
+		final List<A_BasicObject> recursionList,
 		final int indent)
 	{
 		aStream.append(object.slot(NAME).asNativeString());
@@ -144,7 +144,7 @@ extends TypeDescriptor
 	@Override @AvailMethod
 	boolean o_EqualsPrimitiveType (
 		final AvailObject object,
-		final AvailObject aPrimitiveType)
+		final A_Type aPrimitiveType)
 	{
 		// Primitive types compare by identity.
 		return object.sameAddressAs(aPrimitiveType);

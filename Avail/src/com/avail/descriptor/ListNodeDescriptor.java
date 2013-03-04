@@ -137,7 +137,7 @@ extends ParseNodeDescriptor
 	void printObjectOnAvoidingIndent (
 		final AvailObject object,
 		final StringBuilder builder,
-		final List<AvailObject> recursionList,
+		final List<A_BasicObject> recursionList,
 		final int indent)
 	{
 		builder.append("List(");
@@ -175,7 +175,7 @@ extends ParseNodeDescriptor
 		final AvailCodeGenerator codeGenerator)
 	{
 		final A_Tuple childNodes = object.expressionsTuple();
-		for (final A_BasicObject expr : childNodes)
+		for (final A_Phrase expr : childNodes)
 		{
 			expr.emitValueOn(codeGenerator);
 		}
@@ -185,7 +185,7 @@ extends ParseNodeDescriptor
 	@Override @AvailMethod
 	void o_ChildrenMap (
 		final AvailObject object,
-		final Transformer1<AvailObject, AvailObject> aBlock)
+		final Transformer1<A_Phrase, A_Phrase> aBlock)
 	{
 		A_Tuple expressions = object.expressionsTuple();
 		for (int i = 1; i <= expressions.tupleSize(); i++)

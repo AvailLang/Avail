@@ -88,7 +88,7 @@ extends ParseNodeDescriptor
 	public void printObjectOnAvoidingIndent (
 		final AvailObject object,
 		final StringBuilder builder,
-		final List<AvailObject> recursionList,
+		final List<A_BasicObject> recursionList,
 		final int indent)
 	{
 		builder.append("MACRO TRANSFORMATION (");
@@ -132,7 +132,7 @@ extends ParseNodeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_ApparentSendName (final AvailObject object)
+	A_Atom o_ApparentSendName (final AvailObject object)
 	{
 		return object.slot(MACRO_NAME);
 	}
@@ -142,7 +142,7 @@ extends ParseNodeDescriptor
 		final AvailObject object,
 		final AvailCodeGenerator codeGenerator)
 	{
-		object.outputParseNode().emitEffectOn(codeGenerator);
+		object.slot(OUTPUT_PARSE_NODE).emitEffectOn(codeGenerator);
 	}
 
 	@Override @AvailMethod
@@ -150,13 +150,13 @@ extends ParseNodeDescriptor
 		final AvailObject object,
 		final AvailCodeGenerator codeGenerator)
 	{
-		object.outputParseNode().emitValueOn(codeGenerator);
+		object.slot(OUTPUT_PARSE_NODE).emitValueOn(codeGenerator);
 	}
 
 	@Override @AvailMethod
 	void o_ChildrenMap (
 		final AvailObject object,
-		final Transformer1<AvailObject, AvailObject> aBlock)
+		final Transformer1<A_Phrase, A_Phrase> aBlock)
 	{
 		object.setSlot(
 			OUTPUT_PARSE_NODE,
@@ -182,7 +182,7 @@ extends ParseNodeDescriptor
 	@Override @AvailMethod
 	void o_FlattenStatementsInto (
 		final AvailObject object,
-		final List<AvailObject> accumulatedStatements)
+		final List<A_Phrase> accumulatedStatements)
 	{
 		object.slot(OUTPUT_PARSE_NODE).flattenStatementsInto(
 			accumulatedStatements);

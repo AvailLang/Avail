@@ -869,7 +869,7 @@ public enum SerializerOperation
 		@Override
 		A_BasicObject[] decompose (final AvailObject object)
 		{
-			final A_BasicObject module = object.issuingModule();
+			final A_Module module = object.issuingModule();
 			if (module.equalsNil())
 			{
 				throw new RuntimeException("Atom has no issuing module");
@@ -929,8 +929,8 @@ public enum SerializerOperation
 			{
 				outerTypes.objectTupleAtPut(i, object.outerTypeAt(i));
 			}
-			final A_BasicObject module = object.module();
-			final A_BasicObject moduleName = module.equalsNil()
+			final A_Module module = object.module();
+			final A_String moduleName = module.equalsNil()
 				? TupleDescriptor.empty()
 				: module.moduleName();
 			return array(

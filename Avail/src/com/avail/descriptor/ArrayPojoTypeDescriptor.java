@@ -355,7 +355,7 @@ extends PojoTypeDescriptor
 	void printObjectOnAvoidingIndent (
 		final AvailObject object,
 		final StringBuilder builder,
-		final List<AvailObject> recursionList,
+		final List<A_BasicObject> recursionList,
 		final int indent)
 	{
 		object.slot(CONTENT_TYPE).printOnAvoidingIndent(
@@ -430,7 +430,7 @@ extends PojoTypeDescriptor
 	 * contain the entry for {@link PojoArray}, as this has to be specialized
 	 * per pojo array type.
 	 */
-	private static @Nullable A_Map arrayBaseAncestorMap;
+	private static final A_Map arrayBaseAncestorMap;
 
 	static
 	{

@@ -62,7 +62,7 @@ extends Primitive
 		assert args.size() == 2;
 		final AvailObject string = args.get(0);
 		final AvailObject function = args.get(1);
-		final A_BasicObject fiber = FiberDescriptor.current();
+		final A_Fiber fiber = FiberDescriptor.current();
 		final AvailLoader loader = fiber.availLoader();
 		if (loader == null)
 		{

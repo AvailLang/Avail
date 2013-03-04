@@ -563,7 +563,7 @@ public final class AvailBuilder
 					}
 					if (function != null)
 					{
-						final AvailObject fiber =
+						final A_Fiber fiber =
 							FiberDescriptor.newLoaderFiber(
 								function.kind().returnType(),
 								loader);

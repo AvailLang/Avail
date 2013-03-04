@@ -232,7 +232,7 @@ extends Descriptor
 	public void printObjectOnAvoidingIndent (
 		final AvailObject object,
 		final StringBuilder builder,
-		final List<AvailObject> recursionList,
+		final List<A_BasicObject> recursionList,
 		final int indent)
 	{
 		builder.append("Module: ");
@@ -359,7 +359,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	A_BasicObject o_FilteredBundleTree (final AvailObject object)
+	A_BundleTree o_FilteredBundleTree (final AvailObject object)
 	{
 		synchronized (object)
 		{
@@ -388,7 +388,7 @@ extends Descriptor
 
 
 	@Override @AvailMethod
-	void o_AddGrammaticalMessageRestrictions (
+	void o_AddGrammaticalRestrictions (
 		final AvailObject object,
 		final A_Atom methodName,
 		final A_Tuple exclusions)
@@ -426,7 +426,7 @@ extends Descriptor
 			object.setSlot(
 				GRAMMATICAL_RESTRICTIONS,
 				grammaticalRestrictions.makeShared());
-			final A_BasicObject bundleTree = object.slot(FILTERED_BUNDLE_TREE);
+			final A_BundleTree bundleTree = object.slot(FILTERED_BUNDLE_TREE);
 			bundleTree.flushForNewOrChangedBundleNamed(methodName);
 		}
 	}
@@ -799,7 +799,7 @@ extends Descriptor
 	{
 		synchronized (object)
 		{
-			final A_BasicObject filteredBundleTree =
+			final A_BundleTree filteredBundleTree =
 				object.slot(FILTERED_BUNDLE_TREE);
 			for (final A_Atom visibleName : object.visibleNames())
 			{
@@ -893,7 +893,7 @@ extends Descriptor
 	 */
 	public static AvailObject current ()
 	{
-		final A_BasicObject fiber = FiberDescriptor.current();
+		final A_Fiber fiber = FiberDescriptor.current();
 		final AvailLoader loader = fiber.availLoader();
 		if (loader == null)
 		{

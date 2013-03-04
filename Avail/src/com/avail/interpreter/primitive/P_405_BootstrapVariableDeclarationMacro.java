@@ -62,8 +62,8 @@ public class P_405_BootstrapVariableDeclarationMacro extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 2;
-		final A_BasicObject variableNameLiteral = args.get(0);
-		final A_BasicObject typeLiteral = args.get(1);
+		final A_Phrase variableNameLiteral = args.get(0);
+		final A_Phrase typeLiteral = args.get(1);
 
 		final A_Type type = typeLiteral.token().literal();
 		if (type.equals(TOP.o()) || type.equals(BottomTypeDescriptor.bottom()))
