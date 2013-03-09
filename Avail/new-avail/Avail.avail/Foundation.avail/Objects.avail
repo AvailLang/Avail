@@ -1125,7 +1125,7 @@ is
 				Reject parse, expected:
 					"\""
 					++ accessorName
-					++ " to be private (because the class is private)"
+					++ "\" to be private (because the class is private)"
 			];
 			If ¬accessorName ∈ publicNames then
 			[
@@ -1195,7 +1195,7 @@ is
 				Reject parse, expected:
 					"\""
 					++ accessorName
-					++ " to be private (because the class is private)"
+					++ "\" to be private (because the class is private)"
 			];
 			If ¬accessorName ∈ publicNames then
 			[
