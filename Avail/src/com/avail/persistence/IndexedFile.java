@@ -29,7 +29,7 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.avail.builder;
+package com.avail.persistence;
 
 import java.io.DataOutputStream;
 import java.io.File;
@@ -616,7 +616,7 @@ extends AbstractList<byte[]>
 	}
 
 	/**
-	 * Answers the block at the given filePosition.
+	 * Answers the block at the given file position.
 	 *
 	 * @param filePosition
 	 *        The absolute position of the file being requested.
@@ -730,7 +730,6 @@ extends AbstractList<byte[]>
 		{
 			// Transfer the buffer to a temporary file. Perform the nullary
 			// action. Close the channel prior to renaming the temporary file.
-			assert !fileReference.exists() : "The file already exists.";
 			final File tempFilename = File.createTempFile(
 				"new indexed file", null, fileReference.getParentFile());
 			tempFilename.deleteOnExit();

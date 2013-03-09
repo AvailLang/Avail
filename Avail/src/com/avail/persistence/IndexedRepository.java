@@ -1,5 +1,5 @@
 /**
- * IndexedFileException.java
+ * IndexedRepository.java
  * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -29,40 +29,26 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.avail.builder;
+
+package com.avail.persistence;
+
+import java.nio.charset.Charset;
+import com.avail.descriptor.ModuleDescriptor;
 
 /**
- * A {@code IndexedFileException} is thrown when an exceptional circumstance
- * occurs during manipulation of a {@linkplain IndexedFile indexed file}.
+ * An {@code IndexedRepository} represents an indexed collection of compiled
+ * Avail {@linkplain ModuleDescriptor modules}.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class IndexedFileException
-extends RuntimeException
+@IndexedFileVersion(1)
+final class IndexedRepository
+extends IndexedFile
 {
-	/** The serial version identifier. */
-	private static final long serialVersionUID = -577141654102532671L;
-
-	/**
-	 * Construct a new {@link IndexedFileException}.
-	 *
-	 * @param cause
-	 *        The original {@linkplain Throwable exception} which caused the new
-	 *        instance to be raised.
-	 */
-	public IndexedFileException (final Throwable cause)
+	@Override
+	protected byte[] headerBytes ()
 	{
-		super(cause);
-	}
-
-	/**
-	 * Construct a new {@link IndexedFileException}.
-	 *
-	 * @param message
-	 *        The detail message.
-	 */
-	public IndexedFileException (final String message)
-	{
-		super(message);
+		return "Avail compiled module repository\0".getBytes(
+			Charset.forName("UTF-8"));
 	}
 }

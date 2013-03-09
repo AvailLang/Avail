@@ -39,6 +39,7 @@ import com.avail.annotations.*;
 import com.avail.builder.*;
 import com.avail.compiler.*;
 import com.avail.descriptor.*;
+import com.avail.persistence.IndexedRepositoryManager;
 import com.avail.utility.*;
 
 /**
@@ -138,7 +139,8 @@ public class AbstractAvailTest
 		try
 		{
 			final Mutable<ModuleName> lastModule = new Mutable<ModuleName>();
-			final Repository repository = Repository.createTemporary();
+			final IndexedRepositoryManager repository =
+				IndexedRepositoryManager.createTemporary(resolver);
 			final AvailBuilder builder = new AvailBuilder(
 				runtime,
 				repository);

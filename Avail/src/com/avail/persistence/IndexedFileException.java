@@ -1,5 +1,5 @@
 /**
- * AvailMacroTest.java
+ * IndexedFileException.java
  * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -29,48 +29,40 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-
-package com.avail.test;
-
-import java.io.*;
-import org.junit.*;
-import com.avail.builder.*;
-import com.avail.interpreter.Primitive;
-import com.avail.optimizer.L2Translator;
+package com.avail.persistence;
 
 /**
- * Test suite for the Avail macro compiler.
+ * A {@code IndexedFileException} is thrown when an exceptional circumstance
+ * occurs during manipulation of a {@linkplain IndexedFile indexed file}.
  *
- * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class AvailMacroTest
-extends AbstractAvailTest
+public final class IndexedFileException
+extends RuntimeException
 {
-	static
+	/** The serial version identifier. */
+	private static final long serialVersionUID = -577141654102532671L;
+
+	/**
+	 * Construct a new {@link IndexedFileException}.
+	 *
+	 * @param cause
+	 *        The original {@linkplain Throwable exception} which caused the new
+	 *        instance to be raised.
+	 */
+	public IndexedFileException (final Throwable cause)
 	{
-		roots = new ModuleRoots(
-			"avail=" + new File("even-newer-avail").getAbsolutePath());
+		super(cause);
 	}
 
 	/**
-	 * Test: Compile the Test module of the (new) Avail library.
+	 * Construct a new {@link IndexedFileException}.
 	 *
-	 * @throws Exception
-	 *         If an {@linkplain Exception exception} occurs.
+	 * @param message
+	 *        The detail message.
 	 */
-	@Test
-	public void availMacroTest () throws Exception
+	public IndexedFileException (final String message)
 	{
-		final long startTime = System.currentTimeMillis();
-		compile(new ModuleName("/avail/bootstrap-syntax"));
-		System.out.flush();
-		System.err.printf(
-			"%ntime elapsed = %dms%n", System.currentTimeMillis() - startTime);
-		System.err.printf("Instructions%n\tGen=%d%n\tKept=%d%n\tRemv=%d%n",
-			L2Translator.generatedInstructionCount,
-			L2Translator.keptInstructionCount,
-			L2Translator.removedInstructionCount);
-		System.err.printf("%nPrimitive return type-check times:%n%s",
-			Primitive.reportReturnCheckTimes());
+		super(message);
 	}
 }

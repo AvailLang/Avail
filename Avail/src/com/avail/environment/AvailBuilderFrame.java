@@ -55,6 +55,7 @@ import com.avail.builder.*;
 import com.avail.compiler.*;
 import com.avail.descriptor.*;
 import com.avail.interpreter.Primitive;
+import com.avail.persistence.*;
 import com.avail.utility.*;
 
 /**
@@ -187,7 +188,14 @@ extends JFrame
 		public void actionPerformed (final @Nullable ActionEvent event)
 		{
 			assert buildTask == null;
-			repository.clear();
+			try
+			{
+				repository.clear();
+			}
+			catch (final IOException e)
+			{
+				throw new IndexedFileException(e);
+			}
 			final StyledDocument doc = transcript.getStyledDocument();
 			try
 			{
@@ -446,6 +454,7 @@ extends JFrame
 							});
 						}
 					});
+				repository.commit();
 				return null;
 			}
 			catch (final FiberTerminationException e)
@@ -906,10 +915,9 @@ extends JFrame
 	@InnerAccess final ReportAction reportAction;
 
 	/**
-	 * The transient {@link Repository} of compiled modules to load in place
-	 * of Avail source files.
+	 * The {@linkplain IndexedRepositoryManager indexed repository manager}.
 	 */
-	@InnerAccess final Repository repository;
+	@InnerAccess final IndexedRepositoryManager repository;
 
 	/**
 	 * Answer the (invisible) root of the {@linkplain #moduleTree module tree}.
@@ -1201,19 +1209,21 @@ extends JFrame
 	 *
 	 * @param resolver
 	 *        The {@linkplain ModuleNameResolver module name resolver}.
+	 * @param repository
+	 *        The {@linkplain IndexedRepositoryManager repository} for compiled
+	 *        {@linkplain ModuleDescriptor modules}.
 	 * @param initialTarget
 	 *        The initial target {@linkplain ModuleName module}, possibly the
 	 *        empty string.
 	 */
 	@InnerAccess AvailBuilderFrame (
 		final ModuleNameResolver resolver,
+		final IndexedRepositoryManager repository,
 		final String initialTarget)
 	{
-		// Open the repository.
-		repository = Repository.createTemporary();
-
 		// Set module components.
 		this.resolver = resolver;
+		this.repository = repository;
 
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		// Set *just* the window title...
@@ -1576,6 +1586,19 @@ extends JFrame
 			reader, roots);
 		final ModuleNameResolver resolver = renameParser.parse();
 
+		final String repositoryPathString = System.getProperty(
+			"availRepository");
+		final IndexedRepositoryManager repository;
+		if (repositoryPathString != null)
+		{
+			final File repositoryPath = new File(repositoryPathString);
+			repository = new IndexedRepositoryManager(repositoryPath, resolver);
+		}
+		else
+		{
+			repository = IndexedRepositoryManager.createTemporary(resolver);
+		}
+
 		// Display the UI.
 		invokeLater(new Runnable()
 		{
@@ -1583,7 +1606,7 @@ extends JFrame
 			public void run ()
 			{
 				final AvailBuilderFrame frame = new AvailBuilderFrame(
-					resolver, initial);
+					resolver, repository, initial);
 				frame.pack();
 				final @Nullable Rectangle preferredRectangle =
 					frame.getInitialRectangle();

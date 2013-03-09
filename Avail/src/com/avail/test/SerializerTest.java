@@ -69,7 +69,7 @@ public final class SerializerTest
 		AvailObject.clearAllWellKnownObjects();
 		AvailObject.createAllWellKnownObjects();
 		final ModuleRoots roots = new ModuleRoots(
-			"avail=" + new File("avail").getAbsolutePath());
+			"avail=" + new File("new-avail").getAbsolutePath());
 		final RenamesFileParser parser =
 			new RenamesFileParser(new StringReader(""), roots);
 		ModuleNameResolver resolver;

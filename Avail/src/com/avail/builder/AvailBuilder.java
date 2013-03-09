@@ -41,6 +41,7 @@ import com.avail.compiler.*;
 import com.avail.compiler.AbstractAvailCompiler.ModuleHeader;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
+import com.avail.persistence.IndexedRepositoryManager;
 import com.avail.serialization.*;
 import com.avail.utility.*;
 
@@ -61,10 +62,9 @@ public final class AvailBuilder
 	final @InnerAccess AvailRuntime runtime;
 
 	/**
-	 * The {@link Repository} of compiled modules to populate and reuse in order
-	 * to accelerate builds.
+	 * The {@link IndexedRepositoryManager indexed repository manager}.
 	 */
-	final @InnerAccess Repository repository;
+	final @InnerAccess IndexedRepositoryManager repository;
 
 	/**
 	 * Construct a new {@link AvailBuilder}.
@@ -74,12 +74,11 @@ public final class AvailBuilder
 	 *        AvailBuilder builder} will install the target {@linkplain
 	 *        ModuleDescriptor module} and its dependencies.
 	 * @param repository
-	 *        The {@link Repository} which holds compiled modules to accelerate
-	 *        builds.
+	 *        The {@link IndexedRepositoryManager indexed repository manager}.
 	 */
 	public AvailBuilder (
 		final AvailRuntime runtime,
-		final Repository repository)
+		final IndexedRepositoryManager repository)
 	{
 		this.runtime = runtime;
 		this.repository = repository;
@@ -452,8 +451,8 @@ public final class AvailBuilder
 
 		/**
 		 * Load the specified {@linkplain ModuleDescriptor module} from the
-		 * {@linkplain Repository repository} and into the {@linkplain
-		 * AvailRuntime Avail runtime}.
+		 * {@linkplain IndexedRepositoryManager repository} and into the
+		 * {@linkplain AvailRuntime Avail runtime}.
 		 *
 		 * <p>
 		 * Note that the predecessors of this module must have already been
@@ -495,7 +494,7 @@ public final class AvailBuilder
 			final File fileReference = moduleName.fileReference();
 			localTracker.value(moduleName, -1L, -1L, -1L);
 			final byte[] bytes = repository.get(
-				fileReference.getAbsolutePath(),
+				moduleName,
 				fileReference.lastModified());
 			final ByteArrayInputStream inputStream =
 				new ByteArrayInputStream(bytes);
@@ -602,8 +601,8 @@ public final class AvailBuilder
 
 		/**
 		 * Compile the specified {@linkplain ModuleDescriptor module}, store it
-		 * into the {@linkplain Repository repository}, and then load it into
-		 * the {@linkplain AvailRuntime Avail runtime}.
+		 * into the {@linkplain IndexedRepositoryManager repository}, and then
+		 * load it into the {@linkplain AvailRuntime Avail runtime}.
 		 *
 		 * <p>
 		 * Note that the predecessors of this module must have already been
@@ -688,7 +687,7 @@ public final class AvailBuilder
 									final File fileReference =
 										moduleName.fileReference();
 									repository.put(
-										fileReference.getAbsolutePath(),
+										moduleName,
 										fileReference.lastModified(),
 										compiler.serializerOutputStream
 											.toByteArray());
@@ -729,9 +728,10 @@ public final class AvailBuilder
 		/**
 		 * Load the specified {@linkplain ModuleDescriptor module} into the
 		 * {@linkplain AvailRuntime Avail runtime}. If a current compiled module
-		 * is available from the {@linkplain Repository repository}, then simply
-		 * load it. Otherwise, {@linkplain AbstractAvailCompiler compile} the
-		 * module, store it into the repository, and then load it.
+		 * is available from the {@linkplain IndexedRepositoryManager
+		 * repository}, then simply load it. Otherwise, {@linkplain
+		 * AbstractAvailCompiler compile} the module, store it into the
+		 * repository, and then load it.
 		 *
 		 * <p>
 		 * Note that the predecessors of this module must have already been
@@ -782,11 +782,10 @@ public final class AvailBuilder
 				StringDescriptor.from(moduleName.qualifiedName())))
 			{
 				final File fileReference = moduleName.fileReference();
-				final String filePath = fileReference.getAbsolutePath();
 				final long moduleTimestamp = fileReference.lastModified();
 				// If the module is already compiled, then load the repository's
 				// version.
-				if (repository.hasKey(filePath, moduleTimestamp))
+				if (repository.hasKey(moduleName, moduleTimestamp))
 				{
 					loadRepositoryModule(
 						moduleName,
