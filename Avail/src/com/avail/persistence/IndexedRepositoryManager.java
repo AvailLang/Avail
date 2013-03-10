@@ -109,11 +109,11 @@ public class IndexedRepositoryManager
 	}
 
 	/**
-	 * A map from {@linkplain ResolvedModuleName resolved module name} to
-	 * {@linkplain CompiledModulePointer compiled module pointer}.
+	 * A map from {@linkplain ModuleName module name} to {@linkplain
+	 * CompiledModulePointer compiled module pointer}.
 	 */
-	private final Map<ResolvedModuleName, CompiledModulePointer> moduleMap =
-		new HashMap<ResolvedModuleName, CompiledModulePointer>(100);
+	private final Map<ModuleName, CompiledModulePointer> moduleMap =
+		new HashMap<ModuleName, CompiledModulePointer>(100);
 
 	/**
 	 * Clear the underlying {@linkplain IndexedRepository repository} and
@@ -295,10 +295,10 @@ public class IndexedRepositoryManager
 						byteStream, new Deflater(Deflater.BEST_COMPRESSION));
 				binaryStream = new DataOutputStream(deflateStream);
 				binaryStream.writeInt(moduleMap.size());
-				for (final Map.Entry<ResolvedModuleName, CompiledModulePointer>
-					e : moduleMap.entrySet())
+				for (final Map.Entry<ModuleName, CompiledModulePointer> e :
+					moduleMap.entrySet())
 				{
-					final ResolvedModuleName name = e.getKey();
+					final ModuleName name = e.getKey();
 					assert name != null;
 					binaryStream.writeUTF(name.qualifiedName());
 					final CompiledModulePointer pointer = e.getValue();
@@ -366,13 +366,17 @@ public class IndexedRepositoryManager
 						int count = binaryStream.readInt();
 						while (count-- > 0)
 						{
-							final ResolvedModuleName name = resolver.resolve(
-								new ModuleName(binaryStream.readUTF()));
+							final ModuleName name = new ModuleName(
+								binaryStream.readUTF());
 							final CompiledModulePointer pointer =
 								new CompiledModulePointer(
 									binaryStream.readLong(),
 									binaryStream.readLong());
-							moduleMap.put(name, pointer);
+							final ResolvedModuleName resolved =
+								resolver.resolve(name);
+							moduleMap.put(
+								resolved != null ? resolved : name,
+								pointer);
 						}
 					}
 					finally
