@@ -208,7 +208,15 @@ extends Descriptor
 		 * A {@linkplain MapDescriptor map} from {@linkplain AtomDescriptor true
 		 * names} to {@linkplain TupleDescriptor tuples} of seal points.
 		 */
-		SEALS
+		SEALS,
+
+		/**
+		 * A {@linkplain MapDescriptor map} from the {@linkplain
+		 * StringDescriptor textual names} of entry point {@linkplain
+		 * MethodDescriptor methods} to their {@linkplain AtomDescriptor true
+		 * names}.
+		 */
+		ENTRY_POINTS
 	}
 
 	@Override boolean allowsImmutableToMutableReferenceInField (
@@ -217,6 +225,7 @@ extends Descriptor
 		return e == NEW_NAMES
 			|| e == NAMES
 			|| e == PRIVATE_NAMES
+			|| e == ENTRY_POINTS
 			|| e == VISIBLE_NAMES
 			|| e == METHODS
 			|| e == GRAMMATICAL_RESTRICTIONS
@@ -311,6 +320,15 @@ extends Descriptor
 		synchronized (object)
 		{
 			return object.slot(PRIVATE_NAMES);
+		}
+	}
+
+	@Override @AvailMethod
+	AvailObject o_EntryPoints (final AvailObject object)
+	{
+		synchronized (object)
+		{
+			return object.slot(ENTRY_POINTS);
 		}
 	}
 
@@ -620,6 +638,23 @@ extends Descriptor
 		}
 	}
 
+	@Override @AvailMethod
+	void o_AddEntryPoint (
+		final AvailObject object,
+		final AvailObject stringName,
+		final AvailObject trueName)
+	{
+		synchronized (object)
+		{
+			AvailObject entryPoints = object.slot(ENTRY_POINTS);
+			entryPoints = entryPoints.mapAtPuttingCanDestroy(
+				stringName,
+				trueName,
+				true);
+			object.setSlot(ENTRY_POINTS, entryPoints.traversed().makeShared());
+		}
+	}
+
 	/**
 	 * Construct a {@linkplain MessageBundleTreeDescriptor bundle tree} that has
 	 * been filtered to contain just those {@linkplain MessageBundleDescriptor
@@ -874,6 +909,7 @@ extends Descriptor
 		object.setSlot(VARIABLE_BINDINGS, emptyMap);
 		object.setSlot(TYPE_RESTRICTION_FUNCTIONS, MapDescriptor.empty());
 		object.setSlot(SEALS, MapDescriptor.empty());
+		object.setSlot(ENTRY_POINTS, MapDescriptor.empty());
 		object.setSlot(COUNTER, 0);
 		object.makeShared();
 		return object;

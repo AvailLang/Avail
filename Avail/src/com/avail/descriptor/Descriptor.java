@@ -4795,4 +4795,19 @@ extends AbstractDescriptor
 	{
 		return false;
 	}
+
+	@Override
+	AvailObject o_EntryPoints (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	void o_AddEntryPoint (
+		final AvailObject object,
+		final AvailObject stringName,
+		final AvailObject trueName)
+	{
+		throw unsupportedOperationException();
+	}
 }

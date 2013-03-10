@@ -6494,4 +6494,23 @@ implements Iterable<AvailObject>
 	{
 		return descriptor.o_IsByteBufferTuple(this);
 	}
+
+	/**
+	 * @return
+	 */
+	public AvailObject entryPoints ()
+	{
+		return descriptor.o_EntryPoints(this);
+	}
+
+	/**
+	 * @param stringName
+	 * @param trueName
+	 */
+	public void addEntryPoint (
+		final AvailObject stringName,
+		final AvailObject trueName)
+	{
+		descriptor.o_AddEntryPoint(this, stringName, trueName);
+	}
 }

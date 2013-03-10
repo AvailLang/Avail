@@ -5970,4 +5970,20 @@ public abstract class AbstractDescriptor
 	 * @return
 	 */
 	abstract boolean o_IsByteBufferTuple (AvailObject object);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract AvailObject o_EntryPoints (AvailObject object);
+
+	/**
+	 * @param object
+	 * @param stringName
+	 * @param trueName
+	 */
+	abstract void o_AddEntryPoint (
+		AvailObject object,
+		AvailObject stringName,
+		AvailObject trueName);
 }
