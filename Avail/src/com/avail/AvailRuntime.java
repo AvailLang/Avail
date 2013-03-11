@@ -92,7 +92,7 @@ public final class AvailRuntime
 	/**
 	 * The source of {@linkplain FiberDescriptor fiber} identifiers.
 	 */
-	private final AtomicInteger fiberIdGenerator = new AtomicInteger(1);
+	private static final AtomicInteger fiberIdGenerator = new AtomicInteger(1);
 
 	/**
 	 * Answer the next unused {@linkplain FiberDescriptor fiber} identifier.
@@ -101,7 +101,7 @@ public final class AvailRuntime
 	 * @return The next fiber identifier.
 	 */
 	@ThreadSafe
-	public int nextFiberId ()
+	public static int nextFiberId ()
 	{
 		return fiberIdGenerator.getAndIncrement();
 	}
