@@ -37,6 +37,7 @@ import org.junit.*;
 import com.avail.builder.*;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.L2Translator;
+import com.avail.persistence.IndexedRepositoryManager;
 
 /**
  * Broad test suite for the Avail compiler, interpreter, and (new) library.
@@ -48,8 +49,15 @@ extends AbstractAvailTest
 {
 	static
 	{
-		roots = new ModuleRoots(
-			"avail=" + new File("new-avail").getAbsolutePath());
+		final IndexedRepositoryManager repository =
+			IndexedRepositoryManager.createTemporary(
+				"avail", "test repository", null);
+		final File repositoryFile = repository.fileName();
+		repository.close();
+		roots = new ModuleRoots(String.format(
+			"avail=%s,%s",
+			repositoryFile.getAbsolutePath(),
+			new File("new-avail").getAbsolutePath()));
 	}
 
 	/**

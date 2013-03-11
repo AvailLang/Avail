@@ -45,10 +45,23 @@ import com.avail.descriptor.ModuleDescriptor;
 final class IndexedRepository
 extends IndexedFile
 {
-	@Override
-	protected byte[] headerBytes ()
+	/**
+	 * Answer the NUL-terminated header bytes that uniquely identify a
+	 * particular usage of the core {@linkplain IndexedFile indexed file}
+	 * technology.
+	 *
+	 * @return An array of bytes that uniquely identifies the purpose of the
+	 *         indexed file.
+	 */
+	static byte[] header ()
 	{
 		return "Avail compiled module repository\0".getBytes(
 			Charset.forName("UTF-8"));
+	}
+
+	@Override
+	protected byte[] headerBytes ()
+	{
+		return header();
 	}
 }

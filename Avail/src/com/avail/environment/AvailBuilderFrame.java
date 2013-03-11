@@ -175,8 +175,7 @@ extends JFrame
 	}
 
 	/**
-	 * A {@code CleanAction} unloads all code from the runtime and empties the
-	 * compiled module repository.
+	 * A {@code CleanAction} empties all compiled module repositories.
 	 */
 	private final class CleanAction
 	extends AbstractAction
@@ -190,7 +189,11 @@ extends JFrame
 			assert buildTask == null;
 			try
 			{
-				repository.clear();
+				// Clear all repositories.
+				for (final ModuleRoot root : resolver.moduleRoots().roots())
+				{
+					root.repository().clear();
+				}
 			}
 			catch (final IOException e)
 			{
@@ -384,9 +387,7 @@ extends JFrame
 			{
 				AvailObject.createAllWellKnownObjects();
 				runtime = new AvailRuntime(resolver);
-				final AvailBuilder builder = new AvailBuilder(
-					runtime,
-					repository);
+				final AvailBuilder builder = new AvailBuilder(runtime);
 				builder.build(
 					new ModuleName(targetModuleName),
 					new Continuation4<ModuleName, Long, Long, Long>()
@@ -454,7 +455,11 @@ extends JFrame
 							});
 						}
 					});
-				repository.commit();
+				// Commit all repositories.
+				for (final ModuleRoot root : resolver.moduleRoots().roots())
+				{
+					root.repository().commit();
+				}
 				return null;
 			}
 			catch (final FiberTerminationException e)
@@ -472,7 +477,7 @@ extends JFrame
 					throw e;
 				}
 				final String source = readSourceFile(
-					resolvedName.fileReference());
+					resolvedName.sourceReference());
 				if (source == null)
 				{
 					System.err.printf("%s%n", e.getMessage());
@@ -915,11 +920,6 @@ extends JFrame
 	@InnerAccess final ReportAction reportAction;
 
 	/**
-	 * The {@linkplain IndexedRepositoryManager indexed repository manager}.
-	 */
-	@InnerAccess final IndexedRepositoryManager repository;
-
-	/**
 	 * Answer the (invisible) root of the {@linkplain #moduleTree module tree}.
 	 *
 	 * @return The root of the module tree.
@@ -934,7 +934,10 @@ extends JFrame
 				new DefaultMutableTreeNode(rootName);
 			treeRoot.add(rootNode);
 			final String extension = ModuleNameResolver.availExtension;
-			final File rootDirectory = roots.rootDirectoryFor(rootName);
+			final ModuleRoot root = roots.moduleRootFor(rootName);
+			assert root != null;
+			final File rootDirectory = root.sourceDirectory();
+			assert rootDirectory != null;
 			final File[] files = rootDirectory.listFiles(new FilenameFilter()
 			{
 				@Override
@@ -1078,7 +1081,7 @@ extends JFrame
 	}
 
 	/**
-	 * Update the {@linkplain #moduleProgress module progress bar}.
+	 * Update the {@linkplain #buildProgress build progress bar}.
 	 *
 	 * @param moduleName
 	 *        The {@linkplain ModuleDescriptor module} undergoing compilation.
@@ -1209,21 +1212,16 @@ extends JFrame
 	 *
 	 * @param resolver
 	 *        The {@linkplain ModuleNameResolver module name resolver}.
-	 * @param repository
-	 *        The {@linkplain IndexedRepositoryManager repository} for compiled
-	 *        {@linkplain ModuleDescriptor modules}.
 	 * @param initialTarget
 	 *        The initial target {@linkplain ModuleName module}, possibly the
 	 *        empty string.
 	 */
 	@InnerAccess AvailBuilderFrame (
 		final ModuleNameResolver resolver,
-		final IndexedRepositoryManager repository,
 		final String initialTarget)
 	{
 		// Set module components.
 		this.resolver = resolver;
-		this.repository = repository;
 
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		// Set *just* the window title...
@@ -1586,19 +1584,6 @@ extends JFrame
 			reader, roots);
 		final ModuleNameResolver resolver = renameParser.parse();
 
-		final String repositoryPathString = System.getProperty(
-			"availRepository");
-		final IndexedRepositoryManager repository;
-		if (repositoryPathString != null)
-		{
-			final File repositoryPath = new File(repositoryPathString);
-			repository = new IndexedRepositoryManager(repositoryPath, resolver);
-		}
-		else
-		{
-			repository = IndexedRepositoryManager.createTemporary(resolver);
-		}
-
 		// Display the UI.
 		invokeLater(new Runnable()
 		{
@@ -1606,7 +1591,7 @@ extends JFrame
 			public void run ()
 			{
 				final AvailBuilderFrame frame = new AvailBuilderFrame(
-					resolver, repository, initial);
+					resolver, initial);
 				frame.pack();
 				final @Nullable Rectangle preferredRectangle =
 					frame.getInitialRectangle();

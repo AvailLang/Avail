@@ -39,7 +39,6 @@ import com.avail.annotations.*;
 import com.avail.builder.*;
 import com.avail.compiler.*;
 import com.avail.descriptor.*;
-import com.avail.persistence.IndexedRepositoryManager;
 import com.avail.utility.*;
 
 /**
@@ -139,11 +138,7 @@ public class AbstractAvailTest
 		try
 		{
 			final Mutable<ModuleName> lastModule = new Mutable<ModuleName>();
-			final IndexedRepositoryManager repository =
-				IndexedRepositoryManager.createTemporary(resolver);
-			final AvailBuilder builder = new AvailBuilder(
-				runtime,
-				repository);
+			final AvailBuilder builder = new AvailBuilder(runtime);
 			builder.build(
 				target,
 				new Continuation4<ModuleName, Long, Long, Long>()
@@ -195,7 +190,9 @@ public class AbstractAvailTest
 				throw e;
 			}
 
-			final String source = readSourceFile(resolvedName.fileReference());
+			final File sourceFile = resolvedName.sourceReference();
+			assert sourceFile != null;
+			final String source = readSourceFile(sourceFile);
 			if (source == null)
 			{
 				System.err.printf("%s%n", e.getMessage());

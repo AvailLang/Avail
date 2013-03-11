@@ -62,26 +62,16 @@ public final class AvailBuilder
 	final @InnerAccess AvailRuntime runtime;
 
 	/**
-	 * The {@link IndexedRepositoryManager indexed repository manager}.
-	 */
-	final @InnerAccess IndexedRepositoryManager repository;
-
-	/**
 	 * Construct a new {@link AvailBuilder}.
 	 *
 	 * @param runtime
 	 *        The {@linkplain AvailRuntime runtime} into which the {@linkplain
 	 *        AvailBuilder builder} will install the target {@linkplain
 	 *        ModuleDescriptor module} and its dependencies.
-	 * @param repository
-	 *        The {@link IndexedRepositoryManager indexed repository manager}.
 	 */
-	public AvailBuilder (
-		final AvailRuntime runtime,
-		final IndexedRepositoryManager repository)
+	public AvailBuilder (final AvailRuntime runtime)
 	{
 		this.runtime = runtime;
-		this.repository = repository;
 	}
 
 	/**
@@ -157,6 +147,166 @@ public final class AvailBuilder
 		}
 
 		/**
+		 * Trace the imports of the {@linkplain ResolvedModuleName specified}
+		 * {@linkplain ModuleDescriptor module}.
+		 *
+		 * @param resolvedName
+		 *        A resolved module name.
+		 * @param header
+		 *        A {@linkplain ModuleHeader module header}.
+		 * @param recursionSet
+		 *        An insertion-ordered {@linkplain Set set} that remembers all
+		 *        modules visited along this branch of the trace.
+		 */
+		@InnerAccess void traceModuleHeader (
+			final ResolvedModuleName resolvedName,
+			final ModuleHeader header,
+			final LinkedHashSet<ResolvedModuleName> recursionSet)
+		{
+			final Set<ModuleName> importedModules =
+				new HashSet<ModuleName>(
+					header.extendedModules.size()
+						+ header.usedModules.size());
+			for (final AvailObject extendedModule
+				: header.extendedModules)
+			{
+				importedModules.add(resolvedName.asSibling(
+					extendedModule.tupleAt(1).asNativeString()));
+			}
+			for (final AvailObject usedModule
+				: header.usedModules)
+			{
+				importedModules.add(resolvedName.asSibling(
+					usedModule.tupleAt(1).asNativeString()));
+			}
+			// Update the count of trace requests and completions.
+			synchronized (BuildState.this)
+			{
+				traceRequests += importedModules.size();
+				traceCompletions++;
+				// Avoid spurious wake-ups.
+				if (traceRequests == traceCompletions)
+				{
+					BuildState.this.notifyAll();
+				}
+			}
+			// Recurse into each import.
+			for (final ModuleName moduleName : importedModules)
+			{
+				// Copy the recursion set to ensure the independence of each
+				// of the tracing algorithm.
+				final LinkedHashSet<ResolvedModuleName> newSet =
+					new LinkedHashSet<ResolvedModuleName>(
+						recursionSet);
+				scheduleTraceModuleImports(
+					BuildState.this,
+					moduleName,
+					resolvedName,
+					newSet);
+			}
+		}
+
+		/**
+		 * Trace the imports of the source {@linkplain ModuleDescriptor module}
+		 * specified by the given {@linkplain ResolvedModuleName resolved module
+		 * name}.
+		 *
+		 * @param resolvedName
+		 *        A resolved module name.
+		 * @param recursionSet
+		 *        An insertion-ordered {@linkplain Set set} that remembers all
+		 *        modules visited along this branch of the trace.
+		 * @throws IOException
+		 *         If the source module cannot be opened or read.
+		 * @throws AvailCompilerException
+		 *         If the {@linkplain AbstractAvailCompiler compiler} is unable
+		 *         to find a module declaration for this {@linkplain
+		 *         ModuleDescriptor module}.
+		 */
+		private void traceSourceModuleImports (
+				final ResolvedModuleName resolvedName,
+				final LinkedHashSet<ResolvedModuleName> recursionSet)
+			throws IOException, AvailCompilerException
+		{
+			assert resolvedName.sourceReference() != null;
+			AbstractAvailCompiler.create(
+				resolvedName,
+				true,
+				new Continuation1<AbstractAvailCompiler>()
+				{
+					@Override
+					public void value (
+						final @Nullable AbstractAvailCompiler compiler)
+					{
+						assert compiler != null;
+						final ModuleHeader header =
+							compiler.parseModuleHeader();
+						traceModuleHeader(resolvedName, header, recursionSet);
+					}
+				},
+				new Continuation1<Throwable>()
+				{
+					@Override
+					public void value (final @Nullable Throwable killer)
+					{
+						assert killer != null;
+						failBuild(killer);
+					}
+				});
+		}
+
+		/**
+		 * Trace the imports of the compiled {@linkplain ModuleDescriptor
+		 * module} specified by the given {@linkplain ModuleName module name}.
+		 *
+		 * @param resolvedName
+		 *        A resolved module name.
+		 * @param recursionSet
+		 *        An insertion-ordered {@linkplain Set set} that remembers all
+		 *        modules visited along this branch of the trace.
+		 * @throws MalformedSerialStreamException
+		 *         If the repository contains invalid serialized module data.
+		 */
+		private void traceCompiledModuleImports (
+				final ResolvedModuleName resolvedName,
+				final LinkedHashSet<ResolvedModuleName> recursionSet)
+			throws
+				MalformedSerialStreamException
+		{
+			final ModuleHeader header = new ModuleHeader(resolvedName);
+			AvailObject module = ModuleDescriptor.newModule(
+				StringDescriptor.from(resolvedName.qualifiedName()));
+			AvailLoader loader = new AvailLoader(module);
+			// Populate the header.
+			try
+			{
+				final IndexedRepositoryManager repository =
+					resolvedName.repository();
+				final byte[] bytes = repository.get(resolvedName);
+				final ByteArrayInputStream inputStream =
+					new ByteArrayInputStream(bytes);
+				final Deserializer deserializer = new Deserializer(
+					inputStream, runtime);
+				deserializer.currentModule(module);
+				final AvailObject tag = deserializer.deserialize();
+				if (tag != null &&
+					!tag.equals(AtomDescriptor.moduleHeaderSectionAtom()))
+				{
+					throw new RuntimeException(
+						"Expected module header tag");
+				}
+				header.deserializeHeaderFrom(deserializer);
+			}
+			finally
+			{
+				module.removeFrom(loader);
+				module = null;
+				loader = null;
+			}
+			traceModuleHeader(resolvedName, header, recursionSet);
+		}
+
+		/**
 		 * Trace the imports of the {@linkplain ModuleDescriptor module}
 		 * specified by the given {@linkplain ModuleName module name}.
 		 *
@@ -181,6 +331,8 @@ public final class AvailBuilder
 		 * @throws UnresolvedDependencyException
 		 *         If the specified {@linkplain ModuleDescriptor module} name
 		 *         could not be resolved to a module.
+		 * @throws MalformedSerialStreamException
+		 *         If the repository contains invalid serialized module data.
 		 */
 		@InnerAccess void traceModuleImports (
 				final ModuleName qualifiedName,
@@ -190,11 +342,12 @@ public final class AvailBuilder
 				IOException,
 				AvailCompilerException,
 				RecursiveDependencyException,
-				UnresolvedDependencyException
+				UnresolvedDependencyException,
+				MalformedSerialStreamException
 		{
-			final ResolvedModuleName resolution =
+			final ResolvedModuleName resolvedName =
 				runtime.moduleNameResolver().resolve(qualifiedName);
-			if (resolution == null)
+			if (resolvedName == null)
 			{
 				assert resolvedSuccessor != null;
 				throw new UnresolvedDependencyException(
@@ -203,37 +356,37 @@ public final class AvailBuilder
 			}
 
 			// Detect recursion into this module.
-			if (recursionSet.contains(resolution))
+			if (recursionSet.contains(resolvedName))
 			{
-				recursionSet.add(resolution);
+				recursionSet.add(resolvedName);
 				throw new RecursiveDependencyException(recursionSet);
 			}
 
 			// Prevent recursion into this module.
-			recursionSet.add(resolution);
+			recursionSet.add(resolvedName);
 
 			synchronized (this)
 			{
 				final boolean alreadyTraced =
-					completionSet.contains(resolution);
+					completionSet.contains(resolvedName);
 
 				// If the module hasn't been traced yet, then set up its
 				// predecessor and successor sets.
 				if (!alreadyTraced)
 				{
-					assert !predecessors.containsKey(resolution);
-					assert !successors.containsKey(resolution);
+					assert !predecessors.containsKey(resolvedName);
+					assert !successors.containsKey(resolvedName);
 					predecessors.put(
-						resolution, new HashSet<ResolvedModuleName>());
+						resolvedName, new HashSet<ResolvedModuleName>());
 					successors.put(
-						resolution, new HashSet<ResolvedModuleName>());
+						resolvedName, new HashSet<ResolvedModuleName>());
 				}
 
 				// Wire together the module and its successor.
 				if (resolvedSuccessor != null)
 				{
-					predecessors.get(resolvedSuccessor).add(resolution);
-					successors.get(resolution).add(resolvedSuccessor);
+					predecessors.get(resolvedSuccessor).add(resolvedName);
+					successors.get(resolvedName).add(resolvedSuccessor);
 				}
 
 				// If the module has already been traced, then update the trace
@@ -250,74 +403,18 @@ public final class AvailBuilder
 				}
 
 				// Arrange for early exit from unnecessary subsequent visits.
-				completionSet.add(resolution);
+				completionSet.add(resolvedName);
 			}
 
 			// Build the set of names of imported modules.
-			AbstractAvailCompiler.create(
-				resolution,
-				true,
-				new Continuation1<AbstractAvailCompiler>()
-				{
-					@Override
-					public void value (
-						final @Nullable AbstractAvailCompiler compiler)
-					{
-						assert compiler != null;
-						final ModuleHeader header =
-							compiler.parseModuleHeader();
-						final Set<ModuleName> importedModules =
-							new HashSet<ModuleName>(
-								header.extendedModules.size()
-									+ header.usedModules.size());
-						for (final AvailObject extendedModule
-							: header.extendedModules)
-						{
-							importedModules.add(resolution.asSibling(
-								extendedModule.tupleAt(1).asNativeString()));
-						}
-						for (final AvailObject usedModule
-							: header.usedModules)
-						{
-							importedModules.add(resolution.asSibling(
-								usedModule.tupleAt(1).asNativeString()));
-						}
-						// Update the count of trace requests and completions.
-						synchronized (BuildState.this)
-						{
-							traceRequests += importedModules.size();
-							traceCompletions++;
-							// Avoid spurious wake-ups.
-							if (traceRequests == traceCompletions)
-							{
-								BuildState.this.notifyAll();
-							}
-						}
-						// Recurse into each import.
-						for (final ModuleName moduleName : importedModules)
-						{
-							// Copy the recursion set to ensure the independence of each
-							// continuation of the tracing algorithm.
-							final LinkedHashSet<ResolvedModuleName> newSet =
-								new LinkedHashSet<ResolvedModuleName>(
-									recursionSet);
-							scheduleTraceModuleImports(
-								BuildState.this,
-								moduleName,
-								resolution,
-								newSet);
-						}
-					}
-				},
-				new Continuation1<Throwable>()
-				{
-					@Override
-					public void value (final @Nullable Throwable killer)
-					{
-						assert killer != null;
-						failBuild(killer);
-					}
-				});
+			if (resolvedName.sourceReference() != null)
+			{
+				traceSourceModuleImports(resolvedName, recursionSet);
+			}
+			else
+			{
+				traceCompiledModuleImports(resolvedName, recursionSet);
+			}
 		}
 
 		/**
@@ -375,7 +472,7 @@ public final class AvailBuilder
 			{
 				for (final ResolvedModuleName resolution : completionSet)
 				{
-					globalCodeSize += resolution.fileReference().length();
+					globalCodeSize += resolution.moduleSize();
 				}
 			}
 			return globalCodeSize;
@@ -437,7 +534,7 @@ public final class AvailBuilder
 			globalTracker.value(
 				moduleName,
 				bytesCompiled.addAndGet(
-					moduleName.fileReference().length() - lastPosition),
+					moduleName.moduleSize() - lastPosition),
 				globalCodeSize());
 			synchronized (this)
 			{
@@ -490,12 +587,10 @@ public final class AvailBuilder
 				final Continuation3<ModuleName, Long, Long> globalTracker)
 			throws MalformedSerialStreamException
 		{
-			// Read the module data from the repository.
-			final File fileReference = moduleName.fileReference();
 			localTracker.value(moduleName, -1L, -1L, -1L);
-			final byte[] bytes = repository.get(
-				moduleName,
-				fileReference.lastModified());
+			// Read the module data from the repository.
+			final IndexedRepositoryManager repository = moduleName.repository();
+			final byte[] bytes = repository.get(moduleName);
 			final ByteArrayInputStream inputStream =
 				new ByteArrayInputStream(bytes);
 			final AvailObject module = ModuleDescriptor.newModule(
@@ -508,14 +603,12 @@ public final class AvailBuilder
 			{
 				AvailObject tag = deserializer.deserialize();
 				if (tag != null &&
-					!tag.equals(
-						AtomDescriptor.moduleHeaderSectionAtom()))
+					!tag.equals(AtomDescriptor.moduleHeaderSectionAtom()))
 				{
 					throw new RuntimeException(
 						"Expected module header tag");
 				}
-				final ModuleHeader header =
-					new ModuleHeader(moduleName);
+				final ModuleHeader header = new ModuleHeader(moduleName);
 				header.deserializeHeaderFrom(deserializer);
 				module.isSystemModule(header.isSystemModule);
 				final String errorString = header.applyToModule(
@@ -684,11 +777,12 @@ public final class AvailBuilder
 								public void value (
 									final @Nullable AvailObject module)
 								{
-									final File fileReference =
-										moduleName.fileReference();
-									repository.put(
+									final File sourceReference =
+										moduleName.sourceReference();
+									assert sourceReference != null;
+									moduleName.repository().put(
 										moduleName,
-										fileReference.lastModified(),
+										sourceReference.lastModified(),
 										compiler.serializerOutputStream
 											.toByteArray());
 									postLoad(
@@ -781,21 +875,35 @@ public final class AvailBuilder
 			if (!runtime.includesModuleNamed(
 				StringDescriptor.from(moduleName.qualifiedName())))
 			{
-				final File fileReference = moduleName.fileReference();
-				final long moduleTimestamp = fileReference.lastModified();
-				// If the module is already compiled, then load the repository's
-				// version.
-				if (repository.hasKey(moduleName, moduleTimestamp))
+				final File sourceReference = moduleName.sourceReference();
+				// If no source is available, then load the most recent version
+				// of the compiled module from the repository.
+				if (sourceReference == null)
 				{
+					assert moduleName.repository().hasKey(moduleName);
 					loadRepositoryModule(
 						moduleName,
 						localTracker,
 						globalTracker);
 				}
-				// Actually compile the module and cache its compiled form.
 				else
 				{
-					compileModule(moduleName, localTracker, globalTracker);
+					final long moduleTimestamp = sourceReference.lastModified();
+					// If the module is already compiled, then load the
+					// repository's version.
+					if (moduleName.repository().hasKey(
+						moduleName, moduleTimestamp))
+					{
+						loadRepositoryModule(
+							moduleName,
+							localTracker,
+							globalTracker);
+					}
+					// Compile the module and cache its compiled form.
+					else
+					{
+						compileModule(moduleName, localTracker, globalTracker);
+					}
 				}
 			}
 		}

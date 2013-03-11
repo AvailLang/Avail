@@ -1438,7 +1438,8 @@ public abstract class AbstractAvailCompiler
 		throws IOException
 	{
 		final AvailRuntime runtime = AvailRuntime.current();
-		final File ref = resolvedName.fileReference();
+		final File ref = resolvedName.sourceReference();
+		assert ref != null;
 		final CharsetDecoder decoder = StandardCharsets.UTF_8.newDecoder();
 		final ByteBuffer input = ByteBuffer.allocateDirect(4096);
 		final CharBuffer output = CharBuffer.allocate(4096);

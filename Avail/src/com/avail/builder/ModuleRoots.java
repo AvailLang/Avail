@@ -32,22 +32,19 @@
 
 package com.avail.builder;
 
-import java.io.File;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Set;
-import com.avail.annotations.ThreadSafe;
+import static com.avail.persistence.IndexedRepositoryManager.isIndexedRepositoryFile;
+import java.io.*;
+import java.util.*;
+import com.avail.annotations.*;
 import com.avail.descriptor.ModuleDescriptor;
 
 /**
  * {@code ModuleRoots} encapsulates the Avail {@linkplain ModuleDescriptor
  * module} path in both composed and decomposed forms. The Avail module path
  * specifies bindings between <em>logical root names</em> and {@linkplain
- * File#isAbsolute() absolute} {@linkplain File pathnames} of directories
- * containing Avail modules. A logical root name should typically belong to a
- * vendor of Avail modules, ergo a domain name or registered trademark suffices
- * nicely.
+ * ModuleRoot locations} of Avail modules. A logical root name should typically
+ * belong to a vendor of Avail modules, ergo a domain name or registered
+ * trademark suffices nicely.
  *
  * <p>The format of an Avail module path is described by the following
  * simple grammar:</p>
@@ -72,58 +69,90 @@ public final class ModuleRoots
 	 *
 	 * @return The Avail {@linkplain ModuleDescriptor module} path.
 	 */
-	@ThreadSafe
 	public String modulePath ()
 	{
 		return modulePath;
 	}
 
 	/**
-	 * A {@linkplain Map map} from logical root names to {@linkplain
-	 * File#isAbsolute() absolute} pathnames of {@linkplain File directories}
-	 * (containing Avail {@linkplain ModuleDescriptor modules}).
+	 * A {@linkplain Map map} from logical root names to {@linkplain ModuleRoot
+	 * module root}s.
 	 */
-	private final Map<String, File> rootMap =
-		new LinkedHashMap<String, File>();
+	private final Map<String, ModuleRoot> rootMap =
+		new LinkedHashMap<String, ModuleRoot>();
 
 	/**
 	 * Parse the Avail {@linkplain ModuleDescriptor module} path into a
-	 * {@linkplain Map map} of logical root names to {@linkplain
-	 * File#isAbsolute() absolute} pathnames of {@linkplain File directories}.
+	 * {@linkplain Map map} of logical root names to {@linkplain ModuleRoot
+	 * module root}s.
 	 *
 	 * @throws IllegalArgumentException
 	 *         If any component of the Avail {@linkplain ModuleDescriptor
-	 *         module} path is not the absolution pathname of a directory.
+	 *         module} path is invalid.
 	 */
 	private void parseAvailModulePath ()
 		throws IllegalArgumentException
 	{
+		// Root definitions are separated by semicolons.
 		for (final String component : modulePath.split(";"))
 		{
-			if (!component.isEmpty())
+			// An equals separates the root name from its paths.
+			final String[] binding = component.split("=");
+			if (binding.length != 2)
 			{
-				final String[] binding = component.split("=");
-				if (binding.length != 2)
-				{
-					throw new IllegalArgumentException(
-						"An Avail module path component must be a logical root "
-						+ "name, then an equals (=), then the absolute "
-						+ "pathname of a directory containing Avail modules.");
-				}
-
-				final String rootName = binding[0];
-				final File fileName = new File(binding[1]);
-				if (!fileName.isAbsolute() || !fileName.isDirectory())
-				{
-					throw new IllegalArgumentException(
-						"An Avail module path component ("
-						+ fileName.getPath()
-						+ ") did not specify the absolute pathname of a "
-						+ "directory.");
-				}
-
-				rootMap.put(rootName, fileName);
+				throw new IllegalArgumentException();
 			}
+
+			// A comma separates the repository path from the source directory
+			// path.
+			final String rootName = binding[0];
+			final String[] paths = binding[1].split(",");
+			if (paths.length > 2)
+			{
+				throw new IllegalArgumentException();
+			}
+
+			// All paths must be absolute.
+			for (final String path : paths)
+			{
+				final File file = new File(path);
+				if (!file.isAbsolute())
+				{
+					throw new IllegalArgumentException();
+				}
+			}
+
+			// If only one path is supplied, then it must reference a valid
+			// repository.
+			final File repositoryFile = new File(paths[0]);
+			try
+			{
+				if (paths.length == 1
+					&& !isIndexedRepositoryFile(repositoryFile))
+				{
+					throw new IllegalArgumentException();
+				}
+			}
+			catch (final IOException e)
+			{
+				throw new IllegalArgumentException(e);
+			}
+
+			// If two paths are provided, then the first path need not reference
+			// an existing file. The second path, however, must reference a
+			// directory.
+			final File sourceDirectory =
+				paths.length == 2
+				? new File(paths[1])
+				: null;
+			if (sourceDirectory != null && !sourceDirectory.isDirectory())
+			{
+				throw new IllegalArgumentException();
+			}
+
+			rootMap.put(
+				rootName,
+				new ModuleRoot(rootName, repositoryFile, sourceDirectory));
 		}
 	}
 
@@ -133,24 +162,37 @@ public final class ModuleRoots
 	 *
 	 * @return The logical root names.
 	 */
-	@ThreadSafe
 	public Set<String> rootNames ()
 	{
 		return Collections.unmodifiableSet(rootMap.keySet());
 	}
 
 	/**
-	 * Answer the {@linkplain File root directory} bound to the specified
+	 * Answer the {@linkplain ModuleRoot module roots} in the order that they
+	 * are specified in the Avail {@linkplain ModuleDescriptor module} path.
+	 *
+	 * @return The module roots.
+	 */
+	public Set<ModuleRoot> roots ()
+	{
+		final Set<ModuleRoot> roots = new LinkedHashSet<ModuleRoot>();
+		for (final Map.Entry<String, ModuleRoot> entry : rootMap.entrySet())
+		{
+			roots.add(entry.getValue());
+		}
+		return roots;
+	}
+
+	/**
+	 * Answer the {@linkplain ModuleRoot module root} bound to the specified
 	 * logical root name.
 	 *
-	 * @param rootName A logical root name, typically something owned by a
-	 *                 vendor of Avail {@linkplain ModuleDescriptor
-	 *                 modules}.
-	 * @return The {@linkplain File root directory} bound to the specified
-	 *         logical root name, or {@code null} if no such binding exists.
+	 * @param rootName
+	 *        A logical root name, typically something owned by a vendor of
+	 *        Avail {@linkplain ModuleDescriptor modules}.
+	 * @return The module root, or {@code null} if no such binding exists.
 	 */
-	@ThreadSafe
-	public File rootDirectoryFor (final String rootName)
+	public @Nullable ModuleRoot moduleRootFor (final String rootName)
 	{
 		return rootMap.get(rootName);
 	}
@@ -165,7 +207,6 @@ public final class ModuleRoots
 	 *         If the Avail {@linkplain ModuleDescriptor module} path is
 	 *         malformed.
 	 */
-	@ThreadSafe
 	public ModuleRoots (final String modulePath)
 	{
 		this.modulePath = modulePath;

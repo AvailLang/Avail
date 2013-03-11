@@ -737,7 +737,6 @@ public class LRUCache<K, V>
 					try
 					{
 						result = transformer.value(key);
-						assert result != null;
 					}
 
 					// Record the exception locally. We are not holding the lock
@@ -797,8 +796,6 @@ public class LRUCache<K, V>
 					}
 				}
 			}
-
-			assert result != null;
 
 			checkInvariants();
 
