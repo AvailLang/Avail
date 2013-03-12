@@ -119,9 +119,9 @@ public class AbstractAvailTest
 	@After
 	public void clearAllWellKnownObjects ()
 	{
-		AvailObject.clearAllWellKnownObjects();
 		runtime.destroy();
 		runtime = null;
+		AvailObject.clearAllWellKnownObjects();
 	}
 
 	/**

@@ -1537,7 +1537,6 @@ public final class AvailRuntime
 	 */
 	public void destroy ()
 	{
-		clearWellKnownObjects();
 		moduleNameResolver = null;
 		modules = null;
 		methods = null;
@@ -1570,5 +1569,6 @@ public final class AvailRuntime
 		{
 			// Ignore.
 		}
+		clearWellKnownObjects();
 	}
 }

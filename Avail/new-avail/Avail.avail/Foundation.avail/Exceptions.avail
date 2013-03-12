@@ -83,7 +83,12 @@ Names
 	"instantiation exception",
 	"invocation exception",
 	"security exception",
-	"variable-use exception"
+	"variable-use exception",
+
+	/* Java exceptions. */
+	"Java exception",
+	"a Java exception caused by_",
+	"_'s⁇throwable"
 
 	/* Quite a few names are introduced, but all dynamically by the
 	 * "Public exception_(_)extends_" defining method.
@@ -1045,6 +1050,33 @@ Public method "Raise an exception for_" is
 |
 	early failure function(errorCode)
 ] : ⊥;
+
+"throwable" is a new field atom;
+
+/**
+ * A Java exception wraps a pojo representing a Java-style {@code Throwable}.
+ *
+ * @type "Java exception"
+ */
+Public class "Java exception" extends exception
+	with field
+		public throwable : pojo exception;
+
+/**
+ * Construct and answer a {@type "Java exception"} that was conceptually caused
+ * by the {@type "pojo exception" argument}.
+ *
+ * @method "a Java exception caused by_"
+ * @param "e" "pojo exception"
+ *        A Java-style {@code Throwable}.
+ * @returns "Java exception"
+ */
+Method "a Java exception caused by_" is
+[
+	e : pojo exception
+|
+	a Java exception with throwable ::= e
+] : Java exception;
 
 /**
  * Obtain a printed representation of the specified {@type "exception"}'s stack
