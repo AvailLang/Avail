@@ -1515,7 +1515,7 @@ Primitive "static method_._<«_‡,»>,⁇on failure do_" is
 [
 	aPojoType : pojo meta,
 	methodName : string,
-	parameterTypes : tuple of type,
+	parameterTypes : tuple of any meta,
 	failFunction : pojo failure function
 |
 	Primitive 508 (failureCode : natural number);

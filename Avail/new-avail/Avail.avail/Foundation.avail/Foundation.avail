@@ -751,6 +751,7 @@ Extends
 		"`«[_`|_]:_`»",
 		"`«[_]:_`»"
 	),
+	"Pojos" = (),
 	"Security" =
 	(
 		"Completely seal method_"

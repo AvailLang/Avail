@@ -231,7 +231,7 @@ public class P_508_CreatePojoStaticMethodFunction extends Primitive
 					PojoTypeDescriptor.mostGeneralType()),
 				TupleTypeDescriptor.stringTupleType(),
 				TupleTypeDescriptor.zeroOrMoreOf(
-					InstanceMetaDescriptor.topMeta()),
+					InstanceMetaDescriptor.anyMeta()),
 				FunctionTypeDescriptor.create(
 					TupleDescriptor.from(
 						PojoTypeDescriptor.forClass(Throwable.class)),

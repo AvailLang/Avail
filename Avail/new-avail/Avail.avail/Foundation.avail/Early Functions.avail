@@ -54,6 +54,9 @@ Semantic restriction "_'s⁇return type" is
 	functionMeta's instance's return type's type
 ];
 
+Grammatical restriction "_'s⁇return type" is
+	<{"function accepting_and returning_"}>;
+
 /* These are error messages. */
 sizesIncompatibleMessage ::=
 	"size of argument tuple to be compatible with size of applied\

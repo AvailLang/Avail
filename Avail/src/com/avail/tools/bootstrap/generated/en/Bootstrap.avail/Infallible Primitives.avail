@@ -76,6 +76,7 @@ Uses
 		"_'s⁇declared exceptions",
 		"_'s⁇declared type",
 		"_'s⁇default type",
+		"_'s⁇element type",
 		"_'s⁇element|member type",
 		"_'s⁇expressions",
 		"_'s⁇function",
@@ -3077,6 +3078,36 @@ Primitive "`|_`|" is
 |
 	Primitive 511;
 ] : whole number;
+
+/**
+ * Answer the cardinality restriction of the specified pojo array type.
+ *
+ * Parameters:
+ *    pojoArrayType - A pojo array type.
+ * Returns:
+ *    The cardinality restriction of `pojoArrayType`.
+ */
+Primitive "`|`|_`|`|" is
+[
+	pojoArrayType : pojo array meta
+|
+	Primitive 514;
+] : whole number meta;
+
+/**
+ * Answer the element type of the specified pojo array type.
+ *
+ * Parameters:
+ *    pojoArrayType - A pojo array type.
+ * Returns:
+ *    The element type of `pojoArrayType`.
+ */
+Primitive "_'s⁇element type" is
+[
+	pojoArrayType : pojo array meta
+|
+	Primitive 515;
+] : any meta;
 
 /**
  * Answer the current fiber.
