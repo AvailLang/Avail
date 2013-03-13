@@ -130,6 +130,12 @@ extends Descriptor
 		return object.slot(RAW_POJO);
 	}
 
+	@Override @AvailMethod
+	Object o_JavaObject (final AvailObject object)
+	{
+		return object.slot(RAW_POJO).javaObject();
+	}
+
 	@Override
 	public boolean o_ShowValueInNameForDebugger (final AvailObject object)
 	{

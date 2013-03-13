@@ -68,7 +68,8 @@ extends Primitive
 			@Override
 			public void value ()
 			{
-				tuple.value = TupleDescriptor.from(array);
+				tuple.value = TupleDescriptor.from(
+					(AvailObject[]) array.javaObject());
 			}
 		});
 		return interpreter.primitiveSuccess(tuple.value);

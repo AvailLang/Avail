@@ -104,58 +104,27 @@ Semantic restriction "_'s⁇instances" is
 	meta : type's type
 |
 	Assert: |meta| ≠ ∞;
-	if |meta| = 0 then
-	[
-		Assert: meta = ⊥ ("|meta| ≠ 0 → meta = ⊥");
-		∅'s type
-	]
+	if |meta| = 0 then [∅'s type]
 	else
 	[
 		/* It looks like |meta| > 1 is possible, but actually it isn't
 		 * because we are dealing with metatypes here.
 		 */
 		Assert: |meta| = 1;
-		enum ::= cast meta's instance
-			into [ t : any's type | t ]
-			else [ any ];
-		bound ::= cast |enum| + 1 into [ t : [0..∞] | t ];
+		enum ::= cast meta's instance into [t : any's type | t] else [any];
+		bound ::= cast |enum| + 1 into [t : [1..∞] | t];
 		{enum|[0..bound)}
 	]
 ];
 
-/**
- * Ensure that a singleton literal enumeration is able to produce the unique
- * type of its member.
- *
- * Parameters:
- *    enum - A metatype.
- * Returns:
- *    The most specific possible set type.
+/*
+ * Improve the bounds on metatypes.
  */
 Semantic restriction "_'s⁇instance" is
 [
-	meta : type
+	aMeta : type's type
 |
-	if |meta| ≠ ∞ then
-	[
-		union : type := ⊥;
-		instances ::=
-			cast meta's instances into [ t : {any's type|whole number} | t ];
-		From 1 to |instances| do
-		[
-			index : natural number
-		|
-			instance ::=
-				cast instances→tuple[index] into [ t : any's type | t ];
-			union := union ∪ instance;
-			true
-		];
-		union
-	]
-	else
-	[
-		any
-	]
+	cast aMeta's instance into [t : type | t]
 ];
 
 /**
