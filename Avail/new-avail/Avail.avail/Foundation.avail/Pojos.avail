@@ -128,3 +128,10 @@ Semantic restriction "_[_]" is
 |
 	arrayType's element type
 ];
+
+Semantic restriction "_→tuple" is
+[
+	arrayType : pojo array's type
+|
+	<<>, arrayType's element type… | ||arrayType||>
+];

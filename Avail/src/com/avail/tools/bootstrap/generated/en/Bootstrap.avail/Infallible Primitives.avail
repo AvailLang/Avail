@@ -3110,6 +3110,22 @@ Primitive "_'s⁇element type" is
 ] : any meta;
 
 /**
+ * Construct and answer a tuple whose elements are sourced from the specified
+ * pojo array.
+ *
+ * Parameters:
+ *    aPojoArray - A pojo array.
+ * Returns:
+ *    The requested tuple.
+ */
+Primitive "_→tuple" is
+[
+	aPojoArray : pojo array
+|
+	Primitive 516;
+] : tuple;
+
+/**
  * Answer the current fiber.
  *
  * Returns:
