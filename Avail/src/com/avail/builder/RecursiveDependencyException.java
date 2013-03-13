@@ -93,24 +93,51 @@ extends Exception
 	}
 
 	/**
+	 * Build the error message wanted by the superclass.
+	 *
+	 * @param recursiveDependent
+	 *        The {@linkplain ResolvedModuleName resolved module name} of the
+	 *        {@linkplain ModuleDescriptor module} that recursively depends upon
+	 *        itself.
+	 * @param moduleNamesCycle
+	 *        The sequence of modules in which a circular dependency was
+	 *        detected.
+	 * @return The error message.
+	 */
+	private static String buildMessage (
+		final ResolvedModuleName recursiveDependent,
+		final LinkedHashSet<ResolvedModuleName> moduleNamesCycle)
+	{
+		final List<ResolvedModuleName> cycle =
+			new ArrayList<ResolvedModuleName>(moduleNamesCycle);
+		cycle.add(recursiveDependent);
+		return String.format(
+			"module \""
+			+ recursiveDependent
+			+ "\" recursively depends upon itself: %s",
+			cycle);
+	}
+
+	/**
 	 * Construct a new {@link RecursiveDependencyException}.
 	 *
+	 * @param recursiveDependent
+	 *        The {@linkplain ResolvedModuleName resolved module name} of the
+	 *        {@linkplain ModuleDescriptor module} that recursively depends upon
+	 *        itself.
 	 * @param moduleNamesCycle
 	 *        The sequence of modules in which a circular dependency was
 	 *        detected.
 	 */
 	RecursiveDependencyException (
+		final ResolvedModuleName recursiveDependent,
 		final LinkedHashSet<ResolvedModuleName> moduleNamesCycle)
 	{
-		super(
-			String.format(
-				"module \""
-				+ moduleNamesCycle.iterator().next().qualifiedName()
-				+ "\" recursively depends upon itself: %s",
-				moduleNamesCycle));
+		super(buildMessage(recursiveDependent, moduleNamesCycle));
 		for (final ResolvedModuleName mod : moduleNamesCycle)
 		{
 			prependModule(mod);
 		}
+		prependModule(recursiveDependent);
 	}
 }

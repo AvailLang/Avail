@@ -355,11 +355,16 @@ public final class AvailBuilder
 					qualifiedName.localName());
 			}
 
+			// TODO: [TLS/MvG] The recursion detection mechanism does not
+			// reliably work because of the early exit below. I don't have time
+			// to fix this the right way.
+
 			// Detect recursion into this module.
 			if (recursionSet.contains(resolvedName))
 			{
-				recursionSet.add(resolvedName);
-				throw new RecursiveDependencyException(recursionSet);
+				throw new RecursiveDependencyException(
+					resolvedName,
+					recursionSet);
 			}
 
 			// Prevent recursion into this module.

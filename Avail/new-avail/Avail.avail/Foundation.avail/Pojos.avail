@@ -65,7 +65,7 @@ Semantic restriction "`|_`|" is
 [
 	arrayType : pojo array's type
 |
-	||pojo array||
+	||arrayType||
 ];
 
 Semantic restriction "constructor_<«_‡,»>(fail with_)" is
