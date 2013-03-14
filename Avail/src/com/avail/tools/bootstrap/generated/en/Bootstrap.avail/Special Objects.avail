@@ -108,6 +108,7 @@ Names
 	/*  37 */ "natural number",
 	/*  97 */ "non-empty map",
 	/*  99 */ "non-empty set",
+	/* 133 */ "nonempty string",
 	/* 118 */ "nonnegative extended integer",
 	/*  31 */ "nontype",
 	/*  81 */ "null",
@@ -305,6 +306,7 @@ _tuple_of_set_of_atom                   ::= special object 128;
 _byte                                   ::= special object 129;
 _tuple_of_tuple_of_any_meta             ::= special object 130;
 _readable_extended_integer_variable     ::= special object 131;
+_nonempty_string                        ::= special object 133;
 
 /**
  * The practical abstract root of the Avail type lattice. `any` is the second
@@ -1075,5 +1077,10 @@ Primitive "tuple of tuple of any meta" is
 Primitive "readable extended integer variable" is
 [
 	_readable_extended_integer_variable
+];
+
+Primitive "nonempty string" is
+[
+	_nonempty_string
 ];
 

@@ -847,6 +847,9 @@ public final class AvailRuntime
 			VariableTypeDescriptor.fromReadAndWriteTypes(
 				IntegerRangeTypeDescriptor.extendedIntegers(),
 				BottomTypeDescriptor.bottom());
+		// 134
+		specialObjects[133] =
+			TupleTypeDescriptor.oneOrMoreOf(CHARACTER.o());
 
 		// Declare all special atoms
 		specialAtoms[0] = AtomDescriptor.trueObject();

@@ -2470,7 +2470,7 @@ Primitive "_'s⁇lexeme" is
 	aToken : token
 |
 	Primitive 356;
-] : string;
+] : nonempty string;
 
 /**
  * Answer the zero-based starting position of the specified token within the
