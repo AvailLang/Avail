@@ -1108,7 +1108,10 @@ extends AbstractList<byte[]>
 		lock.writeLock().lock();
 		try
 		{
-			channel.close();
+			if (channel != null)
+			{
+				channel.close();
+			}
 		}
 		catch (final IOException e)
 		{
@@ -1120,7 +1123,10 @@ extends AbstractList<byte[]>
 		}
 		try
 		{
-			file.close();
+			if (file != null)
+			{
+				file.close();
+			}
 		}
 		catch (final IOException e)
 		{
