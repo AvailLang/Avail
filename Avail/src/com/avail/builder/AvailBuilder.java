@@ -517,12 +517,13 @@ public final class AvailBuilder
 		 *        </ol>
 		 */
 		@InnerAccess void postLoad (
-			final ResolvedModuleName moduleName,
-			final long lastPosition,
-			final Continuation4<ModuleName, Long, Long, Long> localTracker,
-			final Continuation3<ModuleName, Long, Long> globalTracker)
-
+				final ResolvedModuleName moduleName,
+				final long lastPosition,
+				final Continuation4<ModuleName, Long, Long, Long> localTracker,
+				final Continuation3<ModuleName, Long, Long> globalTracker)
 		{
+			// Commit the repository.
+			moduleName.repository().commit();
 			// Decrement the count of unbuilt predecessors of each successor
 			// module, scheduling it to load if this count reaches zero.
 			for (final ResolvedModuleName successorName

@@ -436,12 +436,10 @@ public class IndexedRepositoryManager
 	 * Write all pending data and metadata to the {@linkplain IndexedRepository
 	 * indexed repository}.
 	 *
-	 * @throws IOException
-	 *         If an {@linkplain IOException I/O exception} occurs.
 	 * @throws IndexedFileException
-	 *         If any other {@linkplain Exception exception} occurs.
+	 *         If anything goes wrong.
 	 */
-	public void commit () throws IOException, IndexedFileException
+	public void commit () throws IndexedFileException
 	{
 		lock.lock();
 		try
@@ -477,6 +475,14 @@ public class IndexedRepositoryManager
 			repository.metaData(byteStream.toByteArray());
 			repository.commit();
 		}
+		catch (final IndexedFileException e)
+		{
+			throw e;
+		}
+		catch (final Exception e)
+		{
+			throw new IndexedFileException(e);
+		}
 		finally
 		{
 			lock.unlock();
@@ -492,30 +498,24 @@ public class IndexedRepositoryManager
 		try
 		{
 			repository.close();
+			moduleMap.clear();
 		}
 		finally
 		{
+			isOpen = false;
 			lock.unlock();
 		}
 	}
 
 	/**
-	 * Construct a new {@link IndexedRepositoryManager}.
+	 * Open the {@linkplain IndexedRepository repository} and initialize the
+	 * {@linkplain IndexedRepositoryManager manager}'s internal data structures.
 	 *
-	 * @param rootName
-	 *        The name of the Avail root represented by the {@linkplain
-	 *        IndexedRepository indexed repository}.
-	 * @param fileName
-	 *        The {@linkplain File path} to the indexed repository.
 	 * @throws IndexedFileException
-	 *         If an {@linkplain Exception exception} occurs.
+	 *         If anything goes wrong.
 	 */
-	public IndexedRepositoryManager (
-		final String rootName,
-		final File fileName)
+	private void openOrCreate () throws IndexedFileException
 	{
-		this.rootName = rootName;
-		this.fileName = fileName;
 		try
 		{
 			final Class<? extends IndexedFile> subclass =
@@ -558,11 +558,55 @@ public class IndexedRepositoryManager
 					}
 				}
 			}
+			isOpen = true;
 		}
 		catch (final Exception e)
 		{
 			throw new IndexedFileException(e);
 		}
+	}
+
+	/** Is the {@linkplain IndexedRepository repository} open? */
+	private boolean isOpen;
+
+	/**
+	 * Reopen the {@linkplain IndexedRepository repository file} and
+	 * reinitialize the {@linkplain IndexedRepositoryManager manager}.
+	 */
+	public void reopenIfNecessary ()
+	{
+		lock.lock();
+		try
+		{
+			if (!isOpen)
+			{
+				openOrCreate();
+			}
+		}
+		finally
+		{
+			lock.unlock();
+		}
+	}
+
+	/**
+	 * Construct a new {@link IndexedRepositoryManager}.
+	 *
+	 * @param rootName
+	 *        The name of the Avail root represented by the {@linkplain
+	 *        IndexedRepository indexed repository}.
+	 * @param fileName
+	 *        The {@linkplain File path} to the indexed repository.
+	 * @throws IndexedFileException
+	 *         If an {@linkplain Exception exception} occurs.
+	 */
+	public IndexedRepositoryManager (
+		final String rootName,
+		final File fileName)
+	{
+		this.rootName = rootName;
+		this.fileName = fileName;
+		openOrCreate();
 	}
 
 	/**

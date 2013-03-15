@@ -387,6 +387,11 @@ extends JFrame
 			{
 				AvailObject.createAllWellKnownObjects();
 				runtime = new AvailRuntime(resolver);
+				// Reopen the repositories if necessary.
+				for (final ModuleRoot root : resolver.moduleRoots().roots())
+				{
+					root.repository().reopenIfNecessary();
+				}
 				final AvailBuilder builder = new AvailBuilder(runtime);
 				builder.build(
 					new ModuleName(targetModuleName),
@@ -455,10 +460,10 @@ extends JFrame
 							});
 						}
 					});
-				// Commit all repositories.
+				// Close all the repositories.
 				for (final ModuleRoot root : resolver.moduleRoots().roots())
 				{
-					root.repository().commit();
+					root.repository().close();
 				}
 				return null;
 			}
