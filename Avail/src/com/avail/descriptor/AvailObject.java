@@ -79,6 +79,7 @@ implements
 		A_BundleTree,
 		A_Continuation,
 		A_Chunk,
+		A_Definition,
 		A_Fiber,
 		A_Function,
 		A_Map,
@@ -91,7 +92,8 @@ implements
 		A_Token,
 		A_Tuple,
 			A_String,
-		A_Type
+		A_Type,
+		A_Variable
 {
 	/**
 	 * Report a virtual machine problem.
@@ -532,7 +534,7 @@ implements
 	 */
 	@Override
 	public void methodAddDefinition (
-			final A_BasicObject definition)
+			final A_Definition definition)
 		throws SignatureException
 	{
 		descriptor.o_MethodAddDefinition(this, definition);
@@ -898,10 +900,9 @@ implements
 	 * Dispatch to the descriptor.
 	 */
 	@Override
-	public void buildFilteredBundleTreeFrom (
-		final A_Map bundleMap)
+	public A_BundleTree buildFilteredBundleTree ()
 	{
-		descriptor.o_BuildFilteredBundleTreeFrom(this, bundleMap);
+		return descriptor.o_BuildFilteredBundleTree(this);
 	}
 
 	/**
@@ -1247,7 +1248,7 @@ implements
 	 */
 	@Override
 	public boolean containsBlock (
-		final AvailObject aFunction)
+		final A_Function aFunction)
 	{
 		return descriptor.o_ContainsBlock(this, aFunction);
 	}
@@ -1265,7 +1266,7 @@ implements
 	 * Dispatch to the descriptor.
 	 */
 	@Override
-	public AvailObject continuation ()
+	public A_Continuation continuation ()
 	{
 		return descriptor.o_Continuation(this);
 	}
@@ -1275,7 +1276,7 @@ implements
 	 */
 	@Override
 	public void continuation (
-		final A_BasicObject value)
+		final A_Continuation value)
 	{
 		descriptor.o_Continuation(this, value);
 	}
@@ -2056,19 +2057,10 @@ implements
 	 * Dispatch to the descriptor.
 	 */
 	@Override
-	public List<AvailObject> filterByTypes (
+	public List<A_Definition> filterByTypes (
 		final List<A_Type> argTypes)
 	{
 		return descriptor.o_FilterByTypes(this, argTypes);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	@Override
-	public A_BundleTree filteredBundleTree ()
-	{
-		return descriptor.o_FilteredBundleTree(this);
 	}
 
 	/**
@@ -2179,7 +2171,7 @@ implements
 	 * Dispatch to the descriptor.
 	 */
 	@Override
-	public List<AvailObject> definitionsAtOrBelow (
+	public List<A_Definition> definitionsAtOrBelow (
 		final List<? extends A_Type> argTypes)
 	{
 		return descriptor.o_DefinitionsAtOrBelow(this, argTypes);
@@ -2198,21 +2190,8 @@ implements
 	 * Dispatch to the descriptor.
 	 */
 	@Override
-	public AvailObject includeBundleNamed (
-		final A_Atom messageName,
-		final A_BasicObject method)
-	{
-		return descriptor.o_IncludeBundleNamed(
-			this,
-			messageName, method);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	@Override
 	public boolean includesDefinition (
-		final A_BasicObject imp)
+		final A_Definition imp)
 	{
 		return descriptor.o_IncludesDefinition(this, imp);
 	}
@@ -2317,7 +2296,7 @@ implements
 	 */
 	@Override
 	public boolean isBetterRepresentationThanTupleType (
-		final A_BasicObject aTupleType)
+		final A_Type aTupleType)
 	{
 		return descriptor.o_IsBetterRepresentationThanTupleType(this, aTupleType);
 	}
@@ -2517,27 +2496,6 @@ implements
 	public boolean isPositive ()
 	{
 		return descriptor.o_IsPositive(this);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	@Override
-	@Deprecated
-	public boolean isSaved ()
-	{
-		return descriptor.o_IsSaved(this);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	@Override
-	@Deprecated
-	public void isSaved (
-		final boolean aBoolean)
-	{
-		descriptor.o_IsSaved(this, aBoolean);
 	}
 
 	/**
@@ -3225,7 +3183,7 @@ implements
 	 */
 	@Override
 	public boolean nameVisible (
-		final AvailObject trueName)
+		final A_Atom trueName)
 	{
 		return descriptor.o_NameVisible(this, trueName);
 	}
@@ -3480,16 +3438,6 @@ implements
 	 * Dispatch to the descriptor.
 	 */
 	@Override
-	@Deprecated
-	public void postFault ()
-	{
-		descriptor.o_PostFault(this);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	@Override
 	public int primitiveNumber ()
 	{
 		return descriptor.o_PrimitiveNumber(this);
@@ -3626,16 +3574,6 @@ implements
 	 * Dispatch to the descriptor.
 	 */
 	@Override
-	public byte rawNybbleAt (
-		final int index)
-	{
-		return descriptor.o_RawNybbleAt(this, index);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	@Override
 	public void rawNybbleAtPut (
 		final int index,
 		final byte aNybble)
@@ -3722,15 +3660,6 @@ implements
 	 * Dispatch to the descriptor.
 	 */
 	@Override
-	public void readBarrierFault ()
-	{
-		descriptor.o_ReadBarrierFault(this);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	@Override
 	public void removeDependentChunkIndex (
 		final int aChunkIndex)
 	{
@@ -3753,7 +3682,7 @@ implements
 	 */
 	@Override
 	public void removeDefinition (
-		final A_BasicObject definition)
+		final A_Definition definition)
 	{
 		descriptor.o_RemoveDefinition(this, definition);
 	}
@@ -4939,9 +4868,9 @@ implements
 	 * @return
 	 */
 	@Override
-	public A_Method method ()
+	public A_Bundle bundle ()
 	{
-		return descriptor.o_Method(this);
+		return descriptor.o_Bundle(this);
 	}
 
 	/**
@@ -5026,7 +4955,7 @@ implements
 	 */
 	@Override
 	public A_RawFunction generateInModule (
-		final A_BasicObject module)
+		final A_Module module)
 	{
 		return descriptor.o_GenerateInModule(this, module);
 	}
@@ -6607,13 +6536,13 @@ implements
 	}
 
 	/**
-	 * @param message
+	 * @param bundle
 	 */
 	@Override
-	public void flushForNewOrChangedBundleNamed (
-		final A_Atom message)
+	public void flushForNewOrChangedBundle (
+		final A_Bundle bundle)
 	{
-		descriptor.o_FlushForNewOrChangedBundleNamed(this, message);
+		descriptor.o_FlushForNewOrChangedBundle(this, bundle);
 	}
 
 	/**
@@ -6661,25 +6590,7 @@ implements
 	 * @return
 	 */
 	@Override
-	public A_Set namesSet ()
-	{
-		return descriptor.o_NamesSet(this);
-	}
-
-	/**
-	 * @return
-	 */
-	@Override
-	public A_Atom originalName ()
-	{
-		return descriptor.o_OriginalName(this);
-	}
-
-	/**
-	 * @return
-	 */
-	@Override
-	public AvailObject bundleMethod ()
+	public A_Method bundleMethod ()
 	{
 		return descriptor.o_BundleMethod(this);
 	}
@@ -6993,5 +6904,35 @@ implements
 	public void fiberName (final A_String value)
 	{
 		descriptor.o_FiberName(this, value);
+	}
+
+	@Override
+	public A_Set bundles ()
+	{
+		return descriptor.o_Bundles(this);
+	}
+
+	@Override
+	public void methodAddBundle (final A_Bundle bundle)
+	{
+		descriptor.o_MethodAddBundle(this, bundle);
+	}
+
+	@Override
+	public A_Module definitionModule ()
+	{
+		return descriptor.o_DefinitionModule(this);
+	}
+
+	@Override
+	public A_Bundle bundleOrCreate ()
+	{
+		return descriptor.o_BundleOrCreate(this);
+	}
+
+	@Override
+	public A_Bundle bundleOrNil ()
+	{
+		return descriptor.o_BundleOrNil(this);
 	}
 }

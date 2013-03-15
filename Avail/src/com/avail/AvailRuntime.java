@@ -492,11 +492,6 @@ public final class AvailRuntime
 	{
 		this.moduleNameResolver = moduleNameResolver;
 		this.classLoader = classLoader;
-		addMethod(MethodDescriptor.vmCrashMethod());
-		addMethod(MethodDescriptor.vmFunctionApplyMethod());
-		addMethod(MethodDescriptor.vmMethodDefinerMethod());
-		addMethod(MethodDescriptor.vmMacroDefinerMethod());
-		addMethod(MethodDescriptor.vmPublishAtomsMethod());
 	}
 
 	/**
@@ -860,10 +855,14 @@ public final class AvailRuntime
 			IntegerRangeTypeDescriptor.extendedIntegers(),
 			BottomTypeDescriptor.bottom());
 		specials[132] = FiberTypeDescriptor.meta();
+		//133 is used by Todd as of 2013-03-13 21:10.
 
 		System.arraycopy(specials, 0, specialObjects, 0, specials.length);
 
-		// Declare all special atoms
+		// Declare all special atoms.  Do not change the order of this list if
+		// you care about serializer compatibility, otherwise previously
+		// serialized references to special atoms will not deserialize
+		// correctly.
 		final A_Atom[] atoms = new A_Atom[specialAtoms.length];
 		atoms[0] = AtomDescriptor.trueObject();
 		atoms[1] = AtomDescriptor.falseObject();
@@ -882,6 +881,7 @@ public final class AvailRuntime
 		atoms[14] = AtomDescriptor.fileModeWriteKey();
 		atoms[15] = CompiledCodeDescriptor.methodNameKeyAtom();
 		atoms[16] = CompiledCodeDescriptor.lineNumberKeyAtom();
+		atoms[17] = AtomDescriptor.messageBundleKey();
 
 		System.arraycopy(atoms, 0, specialAtoms, 0, atoms.length);
 
@@ -926,32 +926,12 @@ public final class AvailRuntime
 	 * @param aModule A {@linkplain ModuleDescriptor module}.
 	 */
 	@ThreadSafe
-	public void addModule (final AvailObject aModule)
+	public void addModule (final A_Module aModule)
 	{
 		runtimeLock.writeLock().lock();
 		try
 		{
 			assert !includesModuleNamed(aModule.moduleName());
-			// Some of the module's message bundles may have been added to the
-			// runtime's allBundles map already.  Add any that have not, but
-			// only if they're publicly visible.
-			for (final MapDescriptor.Entry bundleEntry
-				: aModule.filteredBundleTree().allBundles().mapIterable())
-			{
-				final A_Atom message = bundleEntry.key();
-				final A_Bundle bundle = bundleEntry.value();
-				assert bundle.message().equals(message);
-				if (aModule.visibleNames().hasElement(message))
-				{
-					if (!allBundles.hasKey(message))
-					{
-						allBundles = allBundles.mapAtPuttingCanDestroy(
-							message, bundle, true);
-					}
-				}
-			}
-			allBundles.makeShared();
-			// Finally add the module to the map of loaded modules.
 			modules = modules.mapAtPuttingCanDestroy(
 				aModule.moduleName(), aModule, true);
 		}
@@ -1002,139 +982,8 @@ public final class AvailRuntime
 		runtimeLock.readLock().lock();
 		try
 		{
-			assert includesModuleNamed(moduleName);
+			assert modules.hasKey(moduleName);
 			return modules.mapAt(moduleName);
-		}
-		finally
-		{
-			runtimeLock.readLock().unlock();
-		}
-	}
-
-	/**
-	 * The {@linkplain MethodDescriptor methods} currently known to the
-	 * {@linkplain AvailRuntime runtime}: a {@linkplain MapDescriptor map} from
-	 * {@linkplain AtomDescriptor method name} to {@linkplain
-	 * MethodDescriptor method}.
-	 */
-	private A_Map methods = MapDescriptor.empty();
-
-	/**
-	 * Is there a {@linkplain MethodDescriptor method} bound to the specified
-	 * {@linkplain AtomDescriptor selector}?
-	 *
-	 * @param selector A {@linkplain AtomDescriptor selector}.
-	 * @return {@code true} if there is a {@linkplain MethodDescriptor method}
-	 *         bound to the specified {@linkplain AtomDescriptor selector},
-	 *         {@code false} otherwise.
-	 */
-	@ThreadSafe
-	public boolean hasMethodAt (final A_Atom selector)
-	{
-		assert selector.isAtom();
-
-		runtimeLock.readLock().lock();
-		try
-		{
-			return methods.hasKey(selector);
-		}
-		finally
-		{
-			runtimeLock.readLock().unlock();
-		}
-	}
-
-	/**
-	 * Add a {@linkplain MethodDescriptor method} to the runtime.
-	 *
-	 * @param method A {@linkplain MethodDescriptor method}.
-	 */
-	@ThreadSafe
-	public void addMethod (
-		final A_Method method)
-	{
-		runtimeLock.writeLock().lock();
-		try
-		{
-			for (final AvailObject methodName : method.namesSet())
-			{
-				if (!methods.hasKey(methodName))
-				{
-					methods = methods.mapAtPuttingCanDestroy(
-						methodName,
-						method,
-						true);
-				}
-			}
-			methods.makeShared();
-		}
-		finally
-		{
-			runtimeLock.writeLock().unlock();
-		}
-	}
-
-	/**
-	 * Answer the {@linkplain MethodDescriptor method} bound to the specified
-	 * {@linkplain AtomDescriptor method name}. If necessary, then create a new
-	 * method and bind it.
-	 *
-	 * @param methodName An {@linkplain AtomDescriptor atom} naming the method.
-	 * @return The corresponding {@linkplain MethodDescriptor method}.
-	 */
-	@ThreadSafe
-	public A_Method methodFor (
-		final A_Atom methodName)
-	{
-		runtimeLock.writeLock().lock();
-		try
-		{
-			final AvailObject method;
-			if (methods.hasKey(methodName))
-			{
-				method = methods.mapAt(methodName);
-			}
-			else
-			{
-				method = MethodDescriptor.newMethodWithName(methodName);
-				methods = methods.mapAtPuttingCanDestroy(
-					methodName,
-					method,
-					true);
-			}
-			return method;
-		}
-		finally
-		{
-			runtimeLock.writeLock().unlock();
-		}
-	}
-
-	/**
-	 * Answer the {@linkplain MethodDescriptor method}
-	 * bound to the specified {@linkplain AtomDescriptor selector}.  If
-	 * there is no method with that selector, answer {@linkplain
-	 * NilDescriptor nil}.
-	 *
-	 * @param selector
-	 *            A {@linkplain AtomDescriptor selector}.
-	 * @return
-	 *            A {@linkplain MethodDescriptor method}
-	 *            or {@linkplain NilDescriptor nil}.
-	 */
-	@ThreadSafe
-	public A_Method methodAt (final A_Atom selector)
-	{
-		assert selector.isAtom();
-
-		runtimeLock.readLock().lock();
-		try
-		{
-			if (methods.hasKey(selector))
-			{
-				return methods.mapAt(selector);
-			}
-			return NilDescriptor.nil();
 		}
 		finally
 		{
@@ -1145,15 +994,14 @@ public final class AvailRuntime
 	/**
 	 * Unbind the specified {@linkplain DefinitionDescriptor definition} from
 	 * the runtime system.  If no definitions or grammatical restrictions remain
-	 * in its {@linkplain MethodDescriptor method}, then remove it from my
-	 * {@link #methods} map, and remove its {@linkplain MessageBundleDescriptor
-	 * message bundle} from my map of {@link #allBundles}.
+	 * in its {@linkplain MethodDescriptor method}, then remove all of its
+	 * bundles.
 	 *
 	 * @param definition A definition.
 	 */
 	@ThreadSafe
 	public void removeDefinition (
-		final A_BasicObject definition)
+		final A_Definition definition)
 	{
 		runtimeLock.writeLock().lock();
 		try
@@ -1162,20 +1010,14 @@ public final class AvailRuntime
 			method.removeDefinition(definition);
 			if (method.isMethodEmpty())
 			{
-				for (final AvailObject methodName : method.namesSet())
+				for (final A_Bundle bundle : method.bundles())
 				{
-					assert methods.hasKey(methodName);
-					assert methods.mapAt(methodName).equals(method);
-//TODO[MvG] Fix the way bundles work.
-//					assert allBundles.hasKey(methodName);
-//					assert allBundles.mapAt(methodName).method().equals(method);
-					methods = methods.mapWithoutKeyCanDestroy(
-						methodName, true);
-					allBundles = allBundles.mapWithoutKeyCanDestroy(
-						methodName, true);
+					// Remove the desiccated message bundle from its atom.
+					final A_Atom atom = bundle.message();
+					atom.setAtomProperty(
+						AtomDescriptor.messageBundleKey(),
+						NilDescriptor.nil());
 				}
-				methods.makeShared();
-				allBundles.makeShared();
 			}
 		}
 		finally
@@ -1204,7 +1046,8 @@ public final class AvailRuntime
 		runtimeLock.writeLock().lock();
 		try
 		{
-			final A_Method method = methodFor(methodName);
+			final A_Bundle bundle = methodName.bundleOrCreate();
+			final A_Method method = bundle.bundleMethod();
 			method.addTypeRestriction(typeRestrictionFunction);
 		}
 		finally
@@ -1232,12 +1075,9 @@ public final class AvailRuntime
 		runtimeLock.writeLock().lock();
 		try
 		{
-			final A_Method method = methodFor(methodName);
+			final A_Bundle bundle = methodName.bundleOrCreate();
+			final A_Method method = bundle.bundleMethod();
 			method.removeTypeRestriction(typeRestrictionFunction);
-			if (method.isMethodEmpty())
-			{
-				methods = methods.mapWithoutKeyCanDestroy(methodName, true);
-			}
 		}
 		finally
 		{
@@ -1262,7 +1102,8 @@ public final class AvailRuntime
 		runtimeLock.writeLock().lock();
 		try
 		{
-			final A_Method method = methodFor(methodName);
+			final A_Bundle bundle = methodName.bundleOrCreate();
+			final A_Method method = bundle.bundleMethod();
 			method.addSealedArgumentsType(sealSignature);
 		}
 		finally
@@ -1287,49 +1128,13 @@ public final class AvailRuntime
 		runtimeLock.writeLock().lock();
 		try
 		{
-			final A_Method method = methodFor(methodName);
+			final A_Bundle bundle = methodName.bundleOrCreate();
+			final A_Method method = bundle.bundleMethod();
 			method.removeSealedArgumentsType(sealSignature);
-			if (method.isMethodEmpty())
-			{
-				methods = methods.mapWithoutKeyCanDestroy(methodName, true);
-			}
 		}
 		finally
 		{
 			runtimeLock.writeLock().unlock();
-		}
-	}
-
-	/**
-	 * A {@linkplain MapDescriptor map} containing all {@linkplain
-	 * MessageBundleDescriptor message bundles}, keyed by the bundle's
-	 * {@linkplain AvailObject#message() name}.  This structure allows the same
-	 * {@linkplain MethodDescriptor method} (referenced by the bundle) to occur
-	 * under multiple names to support renamed imports.
-	 */
-	private A_Map allBundles = MapDescriptor.empty();
-
-	/**
-	 * Answer a {@linkplain MapDescriptor map} from {@linkplain AtomDescriptor
-	 * atoms} to {@linkplain MessageBundleDescriptor message bundles}.  Note
-	 * that bundles have exactly one name, although they wrap {@linkplain
-	 * MethodDescriptor methods} that may have multiple names due to renaming
-	 * imports.
-	 *
-	 * @return The specified shared (i.e., immutable, thread-safe) map.
-	 */
-	@ThreadSafe
-	public A_Map allBundles ()
-	{
-		runtimeLock.readLock().lock();
-		try
-		{
-			assert allBundles.descriptor().isShared();
-			return allBundles;
-		}
-		finally
-		{
-			runtimeLock.readLock().unlock();
 		}
 	}
 
@@ -1573,7 +1378,5 @@ public final class AvailRuntime
 		}
 		//moduleNameResolver = null;
 		modules = NilDescriptor.nil();
-		methods = NilDescriptor.nil();
-		allBundles = NilDescriptor.nil();
 	}
 }

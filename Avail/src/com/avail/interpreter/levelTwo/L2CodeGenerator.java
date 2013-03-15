@@ -229,8 +229,8 @@ public final class L2CodeGenerator
 	 * methods} upon which the {@linkplain L2ChunkDescriptor chunk}
 	 * is dependent.
 	 */
-	private final Set<AvailObject> contingentImpSets =
-		new HashSet<AvailObject>();
+	private final Set<A_Method> contingentMethods =
+		new HashSet<A_Method>();
 
 	/**
 	 * Merge the specified {@link Set} of {@linkplain
@@ -238,14 +238,14 @@ public final class L2CodeGenerator
 	 * upon which the {@linkplain L2ChunkDescriptor chunk} undergoing code
 	 * generation is already dependent.
 	 *
-	 * @param setOfImpSets
+	 * @param setOfMethods
 	 *            A Java {@link Set} of {@linkplain MethodDescriptor
 	 *            methods}.
 	 */
 	public void addContingentMethods (
-		final Set<AvailObject> setOfImpSets)
+		final Set<A_Method> setOfMethods)
 	{
-		contingentImpSets.addAll(setOfImpSets);
+		contingentMethods.addAll(setOfMethods);
 	}
 
 	/**
@@ -373,7 +373,7 @@ public final class L2CodeGenerator
 	 *        code} currently undergoing translation to Level Two.
 	 * @return The translated {@linkplain L2ChunkDescriptor chunk}.
 	 */
-	public AvailObject createChunkFor (final A_RawFunction code)
+	public A_Chunk createChunkFor (final A_RawFunction code)
 	{
 		assert expectedNamedOperandTypes.isEmpty();
 		if (logger.isLoggable(Level.FINE))
@@ -382,7 +382,7 @@ public final class L2CodeGenerator
 				"translating L1 compiled code: %s ...", code));
 		}
 
-		final AvailObject newChunk = L2ChunkDescriptor.allocate(
+		final A_Chunk newChunk = L2ChunkDescriptor.allocate(
 			code,
 			literals,
 			vectors,
@@ -390,7 +390,7 @@ public final class L2CodeGenerator
 			integerRegisterCount,
 			floatRegisterCount,
 			wordcodes,
-			contingentImpSets);
+			contingentMethods);
 		if (logger.isLoggable(Level.FINE))
 		{
 			logger.fine(String.format(

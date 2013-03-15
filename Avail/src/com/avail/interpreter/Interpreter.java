@@ -1345,7 +1345,7 @@ public final class Interpreter
 			if (code.primitiveNumber() == primNum)
 			{
 				assert code.numArgs() == 3;
-				final A_BasicObject failureVariable =
+				final A_Variable failureVariable =
 					continuation.argOrLocalOrStackAt(4);
 				// Scan a currently unmarked frame.
 				if (failureVariable.getValue().extractInt() == 0)
@@ -1398,7 +1398,7 @@ public final class Interpreter
 			if (code.primitiveNumber() == primNum)
 			{
 				assert code.numArgs() == 3;
-				final A_BasicObject failureVariable = continuation
+				final A_Variable failureVariable = continuation
 					.argOrLocalOrStackAt(4);
 				// Only allow certain state transitions.
 				if (marker.equals(E_HANDLER_SENTINEL.numericCode())

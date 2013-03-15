@@ -32,15 +32,14 @@
 package com.avail.interpreter.primitive;
 
 import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.exceptions.AvailErrorCode.E_NO_METHOD;
-import static com.avail.interpreter.Primitive.Flag.CanInline;
+import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 
 /**
  * <strong>Primitive 213:</strong> Answer a {@linkplain SetDescriptor set}
- * of all currently defined {@linkplain DefinitionDescriptor signatures} for
+ * of all currently defined {@linkplain DefinitionDescriptor definitions} for
  * the {@linkplain AtomDescriptor true message name} represented by
  * {@linkplain MessageBundleDescriptor bundle}. This includes abstract
  * signatures and forward signatures.
@@ -51,7 +50,7 @@ public class P_213_BundleSignatures extends Primitive
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
 	public final static Primitive instance = new P_213_BundleSignatures().init(
-		1, CanInline);
+		1, CannotFail, CanInline);
 
 	@Override
 	public Result attempt (
@@ -60,12 +59,7 @@ public class P_213_BundleSignatures extends Primitive
 	{
 		assert args.size() == 1;
 		final A_Bundle bundle = args.get(0);
-		final A_Method method =
-			interpreter.runtime().methodAt(bundle.message());
-		if (method.equalsNil())
-		{
-			return interpreter.primitiveFailure(E_NO_METHOD);
-		}
+		final A_Method method = bundle.bundleMethod();
 		final A_Set definitions = method.definitionsTuple().asSet();
 		definitions.makeImmutable();
 		return interpreter.primitiveSuccess(definitions);

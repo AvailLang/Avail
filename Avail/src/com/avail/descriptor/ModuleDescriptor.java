@@ -182,14 +182,6 @@ extends Descriptor
 		CONSTANT_BINDINGS,
 
 		/**
-		 * The {@linkplain MessageBundleTreeDescriptor bundle tree} used to
-		 * parse multimethod {@linkplain SendNodeDescriptor sends} while
-		 * compiling this module. When the module has been fully compiled, this
-		 * slot is overwritten with {@linkplain NilDescriptor#nil() nil}.
-		 */
-		FILTERED_BUNDLE_TREE,
-
-		/**
 		 * A {@linkplain MapDescriptor map} from {@linkplain AtomDescriptor true
 		 * names} to {@linkplain TupleDescriptor tuples} of {@linkplain
 		 * MethodDescriptor.ObjectSlots#TYPE_RESTRICTIONS_TUPLE type
@@ -221,7 +213,6 @@ extends Descriptor
 			|| e == GRAMMATICAL_RESTRICTIONS
 			|| e == VARIABLE_BINDINGS
 			|| e == CONSTANT_BINDINGS
-			|| e == FILTERED_BUNDLE_TREE
 			|| e == TYPE_RESTRICTION_FUNCTIONS
 			|| e == SEALS
 			|| e == FLAGS_AND_COUNTER
@@ -359,15 +350,6 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	A_BundleTree o_FilteredBundleTree (final AvailObject object)
-	{
-		synchronized (object)
-		{
-			return object.slot(FILTERED_BUNDLE_TREE);
-		}
-	}
-
-	@Override @AvailMethod
 	void o_AddConstantBinding (
 		final AvailObject object,
 		final A_String name,
@@ -386,13 +368,14 @@ extends Descriptor
 		}
 	}
 
-
 	@Override @AvailMethod
 	void o_AddGrammaticalRestrictions (
 		final AvailObject object,
 		final A_Atom methodName,
 		final A_Tuple exclusions)
 	{
+		// It's up to the client to ensure any relevant message bundle trees
+		// are correctly flushed.
 		synchronized (object)
 		{
 			A_Map grammaticalRestrictions =
@@ -426,8 +409,6 @@ extends Descriptor
 			object.setSlot(
 				GRAMMATICAL_RESTRICTIONS,
 				grammaticalRestrictions.makeShared());
-			final A_BundleTree bundleTree = object.slot(FILTERED_BUNDLE_TREE);
-			bundleTree.flushForNewOrChangedBundleNamed(methodName);
 		}
 	}
 
@@ -623,7 +604,6 @@ extends Descriptor
 			object.setSlot(GRAMMATICAL_RESTRICTIONS, NilDescriptor.nil());
 			object.setSlot(VARIABLE_BINDINGS, NilDescriptor.nil());
 			object.setSlot(CONSTANT_BINDINGS, NilDescriptor.nil());
-			object.setSlot(FILTERED_BUNDLE_TREE, NilDescriptor.nil());
 			object.setSlot(TYPE_RESTRICTION_FUNCTIONS, NilDescriptor.nil());
 		}
 	}
@@ -659,7 +639,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_NameVisible (final AvailObject object, final AvailObject trueName)
+	boolean o_NameVisible (final AvailObject object, final A_Atom trueName)
 	{
 		// Check if the given trueName is visible in this module.
 		return object.visibleNames().hasElement(trueName);
@@ -673,7 +653,7 @@ extends Descriptor
 		synchronized (object)
 		{
 			final AvailRuntime runtime = AvailRuntime.current();
-			for (final A_BasicObject definition : object.methodDefinitions())
+			for (final A_Definition definition : object.methodDefinitions())
 			{
 				aLoader.removeDefinition(definition);
 			}
@@ -788,26 +768,24 @@ extends Descriptor
 	 * in the current module.
 	 *
 	 * @param object The module.
-	 * @param bundleMap
-	 *        A {@linkplain MapDescriptor map} from bundle name ({@linkplain
-	 *        AtomDescriptor atom}) to the corresponding message bundle.
 	 */
 	@Override @AvailMethod
-	void o_BuildFilteredBundleTreeFrom (
-		final AvailObject object,
-		final A_Map bundleMap)
+	A_BundleTree o_BuildFilteredBundleTree (
+		final AvailObject object)
 	{
 		synchronized (object)
 		{
 			final A_BundleTree filteredBundleTree =
-				object.slot(FILTERED_BUNDLE_TREE);
+				MessageBundleTreeDescriptor.newPc(1);
 			for (final A_Atom visibleName : object.visibleNames())
 			{
-				if (bundleMap.hasKey(visibleName))
+				final A_Bundle bundle = visibleName.bundleOrNil();
+				if (!bundle.equalsNil())
 				{
-					filteredBundleTree.addBundle(bundleMap.mapAt(visibleName));
+					filteredBundleTree.addBundle(bundle);
 				}
 			}
+			return filteredBundleTree;
 		}
 	}
 
@@ -833,9 +811,6 @@ extends Descriptor
 		object.setSlot(GRAMMATICAL_RESTRICTIONS, emptyMap);
 		object.setSlot(VARIABLE_BINDINGS, emptyMap);
 		object.setSlot(CONSTANT_BINDINGS, emptyMap);
-		object.setSlot(
-			FILTERED_BUNDLE_TREE,
-			MessageBundleTreeDescriptor.newPc(1));
 		object.setSlot(VARIABLE_BINDINGS, emptyMap);
 		object.setSlot(TYPE_RESTRICTION_FUNCTIONS, MapDescriptor.empty());
 		object.setSlot(SEALS, MapDescriptor.empty());
@@ -891,7 +866,7 @@ extends Descriptor
 	 *         NilDescriptor#nil() nil} if the current fiber is not a loader
 	 *         fiber.
 	 */
-	public static AvailObject current ()
+	public static A_Module current ()
 	{
 		final A_Fiber fiber = FiberDescriptor.current();
 		final AvailLoader loader = fiber.availLoader();

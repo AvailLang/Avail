@@ -408,17 +408,17 @@ public final class SerializerTest
 	public void testAtoms ()
 	throws MalformedSerialStreamException
 	{
-		final AvailObject inputModule = ModuleDescriptor.newModule(
+		final A_Module inputModule = ModuleDescriptor.newModule(
 			StringDescriptor.from("Imported"));
 		inputModule.isSystemModule(false);
-		final AvailObject currentModule = ModuleDescriptor.newModule(
+		final A_Module currentModule = ModuleDescriptor.newModule(
 			StringDescriptor.from("Current"));
 		inputModule.isSystemModule(false);
-		final AvailObject atom1 = AtomDescriptor.create(
+		final A_Atom atom1 = AtomDescriptor.create(
 			StringDescriptor.from("importAtom1"),
 			inputModule);
 		inputModule.addPrivateName(atom1.name(), atom1);
-		final AvailObject atom2 = AtomDescriptor.create(
+		final A_Atom atom2 = AtomDescriptor.create(
 			StringDescriptor.from("currentAtom2"),
 			currentModule);
 		currentModule.addPrivateName(atom2.name(), atom2);

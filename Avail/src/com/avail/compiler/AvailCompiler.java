@@ -155,12 +155,12 @@ extends AbstractAvailCompiler
 		final ParserState stateAfterCall,
 		final List<A_Phrase> passedArgumentExpressions,
 		final A_Bundle bundle,
-		final A_Method method,
 		final Con<A_Phrase> continuation)
 	{
+		final A_Method method = bundle.bundleMethod();
 		final A_Tuple definitions = method.definitionsTuple();
 		assert definitions.tupleSize() == 1;
-		final A_BasicObject macroDefinition = definitions.tupleAt(1);
+		final A_Definition macroDefinition = definitions.tupleAt(1);
 		final A_Function macroBody = macroDefinition.bodyBlock();
 		final A_Type macroBodyKind = macroBody.kind();
 		final List<A_Phrase> argumentExpressions =
@@ -199,7 +199,7 @@ extends AbstractAvailCompiler
 							+ "\texpected = %s%n"
 							+ "\targuments = %s%n",
 							disagreements,
-							method.originalName(),
+							bundle.message().name(),
 							macroBodyKind,
 							argumentExpressions);
 					}
@@ -229,7 +229,7 @@ extends AbstractAvailCompiler
 					if (replacement.isInstanceOfKind(
 						PARSE_NODE.mostGeneralType()))
 					{
-						final AvailObject substitution =
+						final A_Phrase substitution =
 							MacroSubstitutionNodeDescriptor.fromNameAndNode(
 								bundle.message(),
 								replacement);
@@ -239,7 +239,7 @@ extends AbstractAvailCompiler
 					{
 						stateAfterCall.expected(
 							"macro body ("
-							+ method.originalName().name()
+							+ bundle.message().name()
 							+ ") to produce a parse node");
 					}
 				}

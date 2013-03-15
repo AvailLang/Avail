@@ -43,9 +43,10 @@ import com.avail.interpreter.*;
 
 /**
  * <strong>Primitive 222</strong>: Lookup the unique {@linkplain
- * DefinitionDescriptor definition} of the specified {@linkplain
- * MethodDescriptor method} by the {@linkplain TupleDescriptor tuple} of
- * parameter {@linkplain TypeDescriptor types}.
+ * DefinitionDescriptor definition} in the specified {@linkplain
+ * MessageBundleDescriptor message bundle}'s {@linkplain MethodDescriptor
+ * method} by the {@linkplain TupleDescriptor tuple} of parameter {@linkplain
+ * TypeDescriptor types}.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
@@ -56,7 +57,7 @@ extends Primitive
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_222_DefinitionForArgumentTypes().init(2, CanFold);
+		new P_222_DefinitionForArgumentTypes().init(2, CanInline);
 
 	@Override
 	public Result attempt (
@@ -64,13 +65,17 @@ extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 2;
-		final A_Method method = args.get(0);
+		final A_Atom atom = args.get(0);
 		final A_Tuple argTypes = args.get(1);
-		final A_Atom trueName = method.originalName();
-		final A_String name = trueName.name();
+		final A_Bundle bundle = atom.bundleOrNil();
+		if (bundle.equalsNil())
+		{
+			return interpreter.primitiveFailure(
+				E_METHOD_IMPLEMENTATION_LOOKUP_FAILED);
+		}
 		try
 		{
-			final MessageSplitter splitter = new MessageSplitter(name);
+			final MessageSplitter splitter = new MessageSplitter(atom.name());
 			if (splitter.numberOfArguments() != argTypes.tupleSize())
 			{
 				return interpreter.primitiveFailure(
@@ -79,15 +84,16 @@ extends Primitive
 		}
 		catch (final SignatureException e)
 		{
-			assert false : "The method name was extracted from a real method!";
+			return interpreter.primitiveFailure(e.errorCode());
 		}
-		final AvailObject impl = method.lookupByTypesFromTuple(argTypes);
-		if (impl.equalsNil())
+		final A_Definition definition =
+			bundle.bundleMethod().lookupByTypesFromTuple(argTypes);
+		if (definition.equalsNil())
 		{
 			return interpreter.primitiveFailure(
 				E_METHOD_IMPLEMENTATION_LOOKUP_FAILED);
 		}
-		return interpreter.primitiveSuccess(impl);
+		return interpreter.primitiveSuccess(definition);
 	}
 
 	@Override
@@ -95,7 +101,7 @@ extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				METHOD.o(),
+				ATOM.o(),
 				TupleTypeDescriptor.zeroOrMoreOf(
 					InstanceMetaDescriptor.anyMeta())),
 			DEFINITION.o());

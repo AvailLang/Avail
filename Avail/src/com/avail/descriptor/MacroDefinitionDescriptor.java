@@ -77,6 +77,11 @@ extends DefinitionDescriptor
 		DEFINITION_METHOD,
 
 		/**
+		 * The {@link ModuleDescriptor module} in which this definition occurs.
+		 */
+		MODULE,
+
+		/**
 		 * The {@linkplain TupleDescriptor tuple} of prefix {@linkplain
 		 * FunctionDescriptor functions} to invoke at parse points corresponding
 		 * to occurrences of the {@linkplain StringDescriptor#sectionSign()
@@ -95,6 +100,8 @@ extends DefinitionDescriptor
 		{
 			assert DefinitionDescriptor.ObjectSlots.DEFINITION_METHOD.ordinal()
 				== DEFINITION_METHOD.ordinal();
+			assert DefinitionDescriptor.ObjectSlots.MODULE.ordinal()
+				== MODULE.ordinal();
 		}
 	}
 
@@ -157,6 +164,8 @@ extends DefinitionDescriptor
 	 * @param method
 	 *            The {@linkplain MethodDescriptor method} in which to define
 	 *            this macro definition.
+	 * @param definitionModule
+	 *            The module in which this definition is added.
 	 * @param prefixFunctions
 	 *            The tuple of functions to invoke as the {@linkplain
 	 *            StringDescriptor#sectionSign() section signs} (§) are
@@ -170,11 +179,13 @@ extends DefinitionDescriptor
 	 */
 	public static AvailObject create (
 		final A_Method method,
+		final A_Module definitionModule,
 		final A_Tuple prefixFunctions,
 		final A_Function bodyBlock)
 	{
 		final AvailObject instance = mutable.create();
 		instance.setSlot(DEFINITION_METHOD, method);
+		instance.setSlot(ObjectSlots.MODULE, definitionModule);
 		instance.setSlot(PREFIX_FUNCTIONS, prefixFunctions);
 		instance.setSlot(BODY_BLOCK, bodyBlock);
 		instance.makeShared();

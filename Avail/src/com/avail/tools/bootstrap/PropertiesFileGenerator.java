@@ -37,6 +37,7 @@ import static com.avail.tools.bootstrap.Resources.Key.*;
 import java.io.*;
 import java.text.MessageFormat;
 import java.util.*;
+import com.avail.AvailRuntime;
 /**
  * {@code PropertiesFileGenerator} defines state and operations common to the
  * Avail properties file generators.
@@ -91,32 +92,51 @@ abstract class PropertiesFileGenerator
 		final PrintWriter writer);
 
 	/**
-	 * Generate the target {@linkplain Properties properties} file.
+	 * (Re)generate the target {@linkplain Properties properties} file.
 	 *
 	 * @throws IOException
 	 *         If an exceptional situation arises while reading properties.
 	 */
 	public void generate () throws IOException
 	{
+		// Force correct initialization order... sigh.
+		AvailRuntime.nextHash();
 		final File fileName = new File(String.format(
 			"src/%s_%s.properties",
 			baseName.replace('.', '/'),
 			locale.getLanguage()));
+		final File tempFileName = new File(String.format(
+			"src/%s_%s.propertiesTEMP",
+			baseName.replace('.', '/'),
+			locale.getLanguage()));
 		assert fileName.getPath().endsWith(".properties");
 		final Properties properties = new Properties();
+		FileInputStream inputStream;
 		try
 		{
-			properties.load(new InputStreamReader(
-				new FileInputStream(fileName), "UTF-8"));
+			inputStream = new FileInputStream(fileName);
+			try
+			{
+				properties.load(new InputStreamReader(inputStream, "UTF-8"));
+			}
+			finally
+			{
+				inputStream.close();
+			}
 		}
 		catch (final FileNotFoundException e)
 		{
 			// Ignore. It's okay if the file doesn't already exist.
 		}
-		final PrintWriter writer = new PrintWriter(fileName, "UTF-8");
+		final PrintWriter writer = new PrintWriter(tempFileName, "UTF-8");
 		generatePreamble(writer);
 		generateProperties(properties, writer);
 		writer.close();
+		// Now switch the new file in.  In the rare event of failure between
+		// these steps, the complete content will still be available in the
+		// corresponding *.propertiesTEMP file.
+		fileName.delete();
+		tempFileName.renameTo(fileName);
 	}
 
 	/**

@@ -51,7 +51,7 @@ extends Primitive
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_243_ModuleName().init(1, CanFold, CannotFail);
+		new P_243_ModuleName().init(1, CanFold, CanInline, CannotFail);
 
 	@Override
 	public Result attempt (

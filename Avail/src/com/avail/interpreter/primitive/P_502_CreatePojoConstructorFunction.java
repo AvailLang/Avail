@@ -137,7 +137,8 @@ public class P_502_CreatePojoConstructorFunction extends Primitive
 		writer.write(new L1Instruction(L1Operation.L1_doMakeTuple, 1));
 		writer.write(new L1Instruction(
 			L1Operation.L1_doCall,
-			writer.addLiteral(MethodDescriptor.vmFunctionApplyMethod()),
+			writer.addLiteral(
+				MethodDescriptor.vmFunctionApplyAtom().bundleOrNil()),
 			writer.addLiteral(BottomTypeDescriptor.bottom())));
 		final A_Function innerFunction = FunctionDescriptor.create(
 			writer.compiledCode(),
@@ -175,7 +176,8 @@ public class P_502_CreatePojoConstructorFunction extends Primitive
 			4));
 		writer.write(new L1Instruction(
 			L1Operation.L1_doCall,
-			writer.addLiteral(MethodDescriptor.vmFunctionApplyMethod()),
+			writer.addLiteral(
+				MethodDescriptor.vmFunctionApplyAtom().bundleOrNil()),
 			writer.addLiteral(pojoType)));
 		final A_Function outerFunction = FunctionDescriptor.create(
 			writer.compiledCode(),

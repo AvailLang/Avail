@@ -59,13 +59,12 @@ public class P_220_MethodFromName extends Primitive
 	{
 		assert args.size() == 1;
 		final A_Atom trueName = args.get(0);
-		final A_Method method =
-			interpreter.runtime().methodAt(trueName);
-		if (method.equalsNil())
+		final A_Bundle bundle = trueName.bundleOrNil();
+		if (bundle.equalsNil())
 		{
 			return interpreter.primitiveFailure(E_NO_METHOD);
 		}
-		method.makeImmutable();
+		final A_Method method = bundle.bundleMethod();
 		return interpreter.primitiveSuccess(method);
 	}
 

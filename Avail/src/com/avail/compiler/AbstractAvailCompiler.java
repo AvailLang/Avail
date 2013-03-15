@@ -217,7 +217,7 @@ public abstract class AbstractAvailCompiler
 		 *         {@code null} if no problems were encountered.
 		 */
 		public @Nullable String applyToModule (
-			final AvailObject module,
+			final A_Module module,
 			final AvailRuntime runtime)
 		{
 			final ModuleNameResolver resolver = runtime.moduleNameResolver();
@@ -240,7 +240,7 @@ public abstract class AbstractAvailCompiler
 						+ "\" to be loaded already";
 				}
 
-				final AvailObject mod = runtime.moduleAt(availRef);
+				final A_Module mod = runtime.moduleAt(availRef);
 				final A_Set reqVersions = modImport.tupleAt(3);
 				if (reqVersions.setSize() > 0)
 				{
@@ -260,7 +260,7 @@ public abstract class AbstractAvailCompiler
 				final A_Set modNames = modImport.tupleAt(2).setSize() > 0
 					? modImport.tupleAt(2)
 					: mod.importedNames().keysAsSet();
-				for (final AvailObject strName : modNames)
+				for (final A_String strName : modNames)
 				{
 					if (!mod.importedNames().hasKey(strName))
 					{
@@ -270,7 +270,7 @@ public abstract class AbstractAvailCompiler
 					}
 					final A_Set trueNames =
 						mod.importedNames().mapAt(strName);
-					for (final AvailObject trueName : trueNames)
+					for (final A_Atom trueName : trueNames)
 					{
 						module.addImportedName(strName, trueName);
 					}
@@ -294,7 +294,7 @@ public abstract class AbstractAvailCompiler
 						+ "\" to be loaded already";
 				}
 
-				final AvailObject mod = runtime.moduleAt(availRef);
+				final A_Module mod = runtime.moduleAt(availRef);
 				final A_Set reqVersions = modImport.tupleAt(3);
 				if (reqVersions.setSize() > 0)
 				{
@@ -334,7 +334,7 @@ public abstract class AbstractAvailCompiler
 			for (final A_String name : exportedNames)
 			{
 				assert name.isString();
-				final AvailObject trueName = AtomDescriptor.create(
+				final A_Atom trueName = AtomDescriptor.create(
 					name,
 					module);
 				module.introduceNewName(name, trueName);
@@ -353,17 +353,7 @@ public abstract class AbstractAvailCompiler
 	/**
 	 * The Avail {@linkplain ModuleDescriptor module} undergoing compilation.
 	 */
-	AvailObject module = NilDescriptor.nil();
-	/**
-	 * Answer the {@linkplain ModuleDescriptor module} undergoing compilation by
-	 * this {@linkplain AbstractAvailCompiler compiler}.
-	 *
-	 * @return A module.
-	 */
-	public AvailObject module ()
-	{
-		return module;
-	}
+	final A_Module module;
 
 	/**
 	 * The {@linkplain AvailLoader loader} create and operated by this
@@ -469,6 +459,18 @@ public abstract class AbstractAvailCompiler
 		PRAGMA("Pragma", KEYWORD),
 
 		/**
+		 * Module header token: Occurs in pragma strings to define bootstrap
+		 * method.
+		 */
+		PRAGMA_METHOD("method", KEYWORD),
+
+		/**
+		 * Module header token: Occurs in pragma strings to define bootstrap
+		 * macros.
+		 */
+		PRAGMA_MACRO("macro", KEYWORD),
+
+		/**
 		 * Module header token: Precedes the list of imported modules whose
 		 * (filtered) names should be re-exported to clients of the defined
 		 * module.
@@ -530,27 +532,35 @@ public abstract class AbstractAvailCompiler
 		/** End of statement. */
 		SEMICOLON(";", OPERATOR);
 
-		/** The {@linkplain String Java string} form of the lexeme. */
-		private final String lexemeString;
+		/** The Java {@link String} form of the lexeme. */
+		private final String lexemeJavaString;
 
 		/**
 		 * The {@linkplain StringDescriptor Avail string} form of the lexeme.
 		 */
-		private @Nullable A_String lexeme;
+		private final A_String lexeme;
 
 		/** The {@linkplain TokenType token type}. */
 		private final TokenType tokenType;
 
 		/**
+		 * Answer the Java {@link String} form of the lexeme.
+		 *
+		 * @return The lexeme as a Java string.
+		 */
+		public String lexemeJavaString ()
+		{
+			return lexemeJavaString;
+		}
+
+		/**
 		 * Answer the {@linkplain StringDescriptor lexeme}.
 		 *
-		 * @return The lexeme.
+		 * @return The lexeme as an Avail string.
 		 */
 		public A_String lexeme ()
 		{
-			final A_String lex = lexeme;
-			assert lex != null;
-			return lex;
+			return lexeme;
 		}
 
 		/**
@@ -566,28 +576,19 @@ public abstract class AbstractAvailCompiler
 		/**
 		 * Construct a new {@link ExpectedToken}.
 		 *
-		 * @param lexemeString
-		 *        The {@linkplain StringDescriptor lexeme string}, i.e. the text
+		 * @param lexemeJavaString
+		 *        The Java {@linkplain String lexeme string}, i.e. the text
 		 *        of the token.
 		 * @param tokenType
 		 *        The {@linkplain TokenType token type}.
 		 */
 		ExpectedToken (
-			final String lexemeString,
+			final String lexemeJavaString,
 			final TokenType tokenType)
 		{
-			this.lexemeString = lexemeString;
 			this.tokenType = tokenType;
-		}
-
-		static
-		{
-			for (final ExpectedToken value : values())
-			{
-				assert value.lexeme == null;
-				value.lexeme =
-					StringDescriptor.from(value.lexemeString).makeShared();
-			}
+			this.lexemeJavaString = lexemeJavaString;
+			this.lexeme = StringDescriptor.from(lexemeJavaString).makeShared();
 		}
 	}
 
@@ -678,6 +679,10 @@ public abstract class AbstractAvailCompiler
 		this.moduleHeader = new ModuleHeader(moduleName);
 		this.source = source;
 		this.tokens = tokens;
+
+		this.module = ModuleDescriptor.newModule(
+			StringDescriptor.from(moduleHeader.moduleName.qualifiedName()));
+		module.isSystemModule(isSystemCompiler());
 	}
 
 	/**
@@ -1124,7 +1129,7 @@ public abstract class AbstractAvailCompiler
 		 *        to the map of visible bindings.
 		 * @return The new parser state including the declaration.
 		 */
-		ParserState withDeclaration (final AvailObject declaration)
+		ParserState withDeclaration (final A_Phrase declaration)
 		{
 			final A_String name = declaration.token().string();
 			A_Map scopeMap = clientDataMap.mapAt(compilerScopeMapKey);
@@ -1299,7 +1304,7 @@ public abstract class AbstractAvailCompiler
 				return imports.isEmpty() ? state : null;
 			}
 
-			final AvailObject moduleName = token.literal();
+			final A_String moduleName = token.literal();
 			state = state.afterToken();
 
 			final List<A_String> versions = new ArrayList<A_String>();
@@ -1803,7 +1808,7 @@ public abstract class AbstractAvailCompiler
 				return;
 			}
 			if (node1.value.kind().parseNodeKindIsUnder(SEND_NODE)
-				&& node1.value.method() != node2.value.method())
+				&& !node1.value.bundle().equals(node2.value.bundle()))
 			{
 				// They're sends of different messages, so don't go any deeper.
 				return;
@@ -2053,9 +2058,9 @@ public abstract class AbstractAvailCompiler
 	 *        The name of the variable declaration for which to look.
 	 * @return The declaration or {@code null}.
 	 */
-	@Nullable AvailObject lookupLocalDeclaration (
+	@Nullable A_Phrase lookupLocalDeclaration (
 		final ParserState start,
-		final AvailObject name)
+		final A_String name)
 	{
 		final A_Map scopeMap = start.clientDataMap.mapAt(compilerScopeMapKey);
 		if (scopeMap.hasKey(name))
@@ -2074,10 +2079,6 @@ public abstract class AbstractAvailCompiler
 	 */
 	void startModuleTransaction ()
 	{
-		assert module.equalsNil();
-		module = ModuleDescriptor.newModule(
-			StringDescriptor.from(moduleHeader.moduleName.qualifiedName()));
-		module.isSystemModule(isSystemCompiler());
 		loader = new AvailLoader(module);
 	}
 
@@ -2087,9 +2088,7 @@ public abstract class AbstractAvailCompiler
 	 */
 	void rollbackModuleTransaction ()
 	{
-		assert !module.equalsNil();
 		module.removeFrom(loader());
-		module = NilDescriptor.nil();
 	}
 
 	/**
@@ -2098,7 +2097,6 @@ public abstract class AbstractAvailCompiler
 	 */
 	void commitModuleTransaction ()
 	{
-		assert !module.equalsNil();
 		runtime.addModule(module);
 		module.cleanUpAfterCompile();
 	}
@@ -2296,7 +2294,7 @@ public abstract class AbstractAvailCompiler
 						public void value (final @Nullable AvailObject val)
 						{
 							assert val != null;
-							final A_BasicObject var =
+							final A_Variable var =
 								VariableDescriptor.forInnerType(
 									AbstractEnumerationTypeDescriptor
 										.withInstance(val));
@@ -2330,7 +2328,7 @@ public abstract class AbstractAvailCompiler
 			}
 			case LOCAL_VARIABLE:
 			{
-				final A_BasicObject var = VariableDescriptor.forInnerType(
+				final A_Variable var = VariableDescriptor.forInnerType(
 					expression.declaredType());
 				module.addVariableBinding(name, var);
 				if (!expression.initializationExpression().equalsNil())
@@ -2499,7 +2497,7 @@ public abstract class AbstractAvailCompiler
 	{
 		parseRestOfSendNode(
 			start,
-			module.filteredBundleTree(),
+			loader().rootBundleTree(),
 			null,
 			start,
 			false,  // Nothing consumed yet.
@@ -2530,7 +2528,7 @@ public abstract class AbstractAvailCompiler
 		assert leadingArgument != null;
 		parseRestOfSendNode(
 			start,
-			module.filteredBundleTree(),
+			loader().rootBundleTree(),
 			leadingArgument,
 			initialTokenPosition,
 			false,  // Leading argument does not yet count as something parsed.
@@ -2678,7 +2676,6 @@ public abstract class AbstractAvailCompiler
 			// recursion.
 			for (final MapDescriptor.Entry entry : complete.mapIterable())
 			{
-				assert runtime.hasMethodAt(entry.key());
 				assert marksSoFar.isEmpty();
 				completedSendNode(
 					initialTokenPosition,
@@ -2758,10 +2755,7 @@ public abstract class AbstractAvailCompiler
 			final A_Phrase latestArgument = last(argsSoFar);
 			if (latestArgument.isInstanceOfKind(SEND_NODE.mostGeneralType()))
 			{
-				//TODO[MvG] This probably isn't right...  I'm pretty sure a
-				//send node needs to hold a bundle instead of a method.
-				final A_Atom methodName =
-					latestArgument.method().originalName();
+				final A_Atom methodName = latestArgument.bundle().message();
 				if (prefilter.hasKey(methodName))
 				{
 					eventuallyParseRestOfSendNode(
@@ -3188,6 +3182,7 @@ public abstract class AbstractAvailCompiler
 						{
 							//TODO[MvG] - Deal with failed conversion (this can
 							// only happen during an eval conversion).
+							assert false : "Deal with this";
 						}
 					});
 				break;
@@ -3268,7 +3263,7 @@ public abstract class AbstractAvailCompiler
 				final A_Tuple definitions =
 					bundle.bundleMethod().definitionsTuple();
 				assert definitions.tupleSize() == 1;
-				final A_BasicObject definition = definitions.tupleAt(1);
+				final A_Definition definition = definitions.tupleAt(1);
 				assert definition.isMacroDefinition();
 				final int prefixFunctionSubscript =
 					op.prefixFunctionSubscript(instruction);
@@ -3345,13 +3340,13 @@ public abstract class AbstractAvailCompiler
 
 	/**
 	 * Check the proposed message send for validity. Use not only the applicable
-	 * {@linkplain MethodDefinitionDescriptor method signatures}, but also any
+	 * {@linkplain MethodDefinitionDescriptor method definitions}, but also any
 	 * type restriction functions. The type restriction functions may choose to
 	 * {@linkplain P_352_RejectParsing reject the parse}, indicating that the
 	 * argument types are mutually incompatible.
 	 *
-	 * @param method
-	 *        A method.
+	 * @param bundle
+	 *        A {@linkplain MessageBundleDescriptor message bundle}.
 	 * @param argTypes
 	 *        The argument types.
 	 * @param state
@@ -3363,7 +3358,7 @@ public abstract class AbstractAvailCompiler
 	 *        What to do if validation fails.
 	 */
 	private void validateArgumentTypes (
-		final A_Method method,
+		final A_Bundle bundle,
 		final List<A_Type> argTypes,
 		final ParserState state,
 		final Continuation1<A_Type> onSuccess,
@@ -3373,6 +3368,7 @@ public abstract class AbstractAvailCompiler
 			new MutableOrNull<A_Tuple>();
 		final MutableOrNull<A_Tuple> restrictions =
 			new MutableOrNull<A_Tuple>();
+		final A_Method method = bundle.bundleMethod();
 		method.lock(new Continuation0()
 		{
 			@Override
@@ -3406,9 +3402,9 @@ public abstract class AbstractAvailCompiler
 						{
 							return "argument #"
 								+ Integer.toString(finalIndex)
-								+ " of message \""
-								+ method.originalName().name().asNativeString()
-								+ "\" to have a type other than "
+								+ " of message "
+								+ bundle.message().name()
+								+ " to have a type other than "
 								+ argTypes.get(finalIndex - 1);
 						}
 					});
@@ -3417,7 +3413,7 @@ public abstract class AbstractAvailCompiler
 			}
 		}
 		// Find all method definitions that could match the argument types.
-		final List<AvailObject> satisfyingDefinitions =
+		final List<A_Definition> satisfyingDefinitions =
 			method.filterByTypes(argTypes);
 		if (satisfyingDefinitions.isEmpty())
 		{
@@ -3427,9 +3423,10 @@ public abstract class AbstractAvailCompiler
 				public String value()
 				{
 					final List<A_Type> functionTypes = new ArrayList<A_Type>(2);
-					for (final AvailObject imp : definitionsTuple.value())
+					for (final A_Definition definition
+						: definitionsTuple.value())
 					{
-						functionTypes.add(imp.bodySignature());
+						functionTypes.add(definition.bodySignature());
 					}
 					final Formatter builder = new Formatter();
 					final List<Integer> allFailedIndices =
@@ -3451,7 +3448,7 @@ public abstract class AbstractAvailCompiler
 						"arguments at indices %s of message %s to match a "
 						+ "method definition.%n",
 						allFailedIndices,
-						method.originalName().name().asNativeString());
+						bundle.message().name());
 					builder.format(
 						"\tI got:%n\t\t%s%n",
 						argTypes);
@@ -3558,8 +3555,7 @@ public abstract class AbstractAvailCompiler
 											return
 												problem.asNativeString()
 												+ " (while parsing send of "
-												+ method.originalName().name()
-													.asNativeString()
+												+ bundle.message().name()
 												+ ")";
 										}
 									});
@@ -3577,8 +3573,7 @@ public abstract class AbstractAvailCompiler
 												+ "raise an unhandled "
 												+ "exception (while parsing "
 												+ "send of "
-												+ method.originalName().name()
-													.asNativeString()
+												+ bundle.message().name()
 												+ "):\n\t"
 												+ e.toString();
 										}
@@ -3597,11 +3592,9 @@ public abstract class AbstractAvailCompiler
 											return
 												"assertion failed "
 												+ " (while parsing send of "
-												+ method.originalName().name()
-													.asNativeString()
+												+ bundle.message().name()
 												+ "):\n\t"
-												+ ex
-													.assertionString()
+												+ ex.assertionString()
 													.asNativeString();
 										}
 									});
@@ -3657,26 +3650,23 @@ public abstract class AbstractAvailCompiler
 			final ParserState stateBeforeCall,
 			final ParserState stateAfterCall,
 			final List<A_Phrase> argumentExpressions,
-			final AvailObject bundle,
+			final A_Bundle bundle,
 			final Con<A_Phrase> continuation)
 		{
 			final Mutable<Boolean> valid = new Mutable<Boolean>(true);
-			final A_Atom message = bundle.message();
-			final A_Method method = runtime.methodAt(message);
-			assert !method.equalsNil();
+			final A_Method method = bundle.bundleMethod();
 			final A_Tuple definitionsTuple = method.definitionsTuple();
 			assert definitionsTuple.tupleSize() > 0;
 
 			if (definitionsTuple.tupleAt(1).isMacroDefinition())
 			{
-				// Macro definitions and non-macro definitions are not allowed to
-				// mix within a method.
+				// Macro definitions and non-macro definitions are not allowed
+				// to mix within a method.
 				completedSendNodeForMacro(
 					stateBeforeCall,
 					stateAfterCall,
 					argumentExpressions,
 					bundle,
-					method,
 					continuation);
 				return;
 			}
@@ -3693,9 +3683,9 @@ public abstract class AbstractAvailCompiler
 			final ParserState afterState = new ParserState(
 				stateAfterCall.position,
 				stateBeforeCall.clientDataMap);
-			// Validate the method send before reifying a send phrase.
+			// Validate the message send before reifying a send phrase.
 			validateArgumentTypes(
-				method,
+				bundle,
 				argTypes,
 				stateAfterCall,
 				new Continuation1<A_Type>()
@@ -3705,7 +3695,7 @@ public abstract class AbstractAvailCompiler
 					{
 						assert returnType != null;
 						final A_Phrase sendNode = SendNodeDescriptor.from(
-							method,
+							bundle,
 							ListNodeDescriptor.newExpressions(
 								TupleDescriptor.fromList(argumentExpressions)),
 							returnType);
@@ -3931,9 +3921,6 @@ public abstract class AbstractAvailCompiler
 	 * @param bundle
 	 *            The {@linkplain MessageBundleDescriptor message bundle} that
 	 *            identifies the message to be sent.
-	 * @param method
-	 *            The {@linkplain MethodDescriptor method}
-	 *            that contains the macro signature to be invoked.
 	 * @param continuation
 	 *            What to do with the resulting send node.
 	 */
@@ -3942,14 +3929,13 @@ public abstract class AbstractAvailCompiler
 		final ParserState stateAfterCall,
 		final List<A_Phrase> argumentExpressions,
 		final A_Bundle bundle,
-		final A_Method method,
 		final Con<A_Phrase> continuation);
 
 	/**
 	 * Create a bootstrap primitive method. Use the primitive's type declaration
 	 * as the argument types.  If the primitive is fallible then generate
 	 * suitable primitive failure code (to invoke the {@link MethodDescriptor
-	 * #vmCrashMethod}).
+	 * #vmCrashAtom()}'s bundle).
 	 *
 	 * @param methodName
 	 *        The name of the primitive method being defined.
@@ -3971,7 +3957,7 @@ public abstract class AbstractAvailCompiler
 			MethodDescriptor.newPrimitiveFunction(
 				Primitive.byPrimitiveNumberOrFail(primitiveNumber));
 		final A_Phrase send = SendNodeDescriptor.from(
-			MethodDescriptor.vmMethodDefinerMethod(),
+			MethodDescriptor.vmMethodDefinerAtom().bundleOrNil(),
 			ListNodeDescriptor.newExpressions(TupleDescriptor.from(
 				nameLiteral,
 				LiteralNodeDescriptor.syntheticFrom(function))),
@@ -3994,7 +3980,7 @@ public abstract class AbstractAvailCompiler
 	 * Create a bootstrap primitive {@linkplain MacroDefinitionDescriptor
 	 * macro}. Use the primitive's type declaration as the argument types.  If
 	 * the primitive is fallible then generate suitable primitive failure code
-	 * (to invoke the {@link MethodDescriptor#vmCrashMethod}).
+	 * (to invoke the {@link MethodDescriptor#vmCrashAtom()}'s bundle).
 	 *
 	 * @param macroName
 	 *        The name of the primitive macro being defined.
@@ -4026,7 +4012,7 @@ public abstract class AbstractAvailCompiler
 		final A_Function body = functionsList.remove(functionsList.size() - 1);
 		final A_Tuple functionsTuple = TupleDescriptor.fromList(functionsList);
 		final A_Phrase send = SendNodeDescriptor.from(
-			MethodDescriptor.vmMacroDefinerMethod(),
+			MethodDescriptor.vmMacroDefinerAtom().bundleOrNil(),
 			ListNodeDescriptor.newExpressions(TupleDescriptor.from(
 				nameLiteral,
 				LiteralNodeDescriptor.syntheticFrom(functionsTuple),
@@ -4065,7 +4051,7 @@ public abstract class AbstractAvailCompiler
 			names = names.setUnionCanDestroy(entry.value(), false);
 		}
 		final A_Phrase send = SendNodeDescriptor.from(
-			MethodDescriptor.vmPublishAtomsMethod(),
+			MethodDescriptor.vmPublishAtomsAtom().bundleOrNil(),
 			ListNodeDescriptor.newExpressions(
 				TupleDescriptor.from(
 					LiteralNodeDescriptor.syntheticFrom(names),
@@ -4127,20 +4113,18 @@ public abstract class AbstractAvailCompiler
 				@Override
 				public void value ()
 				{
-					final String nativeString =
-						pragmaString.asNativeString();
+					final String nativeString = pragmaString.asNativeString();
 					final String[] parts = nativeString.split("=", 3);
 					assert parts.length == 3;
 					final String pragmaKind = parts[0].trim();
 					final String pragmaPrim = parts[1].trim();
 					final String pragmaName = parts[2].trim();
-					// TODO: [MvG] Move these into named constants.
-					if (pragmaKind.equals("method"))
+					if (pragmaKind.equals(PRAGMA_METHOD.lexemeJavaString()))
 					{
 						final int primNum = Integer.valueOf(pragmaPrim);
 						bootstrapMethodThen(pragmaName, primNum, wrapped);
 					}
-					else if (pragmaKind.equals("macro"))
+					else if (pragmaKind.equals(PRAGMA_MACRO.lexemeJavaString()))
 					{
 						final String[] primNumStrings = pragmaPrim.split(",");
 						final int[] primNums = new int[primNumStrings.length];
@@ -4153,8 +4137,11 @@ public abstract class AbstractAvailCompiler
 					else
 					{
 						state.expected(
-							"pragma to have the form "
-							+ "method=<digits>=name or macro=<digits‡,>=name.");
+							String.format(
+								"pragma to have the form "
+								+ "%s=<digits>=name or %s=<digits‡,>=name.",
+								PRAGMA_METHOD.lexemeJavaString(),
+								PRAGMA_MACRO.lexemeJavaString()));
 						reportError();
 						assert false;
 					}
@@ -4210,6 +4197,7 @@ public abstract class AbstractAvailCompiler
 			serializer.serialize(
 				AtomDescriptor.moduleBodySectionAtom());
 		}
+		loader().createFilteredBundleTree();
 		applyPragmasThen(
 			afterHeader,
 			new Continuation0()
@@ -4217,7 +4205,6 @@ public abstract class AbstractAvailCompiler
 				@Override
 				public void value ()
 				{
-					module.buildFilteredBundleTreeFrom(runtime.allBundles());
 					// Parse the body of the module.
 					if (!afterHeader.atEnd())
 					{
@@ -4422,7 +4409,7 @@ public abstract class AbstractAvailCompiler
 	 */
 	public void parseModule (
 		final Continuation4<ModuleName, Long, Long, Long> reporter,
-		final Continuation1<AvailObject> succeed,
+		final Continuation1<A_Module> succeed,
 		final Continuation1<Throwable> fail)
 	{
 		progressReporter = reporter;
@@ -4442,7 +4429,6 @@ public abstract class AbstractAvailCompiler
 			public void value ()
 			{
 				rollbackModuleTransaction();
-				module = NilDescriptor.nil();
 				fail.value(terminator);
 			}
 		};

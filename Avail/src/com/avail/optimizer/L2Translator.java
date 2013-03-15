@@ -146,8 +146,8 @@ implements L1OperationDispatcher
 	 * All {@link MethodDescriptor methods} for which changes should cause the
 	 * current {@linkplain L2ChunkDescriptor level two chunk} to be invalidated.
 	 */
-	private final Set<AvailObject> contingentMethods =
-		new HashSet<AvailObject>();
+	private final Set<A_Method> contingentMethods =
+		new HashSet<A_Method>();
 
 	/**
 	 * The bank of registers defined at the current level two instruction being
@@ -380,17 +380,17 @@ implements L1OperationDispatcher
 		final A_Method method,
 		final List<A_Type> argTypes)
 	{
-		final List<AvailObject> imps = method.definitionsAtOrBelow(argTypes);
+		final List<A_Definition> defs = method.definitionsAtOrBelow(argTypes);
 		final List<A_Function> bodies = new ArrayList<A_Function>(2);
 		int existingPrimitiveNumber = -1;
-		for (final A_BasicObject imp : imps)
+		for (final A_Definition def : defs)
 		{
 			// If a forward or abstract method is possible, don't inline.
-			if (!imp.isMethodDefinition())
+			if (!def.isMethodDefinition())
 			{
 				return null;
 			}
-			final A_Function body = imp.bodyBlock();
+			final A_Function body = def.bodyBlock();
 			final int primitiveNumber = body.code().primitiveNumber();
 			if (primitiveNumber == 0)
 			{
@@ -553,8 +553,6 @@ implements L1OperationDispatcher
 	 * @param primitiveFunction
 	 *            A {@linkplain FunctionDescriptor function} for which its
 	 *            primitive might be inlined, or even folded if possible.
-	 * @param method
-	 *            The method containing the primitive to be invoked.
 	 * @param args
 	 *            The {@link List} of arguments to the primitive function.
 	 * @param preserved
@@ -579,7 +577,6 @@ implements L1OperationDispatcher
 	 */
 	private @Nullable A_BasicObject emitInlinePrimitiveAttempt (
 		final A_Function primitiveFunction,
-		final A_BasicObject method,
 		final List<L2ObjectRegister> args,
 		final List<L2ObjectRegister> preserved,
 		final A_Type expectedType,
@@ -751,15 +748,17 @@ implements L1OperationDispatcher
 	/**
 	 * Generate code to perform a multimethod invocation.
 	 *
-	 * @param method
-	 *            The {@linkplain MethodDescriptor method} to invoke.
+	 * @param bundle
+	 *            The {@linkplain MessageBundleDescriptor message bundle} to
+	 *            invoke.
 	 * @param expectedType
 	 *            The expected return {@linkplain TypeDescriptor type}.
 	 */
 	private void generateCall (
-		final AvailObject method,
-		final AvailObject expectedType)
+		final A_Bundle bundle,
+		final A_Type expectedType)
 	{
+		final A_Method method = bundle.bundleMethod();
 		contingentMethods.add(method);
 		final L2ObjectRegister tempCallerRegister = registers.newObject();
 		moveRegister(registers.fixed(CALLER), tempCallerRegister);
@@ -796,7 +795,7 @@ implements L1OperationDispatcher
 			primitivesToInlineForArgumentRegisters(method, args);
 
 		final L2Instruction successLabel;
-		successLabel = newLabel("success: " + method.originalName().name());
+		successLabel = newLabel("success: " + bundle.message().name());
 		if (primFunctions != null)
 		{
 			// Inline the primitive. Attempt to fold it if the primitive says
@@ -805,7 +804,6 @@ implements L1OperationDispatcher
 				new Mutable<Boolean>(false);
 			final A_BasicObject folded = emitInlinePrimitiveAttempt(
 				primFunctions.get(0),
-				method,
 				args,
 				preserved,
 				expectedType,
@@ -837,7 +835,7 @@ implements L1OperationDispatcher
 			savedSlotConstants.add(registers.constantAt(reg));
 		}
 		final L2Instruction postCallLabel =
-			newLabel("postCall " + method.originalName().name());
+			newLabel("postCall " + bundle.message().name());
 		addInstruction(
 			L2_CREATE_CONTINUATION.instance,
 			new L2ReadPointerOperand(registers.fixed(CALLER)),
@@ -849,7 +847,7 @@ implements L1OperationDispatcher
 			new L2WritePointerOperand(tempCallerRegister));
 		final L2ObjectRegister function = registers.newObject();
 		// Look up the method body to invoke.
-		final List<AvailObject> possibleMethods =
+		final List<A_Definition> possibleMethods =
 			method.definitionsAtOrBelow(argTypes);
 		if (possibleMethods.size() == 1
 			&& possibleMethods.get(0).isMethodDefinition())
@@ -863,7 +861,7 @@ implements L1OperationDispatcher
 			// Look it up at runtime.
 			addInstruction(
 				L2_LOOKUP_BY_VALUES.instance,
-				new L2SelectorOperand(method),
+				new L2SelectorOperand(bundle),
 				new L2ReadVectorOperand(createVector(args)),
 				new L2WritePointerOperand(function));
 		}
@@ -1367,12 +1365,12 @@ implements L1OperationDispatcher
 	 *
 	 * @return The new {@linkplain L2ChunkDescriptor Level Two chunk}.
 	 */
-	private AvailObject createChunk ()
+	private A_Chunk createChunk ()
 	{
 		final L2CodeGenerator codeGen = new L2CodeGenerator();
 		codeGen.setInstructions(instructions);
 		codeGen.addContingentMethods(contingentMethods);
-		final AvailObject chunk = codeGen.createChunkFor(codeOrNull());
+		final A_Chunk chunk = codeGen.createChunkFor(codeOrNull());
 		return chunk;
 	}
 
@@ -1385,7 +1383,7 @@ implements L1OperationDispatcher
 	 * @return The {@linkplain L2ChunkDescriptor level two chunk} corresponding
 	 *         to the {@linkplain #code} to be translated.
 	 */
-	public AvailObject createChunkForFirstInvocation ()
+	public A_Chunk createChunkForFirstInvocation ()
 	{
 		code = null;
 		optimizationLevel = -1;
@@ -1406,7 +1404,7 @@ implements L1OperationDispatcher
 		addLabel(reenterFromCallLabel);
 		addInstruction(L2_REENTER_L1_CHUNK.instance);
 		addInstruction(L2_JUMP.instance, new L2PcOperand(loopStart));
-		final AvailObject newChunk = createChunk();
+		final A_Chunk newChunk = createChunk();
 		assert newChunk.index() == 0;
 		assert reenterFromCallLabel.offset() ==
 			L2ChunkDescriptor.offsetToContinueUnoptimizedChunk();

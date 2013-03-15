@@ -116,7 +116,7 @@ extends Primitive
 		final AvailRuntime runtime = AvailRuntime.current();
 		try
 		{
-			final AvailObject module = ModuleDescriptor.current();
+			final A_Module module = ModuleDescriptor.current();
 			socket.accept(
 				null,
 				new CompletionHandler<AsynchronousSocketChannel, Void>()
@@ -132,10 +132,8 @@ extends Primitive
 						if (!newFiber.getAndClearInterruptRequestFlag(
 							TERMINATION_REQUESTED))
 						{
-							final AvailObject newHandle =
-								AtomWithPropertiesDescriptor.create(
-									name,
-									module);
+							final A_Atom newHandle =
+								AtomDescriptor.create(name, module);
 							final AvailObject newPojo =
 								RawPojoDescriptor.identityWrap(newSocket);
 							newHandle.setAtomProperty(

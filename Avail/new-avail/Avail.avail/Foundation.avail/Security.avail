@@ -95,10 +95,10 @@ Semantic restriction "Seal method_at_" is
 			argTypes := eject ↑argTypes ++ <functionType[index]>;
 		];
 		returnType ::= functionType's return type;
-		m ::= method for atom for methodName;
-		If m has definition for argTypes then
+		name ::= atom for methodName;
+		If name has definition for argTypes then
 		[
-			site ::= method definition of m for argTypes;
+			site ::= method definition of name for argTypes;
 			If returnType ≠ site's function type's return type then
 			[
 				Reject parse, expected:
@@ -125,6 +125,5 @@ Public method "Completely seal method_" is
 [
 	methodName : string
 |
-	theMethod ::= method for atom for methodName;
-	Seal method methodName at |theMethod's parameters| of any;
+	Seal method methodName at |message methodName's parameters| of any;
 ] : ⊤;

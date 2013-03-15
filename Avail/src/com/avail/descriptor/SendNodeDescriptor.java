@@ -39,6 +39,7 @@ import java.util.List;
 import com.avail.annotations.*;
 import com.avail.compiler.*;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
+import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.exceptions.SignatureException;
 import com.avail.utility.*;
 
@@ -63,9 +64,13 @@ extends ParseNodeDescriptor
 		ARGUMENTS_LIST_NODE,
 
 		/**
-		 * The {@linkplain MethodDescriptor method} to be invoked.
+		 * The {@linkplain MessageBundleDescriptor message bundle} that this
+		 * send was intended to invoke.  Technically, it's the {@linkplain
+		 * MethodDescriptor method} inside the bundle that will be invoked, so
+		 * the bundle gets stripped off when generating a raw function from a
+		 * {@linkplain BlockNodeDescriptor block node} containing this send.
 		 */
-		METHOD,
+		BUNDLE,
 
 		/**
 		 * What {@linkplain TypeDescriptor type} of {@linkplain AvailObject
@@ -85,7 +90,7 @@ extends ParseNodeDescriptor
 		try
 		{
 			splitter = new MessageSplitter(
-				object.method().originalName().name());
+				object.bundle().message().name());
 		}
 		catch (final SignatureException e)
 		{
@@ -107,9 +112,9 @@ extends ParseNodeDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Method o_Method (final AvailObject object)
+	A_Bundle o_Bundle (final AvailObject object)
 	{
-		return object.slot(METHOD);
+		return object.slot(BUNDLE);
 	}
 
 	@Override @AvailMethod
@@ -130,7 +135,7 @@ extends ParseNodeDescriptor
 	{
 		return
 			(object.slot(ARGUMENTS_LIST_NODE).hash() * multiplier
-				^ object.slot(METHOD).hash()) * multiplier
+				^ object.slot(BUNDLE).hash()) * multiplier
 				- object.slot(RETURN_TYPE).hash()
 			^ 0x90E39B4D;
 	}
@@ -141,7 +146,7 @@ extends ParseNodeDescriptor
 		final A_Phrase aParseNode)
 	{
 		return object.kind().equals(aParseNode.kind())
-			&& object.slot(METHOD).equals(aParseNode.method())
+			&& object.slot(BUNDLE).equals(aParseNode.bundle())
 			&& object.slot(ARGUMENTS_LIST_NODE).equals(
 				aParseNode.argumentsListNode())
 			&& object.slot(RETURN_TYPE).equals(aParseNode.returnType());
@@ -150,7 +155,7 @@ extends ParseNodeDescriptor
 	@Override @AvailMethod
 	A_Atom o_ApparentSendName (final AvailObject object)
 	{
-		return object.slot(METHOD).name();
+		return object.slot(BUNDLE).name();
 	}
 
 	@Override @AvailMethod
@@ -164,10 +169,10 @@ extends ParseNodeDescriptor
 		{
 			argNode.emitValueOn(codeGenerator);
 		}
-		final AvailObject method = object.slot(METHOD);
+		final A_Bundle bundle = object.slot(BUNDLE);
 		codeGenerator.emitCall(
 			tuple.tupleSize(),
-			method,
+			bundle,
 			object.returnType());
 	}
 
@@ -209,8 +214,8 @@ extends ParseNodeDescriptor
 	 * list node} of argument expressions, and return {@linkplain TypeDescriptor
 	 * type}.
 	 *
-	 * @param method
-	 *        The target method.
+	 * @param bundle
+	 *        The method bundle for which this represents an invocation.
 	 * @param argsListNode
 	 *        A {@linkplain ListNodeDescriptor list node} of argument
 	 *        expressions.
@@ -219,13 +224,14 @@ extends ParseNodeDescriptor
 	 * @return A new send node.
 	 */
 	public static A_Phrase from (
-		final A_Method method,
+		final A_Bundle bundle,
 		final A_Phrase argsListNode,
 		final A_Type returnType)
 	{
+		assert bundle.isInstanceOfKind(Types.MESSAGE_BUNDLE.o());
 		final AvailObject newObject = mutable.create();
 		newObject.setSlot(ARGUMENTS_LIST_NODE, argsListNode);
-		newObject.setSlot(METHOD, method);
+		newObject.setSlot(BUNDLE, bundle);
 		newObject.setSlot(RETURN_TYPE, returnType);
 		newObject.makeShared();
 		return newObject;

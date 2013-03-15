@@ -302,7 +302,7 @@ extends AbstractDescriptor
 	@Override
 	void o_MethodAddDefinition (
 		final AvailObject object,
-		final A_BasicObject definition)
+		final A_Definition definition)
 	throws SignatureException
 	{
 		o_Traversed(object).methodAddDefinition(definition);
@@ -473,11 +473,10 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_BuildFilteredBundleTreeFrom (
-		final AvailObject object,
-		final A_Map bundleMap)
+	A_BundleTree o_BuildFilteredBundleTree (
+		final AvailObject object)
 	{
-		o_Traversed(object).buildFilteredBundleTreeFrom(bundleMap);
+		return o_Traversed(object).buildFilteredBundleTree();
 	}
 
 	@Override
@@ -611,7 +610,7 @@ extends AbstractDescriptor
 	@Override
 	boolean o_ContainsBlock (
 		final AvailObject object,
-		final AvailObject aFunction)
+		final A_Function aFunction)
 	{
 		return o_Traversed(object).containsBlock(aFunction);
 	}
@@ -619,7 +618,7 @@ extends AbstractDescriptor
 	@Override
 	void o_Continuation (
 		final AvailObject object,
-		final A_BasicObject value)
+		final A_Continuation value)
 	{
 		o_Traversed(object).continuation(value);
 	}
@@ -976,7 +975,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	List<AvailObject> o_FilterByTypes (
+	List<A_Definition> o_FilterByTypes (
 		final AvailObject object,
 		final List<A_Type> argTypes)
 	{
@@ -1055,7 +1054,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	List<AvailObject> o_DefinitionsAtOrBelow (
+	List<A_Definition> o_DefinitionsAtOrBelow (
 		final AvailObject object,
 		final List<? extends A_Type> argTypes)
 	{
@@ -1063,19 +1062,9 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	AvailObject o_IncludeBundleNamed (
-		final AvailObject object,
-		final A_Atom messageBundleName,
-		final A_BasicObject method)
-	{
-		return o_Traversed(object).includeBundleNamed(
-			messageBundleName, method);
-	}
-
-	@Override
 	boolean o_IncludesDefinition (
 		final AvailObject object,
-		final A_BasicObject definition)
+		final A_Definition definition)
 	{
 		return o_Traversed(object).includesDefinition(definition);
 	}
@@ -1111,7 +1100,7 @@ extends AbstractDescriptor
 	@Override
 	boolean o_IsBetterRepresentationThanTupleType (
 		final AvailObject object,
-		final A_BasicObject aTupleType)
+		final A_Type aTupleType)
 	{
 		return o_Traversed(object).isBetterRepresentationThanTupleType(
 			aTupleType);
@@ -1131,12 +1120,6 @@ extends AbstractDescriptor
 		final A_Type aType)
 	{
 		return o_Traversed(object).isInstanceOfKind(aType);
-	}
-
-	@Override @Deprecated
-	void o_IsSaved (final AvailObject object, final boolean aBoolean)
-	{
-		o_Traversed(object).isSaved(aBoolean);
 	}
 
 	@Override
@@ -1394,7 +1377,7 @@ extends AbstractDescriptor
 	@Override
 	boolean o_NameVisible (
 		final AvailObject object,
-		final AvailObject trueName)
+		final A_Atom trueName)
 	{
 		return o_Traversed(object).nameVisible(trueName);
 	}
@@ -1521,12 +1504,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	byte o_RawNybbleAt (final AvailObject object, final int index)
-	{
-		return o_Traversed(object).rawNybbleAt(index);
-	}
-
-	@Override
 	void o_RawNybbleAtPut (
 		final AvailObject object,
 		final int index,
@@ -1603,7 +1580,7 @@ extends AbstractDescriptor
 	@Override
 	void o_RemoveDefinition (
 		final AvailObject object,
-		final A_BasicObject definition)
+		final A_Definition definition)
 	{
 		o_Traversed(object).removeDefinition(definition);
 	}
@@ -2244,7 +2221,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	AvailObject o_Continuation (final AvailObject object)
+	A_Continuation o_Continuation (final AvailObject object)
 	{
 		return o_Traversed(object).continuation();
 	}
@@ -2358,12 +2335,6 @@ extends AbstractDescriptor
 	A_Map o_FieldTypeMap (final AvailObject object)
 	{
 		return o_Traversed(object).fieldTypeMap();
-	}
-
-	@Override
-	A_BundleTree o_FilteredBundleTree (final AvailObject object)
-	{
-		return o_Traversed(object).filteredBundleTree();
 	}
 
 	@Override
@@ -2525,12 +2496,6 @@ extends AbstractDescriptor
 	boolean o_IsPositive (final AvailObject object)
 	{
 		return o_Traversed(object).isPositive();
-	}
-
-	@Override @Deprecated
-	boolean o_IsSaved (final AvailObject object)
-	{
-		return o_Traversed(object).isSaved();
 	}
 
 	@Override
@@ -2770,12 +2735,6 @@ extends AbstractDescriptor
 		return o_Traversed(object).pc();
 	}
 
-	@Override @Deprecated
-	void o_PostFault (final AvailObject object)
-	{
-		o_Traversed(object).postFault();
-	}
-
 	@Override
 	int o_PrimitiveNumber (final AvailObject object)
 	{
@@ -2798,12 +2757,6 @@ extends AbstractDescriptor
 	A_Map o_FiberGlobals (final AvailObject object)
 	{
 		return o_Traversed(object).fiberGlobals();
-	}
-
-	@Override
-	void o_ReadBarrierFault (final AvailObject object)
-	{
-		o_Traversed(object).readBarrierFault();
 	}
 
 	@Override
@@ -3062,9 +3015,9 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	A_Method o_Method (final AvailObject object)
+	A_Bundle o_Bundle (final AvailObject object)
 	{
-		return o_Traversed(object).method();
+		return o_Traversed(object).bundle();
 	}
 
 	@Override
@@ -3128,7 +3081,7 @@ extends AbstractDescriptor
 	@Override
 	A_RawFunction o_GenerateInModule (
 		final AvailObject object,
-		final A_BasicObject module)
+		final A_Module module)
 	{
 		return o_Traversed(object).generateInModule(module);
 	}
@@ -4309,11 +4262,11 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_FlushForNewOrChangedBundleNamed (
+	void o_FlushForNewOrChangedBundle (
 		final AvailObject object,
-		final A_Atom message)
+		final A_Bundle bundle)
 	{
-		o_Traversed(object).flushForNewOrChangedBundleNamed(message);
+		o_Traversed(object).flushForNewOrChangedBundle(bundle);
 	}
 
 	@Override
@@ -4329,18 +4282,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	A_Set o_NamesSet (final AvailObject object)
-	{
-		return o_Traversed(object).namesSet();
-	}
-
-	@Override
-	A_Atom o_OriginalName (final AvailObject object)
-	{
-		return o_Traversed(object).originalName();
-	}
-
-	@Override
 	void o_ObjectTupleAtPut (
 		final AvailObject object,
 		final int index,
@@ -4350,7 +4291,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	AvailObject o_BundleMethod (final AvailObject object)
+	A_Method o_BundleMethod (final AvailObject object)
 	{
 		return o_Traversed(object).bundleMethod();
 	}
@@ -4577,5 +4518,34 @@ extends AbstractDescriptor
 	void o_FiberName (final AvailObject object, final A_String value)
 	{
 		o_Traversed(object).fiberName(value);
+	}
+
+	@Override
+	A_Set o_Bundles (final AvailObject object)
+	{
+		return o_Traversed(object).bundles();
+	}
+
+	@Override
+	void o_MethodAddBundle (final AvailObject object, final A_Bundle bundle)
+	{
+		o_Traversed(object).methodAddBundle(bundle);
+	}
+
+	@Override
+	A_Module o_DefinitionModule (final AvailObject object)
+	{
+		return o_Traversed(object).definitionModule();
+	}
+
+	@Override
+	A_Bundle o_BundleOrCreate (final AvailObject object)
+	{
+		return o_Traversed(object).bundleOrCreate();
+	}
+	@Override
+	A_Bundle o_BundleOrNil (final AvailObject object)
+	{
+		return o_Traversed(object).bundleOrNil();
 	}
 }

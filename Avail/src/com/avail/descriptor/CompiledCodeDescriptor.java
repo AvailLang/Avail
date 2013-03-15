@@ -330,7 +330,7 @@ extends Descriptor
 	@Override @AvailMethod
 	boolean o_ContainsBlock (
 		final AvailObject object,
-		final AvailObject aFunction)
+		final A_Function aFunction)
 	{
 		// Answer true if either I am aFunction's code or I contain aFunction or
 		// its code.
@@ -509,34 +509,6 @@ extends Descriptor
 	{
 		final A_Atom properties = object.mutableSlot(PROPERTY_ATOM);
 		return properties.issuingModule();
-	}
-
-	/**
-	 * The object was just scanned, and its pointers converted into valid
-	 * ToSpace pointers. Do any follow-up activities specific to the kind of
-	 * object it is.
-	 *
-	 * <p>
-	 * In particular, a CompiledCode object needs to bring its L2Chunk object
-	 * into ToSpace and link it into the ring of saved chunks. Chunks that are
-	 * no longer accessed can be reclaimed, or at least their entries can be
-	 * reclaimed, at flip time.
-	 * </p>
-	 */
-	@Override @AvailMethod @Deprecated
-	void o_PostFault (final AvailObject object)
-	{
-		final A_Chunk chunk = object.startingChunk();
-		if (chunk.isValid())
-		{
-			chunk.isSaved(true);
-		}
-		else
-		{
-			object.setStartingChunkAndReoptimizationCountdown(
-				L2ChunkDescriptor.unoptimizedChunk(),
-				L2ChunkDescriptor.countdownForInvalidatedCode());
-		}
 	}
 
 	@Override @AvailMethod @ThreadSafe

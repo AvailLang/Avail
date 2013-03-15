@@ -62,7 +62,7 @@ public final class AvailLoader
 	 * The Avail {@linkplain ModuleDescriptor module} undergoing {@linkplain
 	 * AvailLoader loader}.
 	 */
-	private final AvailObject module;
+	private final A_Module module;
 
 	/**
 	 * Answer the {@linkplain ModuleDescriptor module} undergoing loading by
@@ -70,9 +70,30 @@ public final class AvailLoader
 	 *
 	 * @return A module.
 	 */
-	public AvailObject module ()
+	public A_Module module ()
 	{
 		return module;
+	}
+
+	/**
+	 * The {@linkplain MessageBundleTreeDescriptor message bundle tree} that
+	 * this {@linkplain AvailLoader loader} is using to parse its {@linkplain
+	 * ModuleDescriptor module}.
+	 */
+	@InnerAccess @Nullable A_BundleTree rootBundleTree;
+
+	/**
+	 * Answer the {@linkplain MessageBundleTreeDescriptor message bundle tree}
+	 * that this {@linkplain AvailLoader loader} is using to parse its
+	 * {@linkplain ModuleDescriptor module}.
+	 *
+	 * @return A message bundle tree.
+	 */
+	public A_BundleTree rootBundleTree ()
+	{
+		final A_BundleTree tree = rootBundleTree;
+		assert tree != null;
+		return tree;
 	}
 
 	/**
@@ -82,9 +103,18 @@ public final class AvailLoader
 	 *        The Avail {@linkplain ModuleDescriptor module} undergoing loading
 	 *        by this {@linkplain AvailLoader loader}.
 	 */
-	public AvailLoader (final AvailObject module)
+	public AvailLoader (final A_Module module)
 	{
 		this.module = module;
+	}
+
+	/**
+	 * Create the {@link #rootBundleTree} now that the module's imports and new
+	 * public names have been declared.
+	 */
+	public void createFilteredBundleTree ()
+	{
+		rootBundleTree = module.buildFilteredBundleTree();
 	}
 
 	/** The unresolved forward method declarations. */
@@ -99,7 +129,7 @@ public final class AvailLoader
 	 * @param methodName A {@linkplain AtomDescriptor method name}.
 	 */
 	@InnerAccess final void resolvedForwardWithName (
-		final A_BasicObject forwardDefinition,
+		final A_Definition forwardDefinition,
 		final A_Atom methodName)
 	{
 		assert methodName.isAtom();
@@ -147,19 +177,23 @@ public final class AvailLoader
 		final MessageSplitter splitter = new MessageSplitter(methodName.name());
 		splitter.checkImplementationSignature(bodyBlock.kind());
 		final int numArgs = splitter.numberOfArguments();
-		assert bodyBlock.code().numArgs() == numArgs
-			: "Wrong number of arguments in method definition";
+		if (bodyBlock.code().numArgs() != numArgs)
+		{
+			throw new SignatureException(
+				E_INCORRECT_NUMBER_OF_ARGUMENTS);
+		}
 		//  Make it so we can safely hold onto these things in the VM
 		methodName.makeShared();
 		bodyBlock.makeShared();
 		//  Add the method definition.
-		final A_Method method = runtime.methodFor(methodName);
-		final AvailObject newMethodDefinition =
-			MethodDefinitionDescriptor.create(method, bodyBlock);
+		final A_Bundle bundle = methodName.bundleOrCreate();
+		final A_Method method = bundle.bundleMethod();
+		final A_Definition newMethodDefinition =
+			MethodDefinitionDescriptor.create(method, module, bodyBlock);
 		final A_Type bodySignature = bodyBlock.kind();
-		AvailObject forward = null;
+		A_Definition forward = null;
 		final A_Tuple impsTuple = method.definitionsTuple();
-		for (final AvailObject existingImp : impsTuple)
+		for (final A_Definition existingImp : impsTuple)
 		{
 			final A_Type existingType = existingImp.bodySignature();
 			final boolean same = existingType.argsTupleType().equals(
@@ -209,18 +243,15 @@ public final class AvailLoader
 			resolvedForwardWithName(forward, methodName);
 		}
 		method.methodAddDefinition(newMethodDefinition);
-		final AvailObject theModule = module;
-		final AvailRuntime theRuntime = runtime;
+		final A_Module theModule = module;
+		final A_BundleTree root = rootBundleTree();
 		theModule.lock(new Continuation0()
 		{
 			@Override
 			public void value ()
 			{
-				theRuntime.addMethod(method);
-				final A_BundleTree filteredRoot =
-					module().filteredBundleTree();
-				filteredRoot.includeBundleNamed(methodName, method);
-				filteredRoot.flushForNewOrChangedBundleNamed(methodName);
+				root.addBundle(bundle);
+				root.flushForNewOrChangedBundle(bundle);
 				theModule.moduleAddDefinition(newMethodDefinition);
 			}
 		});
@@ -245,22 +276,21 @@ public final class AvailLoader
 	{
 		methodName.makeShared();
 		bodySignature.makeShared();
+		final MessageSplitter splitter = new MessageSplitter(methodName.name());
+		splitter.checkImplementationSignature(bodySignature);
+		final A_Type bodyArgsTupleType = bodySignature.argsTupleType();
 		//  Add the stubbed method definition.
-		final A_Method method = runtime.methodFor(methodName);
-		for (final AvailObject definition :
-			method.definitionsTuple())
+		final A_Bundle bundle = methodName.bundleOrCreate();
+		final A_Method method = bundle.bundleMethod();
+		for (final A_Definition definition : method.definitionsTuple())
 		{
 			final A_Type existingType = definition.bodySignature();
-			final boolean same =
-				existingType.argsTupleType().equals(
-					bodySignature.argsTupleType());
-			if (same)
+			if (existingType.argsTupleType().equals(bodyArgsTupleType))
 			{
 				throw new SignatureException(
 					E_REDEFINED_WITH_SAME_ARGUMENT_TYPES);
 			}
-			if (existingType.acceptsArgTypesFromFunctionType(
-				bodySignature))
+			if (existingType.acceptsArgTypesFromFunctionType(bodySignature))
 			{
 				if (!bodySignature.returnType().isSubtypeOf(
 					existingType.returnType()))
@@ -269,8 +299,7 @@ public final class AvailLoader
 						E_RESULT_TYPE_SHOULD_COVARY_WITH_ARGUMENTS);
 				}
 			}
-			if (bodySignature.acceptsArgTypesFromFunctionType(
-				existingType))
+			if (bodySignature.acceptsArgTypesFromFunctionType(existingType))
 			{
 				if (!existingType.returnType().isSubtypeOf(
 					bodySignature.returnType()))
@@ -280,12 +309,13 @@ public final class AvailLoader
 				}
 			}
 		}
-		final A_BasicObject newForward = ForwardDefinitionDescriptor.create(
+		final A_Definition newForward = ForwardDefinitionDescriptor.create(
 			method,
+			module,
 			bodySignature);
 		method.methodAddDefinition(newForward);
 		final A_Module theModule = module;
-		final A_BundleTree filteredRoot = theModule.filteredBundleTree();
+		final A_BundleTree root = rootBundleTree();
 		theModule.lock(new Continuation0()
 		{
 			@Override
@@ -295,9 +325,8 @@ public final class AvailLoader
 				pendingForwards = pendingForwards.setWithElementCanDestroy(
 					newForward,
 					true);
-				assert methodName.isAtom();
-				filteredRoot.includeBundleNamed(methodName, method);
-				filteredRoot.flushForNewOrChangedBundleNamed(methodName);
+				root.addBundle(bundle);
+				root.flushForNewOrChangedBundle(bundle);
 			}
 		});
 	}
@@ -332,9 +361,11 @@ public final class AvailLoader
 		methodName.makeShared();
 		bodySignature.makeShared();
 		//  Add the method definition.
-		final A_Method method = runtime.methodFor(methodName);
-		final A_BasicObject newDefinition = AbstractDefinitionDescriptor.create(
+		final A_Bundle bundle = methodName.bundleOrCreate();
+		final A_Method method = bundle.bundleMethod();
+		final A_Definition newDefinition = AbstractDefinitionDescriptor.create(
 			method,
+			module,
 			bodySignature);
 		module().moduleAddDefinition(newDefinition);
 		@Nullable AvailObject forward = null;
@@ -379,18 +410,15 @@ public final class AvailLoader
 			resolvedForwardWithName(forward, methodName);
 		}
 		method.methodAddDefinition(newDefinition);
-		final AvailObject theModule = module;
-		final AvailRuntime theRuntime = runtime;
+		final A_Module theModule = module;
+		final A_BundleTree root = rootBundleTree();
 		theModule.lock(new Continuation0()
 		{
 			@Override
 			public void value ()
 			{
-				theRuntime.addMethod(method);
-				final A_BundleTree filteredRoot =
-					theModule.filteredBundleTree();
-				filteredRoot.includeBundleNamed(methodName, method);
-				filteredRoot.flushForNewOrChangedBundleNamed(methodName);
+				root.addBundle(bundle);
+				root.flushForNewOrChangedBundle(bundle);
 				theModule.moduleAddDefinition(newDefinition);
 			}
 		});
@@ -420,11 +448,12 @@ public final class AvailLoader
 		assert methodName.isAtom();
 		assert macroBody.isFunction();
 
-		final A_Method method = runtime.methodFor(methodName);
 		final MessageSplitter splitter = new MessageSplitter(methodName.name());
 		final int numArgs = splitter.numberOfArguments();
 		assert macroBody.code().numArgs() == numArgs
 			: "Wrong number of arguments in macro definition";
+		final A_Bundle bundle = methodName.bundleOrCreate();
+		final A_Method method = bundle.bundleMethod();
 		// Make it so we can safely hold onto these things in the VM.
 		methodName.makeShared();
 		prefixFunctions.makeShared();
@@ -432,11 +461,12 @@ public final class AvailLoader
 		// Add the macro definition.
 		final AvailObject macroDefinition = MacroDefinitionDescriptor.create(
 			method,
+			module,
 			prefixFunctions,
 			macroBody);
 		module().moduleAddDefinition(macroDefinition);
 		final A_Type macroBodyType = macroBody.kind();
-		for (final A_BasicObject existingDefinition : method.definitionsTuple())
+		for (final A_Definition existingDefinition : method.definitionsTuple())
 		{
 			final A_Type existingType = existingDefinition.bodySignature();
 			final boolean same = existingType.argsTupleType().equals(
@@ -466,18 +496,15 @@ public final class AvailLoader
 			}
 		}
 		method.methodAddDefinition(macroDefinition);
-		final AvailObject theModule = module;
-		final AvailRuntime theRuntime = runtime;
+		final A_Module theModule = module;
+		final A_BundleTree root = rootBundleTree();
 		theModule.lock(new Continuation0()
 		{
 			@Override
 			public void value ()
 			{
-				theRuntime.addMethod(method);
-				final A_BundleTree filteredRoot =
-					theModule.filteredBundleTree();
-				filteredRoot.includeBundleNamed(methodName, method);
-				filteredRoot.flushForNewOrChangedBundleNamed(methodName);
+				root.addBundle(bundle);
+				root.flushForNewOrChangedBundle(bundle);
 				theModule.moduleAddDefinition(macroDefinition);
 			}
 		});
@@ -510,10 +537,11 @@ public final class AvailLoader
 			throw new SignatureException(E_INCORRECT_NUMBER_OF_ARGUMENTS);
 		}
 		methodName.makeShared();
-		final A_Method method = runtime.methodFor(methodName);
+		final A_Bundle bundle = methodName.bundleOrCreate();
 		typeRestrictionFunction.makeShared();
 		runtime.addTypeRestriction(methodName, typeRestrictionFunction);
-		final AvailObject theModule = module;
+		final A_Module theModule = module;
+		final A_BundleTree root = rootBundleTree();
 		theModule.lock(new Continuation0()
 		{
 			@Override
@@ -521,9 +549,8 @@ public final class AvailLoader
 			{
 				theModule.addTypeRestriction(
 					methodName, typeRestrictionFunction);
-				final A_BundleTree filteredRoot = module().filteredBundleTree();
-				filteredRoot.includeBundleNamed(methodName, method);
-				filteredRoot.flushForNewOrChangedBundleNamed(methodName);
+				root.addBundle(bundle);
+				root.flushForNewOrChangedBundle(bundle);
 			}
 		});
 	}
@@ -584,20 +611,19 @@ public final class AvailLoader
 		final int numArgs = splitter.numberOfUnderscores();
 		assert numArgs == illegalArgMsgs.tupleSize()
 			: "Wrong number of entries in restriction tuple.";
-		assert methodName.isAtom();
-		final A_Method method = runtime.methodFor(methodName);
-		final AvailObject theModule = module;
+		final A_Bundle bundle = methodName.bundleOrCreate();
+		final A_Module theModule = module;
+		final A_BundleTree root = rootBundleTree();
 		theModule.lock(new Continuation0()
 		{
 			@Override
 			public void value ()
 			{
-				final A_Bundle bundle =
-					theModule.filteredBundleTree().includeBundleNamed(
-						methodName, method);
+				root.addBundle(bundle);
 				bundle.addGrammaticalRestrictions(illegalArgMsgs);
 				theModule.addGrammaticalRestrictions(
 					methodName, illegalArgMsgs);
+				root.flushForNewOrChangedBundle(bundle);
 			}
 		});
 	}
@@ -650,7 +676,7 @@ public final class AvailLoader
 	 *        A {@linkplain DefinitionDescriptor definition}.
 	 */
 	public final void removeDefinition (
-		final A_BasicObject definition)
+		final A_Definition definition)
 	{
 		if (definition.isForwardDefinition())
 		{
@@ -681,7 +707,7 @@ public final class AvailLoader
 		assert stringName.isString();
 		//  Check if it's already defined somewhere...
 		final MutableOrNull<A_Atom> atom = new MutableOrNull<A_Atom>();
-		final AvailObject theModule = module;
+		final A_Module theModule = module;
 		theModule.lock(
 			new Continuation0()
 			{

@@ -1,5 +1,5 @@
 /**
- * P_223_MethodParametersCount.java
+ * P_223_BundleParametersCount.java
  * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -46,14 +46,15 @@ import com.avail.interpreter.*;
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class P_223_MethodParametersCount
+public final class P_223_BundleParametersCount
 extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_223_MethodParametersCount().init(1, CanFold, CannotFail);
+		new P_223_BundleParametersCount().init(
+			1, CannotFail, CanFold, CanInline);
 
 	@Override
 	public Result attempt (
@@ -61,9 +62,8 @@ extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
-		final A_Method method = args.get(0);
-		final A_Atom trueName = method.originalName();
-		final A_String name = trueName.name();
+		final A_Bundle bundle = args.get(0);
+		final A_String name = bundle.message().name();
 		MessageSplitter splitter = null;
 		try
 		{
@@ -71,7 +71,7 @@ extends Primitive
 		}
 		catch (final SignatureException e)
 		{
-			assert false : "The method name was extracted from a real method!";
+			assert false : "The method name was extracted from a real bundle!";
 		}
 		assert splitter != null;
 		return interpreter.primitiveSuccess(IntegerDescriptor.fromInt(
@@ -83,7 +83,7 @@ extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				METHOD.o()),
+				MESSAGE_BUNDLE.o()),
 			IntegerRangeTypeDescriptor.wholeNumbers());
 	}
 }

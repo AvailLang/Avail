@@ -57,7 +57,7 @@ extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 2;
-		final A_BasicObject var = args.get(0);
+		final A_Variable var = args.get(0);
 		final AvailObject value = args.get(1);
 		try
 		{

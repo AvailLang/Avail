@@ -484,7 +484,7 @@ extends AbstractTypeDescriptor
 	@Override @AvailMethod
 	final boolean o_IsBetterRepresentationThanTupleType (
 		final AvailObject object,
-		final A_BasicObject aTupleType)
+		final A_Type aTupleType)
 	{
 		return true;
 	}

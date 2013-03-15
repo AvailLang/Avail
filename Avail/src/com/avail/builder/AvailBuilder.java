@@ -500,7 +500,7 @@ public final class AvailBuilder
 				fileReference.lastModified());
 			final ByteArrayInputStream inputStream =
 				new ByteArrayInputStream(bytes);
-			final AvailObject module = ModuleDescriptor.newModule(
+			final A_Module module = ModuleDescriptor.newModule(
 				StringDescriptor.from(moduleName.qualifiedName()));
 			final AvailLoader loader = new AvailLoader(module);
 			final Deserializer deserializer = new Deserializer(
@@ -508,10 +508,9 @@ public final class AvailBuilder
 			deserializer.currentModule(module);
 			try
 			{
-				AvailObject tag = deserializer.deserialize();
+				A_Atom tag = deserializer.deserialize();
 				if (tag != null &&
-					!tag.equals(
-						AtomDescriptor.moduleHeaderSectionAtom()))
+					!tag.equals(AtomDescriptor.moduleHeaderSectionAtom()))
 				{
 					throw new RuntimeException(
 						"Expected module header tag");
@@ -539,6 +538,7 @@ public final class AvailBuilder
 				module.removeFrom(loader);
 				throw e;
 			}
+			loader.createFilteredBundleTree();
 
 			// Run each zero-argument block, one after another.
 			final MutableOrNull<Continuation1<AvailObject>> runNext =
@@ -550,7 +550,7 @@ public final class AvailBuilder
 				@Override
 				public void value (final @Nullable AvailObject ignored)
 				{
-					final AvailObject function;
+					final A_Function function;
 					try
 					{
 						function = deserializer.deserialize();
@@ -683,11 +683,11 @@ public final class AvailBuilder
 									lastPosition.value = localPosition;
 								}
 							},
-							new Continuation1<AvailObject>()
+							new Continuation1<A_Module>()
 							{
 								@Override
 								public void value (
-									final @Nullable AvailObject module)
+									final @Nullable A_Module module)
 								{
 									final File fileReference =
 										moduleName.fileReference();

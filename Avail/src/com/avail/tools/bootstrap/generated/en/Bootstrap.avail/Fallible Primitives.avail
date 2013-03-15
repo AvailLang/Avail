@@ -753,20 +753,20 @@ Primitive "method for_" is
 ] : method;
 
 /**
- * Lookup a definition of the specified method given the tuple of parameter
- * types.
+ * Lookup a definition of the method with the given name, given the
+ * tuple of parameter types.
  *
  * Parameters:
- *    aMethod - A method.
+ *    methodName - The name of the method.
  *    parameterTypes - A tuple of parameter types. This must agree in length
  *       with the number of parameters expected by the method.
  * Returns:
- *    The unique definition of `aMethod` that best accords with the
+ *    The unique definition of `methodName` that best accords with the
  *    specified parameter types.
  */
 Primitive "method definition of_for_" is
 [
-	aMethod : method,
+	methodName : atom,
 	parameterTypes : tuple of any meta
 |
 	Primitive 222 (failureCode : natural number);
@@ -848,20 +848,20 @@ Primitive "Abstract method_is_" is
 ] : ⊤;
 
 /**
- * Does the specified method have a unique definition for the given tuple
- * of parameter types?
+ * Does the method whose bundle has the specified name have a unique definition
+ * for the given tuple of parameter types?
  *
  * Parameters:
- *    aMethod - A method.
+ *    methodName - A method name (an atom).
  *    parameterTypes - A tuple of parameter types. This must agree in length
  *       with the number of parameters expected by the method.
  * Returns:
- *    `true` if `aMethod` has a unique definition for the specified parameter
+ *    `true` if `methodName` has a unique definition for the specified parameter
  *    types, `false` otherwise.
  */
 Primitive "_has definition for_" is
 [
-	aMethod : method,
+	methodName : atom,
 	parameterTypes : tuple of any meta
 |
 	Primitive 229 (failureCode : natural number);
@@ -1298,21 +1298,21 @@ Primitive "generate_" is
 ] : function;
 
 /**
- * Construct and answer a message send. `aMethod` must refer to an actual
- * method. The number and types of the argument expressions must satisfy exactly
- * one of the method's existing signatures.
+ * Construct and answer a message send. `messageName` must be an atom which has
+ * a message bundle.  The number and types of the argument expressions must
+ * satisfy at least one of the method's existing definitions.
  *
  * Parameters:
- *    aMethod - The target method.
- *    argumentsList - The list phrase containing the argument expressions, corresponding
- *       left-to-right with the arguments of the method.
+ *    messageName - The name of the method to be invoked.
+ *    argumentsList - The list phrase containing the argument expressions,
+ *       corresponding left-to-right with the arguments of the method.
  *    returnType - The expected (strengthened) return type of the method send.
  * Returns:
  *    The requested message send.
  */
 Primitive "send_with_:_" is
 [
-	aMethod : method,
+	messageName : atom,
 	argumentsList : list phrase,
 	returnType : type
 |

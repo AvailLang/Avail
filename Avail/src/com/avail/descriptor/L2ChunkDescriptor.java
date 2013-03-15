@@ -289,35 +289,6 @@ extends Descriptor
 		return object.slot(NUM_OBJECTS);
 	}
 
-	@Override @AvailMethod @Deprecated
-	boolean o_IsSaved (final AvailObject object)
-	{
-		if (isShared())
-		{
-			synchronized (object)
-			{
-				return object.slot(SAVED) != 0;
-			}
-		}
-		return object.slot(SAVED) != 0;
-	}
-
-	@Override @AvailMethod @Deprecated
-	void o_IsSaved (final AvailObject object, final boolean aBoolean)
-	{
-		if (isShared())
-		{
-			synchronized (object)
-			{
-				object.setSlot(SAVED, aBoolean ? 1 : 0);
-			}
-		}
-		else
-		{
-			object.setSlot(SAVED, aBoolean ? 1 : 0);
-		}
-	}
-
 	@Override @AvailMethod
 	boolean o_IsValid (final AvailObject object)
 	{
@@ -371,7 +342,7 @@ extends Descriptor
 	 * @author Mark van Gulik &lt;mark@availlang.org&gt;
 	 */
 	static class WeakChunkReference
-	extends WeakReference<AvailObject>
+	extends WeakReference<A_Chunk>
 	{
 		/**
 		 * The finalization queue onto which {@linkplain L2ChunkDescriptor level
@@ -382,8 +353,8 @@ extends Descriptor
 		 * int, int, int, List, Set) allocation} of a new chunk. If this queue
 		 * is empty, a fresh index is allocated.
 		 */
-		static final ReferenceQueue<AvailObject> recyclingQueue =
-			new ReferenceQueue<AvailObject>();
+		static final ReferenceQueue<A_Chunk> recyclingQueue =
+			new ReferenceQueue<A_Chunk>();
 
 		/**
 		 * The {@linkplain L2ChunkDescriptor.IntegerSlots#INDEX index} of the
@@ -398,7 +369,7 @@ extends Descriptor
 		 * adding or removing a {@linkplain DefinitionDescriptor method
 		 * implementation}), this chunk will be immediately invalidated.
 		 */
-		final Set<AvailObject> contingentMethods;
+		final Set<A_Method> contingentMethods;
 
 		/**
 		 * Construct a new {@link WeakChunkReference}.
@@ -406,12 +377,12 @@ extends Descriptor
 		 * @param chunk
 		 *        The chunk to be wrapped with a weak reference.
 		 * @param contingentMethods
-		 *        The {@linkplain MethodDescriptor methods} on which this chunk
-		 *        depends.
+		 *        The {@link Set} of {@linkplain MethodDescriptor methods} on
+		 *        which this chunk depends.
 		 */
 		public WeakChunkReference (
-			final AvailObject chunk,
-			final Set<AvailObject> contingentMethods)
+			final A_Chunk chunk,
+			final Set<A_Method> contingentMethods)
 		{
 			super(chunk, recyclingQueue);
 			this.index = chunk.slot(INDEX);
@@ -516,12 +487,12 @@ extends Descriptor
 	 *        A {@link List} of {@linkplain Integer}s that encode the
 	 *        {@linkplain L2Instruction}s to execute in place of the level
 	 *        one nybblecodes.
-	 * @param contingentSets
+	 * @param contingentMethods
 	 *        A {@link Set} of {@linkplain MethodDescriptor methods} on which
 	 *        the level two chunk depends.
 	 * @return The new level two chunk.
 	 */
-	public static AvailObject allocate (
+	public static A_Chunk allocate (
 		final @Nullable A_RawFunction code,
 		final List<A_BasicObject> listOfLiterals,
 		final List<List<Integer>> listOfVectors,
@@ -529,10 +500,10 @@ extends Descriptor
 		final int numIntegers,
 		final int numFloats,
 		final List<Integer> theWordcodes,
-		final Set<AvailObject> contingentSets)
+		final Set<A_Method> contingentMethods)
 	{
-		final List<A_BasicObject> vectorTuples =
-			new ArrayList<A_BasicObject>(listOfVectors.size());
+		final List<A_Tuple> vectorTuples =
+			new ArrayList<A_Tuple>(listOfVectors.size());
 		for (final List<Integer> vector : listOfVectors)
 		{
 			final A_Tuple vectorTuple =
@@ -546,7 +517,7 @@ extends Descriptor
 		final A_Tuple wordcodesTuple =
 			TupleDescriptor.fromIntegerList(theWordcodes);
 		wordcodesTuple.makeImmutable();
-		final AvailObject chunk = mutable.create(listOfLiterals.size());
+		final A_Chunk chunk = mutable.create(listOfLiterals.size());
 		// A new chunk starts out saved and valid.
 		chunk.setSlot(SAVED, 1);
 		chunk.setSlot(VALID, 1);
@@ -564,10 +535,10 @@ extends Descriptor
 		chunksLock.lock();
 		try
 		{
-			final ReferenceQueue<AvailObject> queue =
+			final ReferenceQueue<A_Chunk> queue =
 				WeakChunkReference.recyclingQueue;
 			assert queue != null;
-			final Reference<? extends AvailObject> recycledReference =
+			final Reference<? extends A_Chunk> recycledReference =
 				queue.poll();
 			if (recycledReference != null)
 			{
@@ -593,7 +564,7 @@ extends Descriptor
 			chunk.setSlot(INDEX, index);
 			final WeakChunkReference newReference = new WeakChunkReference(
 				chunk,
-				contingentSets);
+				contingentMethods);
 			allChunksWeakly.set(index, newReference);
 			chunk.makeImmutable();
 		}
@@ -613,7 +584,7 @@ extends Descriptor
 				chunk,
 				L2ChunkDescriptor.countdownForNewlyOptimizedCode());
 		}
-		for (final A_Method method : contingentSets)
+		for (final A_Method method : contingentMethods)
 		{
 			method.addDependentChunkIndex(index);
 		}
@@ -643,7 +614,7 @@ extends Descriptor
 		{
 			final WeakChunkReference ref = allChunksWeakly.get(chunkIndex);
 			assert ref.index == chunkIndex;
-			final AvailObject chunk = ref.get();
+			final A_Chunk chunk = ref.get();
 			if (chunk != null)
 			{
 				chunk.setSlot(VALID, 0);
@@ -660,8 +631,8 @@ extends Descriptor
 						NilDescriptor.nil());
 				}
 			}
-			final Set<AvailObject> impSets = ref.contingentMethods;
-			for (final A_Method method : impSets)
+			final Set<A_Method> methods = ref.contingentMethods;
+			for (final A_Method method : methods)
 			{
 				method.removeDependentChunkIndex(chunkIndex);
 			}

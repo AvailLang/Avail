@@ -58,6 +58,11 @@ extends DefinitionDescriptor
 		DEFINITION_METHOD,
 
 		/**
+		 * The {@link ModuleDescriptor module} in which this definition occurs.
+		 */
+		MODULE,
+
+		/**
 		 * The {@linkplain FunctionTypeDescriptor function type} for which this
 		 * signature is being specified.
 		 */
@@ -67,6 +72,8 @@ extends DefinitionDescriptor
 		{
 			assert DefinitionDescriptor.ObjectSlots.DEFINITION_METHOD.ordinal()
 				== DEFINITION_METHOD.ordinal();
+			assert DefinitionDescriptor.ObjectSlots.MODULE.ordinal()
+				== MODULE.ordinal();
 		}
 	}
 
@@ -108,6 +115,8 @@ extends DefinitionDescriptor
 	 * @param definitionMethod
 	 *            The {@linkplain MethodDescriptor method} for which this
 	 *            definition occurs.
+	 * @param definitionModule
+	 *            The module in which this definition is added.
 	 * @param bodySignature
 	 *            The function type at which this abstract method signature will
 	 *            be stored in the hierarchy of multimethods.
@@ -116,10 +125,12 @@ extends DefinitionDescriptor
 	 */
 	public static AvailObject create (
 		final A_BasicObject definitionMethod,
+		final A_Module definitionModule,
 		final A_Type bodySignature)
 	{
 		final AvailObject instance = mutable.create();
 		instance.setSlot(ObjectSlots.DEFINITION_METHOD, definitionMethod);
+		instance.setSlot(ObjectSlots.MODULE, definitionModule);
 		instance.setSlot(ObjectSlots.BODY_SIGNATURE, bodySignature);
 		instance.makeShared();
 		return instance;

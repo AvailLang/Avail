@@ -47,8 +47,9 @@ public class P_216_DefinitionBodySignature extends Primitive
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_216_DefinitionBodySignature().init(
-		1, CannotFail, CanFold, CanInline);
+	public final static Primitive instance =
+		new P_216_DefinitionBodySignature().init(
+			1, CannotFail, CanFold, CanInline);
 
 	@Override
 	public Result attempt (
@@ -56,9 +57,9 @@ public class P_216_DefinitionBodySignature extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
-		final A_BasicObject sig = args.get(0);
+		final A_Definition definition = args.get(0);
 		return interpreter.primitiveSuccess(
-			sig.bodySignature().makeImmutable());
+			definition.bodySignature().makeImmutable());
 	}
 
 	@Override

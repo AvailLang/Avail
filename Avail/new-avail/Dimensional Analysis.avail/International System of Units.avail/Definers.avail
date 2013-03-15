@@ -77,13 +77,13 @@ _prefixes ::=
 Public method "prefixes" is [_prefixes];
 
 /* These methods are needed for scaling function synthesis. */
-metricM ::= method for $"_'s⁇metric";
-scaleFactorM ::= method for $"_'s⁇scale factor";
-minusM ::= method for subtraction atom;
-powerM ::= method for exponentiation atom;
-extentM ::= method for $"_'s⁇extent";
-timesM ::= method for multiplication atom;
-juxtapositionM ::= method for atom for "__";
+metricAtom ::= $"_'s⁇metric";
+scaleFactorAtom ::= $"_'s⁇scale factor";
+minusAtom ::= subtraction atom;
+powerAtom ::= exponentiation atom;
+extentAtom ::= $"_'s⁇extent";
+timesAtom ::= multiplication atom;
+juxtapositionAtom ::= atom for "__";
 
 /**
  * Construct and answer a scaling function suitable for converting between
@@ -106,18 +106,18 @@ Private method "SI scaling function for_" is
 	args ::=
 		<arg «`"quantity"` : quantityType», arg «`"aUnit"` : unitType»>;
 	/* Construct the expression to obtain the scaling factor. */
-	metricSend ::= send metricM with «<«↓args[1]»>» : SI unit;
-	minuend ::= send scaleFactorM with «<metricSend>» : integer;
-	subtrahend ::= send scaleFactorM with «<«↓args[2]»>» : integer;
-	exponent ::= send minusM with «<minuend, subtrahend>» : integer;
-	scaleFactor ::= send powerM with «<‘`10`’, exponent>» : number;
+	metricSend ::= send metricAtom with «<«↓args[1]»>» : SI unit;
+	minuend ::= send scaleFactorAtom with «<metricSend>» : integer;
+	subtrahend ::= send scaleFactorAtom with «<«↓args[2]»>» : integer;
+	exponent ::= send minusAtom with «<minuend, subtrahend>» : integer;
+	scaleFactor ::= send powerAtom with «<‘`10`’, exponent>» : number;
 	/* Construct the expression to obtain the scaled magnitude. */
-	extentSend ::= send extentM with «<«↓args[1]»>» : double;
-	scaled ::= send timesM with «<extentSend, scaleFactor>» : double;
+	extentSend ::= send extentAtom with «<«↓args[1]»>» : double;
+	scaled ::= send timesAtom with «<extentSend, scaleFactor>» : double;
 	/* Construct the expression to obtain the resultant SI dimensioned
 	 * quantity.
 	 */
-	juxtapositionSend ::= send juxtapositionM
+	juxtapositionSend ::= send juxtapositionAtom
 		with «<scaled, «↓args[2]»>»
 		: quantityType;
 	/* Construct and answer the requested function. */
@@ -237,9 +237,9 @@ Public method "_(_)is an SI derived unit equivalent to_" is
 			Prefer shortName for printing aUnit in a dimensioned quantity;
 			aUnit
 		];
-	conversionMethod ::= method for conversion atom;
+	conversionAtom ::= conversion atom;
 	quantityType ::= extend SI dimensioned quantity with metric : unitType;
-	Unless conversionMethod has definition for <quantityType, unitType> then
+	Unless conversionAtom has definition for <quantityType, unitType> then
 	[
 		scalingFunction ::= SI scaling function for unitType;
 		Method conversion atom is scalingFunction;

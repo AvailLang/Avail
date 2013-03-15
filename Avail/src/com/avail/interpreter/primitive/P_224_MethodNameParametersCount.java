@@ -41,9 +41,9 @@ import com.avail.exceptions.SignatureException;
 import com.avail.interpreter.*;
 
 /**
- * <strong>Primitive 224</strong>: Treating the argument as a {@linkplain
- * MethodDescriptor method} name, answer the number of arguments expected for a
- * valid send of the name.
+ * <strong>Primitive 224</strong>: Treating the {@linkplain StringDescriptor
+ * string} argument as a {@linkplain MethodDescriptor method} name, answer the
+ * number of arguments expected for a valid send of the name.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
@@ -54,7 +54,8 @@ extends Primitive
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_224_MethodNameParametersCount().init(1, CanFold);
+		new P_224_MethodNameParametersCount().init(
+			1, CanFold, CanInline);
 
 	@Override
 	public Result attempt (

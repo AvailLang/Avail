@@ -158,10 +158,10 @@ public class AvailScanner
 	 * @return The newly added token.
 	 */
 	@InnerAccess
-	A_BasicObject addCurrentLiteralToken (
+	A_Token addCurrentLiteralToken (
 		final A_BasicObject anAvailObject)
 	{
-		final AvailObject token = LiteralTokenDescriptor.create(
+		final A_Token token = LiteralTokenDescriptor.create(
 			StringDescriptor.from(currentTokenString()),
 			startOfToken,
 			lineNumber,

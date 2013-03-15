@@ -51,7 +51,7 @@ extends Primitive
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_230_ExistsMethodWithName().init(1, CannotFail, CanFold);
+		new P_230_ExistsMethodWithName().init(1, CannotFail, CanInline);
 
 	@Override
 	public Result attempt (
@@ -59,11 +59,10 @@ extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
-		final AvailObject trueName = args.get(0);
-		final A_BasicObject method =
-			interpreter.runtime().methodAt(trueName);
+		final A_Atom trueName = args.get(0);
+		final A_Bundle bundle = trueName.bundleOrNil();
 		return interpreter.primitiveSuccess(AtomDescriptor.objectFromBoolean(
-			!method.equalsNil()));
+			!bundle.equalsNil()));
 	}
 
 	@Override

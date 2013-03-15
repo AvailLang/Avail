@@ -61,9 +61,9 @@ extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
-		final AvailObject filename = args.get(0);
-		final AvailObject handle =
-			AtomWithPropertiesDescriptor.create(filename, NilDescriptor.nil());
+		final A_String filename = args.get(0);
+		final A_Atom handle =
+			AtomDescriptor.create(filename, NilDescriptor.nil());
 		try
 		{
 			final RandomAccessFile file = new RandomAccessFile(

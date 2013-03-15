@@ -48,7 +48,7 @@ extends A_BasicObject
 	/**
 	 * @return
 	 */
-	AvailObject bundleMethod ();
+	A_Method bundleMethod ();
 
 	/**
 	 * Dispatch to the descriptor.

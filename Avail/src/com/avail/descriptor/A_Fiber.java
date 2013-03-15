@@ -92,12 +92,12 @@ extends A_BasicObject
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	AvailObject continuation ();
+	A_Continuation continuation ();
 
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	void continuation (A_BasicObject value);
+	void continuation (A_Continuation value);
 
 	/**
 	 * Dispatch to the descriptor.

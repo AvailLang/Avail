@@ -61,7 +61,7 @@ extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 0;
-		final AvailObject module = ModuleDescriptor.current();
+		final A_Module module = ModuleDescriptor.current();
 		if (module.equalsNil())
 		{
 			return interpreter.primitiveFailure(E_LOADING_IS_OVER);

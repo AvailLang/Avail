@@ -40,7 +40,6 @@ import java.util.*;
 import com.avail.AvailRuntime;
 import com.avail.annotations.*;
 import com.avail.compiler.*;
-import com.avail.exceptions.SignatureException;
 import com.avail.utility.Mutable;
 
 /**
@@ -448,58 +447,16 @@ extends Descriptor
 					bundle,
 					true);
 				object.setSlot(ALL_BUNDLES, allBundles.makeShared());
-				A_Map unclassified = object.slot(UNCLASSIFIED);
-				assert !unclassified.hasKey(message);
+			}
+			A_Map unclassified = object.slot(UNCLASSIFIED);
+			if (!unclassified.hasKey(message))
+			{
 				unclassified = unclassified.mapAtPuttingCanDestroy(
 					message,
 					bundle,
 					true);
 				object.setSlot(UNCLASSIFIED, unclassified.makeShared());
 			}
-		}
-	}
-
-	/**
-	 * If there isn't one already, create a bundle with the specified name.
-	 * Answer the new or existing bundle.
-	 */
-	@Override @AvailMethod
-	AvailObject o_IncludeBundleNamed (
-		final AvailObject object,
-		final A_Atom messageBundleName,
-		final A_BasicObject method)
-	{
-		synchronized (object)
-		{
-			A_Map allBundles = object.slot(ALL_BUNDLES);
-			if (allBundles.hasKey(messageBundleName))
-			{
-				return allBundles.mapAt(messageBundleName);
-			}
-			final AvailObject newBundle;
-			try
-			{
-				newBundle = MessageBundleDescriptor.newBundle(
-					messageBundleName,
-					method);
-			}
-			catch (final SignatureException e)
-			{
-				// Signature should have been pre-checked already.
-				throw new RuntimeException(e);
-			}
-			allBundles = allBundles.mapAtPuttingCanDestroy(
-				messageBundleName,
-				newBundle,
-				true);
-			object.setSlot(ALL_BUNDLES, allBundles.makeShared());
-			A_Map unclassified = object.slot(UNCLASSIFIED);
-			unclassified = unclassified.mapAtPuttingCanDestroy(
-				messageBundleName,
-				newBundle,
-				true);
-			object.setSlot(UNCLASSIFIED, unclassified.makeShared());
-			return newBundle;
 		}
 	}
 
@@ -622,8 +579,6 @@ extends Descriptor
 		final Mutable<A_Map> prefilterMap,
 		final int pc)
 	{
-		//TODO[MvG] Let the bundles directly hold methods in addition to the
-		//name by which they're referring to it.
 		if (bundle.bundleMethod().definitionsTuple().tupleSize() == 0)
 		{
 			// There are no definitions of this method, so there's no reason
@@ -787,13 +742,13 @@ extends Descriptor
 	 * lazy structures.</p>
 	 */
 	@Override
-	void o_FlushForNewOrChangedBundleNamed (
+	void o_FlushForNewOrChangedBundle (
 		final AvailObject object,
-		final A_Atom message)
+		final A_Bundle bundle)
 	{
-		final AvailObject allBundles = object.slot(ALL_BUNDLES);
-		assert allBundles.hasKey(message);
-		if (!object.slot(UNCLASSIFIED).hasKey(message))
+		final A_Map allBundles = object.slot(ALL_BUNDLES);
+		assert allBundles.hasKey(bundle.message());
+		if (!object.slot(UNCLASSIFIED).hasKey(bundle))
 		{
 			// It has been classified already, so flush the lazy structures
 			// for safety, moving everything back to unclassified.
@@ -817,15 +772,16 @@ extends Descriptor
 	public static AvailObject newPc (final int pc)
 	{
 		final AvailObject result = mutable.create();
+		final A_Map emptyMap = MapDescriptor.empty();
 		result.setSlot(PARSING_PC, pc);
 		result.setSlot(HASH_OR_ZERO, 0);
-		result.setSlot(ALL_BUNDLES, MapDescriptor.empty());
-		result.setSlot(UNCLASSIFIED, MapDescriptor.empty());
-		result.setSlot(LAZY_COMPLETE, MapDescriptor.empty());
-		result.setSlot(LAZY_INCOMPLETE, MapDescriptor.empty());
-		result.setSlot(LAZY_INCOMPLETE_CASE_INSENSITIVE, MapDescriptor.empty());
-		result.setSlot(LAZY_ACTIONS, MapDescriptor.empty());
-		result.setSlot(LAZY_PREFILTER_MAP, MapDescriptor.empty());
+		result.setSlot(ALL_BUNDLES, emptyMap);
+		result.setSlot(UNCLASSIFIED, emptyMap);
+		result.setSlot(LAZY_COMPLETE, emptyMap);
+		result.setSlot(LAZY_INCOMPLETE, emptyMap);
+		result.setSlot(LAZY_INCOMPLETE_CASE_INSENSITIVE, emptyMap);
+		result.setSlot(LAZY_ACTIONS, emptyMap);
+		result.setSlot(LAZY_PREFILTER_MAP, emptyMap);
 		result.makeShared();
 		return result;
 	}

@@ -365,21 +365,6 @@ public interface A_BasicObject
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	A_Function bodyBlock ();
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	A_Type bodySignature ();
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	void clearValue ();
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
 	int codePoint ();
 
 	/**
@@ -696,11 +681,6 @@ public interface A_BasicObject
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	AvailObject getValue ();
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
 	int hashOrZero ();
 
 	/**
@@ -721,13 +701,8 @@ public interface A_BasicObject
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	boolean isAbstractDefinition ();
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
 	boolean isBetterRepresentationThanTupleType (
-		A_BasicObject aTupleType);
+		A_Type aTupleType);
 
 	/**
 	 * Dispatch to the descriptor.
@@ -794,22 +769,6 @@ public interface A_BasicObject
 	 * Dispatch to the descriptor.
 	 */
 	boolean isFinite ();
-
-	/**
-	 * Is the {@linkplain AvailObject receiver} a {@linkplain
-	 * ForwardDefinitionDescriptor forward declaration site}?
-	 *
-	 * @return {@code true} if the receiver is a forward declaration site.
-	 */
-	boolean isForwardDefinition ();
-
-	/**
-	 * Is the {@linkplain AvailObject receiver} a {@linkplain
-	 * MethodDefinitionDescriptor method definition}?
-	 *
-	 * @return {@code true} if the receiver is a method definition.
-	 */
-	boolean isMethodDefinition ();
 
 	/**
 	 * Dispatch to the descriptor.
@@ -933,11 +892,6 @@ public interface A_BasicObject
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	void postFault ();
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
 	A_BasicObject privateAddElement (A_BasicObject element);
 
 	/**
@@ -975,22 +929,7 @@ public interface A_BasicObject
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	void readBarrierFault ();
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
 	void scanSubobjects (AvailSubobjectVisitor visitor);
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	void setValue (A_BasicObject newValue);
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	void setValueNoCheck (AvailObject newValue);
 
 	/**
 	 * Dispatch to the descriptor.
@@ -1062,11 +1001,6 @@ public interface A_BasicObject
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	AvailObject value ();
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
 	void value (A_BasicObject value);
 
 	/**
@@ -1088,11 +1022,6 @@ public interface A_BasicObject
 	 * @return
 	 */
 	A_BasicObject literalObject ();
-
-	/**
-	 * @return
-	 */
-	boolean isMacroDefinition ();
 
 	/**
 	 * Dispatch to the descriptor.
@@ -1479,19 +1408,6 @@ public interface A_BasicObject
 	boolean equalsParseNode (A_Phrase aParseNode);
 
 	/**
-	 * Answer the {@link MethodDescriptor method} that this {@link
-	 * DefinitionDescriptor definition} is for.
-	 *
-	 * @return The definition's method.
-	 */
-	A_Method definitionMethod ();
-
-	/**
-	 * @return
-	 */
-	A_Tuple prefixFunctions ();
-
-	/**
 	 * @return
 	 */
 	byte[] byteArray ();
@@ -1558,25 +1474,6 @@ public interface A_BasicObject
 	 * @return
 	 */
 	int mapBinValuesHash ();
-
-	/**
-	 * @param newValue
-	 * @return
-	 */
-	AvailObject getAndSetValue (AvailObject newValue);
-
-	/**
-	 * @param reference
-	 * @param newValue
-	 * @return
-	 */
-	boolean compareAndSwapValues (AvailObject reference, AvailObject newValue);
-
-	/**
-	 * @param addend
-	 * @return
-	 */
-	A_Number fetchAndAddValue (A_Number addend);
 
 	/**
 	 * @param aByteArrayTuple

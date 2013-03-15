@@ -69,7 +69,7 @@ extends Primitive
 		assert args.size() == 2;
 		final A_Set names = args.get(0);
 		final A_Atom isPublic = args.get(1);
-		final AvailObject module = ModuleDescriptor.current();
+		final A_Module module = ModuleDescriptor.current();
 		assert !module.equalsNil();
 		if (isPublic.extractBoolean())
 		{

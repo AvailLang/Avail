@@ -408,13 +408,12 @@ extends TypeDescriptor
 		final AvailObject object,
 		final List<? extends A_Type> argTypes)
 	{
-		final A_BasicObject tupleType = object.slot(ARGS_TUPLE_TYPE);
+		final A_Type tupleType = object.slot(ARGS_TUPLE_TYPE);
 		for (int i = 1, end = argTypes.size(); i <= end; i++)
 		{
 			final A_Type argType = tupleType.typeAtIndex(i);
 			final A_Type actualType = argTypes.get(i - 1);
-			final A_BasicObject intersection =
-				argType.typeIntersection(actualType);
+			final A_Type intersection = argType.typeIntersection(actualType);
 			if (intersection.equals(BottomTypeDescriptor.bottom()))
 			{
 				return false;
@@ -499,8 +498,7 @@ extends TypeDescriptor
 		A_Set exceptions = SetDescriptor.empty();
 		for (final A_Type outer : object.slot(DECLARED_EXCEPTIONS))
 		{
-			for (final A_Type inner
-				: aFunctionType.declaredExceptions())
+			for (final A_Type inner : aFunctionType.declaredExceptions())
 			{
 				exceptions = exceptions.setWithElementCanDestroy(
 					outer.typeIntersection(inner),

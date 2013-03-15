@@ -125,7 +125,7 @@ public class AvailCodeGenerator
 	/**
 	 * The module in which this code occurs.
 	 */
-	private final A_BasicObject module;
+	private final A_Module module;
 
 	/**
 	 * The line number on which this code starts.
@@ -165,7 +165,7 @@ public class AvailCodeGenerator
 	/**
 	 * @return The module in which code generation is deemed to take place.
 	 */
-	public A_BasicObject module ()
+	public A_Module module ()
 	{
 		return module;
 	}
@@ -188,7 +188,7 @@ public class AvailCodeGenerator
 	 * @return A function.
 	 */
 	public static A_RawFunction generateFunction (
-		final A_BasicObject module,
+		final A_Module module,
 		final A_Tuple argumentsTuple,
 		final int primitive,
 		final List<? extends A_Phrase> locals,
@@ -260,7 +260,7 @@ public class AvailCodeGenerator
 	 *                           function is purported to begin.
 	 */
 	private AvailCodeGenerator (
-		final A_BasicObject module,
+		final A_Module module,
 		final A_Tuple argumentsTuple,
 		final int primitive,
 		final List<? extends A_Phrase> locals,
@@ -273,7 +273,7 @@ public class AvailCodeGenerator
 	{
 		this.module = module;
 		numArgs = argumentsTuple.tupleSize();
-		for (final AvailObject argumentDeclaration : argumentsTuple)
+		for (final A_Phrase argumentDeclaration : argumentsTuple)
 		{
 			varMap.put(argumentDeclaration, varMap.size() + 1);
 		}
@@ -379,7 +379,7 @@ public class AvailCodeGenerator
 		final A_Tuple outerTuple = TupleDescriptor.from(outerArray);
 		final A_Type functionType =
 			FunctionTypeDescriptor.create(argsTuple, resultType, exceptionSet);
-		final AvailObject code = CompiledCodeDescriptor.create(
+		final A_RawFunction code = CompiledCodeDescriptor.create(
 			nybbleTuple,
 			varMap.size() - numArgs,
 			maxDepth,
@@ -441,16 +441,16 @@ public class AvailCodeGenerator
 	 * pushed already.
 	 *
 	 * @param nArgs The number of arguments that the method accepts.
-	 * @param method The method in which to look up the
-	 *                          method being invoked.
+	 * @param bundle The message bundle for the method in which to look up the
+	 *               method definition being invoked.
 	 * @param returnType The expected return type of the call.
 	 */
 	public void emitCall (
 		final int nArgs,
-		final AvailObject method,
+		final A_Bundle bundle,
 		final A_Type returnType)
 	{
-		final int messageIndex = indexOfLiteral(method);
+		final int messageIndex = indexOfLiteral(bundle);
 		final int returnIndex = indexOfLiteral(returnType);
 		instructions.add(new AvailCall(messageIndex, returnIndex));
 		// Pops off arguments.
@@ -471,10 +471,10 @@ public class AvailCodeGenerator
 	 *        needs to access.
 	 */
 	public void emitCloseCode (
-		final A_BasicObject compiledCode,
+		final A_RawFunction compiledCode,
 		final A_Tuple neededVariables)
 	{
-		for (final A_BasicObject variableDeclaration : neededVariables)
+		for (final A_Phrase variableDeclaration : neededVariables)
 		{
 			emitPushLocalOrOuter(variableDeclaration);
 		}

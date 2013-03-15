@@ -57,6 +57,11 @@ extends DefinitionDescriptor
 		DEFINITION_METHOD,
 
 		/**
+		 * The {@link ModuleDescriptor module} in which this definition occurs.
+		 */
+		MODULE,
+
+		/**
 		 * The {@linkplain FunctionDescriptor function} to invoke when this
 		 * message is sent with applicable arguments.
 		 */
@@ -66,6 +71,8 @@ extends DefinitionDescriptor
 		{
 			assert DefinitionDescriptor.ObjectSlots.DEFINITION_METHOD.ordinal()
 				== DEFINITION_METHOD.ordinal();
+			assert DefinitionDescriptor.ObjectSlots.MODULE.ordinal()
+				== MODULE.ordinal();
 		}
 	}
 
@@ -108,9 +115,11 @@ extends DefinitionDescriptor
 	/**
 	 * Create a new method signature from the provided arguments.
 	 *
-	 * @param method
+	 * @param definitionMethod
 	 *            The {@linkplain MethodDescriptor method} for which to create
 	 *            a new method definition.
+	 * @param definitionModule
+	 *            The module in which this definition is added.
 	 * @param bodyBlock
 	 *            The body of the signature.  This will be invoked when the
 	 *            message is sent, assuming the argument types match and there
@@ -119,11 +128,13 @@ extends DefinitionDescriptor
 	 *            A method signature.
 	 */
 	public static AvailObject create (
-		final A_Method method,
+		final A_Method definitionMethod,
+		final A_Module definitionModule,
 		final A_Function bodyBlock)
 	{
 		final AvailObject instance = mutable.create();
-		instance.setSlot(ObjectSlots.DEFINITION_METHOD, method);
+		instance.setSlot(ObjectSlots.DEFINITION_METHOD, definitionMethod);
+		instance.setSlot(ObjectSlots.MODULE, definitionModule);
 		instance.setSlot(ObjectSlots.BODY_BLOCK, bodyBlock);
 		instance.makeShared();
 		return instance;

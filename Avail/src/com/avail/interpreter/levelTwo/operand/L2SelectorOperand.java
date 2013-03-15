@@ -40,8 +40,9 @@ import com.avail.utility.*;
 
 /**
  * An {@code L2SelectorOperand} is an operand of type {@link
- * L2OperandType#SELECTOR}.  It also holds the actual {@link AvailObject} that
- * is the {@linkplain MethodDescriptor method} to invoke.
+ * L2OperandType#SELECTOR}.  It holds the {@linkplain MessageBundleDescriptor
+ * message bundle} that knows the {@linkplain MethodDescriptor method} to
+ * invoke.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
@@ -50,18 +51,21 @@ public class L2SelectorOperand extends L2Operand
 	/**
 	 * The actual {@linkplain MethodDescriptor method}.
 	 */
-	public final AvailObject method;
+	public final A_Bundle bundle;
 
 	/**
 	 * Construct a new {@link L2SelectorOperand} with the specified {@linkplain
-	 * MethodDescriptor method}.
+	 * MessageBundleDescriptor message bundle}.
 	 *
-	 * @param method The method to invoke.
+	 * @param bundle The message bundle that holds the {@linkplain
+	 *               MethodDescriptor method} in which to look up the
+	 *               {@linkplain MethodDefinitionDescriptor method definition}
+	 *               to ultimately invoke.
 	 */
 	public L2SelectorOperand (
-		final AvailObject method)
+		final A_Bundle bundle)
 	{
-		this.method = method;
+		this.bundle = bundle;
 	}
 
 	@Override
@@ -88,12 +92,12 @@ public class L2SelectorOperand extends L2Operand
 	public void emitOn (
 		final L2CodeGenerator codeGenerator)
 	{
-		codeGenerator.emitLiteral(method);
+		codeGenerator.emitLiteral(bundle);
 	}
 
 	@Override
 	public String toString ()
 	{
-		return String.format("Selector(%s)", method.originalName().name());
+		return String.format("Selector(%s)", bundle.message().name());
 	}
 }

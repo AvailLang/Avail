@@ -57,12 +57,12 @@ Names
 Body
 
 /* These methods are needed for autogeneration of stable method restrictions. */
-equalsM ::= method for atom for "_=_";
-ifThenElseM ::= method for atom for "If|if_then_else_";
-instanceCountM ::= method for atom for "`|_`|";
-instanceM ::= method for atom for "_'s⁇instance";
-setM ::= method for atom for "{«_‡,»}";
-typeM ::= method for atom for "_'s⁇type";
+equalsAtom ::= atom for "_=_";
+ifThenElseAtom ::= atom for "If|if_then_else_";
+instanceCountAtom ::= atom for "`|_`|";
+instanceAtom ::= atom for "_'s⁇instance";
+setAtom ::= atom for "{«_‡,»}";
+typeAtom ::= atom for "_'s⁇type";
 
 /**
  * Declare that the method referenced by `methodName` is stable for the given
@@ -73,7 +73,7 @@ typeM ::= method for atom for "_'s⁇type";
  * 
  * @method "Method_is stable at_"
  * @param "methodName" "string"
- *        The name of the stable.
+ *        The name of the stable method.
  * @param "functionType" "function meta"
  *        The signature of the method that is being declared stable.
  * @returns "⊤"
@@ -155,7 +155,6 @@ Public method "Method_is stable at_" is
 	 * parameter types. Note that we do not actually have to synthesize an
 	 * invocation of "(_)" or "<«_‡,»>".
 	 */
-	theMethod ::= method for methodName;
 	resultType ::= functionType's return type's type;
 	argDecls : <<>, argument phrase…|whole number> := <>;
 	setContents :
@@ -164,7 +163,7 @@ Public method "Method_is stable at_" is
 	/* Construct the tuples of argument declarations, the contents of the
 	 * instance count set, and the tuple of instances.
 	 */
-	From 1 to |theMethod's parameters| do
+	From 1 to |message methodName's name's parameters| do
 	[
 		index : natural number
 	|
@@ -173,7 +172,7 @@ Public method "Method_is stable at_" is
 		argDecls := cast concatenate <eject ↑argDecls, <argDecl>>
 			into [t : <<>, argument phrase…|whole number> | t];
 		instanceCount ::=
-			send instanceCountM
+			send instanceCountAtom
 			with «<«↓argDecl»>»
 			: nonnegative extended integer;
 		setContents :=
@@ -183,19 +182,19 @@ Public method "Method_is stable at_" is
 			|
 				t
 			];
-		instance ::= send instanceM with «<«↓argDecl»>» : any;
+		instance ::= send instanceAtom with «<«↓argDecl»>» : any;
 		instances := cast concatenate <eject ↑instances, <instance>>
 			into [t : <<>, send phrase⇒any…|whole number> | t];
 		true
 	];
-	instanceCountSet ::= send setM with «<setContents→list phrase>» : set;
-	oneSet ::= send setM with «<«<‘`1`’>»>» : {1}'s type;
-	equals ::= send equalsM with «<instanceCountSet, oneSet>» : boolean;
-	answer ::= send theMethod with instances→list phrase : any;
-	answerType ::= send typeM with «<answer>» : resultType;
+	instanceCountSet ::= send setAtom with «<setContents→list phrase>» : set;
+	oneSet ::= send setAtom with «<«<‘`1`’>»>» : {1}'s type;
+	equals ::= send equalsAtom with «<instanceCountSet, oneSet>» : boolean;
+	answer ::= send methodName with instances→list phrase : any;
+	answerType ::= send typeAtom with «<answer>» : resultType;
 	answerTypeBlock ::= «[<answerType>] : resultType»;
 	cantStrengthenBlock ::= «[<‘`⊤`’>] : ⊤'s type»;
-	branch ::= send ifThenElseM
+	branch ::= send ifThenElseAtom
 		with «<equals, answerTypeBlock, cantStrengthenBlock>» : type;
 	restrictionBlock ::= «[argDecls | <branch>] : type»;
 	restrictionFunction ::= generate restrictionBlock;

@@ -386,15 +386,15 @@ Private method "accessor name for_" is
 ];
 
 /* These methods are needed for reconstructor synthesis. */
-toMapM ::= method for $"_→map";
-ejectM ::= method for $"eject_";
-addBindingM ::= method for $"_+_→_";
-toObjectM ::= method for $"_→object";
-toObjectTypeM ::= method for $"_→object type";
-mapAtM ::= method for $"_[_]";
-getM ::= method for $"↓_";
-readTypeM ::= method for $"_'s⁇read type";
-putM ::= method for $"↓_`?=_";
+toMapAtom ::= $"_→map";
+ejectAtom ::= $"eject_";
+addBindingAtom ::= $"_+_→_";
+toObjectAtom ::= $"_→object";
+toObjectTypeAtom ::= $"_→object type";
+mapAtAtom ::= $"_[_]";
+getAtom ::= $"↓_";
+readTypeAtom ::= $"_'s⁇read type";
+putAtom ::= $"↓_`?=_";
 
 /**
  * Generate the field accessor method for the specified field declaration.
@@ -414,8 +414,8 @@ Private method "generate_field accessor for_:_(mutable=_)" is
 	mutable : boolean
 |
 	args ::= <arg «`"x"` : objectType»>;
-	toMapMSend ::= send toMapM with «<«↓args[1]»>» : field map;
-	mapAtSend ::= send mapAtM
+	toMapMSend ::= send toMapAtom with «<«↓args[1]»>» : field map;
+	mapAtSend ::= send mapAtAtom
 		with «<toMapMSend, ‘`fieldAtom`’>» : fieldType;
 	resultType ::=
 		unless mutable then [fieldType]
@@ -428,7 +428,7 @@ Private method "generate_field accessor for_:_(mutable=_)" is
 		unless mutable then [mapAtSend]
 		else
 		[
-			getSend ::= send getM with «<mapAtSend>» : resultType;
+			getSend ::= send getAtom with «<mapAtSend>» : resultType;
 			getSend
 		];
 	newBlock ::= «[args | <last>] : resultType»;
@@ -454,8 +454,8 @@ Private method "generate_field accessor restriction for_:_(mutable=_)" is
 	mutable : boolean
 |
 	args ::= <arg «`"x"` : objectType's type»>;
-	toMapMSend ::= send toMapM with «<«↓args[1]»>» : field map;
-	mapAtSend ::= send mapAtM
+	toMapMSend ::= send toMapAtom with «<«↓args[1]»>» : field map;
+	mapAtSend ::= send mapAtAtom
 		with «<toMapMSend, ‘`fieldAtom`’>» : fieldType's type;
 	resultType ::=
 		unless mutable then [fieldType's type]
@@ -466,7 +466,7 @@ Private method "generate_field accessor restriction for_:_(mutable=_)" is
 		];
 	last ::=
 		unless mutable then [mapAtSend]
-		else [send readTypeM with «<mapAtSend>» : resultType];
+		else [send readTypeAtom with «<mapAtSend>» : resultType];
 	newBlock ::= «[args | <last>] : resultType»;
 	generate newBlock
 ];
@@ -509,11 +509,10 @@ Private method "Generate and install_accessor for«mutable»?_" is
 	 */
 	else
 	[
-		theMethod ::= method for methodAtom;
 		defineClassAccessor :=
-			¬theMethod has definition for <objectType's type>;
+			¬methodAtom has definition for <objectType's type>;
 		defineInstanceAccessor :=
-			¬theMethod has definition for <objectType>;
+			¬methodAtom has definition for <objectType>;
 	];
 	If defineClassAccessor then
 	[
@@ -608,8 +607,7 @@ Private method "Generate and install_referer for mutable_" is
 			/* If the method does already exist, then install a referer for the
 			 * object type iff one is not already present.
 			 */
-			theMethod ::= method for methodAtom;
-			¬theMethod has definition for <objectType>
+			¬methodAtom has definition for <objectType>
 		];
 	If defineReferer then
 	[
@@ -665,20 +663,19 @@ Private method "Generate and install_mutator for mutable_" is
 			/* If the method does already exist, then install a referer for the
 			 * object type iff one is not already present.
 			 */
-			theMethod ::= method for methodAtom;
 			varType ::= cast fieldType into [t : variable's type | t];
 			readType ::= cast varType's read type into [t : any's type | t];
-			¬theMethod has definition for <objectType, readType>
+			¬methodAtom has definition for <objectType, readType>
 		];
 	If defineMutator then
 	[
 		varType ::= cast fieldType into [t : variable's type | t];
 		readType ::= cast varType's read type into [t : any's type | t];
 		args ::= <arg «`"x"` : objectType», arg «`"v"` : readType»>;
-		toMapMSend ::= send toMapM with «<«↓args[1]»>» : field map;
-		mapAtSend ::= send mapAtM
+		toMapMSend ::= send toMapAtom with «<«↓args[1]»>» : field map;
+		mapAtSend ::= send mapAtAtom
 			with «<toMapMSend, ‘`fieldAtom`’>» : varType;
-		putSend ::= send putM with «<mapAtSend, «↓args[2]»>» : ⊤;
+		putSend ::= send putAtom with «<mapAtSend, «↓args[2]»>» : ⊤;
 		newBlock ::= «[args | <putSend>] : ⊤»;
 		impl ::= generate newBlock;
 		Method methodName is impl;
@@ -766,7 +763,7 @@ Private method "Generate and install_reconstructor for_" is
 	methodName ::= reconstructor name for fieldAtoms;
 	args ::= objectType reconstructor arguments for fieldAtoms;
 	/* Emit code to convert the object to a map. */
-	toMapMSend ::= send toMapM with «<«↓args[1]»>» : field map;
+	toMapMSend ::= send toMapAtom with «<«↓args[1]»>» : field map;
 	mapDecl ::= «`"objectMap"` : field map := toMapMSend»;
 	/* Emit code to migrate the target fields to their new values. */
 	assignments ::= map fieldAtoms through
@@ -774,8 +771,8 @@ Private method "Generate and install_reconstructor for_" is
 			fieldAtom : atom,
 			index : natural number
 		|
-			ejectSend ::= send ejectM with «<«↑«↓mapDecl»»>» : field map;
-			addBindingSend ::= send addBindingM
+			ejectSend ::= send ejectAtom with «<«↑«↓mapDecl»»>» : field map;
+			addBindingSend ::= send addBindingAtom
 				with «<ejectSend, ‘`fieldAtom`’, «↓args[index + 1]»>»
 				: field map;
 			««↓mapDecl» := addBindingSend»
@@ -793,12 +790,12 @@ Private method "Generate and install_reconstructor for_" is
 		[
 			varType ::= cast fieldType into [t : variable meta | t];
 			readType ::= cast varType's read type into [t : any meta | t];
-			mapAtSend ::= send mapAtM
+			mapAtSend ::= send mapAtAtom
 				with «<«↓mapDecl», ‘`fieldAtom`’>» : varType;
-			getSend ::= send getM with «<mapAtSend>» : readType;
+			getSend ::= send getAtom with «<mapAtSend>» : readType;
 			decl ::= «`fieldAtom's name` : readType := getSend»;
-			ejectSend ::= send ejectM with «<«↑«↓mapDecl»»>» : field map;
-			addBindingSend ::= send addBindingM
+			ejectSend ::= send ejectAtom with «<«↑«↓mapDecl»»>» : field map;
+			addBindingSend ::= send addBindingAtom
 				with «<ejectSend, ‘`fieldAtom`’, «↑«↓decl»»>»
 				: field map;
 			assignment ::= ««↓mapDecl» := addBindingSend»;
@@ -806,7 +803,7 @@ Private method "Generate and install_reconstructor for_" is
 		];
 	];
 	/* Convert the map back to an object. */
-	last ::= send toObjectM with «<«↓mapDecl»>» : objectType;
+	last ::= send toObjectAtom with «<«↓mapDecl»>» : objectType;
 	/* Build and install the implementation. */
 	statements ::= <mapDecl> ++ assignments ++ cloning ++ <last>;
 	newBlock ::= «[ args | statements ] : objectType»;
@@ -835,20 +832,20 @@ is
 	args ::= objectType reconstructor arguments for fieldAtoms
 		(for semantic restriction);
 	/* Construct the body of the semantic restriction method. */
-	toMapMSend ::= send toMapM with «<«↓args[1]»>» : field type map;
+	toMapMSend ::= send toMapAtom with «<«↓args[1]»>» : field type map;
 	mapDecl ::= «`"objectMap"` : field type map := toMapMSend»;
 	assignments ::= map fieldAtoms through
 		[
 			fieldAtom : atom,
 			index : natural number
 		|
-			ejectSend ::= send ejectM with «<«↑«↓mapDecl»»>» : field type map;
-			addBindingSend ::= send addBindingM
+			ejectSend ::= send ejectAtom with «<«↑«↓mapDecl»»>» : field type map;
+			addBindingSend ::= send addBindingAtom
 				with «<ejectSend, ‘`fieldAtom`’, «↓args[index + 1]»>»
 				: field type map;
 			««↓mapDecl» := addBindingSend»
 		];
-	last ::= send toObjectTypeM with «<«↓mapDecl»>» : objectType's type;
+	last ::= send toObjectTypeAtom with «<«↓mapDecl»>» : objectType's type;
 	statements ::= <mapDecl> ++ assignments ++ <last>;
 	newBlock ::= «[ args | statements ] : type»;
 	Semantic restriction methodName is generate newBlock;

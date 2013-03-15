@@ -354,6 +354,12 @@ extends TupleDescriptor
 		return hash * multiplier;
 	}
 
+	@Override @AvailMethod
+	int o_TupleSize (final AvailObject object)
+	{
+		return object.variableIntegerSlotsCount() * 4 - unusedBytesOfLastWord;
+	}
+
 	/**
 	 * Answer a mutable copy of object that also only holds bytes.
 	 *
@@ -375,12 +381,6 @@ extends TupleDescriptor
 				object.slot(IntegerSlots.RAW_QUAD_AT_, i));
 		}
 		return result;
-	}
-
-	@Override @AvailMethod
-	int o_TupleSize (final AvailObject object)
-	{
-		return object.variableIntegerSlotsCount() * 4 - unusedBytesOfLastWord;
 	}
 
 	/**

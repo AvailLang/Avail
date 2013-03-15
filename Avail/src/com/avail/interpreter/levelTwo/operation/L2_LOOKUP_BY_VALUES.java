@@ -55,7 +55,7 @@ public class L2_LOOKUP_BY_VALUES extends L2Operation
 	 */
 	public final static L2Operation instance =
 		new L2_LOOKUP_BY_VALUES().init(
-			SELECTOR.is("method"),
+			SELECTOR.is("message bundle"),
 			READ_VECTOR.is("arguments"),
 			WRITE_POINTER.is("looked up function"));
 
@@ -73,29 +73,29 @@ public class L2_LOOKUP_BY_VALUES extends L2Operation
 			interpreter.argsBuffer.add(
 				interpreter.pointerAt(vect.tupleIntAt(i)));
 		}
-		final A_Method method =
-			interpreter.chunk().literalAt(selectorIndex);
+		final A_Bundle bundle = interpreter.chunk().literalAt(selectorIndex);
+		final A_Method method = bundle.bundleMethod();
 		if (debugL1)
 		{
 			System.out.printf(
 				"  --- looking up: %s%n",
-				method.originalName().name());
+				bundle.message().name());
 		}
-		final A_BasicObject signatureToCall =
+		final A_Definition definitionToCall =
 			method.lookupByValuesFromList(interpreter.argsBuffer);
-		if (signatureToCall.equalsNil())
+		if (definitionToCall.equalsNil())
 		{
 			error("Unable to find unique definition for call");
 			return;
 		}
-		if (!signatureToCall.isMethodDefinition())
+		if (!definitionToCall.isMethodDefinition())
 		{
 			error("Attempted to call a non-method definition");
 			return;
 		}
 		interpreter.pointerAtPut(
 			resultingFunctionIndex,
-			signatureToCall.bodyBlock());
+			definitionToCall.bodyBlock());
 	}
 
 	@Override
@@ -128,13 +128,14 @@ public class L2_LOOKUP_BY_VALUES extends L2Operation
 		// type constraints.
 		final List<A_Function> possibleFunctions =
 			new ArrayList<A_Function>();
-		final List<AvailObject> possibleSignatures =
-			selectorOperand.method.definitionsAtOrBelow(argTypeBounds);
-		for (final A_BasicObject signature : possibleSignatures)
+		final List<A_Definition> possibleDefinitions =
+			selectorOperand.bundle.bundleMethod().definitionsAtOrBelow(
+				argTypeBounds);
+		for (final A_Definition definition : possibleDefinitions)
 		{
-			if (signature.isMethodDefinition())
+			if (definition.isMethodDefinition())
 			{
-				possibleFunctions.add(signature.bodyBlock());
+				possibleFunctions.add(definition.bodyBlock());
 			}
 		}
 		if (possibleFunctions.size() == 1)

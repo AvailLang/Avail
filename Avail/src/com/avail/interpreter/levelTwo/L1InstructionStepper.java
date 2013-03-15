@@ -247,25 +247,25 @@ implements L1OperationDispatcher
 	@Override
 	public void L1_doCall()
 	{
-		final A_Method method = literalAt(getInteger());
+		final A_Bundle bundle = literalAt(getInteger());
 		final A_Type expectedReturnType = literalAt(getInteger());
-		final int numArgs = method.numArgs();
+		final int numArgs = bundle.bundleMethod().numArgs();
 		if (debugL1)
 		{
-			System.out.printf(" (%s)", method.originalName().name());
+			System.out.printf(" (%s)", bundle.message().name());
 		}
 		argsBuffer.clear();
 		for (int i = numArgs; i >= 1; i--)
 		{
 			argsBuffer.add(0, pop());
 		}
-		final A_BasicObject matching =
-			method.lookupByValuesFromList(argsBuffer);
+		final A_Method method = bundle.bundleMethod();
+		final A_Definition matching = method.lookupByValuesFromList(argsBuffer);
 		if (matching.equalsNil())
 		{
 			error(
 				"Ambiguous or invalid lookup of %s",
-				method.originalName().name());
+				bundle.message().name());
 			return;
 		}
 		if (matching.isForwardDefinition())
@@ -273,14 +273,14 @@ implements L1OperationDispatcher
 			error(
 				"Attempted to execute forward method %s "
 				+ "before it was defined.",
-				method.originalName().name());
+				bundle.message().name());
 			return;
 		}
 		if (matching.isAbstractDefinition())
 		{
 			error(
 				"Attempted to execute an abstract method %s.",
-				method.originalName().name());
+				bundle.message().name());
 			return;
 		}
 		// Leave the expected return type pushed on the stack.  This will be
@@ -372,7 +372,7 @@ implements L1OperationDispatcher
 	public void L1_doSetLocal ()
 	{
 		final int localIndex = argumentOrLocalRegister(getInteger());
-		final A_BasicObject localVariable = pointerAt(localIndex);
+		final A_Variable localVariable = pointerAt(localIndex);
 		final AvailObject value = pop();
 		// The value's reference from the stack is now from the variable.
 		localVariable.setValue(value);
@@ -382,7 +382,7 @@ implements L1OperationDispatcher
 	public void L1_doGetLocalClearing ()
 	{
 		final int localIndex = argumentOrLocalRegister(getInteger());
-		final A_BasicObject localVariable = pointerAt(localIndex);
+		final A_Variable localVariable = pointerAt(localIndex);
 		final AvailObject value = localVariable.getValue();
 		if (localVariable.traversed().descriptor().isMutable())
 		{
@@ -421,7 +421,7 @@ implements L1OperationDispatcher
 	{
 		final A_Function function = pointerAt(FUNCTION);
 		final int outerIndex = getInteger();
-		final A_BasicObject outerVariable = function.outerVarAt(outerIndex);
+		final A_Variable outerVariable = function.outerVarAt(outerIndex);
 		final AvailObject value = outerVariable.getValue();
 		if (outerVariable.traversed().descriptor().isMutable())
 		{
@@ -439,7 +439,7 @@ implements L1OperationDispatcher
 	{
 		final A_Function function = pointerAt(FUNCTION);
 		final int outerIndex = getInteger();
-		final A_BasicObject outerVariable = function.outerVarAt(outerIndex);
+		final A_Variable outerVariable = function.outerVarAt(outerIndex);
 		if (outerVariable.equalsNil())
 		{
 			error("Someone prematurely erased this outer var");
@@ -454,7 +454,7 @@ implements L1OperationDispatcher
 	public void L1_doGetLocal ()
 	{
 		final int localIndex = argumentOrLocalRegister(getInteger());
-		final A_BasicObject localVariable = pointerAt(localIndex);
+		final A_Variable localVariable = pointerAt(localIndex);
 		final AvailObject value = localVariable.getValue();
 		value.makeImmutable();
 		push(value);
@@ -479,7 +479,7 @@ implements L1OperationDispatcher
 	{
 		final A_Function function = pointerAt(FUNCTION);
 		final int outerIndex = getInteger();
-		final A_BasicObject outerVariable = function.outerVarAt(outerIndex);
+		final A_Variable outerVariable = function.outerVarAt(outerIndex);
 		final AvailObject outer = outerVariable.getValue();
 		if (outer.equalsNil())
 		{
@@ -543,7 +543,7 @@ implements L1OperationDispatcher
 	public void L1Ext_doGetLiteral ()
 	{
 		final int literalIndex = getInteger();
-		final A_BasicObject literalVariable = literalAt(literalIndex);
+		final A_Variable literalVariable = literalAt(literalIndex);
 		// We don't need to make constant beImmutable because *code objects*
 		// are always immutable.
 		final AvailObject value = literalVariable.getValue();
@@ -555,7 +555,7 @@ implements L1OperationDispatcher
 	public void L1Ext_doSetLiteral ()
 	{
 		final int literalIndex = getInteger();
-		final A_BasicObject literalVariable = literalAt(literalIndex);
+		final A_Variable literalVariable = literalAt(literalIndex);
 		final AvailObject value = pop();
 		// The value's reference from the stack is now from the variable.
 		literalVariable.setValue(value);

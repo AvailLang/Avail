@@ -60,8 +60,8 @@ extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 2;
-		final AvailObject atom = args.get(0);
-		final AvailObject function = args.get(1);
+		final A_Atom atom = args.get(0);
+		final A_Function function = args.get(1);
 		final A_BasicObject functionType = function.kind();
 		final A_BasicObject tupleType = functionType.argsTupleType();
 		for (int i = function.code().numArgs(); i >= 1; i--)

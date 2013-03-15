@@ -35,13 +35,27 @@ package com.avail.descriptor;
 import static com.avail.descriptor.MessageBundleDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.TypeDescriptor.Types.MESSAGE_BUNDLE;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import com.avail.annotations.AvailMethod;
 import com.avail.compiler.MessageSplitter;
 import com.avail.exceptions.SignatureException;
+import com.avail.serialization.SerializerOperation;
 
 /**
- * TODO: [MvG] Document this!
+ * A message bundle is how a message name is bound to a {@linkplain
+ * MethodDescriptor method}.  Besides the message name, the bundle also
+ * contains information useful for parsing its invocations.  This information
+ * includes parsing instructions which, when aggregated with other bundles,
+ * forms a {@linkplain MessageBundleTreeDescriptor message bundle tree}.  This
+ * allows parsing of multiple similar methods <em>in aggregate</em>, avoiding
+ * the cost of repeatedly parsing the same constructs (tokens and
+ * subexpressions) for different purposes.
+ *
+ * Additionally, the message bundle's {@link #GRAMMATICAL_RESTRICTIONS} are held
+ * here, rather than with the {@linkplain MethodDescriptor method}, since these
+ * rules are intended to work with the actual tokens that occur (how sends are
+ * written), not their underlying semantics (what the methods do).
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
@@ -57,19 +71,15 @@ extends Descriptor
 		/**
 		 * The {@linkplain MethodDescriptor method} for which this is a message
 		 * bundle.  That is, if a use of this bundle is parsed, the resulting
-		 * {@linkplain SendNodeDescriptor send node} will be an invocation of
-		 * the method in this slot.  Note that this bundle's {@link #MESSAGE} is
-		 * not necessarily the same as the method's {@linkplain
-		 * MethodDescriptor.ObjectSlots#ORIGINAL_NAME original name}, due to
-		 * renaming imports.
+		 * code will ultimately invoke this method.  A method may have multiple
+		 * such bundles due to renaming of imports.
 		 */
 		METHOD,
 
 		/**
 		 * An {@linkplain AtomDescriptor atom} which is the "true name" of this
-		 * method.  Due to import renaming, this might not be the same as the
-		 * {@linkplain MethodDescriptor.ObjectSlots#ORIGINAL_NAME original name}
-		 * of the referenced {@linkplain #METHOD method}.
+		 * bundle.  Due to import renaming, a {@linkplain MethodDescriptor
+		 * method} might have multiple such names, one per bundle.
 		 */
 		MESSAGE,
 
@@ -118,7 +128,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_BundleMethod (final AvailObject object)
+	A_Method o_BundleMethod (final AvailObject object)
 	{
 		return object.mutableSlot(METHOD);
 	}
@@ -146,6 +156,13 @@ extends Descriptor
 	{
 		return object.slot(PARSING_INSTRUCTIONS);
 	}
+
+	@Override @AvailMethod
+	SerializerOperation o_SerializerOperation (final AvailObject object)
+	{
+		return SerializerOperation.MESSAGE_BUNDLE;
+	}
+
 
 	/**
 	 * Add a tuple of grammatical restrictions to the specified {@linkplain
@@ -292,22 +309,23 @@ extends Descriptor
 
 	/**
 	 * Create a new {@linkplain MessageBundleDescriptor message bundle} for the
-	 * given message.
+	 * given message.  Add the bundle to the method's collection of {@linkplain
+	 * MethodDescriptor.ObjectSlots#OWNING_BUNDLES owning bundles}.
 	 *
 	 * @param methodName The message name, an {@linkplain AtomDescriptor atom}.
 	 * @param method The method that this bundle represents.
 	 * @return A new {@linkplain MessageBundleDescriptor message bundle}.
 	 * @throws SignatureException If the message name is malformed.
 	 */
-	public static AvailObject newBundle (
+	public static A_Bundle newBundle (
 		final A_Atom methodName,
-		final A_BasicObject method)
+		final A_Method method)
 	throws SignatureException
 	{
 		assert methodName.isAtom();
 
 		final MessageSplitter splitter = new MessageSplitter(methodName.name());
-		final AvailObject result = mutable.create();
+		final A_Bundle result = mutable.create();
 		result.setSlot(METHOD, method);
 		result.setSlot(MESSAGE, methodName);
 		result.setSlot(MESSAGE_PARTS, splitter.messageParts());
@@ -316,6 +334,7 @@ extends Descriptor
 			tupleOfEmptySetsOfSize(splitter.numberOfUnderscores()));
 		result.setSlot(PARSING_INSTRUCTIONS, splitter.instructionsTuple());
 		result.makeShared();
+		method.methodAddBundle(result);
 		return result;
 	}
 
@@ -362,12 +381,8 @@ extends Descriptor
 	 * immutable tuple of size N whose elements are all the empty set.
 	 */
 	private static final List<A_Tuple> tuplesOfEmptySets =
-		new ArrayList<A_Tuple>(20);
-
-	static
-	{
-		tuplesOfEmptySets.add(TupleDescriptor.empty());
-	}
+		new ArrayList<A_Tuple>(
+			Collections.singletonList(TupleDescriptor.empty()));
 
 	/**
 	 * Return an immutable tuple of the specified size consisting of empty sets.
@@ -375,7 +390,7 @@ extends Descriptor
 	 * @param size The size of the resulting tuple.
 	 * @return An immutable tuple of empty sets.
 	 */
-	private static A_Tuple tupleOfEmptySetsOfSize (final int size)
+	private static synchronized A_Tuple tupleOfEmptySetsOfSize (final int size)
 	{
 		while (tuplesOfEmptySets.size() <= size)
 		{

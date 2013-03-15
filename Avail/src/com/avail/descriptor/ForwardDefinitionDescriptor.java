@@ -68,6 +68,11 @@ extends DefinitionDescriptor
 		DEFINITION_METHOD,
 
 		/**
+		 * The {@link ModuleDescriptor module} in which this definition occurs.
+		 */
+		MODULE,
+
+		/**
 		 * The {@linkplain FunctionTypeDescriptor function type} for which this
 		 * signature is being specified.
 		 */
@@ -77,6 +82,8 @@ extends DefinitionDescriptor
 		{
 			assert DefinitionDescriptor.ObjectSlots.DEFINITION_METHOD.ordinal()
 				== DEFINITION_METHOD.ordinal();
+			assert DefinitionDescriptor.ObjectSlots.MODULE.ordinal()
+				== MODULE.ordinal();
 		}
 	}
 
@@ -132,16 +139,20 @@ extends DefinitionDescriptor
 	 *
 	 * @param definitionMethod
 	 *        The method for which to declare a forward definition.
+	 * @param definitionModule
+	 *            The module in which this definition is added.
 	 * @param bodySignature
 	 *        The function type at which this forward definition should occur.
 	 * @return The new forward declaration signature.
 	 */
 	public static AvailObject create (
 		final A_BasicObject definitionMethod,
+		final A_Module definitionModule,
 		final A_Type bodySignature)
 	{
 		final AvailObject instance = mutable.create();
 		instance.setSlot(ObjectSlots.DEFINITION_METHOD, definitionMethod);
+		instance.setSlot(ObjectSlots.MODULE, definitionModule);
 		instance.setSlot(ObjectSlots.BODY_SIGNATURE, bodySignature);
 		instance.makeShared();
 		return instance;

@@ -35,6 +35,7 @@ package com.avail.interpreter.levelOne;
 import static com.avail.descriptor.AvailObject.error;
 import static java.lang.Math.max;
 import com.avail.annotations.Nullable;
+import com.avail.descriptor.A_Bundle;
 import com.avail.descriptor.AvailObject;
 
 /**
@@ -137,7 +138,8 @@ abstract class L1StackTracker implements L1OperationDispatcher
 	@Override
 	public void L1_doCall ()
 	{
-		currentDepth += 1 - literalAt(currentOperands()[0]).numArgs();
+		final A_Bundle bundle = literalAt(currentOperands()[0]);
+		currentDepth += 1 - bundle.bundleMethod().numArgs();
 	}
 
 	@Override

@@ -61,15 +61,26 @@ extends Descriptor
 	implements ObjectSlotsEnum
 	{
 		/**
-		 * The {@link MethodDescriptor method} in which this definition occurs.
+		 * The {@link MethodDescriptor method} in which this is a definition.
 		 */
-		DEFINITION_METHOD
+		DEFINITION_METHOD,
+
+		/**
+		 * The {@link ModuleDescriptor module} in which this definition occurs.
+		 */
+		MODULE
 	}
 
 	@Override @AvailMethod
 	public A_Method o_DefinitionMethod (final AvailObject object)
 	{
 		return object.slot(ObjectSlots.DEFINITION_METHOD);
+	}
+
+	@Override @AvailMethod
+	public A_Module o_DefinitionModule (final AvailObject object)
+	{
+		return object.slot(ObjectSlots.MODULE);
 	}
 
 	@Override @AvailMethod

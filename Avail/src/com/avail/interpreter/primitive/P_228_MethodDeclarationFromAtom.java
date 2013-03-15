@@ -55,7 +55,8 @@ extends Primitive
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_228_MethodDeclarationFromAtom().init(2, Bootstrap, Unknown);
+		new P_228_MethodDeclarationFromAtom().init(
+			2, Unknown);
 
 	@Override
 	public Result attempt (
@@ -67,7 +68,7 @@ extends Primitive
 		final A_Function block = args.get(1);
 		final A_Fiber fiber = FiberDescriptor.current();
 		final AvailLoader loader = fiber.availLoader();
-		final A_BasicObject module;
+		final A_Module module;
 		if (loader == null || (module = loader.module()).equalsNil())
 		{
 			return interpreter.primitiveFailure(E_LOADING_IS_OVER);

@@ -337,34 +337,6 @@ extends Descriptor
 	}
 
 	/**
-	 * The object was just scanned, and its pointers converted into valid
-	 * ToSpace pointers.  Do any follow-up activities specific to the kind of
-	 * object it is.
-	 *
-	 * <p>
-	 * In particular, a Continuation object needs to bring its L2Chunk object
-	 * into ToSpace and link it into the ring of saved chunks.  Chunks that are
-	 * no longer accessed can be reclaimed, or at least their entries can be
-	 * reclaimed, at flip time.
-	 * </p>
-	 */
-	@Override @AvailMethod @Deprecated
-	void o_PostFault (final AvailObject object)
-	{
-		final A_Chunk chunk = object.levelTwoChunk();
-		if (chunk.isValid())
-		{
-			chunk.isSaved(true);
-		}
-		else
-		{
-			object.levelTwoChunkOffset(
-				L2ChunkDescriptor.unoptimizedChunk(),
-				L2ChunkDescriptor.offsetToContinueUnoptimizedChunk());
-		}
-	}
-
-	/**
 	 * Answer a fresh mutable copy of the given continuation object.
 	 */
 	@Override @AvailMethod

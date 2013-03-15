@@ -80,7 +80,7 @@ extends AtomWithPropertiesDescriptor
 
 		static
 		{
-			assert AtomDescriptor.IntegerSlots.HASH_OR_ZERO.ordinal()
+			assert AtomDescriptor.IntegerSlots.HASH.ordinal()
 				== HASH_OR_ZERO.ordinal();
 		}
 	}
@@ -165,6 +165,24 @@ extends AtomWithPropertiesDescriptor
 				object,
 				key.traversed().makeShared(),
 				value.traversed().makeShared());
+		}
+	}
+
+	@Override @AvailMethod
+	A_Bundle o_BundleOrCreate (final AvailObject object)
+	{
+		synchronized (object)
+		{
+			return super.o_BundleOrCreate(object);
+		}
+	}
+
+	@Override @AvailMethod
+	A_Bundle o_BundleOrNil (final AvailObject object)
+	{
+		synchronized (object)
+		{
+			return super.o_BundleOrNil(object);
 		}
 	}
 

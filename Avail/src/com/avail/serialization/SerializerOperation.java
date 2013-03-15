@@ -965,7 +965,7 @@ public enum SerializerOperation
 			final int numArgs = numArgsRange.lowerBound().extractInt();
 			final int numLocals = localTypes.tupleSize();
 
-			final AvailObject module = moduleName.tupleSize() == 0
+			final A_Module module = moduleName.tupleSize() == 0
 				? NilDescriptor.nil()
 				: deserializer.moduleNamed(moduleName);
 			return CompiledCodeDescriptor.create(
@@ -1171,7 +1171,7 @@ public enum SerializerOperation
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
-			final A_BasicObject variable = subobjects[0];
+			final A_Variable variable = subobjects[0];
 			final AvailObject value = subobjects[1];
 			variable.setValue(value);
 			return NilDescriptor.nil();
@@ -1236,18 +1236,19 @@ public enum SerializerOperation
 
 	/**
 	 * A reference to a {@linkplain MethodDescriptor method} that should be
-	 * looked up by name (atom) during reconstruction.  A method can have
-	 * multiple names, but only one is the original name, which is the one used
-	 * for serialization.
+	 * looked up during deserialization.  A method can have multiple {@linkplain
+	 * MessageBundleDescriptor message bundles}, only one of which is output
+	 * during serialization, chosen arbitrarily.  During deserialization, the
+	 * message bundle is looked up, and its method is extracted.
 	 */
 	METHOD (43,
-		OBJECT_REFERENCE.as("method's name"))
+		OBJECT_REFERENCE.as("random method bundle"))
 	{
 		@Override
 		A_BasicObject[] decompose (final AvailObject object)
 		{
 			assert object.isInstanceOf(Types.METHOD.o());
-			return array(object.originalName());
+			return array(object.bundles().iterator().next());
 		}
 
 		@Override
@@ -1255,8 +1256,8 @@ public enum SerializerOperation
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
-			final AvailObject atom = subobjects[0];
-			return deserializer.runtime().methodFor(atom);
+			final A_Bundle bundle = subobjects[0];
+			return bundle.bundleMethod();
 		}
 	},
 
@@ -1283,7 +1284,7 @@ public enum SerializerOperation
 			final Deserializer deserializer)
 		{
 			final A_Method definitionMethod = subobjects[0];
-			final AvailObject signature = subobjects[1];
+			final A_Type signature = subobjects[1];
 			final List<AvailObject> definitions = new ArrayList<AvailObject>(1);
 			for (final AvailObject eachDefinition
 				: definitionMethod.definitionsTuple())
@@ -1421,14 +1422,17 @@ public enum SerializerOperation
 	},
 
 	/**
-	 * Reserved for future use.
+	 * A reference to a {@linkplain MessageBundleDescriptor message bundle},
+	 * which should be reconstructed by looking it up.
 	 */
-	RESERVED_48 (48)
+	MESSAGE_BUNDLE (48,
+		OBJECT_REFERENCE.as("message atom"))
 	{
 		@Override
 		A_BasicObject[] decompose (final AvailObject object)
 		{
-			throw new RuntimeException("Reserved serializer operation");
+			return array(
+				object.message());
 		}
 
 		@Override
@@ -1436,7 +1440,8 @@ public enum SerializerOperation
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
-			throw new RuntimeException("Reserved serializer operation");
+			final A_Atom atom = subobjects[0];
+			return atom.bundleOrCreate();
 		}
 	},
 
@@ -2463,12 +2468,12 @@ public enum SerializerOperation
 	 * @param deserializer
 	 * @return
 	 */
-	AvailObject lookupAtom (
+	A_Atom lookupAtom (
 		final AvailObject atomName,
 		final AvailObject moduleName,
 		final Deserializer deserializer)
 	{
-		final AvailObject currentModule = deserializer.currentModule();
+		final A_Module currentModule = deserializer.currentModule();
 		assert currentModule != null;
 		if (moduleName.equals(currentModule.moduleName()))
 		{
@@ -2480,15 +2485,13 @@ public enum SerializerOperation
 			{
 				return trueNames.asTuple().tupleAt(1);
 			}
-			final AvailObject atom = AtomDescriptor.create(
-				atomName,
-				currentModule);
+			final A_Atom atom = AtomDescriptor.create(atomName, currentModule);
 			atom.makeImmutable();
 			currentModule.addPrivateName(atomName, atom);
 			return atom;
 		}
 		// An atom in an imported module.
-		final AvailObject module = deserializer.moduleNamed(moduleName);
+		final A_Module module = deserializer.moduleNamed(moduleName);
 		final A_Map newNames = module.newNames();
 		if (newNames.hasKey(atomName))
 		{

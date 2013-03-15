@@ -190,7 +190,7 @@ extends Descriptor
 	@Override
 	boolean o_ContainsBlock (
 		final AvailObject object,
-		final AvailObject aFunction)
+		final A_Function aFunction)
 	{
 		//  Answer true if either I am aFunction or I contain aFunction.
 
@@ -293,12 +293,12 @@ extends Descriptor
 			writer.write(new L1Instruction(L1Operation.L1_doPushLastLocal, i));
 		}
 		writer.write(new L1Instruction(L1Operation.L1_doMakeTuple, numArgs));
-		final AvailObject method =
-			MethodDescriptor.vmFunctionApplyMethod();
+		final A_Bundle bundle =
+			MethodDescriptor.vmFunctionApplyAtom().bundleOrNil();
 		writer.write(
 			new L1Instruction(
 				L1Operation.L1_doCall,
-				writer.addLiteral(method),
+				writer.addLiteral(bundle),
 				writer.addLiteral(returnType)));
 		final AvailObject code = writer.compiledCode();
 		final A_Function newFunction = FunctionDescriptor.create(
@@ -318,10 +318,10 @@ extends Descriptor
 	 *        The function which the new function should invoke.
 	 * @return An appropriate function of one argument.
 	 */
-	public static A_BasicObject createStubTakingTupleFrom (
-		final AvailObject function)
+	public static A_Function createStubTakingTupleFrom (
+		final A_Function function)
 	{
-		final A_Type argTypes = function.functionType().argsTupleType();
+		final A_Type argTypes = function.kind().argsTupleType();
 		final int numArgs = argTypes.sizeRange().lowerBound().extractInt();
 		final A_Type[] argTypesArray = new AvailObject[numArgs];
 		for (int i = 1; i <= numArgs; i++)
@@ -330,7 +330,7 @@ extends Descriptor
 		}
 		final A_Type tupleType =
 			TupleTypeDescriptor.forTypes(argTypesArray);
-		final A_Type returnType = function.functionType().returnType();
+		final A_Type returnType = function.kind().returnType();
 		final L1InstructionWriter writer = new L1InstructionWriter(
 			NilDescriptor.nil(),
 			0);
@@ -344,15 +344,15 @@ extends Descriptor
 			new L1Instruction(
 				L1Operation.L1_doPushLastLocal,
 				1));
-		final AvailObject method =
-			MethodDescriptor.vmFunctionApplyMethod();
+		final A_Bundle bundle =
+			MethodDescriptor.vmFunctionApplyAtom().bundleOrNil();
 		writer.write(
 			new L1Instruction(
 				L1Operation.L1_doCall,
-				writer.addLiteral(method),
+				writer.addLiteral(bundle),
 				writer.addLiteral(returnType)));
-		final AvailObject code = writer.compiledCode();
-		final A_BasicObject newFunction = FunctionDescriptor.create(
+		final A_RawFunction code = writer.compiledCode();
+		final A_Function newFunction = FunctionDescriptor.create(
 			code,
 			TupleDescriptor.empty());
 		newFunction.makeImmutable();

@@ -66,7 +66,7 @@ extends Primitive
 	{
 		assert args.size() == 2;
 		final A_BasicObject decl = args.get(0);
-		final A_BasicObject var = args.get(1);
+		final A_Variable var = args.get(1);
 		final AvailObject initializer = decl.initializationExpression();
 		boolean stored = false;
 		if (!initializer.equalsNil())

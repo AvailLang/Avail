@@ -45,8 +45,8 @@ import com.avail.interpreter.*;
 
 /**
  * <strong>Primitive 383</strong>: Create a {@linkplain SendNodeDescriptor send
- * expression} from the specified {@linkplain MethodDescriptor method},
- * {@linkplain ListNodeDescriptor list node} of {@linkplain
+ * expression} from the specified {@linkplain MessageBundleDescriptor message
+ * bundle}, {@linkplain ListNodeDescriptor list node} of {@linkplain
  * ParseNodeKind#EXPRESSION_NODE argument expressions}, and {@linkplain
  * TypeDescriptor return type}.
  *
@@ -67,13 +67,13 @@ extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 3;
-		final AvailObject method = args.get(0);
-		final AvailObject argsListNode = args.get(1);
-		final AvailObject returnType = args.get(2);
+		final A_Atom messageName = args.get(0);
+		final A_Phrase argsListNode = args.get(1);
+		final A_Type returnType = args.get(2);
 		try
 		{
 			final MessageSplitter splitter =
-				new MessageSplitter(method.originalName().name());
+				new MessageSplitter(messageName.name());
 			if (splitter.numberOfArguments()
 				!= argsListNode.expressionsTuple().tupleSize())
 			{
@@ -87,7 +87,7 @@ extends Primitive
 		}
 		return interpreter.primitiveSuccess(
 			SendNodeDescriptor.from(
-				method,
+				messageName.bundleOrCreate(),
 				argsListNode,
 				returnType));
 	}
@@ -97,7 +97,7 @@ extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				METHOD.o(),
+				ATOM.o(),
 				LIST_NODE.mostGeneralType(),
 				InstanceMetaDescriptor.topMeta()),
 			SEND_NODE.mostGeneralType());

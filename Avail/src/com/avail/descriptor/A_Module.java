@@ -145,11 +145,6 @@ extends A_BasicObject
 	A_Map constantBindings ();
 
 	/**
-	 * Dispatch to the descriptor.
-	 */
-	A_BundleTree filteredBundleTree ();
-
-	/**
 	 * @param methodName
 	 * @param illegalArgMsgs
 	 */
@@ -191,12 +186,12 @@ extends A_BasicObject
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	void buildFilteredBundleTreeFrom (A_Map bundleMap);
+	A_BundleTree buildFilteredBundleTree ();
 
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	boolean nameVisible (AvailObject trueName);
+	boolean nameVisible (A_Atom trueName);
 
 	/**
 	 * Dispatch to the descriptor.

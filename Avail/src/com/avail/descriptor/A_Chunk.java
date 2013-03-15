@@ -72,18 +72,6 @@ extends A_BasicObject
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	@Deprecated
-	boolean isSaved ();
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	@Deprecated
-	void isSaved (boolean aBoolean);
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
 	boolean isValid ();
 
 	/**

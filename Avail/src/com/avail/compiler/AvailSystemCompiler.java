@@ -125,7 +125,8 @@ extends AbstractAvailCompiler
 	 *        The name of the declaration for which to look.
 	 * @return The declaration or {@code null}.
 	 */
-	static @Nullable AvailObject lookupLocalDeclaration (
+	@Override
+	@Nullable A_Phrase lookupLocalDeclaration (
 		final ParserState state,
 		final A_String name)
 	{
@@ -1494,7 +1495,6 @@ extends AbstractAvailCompiler
 		final ParserState stateAfterCall,
 		final List<A_Phrase> argumentExpressions,
 		final A_Bundle bundle,
-		final A_Method method,
 		final Con<A_Phrase> continuation)
 	{
 		stateAfterCall.expected(

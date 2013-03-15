@@ -53,7 +53,7 @@ Names
 	"_(`…,_)"
 Body
 
-invokeMethod ::= method for atom for "Invoke|invoke_with_";
+invokeAtom ::= atom for "Invoke|invoke_with_";
 
 /**
  * Convert a function of N arguments into a function of M arguments, where
@@ -112,7 +112,7 @@ Private method "_partially evaluate with_" is
 	blockToReturn ::=
 		«[ argumentDeclarations |
 			<
-				send invokeMethod with
+				send invokeAtom with
 				«<
 					originalFunctionConstant,
 					(callArguments → list phrase)

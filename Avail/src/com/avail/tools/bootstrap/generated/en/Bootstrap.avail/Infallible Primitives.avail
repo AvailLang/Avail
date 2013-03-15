@@ -1884,16 +1884,16 @@ Primitive "_'s⁇function" is
 ] : function;
 
 /**
- * Answer the atom that uniquely describes the specified method.
+ * Answer the atom that uniquely identifies the specified message bundle.
  *
  * Parameters:
- *    aMethod - A method.
+ *    aMessageBundle - A message bundle for some method.
  * Returns:
  *    The requested atom.
  */
 Primitive "_'s⁇atom" is
 [
-	aMethod : method
+	aMessageBundle : message bundle
 |
 	Primitive 221;
 ] : atom;
@@ -1902,13 +1902,13 @@ Primitive "_'s⁇atom" is
  * Answer the number of parameters required by the specified method.
  *
  * Parameters:
- *    aMethod - A method.
+ *    aMessageBundle - A method.
  * Returns:
  *    The number of parameters required by the specified method.
  */
 Primitive "`|_'s⁇parameters`|" is
 [
-	aMethod : method
+	aMessageBundle : message bundle
 |
 	Primitive 223;
 ] : whole number;

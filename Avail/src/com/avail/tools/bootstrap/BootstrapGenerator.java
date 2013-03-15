@@ -716,7 +716,8 @@ public final class BootstrapGenerator
 			{
 				System.err.format(
 					"Malformed primitive comment (%s) – contains unclosed "
-					+ "single-quote character");
+					+ "single-quote character\n",
+					commentKey);
 			}
 			builder.append(MessageFormat.format(
 				messagePattern,

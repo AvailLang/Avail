@@ -1,5 +1,5 @@
 /**
- * A_BundleTree.java
+ * A_Definition.java
  * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -33,79 +33,79 @@
 package com.avail.descriptor;
 
 /**
- * {@code A_BundleTree} is an interface that specifies the {@linkplain
- * MessageBundleTreeDescriptor message-bundle-tree}-specific operations that an
- * {@link AvailObject} must implement.  It's a sub-interface of {@link
+ * {@code A_Definition} is an interface that specifies the operations specific
+ * to {@linkplain DefinitionDescriptor definitions} (of a {@linkplain
+ * MethodDescriptor method}) in Avail.  It's a sub-interface of {@link
  * A_BasicObject}, the interface that defines the behavior that all AvailObjects
  * are required to support.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public interface A_BundleTree
+public interface A_Definition
 extends A_BasicObject
 {
 	/**
-	 * @return
+	 * Answer the {@linkplain ModuleDescriptor module} in which this
+	 * definition occurred.
 	 */
-	A_Map allBundles ();
+	A_Module module ();
 
 	/**
-	 * Dispatch to the descriptor.
-	 * @return
+	 * Answer the {@link MethodDescriptor method} that this {@linkplain
+	 * DefinitionDescriptor definition} is for.
+	 *
+	 * @return The definition's method.
 	 */
-	A_Map lazyComplete ();
+	A_Method definitionMethod ();
 
 	/**
-	 * Dispatch to the descriptor.
-	 * @return
+	 * Answer the {@link ModuleDescriptor module} in which this {@linkplain
+	 * DefinitionDescriptor definition} occurred.
+	 *
+	 * @return The definition's originating module.
 	 */
-	A_Map lazyIncomplete ();
-
-	/**
-	 * @return
-	 */
-	A_Map lazyIncompleteCaseInsensitive ();
-
-	/**
-	 * Dispatch to the descriptor.
-	 * @return
-	 */
-	A_Map lazyActions ();
-
-	/**
-	 * @return
-	 */
-	A_Map lazyPrefilterMap ();
-
-	/**
-	 * @return
-	 */
-	A_Map complete ();
-
-	/**
-	 * @return
-	 */
-	A_Map incomplete ();
-
-	/**
-	 * @param bundle
-	 */
-	void addBundle (A_Bundle bundle);
-
-	/**
-	 * Dispatch to the descriptor.
-	 * @param message
-	 * @return
-	 */
-	boolean removeBundleNamed (A_Atom message);
+	A_Module definitionModule ();
 
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	void expand ();
+	A_Type bodySignature ();
 
 	/**
-	 * @param bundle
+	 * Dispatch to the descriptor.
 	 */
-	void flushForNewOrChangedBundle (A_Bundle bundle);
+	boolean isAbstractDefinition ();
+
+	/**
+	 * Is the {@linkplain AvailObject receiver} a {@linkplain
+	 * ForwardDefinitionDescriptor forward declaration site}?
+	 *
+	 * @return {@code true} if the receiver is a forward declaration site.
+	 */
+	boolean isForwardDefinition ();
+
+	/**
+	 * Is the {@linkplain AvailObject receiver} a {@linkplain
+	 * MethodDefinitionDescriptor method definition}?
+	 *
+	 * @return {@code true} if the receiver is a method definition.
+	 */
+	boolean isMethodDefinition ();
+
+	/**
+	 * @return
+	 */
+	boolean isMacroDefinition ();
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	A_Function bodyBlock ();
+
+	/**
+	 * @return
+	 */
+	A_Tuple prefixFunctions ();
+
+
 }

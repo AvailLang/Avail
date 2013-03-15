@@ -1,5 +1,5 @@
 /**
- * P_217_MethodDefinitionBody.java
+ * A_Variable.java
  * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -29,45 +29,63 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.avail.interpreter.primitive;
 
-import static com.avail.descriptor.TypeDescriptor.Types.METHOD_DEFINITION;
-import static com.avail.interpreter.Primitive.Flag.*;
-import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
+package com.avail.descriptor;
 
 /**
- * <strong>Primitive 217:</strong> Answer this {@linkplain
- * MethodDefinitionDescriptor method signature}'s {@linkplain
- * FunctionDescriptor body}.
+ * {@code A_Variable} is an interface that specifies the behavior specific to
+ * Avail {@linkplain VariableDescriptor variables} that an {@link AvailObject}
+ * must implement.  It's a sub-interface of {@link A_BasicObject}, the interface
+ * that defines the behavior that all AvailObjects are required to support.
+ *
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class P_217_MethodDefinitionBody extends Primitive
+public interface A_Variable
+extends A_BasicObject
 {
+
 	/**
-	 * The sole instance of this primitive class.  Accessed through reflection.
+	 * Dispatch to the descriptor.
 	 */
-	public final static Primitive instance =
-		new P_217_MethodDefinitionBody().init(
-			1, CannotFail, CanFold, CanInline);
+	AvailObject value ();
 
-	@Override
-	public Result attempt (
-		final List<AvailObject> args,
-		final Interpreter interpreter)
-	{
-		assert args.size() == 1;
-		final A_Definition methodDefinition = args.get(0);
-		return interpreter.primitiveSuccess(
-			methodDefinition.bodyBlock().makeImmutable());
-	}
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	AvailObject getValue ();
 
-	@Override
-	protected A_Type privateBlockTypeRestriction ()
-	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
-				METHOD_DEFINITION.o()),
-			FunctionTypeDescriptor.mostGeneralType());
-	}
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	void setValue (A_BasicObject newValue);
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	void setValueNoCheck (AvailObject newValue);
+
+	/**
+	 * @param newValue
+	 * @return
+	 */
+	AvailObject getAndSetValue (AvailObject newValue);
+
+	/**
+	 * @param reference
+	 * @param newValue
+	 * @return
+	 */
+	boolean compareAndSwapValues (AvailObject reference, AvailObject newValue);
+
+	/**
+	 * @param addend
+	 * @return
+	 */
+	A_Number fetchAndAddValue (A_Number addend);
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	void clearValue ();
+
 }

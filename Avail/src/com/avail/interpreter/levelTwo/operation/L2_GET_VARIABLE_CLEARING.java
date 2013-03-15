@@ -61,7 +61,7 @@ public class L2_GET_VARIABLE_CLEARING extends L2Operation
 	{
 		final int getIndex = interpreter.nextWord();
 		final int destIndex = interpreter.nextWord();
-		final A_BasicObject var = interpreter.pointerAt(getIndex);
+		final A_Variable var = interpreter.pointerAt(getIndex);
 		final AvailObject value = var.getValue();
 		if (var.traversed().descriptor().isMutable())
 		{

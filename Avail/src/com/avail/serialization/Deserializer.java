@@ -67,7 +67,7 @@ public class Deserializer
 	/**
 	 * The current {@linkplain ModuleDescriptor module}.
 	 */
-	private @Nullable AvailObject currentModule;
+	private @Nullable A_Module currentModule;
 
 	/**
 	 * Answer the deserializer's instance of {@link AvailRuntime} used for
@@ -134,11 +134,11 @@ public class Deserializer
 	 * @param moduleName The {@link StringDescriptor name} of the module.
 	 * @return The module with the specified name.
 	 */
-	public AvailObject moduleNamed (
+	public A_Module moduleNamed (
 		final A_String moduleName)
 	{
 		assert moduleName.isString();
-		final AvailObject current = currentModule;
+		final A_Module current = currentModule;
 		if (current != null && moduleName.equals(current.moduleName()))
 		{
 			return current;
@@ -158,7 +158,7 @@ public class Deserializer
 	 * @param module The active {@link ModuleDescriptor module}.
 	 */
 	public void currentModule (
-		final AvailObject module)
+		final A_Module module)
 	{
 		currentModule = module;
 	}
@@ -168,7 +168,7 @@ public class Deserializer
 	 *
 	 * @return The current module.
 	 */
-	public @Nullable AvailObject currentModule ()
+	public @Nullable A_Module currentModule ()
 	{
 		return currentModule;
 	}

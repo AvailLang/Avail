@@ -2069,15 +2069,15 @@ Public method "_≍_" is
 Completely seal method "_≍_";
 
 /* These methods are needed for scaling function synthesis. */
-extentM ::= method for $"_'s⁇extent";
-juxtapositionM ::= method for atom for "__";
+extentAtom ::= $"_'s⁇extent";
+juxtapositionAtom ::= atom for "__";
 
 Private method "function for scaling from_to_by_using_" is
 [
 	a : unit,
 	b : unit,
 	scaleFactor : number,
-	scaleOperator : method
+	scaleOperator : atom
 |
 	/* Construct the argument declarations. The first argument is a dimensioned
 	 * quantity, the second is the target unit.
@@ -2086,10 +2086,10 @@ Private method "function for scaling from_to_by_using_" is
 	qB ::= extend dimensioned quantity with metric : (b's type);
 	args ::= <arg «`"quantity"` : qA», arg «`"aUnit"` : b's type»>;
 	/* Construct the expression to obtain the scaled magnitude. */
-	extentSend ::= send extentM with «<«↓args[1]»>» : number;
+	extentSend ::= send extentAtom with «<«↓args[1]»>» : number;
 	scaled ::= send scaleOperator with «<extentSend, ‘`scaleFactor`’>» : number;
 	/* Construct the expression to obtain the resultant dimensioned quantity. */
-	juxtapositionSend ::= send juxtapositionM
+	juxtapositionSend ::= send juxtapositionAtom
 		with «<scaled, «↓args[2]»>»
 		: qB;
 	/* Construct and answer the requested function. */
@@ -2098,8 +2098,8 @@ Private method "function for scaling from_to_by_using_" is
 ] : unit conversion function;
 
 /* These methods are needed for conversion rule synthesis. */
-timesM ::= method for multiplication atom;
-divideM ::= method for division atom;
+timesAtom ::= multiplication atom;
+divideAtom ::= division atom;
 
 /**
  * Define {@method "_converted to_" methods} for converting {@type
@@ -2122,8 +2122,8 @@ Public method "Conversion rule:_≍_" is
 	metricA ::= a's metric;
 	metricB ::= b's metric;
 	scaleFactor ::= b's extent;
-	op1 ::= if 0 ≤ scaleFactor ≤ 1 then [divideM] else [timesM];
-	op2 ::= if 0 ≤ scaleFactor ≤ 1 then [timesM] else [divideM];
+	op1 ::= if 0 ≤ scaleFactor ≤ 1 then [divideAtom] else [timesAtom];
+	op2 ::= if 0 ≤ scaleFactor ≤ 1 then [timesAtom] else [divideAtom];
 	Conversion method
 		is function for scaling
 			from metricA

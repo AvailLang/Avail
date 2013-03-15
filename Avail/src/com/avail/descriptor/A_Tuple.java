@@ -451,11 +451,6 @@ extends A_BasicObject, Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	byte rawNybbleAt (int index);
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
 	int rawShortForCharacterAt (int index);
 
 	/**

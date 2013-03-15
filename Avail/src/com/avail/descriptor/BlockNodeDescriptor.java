@@ -199,7 +199,7 @@ extends ParseNodeDescriptor
 		final AvailObject object,
 		final AvailCodeGenerator codeGenerator)
 	{
-		final A_BasicObject compiledBlock =
+		final A_RawFunction compiledBlock =
 			object.generateInModule(codeGenerator.module());
 		if (object.neededVariables().tupleSize() == 0)
 		{
@@ -319,7 +319,7 @@ extends ParseNodeDescriptor
 	@Override @AvailMethod
 	A_RawFunction o_GenerateInModule (
 		final AvailObject object,
-		final A_BasicObject module)
+		final A_Module module)
 	{
 		return AvailCodeGenerator.generateFunction(
 			module,

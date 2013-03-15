@@ -146,7 +146,7 @@ extends A_BasicObject
 	 * @param module
 	 * @return
 	 */
-	A_RawFunction generateInModule (A_BasicObject module);
+	A_RawFunction generateInModule (A_Module module);
 
 	/**
 	 * @param isLastUse
@@ -168,7 +168,7 @@ extends A_BasicObject
 	 *
 	 * @return
 	 */
-	A_Method method ();
+	A_Bundle bundle ();
 
 	/**
 	 * @return

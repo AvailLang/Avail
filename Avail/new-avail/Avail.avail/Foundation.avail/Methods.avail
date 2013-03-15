@@ -69,11 +69,11 @@ Method "method for_" is
 
 Semantic restriction "method definition of_for_" is
 [
-	methodType : method's type,
+	methodNameType : atom's type,
 	parametersType : <any meta…|>'s type
 |
 	result : type := ⊤;
-	If |methodType| = 1 ∧ [⎣parametersType⎦ = ⎡parametersType⎤] then
+	If |methodNameType| = 1 ∧ [⎣parametersType⎦ = ⎡parametersType⎤] then
 	[
 		args : <any meta…|> := <>;
 		From 1 to ⎣parametersType⎦ do
@@ -82,10 +82,10 @@ Semantic restriction "method definition of_for_" is
 		|
 			args := (eject ↑args) ++ <parametersType[index]'s instance>;
 		];
-		aMethod ::= methodType's instance;
-		If aMethod has definition for args then
+		methodName ::= methodNameType's instance;
+		If methodName has definition for args then
 		[
-			result := (method definition of aMethod for args)'s type;
+			result := (method definition of methodName for args)'s type;
 		];
 	];
 	result
@@ -122,14 +122,14 @@ Semantic restriction "_'s⁇function" is
  */
 Public method "_is«not»?implemented at_" is
 [
-	aMethod : method,
+	methodName : atom,
 	negation : boolean,
 	argTypes : <any's type…|>
 |
 	ok : boolean := false;
-	If aMethod has definition for argTypes then
+	If methodName has definition for argTypes then
 	[
-		theDefinition ::= method definition of aMethod for argTypes;
+		theDefinition ::= method definition of methodName for argTypes;
 		ok := theDefinition ∈ method definition;
 	];
 	negation ≠ ok

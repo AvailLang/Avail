@@ -64,13 +64,11 @@ extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
-		final AvailObject name = args.get(0);
+		final A_String name = args.get(0);
 		try
 		{
-			final AvailObject handle =
-				AtomWithPropertiesDescriptor.create(
-					name,
-					ModuleDescriptor.current());
+			final A_Atom handle =
+				AtomDescriptor.create(name, ModuleDescriptor.current());
 			final AsynchronousSocketChannel channel =
 				AvailRuntime.current().openSocket();
 			final AvailObject pojo = RawPojoDescriptor.identityWrap(channel);

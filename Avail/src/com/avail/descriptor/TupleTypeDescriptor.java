@@ -216,7 +216,7 @@ extends TypeDescriptor
 	@Override @AvailMethod
 	boolean o_IsBetterRepresentationThanTupleType (
 		final AvailObject object,
-		final A_BasicObject aTupleType)
+		final A_Type aTupleType)
 	{
 		return true;
 	}

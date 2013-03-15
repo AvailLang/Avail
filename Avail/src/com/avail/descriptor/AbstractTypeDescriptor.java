@@ -129,7 +129,7 @@ extends Descriptor
 	@Override @AvailMethod
 	abstract boolean o_IsBetterRepresentationThanTupleType (
 		final AvailObject object,
-		final A_BasicObject aTupleType);
+		final A_Type aTupleType);
 
 	@Override @AvailMethod
 	abstract boolean o_IsInstanceOfKind (

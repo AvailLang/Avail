@@ -33,6 +33,7 @@
 package com.avail.descriptor;
 
 import static com.avail.descriptor.TypeDescriptor.Types.*;
+import static com.avail.descriptor.MethodDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.MethodDescriptor.ObjectSlots.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import static java.lang.Math.max;
@@ -66,26 +67,33 @@ public final class MethodDescriptor
 extends Descriptor
 {
 	/**
+	 * The layout of integer slots for my instances.
+	 */
+	public enum IntegerSlots
+	implements IntegerSlotsEnum
+	{
+		/**
+		 * The hash value of this {@linkplain AtomDescriptor atom}.  It is a
+		 * random number (not 0), computed at construction time.
+		 */
+		@HideFieldInDebugger
+		HASH
+	}
+
+	/**
 	 * The fields that are of type {@code AvailObject}.
 	 */
 	public enum ObjectSlots
 	implements ObjectSlotsEnum
 	{
 		/**
-		 * The original name (an {@linkplain AtomDescriptor atom}) under which
-		 * this method was first declared.
+		 * A {@linkplain SetDescriptor set} of {@linkplain
+		 * MessageBundleDescriptor message bundles} that name this method.  The
+		 * method itself has no intrinsic name, as its bundles completely
+		 * determine what it is called in various modules (based on the module
+		 * scope of the bundles' {@linkplain AtomDescriptor atomic names}).
 		 */
-		ORIGINAL_NAME,
-
-		/**
-		 * All {@linkplain AtomDescriptor atoms} that act as names of this
-		 * {@linkplain MethodDescriptor method}.  When renaming happens during
-		 * import, the new name (atom) is added to this set.  Normally only one
-		 * such name is visible at any point in the code, but it may be the case
-		 * that multiple import paths make visible multiple names for the same
-		 * method.
-		 */
-		NAMES_SET,
+		OWNING_BUNDLES,
 
 		/**
 		 * The {@linkplain TupleDescriptor tuple} of {@linkplain
@@ -133,7 +141,7 @@ extends Descriptor
 	boolean allowsImmutableToMutableReferenceInField (
 		final AbstractSlotsEnum e)
 	{
-		return e == NAMES_SET
+		return e == OWNING_BUNDLES
 			|| e == DEFINITIONS_TUPLE
 			|| e == PRIVATE_TESTING_TREE
 			|| e == DEPENDENT_CHUNK_INDICES
@@ -156,19 +164,16 @@ extends Descriptor
 			aStream.append('s');
 		}
 		aStream.append(" of ");
-		aStream.append(object.originalName().name().asNativeString());
-	}
-
-	@Override @AvailMethod
-	A_Atom o_OriginalName (final AvailObject object)
-	{
-		return object.slot(ORIGINAL_NAME);
-	}
-
-	@Override @AvailMethod
-	A_Set o_NamesSet (final AvailObject object)
-	{
-		return object.slot(NAMES_SET);
+		boolean first = true;
+		for (final A_Bundle eachBundle : object.bundles())
+		{
+			if (!first)
+			{
+				aStream.append(" a.k.a. ");
+			}
+			aStream.append(eachBundle.message()/*.name()*/.toString());
+			first = false;
+		}
 	}
 
 	@Override @AvailMethod
@@ -194,6 +199,15 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
+	void o_MethodAddBundle (final AvailObject object, final A_Bundle bundle)
+	{
+		A_Set bundles = object.slot(OWNING_BUNDLES);
+		bundles = bundles.setWithElementCanDestroy(bundle, false);
+		bundles.makeShared();
+		object.setSlot(OWNING_BUNDLES, bundles);
+	}
+
+	@Override @AvailMethod
 	boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		return another.traversed().sameAddressAs(object);
@@ -202,7 +216,7 @@ extends Descriptor
 	@Override @AvailMethod
 	int o_Hash (final AvailObject object)
 	{
-		return object.slot(ORIGINAL_NAME).hash() + 0x061AF3FC;
+		return object.slot(HASH);
 	}
 
 	@Override @AvailMethod
@@ -244,7 +258,7 @@ extends Descriptor
 	@Override @AvailMethod
 	void o_MethodAddDefinition (
 		final AvailObject object,
-		final A_BasicObject definition)
+		final A_Definition definition)
 	throws SignatureException
 	{
 		synchronized (object)
@@ -269,7 +283,7 @@ extends Descriptor
 						AvailErrorCode.E_METHOD_IS_SEALED);
 				}
 			}
-			final A_BasicObject newTuple =
+			final A_Tuple newTuple =
 				oldTuple.appendCanDestroy(definition, true);
 			object.setSlot(
 				DEFINITIONS_TUPLE, newTuple.traversed().makeShared());
@@ -283,12 +297,11 @@ extends Descriptor
 	 * MethodDefinitionDescriptor method signatures}.
 	 */
 	@Override @AvailMethod
-	List<AvailObject> o_FilterByTypes (
+	List<A_Definition> o_FilterByTypes (
 		final AvailObject object,
 		final List<A_Type> argTypes)
 	{
-		List<AvailObject> result;
-		result = new ArrayList<AvailObject>(3);
+		final List<A_Definition> result = new ArrayList<A_Definition>(3);
 		// Use the accessor instead of reading the slot directly (to acquire the
 		// monitor first).
 		final A_Tuple impsTuple = object.definitionsTuple();
@@ -321,20 +334,19 @@ extends Descriptor
 	 * </p>
 	 */
 	@Override @AvailMethod
-	List<AvailObject> o_DefinitionsAtOrBelow (
+	List<A_Definition> o_DefinitionsAtOrBelow (
 		final AvailObject object,
 		final List<? extends A_Type> argTypes)
 	{
-		final List<AvailObject> result = new ArrayList<AvailObject>(3);
+		final List<A_Definition> result = new ArrayList<A_Definition>(3);
 		// Use the accessor instead of reading the slot directly (to acquire the
 		// monitor first).
-		final A_Tuple impsTuple = object.definitionsTuple();
-		for (int i = 1, end = impsTuple.tupleSize(); i <= end; i++)
+		final A_Tuple definitionsTuple = object.definitionsTuple();
+		for (final A_Definition definition : definitionsTuple)
 		{
-			final AvailObject imp = impsTuple.tupleAt(i);
-			if (imp.bodySignature().couldEverBeInvokedWith(argTypes))
+			if (definition.bodySignature().couldEverBeInvokedWith(argTypes))
 			{
-				result.add(imp);
+				result.add(definition);
 			}
 		}
 		return result;
@@ -346,7 +358,7 @@ extends Descriptor
 	@Override @AvailMethod
 	boolean o_IncludesDefinition (
 		final AvailObject object,
-		final A_BasicObject definition)
+		final A_Definition definition)
 	{
 		// Use the accessor instead of reading the slot directly (to acquire the
 		// monitor first).
@@ -473,8 +485,9 @@ extends Descriptor
 	@Override @AvailMethod
 	void o_RemoveDefinition (
 		final AvailObject object,
-		final A_BasicObject definition)
+		final A_Definition definition)
 	{
+		assert !definition.definitionModule().equalsNil();
 		synchronized (object)
 		{
 			A_Tuple definitionsTuple = object.slot(DEFINITIONS_TUPLE);
@@ -491,22 +504,11 @@ extends Descriptor
 	@Override @AvailMethod
 	int o_NumArgs (final AvailObject object)
 	{
-		// Use the accessor instead of reading the slot directly (to acquire the
-		// monitor first).
-		final A_Tuple impsTuple = object.definitionsTuple();
-		if (impsTuple.tupleSize() >= 1)
-		{
-			final A_BasicObject firstBody = impsTuple.tupleAt(1).bodySignature();
-			final A_BasicObject argsTupleType = firstBody.argsTupleType();
-			return argsTupleType.sizeRange().lowerBound().extractInt();
-		}
-		// Deal with it the slow way by using the MessageSplitter. This allows
-		// the decompiler to continue to work even when a called method has no
-		// definitions.
+		final A_Bundle someBundle = object.bundles().iterator().next();
+		final A_String name = someBundle.message().name();
 		try
 		{
-			final MessageSplitter splitter =
-				new MessageSplitter(object.originalName().name());
+			final MessageSplitter splitter = new MessageSplitter(name);
 			return splitter.numberOfArguments();
 		}
 		catch (final SignatureException e)
@@ -653,6 +655,12 @@ extends Descriptor
 		}
 	}
 
+	@Override
+	A_Set o_Bundles (final AvailObject object)
+	{
+		return object.slot(OWNING_BUNDLES);
+	}
+
 	@Override @AvailMethod @ThreadSafe
 	SerializerOperation o_SerializerOperation (final AvailObject object)
 	{
@@ -678,7 +686,7 @@ extends Descriptor
 	 * the maximum number of remaining possible solutions after a test.
 	 * </p>
 	 *
-	 * @param imps
+	 * @param definitions
 	 *        The complete array of definitions to analyze.
 	 * @param positives
 	 *        Zero-based indices of definitions that are consistent with the
@@ -691,7 +699,7 @@ extends Descriptor
 	 *        An output list of Integer-encoded instructions.
 	 */
 	private static void createTestingTree (
-		final List<AvailObject> imps,
+		final List<? extends A_Definition> definitions,
 		final List<Integer> positives,
 		final List<Integer> possible,
 		final List<Integer> instructions)
@@ -703,9 +711,9 @@ extends Descriptor
 			{
 				for (final int index2 : positives)
 				{
-					final A_BasicObject sig = imps.get(index2);
-					if (!sig.bodySignature().acceptsArgTypesFromFunctionType(
-						imps.get(index1).bodySignature()))
+					final A_Definition def = definitions.get(index2);
+					if (!def.bodySignature().acceptsArgTypesFromFunctionType(
+						definitions.get(index1).bodySignature()))
 					{
 						continue outer_index;
 					}
@@ -724,18 +732,22 @@ extends Descriptor
 		// are no such solutions, we are already at a point that represents an
 		// ambiguous lookup.
 		boolean possibleSolutionExists = false;
-		A_Type possibility;
+		A_Type possibleSignature;
 		for (final int possibleIndex : possible)
 		{
 			if (!possibleSolutionExists)
 			{
-				possibility = imps.get(possibleIndex).bodySignature();
+				possibleSignature =
+					definitions.get(possibleIndex).bodySignature();
 				boolean allPossibleAreParents = true;
 				for (final int index2 : positives)
 				{
-					allPossibleAreParents = allPossibleAreParents
-						&& imps.get(index2).bodySignature()
-							.acceptsArgTypesFromFunctionType(possibility);
+					if (!definitions.get(index2).bodySignature()
+						.acceptsArgTypesFromFunctionType(possibleSignature))
+					{
+						allPossibleAreParents = false;
+						break;
+					}
 				}
 				possibleSolutionExists = allPossibleAreParents;
 			}
@@ -744,13 +756,13 @@ extends Descriptor
 		{
 			if (!possibleSolutionExists)
 			{
-				possibility = imps.get(index1).bodySignature();
+				possibleSignature = definitions.get(index1).bodySignature();
 				boolean allPossibleAreParents = true;
 				for (final int index2 : positives)
 				{
 					allPossibleAreParents = allPossibleAreParents &&
-						imps.get(index2).bodySignature()
-							.acceptsArgTypesFromFunctionType(possibility);
+						definitions.get(index2).bodySignature()
+							.acceptsArgTypesFromFunctionType(possibleSignature);
 				}
 				possibleSolutionExists = allPossibleAreParents;
 			}
@@ -765,13 +777,13 @@ extends Descriptor
 		int bestMax = possible.size() + 2;
 		for (final int index1 : possible)
 		{
-			possibility = imps.get(index1);
+			possibleSignature = definitions.get(index1).bodySignature();
 			int trueCount = 0;
 			int falseCount = 0;
 			for (final int index2 : possible)
 			{
-				if (possibility.bodySignature().acceptsArgTypesFromFunctionType(
-					imps.get(index2).bodySignature()))
+				if (possibleSignature.acceptsArgTypesFromFunctionType(
+					definitions.get(index2).bodySignature()))
 				{
 					trueCount++;
 				}
@@ -787,7 +799,7 @@ extends Descriptor
 				bestIndex = index1;
 			}
 		}
-		final A_BasicObject bestSig = imps.get(bestIndex).bodySignature();
+		final A_Type bestSig = definitions.get(bestIndex).bodySignature();
 
 		// First recurse assuming the test came out true. Move all ancestors of
 		// what was tested into the positive collection and out of the
@@ -799,17 +811,17 @@ extends Descriptor
 		final List<Integer> newPositive = new ArrayList<Integer>(positives);
 		for (final int index1 : possible)
 		{
-			possibility = imps.get(index1);
-			if (possibility.bodySignature().acceptsArgTypesFromFunctionType(
-				imps.get(bestIndex).bodySignature()))
+			possibleSignature = definitions.get(index1).bodySignature();
+			if (possibleSignature.acceptsArgTypesFromFunctionType(
+				definitions.get(bestIndex).bodySignature()))
 			{
 				newPositive.add(index1);
 				newPossible.remove(new Integer(index1));
 			}
 			else
 			{
-				final A_BasicObject sig = possibility.bodySignature();
-				final A_BasicObject intersection =
+				final A_Type sig = possibleSignature;
+				final A_Type intersection =
 					sig.argsTupleType().typeIntersection(
 						bestSig.argsTupleType());
 				if (intersection.equals(BottomTypeDescriptor.bottom()))
@@ -823,7 +835,7 @@ extends Descriptor
 		instructions.add(-666);                 // branch offset to be replaced
 		final int startOfTrueSubtree = instructions.size();
 		createTestingTree(
-			imps,
+			definitions,
 			newPositive,
 			newPossible,
 			instructions);
@@ -837,46 +849,45 @@ extends Descriptor
 		newPossible = new ArrayList<Integer>(possible);
 		for (final int index1 : possible)
 		{
-			possibility = imps.get(index1);
-			if (imps.get(bestIndex).bodySignature()
-				.acceptsArgTypesFromFunctionType(possibility.bodySignature()))
+			possibleSignature = definitions.get(index1).bodySignature();
+			if (definitions.get(bestIndex).bodySignature()
+				.acceptsArgTypesFromFunctionType(possibleSignature))
 			{
 				newPossible.remove(new Integer(index1));
 			}
 		}
 		createTestingTree(
-			imps,
+			definitions,
 			positives,
 			newPossible,
 			instructions);
 	}
 
 	/**
-	 * Answer a new {@linkplain MethodDescriptor method}. Use the passed
-	 * {@linkplain AtomDescriptor atom} as its original name. A method is always
-	 * shared, but its names set, definitionsTuple, privateTestingTree, and
-	 * dependentsChunks can all be assigned to.
+	 * Answer a new {@linkplain MethodDescriptor method}. It has no name yet,
+	 * but will before it gets used in a send node.  It gets named by virtue of
+	 * it being referenced by one or more {@linkplain MessageBundleDescriptor
+	 * message bundle}s, each of which keeps track of how to parse it using that
+	 * bundle's name.  The bundles will be grouped into a bundle tree to allow
+	 * parsing of many possible message sends in aggregate.
 	 *
-	 * @param messageName
-	 *        The atom acting as the message name.
-	 * @return A new method.
+	 * A method is always {@linkplain Mutability#SHARED shared}, but its tuple
+	 * of owning bundles, its tuple of definitions, its cached
+	 * privateTestingTree, and its set of dependents chunk indices can all be
+	 * updated (while holding a lock).
+	 *
+	 * @return A new method with no name.
 	 */
-	public static AvailObject newMethodWithName (
-		final A_Atom messageName)
+	public static AvailObject newMethod ()
 	{
-		assert messageName.isAtom();
-
 		final AvailObject result = mutable.create();
+		result.setSlot(HASH, AvailRuntime.nextHash());
+		result.setSlot(OWNING_BUNDLES, SetDescriptor.empty());
 		result.setSlot(DEFINITIONS_TUPLE, TupleDescriptor.empty());
-		result.setSlot(DEPENDENT_CHUNK_INDICES, SetDescriptor.empty());
-		result.setSlot(ORIGINAL_NAME, messageName);
-		result.setSlot(
-			NAMES_SET,
-			SetDescriptor.fromCollection(
-				Collections.singletonList(messageName)));
 		result.setSlot(PRIVATE_TESTING_TREE, TupleDescriptor.empty());
 		result.setSlot(TYPE_RESTRICTIONS_TUPLE, TupleDescriptor.empty());
 		result.setSlot(SEALED_ARGUMENTS_TYPES_TUPLE, TupleDescriptor.empty());
+		result.setSlot(DEPENDENT_CHUNK_INDICES, SetDescriptor.empty());
 		result.makeShared();
 		return result;
 	}
@@ -910,9 +921,7 @@ extends Descriptor
 			assert chunkIndicesAfter.setSize() == 0;
 		}
 		// Clear the privateTestingTree cache.
-		object.setSlot(
-			PRIVATE_TESTING_TREE,
-			NilDescriptor.nil());
+		object.setSlot(PRIVATE_TESTING_TREE, NilDescriptor.nil());
 	}
 
 	/**
@@ -956,8 +965,8 @@ extends Descriptor
 	/**
 	 * Construct a bootstrapped {@linkplain FunctionDescriptor function} that
 	 * uses the specified primitive.  The primitive failure code should invoke
-	 * the {@link #vmCrashMethod} with a tuple of passed arguments followed by
-	 * the primitive failure value.
+	 * the {@link #vmCrashAtom}'s bundle with a tuple of passed arguments
+	 * followed by the primitive failure value.
 	 *
 	 * @param primitive The {@link Primitive} to use.
 	 * @return A function.
@@ -1003,7 +1012,7 @@ extends Descriptor
 			writer.write(
 				new L1Instruction(
 					L1Operation.L1_doCall,
-					writer.addLiteral(vmCrashMethod()),
+					writer.addLiteral(vmCrashAtom().bundleOrCreate()),
 					writer.addLiteral(BottomTypeDescriptor.bottom())));
 		}
 		else
@@ -1022,11 +1031,57 @@ extends Descriptor
 	}
 
 	/**
+	 * Create a new special atom with the given name.  The name is not globally
+	 * unique, but serves to help to visually distinguish atoms.  Also create
+	 * a {@linkplain MessageBundleDescriptor message bundle} within it, with its
+	 * own {@linkplain MethodDescriptor method}.  Add {@linkplain
+	 * MethodDefinitionDescriptor method definitions} implementing the specified
+	 * primitives.
+	 *
+	 * @param name
+	 *        A string used to help identify the new atom.
+	 * @param primitives
+	 *        The {@link Primitive}s to instantiate as method definitions in
+	 *        this atom's message bundle's method.
+	 * @return
+	 *        The new atom, not equal to any object in use before this method
+	 *        was invoked.
+	 */
+	public static A_Atom createSpecialMethodAtom (
+		final String name,
+		final Primitive... primitives)
+	{
+		final A_String string = StringDescriptor.from(name);
+		final A_Atom atom = AtomDescriptor.createSpecialAtom(string);
+		final A_Bundle bundle = atom.bundleOrCreate();
+		final A_Method method = bundle.bundleMethod();
+		for (final Primitive primitive : primitives)
+		{
+			final A_Function function = newPrimitiveFunction(primitive);
+			final A_Definition definition = MethodDefinitionDescriptor.create(
+				method,
+				NilDescriptor.nil(),  // System definitions have no module.
+				function);
+			try
+			{
+				method.methodAddDefinition(definition);
+			}
+			catch (final SignatureException e)
+			{
+				throw new RuntimeException(
+					"VM method name is invalid: " + name.toString(), e);
+			}
+		}
+		return atom.traversed().makeShared();
+	}
+
+	/**
 	 * A special {@linkplain AtomDescriptor atom} used to name the VM's method
 	 * to crash during early bootstrapping problems.
 	 */
-	private static final A_Atom vmCrashAtom = AtomDescriptor.createSpecialAtom(
-		StringDescriptor.from("vm crash_"));
+	private static final A_Atom vmCrashAtom = createSpecialMethodAtom(
+		"vm crash:(«_‡,»)",
+		P_256_EmergencyExit.instance);
 
 	/**
 	 * Answer the {@linkplain AtomDescriptor atom} used by the VM to name the
@@ -1040,62 +1095,12 @@ extends Descriptor
 	}
 
 	/**
-	 * A {@linkplain MethodDescriptor method} containing a {@linkplain
-	 * MethodDefinitionDescriptor function} that invokes {@linkplain
-	 * P_256_EmergencyExit}. Needed by some hand-built bootstrap functions.
-	 */
-	private static final AvailObject vmCrashMethod = newVMCrashMethod();
-
-	/**
-	 * Answer a {@linkplain MethodDescriptor method}
-	 * containing a {@linkplain MethodDefinitionDescriptor function} that
-	 * invokes {@linkplain P_256_EmergencyExit}. Needed by some hand-built
-	 * bootstrap functions.
-	 *
-	 * @return A method.
-	 */
-	public static AvailObject vmCrashMethod ()
-	{
-		return vmCrashMethod;
-	}
-
-	/**
-	 * Construct the {@linkplain MethodDescriptor method}
-	 * for bootstrap emergency exit.
-	 *
-	 * @return A method.
-	 */
-	private static AvailObject newVMCrashMethod ()
-	{
-		assert P_256_EmergencyExit.instance.hasFlag(CannotFail);
-		final A_Function newFunction =
-			newPrimitiveFunction(P_256_EmergencyExit.instance);
-
-		// Create the new method. Note that the underscore is
-		// essential here, as certain parts of the virtual machine (like the
-		// decompiler) use the name to figure out how many arguments a method
-		// accepts.
-		final AvailObject method = newMethodWithName(vmCrashAtom());
-		try
-		{
-			method.methodAddDefinition(
-				MethodDefinitionDescriptor.create(method, newFunction));
-		}
-		catch (final SignatureException e)
-		{
-			assert false : "This should not be possible!";
-			throw new RuntimeException(e);
-		}
-
-		return method;
-	}
-
-	/**
 	 * The (special) name of the VM-built pre-bootstrap method-defining method.
 	 */
-	private static final A_Atom vmMethodDefinerAtom =
-		AtomDescriptor.createSpecialAtom(
-			StringDescriptor.from("vm method_is_"));
+	private static final A_Atom vmMethodDefinerAtom = createSpecialMethodAtom(
+		"vm method_is_",
+		P_253_SimpleMethodDeclaration.instance,
+		P_228_MethodDeclarationFromAtom.instance);
 
 	/**
 	 * Answer the (special) {@linkplain AtomDescriptor name} of the VM method
@@ -1109,28 +1114,11 @@ extends Descriptor
 	}
 
 	/**
-	 * The special pre-bootstrap method-defining method constructed by the VM.
-	 */
-	private static final AvailObject vmMethodDefinerMethod =
-		newVMMethodDefinerMethod();
-
-	/**
-	 * Answer the special pre-bootstrap method-defining method that was created
-	 * and installed into the {@link AvailRuntime} automatically.
-	 *
-	 * @return The bootstrap method-defining method.
-	 */
-	public static AvailObject vmMethodDefinerMethod ()
-	{
-		return vmMethodDefinerMethod;
-	}
-
-	/**
 	 * The (special) name of the VM-built pre-bootstrap macro-defining method.
 	 */
-	private static final A_Atom vmMacroDefinerAtom =
-		AtomDescriptor.createSpecialAtom(
-			StringDescriptor.from("vm macro_is«_,»_"));
+	private static final A_Atom vmMacroDefinerAtom = createSpecialMethodAtom(
+		"vm macro_is«_,»_",
+		P_249_SimpleMacroDeclaration.instance);
 
 	/**
 	 * Answer the (special) {@linkplain AtomDescriptor name} of the VM method
@@ -1144,80 +1132,11 @@ extends Descriptor
 	}
 
 	/**
-	 * The special pre-bootstrap macro-defining method constructed by the VM.
-	 */
-	private static final AvailObject vmMacroDefinerMethod =
-		newVMMacroDefinerMethod();
-
-	/**
-	 * Answer the special pre-bootstrap macro-defining method that was created
-	 * and installed into the {@link AvailRuntime} automatically.
-	 *
-	 * @return The bootstrap macro-defining method.
-	 */
-	public static AvailObject vmMacroDefinerMethod ()
-	{
-		return vmMacroDefinerMethod;
-	}
-
-	/**
-	 * Construct the {@linkplain MethodDescriptor methods} for bootstrapping
-	 * method definition.
-	 *
-	 * @return A method.
-	 */
-	private static AvailObject newVMMethodDefinerMethod ()
-	{
-		final A_Function fromStringFunction = newPrimitiveFunction(
-			P_253_SimpleMethodDeclaration.instance);
-		final A_Function fromAtomFunction = newPrimitiveFunction(
-			P_228_MethodDeclarationFromAtom.instance);
-		final AvailObject method = newMethodWithName(vmMethodDefinerAtom());
-		try
-		{
-			method.methodAddDefinition(
-				MethodDefinitionDescriptor.create(method, fromAtomFunction));
-			method.methodAddDefinition(
-				MethodDefinitionDescriptor.create(method, fromStringFunction));
-		}
-		catch (final SignatureException e)
-		{
-			assert false : "This should not be possible!";
-			throw new RuntimeException(e);
-		}
-		return method;
-	}
-
-	/**
-	 * Construct the {@linkplain MethodDescriptor method} for bootstrapping
-	 * macro definition.
-	 *
-	 * @return A method.
-	 */
-	private static AvailObject newVMMacroDefinerMethod ()
-	{
-		final A_Function fromStringFunction = newPrimitiveFunction(
-			P_249_SimpleMacroDeclaration.instance);
-		final AvailObject method = newMethodWithName(vmMacroDefinerAtom());
-		try
-		{
-			method.methodAddDefinition(
-				MethodDefinitionDescriptor.create(method, fromStringFunction));
-		}
-		catch (final SignatureException e)
-		{
-			assert false : "This should not be possible!";
-			throw new RuntimeException(e);
-		}
-		return method;
-	}
-
-	/**
 	 * The (special) name of the VM-built function application method.
 	 */
-	private static final A_Atom vmFunctionApplyAtom =
-		AtomDescriptor.createSpecialAtom(
-			StringDescriptor.from("vm function apply_(«_‡,»)"));
+	private static final A_Atom vmFunctionApplyAtom = createSpecialMethodAtom(
+		"vm function apply_(«_‡,»)",
+		P_040_InvokeWithTuple.instance);
 
 	/**
 	 * Answer the (special) {@linkplain AtomDescriptor name} of the VM's
@@ -1231,60 +1150,11 @@ extends Descriptor
 	}
 
 	/**
-	 * A {@linkplain MethodDescriptor method} containing a {@linkplain
-	 * MethodDefinitionDescriptor definition} that invokes {@link
-	 * P_040_InvokeWithTuple} (function application). Needed by some hand-built
-	 * functions.
-	 */
-	private static final AvailObject vmFunctionApplyMethod =
-		newVMFunctionApplyMethod();
-
-	/**
-	 * A {@linkplain MethodDescriptor method} containing a {@linkplain
-	 * MethodDefinitionDescriptor definition} that invokes {@link
-	 * P_040_InvokeWithTuple} (function application). Needed by some hand-built
-	 * functions.
-	 *
-	 * @return A method.
-	 */
-	public static AvailObject vmFunctionApplyMethod ()
-	{
-		return vmFunctionApplyMethod;
-	}
-
-	/**
-	 * Construct the {@linkplain MethodDescriptor method} for bootstrapping
-	 * function application.
-	 *
-	 * @return A method.
-	 */
-	private static AvailObject newVMFunctionApplyMethod ()
-	{
-		final A_Function newFunction =
-			newPrimitiveFunction(P_040_InvokeWithTuple.instance);
-
-		// Create the new method.
-		final AvailObject method = newMethodWithName(vmFunctionApplyAtom());
-		try
-		{
-			method.methodAddDefinition(
-				MethodDefinitionDescriptor.create(method, newFunction));
-		}
-		catch (final SignatureException e)
-		{
-			assert false : "This should not be possible!";
-			throw new RuntimeException(e);
-		}
-
-		return method;
-	}
-
-	/**
 	 * The (special) name of the VM-built atom-set publication method.
 	 */
-	private static final A_Atom vmPublishAtomsAtom =
-		AtomDescriptor.createSpecialAtom(
-			StringDescriptor.from("vm publish atom set_(public=_)"));
+	private static final A_Atom vmPublishAtomsAtom = createSpecialMethodAtom(
+		"vm publish atom set_(public=_)",
+		P_263_DeclareAllExportedAtoms.instance);
 
 	/**
 	 * Answer the (special) {@linkplain AtomDescriptor name} of the VM's
@@ -1295,54 +1165,5 @@ extends Descriptor
 	public static A_Atom vmPublishAtomsAtom ()
 	{
 		return vmPublishAtomsAtom;
-	}
-
-	/**
-	 * A {@linkplain MethodDescriptor method} containing a {@linkplain
-	 * MethodDefinitionDescriptor definition} that invokes {@link
-	 * P_263_DeclareAllExportedAtoms} (atom-set publication). Needed by the
-	 * module compilation system.
-	 */
-	private static final AvailObject vmPublishAtomsMethod =
-		newVMPublishAtomsMethod();
-
-	/**
-	 * A {@linkplain MethodDescriptor method} containing a {@linkplain
-	 * MethodDefinitionDescriptor definition} that invokes {@link
-	 * P_263_DeclareAllExportedAtoms} (atom-set publication). Needed by the
-	 * module compilation system.
-	 *
-	 * @return A method.
-	 */
-	public static AvailObject vmPublishAtomsMethod ()
-	{
-		return vmPublishAtomsMethod;
-	}
-
-	/**
-	 * Construct the {@linkplain MethodDescriptor method} for publishing a set
-	 * of atoms from the current module.
-	 *
-	 * @return A method.
-	 */
-	private static AvailObject newVMPublishAtomsMethod ()
-	{
-		final A_Function newFunction =
-			newPrimitiveFunction(P_263_DeclareAllExportedAtoms.instance);
-
-		// Create the new method.
-		final AvailObject method = newMethodWithName(vmPublishAtomsAtom());
-		try
-		{
-			method.methodAddDefinition(
-				MethodDefinitionDescriptor.create(method, newFunction));
-		}
-		catch (final SignatureException e)
-		{
-			assert false : "This should not be possible!";
-			throw new RuntimeException(e);
-		}
-
-		return method;
 	}
 }

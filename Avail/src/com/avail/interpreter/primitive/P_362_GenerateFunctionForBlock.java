@@ -63,7 +63,7 @@ extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
-		final AvailObject block = args.get(0);
+		final A_Phrase block = args.get(0);
 		try
 		{
 			recursivelyValidate(block);
@@ -81,7 +81,7 @@ extends Primitive
 			return interpreter.primitiveFailure(
 				E_BLOCK_MUST_NOT_CONTAIN_OUTERS);
 		}
-		final A_BasicObject compiledCode;
+		final A_RawFunction compiledCode;
 		try
 		{
 			compiledCode = block.generateInModule(ModuleDescriptor.current());

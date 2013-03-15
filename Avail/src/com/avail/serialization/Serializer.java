@@ -74,8 +74,8 @@ public class Serializer
 	 * All variables that must have their values assigned to them upon
 	 * deserialization.  The set is cleared at every checkpoint.
 	 */
-	final Set<A_BasicObject> variablesToAssign =
-		new HashSet<A_BasicObject>(100);
+	final Set<A_Variable> variablesToAssign =
+		new HashSet<A_Variable>(100);
 
 	/**
 	 * The number of instructions that have been written to the {@link #output}.
@@ -218,7 +218,7 @@ public class Serializer
 	 * @return The object's zero-based index in {@code encounteredObjects}.
 	 */
 	static int indexOfSpecialAtom (
-		final A_BasicObject object)
+		final A_Atom object)
 	{
 		final Integer index = specialAtoms.get(object);
 		if (index == null)
@@ -338,28 +338,31 @@ public class Serializer
 					}
 				});
 			}
-			if (instruction.operation.isVariable()
-				&& !object.value().equalsNil())
+			if (instruction.operation.isVariable())
 			{
-				variablesToAssign.add(object);
-				// Output an action to the *start* of the workStack to trace
-				// the variable's value.  This prevents recursion, but ensures
-				// that everything reachable, including through variables, will
-				// be traced.
-				workStack.addFirst(new Continuation0()
+				final A_Variable variable = (A_Variable)object;
+				if (!variable.value().equalsNil())
 				{
-					@Override
-					public void value ()
+					variablesToAssign.add(variable);
+					// Output an action to the *start* of the workStack to trace
+					// the variable's value.  This prevents recursion, but
+					// ensures that everything reachable, including through
+					// variables, will be traced.
+					workStack.addFirst(new Continuation0()
 					{
-						traceOne(object.value());
-					}
+						@Override
+						public void value ()
+						{
+							traceOne(variable.value());
+						}
 
-					@Override
-					public String toString ()
-					{
-						return "TraceVariable(" + object.kind() + ")";
-					}
-				});
+						@Override
+						public String toString ()
+						{
+							return "TraceVariable(" + variable.kind() + ")";
+						}
+					});
+				}
 			}
 		}
 	}
@@ -414,7 +417,7 @@ public class Serializer
 			workStack.removeLast().value();
 		}
 		// Next, do all variable assignments...
-		for (final A_BasicObject variable : variablesToAssign)
+		for (final A_Variable variable : variablesToAssign)
 		{
 			assert !variable.value().equalsNil();
 			final SerializerInstruction assignment =

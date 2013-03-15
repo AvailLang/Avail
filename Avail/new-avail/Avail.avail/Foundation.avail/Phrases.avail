@@ -202,7 +202,7 @@ Semantic restriction "`«[_]:_`»" is
  */
 Semantic restriction "send_with_:_" is
 [
-	aMethod : method's type,
+	aMethod : atom's type,
 	arguments : list phrase's type,
 	returnType : type's type
 |

@@ -78,7 +78,7 @@ extends AtomDescriptor
 
 		static
 		{
-			assert AtomDescriptor.IntegerSlots.HASH_OR_ZERO.ordinal()
+			assert AtomDescriptor.IntegerSlots.HASH.ordinal()
 				== HASH_OR_ZERO.ordinal();
 		}
 	}
@@ -174,8 +174,7 @@ extends AtomDescriptor
 	 *
 	 * <p>
 	 * Extract the property value of this atom at the specified key.  Return
-	 * {@linkplain NilDescriptor#nil() nil} if no such
-	 * property exists.
+	 * {@linkplain NilDescriptor#nil() nil} if no such property exists.
 	 * </p>
 	 */
 	@Override @AvailMethod

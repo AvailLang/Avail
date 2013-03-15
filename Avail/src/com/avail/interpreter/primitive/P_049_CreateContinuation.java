@@ -59,7 +59,7 @@ public class P_049_CreateContinuation extends Primitive
 		final A_Number pc = args.get(1);
 		final A_Tuple stack = args.get(3);
 		final A_Number stackp = args.get(2);
-		final A_BasicObject callerHolder = args.get(4);
+		final A_Variable callerHolder = args.get(4);
 		final A_Continuation cont = ContinuationDescriptor.createExceptFrame(
 			function,
 			callerHolder.value(),

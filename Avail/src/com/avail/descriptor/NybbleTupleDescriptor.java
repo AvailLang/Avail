@@ -122,7 +122,7 @@ extends TupleDescriptor
 		int index2 = startIndex2;
 		for (int i = startIndex1; i <= endIndex1; i++)
 		{
-			if (object.rawNybbleAt(i) != aNybbleTuple.rawNybbleAt(index2))
+			if (getNybble(object, i) != getNybble(aNybbleTuple, index2))
 			{
 				return false;
 			}
@@ -240,18 +240,8 @@ extends TupleDescriptor
 		final int nybbleIndex,
 		final byte aNybble)
 	{
-		// Set the nybble at the given index.  Use little Endian.
 		assert isMutable();
-		assert nybbleIndex >= 1 && nybbleIndex <= object.tupleSize();
-		assert aNybble >= 0 && aNybble <= 15;
-		object.checkWriteForField(IntegerSlots.RAW_QUAD_AT_);
-		// object.verifyToSpaceAddress();
-		final int wordIndex = (nybbleIndex + 7) / 8;
-		int word = object.slot(IntegerSlots.RAW_QUAD_AT_, wordIndex);
-		final int leftShift = (nybbleIndex - 1 & 7) * 4;
-		word &= ~(0x0F << leftShift);
-		word |= aNybble << leftShift;
-		object.setSlot(IntegerSlots.RAW_QUAD_AT_, wordIndex, word);
+		setNybble(object, nybbleIndex, aNybble);
 	}
 
 	@Override @AvailMethod
@@ -279,48 +269,7 @@ extends TupleDescriptor
 		final AvailObject object,
 		final int nybbleIndex)
 	{
-		// Get the element at the given index in the tuple object, and extract
-		// a nybble from it.  Fail if it's not a nybble.
-		assert nybbleIndex >= 1 && nybbleIndex <= object.tupleSize();
-		// object.verifyToSpaceAddress();
-		final int wordIndex = (nybbleIndex + 7) / 8;
-		final int word = object.slot(
-			IntegerSlots.RAW_QUAD_AT_,
-			wordIndex);
-		final int shift = (nybbleIndex - 1 & 7) * 4;
-		return (byte) (word>>>shift & 0x0F);
-	}
-
-	@Override @AvailMethod
-	short o_RawByteAt (final AvailObject object, final int byteIndex)
-	{
-		// Answer the byte at the given byte-index. This is actually two
-		// nybbles packed together. Use little endian.
-		return object.byteSlotAt(IntegerSlots.RAW_QUAD_AT_, byteIndex);
-	}
-
-	@Override @AvailMethod
-	void o_RawByteAtPut (
-		final AvailObject object,
-		final int byteIndex,
-		final short anInteger)
-	{
-		// Set the byte at the given byte-index. This is actually two nybbles
-		// packed together. Use little endian.
-		assert isMutable();
-		object.byteSlotAtPut(IntegerSlots.RAW_QUAD_AT_, byteIndex, anInteger);
-	}
-
-	@Override @AvailMethod
-	byte o_RawNybbleAt (final AvailObject object, final int nybbleIndex)
-	{
-		// Answer the nybble at the given index in the nybble tuple object.
-		assert nybbleIndex >= 1 && nybbleIndex <= object.tupleSize();
-		// object.verifyToSpaceAddress();
-		final int wordIndex = (nybbleIndex + 7) / 8;
-		final int word = object.slot(IntegerSlots.RAW_QUAD_AT_, wordIndex);
-		final int shift = (nybbleIndex - 1 & 7) * 4;
-		return (byte) (word>>>shift & 0x0F);
+		return getNybble(object, nybbleIndex);
 	}
 
 	@Override @AvailMethod
@@ -328,7 +277,7 @@ extends TupleDescriptor
 	{
 		// Answer the element at the given index in the nybble tuple object.
 		return (AvailObject)IntegerDescriptor.fromUnsignedByte(
-			object.rawNybbleAt(index));
+			getNybble(object, index));
 	}
 
 	@Override @AvailMethod
@@ -375,7 +324,7 @@ extends TupleDescriptor
 				newValueObject,
 				true);
 		}
-		// Ok, clobber the object in place...
+		// All clear.  Clobber the object in place...
 		final AvailObject strongValue = (AvailObject)newValueObject;
 		object.rawNybbleAtPut(nybbleIndex, strongValue.extractNybble());
 		object.hashOrZero(0);
@@ -389,7 +338,7 @@ extends TupleDescriptor
 	{
 		// Answer the integer element at the given index in the nybble tuple
 		// object.
-		return object.rawNybbleAt(index);
+		return getNybble(object, index);
 	}
 
 	@Override @AvailMethod
@@ -419,11 +368,52 @@ extends TupleDescriptor
 		for (int nybbleIndex = end; nybbleIndex >= start; nybbleIndex--)
 		{
 			int itemHash = IntegerDescriptor.hashOfUnsignedByte(
-				object.rawNybbleAt(nybbleIndex));
+				getNybble(object, nybbleIndex));
 			itemHash ^= preToggle;
 			hash = hash * multiplier + itemHash;
 		}
 		return hash * multiplier;
+	}
+
+	/**
+	 * Extract the nybble from the specified position of the {@linkplain
+	 * NybbleTupleDescriptor nybble tuple}.
+	 *
+	 * @param object A nybble tuple.
+	 * @param nybbleIndex The index.
+	 * @return The nybble at that index.
+	 */
+	private static byte getNybble (final A_Tuple object, final int nybbleIndex)
+	{
+		assert nybbleIndex >= 1 && nybbleIndex <= object.tupleSize();
+		final int wordIndex = (nybbleIndex + 7) / 8;
+		final int word = object.slot(IntegerSlots.RAW_QUAD_AT_, wordIndex);
+		final int shift = (nybbleIndex - 1 & 7) * 4;
+		return (byte) (word>>>shift & 0x0F);
+	}
+
+	/**
+	 * Overwrite the specified position of the {@linkplain NybbleTupleDescriptor
+	 * nybble tuple} with a replacement nybble.
+	 *
+	 * @param object The nybble tuple.
+	 * @param nybbleIndex The index.
+	 * @param aNybble The replacement value, a nybble.
+	 */
+	private static void setNybble (
+		final AvailObject object,
+		final int nybbleIndex,
+		final byte aNybble)
+	{
+		assert nybbleIndex >= 1 && nybbleIndex <= object.tupleSize();
+		assert aNybble >= 0 && aNybble <= 15;
+		object.checkWriteForField(IntegerSlots.RAW_QUAD_AT_);
+		final int wordIndex = (nybbleIndex + 7) / 8;
+		int word = object.slot(IntegerSlots.RAW_QUAD_AT_, wordIndex);
+		final int leftShift = (nybbleIndex - 1 & 7) * 4;
+		word &= ~(0x0F << leftShift);
+		word |= aNybble << leftShift;
+		object.setSlot(IntegerSlots.RAW_QUAD_AT_, wordIndex, word);
 	}
 
 	/**
@@ -513,7 +503,7 @@ extends TupleDescriptor
 		result.hashOrZero(object.hashOrZero());
 		for (int i = 1, end = result.tupleSize(); i <= end; i++)
 		{
-			result.rawByteAtPut(i, object.rawNybbleAt(i));
+			result.rawByteAtPut(i, getNybble(object, i));
 		}
 		return result;
 	}

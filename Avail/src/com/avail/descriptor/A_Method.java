@@ -46,10 +46,6 @@ import com.avail.exceptions.SignatureException;
 public interface A_Method
 extends A_BasicObject
 {
-	A_Atom originalName ();
-
-	A_Set namesSet ();
-
 	A_Tuple definitionsTuple ();
 
 	A_Tuple typeRestrictions ();
@@ -79,33 +75,33 @@ extends A_BasicObject
 	 * @throws SignatureException
 	 *         If the definition could not be added.
 	 */
-	void methodAddDefinition (A_BasicObject definition)
+	void methodAddDefinition (A_Definition definition)
 		throws SignatureException;
 
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	List<AvailObject> filterByTypes (List<A_Type> argTypes);
+	List<A_Definition> filterByTypes (List<A_Type> argTypes);
 
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	List<AvailObject> definitionsAtOrBelow (List<? extends A_Type> argTypes);
+	List<A_Definition> definitionsAtOrBelow (List<? extends A_Type> argTypes);
 
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	boolean includesDefinition (A_BasicObject imp);
+	boolean includesDefinition (A_Definition imp);
 
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	AvailObject lookupByTypesFromTuple (A_Tuple argumentTypeTuple);
+	A_Definition lookupByTypesFromTuple (A_Tuple argumentTypeTuple);
 
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	AvailObject lookupByValuesFromList (
+	A_Definition lookupByValuesFromList (
 		List<? extends A_BasicObject> argumentList);
 
 	/**
@@ -116,7 +112,7 @@ extends A_BasicObject
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	void removeDefinition (A_BasicObject definition);
+	void removeDefinition (A_Definition definition);
 
 	/**
 	 * This method also occurs in {@link A_RawFunction}.
@@ -143,4 +139,14 @@ extends A_BasicObject
 	 * @return
 	 */
 	boolean isMethodEmpty ();
+
+	/**
+	 * Answer the {@linkplain A_Tuple tuple} of {@linkplain A_Bundle message
+	 * bundles} that name this method.
+	 *
+	 * @return A tuple of message bundles.
+	 */
+	A_Set bundles ();
+
+	void methodAddBundle (A_Bundle bundle);
 }

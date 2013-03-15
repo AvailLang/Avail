@@ -122,9 +122,11 @@ public class AbstractAvailTest
 	public void clearAllWellKnownObjects ()
 	{
 		final AvailRuntime theRuntime = runtime;
-		assert theRuntime != null;
-		theRuntime.destroy();
-		runtime = null;
+		if (theRuntime != null)
+		{
+			theRuntime.destroy();
+			runtime = null;
+		}
 	}
 
 	/**

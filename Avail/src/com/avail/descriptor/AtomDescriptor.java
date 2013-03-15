@@ -41,6 +41,8 @@ import java.util.*;
 import com.avail.AvailRuntime;
 import com.avail.annotations.*;
 import com.avail.compiler.AbstractAvailCompiler.ParserState;
+import com.avail.exceptions.AvailRuntimeException;
+import com.avail.exceptions.SignatureException;
 import com.avail.serialization.*;
 
 /**
@@ -99,7 +101,7 @@ extends Descriptor
 		 * random number (not 0), computed on demand.
 		 */
 		@HideFieldInDebugger
-		HASH_OR_ZERO
+		HASH
 	}
 
 	/**
@@ -125,7 +127,7 @@ extends Descriptor
 	@Override
 	boolean allowsImmutableToMutableReferenceInField (final AbstractSlotsEnum e)
 	{
-		return e == HASH_OR_ZERO;
+		return e == HASH;
 	}
 
 	@Override
@@ -190,7 +192,7 @@ extends Descriptor
 	@Override @AvailMethod
 	int o_Hash (final AvailObject object)
 	{
-		int hash = object.slot(HASH_OR_ZERO);
+		int hash = object.slot(HASH);
 		if (hash == 0)
 		{
 			do
@@ -198,7 +200,7 @@ extends Descriptor
 				hash = AvailRuntime.nextHash();
 			}
 			while (hash == 0);
-			object.setSlot(HASH_OR_ZERO, hash);
+			object.setSlot(HASH, hash);
 		}
 		return hash;
 	}
@@ -253,7 +255,7 @@ extends Descriptor
 				AtomWithPropertiesDescriptor.createWithNameAndModuleAndHash(
 					object.slot(NAME),
 					object.slot(ISSUING_MODULE),
-					object.slot(HASH_OR_ZERO));
+					object.slot(HASH));
 			object.becomeIndirectionTo(substituteAtom);
 			object.makeShared();
 			return substituteAtom;
@@ -280,7 +282,7 @@ extends Descriptor
 			AtomWithPropertiesDescriptor.createWithNameAndModuleAndHash(
 				object.slot(NAME),
 				object.slot(ISSUING_MODULE),
-				object.slot(HASH_OR_ZERO));
+				object.slot(HASH));
 		object.becomeIndirectionTo(substituteAtom);
 		substituteAtom.setAtomProperty(key, value);
 	}
@@ -330,6 +332,32 @@ extends Descriptor
 		return super.o_MarshalToJava(object, ignoredClassHint);
 	}
 
+	@Override
+	A_Bundle o_BundleOrCreate (final AvailObject object)
+	{
+		A_Bundle bundle = object.getAtomProperty(messageBundleKey);
+		if (bundle.equalsNil())
+		{
+			final A_Method method = MethodDescriptor.newMethod();
+			try
+			{
+				bundle = MessageBundleDescriptor.newBundle(object, method);
+			}
+			catch (final SignatureException e)
+			{
+				throw new AvailRuntimeException(e.errorCode(), e);
+			}
+			object.setAtomProperty(messageBundleKey, bundle);
+		}
+		return bundle;
+	}
+
+	@Override
+	A_Bundle o_BundleOrNil (final AvailObject object)
+	{
+		return object.getAtomProperty(messageBundleKey);
+	}
+
 	/**
 	 * Construct a new {@link AtomDescriptor}.
 	 *
@@ -364,19 +392,8 @@ extends Descriptor
 	@Override
 	final AtomDescriptor shared ()
 	{
-		if (this == specialShared)
-		{
-			return specialShared;
-		}
 		return AtomWithPropertiesSharedDescriptor.shared;
 	}
-
-	/**
-	 * A {@linkplain Mutability#SHARED shared} {@linkplain AtomDescriptor
-	 * descriptor} for use only with special atoms.
-	 */
-	private static final AtomDescriptor specialShared =
-		new AtomDescriptor(Mutability.SHARED);
 
 	/**
 	 * Create a new atom with the given name. The name is not globally unique,
@@ -393,11 +410,11 @@ extends Descriptor
 	 */
 	public static AvailObject create (
 		final A_String name,
-		final A_BasicObject issuingModule)
+		final A_Module issuingModule)
 	{
 		final AvailObject instance = mutable.create();
 		instance.setSlot(NAME, name);
-		instance.setSlot(HASH_OR_ZERO, 0);
+		instance.setSlot(HASH, 0);
 		instance.setSlot(ISSUING_MODULE, issuingModule);
 		instance.makeImmutable();
 		return instance;
@@ -406,9 +423,7 @@ extends Descriptor
 	/**
 	 * Create a new special atom with the given name. The name is not globally
 	 * unique, but serves to help to visually distinguish atoms. A special atom
-	 * comes into existence already {@linkplain Mutability#SHARED shared} and
-	 * uses a special {@linkplain AtomDescriptor descriptor} that does not
-	 * support property definition.
+	 * should not have properties added to it after initialization.
 	 *
 	 * @param name
 	 *        A string used to help identify the new atom.
@@ -416,14 +431,15 @@ extends Descriptor
 	 *        The new atom, not equal to any object in use before this method
 	 *        was invoked.
 	 */
-	public static A_Atom createSpecialAtom (final A_String name)
+	public static A_Atom createSpecialAtom (
+		final A_String name)
 	{
-		final AvailObject instance = mutable.create();
-		instance.setSlot(NAME, name.makeShared());
-		instance.setSlot(HASH_OR_ZERO, 0);
-		instance.setSlot(ISSUING_MODULE, NilDescriptor.nil());
-		instance.descriptor = specialShared;
-		return instance;
+		final AvailObject atom = mutable.create();
+		atom.setSlot(NAME, name.makeShared());
+		atom.setSlot(HASH, 0);
+		atom.setSlot(ISSUING_MODULE, NilDescriptor.nil());
+		atom.makeShared();
+		return atom;
 	}
 
 	/**
@@ -528,6 +544,13 @@ extends Descriptor
 	 */
 	private static final A_Atom heritableKey = createSpecialAtom(
 		StringDescriptor.from("heritability"));
+
+	/**
+	 * The property key from which to extract an atom's {@linkplain
+	 * MessageBundleDescriptor message bundle}, if any.
+	 */
+	private static final A_Atom messageBundleKey = createSpecialAtom(
+		StringDescriptor.from("message bundle"));
 
 	/**
 	 * Answer the atom representing the Avail concept "true".
@@ -669,11 +692,22 @@ extends Descriptor
 	/**
 	 * Answer the property key that indicates that a {@linkplain FiberDescriptor
 	 * fiber} global is inheritable.
-
+	 *
 	 * @return An atom that's special because it's known by the virtual machine.
 	 */
 	public static A_Atom heritableKey ()
 	{
 		return heritableKey;
+	}
+
+	/**
+	 * Answer the property key under which this atom's {@linkplain
+	 * MessageBundleDescriptor message bundle}, if any, is stored.
+	 *
+	 * @return An atom held by the VM, used to extract an atom's message bundle.
+	 */
+	public static A_Atom messageBundleKey ()
+	{
+		return messageBundleKey;
 	}
 }

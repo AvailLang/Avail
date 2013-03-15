@@ -736,13 +736,13 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_Continuation (final AvailObject object)
+	A_Continuation o_Continuation (final AvailObject object)
 	{
 		return object.mutableSlot(CONTINUATION);
 	}
 
 	@Override @AvailMethod
-	void o_Continuation (final AvailObject object, final A_BasicObject value)
+	void o_Continuation (final AvailObject object, final A_Continuation value)
 	{
 		object.setMutableSlot(CONTINUATION, value);
 	}

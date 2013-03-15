@@ -53,7 +53,8 @@ extends Primitive
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_225_MethodNameContainsGroups().init(1, CanFold);
+		new P_225_MethodNameContainsGroups().init(
+			1, CanFold, CanInline);
 
 	@Override
 	public Result attempt (

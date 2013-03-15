@@ -171,7 +171,7 @@ extends AbstractDescriptor
 	@Override
 	void o_MethodAddDefinition (
 		final AvailObject object,
-		final A_BasicObject definition)
+		final A_Definition definition)
 	throws SignatureException
 	{
 		throw unsupportedOperationException();
@@ -305,9 +305,8 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_BuildFilteredBundleTreeFrom (
-		final AvailObject object,
-		final A_Map bundleMap)
+	A_BundleTree o_BuildFilteredBundleTree (
+		final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}
@@ -417,7 +416,7 @@ extends AbstractDescriptor
 	@Override
 	void o_Continuation (
 		final AvailObject object,
-		final A_BasicObject value)
+		final A_Continuation value)
 	{
 		throw unsupportedOperationException();
 	}
@@ -517,7 +516,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	List<AvailObject> o_FilterByTypes (
+	List<A_Definition> o_FilterByTypes (
 		final AvailObject object,
 		final List<A_Type> argTypes)
 	{
@@ -569,7 +568,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	List<AvailObject> o_DefinitionsAtOrBelow (
+	List<A_Definition> o_DefinitionsAtOrBelow (
 		final AvailObject object,
 		final List<? extends A_Type> argTypes)
 	{
@@ -577,18 +576,9 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	AvailObject o_IncludeBundleNamed (
-		final AvailObject object,
-		final A_Atom messageBundleName,
-		final A_BasicObject method)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
 	boolean o_IncludesDefinition (
 		final AvailObject object,
-		final A_BasicObject definition)
+		final A_Definition definition)
 	{
 		throw unsupportedOperationException();
 	}
@@ -613,14 +603,6 @@ extends AbstractDescriptor
 	void o_CountdownToReoptimize (
 		final AvailObject object,
 		final int value)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override @Deprecated
-	void o_IsSaved (
-		final AvailObject object,
-		final boolean aBoolean)
 	{
 		throw unsupportedOperationException();
 	}
@@ -868,7 +850,7 @@ extends AbstractDescriptor
 	@Override
 	boolean o_NameVisible (
 		final AvailObject object,
-		final AvailObject trueName)
+		final A_Atom trueName)
 	{
 		throw unsupportedOperationException();
 	}
@@ -999,14 +981,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	byte o_RawNybbleAt (
-		final AvailObject object,
-		final int index)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
 	void o_RawNybbleAtPut (
 		final AvailObject object,
 		final int index,
@@ -1085,7 +1059,7 @@ extends AbstractDescriptor
 	@Override
 	void o_RemoveDefinition (
 		final AvailObject object,
-		final A_BasicObject definition)
+		final A_Definition definition)
 	{
 		throw unsupportedOperationException();
 	}
@@ -1732,7 +1706,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	AvailObject o_Continuation (
+	A_Continuation o_Continuation (
 		final AvailObject object)
 	{
 		throw unsupportedOperationException();
@@ -1865,13 +1839,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	A_BundleTree o_FilteredBundleTree (
-		final AvailObject object)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
 	AvailObject o_GetValue (
 		final AvailObject object)
 	{
@@ -1964,13 +1931,6 @@ extends AbstractDescriptor
 
 	@Override
 	boolean o_IsPositive (
-		final AvailObject object)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override @Deprecated
-	boolean o_IsSaved (
 		final AvailObject object)
 	{
 		throw unsupportedOperationException();
@@ -2695,7 +2655,7 @@ extends AbstractDescriptor
 	@Override
 	boolean o_IsBetterRepresentationThanTupleType (
 		final AvailObject object,
-		final A_BasicObject aTupleType)
+		final A_Type aTupleType)
 	{
 		// Given two objects that are known to be equal, the second of which is
 		// in the form of a tuple type, is the first one in a better form than
@@ -2855,34 +2815,9 @@ extends AbstractDescriptor
 	@Override
 	boolean o_ContainsBlock (
 		final AvailObject object,
-		final AvailObject aFunction)
+		final A_Function aFunction)
 	{
 		return false;
-	}
-
-
-	/**
-	 * The object was just scanned, and its pointers converted into valid
-	 * ToSpace pointers.  Do any follow-up activities specific to the kind of
-	 * object it is.
-	 */
-	@Override @Deprecated
-	void o_PostFault (
-		final AvailObject object)
-	{
-		// do nothing special by default.
-	}
-
-	@Override
-	void o_ReadBarrierFault (
-		final AvailObject object)
-	{
-		//  The object is in ToSpace, and its fields already refer to ToSpace objects.  Do nothing,
-		//  as there is no read barrier.  See also implementation in GCReadBarrierDescriptor.
-		//
-		//  do nothing
-
-
 	}
 
 	@Override
@@ -3209,7 +3144,7 @@ extends AbstractDescriptor
 
 
 	@Override
-	A_Method o_Method(final AvailObject object)
+	A_Bundle o_Bundle(final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}
@@ -3289,7 +3224,7 @@ extends AbstractDescriptor
 	@Override
 	A_RawFunction o_GenerateInModule (
 		final AvailObject object,
-		final A_BasicObject module)
+		final A_Module module)
 	{
 		throw unsupportedOperationException();
 	}
@@ -3747,14 +3682,14 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	public A_BasicObject o_UpperBoundMap (
+	A_BasicObject o_UpperBoundMap (
 		final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}
 
 	@Override
-	public void o_UpperBoundMap (
+	void o_UpperBoundMap (
 		final AvailObject object,
 		final A_BasicObject aMap)
 	{
@@ -4547,9 +4482,9 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_FlushForNewOrChangedBundleNamed (
+	void o_FlushForNewOrChangedBundle (
 		final AvailObject object,
-		final A_Atom message)
+		final A_Bundle bundle)
 	{
 		throw unsupportedOperationException();
 	}
@@ -4578,19 +4513,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	A_Set o_NamesSet (final AvailObject object)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	A_Atom o_OriginalName (final AvailObject object)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	AvailObject o_BundleMethod (final AvailObject object)
+	A_Method o_BundleMethod (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}
@@ -4818,6 +4741,48 @@ extends AbstractDescriptor
 	 */
 	@Override
 	void o_FiberName (final AvailObject object, final A_String value)
+	{
+		throw unsupportedOperationException();
+	}
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	@Override
+	A_Set o_Bundles (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	/**
+	 * @param object
+	 * @param bundle
+	 */
+	@Override
+	void o_MethodAddBundle (final AvailObject object, final A_Bundle bundle)
+	{
+		throw unsupportedOperationException();
+	}
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	@Override
+	A_Module o_DefinitionModule (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	A_Bundle o_BundleOrCreate (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	A_Bundle o_BundleOrNil (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}

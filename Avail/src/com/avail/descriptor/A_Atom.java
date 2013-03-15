@@ -73,4 +73,22 @@ extends A_BasicObject
 	 * @return
 	 */
 	AvailObject getAtomProperty (A_Atom key);
+
+	/**
+	 * Answer the {@linkplain MessageBundleDescriptor message bundle} associated
+	 * with this atom.  If the atom does not yet have a message bundle
+	 * associated with it, create one for that purpose and install it.
+	 *
+	 * @return The atom's message bundle.
+	 */
+	A_Bundle bundleOrCreate ();
+
+	/**
+	 * Answer the {@linkplain MessageBundleDescriptor message bundle} associated
+	 * with this atom.  If the atom does not yet have a message bundle
+	 * associated with it, answer {@linkplain NilDescriptor nil}.
+	 *
+	 * @return The atom's message bundle or nil.
+	 */
+	A_Bundle bundleOrNil ();
 }

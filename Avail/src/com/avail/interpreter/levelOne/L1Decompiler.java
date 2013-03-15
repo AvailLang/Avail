@@ -284,12 +284,17 @@ public class L1Decompiler
 		@Override
 		public void L1_doCall ()
 		{
-			final A_Method method = code.literalAt(getInteger());
+			final A_Bundle bundle = code.literalAt(getInteger());
 			final A_Type type = code.literalAt(getInteger());
+			final A_Method method = bundle.bundleMethod();
 			final int nArgs = method.numArgs();
 			final List<A_Phrase> callArgs = popExpressions(nArgs);
+			final A_Set bundles = method.bundles();
+			assert bundles.setSize() > 0;
+			// Choose a name arbitrarily (eventually we should decompile in a
+			// scope which will help choose well among alternative names).
 			final A_Phrase sendNode = SendNodeDescriptor.from(
-				method,
+				bundle,
 				ListNodeDescriptor.newExpressions(
 					TupleDescriptor.fromList(callArgs)),
 				type);

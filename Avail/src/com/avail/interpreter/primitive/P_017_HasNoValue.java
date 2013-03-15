@@ -55,7 +55,7 @@ public class P_017_HasNoValue extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
-		final A_BasicObject var = args.get(0);
+		final A_Variable var = args.get(0);
 		return interpreter.primitiveSuccess(
 			AtomDescriptor.objectFromBoolean(
 				var.value().equalsNil()));

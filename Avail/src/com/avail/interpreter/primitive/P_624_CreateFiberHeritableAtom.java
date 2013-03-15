@@ -66,8 +66,8 @@ extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
-		final AvailObject name = args.get(0);
-		final AvailObject module = ModuleDescriptor.current();
+		final A_String name = args.get(0);
+		final A_Module module = ModuleDescriptor.current();
 		final MutableOrNull<A_Atom> trueName =
 			new MutableOrNull<A_Atom>();
 		final MutableOrNull<AvailErrorCode> errorCode =
