@@ -122,16 +122,17 @@ Semantic restriction "Cast|cast_into_" is
 	valueType : any's type,
 	acceptType : [⊥]→⊤'s type
 |
-	If valueType ⊆ acceptType[1] then
+	targetType ::= acceptType[1];
+	If valueType ⊆ targetType then
 	[
 		Reject parse, expected:
 			format "necessary cast expression, but “①” is a subtype of “②”"
 			with valueType, acceptType[1]
 	];
-	If ¬acceptType[1] ⊆ valueType then
+	If valueType ∩ targetType = ⊥ then
 	[
 		Reject parse, expected:
-			format "allowed cast expression, but “①” is not a supertype of “②”"
+			format "allowed cast expression, but “①” and “②” are disjoint"
 			with valueType, acceptType[1]
 	];
 	acceptType's return type
