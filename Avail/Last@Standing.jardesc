@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<jardesc>
+    <jar path="/Users/todd/Desktop/L@ST/L@ST.jar"/>
+    <options buildIfNeeded="true" compress="true" descriptionLocation="/Avail/Last@Standing.jardesc" exportErrors="true" exportWarnings="true" includeDirectoryEntries="true" overwrite="true" saveDescription="true" storeRefactorings="false" useSourceFolders="true"/>
+    <storedRefactorings deprecationInfo="true" structuralOnly="false"/>
+    <selectedProjects/>
+    <manifest generateManifest="false" mainClassHandleIdentifier="=7DRL-2013/src&lt;org.availlang.rl7d2013.ui{MainFrame.java[MainFrame" manifestLocation="/7DRL-2013/MANIFEST.MF" manifestVersion="1.0" reuseManifest="true" saveManifest="true" usesManifest="true">
+        <sealing sealJar="true">
+            <packagesToSeal/>
+            <packagesToUnSeal/>
+        </sealing>
+    </manifest>
+    <selectedElements exportClassFiles="true" exportJavaFiles="false" exportOutputFolder="false">
+        <javaElement handleIdentifier="=Avail/src&lt;com.avail.compiler.scanning"/>
+        <javaElement handleIdentifier="=Avail/src&lt;com.avail"/>
+        <javaElement handleIdentifier="=Avail/src&lt;com.avail.interpreter.levelOne"/>
+        <javaElement handleIdentifier="=Avail/src&lt;com.avail.descriptor"/>
+        <javaElement handleIdentifier="=7DRL-2013/src"/>
+        <javaElement handleIdentifier="=Avail/src&lt;com.avail.interpreter.levelTwo.operation"/>
+        <javaElement handleIdentifier="=Avail/src&lt;com.avail.persistence"/>
+        <javaElement handleIdentifier="=Avail/src&lt;com.avail.serialization"/>
+        <javaElement handleIdentifier="=Avail/src&lt;com.avail.interpreter"/>
+        <javaElement handleIdentifier="=Avail/src&lt;com.avail.annotations"/>
+        <javaElement handleIdentifier="=Avail/src&lt;com.avail.interpreter.levelTwo.operand"/>
+        <javaElement handleIdentifier="=Avail/src&lt;com.avail.interpreter.levelTwo.register"/>
+        <javaElement handleIdentifier="=Avail/src&lt;com.avail.interpreter.primitive"/>
+        <javaElement handleIdentifier="=Avail/src&lt;com.avail.interpreter.levelTwo"/>
+        <javaElement handleIdentifier="=Avail/src&lt;com.avail.exceptions"/>
+        <file path="/Avail/MANIFEST.MF"/>
+        <javaElement handleIdentifier="=Avail/src&lt;com.avail.builder"/>
+        <javaElement handleIdentifier="=Avail/src&lt;com.avail.utility"/>
+        <javaElement handleIdentifier="=Avail/src&lt;com.avail.compiler.instruction"/>
+        <javaElement handleIdentifier="=Avail/src&lt;com.avail.compiler"/>
+        <javaElement handleIdentifier="=Avail/src&lt;com.avail.visitor"/>
+        <javaElement handleIdentifier="=Avail/src&lt;com.avail.optimizer"/>
+    </selectedElements>
+</jardesc>
