@@ -534,7 +534,8 @@ extends AbstractList<byte[]>
 		{
 			master.orphansByLevel.add(new ArrayList<RecordCoordinates>(fanout));
 		}
-		final List<RecordCoordinates> orphans = master.orphansByLevel.get(level);
+		final List<RecordCoordinates> orphans =
+			master.orphansByLevel.get(level);
 		orphans.add(orphanLocation);
 		if (orphans.size() == fanout)
 		{
@@ -661,7 +662,8 @@ extends AbstractList<byte[]>
 				assert stream != null;
 				stream.close();
 			}
-			if (master.fileLimit + 4 + compressedStream.size() >= file.length())
+			while (master.fileLimit + 4 + compressedStream.size()
+				>= file.length())
 			{
 				channel.position(0);
 				final long delta =
@@ -699,11 +701,9 @@ extends AbstractList<byte[]>
 		final byte[] headerBytes = headerBytes();
 		previousMasterPosition =
 			((headerBytes.length + 16 + pageSize - 1) / pageSize) * pageSize;
-		masterPosition =
-			previousMasterPosition + masterNodeSize();
+		masterPosition = previousMasterPosition + masterNodeSize();
 		final long fileLimit = masterPosition + masterNodeSize();
-		final long bufferSize =
-			previousMasterPosition + masterNodeSize() * 2;
+		final long bufferSize = previousMasterPosition + masterNodeSize() * 2;
 		assert bufferSize == (int) bufferSize;
 		final ByteBuffer buffer = ByteBuffer.allocateDirect((int) bufferSize);
 		buffer.order(ByteOrder.BIG_ENDIAN);
@@ -889,8 +889,9 @@ extends AbstractList<byte[]>
 			final long startFilePosition)
 		throws IOException
 	{
-		final long writtenLimit = (master.fileLimit / pageSize * pageSize);
+		final long writtenLimit = (master.fileLimit / pageSize) * pageSize;
 		final long endFilePosition = startFilePosition + bytes.length;
+		assert endFilePosition <= master.fileLimit;
 		if (startFilePosition < writtenLimit)
 		{
 			channel.position(startFilePosition);
@@ -904,7 +905,9 @@ extends AbstractList<byte[]>
 			{
 				// Split between file and unwritten buffer.
 				final int split = (int) (writtenLimit - startFilePosition);
-				channel.read(ByteBuffer.wrap(bytes, 0, split));
+				final int bytesRead =
+					channel.read(ByteBuffer.wrap(bytes, 0, split));
+				assert bytesRead == split;
 				System.arraycopy(
 					master.lastPartialBuffer,
 					0,
@@ -916,11 +919,16 @@ extends AbstractList<byte[]>
 		else
 		{
 			// Entirely within the unwritten buffer.
+			final long startInLastPartialBuffer =
+				startFilePosition - writtenLimit;
+			assert startInLastPartialBuffer == (int) startInLastPartialBuffer;
+			assert startInLastPartialBuffer + bytes.length
+				<= master.lastPartialBuffer.length;
 			System.arraycopy(
 				master.lastPartialBuffer,
-				0,
+				(int) startInLastPartialBuffer,
 				bytes,
-				(int) (startFilePosition - writtenLimit),
+				0,
 				bytes.length);
 		}
 	}
