@@ -5962,4 +5962,20 @@ public abstract class AbstractDescriptor
 	 * @return
 	 */
 	abstract A_Bundle o_BundleOrNil (AvailObject object);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract A_Map o_EntryPoints (AvailObject object);
+
+	/**
+	 * @param object
+	 * @param stringName
+	 * @param trueName
+	 */
+	abstract void o_AddEntryPoint (
+		AvailObject object,
+		A_String stringName,
+		A_Atom trueName);
 }

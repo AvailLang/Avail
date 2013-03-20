@@ -109,6 +109,7 @@ Names
 	/*  37 */ "natural number",
 	/*  97 */ "non-empty map",
 	/*  99 */ "non-empty set",
+	/* 133 */ "nonempty string",
 	/* 118 */ "nonnegative extended integer",
 	/*  31 */ "nontype",
 	/*  81 */ "null",
@@ -309,6 +310,7 @@ _byte                                   ::= special object 129;
 _tuple_of_tuple_of_any_meta             ::= special object 130;
 _readable_extended_integer_variable     ::= special object 131;
 _fiber_meta                             ::= special object 132;
+_nonempty_string                        ::= special object 133;
 
 /**
  * The practical abstract root of the Avail type lattice. `any` is the second
@@ -1089,5 +1091,10 @@ Primitive "readable extended integer variable" is
 Primitive "fiber meta" is
 [
 	_fiber_meta
+];
+
+Primitive "nonempty string" is
+[
+	_nonempty_string
 ];
 

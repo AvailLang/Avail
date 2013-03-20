@@ -55,6 +55,7 @@ import com.avail.builder.*;
 import com.avail.compiler.*;
 import com.avail.descriptor.*;
 import com.avail.interpreter.Primitive;
+import com.avail.persistence.*;
 import com.avail.utility.*;
 
 /**
@@ -175,8 +176,7 @@ extends JFrame
 	}
 
 	/**
-	 * A {@code CleanAction} unloads all code from the runtime and empties the
-	 * compiled module repository.
+	 * A {@code CleanAction} empties all compiled module repositories.
 	 */
 	private final class CleanAction
 	extends AbstractAction
@@ -188,7 +188,18 @@ extends JFrame
 		public void actionPerformed (final @Nullable ActionEvent event)
 		{
 			assert buildTask == null;
-			repository.clear();
+			try
+			{
+				// Clear all repositories.
+				for (final ModuleRoot root : resolver.moduleRoots().roots())
+				{
+					root.repository().clear();
+				}
+			}
+			catch (final IOException e)
+			{
+				throw new IndexedFileException(e);
+			}
 			final StyledDocument doc = transcript.getStyledDocument();
 			try
 			{
@@ -387,9 +398,12 @@ extends JFrame
 			try
 			{
 				runtime = new AvailRuntime(resolver);
-				final AvailBuilder builder = new AvailBuilder(
-					runtime,
-					repository);
+				// Reopen the repositories if necessary.
+				for (final ModuleRoot root : resolver.moduleRoots().roots())
+				{
+					root.repository().reopenIfNecessary();
+				}
+				final AvailBuilder builder = new AvailBuilder(runtime);
 				builder.build(
 					new ModuleName(targetModuleName()),
 					new Continuation4<ModuleName, Long, Long, Long>()
@@ -457,6 +471,11 @@ extends JFrame
 							});
 						}
 					});
+				// Close all the repositories.
+				for (final ModuleRoot root : resolver.moduleRoots().roots())
+				{
+					root.repository().close();
+				}
 				return null;
 			}
 			catch (final FiberTerminationException e)
@@ -474,7 +493,7 @@ extends JFrame
 					throw e;
 				}
 				final String source = readSourceFile(
-					resolvedName.fileReference());
+					resolvedName.sourceReference());
 				if (source == null)
 				{
 					System.err.printf("%s%n", e.getMessage());
@@ -928,12 +947,6 @@ extends JFrame
 	@InnerAccess final ReportAction reportAction;
 
 	/**
-	 * The transient {@link Repository} of compiled modules to load in place
-	 * of Avail source files.
-	 */
-	@InnerAccess final Repository repository;
-
-	/**
 	 * Answer the (invisible) root of the {@linkplain #moduleTree module tree}.
 	 *
 	 * @return The root of the module tree.
@@ -948,7 +961,10 @@ extends JFrame
 				new DefaultMutableTreeNode(rootName);
 			treeRoot.add(rootNode);
 			final String extension = ModuleNameResolver.availExtension;
-			final File rootDirectory = roots.rootDirectoryFor(rootName);
+			final ModuleRoot root = roots.moduleRootFor(rootName);
+			assert root != null;
+			final File rootDirectory = root.sourceDirectory();
+			assert rootDirectory != null;
 			final File[] files = rootDirectory.listFiles(new FilenameFilter()
 			{
 				@Override
@@ -1092,7 +1108,7 @@ extends JFrame
 	}
 
 	/**
-	 * Update the {@linkplain #moduleProgress module progress bar}.
+	 * Update the {@linkplain #buildProgress build progress bar}.
 	 *
 	 * @param moduleName
 	 *        The {@linkplain ModuleDescriptor module} undergoing compilation.
@@ -1231,9 +1247,6 @@ extends JFrame
 		final ModuleNameResolver resolver,
 		final String initialTarget)
 	{
-		// Open the repository.
-		repository = Repository.createTemporary();
-
 		// Set module components.
 		this.resolver = resolver;
 

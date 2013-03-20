@@ -316,13 +316,7 @@ Semantic restriction "Cast|cast_into_" is
 			Reject parse, expected: message
 		];
 	];
-	If value ∪ accept[1] = value then
-	[
-		/* This is the expected case, i.e., the function argument is a subtype
-		 * of `value`, but logical negation isn't available yet.
-		 */
-	]
-	else
+	If value ∩ accept[1] = ⊥ then
 	[
 		messageTuple ::= concatenate <
 			"allowed cast expression, but ",

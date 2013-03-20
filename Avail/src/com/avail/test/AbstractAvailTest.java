@@ -144,12 +144,9 @@ public class AbstractAvailTest
 		{
 			final MutableOrNull<ModuleName> lastModule =
 				new MutableOrNull<ModuleName>();
-			final Repository repository = Repository.createTemporary();
 			final AvailRuntime theRuntime = runtime;
 			assert theRuntime != null;
-			final AvailBuilder builder = new AvailBuilder(
-				theRuntime,
-				repository);
+			final AvailBuilder builder = new AvailBuilder(theRuntime);
 			builder.build(
 				target,
 				new Continuation4<ModuleName, Long, Long, Long>()
@@ -203,7 +200,9 @@ public class AbstractAvailTest
 				throw e;
 			}
 
-			final String source = readSourceFile(resolvedName.fileReference());
+			final File sourceFile = resolvedName.sourceReference();
+			assert sourceFile != null;
+			final String source = readSourceFile(sourceFile);
 			if (source == null)
 			{
 				System.err.printf("%s%n", e.getMessage());

@@ -104,11 +104,11 @@ Uses
 		"message_contains groups",
 		"method definition of_for_",
 		"method for_",
-		"method_._(«_‡,»)(fail with_)",
+		"method_._<«_‡,»>,⁇on failure do_",
 		"next character",
 		"send_with_:_",
 		"seq`«_`»",
-		"static method_._(«_‡,»)(fail with_)",
+		"static method_._<«_‡,»>,⁇on failure do_",
 		"swap_and_",
 		"↓_",
 		"↓_`?=_",
@@ -1474,7 +1474,7 @@ Primitive "_._→variable" is
  * Returns:
  *    The requested instance method invocation function.
  */
-Primitive "method_._(«_‡,»)(fail with_)" is
+Primitive "method_._<«_‡,»>,⁇on failure do_" is
 [
 	aPojoType : pojo meta,
 	methodName : string,
@@ -1518,11 +1518,11 @@ Primitive "method_._(«_‡,»)(fail with_)" is
  * Returns:
  *    The requested static method invocation function.
  */
-Primitive "static method_._(«_‡,»)(fail with_)" is
+Primitive "static method_._<«_‡,»>,⁇on failure do_" is
 [
 	aPojoType : pojo meta,
 	methodName : string,
-	parameterTypes : tuple of type,
+	parameterTypes : tuple of any meta,
 	failFunction : pojo failure function
 |
 	Primitive 508 (failureCode : natural number);

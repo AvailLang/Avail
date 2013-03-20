@@ -32,10 +32,10 @@
 
 package com.avail.builder;
 
-import java.io.*;
-import java.util.*;
+import java.io.File;
 import com.avail.annotations.*;
 import com.avail.descriptor.ModuleDescriptor;
+import com.avail.persistence.IndexedRepositoryManager;
 
 /**
  * A {@code ResolvedModuleName} represents the canonical name of an Avail
@@ -49,20 +49,47 @@ extends ModuleName
 {
 	/**
 	 * The {@linkplain ModuleNameResolver#resolve(ModuleName) resolved}
-	 * {@linkplain File file reference}.
+	 * {@linkplain IndexedRepositoryManager repository}.
 	 */
-	private final File fileReference;
+	private final IndexedRepositoryManager repository;
 
 	/**
 	 * Answer the {@linkplain ModuleNameResolver#resolve(ModuleName) resolved}
-	 * {@linkplain File file reference}.
+	 * {@linkplain IndexedRepositoryManager repository}.
 	 *
-	 * @return The {@linkplain ModuleNameResolver#resolve(ModuleName) resolved}
-	 *         {@linkplain File file reference}.
+	 * @return The resolved repository.
 	 */
-	public File fileReference ()
+	public IndexedRepositoryManager repository ()
 	{
-		return fileReference;
+		return repository;
+	}
+
+	/**
+	 * Answer the {@linkplain ModuleNameResolver#resolve(ModuleName) resolved}
+	 * {@linkplain IndexedRepositoryManager repository}'s file reference.
+	 *
+	 * @return The resolved repository's file reference.
+	 */
+	public File repositoryReference ()
+	{
+		return repository.fileName();
+	}
+
+	/**
+	 * The {@linkplain ModuleNameResolver#resolve(ModuleName) resolved} source
+	 * {@linkplain File file reference}.
+	 */
+	private final @Nullable File sourceReference;
+
+	/**
+	 * Answer the {@linkplain ModuleNameResolver#resolve(ModuleName) resolved}
+	 * source {@linkplain File file reference}.
+	 *
+	 * @return The resolved source file reference.
+	 */
+	public @Nullable File sourceReference ()
+	{
+		return sourceReference;
 	}
 
 	/**
@@ -85,6 +112,50 @@ extends ModuleName
 	}
 
 	/**
+	 * Answer the size, in bytes, of the {@linkplain ModuleDescriptor module}.
+	 * If the source module is available, then the size of the source module is
+	 * used; otherwise, the size of the compiled module is used.
+	 *
+	 * @return The size of the module, in bytes.
+	 */
+	public long moduleSize ()
+	{
+		if (sourceReference != null)
+		{
+			return sourceReference.length();
+		}
+		return repository.moduleSize(this);
+	}
+
+	/**
+	 * Construct a new {@link ResolvedModuleName}.
+	 *
+	 * @param qualifiedName
+	 *        The just-resolved {@linkplain ModuleName module name}.
+	 * @param isPackage
+	 *        {@code true} if the {@linkplain ModuleName module name} represents
+	 *        a package, {@code false} otherwise.
+	 * @param repository
+	 *        The {@linkplain ModuleNameResolver#resolve(ModuleName) resolved}
+	 *        {@linkplain IndexedRepositoryManager repository}.
+	 * @param sourceReference
+	 *        The {@linkplain ModuleNameResolver#resolve(ModuleName) resolved}
+	 *        source {@linkplain File file reference}, or {@code null} if no
+	 *        source file is available.
+	 */
+	ResolvedModuleName (
+		final ModuleName qualifiedName,
+		final boolean isPackage,
+		final IndexedRepositoryManager repository,
+		final @Nullable File sourceReference)
+	{
+		super(qualifiedName.qualifiedName());
+		this.isPackage = isPackage;
+		this.repository = repository;
+		this.sourceReference = sourceReference;
+	}
+
+	/**
 	 * Answer the local module name as a sibling of the {@linkplain
 	 * ResolvedModuleName receiver}.
 	 *
@@ -97,70 +168,5 @@ extends ModuleName
 			? qualifiedName()
 			: packageName();
 		return new ModuleName(packageName, localName);
-	}
-
-	/**
-	 * Compute and answer the {@linkplain ModuleName module names} contained in
-	 * this package. Note that the package representative is considered
-	 * synonymous with the package itself, and is therefore not among its
-	 * contents.
-	 *
-	 * @return A {@linkplain Collection collection} of module names.
-	 * @throws UnsupportedOperationException
-	 *         If the {@linkplain ResolvedModuleName receiver} does not
-	 *         represent a {@linkplain #isPackage() package}.
-	 */
-	public Collection<ModuleName> contents ()
-	{
-		if (!isPackage)
-		{
-			throw new UnsupportedOperationException();
-		}
-		final File parent = fileReference.getParentFile();
-		final String extension = ModuleNameResolver.availExtension;
-		final List<ModuleName> contents = new ArrayList<ModuleName>();
-		final File[] files = parent.listFiles(new FilenameFilter()
-		{
-			@SuppressWarnings("null")
-			@Override
-			public boolean accept (
-				final @Nullable File dir,
-				final @Nullable String name)
-			{
-				return name.endsWith(extension)
-					&& !name.equals(localName() + extension);
-			}
-		});
-		final String qualifiedName = qualifiedName();
-		for (final File file : files)
-		{
-			final String fileName = file.getName();
-			contents.add(new ModuleName(
-				qualifiedName, fileName.substring(
-					0, fileName.length() - extension.length())));
-		}
-		return contents;
-	}
-
-	/**
-	 * Construct a new {@link ResolvedModuleName}.
-	 *
-	 * @param qualifiedName
-	 *        The just-resolved {@linkplain ModuleName module name}.
-	 * @param isPackage
-	 *        {@code true} if the {@linkplain ModuleName module name} represents
-	 *        a package, {@code false} otherwise.
-	 * @param fileReference
-	 *        The {@linkplain ModuleNameResolver#resolve(ModuleName) resolved}
-	 *        {@linkplain File file reference}.
-	 */
-	ResolvedModuleName (
-		final ModuleName qualifiedName,
-		final boolean isPackage,
-		final File fileReference)
-	{
-		super(qualifiedName.qualifiedName());
-		this.isPackage = isPackage;
-		this.fileReference = fileReference;
 	}
 }

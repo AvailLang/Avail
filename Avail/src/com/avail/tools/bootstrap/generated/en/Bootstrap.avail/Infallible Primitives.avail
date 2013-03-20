@@ -76,6 +76,7 @@ Uses
 		"_'s⁇declared exceptions",
 		"_'s⁇declared type",
 		"_'s⁇default type",
+		"_'s⁇element type",
 		"_'s⁇element|member type",
 		"_'s⁇expressions",
 		"_'s⁇function",
@@ -2472,7 +2473,7 @@ Primitive "_'s⁇lexeme" is
 	aToken : token
 |
 	Primitive 356;
-] : string;
+] : nonempty string;
 
 /**
  * Answer the zero-based starting position of the specified token within the
@@ -3080,6 +3081,52 @@ Primitive "`|_`|" is
 |
 	Primitive 511;
 ] : whole number;
+
+/**
+ * Answer the cardinality restriction of the specified pojo array type.
+ *
+ * Parameters:
+ *    pojoArrayType - A pojo array type.
+ * Returns:
+ *    The cardinality restriction of `pojoArrayType`.
+ */
+Primitive "`|`|_`|`|" is
+[
+	pojoArrayType : pojo array meta
+|
+	Primitive 514;
+] : whole number meta;
+
+/**
+ * Answer the element type of the specified pojo array type.
+ *
+ * Parameters:
+ *    pojoArrayType - A pojo array type.
+ * Returns:
+ *    The element type of `pojoArrayType`.
+ */
+Primitive "_'s⁇element type" is
+[
+	pojoArrayType : pojo array meta
+|
+	Primitive 515;
+] : any meta;
+
+/**
+ * Construct and answer a tuple whose elements are sourced from the specified
+ * pojo array.
+ *
+ * Parameters:
+ *    aPojoArray - A pojo array.
+ * Returns:
+ *    The requested tuple.
+ */
+Primitive "_→tuple" is
+[
+	aPojoArray : pojo array
+|
+	Primitive 516;
+] : tuple;
 
 /**
  * Answer the current fiber.

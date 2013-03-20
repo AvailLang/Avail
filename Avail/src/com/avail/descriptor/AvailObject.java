@@ -6935,4 +6935,22 @@ implements
 	{
 		return descriptor.o_BundleOrNil(this);
 	}
+
+	@Override
+	public A_Map entryPoints ()
+	{
+		return descriptor.o_EntryPoints(this);
+	}
+
+	/**
+	 * @param stringName
+	 * @param trueName
+	 */
+	@Override
+	public void addEntryPoint (
+		final A_String stringName,
+		final A_Atom trueName)
+	{
+		descriptor.o_AddEntryPoint(this, stringName, trueName);
+	}
 }

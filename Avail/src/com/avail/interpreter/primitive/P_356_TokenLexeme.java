@@ -32,6 +32,7 @@
 package com.avail.interpreter.primitive;
 
 import static com.avail.descriptor.TypeDescriptor.Types.TOKEN;
+import static com.avail.descriptor.TypeDescriptor.Types.CHARACTER;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
 import com.avail.descriptor.*;
@@ -65,6 +66,6 @@ public class P_356_TokenLexeme extends Primitive
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
 				TOKEN.o()),
-			TupleTypeDescriptor.stringTupleType());
+			TupleTypeDescriptor.oneOrMoreOf(CHARACTER.o()));
 	}
 }

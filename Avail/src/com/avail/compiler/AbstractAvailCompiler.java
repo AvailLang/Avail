@@ -54,6 +54,7 @@ import com.avail.compiler.scanning.*;
 import com.avail.descriptor.*;
 import com.avail.descriptor.FiberDescriptor.GeneralFlag;
 import com.avail.descriptor.TokenDescriptor.TokenType;
+import com.avail.exceptions.SignatureException;
 import com.avail.interpreter.*;
 import com.avail.interpreter.primitive.P_352_RejectParsing;
 import com.avail.serialization.*;
@@ -122,10 +123,17 @@ public abstract class AbstractAvailCompiler
 			new ArrayList<A_Tuple>();
 
 		/**
-		 * The {@linkplain AtomDescriptor names} defined and exported by the
+		 * The {@linkplain StringDescriptor names} defined and exported by the
 		 * {@linkplain ModuleDescriptor module} undergoing compilation.
 		 */
 		public final List<A_String> exportedNames =
+			new ArrayList<A_String>();
+
+		/**
+		 * The {@linkplain StringDescriptor names} of {@linkplain MethodDescriptor
+		 * methods} that are {@linkplain ModuleDescriptor module} entry points.
+		 */
+		public final List<A_String> entryPoints =
 			new ArrayList<A_String>();
 
 		/**
@@ -162,6 +170,8 @@ public abstract class AbstractAvailCompiler
 				TupleDescriptor.fromList(usedModules));
 			serializer.serialize(
 				TupleDescriptor.fromList(exportedNames));
+			serializer.serialize(
+				TupleDescriptor.fromList(entryPoints));
 			serializer.serialize(
 				TupleDescriptor.fromList(pragmas));
 		}
@@ -201,6 +211,10 @@ public abstract class AbstractAvailCompiler
 			assert theExported != null;
 			exportedNames.clear();
 			exportedNames.addAll(toList(theExported));
+			final A_Tuple theEntryPoints = deserializer.deserialize();
+			assert theEntryPoints != null;
+			entryPoints.clear();
+			entryPoints.addAll(toList(theEntryPoints));
 			final A_Tuple thePragmas = deserializer.deserialize();
 			assert thePragmas != null;
 			pragmas.clear();
@@ -339,6 +353,48 @@ public abstract class AbstractAvailCompiler
 					module);
 				module.introduceNewName(name, trueName);
 				module.addImportedName(name, trueName);
+			}
+
+			for (final A_String name : entryPoints)
+			{
+				assert name.isString();
+				try
+				{
+					final A_Set trueNames = module.trueNamesForStringName(name);
+					final int size = trueNames.setSize();
+					final AvailObject trueName;
+					if (size == 0)
+					{
+						trueName = AtomDescriptor.create(name, module);
+						module.addPrivateName(name, trueName);
+					}
+					else if (size == 1)
+					{
+						final MessageSplitter splitter =
+							new MessageSplitter(name);
+						if (splitter.numberOfArguments() > 0)
+						{
+							return
+								"entry point \"" + name.asNativeString()
+								+ "\" to be private to the current module "
+								+ "(because its arity is not zero)";
+						}
+						trueName = trueNames.iterator().next();
+					}
+					else
+					{
+						return
+							"entry point \"" + name.asNativeString()
+							+ "\" to be unambiguous";
+					}
+					module.addEntryPoint(name, trueName);
+				}
+				catch (final SignatureException e)
+				{
+					return
+						"entry point \"" + name.asNativeString()
+						+ "\" to be a valid name";
+				}
 			}
 
 			return null;
@@ -489,6 +545,11 @@ public abstract class AbstractAvailCompiler
 		 * clients of the defined module.
 		 */
 		NAMES("Names", KEYWORD),
+
+		/**
+		 * Module header token: Precedes the list of entry points.
+		 */
+		ENTRIES("Entries", KEYWORD),
 
 		/** Module header token: Precedes the contents of the defined module. */
 		BODY("Body", KEYWORD),
@@ -1389,7 +1450,8 @@ public abstract class AbstractAvailCompiler
 		throws IOException
 	{
 		final AvailRuntime runtime = AvailRuntime.current();
-		final File ref = resolvedName.fileReference();
+		final File ref = resolvedName.sourceReference();
+		assert ref != null;
 		final CharsetDecoder decoder = StandardCharsets.UTF_8.newDecoder();
 		final ByteBuffer input = ByteBuffer.allocateDirect(4096);
 		final CharBuffer output = CharBuffer.allocate(4096);
@@ -4507,8 +4569,8 @@ public abstract class AbstractAvailCompiler
 		// Module header section tracking.
 		final List<ExpectedToken> expected = new ArrayList<ExpectedToken>(
 			Arrays.<ExpectedToken>asList(
-				VERSIONS, EXTENDS, USES, NAMES, PRAGMA, BODY));
-		final Set<A_String> seen = new HashSet<A_String>(6);
+				VERSIONS, EXTENDS, USES, NAMES, ENTRIES, PRAGMA, BODY));
+		final Set<A_String> seen = new HashSet<A_String>();
 		final Generator<String> expectedMessage = new Generator<String>()
 		{
 			@Override
@@ -4594,6 +4656,11 @@ public abstract class AbstractAvailCompiler
 			else if (lexeme.equals(NAMES.lexeme()))
 			{
 				state = parseStringLiterals(state, moduleHeader.exportedNames);
+			}
+			// ON ENTRIES, record the names.
+			else if (lexeme.equals(ENTRIES.lexeme()))
+			{
+				state = parseStringLiterals(state, moduleHeader.entryPoints);
 			}
 			// On PRAGMA, record the pragma strings.
 			else if (lexeme.equals(PRAGMA.lexeme()))

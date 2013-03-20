@@ -156,7 +156,7 @@ Extends
 		"method exists named_",
 		"method for_",
 		"method definition of_for_",
-		"method_._(«_‡,»)(fail with_)",
+		"method_._<«_‡,»>,⁇on failure do_",
 		"milliseconds since the Epoch",
 		"module",
 		"module constant phrase",
@@ -168,6 +168,7 @@ Extends
 		"new⁇heritable«fiber-local»⁇atom named_",
 		"new↑_",
 		"next character",
+		"nonempty string",
 		"nontype",
 		"null",
 		"number",
@@ -192,7 +193,7 @@ Extends
 		"seq`«_`»",
 		"set",
 		"special atoms",
-		"static method_._(«_‡,»)(fail with_)",
+		"static method_._<«_‡,»>,⁇on failure do_",
 		"string",
 		"swap_and_",
 		"termination requested",
@@ -547,6 +548,7 @@ Extends
 	"Exceptions" =
 	(
 		"Current fiber's unhandled exception handler is_",
+		"Java exception",
 		"Java-class-not-available exception",
 		"Java-field-not-available exception",
 		"Java-field-reference-is-ambiguous exception",
@@ -556,6 +558,7 @@ Extends
 		"Guard|guard_«intercept_»«ensure_»",
 		"Raise_",
 		"Raise an exception for_",
+		"a Java exception caused by_",
 		"alternative-must-not-contain-arguments exception",
 		"ambiguous-name exception",
 		"arithmetic exception",
@@ -664,6 +667,7 @@ Extends
 		"_'s⁇causal exception",
 		"_'s⁇error message",
 		"_'s⁇stack summary",
+		"_'s⁇throwable",
 		"“_”(stack summary)"
 	),
 	"Functions" =
@@ -754,6 +758,7 @@ Extends
 		"`«[_`|_]:_`»",
 		"`«[_]:_`»"
 	),
+	"Pojos" = (),
 	"Security" =
 	(
 		"Completely seal method_"
@@ -850,7 +855,6 @@ Extends
 		"left fold_through_",
 		"merge sort_",
 		"merge sort_with_",
-		"nonempty string",
 		"quicksort_",
 		"quicksort_with_",
 		"relevant`|_`|",

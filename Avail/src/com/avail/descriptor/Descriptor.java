@@ -4786,4 +4786,19 @@ extends AbstractDescriptor
 	{
 		throw unsupportedOperationException();
 	}
+
+	@Override
+	A_Map o_EntryPoints (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	void o_AddEntryPoint (
+		final AvailObject object,
+		final A_String stringName,
+		final A_Atom trueName)
+	{
+		throw unsupportedOperationException();
+	}
 }

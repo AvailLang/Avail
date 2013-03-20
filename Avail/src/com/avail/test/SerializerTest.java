@@ -44,6 +44,7 @@ import com.avail.builder.*;
 import com.avail.descriptor.*;
 import com.avail.interpreter.levelOne.*;
 import com.avail.interpreter.primitive.P_292_FloatFloor;
+import com.avail.persistence.IndexedRepositoryManager;
 import com.avail.serialization.*;
 
 /**
@@ -72,12 +73,22 @@ public final class SerializerTest
 	/**
 	 * Test fixture: clear and then create all special objects well-known to the
 	 * Avail runtime.
+	 *
+	 * @throws IOException
+	 *         If an {@linkplain IOException I/O exception} occurs.
 	 */
 	@BeforeClass
-	public static void initializeAllWellKnownObjects ()
+	public static void initializeAllWellKnownObjects () throws IOException
 	{
-		final ModuleRoots roots = new ModuleRoots(
-			"avail=" + new File("avail").getAbsolutePath());
+		final IndexedRepositoryManager repository =
+			IndexedRepositoryManager.createTemporary(
+				"avail", "test repository", null);
+		final File repositoryFile = repository.fileName();
+		repository.close();
+		final ModuleRoots roots = new ModuleRoots(String.format(
+			"avail=%s,%s",
+			repositoryFile.getAbsolutePath(),
+			new File("new-avail").getAbsolutePath()));
 		final RenamesFileParser parser =
 			new RenamesFileParser(new StringReader(""), roots);
 		ModuleNameResolver resolver;

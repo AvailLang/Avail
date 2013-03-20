@@ -1080,7 +1080,7 @@ Method "“_”" is
 		s := eject ↑s ++ ">";
 		cast s into [t : <character…|2..> | t]
 	]
-] : <character…|2..>;
+] : string;
 
 /**
  * Answer a textual rendition of {@param "aTuple"} as a comma-separated list
@@ -1104,7 +1104,14 @@ Public method "“_”«else_»(as simple list)" is
 	else
 	[
 		desc ::= “aTuple”;
-		desc[2..|desc|-1]
+		cast desc into
+		[
+			s : <character…|2..>
+		|
+			if |s| > 2 ∧ [s[1] = ¢< ∧ [s[|s|] = ¢>]] then [s[2..|s|-1]]
+			else [s]
+		]
+		else [desc]
 	]
 ] : string;
 
@@ -1114,7 +1121,7 @@ Method "“_”" is
 |
 	if aSet is empty then ["∅"]
 	else ["{" ++ “aSet→tuple” (as simple list) ++ "}"]
-] : nonempty string;
+] : string;
 
 /**
  * Answer a textual rendition of {@param "aSet"} as a comma-separated list

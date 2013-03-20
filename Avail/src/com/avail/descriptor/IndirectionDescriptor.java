@@ -4548,4 +4548,19 @@ extends AbstractDescriptor
 	{
 		return o_Traversed(object).bundleOrNil();
 	}
+
+	@Override
+	A_Map o_EntryPoints (final AvailObject object)
+	{
+		return o_Traversed(object).entryPoints();
+	}
+
+	@Override
+	void o_AddEntryPoint (
+		final AvailObject object,
+		final A_String stringName,
+		final A_Atom trueName)
+	{
+		o_Traversed(object).addEntryPoint(stringName, trueName);
+	}
 }

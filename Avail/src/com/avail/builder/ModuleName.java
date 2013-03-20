@@ -63,17 +63,17 @@ public class ModuleName
 	}
 
 	/** The logical root name of the {@linkplain ModuleName module name}. */
-	private final String moduleRoot;
+	private final String rootName;
 
 	/**
 	 * Answer the logical root name of the {@linkplain ModuleName module name}.
 	 *
-	 * @return the moduleRoot
+	 * @return the rootName
 	 *         The logical root name of the {@linkplain ModuleName module name}.
 	 */
-	public String moduleRoot ()
+	public String rootName ()
 	{
-		return moduleRoot;
+		return rootName;
 	}
 
 	/**
@@ -113,6 +113,39 @@ public class ModuleName
 	}
 
 	/**
+	 * The lazily-initialized root-relative {@linkplain ModuleName module name}.
+	 * This is the {@linkplain #qualifiedName() fully-qualified name} minus the
+	 * #rootName() module root}.
+	 */
+	private String rootRelativeName;
+
+	/**
+	 * Answer the root-relative {@linkplain ModuleName module name}. This is the
+	 * {@linkplain #qualifiedName() fully-qualified name} minus the {@linkplain
+	 * #rootName() module root}.
+	 *
+	 * @return The root-relative name.
+	 */
+	public String rootRelativeName ()
+	{
+		if (rootRelativeName == null)
+		{
+			final String[] components = qualifiedName.split("/");
+			final StringBuilder builder = new StringBuilder(50);
+			for (int index = 2; index < components.length; index++)
+			{
+				if (index > 2)
+				{
+					builder.append('/');
+				}
+				builder.append(components[index]);
+			}
+			rootRelativeName = builder.toString();
+		}
+		return rootRelativeName;
+	}
+
+	/**
 	 * Construct a new {@link ModuleName} from the specified fully-qualified
 	 * module name.
 	 *
@@ -133,7 +166,7 @@ public class ModuleName
 		}
 
 		// Handle the easy ones first.
-		moduleRoot = components[1];
+		rootName = components[1];
 		localName  = components[components.length - 1];
 
 		// Now determine the package.

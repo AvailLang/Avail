@@ -976,7 +976,7 @@ extends Descriptor
 				// This guarantees the uniqueness of fiber hashes (modulo 2^32),
 				// but makes it play more nicely with sets (to prevent
 				// clumping).
-				hash = (AvailRuntime.current().nextFiberId()
+				hash = (AvailRuntime.nextFiberId()
 					* A_BasicObject.multiplier)
 					^ 0x4058A781;
 			}

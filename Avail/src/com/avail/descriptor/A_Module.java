@@ -207,4 +207,14 @@ extends A_BasicObject
 	 * Dispatch to the descriptor.
 	 */
 	A_Set trueNamesForStringName (A_String stringName);
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	A_Map entryPoints ();
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	void addEntryPoint (A_String stringName, A_Atom trueName);
 }
