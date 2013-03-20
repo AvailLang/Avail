@@ -30,4 +30,4 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-@com.avail.annotations.NotNullByDefault package com.avail.interpreter;
+@com.avail.annotations.NotNullByDefault package com.avail.linking;

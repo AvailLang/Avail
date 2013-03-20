@@ -35,6 +35,7 @@ package com.avail.interpreter;
 import static com.avail.descriptor.AvailObject.*;
 import java.io.*;
 import java.net.*;
+import java.nio.charset.*;
 import java.util.*;
 import java.util.regex.*;
 import com.avail.annotations.*;
@@ -427,51 +428,64 @@ implements IntegerEnumSlotDescriptionEnum
 	 */
 	private static Map<Short, String> primitiveNames;
 
+	private final static String allPrimitivesFileName = "All_Primitives.txt";
+
+	private final static Pattern primitiveNamePattern =
+		Pattern.compile("P_(\\d+)_(\\w+)");
+
 	/**
-	 * Find all primitive names by scanning the relevant jars or classpath
-	 * directories, populating {@link #primitiveNames}.
+	 * If we're running from the file system (i.e., development time), scan the
+	 * relevant class path directories to locate all primitive files.  Record
+	 * the list of primitive names, one per line, in All_Primitives.txt.
+	 * Otherwise we're running from some packaged representation like a .jar, so
+	 * expect the All_Primitives.txt file to be already present, so just use it
+	 * instead of scanning.
 	 */
 	private static void findPrimitives()
 	{
 		assert primitiveNames == null;
-		final String packageName = P_001_Addition.class.getPackage().getName();
+
+		primitiveNames = new HashMap<Short, String>();
+		final ClassLoader classLoader = Primitive.class.getClassLoader();
+		assert classLoader != null;
 		try
 		{
-			final ClassLoader classLoader = Primitive.class.getClassLoader();
-			assert classLoader != null;
-			final Enumeration<URL> resources = classLoader.getResources(
-				packageName.replace('.', File.separatorChar));
-			primitiveNames = new HashMap<Short, String>();
-			final Pattern pattern =
-				Pattern.compile("P_(\\d+)_(\\w+)\\.class");
-			for (final URL resource : Collections.list(resources))
+			// Always read the All_Primitives.txt file first, either because
+			// that's all we'll do, or so that we can tell if it needs to be
+			// updated.
+			final URL resource = Primitive.class.getResource(
+				allPrimitivesFileName);
+			BufferedReader input = null;
+			try
 			{
-				final File dir = new File(
-					URLDecoder.decode(resource.getFile(), "UTF-8"));
-				assert dir.exists();
-				assert dir.isDirectory();
-				for (final File file : dir.listFiles())
+				input = new BufferedReader(
+					new InputStreamReader(
+						resource.openStream(),
+						StandardCharsets.UTF_8));
+				String line;
+				while ((line = input.readLine()) != null)
 				{
-					final String name = file.getName();
-					final Matcher matcher = pattern.matcher(name);
+					final String[] parts = line.split("\\.");
+					final String lastPart = parts[parts.length - 1];
+					final Matcher matcher =
+						primitiveNamePattern.matcher(lastPart);
 					if (matcher.matches())
 					{
-						final String primNumString = matcher.group(1);
-						final String primNameString = matcher.group(2);
-						final Short primNum = Short.valueOf(primNumString);
+						final Short primNum = Short.valueOf(matcher.group(1));
 						assert !primitiveNames.containsKey(primNum);
 						primitiveNames.put(
 							primNum,
-							packageName
-								+ ".P_" + primNumString
-								+ "_" + primNameString);
+							line);
 					}
 				}
 			}
-		}
-		catch (final UnsupportedEncodingException e)
-		{
-			throw new RuntimeException(e);
+			finally
+			{
+				if (input != null)
+				{
+					input.close();
+				}
+			}
 		}
 		catch (final IOException e)
 		{

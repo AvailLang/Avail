@@ -1,6 +1,6 @@
 /**
- * package-info.java
- * Copyright (c) 1993-2013, Mark van Gulik and Todd L Smith.
+ * EntryPoint.java
+ * Copyright © 1993-2013, The Avail Foundation LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,4 +30,44 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-@com.avail.annotations.NotNullByDefault package com.avail.interpreter;
+package com.avail.linking;
+
+import com.avail.descriptor.MethodDescriptor;
+import com.avail.descriptor.ModuleDescriptor;
+
+/**
+ * An {@code EntryPoint} represents an entry point {@linkplain
+ * MethodDescriptor method}.
+ *
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
+ */
+public class EntryPoint
+{
+	/**
+	 * The fully-qualified name of the {@linkplain ModuleDescriptor module}
+	 * that defines the entry point.
+	 */
+	public final String moduleName;
+
+	/**
+	 * The name of the {@linkplain MethodDescriptor method}.
+	 */
+	public final String methodName;
+
+	/**
+	 * Construct a new {@link EntryPoint}.
+	 *
+	 * @param moduleName
+	 *        The fully-qualified name of the {@linkplain ModuleDescriptor
+	 *        module} that defines the entry point.
+	 * @param methodName
+	 *        The name of the {@linkplain MethodDescriptor method}.
+	 */
+	public EntryPoint (
+		final String moduleName,
+		final String methodName)
+	{
+		this.moduleName = moduleName;
+		this.methodName = methodName;
+	}
+}

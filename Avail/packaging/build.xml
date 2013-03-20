@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="Avail" default="avail">
+	<property name="path.avail" value="${basedir}" />
+	<property name="path.avail.bin" value="${path.avail}/bin"/>
+	<property name="path.avail.resources" value="${path.avail}/resources"/>
+	<property
+		name="path.interpreter"
+		value="${path.avail.bin}/com/avail/interpreter"/>
+
+	<!--
+		Produce a file containing the build time that can be included as a
+		resource.
+	-->
+	<target name="generate-build-time">
+		<property
+			name="path.build.time"
+			value="${path.avail.resources}/build-time.txt"/>
+		<tstamp>
+			<format property="build.time" pattern="yyyyMMdd.HHmmss.SSS"/>
+		</tstamp>
+		<echo file="${path.build.time}" append="no" message="${build.time}"/>
+	</target>
+
+	<!--
+		Produce a file containing the complete list of primitives. This is
+		needed for locating the primitives within a JAR.
+	-->
+	<target name="generate-primitives-list">
+		<property
+			name="path.primitives"
+			value="${path.interpreter}/primitive"/>
+		<property
+			name="path.primitives-list"
+			value="${path.interpreter}/All_Primitives.txt"/>
+		<fileset
+				id="primitives"
+				dir="${path.primitives}"
+				includes="P_*.class">
+		</fileset>
+		<pathconvert
+			property="one-primitive-per-line"
+			refid="primitives"
+			pathsep="${line.separator}">
+		</pathconvert>
+		<echo
+			file="${path.primitives-list}"
+			append="no"
+			message="${one-primitive-per-line}"/>
+		<!-- Remove the absolute path to the "bin" directory. -->
+		<replace
+			file="${path.primitives-list}"
+			token="${path.avail.bin}/"
+			value=""/>
+		<!-- Convert the path separators into package separators. -->
+		<replace
+			file="${path.primitives-list}"
+			token="/"
+			value="."/>
+		<!-- Remove the file extensions. -->
+		<replace
+			file="${path.primitives-list}"
+			token=".class"
+			value=""/>
+	</target>
+
+	<!--
+		Produce any automatically generated resources that are needed to use one
+		of the ultimate build products.
+	-->
+	<target
+		name="initialize"
+		depends="generate-build-time,generate-primitives-list"/>
+
+	<!--
+		Build the Avail virtual machine.
+	-->
+	<property name="jar.avail" value="Avail.jar"/>
+	<property
+		name="path.jar.avail"
+		value="${path.avail}/packaging/${jar.avail}"/>
+
+	<target name="avail" depends="initialize">
+		<jar jarfile="${path.jar.avail}">
+			<manifest>
+				<attribute name="Build-Version" value="${build.time}"/>
+				<attribute name="Built-By" value="${user.name}"/>
+				<attribute name="Sealed" value="true"/>
+			</manifest>
+			<fileset
+				dir="${path.avail.bin}"
+				excludes="**/tests/**,com/avail/environment/**"/>
+			<fileset dir="${path.avail}" includes="resources/**"/>
+		</jar>
+	</target>
+
+	<!--
+		Build the Avail build environment.
+	-->
+	<property
+		name="jar.build-environment"
+		value="AvailBuilderEnvironment.jar"/>
+	<property
+		name="path.jar.build-environment"
+		value="${path.avail}/packaging/${jar.build-environment}"/>
+
+	<target name="build-environment" depends="initialize,avail">
+		<jar jarfile="${path.jar.build-environment}">
+			<manifest>
+				<attribute name="Build-Version" value="${build.time}"/>
+				<attribute name="Built-By" value="${user.name}"/>
+				<attribute name="Class-Path" value="${jar.avail}"/>
+				<attribute
+					name="Main-Class"
+					value="com.avail.environment.AvailBuilderFrame"/>
+				<attribute name="Sealed" value="true"/>
+			</manifest>
+			<fileset
+				dir="${path.avail.bin}"
+				includes="com/avail/environment/**"/>
+		</jar>
+	</target>
+</project>

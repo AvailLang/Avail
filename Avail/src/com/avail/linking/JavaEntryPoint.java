@@ -1,6 +1,6 @@
 /**
- * package-info.java
- * Copyright (c) 1993-2013, Mark van Gulik and Todd L Smith.
+ * JavaEntryPoint.java
+ * Copyright © 1993-2013, The Avail Foundation LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,4 +30,27 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-@com.avail.annotations.NotNullByDefault package com.avail.interpreter;
+package com.avail.linking;
+
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
+/**
+ * {@code JavaEntryPoint} marks a program element as well-known to Avail. Do not
+ * change the names of such program elements without also changing Avail's
+ * linkage.
+ *
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
+ */
+@Retention(RetentionPolicy.RUNTIME)
+@Target({
+	ElementType.CONSTRUCTOR,
+	ElementType.FIELD,
+	ElementType.METHOD,
+	ElementType.TYPE})
+public @interface JavaEntryPoint
+{
+	// No implementation required.
+}
