@@ -325,7 +325,7 @@ extends Descriptor
 		assert methodName.isAtom();
 
 		final MessageSplitter splitter = new MessageSplitter(methodName.name());
-		final A_Bundle result = mutable.create();
+		final AvailObject result = mutable.create();
 		result.setSlot(METHOD, method);
 		result.setSlot(MESSAGE, methodName);
 		result.setSlot(MESSAGE_PARTS, splitter.messageParts());

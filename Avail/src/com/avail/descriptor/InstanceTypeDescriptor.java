@@ -95,7 +95,7 @@ extends AbstractEnumerationTypeDescriptor
 	 */
 	private static AvailObject getInstance (final A_Type object)
 	{
-		return object.slot(INSTANCE);
+		return ((AvailObject) object).slot(INSTANCE);
 	}
 
 

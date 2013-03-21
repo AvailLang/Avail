@@ -122,7 +122,8 @@ extends TupleDescriptor
 		int index2 = startIndex2;
 		for (int i = startIndex1; i <= endIndex1; i++)
 		{
-			if (getNybble(object, i) != getNybble(aNybbleTuple, index2))
+			if (getNybble(object, i)
+				!= aNybbleTuple.extractNybbleFromTupleAt(index2))
 			{
 				return false;
 			}
@@ -383,7 +384,9 @@ extends TupleDescriptor
 	 * @param nybbleIndex The index.
 	 * @return The nybble at that index.
 	 */
-	private static byte getNybble (final A_Tuple object, final int nybbleIndex)
+	private static byte getNybble (
+		final AvailObject object,
+		final int nybbleIndex)
 	{
 		assert nybbleIndex >= 1 && nybbleIndex <= object.tupleSize();
 		final int wordIndex = (nybbleIndex + 7) / 8;
@@ -496,7 +499,7 @@ extends TupleDescriptor
 	 *         A new {@linkplain ByteTupleDescriptor byte tuple} with the same
 	 *         sequence of integers as the argument.
 	 */
-	private A_Tuple copyAsMutableByteTuple (final A_Tuple object)
+	private A_Tuple copyAsMutableByteTuple (final AvailObject object)
 	{
 		final A_Tuple result =
 			ByteTupleDescriptor.mutableObjectOfSize(object.tupleSize());

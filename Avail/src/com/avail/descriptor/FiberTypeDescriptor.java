@@ -86,7 +86,7 @@ extends TypeDescriptor
 		{
 			return true;
 		}
-		return aType.slot(RESULT_TYPE).equals(object.slot(RESULT_TYPE));
+		return aType.resultType().equals(object.slot(RESULT_TYPE));
 	}
 
 	@Override @AvailMethod
@@ -106,7 +106,7 @@ extends TypeDescriptor
 		final AvailObject object,
 		final A_Type aType)
 	{
-		return aType.slot(RESULT_TYPE).isSubtypeOf(object.slot(RESULT_TYPE));
+		return aType.resultType().isSubtypeOf(object.slot(RESULT_TYPE));
 	}
 
 	@Override @AvailMethod
@@ -129,7 +129,7 @@ extends TypeDescriptor
 		final A_Type aType)
 	{
 		return FiberTypeDescriptor.forResultType(
-			object.slot(RESULT_TYPE).typeIntersection(aType.slot(RESULT_TYPE)));
+			object.slot(RESULT_TYPE).typeIntersection(aType.resultType()));
 	}
 
 	@Override @AvailMethod
@@ -152,7 +152,7 @@ extends TypeDescriptor
 		final A_Type aType)
 	{
 		return FiberTypeDescriptor.forResultType(
-			object.slot(RESULT_TYPE).typeUnion(aType.slot(RESULT_TYPE)));
+			object.slot(RESULT_TYPE).typeUnion(aType.resultType()));
 	}
 
 	@Override @AvailMethod

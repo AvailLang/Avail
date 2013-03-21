@@ -664,9 +664,9 @@ extends AbstractNumberDescriptor
 		final A_Number recyclable1,
 		final boolean canDestroy)
 	{
-		final A_Number result =
+		final AvailObject result =
 			canDestroy && recyclable1.descriptor().isMutable()
-			? recyclable1
+			? (AvailObject)recyclable1
 			: mutable.create();
 		final long castAsLong = Double.doubleToRawLongBits(aDouble);
 		result.setSlot(IntegerSlots.LOW_INT, (int)castAsLong);
@@ -699,14 +699,14 @@ extends AbstractNumberDescriptor
 		final A_Number recyclable2,
 		final boolean canDestroy)
 	{
-		A_Number result;
+		AvailObject result;
 		if (canDestroy && recyclable1.descriptor().isMutable())
 		{
-			result = recyclable1;
+			result = (AvailObject)recyclable1;
 		}
 		else if (canDestroy && recyclable2.descriptor().isMutable())
 		{
-			result = recyclable2;
+			result = (AvailObject) recyclable2;
 		}
 		else
 		{

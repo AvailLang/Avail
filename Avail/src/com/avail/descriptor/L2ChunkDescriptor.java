@@ -385,7 +385,7 @@ extends Descriptor
 			final Set<A_Method> contingentMethods)
 		{
 			super(chunk, recyclingQueue);
-			this.index = chunk.slot(INDEX);
+			this.index = chunk.index();
 			this.contingentMethods = contingentMethods;
 		}
 	}
@@ -517,20 +517,13 @@ extends Descriptor
 		final A_Tuple wordcodesTuple =
 			TupleDescriptor.fromIntegerList(theWordcodes);
 		wordcodesTuple.makeImmutable();
-		final A_Chunk chunk = mutable.create(listOfLiterals.size());
-		// A new chunk starts out saved and valid.
-		chunk.setSlot(SAVED, 1);
-		chunk.setSlot(VALID, 1);
-		chunk.setSlot(VECTORS, vectorTuplesTuple);
-		chunk.setSlot(NUM_OBJECTS, numObjects);
-		chunk.setSlot(NUM_INTEGERS, numIntegers);
-		chunk.setSlot(NUM_DOUBLES, numFloats);
-		chunk.setSlot(WORDCODES, wordcodesTuple);
-		for (int i = 1; i <= listOfLiterals.size(); i++)
-		{
-			chunk.setSlot(LITERAL_AT_, i, listOfLiterals.get(i - 1));
-		}
-
+		final A_Chunk chunk = create(
+			vectorTuplesTuple,
+			numObjects,
+			numIntegers,
+			numFloats,
+			wordcodesTuple,
+			listOfLiterals);
 		final int index;
 		chunksLock.lock();
 		try
@@ -561,7 +554,7 @@ extends Descriptor
 				index = allChunksWeakly.size();
 				allChunksWeakly.add(null);
 			}
-			chunk.setSlot(INDEX, index);
+			chunk.index(index);
 			final WeakChunkReference newReference = new WeakChunkReference(
 				chunk,
 				contingentMethods);
@@ -614,7 +607,7 @@ extends Descriptor
 		{
 			final WeakChunkReference ref = allChunksWeakly.get(chunkIndex);
 			assert ref.index == chunkIndex;
-			final A_Chunk chunk = ref.get();
+			final AvailObject chunk = (AvailObject) ref.get();
 			if (chunk != null)
 			{
 				chunk.setSlot(VALID, 0);
@@ -643,6 +636,43 @@ extends Descriptor
 			chunksLock.unlock();
 		}
 	}
+
+	/**
+	 * Create a new {@linkplain L2ChunkDescriptor level two chunk} with the
+	 * given information.
+	 *
+	 * @param vectorTuplesTuple
+	 * @param numObjects
+	 * @param numIntegers
+	 * @param numFloats
+	 * @param wordcodesTuple
+	 * @param listOfLiterals
+	 * @return
+	 */
+	private static A_Chunk create (
+		final A_Tuple vectorTuplesTuple,
+		final int numObjects,
+		final int numIntegers,
+		final int numFloats,
+		final A_Tuple wordcodesTuple,
+		final List<? extends A_BasicObject> listOfLiterals)
+	{
+		final AvailObject chunk = mutable.create(listOfLiterals.size());
+		// A new chunk starts out saved and valid.
+		chunk.setSlot(SAVED, 1);
+		chunk.setSlot(VALID, 1);
+		chunk.setSlot(VECTORS, vectorTuplesTuple);
+		chunk.setSlot(NUM_OBJECTS, numObjects);
+		chunk.setSlot(NUM_INTEGERS, numIntegers);
+		chunk.setSlot(NUM_DOUBLES, numFloats);
+		chunk.setSlot(WORDCODES, wordcodesTuple);
+		for (int i = 1; i <= listOfLiterals.size(); i++)
+		{
+			chunk.setSlot(LITERAL_AT_, i, listOfLiterals.get(i - 1));
+		}
+		return chunk;
+	}
+
 
 	/**
 	 * Construct a new {@link L2ChunkDescriptor}.
@@ -696,7 +726,7 @@ extends Descriptor
 
 	static
 	{
-		assert unoptimizedChunk.slot(INDEX) == 0;
+		assert unoptimizedChunk.index() == 0;
 		assert allChunksWeakly.size() == 1;
 	}
 

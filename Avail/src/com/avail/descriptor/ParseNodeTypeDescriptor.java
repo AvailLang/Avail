@@ -408,10 +408,9 @@ extends TypeDescriptor
 		final AvailObject object,
 		final A_Type aParseNodeType)
 	{
-		return object.slot(KIND)
-				== aParseNodeType.slot(KIND)
+		return object.parseNodeKind() == aParseNodeType.parseNodeKind()
 			&& object.slot(EXPRESSION_TYPE).equals(
-				aParseNodeType.slot(EXPRESSION_TYPE));
+				aParseNodeType.expressionType());
  	}
 
 	@Override @AvailMethod
@@ -472,7 +471,7 @@ extends TypeDescriptor
 			// One kind is the ancestor of the other.  We can work with that.
 			final A_Type innerIntersection =
 				object.slot(EXPRESSION_TYPE).typeIntersection(
-					aParseNodeType.slot(EXPRESSION_TYPE));
+					aParseNodeType.expressionType());
 			return (ancestor == myKind ? otherKind : myKind).create(
 				innerIntersection);
 		}
@@ -507,7 +506,7 @@ extends TypeDescriptor
 		final ParseNodeKind ancestor = myKind.commonAncestorWith(otherKind);
 		return ancestor.create(
 			object.slot(EXPRESSION_TYPE).typeUnion(
-				aParseNodeType.slot(EXPRESSION_TYPE)));
+				aParseNodeType.expressionType()));
 	}
 
 	@Override @AvailMethod

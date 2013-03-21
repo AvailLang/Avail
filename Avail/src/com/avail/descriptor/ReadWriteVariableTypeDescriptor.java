@@ -295,7 +295,7 @@ extends TypeDescriptor
 		{
 			return VariableTypeDescriptor.wrapInnerType(readType);
 		}
-		final A_Type result = mutable.create();
+		final AvailObject result = mutable.create();
 		result.setSlot(READ_TYPE, readType);
 		result.setSlot(WRITE_TYPE, writeType);
 		return result;

@@ -422,10 +422,10 @@ extends PojoTypeDescriptor
 	 * Lazily compute the type variables of the specified {@linkplain
 	 * UnfusedPojoTypeDescriptor object}.
 	 *
-	 * @param object An object.
+	 * @param object An unfused pojo type.
 	 * @return The type variables.
 	 */
-	private A_Map typeVariables (final A_Type object)
+	private A_Map typeVariables (final AvailObject object)
 	{
 		A_Map typeVars = object.slot(TYPE_VARIABLES);
 		if (typeVars.equalsNil())

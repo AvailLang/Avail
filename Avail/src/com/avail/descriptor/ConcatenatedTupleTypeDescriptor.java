@@ -132,7 +132,7 @@ extends TypeDescriptor
 	 *        The {@linkplain ConcatenatedTupleTypeDescriptor concatenated tuple
 	 *        type} to transform.
 	 */
-	private void becomeRealTupleType (final A_Type object)
+	private void becomeRealTupleType (final AvailObject object)
 	{
 		// There isn't even a shared descriptor -- we reify the tuple type upon
 		// sharing.

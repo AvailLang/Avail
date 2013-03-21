@@ -89,16 +89,16 @@ extends Descriptor
 	 * SetBinDescriptor bin}. The replacement may be the {@link
 	 * NilDescriptor#nil() nil} to indicate an empty map.
 	 *
-	 * @param object
+	 * @param set
 	 *        The set (must not be an indirection).
 	 * @param bin
 	 *        The root bin for the set, or nil.
 	 */
 	private static void setRootBin (
-		final A_Set object,
+		final A_Set set,
 		final A_BasicObject bin)
 	{
-		object.setSlot(ObjectSlots.ROOT_BIN, bin);
+		((AvailObject) set).setSlot(ObjectSlots.ROOT_BIN, bin);
 	}
 
 	@Override

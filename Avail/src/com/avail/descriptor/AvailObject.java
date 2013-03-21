@@ -240,7 +240,6 @@ implements
 		final int size,
 		final AbstractDescriptor descriptor)
 	{
-//		assert canAllocateObjects();
 		int objectSlotCount = descriptor.numberOfFixedObjectSlots();
 		if (descriptor.hasVariableObjectSlots())
 		{
@@ -272,7 +271,6 @@ implements
 		final int variableIntegerSlots,
 		final AbstractDescriptor descriptor)
 	{
-		// assert canAllocateObjects();
 		assert descriptor.hasVariableObjectSlots || variableObjectSlots == 0;
 		assert descriptor.hasVariableIntegerSlots || variableIntegerSlots == 0;
 		return new AvailObject(
@@ -386,7 +384,6 @@ implements
 	@Override
 	public void setToInvalidDescriptor ()
 	{
-		// verifyToSpaceAddress();
 		descriptor = FillerDescriptor.shared;
 	}
 

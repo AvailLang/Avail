@@ -146,7 +146,7 @@ extends ExtendedIntegerDescriptor
 		for (int i = 1; i <= slotsCount; i++)
 		{
 			final int a = object.slot(RAW_SIGNED_INT_AT_, i);
-			final int b = anAvailInteger.slot(RAW_SIGNED_INT_AT_, i);
+			final int b = anAvailInteger.rawSignedIntegerAt(i);
 			if (a != b)
 			{
 				return false;
@@ -1248,7 +1248,7 @@ extends ExtendedIntegerDescriptor
 		final int size1 = object.integerSlotsCount();
 		final int size2 = anInteger.integerSlotsCount();
 		final int high1 = object.slot(RAW_SIGNED_INT_AT_, size1);
-		final int high2 = anInteger.slot(RAW_SIGNED_INT_AT_, size2);
+		final int high2 = anInteger.rawSignedIntegerAt(size2);
 		final int composite1 = high1 >= 0 ? size1 : -size1;
 		final int composite2 = high2 >= 0 ? size2 : -size2;
 		if (composite1 != composite2)
@@ -1265,7 +1265,7 @@ extends ExtendedIntegerDescriptor
 		for (int i = size1 - 1; i >= 1; i--)
 		{
 			final int a = object.slot(RAW_SIGNED_INT_AT_, i);
-			final int b = anInteger.slot(RAW_SIGNED_INT_AT_, i);
+			final int b = anInteger.rawSignedIntegerAt(i);
 			if (a != b)
 			{
 				return (a & 0xFFFFFFFFL) < (b & 0xFFFFFFFFL) ? LESS : MORE;

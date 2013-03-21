@@ -446,14 +446,14 @@ extends Descriptor
 	{
 		final A_RawFunction code = function.code();
 		final int frameSize = code.numArgsAndLocalsAndStack();
-		final A_Continuation cont = mutable.create(frameSize);
-		cont.setSlot(CALLER, caller);
-		cont.setSlot(FUNCTION, function);
-		cont.setSlot(PROGRAM_COUNTER, pc);
-		cont.setSlot(STACK_POINTER, stackp);
-		cont.setSlot(LEVEL_TWO_CHUNK, levelTwoChunk);
-		cont.setSlot(LEVEL_TWO_OFFSET, levelTwoOffset);
-		return cont;
+		final AvailObject continuation = mutable.create(frameSize);
+		continuation.setSlot(CALLER, caller);
+		continuation.setSlot(FUNCTION, function);
+		continuation.setSlot(PROGRAM_COUNTER, pc);
+		continuation.setSlot(STACK_POINTER, stackp);
+		continuation.setSlot(LEVEL_TWO_CHUNK, levelTwoChunk);
+		continuation.setSlot(LEVEL_TWO_OFFSET, levelTwoOffset);
+		return continuation;
 	}
 
 	/**

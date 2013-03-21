@@ -125,8 +125,7 @@ extends TupleDescriptor
 		{
 			return true;
 		}
-		if (object.slot(BYTE_BUFFER).sameAddressAs(
-			aByteBufferTuple.slot(BYTE_BUFFER)))
+		if (object.byteBuffer() == aByteBufferTuple.byteBuffer())
 		{
 			return true;
 		}
@@ -189,10 +188,8 @@ extends TupleDescriptor
 		{
 			return true;
 		}
-		final ByteBuffer buffer1 =
-			(ByteBuffer) object.slot(BYTE_BUFFER).javaObject();
-		final ByteBuffer buffer2 =
-			(ByteBuffer) aByteBufferTuple.slot(BYTE_BUFFER).javaObject();
+		final ByteBuffer buffer1 = object.byteBuffer();
+		final ByteBuffer buffer2 = aByteBufferTuple.byteBuffer();
 		for (
 			int index1 = startIndex1 - 1,
 				index2 = startIndex2 - 1,

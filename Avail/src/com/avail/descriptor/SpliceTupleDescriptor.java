@@ -32,7 +32,7 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.AvailObject.error;
+import static com.avail.descriptor.AvailObject.*;
 import static java.lang.Math.*;
 import com.avail.annotations.*;
 
@@ -742,33 +742,11 @@ extends TupleDescriptor
 		{
 			object.makeSubobjectsImmutable();
 		}
-		final int numberOfZones = object.numberOfZones();
-		final AvailObject result =
-			AvailObject.newObjectIndexedIntegerIndexedDescriptor(
-				numberOfZones,
-				numberOfZones * 2,
-				SpliceTupleDescriptor.mutable);
-		assert result.objectSlotsCount() == object.objectSlotsCount();
-		assert result.integerSlotsCount() == object.integerSlotsCount();
-		for (int subscript = 1; subscript <= numberOfZones; subscript++)
-		{
-			result.setSlot(
-				ObjectSlots.OBJECT_ZONE_DATA_AT_,
-				subscript,
-				object.slot(
-					ObjectSlots.OBJECT_ZONE_DATA_AT_,
-					subscript));
-		}
-		for (int subscript = 1; subscript <= numberOfZones * 2; subscript++)
-		{
-			result.setSlot(
-				IntegerSlots.INTEGER_ZONE_DATA_AT_,
-				subscript,
-				object.slot(
-					IntegerSlots.INTEGER_ZONE_DATA_AT_,
-					subscript));
-		}
-		result.hashOrZero(object.hashOrZero());
+		final AvailObject result = newLike(
+			SpliceTupleDescriptor.mutable,
+			object,
+			0,
+			0);
 		result.verify();
 		return result;
 	}

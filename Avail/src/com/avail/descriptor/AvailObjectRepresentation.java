@@ -80,7 +80,6 @@ implements A_BasicObject
 		assert !descriptor.isShared();
 		// Yes, this is really gross, but it's the simplest way to ensure that
 		// objectSlots can remain private ...
-		// verifyToSpaceAddress();
 		final AvailObject traversed = traversed();
 		final AvailObject anotherTraversed = anotherObject.traversed();
 		if (traversed.sameAddressAs(anotherTraversed))
@@ -97,11 +96,8 @@ implements A_BasicObject
 		}
 		if (descriptor.isMutable())
 		{
-//			if (canDestroyObjects())
-//			{
-				scanSubobjects(
-					new MarkUnreachableSubobjectVisitor(anotherObject));
-//			}
+			scanSubobjects(
+				new MarkUnreachableSubobjectVisitor(anotherObject));
 			descriptor = IndirectionDescriptor.mutable;
 			objectSlots[0] = anotherTraversed;
 		}
@@ -131,24 +127,32 @@ implements A_BasicObject
 			assert definitionClass.isInstance(descriptor);
 		}
 	}
-
-	@Override
+	/**
+	 * Extract the value of the {@link BitField} of the receiver.
+	 *
+	 * @param bitField
+	 *            A {@code BitField} that defines the object's layout.
+	 * @return An {@code int} extracted from this object.
+	 */
 	public final int slot (
 		final BitField bitField)
 	{
-//		verifyToSpaceAddress();
 		checkSlot(bitField.integerSlot);
 		final int value = intSlots[bitField.integerSlotIndex];
 		return (value >>> bitField.shift) & bitField.lowMask;
 	}
 
-	@Override
+	/**
+	 * Replace the value of the {@link BitField} within this object.
+	 *
+	 * @param bitField A {@code BitField} that defines the object's layout.
+	 * @param anInteger An {@code int} to store in the indicated bit field.
+	 */
 	public final void setSlot (
 		final BitField bitField,
 		final int anInteger)
 	{
 		checkWriteForField(bitField.integerSlot);
-//		verifyToSpaceAddress();
 		checkSlot(bitField.integerSlot);
 		int value = intSlots[bitField.integerSlotIndex];
 		value &= bitField.invertedMask;
@@ -164,12 +168,10 @@ implements A_BasicObject
 	 * @param byteSubscript Which byte to extract.
 	 * @return The unsigned byte as a short.
 	 */
-	@Override
 	public final short byteSlotAt (
 		final IntegerSlotsEnum field,
 		final int byteSubscript)
 	{
-//		verifyToSpaceAddress();
 		checkSlot(field);
 		final int zeroBasedSubscript = byteSubscript - 1;
 		final int wordIndex = field.ordinal() + (zeroBasedSubscript >> 2);
@@ -186,7 +188,6 @@ implements A_BasicObject
 	 * @param byteSubscript Which byte to extract.
 	 * @param aByte The unsigned byte to write, passed as a short.
 	 */
-	@Override
 	public final void byteSlotAtPut (
 		final IntegerSlotsEnum field,
 		final int byteSubscript,
@@ -194,7 +195,6 @@ implements A_BasicObject
 	{
 		assert aByte == (aByte & 0xFF);
 		checkWriteForField(field);
-//		verifyToSpaceAddress();
 		checkSlot(field);
 		final int zeroBasedSubscript = byteSubscript - 1;
 		final int wordIndex = field.ordinal() + (zeroBasedSubscript >> 2);
@@ -205,25 +205,39 @@ implements A_BasicObject
 		intSlots[wordIndex] = word;
 	}
 
-	@Override
+	/**
+	 * Extract a (16-bit unsigned) {@code short} at the given short-index of the
+	 * receiver.
+	 *
+	 * @param field The enumeration value that identifies the base field.
+	 * @param shortIndex The index in bytes (must be even).
+	 * @return The unsigned {@code short} (as an {@code int} found at the given
+	 *         short-index.
+	 */
 	public final int shortSlotAt (
 		final IntegerSlotsEnum field,
 		final int shortIndex)
 	{
-//		verifyToSpaceAddress();
 		checkSlot(field);
 		final int word = intSlots[field.ordinal() + (shortIndex - 1) / 2];
 		return (word >>> ((shortIndex - 1 & 1) << 4)) & 0xFFFF;
 	}
 
-	@Override
+	/**
+	 * Store the (16-bit unsigned) {@code short} at the given short-index of the
+	 * receiver.
+	 *
+	 * @param field The enumeration value that identifies the base field.
+	 * @param shortIndex The index in bytes (must be even).
+	 * @param aShort The {@code short} to store at the given short-index, passed
+	 *               as an {@code int} for safety.
+	 */
 	public final void shortSlotAtPut (
 		final IntegerSlotsEnum field,
 		final int shortIndex,
 		final int aShort)
 	{
 		checkWriteForField(field);
-//		verifyToSpaceAddress();
 		checkSlot(field);
 		final int shift = (shortIndex - 1 & 1) << 4;
 		final int wordIndex = field.ordinal() + (shortIndex - 1) / 2;
@@ -239,51 +253,78 @@ implements A_BasicObject
 		return intSlots.length;
 	}
 
-	@Override
+	/**
+	 * Extract the (signed 32-bit) integer for the given field {@code enum}
+	 * value.
+	 *
+	 * @param field An enumeration value that defines the field ordering.
+	 * @return An {@code int} extracted from this object.
+	 */
 	public final int slot (final IntegerSlotsEnum field)
 	{
-//		verifyToSpaceAddress();
 		checkSlot(field);
 		return intSlots[field.ordinal()];
 	}
 
-	@Override
+	/**
+	 * Store the (signed 32-bit) integer in the four bytes starting at the
+	 * given field {@code enum} value.
+	 *
+	 * @param field An enumeration value that defines the field ordering.
+	 * @param anInteger An {@code int} to store in the indicated slot.
+	 */
 	public final void setSlot (
 		final IntegerSlotsEnum field,
 		final int anInteger)
 	{
 		checkWriteForField(field);
-//		verifyToSpaceAddress();
 		checkSlot(field);
 		intSlots[field.ordinal()] = anInteger;
 	}
 
-	@Override
+	/**
+	 * Extract the (signed 32-bit) integer at the given field enum value.
+	 *
+	 * @param field An enumeration value that defines the field ordering.
+	 * @param subscript The positive one-based subscript to apply.
+	 * @return An {@code int} extracted from this object.
+	 */
 	public final int slot (
 		final IntegerSlotsEnum field,
 		final int subscript)
 	{
-//		verifyToSpaceAddress();
 		checkSlot(field);
 		return intSlots[field.ordinal() + subscript - 1];
 	}
 
-	@Override
+	/**
+	 * Store the (signed 32-bit) integer in the four bytes starting at the
+	 * given field {@code enum} value.
+	 *
+	 * @param field An enumeration value that defines the field ordering.
+	 * @param subscript The positive one-based subscript to apply.
+	 * @param anInteger An {@code int} to store in the indicated slot.
+	 */
 	public final void setSlot (
 		final IntegerSlotsEnum field,
 		final int subscript,
 		final int anInteger)
 	{
 		checkWriteForField(field);
-//		verifyToSpaceAddress();
 		checkSlot(field);
 		intSlots[field.ordinal() + subscript - 1] = anInteger;
 	}
 
-	@Override
+	/**
+	 * Extract the (signed 32-bit) integer for the given field {@code enum}
+	 * value. If the receiver is {@linkplain Mutability#SHARED shared}, then
+	 * acquire its monitor.
+	 *
+	 * @param field An enumeration value that defines the field ordering.
+	 * @return An {@code int} extracted from this object.
+	 */
 	public final int mutableSlot (final IntegerSlotsEnum field)
 	{
-//		verifyToSpaceAddress();
 		checkSlot(field);
 		if (descriptor.isShared())
 		{
@@ -295,13 +336,19 @@ implements A_BasicObject
 		return intSlots[field.ordinal()];
 	}
 
-	@Override
+	/**
+	 * Store the (signed 32-bit) integer in the four bytes starting at the
+	 * given field {@code enum} value. If the receiver is {@linkplain
+	 * Mutability#SHARED shared}, then acquire its monitor.
+	 *
+	 * @param field An enumeration value that defines the field ordering.
+	 * @param anInteger An {@code int} to store in the indicated slot.
+	 */
 	public final void setMutableSlot (
 		final IntegerSlotsEnum field,
 		final int anInteger)
 	{
 		checkWriteForField(field);
-//		verifyToSpaceAddress();
 		checkSlot(field);
 		if (descriptor.isShared())
 		{
@@ -316,12 +363,19 @@ implements A_BasicObject
 		}
 	}
 
-	@Override
+	/**
+	 * Extract the (signed 32-bit) integer at the given field enum value. If the
+	 * receiver is {@linkplain Mutability#SHARED shared}, then acquire its
+	 * monitor.
+	 *
+	 * @param field An enumeration value that defines the field ordering.
+	 * @param subscript The positive one-based subscript to apply.
+	 * @return An {@code int} extracted from this object.
+	 */
 	public final int mutableSlot (
 		final IntegerSlotsEnum field,
 		final int subscript)
 	{
-//		verifyToSpaceAddress();
 		checkSlot(field);
 		if (descriptor.isShared())
 		{
@@ -330,14 +384,21 @@ implements A_BasicObject
 		return intSlots[field.ordinal() + subscript - 1];
 	}
 
-	@Override
+	/**
+	 * Store the (signed 32-bit) integer in the four bytes starting at the
+	 * given field {@code enum} value. If the receiver is {@linkplain
+	 * Mutability#SHARED shared}, then acquire its monitor.
+	 *
+	 * @param field An enumeration value that defines the field ordering.
+	 * @param subscript The positive one-based subscript to apply.
+	 * @param anInteger An {@code int} to store in the indicated slot.
+	 */
 	public final void setMutableSlot (
 		final IntegerSlotsEnum field,
 		final int subscript,
 		final int anInteger)
 	{
 		checkWriteForField(field);
-//		verifyToSpaceAddress();
 		checkSlot(field);
 		if (descriptor.isShared())
 		{
@@ -358,24 +419,33 @@ implements A_BasicObject
 		return objectSlots.length;
 	}
 
-	@Override
+	/**
+	 * Extract the {@linkplain AvailObject object} at the specified slot of the
+	 * receiver.
+	 *
+	 * @param field An enumeration value that defines the field ordering.
+	 * @return The object found at the specified slot in the receiver.
+	 */
 	public final AvailObject slot (
 		final ObjectSlotsEnum field)
 	{
-//		verifyToSpaceAddress();
 		checkSlot(field);
 		final AvailObject result = objectSlots[field.ordinal()];
-//		result.verifyToSpaceAddress();
 		return result;
 	}
 
-	@Override
+	/**
+	 * Store the {@linkplain AvailObject object} in the specified slot of the
+	 * receiver.
+	 *
+	 * @param field An enumeration value that defines the field ordering.
+	 * @param anAvailObject The object to store at the specified slot.
+	 */
 	public final void setSlot (
 		final ObjectSlotsEnum field,
 		final A_BasicObject anAvailObject)
 	{
 		assert !descriptor.isShared() || anAvailObject.descriptor().isShared();
-//		verifyToSpaceAddress();
 		checkSlot(field);
 		checkWriteForField(field);
 		// If the receiver is shared, then the new value must become shared
@@ -383,26 +453,37 @@ implements A_BasicObject
 		objectSlots[field.ordinal()] = (AvailObject)anAvailObject;
 	}
 
-	@Override
+	/**
+	 * Extract the {@linkplain AvailObject object} at the specified slot of the
+	 * receiver.
+	 *
+	 * @param field An enumeration value that defines the field ordering.
+	 * @param subscript The positive one-based subscript to apply.
+	 * @return The object found at the specified slot in the receiver.
+	 */
 	public final AvailObject slot (
 		final ObjectSlotsEnum field,
 		final int subscript)
 	{
-//		verifyToSpaceAddress();
 		checkSlot(field);
 		final AvailObject result = objectSlots[field.ordinal() + subscript - 1];
-//		result.verifyToSpaceAddress();
 		return result;
 	}
 
-	@Override
+	/**
+	 * Store the {@linkplain AvailObject object} in the specified slot of the
+	 * receiver.
+	 *
+	 * @param field An enumeration value that defines the field ordering.
+	 * @param subscript The positive one-based subscript to apply.
+	 * @param anAvailObject The object to store at the specified slot.
+	 */
 	public final void setSlot (
 		final ObjectSlotsEnum field,
 		final int subscript,
 		final A_BasicObject anAvailObject)
 	{
 		assert !descriptor.isShared() || anAvailObject.descriptor().isShared();
-//		verifyToSpaceAddress();
 		checkSlot(field);
 		checkWriteForField(field);
 		// If the receiver is shared, then the new value must become shared
@@ -411,31 +492,41 @@ implements A_BasicObject
 			(AvailObject)anAvailObject;
 	}
 
-	@Override
+	/**
+	 * Extract the {@linkplain AvailObject object} at the specified slot of the
+	 * receiver. If the receiver is {@linkplain Mutability#SHARED shared}, then
+	 * acquire its monitor.
+	 *
+	 * @param field An enumeration value that defines the field ordering.
+	 * @return The object found at the specified slot in the receiver.
+	 */
 	public final AvailObject mutableSlot (final ObjectSlotsEnum field)
 	{
-//		verifyToSpaceAddress();
 		checkSlot(field);
 		if (descriptor.isShared())
 		{
 			synchronized (this)
 			{
 				final AvailObject result = objectSlots[field.ordinal()];
-//				result.verifyToSpaceAddress();
 				return result;
 			}
 		}
 		final AvailObject result = objectSlots[field.ordinal()];
-//		result.verifyToSpaceAddress();
 		return result;
 	}
 
-	@Override
+	/**
+	 * Store the {@linkplain AvailObject object} in the specified slot of the
+	 * receiver. If the receiver is {@linkplain Mutability#SHARED shared}, then
+	 * acquire its monitor.
+	 *
+	 * @param field An enumeration value that defines the field ordering.
+	 * @param anAvailObject The object to store at the specified slot.
+	 */
 	public final void setMutableSlot (
 		final ObjectSlotsEnum field,
 		final A_BasicObject anAvailObject)
 	{
-//		verifyToSpaceAddress();
 		checkSlot(field);
 		checkWriteForField(field);
 		if (descriptor.isShared())
@@ -454,12 +545,19 @@ implements A_BasicObject
 		}
 	}
 
-	@Override
+	/**
+	 * Extract the {@linkplain AvailObject object} at the specified slot of the
+	 * receiver. If the receiver is {@linkplain Mutability#SHARED shared}, then
+	 * acquire its monitor.
+	 *
+	 * @param field An enumeration value that defines the field ordering.
+	 * @param subscript The positive one-based subscript to apply.
+	 * @return The object found at the specified slot in the receiver.
+	 */
 	public final AvailObject mutableSlot (
 		final ObjectSlotsEnum field,
 		final int subscript)
 	{
-//		verifyToSpaceAddress();
 		checkSlot(field);
 		if (descriptor.isShared())
 		{
@@ -467,22 +565,27 @@ implements A_BasicObject
 			{
 				final AvailObject result =
 					objectSlots[field.ordinal() + subscript - 1];
-//				result.verifyToSpaceAddress();
 				return result;
 			}
 		}
 		final AvailObject result = objectSlots[field.ordinal() + subscript - 1];
-//		result.verifyToSpaceAddress();
 		return result;
 	}
 
-	@Override
+	/**
+	 * Store the {@linkplain AvailObject object} in the specified slot of the
+	 * receiver. If the receiver is {@linkplain Mutability#SHARED shared}, then
+	 * acquire its monitor.
+	 *
+	 * @param field An enumeration value that defines the field ordering.
+	 * @param subscript The positive one-based subscript to apply.
+	 * @param anAvailObject The object to store at the specified slot.
+	 */
 	public final void setMutableSlot (
 		final ObjectSlotsEnum field,
 		final int subscript,
 		final AvailObject anAvailObject)
 	{
-//		verifyToSpaceAddress();
 		checkSlot(field);
 		checkWriteForField(field);
 		if (descriptor.isShared())
@@ -502,29 +605,20 @@ implements A_BasicObject
 	}
 
 	/**
- 	 * Slice the current {@linkplain AvailObject object} into two objects, the
- 	 * left one (at the same starting address as the input), and the right
- 	 * one (a {@linkplain FillerDescriptor filler object} that nobody should
- 	 * ever create a pointer to). The new Filler can have zero post-header slots
- 	 * (i.e., just the header), but the left object must not, since it may turn
- 	 * into an {@linkplain IndirectionDescriptor indirection} some day and will
- 	 * require at least one slot for the target pointer.
+	 * Reduce the number of int slots occupied by this object.  In a raw memory
+	 * model we would split the object representation into two objects, one
+	 * at the original address, and a separate filler object occupying the int
+	 * slots that were chopped off.
+	 *
+	 * In the current Java object implementation, we simply shorten the int
+	 * array by replacing it.
  	 */
 	@Override
 	final void truncateWithFillerForNewIntegerSlotsCount (
 		final int newIntegerSlotsCount)
 	{
-//		verifyToSpaceAddress();
-//		assert(objectSlotsCount > 0);
 		final int oldIntegerSlotsCount = integerSlotsCount();
 		assert newIntegerSlotsCount < oldIntegerSlotsCount;
-		// final int fillerSlotCount =
-		//	 oldIntegerSlotsCount - newIntegerSlotsCount - 1;
-		// Here's where we would write a filler header into raw memory.
-		// filler->descriptorId() = FillerDescriptor.mutable().id();
-		// Slots *filler =
-		//   (Slots *)(_pointer.address() + 4 + (newIntegerSlotsCount << 2));
-		// filler->sizeInLongs() = fillerSlotCount;
 		final int[] newIntSlots = new int[newIntegerSlotsCount];
 		System.arraycopy(intSlots, 0, newIntSlots, 0, newIntegerSlotsCount);
 		intSlots = newIntSlots;
@@ -543,7 +637,6 @@ implements A_BasicObject
 	final void truncateWithFillerForNewObjectSlotsCount (
 		final int newObjectSlotsCount)
 	{
-//		verifyToSpaceAddress();
 		assert newObjectSlotsCount > 0;
 		final int oldObjectSlotsCount = objectSlotsCount();
 		assert newObjectSlotsCount < oldObjectSlotsCount;

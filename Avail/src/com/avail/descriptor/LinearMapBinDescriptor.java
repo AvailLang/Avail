@@ -270,7 +270,7 @@ extends MapBinDescriptor
 				bitPosition = bitShift(anotherKeyHash, -5 * myLevel) & 31;
 				bitVector |= bitShift(1, bitPosition);
 			}
-			final A_BasicObject result =
+			final AvailObject result =
 				HashedMapBinDescriptor.createLevelBitVector(myLevel, bitVector);
 			for (int i = 0; i <= oldSize; i++)
 			{
