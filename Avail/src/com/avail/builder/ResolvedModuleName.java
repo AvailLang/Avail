@@ -120,9 +120,10 @@ extends ModuleName
 	 */
 	public long moduleSize ()
 	{
-		if (sourceReference != null)
+		final File ref = sourceReference;
+		if (ref != null)
 		{
-			return sourceReference.length();
+			return ref.length();
 		}
 		return repository.moduleSize(this);
 	}

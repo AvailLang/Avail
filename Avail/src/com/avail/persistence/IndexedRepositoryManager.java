@@ -93,7 +93,21 @@ public class IndexedRepositoryManager
 	 * {@linkplain IndexedRepositoryManager manager}'s compiled {@linkplain
 	 * ModuleDescriptor modules}.
 	 */
-	private IndexedRepository repository;
+	private @Nullable IndexedRepository repository;
+
+	/**
+	 * Answer the {@linkplain IndexedRepository repository} that stores this
+	 * {@linkplain IndexedRepositoryManager manager}'s compiled {@linkplain
+	 * ModuleDescriptor modules}.
+	 *
+	 * @return The repository.
+	 */
+	private IndexedRepository repository ()
+	{
+		final IndexedRepository repo = repository;
+		assert repo != null;
+		return repo;
+	}
 
 	/**
 	 * Information kept in memory about a compiled {@linkplain ModuleDescriptor
@@ -174,7 +188,8 @@ public class IndexedRepositoryManager
 		try
 		{
 			moduleMap.clear();
-			repository.close();
+			final IndexedRepository repo = repository();
+			repo.close();
 			repository = null;
 			final RandomAccessFile file = new RandomAccessFile(fileName, "rw");
 			try
@@ -347,7 +362,7 @@ public class IndexedRepositoryManager
 				moduleMap.get(name.rootRelativeName());
 			if (summary != null)
 			{
-				return repository.get(summary.index);
+				return repository().get(summary.index);
 			}
 			return null;
 		}
@@ -386,7 +401,7 @@ public class IndexedRepositoryManager
 			{
 				if (summary.sourceLastModified == sourceLastModified)
 				{
-					return repository.get(summary.index);
+					return repository().get(summary.index);
 				}
 			}
 			return null;
@@ -418,13 +433,14 @@ public class IndexedRepositoryManager
 		lock.lock();
 		try
 		{
+			final IndexedRepository repo = repository();
 			final ModuleSummary summary = new ModuleSummary(
 				name.isPackage(),
 				sourceLastModified,
 				compiledBytes.length,
-				repository.longSize());
+				repo.longSize());
 			moduleMap.put(name.rootRelativeName(), summary);
-			repository.add(compiledBytes);
+			repo.add(compiledBytes);
 		}
 		finally
 		{
@@ -472,8 +488,9 @@ public class IndexedRepositoryManager
 					binaryStream.close();
 				}
 			}
-			repository.metaData(byteStream.toByteArray());
-			repository.commit();
+			final IndexedRepository repo = repository();
+			repo.metaData(byteStream.toByteArray());
+			repo.commit();
 		}
 		catch (final IndexedFileException e)
 		{
@@ -497,7 +514,7 @@ public class IndexedRepositoryManager
 		lock.lock();
 		try
 		{
-			repository.close();
+			repository().close();
 			moduleMap.clear();
 		}
 		finally
@@ -521,12 +538,12 @@ public class IndexedRepositoryManager
 			final Class<? extends IndexedFile> subclass =
 				IndexedRepository.class;
 			final boolean exists = fileName.exists();
-			repository = (IndexedRepository) (exists
+			final IndexedRepository repo = (IndexedRepository) (exists
 				? IndexedFile.openFile(subclass, fileName, true)
 				: IndexedFile.newFile(subclass, fileName, null));
 			if (exists)
 			{
-				final byte[] metadata = repository.metaData();
+				final byte[] metadata = repo.metaData();
 				if (metadata != null)
 				{
 					DataInputStream binaryStream = null;
@@ -558,6 +575,7 @@ public class IndexedRepositoryManager
 					}
 				}
 			}
+			repository = repo;
 			isOpen = true;
 		}
 		catch (final Exception e)

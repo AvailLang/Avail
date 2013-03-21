@@ -117,7 +117,7 @@ public class ModuleName
 	 * This is the {@linkplain #qualifiedName() fully-qualified name} minus the
 	 * #rootName() module root}.
 	 */
-	private String rootRelativeName;
+	private @Nullable String rootRelativeName;
 
 	/**
 	 * Answer the root-relative {@linkplain ModuleName module name}. This is the
@@ -128,7 +128,8 @@ public class ModuleName
 	 */
 	public String rootRelativeName ()
 	{
-		if (rootRelativeName == null)
+		String name = rootRelativeName;
+		if (name == null)
 		{
 			final String[] components = qualifiedName.split("/");
 			final StringBuilder builder = new StringBuilder(50);
@@ -140,9 +141,10 @@ public class ModuleName
 				}
 				builder.append(components[index]);
 			}
-			rootRelativeName = builder.toString();
+			name = builder.toString();
+			rootRelativeName = name;
 		}
-		return rootRelativeName;
+		return name;
 	}
 
 	/**
