@@ -1,6 +1,7 @@
 /**
- * compiler/scanner/AvailScanner.java Copyright © 1993-2013, Mark van Gulik and Todd L Smith. All
- * rights reserved.
+ * compiler/scanner/AvailScanner.java
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
+ * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -867,7 +868,9 @@ public class AvailScanner
 		lineNumber = 1;
 		outputTokens = new ArrayList<A_Token>(100);
 		stopAfterBodyToken = stopAfterBodyTokenFlag;
-		while (!(stopAfterBodyToken ? encounteredBodyToken : atEnd()))
+		while (!(stopAfterBodyToken
+			? encounteredBodyToken || atEnd()
+			: atEnd()))
 		{
 			startOfToken = position;
 			final int c = next();

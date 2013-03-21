@@ -1,5 +1,6 @@
 /**
- * Interpreter.java Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
+ * Interpreter.java
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
