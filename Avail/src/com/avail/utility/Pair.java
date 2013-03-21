@@ -44,27 +44,27 @@ import com.avail.annotations.Nullable;
 public class Pair<FirstType, SecondType>
 {
 	/** The first element of the {@linkplain Pair pair}. */
-	private final @Nullable FirstType first;
+	private final FirstType first;
 
 	/**
 	 * Answer the first element of the {@linkplain Pair pair}.
 	 *
 	 * @return The first element of the {@linkplain Pair pair}.
 	 */
-	public final @Nullable FirstType first ()
+	public final FirstType first ()
 	{
 		return first;
 	}
 
 	/** The second element of the {@linkplain Pair pair}. */
-	private final @Nullable SecondType second;
+	private final SecondType second;
 
 	/**
 	 * Answer the second element of the {@linkplain Pair pair}.
 	 *
 	 * @return The second element of the {@linkplain Pair pair}.
 	 */
-	public final @Nullable SecondType second ()
+	public final SecondType second ()
 	{
 		return second;
 	}
@@ -76,8 +76,8 @@ public class Pair<FirstType, SecondType>
 	 * @param second The second element.
 	 */
 	public Pair (
-		final @Nullable FirstType first,
-		final @Nullable SecondType second)
+		final FirstType first,
+		final SecondType second)
 	{
 		this.first = first;
 		this.second = second;

@@ -92,7 +92,7 @@ extends Descriptor
 	 */
 	private static AvailObject rootBin (final A_Map map)
 	{
-		return map.slot(ObjectSlots.ROOT_BIN);
+		return ((AvailObject) map).slot(ObjectSlots.ROOT_BIN);
 	}
 
 	/**
@@ -107,7 +107,7 @@ extends Descriptor
 		final A_Map map,
 		final A_BasicObject bin)
 	{
-		map.setSlot(ObjectSlots.ROOT_BIN, bin);
+		((AvailObject) map).setSlot(ObjectSlots.ROOT_BIN, bin);
 	}
 
 	@Override

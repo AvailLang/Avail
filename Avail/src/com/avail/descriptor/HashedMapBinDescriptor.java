@@ -79,7 +79,7 @@ extends MapBinDescriptor
 	 *
 	 * @param object A hashed bin used by maps.
 	 */
-	static void check (final A_BasicObject object)
+	static void check (final AvailObject object)
 	{
 		if (shouldCheck)
 		{

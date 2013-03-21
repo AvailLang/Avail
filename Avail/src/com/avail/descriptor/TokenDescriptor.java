@@ -269,7 +269,7 @@ extends Descriptor
 		final int lineNumber,
 		final TokenType tokenType)
 	{
-		final A_Token instance = mutable.create();
+		final AvailObject instance = mutable.create();
 		instance.setSlot(STRING, string);
 		instance.setSlot(LOWER_CASE_STRING, NilDescriptor.nil());
 		instance.setSlot(START, start);

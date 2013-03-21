@@ -81,16 +81,38 @@ extends AbstractList<byte[]>
 		new ReentrantReadWriteLock();
 
 	/** The {@linkplain File file reference}. */
-	private File fileReference;
+	private @Nullable File fileReference;
 
 	/** The underlying {@linkplain RandomAccessFile file}. */
-	private RandomAccessFile file;
+	private @Nullable RandomAccessFile file;
+
+	/**
+	 * Answer the {@link #file}.
+	 * @return The file.
+	 */
+	private RandomAccessFile file ()
+	{
+		final RandomAccessFile f = file;
+		assert f != null;
+		return f;
+	}
 
 	/**
 	 * An open {@linkplain FileChannel channel} on the underlying {@linkplain
 	 * RandomAccessFile file}.
 	 */
-	private FileChannel channel;
+	private @Nullable FileChannel channel;
+
+	/**
+	 * Answer the {@link #channel}.
+	 * @return The channel.
+	 */
+	private FileChannel channel ()
+	{
+		final FileChannel ch = channel;
+		assert ch != null;
+		return ch;
+	}
 
 	/** The preferred page size of a {@linkplain IndexedFile indexed file}. */
 	public static final int DEFAULT_PAGE_SIZE = 4096;
@@ -279,7 +301,18 @@ extends AbstractList<byte[]>
 	}
 
 	/** The current {@linkplain MasterNode master node}. */
-	private MasterNode master;
+	private @Nullable MasterNode master;
+
+	/**
+	 * Answer the {@link #master}.
+	 * @return The master.
+	 */
+	private MasterNode master ()
+	{
+		final MasterNode m = master;
+		assert m != null;
+		return m;
+	}
 
 	/**
 	 * Answer the {@linkplain #masterNodeBuffer master node} size.
@@ -321,7 +354,7 @@ extends AbstractList<byte[]>
 	 * positionInCompressionBlock of valid data.</li>
 	 * </ul>
 	 */
-	private ByteBuffer masterNodeBuffer;
+	private @Nullable ByteBuffer masterNodeBuffer;
 
 	/** The absolute location of the current master node. */
 	private long masterPosition;
@@ -479,7 +512,7 @@ extends AbstractList<byte[]>
 			});
 
 	/** The client-provided metadata, as a byte array. */
-	private byte[] metaData;
+	private @Nullable byte[] metaData;
 
 	/**
 	 * Answer the NUL-terminated header bytes that uniquely identify a
@@ -511,8 +544,8 @@ extends AbstractList<byte[]>
 		throws IOException
 	{
 		return wait
-			? channel.lock(0x7FFFFFFFFFFFFFFEL, 1, false)
-			: channel.tryLock(0x7FFFFFFFFFFFFFFEL, 1, false);
+			? channel().lock(0x7FFFFFFFFFFFFFFEL, 1, false)
+			: channel().tryLock(0x7FFFFFFFFFFFFFFEL, 1, false);
 	}
 
 	/**
@@ -530,24 +563,25 @@ extends AbstractList<byte[]>
 			final int level)
 		throws IOException
 	{
-		if (level >= master.orphansByLevel.size())
+		final MasterNode m = master();
+		if (level >= m.orphansByLevel.size())
 		{
-			master.orphansByLevel.add(new ArrayList<RecordCoordinates>(fanout));
+			m.orphansByLevel.add(new ArrayList<RecordCoordinates>(fanout));
 		}
 		final List<RecordCoordinates> orphans =
-			master.orphansByLevel.get(level);
+			m.orphansByLevel.get(level);
 		orphans.add(orphanLocation);
 		if (orphans.size() == fanout)
 		{
 			final RecordCoordinates newOrphanLocation = new RecordCoordinates(
-				master.fileLimit,
-				master.rawBytes.size());
+				m.fileLimit,
+				m.rawBytes.size());
 			RecordCoordinates orphan;
 			for (int i = 0; i < orphans.size(); i++)
 			{
 				orphan = orphans.get(i);
-				master.uncompressedData.writeLong(orphan.filePosition());
-				master.uncompressedData.writeInt(orphan.blockPosition());
+				m.uncompressedData.writeLong(orphan.filePosition());
+				m.uncompressedData.writeInt(orphan.blockPosition());
 			}
 			orphans.clear();
 			compressAndFlushIfFull();
@@ -567,20 +601,20 @@ extends AbstractList<byte[]>
 	private void appendRawBytes (final byte[] bytes)
 		throws IOException
 	{
-		int bufferPos = (int) master.fileLimit % pageSize;
+		int bufferPos = (int) master().fileLimit % pageSize;
 		int start = 0;
 		final int end = bytes.length;
 		while (start < end)
 		{
 			final int limit = Math.min(
 				bufferPos + end - start,
-				master.lastPartialBuffer.length);
+				master().lastPartialBuffer.length);
 			final int count = limit - bufferPos;
 			assert count > 0 : "Previous write should have flushed the buffer.";
 			System.arraycopy(
 				bytes,
 				start,
-				master.lastPartialBuffer,
+				master().lastPartialBuffer,
 				bufferPos,
 				count);
 			start += count;
@@ -588,11 +622,11 @@ extends AbstractList<byte[]>
 			if (bufferPos >= pageSize)
 			{
 				assert bufferPos == pageSize;
-				channel.position(master.fileLimit / pageSize * pageSize);
-				channel.write(ByteBuffer.wrap(master.lastPartialBuffer));
+				channel().position(master().fileLimit / pageSize * pageSize);
+				channel().write(ByteBuffer.wrap(master().lastPartialBuffer));
 				bufferPos = 0;
 			}
-			master.fileLimit += count;
+			master().fileLimit += count;
 		}
 	}
 
@@ -625,9 +659,9 @@ extends AbstractList<byte[]>
 	 */
 	private byte[] blockAtFilePosition (final long filePosition)
 	{
-		if (filePosition == master.fileLimit)
+		if (filePosition == master().fileLimit)
 		{
-			return master.rawBytes.unsafeBytes();
+			return master().rawBytes.unsafeBytes();
 		}
 		return blockCache.get(filePosition);
 	}
@@ -642,7 +676,7 @@ extends AbstractList<byte[]>
 	 */
 	private void compressAndFlushIfFull () throws IOException
 	{
-		if (master.rawBytes.size() >= compressionBlockSize)
+		if (master().rawBytes.size() >= compressionBlockSize)
 		{
 			final ByteArrayOutputStream compressedStream =
 				new ByteArrayOutputStream(compressionBlockSize);
@@ -653,27 +687,27 @@ extends AbstractList<byte[]>
 					new Deflater(Deflater.BEST_COMPRESSION);
 				stream = new DeflaterOutputStream(compressedStream, deflater);
 				stream.write(
-					master.rawBytes.unsafeBytes(),
+					master().rawBytes.unsafeBytes(),
 					0,
-					master.rawBytes.size());
+					master().rawBytes.size());
 			}
 			finally
 			{
 				assert stream != null;
 				stream.close();
 			}
-			while (master.fileLimit + 4 + compressedStream.size()
-				>= file.length())
+			while (master().fileLimit + 4 + compressedStream.size()
+				>= file().length())
 			{
-				channel.position(0);
+				channel().position(0);
 				final long delta =
 					((Math.min(
-						master.fileLimit,
+						master().fileLimit,
 						5 << 20) + pageSize - 1) / pageSize) * pageSize;
-				file.setLength(file.length() + delta);
+				file().setLength(file().length() + delta);
 			}
 			appendSizedBytes(compressedStream.toByteArray());
-			master.rawBytes.reset();
+			master().rawBytes.reset();
 		}
 	}
 
@@ -716,41 +750,43 @@ extends AbstractList<byte[]>
 		assert buffer.position() == previousMasterPosition;
 
 		// Write the master blocks.
-		master = new MasterNode(1, fileLimit);
-		master.writeTo(masterNodeBuffer);
-		buffer.put(masterNodeBuffer);
+		MasterNode m = new MasterNode(1, fileLimit);
+		final ByteBuffer b = masterNodeBuffer;
+		m.writeTo(b);
+		buffer.put(b);
 		assert buffer.position() == masterPosition;
-		master = new MasterNode(2, fileLimit);
-		master.writeTo(masterNodeBuffer);
-		buffer.put(masterNodeBuffer);
+		m = new MasterNode(2, fileLimit);
+		m.writeTo(b);
+		buffer.put(b);
 		assert buffer.position() == fileLimit;
 		buffer.rewind();
+		master = m;
 
 		try
 		{
 			// Transfer the buffer to a temporary file. Perform the nullary
 			// action. Close the channel prior to renaming the temporary file.
 			final File tempFilename = File.createTempFile(
-				"new indexed file", null, fileReference.getParentFile());
+				"new indexed file", null, fileReference().getParentFile());
 			tempFilename.deleteOnExit();
 			file = new RandomAccessFile(tempFilename, "rw");
-			assert file.length() == 0 : "The file is not empty.";
-			file.setLength(pageSize * 100);
-			channel = file.getChannel();
+			assert file().length() == 0 : "The file is not empty.";
+			file().setLength(pageSize * 100);
+			channel = file().getChannel();
 			acquireLockForWriting(true);
-			channel.write(buffer);
-			channel.force(true);
+			channel().write(buffer);
+			channel().force(true);
 			if (action != null)
 			{
 				action.value();
 			}
-			channel.close();
+			channel().close();
 
 			// Rename the temporary file to the canonical target name. Reopen
 			// the file and reacquire the write lock.
 			tempFilename.renameTo(fileReference);
 			file = new RandomAccessFile(fileReference, "rw");
-			channel = file.getChannel();
+			channel = file().getChannel();
 			acquireLockForWriting(true);
 		}
 		catch (final IOException e)
@@ -799,52 +835,54 @@ extends AbstractList<byte[]>
 		throws IOException
 	{
 		// Verify the CRC32.
-		channel.position(nodePosition);
-		masterNodeBuffer.rewind();
-		channel.read(masterNodeBuffer);
+		channel().position(nodePosition);
+		final ByteBuffer b = masterNodeBuffer;
+		assert b != null;
+		b.rewind();
+		channel().read(b);
 		final CRC32 encoder = new CRC32();
 		encoder.update(
-			masterNodeBuffer.array(), 4, masterNodeBuffer.position() - 4);
-		masterNodeBuffer.rewind();
-		if (masterNodeBuffer.getInt() != (int) encoder.getValue())
+			b.array(), 4, b.position() - 4);
+		b.rewind();
+		if (b.getInt() != (int) encoder.getValue())
 		{
 			return null;
 		}
 
 		// Construct the master node state tuple.
 		final MasterNode node = new MasterNode(
-			masterNodeBuffer.getInt(),
-			masterNodeBuffer.getLong());
-		final int compressionBlockPosition = masterNodeBuffer.getInt();
+			b.getInt(),
+			b.getLong());
+		final int compressionBlockPosition = b.getInt();
 		node.metaDataLocation = new RecordCoordinates(
-			masterNodeBuffer.getLong(),
-			masterNodeBuffer.getInt());
+			b.getLong(),
+			b.getInt());
 		final List<List<RecordCoordinates>> orphans =
 			new ArrayList<List<RecordCoordinates>>();
-		for (int left = masterNodeBuffer.getInt(); left > 0; left--)
+		for (int left = b.getInt(); left > 0; left--)
 		{
-			final int level = masterNodeBuffer.get() - 1;
+			final int level = b.get() - 1;
 			final RecordCoordinates orphan = new RecordCoordinates(
-				masterNodeBuffer.getLong(),
-				masterNodeBuffer.getInt());
+				b.getLong(),
+				b.getInt());
 			while (level >= orphans.size())
 			{
 				orphans.add(new ArrayList<RecordCoordinates>(fanout));
 			}
 			orphans.get(level).add(orphan);
 		}
-		assert masterNodeBuffer.position() <= pageSize
+		assert b.position() <= pageSize
 			: "Too much index orphan information for a page.";
 		node.orphansByLevel = orphans;
-		masterNodeBuffer.position(pageSize);
+		b.position(pageSize);
 		final byte[] lastPageContents = new byte[pageSize];
-		masterNodeBuffer.get(lastPageContents);
-		assert masterNodeBuffer.position() == pageSize * 2;
+		b.get(lastPageContents);
+		assert b.position() == pageSize * 2;
 		node.lastPartialBuffer = lastPageContents;
 		final byte[] uncompressed = new byte[compressionBlockSize];
-		masterNodeBuffer.get(uncompressed);
-		assert masterNodeBuffer.position() == masterNodeBuffer.capacity();
-		assert masterNodeBuffer.position() == masterNodeSize();
+		b.get(uncompressed);
+		assert b.position() == b.capacity();
+		assert b.position() == masterNodeSize();
 		node.rawBytes.reset();
 		node.uncompressedData.write(uncompressed, 0, compressionBlockPosition);
 		return node;
@@ -889,16 +927,16 @@ extends AbstractList<byte[]>
 			final long startFilePosition)
 		throws IOException
 	{
-		final long writtenLimit = (master.fileLimit / pageSize) * pageSize;
+		final long writtenLimit = (master().fileLimit / pageSize) * pageSize;
 		final long endFilePosition = startFilePosition + bytes.length;
-		assert endFilePosition <= master.fileLimit;
+		assert endFilePosition <= master().fileLimit;
 		if (startFilePosition < writtenLimit)
 		{
-			channel.position(startFilePosition);
+			channel().position(startFilePosition);
 			if (endFilePosition <= writtenLimit)
 			{
 				// Entirely within the file.
-				final int bytesRead = channel.read(ByteBuffer.wrap(bytes));
+				final int bytesRead = channel().read(ByteBuffer.wrap(bytes));
 				assert bytesRead == bytes.length;
 			}
 			else
@@ -906,10 +944,10 @@ extends AbstractList<byte[]>
 				// Split between file and unwritten buffer.
 				final int split = (int) (writtenLimit - startFilePosition);
 				final int bytesRead =
-					channel.read(ByteBuffer.wrap(bytes, 0, split));
+					channel().read(ByteBuffer.wrap(bytes, 0, split));
 				assert bytesRead == split;
 				System.arraycopy(
-					master.lastPartialBuffer,
+					master().lastPartialBuffer,
 					0,
 					bytes,
 					split,
@@ -923,9 +961,9 @@ extends AbstractList<byte[]>
 				startFilePosition - writtenLimit;
 			assert startInLastPartialBuffer == (int) startInLastPartialBuffer;
 			assert startInLastPartialBuffer + bytes.length
-				<= master.lastPartialBuffer.length;
+				<= master().lastPartialBuffer.length;
 			System.arraycopy(
-				master.lastPartialBuffer,
+				master().lastPartialBuffer,
 				(int) startInLastPartialBuffer,
 				bytes,
 				0,
@@ -945,11 +983,11 @@ extends AbstractList<byte[]>
 	{
 		try
 		{
-			assert file.length() > 0;
+			assert file().length() > 0;
 			final byte[] expectedHeader = headerBytes();
 			final int bufferSize = expectedHeader.length + 16;
 			final ByteBuffer buffer = ByteBuffer.allocateDirect(bufferSize);
-			channel.read(buffer);
+			channel().read(buffer);
 			final byte[] header = new byte[expectedHeader.length];
 			buffer.rewind();
 			buffer.get(header);
@@ -1059,9 +1097,9 @@ extends AbstractList<byte[]>
 					"indexed files may only append records.");
 			}
 			final RecordCoordinates coords = new RecordCoordinates(
-				master.fileLimit, master.rawBytes.size());
-			master.uncompressedData.writeInt(record.length);
-			master.uncompressedData.write(record);
+				master().fileLimit, master().rawBytes.size());
+			master().uncompressedData.writeInt(record.length);
+			master().uncompressedData.write(record);
 			compressAndFlushIfFull();
 			addOrphan(coords, 0);
 		}
@@ -1118,7 +1156,7 @@ extends AbstractList<byte[]>
 		{
 			if (channel != null)
 			{
-				channel.close();
+				channel().close();
 			}
 		}
 		catch (final IOException e)
@@ -1133,7 +1171,7 @@ extends AbstractList<byte[]>
 		{
 			if (file != null)
 			{
-				file.close();
+				file().close();
 			}
 		}
 		catch (final IOException e)
@@ -1171,19 +1209,21 @@ extends AbstractList<byte[]>
 		lock.writeLock().lock();
 		try
 		{
-			channel.force(true);
+			final ByteBuffer b = masterNodeBuffer;
+			assert b != null;
+			channel().force(true);
 			final long exchange = masterPosition;
 			masterPosition = previousMasterPosition;
 			previousMasterPosition = exchange;
-			master.serialNumber = (master.serialNumber + 1) & 0xffffffff;
-			master.writeTo(masterNodeBuffer);
-			final FileLock fileLock = channel.lock(
+			master().serialNumber = (master().serialNumber + 1) & 0xffffffff;
+			master().writeTo(b);
+			final FileLock fileLock = channel().lock(
 				pageSize, masterNodeSize() * 2, false);
 			try
 			{
-				channel.position(masterPosition);
-				channel.write(masterNodeBuffer);
-				channel.force(true);
+				channel().position(masterPosition);
+				channel().write(b);
+				channel().force(true);
 			}
 			finally
 			{
@@ -1236,7 +1276,9 @@ extends AbstractList<byte[]>
 	 */
 	public File fileReference ()
 	{
-		return fileReference;
+		final File ref = fileReference;
+		assert ref != null;
+		return ref;
 	}
 
 	/**
@@ -1262,14 +1304,14 @@ extends AbstractList<byte[]>
 			}
 			long residue = index;
 			long power = (long) Math.pow(
-				fanout, master.orphansByLevel.size() - 1);
+				fanout, master().orphansByLevel.size() - 1);
 			for (
-				int level = master.orphansByLevel.size() - 1;
+				int level = master().orphansByLevel.size() - 1;
 				level >= 0;
 				level--)
 			{
 				final List<RecordCoordinates> orphans =
-					master.orphansByLevel.get(level);
+					master().orphansByLevel.get(level);
 				final long subscript = residue / power;
 				if (subscript < orphans.size())
 				{
@@ -1311,9 +1353,9 @@ extends AbstractList<byte[]>
 		{
 			long power = 1;
 			long sum = 0;
-			for (int i = 0; i < master.orphansByLevel.size() ; i++)
+			for (int i = 0; i < master().orphansByLevel.size() ; i++)
 			{
-				sum += master.orphansByLevel.get(i).size() * power;
+				sum += master().orphansByLevel.get(i).size() * power;
 				power *= fanout;
 			}
 			return sum;
@@ -1338,16 +1380,16 @@ extends AbstractList<byte[]>
 		lock.readLock().lock();
 		try
 		{
-			if (RecordCoordinates.origin().equals(master.metaDataLocation))
+			if (RecordCoordinates.origin().equals(master().metaDataLocation))
 			{
 				return null;
 			}
 			if (metaData == null)
 			{
 				final byte[] block = blockAtFilePosition(
-					master.metaDataLocation.filePosition());
+					master().metaDataLocation.filePosition());
 				final ByteBuffer buffer = ByteBuffer.wrap(block);
-				buffer.position(master.metaDataLocation.blockPosition());
+				buffer.position(master().metaDataLocation.blockPosition());
 				final int size = buffer.getInt();
 				metaData = new byte[size];
 				buffer.get(metaData);
@@ -1377,10 +1419,10 @@ extends AbstractList<byte[]>
 		try
 		{
 			metaData = newMetaData;
-			master.metaDataLocation = new RecordCoordinates(
-				master.fileLimit, master.rawBytes.size());
-			master.uncompressedData.writeInt(newMetaData.length);
-			master.uncompressedData.write(newMetaData);
+			master().metaDataLocation = new RecordCoordinates(
+				master().fileLimit, master().rawBytes.size());
+			master().uncompressedData.writeInt(newMetaData.length);
+			master().uncompressedData.write(newMetaData);
 			compressAndFlushIfFull();
 		}
 		finally
@@ -1416,7 +1458,7 @@ extends AbstractList<byte[]>
 		lock.writeLock().lock();
 		try
 		{
-			final FileLock fileLock = channel.lock(
+			final FileLock fileLock = channel().lock(
 				pageSize, masterNodeSize() * 2, false);
 			try
 			{
@@ -1453,10 +1495,10 @@ extends AbstractList<byte[]>
 				}
 				assert current != null;
 				if (master != null
-					&& master.serialNumber != current.serialNumber)
+					&& master().serialNumber != current.serialNumber)
 				{
 					// Clear the cached metadata if it has changed.
-					if (!master.metaDataLocation.equals(
+					if (!master().metaDataLocation.equals(
 						current.metaDataLocation))
 					{
 						metaData = null;
@@ -1664,7 +1706,7 @@ extends AbstractList<byte[]>
 		indexedFile.fileReference = fileReference;
 		indexedFile.file = new RandomAccessFile(
 			fileReference, "r" + (forWriting ? "w" : ""));
-		indexedFile.channel = indexedFile.file.getChannel();
+		indexedFile.channel = indexedFile.file().getChannel();
 		indexedFile.readHeaderData();
 		indexedFile.masterNodeBuffer = ByteBuffer.allocate(
 			indexedFile.masterNodeSize());

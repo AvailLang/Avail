@@ -134,8 +134,8 @@ extends TypeDescriptor
 		{
 			return true;
 		}
-		return object.slot(SIZE_RANGE).equals(aSetType.slot(SIZE_RANGE))
-			&& object.slot(CONTENT_TYPE).equals(aSetType.slot(CONTENT_TYPE));
+		return object.slot(SIZE_RANGE).equals(aSetType.sizeRange())
+			&& object.slot(CONTENT_TYPE).equals(aSetType.contentType());
 	}
 
 	@Override @AvailMethod
@@ -194,10 +194,8 @@ extends TypeDescriptor
 		final A_Type aSetType)
 	{
 		return SetTypeDescriptor.setTypeForSizesContentType(
-			object.slot(SIZE_RANGE).typeIntersection(
-				aSetType.slot(SIZE_RANGE)),
-			object.slot(CONTENT_TYPE).typeIntersection(
-				aSetType.slot(CONTENT_TYPE)));
+			object.slot(SIZE_RANGE).typeIntersection(aSetType.sizeRange()),
+			object.slot(CONTENT_TYPE).typeIntersection(aSetType.contentType()));
 	}
 
 	@Override @AvailMethod
@@ -226,8 +224,8 @@ extends TypeDescriptor
 		final A_Type aSetType)
 	{
 		return SetTypeDescriptor.setTypeForSizesContentType(
-			object.slot(SIZE_RANGE).typeUnion(aSetType.slot(SIZE_RANGE)),
-			object.slot(CONTENT_TYPE).typeUnion(aSetType.slot(CONTENT_TYPE)));
+			object.slot(SIZE_RANGE).typeUnion(aSetType.sizeRange()),
+			object.slot(CONTENT_TYPE).typeUnion(aSetType.contentType()));
 	}
 
 	@Override @AvailMethod

@@ -1079,7 +1079,7 @@ extends Descriptor
 		final A_Type resultType,
 		final int priority)
 	{
-		final A_Fiber fiber = FiberDescriptor.mutable.create();
+		final AvailObject fiber = FiberDescriptor.mutable.create();
 		fiber.setSlot(RESULT_TYPE, resultType.makeImmutable());
 		fiber.setSlot(
 			NAME,
@@ -1120,9 +1120,9 @@ extends Descriptor
 		final A_Type resultType,
 		final AvailLoader loader)
 	{
-		final A_Fiber fiber = FiberDescriptor.mutable.create();
 		final A_Module module = loader.module();
 		assert module != null;
+		final AvailObject fiber = FiberDescriptor.mutable.create();
 		fiber.setSlot(RESULT_TYPE, resultType.makeImmutable());
 		fiber.setSlot(
 			NAME,

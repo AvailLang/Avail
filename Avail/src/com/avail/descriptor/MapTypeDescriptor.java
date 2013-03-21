@@ -222,11 +222,11 @@ extends TypeDescriptor
 		// post-primitive code).
 		return MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
 			object.slot(SIZE_RANGE).typeIntersection(
-				aMapType.slot(SIZE_RANGE)).makeImmutable(),
+				aMapType.sizeRange()).makeImmutable(),
 			object.slot(KEY_TYPE).typeIntersection(
-				aMapType.slot(KEY_TYPE)).makeImmutable(),
+				aMapType.keyType()).makeImmutable(),
 			object.slot(VALUE_TYPE).typeIntersection(
-				aMapType.slot(VALUE_TYPE)).makeImmutable());
+				aMapType.valueType()).makeImmutable());
 	}
 
 	@Override @AvailMethod
@@ -264,11 +264,11 @@ extends TypeDescriptor
 		// post-primitive code).
 		return MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
 			object.slot(SIZE_RANGE).typeUnion(
-				aMapType.slot(SIZE_RANGE)).makeImmutable(),
+				aMapType.sizeRange()).makeImmutable(),
 			object.slot(KEY_TYPE).typeUnion(
-				aMapType.slot(KEY_TYPE)).makeImmutable(),
+				aMapType.keyType()).makeImmutable(),
 			object.slot(VALUE_TYPE).typeUnion(
-				aMapType.slot(VALUE_TYPE)).makeImmutable());
+				aMapType.valueType()).makeImmutable());
 	}
 
 	@Override @AvailMethod
@@ -368,7 +368,7 @@ extends TypeDescriptor
 			newValueType = valueType;
 		}
 
-		final A_Type result = mutable.create();
+		final AvailObject result = mutable.create();
 		result.setSlot(SIZE_RANGE, newSizeRange);
 		result.setSlot(KEY_TYPE, newKeyType);
 		result.setSlot(VALUE_TYPE, newValueType);

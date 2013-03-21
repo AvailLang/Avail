@@ -32,6 +32,7 @@
 
 package com.avail.descriptor;
 
+import static com.avail.descriptor.TwoByteStringDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.AvailObject.*;
 import static com.avail.descriptor.Mutability.*;
 import com.avail.annotations.*;
@@ -141,7 +142,7 @@ extends StringDescriptor
 					public Integer value ()
 					{
 						return (int)object.shortSlotAt(
-							IntegerSlots.RAW_QUAD_AT_,
+							RAW_QUAD_AT_,
 							sourceIndex++);
 					}
 				});
@@ -233,7 +234,7 @@ extends StringDescriptor
 	@Override @AvailMethod
 	int o_RawShortForCharacterAt (final AvailObject object, final int index)
 	{
-		return object.shortSlotAt(IntegerSlots.RAW_QUAD_AT_, index);
+		return object.shortSlotAt(RAW_QUAD_AT_, index);
 	}
 
 	@Override @AvailMethod
@@ -244,7 +245,7 @@ extends StringDescriptor
 	{
 		// Set the character at the given index based on the given byte.
 		assert isMutable();
-		object.shortSlotAtPut(IntegerSlots.RAW_QUAD_AT_, index, anInteger);
+		object.shortSlotAtPut(RAW_QUAD_AT_, index, anInteger);
 	}
 
 	@Override @AvailMethod
@@ -254,7 +255,7 @@ extends StringDescriptor
 		// two-byte character.
 		assert index >= 1 && index <= object.tupleSize();
 		return CharacterDescriptor.fromCodePoint(
-				object.shortSlotAt(IntegerSlots.RAW_QUAD_AT_, index)
+				object.shortSlotAt(RAW_QUAD_AT_, index)
 			& 0xFFFF);
 	}
 
@@ -269,7 +270,7 @@ extends StringDescriptor
 		assert isMutable();
 		assert index >= 1 && index <= object.tupleSize();
 		object.shortSlotAtPut(
-			IntegerSlots.RAW_QUAD_AT_,
+			RAW_QUAD_AT_,
 			index,
 			(short)aCharacterObject.codePoint());
 	}
@@ -432,19 +433,9 @@ extends StringDescriptor
 	 *            A new {@linkplain TwoByteStringDescriptor two-byte string}
 	 *            with the same content as the argument.
 	 */
-	private A_String copyAsMutableTwoByteString (final A_String object)
+	private A_String copyAsMutableTwoByteString (final AvailObject object)
 	{
-		final AvailObject result = mutableObjectOfSize(object.tupleSize());
-		assert result.integerSlotsCount() == object.integerSlotsCount();
-		result.hashOrZero(object.hashOrZero());
-		for (int i = 1, end = object.variableIntegerSlotsCount(); i <= end; i++)
-		{
-			result.setSlot(
-				IntegerSlots.RAW_QUAD_AT_,
-				i,
-				object.slot(IntegerSlots.RAW_QUAD_AT_, i));
-		}
-		return result;
+		return newLike(mutable(), object, 0, 0);
 	}
 
 	/**

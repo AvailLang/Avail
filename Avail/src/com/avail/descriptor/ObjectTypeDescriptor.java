@@ -263,7 +263,7 @@ extends TypeDescriptor
 		final A_Type anObjectType)
 	{
 		final A_Map map1 = object.slot(FIELD_TYPE_MAP);
-		final A_Map map2 = anObjectType.slot(FIELD_TYPE_MAP);
+		final A_Map map2 = anObjectType.fieldTypeMap();
 		A_Map resultMap = MapDescriptor.empty();
 		for (final MapDescriptor.Entry entry : map1.mapIterable())
 		{
@@ -324,7 +324,7 @@ extends TypeDescriptor
 		final A_Type anObjectType)
 	{
 		final A_Map map1 = object.slot(FIELD_TYPE_MAP);
-		final A_Map map2 = anObjectType.slot(FIELD_TYPE_MAP);
+		final A_Map map2 = anObjectType.fieldTypeMap();
 		A_Map resultMap = MapDescriptor.empty();
 		for (final MapDescriptor.Entry entry : map1.mapIterable())
 		{
