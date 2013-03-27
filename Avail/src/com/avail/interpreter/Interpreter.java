@@ -1682,29 +1682,6 @@ public final class Interpreter
 						continuation.value(interpreter);
 						// Run the interpreter for a while.
 						interpreter.run();
-						final ExecutionState state = aFiber.executionState();
-						switch (state)
-						{
-							case TERMINATED:
-								// The task must arrange to supply the result
-								// to its continuation after the post-exit
-								// continuation runs.
-								break;
-							case SUSPENDED:
-							case INTERRUPTED:
-							case PARKED:
-							case JOINING:
-							case ASLEEP:
-								// No further action is required if the fiber is
-								// suspended in some fashion.
-								break;
-							case UNSTARTED:
-							case RUNNING:
-							case ABORTED:
-							default:
-								// These are illegal states at this point.
-								assert false;
-						}
 					}
 				}));
 	}

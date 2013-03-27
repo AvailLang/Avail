@@ -1975,6 +1975,22 @@ public abstract class AbstractAvailCompiler
 	}
 
 	/**
+	 * Start several work units.
+	 *
+	 * @param count
+	 *        The number of work units to start.
+	 */
+	protected synchronized void startWorkUnits (final int count)
+	{
+		if (terminator != null)
+		{
+			// Don't add any new tasks if canceling.
+			return;
+		}
+		workUnitsQueued += count;
+	}
+
+	/**
 	 * Construct and answer a {@linkplain Continuation1 continuation} that
 	 * wraps the specified continuation in logic that will increment the
 	 * {@linkplain #workUnitsCompleted count of completed work units} and
@@ -3674,9 +3690,9 @@ public abstract class AbstractAvailCompiler
 		{
 			strongArgs.add((AvailObject)argType);
 		}
+		startWorkUnits(restrictionsToTry.size());
 		for (final A_Function restriction : restrictionsToTry)
 		{
-			startWorkUnit();
 			evaluateSemanticRestrictionFunctionThen(
 				restriction,
 				strongArgs,
