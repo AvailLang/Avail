@@ -665,6 +665,7 @@ Extends
 		"variable-use exception",
 		"vertical-bar-must-follow-a-simple-or-simple-group exception",
 		"wrong-number-of-outers exception",
+		"_caused by_",
 		"_'s⁇causal exception",
 		"_'s⁇error message",
 		"_'s⁇stack summary",
