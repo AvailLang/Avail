@@ -49,15 +49,16 @@ Uses
 	"Sets",
 	"Variables"
 Names
+	"capitalize_",
+	"uppercase_",
+	"lowercase_",
+	"titlecase_",
 	"_is an Arabic numeral",
 	"_is a letter",
 	"_is uppercase",
 	"_is lowercase",
 	"_is titlecase",
-	"_is whitespace",
-	"uppercase_",
-	"lowercase_",
-	"titlecase_"
+	"_is whitespace"
 Body
 
 arabicNumerals ::= (48 to 57)→set;
@@ -1028,8 +1029,9 @@ Public stable method "_is whitespace" is
 	(c's code point) ∈ whitespaceCharacter
 ] : boolean;
 
-Private method "recase restriction using_" is
+Private method "recase restriction for elements∈_using_" is
 [
+	range : natural number's type,
 	converter : [character]→character
 |
 	[
@@ -1043,24 +1045,24 @@ Private method "recase restriction using_" is
 			index : natural number
 		|
 			charType ::= stringType[index];
-			converted : {character|} := ∅;
-			convertedType ::=
-				if |charType| is finite then
+			types := eject ↑types ++
+				<if index ∈ range then
 				[
-					For each of charType's instances do
+					converted : {character|} := ∅;
+					if |charType| is finite then
 					[
-						c : character
-					|
-						converted := eject ↑converted + converter(c);
-					];
-					cast enumeration of converted
-						into [t : character's type | t]
+						For each of charType's instances do
+						[
+							c : character
+						|
+							converted := eject ↑converted + converter(c);
+						];
+						cast enumeration of converted
+							into [t : character's type | t]
+					]
+					else [charType]
 				]
-				else
-				[
-					charType
-				];
-			types := eject ↑types ++ <convertedType>;
+				else [charType]>;
 		];
 		nonempty ::= cast types into [t : <character's type…|1..> | t];
 		leading ::= nonempty[1..|nonempty|-1];
@@ -1099,6 +1101,25 @@ Stable method "uppercase_" is
 ] : string;
 
 Semantic restriction "uppercase_" is recase restriction
+	for elements ∈ natural number
+	using [c : character | uppercase c];
+
+/**
+ * Answer a capitalized variant of the specified string.
+ *
+ * @method "capitalize_"
+ * @param "s" "string"
+ * @returns "string"
+ */
+Stable method "capitalize_" is
+[
+	s : string
+|
+	if |s| = 0 then [""] else [<uppercase (s[1])> ++ s[2..]]
+] : string;
+
+Semantic restriction "capitalize_" is recase restriction
+	for elements ∈ 1's type
 	using [c : character | uppercase c];
 
 /**
@@ -1131,6 +1152,7 @@ Stable method "lowercase_" is
 ] : string;
 
 Semantic restriction "lowercase_" is recase restriction
+	for elements ∈ natural number
 	using [c : character | lowercase c];
 
 /**
@@ -1167,4 +1189,5 @@ Stable method "titlecase_" is
 ] : string;
 
 Semantic restriction "titlecase_" is recase restriction
+	for elements ∈ natural number
 	using [c : character | titlecase c];

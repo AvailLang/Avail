@@ -352,15 +352,16 @@ Extends
 	),
 	"Characters" =
 	(
+		"capitalize_",
+		"uppercase_",
+		"lowercase_",
+		"titlecase_",
 		"_is a letter",
 		"_is an Arabic numeral",
 		"_is uppercase",
 		"_is lowercase",
 		"_is titlecase",
-		"_is whitespace",
-		"uppercase_",
-		"lowercase_",
-		"titlecase_"
+		"_is whitespace"
 	),
 	"Collections" =
 	(
