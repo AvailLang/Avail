@@ -447,15 +447,15 @@ extends Descriptor
 					bundle,
 					true);
 				object.setSlot(ALL_BUNDLES, allBundles.makeShared());
-			}
-			A_Map unclassified = object.slot(UNCLASSIFIED);
-			if (!unclassified.hasKey(message))
-			{
-				unclassified = unclassified.mapAtPuttingCanDestroy(
-					message,
-					bundle,
-					true);
-				object.setSlot(UNCLASSIFIED, unclassified.makeShared());
+				A_Map unclassified = object.slot(UNCLASSIFIED);
+				if (!unclassified.hasKey(message))
+				{
+					unclassified = unclassified.mapAtPuttingCanDestroy(
+						message,
+						bundle,
+						true);
+					object.setSlot(UNCLASSIFIED, unclassified.makeShared());
+				}
 			}
 		}
 	}

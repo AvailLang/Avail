@@ -3524,25 +3524,25 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_AddTypeRestriction (
+	void o_AddSemanticRestriction (
 		final AvailObject object,
-		final A_Function restrictionSignature)
+		final A_SemanticRestriction restrictionSignature)
 	{
 		throw unsupportedOperationException();
 	}
 
 
 	@Override
-	void o_RemoveTypeRestriction (
+	void o_RemoveSemanticRestriction (
 		final AvailObject object,
-		final A_Function restrictionSignature)
+		final A_SemanticRestriction restriction)
 	{
 		throw unsupportedOperationException();
 	}
 
 
 	@Override
-	A_Tuple o_TypeRestrictions (
+	A_Set o_SemanticRestrictions (
 		final AvailObject object)
 	{
 		throw unsupportedOperationException();
@@ -3575,10 +3575,9 @@ extends AbstractDescriptor
 
 
 	@Override
-	void o_AddTypeRestriction (
+	void o_ModuleAddSemanticRestriction (
 		final AvailObject object,
-		final A_Atom methodNameAtom,
-		final A_Function typeRestrictionFunction)
+		final A_SemanticRestriction semanticRestriction)
 	{
 		throw unsupportedOperationException();
 	}

@@ -306,7 +306,7 @@ public final class Interpreter
 	 * @return The current loader's module under definition, or nil if loading
 	 *         is not taking via in this interpreter.
 	 */
-	public A_BasicObject module()
+	public A_Module module()
 	{
 		final AvailLoader loader = fiber().availLoader();
 		if (loader == null)

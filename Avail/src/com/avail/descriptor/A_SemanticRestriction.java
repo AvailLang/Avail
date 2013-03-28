@@ -1,5 +1,5 @@
 /**
- * A_Continuation.java
+ * A_SemanticRestriction.java
  * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -33,91 +33,43 @@
 package com.avail.descriptor;
 
 /**
- * {@code A_Continuation} is an interface that specifies the operations specific
- * to {@linkplain ContinuationDescriptor continuations} in Avail.  It's a
- * sub-interface of {@link A_BasicObject}, the interface that defines the
- * behavior that all AvailObjects are required to support.
+ * {@code A_SemanticRestriction} is an interface that specifies the operations
+ * suitable for a {@linkplain SemanticRestrictionDescriptor semantic
+ * restriction}.  It's a sub-interface of {@link A_BasicObject}, the interface
+ * that defines the behavior that all AvailObjects are required to support.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public interface A_Continuation
+public interface A_SemanticRestriction
 extends A_BasicObject
 {
 	/**
-	 * Dispatch to the descriptor.
-	 */
-	AvailObject argOrLocalOrStackAt (int index);
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	void argOrLocalOrStackAtPut (int index, AvailObject value);
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	A_Continuation caller ();
-
-	/**
-	 * Answer the {@linkplain FunctionDescriptor function} for which this
-	 * {@linkplain ContinuationDescriptor continuation} represents an
-	 * evaluation.
+	 * Answer the function to execute to determine the effect of this semantic
+	 * restriction on a list of argument static types at a call site.
 	 *
-	 * <p>Also defined in {@link A_SemanticRestriction}.</p>
+	 * <p>Also defined in {@link A_Continuation}.</p>
 	 *
 	 * @return The function.
 	 */
 	A_Function function ();
 
 	/**
-	 * Dispatch to the descriptor.
-	 */
-	int pc ();
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	int stackp ();
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	void levelTwoChunkOffset (A_Chunk chunk, int offset);
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	AvailObject stackAt (int slotIndex);
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	void stackAtPut (int slotIndex, A_BasicObject anObject);
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	AvailObject ensureMutable ();
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	A_Chunk levelTwoChunk ();
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	int levelTwoOffset ();
-
-	/**
-	 * Also defined in {@link A_RawFunction}.
+	 * Answer the {@linkplain MethodDescriptor method} for which this semantic
+	 * restriction applies.
 	 *
-	 * @return
+	 * <p>Also defined in {@link A_Definition}.</p>
+	 *
+	 * @return The method to which this semantic restriction applies.
 	 */
-	int numArgsAndLocalsAndStack ();
+	A_Method definitionMethod ();
 
 	/**
-	 * Dispatch to the descriptor.
+	 * Answer the {@linkplain ModuleDescriptor module} in which this semantic
+	 * restriction was defined.
+	 *
+	 * <p>Also defined in {@link A_Definition}.</p>
+	 *
+	 * @return The method to which this semantic restriction applies.
 	 */
-	A_BasicObject copyAsMutableContinuation ();
+	A_Module definitionModule ();
 }

@@ -3353,26 +3353,26 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_AddTypeRestriction (
+	void o_AddSemanticRestriction (
 		final AvailObject object,
-		final A_Function restrictionSignature)
+		final A_SemanticRestriction restrictionSignature)
 	{
-		o_Traversed(object).addTypeRestriction(restrictionSignature);
+		o_Traversed(object).addSemanticRestriction(restrictionSignature);
 	}
 
 	@Override
-	void o_RemoveTypeRestriction (
+	void o_RemoveSemanticRestriction (
 		final AvailObject object,
-		final A_Function restrictionSignature)
+		final A_SemanticRestriction restriction)
 	{
-		o_Traversed(object).removeTypeRestriction(restrictionSignature);
+		o_Traversed(object).removeSemanticRestriction(restriction);
 	}
 
 	@Override
-	A_Tuple o_TypeRestrictions (
+	A_Set o_SemanticRestrictions (
 		final AvailObject object)
 	{
-		return o_Traversed(object).typeRestrictions();
+		return o_Traversed(object).semanticRestrictions();
 	}
 
 	@Override
@@ -3399,14 +3399,12 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_AddTypeRestriction (
+	void o_ModuleAddSemanticRestriction (
 		final AvailObject object,
-		final A_Atom methodNameAtom,
-		final A_Function typeRestrictionFunction)
+		final A_SemanticRestriction semanticRestriction)
 	{
-		o_Traversed(object).addTypeRestriction(
-			methodNameAtom,
-			typeRestrictionFunction);
+		o_Traversed(object).moduleAddSemanticRestriction(
+			semanticRestriction);
 	}
 
 	@Override

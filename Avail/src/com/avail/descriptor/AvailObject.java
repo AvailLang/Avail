@@ -88,6 +88,7 @@ implements
 		A_Number,
 		A_Phrase,
 		A_RawFunction,
+		A_SemanticRestriction,
 		A_Set,
 		A_Token,
 		A_Tuple,
@@ -5358,30 +5359,32 @@ implements
 	}
 
 	/**
-	 * @param restrictionSignature
+	 * @param restriction
 	 */
 	@Override
-	public void addTypeRestriction (final A_Function restrictionSignature)
+	public void addSemanticRestriction (
+		final A_SemanticRestriction restriction)
 	{
-		descriptor.o_AddTypeRestriction(this, restrictionSignature);
+		descriptor.o_AddSemanticRestriction(this, restriction);
 	}
 
 	/**
-	 * @param function
+	 * @param restriction
 	 */
 	@Override
-	public void removeTypeRestriction (final A_Function function)
+	public void removeSemanticRestriction (
+		final A_SemanticRestriction restriction)
 	{
-		descriptor.o_RemoveTypeRestriction(this, function);
+		descriptor.o_RemoveSemanticRestriction(this, restriction);
 	}
 
 	/**
 	 * @return
 	 */
 	@Override
-	public A_Tuple typeRestrictions ()
+	public A_Set semanticRestrictions ()
 	{
-		return descriptor.o_TypeRestrictions(this);
+		return descriptor.o_SemanticRestrictions(this);
 	}
 
 	/**
@@ -5412,18 +5415,15 @@ implements
 	}
 
 	/**
-	 * @param methodNameAtom
-	 * @param typeRestrictionFunction
+	 * @param semanticRestriction
 	 */
 	@Override
-	public void addTypeRestriction (
-		final A_Atom methodNameAtom,
-		final A_Function typeRestrictionFunction)
+	public void moduleAddSemanticRestriction (
+		final A_SemanticRestriction semanticRestriction)
 	{
-		descriptor.o_AddTypeRestriction(
+		descriptor.o_ModuleAddSemanticRestriction(
 			this,
-			methodNameAtom,
-			typeRestrictionFunction);
+			semanticRestriction);
 	}
 
 	/**

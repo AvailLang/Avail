@@ -2240,8 +2240,8 @@ public abstract class AbstractAvailCompiler
 	 * variables are not considered in scope, but module variables and constants
 	 * are in scope.
 	 *
-	 * @param function
-	 *        A function.
+	 * @param restriction
+	 *        A {@linkplain SemanticRestrictionDescriptor semantic restriction}.
 	 * @param args
 	 *        The arguments to the function.
 	 * @param onSuccess
@@ -2250,11 +2250,12 @@ public abstract class AbstractAvailCompiler
 	 *        What to do with a terminal {@linkplain Throwable throwable}.
 	 */
 	protected void evaluateSemanticRestrictionFunctionThen (
-		final A_Function function,
+		final A_SemanticRestriction restriction,
 		final List<AvailObject> args,
 		final Continuation1<AvailObject> onSuccess,
 		final Continuation1<Throwable> onFailure)
 	{
+		final A_Function function = restriction.function();
 		final A_Fiber fiber = FiberDescriptor.newLoaderFiber(
 			function.kind().returnType(),
 			loader());
@@ -3428,8 +3429,7 @@ public abstract class AbstractAvailCompiler
 	{
 		final MutableOrNull<A_Tuple> definitionsTuple =
 			new MutableOrNull<A_Tuple>();
-		final MutableOrNull<A_Tuple> restrictions =
-			new MutableOrNull<A_Tuple>();
+		final MutableOrNull<A_Set> restrictions = new MutableOrNull<A_Set>();
 		final A_Method method = bundle.bundleMethod();
 		method.lock(new Continuation0()
 		{
@@ -3437,7 +3437,7 @@ public abstract class AbstractAvailCompiler
 			public void value ()
 			{
 				definitionsTuple.value = method.definitionsTuple();
-				restrictions.value = method.typeRestrictions();
+				restrictions.value = method.semanticRestrictions();
 			}
 		});
 		// Filter the definitions down to those that are locally most specific.
@@ -3537,12 +3537,12 @@ public abstract class AbstractAvailCompiler
 				satisfyingDefinitions.get(i).bodySignature().returnType());
 		}
 		// Determine which semantic restrictions are relevant.
-		final List<A_Function> restrictionsToTry =
-			new ArrayList<A_Function>(restrictions.value().tupleSize());
-		for (int i = 1, end = restrictions.value().tupleSize(); i <= end; i++)
+		final List<A_SemanticRestriction> restrictionsToTry =
+			new ArrayList<A_SemanticRestriction>(
+				restrictions.value().setSize());
+		for (final A_SemanticRestriction restriction : restrictions.value())
 		{
-			final A_Function restriction = restrictions.value().tupleAt(i);
-			if (restriction.kind().acceptsListOfArgValues(argTypes))
+			if (restriction.function().kind().acceptsListOfArgValues(argTypes))
 			{
 				restrictionsToTry.add(restriction);
 			}
@@ -3674,7 +3674,7 @@ public abstract class AbstractAvailCompiler
 		{
 			strongArgs.add((AvailObject)argType);
 		}
-		for (final A_Function restriction : restrictionsToTry)
+		for (final A_SemanticRestriction restriction : restrictionsToTry)
 		{
 			startWorkUnit();
 			evaluateSemanticRestrictionFunctionThen(
@@ -3700,11 +3700,11 @@ public abstract class AbstractAvailCompiler
 		 * @param stateAfterCall
 		 *            The parsing state after the message.
 		 * @param argumentExpressions
-		 *            The {@linkplain ParseNodeDescriptor parse nodes} that will be
-		 *            arguments of the new send node.
+		 *            The {@linkplain ParseNodeDescriptor parse nodes} that will
+		 *            be arguments of the new send node.
 		 * @param bundle
-		 *            The {@linkplain MessageBundleDescriptor message bundle} that
-		 *            identifies the message to be sent.
+		 *            The {@linkplain MessageBundleDescriptor message bundle}
+		 *            that identifies the message to be sent.
 		 * @param continuation
 		 *            What to do with the resulting send node.
 		 */

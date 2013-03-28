@@ -182,18 +182,11 @@ extends Descriptor
 		CONSTANT_BINDINGS,
 
 		/**
-		 * A {@linkplain MapDescriptor map} from {@linkplain AtomDescriptor true
-		 * names} to {@linkplain TupleDescriptor tuples} of {@linkplain
-		 * MethodDescriptor.ObjectSlots#TYPE_RESTRICTIONS_TUPLE type
-		 * restriction} {@linkplain FunctionDescriptor functions}. At any call
-		 * site for the given message name, any applicable functions are
-		 * executed to determine if the input types are acceptable, and if so
-		 * the expected return type is produced. The actual expected return
-		 * type for the call site is the intersection of types provided by
-		 * applicable semantic restrictions and the types indicated by all
-		 * applicable {@linkplain DefinitionDescriptor definitions}.
+		 * A {@linkplain SetDescriptor set} of {@linkplain
+		 * SemanticRestrictionDescriptor semantic restrictions} defined within
+		 * this module.
 		 */
-		TYPE_RESTRICTION_FUNCTIONS,
+		SEMANTIC_RESTRICTIONS,
 
 		/**
 		 * A {@linkplain MapDescriptor map} from {@linkplain AtomDescriptor true
@@ -222,7 +215,7 @@ extends Descriptor
 			|| e == GRAMMATICAL_RESTRICTIONS
 			|| e == VARIABLE_BINDINGS
 			|| e == CONSTANT_BINDINGS
-			|| e == TYPE_RESTRICTION_FUNCTIONS
+			|| e == SEMANTIC_RESTRICTIONS
 			|| e == SEALS
 			|| e == FLAGS_AND_COUNTER
 			|| e == VERSIONS;
@@ -468,31 +461,18 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	void o_AddTypeRestriction (
+	void o_ModuleAddSemanticRestriction (
 		final AvailObject object,
-		final A_Atom methodName,
-		final A_Function typeRestrictionFunction)
+		final A_SemanticRestriction semanticRestriction)
 	{
 		synchronized (object)
 		{
-			A_Map typeRestrictions = object.slot(TYPE_RESTRICTION_FUNCTIONS);
-			A_Tuple tuple;
-			if (typeRestrictions.hasKey(methodName))
-			{
-				tuple = typeRestrictions.mapAt(methodName);
-			}
-			else
-			{
-				tuple = TupleDescriptor.empty();
-			}
-			tuple = tuple.appendCanDestroy(typeRestrictionFunction, true);
-			typeRestrictions = typeRestrictions.mapAtPuttingCanDestroy(
-				methodName,
-				tuple,
+			A_Set restrictions = object.slot(SEMANTIC_RESTRICTIONS);
+			restrictions = restrictions.setWithElementCanDestroy(
+				semanticRestriction,
 				true);
-			object.setSlot(
-				TYPE_RESTRICTION_FUNCTIONS,
-				typeRestrictions.makeShared());
+			restrictions = restrictions.makeShared();
+			object.setSlot(SEMANTIC_RESTRICTIONS, restrictions);
 		}
 	}
 
@@ -639,7 +619,7 @@ extends Descriptor
 			object.setSlot(GRAMMATICAL_RESTRICTIONS, NilDescriptor.nil());
 			object.setSlot(VARIABLE_BINDINGS, NilDescriptor.nil());
 			object.setSlot(CONSTANT_BINDINGS, NilDescriptor.nil());
-			object.setSlot(TYPE_RESTRICTION_FUNCTIONS, NilDescriptor.nil());
+			object.setSlot(SEMANTIC_RESTRICTIONS, NilDescriptor.nil());
 		}
 	}
 
@@ -688,20 +668,16 @@ extends Descriptor
 		synchronized (object)
 		{
 			final AvailRuntime runtime = AvailRuntime.current();
+			// Remove method definitions
 			for (final A_Definition definition : object.methodDefinitions())
 			{
 				aLoader.removeDefinition(definition);
 			}
-			final A_BasicObject typeRestrictions = object.slot(
-				TYPE_RESTRICTION_FUNCTIONS);
-			for (final MapDescriptor.Entry entry
-				: typeRestrictions.mapIterable())
+			// Remove semantic restrictions
+			final A_Set restrictions = object.slot(SEMANTIC_RESTRICTIONS);
+			for (final A_SemanticRestriction restriction : restrictions)
 			{
-				final AvailObject methodName = entry.key();
-				for (final AvailObject restriction : entry.value())
-				{
-					runtime.removeTypeRestriction(methodName, restriction);
-				}
+				runtime.removeTypeRestriction(restriction);
 			}
 			final A_BasicObject seals = object.slot(SEALS);
 			for (final MapDescriptor.Entry entry : seals.mapIterable())
@@ -847,9 +823,9 @@ extends Descriptor
 		object.setSlot(VARIABLE_BINDINGS, emptyMap);
 		object.setSlot(CONSTANT_BINDINGS, emptyMap);
 		object.setSlot(VARIABLE_BINDINGS, emptyMap);
-		object.setSlot(TYPE_RESTRICTION_FUNCTIONS, MapDescriptor.empty());
-		object.setSlot(SEALS, MapDescriptor.empty());
-		object.setSlot(ENTRY_POINTS, MapDescriptor.empty());
+		object.setSlot(SEMANTIC_RESTRICTIONS, emptySet);
+		object.setSlot(SEALS, emptyMap);
+		object.setSlot(ENTRY_POINTS, emptyMap);
 		object.setSlot(COUNTER, 0);
 		object.makeShared();
 		return object;

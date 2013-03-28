@@ -80,7 +80,14 @@ extends Primitive
 		}
 		try
 		{
-			loader.addTypeRestriction(atom, function);
+			final A_Method method = atom.bundleOrCreate().bundleMethod();
+			final A_Module module = interpreter.module();
+			final A_SemanticRestriction restriction =
+				SemanticRestrictionDescriptor.create(
+					function,
+					method,
+					module);
+			loader.addSemanticRestriction(restriction);
 		}
 		catch (final SignatureException e)
 		{

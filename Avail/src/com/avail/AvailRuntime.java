@@ -1027,28 +1027,22 @@ public final class AvailRuntime
 	}
 
 	/**
-	 * Add a type restriction to the method associated with the
+	 * Add a semantic restriction to the method associated with the
 	 * given method name.
 	 *
-	 * @param methodName
-	 *            The method name, an {@linkplain AtomDescriptor atom}.
-	 * @param typeRestrictionFunction
-	 *            A {@linkplain FunctionDescriptor function} that validates the
-	 *            static types of arguments at call sites.
+	 * @param restriction
+	 *            A {@linkplain SemanticRestrictionDescriptor semantic
+	 *            restriction} that validates the static types of arguments at
+	 *            call sites.
 	 */
-	public void addTypeRestriction (
-		final A_Atom methodName,
-		final A_Function typeRestrictionFunction)
+	public void addSemanticRestriction (
+		final A_SemanticRestriction restriction)
 	{
-		assert methodName.isAtom();
-		assert typeRestrictionFunction.isFunction();
-
 		runtimeLock.writeLock().lock();
 		try
 		{
-			final A_Bundle bundle = methodName.bundleOrCreate();
-			final A_Method method = bundle.bundleMethod();
-			method.addTypeRestriction(typeRestrictionFunction);
+			final A_Method method = restriction.definitionMethod();
+			method.addSemanticRestriction(restriction);
 		}
 		finally
 		{
@@ -1057,27 +1051,22 @@ public final class AvailRuntime
 	}
 
 	/**
-	 * Remove a type restriction from the method associated with the
+	 * Remove a semantic restriction from the method associated with the
 	 * given method name.
 	 *
-	 * @param methodName
-	 *            The method name, an {@linkplain AtomDescriptor atom}.
-	 * @param typeRestrictionFunction
-	 *            A {@linkplain FunctionDescriptor function} that validates the
-	 *            static types of arguments at call sites.
+	 * @param restriction
+	 *            A {@linkplain SemanticRestrictionDescriptor semantic
+	 *            restriction} that validates the static types of arguments at
+	 *            call sites.
 	 */
 	public void removeTypeRestriction (
-		final A_Atom methodName,
-		final A_Function typeRestrictionFunction)
+		final A_SemanticRestriction restriction)
 	{
-		assert methodName.isAtom();
-		assert typeRestrictionFunction.isFunction();
 		runtimeLock.writeLock().lock();
 		try
 		{
-			final A_Bundle bundle = methodName.bundleOrCreate();
-			final A_Method method = bundle.bundleMethod();
-			method.removeTypeRestriction(typeRestrictionFunction);
+			final A_Method method = restriction.definitionMethod();
+			method.removeSemanticRestriction(restriction);
 		}
 		finally
 		{

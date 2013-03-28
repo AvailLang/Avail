@@ -512,34 +512,26 @@ public final class AvailLoader
 	}
 
 	/**
-	 * Add a type restriction to the method associated with the given method
-	 * name.
+	 * Add a semantic restriction to its associated method.
 	 *
-	 * @param methodName
-	 *        The method name, an {@linkplain AtomDescriptor atom}.
-	 * @param typeRestrictionFunction
-	 *        A {@linkplain FunctionDescriptor function} that validates the
-	 *        static types of arguments at call sites.
+	 * @param restriction
+	 *        A {@linkplain SemanticRestrictionDescriptor semantic restriction}
+	 *        that validates the static types of arguments at call sites.
+	 *
 	 * @throws SignatureException
 	 *         If the signature is invalid.
 	 */
-	public final void addTypeRestriction (
-			final A_Atom methodName,
-			final A_Function typeRestrictionFunction)
-		throws SignatureException
+	public final void addSemanticRestriction (
+		final A_SemanticRestriction restriction)
+	throws SignatureException
 	{
-		assert methodName.isAtom();
-		assert typeRestrictionFunction.isFunction();
-		final MessageSplitter splitter = new MessageSplitter(methodName.name());
-		final int numArgs = splitter.numberOfArguments();
-		if (typeRestrictionFunction.code().numArgs() != numArgs)
+		final A_Method method = restriction.definitionMethod();
+		final int numArgs = method.numArgs();
+		if (restriction.function().code().numArgs() != numArgs)
 		{
 			throw new SignatureException(E_INCORRECT_NUMBER_OF_ARGUMENTS);
 		}
-		methodName.makeShared();
-		final A_Bundle bundle = methodName.bundleOrCreate();
-		typeRestrictionFunction.makeShared();
-		runtime.addTypeRestriction(methodName, typeRestrictionFunction);
+		runtime.addSemanticRestriction(restriction);
 		final A_Module theModule = module;
 		final A_BundleTree root = rootBundleTree();
 		theModule.lock(new Continuation0()
@@ -547,10 +539,15 @@ public final class AvailLoader
 			@Override
 			public void value ()
 			{
-				theModule.addTypeRestriction(
-					methodName, typeRestrictionFunction);
-				root.addBundle(bundle);
-				root.flushForNewOrChangedBundle(bundle);
+				theModule.moduleAddSemanticRestriction(restriction);
+				for (final A_Bundle bundle : method.bundles())
+				{
+					// Update the bundle tree if the bundle is visible
+					if (root.allBundles().hasKey(bundle.message()))
+					{
+						root.flushForNewOrChangedBundle(bundle);
+					}
+				}
 			}
 		});
 	}

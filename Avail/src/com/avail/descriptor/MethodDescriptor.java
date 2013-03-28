@@ -110,15 +110,16 @@ extends Descriptor
 		PRIVATE_TESTING_TREE,
 
 		/**
-		 * A {@linkplain TupleDescriptor tuple} of {@linkplain
-		 * FunctionDescriptor functions} which, when invoked with suitable
-		 * {@linkplain TypeDescriptor types} as arguments, will determine
-		 * whether the call arguments have mutually compatible types, and if so
-		 * produce a type to which the call's return value is expected to
-		 * conform.  This type strengthening is <em>assumed</em> to hold at
-		 * compile time (of the call) and <em>checked</em> at runtime.
+		 * A {@linkplain SetDescriptor set} of {@linkplain
+		 * SemanticRestrictionDescriptor semantic restrictions} which, when
+		 * their functions are invoked with suitable {@linkplain TypeDescriptor
+		 * types} as arguments, will determine whether the call arguments have
+		 * mutually compatible types, and if so produce a type to which the
+		 * call's return value is expected to conform.  This type strengthening
+		 * is <em>assumed</em> to hold at compile time (of the call) and
+		 * <em>checked</em> at runtime.
 		 */
-		TYPE_RESTRICTIONS_TUPLE,
+		SEMANTIC_RESTRICTIONS_SET,
 
 		/**
 		 * A {@linkplain TupleDescriptor tuple} of {@linkplain
@@ -145,7 +146,7 @@ extends Descriptor
 			|| e == DEFINITIONS_TUPLE
 			|| e == PRIVATE_TESTING_TREE
 			|| e == DEPENDENT_CHUNK_INDICES
-			|| e == TYPE_RESTRICTIONS_TUPLE
+			|| e == SEMANTIC_RESTRICTIONS_SET
 			|| e == SEALED_ARGUMENTS_TYPES_TUPLE;
 	}
 
@@ -187,9 +188,9 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	A_Tuple o_TypeRestrictions (final AvailObject object)
+	A_Set o_SemanticRestrictions (final AvailObject object)
 	{
-		return object.slot(TYPE_RESTRICTIONS_TUPLE);
+		return object.slot(SEMANTIC_RESTRICTIONS_SET);
 	}
 
 	@Override @AvailMethod
@@ -563,36 +564,28 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	void o_AddTypeRestriction (
+	void o_AddSemanticRestriction (
 		final AvailObject object,
-		final A_Function function)
+		final A_SemanticRestriction restriction)
 	{
 		synchronized (object)
 		{
-			final A_Tuple oldTuple =
-				object.slot(TYPE_RESTRICTIONS_TUPLE);
-			final A_Tuple newTuple =
-				oldTuple.appendCanDestroy(function, true);
-			object.setSlot(
-				TYPE_RESTRICTIONS_TUPLE, newTuple.traversed().makeShared());
+			A_Set set = object.slot(SEMANTIC_RESTRICTIONS_SET);
+			set = set.setWithElementCanDestroy(restriction, true);
+			object.setSlot(SEMANTIC_RESTRICTIONS_SET, set.makeShared());
 		}
 	}
 
 	@Override @AvailMethod
-	void o_RemoveTypeRestriction (
+	void o_RemoveSemanticRestriction (
 		final AvailObject object,
-		final A_Function function)
+		final A_SemanticRestriction restriction)
 	{
 		synchronized (object)
 		{
-			final A_Tuple oldTuple =
-				object.slot(TYPE_RESTRICTIONS_TUPLE);
-			final A_Tuple newTuple =
-				TupleDescriptor.without(oldTuple, function);
-			assert newTuple.tupleSize() == oldTuple.tupleSize() - 1;
-			object.setSlot(
-				TYPE_RESTRICTIONS_TUPLE,
-				newTuple.traversed().makeShared());
+			A_Set set = object.slot(SEMANTIC_RESTRICTIONS_SET);
+			set = set.setWithoutElementCanDestroy(restriction, true);
+			object.setSlot(SEMANTIC_RESTRICTIONS_SET, set.makeShared());
 		}
 	}
 
@@ -639,9 +632,9 @@ extends Descriptor
 			{
 				return false;
 			}
-			final A_Tuple typeRestrictionsTuple =
-				object.slot(TYPE_RESTRICTIONS_TUPLE);
-			if (typeRestrictionsTuple.tupleSize() > 0)
+			final A_Set semanticRestrictions =
+				object.slot(SEMANTIC_RESTRICTIONS_SET);
+			if (semanticRestrictions.setSize() > 0)
 			{
 				return false;
 			}
@@ -885,7 +878,7 @@ extends Descriptor
 		result.setSlot(OWNING_BUNDLES, SetDescriptor.empty());
 		result.setSlot(DEFINITIONS_TUPLE, TupleDescriptor.empty());
 		result.setSlot(PRIVATE_TESTING_TREE, TupleDescriptor.empty());
-		result.setSlot(TYPE_RESTRICTIONS_TUPLE, TupleDescriptor.empty());
+		result.setSlot(SEMANTIC_RESTRICTIONS_SET, SetDescriptor.empty());
 		result.setSlot(SEALED_ARGUMENTS_TYPES_TUPLE, TupleDescriptor.empty());
 		result.setSlot(DEPENDENT_CHUNK_INDICES, SetDescriptor.empty());
 		result.makeShared();

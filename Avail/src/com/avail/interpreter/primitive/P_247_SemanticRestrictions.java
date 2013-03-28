@@ -60,14 +60,15 @@ extends Primitive
 		assert args.size() == 2;
 		final A_Method method = args.get(0);
 		final A_Tuple argTypes = args.get(1);
-		final A_Tuple restrictions = method.typeRestrictions();
-		final List<AvailObject> applicable = new ArrayList<AvailObject>();
-		for (int i = restrictions.tupleSize(); i >= 1; i--)
+		final A_Set restrictions = method.semanticRestrictions();
+		final List<A_Function> applicable =
+			new ArrayList<A_Function>(restrictions.setSize());
+		for (final A_SemanticRestriction restriction : restrictions)
 		{
-			final AvailObject restriction = restrictions.tupleAt(i);
-			if (restriction.kind().acceptsTupleOfArguments(argTypes))
+			final A_Function function = restriction.function();
+			if (function.kind().acceptsTupleOfArguments(argTypes))
 			{
-				applicable.add(restriction);
+				applicable.add(function);
 			}
 		}
 		return interpreter.primitiveSuccess(

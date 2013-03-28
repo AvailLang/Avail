@@ -51,8 +51,10 @@ extends A_BasicObject
 	A_Module module ();
 
 	/**
-	 * Answer the {@link MethodDescriptor method} that this {@linkplain
+	 * Answer the {@linkplain MethodDescriptor method} that this {@linkplain
 	 * DefinitionDescriptor definition} is for.
+	 *
+	 * <p>Also defined in {@link A_SemanticRestriction}.</p>
 	 *
 	 * @return The definition's method.
 	 */
@@ -61,6 +63,8 @@ extends A_BasicObject
 	/**
 	 * Answer the {@link ModuleDescriptor module} in which this {@linkplain
 	 * DefinitionDescriptor definition} occurred.
+	 *
+	 * <p>Also defined in {@link A_SemanticRestriction}.</p>
 	 *
 	 * @return The definition's originating module.
 	 */

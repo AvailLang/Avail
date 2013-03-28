@@ -77,11 +77,16 @@ extends Primitive
 		}
 		try
 		{
-			final A_Atom atom = loader.lookupName(string);
-			loader.addTypeRestriction(atom, function);
 			function.code().setMethodName(
 				StringDescriptor.from(
 					String.format("Semantic restriction of %s", string)));
+			final A_Atom atom = loader.lookupName(string);
+			final A_SemanticRestriction restriction =
+				SemanticRestrictionDescriptor.create(
+					function,
+					atom.bundleOrCreate().bundleMethod(),
+					interpreter.module());
+			loader.addSemanticRestriction(restriction);
 		}
 		catch (final AmbiguousNameException e)
 		{

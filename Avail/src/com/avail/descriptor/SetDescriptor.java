@@ -64,7 +64,7 @@ extends Descriptor
 	implements ObjectSlotsEnum
 	{
 		/**
-		 * The topmost bin of this set.  If it's {@link NilDescriptor null},
+		 * The topmost bin of this set.  If it's {@link NilDescriptor nil},
 		 * the set is empty.  If it's a {@link SetBinDescriptor set bin} then
 		 * the bin contains the elements.  Otherwise the set contains one
 		 * element, the object in this field.

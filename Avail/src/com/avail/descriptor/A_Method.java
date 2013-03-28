@@ -48,7 +48,14 @@ extends A_BasicObject
 {
 	A_Tuple definitionsTuple ();
 
-	A_Tuple typeRestrictions ();
+	/**
+	 * Answer this method's {@linkplain SetDescriptor set} of {@linkplain
+	 * SemanticRestrictionDescriptor semantic restrictions} which restrict the
+	 * applicability and return type of relevant call sites.
+	 *
+	 * @return The set of semantic restrictions.
+	 */
+	A_Set semanticRestrictions ();
 
 	A_Tuple sealedArgumentsTypesTuple ();
 
@@ -125,11 +132,20 @@ extends A_BasicObject
 	A_Tuple testingTree ();
 
 	/**
-	 * @param function
+	 * Add a {@linkplain SemanticRestrictionDescriptor semantic restriction} to
+	 * this method.
+	 *
+	 * @param restriction The semantic restriction to add.
 	 */
-	void addTypeRestriction (A_Function function);
+	void addSemanticRestriction (A_SemanticRestriction restriction);
 
-	void removeTypeRestriction (A_Function function);
+	/**
+	 * Remove an extant {@linkplain SemanticRestrictionDescriptor semantic
+	 * restriction} from this method.
+	 *
+	 * @param restriction The semantic restriction to remove.
+	 */
+	void removeSemanticRestriction (A_SemanticRestriction restriction);
 
 	void addSealedArgumentsType (A_Tuple typeTuple);
 

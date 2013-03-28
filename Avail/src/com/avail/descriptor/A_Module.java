@@ -124,12 +124,10 @@ extends A_BasicObject
 	 */
 	A_Map variableBindings ();
 	/**
-	 * @param methodNameAtom
-	 * @param typeRestrictionFunction
+	 * @param semanticRestriction
 	 */
-	void addTypeRestriction (
-		A_Atom methodNameAtom,
-		A_Function typeRestrictionFunction);
+	void moduleAddSemanticRestriction (
+		A_SemanticRestriction semanticRestriction);
 
 	/**
 	 * @param name

@@ -4737,17 +4737,17 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @param restrictionSignature
 	 */
-	abstract void o_AddTypeRestriction (
+	abstract void o_AddSemanticRestriction (
 		AvailObject object,
-		A_Function restrictionSignature);
+		A_SemanticRestriction restrictionSignature);
 
 	/**
 	 * @param object
-	 * @param restrictionSignature
+	 * @param restriction
 	 */
-	abstract void o_RemoveTypeRestriction (
+	abstract void o_RemoveSemanticRestriction (
 		AvailObject object,
-		A_Function restrictionSignature);
+		A_SemanticRestriction restriction);
 
 	/**
 	 * Return the {@linkplain MethodDescriptor method}'s
@@ -4757,7 +4757,7 @@ public abstract class AbstractDescriptor
 	 * @param object The method.
 	 * @return
 	 */
-	abstract A_Tuple o_TypeRestrictions (
+	abstract A_Set o_SemanticRestrictions (
 		AvailObject object);
 
 	/**
@@ -4785,13 +4785,11 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param methodNameAtom
-	 * @param typeRestrictionFunction
+	 * @param semanticRestriction
 	 */
-	abstract void o_AddTypeRestriction (
+	abstract void o_ModuleAddSemanticRestriction (
 		AvailObject object,
-		A_Atom methodNameAtom,
-		A_Function typeRestrictionFunction);
+		A_SemanticRestriction semanticRestriction);
 
 	/**
 	 * @param object

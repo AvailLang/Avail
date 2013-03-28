@@ -51,17 +51,12 @@ extends A_BasicObject
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	AvailObject outerVarAt (int index);
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	void outerVarAtPut (int index, AvailObject value);
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
 	boolean containsBlock (A_Function aFunction);
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	int numOuterVars ();
 
 	/**
 	 * Dispatch to the descriptor.
@@ -71,5 +66,10 @@ extends A_BasicObject
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	int numOuterVars ();
+	AvailObject outerVarAt (int index);
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	void outerVarAtPut (int index, AvailObject value);
 }
