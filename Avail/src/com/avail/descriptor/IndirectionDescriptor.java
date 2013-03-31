@@ -309,11 +309,11 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_AddGrammaticalRestrictions (
+	void o_AddGrammaticalRestriction (
 		final AvailObject object,
-		final A_Tuple restrictions)
+		final A_GrammaticalRestriction grammaticalRestriction)
 	{
-		o_Traversed(object).addGrammaticalRestrictions(restrictions);
+		o_Traversed(object).addGrammaticalRestriction(grammaticalRestriction);
 	}
 
 	@Override
@@ -1594,11 +1594,11 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_RemoveGrammaticalRestrictions (
+	void o_RemoveGrammaticalRestriction (
 		final AvailObject object,
-		final A_Tuple obsoleteRestrictions)
+		final A_GrammaticalRestriction obsoleteRestriction)
 	{
-		o_Traversed(object).removeGrammaticalRestrictions(obsoleteRestrictions);
+		o_Traversed(object).removeGrammaticalRestriction(obsoleteRestriction);
 	}
 
 	@Override
@@ -2275,9 +2275,9 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_Expand (final AvailObject object)
+	void o_Expand (final AvailObject object, A_Module module)
 	{
-		o_Traversed(object).expand();
+		o_Traversed(object).expand(module);
 	}
 
 	@Override
@@ -2760,7 +2760,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	A_Tuple o_GrammaticalRestrictions (final AvailObject object)
+	A_Set o_GrammaticalRestrictions (final AvailObject object)
 	{
 		return o_Traversed(object).grammaticalRestrictions();
 	}
@@ -3181,18 +3181,6 @@ extends AbstractDescriptor
 		final AvailObject object)
 	{
 		return o_Traversed(object).mapIterable();
-	}
-
-	@Override
-	A_Map o_Complete (final AvailObject object)
-	{
-		return o_Traversed(object).complete();
-	}
-
-	@Override
-	A_Map o_Incomplete (final AvailObject object)
-	{
-		return o_Traversed(object).incomplete();
 	}
 
 	@Override
@@ -4560,5 +4548,29 @@ extends AbstractDescriptor
 		final A_Atom trueName)
 	{
 		o_Traversed(object).addEntryPoint(stringName, trueName);
+	}
+
+	@Override
+	A_Set o_AllAncestors (final AvailObject object)
+	{
+		return o_Traversed(object).allAncestors();
+	}
+
+	@Override
+	void o_AddAncestors (final AvailObject object, final A_Set moreAncestors)
+	{
+		o_Traversed(object).addAncestors(moreAncestors);
+	}
+
+	@Override
+	A_Tuple o_ArgumentRestrictionSets (final AvailObject object)
+	{
+		return o_Traversed(object).argumentRestrictionSets();
+	}
+
+	@Override
+	A_Bundle o_RestrictedBundle (final AvailObject object)
+	{
+		return o_Traversed(object).restrictedBundle();
 	}
 }

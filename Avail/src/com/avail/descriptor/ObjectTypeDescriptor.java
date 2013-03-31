@@ -93,7 +93,7 @@ extends TypeDescriptor
 		A_Set ignoreKeys = SetDescriptor.empty();
 		for (final AvailObject baseType : baseTypes)
 		{
-			final A_BasicObject fieldTypes = baseType.slot(FIELD_TYPE_MAP);
+			final A_Map fieldTypes = baseType.slot(FIELD_TYPE_MAP);
 			for (final MapDescriptor.Entry entry : fieldTypes.mapIterable())
 			{
 				if (InstanceTypeDescriptor.on(entry.key()).equals(entry.value()))
@@ -464,7 +464,7 @@ extends TypeDescriptor
 		for (final MapDescriptor.Entry entry
 			: anObjectType.fieldTypeMap().mapIterable())
 		{
-			final A_BasicObject map = entry.key().getAtomProperty(propertyKey);
+			final A_Map map = entry.key().getAtomProperty(propertyKey);
 			if (!map.equalsNil())
 			{
 				for (final MapDescriptor.Entry innerEntry : map.mapIterable())

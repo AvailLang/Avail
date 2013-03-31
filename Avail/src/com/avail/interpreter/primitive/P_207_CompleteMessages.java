@@ -60,8 +60,9 @@ public class P_207_CompleteMessages extends Primitive
 	{
 		assert args.size() == 1;
 		final A_BundleTree bundleTree = args.get(0);
+		bundleTree.expand(interpreter.module());
 		return interpreter.primitiveSuccess(
-			bundleTree.complete().makeImmutable());
+			bundleTree.lazyComplete().makeImmutable());
 	}
 
 	@Override

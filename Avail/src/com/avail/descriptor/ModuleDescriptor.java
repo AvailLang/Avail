@@ -105,6 +105,14 @@ extends Descriptor
 		NAME,
 
 		/**
+		 * The {@linkplain SetDescriptor set} of all ancestor modules of this
+		 * module.  A module's ancestor set includes the module itself.  While
+		 * this may seem like mutual recursion: (1) modules are allowed to
+		 * mutate this field after construction, (2)
+		 */
+		ALL_ANCESTORS,
+
+		/**
 		 * The {@linkplain SetDescriptor set} of {@linkplain
 		 * StringDescriptor versions} that this module alleges to support.
 		 */
@@ -206,10 +214,11 @@ extends Descriptor
 	@Override boolean allowsImmutableToMutableReferenceInField (
 		final AbstractSlotsEnum e)
 	{
-		return e == NEW_NAMES
+		return e == ALL_ANCESTORS
+			|| e == VERSIONS
+			|| e == NEW_NAMES
 			|| e == IMPORTED_NAMES
 			|| e == PRIVATE_NAMES
-			|| e == ENTRY_POINTS
 			|| e == VISIBLE_NAMES
 			|| e == METHOD_DEFINITIONS_SET
 			|| e == GRAMMATICAL_RESTRICTIONS
@@ -217,8 +226,8 @@ extends Descriptor
 			|| e == CONSTANT_BINDINGS
 			|| e == SEMANTIC_RESTRICTIONS
 			|| e == SEALS
-			|| e == FLAGS_AND_COUNTER
-			|| e == VERSIONS;
+			|| e == ENTRY_POINTS
+			|| e == FLAGS_AND_COUNTER;
 	}
 
 	@Override
@@ -249,9 +258,7 @@ extends Descriptor
 		assert isShared();
 		synchronized (object)
 		{
-			object.setSlot(
-				IS_SYSTEM_MODULE,
-				isSystemModule ? 1 : 0);
+			object.setSlot(IS_SYSTEM_MODULE, isSystemModule ? 1 : 0);
 		}
 	}
 
@@ -679,11 +686,11 @@ extends Descriptor
 			{
 				runtime.removeTypeRestriction(restriction);
 			}
-			final A_BasicObject seals = object.slot(SEALS);
+			final A_Map seals = object.slot(SEALS);
 			for (final MapDescriptor.Entry entry : seals.mapIterable())
 			{
-				final AvailObject methodName = entry.key();
-				for (final AvailObject seal : entry.value())
+				final A_Atom methodName = entry.key();
+				for (final A_Tuple seal : entry.value())
 				{
 					runtime.removeSeal(methodName, seal);
 				}
@@ -800,35 +807,66 @@ extends Descriptor
 		}
 	}
 
+	@Override
+	A_Set o_AllAncestors (final AvailObject object)
+	{
+		synchronized (object)
+		{
+			return object.slot(ALL_ANCESTORS);
+		}
+	}
+
+	@Override
+	void o_AddAncestors (final AvailObject object, final A_Set moreAncestors)
+	{
+		synchronized (object)
+		{
+			final A_Set union = object.slot(ALL_ANCESTORS).setUnionCanDestroy(
+				moreAncestors,
+				true);
+			object.setSlot(ALL_ANCESTORS, union.makeShared());
+		}
+	}
+
 	/**
-	 * Construct a new empty {@linkplain ModuleDescriptor module}.
+	 * Construct a new empty {@linkplain ModuleDescriptor module}.  Pre-add
+	 * the module itself to its {@linkplain SetDescriptor set} of ancestor
+	 * modules.
 	 *
 	 * @param moduleName
-	 *        The {@linkplain StringDescriptor name} of the module.
+	 *        The fully qualified {@linkplain StringDescriptor name} of the
+	 *        module.
 	 * @return The new module.
 	 */
-	public static AvailObject newModule (final A_String moduleName)
+	public static A_Module newModule (final A_String moduleName)
 	{
 		final A_Map emptyMap = MapDescriptor.empty();
 		final A_Set emptySet = SetDescriptor.empty();
-		final AvailObject object = mutable.create();
-		object.setSlot(NAME, moduleName);
-		object.setSlot(VERSIONS, emptySet);
-		object.setSlot(NEW_NAMES, emptyMap);
-		object.setSlot(IMPORTED_NAMES, emptyMap);
-		object.setSlot(PRIVATE_NAMES, emptyMap);
-		object.setSlot(VISIBLE_NAMES, emptySet);
-		object.setSlot(METHOD_DEFINITIONS_SET, emptySet);
-		object.setSlot(GRAMMATICAL_RESTRICTIONS, emptyMap);
-		object.setSlot(VARIABLE_BINDINGS, emptyMap);
-		object.setSlot(CONSTANT_BINDINGS, emptyMap);
-		object.setSlot(VARIABLE_BINDINGS, emptyMap);
-		object.setSlot(SEMANTIC_RESTRICTIONS, emptySet);
-		object.setSlot(SEALS, emptyMap);
-		object.setSlot(ENTRY_POINTS, emptyMap);
-		object.setSlot(COUNTER, 0);
-		object.makeShared();
-		return object;
+		final AvailObject module = mutable.create();
+		module.setSlot(NAME, moduleName);
+		module.setSlot(ALL_ANCESTORS, NilDescriptor.nil());
+		module.setSlot(VERSIONS, emptySet);
+		module.setSlot(NEW_NAMES, emptyMap);
+		module.setSlot(IMPORTED_NAMES, emptyMap);
+		module.setSlot(PRIVATE_NAMES, emptyMap);
+		module.setSlot(VISIBLE_NAMES, emptySet);
+		module.setSlot(METHOD_DEFINITIONS_SET, emptySet);
+		module.setSlot(GRAMMATICAL_RESTRICTIONS, emptyMap);
+		module.setSlot(VARIABLE_BINDINGS, emptyMap);
+		module.setSlot(CONSTANT_BINDINGS, emptyMap);
+		module.setSlot(VARIABLE_BINDINGS, emptyMap);
+		module.setSlot(SEMANTIC_RESTRICTIONS, emptySet);
+		module.setSlot(SEALS, emptyMap);
+		module.setSlot(ENTRY_POINTS, emptyMap);
+		module.setSlot(COUNTER, 0);
+		// Adding the module to its ancestors set will cause recursive scanning
+		// to mark everything as shared, so it's essential that all fields have
+		// been initialized to *something* by now.
+		module.makeShared();
+		module.setSlot(
+			ALL_ANCESTORS,
+			emptySet.setWithElementCanDestroy(module, true).makeShared());
+		return module;
 	}
 
 	/**

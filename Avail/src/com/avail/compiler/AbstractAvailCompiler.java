@@ -270,6 +270,7 @@ public abstract class AbstractAvailCompiler
 							+ " but current module requires " + reqVersions;
 					}
 				}
+				module.addAncestors(mod.allAncestors());
 
 				final A_Set modNames = modImport.tupleAt(2).setSize() > 0
 					? modImport.tupleAt(2)
@@ -324,6 +325,7 @@ public abstract class AbstractAvailCompiler
 							+ " but current module requires " + reqVersions;
 					}
 				}
+				module.addAncestors(mod.allAncestors());
 
 				final A_Set modNames = modImport.tupleAt(2).setSize() > 0
 					? modImport.tupleAt(2)
@@ -2722,7 +2724,7 @@ public abstract class AbstractAvailCompiler
 		final List<Integer> marksSoFar,
 		final Con<A_Phrase> continuation)
 	{
-		bundleTree.expand();
+		bundleTree.expand(module);
 		final A_Map complete = bundleTree.lazyComplete();
 		final A_Map incomplete = bundleTree.lazyIncomplete();
 		final A_Map caseInsensitive =
@@ -2834,14 +2836,14 @@ public abstract class AbstractAvailCompiler
 			final A_Phrase latestArgument = last(argsSoFar);
 			if (latestArgument.isInstanceOfKind(SEND_NODE.mostGeneralType()))
 			{
-				final A_Atom methodName = latestArgument.bundle().message();
-				if (prefilter.hasKey(methodName))
+				final A_Bundle argumentBundle = latestArgument.bundle();
+				if (prefilter.hasKey(argumentBundle))
 				{
 					eventuallyParseRestOfSendNode(
 						"Continue send after productive grammatical "
 							+ "restriction",
 						start,
-						prefilter.mapAt(methodName),
+						prefilter.mapAt(argumentBundle),
 						firstArgOrNull,
 						initialTokenPosition,
 						consumedAnything,
@@ -3491,8 +3493,19 @@ public abstract class AbstractAvailCompiler
 			}
 		}
 		// Find all method definitions that could match the argument types.
-		final List<A_Definition> satisfyingDefinitions =
+		// Only consider definitions that are defined in the current module or
+		// an ancestor.
+		final A_Set allAncestors = module.allAncestors();
+		final List<A_Definition> filteredByTypes =
 			method.filterByTypes(argTypes);
+		final List<A_Definition> satisfyingDefinitions = new ArrayList<>();
+		for (final A_Definition definition : filteredByTypes)
+		{
+			if (allAncestors.hasElement(definition.definitionModule()))
+			{
+				satisfyingDefinitions.add(definition);
+			}
+		}
 		if (satisfyingDefinitions.isEmpty())
 		{
 			onFailure.value(new Generator<String> ()
@@ -3500,42 +3513,73 @@ public abstract class AbstractAvailCompiler
 				@Override
 				public String value()
 				{
-					final List<A_Type> functionTypes = new ArrayList<A_Type>(2);
-					for (final A_Definition definition
-						: definitionsTuple.value())
+					final List<A_Definition> allVisible = new ArrayList<>();
+					for (final A_Definition def : definitionsTuple.value())
 					{
-						functionTypes.add(definition.bodySignature());
+						if (allAncestors.hasElement(def.definitionModule()))
+						{
+							allVisible.add(def);
+						}
 					}
 					final Formatter builder = new Formatter();
-					final List<Integer> allFailedIndices =
-						new ArrayList<Integer>(3);
+					final List<Integer> allFailedIndices = new ArrayList<>(3);
 					each_arg:
-					for (int index = argTypes.size(); index >= 1; index--)
+					for (int i = 1, end = argTypes.size(); i <= end; i++)
 					{
-						for (final A_Type sig : functionTypes)
+						for (final A_Definition definition : allVisible)
 						{
-							if (argTypes.get(index - 1).isSubtypeOf(
-								sig.argsTupleType().typeAtIndex(index)))
+							final A_Type sig = definition.bodySignature();
+							if (argTypes.get(i - 1).isSubtypeOf(
+								sig.argsTupleType().typeAtIndex(i)))
 							{
 								continue each_arg;
 							}
 						}
-						allFailedIndices.add(0, index);
+						allFailedIndices.add(i);
+					}
+					if (allFailedIndices.size() == 0)
+					{
+						// Each argument applied to at least one definition,
+						// so put the blame on them all instead of none.
+						for (int i = 1, end = argTypes.size(); i <= end; i++)
+						{
+							allFailedIndices.add(i);
+						}
 					}
 					builder.format(
 						"arguments at indices %s of message %s to match a "
-						+ "method definition.%n",
+						+ "visible method definition.%n",
 						allFailedIndices,
 						bundle.message().name());
-					builder.format(
-						"\tI got:%n\t\t%s%n",
-						argTypes);
+					builder.format("\tI got:%n");
+					for (final int i : allFailedIndices)
+					{
+						builder.format(
+							"\t\t#%d = %s%n",
+							i,
+							argTypes.get(i - 1));
+					}
 					builder.format(
 						"\tI expected%s:",
-						functionTypes.size() > 1 ? " one of" : "");
-					for (final A_Type sig : functionTypes)
+						allVisible.size() > 1 ? " one of" : "");
+					for (final A_Definition definition : allVisible)
 					{
-						builder.format("%n\t\t%s", sig);
+						builder.format(
+							"%n\t\tFrom module %s @ line #%s,",
+							definition.definitionModule().moduleName(),
+							definition.isMethodDefinition()
+								? definition.bodyBlock()
+									.code().startingLineNumber()
+								: "unknown");
+						final A_Type signatureArgumentsType =
+							definition.bodySignature().argsTupleType();
+						for (final int i : allFailedIndices)
+						{
+							builder.format(
+								"%n\t\t\t#%d = %s",
+								i,
+								signatureArgumentsType.typeAtIndex(i));
+						}
 					}
 					final String builderString = builder.toString();
 					builder.close();
@@ -3554,13 +3598,16 @@ public abstract class AbstractAvailCompiler
 		}
 		// Determine which semantic restrictions are relevant.
 		final List<A_SemanticRestriction> restrictionsToTry =
-			new ArrayList<A_SemanticRestriction>(
-				restrictions.value().setSize());
+			new ArrayList<>(restrictions.value().setSize());
 		for (final A_SemanticRestriction restriction : restrictions.value())
 		{
-			if (restriction.function().kind().acceptsListOfArgValues(argTypes))
+			if (allAncestors.hasElement(restriction.definitionModule()))
 			{
-				restrictionsToTry.add(restriction);
+				if (restriction.function().kind().acceptsListOfArgValues(
+					argTypes))
+				{
+					restrictionsToTry.add(restriction);
+				}
 			}
 		}
 		// If there are no relevant semantic restrictions, then just invoke the
@@ -3701,156 +3748,156 @@ public abstract class AbstractAvailCompiler
 		}
 	}
 
-		/**
-		 * A complete {@linkplain SendNodeDescriptor send node} has been parsed.
-		 * Create the send node and invoke the continuation.
-		 *
-		 * <p>
-		 * If this is a macro, invoke the body immediately with the argument
-		 * expressions to produce a parse node.
-		 * </p>
-		 *
-		 * @param stateBeforeCall
-		 *            The initial parsing state, prior to parsing the entire
-		 *            message.
-		 * @param stateAfterCall
-		 *            The parsing state after the message.
-		 * @param argumentExpressions
-		 *            The {@linkplain ParseNodeDescriptor parse nodes} that will
-		 *            be arguments of the new send node.
-		 * @param bundle
-		 *            The {@linkplain MessageBundleDescriptor message bundle}
-		 *            that identifies the message to be sent.
-		 * @param continuation
-		 *            What to do with the resulting send node.
-		 */
-		void completedSendNode (
-			final ParserState stateBeforeCall,
-			final ParserState stateAfterCall,
-			final List<A_Phrase> argumentExpressions,
-			final A_Bundle bundle,
-			final Con<A_Phrase> continuation)
-		{
-			final Mutable<Boolean> valid = new Mutable<Boolean>(true);
-			final A_Method method = bundle.bundleMethod();
-			final A_Tuple definitionsTuple = method.definitionsTuple();
-			assert definitionsTuple.tupleSize() > 0;
+	/**
+	 * A complete {@linkplain SendNodeDescriptor send node} has been parsed.
+	 * Create the send node and invoke the continuation.
+	 *
+	 * <p>
+	 * If this is a macro, invoke the body immediately with the argument
+	 * expressions to produce a parse node.
+	 * </p>
+	 *
+	 * @param stateBeforeCall
+	 *            The initial parsing state, prior to parsing the entire
+	 *            message.
+	 * @param stateAfterCall
+	 *            The parsing state after the message.
+	 * @param argumentExpressions
+	 *            The {@linkplain ParseNodeDescriptor parse nodes} that will
+	 *            be arguments of the new send node.
+	 * @param bundle
+	 *            The {@linkplain MessageBundleDescriptor message bundle}
+	 *            that identifies the message to be sent.
+	 * @param continuation
+	 *            What to do with the resulting send node.
+	 */
+	void completedSendNode (
+		final ParserState stateBeforeCall,
+		final ParserState stateAfterCall,
+		final List<A_Phrase> argumentExpressions,
+		final A_Bundle bundle,
+		final Con<A_Phrase> continuation)
+	{
+		final Mutable<Boolean> valid = new Mutable<Boolean>(true);
+		final A_Method method = bundle.bundleMethod();
+		final A_Tuple definitionsTuple = method.definitionsTuple();
+		assert definitionsTuple.tupleSize() > 0;
 
-			if (definitionsTuple.tupleAt(1).isMacroDefinition())
-			{
-				// Macro definitions and non-macro definitions are not allowed
-				// to mix within a method.
-				completedSendNodeForMacro(
-					stateBeforeCall,
-					stateAfterCall,
-					argumentExpressions,
-					bundle,
-					continuation);
-				return;
-			}
-			// It invokes a method (not a macro).
-			final List<A_Type> argTypes =
-				new ArrayList<A_Type>(argumentExpressions.size());
-			for (final A_Phrase argumentExpression : argumentExpressions)
-			{
-				argTypes.add(argumentExpression.expressionType());
-			}
-			// Parsing a method send can't affect the scope.
-			assert stateAfterCall.clientDataMap.equals(
-				stateBeforeCall.clientDataMap);
-			final ParserState afterState = new ParserState(
-				stateAfterCall.position,
-				stateBeforeCall.clientDataMap);
-			// Validate the message send before reifying a send phrase.
-			validateArgumentTypes(
-				bundle,
-				argTypes,
+		if (definitionsTuple.tupleAt(1).isMacroDefinition())
+		{
+			// Macro definitions and non-macro definitions are not allowed
+			// to mix within a method.
+			completedSendNodeForMacro(
+				stateBeforeCall,
 				stateAfterCall,
-				new Continuation1<A_Type>()
-				{
-					@Override
-					public void value (final @Nullable A_Type returnType)
-					{
-						assert returnType != null;
-						final A_Phrase sendNode = SendNodeDescriptor.from(
-							bundle,
-							ListNodeDescriptor.newExpressions(
-								TupleDescriptor.fromList(argumentExpressions)),
-							returnType);
-						attempt(afterState, continuation, sendNode);
-					}
-				},
-				new Continuation1<Generator<String>>()
-				{
-					@Override
-					public void value (
-						final @Nullable Generator<String> errorGenerator)
-					{
-						assert errorGenerator != null;
-						valid.value = false;
-						stateAfterCall.expected(errorGenerator);
-					}
-				});
+				argumentExpressions,
+				bundle,
+				continuation);
+			return;
 		}
+		// It invokes a method (not a macro).
+		final List<A_Type> argTypes =
+			new ArrayList<A_Type>(argumentExpressions.size());
+		for (final A_Phrase argumentExpression : argumentExpressions)
+		{
+			argTypes.add(argumentExpression.expressionType());
+		}
+		// Parsing a method send can't affect the scope.
+		assert stateAfterCall.clientDataMap.equals(
+			stateBeforeCall.clientDataMap);
+		final ParserState afterState = new ParserState(
+			stateAfterCall.position,
+			stateBeforeCall.clientDataMap);
+		// Validate the message send before reifying a send phrase.
+		validateArgumentTypes(
+			bundle,
+			argTypes,
+			stateAfterCall,
+			new Continuation1<A_Type>()
+			{
+				@Override
+				public void value (final @Nullable A_Type returnType)
+				{
+					assert returnType != null;
+					final A_Phrase sendNode = SendNodeDescriptor.from(
+						bundle,
+						ListNodeDescriptor.newExpressions(
+							TupleDescriptor.fromList(argumentExpressions)),
+						returnType);
+					attempt(afterState, continuation, sendNode);
+				}
+			},
+			new Continuation1<Generator<String>>()
+			{
+				@Override
+				public void value (
+					final @Nullable Generator<String> errorGenerator)
+				{
+					assert errorGenerator != null;
+					valid.value = false;
+					stateAfterCall.expected(errorGenerator);
+				}
+			});
+	}
 
 	/**
-		 * Parse an argument to a message send. Backtracking will find all valid
-		 * interpretations.
-		 *
-		 * @param start
-		 *            Where to start parsing.
-		 * @param explanation
-		 *            A {@link String} indicating why it's parsing an argument.
-		 * @param firstArgOrNull
-		 *            Either a parse node to use as the argument, or null if we
-		 *            should parse one now.
-		 * @param canReallyParse
-		 *            Whether any tokens may be consumed.  This should be false
-		 *            specifically when the leftmost argument of a leading-argument
-		 *            message is being parsed.
-		 * @param continuation
-		 *            What to do with the argument.
-		 */
-		void parseSendArgumentWithExplanationThen (
-			final ParserState start,
-			final String explanation,
-			final @Nullable A_Phrase firstArgOrNull,
-			final boolean canReallyParse,
-			final Con<A_Phrase> continuation)
+	 * Parse an argument to a message send. Backtracking will find all valid
+	 * interpretations.
+	 *
+	 * @param start
+	 *            Where to start parsing.
+	 * @param explanation
+	 *            A {@link String} indicating why it's parsing an argument.
+	 * @param firstArgOrNull
+	 *            Either a parse node to use as the argument, or null if we
+	 *            should parse one now.
+	 * @param canReallyParse
+	 *            Whether any tokens may be consumed.  This should be false
+	 *            specifically when the leftmost argument of a leading-argument
+	 *            message is being parsed.
+	 * @param continuation
+	 *            What to do with the argument.
+	 */
+	void parseSendArgumentWithExplanationThen (
+		final ParserState start,
+		final String explanation,
+		final @Nullable A_Phrase firstArgOrNull,
+		final boolean canReallyParse,
+		final Con<A_Phrase> continuation)
+	{
+		if (firstArgOrNull == null)
 		{
-			if (firstArgOrNull == null)
+			// There was no leading argument, or it has already been accounted
+			// for.  If we haven't actually consumed anything yet then don't
+			// allow a *leading* argument to be parsed here.  That would lead
+			// to ambiguous left-recursive parsing.
+			if (canReallyParse)
 			{
-				// There was no leading argument, or it has already been accounted
-				// for.  If we haven't actually consumed anything yet then don't
-				// allow a *leading* argument to be parsed here.  That would lead
-				// to ambiguous left-recursive parsing.
-				if (canReallyParse)
-				{
-					parseExpressionThen(
-						start,
-						new Con<A_Phrase>("Argument expression")
+				parseExpressionThen(
+					start,
+					new Con<A_Phrase>("Argument expression")
+					{
+						@Override
+						public void value (
+							final @Nullable ParserState afterArgument,
+							final @Nullable A_Phrase argument)
 						{
-							@Override
-							public void value (
-								final @Nullable ParserState afterArgument,
-								final @Nullable A_Phrase argument)
-							{
-								assert afterArgument != null;
-								assert argument != null;
-								attempt(afterArgument, continuation, argument);
-							}
-						});
-				}
-			}
-			else
-			{
-				// We're parsing a message send with a leading argument, and that
-				// argument was explicitly provided to the parser.  We should
-				// consume the provided first argument now.
-				assert !canReallyParse;
-				attempt(start, continuation, firstArgOrNull);
+							assert afterArgument != null;
+							assert argument != null;
+							attempt(afterArgument, continuation, argument);
+						}
+					});
 			}
 		}
+		else
+		{
+			// We're parsing a message send with a leading argument, and that
+			// argument was explicitly provided to the parser.  We should
+			// consume the provided first argument now.
+			assert !canReallyParse;
+			attempt(start, continuation, firstArgOrNull);
+		}
+	}
 
 	/**
 	 * Parse an argument in the top-most scope.  This is an important capability

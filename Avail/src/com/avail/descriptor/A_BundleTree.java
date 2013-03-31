@@ -78,16 +78,6 @@ extends A_BasicObject
 	A_Map lazyPrefilterMap ();
 
 	/**
-	 * @return
-	 */
-	A_Map complete ();
-
-	/**
-	 * @return
-	 */
-	A_Map incomplete ();
-
-	/**
 	 * @param bundle
 	 */
 	void addBundle (A_Bundle bundle);
@@ -101,8 +91,9 @@ extends A_BasicObject
 
 	/**
 	 * Dispatch to the descriptor.
+	 * @param module TODO
 	 */
-	void expand ();
+	void expand (A_Module module);
 
 	/**
 	 * @param bundle

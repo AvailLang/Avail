@@ -47,6 +47,8 @@ extends A_BasicObject
 	/**
 	 * Answer the {@linkplain ModuleDescriptor module} in which this
 	 * definition occurred.
+	 *
+	 * @return The module containing this definition.
 	 */
 	A_Module module ();
 
@@ -64,7 +66,8 @@ extends A_BasicObject
 	 * Answer the {@link ModuleDescriptor module} in which this {@linkplain
 	 * DefinitionDescriptor definition} occurred.
 	 *
-	 * <p>Also defined in {@link A_SemanticRestriction}.</p>
+	 * <p>Also defined in {@link A_SemanticRestriction}. and {@link
+	 * A_GrammaticalRestriction}</p>
 	 *
 	 * @return The definition's originating module.
 	 */

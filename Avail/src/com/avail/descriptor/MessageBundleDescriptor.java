@@ -34,8 +34,6 @@ package com.avail.descriptor;
 
 import static com.avail.descriptor.MessageBundleDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.TypeDescriptor.Types.MESSAGE_BUNDLE;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import com.avail.annotations.AvailMethod;
 import com.avail.compiler.MessageSplitter;
@@ -96,15 +94,9 @@ extends Descriptor
 		MESSAGE_PARTS,
 
 		/**
-		 * A tuple of sets, one for each underscore that occurs in the method
-		 * name. The sets contain {@linkplain AtomDescriptor atoms} that name
-		 * methods that must not directly occur at the corresponding argument
-		 * position when parsing this method. If such a method invocation does
-		 * occur in that argument position, that parse tree is simply eliminated
-		 * as malformed. This allows the grammar to be specified by its
-		 * negative space, a <em>much</em> more powerful (and modular) concept
-		 * than the traditional specification of the positive space of the
-		 * grammar.
+		 * A {@linkplain SetDescriptor set} of {@linkplain
+		 * GrammaticalRestrictionDescriptor grammatical restrictions} that apply
+		 * to this message bundle.
 		 */
 		GRAMMATICAL_RESTRICTIONS,
 
@@ -134,7 +126,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	A_Tuple o_GrammaticalRestrictions (final AvailObject object)
+	A_Set o_GrammaticalRestrictions (final AvailObject object)
 	{
 		return object.mutableSlot(GRAMMATICAL_RESTRICTIONS);
 	}
@@ -165,113 +157,83 @@ extends Descriptor
 
 
 	/**
-	 * Add a tuple of grammatical restrictions to the specified {@linkplain
-	 * MessageBundleDescriptor object}.
+	 * Add a grammatical restriction to the specified {@linkplain
+	 * MessageBundleDescriptor message bundle}.
 	 *
-	 * @param object An object.
-	 * @param restrictions Some restrictions.
+	 * @param object The affected message bundle.
+	 * @param grammaticalRestriction A grammatical restriction.
 	 */
-	private void addGrammaticalRestrictions  (
+	private void addGrammaticalRestriction  (
 		final AvailObject object,
-		final A_Tuple restrictions)
+		final A_GrammaticalRestriction grammaticalRestriction)
 	{
-		assert restrictions.isTuple();
-		restrictions.makeImmutable();
-		A_Tuple merged = object.slot(GRAMMATICAL_RESTRICTIONS);
-		for (int i = merged.tupleSize(); i >= 1; i--)
-		{
-			merged = merged.tupleAtPuttingCanDestroy(
-				i,
-				merged.tupleAt(i).setUnionCanDestroy(
-					restrictions.tupleAt(i),
-					true),
-				true);
-		}
-		if (isShared())
-		{
-			merged = merged.traversed().makeShared();
-		}
-		object.setSlot(GRAMMATICAL_RESTRICTIONS, merged);
+		A_Set restrictions = object.slot(GRAMMATICAL_RESTRICTIONS);
+		restrictions = restrictions.setWithElementCanDestroy(
+			grammaticalRestriction,
+			true);
+		object.setSlot(GRAMMATICAL_RESTRICTIONS, restrictions.makeShared());
 	}
 
 	@Override @AvailMethod
-	void o_AddGrammaticalRestrictions (
+	void o_AddGrammaticalRestriction (
 		final AvailObject object,
-		final A_Tuple restrictions)
+		final A_GrammaticalRestriction grammaticalRestriction)
 	{
 		if (isShared())
 		{
 			synchronized (object)
 			{
-				addGrammaticalRestrictions(object, restrictions);
+				addGrammaticalRestriction(object, grammaticalRestriction);
 			}
 		}
 		else
 		{
-			addGrammaticalRestrictions(object, restrictions);
+			addGrammaticalRestriction(object, grammaticalRestriction);
 		}
 	}
 
 	/**
-	 * Remove a tuple of grammatical restrictions from the specified {@linkplain
-	 * MessageBundleDescriptor object}.
+	 * Remove a grammatical restriction from this {@linkplain
+	 * MessageBundleDescriptor message bundle}.
 	 *
-	 * @param object An object.
-	 * @param obsoleteRestrictions Some restrictions.
+	 * @param object A message bundle.
+	 * @param obsoleteRestriction The grammatical restriction to remove.
 	 */
-	private void removeGrammaticalRestrictions  (
+	private void removeGrammaticalRestriction (
 		final AvailObject object,
-		final A_Tuple obsoleteRestrictions)
+		final A_GrammaticalRestriction obsoleteRestriction)
 	{
-		assert obsoleteRestrictions.isTuple();
-		A_Tuple reduced = object.slot(GRAMMATICAL_RESTRICTIONS);
-		for (int i = reduced.tupleSize(); i >= 1; i--)
-		{
-			reduced = reduced.tupleAtPuttingCanDestroy(
-				i,
-				reduced.tupleAt(i).setMinusCanDestroy(
-					obsoleteRestrictions.tupleAt(i),
-					true),
-				true);
-		}
-		if (isShared())
-		{
-			reduced = reduced.traversed().makeShared();
-		}
-		object.setSlot(GRAMMATICAL_RESTRICTIONS, reduced);
+		A_Set restrictions = object.mutableSlot(GRAMMATICAL_RESTRICTIONS);
+		restrictions = restrictions.setWithoutElementCanDestroy(
+			obsoleteRestriction,
+			true);
+		object.setMutableSlot(
+			GRAMMATICAL_RESTRICTIONS,
+			restrictions.makeShared());
 	}
 
 	@Override @AvailMethod
-	void o_RemoveGrammaticalRestrictions (
+	void o_RemoveGrammaticalRestriction (
 		final AvailObject object,
-		final A_Tuple obsoleteRestrictions)
+		final A_GrammaticalRestriction obsoleteRestriction)
 	{
 		if (isShared())
 		{
 			synchronized (object)
 			{
-				removeGrammaticalRestrictions(object, obsoleteRestrictions);
+				removeGrammaticalRestriction(object, obsoleteRestriction);
 			}
 		}
 		else
 		{
-			removeGrammaticalRestrictions(object, obsoleteRestrictions);
+			removeGrammaticalRestriction(object, obsoleteRestriction);
 		}
 	}
 
 	@Override @AvailMethod
 	boolean o_HasGrammaticalRestrictions (final AvailObject object)
 	{
-		final A_Tuple restrictions =
-			object.mutableSlot(GRAMMATICAL_RESTRICTIONS);
-		for (final A_Set setForArgument : restrictions)
-		{
-			if (setForArgument.setSize() > 0)
-			{
-				return true;
-			}
-		}
-		return false;
+		return object.mutableSlot(GRAMMATICAL_RESTRICTIONS).setSize() > 0;
 	}
 
 	@Override
@@ -329,9 +291,7 @@ extends Descriptor
 		result.setSlot(METHOD, method);
 		result.setSlot(MESSAGE, methodName);
 		result.setSlot(MESSAGE_PARTS, splitter.messageParts());
-		result.setSlot(
-			GRAMMATICAL_RESTRICTIONS,
-			tupleOfEmptySetsOfSize(splitter.numberOfUnderscores()));
+		result.setSlot(GRAMMATICAL_RESTRICTIONS, SetDescriptor.empty());
 		result.setSlot(PARSING_INSTRUCTIONS, splitter.instructionsTuple());
 		result.makeShared();
 		method.methodAddBundle(result);
@@ -374,34 +334,5 @@ extends Descriptor
 	MessageBundleDescriptor shared ()
 	{
 		return shared;
-	}
-
-	/**
-	 * A list of tuples whose elements are all the empty set. Subscript N is an
-	 * immutable tuple of size N whose elements are all the empty set.
-	 */
-	private static final List<A_Tuple> tuplesOfEmptySets =
-		new ArrayList<A_Tuple>(
-			Collections.singletonList(TupleDescriptor.empty()));
-
-	/**
-	 * Return an immutable tuple of the specified size consisting of empty sets.
-	 *
-	 * @param size The size of the resulting tuple.
-	 * @return An immutable tuple of empty sets.
-	 */
-	private static synchronized A_Tuple tupleOfEmptySetsOfSize (final int size)
-	{
-		while (tuplesOfEmptySets.size() <= size)
-		{
-			final A_Tuple lastTuple =
-				tuplesOfEmptySets.get(tuplesOfEmptySets.size() - 1);
-			final A_Tuple newTuple = lastTuple.appendCanDestroy(
-				SetDescriptor.empty(),
-				true);
-			newTuple.makeShared();
-			tuplesOfEmptySets.add(newTuple);
-		}
-		return tuplesOfEmptySets.get(size);
 	}
 }

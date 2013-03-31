@@ -59,8 +59,9 @@ public class P_208_IncompleteMessages extends Primitive
 	{
 		assert args.size() == 1;
 		final A_BundleTree bundleTree = args.get(0);
+		bundleTree.expand(interpreter.module());
 		return interpreter.primitiveSuccess(
-			bundleTree.incomplete().makeImmutable());
+			bundleTree.lazyIncomplete().makeImmutable());
 	}
 
 	@Override

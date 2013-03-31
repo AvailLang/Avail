@@ -103,7 +103,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	A_Tuple o_GrammaticalRestrictions (
+	A_Set o_GrammaticalRestrictions (
 		final AvailObject object)
 	{
 		final A_Bundle baseMessageBundle =

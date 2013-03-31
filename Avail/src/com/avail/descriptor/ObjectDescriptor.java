@@ -251,12 +251,13 @@ extends Descriptor
 			builder.append(")");
 		}
 		A_Set ignoreKeys = SetDescriptor.empty();
-		for (final A_BasicObject baseType : baseTypes)
+		for (final A_Type baseType : baseTypes)
 		{
-			final A_BasicObject fieldTypes = baseType.fieldTypeMap();
+			final A_Map fieldTypes = baseType.fieldTypeMap();
 			for (final MapDescriptor.Entry entry : fieldTypes.mapIterable())
 			{
-				if (InstanceTypeDescriptor.on(entry.key()).equals(entry.value()))
+				if (InstanceTypeDescriptor.on(entry.key()).equals(
+					entry.value()))
 				{
 					ignoreKeys = ignoreKeys.setWithElementCanDestroy(
 						entry.key(),
@@ -325,8 +326,8 @@ extends Descriptor
 		A_Map map = MapDescriptor.empty();
 		for (final A_Tuple fieldAssignment : tuple)
 		{
-			final AvailObject fieldAtom = fieldAssignment.tupleAt(1);
-			final AvailObject fieldValue = fieldAssignment.tupleAt(2);
+			final A_Atom fieldAtom = fieldAssignment.tupleAt(1);
+			final A_BasicObject fieldValue = fieldAssignment.tupleAt(2);
 			map = map.mapAtPuttingCanDestroy(fieldAtom, fieldValue, true);
 		}
 		return objectFromMap(map);

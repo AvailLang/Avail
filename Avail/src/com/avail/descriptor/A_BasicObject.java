@@ -938,11 +938,6 @@ public interface A_BasicObject
 	/**
 	 * @return
 	 */
-	MapDescriptor.MapIterable mapIterable ();
-
-	/**
-	 * @return
-	 */
 	boolean isInt ();
 
 	/**

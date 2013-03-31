@@ -89,4 +89,12 @@ extends A_BasicObject
 	 * Dispatch to the descriptor.
 	 */
 	A_Set keysAsSet ();
+
+	/**
+	 * Answer a suitable Iterable<> for iterating over this map's key/value
+	 * pairs.  This allows the Java for-each syntax hack to be used.
+	 *
+	 * @return An {@linkplain MapDescriptor.MapIterable iterable for maps}.
+	 */
+	MapDescriptor.MapIterable mapIterable ();
 }

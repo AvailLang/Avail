@@ -231,14 +231,14 @@ extends Descriptor
 		 * ParsingOperation#CHECK_ARGUMENT} (which must be all or nothing within
 		 * a {@linkplain MessageBundleTreeDescriptor message bundle tree}), this
 		 * {@link #LAZY_PREFILTER_MAP} is populated. It maps from interesting
-		 * {@linkplain AtomDescriptor atoms} naming methods that might occur as
-		 * an argument to an appropriately reduced {@linkplain
+		 * {@linkplain MessageBundleDescriptor message bundles} that might occur
+		 * as an argument to an appropriately reduced {@linkplain
 		 * MessageBundleTreeDescriptor message bundle tree} (i.e., a message
 		 * bundle tree containing precisely those method bundles that allow that
 		 * argument. The only keys that occur are ones for which at least one
 		 * restriction exists in at least one of the still possible {@linkplain
 		 * MessageBundleDescriptor message bundles}. When {@link #UNCLASSIFIED}
-		 * is empty, <em>all</em> such restricted argument message names occur
+		 * is empty, <em>all</em> such restricted argument message bundles occur
 		 * in this map. Note that some of the resulting message bundle trees
 		 * may be completely empty. Also note that some of the trees may be
 		 * shared, so be careful to discard them rather than maintaining them
@@ -325,13 +325,6 @@ extends Descriptor
 	}
 
 	@Override
-	AvailObjectFieldHelper[] o_DescribeForDebugger (final AvailObject object)
-	{
-		object.expand();
-		return super.o_DescribeForDebugger(object);
-	}
-
-	@Override
 	void printObjectOnAvoidingIndent (
 		final AvailObject object,
 		final StringBuilder builder,
@@ -406,26 +399,6 @@ extends Descriptor
 	A_Type o_Kind (final AvailObject object)
 	{
 		return MESSAGE_BUNDLE_TREE.o();
-	}
-
-	@Override @AvailMethod
-	A_Map o_Complete (final AvailObject object)
-	{
-		synchronized (object)
-		{
-			object.expand();
-			return object.slot(LAZY_COMPLETE);
-		}
-	}
-
-	@Override @AvailMethod
-	A_Map o_Incomplete (final AvailObject object)
-	{
-		synchronized (object)
-		{
-			object.expand();
-			return object.slot(LAZY_INCOMPLETE);
-		}
 	}
 
 	/**
@@ -510,7 +483,7 @@ extends Descriptor
 	 * Expand the bundle tree if there's anything unclassified in it.
 	 */
 	@Override @AvailMethod
-	void o_Expand (final AvailObject object)
+	void o_Expand (final AvailObject object, final A_Module module)
 	{
 		synchronized (object)
 		{
@@ -532,12 +505,14 @@ extends Descriptor
 			final int pc = object.slot(PARSING_PC);
 			// Fail fast if someone messes with this during iteration.
 			object.setSlot(UNCLASSIFIED, NilDescriptor.nil());
+			final A_Set allAncestorModules = module.allAncestors();
 			for (final MapDescriptor.Entry entry : unclassified.mapIterable())
 			{
 				final AvailObject message = entry.key();
 				final AvailObject bundle = entry.value();
 				updateForMessageAndBundle(
 					message,
+					allAncestorModules,
 					bundle,
 					complete,
 					incomplete,
@@ -561,6 +536,7 @@ extends Descriptor
 	 * Categorize a single message/bundle pair.
 	 *
 	 * @param message
+	 * @param allAncestorModules
 	 * @param bundle
 	 * @param complete
 	 * @param incomplete
@@ -571,6 +547,7 @@ extends Descriptor
 	 */
 	private static void updateForMessageAndBundle (
 		final A_Atom message,
+		final A_Set allAncestorModules,
 		final A_Bundle bundle,
 		final Mutable<A_Map> complete,
 		final Mutable<A_Map> incomplete,
@@ -654,13 +631,28 @@ extends Descriptor
 					TupleDescriptor.from(successor),
 					true);
 			}
-			final A_Set restrictionSet =
-				bundle.grammaticalRestrictions().tupleAt(checkArgumentIndex);
+			A_Set forbiddenBundles = SetDescriptor.empty();
+			for (final A_GrammaticalRestriction restriction
+				: bundle.grammaticalRestrictions())
+			{
+				// Exclude grammatical restrictions that aren't defined in an
+				// ancestor module.
+				if (allAncestorModules.hasElement(
+					restriction.definitionModule()))
+				{
+					final A_Set bundles =
+						restriction.argumentRestrictionSets().tupleAt(
+							checkArgumentIndex);
+					forbiddenBundles = forbiddenBundles.setUnionCanDestroy(
+						bundles,
+						true);
+				}
+			}
 			// Add it to every existing branch where it's permitted.
 			for (final MapDescriptor.Entry prefilterEntry
 				: prefilterMap.value.mapIterable())
 			{
-				if (!restrictionSet.hasElement(prefilterEntry.key()))
+				if (!forbiddenBundles.hasElement(prefilterEntry.key()))
 				{
 					prefilterEntry.value().addBundle(bundle);
 				}
@@ -668,9 +660,9 @@ extends Descriptor
 			// Add branches for any new restrictions.  Pre-populate
 			// with every bundle present thus far, since none of
 			// them had this restriction.
-			for (final A_Atom restriction : restrictionSet)
+			for (final A_Bundle restrictedBundle : forbiddenBundles)
 			{
-				if (!prefilterMap.value.hasKey(restriction))
+				if (!prefilterMap.value.hasKey(restrictedBundle))
 				{
 					final AvailObject newTarget = newPc(pc + 1);
 					// Be careful.  We can't add ALL_BUNDLES, since
@@ -686,7 +678,7 @@ extends Descriptor
 					}
 					prefilterMap.value =
 						prefilterMap.value.mapAtPuttingCanDestroy(
-							restriction,
+							restrictedBundle,
 							newTarget,
 							true);
 				}
@@ -738,7 +730,7 @@ extends Descriptor
 	 *
 	 * <p>The bundle may have been added, or updated (but not removed), so if
 	 * the bundle has already been classified in this tree (via {@link
-	 * #o_Expand(AvailObject)}, we may need to invalidate some of the tree's
+	 * #o_Expand(AvailObject, A_Module)}, we may need to invalidate some of the tree's
 	 * lazy structures.</p>
 	 */
 	@Override

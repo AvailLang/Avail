@@ -56,7 +56,9 @@ extends A_BasicObject
 	void isSystemModule (boolean isSystemModule);
 
 	/**
-	 * @return
+	 * Answer the name of this module.
+	 *
+	 * @return A {@linkplain StringDescriptor string} naming this module.
 	 */
 	A_String moduleName ();
 
@@ -215,4 +217,17 @@ extends A_BasicObject
 	 * Dispatch to the descriptor.
 	 */
 	void addEntryPoint (A_String stringName, A_Atom trueName);
+
+	/**
+	 * Return the set of all ancestor modules of this module.  Include this
+	 * module in the set.
+	 *
+	 * @return The set of all ancestors of this module, including itself.
+	 */
+	A_Set allAncestors ();
+
+	/**
+	 * @param moreAncestors
+	 */
+	void addAncestors (A_Set moreAncestors);
 }

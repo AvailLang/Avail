@@ -202,7 +202,7 @@ public class IndexedRepositoryManager
 			}
 			try
 			{
-				repository = (IndexedRepository) IndexedFile.newFile(
+				repository = IndexedFile.newFile(
 					IndexedRepository.class,
 					fileName,
 					null);
@@ -535,12 +535,10 @@ public class IndexedRepositoryManager
 	{
 		try
 		{
-			final Class<? extends IndexedFile> subclass =
-				IndexedRepository.class;
 			final boolean exists = fileName.exists();
-			final IndexedRepository repo = (IndexedRepository) (exists
-				? IndexedFile.openFile(subclass, fileName, true)
-				: IndexedFile.newFile(subclass, fileName, null));
+			final IndexedRepository repo = exists
+				? IndexedFile.openFile(IndexedRepository.class, fileName, true)
+				: IndexedFile.newFile(IndexedRepository.class, fileName, null);
 			if (exists)
 			{
 				final byte[] metadata = repo.metaData();
@@ -652,7 +650,7 @@ public class IndexedRepositoryManager
 		{
 			final File file = File.createTempFile(prefix, suffix);
 			file.deleteOnExit();
-			IndexedFile indexedFile = null;
+			IndexedRepository indexedFile = null;
 			try
 			{
 				indexedFile = IndexedFile.newFile(

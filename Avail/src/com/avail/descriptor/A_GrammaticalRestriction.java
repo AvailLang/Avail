@@ -1,5 +1,5 @@
 /**
- * A_Bundle.java
+ * A_GrammaticalRestriction.java
  * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -33,60 +33,45 @@
 package com.avail.descriptor;
 
 /**
- * {@code A_Bundle} is an interface that specifies the {@linkplain
- * MessageBundleDescriptor message-bundle}-specific operations that an {@link
- * AvailObject} must implement.  It's a sub-interface of {@link A_BasicObject},
- * the interface that defines the behavior that all AvailObjects are required to
+ * {@code A_GrammaticalRestriction} is an interface that specifies the
+ * operations suitable for a {@linkplain GrammaticalRestrictionDescriptor
+ * grammatical restriction}.  It's a sub-interface of {@link A_BasicObject}, the
+ * interface that defines the behavior that all AvailObjects are required to
  * support.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public interface A_Bundle
+public interface A_GrammaticalRestriction
 extends A_BasicObject
 {
-
 	/**
-	 * @return
-	 */
-	A_Method bundleMethod ();
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	A_Set grammaticalRestrictions ();
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	A_Atom message ();
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	A_Tuple messageParts ();
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	A_Tuple parsingInstructions ();
-
-	/**
-	 * Add a {@linkplain MessageBundleDescriptor grammatical restriction} to the
-	 * receiver.
+	 * Answer the {@linkplain TupleDescriptor tuple} of {@linkplain
+	 * SetDescriptor sets} of {@linkplain MessageBundleDescriptor message
+	 * bundles} that are forbidden from occurring in the corresponding
+	 * underscore positions of this {@linkplain GrammaticalRestrictionDescriptor
+	 * grammatical restriction}'s message bundle.
 	 *
-	 * @param grammaticalRestriction The grammatical restriction to be added.
+	 * @return A tuple of sets of message bundles.
 	 */
-	void addGrammaticalRestriction (
-		A_GrammaticalRestriction grammaticalRestriction);
+	A_Tuple argumentRestrictionSets ();
 
 	/**
-	 * Dispatch to the descriptor.
+	 * Answer the {@linkplain MessageBundleDescriptor message bundle} that is
+	 * restricted by this grammatical restriction.
+	 *
+	 * @return The message bundle for which this grammatical restriction
+	 *         applies.
 	 */
-	void removeGrammaticalRestriction (
-		A_GrammaticalRestriction obsoleteRestrictions);
+	A_Bundle restrictedBundle ();
 
 	/**
-	 * Dispatch to the descriptor.
+	 * Answer the {@linkplain ModuleDescriptor module} in which this grammatical
+	 * restriction was defined.
+	 *
+	 * <p>Also defined in {@link A_Definition} and {@link
+	 * A_SemanticRestriction}.</p>
+	 *
+	 * @return The module to which this grammatical restriction applies.
 	 */
-	boolean hasGrammaticalRestrictions ();
+	A_Module definitionModule ();
 }

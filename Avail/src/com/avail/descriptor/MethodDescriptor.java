@@ -286,8 +286,7 @@ extends Descriptor
 			}
 			final A_Tuple newTuple =
 				oldTuple.appendCanDestroy(definition, true);
-			object.setSlot(
-				DEFINITIONS_TUPLE, newTuple.traversed().makeShared());
+			object.setSlot(DEFINITIONS_TUPLE, newTuple.makeShared());
 			membershipChanged(object);
 		}
 	}

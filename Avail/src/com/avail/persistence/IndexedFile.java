@@ -1588,8 +1588,9 @@ extends AbstractList<byte[]>
 	 * @throws IndexedFileException
 	 *         If something else goes wrong.
 	 */
-	public static IndexedFile newFile (
-			final Class<? extends IndexedFile> subclass,
+	@SuppressWarnings("unchecked")
+	public static <F extends IndexedFile> F newFile (
+			final Class<F> subclass,
 			final File fileReference,
 			final int pageSize,
 			final int compressionThreshold,
@@ -1628,7 +1629,7 @@ extends AbstractList<byte[]>
 				}
 			}
 		});
-		return indexedFile;
+		return (F) indexedFile;
 	}
 
 	/**
@@ -1656,8 +1657,8 @@ extends AbstractList<byte[]>
 	 * @throws IndexedFileException
 	 *         If something else goes wrong.
 	 */
-	public static IndexedFile newFile (
-			final Class<? extends IndexedFile> subclass,
+	public static <F extends IndexedFile> F newFile (
+			final Class<F> subclass,
 			final File fileReference,
 			final @Nullable byte[] initialMetaData)
 		throws
@@ -1696,8 +1697,9 @@ extends AbstractList<byte[]>
 	 * @throws IOException
 	 *         If an {@linkplain IOException I/O exception} occurs.
 	 */
-	public static IndexedFile openFile (
-			final Class<? extends IndexedFile> subclass,
+	@SuppressWarnings("unchecked")
+	public static <F extends IndexedFile> F openFile (
+			final Class<F> subclass,
 			final File fileReference,
 			final boolean forWriting)
 		throws InstantiationException, IllegalAccessException, IOException
@@ -1715,6 +1717,6 @@ extends AbstractList<byte[]>
 			indexedFile.acquireLockForWriting(true);
 		}
 		indexedFile.refresh();
-		return indexedFile;
+		return (F) indexedFile;
 	}
 }

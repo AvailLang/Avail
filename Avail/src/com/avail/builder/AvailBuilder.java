@@ -275,7 +275,7 @@ public final class AvailBuilder
 				MalformedSerialStreamException
 		{
 			final ModuleHeader header = new ModuleHeader(resolvedName);
-			AvailObject module = ModuleDescriptor.newModule(
+			A_Module module = ModuleDescriptor.newModule(
 				StringDescriptor.from(resolvedName.qualifiedName()));
 			AvailLoader loader = new AvailLoader(module);
 			// Populate the header.

@@ -34,6 +34,8 @@ package com.avail.interpreter;
 
 import static com.avail.descriptor.AvailObject.error;
 import static com.avail.exceptions.AvailErrorCode.*;
+import java.util.ArrayList;
+import java.util.List;
 import com.avail.AvailRuntime;
 import com.avail.annotations.*;
 import com.avail.compiler.*;
@@ -610,14 +612,32 @@ public final class AvailLoader
 			: "Wrong number of entries in restriction tuple.";
 		final A_Bundle bundle = methodName.bundleOrCreate();
 		final A_Module theModule = module;
+		final List<A_Set> bundleSets =
+			new ArrayList<>(illegalArgMsgs.tupleSize());
+		for (final A_Set atomsSet : illegalArgMsgs)
+		{
+			A_Set bundleSet = SetDescriptor.empty();
+			for (final A_Atom atom : atomsSet)
+			{
+				bundleSet = bundleSet.setWithElementCanDestroy(
+					atom.bundleOrCreate(),
+					true);
+			}
+			bundleSets.add(bundleSet.makeShared());
+		}
+		final A_GrammaticalRestriction grammaticalRestriction =
+			GrammaticalRestrictionDescriptor.create(
+				TupleDescriptor.fromList(bundleSets),
+				bundle,
+				theModule);
 		final A_BundleTree root = rootBundleTree();
 		theModule.lock(new Continuation0()
 		{
 			@Override
 			public void value ()
 			{
+				bundle.addGrammaticalRestriction(grammaticalRestriction);
 				root.addBundle(bundle);
-				bundle.addGrammaticalRestrictions(illegalArgMsgs);
 				theModule.addGrammaticalRestrictions(
 					methodName, illegalArgMsgs);
 				root.flushForNewOrChangedBundle(bundle);

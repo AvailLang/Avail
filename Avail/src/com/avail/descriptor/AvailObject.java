@@ -82,6 +82,7 @@ implements
 		A_Definition,
 		A_Fiber,
 		A_Function,
+		A_GrammaticalRestriction,
 		A_Map,
 		A_Method,
 		A_Module,
@@ -539,16 +540,17 @@ implements
 	}
 
 	/**
-	 * Add a set of {@linkplain MessageBundleDescriptor grammatical
-	 * restrictions} to the receiver.
+	 * Add a set of {@linkplain GrammaticalRestrictionDescriptor grammatical
+	 * restrictions} to this {@linkplain MessageBundleDescriptor message
+	 * bundle}.
 	 *
-	 * @param restrictions The set of grammatical restrictions to be added.
+	 * @param grammaticalRestriction The set of grammatical restrictions to be added.
 	 */
 	@Override
-	public void addGrammaticalRestrictions (
-		final A_Tuple restrictions)
+	public void addGrammaticalRestriction (
+		final A_GrammaticalRestriction grammaticalRestriction)
 	{
-		descriptor.o_AddGrammaticalRestrictions(this, restrictions);
+		descriptor.o_AddGrammaticalRestriction(this, grammaticalRestriction);
 	}
 
 	/**
@@ -1951,9 +1953,9 @@ implements
 	 * Dispatch to the descriptor.
 	 */
 	@Override
-	public void expand ()
+	public void expand (final A_Module module)
 	{
-		descriptor.o_Expand(this);
+		descriptor.o_Expand(this, module);
 	}
 
 	/**
@@ -3701,10 +3703,10 @@ implements
 	 * Dispatch to the descriptor.
 	 */
 	@Override
-	public void removeGrammaticalRestrictions (
-		final A_Tuple obsoleteRestrictions)
+	public void removeGrammaticalRestriction (
+		final A_GrammaticalRestriction obsoleteRestriction)
 	{
-		descriptor.o_RemoveGrammaticalRestrictions(this, obsoleteRestrictions);
+		descriptor.o_RemoveGrammaticalRestriction(this, obsoleteRestriction);
 	}
 
 	/**
@@ -3721,7 +3723,7 @@ implements
 	 * Dispatch to the descriptor.
 	 */
 	@Override
-	public A_Tuple grammaticalRestrictions ()
+	public A_Set grammaticalRestrictions ()
 	{
 		return descriptor.o_GrammaticalRestrictions(this);
 	}
@@ -5086,24 +5088,6 @@ implements
 	public MapDescriptor.MapIterable mapIterable ()
 	{
 		return descriptor.o_MapIterable(this);
-	}
-
-	/**
-	 * @return
-	 */
-	@Override
-	public A_Map complete ()
-	{
-		return descriptor.o_Complete(this);
-	}
-
-	/**
-	 * @return
-	 */
-	@Override
-	public A_Map incomplete ()
-	{
-		return descriptor.o_Incomplete(this);
 	}
 
 	/**
@@ -6949,5 +6933,32 @@ implements
 		final A_Atom trueName)
 	{
 		descriptor.o_AddEntryPoint(this, stringName, trueName);
+	}
+
+	@Override
+	public A_Set allAncestors ()
+	{
+		return descriptor.o_AllAncestors(this);
+	}
+
+	/**
+	 * @param moreAncestors
+	 */
+	@Override
+	public void addAncestors (final A_Set moreAncestors)
+	{
+		descriptor.o_AddAncestors(this, moreAncestors);
+	}
+
+	@Override
+	public A_Tuple argumentRestrictionSets ()
+	{
+		return descriptor.o_ArgumentRestrictionSets(this);
+	}
+
+	@Override
+	public A_Bundle restrictedBundle ()
+	{
+		return descriptor.o_RestrictedBundle(this);
 	}
 }

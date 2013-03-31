@@ -57,7 +57,8 @@ extends A_BasicObject
 	 * Answer the {@linkplain MethodDescriptor method} for which this semantic
 	 * restriction applies.
 	 *
-	 * <p>Also defined in {@link A_Definition}.</p>
+	 * <p>Also defined in {@link A_Definition} and {@link
+	 * A_GrammaticalRestriction}.</p>
 	 *
 	 * @return The method to which this semantic restriction applies.
 	 */

@@ -1067,16 +1067,19 @@ public abstract class AbstractDescriptor
 		throws SignatureException;
 
 	/**
-	 * Add a set of {@linkplain MessageBundleDescriptor grammatical
-	 * restrictions} to the receiver.
+	 * Add a {@linkplain GrammaticalRestrictionDescriptor grammatical
+	 * restriction} to the receiver.
 	 *
-	 * @param object The receiver.
-	 * @param restrictions The set of grammatical restrictions to be added.
-	 * @see AvailObject#addGrammaticalRestrictions(A_Tuple)
+	 * @param object
+	 *            The receiver, a {@linkplain MessageBundleDescriptor message
+	 *            bundle}.
+	 * @param grammaticalRestriction
+	 *            The grammatical restriction to be added.
+	 * @see A_Bundle#addGrammaticalRestriction(A_GrammaticalRestriction)
 	 */
-	abstract void o_AddGrammaticalRestrictions (
+	abstract void o_AddGrammaticalRestriction (
 		AvailObject object,
-		A_Tuple restrictions);
+		A_GrammaticalRestriction grammaticalRestriction);
 
 	/**
 	 * Add the {@linkplain AvailObject operands} and answer the result.
@@ -2299,11 +2302,11 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param obsoleteRestrictions
+	 * @param obsoleteRestriction
 	 */
-	abstract void o_RemoveGrammaticalRestrictions (
+	abstract void o_RemoveGrammaticalRestriction (
 		AvailObject object,
-		A_Tuple obsoleteRestrictions);
+		A_GrammaticalRestriction obsoleteRestriction);
 
 	/**
 	 * @param object
@@ -3066,8 +3069,9 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
+	 * @param module TODO
 	 */
-	abstract void o_Expand (AvailObject object);
+	abstract void o_Expand (AvailObject object, A_Module module);
 
 	/**
 	 * @param object
@@ -3437,7 +3441,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	abstract A_Tuple o_GrammaticalRestrictions (AvailObject object);
+	abstract A_Set o_GrammaticalRestrictions (AvailObject object);
 
 	/**
 	 * @param object
@@ -4545,20 +4549,6 @@ public abstract class AbstractDescriptor
 	 * @return
 	 */
 	abstract MapDescriptor.MapIterable o_MapIterable (
-		AvailObject object);
-
-	/**
-	 * @param object
-	 * @return
-	 */
-	abstract A_Map o_Complete (
-		AvailObject object);
-
-	/**
-	 * @param object
-	 * @return
-	 */
-	abstract A_Map o_Incomplete (
 		AvailObject object);
 
 	/**
@@ -5976,4 +5966,28 @@ public abstract class AbstractDescriptor
 		AvailObject object,
 		A_String stringName,
 		A_Atom trueName);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract A_Set o_AllAncestors (final AvailObject object);
+
+	/**
+	 * @param object
+	 * @param moreAncestors
+	 */
+	abstract void o_AddAncestors (AvailObject object, A_Set moreAncestors);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract A_Tuple o_ArgumentRestrictionSets (AvailObject object);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract A_Bundle o_RestrictedBundle (AvailObject object);
 }
