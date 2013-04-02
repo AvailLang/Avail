@@ -161,7 +161,9 @@ Public method "Cast|cast each of_into_" is
 	accept : function
 |
 	valueTypes ::= map values through [t : any | t's type];
-	paramTypes ::= accept's type's parameters' type[1..];
+	sig ::= accept's type's parameters' type;
+	limit ::= cast ⎡sig⎤ into [t : natural number | t];
+	paramTypes ::= map 1 to limit through [t : natural number | sig[t]];
 	Assert: |valueTypes| = |paramTypes|;
 	zipped ::= valueTypes zip paramTypes;
 	ok ::= each of zipped satisfies [t : <type…|2> | t[1] ⊆ t[2]];
@@ -252,7 +254,9 @@ Public method "Cast|cast each of_into_else_" is
 	reject : []→⊤
 |
 	valueTypes ::= map values through [t : any | t's type];
-	paramTypes ::= accept's type's parameters' type[1..];
+	sig ::= accept's type's parameters' type;
+	limit ::= cast ⎡sig⎤ into [t : natural number | t];
+	paramTypes ::= map 1 to limit through [t : natural number | sig[t]];
 	Assert: |valueTypes| = |paramTypes|;
 	zipped ::= valueTypes zip paramTypes;
 	ok ::= each of zipped satisfies [t : <type…|2> | t[1] ⊆ t[2]];

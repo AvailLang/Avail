@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project name="Avail" default="avail">
+<project name="Avail" default="initialize">
 	<property name="path.avail" value="${basedir}" />
 	<property name="path.avail.bin" value="${path.avail}/bin"/>
 	<property name="path.avail.resources" value="${path.avail}/resources"/>
