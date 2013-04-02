@@ -219,7 +219,7 @@ extends Descriptor
 		final A_Number addend)
 	{
 		final A_Type outerKind = object.slot(KIND);
-		assert outerKind.isSubtypeOf(
+		assert outerKind.readType().isSubtypeOf(
 			IntegerRangeTypeDescriptor.extendedIntegers());
 		// The variable is not visible to multiple fibers, and cannot become
 		// visible to any other fiber except by an act of the current fiber,
@@ -230,7 +230,7 @@ extends Descriptor
 			throw new VariableGetException(
 				AvailErrorCode.E_CANNOT_READ_UNASSIGNED_VARIABLE);
 		}
-		final A_Number newValue = value.plusCanDestroy(addend, true);
+		final A_Number newValue = value.plusCanDestroy(addend, false);
 		if (!newValue.isInstanceOf(outerKind.writeType()))
 		{
 			throw new VariableSetException(
