@@ -259,6 +259,7 @@ final class Resources
 		representativeModuleName,
 		bootstrapDefiningMethod,
 		bootstrapSpecialObject,
+		bootstrapStringifier,
 		definingMethodUse,
 		specialObjectUse,
 		parameterPrefix,
