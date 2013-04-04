@@ -35,6 +35,7 @@ import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER;
 import static com.avail.interpreter.Primitive.Flag.Unknown;
 import static com.avail.interpreter.Primitive.Result.*;
+import java.util.ArrayList;
 import java.util.List;
 import com.avail.*;
 import com.avail.descriptor.*;
@@ -69,6 +70,10 @@ extends Primitive
 		{
 			return interpreter.primitiveFailure(E_LOADING_IS_OVER);
 		}
+		final A_Function failureFunction =
+			interpreter.primitiveFunctionBeingAttempted();
+		final List<AvailObject> copiedArgs = new ArrayList<>(args);
+		assert failureFunction.code().primitiveNumber() == primitiveNumber;
 		interpreter.primitiveSuspend();
 		AvailRuntime.current().whenLevelOneSafeDo(
 			AvailTask.forUnboundFiber(
@@ -91,6 +96,10 @@ extends Primitive
 						catch (
 							final AmbiguousNameException|SignatureException e)
 						{
+							interpreter.primitiveFunctionBeingAttempted(
+								failureFunction);
+							interpreter.argsBuffer.clear();
+							interpreter.argsBuffer.addAll(copiedArgs);
 							state = FAILURE;
 							result = e.numericCode();
 						}

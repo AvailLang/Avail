@@ -55,7 +55,7 @@ public class P_340_PushConstant extends Primitive
 		final Interpreter interpreter)
 	{
 		return interpreter.primitiveSuccess(
-			interpreter.primitiveCompiledCodeBeingAttempted().literalAt(1));
+			interpreter.primitiveFunctionBeingAttempted().code().literalAt(1));
 	}
 
 	@Override

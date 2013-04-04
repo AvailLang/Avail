@@ -666,7 +666,7 @@ implements L1OperationDispatcher
 			}
 			final Result success = interpreter().attemptPrimitive(
 				primitiveNumber,
-				primitiveFunction.code(),
+				primitiveFunction,
 				argValues);
 			if (success == SUCCESS)
 			{
@@ -1429,6 +1429,7 @@ implements L1OperationDispatcher
 	public static long removedInstructionCount = 0;
 
 	/**
+	 * TODO: [MvG] Make it not be broken!
 	 * Optimize the stream of instructions.
 	 */
 	private void optimize ()

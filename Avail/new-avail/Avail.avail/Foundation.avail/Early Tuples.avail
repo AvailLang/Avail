@@ -55,10 +55,6 @@ Names
 	"tuple type of_[_.._]"
 Body
 
-Method "“_”" is [t : ⊥'s type | "goats"] : string;
-
-q ::= Terminate current fiber;
-
 /**
  * Strengthen `_'s⁇default type`.
  * 

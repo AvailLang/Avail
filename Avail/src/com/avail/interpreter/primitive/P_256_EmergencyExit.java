@@ -76,7 +76,7 @@ public class P_256_EmergencyExit extends Primitive
 					final StringBuilder builder = new StringBuilder();
 					builder.append(String.format(
 						"A fiber (%s) has exited: %s",
-						interpreter.fiber().fiberName(),
+						fiber.fiberName(),
 						errorMessageProducer));
 					for (final String frame : stack)
 					{
@@ -90,7 +90,7 @@ public class P_256_EmergencyExit extends Primitive
 					fiber.failureContinuation().value(killer);
 				}
 			});
-		return interpreter.primitiveSuccess(NilDescriptor.nil());
+		return Result.FIBER_SUSPENDED;
 	}
 
 	@Override

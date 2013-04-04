@@ -81,8 +81,8 @@ public class L2_RUN_INFALLIBLE_PRIMITIVE_NO_CHECK extends L2Operation
 			interpreter.argsBuffer.add(
 				interpreter.pointerAt(argsVect.tupleIntAt(i)));
 		}
-		// Only primitive 340 needs the compiledCode argument, and it's
-		// always folded.  In the case that primitive 340 is known to
+		// Only primitive 340 is infallible and yet needs the function,
+		// and it's always folded.  In the case that primitive 340 is known to
 		// produce the wrong type at some site (potentially dead code due to
 		// inlining of an unreachable branch), it is converted to an
 		// explicit failure instruction.  Thus we can pass null.

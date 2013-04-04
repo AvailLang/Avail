@@ -548,6 +548,11 @@ extends Descriptor
 			frames.add(c);
 		}
 		final int lines = frames.size();
+		if (lines == 0)
+		{
+			javaContinuation.value(Collections.<String>emptyList());
+			return;
+		}
 		final String[] strings = new String[lines];
 		final Mutable<Integer> outstanding = new Mutable<Integer>(lines);
 		for (int index = 0, end = frames.size(); index < end; index++)

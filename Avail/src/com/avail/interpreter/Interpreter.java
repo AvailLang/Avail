@@ -568,22 +568,32 @@ public final class Interpreter
 	 * P_340_PushConstant} to get to the first literal in order to return it
 	 * from the primitive.
 	 */
-	private @Nullable A_RawFunction primitiveCompiledCodeBeingAttempted;
+	private @Nullable A_Function primitiveFunctionBeingAttempted;
 
 	/**
 	 * Answer the {@linkplain Primitive primitive} {@linkplain
-	 * CompiledCodeDescriptor compiled code} that is currently being attempted.
-	 * This allows {@linkplain P_340_PushConstant} to get to the first literal
-	 * in order to return it from the primitive.
+	 * FunctionDescriptor function} that is currently being attempted.
 	 *
-	 * @return The {@linkplain CompiledCodeDescriptor compiled code} whose
-	 *         primitive is being attempted.
+	 * @return The requested function.
 	 */
-	public A_RawFunction primitiveCompiledCodeBeingAttempted ()
+	public A_Function primitiveFunctionBeingAttempted ()
 	{
-		final A_RawFunction code = primitiveCompiledCodeBeingAttempted;
-		assert code != null;
-		return code;
+		final A_Function function = primitiveFunctionBeingAttempted;
+		assert function != null;
+		return function;
+	}
+
+	/**
+	 * Set the {@linkplain Primitive primitive} {@linkplain
+	 * FunctionDescriptor function} that is currently being attempted. This
+	 * facility is required by primitives that suspend and then fail later.
+	 *
+	 * @param function
+	 *        The primitive function.
+	 */
+	public void primitiveFunctionBeingAttempted (final A_Function function)
+	{
+		primitiveFunctionBeingAttempted = function;
 	}
 
 	/** The lock that synchronizes joins. */
@@ -706,13 +716,13 @@ public final class Interpreter
 	 * Result#SUCCESS}.
 	 *
 	 * @param primitiveNumber The number of the primitive to invoke.
-	 * @param compiledCode The compiled code whose primitive is being attempted.
+	 * @param function The function whose primitive is being attempted.
 	 * @param args The list of arguments to supply to the primitive.
 	 * @return The resulting status of the primitive attempt.
 	 */
 	public final Result attemptPrimitive (
 		final int primitiveNumber,
-		final @Nullable A_RawFunction compiledCode,
+		final @Nullable A_Function function,
 		final List<AvailObject> args)
 	{
 		final Primitive primitive =
@@ -726,11 +736,11 @@ public final class Interpreter
 		}
 
 		latestResult = null;
-		primitiveCompiledCodeBeingAttempted = compiledCode;
+		primitiveFunctionBeingAttempted = function;
 		assert current() == this;
 		final Result success = primitive.attempt(args, this);
 		assert success != FAILURE || !primitive.hasFlag(Flag.CannotFail);
-		primitiveCompiledCodeBeingAttempted = null;
+		primitiveFunctionBeingAttempted = null;
 		if (logger.isLoggable(Level.FINER))
 		{
 			final String failPart = success == FAILURE
@@ -1455,7 +1465,8 @@ public final class Interpreter
 			{
 				strongArgs.add((AvailObject)arg);
 			}
-			final Result result = attemptPrimitive(primNum, code, strongArgs);
+			final Result result = attemptPrimitive(
+				primNum, aFunction, strongArgs);
 			switch (result)
 			{
 				case FAILURE:
@@ -1504,7 +1515,8 @@ public final class Interpreter
 		final A_BasicObject caller)
 	{
 		final A_RawFunction code = aFunction.code();
-		assert code.primitiveNumber() == 0 || latestResult != null;
+		assert code.primitiveNumber() == 0
+			|| pointers[PRIMITIVE_FAILURE.ordinal()] != null;
 		code.tallyInvocation();
 		A_Chunk chunkToInvoke = code.startingChunk();
 		if (!chunkToInvoke.isValid())
@@ -1537,23 +1549,22 @@ public final class Interpreter
 	 * been reified. Since that's the case, we can clobber all registers, as
 	 * long as the {@link FixedRegister#CALLER} is set appropriately afterward.
 	 *
-	 * @param handler
+	 * @param function
 	 *        The function to invoke.
 	 * @param continuation
 	 *        The calling continuation.
 	 */
 	public void invokePossiblePrimitiveWithReifiedCaller (
-		final A_Function handler,
+		final A_Function function,
 		final A_Continuation continuation)
 	{
-		final A_RawFunction theCode = handler.code();
-		final int primNum = theCode.primitiveNumber();
+		final int primNum = function.code().primitiveNumber();
 		pointerAtPut(CALLER, continuation);
 		if (primNum != 0)
 		{
 			final Result primResult = attemptPrimitive(
 				primNum,
-				theCode,
+				function,
 				argsBuffer);
 			switch (primResult)
 			{
@@ -1593,7 +1604,7 @@ public final class Interpreter
 			}
 		}
 		invokeWithoutPrimitiveFunctionArguments(
-			handler, argsBuffer, continuation);
+			function, argsBuffer, continuation);
 	}
 
 	/**
@@ -1792,14 +1803,6 @@ public final class Interpreter
 	 * following {@linkplain ExecutionState#SUSPENDED suspension} by a
 	 * {@linkplain Primitive primitive}. This method is an entry point.
 	 *
-	 * <p>If the function successfully runs to completion, then the fiber's
-	 * "on success" {@linkplain Continuation1 continuation} will be invoked with
-	 * the function's result.</p>
-	 *
-	 * <p>If the function fails for any reason, then the fiber's "on failure"
-	 * {@linkplain Continuation1 continuation} will be invoked with the
-	 * terminal {@linkplain Throwable throwable}.</p>
-	 *
 	 * @param runtime
 	 *        An {@linkplain AvailRuntime Avail runtime}.
 	 * @param aFiber
@@ -1859,7 +1862,9 @@ public final class Interpreter
 							interpreter.pointerAtPut(
 								PRIMITIVE_FAILURE,
 								result);
-							interpreter.prepareToResumeContinuation(
+							interpreter.invokeWithoutPrimitiveFunctionArguments(
+								interpreter.primitiveFunctionBeingAttempted(),
+								interpreter.argsBuffer,
 								aFiber.continuation());
 							aFiber.continuation(NilDescriptor.nil());
 							interpreter.exitNow = false;
@@ -1970,6 +1975,11 @@ public final class Interpreter
 		final Continuation1<List<String>> continuation)
 	{
 		final int limit = values.size();
+		if (limit == 0)
+		{
+			continuation.value(Collections.<String>emptyList());
+			return;
+		}
 		final Mutable<Integer> outstanding = new Mutable<Integer>(limit);
 		final String[] strings = new String[limit];
 		for (int i = 0; i < limit; i++)

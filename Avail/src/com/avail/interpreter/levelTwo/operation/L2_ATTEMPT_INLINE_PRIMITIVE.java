@@ -100,8 +100,8 @@ public class L2_ATTEMPT_INLINE_PRIMITIVE extends L2Operation
 			interpreter.argsBuffer.add(
 				interpreter.pointerAt(argsVect.tupleIntAt(i)));
 		}
-		// Only primitive 340 needs the compiledCode argument, and it's
-		// infallible.  Thus, we can pass null.
+		// Only 340 and CannotInline primitives need the function argument, and
+		// none of these should come through here.
 		final Result res = interpreter.attemptPrimitive(
 			primNumber,
 			null,
