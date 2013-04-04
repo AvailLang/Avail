@@ -102,10 +102,9 @@ extends Primitive
 							{
 								fiber.wakeupTask(null);
 								fiber.executionState(SUSPENDED);
-								Interpreter.resumeFromPrimitive(
+								Interpreter.resumeFromSuccessfulPrimitive(
 									runtime,
 									fiber,
-									Result.SUCCESS,
 									NilDescriptor.nil());
 							}
 						}
@@ -130,10 +129,9 @@ extends Primitive
 								TERMINATION_REQUESTED))
 							{
 								assert fiber.executionState() == SUSPENDED;
-								Interpreter.resumeFromPrimitive(
+								Interpreter.resumeFromSuccessfulPrimitive(
 									runtime,
 									fiber,
-									Result.SUCCESS,
 									NilDescriptor.nil());
 								return;
 							}
@@ -167,10 +165,9 @@ extends Primitive
 								TERMINATION_REQUESTED))
 							{
 								assert fiber.executionState() == SUSPENDED;
-								Interpreter.resumeFromPrimitive(
+								Interpreter.resumeFromSuccessfulPrimitive(
 									runtime,
 									fiber,
-									Result.SUCCESS,
 									NilDescriptor.nil());
 								return;
 							}

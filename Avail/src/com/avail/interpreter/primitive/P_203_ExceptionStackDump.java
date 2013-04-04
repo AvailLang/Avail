@@ -97,10 +97,9 @@ extends Primitive
 					}
 					final A_Tuple stackDump =
 						TupleDescriptor.fromList(frames);
-					Interpreter.resumeFromPrimitive(
+					Interpreter.resumeFromSuccessfulPrimitive(
 						runtime,
 						fiber,
-						Result.SUCCESS,
 						stackDump);
 				}
 			});

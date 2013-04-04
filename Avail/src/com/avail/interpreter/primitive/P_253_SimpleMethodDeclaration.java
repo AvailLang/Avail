@@ -82,8 +82,6 @@ extends Primitive
 					@Override
 					public void value ()
 					{
-						Result state;
-						A_Number result;
 						try
 						{
 							loader.addMethodBody(
@@ -93,24 +91,21 @@ extends Primitive
 							function.code().setMethodName(
 								StringDescriptor.from(
 									String.format("%s", string)));
-							state = SUCCESS;
-							result = NilDescriptor.nil();
+							Interpreter.resumeFromSuccessfulPrimitive(
+								AvailRuntime.current(),
+								fiber,
+								NilDescriptor.nil());
 						}
 						catch (
 							final AmbiguousNameException|SignatureException e)
 						{
-							interpreter.primitiveFunctionBeingAttempted(
-								failureFunction);
-							interpreter.argsBuffer.clear();
-							interpreter.argsBuffer.addAll(copiedArgs);
-							state = FAILURE;
-							result = e.numericCode();
+							Interpreter.resumeFromFailedPrimitive(
+								AvailRuntime.current(),
+								fiber,
+								e.numericCode(),
+								failureFunction,
+								copiedArgs);
 						}
-						Interpreter.resumeFromPrimitive(
-							AvailRuntime.current(),
-							fiber,
-							state,
-							result);
 					}
 				}));
 		return FIBER_SUSPENDED;

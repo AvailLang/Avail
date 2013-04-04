@@ -83,31 +83,26 @@ extends Primitive
 					@Override
 					public void value ()
 					{
-						Result state = null;
-						A_Number result = null;
 						try
 						{
 							loader.addForwardStub(
 								loader.lookupName(string),
 								blockSignature);
-							state = SUCCESS;
-							result = NilDescriptor.nil();
+							Interpreter.resumeFromSuccessfulPrimitive(
+								AvailRuntime.current(),
+								fiber,
+								NilDescriptor.nil());
 						}
 						catch (
 							final AmbiguousNameException|SignatureException e)
 						{
-							interpreter.primitiveFunctionBeingAttempted(
-								failureFunction);
-							interpreter.argsBuffer.clear();
-							interpreter.argsBuffer.addAll(copiedArgs);
-							state = FAILURE;
-							result = e.numericCode();
+							Interpreter.resumeFromFailedPrimitive(
+								AvailRuntime.current(),
+								fiber,
+								e.numericCode(),
+								failureFunction,
+								copiedArgs);
 						}
-						Interpreter.resumeFromPrimitive(
-							AvailRuntime.current(),
-							fiber,
-							state,
-							result);
 					}
 				}));
 		return FIBER_SUSPENDED;

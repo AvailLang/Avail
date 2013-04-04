@@ -662,10 +662,9 @@ public final class Interpreter
 									assert joiner.joinee().equals(aFiber);
 									joiner.joinee(NilDescriptor.nil());
 									joiner.executionState(SUSPENDED);
-									Interpreter.resumeFromPrimitive(
+									Interpreter.resumeFromSuccessfulPrimitive(
 										AvailRuntime.current(),
 										joiner,
-										SUCCESS,
 										NilDescriptor.nil());
 								}
 								else
@@ -1801,25 +1800,21 @@ public final class Interpreter
 	/**
 	 * Schedule resumption of the specified {@linkplain FiberDescriptor fiber}
 	 * following {@linkplain ExecutionState#SUSPENDED suspension} by a
-	 * {@linkplain Primitive primitive}. This method is an entry point.
+	 * {@linkplain Result#SUCCESS successful} {@linkplain Primitive primitive}.
+	 * This method is an entry point.
 	 *
 	 * @param runtime
 	 *        An {@linkplain AvailRuntime Avail runtime}.
 	 * @param aFiber
 	 *        The fiber to run.
-	 * @param state
-	 *        The {@linkplain Result#SUCCESS result state} of the primitive that
-	 *        suspended the current fiber.
 	 * @param result
 	 *        The result of the primitive.
 	 */
-	public static void resumeFromPrimitive (
+	public static void resumeFromSuccessfulPrimitive (
 		final AvailRuntime runtime,
 		final A_Fiber aFiber,
-		final Result state,
 		final A_BasicObject result)
 	{
-		assert state == SUCCESS || state == FAILURE;
 		assert !aFiber.continuation().equalsNil();
 		assert aFiber.executionState() == SUSPENDED;
 		executeFiber(
@@ -1831,47 +1826,77 @@ public final class Interpreter
 				public void value (final @Nullable Interpreter interpreter)
 				{
 					assert interpreter != null;
-					switch (state)
+					assert aFiber == interpreter.fiber;
+					assert aFiber.executionState() == RUNNING;
+					assert !aFiber.continuation().equalsNil();
+					final A_Continuation updatedCaller =
+						aFiber.continuation().ensureMutable();
+					final int stackp = updatedCaller.stackp();
+					final A_Type expectedType =
+						updatedCaller.stackAt(stackp);
+					if (!result.isInstanceOf(expectedType))
 					{
-						case SUCCESS:
-							assert aFiber == interpreter.fiber;
-							assert aFiber.executionState() == RUNNING;
-							assert !aFiber.continuation().equalsNil();
-							final A_Continuation updatedCaller =
-								aFiber.continuation().ensureMutable();
-							final int stackp = updatedCaller.stackp();
-							final A_Type expectedType =
-								updatedCaller.stackAt(stackp);
-							if (!result.isInstanceOf(expectedType))
-							{
-								// TODO: [MvG] Remove after debugging.
-								result.isInstanceOf(expectedType);
-								error(String.format(
-									"Return value (%s) does not agree with "
-									+ "expected type (%s)",
-									result,
-									expectedType));
-							}
-							updatedCaller.stackAtPut(stackp, result);
-							interpreter.prepareToResumeContinuation(
-								updatedCaller);
-							aFiber.continuation(NilDescriptor.nil());
-							interpreter.exitNow = false;
-							break;
-						case FAILURE:
-							interpreter.pointerAtPut(
-								PRIMITIVE_FAILURE,
-								result);
-							interpreter.invokeWithoutPrimitiveFunctionArguments(
-								interpreter.primitiveFunctionBeingAttempted(),
-								interpreter.argsBuffer,
-								aFiber.continuation());
-							aFiber.continuation(NilDescriptor.nil());
-							interpreter.exitNow = false;
-							break;
-						default:
-							assert false;
+						// TODO: [MvG] Remove after debugging.
+						result.isInstanceOf(expectedType);
+						error(String.format(
+							"Return value (%s) does not agree with "
+							+ "expected type (%s)",
+							result,
+							expectedType));
 					}
+					updatedCaller.stackAtPut(stackp, result);
+					interpreter.prepareToResumeContinuation(
+						updatedCaller);
+					aFiber.continuation(NilDescriptor.nil());
+					interpreter.exitNow = false;
+				}
+			});
+	}
+
+	/**
+	 * Schedule resumption of the specified {@linkplain FiberDescriptor fiber}
+	 * following {@linkplain ExecutionState#SUSPENDED suspension} by a
+	 * {@linkplain Result#FAILURE failed} {@linkplain Primitive primitive}. This
+	 * method is an entry point.
+	 *
+	 * @param runtime
+	 *        An {@linkplain AvailRuntime Avail runtime}.
+	 * @param aFiber
+	 *        The fiber to run.
+	 * @param result
+	 *        The result of the primitive.
+	 * @param failureFunction
+	 *        The primitive failure {@linkplain FunctionDescriptor function}.
+	 * @param args
+	 *        The arguments to the primitive.
+	 */
+	public static void resumeFromFailedPrimitive (
+		final AvailRuntime runtime,
+		final A_Fiber aFiber,
+		final A_BasicObject result,
+		final A_Function failureFunction,
+		final List<AvailObject> args)
+	{
+		assert !aFiber.continuation().equalsNil();
+		assert aFiber.executionState() == SUSPENDED;
+		executeFiber(
+			runtime,
+			aFiber,
+			new Continuation1<Interpreter>()
+			{
+				@Override
+				public void value (final @Nullable Interpreter interpreter)
+				{
+					assert interpreter != null;
+					interpreter.pointerAtPut(
+						PRIMITIVE_FAILURE,
+						result);
+					interpreter.invokeWithoutPrimitiveFunctionArguments(
+						failureFunction,
+						args,
+						aFiber.continuation());
+					aFiber.continuation(NilDescriptor.nil());
+					interpreter.exitNow = false;
 				}
 			});
 	}
