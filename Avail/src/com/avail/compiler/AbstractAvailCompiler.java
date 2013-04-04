@@ -529,6 +529,12 @@ public abstract class AbstractAvailCompiler
 		PRAGMA_MACRO("macro", KEYWORD),
 
 		/**
+		 * Module header token: Occurs in a pragma string to define the
+		 * stringification method.
+		 */
+		PRAGMA_STRINGIFY("stringify", KEYWORD),
+
+		/**
 		 * Module header token: Precedes the list of imported modules whose
 		 * (filtered) names should be re-exported to clients of the defined
 		 * module.
@@ -596,7 +602,7 @@ public abstract class AbstractAvailCompiler
 		SEMICOLON(";", OPERATOR);
 
 		/** The Java {@link String} form of the lexeme. */
-		private final String lexemeJavaString;
+		public final String lexemeJavaString;
 
 		/**
 		 * The {@linkplain StringDescriptor Avail string} form of the lexeme.
@@ -605,16 +611,6 @@ public abstract class AbstractAvailCompiler
 
 		/** The {@linkplain TokenType token type}. */
 		private final TokenType tokenType;
-
-		/**
-		 * Answer the Java {@link String} form of the lexeme.
-		 *
-		 * @return The lexeme as a Java string.
-		 */
-		public String lexemeJavaString ()
-		{
-			return lexemeJavaString;
-		}
 
 		/**
 		 * Answer the {@linkplain StringDescriptor lexeme}.
@@ -4192,6 +4188,135 @@ public abstract class AbstractAvailCompiler
 	}
 
 	/**
+	 * Apply a method pragma detected during parse of the {@linkplain
+	 * ModuleHeader module header}.
+	 *
+	 * @param pragmaValue
+	 *        The value of the pragma.
+	 * @param state
+	 *        The {@linkplain ParserState parse state} following a parse of the
+	 *        module header.
+	 * @param continuation
+	 *        What to do after the operation completes.
+	 */
+	@InnerAccess void applyMethodPragmaThen (
+		final String pragmaValue,
+		final ParserState state,
+		final Continuation0 continuation)
+	{
+		final String methodName;
+		final int primNum;
+		try
+		{
+			final String[] parts = pragmaValue.split("=", 2);
+			if (parts.length != 2)
+			{
+				throw new IllegalArgumentException();
+			}
+			final String pragmaPrim = parts[0].trim();
+			methodName = parts[1].trim();
+			primNum = Integer.valueOf(pragmaPrim);
+		}
+		catch (final IllegalArgumentException e)
+		{
+			state.expected(String.format(
+				"method pragma to have the form "
+				+ "%s=<digits>=name",
+				PRAGMA_METHOD.lexemeJavaString));
+			reportError();
+			// This is to help the compiler with null analysis.
+			throw new AssertionError();
+		}
+		bootstrapMethodThen(methodName, primNum, continuation);
+	}
+
+	/**
+	 * Apply a macro pragma detected during parse of the {@linkplain
+	 * ModuleHeader module header}.
+	 *
+	 * @param pragmaValue
+	 *        The value of the pragma.
+	 * @param state
+	 *        The {@linkplain ParserState parse state} following a parse of the
+	 *        module header.
+	 * @param continuation
+	 *        What to do after the operation completes.
+	 */
+	@InnerAccess void applyMacroPragmaThen (
+		final String pragmaValue,
+		final ParserState state,
+		final Continuation0 continuation)
+	{
+		final String macroName;
+		final int[] primNums;
+		try
+		{
+			final String[] parts = pragmaValue.split("=", 2);
+			if (parts.length != 2)
+			{
+				throw new IllegalArgumentException();
+			}
+			final String pragmaPrim = parts[0].trim();
+			macroName = parts[1].trim();
+			final String[] primNumStrings = pragmaPrim.split(",");
+			primNums = new int[primNumStrings.length];
+			for (int i = 0; i < primNums.length; i++)
+			{
+				primNums[i] = Integer.valueOf(
+					primNumStrings[i]);
+			}
+		}
+		catch (final IllegalArgumentException e)
+		{
+			state.expected(String.format(
+				"macro pragma to have the form "
+				+ "%s=<digits‡,>=name",
+				PRAGMA_MACRO.lexemeJavaString));
+			reportError();
+			// This is to help the compiler with null analysis.
+			throw new AssertionError();
+		}
+		bootstrapMacroThen(macroName, primNums, continuation);
+	}
+
+	/**
+	 * Apply a stringify pragma detected during parse of the {@linkplain
+	 * ModuleHeader module header}.
+	 *
+	 * @param pragmaValue
+	 *        The value of the pragma.
+	 * @param state
+	 *        The {@linkplain ParserState parse state} following a parse of the
+	 *        module header.
+	 * @param continuation
+	 *        What to do after the operation completes.
+	 */
+	@InnerAccess void applyStringifyPragmaThen (
+		final String pragmaValue,
+		final ParserState state,
+		final Continuation0 continuation)
+	{
+		final A_String availName = StringDescriptor.from(pragmaValue);
+		final A_Phrase send = SendNodeDescriptor.from(
+			MethodDescriptor.vmDeclareStringifierAtom().bundleOrNil(),
+			ListNodeDescriptor.newExpressions(TupleDescriptor.from(
+				LiteralNodeDescriptor.syntheticFrom(availName))),
+			TOP.o());
+		evaluateModuleStatementThen(
+			send,
+			continuation,
+			new Continuation1<Throwable>()
+			{
+				@Override
+				public void value (final @Nullable Throwable killer)
+				{
+					assert killer != null;
+					compilationFailed(killer);
+				}
+			});
+	}
+
+	/**
 	 * Apply any pragmas detected during the parse of the {@linkplain
 	 * ModuleHeader module header}.
 	 *
@@ -4239,36 +4364,42 @@ public abstract class AbstractAvailCompiler
 				public void value ()
 				{
 					final String nativeString = pragmaString.asNativeString();
-					final String[] parts = nativeString.split("=", 3);
-					assert parts.length == 3;
-					final String pragmaKind = parts[0].trim();
-					final String pragmaPrim = parts[1].trim();
-					final String pragmaName = parts[2].trim();
-					if (pragmaKind.equals(PRAGMA_METHOD.lexemeJavaString()))
+					final String[] pragmaParts = nativeString.split("=", 2);
+					if (pragmaParts.length != 2)
 					{
-						final int primNum = Integer.valueOf(pragmaPrim);
-						bootstrapMethodThen(pragmaName, primNum, wrapped);
-					}
-					else if (pragmaKind.equals(PRAGMA_MACRO.lexemeJavaString()))
-					{
-						final String[] primNumStrings = pragmaPrim.split(",");
-						final int[] primNums = new int[primNumStrings.length];
-						for (int i = 0; i < primNums.length; i++)
-						{
-							primNums[i] = Integer.valueOf(primNumStrings[i]);
-						}
-						bootstrapMacroThen(pragmaName, primNums, wrapped);
-					}
-					else
-					{
-						state.expected(
-							String.format(
-								"pragma to have the form "
-								+ "%s=<digits>=name or %s=<digits‡,>=name.",
-								PRAGMA_METHOD.lexemeJavaString(),
-								PRAGMA_MACRO.lexemeJavaString()));
+						state.expected("pragma to have the form key=value");
 						reportError();
 						assert false;
+					}
+					final String pragmaKind = pragmaParts[0].trim();
+					final String pragmaValue = pragmaParts[1].trim();
+					switch (pragmaKind)
+					{
+						case "method":
+							assert pragmaKind.equals(
+								PRAGMA_METHOD.lexemeJavaString);
+							applyMethodPragmaThen(pragmaValue, state, wrapped);
+							break;
+						case "macro":
+							assert pragmaKind.equals(
+								PRAGMA_MACRO.lexemeJavaString);
+							applyMacroPragmaThen(pragmaValue, state, wrapped);
+							break;
+						case "stringify":
+							assert pragmaKind.equals(
+								PRAGMA_STRINGIFY.lexemeJavaString);
+							applyStringifyPragmaThen(
+								pragmaValue, state, wrapped);
+							break;
+						default:
+							state.expected(String.format(
+								"pragma key to be one of "
+								+ "%s, %s, or %s",
+								PRAGMA_METHOD.lexemeJavaString,
+								PRAGMA_MACRO.lexemeJavaString,
+								PRAGMA_STRINGIFY.lexemeJavaString));
+							reportError();
+							assert false;
 					}
 				}
 			});
