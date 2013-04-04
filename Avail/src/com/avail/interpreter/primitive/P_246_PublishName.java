@@ -74,8 +74,8 @@ extends Primitive
 		try
 		{
 			final A_Atom trueName = loader.lookupName(name);
-			module.introduceNewName(name, trueName);
-			module.addImportedName(name, trueName);
+			module.introduceNewName(trueName);
+			module.addImportedName(trueName);
 			return interpreter.primitiveSuccess(NilDescriptor.nil());
 		}
 		catch (final AmbiguousNameException e)

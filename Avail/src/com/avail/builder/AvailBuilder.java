@@ -40,6 +40,7 @@ import com.avail.*;
 import com.avail.annotations.*;
 import com.avail.compiler.*;
 import com.avail.compiler.AbstractAvailCompiler.ModuleHeader;
+import com.avail.compiler.AbstractAvailCompiler.ModuleImport;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 import com.avail.persistence.IndexedRepositoryManager;
@@ -167,18 +168,11 @@ public final class AvailBuilder
 			final LinkedHashSet<ResolvedModuleName> recursionSet)
 		{
 			final Set<ModuleName> importedModules =
-				new HashSet<ModuleName>(
-					header.extendedModules.size()
-						+ header.usedModules.size());
-			for (final A_Tuple extendedModule : header.extendedModules)
+				new HashSet<ModuleName>(header.importedModules.size());
+			for (final ModuleImport moduleImport : header.importedModules)
 			{
 				importedModules.add(resolvedName.asSibling(
-					extendedModule.tupleAt(1).asNativeString()));
-			}
-			for (final A_Tuple usedModule : header.usedModules)
-			{
-				importedModules.add(resolvedName.asSibling(
-					usedModule.tupleAt(1).asNativeString()));
+					moduleImport.moduleName.asNativeString()));
 			}
 			// Update the count of trace requests and completions.
 			synchronized (BuildState.this)

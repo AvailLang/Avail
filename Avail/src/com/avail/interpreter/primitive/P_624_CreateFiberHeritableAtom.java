@@ -89,7 +89,7 @@ extends Primitive
 							newName.setAtomProperty(
 								AtomDescriptor.heritableKey(),
 								AtomDescriptor.trueObject());
-							module.addPrivateName(name, newName);
+							module.addPrivateName(newName);
 							trueName.value = newName;
 						}
 						else if (trueNames.setSize() == 1)

@@ -78,27 +78,21 @@ extends A_BasicObject
 	A_Map newNames ();
 
 	/**
-	 * @param stringName
 	 * @param trueName
 	 */
 	void addImportedName (
-		A_String stringName,
 		A_Atom trueName);
 
 	/**
-	 * @param stringName
 	 * @param trueName
 	 */
 	void introduceNewName (
-		A_String stringName,
 		A_Atom trueName);
 
 	/**
-	 * @param stringName
 	 * @param trueName
 	 */
 	void addPrivateName (
-		A_String stringName,
 		A_Atom trueName);
 
 	/**
@@ -125,6 +119,7 @@ extends A_BasicObject
 	 * Dispatch to the descriptor.
 	 */
 	A_Map variableBindings ();
+
 	/**
 	 * @param semanticRestriction
 	 */

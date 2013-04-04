@@ -75,14 +75,14 @@ extends Primitive
 		{
 			for (final A_Atom name : names)
 			{
-				module.addImportedName(name.name(), name);
+				module.addImportedName(name);
 			}
 		}
 		else
 		{
 			for (final A_Atom name : names)
 			{
-				module.addPrivateName(name.name(), name);
+				module.addPrivateName(name);
 			}
 		}
 		return interpreter.primitiveSuccess(NilDescriptor.nil());

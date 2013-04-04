@@ -686,47 +686,38 @@ implements
 	}
 
 	/**
-	 * @param stringName
 	 * @param trueName
 	 */
 	@Override
 	public void addImportedName (
-		final A_String stringName,
 		final A_Atom trueName)
 	{
 		descriptor.o_AddImportedName(
 			this,
-			stringName,
 			trueName);
 	}
 
 	/**
-	 * @param stringName
 	 * @param trueName
 	 */
 	@Override
 	public void introduceNewName (
-		final A_String stringName,
 		final A_Atom trueName)
 	{
 		descriptor.o_IntroduceNewName(
 			this,
-			stringName,
 			trueName);
 	}
 
 	/**
-	 * @param stringName
 	 * @param trueName
 	 */
 	@Override
 	public void addPrivateName (
-		final A_String stringName,
 		final A_Atom trueName)
 	{
 		descriptor.o_AddPrivateName(
 			this,
-			stringName,
 			trueName);
 	}
 

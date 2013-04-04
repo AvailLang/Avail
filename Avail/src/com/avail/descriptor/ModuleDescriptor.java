@@ -516,24 +516,24 @@ extends Descriptor
 	@Override @AvailMethod
 	void o_AddImportedName (
 		final AvailObject object,
-		final A_String stringName,
 		final A_Atom trueName)
 	{
 		// Add the trueName to the current public scope.
 		synchronized (object)
 		{
+			final A_String string = trueName.name();
 			A_Map names = object.slot(IMPORTED_NAMES);
 			A_Set set;
-			if (names.hasKey(stringName))
+			if (names.hasKey(string))
 			{
-				set = names.mapAt(stringName);
+				set = names.mapAt(string);
 			}
 			else
 			{
 				set = SetDescriptor.empty();
 			}
 			set = set.setWithElementCanDestroy(trueName, false);
-			names = names.mapAtPuttingCanDestroy(stringName, set, true);
+			names = names.mapAtPuttingCanDestroy(string, set, true);
 			object.setSlot(IMPORTED_NAMES, names.makeShared());
 			A_Set visibleNames = object.slot(VISIBLE_NAMES);
 			visibleNames = visibleNames.setWithElementCanDestroy(
@@ -545,20 +545,19 @@ extends Descriptor
 	@Override @AvailMethod
 	void o_IntroduceNewName (
 		final AvailObject object,
-		final A_String stringName,
 		final A_Atom trueName)
 	{
 		// Set up this true name, which is local to the module.
 		synchronized (object)
 		{
-			if (object.newNames().hasKey(stringName))
+			final A_String string = trueName.name();
+			if (object.newNames().hasKey(string))
 			{
 				error("Can't define a new true name twice in a module", object);
 				return;
 			}
 			A_Map newNames = object.slot(NEW_NAMES);
-			newNames = newNames.mapAtPuttingCanDestroy(
-				stringName, trueName, true);
+			newNames = newNames.mapAtPuttingCanDestroy(string, trueName, true);
 			object.setSlot(NEW_NAMES, newNames.makeShared());
 			A_Set visibleNames = object.slot(VISIBLE_NAMES);
 			visibleNames = visibleNames.setWithElementCanDestroy(
@@ -570,17 +569,17 @@ extends Descriptor
 	@Override @AvailMethod
 	void o_AddPrivateName (
 		final AvailObject object,
-		final A_String stringName,
 		final A_Atom trueName)
 	{
 		// Add the trueName to the current private scope.
 		synchronized (object)
 		{
+			final A_String string = trueName.name();
 			A_Map privateNames = object.slot(PRIVATE_NAMES);
 			A_Set set;
-			if (privateNames.hasKey(stringName))
+			if (privateNames.hasKey(string))
 			{
-				set = privateNames.mapAt(stringName);
+				set = privateNames.mapAt(string);
 			}
 			else
 			{
@@ -588,7 +587,7 @@ extends Descriptor
 			}
 			set = set.setWithElementCanDestroy(trueName, false);
 			privateNames = privateNames.mapAtPuttingCanDestroy(
-				stringName,
+				string,
 				set,
 				true);
 			object.setSlot(PRIVATE_NAMES, privateNames.makeShared());

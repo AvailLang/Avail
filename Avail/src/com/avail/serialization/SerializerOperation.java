@@ -2487,7 +2487,7 @@ public enum SerializerOperation
 			}
 			final A_Atom atom = AtomDescriptor.create(atomName, currentModule);
 			atom.makeImmutable();
-			currentModule.addPrivateName(atomName, atom);
+			currentModule.addPrivateName(atom);
 			return atom;
 		}
 		// An atom in an imported module.

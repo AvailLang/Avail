@@ -428,11 +428,11 @@ public final class SerializerTest
 		final A_Atom atom1 = AtomDescriptor.create(
 			StringDescriptor.from("importAtom1"),
 			inputModule);
-		inputModule.addPrivateName(atom1.name(), atom1);
+		inputModule.addPrivateName(atom1);
 		final A_Atom atom2 = AtomDescriptor.create(
 			StringDescriptor.from("currentAtom2"),
 			currentModule);
-		currentModule.addPrivateName(atom2.name(), atom2);
+		currentModule.addPrivateName(atom2);
 		final A_Tuple tuple = TupleDescriptor.from(atom1, atom2);
 
 		prepareToWrite();

@@ -231,7 +231,6 @@ extends AbstractDescriptor
 	@Override
 	void o_AddImportedName (
 		final AvailObject object,
-		final A_String stringName,
 		final A_Atom trueName)
 	{
 		throw unsupportedOperationException();
@@ -240,7 +239,6 @@ extends AbstractDescriptor
 	@Override
 	void o_IntroduceNewName (
 		final AvailObject object,
-		final A_String stringName,
 		final A_Atom trueName)
 	{
 		throw unsupportedOperationException();
@@ -249,7 +247,6 @@ extends AbstractDescriptor
 	@Override
 	void o_AddPrivateName (
 		final AvailObject object,
-		final A_String stringName,
 		final A_Atom trueName)
 	{
 		throw unsupportedOperationException();

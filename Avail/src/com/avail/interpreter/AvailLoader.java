@@ -738,7 +738,7 @@ public final class AvailLoader
 						final A_Atom trueName = AtomDescriptor.create(
 							stringName, theModule);
 						trueName.makeImmutable();
-						theModule.addPrivateName(stringName, trueName);
+						theModule.addPrivateName(trueName);
 						atom.value = trueName;
 					}
 					if (who.setSize() == 1)

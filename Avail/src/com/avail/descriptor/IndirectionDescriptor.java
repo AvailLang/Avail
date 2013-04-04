@@ -368,28 +368,25 @@ extends AbstractDescriptor
 	@Override
 	void o_AddImportedName (
 		final AvailObject object,
-		final A_String stringName,
 		final A_Atom trueName)
 	{
-		o_Traversed(object).addImportedName(stringName, trueName);
+		o_Traversed(object).addImportedName(trueName);
 	}
 
 	@Override
 	void o_IntroduceNewName (
 		final AvailObject object,
-		final A_String stringName,
 		final A_Atom trueName)
 	{
-		o_Traversed(object).introduceNewName(stringName, trueName);
+		o_Traversed(object).introduceNewName(trueName);
 	}
 
 	@Override
 	void o_AddPrivateName (
 		final AvailObject object,
-		final A_String stringName,
 		final A_Atom trueName)
 	{
-		o_Traversed(object).addPrivateName(stringName, trueName);
+		o_Traversed(object).addPrivateName(trueName);
 	}
 
 	@Override

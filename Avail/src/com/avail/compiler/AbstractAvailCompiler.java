@@ -78,6 +78,168 @@ public abstract class AbstractAvailCompiler
 	final AvailRuntime runtime = AvailRuntime.current();
 
 	/**
+	 * Information that a {@link ModuleHeader} uses to keep track of a module
+	 * import, whether from an {@linkplain ExpectedToken#EXTENDS Extends} or a
+	 * {@linkplain ExpectedToken#USES Uses} clause.
+	 */
+	public static class ModuleImport
+	{
+		/**
+		 * The name of the module being imported.
+		 */
+		public final A_String moduleName;
+
+		/**
+		 * A {@linkplain SetDescriptor set} of {@linkplain StringDescriptor
+		 * strings} which, when intersected with the declared version strings
+		 * for the actual module being imported, must be nonempty.
+		 */
+		public final A_Set acceptableVersions;
+
+		/**
+		 * Whether this {@link ModuleImport} is due to a {@linkplain
+		 * ExpectedToken#EXTENDS Extends} clause rather than a {@linkplain
+		 * ExpectedToken#USES Uses} clause.
+		 */
+		public final boolean isExtension;
+
+		/**
+		 * The {@linkplain SetDescriptor set} of names ({@linkplain
+		 * StringDescriptor strings}) explicitly imported through this import
+		 * declaration.  If no names or renames were specified, then this is
+		 * {@linkplain NilDescriptor#nil() nil} instead.
+		 */
+		public final A_Set names;
+
+		/**
+		 * The {@linkplain MapDescriptor map} of renames ({@linkplain
+		 * StringDescriptor string} → string) explicitly specified in this
+		 * import declaration.  The keys are the newly introduced names and the
+		 * values are the names provided by the predecessor module.  If no names
+		 * or renames were specified, then this is {@linkplain
+		 * NilDescriptor#nil() nil} instead.
+		 */
+		public final A_Map renames;
+
+		/**
+		 * Construct a new {@link ModuleImport}.
+		 *
+		 * @param moduleName
+		 *            The non-resolved {@linkplain StringDescriptor name} of the
+		 *            module to import.
+		 * @param acceptableVersions
+		 *            The {@linkplain SetDescriptor set} of version {@linkplain
+		 *            StringDescriptor strings} from which to look for a match
+		 *            in the actual imported module's list of compatible
+		 *            versions.
+		 * @param isExtension
+		 *            True if these imported declarations are supposed to be
+		 *            re-exported from the current module.
+		 * @param names
+		 *            The {@linkplain SetDescriptor set} of names ({@linkplain
+		 *            StringDescriptor strings}) imported from the module.  They
+		 *            will be cause atoms to be looked up within the predecessor
+		 *            module, and will be re-exported verbatim if isExtension is
+		 *            true.  {@linkplain NilDescriptor#nil() Nil} indicates that
+		 *            neither names nor renames were specified.
+		 * @param renames
+		 *            The {@linkplain MapDescriptor map} from new names to old
+		 *            names (both {@linkplain StringDescriptor strings}) that
+		 *            are imported from the module.  The new names will become
+		 *            new atoms in the importing module, and exported if
+		 *            isExtension is true.  {@linkplain NilDescriptor#nil() Nil}
+		 *            indicates that neither names nor renames were specified.
+		 */
+		ModuleImport (
+			final A_String moduleName,
+			final A_Set acceptableVersions,
+			final boolean isExtension,
+			final A_Set names,
+			final A_Map renames)
+		{
+			this.moduleName = moduleName;
+			this.acceptableVersions = acceptableVersions;
+			this.isExtension = isExtension;
+			this.names = names;
+			this.renames = renames;
+		}
+
+		/**
+		 * Answer a tuple suitable for serializing this import information.
+		 *
+		 * <p>
+		 * This currently consists of 3 or 5 elements:
+		 * <ol>
+		 * <li>The unresolved module name.</li>
+		 * <li>The tuple of acceptable version strings.</li>
+		 * <li>True if this is an "Extends" import, false if it's a "Uses".</li>
+		 * </ol>
+		 * And, if explicit name/rename importing was specified:
+		 * <ol start=4>
+		 * <li>The set of names (strings) to import.</li>
+		 * <li>The map from new names to old names (all strings) to import and
+		 * rename.</li>
+		 * </ol>
+		 *
+		 * @see #fromSerializedTuple(A_Tuple)
+		 * @return The tuple to serialize.
+		 */
+		A_Tuple tupleForSerialization ()
+		{
+			assert names.equalsNil() == renames.equalsNil();
+			final List<A_BasicObject> list = new ArrayList<>(5);
+			list.add(moduleName);
+			list.add(acceptableVersions);
+			list.add(AtomDescriptor.objectFromBoolean(isExtension));
+			if (!names.equalsNil())
+			{
+				list.add(names);
+				list.add(renames);
+			}
+			return TupleDescriptor.fromList(list);
+		}
+
+		/**
+		 * Convert the provided {@linkplain TupleDescriptor tuple} into a
+		 * {@link ModuleImport}.  This is the reverse of the transformation
+		 * provided by {@link #tupleForSerialization()}.
+		 *
+		 * @param serializedTuple The tuple from which to build a ModuleImport.
+		 * @return The ModuleImport.
+		 */
+		public static ModuleImport fromSerializedTuple (
+			final A_Tuple serializedTuple)
+		{
+			final int tupleSize = serializedTuple.tupleSize();
+			assert tupleSize == 3 || tupleSize == 5;
+			final A_Set names = tupleSize == 5
+				? serializedTuple.tupleAt(4)
+				: NilDescriptor.nil();
+			final A_Map renames = tupleSize == 5
+				? serializedTuple.tupleAt(5)
+				: NilDescriptor.nil();
+			return new ModuleImport(
+				serializedTuple.tupleAt(1),
+				serializedTuple.tupleAt(2),
+				serializedTuple.tupleAt(3).extractBoolean(),
+				names,
+				renames);
+		}
+
+		/**
+		 * Answer whether the declaration for this import specified names and
+		 * renames explicitly.  If not, the intention is to include all names
+		 * exported by the predecessor module.
+		 *
+		 * @return Whether names and renames were explicitly enumerated.
+		 */
+		public boolean isItemized ()
+		{
+			return !names.equalsNil();
+		}
+	}
+
+	/**
 	 * A module's header information.
 	 */
 	public static class ModuleHeader
@@ -96,51 +258,33 @@ public abstract class AbstractAvailCompiler
 		 * The versions for which the module undergoing compilation guarantees
 		 * support.
 		 */
-		public final List<A_String> versions =
-			new ArrayList<A_String>();
+		public final List<A_String> versions = new ArrayList<A_String>();
 
 		/**
-		 * The {@linkplain ModuleDescriptor modules} extended by the module
-		 * undergoing compilation. Each element is a {@linkplain TupleDescriptor
-		 * 3-tuple} whose first element is a module {@linkplain StringDescriptor
-		 * name}, whose second element is the {@linkplain SetDescriptor set} of
-		 * {@linkplain MethodDefinitionDescriptor method} names to import
-		 * (and re-export), and whose third element is the set of conformant
-		 * versions.
+		 * The {@linkplain ModuleImport module imports} imported by the module
+		 * undergoing compilation.  This includes both modules being extended
+		 * and modules being simply used.
 		 */
-		public final List<A_Tuple> extendedModules =
-			new ArrayList<A_Tuple>();
-
-		/**
-		 * The {@linkplain ModuleDescriptor modules} used by the module
-		 * undergoing compilation. Each element is a {@linkplain TupleDescriptor
-		 * 3-tuple} whose first element is a module {@linkplain StringDescriptor
-		 * name}, whose second element is the {@linkplain SetDescriptor set} of
-		 * {@linkplain MethodDefinitionDescriptor method} names to import,
-		 * and whose third element is the set of conformant versions.
-		 */
-		public final List<A_Tuple> usedModules =
-			new ArrayList<A_Tuple>();
+		public final List<ModuleImport> importedModules =
+			new ArrayList<ModuleImport>();
 
 		/**
 		 * The {@linkplain StringDescriptor names} defined and exported by the
 		 * {@linkplain ModuleDescriptor module} undergoing compilation.
 		 */
-		public final List<A_String> exportedNames =
-			new ArrayList<A_String>();
+		public final List<A_String> exportedNames = new ArrayList<A_String>();
 
 		/**
-		 * The {@linkplain StringDescriptor names} of {@linkplain MethodDescriptor
-		 * methods} that are {@linkplain ModuleDescriptor module} entry points.
+		 * The {@linkplain StringDescriptor names} of {@linkplain
+		 * MethodDescriptor methods} that are {@linkplain ModuleDescriptor
+		 * module} entry points.
 		 */
-		public final List<A_String> entryPoints =
-			new ArrayList<A_String>();
+		public final List<A_String> entryPoints = new ArrayList<A_String>();
 
 		/**
 		 * The {@linkplain String pragma strings}.
 		 */
-		public final List<A_String> pragmas =
-			new ArrayList<A_String>();
+		public final List<A_String> pragmas = new ArrayList<A_String>();
 
 		/**
 		 * Construct a new {@link AbstractAvailCompiler.ModuleHeader}.
@@ -162,18 +306,45 @@ public abstract class AbstractAvailCompiler
 				StringDescriptor.from(moduleName.qualifiedName()));
 			serializer.serialize(
 				AtomDescriptor.objectFromBoolean(isSystemModule));
-			serializer.serialize(
-				TupleDescriptor.fromList(versions));
-			serializer.serialize(
-				TupleDescriptor.fromList(extendedModules));
-			serializer.serialize(
-				TupleDescriptor.fromList(usedModules));
-			serializer.serialize(
-				TupleDescriptor.fromList(exportedNames));
-			serializer.serialize(
-				TupleDescriptor.fromList(entryPoints));
-			serializer.serialize(
-				TupleDescriptor.fromList(pragmas));
+			serializer.serialize(TupleDescriptor.fromList(versions));
+			serializer.serialize(tuplesForSerializingModuleImports());
+			serializer.serialize(TupleDescriptor.fromList(exportedNames));
+			serializer.serialize(TupleDescriptor.fromList(entryPoints));
+			serializer.serialize(TupleDescriptor.fromList(pragmas));
+		}
+
+		/**
+		 * Convert the information about the imported modules into a {@linkplain
+		 * TupleDescriptor tuple} of tuples suitable for serialization.
+		 *
+		 * @return A tuple encoding the module imports of this module header.
+		 */
+		private A_Tuple tuplesForSerializingModuleImports ()
+		{
+			final List<A_Tuple> list = new ArrayList<>();
+			for (final ModuleImport moduleImport : importedModules)
+			{
+				list.add(moduleImport.tupleForSerialization());
+			}
+			return TupleDescriptor.fromList(list);
+		}
+
+		/**
+		 * Convert the information encoded in a tuple into a {@link List} of
+		 * {@link ModuleImport}s.
+		 *
+		 * @param serializedTuple An encoding of a list of ModuleImports.
+		 * @return The list of ModuleImports.
+		 */
+		private List<ModuleImport> moduleImportsFromTuple (
+			final A_Tuple serializedTuple)
+		{
+			final List<ModuleImport> list = new ArrayList<>();
+			for (final A_Tuple importTuple : serializedTuple)
+			{
+				list.add(ModuleImport.fromSerializedTuple(importTuple));
+			}
+			return list;
 		}
 
 		/**
@@ -201,12 +372,8 @@ public abstract class AbstractAvailCompiler
 			versions.addAll(toList(theVersions));
 			final A_Tuple theExtended = deserializer.deserialize();
 			assert theExtended != null;
-			extendedModules.clear();
-			extendedModules.addAll(toList(theExtended));
-			final A_Tuple theUsed = deserializer.deserialize();
-			assert theUsed != null;
-			usedModules.clear();
-			usedModules.addAll(toList(theUsed));
+			importedModules.clear();
+			importedModules.addAll(moduleImportsFromTuple(theExtended));
 			final A_Tuple theExported = deserializer.deserialize();
 			assert theExported != null;
 			exportedNames.clear();
@@ -236,125 +403,134 @@ public abstract class AbstractAvailCompiler
 		{
 			final ModuleNameResolver resolver = runtime.moduleNameResolver();
 			module.versions(SetDescriptor.fromCollection(versions));
-			for (final A_Tuple modImport : extendedModules)
-			{
-				assert modImport.isTuple();
-				assert modImport.tupleSize() == 3;
-
-				final ResolvedModuleName ref = resolver.resolve(
-					moduleName.asSibling(
-						modImport.tupleAt(1).asNativeString()));
-				assert ref != null;
-				final A_String availRef = StringDescriptor.from(
-					ref.qualifiedName());
-				if (!runtime.includesModuleNamed(availRef))
-				{
-					return
-						"module \"" + ref.qualifiedName()
-						+ "\" to be loaded already";
-				}
-
-				final A_Module mod = runtime.moduleAt(availRef);
-				final A_Set reqVersions = modImport.tupleAt(3);
-				if (reqVersions.setSize() > 0)
-				{
-					final A_Set modVersions = mod.versions();
-					final A_Set intersection =
-						modVersions.setIntersectionCanDestroy(
-							reqVersions, false);
-					if (intersection.setSize() == 0)
-					{
-						return
-							"version compatibility; module \"" + ref.localName()
-							+ "\" guarantees versions " + modVersions
-							+ " but current module requires " + reqVersions;
-					}
-				}
-				module.addAncestors(mod.allAncestors());
-
-				final A_Set modNames = modImport.tupleAt(2).setSize() > 0
-					? modImport.tupleAt(2)
-					: mod.importedNames().keysAsSet();
-				for (final A_String strName : modNames)
-				{
-					if (!mod.importedNames().hasKey(strName))
-					{
-						return
-							"module \"" + ref.qualifiedName()
-							+ "\" to export " + strName;
-					}
-					final A_Set trueNames =
-						mod.importedNames().mapAt(strName);
-					for (final A_Atom trueName : trueNames)
-					{
-						module.addImportedName(strName, trueName);
-					}
-				}
-			}
-			for (final A_Tuple modImport : usedModules)
-			{
-				assert modImport.isTuple();
-				assert modImport.tupleSize() == 3;
-
-				final ResolvedModuleName ref = resolver.resolve(
-					moduleName.asSibling(
-						modImport.tupleAt(1).asNativeString()));
-				assert ref != null;
-				final A_String availRef = StringDescriptor.from(
-					ref.qualifiedName());
-				if (!runtime.includesModuleNamed(availRef))
-				{
-					return
-						"module \"" + ref.qualifiedName()
-						+ "\" to be loaded already";
-				}
-
-				final A_Module mod = runtime.moduleAt(availRef);
-				final A_Set reqVersions = modImport.tupleAt(3);
-				if (reqVersions.setSize() > 0)
-				{
-					final A_Set modVersions = mod.versions();
-					final A_Set intersection =
-						modVersions.setIntersectionCanDestroy(
-							reqVersions, false);
-					if (intersection.setSize() == 0)
-					{
-						return
-							"version compatibility; module \"" + ref.localName()
-							+ "\" guarantees versions " + modVersions
-							+ " but current module requires " + reqVersions;
-					}
-				}
-				module.addAncestors(mod.allAncestors());
-
-				final A_Set modNames = modImport.tupleAt(2).setSize() > 0
-					? modImport.tupleAt(2)
-					: mod.importedNames().keysAsSet();
-				for (final A_String strName : modNames)
-				{
-					if (!mod.importedNames().hasKey(strName))
-					{
-						return
-							"module \"" + ref.qualifiedName()
-							+ "\" to export " + strName;
-					}
-					final A_Set trueNames =
-						mod.importedNames().mapAt(strName);
-					for (final A_Atom trueName : trueNames)
-					{
-						module.addPrivateName(strName, trueName);
-					}
-				}
-			}
 
 			for (final A_String name : exportedNames)
 			{
 				assert name.isString();
-				final A_Atom trueName = AtomDescriptor.create(
-					name,
-					module);
-				module.introduceNewName(name, trueName);
-				module.addImportedName(name, trueName);
+				final A_Atom trueName = AtomDescriptor.create(name, module);
+				module.introduceNewName(trueName);
+				module.addImportedName(trueName);
+			}
+
+			for (final ModuleImport moduleImport : importedModules)
+			{
+				final ResolvedModuleName ref = resolver.resolve(
+					moduleName.asSibling(
+						moduleImport.moduleName.asNativeString()));
+				assert ref != null;
+				final A_String availRef = StringDescriptor.from(
+					ref.qualifiedName());
+				if (!runtime.includesModuleNamed(availRef))
+				{
+					return
+						"module \"" + ref.qualifiedName()
+						+ "\" to be loaded already";
+				}
+
+				final A_Module mod = runtime.moduleAt(availRef);
+				final A_Set reqVersions = moduleImport.acceptableVersions;
+				if (reqVersions.setSize() > 0)
+				{
+					final A_Set modVersions = mod.versions();
+					final A_Set intersection =
+						modVersions.setIntersectionCanDestroy(
+							reqVersions, false);
+					if (intersection.setSize() == 0)
+					{
+						return
+							"version compatibility; module \"" + ref.localName()
+							+ "\" guarantees versions " + modVersions
+							+ " but current module requires " + reqVersions;
+					}
+				}
+				module.addAncestors(mod.allAncestors());
+
+				final A_Set modNames = moduleImport.isItemized()
+					? moduleImport.names
+					: mod.importedNames().keysAsSet();
+				for (final A_String strName : modNames)
+				{
+					if (!mod.importedNames().hasKey(strName))
+					{
+						return
+							"module \"" + ref.qualifiedName()
+							+ "\" to export " + strName;
+					}
+					final A_Set trueNames = mod.importedNames().mapAt(strName);
+					for (final A_Atom trueName : trueNames)
+					{
+						if (moduleImport.isExtension)
+						{
+							module.addImportedName(trueName);
+						}
+						else
+						{
+							module.addPrivateName(trueName);
+						}
+					}
+				}
+				if (moduleImport.isItemized())
+				{
+					// Process the renames.
+					for (final MapDescriptor.Entry entry
+						: moduleImport.renames.mapIterable())
+					{
+						final A_String newString = entry.key();
+						final A_String oldString = entry.value();
+						// Find the old atom.
+						if (!mod.importedNames().hasKey(oldString))
+						{
+							return
+								"module \"" + ref.qualifiedName()
+								+ "\" to export " + oldString
+								+ " for renaming to " + newString;
+						}
+						final A_Atom oldAtom =
+							mod.importedNames().mapAt(oldString);
+						// Find or create the new atom.
+						A_Atom newAtom;
+						if (module.newNames().hasKey(newString))
+						{
+							// Use it.  It must have been declared in the
+							// "Names" clause.
+							newAtom = module.newNames().mapAt(newString);
+						}
+						else
+						{
+							// Create it.
+							newAtom = AtomDescriptor.create(newString, module);
+							if (moduleImport.isExtension)
+							{
+								module.addImportedName(newAtom);
+							}
+							else
+							{
+								module.addPrivateName(newAtom);
+							}
+						}
+						// Now tie the bundles together.
+						assert newAtom.bundleOrNil().equalsNil();
+						final A_Bundle oldBundle = oldAtom.bundleOrCreate();
+						final A_Method method = oldBundle.bundleMethod();
+						final A_Bundle newBundle;
+						try
+						{
+							newBundle = MessageBundleDescriptor.newBundle(
+								newAtom, method);
+						}
+						catch (final SignatureException e)
+						{
+							return
+								"well-formed signature for " + newString
+								+ ", a rename of " + oldString
+								+ " from \"" + ref.qualifiedName()
+								+ "\"";
+						}
+						newAtom.setAtomProperty(
+							AtomDescriptor.messageBundleKey(),
+							newBundle);
+					}
+				}
 			}
 
 			for (final A_String name : entryPoints)
@@ -368,7 +544,7 @@ public abstract class AbstractAvailCompiler
 					if (size == 0)
 					{
 						trueName = AtomDescriptor.create(name, module);
-						module.addPrivateName(name, trueName);
+						module.addPrivateName(trueName);
 					}
 					else if (size == 1)
 					{
@@ -565,8 +741,11 @@ public abstract class AbstractAvailCompiler
 		/** Leads a reference. */
 		UP_ARROW("↑", OPERATOR),
 
-		/** Module header token: Separates tokens. */
+		/** Module header token: Separates string literals. */
 		COMMA(",", OPERATOR),
+
+		/** Module header token: Separates string literals for renames. */
+		RIGHT_ARROW("→", OPERATOR),
 
 		/** Uses related to declaration and assignment. */
 		COLON(":", OPERATOR),
@@ -1289,8 +1468,8 @@ public abstract class AbstractAvailCompiler
 	 *
 	 * <p>
 	 * Return the {@link ParserState} after the strings if successful, otherwise
-	 * null. Populate the passed {@link List} with the
-	 * {@linkplain StringDescriptor actual Avail strings}.
+	 * null. Populate the passed {@link List} with the {@linkplain
+	 * StringDescriptor strings}.
 	 * </p>
 	 *
 	 * @param start
@@ -1306,15 +1485,20 @@ public abstract class AbstractAvailCompiler
 	{
 		assert strings.isEmpty();
 
+		ParserState state = start.afterToken();
 		A_Token token = start.peekStringLiteral();
 		if (token == null)
 		{
 			return start;
 		}
-		strings.add(token.literal());
-		ParserState state = start.afterToken();
-		while (state.peekToken(COMMA))
+		while (true)
 		{
+			// We just read a string literal.
+			strings.add(token.literal());
+			if (!state.peekToken(COMMA))
+			{
+				return state;
+			}
 			state = state.afterToken();
 			token = state.peekStringLiteral();
 			if (token == null)
@@ -1323,9 +1507,78 @@ public abstract class AbstractAvailCompiler
 				return null;
 			}
 			state = state.afterToken();
-			strings.add(token.literal());
 		}
-		return state;
+	}
+
+	/**
+	 * Parse one or more string literals separated by commas. This parse isn't
+	 * backtracking like the rest of the grammar - it's greedy. It considers a
+	 * comma followed by something other than a string literal to be an
+	 * unrecoverable parsing error (not a backtrack).  Similarly, a {@linkplain
+	 * #RIGHT_ARROW right arrow} may optionally occur between two strings to
+	 * indicate a rename, and it's considered an error if a string doesn't
+	 * follow the right arrow.
+	 *
+	 * <p>
+	 * Return the {@link ParserState} after the strings if successful, otherwise
+	 * null. Populate the passed {@link List} with {@linkplain TupleDescriptor
+	 * tuples} of {@linkplain StringDescriptor strings} – a tuple of size one
+	 * for a string literal, and a tuple containing two strings if a right arrow
+	 * (→) separated them.
+	 * </p>
+	 *
+	 * @param start
+	 *        Where to start parsing.
+	 * @param strings
+	 *        The initially empty list of string singles and pairs to populate.
+	 * @return The parser state after the list of strings, or {@code null} if
+	 *         the list of strings is malformed.
+	 */
+	private static @Nullable ParserState parseStringLiteralsWithRenames (
+		final ParserState start,
+		final List<A_Tuple> strings)
+	{
+		assert strings.isEmpty();
+
+		ParserState state = start.afterToken();
+		A_Token token = start.peekStringLiteral();
+		if (token == null)
+		{
+			return start;
+		}
+		while (true)
+		{
+			// We just read a string literal.
+			if (state.peekToken(RIGHT_ARROW))
+			{
+				state = state.afterToken();
+				final A_Token token2 = start.peekStringLiteral();
+				if (token2 == null)
+				{
+					state.expected("string literal token after right arrow");
+					return null;
+				}
+				strings.add(TupleDescriptor.from(
+					token.literal(),
+					token2.literal()));
+			}
+			else
+			{
+				strings.add(TupleDescriptor.from(token.literal()));
+			}
+			if (!state.peekToken(COMMA))
+			{
+				return state;
+			}
+			state = state.afterToken();
+			token = state.peekStringLiteral();
+			if (token == null)
+			{
+				state.expected("another string literal after comma");
+				return null;
+			}
+			state = state.afterToken();
+		}
 	}
 
 	/**
@@ -1346,17 +1599,18 @@ public abstract class AbstractAvailCompiler
 	 * @param start
 	 *        Where to start parsing.
 	 * @param imports
-	 *        The initially empty list of imports to populate.
+	 *        The initially empty list of module imports to populate.
+	 * @param isExtension
+	 *        Whether this is an Extends clause rather than Uses.  This controls
+	 *        whether imported names are re-exported.
 	 * @return The parser state after the list of imports, or {@code null} if
 	 *         the list of imports is malformed.
-	 * @author Todd L Smith &lt;todd@availlang.org&gt;
 	 */
 	private static @Nullable ParserState parseImports (
 		final ParserState start,
-		final List<A_Tuple> imports)
+		final List<ModuleImport> imports,
+		final boolean isExtension)
 	{
-		assert imports.isEmpty();
-
 		ParserState state = start;
 		do
 		{
@@ -1370,7 +1624,7 @@ public abstract class AbstractAvailCompiler
 			final A_String moduleName = token.literal();
 			state = state.afterToken();
 
-			final List<A_String> versions = new ArrayList<A_String>();
+			final List<A_String> versions = new ArrayList<>();
 			if (state.peekToken(OPEN_PARENTHESIS))
 			{
 				state = state.afterToken();
@@ -1388,9 +1642,10 @@ public abstract class AbstractAvailCompiler
 				state = state.afterToken();
 			}
 
-			final List<A_String> names = new ArrayList<A_String>();
+			List<A_Tuple> nameTuples = null;
 			if (state.peekToken(EQUALS))
 			{
+				nameTuples = new ArrayList<>();
 				state = state.afterToken();
 				if (!state.peekToken(
 					OPEN_PARENTHESIS,
@@ -1399,7 +1654,7 @@ public abstract class AbstractAvailCompiler
 					return null;
 				}
 				state = state.afterToken();
-				state = parseStringLiterals(state, names);
+				state = parseStringLiteralsWithRenames(state, nameTuples);
 				if (state == null)
 				{
 					return null;
@@ -1413,10 +1668,40 @@ public abstract class AbstractAvailCompiler
 				state = state.afterToken();
 			}
 
-			imports.add(TupleDescriptor.from(
-				moduleName,
-				TupleDescriptor.fromList(names).asSet(),
-				TupleDescriptor.fromList(versions).asSet()));
+			A_Set names;
+			A_Map renames;
+			if (nameTuples == null)
+			{
+				names = NilDescriptor.nil();
+				renames = NilDescriptor.nil();
+			}
+			else
+			{
+				names = SetDescriptor.empty();
+				renames = MapDescriptor.empty();
+				for (final A_Tuple tuple : nameTuples)
+				{
+					if (tuple.tupleSize() == 1)
+					{
+						names = names.setWithElementCanDestroy(
+							tuple.tupleAt(1), true);
+					}
+					else
+					{
+						renames = renames.mapAtPuttingCanDestroy(
+							tuple.tupleAt(1),
+							tuple.tupleAt(2),
+							true);
+					}
+				}
+			}
+			imports.add(
+				new ModuleImport(
+					moduleName,
+					SetDescriptor.fromCollection(versions),
+					isExtension,
+					names,
+					renames));
 			if (state.peekToken(COMMA))
 			{
 				state = state.afterToken();
@@ -4708,12 +4993,14 @@ public abstract class AbstractAvailCompiler
 			// On EXTENDS, record the imports.
 			else if (lexeme.equals(EXTENDS.lexeme()))
 			{
-				state = parseImports(state, moduleHeader.extendedModules);
+				state = parseImports(
+					state, moduleHeader.importedModules, true);
 			}
 			// On USES, record the imports.
 			else if (lexeme.equals(USES.lexeme()))
 			{
-				state = parseImports(state, moduleHeader.usedModules);
+				state = parseImports(
+					state, moduleHeader.importedModules, false);
 			}
 			// On NAMES, record the names.
 			else if (lexeme.equals(NAMES.lexeme()))

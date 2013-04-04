@@ -1155,32 +1155,26 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param stringName
 	 * @param trueName
 	 */
 	abstract void o_AddImportedName (
 		AvailObject object,
-		A_String stringName,
 		A_Atom trueName);
 
 	/**
 	 * @param object
-	 * @param stringName
 	 * @param trueName
 	 */
 	abstract void o_IntroduceNewName (
 		AvailObject object,
-		A_String stringName,
 		A_Atom trueName);
 
 	/**
 	 * @param object
-	 * @param stringName
 	 * @param trueName
 	 */
 	abstract void o_AddPrivateName (
 		AvailObject object,
-		A_String stringName,
 		A_Atom trueName);
 
 	/**
