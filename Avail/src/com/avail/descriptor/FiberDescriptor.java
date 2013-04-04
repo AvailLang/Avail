@@ -65,6 +65,9 @@ extends Descriptor
 	/** The priority of loading tasks. */
 	public static final int loaderPriority = 50;
 
+	/** The priority of stringifying objects. */
+	public static final int stringificationPriority = 50;
+
 	/**
 	 * The advisory interrupt request flags. Bits [0..3] of a {@linkplain
 	 * FiberDescriptor fiber}'s flags slot are reserved for interrupt request

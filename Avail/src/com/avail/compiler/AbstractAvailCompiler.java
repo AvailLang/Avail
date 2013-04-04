@@ -39,6 +39,7 @@ import static com.avail.descriptor.TupleDescriptor.toList;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.utility.PrefixSharingList.*;
 import static java.lang.Math.min;
+import static java.util.Arrays.asList;
 import java.io.*;
 import java.nio.*;
 import java.nio.channels.*;
@@ -457,8 +458,8 @@ public abstract class AbstractAvailCompiler
 	 * generators} that describe what was expected (but not found) at the
 	 * {@linkplain #greatestGuess rightmost reached position}.
 	 */
-	@InnerAccess final List<Generator<String>> greatExpectations =
-		new ArrayList<Generator<String>>();
+	@InnerAccess final List<Describer> greatExpectations =
+		new ArrayList<Describer>();
 
 	/** The memoization of results of previous parsing attempts. */
 	final @InnerAccess AvailCompilerFragmentCache fragmentCache =
@@ -943,7 +944,7 @@ public abstract class AbstractAvailCompiler
 				if (count.value == 0)
 				{
 					reportError();
-					assert false;
+					return;
 				}
 				// If a simple unambiguous solution was found, then answer
 				// it forward to the continuation.
@@ -986,7 +987,7 @@ public abstract class AbstractAvailCompiler
 								afterSolution.clientDataMap),
 							solution.value(),
 							aSolution);
-						assert false;
+						return;
 					}
 				}
 			});
@@ -1112,13 +1113,13 @@ public abstract class AbstractAvailCompiler
 		 * @param expectedToken
 		 *        The {@linkplain ExpectedToken expected token} to look for.
 		 * @param expected
-		 *        A {@linkplain Generator generator} of a message to record if
+		 *        A {@linkplain Describer describer} of a message to record if
 		 *        the specified token is not present.
 		 * @return Whether the specified token is present.
 		 */
 		boolean peekToken (
 			final ExpectedToken expectedToken,
-			final Generator<String> expected)
+			final Describer expected)
 		{
 			final A_Token token = peekToken();
 			final boolean found = token.tokenType() == expectedToken.tokenType()
@@ -1207,30 +1208,68 @@ public abstract class AbstractAvailCompiler
 		 * in case the parse fails.
 		 *
 		 * <p>
-		 * The expectation is a {@linkplain Generator Generator<String>}, in
-		 * case constructing a {@link String} would be prohibitive. There is
-		 * also {@link #expected(String) another} version of this method that
-		 * accepts a String directly.
+		 * The expectation is a {@linkplain Describer}, in case constructing a
+		 * {@link String} frivolously would be prohibitive. There is also {@link
+		 * #expected(String) another} version of this method that accepts a
+		 * String directly.
 		 * </p>
 		 *
-		 * @param stringGenerator
-		 *        The {@code Generator<String>} to capture.
+		 * @param describer
+		 *        The {@code describer} to capture.
 		 */
-		void expected (final Generator<String> stringGenerator)
+		void expected (final Describer describer)
 		{
 			synchronized (AbstractAvailCompiler.this)
 			{
 				if (position == greatestGuess)
 				{
-					greatExpectations.add(stringGenerator);
+					greatExpectations.add(describer);
 				}
 				if (position > greatestGuess)
 				{
 					greatestGuess = position;
 					greatExpectations.clear();
-					greatExpectations.add(stringGenerator);
+					greatExpectations.add(describer);
 				}
 			}
+		}
+
+		/**
+		 * Record an expectation at the current parse position. The expectations
+		 * captured at the rightmost parse position constitute the error message
+		 * in case the parse fails.
+		 *
+		 * @param values
+		 *        A list of arbitrary {@linkplain AvailObject Avail values} that
+		 *        should be stringified.
+		 * @param transformer
+		 *        A {@linkplain Transformer1 transformer} that accepts the
+		 *        stringified values and answers an expectation message.
+		 */
+		void expected (
+			final List<? extends A_BasicObject> values,
+			final Transformer1<List<String>, String> transformer)
+		{
+			expected(new Describer()
+			{
+				@Override
+				public void describeThen (
+					final Continuation1<String> continuation)
+				{
+					Interpreter.stringifyThen(
+						runtime,
+						values,
+						new Continuation1<List<String>>()
+						{
+							@Override
+							public void value (
+								final @Nullable List<String> list)
+							{
+								continuation.value(transformer.value(list));
+							}
+						});
+				}
+			});
 		}
 
 		/**
@@ -1662,14 +1701,14 @@ public abstract class AbstractAvailCompiler
 	 *        The exact string to generate.
 	 * @return A generator that produces the string that was provided.
 	 */
-	Generator<String> generate (final String string)
+	Describer generate (final String string)
 	{
-		return new Generator<String>()
+		return new Describer()
 		{
 			@Override
-			public String value ()
+			public void describeThen (final Continuation1<String> continuation)
 			{
-				return string;
+				continuation.value(string);
 			}
 		};
 	}
@@ -1682,21 +1721,17 @@ public abstract class AbstractAvailCompiler
 	 * position encountered during the parse, and the error strings in {@link
 	 * #greatExpectations} are the things that were expected but not found at
 	 * that position. This seems to work very well in practice.
-	 *
-	 * @throws AvailCompilerException
-	 *        Always thrown.
 	 */
-	void reportError () throws AvailCompilerException
+	void reportError ()
 	{
 		final A_Token token;
-		final List<Generator<String>> expectations;
+		final List<Describer> expectations;
 		synchronized (this)
 		{
 			token = tokens.get(greatestGuess);
-			expectations = new ArrayList<Generator<String>>(greatExpectations);
+			expectations = new ArrayList<Describer>(greatExpectations);
 		}
 		reportError(token, "Expected...", expectations);
-		assert false;
 	}
 
 	/** A bunch of dash characters, wide enough to catch the eye. */
@@ -1714,16 +1749,17 @@ public abstract class AbstractAvailCompiler
 	 * exception encapsulates the {@linkplain ResolvedModuleName module name} of
 	 * the {@linkplain ModuleDescriptor module} undergoing compilation, the
 	 * error string, and the text position. This position is the rightmost
-	 * position encountered during the parse, and the error strings in
-	 * {@link #greatExpectations} are the things that were expected but not
-	 * found at that position. This seems to work very well in practice.
+	 * position encountered during the parse, and the error strings produced by
+	 * the {@linkplain Describer describers} in {@link #greatExpectations} are
+	 * the things that were expected but not found at that position. This seems
+	 * to work very well in practice.
 	 *
 	 * @param token
 	 *        Where the error occurred.
 	 * @param banner
 	 *        The string that introduces the problem text.
 	 * @param problems
-	 *        A list of {@linkplain Generator generators} that may be
+	 *        A list of {@linkplain Describer describers} that may be
 	 *        invoked to produce problem strings.
 	 * @throws AvailCompilerException
 	 *         Always thrown.
@@ -1731,13 +1767,14 @@ public abstract class AbstractAvailCompiler
 	void reportError (
 			final A_Token token,
 			final String banner,
-			final List<Generator<String>> problems)
+			final List<Describer> problems)
 		throws AvailCompilerException
 	{
 		assert problems.size() > 0 : "Bug - empty problem list";
 		final long charPos = token.start();
 		final String sourceUpToError = source.substring(0, (int) charPos);
 		final int startOfPreviousLine = sourceUpToError.lastIndexOf('\n') + 1;
+		@SuppressWarnings("resource")
 		final Formatter text = new Formatter();
 		text.format("%n");
 		int wedges = 3;
@@ -1768,32 +1805,64 @@ public abstract class AbstractAvailCompiler
 		text.format("^-- %s", banner);
 		text.format("%n>>>%s", rowOfDashes);
 		final Set<String> alreadySeen = new HashSet<String>(problems.size());
-		for (final Generator<String> generator : problems)
+		final Mutable<Integer> outstanding =
+			new Mutable<Integer>(problems.size());
+		final Continuation1<String> decrement = new Continuation1<String>()
 		{
-			final String str = generator.value();
-			if (!alreadySeen.contains(str))
+			@Override
+			public void value (final @Nullable String message)
 			{
-				alreadySeen.add(str);
-				text.format("\n>>>\t%s", str.replace("\n", "\n>>>\t"));
+				assert message != null;
+				synchronized (outstanding)
+				{
+					// Ignore duplicate messages.
+					if (!alreadySeen.contains(message))
+					{
+						alreadySeen.add(message);
+						text.format(
+							"\n>>>\t%s", message.replace("\n", "\n>>>\t"));
+					}
+					// Decrement the count of outstanding describers. When
+					// the count reaches zero, then produce the remainder of
+					// the message.
+					outstanding.value--;
+					if (outstanding.value == 0)
+					{
+						text.format(
+							"%n(file=\"%s\", line=%d)",
+							moduleHeader.moduleName.qualifiedName(),
+							token.lineNumber());
+						text.format("%n>>>%s", rowOfDashes);
+						int endOfLine = source.indexOf('\n', (int) charPos);
+						if (endOfLine == -1)
+						{
+							endOfLine = source.length();
+						}
+						final String textString = text.toString();
+						final AvailCompilerException killer =
+							new AvailCompilerException(
+								moduleHeader.moduleName,
+								charPos,
+								endOfLine,
+								textString);
+						killer.fillInStackTrace();
+						compilationFailed(killer);
+					}
+				}
 			}
-		}
-		text.format(
-			"%n(file=\"%s\", line=%d)",
-			moduleHeader.moduleName.qualifiedName(),
-			token.lineNumber());
-		text.format("%n>>>%s", rowOfDashes);
-		int endOfLine = source.indexOf('\n', (int) charPos);
-		if (endOfLine == -1)
+		};
+		// Generate the error strings in parallel.
+		for (final Describer describer : problems)
 		{
-			endOfLine = source.length();
+			eventuallyDo(new Continuation0()
+			{
+				@Override
+				public void value ()
+				{
+					describer.describeThen(decrement);
+				}
+			});
 		}
-		final String textString = text.toString();
-		text.close();
-		throw new AvailCompilerException(
-			moduleHeader.moduleName,
-			charPos,
-			endOfLine,
-			textString);
 	}
 
 	/**
@@ -1820,10 +1889,10 @@ public abstract class AbstractAvailCompiler
 			new Mutable<A_Phrase>(interpretation2);
 		findParseTreeDiscriminants(node1, node2);
 		where.expected(
-			new Generator<String>()
+			new Describer()
 			{
 				@Override
-				public String value ()
+				public void describeThen (final Continuation1<String> c)
 				{
 					final StringBuilder builder = new StringBuilder(200);
 					builder.append("unambiguous interpretation.  ");
@@ -1832,11 +1901,10 @@ public abstract class AbstractAvailCompiler
 					builder.append(node1.value.toString());
 					builder.append("\n\t");
 					builder.append(node2.value.toString());
-					return builder.toString();
+					c.value(builder.toString());
 				}
 			});
 		reportError();
-		assert false;
 	}
 
 	/**
@@ -2178,38 +2246,6 @@ public abstract class AbstractAvailCompiler
 	}
 
 	/**
-	 * Convert a {@link ParseNodeDescriptor parse node} into a zero-argument
-	 * {@link FunctionDescriptor function}.
-	 *
-	 * @param expressionNode The parse tree to compile to a function.
-	 * @param lineNumber The line number to attach to the new function.
-	 * @return A zero-argument function.
-	 */
-	A_Function createFunctionToRun (
-		final A_Phrase expressionNode,
-		final int lineNumber)
-	{
-		final A_Phrase block = BlockNodeDescriptor.newBlockNode(
-			Collections.<A_Phrase>emptyList(),
-			0,
-			Collections.singletonList(expressionNode),
-			TOP.o(),
-			SetDescriptor.empty(),
-			lineNumber);
-		BlockNodeDescriptor.recursivelyValidate(block);
-		final A_RawFunction compiledBlock = block.generateInModule(module);
-		// The block is guaranteed context-free (because imported
-		// variables/values are embedded directly as constants in the generated
-		// code), so build a function with no copied data.
-		assert compiledBlock.numOuters() == 0;
-		final A_Function function = FunctionDescriptor.create(
-			compiledBlock,
-			TupleDescriptor.empty());
-		function.makeImmutable();
-		return function;
-	}
-
-	/**
 	 * Evaluate the specified {@linkplain FunctionDescriptor function} in the
 	 * module's context; lexically enclosing variables are not considered in
 	 * scope, but module variables and constants are in scope.
@@ -2305,7 +2341,8 @@ public abstract class AbstractAvailCompiler
 		final Continuation1<Throwable> onFailure)
 	{
 		evaluateFunctionThen(
-			createFunctionToRun(expressionNode, lineNumber),
+			FunctionDescriptor.createFunctionForPhrase(
+				expressionNode, module, lineNumber),
 			Collections.<AvailObject>emptyList(),
 			shouldSerialize,
 			onSuccess,
@@ -2389,9 +2426,11 @@ public abstract class AbstractAvailCompiler
 										expression.token(), decl),
 									LiteralNodeDescriptor.syntheticFrom(val),
 									false);
-							final A_Function function = createFunctionToRun(
-								assign,
-								expression.token().lineNumber());
+							final A_Function function =
+								FunctionDescriptor.createFunctionForPhrase(
+									assign,
+									module,
+									expression.token().lineNumber());
 							synchronized (AbstractAvailCompiler.this)
 							{
 								serializer.serialize(function);
@@ -2421,8 +2460,10 @@ public abstract class AbstractAvailCompiler
 							decl),
 						expression.initializationExpression(),
 						false);
-					final A_Function function = createFunctionToRun(
+					final A_Function function =
+						FunctionDescriptor.createFunctionForPhrase(
 						assign,
+						module,
 						expression.token().lineNumber());
 					synchronized (AbstractAvailCompiler.this)
 					{
@@ -2477,10 +2518,10 @@ public abstract class AbstractAvailCompiler
 		final boolean caseInsensitive)
 	{
 		where.expected(
-			new Generator<String>()
+			new Describer()
 			{
 				@Override
-				public String value ()
+				public void describeThen (final Continuation1<String> c)
 				{
 					final StringBuilder builder = new StringBuilder(200);
 					if (caseInsensitive)
@@ -2552,7 +2593,7 @@ public abstract class AbstractAvailCompiler
 							startOfLine = true;
 						}
 					}
-					return builder.toString();
+					c.value(builder.toString());
 				}
 			});
 	}
@@ -3392,14 +3433,15 @@ public abstract class AbstractAvailCompiler
 					{
 						assert throwable != null;
 						// The prefix function failed in some way.
-						start.expected(new Generator<String>()
+						start.expected(new Describer()
 						{
 							@Override
-							public String value ()
+							public void describeThen (
+								final Continuation1<String> c)
 							{
-								return
+								c.value(
 									"prefix function not to have failed with:\n"
-									+ throwable.getLocalizedMessage();
+									+ throwable.getLocalizedMessage());
 							}
 						});
 					}
@@ -3439,7 +3481,7 @@ public abstract class AbstractAvailCompiler
 		final List<A_Type> argTypes,
 		final ParserState state,
 		final Continuation1<A_Type> onSuccess,
-		final Continuation1<Generator<String>> onFailure)
+		final Continuation1<Describer> onFailure)
 	{
 		final MutableOrNull<A_Tuple> definitionsTuple =
 			new MutableOrNull<A_Tuple>();
@@ -3471,17 +3513,28 @@ public abstract class AbstractAvailCompiler
 				if (finalType.equals(BottomTypeDescriptor.bottom())
 					|| finalType.equals(TOP.o()))
 				{
-					onFailure.value(new Generator<String> ()
+					onFailure.value(new Describer()
 					{
 						@Override
-						public String value()
+						public void describeThen (final Continuation1<String> c)
 						{
-							return "argument #"
-								+ Integer.toString(finalIndex)
-								+ " of message "
-								+ bundle.message().name()
-								+ " to have a type other than "
-								+ argTypes.get(finalIndex - 1);
+							Interpreter.stringifyThen(
+								runtime,
+								argTypes.get(finalIndex - 1),
+								new Continuation1<String>()
+								{
+									@Override
+									public void value (final @Nullable String s)
+									{
+										assert s != null;
+										c.value(String.format(
+											"argument #%d of message %s "
+											+ " to have a type other than %s",
+											Integer.toString(finalIndex),
+											bundle.message().name(),
+											s));
+									}
+								});
 						}
 					});
 					return;
@@ -3504,10 +3557,10 @@ public abstract class AbstractAvailCompiler
 		}
 		if (satisfyingDefinitions.isEmpty())
 		{
-			onFailure.value(new Generator<String> ()
+			onFailure.value(new Describer()
 			{
 				@Override
-				public String value()
+				public void describeThen (final Continuation1<String> c)
 				{
 					final List<A_Definition> allVisible = new ArrayList<>();
 					for (final A_Definition def : definitionsTuple.value())
@@ -3517,7 +3570,6 @@ public abstract class AbstractAvailCompiler
 							allVisible.add(def);
 						}
 					}
-					final Formatter builder = new Formatter();
 					final List<Integer> allFailedIndices = new ArrayList<>(3);
 					each_arg:
 					for (int i = 1, end = argTypes.size(); i <= end; i++)
@@ -3542,44 +3594,93 @@ public abstract class AbstractAvailCompiler
 							allFailedIndices.add(i);
 						}
 					}
-					builder.format(
-						"arguments at indices %s of message %s to match a "
-						+ "visible method definition.%n",
-						allFailedIndices,
-						bundle.message().name());
-					builder.format("\tI got:%n");
+					// Don't stringify all the argument types, just the failed
+					// ones. And don't stringify the same value twice. Obviously
+					// side effects in stringifiers won't work right here…
+					final List<A_BasicObject> uniqueValues =
+						new ArrayList<A_BasicObject>();
+					final Map<A_BasicObject, Integer> valuesToStringify =
+						new HashMap<A_BasicObject, Integer>();
 					for (final int i : allFailedIndices)
 					{
-						builder.format(
-							"\t\t#%d = %s%n",
-							i,
-							argTypes.get(i - 1));
-					}
-					builder.format(
-						"\tI expected%s:",
-						allVisible.size() > 1 ? " one of" : "");
-					for (final A_Definition definition : allVisible)
-					{
-						builder.format(
-							"%n\t\tFrom module %s @ line #%s,",
-							definition.definitionModule().moduleName(),
-							definition.isMethodDefinition()
-								? definition.bodyBlock()
-									.code().startingLineNumber()
-								: "unknown");
-						final A_Type signatureArgumentsType =
-							definition.bodySignature().argsTupleType();
-						for (final int i : allFailedIndices)
+						final A_Type argType = argTypes.get(i - 1);
+						if (!valuesToStringify.containsKey(argType))
 						{
-							builder.format(
-								"%n\t\t\t#%d = %s",
-								i,
-								signatureArgumentsType.typeAtIndex(i));
+							valuesToStringify.put(argType, uniqueValues.size());
+							uniqueValues.add(argType);
+						}
+						for (final A_Definition definition : allVisible)
+						{
+							final A_Type signatureArgumentsType =
+								definition.bodySignature().argsTupleType();
+							final A_Type sigType =
+								signatureArgumentsType.typeAtIndex(i);
+							if (!valuesToStringify.containsKey(sigType))
+							{
+								valuesToStringify.put(
+									sigType, uniqueValues.size());
+								uniqueValues.add(sigType);
+							}
 						}
 					}
-					final String builderString = builder.toString();
-					builder.close();
-					return builderString;
+					Interpreter.stringifyThen(
+						runtime,
+						uniqueValues,
+						new Continuation1<List<String>>()
+						{
+							@Override
+							public void value (
+								final @Nullable List<String> strings)
+							{
+								assert strings != null;
+								@SuppressWarnings("resource")
+								final Formatter builder = new Formatter();
+								builder.format(
+									"arguments at indices %s of message %s to "
+									+ "match a visible method definition:%n",
+									allFailedIndices,
+									bundle.message().name());
+								builder.format("\tI got:%n");
+								for (final int i : allFailedIndices)
+								{
+									final A_Type argType = argTypes.get(i - 1);
+									final String s = strings.get(
+										valuesToStringify.get(argType));
+									builder.format("\t\t#%d = %s%n", i, s);
+								}
+								builder.format(
+									"\tI expected%s:",
+									allVisible.size() > 1 ? " one of" : "");
+								for (final A_Definition definition : allVisible)
+								{
+									builder.format(
+										"%n\t\tFrom module %s @ line #%s,",
+										definition
+											.definitionModule()
+											.moduleName(),
+										definition.isMethodDefinition()
+											? definition
+												.bodyBlock()
+												.code()
+												.startingLineNumber()
+											: "unknown");
+									final A_Type signatureArgumentsType =
+										definition.bodySignature()
+											.argsTupleType();
+									for (final int i : allFailedIndices)
+									{
+										final A_Type sigType =
+											signatureArgumentsType
+												.typeAtIndex(i);
+										final String s = strings.get(
+											valuesToStringify.get(sigType));
+										builder.format(
+											"%n\t\t\t#%d = %s", i, s);
+									}
+								}
+								c.value(builder.toString());
+							}
+						});
 				}
 			});
 			return;
@@ -3668,35 +3769,37 @@ public abstract class AbstractAvailCompiler
 									(AvailRejectedParseException) e;
 								final A_String problem = rej.rejectionString();
 								onFailure.value(
-									new Generator<String>()
+									new Describer()
 									{
 										@Override
-										public String value ()
+										public void describeThen (
+											final Continuation1<String> c)
 										{
-											return
+											c.value(
 												problem.asNativeString()
 												+ " (while parsing send of "
 												+ bundle.message().name()
-												+ ")";
+												+ ")");
 										}
 									});
 							}
 							else if (e instanceof FiberTerminationException)
 							{
 								onFailure.value(
-									new Generator<String>()
+									new Describer()
 									{
 										@Override
-										public String value ()
+										public void describeThen (
+											final Continuation1<String> c)
 										{
-											return
+											c.value(
 												"semantic restriction not to "
 												+ "raise an unhandled "
 												+ "exception (while parsing "
 												+ "send of "
 												+ bundle.message().name()
 												+ "):\n\t"
-												+ e.toString();
+												+ e.toString());
 										}
 									});
 							}
@@ -3705,18 +3808,19 @@ public abstract class AbstractAvailCompiler
 								final AvailAssertionFailedException ex =
 									(AvailAssertionFailedException) e;
 								onFailure.value(
-									new Generator<String>()
+									new Describer()
 									{
 										@Override
-										public String value ()
+										public void describeThen (
+											final Continuation1<String> c)
 										{
-											return
+											c.value(
 												"assertion failed "
 												+ " (while parsing send of "
 												+ bundle.message().name()
 												+ "):\n\t"
 												+ ex.assertionString()
-													.asNativeString();
+													.asNativeString());
 										}
 									});
 							}
@@ -3823,11 +3927,11 @@ public abstract class AbstractAvailCompiler
 					attempt(afterState, continuation, sendNode);
 				}
 			},
-			new Continuation1<Generator<String>>()
+			new Continuation1<Describer>()
 			{
 				@Override
 				public void value (
-					final @Nullable Generator<String> errorGenerator)
+					final @Nullable Describer errorGenerator)
 				{
 					assert errorGenerator != null;
 					valid.value = false;
@@ -3979,11 +4083,13 @@ public abstract class AbstractAvailCompiler
 							// A leading argument was supplied which
 							// used at least one local.  It shouldn't
 							// have.
-							afterArg.expected(new Generator<String>()
+							afterArg.expected(new Describer()
 							{
 								@Override
-								public String value ()
+								public void describeThen (
+									final @Nullable Continuation1<String> c)
 								{
+									assert c != null;
 									final List<String> localNames =
 										new ArrayList<String>();
 									for (final A_Phrase usedLocal : usedLocals)
@@ -3993,13 +4099,13 @@ public abstract class AbstractAvailCompiler
 										localNames.add(
 											name.asNativeString());
 									}
-									return
-										"A leading argument which " +
-										"was supposed to be parsed in" +
-										"module scope actually " +
-										"referred to some local " +
-										"variables: " +
-										localNames.toString();
+									c.value(
+										"A leading argument which "
+										+ "was supposed to be parsed in"
+										+ "module scope actually "
+										+ "referred to some local "
+										+ "variables: "
+										+ localNames.toString());
 								}
 							});
 							return;
@@ -4179,7 +4285,8 @@ public abstract class AbstractAvailCompiler
 					LiteralNodeDescriptor.syntheticFrom(
 						AtomDescriptor.objectFromBoolean(isPublic)))),
 			TOP.o());
-		final A_Function function = createFunctionToRun(send, 0);
+		final A_Function function =
+			FunctionDescriptor.createFunctionForPhrase(send, module, 0);
 		function.makeImmutable();
 		synchronized (this)
 		{
@@ -4224,8 +4331,7 @@ public abstract class AbstractAvailCompiler
 				+ "%s=<digits>=name",
 				PRAGMA_METHOD.lexemeJavaString));
 			reportError();
-			// This is to help the compiler with null analysis.
-			throw new AssertionError();
+			return;
 		}
 		bootstrapMethodThen(methodName, primNum, continuation);
 	}
@@ -4273,8 +4379,7 @@ public abstract class AbstractAvailCompiler
 				+ "%s=<digits‡,>=name",
 				PRAGMA_MACRO.lexemeJavaString));
 			reportError();
-			// This is to help the compiler with null analysis.
-			throw new AssertionError();
+			return;
 		}
 		bootstrapMacroThen(macroName, primNums, continuation);
 	}
@@ -4297,10 +4402,28 @@ public abstract class AbstractAvailCompiler
 		final Continuation0 continuation)
 	{
 		final A_String availName = StringDescriptor.from(pragmaValue);
+		final A_Set atoms = module.trueNamesForStringName(availName);
+		if (atoms.setSize() == 0)
+		{
+			state.expected(String.format(
+				"stringification method \"%s\" to be introduced in this module",
+				availName.asNativeString()));
+			reportError();
+			assert false;
+		}
+		else if (atoms.setSize() > 1)
+		{
+			state.expected(String.format(
+				"stringification method \"%s\" to be unambiguous",
+				availName.asNativeString()));
+			reportError();
+			assert false;
+		}
+		final A_Atom atom = atoms.asTuple().tupleAt(1);
 		final A_Phrase send = SendNodeDescriptor.from(
 			MethodDescriptor.vmDeclareStringifierAtom().bundleOrNil(),
 			ListNodeDescriptor.newExpressions(TupleDescriptor.from(
-				LiteralNodeDescriptor.syntheticFrom(availName))),
+				LiteralNodeDescriptor.syntheticFrom(atom))),
 			TOP.o());
 		evaluateModuleStatementThen(
 			send,
@@ -4369,7 +4492,7 @@ public abstract class AbstractAvailCompiler
 					{
 						state.expected("pragma to have the form key=value");
 						reportError();
-						assert false;
+						return;
 					}
 					final String pragmaKind = pragmaParts[0].trim();
 					final String pragmaValue = pragmaParts[1].trim();
@@ -4399,7 +4522,7 @@ public abstract class AbstractAvailCompiler
 								PRAGMA_MACRO.lexemeJavaString,
 								PRAGMA_STRINGIFY.lexemeJavaString));
 							reportError();
-							assert false;
+							return;
 					}
 				}
 			});
@@ -4418,7 +4541,7 @@ public abstract class AbstractAvailCompiler
 		if (afterHeader == null)
 		{
 			reportError();
-			assert false;
+			return;
 		}
 		// Update the reporter. This condition just prevents
 		// the reporter from being called twice at the end of a
@@ -4443,7 +4566,7 @@ public abstract class AbstractAvailCompiler
 		{
 			afterHeader.expected(errorString);
 			reportError();
-			assert false;
+			return;
 		}
 		synchronized (this)
 		{
@@ -4515,7 +4638,7 @@ public abstract class AbstractAvailCompiler
 					afterStatement.expected(
 						"top-level statement to have type ⊤");
 					reportError();
-					assert false;
+					return;
 				}
 
 				// Clear the section of the fragment cache associated with
@@ -4573,7 +4696,7 @@ public abstract class AbstractAvailCompiler
 								}
 								afterStatement.expected(formatter.toString());
 								reportError();
-								assert false;
+								return;
 							}
 							// Otherwise, report success.
 							else
@@ -4628,16 +4751,15 @@ public abstract class AbstractAvailCompiler
 	 * TokenDescriptor token} list.
 	 *
 	 * @return A module header.
-	 * @throws AvailCompilerException
-	 *         If the module header cannot be parsed.
 	 */
-	public ModuleHeader parseModuleHeader () throws AvailCompilerException
+	public @Nullable ModuleHeader parseModuleHeader ()
 	{
 		greatestGuess = -1;
 		greatExpectations.clear();
 		if (parseModuleHeader(true) == null)
 		{
 			reportError();
+			return null;
 		}
 		return moduleHeader;
 	}
@@ -4762,14 +4884,14 @@ public abstract class AbstractAvailCompiler
 
 		// Module header section tracking.
 		final List<ExpectedToken> expected = new ArrayList<ExpectedToken>(
-			Arrays.<ExpectedToken>asList(
-				VERSIONS, EXTENDS, USES, NAMES, ENTRIES, PRAGMA, BODY));
+			asList(VERSIONS, EXTENDS, USES, NAMES, ENTRIES, PRAGMA, BODY));
 		final Set<A_String> seen = new HashSet<A_String>();
-		final Generator<String> expectedMessage = new Generator<String>()
+		final Describer expectedMessage = new Describer()
 		{
 			@Override
-			public String value ()
+			public void describeThen (final @Nullable Continuation1<String> c)
 			{
+				assert c != null;
 				final StringBuilder builder = new StringBuilder();
 				builder.append(
 					expected.size() == 1
@@ -4785,7 +4907,7 @@ public abstract class AbstractAvailCompiler
 					builder.append(token.lexeme().asNativeString());
 					first = false;
 				}
-				return builder.toString();
+				c.value(builder.toString());
 			}
 		};
 
@@ -4973,14 +5095,17 @@ public abstract class AbstractAvailCompiler
 					if (!expression.expressionType().isSubtypeOf(someType))
 					{
 						afterExpression.expected(
-							new Generator<String>()
+							asList(someType),
+							new Transformer1<List<String>, String>()
 							{
 								@Override
-								public String value ()
+								public @Nullable String value (
+									final @Nullable List<String> list)
 								{
-									return
-										"expression to have type "
-										+ someType;
+									assert list != null;
+									return String.format(
+										"expression to have type %s",
+										list.get(0));
 								}
 							});
 						return;

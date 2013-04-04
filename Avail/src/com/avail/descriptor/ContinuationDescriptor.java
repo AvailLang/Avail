@@ -35,11 +35,14 @@ package com.avail.descriptor;
 import java.util.*;
 import static com.avail.descriptor.ContinuationDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.ContinuationDescriptor.ObjectSlots.*;
+import com.avail.AvailRuntime;
 import com.avail.annotations.*;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelOne.L1Operation;
 import com.avail.interpreter.primitive.*;
 import com.avail.serialization.SerializerOperation;
+import com.avail.utility.Continuation1;
+import com.avail.utility.Mutable;
 
 /**
  * A {@linkplain ContinuationDescriptor continuation} acts as an immutable
@@ -514,5 +517,100 @@ extends Descriptor
 	public static AvailObject nilSubstitute ()
 	{
 		return nilSubstitute;
+	}
+
+	/**
+	 * Create a list of descriptions of the stack frames ({@linkplain
+	 * ContinuationDescriptor continuations}) of the specified continuation.
+	 * Invoke the specified {@linkplain Continuation1 Java continuation} with
+	 * the resultant list. This list begins with the newest frame and ends with
+	 * the base frame.
+	 *
+	 * @param runtime
+	 *        The {@linkplain AvailRuntime Avail runtime} to use for
+	 *        stringification.
+	 * @param availContinuation
+	 *        The Avail continuation to dump.
+	 * @param javaContinuation
+	 *        What to do with the list of {@linkplain String strings}.
+	 */
+	public static void dumpStackThen (
+		final AvailRuntime runtime,
+		final A_Continuation availContinuation,
+		final Continuation1<List<String>> javaContinuation)
+	{
+		final List<A_Continuation> frames = new ArrayList<A_Continuation>(20);
+		for (
+			A_Continuation c = availContinuation;
+			!c.equalsNil();
+			c = c.caller())
+		{
+			frames.add(c);
+		}
+		final int lines = frames.size();
+		final String[] strings = new String[lines];
+		final Mutable<Integer> outstanding = new Mutable<Integer>(lines);
+		for (int index = 0, end = frames.size(); index < end; index++)
+		{
+			final int frameIndex = index;
+			final A_Continuation frame = frames.get(frameIndex);
+			final A_RawFunction code = frame.function().code();
+			final A_Type functionType = code.functionType();
+			final A_Type paramsType = functionType.argsTupleType();
+			final List<A_BasicObject> types =
+				new ArrayList<A_BasicObject>();
+			for (
+				int i = 1,
+				limit = paramsType.sizeRange().lowerBound().extractInt();
+				i <= limit;
+				i++)
+			{
+				types.add(paramsType.typeAtIndex(i));
+			}
+			Interpreter.stringifyThen(
+				runtime,
+				types,
+				new Continuation1<List<String>>()
+				{
+					@Override
+					public void value (final @Nullable List<String> params)
+					{
+						assert params != null;
+						final StringBuilder signatureBuilder =
+							new StringBuilder(1000);
+						for (
+							int i = 0, limit = params.size();
+							i < limit;
+							i++)
+						{
+							if (i != 0)
+							{
+								signatureBuilder.append(", ");
+							}
+							signatureBuilder.append(params.get(i));
+						}
+						final A_Module module = code.module();
+						strings[frameIndex] = String.format(
+							"#%d: %s [%s] (%s:%d)",
+							lines - frameIndex,
+							code.methodName().asNativeString(),
+							signatureBuilder.toString(),
+							module.equalsNil()
+								? "?"
+								: module.moduleName().asNativeString(),
+							code.startingLineNumber());
+						synchronized (outstanding)
+						{
+							outstanding.value--;
+							if (outstanding.value == 0)
+							{
+								final List<String> list =
+									Arrays.asList(strings);
+								javaContinuation.value(list);
+							}
+						}
+					}
+				});
+		}
 	}
 }

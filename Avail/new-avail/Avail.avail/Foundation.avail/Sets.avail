@@ -60,6 +60,18 @@ Names
 	"_⊅_"
 Body
 
+Method "“_”" is
+[
+	t : set meta
+|
+	s : nonempty string := "{" ++ “t's element type” ++ "|";
+	lower ::= ⎣t⎦;
+	upper ::= ⎡t⎤;
+	s := eject ↑s ++ “||t||” (cardinality restriction);
+	s := eject ↑s ++ "}";
+	s
+] : string;
+
 Method "_+_" is stable at [set, any]→set;
 Semantic restriction "_+_" is
 [

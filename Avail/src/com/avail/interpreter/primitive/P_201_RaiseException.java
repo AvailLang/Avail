@@ -64,17 +64,13 @@ extends Primitive
 	{
 		assert args.size() == 1;
 		final A_BasicObject exception = args.get(0);
-		// Attach a stack dump to the exception.
+		// Attach the current continuation to the exception, so that a stack
+		// dump can be obtained later.
 		final A_Map fieldMap = exception.fieldMap();
-		final List<String> stack = interpreter.dumpStack();
-		final List<A_String> frames = new ArrayList<A_String>(stack.size());
-		for (int i = stack.size() - 1; i >= 0; i--)
-		{
-			frames.add(StringDescriptor.from(stack.get(i)));
-		}
-		final A_Tuple stackDump = TupleDescriptor.fromList(frames);
 		final A_Map newFieldMap = fieldMap.mapAtPuttingCanDestroy(
-			ObjectTypeDescriptor.stackDumpAtom(), stackDump, false);
+			ObjectTypeDescriptor.stackDumpAtom(),
+			interpreter.currentContinuation(),
+			false);
 		final AvailObject newException =
 			ObjectDescriptor.objectFromMap(newFieldMap);
 		// Search for an applicable exception handler, and invoke it if found.

@@ -65,7 +65,9 @@ Names
 	"{_→_`|_.._}",
 	"{_→_`|_..}",
 	"{_→_`|.._}",
-	"{_→_`|}"
+	"{_→_`|}",
+	/* Conversion utilities. */
+	"“_”(cardinality restriction)"
 Body
 
 /**
@@ -1270,3 +1272,31 @@ Semantic restriction "[«_‡,»]→_" is
 		else [⊤];
 	(function accepting bottoms and returning return)'s type
 ];
+
+/**
+ * Produce a {@type "string"} representation of the specified integer range type
+ * that is suitable for use as the cardinality restriction of a {@type
+ * "tuple meta" tuple type}, {@type "set meta" set type"}, {@type "map meta"
+ * map type}, etc.
+ *
+ * @method "“_”(cardinality restriction)"
+ * @param "range" "extended integer meta"
+ * @returns "string"
+ */
+Public method "“_”(cardinality restriction)" is
+[
+	range : extended integer meta
+|
+	lower ::= ⎣range⎦;
+	upper ::= ⎡range⎤;
+	if upper = ∞ then
+	[
+		if lower = 0 then [""]
+		else [“lower” ++ ".."]
+	]
+	else
+	[
+		if lower = upper then [“lower”]
+		else [“lower” ++ ".." ++ “upper”]
+	]
+] : string;

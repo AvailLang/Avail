@@ -35,6 +35,7 @@ package com.avail.interpreter;
 import static com.avail.descriptor.AvailObject.error;
 import static com.avail.descriptor.FiberDescriptor.ExecutionState.*;
 import static com.avail.descriptor.FiberDescriptor.SynchronizationFlag.BOUND;
+import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Result.*;
 import static com.avail.interpreter.levelTwo.register.FixedRegister.*;
@@ -56,6 +57,7 @@ import com.avail.interpreter.levelTwo.register.FixedRegister;
 import com.avail.interpreter.primitive.*;
 import com.avail.utility.Continuation0;
 import com.avail.utility.Continuation1;
+import com.avail.utility.Mutable;
 
 /**
  * This class is used to execute {@linkplain L2ChunkDescriptor Level Two code},
@@ -1779,8 +1781,6 @@ public final class Interpreter
 					assert !aFiber.continuation().equalsNil();
 					interpreter.prepareToResumeContinuation(
 						aFiber.continuation());
-					// Keep the fiber's current continuation clear
-					// during execution.
 					aFiber.continuation(NilDescriptor.nil());
 					interpreter.exitNow = false;
 				}
@@ -1852,6 +1852,7 @@ public final class Interpreter
 							updatedCaller.stackAtPut(stackp, result);
 							interpreter.prepareToResumeContinuation(
 								updatedCaller);
+							aFiber.continuation(NilDescriptor.nil());
 							interpreter.exitNow = false;
 							break;
 						case FAILURE:
@@ -1860,6 +1861,7 @@ public final class Interpreter
 								result);
 							interpreter.prepareToResumeContinuation(
 								aFiber.continuation());
+							aFiber.continuation(NilDescriptor.nil());
 							interpreter.exitNow = false;
 							break;
 						default:
@@ -1870,13 +1872,142 @@ public final class Interpreter
 	}
 
 	/**
+	 * Stringify an {@linkplain AvailObject Avail value}, using the
+	 * {@linkplain AvailRuntime#stringificationAtom() stringification atom}
+	 * associated with the specified {@linkplain AvailRuntime runtime}.
+	 * Stringification will run in a new {@linkplain FiberDescriptor fiber}. If
+	 * stringification fails for any reason, then the built-in mechanism,
+	 * available via {@link AvailObject#toString()} will be used. Invoke the
+	 * specified continuation with the result.
+	 *
+	 * @param runtime
+	 *        An Avail runtime.
+	 * @param value
+	 *        An Avail value.
+	 * @param continuation
+	 *        What to do with the stringification of {@code value}.
+	 */
+	public static void stringifyThen (
+		final AvailRuntime runtime,
+		final A_BasicObject value,
+		final Continuation1<String> continuation)
+	{
+		final A_Atom stringifierAtom = runtime.stringificationAtom();
+		// If the stringifier atom is not defined, or is not bound to a message
+		// bundle (and thus a method), then use the basic mechanism for
+		// stringification.
+		if (stringifierAtom == null
+			|| stringifierAtom.bundleOrNil().equalsNil())
+		{
+			continuation.value(String.format(
+				"(stringifier undefined) %s",
+				value.toString()));
+			return;
+		}
+		// Generate a zero-argument function that will invoke the stringifier
+		// method for the specified value.
+		final A_Phrase send = SendNodeDescriptor.from(
+			stringifierAtom.bundleOrNil(),
+			ListNodeDescriptor.newExpressions(TupleDescriptor.from(
+				LiteralNodeDescriptor.syntheticFrom(value))),
+			TOP.o());
+		final A_Function function = FunctionDescriptor.createFunctionForPhrase(
+			send, NilDescriptor.nil(), 0);
+		// Create the fiber that will execute the function.
+		final A_Fiber fiber = FiberDescriptor.newFiber(
+			TupleTypeDescriptor.stringTupleType(),
+			FiberDescriptor.stringificationPriority);
+		fiber.resultContinuation(new Continuation1<AvailObject>()
+		{
+			@Override
+			public void value (final @Nullable AvailObject string)
+			{
+				assert string != null;
+				continuation.value(string.asNativeString());
+			}
+		});
+		fiber.failureContinuation(new Continuation1<Throwable>()
+		{
+			@Override
+			public void value (final @Nullable Throwable killer)
+			{
+				assert killer != null;
+				continuation.value(String.format(
+					"(stringification failed [%s]) %s",
+					killer.getClass().getSimpleName(),
+					value.toString()));
+			}
+		});
+		// Stringify!
+		Interpreter.runOutermostFunction(
+			runtime,
+			fiber,
+			function,
+			Collections.<A_BasicObject>emptyList());
+	}
+
+	/**
+	 * Stringify a {@linkplain List list} of {@linkplain AvailObject Avail
+	 * values}, using the {@linkplain AvailRuntime#stringificationAtom()
+	 * stringification atom} associated with the specified {@linkplain
+	 * AvailRuntime runtime}. Stringification will run in parallel, with each
+	 * value being processed by its own new {@linkplain FiberDescriptor fiber}.
+	 * If stringification fails for a value for any reason, then the built-in
+	 * mechanism, available via {@link AvailObject#toString()} will be used for
+	 * that value. Invoke the specified continuation with the resulting list,
+	 * preserving the original order.
+	 *
+	 * @param runtime
+	 *        An Avail runtime.
+	 * @param values
+	 *        Some Avail values.
+	 * @param continuation
+	 *        What to do with the resulting list.
+	 */
+	public static void stringifyThen (
+		final AvailRuntime runtime,
+		final List<? extends A_BasicObject> values,
+		final Continuation1<List<String>> continuation)
+	{
+		final int limit = values.size();
+		final Mutable<Integer> outstanding = new Mutable<Integer>(limit);
+		final String[] strings = new String[limit];
+		for (int i = 0; i < limit; i++)
+		{
+			final int finalI = i;
+			stringifyThen(
+				runtime,
+				values.get(finalI),
+				new Continuation1<String>()
+				{
+					@Override
+					public void value (final @Nullable String arg)
+					{
+						assert arg != null;
+						strings[finalI] = arg;
+						synchronized (outstanding)
+						{
+							outstanding.value--;
+							if (outstanding.value == 0)
+							{
+								final List<String> stringList =
+									Arrays.asList(strings);
+								continuation.value(stringList);
+							}
+						}
+					}
+				});
+		}
+	}
+
+	/**
 	 * Create a list of descriptions of the current stack frames ({@linkplain
 	 * ContinuationDescriptor continuations}).
 	 *
 	 * @return A list of {@linkplain String strings}, starting with the newest
 	 *         frame.
 	 */
-	public List<String> dumpStack ()
+	private List<String> builtinDumpStack ()
 	{
 		final List<A_Continuation> frames = new ArrayList<A_Continuation>(20);
 		for (
@@ -1923,28 +2054,28 @@ public final class Interpreter
 	public String toString ()
 	{
 		final StringBuilder builder = new StringBuilder();
-		builder.append(
-			String.format(
-				"%s [%s]",
-				getClass().getSimpleName(),
-				fiber().fiberName()));
-		final List<String> stack = dumpStack();
-		for (final String frame : stack)
+		builder.append(getClass().getSimpleName());
+		if (fiber == null)
 		{
-			builder.append(
-				String.format(
-					"%n\t-- %s",
-					frame));
+			builder.append(" [«unbound»]");
 		}
-		builder.append("\n\n");
+		else
+		{
+			builder.append(String.format(" [%s]", fiber().fiberName()));
+			if (pointers[CALLER.ordinal()] == null)
+			{
+				builder.append(String.format("%n\t«no stack»"));
+			}
+			else
+			{
+				final List<String> stack = builtinDumpStack();
+				for (final String frame : stack)
+				{
+					builder.append(String.format("%n\t-- %s", frame));
+				}
+			}
+			builder.append("\n\n");
+		}
 		return builder.toString();
 	}
-
-	/*
-	 * TODO TODO TODO
-	 * These methods must be integrated against what's in AvailLoader (or moved
-	 * wholesale if there isn't a corresponding implementation). Any primitives
-	 * using these methods must first check to see if loading is still in
-	 * progress (look up uses of E_LOADING_IS_OVER to see how to do this).
-	 */
 }

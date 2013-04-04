@@ -68,8 +68,10 @@ Names
 	"Unless_then_",
 	"Until_",
 	"Until_do_",
+	"Until_do_alternate with_",
 	"While_",
 	"While_do_",
+	"While_do_alternate with_",
 	"Cast|cast_into«_‡,»«else_»",
 	"Choose|choose_from_where«_is_‡,»«,else_»",
 	"here",
@@ -1626,6 +1628,62 @@ Semantic restriction "Do_while_alternate with_" is
 ];
 
 /**
+ * Conditional loop with alternation.
+ * 
+ * @method "While_do_alternate with_"
+ * @param "action" "[]→⊤"
+ *        The function to apply repeatedly while `predicate` answers `true`.
+ *        Never invoked if `predicate` never answers `true`.
+ * @param "predicate" "[]→boolean"
+ *        The function that guards repeated application of `action`.
+ * @param "between" "[]→⊤"
+ *        The function to apply between applications of `action`.
+ */
+Public method "While_do_alternate with_" is
+[
+	predicate : []→boolean,
+	action : []→⊤,
+	between : []→⊤
+|
+	If predicate() then
+	[
+		$loop;
+		action();
+		If predicate() then
+		[
+			between();
+			Restart loop
+		];
+	];
+];
+
+/**
+ * If `action` does not terminate or `predicate` certainly answers `true`, then
+ * answer ⊥ (because the loop will run forever).
+ * 
+ * @method "While_do_alternate with_"
+ * @restricts "[]→⊤'s type"
+ * @restricts "[]→boolean's type"
+ * @restricts "[]→⊤'s type"
+ */
+Semantic restriction "While_do_alternate with_" is
+[
+	predicate : []→boolean's type,
+	action : []→⊤'s type,
+	between : []→⊤'s type
+|
+	if action's return type = ⊥
+		∨ [ predicate's return type = true's type ] then
+	[
+		⊥
+	]
+	else
+	[
+		⊤
+	]
+];
+
+/**
  * Basic conditional loop. Invoke `action` and then `predicate`. If `predicate`
  * answers `false`, then repeat.
  * 
@@ -1714,6 +1772,62 @@ Semantic restriction "Do_until_alternate with_" is
 [
 	action : []→⊤'s type,
 	predicate : []→boolean's type,
+	between : []→⊤'s type
+|
+	if action's return type = ⊥
+		∨ [ predicate's return type = false's type ] then
+	[
+		⊥
+	]
+	else
+	[
+		⊤
+	]
+];
+
+/**
+ * Conditional loop with alternation.
+ * 
+ * @method "Until_do_alternate with_"
+ * @param "action" "[]→⊤"
+ *        The function to apply repeatedly while `predicate` answers `false`.
+ *        Never applied if `predicate` never answers `false`.
+ * @param "predicate" "[]→boolean"
+ *        The function that guards repeated application of `action`.
+ * @param "between" "[]→⊤"
+ *        The function to apply between applications of `action`.
+ */
+Public method "Until_do_alternate with_" is
+[
+	predicate : []→boolean,
+	action : []→⊤,
+	between : []→⊤
+|
+	Unless predicate() then
+	[
+		$loop;
+		action();
+		Unless predicate() then
+		[
+			between();
+			Restart loop
+		];
+	];
+];
+
+/**
+ * If `action` does not terminate or `predicate` certainly answers `false`, then
+ * answer ⊥ (because the loop will run forever).
+ * 
+ * @method "Until_do_alternate with_"
+ * @restricts "[]→⊤'s type"
+ * @restricts "[]→boolean's type"
+ * @restricts "[]→⊤'s type"
+ */
+Semantic restriction "Until_do_alternate with_" is
+[
+	predicate : []→boolean's type,
+	action : []→⊤'s type,
 	between : []→⊤'s type
 |
 	if action's return type = ⊥

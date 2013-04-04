@@ -1,6 +1,6 @@
 /**
- * P_266_DeclareStringificationAtom.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * ErrorDescriber.java
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,50 +30,26 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.interpreter.primitive;
+package com.avail.compiler;
 
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.interpreter.Primitive.Flag.*;
-import java.util.List;
-import com.avail.AvailRuntime;
-import com.avail.annotations.NotNull;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
+import com.avail.utility.Continuation1;
 
 /**
- * <strong>Primitive 266</strong>: Inform the VM of the {@linkplain
- * AtomDescriptor name} of the preferred stringification {@linkplain
- * MethodDescriptor method}.
+ * A {@code Describer} produces a message and forwards it to a supplied
+ * {@linkplain Continuation1 continuation}. It is used by the {@linkplain
+ * AbstractAvailCompiler compiler} to support stringification in a
+ * continuation-passing style.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class P_266_DeclareStringificationAtom
-extends Primitive
+interface Describer
 {
 	/**
-	 * The sole instance of this primitive class. Accessed through reflection.
+	 * Assemble a message and pass it into the specified {@linkplain
+	 * Continuation1 continuation}.
+	 *
+	 * @param continuation
+	 *        What to do with the message.
 	 */
-	public final @NotNull static Primitive instance =
-		new P_266_DeclareStringificationAtom().init(
-			1, CannotFail, HasSideEffect, Private);
-
-	@Override
-	public Result attempt (
-		final List<AvailObject> args,
-		final Interpreter interpreter)
-	{
-		assert args.size() == 1;
-		final A_Atom atom = args.get(0);
-		AvailRuntime.current().setStringificationAtom(atom);
-		return interpreter.primitiveSuccess(NilDescriptor.nil());
-	}
-
-	@Override
-	protected A_Type privateBlockTypeRestriction ()
-	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
-				ATOM.o()),
-			TOP.o());
-	}
+	public void describeThen (Continuation1<String> continuation);
 }

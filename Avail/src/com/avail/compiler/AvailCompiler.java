@@ -39,6 +39,7 @@ import java.util.*;
 import com.avail.annotations.Nullable;
 import com.avail.builder.ResolvedModuleName;
 import com.avail.descriptor.*;
+import com.avail.interpreter.Interpreter;
 import com.avail.utility.Continuation1;
 import com.avail.utility.Generator;
 
@@ -173,37 +174,55 @@ extends AbstractAvailCompiler
 		}
 		if (!macroBodyKind.acceptsListOfArgValues(argumentExpressions))
 		{
-			stateAfterCall.expected(
-				new Generator<String>()
+			stateAfterCall.expected(new Describer()
+			{
+				@Override
+				public void describeThen (
+					final @Nullable Continuation1<String> c)
 				{
-					@Override
-					public String value ()
+					assert c != null;
+					final List<Integer> disagreements =
+						new ArrayList<Integer>();
+					for (int i = 1; i <= macroBody.code().numArgs(); i++)
 					{
-						final List<Integer> disagreements =
-							new ArrayList<Integer>();
-						for (int i = 1; i <= macroBody.code().numArgs(); i++)
+						final A_Type type =
+							macroBodyKind.argsTupleType().typeAtIndex(i);
+						final A_Phrase value =
+							argumentExpressions.get(i - 1);
+						if (!value.isInstanceOf(type))
 						{
-							final A_Type type =
-								macroBodyKind.argsTupleType().typeAtIndex(i);
-							final A_Phrase value =
-								argumentExpressions.get(i - 1);
-							if (!value.isInstanceOf(type))
-							{
-								disagreements.add(i);
-							}
+							disagreements.add(i);
 						}
-						assert disagreements.size() > 0;
-						return String.format(
-							"macro arguments %s to agree with definition:%n"
-							+ "\tmacro = %s%n"
-							+ "\texpected = %s%n"
-							+ "\targuments = %s%n",
-							disagreements,
-							bundle.message().name(),
-							macroBodyKind,
-							argumentExpressions);
 					}
-				});
+					assert disagreements.size() > 0;
+					final List<A_BasicObject> values =
+						new ArrayList<A_BasicObject>(argumentExpressions);
+					values.add(macroBodyKind);
+					Interpreter.stringifyThen(
+						runtime,
+						values,
+						new Continuation1<List<String>>()
+						{
+							@Override
+							public void value (
+								final @Nullable List<String> list)
+							{
+								assert list != null;
+								final int size = list.size();
+								c.value(String.format(
+									"macro arguments %s to agree with "
+									+ "definition:%n"
+									+ "\tmacro = %s%n"
+									+ "\texpected = %s%n"
+									+ "\targuments = %s%n",
+									disagreements,
+									bundle.message().name(),
+									list.get(size - 1),
+									list.subList(0, size - 1)));
+							}
+						});
+				}
+			});
 			return;
 		}
 		// Declarations introduced in the macro should now be moved

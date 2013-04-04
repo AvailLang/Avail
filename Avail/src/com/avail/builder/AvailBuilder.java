@@ -242,7 +242,11 @@ public final class AvailBuilder
 						assert compiler != null;
 						final ModuleHeader header =
 							compiler.parseModuleHeader();
-						traceModuleHeader(resolvedName, header, recursionSet);
+						if (header != null)
+						{
+							traceModuleHeader(
+								resolvedName, header, recursionSet);
+						}
 					}
 				},
 				new Continuation1<Throwable>()
@@ -1197,36 +1201,36 @@ public final class AvailBuilder
 			}));
 		// Wait for the builder to finish.
 		semaphore.acquire();
-		final Throwable killer_v = killer.value;
-		if (killer_v != null)
+		final Throwable e = killer.value;
+		if (e != null)
 		{
-			if (killer_v instanceof AvailCompilerException)
+			if (e instanceof AvailCompilerException)
 			{
-				throw (AvailCompilerException) killer_v;
+				throw (AvailCompilerException) e;
 			}
-			else if (killer_v instanceof FiberTerminationException)
+			else if (e instanceof FiberTerminationException)
 			{
-				throw (FiberTerminationException) killer_v;
+				throw (FiberTerminationException) e;
 			}
-			else if (killer_v instanceof RecursiveDependencyException)
+			else if (e instanceof RecursiveDependencyException)
 			{
-				throw (RecursiveDependencyException) killer_v;
+				throw (RecursiveDependencyException) e;
 			}
-			else if (killer_v instanceof UnresolvedDependencyException)
+			else if (e instanceof UnresolvedDependencyException)
 			{
-				throw (UnresolvedDependencyException) killer_v;
+				throw (UnresolvedDependencyException) e;
 			}
-			else if (killer_v instanceof Error)
+			else if (e instanceof Error)
 			{
-				throw (Error) killer_v;
+				throw (Error) e;
 			}
-			else if (killer_v instanceof RuntimeException)
+			else if (e instanceof RuntimeException)
 			{
-				throw (RuntimeException) killer_v;
+				throw (RuntimeException) e;
 			}
 			else
 			{
-				throw new RuntimeException(killer_v);
+				throw new RuntimeException(e);
 			}
 		}
 	}

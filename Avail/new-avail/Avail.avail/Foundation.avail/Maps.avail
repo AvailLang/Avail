@@ -55,6 +55,19 @@ Names
 	"integrate_and_with_"
 Body
 
+Method "“_”" is
+[
+	t : map meta
+|
+	s : nonempty string :=
+		"{" ++ “t's key type” ++ "→" ++ “t's value type” ++ "|";
+	lower ::= ⎣t⎦;
+	upper ::= ⎡t⎤;
+	s := eject ↑s ++ “||t||” (cardinality restriction);
+	s := eject ↑s ++ "}";
+	s
+] : string;
+
 /**
  * Is the specified map empty? 
  *

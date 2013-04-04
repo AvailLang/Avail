@@ -501,6 +501,7 @@ public final class AvailRuntime
 	 */
 	public void setStringificationAtom (final A_Atom atom)
 	{
+		assert atom.isAtom();
 		stringificationAtom = atom;
 	}
 

@@ -31,12 +31,14 @@
  */
 package com.avail.interpreter.primitive;
 
-import static com.avail.descriptor.AvailObject.error;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
+import com.avail.annotations.Nullable;
 import com.avail.descriptor.*;
+import com.avail.descriptor.FiberDescriptor.ExecutionState;
 import com.avail.interpreter.*;
+import com.avail.utility.Continuation1;
 
 /**
  * <strong>Primitive 256:</strong> Exit the current {@linkplain
@@ -58,23 +60,36 @@ public class P_256_EmergencyExit extends Primitive
 	{
 		assert args.size() == 1;
 		final A_BasicObject errorMessageProducer = args.get(0);
-
-		final List<String> stack = interpreter.dumpStack();
-		final StringBuilder builder = new StringBuilder();
-		builder.append(
-			String.format(
-				"A fiber (%s) has exited: %s",
-				interpreter.fiber().fiberName(),
-				errorMessageProducer));
-		for (final String frame : stack)
-		{
-			builder.append(
-				String.format(
-					"%n\t-- %s",
-					frame));
-		}
-		builder.append("\n\n");
-		error(builder.toString());
+		final A_Fiber fiber = FiberDescriptor.current();
+		final A_Continuation continuation =
+			interpreter.currentContinuation();
+		interpreter.primitiveSuspend();
+		ContinuationDescriptor.dumpStackThen(
+			interpreter.runtime(),
+			continuation,
+			new Continuation1<List<String>>()
+			{
+				@Override
+				public void value (final @Nullable List<String> stack)
+				{
+					assert stack != null;
+					final StringBuilder builder = new StringBuilder();
+					builder.append(String.format(
+						"A fiber (%s) has exited: %s",
+						interpreter.fiber().fiberName(),
+						errorMessageProducer));
+					for (final String frame : stack)
+					{
+						builder.append(String.format("%n\t-- %s", frame));
+					}
+					builder.append("\n\n");
+					final RuntimeException killer =
+						new RuntimeException(builder.toString());
+					killer.fillInStackTrace();
+					fiber.executionState(ExecutionState.ABORTED);
+					fiber.failureContinuation().value(killer);
+				}
+			});
 		return interpreter.primitiveSuccess(NilDescriptor.nil());
 	}
 

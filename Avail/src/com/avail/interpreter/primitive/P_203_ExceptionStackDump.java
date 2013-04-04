@@ -34,10 +34,14 @@ package com.avail.interpreter.primitive;
 
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
+import java.util.ArrayList;
 import java.util.List;
+import com.avail.AvailRuntime;
+import com.avail.annotations.Nullable;
 import com.avail.descriptor.*;
 import com.avail.exceptions.MapException;
 import com.avail.interpreter.*;
+import com.avail.utility.Continuation1;
 
 /**
  * <strong>Primitive 203</strong>: Get the {@linkplain
@@ -62,17 +66,45 @@ extends Primitive
 	{
 		assert args.size() == 1;
 		final A_BasicObject exception = args.get(0);
+		final AvailRuntime runtime = interpreter.runtime();
+		final A_Fiber fiber = interpreter.fiber();
+		final AvailObject continuation;
 		try
 		{
-			final AvailObject stackDump = exception.fieldMap().mapAt(
+			continuation = exception.fieldMap().mapAt(
 				ObjectTypeDescriptor.stackDumpAtom());
-			return interpreter.primitiveSuccess(stackDump);
 		}
 		catch (final MapException e)
 		{
 			assert e.numericCode().equals(E_KEY_NOT_FOUND.numericCode());
 			return interpreter.primitiveFailure(E_INCORRECT_ARGUMENT_TYPE);
 		}
+		interpreter.primitiveSuspend();
+		ContinuationDescriptor.dumpStackThen(
+			runtime,
+			continuation,
+			new Continuation1<List<String>>()
+			{
+				@Override
+				public void value (final @Nullable List<String> stack)
+				{
+					assert stack != null;
+					final List<A_String> frames = new ArrayList<A_String>(
+						stack.size());
+					for (int i = stack.size() - 1; i >= 0; i--)
+					{
+						frames.add(StringDescriptor.from(stack.get(i)));
+					}
+					final A_Tuple stackDump =
+						TupleDescriptor.fromList(frames);
+					Interpreter.resumeFromPrimitive(
+						runtime,
+						fiber,
+						Result.SUCCESS,
+						stackDump);
+				}
+			});
+		return Result.FIBER_SUSPENDED;
 	}
 
 	@Override

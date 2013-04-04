@@ -409,8 +409,10 @@ Extends
 		"Unless_then_",
 		"Until_",
 		"Until_do_",
+		"Until_do_alternate with_",
 		"While_",
 		"While_do_",
+		"While_do_alternate with_",
 		"Choose|choose_from_where«_is_‡,»«,else_»",
 		"here",
 		"If|if_then_«else if_then_»«else_»",
@@ -903,7 +905,8 @@ Extends
 		"{_→_`|_.._}",
 		"{_→_`|_..}",
 		"{_→_`|.._}",
-		"{_→_`|}"
+		"{_→_`|}",
+		"“_”(cardinality restriction)"
 	),
 	"Variables" =
 	(

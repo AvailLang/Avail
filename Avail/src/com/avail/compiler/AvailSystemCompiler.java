@@ -37,6 +37,7 @@ import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import static com.avail.descriptor.TokenDescriptor.TokenType.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.utility.PrefixSharingList.*;
+import static java.util.Arrays.asList;
 import java.util.*;
 import com.avail.annotations.*;
 import com.avail.builder.*;
@@ -320,14 +321,17 @@ extends AbstractAvailCompiler
 					else
 					{
 						afterExpression.expected(
-							new Generator<String>()
+							asList(expression.expressionType()),
+							new Transformer1<List<String>, String>()
 							{
 								@Override
-								public String value ()
+								public @Nullable String value (
+									final @Nullable List<String> list)
 								{
+									assert list != null;
 									return String.format(
 										"statement to have type ⊤, not %s",
-										expression.expressionType());
+										list.get(0));
 								}
 							});
 					}
@@ -480,19 +484,26 @@ extends AbstractAvailCompiler
 								}
 								else
 								{
-									afterExpr.expected(new Generator<String>()
-									{
-										@Override
-										public String value ()
+									afterExpr.expected(
+										asList(
+											expr.expressionType(),
+											varType.value),
+										new Transformer1<List<String>, String>()
 										{
-											return String.format(
-												"assignment expression's type "
-												+ "(%s) to match variable type "
-												+ "(%s)",
-												expr.expressionType(),
-												varType.value);
-										}
-									});
+											@Override
+											public @Nullable String value (
+												final @Nullable
+													List<String> list)
+											{
+												assert list != null;
+												return String.format(
+													"assignment expression's "
+													+ "type (%s) to match "
+													+ "variable type (%s)",
+													list.get(0),
+													list.get(1));
+											}
+										});
 								}
 							}
 						});
@@ -676,9 +687,20 @@ extends AbstractAvailCompiler
 									BottomTypeDescriptor.bottom()))
 							{
 								afterInitExpression.expected(
-									"constant expression to have a type other "
-									+ "than "
-									+ expressionType.toString());
+									asList(expressionType),
+									new Transformer1<List<String>, String>()
+									{
+										@Override
+										public @Nullable String value (
+											final @Nullable List<String> list)
+										{
+											assert list != null;
+											return String.format(
+												"constant expression to have a "
+												+ "type other than %s",
+												list.get(0));
+										}
+									});
 								return;
 							}
 							final A_Phrase constantDeclaration =
@@ -804,17 +826,23 @@ extends AbstractAvailCompiler
 								else
 								{
 									afterInit.expected(
-										new Generator<String>()
+										asList(
+											initExpr.expressionType(),
+											type),
+										new Transformer1<List<String>, String>()
 										{
 											@Override
-											public String value()
+											public @Nullable String value (
+												final @Nullable
+													List<String> list)
 											{
+												assert list != null;
 												return String.format(
 													"initializing expression's "
 													+ "type (%s) to agree with "
 													+ "declared type (%s)",
-													initExpr.expressionType(),
-													type);
+													list.get(0),
+													list.get(1));
 											}
 										});
 								}
@@ -868,8 +896,20 @@ extends AbstractAvailCompiler
 						|| type.equals(BottomTypeDescriptor.bottom()))
 					{
 						afterType.expected(
-							"a type for the variable other than"
-							+ type.toString());
+							asList(type),
+							new Transformer1<List<String>, String>()
+							{
+								@Override
+								public @Nullable String value (
+									final @Nullable List<String> list)
+								{
+									assert list != null;
+									return String.format(
+										"a type for the variable other "
+										+ "than %s",
+										list.get(0));
+								}
+							});
 						return;
 					}
 					if (lookupLocalDeclaration(afterType, localName.string())
@@ -1014,8 +1054,19 @@ extends AbstractAvailCompiler
 						|| type.equals(BottomTypeDescriptor.bottom()))
 					{
 						afterArgType.expected(
-							"a type for the argument other than "
-							+ type.toString());
+							asList(type),
+							new Transformer1<List<String>, String>()
+							{
+								@Override
+								public @Nullable String value (
+									final @Nullable List<String> list)
+								{
+									assert list != null;
+									return
+										"a type for the argument other than "
+										+ list.get(0);
+								}
+							});
 					}
 					else
 					{
@@ -1300,18 +1351,22 @@ extends AbstractAvailCompiler
 						if (!intrinsicType.isSubtypeOf(explicitBlockType))
 						{
 							afterReturnType.expected(
-								new Generator<String>()
+								asList(explicitBlockType, intrinsicType),
+								new Transformer1<List<String>, String>()
 								{
 									@Override
-									public String value ()
+									public @Nullable
+									String value (
+										final @Nullable List<String> list)
 									{
+										assert list != null;
 										return String.format(
 											"block type (%s) to agree with "
 											+ "primitive %s's intrinsic type "
 											+ "(%s)",
-											explicitBlockType,
+											list.get(0),
 											thePrimitive.name(),
-											intrinsicType);
+											list.get(1));
 									}
 								});
 							return;
@@ -1323,17 +1378,20 @@ extends AbstractAvailCompiler
 						&& !lastStatementType.value.isSubtypeOf(returnType))
 					{
 						afterReturnType.expected(
-							new Generator<String>()
+							asList(lastStatementType.value, returnType),
+							new Transformer1<List<String>, String>()
 							{
 								@Override
-								public String value ()
+								public @Nullable String value (
+									final @Nullable List<String> list)
 								{
+									assert list != null;
 									return String.format(
 										"last statement's type (%s) "
 										+ "to agree with block's declared "
 										+ "result type (%s)",
-										lastStatementType.value,
-										returnType);
+										list.get(0),
+										list.get(1));
 								}
 							});
 						return;
@@ -1497,17 +1555,18 @@ extends AbstractAvailCompiler
 		final A_Bundle bundle,
 		final Con<A_Phrase> continuation)
 	{
-		stateAfterCall.expected(
-			new Generator<String>()
+		stateAfterCall.expected(new Describer()
+		{
+			@Override
+			public void describeThen (
+				final @Nullable Continuation1<String> c)
 			{
-				@Override
-				public String value ()
-				{
-					return
-						"something other than an invocation of the macro "
-						+ bundle.message().name();
-				}
-			});
+				assert c != null;
+				c.value(
+					"something other than an invocation of the macro "
+					+ bundle.message().name());
+			}
+		});
 	}
 
 	/**
@@ -1551,15 +1610,8 @@ extends AbstractAvailCompiler
 				|| token.literal().extractInt() == 0)
 		{
 			afterPrimitiveKeyword.expected(
-				new Generator<String>()
-				{
-					@Override
-					public String value ()
-					{
-						return "A non-zero unsigned short [1..65535] "
-								+ "after the Primitive keyword";
-					}
-				});
+				"A non-zero unsigned short [1..65535] "
+				+ "after the Primitive keyword");
 			return;
 		}
 		final int primitiveNumber = token.literal().extractInt();
@@ -1577,19 +1629,18 @@ extends AbstractAvailCompiler
 		if (!Primitive.primitiveAcceptsThisManyArguments(
 			primitiveNumber, argCount))
 		{
-			afterPrimitiveKeyword.expected(
-				new Generator<String>()
+			afterPrimitiveKeyword.expected(new Describer()
+			{
+				@Override
+				public void describeThen (final Continuation1<String> c)
 				{
-					@Override
-					public String value ()
-					{
-						return String.format(
-							"Primitive (%s) to be passed %i arguments, not %i",
-							prim.name(),
-							prim.argCount(),
-							argCount);
-					}
-				});
+					c.value(String.format(
+						"Primitive (%s) to be passed %i arguments, not %i",
+						prim.name(),
+						prim.argCount(),
+						argCount));
+				}
+			});
 		}
 
 		final ParserState afterPrimitiveNumber =
@@ -1635,11 +1686,21 @@ extends AbstractAvailCompiler
 						declaration.declaredType()))
 					{
 						afterDeclaration.expected(
-							String.format(
-								"primitive #%s's failure variable to be able " +
-								"to hold values of type (%s)",
-								primitiveNumber,
-								prim.failureVariableType()));
+							asList(prim.failureVariableType()),
+							new Transformer1<List<String>, String>()
+							{
+								@Override
+								public String value (
+									final @Nullable List<String> list)
+								{
+									assert list != null;
+									return String.format(
+										"primitive #%s's failure variable to "
+										+ "be able to hold values of type (%s)",
+										primitiveNumber,
+										list.get(0));
+								}
+							});
 						return;
 					}
 					if (!afterDeclaration.peekToken(
@@ -1807,15 +1868,18 @@ extends AbstractAvailCompiler
 			if (!lastStatement.expressionType().equals(TOP.o()))
 			{
 				start.expected(
-					new Generator<String>()
+					asList(lastStatement, lastStatement.expressionType()),
+					new Transformer1<List<String>, String>()
 					{
 						@Override
-						public String value ()
+						public @Nullable String value (
+							final @Nullable List<String> list)
 						{
+							assert list != null;
 							return String.format(
 								"statement \"%s\" to have type ⊤, not \"%s\"",
-								lastStatement,
-								lastStatement.expressionType());
+								list.get(0),
+								list.get(1));
 						}
 					});
 				return;
@@ -1965,13 +2029,16 @@ extends AbstractAvailCompiler
 			return;
 		}
 		start.expected(
-			new Generator<String>()
+			new Describer()
 			{
 				@Override
-				public String value ()
+				public void describeThen (final Continuation1<String> c)
 				{
-					return "variable " + token.string()
-						+ " to have been declared before use " + explanation;
+					c.value(
+						"variable "
+						+ token.string()
+						+ " to have been declared before use "
+						+ explanation);
 				}
 			});
 	}
