@@ -2354,6 +2354,9 @@ public abstract class AbstractAvailCompiler
 	 * Declarations are handled differently - they cause a variable to be
 	 * declared in the module's scope.
 	 *
+	 * @param startState
+	 *        The start {@linkplain ParserState state}, for line number
+	 *        reporting.
 	 * @param expressionOrMacro
 	 *        The expression to compile and evaluate as a top-level statement in
 	 *        the module.
@@ -2366,6 +2369,7 @@ public abstract class AbstractAvailCompiler
 	 *        What to do with a terminal {@linkplain Throwable throwable}.
 	 */
 	void evaluateModuleStatementThen (
+		final ParserState startState,
 		final A_Phrase expressionOrMacro,
 		final Continuation0 onSuccess,
 		final Continuation1<Throwable> onFailure)
@@ -2378,7 +2382,7 @@ public abstract class AbstractAvailCompiler
 			// reachable from the module's methods.
 			evaluatePhraseThen(
 				expression,
-				0,
+				startState.peekToken().lineNumber(),
 				true,
 				new Continuation1<AvailObject>()
 				{
@@ -4164,6 +4168,9 @@ public abstract class AbstractAvailCompiler
 	 * suitable primitive failure code (to invoke the {@link MethodDescriptor
 	 * #vmCrashAtom()}'s bundle).
 	 *
+	 * @param state
+	 *        The {@linkplain ParserState state} following a parse of the
+	 *        {@linkplain ModuleHeader module header}.
 	 * @param methodName
 	 *        The name of the primitive method being defined.
 	 * @param primitiveNumber
@@ -4173,6 +4180,7 @@ public abstract class AbstractAvailCompiler
 	 *        What to do after the operation completes.
 	 */
 	void bootstrapMethodThen (
+		final ParserState state,
 		final String methodName,
 		final int primitiveNumber,
 		final Continuation0 continuation)
@@ -4190,6 +4198,7 @@ public abstract class AbstractAvailCompiler
 				LiteralNodeDescriptor.syntheticFrom(function))),
 			TOP.o());
 		evaluateModuleStatementThen(
+			state,
 			send,
 			continuation,
 			new Continuation1<Throwable>()
@@ -4209,6 +4218,9 @@ public abstract class AbstractAvailCompiler
 	 * the primitive is fallible then generate suitable primitive failure code
 	 * (to invoke the {@link MethodDescriptor#vmCrashAtom()}'s bundle).
 	 *
+	 * @param state
+	 *        The {@linkplain ParserState state} following a parse of the
+	 *        {@linkplain ModuleHeader module header}.
 	 * @param macroName
 	 *        The name of the primitive macro being defined.
 	 * @param primitiveNumbers
@@ -4221,6 +4233,7 @@ public abstract class AbstractAvailCompiler
 	 *        What to do after the operation completes.
 	 */
 	void bootstrapMacroThen (
+		final ParserState state,
 		final String macroName,
 		final int[] primitiveNumbers,
 		final Continuation0 continuation)
@@ -4246,6 +4259,7 @@ public abstract class AbstractAvailCompiler
 				LiteralNodeDescriptor.syntheticFrom(body))),
 			TOP.o());
 		evaluateModuleStatementThen(
+			state,
 			send,
 			continuation,
 			new Continuation1<Throwable>()
@@ -4333,7 +4347,7 @@ public abstract class AbstractAvailCompiler
 			reportError();
 			return;
 		}
-		bootstrapMethodThen(methodName, primNum, continuation);
+		bootstrapMethodThen(state, methodName, primNum, continuation);
 	}
 
 	/**
@@ -4381,7 +4395,7 @@ public abstract class AbstractAvailCompiler
 			reportError();
 			return;
 		}
-		bootstrapMacroThen(macroName, primNums, continuation);
+		bootstrapMacroThen(state, macroName, primNums, continuation);
 	}
 
 	/**
@@ -4426,6 +4440,7 @@ public abstract class AbstractAvailCompiler
 				LiteralNodeDescriptor.syntheticFrom(atom))),
 			TOP.o());
 		evaluateModuleStatementThen(
+			state,
 			send,
 			continuation,
 			new Continuation1<Throwable>()
@@ -4619,6 +4634,8 @@ public abstract class AbstractAvailCompiler
 	{
 		final MutableOrNull<Con<A_Phrase>> parseOutermost =
 			new MutableOrNull<Con<A_Phrase>>();
+		final Mutable<ParserState> lastStart =
+			new Mutable<ParserState>(afterHeader);
 		parseOutermost.value = new Con<A_Phrase>("Outermost statement")
 		{
 			@Override
@@ -4645,6 +4662,7 @@ public abstract class AbstractAvailCompiler
 				// the (outermost) statement just parsed...
 				fragmentCache.clear();
 				evaluateModuleStatementThen(
+					lastStart.value,
 					unambiguousStatement,
 					new Continuation0()
 					{
@@ -4671,6 +4689,7 @@ public abstract class AbstractAvailCompiler
 									@Override
 									public void value ()
 									{
+										lastStart.value = afterStatement;
 										greatestGuess = 0;
 										greatExpectations.clear();
 										parseOutermostStatement(
