@@ -74,7 +74,7 @@ Names
 	"take from_while_",
 	"take_from_",
 	"zip_",
-	"Σ_",
+	"∑_",
 	"∏_",
 	"_ends with_",
 	"_occurrences⁇of_",
@@ -2414,7 +2414,7 @@ Semantic restriction "_'s⁇last" is
  * Returns:
  *    An integer.
  */
-Public stable method "Σ_" is
+Public stable method "∑_" is
 [
 	intTuple : <extended integer…|1..∞>
 |
@@ -2425,13 +2425,13 @@ Public stable method "Σ_" is
 /**
  * Compute and answer the best bounds of the specified summation.
  *
- * @method "Σ_"
+ * @method "∑_"
  * @param "intTupleType" "<extended integer…|1..∞>'s type"
  *        A tuple type whose default type is {@type "extended integer"}.
  * @returns "extended integer's type"
  *          The strongest integer range that can be computed for the argument.
  */
-Method "Σ_" is
+Method "∑_" is
 [
 	intTupleType : <extended integer…|1..∞>'s type
 |
@@ -2444,7 +2444,7 @@ Method "Σ_" is
 		[
 			t ::= cast leading[1..lowIndex]
 				into [t : <extended integer meta…|1..> | t];
-			(Σ map t through [i : extended integer meta | ⎣i⎦])
+			(∑ map t through [i : extended integer meta | ⎣i⎦])
 				+ ((⎣intTupleType⎦ - lowIndex) max 0)
 				× ⎣defaultType⎦
 		]
@@ -2457,7 +2457,7 @@ Method "Σ_" is
 		[
 			t ::= cast leading[1..lowIndex]
 				into [t : <extended integer meta…|1..> | t];
-			(Σ map t through [i : extended integer meta | ⎡i⎤])
+			(∑ map t through [i : extended integer meta | ⎡i⎤])
 				+ ⎡intTupleType's default type⎤
 				× (⎡intTupleType⎤ - leadingSize)
 		]
@@ -2477,11 +2477,11 @@ Method "Σ_" is
  * Returns:
  *    A number.
  */
-Semantic restriction "Σ_" is
+Semantic restriction "∑_" is
 [
 	intTupleType : <extended integer…|1..∞>'s type
 |
-	Σ intTupleType
+	∑ intTupleType
 ];
 
 /**
