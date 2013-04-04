@@ -36,6 +36,7 @@ import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER;
 import static com.avail.interpreter.Primitive.Flag.*;
 import static com.avail.interpreter.Primitive.Result.*;
+import java.util.ArrayList;
 import java.util.List;
 import com.avail.*;
 import com.avail.descriptor.*;
@@ -73,6 +74,10 @@ extends Primitive
 		{
 			return interpreter.primitiveFailure(E_LOADING_IS_OVER);
 		}
+		final A_Function failureFunction =
+			interpreter.primitiveFunctionBeingAttempted();
+		final List<AvailObject> copiedArgs = new ArrayList<>(args);
+		assert failureFunction.code().primitiveNumber() == primitiveNumber;
 		interpreter.primitiveSuspend();
 		AvailRuntime.current().whenLevelOneSafeDo(
 			AvailTask.forUnboundFiber(
@@ -82,27 +87,26 @@ extends Primitive
 					@Override
 					public void value ()
 					{
-						Result state;
-						A_BasicObject result;
 						try
 						{
 							loader.addMethodBody(
 								atom,
 								block,
 								atom.issuingModule().equals(module));
-							state = SUCCESS;
-							result = NilDescriptor.nil();
+							Interpreter.resumeFromSuccessfulPrimitive(
+								AvailRuntime.current(),
+								fiber,
+								NilDescriptor.nil());
 						}
 						catch (final SignatureException e)
 						{
-							state = FAILURE;
-							result = e.numericCode();
+							Interpreter.resumeFromFailedPrimitive(
+								AvailRuntime.current(),
+								fiber,
+								e.numericCode(),
+								failureFunction,
+								copiedArgs);
 						}
-						Interpreter.resumeFromPrimitive(
-							AvailRuntime.current(),
-							fiber,
-							state,
-							result);
 					}
 				}));
 		return FIBER_SUSPENDED;

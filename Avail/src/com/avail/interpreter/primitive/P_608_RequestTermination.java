@@ -98,10 +98,9 @@ extends Primitive
 								PERMIT_UNAVAILABLE, false))
 							{
 								fiber.executionState(SUSPENDED);
-								Interpreter.resumeFromPrimitive(
+								Interpreter.resumeFromSuccessfulPrimitive(
 									AvailRuntime.current(),
 									fiber,
-									Result.SUCCESS,
 									NilDescriptor.nil());
 							}
 							break;
@@ -119,10 +118,9 @@ extends Primitive
 										fiber,
 										false));
 							fiber.executionState(SUSPENDED);
-							Interpreter.resumeFromPrimitive(
+							Interpreter.resumeFromSuccessfulPrimitive(
 								AvailRuntime.current(),
 								fiber,
-								Result.SUCCESS,
 								NilDescriptor.nil());
 							break;
 						case ASLEEP:
@@ -138,10 +136,9 @@ extends Primitive
 								fiber.wakeupTask(null);
 							}
 							fiber.executionState(SUSPENDED);
-							Interpreter.resumeFromPrimitive(
+							Interpreter.resumeFromSuccessfulPrimitive(
 								AvailRuntime.current(),
 								fiber,
-								Result.SUCCESS,
 								NilDescriptor.nil());
 							break;
 						default:

@@ -476,6 +476,36 @@ public final class AvailRuntime
 	}
 
 	/**
+	 * The {@linkplain AtomDescriptor atom} that names the Avail stringification
+	 * mechanism.
+	 */
+	private @Nullable A_Atom stringificationAtom;
+
+	/**
+	 * Answer the {@linkplain AtomDescriptor atom} that names the Avail
+	 * stringification mechanism.
+	 *
+	 * @return The requested atom, or {@code null} if no such atom has been
+	 *         made known to the implementation.
+	 */
+	public @Nullable A_Atom stringificationAtom ()
+	{
+		return stringificationAtom;
+	}
+
+	/**
+	 * Set the {@linkplain AtomDescriptor atom} that names the Avail
+	 * stringification mechanism.
+	 *
+	 * @param atom
+	 */
+	public void setStringificationAtom (final A_Atom atom)
+	{
+		assert atom.isAtom();
+		stringificationAtom = atom;
+	}
+
+	/**
 	 * Construct a new {@link AvailRuntime}.
 	 *
 	 * @param moduleNameResolver
@@ -882,6 +912,7 @@ public final class AvailRuntime
 		atoms[15] = CompiledCodeDescriptor.methodNameKeyAtom();
 		atoms[16] = CompiledCodeDescriptor.lineNumberKeyAtom();
 		atoms[17] = AtomDescriptor.messageBundleKey();
+		atoms[18] = MethodDescriptor.vmDeclareStringifierAtom();
 
 		System.arraycopy(atoms, 0, specialAtoms, 0, atoms.length);
 

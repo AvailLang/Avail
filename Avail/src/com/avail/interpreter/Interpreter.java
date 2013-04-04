@@ -35,6 +35,7 @@ package com.avail.interpreter;
 import static com.avail.descriptor.AvailObject.error;
 import static com.avail.descriptor.FiberDescriptor.ExecutionState.*;
 import static com.avail.descriptor.FiberDescriptor.SynchronizationFlag.BOUND;
+import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Result.*;
 import static com.avail.interpreter.levelTwo.register.FixedRegister.*;
@@ -56,6 +57,7 @@ import com.avail.interpreter.levelTwo.register.FixedRegister;
 import com.avail.interpreter.primitive.*;
 import com.avail.utility.Continuation0;
 import com.avail.utility.Continuation1;
+import com.avail.utility.Mutable;
 
 /**
  * This class is used to execute {@linkplain L2ChunkDescriptor Level Two code},
@@ -566,22 +568,32 @@ public final class Interpreter
 	 * P_340_PushConstant} to get to the first literal in order to return it
 	 * from the primitive.
 	 */
-	private @Nullable A_RawFunction primitiveCompiledCodeBeingAttempted;
+	private @Nullable A_Function primitiveFunctionBeingAttempted;
 
 	/**
 	 * Answer the {@linkplain Primitive primitive} {@linkplain
-	 * CompiledCodeDescriptor compiled code} that is currently being attempted.
-	 * This allows {@linkplain P_340_PushConstant} to get to the first literal
-	 * in order to return it from the primitive.
+	 * FunctionDescriptor function} that is currently being attempted.
 	 *
-	 * @return The {@linkplain CompiledCodeDescriptor compiled code} whose
-	 *         primitive is being attempted.
+	 * @return The requested function.
 	 */
-	public A_RawFunction primitiveCompiledCodeBeingAttempted ()
+	public A_Function primitiveFunctionBeingAttempted ()
 	{
-		final A_RawFunction code = primitiveCompiledCodeBeingAttempted;
-		assert code != null;
-		return code;
+		final A_Function function = primitiveFunctionBeingAttempted;
+		assert function != null;
+		return function;
+	}
+
+	/**
+	 * Set the {@linkplain Primitive primitive} {@linkplain
+	 * FunctionDescriptor function} that is currently being attempted. This
+	 * facility is required by primitives that suspend and then fail later.
+	 *
+	 * @param function
+	 *        The primitive function.
+	 */
+	public void primitiveFunctionBeingAttempted (final A_Function function)
+	{
+		primitiveFunctionBeingAttempted = function;
 	}
 
 	/** The lock that synchronizes joins. */
@@ -650,10 +662,9 @@ public final class Interpreter
 									assert joiner.joinee().equals(aFiber);
 									joiner.joinee(NilDescriptor.nil());
 									joiner.executionState(SUSPENDED);
-									Interpreter.resumeFromPrimitive(
+									Interpreter.resumeFromSuccessfulPrimitive(
 										AvailRuntime.current(),
 										joiner,
-										SUCCESS,
 										NilDescriptor.nil());
 								}
 								else
@@ -704,13 +715,13 @@ public final class Interpreter
 	 * Result#SUCCESS}.
 	 *
 	 * @param primitiveNumber The number of the primitive to invoke.
-	 * @param compiledCode The compiled code whose primitive is being attempted.
+	 * @param function The function whose primitive is being attempted.
 	 * @param args The list of arguments to supply to the primitive.
 	 * @return The resulting status of the primitive attempt.
 	 */
 	public final Result attemptPrimitive (
 		final int primitiveNumber,
-		final @Nullable A_RawFunction compiledCode,
+		final @Nullable A_Function function,
 		final List<AvailObject> args)
 	{
 		final Primitive primitive =
@@ -724,11 +735,11 @@ public final class Interpreter
 		}
 
 		latestResult = null;
-		primitiveCompiledCodeBeingAttempted = compiledCode;
+		primitiveFunctionBeingAttempted = function;
 		assert current() == this;
 		final Result success = primitive.attempt(args, this);
 		assert success != FAILURE || !primitive.hasFlag(Flag.CannotFail);
-		primitiveCompiledCodeBeingAttempted = null;
+		primitiveFunctionBeingAttempted = null;
 		if (logger.isLoggable(Level.FINER))
 		{
 			final String failPart = success == FAILURE
@@ -1453,7 +1464,8 @@ public final class Interpreter
 			{
 				strongArgs.add((AvailObject)arg);
 			}
-			final Result result = attemptPrimitive(primNum, code, strongArgs);
+			final Result result = attemptPrimitive(
+				primNum, aFunction, strongArgs);
 			switch (result)
 			{
 				case FAILURE:
@@ -1502,7 +1514,8 @@ public final class Interpreter
 		final A_BasicObject caller)
 	{
 		final A_RawFunction code = aFunction.code();
-		assert code.primitiveNumber() == 0 || latestResult != null;
+		assert code.primitiveNumber() == 0
+			|| pointers[PRIMITIVE_FAILURE.ordinal()] != null;
 		code.tallyInvocation();
 		A_Chunk chunkToInvoke = code.startingChunk();
 		if (!chunkToInvoke.isValid())
@@ -1535,23 +1548,22 @@ public final class Interpreter
 	 * been reified. Since that's the case, we can clobber all registers, as
 	 * long as the {@link FixedRegister#CALLER} is set appropriately afterward.
 	 *
-	 * @param handler
+	 * @param function
 	 *        The function to invoke.
 	 * @param continuation
 	 *        The calling continuation.
 	 */
 	public void invokePossiblePrimitiveWithReifiedCaller (
-		final A_Function handler,
+		final A_Function function,
 		final A_Continuation continuation)
 	{
-		final A_RawFunction theCode = handler.code();
-		final int primNum = theCode.primitiveNumber();
+		final int primNum = function.code().primitiveNumber();
 		pointerAtPut(CALLER, continuation);
 		if (primNum != 0)
 		{
 			final Result primResult = attemptPrimitive(
 				primNum,
-				theCode,
+				function,
 				argsBuffer);
 			switch (primResult)
 			{
@@ -1591,7 +1603,7 @@ public final class Interpreter
 			}
 		}
 		invokeWithoutPrimitiveFunctionArguments(
-			handler, argsBuffer, continuation);
+			function, argsBuffer, continuation);
 	}
 
 	/**
@@ -1779,8 +1791,6 @@ public final class Interpreter
 					assert !aFiber.continuation().equalsNil();
 					interpreter.prepareToResumeContinuation(
 						aFiber.continuation());
-					// Keep the fiber's current continuation clear
-					// during execution.
 					aFiber.continuation(NilDescriptor.nil());
 					interpreter.exitNow = false;
 				}
@@ -1790,33 +1800,21 @@ public final class Interpreter
 	/**
 	 * Schedule resumption of the specified {@linkplain FiberDescriptor fiber}
 	 * following {@linkplain ExecutionState#SUSPENDED suspension} by a
-	 * {@linkplain Primitive primitive}. This method is an entry point.
-	 *
-	 * <p>If the function successfully runs to completion, then the fiber's
-	 * "on success" {@linkplain Continuation1 continuation} will be invoked with
-	 * the function's result.</p>
-	 *
-	 * <p>If the function fails for any reason, then the fiber's "on failure"
-	 * {@linkplain Continuation1 continuation} will be invoked with the
-	 * terminal {@linkplain Throwable throwable}.</p>
+	 * {@linkplain Result#SUCCESS successful} {@linkplain Primitive primitive}.
+	 * This method is an entry point.
 	 *
 	 * @param runtime
 	 *        An {@linkplain AvailRuntime Avail runtime}.
 	 * @param aFiber
 	 *        The fiber to run.
-	 * @param state
-	 *        The {@linkplain Result#SUCCESS result state} of the primitive that
-	 *        suspended the current fiber.
 	 * @param result
 	 *        The result of the primitive.
 	 */
-	public static void resumeFromPrimitive (
+	public static void resumeFromSuccessfulPrimitive (
 		final AvailRuntime runtime,
 		final A_Fiber aFiber,
-		final Result state,
 		final A_BasicObject result)
 	{
-		assert state == SUCCESS || state == FAILURE;
 		assert !aFiber.continuation().equalsNil();
 		assert aFiber.executionState() == SUSPENDED;
 		executeFiber(
@@ -1828,45 +1826,213 @@ public final class Interpreter
 				public void value (final @Nullable Interpreter interpreter)
 				{
 					assert interpreter != null;
-					switch (state)
+					assert aFiber == interpreter.fiber;
+					assert aFiber.executionState() == RUNNING;
+					assert !aFiber.continuation().equalsNil();
+					final A_Continuation updatedCaller =
+						aFiber.continuation().ensureMutable();
+					final int stackp = updatedCaller.stackp();
+					final A_Type expectedType =
+						updatedCaller.stackAt(stackp);
+					if (!result.isInstanceOf(expectedType))
 					{
-						case SUCCESS:
-							assert aFiber == interpreter.fiber;
-							assert aFiber.executionState() == RUNNING;
-							assert !aFiber.continuation().equalsNil();
-							final A_Continuation updatedCaller =
-								aFiber.continuation().ensureMutable();
-							final int stackp = updatedCaller.stackp();
-							final A_Type expectedType =
-								updatedCaller.stackAt(stackp);
-							if (!result.isInstanceOf(expectedType))
-							{
-								// TODO: [MvG] Remove after debugging.
-								result.isInstanceOf(expectedType);
-								error(String.format(
-									"Return value (%s) does not agree with "
-									+ "expected type (%s)",
-									result,
-									expectedType));
-							}
-							updatedCaller.stackAtPut(stackp, result);
-							interpreter.prepareToResumeContinuation(
-								updatedCaller);
-							interpreter.exitNow = false;
-							break;
-						case FAILURE:
-							interpreter.pointerAtPut(
-								PRIMITIVE_FAILURE,
-								result);
-							interpreter.prepareToResumeContinuation(
-								aFiber.continuation());
-							interpreter.exitNow = false;
-							break;
-						default:
-							assert false;
+						// TODO: [MvG] Remove after debugging.
+						result.isInstanceOf(expectedType);
+						error(String.format(
+							"Return value (%s) does not agree with "
+							+ "expected type (%s)",
+							result,
+							expectedType));
 					}
+					updatedCaller.stackAtPut(stackp, result);
+					interpreter.prepareToResumeContinuation(
+						updatedCaller);
+					aFiber.continuation(NilDescriptor.nil());
+					interpreter.exitNow = false;
 				}
 			});
+	}
+
+	/**
+	 * Schedule resumption of the specified {@linkplain FiberDescriptor fiber}
+	 * following {@linkplain ExecutionState#SUSPENDED suspension} by a
+	 * {@linkplain Result#FAILURE failed} {@linkplain Primitive primitive}. This
+	 * method is an entry point.
+	 *
+	 * @param runtime
+	 *        An {@linkplain AvailRuntime Avail runtime}.
+	 * @param aFiber
+	 *        The fiber to run.
+	 * @param result
+	 *        The result of the primitive.
+	 * @param failureFunction
+	 *        The primitive failure {@linkplain FunctionDescriptor function}.
+	 * @param args
+	 *        The arguments to the primitive.
+	 */
+	public static void resumeFromFailedPrimitive (
+		final AvailRuntime runtime,
+		final A_Fiber aFiber,
+		final A_BasicObject result,
+		final A_Function failureFunction,
+		final List<AvailObject> args)
+	{
+		assert !aFiber.continuation().equalsNil();
+		assert aFiber.executionState() == SUSPENDED;
+		executeFiber(
+			runtime,
+			aFiber,
+			new Continuation1<Interpreter>()
+			{
+				@Override
+				public void value (final @Nullable Interpreter interpreter)
+				{
+					assert interpreter != null;
+					interpreter.pointerAtPut(
+						PRIMITIVE_FAILURE,
+						result);
+					interpreter.invokeWithoutPrimitiveFunctionArguments(
+						failureFunction,
+						args,
+						aFiber.continuation());
+					aFiber.continuation(NilDescriptor.nil());
+					interpreter.exitNow = false;
+				}
+			});
+	}
+
+	/**
+	 * Stringify an {@linkplain AvailObject Avail value}, using the
+	 * {@linkplain AvailRuntime#stringificationAtom() stringification atom}
+	 * associated with the specified {@linkplain AvailRuntime runtime}.
+	 * Stringification will run in a new {@linkplain FiberDescriptor fiber}. If
+	 * stringification fails for any reason, then the built-in mechanism,
+	 * available via {@link AvailObject#toString()} will be used. Invoke the
+	 * specified continuation with the result.
+	 *
+	 * @param runtime
+	 *        An Avail runtime.
+	 * @param value
+	 *        An Avail value.
+	 * @param continuation
+	 *        What to do with the stringification of {@code value}.
+	 */
+	public static void stringifyThen (
+		final AvailRuntime runtime,
+		final A_BasicObject value,
+		final Continuation1<String> continuation)
+	{
+		final A_Atom stringifierAtom = runtime.stringificationAtom();
+		// If the stringifier atom is not defined, or is not bound to a message
+		// bundle (and thus a method), then use the basic mechanism for
+		// stringification.
+		if (stringifierAtom == null
+			|| stringifierAtom.bundleOrNil().equalsNil())
+		{
+			continuation.value(String.format(
+				"(stringifier undefined) %s",
+				value.toString()));
+			return;
+		}
+		// Generate a zero-argument function that will invoke the stringifier
+		// method for the specified value.
+		final A_Phrase send = SendNodeDescriptor.from(
+			stringifierAtom.bundleOrNil(),
+			ListNodeDescriptor.newExpressions(TupleDescriptor.from(
+				LiteralNodeDescriptor.syntheticFrom(value))),
+			TOP.o());
+		final A_Function function = FunctionDescriptor.createFunctionForPhrase(
+			send, NilDescriptor.nil(), 0);
+		// Create the fiber that will execute the function.
+		final A_Fiber fiber = FiberDescriptor.newFiber(
+			TupleTypeDescriptor.stringTupleType(),
+			FiberDescriptor.stringificationPriority);
+		fiber.resultContinuation(new Continuation1<AvailObject>()
+		{
+			@Override
+			public void value (final @Nullable AvailObject string)
+			{
+				assert string != null;
+				continuation.value(string.asNativeString());
+			}
+		});
+		fiber.failureContinuation(new Continuation1<Throwable>()
+		{
+			@Override
+			public void value (final @Nullable Throwable killer)
+			{
+				assert killer != null;
+				continuation.value(String.format(
+					"(stringification failed [%s]) %s",
+					killer.getClass().getSimpleName(),
+					value.toString()));
+			}
+		});
+		// Stringify!
+		Interpreter.runOutermostFunction(
+			runtime,
+			fiber,
+			function,
+			Collections.<A_BasicObject>emptyList());
+	}
+
+	/**
+	 * Stringify a {@linkplain List list} of {@linkplain AvailObject Avail
+	 * values}, using the {@linkplain AvailRuntime#stringificationAtom()
+	 * stringification atom} associated with the specified {@linkplain
+	 * AvailRuntime runtime}. Stringification will run in parallel, with each
+	 * value being processed by its own new {@linkplain FiberDescriptor fiber}.
+	 * If stringification fails for a value for any reason, then the built-in
+	 * mechanism, available via {@link AvailObject#toString()} will be used for
+	 * that value. Invoke the specified continuation with the resulting list,
+	 * preserving the original order.
+	 *
+	 * @param runtime
+	 *        An Avail runtime.
+	 * @param values
+	 *        Some Avail values.
+	 * @param continuation
+	 *        What to do with the resulting list.
+	 */
+	public static void stringifyThen (
+		final AvailRuntime runtime,
+		final List<? extends A_BasicObject> values,
+		final Continuation1<List<String>> continuation)
+	{
+		final int limit = values.size();
+		if (limit == 0)
+		{
+			continuation.value(Collections.<String>emptyList());
+			return;
+		}
+		final Mutable<Integer> outstanding = new Mutable<Integer>(limit);
+		final String[] strings = new String[limit];
+		for (int i = 0; i < limit; i++)
+		{
+			final int finalI = i;
+			stringifyThen(
+				runtime,
+				values.get(finalI),
+				new Continuation1<String>()
+				{
+					@Override
+					public void value (final @Nullable String arg)
+					{
+						assert arg != null;
+						strings[finalI] = arg;
+						synchronized (outstanding)
+						{
+							outstanding.value--;
+							if (outstanding.value == 0)
+							{
+								final List<String> stringList =
+									Arrays.asList(strings);
+								continuation.value(stringList);
+							}
+						}
+					}
+				});
+		}
 	}
 
 	/**
@@ -1876,7 +2042,7 @@ public final class Interpreter
 	 * @return A list of {@linkplain String strings}, starting with the newest
 	 *         frame.
 	 */
-	public List<String> dumpStack ()
+	private List<String> builtinDumpStack ()
 	{
 		final List<A_Continuation> frames = new ArrayList<A_Continuation>(20);
 		for (
@@ -1923,28 +2089,28 @@ public final class Interpreter
 	public String toString ()
 	{
 		final StringBuilder builder = new StringBuilder();
-		builder.append(
-			String.format(
-				"%s [%s]",
-				getClass().getSimpleName(),
-				fiber().fiberName()));
-		final List<String> stack = dumpStack();
-		for (final String frame : stack)
+		builder.append(getClass().getSimpleName());
+		if (fiber == null)
 		{
-			builder.append(
-				String.format(
-					"%n\t-- %s",
-					frame));
+			builder.append(" [«unbound»]");
 		}
-		builder.append("\n\n");
+		else
+		{
+			builder.append(String.format(" [%s]", fiber().fiberName()));
+			if (pointers[CALLER.ordinal()] == null)
+			{
+				builder.append(String.format("%n\t«no stack»"));
+			}
+			else
+			{
+				final List<String> stack = builtinDumpStack();
+				for (final String frame : stack)
+				{
+					builder.append(String.format("%n\t-- %s", frame));
+				}
+			}
+			builder.append("\n\n");
+		}
 		return builder.toString();
 	}
-
-	/*
-	 * TODO TODO TODO
-	 * These methods must be integrated against what's in AvailLoader (or moved
-	 * wholesale if there isn't a corresponding implementation). Any primitives
-	 * using these methods must first check to see if loading is still in
-	 * progress (look up uses of E_LOADING_IS_OVER to see how to do this).
-	 */
 }

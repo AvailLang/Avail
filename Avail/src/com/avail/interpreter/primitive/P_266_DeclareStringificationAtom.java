@@ -1,6 +1,6 @@
 /**
- * P_256_EmergencyExit.java
- * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
+ * P_266_DeclareStringificationAtom.java
+ * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,29 +29,33 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+
 package com.avail.interpreter.primitive;
 
-import static com.avail.descriptor.TypeDescriptor.Types.ANY;
+import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
-import com.avail.annotations.Nullable;
+import com.avail.AvailRuntime;
+import com.avail.annotations.NotNull;
 import com.avail.descriptor.*;
-import com.avail.descriptor.FiberDescriptor.ExecutionState;
 import com.avail.interpreter.*;
-import com.avail.utility.Continuation1;
 
 /**
- * <strong>Primitive 256:</strong> Exit the current {@linkplain
- * FiberDescriptor fiber}. The specified argument will be converted
- * internally into a {@code string} and used to report an error message.
+ * <strong>Primitive 266</strong>: Inform the VM of the {@linkplain
+ * AtomDescriptor name} of the preferred stringification {@linkplain
+ * MethodDescriptor method}.
+ *
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class P_256_EmergencyExit extends Primitive
+public final class P_266_DeclareStringificationAtom
+extends Primitive
 {
 	/**
-	 * The sole instance of this primitive class.  Accessed through reflection.
+	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_256_EmergencyExit().init(
-		1, Unknown, CannotFail);
+	public final @NotNull static Primitive instance =
+		new P_266_DeclareStringificationAtom().init(
+			1, CannotFail, HasSideEffect, Private);
 
 	@Override
 	public Result attempt (
@@ -59,38 +63,9 @@ public class P_256_EmergencyExit extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
-		final A_BasicObject errorMessageProducer = args.get(0);
-		final A_Fiber fiber = FiberDescriptor.current();
-		final A_Continuation continuation =
-			interpreter.currentContinuation();
-		interpreter.primitiveSuspend();
-		ContinuationDescriptor.dumpStackThen(
-			interpreter.runtime(),
-			continuation,
-			new Continuation1<List<String>>()
-			{
-				@Override
-				public void value (final @Nullable List<String> stack)
-				{
-					assert stack != null;
-					final StringBuilder builder = new StringBuilder();
-					builder.append(String.format(
-						"A fiber (%s) has exited: %s",
-						fiber.fiberName(),
-						errorMessageProducer));
-					for (final String frame : stack)
-					{
-						builder.append(String.format("%n\t-- %s", frame));
-					}
-					builder.append("\n\n");
-					final RuntimeException killer =
-						new RuntimeException(builder.toString());
-					killer.fillInStackTrace();
-					fiber.executionState(ExecutionState.ABORTED);
-					fiber.failureContinuation().value(killer);
-				}
-			});
-		return Result.FIBER_SUSPENDED;
+		final A_Atom atom = args.get(0);
+		AvailRuntime.current().setStringificationAtom(atom);
+		return interpreter.primitiveSuccess(NilDescriptor.nil());
 	}
 
 	@Override
@@ -98,7 +73,7 @@ public class P_256_EmergencyExit extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				ANY.o()),
-			BottomTypeDescriptor.bottom());
+				ATOM.o()),
+			TOP.o());
 	}
 }

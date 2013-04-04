@@ -34,9 +34,12 @@ package com.avail.interpreter.primitive;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
+import com.avail.annotations.Nullable;
 import com.avail.compiler.AvailAssertionFailedException;
 import com.avail.descriptor.*;
+import com.avail.descriptor.FiberDescriptor.ExecutionState;
 import com.avail.interpreter.*;
+import com.avail.utility.Continuation1;
 
 /**
  * <strong>Primitive 260:</strong> Assert the specified {@linkplain
@@ -62,18 +65,35 @@ public class P_260_Assert extends Primitive
 		final A_String failureMessage = args.get(1);
 		if (predicate.equals(AtomDescriptor.falseObject()))
 		{
-			final List<String> stack = interpreter.dumpStack();
-			final StringBuilder builder = new StringBuilder();
-			builder.append(failureMessage.asNativeString());
-			for (final String frame : stack)
-			{
-				builder.append(
-					String.format(
-						"%n\t-- %s",
-						frame));
-			}
-			builder.append("\n\n");
-			throw new AvailAssertionFailedException(builder.toString());
+			final A_Fiber fiber = FiberDescriptor.current();
+			final A_Continuation continuation =
+				interpreter.currentContinuation();
+			interpreter.primitiveSuspend();
+			ContinuationDescriptor.dumpStackThen(
+				interpreter.runtime(),
+				continuation,
+				new Continuation1<List<String>>()
+				{
+					@Override
+					public void value (final @Nullable List<String> stack)
+					{
+						assert stack != null;
+						final StringBuilder builder = new StringBuilder();
+						builder.append(failureMessage.asNativeString());
+						for (final String frame : stack)
+						{
+							builder.append(String.format("%n\t-- %s", frame));
+						}
+						builder.append("\n\n");
+						final AvailAssertionFailedException killer =
+							new AvailAssertionFailedException(
+								builder.toString());
+						killer.fillInStackTrace();
+						fiber.executionState(ExecutionState.ABORTED);
+						fiber.failureContinuation().value(killer);
+					}
+				});
+			return Result.FIBER_SUSPENDED;
 		}
 		return interpreter.primitiveSuccess(NilDescriptor.nil());
 	}

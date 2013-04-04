@@ -45,9 +45,11 @@ Extends
 Uses
 Names
 	"Primitive_is_",
-	"special object_"
+	"special object_",
+	"“_”"
 Pragma
 	"method=253=Primitive_is_",
-	"method=240=special object_"
+	"method=240=special object_",
+	"stringify=“_”"
 Body
 

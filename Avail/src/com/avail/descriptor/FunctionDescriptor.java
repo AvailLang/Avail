@@ -32,6 +32,8 @@
 
 package com.avail.descriptor;
 
+import static com.avail.descriptor.TypeDescriptor.Types.TOP;
+import java.util.Collections;
 import java.util.List;
 import com.avail.annotations.*;
 import com.avail.interpreter.levelOne.*;
@@ -395,6 +397,46 @@ extends Descriptor
 		final AvailObject object = mutable.create(outersCount);
 		object.setSlot(ObjectSlots.CODE, code);
 		return object;
+	}
+
+	/**
+	 * Convert a {@link ParseNodeDescriptor phrase} into a zero-argument
+	 * {@link FunctionDescriptor function}.
+	 *
+	 * @param phrase
+	 *        The phrase to compile to a function.
+	 * @param module
+	 *        The {@linkplain ModuleDescriptor module} that is the context for
+	 *        the phrase and function, or {@linkplain NilDescriptor#nil() nil}
+	 *        if there is no context.
+	 * @param lineNumber
+	 *        The line number to attach to the new function, or {@code 0} if no
+	 *        meaningful line number is available.
+	 * @return A zero-argument function.
+	 */
+	public static A_Function createFunctionForPhrase (
+		final A_Phrase phrase,
+		final A_Module module,
+		final int lineNumber)
+	{
+		final A_Phrase block = BlockNodeDescriptor.newBlockNode(
+			Collections.<A_Phrase>emptyList(),
+			0,
+			Collections.singletonList(phrase),
+			TOP.o(),
+			SetDescriptor.empty(),
+			lineNumber);
+		BlockNodeDescriptor.recursivelyValidate(block);
+		final A_RawFunction compiledBlock = block.generateInModule(module);
+		// The block is guaranteed context-free (because imported
+		// variables/values are embedded directly as constants in the generated
+		// code), so build a function with no copied data.
+		assert compiledBlock.numOuters() == 0;
+		final A_Function function = FunctionDescriptor.create(
+			compiledBlock,
+			TupleDescriptor.empty());
+		function.makeImmutable();
+		return function;
 	}
 
 	/**

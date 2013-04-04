@@ -171,7 +171,8 @@ public final class BootstrapGenerator
 			preamble.getString(originModuleName.name()),
 			versionString(versions),
 			preamble.getString(bootstrapDefiningMethod.name()),
-			preamble.getString(bootstrapSpecialObject.name())));
+			preamble.getString(bootstrapSpecialObject.name()),
+			preamble.getString(bootstrapStringifier.name())));
 	}
 
 	/**

@@ -1,5 +1,5 @@
 /**
- * P_340_PushConstant.java
+ * ErrorDescriber.java
  * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -29,39 +29,27 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.avail.interpreter.primitive;
 
-import static com.avail.interpreter.Primitive.Flag.*;
-import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
+package com.avail.compiler;
+
+import com.avail.utility.Continuation1;
 
 /**
- * <strong>Primitive 340:</strong> The first literal is being returned.
- * Extract the first literal from the {@linkplain CompiledCodeDescriptor
- * compiled code} that the interpreter has squirreled away for this purpose.
+ * A {@code Describer} produces a message and forwards it to a supplied
+ * {@linkplain Continuation1 continuation}. It is used by the {@linkplain
+ * AbstractAvailCompiler compiler} to support stringification in a
+ * continuation-passing style.
+ *
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class P_340_PushConstant extends Primitive
+interface Describer
 {
 	/**
-	 * The sole instance of this primitive class.  Accessed through reflection.
+	 * Assemble a message and pass it into the specified {@linkplain
+	 * Continuation1 continuation}.
+	 *
+	 * @param continuation
+	 *        What to do with the message.
 	 */
-	public final static Primitive instance = new P_340_PushConstant().init(
-		-1, SpecialReturnConstant, Private, CannotFail);
-
-	@Override
-	public Result attempt (
-		final List<AvailObject> args,
-		final Interpreter interpreter)
-	{
-		return interpreter.primitiveSuccess(
-			interpreter.primitiveFunctionBeingAttempted().code().literalAt(1));
-	}
-
-	@Override
-	protected A_Type privateBlockTypeRestriction ()
-	{
-		// This primitive is suitable for any block signature.
-		return BottomTypeDescriptor.bottom();
-	}
+	public void describeThen (Continuation1<String> continuation);
 }

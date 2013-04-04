@@ -68,10 +68,9 @@ extends Primitive
 			@Override
 			public void value ()
 			{
-				Interpreter.resumeFromPrimitive(
+				Interpreter.resumeFromSuccessfulPrimitive(
 					AvailRuntime.current(),
 					fiber,
-					Result.SUCCESS,
 					NilDescriptor.nil());
 			}
 		});

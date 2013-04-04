@@ -1158,4 +1158,22 @@ extends Descriptor
 	{
 		return vmPublishAtomsAtom;
 	}
+
+	/**
+	 * The (special) name of the VM-built stringifier declaration atom.
+	 */
+	private static final A_Atom vmDeclareStringifierAtom =
+		createSpecialMethodAtom(
+			"vm stringifier:=_",
+			P_266_DeclareStringificationAtom.instance);
+
+	/**
+	 * Answer the (special) name of the VM-built stringifier declaration atom.
+	 *
+	 * @return The name of the VM's stringifier declaration atom.
+	 */
+	public static A_Atom vmDeclareStringifierAtom ()
+	{
+		return vmDeclareStringifierAtom;
+	}
 }
