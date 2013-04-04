@@ -1593,6 +1593,7 @@ public abstract class AbstractAvailCompiler
 					state.expected("string literal token after right arrow");
 					return null;
 				}
+				state = state.afterToken();
 				strings.add(TupleDescriptor.from(
 					token.literal(),
 					token2.literal()));
@@ -1646,15 +1647,23 @@ public abstract class AbstractAvailCompiler
 		final List<ModuleImport> imports,
 		final boolean isExtension)
 	{
+		boolean anyEntries = false;
 		ParserState state = start;
 		do
 		{
 			final A_Token token = state.peekStringLiteral();
 			if (token == null)
 			{
-				state.expected("another module name after comma");
-				return imports.isEmpty() ? state : null;
+				if (anyEntries)
+				{
+					state.expected("another module name after comma");
+					return null;
+				}
+				state.expected("a comma-separated list of module name");
+				// It's legal to have no strings.
+				return state;
 			}
+			anyEntries = true;
 
 			final A_String moduleName = token.literal();
 			state = state.afterToken();
