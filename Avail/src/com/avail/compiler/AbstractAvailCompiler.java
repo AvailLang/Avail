@@ -446,18 +446,20 @@ public abstract class AbstractAvailCompiler
 				}
 				module.addAncestors(mod.allAncestors());
 
+				final A_Map importedNamesMultimap = mod.importedNames();
 				final A_Set modNames = moduleImport.isItemized()
 					? moduleImport.names
-					: mod.importedNames().keysAsSet();
+					: importedNamesMultimap.keysAsSet();
 				for (final A_String strName : modNames)
 				{
-					if (!mod.importedNames().hasKey(strName))
+					if (!importedNamesMultimap.hasKey(strName))
 					{
 						return
 							"module \"" + ref.qualifiedName()
 							+ "\" to export " + strName;
 					}
-					final A_Set trueNames = mod.importedNames().mapAt(strName);
+					final A_Set trueNames =
+						importedNamesMultimap.mapAt(strName);
 					for (final A_Atom trueName : trueNames)
 					{
 						if (moduleImport.isExtension)
@@ -479,15 +481,23 @@ public abstract class AbstractAvailCompiler
 						final A_String newString = entry.key();
 						final A_String oldString = entry.value();
 						// Find the old atom.
-						if (!mod.importedNames().hasKey(oldString))
+						if (!importedNamesMultimap.hasKey(oldString))
 						{
 							return
 								"module \"" + ref.qualifiedName()
 								+ "\" to export " + oldString
 								+ " for renaming to " + newString;
 						}
-						final A_Atom oldAtom =
-							mod.importedNames().mapAt(oldString);
+						final A_Set oldCandidates =
+							importedNamesMultimap.mapAt(oldString);
+						if (oldCandidates.setSize() != 1)
+						{
+							return
+								"module \"" + ref.qualifiedName()
+								+ "\" to export a unique name " + oldString
+								+ " for renaming to " + newString;
+						}
+						final A_Atom oldAtom = oldCandidates.iterator().next();
 						// Find or create the new atom.
 						A_Atom newAtom;
 						if (module.newNames().hasKey(newString))
