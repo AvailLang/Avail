@@ -32,6 +32,8 @@
 
 package com.avail.descriptor;
 
+import com.avail.descriptor.TokenDescriptor.TokenType;
+
 
 /**
  * {@code A_Token} is an interface that specifies the token-specific operations
@@ -45,13 +47,53 @@ public interface A_Token
 extends A_BasicObject
 {
 	/**
-	 * Dispatch to the descriptor.
+	 * Answer the {@linkplain TokenType} of this token.
+	 *
+	 * @return A TokenType.
 	 */
-	TokenDescriptor.TokenType tokenType ();
+	TokenType tokenType ();
 
 	/**
-	 * @return
+	 * Answer whether this token is a {@linkplain LiteralTokenDescriptor literal
+	 * token}, such as a string or number.
+	 *
+	 * @return Whether the token is a literal.
 	 */
 	boolean isLiteralToken ();
 
+	/**
+	 * Answer this token's exact string representation as it appeared in the
+	 * source code.
+	 *
+	 * @return The token's string representation.
+	 */
+	A_String string ();
+
+	/**
+	 * Answer this token's string representation converted to lower case.
+	 *
+	 * @return The token's lowercase representation.
+	 */
+	A_String lowerCaseString();
+
+	/**
+	 * Answer this token's initial character position in the source file.
+	 *
+	 * @return The token's source position.
+	 */
+	int start ();
+
+	/**
+	 * The line number of this token in the source file.
+	 *
+	 * @return the token's line number.
+	 */
+	int lineNumber ();
+
+	/**
+	 * Extract the literal value from this token.  It must be a literal token.
+	 *
+	 * @return The value of the literal token.
+	 */
+	AvailObject literal ();
 }

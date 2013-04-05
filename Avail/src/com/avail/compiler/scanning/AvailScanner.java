@@ -137,7 +137,7 @@ public class AvailScanner
 	 * @return The newly added token.
 	 */
 	@InnerAccess
-	A_BasicObject addCurrentToken (
+	A_Token addCurrentToken (
 		final TokenDescriptor.TokenType tokenType)
 	{
 		final A_Token token = TokenDescriptor.create(
@@ -662,7 +662,7 @@ public class AvailScanner
 				{
 					// no body
 				}
-				final A_BasicObject token =
+				final A_Token token =
 					scanner.addCurrentToken(TokenType.KEYWORD);
 				if (scanner.stopAfterBodyToken
 					&& token.string().equals(

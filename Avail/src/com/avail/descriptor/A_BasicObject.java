@@ -746,11 +746,6 @@ public interface A_BasicObject
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	AvailObject literal ();
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
 	AvailObject makeImmutable ();
 
 	/**
@@ -841,16 +836,6 @@ public interface A_BasicObject
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	int start ();
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	A_String string ();
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
 	AvailObject traversed ();
 
 	/**
@@ -924,11 +909,6 @@ public interface A_BasicObject
 	 * Dispatch to the descriptor.
 	 */
 	A_Type binUnionKind ();
-
-	/**
-	 * @return
-	 */
-	int lineNumber ();
 
 	/**
 	 * @return
@@ -1164,11 +1144,6 @@ public interface A_BasicObject
 	 * @return
 	 */
 	BigInteger asBigInteger ();
-
-	/**
-	 * @return
-	 */
-	A_String lowerCaseString ();
 
 	/**
 	 * @return

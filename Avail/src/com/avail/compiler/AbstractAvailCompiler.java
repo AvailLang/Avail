@@ -79,6 +79,29 @@ public abstract class AbstractAvailCompiler
 	final AvailRuntime runtime = AvailRuntime.current();
 
 	/**
+	 * An {@code ImportValidationException} is raised by the constructor of
+	 * {@link ModuleImport} when it is supplied with arguments that constitute
+	 * an invalid import specification.
+	 */
+	private static final class ImportValidationException
+	extends Exception
+	{
+		/** The serial version identifier. */
+		private static final long serialVersionUID = 4925679877429696123L;
+
+		/**
+		 * Construct a new {@link ImportValidationException}.
+		 *
+		 * @param message
+		 *        A message suitable for use as a parse rejection.
+		 */
+		public ImportValidationException (final String message)
+		{
+			super(message);
+		}
+	}
+
+	/**
 	 * Information that a {@link ModuleHeader} uses to keep track of a module
 	 * import, whether from an {@linkplain ExpectedToken#EXTENDS Extends} or a
 	 * {@linkplain ExpectedToken#USES Uses} clause.
@@ -123,6 +146,18 @@ public abstract class AbstractAvailCompiler
 		public final A_Map renames;
 
 		/**
+		 * The {@linkplain SetDescriptor set} of names to specifically exclude
+		 * from being imported from the predecessor module.
+		 */
+		public final A_Set excludes;
+
+		/**
+		 * Whether to include all names exported by the predecessor module that
+		 * are not otherwise excluded by this import.
+		 */
+		public final boolean wildcard;
+
+		/**
 		 * Construct a new {@link ModuleImport}.
 		 *
 		 * @param moduleName
@@ -150,36 +185,116 @@ public abstract class AbstractAvailCompiler
 		 *            new atoms in the importing module, and exported if
 		 *            isExtension is true.  {@linkplain NilDescriptor#nil() Nil}
 		 *            indicates that neither names nor renames were specified.
+		 * @param excludes
+		 *            The {@linkplain SetDescriptor set} of names ({@linkplain
+		 *            StringDescriptor strings}) to exclude from being imported.
+		 * @param wildcard
+		 *            Whether to import any published names not explicitly
+		 *            excluded.
+		 * @throws ImportValidationException
+		 *         If the specification is invalid.
 		 */
 		ModuleImport (
-			final A_String moduleName,
-			final A_Set acceptableVersions,
-			final boolean isExtension,
-			final A_Set names,
-			final A_Map renames)
+				final A_String moduleName,
+				final A_Set acceptableVersions,
+				final boolean isExtension,
+				final A_Set names,
+				final A_Map renames,
+				final A_Set excludes,
+				final boolean wildcard)
+			throws ImportValidationException
 		{
-			this.moduleName = moduleName;
-			this.acceptableVersions = acceptableVersions;
+			this.moduleName = moduleName.makeShared();
+			this.acceptableVersions = acceptableVersions.makeShared();
 			this.isExtension = isExtension;
-			this.names = names;
-			this.renames = renames;
+			this.names = names.makeShared();
+			this.renames = renames.makeShared();
+			this.excludes = excludes.makeShared();
+			this.wildcard = wildcard;
+			validate();
+		}
+
+		/**
+		 * Validate the module import specification.
+		 *
+		 * @throws ImportValidationException
+		 *         If the specification is invalid.
+		 */
+		private void validate () throws ImportValidationException
+		{
+			final A_Set renameOriginals = renames.valuesAsTuple().asSet();
+			if (wildcard)
+			{
+				if (!names.isSubsetOf(renameOriginals))
+				{
+					throw new ImportValidationException(
+						"wildcard import not to be specified or "
+						+ "explicit positive imports only to be used to force "
+						+ "inclusion of source names of renames");
+				}
+			}
+			else
+			{
+				if (excludes.setSize() != 0)
+				{
+					throw new ImportValidationException(
+						"wildcard import to be specified or "
+						+ "explicit negative imports not to be specified");
+				}
+			}
+			final A_Set redundantExclusions =
+				renameOriginals.setIntersectionCanDestroy(
+					excludes,
+					false);
+			if (redundantExclusions.setSize() != 0)
+			{
+				final StringBuilder builder = new StringBuilder(100);
+				builder.append(
+					"source names of renames not to overlap explicit "
+					+ "negative imports (the redundant name");
+				if (redundantExclusions.setSize() == 1)
+				{
+					builder.append(" is ");
+				}
+				else
+				{
+					builder.append("s are ");
+				}
+				boolean first = true;
+				for (final A_String redundant : redundantExclusions)
+				{
+					if (first)
+					{
+						first = !first;
+					}
+					else
+					{
+						builder.append(", ");
+					}
+					// This will quote the string.
+					builder.append(redundant);
+				}
+				builder.append(")");
+				throw new ImportValidationException(builder.toString());
+			}
 		}
 
 		/**
 		 * Answer a tuple suitable for serializing this import information.
 		 *
 		 * <p>
-		 * This currently consists of 3 or 5 elements:
+		 * This currently consists of exactly 7 elements:
 		 * <ol>
 		 * <li>The unresolved module name.</li>
 		 * <li>The tuple of acceptable version strings.</li>
 		 * <li>True if this is an "Extends" import, false if it's a "Uses".</li>
-		 * </ol>
-		 * And, if explicit name/rename importing was specified:
-		 * <ol start=4>
-		 * <li>The set of names (strings) to import.</li>
-		 * <li>The map from new names to old names (all strings) to import and
-		 * rename.</li>
+		 * <li>The set of names (strings) to explicitly import.</li>
+		 * <li>The map from new names to old names (all strings) to explicitly
+		 * import and rename.</li>
+		 * <li>The set of names (strings) to explicitly exclude from
+		 * importing.</li>
+		 * <li>True to include all names not explicitly excluded, otherwise
+		 * false</li>
 		 * </ol>
 		 *
 		 * @see #fromSerializedTuple(A_Tuple)
@@ -187,17 +302,14 @@ public abstract class AbstractAvailCompiler
 		 */
 		A_Tuple tupleForSerialization ()
 		{
-			assert names.equalsNil() == renames.equalsNil();
-			final List<A_BasicObject> list = new ArrayList<>(5);
-			list.add(moduleName);
-			list.add(acceptableVersions);
-			list.add(AtomDescriptor.objectFromBoolean(isExtension));
-			if (!names.equalsNil())
-			{
-				list.add(names);
-				list.add(renames);
-			}
-			return TupleDescriptor.fromList(list);
+			return TupleDescriptor.from(
+				moduleName,
+				acceptableVersions,
+				AtomDescriptor.objectFromBoolean(isExtension),
+				names,
+				renames,
+				excludes,
+				AtomDescriptor.objectFromBoolean(wildcard));
 		}
 
 		/**
@@ -207,36 +319,31 @@ public abstract class AbstractAvailCompiler
 		 *
 		 * @param serializedTuple The tuple from which to build a ModuleImport.
 		 * @return The ModuleImport.
+		 * @throws MalformedSerialStreamException
+		 *         If the module import specification is invalid.
 		 */
 		public static ModuleImport fromSerializedTuple (
-			final A_Tuple serializedTuple)
+				final A_Tuple serializedTuple)
+			throws MalformedSerialStreamException
 		{
 			final int tupleSize = serializedTuple.tupleSize();
-			assert tupleSize == 3 || tupleSize == 5;
-			final A_Set names = tupleSize == 5
-				? serializedTuple.tupleAt(4)
-				: NilDescriptor.nil();
-			final A_Map renames = tupleSize == 5
-				? serializedTuple.tupleAt(5)
-				: NilDescriptor.nil();
-			return new ModuleImport(
-				serializedTuple.tupleAt(1),
-				serializedTuple.tupleAt(2),
-				serializedTuple.tupleAt(3).extractBoolean(),
-				names,
-				renames);
-		}
-
-		/**
-		 * Answer whether the declaration for this import specified names and
-		 * renames explicitly.  If not, the intention is to include all names
-		 * exported by the predecessor module.
-		 *
-		 * @return Whether names and renames were explicitly enumerated.
-		 */
-		public boolean isItemized ()
-		{
-			return !names.equalsNil();
+			assert tupleSize == 7;
+			try
+			{
+				return new ModuleImport(
+					serializedTuple.tupleAt(1), // moduleName
+					serializedTuple.tupleAt(2), // acceptableVersions
+					serializedTuple.tupleAt(3).extractBoolean(), // isExtension
+					serializedTuple.tupleAt(4), // names
+					serializedTuple.tupleAt(5), // renames
+					serializedTuple.tupleAt(6), // excludes
+					serializedTuple.tupleAt(7).extractBoolean() // wildcard
+				);
+			}
+			catch (final ImportValidationException e)
+			{
+				throw new MalformedSerialStreamException(e);
+			}
 		}
 	}
 
@@ -336,9 +443,12 @@ public abstract class AbstractAvailCompiler
 		 *
 		 * @param serializedTuple An encoding of a list of ModuleImports.
 		 * @return The list of ModuleImports.
+		 * @throws MalformedSerialStreamException
+		 *         If the module import specification is invalid.
 		 */
 		private List<ModuleImport> moduleImportsFromTuple (
-			final A_Tuple serializedTuple)
+				final A_Tuple serializedTuple)
+			throws MalformedSerialStreamException
 		{
 			final List<ModuleImport> list = new ArrayList<>();
 			for (final A_Tuple importTuple : serializedTuple)
@@ -446,100 +556,113 @@ public abstract class AbstractAvailCompiler
 				}
 				module.addAncestors(mod.allAncestors());
 
+				// Figure out which strings to make available.
+				A_Set stringsToImport;
 				final A_Map importedNamesMultimap = mod.importedNames();
-				final A_Set modNames = moduleImport.isItemized()
-					? moduleImport.names
-					: importedNamesMultimap.keysAsSet();
-				for (final A_String strName : modNames)
+				if (moduleImport.wildcard)
 				{
-					if (!importedNamesMultimap.hasKey(strName))
+					final A_Set renameSourceNames =
+						moduleImport.renames.valuesAsTuple().asSet();
+					stringsToImport = importedNamesMultimap.keysAsSet();
+					stringsToImport = stringsToImport.setMinusCanDestroy(
+						renameSourceNames, true);
+					stringsToImport = stringsToImport.setUnionCanDestroy(
+						moduleImport.names, true);
+					stringsToImport = stringsToImport.setMinusCanDestroy(
+						moduleImport.excludes, true);
+				}
+				else
+				{
+					stringsToImport = moduleImport.names;
+				}
+
+				// Look up the strings to get existing atoms.  Don't complain
+				// about ambiguity, just export all that match.
+				A_Set atomsToImport = SetDescriptor.empty();
+				for (final A_String string : stringsToImport)
+				{
+					if (!importedNamesMultimap.hasKey(string))
 					{
 						return
 							"module \"" + ref.qualifiedName()
-							+ "\" to export " + strName;
+							+ "\" to export " + string;
 					}
-					final A_Set trueNames =
-						importedNamesMultimap.mapAt(strName);
-					for (final A_Atom trueName : trueNames)
-					{
-						if (moduleImport.isExtension)
-						{
-							module.addImportedName(trueName);
-						}
-						else
-						{
-							module.addPrivateName(trueName);
-						}
-					}
+					atomsToImport = atomsToImport.setUnionCanDestroy(
+						importedNamesMultimap.mapAt(string), true);
 				}
-				if (moduleImport.isItemized())
+
+				// Perform renames.
+				for (final MapDescriptor.Entry entry
+					: moduleImport.renames.mapIterable())
 				{
-					// Process the renames.
-					for (final MapDescriptor.Entry entry
-						: moduleImport.renames.mapIterable())
+					final A_String newString = entry.key();
+					final A_String oldString = entry.value();
+					// Find the old atom.
+					if (!importedNamesMultimap.hasKey(oldString))
 					{
-						final A_String newString = entry.key();
-						final A_String oldString = entry.value();
-						// Find the old atom.
-						if (!importedNamesMultimap.hasKey(oldString))
-						{
-							return
-								"module \"" + ref.qualifiedName()
-								+ "\" to export " + oldString
-								+ " for renaming to " + newString;
-						}
-						final A_Set oldCandidates =
-							importedNamesMultimap.mapAt(oldString);
-						if (oldCandidates.setSize() != 1)
-						{
-							return
-								"module \"" + ref.qualifiedName()
-								+ "\" to export a unique name " + oldString
-								+ " for renaming to " + newString;
-						}
-						final A_Atom oldAtom = oldCandidates.iterator().next();
-						// Find or create the new atom.
-						A_Atom newAtom;
-						if (module.newNames().hasKey(newString))
-						{
-							// Use it.  It must have been declared in the
-							// "Names" clause.
-							newAtom = module.newNames().mapAt(newString);
-						}
-						else
-						{
-							// Create it.
-							newAtom = AtomDescriptor.create(newString, module);
-							if (moduleImport.isExtension)
-							{
-								module.addImportedName(newAtom);
-							}
-							else
-							{
-								module.addPrivateName(newAtom);
-							}
-						}
-						// Now tie the bundles together.
-						assert newAtom.bundleOrNil().equalsNil();
-						final A_Bundle oldBundle = oldAtom.bundleOrCreate();
-						final A_Method method = oldBundle.bundleMethod();
-						final A_Bundle newBundle;
-						try
-						{
-							newBundle = MessageBundleDescriptor.newBundle(
-								newAtom, method);
-						}
-						catch (final SignatureException e)
-						{
-							return
-								"well-formed signature for " + newString
-								+ ", a rename of " + oldString
-								+ " from \"" + ref.qualifiedName()
-								+ "\"";
-						}
-						newAtom.setAtomProperty(
-							AtomDescriptor.messageBundleKey(),
-							newBundle);
+						return
+							"module \"" + ref.qualifiedName()
+							+ "\" to export " + oldString
+							+ " for renaming to " + newString;
+					}
+					final A_Set oldCandidates =
+						importedNamesMultimap.mapAt(oldString);
+					if (oldCandidates.setSize() != 1)
+					{
+						return
+							"module \"" + ref.qualifiedName()
+							+ "\" to export a unique name " + oldString
+							+ " for renaming to " + newString;
+					}
+					final A_Atom oldAtom = oldCandidates.iterator().next();
+					// Find or create the new atom.
+					A_Atom newAtom;
+					if (module.newNames().hasKey(newString))
+					{
+						// Use it.  It must have been declared in the
+						// "Names" clause.
+						newAtom = module.newNames().mapAt(newString);
+					}
+					else
+					{
+						// Create it.
+						newAtom = AtomDescriptor.create(newString, module);
+					}
+					// Now tie the bundles together.
+					assert newAtom.bundleOrNil().equalsNil();
+					final A_Bundle oldBundle = oldAtom.bundleOrCreate();
+					final A_Method method = oldBundle.bundleMethod();
+					final A_Bundle newBundle;
+					try
+					{
+						newBundle = MessageBundleDescriptor.newBundle(
+							newAtom, method);
+					}
+					catch (final SignatureException e)
+					{
+						return
+							"well-formed signature for " + newString
+							+ ", a rename of " + oldString
+							+ " from \"" + ref.qualifiedName()
+							+ "\"";
+					}
+					newAtom.setAtomProperty(
+						AtomDescriptor.messageBundleKey(),
+						newBundle);
+					atomsToImport = atomsToImport.setWithElementCanDestroy(
+						newAtom, true);
+				}
+
+				// Actually make the atoms available in this module.
+				for (final A_Atom trueName : atomsToImport)
+				{
+					if (moduleImport.isExtension)
+					{
+						module.addImportedName(trueName);
+					}
+					else
+					{
+						module.addPrivateName(trueName);
 					}
 				}
 			}
@@ -763,6 +886,12 @@ public abstract class AbstractAvailCompiler
 
 		/** Module header token: Separates string literals for renames. */
 		RIGHT_ARROW("→", OPERATOR),
+
+		/** Module header token: Prefix to indicate exclusion. */
+		MINUS("-", OPERATOR),
+
+		/** Module header token: Indicates wildcard import */
+		ELLIPSIS("…", OPERATOR),
 
 		/** Uses related to declaration and assignment. */
 		COLON(":", OPERATOR),
@@ -1558,72 +1687,123 @@ public abstract class AbstractAvailCompiler
 	/**
 	 * Parse one or more string literals separated by commas. This parse isn't
 	 * backtracking like the rest of the grammar - it's greedy. It considers a
-	 * comma followed by something other than a string literal to be an
-	 * unrecoverable parsing error (not a backtrack).  Similarly, a {@linkplain
-	 * #RIGHT_ARROW right arrow} may optionally occur between two strings to
-	 * indicate a rename, and it's considered an error if a string doesn't
-	 * follow the right arrow.
+	 * comma followed by something other than a string literal or final
+	 * ellipsis to be an unrecoverable parsing error (not a backtrack).
+	 * A {@linkplain #RIGHT_ARROW right arrow} between two strings indicates a
+	 * rename.  An ellipsis at the end (the comma before it is optional)
+	 * indicates that all names not explicitly mentioned should be imported.
 	 *
 	 * <p>
 	 * Return the {@link ParserState} after the strings if successful, otherwise
-	 * null. Populate the passed {@link List} with {@linkplain TupleDescriptor
-	 * tuples} of {@linkplain StringDescriptor strings} – a tuple of size one
-	 * for a string literal, and a tuple containing two strings if a right arrow
-	 * (→) separated them.
+	 * null. Populate the passed {@link Mutable} structures with strings,
+	 * string → string entries producing a <em>reverse</em> map for renaming,
+	 * negated strings, i.e., with a '-' character prefixed to indicate
+	 * exclusion, and an optional trailing ellipsis character (the comma before
+	 * it is optional).
 	 * </p>
 	 *
 	 * @param start
 	 *        Where to start parsing.
-	 * @param strings
-	 *        The initially empty list of string singles and pairs to populate.
+	 * @param names
+	 *        The names that are mentioned explicitly, like "x".
+	 * @param renames
+	 *        The renames that are provided explicitly in the form "x"→"y".  In
+	 *        such a case the new key is "y" and its associated value is "x".
+	 * @param excludes
+	 *        Names to exclude explicitly, like -"x".
+	 * @param wildcard
+	 *        Whether a trailing ellipsis was present.
 	 * @return The parser state after the list of strings, or {@code null} if
 	 *         the list of strings is malformed.
 	 */
-	private static @Nullable ParserState parseStringLiteralsWithRenames (
+	private static @Nullable ParserState parseExplicitImportNames (
 		final ParserState start,
-		final List<A_Tuple> strings)
+		final Mutable<A_Set> names,
+		final Mutable<A_Map> renames,
+		final Mutable<A_Set> excludes,
+		final Mutable<Boolean> wildcard)
 	{
-		assert strings.isEmpty();
-
-		ParserState state = start.afterToken();
-		A_Token token = start.peekStringLiteral();
-		if (token == null)
-		{
-			return start;
-		}
+		// An explicit list of imports was provided, so it's not a wildcard
+		// unless an ellipsis also explicitly occurs.
+		boolean anything = false;
+		wildcard.value = false;
+		ParserState state = start;
 		while (true)
 		{
-			// We just read a string literal.
-			if (state.peekToken(RIGHT_ARROW))
+			A_Token token;
+			if (state.peekToken(ELLIPSIS))
 			{
 				state = state.afterToken();
-				final A_Token token2 = start.peekStringLiteral();
-				if (token2 == null)
+				wildcard.value = true;
+				return state;
+			}
+			else if (state.peekToken(MINUS))
+			{
+				state = state.afterToken();
+				final A_Token negatedToken = state.peekStringLiteral();
+				if (negatedToken == null)
 				{
-					state.expected("string literal token after right arrow");
+					state.expected("string literal after negation");
 					return null;
 				}
 				state = state.afterToken();
-				strings.add(TupleDescriptor.from(
-					token.literal(),
-					token2.literal()));
+				excludes.value = excludes.value.setWithElementCanDestroy(
+					negatedToken.literal(), false);
+			}
+			else if ((token = state.peekStringLiteral()) != null)
+			{
+				state = state.afterToken();
+				if (state.peekToken(RIGHT_ARROW))
+				{
+					state = state.afterToken();
+					final A_Token token2 = start.peekStringLiteral();
+					if (token2 == null)
+					{
+						state.expected(
+							"string literal token after right arrow");
+						return null;
+					}
+					state = state.afterToken();
+					renames.value = renames.value.mapAtPuttingCanDestroy(
+						token2.literal(), token.literal(), true);
+				}
+				else
+				{
+					names.value = names.value.setWithElementCanDestroy(
+						token.literal(), true);
+				}
 			}
 			else
 			{
-				strings.add(TupleDescriptor.from(token.literal()));
-			}
-			if (!state.peekToken(COMMA))
-			{
+				if (anything)
+				{
+					state.expected(
+						"a string literal, minus sign, or ellipsis"
+						+ " after dangling comma");
+					return null;
+				}
+				state.expected(
+					"another string literal, minus sign, ellipsis, or"
+					+ " end of import");
 				return state;
 			}
-			state = state.afterToken();
-			token = state.peekStringLiteral();
-			if (token == null)
+			anything = true;
+
+			if (state.peekToken(ELLIPSIS))
 			{
-				state.expected("another string literal after comma");
-				return null;
+				// Allow ellipsis with no preceding comma: Fall through without
+				// consuming it and let the start of the loop handle it.
 			}
-			state = state.afterToken();
+			else if (state.peekToken(COMMA))
+			{
+				// Eat the comma.
+				state = state.afterToken();
+			}
+			else
+			{
+				state.expected("comma or ellipsis or end of import");
+				return state;
+			}
 		}
 	}
 
@@ -1652,7 +1832,7 @@ public abstract class AbstractAvailCompiler
 	 * @return The parser state after the list of imports, or {@code null} if
 	 *         the list of imports is malformed.
 	 */
-	private static @Nullable ParserState parseImports (
+	private static @Nullable ParserState parseModuleImports (
 		final ParserState start,
 		final List<ModuleImport> imports,
 		final boolean isExtension)
@@ -1669,7 +1849,7 @@ public abstract class AbstractAvailCompiler
 					state.expected("another module name after comma");
 					return null;
 				}
-				state.expected("a comma-separated list of module name");
+				state.expected("a comma-separated list of module names");
 				// It's legal to have no strings.
 				return state;
 			}
@@ -1696,10 +1876,14 @@ public abstract class AbstractAvailCompiler
 				state = state.afterToken();
 			}
 
-			List<A_Tuple> nameTuples = null;
+			final Mutable<A_Set> names = new Mutable<>(SetDescriptor.empty());
+			final Mutable<A_Map> renames = new Mutable<>(MapDescriptor.empty());
+			final Mutable<A_Set> excludes =
+				new Mutable<>(SetDescriptor.empty());
+			final Mutable<Boolean> wildcard = new Mutable<>(false);
+
 			if (state.peekToken(EQUALS))
 			{
-				nameTuples = new ArrayList<>();
 				state = state.afterToken();
 				if (!state.peekToken(
 					OPEN_PARENTHESIS,
@@ -1708,7 +1892,12 @@ public abstract class AbstractAvailCompiler
 					return null;
 				}
 				state = state.afterToken();
-				state = parseStringLiteralsWithRenames(state, nameTuples);
+				state = parseExplicitImportNames(
+					state,
+					names,
+					renames,
+					excludes,
+					wildcard);
 				if (state == null)
 				{
 					return null;
@@ -1721,41 +1910,28 @@ public abstract class AbstractAvailCompiler
 				}
 				state = state.afterToken();
 			}
-
-			A_Set names;
-			A_Map renames;
-			if (nameTuples == null)
-			{
-				names = NilDescriptor.nil();
-				renames = NilDescriptor.nil();
-			}
 			else
 			{
-				names = SetDescriptor.empty();
-				renames = MapDescriptor.empty();
-				for (final A_Tuple tuple : nameTuples)
-				{
-					if (tuple.tupleSize() == 1)
-					{
-						names = names.setWithElementCanDestroy(
-							tuple.tupleAt(1), true);
-					}
-					else
-					{
-						renames = renames.mapAtPuttingCanDestroy(
-							tuple.tupleAt(1),
-							tuple.tupleAt(2),
-							true);
-					}
-				}
+				wildcard.value = true;
 			}
-			imports.add(
-				new ModuleImport(
-					moduleName,
-					SetDescriptor.fromCollection(versions),
-					isExtension,
-					names,
-					renames));
+
+			try
+			{
+				imports.add(
+					new ModuleImport(
+						moduleName,
+						SetDescriptor.fromCollection(versions),
+						isExtension,
+						names.value,
+						renames.value,
+						excludes.value,
+						wildcard.value));
+			}
+			catch (final ImportValidationException e)
+			{
+				state.expected(e.getMessage());
+				return null;
+			}
 			if (state.peekToken(COMMA))
 			{
 				state = state.afterToken();
@@ -5284,13 +5460,13 @@ public abstract class AbstractAvailCompiler
 			// On EXTENDS, record the imports.
 			else if (lexeme.equals(EXTENDS.lexeme()))
 			{
-				state = parseImports(
+				state = parseModuleImports(
 					state, moduleHeader.importedModules, true);
 			}
 			// On USES, record the imports.
 			else if (lexeme.equals(USES.lexeme()))
 			{
-				state = parseImports(
+				state = parseModuleImports(
 					state, moduleHeader.importedModules, false);
 			}
 			// On NAMES, record the names.

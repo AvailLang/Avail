@@ -56,7 +56,7 @@ public class P_356_TokenLexeme extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
-		final A_BasicObject token = args.get(0);
+		final A_Token token = args.get(0);
 		return interpreter.primitiveSuccess(token.string());
 	}
 

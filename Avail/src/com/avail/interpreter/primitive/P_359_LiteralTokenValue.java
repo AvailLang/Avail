@@ -55,7 +55,7 @@ public class P_359_LiteralTokenValue extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
-		final A_BasicObject literalToken = args.get(0);
+		final A_Token literalToken = args.get(0);
 		return interpreter.primitiveSuccess(literalToken.literal());
 	}
 

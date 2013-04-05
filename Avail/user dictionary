@@ -1,6 +1,7 @@
 Gulik
 Todd
 accessor
+addend
 analyses
 anarakul
 arity
@@ -16,6 +17,7 @@ bytecode
 bytecodes
 callable
 callee
+callees
 canonize
 checkpointed
 chevron
@@ -131,6 +133,7 @@ nybblecodes
 nybbles
 octothorp
 operandless
+orchestrating
 ordinals
 ostensibly
 outbound
@@ -173,6 +176,7 @@ reoptimized
 reprioritize
 rethrown
 rollback
+runtimes
 scavenge
 schedulable
 serializable
@@ -217,17 +221,15 @@ unhandled
 unicode
 uninstantiable
 unmarshal
+unmarshaled
 unpark
 unparked
 unstarted
 varargs
 versioned
 virtualized
+wildcard
 wordcode
 wordcodes
 wow
-unmarshaled
-runtimes
-orchestrating
-callees
-addend
+stringification

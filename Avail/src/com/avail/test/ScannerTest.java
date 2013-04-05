@@ -504,7 +504,7 @@ public final class ScannerTest
 			DoubleDescriptor.fromDouble(2.5)));
 		for (int i = 0; i < literals.size(); i++)
 		{
-			final A_BasicObject lit_i = literals.get(i);
+			final A_Token lit_i = literals.get(i);
 			for (int j = 0; j < literals.size(); j++)
 			{
 				final AvailObject lit_j = literals.get(j);
