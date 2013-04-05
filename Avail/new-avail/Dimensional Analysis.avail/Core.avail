@@ -34,8 +34,14 @@ System Module "Core"
 Versions
 	"dev"
 Uses
-	"Avail",
-	"Feature Renames (Conversion)",
+	"Avail" =
+	(
+		"_×_",
+		"_×_" → "_×_(Avail)",
+		"_÷_",
+		"_÷_" → "_÷_(Avail)",
+		…
+	),
 	"Feature Renames (Inequalities)"
 Names
 	/* Types. */
@@ -2070,7 +2076,7 @@ Completely seal method "_≍_";
 
 /* These methods are needed for scaling function synthesis. */
 extentAtom ::= $"_'s⁇extent";
-juxtapositionAtom ::= atom for "__";
+juxtapositionAtom ::= $"__";
 
 Private method "function for scaling from_to_by_using_" is
 [
@@ -2098,8 +2104,8 @@ Private method "function for scaling from_to_by_using_" is
 ] : unit conversion function;
 
 /* These methods are needed for conversion rule synthesis. */
-timesAtom ::= multiplication atom;
-divideAtom ::= division atom;
+timesAtom ::= $"_×_(Avail)";
+divideAtom ::= $"_÷_(Avail)";
 
 /**
  * Define {@method "_converted to_" methods} for converting {@type

@@ -35,8 +35,14 @@ Versions
 	"dev"
 Uses
 	"Avail",
-	"Core",
-	"Feature Renames (Conversion)",
+	"Core" =
+	(
+		"_-_" → "_-_(Core)",
+		"_^_" → "_^_(Core)",
+		"_×_" → "_×_(Core)",
+		"_÷_" → "_÷_(Core)",
+		…
+	),
 	"Types"
 Names
 	"prefixes",
@@ -79,11 +85,11 @@ Public method "prefixes" is [_prefixes];
 /* These methods are needed for scaling function synthesis. */
 metricAtom ::= $"_'s⁇metric";
 scaleFactorAtom ::= $"_'s⁇scale factor";
-minusAtom ::= subtraction atom;
-powerAtom ::= exponentiation atom;
+minusAtom ::= $"_-_(Core)";
+powerAtom ::= $"_^_(Core)";
 extentAtom ::= $"_'s⁇extent";
-timesAtom ::= multiplication atom;
-juxtapositionAtom ::= atom for "__";
+timesAtom ::= $"_×_(Core)";
+juxtapositionAtom ::= $"__";
 
 /**
  * Construct and answer a scaling function suitable for converting between
