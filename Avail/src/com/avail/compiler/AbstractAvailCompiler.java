@@ -1756,7 +1756,7 @@ public abstract class AbstractAvailCompiler
 				if (state.peekToken(RIGHT_ARROW))
 				{
 					state = state.afterToken();
-					final A_Token token2 = start.peekStringLiteral();
+					final A_Token token2 = state.peekStringLiteral();
 					if (token2 == null)
 					{
 						state.expected(
@@ -1764,6 +1764,12 @@ public abstract class AbstractAvailCompiler
 						return null;
 					}
 					state = state.afterToken();
+					if (renames.value.hasKey(token2.literal()))
+					{
+						state.expected(
+							"renames to specify distinct target names");
+						return null;
+					}
 					renames.value = renames.value.mapAtPuttingCanDestroy(
 						token2.literal(), token.literal(), true);
 				}
