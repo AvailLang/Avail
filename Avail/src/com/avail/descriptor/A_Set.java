@@ -40,12 +40,14 @@ import java.util.Iterator;
  * A_BasicObject}, the interface that defines the behavior that all AvailObjects
  * are required to support.
  *
- * <p>The purpose for A_BasicObject and its sub-interfaces is to allow sincere type
+ * <p>
+ * The purpose for A_BasicObject and its sub-interfaces is to allow sincere type
  * annotations about the basic kinds of objects that support or may be passed as
  * arguments to various operations.  The VM is free to always declare objects as
  * AvailObject, but in cases where it's clear that a particular object must
- * always be a tuple, a declaration of A_Tuple ensures that only the basic
- * object capabilities plus tuple-like capabilities are to be allowed.</p>
+ * always be a set, a declaration of A_Set ensures that only the basic object
+ * capabilities plus set-like capabilities are to be allowed.
+ * </p>
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
@@ -62,8 +64,7 @@ extends A_BasicObject, Iterable<AvailObject>
 	A_Tuple asTuple ();
 
 	/**
-	 * Answer whether the {@linkplain AvailObject receiver} contains the
-	 * specified element.
+	 * Answer whether this set contains the specified element.
 	 *
 	 * @param elementObject The element.
 	 * @return {@code true} if the receiver contains the element, {@code false}
@@ -82,54 +83,102 @@ extends A_BasicObject, Iterable<AvailObject>
 	Iterator<AvailObject> iterator ();
 
 	/**
-	 * Dispatch to the descriptor.
+	 * Answer a set like this one but with newElementObject present.  If it was
+	 * already present in the original set then answer that.  The set might be
+	 * modified in place (and then returned) if canDestroy is true and the set
+	 * is mutable.
+	 *
+	 * @param newElementObject The object to add.
+	 * @param canDestroy Whether the original set can be modified if mutable.
+	 * @return The new set containing the specified object.
 	 */
 	A_Set setWithElementCanDestroy (
 		A_BasicObject newElementObject,
 		boolean canDestroy);
 
 	/**
-	 * Dispatch to the descriptor.
+	 * Answer a set like this one but with elementObjectToExclude absent.  If it
+	 * was already absent in the original set then answer that.  The set might
+	 * be modified in place (and then returned) if canDestroy is true and the
+	 * set is mutable.
+	 *
+	 * @param elementObjectToExclude The object to remove.
+	 * @param canDestroy Whether the original set can be modified if mutable.
+	 * @return The new set not containing the specified object.
 	 */
 	A_Set setWithoutElementCanDestroy (
 		A_BasicObject elementObjectToExclude,
 		boolean canDestroy);
 
 	/**
-	 * Dispatch to the descriptor.
+	 * Answer a set containing all the elements of this set and all the elements
+	 * of the otherSet.
+	 *
+	 * @param otherSet
+	 *            A set.
+	 * @param canDestroy
+	 *            Whether the receiver or the otherSet can be modified if it is
+	 *            mutable.
+	 * @return The union of the receiver and otherSet.
 	 */
 	A_Set setUnionCanDestroy (
 		A_Set otherSet,
 		boolean canDestroy);
 
 	/**
-	 * Dispatch to the descriptor.
+	 * Answer a set containing all values that are present simultaneously in
+	 * both the receiver and the otherSet.
+	 *
+	 * @param otherSet
+	 *            A set.
+	 * @param canDestroy
+	 *            Whether the receiver or the otherSet can be modified if it is
+	 *            mutable.
+	 * @return The intersection of the receiver and otherSet.
 	 */
 	A_Set setIntersectionCanDestroy (
 		A_Set otherSet,
 		boolean canDestroy);
 
 	/**
-	 * Dispatch to the descriptor.
+	 * Answer a set containing all values that are present in the receiver but
+	 * not in otherSet.
+	 *
+	 * @param otherSet
+	 *            The set to subtract.
+	 * @param canDestroy
+	 *            Whether the receiver can be modified if it is mutable.
+	 * @return The asymmetric difference between the receiver and otherSet.
 	 */
 	A_Set setMinusCanDestroy (
 		A_Set otherSet,
 		boolean canDestroy);
 
 	/**
-	 * Dispatch to the descriptor.
+	 * Answer the number of values in the set.
+	 *
+	 * @return The set's size.
 	 */
 	int setSize ();
 
 	/**
-	 * Dispatch to the descriptor.
+	 * Answer true if and only if every element of the receiver is also present
+	 * in the provided set.
+	 *
+	 * @param another The potential superset of the receiver.
+	 * @return Whether the receiver is a subset of another.
 	 */
 	boolean isSubsetOf (A_Set another);
 
 	/**
+	 * Check if all elements of the set are all instances of the specified kind
+	 * (any type that isn't an instance type).
+	 *
 	 * @param kind
+	 *            The type with which to test all elements.
 	 * @return
+	 *            Whether all elements conform with the specified non-instance
+	 *            type.
 	 */
 	boolean setElementsAreAllInstancesOfKind (AvailObject kind);
-
 }

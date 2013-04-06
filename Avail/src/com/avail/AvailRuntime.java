@@ -583,7 +583,6 @@ public final class AvailRuntime
 	 * @return An {@link AvailObject}.
 	 * @throws ArrayIndexOutOfBoundsException
 	 *         If the ordinal is out of bounds.
-	 * @author Todd L Smith &lt;todd@availlang.org&gt;
 	 */
 	@ThreadSafe
 	public static AvailObject specialObject (final int ordinal)

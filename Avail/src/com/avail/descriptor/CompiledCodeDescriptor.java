@@ -328,27 +328,6 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_ContainsBlock (
-		final AvailObject object,
-		final A_Function aFunction)
-	{
-		// Answer true if either I am aFunction's code or I contain aFunction or
-		// its code.
-		if (object.sameAddressAs(aFunction.code().traversed()))
-		{
-			return true;
-		}
-		for (int i = 1, end = object.numLiterals(); i <= end; i++)
-		{
-			if (object.literalAt(i).containsBlock(aFunction))
-			{
-				return true;
-			}
-		}
-		return false;
-	}
-
-	@Override @AvailMethod
 	A_Type o_LocalTypeAt (final AvailObject object, final int index)
 	{
 		assert 1 <= index && index <= object.numLocals();

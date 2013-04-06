@@ -309,14 +309,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_CodePoint (
-		final AvailObject object,
-		final int value)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
 	boolean o_CompareFromToWithStartingAt (
 		final AvailObject object,
 		final int startIndex1,
@@ -2799,20 +2791,6 @@ extends AbstractDescriptor
 	 */
 	@Override
 	boolean o_IsString (final AvailObject object)
-	{
-		return false;
-	}
-
-
-	/**
-	 * Answer true if the object is aFunction or it (recursively) contains
-	 * aFunction.  It only follows the trail of literal compiledCode and
-	 * function objects, so this is a dead end by default.
-	 */
-	@Override
-	boolean o_ContainsBlock (
-		final AvailObject object,
-		final A_Function aFunction)
 	{
 		return false;
 	}

@@ -1952,7 +1952,7 @@ public class TypeConsistencyTest
 	 * either covary or contravary with respect to it, depending on the specific
 	 * {@code TypeRelation}.
 	 */
-	static abstract class TypeRelation
+	public static abstract class TypeRelation
 	{
 		/**
 		 * Transform any {@linkplain TypeDescriptor type} into another type (in

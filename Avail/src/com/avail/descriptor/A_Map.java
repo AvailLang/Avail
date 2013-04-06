@@ -33,17 +33,19 @@
 package com.avail.descriptor;
 
 /**
- * {@code A_Tuple} is an interface that specifies the tuple-specific operations
+ * {@code A_Map} is an interface that specifies the map-specific operations
  * that an {@link AvailObject} must implement.  It's a sub-interface of {@link
- * A_BasicObject}, the interface that defines the behavior that all AvailObjects are
- * required to support.
+ * A_BasicObject}, the interface that defines the behavior that all AvailObjects
+ * are required to support.
  *
- * <p>The purpose for A_BasicObject and its sub-interfaces is to allow sincere type
+ * <p>
+ * The purpose for A_BasicObject and its sub-interfaces is to allow sincere type
  * annotations about the basic kinds of objects that support or may be passed as
  * arguments to various operations.  The VM is free to always declare objects as
  * AvailObject, but in cases where it's clear that a particular object must
- * always be a tuple, a declaration of A_Tuple ensures that only the basic
- * object capabilities plus tuple-like capabilities are to be allowed.</p>
+ * always be a map, a declaration of A_Map ensures that only the basic object
+ * capabilities plus map-like capabilities are to be allowed.
+ * </p>
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
@@ -51,12 +53,27 @@ public interface A_Map
 extends A_BasicObject
 {
 	/**
-	 * Dispatch to the descriptor.
+	 * Find the key/value pair in this map which has the specified key and
+	 * answer the value.  Fail if the specified key is not present in the map.
+	 * The result is <em>not</em> forced to be immutable, as it's up to the
+	 * caller whether the new reference would leak beyond a usage that conserves
+	 * its reference count.
+	 *
+	 * @param keyObject The key to look up.
+	 * @return The value associated with that key in the map.
 	 */
 	AvailObject mapAt (A_BasicObject keyObject);
 
 	/**
-	 * Dispatch to the descriptor.
+	 * Create a new map like this map, but with a new key/value pair as
+	 * specified.  If there was an existing key/oldValue pair, then it is
+	 * replaced by the new key/value pair.  The original map can be modified in
+	 * place (and then returned) if canDestroy is true and the map is mutable.
+	 *
+	 * @param keyObject The key to add or replace.
+	 * @param newValueObject The value to associate with the key in the new map.
+	 * @param canDestroy Whether the map can be modified in place if mutable.
+	 * @return The new map containing the specified key/value pair.
 	 */
 	A_Map mapAtPuttingCanDestroy (
 		A_BasicObject keyObject,
@@ -64,35 +81,55 @@ extends A_BasicObject
 		boolean canDestroy);
 
 	/**
-	 * Dispatch to the descriptor.
+	 * Answer the number of key/value pairs in the map.
+	 *
+	 * @return The size of the map.
 	 */
 	int mapSize ();
 
 	/**
-	 * Dispatch to the descriptor.
+	 * Create a new map like this map, but without the key/value pair having the
+	 * specified key.  If the key was not present, then answer the original map.
+	 * The original map can be modified in place (and then returned) if
+	 * canDestroy is true and the map is mutable.
+	 *
+	 * @param keyObject The key to remove.
+	 * @param canDestroy Whether a mutable map can be modified in place.
+	 * @return The new map not having the specified key.
 	 */
 	A_Map mapWithoutKeyCanDestroy (
 		A_BasicObject keyObject,
 		boolean canDestroy);
 
 	/**
-	 * Dispatch to the descriptor.
+	 * Answer whether the argument is one of the keys of this map.
+	 *
+	 * @param keyObject The potential key to look for in this map's keys.
+	 * @return Whether the potential key was found in this map.
 	 */
 	boolean hasKey (A_BasicObject keyObject);
 
 	/**
-	 * Dispatch to the descriptor.
+	 * Answer a tuple of values from this map in arbitrary order.  A tuple is
+	 * used instead of a set, since the values are not necessarily unique.
+	 *
+	 * @return The map's values in an arbitrarily ordered tuple.
 	 */
 	A_Tuple valuesAsTuple ();
 
 	/**
-	 * Dispatch to the descriptor.
+	 * Answer the set of keys in this map.  Since keys of maps and set elements
+	 * cannot have duplicates, it follows that the size of the resulting set is
+	 * the same as the size of this map.
+	 *
+	 * @return The set of keys.
 	 */
 	A_Set keysAsSet ();
 
 	/**
 	 * Answer a suitable Iterable<> for iterating over this map's key/value
-	 * pairs.  This allows the Java for-each syntax hack to be used.
+	 * pairs (made available in a {@link MapDescriptor.Entry}).  This allows the
+	 * Java for-each syntax hack to be used.
 	 *
 	 * @return An {@linkplain MapDescriptor.MapIterable iterable for maps}.
 	 */

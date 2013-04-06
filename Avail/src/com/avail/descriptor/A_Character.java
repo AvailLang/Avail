@@ -1,5 +1,5 @@
 /**
- * P_330_CharacterCodePoint.java
+ * A_Character.java
  * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -29,44 +29,25 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.avail.interpreter.primitive;
 
-import static com.avail.descriptor.TypeDescriptor.Types.CHARACTER;
-import static com.avail.interpreter.Primitive.Flag.*;
-import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
+package com.avail.descriptor;
 
 /**
- * <strong>Primitive 330:</strong> Extract the {@linkplain IntegerDescriptor
- * code point} from a {@linkplain CharacterDescriptor character}.
+ * {@code A_Character} is an interface that specifies the {@linkplain
+ * CharacterDescriptor character}-specific operations that an {@link
+ * AvailObject} must implement.  It's a sub-interface of {@link A_BasicObject},
+ * the interface that defines the behavior that all AvailObjects are required to
+ * support.
+ *
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class P_330_CharacterCodePoint extends Primitive
+public interface A_Character
+extends A_BasicObject
 {
 	/**
-	 * The sole instance of this primitive class.  Accessed through reflection.
+	 * Answer this character's Unicode code point.
+	 *
+	 * @return The character's numerical encoding in Unicode.
 	 */
-	public final static Primitive instance = new P_330_CharacterCodePoint().init(
-		1, CanFold, CannotFail);
-
-	@Override
-	public Result attempt (
-		final List<AvailObject> args,
-		final Interpreter interpreter)
-	{
-		assert args.size() == 1;
-		final A_Character character = args.get(0);
-		return interpreter.primitiveSuccess(
-			IntegerDescriptor.fromInt(
-				character.codePoint()));
-	}
-
-	@Override
-	protected A_Type privateBlockTypeRestriction ()
-	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
-				CHARACTER.o()),
-			IntegerRangeTypeDescriptor.characterCodePoints());
-	}
+	int codePoint ();
 }

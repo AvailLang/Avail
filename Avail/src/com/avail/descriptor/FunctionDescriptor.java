@@ -32,6 +32,7 @@
 
 package com.avail.descriptor;
 
+import static com.avail.descriptor.FunctionDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import java.util.Collections;
 import java.util.List;
@@ -67,7 +68,7 @@ extends Descriptor
 	@Override
 	AvailObject o_OuterVarAt (final AvailObject object, final int subscript)
 	{
-		return object.slot(ObjectSlots.OUTER_VAR_AT_, subscript);
+		return object.slot(OUTER_VAR_AT_, subscript);
 	}
 
 	@Override
@@ -76,13 +77,13 @@ extends Descriptor
 		final int subscript,
 		final AvailObject value)
 	{
-		object.setSlot(ObjectSlots.OUTER_VAR_AT_, subscript, value);
+		object.setSlot(OUTER_VAR_AT_, subscript, value);
 	}
 
 	@Override
 	A_RawFunction o_Code (final AvailObject object)
 	{
-		return object.slot(ObjectSlots.CODE);
+		return object.slot(CODE);
 	}
 
 	@Override
@@ -163,7 +164,7 @@ extends Descriptor
 		// with 0 or something), it's ok because nobody could know what the hash
 		// value *used to be* for this function.
 
-		final A_BasicObject code = object.slot(ObjectSlots.CODE);
+		final A_BasicObject code = object.slot(CODE);
 		int hash = code.hash() ^ 0x1386D4F6;
 		for (int i = 1, end = object.numOuterVars(); i <= end; i++)
 		{
@@ -186,21 +187,7 @@ extends Descriptor
 	@Override
 	A_Type o_Kind (final AvailObject object)
 	{
-		return object.slot(ObjectSlots.CODE).functionType();
-	}
-
-	@Override
-	boolean o_ContainsBlock (
-		final AvailObject object,
-		final A_Function aFunction)
-	{
-		//  Answer true if either I am aFunction or I contain aFunction.
-
-		if (object.equals(aFunction))
-		{
-			return true;
-		}
-		return object.slot(ObjectSlots.CODE).containsBlock(aFunction);
+		return object.slot(CODE).functionType();
 	}
 
 	@Override
@@ -208,17 +195,9 @@ extends Descriptor
 		final AvailObject object,
 		final int index)
 	{
-		// This one's kind of tricky. An outer variable is being used by the
-		// interpreter (the variable itself, but we don't yet know whether it
-		// will be passed around, or sent the getValue or setValue message, or
-		// even just popped. So don't destroy it yet. If this function is
-		// mutable, unlink the outer variable from it (as the function no longer
-		// needs it in that case). Answer true if it was mutable, otherwise
-		// false, so the calling code knows what happened.
-
 		if (isMutable())
 		{
-			object.outerVarAtPut(index, NilDescriptor.nil());
+			object.setSlot(OUTER_VAR_AT_, index, NilDescriptor.nil());
 			return true;
 		}
 		return false;
@@ -373,7 +352,7 @@ extends Descriptor
 		final A_Tuple copiedTuple)
 	{
 		final AvailObject object = mutable.create(copiedTuple.tupleSize());
-		object.setSlot(ObjectSlots.CODE, code);
+		object.setSlot(CODE, code);
 		for (int i = copiedTuple.tupleSize(); i >= 1; -- i)
 		{
 			object.outerVarAtPut(i, copiedTuple.tupleAt(i));
@@ -395,7 +374,7 @@ extends Descriptor
 	{
 		assert code.numOuters() == outersCount;
 		final AvailObject object = mutable.create(outersCount);
-		object.setSlot(ObjectSlots.CODE, code);
+		object.setSlot(CODE, code);
 		return object;
 	}
 

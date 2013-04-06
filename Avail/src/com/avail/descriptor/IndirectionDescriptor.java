@@ -477,12 +477,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_CodePoint (final AvailObject object, final int value)
-	{
-		o_Traversed(object).codePoint(value);
-	}
-
-	@Override
 	boolean o_CompareFromToWithStartingAt (
 		final AvailObject object,
 		final int startIndex1,
@@ -602,14 +596,6 @@ extends AbstractDescriptor
 		final boolean canDestroy)
 	{
 		return o_Traversed(object).concatenateTuplesCanDestroy(canDestroy);
-	}
-
-	@Override
-	boolean o_ContainsBlock (
-		final AvailObject object,
-		final A_Function aFunction)
-	{
-		return o_Traversed(object).containsBlock(aFunction);
 	}
 
 	@Override
@@ -2272,7 +2258,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_Expand (final AvailObject object, A_Module module)
+	void o_Expand (final AvailObject object, final A_Module module)
 	{
 		o_Traversed(object).expand(module);
 	}

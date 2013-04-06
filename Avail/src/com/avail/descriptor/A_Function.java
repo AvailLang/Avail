@@ -32,6 +32,8 @@
 
 package com.avail.descriptor;
 
+import com.avail.interpreter.Interpreter;
+
 /**
  * {@code A_Function} is an interface that specifies the operations specific to
  * functions in Avail.  It's a sub-interface of {@link A_BasicObject}, the
@@ -44,32 +46,51 @@ public interface A_Function
 extends A_BasicObject
 {
 	/**
-	 * Dispatch to the descriptor.
+	 * Answer the {@linkplain CompiledCodeDescriptor raw function (also known as
+	 * compiled code)} on which this function is based.  The raw function holds
+	 * the information that is common to all functions, and each function
+	 * additionally holds zero or more captured variables and values from its
+	 * lexical context.
+	 *
+	 * @return This function's raw function.
 	 */
 	A_RawFunction code ();
 
 	/**
-	 * Dispatch to the descriptor.
-	 */
-	boolean containsBlock (A_Function aFunction);
-
-	/**
-	 * Dispatch to the descriptor.
+	 * Answer the number of lexically captured variables or constants held by
+	 * this function.
+	 *
+	 * @return The number of outer variables captured by this function.
 	 */
 	int numOuterVars ();
 
 	/**
-	 * Dispatch to the descriptor.
+	 * An outer variable or constant of this function has been used for the last
+	 * time.  Replace it with {@linkplain NilDescriptor#nil() nil} if the
+	 * function is mutable, and answer true.  If the function is immutable then
+	 * something besides the {@link Interpreter} or a fiber's chain of
+	 * {@linkplain ContinuationDescriptor continuations} might be referring to
+	 * it, so answer false.
+	 *
+	 * @param index Which outer variable or constant is no longer needed.
 	 */
 	boolean optionallyNilOuterVar (int index);
 
 	/**
-	 * Dispatch to the descriptor.
+	 * Answer this function's lexically captured variable or constant value that
+	 * has the specified index.
+	 *
+	 * @param index Which outer variable or constant is of interest.
+	 * @return The specified outer variable or constant of this function.
 	 */
 	AvailObject outerVarAt (int index);
 
 	/**
-	 * Dispatch to the descriptor.
+	 * Set the specified captured variable/constant slot to the given variable
+	 * or constant value.
+	 *
+	 * @param index Which variable or constant to initialize.
+	 * @param value The value to write into this function.
 	 */
 	void outerVarAtPut (int index, AvailObject value);
 }

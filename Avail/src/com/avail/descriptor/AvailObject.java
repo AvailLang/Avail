@@ -77,6 +77,7 @@ implements
 		A_Atom,
 		A_Bundle,
 		A_BundleTree,
+		A_Character,
 		A_Continuation,
 		A_Chunk,
 		A_Definition,
@@ -960,16 +961,6 @@ implements
 	}
 
 	/**
-	 * Dispatch to the descriptor.
-	 */
-	@Override
-	public void codePoint (
-		final int value)
-	{
-		descriptor.o_CodePoint(this, value);
-	}
-
-	/**
 	 * Compare a subrange of the {@linkplain AvailObject receiver} with a
 	 * subrange of another object. The size of the subrange of both objects is
 	 * determined by the index range supplied for the receiver.
@@ -1232,16 +1223,6 @@ implements
 	public A_Map constantBindings ()
 	{
 		return descriptor.o_ConstantBindings(this);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	@Override
-	public boolean containsBlock (
-		final A_Function aFunction)
-	{
-		return descriptor.o_ContainsBlock(this, aFunction);
 	}
 
 	/**
@@ -1999,7 +1980,6 @@ implements
 	 * AvailObject receiver}.
 	 *
 	 * @return A 64-bit signed Java {@code long}
-	 * @author Todd L Smith &lt;todd@availlang.org&gt;
 	 */
 	@Override
 	public long extractLong ()

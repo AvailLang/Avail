@@ -67,19 +67,19 @@ public class Multigraph<V, E extends Edge<V>>
 	 * </p>
 	 *
 	 * @author Todd L Smith &lt;todd@availlang.org&gt;
-	 * @param <V2>
+	 * @param <V>
 	 */
-	public static class Edge<V2>
+	public static class Edge<V>
 	{
 		/**
 		 * The vertex from which this edge originates.
 		 */
-		private final V2 source;
+		private final V source;
 
 		/**
 		 * The vertex to which this edge points.
 		 */
-		private final V2 destination;
+		private final V destination;
 
 		/**
 		 * Construct a new {@link Edge}.
@@ -87,7 +87,7 @@ public class Multigraph<V, E extends Edge<V>>
 		 * @param source The source vertex.
 		 * @param destination The destination vertex.
 		 */
-		public Edge (final V2 source, final V2 destination)
+		public Edge (final V source, final V destination)
 		{
 			this.source = source;
 			this.destination = destination;
@@ -98,7 +98,7 @@ public class Multigraph<V, E extends Edge<V>>
 		 *
 		 * @return The source vertex.
 		 */
-		public final V2 source ()
+		public final V source ()
 		{
 			return source;
 		}
@@ -108,7 +108,7 @@ public class Multigraph<V, E extends Edge<V>>
 		 *
 		 * @return The target vertex.
 		 */
-		public final V2 destination ()
+		public final V destination ()
 		{
 			return destination;
 		}

@@ -288,7 +288,7 @@ extends StringDescriptor
 		assert index >= 1 && index <= object.tupleSize();
 		if (newValueObject.isCharacter())
 		{
-			final int codePoint = newValueObject.codePoint();
+			final int codePoint = ((A_Character)newValueObject).codePoint();
 			if (codePoint >= 0 && codePoint <= 0xFFFF)
 			{
 				if (canDestroy & isMutable())

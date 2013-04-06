@@ -136,12 +136,6 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	void o_CodePoint (final AvailObject object, final int value)
-	{
-		object.setSlot(CODE_POINT, value);
-	}
-
-	@Override @AvailMethod
 	boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		return another.equalsCharacterWithCodePoint(object.slot(CODE_POINT));

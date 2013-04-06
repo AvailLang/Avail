@@ -1,6 +1,6 @@
 /**
- * P_330_CharacterCodePoint.java
- * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
+ * package-info.java
+ * Copyright (c) 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,44 +29,5 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.avail.interpreter.primitive;
 
-import static com.avail.descriptor.TypeDescriptor.Types.CHARACTER;
-import static com.avail.interpreter.Primitive.Flag.*;
-import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
-
-/**
- * <strong>Primitive 330:</strong> Extract the {@linkplain IntegerDescriptor
- * code point} from a {@linkplain CharacterDescriptor character}.
- */
-public class P_330_CharacterCodePoint extends Primitive
-{
-	/**
-	 * The sole instance of this primitive class.  Accessed through reflection.
-	 */
-	public final static Primitive instance = new P_330_CharacterCodePoint().init(
-		1, CanFold, CannotFail);
-
-	@Override
-	public Result attempt (
-		final List<AvailObject> args,
-		final Interpreter interpreter)
-	{
-		assert args.size() == 1;
-		final A_Character character = args.get(0);
-		return interpreter.primitiveSuccess(
-			IntegerDescriptor.fromInt(
-				character.codePoint()));
-	}
-
-	@Override
-	protected A_Type privateBlockTypeRestriction ()
-	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
-				CHARACTER.o()),
-			IntegerRangeTypeDescriptor.characterCodePoints());
-	}
-}
+@com.avail.annotations.NotNullByDefault package com.avail.annotations;

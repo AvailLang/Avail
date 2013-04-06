@@ -1232,14 +1232,6 @@ public abstract class AbstractDescriptor
 		AvailObject object);
 
 	/**
-	 * @param object
-	 * @param value
-	 */
-	abstract void o_CodePoint (
-		AvailObject object,
-		int value);
-
-	/**
 	 * Compare a subrange of the {@linkplain AvailObject receiver} with a
 	 * subrange of another object. The size of the subrange of both objects is
 	 * determined by the index range supplied for the receiver.
@@ -3792,7 +3784,7 @@ public abstract class AbstractDescriptor
 	 * @param sign The type of infinity for comparison.
 	 * @return {@code true} if the receiver is an infinity of the specified
 	 *         sign, {@code false} otherwise.
-	 * @see AvailObject#equalsInfinity(Sign)
+	 * @see A_Number#equalsInfinity(Sign)
 	 */
 	abstract boolean o_EqualsInfinity (
 		final AvailObject object,
@@ -4078,15 +4070,6 @@ public abstract class AbstractDescriptor
 	 *         otherwise.
 	 */
 	abstract boolean o_IsString (AvailObject object);
-
-	/**
-	 * @param object
-	 * @param aFunction
-	 * @return
-	 */
-	abstract boolean o_ContainsBlock (
-		AvailObject object,
-		A_Function aFunction);
 
 	/**
 	 * @param object

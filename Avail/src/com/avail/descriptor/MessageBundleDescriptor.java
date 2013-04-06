@@ -50,10 +50,13 @@ import com.avail.serialization.SerializerOperation;
  * the cost of repeatedly parsing the same constructs (tokens and
  * subexpressions) for different purposes.
  *
- * Additionally, the message bundle's {@link #GRAMMATICAL_RESTRICTIONS} are held
- * here, rather than with the {@linkplain MethodDescriptor method}, since these
- * rules are intended to work with the actual tokens that occur (how sends are
+ * <p>
+ * Additionally, the message bundle's {@link
+ * ObjectSlots#GRAMMATICAL_RESTRICTIONS grammatical restrictions} are held here,
+ * rather than with the {@linkplain MethodDescriptor method}, since these rules
+ * are intended to work with the actual tokens that occur (how sends are
  * written), not their underlying semantics (what the methods do).
+ * </p>
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */

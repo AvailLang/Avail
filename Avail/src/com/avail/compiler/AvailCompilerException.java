@@ -61,7 +61,6 @@ extends RuntimeException
 	 * AbstractAvailCompiler compilation}.
 	 *
 	 * @return A {@linkplain ModuleName module name}.
-	 * @author Todd L Smith &lt;todd@availlang.org&gt;
 	 */
 	public ModuleName moduleName ()
 	{

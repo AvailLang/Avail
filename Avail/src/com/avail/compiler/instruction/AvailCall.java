@@ -56,7 +56,7 @@ public class AvailCall extends AvailInstructionWithIndex
 	 * Construct a new {@link AvailCall}.
 	 *
 	 * @param messageIndex The index of the literal that holds the message (a
-	 *                     {@linkplain MethodDescriptor method}.
+	 *                     {@linkplain MethodDescriptor method}).
 	 * @param verifyIndex The index of the literal that holds the return type.
 	 */
 	public AvailCall (final int messageIndex, final int verifyIndex)

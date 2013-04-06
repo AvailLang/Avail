@@ -1,22 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <project default="javadoc">
-	<target name="javadoc">
-		<javadoc 
-			access="public" 
-			additionalparam=" -charset=utf8" 
-			author="true" 
-			classpath="/Applications/eclipse-3.6/plugins/org.hamcrest.core_1.1.0.v20090501071000.jar:/Applications/eclipse-3.6/plugins/org.junit_4.8.1.v4_8_1_v20100427-1100/junit.jar" 
-			destdir="../JavaDoc" 
-			nodeprecated="false" 
-			nodeprecatedlist="false" 
-			noindex="false" 
-			nonavbar="false" 
-			notree="false" 
-			packagenames="com.avail,com.avail.compiler.scanning,com.avail.interpreter.levelOne,com.avail.interpreter.levelTwo.operation,com.avail.serialization,com.avail.interpreter,com.avail.annotations,com.avail.interpreter.primitive,com.avail.test,com.avail.builder,com.avail.compiler.instruction,com.avail.tools.bootstrap,com.avail.descriptor,com.avail.tools.reflection,com.avail.interpreter.levelTwo.operand,com.avail.interpreter.levelTwo.register,com.avail.interpreter.levelTwo,com.avail.exceptions,com.avail.utility,com.avail.environment,com.avail.compiler,com.avail.visitor,com.avail.optimizer" 
-			source="1.6" 
-			sourcepath=".apt_generated:src" 
-			splitindex="true" 
-			use="true" 
-			version="true" />
-	</target>
+    <target name="javadoc">
+        <javadoc access="public" additionalparam=" -encoding UTF-8 -quiet -splitindex " author="true" classpath="/Applications/eclipse/plugins/org.hamcrest.core_1.1.0.v20090501071000.jar:/Applications/eclipse/plugins/org.junit_4.10.0.v4_10_0_v20120426-0900/junit.jar" destdir="/Users/markvangulik/git/Avail/JavaDoc" nodeprecated="false" nodeprecatedlist="false" noindex="false" nonavbar="false" notree="false" packagenames="com.avail.compiler.scanning,com.avail,com.avail.interpreter.levelOne,com.avail.interpreter.levelTwo.operation,com.avail.interpreter,com.avail.serialization,com.avail.annotations,com.avail.linking,com.avail.interpreter.primitive,com.avail.builder,com.avail.test,com.avail.compiler.instruction,com.avail.tools.bootstrap,com.avail.descriptor,com.avail.persistence,com.avail.interpreter.levelTwo.operand,com.avail.interpreter.levelTwo.register,com.avail.interpreter.levelTwo,com.avail.exceptions,com.avail.utility,com.avail.environment,com.avail.compiler,com.avail.visitor,com.avail.optimizer" source="1.7" sourcepath="src:.apt_generated" splitindex="true" use="true" version="true"/>
+    </target>
 </project>

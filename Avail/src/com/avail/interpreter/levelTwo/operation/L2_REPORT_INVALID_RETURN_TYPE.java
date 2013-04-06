@@ -80,7 +80,7 @@ public class L2_REPORT_INVALID_RETURN_TYPE extends L2Operation
 	}
 
 	@Override
-	public boolean hasSideEffect (final L2Instruction instruction)
+	public boolean hasSideEffect ()
 	{
 		return true;
 	}

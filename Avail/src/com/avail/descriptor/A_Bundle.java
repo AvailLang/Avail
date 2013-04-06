@@ -32,6 +32,9 @@
 
 package com.avail.descriptor;
 
+import com.avail.compiler.MessageSplitter;
+import com.avail.compiler.ParsingOperation;
+
 /**
  * {@code A_Bundle} is an interface that specifies the {@linkplain
  * MessageBundleDescriptor message-bundle}-specific operations that an {@link
@@ -44,35 +47,61 @@ package com.avail.descriptor;
 public interface A_Bundle
 extends A_BasicObject
 {
-
 	/**
-	 * @return
+	 * Answer the {@linkplain MethodDescriptor method} that this bundle names.
+	 * Multiple bundles may refer to the same method to support renaming of
+	 * imported names.
+	 *
+	 * @return This bundle's method.
 	 */
 	A_Method bundleMethod ();
 
 	/**
-	 * Dispatch to the descriptor.
+	 * Answer the set of {@linkplain GrammaticalRestrictionDescriptor
+	 * grammatical restrictions} that have been attached to this bundle.
+	 *
+	 * @return This bundle's grammatical restrictions.
 	 */
 	A_Set grammaticalRestrictions ();
 
 	/**
-	 * Dispatch to the descriptor.
+	 * Answer the name of this bundle.  It must be parsable as a method name
+	 * according to the rules of the {@link MessageSplitter}.
+	 *
+	 * @return An {@linkplain AtomDescriptor atom} naming this bundle.
 	 */
 	A_Atom message ();
 
 	/**
-	 * Dispatch to the descriptor.
+	 * Answer the message parts produced by the {@link MessageSplitter} when
+	 * applied to this bundle's name.  It's basically a {@linkplain
+	 * TupleDescriptor tuple} of {@linkplain StringDescriptor strings} in the
+	 * order the tokens appear in the bundle's name.
+	 *
+	 * @return A tuple of strings extracted from the bundle's message.
+	 * @see #message()
 	 */
 	A_Tuple messageParts ();
 
 	/**
-	 * Dispatch to the descriptor.
+	 * Answer a {@linkplain TupleDescriptor tuple} of {@linkplain
+	 * IntegerDescriptor integers} encoding the {@linkplain ParsingOperation
+	 * parsing instructions} required to parse a call to this bundle's method
+	 * using this bundle's name (message).
+	 *
+	 * <p>
+	 * Matching parsing instructions for multiple messages can (usually) be
+	 * executed in aggregate, avoiding the separate cost of attempting to parse
+	 * each possible message at each place where a call may occur.
+	 * </p>
+	 *
+	 * @return A tuple of integers encoding this bundle's parsing instructions.
 	 */
 	A_Tuple parsingInstructions ();
 
 	/**
-	 * Add a {@linkplain MessageBundleDescriptor grammatical restriction} to the
-	 * receiver.
+	 * Add a {@linkplain GrammaticalRestrictionDescriptor grammatical
+	 * restriction} to the receiver.
 	 *
 	 * @param grammaticalRestriction The grammatical restriction to be added.
 	 */
@@ -80,13 +109,19 @@ extends A_BasicObject
 		A_GrammaticalRestriction grammaticalRestriction);
 
 	/**
-	 * Dispatch to the descriptor.
+	 * Remove a {@linkplain GrammaticalRestrictionDescriptor grammatical
+	 * restriction} from the receiver.
+	 *
+	 * @param obsoleteRestriction The grammatical restriction to remove.
 	 */
 	void removeGrammaticalRestriction (
-		A_GrammaticalRestriction obsoleteRestrictions);
+		A_GrammaticalRestriction obsoleteRestriction);
 
 	/**
-	 * Dispatch to the descriptor.
+	 * Answer whether this bundle has any {@linkplain
+	 * GrammaticalRestrictionDescriptor grammatical restrictions}.
+	 *
+	 * @return Whether this bundle has grammatical restrictions.
 	 */
 	boolean hasGrammaticalRestrictions ();
 }

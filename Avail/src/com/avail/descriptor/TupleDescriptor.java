@@ -123,7 +123,7 @@ extends Descriptor
 			aStream.append('"');
 			for (int i = 1, limit = object.tupleSize(); i <= limit; i++)
 			{
-				final A_BasicObject availChar = object.tupleAt(i);
+				final A_Character availChar = object.tupleAt(i);
 				final int c = availChar.codePoint();
 				if (c == '\"' || c == '\\')
 				{
