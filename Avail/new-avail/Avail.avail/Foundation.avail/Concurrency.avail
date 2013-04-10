@@ -727,4 +727,68 @@ Semantic restriction "map_in parallel through_" is
 	<<>, transformer's return type… | ||tupleType||>
 ];
 
+/**
+ * Concurrently apply {@param "transformer"} to each binding of a map
+ * {@param "map"}, collecting the results into a new map (and preserving
+ * the original keys).
+ *
+ * @method "map_in parallel through_"
+ * @param "aTuple" "tuple"
+ * @param "transformer" "[⊥, ⊥]→any"
+ *        A function that accepts 1) a key of the map and 2) the value at the 
+ *        keyed location
+ * @returns "map"
+ *          A map of results of applications of {@param "transformer"} to the
+ *          values at the keyed location.
+ * @raises "worker exception"
+ *         If any of the forked workers raise an exception.
+ * @raises "termination-requested exception"
+ *         If termination of the current fiber is requested during an internal
+ *         synchronization operation.
+ */
+Public method "map_in parallel through_" is
+[
+	aMap : map,
+	transformer : [⊥, ⊥]→any
+|
+	transformedBindings : <<any…|2>…|> := 	
+		map aMap's bindings in parallel through
+		[
+			binding : <any…|2>…|>,
+			ignoredIndex : natural number
+		|
+			transformer(binding[1],binding[2])
+		];
+	newMap : map := {};
+	For each of transformedBindings do
+	[
+	 	binding: <any…|2>
+	 |
+	 	newMap := newMap + binding[1] → binding[2];
+	];
+	newMap
+]:map;
+	
+/**
+ * Ensure that the function will accept all bindings of the map. If the map is
+ * certainly nonempty, then the function cannot answer ⊥.
+ */
+Semantic restriction "map_in parallel through_" is
+[
+	mapType : map meta,
+	transformer : [⊥, ⊥]→any's type
+|
+	Require: transformer accepts mapType;
+	If ⎣mapType⎦ > 0 then
+	[
+		If transformer's return type = ⊥ then
+		[
+			Reject parse, expected:
+				"repeatedly applied function to have a return type other than\
+				\| ⊥"
+		];
+	];
+	{mapType's key type → transformer's return type | ||mapType||}
+];
+
 Grammatical restriction "a|an_«with«_«:»?:=_‡,»»" is <{"future"}, ∅, ∅>;
