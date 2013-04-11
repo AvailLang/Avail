@@ -542,6 +542,96 @@ Semantic restriction "For each of⁇_in parallel do_" is
 ];
 
 /**
+ * Concurrently apply {@param "action"} to each key-value pair of {@param
+ * "aMap"}. Wait until all forked fibers have completed before returning
+ * control to the caller.
+ * 
+ * @method "For each of⁇_in parallel do_"
+ * @param "aMap" "map"
+ * @param "action" "[⊥, ⊥]→⊤"
+ *        A function that accepts 1) a map key and 2) the value at that key
+ * @raises "worker exception"
+ *         If any of the forked workers raise an exception.
+ * @raises "termination-requested exception"
+ *         If termination of the current fiber is requested during an internal
+ *         synchronization operation.
+ * @author "Richard Arriaga"
+ */
+Public method "For each of⁇_in parallel do_" is
+[
+	aMap : map,
+	action : [⊥, ⊥]→⊤
+|
+	For each of aMap's bindings in parallel do
+	[
+		binding : <any…|2>
+	|
+		action(binding[1],binding[2]);
+	];
+] : ⊤;
+
+Semantic restriction "For each of⁇_in parallel do_" is
+[
+	mapType : map meta,
+	action : [⊥, ⊥]→⊤'s type
+|
+	Require: action accepts mapType;
+	if ⎣mapType⎦ > 0 ∧ [ action's return type = ⊥ ] then
+	[
+		⊥
+	]
+	else
+	[
+		⊤
+	]
+];
+
+/**
+ * Concurrently apply {@param "action"} to each element of {@param
+ * "aSet"}. Wait until all forked fibers have completed before returning
+ * control to the caller.
+ * 
+ * @method "For each of⁇_in parallel do_"
+ * @param "aSet" "set"
+ * @param "action" "[⊥]→⊤"
+ *        A function that accepts the elements of the set
+ * @raises "worker exception"
+ *         If any of the forked workers raise an exception.
+ * @raises "termination-requested exception"
+ *         If termination of the current fiber is requested during an internal
+ *         synchronization operation.
+ * @author "Richard Arriaga"
+ */
+Public method "For each of⁇_in parallel do_" is
+[
+	aSet : set,
+	action : [⊥]→⊤
+|
+	For each of aSet → tuple in parallel do
+	[
+		element : any
+	|
+		action(element);
+	];
+] : ⊤;
+
+Semantic restriction "For each of⁇_in parallel do_" is
+[
+	setType : set meta,
+	action : [⊥]→⊤'s type
+|
+	Require: action accepts setType;
+	if ⎣setType⎦ > 0 ∧ [ action's return type = ⊥ ] then
+	[
+		⊥
+	]
+	else
+	[
+		⊤
+	]
+];
+	
+/**
  * Concurrently apply {@param "transformer"} to each consecutive element of
  * {@param "aTuple"}, collecting the results into a new tuple (and preserving
  * ordering of the transformed elements). Answer this tuple.
