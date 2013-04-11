@@ -96,7 +96,7 @@ Method "“_”" is
 [
 	t : tuple meta
 |
-	if |t's instances| < ∞ then [primitive description of t] 
+	if |t| < ∞ then [primitive description of t] 
 	else 
 	[
 		s : nonempty string := "<";
