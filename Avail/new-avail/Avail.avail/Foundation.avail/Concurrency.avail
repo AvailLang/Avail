@@ -745,6 +745,7 @@ Semantic restriction "map_in parallel through_" is
  * @raises "termination-requested exception"
  *         If termination of the current fiber is requested during an internal
  *         synchronization operation.
+ * @author "Richard Arriaga"
  */
 Public method "map_in parallel through_" is
 [
@@ -792,23 +793,22 @@ Semantic restriction "map_in parallel through_" is
 ];
 
 /**
- * Concurrently apply {@param "transformer"} to each binding of a map
- * {@param "map"}, collecting the results into a new map (and preserving
- * the original keys).
+ * Concurrently apply {@param "transformer"} to each element of a 
+ * {@param "set"}, collecting the results into a new set
  *
  * @method "map_in parallel through_"
  * @param "aTuple" "tuple"
- * @param "transformer" "[⊥, ⊥]→any"
- *        A function that accepts 1) a key of the map and 2) the value at the 
- *        keyed location
- * @returns "map"
- *          A map of results of applications of {@param "transformer"} to the
- *          values at the keyed location.
+ * @param "transformer" "[⊥]→any"
+ *        A function that accepts the type of the elements of the set
+ * @returns "set"
+ *          A set of results of applications of {@param "transformer"} to the
+ *          elements of the original set.
  * @raises "worker exception"
  *         If any of the forked workers raise an exception.
  * @raises "termination-requested exception"
  *         If termination of the current fiber is requested during an internal
  *         synchronization operation.
+ * @author "Richard Arriaga"
  */
 Public method "map_in parallel through_" is
 [
@@ -824,7 +824,7 @@ Public method "map_in parallel through_" is
 ]:set;
 	
 /**
- * Ensure that the function will accept all bindings of the map. If the map is
+ * Ensure that the function will accept elements of the set. If the set is
  * certainly nonempty, then the function cannot answer ⊥.
  */
 Semantic restriction "map_in parallel through_" is
