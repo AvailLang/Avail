@@ -3135,6 +3135,15 @@ implements
 	 * Dispatch to the descriptor.
 	 */
 	@Override
+	public A_String atomName ()
+	{
+		return descriptor.o_AtomName(this);
+	}
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	@Override
 	public void name (final A_String newName)
 	{
 		descriptor.o_Name(this, newName);
@@ -3430,40 +3439,6 @@ implements
 	public void priority (final int value)
 	{
 		descriptor.o_Priority(this, value);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	@Override
-	public A_BasicObject privateAddElement (
-		final A_BasicObject element)
-	{
-		return descriptor.o_PrivateAddElement(this, element);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	@Override
-	public A_BasicObject privateExcludeElement (
-		final A_BasicObject element)
-	{
-		return descriptor.o_PrivateExcludeElement(this, element);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	@Override
-	public A_BasicObject privateExcludeElementKnownIndex (
-		final A_BasicObject element,
-		final int knownIndex)
-	{
-		return descriptor.o_PrivateExcludeElementKnownIndex(
-			this,
-			element,
-			knownIndex);
 	}
 
 	/**
@@ -5267,12 +5242,12 @@ implements
 	}
 
 	/**
-	 * @param value
+	 * @param versionStrings
 	 */
 	@Override
-	public void versions (final A_BasicObject value)
+	public void versions (final A_Set versionStrings)
 	{
-		descriptor.o_Versions(this, value);
+		descriptor.o_Versions(this, versionStrings);
 	}
 
 	/**
@@ -5508,24 +5483,6 @@ implements
 	public boolean isPojoType ()
 	{
 		return descriptor.o_IsPojoType(this);
-	}
-
-	/**
-	 * @return
-	 */
-	@Override
-	public A_BasicObject upperBoundMap ()
-	{
-		return descriptor.o_UpperBoundMap(this);
-	}
-
-	/**
-	 * @param aMap
-	 */
-	@Override
-	public void upperBoundMap (final A_BasicObject aMap)
-	{
-		descriptor.o_UpperBoundMap(this, aMap);
 	}
 
 	/**

@@ -743,7 +743,7 @@ public final class AvailRuntime
 		specials[78] = InfinityDescriptor.negativeInfinity();
 		specials[79] = InfinityDescriptor.positiveInfinity();
 		specials[80] = PojoTypeDescriptor.mostGeneralType();
-		specials[81] = PojoTypeDescriptor.pojoBottom();
+		specials[81] = BottomPojoTypeDescriptor.pojoBottom();
 		specials[82] = PojoDescriptor.nullObject();
 		specials[83] = PojoTypeDescriptor.selfType();
 		specials[84] = InstanceMetaDescriptor.on(

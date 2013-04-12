@@ -217,7 +217,7 @@ extends Descriptor
 	/** The {@linkplain PojoDescriptor pojo} that wraps Java's {@code null}. */
 	private static final AvailObject nullObject = newPojo(
 		RawPojoDescriptor.rawNullObject(),
-		PojoTypeDescriptor.pojoBottom()).makeShared();
+		BottomPojoTypeDescriptor.pojoBottom()).makeShared();
 
 	/**
 	 * Answer the {@linkplain PojoDescriptor pojo} that wraps Java's

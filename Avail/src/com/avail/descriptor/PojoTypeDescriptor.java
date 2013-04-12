@@ -206,24 +206,6 @@ extends TypeDescriptor
 	}
 
 	/**
-	 * The most specific {@linkplain PojoTypeDescriptor pojo type},
-	 * other than {@linkplain BottomTypeDescriptor#bottom() bottom}.
-	 */
-	private static final A_Type pojoBottom =
-		BottomPojoTypeDescriptor.mutable.create().makeShared();
-
-	/**
-	 * Answer the most specific {@linkplain PojoTypeDescriptor pojo
-	 * type}, other than {@linkplain BottomTypeDescriptor#bottom() bottom}.
-	 *
-	 * @return The most specific pojo type.
-	 */
-	public static A_Type pojoBottom ()
-	{
-		return pojoBottom;
-	}
-
-	/**
 	 * A special {@linkplain AtomDescriptor atom} whose {@linkplain
 	 * InstanceTypeDescriptor instance type} represents the self type of a
 	 * {@linkplain Class Java class or interface}.
@@ -614,9 +596,9 @@ extends TypeDescriptor
 				final A_Type x = params.tupleAt(i);
 				final A_Type y = otherParams.tupleAt(i);
 				final A_Type intersection = x.typeIntersection(y);
-				if (intersection.isSubtypeOf(PojoTypeDescriptor.pojoBottom()))
+				if (intersection.isSubtypeOf(BottomPojoTypeDescriptor.pojoBottom()))
 				{
-					return PojoTypeDescriptor.pojoBottom();
+					return BottomPojoTypeDescriptor.pojoBottom();
 				}
 				intersectionParams.add(intersection);
 			}
@@ -740,7 +722,7 @@ extends TypeDescriptor
 				if (possibleAncestor != possibleChild
 					&& possibleAncestor.isAssignableFrom(possibleChild))
 				{
-					childless.remove(possibleAncestor);
+					childless.remove(ancestor);
 				}
 			}
 		}

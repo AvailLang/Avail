@@ -70,35 +70,32 @@ public abstract class AvailInstruction
 			error("Only positive integers, please");
 			return;
 		}
-		if (anInteger < 10)
+		else if (anInteger < 10)
 		{
 			aStream.write(anInteger);
-			return;
 		}
-		if (anInteger < 58)
+		else if (anInteger < 0x3A)
 		{
-			aStream.write((anInteger + 150) >>> 4);
-			aStream.write((anInteger + 150) & 15);
-			return;
+			aStream.write((anInteger - 10 + 0xA0) >>> 4);
+			aStream.write((anInteger - 10 + 0xA0) & 15);
 		}
-		if (anInteger < 0x13A)
+		else if (anInteger < 0x13A)
 		{
 			aStream.write(13);
-			aStream.write((anInteger - 58) >>> 4);
-			aStream.write((anInteger - 58) & 15);
-			return;
+			aStream.write((anInteger - 0x3A) >>> 4);
+			aStream.write((anInteger - 0x3A) & 15);
 		}
-		if (anInteger < 0x10000)
+		else if (anInteger < 0x10000)
 		{
 			aStream.write(14);
 			aStream.write(anInteger >>> 12);
 			aStream.write((anInteger >>> 8) & 15);
 			aStream.write((anInteger >>> 4) & 15);
 			aStream.write(anInteger & 15);
-			return;
 		}
-		if (anInteger < 0x100000000L)
+		else
 		{
+			// Treat it as an unsigned int.  i<0 case was already handled.
 			aStream.write(15);
 			aStream.write(anInteger >>> 28);
 			aStream.write((anInteger >>> 24) & 15);
@@ -108,9 +105,7 @@ public abstract class AvailInstruction
 			aStream.write((anInteger >>> 8) & 15);
 			aStream.write((anInteger >>> 4) & 15);
 			aStream.write(anInteger & 15);
-			return;
 		}
-		error("Integer is out of range");
 		return;
 	}
 

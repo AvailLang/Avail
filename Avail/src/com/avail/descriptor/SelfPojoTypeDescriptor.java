@@ -204,7 +204,7 @@ extends PojoTypeDescriptor
 			final int modifiers = javaClass.getModifiers();
 			if (Modifier.isFinal(modifiers))
 			{
-				return PojoTypeDescriptor.pojoBottom();
+				return BottomPojoTypeDescriptor.pojoBottom();
 			}
 		}
 		for (final A_BasicObject ancestor : otherAncestors)
@@ -213,7 +213,7 @@ extends PojoTypeDescriptor
 			final int modifiers = javaClass.getModifiers();
 			if (Modifier.isFinal(modifiers))
 			{
-				return PojoTypeDescriptor.pojoBottom();
+				return BottomPojoTypeDescriptor.pojoBottom();
 			}
 		}
 		return create(

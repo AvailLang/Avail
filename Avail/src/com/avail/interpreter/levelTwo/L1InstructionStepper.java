@@ -252,7 +252,7 @@ implements L1OperationDispatcher
 		final int numArgs = bundle.bundleMethod().numArgs();
 		if (debugL1)
 		{
-			System.out.printf(" (%s)", bundle.message().name());
+			System.out.printf(" (%s)", bundle.message().atomName());
 		}
 		argsBuffer.clear();
 		for (int i = numArgs; i >= 1; i--)
@@ -265,7 +265,7 @@ implements L1OperationDispatcher
 		{
 			error(
 				"Ambiguous or invalid lookup of %s",
-				bundle.message().name());
+				bundle.message().atomName());
 			return;
 		}
 		if (matching.isForwardDefinition())
@@ -273,14 +273,14 @@ implements L1OperationDispatcher
 			error(
 				"Attempted to execute forward method %s "
 				+ "before it was defined.",
-				bundle.message().name());
+				bundle.message().atomName());
 			return;
 		}
 		if (matching.isAbstractDefinition())
 		{
 			error(
 				"Attempted to execute an abstract method %s.",
-				bundle.message().name());
+				bundle.message().atomName());
 			return;
 		}
 		// Leave the expected return type pushed on the stack.  This will be

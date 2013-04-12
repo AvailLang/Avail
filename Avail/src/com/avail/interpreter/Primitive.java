@@ -437,8 +437,6 @@ implements IntegerEnumSlotDescriptionEnum
 	 */
 	private static void findPrimitives()
 	{
-		assert primitiveNames == null;
-
 		final Map<Short, String> names = new HashMap<Short, String>();
 		final ClassLoader classLoader = Primitive.class.getClassLoader();
 		assert classLoader != null;

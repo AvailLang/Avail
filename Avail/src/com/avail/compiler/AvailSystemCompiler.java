@@ -1564,7 +1564,7 @@ extends AbstractAvailCompiler
 				assert c != null;
 				c.value(
 					"something other than an invocation of the macro "
-					+ bundle.message().name());
+					+ bundle.message().atomName());
 			}
 		});
 	}
@@ -1635,7 +1635,7 @@ extends AbstractAvailCompiler
 				public void describeThen (final Continuation1<String> c)
 				{
 					c.value(String.format(
-						"Primitive (%s) to be passed %i arguments, not %i",
+						"Primitive (%s) to be passed %d arguments, not %d",
 						prim.name(),
 						prim.argCount(),
 						argCount));

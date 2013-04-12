@@ -660,7 +660,7 @@ public class TypeConsistencyTest
 			@Override
 			A_Type get ()
 			{
-				return PojoTypeDescriptor.pojoBottom();
+				return BottomPojoTypeDescriptor.pojoBottom();
 			}
 		};
 

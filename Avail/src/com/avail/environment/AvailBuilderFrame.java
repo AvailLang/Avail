@@ -826,7 +826,7 @@ extends JFrame
 	 * {@code CancellationException} is thrown when the user cancels the
 	 * background {@linkplain BuildTask build task}.
 	 */
-	private final class CancellationException
+	private final static class CancellationException
 	extends RuntimeException
 	{
 		/** The serial version identifier. */

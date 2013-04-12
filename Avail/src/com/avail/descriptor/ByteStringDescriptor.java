@@ -259,7 +259,7 @@ extends StringDescriptor
 			final int codePoint = ((A_Character)newValueObject).codePoint();
 			if ((codePoint & 0xFF) == codePoint)
 			{
-				if (canDestroy & isMutable())
+				if (canDestroy && isMutable())
 				{
 					object.rawByteForCharacterAtPut(index, (short)codePoint);
 					object.hashOrZero(0);

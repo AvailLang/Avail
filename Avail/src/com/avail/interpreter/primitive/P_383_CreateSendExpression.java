@@ -73,7 +73,7 @@ extends Primitive
 		try
 		{
 			final MessageSplitter splitter =
-				new MessageSplitter(messageName.name());
+				new MessageSplitter(messageName.atomName());
 			if (splitter.numberOfArguments()
 				!= argsListNode.expressionsTuple().tupleSize())
 			{

@@ -903,31 +903,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	A_BasicObject o_PrivateAddElement (
-		final AvailObject object,
-		final A_BasicObject element)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	A_BasicObject o_PrivateExcludeElement (
-		final AvailObject object,
-		final A_BasicObject element)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	A_BasicObject o_PrivateExcludeElementKnownIndex (
-		final AvailObject object,
-		final A_BasicObject element,
-		final int knownIndex)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
 	void o_FiberGlobals (
 		final AvailObject object,
 		final A_Map value)
@@ -3450,7 +3425,7 @@ extends AbstractDescriptor
 	@Override
 	void o_Versions (
 		final AvailObject object,
-		final A_BasicObject value)
+		final A_Set versionStrings)
 	{
 		throw unsupportedOperationException();
 	}
@@ -3639,21 +3614,6 @@ extends AbstractDescriptor
 		final AvailObject object)
 	{
 		return false;
-	}
-
-	@Override
-	A_BasicObject o_UpperBoundMap (
-		final AvailObject object)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	void o_UpperBoundMap (
-		final AvailObject object,
-		final A_BasicObject aMap)
-	{
-		throw unsupportedOperationException();
 	}
 
 	@Override
@@ -4782,6 +4742,12 @@ extends AbstractDescriptor
 
 	@Override
 	A_Tuple o_ArgumentRestrictionSets (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	A_String o_AtomName (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}

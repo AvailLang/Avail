@@ -627,7 +627,7 @@ extends TupleDescriptor
 		final boolean canDestroy)
 	{
 		assert index >= 1 && index <= object.tupleSize();
-		if (!(canDestroy & isMutable()))
+		if (!(canDestroy && isMutable()))
 		{
 			return object.copyAsMutableSpliceTuple().tupleAtPuttingCanDestroy(
 				index,

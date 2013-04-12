@@ -481,12 +481,13 @@ public class AvailScanner
 								stringBuilder.append('\"');
 								break;
 							case '\r':
-								// Treat \r or \r\n in the source as \n.
+								// Treat \r or \r\n in the source just like \n.
 								if (!scanner.atEnd())
 								{
 									scanner.peekFor('\n');
 								}
-								//$FALL-THROUGH$
+								canErase = true;
+								break;
 							case '\n':
 								// A backslash ending a line.  Emit nothing.
 								// Allow '\|' to back up to here as long as only

@@ -1078,8 +1078,8 @@ public class MessageSplitterTest
 			{
 				fail(
 					String.format(
-						"Generated parse code for \"%s\" was not as expected:\n"
-							+ "%s\ninstead it was:\n%s",
+						"Generated parse code for \"%s\" was not as expected:%n"
+							+ "%s%ninstead it was:%n%s",
 						msgString,
 						dumpInstructions(splitCase.instructions),
 						dumpInstructions(instructionsList)));

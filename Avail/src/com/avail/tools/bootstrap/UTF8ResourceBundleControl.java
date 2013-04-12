@@ -108,18 +108,22 @@ extends Control
 							{
 								final URL url =
 									classLoader.getResource(resourceName);
-								if (url != null)
+								if (url == null)
 								{
-									final URLConnection connection =
-										url.openConnection();
-									if (connection != null)
-									{
-										// Disable caches to get fresh data for
-										// reloading.
-										connection.setUseCaches(false);
-										is = connection.getInputStream();
-									}
+									throw new IOException(
+										"Invalid URL for resource");
 								}
+								final URLConnection connection =
+									url.openConnection();
+								if (connection == null)
+								{
+									throw new IOException(
+										"Invalid URL for resource");
+								}
+								// Disable caches to get fresh data for
+								// reloading.
+								connection.setUseCaches(false);
+								is = connection.getInputStream();
 							}
 							else
 							{

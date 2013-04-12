@@ -89,7 +89,7 @@ public class L2_INVOKE extends L2Operation
 		final L2Instruction instruction,
 		final RegisterSet registers)
 	{
-		// Restriction happens elsewhere.
+		registers.clearEverything();
 	}
 
 	@Override

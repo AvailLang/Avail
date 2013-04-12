@@ -86,7 +86,7 @@ public class Pair<FirstType, SecondType>
 	@Override
 	public boolean equals (final @Nullable Object obj)
 	{
-		if (obj instanceof Pair<?, ?>)
+		if (obj != null && this.getClass() == obj.getClass())
 		{
 			final Pair<?, ?> otherPair = (Pair<?, ?>) obj;
 			return first.equals(otherPair.first)

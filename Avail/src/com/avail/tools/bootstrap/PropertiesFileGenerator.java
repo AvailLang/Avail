@@ -35,6 +35,9 @@ package com.avail.tools.bootstrap;
 import static com.avail.tools.bootstrap.Resources.*;
 import static com.avail.tools.bootstrap.Resources.Key.*;
 import java.io.*;
+import java.nio.charset.CharsetDecoder;
+import java.nio.charset.CharsetEncoder;
+import java.nio.charset.StandardCharsets;
 import java.text.MessageFormat;
 import java.util.*;
 import com.avail.AvailRuntime;
@@ -111,17 +114,12 @@ abstract class PropertiesFileGenerator
 			locale.getLanguage()));
 		assert fileName.getPath().endsWith(".properties");
 		final Properties properties = new Properties();
-		FileInputStream inputStream;
-		try
+		try (final FileInputStream inputStream = new FileInputStream(fileName))
 		{
-			inputStream = new FileInputStream(fileName);
-			try
+			try (final InputStreamReader reader =
+				new InputStreamReader(inputStream, StandardCharsets.UTF_8))
 			{
-				properties.load(new InputStreamReader(inputStream, "UTF-8"));
-			}
-			finally
-			{
-				inputStream.close();
+				properties.load(reader);
 			}
 		}
 		catch (final FileNotFoundException e)

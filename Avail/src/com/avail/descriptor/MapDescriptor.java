@@ -412,7 +412,7 @@ extends Descriptor
 			newValueObject,
 			(byte)0,
 			canDestroy);
-		if (canDestroy & isMutable())
+		if (canDestroy && isMutable())
 		{
 			setRootBin(object, newRoot);
 			return object;

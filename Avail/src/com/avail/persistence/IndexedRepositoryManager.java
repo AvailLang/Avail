@@ -514,12 +514,12 @@ public class IndexedRepositoryManager
 		lock.lock();
 		try
 		{
+			isOpen = false;
 			repository().close();
 			moduleMap.clear();
 		}
 		finally
 		{
-			isOpen = false;
 			lock.unlock();
 		}
 	}

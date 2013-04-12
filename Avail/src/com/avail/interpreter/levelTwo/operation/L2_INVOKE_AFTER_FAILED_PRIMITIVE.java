@@ -108,7 +108,7 @@ public class L2_INVOKE_AFTER_FAILED_PRIMITIVE extends L2Operation
 		final L2Instruction instruction,
 		final RegisterSet registers)
 	{
-		// Restriction happens elsewhere.
+		registers.clearEverything();
 	}
 
 	@Override

@@ -370,7 +370,7 @@ extends MapBinDescriptor
 					canDestroy);
 			delta = newSubBin.binSize() - oldSubBinSize;
 			hashDelta = newSubBin.mapBinKeysHash() - oldSubBinKeyHash;
-			if (canDestroy & isMutable())
+			if (canDestroy && isMutable())
 			{
 				objectToModify = object;
 			}

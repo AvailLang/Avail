@@ -35,6 +35,7 @@ import static com.avail.interpreter.levelTwo.L2OperandType.READ_POINTER;
 import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.*;
+import com.avail.optimizer.RegisterSet;
 
 /**
  * Handle an interrupt that has been requested.
@@ -70,5 +71,13 @@ extends L2Operation
 	{
 		// Fiber will resume with the given continuation.
 		return false;
+	}
+
+	@Override
+	public void propagateTypesInFor (
+		final L2Instruction instruction,
+		final RegisterSet registers)
+	{
+		registers.clearEverything();
 	}
 }

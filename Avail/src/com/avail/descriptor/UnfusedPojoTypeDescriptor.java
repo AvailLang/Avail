@@ -287,7 +287,7 @@ extends PojoTypeDescriptor
 		// of a pojo array type and a singleton pojo type is pojo bottom.
 		if (aPojoType.isPojoArrayType())
 		{
-			return PojoTypeDescriptor.pojoBottom();
+			return BottomPojoTypeDescriptor.pojoBottom();
 		}
 		return aPojoType.typeIntersectionOfPojoUnfusedType(object);
 	}
@@ -304,7 +304,7 @@ extends PojoTypeDescriptor
 		// pojo bottom.
 		if (isFinal(modifiers))
 		{
-			return PojoTypeDescriptor.pojoBottom();
+			return BottomPojoTypeDescriptor.pojoBottom();
 		}
 		// If the unfused pojo type is a class, then check that none of the
 		// fused pojo type's ancestors are classes.
@@ -323,7 +323,7 @@ extends PojoTypeDescriptor
 					final int otherModifiers = otherJavaClass.getModifiers();
 					if (isFinal(otherModifiers) || !isInterface(otherModifiers))
 					{
-						return PojoTypeDescriptor.pojoBottom();
+						return BottomPojoTypeDescriptor.pojoBottom();
 					}
 				}
 			}
@@ -332,7 +332,7 @@ extends PojoTypeDescriptor
 			computeIntersection(object, aFusedPojoType);
 		if (intersection.equalsPojoBottomType())
 		{
-			return PojoTypeDescriptor.pojoBottom();
+			return BottomPojoTypeDescriptor.pojoBottom();
 		}
 		// The result will be a pojo fused type. Find the union of the key sets
 		// and the intersection of their parameterizations.
@@ -354,20 +354,20 @@ extends PojoTypeDescriptor
 		// bottom.
 		if (isFinal(modifiers) || isFinal(otherModifiers))
 		{
-			return PojoTypeDescriptor.pojoBottom();
+			return BottomPojoTypeDescriptor.pojoBottom();
 		}
 		// If neither class is an interface, then the intersection is pojo
 		// bottom (because Java doesn't support multiple inheritance of
 		// classes).
 		if (!isInterface(modifiers) && !isInterface(otherModifiers))
 		{
-			return PojoTypeDescriptor.pojoBottom();
+			return BottomPojoTypeDescriptor.pojoBottom();
 		}
 		final A_BasicObject intersection =
 			computeIntersection(object, anUnfusedPojoType);
 		if (intersection.equalsPojoBottomType())
 		{
-			return PojoTypeDescriptor.pojoBottom();
+			return BottomPojoTypeDescriptor.pojoBottom();
 		}
 		// The result will be a pojo fused type. Find the union of the key sets
 		// and the intersection of their parameterizations.

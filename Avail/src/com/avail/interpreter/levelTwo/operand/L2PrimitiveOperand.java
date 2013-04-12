@@ -93,6 +93,6 @@ public class L2PrimitiveOperand extends L2Operand
 	@Override
 	public String toString ()
 	{
-		return String.format("Prim(%s)", primitive);
+		return String.format("Prim(%s)", primitive.getClass().getSimpleName());
 	}
 }

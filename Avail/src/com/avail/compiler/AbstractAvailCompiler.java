@@ -767,8 +767,7 @@ public abstract class AbstractAvailCompiler
 	 * generators} that describe what was expected (but not found) at the
 	 * {@linkplain #greatestGuess rightmost reached position}.
 	 */
-	@InnerAccess final List<Describer> greatExpectations =
-		new ArrayList<Describer>();
+	@InnerAccess final List<Describer> greatExpectations = new ArrayList<>();
 
 	/** The memoization of results of previous parsing attempts. */
 	final @InnerAccess AvailCompilerFragmentCache fragmentCache =
@@ -2306,7 +2305,8 @@ public abstract class AbstractAvailCompiler
 					{
 						alreadySeen.add(message);
 						text.format(
-							"\n>>>\t%s", message.replace("\n", "\n>>>\t"));
+							"%n>>>\t%s",
+							message.replace("\n", "\n>>>\t"));
 					}
 					// Decrement the count of outstanding describers. When
 					// the count reaches zero, then produce the remainder of
@@ -3744,7 +3744,7 @@ public abstract class AbstractAvailCompiler
 					"Continue send after checkArgument",
 					start,
 					successorTrees.tupleAt(1),
-					firstArgOrNull,
+					firstArgOrNull, // Null
 					initialTokenPosition,
 					consumedAnything,
 					argsSoFar,
@@ -4020,8 +4020,8 @@ public abstract class AbstractAvailCompiler
 										c.value(String.format(
 											"argument #%d of message %s "
 											+ " to have a type other than %s",
-											Integer.toString(finalIndex),
-											bundle.message().name(),
+											finalIndex,
+											bundle.message().atomName(),
 											s));
 									}
 								});
@@ -4129,7 +4129,7 @@ public abstract class AbstractAvailCompiler
 									"arguments at indices %s of message %s to "
 									+ "match a visible method definition:%n",
 									allFailedIndices,
-									bundle.message().name());
+									bundle.message().atomName());
 								builder.format("\tI got:%n");
 								for (final int i : allFailedIndices)
 								{
@@ -4268,7 +4268,7 @@ public abstract class AbstractAvailCompiler
 											c.value(
 												problem.asNativeString()
 												+ " (while parsing send of "
-												+ bundle.message().name()
+												+ bundle.message().atomName()
 												+ ")");
 										}
 									});
@@ -4287,7 +4287,7 @@ public abstract class AbstractAvailCompiler
 												+ "raise an unhandled "
 												+ "exception (while parsing "
 												+ "send of "
-												+ bundle.message().name()
+												+ bundle.message().atomName()
 												+ "):\n\t"
 												+ e.toString());
 										}
@@ -4307,7 +4307,7 @@ public abstract class AbstractAvailCompiler
 											c.value(
 												"assertion failed "
 												+ " (while parsing send of "
-												+ bundle.message().name()
+												+ bundle.message().atomName()
 												+ "):\n\t"
 												+ ex.assertionString()
 													.asNativeString());

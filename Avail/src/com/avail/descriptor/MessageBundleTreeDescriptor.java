@@ -346,7 +346,7 @@ extends Descriptor
 					builder.append(", ");
 				}
 				first = false;
-				builder.append(entry.key().name());
+				builder.append(entry.key().atomName());
 			}
 		}
 		else

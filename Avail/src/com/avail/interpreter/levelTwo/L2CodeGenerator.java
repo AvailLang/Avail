@@ -82,7 +82,7 @@ public final class L2CodeGenerator
 		final L2OperandType expectedOperandType = expected.operandType();
 		assert expectedOperandType == L2OperandType.CONSTANT
 			|| expectedOperandType == L2OperandType.SELECTOR;
-		assert !literal.traversed().descriptor().isMutable();
+		assert literal.traversed().descriptor().isShared();
 		int index = literals.indexOf(literal) + 1;
 		if (index == 0)
 		{

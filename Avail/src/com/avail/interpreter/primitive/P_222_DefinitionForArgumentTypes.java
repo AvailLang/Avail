@@ -75,7 +75,7 @@ extends Primitive
 		}
 		try
 		{
-			final MessageSplitter splitter = new MessageSplitter(atom.name());
+			final MessageSplitter splitter = new MessageSplitter(atom.atomName());
 			if (splitter.numberOfArguments() != argTypes.tupleSize())
 			{
 				return interpreter.primitiveFailure(

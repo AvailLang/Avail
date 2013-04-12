@@ -44,7 +44,7 @@ import com.avail.serialization.SerializerOperation;
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-final class BottomPojoTypeDescriptor
+public final class BottomPojoTypeDescriptor
 extends PojoTypeDescriptor
 {
 	@Override @AvailMethod
@@ -261,5 +261,23 @@ extends PojoTypeDescriptor
 	BottomPojoTypeDescriptor shared ()
 	{
 		return shared;
+	}
+
+	/**
+	 * The most specific {@linkplain PojoTypeDescriptor pojo type},
+	 * other than {@linkplain BottomTypeDescriptor#bottom() bottom}.
+	 */
+	private static final A_Type pojoBottom =
+		BottomPojoTypeDescriptor.mutable.create().makeShared();
+
+	/**
+	 * Answer the most specific {@linkplain PojoTypeDescriptor pojo
+	 * type}, other than {@linkplain BottomTypeDescriptor#bottom() bottom}.
+	 *
+	 * @return The most specific pojo type.
+	 */
+	public static A_Type pojoBottom ()
+	{
+		return pojoBottom;
 	}
 }

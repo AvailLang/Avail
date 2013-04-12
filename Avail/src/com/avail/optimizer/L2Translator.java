@@ -36,11 +36,13 @@ import static com.avail.descriptor.AvailObject.error;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.interpreter.Primitive.Flag.*;
 import static com.avail.interpreter.Primitive.Result.*;
+import static com.avail.interpreter.levelTwo.L2OperandType.CONSTANT;
 import static com.avail.interpreter.levelTwo.register.FixedRegister.*;
 import static java.lang.Math.max;
 import java.util.*;
 import com.avail.annotations.*;
 import com.avail.descriptor.*;
+import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.*;
 import com.avail.interpreter.Primitive.Result;
 import com.avail.interpreter.levelOne.*;
@@ -178,22 +180,19 @@ implements L1OperationDispatcher
 
 	/**
 	 * Create and add an {@link L2Instruction} with the given {@link
-	 * L2Operation} and variable number of {@link L2Operand}s.  Also give it an
-	 * alternative way to propagate register type/value information.
+	 * L2Operation} and variable number of {@link L2Operand}s.
 	 *
-	 * @param propagationAction The propagation action, or {@code null}.
 	 * @param operation The operation to invoke.
 	 * @param operands The operands of the instruction.
 	 */
 	private void addInstruction (
-		final @Nullable Continuation0 propagationAction,
 		final L2Operation operation,
 		final L2Operand... operands)
 	{
 		assert operation != L2_LABEL.instance
 			: "Use newLabel() and addLabel(...) to add a label";
 		final L2Instruction instruction =
-			new L2Instruction(propagationAction, operation, operands);
+			new L2Instruction(operation, operands);
 		final L2Instruction normalizedInstruction =
 			instruction.transformRegisters(registers.normalizer);
 		instructions.add(normalizedInstruction);
@@ -206,20 +205,6 @@ implements L1OperationDispatcher
 			System.out.println(registers.registerTypes);
 			System.out.println(registers.registerOrigins);
 		}
-	}
-
-	/**
-	 * Create and add an {@link L2Instruction} with the given {@link
-	 * L2Operation} and variable number of {@link L2Operand}s.
-	 *
-	 * @param operation The operation to invoke.
-	 * @param operands The operands of the instruction.
-	 */
-	private void addInstruction (
-		final L2Operation operation,
-		final L2Operand... operands)
-	{
-		addInstruction(null, operation, operands);
 	}
 
 	/**
@@ -343,7 +328,7 @@ implements L1OperationDispatcher
 	 * @param args A {@link List} of {@linkplain L2ObjectRegister registers}
 	 *             holding the actual constant values used to look up the
 	 *             method definition for the call.
-	 * @return A method body (a {@code FunctionDescriptor function}) that
+	 * @return A method body (a {@linkplain FunctionDescriptor function}) that
 	 *         exemplifies the primitive that should be inlined, or {@code
 	 *         null}.
 	 */
@@ -762,8 +747,9 @@ implements L1OperationDispatcher
 		contingentMethods.add(method);
 		final L2ObjectRegister tempCallerRegister = registers.newObject();
 		moveRegister(registers.fixed(CALLER), tempCallerRegister);
-		final List<L2ObjectRegister> preSlots =
-			new ArrayList<L2ObjectRegister>(numSlots);
+		// The registers holding slot values that will constitute the
+		// continuation *during* a non-primitive call.
+		final List<L2ObjectRegister> preSlots = new ArrayList<>(numSlots);
 		for (int slotIndex = 1; slotIndex <= numSlots; slotIndex++)
 		{
 			preSlots.add(registers.continuationSlot(slotIndex));
@@ -771,13 +757,10 @@ implements L1OperationDispatcher
 		final L2ObjectRegister expectedTypeReg = registers.newObject();
 		final L2ObjectRegister failureObjectReg = registers.newObject();
 		final int nArgs = method.numArgs();
-		final List<L2ObjectRegister> preserved =
-			new ArrayList<L2ObjectRegister>(preSlots);
+		final List<L2ObjectRegister> preserved = new ArrayList<>(preSlots);
 		assert preserved.size() == numSlots;
-		final List<L2ObjectRegister> args =
-			new ArrayList<L2ObjectRegister>(nArgs);
-		final List<A_Type> argTypes =
-			new ArrayList<A_Type>(nArgs);
+		final List<L2ObjectRegister> args = new ArrayList<>(nArgs);
+		final List<A_Type> argTypes = new ArrayList<>(nArgs);
 		for (int i = nArgs; i >= 1; i--)
 		{
 			final L2ObjectRegister arg = readTopOfStackRegister();
@@ -791,17 +774,18 @@ implements L1OperationDispatcher
 		}
 		stackp--;
 		preSlots.set(numArgs + numLocals + stackp - 1, expectedTypeReg);
+		// preSlots now contains the registers that will constitute the
+		// continuation during a non-primitive call.
 		final List<A_Function> primFunctions =
 			primitivesToInlineForArgumentRegisters(method, args);
-
+		// The convergence point for primitive success and failure paths.
 		final L2Instruction successLabel;
-		successLabel = newLabel("success: " + bundle.message().name());
+		successLabel = newLabel("success: " + bundle.message().atomName());
 		if (primFunctions != null)
 		{
 			// Inline the primitive. Attempt to fold it if the primitive says
 			// it's foldable and the arguments are all constants.
-			final Mutable<Boolean> canFailPrimitive =
-				new Mutable<Boolean>(false);
+			final Mutable<Boolean> canFailPrimitive = new Mutable<>(false);
 			final A_BasicObject folded = emitInlinePrimitiveAttempt(
 				primFunctions.get(0),
 				args,
@@ -820,22 +804,49 @@ implements L1OperationDispatcher
 			}
 			if (!canFailPrimitive.value)
 			{
-				// Primitive attempt was not inlined, but it can't fail.
+				// Primitive attempt was not inlined, but it can't fail, so it
+				// didn't generate any branches to successLabel.
 				return;
 			}
 		}
+		// Deal with the non-primitive or failed-primitive case.  First generate
+		// the move that puts the expected type on the stack.
 		moveConstant(expectedType, expectedTypeReg);
-		final List<A_Type> savedSlotTypes =
-			new ArrayList<A_Type>(numSlots);
-		final List<AvailObject> savedSlotConstants =
-			new ArrayList<AvailObject>(numSlots);
-		for (final L2ObjectRegister reg : preSlots)
+		// Now deduce what the registers will look like after the non-primitive
+		// call.  That should be similar to the preSlots' register
+		final List<A_Type> postSlotTypes = new ArrayList<>(numSlots);
+		A_Map postSlotConstants = MapDescriptor.empty();
+		final List<L2ObjectRegister> postSlots = new ArrayList<>(numSlots);
+		for (int slotIndex = 1; slotIndex <= numSlots; slotIndex++)
 		{
-			savedSlotTypes.add(registers.typeAt(reg));
-			savedSlotConstants.add(registers.constantAt(reg));
+			final L2ObjectRegister reg = preSlots.get(slotIndex - 1);
+			A_Type slotType = registers.typeAt(reg);
+			if (reg == expectedTypeReg)
+			{
+				// I.e., upon return from the call, this slot will contain an
+				// *instance* of expectedType.
+				slotType = expectedType;
+			}
+			postSlotTypes.add(slotType != null ? slotType : Types.TOP.o());
+			if (reg != expectedTypeReg && registers.hasConstantAt(reg))
+			{
+				final A_BasicObject constant = registers.constantAt(reg);
+				if (!constant.equalsNil())
+				{
+					postSlotConstants =
+						postSlotConstants.mapAtPuttingCanDestroy(
+							IntegerDescriptor.fromInt(slotIndex),
+							constant,
+							true);
+				}
+			}
+			// But the place we want to write this slot during explosion is the
+			// architectural register.  Eventually we'll support a throw-away
+			// target register for don't-cares like nil stack slots.
+			postSlots.add(registers.continuationSlot(slotIndex));
 		}
 		final L2Instruction postCallLabel =
-			newLabel("postCall " + bundle.message().name());
+			newLabel("postCall " + bundle.message().atomName());
 		addInstruction(
 			L2_CREATE_CONTINUATION.instance,
 			new L2ReadPointerOperand(registers.fixed(CALLER)),
@@ -852,8 +863,8 @@ implements L1OperationDispatcher
 		if (possibleMethods.size() == 1
 			&& possibleMethods.get(0).isMethodDefinition())
 		{
-			// If there was only one possible definition to invoke, don't
-			// bother looking it up at runtime.
+			// If there was only one possible definition to invoke, store it as
+			// a constant instead of looking it up at runtime.
 			moveConstant(possibleMethods.get(0).bodyBlock(), function);
 		}
 		else
@@ -890,87 +901,20 @@ implements L1OperationDispatcher
 		// meanwhile).
 		addLabel(postCallLabel);
 
-		// Rebuild new architectural registers for the state upon return
-		// from the call.
-		final int nSlots = numSlots;
-		// The primitive was attempted, so we must get the registers in
-		// sync between the success and failure cases.
-		final List<L2ObjectRegister> slotRegisters =
-			new ArrayList<L2ObjectRegister>(numSlots);
-		for (int i = 1; i <= numSlots; i++)
-		{
-			// If a primitive function was attempted then we reuse the same
-			// registers for the explode (since it's a join-point in the flow
-			// graph).  Otherwise there was no primitive so we allocate fresh
-			// registers for maximum flexibility.
-			slotRegisters.add(
-				registers.continuationSlot(i));
-		}
 		// After the call returns, the callerRegister will contain the
 		// continuation to be exploded.
 		addInstruction(
 			L2_REENTER_L2_CHUNK.instance,
 			new L2WritePointerOperand(registers.fixed(CALLER)));
 		addInstruction(
-			new Continuation0()
-			{
-				@Override
-				public void value ()
-				{
-					// Remove all information about and dependence on
-					// non-slot registers, since the call destroyed it all.
-					// Keep the information about the slot registers,
-					// however, other than origin information that's no
-					// longer applicable (i.e., mentioning non-slot
-					// registers that are no longer valid).
-					final Set<L2ObjectRegister> live =
-						new HashSet<L2ObjectRegister>(slotRegisters);
-					live.add(registers.fixed(NULL));
-					live.add(registers.fixed(CALLER));
-					live.add(registers.fixed(FUNCTION));
-					registers.registerOrigins.keySet().retainAll(live);
-					registers.invertedOrigins.keySet().retainAll(live);
-					registers.registerConstants.keySet().retainAll(live);
-					registers.registerTypes.keySet().retainAll(live);
-					for (final List<L2Register> history
-						: registers.registerOrigins.values())
-					{
-						history.retainAll(live);
-					}
-					for (final Set<L2Register> future
-						: registers.invertedOrigins.values())
-					{
-						future.retainAll(live);
-					}
-					for (int slotIndex = 1; slotIndex <= nSlots; slotIndex++)
-					{
-						final L2Register postSlot =
-							registers.continuationSlot(slotIndex);
-						final A_Type type =
-							savedSlotTypes.get(slotIndex - 1);
-						if (type != null)
-						{
-							registers.typeAtPut(postSlot, type);
-						}
-						final AvailObject constant =
-							savedSlotConstants.get(slotIndex - 1);
-						if (constant != null)
-						{
-							registers.constantAtPut(postSlot, constant);
-						}
-					}
-				}
-			},
 			L2_EXPLODE_CONTINUATION.instance,
 			new L2ReadPointerOperand(registers.fixed(CALLER)),
-			new L2WriteVectorOperand(createVector(slotRegisters)),
+			new L2WriteVectorOperand(createVector(postSlots)),
 			new L2WritePointerOperand(registers.fixed(CALLER)),
-			new L2WritePointerOperand(registers.fixed(FUNCTION)));
-		// At this point the implied return instruction in the called code has
-		// verified the value matched the expected type, so we know that much
-		// has to be true.
-		registers.removeConstantAt(readTopOfStackRegister());
-		registers.typeAtPut(readTopOfStackRegister(), expectedType);
+			new L2WritePointerOperand(registers.fixed(FUNCTION)),
+			new L2ConstantOperand(TupleDescriptor.fromList(postSlotTypes)),
+			new L2ConstantOperand(postSlotConstants),
+			new L2ConstantOperand(codeOrFail().functionType()));
 		addLabel(successLabel);
 	}
 
@@ -1593,8 +1537,7 @@ implements L1OperationDispatcher
 		{
 			slots.add(registers.continuationSlot(slotIndex));
 		}
-		final List<A_Type> savedSlotTypes =
-			new ArrayList<A_Type>(nSlots);
+		final List<A_Type> savedSlotTypes = new ArrayList<A_Type>(nSlots);
 		final List<A_BasicObject> savedSlotConstants =
 			new ArrayList<A_BasicObject>(nSlots);
 		for (final L2ObjectRegister reg : slots)
@@ -1618,36 +1561,31 @@ implements L1OperationDispatcher
 		addInstruction(
 			L2_REENTER_L2_CHUNK.instance,
 			new L2WritePointerOperand(registers.fixed(CALLER)));
-		addInstruction(
-			new Continuation0()
+		final List<A_Type> typesList = new ArrayList<>(nSlots);
+		A_Map constants = MapDescriptor.empty();
+		for (int slotIndex = 1; slotIndex <= nSlots; slotIndex++)
+		{
+			final A_Type type = savedSlotTypes.get(slotIndex - 1);
+			typesList.add(type != null ? type : Types.TOP.o());
+			final A_BasicObject constant =
+				savedSlotConstants.get(slotIndex - 1);
+			if (constant != null && !constant.equalsNil())
 			{
-				@Override
-				public void value ()
-				{
-					for (int slotIndex = 1; slotIndex <= nSlots; slotIndex++)
-					{
-						final L2Register slot =
-							registers.continuationSlot(slotIndex);
-						final A_Type type =
-							savedSlotTypes.get(slotIndex - 1);
-						if (type != null)
-						{
-							registers.typeAtPut(slot, type);
-						}
-						final A_BasicObject constant =
-							savedSlotConstants.get(slotIndex - 1);
-						if (constant != null)
-						{
-							registers.constantAtPut(slot, constant);
-						}
-					}
-				}
-			},
+				constants = constants.mapAtPuttingCanDestroy(
+					IntegerDescriptor.fromInt(slotIndex),
+					constant,
+					true);
+			}
+		}
+		addInstruction(
 			L2_EXPLODE_CONTINUATION.instance,
 			new L2ReadPointerOperand(registers.fixed(CALLER)),
 			new L2WriteVectorOperand(createVector(slots)),
 			new L2WritePointerOperand(registers.fixed(CALLER)),
-			new L2WritePointerOperand(registers.fixed(FUNCTION)));
+			new L2WritePointerOperand(registers.fixed(FUNCTION)),
+			new L2ConstantOperand(TupleDescriptor.fromList(typesList)),
+			new L2ConstantOperand(constants),
+			new L2ConstantOperand(codeOrFail().functionType()));
 		addLabel(noInterruptLabel);
 	}
 

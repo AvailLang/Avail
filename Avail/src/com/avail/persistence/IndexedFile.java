@@ -399,18 +399,6 @@ extends AbstractList<byte[]>
 		}
 
 		@Override
-		public boolean equals (final @Nullable Object obj)
-		{
-			if (obj instanceof RecordCoordinates)
-			{
-				final RecordCoordinates other = (RecordCoordinates) obj;
-				return filePosition() == other.filePosition()
-					&& blockPosition() == other.blockPosition();
-			}
-			return false;
-		}
-
-		@Override
 		public int hashCode ()
 		{
 			return (int) ((filePosition() ^ 0x58FC0112)
@@ -1154,41 +1142,46 @@ extends AbstractList<byte[]>
 		lock.writeLock().lock();
 		try
 		{
-			if (channel != null)
+			try
 			{
-				channel().close();
+				if (channel != null)
+				{
+					channel().close();
+				}
 			}
-		}
-		catch (final IOException e)
-		{
-			// Ignore.
-		}
-		finally
-		{
-			channel = null;
-		}
-		try
-		{
-			if (file != null)
+			catch (final IOException e)
 			{
-				file().close();
+				// Ignore.
 			}
-		}
-		catch (final IOException e)
-		{
-			// Ignore.
-		}
-		finally
-		{
-			file = null;
-		}
-		try
-		{
-			blockCache.clear();
-		}
-		catch (final InterruptedException e)
-		{
-			// Do nothing.
+			finally
+			{
+				channel = null;
+			}
+
+			try
+			{
+				if (file != null)
+				{
+					file().close();
+				}
+			}
+			catch (final IOException e)
+			{
+				// Ignore.
+			}
+			finally
+			{
+				file = null;
+			}
+
+			try
+			{
+				blockCache.clear();
+			}
+			catch (final InterruptedException e)
+			{
+				// Do nothing.
+			}
 		}
 		finally
 		{

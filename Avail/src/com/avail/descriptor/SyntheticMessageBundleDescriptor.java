@@ -160,7 +160,7 @@ extends Descriptor
 			aStream.append("(mut)");
 		}
 		aStream.append("synthetic bundle\"");
-		aStream.append(object.message().name().asNativeString());
+		aStream.append(object.message().atomName().asNativeString());
 		aStream.append("\"");
 	}
 

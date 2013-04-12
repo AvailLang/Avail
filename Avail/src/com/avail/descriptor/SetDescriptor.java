@@ -432,7 +432,7 @@ extends Descriptor
 			return object;
 		}
 		A_Set result;
-		if (canDestroy & isMutable())
+		if (canDestroy && isMutable())
 		{
 			result = object;
 		}
@@ -468,7 +468,7 @@ extends Descriptor
 			return object;
 		}
 		AvailObject result;
-		if (canDestroy & isMutable())
+		if (canDestroy && isMutable())
 		{
 			result = object;
 		}

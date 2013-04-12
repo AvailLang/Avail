@@ -63,7 +63,7 @@ extends Primitive
 	{
 		assert args.size() == 1;
 		final A_Bundle bundle = args.get(0);
-		final A_String name = bundle.message().name();
+		final A_String name = bundle.message().atomName();
 		MessageSplitter splitter = null;
 		try
 		{

@@ -1420,33 +1420,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	A_BasicObject o_PrivateAddElement (
-		final AvailObject object,
-		final A_BasicObject element)
-	{
-		return o_Traversed(object).privateAddElement(element);
-	}
-
-	@Override
-	A_BasicObject o_PrivateExcludeElement (
-		final AvailObject object,
-		final A_BasicObject element)
-	{
-		return o_Traversed(object).privateExcludeElement(element);
-	}
-
-	@Override
-	A_BasicObject o_PrivateExcludeElementKnownIndex (
-		final AvailObject object,
-		final A_BasicObject element,
-		final int knownIndex)
-	{
-		return o_Traversed(object).privateExcludeElementKnownIndex(
-			element,
-			knownIndex);
-	}
-
-	@Override
 	void o_FiberGlobals (
 		final AvailObject object,
 		final A_Map value)
@@ -3284,9 +3257,9 @@ extends AbstractDescriptor
 	@Override
 	void o_Versions (
 		final AvailObject object,
-		final A_BasicObject value)
+		final A_Set versionStrings)
 	{
-		o_Traversed(object).versions(value);
+		o_Traversed(object).versions(versionStrings);
 	}
 
 	@Override
@@ -3465,20 +3438,6 @@ extends AbstractDescriptor
 	boolean o_IsPojoType (final AvailObject object)
 	{
 		return o_Traversed(object).isPojoType();
-	}
-
-	@Override
-	public A_BasicObject o_UpperBoundMap (final AvailObject object)
-	{
-		return o_Traversed(object).upperBoundMap();
-	}
-
-	@Override
-	public void o_UpperBoundMap (
-		final AvailObject object,
-		final A_BasicObject aMap)
-	{
-		o_Traversed(object).upperBoundMap(aMap);
 	}
 
 	@Override
@@ -4555,5 +4514,11 @@ extends AbstractDescriptor
 	A_Bundle o_RestrictedBundle (final AvailObject object)
 	{
 		return o_Traversed(object).restrictedBundle();
+	}
+
+	@Override
+	A_String o_AtomName (final AvailObject object)
+	{
+		return o_Traversed(object).atomName();
 	}
 }

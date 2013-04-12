@@ -159,24 +159,6 @@ extends Descriptor
 	}
 
 
-	/**
-	 * Add a grammatical restriction to the specified {@linkplain
-	 * MessageBundleDescriptor message bundle}.
-	 *
-	 * @param object The affected message bundle.
-	 * @param grammaticalRestriction A grammatical restriction.
-	 */
-	private void addGrammaticalRestriction  (
-		final AvailObject object,
-		final A_GrammaticalRestriction grammaticalRestriction)
-	{
-		A_Set restrictions = object.slot(GRAMMATICAL_RESTRICTIONS);
-		restrictions = restrictions.setWithElementCanDestroy(
-			grammaticalRestriction,
-			true);
-		object.setSlot(GRAMMATICAL_RESTRICTIONS, restrictions.makeShared());
-	}
-
 	@Override @AvailMethod
 	void o_AddGrammaticalRestriction (
 		final AvailObject object,
@@ -193,26 +175,6 @@ extends Descriptor
 		{
 			addGrammaticalRestriction(object, grammaticalRestriction);
 		}
-	}
-
-	/**
-	 * Remove a grammatical restriction from this {@linkplain
-	 * MessageBundleDescriptor message bundle}.
-	 *
-	 * @param object A message bundle.
-	 * @param obsoleteRestriction The grammatical restriction to remove.
-	 */
-	private void removeGrammaticalRestriction (
-		final AvailObject object,
-		final A_GrammaticalRestriction obsoleteRestriction)
-	{
-		A_Set restrictions = object.mutableSlot(GRAMMATICAL_RESTRICTIONS);
-		restrictions = restrictions.setWithoutElementCanDestroy(
-			obsoleteRestriction,
-			true);
-		object.setMutableSlot(
-			GRAMMATICAL_RESTRICTIONS,
-			restrictions.makeShared());
 	}
 
 	@Override @AvailMethod
@@ -239,6 +201,62 @@ extends Descriptor
 		return object.mutableSlot(GRAMMATICAL_RESTRICTIONS).setSize() > 0;
 	}
 
+	@Override @AvailMethod
+	boolean o_Equals (final AvailObject object, final A_BasicObject another)
+	{
+		return another.traversed().sameAddressAs(object);
+	}
+
+	@Override @AvailMethod
+	int o_Hash (final AvailObject object)
+	{
+		return object.message().hash() ^ 0x0312CAB9;
+	}
+
+	@Override @AvailMethod
+	A_Type o_Kind (final AvailObject object)
+	{
+		return MESSAGE_BUNDLE.o();
+	}
+
+	/**
+	 * Add a grammatical restriction to the specified {@linkplain
+	 * MessageBundleDescriptor message bundle}.
+	 *
+	 * @param object The affected message bundle.
+	 * @param grammaticalRestriction A grammatical restriction.
+	 */
+	private void addGrammaticalRestriction  (
+		final AvailObject object,
+		final A_GrammaticalRestriction grammaticalRestriction)
+	{
+		A_Set restrictions = object.slot(GRAMMATICAL_RESTRICTIONS);
+		restrictions = restrictions.setWithElementCanDestroy(
+			grammaticalRestriction,
+			true);
+		object.setSlot(GRAMMATICAL_RESTRICTIONS, restrictions.makeShared());
+	}
+
+	/**
+	 * Remove a grammatical restriction from this {@linkplain
+	 * MessageBundleDescriptor message bundle}.
+	 *
+	 * @param object A message bundle.
+	 * @param obsoleteRestriction The grammatical restriction to remove.
+	 */
+	private void removeGrammaticalRestriction (
+		final AvailObject object,
+		final A_GrammaticalRestriction obsoleteRestriction)
+	{
+		A_Set restrictions = object.mutableSlot(GRAMMATICAL_RESTRICTIONS);
+		restrictions = restrictions.setWithoutElementCanDestroy(
+			obsoleteRestriction,
+			true);
+		object.setMutableSlot(
+			GRAMMATICAL_RESTRICTIONS,
+			restrictions.makeShared());
+	}
+
 	@Override
 	public void printObjectOnAvoidingIndent (
 		final AvailObject object,
@@ -250,26 +268,8 @@ extends Descriptor
 		// distinguish polymorphism from occurrences of non-polymorphic
 		// homonyms.
 		aStream.append("bundle\"");
-		aStream.append(object.message().name().asNativeString());
+		aStream.append(object.message().atomName().asNativeString());
 		aStream.append("\"");
-	}
-
-	@Override @AvailMethod
-	boolean o_Equals (final AvailObject object, final A_BasicObject another)
-	{
-		return another.traversed().sameAddressAs(object);
-	}
-
-	@Override @AvailMethod
-	int o_Hash (final AvailObject object)
-	{
-		return object.message().hash() ^ 0x312CAB9;
-	}
-
-	@Override @AvailMethod
-	A_Type o_Kind (final AvailObject object)
-	{
-		return MESSAGE_BUNDLE.o();
 	}
 
 	/**
@@ -289,7 +289,8 @@ extends Descriptor
 	{
 		assert methodName.isAtom();
 
-		final MessageSplitter splitter = new MessageSplitter(methodName.name());
+		final MessageSplitter splitter = new MessageSplitter(
+			methodName.atomName());
 		final AvailObject result = mutable.create();
 		result.setSlot(METHOD, method);
 		result.setSlot(MESSAGE, methodName);

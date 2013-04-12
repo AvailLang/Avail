@@ -61,6 +61,7 @@ public class L2ConstantOperand extends L2Operand
 	public L2ConstantOperand (
 		final A_BasicObject object)
 	{
+		object.makeShared();
 		this.object = (AvailObject)object;
 	}
 

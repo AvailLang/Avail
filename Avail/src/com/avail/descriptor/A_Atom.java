@@ -44,33 +44,61 @@ public interface A_Atom
 extends A_BasicObject
 {
 	/**
-	 * Dispatch to the descriptor.
+	 * Answer the descriptive string that was supplied when this atom was
+	 * created.  The string didn't have to be unique within the {@link
+	 * #issuingModule()}, but certain operations might only work if it happens
+	 * to be.
 	 *
-	 * TODO[MvG] - Break this accidental polymorphism for better clarity of
-	 * intention.
+	 * @return The string within this {@linkplain AtomDescriptor atom}.
 	 */
-	@Override
-	AvailObject name ();
+	A_String atomName ();
 
 	/**
-	 * @return
+	 * Answer the {@linkplain ModuleDescriptor module} within which this
+	 * {@linkplain AtomDescriptor atom} was created.
+	 *
+	 * @return The issuing module.
 	 */
 	A_Module issuingModule ();
 
 	/**
-	 * Dispatch to the descriptor.
+	 * Extract a Java {@code boolean} from this atom.  The atom must be either
+	 * the object {@linkplain AtomDescriptor#trueObject()} or the object
+	 * {@linkplain AtomDescriptor#falseObject()}.
+	 *
+	 * @return {@code true} if it's the trueObject(), {@code false} if it's the
+	 *         falseObject(), and otherwise fail.
 	 */
 	boolean extractBoolean ();
 
 	/**
+	 * Set the specified property of this atom to the specified value.  Normal
+	 * atoms have properties that can be set and read in this way, but
+	 * specifically not <em>enumerated</em> by Avail code.  You can see anything
+	 * that you know how to look for, but everything else is thereby
+	 * encapsulated.
+	 *
 	 * @param key
+	 *            The property key to affect, an {@linkplain AtomDescriptor
+	 *            atom}.
 	 * @param value
+	 *            The value to associate with that property key within the
+	 *            receiver.
 	 */
 	void setAtomProperty (A_Atom key, A_BasicObject value);
 
 	/**
+	 * Look up a property of this atom.  Normal atoms have properties that can
+	 * be set and read in this way, but specifically not <em>enumerated</em> by
+	 * Avail code.  You can see anything that you know how to look for, but
+	 * everything else is thereby encapsulated.
+	 *
 	 * @param key
+	 *            The property key to look up, an {@linkplain AtomDescriptor
+	 *            atom}.
 	 * @return
+	 *            The value associated with that property key within the
+	 *            receiver.
 	 */
 	AvailObject getAtomProperty (A_Atom key);
 

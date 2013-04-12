@@ -174,7 +174,7 @@ class L2OperandDescriber implements L2OperandTypeDispatcher
 	public void doSelector()
 	{
 		final A_Bundle bundle = chunk().literalAt(_operand);
-		print("Message(%s)", bundle.message().name().asNativeString());
+		print("Message(%s)", bundle.message().atomName().asNativeString());
 	}
 	@Override
 	public void doReadPointer()

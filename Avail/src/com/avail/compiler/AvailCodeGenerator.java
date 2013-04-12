@@ -332,7 +332,7 @@ public class AvailCodeGenerator
 		final List<Integer> nybblesArray = new ArrayList<Integer>();
 		for (final byte nybble : nybbles.toByteArray())
 		{
-			nybblesArray.add(new Integer(nybble));
+			nybblesArray.add(Integer.valueOf(nybble));
 		}
 		final A_Tuple nybbleTuple = TupleDescriptor.fromIntegerList(
 			nybblesArray);

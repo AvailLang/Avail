@@ -32,6 +32,9 @@
 
 package com.avail.descriptor;
 
+import com.avail.compiler.AbstractAvailCompiler.ExpectedToken;
+import com.avail.compiler.AvailCompiler;
+import com.avail.compiler.AvailSystemCompiler;
 import com.avail.interpreter.AvailLoader;
 
 /**
@@ -46,12 +49,24 @@ public interface A_Module
 extends A_BasicObject
 {
 	/**
-	 * @return
+	 * Answer whether this module is a system module.  System modules use the
+	 * built-in syntax of the {@link AvailSystemCompiler} rather than the macro
+	 * syntax of the {@link AvailCompiler}.  System modules start (not counting
+	 * comments) with the tokens {@linkplain ExpectedToken#SYSTEM "System"} and
+	 * {@linkplain ExpectedToken#MODULE "Module"}.  The "System" token is
+	 * omitted for non-system modules.
+	 *
+	 * @return Whether this is a system module.
 	 */
 	boolean isSystemModule ();
 
 	/**
+	 * Set whether this module is a system module.
+	 *
 	 * @param isSystemModule
+	 *            A boolean indicating whether this module should be a system
+	 *            module.
+	 * @see #isSystemModule()
 	 */
 	void isSystemModule (boolean isSystemModule);
 
@@ -63,14 +78,22 @@ extends A_BasicObject
 	A_String moduleName ();
 
 	/**
-	 * @param value
-	 */
-	void versions (A_BasicObject value);
-
-	/**
-	 * @return
+	 * Answer the {@linkplain SetDescriptor set} of acceptable version
+	 * {@linkplain StringDescriptor strings} for which this module claims
+	 * compatibility.  An empty set indicates universal compatibility.
+	 *
+	 * @return This module's set of acceptable version strings.
 	 */
 	A_Set versions ();
+
+	/**
+	 * Set this module's {@linkplain SetDescriptor set} of acceptable version
+	 * {@linkplain StringDescriptor strings}.  Use an empty set to indicate
+	 * universal compatibility.
+	 *
+	 * @param versionStrings A set of version strings.
+	 */
+	void versions (A_Set versionStrings);
 
 	/**
 	 * Dispatch to the descriptor.

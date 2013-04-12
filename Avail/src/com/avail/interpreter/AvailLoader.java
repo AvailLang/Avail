@@ -176,7 +176,7 @@ public final class AvailLoader
 		assert methodName.isAtom();
 		assert bodyBlock.isFunction();
 
-		final MessageSplitter splitter = new MessageSplitter(methodName.name());
+		final MessageSplitter splitter = new MessageSplitter(methodName.atomName());
 		splitter.checkImplementationSignature(bodyBlock.kind());
 		final int numArgs = splitter.numberOfArguments();
 		if (bodyBlock.code().numArgs() != numArgs)
@@ -278,7 +278,7 @@ public final class AvailLoader
 	{
 		methodName.makeShared();
 		bodySignature.makeShared();
-		final MessageSplitter splitter = new MessageSplitter(methodName.name());
+		final MessageSplitter splitter = new MessageSplitter(methodName.atomName());
 		splitter.checkImplementationSignature(bodySignature);
 		final A_Type bodyArgsTupleType = bodySignature.argsTupleType();
 		//  Add the stubbed method definition.
@@ -350,7 +350,7 @@ public final class AvailLoader
 			final A_Type bodySignature)
 		throws SignatureException
 	{
-		final MessageSplitter splitter = new MessageSplitter(methodName.name());
+		final MessageSplitter splitter = new MessageSplitter(methodName.atomName());
 		final int numArgs = splitter.numberOfArguments();
 		final A_Type bodyArgsSizes = bodySignature.argsTupleType().sizeRange();
 		assert bodyArgsSizes.lowerBound().equals(
@@ -450,7 +450,7 @@ public final class AvailLoader
 		assert methodName.isAtom();
 		assert macroBody.isFunction();
 
-		final MessageSplitter splitter = new MessageSplitter(methodName.name());
+		final MessageSplitter splitter = new MessageSplitter(methodName.atomName());
 		final int numArgs = splitter.numberOfArguments();
 		assert macroBody.code().numArgs() == numArgs
 			: "Wrong number of arguments in macro definition";
@@ -571,7 +571,7 @@ public final class AvailLoader
 	{
 		assert methodName.isAtom();
 		assert seal.isTuple();
-		final MessageSplitter splitter = new MessageSplitter(methodName.name());
+		final MessageSplitter splitter = new MessageSplitter(methodName.atomName());
 		if (seal.tupleSize() != splitter.numberOfArguments())
 		{
 			throw new SignatureException(E_INCORRECT_NUMBER_OF_ARGUMENTS);
@@ -606,7 +606,7 @@ public final class AvailLoader
 	{
 		methodName.makeShared();
 		illegalArgMsgs.makeShared();
-		final MessageSplitter splitter = new MessageSplitter(methodName.name());
+		final MessageSplitter splitter = new MessageSplitter(methodName.atomName());
 		final int numArgs = splitter.numberOfUnderscores();
 		assert numArgs == illegalArgMsgs.tupleSize()
 			: "Wrong number of entries in restriction tuple.";

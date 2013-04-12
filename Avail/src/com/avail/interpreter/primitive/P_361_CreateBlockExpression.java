@@ -65,11 +65,11 @@ extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 5;
-		final AvailObject argDecls = args.get(0);
+		final A_Tuple argDecls = args.get(0);
 		final A_Number primitive = args.get(1);
 		final A_Tuple statements = args.get(2);
-		final AvailObject resultType = args.get(3);
-		final AvailObject exceptions = args.get(4);
+		final A_Type resultType = args.get(3);
+		final A_Set exceptions = args.get(4);
 		// Verify that each element of "statements" is actually a statement,
 		// and that the last statement's expression type agrees with
 		// "resultType".

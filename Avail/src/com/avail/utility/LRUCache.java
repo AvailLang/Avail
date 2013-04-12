@@ -121,7 +121,9 @@ public class LRUCache<K, V>
 		protected boolean removeEldestEntry (
 			final @Nullable Map.Entry<K, V> eldest)
 		{
-			return size() > capacity;
+			// size() is potentially ambiguous (StrongCacheMap vs. LRUCache),
+			// but using super forces it to be about the StrongCacheMap.
+			return super.size() > capacity;
 		}
 	}
 
@@ -221,7 +223,9 @@ public class LRUCache<K, V>
 			assert lock.isHeldByCurrentThread();
 			assert this == softMap;
 
-			if (size() > capacity)
+			// size() is potentially ambiguous (SoftCacheMap vs. LRUCache),
+			// but using super forces it to be about the SoftCacheMap.
+			if (super.size() > capacity)
 			{
 				assert eldest != null;
 				final K key = eldest.getKey();

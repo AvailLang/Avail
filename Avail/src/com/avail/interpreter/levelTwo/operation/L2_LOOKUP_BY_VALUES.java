@@ -79,7 +79,7 @@ public class L2_LOOKUP_BY_VALUES extends L2Operation
 		{
 			System.out.printf(
 				"  --- looking up: %s%n",
-				bundle.message().name());
+				bundle.message().atomName());
 		}
 		final A_Definition definitionToCall =
 			method.lookupByValuesFromList(interpreter.argsBuffer);

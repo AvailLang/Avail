@@ -32,6 +32,7 @@
 package com.avail.interpreter.levelTwo.operation;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
+import com.avail.descriptor.AbstractEnumerationTypeDescriptor;
 import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.*;

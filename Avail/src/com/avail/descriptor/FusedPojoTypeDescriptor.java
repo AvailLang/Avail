@@ -285,7 +285,7 @@ extends PojoTypeDescriptor
 		// of a pojo array type and a singleton pojo type is pojo bottom.
 		if (aPojoType.isPojoArrayType())
 		{
-			return PojoTypeDescriptor.pojoBottom();
+			return BottomPojoTypeDescriptor.pojoBottom();
 		}
 		return aPojoType.typeIntersectionOfPojoFusedType(object);
 	}
@@ -299,7 +299,7 @@ extends PojoTypeDescriptor
 			computeIntersection(object, aFusedPojoType);
 		if (intersection.equalsPojoBottomType())
 		{
-			return PojoTypeDescriptor.pojoBottom();
+			return BottomPojoTypeDescriptor.pojoBottom();
 		}
 		// The result will be a pojo fused type. Find the union of the key sets
 		// and the intersection of their parameterizations.
@@ -318,7 +318,7 @@ extends PojoTypeDescriptor
 		// pojo bottom.
 		if (isFinal(otherModifiers))
 		{
-			return PojoTypeDescriptor.pojoBottom();
+			return BottomPojoTypeDescriptor.pojoBottom();
 		}
 		// If the unfused pojo type is a class, then check that none of the
 		// fused pojo type's ancestors are classes.
@@ -336,7 +336,7 @@ extends PojoTypeDescriptor
 					final int modifiers = javaClass.getModifiers();
 					if (isFinal(modifiers) || !isInterface(modifiers))
 					{
-						return PojoTypeDescriptor.pojoBottom();
+						return BottomPojoTypeDescriptor.pojoBottom();
 					}
 				}
 			}
@@ -345,7 +345,7 @@ extends PojoTypeDescriptor
 			computeIntersection(object, anUnfusedPojoType);
 		if (intersection.equalsPojoBottomType())
 		{
-			return PojoTypeDescriptor.pojoBottom();
+			return BottomPojoTypeDescriptor.pojoBottom();
 		}
 		// The result will be a pojo fused type. Find the union of the key sets
 		// and the intersection of their parameterizations.

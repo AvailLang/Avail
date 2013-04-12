@@ -560,7 +560,7 @@ extends TypeDescriptor
 	 *
 	 * @param sizeRange The allowed sizes of conforming tuples.
 	 * @param typeTuple The types of the initial elements of conforming tuples.
-	 * @param defaultType The types of remaining elements of conforming tuples.
+	 * @param defaultType The type of remaining elements of conforming tuples.
 	 * @return A canonized tuple type with the specified properties.
 	 */
 	public static A_Type tupleTypeForSizesTypesDefaultType (

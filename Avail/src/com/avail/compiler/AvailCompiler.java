@@ -215,7 +215,7 @@ extends AbstractAvailCompiler
 									+ "\texpected = %s%n"
 									+ "\targuments = %s%n",
 									disagreements,
-									bundle.message().name(),
+									bundle.message().atomName(),
 									list.get(size - 1),
 									list.subList(0, size - 1)));
 							}
@@ -257,7 +257,7 @@ extends AbstractAvailCompiler
 					{
 						stateAfterCall.expected(
 							"macro body ("
-							+ bundle.message().name()
+							+ bundle.message().atomName()
 							+ ") to produce a parse node");
 					}
 				}

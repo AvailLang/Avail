@@ -124,7 +124,7 @@ extends TypeDescriptor
 				{
 					builder.append('\t');
 				}
-				builder.append(entry.key().name().asNativeString());
+				builder.append(entry.key().atomName().asNativeString());
 				builder.append(" : ");
 				entry.value().printOnAvoidingIndent(
 					builder,

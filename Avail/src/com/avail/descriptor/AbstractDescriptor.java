@@ -2113,35 +2113,6 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param element
-	 * @return
-	 */
-	abstract A_BasicObject o_PrivateAddElement (
-		AvailObject object,
-		A_BasicObject element);
-
-	/**
-	 * @param object
-	 * @param element
-	 * @return
-	 */
-	abstract A_BasicObject o_PrivateExcludeElement (
-		AvailObject object,
-		A_BasicObject element);
-
-	/**
-	 * @param object
-	 * @param element
-	 * @param knownIndex
-	 * @return
-	 */
-	abstract A_BasicObject o_PrivateExcludeElementKnownIndex (
-		AvailObject object,
-		A_BasicObject element,
-		int knownIndex);
-
-	/**
-	 * @param object
 	 * @param value
 	 */
 	abstract void o_FiberGlobals (
@@ -3304,6 +3275,12 @@ public abstract class AbstractDescriptor
 	 * @return
 	 */
 	abstract AvailObject o_Name (AvailObject object);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract A_String o_AtomName (AvailObject object);
 
 	/**
 	 * @param object
@@ -4657,11 +4634,11 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param value
+	 * @param versionStrings
 	 */
 	abstract void o_Versions (
 		AvailObject object,
-		A_BasicObject value);
+		A_Set versionStrings);
 
 	/**
 	 * @param object
@@ -4847,20 +4824,6 @@ public abstract class AbstractDescriptor
 	 * @return
 	 */
 	abstract boolean o_IsPojoType (AvailObject object);
-
-	/**
-	 * @param object
-	 * @return
-	 */
-	abstract A_BasicObject o_UpperBoundMap (AvailObject object);
-
-	/**
-	 * @param object
-	 * @param aMap
-	 */
-	abstract void o_UpperBoundMap (
-		AvailObject object,
-		A_BasicObject aMap);
 
 	/**
 	 * @param object

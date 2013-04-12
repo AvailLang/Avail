@@ -55,8 +55,8 @@ public class P_121_AtomName extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
-		final A_BasicObject atom = args.get(0);
-		return interpreter.primitiveSuccess(atom.name());
+		final A_Atom atom = args.get(0);
+		return interpreter.primitiveSuccess(atom.atomName());
 	}
 
 	@Override

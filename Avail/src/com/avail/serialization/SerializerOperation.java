@@ -874,7 +874,7 @@ public enum SerializerOperation
 			{
 				throw new RuntimeException("Atom has no issuing module");
 			}
-			return array(object.name(), module.moduleName());
+			return array(object.atomName(), module.moduleName());
 		}
 
 		@Override
@@ -2065,7 +2065,7 @@ public enum SerializerOperation
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
-			return PojoTypeDescriptor.pojoBottom();
+			return BottomPojoTypeDescriptor.pojoBottom();
 		}
 	},
 
@@ -2362,7 +2362,7 @@ public enum SerializerOperation
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
-			return PojoTypeDescriptor.pojoBottom();
+			return BottomPojoTypeDescriptor.pojoBottom();
 		}
 	};
 

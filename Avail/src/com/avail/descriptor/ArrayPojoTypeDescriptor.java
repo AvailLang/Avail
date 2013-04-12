@@ -270,7 +270,7 @@ extends PojoTypeDescriptor
 		// of a pojo array type and a singleton pojo type is pojo bottom.
 		if (!aPojoType.isPojoArrayType())
 		{
-			return PojoTypeDescriptor.pojoBottom();
+			return BottomPojoTypeDescriptor.pojoBottom();
 		}
 		// Compute the type intersection of the two pojo array types.
 		return create(

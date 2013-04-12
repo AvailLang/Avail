@@ -72,12 +72,6 @@ public final class L2Instruction
 	public final L2Operand[] operands;
 
 	/**
-	 * An optional action to perform in place of the regular {@link
-	 * #propagateTypesFor(L2Translator)}.
-	 */
-	public final @Nullable Continuation0 propagationAction;
-
-	/**
 	 * The position of the {@linkplain L2Instruction instruction} in its
 	 * {@linkplain com.avail.descriptor.L2ChunkDescriptor.ObjectSlots#WORDCODES
 	 * wordcode stream}.
@@ -124,28 +118,6 @@ public final class L2Instruction
 		final L2Operation operation,
 		final L2Operand... operands)
 	{
-		this(null, operation, operands);
-	}
-
-	/**
-	 * Construct a new {@link L2Instruction}.
-	 *
-	 * @param propagationAction
-	 *            The {@link Continuation1 action}, if present, to perform with
-	 *            the {@link L2Translator} in place of {@link
-	 *            #propagateTypesFor(L2Translator)}.
-	 * @param operation
-	 *            The {@link L2Operation} that this instruction performs.
-	 * @param operands
-	 *            The array of {@link L2Operand}s on which this instruction
-	 *            operates.  These must agree with the operation's array of
-	 *            {@link L2OperandType}s.
-	 */
-	public L2Instruction (
-		final @Nullable Continuation0 propagationAction,
-		final L2Operation operation,
-		final L2Operand... operands)
-	{
 		final L2NamedOperandType[] operandTypes = operation.namedOperandTypes;
 		assert operandTypes != null;
 		assert operandTypes.length == operands.length;
@@ -155,7 +127,6 @@ public final class L2Instruction
 		}
 		this.operation = operation;
 		this.operands = operands;
-		this.propagationAction = propagationAction;
 	}
 
 	/**
@@ -288,15 +259,7 @@ public final class L2Instruction
 	 */
 	public void propagateTypesFor (final L2Translator translator)
 	{
-		final Continuation0 action = propagationAction;
-		if (action == null)
-		{
-			operation.propagateTypesInFor(this, translator.registers());
-		}
-		else
-		{
-			action.value();
-		}
+		operation.propagateTypesInFor(this, translator.registers());
 	}
 
 	/**
@@ -319,7 +282,7 @@ public final class L2Instruction
 		{
 			newOperands[i] = operands[i].transformRegisters(transformer);
 		}
-		return new L2Instruction(propagationAction, operation, newOperands);
+		return new L2Instruction(operation, newOperands);
 	}
 
 	@Override

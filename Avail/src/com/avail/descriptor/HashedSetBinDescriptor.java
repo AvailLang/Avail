@@ -232,7 +232,7 @@ extends SetBinDescriptor
 			//  The element had to be added.
 			final int hashDelta = entry.binHash() - previousHash;
 			final int newSize = object.slot(BIN_SIZE) + delta;
-			if (canDestroy & isMutable())
+			if (canDestroy && isMutable())
 			{
 				// Clobber the object in place.
 				objectToModify = object;

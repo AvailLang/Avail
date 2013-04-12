@@ -95,7 +95,7 @@ extends Primitive
 		}
 		function.code().setMethodName(
 			StringDescriptor.from(
-				String.format("Semantic restriction of %s", atom.name())));
+				String.format("Semantic restriction of %s", atom.atomName())));
 		return interpreter.primitiveSuccess(NilDescriptor.nil());
 	}
 

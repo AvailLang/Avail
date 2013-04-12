@@ -90,7 +90,7 @@ extends ParseNodeDescriptor
 		try
 		{
 			splitter = new MessageSplitter(
-				object.bundle().message().name());
+				object.bundle().message().atomName());
 		}
 		catch (final SignatureException e)
 		{
@@ -155,7 +155,8 @@ extends ParseNodeDescriptor
 	@Override @AvailMethod
 	A_Atom o_ApparentSendName (final AvailObject object)
 	{
-		return object.slot(BUNDLE).name();
+		final A_Bundle bundle = object.slot(BUNDLE);
+		return bundle.name();
 	}
 
 	@Override @AvailMethod

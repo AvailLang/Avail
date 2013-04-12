@@ -505,7 +505,7 @@ extends Descriptor
 	int o_NumArgs (final AvailObject object)
 	{
 		final A_Bundle someBundle = object.bundles().iterator().next();
-		final A_String name = someBundle.message().name();
+		final A_String name = someBundle.message().atomName();
 		try
 		{
 			final MessageSplitter splitter = new MessageSplitter(name);
@@ -808,7 +808,7 @@ extends Descriptor
 				definitions.get(bestIndex).bodySignature()))
 			{
 				newPositive.add(index1);
-				newPossible.remove(new Integer(index1));
+				newPossible.remove(Integer.valueOf(index1));
 			}
 			else
 			{
@@ -818,7 +818,7 @@ extends Descriptor
 						bestSig.argsTupleType());
 				if (intersection.equals(BottomTypeDescriptor.bottom()))
 				{
-					newPossible.remove(new Integer(index1));
+					newPossible.remove(Integer.valueOf(index1));
 				}
 			}
 		}
@@ -845,7 +845,7 @@ extends Descriptor
 			if (definitions.get(bestIndex).bodySignature()
 				.acceptsArgTypesFromFunctionType(possibleSignature))
 			{
-				newPossible.remove(new Integer(index1));
+				newPossible.remove(Integer.valueOf(index1));
 			}
 		}
 		createTestingTree(

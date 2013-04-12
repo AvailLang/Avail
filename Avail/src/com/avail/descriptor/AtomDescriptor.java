@@ -137,7 +137,7 @@ extends Descriptor
 		final List<A_BasicObject> recursionList,
 		final int indent)
 	{
-		final String nativeName = object.name().asNativeString();
+		final String nativeName = object.atomName().asNativeString();
 		// Some atoms print nicer than others.
 		if (AvailRuntime.isSpecialAtom(object))
 		{
@@ -170,7 +170,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_Name (final AvailObject object)
+	A_String o_AtomName (final AvailObject object)
 	{
 		return object.slot(NAME);
 	}

@@ -96,7 +96,7 @@ extends RuntimeException
 	public String getMessage ()
 	{
 		return String.format(
-			"An assertion failed: %s\n",
+			"An assertion failed: %s%n",
 			assertionString.asNativeString());
 	}
 }

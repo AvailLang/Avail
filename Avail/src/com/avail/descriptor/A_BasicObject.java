@@ -775,23 +775,6 @@ public interface A_BasicObject
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	A_BasicObject privateAddElement (A_BasicObject element);
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	A_BasicObject privateExcludeElement (A_BasicObject element);
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	A_BasicObject privateExcludeElementKnownIndex (
-		A_BasicObject element,
-		int knownIndex);
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
 	int rawSignedIntegerAt (int index);
 
 	/**
@@ -1054,16 +1037,6 @@ public interface A_BasicObject
 	 * @return
 	 */
 	boolean isPojoType ();
-
-	/**
-	 * @return
-	 */
-	A_BasicObject upperBoundMap ();
-
-	/**
-	 * @param aMap
-	 */
-	void upperBoundMap (A_BasicObject aMap);
 
 	/**
 	 * @return

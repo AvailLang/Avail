@@ -255,7 +255,7 @@ public final class BootstrapGenerator
 			preamble.getString(specialObjectsModuleName.name()),
 			versionString(versions),
 			String.format(
-				"\n\t\"%s\"",
+				"%n\t\"%s\"",
 				preamble.getString(originModuleName.name())),
 			"",
 			specialObjectsNamesString()));
@@ -331,7 +331,7 @@ public final class BootstrapGenerator
 					preamble.getString(definingMethodUse.name()),
 					stringify(
 						specialObjectBundle.getString(nonalphaKey)),
-					String.format("\n[\n\t%s\n];\n", constantName)));
+					String.format("%n[%n\t%s%n];%n", constantName)));
 			}
 		}
 	}
@@ -697,7 +697,7 @@ public final class BootstrapGenerator
 									"Malformed primitive comment (%s) – "
 									+ "Single-quoted section was not empty "
 									+ "but did not contain any brace "
-									+ "brackets ('{' or '}').\n",
+									+ "brackets ('{' or '}').%n",
 									commentKey);
 							}
 						}
@@ -717,7 +717,7 @@ public final class BootstrapGenerator
 			{
 				System.err.format(
 					"Malformed primitive comment (%s) – contains unclosed "
-					+ "single-quote character\n",
+					+ "single-quote character%n",
 					commentKey);
 			}
 			builder.append(MessageFormat.format(
@@ -1166,7 +1166,7 @@ public final class BootstrapGenerator
 			writer.println(MessageFormat.format(
 				preamble.getString(definingMethodUse.name()),
 				stringify(errorCodeBundle.getString(key)),
-				String.format("\n[\n\t%d\n];\n", code.nativeCode())));
+				String.format("%n[%n\t%d%n];%n", code.nativeCode())));
 		}
 	}
 

@@ -278,11 +278,11 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	void o_Versions (final AvailObject object, final A_BasicObject value)
+	void o_Versions (final AvailObject object, final A_Set versionStrings)
 	{
 		synchronized (object)
 		{
-			object.setSlot(VERSIONS, value.traversed().makeShared());
+			object.setSlot(VERSIONS, versionStrings.traversed().makeShared());
 		}
 	}
 
@@ -521,7 +521,7 @@ extends Descriptor
 		// Add the trueName to the current public scope.
 		synchronized (object)
 		{
-			final A_String string = trueName.name();
+			final A_String string = trueName.atomName();
 			A_Map names = object.slot(IMPORTED_NAMES);
 			A_Set set;
 			if (names.hasKey(string))
@@ -550,7 +550,7 @@ extends Descriptor
 		// Set up this true name, which is local to the module.
 		synchronized (object)
 		{
-			final A_String string = trueName.name();
+			final A_String string = trueName.atomName();
 			if (object.newNames().hasKey(string))
 			{
 				error("Can't define a new true name twice in a module", object);
@@ -574,7 +574,7 @@ extends Descriptor
 		// Add the trueName to the current private scope.
 		synchronized (object)
 		{
-			final A_String string = trueName.name();
+			final A_String string = trueName.atomName();
 			A_Map privateNames = object.slot(PRIVATE_NAMES);
 			A_Set set;
 			if (privateNames.hasKey(string))
