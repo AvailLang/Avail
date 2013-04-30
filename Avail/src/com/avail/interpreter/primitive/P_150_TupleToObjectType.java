@@ -96,10 +96,10 @@ extends Primitive
 		A_Map fieldTypeMap = MapDescriptor.empty();
 		for (int i = 1; i <= tupleSize; i++)
 		{
-			final A_BasicObject pairType = tupleType.typeAtIndex(i);
+			final A_Type pairType = tupleType.typeAtIndex(i);
 			assert pairType.sizeRange().lowerBound().extractInt() == 2;
 			assert pairType.sizeRange().upperBound().extractInt() == 2;
-			final A_BasicObject keyType = pairType.typeAtIndex(1);
+			final A_Type keyType = pairType.typeAtIndex(1);
 			if (!keyType.isEnumeration()
 				|| !keyType.instanceCount().equals(IntegerDescriptor.one()))
 			{

@@ -70,6 +70,6 @@ public class P_069_TypeNames extends Primitive
 					ObjectTypeDescriptor.mostGeneralType())),
 			SetTypeDescriptor.setTypeForSizesContentType(
 				IntegerRangeTypeDescriptor.wholeNumbers(),
-				TupleTypeDescriptor.stringTupleType()));
+				TupleTypeDescriptor.stringType()));
 	}
 }

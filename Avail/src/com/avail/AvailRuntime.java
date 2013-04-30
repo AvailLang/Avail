@@ -674,7 +674,7 @@ public final class AvailRuntime
 		specials[25] = FiberTypeDescriptor.mostGeneralType();
 		specials[26] = SetTypeDescriptor.mostGeneralType();
 		specials[27] = SetTypeDescriptor.meta();
-		specials[28] = TupleTypeDescriptor.stringTupleType();
+		specials[28] = TupleTypeDescriptor.stringType();
 		specials[29] = BottomTypeDescriptor.bottom();
 		specials[30] = InstanceMetaDescriptor.on(BottomTypeDescriptor.bottom());
 		specials[31] = NONTYPE.o();
@@ -721,7 +721,7 @@ public final class AvailRuntime
 		specials[71] = AtomDescriptor.falseObject();
 		specials[72] =
 			TupleTypeDescriptor.zeroOrMoreOf(
-				TupleTypeDescriptor.stringTupleType());
+				TupleTypeDescriptor.stringType());
 		specials[73] =
 			TupleTypeDescriptor.zeroOrMoreOf(
 				InstanceMetaDescriptor.topMeta());
@@ -729,11 +729,11 @@ public final class AvailRuntime
 			TupleTypeDescriptor.zeroOrMoreOf(
 				SetTypeDescriptor.setTypeForSizesContentType(
 					IntegerRangeTypeDescriptor.wholeNumbers(),
-					TupleTypeDescriptor.stringTupleType()));
+					TupleTypeDescriptor.stringType()));
 		specials[75] =
 			SetTypeDescriptor.setTypeForSizesContentType(
 				IntegerRangeTypeDescriptor.wholeNumbers(),
-				TupleTypeDescriptor.stringTupleType());
+				TupleTypeDescriptor.stringType());
 		specials[76] =
 			FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -885,6 +885,9 @@ public final class AvailRuntime
 			BottomTypeDescriptor.bottom());
 		specials[132] = FiberTypeDescriptor.meta();
 		specials[133] = TupleTypeDescriptor.oneOrMoreOf(CHARACTER.o());
+		specials[134] = SetTypeDescriptor.setTypeForSizesContentType(
+			IntegerRangeTypeDescriptor.wholeNumbers(),
+			ObjectTypeDescriptor.exceptionType());
 
 		System.arraycopy(specials, 0, specialObjects, 0, specials.length);
 

@@ -70,4 +70,38 @@ public class P_102_SetUnion extends Primitive
 				SetTypeDescriptor.mostGeneralType()),
 			SetTypeDescriptor.mostGeneralType());
 	}
+
+	@Override
+	public A_Type returnTypeGuaranteedByVM (
+		final List<? extends A_Type> argumentTypes)
+	{
+		final A_Type setType1 = argumentTypes.get(0);
+		final A_Type setType2 = argumentTypes.get(1);
+
+		// Technically we can compute the exact minimum bound by building a
+		// graph where the edges are the mutually disjoint element types, then
+		// computing the minimum coloring via a Birkhoff chromatic polynomial.
+		// Even the upper bound can be strengthened beyond the sum of the upper
+		// bounds of the inputs through solution of a set of linear inequalities
+		// and the pigeon-hole principle.  For now, just keep it simple.
+		final A_Type sizes1 = setType1.sizeRange();
+		final A_Type sizes2 = setType2.sizeRange();
+		final A_Number min1 = sizes1.lowerBound();
+		final A_Number min2 = sizes2.lowerBound();
+		// Use the *max* of the lower bounds as the new min bound.
+		final A_Number minSize = min1.numericCompare(min2).isMore()
+			? min1 : min2;
+		final A_Number maxSize = sizes1.upperBound().plusCanDestroy(
+			sizes2.upperBound(),
+			false);
+		final A_Type unionSize = IntegerRangeTypeDescriptor.create(
+			minSize,
+			true,
+			maxSize.plusCanDestroy(IntegerDescriptor.one(), false),
+			false);
+		final A_Type unionType = SetTypeDescriptor.setTypeForSizesContentType(
+			unionSize,
+			setType1.contentType().typeUnion(setType2.contentType()));
+		return unionType.makeImmutable();
+	}
 }

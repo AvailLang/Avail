@@ -857,8 +857,7 @@ public class MessageSplitter
 				final int limit = typeTuple.tupleSize() + 1;
 				for (int i = 1; i <= limit; i++)
 				{
-					final A_BasicObject solutionType =
-						argumentType.typeAtIndex(i);
+					final A_Type solutionType = argumentType.typeAtIndex(i);
 					if (solutionType.equals(BottomTypeDescriptor.bottom()))
 					{
 						// It was the empty tuple type.

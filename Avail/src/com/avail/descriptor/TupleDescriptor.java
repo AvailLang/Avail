@@ -371,7 +371,7 @@ extends Descriptor
 	 * @param object An object.
 	 * @return The hash.
 	 */
-	private int hash (final A_Tuple object)
+	private final int hash (final A_Tuple object)
 	{
 		int hash = object.hashOrZero();
 		if (hash == 0)
@@ -383,7 +383,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	int o_Hash (final AvailObject object)
+	final int o_Hash (final AvailObject object)
 	{
 		if (isShared())
 		{
@@ -567,14 +567,26 @@ extends Descriptor
 		// splice tuple's zones are not themselves splice tuples.
 		int zones = 0;
 		int newSize = 0;
-		for (int i = 1, end = object.tupleSize(); i <= end; i++)
+		final int outerTupleSize = object.tupleSize();
+		if (outerTupleSize == 1)
+		{
+			final AvailObject result = object.tupleAt(1);
+			if (canDestroy)
+			{
+				object.assertObjectUnreachableIfMutableExcept(result);
+			}
+			else
+			{
+				result.makeImmutable();
+			}
+			return result;
+		}
+		for (int i = 1; i <= outerTupleSize; i++)
 		{
 			final A_Tuple sub = object.tupleAt(i);
 			final int subZones = sub.tupleSize() == 0
 				? 0
-				: sub.traversed().isSplice()
-					? sub.numberOfZones()
-					: 1;
+				: sub.isSplice() ? sub.numberOfZones() : 1;
 			// Empty zones are not allowed in splice tuples.
 			zones += subZones;
 			newSize += sub.tupleSize();
@@ -583,11 +595,23 @@ extends Descriptor
 		{
 			return TupleDescriptor.empty();
 		}
-		// Now we know how many zones will be in the final tuple. We must
-		// allocate room for it. In the Java translation, the garbage collector
-		// will never increase the number of zones, so there will always be
-		// room in the allocated chunk (maybe more than enough) for all the
-		// zones.
+		else if (newSize <= 50)
+		{
+			// Make a flat tuple.
+			final A_Tuple result =
+				ObjectTupleDescriptor.createUninitialized(newSize);
+			int index = 1;
+			for (final A_Tuple innerTuple : object)
+			{
+				for (final A_BasicObject element : innerTuple)
+				{
+					result.objectTupleAtPut(index++, element);
+					element.makeImmutable();
+				}
+			}
+			return result;
+		}
+		// Now we know how many zones will be in the final splice tuple.
 		final AvailObject result =
 			AvailObject.newObjectIndexedIntegerIndexedDescriptor(
 				zones,

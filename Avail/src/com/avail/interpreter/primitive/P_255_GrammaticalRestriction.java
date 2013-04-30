@@ -128,11 +128,11 @@ extends Primitive
 			TupleDescriptor.from(
 				SetTypeDescriptor.setTypeForSizesContentType(
 					IntegerRangeTypeDescriptor.wholeNumbers(),
-					TupleTypeDescriptor.stringTupleType()),
+					TupleTypeDescriptor.stringType()),
 				TupleTypeDescriptor.zeroOrMoreOf(
 					SetTypeDescriptor.setTypeForSizesContentType(
 						IntegerRangeTypeDescriptor.wholeNumbers(),
-						TupleTypeDescriptor.stringTupleType()))),
+						TupleTypeDescriptor.stringType()))),
 			TOP.o());
 	}
 }

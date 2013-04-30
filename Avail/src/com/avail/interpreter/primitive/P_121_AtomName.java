@@ -65,6 +65,6 @@ public class P_121_AtomName extends Primitive
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
 				ATOM.o()),
-			TupleTypeDescriptor.stringTupleType());
+			TupleTypeDescriptor.stringType());
 	}
 }

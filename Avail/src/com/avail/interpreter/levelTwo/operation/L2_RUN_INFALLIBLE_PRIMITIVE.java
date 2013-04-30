@@ -35,6 +35,7 @@ import static com.avail.descriptor.AvailObject.error;
 import static com.avail.interpreter.Primitive.Result.SUCCESS;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import com.avail.descriptor.A_Tuple;
+import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.*;
 import com.avail.interpreter.Primitive.*;
@@ -65,7 +66,7 @@ public class L2_RUN_INFALLIBLE_PRIMITIVE extends L2Operation
 		new L2_RUN_INFALLIBLE_PRIMITIVE().init(
 			PRIMITIVE.is("primitive to run"),
 			READ_VECTOR.is("arguments"),
-			READ_POINTER.is("expected type"),
+			CONSTANT.is("expected type"),
 			WRITE_POINTER.is("primitive result"));
 
 	@Override
@@ -73,7 +74,7 @@ public class L2_RUN_INFALLIBLE_PRIMITIVE extends L2Operation
 	{
 		final int primNumber = interpreter.nextWord();
 		final int argsVector = interpreter.nextWord();
-		final int expectedTypeRegister = interpreter.nextWord();
+		final int expectedTypeIndex = interpreter.nextWord();
 		final int resultRegister = interpreter.nextWord();
 		final A_Tuple argsVect = interpreter.vectorAt(argsVector);
 		interpreter.argsBuffer.clear();
@@ -93,8 +94,8 @@ public class L2_RUN_INFALLIBLE_PRIMITIVE extends L2Operation
 			interpreter.argsBuffer);
 		assert res == SUCCESS;
 
-		final AvailObject expectedType =
-			interpreter.pointerAt(expectedTypeRegister);
+		final A_Type expectedType =
+			interpreter.chunk().literalAt(expectedTypeIndex);
 		final long start = System.nanoTime();
 		final AvailObject result = interpreter.latestResult();
 		final boolean checkOk = result.isInstanceOf(expectedType);
@@ -115,23 +116,23 @@ public class L2_RUN_INFALLIBLE_PRIMITIVE extends L2Operation
 	}
 
 	@Override
-	public void propagateTypesInFor (
+	public void propagateTypes (
 		final L2Instruction instruction,
-		final RegisterSet registers)
+		final RegisterSet registerSet)
 	{
 		final L2PrimitiveOperand primitiveOperand =
 			(L2PrimitiveOperand) instruction.operands[0];
 		final L2WritePointerOperand destinationOperand =
 			(L2WritePointerOperand) instruction.operands[3];
-		registers.removeTypeAt(destinationOperand.register);
-		registers.removeConstantAt(destinationOperand.register);
-		registers.propagateWriteTo(destinationOperand.register);
+		registerSet.removeTypeAt(destinationOperand.register);
+		registerSet.removeConstantAt(destinationOperand.register);
 
 		// We can at least believe what the basic primitive signature says
 		// it returns.
-		registers.typeAtPut(
+		registerSet.typeAtPut(
 			destinationOperand.register,
-			primitiveOperand.primitive.blockTypeRestriction().returnType());
+			primitiveOperand.primitive.blockTypeRestriction().returnType(),
+			instruction);
 	}
 
 	@Override

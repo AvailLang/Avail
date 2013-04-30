@@ -33,8 +33,19 @@ package com.avail.interpreter.levelTwo.operation;
 
 import static com.avail.descriptor.AvailObject.error;
 import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_VECTOR;
+import static com.avail.interpreter.levelTwo.register.FixedRegister.*;
+import java.util.List;
+import com.avail.descriptor.A_RawFunction;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.ContinuationTypeDescriptor;
+import com.avail.descriptor.NilDescriptor;
 import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+import com.avail.interpreter.Primitive.Flag;
 import com.avail.interpreter.levelTwo.*;
+import com.avail.interpreter.levelTwo.operand.L2WriteVectorOperand;
+import com.avail.interpreter.levelTwo.register.FixedRegister;
+import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.RegisterSet;
 
 /**
@@ -64,11 +75,63 @@ public class L2_ENTER_L2_CHUNK extends L2Operation
 	}
 
 	@Override
-	public void propagateTypesInFor (
+	public void propagateTypes (
 		final L2Instruction instruction,
-		final RegisterSet registers)
+		final RegisterSet registerSet)
 	{
-		// Don't wipe out my arguments.
+		final L2WriteVectorOperand writeVector =
+			(L2WriteVectorOperand) instruction.operands[0];
+
+		final List<L2ObjectRegister> regs = writeVector.vector.registers();
+		final A_RawFunction code = registerSet.codeOrFail();
+		assert regs.size() == FixedRegister.values().length + code.numArgs();
+		assert regs.get(FixedRegister.NULL.ordinal())
+			== registerSet.fixed(NULL);
+		assert regs.get(FixedRegister.CALLER.ordinal())
+			== registerSet.fixed(CALLER);
+		assert regs.get(FixedRegister.FUNCTION.ordinal())
+			== registerSet.fixed(FUNCTION);
+		assert regs.get(FixedRegister.PRIMITIVE_FAILURE.ordinal())
+			== registerSet.fixed(PRIMITIVE_FAILURE);
+		for (int i = 1, end = code.numArgs(); i <= end; i++)
+		{
+			assert regs.get(FixedRegister.values().length + i - 1)
+				== registerSet.continuationSlot(i);
+		}
+		registerSet.constantAtPut(
+			registerSet.fixed(NULL),
+			NilDescriptor.nil(),
+			instruction);
+		registerSet.typeAtPut(
+			registerSet.fixed(CALLER),
+			ContinuationTypeDescriptor.mostGeneralType(),
+			instruction);
+		registerSet.typeAtPut(
+			registerSet.fixed(FUNCTION),
+			code.functionType(),
+			instruction);
+		final int prim = code.primitiveNumber();
+		if (prim != 0)
+		{
+			final Primitive primitive = Primitive.byPrimitiveNumberOrFail(prim);
+			if (!primitive.hasFlag(Flag.CannotFail))
+			{
+				registerSet.typeAtPut(
+					registerSet.fixed(PRIMITIVE_FAILURE),
+					primitive.failureVariableType(),
+					instruction);
+			}
+		}
+		final A_Type argsType = code.functionType().argsTupleType();
+		for (int i = 1, end = code.numArgs(); i <= end; i++)
+		{
+			final L2ObjectRegister argRegister = registerSet.continuationSlot(i);
+			registerSet.propagateWriteTo(argRegister, instruction);
+			registerSet.typeAtPut(
+				argRegister,
+				argsType.typeAtIndex(i),
+				instruction);
+		}
 	}
 
 	@Override

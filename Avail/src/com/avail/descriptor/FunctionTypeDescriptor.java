@@ -351,7 +351,7 @@ extends TypeDescriptor
 		final AvailObject object,
 		final List<A_Type> argTypes)
 	{
-		final A_BasicObject tupleType = object.slot(ARGS_TUPLE_TYPE);
+		final A_Type tupleType = object.slot(ARGS_TUPLE_TYPE);
 		for (int i = 1, end = argTypes.size(); i <= end; i++)
 		{
 			if (!argTypes.get(i - 1).isSubtypeOf(tupleType.typeAtIndex(i)))
@@ -367,7 +367,7 @@ extends TypeDescriptor
 		final AvailObject object,
 		final List<? extends A_BasicObject> argValues)
 	{
-		final A_BasicObject tupleType = object.slot(ARGS_TUPLE_TYPE);
+		final A_Type tupleType = object.slot(ARGS_TUPLE_TYPE);
 		for (int i = 1, end = argValues.size(); i <= end; i++)
 		{
 			final A_BasicObject arg = argValues.get(i - 1);
@@ -384,7 +384,7 @@ extends TypeDescriptor
 		final AvailObject object,
 		final A_Tuple argTypes)
 	{
-		final A_BasicObject tupleType = object.slot(ARGS_TUPLE_TYPE);
+		final A_Type tupleType = object.slot(ARGS_TUPLE_TYPE);
 		for (int i = 1, end = argTypes.tupleSize(); i <= end; i++)
 		{
 			if (!argTypes.tupleAt(i).isSubtypeOf(tupleType.typeAtIndex(i)))

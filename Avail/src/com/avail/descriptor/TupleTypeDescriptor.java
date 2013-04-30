@@ -528,7 +528,7 @@ extends TypeDescriptor
 		final AvailObject object,
 		final @Nullable Class<?> ignoredClassHint)
 	{
-		if (object.isSubtypeOf(stringTupleType()))
+		if (object.isSubtypeOf(stringType()))
 		{
 			return String.class;
 		}
@@ -805,7 +805,7 @@ extends TypeDescriptor
 	 *
 	 * @return The string type.
 	 */
-	public static A_Type stringTupleType ()
+	public static A_Type stringType ()
 	{
 		return stringTupleType;
 	}

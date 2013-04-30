@@ -1490,7 +1490,7 @@ public abstract class AbstractAvailCompiler
 			final A_Token token = peekToken();
 			if (token.isInstanceOfKind(
 				LiteralTokenTypeDescriptor.create(
-					TupleTypeDescriptor.stringTupleType())))
+					TupleTypeDescriptor.stringType())))
 			{
 				return token;
 			}
@@ -3744,7 +3744,7 @@ public abstract class AbstractAvailCompiler
 					"Continue send after checkArgument",
 					start,
 					successorTrees.tupleAt(1),
-					firstArgOrNull, // Null
+					null,
 					initialTokenPosition,
 					consumedAnything,
 					argsSoFar,
@@ -3973,9 +3973,8 @@ public abstract class AbstractAvailCompiler
 		final Continuation1<A_Type> onSuccess,
 		final Continuation1<Describer> onFailure)
 	{
-		final MutableOrNull<A_Tuple> definitionsTuple =
-			new MutableOrNull<A_Tuple>();
-		final MutableOrNull<A_Set> restrictions = new MutableOrNull<A_Set>();
+		final MutableOrNull<A_Tuple> definitionsTuple = new MutableOrNull<>();
+		final MutableOrNull<A_Set> restrictions = new MutableOrNull<>();
 		final A_Method method = bundle.bundleMethod();
 		method.lock(new Continuation0()
 		{
@@ -4087,10 +4086,9 @@ public abstract class AbstractAvailCompiler
 					// Don't stringify all the argument types, just the failed
 					// ones. And don't stringify the same value twice. Obviously
 					// side effects in stringifiers won't work right here…
-					final List<A_BasicObject> uniqueValues =
-						new ArrayList<A_BasicObject>();
+					final List<A_BasicObject> uniqueValues = new ArrayList<>();
 					final Map<A_BasicObject, Integer> valuesToStringify =
-						new HashMap<A_BasicObject, Integer>();
+						new HashMap<>();
 					for (final int i : allFailedIndices)
 					{
 						final A_Type argType = argTypes.get(i - 1);
@@ -4176,7 +4174,7 @@ public abstract class AbstractAvailCompiler
 			return;
 		}
 		// Compute the intersection of the return types of the possible callees.
-		final Mutable<A_Type> intersection = new Mutable<A_Type>(
+		final Mutable<A_Type> intersection = new Mutable<>(
 			satisfyingDefinitions.get(0).bodySignature().returnType());
 		for (int i = 1, end = satisfyingDefinitions.size(); i < end; i++)
 		{
@@ -4206,9 +4204,9 @@ public abstract class AbstractAvailCompiler
 		}
 		// Run all relevant semantic restrictions, in parallel, computing the
 		// type intersection of their results.
-		final Mutable<Integer> outstanding = new Mutable<Integer>(
+		final Mutable<Integer> outstanding = new Mutable<>(
 			restrictionsToTry.size());
-		final Mutable<Boolean> anyFailures = new Mutable<Boolean>(false);
+		final Mutable<Boolean> anyFailures = new Mutable<>(false);
 		final Continuation1<AvailObject> intersectAndDecrement =
 			workUnitCompletion(
 				new Continuation1<AvailObject>()
@@ -4321,8 +4319,7 @@ public abstract class AbstractAvailCompiler
 						}
 					}
 				});
-		final List<AvailObject> strongArgs =
-			new ArrayList<AvailObject>(argTypes.size());
+		final List<AvailObject> strongArgs = new ArrayList<>(argTypes.size());
 		for (final A_Type argType : argTypes)
 		{
 			strongArgs.add((AvailObject)argType);
@@ -4368,7 +4365,7 @@ public abstract class AbstractAvailCompiler
 		final A_Bundle bundle,
 		final Con<A_Phrase> continuation)
 	{
-		final Mutable<Boolean> valid = new Mutable<Boolean>(true);
+		final Mutable<Boolean> valid = new Mutable<>(true);
 		final A_Method method = bundle.bundleMethod();
 		final A_Tuple definitionsTuple = method.definitionsTuple();
 		assert definitionsTuple.tupleSize() > 0;
@@ -4387,7 +4384,7 @@ public abstract class AbstractAvailCompiler
 		}
 		// It invokes a method (not a macro).
 		final List<A_Type> argTypes =
-			new ArrayList<A_Type>(argumentExpressions.size());
+			new ArrayList<>(argumentExpressions.size());
 		for (final A_Phrase argumentExpression : argumentExpressions)
 		{
 			argTypes.add(argumentExpression.expressionType());

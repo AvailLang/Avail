@@ -72,7 +72,7 @@ public class P_208_IncompleteMessages extends Primitive
 				MESSAGE_BUNDLE_TREE.o()),
 			MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
 				IntegerRangeTypeDescriptor.wholeNumbers(),
-				TupleTypeDescriptor.stringTupleType(),
+				TupleTypeDescriptor.stringType(),
 				MESSAGE_BUNDLE_TREE.o()));
 	}
 }

@@ -99,9 +99,9 @@ public class L2_LOOKUP_BY_VALUES extends L2Operation
 	}
 
 	@Override
-	public void propagateTypesInFor (
+	public void propagateTypes (
 		final L2Instruction instruction,
-		final RegisterSet registers)
+		final RegisterSet registerSet)
 	{
 		// Find all possible definitions (taking into account the types
 		// of the argument registers).  Then build an enumeration type over
@@ -119,8 +119,8 @@ public class L2_LOOKUP_BY_VALUES extends L2Operation
 			new ArrayList<A_Type>(numArgs);
 		for (final L2ObjectRegister argRegister : argRegisters)
 		{
-			final A_Type type = registers.hasTypeAt(argRegister)
-				? registers.typeAt(argRegister)
+			final A_Type type = registerSet.hasTypeAt(argRegister)
+				? registerSet.typeAt(argRegister)
 				: TOP.o();
 			argTypeBounds.add(type);
 		}
@@ -143,16 +143,20 @@ public class L2_LOOKUP_BY_VALUES extends L2Operation
 			// Only one function could be looked up (it's monomorphic for
 			// this call site).  Therefore we know strongly what the
 			// function is.
-			registers.constantAtPut(
+			registerSet.constantAtPut(
 				destinationOperand.register,
-				possibleFunctions.get(0));
+				possibleFunctions.get(0),
+				instruction);
 		}
 		else
 		{
 			final A_Type enumType =
 				AbstractEnumerationTypeDescriptor.withInstances(
 					SetDescriptor.fromCollection(possibleFunctions));
-			registers.typeAtPut(destinationOperand.register, enumType);
+			registerSet.typeAtPut(
+				destinationOperand.register,
+				enumType,
+				instruction);
 		}
 	}
 }

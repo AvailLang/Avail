@@ -74,4 +74,23 @@ public class P_105_SetWith extends Primitive
 				IntegerRangeTypeDescriptor.naturalNumbers(),
 				ANY.o()));
 	}
+
+	@Override
+	public A_Type returnTypeGuaranteedByVM (
+		final List<? extends A_Type> argumentTypes)
+	{
+		final A_Type setType = argumentTypes.get(0);
+		final A_Type newElementType = argumentTypes.get(1);
+
+		final A_Type sizes = setType.sizeRange();
+		final A_Type unionSize = IntegerRangeTypeDescriptor.create(
+			sizes.lowerBound(),
+			true,
+			sizes.upperBound().plusCanDestroy(IntegerDescriptor.two(), false),
+			false);
+		final A_Type unionType = SetTypeDescriptor.setTypeForSizesContentType(
+			unionSize,
+			setType.contentType().typeUnion(newElementType));
+		return unionType.makeImmutable();
+	}
 }

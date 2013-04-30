@@ -64,7 +64,7 @@ import com.avail.serialization.SerializerOperation;
  * also automatically include all subtypes as members.  Thus, an enumeration
  * whose instances are {5, "cheese", {@linkplain
  * TupleTypeDescriptor#mostGeneralType() tuple}} also has the type {@linkplain
- * TupleTypeDescriptor#stringTupleType() string} as a member (string being one
+ * TupleTypeDescriptor#stringType() string} as a member (string being one
  * of the many subtypes of tuple).  This condition ensures that enumerations
  * satisfy metacovariance, which states that types' types vary the same way as
  * the types: <span style="border-width:thin; border-style:solid"><nobr>

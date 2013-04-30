@@ -74,9 +74,9 @@ public class L2_CREATE_TUPLE extends L2Operation
 	}
 
 	@Override
-	public void propagateTypesInFor (
+	public void propagateTypes (
 		final L2Instruction instruction,
-		final RegisterSet registers)
+		final RegisterSet registerSet)
 	{
 		final L2ReadVectorOperand sourcesOperand =
 			(L2ReadVectorOperand) instruction.operands[0];
@@ -90,9 +90,9 @@ public class L2_CREATE_TUPLE extends L2Operation
 			new ArrayList<A_Type>(sourceVector.registers().size());
 		for (final L2Register register : sourceVector.registers())
 		{
-			if (registers.hasTypeAt(register))
+			if (registerSet.hasTypeAt(register))
 			{
-				types.add(registers.typeAt(register));
+				types.add(registerSet.typeAt(register));
 			}
 			else
 			{
@@ -105,24 +105,27 @@ public class L2_CREATE_TUPLE extends L2Operation
 				TupleDescriptor.fromList(types),
 				BottomTypeDescriptor.bottom());
 		tupleType.makeImmutable();
-		registers.typeAtPut(destinationOperand.register, tupleType);
-		registers.propagateWriteTo(destinationOperand.register);
-		if (sourceVector.allRegistersAreConstantsIn(registers))
+		registerSet.typeAtPut(
+			destinationOperand.register,
+			tupleType,
+			instruction);
+		if (sourceVector.allRegistersAreConstantsIn(registerSet))
 		{
 			final List<AvailObject> constants = new ArrayList<AvailObject>(
 				sourceVector.registers().size());
 			for (final L2Register register : sourceVector.registers())
 			{
-				constants.add(registers.constantAt(register));
+				constants.add(registerSet.constantAt(register));
 			}
 			final A_Tuple tuple = TupleDescriptor.fromList(constants);
 			tuple.makeImmutable();
 			assert tuple.isInstanceOf(tupleType);
-			registers.constantAtPut(destinationOperand.register, tuple);
+			registerSet.constantAtPut(
+				destinationOperand.register, tuple, instruction);
 		}
 		else
 		{
-			registers.removeConstantAt(destinationOperand.register);
+			registerSet.removeConstantAt(destinationOperand.register);
 		}
 	}
 }

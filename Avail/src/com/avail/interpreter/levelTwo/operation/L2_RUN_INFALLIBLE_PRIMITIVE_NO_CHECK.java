@@ -98,9 +98,9 @@ public class L2_RUN_INFALLIBLE_PRIMITIVE_NO_CHECK extends L2Operation
 	}
 
 	@Override
-	public void propagateTypesInFor (
+	public void propagateTypes (
 		final L2Instruction instruction,
-		final RegisterSet registers)
+		final RegisterSet registerSet)
 	{
 		final L2PrimitiveOperand primitiveOperand =
 			(L2PrimitiveOperand) instruction.operands[0];
@@ -112,17 +112,19 @@ public class L2_RUN_INFALLIBLE_PRIMITIVE_NO_CHECK extends L2Operation
 		final List<A_Type> argTypes = new ArrayList<A_Type>(3);
 		for (final L2ObjectRegister arg : argumentsVector.vector)
 		{
-			assert registers.hasTypeAt(arg);
-			argTypes.add(registers.typeAt(arg));
+			assert registerSet.hasTypeAt(arg);
+			argTypes.add(registerSet.typeAt(arg));
 		}
 		// We can at least believe what the primitive itself says it returns.
 		final A_Type guaranteedType =
 			primitiveOperand.primitive.returnTypeGuaranteedByVM(
 				argTypes);
-		registers.removeTypeAt(destinationOperand.register);
-		registers.removeConstantAt(destinationOperand.register);
-		registers.typeAtPut(destinationOperand.register, guaranteedType);
-		registers.propagateWriteTo(destinationOperand.register);
+		registerSet.removeTypeAt(destinationOperand.register);
+		registerSet.removeConstantAt(destinationOperand.register);
+		registerSet.typeAtPut(
+			destinationOperand.register,
+			guaranteedType,
+			instruction);
 	}
 
 	@Override

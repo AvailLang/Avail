@@ -271,6 +271,16 @@ extends A_BasicObject
 	A_Type returnType ();
 
 	/**
+	 * Dispatch to the descriptor.
+	 */
+	A_Type typeAtIndex (int index);
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	A_Tuple typeTuple ();
+
+	/**
 	 * @param aCompiledCodeType
 	 * @return
 	 */
@@ -468,6 +478,13 @@ extends A_BasicObject
 	 * @return
 	 */
 	A_Map typeVariables ();
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	A_Type unionOfTypesAtThrough (
+		int startIndex,
+		int endIndex);
 
 	/**
 	 * Dispatch to the descriptor.

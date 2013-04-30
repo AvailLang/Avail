@@ -67,30 +67,29 @@ public class L2_GET_VARIABLE extends L2Operation
 	}
 
 	@Override
-	public void propagateTypesInFor (
+	public void propagateTypes (
 		final L2Instruction instruction,
-		final RegisterSet registers)
+		final RegisterSet registerSet)
 	{
 		final L2ReadPointerOperand sourceOperand =
 			(L2ReadPointerOperand) instruction.operands[0];
 		final L2WritePointerOperand destinationOperand =
 			(L2WritePointerOperand) instruction.operands[1];
-		if (registers.hasTypeAt(sourceOperand.register))
+		registerSet.removeConstantAt(destinationOperand.register);
+		if (registerSet.hasTypeAt(sourceOperand.register))
 		{
-			final A_Type oldType = registers.typeAt(sourceOperand.register);
+			final A_Type oldType = registerSet.typeAt(sourceOperand.register);
 			final A_Type varType = oldType.typeIntersection(
 				VariableTypeDescriptor.mostGeneralType());
-			registers.typeAtPut(sourceOperand.register, varType);
-			registers.typeAtPut(
+			registerSet.typeAtPut(
 				destinationOperand.register,
-				varType.readType());
+				varType.readType(),
+				instruction);
 		}
 		else
 		{
-			registers.removeTypeAt(destinationOperand.register);
+			registerSet.removeTypeAt(destinationOperand.register);
 		}
-		registers.removeConstantAt(destinationOperand.register);
-		registers.propagateWriteTo(destinationOperand.register);
 	}
 
 	@Override

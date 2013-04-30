@@ -175,7 +175,7 @@ extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				TupleTypeDescriptor.stringTupleType(),
+				TupleTypeDescriptor.stringType(),
 				TupleTypeDescriptor.zeroOrMoreOf(
 					FunctionTypeDescriptor.mostGeneralType()),
 				FunctionTypeDescriptor.forReturnType(

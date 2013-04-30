@@ -32,6 +32,8 @@
 
 package com.avail.descriptor;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import static com.avail.descriptor.CompiledCodeDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.CompiledCodeDescriptor.ObjectSlots.*;
@@ -177,6 +179,7 @@ extends Descriptor
 		 * The {@linkplain NybbleTupleDescriptor tuple of nybbles} that describe
 		 * what {@linkplain L1Operation level one operations} to perform.
 		 */
+		@HideFieldInDebugger
 		NYBBLES,
 
 		/**
@@ -199,6 +202,7 @@ extends Descriptor
 		 * CompiledCodeDescriptor compiled code}, in which to record information
 		 * such as the file and line number of source code.
 		 */
+		@HideFieldInDebugger
 		PROPERTY_ATOM,
 
 		/**
@@ -217,6 +221,46 @@ extends Descriptor
 			|| e == TOTAL_INVOCATIONS
 			|| e == COUNTDOWN_TO_REOPTIMIZE
 			|| e == PROPERTY_ATOM;
+	}
+
+	public static enum FakeSlots
+	implements ObjectSlotsEnum
+	{
+		LOCAL_TYPE_,
+
+		OUTER_TYPE_
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * Show the types of local variables and outer variables.
+	 */
+	@Override
+	AvailObjectFieldHelper[] o_DescribeForDebugger (
+		final AvailObject object)
+	{
+		final List<AvailObjectFieldHelper> fields = new ArrayList<>();
+		fields.addAll(Arrays.asList(super.o_DescribeForDebugger(object)));
+		for (int i = 1, end = object.numOuters(); i <= end; i++)
+		{
+			fields.add(
+				new AvailObjectFieldHelper(
+					object,
+					FakeSlots.OUTER_TYPE_,
+					i,
+					object.outerTypeAt(i)));
+		}
+		for (int i = 1, end = object.numLocals(); i <= end; i++)
+		{
+			fields.add(
+				new AvailObjectFieldHelper(
+					object,
+					FakeSlots.LOCAL_TYPE_,
+					i,
+					object.localTypeAt(i)));
+		}
+		return fields.toArray(new AvailObjectFieldHelper[fields.size()]);
 	}
 
 	@Override @AvailMethod
@@ -533,8 +577,7 @@ extends Descriptor
 				final A_Tuple parts = TupleDescriptor.from(
 					StringDescriptor.from(prefix),
 					methodName);
-				final A_Tuple newName =
-					parts.concatenateTuplesCanDestroy(true);
+				final A_Tuple newName = parts.concatenateTuplesCanDestroy(true);
 				subCode.setMethodName((A_String)newName);
 			}
 		}

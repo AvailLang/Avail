@@ -101,9 +101,9 @@ public class L2_PREPARE_NEW_FRAME extends L2Operation
 	}
 
 	@Override
-	public void propagateTypesInFor (
+	public void propagateTypes (
 		final L2Instruction instruction,
-		final RegisterSet registers)
+		final RegisterSet registerSet)
 	{
 		// No real optimization should ever be done near this wordcode.
 		// Do nothing.

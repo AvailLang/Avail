@@ -39,6 +39,7 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.operand.*;
 import com.avail.interpreter.levelTwo.operation.L2_LABEL;
 import com.avail.optimizer.L2Translator;
+import com.avail.optimizer.RegisterSet;
 import com.avail.interpreter.levelTwo.register.L2Register;
 import com.avail.utility.*;
 
@@ -196,9 +197,9 @@ public final class L2Instruction
 
 	/**
 	 * Answer the possible target instructions of this instruction.  These must
-	 * be {@linkplain L2_LABEL labels}.  This list does not
-	 * include the instruction immediately following the receiver in the stream
-	 * of instructions, but its reachability can be determined separately via
+	 * be {@linkplain L2_LABEL labels}.  This list does not include the
+	 * instruction immediately following the receiver in the stream of
+	 * instructions, but its reachability can be determined separately via
 	 * {@linkplain L2Operation#reachesNextInstruction()}.
 	 *
 	 * @return A {@link List} of label {@link L2Instruction instructions}.
@@ -252,14 +253,34 @@ public final class L2Instruction
 
 	/**
 	 * Propagate {@linkplain TypeDescriptor type} and constant value information
-	 * from source {@linkplain L2Register registers} to the destination
-	 * registers.
+	 * from source {@link L2Register}s to destination registers within the
+	 * provided {@link RegisterSet}s.  There is one RegisterSet for each target
+	 * L2Instruction, including the instruction that follows this one.  They
+	 * occur in the same order as the {@link #targetLabels()}, with the
+	 * successor instruction's RegisterSet prepended if it {@link
+	 * L2Operation#reachesNextInstruction()}.
 	 *
-	 * @param translator The {@linkplain L2Translator translator}.
+	 * @param registerSets
+	 *            A list of RegisterSets in the above-specified order.
 	 */
-	public void propagateTypesFor (final L2Translator translator)
+	public void propagateTypes (
+		final List<RegisterSet> registerSets)
 	{
-		operation.propagateTypesInFor(this, translator.registers());
+		final int count = (operation.reachesNextInstruction() ? 1 : 0)
+			+ targetLabels().size();
+		assert registerSets.size() == count;
+		if (count == 1)
+		{
+			operation.propagateTypes(
+				this,
+				registerSets.get(0));
+		}
+		else
+		{
+			operation.propagateTypes(
+				this,
+				registerSets);
+		}
 	}
 
 	/**

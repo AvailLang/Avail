@@ -34,13 +34,21 @@ System Module "Definers"
 Versions
 	"dev"
 Uses
-	"Avail",
+	"Avail" =
+	(
+/*		"_+_" → "_+_(Avail)",
+		"_-_",
+		"_×_",
+		"_÷_",
+*/		…
+	),
 	"Core" =
 	(
+		"_+_" → "_+_(Core)",
 		"_-_" → "_-_(Core)",
-		"_^_" → "_^_(Core)",
 		"_×_" → "_×_(Core)",
 		"_÷_" → "_÷_(Core)",
+		"_^_" → "_^_(Core)",
 		…
 	),
 	"Types"
@@ -85,10 +93,10 @@ Public method "prefixes" is [_prefixes];
 /* These methods are needed for scaling function synthesis. */
 metricAtom ::= $"_'s⁇metric";
 scaleFactorAtom ::= $"_'s⁇scale factor";
-minusAtom ::= $"_-_(Core)";
-powerAtom ::= $"_^_(Core)";
+minusAvailAtom ::= $"_-_";
+powerAvailAtom ::= $"_^_";
 extentAtom ::= $"_'s⁇extent";
-timesAtom ::= $"_×_(Core)";
+timesAvailAtom ::= $"_×_";
 juxtapositionAtom ::= $"__";
 
 /**
@@ -109,17 +117,16 @@ Private method "SI scaling function for_" is
 	 * SI metrics.
 	 */
 	quantityType ::= extend SI dimensioned quantity with metric : unitType;
-	args ::=
-		<arg «`"quantity"` : quantityType», arg «`"aUnit"` : unitType»>;
+	args ::= <arg «`"quantity"` : quantityType», arg «`"aUnit"` : unitType»>;
 	/* Construct the expression to obtain the scaling factor. */
 	metricSend ::= send metricAtom with «<«↓args[1]»>» : SI unit;
 	minuend ::= send scaleFactorAtom with «<metricSend>» : integer;
 	subtrahend ::= send scaleFactorAtom with «<«↓args[2]»>» : integer;
-	exponent ::= send minusAtom with «<minuend, subtrahend>» : integer;
-	scaleFactor ::= send powerAtom with «<‘`10`’, exponent>» : number;
+	exponent ::= send minusAvailAtom with «<minuend, subtrahend>» : integer;
+	scaleFactor ::= send powerAvailAtom with «<‘`10`’, exponent>» : number;
 	/* Construct the expression to obtain the scaled magnitude. */
 	extentSend ::= send extentAtom with «<«↓args[1]»>» : double;
-	scaled ::= send timesAtom with «<extentSend, scaleFactor>» : double;
+	scaled ::= send timesAvailAtom with «<extentSend, scaleFactor>» : double;
 	/* Construct the expression to obtain the resultant SI dimensioned
 	 * quantity.
 	 */

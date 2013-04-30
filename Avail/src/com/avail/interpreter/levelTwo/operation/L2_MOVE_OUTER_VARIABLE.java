@@ -67,20 +67,21 @@ public class L2_MOVE_OUTER_VARIABLE extends L2Operation
 	}
 
 	@Override
-	public void propagateTypesInFor (
+	public void propagateTypes (
 		final L2Instruction instruction,
-		final RegisterSet registers)
+		final RegisterSet registerSet)
 	{
 		final L2ImmediateOperand outerIndexOperand =
 			(L2ImmediateOperand) instruction.operands[0];
 		final L2WritePointerOperand destinationOperand =
 			(L2WritePointerOperand) instruction.operands[2];
+
 		final L2Register destination = destinationOperand.register;
-		registers.removeTypeAt(destination);
-		registers.removeConstantAt(destination);
-		registers.propagateWriteTo(destination);
-		registers.typeAtPut(
+		registerSet.removeTypeAt(destination);
+		registerSet.removeConstantAt(destination);
+		registerSet.typeAtPut(
 			destination,
-			registers.codeOrFail().outerTypeAt(outerIndexOperand.value));
+			registerSet.codeOrFail().outerTypeAt(outerIndexOperand.value),
+			instruction);
 	}
 }

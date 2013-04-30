@@ -32,6 +32,7 @@
 package com.avail.interpreter.levelTwo.operation;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
+import java.util.List;
 import com.avail.descriptor.*;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.*;
@@ -96,24 +97,30 @@ public class L2_CREATE_CONTINUATION extends L2Operation
 	}
 
 	@Override
-	public void propagateTypesInFor (
+	public void propagateTypes (
 		final L2Instruction instruction,
-		final RegisterSet registers)
+		final List<RegisterSet> registerSets)
 	{
 		final L2ReadPointerOperand functionOperand =
 			(L2ReadPointerOperand) instruction.operands[1];
 		final L2WritePointerOperand destinationOperand =
 			(L2WritePointerOperand) instruction.operands[6];
+		// Propagate information differently to the code just after creating the
+		// continuation and the code after the continuation resumes.
+		final RegisterSet afterCreation = registerSets.get(0);
+		final RegisterSet afterResumption = registerSets.get(1);
 		final L2ObjectRegister destinationRegister =
 			destinationOperand.register;
-		final A_Type functionType = registers.typeAt(
+		final A_Type functionType = afterCreation.typeAt(
 			functionOperand.register);
+		assert functionType != null;
 		assert functionType.isSubtypeOf(
 			FunctionTypeDescriptor.mostGeneralType());
-		registers.typeAtPut(
+		afterCreation.removeConstantAt(destinationRegister);
+		afterCreation.typeAtPut(
 			destinationRegister,
-			ContinuationTypeDescriptor.forFunctionType(functionType));
-		registers.removeConstantAt(destinationRegister);
-		registers.propagateWriteTo(destinationRegister);
+			ContinuationTypeDescriptor.forFunctionType(functionType),
+			instruction);
+		afterResumption.clearEverythingFor(instruction);
 	}
 }

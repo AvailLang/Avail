@@ -32,7 +32,6 @@
 package com.avail.interpreter.levelTwo.operation;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
-import com.avail.descriptor.AbstractEnumerationTypeDescriptor;
 import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.*;
@@ -63,16 +62,17 @@ public class L2_MOVE_CONSTANT extends L2Operation
 	}
 
 	@Override
-	public void propagateTypesInFor (
+	public void propagateTypes (
 		final L2Instruction instruction,
-		final RegisterSet registers)
+		final RegisterSet registerSet)
 	{
 		final L2ConstantOperand constantOperand =
 			(L2ConstantOperand) instruction.operands[0];
 		final L2WritePointerOperand destinationOperand =
 			(L2WritePointerOperand) instruction.operands[1];
-		registers.constantAtPut(
+		registerSet.constantAtPut(
 			destinationOperand.register,
-			constantOperand.object);
+			constantOperand.object,
+			instruction);
 	}
 }

@@ -168,7 +168,8 @@ Public method "Method_is stable at_" is
 		index : natural number
 	|
 		argName ::= cast concatenate <"arg", “index”> into [t : string | t];
-		argDecl ::= arg «`argName` : functionType[index]'s type»;
+		argType ::= functionType[index];
+		argDecl ::= arg «`argName` : argType's type»;
 		argDecls := cast concatenate <eject ↑argDecls, <argDecl>>
 			into [t : <<>, argument phrase…|whole number> | t];
 		instanceCount ::=
@@ -182,7 +183,7 @@ Public method "Method_is stable at_" is
 			|
 				t
 			];
-		instance ::= send instanceAtom with «<«↓argDecl»>» : any;
+		instance ::= send instanceAtom with «<«↓argDecl»>» : argType;
 		instances := cast concatenate <eject ↑instances, <instance>>
 			into [t : <<>, send phrase⇒any…|whole number> | t];
 		true

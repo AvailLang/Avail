@@ -37,6 +37,7 @@ import java.util.List;
 import com.avail.annotations.Nullable;
 import com.avail.descriptor.*;
 import com.avail.descriptor.FiberDescriptor.ExecutionState;
+import com.avail.exceptions.AvailErrorCode;
 import com.avail.interpreter.*;
 import com.avail.utility.Continuation1;
 
@@ -61,8 +62,7 @@ public class P_256_EmergencyExit extends Primitive
 		assert args.size() == 1;
 		final A_BasicObject errorMessageProducer = args.get(0);
 		final A_Fiber fiber = FiberDescriptor.current();
-		final A_Continuation continuation =
-			interpreter.currentContinuation();
+		final A_Continuation continuation = interpreter.currentContinuation();
 		interpreter.primitiveSuspend();
 		ContinuationDescriptor.dumpStackThen(
 			interpreter.runtime(),
@@ -78,6 +78,18 @@ public class P_256_EmergencyExit extends Primitive
 						"A fiber (%s) has exited: %s",
 						fiber.fiberName(),
 						errorMessageProducer));
+					if (errorMessageProducer.isInt())
+					{
+						final int intValue =
+							((A_Number)errorMessageProducer).extractInt();
+						if (intValue >= 0 &&
+							intValue < AvailErrorCode.values().length)
+						{
+							builder.append(String.format(
+								" (= %s)",
+								AvailErrorCode.values()[intValue].name()));
+						}
+					}
 					for (final String frame : stack)
 					{
 						builder.append(String.format("%n\t-- %s", frame));

@@ -70,7 +70,7 @@ public class P_040_InvokeWithTuple extends Primitive
 		}
 		final List<AvailObject> callArgs =
 			new ArrayList<AvailObject>(numArgs);
-		final A_BasicObject tupleType = blockType.argsTupleType();
+		final A_Type tupleType = blockType.argsTupleType();
 		for (int i = 1; i <= numArgs; i++)
 		{
 			final AvailObject anArg = argTuple.tupleAt(i);

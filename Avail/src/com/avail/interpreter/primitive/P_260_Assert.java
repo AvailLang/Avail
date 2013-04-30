@@ -45,7 +45,7 @@ import com.avail.utility.Continuation1;
  * <strong>Primitive 260:</strong> Assert the specified {@linkplain
  * EnumerationTypeDescriptor#booleanObject() predicate} or raise an
  * {@link AvailAssertionFailedException} (in Java) that contains the
- * provided {@linkplain TupleTypeDescriptor#stringTupleType() message}.
+ * provided {@linkplain TupleTypeDescriptor#stringType() message}.
  */
 public class P_260_Assert extends Primitive
 {
@@ -104,7 +104,7 @@ public class P_260_Assert extends Primitive
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
 				EnumerationTypeDescriptor.booleanObject(),
-				TupleTypeDescriptor.stringTupleType()),
+				TupleTypeDescriptor.stringType()),
 			TOP.o());
 	}
 }

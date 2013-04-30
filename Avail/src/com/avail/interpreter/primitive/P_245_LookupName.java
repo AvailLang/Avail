@@ -81,7 +81,7 @@ extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				TupleTypeDescriptor.stringTupleType()),
+				TupleTypeDescriptor.stringType()),
 			ATOM.o());
 	}
 }

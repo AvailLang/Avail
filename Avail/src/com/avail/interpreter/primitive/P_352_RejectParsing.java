@@ -64,7 +64,7 @@ public class P_352_RejectParsing extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				TupleTypeDescriptor.stringTupleType()),
+				TupleTypeDescriptor.stringType()),
 			BottomTypeDescriptor.bottom());
 	}
 }

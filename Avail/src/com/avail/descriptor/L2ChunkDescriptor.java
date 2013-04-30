@@ -414,7 +414,7 @@ extends Descriptor
 	{
 		// This is hard-coded, but cross-checked by
 		// L2Translator#createChunkForFirstInvocation().
-		return 8;
+		return 9;
 	}
 
 	/**
@@ -451,7 +451,8 @@ extends Descriptor
 	 */
 	public static int countdownForNewlyOptimizedCode ()
 	{
-		// TODO: [MvG] Set this to something sensible when optimization exists.
+		// TODO: [MvG] Set this to something sensible when optimization levels
+		// are implemented.
 		return 1000000000;
 	}
 
@@ -722,10 +723,11 @@ extends Descriptor
 	 * times.
 	 */
 	private static final A_Chunk unoptimizedChunk =
-		new L2Translator(null).createChunkForFirstInvocation().makeShared();
+		L2Translator.createChunkForFirstInvocation();
 
 	static
 	{
+		assert unoptimizedChunk.descriptor().isShared();
 		assert unoptimizedChunk.index() == 0;
 		assert allChunksWeakly.size() == 1;
 	}

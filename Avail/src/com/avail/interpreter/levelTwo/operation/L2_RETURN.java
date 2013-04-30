@@ -33,10 +33,12 @@ package com.avail.interpreter.levelTwo.operation;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_POINTER;
 import static com.avail.interpreter.levelTwo.register.FixedRegister.CALLER;
+import java.util.List;
 import com.avail.descriptor.A_Continuation;
 import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.*;
+import com.avail.optimizer.RegisterSet;
 
 /**
  * Return into the provided continuation with the given return value.  The
@@ -63,6 +65,15 @@ public class L2_RETURN extends L2Operation
 		final A_Continuation caller = interpreter.pointerAt(continuationIndex);
 		final AvailObject valueObject = interpreter.pointerAt(valueIndex);
 		interpreter.returnToCaller(caller, valueObject);
+	}
+
+	@Override
+	public void propagateTypes (
+		final L2Instruction instruction,
+		final List<RegisterSet> registerSets)
+	{
+		// A return instruction doesn't mention where it might end up.
+		assert registerSets.size() == 0;
 	}
 
 	@Override

@@ -35,10 +35,12 @@ import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import java.util.List;
 import com.avail.descriptor.A_Continuation;
 import com.avail.descriptor.A_Map;
+import com.avail.descriptor.A_Number;
 import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.ContinuationTypeDescriptor;
 import com.avail.descriptor.MapDescriptor;
+import com.avail.descriptor.NilDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.*;
 import com.avail.interpreter.levelTwo.operand.L2ConstantOperand;
@@ -66,6 +68,7 @@ public class L2_EXPLODE_CONTINUATION extends L2Operation
 			WRITE_POINTER.is("exploded function"),
 			CONSTANT.is("slot types tuple"),
 			CONSTANT.is("slot constants map"),
+			CONSTANT.is("null slots set"),
 			CONSTANT.is("function type"));
 
 	@Override
@@ -83,6 +86,8 @@ public class L2_EXPLODE_CONTINUATION extends L2Operation
 		final int ignoredSlotTypesTuple = interpreter.nextWord();
 		@SuppressWarnings("unused")
 		final int ignoredSlotConstantsMap = interpreter.nextWord();
+		@SuppressWarnings("unused")
+		final int ignoredNullSlotsMap = interpreter.nextWord();
 		@SuppressWarnings("unused")
 		final int ignoredFunctionTypeMap = interpreter.nextWord();
 
@@ -104,15 +109,9 @@ public class L2_EXPLODE_CONTINUATION extends L2Operation
 	}
 
 	@Override
-	public boolean hasSideEffect ()
-	{
-		return true;
-	}
-
-	@Override
-	public void propagateTypesInFor (
+	public void propagateTypes (
 		final L2Instruction instruction,
-		final RegisterSet registers)
+		final RegisterSet registerSet)
 	{
 		// continuation to explode is instruction.operands[0].
 		final L2WriteVectorOperand explodedContinuationSlotsOperand =
@@ -125,38 +124,49 @@ public class L2_EXPLODE_CONTINUATION extends L2Operation
 			(L2ConstantOperand) instruction.operands[4];
 		final L2ConstantOperand slotConstantsMapOperand =
 			(L2ConstantOperand) instruction.operands[5];
-		final L2ConstantOperand functionTypeOperand =
+		final L2ConstantOperand nullSlotsSetOperand =
 			(L2ConstantOperand) instruction.operands[6];
+		final L2ConstantOperand functionTypeOperand =
+			(L2ConstantOperand) instruction.operands[7];
 
-		// Remove all register information and replace it with information about
-		// just the registers being written to by this explosion.  This
-		// information was stashed in a few constant operands specifically for
-		// this purpose.
-		registers.clearEverything();
-		registers.typeAtPut(
+		// Update the type and value information to agree with the types and
+		// values known to be in the slots of the continuation being exploded
+		// into registers.
+		registerSet.typeAtPut(
 			explodedCallerOperand.register,
-			ContinuationTypeDescriptor.mostGeneralType());
-		registers.typeAtPut(
+			ContinuationTypeDescriptor.mostGeneralType(),
+			instruction);
+		registerSet.typeAtPut(
 			explodedFunctionOperand.register,
-			functionTypeOperand.object);
+			functionTypeOperand.object,
+			instruction);
 		final A_Tuple slotTypes = slotTypesTupleOperand.object;
 		final List<L2ObjectRegister> explodedSlots =
 			explodedContinuationSlotsOperand.vector.registers();
 		assert explodedSlots.size() == slotTypes.tupleSize();
 		for (int i = 1, end = slotTypes.tupleSize(); i <= end; i++)
 		{
-			registers.typeAtPut(
+			registerSet.typeAtPut(
 				explodedSlots.get(i - 1),
-				slotTypes.tupleAt(i));
+				slotTypes.tupleAt(i),
+				instruction);
 		}
 		final A_Map slotValues = slotConstantsMapOperand.object;
 		for (final MapDescriptor.Entry entry : slotValues.mapIterable())
 		{
 			final int slotIndex = entry.key().extractInt();
 			final AvailObject slotValue = entry.value();
-			registers.constantAtPut(
+			registerSet.constantAtPut(
 				explodedSlots.get(slotIndex - 1),
-				slotValue);
+				slotValue,
+				instruction);
+		}
+		for (final A_Number indexObject : nullSlotsSetOperand.object)
+		{
+			registerSet.constantAtPut(
+				explodedSlots.get(indexObject.extractInt() - 1),
+				NilDescriptor.nil(),
+				instruction);
 		}
 	}
 }

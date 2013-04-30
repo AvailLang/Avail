@@ -568,7 +568,7 @@ public class LRUCache<K, V>
 			}
 			else
 			{
-				assert !softMap.containsKey(key);
+				assert !softMap.containsKey(null);
 			}
 		}
 

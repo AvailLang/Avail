@@ -141,6 +141,7 @@ Names
 	/*  26 */ "set",
 	/*  27 */ "set meta",
 	/* 114 */ "set of atom",
+	/* 134 */ "set of exception",
 	/*  75 */ "set of string",
 	/*  28 */ "string",
 	/* 115 */ "token",
@@ -311,6 +312,7 @@ _tuple_of_tuple_of_any_meta             ::= special object 130;
 _readable_extended_integer_variable     ::= special object 131;
 _fiber_meta                             ::= special object 132;
 _nonempty_string                        ::= special object 133;
+_set_of_exception                       ::= special object 134;
 
 /**
  * The practical abstract root of the Avail type lattice. `any` is the second
@@ -1096,5 +1098,10 @@ Primitive "fiber meta" is
 Primitive "nonempty string" is
 [
 	_nonempty_string
+];
+
+Primitive "set of exception" is
+[
+	_set_of_exception
 ];
 

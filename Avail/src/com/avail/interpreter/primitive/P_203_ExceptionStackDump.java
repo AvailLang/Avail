@@ -57,7 +57,7 @@ extends Primitive
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_203_ExceptionStackDump().init(1, CanInline, CanFold);
+		new P_203_ExceptionStackDump().init(1, Unknown);
 
 	@Override
 	public Result attempt (
@@ -68,7 +68,7 @@ extends Primitive
 		final A_BasicObject exception = args.get(0);
 		final AvailRuntime runtime = interpreter.runtime();
 		final A_Fiber fiber = interpreter.fiber();
-		final AvailObject continuation;
+		final A_Continuation continuation;
 		try
 		{
 			continuation = exception.fieldMap().mapAt(
@@ -89,14 +89,12 @@ extends Primitive
 				public void value (final @Nullable List<String> stack)
 				{
 					assert stack != null;
-					final List<A_String> frames = new ArrayList<A_String>(
-						stack.size());
+					final List<A_String> frames = new ArrayList<>(stack.size());
 					for (int i = stack.size() - 1; i >= 0; i--)
 					{
 						frames.add(StringDescriptor.from(stack.get(i)));
 					}
-					final A_Tuple stackDump =
-						TupleDescriptor.fromList(frames);
+					final A_Tuple stackDump = TupleDescriptor.fromList(frames);
 					Interpreter.resumeFromSuccessfulPrimitive(
 						runtime,
 						fiber,
@@ -113,7 +111,7 @@ extends Primitive
 			TupleDescriptor.from(
 				ObjectTypeDescriptor.exceptionType()),
 			TupleTypeDescriptor.zeroOrMoreOf(
-				TupleTypeDescriptor.stringTupleType()));
+				TupleTypeDescriptor.stringType()));
 	}
 
 	@Override

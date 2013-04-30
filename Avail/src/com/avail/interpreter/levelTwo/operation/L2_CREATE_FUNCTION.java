@@ -74,9 +74,9 @@ public class L2_CREATE_FUNCTION extends L2Operation
 	}
 
 	@Override
-	public void propagateTypesInFor (
+	public void propagateTypes (
 		final L2Instruction instruction,
-		final RegisterSet registers)
+		final RegisterSet registerSet)
 	{
 		final L2ConstantOperand codeOperand =
 			(L2ConstantOperand) instruction.operands[0];
@@ -84,11 +84,12 @@ public class L2_CREATE_FUNCTION extends L2Operation
 			(L2ReadVectorOperand) instruction.operands[1];
 		final L2WritePointerOperand destinationOperand =
 			(L2WritePointerOperand) instruction.operands[2];
-		registers.typeAtPut(
+
+		registerSet.typeAtPut(
 			destinationOperand.register,
-			codeOperand.object.functionType());
-		registers.propagateWriteTo(destinationOperand.register);
-		if (outersOperand.vector.allRegistersAreConstantsIn(registers))
+			codeOperand.object.functionType(),
+			instruction);
+		if (outersOperand.vector.allRegistersAreConstantsIn(registerSet))
 		{
 			final A_Function function =
 				FunctionDescriptor.createExceptOuters(
@@ -99,12 +100,12 @@ public class L2_CREATE_FUNCTION extends L2Operation
 			{
 				function.outerVarAtPut(
 					index++,
-					registers.constantAt(outer));
+					registerSet.constantAt(outer));
 			}
 		}
 		else
 		{
-			registers.removeConstantAt(destinationOperand.register);
+			registerSet.removeConstantAt(destinationOperand.register);
 		}
 	}
 }

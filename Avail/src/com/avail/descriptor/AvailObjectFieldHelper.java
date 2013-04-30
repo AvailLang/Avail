@@ -167,13 +167,13 @@ public class AvailObjectFieldHelper
 			else if (val instanceof AvailObject)
 			{
 				builder.append(' ');
-				builder.append(((A_BasicObject)value).nameForDebugger());
+				builder.append(((A_BasicObject)val).nameForDebugger());
 			}
 			else if (val instanceof AvailIntegerValueHelper)
 			{
 				AbstractDescriptor.describeIntegerSlot(
 					(AvailObject)parentObject,
-					((AvailIntegerValueHelper)value).intValue,
+					((AvailIntegerValueHelper)val).intValue,
 					(IntegerSlotsEnum)slot,
 					builder);
 			}

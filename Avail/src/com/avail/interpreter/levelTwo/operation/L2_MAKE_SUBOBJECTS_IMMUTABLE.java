@@ -35,6 +35,7 @@ import static com.avail.interpreter.levelTwo.L2OperandType.READ_POINTER;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelOne.L1Operation;
 import com.avail.interpreter.levelTwo.*;
+import com.avail.optimizer.RegisterSet;
 
 /**
  * Mark as immutable all objects referred to from the specified object.
@@ -61,10 +62,15 @@ public class L2_MAKE_SUBOBJECTS_IMMUTABLE extends L2Operation
 	@Override
 	public boolean hasSideEffect ()
 	{
-		// Marking the object immutable is a side effect, but unfortunately
-		// this could keep extra instructions around to create an object
-		// that nobody wants.
-		// [MvG] - maybe use a pseudo-copy operation from linear languages?
+		// Marking the object's parts immutable is a side effect.
 		return true;
+	}
+
+	@Override
+	public void propagateTypes (
+		final L2Instruction instruction,
+		final RegisterSet registerSet)
+	{
+		// It just has a side-effect.
 	}
 }

@@ -355,7 +355,7 @@ extends Descriptor
 		object.setSlot(CODE, code);
 		for (int i = copiedTuple.tupleSize(); i >= 1; -- i)
 		{
-			object.outerVarAtPut(i, copiedTuple.tupleAt(i));
+			object.setSlot(OUTER_VAR_AT_, i, copiedTuple.tupleAt(i));
 		}
 		return object;
 	}

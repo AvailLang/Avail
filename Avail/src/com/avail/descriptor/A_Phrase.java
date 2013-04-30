@@ -164,9 +164,10 @@ extends A_BasicObject
 	A_BasicObject markerValue ();
 
 	/**
-	 * Answer this send node's method.  TODO[MvG] - Use a bundle instead.
+	 * Answer this send node's {@linkplain MessageBundleDescriptor message
+	 * bundle}.
 	 *
-	 * @return
+	 * @return The message bundle.
 	 */
 	A_Bundle bundle ();
 

@@ -33,10 +33,12 @@ package com.avail.interpreter.levelTwo.operation;
 
 import static com.avail.interpreter.Interpreter.argumentOrLocalRegister;
 import static com.avail.interpreter.levelTwo.register.FixedRegister.FUNCTION;
+import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import com.avail.descriptor.*;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.*;
 import com.avail.optimizer.L2Translator;
+import com.avail.optimizer.L2Translator.OptimizationLevel;
 import com.avail.utility.*;
 
 /**
@@ -51,11 +53,13 @@ extends L2Operation
 	 * Initialize the sole instance.
 	 */
 	public final static L2Operation instance =
-		new L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO().init();
+		new L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO().init(
+			IMMEDIATE.is("New optimization level"));
 
 	@Override
 	public void step (final Interpreter interpreter)
 	{
+		final int targetOptimizationLevel = interpreter.nextWord();
 		final A_Function theFunction = interpreter.pointerAt(FUNCTION);
 		final A_RawFunction theCode = theFunction.code();
 		final Mutable<Boolean> translated = new Mutable<Boolean>(false);
@@ -66,9 +70,9 @@ extends L2Operation
 			{
 				theCode.countdownToReoptimize(
 					L2ChunkDescriptor.countdownForNewlyOptimizedCode());
-				final L2Translator translator = new L2Translator(theCode);
-				translator.translateOptimizationFor(
-					3,
+				L2Translator.translateToLevelTwo(
+					theCode,
+					OptimizationLevel.values()[targetOptimizationLevel],
 					interpreter);
 				translated.value = true;
 			}

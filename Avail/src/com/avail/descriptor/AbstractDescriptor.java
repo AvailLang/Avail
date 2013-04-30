@@ -1226,7 +1226,7 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @return TODO
+	 * @return
 	 */
 	abstract A_BundleTree o_BuildFilteredBundleTree (
 		AvailObject object);
@@ -3026,7 +3026,7 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param module TODO
+	 * @param module
 	 */
 	abstract void o_Expand (AvailObject object, A_Module module);
 

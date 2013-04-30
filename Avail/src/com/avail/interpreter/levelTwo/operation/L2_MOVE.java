@@ -70,40 +70,44 @@ public class L2_MOVE extends L2Operation
 	}
 
 	@Override
-	public void propagateTypesInFor (
+	public void propagateTypes (
 		final L2Instruction instruction,
-		final RegisterSet registers)
+		final RegisterSet registerSet)
 	{
 		final L2ReadPointerOperand sourceOperand =
 			(L2ReadPointerOperand) instruction.operands[0];
 		final L2WritePointerOperand destinationOperand =
 			(L2WritePointerOperand) instruction.operands[1];
+
 		final L2Register sourceRegister = sourceOperand.register;
 		final L2Register destinationRegister = destinationOperand.register;
 
 		assert sourceRegister != destinationRegister;
 
-		if (registers.hasTypeAt(sourceRegister))
+		registerSet.removeConstantAt(destinationRegister);
+		if (registerSet.hasTypeAt(sourceRegister))
 		{
-			registers.typeAtPut(
+			registerSet.typeAtPut(
 				destinationRegister,
-				registers.typeAt(sourceRegister));
+				registerSet.typeAt(sourceRegister),
+				instruction);
 		}
 		else
 		{
-			registers.removeTypeAt(destinationRegister);
-		}
-		if (registers.hasConstantAt(sourceRegister))
-		{
-			registers.constantAtPut(
-				destinationRegister,
-				registers.constantAt(sourceRegister));
-		}
-		else
-		{
-			registers.removeConstantAt(destinationRegister);
+			registerSet.removeTypeAt(destinationRegister);
 		}
 
-	registers.propagateMove(sourceRegister, destinationRegister);
+		if (registerSet.hasConstantAt(sourceRegister))
+		{
+			registerSet.constantAtPut(
+				destinationRegister,
+				registerSet.constantAt(sourceRegister),
+				instruction);
+		}
+
+		registerSet.propagateMove(
+			sourceRegister,
+			destinationRegister,
+			instruction);
 	}
 }

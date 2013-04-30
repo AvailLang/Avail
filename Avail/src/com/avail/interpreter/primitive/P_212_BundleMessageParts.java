@@ -68,6 +68,6 @@ public class P_212_BundleMessageParts extends Primitive
 			TupleDescriptor.from(
 				MESSAGE_BUNDLE.o()),
 			TupleTypeDescriptor.zeroOrMoreOf(
-				TupleTypeDescriptor.stringTupleType()));
+				TupleTypeDescriptor.stringType()));
 	}
 }

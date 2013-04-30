@@ -104,7 +104,7 @@ extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				TupleTypeDescriptor.stringTupleType(),
+				TupleTypeDescriptor.stringType(),
 				FunctionTypeDescriptor.forReturnType(
 					InstanceMetaDescriptor.topMeta())),
 			TOP.o());

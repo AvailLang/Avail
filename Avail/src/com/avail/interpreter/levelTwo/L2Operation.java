@@ -32,12 +32,12 @@
 
 package com.avail.interpreter.levelTwo;
 
+import java.util.List;
 import com.avail.annotations.Nullable;
 import com.avail.descriptor.L2ChunkDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.operand.*;
 import com.avail.optimizer.*;
-import com.avail.interpreter.levelTwo.register.*;
 
 /**
  * The instruction set for the {@linkplain Interpreter level two Avail
@@ -201,21 +201,45 @@ public abstract class L2Operation
 	public abstract void step (final Interpreter interpreter);
 
 	/**
+	 * Propagate type, value, alias, and source instruction information due to
+	 * the execution of this instruction.  The first {@link RegisterSet} is for
+	 * the fall-through situation (if the {@link
+	 * L2Operation#reachesNextInstruction()}), and represents the state in the
+	 * case that the instruction runs normally and advances to the next one
+	 * sequentially.  The remainder correspond to the {@link
+	 * L2Instruction#targetLabels()}.
+	 *
 	 * @param instruction
-	 * @param registers
+	 *            The L2Instruction containing this L2Operation.
+	 * @param registerSets
+	 *            A list of RegisterSets to update with information that this
+	 *            operation provides.
 	 */
-	public void propagateTypesInFor (
+	public void propagateTypes (
 		final L2Instruction instruction,
-		final RegisterSet registers)
+		final List<RegisterSet> registerSets)
 	{
-		// By default just record that the destinations have been overwritten.
-		for (final L2Register destinationRegister
-			: instruction.destinationRegisters())
-		{
-			registers.removeConstantAt(destinationRegister);
-			registers.removeTypeAt(destinationRegister);
-			registers.propagateWriteTo(destinationRegister);
-		}
+		assert false : "Please override multi-target L2Operation";
+	}
+
+	/**
+	 * Propagate type, value, alias, and source instruction information due to
+	 * the execution of this instruction.  The instruction must not have
+	 * multiple possible successor instructions.
+	 *
+	 * @param instruction
+	 *            The L2Instruction containing this L2Operation.
+	 * @param registerSet
+	 *            A RegisterSet to supply with information about
+	 *            A list of RegisterSets to update with information that this
+	 *            operation provides.
+	 * @see #propagateTypes(L2Instruction, List)
+	 */
+	public void propagateTypes (
+		final L2Instruction instruction,
+		final RegisterSet registerSet)
+	{
+		assert false : "Please override single-target L2Operation";
 	}
 
 	/**
@@ -278,5 +302,31 @@ public abstract class L2Operation
 	public boolean reachesNextInstruction ()
 	{
 		return true;
+	}
+
+	/**
+	 * Write an alternative to this instruction into the given {@link List} of
+	 * instructions.  The state at the start of this instruction has been
+	 * provided, but should not be modified.  Answer whether a semantic change
+	 * has taken place that might require another pass of flow analysis.
+	 *
+	 * @param instruction
+	 *            The {@link L2Instruction} containing this operation.
+	 * @param newInstructions
+	 *            The list of instructions to augment.
+	 * @param registerSet
+	 *            The state of registers upon starting this instruction.
+	 * @return Whether the regenerated instructions are different enough to
+	 *         warrant another pass of flow analysis.
+	 */
+	public boolean regenerate (
+		final L2Instruction instruction,
+		final List<L2Instruction> newInstructions,
+		final RegisterSet registerSet)
+	{
+		// By default just produce the same instruction.
+		assert instruction.operation == this;
+		newInstructions.add(instruction);
+		return false;
 	}
 }

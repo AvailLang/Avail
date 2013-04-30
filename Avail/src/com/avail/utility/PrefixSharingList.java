@@ -102,7 +102,7 @@ public class PrefixSharingList<E> extends AbstractList<E>
 	 * ignoring the extra elements.
 	 *
 	 * <p>
-	 * TODO: This could be considered a reference leak, but it shouldn't be
+	 * Note: This could be considered a reference leak, but it shouldn't be
 	 * significant for Avail's purposes.  It can be fixed by storing weak
 	 * references within the flat list (the strong references from {@link
 	 * #lastElement} will prevent useful elements from disappearing).

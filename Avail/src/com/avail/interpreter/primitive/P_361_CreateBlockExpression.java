@@ -107,8 +107,7 @@ extends Primitive
 				InstanceMetaDescriptor.topMeta(),
 				SetTypeDescriptor.setTypeForSizesContentType(
 					IntegerRangeTypeDescriptor.wholeNumbers(),
-					// TODO: [MvG] This should be the root exception type.
-					ANY.o())),
+					ObjectTypeDescriptor.exceptionType())),
 			BLOCK_NODE.mostGeneralType());
 	}
 }

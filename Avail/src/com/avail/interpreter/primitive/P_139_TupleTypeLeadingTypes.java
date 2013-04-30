@@ -55,7 +55,7 @@ public class P_139_TupleTypeLeadingTypes extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
-		final A_BasicObject tupleType = args.get(0);
+		final A_Type tupleType = args.get(0);
 		return interpreter.primitiveSuccess(tupleType.typeTuple());
 	}
 

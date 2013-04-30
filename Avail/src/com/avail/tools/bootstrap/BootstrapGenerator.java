@@ -460,7 +460,7 @@ public final class BootstrapGenerator
 		final StringBuilder names = new StringBuilder();
 		if (fallible == null)
 		{
-			names.append(primitivesNamesString(primitives(fallible)));
+			names.append(primitivesNamesString(primitives(null)));
 		}
 		else if (Boolean.TRUE.equals(fallible))
 		{

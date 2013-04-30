@@ -75,9 +75,9 @@ public class L2_GET_VARIABLE_CLEARING extends L2Operation
 	}
 
 	@Override
-	public void propagateTypesInFor (
+	public void propagateTypes (
 		final L2Instruction instruction,
-		final RegisterSet registers)
+		final RegisterSet registerSet)
 	{
 		final L2ReadPointerOperand variableOperand =
 			(L2ReadPointerOperand) instruction.operands[0];
@@ -86,16 +86,14 @@ public class L2_GET_VARIABLE_CLEARING extends L2Operation
 
 		// If we haven't already guaranteed that this is a variable then we
 		// are probably not doing things right.
-		assert registers.hasTypeAt(variableOperand.register);
-		final A_Type varType = registers.typeAt(
-			variableOperand.register);
-		assert varType.isSubtypeOf(
-			VariableTypeDescriptor.mostGeneralType());
-		registers.typeAtPut(
+		assert registerSet.hasTypeAt(variableOperand.register);
+		final A_Type varType = registerSet.typeAt(variableOperand.register);
+		assert varType.isSubtypeOf(VariableTypeDescriptor.mostGeneralType());
+		registerSet.removeConstantAt(destinationOperand.register);
+		registerSet.typeAtPut(
 			destinationOperand.register,
-			varType.readType());
-		registers.removeConstantAt(destinationOperand.register);
-		registers.propagateWriteTo(destinationOperand.register);
+			varType.readType(),
+			instruction);
 	}
 
 	@Override

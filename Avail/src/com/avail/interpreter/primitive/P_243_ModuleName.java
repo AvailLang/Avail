@@ -69,6 +69,6 @@ extends Primitive
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
 				MODULE.o()),
-			TupleTypeDescriptor.stringTupleType());
+			TupleTypeDescriptor.stringType());
 	}
 }

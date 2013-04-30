@@ -230,7 +230,7 @@ public class P_508_CreatePojoStaticMethodFunction extends Primitive
 			TupleDescriptor.from(
 				InstanceMetaDescriptor.on(
 					PojoTypeDescriptor.mostGeneralType()),
-				TupleTypeDescriptor.stringTupleType(),
+				TupleTypeDescriptor.stringType(),
 				TupleTypeDescriptor.zeroOrMoreOf(
 					InstanceMetaDescriptor.anyMeta()),
 				FunctionTypeDescriptor.create(

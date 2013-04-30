@@ -78,7 +78,7 @@ extends Primitive
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
 				ANY.o(),
-				TupleTypeDescriptor.stringTupleType()),
+				TupleTypeDescriptor.stringType()),
 			LiteralTokenTypeDescriptor.mostGeneralType());
 	}
 }

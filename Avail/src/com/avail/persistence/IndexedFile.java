@@ -114,6 +114,26 @@ extends AbstractList<byte[]>
 		return ch;
 	}
 
+	/**
+	 * A lock on the last indexable byte of the file.  Not the last byte of the
+	 * actual extant file, but the last indexable byte (2^63-1).  This allows
+	 * multiple readers or one writer.
+	 */
+	private @Nullable FileLock longTermLock;
+
+	/**
+	 * Answer the existing {@link FileLock} on the last indexable byte of the
+	 * file.
+	 *
+	 * @return The lock.
+	 */
+	private FileLock longTermLock ()
+	{
+		final FileLock theLock = longTermLock;
+		assert theLock != null;
+		return theLock;
+	}
+
 	/** The preferred page size of a {@linkplain IndexedFile indexed file}. */
 	public static final int DEFAULT_PAGE_SIZE = 4096;
 
@@ -471,7 +491,7 @@ extends AbstractList<byte[]>
 						final byte[] block = fetchSizedFromFile(argument);
 						final Inflater inflater = new Inflater();
 						inflater.setInput(block);
-						final List<byte[]> buffers = new ArrayList<byte[]>(10);
+						final List<byte[]> buffers = new ArrayList<>(10);
 						int size = 0;
 						int bufferPos = -1;
 						while (!inflater.needsInput())
@@ -761,13 +781,14 @@ extends AbstractList<byte[]>
 			assert file().length() == 0 : "The file is not empty.";
 			file().setLength(pageSize * 100);
 			channel = file().getChannel();
-			acquireLockForWriting(true);
+			longTermLock = acquireLockForWriting(true);
 			channel().write(buffer);
 			channel().force(true);
 			if (action != null)
 			{
 				action.value();
 			}
+			longTermLock().close();
 			channel().close();
 
 			// Rename the temporary file to the canonical target name. Reopen
@@ -1142,36 +1163,52 @@ extends AbstractList<byte[]>
 		lock.writeLock().lock();
 		try
 		{
-			try
+			if (longTermLock != null)
 			{
-				if (channel != null)
+				try
+				{
+					longTermLock().release();
+				}
+				catch (final IOException e)
+				{
+					// Ignore.
+				}
+				finally
+				{
+					longTermLock = null;
+				}
+			}
+
+			if (channel != null)
+			{
+				try
 				{
 					channel().close();
 				}
-			}
-			catch (final IOException e)
-			{
-				// Ignore.
-			}
-			finally
-			{
-				channel = null;
+				catch (final IOException e)
+				{
+					// Ignore.
+				}
+				finally
+				{
+					channel = null;
+				}
 			}
 
-			try
+			if (file != null)
 			{
-				if (file != null)
+				try
 				{
 					file().close();
 				}
-			}
-			catch (final IOException e)
-			{
-				// Ignore.
-			}
-			finally
-			{
-				file = null;
+				catch (final IOException e)
+				{
+					// Ignore.
+				}
+				finally
+				{
+					file = null;
+				}
 			}
 
 			try
@@ -1208,9 +1245,9 @@ extends AbstractList<byte[]>
 			final long exchange = masterPosition;
 			masterPosition = previousMasterPosition;
 			previousMasterPosition = exchange;
-			master().serialNumber = (master().serialNumber + 1) & 0xffffffff;
+			master().serialNumber++;
 			master().writeTo(b);
-			final FileLock fileLock = channel().lock(
+			final FileLock shortTermLock = channel().lock(
 				pageSize, masterNodeSize() * 2, false);
 			try
 			{
@@ -1220,7 +1257,7 @@ extends AbstractList<byte[]>
 			}
 			finally
 			{
-				fileLock.release();
+				shortTermLock.release();
 			}
 		}
 		finally
@@ -1671,6 +1708,15 @@ extends AbstractList<byte[]>
 	/**
 	 * Open the specified {@linkplain IndexedFile indexed file}.
 	 *
+	 * <p>Note that there may be any number of readers <em>and</em> up to one
+	 * writer accessing the file safely simultaneously.  Only the master blocks
+	 * are ever updated (all other blocks are written exactly once ever), and
+	 * those writes occur inside an exclusive lock of that region.  They're also
+	 * forced to disk before releasing the lock, to guarantee coherence.  The
+	 * reads of the master blocks happen inside a shared lock of the same
+	 * region.  A reader uses {@link #refresh()} to detect newly appended
+	 * records.</p>
+	 *
 	 * @param subclass
 	 *        The subclass of {@code IndexedFile} that should be created. This
 	 *        indicates the purpose of the indexed file. The {@linkplain
@@ -1707,7 +1753,7 @@ extends AbstractList<byte[]>
 			indexedFile.masterNodeSize());
 		if (forWriting)
 		{
-			indexedFile.acquireLockForWriting(true);
+			indexedFile.longTermLock = indexedFile.acquireLockForWriting(true);
 		}
 		indexedFile.refresh();
 		return (F) indexedFile;

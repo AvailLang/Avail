@@ -32,8 +32,10 @@
 package com.avail.interpreter.levelTwo.operation;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.PC;
+import java.util.List;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.*;
+import com.avail.optimizer.RegisterSet;
 
 /**
  * Jump to the specified level two program counter if no interrupt has been
@@ -60,9 +62,22 @@ public class L2_JUMP_IF_NOT_INTERRUPT extends L2Operation
 	}
 
 	@Override
+	public void propagateTypes (
+		final L2Instruction instruction,
+		final List<RegisterSet> registerSets)
+	{
+		// If there's an interrupt then fall through, otherwise jump as
+		// indicated.  Neither transition directly affects registers, although
+		// the instruction sequence that deals with an interrupt may do plenty.
+		assert registerSets.size() == 2;
+	}
+
+	@Override
 	public boolean hasSideEffect ()
 	{
-		// It jumps, which counts as a side effect.
+		// It jumps, which counts as a side effect.  It also dynamically tests
+		// for an interrupt request, which doesn't commute well with other
+		// instructions.
 		return true;
 	}
 }

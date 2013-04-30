@@ -33,6 +33,8 @@ package com.avail.interpreter.levelTwo.operation;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import static com.avail.interpreter.levelTwo.register.FixedRegister.PRIMITIVE_FAILURE;
+import java.util.List;
+import com.avail.descriptor.A_Continuation;
 import com.avail.descriptor.A_Function;
 import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.A_Tuple;
@@ -78,7 +80,7 @@ public class L2_INVOKE_AFTER_FAILED_PRIMITIVE extends L2Operation
 		final int functionIndex = interpreter.nextWord();
 		final int argumentsIndex = interpreter.nextWord();
 		final int failureValueIndex = interpreter.nextWord();
-		final AvailObject caller = interpreter.pointerAt(callerIndex);
+		final A_Continuation caller = interpreter.pointerAt(callerIndex);
 		final A_Function function = interpreter.pointerAt(functionIndex);
 		final AvailObject failureValue =
 			interpreter.pointerAt(failureValueIndex);
@@ -94,21 +96,33 @@ public class L2_INVOKE_AFTER_FAILED_PRIMITIVE extends L2Operation
 		assert primNum != 0;
 		assert !Primitive.byPrimitiveNumberOrFail(primNum).hasFlag(
 			Flag.CannotFail);
+		// Put the primitive failure value somewhere that both L1 and L2
+		// will find it.
+		interpreter.pointerAtPut(PRIMITIVE_FAILURE, failureValue);
+		interpreter.clearPointerAt(FixedRegister.CALLER.ordinal());  // safety
 		interpreter.invokeWithoutPrimitiveFunctionArguments(
 			function,
 			interpreter.argsBuffer,
 			caller);
-		// Put the primitive failure value somewhere that both L1 and L2
-		// will find it.
-		interpreter.pointerAtPut(PRIMITIVE_FAILURE, failureValue);
 	}
 
 	@Override
-	public void propagateTypesInFor (
+	public void propagateTypes (
 		final L2Instruction instruction,
-		final RegisterSet registers)
+		final RegisterSet registerSet)
 	{
-		registers.clearEverything();
+		registerSet.clearEverythingFor(instruction);
+	}
+
+	@Override
+	public void propagateTypes (
+		final L2Instruction instruction,
+		final List<RegisterSet> registerSets)
+	{
+		// An invoke-after-failed-primitive, like invoke, doesn't mention where
+		// it might return to -- this was already dealt with when the reified
+		// continuation was created.
+		assert registerSets.size() == 0;
 	}
 
 	@Override

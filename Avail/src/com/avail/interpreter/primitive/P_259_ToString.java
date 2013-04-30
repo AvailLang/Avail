@@ -67,6 +67,6 @@ public class P_259_ToString extends Primitive
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
 				ANY.o()),
-			TupleTypeDescriptor.stringTupleType());
+			TupleTypeDescriptor.stringType());
 	}
 }

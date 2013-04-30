@@ -35,6 +35,7 @@ import static com.avail.descriptor.AvailObject.error;
 import static com.avail.interpreter.levelTwo.L2OperandType.COMMENT;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.*;
+import com.avail.optimizer.RegisterSet;
 
 /**
  * A label can be the target of a branching instruction.  It is not actually
@@ -54,6 +55,21 @@ public class L2_LABEL extends L2Operation
 	public void step (final Interpreter interpreter)
 	{
 		error("Label wordcode is not executable\n");
+	}
+
+	@Override
+	public void propagateTypes (
+		final L2Instruction instruction,
+		final RegisterSet registerSet)
+	{
+		// It's a label.  It doesn't affect registers itself.
+	}
+
+	@Override
+	public boolean hasSideEffect ()
+	{
+		// Never remove a reachable label.
+		return true;
 	}
 
 	@Override

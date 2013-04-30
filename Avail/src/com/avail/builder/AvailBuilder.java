@@ -638,9 +638,9 @@ public final class AvailBuilder
 
 			// Run each zero-argument block, one after another.
 			final MutableOrNull<Continuation1<AvailObject>> runNext =
-				new MutableOrNull<Continuation1<AvailObject>>();
+				new MutableOrNull<>();
 			final MutableOrNull<Continuation1<Throwable>> fail =
-				new MutableOrNull<Continuation1<Throwable>>();
+				new MutableOrNull<>();
 			runNext.value = new Continuation1<AvailObject>()
 			{
 				@Override

@@ -44,7 +44,13 @@ import com.avail.interpreter.*;
 import com.avail.utility.Continuation0;
 
 /**
- * <strong>Primitive 253:</strong> Method definition.
+ * <strong>Primitive 253</strong>: Add a method definition, given a string for
+ * which to look up the corresponding {@linkplain AtomDescriptor atom} in the
+ * current {@linkplain ModuleDescriptor module} and the {@linkplain
+ * FunctionDescriptor function} which will act as the body of the method
+ * definition.
+ *
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public class P_253_SimpleMethodDeclaration
 extends Primitive
@@ -61,11 +67,11 @@ extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 2;
-		final AvailObject string = args.get(0);
-		final AvailObject function = args.get(1);
+		final A_String string = args.get(0);
+		final A_Function function = args.get(1);
 		final A_Fiber fiber = FiberDescriptor.current();
 		final AvailLoader loader = fiber.availLoader();
-		if (loader == null)
+		if (loader == null || loader.module().equalsNil())
 		{
 			return interpreter.primitiveFailure(E_LOADING_IS_OVER);
 		}
@@ -88,9 +94,9 @@ extends Primitive
 								loader.lookupName(string),
 								function,
 								true);
+							// Quote the string to make the method name.
 							function.code().setMethodName(
-								StringDescriptor.from(
-									String.format("%s", string)));
+								StringDescriptor.from(string.toString()));
 							Interpreter.resumeFromSuccessfulPrimitive(
 								AvailRuntime.current(),
 								fiber,
@@ -116,7 +122,7 @@ extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				TupleTypeDescriptor.stringTupleType(),
+				TupleTypeDescriptor.stringType(),
 				FunctionTypeDescriptor.mostGeneralType()),
 			TOP.o());
 	}

@@ -1945,7 +1945,7 @@ public final class Interpreter
 			send, NilDescriptor.nil(), 0);
 		// Create the fiber that will execute the function.
 		final A_Fiber fiber = FiberDescriptor.newFiber(
-			TupleTypeDescriptor.stringTupleType(),
+			TupleTypeDescriptor.stringType(),
 			FiberDescriptor.stringificationPriority);
 		fiber.resultContinuation(new Continuation1<AvailObject>()
 		{
@@ -2005,7 +2005,7 @@ public final class Interpreter
 			continuation.value(Collections.<String>emptyList());
 			return;
 		}
-		final Mutable<Integer> outstanding = new Mutable<Integer>(limit);
+		final Mutable<Integer> outstanding = new Mutable<>(limit);
 		final String[] strings = new String[limit];
 		for (int i = 0; i < limit; i++)
 		{
@@ -2044,20 +2044,27 @@ public final class Interpreter
 	 */
 	private List<String> builtinDumpStack ()
 	{
-		final List<A_Continuation> frames = new ArrayList<A_Continuation>(20);
+		final List<A_Function> functions = new ArrayList<>(20);
+		final A_Function currentFunction =
+			pointers[FixedRegister.FUNCTION.ordinal()];
+		if (currentFunction != null
+			&& !currentFunction.equalsNil())
+		{
+			functions.add(currentFunction);
+		}
 		for (
 			A_Continuation c = currentContinuation();
 			!c.equalsNil();
 			c = c.caller())
 		{
-			frames.add(c);
+			functions.add(c.function());
 		}
-		final List<String> strings = new ArrayList<String>(frames.size());
-		int line = frames.size();
+		final List<String> strings = new ArrayList<>(functions.size());
+		int line = functions.size();
 		final StringBuilder signatureBuilder = new StringBuilder(1000);
-		for (final A_Continuation frame : frames)
+		for (final A_Function function : functions)
 		{
-			final A_RawFunction code = frame.function().code();
+			final A_RawFunction code = function.code();
 			final A_Type functionType = code.functionType();
 			final A_Type paramsType = functionType.argsTupleType();
 			for (int i = 1,

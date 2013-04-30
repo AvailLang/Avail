@@ -98,7 +98,7 @@ extends ParseNodeDescriptor
 		if (tupleType.equalsNil())
 		{
 			final A_Tuple expressionsTuple = object.expressionsTuple();
-			final List<A_Type> types = new ArrayList<A_Type>(
+			final List<A_Type> types = new ArrayList<>(
 				expressionsTuple.tupleSize());
 			for (final AvailObject expression : expressionsTuple)
 			{

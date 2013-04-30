@@ -32,11 +32,13 @@
 package com.avail.interpreter.levelTwo.operation;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
+import java.util.List;
+import com.avail.descriptor.A_Continuation;
 import com.avail.descriptor.A_Function;
 import com.avail.descriptor.A_Tuple;
-import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.*;
+import com.avail.interpreter.levelTwo.register.FixedRegister;
 import com.avail.optimizer.RegisterSet;
 
 /**
@@ -46,9 +48,8 @@ import com.avail.optimizer.RegisterSet;
  * expected return type pushed instead.
  *
  * <p>
- * The appropriate function is looked up and invoked.  The function may be a
- * primitive, and the primitive may succeed, fail, or change the current
- * continuation.
+ * The given function is invoked.  The function may be a primitive, and the
+ * primitive may succeed, fail, or change the current continuation.
  * </p>
  */
 public class L2_INVOKE extends L2Operation
@@ -69,7 +70,7 @@ public class L2_INVOKE extends L2Operation
 		final int callerIndex = interpreter.nextWord();
 		final int functionIndex = interpreter.nextWord();
 		final int argumentsIndex = interpreter.nextWord();
-		final AvailObject caller = interpreter.pointerAt(callerIndex);
+		final A_Continuation caller = interpreter.pointerAt(callerIndex);
 		final A_Function function = interpreter.pointerAt(functionIndex);
 		final A_Tuple vect = interpreter.vectorAt(argumentsIndex);
 		interpreter.argsBuffer.clear();
@@ -79,17 +80,20 @@ public class L2_INVOKE extends L2Operation
 			interpreter.argsBuffer.add(
 				interpreter.pointerAt(vect.tupleIntAt(i)));
 		}
+		interpreter.clearPointerAt(FixedRegister.CALLER.ordinal());  // safety
 		interpreter.invokePossiblePrimitiveWithReifiedCaller(
 			function,
 			caller);
 	}
 
 	@Override
-	public void propagateTypesInFor (
+	public void propagateTypes (
 		final L2Instruction instruction,
-		final RegisterSet registers)
+		final List<RegisterSet> registerSets)
 	{
-		registers.clearEverything();
+		// An invoke doesn't mention where it might return to -- this was
+		// already dealt with when the reified continuation was created.
+		assert registerSets.size() == 0;
 	}
 
 	@Override
@@ -102,7 +106,7 @@ public class L2_INVOKE extends L2Operation
 	@Override
 	public boolean reachesNextInstruction ()
 	{
-		// Returns to the pc saved in the continuation.
+		// Eventually returns to the level two pc saved in the continuation.
 		return false;
 	}
 }

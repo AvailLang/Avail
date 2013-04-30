@@ -59,7 +59,7 @@ extends Primitive
 	 */
 	public final static Primitive instance =
 		new P_227_AbstractMethodDeclarationForAtom().init(
-			2, CanInline);
+			2, Unknown);
 
 	@Override
 	public Result attempt (

@@ -135,7 +135,7 @@ public class P_505_BindPojoStaticField extends Primitive
 			TupleDescriptor.from(
 				InstanceMetaDescriptor.on(
 					PojoTypeDescriptor.mostGeneralType()),
-				TupleTypeDescriptor.stringTupleType()),
+				TupleTypeDescriptor.stringType()),
 			VariableTypeDescriptor.mostGeneralType());
 	}
 }

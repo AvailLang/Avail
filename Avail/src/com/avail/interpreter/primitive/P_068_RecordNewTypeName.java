@@ -72,7 +72,7 @@ public class P_068_RecordNewTypeName extends Primitive
 			TupleDescriptor.from(
 				InstanceMetaDescriptor.on(
 					ObjectTypeDescriptor.mostGeneralType()),
-				TupleTypeDescriptor.stringTupleType()),
+				TupleTypeDescriptor.stringType()),
 			TOP.o());
 	}
 }

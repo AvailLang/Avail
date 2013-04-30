@@ -301,7 +301,7 @@ extends Descriptor
 		final AvailObject object,
 		final List<A_Type> argTypes)
 	{
-		final List<A_Definition> result = new ArrayList<A_Definition>(3);
+		final List<A_Definition> result = new ArrayList<>(3);
 		// Use the accessor instead of reading the slot directly (to acquire the
 		// monitor first).
 		final A_Tuple impsTuple = object.definitionsTuple();

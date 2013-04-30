@@ -71,6 +71,6 @@ extends Primitive
 				MODULE.o()),
 			SetTypeDescriptor.setTypeForSizesContentType(
 				IntegerRangeTypeDescriptor.wholeNumbers(),
-				TupleTypeDescriptor.stringTupleType()));
+				TupleTypeDescriptor.stringType()));
 	}
 }

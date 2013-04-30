@@ -62,8 +62,8 @@ extends Primitive
 		assert args.size() == 2;
 		final A_Atom atom = args.get(0);
 		final A_Function function = args.get(1);
-		final A_BasicObject functionType = function.kind();
-		final A_BasicObject tupleType = functionType.argsTupleType();
+		final A_Type functionType = function.kind();
+		final A_Type tupleType = functionType.argsTupleType();
 		for (int i = function.code().numArgs(); i >= 1; i--)
 		{
 			if (!tupleType.typeAtIndex(i).isInstanceOf(

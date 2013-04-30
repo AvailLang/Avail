@@ -42,7 +42,6 @@ import com.avail.interpreter.levelOne.L1Operation;
 import com.avail.interpreter.primitive.*;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.Continuation1;
-import com.avail.utility.Mutable;
 
 /**
  * A {@linkplain ContinuationDescriptor continuation} acts as an immutable
@@ -539,7 +538,7 @@ extends Descriptor
 		final A_Continuation availContinuation,
 		final Continuation1<List<String>> javaContinuation)
 	{
-		final List<A_Continuation> frames = new ArrayList<A_Continuation>(20);
+		final List<A_Continuation> frames = new ArrayList<>(20);
 		for (
 			A_Continuation c = availContinuation;
 			!c.equalsNil();
@@ -554,45 +553,44 @@ extends Descriptor
 			return;
 		}
 		final String[] strings = new String[lines];
-		final Mutable<Integer> outstanding = new Mutable<Integer>(lines);
-		for (int index = 0, end = frames.size(); index < end; index++)
+		final List<A_Type> allTypes = new ArrayList<>();
+		for (final A_Continuation frame : frames)
 		{
-			final int frameIndex = index;
-			final A_Continuation frame = frames.get(frameIndex);
 			final A_RawFunction code = frame.function().code();
 			final A_Type functionType = code.functionType();
 			final A_Type paramsType = functionType.argsTupleType();
-			final List<A_BasicObject> types =
-				new ArrayList<A_BasicObject>();
-			for (
-				int i = 1,
-				limit = paramsType.sizeRange().lowerBound().extractInt();
-				i <= limit;
-				i++)
+			for (int i = 1, limit = code.numArgs(); i <= limit; i++)
 			{
-				types.add(paramsType.typeAtIndex(i));
+				allTypes.add(paramsType.typeAtIndex(i));
 			}
-			Interpreter.stringifyThen(
-				runtime,
-				types,
-				new Continuation1<List<String>>()
+		}
+		Interpreter.stringifyThen(
+			runtime,
+			allTypes,
+			new Continuation1<List<String>>()
+			{
+				@Override
+				public void value (final @Nullable List<String> allTypeNames)
 				{
-					@Override
-					public void value (final @Nullable List<String> params)
+					assert allTypeNames != null;
+					int allTypesIndex = 0;
+					for (
+						int index = 0, end = frames.size();
+						index < end;
+						index++)
 					{
-						assert params != null;
+						final int frameIndex = index;
+						final A_Continuation frame = frames.get(frameIndex);
+						final A_RawFunction code = frame.function().code();
 						final StringBuilder signatureBuilder =
 							new StringBuilder(1000);
-						for (
-							int i = 0, limit = params.size();
-							i < limit;
-							i++)
+						for (int i = 1, limit = code.numArgs(); i <= limit; i++)
 						{
-							if (i != 0)
+							if (i != 1)
 							{
 								signatureBuilder.append(", ");
 							}
-							signatureBuilder.append(params.get(i));
+							signatureBuilder.append(++allTypesIndex);
 						}
 						final A_Module module = code.module();
 						strings[frameIndex] = String.format(
@@ -604,18 +602,10 @@ extends Descriptor
 								? "?"
 								: module.moduleName().asNativeString(),
 							code.startingLineNumber());
-						synchronized (outstanding)
-						{
-							outstanding.value--;
-							if (outstanding.value == 0)
-							{
-								final List<String> list =
-									Arrays.asList(strings);
-								javaContinuation.value(list);
-							}
-						}
 					}
-				});
-		}
+					assert allTypesIndex == allTypeNames.size();
+					javaContinuation.value(Arrays.asList(strings));
+				}
+			});
 	}
 }

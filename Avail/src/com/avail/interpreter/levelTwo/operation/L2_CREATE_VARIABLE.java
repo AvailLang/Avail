@@ -64,20 +64,19 @@ public class L2_CREATE_VARIABLE extends L2Operation
 	}
 
 	@Override
-	public void propagateTypesInFor (
+	public void propagateTypes (
 		final L2Instruction instruction,
-		final RegisterSet registers)
+		final RegisterSet registerSet)
 	{
 		final L2ConstantOperand constantOperand =
 			(L2ConstantOperand) instruction.operands[0];
 		final L2WritePointerOperand destinationOperand =
 			(L2WritePointerOperand) instruction.operands[1];
-		// We know the type...
-		registers.typeAtPut(
+		// No longer a constant, but we know the type...
+		registerSet.removeConstantAt(destinationOperand.register);
+		registerSet.typeAtPut(
 			destinationOperand.register,
-			constantOperand.object);
-		// ...but the instance is new so it can't be a constant.
-		registers.removeConstantAt(destinationOperand.register);
-		registers.propagateWriteTo(destinationOperand.register);
+			constantOperand.object,
+			instruction);
 	}
 }

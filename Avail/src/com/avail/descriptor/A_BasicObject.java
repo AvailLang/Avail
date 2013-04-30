@@ -830,23 +830,6 @@ public interface A_BasicObject
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	A_Type typeAtIndex (int index);
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	A_Tuple typeTuple ();
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	A_Type unionOfTypesAtThrough (
-		int startIndex,
-		int endIndex);
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
 	int untranslatedDataAt (int index);
 
 	/**

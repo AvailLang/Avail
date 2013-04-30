@@ -59,7 +59,7 @@ extends Primitive
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_383_CreateSendExpression().init(3, CanFold);
+		new P_383_CreateSendExpression().init(3, CanFold, CanInline);
 
 	@Override
 	public Result attempt (
@@ -70,12 +70,14 @@ extends Primitive
 		final A_Atom messageName = args.get(0);
 		final A_Phrase argsListNode = args.get(1);
 		final A_Type returnType = args.get(2);
+
+		final A_Tuple argExpressions = argsListNode.expressionsTuple();
+		final int argsCount = argExpressions.tupleSize();
 		try
 		{
 			final MessageSplitter splitter =
 				new MessageSplitter(messageName.atomName());
-			if (splitter.numberOfArguments()
-				!= argsListNode.expressionsTuple().tupleSize())
+			if (splitter.numberOfArguments() != argsCount)
 			{
 				return interpreter.primitiveFailure(
 					E_INCORRECT_NUMBER_OF_ARGUMENTS);
@@ -83,11 +85,34 @@ extends Primitive
 		}
 		catch (final SignatureException e)
 		{
-			assert false : "The method name was extracted from a real method!";
+			return interpreter.primitiveFailure(e.errorCode());
+		}
+		final A_Bundle bundle = messageName.bundleOrCreate();
+		final A_Method method = bundle.bundleMethod();
+		final A_Set allAncestors = interpreter.module().allAncestors();
+		final List<A_Type> argTypes = new ArrayList<>(argsCount);
+		for (final A_Phrase expression : argExpressions)
+		{
+			argTypes.add(expression.expressionType());
+		}
+		boolean anyMatchingDefinitions = false;
+		for (final A_Definition definition : method.definitionsTuple())
+		{
+			if (allAncestors.hasElement(definition.definitionModule())
+				&& definition.bodySignature().acceptsListOfArgTypes(argTypes))
+			{
+				anyMatchingDefinitions = true;
+				break;
+			}
+		}
+		if (!anyMatchingDefinitions)
+		{
+			return interpreter.primitiveFailure(
+				E_INCORRECT_ARGUMENT_TYPE);
 		}
 		return interpreter.primitiveSuccess(
 			SendNodeDescriptor.from(
-				messageName.bundleOrCreate(),
+				bundle,
 				argsListNode,
 				returnType));
 	}
@@ -101,5 +126,18 @@ extends Primitive
 				LIST_NODE.mostGeneralType(),
 				InstanceMetaDescriptor.topMeta()),
 			SEND_NODE.mostGeneralType());
+	}
+
+	@Override
+	public A_Type returnTypeGuaranteedByVM (
+		final List<? extends A_Type> argumentTypes)
+	{
+		assert argumentTypes.size() == 3;
+//		final A_Type messageNameType = argumentTypes.get(0);
+//		final A_Type argsListNodeType = argumentTypes.get(1);
+		final A_Type returnTypeType = argumentTypes.get(2);
+
+		final A_Type returnType = returnTypeType.instance();
+		return SEND_NODE.create(returnType);
 	}
 }

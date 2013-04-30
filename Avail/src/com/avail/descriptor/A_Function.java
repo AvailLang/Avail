@@ -73,6 +73,7 @@ extends A_BasicObject
 	 * it, so answer false.
 	 *
 	 * @param index Which outer variable or constant is no longer needed.
+	 * @return Whether the outer variable or constant was actually nilled.
 	 */
 	boolean optionallyNilOuterVar (int index);
 

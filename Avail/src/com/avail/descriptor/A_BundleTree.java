@@ -90,13 +90,21 @@ extends A_BasicObject
 	boolean removeBundleNamed (A_Atom message);
 
 	/**
-	 * Dispatch to the descriptor.
-	 * @param module TODO
+	 * Expand the bundle tree if there's anything currently unclassified in it.
+	 * By postponing this until necessary, construction of the parsing rules for
+	 * the grammar is postponed until actually necessary.
+	 *
+	 * @param module The current module in which this bundle tree is being used
+	 *               to parse.
 	 */
 	void expand (A_Module module);
 
 	/**
-	 * @param bundle
+	 * The specified bundle has been added or modified in this bundle tree.
+	 * Adjust the bundle tree as needed.
+	 *
+	 * @param bundle The {@link MessageBundleDescriptor bundle} that has been
+	 *               added or modified in this bundle tree.
 	 */
 	void flushForNewOrChangedBundle (A_Bundle bundle);
 }

@@ -71,7 +71,7 @@ extends Primitive
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
 				FiberTypeDescriptor.mostGeneralType(),
-				TupleTypeDescriptor.stringTupleType()),
+				TupleTypeDescriptor.stringType()),
 			TOP.o());
 	}
 }

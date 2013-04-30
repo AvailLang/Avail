@@ -32,6 +32,7 @@
 package com.avail.interpreter.levelTwo.operation;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_POINTER;
+import java.util.List;
 import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.*;
@@ -74,10 +75,13 @@ extends L2Operation
 	}
 
 	@Override
-	public void propagateTypesInFor (
+	public void propagateTypes (
 		final L2Instruction instruction,
-		final RegisterSet registers)
+		final List<RegisterSet> registerSets)
 	{
-		registers.clearEverything();
+		// It doesn't reach the next instruction, and it doesn't mention where
+		// to resume.  That was dealt with by previous instructions that
+		// assembled a continuation to resume.
+		assert registerSets.size() == 0;
 	}
 }

@@ -943,7 +943,7 @@ extends TypeDescriptor
 			}
 			else if (aClass.equals(String.class))
 			{
-				return TupleTypeDescriptor.stringTupleType();
+				return TupleTypeDescriptor.stringType();
 			}
 			else if (aClass.equals(BigInteger.class))
 			{

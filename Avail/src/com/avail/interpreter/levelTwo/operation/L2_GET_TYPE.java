@@ -60,13 +60,14 @@ public class L2_GET_TYPE extends L2Operation
 		final int destIndex = interpreter.nextWord();
 		interpreter.pointerAtPut(
 			destIndex,
-			InstanceTypeDescriptor.on(interpreter.pointerAt(srcIndex)));
+			AbstractEnumerationTypeDescriptor.withInstance(
+				interpreter.pointerAt(srcIndex)));
 	}
 
 	@Override
-	public void propagateTypesInFor (
+	public void propagateTypes (
 		final L2Instruction instruction,
-		final RegisterSet registers)
+		final RegisterSet registerSet)
 	{
 		final L2ReadPointerOperand sourceOperand =
 			(L2ReadPointerOperand) instruction.operands[0];
@@ -76,32 +77,35 @@ public class L2_GET_TYPE extends L2Operation
 		final L2ObjectRegister sourceRegister = sourceOperand.register;
 		final L2ObjectRegister destinationRegister =
 			destinationOperand.register;
-		if (registers.hasTypeAt(sourceRegister))
+		registerSet.removeConstantAt(destinationRegister);
+		if (registerSet.hasTypeAt(sourceRegister))
 		{
-			final A_Type type = registers.typeAt(sourceRegister);
+			final A_Type type = registerSet.typeAt(sourceRegister);
 			// Apply the rule of metacovariance. It says that given types T1
 			// and T2, T1 <= T2 implies T1 type <= T2 type. It is guaranteed
 			// true for all types in Avail.
 			final A_Type meta = InstanceMetaDescriptor.on(type);
-			registers.typeAtPut(destinationRegister, meta);
+			registerSet.typeAtPut(
+				destinationRegister,
+				meta,
+				instruction);
 		}
 		else
 		{
-			registers.typeAtPut(
+			registerSet.typeAtPut(
 				destinationRegister,
-				InstanceMetaDescriptor.topMeta());
+				InstanceMetaDescriptor.topMeta(),
+				instruction);
 		}
 
-	if (registers.hasConstantAt(sourceRegister))
+		if (registerSet.hasConstantAt(sourceRegister)
+			&& !registerSet.constantAt(sourceRegister).isType())
 		{
-			registers.constantAtPut(
+			registerSet.constantAtPut(
 				destinationRegister,
-				registers.constantAt(sourceRegister).kind());
+				AbstractEnumerationTypeDescriptor.withInstance(
+					registerSet.constantAt(sourceRegister)),
+				instruction);
 		}
-		else
-		{
-			registers.removeConstantAt(destinationRegister);
-		}
-		registers.propagateWriteTo(destinationRegister);
 	}
 }

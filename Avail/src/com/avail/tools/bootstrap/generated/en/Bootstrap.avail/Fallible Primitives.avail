@@ -1274,7 +1274,7 @@ Primitive "`«[_`|Primitive__]:_^_`»" is
 	primitiveNumber : unsigned short,
 	statements : phrase tuple,
 	returnType : type,
-	exceptions : set
+	exceptions : set of exception
 |
 	Primitive 361 (failureCode : natural number);
 	Private invoke _fail_primitive with failureCode

@@ -97,7 +97,7 @@ public class P_504_BindPojoInstanceField extends Primitive
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
 				PojoTypeDescriptor.mostGeneralType(),
-				TupleTypeDescriptor.stringTupleType()),
+				TupleTypeDescriptor.stringType()),
 			VariableTypeDescriptor.mostGeneralType());
 	}
 }

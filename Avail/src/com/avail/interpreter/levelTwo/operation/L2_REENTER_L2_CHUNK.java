@@ -37,6 +37,7 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelOne.L1Operation;
 import com.avail.interpreter.levelTwo.*;
 import com.avail.interpreter.levelTwo.register.FixedRegister;
+import com.avail.optimizer.RegisterSet;
 
 /**
  * This marks a re-entry point into optimized (level two) code.  At re-entry,
@@ -73,5 +74,13 @@ public class L2_REENTER_L2_CHUNK extends L2Operation
 	{
 		// Don't eliminate, even though no wordcodes would be generated.
 		return true;
+	}
+
+	@Override
+	public void propagateTypes (
+		final L2Instruction instruction,
+		final RegisterSet registerSet)
+	{
+		registerSet.clearEverythingFor(instruction);
 	}
 }

@@ -33,7 +33,8 @@
 package com.avail.descriptor;
 
 /**
- * TODO: Document this type!
+ * A helper class used by Eclipse to show Logical Structures in the debugger.
+ * In particular, it shows integer-valued slots in {@link AvailObject}s.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */

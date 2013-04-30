@@ -227,7 +227,7 @@ public class TypeConsistencyTest
 		{
 			@Override A_Type get ()
 			{
-				return TupleTypeDescriptor.stringTupleType();
+				return TupleTypeDescriptor.stringType();
 			}
 		};
 
