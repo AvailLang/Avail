@@ -48,7 +48,7 @@ import com.avail.interpreter.levelTwo.register.*;
 interface L2OperandTypeDispatcher
 {
 	/**
-	 * An integer into the {@link L2ChunkDescriptor level two chunk}'s literals,
+	 * An integer into the {@linkplain L2Chunk level two chunk}'s literals,
 	 * specifying any {@linkplain AvailObject}.
 	 */
 	void doConstant();
@@ -59,8 +59,8 @@ interface L2OperandTypeDispatcher
 	void doImmediate();
 
 	/**
-	 * An integer encoding a position in the current {@linkplain
-	 * L2ChunkDescriptor level two chunk}'s instructions.
+	 * An integer encoding a position in the current {@linkplain L2Chunk level
+	 * two chunk}'s instructions.
 	 */
 	void doPC();
 
@@ -71,9 +71,8 @@ interface L2OperandTypeDispatcher
 	void doPrimitive();
 
 	/**
-	 * An index into the {@link L2ChunkDescriptor level two chunk}'s literals,
-	 * specifying a {@link MethodDescriptor method} that can be invoked
-	 * polymorphically.
+	 * An index into the {@link L2Chunk level two chunk}'s literals, specifying
+	 * a {@link MethodDescriptor method} that can be invoked polymorphically.
 	 */
 	void doSelector();
 

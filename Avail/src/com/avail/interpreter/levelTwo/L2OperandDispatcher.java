@@ -70,7 +70,7 @@ public interface L2OperandDispatcher
 
 	/**
 	 * Process an operand which is a constant level two offset into a
-	 * {@linkplain L2ChunkDescriptor level two chunk}'s wordcode instructions.
+	 * {@linkplain L2Chunk level two chunk}'s wordcode instructions.
 	 *
 	 * @param operand an {@link L2PcOperand}.
 	 */

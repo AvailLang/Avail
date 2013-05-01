@@ -51,6 +51,7 @@ import com.avail.descriptor.SetDescriptor.SetIterator;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.exceptions.SignatureException;
 import com.avail.interpreter.AvailLoader;
+import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.*;
 import com.avail.visitor.AvailSubobjectVisitor;
@@ -1053,12 +1054,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_Index (final AvailObject object, final int value)
-	{
-		o_Traversed(object).index(value);
-	}
-
-	@Override
 	void o_SetInterruptRequestFlag (
 		final AvailObject object,
 		final InterruptRequestFlag flag)
@@ -1241,7 +1236,7 @@ extends AbstractDescriptor
 	@Override
 	void o_LevelTwoChunkOffset (
 		final AvailObject object,
-		final A_Chunk chunk,
+		final L2Chunk chunk,
 		final int offset)
 	{
 		o_Traversed(object).levelTwoChunkOffset(chunk, offset);
@@ -1672,7 +1667,7 @@ extends AbstractDescriptor
 	@Override
 	void o_SetStartingChunkAndReoptimizationCountdown (
 		final AvailObject object,
-		final A_BasicObject chunk,
+		final L2Chunk chunk,
 		final int countdown)
 	{
 		o_Traversed(object).setStartingChunkAndReoptimizationCountdown(
@@ -2330,12 +2325,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	int o_Index (final AvailObject object)
-	{
-		return o_Traversed(object).index();
-	}
-
-	@Override
 	void o_DecrementCountdownToReoptimize (
 		final AvailObject object,
 		final Continuation0 continuation)
@@ -2506,12 +2495,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	boolean o_IsValid (final AvailObject object)
-	{
-		return o_Traversed(object).isValid();
-	}
-
-	@Override
 	A_Set o_KeysAsSet (final AvailObject object)
 	{
 		return o_Traversed(object).keysAsSet();
@@ -2524,7 +2507,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	A_Chunk o_LevelTwoChunk (final AvailObject object)
+	L2Chunk o_LevelTwoChunk (final AvailObject object)
 	{
 		return o_Traversed(object).levelTwoChunk();
 	}
@@ -2632,18 +2615,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	int o_NumDoubles (final AvailObject object)
-	{
-		return o_Traversed(object).numDoubles();
-	}
-
-	@Override
-	int o_NumIntegers (final AvailObject object)
-	{
-		return o_Traversed(object).numIntegers();
-	}
-
-	@Override
 	int o_NumLiterals (final AvailObject object)
 	{
 		return o_Traversed(object).numLiterals();
@@ -2653,12 +2624,6 @@ extends AbstractDescriptor
 	int o_NumLocals (final AvailObject object)
 	{
 		return o_Traversed(object).numLocals();
-	}
-
-	@Override
-	int o_NumObjects (final AvailObject object)
-	{
-		return o_Traversed(object).numObjects();
 	}
 
 	@Override
@@ -2758,7 +2723,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	A_Chunk o_StartingChunk (final AvailObject object)
+	L2Chunk o_StartingChunk (final AvailObject object)
 	{
 		return o_Traversed(object).startingChunk();
 	}
@@ -2848,12 +2813,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	A_Tuple o_Vectors (final AvailObject object)
-	{
-		return o_Traversed(object).vectors();
-	}
-
-	@Override
 	void o_Verify (final AvailObject object)
 	{
 		o_Traversed(object).verify();
@@ -2863,12 +2822,6 @@ extends AbstractDescriptor
 	A_Set o_VisibleNames (final AvailObject object)
 	{
 		return o_Traversed(object).visibleNames();
-	}
-
-	@Override
-	A_Tuple o_Wordcodes (final AvailObject object)
-	{
-		return o_Traversed(object).wordcodes();
 	}
 
 	@Override

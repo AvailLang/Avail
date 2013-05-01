@@ -42,6 +42,7 @@ import com.avail.annotations.*;
 import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelOne.*;
+import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.Continuation0;
 
@@ -189,11 +190,11 @@ extends Descriptor
 		FUNCTION_TYPE,
 
 		/**
-		 * The {@linkplain L2ChunkDescriptor level two chunk} that should be
-		 * invoked whenever this code is started. The chunk may no longer be
-		 * {@linkplain L2ChunkDescriptor.IntegerSlots#VALID valid}, in which
-		 * case the {@linkplain L2ChunkDescriptor#unoptimizedChunk() default
-		 * chunk} will be substituted until the next reoptimization.
+		 * The {@linkplain L2Chunk level two chunk} that should be invoked
+		 * whenever this code is started. The chunk may no longer be {@link
+		 * L2Chunk#isValid() valid}, in which case the {@linkplain
+		 * L2Chunk#unoptimizedChunk() default chunk} will be substituted until
+		 * the next reoptimization.
 		 */
 		STARTING_CHUNK,
 
@@ -223,11 +224,16 @@ extends Descriptor
 			|| e == PROPERTY_ATOM;
 	}
 
+	/**
+	 * Used for describing logical aspects of the code in the Eclipse debugger.
+	 */
 	public static enum FakeSlots
 	implements ObjectSlotsEnum
 	{
+		/** Used for showing the types of local variables. */
 		LOCAL_TYPE_,
 
+		/** Used for showing the types of captured variables and constants. */
 		OUTER_TYPE_
 	}
 
@@ -395,20 +401,20 @@ extends Descriptor
 	@Override @AvailMethod
 	void o_SetStartingChunkAndReoptimizationCountdown (
 		final AvailObject object,
-		final A_BasicObject chunk,
+		final L2Chunk chunk,
 		final int countdown)
 	{
 		if (isShared())
 		{
 			synchronized (object)
 			{
-				object.setSlot(STARTING_CHUNK, chunk.traversed().makeShared());
+				object.setSlot(STARTING_CHUNK, chunk.chunkPojo);
 				object.setSlot(COUNTDOWN_TO_REOPTIMIZE, countdown);
 			}
 		}
 		else
 		{
-			object.setSlot(STARTING_CHUNK, chunk.makeImmutable());
+			object.setSlot(STARTING_CHUNK, chunk.chunkPojo);
 			object.setSlot(COUNTDOWN_TO_REOPTIMIZE, countdown);
 		}
 	}
@@ -469,9 +475,10 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	A_Chunk o_StartingChunk (final AvailObject object)
+	L2Chunk o_StartingChunk (final AvailObject object)
 	{
-		return object.mutableSlot(STARTING_CHUNK);
+		final AvailObject pojo = object.mutableSlot(STARTING_CHUNK);
+		return (L2Chunk)pojo.javaObject();
 	}
 
 	/**
@@ -698,8 +705,8 @@ extends Descriptor
 		code.setSlot(NYBBLES, nybbles);
 		code.setSlot(FUNCTION_TYPE, functionType);
 		code.setSlot(PROPERTY_ATOM, NilDescriptor.nil());
-		code.setSlot(STARTING_CHUNK, L2ChunkDescriptor.unoptimizedChunk());
-		code.countdownToReoptimize(L2ChunkDescriptor.countdownForNewCode());
+		code.setSlot(STARTING_CHUNK, L2Chunk.unoptimizedChunk().chunkPojo);
+		code.countdownToReoptimize(L2Chunk.countdownForNewCode());
 
 		// Fill in the literals.
 		int dest;

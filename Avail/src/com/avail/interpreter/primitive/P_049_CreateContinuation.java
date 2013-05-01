@@ -35,11 +35,12 @@ import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
+import com.avail.interpreter.levelTwo.L2Chunk;
 
 /**
- * <strong>Primitive 49:</strong> Create a {@linkplain
- * ContinuationDescriptor continuation}. Will execute as unoptimized code
- * via the default Level Two {@linkplain L2ChunkDescriptor chunk}.
+ * <strong>Primitive 49:</strong> Create a {@linkplain ContinuationDescriptor
+ * continuation}. It will execute as unoptimized code via the {@linkplain
+ * L2Chunk#unoptimizedChunk()}.
  */
 public class P_049_CreateContinuation extends Primitive
 {
@@ -65,8 +66,8 @@ public class P_049_CreateContinuation extends Primitive
 			callerHolder.value(),
 			pc.extractInt(),
 			stackp.extractInt(),
-			L2ChunkDescriptor.unoptimizedChunk(),
-			L2ChunkDescriptor.offsetToContinueUnoptimizedChunk());
+			L2Chunk.unoptimizedChunk(),
+			L2Chunk.offsetToContinueUnoptimizedChunk());
 		for (int i = 1, end = stack.tupleSize(); i <= end; i++)
 		{
 			cont.argOrLocalOrStackAtPut(i, stack.tupleAt(i));

@@ -55,6 +55,7 @@ import com.avail.builder.*;
 import com.avail.descriptor.*;
 import com.avail.descriptor.FiberDescriptor.ExecutionState;
 import com.avail.exceptions.*;
+import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.utility.Continuation0;
 
 /**
@@ -1165,11 +1166,10 @@ public final class AvailRuntime
 	 * {@linkplain #levelOneSafeTasks -safe} and {@linkplain
 	 * #levelOneUnsafeTasks -unsafe} queues and counters.
 	 *
-	 * <p>For example, a {@linkplain L2ChunkDescriptor Level Two chunk} may not
-	 * be {@linkplain L2ChunkDescriptor#invalidateChunkAtIndex(int) invalidated}
-	 * while any {@linkplain FiberDescriptor fiber} is {@linkplain
-	 * ExecutionState#RUNNING running} a Level Two chunk. These two activities
-	 * are mutually exclusive.</p>
+	 * <p>For example, a {@link L2Chunk} may not be {@linkplain
+	 * L2Chunk#invalidateChunkAtIndex(int) invalidated} while any {@linkplain
+	 * FiberDescriptor fiber} is {@linkplain ExecutionState#RUNNING running} a
+	 * Level Two chunk. These two activities are mutually exclusive.</p>
 	 */
 	@InnerAccess final ReentrantLock levelOneSafeLock = new ReentrantLock();
 
@@ -1178,11 +1178,11 @@ public final class AvailRuntime
 	 * tasks}. A Level One-safe task requires that no {@linkplain
 	 * #levelOneUnsafeTasks Level One-unsafe tasks} are running.
 	 *
-	 * <p>For example, a {@linkplain L2ChunkDescriptor Level Two chunk} may not
-	 * be {@linkplain L2ChunkDescriptor#invalidateChunkAtIndex(int) invalidated}
-	 * while any {@linkplain FiberDescriptor fiber} is {@linkplain
-	 * ExecutionState#RUNNING running} a Level Two chunk. These two activities
-	 * are mutually exclusive.</p>
+	 * <p>For example, a {@linkplain L2Chunk Level Two chunk} may not be
+	 * {@linkplain L2Chunk#invalidateChunkAtIndex(int) invalidated} while any
+	 * {@linkplain FiberDescriptor fiber} is {@linkplain ExecutionState#RUNNING
+	 * running} a Level Two chunk. These two activities are mutually
+	 * exclusive.</p>
 	 */
 	@InnerAccess Queue<AvailTask> levelOneSafeTasks =
 		new ArrayDeque<AvailTask>();

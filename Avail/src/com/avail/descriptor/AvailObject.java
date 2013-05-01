@@ -52,6 +52,7 @@ import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.exceptions.*;
 import com.avail.exceptions.ArithmeticException;
 import com.avail.interpreter.*;
+import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.serialization.*;
 import com.avail.utility.*;
 import com.avail.visitor.*;
@@ -79,7 +80,6 @@ implements
 		A_BundleTree,
 		A_Character,
 		A_Continuation,
-		A_Chunk,
 		A_Definition,
 		A_Fiber,
 		A_Function,
@@ -505,11 +505,10 @@ implements
 	}
 
 	/**
-	 * Add the {@linkplain L2ChunkDescriptor chunk} with the given index to the
-	 * receiver's list of chunks that depend on it.  The receiver is a
-	 * {@linkplain MethodDescriptor method}.  A change in the method's
-	 * membership (e.g., adding a new method definition) will cause the chunk
-	 * to be invalidated.
+	 * Add the {@linkplain L2Chunk chunk} with the given index to the receiver's
+	 * list of chunks that depend on it.  The receiver is a {@linkplain
+	 * MethodDescriptor method}.  A change in the method's membership (e.g.,
+	 * adding a new method definition) will cause the chunk to be invalidated.
 	 *
 	 * @param aChunkIndex
 	 */
@@ -2180,25 +2179,6 @@ implements
 	 * Dispatch to the descriptor.
 	 */
 	@Override
-	public int index ()
-	{
-		return descriptor.o_Index(this);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	@Override
-	public void index (
-		final int value)
-	{
-		descriptor.o_Index(this, value);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	@Override
 	public void setInterruptRequestFlag (
 		final InterruptRequestFlag flag)
 	{
@@ -2715,15 +2695,6 @@ implements
 	}
 
 	/**
-	 * Dispatch to the descriptor.
-	 */
-	@Override
-	public boolean isValid ()
-	{
-		return descriptor.o_IsValid(this);
-	}
-
-	/**
 	 * Answer an {@linkplain Iterator iterator} suitable for traversing the
 	 * elements of the {@linkplain AvailObject receiver} with a Java
 	 * <em>foreach</em> construct.
@@ -2758,7 +2729,7 @@ implements
 	 * Dispatch to the descriptor.
 	 */
 	@Override
-	public A_Chunk levelTwoChunk ()
+	public L2Chunk levelTwoChunk ()
 	{
 		return descriptor.o_LevelTwoChunk(this);
 	}
@@ -2768,7 +2739,7 @@ implements
 	 */
 	@Override
 	public void levelTwoChunkOffset (
-		final A_Chunk chunk,
+		final L2Chunk chunk,
 		final int offset)
 	{
 		descriptor.o_LevelTwoChunkOffset(
@@ -3208,24 +3179,6 @@ implements
 	 * Dispatch to the descriptor.
 	 */
 	@Override
-	public int numDoubles ()
-	{
-		return descriptor.o_NumDoubles(this);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	@Override
-	public int numIntegers ()
-	{
-		return descriptor.o_NumIntegers(this);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	@Override
 	public int numLiterals ()
 	{
 		return descriptor.o_NumLiterals(this);
@@ -3238,15 +3191,6 @@ implements
 	public int numLocals ()
 	{
 		return descriptor.o_NumLocals(this);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	@Override
-	public int numObjects ()
-	{
-		return descriptor.o_NumObjects(this);
 	}
 
 	/**
@@ -3890,7 +3834,7 @@ implements
 	 * Dispatch to the descriptor.
 	 */
 	@Override
-	public A_Chunk startingChunk ()
+	public L2Chunk startingChunk ()
 	{
 		return descriptor.o_StartingChunk(this);
 	}
@@ -3900,7 +3844,7 @@ implements
 	 */
 	@Override
 	public void setStartingChunkAndReoptimizationCountdown (
-		final A_BasicObject chunk,
+		final L2Chunk chunk,
 		final int countdown)
 	{
 		descriptor.o_SetStartingChunkAndReoptimizationCountdown(
@@ -4624,15 +4568,6 @@ implements
 	 * Dispatch to the descriptor.
 	 */
 	@Override
-	public A_Tuple vectors ()
-	{
-		return descriptor.o_Vectors(this);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	@Override
 	public void verify ()
 	{
 		descriptor.o_Verify(this);
@@ -4645,15 +4580,6 @@ implements
 	public A_Set visibleNames ()
 	{
 		return descriptor.o_VisibleNames(this);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	@Override
-	public A_Tuple wordcodes ()
-	{
-		return descriptor.o_Wordcodes(this);
 	}
 
 	/**

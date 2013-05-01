@@ -44,6 +44,7 @@ import com.avail.compiler.*;
 import com.avail.exceptions.*;
 import com.avail.interpreter.*;
 import com.avail.interpreter.levelOne.*;
+import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.primitive.*;
 import com.avail.serialization.SerializerOperation;
 
@@ -129,11 +130,10 @@ extends Descriptor
 		SEALED_ARGUMENTS_TYPES_TUPLE,
 
 		/**
-		 * The {@linkplain SetDescriptor set} of {@linkplain
-		 * L2ChunkDescriptor.IntegerSlots#INDEX indices} of {@linkplain
-		 * L2ChunkDescriptor level two chunks} that depend on the membership of
-		 * this {@linkplain MethodDescriptor method}.  A change to the
-		 * membership should cause these chunks to be invalidated.
+		 * The {@linkplain SetDescriptor set} of {@linkplain L2Chunk#index()
+		 * indices} of {@linkplain L2Chunk level two chunks} that depend on the
+		 * membership of this {@linkplain MethodDescriptor method}.  A change to
+		 * the membership should cause these chunks to be invalidated.
 		 */
 		DEPENDENT_CHUNK_INDICES
 	}
@@ -904,8 +904,7 @@ extends Descriptor
 			// Use makeImmutable() to avoid membership changes while iterating.
 			for (final A_Number chunkIndex : chunkIndices.makeImmutable())
 			{
-				L2ChunkDescriptor.invalidateChunkAtIndex(
-					chunkIndex.extractInt());
+				L2Chunk.invalidateChunkAtIndex(chunkIndex.extractInt());
 			}
 			// The chunk invalidations should have removed all dependencies...
 			final A_Set chunkIndicesAfter =

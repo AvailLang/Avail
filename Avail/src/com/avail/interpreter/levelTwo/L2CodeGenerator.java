@@ -43,8 +43,8 @@ import com.avail.interpreter.levelTwo.register.*;
 /**
  * {@code L2CodeGenerator} emits {@linkplain L2Instruction Level Two Avail
  * instructions} on behalf of the {@linkplain L2Translator translator} to
- * produce a {@linkplain L2ChunkDescriptor Level Two Avail chunk} from a
- * {@linkplain CompiledCodeDescriptor compiled Level One code object}.
+ * produce a {@linkplain L2Chunk Level Two chunk} from a {@linkplain
+ * CompiledCodeDescriptor compiled Level One code object}.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
@@ -56,19 +56,17 @@ public final class L2CodeGenerator
 		Logger.getLogger(L2CodeGenerator.class.getCanonicalName());
 
 	/**
-	 * The instruction stream emitted thus far of the {@linkplain
-	 * L2ChunkDescriptor chunk} undergoing {@linkplain L2CodeGenerator code
-	 * generation}.
+	 * The instruction stream emitted thus far of the {@linkplain L2Chunk chunk}
+	 * undergoing {@linkplain L2CodeGenerator code generation}.
 	 */
 	private final List<L2NamedOperandType> expectedNamedOperandTypes =
 		new ArrayList<L2NamedOperandType>(10);
 
 	/**
 	 * The {@linkplain AvailObject literals} that will be embedded into the
-	 * created {@linkplain L2ChunkDescriptor chunk}.
+	 * created {@link L2Chunk}.
 	 */
-	private final List<A_BasicObject> literals =
-		new ArrayList<A_BasicObject>(20);
+	private final List<AvailObject> literals = new ArrayList<>(20);
 
 	/**
 	 * Emit the specified {@linkplain AvailObject literal} into the instruction
@@ -76,7 +74,7 @@ public final class L2CodeGenerator
 	 *
 	 * @param literal A {@linkplain AvailObject literal}.
 	 */
-	public void emitLiteral (final A_BasicObject literal)
+	public void emitLiteral (final AvailObject literal)
 	{
 		final L2NamedOperandType expected = expectedNamedOperandTypes.remove(0);
 		final L2OperandType expectedOperandType = expected.operandType();
@@ -97,8 +95,7 @@ public final class L2CodeGenerator
 	 * L2ObjectRegister object registers}, grouped by {@linkplain
 	 * L2RegisterVector register vector}.
 	 */
-	private final List<List<Integer>> vectors =
-		new ArrayList<List<Integer>>(20);
+	private final List<List<Integer>> vectors = new ArrayList<>(20);
 
 	/**
 	 * The inverse of {@link #vectors}.  That is, if vectors contains a list of
@@ -106,7 +103,7 @@ public final class L2CodeGenerator
 	 * of integers.
 	 */
 	private final Map<List<Integer>, Integer> inverseVectors =
-		new HashMap<List<Integer>, Integer>(20);
+		new HashMap<>(20);
 
 	/**
 	 * Emit the {@linkplain L2Register#finalIndex() indices} of the {@link
@@ -142,8 +139,8 @@ public final class L2CodeGenerator
 
 	/**
 	 * The highest numbered {@linkplain L2ObjectRegister object registers}
-	 * emitted thus far for the {@linkplain L2ChunkDescriptor chunk} undergoing
-	 * {@linkplain L2CodeGenerator code generation}.
+	 * emitted thus far for the {@link L2Chunk} undergoing {@linkplain
+	 * L2CodeGenerator code generation}.
 	 */
 	private int maxObjectRegisterIndex = 0;
 
@@ -172,8 +169,8 @@ public final class L2CodeGenerator
 
 	/**
 	 * The number of {@linkplain L2IntegerRegister integer registers} emitted
-	 * thus far for the {@linkplain L2ChunkDescriptor chunk} undergoing
-	 * {@linkplain L2CodeGenerator code generation}.
+	 * thus far for the {@link L2Chunk} undergoing {@linkplain L2CodeGenerator
+	 * code generation}.
 	 */
 	private int integerRegisterCount = 0;
 
@@ -203,8 +200,8 @@ public final class L2CodeGenerator
 
 	/**
 	 * The number of {@linkplain L2FloatRegister float registers} emitted thus
-	 * far for the {@linkplain L2ChunkDescriptor chunk} undergoing {@linkplain
-	 * L2CodeGenerator code generation}.
+	 * far for the {@link L2Chunk} undergoing {@linkplain L2CodeGenerator code
+	 * generation}.
 	 */
 	private int floatRegisterCount = 0;
 
@@ -225,18 +222,16 @@ public final class L2CodeGenerator
 	}
 
 	/**
-	 * A Java {@link Set} of {@linkplain MethodDescriptor
-	 * methods} upon which the {@linkplain L2ChunkDescriptor chunk}
-	 * is dependent.
+	 * A Java {@link Set} of {@linkplain MethodDescriptor methods} upon which
+	 * the {@link L2Chunk} is dependent.
 	 */
 	private final Set<A_Method> contingentMethods =
 		new HashSet<A_Method>();
 
 	/**
-	 * Merge the specified {@link Set} of {@linkplain
-	 * MethodDescriptor methods} with those already
-	 * upon which the {@linkplain L2ChunkDescriptor chunk} undergoing code
-	 * generation is already dependent.
+	 * Merge the specified {@link Set} of {@linkplain MethodDescriptor methods}
+	 * with those upon which the {@link L2Chunk} undergoing code generation is
+	 * already dependent.
 	 *
 	 * @param setOfMethods
 	 *            A Java {@link Set} of {@linkplain MethodDescriptor
@@ -249,9 +244,8 @@ public final class L2CodeGenerator
 	}
 
 	/**
-	 * The instruction stream emitted thus far of the {@linkplain
-	 * L2ChunkDescriptor chunk} undergoing {@linkplain L2CodeGenerator code
-	 * generation}.
+	 * The instruction stream emitted thus far of the {@link L2Chunk} undergoing
+	 * {@linkplain L2CodeGenerator code generation}.
 	 */
 	private List<Integer> wordcodes = new ArrayList<Integer>(20);
 
@@ -360,9 +354,9 @@ public final class L2CodeGenerator
 	}
 
 	/**
-	 * Create a {@linkplain L2ChunkDescriptor chunk} that represents the Level
-	 * Two translation of the specified {@linkplain CompiledCodeDescriptor
-	 * compiled Level One Avail code}.
+	 * Create a {@linkplain L2Chunk chunk} that represents the Level Two
+	 * translation of the specified {@linkplain CompiledCodeDescriptor compiled
+	 * Level One Avail code}.
 	 *
 	 * <p>This should be invoked after {@link #setInstructions(List)
 	 * setInstructions} has caused all {@linkplain L2Instruction instructions}
@@ -371,9 +365,9 @@ public final class L2CodeGenerator
 	 * @param code
 	 *        The {@linkplain CompiledCodeDescriptor compiled Level One Avail
 	 *        code} currently undergoing translation to Level Two.
-	 * @return The translated {@linkplain L2ChunkDescriptor chunk}.
+	 * @return The translated {@link L2Chunk}.
 	 */
-	public A_Chunk createChunkFor (final A_RawFunction code)
+	public L2Chunk createChunkFor (final A_RawFunction code)
 	{
 		assert expectedNamedOperandTypes.isEmpty();
 		if (logger.isLoggable(Level.FINE))
@@ -382,7 +376,7 @@ public final class L2CodeGenerator
 				"translating L1 compiled code: %s ...", code));
 		}
 
-		final A_Chunk newChunk = L2ChunkDescriptor.allocate(
+		final L2Chunk newChunk = L2Chunk.allocate(
 			code,
 			literals,
 			vectors,

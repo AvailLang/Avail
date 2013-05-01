@@ -42,8 +42,8 @@ import com.avail.utility.Transformer2;
 
 /**
  * This class maintains register information during naive translation from level
- * one compiled code (nybblecodes) to level two wordcodes ({@linkplain
- * L2ChunkDescriptor chunks}).
+ * one compiled code (nybblecodes) to level two wordcodes, known as {@linkplain
+ * L2Chunk chunks}.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */

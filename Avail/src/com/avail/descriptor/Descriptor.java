@@ -49,6 +49,7 @@ import com.avail.descriptor.SetDescriptor.SetIterator;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.exceptions.*;
 import com.avail.interpreter.AvailLoader;
+import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.*;
 import com.avail.visitor.*;
@@ -573,14 +574,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_Index (
-		final AvailObject object,
-		final int value)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
 	void o_SetInterruptRequestFlag (
 		final AvailObject object,
 		final InterruptRequestFlag flag)
@@ -727,7 +720,7 @@ extends AbstractDescriptor
 	@Override
 	void o_LevelTwoChunkOffset (
 		final AvailObject object,
-		final A_Chunk chunk,
+		final L2Chunk chunk,
 		final int offset)
 	{
 		throw unsupportedOperationException();
@@ -1158,7 +1151,7 @@ extends AbstractDescriptor
 	@Override
 	void o_SetStartingChunkAndReoptimizationCountdown (
 		final AvailObject object,
-		final A_BasicObject chunk,
+		final L2Chunk chunk,
 		final int countdown)
 	{
 		throw unsupportedOperationException();
@@ -1838,13 +1831,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	int o_Index (
-		final AvailObject object)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
 	void o_DecrementCountdownToReoptimize (
 		final AvailObject object,
 		final Continuation0 continuation)
@@ -1915,13 +1901,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	boolean o_IsValid (
-		final AvailObject object)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
 	A_Set o_KeysAsSet (
 		final AvailObject object)
 	{
@@ -1936,7 +1915,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	A_Chunk o_LevelTwoChunk (
+	L2Chunk o_LevelTwoChunk (
 		final AvailObject object)
 	{
 		throw unsupportedOperationException();
@@ -2048,20 +2027,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	int o_NumDoubles (
-		final AvailObject object)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	int o_NumIntegers (
-		final AvailObject object)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
 	int o_NumLiterals (
 		final AvailObject object)
 	{
@@ -2070,13 +2035,6 @@ extends AbstractDescriptor
 
 	@Override
 	int o_NumLocals (
-		final AvailObject object)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	int o_NumObjects (
 		final AvailObject object)
 	{
 		throw unsupportedOperationException();
@@ -2195,7 +2153,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	A_Chunk o_StartingChunk (
+	L2Chunk o_StartingChunk (
 		final AvailObject object)
 	{
 		throw unsupportedOperationException();
@@ -2293,13 +2251,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	A_Tuple o_Vectors (
-		final AvailObject object)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
 	void o_Verify (
 		final AvailObject object)
 	{
@@ -2312,17 +2263,6 @@ extends AbstractDescriptor
 	{
 		throw unsupportedOperationException();
 	}
-
-	@Override
-	A_Tuple o_Wordcodes (
-		final AvailObject object)
-	{
-		throw unsupportedOperationException();
-	}
-
-
-
-	// GENERATED special mutable slots
 
 	@Override
 	boolean o_Equals (

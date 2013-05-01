@@ -92,7 +92,7 @@ public class L2SelectorOperand extends L2Operand
 	public void emitOn (
 		final L2CodeGenerator codeGenerator)
 	{
-		codeGenerator.emitLiteral(bundle);
+		codeGenerator.emitLiteral((AvailObject)bundle);
 	}
 
 	@Override

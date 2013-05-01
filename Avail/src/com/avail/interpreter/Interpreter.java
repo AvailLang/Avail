@@ -52,6 +52,7 @@ import com.avail.exceptions.*;
 import com.avail.interpreter.Primitive.Flag;
 import com.avail.interpreter.Primitive.Result;
 import com.avail.interpreter.levelTwo.L1InstructionStepper;
+import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.register.FixedRegister;
 import com.avail.interpreter.primitive.*;
@@ -60,9 +61,9 @@ import com.avail.utility.Continuation1;
 import com.avail.utility.Mutable;
 
 /**
- * This class is used to execute {@linkplain L2ChunkDescriptor Level Two code},
- * which is a translation of the Level One nybblecodes found in
- * {@linkplain CompiledCodeDescriptor compiled code}.
+ * This class is used to execute {@linkplain L2Chunk Level Two code}, which is a
+ * translation of the Level One nybblecodes found in {@linkplain
+ * CompiledCodeDescriptor compiled code}.
  *
  * <p>
  * Level One nybblecodes are designed to be compact and very simple, but not
@@ -756,19 +757,18 @@ public final class Interpreter
 		return success;
 	}
 
-	/** The {@link L2ChunkDescriptor} being executed. */
-	private @Nullable A_Chunk chunk;
+	/** The {@link L2Chunk} being executed. */
+	private @Nullable L2Chunk chunk;
 
 	/**
-	 * Return the currently executing {@linkplain L2ChunkDescriptor Level Two
-	 * chunk}.
+	 * Return the currently executing {@linkplain L2Chunk Level Two chunk}.
 	 *
-	 * @return The {@linkplain L2ChunkDescriptor Level Two chunk} that is
-	 *         currently being executed.
+	 * @return The {@linkplain L2Chunk Level Two chunk} that is currently being
+	 *         executed.
 	 */
-	public A_Chunk chunk ()
+	public L2Chunk chunk ()
 	{
-		final A_Chunk c = chunk;
+		final L2Chunk c = chunk;
 		assert c != null;
 		return c;
 	}
@@ -836,14 +836,13 @@ public final class Interpreter
 	 *
 	 * <p>
 	 * Note that the {@linkplain CompiledCodeDescriptor compiled code} is passed
-	 * in because the {@linkplain L2ChunkDescriptor#unoptimizedChunk() default
-	 * chunk} doesn't inherently know how many registers it needs – the answer
-	 * depends on the Level One compiled code being executed.
+	 * in because the {@linkplain L2Chunk#unoptimizedChunk() default chunk}
+	 * doesn't inherently know how many registers it needs – the answer depends
+	 * on the Level One compiled code being executed.
 	 * </p>
 	 *
 	 * @param chunkToResume
-	 *        The {@linkplain L2ChunkDescriptor Level Two chunk} to start
-	 *        executing.
+	 *        The {@linkplain L2Chunk Level Two chunk} to start executing.
 	 * @param code
 	 *        The {@linkplain CompiledCodeDescriptor compiled code} on whose
 	 *        behalf to start executing the chunk.
@@ -851,7 +850,7 @@ public final class Interpreter
 	 *        The offset at which to begin executing the chunk.
 	 */
 	private void setChunk (
-		final A_Chunk chunkToResume,
+		final L2Chunk chunkToResume,
 		final A_RawFunction code,
 		final int newOffset)
 	{
@@ -1244,15 +1243,15 @@ public final class Interpreter
 	 */
 	public void prepareToResumeContinuation (final A_Continuation updatedCaller)
 	{
-		A_Chunk chunkToResume = updatedCaller.levelTwoChunk();
+		L2Chunk chunkToResume = updatedCaller.levelTwoChunk();
 		if (!chunkToResume.isValid())
 		{
 			// The chunk has become invalid, so use the default chunk and tweak
 			// the continuation's chunk information.
-			chunkToResume = L2ChunkDescriptor.unoptimizedChunk();
+			chunkToResume = L2Chunk.unoptimizedChunk();
 			updatedCaller.levelTwoChunkOffset(
 				chunkToResume,
-				L2ChunkDescriptor.offsetToContinueUnoptimizedChunk());
+				L2Chunk.offsetToContinueUnoptimizedChunk());
 		}
 		pointerAtPut(CALLER, updatedCaller);
 		setChunk(
@@ -1271,12 +1270,12 @@ public final class Interpreter
 	public void prepareToRestartContinuation (
 		final A_Continuation continuationToRestart)
 	{
-		A_Chunk chunkToRestart = continuationToRestart.levelTwoChunk();
+		L2Chunk chunkToRestart = continuationToRestart.levelTwoChunk();
 		if (!chunkToRestart.isValid())
 		{
 			// The chunk has become invalid, so use the default chunk and tweak
 			// the continuation's chunk information.
-			chunkToRestart = L2ChunkDescriptor.unoptimizedChunk();
+			chunkToRestart = L2Chunk.unoptimizedChunk();
 			continuationToRestart.levelTwoChunkOffset(chunkToRestart, 1);
 		}
 		final int numArgs = continuationToRestart.function().code().numArgs();
@@ -1297,12 +1296,12 @@ public final class Interpreter
 	 * chunk/code.
 	 *
 	 * @param theChunk
-	 *        The {@linkplain L2ChunkDescriptor L2Chunk} about to be invoked.
+	 *        The {@link L2Chunk} about to be invoked.
 	 * @param theCode
 	 *        The code about to be invoked.
 	 */
 	private void makeRoomForChunkRegisters (
-		final A_Chunk theChunk,
+		final L2Chunk theChunk,
 		final A_RawFunction theCode)
 	{
 		final int neededObjectCount = max(
@@ -1517,15 +1516,15 @@ public final class Interpreter
 		assert code.primitiveNumber() == 0
 			|| pointers[PRIMITIVE_FAILURE.ordinal()] != null;
 		code.tallyInvocation();
-		A_Chunk chunkToInvoke = code.startingChunk();
+		L2Chunk chunkToInvoke = code.startingChunk();
 		if (!chunkToInvoke.isValid())
 		{
 			// The chunk is invalid, so use the default chunk and patch up
 			// aFunction's code.
-			chunkToInvoke = L2ChunkDescriptor.unoptimizedChunk();
+			chunkToInvoke = L2Chunk.unoptimizedChunk();
 			code.setStartingChunkAndReoptimizationCountdown(
 				chunkToInvoke,
-				L2ChunkDescriptor.countdownForInvalidatedCode());
+				L2Chunk.countdownForInvalidatedCode());
 		}
 		wipeObjectRegisters();
 		setChunk(chunkToInvoke, code, 1);

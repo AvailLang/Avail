@@ -55,18 +55,18 @@ class L2OperandDescriber implements L2OperandTypeDispatcher
 	private int _operand;
 
 	/**
-	 * The {@linkplain L2ChunkDescriptor level two chunk} containing the
-	 * operation and the operand to be described.
+	 * The {@linkplain L2Chunk level two chunk} containing the operation and the
+	 * operand to be described.
 	 */
-	private @Nullable A_Chunk _chunk;
+	private @Nullable L2Chunk _chunk;
 
 	/**
-	 * @return The current {@linkplain L2ChunkDescriptor chunk} containing the
-	 *         instruction being described
+	 * @return The current {@linkplain L2Chunk chunk} containing the instruction
+	 *         being described
 	 */
-	private A_Chunk chunk ()
+	private L2Chunk chunk ()
 	{
-		final A_Chunk chunk = _chunk;
+		final L2Chunk chunk = _chunk;
 		assert chunk != null;
 		return chunk;
 	}
@@ -117,15 +117,15 @@ class L2OperandDescriber implements L2OperandTypeDispatcher
 
 	/**
 	 * Output a description of the given operand to the stream, given its
-	 * numeric encoding, its {@linkplain L2OperandType operand type}, and the current
-	 * {@linkplain L2ChunkDescriptor chunk}.
+	 * numeric encoding, its {@linkplain L2OperandType operand type}, and the
+	 * current {@link L2Chunk}.
 	 *
 	 * @param namedOperandType
 	 *            The {@link L2OperandType} used to interpret the operand.
 	 * @param operand
 	 *            The numeric operand itself, an {@code int}.
 	 * @param chunk
-	 *            The current {@linkplain L2ChunkDescriptor level two chunk} within
+	 *            The current {@linkplain L2Chunk level two chunk} within
 	 *            which the description is to occur.
 	 * @param stream
 	 *            The {@link StringBuilder} that will have a suitable operand
@@ -134,7 +134,7 @@ class L2OperandDescriber implements L2OperandTypeDispatcher
 	public void describeInOperandChunkOn (
 			final L2NamedOperandType namedOperandType,
 			final int operand,
-			final A_Chunk chunk,
+			final L2Chunk chunk,
 			final StringBuilder stream)
 	{
 		_name = namedOperandType.name();

@@ -33,7 +33,6 @@
 package com.avail.interpreter.primitive;
 
 import static com.avail.descriptor.BlockNodeDescriptor.*;
-import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;

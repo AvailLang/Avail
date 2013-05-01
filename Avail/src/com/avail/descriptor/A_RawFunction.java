@@ -32,6 +32,7 @@
 
 package com.avail.descriptor;
 
+import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.utility.Continuation0;
 
 /**
@@ -62,7 +63,7 @@ extends A_BasicObject
 	public A_Type outerTypeAt (int index);
 
 	public void setStartingChunkAndReoptimizationCountdown (
-		A_BasicObject chunk,
+		L2Chunk chunk,
 		int countdown);
 
 	public int maxStackDepth ();
@@ -84,7 +85,7 @@ extends A_BasicObject
 
 	public int primitiveNumber();
 
-	public A_Chunk startingChunk ();
+	public L2Chunk startingChunk ();
 
 	public void tallyInvocation ();
 

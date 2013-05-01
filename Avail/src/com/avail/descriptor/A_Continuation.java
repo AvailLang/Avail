@@ -32,6 +32,8 @@
 
 package com.avail.descriptor;
 
+import com.avail.interpreter.levelTwo.L2Chunk;
+
 /**
  * {@code A_Continuation} is an interface that specifies the operations specific
  * to {@linkplain ContinuationDescriptor continuations} in Avail.  It's a
@@ -82,7 +84,7 @@ extends A_BasicObject
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	void levelTwoChunkOffset (A_Chunk chunk, int offset);
+	void levelTwoChunkOffset (L2Chunk chunk, int offset);
 
 	/**
 	 * Dispatch to the descriptor.
@@ -102,7 +104,7 @@ extends A_BasicObject
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	A_Chunk levelTwoChunk ();
+	L2Chunk levelTwoChunk ();
 
 	/**
 	 * Dispatch to the descriptor.

@@ -34,7 +34,6 @@ package com.avail.interpreter.levelTwo;
 
 import java.util.List;
 import com.avail.annotations.Nullable;
-import com.avail.descriptor.L2ChunkDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.operand.*;
 import com.avail.optimizer.*;
@@ -126,8 +125,8 @@ public abstract class L2Operation
 	 * surely fraught with disaster, or at least great peril.
 	 * </p>
 	 *
-	 * @return The operation's ordinal, used in {@link L2ChunkDescriptor
-	 *         level two wordcodes}.
+	 * @return The operation's ordinal, used in {@link L2Chunk level two
+	 *         wordcodes}.
 	 */
 	public int ordinal ()
 	{

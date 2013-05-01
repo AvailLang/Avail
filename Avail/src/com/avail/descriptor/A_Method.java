@@ -34,6 +34,7 @@ package com.avail.descriptor;
 
 import java.util.List;
 import com.avail.exceptions.SignatureException;
+import com.avail.interpreter.levelTwo.L2Chunk;
 
 /**
  * {@code A_RawFunction} is an interface that specifies the operations specific
@@ -60,11 +61,10 @@ extends A_BasicObject
 	A_Tuple sealedArgumentsTypesTuple ();
 
 	/**
-	 * Add the {@linkplain L2ChunkDescriptor chunk} with the given index to the
-	 * receiver's list of chunks that depend on it.  The receiver is a
-	 * {@linkplain MethodDescriptor method}.  A change in the method's
-	 * membership (e.g., adding a new method definition) will cause the chunk
-	 * to be invalidated.
+	 * Add the {@linkplain L2Chunk chunk} with the given index to the receiver's
+	 * list of chunks that depend on it.  The receiver is a {@linkplain
+	 * MethodDescriptor method}.  A change in the method's membership (e.g.,
+	 * adding a new method definition) will cause the chunk to be invalidated.
 	 *
 	 * @param aChunkIndex
 	 */

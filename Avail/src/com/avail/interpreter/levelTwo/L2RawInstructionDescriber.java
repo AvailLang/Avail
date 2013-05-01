@@ -32,11 +32,9 @@
 
 package com.avail.interpreter.levelTwo;
 
-import com.avail.descriptor.*;
-
 /**
  * An {@code L2RawInstructionDescriber} can {@linkplain #describe(
- * L2RawInstruction, A_Chunk, StringBuilder) describe} an {@link
+ * L2RawInstruction, L2Chunk, StringBuilder) describe} an {@link
  * L2RawInstruction}, properly interpreting the instruction's {@linkplain
  * L2Operation operation} and {@linkplain L2OperandType operands}.
  *
@@ -57,14 +55,13 @@ public class L2RawInstructionDescriber
 	 * @param rawInstruction
 	 *            The {@code L2RawInstruction} to describe.
 	 * @param chunk
-	 *            The {@link L2ChunkDescriptor chunk} in which the instruction
-	 *            occurs.
+	 *            The {@link L2Chunk} in which the instruction occurs.
 	 * @param stream
 	 *            Where to describe the instruction.
 	 */
 	public void describe (
 			final L2RawInstruction rawInstruction,
-			final A_Chunk chunk,
+			final L2Chunk chunk,
 			final StringBuilder stream)
 	{
 		final L2Operation operation = rawInstruction.operation();

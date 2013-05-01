@@ -55,6 +55,7 @@ import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.exceptions.AvailUnsupportedOperationException;
 import com.avail.exceptions.SignatureException;
 import com.avail.interpreter.AvailLoader;
+import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.*;
 import com.avail.visitor.AvailSubobjectVisitor;
@@ -1686,14 +1687,6 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param value
-	 */
-	abstract void o_Index (
-		AvailObject object,
-		int value);
-
-	/**
-	 * @param object
 	 * @param flag
 	 */
 	abstract void o_SetInterruptRequestFlag (
@@ -1859,7 +1852,7 @@ public abstract class AbstractDescriptor
 	 */
 	abstract void o_LevelTwoChunkOffset (
 		AvailObject object,
-		A_Chunk chunk,
+		L2Chunk chunk,
 		int offset);
 
 	/**
@@ -2393,7 +2386,7 @@ public abstract class AbstractDescriptor
 	 */
 	abstract void o_SetStartingChunkAndReoptimizationCountdown (
 		AvailObject object,
-		A_BasicObject chunk,
+		L2Chunk chunk,
 		int countdown);
 
 	/**
@@ -3125,12 +3118,6 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @return
-	 */
-	abstract int o_Index (AvailObject object);
-
-	/**
-	 * @param object
 	 * @param continuation
 	 */
 	abstract void o_DecrementCountdownToReoptimize (
@@ -3196,12 +3183,6 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	abstract boolean o_IsValid (AvailObject object);
-
-	/**
-	 * @param object
-	 * @return
-	 */
 	abstract A_Set o_KeysAsSet (AvailObject object);
 
 	/**
@@ -3214,7 +3195,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	abstract A_Chunk o_LevelTwoChunk (AvailObject object);
+	abstract L2Chunk o_LevelTwoChunk (AvailObject object);
 
 	/**
 	 * @param object
@@ -3320,18 +3301,6 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	abstract int o_NumDoubles (AvailObject object);
-
-	/**
-	 * @param object
-	 * @return
-	 */
-	abstract int o_NumIntegers (AvailObject object);
-
-	/**
-	 * @param object
-	 * @return
-	 */
 	abstract int o_NumLiterals (AvailObject object);
 
 	/**
@@ -3339,12 +3308,6 @@ public abstract class AbstractDescriptor
 	 * @return
 	 */
 	abstract int o_NumLocals (AvailObject object);
-
-	/**
-	 * @param object
-	 * @return
-	 */
-	abstract int o_NumObjects (AvailObject object);
 
 	/**
 	 * @param object
@@ -3446,7 +3409,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	abstract A_Chunk o_StartingChunk (AvailObject object);
+	abstract L2Chunk o_StartingChunk (AvailObject object);
 
 	/**
 	 * @param object
@@ -3527,12 +3490,6 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @return
-	 */
-	abstract A_Tuple o_Vectors (AvailObject object);
-
-	/**
-	 * @param object
 	 */
 	abstract void o_Verify (AvailObject object);
 
@@ -3541,12 +3498,6 @@ public abstract class AbstractDescriptor
 	 * @return
 	 */
 	abstract A_Set o_VisibleNames (AvailObject object);
-
-	/**
-	 * @param object
-	 * @return
-	 */
-	abstract A_Tuple o_Wordcodes (AvailObject object);
 
 	/**
 	 * Answer whether the arguments, both {@linkplain AvailObject objects}, are

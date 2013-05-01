@@ -39,6 +39,7 @@ import com.avail.descriptor.*;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.descriptor.TypeDescriptor.Types;
+import com.avail.interpreter.levelTwo.L2Chunk;
 
 /**
  * A {@code SerializerOpcode} describes how to disassemble and assemble the
@@ -1223,8 +1224,8 @@ public enum SerializerOperation
 					caller,
 					pcInteger.extractInt(),
 					stackpInteger.extractInt(),
-					L2ChunkDescriptor.unoptimizedChunk(),
-					L2ChunkDescriptor.offsetToContinueUnoptimizedChunk());
+					L2Chunk.unoptimizedChunk(),
+					L2Chunk.offsetToContinueUnoptimizedChunk());
 			for (int i = 1; i <= frameSlotCount; i++)
 			{
 				continuation.argOrLocalOrStackAtPut(i, frameSlots.tupleAt(i));

@@ -1,5 +1,5 @@
 /**
- * L2ChunkDescriptor.java
+ * L2Chunk.java
  * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -30,16 +30,15 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.descriptor;
+package com.avail.interpreter.levelTwo;
 
-import static com.avail.descriptor.L2ChunkDescriptor.IntegerSlots.*;
-import static com.avail.descriptor.L2ChunkDescriptor.ObjectSlots.*;
 import java.lang.ref.*;
 import java.util.*;
 import java.util.concurrent.locks.ReentrantLock;
 import com.avail.annotations.*;
-import com.avail.interpreter.levelTwo.*;
+import com.avail.descriptor.*;
 import com.avail.optimizer.L2Translator;
+import com.avail.interpreter.levelTwo.operand.L2ConstantOperand;
 import com.avail.interpreter.levelTwo.register.*;
 
 /**
@@ -73,148 +72,163 @@ import com.avail.interpreter.levelTwo.register.*;
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public final class L2ChunkDescriptor
-extends Descriptor
+public final class L2Chunk
 {
 	/**
-	 * The layout of integer slots for my instances.
+	 * The unique integer that identifies this chunk. Weak references are
+	 * used to determine when it is safe to recycle an index for a new
+	 * chunk.
 	 */
-	public enum IntegerSlots
-	implements IntegerSlotsEnum
+	int index;
+
+	/**
+	 * The number of {@linkplain L2ObjectRegister object registers} that
+	 * this chunk uses (including the fixed registers).  Having the number of
+	 * needed object registers stored separately allows the register list to be
+	 * dynamically expanded as needed only when starting or resuming a
+	 * {@link ContinuationDescriptor continuation}.
+	 */
+	int numObjects;
+
+	/**
+	 * The number of {@linkplain L2IntegerRegister integer registers} that
+	 * are used by this chunk. Having this recorded separately allows the
+	 * register list to be dynamically expanded as needed only when starting
+	 * or resuming a continuation.
+	 */
+	int numIntegers;
+
+	/**
+	 * The number of {@linkplain L2FloatRegister floating point registers}
+	 * that are used by this chunk. Having this recorded separately allows
+	 * the register list to be dynamically expanded as needed only when
+	 * starting or resuming a continuation.
+	 */
+	int numDoubles;
+
+	/**
+	 * A flag indicating whether this chunk has been reached by the garbage
+	 * collector in the current scavenge cycle. If it's still clear at flip
+	 * time, the chunk is unreferenced and can be reclaimed.
+	 *
+	 * TODO: [MvG] This is not used by the current (2011.05.11)
+	 * Avail-on-Java VM.
+	 */
+	boolean saved;
+
+	/**
+	 * A flag indicating whether this chunk is valid or if it has been
+	 * invalidated by the addition or removal of a method signature.
+	 */
+	boolean valid;
+
+	/**
+	 * XXX[MvG] Make this be an array of L2Instructions.
+	 * The {@linkplain L2Instruction level two instructions} encoded as a
+	 * tuple of integers.
+	 *
+	 */
+	A_Tuple wordcodes;
+
+//TODO[MvG] Convert this class.
+//	/**
+//	 * The sequence of {@link L2Instruction}s that make up this L2Chunk.
+//	 */
+//	List<L2Instruction> instructions;
+
+	/**
+	 * XXX[MvG] Eliminate this eventually, since the instructions will be around
+	 * at runtime to hold the array of register objects themselves.
+	 *
+	 * A {@linkplain TupleDescriptor tuple} of tuples of integers. Each
+	 * integer represents an object register, so each tuple of integers acts
+	 * like a list of registers to be processed together, such as supplying
+	 * arguments to a method invocation.
+	 */
+	A_Tuple vectors;
+
+	/**
+	 * XXX[MvG] Eliminate this eventually, since each constant will be embedded
+	 * directly within a {@link L2ConstantOperand}s of an L2Instruction,
+	 * negating the need for a separate tuple/list/array.
+	 *
+	 * The literal objects that the {@link #wordcodes} refer to via encoded
+	 * operands of type {@link L2OperandType#CONSTANT} or {@link
+	 * L2OperandType#SELECTOR}.
+	 */
+	List<AvailObject> literals;
+
+	/**
+	 * Answer the Avail {@linkplain PojoDescriptor pojo} associated with this
+	 * L2Chunk.
+	 */
+	public final AvailObject chunkPojo = PojoDescriptor.newPojo(
+			RawPojoDescriptor.identityWrap(this),
+			PojoTypeDescriptor.forClass(this.getClass()))
+		.makeShared();
+
+	public int index ()
 	{
-		/**
-		 * The unique integer that identifies this chunk. Weak references are
-		 * used to determine when it is safe to recycle an index for a new
-		 * chunk.
-		 */
-		INDEX,
+		return index;
+	}
 
-		/**
-		 * A compound field that contains information about how many {@linkplain
-		 * L2ObjectRegister object registers} are needed by this
-		 * chunk, as well as some flags. Having the number of needed object
-		 * registers stored separately allows the register list to be
-		 * dynamically expanded as needed only when starting or resuming a
-		 * continuation.
-		 */
-		NUM_OBJECTS_AND_FLAGS,
+	void index (final int theIndex)
+	{
+		index = theIndex;
+	}
 
-		/**
-		 * A compound field containing the number of {@linkplain
-		 * L2IntegerRegister integer registers} and the number of {@linkplain
-		 * L2FloatRegister floating point registers} that are used by this
-		 * chunk. Having this recorded separately allows the register list to
-		 * be dynamically expanded as needed only when starting or resuming a
-		 * continuation.
-		 */
-		NUM_INTEGERS_AND_DOUBLES;
+	public int numDoubles ()
+	{
+		return numDoubles;
+	}
 
-		/**
-		 * The number of {@linkplain L2ObjectRegister object registers} that
-		 * this chunk uses (including the fixed registers).
-		 */
-		static final BitField NUM_OBJECTS = bitField(
-			NUM_OBJECTS_AND_FLAGS,
-			0,
-			30);
+	public int numIntegers ()
+	{
+		return numIntegers;
+	}
 
-		/**
-		 * A flag indicating whether this chunk has been reached by the garbage
-		 * collector in the current scavenge cycle. If it's still clear at flip
-		 * time, the chunk is unreferenced and can be reclaimed.
-		 *
-		 * TODO: [MvG] This is not used by the current (2011.05.11)
-		 * Avail-on-Java VM.
-		 */
-		static final BitField SAVED = bitField(
-			NUM_OBJECTS_AND_FLAGS,
-			30,
-			1);
+	public int numObjects ()
+	{
+		return numObjects;
+	}
 
-		/**
-		 * A flag indicating whether this chunk is valid or if it has been
-		 * invalidated by the addition or removal of a method signature.
-		 */
-		static final BitField VALID = bitField(
-			NUM_OBJECTS_AND_FLAGS,
-			31,
-			1);
+	public boolean isValid ()
+	{
+		return valid;
+	}
 
-		/**
-		 * The number of {@linkplain L2IntegerRegister integer registers} that
-		 * are used by this chunk. Having this recorded separately allows the
-		 * register list to be dynamically expanded as needed only when starting
-		 * or resuming a continuation.
-		 */
-		static final BitField NUM_INTEGERS = bitField(
-			NUM_INTEGERS_AND_DOUBLES,
-			0,
-			16);
+	public A_Tuple wordcodes ()
+	{
+		return wordcodes;
+	}
 
-		/**
-		 * The number of {@linkplain L2FloatRegister floating point registers}
-		 * that are used by this chunk. Having this recorded separately allows
-		 * the register list to be dynamically expanded as needed only when
-		 * starting or resuming a continuation.
-		 */
-		static final BitField NUM_DOUBLES = bitField(
-			NUM_INTEGERS_AND_DOUBLES,
-			16,
-			16);
-
+	public A_Tuple vectors ()
+	{
+		return vectors;
 	}
 
 	/**
-	 * The layout of object slots for my instances.
+	 * Answer the literal with the given <em>one-based</em> subscript.
+	 *
+	 * @param subscript The one-based subscript.
+	 * @return The chunk's literal at that subscript.
 	 */
-	public enum ObjectSlots
-	implements ObjectSlotsEnum
+	public AvailObject literalAt(final int subscript)
 	{
-		/**
-		 * The {@linkplain L2Instruction level two instructions} encoded as a
-		 * tuple of integers.
-		 */
-		WORDCODES,
-
-		/**
-		 * A {@linkplain TupleDescriptor tuple} of tuples of integers. Each
-		 * integer represents an object register, so each tuple of integers acts
-		 * like a list of registers to be processed together, such as supplying
-		 * arguments to a method invocation.
-		 */
-		VECTORS,
-
-		/**
-		 * The literal objects that the {@linkplain #WORDCODES wordcodes} refer
-		 * to via encoded operands of type {@link L2OperandType#CONSTANT} or
-		 * {@link L2OperandType#SELECTOR}.
-		 */
-		LITERAL_AT_
+		return literals.get(subscript - 1);
 	}
 
-	@Override boolean allowsImmutableToMutableReferenceInField (
-		final AbstractSlotsEnum e)
-	{
-		return e == WORDCODES
-			|| e == VECTORS
-			|| e == LITERAL_AT_
-			|| e == NUM_OBJECTS_AND_FLAGS;
-	}
-
-	@Override
-	public void printObjectOnAvoidingIndent (
-		final AvailObject object,
+	public void printObjectOn (
 		final StringBuilder aStream,
-		final List<A_BasicObject> recursionList,
 		final int indent)
 	{
-		if (object.slot(INDEX) == 0)
+		if (index() == 0)
 		{
 			aStream.append("Default chunk #0");
 			return;
 		}
 		aStream.append("Chunk #");
-		aStream.append(object.slot(INDEX));
+		aStream.append(index());
 		aStream.append("\n");
 		final StringBuilder tabStream = new StringBuilder();
 		for (int t = 1; t <= indent; t++)
@@ -223,12 +237,12 @@ extends Descriptor
 		}
 		final String tabString = tabStream.toString();
 
-		if (!object.isValid())
+		if (!isValid())
 		{
 			aStream.append(tabString);
 			aStream.append("(INVALID)\n");
 		}
-		final A_Tuple words = object.slot(WORDCODES);
+		final A_Tuple words = wordcodes();
 		final L2RawInstructionDescriber describer =
 			new L2RawInstructionDescriber();
 		for (int i = 1, limit = words.tupleSize(); i <= limit; )
@@ -245,121 +259,40 @@ extends Descriptor
 			final L2RawInstruction rawInstruction =
 				new L2RawInstruction(operation, operands);
 			final StringBuilder tempStream = new StringBuilder(100);
-			describer.describe(rawInstruction, object, tempStream);
+			describer.describe(rawInstruction, this, tempStream);
 			aStream.append(
 				tempStream.toString().replace("\n", "\n\t\t" + tabString));
 			aStream.append("\n");
 		}
 	}
 
-	@Override @AvailMethod
-	int o_Index (final AvailObject object)
-	{
-		return object.slot(INDEX);
-	}
-
-	@Override @AvailMethod
-	void o_Index (final AvailObject object, final int value)
-	{
-		object.setSlot(INDEX, value);
-	}
-
-	@Override @AvailMethod
-	int o_NumIntegers (final AvailObject object)
-	{
-		return object.slot(NUM_INTEGERS);
-	}
-
-	@Override @AvailMethod
-	int o_NumDoubles (final AvailObject object)
-	{
-		return object.slot(NUM_DOUBLES);
-	}
-
-	@Override @AvailMethod
-	int o_NumObjects (final AvailObject object)
-	{
-		if (isShared())
-		{
-			synchronized (object)
-			{
-				return object.slot(NUM_OBJECTS);
-			}
-		}
-		return object.slot(NUM_OBJECTS);
-	}
-
-	@Override @AvailMethod
-	boolean o_IsValid (final AvailObject object)
-	{
-		if (isShared())
-		{
-			synchronized (object)
-			{
-				return object.slot(VALID) != 0;
-			}
-		}
-		return object.slot(VALID) != 0;
-	}
-
-	@Override @AvailMethod
-	A_Tuple o_Wordcodes (final AvailObject object)
-	{
-		return object.mutableSlot(WORDCODES);
-	}
-
-	@Override @AvailMethod
-	A_Tuple o_Vectors (final AvailObject object)
-	{
-		return object.mutableSlot(VECTORS);
-	}
-
-	@Override @AvailMethod
-	AvailObject o_LiteralAt (final AvailObject object, final int subscript)
-	{
-		return object.mutableSlot(LITERAL_AT_, subscript);
-	}
-
-	@Override @AvailMethod
-	boolean o_Equals (final AvailObject object, final A_BasicObject another)
-	{
-		return another.traversed().sameAddressAs(object);
-	}
-
-	@Override @AvailMethod
-	int o_Hash (final AvailObject object)
-	{
-		return IntegerDescriptor.computeHashOfInt(object.slot(INDEX));
-	}
-
 	/**
 	 * A {@link WeakChunkReference} is the mechanism by which {@linkplain
-	 * L2ChunkDescriptor level two chunks} are recycled by the Java garbage
-	 * collector. When a chunk is only weakly reachable (i.e., there are no
-	 * strong or soft references to it), the index reserved for that chunk
-	 * becomes eligible for recycling.
+	 * L2Chunk level two chunks} are recycled by the Java garbage collector.
+	 * When a chunk is only weakly reachable (i.e., there are no strong or soft
+	 * references to it), the index reserved for that chunk becomes eligible for
+	 * recycling.
 	 *
 	 * @author Mark van Gulik &lt;mark@availlang.org&gt;
 	 */
 	static class WeakChunkReference
-	extends WeakReference<A_Chunk>
+	extends WeakReference<L2Chunk>
 	{
 		/**
-		 * The finalization queue onto which {@linkplain L2ChunkDescriptor level
-		 * two chunks}' {@linkplain WeakChunkReference weak references} will be
+		 * The finalization queue onto which {@linkplain L2Chunk level two
+		 * chunks}' {@linkplain WeakChunkReference weak references} will be
 		 * placed upon expiration. There is no special process to remove them
 		 * from here. Rather, an element of this queue is consumed when needed
-		 * for {@linkplain L2ChunkDescriptor#allocate(A_RawFunction, List, List,
-		 * int, int, int, List, Set) allocation} of a new chunk. If this queue
-		 * is empty, a fresh index is allocated.
+		 * for {@linkplain L2Chunk#allocate(A_RawFunction, List, List, int, int,
+		 * int, List, Set) allocation} of a new chunk. If this queue is empty, a
+		 * fresh index is allocated.
 		 */
-		static final ReferenceQueue<A_Chunk> recyclingQueue =
-			new ReferenceQueue<A_Chunk>();
+		static final ReferenceQueue<L2Chunk> recyclingQueue =
+			new ReferenceQueue<>();
 
 		/**
-		 * The {@linkplain L2ChunkDescriptor.IntegerSlots#INDEX index} of the
-		 * {@linkplain L2ChunkDescriptor level two chunk} to which this
-		 * reference either refers or once referred.
+		 * The {@linkplain L2Chunk#index} of the {@linkplain L2Chunk level two
+		 * chunk} to which this reference either refers or once referred.
 		 */
 		final int index;
 
@@ -381,7 +314,7 @@ extends Descriptor
 		 *        which this chunk depends.
 		 */
 		public WeakChunkReference (
-			final A_Chunk chunk,
+			final L2Chunk chunk,
 			final Set<A_Method> contingentMethods)
 		{
 			super(chunk, recyclingQueue);
@@ -392,16 +325,16 @@ extends Descriptor
 
 	/**
 	 * A list of {@linkplain WeakChunkReference weak chunk references} to every
-	 * {@linkplain L2ChunkDescriptor level two chunk}. The chunks are wrapped
-	 * within a {@link WeakChunkReference} and placed in the list at their
-	 * {@linkplain IntegerSlots#INDEX index}, which the weak chunk reference
-	 * also records. Some of the weak references may have a null {@linkplain
-	 * WeakReference#get() referent}, indicating the chunk at that position has
-	 * either been reclaimed or will appear on the {@link
-	 * WeakChunkReference#recyclingQueue finalization queue} shortly.
+	 * {@linkplain L2Chunk level two chunk}. The chunks are wrapped within a
+	 * {@link WeakChunkReference} and placed in the list at their {@linkplain
+	 * L2Chunk#index}, which the weak chunk reference also records. Some of the
+	 * weak references may have a null {@linkplain WeakReference#get()
+	 * referent}, indicating the chunk at that position has either been
+	 * reclaimed or will appear on the {@link WeakChunkReference#recyclingQueue
+	 * finalization queue} shortly.
 	 */
 	private static final List<WeakChunkReference> allChunksWeakly =
-		new ArrayList<WeakChunkReference>(100);
+		new ArrayList<>(100);
 
 	/**
 	 * The level two wordcode offset to which to jump when returning into a
@@ -458,14 +391,14 @@ extends Descriptor
 
 	/**
 	 * The {@linkplain ReentrantLock lock} that guards access to the table of
-	 * {@linkplain L2ChunkDescriptor chunks}.
+	 * {@linkplain L2Chunk chunks}.
 	 */
 	private static final ReentrantLock chunksLock = new ReentrantLock();
 
 	/**
-	 * Allocate and set up a new {@linkplain L2ChunkDescriptor level two chunk}
-	 * with the given information. If {@code code} is non-null, set it up to
-	 * use the new chunk for subsequent invocations.
+	 * Allocate and set up a new {@linkplain L2Chunk level two chunk} with the
+	 * given information. If {@code code} is non-null, set it up to use the new
+	 * chunk for subsequent invocations.
 	 *
 	 * @param code
 	 *        The {@linkplain CompiledCodeDescriptor code} for which to use the
@@ -493,9 +426,9 @@ extends Descriptor
 	 *        the level two chunk depends.
 	 * @return The new level two chunk.
 	 */
-	public static A_Chunk allocate (
+	public static L2Chunk allocate (
 		final @Nullable A_RawFunction code,
-		final List<A_BasicObject> listOfLiterals,
+		final List<AvailObject> listOfLiterals,
 		final List<List<Integer>> listOfVectors,
 		final int numObjects,
 		final int numIntegers,
@@ -504,7 +437,7 @@ extends Descriptor
 		final Set<A_Method> contingentMethods)
 	{
 		final List<A_Tuple> vectorTuples =
-			new ArrayList<A_Tuple>(listOfVectors.size());
+			new ArrayList<>(listOfVectors.size());
 		for (final List<Integer> vector : listOfVectors)
 		{
 			final A_Tuple vectorTuple =
@@ -518,7 +451,7 @@ extends Descriptor
 		final A_Tuple wordcodesTuple =
 			TupleDescriptor.fromIntegerList(theWordcodes);
 		wordcodesTuple.makeImmutable();
-		final A_Chunk chunk = create(
+		final L2Chunk chunk = create(
 			vectorTuplesTuple,
 			numObjects,
 			numIntegers,
@@ -529,10 +462,9 @@ extends Descriptor
 		chunksLock.lock();
 		try
 		{
-			final ReferenceQueue<A_Chunk> queue =
+			final ReferenceQueue<L2Chunk> queue =
 				WeakChunkReference.recyclingQueue;
-			assert queue != null;
-			final Reference<? extends A_Chunk> recycledReference =
+			final Reference<? extends L2Chunk> recycledReference =
 				queue.poll();
 			if (recycledReference != null)
 			{
@@ -560,7 +492,6 @@ extends Descriptor
 				chunk,
 				contingentMethods);
 			allChunksWeakly.set(index, newReference);
-			chunk.makeImmutable();
 		}
 		finally
 		{
@@ -576,7 +507,7 @@ extends Descriptor
 		{
 			code.setStartingChunkAndReoptimizationCountdown(
 				chunk,
-				L2ChunkDescriptor.countdownForNewlyOptimizedCode());
+				L2Chunk.countdownForNewlyOptimizedCode());
 		}
 		for (final A_Method method : contingentMethods)
 		{
@@ -608,22 +539,15 @@ extends Descriptor
 		{
 			final WeakChunkReference ref = allChunksWeakly.get(chunkIndex);
 			assert ref.index == chunkIndex;
-			final AvailObject chunk = (AvailObject) ref.get();
+			final L2Chunk chunk = ref.get();
 			if (chunk != null)
 			{
-				chunk.setSlot(VALID, 0);
+				chunk.valid = false;
 				// The empty tuple is already shared, so we don't need to share
 				// it here.
-				chunk.setSlot(WORDCODES, TupleDescriptor.empty());
-				chunk.setSlot(VECTORS, TupleDescriptor.empty());
-				// Nil is likewise shared.
-				for (int i = chunk.variableObjectSlotsCount(); i >= 1; i--)
-				{
-					chunk.setSlot(
-						LITERAL_AT_,
-						i,
-						NilDescriptor.nil());
-				}
+				chunk.wordcodes = TupleDescriptor.empty();
+				chunk.vectors = TupleDescriptor.empty();
+				chunk.literals = Collections.emptyList();
 			}
 			final Set<A_Method> methods = ref.contingentMethods;
 			for (final A_Method method : methods)
@@ -639,8 +563,8 @@ extends Descriptor
 	}
 
 	/**
-	 * Create a new {@linkplain L2ChunkDescriptor level two chunk} with the
-	 * given information.
+	 * Create a new {@linkplain L2Chunk level two chunk} with the given
+	 * information.
 	 *
 	 * @param vectorTuplesTuple
 	 * @param numObjects
@@ -650,97 +574,51 @@ extends Descriptor
 	 * @param listOfLiterals
 	 * @return
 	 */
-	private static A_Chunk create (
+	private static L2Chunk create (
 		final A_Tuple vectorTuplesTuple,
 		final int numObjects,
 		final int numIntegers,
 		final int numFloats,
 		final A_Tuple wordcodesTuple,
-		final List<? extends A_BasicObject> listOfLiterals)
+		final List<AvailObject> listOfLiterals)
 	{
-		final AvailObject chunk = mutable.create(listOfLiterals.size());
+		final L2Chunk chunk = new L2Chunk();
 		// A new chunk starts out saved and valid.
-		chunk.setSlot(SAVED, 1);
-		chunk.setSlot(VALID, 1);
-		chunk.setSlot(VECTORS, vectorTuplesTuple);
-		chunk.setSlot(NUM_OBJECTS, numObjects);
-		chunk.setSlot(NUM_INTEGERS, numIntegers);
-		chunk.setSlot(NUM_DOUBLES, numFloats);
-		chunk.setSlot(WORDCODES, wordcodesTuple);
-		for (int i = 1; i <= listOfLiterals.size(); i++)
-		{
-			chunk.setSlot(LITERAL_AT_, i, listOfLiterals.get(i - 1));
-		}
+		chunk.saved = true;
+		chunk.valid = true;
+		chunk.vectors = vectorTuplesTuple;
+		chunk.numObjects = numObjects;
+		chunk.numIntegers = numIntegers;
+		chunk.numDoubles = numFloats;
+		chunk.wordcodes = wordcodesTuple;
+		chunk.literals = new ArrayList<AvailObject>(listOfLiterals);
 		return chunk;
 	}
 
-
 	/**
-	 * Construct a new {@link L2ChunkDescriptor}.
-	 *
-	 * @param mutability
-	 *        The {@linkplain Mutability mutability} of the new descriptor.
-	 */
-	private L2ChunkDescriptor (final Mutability mutability)
-	{
-		super(mutability);
-	}
-
-	/** The mutable {@link L2ChunkDescriptor}. */
-	private static final L2ChunkDescriptor mutable =
-		new L2ChunkDescriptor(Mutability.MUTABLE);
-
-	@Override
-	L2ChunkDescriptor mutable ()
-	{
-		return mutable;
-	}
-
-	/** The immutable {@link L2ChunkDescriptor}. */
-	private static final L2ChunkDescriptor immutable =
-		new L2ChunkDescriptor(Mutability.IMMUTABLE);
-
-	@Override
-	L2ChunkDescriptor immutable ()
-	{
-		return immutable;
-	}
-
-	/** The shared {@link L2ChunkDescriptor}. */
-	private static final L2ChunkDescriptor shared =
-		new L2ChunkDescriptor(Mutability.SHARED);
-
-	@Override
-	L2ChunkDescriptor shared ()
-	{
-		return shared;
-	}
-
-	/**
-	 * The special {@linkplain L2ChunkDescriptor level two chunk} that is used
-	 * to interpret level one nybblecodes until a piece of {@linkplain
+	 * The special {@linkplain L2Chunk level two chunk} that is used to
+	 * interpret level one nybblecodes until a piece of {@linkplain
 	 * CompiledCodeDescriptor compiled code} has been executed some number of
 	 * times.
 	 */
-	private static final A_Chunk unoptimizedChunk =
+	private static final L2Chunk unoptimizedChunk =
 		L2Translator.createChunkForFirstInvocation();
 
 	static
 	{
-		assert unoptimizedChunk.descriptor().isShared();
 		assert unoptimizedChunk.index() == 0;
 		assert allChunksWeakly.size() == 1;
 	}
 
 	/**
-	 * Return the special {@linkplain L2ChunkDescriptor level two chunk} that is
-	 * used to interpret level one nybblecodes until a piece of {@linkplain
+	 * Return the special {@linkplain L2Chunk level two chunk} that is used to
+	 * interpret level one nybblecodes until a piece of {@linkplain
 	 * CompiledCodeDescriptor compiled code} has been executed some threshold
 	 * number of times.
 	 *
 	 * @return The special {@linkplain #unoptimizedChunk unoptimized chunk}.
 	 */
-	public static A_Chunk unoptimizedChunk ()
+	public static L2Chunk unoptimizedChunk ()
 	{
 		return unoptimizedChunk;
 	}

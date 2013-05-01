@@ -39,6 +39,7 @@ import com.avail.AvailRuntime;
 import com.avail.annotations.*;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelOne.L1Operation;
+import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.primitive.*;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.Continuation1;
@@ -79,8 +80,8 @@ extends Descriptor
 		PROGRAM_COUNTER_AND_STACK_POINTER,
 
 		/**
-		 * The Level Two {@linkplain L2ChunkDescriptor.ObjectSlots#WORDCODES
-		 * wordcode} index at which to resume.
+		 * The Level Two {@linkplain L2Chunk#wordcodes() wordcode} index at
+		 * which to resume.
 		 */
 		LEVEL_TWO_OFFSET;
 
@@ -131,9 +132,8 @@ extends Descriptor
 		FUNCTION,
 
 		/**
-		 * The {@linkplain L2ChunkDescriptor Level Two chunk} which can be
-		 * resumed directly by the {@link Interpreter} to effect continued
-		 * execution.
+		 * The {@link L2Chunk} which can be resumed directly by the {@link
+		 * Interpreter} to effect continued execution.
 		 */
 		LEVEL_TWO_CHUNK,
 
@@ -262,20 +262,20 @@ extends Descriptor
 	@Override @AvailMethod
 	void o_LevelTwoChunkOffset (
 		final AvailObject object,
-		final A_Chunk chunk,
+		final L2Chunk chunk,
 		final int offset)
 	{
 		if (isShared())
 		{
 			synchronized (object)
 			{
-				object.setSlot(LEVEL_TWO_CHUNK, chunk.traversed().makeShared());
+				object.setSlot(LEVEL_TWO_CHUNK, chunk.chunkPojo);
 				object.setSlot(LEVEL_TWO_OFFSET, offset);
 			}
 		}
 		else
 		{
-			object.setSlot(LEVEL_TWO_CHUNK, chunk.makeImmutable());
+			object.setSlot(LEVEL_TWO_CHUNK, chunk.chunkPojo);
 			object.setSlot(LEVEL_TWO_OFFSET, offset);
 		}
 	}
@@ -317,9 +317,10 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	A_Chunk o_LevelTwoChunk (final AvailObject object)
+	L2Chunk o_LevelTwoChunk (final AvailObject object)
 	{
-		return object.mutableSlot(LEVEL_TWO_CHUNK);
+		final AvailObject pojo = object.mutableSlot(LEVEL_TWO_CHUNK);
+		return (L2Chunk)pojo.javaObject();
 	}
 
 	@Override @AvailMethod
@@ -387,18 +388,17 @@ extends Descriptor
 	 * @param locals The {@link List} of (non-argument) local variables.
 	 * @return The new continuation.
 	 */
-	public static AvailObject create (
+	public static A_Continuation create (
 		final AvailObject function,
 		final AvailObject caller,
-		final A_Chunk startingChunk,
+		final L2Chunk startingChunk,
 		final int startingOffset,
 		final List<AvailObject> args,
 		final List<AvailObject> locals)
 	{
-		final ContinuationDescriptor descriptor = mutable;
 		final A_RawFunction code = function.code();
 		final int frameSize = code.numArgsAndLocalsAndStack();
-		final AvailObject cont = descriptor.create(frameSize);
+		final AvailObject cont = mutable.create(frameSize);
 		cont.setSlot(CALLER, caller);
 		cont.setSlot(FUNCTION, function);
 		cont.setSlot(PROGRAM_COUNTER, 1);
@@ -429,6 +429,7 @@ extends Descriptor
 	/**
 	 * Create a mutable continuation with the specified fields.  Leave the stack
 	 * frame slots uninitialized.
+	 *
 	 * @param function The function being invoked/resumed.
 	 * @param caller The calling continuation of this continuation.
 	 * @param pc The level one program counter.
@@ -443,7 +444,7 @@ extends Descriptor
 		final A_Continuation caller,
 		final int pc,
 		final int stackp,
-		final A_Chunk levelTwoChunk,
+		final L2Chunk levelTwoChunk,
 		final int levelTwoOffset)
 	{
 		final A_RawFunction code = function.code();
@@ -453,7 +454,7 @@ extends Descriptor
 		continuation.setSlot(FUNCTION, function);
 		continuation.setSlot(PROGRAM_COUNTER, pc);
 		continuation.setSlot(STACK_POINTER, stackp);
-		continuation.setSlot(LEVEL_TWO_CHUNK, levelTwoChunk);
+		continuation.setSlot(LEVEL_TWO_CHUNK, levelTwoChunk.chunkPojo);
 		continuation.setSlot(LEVEL_TWO_OFFSET, levelTwoOffset);
 		return continuation;
 	}

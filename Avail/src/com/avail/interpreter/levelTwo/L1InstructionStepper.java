@@ -224,8 +224,8 @@ implements L1OperationDispatcher
 	{
 		final A_Function function = pointerAt(FUNCTION);
 		final A_RawFunction code = function.code();
-		final A_Chunk chunk = interpreter.chunk();
-		assert chunk == L2ChunkDescriptor.unoptimizedChunk();
+		final L2Chunk chunk = interpreter.chunk();
+		assert chunk == L2Chunk.unoptimizedChunk();
 		final A_Continuation continuation =
 			ContinuationDescriptor.createExceptFrame(
 				function,
@@ -233,7 +233,7 @@ implements L1OperationDispatcher
 				integerAt(pcRegister()),
 				integerAt(stackpRegister()) + 1 - argumentOrLocalRegister(1),
 				chunk,
-				L2ChunkDescriptor.offsetToContinueUnoptimizedChunk());
+				L2Chunk.offsetToContinueUnoptimizedChunk());
 		for (int i = code.numArgsAndLocalsAndStack(); i >= 1; i--)
 		{
 			continuation.argOrLocalOrStackAtPut(
@@ -522,12 +522,12 @@ implements L1OperationDispatcher
 		{
 			locals.add(pointerAt(argumentOrLocalRegister((numArgs + i))));
 		}
-		assert interpreter.chunk() == L2ChunkDescriptor.unoptimizedChunk();
-		final AvailObject newContinuation = ContinuationDescriptor.create(
+		assert interpreter.chunk() == L2Chunk.unoptimizedChunk();
+		final A_Continuation newContinuation = ContinuationDescriptor.create(
 			function,
 			pointerAt(CALLER),
-			L2ChunkDescriptor.unoptimizedChunk(),
-			L2ChunkDescriptor.offsetToContinueUnoptimizedChunk(),
+			L2Chunk.unoptimizedChunk(),
+			L2Chunk.offsetToContinueUnoptimizedChunk(),
 			args, locals);
 		// Freeze all fields of the new object, including its caller,
 		// function, and args.

@@ -69,7 +69,7 @@ extends L2Operation
 			public void value ()
 			{
 				theCode.countdownToReoptimize(
-					L2ChunkDescriptor.countdownForNewlyOptimizedCode());
+					L2Chunk.countdownForNewlyOptimizedCode());
 				L2Translator.translateToLevelTwo(
 					theCode,
 					OptimizationLevel.values()[targetOptimizationLevel],
