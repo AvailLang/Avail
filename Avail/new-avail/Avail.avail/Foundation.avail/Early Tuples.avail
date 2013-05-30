@@ -163,10 +163,9 @@ Public method "relevant`|_`|" is
 /**
  * There are no relevant element types when the tuple type is ⊥.
  * 
- * Parameters:
- *    tupleType - ⊥.
- * Returns:
- *    0.
+ * @method "relevant`|_`|"
+ * @param "tupleType" "⊥"
+ * @returns "0's type".
  */
 Public method "relevant`|_`|" is
 [
@@ -179,10 +178,13 @@ Public method "relevant`|_`|" is
  * Check that the tuple type and start and end subscript ranges could ever be
  * statically valid. Reject the current parse if they are never valid together.
  * 
- * Parameters:
- *    aTuple - A tuple type.
- *    sliceStart - The integral range of the start subscript.
- *    sliceEnd - The integral range of the end subscript.
+ * @method "Require:_[_.._]is ever valid"
+ * @param "aTuple" "tuple meta"
+ *        A tuple type.
+ * @param "sliceStart" "natural number's type"
+ *        The integral range of the start subscript.
+ * @param "sliceEnd" "whole number's type"
+ *        The integral range of the end subscript.
  */
 Public method "Require:_[_.._]is ever valid" is
 [
@@ -236,12 +238,15 @@ Public method "Require:_[_.._]is ever valid" is
  * Construct and answer the tuple type that represents the specified tuple
  * slice.
  * 
- * Parameters:
- *    aTupleType - A tuple type.
- *    sliceStart - The type of the slice start subscript.
- *    sliceEnd - The type of the slice end subscript.
- * Returns:
- *    The strongest tuple type that can be constructed from the argument types.
+ * @method "tuple type of_[_.._]"
+ * @param "aTupleType" "tuple meta"
+ *        A tuple type.
+ * @param "sliceStart" "natural number's type"
+ *        The type of the slice start subscript.
+ * @param "sliceEnd" "whole number's type"
+ *        The type of the slice end subscript.
+ * @returns "tuple meta"
+ *          The strongest tuple type that can be constructed from the argument types.
  */
 Public method "tuple type of_[_.._]" is
 [
@@ -304,6 +309,12 @@ Method "_[_.._]" is stable at
 	function accepting <tuple, natural number, whole number>
 	and returning tuple;
 
+/**
+ * @method "_[_.._]"
+ * @restricts "tuple meta"
+ * @restricts "natural number's type"
+ * @restricts "whole number's type"
+ */
 Semantic restriction "_[_.._]" is
 [
 	aTupleType : tuple meta,
@@ -314,6 +325,16 @@ Semantic restriction "_[_.._]" is
 ];
 
 /* Helper for restriction of "_[_.._]" on a tuple type. */
+/**
+ * @method "tuple meta of_[_.._]"
+ * @param "aTupleMeta" "tuple meta's type"
+ *        A tuple type.
+ * @param "sliceStart" "natural number's type"
+ *        The type of the slice start subscript.
+ * @param "sliceEnd" "whole number's type"
+ *        The type of the slice end subscript.
+ * @returns "tuple meta"
+ */
 Private method "tuple meta of_[_.._]" is
 [
 	aTupleMeta : tuple meta's type,
@@ -372,6 +393,12 @@ Private method "tuple meta of_[_.._]" is
 	result
 ] : tuple meta;
 
+/**
+ * @method "_[_.._]"
+ * @restricts "tuple meta"
+ * @restricts "natural number's type"
+ * @restricts "whole number's type"
+ */
 Semantic restriction "_[_.._]" is
 [
 	aTupleType : tuple meta's type,
@@ -385,11 +412,13 @@ Semantic restriction "_[_.._]" is
  * Construct and answer a slice (i.e., tuple type) that begins at subscript
  * `sliceStart` and continues to the end of the tuple type.
  * 
- * Parameters:
- *    aTupleType - A tuple type.
- *    sliceStart - The one-based start index (inclusive) of the desired slice.
- * Returns:
- *    The requested tuple.
+ * @method "_[_..]"
+ * @param "aTupleType" "tuple meta"
+ *        A tuple type.
+ * @param "sliceStart" "natural number"
+ *        The one-based start index (inclusive) of the desired slice.
+ * @returns "tuple of any meta"
+ *          The requested tuple.
  */
 Public method "_[_..]" is
 [
@@ -403,11 +432,13 @@ Public method "_[_..]" is
  * Construct and answer a slice (i.e., subtuple) that begins at subscript
  * `sliceStart` and continues to the end of the tuple.
  * 
- * Parameters:
- *    aTuple - A tuple.
- *    sliceStart - The one-based start index (inclusive) of the desired slice.
- * Returns:
- *    The requested tuple.
+ * @method "_[_..]"
+ * @param "aTuple" "tuple"
+ *        A tuple.
+ * @param "sliceStart" "natural number"
+ *        The one-based start index (inclusive) of the desired slice.
+ * @returns "tuple"
+ *          The requested tuple.
  */
 Public stable method "_[_..]" is
 [
@@ -421,11 +452,9 @@ Public stable method "_[_..]" is
  * Strengthen the tuple type produced by `_[_..]` to the strongest possible
  * given the argument types.
  *
- * Parameters:
- *    aTupleType -
- *    sliceStart -
- * Returns:
- *    The strengthened tuple type.
+ * @method "_[_..]"
+ * @param "aTupleType" "tuple meta"
+ * @param "sliceStart" "natural number's type"
  */
 Semantic restriction "_[_..]" is
 [
@@ -439,11 +468,13 @@ Semantic restriction "_[_..]" is
  * Construct and answer a slice (i.e., tuple type) that begins at the start of
  * the tuple type and continues to subscript `sliceEnd`.
  * 
- * Parameters:
- *    aTupleType - A tuple type.
- *    sliceEnd - The one-based end index (inclusive) of the desired slice.
- * Returns:
- *    The requested tuple.
+ * @method "_[.._]"
+ * @param "aTupleType" "tuple meta"
+ *        A tuple type.
+ * @param "sliceEnd" "whole number"
+ *        The one-based end index (inclusive) of the desired slice.
+ * @returns "tuple of any meta"
+ *          The requested tuple.
  */
 Public method "_[.._]" is
 [
@@ -457,11 +488,13 @@ Public method "_[.._]" is
  * Construct and answer a slice (i.e., subtuple) that begins at the start of the
  * tuple and continues to subscript `sliceEnd`.
  * 
- * Parameters:
- *    aTuple - A tuple.
- *    sliceEnd - The one-based end index (inclusive) of the desired slice.
- * Returns:
- *    The requested tuple.
+ * @method "_[.._]"
+ * @param "aTuple" "tuple"
+ *        A tuple.
+ * @param "sliceEnd" "whole number"
+ *        The one-based end index (inclusive) of the desired slice.
+ * @returns "tuple"
+ *           The requested tuple.
  */
 Public stable method "_[.._]" is
 [
@@ -475,11 +508,9 @@ Public stable method "_[.._]" is
  * Strengthen the tuple type produced by `_[.._]` to the strongest possible
  * given the argument types.
  *
- * Parameters:
- *    aTupleType -
- *    sliceEnd -
- * Returns:
- *    The strengthened tuple type.
+ * @method "_[.._]"
+ * @restricts "aTupleType" "tuple meta"
+ * @restricts "sliceEnd" "whole number's type"
  */
 Semantic restriction "_[.._]" is
 [
@@ -489,13 +520,29 @@ Semantic restriction "_[.._]" is
 	tuple type of aTupleType[1's type..sliceEnd]
 ];
 
-/** Bind subscripting and slicing tighter than concatenation. */
+/** Bind subscripting and slicing tighter than concatenation.
+ * 
+ * @method "_[_]"
+ * @method "_[_..]"
+ * @method "_[.._]"
+ * @forbids 1 "«_‡++»"
+ */
 Grammatical restriction {"_[_]", "_[_..]", "_[.._]"} is <{"«_‡++»"}, ∅>;
+
+/** Bind subscripting and slicing tighter than concatenation.
+ * 
+ * @method "_[_.._]"
+ * @forbids 1 "«_‡++»"
+ */
 Grammatical restriction "_[_.._]" is <{"«_‡++»"}, ∅, ∅>;
 
 Method "concatenate_" is stable at
 	function accepting <tuple of tuple> and returning tuple;
 
+/**
+ * @method "concatenate_"
+ * @restricts "tuple of tuple's type"
+ */
 Semantic restriction "concatenate_" is
 [
 	tupleType : tuple of tuple's type
@@ -538,6 +585,9 @@ Method "_→set" is stable at function accepting <tuple> and returning set;
  * chromatic polynomials, and even then it's still expensive. Provide a simple
  * strengthening: the resulting element type is the type union of all tuple
  * element types.
+ * 
+ * @method "_→set"
+ * @restricts "tuple meta"
  */
 Semantic restriction "_→set" is
 [
@@ -592,6 +642,10 @@ Semantic restriction "_→set" is
 Method "_→map" is stable at
 	function accepting <key-value tuple> and returning map;
 
+/**
+ * @method "_→map"
+ * @restricts "key-value tuple's type
+ */
 Semantic restriction "_→map" is
 [
 	tupleType : key-value tuple's type
@@ -619,7 +673,12 @@ Semantic restriction "_→map" is
 	{keyType→valueType | [lower..⎡tupleType⎤ + 1)}
 ];
 
-/* Disambiguate `_→_` and `_→tuple`. */
+/** 
+ * Disambiguate `_→_` and `_→tuple`. 
+ * 
+ * @method "_→_"
+ * @forbids 2 "tuple"
+ */
 Grammatical restriction "_→_" is <∅, {"tuple"}>;
 
 /**
@@ -650,6 +709,12 @@ Method "_[_]else_" is
 	else else
 ] : any;
 
+/**
+ * @method "_[_]else_"
+ * @restricts "tuple meta"
+ * @restricts "integer's type"
+ * @restricts "(function accepting <> and returning any)'s type"
+ */
 Semantic restriction "_[_]else_" is
 [
 	tupleType : tuple meta,

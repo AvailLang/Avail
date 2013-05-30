@@ -72,6 +72,10 @@ Names
 	"worker exception"
 Body
 
+/**
+ * @method "_'s⁇result"
+ * @restricts "filber's type"
+ */
 Semantic restriction "_'s⁇result" is
 [
 	fiberType : fiber's type
@@ -112,6 +116,12 @@ Private method "Require:forked_accepts_" is
 	];
 ];
 
+/**
+ * @method "Invoke_with_,⁇forked at priority_"
+ * @restricts "function's type"
+ * @restricts "tuple's type"
+ * @restricts "[0..255]'s type"
+ */
 Semantic restriction "Invoke_with_,⁇forked at priority_" is
 [
 	functionType : function's type,
@@ -122,6 +132,12 @@ Semantic restriction "Invoke_with_,⁇forked at priority_" is
 	⊤
 ];
 
+/**
+ * @method "invoke_with_,⁇forked at priority_"
+ * @restricts "function's type"
+ * @restricts "tuple's type"
+ * @restricts "[0..255]'s type"
+ */
 Semantic restriction "invoke_with_,⁇forked at priority_" is
 [
 	functionType : function's type,
@@ -132,6 +148,13 @@ Semantic restriction "invoke_with_,⁇forked at priority_" is
 	fiber→(functionType's return type)
 ];
 
+/**
+ * @method "In_millisecond|milliseconds,⁇invoke_with_,⁇forked at priority_"
+ * @restricts "[0..∞]'s type"
+ * @restricts "function's type"
+ * @restricts "tuple's type"
+ * @restricts "[0..255]'s type"
+ */
 Semantic restriction
 	"In_millisecond|milliseconds,⁇invoke_with_,⁇forked at priority_"
 is
@@ -145,6 +168,13 @@ is
 	⊤
 ];
 
+/**
+ * @method "in_millisecond|milliseconds,⁇invoke_with_,⁇forked at priority_"
+ * @restricts "[0..∞]'s type"
+ * @restricts "function's type"
+ * @restricts "tuple's type"
+ * @restricts "[0..255]'s type"
+ */
 Semantic restriction
 	"in_millisecond|milliseconds,⁇invoke_with_,⁇forked at priority_"
 is
@@ -161,10 +191,35 @@ is
 /* Disambiguate fiber-local access and atom property access. They are already
  * disambiguated by types, so this is not strictly necessary.
  */
+
+/**
+ * @method "Remove_[_]"
+ * @forbids 1 "current fiber"
+ */
 Grammatical restriction "Remove_[_]" is <{"current fiber"}, ∅>;
+
+/**
+ * @method "_[_]"
+ * @forbids 1 "current fiber"
+ */
 Grammatical restriction "_[_]" is <{"current fiber"}, ∅>;
+
+/**
+ * @method "_[_]else_"
+ * @forbids 1 "current fiber"
+ */
 Grammatical restriction "_[_]else_" is <{"current fiber"}, ∅, ∅>;
+
+/**
+ * @method "_[_]:=_"
+ * @forbids 1 "current fiber"
+ */
 Grammatical restriction "_[_]:=_" is <{"current fiber"}, ∅, ∅>;
+
+/**
+ * @method "_∈_"
+ * @forbids 2 "current fiber"
+ */
 Grammatical restriction "_∈_" is <∅, {"current fiber"}>;
 
 /**
@@ -225,6 +280,10 @@ Public method "fork_" is
 	invoke aFunction with <> forked at priority current fiber's priority
 ] : fiber;
 
+/**
+ * @method "fork_"
+ * @restricts "[]→⊤'s type"
+ */
 Semantic restriction "fork_" is
 [
 	functionType : []→⊤'s type
@@ -326,6 +385,10 @@ Public method "the future of_" is
 		killer ::= ↑ex
 ] : future;
 
+/**
+ * @method "the future of_"
+ * @restricts "[]→any's type"
+ */
 Semantic restriction "the future of_" is
 [
 	functionType : []→any's type
@@ -361,6 +424,10 @@ Method "_'s⁇value" is
 	]
 ] : any;
 
+/**
+ * @method "_'s⁇value"
+ * @restricts "future's type"
+ */
 Semantic restriction "_'s⁇value" is
 [
 	futureType : future's type
@@ -531,6 +598,10 @@ Public method "For each of⁇_in parallel do_" is
  * Ensure that the function will accept all elements and indices of the tuple.
  * If the tuple is certainly nonempty and the function certainly does not
  * complete if applied, then answer ⊥.
+ * 
+ * @method "For each of⁇_in parallel do_"
+ * @restricts "tuple meta"
+ * @restricts "function meta"
  */
 Semantic restriction "For each of⁇_in parallel do_" is
 [
@@ -570,6 +641,11 @@ Public method "For each of⁇_in parallel do_" is
 	];
 ] : ⊤;
 
+/**
+ * @method "For each of⁇_in parallel do_"
+ * @restricts "map meta"
+ * @restricts "[⊥, ⊥]→⊤'s type"
+ */
 Semantic restriction "For each of⁇_in parallel do_" is
 [
 	mapType : map meta,
@@ -615,6 +691,11 @@ Public method "For each of⁇_in parallel do_" is
 	];
 ] : ⊤;
 
+/**
+ * @method "For each of⁇_in parallel do_"
+ * @restricts "set meta"
+ * @restricts "[⊥]→⊤'s type"
+ */
 Semantic restriction "For each of⁇_in parallel do_" is
 [
 	setType : set meta,
@@ -798,6 +879,10 @@ Public method "map_in parallel through_" is
 /**
  * Ensure that the function will accept all elements and indices of the tuple.
  * If the tuple is certainly nonempty, then the function cannot answer ⊥.
+ * 
+ * @method "map_in parallel through_"
+ * @restricts "tuple meta"
+ * @restricts "[…]→any's type"
  */
 Semantic restriction "map_in parallel through_" is
 [
@@ -863,6 +948,10 @@ Public method "map_in parallel through_" is
 /**
  * Ensure that the function will accept all bindings of the map. If the map is
  * certainly nonempty, then the function cannot answer ⊥.
+ * 
+ * @method "map_in parallel through_"
+ * @restricts "map meta"
+ * @restricts "[⊥, ⊥]→any's type"
  */
 Semantic restriction "map_in parallel through_" is
 [
@@ -916,6 +1005,10 @@ Public method "map_in parallel through_" is
 /**
  * Ensure that the function will accept elements of the set. If the set is
  * certainly nonempty, then the function cannot answer ⊥.
+ * 
+ * @method "map_in parallel through_"
+ * @restricts "set meta"
+ * @restricts "[⊥]→any's type"
  */
 Semantic restriction "map_in parallel through_" is
 [
@@ -935,4 +1028,8 @@ Semantic restriction "map_in parallel through_" is
 	{transformer's return type | 1..⎡setType⎤}
 ];
 
+/**
+ * @method "a|an_«with«_«:»?:=_‡,»»"
+ * @restricts 1 "future"
+ */
 Grammatical restriction "a|an_«with«_«:»?:=_‡,»»" is <{"future"}, ∅, ∅>;

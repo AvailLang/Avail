@@ -97,6 +97,11 @@ Public method "«Public»?_is a|an new⁇field⁇atom" is
 	Semantic restriction atomName is [theAtom's type];
 ] : ⊤;
 
+/**
+ * @method "«Public»?_is a|an new⁇field⁇atom"
+ * @restricts "boolean's type"
+ * @restricts "string's type"
+ */
 Semantic restriction "«Public»?_is a|an new⁇field⁇atom" is
 [
 	publicType : boolean's type,
@@ -155,6 +160,11 @@ Public method "«Public»?_is a new⁇heritable«fiber-local»⁇atom" is
 	Semantic restriction atomName is [theAtom's type];
 ] : ⊤;
 
+/**
+ * @method "«Public»?_is a new⁇heritable«fiber-local»⁇atom"
+ * @restricts "boolean's type"
+ * @restricts "string's type"
+ */
 Semantic restriction "«Public»?_is a new⁇heritable«fiber-local»⁇atom" is
 [
 	publicType : boolean's type,

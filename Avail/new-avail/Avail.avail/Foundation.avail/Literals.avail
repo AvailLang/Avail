@@ -53,6 +53,10 @@ Body
 
 Method "`|_`|" is stable at
 	function accepting <tuple> and returning whole number;
+/**
+ * @method "`|_`|"
+ * @restricts "tuple meta"
+ */
 Semantic restriction "`|_`|" is
 [
 	aTupleType : tuple meta
@@ -63,6 +67,11 @@ Semantic restriction "`|_`|" is
 
 Method "`|_`|" is stable at
 	function accepting <set> and returning whole number;
+
+/**
+ * @method "`|_`|"
+ * @restricts "set meta"
+ */
 Semantic restriction "`|_`|" is
 [
 	aSetType : set meta
@@ -73,6 +82,11 @@ Semantic restriction "`|_`|" is
 
 Method "`|_`|" is stable at
 	function accepting <map> and returning whole number;
+	
+/**
+ * @method "`|_`|"
+ * @restricts "map meta"
+ */
 Semantic restriction "`|_`|" is
 [
 	aMapType : map meta
@@ -84,10 +98,11 @@ Semantic restriction "`|_`|" is
 /**
  * Answer the lower bound of the argument.
  *
- * Parameters:
- *    aTupleType - A tuple type.
- * Returns:
- *    The lower bound of the argument.
+ * @method "⎣_⎦"
+ * @param "aTupleType" "tuple meta"
+ *        A tuple type.
+ * @returns "whole number"
+ *          The lower bound of the argument.
  */
 Method "⎣_⎦" is
 [
@@ -99,10 +114,11 @@ Method "⎣_⎦" is
 /**
  * Answer the lower bound of the argument.
  *
- * Parameters:
- *    aSetType - A set type.
- * Returns:
- *    The lower bound of the argument.
+ * @method "⎣_⎦"
+ * @param "aSetType" "set meta"
+ *        A set type.
+ * @returns "whole number"
+ *          The lower bound of the argument.
  */
 Method "⎣_⎦" is
 [
@@ -114,9 +130,10 @@ Method "⎣_⎦" is
 /**
  * Answer the lower bound of the argument.
  *
- * Parameters:
- *    aMapType - A map type.
- * Returns:
+ * @method "⎣_⎦"
+ * @param "aMapType" "map meta"
+ *        A map type.
+ * @returns "whole number"
  *    The lower bound of the argument.
  */
 Method "⎣_⎦" is
@@ -126,6 +143,12 @@ Method "⎣_⎦" is
 	⎣||aMapType||⎦
 ] : whole number;
 
+/**
+ * Shouldn't happen.
+ * 
+ * @method "⎣_⎦"
+ * @param "⊥'s type"
+ */
 Method "⎣_⎦" is
 [
 	bottom : ⊥'s type
@@ -133,6 +156,12 @@ Method "⎣_⎦" is
 	Shouldn't happen
 ];
 
+/**
+ * Shouldn't happen.
+ * 
+ * @method "⎡_⎤"
+ * @param "⊥'s type"
+ */
 Method "⎡_⎤" is
 [
 	bottom : ⊥'s type
@@ -140,6 +169,10 @@ Method "⎡_⎤" is
 	Shouldn't happen
 ];
 
+/**
+ * @method "⎣_⎦"
+ * @restricts "⊥'s type's type"
+ */
 Semantic restriction "⎣_⎦" is
 [
 	bottom : ⊥'s type's type
@@ -148,6 +181,10 @@ Semantic restriction "⎣_⎦" is
 		"a value other than ⊥'s type for ⎣_⎦."
 ];
 
+/**
+ * @method "⎡_⎤"
+ * @restricts "⊥'s type's type"
+ */
 Semantic restriction "⎡_⎤" is
 [
 	bottom : ⊥'s type's type
@@ -159,10 +196,11 @@ Semantic restriction "⎡_⎤" is
 /**
  * Answer the upper bound of the argument.
  *
- * Parameters:
- *    aTupleType - A tuple type.
- * Returns:
- *    The upper bound of the argument.
+ * @method "⎡_⎤"
+ * @param "aTupleType" "tuple meta"
+ *        A tuple type.
+ * @returns "[0..∞]"
+ *          The upper bound of the argument.
  */
 Method "⎡_⎤" is
 [
@@ -174,10 +212,11 @@ Method "⎡_⎤" is
 /**
  * Answer the upper bound of the argument.
  *
- * Parameters:
- *    aSetType - A set type.
- * Returns:
- *    The upper bound of the argument.
+ * @method "⎡_⎤"
+ * @param "aSetType" "set meta"
+ *        A set type.
+ * @returns "[0..∞]"
+ *          The upper bound of the argument.
  */
 Method "⎡_⎤" is
 [
@@ -189,10 +228,11 @@ Method "⎡_⎤" is
 /**
  * Answer the upper bound of the argument.
  *
- * Parameters:
- *    aMapType - A map type.
- * Returns:
- *    The upper bound of the argument.
+ * @method "⎡_⎤"
+ * @param "aMapType" "map meta"
+ *        A map type.
+ * @returns "[0..∞]"
+ *          The upper bound of the argument.
  */
 Method "⎡_⎤" is
 [
@@ -204,10 +244,8 @@ Method "⎡_⎤" is
 /**
  * Strengthen the lower bound for tuple types.
  *
- * Parameters:
- *    aTupleType -
- * Returns:
- *    The range of cardinalities of the argument' instance.
+ * @method "⎣_⎦"
+ * @restricts "tuple meta's type"
  */
 Semantic restriction "⎣_⎦" is
 [
@@ -219,10 +257,8 @@ Semantic restriction "⎣_⎦" is
 /**
  * Strengthen the lower bound for set types.
  *
- * Parameters:
- *    aSetType -
- * Returns:
- *    The range of cardinalities of the argument' instance.
+ * @method "⎣_⎦"
+ * @restricts "set meta's type"
  */
 Semantic restriction "⎣_⎦" is
 [
@@ -234,10 +270,8 @@ Semantic restriction "⎣_⎦" is
 /**
  * Strengthen the lower bound for map types.
  *
- * Parameters:
- *    aMapType -
- * Returns:
- *    The range of cardinalities of the argument' instance.
+ * @method "⎣_⎦"
+ * @restricts "map meta's type"
  */
 Semantic restriction "⎣_⎦" is
 [
@@ -249,10 +283,8 @@ Semantic restriction "⎣_⎦" is
 /**
  * Strengthen the upper bound for tuple types.
  *
- * Parameters:
- *    aTupleType -
- * Returns:
- *    The range of cardinalities of the argument' instance.
+ * @method "⎡_⎤"
+ * @restricts "tuple meta's type"
  */
 Semantic restriction "⎡_⎤" is
 [
@@ -265,10 +297,8 @@ Semantic restriction "⎡_⎤" is
 /**
  * Strengthen the upper bound for set types.
  *
- * Parameters:
- *    aSetType -
- * Returns:
- *    The range of cardinalities of the argument' instance.
+ * @method "⎡_⎤"
+ * @restricts "set meta's type"
  */
 Semantic restriction "⎡_⎤" is
 [
@@ -281,10 +311,8 @@ Semantic restriction "⎡_⎤" is
 /**
  * Strengthen the upper bound for map types.
  *
- * Parameters:
- *    aMapType -
- * Returns:
- *    The range of cardinalities of the argument' instance.
+ * @method "⎡_⎤"
+ * @restricts "map meta's type"
  */
 Semantic restriction "⎡_⎤" is
 [
@@ -299,10 +327,11 @@ Semantic restriction "⎡_⎤" is
  * `atom for_`, i.e., it is looked up using in the current module's context. The
  * name of the atom is provided by the argument's lexeme.
  * 
- * Parameter:
- *    aToken - An arbitrary token.
- * Returns:
- *    An atom.
+ * @method "$…"
+ * @param "aToken" "token"
+ *        An arbitrary token.
+ * @returns "atom"
+ *          An atom.
  */
 Public method "$…" is
 [
@@ -317,9 +346,10 @@ Public method "$…" is
  * the token is a string literal, then use its value instead of its lexeme for
  * the name of the atom.
  * 
- * Parameter:
- *    aToken - An arbitrary literal token.
- * Returns:
+ * @method "$…"
+ * @param "aToken" "literal token"
+ *        An arbitrary literal token.
+ * @returns "atom"
  *    An atom.
  */
 Public method "$…" is
@@ -336,10 +366,8 @@ Public method "$…" is
  * be introduced into the current module (if it isn't already present). When the
  * method actually runs, it will find the same atom.
  * 
- * Parameters:
- *    tokenType -
- * Returns:
- *    An instance type for the desired atom.
+ * @method "$…"
+ * @restricts "token's type"
  */
 Semantic restriction "$…" is
 [
@@ -365,10 +393,11 @@ Semantic restriction "$…" is
 /**
  * Construct a character literal from an arbitrary token.
  * 
- * Parameter:
- *    aToken - An arbitary token.
- * Returns:
- *    A character.
+ * @method "¢…"
+ * @param "aToken" "token"
+ *        An arbitary token.
+ * @returns "character"
+ *          A character.
  */
 Public method "¢…" is
 [
@@ -383,10 +412,11 @@ Public method "¢…" is
  * is a string literal, then use its value instead of its lexeme. This allows
  * capture of characters like space and double quote (").
  * 
- * Parameter:
- *    aToken - An arbitrary literal token.
- * Returns:
- *    A character.
+ * @method "¢…"
+ * @param "aToken" "literal token"
+ *        An arbitrary literal token.
+ * @returns "character"
+ *          A character.
  */
 Public method "¢…" is
 [
@@ -408,10 +438,8 @@ Public method "¢…" is
 /**
  * Enforce that a character literal contains only a single character.
  * 
- * Parameters:
- *    tokenType - A token type.
- * Returns:
- *    ⊤.
+ * @method "¢…"
+ * @restricts "token's type"
  */
 Semantic restriction "¢…" is
 [
@@ -442,11 +470,11 @@ Semantic restriction "¢…" is
  * Disambiguate subscript of ⊥. This is a type subscript operation, such as
  * defined for tuple types or function types, and can consistently answer ⊥.
  * 
- * Parameters:
- *    bottom - ⊥.
- *    index - The subscript (ignored).
- * Returns:
- *    ⊥.
+ * @method "_[_]"
+ * @param "bottom" "⊥'s type"
+ * @param "index" "natural number"
+ *        The subscript (ignored).
+ * @returns "⊥"
  */
 Method "_[_]" is
 [

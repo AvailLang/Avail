@@ -319,6 +319,8 @@ Private method "Private guard_intercept_ensure_" is
 
 /**
  * A cascade exception retains the exception that originally caused it.
+ * @type "cascade exception"
+ * @supertype "exception"
  */
 Public class "cascade exception" extends exception
 	with fields
@@ -342,8 +344,16 @@ Public method "cascade_" is
 	cascade exception ∩ exceptionType
 ] : cascade exception's type;
 
+/**
+ * @method "cascade_"
+ * @forbids 1 "exception"
+ */
 Grammatical restriction "cascade_" is <{"exception"}>;
 
+/**
+ * @method "cascade_"
+ * @restricts "exception's type's type"
+ */
 Semantic restriction "cascade_" is
 [
 	exceptionMeta : exception's type's type
@@ -534,6 +544,11 @@ Public method "Guard|guard_«intercept_»«ensure_»" is
 /**
  * Reject the current parse if 1) any of the exception handlers aren't or 2) any
  * earlier handlers hide later handlers (by having a more general type).
+ * 
+ * @method "Guard|guard_«intercept_»«ensure_»"
+ * @restricts "[]→⊤'s type"
+ * @restricts "<[⊥]→⊤…|>'s type"
+ * @restricts "<[]→⊤…|0..1>'s type"
  */
 Semantic restriction "Guard|guard_«intercept_»«ensure_»" is
 [
@@ -615,6 +630,11 @@ Public method "try_else_" is
 	intercept [e : exception | else()]
 ] : any;
 
+/**
+ * @method "try_else_"
+ * @restricts "[]→any's type"
+ * @restricts "[]→any's type"
+ */
 Semantic restriction "try_else_" is
 [
 	protected : []→any's type,
@@ -626,12 +646,20 @@ Semantic restriction "try_else_" is
 
 /**
  * A system exception privately contains a system error code.
+ * 
+ * @type "system exception"
+ * @supertype "exception"
  */
 Class "system exception" extends exception
 	with fields
 		error code : natural number,
 		error name : string;
 
+/**
+ * @method "“_”"
+ * @param "anException" "system exception"
+ * @returns "string"
+ */
 Stable method "“_”" is
 [
 	anException : system exception
@@ -679,6 +707,9 @@ Private method "System exception_(_)extends_" is
 /**
  * An arithmetic exception describes error conditions related to arithmetic and
  * manipulation of numbers.
+ * 
+ * @type "arithmetic exception"
+ * @supertype "exception"
  */
 Public explicit class "arithmetic exception" extends exception;
 
@@ -686,42 +717,63 @@ Public explicit class "arithmetic exception" extends exception;
  * A bad-argument exception describes error conditions related to invoking a
  * method, function, or similar entity with arguments that are correctly typed
  * but not semantically valid.
+ * 
+ * @type "bad-argument exception"
+ * @supertype "exception"
  */
 Public explicit class "bad-argument exception" extends exception;
 
 /**
  * A bad-format exception describes error conditions related to invalid formats
  * and/or format applications.
+ * 
+ * @type "bad-format exception"
+ * @supertype "exception"
  */
 Public explicit class "bad-format exception" extends bad-argument exception;
 
 /**
  * A message exception describes error conditions related to messages, i.e.,
  * method names.
+ * 
+ * @type "bad-message exception"
+ * @supertype "exception"
  */
 Public explicit class "bad-message exception" extends exception;
 
 /**
  * A bad phrase exception describes error conditions related to phrase
  * construction.
+ * 
+ * @type "bad-phrase exception"
+ * @supertype "exception"
  */
 Public explicit class "bad-phrase exception" extends exception;
 
 /**
  * A bad-primitive exception describes error conditions related to invocations
  * of nonexistent or not meaningfully implemented primitives.
+ * 
+ * @type "bad=primitive exception"
+ * @supertype "exception"
  */
 Public explicit class "bad-primitive exception" extends exception;
 
 /**
  * A code-generation exception describes error conditions related to runtime
  * generation of code.
+ * 
+ * @type "code-generation exception"
+ * @supertype "exception"
  */
 Public explicit class "code-generation exception" extends exception;
 
 /**
  * A definition exception describes error conditions related to defining Avail
  * methods, restrictions, types, and other entities.
+ * 
+ * @type "definition exception"
+ * @supertype "exception"
  */
 Public explicit class "definition exception" extends exception;
 
@@ -729,12 +781,18 @@ Public explicit class "definition exception" extends exception;
  * An element-access exception describes error conditions related to failed
  * retrieval of an object from a larger structure (including the runtime
  * system).
+ * 
+ * @type "element-access exception"
+ * @supertype "exception"
  */
 Public explicit class "element-access exception" extends exception;
 
 /**
  * An I/O exception describes error conditions related to program input or
  * output.
+ * 
+ * @type "I/O exception"
+ * @supertype "exception"
  */
 Public explicit class "I/O exception" extends exception;
 
@@ -742,24 +800,36 @@ Public explicit class "I/O exception" extends exception;
  * An invocation exception describes error conditions related to invoking
  * functions, methods, or similar objects with the wrong number or types of
  * arguments.
+ * 
+ * @type "invocation exception"
+ * @supertype "exception"
  */
 Public explicit class "invocation exception" extends exception;
 
 /**
  * An instantiation exception describes error conditions related to
  * instantiating types (particulary user-defined object types).
+ * 
+ * @type "instantiation exception"
+ * @supertype "exception"
  */
 Public explicit class "instantiation exception" extends exception;
 
 /**
  * A security exception describes error conditions related to program
  * permissions.
+ * 
+ * @type "security exception"
+ * @supertype "exception"
  */
 Public explicit class "security exception" extends exception;
 
 /**
  * A variable use exception describes error conditions related to usage of
  * variables.
+ * 
+ * @type "variable-use exception"
+ * @supertype "exception"
  */
 Public explicit class "variable-use exception" extends exception;
 
@@ -1003,6 +1073,9 @@ Ensure: all error codes have corresponding exceptions;
 
 /**
  * A descriptive exception holds an error message.
+ * 
+ * @type "descriptive exception"
+ * @supertype "exception"
  */
 Public class "descriptive exception" extends exception
 	with fields
@@ -1026,8 +1099,16 @@ Public method "descriptive_" is
 	descriptive exception ∩ exceptionType
 ] : descriptive exception's type;
 
+/**
+ * @method "descriptive_"
+ * @forbids 1 "exception"
+ */
 Grammatical restriction "descriptive_" is <{"exception"}>;
 
+/**
+ * @method "descriptive_"
+ * @restricts "exception's type's type"
+ */
 Semantic restriction "descriptive_" is
 [
 	exceptionMeta : exception's type's type
@@ -1035,6 +1116,10 @@ Semantic restriction "descriptive_" is
 	((descriptive exception) ∩ (exceptionMeta's instance))'s type
 ];
 
+/**
+ * @method "“_”"
+ * @param "e" "descriptive exception"
+ */
 Stable method "“_”" is
 [
 	e : descriptive exception
@@ -1065,6 +1150,7 @@ Set early failure function to
  *        A system error code.
  * @raises "exception"
  *         The appropriate exception for the specified error code.
+ * @returns "⊥"
  */
 Public method "Raise an exception for_" is
 [
@@ -1079,6 +1165,7 @@ Public method "Raise an exception for_" is
  * A Java exception wraps a pojo representing a Java-style {@code Throwable}.
  *
  * @type "Java exception"
+ * @supertype "exception"
  */
 Public class "Java exception" extends exception
 	with field

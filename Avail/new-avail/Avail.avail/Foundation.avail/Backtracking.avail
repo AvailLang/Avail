@@ -238,6 +238,10 @@ Public method "trial`#of_" is
 	answer
 ] : natural number;
 
+/**
+ * @method "trial`#of_"
+ * @restricts "natural number's type"
+ */
 Semantic restriction "trial`#of_" is
 [
 	maxTrials : natural number's type
@@ -273,6 +277,10 @@ Public method "trial element of_" is
 	Try again
 ] : any;
 
+/**
+ * @method "trial element of_"
+ * @restricts "tuple's type"
+ */
 Semantic restriction "trial element of_" is
 [
 	tupleType : tuple's type
@@ -308,6 +316,10 @@ Public method "trial element of_" is
 	Try again
 ] : any;
 
+/**
+ * @method "trial element of_"
+ * @restricts "set's type"
+ */
 Semantic restriction "trial element of_" is
 [
 	setType : set's type
@@ -366,6 +378,10 @@ Public method "all values of_" is
 	accumulator
 ] : tuple;
 
+/**
+ * @method "all values of_"
+ * @restricts "[]→any's type"
+ */
 Semantic restriction "all values of_" is
 [
 	functionType : []→any's type
@@ -426,6 +442,11 @@ Public method "first«_»value|values of_" is
 	]
 ] : tuple;
 
+/**
+ * @method "first«_»value|values of_"
+ * @restricts "<[0..∞]…|0..1>'s type"
+ * @restricts "[]→any's type"
+ */
 Semantic restriction "first«_»value|values of_" is
 [
 	optionalMaxValues : <[0..∞]…|0..1>'s type,

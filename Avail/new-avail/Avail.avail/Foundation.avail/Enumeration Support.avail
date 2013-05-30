@@ -52,10 +52,8 @@ Body
  * Strengthen enumerations. When the argument has literal force, then it is
  * possible to produce the exact enumeration type.
  * 
- * Parameters:
- *    instances - A set type.
- * Returns:
- *    The most specific possible type.
+ * @method "enumeration of_"
+ * @restricts "set meta"
  */
 Semantic restriction "enumeration of_" is
 [
@@ -94,10 +92,8 @@ Semantic restriction "enumeration of_" is
  * Ensure that literal enumerations are able to produce the unique type of their
  * membership set.
  *
- * Parameters:
- *    enum - A metatype.
- * Returns:
- *    The most specific possible set type.
+ * @method "_'s⁇instances"
+ * @restricts "type's type"
  */
 Semantic restriction "_'s⁇instances" is
 [
@@ -117,8 +113,11 @@ Semantic restriction "_'s⁇instances" is
 	]
 ];
 
-/*
+/**
  * Improve the bounds on metatypes.
+ * 
+ * @method "_'s⁇instance"
+ * @restricts "type's type"
  */
 Semantic restriction "_'s⁇instance" is
 [
@@ -144,6 +143,10 @@ Public method "{«_‡,»}ᵀ" is
 	enumeration of instances→set
 ] : type;
 
+/**
+ * @method "{«_‡,»}ᵀ"
+ * @restricts <<>, nontype…|whole number>'s type
+ */
 Semantic restriction "{«_‡,»}ᵀ" is
 [
 	instances : <<>, nontype…|whole number>'s type
@@ -183,6 +186,10 @@ Public method "{_}ᵀ" is
 	Primitive 30;
 ] : type;
 
+/**
+ * @method "{_}ᵀ"
+ * @restricts "type's type"
+ */
 Semantic restriction "{_}ᵀ" is
 [
 	meta : type's type
