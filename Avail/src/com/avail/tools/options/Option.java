@@ -33,13 +33,13 @@
 package com.avail.tools.options;
 
 import java.util.Set;
-import com.avail.utility.Continuation1;
+import com.avail.utility.Continuation2;
 
 /**
  * An {@code Option} comprises an {@linkplain Enum enumerated type} which
  * defines the domain of the option, the keywords which parsers may use to
  * identify the option, an end-user friendly description of the option, and an
- * {@linkplain Continuation1 action} that should be performed each time that the
+ * {@linkplain Continuation2 action} that should be performed each time that the
  * option is set.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
@@ -72,10 +72,11 @@ public interface Option<OptionKeyType extends Enum<OptionKeyType>>
 	public String description ();
 
 	/**
-	 * Answer the {@linkplain Continuation1 action} that should be performed upon
-	 * setting of this {@linkplain GenericOption option}.
+	 * Answer the {@linkplain Continuation2 action} that should be performed
+	 * upon setting of this {@linkplain GenericOption option}.
 	 *
-	 * @return An {@linkplain Continuation1 action}.
+	 * @return An action that accepts an option keyword and its associated
+	 *         value.
 	 */
-	public Continuation1<String> action ();
+	public Continuation2<String, String> action ();
 }

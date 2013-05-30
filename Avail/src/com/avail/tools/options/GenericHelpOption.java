@@ -32,11 +32,11 @@
 
 package com.avail.tools.options;
 
+import static java.util.Arrays.asList;
 import java.io.IOException;
-import java.util.Arrays;
 import com.avail.annotations.*;
-import com.avail.utility.Continuation1;
-import com.avail.utility.Mutable;
+import com.avail.utility.Continuation2;
+import com.avail.utility.MutableOrNull;
 
 /**
  * A {@code GenericHelpOption} provides an application help message that
@@ -82,11 +82,12 @@ extends GenericOption<OptionKeyType>
 	 * @param optionKey
 	 *        The option key.
 	 * @param optionProcessor
-	 *        A {@linkplain Mutable volatile container} holding the {@linkplain
-	 *        OptionProcessor option processor} whose {@linkplain Option
-	 *        options} should be described by the new {@link GenericHelpOption}.
-	 *        This effectively provides a late-bound strong reference to an
-	 *        option processor that has not yet been instantiated.
+	 *        A {@linkplain MutableOrNull mutable container} holding the
+	 *        {@linkplain OptionProcessor option processor} whose {@linkplain
+	 *        Option options} should be described by the new {@link
+	 *        GenericHelpOption}. This effectively provides a late-bound strong
+	 *        reference to an option processor that has not yet been
+	 *        instantiated.
 	 * @param preamble
 	 *        The preamble, i.e. any text that should precede an enumeration of
 	 *        the {@linkplain Option options}.
@@ -95,25 +96,24 @@ extends GenericOption<OptionKeyType>
 	 */
 	public GenericHelpOption (
 		final OptionKeyType optionKey,
-		final Mutable<OptionProcessor<OptionKeyType>> optionProcessor,
+		final MutableOrNull<OptionProcessor<OptionKeyType>> optionProcessor,
 		final String preamble,
 		final Appendable appendable)
 	{
 		super(
 			optionKey,
-			Arrays.asList(new String[] { "?" }),
+			asList("?"),
 			"Display help text containing a description of the application "
 			+ "and an enumeration of its options.",
-			new Continuation1<String>()
+			new Continuation2<String, String>()
 			{
 				@Override
-				public void value (final @Nullable String arg)
+				public void value (
+					final @Nullable String keyword,
+					final @Nullable String value)
 				{
 					try
 					{
-						// It would be nice if we could prove to Java that this
-						// action won't actually be invoked inside the
-						// constructor.
 						writeHelpText(
 							optionProcessor.value, preamble, appendable);
 						System.exit(0);

@@ -35,7 +35,7 @@ package com.avail.tools.options;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
-import com.avail.utility.Continuation1;
+import com.avail.utility.Continuation2;
 
 /**
  * An implementation of {@link Option} whose accessible state is initializable
@@ -81,13 +81,13 @@ implements Option<OptionKeyType>
 	}
 
 	/**
-	 * The {@linkplain Continuation1 action} that should be performed upon
+	 * The {@linkplain Continuation2 action} that should be performed upon
 	 * setting of this {@linkplain GenericOption option}.
 	 */
-	private final Continuation1<String> action;
+	private final Continuation2<String, String> action;
 
 	@Override
-	public Continuation1<String> action ()
+	public Continuation2<String, String> action ()
 	{
 		return action;
 	}
@@ -102,14 +102,14 @@ implements Option<OptionKeyType>
 	 * @param description
 	 *        A description of the {@linkplain GenericOption option}.
 	 * @param action
-	 *        The {@linkplain Continuation1 action} that should be performed
+	 *        The {@linkplain Continuation2 action} that should be performed
 	 *        upon setting of this {@linkplain GenericOption option}.
 	 */
 	public GenericOption (
 		final OptionKeyType optionKey,
 		final Collection<String> keywords,
 		final String description,
-		final Continuation1<String> action)
+		final Continuation2<String, String> action)
 	{
 		this.optionKey   = optionKey;
 		this.action      = action;

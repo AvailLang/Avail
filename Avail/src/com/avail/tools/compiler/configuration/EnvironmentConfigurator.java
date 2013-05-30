@@ -74,6 +74,11 @@ implements Configurator<CompilerConfiguration>
 	/** The {@linkplain CompilerConfiguration configuration}. */
 	private final CompilerConfiguration configuration;
 
+	/**
+	 * Has the {@linkplain CommandLineConfigurator configurator} been run yet?
+	 */
+	private boolean isConfigured;
+
 	@Override
 	public CompilerConfiguration configuration ()
 	{
@@ -81,17 +86,22 @@ implements Configurator<CompilerConfiguration>
 	}
 
 	@Override
-	public void updateConfiguration () throws ConfigurationException
+	public synchronized void updateConfiguration ()
+		throws ConfigurationException
 	{
-		final String availRootPath = System.getenv("AVAIL_ROOTS");
-		if (availRootPath != null)
+		if (!isConfigured)
 		{
-			configuration.setAvailRootsPath(availRootPath);
-		}
-		final String renamesFilePath = System.getenv("AVAIL_RENAMES");
-		if (renamesFilePath != null)
-		{
-			configuration.setRenamesFilePath(renamesFilePath);
+			final String availRootPath = System.getenv("AVAIL_ROOTS");
+			if (availRootPath != null)
+			{
+				configuration.setAvailRootsPath(availRootPath);
+			}
+			final String renamesFilePath = System.getenv("AVAIL_RENAMES");
+			if (renamesFilePath != null)
+			{
+				configuration.setRenamesFilePath(renamesFilePath);
+			}
+			isConfigured = true;
 		}
 	}
 

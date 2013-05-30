@@ -32,8 +32,8 @@
 
 package com.avail.tools.options;
 
-import java.util.Arrays;
-import com.avail.utility.Continuation1;
+import static java.util.Arrays.asList;
+import com.avail.utility.Continuation2;
 
 /**
  * A {@code DefaultOption} is the {@linkplain Option option} that an {@linkplain
@@ -54,18 +54,14 @@ extends GenericOption<OptionKeyType>
 	 * @param description
 	 *        A description of the {@linkplain DefaultOption option}.
 	 * @param action
-	 *        The {@linkplain Continuation1 action} that should be performed
+	 *        The {@linkplain Continuation2 action} that should be performed
 	 *        upon setting of this {@linkplain DefaultOption option}.
 	 */
 	public DefaultOption (
 		final OptionKeyType optionKey,
 		final String description,
-		final Continuation1<String> action)
+		final Continuation2<String, String> action)
 	{
-		super(
-			optionKey,
-			Arrays.asList(new String[] { "" }),
-			description,
-			action);
+		super(optionKey, asList(""), description, action);
 	}
 }

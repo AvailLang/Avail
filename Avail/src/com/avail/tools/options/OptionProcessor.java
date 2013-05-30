@@ -159,7 +159,7 @@ public class OptionProcessor<OptionKeyType extends Enum<OptionKeyType>>
 			throw new UnrecognizedKeywordException(keyword);
 		}
 
-		allOptions.get(optionKey).action().value(argument);
+		allOptions.get(optionKey).action().value(keyword, argument);
 		timesEncountered.get(optionKey).value++;
 	}
 
@@ -379,7 +379,7 @@ public class OptionProcessor<OptionKeyType extends Enum<OptionKeyType>>
 		if (timesEncountered(key) > timesAllowed)
 		{
 			throw new OptionProcessingException(String.format(
-				"encountered %s %d time(s) (allowed at most %d time(s))",
+				"%s: encountered %d time(s) (allowed at most %d time(s))",
 				key,
 				timesActuallyEncountered,
 				timesAllowed));
