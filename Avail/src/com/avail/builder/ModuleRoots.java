@@ -40,21 +40,27 @@ import com.avail.descriptor.ModuleDescriptor;
 
 /**
  * {@code ModuleRoots} encapsulates the Avail {@linkplain ModuleDescriptor
- * module} path in both composed and decomposed forms. The Avail module path
- * specifies bindings between <em>logical root names</em> and {@linkplain
- * ModuleRoot locations} of Avail modules. A logical root name should typically
- * belong to a vendor of Avail modules, ergo a domain name or registered
- * trademark suffices nicely.
+ * module} path. The Avail module path specifies bindings between
+ * <em>logical root names</em> and {@linkplain ModuleRoot locations} of Avail
+ * modules. A logical root name should typically belong to a vendor of Avail
+ * modules, ergo a domain name or registered trademark suffices nicely.
  *
  * <p>The format of an Avail module path is described by the following
  * simple grammar:</p>
  *
  * <pre>
  * modulePath ::= binding ++ ";" ;
- * binding ::= root "=" directory ;
- * root ::= [^=;]+ ;
- * directory ::= [^;]+ ;
+ * binding ::= logicalRoot "=" objectRepository ("," sourceDirectory) ;
+ * logicalRoot ::= [^=;]+ ;
+ * objectRepository ::= [^;]+ ;
+ * sourceDirectory ::= [^;]+ ;
  * </pre>
+ *
+ * <p>{@code logicalRoot} represents a logical root name. {@code
+ * objectRepository} represents the absolute path of a binary module repository.
+ * {@code sourceDirectory} represents the absolute path of a package, i.e., a
+ * directory containing source modules, and may be sometimes be omitted (e.g.,
+ * when compilation is not required).</p>
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
