@@ -47,6 +47,10 @@ Names
 	"_(«_‡,»)"
 Body
 
+/**
+ * @method "_'s⁇return type"
+ * @restricts "function meta's type"
+ */
 Semantic restriction "_'s⁇return type" is
 [
 	functionMeta : function meta's type
@@ -54,6 +58,10 @@ Semantic restriction "_'s⁇return type" is
 	functionMeta's instance's return type's type
 ];
 
+/**
+ * @method "_'s⁇return type"
+ * @forbids 1 "function accepting_and returning_"
+ */
 Grammatical restriction "_'s⁇return type" is
 	<{"function accepting_and returning_"}>;
 

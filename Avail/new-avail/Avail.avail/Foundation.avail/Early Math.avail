@@ -242,7 +242,7 @@ Private method
  * lower and upper bounds drawn from the argument's entire range.
  *
  * @method "⎣_⎦"
- * @param "extended integer meta's type"
+ * @restricts "extended integer meta's type"
  */
 Semantic restriction "⎣_⎦" is
 	integer range lower bound semantic restriction function;
@@ -253,7 +253,7 @@ Semantic restriction "⎣_⎦" is
  * lower and upper bounds drawn from the argument's entire range.
  *
  * @method "⎡_⎤"
- * @param "extended integer meta's type"
+ * @restricts "extended integer meta's type"
  */
 Semantic restriction "⎡_⎤" is
 	integer range upper bound semantic restriction function;
@@ -321,7 +321,7 @@ Public method "[_.._)" is
  * Strengthen integer range types.
  *
  * @method "[_.._)"
- * @retricts "extended integer meta"
+ * @restricts "extended integer meta"
  * @restricts "extended integer meta"
  */
 Semantic restriction "[_.._)" is
