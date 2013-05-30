@@ -34,15 +34,14 @@ package com.avail.interpreter.levelTwo.operation;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import java.util.*;
 import com.avail.descriptor.A_Function;
-import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.A_Type;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.Primitive.Flag;
 import com.avail.interpreter.Primitive.Result;
 import com.avail.interpreter.levelTwo.*;
-import com.avail.interpreter.levelTwo.operand.*;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
+import com.avail.interpreter.levelTwo.register.L2RegisterVector;
 import com.avail.optimizer.RegisterSet;
 
 /**
@@ -86,42 +85,38 @@ extends L2Operation
 			PC.is("if primitive succeeds"));
 
 	@Override
-	public void step (final Interpreter interpreter)
+	public void step (
+		final L2Instruction instruction,
+		final Interpreter interpreter)
 	{
-		final int primNumber = interpreter.nextWord();
-		final int functionIndex = interpreter.nextWord();
-		final int argsVector = interpreter.nextWord();
-		final int resultRegister = interpreter.nextWord();
-		final int failureValueRegister = interpreter.nextWord();
-		@SuppressWarnings("unused")
-		final int unusedPreservedVector = interpreter.nextWord();
-		final int successOffset = interpreter.nextWord();
+		final Primitive primitive = instruction.primitiveAt(0);
+		final A_Function function = instruction.constantAt(1);
+		final L2RegisterVector argumentsVector =
+			instruction.readVectorRegisterAt(2);
+		final L2ObjectRegister resultReg = instruction.writeObjectRegisterAt(3);
+		final L2ObjectRegister failureReg =
+			instruction.writeObjectRegisterAt(4);
+		final int successOffset = instruction.pcAt(6);
 
-		final A_Tuple argsVect = interpreter.vectorAt(argsVector);
 		interpreter.argsBuffer.clear();
-		for (int i = 1; i <= argsVect.tupleSize(); i++)
+		for (final L2ObjectRegister register : argumentsVector)
 		{
-			interpreter.argsBuffer.add(
-				interpreter.pointerAt(argsVect.tupleIntAt(i)));
+			interpreter.argsBuffer.add(register.in(interpreter));
 		}
-		final A_Function function =
-			interpreter.chunk().literalAt(functionIndex);
-		assert function.code().primitiveNumber() == primNumber;
+		assert function.code().primitiveNumber() == primitive.primitiveNumber;
 		final Result res = interpreter.attemptPrimitive(
-			primNumber,
+			primitive.primitiveNumber,
 			function,
 			interpreter.argsBuffer);
 
 		switch (res)
 		{
 			case SUCCESS:
-				interpreter.pointerAtPut(
-					resultRegister, interpreter.latestResult());
+				resultReg.set(interpreter.latestResult(), interpreter);
 				interpreter.offset(successOffset);
 				break;
 			case FAILURE:
-				interpreter.pointerAtPut(
-					failureValueRegister, interpreter.latestResult());
+				failureReg.set(interpreter.latestResult(), interpreter);
 				break;
 			default:
 				assert false;
@@ -133,22 +128,19 @@ extends L2Operation
 		final L2Instruction instruction,
 		final List<RegisterSet> registerSets)
 	{
-		final L2PrimitiveOperand primitiveOperand =
-			(L2PrimitiveOperand) instruction.operands[0];
-		@SuppressWarnings("unused")
-		final L2ConstantOperand functionOperand =
-			(L2ConstantOperand) instruction.operands[1];
-		final L2ReadVectorOperand argumentsVector =
-			(L2ReadVectorOperand) instruction.operands[2];
-		final L2WritePointerOperand result =
-			(L2WritePointerOperand) instruction.operands[3];
-		final L2WritePointerOperand failureValue =
-			(L2WritePointerOperand) instruction.operands[4];
+		final Primitive primitive = instruction.primitiveAt(0);
+		final L2RegisterVector argumentsVector =
+			instruction.readVectorRegisterAt(2);
+		final L2ObjectRegister resultReg = instruction.writeObjectRegisterAt(3);
+		final L2ObjectRegister failureReg =
+			instruction.writeObjectRegisterAt(4);
+
 		final RegisterSet failRegisterSet = registerSets.get(0);
 		final RegisterSet successRegisterSet = registerSets.get(1);
 
-		final List<A_Type> argTypes = new ArrayList<>(3);
-		for (final L2ObjectRegister arg : argumentsVector.vector)
+		final List<A_Type> argTypes =
+			new ArrayList<>(argumentsVector.registers().size());
+		for (final L2ObjectRegister arg : argumentsVector.registers())
 		{
 			// Use either register set -- they start the same.
 			assert failRegisterSet.hasTypeAt(arg);
@@ -156,25 +148,17 @@ extends L2Operation
 		}
 		// We can at least believe what the primitive itself says it returns.
 		final A_Type guaranteedType =
-			primitiveOperand.primitive.returnTypeGuaranteedByVM(argTypes);
+			primitive.returnTypeGuaranteedByVM(argTypes);
 
 		// Figure out what the primitive failure values are allowed to be.
-		final Primitive prim = primitiveOperand.primitive;
-		final A_Type failureType = prim.failureVariableType();
+		final A_Type failureType = primitive.failureVariableType();
+		failRegisterSet.removeTypeAt(failureReg);
+		failRegisterSet.removeConstantAt(failureReg);
+		failRegisterSet.typeAtPut(failureReg, failureType, instruction);
 
-		failRegisterSet.removeTypeAt(failureValue.register);
-		failRegisterSet.removeConstantAt(failureValue.register);
-		failRegisterSet.typeAtPut(
-			failureValue.register,
-			failureType,
-			instruction);
-
-		successRegisterSet.removeTypeAt(result.register);
-		successRegisterSet.removeConstantAt(result.register);
-		successRegisterSet.typeAtPut(
-			result.register,
-			guaranteedType,
-			instruction);
+		successRegisterSet.removeTypeAt(resultReg);
+		successRegisterSet.removeConstantAt(resultReg);
+		successRegisterSet.typeAtPut(resultReg, guaranteedType, instruction);
 	}
 
 	@Override
@@ -183,9 +167,7 @@ extends L2Operation
 		// Since it can't fail, we should only have to keep the instruction
 		// around if its result is needed by a kept instruction (not dealt with
 		// here), or if the primitive has a side effect.
-		final L2PrimitiveOperand primOperand =
-			(L2PrimitiveOperand) instruction.operands[0];
-		final Primitive primitive = primOperand.primitive;
+		final Primitive primitive = instruction.primitiveAt(0);
 		return primitive.hasFlag(Flag.HasSideEffect);
 	}
 }

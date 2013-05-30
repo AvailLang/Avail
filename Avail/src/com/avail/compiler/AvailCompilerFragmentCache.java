@@ -54,7 +54,7 @@ public class AvailCompilerFragmentCache
 	 * variable declarations are in scope when looking for subexpressions.
 	 */
 	private final Map<ParserState, AvailCompilerBipartiteRendezvous> solutions =
-		new HashMap<ParserState, AvailCompilerBipartiteRendezvous>(100);
+		new HashMap<>(100);
 
 
 	/**

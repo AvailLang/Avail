@@ -1097,7 +1097,7 @@ Primitive "next character" is
  */
 Primitive "Grammatical restriction_is_" is
 [
-	methodsToRestrict : set of string,
+	methodsToRestrict : nonempty set of string,
 	exclusions : tuple of set of string
 |
 	Primitive 255 (failureCode : natural number);
@@ -1151,7 +1151,7 @@ Primitive "Reset to mark" is
  */
 Primitive "Grammatical restriction_is_" is
 [
-	methodsToRestrict : set of atom,
+	methodsToRestrict : nonempty set of atom,
 	exclusions : tuple of set of atom
 |
 	Primitive 264 (failureCode : natural number);

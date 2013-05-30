@@ -31,15 +31,7 @@
  */
 package com.avail.interpreter.levelTwo.operation;
 
-import static com.avail.interpreter.Interpreter.*;
-import static com.avail.interpreter.levelTwo.register.FixedRegister.*;
-import java.util.logging.Level;
-import com.avail.descriptor.A_Continuation;
-import com.avail.descriptor.A_Function;
-import com.avail.descriptor.A_RawFunction;
-import com.avail.descriptor.A_Tuple;
 import com.avail.interpreter.Interpreter;
-import com.avail.interpreter.levelOne.L1Operation;
 import com.avail.interpreter.levelTwo.*;
 import com.avail.interpreter.levelTwo.register.FixedRegister;
 import com.avail.optimizer.RegisterSet;
@@ -60,19 +52,11 @@ extends L2Operation
 		new L2_INTERPRET_UNTIL_INTERRUPT().init();
 
 	@Override
-	public void step (final Interpreter interpreter)
+	public void step (
+		final L2Instruction instruction,
+		final Interpreter interpreter)
 	{
-		final A_Function function = interpreter.pointerAt(FUNCTION);
-		final A_RawFunction code = function.code();
-		final A_Tuple nybbles = code.nybbles();
-		final int pc = interpreter.integerAt(pcRegister());
-
-		if (!interpreter.isInterruptRequested())
-		{
-			// Branch back to this (operandless) instruction by default.
-			interpreter.offset(interpreter.offset() - 1);
-		}
-		else
+		if (interpreter.isInterruptRequested())
 		{
 			// Reify the current L2 state before suspension due to interrupt.
 			// Don't execute another L1 instruction.
@@ -80,54 +64,9 @@ extends L2Operation
 			return;
 		}
 
-		int depth = 0;
-		if (debugL1)
-		{
-			for (
-				A_Continuation c = interpreter.pointerAt(CALLER);
-				!c.equalsNil();
-				c = c.caller())
-			{
-				depth++;
-			}
-		}
-
-		// Before we extract the nybblecode, make sure that the PC hasn't
-		// passed the end of the instruction sequence. If we have, then
-		// execute an L1Implied_doReturn.
-		if (pc > nybbles.tupleSize())
-		{
-			assert pc == nybbles.tupleSize() + 1;
-			if (Interpreter.logger.isLoggable(Level.FINEST))
-			{
-				Interpreter.logger.finest(String.format(
-					"simulating %s (pc = %d)",
-					L1Operation.L1Implied_Return,
-					pc));
-			}
-			if (debugL1)
-			{
-				System.out.printf("%n%d  Step L1: return", depth);
-			}
-			interpreter.levelOneStepper.L1Implied_doReturn();
-			return;
-		}
-		final int nybble = nybbles.extractNybbleFromTupleAt(pc);
-		interpreter.integerAtPut(pcRegister(), (pc + 1));
-
-		final L1Operation operation = L1Operation.values()[nybble];
-		if (Interpreter.logger.isLoggable(Level.FINEST))
-		{
-			Interpreter.logger.finest(String.format(
-				"simulating %s (pc = %d)",
-				operation,
-				pc));
-		}
-		if (debugL1)
-		{
-			System.out.printf("%n%d  Step L1: %s", depth, operation);
-		}
-		operation.dispatch(interpreter.levelOneStepper);
+		// Branch back to this (operandless) instruction by default.
+		interpreter.offset(interpreter.offset() - 1);
+		interpreter.levelOneStepper.stepLevelOne();
 	}
 
 	@Override

@@ -47,7 +47,7 @@ public class P_060_Equality extends Primitive
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
 	public final static Primitive instance = new P_060_Equality().init(
-		2, CanFold, CannotFail);
+		2, CanFold, CanInline, CannotFail);
 
 	@Override
 	public Result attempt (

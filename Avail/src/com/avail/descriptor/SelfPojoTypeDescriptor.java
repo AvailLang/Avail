@@ -285,7 +285,7 @@ extends PojoTypeDescriptor
 		else
 		{
 			final A_Set ancestors = object.slot(JAVA_ANCESTORS);
-			final List<AvailObject> childless = new ArrayList<AvailObject>(
+			final List<AvailObject> childless = new ArrayList<>(
 				childlessAmong(ancestors));
 			Collections.sort(
 				childless,

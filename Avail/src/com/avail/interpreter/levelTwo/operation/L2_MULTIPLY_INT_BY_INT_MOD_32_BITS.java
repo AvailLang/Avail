@@ -32,11 +32,18 @@
 
 package com.avail.interpreter.levelTwo.operation;
 
-import static com.avail.descriptor.AvailObject.error;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.*;
+import com.avail.interpreter.levelTwo.register.L2IntegerRegister;
 
+
+/**
+ * Multiply the value in one int register by the value in another int register,
+ * truncating it to the low 32 bits and storing it back in the second register.
+ *
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ */
 public class L2_MULTIPLY_INT_BY_INT_MOD_32_BITS extends L2Operation
 {
 	/**
@@ -48,12 +55,26 @@ public class L2_MULTIPLY_INT_BY_INT_MOD_32_BITS extends L2Operation
 			READWRITE_INT.is("multiplicand"));
 
 	@Override
-	public void step (final Interpreter interpreter)
+	public void step (
+		final L2Instruction instruction,
+		final Interpreter interpreter)
 	{
-		@SuppressWarnings("unused")
-		final int integerIndex = interpreter.nextWord();
-		@SuppressWarnings("unused")
-		final int destIndex = interpreter.nextWord();
-		error("not implemented");
+		final L2IntegerRegister multiplierReg =
+			instruction.readIntRegisterAt(0);
+		final L2IntegerRegister multiplicandReg =
+			instruction.readWriteIntRegisterAt(1);
+
+		final int multiplier = multiplierReg.in(interpreter);
+		final int multiplicand = multiplicandReg.in(interpreter);
+		final long longResult = (long)multiplier * (long)multiplicand;
+		final int intResult = (int)longResult;
+		multiplicandReg.set(intResult, interpreter);
+	}
+
+	@Override
+	public boolean hasSideEffect ()
+	{
+		// It jumps if the result doesn't fit in an int.
+		return true;
 	}
 }

@@ -624,7 +624,7 @@ Semantic restriction "_[_]" is
  */
 Invoke
 [
-	cast ::= [ t : {string|whole number} | t ];
+	cast ::= [ t : {string|natural number} | t ];
 	names ::= cast <"∪_">→set into cast;
 	exclusions ::= cast <"_[_.._]">→set into cast;
 	Grammatical restriction names is <exclusions>;

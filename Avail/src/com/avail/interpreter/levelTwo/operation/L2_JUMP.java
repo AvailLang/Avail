@@ -35,7 +35,13 @@ package com.avail.interpreter.levelTwo.operation;
 import static com.avail.interpreter.levelTwo.L2OperandType.PC;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.*;
+import com.avail.optimizer.RegisterSet;
 
+/**
+ * Unconditionally jump to the level two offset in my only operand.
+ *
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ */
 public class L2_JUMP extends L2Operation
 {
 	/**
@@ -46,10 +52,20 @@ public class L2_JUMP extends L2Operation
 			PC.is("target"));
 
 	@Override
-	public void step (final Interpreter interpreter)
+	public void step (
+		final L2Instruction instruction,
+		final Interpreter interpreter)
 	{
-		final int doIndex = interpreter.nextWord();
-		interpreter.offset(doIndex);
+		final int offset = instruction.pcAt(0);
+		interpreter.offset(offset);
+	}
+
+	@Override
+	public void propagateTypes (
+		final L2Instruction instruction,
+		final RegisterSet registerSet)
+	{
+		// No effect on registers; it just jumps unconditionally.
 	}
 
 	@Override

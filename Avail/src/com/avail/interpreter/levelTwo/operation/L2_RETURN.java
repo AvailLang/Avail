@@ -32,12 +32,12 @@
 package com.avail.interpreter.levelTwo.operation;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_POINTER;
-import static com.avail.interpreter.levelTwo.register.FixedRegister.CALLER;
 import java.util.List;
 import com.avail.descriptor.A_Continuation;
 import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.*;
+import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.RegisterSet;
 
 /**
@@ -55,16 +55,18 @@ public class L2_RETURN extends L2Operation
 			READ_POINTER.is("return value"));
 
 	@Override
-	public void step (final Interpreter interpreter)
+	public void step (
+		final L2Instruction instruction,
+		final Interpreter interpreter)
 	{
 		// Return to the calling continuation with the given value.
-		final int continuationIndex = interpreter.nextWord();
-		final int valueIndex = interpreter.nextWord();
-		assert continuationIndex == CALLER.ordinal();
+		final L2ObjectRegister continuationReg =
+			instruction.readObjectRegisterAt(0);
+		final L2ObjectRegister valueReg = instruction.readObjectRegisterAt(1);
 
-		final A_Continuation caller = interpreter.pointerAt(continuationIndex);
-		final AvailObject valueObject = interpreter.pointerAt(valueIndex);
-		interpreter.returnToCaller(caller, valueObject);
+		final A_Continuation continuation = continuationReg.in(interpreter);
+		final AvailObject value = valueReg.in(interpreter);
+		interpreter.returnToCaller(continuation, value);
 	}
 
 	@Override

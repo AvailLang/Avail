@@ -84,13 +84,6 @@ public class L2PrimitiveOperand extends L2Operand
 	}
 
 	@Override
-	public void emitOn (
-		final L2CodeGenerator codeGenerator)
-	{
-		codeGenerator.emitPrimitiveNumber(primitive.primitiveNumber);
-	}
-
-	@Override
 	public String toString ()
 	{
 		return String.format("Prim(%s)", primitive.getClass().getSimpleName());

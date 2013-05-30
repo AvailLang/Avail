@@ -36,9 +36,11 @@ import static com.avail.descriptor.AvailObject.error;
 import static com.avail.interpreter.Interpreter.*;
 import static com.avail.interpreter.levelTwo.register.FixedRegister.*;
 import java.util.*;
+import java.util.logging.Level;
 import com.avail.descriptor.*;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelOne.*;
+import com.avail.interpreter.levelTwo.operation.L2_INTERPRET_ONE_L1_INSTRUCTION;
 import com.avail.interpreter.levelTwo.operation.L2_INTERPRET_UNTIL_INTERRUPT;
 import com.avail.interpreter.levelTwo.register.FixedRegister;
 
@@ -244,16 +246,73 @@ implements L1OperationDispatcher
 		pointerAtPut(CALLER, continuation);
 	}
 
+	/**
+	 * Execute a single level one nybblecode.  Used by {@link
+	 * L2_INTERPRET_UNTIL_INTERRUPT} and {@link
+	 * L2_INTERPRET_ONE_L1_INSTRUCTION} to interpret unoptimized code.
+	 */
+	public void stepLevelOne ()
+	{
+		final A_Function function = interpreter.pointerAt(FUNCTION);
+		final A_RawFunction code = function.code();
+		final A_Tuple nybbles = code.nybbles();
+		final int pc = interpreter.integerAt(pcRegister());
+
+		int depth = 0;
+		if (debugL1)
+		{
+			for (
+				A_Continuation c = interpreter.pointerAt(CALLER);
+				!c.equalsNil();
+				c = c.caller())
+			{
+				depth++;
+			}
+		}
+
+		// Before we extract the nybblecode, make sure that the PC hasn't
+		// passed the end of the instruction sequence. If we have, then
+		// execute an L1Implied_doReturn.
+		if (pc > nybbles.tupleSize())
+		{
+			assert pc == nybbles.tupleSize() + 1;
+			if (debugL1)
+			{
+				interpreter.log(
+					Level.FINER,
+					"L1 Return (pc={0}, depth={1})",
+					pc,
+					depth);
+			}
+			interpreter.levelOneStepper.L1Implied_doReturn();
+			return;
+		}
+		final int nybble = nybbles.extractNybbleFromTupleAt(pc);
+		interpreter.integerAtPut(pcRegister(), (pc + 1));
+
+		final L1Operation operation = L1Operation.values()[nybble];
+		if (debugL1)
+		{
+			interpreter.log(
+				Level.FINER,
+				"{0} (pc={1}, depth={2})",
+				operation,
+				pc,
+				depth);
+		}
+		operation.dispatch(interpreter.levelOneStepper);
+	}
+
 	@Override
 	public void L1_doCall()
 	{
 		final A_Bundle bundle = literalAt(getInteger());
 		final A_Type expectedReturnType = literalAt(getInteger());
 		final int numArgs = bundle.bundleMethod().numArgs();
-		if (debugL1)
-		{
-			System.out.printf(" (%s)", bundle.message().atomName());
-		}
+		interpreter.log(
+			Level.FINER,
+			"L1 call {0}",
+			bundle.message().atomName());
 		argsBuffer.clear();
 		for (int i = numArgs; i >= 1; i--)
 		{
@@ -510,14 +569,14 @@ implements L1OperationDispatcher
 		final A_RawFunction code = function.code();
 		final int numArgs = code.numArgs();
 		assert code.primitiveNumber() == 0;
-		final List<AvailObject> args = new ArrayList<AvailObject>(numArgs);
+		final List<AvailObject> args = new ArrayList<>(numArgs);
 		for (int i = 1; i <= numArgs; i++)
 		{
 			args.add(pointerAt(argumentOrLocalRegister(i)));
 		}
 		final int numLocals = code.numLocals();
 		final List<AvailObject> locals =
-			new ArrayList<AvailObject>(numLocals);
+			new ArrayList<>(numLocals);
 		for (int i = 1; i <= numLocals; i++)
 		{
 			locals.add(pointerAt(argumentOrLocalRegister((numArgs + i))));
@@ -528,7 +587,8 @@ implements L1OperationDispatcher
 			pointerAt(CALLER),
 			L2Chunk.unoptimizedChunk(),
 			L2Chunk.offsetToContinueUnoptimizedChunk(),
-			args, locals);
+			args,
+			locals);
 		// Freeze all fields of the new object, including its caller,
 		// function, and args.
 		newContinuation.makeSubobjectsImmutable();

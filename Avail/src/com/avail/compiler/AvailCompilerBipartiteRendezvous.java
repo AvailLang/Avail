@@ -67,13 +67,13 @@ public class AvailCompilerBipartiteRendezvous
 	 * new actions when they arrive.
 	 */
 	final List<AvailCompilerCachedSolution> solutions =
-		new ArrayList<AvailCompilerCachedSolution>(3);
+		new ArrayList<>(3);
 
 	/**
 	 * The actions that are waiting to run when new solutions arrive.
 	 */
 	final List<Con<A_Phrase>> actions =
-		new ArrayList<Con<A_Phrase>>(3);
+		new ArrayList<>(3);
 
 	/**
 	 * Record a new solution, and also run any waiting actions with it.

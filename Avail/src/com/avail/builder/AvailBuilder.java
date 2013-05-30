@@ -33,9 +33,12 @@
 package com.avail.builder;
 
 import java.io.*;
+import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.*;
+import java.util.zip.CRC32;
+import java.util.zip.Checksum;
 import com.avail.*;
 import com.avail.annotations.*;
 import com.avail.compiler.*;
@@ -110,7 +113,7 @@ public final class AvailBuilder
 		 */
 		public final
 		Set<ResolvedModuleName> completionSet =
-			new HashSet<ResolvedModuleName>();
+			new HashSet<>();
 
 		/**
 		 * A {@linkplain Map map} from {@linkplain ResolvedModuleName resolved
@@ -118,7 +121,7 @@ public final class AvailBuilder
 		 */
 		public final
 		Map<ResolvedModuleName, Set<ResolvedModuleName>> predecessors =
-			new HashMap<ResolvedModuleName, Set<ResolvedModuleName>>();
+			new HashMap<>();
 
 		/**
 		 * A {@linkplain Map map} from {@linkplain ResolvedModuleName resolved
@@ -126,7 +129,7 @@ public final class AvailBuilder
 		 */
 		public final
 		Map<ResolvedModuleName, Set<ResolvedModuleName>> successors =
-			new HashMap<ResolvedModuleName, Set<ResolvedModuleName>>();
+			new HashMap<>();
 
 		/**
 		 * The number of trace requests that have been scheduled.
@@ -168,7 +171,7 @@ public final class AvailBuilder
 			final LinkedHashSet<ResolvedModuleName> recursionSet)
 		{
 			final Set<ModuleName> importedModules =
-				new HashSet<ModuleName>(header.importedModules.size());
+				new HashSet<>(header.importedModules.size());
 			for (final ModuleImport moduleImport : header.importedModules)
 			{
 				importedModules.add(resolvedName.asSibling(
@@ -191,7 +194,7 @@ public final class AvailBuilder
 				// Copy the recursion set to ensure the independence of each
 				// of the tracing algorithm.
 				final LinkedHashSet<ResolvedModuleName> newSet =
-					new LinkedHashSet<ResolvedModuleName>(
+					new LinkedHashSet<>(
 						recursionSet);
 				scheduleTraceModuleImports(
 					BuildState.this,
@@ -445,7 +448,7 @@ public final class AvailBuilder
 		{
 			assert unbuiltPredecessors.size() == 0;
 			final List<ResolvedModuleName> originModules =
-				new ArrayList<ResolvedModuleName>(3);
+				new ArrayList<>(3);
 			for (final Map.Entry<ResolvedModuleName, Set<ResolvedModuleName>> e
 				: predecessors.entrySet())
 			{
@@ -595,8 +598,8 @@ public final class AvailBuilder
 			// Read the module data from the repository.
 			final IndexedRepositoryManager repository = moduleName.repository();
 			final byte[] bytes = repository.get(moduleName);
-			final ByteArrayInputStream inputStream =
-				new ByteArrayInputStream(bytes);
+			assert bytes != null;
+			final ByteArrayInputStream inputStream = validatedBytesFrom(bytes);
 			final A_Module module = ModuleDescriptor.newModule(
 				StringDescriptor.from(moduleName.qualifiedName()));
 			final AvailLoader loader = new AvailLoader(module);
@@ -740,7 +743,13 @@ public final class AvailBuilder
 				final Continuation3<ModuleName, Long, Long> globalTracker)
 			throws IOException, AvailCompilerException
 		{
-			final Mutable<Long> lastPosition = new Mutable<Long>(0L);
+			final Mutable<Long> lastPosition = new Mutable<>(0L);
+			// Capture the file's modification time *before* compiling.  That
+			// way if the file is modified during loading, the next build will
+			// simply treat the stored data as invalid and recompile it.
+			final File sourceReference = moduleName.sourceReference();
+			assert sourceReference != null;
+			final long lastModified = sourceReference.lastModified();
 			final Continuation1<AbstractAvailCompiler> continuation =
 				new Continuation1<AbstractAvailCompiler>()
 				{
@@ -785,14 +794,12 @@ public final class AvailBuilder
 								public void value (
 									final @Nullable A_Module module)
 								{
-									final File sourceReference =
-										moduleName.sourceReference();
-									assert sourceReference != null;
+									final ByteArrayOutputStream stream =
+										compiler.serializerOutputStream;
 									moduleName.repository().put(
 										moduleName,
-										sourceReference.lastModified(),
-										compiler.serializerOutputStream
-											.toByteArray());
+										lastModified,
+										appendCRC(stream.toByteArray()));
 									postLoad(
 										moduleName,
 										lastPosition.value,
@@ -914,6 +921,55 @@ public final class AvailBuilder
 					}
 				}
 			}
+		}
+
+		/**
+		 * Given an array of bytes, check that the last four bytes, when treated
+		 * as a Big Endian unsigned int, agree with the {@link CRC32} checksum
+		 * of the bytes excluding the last four.  Fail if they disagree.  Answer
+		 * a ByteArrayInputStream on the bytes excluding the last four.
+		 *
+		 * @param bytes An array of bytes.
+		 * @return A ByteArrayInputStream on the non-CRC portion of the bytes.
+		 * @throws MalformedSerialStreamException If the CRC check fails.
+		 */
+		private ByteArrayInputStream validatedBytesFrom (final byte[] bytes)
+		throws MalformedSerialStreamException
+		{
+			final int storedChecksum =
+				ByteBuffer.wrap(bytes).getInt(bytes.length - 4);
+			final Checksum checksum = new CRC32();
+			checksum.update(bytes, 0, bytes.length - 4);
+			if ((int)checksum.getValue() != storedChecksum)
+			{
+				throw new MalformedSerialStreamException(null);
+			}
+			return new ByteArrayInputStream(bytes, 0, bytes.length - 4);
+		}
+
+		/**
+		 * Given a byte array, compute the {@link CRC32} checksum and append the
+		 * int value as four bytes (Big Endian), answering the new augmented
+		 * byte array.
+		 *
+		 * @param bytes The input bytes.
+		 * @return The bytes followed by the checksum.
+		 */
+		public byte[] appendCRC (final byte[] bytes)
+		{
+			final CRC32 checksum = new CRC32();
+			checksum.update(bytes);
+			final int checksumInt =
+				(int)checksum.getValue();
+			final ByteBuffer combined =
+				ByteBuffer.allocate(bytes.length + 4);
+			combined.put(bytes);
+			combined.putInt(checksumInt);
+			final byte[] combinedBytes =
+				new byte[bytes.length + 4];
+			combined.flip();
+			combined.get(combinedBytes);
+			return combinedBytes;
 		}
 	}
 
@@ -1170,7 +1226,7 @@ public final class AvailBuilder
 			UnresolvedDependencyException,
 			InterruptedException
 	{
-		final MutableOrNull<Throwable> killer = new MutableOrNull<Throwable>();
+		final MutableOrNull<Throwable> killer = new MutableOrNull<>();
 		final Semaphore semaphore = new Semaphore(0);
 		runtime.execute(new AvailTask(
 			FiberDescriptor.loaderPriority,

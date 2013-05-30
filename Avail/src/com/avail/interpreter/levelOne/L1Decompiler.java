@@ -106,7 +106,7 @@ public class L1Decompiler
 	 * statements}.
 	 */
 	@InnerAccess final List<A_Phrase> statements =
-		new ArrayList<A_Phrase>();
+		new ArrayList<>();
 
 	/**
 	 * A flag to indicate that the last instruction was a push of the null
@@ -253,7 +253,7 @@ public class L1Decompiler
 	 */
 	@InnerAccess List<A_Phrase> popExpressions (final int count)
 	{
-		final List<A_Phrase> result = new ArrayList<A_Phrase>(count);
+		final List<A_Phrase> result = new ArrayList<>(count);
 		for (int i = 1; i <= count; i++)
 		{
 			result.add(0, popExpression());
@@ -426,7 +426,7 @@ public class L1Decompiler
 				FunctionTypeDescriptor.mostGeneralType()))
 			{
 				final List<A_Phrase> functionOuters =
-					new ArrayList<A_Phrase>(value.numOuterVars());
+					new ArrayList<>(value.numOuterVars());
 				// Due to stub-building primitives, it's possible for a
 				// non-clean function to be a literal, so deal with it here.
 				for (int i = 1; i <= value.numOuterVars(); i++)
@@ -738,7 +738,7 @@ public class L1Decompiler
 	 */
 	public static A_Phrase parse (final A_Function aFunction)
 	{
-		final Map<String, Integer> counts = new HashMap<String, Integer>();
+		final Map<String, Integer> counts = new HashMap<>();
 		final Transformer1<String, String> generator =
 			new Transformer1<String, String>()
 			{
@@ -754,7 +754,7 @@ public class L1Decompiler
 			};
 
 		final List<A_Phrase> functionOuters =
-			new ArrayList<A_Phrase>(aFunction.numOuterVars());
+			new ArrayList<>(aFunction.numOuterVars());
 		for (int i = 1; i <= aFunction.numOuterVars(); i++)
 		{
 			final A_BasicObject outerObject = aFunction.outerVarAt(i);

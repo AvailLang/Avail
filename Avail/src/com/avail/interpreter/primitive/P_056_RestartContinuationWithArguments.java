@@ -54,8 +54,9 @@ public class P_056_RestartContinuationWithArguments extends Primitive
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_056_RestartContinuationWithArguments().init(
-		2, SwitchesContinuation);
+	public final static Primitive instance =
+		new P_056_RestartContinuationWithArguments().init(
+			2, SwitchesContinuation);
 
 	@Override
 	public Result attempt (

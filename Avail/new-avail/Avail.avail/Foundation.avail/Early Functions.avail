@@ -109,7 +109,8 @@ Public method "_(«_‡,»)" is
 	aFunction : function,
 	arguments : tuple
 |
-	invoke aFunction with arguments;
+	Primitive 40 (failureCode : natural number);
+	Invoke early failure function with <failureCode>
 ] : ⊤;
 
 /**

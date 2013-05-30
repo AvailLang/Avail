@@ -115,7 +115,7 @@ public class P_132_TupleReplaceAt extends Primitive
 			? min(upperBound.extractInt(), originalTypeTupleSize)
 			: Integer.MAX_VALUE;
 		final List<A_Type> typeList =
-			new ArrayList<A_Type>(originalTypeTuple.tupleSize());
+			new ArrayList<>(originalTypeTuple.tupleSize());
 		for (final A_Type element : originalTypeTuple)
 		{
 			typeList.add(element);

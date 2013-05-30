@@ -58,7 +58,9 @@ public class L2_PREPARE_NEW_FRAME extends L2Operation
 		new L2_PREPARE_NEW_FRAME().init();
 
 	@Override
-	public void step (final Interpreter interpreter)
+	public void step (
+		final L2Instruction instruction,
+		final Interpreter interpreter)
 	{
 		final A_Function function = interpreter.pointerAt(FUNCTION);
 		final A_RawFunction code = function.code();

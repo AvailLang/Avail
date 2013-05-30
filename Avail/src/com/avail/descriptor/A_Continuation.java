@@ -122,4 +122,10 @@ extends A_BasicObject
 	 * Dispatch to the descriptor.
 	 */
 	A_BasicObject copyAsMutableContinuation ();
+
+	/**
+	 * @param pc
+	 * @param stackp
+	 */
+	void adjustPcAndStackp (int pc, int stackp);
 }

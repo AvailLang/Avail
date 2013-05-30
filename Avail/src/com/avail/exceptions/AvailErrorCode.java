@@ -714,7 +714,7 @@ public enum AvailErrorCode
 	 */
 	public static List<Integer> allNumericCodes ()
 	{
-		final List<Integer> codes = new ArrayList<Integer>(values().length);
+		final List<Integer> codes = new ArrayList<>(values().length);
 		for (final AvailErrorCode code : values())
 		{
 			// All right, not quite *all* of the numeric error codes, just the

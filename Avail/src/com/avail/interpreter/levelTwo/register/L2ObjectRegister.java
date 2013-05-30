@@ -32,7 +32,9 @@
 
 package com.avail.interpreter.levelTwo.register;
 
+import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.AvailObject;
+import com.avail.interpreter.Interpreter;
 
 /**
  * {@code L2ObjectRegister} models the conceptual usage of a register that can
@@ -69,5 +71,30 @@ extends L2Register
 		final L2ObjectRegister register = new L2ObjectRegister(debugValue);
 		register.setFinalIndex(index);
 		return register;
+	}
+
+	/**
+	 * Read the value of this register from the provided {@link Interpreter}.
+	 *
+	 * @param interpreter An Interpreter.
+	 * @return An {@code AvailObject}, the value of this register.
+	 */
+	public final AvailObject in (final Interpreter interpreter)
+	{
+		return interpreter.pointerAt(finalIndex());
+	}
+
+	/**
+	 * Replace the value of this register within the provided {@link
+	 * Interpreter}.
+	 *
+	 * @param newValue The AvailObject to write to the register.
+	 * @param interpreter The Interpreter.
+	 */
+	public final void set (
+		final A_BasicObject newValue,
+		final Interpreter interpreter)
+	{
+		interpreter.pointerAtPut(finalIndex(), newValue);
 	}
 }

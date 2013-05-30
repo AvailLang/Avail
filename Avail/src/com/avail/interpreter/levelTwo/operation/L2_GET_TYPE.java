@@ -35,7 +35,6 @@ import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import com.avail.descriptor.*;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.*;
-import com.avail.interpreter.levelTwo.operand.*;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.RegisterSet;
 
@@ -54,14 +53,17 @@ public class L2_GET_TYPE extends L2Operation
 			WRITE_POINTER.is("value's type"));
 
 	@Override
-	public void step (final Interpreter interpreter)
+	public void step (
+		final L2Instruction instruction,
+		final Interpreter interpreter)
 	{
-		final int srcIndex = interpreter.nextWord();
-		final int destIndex = interpreter.nextWord();
-		interpreter.pointerAtPut(
-			destIndex,
-			AbstractEnumerationTypeDescriptor.withInstance(
-				interpreter.pointerAt(srcIndex)));
+		final L2ObjectRegister valueReg = instruction.readObjectRegisterAt(0);
+		final L2ObjectRegister typeReg = instruction.writeObjectRegisterAt(1);
+
+		final AvailObject value = valueReg.in(interpreter);
+		final A_Type type =
+			AbstractEnumerationTypeDescriptor.withInstance(value);
+		typeReg.set(type, interpreter);
 	}
 
 	@Override
@@ -69,42 +71,37 @@ public class L2_GET_TYPE extends L2Operation
 		final L2Instruction instruction,
 		final RegisterSet registerSet)
 	{
-		final L2ReadPointerOperand sourceOperand =
-			(L2ReadPointerOperand) instruction.operands[0];
-		final L2WritePointerOperand destinationOperand =
-			(L2WritePointerOperand) instruction.operands[1];
+		final L2ObjectRegister valueReg = instruction.readObjectRegisterAt(0);
+		final L2ObjectRegister typeReg = instruction.writeObjectRegisterAt(1);
 
-		final L2ObjectRegister sourceRegister = sourceOperand.register;
-		final L2ObjectRegister destinationRegister =
-			destinationOperand.register;
-		registerSet.removeConstantAt(destinationRegister);
-		if (registerSet.hasTypeAt(sourceRegister))
+		registerSet.removeConstantAt(typeReg);
+		if (registerSet.hasTypeAt(valueReg))
 		{
-			final A_Type type = registerSet.typeAt(sourceRegister);
+			final A_Type type = registerSet.typeAt(valueReg);
 			// Apply the rule of metacovariance. It says that given types T1
 			// and T2, T1 <= T2 implies T1 type <= T2 type. It is guaranteed
 			// true for all types in Avail.
 			final A_Type meta = InstanceMetaDescriptor.on(type);
 			registerSet.typeAtPut(
-				destinationRegister,
+				typeReg,
 				meta,
 				instruction);
 		}
 		else
 		{
 			registerSet.typeAtPut(
-				destinationRegister,
+				typeReg,
 				InstanceMetaDescriptor.topMeta(),
 				instruction);
 		}
 
-		if (registerSet.hasConstantAt(sourceRegister)
-			&& !registerSet.constantAt(sourceRegister).isType())
+		if (registerSet.hasConstantAt(valueReg)
+			&& !registerSet.constantAt(valueReg).isType())
 		{
 			registerSet.constantAtPut(
-				destinationRegister,
+				typeReg,
 				AbstractEnumerationTypeDescriptor.withInstance(
-					registerSet.constantAt(sourceRegister)),
+					registerSet.constantAt(valueReg)),
 				instruction);
 		}
 	}

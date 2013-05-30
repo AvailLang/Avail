@@ -65,7 +65,7 @@ extends PropertiesFileGenerator
 		final PrintWriter writer)
 	{
 		final List<AvailObject> specialObjects = AvailRuntime.specialObjects();
-		final Set<String> keys = new HashSet<String>();
+		final Set<String> keys = new HashSet<>();
 		for (int i = 0; i < specialObjects.size(); i++)
 		{
 			final A_BasicObject specialObject = specialObjects.get(i);

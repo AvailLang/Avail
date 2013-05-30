@@ -72,3 +72,20 @@ Public method "_'s⁇instance" is
 	Assert: |enum| = 1 ("|enum| ≠ 1");
 	enum's instances→tuple[1]
 ] : any;
+
+/**
+ * Is `value` an instance of `aType`?
+ * 
+ * Parameters:
+ *    value - An arbitrary value.
+ *    aType - An arbitrary type.
+ * Returns:
+ *    `true` if `value` is an instance of `aType`, `false` otherwise.
+ */
+Method "_∈_" is
+[
+	value : any,
+	aType : type
+|
+	value's type ⊆ aType
+];

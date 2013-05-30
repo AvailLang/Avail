@@ -32,6 +32,8 @@
 
 package com.avail.interpreter.levelTwo.register;
 
+import com.avail.interpreter.Interpreter;
+
 
 /**
  * {@code L2IntegerRegister} models the conceptual usage of a register that can
@@ -50,5 +52,28 @@ extends L2Register
 	public L2IntegerRegister (final long debugValue)
 	{
 		super(debugValue);
+	}
+
+	/**
+	 * Read the value of this register from the provided {@link Interpreter}.
+	 *
+	 * @param interpreter An Interpreter.
+	 * @return The {@code int} value of this integer register.
+	 */
+	public final int in (final Interpreter interpreter)
+	{
+		return interpreter.integerAt(finalIndex());
+	}
+
+	/**
+	 * Replace the value of this register within the provided {@link
+	 * Interpreter}.
+	 *
+	 * @param newValue The value to write.
+	 * @param interpreter The Interpreter.
+	 */
+	public final void set (final int newValue, final Interpreter interpreter)
+	{
+		interpreter.integerAtPut(finalIndex(), newValue);
 	}
 }

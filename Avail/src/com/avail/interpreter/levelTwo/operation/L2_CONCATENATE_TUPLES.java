@@ -32,10 +32,14 @@
 
 package com.avail.interpreter.levelTwo.operation;
 
-import static com.avail.descriptor.AvailObject.error;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
+import java.util.List;
+import com.avail.descriptor.*;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.*;
+import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
+import com.avail.interpreter.levelTwo.register.L2RegisterVector;
+import com.avail.optimizer.RegisterSet;
 
 /**
  * Concatenate the tuples in the vector of object registers to produce a single
@@ -54,12 +58,53 @@ public class L2_CONCATENATE_TUPLES extends L2Operation
 			WRITE_POINTER.is("concatenated tuple"));
 
 	@Override
-	public void step (final Interpreter interpreter)
+	public void step (
+		final L2Instruction instruction,
+		final Interpreter interpreter)
 	{
-		@SuppressWarnings("unused")
-		final int subtupleIndex = interpreter.nextWord();
-		@SuppressWarnings("unused")
-		final int destIndex = interpreter.nextWord();
-		error("not implemented");
+		final L2RegisterVector vector = instruction.readVectorRegisterAt(0);
+		final L2ObjectRegister targetTupleReg =
+			instruction.readObjectRegisterAt(1);
+
+		final List<L2ObjectRegister> registers = vector.registers();
+		final A_Tuple tuples =
+			ObjectTupleDescriptor.createUninitialized(registers.size());
+		for (int i = 1; i <= registers.size(); i++)
+		{
+			tuples.objectTupleAtPut(i, registers.get(i - 1).in(interpreter));
+		}
+		final A_Tuple concatenated = tuples.concatenateTuplesCanDestroy(true);
+		targetTupleReg.set(concatenated, interpreter);
+	}
+
+	@Override
+	public void propagateTypes (
+		final L2Instruction instruction,
+		final RegisterSet registerSet)
+	{
+		// Approximate it for now.  If testing the return type dynamically
+		// becomes a bottleneck, we can improve this bound.
+		final L2RegisterVector vector = instruction.readVectorRegisterAt(0);
+		final L2ObjectRegister targetTupleReg =
+			instruction.readObjectRegisterAt(1);
+
+		final List<L2ObjectRegister> registers = vector.registers();
+		if (registers.isEmpty())
+		{
+			registerSet.constantAtPut(
+				targetTupleReg,
+				TupleDescriptor.empty(),
+				instruction);
+			return;
+		}
+		int index = registers.size() - 1;
+		A_Type resultType = registerSet.typeAt(registers.get(index));
+		while (--index >= 0)
+		{
+			resultType = ConcatenatedTupleTypeDescriptor.concatenatingAnd(
+				registerSet.typeAt(registers.get(index)),
+				resultType);
+		}
+		registerSet.constantAtPut(targetTupleReg, resultType, instruction);
 	}
 }

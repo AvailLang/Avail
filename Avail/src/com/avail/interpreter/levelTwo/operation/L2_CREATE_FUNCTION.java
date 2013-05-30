@@ -32,11 +32,12 @@
 package com.avail.interpreter.levelTwo.operation;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
+import java.util.List;
 import com.avail.descriptor.*;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.*;
-import com.avail.interpreter.levelTwo.operand.*;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
+import com.avail.interpreter.levelTwo.register.L2RegisterVector;
 import com.avail.optimizer.RegisterSet;
 
 /**
@@ -55,22 +56,27 @@ public class L2_CREATE_FUNCTION extends L2Operation
 			WRITE_POINTER.is("new function"));
 
 	@Override
-	public void step (final Interpreter interpreter)
+	public void step (
+		final L2Instruction instruction,
+		final Interpreter interpreter)
 	{
-		final int codeIndex = interpreter.nextWord();
-		final int outersIndex = interpreter.nextWord();
-		final int destIndex = interpreter.nextWord();
-		final A_Tuple outersVector = interpreter.vectorAt(outersIndex);
+		final A_RawFunction code = instruction.constantAt(0);
+		final L2RegisterVector outersVector =
+			instruction.readVectorRegisterAt(1);
+		final L2ObjectRegister newFunctionReg =
+			instruction.writeObjectRegisterAt(2);
+
+		final int numOuters = outersVector.registers().size();
+		assert numOuters == code.numOuters();
+		final List<L2ObjectRegister> outerRegs = outersVector.registers();
 		final A_Function function = FunctionDescriptor.createExceptOuters(
-			interpreter.chunk().literalAt(codeIndex),
-			outersVector.tupleSize());
-		for (int i = 1, end = outersVector.tupleSize(); i <= end; i++)
+			code,
+			numOuters);
+		for (int i = 1; i <= numOuters; i++)
 		{
-			function.outerVarAtPut(
-				i,
-				interpreter.pointerAt(outersVector.tupleIntAt(i)));
+			function.outerVarAtPut(i, outerRegs.get(i - 1).in(interpreter));
 		}
-		interpreter.pointerAtPut(destIndex, function);
+		newFunctionReg.set(function, interpreter);
 	}
 
 	@Override
@@ -78,34 +84,35 @@ public class L2_CREATE_FUNCTION extends L2Operation
 		final L2Instruction instruction,
 		final RegisterSet registerSet)
 	{
-		final L2ConstantOperand codeOperand =
-			(L2ConstantOperand) instruction.operands[0];
-		final L2ReadVectorOperand outersOperand =
-			(L2ReadVectorOperand) instruction.operands[1];
-		final L2WritePointerOperand destinationOperand =
-			(L2WritePointerOperand) instruction.operands[2];
+		final A_RawFunction code = instruction.constantAt(0);
+		final L2RegisterVector outersVector =
+			instruction.readVectorRegisterAt(1);
+		final L2ObjectRegister newFunctionReg =
+			instruction.writeObjectRegisterAt(2);
 
-		registerSet.typeAtPut(
-			destinationOperand.register,
-			codeOperand.object.functionType(),
-			instruction);
-		if (outersOperand.vector.allRegistersAreConstantsIn(registerSet))
+		registerSet.typeAtPut(newFunctionReg, code.functionType(), instruction);
+		if (outersVector.allRegistersAreConstantsIn(registerSet))
 		{
-			final A_Function function =
-				FunctionDescriptor.createExceptOuters(
-					codeOperand.object,
-					outersOperand.vector.registers().size());
-			int index = 1;
-			for (final L2ObjectRegister outer : outersOperand.vector)
+			// This can be replaced with a statically constructed function
+			// during regeneration, but for now capture the exact function that
+			// will be constructed.
+			final List<L2ObjectRegister> outerRegs = outersVector.registers();
+			final int numOuters = outerRegs.size();
+			assert numOuters == code.numOuters();
+			final A_Function function = FunctionDescriptor.createExceptOuters(
+				code,
+				numOuters);
+			for (int i = 1; i <= numOuters; i++)
 			{
 				function.outerVarAtPut(
-					index++,
-					registerSet.constantAt(outer));
+					i,
+					registerSet.constantAt(outerRegs.get(i - 1)));
 			}
+			registerSet.constantAtPut(newFunctionReg, function, instruction);
 		}
 		else
 		{
-			registerSet.removeConstantAt(destinationOperand.register);
+			registerSet.removeConstantAt(newFunctionReg);
 		}
 	}
 }

@@ -76,12 +76,6 @@ public abstract class L2Operand
 		final Transformer2<L2Register, L2OperandType, L2Register>
 			transformer);
 
-	/**
-	 * @param codeGenerator
-	 */
-	public abstract void emitOn (
-		final L2CodeGenerator codeGenerator);
-
 	@Override
 	public abstract String toString ();
 }

@@ -115,7 +115,7 @@ public final class ModuleNameResolver
 	 * A {@linkplain Map map} from fully-qualified module names to their
 	 * canonical names.
 	 */
-	private final Map<String, String> renames = new HashMap<String, String>();
+	private final Map<String, String> renames = new HashMap<>();
 
 	/**
 	 * Does the {@linkplain ModuleNameResolver resolver} have a transformation
@@ -190,7 +190,7 @@ public final class ModuleNameResolver
 	 * names}.
 	 */
 	private final LRUCache<ModuleName, ResolvedModuleName> resolutionCache =
-		new LRUCache<ModuleName, ResolvedModuleName>(
+		new LRUCache<>(
 			100,
 			100,
 			new Transformer1<ModuleName, ResolvedModuleName>()
@@ -223,7 +223,7 @@ public final class ModuleNameResolver
 					assert components[0].isEmpty();
 
 					final Deque<String> nameStack =
-						new LinkedList<String>();
+						new LinkedList<>();
 					nameStack.addLast("/" + enclosingRoot);
 					Deque<File> pathStack = null;
 

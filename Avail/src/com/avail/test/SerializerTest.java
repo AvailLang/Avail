@@ -350,7 +350,7 @@ public final class SerializerTest
 		{
 			final int partsCount = 1 + random.nextInt(1000);
 			final List<A_BasicObject> parts =
-				new ArrayList<A_BasicObject>(partsCount);
+				new ArrayList<>(partsCount);
 			for (int partIndex = 0; partIndex < partsCount; partIndex++)
 			{
 				A_BasicObject newObject = null;
@@ -375,7 +375,7 @@ public final class SerializerTest
 						size &= ~1;
 					}
 					final List<A_BasicObject> members =
-						new ArrayList<A_BasicObject>(size);
+						new ArrayList<>(size);
 					for (int i = 0; i < size; i++)
 					{
 						members.add(parts.get(random.nextInt(partIndex)));

@@ -89,7 +89,7 @@ public class LRUCache<K, V>
 	 * values.
 	 */
 	private final ReferenceQueue<V> defunctReferences =
-		new ReferenceQueue<V>();
+		new ReferenceQueue<>();
 
 	/**
 	 * A {@code StrongCacheMap} subclasses {@link LinkedHashMap} to override
@@ -277,7 +277,7 @@ public class LRUCache<K, V>
 	 * reclaimed the cached values.
 	 */
 	@InnerAccess final Map<SoftReference<V>, K> keysBySoftReference =
-		new HashMap<SoftReference<V>, K>();
+		new HashMap<>();
 
 	/**
 	 * The cardinality of the set of strongly held cached values, i.e. the
@@ -613,7 +613,7 @@ public class LRUCache<K, V>
 				futuresCondition.await();
 			}
 			final Set<Entry<K, SoftReference<V>>> entries =
-				new HashSet<Entry<K, SoftReference<V>>>(softMap.entrySet());
+				new HashSet<>(softMap.entrySet());
 
 			softMap.clear();
 			keysBySoftReference.clear();

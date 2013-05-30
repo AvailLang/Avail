@@ -164,7 +164,7 @@ extends AbstractAvailCompiler
 		final A_Function macroBody = macroDefinition.bodyBlock();
 		final A_Type macroBodyKind = macroBody.kind();
 		final List<A_Phrase> argumentExpressions =
-			new ArrayList<A_Phrase>(passedArgumentExpressions.size());
+			new ArrayList<>(passedArgumentExpressions.size());
 		// Strip off macro substitution wrappers from the arguments.  These
 		// were preserved only long enough to test grammatical restrictions.
 		for (final A_Phrase argumentExpression : passedArgumentExpressions)
@@ -181,13 +181,12 @@ extends AbstractAvailCompiler
 				{
 					assert c != null;
 					final List<Integer> disagreements =
-						new ArrayList<Integer>();
+						new ArrayList<>();
 					for (int i = 1; i <= macroBody.code().numArgs(); i++)
 					{
 						final A_Type type =
 							macroBodyKind.argsTupleType().typeAtIndex(i);
-						final A_Phrase value =
-							argumentExpressions.get(i - 1);
+						final A_Phrase value = argumentExpressions.get(i - 1);
 						if (!value.isInstanceOf(type))
 						{
 							disagreements.add(i);

@@ -337,7 +337,7 @@ Semantic restriction "Cast|cast_into_" is
  */
 Invoke
 [
-	names ::= cast <"(_)">→set into [ t : {string|whole number} | t ];
+	names ::= cast <"(_)">→set into [ t : {string|natural number} | t ];
 	Grammatical restriction names is <names>;
 ]
 with <>;
@@ -461,7 +461,7 @@ Semantic restriction "From_to_do_" is
 /* Don't permit `(_)` as the second argument of `Assert:_(_)`. */
 Invoke
 [
-	cast ::= [ t : {string|whole number} | t ];
+	cast ::= [ t : {string|natural number} | t ];
 	names ::= cast <"Assert:_(_)">→set into cast;
 	exclusions ::= cast <"(_)">→set into cast;
 	Grammatical restriction names is <∅, exclusions>;

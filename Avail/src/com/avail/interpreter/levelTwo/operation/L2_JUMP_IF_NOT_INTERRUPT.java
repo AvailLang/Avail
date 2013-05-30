@@ -40,7 +40,7 @@ import com.avail.optimizer.RegisterSet;
 /**
  * Jump to the specified level two program counter if no interrupt has been
  * requested since last serviced.  Otherwise an interrupt has been requested
- * and we should do nothing then proceed to the next instruction.
+ * and we should proceed to the next instruction.
  */
 public class L2_JUMP_IF_NOT_INTERRUPT extends L2Operation
 {
@@ -52,12 +52,14 @@ public class L2_JUMP_IF_NOT_INTERRUPT extends L2Operation
 			PC.is("target if not interrupt"));
 
 	@Override
-	public void step (final Interpreter interpreter)
+	public void step (
+		final L2Instruction instruction,
+		final Interpreter interpreter)
 	{
-		final int ifNotIndex = interpreter.nextWord();
+		final int offsetIfNotInterrupt = instruction.pcAt(0);
 		if (!interpreter.isInterruptRequested())
 		{
-			interpreter.offset(ifNotIndex);
+			interpreter.offset(offsetIfNotInterrupt);
 		}
 	}
 

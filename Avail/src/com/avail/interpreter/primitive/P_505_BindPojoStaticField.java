@@ -82,7 +82,7 @@ public class P_505_BindPojoStaticField extends Primitive
 		// an attempt to uniquely resolve the field.
 		else
 		{
-			final Set<Field> fields = new HashSet<Field>();
+			final Set<Field> fields = new HashSet<>();
 			final A_Map ancestors = pojoType.javaAncestors();
 			for (final A_BasicObject ancestor : ancestors.keysAsSet())
 			{

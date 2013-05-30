@@ -76,7 +76,7 @@ extends Primitive
 				E_INCORRECT_NUMBER_OF_ARGUMENTS);
 		}
 		final List<AvailObject> callArgs =
-			new ArrayList<AvailObject>(numArgs);
+			new ArrayList<>(numArgs);
 		final A_Type tupleType = function.kind().argsTupleType();
 		for (int i = 1; i <= numArgs; i++)
 		{
@@ -109,11 +109,6 @@ extends Primitive
 		// If the current fiber is an Avail fiber, then the new one should be
 		// also.
 		orphan.availLoader(current.availLoader());
-		// Don't inherit the success continuation, but inherit the failure
-		// continuation. Only loader fibers should have something real plugged
-		// into this field, and none of them should fail because of a Java
-		// exception.
-		orphan.failureContinuation(current.failureContinuation());
 		// Share and inherit any heritable variables.
 		orphan.heritableFiberGlobals(
 			current.heritableFiberGlobals().makeShared());

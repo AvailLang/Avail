@@ -105,7 +105,7 @@ public class P_502_CreatePojoConstructorFunction extends Primitive
 		// Wrap each of the marshaled argument types into raw pojos. These
 		// will be embedded into one of the generated functions below.
 		final List<AvailObject> marshaledTypePojos =
-			new ArrayList<AvailObject>(marshaledTypes.length);
+			new ArrayList<>(marshaledTypes.length);
 		for (final Class<?> paramClass : marshaledTypes)
 		{
 			marshaledTypePojos.add(

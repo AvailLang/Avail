@@ -1168,23 +1168,6 @@ Semantic restriction "_∩_" is
 ];
 
 /**
- * Is `value` an instance of `aType`?
- * 
- * Parameters:
- *    value - An arbitrary value.
- *    aType - An arbitrary type.
- * Returns:
- *    `true` if `value` is an instance of `aType`, `false` otherwise.
- */
-Method "_∈_" is
-[
-	value : any,
-	aType : type
-|
-	value's type ⊆ aType
-];
-
-/**
  * Answer the cardinality type of the specified tuple type.
  * 
  * Parameters:

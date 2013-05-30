@@ -441,7 +441,7 @@ Semantic restriction "(--_)" is
  */
 Invoke
 [
-	parens ::= cast <"(_)">→set into [ t : {string|whole number} | t ];
+	parens ::= cast <"(_)">→set into [ t : {string|natural number} | t ];
 	forbid ::=
 		cast
 			<

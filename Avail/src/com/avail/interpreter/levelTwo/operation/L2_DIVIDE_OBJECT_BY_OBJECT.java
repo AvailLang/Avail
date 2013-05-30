@@ -32,11 +32,20 @@
 
 package com.avail.interpreter.levelTwo.operation;
 
-import static com.avail.descriptor.AvailObject.error;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
+import com.avail.descriptor.A_Number;
+import com.avail.exceptions.ArithmeticException;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.*;
+import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 
+/**
+ * Divide the dividend value by the divisor value.  If the calculation causes an
+ * {@link ArithmeticException}, jump to the specified label, otherwise set the
+ * quotient and remainder registers and continue with the next instruction.
+ *
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ */
 public class L2_DIVIDE_OBJECT_BY_OBJECT extends L2Operation
 {
 	/**
@@ -51,19 +60,34 @@ public class L2_DIVIDE_OBJECT_BY_OBJECT extends L2Operation
 			PC.is("if out of range"));
 
 	@Override
-	public void step (final Interpreter interpreter)
+	public void step (
+		final L2Instruction instruction,
+		final Interpreter interpreter)
 	{
-		@SuppressWarnings("unused")
-		final int divideIndex = interpreter.nextWord();
-		@SuppressWarnings("unused")
-		final int byIndex = interpreter.nextWord();
-		@SuppressWarnings("unused")
-		final int quotientIndex = interpreter.nextWord();
-		@SuppressWarnings("unused")
-		final int remainderIndex = interpreter.nextWord();
-		@SuppressWarnings("unused")
-		final int zeroIndex = interpreter.nextWord();
-		error("not implemented");
+		final L2ObjectRegister dividendReg =
+			instruction.readObjectRegisterAt(0);
+		final L2ObjectRegister divisorReg = instruction.readObjectRegisterAt(1);
+		final L2ObjectRegister quotientReg =
+			instruction.writeObjectRegisterAt(2);
+		final L2ObjectRegister remainderReg =
+			instruction.writeObjectRegisterAt(3);
+		final int outOfRangeIndex = instruction.pcAt(4);
+
+		final A_Number dividend = dividendReg.in(interpreter);
+		final A_Number divisor = divisorReg.in(interpreter);
+		try
+		{
+			final A_Number quotient = dividend.divideCanDestroy(divisor, false);
+			final A_Number remainder = dividend.minusCanDestroy(
+				quotient.timesCanDestroy(divisor, false),
+				false);
+			quotientReg.set(quotient, interpreter);
+			remainderReg.set(remainder, interpreter);
+		}
+		catch (final ArithmeticException e)
+		{
+			interpreter.offset(outOfRangeIndex);
+		}
 	}
 
 	@Override

@@ -1,5 +1,5 @@
 /**
- * L2RawInstruction.java
+ * L2InstructionDescriber.java
  * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -32,61 +32,58 @@
 
 package com.avail.interpreter.levelTwo;
 
+import com.avail.interpreter.levelTwo.operand.L2Operand;
 
 /**
- * An {@code L2RawInstruction} is a combination of an {@link L2Operation} and an
- * array of {@code int}s encoding its operands.
+ * An {@code L2InstructionDescriber} can {@linkplain #describe(L2Instruction,
+ * L2Chunk, StringBuilder) describe} an {@link L2Instruction}, properly
+ * interpreting the instruction's {@linkplain L2Operation operation} and
+ * {@linkplain L2OperandType operands}.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class L2RawInstruction
+public class L2InstructionDescriber
 {
 	/**
-	 * The {@link L2Operation} invoked by this instruction.
+	 * The {@link L2OperandDescriber} used to describe an {@link
+	 * L2Instruction}'s operands.
 	 */
-	private final L2Operation operation;
+	final L2OperandDescriber operandDescriber = new L2OperandDescriber();
 
 	/**
-	 * An array of {@code int}s encoding the instruction's operands.
-	 */
-	private final int [] operands;
-
-	/**
-	 * Answer this instruction's {@link L2Operation}.
+	 * Describe an {@link L2Instruction}, including information about its
+	 * {@linkplain L2Operation operation} and {@linkplain L2Operand
+	 * operands}.
 	 *
-	 * @return An {@code L2Operation}.
+	 * @param instruction
+	 *            The {@code L2Instruction} to describe.
+	 * @param chunk
+	 *            The {@link L2Chunk} in which the instruction occurs.
+	 * @param stream
+	 *            Where to describe the instruction.
 	 */
-	public L2Operation operation ()
+	public void describe (
+		final L2Instruction instruction,
+		final L2Chunk chunk,
+		final StringBuilder stream)
 	{
-		return operation;
-	}
-
-	/**
-	 * Answer this instruction's {@code int}-encoded operands.  They should
-	 * correspond in purpose to the operation's {@link
-	 * L2Operation#operandTypes() operand types}.
-	 *
-	 * @return An array of {@code int}s encoding the operands.
-	 */
-	public int [] operands ()
-	{
-		return operands;
-	}
-
-	/**
-	 * Construct a new {@link L2RawInstruction} from the {@link L2Operation} and
-	 * the array of {@code int}-encoded operands.
-	 *
-	 * @param operation The {@code L2Operation} to use.
-	 * @param operands Its operands, encoded as {@code int}s.
-	 */
-	public L2RawInstruction (
-		final L2Operation operation,
-		final int ... operands)
-	{
-		assert operation.operandTypes().length == operands.length;
-
-		this.operation = operation;
-		this.operands = operands;
+		final L2Operation operation = instruction.operation;
+		final String operationName = operation.name();
+		stream.append(operationName);
+		stream.append(" (");
+		final L2NamedOperandType [] operandTypes = operation.operandTypes();
+		final L2Operand [] operands = instruction.operands;
+		for (int i = 0; i < operands.length; i++)
+		{
+			if (i > 0)
+			{
+				stream.append(", ");
+			}
+			operandDescriber.describeInOperandChunkOn(
+				operandTypes[i],
+				operands[i],
+				stream);
+		}
+		stream.append(")");
 	}
 }

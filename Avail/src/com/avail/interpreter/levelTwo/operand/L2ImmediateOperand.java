@@ -84,13 +84,6 @@ public class L2ImmediateOperand extends L2Operand
 	}
 
 	@Override
-	public void emitOn (
-		final L2CodeGenerator codeGenerator)
-	{
-		codeGenerator.emitImmediate(value);
-	}
-
-	@Override
 	public String toString ()
 	{
 		return String.format("Imm(%d)", value);

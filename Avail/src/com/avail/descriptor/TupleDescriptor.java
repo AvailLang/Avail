@@ -154,7 +154,7 @@ extends Descriptor
 			aStream.appendCodePoint('"');
 			return;
 		}
-		final List<String> strings = new ArrayList<String>(object.tupleSize());
+		final List<String> strings = new ArrayList<>(object.tupleSize());
 		int totalChars = 0;
 		boolean anyBreaks = false;
 		for (final A_BasicObject element : object)
@@ -1111,7 +1111,7 @@ extends Descriptor
 		final A_Tuple tuple)
 	{
 		final List<AvailObject> list =
-			new ArrayList<AvailObject>(tuple.tupleSize());
+			new ArrayList<>(tuple.tupleSize());
 		for (final AvailObject element : tuple)
 		{
 			list.add(element);

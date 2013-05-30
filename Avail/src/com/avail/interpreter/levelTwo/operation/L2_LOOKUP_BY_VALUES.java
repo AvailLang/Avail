@@ -32,15 +32,15 @@
 package com.avail.interpreter.levelTwo.operation;
 
 import static com.avail.descriptor.AvailObject.error;
-import static com.avail.descriptor.TypeDescriptor.Types.TOP;
-import static com.avail.interpreter.Interpreter.debugL1;
+import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import java.util.*;
+import java.util.logging.Level;
 import com.avail.descriptor.*;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.*;
-import com.avail.interpreter.levelTwo.operand.*;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
+import com.avail.interpreter.levelTwo.register.L2RegisterVector;
 import com.avail.optimizer.RegisterSet;
 
 /**
@@ -60,29 +60,30 @@ public class L2_LOOKUP_BY_VALUES extends L2Operation
 			WRITE_POINTER.is("looked up function"));
 
 	@Override
-	public void step (final Interpreter interpreter)
+	public void step (
+		final L2Instruction instruction,
+		final Interpreter interpreter)
 	{
-		final int selectorIndex = interpreter.nextWord();
-		final int argumentsIndex = interpreter.nextWord();
-		final int resultingFunctionIndex = interpreter.nextWord();
-		final A_Tuple vect = interpreter.vectorAt(argumentsIndex);
+		final A_Bundle bundle = instruction.bundleAt(0);
+		final L2RegisterVector argsVector = instruction.readVectorRegisterAt(1);
+		final L2ObjectRegister functionReg =
+			instruction.writeObjectRegisterAt(2);
+
+		interpreter.log(
+			Level.FINER,
+			"Lookup {0}",
+			bundle.message().atomName());
 		interpreter.argsBuffer.clear();
-		final int numArgs = vect.tupleSize();
-		for (int i = 1; i <= numArgs; i++)
+		for (final L2ObjectRegister argumentReg : argsVector.registers())
 		{
-			interpreter.argsBuffer.add(
-				interpreter.pointerAt(vect.tupleIntAt(i)));
+			interpreter.argsBuffer.add(argumentReg.in(interpreter));
 		}
-		final A_Bundle bundle = interpreter.chunk().literalAt(selectorIndex);
 		final A_Method method = bundle.bundleMethod();
-		if (debugL1)
-		{
-			System.out.printf(
-				"  --- looking up: %s%n",
-				bundle.message().atomName());
-		}
+		final long before = System.nanoTime();
 		final A_Definition definitionToCall =
 			method.lookupByValuesFromList(interpreter.argsBuffer);
+		final long after = System.nanoTime();
+		Interpreter.recordDynamicLookup(bundle, after - before);
 		if (definitionToCall.equalsNil())
 		{
 			error("Unable to find unique definition for call");
@@ -93,9 +94,7 @@ public class L2_LOOKUP_BY_VALUES extends L2Operation
 			error("Attempted to call a non-method definition");
 			return;
 		}
-		interpreter.pointerAtPut(
-			resultingFunctionIndex,
-			definitionToCall.bodyBlock());
+		functionReg.set(definitionToCall.bodyBlock(), interpreter);
 	}
 
 	@Override
@@ -106,31 +105,26 @@ public class L2_LOOKUP_BY_VALUES extends L2Operation
 		// Find all possible definitions (taking into account the types
 		// of the argument registers).  Then build an enumeration type over
 		// those functions.
-		final L2SelectorOperand selectorOperand =
-			(L2SelectorOperand) instruction.operands[0];
-		final L2ReadVectorOperand argsOperand =
-			(L2ReadVectorOperand) instruction.operands[1];
-		final L2WritePointerOperand destinationOperand =
-			(L2WritePointerOperand) instruction.operands[2];
-		final List<L2ObjectRegister> argRegisters =
-			argsOperand.vector.registers();
+		final A_Bundle bundle = instruction.bundleAt(0);
+		final L2RegisterVector argsVector = instruction.readVectorRegisterAt(1);
+		final L2ObjectRegister functionReg =
+			instruction.writeObjectRegisterAt(2);
+
+		final List<L2ObjectRegister> argRegisters = argsVector.registers();
 		final int numArgs = argRegisters.size();
-		final List<A_Type> argTypeBounds =
-			new ArrayList<A_Type>(numArgs);
+		final List<A_Type> argTypeBounds = new ArrayList<>(numArgs);
 		for (final L2ObjectRegister argRegister : argRegisters)
 		{
 			final A_Type type = registerSet.hasTypeAt(argRegister)
 				? registerSet.typeAt(argRegister)
-				: TOP.o();
+				: ANY.o();
 			argTypeBounds.add(type);
 		}
 		// Figure out what could be invoked at runtime given these argument
 		// type constraints.
-		final List<A_Function> possibleFunctions =
-			new ArrayList<A_Function>();
+		final List<A_Function> possibleFunctions = new ArrayList<>();
 		final List<A_Definition> possibleDefinitions =
-			selectorOperand.bundle.bundleMethod().definitionsAtOrBelow(
-				argTypeBounds);
+			bundle.bundleMethod().definitionsAtOrBelow(argTypeBounds);
 		for (final A_Definition definition : possibleDefinitions)
 		{
 			if (definition.isMethodDefinition())
@@ -144,7 +138,7 @@ public class L2_LOOKUP_BY_VALUES extends L2Operation
 			// this call site).  Therefore we know strongly what the
 			// function is.
 			registerSet.constantAtPut(
-				destinationOperand.register,
+				functionReg,
 				possibleFunctions.get(0),
 				instruction);
 		}
@@ -153,10 +147,7 @@ public class L2_LOOKUP_BY_VALUES extends L2Operation
 			final A_Type enumType =
 				AbstractEnumerationTypeDescriptor.withInstances(
 					SetDescriptor.fromCollection(possibleFunctions));
-			registerSet.typeAtPut(
-				destinationOperand.register,
-				enumType,
-				instruction);
+			registerSet.typeAtPut(functionReg, enumType, instruction);
 		}
 	}
 }

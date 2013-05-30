@@ -165,11 +165,12 @@ extends TypeDescriptor
 	A_Tuple o_FieldTypeTuple (final AvailObject object)
 	{
 		final A_Map map = object.slot(FIELD_TYPE_MAP);
-		final List<A_Tuple> fieldAssignments = new ArrayList<A_Tuple>(
+		final List<A_Tuple> fieldAssignments = new ArrayList<>(
 			map.mapSize());
 		for (final MapDescriptor.Entry entry : map.mapIterable())
 		{
-			fieldAssignments.add(TupleDescriptor.from(entry.key(), entry.value()));
+			fieldAssignments.add(
+			TupleDescriptor.from(entry.key(), entry.value()));
 		}
 		return TupleDescriptor.fromList(fieldAssignments);
 	}

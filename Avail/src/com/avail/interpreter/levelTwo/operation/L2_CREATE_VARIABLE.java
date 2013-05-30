@@ -35,7 +35,7 @@ import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import com.avail.descriptor.*;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.*;
-import com.avail.interpreter.levelTwo.operand.*;
+import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.RegisterSet;
 
 /**
@@ -49,18 +49,19 @@ public class L2_CREATE_VARIABLE extends L2Operation
 	 */
 	public final static L2Operation instance =
 		new L2_CREATE_VARIABLE().init(
-			CONSTANT.is("type"),
+			CONSTANT.is("outerType"),
 			WRITE_POINTER.is("variable"));
 
 	@Override
-	public void step (final Interpreter interpreter)
+	public void step (
+		final L2Instruction instruction,
+		final Interpreter interpreter)
 	{
-		final int typeIndex = interpreter.nextWord();
-		final int destIndex = interpreter.nextWord();
-		interpreter.pointerAtPut(
-			destIndex,
-			VariableDescriptor.forOuterType(
-				interpreter.chunk().literalAt(typeIndex)));
+		final A_Type outerType = instruction.constantAt(0);
+		final L2ObjectRegister destReg = instruction.writeObjectRegisterAt(1);
+
+		final A_Variable newVar = VariableDescriptor.forOuterType(outerType);
+		destReg.set(newVar, interpreter);
 	}
 
 	@Override
@@ -68,15 +69,11 @@ public class L2_CREATE_VARIABLE extends L2Operation
 		final L2Instruction instruction,
 		final RegisterSet registerSet)
 	{
-		final L2ConstantOperand constantOperand =
-			(L2ConstantOperand) instruction.operands[0];
-		final L2WritePointerOperand destinationOperand =
-			(L2WritePointerOperand) instruction.operands[1];
-		// No longer a constant, but we know the type...
-		registerSet.removeConstantAt(destinationOperand.register);
-		registerSet.typeAtPut(
-			destinationOperand.register,
-			constantOperand.object,
-			instruction);
+		final A_Type outerType = instruction.constantAt(0);
+		final L2ObjectRegister destReg = instruction.writeObjectRegisterAt(1);
+
+		// Not a constant, but we know the type...
+		registerSet.removeConstantAt(destReg);
+		registerSet.typeAtPut(destReg, outerType, instruction);
 	}
 }

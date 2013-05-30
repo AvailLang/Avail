@@ -477,7 +477,7 @@ public final class ScannerTest
 	public void testLiteralComparison ()
 	{
 		final A_String string = StringDescriptor.from("xxx");
-		final List<AvailObject> literals = new ArrayList<AvailObject>(4);
+		final List<AvailObject> literals = new ArrayList<>(4);
 		literals.add(LiteralTokenDescriptor.create(
 			string,
 			0,

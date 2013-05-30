@@ -33,7 +33,7 @@
 package com.avail.optimizer;
 
 import static com.avail.descriptor.AvailObject.error;
-import static com.avail.descriptor.TypeDescriptor.Types.ANY;
+import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import static com.avail.interpreter.Primitive.Result.*;
 import static com.avail.interpreter.levelTwo.register.FixedRegister.*;
@@ -42,7 +42,6 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
 import com.avail.annotations.*;
 import com.avail.descriptor.*;
-import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.*;
 import com.avail.interpreter.Primitive.Result;
 import com.avail.interpreter.levelOne.*;
@@ -50,6 +49,7 @@ import com.avail.interpreter.levelTwo.*;
 import com.avail.interpreter.levelTwo.operand.*;
 import com.avail.interpreter.levelTwo.operation.*;
 import com.avail.interpreter.levelTwo.register.*;
+import com.avail.interpreter.primitive.P_058_RestartContinuation;
 import com.avail.utility.*;
 
 /**
@@ -552,12 +552,34 @@ public class L2Translator
 			new HashMap<>();
 
 		/**
-		 * A label (an {@link L2Instruction} whose operation is a {@link
-		 * L2_LABEL}) which is generated before any other level two code.  It
-		 * is used when the {@link #L1Ext_doPushLabel()} needs to synthesize a
-		 * continuation to push.
+		 * A label (i.e., an {@link L2Instruction} whose operation is an {@link
+		 * L2_LABEL}).  This is output right at the start of naive code
+		 * generation.  It is reached through normal invocation, but it can also
+		 * be reached by {@linkplain P_058_RestartContinuation restarting} a
+		 * continuation created by a {@linkplain #L1Ext_doPushLabel()
+		 * push-label} nybblecode instruction.
 		 */
-		final L2Instruction restartLabel = newLabel("continuation restart");
+		final L2Instruction startLabel = newLabel("start");
+
+		/**
+		 * A label (i.e., an {@link L2Instruction} whose operation is an {@link
+		 * L2_LABEL}).  This is only output after naive code generation if a
+		 * {@linkplain #L1Ext_doPushLabel() push-label} instruction was
+		 * encountered.  If so, a coda will be output starting with this
+		 * restartLabel so that restarts of the created label continuations can
+		 * correctly explode the fields into registers then jump to the main
+		 * entry point at the start.
+		 */
+		final L2Instruction restartLabel = newLabel("restart");
+
+		/**
+		 * Whether any uses of the {@linkplain #L1Ext_doPushLabel() push-label}
+		 * nybblecode instruction have been encountered so far.  After naive
+		 * translation, if any push-labels occurred then the {@link
+		 * #restartLabel} will be appended, followed by code that will explode
+		 * the continuation and jump to the start.
+		 */
+		boolean anyPushLabelsEncountered = false;
 
 		/**
 		 * Create and add an {@link L2Instruction} with the given {@link
@@ -620,23 +642,7 @@ public class L2Translator
 				else
 				{
 					assert successor.operation == L2_LABEL.instance;
-					if (successor == restartLabel)
-					{
-						// Referring back is allowed if this block starts with a
-						// label declaration.  And in this case, the only state
-						// that the continuation can encode is the fixed
-						// registers and the function arguments -- which is what
-						// was known when we first output the label.  Therefore
-						// the reference to this label doesn't expand or
-						// restrict the register set's type/constant
-						// information.  It might (maybe?) affect information
-						// about the source of values, but we're currently doing
-						// the naive transliteration pass where this has no
-						// effect.
-						assert successor.offset() == 0;
-						assert instructions.get(0) == restartLabel;
-					}
-					else
+					if (successor != startLabel)
 					{
 						assert !instructions.contains(successor)
 							: "Backward branch in level one transliteration";
@@ -839,7 +845,7 @@ public class L2Translator
 					// an *instance* of expectedType.
 					slotType = expectedType;
 				}
-				postSlotTypes.add(slotType != null ? slotType : Types.TOP.o());
+				postSlotTypes.add(slotType != null ? slotType : TOP.o());
 				if (reg != expectedTypeReg
 					&& naiveRegisters().hasConstantAt(reg))
 				{
@@ -1182,8 +1188,7 @@ public class L2Translator
 			addInstruction(
 				L2_JUMP_IF_NOT_INTERRUPT.instance,
 				new L2PcOperand(noInterruptLabel));
-			// Capture numSlots into a local final variable for use with
-			// L2_EXPLODE_CONTINUATION's propagation logic.
+			// Capture numSlots into a final local variable.
 			final int nSlots = numSlots;
 			final List<L2ObjectRegister> slots = new ArrayList<>(nSlots);
 			for (int slotIndex = 1; slotIndex <= nSlots; slotIndex++)
@@ -1220,7 +1225,7 @@ public class L2Translator
 			for (int slotIndex = 1; slotIndex <= nSlots; slotIndex++)
 			{
 				final A_Type type = savedSlotTypes.get(slotIndex - 1);
-				typesList.add(type != null ? type : Types.TOP.o());
+				typesList.add(type != null ? type : TOP.o());
 				final A_BasicObject constant =
 					savedSlotConstants.get(slotIndex - 1);
 				if (constant != null && !constant.equalsNil())
@@ -1247,7 +1252,7 @@ public class L2Translator
 				new L2ConstantOperand(TupleDescriptor.fromList(typesList)),
 				new L2ConstantOperand(constants),
 				new L2ConstantOperand(nullSlots),
-				new L2ConstantOperand(codeOrFail().functionType()));
+				new L2ConstantOperand(code.functionType()));
 			addLabel(noInterruptLabel);
 		}
 
@@ -1257,6 +1262,7 @@ public class L2Translator
 		 */
 		void addNaiveInstructions ()
 		{
+			addLabel(startLabel);
 			if (optimizationLevel == OptimizationLevel.UNOPTIMIZED)
 			{
 				// Optimize it again if it's called frequently enough.
@@ -1280,7 +1286,6 @@ public class L2Translator
 					L2Translator.firstArgumentRegisterIndex + i - 1);
 				initialRegisters.add(r);
 			}
-			addLabel(restartLabel);
 			addInstruction(
 				L2_ENTER_L2_CHUNK.instance,
 				new L2WriteVectorOperand(createVector(initialRegisters)));
@@ -1330,6 +1335,46 @@ public class L2Translator
 			L1Operation.L1Implied_Return.dispatch(this);
 			assert pc == nybbles.tupleSize() + 1;
 			assert stackp == Integer.MIN_VALUE;
+
+			// Write a coda if necessary to support push-label instructions
+			// and give the resulting continuations a chance to explode before
+			// restarting them.
+			if (anyPushLabelsEncountered)
+			{
+				addLabel(restartLabel);
+				final List<A_Type> typesList = new ArrayList<>(numSlots);
+				final List<L2ObjectRegister> slots = new ArrayList<>(numSlots);
+				final A_Type argsType = code.functionType().argsTupleType();
+				A_Set nullSlots = SetDescriptor.empty();
+				for (int i = 1; i <= numSlots; i++)
+				{
+					slots.add(continuationSlot(i));
+					if (i <= numArgs)
+					{
+						typesList.add(argsType.typeAtIndex(i));
+					}
+					else
+					{
+						typesList.add(TOP.o());
+						nullSlots = nullSlots.setWithElementCanDestroy(
+							IntegerDescriptor.fromInt(i),
+							true);
+					}
+				}
+				addInstruction(
+					L2_EXPLODE_CONTINUATION.instance,
+					new L2ReadPointerOperand(fixed(CALLER)),
+					new L2WriteVectorOperand(createVector(slots)),
+					new L2WritePointerOperand(fixed(CALLER)),
+					new L2WritePointerOperand(fixed(FUNCTION)),
+					new L2ConstantOperand(TupleDescriptor.fromList(typesList)),
+					new L2ConstantOperand(MapDescriptor.empty()),
+					new L2ConstantOperand(nullSlots),
+					new L2ConstantOperand(code.functionType()));
+				addInstruction(
+					L2_JUMP.instance,
+					new L2PcOperand(startLabel));
+			}
 		}
 
 		@Override
@@ -1413,7 +1458,8 @@ public class L2Translator
 				L2_MOVE_OUTER_VARIABLE.instance,
 				new L2ImmediateOperand(outerIndex),
 				new L2ReadPointerOperand(fixed(FUNCTION)),
-				new L2WritePointerOperand(stackRegister(stackp)));
+				new L2WritePointerOperand(stackRegister(stackp)),
+				new L2ConstantOperand(code.outerTypeAt(outerIndex)));
 			addInstruction(
 				L2_GET_VARIABLE.instance,
 				new L2ReadPointerOperand(stackRegister(stackp)),
@@ -1429,7 +1475,8 @@ public class L2Translator
 				L2_MOVE_OUTER_VARIABLE.instance,
 				new L2ImmediateOperand(outerIndex),
 				new L2ReadPointerOperand(fixed(FUNCTION)),
-				new L2WritePointerOperand(stackRegister(stackp)));
+				new L2WritePointerOperand(stackRegister(stackp)),
+				new L2ConstantOperand(code.outerTypeAt(outerIndex)));
 			addInstruction(
 				L2_GET_VARIABLE_CLEARING.instance,
 				new L2ReadPointerOperand(stackRegister(stackp)),
@@ -1505,7 +1552,8 @@ public class L2Translator
 				L2_MOVE_OUTER_VARIABLE.instance,
 				new L2ImmediateOperand(outerIndex),
 				new L2ReadPointerOperand(fixed(FUNCTION)),
-				new L2WritePointerOperand(stackRegister(stackp)));
+				new L2WritePointerOperand(stackRegister(stackp)),
+				new L2ConstantOperand(code.outerTypeAt(outerIndex)));
 			addInstruction(
 				L2_MAKE_IMMUTABLE.instance,
 				new L2ReadPointerOperand(stackRegister(stackp)));
@@ -1541,7 +1589,8 @@ public class L2Translator
 				L2_MOVE_OUTER_VARIABLE.instance,
 				new L2ImmediateOperand(outerIndex),
 				new L2ReadPointerOperand(fixed(FUNCTION)),
-				new L2WritePointerOperand(stackRegister(stackp)));
+				new L2WritePointerOperand(stackRegister(stackp)),
+				new L2ConstantOperand(code.outerTypeAt(outerIndex)));
 			addInstruction(
 				L2_MAKE_IMMUTABLE.instance,
 				new L2ReadPointerOperand(stackRegister(stackp)));
@@ -1572,7 +1621,8 @@ public class L2Translator
 				L2_MOVE_OUTER_VARIABLE.instance,
 				new L2ImmediateOperand(outerIndex),
 				new L2ReadPointerOperand(fixed(FUNCTION)),
-				new L2WritePointerOperand(tempReg));
+				new L2WritePointerOperand(tempReg),
+				new L2ConstantOperand(code.outerTypeAt(outerIndex)));
 			addInstruction(
 				L2_SET_VARIABLE_NO_CHECK.instance,
 				new L2ReadPointerOperand(tempReg),
@@ -1609,6 +1659,7 @@ public class L2Translator
 		@Override
 		public void L1Ext_doPushLabel ()
 		{
+			anyPushLabelsEncountered = true;
 			stackp--;
 			final List<L2ObjectRegister> vectorWithOnlyArgsPreserved =
 				new ArrayList<>(numSlots);
@@ -2082,10 +2133,149 @@ public class L2Translator
 	private void createChunk ()
 	{
 		assert chunk == null;
-		final L2CodeGenerator codeGen = new L2CodeGenerator();
-		codeGen.setInstructions(instructions);
-		codeGen.addContingentMethods(contingentMethods);
-		chunk = codeGen.createChunkFor(codeOrNull());
+		final Set<L2Instruction> instructionsSet = new HashSet<>(instructions);
+		final Mutable<Integer> intRegMaxIndex = new Mutable<>(-1);
+		final Mutable<Integer> floatRegMaxIndex = new Mutable<>(-1);
+		final Mutable<Integer> objectRegMaxIndex =
+			new Mutable<>(FixedRegister.values().length - 1);
+		final L2OperandDispatcher dispatcher = new L2OperandDispatcher()
+		{
+			@Override
+			public void doOperand (final L2CommentOperand operand)
+			{
+				// Ignore
+			}
+
+			@Override
+			public void doOperand (final L2ConstantOperand operand)
+			{
+				operand.object.makeShared();
+			}
+
+			@Override
+			public void doOperand (final L2ImmediateOperand operand)
+			{
+				// Ignore
+			}
+
+			@Override
+			public void doOperand (final L2PcOperand operand)
+			{
+				assert instructionsSet.contains(operand.targetLabel());
+			}
+
+			@Override
+			public void doOperand (final L2PrimitiveOperand operand)
+			{
+				// Ignore
+			}
+
+			@Override
+			public void doOperand (final L2ReadIntOperand operand)
+			{
+				intRegMaxIndex.value = max(
+					intRegMaxIndex.value,
+					operand.register.finalIndex());
+			}
+
+			@Override
+			public void doOperand (final L2ReadPointerOperand operand)
+			{
+				objectRegMaxIndex.value = max(
+					objectRegMaxIndex.value,
+					operand.register.finalIndex());
+			}
+
+			@Override
+			public void doOperand (final L2ReadVectorOperand operand)
+			{
+				for (final L2ObjectRegister register : operand.vector)
+				{
+					objectRegMaxIndex.value = max(
+						objectRegMaxIndex.value,
+						register.finalIndex());
+				}
+			}
+
+			@Override
+			public void doOperand (final L2ReadWriteIntOperand operand)
+			{
+				intRegMaxIndex.value = max(
+					intRegMaxIndex.value,
+					operand.register.finalIndex());
+			}
+
+			@Override
+			public void doOperand (final L2ReadWritePointerOperand operand)
+			{
+				objectRegMaxIndex.value = max(
+					objectRegMaxIndex.value,
+					operand.register.finalIndex());
+			}
+
+			@Override
+			public void doOperand (final L2ReadWriteVectorOperand operand)
+			{
+				for (final L2ObjectRegister register : operand.vector)
+				{
+					objectRegMaxIndex.value = max(
+						objectRegMaxIndex.value,
+						register.finalIndex());
+				}
+			}
+
+			@Override
+			public void doOperand (final L2SelectorOperand operand)
+			{
+				// Ignore
+			}
+
+			@Override
+			public void doOperand (final L2WriteIntOperand operand)
+			{
+				intRegMaxIndex.value = max(
+					intRegMaxIndex.value,
+					operand.register.finalIndex());
+			}
+
+			@Override
+			public void doOperand (final L2WritePointerOperand operand)
+			{
+				objectRegMaxIndex.value = max(
+					objectRegMaxIndex.value,
+					operand.register.finalIndex());
+			}
+
+			@Override
+			public void doOperand (final L2WriteVectorOperand operand)
+			{
+				for (final L2ObjectRegister register : operand.vector)
+				{
+					objectRegMaxIndex.value = max(
+						objectRegMaxIndex.value,
+						register.finalIndex());
+				}
+			}
+
+		};
+
+		int offset = 0;
+		for (final L2Instruction instruction : instructions)
+		{
+			instruction.setOffset(offset++);
+			for (final L2Operand operand : instruction.operands)
+			{
+				operand.dispatchOperand(dispatcher);
+			}
+		}
+
+		chunk = L2Chunk.allocate(
+			codeOrNull(),
+			objectRegMaxIndex.value + 1,
+			intRegMaxIndex.value + 1,
+			floatRegMaxIndex.value + 1,
+			instructions,
+			contingentMethods);
 	}
 
 	/**
@@ -2152,7 +2342,6 @@ public class L2Translator
 				L2ObjectRegister.precolored(nextUnique(), regEnum.ordinal()));
 		}
 
-		final L2Instruction loopStart = newLabel("main L1 loop");
 		final L2Instruction reenterFromCallLabel =
 			newLabel("reenter L1 from call");
 		justAddInstruction(
@@ -2160,8 +2349,10 @@ public class L2Translator
 			new L2ImmediateOperand(
 				OptimizationLevel.FIRST_TRANSLATION.ordinal()));
 		justAddInstruction(L2_PREPARE_NEW_FRAME.instance);
+		final L2Instruction loopStart = newLabel("main L1 loop");
 		instructions.add(loopStart);
 		instructionRegisterSets.add(null);
+		justAddInstruction(L2_INTERPRET_ONE_L1_INSTRUCTION.instance);
 		justAddInstruction(L2_INTERPRET_UNTIL_INTERRUPT.instance);
 		justAddInstruction(
 			L2_PROCESS_INTERRUPT.instance,

@@ -36,6 +36,7 @@ import java.util.List;
 import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.*;
+import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.RegisterSet;
 
 /**
@@ -52,11 +53,14 @@ extends L2Operation
 			READ_POINTER.is("continuation"));
 
 	@Override
-	public void step (final Interpreter interpreter)
+	public void step (
+		final L2Instruction instruction,
+		final Interpreter interpreter)
 	{
-		final int continuationIndex = interpreter.nextWord();
-		final AvailObject continuation =
-			interpreter.pointerAt(continuationIndex);
+		final L2ObjectRegister continuationReg =
+			instruction.readObjectRegisterAt(0);
+
+		final AvailObject continuation = continuationReg.in(interpreter);
 		interpreter.processInterrupt(continuation);
 	}
 

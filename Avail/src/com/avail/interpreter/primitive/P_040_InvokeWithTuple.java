@@ -69,7 +69,7 @@ public class P_040_InvokeWithTuple extends Primitive
 				E_INCORRECT_NUMBER_OF_ARGUMENTS);
 		}
 		final List<AvailObject> callArgs =
-			new ArrayList<AvailObject>(numArgs);
+			new ArrayList<>(numArgs);
 		final A_Type tupleType = blockType.argsTupleType();
 		for (int i = 1; i <= numArgs; i++)
 		{

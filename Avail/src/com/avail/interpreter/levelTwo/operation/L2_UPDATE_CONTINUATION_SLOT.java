@@ -31,10 +31,11 @@
  */
 package com.avail.interpreter.levelTwo.operation;
 
-import static com.avail.descriptor.AvailObject.error;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
+import com.avail.descriptor.A_Continuation;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.*;
+import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 
 /**
  * Update a slot of an existing continuation.  If the continuation is
@@ -54,15 +55,21 @@ public class L2_UPDATE_CONTINUATION_SLOT extends L2Operation
 			READ_POINTER.is("replacement value"));
 
 	@Override
-	public void step (final Interpreter interpreter)
+	public void step (
+		final L2Instruction instruction,
+		final Interpreter interpreter)
 	{
-		// TODO [MvG] Implement.
-		@SuppressWarnings("unused")
-		final int continuationIndex = interpreter.nextWord();
-		@SuppressWarnings("unused")
-		final int indexIndex = interpreter.nextWord();
-		@SuppressWarnings("unused")
-		final int valueIndex = interpreter.nextWord();
-		error("not implemented");
+		final L2ObjectRegister continuationReg =
+			instruction.readWriteObjectRegisterAt(0);
+		final int slotIndex = instruction.immediateAt(1);
+		final L2ObjectRegister replacementReg =
+			instruction.readObjectRegisterAt(2);
+
+		A_Continuation continuation = continuationReg.in(interpreter);
+		continuation = continuation.ensureMutable();
+		continuation.argOrLocalOrStackAtPut(
+			slotIndex,
+			replacementReg.in(interpreter));
+		continuationReg.set(continuation, interpreter);
 	}
 }

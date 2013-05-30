@@ -1194,7 +1194,7 @@ public enum SerializerOperation
 		{
 			final int frameSlotCount = object.numArgsAndLocalsAndStack();
 			final List<AvailObject> frameSlotsList =
-				new ArrayList<AvailObject>(frameSlotCount);
+				new ArrayList<>(frameSlotCount);
 			for (int i = 1; i <= frameSlotCount; i++)
 			{
 				frameSlotsList.add(object.argOrLocalOrStackAt(i));
@@ -1286,7 +1286,7 @@ public enum SerializerOperation
 		{
 			final A_Method definitionMethod = subobjects[0];
 			final A_Type signature = subobjects[1];
-			final List<AvailObject> definitions = new ArrayList<AvailObject>(1);
+			final List<AvailObject> definitions = new ArrayList<>(1);
 			for (final AvailObject eachDefinition
 				: definitionMethod.definitionsTuple())
 			{
@@ -1326,7 +1326,7 @@ public enum SerializerOperation
 		{
 			final A_Method definitionMethod = subobjects[0];
 			final A_Type signature = subobjects[1];
-			final List<AvailObject> definitions = new ArrayList<AvailObject>(1);
+			final List<AvailObject> definitions = new ArrayList<>(1);
 			for (final AvailObject eachDefinition
 				: definitionMethod.definitionsTuple())
 			{
@@ -1366,7 +1366,7 @@ public enum SerializerOperation
 		{
 			final A_Method definitionMethod = subobjects[0];
 			final A_Type signature = subobjects[1];
-			final List<AvailObject> definitions = new ArrayList<AvailObject>(1);
+			final List<AvailObject> definitions = new ArrayList<>(1);
 			for (final AvailObject eachDefinition
 				: definitionMethod.definitionsTuple())
 			{
@@ -1406,7 +1406,7 @@ public enum SerializerOperation
 		{
 			final A_Method definitionMethod = subobjects[0];
 			final A_Type signature = subobjects[1];
-			final List<AvailObject> definitions = new ArrayList<AvailObject>(1);
+			final List<AvailObject> definitions = new ArrayList<>(1);
 			for (final AvailObject eachDefinition
 				: definitionMethod.definitionsTuple())
 			{
@@ -1821,7 +1821,7 @@ public enum SerializerOperation
 			final A_Map ancestorMap = object.javaAncestors();
 			final A_Tuple myParameters = ancestorMap.mapAt(rawPojoType);
 			final List<A_BasicObject> processedParameters =
-				new ArrayList<A_BasicObject>(myParameters.tupleSize());
+				new ArrayList<>(myParameters.tupleSize());
 			for (final A_Type parameter : myParameters)
 			{
 				assert !parameter.isTuple();
@@ -1855,7 +1855,7 @@ public enum SerializerOperation
 					true,
 					classLoader);
 				final List<AvailObject> processedParameters =
-					new ArrayList<AvailObject>(subobjects[1].tupleSize());
+					new ArrayList<>(subobjects[1].tupleSize());
 				for (final AvailObject parameter : subobjects[1])
 				{
 					if (parameter.isTuple())
@@ -1915,7 +1915,7 @@ public enum SerializerOperation
 				final A_String className =
 					StringDescriptor.from(baseClass.getName());
 				final List<A_BasicObject> processedParameters =
-					new ArrayList<A_BasicObject>(entry.value().tupleSize());
+					new ArrayList<>(entry.value().tupleSize());
 				for (final AvailObject parameter : entry.value())
 				{
 					assert !parameter.isTuple();
@@ -1958,7 +1958,7 @@ public enum SerializerOperation
 					final AvailObject rawPojo =
 						RawPojoDescriptor.equalityWrap(baseClass);
 					final List<AvailObject> processedParameters =
-						new ArrayList<AvailObject>(entry.value().tupleSize());
+						new ArrayList<>(entry.value().tupleSize());
 					for (final AvailObject parameter : entry.value())
 					{
 						if (parameter.isTuple())

@@ -53,9 +53,11 @@ import com.avail.interpreter.Primitive.Flag;
 import com.avail.interpreter.Primitive.Result;
 import com.avail.interpreter.levelTwo.L1InstructionStepper;
 import com.avail.interpreter.levelTwo.L2Chunk;
+import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.register.FixedRegister;
 import com.avail.interpreter.primitive.*;
+import com.avail.performance.Statistic;
 import com.avail.utility.Continuation0;
 import com.avail.utility.Continuation1;
 import com.avail.utility.Mutable;
@@ -179,7 +181,54 @@ public final class Interpreter
 	}
 
 	/** Whether to print detailed Level One debug information. */
-	public final static boolean debugL1 = false;
+	public static boolean debugL1 = false;
+
+	/** Whether to print detailed Level One debug information. */
+	public static boolean debugL2 = false;
+
+	/** A {@linkplain Logger logger}. */
+	private static final Logger logger =
+		Logger.getLogger(Interpreter.class.getCanonicalName());
+
+	/**
+	 * Set the current logging level for interpreters.
+	 *
+	 * @param level The new logging {@link Level}.
+	 */
+	public static void setLoggerLevel (final Level level)
+	{
+		logger.setLevel(level);
+	}
+
+	/**
+	 * Log a message.
+	 *
+	 * @param level The verbosity level at which to log.
+	 * @param message The message pattern to log.
+	 * @param arguments The arguments to fill into the message pattern.
+	 */
+	public void log (
+		final Level level,
+		final String message,
+		final Object... arguments)
+	{
+		if (logger.isLoggable(level))
+		{
+			final String fiberId;
+			if (fiber == null)
+			{
+				fiberId = "????????/???????? ";
+			}
+			else
+			{
+				fiberId = String.format(
+					"%08x/%08x ",
+					hashCode(),
+					fiber().hash());
+			}
+			logger.log(level, fiberId + message, arguments);
+		}
+	}
 
 	/**
 	 * Fake slots used to show stack traces in the Eclipse Java debugger.
@@ -212,7 +261,7 @@ public final class Interpreter
 	 */
 	public AvailObjectFieldHelper[] describeForDebugger ()
 	{
-		final List<A_Continuation> frames = new ArrayList<A_Continuation>(50);
+		final List<A_Continuation> frames = new ArrayList<>(50);
 		A_Continuation frame = pointers[CALLER.ordinal()];
 		if (frame != null)
 		{
@@ -225,7 +274,7 @@ public final class Interpreter
 		final A_Tuple framesTuple = TupleDescriptor.fromList(frames);
 		final A_Tuple outerTuple = TupleDescriptor.from(framesTuple);
 		final List<AvailObjectFieldHelper> outerList =
-			new ArrayList<AvailObjectFieldHelper>();
+			new ArrayList<>();
 		assert outerTuple.tupleSize() == FakeStackTraceSlots.values().length;
 		for (final FakeStackTraceSlots field : FakeStackTraceSlots.values())
 		{
@@ -265,10 +314,6 @@ public final class Interpreter
 		this.runtime = runtime;
 		pointers[NULL.ordinal()] = NilDescriptor.nil();
 	}
-
-	/** A {@linkplain Logger logger}. */
-	public static final Logger logger =
-		Logger.getLogger(Interpreter.class.getCanonicalName());
 
 	/**
 	 * The {@link FiberDescriptor} being executed by this interpreter.
@@ -727,32 +772,40 @@ public final class Interpreter
 	{
 		final Primitive primitive =
 			Primitive.byPrimitiveNumberOrFail(primitiveNumber);
-		if (logger.isLoggable(Level.FINER))
-		{
-			logger.finer(String.format(
-				"attempting primitive %d (%s) ...",
-				primitiveNumber,
-				primitive));
-		}
+		log(
+			Level.FINER,
+			"attempt {0}",
+			primitive.name());
 
 		latestResult = null;
 		primitiveFunctionBeingAttempted = function;
 		assert current() == this;
+		final long timeBefore = System.nanoTime();
 		final Result success = primitive.attempt(args, this);
+		final long timeAfter = System.nanoTime();
+		primitive.addNanosecondsRunning(timeAfter - timeBefore);
 		assert success != FAILURE || !primitive.hasFlag(Flag.CannotFail);
 		primitiveFunctionBeingAttempted = null;
 		if (logger.isLoggable(Level.FINER))
 		{
-			final String failPart = success == FAILURE
-				? " (" + AvailErrorCode.byNumericCode(
-					latestResult().extractInt())
-					+ ")"
+			AvailErrorCode errorCode = null;
+			if (success == FAILURE)
+			{
+				if (latestResult().isInt())
+				{
+					final int errorInt = latestResult().extractInt();
+					errorCode = AvailErrorCode.byNumericCode(errorInt);
+				}
+			}
+			final String failPart = errorCode != null
+				? " (" + errorCode + ")"
 				: "";
-			logger.finer(String.format(
-				"... completed primitive (%s) => %s%s",
-				primitive,
+			log(
+				Level.FINER,
+				"... completed primitive {0} => {1}{2}",
+				primitive.getClass().getSimpleName(),
 				success.name(),
-				failPart));
+				failPart);
 		}
 		return success;
 	}
@@ -774,8 +827,8 @@ public final class Interpreter
 	}
 
 	/**
-	 * The current pointer into {@link #chunkWords}, the Level Two instruction
-	 * stream.
+	 * The current pointer into {@link #chunkInstructions}, the Level Two
+	 * instruction stream.
 	 */
 	private int offset;
 
@@ -790,45 +843,9 @@ public final class Interpreter
 	}
 
 	/**
-	 * The L2 instruction stream as a tuple of integers.
+	 * The level two instruction stream as an array of {@link L2Instruction}s.
 	 */
-	private @Nullable A_Tuple chunkWords;
-
-	/**
-	 * Extract the next word from the Level Two instruction stream.
-	 *
-	 * @return The word.
-	 */
-	public int nextWord ()
-	{
-		final int theOffset = offset;
-		final A_Tuple words = chunkWords;
-		assert words != null;
-		final int word = words.tupleIntAt(theOffset);
-		offset = theOffset + 1;
-		return word;
-	}
-
-	/**
-	 * This chunk's register vectors. A register vector is a tuple of integers
-	 * that represent {@link #pointers Avail object registers}.
-	 */
-	private @Nullable A_Tuple chunkVectors;
-
-	/**
-	 * Answer the vector in the current chunk which has the given index. A
-	 * vector (at runtime) is simply a tuple of integers.
-	 *
-	 * @param index
-	 *        The vector's index.
-	 * @return A tuple of integers.
-	 */
-	public A_Tuple vectorAt (final int index)
-	{
-		final A_Tuple vectors = chunkVectors;
-		assert vectors != null;
-		return vectors.tupleAt(index);
-	}
+	private @Nullable L2Instruction [] chunkInstructions;
 
 	/**
 	 * Start executing a new chunk. The {@linkplain #offset} at which to execute
@@ -855,16 +872,13 @@ public final class Interpreter
 		final int newOffset)
 	{
 		this.chunk = chunkToResume;
-		chunkWords = chunkToResume.wordcodes();
-		chunkVectors = chunkToResume.vectors();
+		this.chunkInstructions = chunkToResume.instructions;
 		makeRoomForChunkRegisters(chunkToResume, code);
 		this.offset = newOffset;
-		if (logger.isLoggable(Level.FINER))
-		{
-			logger.finer(String.format(
-				"executing new chunk (%d)",
-				chunkToResume.index()));
-		}
+		log(
+			Level.FINER,
+			"starting new chunk ({0})",
+			chunkToResume.index());
 	}
 
 	/** The number of fixed object registers in Level Two. */
@@ -1116,7 +1130,7 @@ public final class Interpreter
 	 * A reusable temporary buffer used to hold arguments during method
 	 * invocations.
 	 */
-	public final List<AvailObject> argsBuffer = new ArrayList<AvailObject>();
+	public final List<AvailObject> argsBuffer = new ArrayList<>();
 
 	/**
 	 * The {@link L1InstructionStepper} used to simulate execution of Level One
@@ -1276,7 +1290,7 @@ public final class Interpreter
 			// The chunk has become invalid, so use the default chunk and tweak
 			// the continuation's chunk information.
 			chunkToRestart = L2Chunk.unoptimizedChunk();
-			continuationToRestart.levelTwoChunkOffset(chunkToRestart, 1);
+			continuationToRestart.levelTwoChunkOffset(chunkToRestart, 0);
 		}
 		final int numArgs = continuationToRestart.function().code().numArgs();
 		argsBuffer.clear();
@@ -1458,7 +1472,7 @@ public final class Interpreter
 		if (primNum != 0)
 		{
 			final List<AvailObject> strongArgs =
-				new ArrayList<AvailObject>(args.size());
+				new ArrayList<>(args.size());
 			for (final A_BasicObject arg : args)
 			{
 				strongArgs.add((AvailObject)arg);
@@ -1527,7 +1541,7 @@ public final class Interpreter
 				L2Chunk.countdownForInvalidatedCode());
 		}
 		wipeObjectRegisters();
-		setChunk(chunkToInvoke, code, 1);
+		setChunk(chunkToInvoke, code, 0);
 
 		pointerAtPut(CALLER, caller);
 		pointerAtPut(FUNCTION, aFunction);
@@ -1610,6 +1624,7 @@ public final class Interpreter
 	 * set up to run something other than a (successful) primitive function at
 	 * the outermost level.
 	 */
+	@SuppressWarnings("null")
 	@InnerAccess void run ()
 	{
 		startTick = runtime.clock;
@@ -1626,29 +1641,39 @@ public final class Interpreter
 			 * <em>not</em> the caller. That is, only the callerRegister()'s
 			 * content is valid.
 			 */
-			final int wordCode = nextWord();
-			final L2Operation operation = L2Operation.values()[wordCode];
-			if (logger.isLoggable(Level.FINEST))
+			final L2Instruction instruction = chunkInstructions[offset];
+			final L2Operation operation = instruction.operation;
+			if (debugL2)
 			{
-				final StringBuilder stackString = new StringBuilder();
-				A_Continuation chain = pointerAt(CALLER);
-				while (!chain.equalsNil())
+				int depth = 0;
+				for (
+					A_Continuation c = pointerAt(CALLER);
+					!c.equalsNil();
+					c = c.caller())
 				{
-					stackString.insert(0, "->");
-					stackString.insert(
-						0,
-						argumentOrLocalRegister(chain.stackp()));
-					chain = chain.caller();
+					depth++;
 				}
-
-				logger.finest(String.format(
-					"executing %s (chunk#=%d, pc=%d) [stack: %s]",
+				log(
+					Level.FINE,
+					"d={0}: {1} (chunk={2}, off={3})",
+					depth,
 					operation.name(),
 					chunk().index(),
-					offset - 1,
-					stackString));
+					offset);
 			}
-			operation.step(this);
+			offset++;
+			final long timeBefore = System.nanoTime();
+			try
+			{
+				operation.step(instruction, this);
+			}
+			finally
+			{
+				// Even though some primitives may suspend the current fiber,
+				// the code still returns here after suspending.  Close enough.
+				final long timeAfter = System.nanoTime();
+				operation.statisticInNanoseconds.record(timeAfter - timeBefore);
+			}
 		}
 	}
 
@@ -2051,12 +2076,17 @@ public final class Interpreter
 		{
 			functions.add(currentFunction);
 		}
-		for (
-			A_Continuation c = currentContinuation();
-			!c.equalsNil();
-			c = c.caller())
+		A_Continuation c = currentContinuation();
+		// Sometimes the CALLER register contains the current continuation and
+		// sometimes it's really the caller.  Compensate with a good heuristic.
+		if (!c.equalsNil() && c.function() == currentFunction)
+		{
+			c = c.caller();
+		}
+		while (!c.equalsNil())
 		{
 			functions.add(c.function());
+			c = c.caller();
 		}
 		final List<String> strings = new ArrayList<>(functions.size());
 		int line = functions.size();
@@ -2077,7 +2107,7 @@ public final class Interpreter
 				}
 				signatureBuilder.append(paramsType.typeAtIndex(i));
 			}
-			strings.add(String.format(
+			final String entry = String.format(
 				"#%d: %s [%s] (%s:%d)",
 				line--,
 				code.methodName().asNativeString(),
@@ -2085,7 +2115,8 @@ public final class Interpreter
 				code.module().equalsNil()
 					? "?"
 					: code.module().moduleName().asNativeString(),
-				code.startingLineNumber()));
+				code.startingLineNumber());
+			strings.add(entry.replace("\n", "\n\t"));
 			signatureBuilder.setLength(0);
 		}
 		return strings;
@@ -2118,5 +2149,94 @@ public final class Interpreter
 			builder.append("\n\n");
 		}
 		return builder.toString();
+	}
+
+	/**
+	 * Statistics about dynamic lookups, keyed by the message bundle's message's
+	 * print representation (an Avail string).
+	 */
+	private static final Map<A_String, Statistic>
+		dynamicLookupStatsByString = new HashMap<>();
+
+	/**
+	 * Statistics about dynamic lookups, keyed by message bundle.  It's a
+	 * <em>weak</em> keyed collection, so it doesn't force the bundles to stick
+	 * around.  That's ok, since subsequent runs will produce the same names for
+	 * the statistics that should be aggregated with data from previous runs,
+	 * which can be found in the {@link #dynamicLookupStatsByString}.
+	 *
+	 * <p>We don't need to worry about indirection objects here, because a lost
+	 * entry just means we'll find it by name in the {@link
+	 * #dynamicLookupStatsByString} map.</p>
+	 */
+	private static final Map<A_Bundle, Statistic>
+		dynamicLookupStatsByBundle = new WeakHashMap<>();
+
+	/**
+	 * Record the fact that a lookup in the specified {@link
+	 * MessageBundleDescriptor message bundle} has just taken place, and that it
+	 * took the given time in nanoseconds.
+	 *
+	 * <p>Multiple runs will create distinct message bundles, but we'd like them
+	 * aggregated.  Therefore we store each statistic not only under the bundle
+	 * but under the bundle's message's print representation.  We first look for
+	 * an exact match by bundle, then fall back by the slower string search,
+	 * making the same statistic available under the new bundle for the next
+	 * time it occurs.</p>
+	 *
+	 * @param bundle A message bundle in which a lookup has just taken place.
+	 * @param nanos A {@code double} indicating how many nanoseconds it took.
+	 */
+	public static synchronized void recordDynamicLookup (
+		final A_Bundle bundle,
+		final double nanos)
+	{
+		Statistic stat = dynamicLookupStatsByBundle.get(bundle);
+		if (stat == null)
+		{
+			// Instead, look it up by name.  Every statistic is stored under
+			// both its bundle (for speed) and its bundle's message's print
+			// representation (for aggregating between runs).
+			final String nameString = bundle.message().toString();
+			final A_String name = StringDescriptor.from(nameString);
+			stat = dynamicLookupStatsByString.get(name);
+			if (stat == null)
+			{
+				// First time -- create a new statistic.
+				stat = new Statistic("Lookup " + nameString);
+				dynamicLookupStatsByString.put(name, stat);
+			}
+			// Reuse the statistic from a previous run (or just created).
+			dynamicLookupStatsByBundle.put(bundle, stat);
+		}
+		stat.record(nanos);
+	}
+
+	/**
+	 * Clear all dynamic lookup statistics.
+	 */
+	public static synchronized void clearDynamicLookupStats ()
+	{
+		dynamicLookupStatsByString.clear();
+		dynamicLookupStatsByBundle.clear();
+	}
+
+	/**
+	 * Produce a report about the dynamic method lookups that have occurred.
+	 *
+	 * @param builder
+	 */
+	public static synchronized void reportDynamicLookups (
+		final StringBuilder builder)
+	{
+		builder.append("Dynamic lookups:\n");
+		final List<Statistic> stats =
+			new ArrayList<>(dynamicLookupStatsByString.values());
+		Collections.sort(stats);
+		for (final Statistic stat : stats)
+		{
+			stat.describeNanosecondsOn(builder);
+			builder.append("\n");
+		}
 	}
 }

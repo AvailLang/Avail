@@ -32,7 +32,7 @@
 package com.avail.interpreter.primitive;
 
 import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.interpreter.Primitive.Flag.CanInline;
+import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
 import com.avail.descriptor.*;
 import com.avail.exceptions.VariableGetException;
@@ -54,7 +54,7 @@ extends Primitive
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
 	public final static Primitive instance = new P_010_GetValue().init(
-		1, CanInline);
+		1, CanInline, HasSideEffect);
 
 	@Override
 	public Result attempt (

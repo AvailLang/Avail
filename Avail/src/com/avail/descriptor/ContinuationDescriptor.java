@@ -80,7 +80,7 @@ extends Descriptor
 		PROGRAM_COUNTER_AND_STACK_POINTER,
 
 		/**
-		 * The Level Two {@linkplain L2Chunk#wordcodes() wordcode} index at
+		 * The Level Two {@linkplain L2Chunk#instructions instruction} index at
 		 * which to resume.
 		 */
 		LEVEL_TWO_OFFSET;
@@ -278,6 +278,20 @@ extends Descriptor
 			object.setSlot(LEVEL_TWO_CHUNK, chunk.chunkPojo);
 			object.setSlot(LEVEL_TWO_OFFSET, offset);
 		}
+	}
+
+	/**
+	 * Set both my level one program counter and level one stack pointer.
+	 */
+	@Override @AvailMethod
+	void o_AdjustPcAndStackp (
+		final AvailObject object,
+		final int pc,
+		final int stackp)
+	{
+		assert isMutable();
+		object.setSlot(PROGRAM_COUNTER, pc);
+		object.setSlot(STACK_POINTER, stackp);
 	}
 
 	/**

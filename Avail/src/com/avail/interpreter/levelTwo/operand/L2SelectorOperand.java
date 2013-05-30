@@ -89,13 +89,6 @@ public class L2SelectorOperand extends L2Operand
 	}
 
 	@Override
-	public void emitOn (
-		final L2CodeGenerator codeGenerator)
-	{
-		codeGenerator.emitLiteral((AvailObject)bundle);
-	}
-
-	@Override
 	public String toString ()
 	{
 		return String.format("Selector(%s)", bundle.message().atomName());

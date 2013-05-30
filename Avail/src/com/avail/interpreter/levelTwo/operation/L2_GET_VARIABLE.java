@@ -35,7 +35,7 @@ import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import com.avail.descriptor.*;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.*;
-import com.avail.interpreter.levelTwo.operand.*;
+import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.RegisterSet;
 
 /**
@@ -57,13 +57,19 @@ public class L2_GET_VARIABLE extends L2Operation
 			WRITE_POINTER.is("extracted value"));
 
 	@Override
-	public void step (final Interpreter interpreter)
+	public void step (
+		final L2Instruction instruction,
+		final Interpreter interpreter)
 	{
-		final int getIndex = interpreter.nextWord();
-		final int destIndex = interpreter.nextWord();
-		interpreter.pointerAtPut(
-			destIndex,
-			interpreter.pointerAt(getIndex).getValue().makeImmutable());
+		final L2ObjectRegister variableReg =
+			instruction.readObjectRegisterAt(0);
+		final L2ObjectRegister destReg =
+			instruction.writeObjectRegisterAt(1);
+
+		final A_Variable variable = variableReg.in(interpreter);
+		final AvailObject value = variable.getValue();
+		value.makeImmutable();
+		destReg.set(value, interpreter);
 	}
 
 	@Override
@@ -71,24 +77,21 @@ public class L2_GET_VARIABLE extends L2Operation
 		final L2Instruction instruction,
 		final RegisterSet registerSet)
 	{
-		final L2ReadPointerOperand sourceOperand =
-			(L2ReadPointerOperand) instruction.operands[0];
-		final L2WritePointerOperand destinationOperand =
-			(L2WritePointerOperand) instruction.operands[1];
-		registerSet.removeConstantAt(destinationOperand.register);
-		if (registerSet.hasTypeAt(sourceOperand.register))
+		final L2ObjectRegister variableReg =
+			instruction.readObjectRegisterAt(0);
+		final L2ObjectRegister destReg =
+			instruction.writeObjectRegisterAt(1);
+		registerSet.removeConstantAt(destReg);
+		if (registerSet.hasTypeAt(variableReg))
 		{
-			final A_Type oldType = registerSet.typeAt(sourceOperand.register);
+			final A_Type oldType = registerSet.typeAt(variableReg);
 			final A_Type varType = oldType.typeIntersection(
 				VariableTypeDescriptor.mostGeneralType());
-			registerSet.typeAtPut(
-				destinationOperand.register,
-				varType.readType(),
-				instruction);
+			registerSet.typeAtPut(destReg, varType.readType(), instruction);
 		}
 		else
 		{
-			registerSet.removeTypeAt(destinationOperand.register);
+			registerSet.removeTypeAt(destReg);
 		}
 	}
 

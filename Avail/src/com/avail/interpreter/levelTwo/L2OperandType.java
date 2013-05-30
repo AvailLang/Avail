@@ -32,26 +32,24 @@
 
 package com.avail.interpreter.levelTwo;
 
+import java.util.List;
 import com.avail.descriptor.*;
-import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
-import com.avail.interpreter.levelTwo.operand.L2CommentOperand;
+import com.avail.interpreter.levelTwo.operand.*;
 import com.avail.interpreter.levelTwo.register.*;
 
 
 /**
  * An {@code L2OperandType} specifies the nature of a level two operand.  It
  * doesn't fully specify how the operand is used, but it does say whether the
- * associated register is being read or written or both, and how to interpret
- * the raw {@code int} that encodes such an operand.
+ * associated register is being read or written or both.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public enum L2OperandType
 {
 	/**
-	 * The operand represents the actual object at the specified index of the
-	 * chunk's list of literals.
+	 * An {@link L2ConstantOperand} holds a specific AvailObject.
 	 */
 	CONSTANT(false, false)
 	{
@@ -63,7 +61,7 @@ public enum L2OperandType
 	},
 
 	/**
-	 * The operand represents the very integer used to encode it.
+	 * An {@link L2ImmediateOperand} holds an {@code int} value.
 	 */
 	IMMEDIATE(false, false)
 	{
@@ -75,8 +73,9 @@ public enum L2OperandType
 	},
 
 	/**
-	 * The operand represents an offset into the chunk's wordcodes, presumably
-	 * for the purpose of branching there at some time and under some condition.
+	 * An {@link L2PcOperand} holds an offset into the chunk's instructions,
+	 * presumably for the purpose of branching there at some time and under some
+	 * condition.
 	 */
 	PC(false, false)
 	{
@@ -88,9 +87,7 @@ public enum L2OperandType
 	},
 
 	/**
-	 * The operand represents a virtual machine {@link Primitive} to be
-	 * executed.  It has the same number as the corresponding primitive's {@link
-	 * Enum#ordinal() ordinal()}.
+	 * An {@link L2PrimitiveOperand} holds a {@link Primitive} to be invoked.
 	 */
 	PRIMITIVE(false, false)
 	{
@@ -102,12 +99,10 @@ public enum L2OperandType
 	},
 
 	/**
-	 * Like a {@link #CONSTANT}, the operand represents the actual object at the
-	 * specified index of the chunk's list of literals, but more specifically
-	 * that object is a {@linkplain MethodDescriptor method} holding a hierarchy
-	 * of multi-methods.  Presumably a dispatch will take place through this
-	 * method, or at least a dependency is established with respect to which
-	 * multi-methods are present.
+	 * Like a {@link #CONSTANT}, the {@link L2SelectorOperand} holds the actual
+	 * AvailObject, but it is known to be a {@linkplain MessageBundleDescriptor
+	 * message bundle} through which to eventually call the {@linkplain
+	 * MethodDescriptor}.
 	 */
 	SELECTOR(false, false)
 	{
@@ -119,9 +114,8 @@ public enum L2OperandType
 	},
 
 	/**
-	 * The operand represents an {@linkplain L2ObjectRegister object register},
-	 * capable of holding any Avail object.  The specified index is passed to
-	 * {@link Interpreter#pointerAt(int)} to extract the current value.
+	 * The {@link L2ReadPointerOperand} holds the {@link L2ObjectRegister} that
+	 * will be read.
 	 */
 	READ_POINTER(true, false)
 	{
@@ -133,12 +127,8 @@ public enum L2OperandType
 	},
 
 	/**
-	 * The operand represents an {@linkplain L2ObjectRegister object register},
-	 * capable of holding any Avail object.  The specified index is passed to
-	 * {@link Interpreter#pointerAtPut(int, A_BasicObject)} to set the current
-	 * value.  This operand must <em>only</em> be used for blindly writing a new
-	 * value to the register -- the previous value of the register may not be
-	 * read on behalf of this operand.  Writing to the register is compulsory.
+	 * The {@link L2WritePointerOperand} holds the {@link L2ObjectRegister} that
+	 * will be written (but not read).
 	 */
 	WRITE_POINTER(false, true)
 	{
@@ -150,14 +140,8 @@ public enum L2OperandType
 	},
 
 	/**
-	 * The operand represents an {@linkplain L2ObjectRegister object register},
-	 * capable of holding any Avail object.  The specified index is passed to
-	 * {@link Interpreter#pointerAt(int)} to read the current value, and
-	 * {@link Interpreter#pointerAtPut(int, A_BasicObject)} to set a new value.
-	 * A read before a write is not compulsory, but it is permitted.  Since a
-	 * read may precede the write, there's no point in making the write
-	 * compulsory, since it could just be writing the value that it read, and
-	 * that's essentially the same as not writing at all.
+	 * The {@link L2ReadWritePointerOperand} holds the {@link L2ObjectRegister}
+	 * that will be read and then written.
 	 */
 	READWRITE_POINTER(true, true)
 	{
@@ -169,10 +153,8 @@ public enum L2OperandType
 	},
 
 	/**
-	 * The operand represents an {@linkplain L2IntegerRegister integer
-	 * register}, capable of holding any {@code int}.  The specified index is
-	 * passed to {@link Interpreter#integerAt(int)} to extract the current
-	 * value.
+	 * The {@link L2ReadIntOperand} holds the {@link L2IntegerRegister} that
+	 * will be read.
 	 */
 	READ_INT(true, false)
 	{
@@ -184,13 +166,8 @@ public enum L2OperandType
 	},
 
 	/**
-	 * The operand represents an {@linkplain L2IntegerRegister integer
-	 * register}, capable of holding any {@code int}.  The specified index is
-	 * passed (as the first argument) to {@link
-	 * Interpreter#integerAtPut(int, int)} to set the current value.  This
-	 * operand must <em>only</em> be used for blindly writing a new value to the
-	 * register -- the previous value of the register may not be read on behalf
-	 * of this operand.  Writing to the register is compulsory.
+	 * The {@link L2WriteIntOperand} holds the {@link L2IntegerRegister} that
+	 * will be written (but not read).
 	 */
 	WRITE_INT(false, true)
 	{
@@ -202,15 +179,8 @@ public enum L2OperandType
 	},
 
 	/**
-	 * The operand represents an {@linkplain L2IntegerRegister integer
-	 * register}, capable of holding any {@code int}.  The specified index is
-	 * passed to {@link Interpreter#integerAt(int)} to read the current value,
-	 * and (as the first argument) to {@link
-	 * Interpreter#integerAtPut(int, int)} to set a new value.  A read before
-	 * a write is not compulsory, but it is permitted.  Since a read may precede
-	 * the write, there's no point in making the write compulsory, since it
-	 * could just be writing the value that it read, and that's essentially the
-	 * same as not writing at all.
+	 * The {@link L2ReadWriteIntOperand} holds the {@link L2IntegerRegister}
+	 * that will be read and then written.
 	 */
 	READWRITE_INT(true, true)
 	{
@@ -222,12 +192,9 @@ public enum L2OperandType
 	},
 
 	/**
-	 * The operand represents a {@linkplain L2RegisterVector vector of object
-	 * registers}, each of which should be treated as being read as though it
-	 * were a {@link #READ_POINTER}.  The specified index identifies a tuple of
-	 * integers in the {@linkplain L2Chunk chunk}'s {@linkplain
-	 * L2Chunk#vectors() vectors}. Each integer in that tuple is the index of an
-	 * {@link L2ObjectRegister}.
+	 * The {@link L2ReadVectorOperand} holds a {@link L2RegisterVector}, which
+	 * in turn holds a {@link List} of {@linkplain L2ObjectRegister}s that
+	 * will be read.
 	 */
 	READ_VECTOR(true, false)
 	{
@@ -239,12 +206,9 @@ public enum L2OperandType
 	},
 
 	/**
-	 * The operand represents a {@linkplain L2RegisterVector vector of object
-	 * registers}, each of which should be treated as being written as though it
-	 * were a {@link #WRITE_POINTER}.  The specified index identifies a tuple of
-	 * integers in the {@linkplain L2Chunk chunk}'s {@linkplain
-	 * L2Chunk#vectors() vectors}.  Each integer in that tuple is the index of
-	 * an {@link L2ObjectRegister}.
+	 * The {@link L2WriteVectorOperand} holds a {@link L2RegisterVector}, which
+	 * in turn holds a {@link List} of {@linkplain L2ObjectRegister}s that
+	 * will be written (but not read).
 	 */
 	WRITE_VECTOR(false, true)
 	{
@@ -256,12 +220,10 @@ public enum L2OperandType
 	},
 
 	/**
-	 * The operand represents a {@linkplain L2RegisterVector vector of object
-	 * registers}, each of which should be treated as being read and/or written
-	 * as though it were a {@link #READWRITE_POINTER}.  The specified index
-	 * identifies a tuple of integers in the {@linkplain L2Chunk chunk}'s
-	 * {@linkplain L2Chunk#vectors()}.  Each integer in that tuple is the index
-	 * of an {@link L2ObjectRegister}.
+	 * The {@link L2ReadWriteVectorOperand} holds a {@link L2RegisterVector},
+	 * which in turn holds a {@link List} of {@linkplain L2ObjectRegister}s that
+	 * will be read and then written.
+	 *
 	 */
 	READWRITE_VECTOR(true, true)
 	{
@@ -273,16 +235,16 @@ public enum L2OperandType
 	},
 
 	/**
-	 * The operand represents a {@linkplain L2CommentOperand}, which holds a
-	 * descriptive {@link String} during optimization, but has no effect on the
-	 * actual wordcode stream.
+	 * The {@link L2CommentOperand} holds descriptive text that does not affect
+	 * analysis or execution of level two code.  It is for diagnostic purposes
+	 * only.
 	 */
 	COMMENT(false, false)
 	{
 		@Override
 		void dispatch(final L2OperandTypeDispatcher dispatcher)
 		{
-			dispatcher.doImplicitlyInitializeVector();
+			dispatcher.doComment();
 		}
 	};
 
@@ -327,7 +289,7 @@ public enum L2OperandType
 
 	/**
 	 * Create a {@link L2NamedOperandType} from the receiver and a {@link
-	 * String} naming its role for some {@link L2Operation}.
+	 * String} naming its role within some {@link L2Operation}.
 	 *
 	 * @param name The name of this operand.
 	 * @return A named operand type.

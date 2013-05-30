@@ -62,6 +62,7 @@ Extends
 	"Bootstrap" =
 	(
 		"Abstract method_is_",
+		"Breakpoint",
 		"Clear_",
 		"Exit_with_",
 		"Euler's number",

@@ -32,10 +32,10 @@
 
 package com.avail.interpreter.levelTwo.operation;
 
-import static com.avail.descriptor.AvailObject.error;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.*;
+import com.avail.interpreter.levelTwo.register.L2IntegerRegister;
 
 /**
  * Add the value in one int register to another int register, truncating the
@@ -54,12 +54,16 @@ public class L2_ADD_INT_TO_INT_MOD_32_BITS extends L2Operation
 			READWRITE_INT.is("augend"));
 
 	@Override
-	public void step (final Interpreter interpreter)
+	public void step (
+		final L2Instruction instruction,
+		final Interpreter interpreter)
 	{
-		@SuppressWarnings("unused")
-		final int bitIndex = interpreter.nextWord();
-		@SuppressWarnings("unused")
-		final int destIndex = interpreter.nextWord();
-		error("not implemented");
+		final L2IntegerRegister addendReg = instruction.readIntRegisterAt(0);
+		final L2IntegerRegister augendReg =
+			instruction.readWriteIntRegisterAt(1);
+
+		final int addend = addendReg.in(interpreter);
+		final int augend = augendReg.in(interpreter);
+		augendReg.set(augend + addend, interpreter);
 	}
 }

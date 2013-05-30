@@ -114,7 +114,7 @@ extends Descriptor
 	A_Tuple o_FieldTuple (final AvailObject object)
 	{
 		final A_Map map = object.slot(FIELD_MAP);
-		final List<A_Tuple> fieldAssignments = new ArrayList<A_Tuple>(
+		final List<A_Tuple> fieldAssignments = new ArrayList<>(
 			map.mapSize());
 		for (final MapDescriptor.Entry entry : map.mapIterable())
 		{

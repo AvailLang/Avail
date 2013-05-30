@@ -31,7 +31,6 @@
  */
 package com.avail.interpreter.levelTwo.operation;
 
-import static com.avail.descriptor.AvailObject.error;
 import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_VECTOR;
 import static com.avail.interpreter.levelTwo.register.FixedRegister.*;
 import java.util.List;
@@ -43,9 +42,9 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.Primitive.Flag;
 import com.avail.interpreter.levelTwo.*;
-import com.avail.interpreter.levelTwo.operand.L2WriteVectorOperand;
 import com.avail.interpreter.levelTwo.register.FixedRegister;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
+import com.avail.interpreter.levelTwo.register.L2RegisterVector;
 import com.avail.optimizer.RegisterSet;
 
 /**
@@ -63,9 +62,11 @@ public class L2_ENTER_L2_CHUNK extends L2Operation
 			WRITE_VECTOR.is("fixed and arguments"));
 
 	@Override
-	public void step (final Interpreter interpreter)
+	public void step (
+		final L2Instruction instruction,
+		final Interpreter interpreter)
 	{
-		error("Enter chunk wordcode is not executable\n");
+		// Do nothing.
 	}
 
 	@Override
@@ -79,10 +80,10 @@ public class L2_ENTER_L2_CHUNK extends L2Operation
 		final L2Instruction instruction,
 		final RegisterSet registerSet)
 	{
-		final L2WriteVectorOperand writeVector =
-			(L2WriteVectorOperand) instruction.operands[0];
+		final L2RegisterVector writeVector =
+			instruction.writeVectorRegisterAt(0);
 
-		final List<L2ObjectRegister> regs = writeVector.vector.registers();
+		final List<L2ObjectRegister> regs = writeVector.registers();
 		final A_RawFunction code = registerSet.codeOrFail();
 		assert regs.size() == FixedRegister.values().length + code.numArgs();
 		assert regs.get(FixedRegister.NULL.ordinal())
@@ -125,7 +126,8 @@ public class L2_ENTER_L2_CHUNK extends L2Operation
 		final A_Type argsType = code.functionType().argsTupleType();
 		for (int i = 1, end = code.numArgs(); i <= end; i++)
 		{
-			final L2ObjectRegister argRegister = registerSet.continuationSlot(i);
+			final L2ObjectRegister argRegister =
+				registerSet.continuationSlot(i);
 			registerSet.propagateWriteTo(argRegister, instruction);
 			registerSet.typeAtPut(
 				argRegister,

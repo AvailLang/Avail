@@ -32,6 +32,8 @@
 
 package com.avail.serialization;
 
+import com.avail.annotations.Nullable;
+
 /**
  * A problem occurred while using a {@link Deserializer}, indicating an invalid
  * sequence of bytes.
@@ -49,7 +51,7 @@ extends Exception
 	 *
 	 * @param e The originating exception.
 	 */
-	public MalformedSerialStreamException (final Throwable e)
+	public MalformedSerialStreamException (final @Nullable Throwable e)
 	{
 		super(e);
 	}

@@ -66,7 +66,7 @@ extends Primitive
 	{
 		assert args.size() == 1;
 		final A_Fiber joinee = args.get(0);
-		final MutableOrNull<Result> result = new MutableOrNull<Result>();
+		final MutableOrNull<Result> result = new MutableOrNull<>();
 		final A_Fiber current = FiberDescriptor.current();
 		// Forbid auto-joining.
 		if (current.equals(joinee))

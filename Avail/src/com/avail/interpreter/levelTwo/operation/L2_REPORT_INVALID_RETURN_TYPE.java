@@ -37,6 +37,7 @@ import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.*;
 import com.avail.interpreter.levelTwo.*;
+import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 
 /**
  * A value is known at this point to disagree with the type that it is
@@ -62,19 +63,20 @@ public class L2_REPORT_INVALID_RETURN_TYPE extends L2Operation
 			CONSTANT.is("expected type"));
 
 	@Override
-	public void step (final Interpreter interpreter)
+	public void step (
+		final L2Instruction instruction,
+		final Interpreter interpreter)
 	{
-		final int primitiveNumber = interpreter.nextWord();
-		final int actualValueRegister = interpreter.nextWord();
-		final int expectedTypeIndex = interpreter.nextWord();
-		final A_BasicObject actualValue =
-			interpreter.pointerAt(actualValueRegister);
-		final AvailObject expectedType =
-			interpreter.chunk().literalAt(expectedTypeIndex);
+		final Primitive primitive = instruction.primitiveAt(0);
+		final L2ObjectRegister actualValueReg =
+			instruction.readObjectRegisterAt(1);
+		final AvailObject expectedType = instruction.constantAt(2);
+
+		final A_BasicObject actualValue = actualValueReg.in(interpreter);
 		error(
 			"primitive %s's result (%s) did not agree with"
 			+ " semantic restriction's expected type (%s)",
-			Primitive.byPrimitiveNumberOrFail(primitiveNumber).name(),
+			primitive.name(),
 			actualValue,
 			expectedType);
 	}

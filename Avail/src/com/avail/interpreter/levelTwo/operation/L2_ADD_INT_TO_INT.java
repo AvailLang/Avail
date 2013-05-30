@@ -35,10 +35,11 @@ package com.avail.interpreter.levelTwo.operation;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.*;
+import com.avail.interpreter.levelTwo.register.L2IntegerRegister;
 
 /**
  * Add the value in one int register to another int register, jumping to the
- * specified target if the result not fit in an int.
+ * specified target if the result does not fit in an int.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
@@ -54,22 +55,26 @@ public class L2_ADD_INT_TO_INT extends L2Operation
 			PC.is("if out of range"));
 
 	@Override
-	public void step (final Interpreter interpreter)
+	public void step (
+		final L2Instruction instruction,
+		final Interpreter interpreter)
 	{
-		final int addIndex = interpreter.nextWord();
-		final int destIndex = interpreter.nextWord();
-		final int failOffset = interpreter.nextWord();
-		final long add = interpreter.integerAt(addIndex);
-		final long dest = interpreter.integerAt(destIndex);
-		final long result = dest + add;
-		final int resultInt = (int) result;
-		if (result == resultInt)
+		final L2IntegerRegister addendReg = instruction.readIntRegisterAt(0);
+		final L2IntegerRegister augendReg =
+			instruction.readWriteIntRegisterAt(1);
+		final int outOfRangeOffset = instruction.pcAt(2);
+
+		final int addend = addendReg.in(interpreter);
+		final int augend = augendReg.in(interpreter);
+		final long longResult = (long)addend + (long)augend;
+		final int intResult = (int)longResult;
+		if (longResult == intResult)
 		{
-			interpreter.integerAtPut(destIndex, resultInt);
+			augendReg.set(intResult, interpreter);
 		}
 		else
 		{
-			interpreter.offset(failOffset);
+			interpreter.offset(outOfRangeOffset);
 		}
 	}
 

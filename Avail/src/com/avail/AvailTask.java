@@ -98,7 +98,7 @@ implements Comparable<AvailTask>, Runnable
 					}
 				});
 				final MutableOrNull<Continuation0> postExitContinuation =
-					new MutableOrNull<Continuation0>();
+					new MutableOrNull<>();
 				try
 				{
 					continuation.value();

@@ -102,7 +102,7 @@ public class MessageSplitter
 	 * </ul></p>
 	 */
 	final List<A_String> messageParts =
-		new ArrayList<A_String>(10);
+		new ArrayList<>(10);
 
 	/** The current one-based parsing position in the list of tokens. */
 	private int messagePartPosition;
@@ -123,7 +123,7 @@ public class MessageSplitter
 	 * backtracking, and manipulate a stack of parse nodes.
 	 */
 	private final List<Integer> instructions =
-		new ArrayList<Integer>(10);
+		new ArrayList<>(10);
 
 	/** The top-most {@linkplain Group group}. */
 	final Group rootGroup;
@@ -199,7 +199,7 @@ public class MessageSplitter
 			final int sectionCheckpointNumber)
 		{
 			final List<SectionCheckpoint> sectionCheckpoints =
-				new ArrayList<SectionCheckpoint>();
+				new ArrayList<>();
 			extractSectionCheckpointsInto(sectionCheckpoints);
 			for (final SectionCheckpoint checkpoint : sectionCheckpoints)
 			{
@@ -221,7 +221,7 @@ public class MessageSplitter
 		final boolean containsAnySectionCheckpoint ()
 		{
 			final List<SectionCheckpoint> sectionCheckpoints =
-				new ArrayList<SectionCheckpoint>();
+				new ArrayList<>();
 			extractSectionCheckpointsInto(sectionCheckpoints);
 			return !sectionCheckpoints.isEmpty();
 		}
@@ -684,7 +684,7 @@ public class MessageSplitter
 		 * subexpression if no double dagger is present.
 		 */
 		final List<Expression> expressionsBeforeDagger =
-			new ArrayList<Expression>();
+			new ArrayList<>();
 
 		/**
 		 * The expressions that appeared after the {@linkplain
@@ -692,7 +692,7 @@ public class MessageSplitter
 		 * no double dagger is present.
 		 */
 		final List<Expression> expressionsAfterDagger =
-			new ArrayList<Expression>();
+			new ArrayList<>();
 
 		/**
 		 * The one-based position in the instruction stream to branch to in
@@ -1078,7 +1078,7 @@ public class MessageSplitter
 		@Override
 		public String toString ()
 		{
-			final List<String> strings = new ArrayList<String>();
+			final List<String> strings = new ArrayList<>();
 			for (final Expression e : expressionsBeforeDagger)
 			{
 				strings.add(e.toString());
@@ -2297,13 +2297,13 @@ public class MessageSplitter
 	public void dumpForDebug ()
 	{
 		final List<String> partsList =
-			new ArrayList<String>(messageParts.size());
+			new ArrayList<>(messageParts.size());
 		for (final A_String part : messageParts)
 		{
 			partsList.add(part.asNativeString());
 		}
 		final A_Tuple instructionsTuple = instructionsTuple();
-		final List<Integer> instructionsList = new ArrayList<Integer>();
+		final List<Integer> instructionsList = new ArrayList<>();
 		for (final A_Number instruction : instructionsTuple)
 		{
 			instructionsList.add(instruction.extractInt());

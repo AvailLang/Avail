@@ -62,7 +62,7 @@ extends Primitive
 		final A_Tuple argTypes = args.get(1);
 		final A_Set restrictions = method.semanticRestrictions();
 		final List<A_Function> applicable =
-			new ArrayList<A_Function>(restrictions.setSize());
+			new ArrayList<>(restrictions.setSize());
 		for (final A_SemanticRestriction restriction : restrictions)
 		{
 			final A_Function function = restriction.function();

@@ -33,11 +33,16 @@
 package com.avail.interpreter.levelTwo.operation;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
-import com.avail.descriptor.A_BasicObject;
-import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.A_Type;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.*;
+import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 
+/**
+ * Jump to the target if the object is an instance of the constant type.
+ *
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ */
 public class L2_JUMP_IF_KIND_OF_CONSTANT extends L2Operation
 {
 	/**
@@ -50,17 +55,17 @@ public class L2_JUMP_IF_KIND_OF_CONSTANT extends L2Operation
 			CONSTANT.is("constant type"));
 
 	@Override
-	public void step (final Interpreter interpreter)
+	public void step (
+		final L2Instruction instruction,
+		final Interpreter interpreter)
 	{
-		final int doIndex = interpreter.nextWord();
-		final int valueIndex = interpreter.nextWord();
-		final int typeConstIndex = interpreter.nextWord();
-		final A_BasicObject value = interpreter.pointerAt(valueIndex);
-		final AvailObject type =
-			interpreter.chunk().literalAt(typeConstIndex);
-		if (value.isInstanceOf(type))
+		final int target = instruction.pcAt(0);
+		final L2ObjectRegister objectReg = instruction.readObjectRegisterAt(1);
+		final A_Type type = instruction.constantAt(2);
+
+		if (objectReg.in(interpreter).isInstanceOf(type))
 		{
-			interpreter.offset(doIndex);
+			interpreter.offset(target);
 		}
 	}
 

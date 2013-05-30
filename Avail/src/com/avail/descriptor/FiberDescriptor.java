@@ -262,6 +262,14 @@ extends Descriptor
 		RESULT_CONTINUATION,
 
 		/**
+		 * TODO[MvG] - Remove after debugging.  This field captures a Java stack
+		 * trace from the thread that consumes the {@link #RESULT_CONTINUATION}.
+		 * Its purpose is to hunt a problem wherein a second attempt is being
+		 * made to invoke the result continuation.  This situation is erroneous.
+		 */
+		DEBUG_STACK_TRACE_OF_CONSUMPTION_OF_RESULT_CONTINUATION,
+
+		/**
 		 * A {@linkplain RawPojoDescriptor raw pojo} wrapping the {@linkplain
 		 * Continuation1 continuation} that should be called with the
 		 * {@linkplain Throwable throwable} responsible for the untimely death
@@ -840,27 +848,46 @@ extends Descriptor
 	 * FiberDescriptor fiber}'s result continuation is {@linkplain
 	 * NilDescriptor nil}.
 	 */
-	private static final Continuation1<AvailObject> defaultResultContinuation =
-		new Continuation1<AvailObject>()
+	private static final A_BasicObject defaultResultContinuation =
+		RawPojoDescriptor.identityWrap(new Continuation1<AvailObject>()
 		{
 			@Override
 			public void value (final @Nullable AvailObject ignored)
 			{
 				// Do nothing.
 			}
-		};
+		});
 
 	@SuppressWarnings("unchecked")
 	@Override @AvailMethod
 	Continuation1<AvailObject> o_ResultContinuation (
 		final AvailObject object)
 	{
-		final AvailObject pojo = object.mutableSlot(RESULT_CONTINUATION);
-		if (!pojo.equalsNil())
+		final AvailObject pojo;
+		synchronized (object)
 		{
-			return (Continuation1<AvailObject>) pojo.javaObject();
+			pojo = object.slot(RESULT_CONTINUATION);
+			if (pojo.equalsNil())
+			{
+				final A_BasicObject oldThrowablePojo = object.slot(
+					DEBUG_STACK_TRACE_OF_CONSUMPTION_OF_RESULT_CONTINUATION);
+				final Throwable oldThrowable =
+					(Throwable)oldThrowablePojo.javaObject();
+				oldThrowable.printStackTrace();
+				assert false : "Fiber attepting to succeed twice!";
+			}
+			assert !pojo.equalsNil();
+			object.setSlot(RESULT_CONTINUATION, NilDescriptor.nil());
+			//TODO[MvG] - Remove the rest of this section after debugging.
+//			final Throwable throwable = new Throwable("For Debug");
+//			throwable.fillInStackTrace();
+//			final A_BasicObject throwablePojo =
+//				RawPojoDescriptor.identityWrap(throwable);
+//			object.setSlot(
+//				DEBUG_STACK_TRACE_OF_CONSUMPTION_OF_RESULT_CONTINUATION,
+//				throwablePojo.makeShared());
 		}
-		return defaultResultContinuation;
+		return (Continuation1<AvailObject>) pojo.javaObject();
 	}
 
 	@Override @AvailMethod
@@ -868,8 +895,14 @@ extends Descriptor
 		final AvailObject object,
 		final Continuation1<AvailObject> continuation)
 	{
-		object.setMutableSlot(
-			RESULT_CONTINUATION, RawPojoDescriptor.identityWrap(continuation));
+		synchronized (object)
+		{
+			final AvailObject oldPojo = object.slot(RESULT_CONTINUATION);
+			assert oldPojo == defaultResultContinuation;
+			object.setSlot(
+				RESULT_CONTINUATION,
+				RawPojoDescriptor.identityWrap(continuation));
+		}
 	}
 
 	/**
@@ -877,8 +910,8 @@ extends Descriptor
 	 * FiberDescriptor fiber}'s result continuation is {@linkplain
 	 * NilDescriptor nil}.
 	 */
-	private static final Continuation1<Throwable> defaultFailureContinuation =
-		new Continuation1<Throwable>()
+	private static final A_BasicObject defaultFailureContinuation =
+		RawPojoDescriptor.identityWrap(new Continuation1<Throwable>()
 		{
 			@Override
 			public void value (final @Nullable Throwable ignored)
@@ -886,19 +919,21 @@ extends Descriptor
 				// Do nothing; errors in fibers should be handled by Avail
 				// code.
 			}
-		};
+		});
 
 	@SuppressWarnings("unchecked")
 	@Override @AvailMethod
 	Continuation1<Throwable> o_FailureContinuation (
 		final AvailObject object)
 	{
-		final AvailObject pojo = object.mutableSlot(FAILURE_CONTINUATION);
-		if (!pojo.equalsNil())
+		final AvailObject pojo;
+		synchronized (object)
 		{
-			return (Continuation1<Throwable>) pojo.javaObject();
+			pojo = object.slot(FAILURE_CONTINUATION);
+			assert !pojo.equalsNil();
+			object.setSlot(FAILURE_CONTINUATION, NilDescriptor.nil());
 		}
-		return defaultFailureContinuation;
+		return (Continuation1<Throwable>) pojo.javaObject();
 	}
 
 	@Override @AvailMethod
@@ -906,8 +941,14 @@ extends Descriptor
 		final AvailObject object,
 		final Continuation1<Throwable> continuation)
 	{
-		object.setMutableSlot(
-			FAILURE_CONTINUATION, RawPojoDescriptor.identityWrap(continuation));
+		synchronized (object)
+		{
+			final AvailObject oldPojo = object.slot(FAILURE_CONTINUATION);
+			assert oldPojo == defaultFailureContinuation;
+			object.setSlot(
+				FAILURE_CONTINUATION,
+				RawPojoDescriptor.identityWrap(continuation));
+		}
 	}
 
 	@Override @AvailMethod
@@ -1099,8 +1140,12 @@ extends Descriptor
 		fiber.setSlot(HERITABLE_FIBER_GLOBALS, MapDescriptor.empty());
 		fiber.setSlot(RESULT, NilDescriptor.nil());
 		fiber.setSlot(LOADER, NilDescriptor.nil());
-		fiber.setSlot(RESULT_CONTINUATION, NilDescriptor.nil());
-		fiber.setSlot(FAILURE_CONTINUATION, NilDescriptor.nil());
+		fiber.setSlot(RESULT_CONTINUATION, defaultResultContinuation);
+		//TODO[MvG] - Remove the following statement.
+		fiber.setSlot(
+			DEBUG_STACK_TRACE_OF_CONSUMPTION_OF_RESULT_CONTINUATION,
+			NilDescriptor.nil());
+		fiber.setSlot(FAILURE_CONTINUATION, defaultFailureContinuation);
 		fiber.setSlot(JOINING_FIBERS, SetDescriptor.empty());
 		fiber.setSlot(JOINEE, NilDescriptor.nil());
 		fiber.setSlot(WAKEUP_TASK, NilDescriptor.nil());
@@ -1142,8 +1187,12 @@ extends Descriptor
 		fiber.setSlot(HERITABLE_FIBER_GLOBALS, MapDescriptor.empty());
 		fiber.setSlot(RESULT, NilDescriptor.nil());
 		fiber.setSlot(LOADER, RawPojoDescriptor.identityWrap(loader));
-		fiber.setSlot(RESULT_CONTINUATION, NilDescriptor.nil());
-		fiber.setSlot(FAILURE_CONTINUATION, NilDescriptor.nil());
+		fiber.setSlot(RESULT_CONTINUATION, defaultResultContinuation);
+		//TODO[MvG] - Remove the following statement.
+		fiber.setSlot(
+			DEBUG_STACK_TRACE_OF_CONSUMPTION_OF_RESULT_CONTINUATION,
+			NilDescriptor.nil());
+		fiber.setSlot(FAILURE_CONTINUATION, defaultFailureContinuation);
 		fiber.setSlot(JOINING_FIBERS, SetDescriptor.empty());
 		fiber.setSlot(JOINEE, NilDescriptor.nil());
 		fiber.setSlot(WAKEUP_TASK, NilDescriptor.nil());

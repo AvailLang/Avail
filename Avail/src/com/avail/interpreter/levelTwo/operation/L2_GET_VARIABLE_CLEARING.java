@@ -35,7 +35,7 @@ import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import com.avail.descriptor.*;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.*;
-import com.avail.interpreter.levelTwo.operand.*;
+import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.RegisterSet;
 
 /**
@@ -57,11 +57,16 @@ public class L2_GET_VARIABLE_CLEARING extends L2Operation
 			WRITE_POINTER.is("extracted value"));
 
 	@Override
-	public void step (final Interpreter interpreter)
+	public void step (
+		final L2Instruction instruction,
+		final Interpreter interpreter)
 	{
-		final int getIndex = interpreter.nextWord();
-		final int destIndex = interpreter.nextWord();
-		final A_Variable var = interpreter.pointerAt(getIndex);
+		final L2ObjectRegister variableReg =
+			instruction.readObjectRegisterAt(0);
+		final L2ObjectRegister destReg =
+			instruction.writeObjectRegisterAt(1);
+
+		final A_Variable var = variableReg.in(interpreter);
 		final AvailObject value = var.getValue();
 		if (var.traversed().descriptor().isMutable())
 		{
@@ -71,7 +76,7 @@ public class L2_GET_VARIABLE_CLEARING extends L2Operation
 		{
 			value.makeImmutable();
 		}
-		interpreter.pointerAtPut(destIndex, value);
+		destReg.set(value, interpreter);
 	}
 
 	@Override
@@ -79,21 +84,18 @@ public class L2_GET_VARIABLE_CLEARING extends L2Operation
 		final L2Instruction instruction,
 		final RegisterSet registerSet)
 	{
-		final L2ReadPointerOperand variableOperand =
-			(L2ReadPointerOperand) instruction.operands[0];
-		final L2WritePointerOperand destinationOperand =
-			(L2WritePointerOperand) instruction.operands[1];
+		final L2ObjectRegister variableReg =
+			instruction.readObjectRegisterAt(0);
+		final L2ObjectRegister destReg =
+			instruction.writeObjectRegisterAt(1);
 
 		// If we haven't already guaranteed that this is a variable then we
 		// are probably not doing things right.
-		assert registerSet.hasTypeAt(variableOperand.register);
-		final A_Type varType = registerSet.typeAt(variableOperand.register);
+		assert registerSet.hasTypeAt(variableReg);
+		final A_Type varType = registerSet.typeAt(variableReg);
 		assert varType.isSubtypeOf(VariableTypeDescriptor.mostGeneralType());
-		registerSet.removeConstantAt(destinationOperand.register);
-		registerSet.typeAtPut(
-			destinationOperand.register,
-			varType.readType(),
-			instruction);
+		registerSet.removeConstantAt(destReg);
+		registerSet.typeAtPut(destReg, varType.readType(), instruction);
 	}
 
 	@Override

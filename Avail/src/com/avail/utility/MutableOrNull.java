@@ -45,7 +45,7 @@ public class MutableOrNull<T>
 {
 	/**
 	 * Expose a public field for readability.  For instance, one could declare
-	 * something "final Mutable<Integer> x = new Mutable<Integer>();" and
+	 * something "final Mutable<Integer> x = new Mutable<>();" and
 	 * then have code within inner classes like "x.value = 5" or "x.value++".
 	 */
 	public @Nullable T value;

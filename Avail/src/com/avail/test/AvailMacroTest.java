@@ -71,7 +71,9 @@ extends AbstractAvailTest
 			L2Translator.generatedInstructionCount,
 			L2Translator.keptInstructionCount,
 			L2Translator.removedInstructionCount);
+		final StringBuilder builder = new StringBuilder();
+		Primitive.reportReturnCheckTimes(builder);
 		System.err.printf("%nPrimitive return type-check times:%n%s",
-			Primitive.reportReturnCheckTimes());
+			builder);
 	}
 }

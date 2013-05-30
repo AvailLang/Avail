@@ -34,13 +34,13 @@ package com.avail.interpreter.levelTwo.operation;
 import static com.avail.interpreter.Primitive.Result.SUCCESS;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import java.util.*;
-import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.A_Type;
 import com.avail.interpreter.*;
 import com.avail.interpreter.Primitive.*;
 import com.avail.interpreter.levelTwo.*;
 import com.avail.interpreter.levelTwo.operand.*;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
+import com.avail.interpreter.levelTwo.register.L2RegisterVector;
 import com.avail.optimizer.RegisterSet;
 
 /**
@@ -68,33 +68,35 @@ public class L2_RUN_INFALLIBLE_PRIMITIVE_NO_CHECK extends L2Operation
 			WRITE_POINTER.is("primitive result"));
 
 	@Override
-	public void step (final Interpreter interpreter)
+	public void step (
+		final L2Instruction instruction,
+		final Interpreter interpreter)
 	{
-		final int primNumber = interpreter.nextWord();
-		final int argsVector = interpreter.nextWord();
-		final int resultRegister = interpreter.nextWord();
+		final Primitive primitive = instruction.primitiveAt(0);
+		final L2RegisterVector argsVector = instruction.readVectorRegisterAt(1);
+		final L2ObjectRegister resultReg = instruction.writeObjectRegisterAt(2);
 
-		final A_Tuple argsVect = interpreter.vectorAt(argsVector);
 		interpreter.argsBuffer.clear();
-		for (int i = 1; i <= argsVect.tupleSize(); i++)
+		for (final L2ObjectRegister argumentRegister : argsVector.registers())
 		{
-			interpreter.argsBuffer.add(
-				interpreter.pointerAt(argsVect.tupleIntAt(i)));
+			interpreter.argsBuffer.add(argumentRegister.in(interpreter));
 		}
 		// Only primitive 340 is infallible and yet needs the function,
 		// and it's always folded.  In the case that primitive 340 is known to
 		// produce the wrong type at some site (potentially dead code due to
 		// inlining of an unreachable branch), it is converted to an
 		// explicit failure instruction.  Thus we can pass null.
+		// Note also that primitives which have to suspend the fiber (to perform
+		// a level one unsafe operation and then switch back to level one safe
+		// mode) must *never* be inlined, otherwise they couldn't reach a safe
+		// inter-nybblecode position.
 		final Result res = interpreter.attemptPrimitive(
-			primNumber,
+			primitive.primitiveNumber,
 			null,
 			interpreter.argsBuffer);
 
 		assert res == SUCCESS;
-		interpreter.pointerAtPut(
-			resultRegister,
-			interpreter.latestResult());
+		resultReg.set(interpreter.latestResult(), interpreter);
 	}
 
 	@Override
@@ -102,29 +104,23 @@ public class L2_RUN_INFALLIBLE_PRIMITIVE_NO_CHECK extends L2Operation
 		final L2Instruction instruction,
 		final RegisterSet registerSet)
 	{
-		final L2PrimitiveOperand primitiveOperand =
-			(L2PrimitiveOperand) instruction.operands[0];
-		final L2ReadVectorOperand argumentsVector =
-			(L2ReadVectorOperand) instruction.operands[1];
-		final L2WritePointerOperand destinationOperand =
-			(L2WritePointerOperand) instruction.operands[2];
+		final Primitive primitive = instruction.primitiveAt(0);
+		final L2RegisterVector argsVector = instruction.readVectorRegisterAt(1);
+		final L2ObjectRegister resultReg = instruction.writeObjectRegisterAt(2);
 
-		final List<A_Type> argTypes = new ArrayList<A_Type>(3);
-		for (final L2ObjectRegister arg : argumentsVector.vector)
+		final List<A_Type> argTypes =
+			new ArrayList<>(argsVector.registers().size());
+		for (final L2ObjectRegister arg : argsVector.registers())
 		{
 			assert registerSet.hasTypeAt(arg);
 			argTypes.add(registerSet.typeAt(arg));
 		}
 		// We can at least believe what the primitive itself says it returns.
 		final A_Type guaranteedType =
-			primitiveOperand.primitive.returnTypeGuaranteedByVM(
-				argTypes);
-		registerSet.removeTypeAt(destinationOperand.register);
-		registerSet.removeConstantAt(destinationOperand.register);
-		registerSet.typeAtPut(
-			destinationOperand.register,
-			guaranteedType,
-			instruction);
+			primitive.returnTypeGuaranteedByVM(argTypes);
+		registerSet.removeTypeAt(resultReg);
+		registerSet.removeConstantAt(resultReg);
+		registerSet.typeAtPut(resultReg, guaranteedType, instruction);
 	}
 
 	@Override

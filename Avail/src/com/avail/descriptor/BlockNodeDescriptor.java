@@ -173,7 +173,7 @@ extends ParseNodeDescriptor
 	A_Type o_ExpressionType (final AvailObject object)
 	{
 		final List<A_Type> argumentTypes =
-			new ArrayList<A_Type>(object.argumentsTuple().tupleSize());
+			new ArrayList<>(object.argumentsTuple().tupleSize());
 		for (final A_Phrase argDeclaration : object.argumentsTuple())
 		{
 			argumentTypes.add(argDeclaration.declaredType());
@@ -345,7 +345,7 @@ extends ParseNodeDescriptor
 	private static List<A_Phrase> allLocallyDefinedVariables (
 		final A_Phrase object)
 	{
-		final List<A_Phrase> declarations = new ArrayList<A_Phrase>(10);
+		final List<A_Phrase> declarations = new ArrayList<>(10);
 		for (final A_Phrase argumentDeclaration : object.argumentsTuple())
 		{
 			declarations.add(argumentDeclaration);
@@ -364,7 +364,7 @@ extends ParseNodeDescriptor
 	 */
 	private static List<A_Phrase> labels (final A_Phrase object)
 	{
-		final List<A_Phrase> labels = new ArrayList<A_Phrase>(1);
+		final List<A_Phrase> labels = new ArrayList<>(1);
 		for (final AvailObject maybeLabel : object.statementsTuple())
 		{
 			if (maybeLabel.isInstanceOfKind(LABEL_NODE.mostGeneralType()))
@@ -384,7 +384,7 @@ extends ParseNodeDescriptor
 	 */
 	private static List<A_Phrase> locals (final A_Phrase object)
 	{
-		final List<A_Phrase> locals = new ArrayList<A_Phrase>(5);
+		final List<A_Phrase> locals = new ArrayList<>(5);
 		for (final A_Phrase maybeLocal : object.statementsTuple())
 		{
 			if (maybeLocal.isInstanceOfKind(DECLARATION_NODE.mostGeneralType())
@@ -469,7 +469,7 @@ extends ParseNodeDescriptor
 		final int lineNumber)
 	{
 		final List<A_Phrase> flattenedStatements =
-			new ArrayList<A_Phrase>(statements.tupleSize() + 3);
+			new ArrayList<>(statements.tupleSize() + 3);
 		for (final A_Phrase statement : statements)
 		{
 			statement.flattenStatementsInto(flattenedStatements);
@@ -533,8 +533,8 @@ extends ParseNodeDescriptor
 	 */
 	private void collectNeededVariablesOfOuterBlocks (final AvailObject object)
 	{
-		final Set<A_Phrase> neededDeclarations = new HashSet<A_Phrase>();
-		final Set<A_Phrase> providedByMe = new HashSet<A_Phrase>();
+		final Set<A_Phrase> neededDeclarations = new HashSet<>();
+		final Set<A_Phrase> providedByMe = new HashSet<>();
 		providedByMe.addAll(allLocallyDefinedVariables(object));
 		object.childrenDo(new Continuation1<A_Phrase>()
 		{

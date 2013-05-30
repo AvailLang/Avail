@@ -32,11 +32,13 @@
 package com.avail.interpreter.levelTwo.operation;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
+import com.avail.descriptor.A_Function;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.VariableDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.*;
-import com.avail.interpreter.levelTwo.operand.*;
-import com.avail.interpreter.levelTwo.register.L2Register;
+import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.RegisterSet;
 
 /**
@@ -53,17 +55,25 @@ public class L2_MOVE_OUTER_VARIABLE extends L2Operation
 		new L2_MOVE_OUTER_VARIABLE().init(
 			IMMEDIATE.is("outer index"),
 			READ_POINTER.is("function"),
-			WRITE_POINTER.is("destination"));
+			WRITE_POINTER.is("destination"),
+			CONSTANT.is("outer type"));
 
 	@Override
-	public void step (final Interpreter interpreter)
+	public void step (
+		final L2Instruction instruction,
+		final Interpreter interpreter)
 	{
-		final int outerIndex = interpreter.nextWord();
-		final int fromIndex = interpreter.nextWord();
-		final int destIndex = interpreter.nextWord();
-		interpreter.pointerAtPut(
-			destIndex,
-			interpreter.pointerAt(fromIndex).outerVarAt(outerIndex));
+		final int outerIndex = instruction.immediateAt(0);
+		final L2ObjectRegister functionReg =
+			instruction.readObjectRegisterAt(1);
+		final L2ObjectRegister destinationReg =
+			instruction.writeObjectRegisterAt(2);
+		final A_Type outerType = instruction.constantAt(3);
+
+		final A_Function function = functionReg.in(interpreter);
+		final AvailObject value = function.outerVarAt(outerIndex);
+		assert value.isInstanceOf(outerType);
+		destinationReg.set(value, interpreter);
 	}
 
 	@Override
@@ -71,17 +81,25 @@ public class L2_MOVE_OUTER_VARIABLE extends L2Operation
 		final L2Instruction instruction,
 		final RegisterSet registerSet)
 	{
-		final L2ImmediateOperand outerIndexOperand =
-			(L2ImmediateOperand) instruction.operands[0];
-		final L2WritePointerOperand destinationOperand =
-			(L2WritePointerOperand) instruction.operands[2];
+		final int outerIndex = instruction.immediateAt(0);
+		final L2ObjectRegister functionReg =
+			instruction.readObjectRegisterAt(1);
+		final L2ObjectRegister destinationReg =
+			instruction.writeObjectRegisterAt(2);
+		final A_Type outerType = instruction.constantAt(3);
 
-		final L2Register destination = destinationOperand.register;
-		registerSet.removeTypeAt(destination);
-		registerSet.removeConstantAt(destination);
-		registerSet.typeAtPut(
-			destination,
-			registerSet.codeOrFail().outerTypeAt(outerIndexOperand.value),
-			instruction);
+		if (registerSet.hasConstantAt(functionReg))
+		{
+			// The exact function is known.
+			final A_Function function = registerSet.constantAt(functionReg);
+			final AvailObject value = function.outerVarAt(outerIndex);
+			registerSet.constantAtPut(destinationReg, value, instruction);
+		}
+		else
+		{
+			registerSet.removeTypeAt(destinationReg);
+			registerSet.removeConstantAt(destinationReg);
+			registerSet.typeAtPut(destinationReg, outerType, instruction);
+		}
 	}
 }

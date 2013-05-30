@@ -32,32 +32,52 @@
 
 package com.avail.interpreter.levelTwo.operation;
 
-import static com.avail.descriptor.AvailObject.error;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.*;
+import com.avail.interpreter.levelTwo.register.L2IntegerRegister;
 
+
+/**
+ * Subtract the subtrahend from the minuend, jumping to the specified target if
+ * the result does not fit in an int.
+ *
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ */
 public class L2_SUBTRACT_INT_FROM_INT extends L2Operation
 {
 	/**
 	 * Initialize the sole instance.
 	 */
 	public final static L2Operation instance =
-		new L2_SUBTRACT_INT_FROM_INT().init(
+		new L2_ADD_INT_TO_INT().init(
 			READ_INT.is("subtrahend"),
 			READWRITE_INT.is("minuend"),
 			PC.is("if out of range"));
 
 	@Override
-	public void step (final Interpreter interpreter)
+	public void step (
+		final L2Instruction instruction,
+		final Interpreter interpreter)
 	{
-		@SuppressWarnings("unused")
-		final int subtractIndex = interpreter.nextWord();
-		@SuppressWarnings("unused")
-		final int destIndex = interpreter.nextWord();
-		@SuppressWarnings("unused")
-		final int ifIndex = interpreter.nextWord();
-		error("not implemented");
+		final L2IntegerRegister subtrahendReg =
+			instruction.readIntRegisterAt(0);
+		final L2IntegerRegister minuendReg =
+			instruction.readWriteIntRegisterAt(1);
+		final int outOfRangeOffset = instruction.pcAt(2);
+
+		final int subtrahend = subtrahendReg.in(interpreter);
+		final int minuend = minuendReg.in(interpreter);
+		final long longResult = (long)minuend - (long)subtrahend;
+		final int intResult = (int)longResult;
+		if (longResult == intResult)
+		{
+			minuendReg.set(intResult, interpreter);
+		}
+		else
+		{
+			interpreter.offset(outOfRangeOffset);
+		}
 	}
 
 	@Override

@@ -56,7 +56,7 @@ extends Descriptor
 	 * from Avail.
 	 */
 	@InnerAccess static final List<Object> allPojosStrongly =
-		new ArrayList<Object>(100);
+		new ArrayList<>(100);
 
 	/**
 	 * A {@code WeakPojoReference} is the mechanism by which {@linkplain
@@ -117,7 +117,7 @@ extends Descriptor
 	 * AvailObject Avail objects}.
 	 */
 	private static final List<WeakPojoReference> allPojosWeakly =
-		new ArrayList<WeakPojoReference>(100);
+		new ArrayList<>(100);
 
 	/**
 	 * The {@linkplain ReentrantLock lock} that guards access to the {@linkplain

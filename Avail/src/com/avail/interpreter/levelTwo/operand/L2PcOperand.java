@@ -97,15 +97,9 @@ public class L2PcOperand extends L2Operand
 	}
 
 	@Override
-	public void emitOn (
-		final L2CodeGenerator codeGenerator)
-	{
-		codeGenerator.emitWordcodeOffsetOf(label);
-	}
-
-	@Override
 	public String toString ()
 	{
+		// Extract the comment from the target label.
 		final L2CommentOperand commentOperand =
 			(L2CommentOperand)label.operands[0];
 		return String.format("Pc(%s)", commentOperand.comment);

@@ -1,5 +1,5 @@
 /**
- * L2_MULTIPLY_OBJECT_BY_OBJECT.java
+ * P_244_AdjustDebugSetting.java
  * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -29,38 +29,49 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.interpreter.primitive;
 
-package com.avail.interpreter.levelTwo.operation;
+import static com.avail.descriptor.TypeDescriptor.Types.TOP;
+import static com.avail.interpreter.Primitive.Flag.*;
+import java.util.List;
+import java.util.logging.Level;
+import com.avail.descriptor.*;
+import com.avail.interpreter.*;
 
-import static com.avail.descriptor.AvailObject.error;
-import static com.avail.interpreter.levelTwo.L2OperandType.*;
-import com.avail.interpreter.Interpreter;
-import com.avail.interpreter.levelTwo.*;
-
-public class L2_MULTIPLY_OBJECT_BY_OBJECT extends L2Operation
+/**
+ * <strong>Primitive 244:</strong> Adjust the debugging level of the VM.
+ */
+public class P_244_AdjustDebugSetting extends Primitive
 {
 	/**
-	 * Initialize the sole instance.
+	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	public final static L2Operation instance =
-		new L2_MULTIPLY_OBJECT_BY_OBJECT().init(
-			READ_POINTER.is("multiplier"),
-			READWRITE_POINTER.is("multiplicand"));
+	public final static Primitive instance =
+		new P_244_AdjustDebugSetting().init(
+			1, Unknown, CannotFail);
 
 	@Override
-	public void step (final Interpreter interpreter)
+	public Result attempt (
+		final List<AvailObject> args,
+		final Interpreter interpreter)
 	{
-		@SuppressWarnings("unused")
-		final int multiplyIndex = interpreter.nextWord();
-		@SuppressWarnings("unused")
-		final int destIndex = interpreter.nextWord();
-		error("not implemented");
+		assert args.size() == 1;
+		final AvailObject levelObject = args.get(0);
+
+		final int level = levelObject.extractInt();
+		Interpreter.debugL1 = (level & 1) != 0;
+		Interpreter.debugL2 = (level & 2) != 0;
+		Interpreter.setLoggerLevel(
+			level != 0 ? Level.ALL : Level.OFF);
+		return interpreter.primitiveSuccess(NilDescriptor.nil());
 	}
 
 	@Override
-	public boolean hasSideEffect ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
-		// It can fail when multiplying zero by infinity.
-		return true;
+		return FunctionTypeDescriptor.create(
+			TupleDescriptor.from(
+				IntegerRangeTypeDescriptor.bytes()),
+			TOP.o());
 	}
 }

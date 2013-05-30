@@ -86,13 +86,6 @@ public class L2ConstantOperand extends L2Operand
 	}
 
 	@Override
-	public void emitOn (
-		final L2CodeGenerator codeGenerator)
-	{
-		codeGenerator.emitLiteral(object);
-	}
-
-	@Override
 	public String toString ()
 	{
 		return String.format("Const(%s)", object);

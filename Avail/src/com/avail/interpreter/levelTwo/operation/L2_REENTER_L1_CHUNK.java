@@ -51,7 +51,9 @@ public class L2_REENTER_L1_CHUNK extends L2Operation
 		new L2_REENTER_L1_CHUNK().init();
 
 	@Override
-	public void step (final Interpreter interpreter)
+	public void step (
+		final L2Instruction instruction,
+		final Interpreter interpreter)
 	{
 		final A_Continuation continuation = interpreter.pointerAt(CALLER);
 		final int numSlots = continuation.numArgsAndLocalsAndStack();

@@ -43,6 +43,7 @@ import com.avail.descriptor.*;
 import com.avail.interpreter.levelTwo.operation.L2_ATTEMPT_INLINE_PRIMITIVE;
 import com.avail.interpreter.primitive.*;
 import com.avail.optimizer.*;
+import com.avail.performance.Statistic;
 
 
 /**
@@ -437,7 +438,7 @@ implements IntegerEnumSlotDescriptionEnum
 	 */
 	private static void findPrimitives()
 	{
-		final Map<Short, String> names = new HashMap<Short, String>();
+		final Map<Short, String> names = new HashMap<>();
 		final ClassLoader classLoader = Primitive.class.getClassLoader();
 		assert classLoader != null;
 		try
@@ -639,6 +640,47 @@ implements IntegerEnumSlotDescriptionEnum
 	}
 
 	/**
+	 * A performance metric indicating how long was spent executing each
+	 * primitive.
+	 */
+	final Statistic runningNanos =
+		new Statistic(getClass().getSimpleName() + " (running)");
+
+	/**
+	 * Record that some number of nanoseconds were just expended running this
+	 * primitive.
+	 *
+	 * @param deltaNanoseconds
+	 */
+	public void addNanosecondsRunning (
+		final long deltaNanoseconds)
+	{
+		runningNanos.record(deltaNanoseconds);
+	}
+
+	/**
+	 * A performance metric indicating how long was spent checking the return
+	 * result for all invocations of this primitive in level two code.  An
+	 * excessively large value indicates a profitable opportunity for {@link
+	 * #returnTypeGuaranteedByVM(List)} to return a stronger
+	 * type, perhaps allowing the level two optimizer to skip more checks.
+	 */
+	final Statistic resultTypeCheckingNanos =
+		new Statistic(getClass().getSimpleName() + " (checking result)");
+
+	/**
+	 * Record that some number of nanoseconds were just expended checking the
+	 * type of the value returned by this primitive.
+	 *
+	 * @param deltaNanoseconds
+	 */
+	public void addNanosecondsCheckingResultType (
+		final long deltaNanoseconds)
+	{
+		resultTypeCheckingNanos.record(deltaNanoseconds);
+	}
+
+	/**
 	 * Initialize a newly constructed {@link Primitive}.  The first argument is
 	 * a primitive number, the second is the number of arguments with which the
 	 * primitive expects to be invoked, and the remaining arguments are
@@ -674,73 +716,69 @@ implements IntegerEnumSlotDescriptionEnum
 	}
 
 	/**
-	 * A performance metric indicating how long was spent checking the return
-	 * result for all invocations of this primitive in level two code.  An
-	 * excessively large value indicates a profitable opportunity for {@link
-	 * #returnTypeGuaranteedByVM(List)} to return a stronger
-	 * type, perhaps allowing the level two optimizer to skip more checks.
-	 */
-	@InnerAccess long debugMicrosecondsCheckingResultType = 0L;
-
-	/**
-	 * Record that some number of microseconds were just expended checking the
-	 * type of the value returned by this primitive.
+	 * Produce a report showing which primitives cost the most time to run.
 	 *
-	 * @param deltaMicroseconds
+	 * @param builder The {@link StringBuilder} into which to write the report.
 	 */
-	public void addMicrosecondsCheckingResultType (
-		final long deltaMicroseconds)
+	public static void reportRunTimes (final StringBuilder builder)
 	{
-		debugMicrosecondsCheckingResultType += deltaMicroseconds;
+		builder.append("Primitive run times:\n");
+		final List<Statistic> stats = new ArrayList<>();
+		for (int i = 1; i <= maxPrimitiveNumber; i++)
+		{
+			final Primitive prim = byPrimitiveNumberOrNull(i);
+			if (prim != null && prim.runningNanos.count() != 0)
+			{
+				stats.add(prim.runningNanos);
+			}
+		}
+		Collections.sort(stats);
+		for (final Statistic stat : stats)
+		{
+			stat.describeNanosecondsOn(builder);
+			builder.append('\n');
+		}
 	}
 
 	/**
 	 * Produce a report showing which primitives cost the most time to have
 	 * their result types checked.
 	 *
-	 * @return The report, a potentially long string.
+	 * @param builder The {@link StringBuilder} into which to write the report.
 	 */
-	public static String reportReturnCheckTimes ()
+	public static void reportReturnCheckTimes (final StringBuilder builder)
 	{
-		final StringBuilder builder = new StringBuilder();
-		final List<Primitive> prims = new ArrayList<Primitive>();
+		builder.append("Primitive return dynamic checks:\n");
+		final List<Statistic> stats = new ArrayList<>();
 		for (int i = 1; i <= maxPrimitiveNumber; i++)
 		{
 			final Primitive prim = byPrimitiveNumberOrNull(i);
-			if (prim != null && prim.debugMicrosecondsCheckingResultType != 0)
+			if (prim != null && prim.resultTypeCheckingNanos.count() != 0)
 			{
-				prims.add(prim);
+				stats.add(prim.resultTypeCheckingNanos);
 			}
 		}
-		Collections.sort(prims, new Comparator<Primitive>()
+		Collections.sort(stats);
+		for (final Statistic stat : stats)
 		{
-			@Override
-			public int compare (
-				final @Nullable Primitive p1,
-				final @Nullable Primitive p2)
-			{
-				assert p1 != null;
-				assert p2 != null;
-				return Long.signum(
-					p2.debugMicrosecondsCheckingResultType
-						- p1.debugMicrosecondsCheckingResultType);
-			}
-		});
-		for (final Primitive prim : prims)
-		{
-			final long microseconds = prim.debugMicrosecondsCheckingResultType;
-			builder.append(String.format(
-				microseconds > 1000000
-					? "%1$ 7.3f s  "
-					: microseconds > 1000
-						? "%2$ 7.3f ms "
-						: "%3$ 3d     µs ",
-					microseconds / 1.0e6,
-					microseconds / 1.0e3,
-					microseconds));
-			builder.append(prim.name());
+			stat.describeNanosecondsOn(builder);
 			builder.append('\n');
 		}
-		return builder.toString();
+	}
+
+	/**
+	 * Clear all statistics related to primitives.
+	 */
+	public static void clearAllStats ()
+	{
+		for (int i = 1; i <= maxPrimitiveNumber; i++)
+		{
+			final Primitive prim = byPrimitiveNumberOrNull(i);
+			if (prim != null)
+			{
+				prim.runningNanos.clear();
+				prim.resultTypeCheckingNanos.clear();
+			}
+		}
 	}
 }

@@ -32,11 +32,18 @@
 
 package com.avail.interpreter.levelTwo.operation;
 
-import static com.avail.descriptor.AvailObject.error;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
+import com.avail.descriptor.AbstractNumberDescriptor.Order;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.*;
+import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 
+/**
+ * Jump to the target if the first value is numerically greater than the second
+ * value.
+ *
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ */
 public class L2_JUMP_IF_GREATER_THAN_OBJECT extends L2Operation
 {
 	/**
@@ -49,15 +56,20 @@ public class L2_JUMP_IF_GREATER_THAN_OBJECT extends L2Operation
 			READ_POINTER.is("second value"));
 
 	@Override
-	public void step (final Interpreter interpreter)
+	public void step (
+		final L2Instruction instruction,
+		final Interpreter interpreter)
 	{
-		@SuppressWarnings("unused")
-		final int doIndex = interpreter.nextWord();
-		@SuppressWarnings("unused")
-		final int ifIndex = interpreter.nextWord();
-		@SuppressWarnings("unused")
-		final int thanIndex = interpreter.nextWord();
-		error("not implemented");
+		final int target = instruction.pcAt(0);
+		final L2ObjectRegister firstReg = instruction.readObjectRegisterAt(1);
+		final L2ObjectRegister secondReg = instruction.readObjectRegisterAt(2);
+
+		final Order comparison =
+			firstReg.in(interpreter).numericCompare(secondReg.in(interpreter));
+		if (comparison.isMore())
+		{
+			interpreter.offset(target);
+		}
 	}
 
 	@Override

@@ -35,15 +35,13 @@ import static com.avail.descriptor.AvailObject.error;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import java.util.List;
 import com.avail.descriptor.A_Function;
-import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.*;
 import com.avail.interpreter.Primitive.Result;
 import com.avail.interpreter.levelTwo.*;
-import com.avail.interpreter.levelTwo.operand.L2ConstantOperand;
-import com.avail.interpreter.levelTwo.operand.L2PrimitiveOperand;
-import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
+import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
+import com.avail.interpreter.levelTwo.register.L2RegisterVector;
 import com.avail.optimizer.RegisterSet;
 
 /**
@@ -88,59 +86,53 @@ public class L2_ATTEMPT_INLINE_PRIMITIVE extends L2Operation
 			PC.is("if primitive succeeds"));
 
 	@Override
-	public void step (final Interpreter interpreter)
+	public void step (
+		final L2Instruction instruction,
+		final Interpreter interpreter)
 	{
-		final int primNumber = interpreter.nextWord();
-		final int functionIndex = interpreter.nextWord();
-		final int argsVector = interpreter.nextWord();
-		final int expectedTypeIndex = interpreter.nextWord();
-		final int resultRegister = interpreter.nextWord();
-		final int failureValueRegister = interpreter.nextWord();
-		@SuppressWarnings("unused")
-		final int unusedPreservedVector = interpreter.nextWord();
-		final int successOffset = interpreter.nextWord();
+		final Primitive primitive = instruction.primitiveAt(0);
+		final A_Function function = instruction.constantAt(1);
+		final L2RegisterVector argumentsVector =
+			instruction.readVectorRegisterAt(2);
+		final A_Type expectedType = instruction.constantAt(3);
+		final L2ObjectRegister resultReg = instruction.writeObjectRegisterAt(4);
+		final L2ObjectRegister failureReg =
+			instruction.writeObjectRegisterAt(5);
+		final int successOffset = instruction.pcAt(7);
 
-		final A_Tuple argsVect = interpreter.vectorAt(argsVector);
 		interpreter.argsBuffer.clear();
-		for (int i = 1; i <= argsVect.tupleSize(); i++)
+		for (final L2ObjectRegister register : argumentsVector)
 		{
-			interpreter.argsBuffer.add(
-				interpreter.pointerAt(argsVect.tupleIntAt(i)));
+			interpreter.argsBuffer.add(register.in(interpreter));
 		}
-		final A_Function function =
-			interpreter.chunk().literalAt(functionIndex);
-		assert function.code().primitiveNumber() == primNumber;
+		assert function.code().primitiveNumber() == primitive.primitiveNumber;
 		final Result res = interpreter.attemptPrimitive(
-			primNumber,
+			primitive.primitiveNumber,
 			function,
 			interpreter.argsBuffer);
 		switch (res)
 		{
 			case SUCCESS:
-				final A_Type expectedType =
-					interpreter.chunk().literalAt(expectedTypeIndex);
-				final long start = System.nanoTime();
+				final long before = System.nanoTime();
 				final AvailObject result = interpreter.latestResult();
 				final boolean checkOk = result.isInstanceOf(expectedType);
-				final long checkTimeNanos = System.nanoTime() - start;
-				Primitive.byPrimitiveNumberOrFail(primNumber)
-					.addMicrosecondsCheckingResultType(checkTimeNanos / 1000L);
+				final long after = System.nanoTime();
+				primitive.addNanosecondsCheckingResultType(after - before);
 				if (!checkOk)
 				{
 					// TODO [MvG] This will have to be handled better some day.
 					error(
 						"primitive %s's result (%s) did not agree with"
 						+ " semantic restriction's expected type (%s)",
-						Primitive.byPrimitiveNumberOrFail(primNumber).name(),
+						primitive.name(),
 						result,
 						expectedType);
 				}
-				interpreter.pointerAtPut(resultRegister, result);
+				resultReg.set(result, interpreter);
 				interpreter.offset(successOffset);
 				break;
 			case FAILURE:
-				interpreter.pointerAtPut(
-					failureValueRegister, interpreter.latestResult());
+				failureReg.set(interpreter.latestResult(), interpreter);
 				break;
 			default:
 				assert false;
@@ -152,36 +144,24 @@ public class L2_ATTEMPT_INLINE_PRIMITIVE extends L2Operation
 		final L2Instruction instruction,
 		final List<RegisterSet> registerSets)
 	{
-		final L2PrimitiveOperand primitiveOperand =
-			(L2PrimitiveOperand) instruction.operands[0];
-		@SuppressWarnings("unused")
-		final L2ConstantOperand functionOperand =
-			(L2ConstantOperand) instruction.operands[1];
-		final L2ConstantOperand expectedTypeOperand =
-			(L2ConstantOperand) instruction.operands[3];
-		final L2WritePointerOperand result =
-			(L2WritePointerOperand) instruction.operands[4];
-		final L2WritePointerOperand failureValue =
-			(L2WritePointerOperand) instruction.operands[5];
+		final Primitive primitive = instruction.primitiveAt(0);
+		final A_Type expectedType = instruction.constantAt(3);
+		final L2ObjectRegister resultReg = instruction.writeObjectRegisterAt(4);
+		final L2ObjectRegister failureReg =
+			instruction.writeObjectRegisterAt(5);
+
 		final RegisterSet failRegisterSet = registerSets.get(0);
 		final RegisterSet successRegisterSet = registerSets.get(1);
 
 		// Figure out what the primitive failure values are allowed to be.
-		final Primitive prim = primitiveOperand.primitive;
-		final A_Type failureType = prim.failureVariableType();
-		failRegisterSet.removeTypeAt(failureValue.register);
-		failRegisterSet.removeConstantAt(failureValue.register);
-		failRegisterSet.typeAtPut(
-			failureValue.register,
-			failureType,
-			instruction);
+		final A_Type failureType = primitive.failureVariableType();
+		failRegisterSet.removeTypeAt(failureReg);
+		failRegisterSet.removeConstantAt(failureReg);
+		failRegisterSet.typeAtPut(failureReg, failureType, instruction);
 
-		successRegisterSet.removeTypeAt(result.register);
-		successRegisterSet.removeConstantAt(result.register);
-		successRegisterSet.typeAtPut(
-			result.register,
-			expectedTypeOperand.object,
-			instruction);
+		successRegisterSet.removeTypeAt(resultReg);
+		successRegisterSet.removeConstantAt(resultReg);
+		successRegisterSet.typeAtPut(resultReg, expectedType, instruction);
 	}
 
 	@Override

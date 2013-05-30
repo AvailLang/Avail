@@ -32,11 +32,21 @@
 
 package com.avail.interpreter.levelTwo.operation;
 
-import static com.avail.descriptor.AvailObject.error;
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_POINTER;
+import com.avail.descriptor.A_Continuation;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.*;
+import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
+import com.avail.interpreter.primitive.P_057_ExitContinuationWithResult;
+import com.avail.interpreter.primitive.P_058_RestartContinuation;
 
+/**
+ * Continue running the provided continuation.  Note that this is neither an
+ * {@linkplain P_057_ExitContinuationWithResult Exit} nor a {@linkplain
+ * P_058_RestartContinuation Restart}, but something different.
+ *
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ */
 public class L2_RESUME_CONTINUATION extends L2Operation
 {
 	/**
@@ -47,11 +57,15 @@ public class L2_RESUME_CONTINUATION extends L2Operation
 			READ_POINTER.is("continuation to resume"));
 
 	@Override
-	public void step (final Interpreter interpreter)
+	public void step (
+		final L2Instruction instruction,
+		final Interpreter interpreter)
 	{
-		@SuppressWarnings("unused")
-		final int continuationIndex = interpreter.nextWord();
-		error("not implemented");
+		final L2ObjectRegister continuationReg =
+			instruction.readObjectRegisterAt(0);
+
+		final A_Continuation continuation = continuationReg.in(interpreter);
+		interpreter.prepareToResumeContinuation(continuation);
 	}
 
 	@Override

@@ -126,5 +126,5 @@ interface L2OperandTypeDispatcher
 	 * A vector of {@linkplain L2ObjectRegister object registers} to be set up
 	 * automatically by the virtual machine.
 	 */
-	void doImplicitlyInitializeVector();
+	void doComment();
 }

@@ -35,7 +35,7 @@ import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.*;
-import com.avail.interpreter.levelTwo.operand.*;
+import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.RegisterSet;
 
 /**
@@ -52,13 +52,14 @@ public class L2_MOVE_CONSTANT extends L2Operation
 			WRITE_POINTER.is("destination"));
 
 	@Override
-	public void step (final Interpreter interpreter)
+	public void step (
+		final L2Instruction instruction,
+		final Interpreter interpreter)
 	{
-		final int fromIndex = interpreter.nextWord();
-		final int destIndex = interpreter.nextWord();
-		interpreter.pointerAtPut(
-			destIndex,
-			interpreter.chunk().literalAt(fromIndex));
+		final AvailObject constant = instruction.constantAt(0);
+		final L2ObjectRegister destinationReg =
+			instruction.writeObjectRegisterAt(1);
+		destinationReg.set(constant, interpreter);
 	}
 
 	@Override
@@ -66,13 +67,9 @@ public class L2_MOVE_CONSTANT extends L2Operation
 		final L2Instruction instruction,
 		final RegisterSet registerSet)
 	{
-		final L2ConstantOperand constantOperand =
-			(L2ConstantOperand) instruction.operands[0];
-		final L2WritePointerOperand destinationOperand =
-			(L2WritePointerOperand) instruction.operands[1];
-		registerSet.constantAtPut(
-			destinationOperand.register,
-			constantOperand.object,
-			instruction);
+		final AvailObject constant = instruction.constantAt(0);
+		final L2ObjectRegister destinationReg =
+			instruction.writeObjectRegisterAt(1);
+		registerSet.constantAtPut(destinationReg, constant, instruction);
 	}
 }

@@ -889,6 +889,12 @@ public final class AvailRuntime
 		specials[134] = SetTypeDescriptor.setTypeForSizesContentType(
 			IntegerRangeTypeDescriptor.wholeNumbers(),
 			ObjectTypeDescriptor.exceptionType());
+		specials[135] = SetTypeDescriptor.setTypeForSizesContentType(
+			IntegerRangeTypeDescriptor.naturalNumbers(),
+			TupleTypeDescriptor.stringType());
+		specials[136] = SetTypeDescriptor.setTypeForSizesContentType(
+			IntegerRangeTypeDescriptor.naturalNumbers(),
+			ATOM.o());
 
 		System.arraycopy(specials, 0, specialObjects, 0, specials.length);
 
@@ -920,7 +926,7 @@ public final class AvailRuntime
 		System.arraycopy(atoms, 0, specialAtoms, 0, atoms.length);
 
 		assert specialAtomsSet == null;
-		final Set<A_Atom> set = new HashSet<A_Atom>(specialAtomsList);
+		final Set<A_Atom> set = new HashSet<>(specialAtomsList);
 		set.remove(null);
 		specialAtomsSet = set;
 		specialAtomsSet = Collections.unmodifiableSet(specialAtomsSet);

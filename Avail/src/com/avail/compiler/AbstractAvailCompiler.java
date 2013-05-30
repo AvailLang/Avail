@@ -366,7 +366,7 @@ public abstract class AbstractAvailCompiler
 		 * The versions for which the module undergoing compilation guarantees
 		 * support.
 		 */
-		public final List<A_String> versions = new ArrayList<A_String>();
+		public final List<A_String> versions = new ArrayList<>();
 
 		/**
 		 * The {@linkplain ModuleImport module imports} imported by the module
@@ -374,25 +374,25 @@ public abstract class AbstractAvailCompiler
 		 * and modules being simply used.
 		 */
 		public final List<ModuleImport> importedModules =
-			new ArrayList<ModuleImport>();
+			new ArrayList<>();
 
 		/**
 		 * The {@linkplain StringDescriptor names} defined and exported by the
 		 * {@linkplain ModuleDescriptor module} undergoing compilation.
 		 */
-		public final List<A_String> exportedNames = new ArrayList<A_String>();
+		public final List<A_String> exportedNames = new ArrayList<>();
 
 		/**
 		 * The {@linkplain StringDescriptor names} of {@linkplain
 		 * MethodDescriptor methods} that are {@linkplain ModuleDescriptor
 		 * module} entry points.
 		 */
-		public final List<A_String> entryPoints = new ArrayList<A_String>();
+		public final List<A_String> entryPoints = new ArrayList<>();
 
 		/**
 		 * The {@linkplain String pragma strings}.
 		 */
-		public final List<A_String> pragmas = new ArrayList<A_String>();
+		public final List<A_String> pragmas = new ArrayList<>();
 
 		/**
 		 * Construct a new {@link AbstractAvailCompiler.ModuleHeader}.
@@ -1240,11 +1240,11 @@ public abstract class AbstractAvailCompiler
 		assert noMoreWorkUnits == null;
 		// Augment the start position with a variant that incorporates the
 		// solution-accepting continuation.
-		final Mutable<Integer> count = new Mutable<Integer>(0);
+		final Mutable<Integer> count = new Mutable<>(0);
 		final MutableOrNull<A_Phrase> solution =
-			new MutableOrNull<A_Phrase>();
+			new MutableOrNull<>();
 		final MutableOrNull<ParserState> afterStatement =
-			new MutableOrNull<ParserState>();
+			new MutableOrNull<>();
 		noMoreWorkUnits = new Continuation0()
 		{
 			@Override
@@ -1978,7 +1978,7 @@ public abstract class AbstractAvailCompiler
 		final ByteBuffer input = ByteBuffer.allocateDirect(4096);
 		final CharBuffer output = CharBuffer.allocate(4096);
 		final StringBuilder sourceBuilder = new StringBuilder(4096);
-		final Mutable<Long> filePosition = new Mutable<Long>(0L);
+		final Mutable<Long> filePosition = new Mutable<>(0L);
 		final AsynchronousFileChannel file;
 		try
 		{
@@ -1990,7 +1990,7 @@ public abstract class AbstractAvailCompiler
 			return;
 		}
 		final MutableOrNull<CompletionHandler<Integer, Void>> handler =
-			new MutableOrNull<CompletionHandler<Integer,Void>>();
+			new MutableOrNull<>();
 		handler.value =
 			new CompletionHandler<Integer, Void>()
 			{
@@ -2289,9 +2289,9 @@ public abstract class AbstractAvailCompiler
 		}
 		text.format("^-- %s", banner);
 		text.format("%n>>>%s", rowOfDashes);
-		final Set<String> alreadySeen = new HashSet<String>(problems.size());
+		final Set<String> alreadySeen = new HashSet<>(problems.size());
 		final Mutable<Integer> outstanding =
-			new Mutable<Integer>(problems.size());
+			new Mutable<>(problems.size());
 		final Continuation1<String> decrement = new Continuation1<String>()
 		{
 			@Override
@@ -2370,9 +2370,9 @@ public abstract class AbstractAvailCompiler
 		final A_Phrase interpretation2)
 	{
 		final Mutable<A_Phrase> node1 =
-			new Mutable<A_Phrase>(interpretation1);
+			new Mutable<>(interpretation1);
 		final Mutable<A_Phrase> node2 =
-			new Mutable<A_Phrase>(interpretation2);
+			new Mutable<>(interpretation2);
 		findParseTreeDiscriminants(node1, node2);
 		where.expected(
 			new Describer()
@@ -2427,7 +2427,7 @@ public abstract class AbstractAvailCompiler
 				// They're sends of different messages, so don't go any deeper.
 				return;
 			}
-			final List<A_Phrase> parts1 = new ArrayList<A_Phrase>();
+			final List<A_Phrase> parts1 = new ArrayList<>();
 			node1.value.childrenDo(new Continuation1<A_Phrase>()
 			{
 				@Override
@@ -2436,7 +2436,7 @@ public abstract class AbstractAvailCompiler
 					parts1.add(part);
 				}
 			});
-			final List<A_Phrase> parts2 = new ArrayList<A_Phrase>();
+			final List<A_Phrase> parts2 = new ArrayList<>();
 			node2.value.childrenDo(new Continuation1<A_Phrase>()
 				{
 					@Override
@@ -2452,7 +2452,7 @@ public abstract class AbstractAvailCompiler
 				// Different structure at this level.
 				return;
 			}
-			final List<Integer> differentIndices = new ArrayList<Integer>();
+			final List<Integer> differentIndices = new ArrayList<>();
 			for (int i = 0; i < min(parts1.size(), parts2.size()); i++)
 			{
 				if (!parts1.get(i).equals(parts2.get(i)))
@@ -3025,7 +3025,7 @@ public abstract class AbstractAvailCompiler
 						builder.append(
 							"one of the following internal keywords:");
 					}
-					final List<String> sorted = new ArrayList<String>(
+					final List<String> sorted = new ArrayList<>(
 						incomplete.mapSize());
 					final boolean detail = incomplete.mapSize() < 10;
 					for (final MapDescriptor.Entry entry
@@ -4578,7 +4578,7 @@ public abstract class AbstractAvailCompiler
 								{
 									assert c != null;
 									final List<String> localNames =
-										new ArrayList<String>();
+										new ArrayList<>();
 									for (final A_Phrase usedLocal : usedLocals)
 									{
 										final A_String name =
@@ -4725,7 +4725,7 @@ public abstract class AbstractAvailCompiler
 		final A_String availName = StringDescriptor.from(macroName);
 		final A_Phrase nameLiteral =
 			LiteralNodeDescriptor.syntheticFrom(availName);
-		final List<A_Function> functionsList = new ArrayList<A_Function>();
+		final List<A_Function> functionsList = new ArrayList<>();
 		for (final int primitiveNumber : primitiveNumbers)
 		{
 			functionsList.add(
@@ -4960,7 +4960,7 @@ public abstract class AbstractAvailCompiler
 			return;
 		}
 		final Mutable<Integer> outstanding =
-			new Mutable<Integer>(moduleHeader.pragmas.size());
+			new Mutable<>(moduleHeader.pragmas.size());
 		final Continuation0 wrapped =
 			new Continuation0()
 			{
@@ -5116,9 +5116,9 @@ public abstract class AbstractAvailCompiler
 	@InnerAccess void parseModuleBody (final ParserState afterHeader)
 	{
 		final MutableOrNull<Con<A_Phrase>> parseOutermost =
-			new MutableOrNull<Con<A_Phrase>>();
+			new MutableOrNull<>();
 		final Mutable<ParserState> lastStart =
-			new Mutable<ParserState>(afterHeader);
+			new Mutable<>(afterHeader);
 		parseOutermost.value = new Con<A_Phrase>("Outermost statement")
 		{
 			@Override
@@ -5385,9 +5385,9 @@ public abstract class AbstractAvailCompiler
 		state = state.afterToken();
 
 		// Module header section tracking.
-		final List<ExpectedToken> expected = new ArrayList<ExpectedToken>(
+		final List<ExpectedToken> expected = new ArrayList<>(
 			asList(VERSIONS, EXTENDS, USES, NAMES, ENTRIES, PRAGMA, BODY));
-		final Set<A_String> seen = new HashSet<A_String>();
+		final Set<A_String> seen = new HashSet<>();
 		final Describer expectedMessage = new Describer()
 		{
 			@Override
@@ -5782,7 +5782,7 @@ public abstract class AbstractAvailCompiler
 		final A_Phrase parseTree)
 	{
 		final Mutable<A_Set> usedDeclarations =
-			new Mutable<A_Set>(SetDescriptor.empty());
+			new Mutable<>(SetDescriptor.empty());
 		parseTree.childrenDo(new Continuation1<A_Phrase>()
 		{
 			@Override

@@ -32,10 +32,10 @@
 
 package com.avail.interpreter.levelTwo.operation;
 
-import static com.avail.descriptor.AvailObject.error;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.*;
+import com.avail.interpreter.levelTwo.register.L2IntegerRegister;
 
 /**
  * Extract an int from the specified constant, and add it to an int register,
@@ -50,26 +50,39 @@ public class L2_ADD_INTEGER_CONSTANT_TO_INT extends L2Operation
 	 */
 	public final static L2Operation instance =
 		new L2_ADD_INTEGER_CONSTANT_TO_INT().init(
-			CONSTANT.is("addend"),
+			IMMEDIATE.is("addend"),
 			READWRITE_INT.is("augend"),
 			PC.is("if out of range"));
 
 	@Override
-	public void step (final Interpreter interpreter)
+	public void step (
+		final L2Instruction instruction,
+		final Interpreter interpreter)
 	{
-		@SuppressWarnings("unused")
-		final int integerIndex = interpreter.nextWord();
-		@SuppressWarnings("unused")
-		final int destIndex = interpreter.nextWord();
-		@SuppressWarnings("unused")
-		final int ifIndex = interpreter.nextWord();
-		error("not implemented");
+		final int addend = instruction.immediateAt(0);
+		final L2IntegerRegister augendReg =
+			instruction.readWriteIntRegisterAt(1);
+		final int outOfRangeOffset = instruction.pcAt(2);
+
+		final int augend = augendReg.in(interpreter);
+		final long longResult = (long)addend + (long)augend;
+		final int intResult = (int)longResult;
+		if (longResult == intResult)
+		{
+			augendReg.set(intResult, interpreter);
+		}
+		else
+		{
+			interpreter.offset(outOfRangeOffset);
+		}
 	}
 
 	@Override
 	public boolean hasSideEffect ()
 	{
-		// It jumps if the result doesn't fit in an int.
-		return true;
+		// Normally an operation that conditionally jumps would count as having
+		// a side-effect, but if nobody wants the value that was computed then
+		// we should be free to just remove this instruction.
+		return false;
 	}
 }

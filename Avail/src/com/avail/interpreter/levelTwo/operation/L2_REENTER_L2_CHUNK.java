@@ -31,7 +31,6 @@
  */
 package com.avail.interpreter.levelTwo.operation;
 
-import static com.avail.descriptor.AvailObject.error;
 import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_POINTER;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelOne.L1Operation;
@@ -58,9 +57,11 @@ public class L2_REENTER_L2_CHUNK extends L2Operation
 			WRITE_POINTER.is("continuation"));
 
 	@Override
-	public void step (final Interpreter interpreter)
+	public void step (
+		final L2Instruction instruction,
+		final Interpreter interpreter)
 	{
-		error("Re-enter chunk wordcode is not executable\n");
+		// Do nothing.
 	}
 
 	@Override

@@ -38,7 +38,6 @@ import java.util.concurrent.locks.ReentrantLock;
 import com.avail.annotations.*;
 import com.avail.descriptor.*;
 import com.avail.optimizer.L2Translator;
-import com.avail.interpreter.levelTwo.operand.L2ConstantOperand;
 import com.avail.interpreter.levelTwo.register.*;
 
 /**
@@ -123,40 +122,10 @@ public final class L2Chunk
 	boolean valid;
 
 	/**
-	 * XXX[MvG] Make this be an array of L2Instructions.
-	 * The {@linkplain L2Instruction level two instructions} encoded as a
-	 * tuple of integers.
-	 *
+	 * The sequence of {@link L2Instruction}s that make up this L2Chunk.
 	 */
-	A_Tuple wordcodes;
-
-//TODO[MvG] Convert this class.
-//	/**
-//	 * The sequence of {@link L2Instruction}s that make up this L2Chunk.
-//	 */
-//	List<L2Instruction> instructions;
-
-	/**
-	 * XXX[MvG] Eliminate this eventually, since the instructions will be around
-	 * at runtime to hold the array of register objects themselves.
-	 *
-	 * A {@linkplain TupleDescriptor tuple} of tuples of integers. Each
-	 * integer represents an object register, so each tuple of integers acts
-	 * like a list of registers to be processed together, such as supplying
-	 * arguments to a method invocation.
-	 */
-	A_Tuple vectors;
-
-	/**
-	 * XXX[MvG] Eliminate this eventually, since each constant will be embedded
-	 * directly within a {@link L2ConstantOperand}s of an L2Instruction,
-	 * negating the need for a separate tuple/list/array.
-	 *
-	 * The literal objects that the {@link #wordcodes} refer to via encoded
-	 * operands of type {@link L2OperandType#CONSTANT} or {@link
-	 * L2OperandType#SELECTOR}.
-	 */
-	List<AvailObject> literals;
+	@SuppressWarnings("null")
+	public L2Instruction [] instructions;
 
 	/**
 	 * Answer the Avail {@linkplain PojoDescriptor pojo} associated with this
@@ -167,103 +136,96 @@ public final class L2Chunk
 			PojoTypeDescriptor.forClass(this.getClass()))
 		.makeShared();
 
+	/**
+	 * Answer an integer that uniquely identifies this chunk.  This allows a
+	 * chunk to be invalidated given only its index and {@link
+	 * #allChunksWeakly}.  In fact, the L2Chunk itself may already have been
+	 * garbage collected by that point!
+	 *
+	 * @return The chunk's identifying index.
+	 */
 	public int index ()
 	{
 		return index;
 	}
 
-	void index (final int theIndex)
-	{
-		index = theIndex;
-	}
-
+	/**
+	 * Answer the number of floating point registers used by this chunk.
+	 *
+	 * @return The count of float registers.
+	 */
 	public int numDoubles ()
 	{
 		return numDoubles;
 	}
 
+	/**
+	 * Answer the number of integer registers used by this chunk.
+	 *
+	 * @return The count of integer registers.
+	 */
 	public int numIntegers ()
 	{
 		return numIntegers;
 	}
 
+	/**
+	 * Answer the number of object registers used by this chunk.
+	 *
+	 * @return The count of object registers.
+	 */
 	public int numObjects ()
 	{
 		return numObjects;
 	}
 
+	/**
+	 * Answer whether this chunk is still valid.  A {@linkplain
+	 * ContinuationDescriptor continuation} or {@linkplain
+	 * CompiledCodeDescriptor raw function} may refer to an invalid chunk, but
+	 * attempts to resume or invoke (respectively) such a chunk are detected and
+	 * cause the {@link #unoptimizedChunk()} to be substituted instead.  We
+	 * don't have to worry about an Interpreter holding onto a chunk when it
+	 * becomes invalid, because invalidation can only happen when the runtime
+	 * temporarily inhibits running Avail code, and all fibers have had their
+	 * continuation reified to a level-one-coherent state.
+	 *
+	 * @return Whether this chunk is still valid.
+	 */
 	public boolean isValid ()
 	{
 		return valid;
 	}
 
-	public A_Tuple wordcodes ()
+	@Override
+	public String toString ()
 	{
-		return wordcodes;
-	}
-
-	public A_Tuple vectors ()
-	{
-		return vectors;
-	}
-
-	/**
-	 * Answer the literal with the given <em>one-based</em> subscript.
-	 *
-	 * @param subscript The one-based subscript.
-	 * @return The chunk's literal at that subscript.
-	 */
-	public AvailObject literalAt(final int subscript)
-	{
-		return literals.get(subscript - 1);
-	}
-
-	public void printObjectOn (
-		final StringBuilder aStream,
-		final int indent)
-	{
+		final StringBuilder builder = new StringBuilder();
 		if (index() == 0)
 		{
-			aStream.append("Default chunk #0");
-			return;
+			return "Default chunk #0";
 		}
-		aStream.append("Chunk #");
-		aStream.append(index());
-		aStream.append("\n");
-		final StringBuilder tabStream = new StringBuilder();
-		for (int t = 1; t <= indent; t++)
-		{
-			tabStream.append("\t");
-		}
-		final String tabString = tabStream.toString();
-
+		builder.append("Chunk #");
+		builder.append(index());
+		builder.append("\n");
 		if (!isValid())
 		{
-			aStream.append(tabString);
-			aStream.append("(INVALID)\n");
+			builder.append("\t(INVALID)\n");
 		}
-		final A_Tuple words = wordcodes();
-		final L2RawInstructionDescriber describer =
-			new L2RawInstructionDescriber();
-		for (int i = 1, limit = words.tupleSize(); i <= limit; )
+		final L2InstructionDescriber describer =
+			new L2InstructionDescriber();
+		int offset = 0;
+		for (final L2Instruction instruction : instructions)
 		{
-			aStream.append(String.format("%s\t#%-3d ", tabString, i));
-			final L2Operation operation =
-				L2Operation.values()[words.tupleIntAt(i)];
-			i++;
-			final int[] operands = new int[operation.operandTypes().length];
-			for (int opIndex = 0; opIndex < operands.length; opIndex++, i++)
-			{
-				operands[opIndex] = words.tupleIntAt(i);
-			}
-			final L2RawInstruction rawInstruction =
-				new L2RawInstruction(operation, operands);
+			builder.append(String.format("\t#%-3d ", offset));
 			final StringBuilder tempStream = new StringBuilder(100);
-			describer.describe(rawInstruction, this, tempStream);
-			aStream.append(
-				tempStream.toString().replace("\n", "\n\t\t" + tabString));
-			aStream.append("\n");
+			describer.describe(instruction, this, tempStream);
+			builder.append(
+				tempStream.toString().replace("\n", "\n\t\t"));
+			builder.append("\n");
+			offset++;
 		}
+		return builder.toString();
 	}
 
 	/**
@@ -283,9 +245,9 @@ public final class L2Chunk
 		 * chunks}' {@linkplain WeakChunkReference weak references} will be
 		 * placed upon expiration. There is no special process to remove them
 		 * from here. Rather, an element of this queue is consumed when needed
-		 * for {@linkplain L2Chunk#allocate(A_RawFunction, List, List, int, int,
-		 * int, List, Set) allocation} of a new chunk. If this queue is empty, a
-		 * fresh index is allocated.
+		 * for {@linkplain L2Chunk#allocate(A_RawFunction, int, int, int, List,
+		 * Set) allocation} of a new chunk. If this queue is empty, a fresh
+		 * index is allocated.
 		 */
 		static final ReferenceQueue<L2Chunk> recyclingQueue =
 			new ReferenceQueue<>();
@@ -347,7 +309,7 @@ public final class L2Chunk
 	{
 		// This is hard-coded, but cross-checked by
 		// L2Translator#createChunkForFirstInvocation().
-		return 9;
+		return 7;
 	}
 
 	/**
@@ -359,7 +321,7 @@ public final class L2Chunk
 	 */
 	public static int countdownForInvalidatedCode ()
 	{
-		return 100;
+		return 10;
 	}
 
 	/**
@@ -403,11 +365,6 @@ public final class L2Chunk
 	 * @param code
 	 *        The {@linkplain CompiledCodeDescriptor code} for which to use the
 	 *        new level two chunk, or null for the initial unoptimized chunk.
-	 * @param listOfLiterals
-	 *        The {@link List} of literal objects used by the new chunk.
-	 * @param listOfVectors
-	 *        The {@link List} of vectors, each of which is a list of
-	 *        {@linkplain Integer}s denoting an {@link L2ObjectRegister}.
 	 * @param numObjects
 	 *        The number of {@linkplain L2ObjectRegister object registers} that
 	 *        this chunk will require.
@@ -417,10 +374,9 @@ public final class L2Chunk
 	 * @param numFloats
 	 *        The number of {@linkplain L2FloatRegister floating point
 	 *        registers} that this chunk will require.
-	 * @param theWordcodes
-	 *        A {@link List} of {@linkplain Integer}s that encode the
-	 *        {@linkplain L2Instruction}s to execute in place of the level
-	 *        one nybblecodes.
+	 * @param theInstructions
+	 *        A {@link List} of {@link L2Instruction}s that prescribe what to do
+	 *        in place of the level one nybblecodes.
 	 * @param contingentMethods
 	 *        A {@link Set} of {@linkplain MethodDescriptor methods} on which
 	 *        the level two chunk depends.
@@ -428,36 +384,17 @@ public final class L2Chunk
 	 */
 	public static L2Chunk allocate (
 		final @Nullable A_RawFunction code,
-		final List<AvailObject> listOfLiterals,
-		final List<List<Integer>> listOfVectors,
 		final int numObjects,
 		final int numIntegers,
 		final int numFloats,
-		final List<Integer> theWordcodes,
+		final List<L2Instruction> theInstructions,
 		final Set<A_Method> contingentMethods)
 	{
-		final List<A_Tuple> vectorTuples =
-			new ArrayList<>(listOfVectors.size());
-		for (final List<Integer> vector : listOfVectors)
-		{
-			final A_Tuple vectorTuple =
-				TupleDescriptor.fromIntegerList(vector);
-			vectorTuple.makeImmutable();
-			vectorTuples.add(vectorTuple);
-		}
-		final A_Tuple vectorTuplesTuple =
-			TupleDescriptor.fromList(vectorTuples);
-		vectorTuplesTuple.makeImmutable();
-		final A_Tuple wordcodesTuple =
-			TupleDescriptor.fromIntegerList(theWordcodes);
-		wordcodesTuple.makeImmutable();
 		final L2Chunk chunk = create(
-			vectorTuplesTuple,
 			numObjects,
 			numIntegers,
 			numFloats,
-			wordcodesTuple,
-			listOfLiterals);
+			theInstructions);
 		final int index;
 		chunksLock.lock();
 		try
@@ -487,7 +424,7 @@ public final class L2Chunk
 				index = allChunksWeakly.size();
 				allChunksWeakly.add(null);
 			}
-			chunk.index(index);
+			chunk.index = index;
 			final WeakChunkReference newReference = new WeakChunkReference(
 				chunk,
 				contingentMethods);
@@ -545,9 +482,7 @@ public final class L2Chunk
 				chunk.valid = false;
 				// The empty tuple is already shared, so we don't need to share
 				// it here.
-				chunk.wordcodes = TupleDescriptor.empty();
-				chunk.vectors = TupleDescriptor.empty();
-				chunk.literals = Collections.emptyList();
+				chunk.instructions = new L2Instruction[0];
 			}
 			final Set<A_Method> methods = ref.contingentMethods;
 			for (final A_Method method : methods)
@@ -566,32 +501,27 @@ public final class L2Chunk
 	 * Create a new {@linkplain L2Chunk level two chunk} with the given
 	 * information.
 	 *
-	 * @param vectorTuplesTuple
 	 * @param numObjects
 	 * @param numIntegers
 	 * @param numFloats
-	 * @param wordcodesTuple
-	 * @param listOfLiterals
+	 * @param theInstructions
 	 * @return
 	 */
 	private static L2Chunk create (
-		final A_Tuple vectorTuplesTuple,
 		final int numObjects,
 		final int numIntegers,
 		final int numFloats,
-		final A_Tuple wordcodesTuple,
-		final List<AvailObject> listOfLiterals)
+		final List<L2Instruction> theInstructions)
 	{
 		final L2Chunk chunk = new L2Chunk();
 		// A new chunk starts out saved and valid.
 		chunk.saved = true;
 		chunk.valid = true;
-		chunk.vectors = vectorTuplesTuple;
 		chunk.numObjects = numObjects;
 		chunk.numIntegers = numIntegers;
 		chunk.numDoubles = numFloats;
-		chunk.wordcodes = wordcodesTuple;
-		chunk.literals = new ArrayList<AvailObject>(listOfLiterals);
+		chunk.instructions =
+			theInstructions.toArray(new L2Instruction[theInstructions.size()]);
 		return chunk;
 	}
 

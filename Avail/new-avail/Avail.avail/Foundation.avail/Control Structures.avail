@@ -738,8 +738,9 @@ Method "_(«_‡,»)" is
 	aContinuation : continuation,
 	arguments : tuple
 |
-	Restart aContinuation with arguments
-];
+	Primitive 56 (failureCode : natural number);
+	Invoke early failure function with <failureCode>
+] : ⊥;
 
 /**
  * Reject the current parse if the argument types do not conform to the

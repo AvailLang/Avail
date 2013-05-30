@@ -51,7 +51,7 @@ public class Deserializer
 	 * The objects that have been assembled so far.
 	 */
 	protected final List<AvailObject> assembledObjects =
-		new ArrayList<AvailObject>(1000);
+		new ArrayList<>(1000);
 
 	/**
 	 * The most recently object produced by deserialization.

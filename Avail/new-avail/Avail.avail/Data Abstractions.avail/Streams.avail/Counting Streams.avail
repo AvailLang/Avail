@@ -103,6 +103,7 @@ counting integer stream's tail method is
 [
 	aStream : counting integer stream
 |
+	Breakpoint;
 	nextValue ::= aStream's next + aStream's step;
 	aStream's
 		element type ::= (nextValue - 1..aStream's maximum + 1),

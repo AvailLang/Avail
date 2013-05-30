@@ -84,7 +84,9 @@ stream iterator's advance method is
 [
 	anIterator : stream iterator
 |
+Breakpoint; /* TODO Remove */
 	anIterator's adapted stream := anIterator's adapted stream's tail;
+Breakpoint; /* TODO Remove */
 ] : ⊤;
 
 Method "_'s⁇position" is

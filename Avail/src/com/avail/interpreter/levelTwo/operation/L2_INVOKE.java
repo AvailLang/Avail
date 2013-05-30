@@ -35,10 +35,11 @@ import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import java.util.List;
 import com.avail.descriptor.A_Continuation;
 import com.avail.descriptor.A_Function;
-import com.avail.descriptor.A_Tuple;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.*;
 import com.avail.interpreter.levelTwo.register.FixedRegister;
+import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
+import com.avail.interpreter.levelTwo.register.L2RegisterVector;
 import com.avail.optimizer.RegisterSet;
 
 /**
@@ -64,21 +65,24 @@ public class L2_INVOKE extends L2Operation
 			READ_VECTOR.is("arguments"));
 
 	@Override
-	public void step (final Interpreter interpreter)
+	public void step (
+		final L2Instruction instruction,
+		final Interpreter interpreter)
 	{
-		// Assume the current continuation is already reified.
-		final int callerIndex = interpreter.nextWord();
-		final int functionIndex = interpreter.nextWord();
-		final int argumentsIndex = interpreter.nextWord();
-		final A_Continuation caller = interpreter.pointerAt(callerIndex);
-		final A_Function function = interpreter.pointerAt(functionIndex);
-		final A_Tuple vect = interpreter.vectorAt(argumentsIndex);
+		// The continuation is required to have already been reified.
+		final L2ObjectRegister continuationReg =
+			instruction.readObjectRegisterAt(0);
+		final L2ObjectRegister functionReg =
+			instruction.readObjectRegisterAt(1);
+		final L2RegisterVector argumentsReg =
+			instruction.readVectorRegisterAt(2);
+
+		final A_Continuation caller = continuationReg.in(interpreter);
+		final A_Function function = functionReg.in(interpreter);
 		interpreter.argsBuffer.clear();
-		final int vectSize = vect.tupleSize();
-		for (int i = 1; i <= vectSize; i++)
+		for (final L2ObjectRegister argumentReg : argumentsReg.registers())
 		{
-			interpreter.argsBuffer.add(
-				interpreter.pointerAt(vect.tupleIntAt(i)));
+			interpreter.argsBuffer.add(argumentReg.in(interpreter));
 		}
 		interpreter.clearPointerAt(FixedRegister.CALLER.ordinal());  // safety
 		interpreter.invokePossiblePrimitiveWithReifiedCaller(

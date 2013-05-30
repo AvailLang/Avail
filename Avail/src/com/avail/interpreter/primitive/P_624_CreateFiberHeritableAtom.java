@@ -69,9 +69,9 @@ extends Primitive
 		final A_String name = args.get(0);
 		final A_Module module = ModuleDescriptor.current();
 		final MutableOrNull<A_Atom> trueName =
-			new MutableOrNull<A_Atom>();
+			new MutableOrNull<>();
 		final MutableOrNull<AvailErrorCode> errorCode =
-			new MutableOrNull<AvailErrorCode>();
+			new MutableOrNull<>();
 		if (!module.equalsNil())
 		{
 			module.lock(

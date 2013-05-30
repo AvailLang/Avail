@@ -259,25 +259,6 @@ Semantic restriction "⎡_⎤" is
 	integer range upper bound semantic restriction function;
 
 /**
- * Is `value` within `range`?
- * 
- * @method "_∈_"
- * @param "value" "extended integer"
- *        An extended integer.
- * @param "range" "extended integer meta"
- *        An integral range.
- * @returns "boolean"
- *          `true` if `value` is within `range`, `false` otherwise.
- */
-Method "_∈_" is
-[
-	value : extended integer,
-	range : extended integer meta
-|
-	value's type ⊆ range
-] : boolean;
-
-/**
  * Construct and answer an integer range type with the specified bounds.
  * 
  * @method "[_.._]"
@@ -480,7 +461,7 @@ Public method "«_‡min»" is minimum function;
 /* Don't parse `«_‡min»` recursively. */
 Invoke
 [
-	cast ::= [ t : {string|whole number} | t ];
+	cast ::= [ t : {string|natural number} | t ];
 	names ::= cast <"«_‡min»">→set into cast;
 	exclusions ::= cast <"«_‡min»">→set into cast;
 	Grammatical restriction names is <exclusions>;
@@ -537,7 +518,7 @@ Public method "«_‡max»" is maximum function;
 /* Don't parse `«_‡max»` recursively. */
 Invoke
 [
-	cast ::= [ t : {string|whole number} | t ];
+	cast ::= [ t : {string|natural number} | t ];
 	names ::= cast <"«_‡max»">→set into cast;
 	exclusions ::= cast <"«_‡max»">→set into cast;
 	Grammatical restriction names is <exclusions>;
@@ -871,7 +852,7 @@ Public stable method "_≥_" is
 /* Make addition and subtraction left-associative. */
 Invoke
 [
-	cast ::= [ t : {string|whole number} | t ];
+	cast ::= [ t : {string|natural number} | t ];
 	names ::= cast <"_+_", "_-_">→set into cast;
 	Grammatical restriction names is <∅, names>;
 ]

@@ -85,13 +85,6 @@ public class L2WriteIntOperand extends L2Operand
 	}
 
 	@Override
-	public void emitOn (
-		final L2CodeGenerator codeGenerator)
-	{
-		codeGenerator.emitIntegerRegister(register);
-	}
-
-	@Override
 	public String toString ()
 	{
 		return String.format("WriteInt(%s)", register);

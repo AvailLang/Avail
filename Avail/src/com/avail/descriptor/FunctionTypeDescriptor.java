@@ -194,7 +194,7 @@ extends TypeDescriptor
 		final int indent)
 	{
 		aStream.append('[');
-		final List<A_BasicObject> list = new ArrayList<A_BasicObject>();
+		final List<A_BasicObject> list = new ArrayList<>();
 		final A_Type tupleType = object.argsTupleType();
 		if (tupleType.equals(BottomTypeDescriptor.bottom()))
 		{

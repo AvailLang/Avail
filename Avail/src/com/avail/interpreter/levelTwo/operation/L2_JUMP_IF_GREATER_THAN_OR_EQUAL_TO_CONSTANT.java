@@ -32,11 +32,19 @@
 
 package com.avail.interpreter.levelTwo.operation;
 
-import static com.avail.descriptor.AvailObject.error;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
+import com.avail.descriptor.A_Number;
+import com.avail.descriptor.AbstractNumberDescriptor.Order;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.*;
+import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 
+/**
+ * Jump to the target if the object is numerically greater than or equal to the
+ * constant.
+ *
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ */
 public class L2_JUMP_IF_GREATER_THAN_OR_EQUAL_TO_CONSTANT extends L2Operation
 {
 	/**
@@ -49,15 +57,20 @@ public class L2_JUMP_IF_GREATER_THAN_OR_EQUAL_TO_CONSTANT extends L2Operation
 			CONSTANT.is("constant"));
 
 	@Override
-	public void step (final Interpreter interpreter)
+	public void step (
+		final L2Instruction instruction,
+		final Interpreter interpreter)
 	{
-		@SuppressWarnings("unused")
-		final int doIndex = interpreter.nextWord();
-		@SuppressWarnings("unused")
-		final int ifIndex = interpreter.nextWord();
-		@SuppressWarnings("unused")
-		final int equalIndex = interpreter.nextWord();
-		error("not implemented");
+		final int target = instruction.pcAt(0);
+		final L2ObjectRegister objectReg = instruction.readObjectRegisterAt(1);
+		final A_Number constant = instruction.constantAt(2);
+
+		final Order comparison =
+			objectReg.in(interpreter).numericCompare(constant);
+		if (comparison.isMoreOrEqual())
+		{
+			interpreter.offset(target);
+		}
 	}
 
 	@Override

@@ -45,7 +45,9 @@ import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.utility.*;
 
 /**
- * My instances represent assignment statements.
+ * My instances represent variable and constant statements.  There are several
+ * {@linkplain DeclarationKind kinds of declarations}, some with initializing
+ * expressions and some with type expressions.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */

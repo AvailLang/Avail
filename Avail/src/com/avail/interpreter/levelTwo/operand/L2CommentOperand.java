@@ -83,13 +83,6 @@ public class L2CommentOperand extends L2Operand
 	}
 
 	@Override
-	public void emitOn (
-		final L2CodeGenerator codeGenerator)
-	{
-		// emit nothing
-	}
-
-	@Override
 	public String toString ()
 	{
 		final StringBuilder builder = new StringBuilder();

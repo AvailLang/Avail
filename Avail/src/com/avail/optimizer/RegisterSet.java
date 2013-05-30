@@ -59,13 +59,13 @@ public final class RegisterSet
 	 * The mapping from each register to its current type, if known.
 	 */
 	final Map<L2Register, A_Type> registerTypes =
-		new HashMap<L2Register, A_Type>(10);
+		new HashMap<>(10);
 
 	/**
 	 * The mapping from each register to its current value, if known.
 	 */
 	final Map<L2Register, AvailObject> registerConstants =
-		new HashMap<L2Register, AvailObject>(10);
+		new HashMap<>(10);
 
 	/**
 	 * The mapping from each register to a list of other registers that have the

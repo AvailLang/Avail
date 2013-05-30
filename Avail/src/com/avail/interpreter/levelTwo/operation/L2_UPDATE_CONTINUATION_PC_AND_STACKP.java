@@ -31,10 +31,11 @@
  */
 package com.avail.interpreter.levelTwo.operation;
 
-import static com.avail.descriptor.AvailObject.error;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
+import com.avail.descriptor.A_Continuation;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.*;
+import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 
 /**
  * Update an existing continuation's level one program counter and stack
@@ -55,15 +56,18 @@ public class L2_UPDATE_CONTINUATION_PC_AND_STACKP extends L2Operation
 			IMMEDIATE.is("new stack pointer"));
 
 	@Override
-	public void step (final Interpreter interpreter)
+	public void step (
+		final L2Instruction instruction,
+		final Interpreter interpreter)
 	{
-		// TODO [MvG] Implement.
-		@SuppressWarnings("unused")
-		final int continuationIndex = interpreter.nextWord();
-		@SuppressWarnings("unused")
-		final int pcIndex = interpreter.nextWord();
-		@SuppressWarnings("unused")
-		final int stackpIndex = interpreter.nextWord();
-		error("not implemented");
+		final L2ObjectRegister continuationReg =
+			instruction.readWriteObjectRegisterAt(0);
+		final int newPc = instruction.immediateAt(1);
+		final int newStackp = instruction.immediateAt(2);
+
+		A_Continuation continuation = continuationReg.in(interpreter);
+		continuation = continuation.ensureMutable();
+		continuation.adjustPcAndStackp(newPc, newStackp);
+		continuationReg.set(continuation,interpreter);
 	}
 }

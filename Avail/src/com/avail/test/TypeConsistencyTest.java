@@ -140,14 +140,14 @@ public class TypeConsistencyTest
 		/**
 		 * The list of all currently defined {@linkplain Node type nodes}.
 		 */
-		static final List<Node> values = new ArrayList<Node>();
+		static final List<Node> values = new ArrayList<>();
 
 		/**
 		 * A mapping from {@link com.avail.descriptor.TypeDescriptor.Types} to
 		 * their corresponding {@link Node}s.
 		 */
 		private static final EnumMap<Types, Node> primitiveTypes =
-			new EnumMap<Types, Node>(Types.class);
+			new EnumMap<>(Types.class);
 
 		static
 		{
@@ -929,7 +929,7 @@ public class TypeConsistencyTest
 		 * yet.
 		 */
 		static final Map<ParseNodeKind, Map<Node, Node>> parseNodeTypeMap =
-			new HashMap<ParseNodeKind, Map<Node, Node>>();
+			new HashMap<>();
 
 		/**
 		 * Create a parse node type Node with the given name, parse node kind,
@@ -966,7 +966,7 @@ public class TypeConsistencyTest
 				submap = new HashMap<Node, Node>();
 				parseNodeTypeMap.put(parseNodeKind, submap);
 			}
-			final List<Node> parents = new ArrayList<Node>();
+			final List<Node> parents = new ArrayList<>();
 			if (parseNodeKind.parentKind() == null)
 			{
 				parents.add(primitiveTypes.get(Types.NONTYPE));
@@ -1015,7 +1015,7 @@ public class TypeConsistencyTest
 		{
 			for (final Node node : innerNodes)
 			{
-				final List<Node> ancestors = new ArrayList<Node>();
+				final List<Node> ancestors = new ArrayList<>();
 				if (node == null)
 				{
 					ancestors.addAll(Arrays.asList(innerNodes));
@@ -1195,7 +1195,7 @@ public class TypeConsistencyTest
 		 * The list of all {@link Node}s except BOTTOM.
 		 */
 		private static final List<Node> nonBottomTypes =
-			new ArrayList<Node>();
+			new ArrayList<>();
 
 		static
 		{
@@ -1244,13 +1244,13 @@ public class TypeConsistencyTest
 		final Node [] supernodes;
 
 		/** The set of subnodes in the graph. */
-		private final Set<Node> subnodes = new HashSet<Node>();
+		private final Set<Node> subnodes = new HashSet<>();
 
 		/** Every node from which this node descends. */
 		final Set<Node> allAncestors;
 
 		/** Every node descended from this one. */
-		final Set<Node> allDescendants = new HashSet<Node>();
+		final Set<Node> allDescendants = new HashSet<>();
 
 		/**
 		 * A cache of type unions where I'm the left participant and the right
@@ -1288,7 +1288,7 @@ public class TypeConsistencyTest
 			this.name = name;
 			this.supernodes = supernodes;
 			this.index = values.size();
-			final Set<Node> ancestors = new HashSet<Node>();
+			final Set<Node> ancestors = new HashSet<>();
 			for (final Node supernode : supernodes)
 			{
 				ancestors.addAll(supernode.allAncestors);
@@ -1501,7 +1501,7 @@ public class TypeConsistencyTest
 	 */
 	public static void dumpGraphTo (final PrintStream out)
 	{
-		final Set<A_Type> allTypes = new HashSet<A_Type>();
+		final Set<A_Type> allTypes = new HashSet<>();
 		for (final Node node : Node.values)
 		{
 			allTypes.add(node.t);
@@ -1523,8 +1523,8 @@ public class TypeConsistencyTest
 				}
 			}
 		}
-		final List<A_Type> allTypesList = new ArrayList<A_Type>(allTypes);
-		final Map<A_Type,Integer> inverse = new HashMap<A_Type,Integer>();
+		final List<A_Type> allTypesList = new ArrayList<>(allTypes);
+		final Map<A_Type,Integer> inverse = new HashMap<>();
 		final String[] names = new String[allTypes.size()];
 		for (int i = 0; i < allTypesList.size(); i++)
 		{

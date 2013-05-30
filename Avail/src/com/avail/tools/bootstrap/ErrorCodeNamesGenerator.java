@@ -64,7 +64,7 @@ extends PropertiesFileGenerator
 		final Properties properties,
 		final PrintWriter writer)
 	{
-		final Set<String> keys = new HashSet<String>();
+		final Set<String> keys = new HashSet<>();
 		for (final AvailErrorCode code : AvailErrorCode.values())
 		{
 			if (code.nativeCode() > 0)

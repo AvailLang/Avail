@@ -36,26 +36,28 @@ import java.util.*;
 import com.avail.annotations.*;
 import com.avail.descriptor.*;
 import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.operand.*;
 import com.avail.interpreter.levelTwo.operation.L2_LABEL;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
+import com.avail.interpreter.levelTwo.register.L2IntegerRegister;
+import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.interpreter.levelTwo.register.L2Register;
+import com.avail.interpreter.levelTwo.register.L2RegisterVector;
 import com.avail.utility.*;
 
 /**
  * {@code L2Instruction} is the foundation for all instructions understood by
  * the {@linkplain Interpreter level two Avail interpreter}. These
  * instructions are model objects generated and manipulated by the {@linkplain
- * L2Translator translator} and the {@linkplain L2CodeGenerator code generator}.
+ * L2Translator translator}.
  *
- * <p>It implements a mechanism for establishing and interrogating the position
- * of the instruction within its {@linkplain L2Chunk chunk}'s {@linkplain
- * L2Chunk#wordcodes() wordcode stream}. It defines responsibilities for
- * interrogating the source and destination {@linkplain L2Register registers}
- * used by the instruction and emitting the instruction on a code generator.
- * Lastly, it specifies an entry point for describing type and constant value
- * propagation to a translator.</p>
+ * <p>It used to be the case that the instructions were flattened into a stream
+ * of integers, operation followed by operands.  That is no longer the case, as
+ * of 2013-05-01 [MvG].  Instead, the L2Instructions themselves are kept around.
+ * To execute an L2Instruction, its L2Operation is extracted and asked to
+ * {@linkplain L2Operation#step(L2Instruction, Interpreter) step}.</p>
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
@@ -73,16 +75,16 @@ public final class L2Instruction
 	public final L2Operand[] operands;
 
 	/**
-	 * The position of the {@linkplain L2Instruction instruction} in its
-	 * {@linkplain L2Chunk#wordcodes() wordcode stream}.
+	 * The position of this {@link L2Instruction} within its array of
+	 * instructions.
 	 */
 	private int offset = -1;
 
 	/**
-	 * Answer the position of the {@linkplain L2Instruction instruction} in its
-	 * {@linkplain L2Chunk#wordcodes() wordcode stream}.
+	 * Answer the position of this {@link L2Instruction} within its array of
+	 * instructions.
 	 *
-	 * @return The position of the instruction in its wordcode stream.
+	 * @return The position of the instruction in its chunk's instruction array.
 	 */
 	public int offset ()
 	{
@@ -90,11 +92,11 @@ public final class L2Instruction
 	}
 
 	/**
-	 * Set the final position of the {@linkplain L2Instruction instruction}
-	 * within its {@linkplain L2Chunk#wordcodes() wordcode stream}.
+	 * Set the final position of the {@link L2Instruction} within its {@link
+	 * L2Chunk}'s array of instructions.
 	 *
 	 * @param offset
-	 *        The final position of the instruction within its wordcode stream.
+	 *        The final position of the instruction within the array.
 	 */
 	public void setOffset (final int offset)
 	{
@@ -134,7 +136,7 @@ public final class L2Instruction
 	 */
 	public List<L2Register> sourceRegisters ()
 	{
-		final List<L2Register> sourceRegisters = new ArrayList<L2Register>();
+		final List<L2Register> sourceRegisters = new ArrayList<>();
 		for (final L2Operand operand : operands)
 		{
 			if (operand.operandType().isSource)
@@ -167,7 +169,7 @@ public final class L2Instruction
 	public List<L2Register> destinationRegisters ()
 	{
 		final List<L2Register> destinationRegisters =
-			new ArrayList<L2Register>();
+			new ArrayList<>();
 		for (final L2Operand operand : operands)
 		{
 			if (operand.operandType().isDestination)
@@ -215,25 +217,6 @@ public final class L2Instruction
 			}
 		}
 		return labels;
-	}
-
-	/**
-	 * Emit this {@linkplain L2Instruction instruction} to the specified
-	 * {@linkplain L2CodeGenerator code generator}.
-	 *
-	 * @param codeGenerator A {@linkplain L2CodeGenerator code generator}.
-	 */
-	public void emitOn (
-		final L2CodeGenerator codeGenerator)
-	{
-		if (operation.shouldEmit())
-		{
-			codeGenerator.emitL2Operation(operation);
-			for (final L2Operand operand : operands)
-			{
-				operand.emitOn(codeGenerator);
-			}
-		}
 	}
 
 	/**
@@ -319,5 +302,200 @@ public final class L2Instruction
 			builder.append(operands[i]);
 		}
 		return builder.toString();
+	}
+
+	/**
+	 * Extract the {@link String} from the {@link L2CommentOperand} having the
+	 * specified position in my array of operands.
+	 *
+	 * @param operandIndex Which operand holds the comment.
+	 * @return The String from the comment.
+	 */
+	public final String commentAt (final int operandIndex)
+	{
+		return ((L2CommentOperand)operands[operandIndex]).comment;
+	}
+
+	/**
+	 * Extract the constant {@link AvailObject} from the {@link
+	 * L2ConstantOperand} having the specified position in my array of operands.
+	 *
+	 * @param operandIndex Which operand holds the constant.
+	 * @return The constant value.
+	 */
+	public final AvailObject constantAt (final int operandIndex)
+	{
+		return ((L2ConstantOperand)operands[operandIndex]).object;
+	}
+
+	/**
+	 * Extract the {@link A_Bundle} from the {@link L2SelectorOperand} having
+	 * the specified position in my array of operands.
+	 *
+	 * @param operandIndex Which operand holds the message bundle.
+	 * @return The message bundle.
+	 */
+	public final A_Bundle bundleAt (final int operandIndex)
+	{
+		return ((L2SelectorOperand)operands[operandIndex]).bundle;
+	}
+
+	/**
+	 * Extract the immediate {@code int}  from the {@link L2ImmediateOperand}
+	 * having the specified position in my array of operands.
+	 *
+	 * @param operandIndex Which operand holds the immediate value.
+	 * @return The immediate value.
+	 */
+	public final int immediateAt (final int operandIndex)
+	{
+		return ((L2ImmediateOperand)operands[operandIndex]).value;
+	}
+
+	/**
+	 * Extract the program counter {@code int} from the {@link L2PcOperand}
+	 * having the specified position in my array of operands.
+	 *
+	 * @param operandIndex Which operand holds the program counter value.
+	 * @return An int representing a target offset into a chunk's instructions.
+	 */
+	public final int pcAt (final int operandIndex)
+	{
+		return ((L2PcOperand)operands[operandIndex]).targetLabel().offset;
+	}
+
+	/**
+	 * Extract the {@link Primitive} from the {@link L2PrimitiveOperand} having
+	 * the specified position in my array of operands.
+	 *
+	 * @param operandIndex Which operand holds a primitive.
+	 * @return The specified {@link Primitive}.
+	 */
+	public final Primitive primitiveAt (final int operandIndex)
+	{
+		return ((L2PrimitiveOperand)operands[operandIndex]).primitive;
+	}
+
+	/**
+	 * Extract the {@link L2IntegerRegister} from the {@link L2ReadIntOperand}
+	 * having the specified position in my array of operands.
+	 *
+	 * @param operandIndex Which operand holds a read of an integer register.
+	 * @return The specified {@link L2IntegerRegister} to read.
+	 */
+	public final L2IntegerRegister readIntRegisterAt (final int operandIndex)
+	{
+		return ((L2ReadIntOperand)operands[operandIndex]).register;
+	}
+
+	/**
+	 * Extract the {@link L2IntegerRegister} from the {@link L2WriteIntOperand}
+	 * having the specified position in my array of operands.
+	 *
+	 * @param operandIndex Which operand holds a write of an integer register.
+	 * @return The specified {@link L2IntegerRegister} to write.
+	 */
+	public final L2IntegerRegister writeIntRegisterAt (final int operandIndex)
+	{
+		return ((L2WriteIntOperand)operands[operandIndex]).register;
+	}
+
+	/**
+	 * Extract the {@link L2IntegerRegister} from the {@link
+	 * L2ReadWriteIntOperand} having the specified position in my array of
+	 * operands.
+	 *
+	 * @param operandIndex
+	 *            Which operand holds a read&write of an integer register.
+	 * @return
+	 *            The specified {@link L2IntegerRegister} to read and write.
+	 */
+	public final L2IntegerRegister readWriteIntRegisterAt (
+		final int operandIndex)
+	{
+		return ((L2ReadWriteIntOperand)operands[operandIndex]).register;
+	}
+
+	/**
+	 * Extract the {@link L2ObjectRegister} from the {@link
+	 * L2ReadPointerOperand} having the specified position in my array of
+	 * operands.
+	 *
+	 * @param operandIndex Which operand holds a read of an object register.
+	 * @return The specified {@link L2ObjectRegister} to read.
+	 */
+	public final L2ObjectRegister readObjectRegisterAt (final int operandIndex)
+	{
+		return ((L2ReadPointerOperand)operands[operandIndex]).register;
+	}
+
+	/**
+	 * Extract the {@link L2ObjectRegister} from the {@link
+	 * L2WritePointerOperand} having the specified position in my array of
+	 * operands.
+	 *
+	 * @param operandIndex Which operand holds a write of an object register.
+	 * @return The specified {@link L2ObjectRegister} to write.
+	 */
+	public final L2ObjectRegister writeObjectRegisterAt (final int operandIndex)
+	{
+		return ((L2WritePointerOperand)operands[operandIndex]).register;
+	}
+
+	/**
+	 * Extract the {@link L2ObjectRegister} from the {@link
+	 * L2ReadWritePointerOperand} having the specified position in my array of
+	 * operands.
+	 *
+	 * @param operandIndex
+	 *            Which operand holds a read&write of an integer register.
+	 * @return
+	 *            The specified {@link L2IntegerRegister} to read and write.
+	 */
+	public final L2ObjectRegister readWriteObjectRegisterAt (
+		final int operandIndex)
+	{
+		return ((L2ReadWritePointerOperand)operands[operandIndex]).register;
+	}
+
+	/**
+	 * Extract the {@link L2RegisterVector} from the {@link L2ReadVectorOperand}
+	 * having the specified position in my array of operands.
+	 *
+	 * @param operandIndex Which operand holds a read of a register vector.
+	 * @return The specified {@link L2RegisterVector} to read.
+	 */
+	public final L2RegisterVector readVectorRegisterAt (final int operandIndex)
+	{
+		return ((L2ReadVectorOperand)operands[operandIndex]).vector;
+	}
+
+	/**
+	 * Extract the {@link L2RegisterVector} from the {@link
+	 * L2WriteVectorOperand} having the specified position in my array of
+	 * operands.
+	 *
+	 * @param operandIndex Which operand holds a write of a register vector.
+	 * @return The specified {@link L2RegisterVector} to write.
+	 */
+	public final L2RegisterVector writeVectorRegisterAt (final int operandIndex)
+	{
+		return ((L2WriteVectorOperand)operands[operandIndex]).vector;
+	}
+
+	/**
+	 * Extract the {@link L2RegisterVector} from the {@link
+	 * L2ReadWriteVectorOperand} having the specified position in my array of
+	 * operands.
+	 *
+	 * @param operandIndex
+	 *            Which operand holds a read&write of a register vector.
+	 * @return
+	 *            The specified {@link L2RegisterVector} to read and write.
+	 */
+	public final L2RegisterVector readWriteVectorRegisterAt (
+		final int operandIndex)
+	{
+		return ((L2ReadWriteVectorOperand)operands[operandIndex]).vector;
 	}
 }

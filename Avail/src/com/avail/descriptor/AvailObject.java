@@ -224,7 +224,7 @@ implements
 	{
 		final StringBuilder stringBuilder = new StringBuilder(100);
 		final List<A_BasicObject> recursionList =
-			new ArrayList<A_BasicObject>(10);
+			new ArrayList<>(10);
 		printOnAvoidingIndent(stringBuilder, recursionList, 1);
 		assert recursionList.size() == 0;
 		return stringBuilder.toString();
@@ -6814,5 +6814,11 @@ implements
 	public A_Bundle restrictedBundle ()
 	{
 		return descriptor.o_RestrictedBundle(this);
+	}
+
+	@Override
+	public void adjustPcAndStackp (final int pc, final int stackp)
+	{
+		descriptor.o_AdjustPcAndStackp(this, pc, stackp);
 	}
 }

@@ -81,7 +81,7 @@ public class L2ReadWriteVectorOperand extends L2Operand
 			transformer)
 	{
 		final List<L2ObjectRegister> newRegisters =
-			new ArrayList<L2ObjectRegister>(vector.registers().size());
+			new ArrayList<>(vector.registers().size());
 		for (final L2ObjectRegister register : vector.registers())
 		{
 			final L2ObjectRegister newRegister =
@@ -90,13 +90,6 @@ public class L2ReadWriteVectorOperand extends L2Operand
 		}
 		final L2RegisterVector newVector = new L2RegisterVector(newRegisters);
 		return new L2ReadWriteVectorOperand(newVector);
-	}
-
-	@Override
-	public void emitOn (
-		final L2CodeGenerator codeGenerator)
-	{
-		codeGenerator.emitVector(vector);
 	}
 
 	@Override

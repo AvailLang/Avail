@@ -1,5 +1,5 @@
 /**
- * L2_SUBTRACT_OBJECT_FROM_OBJECT.java
+ * L2_INTERPRET_ONE_L1_INSTRUCTION.java
  * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -29,38 +29,48 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-
 package com.avail.interpreter.levelTwo.operation;
 
-import static com.avail.descriptor.AvailObject.error;
-import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.*;
+import com.avail.interpreter.levelTwo.register.FixedRegister;
+import com.avail.optimizer.RegisterSet;
 
-public class L2_SUBTRACT_OBJECT_FROM_OBJECT extends L2Operation
+/**
+ * Execute a single nybblecode of the current continuation, found in {@link
+ * FixedRegister#CALLER caller register}.
+ */
+public class L2_INTERPRET_ONE_L1_INSTRUCTION
+extends L2Operation
 {
 	/**
 	 * Initialize the sole instance.
 	 */
 	public final static L2Operation instance =
-		new L2_SUBTRACT_OBJECT_FROM_OBJECT().init(
-			READ_POINTER.is("subtrahend"),
-			READWRITE_POINTER.is("minuend"));
+		new L2_INTERPRET_ONE_L1_INSTRUCTION().init();
 
 	@Override
-	public void step (final Interpreter interpreter)
+	public void step (
+		final L2Instruction instruction,
+		final Interpreter interpreter)
 	{
-		@SuppressWarnings("unused")
-		final int subtractIndex = interpreter.nextWord();
-		@SuppressWarnings("unused")
-		final int destIndex = interpreter.nextWord();
-		error("not implemented");
+		interpreter.levelOneStepper.stepLevelOne();
+	}
+
+	@Override
+	public void propagateTypes (
+		final L2Instruction instruction,
+		final RegisterSet registerSet)
+	{
+		// No real optimization should ever be done near this wordcode.
+		// Do nothing.
 	}
 
 	@Override
 	public boolean hasSideEffect ()
 	{
-		// It can fail if subtracting like infinites.
+		// Keep this instruction from being removed, since it's only used
+		// by the default chunk.
 		return true;
 	}
 }

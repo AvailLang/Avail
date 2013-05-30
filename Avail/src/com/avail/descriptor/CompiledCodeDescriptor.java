@@ -196,6 +196,7 @@ extends Descriptor
 		 * L2Chunk#unoptimizedChunk() default chunk} will be substituted until
 		 * the next reoptimization.
 		 */
+		@HideFieldJustForPrinting
 		STARTING_CHUNK,
 
 		/**
@@ -731,8 +732,7 @@ extends Descriptor
 		propertyAtom.setAtomProperty(
 			lineNumberKeyAtom(),
 			IntegerDescriptor.fromInt(lineNumber));
-		int hash = propertyAtom.hash();
-		hash ^= -0x3087B215;
+		final int hash = propertyAtom.hash() ^ -0x3087B215;
 		code.setSlot(HASH, hash);
 		code.makeImmutable();
 		return code;

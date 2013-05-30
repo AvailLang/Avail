@@ -31,12 +31,11 @@
  */
 package com.avail.interpreter.levelTwo.operation;
 
-import static com.avail.descriptor.AvailObject.error;
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_POINTER;
 import com.avail.descriptor.*;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.*;
-import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
+import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.RegisterSet;
 
 /**
@@ -52,11 +51,13 @@ public class L2_CLEAR_VARIABLE extends L2Operation
 			READ_POINTER.is("variable"));
 
 	@Override
-	public void step (final Interpreter interpreter)
+	public void step (
+		final L2Instruction instruction,
+		final Interpreter interpreter)
 	{
-		@SuppressWarnings("unused")
-		final int clearIndex = interpreter.nextWord();
-		error("not implemented");
+		final L2ObjectRegister variableReg =
+			instruction.readObjectRegisterAt(0);
+		variableReg.in(interpreter).clearValue();
 	}
 
 	@Override
@@ -64,13 +65,12 @@ public class L2_CLEAR_VARIABLE extends L2Operation
 		final L2Instruction instruction,
 		final RegisterSet registerSet)
 	{
-		final L2ReadPointerOperand variableOperand =
-			(L2ReadPointerOperand) instruction.operands[0];
+		final L2ObjectRegister variableReg =
+			instruction.readObjectRegisterAt(0);
 		// If we haven't already guaranteed that this is a variable then we
 		// are probably not doing things right.
-		assert registerSet.hasTypeAt(variableOperand.register);
-		final A_Type varType = registerSet.typeAt(
-			variableOperand.register);
+		assert registerSet.hasTypeAt(variableReg);
+		final A_Type varType = registerSet.typeAt(variableReg);
 		assert varType.isSubtypeOf(
 			VariableTypeDescriptor.mostGeneralType());
 	}

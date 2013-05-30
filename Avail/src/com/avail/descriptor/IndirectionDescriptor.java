@@ -4474,4 +4474,13 @@ extends AbstractDescriptor
 	{
 		return o_Traversed(object).atomName();
 	}
+
+	@Override
+	void o_AdjustPcAndStackp (
+		final AvailObject object,
+		final int pc,
+		final int stackp)
+	{
+		o_Traversed(object).adjustPcAndStackp(pc, stackp);
+	}
 }

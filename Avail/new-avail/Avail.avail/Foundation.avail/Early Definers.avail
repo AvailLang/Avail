@@ -655,7 +655,7 @@ Method "Grammatical restriction_is_" is
 |
 	Invoke
 	[
-		methodsToRestrict : set of string
+		methodsToRestrict : nonempty set of string
 	|
 		Grammatical restriction methodsToRestrict is exclusions;
 	]
@@ -688,7 +688,7 @@ Method "Grammatical restriction_is_" is
 |
 	Invoke
 	[
-		methodsToRestrict : set of atom
+		methodsToRestrict : nonempty set of atom
 	|
 		Grammatical restriction methodsToRestrict is exclusions;
 	]

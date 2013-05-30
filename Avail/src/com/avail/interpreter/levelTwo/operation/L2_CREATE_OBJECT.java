@@ -32,11 +32,16 @@
 
 package com.avail.interpreter.levelTwo.operation;
 
-import static com.avail.descriptor.AvailObject.error;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
+import java.util.List;
+import com.avail.descriptor.A_Map;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.MapDescriptor;
 import com.avail.descriptor.ObjectDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.*;
+import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
+import com.avail.interpreter.levelTwo.register.L2RegisterVector;
 
 /**
  * Create a map from the specified key object registers and the corresponding
@@ -58,14 +63,29 @@ public class L2_CREATE_OBJECT extends L2Operation
 			WRITE_POINTER.is("new object"));
 
 	@Override
-	public void step (final Interpreter interpreter)
+	public void step (
+		final L2Instruction instruction,
+		final Interpreter interpreter)
 	{
-		@SuppressWarnings("unused")
-		final int keysIndex = interpreter.nextWord();
-		@SuppressWarnings("unused")
-		final int valuesIndex = interpreter.nextWord();
-		@SuppressWarnings("unused")
-		final int destIndex = interpreter.nextWord();
-		error("not implemented");
+		final L2RegisterVector keysVector = instruction.readVectorRegisterAt(0);
+		final L2RegisterVector valuesVector =
+			instruction.readVectorRegisterAt(1);
+		final L2ObjectRegister destinationObjectReg =
+			instruction.writeObjectRegisterAt(2);
+
+		final List<L2ObjectRegister> keyRegs = keysVector.registers();
+		final List<L2ObjectRegister> valueRegs = valuesVector.registers();
+		final int size = keyRegs.size();
+		assert size == valueRegs.size();
+		A_Map map = MapDescriptor.empty();
+		for (int i = 0; i < size; i++)
+		{
+			map = map.mapAtPuttingCanDestroy(
+				keyRegs.get(i).in(interpreter),
+				valueRegs.get(i).in(interpreter),
+				true);
+		}
+		final AvailObject object = ObjectDescriptor.objectFromMap(map);
+		destinationObjectReg.set(object, interpreter);
 	}
 }

@@ -477,7 +477,7 @@ extends AbstractList<byte[]>
 	 * A {@linkplain LRUCache cache} of uncompressed records.
 	 */
 	private final LRUCache<Long, byte[]> blockCache =
-		new LRUCache<Long, byte[]>(
+		new LRUCache<>(
 			DEFAULT_SOFT_CACHE_SIZE,
 			DEFAULT_STRONG_CACHE_SIZE,
 			new Transformer1<Long, byte[]>()
@@ -867,7 +867,7 @@ extends AbstractList<byte[]>
 			b.getLong(),
 			b.getInt());
 		final List<List<RecordCoordinates>> orphans =
-			new ArrayList<List<RecordCoordinates>>();
+			new ArrayList<>();
 		for (int left = b.getInt(); left > 0; left--)
 		{
 			final int level = b.get() - 1;

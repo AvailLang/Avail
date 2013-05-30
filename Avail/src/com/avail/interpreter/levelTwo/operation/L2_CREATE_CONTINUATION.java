@@ -36,8 +36,8 @@ import java.util.List;
 import com.avail.descriptor.*;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.*;
-import com.avail.interpreter.levelTwo.operand.*;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
+import com.avail.interpreter.levelTwo.register.L2RegisterVector;
 import com.avail.optimizer.RegisterSet;
 
 /**
@@ -62,38 +62,39 @@ public class L2_CREATE_CONTINUATION extends L2Operation
 			WRITE_POINTER.is("destination"));
 
 	@Override
-	public void step (final Interpreter interpreter)
+	public void step (
+		final L2Instruction instruction,
+		final Interpreter interpreter)
 	{
-		final int senderIndex = interpreter.nextWord();
-		final int functionIndex = interpreter.nextWord();
-		final int pcIndex = interpreter.nextWord();
-		final int stackpIndex = interpreter.nextWord();
-		final int slotsIndex = interpreter.nextWord();
-		final int wordcodeOffset = interpreter.nextWord();
-		final int destIndex = interpreter.nextWord();
+		final L2ObjectRegister callerReg = instruction.readObjectRegisterAt(0);
+		final L2ObjectRegister functionReg =
+			instruction.readObjectRegisterAt(1);
+		final int levelOnePC = instruction.immediateAt(2);
+		final int levelOneStackp = instruction.immediateAt(3);
+		final L2RegisterVector slotsVector = instruction.readVectorRegisterAt(4);
+		final int levelTwoOffset = instruction.pcAt(5);
+		final L2ObjectRegister destReg = instruction.writeObjectRegisterAt(6);
 
-		final A_Function function = interpreter.pointerAt(functionIndex);
+		final A_Function function = functionReg.in(interpreter);
 		final A_RawFunction code = function.code();
 		final int frameSize = code.numArgsAndLocalsAndStack();
-
 		final A_Continuation continuation =
 			ContinuationDescriptor.createExceptFrame(
 				function,
-				interpreter.pointerAt(senderIndex),
-				pcIndex,
-				frameSize - code.maxStackDepth() + stackpIndex,
+				callerReg.in(interpreter),
+				levelOnePC,
+				frameSize - code.maxStackDepth() + levelOneStackp,
 				interpreter.chunk(),
-				wordcodeOffset);
+				levelTwoOffset);
 
-		final A_Tuple slots = interpreter.vectorAt(slotsIndex);
-		final int size = slots.tupleSize();
-		for (int i = 1; i <= size; i++)
+		int index = 1;
+		for (final L2ObjectRegister slotRegister : slotsVector.registers())
 		{
 			continuation.argOrLocalOrStackAtPut(
-				i,
-				interpreter.pointerAt(slots.tupleIntAt(i)));
+				index++,
+				slotRegister.in(interpreter));
 		}
-		interpreter.pointerAtPut(destIndex, continuation);
+		destReg.set(continuation, interpreter);
 	}
 
 	@Override
@@ -101,24 +102,21 @@ public class L2_CREATE_CONTINUATION extends L2Operation
 		final L2Instruction instruction,
 		final List<RegisterSet> registerSets)
 	{
-		final L2ReadPointerOperand functionOperand =
-			(L2ReadPointerOperand) instruction.operands[1];
-		final L2WritePointerOperand destinationOperand =
-			(L2WritePointerOperand) instruction.operands[6];
+		final L2ObjectRegister functionReg =
+			instruction.readObjectRegisterAt(1);
+		final L2ObjectRegister destReg = instruction.writeObjectRegisterAt(6);
+
 		// Propagate information differently to the code just after creating the
 		// continuation and the code after the continuation resumes.
 		final RegisterSet afterCreation = registerSets.get(0);
 		final RegisterSet afterResumption = registerSets.get(1);
-		final L2ObjectRegister destinationRegister =
-			destinationOperand.register;
-		final A_Type functionType = afterCreation.typeAt(
-			functionOperand.register);
+		final A_Type functionType = afterCreation.typeAt(functionReg);
 		assert functionType != null;
 		assert functionType.isSubtypeOf(
 			FunctionTypeDescriptor.mostGeneralType());
-		afterCreation.removeConstantAt(destinationRegister);
+		afterCreation.removeConstantAt(destReg);
 		afterCreation.typeAtPut(
-			destinationRegister,
+			destReg,
 			ContinuationTypeDescriptor.forFunctionType(functionType),
 			instruction);
 		afterResumption.clearEverythingFor(instruction);

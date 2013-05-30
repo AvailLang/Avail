@@ -551,7 +551,7 @@ extends AbstractAvailCompiler
 					assert afterExpression != null;
 					assert returnType != null;
 					final List<A_Type> argTypes =
-						new ArrayList<A_Type>(argDecls.size());
+						new ArrayList<>(argDecls.size());
 					for (final A_Phrase decl : argDecls)
 					{
 						argTypes.add(decl.declaredType());
@@ -1266,7 +1266,7 @@ extends AbstractAvailCompiler
 			startOfBlock.clientDataMap);
 
 		final List<A_Type> argumentTypesList =
-			new ArrayList<A_Type>(arguments.size());
+			new ArrayList<>(arguments.size());
 		for (final A_Phrase argument : arguments)
 		{
 			argumentTypesList.add(argument.declaredType());
@@ -1923,7 +1923,7 @@ extends AbstractAvailCompiler
 						}
 					}
 					final List<A_Phrase> newStatements =
-						new ArrayList<A_Phrase>(statements);
+						new ArrayList<>(statements);
 					newStatements.add(newStatement);
 					parseStatementsThen(
 						afterStatement,
@@ -1950,7 +1950,7 @@ extends AbstractAvailCompiler
 					if (!finalExpression.expressionType().equals(TOP.o()))
 					{
 						final List<A_Phrase> newStatements =
-							new ArrayList<A_Phrase>(statements);
+							new ArrayList<>(statements);
 						newStatements.add(finalExpression);
 						attempt(
 							afterFinalExpression,

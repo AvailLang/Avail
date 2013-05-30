@@ -61,7 +61,7 @@ extends Primitive
 	{
 		assert args.size() == 1;
 		final AvailObject array = args.get(0);
-		final MutableOrNull<A_Tuple> tuple = new MutableOrNull<A_Tuple>();
+		final MutableOrNull<A_Tuple> tuple = new MutableOrNull<>();
 		array.lock(new Continuation0()
 		{
 			@Override

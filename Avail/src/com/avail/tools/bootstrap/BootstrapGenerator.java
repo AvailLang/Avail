@@ -179,13 +179,13 @@ public final class BootstrapGenerator
 	 * A {@linkplain Map map} from localized names to Avail special objects.
 	 */
 	private final Map<String, AvailObject> specialObjectsByName =
-		new HashMap<String, AvailObject>(specialObjects.size());
+		new HashMap<>(specialObjects.size());
 
 	/**
 	 * A {@linkplain Map map} from Avail special objects to localized names.
 	 */
 	private final Map<AvailObject, String> namesBySpecialObject =
-		new HashMap<AvailObject, String>(specialObjects.size());
+		new HashMap<>(specialObjects.size());
 
 	/**
 	 * Answer the name of the specified special object.
@@ -211,7 +211,7 @@ public final class BootstrapGenerator
 	 */
 	private String specialObjectsNamesString ()
 	{
-		final List<String> names = new ArrayList<String>(
+		final List<String> names = new ArrayList<>(
 			new ArrayList<String>(specialObjectsByName.keySet()));
 		Collections.sort(names);
 		final StringBuilder builder = new StringBuilder();
@@ -347,7 +347,7 @@ public final class BootstrapGenerator
 	 */
 	private List<Primitive> primitives (final @Nullable Boolean fallible)
 	{
-		final List<Primitive> primitives = new ArrayList<Primitive>();
+		final List<Primitive> primitives = new ArrayList<>();
 		for (int i = 1; i <= Primitive.maxPrimitiveNumber; i++)
 		{
 			final Primitive primitive = Primitive.byPrimitiveNumberOrNull(i);
@@ -370,7 +370,7 @@ public final class BootstrapGenerator
 	 * Primitive primitives}.
 	 */
 	private final Map<String, Set<Primitive>> primitiveNameMap =
-		new HashMap<String, Set<Primitive>>(specialObjects.size());
+		new HashMap<>(specialObjects.size());
 
 	/**
 	 * Answer a textual representation of the specified {@linkplain Primitive
@@ -383,15 +383,15 @@ public final class BootstrapGenerator
 	private String primitivesNamesString (
 		final List<Primitive> primitives)
 	{
-		final Set<Primitive> wanted = new HashSet<Primitive>(primitives);
-		final List<String> names = new ArrayList<String>(
+		final Set<Primitive> wanted = new HashSet<>(primitives);
+		final List<String> names = new ArrayList<>(
 			new ArrayList<String>(primitiveNameMap.keySet()));
 		Collections.sort(names);
 		final StringBuilder builder = new StringBuilder();
 		for (final String name : names)
 		{
 			final Set<Primitive> set =
-				new HashSet<Primitive>(primitiveNameMap.get(name));
+				new HashSet<>(primitiveNameMap.get(name));
 			set.retainAll(wanted);
 			if (!set.isEmpty())
 			{
@@ -1053,7 +1053,7 @@ public final class BootstrapGenerator
 	private List<AvailErrorCode> errorCodes ()
 	{
 		final AvailErrorCode[] codes = AvailErrorCode.values();
-		final List<AvailErrorCode> relevant = new ArrayList<AvailErrorCode>();
+		final List<AvailErrorCode> relevant = new ArrayList<>();
 		for (final AvailErrorCode code : codes)
 		{
 			if (code.nativeCode() > 0)
@@ -1069,14 +1069,14 @@ public final class BootstrapGenerator
 	 * primitive error codes}.
 	 */
 	private final Map<String, AvailErrorCode> errorCodesByName =
-		new HashMap<String, AvailErrorCode>(AvailErrorCode.values().length);
+		new HashMap<>(AvailErrorCode.values().length);
 
 	/**
 	 * A {@linkplain Map map} from {@linkplain AvailErrorCode primitive error
 	 * codes} to localized names.
 	 */
 	private final Map<AvailErrorCode, String> namesByErrorCode =
-		new HashMap<AvailErrorCode, String>(AvailErrorCode.values().length);
+		new HashMap<>(AvailErrorCode.values().length);
 
 	/**
 	 * Answer a textual representation of the {@linkplain AvailErrorCode
@@ -1087,7 +1087,7 @@ public final class BootstrapGenerator
 	 */
 	private String errorCodesNamesString ()
 	{
-		final List<String> names = new ArrayList<String>(
+		final List<String> names = new ArrayList<>(
 			errorCodesByName.keySet());
 		Collections.sort(names);
 		final StringBuilder builder = new StringBuilder();
@@ -1464,8 +1464,8 @@ public final class BootstrapGenerator
 	public static void main (final String[] args)
 		throws Exception
 	{
-		final List<String> languages = new ArrayList<String>();
-		final List<String> versions = new ArrayList<String>();
+		final List<String> languages = new ArrayList<>();
+		final List<String> versions = new ArrayList<>();
 		if (args.length < 1)
 		{
 			languages.add("en");

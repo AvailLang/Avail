@@ -97,14 +97,10 @@ extends Primitive
 				true);
 		}
 		disallowed.makeImmutable();
-		//TODO[MvG] This should be done in a "red zone" continuation.
 		for (final A_String string : stringSetAsTuple)
 		{
 			try
 			{
-				//TODO[MvG] Obsolete?  See also P_264_...
-//				interpreter.atDisallowArgumentMessages(
-//					interpreter.lookupName(string),
 				loader.addGrammaticalRestrictions(
 					loader.lookupName(string),
 					disallowed);
@@ -127,7 +123,7 @@ extends Primitive
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
 				SetTypeDescriptor.setTypeForSizesContentType(
-					IntegerRangeTypeDescriptor.wholeNumbers(),
+					IntegerRangeTypeDescriptor.naturalNumbers(),
 					TupleTypeDescriptor.stringType()),
 				TupleTypeDescriptor.zeroOrMoreOf(
 					SetTypeDescriptor.setTypeForSizesContentType(

@@ -74,12 +74,19 @@ extends A_BasicObject
 	A_Module definitionModule ();
 
 	/**
-	 * Dispatch to the descriptor.
+	 * Answer a {@linkplain FunctionTypeDescriptor function type} that
+	 * identifies where this definition occurs in the {@linkplain
+	 * MethodDescriptor method}'s directed acyclic graph of definitions.
+	 *
+	 * @return The function type for this definition.
 	 */
 	A_Type bodySignature ();
 
 	/**
-	 * Dispatch to the descriptor.
+	 * Answer whether this is an {@linkplain AbstractDefinitionDescriptor
+	 * abstract definition}.
+	 *
+	 * @return Whether it's abstract.
 	 */
 	boolean isAbstractDefinition ();
 
@@ -100,19 +107,32 @@ extends A_BasicObject
 	boolean isMethodDefinition ();
 
 	/**
-	 * @return
+	 * Answer whether this definition is a {@linkplain MacroDefinitionDescriptor
+	 * macro definition}.  Macro definitions may not be mixed with any other
+	 * kinds of definitions.
+	 *
+	 * @return Whether it's a macro.
 	 */
 	boolean isMacroDefinition ();
 
 	/**
-	 * Dispatch to the descriptor.
+	 * If this is a {@linkplain MethodDefinitionDescriptor method definition}
+	 * then answer the actual {@linkplain FunctionDescriptor function}.  Fail if
+	 * this is not a method definition.
+	 *
+	 * @return The method definition's function.
 	 */
 	A_Function bodyBlock ();
 
 	/**
-	 * @return
+	 * If this is a {@linkplain MacroDefinitionDescriptor macro definition} then
+	 * answer the {@linkplain TupleDescriptor tuple} of prefix {@linkplain
+	 * FunctionDescriptor functions}.  These functions allow parsing actions to
+	 * be performed while parsing is still occurring, typically to bring new
+	 * variable and constant {@linkplain DeclarationNodeDescriptor declarations}
+	 * into scope.
+	 *
+	 * @return This macro definition's prefix functions.
 	 */
 	A_Tuple prefixFunctions ();
-
-
 }

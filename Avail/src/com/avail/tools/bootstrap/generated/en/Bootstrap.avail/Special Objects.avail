@@ -109,6 +109,8 @@ Names
 	/*  37 */ "natural number",
 	/*  97 */ "non-empty map",
 	/*  99 */ "non-empty set",
+	/* 136 */ "nonempty set of atom",
+	/* 135 */ "nonempty set of string",
 	/* 133 */ "nonempty string",
 	/* 118 */ "nonnegative extended integer",
 	/*  31 */ "nontype",
@@ -313,6 +315,8 @@ _readable_extended_integer_variable     ::= special object 131;
 _fiber_meta                             ::= special object 132;
 _nonempty_string                        ::= special object 133;
 _set_of_exception                       ::= special object 134;
+_nonempty_set_of_string                 ::= special object 135;
+_nonempty_set_of_atom                   ::= special object 136;
 
 /**
  * The practical abstract root of the Avail type lattice. `any` is the second
@@ -1103,5 +1107,15 @@ Primitive "nonempty string" is
 Primitive "set of exception" is
 [
 	_set_of_exception
+];
+
+Primitive "nonempty set of string" is
+[
+	_nonempty_set_of_string
+];
+
+Primitive "nonempty set of atom" is
+[
+	_nonempty_set_of_atom
 ];
 

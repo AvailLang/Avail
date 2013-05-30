@@ -38,7 +38,6 @@ import com.avail.annotations.Nullable;
 import com.avail.descriptor.*;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.Primitive.Flag;
-import com.avail.interpreter.levelTwo.L2InstructionWriter;
 
 /**
  * An instance of this class can be used to construct a {@linkplain
@@ -58,14 +57,14 @@ public class L1InstructionWriter
 	/**
 	 * The collection of literal objects that have been accumulated thus far.
 	 */
-	final List<AvailObject> literals = new ArrayList<AvailObject>();
+	final List<AvailObject> literals = new ArrayList<>();
 
 	/**
 	 * An inverse mapping of the literal objects encountered thus far.  The map
 	 * is from each literal object to its 1-based index.
 	 */
 	private final Map<A_BasicObject, Integer> reverseLiterals =
-		new HashMap<A_BasicObject, Integer>();
+		new HashMap<>();
 
 	/**
 	 * Locate or record the specified literal object.  Answer its 1-based index.
@@ -118,7 +117,7 @@ public class L1InstructionWriter
 	{
 		assert localTypes.size() == 0
 		: "Must declare argument types before allocating locals";
-		final List<A_Type> types = new ArrayList<A_Type>(
+		final List<A_Type> types = new ArrayList<>(
 			argTypes.tupleSize());
 		for (final AvailObject type : argTypes)
 		{
@@ -161,7 +160,7 @@ public class L1InstructionWriter
 	 * The types of the local variables, including the arguments which must
 	 * occur first.
 	 */
-	private final List<AvailObject> localTypes = new ArrayList<AvailObject>();
+	private final List<AvailObject> localTypes = new ArrayList<>();
 
 	/**
 	 * Declare a local variable with the specified type.  Answer its index.  The
@@ -182,7 +181,7 @@ public class L1InstructionWriter
 	 * arguments of outer scopes can also be captured, which aren't technically
 	 * variables.
 	 */
-	private final List<AvailObject> outerTypes = new ArrayList<AvailObject>();
+	private final List<AvailObject> outerTypes = new ArrayList<>();
 
 	/**
 	 * Declare an outer (lexically captured) variable, specifying its type.
@@ -229,7 +228,7 @@ public class L1InstructionWriter
 	final int startingLineNumber;
 
 	/**
-	 * Create a new {@link L2InstructionWriter Level Two instruction writer}.
+	 * Create a new {@link L1InstructionWriter Level One instruction writer}.
 	 *
 	 * @param module The module containing this code.
 	 * @param startingLineNumber Where this code starts in the module.

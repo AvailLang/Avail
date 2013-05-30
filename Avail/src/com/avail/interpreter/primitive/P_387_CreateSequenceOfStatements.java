@@ -64,7 +64,7 @@ extends Primitive
 		assert args.size() == 1;
 		final A_Tuple statements = args.get(0);
 		final List<A_Phrase> flat =
-			new ArrayList<A_Phrase>(statements.tupleSize() + 3);
+			new ArrayList<>(statements.tupleSize() + 3);
 		for (final A_Phrase statement : statements)
 		{
 			statement.flattenStatementsInto(flat);

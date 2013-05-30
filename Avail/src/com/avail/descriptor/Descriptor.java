@@ -4691,4 +4691,13 @@ extends AbstractDescriptor
 	{
 		throw unsupportedOperationException();
 	}
+
+	@Override
+	void o_AdjustPcAndStackp (
+		final AvailObject object,
+		final int pc,
+		final int stackp)
+	{
+		throw unsupportedOperationException();
+	}
 }

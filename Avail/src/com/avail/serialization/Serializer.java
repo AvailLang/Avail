@@ -53,14 +53,14 @@ public class Serializer
 	 * {@code null} (i.e., unused entries} are not included.
 	 */
 	static final Map<AvailObject, Integer> specialObjects =
-		new HashMap<AvailObject, Integer>(1000);
+		new HashMap<>(1000);
 
 	/**
 	 * Special system {@link AtomDescriptor atoms} that aren't already in the
 	 * list of {@linkplain AvailRuntime#specialAtoms() special atoms}.
 	 */
 	static final Map<A_Atom, Integer> specialAtoms =
-		new HashMap<A_Atom, Integer>(100);
+		new HashMap<>(100);
 
 	/**
 	 * This keeps track of all objects that have been encountered.  It's a map
@@ -68,14 +68,14 @@ public class Serializer
 	 * will be output for it at the appropriate time.
 	 */
 	final Map<A_BasicObject, SerializerInstruction> encounteredObjects =
-		new HashMap<A_BasicObject, SerializerInstruction>(1000);
+		new HashMap<>(1000);
 
 	/**
 	 * All variables that must have their values assigned to them upon
 	 * deserialization.  The set is cleared at every checkpoint.
 	 */
 	final Set<A_Variable> variablesToAssign =
-		new HashSet<A_Variable>(100);
+		new HashSet<>(100);
 
 	/**
 	 * The number of instructions that have been written to the {@link #output}.
@@ -90,7 +90,7 @@ public class Serializer
 	 * be exceptionally deep.
 	 */
 	final Deque<Continuation0> workStack =
-		new ArrayDeque<Continuation0>(1000);
+		new ArrayDeque<>(1000);
 
 	/**
 	 * The {@link OutputStream} on which to write the serialized objects.

@@ -414,7 +414,7 @@ public abstract class AbstractDescriptor
 		final AvailObject object)
 	{
 		final List<AvailObjectFieldHelper> fields =
-			new ArrayList<AvailObjectFieldHelper>();
+			new ArrayList<>();
 		final Class<Descriptor> cls = (Class<Descriptor>) this.getClass();
 		final ClassLoader loader = cls.getClassLoader();
 		Class<Enum<?>> enumClass;
@@ -739,7 +739,7 @@ public abstract class AbstractDescriptor
 	 * default object printing mechanism.
 	 */
 	private static final Map<IntegerSlotsEnum, List<BitField>> bitFieldsCache =
-		new HashMap<IntegerSlotsEnum, List<BitField>>(500);
+		new HashMap<>(500);
 
 	/**
 	 * Describe the integer field onto the provided {@link StringDescriptor}.
@@ -5881,4 +5881,11 @@ public abstract class AbstractDescriptor
 	 * @return
 	 */
 	abstract A_Bundle o_RestrictedBundle (AvailObject object);
+
+	/**
+	 * @param object
+	 * @param pc
+	 * @param stackp
+	 */
+	abstract void o_AdjustPcAndStackp (AvailObject object, int pc, int stackp);
 }

@@ -37,12 +37,13 @@ import java.util.List;
 import com.avail.descriptor.A_Continuation;
 import com.avail.descriptor.A_Function;
 import com.avail.descriptor.A_RawFunction;
-import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.*;
 import com.avail.interpreter.Primitive.Flag;
 import com.avail.interpreter.levelTwo.*;
 import com.avail.interpreter.levelTwo.register.FixedRegister;
+import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
+import com.avail.interpreter.levelTwo.register.L2RegisterVector;
 import com.avail.optimizer.RegisterSet;
 
 /**
@@ -73,23 +74,27 @@ public class L2_INVOKE_AFTER_FAILED_PRIMITIVE extends L2Operation
 			READ_POINTER.is("primitive failure value"));
 
 	@Override
-	public void step (final Interpreter interpreter)
+	public void step (
+		final L2Instruction instruction,
+		final Interpreter interpreter)
 	{
 		// The continuation is required to have already been reified.
-		final int callerIndex = interpreter.nextWord();
-		final int functionIndex = interpreter.nextWord();
-		final int argumentsIndex = interpreter.nextWord();
-		final int failureValueIndex = interpreter.nextWord();
-		final A_Continuation caller = interpreter.pointerAt(callerIndex);
-		final A_Function function = interpreter.pointerAt(functionIndex);
-		final AvailObject failureValue =
-			interpreter.pointerAt(failureValueIndex);
-		final A_Tuple vect = interpreter.vectorAt(argumentsIndex);
+		final L2ObjectRegister continuationReg =
+			instruction.readObjectRegisterAt(0);
+		final L2ObjectRegister functionReg =
+			instruction.readObjectRegisterAt(1);
+		final L2RegisterVector argumentsReg =
+			instruction.readVectorRegisterAt(2);
+		final L2ObjectRegister failureValueReg =
+			instruction.readObjectRegisterAt(3);
+
+		final A_Continuation caller = continuationReg.in(interpreter);
+		final A_Function function = functionReg.in(interpreter);
+		final AvailObject failureValue = failureValueReg.in(interpreter);
 		interpreter.argsBuffer.clear();
-		for (int i = 1; i <= vect.tupleSize(); i++)
+		for (final L2ObjectRegister argumentReg : argumentsReg.registers())
 		{
-			interpreter.argsBuffer.add(
-				interpreter.pointerAt(vect.tupleIntAt(i)));
+			interpreter.argsBuffer.add(argumentReg.in(interpreter));
 		}
 		final A_RawFunction codeToCall = function.code();
 		final int primNum = codeToCall.primitiveNumber();

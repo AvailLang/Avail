@@ -125,11 +125,6 @@ extends Primitive
 		// If the current fiber is an Avail fiber, then the new one should be
 		// also.
 		newFiber.availLoader(current.availLoader());
-		// Don't inherit the success continuation, but inherit the failure
-		// continuation. Only loader fibers should have something real plugged
-		// into this field, and none of them should fail because of a Java
-		// exception.
-		newFiber.failureContinuation(current.failureContinuation());
 		// Share and inherit any heritable variables.
 		newFiber.heritableFiberGlobals(
 			current.heritableFiberGlobals().makeShared());

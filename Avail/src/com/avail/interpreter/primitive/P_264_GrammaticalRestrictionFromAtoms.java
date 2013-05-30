@@ -96,7 +96,7 @@ extends Primitive
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
 				SetTypeDescriptor.setTypeForSizesContentType(
-					IntegerRangeTypeDescriptor.wholeNumbers(),
+					IntegerRangeTypeDescriptor.naturalNumbers(),
 					ATOM.o()),
 				TupleTypeDescriptor.zeroOrMoreOf(
 					SetTypeDescriptor.setTypeForSizesContentType(

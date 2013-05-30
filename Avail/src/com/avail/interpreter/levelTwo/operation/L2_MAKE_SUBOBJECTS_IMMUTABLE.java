@@ -35,6 +35,7 @@ import static com.avail.interpreter.levelTwo.L2OperandType.READ_POINTER;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelOne.L1Operation;
 import com.avail.interpreter.levelTwo.*;
+import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.RegisterSet;
 
 /**
@@ -53,10 +54,12 @@ public class L2_MAKE_SUBOBJECTS_IMMUTABLE extends L2Operation
 			READ_POINTER.is("object"));
 
 	@Override
-	public void step (final Interpreter interpreter)
+	public void step (
+		final L2Instruction instruction,
+		final Interpreter interpreter)
 	{
-		final int objectIndex = interpreter.nextWord();
-		interpreter.pointerAt(objectIndex).makeSubobjectsImmutable();
+		final L2ObjectRegister objectReg = instruction.readObjectRegisterAt(0);
+		objectReg.in(interpreter).makeSubobjectsImmutable();
 	}
 
 	@Override

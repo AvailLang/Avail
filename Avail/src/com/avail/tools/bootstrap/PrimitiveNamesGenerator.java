@@ -67,7 +67,7 @@ extends PropertiesFileGenerator
 		final Properties properties,
 		final PrintWriter writer)
 	{
-		final Set<String> keys = new HashSet<String>();
+		final Set<String> keys = new HashSet<>();
 		for (
 			int primitiveNumber = 1;
 			primitiveNumber <= Primitive.maxPrimitiveNumber;

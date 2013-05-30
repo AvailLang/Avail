@@ -362,7 +362,7 @@ extends TypeDescriptor
 		// of java.lang.Object. Make this relationship explicit: seed the
 		// ancestry with java.lang.Object.
 		final Canon canon = new Canon();
-		final Mutable<A_Map> ancestors = new Mutable<A_Map>(
+		final Mutable<A_Map> ancestors = new Mutable<>(
 			MapDescriptor.empty());
 		ancestors.value = ancestors.value.mapAtPuttingCanDestroy(
 			canon.get(Object.class),
@@ -379,7 +379,7 @@ extends TypeDescriptor
 	 * to build, so cache them for efficiency.
 	 */
 	private static final LRUCache<LRUCacheKey, AvailObject> cache =
-		new LRUCache<LRUCacheKey, AvailObject>(
+		new LRUCache<>(
 			1000,
 			10,
 			new Transformer1<LRUCacheKey, AvailObject>()
@@ -590,7 +590,7 @@ extends TypeDescriptor
 			final int limit = params.tupleSize();
 			assert limit == otherParams.tupleSize();
 			final List<A_Type> intersectionParams =
-				new ArrayList<A_Type>(limit);
+				new ArrayList<>(limit);
 			for (int i = 1; i <= limit; i++)
 			{
 				final A_Type x = params.tupleAt(i);
@@ -677,7 +677,7 @@ extends TypeDescriptor
 			final A_Tuple otherParams = otherAncestors.mapAt(javaClass);
 			final int limit = params.tupleSize();
 			assert limit == otherParams.tupleSize();
-			final List<A_Type> unionParams = new ArrayList<A_Type>(limit);
+			final List<A_Type> unionParams = new ArrayList<>(limit);
 			for (int i = 1; i <= limit; i++)
 			{
 				final A_Type x = params.tupleAt(i);
@@ -708,7 +708,7 @@ extends TypeDescriptor
 	protected static Set<AvailObject> childlessAmong (
 		final A_Set ancestry)
 	{
-		final Set<AvailObject> childless = new HashSet<AvailObject>();
+		final Set<AvailObject> childless = new HashSet<>();
 		for (final AvailObject ancestor : ancestry)
 		{
 			childless.add(ancestor);
@@ -990,7 +990,7 @@ extends TypeDescriptor
 		{
 			final ParameterizedType parameterized = (ParameterizedType) type;
 			final Type[] unresolved = parameterized.getActualTypeArguments();
-			final List<A_Type> resolved = new ArrayList<A_Type>(
+			final List<A_Type> resolved = new ArrayList<>(
 				unresolved.length);
 			for (int i = 0; i < unresolved.length; i++)
 			{
@@ -1031,7 +1031,7 @@ extends TypeDescriptor
 		final Canon canon)
 	{
 		final Type[] args = target.getActualTypeArguments();
-		final List<A_Type> propagation = new ArrayList<A_Type>(2);
+		final List<A_Type> propagation = new ArrayList<>(2);
 		for (final Type arg : args)
 		{
 			// class Target<...> extends Supertype<Arg> { ... }
@@ -1337,7 +1337,7 @@ extends TypeDescriptor
 		final Class<?> target)
 	{
 		final Canon canon = new Canon();
-		final Set<AvailObject> ancestors = new HashSet<AvailObject>(5);
+		final Set<AvailObject> ancestors = new HashSet<>(5);
 		ancestors.add(canon.get(Object.class));
 		computeUnparameterizedAncestry(target, ancestors, canon);
 		return SelfPojoTypeDescriptor.create(

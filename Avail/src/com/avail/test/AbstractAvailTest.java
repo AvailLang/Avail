@@ -143,7 +143,7 @@ public class AbstractAvailTest
 		try
 		{
 			final MutableOrNull<ModuleName> lastModule =
-				new MutableOrNull<ModuleName>();
+				new MutableOrNull<>();
 			final AvailRuntime theRuntime = runtime;
 			assert theRuntime != null;
 			final AvailBuilder builder = new AvailBuilder(theRuntime);

@@ -455,7 +455,7 @@ extends PojoTypeDescriptor
 		final int indent)
 	{
 		final A_Map ancestors = object.slot(JAVA_ANCESTORS);
-		final List<AvailObject> childless = new ArrayList<AvailObject>(
+		final List<AvailObject> childless = new ArrayList<>(
 			childlessAmong(ancestors.keysAsSet()));
 		Collections.sort(
 			childless,

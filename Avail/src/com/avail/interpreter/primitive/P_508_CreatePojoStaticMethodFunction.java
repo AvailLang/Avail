@@ -105,7 +105,7 @@ public class P_508_CreatePojoStaticMethodFunction extends Primitive
 		// an attempt to uniquely resolve the method.
 		else
 		{
-			final Set<Method> methods = new HashSet<Method>();
+			final Set<Method> methods = new HashSet<>();
 			final A_Map ancestors = pojoType.javaAncestors();
 			for (final A_BasicObject ancestor : ancestors.keysAsSet())
 			{
@@ -136,7 +136,7 @@ public class P_508_CreatePojoStaticMethodFunction extends Primitive
 		// Wrap each of the marshaled argument types into raw pojos. These
 		// will be embedded into one of the generated functions below.
 		final List<AvailObject> marshaledTypePojos =
-			new ArrayList<AvailObject>(marshaledTypes.length);
+			new ArrayList<>(marshaledTypes.length);
 		for (final Class<?> paramClass : marshaledTypes)
 		{
 			marshaledTypePojos.add(

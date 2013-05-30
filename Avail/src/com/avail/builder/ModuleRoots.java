@@ -79,7 +79,7 @@ public final class ModuleRoots
 	 * module root}s.
 	 */
 	private final Map<String, ModuleRoot> rootMap =
-		new LinkedHashMap<String, ModuleRoot>();
+		new LinkedHashMap<>();
 
 	/**
 	 * Parse the Avail {@linkplain ModuleDescriptor module} path into a
@@ -175,7 +175,7 @@ public final class ModuleRoots
 	 */
 	public Set<ModuleRoot> roots ()
 	{
-		final Set<ModuleRoot> roots = new LinkedHashSet<ModuleRoot>();
+		final Set<ModuleRoot> roots = new LinkedHashSet<>();
 		for (final Map.Entry<String, ModuleRoot> entry : rootMap.entrySet())
 		{
 			roots.add(entry.getValue());

@@ -41,7 +41,26 @@ import com.avail.annotations.*;
 import com.avail.descriptor.SetDescriptor.SetIterator;
 
 /**
- * TODO: [MvG] Document this type!
+ * This class implements the internal hashed nodes of a Bagwell Ideal Hash Tree.
+ * It's similar to {@link HashedMapBinDescriptor}, but has operations suitable
+ * for use by a {@linkplain SetDescriptor set} rather than a {@linkplain
+ * MapDescriptor map}.  The basic idea is that a single value is treated as a
+ * bin of size one, a small number of elements can be placed in a {@linkplain
+ * LinearSetBinDescriptor linear bin}, but larger bins use the hash of the
+ * element to determine which one of the up to 32 child bins is responsible for
+ * that element.  Different levels of the tree use different 5-bit regions of
+ * the hash values.  We could always store 32 slots, but Bagwell's mechanism is
+ * to store a 32-bit vector where a 1 bit indicates that the corresponding index
+ * (0..31) extracted from the hash value has a pointer to the corresponding
+ * sub-bin.  If the bit is 0 then that pointer is elided entirely.  By suitable
+ * use of bit shifting, masking, and {@linkplain Integer#bitCount counting}, one
+ * is able to extract the 5 appropriate dispatch bits and access the Nth sub-bin
+ * or determine that it's not already present.  This mechanism produces a hash
+ * tree no deeper than about 7 levels, even for a huge number of entries.  It
+ * also allows efficient "persistent" manipulation (in the function programming
+ * sense).  Given a set one can produce another set that has a small number of
+ * edits (added and removed elements) using only a few additional bins – without
+ * disrupting the original set.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd Smith &lt;todd@availlang.org&gt;
@@ -478,13 +497,13 @@ extends SetBinDescriptor
 		/**
 		 * The path through set bins, excluding the leaf (non-bin) element.
 		 */
-		final Deque<AvailObject> binStack = new ArrayDeque<AvailObject>();
+		final Deque<AvailObject> binStack = new ArrayDeque<>();
 
 		/**
 		 * The position navigated through each bin.  It should always contain
 		 * the same number of elements as in binStack.
 		 */
-		final Deque<Integer> subscriptStack = new ArrayDeque<Integer>();
+		final Deque<Integer> subscriptStack = new ArrayDeque<>();
 
 		/**
 		 * The next value that will returned by {@link #next()}, or null if the

@@ -62,7 +62,7 @@ extends Primitive
 	{
 		assert args.size() == 1;
 		final A_Fiber fiber = args.get(0);
-		final MutableOrNull<Result> result = new MutableOrNull<Result>();
+		final MutableOrNull<Result> result = new MutableOrNull<>();
 		fiber.lock(new Continuation0()
 		{
 			@Override

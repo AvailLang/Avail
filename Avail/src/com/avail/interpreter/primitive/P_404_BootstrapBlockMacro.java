@@ -107,7 +107,7 @@ public class P_404_BootstrapBlockMacro extends Primitive
 		}
 		final A_Map scopeMap = clientData.mapAt(scopeMapKey);
 
-		final List<A_Phrase> allStatements = new ArrayList<A_Phrase>();
+		final List<A_Phrase> allStatements = new ArrayList<>();
 
 		final A_Tuple argumentDeclarationPairs =
 			optionalArgumentDeclarations.tupleSize() == 0
@@ -116,7 +116,7 @@ public class P_404_BootstrapBlockMacro extends Primitive
 		// Look up the names of the argument that were declared in the first
 		// prefix function.
 		final List<A_Phrase> argumentDeclarationsList =
-			new ArrayList<A_Phrase>(argumentDeclarationPairs.tupleSize());
+			new ArrayList<>(argumentDeclarationPairs.tupleSize());
 		{
 			for (final A_Tuple declarationPair : argumentDeclarationPairs)
 			{

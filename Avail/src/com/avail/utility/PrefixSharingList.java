@@ -119,7 +119,7 @@ public class PrefixSharingList<E> extends AbstractList<E>
 		{
 			return;
 		}
-		final ArrayList<E> flatList = new ArrayList<E>(size);
+		final ArrayList<E> flatList = new ArrayList<>(size);
 		PrefixSharingList<E> pointer = this;
 		while (true)
 		{

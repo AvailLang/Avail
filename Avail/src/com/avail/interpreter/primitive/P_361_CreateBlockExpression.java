@@ -73,7 +73,7 @@ extends Primitive
 		// and that the last statement's expression type agrees with
 		// "resultType".
 		final List<A_Phrase> flat =
-			new ArrayList<A_Phrase>(statements.tupleSize() + 3);
+			new ArrayList<>(statements.tupleSize() + 3);
 		for (final A_Phrase statement : statements)
 		{
 			statement.flattenStatementsInto(flat);

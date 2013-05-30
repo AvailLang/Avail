@@ -713,7 +713,7 @@ enum SerializerOperandEncoding
 			// Three bytes, 16384..0x3EFFFF
 			return ((firstByte - 192) << 16) + deserializer.readShort();
 		}
-		// Five bytes, 0xFF0000..0x7FFFFFFF
+		// Five bytes, 0x3F0000..0x7FFFFFFF
 		return deserializer.readInt();
 	}
 

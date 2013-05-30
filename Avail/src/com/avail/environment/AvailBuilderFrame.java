@@ -54,7 +54,9 @@ import com.avail.annotations.*;
 import com.avail.builder.*;
 import com.avail.compiler.*;
 import com.avail.descriptor.*;
+import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
+import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.persistence.*;
 import com.avail.utility.*;
 
@@ -228,7 +230,7 @@ extends JFrame
 
 	/**
 	 * A {@code ReportAction} dumps performance information obtained from
-	 * running the primitives.
+	 * running.
 	 */
 	private final class ReportAction
 	extends AbstractAction
@@ -239,12 +241,20 @@ extends JFrame
 		@Override
 		public void actionPerformed (final @Nullable ActionEvent event)
 		{
+			final StringBuilder builder = new StringBuilder();
+			L2Operation.reportStatsOn(builder);
+			builder.append("\n");
+			Interpreter.reportDynamicLookups(builder);
+			builder.append("\n");
+			Primitive.reportRunTimes(builder);
+			builder.append("\n");
+			Primitive.reportReturnCheckTimes(builder);
 			final StyledDocument doc = transcript.getStyledDocument();
 			try
 			{
 				doc.insertString(
 					doc.getLength(),
-					Primitive.reportReturnCheckTimes(),
+					builder.toString(),
 					doc.getStyle(infoStyleName));
 			}
 			catch (final BadLocationException e)
@@ -262,6 +272,48 @@ extends JFrame
 			putValue(
 				SHORT_DESCRIPTION,
 				"Report any diagnostic information collected by the VM.");
+		}
+	}
+
+	/**
+	 * A {@code ClearReportAction} clears performance information obtained from
+	 * running.
+	 */
+	private final class ClearReportAction
+	extends AbstractAction
+	{
+		/** The serial version identifier. */
+		private static final long serialVersionUID = -8233767636511326637L;
+
+		@Override
+		public void actionPerformed (final @Nullable ActionEvent event)
+		{
+			L2Operation.clearAllStats();
+			Primitive.clearAllStats();
+			Interpreter.clearDynamicLookupStats();
+			final StyledDocument doc = transcript.getStyledDocument();
+			try
+			{
+				doc.insertString(
+					doc.getLength(),
+					"Statistics cleared.\n",
+					doc.getStyle(infoStyleName));
+			}
+			catch (final BadLocationException e)
+			{
+				assert false : "This never happens.";
+			}
+		}
+
+		/**
+		 * Construct a new {@link ClearReportAction}.
+		 */
+		public ClearReportAction ()
+		{
+			super("Clear VM report");
+			putValue(
+				SHORT_DESCRIPTION,
+				"Clear any diagnostic information collected by the VM.");
 		}
 	}
 
@@ -946,6 +998,9 @@ extends JFrame
 	/** The {@linkplain ReportAction report action}. */
 	@InnerAccess final ReportAction reportAction;
 
+	/** The {@linkplain ClearReportAction clear report action}. */
+	@InnerAccess final ClearReportAction clearReportAction;
+
 	/**
 	 * Answer the (invisible) root of the {@linkplain #moduleTree module tree}.
 	 *
@@ -1153,7 +1208,7 @@ extends JFrame
 		final GraphicsEnvironment graphicsEnvironment =
 			GraphicsEnvironment.getLocalGraphicsEnvironment();
 		final GraphicsDevice[] screens = graphicsEnvironment.getScreenDevices();
-		final List<Rectangle> allRectangles = new ArrayList<Rectangle>();
+		final List<Rectangle> allRectangles = new ArrayList<>();
 		for (final GraphicsDevice screen : screens)
 		{
 			for (final GraphicsConfiguration gc : screen.getConfigurations())
@@ -1273,6 +1328,10 @@ extends JFrame
 		reportAction.setEnabled(true);
 		final JMenuItem reportItem = new JMenuItem(reportAction);
 		menu.add(reportItem);
+		clearReportAction = new ClearReportAction();
+		clearReportAction.setEnabled(true);
+		final JMenuItem clearReportItem = new JMenuItem(clearReportAction);
+		menu.add(clearReportItem);
 		menuBar.add(menu);
 		setJMenuBar(menuBar);
 		final JPopupMenu buildPopup = new JPopupMenu("Build");

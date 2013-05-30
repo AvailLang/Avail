@@ -171,7 +171,7 @@ public class IndexedRepositoryManager
 	 * ModuleSummary compiled module summary}.
 	 */
 	private final Map<String, ModuleSummary> moduleMap =
-		new HashMap<String, ModuleSummary>(100);
+		new HashMap<>(100);
 
 	/**
 	 * Clear the underlying {@linkplain IndexedRepository repository} and

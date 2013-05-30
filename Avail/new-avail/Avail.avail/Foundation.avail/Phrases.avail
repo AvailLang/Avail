@@ -51,7 +51,7 @@ Body
 /* Make "_'s type" bind more tightly than phrase type construction. */
 Invoke
 [
-	exclusions ::= cast {"_'s⁇type"} into [ t : {string|whole number} | t ];
+	exclusions ::= cast {"_'s⁇type"} into [ t : {string|natural number} | t ];
 	Grammatical restriction "_⇒_" is <∅, exclusions>;
 ]
 with <>;

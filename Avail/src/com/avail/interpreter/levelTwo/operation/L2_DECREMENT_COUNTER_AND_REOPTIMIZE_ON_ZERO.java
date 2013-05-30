@@ -57,12 +57,14 @@ extends L2Operation
 			IMMEDIATE.is("New optimization level"));
 
 	@Override
-	public void step (final Interpreter interpreter)
+	public void step (
+		final L2Instruction instruction,
+		final Interpreter interpreter)
 	{
-		final int targetOptimizationLevel = interpreter.nextWord();
+		final int targetOptimizationLevel = instruction.immediateAt(0);
 		final A_Function theFunction = interpreter.pointerAt(FUNCTION);
 		final A_RawFunction theCode = theFunction.code();
-		final Mutable<Boolean> translated = new Mutable<Boolean>(false);
+		final Mutable<Boolean> translated = new Mutable<>(false);
 		theCode.decrementCountdownToReoptimize(new Continuation0()
 		{
 			@Override

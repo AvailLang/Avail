@@ -623,14 +623,14 @@ extends MapBinDescriptor
 		/**
 		 * The path through map bins, including the current linear bin.
 		 */
-		final Deque<AvailObject> binStack = new ArrayDeque<AvailObject>();
+		final Deque<AvailObject> binStack = new ArrayDeque<>();
 
 		/**
 		 * The current position in each bin on the binStack, including the
 		 * linear bin.  It should be the same size as the binStack.  When
 		 * they're both empty it indicates {@code !hasNext()}.
 		 */
-		final Deque<Integer> subscriptStack = new ArrayDeque<Integer>();
+		final Deque<Integer> subscriptStack = new ArrayDeque<>();
 
 		/**
 		 * Construct a new {@link MapIterable} over the keys and values

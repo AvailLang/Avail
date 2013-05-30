@@ -1,6 +1,6 @@
 /**
- * L2_UNKNOWN_WORDCODE.java
- * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
+ * package-info.java
+ * Copyright (c) 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,34 +29,5 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.avail.interpreter.levelTwo.operation;
 
-import static com.avail.descriptor.AvailObject.error;
-import com.avail.interpreter.Interpreter;
-import com.avail.interpreter.levelTwo.*;
-
-/**
- * A place holder for invalid wordcode instructions.
- */
-public class L2_UNKNOWN_WORDCODE extends L2Operation
-{
-	/**
-	 * Initialize the sole instance.
-	 */
-	public final static L2Operation instance =
-		new L2_UNKNOWN_WORDCODE().init();
-
-	@Override
-	public void step (final Interpreter interpreter)
-	{
-		error("Unknown wordcode\n");
-	}
-
-	@Override
-	public boolean shouldEmit ()
-	{
-		assert false
-			: "An instruction with this operation should not be created";
-		return false;
-	}
-}
+@com.avail.annotations.NotNullByDefault package com.avail.performance;

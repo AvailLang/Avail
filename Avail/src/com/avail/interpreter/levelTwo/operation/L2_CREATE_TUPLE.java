@@ -37,7 +37,6 @@ import java.util.*;
 import com.avail.descriptor.*;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.*;
-import com.avail.interpreter.levelTwo.operand.*;
 import com.avail.interpreter.levelTwo.register.*;
 import com.avail.optimizer.RegisterSet;
 
@@ -56,21 +55,23 @@ public class L2_CREATE_TUPLE extends L2Operation
 			WRITE_POINTER.is("tuple"));
 
 	@Override
-	public void step (final Interpreter interpreter)
+	public void step (
+		final L2Instruction instruction,
+		final Interpreter interpreter)
 	{
-		final int valuesIndex = interpreter.nextWord();
-		final int destIndex = interpreter.nextWord();
-		final A_Tuple indices = interpreter.vectorAt(valuesIndex);
-		final int size = indices.tupleSize();
-		final AvailObject tuple =
-			ObjectTupleDescriptor.createUninitialized(size);
+		final L2RegisterVector elementsVector =
+			instruction.readVectorRegisterAt(0);
+		final L2ObjectRegister destinationReg =
+			instruction.writeObjectRegisterAt(1);
+
+		final List<L2ObjectRegister> registers = elementsVector.registers();
+		final int size = registers.size();
+		final A_Tuple tuple = ObjectTupleDescriptor.createUninitialized(size);
 		for (int i = 1; i <= size; i++)
 		{
-			tuple.tupleAtPut(
-				i,
-				interpreter.pointerAt(indices.tupleIntAt(i)));
+			tuple.objectTupleAtPut(i, registers.get(i - 1).in(interpreter));
 		}
-		interpreter.pointerAtPut(destIndex, tuple);
+		destinationReg.set(tuple, interpreter);
 	}
 
 	@Override
@@ -78,17 +79,16 @@ public class L2_CREATE_TUPLE extends L2Operation
 		final L2Instruction instruction,
 		final RegisterSet registerSet)
 	{
-		final L2ReadVectorOperand sourcesOperand =
-			(L2ReadVectorOperand) instruction.operands[0];
-		final L2WritePointerOperand destinationOperand =
-			(L2WritePointerOperand) instruction.operands[1];
+		final L2RegisterVector elementsVector =
+			instruction.readVectorRegisterAt(0);
+		final L2ObjectRegister destinationReg =
+			instruction.writeObjectRegisterAt(1);
 
-		final L2RegisterVector sourceVector = sourcesOperand.vector;
-		final int size = sourceVector.registers().size();
+		final List<L2ObjectRegister> registers = elementsVector.registers();
+		final int size = registers.size();
 		final A_Type sizeRange = IntegerDescriptor.fromInt(size).kind();
-		final List<A_Type> types =
-			new ArrayList<A_Type>(sourceVector.registers().size());
-		for (final L2Register register : sourceVector.registers())
+		final List<A_Type> types = new ArrayList<>(size);
+		for (final L2ObjectRegister register : registers)
 		{
 			if (registerSet.hasTypeAt(register))
 			{
@@ -105,27 +105,26 @@ public class L2_CREATE_TUPLE extends L2Operation
 				TupleDescriptor.fromList(types),
 				BottomTypeDescriptor.bottom());
 		tupleType.makeImmutable();
+		registerSet.removeConstantAt(destinationReg);
 		registerSet.typeAtPut(
-			destinationOperand.register,
+			destinationReg,
 			tupleType,
 			instruction);
-		if (sourceVector.allRegistersAreConstantsIn(registerSet))
+		if (elementsVector.allRegistersAreConstantsIn(registerSet))
 		{
-			final List<AvailObject> constants = new ArrayList<AvailObject>(
-				sourceVector.registers().size());
-			for (final L2Register register : sourceVector.registers())
+			final List<AvailObject> constants = new ArrayList<>(size);
+			for (final L2ObjectRegister register : registers)
 			{
 				constants.add(registerSet.constantAt(register));
 			}
 			final A_Tuple tuple = TupleDescriptor.fromList(constants);
 			tuple.makeImmutable();
 			assert tuple.isInstanceOf(tupleType);
-			registerSet.constantAtPut(
-				destinationOperand.register, tuple, instruction);
-		}
-		else
-		{
-			registerSet.removeConstantAt(destinationOperand.register);
+			registerSet.typeAtPut(
+				destinationReg,
+				InstanceTypeDescriptor.on(tuple),
+				instruction);
+			registerSet.constantAtPut(destinationReg, tuple, instruction);
 		}
 	}
 }

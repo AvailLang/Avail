@@ -34,13 +34,14 @@ package com.avail.interpreter.levelTwo.operation;
 import static com.avail.descriptor.AvailObject.error;
 import static com.avail.interpreter.Primitive.Result.SUCCESS;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
-import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.*;
 import com.avail.interpreter.Primitive.*;
 import com.avail.interpreter.levelTwo.*;
 import com.avail.interpreter.levelTwo.operand.*;
+import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
+import com.avail.interpreter.levelTwo.register.L2RegisterVector;
 import com.avail.optimizer.RegisterSet;
 
 /**
@@ -70,49 +71,52 @@ public class L2_RUN_INFALLIBLE_PRIMITIVE extends L2Operation
 			WRITE_POINTER.is("primitive result"));
 
 	@Override
-	public void step (final Interpreter interpreter)
+	public void step (
+		final L2Instruction instruction,
+		final Interpreter interpreter)
 	{
-		final int primNumber = interpreter.nextWord();
-		final int argsVector = interpreter.nextWord();
-		final int expectedTypeIndex = interpreter.nextWord();
-		final int resultRegister = interpreter.nextWord();
-		final A_Tuple argsVect = interpreter.vectorAt(argsVector);
+		final Primitive primitive = instruction.primitiveAt(0);
+		final L2RegisterVector argsVector = instruction.readVectorRegisterAt(1);
+		final A_Type expectedType = instruction.constantAt(2);
+		final L2ObjectRegister resultReg = instruction.writeObjectRegisterAt(3);
+
 		interpreter.argsBuffer.clear();
-		for (int i = 1; i <= argsVect.tupleSize(); i++)
+		for (final L2ObjectRegister argumentRegister : argsVector.registers())
 		{
-			interpreter.argsBuffer.add(
-				interpreter.pointerAt(argsVect.tupleIntAt(i)));
+			interpreter.argsBuffer.add(argumentRegister.in(interpreter));
 		}
 		// Only primitive 340 is infallible and yet needs the function,
 		// and it's always folded.  In the case that primitive 340 is known to
 		// produce the wrong type at some site (potentially dead code due to
 		// inlining of an unreachable branch), it is converted to an
 		// explicit failure instruction.  Thus we can pass null.
+		// Note also that primitives which have to suspend the fiber (to perform
+		// a level one unsafe operation and then switch back to level one safe
+		// mode) must *never* be inlined, otherwise they couldn't reach a safe
+		// inter-nybblecode position.
 		final Result res = interpreter.attemptPrimitive(
-			primNumber,
+			primitive.primitiveNumber,
 			null,
 			interpreter.argsBuffer);
+
 		assert res == SUCCESS;
 
-		final A_Type expectedType =
-			interpreter.chunk().literalAt(expectedTypeIndex);
-		final long start = System.nanoTime();
 		final AvailObject result = interpreter.latestResult();
+		final long before = System.nanoTime();
 		final boolean checkOk = result.isInstanceOf(expectedType);
-		final long checkTimeNanos = System.nanoTime() - start;
-		Primitive.byPrimitiveNumberOrFail(primNumber)
-			.addMicrosecondsCheckingResultType(checkTimeNanos / 1000L);
+		final long after = System.nanoTime();
+		primitive.addNanosecondsCheckingResultType(after - before);
 		if (!checkOk)
 		{
 			// TODO [MvG] - This will have to be handled better some day.
 			error(
 				"primitive %s's result (%s) did not agree with"
 				+ " semantic restriction's expected type (%s)",
-				Primitive.byPrimitiveNumberOrFail(primNumber).name(),
+				primitive.name(),
 				result,
 				expectedType);
 		}
-		interpreter.pointerAtPut(resultRegister, result);
+		resultReg.set(result, interpreter);
 	}
 
 	@Override
@@ -120,19 +124,15 @@ public class L2_RUN_INFALLIBLE_PRIMITIVE extends L2Operation
 		final L2Instruction instruction,
 		final RegisterSet registerSet)
 	{
-		final L2PrimitiveOperand primitiveOperand =
-			(L2PrimitiveOperand) instruction.operands[0];
-		final L2WritePointerOperand destinationOperand =
-			(L2WritePointerOperand) instruction.operands[3];
-		registerSet.removeTypeAt(destinationOperand.register);
-		registerSet.removeConstantAt(destinationOperand.register);
+		final A_Type expectedType = instruction.constantAt(2);
+		final L2ObjectRegister resultReg = instruction.writeObjectRegisterAt(3);
 
-		// We can at least believe what the basic primitive signature says
-		// it returns.
-		registerSet.typeAtPut(
-			destinationOperand.register,
-			primitiveOperand.primitive.blockTypeRestriction().returnType(),
-			instruction);
+		// This operation *checks* that the returned object is of the specified
+		// expectedType, so if the operation completes normally, the resultReg
+		// *will* have the expected type.
+		registerSet.removeTypeAt(resultReg);
+		registerSet.removeConstantAt(resultReg);
+		registerSet.typeAtPut(resultReg, expectedType, instruction);
 	}
 
 	@Override

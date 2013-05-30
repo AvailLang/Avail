@@ -704,7 +704,7 @@ extends Descriptor
 		else
 		{
 			final List<A_BundleTree> successorsList =
-				new ArrayList<A_BundleTree>(nextPcs.size());
+				new ArrayList<>(nextPcs.size());
 			for (final int nextPc : nextPcs)
 			{
 				successorsList.add(newPc(nextPc));

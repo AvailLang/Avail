@@ -32,7 +32,7 @@
 
 package com.avail.test;
 
-import static junit.framework.Assert.*;
+import static org.junit.Assert.*;
 import static com.avail.compiler.ParsingOperation.*;
 import static com.avail.compiler.ParsingConversionRule.*;
 import java.util.*;
@@ -1068,7 +1068,7 @@ public class MessageSplitterTest
 					parts.tupleAt(i).asNativeString());
 			}
 			final A_Tuple instructionsTuple = splitter.instructionsTuple();
-			final List<Integer> instructionsList = new ArrayList<Integer>();
+			final List<Integer> instructionsList = new ArrayList<>();
 			for (final A_Number instruction : instructionsTuple)
 			{
 				instructionsList.add(instruction.extractInt());

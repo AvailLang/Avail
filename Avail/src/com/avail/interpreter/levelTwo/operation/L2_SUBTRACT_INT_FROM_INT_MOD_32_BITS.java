@@ -32,11 +32,17 @@
 
 package com.avail.interpreter.levelTwo.operation;
 
-import static com.avail.descriptor.AvailObject.error;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.*;
+import com.avail.interpreter.levelTwo.register.L2IntegerRegister;
 
+/**
+ * Subtract the subtrahend from the minuend, converting the result to a signed
+ * 32-bit int through signed truncation.
+ *
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ */
 public class L2_SUBTRACT_INT_FROM_INT_MOD_32_BITS extends L2Operation
 {
 	/**
@@ -48,12 +54,18 @@ public class L2_SUBTRACT_INT_FROM_INT_MOD_32_BITS extends L2Operation
 			READWRITE_INT.is("minuend"));
 
 	@Override
-	public void step (final Interpreter interpreter)
+	public void step (
+		final L2Instruction instruction,
+		final Interpreter interpreter)
 	{
-		@SuppressWarnings("unused")
-		final int integerIndex = interpreter.nextWord();
-		@SuppressWarnings("unused")
-		final int destIndex = interpreter.nextWord();
-		error("not implemented");
+		final L2IntegerRegister subtrahendReg =
+			instruction.readIntRegisterAt(0);
+		final L2IntegerRegister minuendReg =
+			instruction.readWriteIntRegisterAt(1);
+
+		final int subtrahend = subtrahendReg.in(interpreter);
+		final int minuend = minuendReg.in(interpreter);
+		final int intResult = minuend - subtrahend;
+		minuendReg.set(intResult, interpreter);
 	}
 }

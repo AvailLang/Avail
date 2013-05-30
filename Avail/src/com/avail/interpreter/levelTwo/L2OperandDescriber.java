@@ -34,7 +34,10 @@ package com.avail.interpreter.levelTwo;
 
 import com.avail.annotations.Nullable;
 import com.avail.descriptor.*;
-import com.avail.interpreter.Primitive;
+import com.avail.interpreter.levelTwo.operand.*;
+import com.avail.interpreter.levelTwo.operation.L2_LABEL;
+import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
+import com.avail.interpreter.levelTwo.register.L2RegisterVector;
 
 /**
  * An {@code L2OperandDescriber} uses the {@link L2OperandTypeDispatcher}
@@ -50,26 +53,9 @@ class L2OperandDescriber implements L2OperandTypeDispatcher
 	private @Nullable String _name;
 
 	/**
-	 * The numeric operand being described.
+	 * The operand being described.
 	 */
-	private int _operand;
-
-	/**
-	 * The {@linkplain L2Chunk level two chunk} containing the operation and the
-	 * operand to be described.
-	 */
-	private @Nullable L2Chunk _chunk;
-
-	/**
-	 * @return The current {@linkplain L2Chunk chunk} containing the instruction
-	 *         being described
-	 */
-	private L2Chunk chunk ()
-	{
-		final L2Chunk chunk = _chunk;
-		assert chunk != null;
-		return chunk;
-	}
+	private @Nullable L2Operand _operand;
 
 	/**
 	 * The {@link StringBuilder} on which to write an operand description.
@@ -97,20 +83,23 @@ class L2OperandDescriber implements L2OperandTypeDispatcher
 	/**
 	 * Describe the current operand, which must be some vector of object
 	 * registers.
+	 *
+	 * @param vector The {@link L2RegisterVector} inside the operand.
 	 */
-	private void printVector ()
+	private void printVector (final L2RegisterVector vector)
 	{
 		final StringBuilder builder = _description;
 		assert builder != null;
 		print("Vec=(");
-		final A_Tuple vector = chunk().vectors().tupleAt(_operand);
-		for (int i = 1; i <= vector.tupleSize(); i++)
+		boolean first = true;
+		for (final L2ObjectRegister reg : vector.registers())
 		{
-			if (i > 1)
+			if (!first)
 			{
 				builder.append(",");
 			}
-			builder.append(vector.tupleIntAt(i));
+			builder.append(reg);
+			first = false;
 		}
 		builder.append(")");
 	}
@@ -124,22 +113,17 @@ class L2OperandDescriber implements L2OperandTypeDispatcher
 	 *            The {@link L2OperandType} used to interpret the operand.
 	 * @param operand
 	 *            The numeric operand itself, an {@code int}.
-	 * @param chunk
-	 *            The current {@linkplain L2Chunk level two chunk} within
-	 *            which the description is to occur.
 	 * @param stream
 	 *            The {@link StringBuilder} that will have a suitable operand
 	 *            description appended.
 	 */
 	public void describeInOperandChunkOn (
 			final L2NamedOperandType namedOperandType,
-			final int operand,
-			final L2Chunk chunk,
+			final L2Operand operand,
 			final StringBuilder stream)
 	{
 		_name = namedOperandType.name();
 		_operand = operand;
-		_chunk = chunk;
 		_description = stream;
 		stream.append(
 			String.format(
@@ -150,85 +134,119 @@ class L2OperandDescriber implements L2OperandTypeDispatcher
 
 
 	@Override
+	@SuppressWarnings("null")
 	public void doConstant()
 	{
-		print("Const(%s)", chunk().literalAt(_operand));
+		print("Const(%s)", ((L2ConstantOperand)_operand).object);
 	}
+
 	@Override
+	@SuppressWarnings("null")
 	public void doImmediate()
 	{
-		print("Immediate(%d)", _operand);
+		print("Immediate(%d)", ((L2ImmediateOperand)_operand).value);
 	}
+
 	@Override
+	@SuppressWarnings("null")
 	public void doPC()
 	{
-		print("PC(%d)", _operand);
+		final L2Instruction targetLabel = ((L2PcOperand)_operand).targetLabel();
+		if (targetLabel.operation instanceof L2_LABEL)
+		{
+			// Print as a symbolic label.
+			print("PC(%s)", targetLabel.commentAt(0));
+		}
+		else
+		{
+			// Print the instruction's operation and offset.
+			print("PC(%s at %d)",
+				targetLabel.operation.name(),
+				targetLabel.offset());
+		}
 	}
+
 	@Override
+	@SuppressWarnings("null")
 	public void doPrimitive()
 	{
-		print("Prim(%s)", Primitive.byPrimitiveNumberOrFail(
-			(short)_operand).name());
+		print("Prim(%s)", ((L2PrimitiveOperand)_operand).primitive.name());
 	}
+
 	@Override
+	@SuppressWarnings("null")
 	public void doSelector()
 	{
-		final A_Bundle bundle = chunk().literalAt(_operand);
+		final A_Bundle bundle = ((L2SelectorOperand)_operand).bundle;
 		print("Message(%s)", bundle.message().atomName().asNativeString());
 	}
+
 	@Override
 	public void doReadPointer()
 	{
 		print("Obj(%s)[r]", _operand);
 	}
+
 	@Override
 	public void doWritePointer()
 	{
 		print("Obj(%s)[w]", _operand);
 	}
+
 	@Override
 	public void doReadWritePointer()
 	{
 		print("Obj(%s)[r/w]", _operand);
 	}
+
 	@Override
 	public void doReadInt()
 	{
 		print("Int(%s)[r]", _operand);
 	}
+
 	@Override
 	public void doWriteInt()
 	{
 		print("Int(%s)[w]", _operand);
 	}
+
 	@Override
 	public void doReadWriteInt()
 	{
 		print("Int(%s)[r/w]", _operand);
 	}
+
 	@Override
+	@SuppressWarnings("null")
 	public void doReadVector()
 	{
-		printVector();
+		printVector(((L2ReadVectorOperand)_operand).vector);
 		print("[r]");
 	}
+
 	@Override
+	@SuppressWarnings("null")
 	public void doWriteVector()
 	{
-		printVector();
+		printVector(((L2WriteVectorOperand)_operand).vector);
 		print("[w]");
 	}
+
 	@Override
+	@SuppressWarnings("null")
 	public void doReadWriteVector()
 	{
-		printVector();
+		printVector(((L2ReadWriteVectorOperand)_operand).vector);
 		print("[r/w]");
 	}
 
 	@Override
-	public void doImplicitlyInitializeVector ()
+	@SuppressWarnings("null")
+	public void doComment ()
 	{
-		printVector();
-		print("[INIT]");
+		print(String.format(
+			"[comment: %s]",
+			((L2CommentOperand)_operand).comment));
 	}
 }

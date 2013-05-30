@@ -32,11 +32,14 @@
 
 package com.avail.interpreter.levelTwo;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import com.avail.annotations.Nullable;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.operand.*;
 import com.avail.optimizer.*;
+import com.avail.performance.Statistic;
 
 /**
  * The instruction set for the {@linkplain Interpreter level two Avail
@@ -136,7 +139,7 @@ public abstract class L2Operation
 	/**
 	 * The {@linkplain L2Operation operations} that have been encountered thus
 	 * far, organized as an array indexed by the operations' {@linkplain
-	 * #ordinal ordinals}. The array might be padded with nulls.
+	 * #ordinal ordinals}. The array might be padded on the right with nulls.
 	 */
 	static final L2Operation[] values = new L2Operation[200];
 
@@ -162,6 +165,12 @@ public abstract class L2Operation
 	 */
 	private static int numValues = 0;
 
+	/**
+	 * A {@link Statistic} that records the number of nanoseconds spent while
+	 * executing {@link L2Instruction}s that use this operation.
+	 */
+	@SuppressWarnings("null")
+	public Statistic statisticInNanoseconds;
 
 	/**
 	 * Initialize a fresh {@link L2Operation}.
@@ -180,7 +189,9 @@ public abstract class L2Operation
 		{
 			assert namedOperandTypes == null;
 			namedOperandTypes = theNamedOperandTypes;
-			name = this.getClass().getSimpleName();
+			final String className = this.getClass().getSimpleName();
+			name = className;
+			statisticInNanoseconds = new Statistic(className);
 			ordinal = numValues;
 			values[ordinal] = this;
 			numValues++;
@@ -190,14 +201,19 @@ public abstract class L2Operation
 
 	/**
 	 * Execute this {@link L2Operation} within an {@link Interpreter}.  The
-	 * {@linkplain L2Operand operands} are encoded as integers in the wordcode
-	 * stream, extracted with {@link Interpreter#nextWord()}.
+	 * {@linkplain L2Operand operands} are provided in the {@link L2Instruction}
+	 * that is also passed.
 	 *
+	 * @param instruction
+	 *            The {@link L2Instruction} of which this is the {@link
+	 *            L2Operation}.
 	 * @param interpreter
 	 *            The {@linkplain Interpreter interpreter} on behalf of which
 	 *            to perform this operation.
 	 */
-	public abstract void step (final Interpreter interpreter);
+	public abstract void step (
+		final L2Instruction instruction,
+		final Interpreter interpreter);
 
 	/**
 	 * Propagate type, value, alias, and source instruction information due to
@@ -327,5 +343,44 @@ public abstract class L2Operation
 		assert instruction.operation == this;
 		newInstructions.add(instruction);
 		return false;
+	}
+
+	/**
+	 * Report performance statistics about all L2Operations.
+	 *
+	 * @param builder Where to write the report.
+	 */
+	public static void reportStatsOn (final StringBuilder builder)
+	{
+		builder.append("Level Two Operations:\n");
+		final List<Statistic> stats = new ArrayList<>();
+		for (final L2Operation operation : values())
+		{
+			if (operation != null
+				&& operation.statisticInNanoseconds.count() > 0)
+			{
+				stats.add(operation.statisticInNanoseconds);
+			}
+		}
+		Collections.sort(stats);
+		for (final Statistic stat : stats)
+		{
+			stat.describeNanosecondsOn(builder);
+			builder.append('\n');
+		}
+	}
+
+	/**
+	 * Clear performance statistics about all L2Operations.
+	 */
+	public static void clearAllStats ()
+	{
+		for (final L2Operation operation : values())
+		{
+			if (operation != null)
+			{
+				operation.statisticInNanoseconds.clear();
+			}
+		}
 	}
 }

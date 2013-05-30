@@ -723,7 +723,7 @@ public final class AvailLoader
 	{
 		assert stringName.isString();
 		//  Check if it's already defined somewhere...
-		final MutableOrNull<A_Atom> atom = new MutableOrNull<A_Atom>();
+		final MutableOrNull<A_Atom> atom = new MutableOrNull<>();
 		final A_Module theModule = module;
 		theModule.lock(
 			new Continuation0()

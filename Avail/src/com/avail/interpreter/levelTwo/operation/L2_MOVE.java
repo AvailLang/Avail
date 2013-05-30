@@ -35,8 +35,7 @@ import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.*;
-import com.avail.interpreter.levelTwo.operand.*;
-import com.avail.interpreter.levelTwo.register.L2Register;
+import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.*;
 
 /**
@@ -60,13 +59,15 @@ public class L2_MOVE extends L2Operation
 			WRITE_POINTER.is("destination"));
 
 	@Override
-	public void step (final Interpreter interpreter)
+	public void step (
+		final L2Instruction instruction,
+		final Interpreter interpreter)
 	{
-		final int fromIndex = interpreter.nextWord();
-		final int destIndex = interpreter.nextWord();
-		interpreter.pointerAtPut(
-			destIndex,
-			interpreter.pointerAt(fromIndex));
+		final L2ObjectRegister sourceReg = instruction.readObjectRegisterAt(0);
+		final L2ObjectRegister destinationReg =
+			instruction.writeObjectRegisterAt(1);
+
+		destinationReg.set(sourceReg.in(interpreter), interpreter);
 	}
 
 	@Override
@@ -74,40 +75,31 @@ public class L2_MOVE extends L2Operation
 		final L2Instruction instruction,
 		final RegisterSet registerSet)
 	{
-		final L2ReadPointerOperand sourceOperand =
-			(L2ReadPointerOperand) instruction.operands[0];
-		final L2WritePointerOperand destinationOperand =
-			(L2WritePointerOperand) instruction.operands[1];
+		final L2ObjectRegister sourceReg = instruction.readObjectRegisterAt(0);
+		final L2ObjectRegister destinationReg =
+			instruction.writeObjectRegisterAt(1);
 
-		final L2Register sourceRegister = sourceOperand.register;
-		final L2Register destinationRegister = destinationOperand.register;
-
-		assert sourceRegister != destinationRegister;
-
-		registerSet.removeConstantAt(destinationRegister);
-		if (registerSet.hasTypeAt(sourceRegister))
+		assert sourceReg != destinationReg;
+		registerSet.removeConstantAt(destinationReg);
+		if (registerSet.hasTypeAt(sourceReg))
 		{
 			registerSet.typeAtPut(
-				destinationRegister,
-				registerSet.typeAt(sourceRegister),
+				destinationReg,
+				registerSet.typeAt(sourceReg),
 				instruction);
 		}
 		else
 		{
-			registerSet.removeTypeAt(destinationRegister);
+			registerSet.removeTypeAt(destinationReg);
 		}
 
-		if (registerSet.hasConstantAt(sourceRegister))
+		if (registerSet.hasConstantAt(sourceReg))
 		{
 			registerSet.constantAtPut(
-				destinationRegister,
-				registerSet.constantAt(sourceRegister),
+				destinationReg,
+				registerSet.constantAt(sourceReg),
 				instruction);
 		}
-
-		registerSet.propagateMove(
-			sourceRegister,
-			destinationRegister,
-			instruction);
+		registerSet.propagateMove(sourceReg, destinationReg, instruction);
 	}
 }

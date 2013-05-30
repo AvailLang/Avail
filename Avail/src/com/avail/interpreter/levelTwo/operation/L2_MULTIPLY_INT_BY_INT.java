@@ -32,11 +32,18 @@
 
 package com.avail.interpreter.levelTwo.operation;
 
-import static com.avail.descriptor.AvailObject.error;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.*;
+import com.avail.interpreter.levelTwo.register.L2IntegerRegister;
 
+/**
+ * Multiply the value in one int register by the value in another int register,
+ * storing back in the second if the result fits in an int without overflow.
+ * Otherwise jump to the specified target.
+ *
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ */
 public class L2_MULTIPLY_INT_BY_INT extends L2Operation
 {
 	/**
@@ -49,15 +56,28 @@ public class L2_MULTIPLY_INT_BY_INT extends L2Operation
 			PC.is("if out of range"));
 
 	@Override
-	public void step (final Interpreter interpreter)
+	public void step (
+		final L2Instruction instruction,
+		final Interpreter interpreter)
 	{
-		@SuppressWarnings("unused")
-		final int multiplyIndex = interpreter.nextWord();
-		@SuppressWarnings("unused")
-		final int destIndex = interpreter.nextWord();
-		@SuppressWarnings("unused")
-		final int ifIndex = interpreter.nextWord();
-		error("not implemented");
+		final L2IntegerRegister multiplierReg =
+			instruction.readIntRegisterAt(0);
+		final L2IntegerRegister multiplicandReg =
+			instruction.readWriteIntRegisterAt(1);
+		final int outOfRangeOffset = instruction.pcAt(2);
+
+		final int multiplier = multiplierReg.in(interpreter);
+		final int multiplicand = multiplicandReg.in(interpreter);
+		final long longResult = (long)multiplier * (long)multiplicand;
+		final int intResult = (int)longResult;
+		if (longResult == intResult)
+		{
+			multiplicandReg.set(intResult, interpreter);
+		}
+		else
+		{
+			interpreter.offset(outOfRangeOffset);
+		}
 	}
 
 	@Override

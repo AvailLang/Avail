@@ -53,7 +53,7 @@ extends Exception
 	 * the dependency recursion.
 	 */
 	private final List<ResolvedModuleName> recursionPath =
-		new ArrayList<ResolvedModuleName>(10);
+		new ArrayList<>(10);
 
 	/**
 	 * Answer the {@linkplain ResolvedModuleName resolved module name} of the
@@ -109,7 +109,7 @@ extends Exception
 		final LinkedHashSet<ResolvedModuleName> moduleNamesCycle)
 	{
 		final List<ResolvedModuleName> cycle =
-			new ArrayList<ResolvedModuleName>(moduleNamesCycle);
+			new ArrayList<>(moduleNamesCycle);
 		cycle.add(recursiveDependent);
 		return String.format(
 			"module \""

@@ -32,11 +32,19 @@
 
 package com.avail.interpreter.levelTwo.operation;
 
-import static com.avail.descriptor.AvailObject.error;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.*;
+import com.avail.interpreter.levelTwo.register.L2IntegerRegister;
 
+/**
+ * If the divisor is zero, then jump to the zero divisor label.  Otherwise
+ * divide the dividend int by the divisor int.  If the quotient and remainder
+ * each fit in an {@code int}, then store them and continue, otherwise jump to
+ * an out-of-range label.
+ *
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ */
 public class L2_DIVIDE_INT_BY_INT extends L2Operation
 {
 	/**
@@ -52,27 +60,56 @@ public class L2_DIVIDE_INT_BY_INT extends L2Operation
 			PC.is("if zero divisor"));
 
 	@Override
-	public void step (final Interpreter interpreter)
+	public void step (
+		final L2Instruction instruction,
+		final Interpreter interpreter)
 	{
-		@SuppressWarnings("unused")
-		final int divideIndex = interpreter.nextWord();
-		@SuppressWarnings("unused")
-		final int byIndex = interpreter.nextWord();
-		@SuppressWarnings("unused")
-		final int quotientIndex = interpreter.nextWord();
-		@SuppressWarnings("unused")
-		final int remainderIndex = interpreter.nextWord();
-		@SuppressWarnings("unused")
-		final int ifIndex = interpreter.nextWord();
-		@SuppressWarnings("unused")
-		final int zeroIndex = interpreter.nextWord();
-		error("not implemented");
+		final L2IntegerRegister dividendReg = instruction.readIntRegisterAt(0);
+		final L2IntegerRegister divisorReg = instruction.readIntRegisterAt(1);
+		final L2IntegerRegister quotientReg = instruction.writeIntRegisterAt(2);
+		final L2IntegerRegister remainderReg = instruction.writeIntRegisterAt(3);
+		final int outOfRangeIndex = instruction.pcAt(4);
+		final int zeroDivisorIndex = instruction.pcAt(5);
+
+		final long dividend = dividendReg.in(interpreter);
+		final long divisor = divisorReg.in(interpreter);
+		if (divisor == 0)
+		{
+			interpreter.offset(zeroDivisorIndex);
+			return;
+		}
+		final long quotient;
+		if (divisor < 0)
+		{
+			// a/b for b<0:  use -(a/-b)
+			quotient = -(dividend / -divisor);
+		}
+		else if (dividend < 0)
+		{
+			// a/b for a<0, b>0:  use -1-(-1-a)/b
+			quotient = -1L - ((-1L - dividend) / divisor);
+		}
+		else
+		{
+			quotient = dividend / divisor;
+		}
+		// Remainder is always non-negative.
+		final long remainder = dividend - (quotient * divisor);
+		if (quotient == (int)quotient && remainder == (int)remainder)
+		{
+			quotientReg.set((int)quotient, interpreter);
+			remainderReg.set((int)remainder, interpreter);
+		}
+		else
+		{
+			interpreter.offset(outOfRangeIndex);
+		}
 	}
 
 	@Override
 	public boolean hasSideEffect ()
 	{
-		// It jumps for division by zero.
+		// It jumps for division by zero or out-of-range.
 		return true;
 	}
 }

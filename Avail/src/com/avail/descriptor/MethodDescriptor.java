@@ -338,7 +338,7 @@ extends Descriptor
 		final AvailObject object,
 		final List<? extends A_Type> argTypes)
 	{
-		final List<A_Definition> result = new ArrayList<A_Definition>(3);
+		final List<A_Definition> result = new ArrayList<>(3);
 		// Use the accessor instead of reading the slot directly (to acquire the
 		// monitor first).
 		final A_Tuple definitionsTuple = object.definitionsTuple();
@@ -537,18 +537,18 @@ extends Descriptor
 					object.slot(DEFINITIONS_TUPLE);
 				final int indicesSize = definitionsTuple.tupleSize();
 				final List<Integer> allIndices =
-					new ArrayList<Integer>(indicesSize);
+					new ArrayList<>(indicesSize);
 				for (int i = 0; i < indicesSize; i++)
 				{
 					allIndices.add(i);
 				}
 				final List<AvailObject> definitionsList =
-					new ArrayList<AvailObject>();
+					new ArrayList<>();
 				for (final AvailObject imp : definitionsTuple)
 				{
 					definitionsList.add(imp);
 				}
-				final List<Integer> instructions = new ArrayList<Integer>();
+				final List<Integer> instructions = new ArrayList<>();
 				createTestingTree(
 					definitionsList,
 					new ArrayList<Integer>(),
@@ -800,7 +800,7 @@ extends Descriptor
 		// disjoint I mean that one or more arguments is bottom when the
 		// intersection of the signatures is computed.
 		List<Integer> newPossible = new ArrayList<Integer>(possible);
-		final List<Integer> newPositive = new ArrayList<Integer>(positives);
+		final List<Integer> newPositive = new ArrayList<>(positives);
 		for (final int index1 : possible)
 		{
 			possibleSignature = definitions.get(index1).bodySignature();

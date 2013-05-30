@@ -136,7 +136,7 @@ public class Multigraph<V, E extends Edge<V>>
 		 * </p>
 		 */
 		final Map<VertexInGraph, Set<E>> outbound =
-			new HashMap<VertexInGraph, Set<E>>();
+			new HashMap<>();
 
 		/**
 		 * A {@link Map} from each source VertexInGraph to the (non-empty)
@@ -149,7 +149,7 @@ public class Multigraph<V, E extends Edge<V>>
 		 * </p>
 		 */
 		final Map<VertexInGraph, Set<E>> inbound =
-			new HashMap<VertexInGraph, Set<E>>();
+			new HashMap<>();
 
 		/**
 		 * Construct a new {@link Multigraph.VertexInGraph}.
@@ -183,7 +183,7 @@ public class Multigraph<V, E extends Edge<V>>
 	 * A mapping from each vertex to its {@link VertexInGraph}.
 	 */
 	private final Map<V, VertexInGraph> vertices =
-		new HashMap<V, VertexInGraph>();
+		new HashMap<>();
 
 	/**
 	 * Construct a new {@link Multigraph} based on an existing one.  The two
@@ -433,7 +433,7 @@ public class Multigraph<V, E extends Edge<V>>
 				return Collections.unmodifiableSet(
 					sourceInGraph.outbound.values().iterator().next());
 			}
-			final Set<E> edges = new HashSet<E>(sourceInGraph.outbound.size());
+			final Set<E> edges = new HashSet<>(sourceInGraph.outbound.size());
 			for (final Set<E> submap : sourceInGraph.outbound.values())
 			{
 				edges.addAll(submap);
@@ -462,7 +462,7 @@ public class Multigraph<V, E extends Edge<V>>
 				return Collections.unmodifiableSet(
 					destinationInGraph.inbound.values().iterator().next());
 			}
-			final Set<E> edges = new HashSet<E>(
+			final Set<E> edges = new HashSet<>(
 				destinationInGraph.inbound.size());
 			for (final Set<E> submap : destinationInGraph.inbound.values())
 			{
@@ -491,7 +491,7 @@ public class Multigraph<V, E extends Edge<V>>
 	 */
 	List<E> edges ()
 	{
-		final List<E> edges = new ArrayList<E>(vertices.size());
+		final List<E> edges = new ArrayList<>(vertices.size());
 		for (final VertexInGraph vertexInGraph : vertices.values())
 		{
 			for (final Set<E> edgeSet : vertexInGraph.outbound.values())
