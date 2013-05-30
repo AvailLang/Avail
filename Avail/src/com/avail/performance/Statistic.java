@@ -32,6 +32,8 @@
 
 package com.avail.performance;
 
+import com.avail.annotations.Nullable;
+
 /**
  * A Statistic is an incremental, summarized recording of a set of integral
  * values and times.
@@ -195,9 +197,10 @@ public class Statistic implements Comparable<Statistic>
 	}
 
 	@Override
-	public int compareTo (final Statistic otherStat)
+	public int compareTo (final @Nullable Statistic otherStat)
 	{
 		// Compare by descending sums.
+		assert otherStat != null;
 		return Double.compare(otherStat.sum(), this.sum());
 	}
 

@@ -109,8 +109,12 @@ public final class RegisterSet
 		Collections.sort(sortedRegs, new Comparator<L2Register>()
 		{
 			@Override
-			public int compare(final L2Register r1, final L2Register r2)
+			public int compare(
+				final @Nullable L2Register r1,
+				final @Nullable L2Register r2)
 			{
+				assert r1 != null;
+				assert r2 != null;
 				return (int)(r1.uniqueValue - r2.uniqueValue);
 			}
 		});

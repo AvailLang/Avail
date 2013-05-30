@@ -33,6 +33,7 @@
 package com.avail.compiler;
 
 import static com.avail.descriptor.TokenDescriptor.TokenType.LITERAL;
+import com.avail.annotations.Nullable;
 import com.avail.compiler.AbstractAvailCompiler.ParserState;
 import com.avail.descriptor.*;
 import com.avail.utility.Continuation1;
@@ -141,9 +142,10 @@ public enum ParsingConversionRule
 				new Continuation1<AvailObject>()
 				{
 					@Override
-					public void value (final AvailObject value)
+					public void value (final @Nullable AvailObject value)
 					{
 						// Wrap it as a literal phrase and pass it along.
+						assert value != null;
 						continuation.value(
 							LiteralNodeDescriptor.syntheticFrom(value));
 					}
