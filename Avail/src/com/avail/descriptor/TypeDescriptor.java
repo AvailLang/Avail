@@ -460,7 +460,7 @@ extends AbstractTypeDescriptor
 	@Override @AvailMethod
 	boolean o_IsSupertypeOfObjectType (
 		final AvailObject object,
-		final A_BasicObject aLazyObjectType)
+		final A_Type anObjectType)
 	{
 		// By default, nothing is a supertype of an eager object type unless it
 		// states otherwise.
@@ -700,7 +700,7 @@ extends AbstractTypeDescriptor
 	@Override @AvailMethod
 	A_Type o_TypeUnionOfObjectType (
 		final AvailObject object,
-		final A_Type anEagerObjectType)
+		final A_Type anObjectType)
 	{
 		return object.typeUnion(NONTYPE.o());
 	}

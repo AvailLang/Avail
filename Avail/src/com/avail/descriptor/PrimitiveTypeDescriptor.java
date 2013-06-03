@@ -242,7 +242,7 @@ extends TypeDescriptor
 	@Override @AvailMethod
 	boolean o_IsSupertypeOfObjectType (
 		final AvailObject object,
-		final A_BasicObject anEagerObjectType)
+		final A_Type anObjectType)
 	{
 		// Check if I'm a supertype of the given eager object type. Only NONTYPE
 		// and its ancestors are supertypes of an object type.

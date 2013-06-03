@@ -564,11 +564,6 @@ public interface A_BasicObject
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	A_Map fieldTypeMap ();
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
 	int hashOrZero ();
 
 	/**

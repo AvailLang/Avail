@@ -460,7 +460,11 @@ public enum AvailErrorCode
 	 */
 	E_MACRO_MUST_RETURN_A_PARSE_NODE (68),
 
-//	E_??? (69),
+	/**
+	 * An attempt to read a field of an object or object type was unsuccessful
+	 * because that field is not present.
+	 */
+	E_NO_SUCH_FIELD (69),
 
 	/**
 	 * Module loading is over. The interpreter is now operating in runtime mode.

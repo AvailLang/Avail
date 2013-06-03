@@ -970,6 +970,8 @@ System exception "macro-prefix-function-argument-must-be-a-parse-node" (67)
 	extends definition exception;
 System exception "macro-must-return-a-parse-node" (68)
 	extends definition exception;
+System exception "no-such-field" (69)
+	extends element-access exception;
 System exception "loading-is-over" (70)
 	extends system exception;
 System exception "method-implementation-lookup-failed" (71)

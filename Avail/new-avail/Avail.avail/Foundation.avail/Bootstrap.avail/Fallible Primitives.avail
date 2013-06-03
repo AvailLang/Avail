@@ -481,6 +481,42 @@ Primitive "Restart_" is
 ] : ⊥;
 
 /**
+ * Extract a field's value from an object.
+ *
+ * Parameters:
+ *    object - An object.
+ *    field - The field for which to extract the value.
+ * Returns:
+ *    The field's value.
+ */
+Primitive "_[_]" is
+[
+	object : object,
+	field : atom
+|
+	Primitive 66 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode
+] : any;
+
+/**
+ * Extract a field's type from an object type.
+ *
+ * Parameters:
+ *    objectType - An object type.
+ *    field - The field for which to extract the type.
+ * Returns:
+ *    The field's constraining type.
+ */
+Primitive "_[_]" is
+[
+	objectType : object meta,
+	field : atom
+|
+	Primitive 67 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode
+] : any meta;
+
+/**
  * Construct and answer a function given the specified compiled code and tuple
  * of captured variables.
  *

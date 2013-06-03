@@ -387,11 +387,13 @@ Private method "accessor name for_" is
 
 /* These methods are needed for reconstructor synthesis. */
 toMapAtom ::= $"_→map";
-ejectAtom ::= $"eject_";
-addBindingAtom ::= $"_+_→_";
+mapAtAtom ::= $"_[_]";
+objectAtFieldAtom ::= $"_[_]";
+objectTypeAtFieldAtom ::= $"_[_]";
 toObjectAtom ::= $"_→object";
 toObjectTypeAtom ::= $"_→object type";
-mapAtAtom ::= $"_[_]";
+ejectAtom ::= $"eject_";
+addBindingAtom ::= $"_+_→_";
 getAtom ::= $"↓_";
 readTypeAtom ::= $"_'s⁇read type";
 putAtom ::= $"↓_`?=_";
@@ -414,9 +416,10 @@ Private method "generate_field accessor for_:_(mutable=_)" is
 	mutable : boolean
 |
 	args ::= <arg «`"x"` : objectType»>;
-	toMapMSend ::= send toMapAtom with «<«↓args[1]»>» : field map;
-	mapAtSend ::= send mapAtAtom
-		with «<toMapMSend, ‘`fieldAtom`’>» : fieldType;
+/*	toMapMSend ::= send toMapAtom with «<«↓args[1]»>» : field map;*/
+	objectPhrase ::= «↓args[1]»;
+	getFieldSend ::= send objectAtFieldAtom
+		with «<objectPhrase, ‘`fieldAtom`’>» : fieldType;
 	resultType ::=
 		unless mutable then [fieldType]
 		else
@@ -425,11 +428,10 @@ Private method "generate_field accessor for_:_(mutable=_)" is
 			varType's read type
 		];
 	last ::=
-		unless mutable then [mapAtSend]
+		unless mutable then [getFieldSend]
 		else
 		[
-			getSend ::= send getAtom with «<mapAtSend>» : resultType;
-			getSend
+			send getAtom with «<getFieldSend>» : resultType
 		];
 	newBlock ::= «[args | <last>] : resultType»;
 	generate newBlock
@@ -454,9 +456,9 @@ Private method "generate_field accessor restriction for_:_(mutable=_)" is
 	mutable : boolean
 |
 	args ::= <arg «`"x"` : objectType's type»>;
-	toMapMSend ::= send toMapAtom with «<«↓args[1]»>» : field map;
-	mapAtSend ::= send mapAtAtom
-		with «<toMapMSend, ‘`fieldAtom`’>» : fieldType's type;
+	objectTypePhrase ::= «↓args[1]»;
+	getFieldTypeSend ::= send objectTypeAtFieldAtom
+		with «<objectTypePhrase, ‘`fieldAtom`’>» : fieldType's type;
 	resultType ::=
 		unless mutable then [fieldType's type]
 		else
@@ -465,8 +467,8 @@ Private method "generate_field accessor restriction for_:_(mutable=_)" is
 			varType's read type's type
 		];
 	last ::=
-		unless mutable then [mapAtSend]
-		else [send readTypeAtom with «<mapAtSend>» : resultType];
+		unless mutable then [getFieldTypeSend]
+		else [send readTypeAtom with «<getFieldTypeSend>» : resultType];
 	newBlock ::= «[args | <last>] : resultType»;
 	generate newBlock
 ];
@@ -518,7 +520,7 @@ Private method "Generate and install_accessor for«mutable»?_" is
 	[
 		Method methodName is
 			new [objectType's type]→(fieldType's type)
-			applying [x : object meta | x→map[fieldAtom]];
+			applying [x : object meta | x[fieldAtom]];
 		/* Install a semantic restriction if one does not already exist for this
 		 * signature.
 		 */
@@ -535,7 +537,7 @@ Private method "Generate and install_accessor for«mutable»?_" is
 				[
 					x : object meta's type
 				|
-					(x's instance→map[fieldAtom])'s type
+					(x's instance[fieldAtom])'s type
 				];
 		];
 	];
@@ -672,10 +674,10 @@ Private method "Generate and install_mutator for mutable_" is
 		varType ::= cast fieldType into [t : variable's type | t];
 		readType ::= cast varType's read type into [t : any's type | t];
 		args ::= <arg «`"x"` : objectType», arg «`"v"` : readType»>;
-		toMapMSend ::= send toMapAtom with «<«↓args[1]»>» : field map;
-		mapAtSend ::= send mapAtAtom
-			with «<toMapMSend, ‘`fieldAtom`’>» : varType;
-		putSend ::= send putAtom with «<mapAtSend, «↓args[2]»>» : ⊤;
+		objectPhrase ::= «↓args[1]»;
+		getFieldSend ::= send objectAtFieldAtom
+			with «<objectPhrase, ‘`fieldAtom`’>» : varType;
+		putSend ::= send putAtom with «<getFieldSend, «↓args[2]»>» : ⊤;
 		newBlock ::= «[args | <putSend>] : ⊤»;
 		impl ::= generate newBlock;
 		Method methodName is impl;

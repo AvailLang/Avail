@@ -605,7 +605,8 @@ extends Descriptor
 							{
 								signatureBuilder.append(", ");
 							}
-							signatureBuilder.append(++allTypesIndex);
+							signatureBuilder.append(
+								allTypeNames.get(allTypesIndex++));
 						}
 						final A_Module module = code.module();
 						strings[frameIndex] = String.format(

@@ -1178,7 +1178,7 @@ extends AbstractDescriptor
 	@Override
 	boolean o_IsSupertypeOfObjectType (
 		final AvailObject object,
-		final A_BasicObject anObjectType)
+		final A_Type anObjectType)
 	{
 		return o_Traversed(object).isSupertypeOfObjectType(anObjectType);
 	}

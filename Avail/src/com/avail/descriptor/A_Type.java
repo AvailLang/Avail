@@ -139,6 +139,14 @@ extends A_BasicObject
 	A_Type expressionType ();
 
 	/**
+	 * Given an {@linkplain ObjectTypeDescriptor object type}, answer its map
+	 * from fields to types.
+	 *
+	 * @return The map of field types.
+	 */
+	A_Map fieldTypeMap ();
+
+	/**
 	 * @return
 	 */
 	A_Type functionType ();
@@ -189,7 +197,7 @@ extends A_BasicObject
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	boolean isSupertypeOfObjectType (A_BasicObject anObjectType);
+	boolean isSupertypeOfObjectType (A_Type anObjectType);
 
 	/**
 	 */

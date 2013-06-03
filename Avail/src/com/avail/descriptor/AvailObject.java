@@ -2590,7 +2590,7 @@ implements
 	 */
 	@Override
 	public boolean isSupertypeOfObjectType (
-		final A_BasicObject anObjectType)
+		final A_Type anObjectType)
 	{
 		return descriptor.o_IsSupertypeOfObjectType(this, anObjectType);
 	}

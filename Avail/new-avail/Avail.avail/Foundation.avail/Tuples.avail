@@ -103,8 +103,7 @@ Method "“_”" is
 		leadingTypes ::= t's leading types;
 		index : natural number := 1;
 		While [index ≤ |leadingTypes|]
-		do [s := eject ↑s ++ “leadingTypes[(↑index++)]”;]
-		alternate with [s := eject ↑s ++ ", ";];
+		do [s := eject ↑s ++ “leadingTypes[(↑index++)]” ++ ", ";];
 		s := eject ↑s ++ “t's default type” ++ "…|";
 		lower ::= ⎣t⎦;
 		upper ::= ⎡t⎤;

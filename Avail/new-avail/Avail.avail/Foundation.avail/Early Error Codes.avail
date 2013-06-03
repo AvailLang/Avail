@@ -164,6 +164,7 @@ Invoke [
 		<66, "local-declaration-shadows-another">,
 		<67, "macro-prefix-function-argument-must-be-a-parse-node">,
 		<68, "macro-must-return-a-parse-node">,
+		<69, "no-such-field">,
 		<70, "loading-is-over">,
 		<71, "method-implementation-lookup-failed">,
 		<72, "method-is-sealed">,

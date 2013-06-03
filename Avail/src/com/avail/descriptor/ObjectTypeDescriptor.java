@@ -213,7 +213,7 @@ extends TypeDescriptor
 	@Override @AvailMethod
 	boolean o_IsSupertypeOfObjectType (
 		final AvailObject object,
-		final A_BasicObject anObjectType)
+		final A_Type anObjectType)
 	{
 		final A_Map m1 = object.slot(FIELD_TYPE_MAP);
 		final A_Map m2 = anObjectType.fieldTypeMap();

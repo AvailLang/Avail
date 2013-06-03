@@ -113,6 +113,7 @@ Names
 	/*  19 */ "no method code",
 	/*  33 */ "no special object code",
 	/*   9 */ "no such fiber variable code",
+	/*  69 */ "no such field code",
 	/*  17 */ "not an enumeration code",
 	/*  49 */ "octothorp must follow a simple group code",
 	/*  29 */ "outer type literal is not a type code",
@@ -471,6 +472,11 @@ Primitive "macro prefix function argument must be a parse node code" is
 Primitive "macro must return a parse node code" is
 [
 	68
+];
+
+Primitive "no such field code" is
+[
+	69
 ];
 
 Primitive "loading is over code" is

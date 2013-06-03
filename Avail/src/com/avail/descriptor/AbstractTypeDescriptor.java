@@ -194,7 +194,7 @@ extends Descriptor
 	@Override @AvailMethod
 	abstract boolean o_IsSupertypeOfObjectType (
 		final AvailObject object,
-		final A_BasicObject aLazyObjectType);
+		final A_Type anObjectType);
 
 	@Override @AvailMethod
 	abstract boolean o_IsSupertypeOfParseNodeType (

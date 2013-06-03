@@ -1789,7 +1789,7 @@ public abstract class AbstractDescriptor
 	 */
 	abstract boolean o_IsSupertypeOfObjectType (
 		AvailObject object,
-		A_BasicObject anObjectType);
+		A_Type anObjectType);
 
 	/**
 	 * @param object

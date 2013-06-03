@@ -1,5 +1,5 @@
 /**
- * P_064_ObjectTypeToMap.java
+ * P_066_GetObjectField.java
  * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -31,34 +31,41 @@
  */
 package com.avail.interpreter.primitive;
 
+import static com.avail.descriptor.InfinityDescriptor.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
 import com.avail.descriptor.*;
+import com.avail.exceptions.ArithmeticException;
+import com.avail.exceptions.AvailErrorCode;
 import com.avail.interpreter.*;
 
 /**
- * <strong>Primitive 64:</strong> Convert an {@linkplain
- * ObjectTypeDescriptor object type} into a {@linkplain MapDescriptor map}
- * from {@linkplain AtomDescriptor fields}' {@linkplain
- * InstanceTypeDescriptor types} to {@linkplain TypeDescriptor types}.
+ * <strong>Primitive 66:</strong> Extract the specified {@linkplain
+ * AtomDescriptor field} from the {@linkplain ObjectDescriptor object}.
  */
-public class P_064_ObjectTypeToMap extends Primitive
+public class P_066_GetObjectField extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_064_ObjectTypeToMap().init(
-		1, CanFold, CannotFail);
+	public final static Primitive instance =
+		new P_066_GetObjectField().init(2, CanFold, CanInline);
 
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 1;
-		final A_Type objectType = args.get(0);
-		return interpreter.primitiveSuccess(objectType.fieldTypeMap());
+		assert args.size() == 2;
+		final A_BasicObject object = args.get(0);
+		final A_Atom field = args.get(1);
+		final A_Map fieldMap = object.fieldMap();
+		if (!fieldMap.hasKey(field))
+		{
+			return interpreter.primitiveFailure(AvailErrorCode.E_NO_SUCH_FIELD);
+		}
+		return interpreter.primitiveSuccess(fieldMap.mapAt(field));
 	}
 
 	@Override
@@ -66,10 +73,34 @@ public class P_064_ObjectTypeToMap extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				ObjectTypeDescriptor.meta()),
-			MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
-				IntegerRangeTypeDescriptor.wholeNumbers(),
-				ATOM.o(),
-				InstanceMetaDescriptor.anyMeta()));
+				ObjectTypeDescriptor.mostGeneralType(),
+				ATOM.o()),
+			ANY.o());
+	}
+
+	@Override
+	public A_Type returnTypeGuaranteedByVM (
+		final List<? extends A_Type> argumentTypes)
+	{
+		final A_Type objectType = argumentTypes.get(0);
+		final A_Type fieldType = argumentTypes.get(1);
+
+		final A_Map fieldTypeMap = objectType.fieldTypeMap();
+		if (fieldType.isEnumeration())
+		{
+			A_Type union = BottomTypeDescriptor.bottom();
+			for (final A_Atom possibleField : fieldType.instances())
+			{
+				if (!fieldTypeMap.hasKey(possibleField))
+				{
+					// Unknown field, so the type could be anything.
+					return ANY.o();
+				}
+				union = union.typeUnion(fieldTypeMap.mapAt(possibleField));
+			}
+			return union;
+		}
+		return super.returnTypeGuaranteedByVM(
+			argumentTypes);
 	}
 }

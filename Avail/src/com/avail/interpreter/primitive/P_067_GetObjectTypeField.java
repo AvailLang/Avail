@@ -1,5 +1,5 @@
 /**
- * P_064_ObjectTypeToMap.java
+ * P_067_GetObjectTypeField.java
  * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -35,30 +35,36 @@ import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
 import com.avail.descriptor.*;
+import com.avail.exceptions.AvailErrorCode;
 import com.avail.interpreter.*;
 
 /**
- * <strong>Primitive 64:</strong> Convert an {@linkplain
- * ObjectTypeDescriptor object type} into a {@linkplain MapDescriptor map}
- * from {@linkplain AtomDescriptor fields}' {@linkplain
- * InstanceTypeDescriptor types} to {@linkplain TypeDescriptor types}.
+ * <strong>Primitive 67:</strong> Extract the specified {@linkplain
+ * AtomDescriptor field}'s type from the {@linkplain ObjectTypeDescriptor
+ * object type}.
  */
-public class P_064_ObjectTypeToMap extends Primitive
+public class P_067_GetObjectTypeField extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_064_ObjectTypeToMap().init(
-		1, CanFold, CannotFail);
+	public final static Primitive instance =
+		new P_067_GetObjectTypeField().init(2, CanFold, CanInline);
 
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 1;
+		assert args.size() == 2;
 		final A_Type objectType = args.get(0);
-		return interpreter.primitiveSuccess(objectType.fieldTypeMap());
+		final A_Atom field = args.get(1);
+		final A_Map fieldTypeMap = objectType.fieldTypeMap();
+		if (!fieldTypeMap.hasKey(field))
+		{
+			return interpreter.primitiveFailure(AvailErrorCode.E_NO_SUCH_FIELD);
+		}
+		return interpreter.primitiveSuccess(fieldTypeMap.mapAt(field));
 	}
 
 	@Override
@@ -66,10 +72,8 @@ public class P_064_ObjectTypeToMap extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				ObjectTypeDescriptor.meta()),
-			MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
-				IntegerRangeTypeDescriptor.wholeNumbers(),
-				ATOM.o(),
-				InstanceMetaDescriptor.anyMeta()));
+				ObjectTypeDescriptor.meta(),
+				ATOM.o()),
+			InstanceMetaDescriptor.anyMeta());
 	}
 }

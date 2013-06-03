@@ -556,7 +556,7 @@ extends AbstractTypeDescriptor
 	@Override @AvailMethod
 	final boolean o_IsSupertypeOfObjectType (
 		final AvailObject object,
-		final A_BasicObject aLazyObjectType)
+		final A_Type anObjectType)
 	{
 		return false;
 	}
