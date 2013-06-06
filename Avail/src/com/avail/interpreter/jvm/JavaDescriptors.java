@@ -45,7 +45,7 @@ import java.util.Map;
  *    href="http://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.3">
  *    Descriptors and Signatures</a>
  */
-public final class JavaDescriptors
+final class JavaDescriptors
 {
 	/**
 	 * A {@linkplain Map map} from {@linkplain Class primitive classes} to their

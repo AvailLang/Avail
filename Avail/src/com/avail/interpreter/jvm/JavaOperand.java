@@ -37,7 +37,7 @@ package com.avail.interpreter.jvm;
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public enum JavaOperand
+enum JavaOperand
 {
 	/** The operand is a {@code reference} index. */
 	OBJECTREF (Object.class),

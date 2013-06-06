@@ -46,7 +46,7 @@ import java.util.Map;
  *    href="http://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.4">
  *    The Constant Pool</a>
  */
-public class ConstantPool
+class ConstantPool
 {
 	/**
 	 * The enumeration of {@code class} file constant pool tags.
@@ -109,7 +109,7 @@ public class ConstantPool
 	 *    href="http://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.4">
 	 *    The Constant Pool</a>
 	 */
-	public abstract class Entry
+	abstract class Entry
 	{
 		/** The index into the {@linkplain ConstantPool constant pool}. */
 		final int index;
@@ -181,7 +181,7 @@ public class ConstantPool
 	 *    href="http://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.4.7">
 	 *    The <code>CONSTANT_Utf8_info</code> Structure</a>
 	 */
-	public final class Utf8Entry
+	final class Utf8Entry
 	extends Entry
 	{
 		@Override
@@ -197,6 +197,12 @@ public class ConstantPool
 		void writeBodyTo (final DataOutput out) throws IOException
 		{
 			out.writeUTF(data);
+		}
+
+		@Override
+		public String toString ()
+		{
+			return data;
 		}
 
 		/**
@@ -223,7 +229,7 @@ public class ConstantPool
 	 *    The <code>CONSTANT_Integer_info</code> and
 	 *    <code>CONSTANT_Float_info</code> Structure</a>
 	 */
-	public final class IntegerEntry
+	final class IntegerEntry
 	extends Entry
 	{
 		@Override
@@ -239,6 +245,12 @@ public class ConstantPool
 		void writeBodyTo (final DataOutput out) throws IOException
 		{
 			out.writeInt(data);
+		}
+
+		@Override
+		public String toString ()
+		{
+			return Integer.toString(data);
 		}
 
 		/**
@@ -265,7 +277,7 @@ public class ConstantPool
 	 *    The <code>CONSTANT_Integer_info</code> and
 	 *    <code>CONSTANT_Float_info</code> Structure</a>
 	 */
-	public final class FloatEntry
+	final class FloatEntry
 	extends Entry
 	{
 		@Override
@@ -281,6 +293,12 @@ public class ConstantPool
 		void writeBodyTo (final DataOutput out) throws IOException
 		{
 			out.writeFloat(data);
+		}
+
+		@Override
+		public String toString ()
+		{
+			return Float.toString(data);
 		}
 
 		/**
@@ -307,7 +325,7 @@ public class ConstantPool
 	 *    The <code>CONSTANT_Long_info</code> and
 	 *    <code>CONSTANT_Double_info</code> Structure</a>
 	 */
-	public final class LongEntry
+	final class LongEntry
 	extends Entry
 	{
 		@Override
@@ -323,6 +341,12 @@ public class ConstantPool
 		void writeBodyTo (final DataOutput out) throws IOException
 		{
 			out.writeLong(data);
+		}
+
+		@Override
+		public String toString ()
+		{
+			return Long.toString(data);
 		}
 
 		/**
@@ -349,7 +373,7 @@ public class ConstantPool
 	 *    The <code>CONSTANT_Long_info</code> and
 	 *    <code>CONSTANT_Double_info</code> Structure</a>
 	 */
-	public final class DoubleEntry
+	final class DoubleEntry
 	extends Entry
 	{
 		@Override
@@ -365,6 +389,12 @@ public class ConstantPool
 		void writeBodyTo (final DataOutput out) throws IOException
 		{
 			out.writeDouble(data);
+		}
+
+		@Override
+		public String toString ()
+		{
+			return Double.toString(data);
 		}
 
 		/**
@@ -390,7 +420,7 @@ public class ConstantPool
 	 *    href="http://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.4.1">
 	 *    The <code>CONSTANT_Class_info</code> Structure</a>
 	 */
-	public final class ClassEntry
+	final class ClassEntry
 	extends Entry
 	{
 		@Override
@@ -409,6 +439,12 @@ public class ConstantPool
 		void writeBodyTo (final DataOutput out) throws IOException
 		{
 			nameEntry.writeIndexTo(out);
+		}
+
+		@Override
+		public String toString ()
+		{
+			return nameEntry.toString();
 		}
 
 		/**
@@ -435,7 +471,7 @@ public class ConstantPool
 	 *    href="http://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.4.3">
 	 *    The <code>CONSTANT_String_info</code> Structure</a>
 	 */
-	public final class StringEntry
+	final class StringEntry
 	extends Entry
 	{
 		@Override
@@ -451,6 +487,12 @@ public class ConstantPool
 		void writeBodyTo (final DataOutput out) throws IOException
 		{
 			utf8Entry.writeIndexTo(out);
+		}
+
+		@Override
+		public String toString ()
+		{
+			return utf8Entry.toString();
 		}
 
 		/**
@@ -494,6 +536,15 @@ public class ConstantPool
 			nameAndTypeEntry.writeIndexTo(out);
 		}
 
+		@Override
+		public String toString ()
+		{
+			return String.format(
+				"%s.%s",
+				classEntry,
+				nameAndTypeEntry);
+		}
+
 		/**
 		 * Construct a new {@link RefEntry}.
 		 *
@@ -527,13 +578,19 @@ public class ConstantPool
 	 *    <code>CONSTANT_Methodref_info</code>,
 	 *    and <code>CONSTANT_InterfaceMethodref_info</code> Structures</a>
 	 */
-	public final class FieldrefEntry
+	final class FieldrefEntry
 	extends RefEntry
 	{
 		@Override
 		Tag tag ()
 		{
 			return Tag.Fieldref;
+		}
+
+		@Override
+		public String toString ()
+		{
+			return "Field " + super.toString();
 		}
 
 		/**
@@ -567,13 +624,19 @@ public class ConstantPool
 	 *    <code>CONSTANT_Methodref_info</code>,
 	 *    and <code>CONSTANT_InterfaceMethodref_info</code> Structures</a>
 	 */
-	public final class MethodrefEntry
+	final class MethodrefEntry
 	extends RefEntry
 	{
 		@Override
 		Tag tag ()
 		{
 			return Tag.Methodref;
+		}
+
+		@Override
+		public String toString ()
+		{
+			return "Method " + super.toString();
 		}
 
 		/**
@@ -607,13 +670,19 @@ public class ConstantPool
 	 *    <code>CONSTANT_Methodref_info</code>,
 	 *    and <code>CONSTANT_InterfaceMethodref_info</code> Structures</a>
 	 */
-	public final class InterfaceMethodrefEntry
+	final class InterfaceMethodrefEntry
 	extends RefEntry
 	{
 		@Override
 		Tag tag ()
 		{
 			return Tag.InterfaceMethodref;
+		}
+
+		@Override
+		public String toString ()
+		{
+			return "Interface Method " + super.toString();
 		}
 
 		/**
@@ -645,7 +714,7 @@ public class ConstantPool
 	 *    href="http://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.4.6">
 	 *    The <code>CONSTANT_NameAndType_info</code> Structure</a>
 	 */
-	public final class NameAndTypeEntry
+	final class NameAndTypeEntry
 	extends Entry
 	{
 		@Override
@@ -665,6 +734,12 @@ public class ConstantPool
 		{
 			nameEntry.writeIndexTo(out);
 			descriptorEntry.writeIndexTo(out);
+		}
+
+		@Override
+		public String toString ()
+		{
+			return nameEntry + ":" + descriptorEntry;
 		}
 
 		/**
@@ -696,7 +771,7 @@ public class ConstantPool
 	 *    href="http://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.4.8">
 	 *    The <code>CONSTANT_MethodHandle_info</code> Structure</a>
 	 */
-	public final class MethodHandleEntry
+	final class MethodHandleEntry
 	extends Entry
 	{
 		@Override
@@ -768,7 +843,7 @@ public class ConstantPool
 	 *    href="http://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.4.9">
 	 *    The <code>CONSTANT_MethodType_info</code> Structure</a>
 	 */
-	public final class MethodTypeEntry
+	final class MethodTypeEntry
 	extends Entry
 	{
 		@Override
@@ -784,6 +859,12 @@ public class ConstantPool
 		void writeBodyTo (final DataOutput out) throws IOException
 		{
 			descriptorEntry.writeIndexTo(out);
+		}
+
+		@Override
+		public String toString ()
+		{
+			return descriptorEntry.toString();
 		}
 
 		/**
@@ -809,7 +890,7 @@ public class ConstantPool
 	 *    href="http://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.4.10">
 	 *    The <code>CONSTANT_MethodType_info</code> Structure</a>
 	 */
-	public final class InvokeDynamicEntry
+	final class InvokeDynamicEntry
 	extends Entry
 	{
 		@Override
@@ -865,126 +946,6 @@ public class ConstantPool
 	private final LinkedHashMap<Object, Entry> entries = new LinkedHashMap<>();
 
 	/**
-	 * Answer an {@linkplain IntegerEntry entry} for the specified {@code int},
-	 * constructing and installing a new entry if necessary.
-	 *
-	 * @param value
-	 *        The constant.
-	 * @return The entry associated with the specified value.
-	 */
-	public IntegerEntry constant (final int value)
-	{
-		final Integer boxed = new Integer(value);
-		Entry entry = entries.get(boxed);
-		if (entry == null)
-		{
-			entry = new IntegerEntry(nextIndex++, value);
-			entries.put(boxed, entry);
-		}
-		return (IntegerEntry) entry;
-	}
-
-	/**
-	 * Answer an {@linkplain LongEntry entry} for the specified {@code long},
-	 * constructing and installing a new entry if necessary.
-	 *
-	 * @param value
-	 *        The constant.
-	 * @return The entry associated with the specified value.
-	 */
-	public LongEntry constant (final long value)
-	{
-		final Long boxed = new Long(value);
-		Entry entry = entries.get(boxed);
-		if (entry == null)
-		{
-			entry = new LongEntry(nextIndex++, value);
-			entries.put(boxed, entry);
-		}
-		return (LongEntry) entry;
-	}
-
-	/**
-	 * Answer an {@linkplain FloatEntry entry} for the specified {@code float},
-	 * constructing and installing a new entry if necessary.
-	 *
-	 * @param value
-	 *        The constant.
-	 * @return The entry associated with the specified value.
-	 */
-	public FloatEntry constant (final float value)
-	{
-		final Float boxed = new Float(value);
-		Entry entry = entries.get(boxed);
-		if (entry == null)
-		{
-			entry = new FloatEntry(nextIndex++, value);
-			entries.put(boxed, entry);
-		}
-		return (FloatEntry) entry;
-	}
-
-	/**
-	 * Answer an {@linkplain DoubleEntry entry} for the specified {@code
-	 * double}, constructing and installing a new entry if necessary.
-	 *
-	 * @param value
-	 *        The constant.
-	 * @return The entry associated with the specified value.
-	 */
-	public DoubleEntry constant (final double value)
-	{
-		final Double boxed = new Double(value);
-		Entry entry = entries.get(boxed);
-		if (entry == null)
-		{
-			entry = new DoubleEntry(nextIndex++, value);
-			entries.put(boxed, entry);
-		}
-		return (DoubleEntry) entry;
-	}
-
-	/**
-	 * Answer an {@linkplain ClassEntry entry} for the specified {@linkplain
-	 * Class class}, constructing and installing a new entry if necessary.
-	 *
-	 * @param value
-	 *        The constant.
-	 * @return The entry associated with the specified value.
-	 */
-	public ClassEntry constant (final Class<?> value)
-	{
-		Entry entry = entries.get(value);
-		if (entry == null)
-		{
-			final String descriptor = JavaDescriptors.forType(value);
-			final Utf8Entry nameEntry = utf8Constant(descriptor);
-			entry = new ClassEntry(nextIndex++, nameEntry);
-			entries.put(value, entry);
-		}
-		return (ClassEntry) entry;
-	}
-
-	/**
-	 * Answer an {@linkplain StringEntry entry} for the specified {@link
-	 * String}, constructing and installing a new entry if necessary.
-	 *
-	 * @param value
-	 *        The constant.
-	 * @return The entry associated with the specified value.
-	 */
-	public StringEntry constant (final String value)
-	{
-		Entry entry = entries.get(value);
-		if (entry == null)
-		{
-			final Utf8Entry utf8Entry = utf8Constant(value);
-			entry = new StringEntry(nextIndex++, utf8Entry);
-		}
-		return (StringEntry) entry;
-	}
-
-	/**
 	 * {@code Utf8Key} serves as a key in {@link ConstantPool#entries entries}
 	 * for {@link Utf8Entry} objects.
 	 */
@@ -1036,7 +997,7 @@ public class ConstantPool
 	 *        The constant.
 	 * @return The entry associated with the specified value.
 	 */
-	public Utf8Entry utf8Constant (final String value)
+	Utf8Entry utf8 (final String value)
 	{
 		final Utf8Key key = new Utf8Key(value);
 		Entry entry = entries.get(key);
@@ -1048,7 +1009,264 @@ public class ConstantPool
 		return (Utf8Entry) entry;
 	}
 
-	// TODO: [TLS] Add key classes and constant applicators for other types.
+	/**
+	 * Answer an {@linkplain IntegerEntry entry} for the specified {@code int},
+	 * constructing and installing a new entry if necessary.
+	 *
+	 * @param value
+	 *        The constant.
+	 * @return The entry associated with the specified value.
+	 */
+	IntegerEntry constant (final int value)
+	{
+		final Integer boxed = new Integer(value);
+		Entry entry = entries.get(boxed);
+		if (entry == null)
+		{
+			entry = new IntegerEntry(nextIndex++, value);
+			entries.put(boxed, entry);
+		}
+		return (IntegerEntry) entry;
+	}
+
+	/**
+	 * Answer an {@linkplain LongEntry entry} for the specified {@code long},
+	 * constructing and installing a new entry if necessary.
+	 *
+	 * @param value
+	 *        The constant.
+	 * @return The entry associated with the specified value.
+	 */
+	LongEntry constant (final long value)
+	{
+		final Long boxed = new Long(value);
+		Entry entry = entries.get(boxed);
+		if (entry == null)
+		{
+			entry = new LongEntry(nextIndex++, value);
+			entries.put(boxed, entry);
+		}
+		return (LongEntry) entry;
+	}
+
+	/**
+	 * Answer an {@linkplain FloatEntry entry} for the specified {@code float},
+	 * constructing and installing a new entry if necessary.
+	 *
+	 * @param value
+	 *        The constant.
+	 * @return The entry associated with the specified value.
+	 */
+	FloatEntry constant (final float value)
+	{
+		final Float boxed = new Float(value);
+		Entry entry = entries.get(boxed);
+		if (entry == null)
+		{
+			entry = new FloatEntry(nextIndex++, value);
+			entries.put(boxed, entry);
+		}
+		return (FloatEntry) entry;
+	}
+
+	/**
+	 * Answer an {@linkplain DoubleEntry entry} for the specified {@code
+	 * double}, constructing and installing a new entry if necessary.
+	 *
+	 * @param value
+	 *        The constant.
+	 * @return The entry associated with the specified value.
+	 */
+	DoubleEntry constant (final double value)
+	{
+		final Double boxed = new Double(value);
+		Entry entry = entries.get(boxed);
+		if (entry == null)
+		{
+			entry = new DoubleEntry(nextIndex++, value);
+			entries.put(boxed, entry);
+		}
+		return (DoubleEntry) entry;
+	}
+
+	/**
+	 * Answer an {@linkplain ClassEntry entry} for the specified {@linkplain
+	 * Class class}, constructing and installing a new entry if necessary.
+	 *
+	 * @param value
+	 *        The constant.
+	 * @return The entry associated with the specified value.
+	 */
+	ClassEntry constant (final Class<?> value)
+	{
+		Entry entry = entries.get(value);
+		if (entry == null)
+		{
+			final String descriptor = JavaDescriptors.forType(value);
+			final Utf8Entry nameEntry = utf8(descriptor);
+			entry = new ClassEntry(nextIndex++, nameEntry);
+			entries.put(value, entry);
+		}
+		return (ClassEntry) entry;
+	}
+
+	/**
+	 * Answer an {@linkplain StringEntry entry} for the specified {@link
+	 * String}, constructing and installing a new entry if necessary.
+	 *
+	 * @param value
+	 *        The constant.
+	 * @return The entry associated with the specified value.
+	 */
+	StringEntry constant (final String value)
+	{
+		Entry entry = entries.get(value);
+		if (entry == null)
+		{
+			final Utf8Entry utf8Entry = utf8(value);
+			entry = new StringEntry(nextIndex++, utf8Entry);
+		}
+		return (StringEntry) entry;
+	}
+
+	/**
+	 * {@code RefKey} is the base for entity reference keys.
+	 */
+	private abstract class RefKey
+	{
+		/**
+		 * Answer the tag of the {@linkplain RefKey reference key}.
+		 *
+		 * @return The tag of the reference key.
+		 */
+		abstract int tag ();
+
+		/** The {@linkplain Class class}. */
+		private final Class<?> type;
+
+		/** The name. */
+		private final String name;
+
+		/** The descriptor. */
+		private final String descriptor;
+
+		@Override
+		public final boolean equals (final Object obj)
+		{
+			if (obj instanceof RefKey)
+			{
+				final RefKey other = (RefKey) obj;
+				return tag() == other.tag()
+					&& type.equals(other.type)
+					&& name.equals(other.name)
+					&& descriptor.equals(other.descriptor);
+			}
+			return false;
+		}
+
+		@Override
+		public final int hashCode ()
+		{
+			return 71 * tag()
+				+ 23 * type.hashCode()
+				+ 59 * name.hashCode()
+				+ 17 * descriptor.hashCode();
+		}
+
+		@Override
+		public final String toString ()
+		{
+			return String.format(
+				"%s(%s.%s:%s)",
+				getClass().getSimpleName(),
+				type.getClass().getName(),
+				name,
+				descriptor);
+		}
+
+		/**
+		 * Construct a new {@link RefKey}.
+		 *
+		 * @param type
+		 *        The {@linkplain Class type}.
+		 * @param name
+		 *        The name of the referent.
+		 * @param descriptor
+		 *        The descriptor of the referent.
+		 */
+		RefKey (
+			final Class<?> type,
+			final String name,
+			final String descriptor)
+		{
+			this.type = type;
+			this.name = name;
+			this.descriptor = descriptor;
+		}
+	}
+
+	/**
+	 * {@code FieldrefKey} serves as a key in {@link ConstantPool#entries
+	 * entries} for {@link FieldrefKey} objects.
+	 */
+	private final class FieldrefKey
+	extends RefKey
+	{
+		@Override
+		int tag ()
+		{
+			return 1;
+		}
+
+		/**
+		 * Construct a new {@link FieldrefKey}.
+		 *
+		 * @param type
+		 *        The {@linkplain Class type}.
+		 * @param name
+		 *        The name of the referent.
+		 * @param descriptor
+		 *        The descriptor of the referent.
+		 */
+		FieldrefKey (
+			final Class<?> type,
+			final String name,
+			final String descriptor)
+		{
+			super(type, name, descriptor);
+		}
+	}
+
+	/**
+	 * Answer an {@linkplain FieldrefEntry entry} for the specified field
+	 * reference, constructing and installing a new entry if necessary.
+	 *
+	 * @param definer
+	 *        The {@linkplain Class class} that defines the field.
+	 * @param name
+	 *        The name of the referent.
+	 * @param fieldType
+	 *        The type of the referent.
+	 * @return The entry associated with the specified field reference.
+	 */
+	FieldrefEntry fieldref (
+		final Class<?> definer,
+		final String name,
+		final Class<?> fieldType)
+	{
+		final String fieldDescriptor = JavaDescriptors.forType(fieldType);
+		final FieldrefKey key = new FieldrefKey(definer, name, fieldDescriptor);
+		Entry entry = entries.get(key);
+		if (entry == null)
+		{
+			final ClassEntry classEntry = constant(definer);
+			final NameAndTypeEntry nameAndType =
+				nameAndType(name, fieldDescriptor);
+			entry = new FieldrefEntry(nextIndex++, classEntry, nameAndType);
+			entries.put(key, entry);
+		}
+		return (FieldrefEntry) entry;
+	}
 
 	/**
 	 * {@code NameAndTypeKey} serves as a key in {@link ConstantPool#entries
@@ -1084,7 +1302,7 @@ public class ConstantPool
 		public String toString ()
 		{
 			return String.format(
-				"%s(%s : %s)",
+				"%s(%s:%s)",
 				getClass().getSimpleName(),
 				name,
 				descriptor);
@@ -1107,6 +1325,33 @@ public class ConstantPool
 
 	/**
 	 * Answer a {@link NameAndTypeEntry entry} for the specified name and
+	 * descriptor, constructing and installing a new entry if necessary.
+	 *
+	 * @param name
+	 *        The name.
+	 * @param descriptor
+	 *        A descriptor.
+	 * @return The entry associated with the specified value.
+	 */
+	private NameAndTypeEntry nameAndType (
+		final String name,
+		final String descriptor)
+	{
+		final NameAndTypeKey key = new NameAndTypeKey(name, descriptor);
+		Entry entry = entries.get(key);
+		if (entry == null)
+		{
+			final Utf8Entry nameEntry = utf8(name);
+			final Utf8Entry descriptorEntry = utf8(descriptor);
+			entry = new NameAndTypeEntry(
+				nextIndex++, nameEntry, descriptorEntry);
+			entries.put(key, entry);
+		}
+		return (NameAndTypeEntry) entry;
+	}
+
+	/**
+	 * Answer a {@link NameAndTypeEntry entry} for the specified name and
 	 * {@linkplain Class type}, constructing and installing a new entry if
 	 * necessary.
 	 *
@@ -1116,22 +1361,12 @@ public class ConstantPool
 	 *        A Java type.
 	 * @return The entry associated with the specified value.
 	 */
-	public NameAndTypeEntry nameAndTypeConstant (
+	NameAndTypeEntry nameAndType (
 		final String name,
 		final Class<?> type)
 	{
 		final String descriptor = JavaDescriptors.forType(type);
-		final NameAndTypeKey key = new NameAndTypeKey(name, descriptor);
-		Entry entry = entries.get(key);
-		if (entry == null)
-		{
-			final Utf8Entry nameEntry = utf8Constant(name);
-			final Utf8Entry descriptorEntry = utf8Constant(descriptor);
-			entry = new NameAndTypeEntry(
-				nextIndex++, nameEntry, descriptorEntry);
-			entries.put(key, entry);
-		}
-		return (NameAndTypeEntry) entry;
+		return nameAndType(name, descriptor);
 	}
 
 	/**
@@ -1145,22 +1380,12 @@ public class ConstantPool
 	 *        A Java method.
 	 * @return The entry associated with the specified value.
 	 */
-	public NameAndTypeEntry nameAndTypeConstant (
+	NameAndTypeEntry nameAndType (
 		final String name,
 		final Method method)
 	{
 		final String descriptor = JavaDescriptors.forMethod(method);
-		final NameAndTypeKey key = new NameAndTypeKey(name, descriptor);
-		Entry entry = entries.get(key);
-		if (entry == null)
-		{
-			final Utf8Entry nameEntry = utf8Constant(name);
-			final Utf8Entry descriptorEntry = utf8Constant(descriptor);
-			entry = new NameAndTypeEntry(
-				nextIndex++, nameEntry, descriptorEntry);
-			entries.put(key, entry);
-		}
-		return (NameAndTypeEntry) entry;
+		return nameAndType(name, descriptor);
 	}
 
 	/**
@@ -1176,24 +1401,14 @@ public class ConstantPool
 	 *        The method's parameter types.
 	 * @return The entry associated with the specified value.
 	 */
-	public NameAndTypeEntry nameAndTypeConstant (
+	NameAndTypeEntry nameAndType (
 		final String name,
 		final Class<?> returnType,
 		final Class<?>... parameterTypes)
 	{
 		final String descriptor = JavaDescriptors.forMethod(
 			returnType, parameterTypes);
-		final NameAndTypeKey key = new NameAndTypeKey(name, descriptor);
-		Entry entry = entries.get(key);
-		if (entry == null)
-		{
-			final Utf8Entry nameEntry = utf8Constant(name);
-			final Utf8Entry descriptorEntry = utf8Constant(descriptor);
-			entry = new NameAndTypeEntry(
-				nextIndex++, nameEntry, descriptorEntry);
-			entries.put(key, entry);
-		}
-		return (NameAndTypeEntry) entry;
+		return nameAndType(name, descriptor);
 	}
 
 	/**
@@ -1205,7 +1420,7 @@ public class ConstantPool
 	 * @throws IOException
 	 *         If the operation fails.
 	 */
-	public void writeTo (final DataOutput out) throws IOException
+	void writeTo (final DataOutput out) throws IOException
 	{
 		out.writeShort(nextIndex);
 		int index = 0;

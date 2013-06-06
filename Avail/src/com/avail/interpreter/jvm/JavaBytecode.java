@@ -33,7 +33,11 @@
 package com.avail.interpreter.jvm;
 
 import static com.avail.interpreter.jvm.JavaOperand.*;
+import java.io.DataOutput;
+import java.io.IOException;
 import java.lang.invoke.WrongMethodTypeException;
+import com.avail.interpreter.jvm.ConstantPool.ClassEntry;
+import com.avail.interpreter.jvm.ConstantPool.FieldrefEntry;
 
 /**
  * The members of {@code JavaBytecode} represent the bytecodes of the Java
@@ -44,7 +48,7 @@ import java.lang.invoke.WrongMethodTypeException;
  *    href="http://docs.oracle.com/javase/specs/jvms/se7/html/jvms-6.html">
  *    The Java Virtual Machine Instruction Set</a>
  */
-public enum JavaBytecode
+enum JavaBytecode
 {
 	/**
 	 * Load {@code reference} from array.
@@ -92,7 +96,15 @@ public enum JavaBytecode
 	 */
 	aload (0x19, 1,
 		O(),
-		O(OBJECTREF)),
+		O(OBJECTREF))
+	{
+		@Override
+		public JavaInstruction create (final Object... operands)
+		{
+			assert operands.length == 1;
+			return new LoadInstruction(this, (int) operands[0]);
+		}
+	},
 
 	/**
 	 * Load {@code reference} from local variable #0.
@@ -148,7 +160,15 @@ public enum JavaBytecode
 	anewarray (0xbd, 2,
 		O(COUNT),
 		O(ARRAYREF),
-		X(NegativeArraySizeException.class)),
+		X(NegativeArraySizeException.class))
+	{
+		@Override
+		public JavaInstruction create (final Object... operands)
+		{
+			assert operands.length == 1;
+			return new NewArrayInstruction(this, (ClassEntry) operands[0]);
+		}
+	},
 
 	/**
 	 * Return {@code reference} from method.
@@ -183,7 +203,15 @@ public enum JavaBytecode
 	 */
 	astore (0x3a, 1,
 		O(OBJECTREF),
-		O()),
+		O())
+	{
+		@Override
+		public JavaInstruction create (final Object... operands)
+		{
+			assert operands.length == 1;
+			return new StoreInstruction(this, (int) operands[0]);
+		}
+	},
 
 	/**
 	 * Store {@code reference} into local variable #0.
@@ -268,9 +296,17 @@ public enum JavaBytecode
 	 *    href="http://docs.oracle.com/javase/specs/jvms/se7/html/jvms-6.html#jvms-6.5.bipush">
 	 *    bipush</a>
 	 */
-	bipush (0x10,
+	bipush (0x10, 1,
 		O(),
-		O(INT)),
+		O(INT))
+	{
+		@Override
+		public JavaInstruction create (final Object... operands)
+		{
+			assert operands.length == 1;
+			return new PushByteInstruction(this, (int) operands[0]);
+		}
+	},
 
 	/**
 	 * Load {@code char} from array.
@@ -306,7 +342,15 @@ public enum JavaBytecode
 	checkcast (0xc0, 2,
 		O(OBJECTREF),
 		O(OBJECTREF),
-		X(ClassCastException.class)),
+		X(ClassCastException.class))
+	{
+		@Override
+		public JavaInstruction create (final Object... operands)
+		{
+			assert operands.length == 1;
+			return new CheckCastInstruction(this, (ClassEntry) operands[0]);
+		}
+	},
 
 	/**
 	 * Convert {@code double} to {@code float}.
@@ -440,7 +484,15 @@ public enum JavaBytecode
 	 */
 	dload (0x18, 1,
 		O(),
-		O(DOUBLE)),
+		O(DOUBLE))
+	{
+		@Override
+		public JavaInstruction create (final Object... operands)
+		{
+			assert operands.length == 1;
+			return new LoadInstruction(this, (int) operands[0]);
+		}
+	},
 
 	/**
 	 * Load {@code double} from local variable #0.
@@ -538,9 +590,17 @@ public enum JavaBytecode
 	 *    href="http://docs.oracle.com/javase/specs/jvms/se7/html/jvms-6.html#jvms-6.5.dstore">
 	 *    dstore</a>
 	 */
-	dstore (0x39,
+	dstore (0x39, 1,
 		O(DOUBLE),
-		O()),
+		O())
+	{
+		@Override
+		public JavaInstruction create (final Object... operands)
+		{
+			assert operands.length == 1;
+			return new StoreInstruction(this, (int) operands[0]);
+		}
+	},
 
 	/**
 	 * Store {@code double} into local variable #0.
@@ -807,7 +867,15 @@ public enum JavaBytecode
 	 */
 	fload (0x17, 1,
 		O(),
-		O(FLOAT)),
+		O(FLOAT))
+	{
+		@Override
+		public JavaInstruction create (final Object... operands)
+		{
+			assert operands.length == 1;
+			return new LoadInstruction(this, (int) operands[0]);
+		}
+	},
 
 	/**
 	 * Load {@code float} from local variable #0.
@@ -907,7 +975,15 @@ public enum JavaBytecode
 	 */
 	fstore (0x38, 1,
 		O(FLOAT),
-		O()),
+		O())
+	{
+		@Override
+		public JavaInstruction create (final Object... operands)
+		{
+			assert operands.length == 1;
+			return new StoreInstruction(this, (int) operands[0]);
+		}
+	},
 
 	/**
 	 * Store {@code float} into local variable #0.
@@ -977,7 +1053,15 @@ public enum JavaBytecode
 		X(NullPointerException.class,
 			NoSuchFieldError.class,
 			IllegalAccessError.class,
-			IncompatibleClassChangeError.class)),
+			IncompatibleClassChangeError.class))
+	{
+		@Override
+		public JavaInstruction create (final Object... operands)
+		{
+			assert operands.length == 1;
+			return new GetFieldInstruction(this, (FieldrefEntry) operands[0]);
+		}
+	},
 
 	/**
 	 * Fetch field from object.
@@ -994,7 +1078,15 @@ public enum JavaBytecode
 			ExceptionInInitializerError.class,
 			NoSuchFieldError.class,
 			IllegalAccessError.class,
-			IncompatibleClassChangeError.class)),
+			IncompatibleClassChangeError.class))
+	{
+		@Override
+		public JavaInstruction create (final Object... operands)
+		{
+			assert operands.length == 1;
+			return new GetFieldInstruction(this, (FieldrefEntry) operands[0]);
+		}
+	},
 
 	/**
 	 * Branch always.
@@ -1009,7 +1101,29 @@ public enum JavaBytecode
 	 */
 	goto_s (0xa7, 2,
 		O(),
-		O()),
+		O())
+	{
+		/**
+		 * {@inheritDoc}
+		 *
+		 * Because the resulting {@linkplain JavaInstruction instruction} is
+		 * fairly abstract, the actual {@linkplain JavaBytecode bytecode}
+		 * emitted may differ from {@link #goto_s}.
+		 */
+		@Override
+		public JavaInstruction create (final Object... operands)
+		{
+			assert operands.length == 1;
+			return new UnconditionalBranchInstruction(
+				(LabelInstruction) operands[0]);
+		}
+
+		@Override
+		public String mnemonic ()
+		{
+			return "goto";
+		}
+	},
 
 	/**
 	 * Branch always (wide index).
@@ -1020,7 +1134,23 @@ public enum JavaBytecode
 	 */
 	goto_w (0xc8, 4,
 		O(),
-		O()),
+		O())
+	{
+		/**
+		 * {@inheritDoc}
+		 *
+		 * Because the resulting {@linkplain JavaInstruction instruction} is
+		 * fairly abstract, the actual {@linkplain JavaBytecode bytecode}
+		 * emitted may differ from {@link #goto_w}.
+		 */
+		@Override
+		public JavaInstruction create (final Object... operands)
+		{
+			assert operands.length == 1;
+			return new UnconditionalBranchInstruction(
+				(LabelInstruction) operands[0]);
+		}
+	},
 
 	/**
 	 * Convert {@code int} to {@code byte}.
@@ -1232,7 +1362,16 @@ public enum JavaBytecode
 	 */
 	if_acmpeq (0xa5, 2,
 		O(OBJECTREF, OBJECTREF),
-		O()),
+		O())
+	{
+		@Override
+		public JavaInstruction create (final Object... operands)
+		{
+			assert operands.length == 1;
+			return new ConditionalBranchInstruction(
+				this, (LabelInstruction) operands[0]);
+		}
+	},
 
 	/**
 	 * Branch if {@code reference} comparison {@code (!=)} succeeds.
@@ -1243,7 +1382,16 @@ public enum JavaBytecode
 	 */
 	if_acmpne (0xa6, 2,
 		O(OBJECTREF, OBJECTREF),
-		O()),
+		O())
+	{
+		@Override
+		public JavaInstruction create (final Object... operands)
+		{
+			assert operands.length == 1;
+			return new ConditionalBranchInstruction(
+				this, (LabelInstruction) operands[0]);
+		}
+	},
 
 	/**
 	 * Branch if {@code int} comparison {@code (==)} succeeds.
@@ -1254,7 +1402,16 @@ public enum JavaBytecode
 	 */
 	if_icmpeq (0x9f, 2,
 		O(INT, INT),
-		O()),
+		O())
+	{
+		@Override
+		public JavaInstruction create (final Object... operands)
+		{
+			assert operands.length == 1;
+			return new ConditionalBranchInstruction(
+				this, (LabelInstruction) operands[0]);
+		}
+	},
 
 	/**
 	 * Branch if {@code int} comparison {@code (!=)} succeeds.
@@ -1265,7 +1422,16 @@ public enum JavaBytecode
 	 */
 	if_icmpne (0xa0, 2,
 		O(INT, INT),
-		O()),
+	O())
+	{
+		@Override
+		public JavaInstruction create (final Object... operands)
+		{
+			assert operands.length == 1;
+			return new ConditionalBranchInstruction(
+				this, (LabelInstruction) operands[0]);
+		}
+	},
 
 	/**
 	 * Branch if {@code int} comparison {@code (<)} succeeds.
@@ -1276,7 +1442,16 @@ public enum JavaBytecode
 	 */
 	if_icmplt (0xa1, 2,
 		O(INT, INT),
-		O()),
+		O())
+	{
+		@Override
+		public JavaInstruction create (final Object... operands)
+		{
+			assert operands.length == 1;
+			return new ConditionalBranchInstruction(
+				this, (LabelInstruction) operands[0]);
+		}
+	},
 
 	/**
 	 * Branch if {@code int} comparison {@code (>=)} succeeds.
@@ -1287,7 +1462,16 @@ public enum JavaBytecode
 	 */
 	if_icmpge (0xa2, 2,
 		O(INT, INT),
-		O()),
+		O())
+	{
+		@Override
+		public JavaInstruction create (final Object... operands)
+		{
+			assert operands.length == 1;
+			return new ConditionalBranchInstruction(
+				this, (LabelInstruction) operands[0]);
+		}
+	},
 
 	/**
 	 * Branch if {@code int} comparison {@code (>)} succeeds.
@@ -1298,7 +1482,16 @@ public enum JavaBytecode
 	 */
 	if_icmpgt (0xa3, 2,
 		O(INT, INT),
-		O()),
+		O())
+	{
+		@Override
+		public JavaInstruction create (final Object... operands)
+		{
+			assert operands.length == 1;
+			return new ConditionalBranchInstruction(
+				this, (LabelInstruction) operands[0]);
+		}
+	},
 
 	/**
 	 * Branch if {@code int} comparison {@code (<=)} succeeds.
@@ -1309,7 +1502,16 @@ public enum JavaBytecode
 	 */
 	if_icmple (0xa4, 2,
 		O(INT, INT),
-		O()),
+		O())
+	{
+		@Override
+		public JavaInstruction create (final Object... operands)
+		{
+			assert operands.length == 1;
+			return new ConditionalBranchInstruction(
+				this, (LabelInstruction) operands[0]);
+		}
+	},
 
 	/**
 	 * Branch if {@code int} comparison {@code (==)} with zero succeeds.
@@ -1320,7 +1522,16 @@ public enum JavaBytecode
 	 */
 	ifeq (0x99, 2,
 		O(INT),
-		O()),
+		O())
+	{
+		@Override
+		public JavaInstruction create (final Object... operands)
+		{
+			assert operands.length == 1;
+			return new ConditionalBranchInstruction(
+				this, (LabelInstruction) operands[0]);
+		}
+	},
 
 	/**
 	 * Branch if {@code int} comparison {@code (!=)} with zero succeeds.
@@ -1331,7 +1542,16 @@ public enum JavaBytecode
 	 */
 	ifne (0x9a, 2,
 		O(INT),
-		O()),
+		O())
+	{
+		@Override
+		public JavaInstruction create (final Object... operands)
+		{
+			assert operands.length == 1;
+			return new ConditionalBranchInstruction(
+				this, (LabelInstruction) operands[0]);
+		}
+	},
 
 	/**
 	 * Branch if {@code int} comparison {@code (<)} with zero succeeds.
@@ -1342,7 +1562,16 @@ public enum JavaBytecode
 	 */
 	iflt (0x9b, 2,
 		O(INT),
-		O()),
+		O())
+	{
+		@Override
+		public JavaInstruction create (final Object... operands)
+		{
+			assert operands.length == 1;
+			return new ConditionalBranchInstruction(
+				this, (LabelInstruction) operands[0]);
+		}
+	},
 
 	/**
 	 * Branch if {@code int} comparison {@code (>=)} with zero succeeds.
@@ -1353,7 +1582,16 @@ public enum JavaBytecode
 	 */
 	ifge (0x9c, 2,
 		O(INT),
-		O()),
+		O())
+	{
+		@Override
+		public JavaInstruction create (final Object... operands)
+		{
+			assert operands.length == 1;
+			return new ConditionalBranchInstruction(
+				this, (LabelInstruction) operands[0]);
+		}
+	},
 
 	/**
 	 * Branch if {@code int} comparison {@code (>)} with zero succeeds.
@@ -1364,7 +1602,16 @@ public enum JavaBytecode
 	 */
 	ifgt (0x9d, 2,
 		O(INT),
-		O()),
+		O())
+	{
+		@Override
+		public JavaInstruction create (final Object... operands)
+		{
+			assert operands.length == 1;
+			return new ConditionalBranchInstruction(
+				this, (LabelInstruction) operands[0]);
+		}
+	},
 
 	/**
 	 * Branch if {@code int} comparison {@code (<=)} with zero succeeds.
@@ -1375,7 +1622,16 @@ public enum JavaBytecode
 	 */
 	ifle (0x9e, 2,
 		O(INT),
-		O()),
+		O())
+	{
+		@Override
+		public JavaInstruction create (final Object... operands)
+		{
+			assert operands.length == 1;
+			return new ConditionalBranchInstruction(
+				this, (LabelInstruction) operands[0]);
+		}
+	},
 
 	/**
 	 * Branch if {@code reference} not {@code null}.
@@ -1386,7 +1642,16 @@ public enum JavaBytecode
 	 */
 	ifnonnull (0xc7, 2,
 		O(OBJECTREF),
-		O()),
+		O())
+	{
+		@Override
+		public JavaInstruction create (final Object... operands)
+		{
+			assert operands.length == 1;
+			return new ConditionalBranchInstruction(
+				this, (LabelInstruction) operands[0]);
+		}
+	},
 
 	/**
 	 * Branch if {@code reference} is {@code null}.
@@ -1397,7 +1662,16 @@ public enum JavaBytecode
 	 */
 	ifnull (0xc6, 2,
 		O(OBJECTREF),
-		O()),
+		O())
+	{
+		@Override
+		public JavaInstruction create (final Object... operands)
+		{
+			assert operands.length == 1;
+			return new ConditionalBranchInstruction(
+				this, (LabelInstruction) operands[0]);
+		}
+	},
 
 	/**
 	 * Increment local variable by constant.
@@ -1408,7 +1682,16 @@ public enum JavaBytecode
 	 */
 	iinc (0x84, 2,
 		O(),
-		O()),
+		O())
+	{
+		@Override
+		public JavaInstruction create (final Object... operands)
+		{
+			assert operands.length == 2;
+			return new IncrementInstruction(
+				this, (int) operands[0], (int) operands[1]);
+		}
+	},
 
 	/**
 	 * Load {@code int} from local variable.
@@ -1419,7 +1702,15 @@ public enum JavaBytecode
 	 */
 	iload (0x15, 1,
 		O(),
-		O(INT)),
+		O(INT))
+	{
+		@Override
+		public JavaInstruction create (final Object... operands)
+		{
+			assert operands.length == 1;
+			return new LoadInstruction(this, (int) operands[0]);
+		}
+	},
 
 	/**
 	 * Load {@code int} from local variable #0.
@@ -1499,7 +1790,23 @@ public enum JavaBytecode
 	 */
 	instanceof_ (0xc1, 2,
 		O(OBJECTREF),
-		O(ZERO_OR_ONE)),
+		O(ZERO_OR_ONE))
+	{
+		@Override
+		public JavaInstruction create (final Object... operands)
+		{
+			assert operands.length == 1;
+			return new InstanceofInstruction(this, (ClassEntry) operands[0]);
+		}
+
+		@Override
+		public String mnemonic ()
+		{
+			return "instanceof";
+		}
+	},
+
+	// TODO: [TLS] Continue here.
 
 	/**
 	 * Invoke dynamic method.
@@ -2179,7 +2486,10 @@ public enum JavaBytecode
 	multianewarray (0xc5, 3,
 		O(COUNT, PLURAL),
 		O(ARRAYREF),
-		X(ClassNotFoundException.class, NoClassDefFoundError.class, IllegalAccessError.class, NegativeArraySizeException.class)),
+		X(ClassNotFoundException.class,
+			NoClassDefFoundError.class,
+			IllegalAccessError.class,
+			NegativeArraySizeException.class)),
 
 	/**
 	 * Create new object.
@@ -2194,7 +2504,17 @@ public enum JavaBytecode
 	new_ (0xbb, 2,
 		O(),
 		O(OBJECTREF),
-		X(ClassNotFoundException.class, NoClassDefFoundError.class, IllegalAccessError.class, InstantiationError.class)),
+		X(ClassNotFoundException.class,
+			NoClassDefFoundError.class,
+			IllegalAccessError.class,
+			InstantiationError.class))
+	{
+		@Override
+		public String mnemonic ()
+		{
+			return "new";
+		}
+	},
 
 	/**
 	 * Create new array.
@@ -2294,7 +2614,14 @@ public enum JavaBytecode
 	return_ (0xb1,
 		O(),
 		O(),
-		X(IllegalMonitorStateException.class)),
+		X(IllegalMonitorStateException.class))
+	{
+		@Override
+		public String mnemonic ()
+		{
+			return "return";
+		}
+	},
 
 	/**
 	 * Load {@code short} from array.
@@ -2362,7 +2689,21 @@ public enum JavaBytecode
 	 */
 	wide (0xc4, 3,
 		O(),
-		O());
+		O()),
+
+	/**
+	 * Invalid instruction.
+	 */
+	invalid (0xfd,
+		O(),
+		O())
+	{
+		@Override
+		public String mnemonic ()
+		{
+			return "«invalid»";
+		}
+	};
 
 	/**
 	 * Construct an array from lexical elements.
@@ -2480,6 +2821,44 @@ public enum JavaBytecode
 	public Class<? extends Throwable>[] exceptions ()
 	{
 		return exceptions;
+	}
+
+	/**
+	 * Answer the mnemonic for this {@linkplain JavaBytecode bytecode}.
+	 *
+	 * @return The mnemonic for this bytecode.
+	 */
+	public String mnemonic ()
+	{
+		return toString();
+	}
+
+	/**
+	 * Write the {@linkplain JavaBytecode bytecode} to the specified {@linkplain
+	 * DataOutput binary stream}.
+	 *
+	 * @param out
+	 *        A binary output stream.
+	 * @throws IOException
+	 *         If the operation fails.
+	 */
+	public final void writeTo (final DataOutput out) throws IOException
+	{
+		out.writeByte(opcode);
+	}
+
+	/**
+	 * Create an {@linkplain JavaInstruction instruction} that represents the
+	 * receiving {@linkplain JavaBytecode bytecode}.
+	 *
+	 * @param operands
+	 *        The operands.
+	 * @return An instruction.
+	 */
+	public JavaInstruction create (final Object... operands)
+	{
+		assert operands.length == 0;
+		return new SimpleInstruction(this);
 	}
 
 	/**

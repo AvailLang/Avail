@@ -1,5 +1,5 @@
 /**
- * package-info.java
+ * LoadInstruction.java
  * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -7,15 +7,15 @@
  * modification, are permitted provided that the following conditions are met:
  *
  * * Redistributions of source code must retain the above copyright notice, this
- * list of conditions and the following disclaimer.
+ *   list of conditions and the following disclaimer.
  *
  * * Redistributions in binary form must reproduce the above copyright notice,
- * this list of conditions and the following disclaimer in the documentation
- * and/or other materials provided with the distribution.
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
  *
  * * Neither the name of the copyright holder nor the names of the contributors
- * may be used to endorse or promote products derived from this software without
- * specific prior written permission.
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -30,4 +30,49 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-@com.avail.annotations.NotNullByDefault package com.avail.interpreter.jvm;
+package com.avail.interpreter.jvm;
+
+import java.io.DataOutput;
+import java.io.IOException;
+
+/**
+ * A {@code LoadInstruction} has a one-byte immediate that represents a local
+ * variable index.
+ *
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
+ */
+final class LoadInstruction
+extends SimpleInstruction
+{
+	/** The local variable index. */
+	private final byte index;
+
+	@Override
+	void writeImmediatesTo (final DataOutput out) throws IOException
+	{
+		out.writeByte(index);
+	}
+
+	@Override
+	public String toString ()
+	{
+		return String.format("%s#%d", super.toString(), index);
+	}
+
+	/**
+	 * Construct a new {@link LoadInstruction}.
+	 *
+	 * @param bytecode
+	 *        The {@linkplain JavaBytecode bytecode}.
+	 * @param index
+	 *        The local variable index.
+	 */
+	LoadInstruction (
+		final JavaBytecode bytecode,
+		final int index)
+	{
+		super(bytecode);
+		assert (index & 255) == index;
+		this.index = (byte) index;
+	}
+}
