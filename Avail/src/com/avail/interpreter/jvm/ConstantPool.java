@@ -1,0 +1,1221 @@
+/**
+ * ConstantPool.java
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+package com.avail.interpreter.jvm;
+
+import java.io.DataOutput;
+import java.io.IOException;
+import java.lang.reflect.Method;
+import java.util.LinkedHashMap;
+import java.util.Map;
+
+/**
+ * {@code ConstantPool} represents a per-class constant pool.
+ *
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
+ * @see <a
+ *    href="http://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.4">
+ *    The Constant Pool</a>
+ */
+public class ConstantPool
+{
+	/**
+	 * The enumeration of {@code class} file constant pool tags.
+	 *
+	 * @see <a
+	 *    href="http://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.4-140">
+	 *    Constant pool tags</a>
+	 */
+	enum Tag
+	{
+		@SuppressWarnings("javadoc") Utf8 (1),
+		@SuppressWarnings("javadoc") Integer (3),
+		@SuppressWarnings("javadoc") Float (4),
+		@SuppressWarnings("javadoc") Long (5),
+		@SuppressWarnings("javadoc") Double (6),
+		@SuppressWarnings("javadoc") Class (7),
+		@SuppressWarnings("javadoc") String (8),
+		@SuppressWarnings("javadoc") Fieldref (9),
+		@SuppressWarnings("javadoc") Methodref (10),
+		@SuppressWarnings("javadoc") InterfaceMethodref (11),
+		@SuppressWarnings("javadoc") NameAndType (12),
+		@SuppressWarnings("javadoc") MethodHandle (15),
+		@SuppressWarnings("javadoc") MethodType (16),
+		@SuppressWarnings("javadoc") InvokeDynamic (18);
+
+		/** The value of the tag. */
+		final byte value;
+
+		/**
+		 * Construct a new {@link Tag}.
+		 *
+		 * @param value
+		 *        The value of the tag.
+		 */
+		private Tag (final int value)
+		{
+			assert (value & 255) == value;
+			this.value = (byte) value;
+		}
+
+		/**
+		 * Write the {@linkplain Tag tag}'s {@linkplain #value} to the specified
+		 * {@linkplain DataOutput binary stream}.
+		 *
+		 * @param out
+		 *        A binary output stream.
+		 * @throws IOException
+		 *         If the operation fails.
+		 */
+		void writeTo (final DataOutput out) throws IOException
+		{
+			out.writeByte(value);
+		}
+	}
+
+	/**
+	 * The subclasses of {@code Entry} represent constant pool entries.
+	 *
+	 * @see <a
+	 *    href="http://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.4">
+	 *    The Constant Pool</a>
+	 */
+	public abstract class Entry
+	{
+		/** The index into the {@linkplain ConstantPool constant pool}. */
+		final int index;
+
+		/**
+		 * Answer the {@linkplain Tag tag}.
+		 *
+		 * @return The tag.
+		 */
+		abstract Tag tag ();
+
+		/**
+		 * Write the body of the {@linkplain Entry entry} to the specified
+		 * {@linkplain DataOutput binary stream}.
+		 *
+		 * @param out
+		 *        A binary output stream.
+		 * @throws IOException
+		 *         If the operation fails.
+		 */
+		abstract void writeBodyTo (DataOutput out) throws IOException;
+
+		/**
+		 * Write the {@linkplain ConstantPool constant pool} index to the
+		 * specified {@linkplain DataOutput binary stream}.
+		 *
+		 * @param out
+		 *        A binary output stream.
+		 * @throws IOException
+		 *         If the operation fails.
+		 */
+		final void writeIndexTo (final DataOutput out) throws IOException
+		{
+			out.writeShort(index);
+		}
+
+		/**
+		 * Write the {@linkplain Entry entry} to the specified {@linkplain
+		 * DataOutput binary stream}.
+		 *
+		 * @param out
+		 *        A binary output stream.
+		 * @throws IOException
+		 *         If the operation fails.
+		 */
+		final void writeTo (final DataOutput out) throws IOException
+		{
+			tag().writeTo(out);
+			writeBodyTo(out);
+		}
+
+		/**
+		 * Construct a new {@link Entry}.
+		 *
+		 * @param index
+		 *        The index into the {@linkplain ConstantPool constant pool}.
+		 */
+		Entry (final int index)
+		{
+			this.index = index;
+		}
+	}
+
+	/**
+	 * {@code Utf8Entry} corresponds to the {@code CONSTANT_Utf8_info}
+	 * structure.
+	 *
+	 * @see <a
+	 *    href="http://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.4.7">
+	 *    The <code>CONSTANT_Utf8_info</code> Structure</a>
+	 */
+	public final class Utf8Entry
+	extends Entry
+	{
+		@Override
+		Tag tag ()
+		{
+			return Tag.Utf8;
+		}
+
+		/** The {@linkplain String data}. */
+		private final String data;
+
+		@Override
+		void writeBodyTo (final DataOutput out) throws IOException
+		{
+			out.writeUTF(data);
+		}
+
+		/**
+		 * Construct a new {@link Utf8Entry}.
+		 *
+		 * @param index
+		 *        The index into the {@linkplain ConstantPool constant pool}.
+		 * @param data
+		 *        The {@linkplain String data}.
+		 */
+		Utf8Entry (final int index, final String data)
+		{
+			super(index);
+			this.data = data;
+		}
+	}
+
+	/**
+	 * {@code IntegerEntry} corresponds to the {@code CONSTANT_Integer_info}
+	 * structure.
+	 *
+	 * @see <a
+	 *    href="http://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.4.4">
+	 *    The <code>CONSTANT_Integer_info</code> and
+	 *    <code>CONSTANT_Float_info</code> Structure</a>
+	 */
+	public final class IntegerEntry
+	extends Entry
+	{
+		@Override
+		Tag tag ()
+		{
+			return Tag.Integer;
+		}
+
+		/** The data. */
+		private final int data;
+
+		@Override
+		void writeBodyTo (final DataOutput out) throws IOException
+		{
+			out.writeInt(data);
+		}
+
+		/**
+		 * Construct a new {@link IntegerEntry}.
+		 *
+		 * @param index
+		 *        The index into the {@linkplain ConstantPool constant pool}.
+		 * @param data
+		 *        The data.
+		 */
+		IntegerEntry (final int index, final int data)
+		{
+			super(index);
+			this.data = data;
+		}
+	}
+
+	/**
+	 * {@code FloatEntry} corresponds to the {@code CONSTANT_Float_info}
+	 * structure.
+	 *
+	 * @see <a
+	 *    href="http://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.4.4">
+	 *    The <code>CONSTANT_Integer_info</code> and
+	 *    <code>CONSTANT_Float_info</code> Structure</a>
+	 */
+	public final class FloatEntry
+	extends Entry
+	{
+		@Override
+		Tag tag ()
+		{
+			return Tag.Float;
+		}
+
+		/** The data. */
+		private final float data;
+
+		@Override
+		void writeBodyTo (final DataOutput out) throws IOException
+		{
+			out.writeFloat(data);
+		}
+
+		/**
+		 * Construct a new {@link IntegerEntry}.
+		 *
+		 * @param index
+		 *        The index into the {@linkplain ConstantPool constant pool}.
+		 * @param data
+		 *        The data.
+		 */
+		FloatEntry (final int index, final float data)
+		{
+			super(index);
+			this.data = data;
+		}
+	}
+
+	/**
+	 * {@code LongEntry} corresponds to the {@code CONSTANT_Long_info}
+	 * structure.
+	 *
+	 * @see <a
+	 *    href="http://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.4.5">
+	 *    The <code>CONSTANT_Long_info</code> and
+	 *    <code>CONSTANT_Double_info</code> Structure</a>
+	 */
+	public final class LongEntry
+	extends Entry
+	{
+		@Override
+		Tag tag ()
+		{
+			return Tag.Long;
+		}
+
+		/** The data. */
+		private final long data;
+
+		@Override
+		void writeBodyTo (final DataOutput out) throws IOException
+		{
+			out.writeLong(data);
+		}
+
+		/**
+		 * Construct a new {@link LongEntry}.
+		 *
+		 * @param index
+		 *        The index into the {@linkplain ConstantPool constant pool}.
+		 * @param data
+		 *        The data.
+		 */
+		LongEntry (final int index, final long data)
+		{
+			super(index);
+			this.data = data;
+		}
+	}
+
+	/**
+	 * {@code DoubleEntry} corresponds to the {@code CONSTANT_Double_info}
+	 * structure.
+	 *
+	 * @see <a
+	 *    href="http://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.4.5">
+	 *    The <code>CONSTANT_Long_info</code> and
+	 *    <code>CONSTANT_Double_info</code> Structure</a>
+	 */
+	public final class DoubleEntry
+	extends Entry
+	{
+		@Override
+		Tag tag ()
+		{
+			return Tag.Double;
+		}
+
+		/** The data. */
+		private final double data;
+
+		@Override
+		void writeBodyTo (final DataOutput out) throws IOException
+		{
+			out.writeDouble(data);
+		}
+
+		/**
+		 * Construct a new {@link DoubleEntry}.
+		 *
+		 * @param index
+		 *        The index into the {@linkplain ConstantPool constant pool}.
+		 * @param data
+		 *        The data.
+		 */
+		DoubleEntry (final int index, final double data)
+		{
+			super(index);
+			this.data = data;
+		}
+	}
+
+	/**
+	 * {@code ClassEntry} corresponds to the {@code CONSTANT_Class_info}
+	 * structure.
+	 *
+	 * @see <a
+	 *    href="http://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.4.1">
+	 *    The <code>CONSTANT_Class_info</code> Structure</a>
+	 */
+	public final class ClassEntry
+	extends Entry
+	{
+		@Override
+		Tag tag ()
+		{
+			return Tag.Class;
+		}
+
+		/**
+		 * The {@linkplain Utf8Entry entry} containing the {@linkplain
+		 * JavaDescriptors#forType(Class) binary class name}.
+		 */
+		private final Utf8Entry nameEntry;
+
+		@Override
+		void writeBodyTo (final DataOutput out) throws IOException
+		{
+			nameEntry.writeIndexTo(out);
+		}
+
+		/**
+		 * Construct a new {@link ClassEntry}.
+		 *
+		 * @param index
+		 *        The index into the {@linkplain ConstantPool constant pool}.
+		 * @param nameEntry
+		 *        The {@linkplain Utf8Entry entry} containing the {@linkplain
+		 *        JavaDescriptors#forType(Class) binary class name}.
+		 */
+		ClassEntry (final int index, final Utf8Entry nameEntry)
+		{
+			super(index);
+			this.nameEntry = nameEntry;
+		}
+	}
+
+	/**
+	 * {@code StringEntry} corresponds to the {@code CONSTANT_String_info}
+	 * structure.
+	 *
+	 * @see <a
+	 *    href="http://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.4.3">
+	 *    The <code>CONSTANT_String_info</code> Structure</a>
+	 */
+	public final class StringEntry
+	extends Entry
+	{
+		@Override
+		Tag tag ()
+		{
+			return Tag.String;
+		}
+
+		/** The {@linkplain Utf8Entry entry} containing the character data. */
+		private final Utf8Entry utf8Entry;
+
+		@Override
+		void writeBodyTo (final DataOutput out) throws IOException
+		{
+			utf8Entry.writeIndexTo(out);
+		}
+
+		/**
+		 * Construct a new {@link StringEntry}.
+		 *
+		 * @param index
+		 *        The index into the {@linkplain ConstantPool constant pool}.
+		 * @param utf8Entry
+		 *        The {@linkplain Utf8Entry entry} containing the character
+		 *        data.
+		 */
+		StringEntry (final int index, final Utf8Entry utf8Entry)
+		{
+			super(index);
+			this.utf8Entry = utf8Entry;
+		}
+	}
+
+	/**
+	 * {@code RefEntry} specifies the representation and serialization of its
+	 * concrete subclasses (which differ only their {@linkplain Tag tags}).
+	 */
+	private abstract class RefEntry
+	extends Entry
+	{
+		/**
+		 * The {@linkplain ClassEntry entry} for the referenced {@linkplain
+		 * Class class}.
+		 */
+		private final ClassEntry classEntry;
+
+		/**
+		 * The {@linkplain NameAndTypeEntry entry} for the member name and type.
+		 */
+		private final NameAndTypeEntry nameAndTypeEntry;
+
+		@Override
+		final void writeBodyTo (final DataOutput out) throws IOException
+		{
+			classEntry.writeIndexTo(out);
+			nameAndTypeEntry.writeIndexTo(out);
+		}
+
+		/**
+		 * Construct a new {@link RefEntry}.
+		 *
+		 * @param index
+		 *        The index into the {@linkplain ConstantPool constant pool}.
+		 * @param classEntry
+		 *        The {@linkplain ClassEntry entry} for the referenced
+		 *        {@linkplain Class class}.
+		 * @param nameAndTypeEntry
+		 *        The {@linkplain NameAndTypeEntry entry} for the member name
+		 *        and type.
+		 */
+		RefEntry (
+			final int index,
+			final ClassEntry classEntry,
+			final NameAndTypeEntry nameAndTypeEntry)
+		{
+			super(index);
+			this.classEntry = classEntry;
+			this.nameAndTypeEntry = nameAndTypeEntry;
+		}
+	}
+
+	/**
+	 * {@code FieldrefEntry} corresponds to the {@code
+	 * CONSTANT_Fieldref_info} structure.
+	 *
+	 * @see <a
+	 *    href="http://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.4.2">
+	 *    The <code>CONSTANT_Fieldref_info</code>,
+	 *    <code>CONSTANT_Methodref_info</code>,
+	 *    and <code>CONSTANT_InterfaceMethodref_info</code> Structures</a>
+	 */
+	public final class FieldrefEntry
+	extends RefEntry
+	{
+		@Override
+		Tag tag ()
+		{
+			return Tag.Fieldref;
+		}
+
+		/**
+		 * Construct a new {@link FieldrefEntry}.
+		 *
+		 * @param index
+		 *        The index into the {@linkplain ConstantPool constant pool}.
+		 * @param classEntry
+		 *        The {@linkplain ClassEntry entry} for the referenced
+		 *        {@linkplain Class class}.
+		 * @param nameAndTypeEntry
+		 *        The {@linkplain NameAndTypeEntry entry} for the member name
+		 *        and type.
+		 */
+		FieldrefEntry (
+			final int index,
+			final ClassEntry classEntry,
+			final NameAndTypeEntry nameAndTypeEntry)
+		{
+			super(index, classEntry, nameAndTypeEntry);
+		}
+	}
+
+	/**
+	 * {@code MethodrefEntry} corresponds to the {@code
+	 * CONSTANT_Methodref_info} structure.
+	 *
+	 * @see <a
+	 *    href="http://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.4.2">
+	 *    The <code>CONSTANT_Fieldref_info</code>,
+	 *    <code>CONSTANT_Methodref_info</code>,
+	 *    and <code>CONSTANT_InterfaceMethodref_info</code> Structures</a>
+	 */
+	public final class MethodrefEntry
+	extends RefEntry
+	{
+		@Override
+		Tag tag ()
+		{
+			return Tag.Methodref;
+		}
+
+		/**
+		 * Construct a new {@link MethodrefEntry}.
+		 *
+		 * @param index
+		 *        The index into the {@linkplain ConstantPool constant pool}.
+		 * @param classEntry
+		 *        The {@linkplain ClassEntry entry} for the referenced
+		 *        {@linkplain Class class}.
+		 * @param nameAndTypeEntry
+		 *        The {@linkplain NameAndTypeEntry entry} for the member name
+		 *        and type.
+		 */
+		MethodrefEntry (
+			final int index,
+			final ClassEntry classEntry,
+			final NameAndTypeEntry nameAndTypeEntry)
+		{
+			super(index, classEntry, nameAndTypeEntry);
+		}
+	}
+
+	/**
+	 * {@code InterfaceMethodrefEntry} corresponds to the {@code
+	 * CONSTANT_InterfaceMethodref_info} structure.
+	 *
+	 * @see <a
+	 *    href="http://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.4.2">
+	 *    The <code>CONSTANT_Fieldref_info</code>,
+	 *    <code>CONSTANT_Methodref_info</code>,
+	 *    and <code>CONSTANT_InterfaceMethodref_info</code> Structures</a>
+	 */
+	public final class InterfaceMethodrefEntry
+	extends RefEntry
+	{
+		@Override
+		Tag tag ()
+		{
+			return Tag.InterfaceMethodref;
+		}
+
+		/**
+		 * Construct a new {@link InterfaceMethodrefEntry}.
+		 *
+		 * @param index
+		 *        The index into the {@linkplain ConstantPool constant pool}.
+		 * @param classEntry
+		 *        The {@linkplain ClassEntry entry} for the referenced
+		 *        {@linkplain Class class}.
+		 * @param nameAndTypeEntry
+		 *        The {@linkplain NameAndTypeEntry entry} for the member name
+		 *        and type.
+		 */
+		InterfaceMethodrefEntry (
+			final int index,
+			final ClassEntry classEntry,
+			final NameAndTypeEntry nameAndTypeEntry)
+		{
+			super(index, classEntry, nameAndTypeEntry);
+		}
+	}
+
+	/**
+	 * {@code NameAndTypeEntry} corresponds to the {@code
+	 * CONSTANT_NameAndType_info} structure.
+	 *
+	 * @see <a
+	 *    href="http://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.4.6">
+	 *    The <code>CONSTANT_NameAndType_info</code> Structure</a>
+	 */
+	public final class NameAndTypeEntry
+	extends Entry
+	{
+		@Override
+		Tag tag ()
+		{
+			return Tag.NameAndType;
+		}
+
+		/** The {@linkplain Utf8Entry entry} containing the name. */
+		private final Utf8Entry nameEntry;
+
+		/** The {@linkplain Utf8Entry entry} containing the descriptor. */
+		private final Utf8Entry descriptorEntry;
+
+		@Override
+		void writeBodyTo (final DataOutput out) throws IOException
+		{
+			nameEntry.writeIndexTo(out);
+			descriptorEntry.writeIndexTo(out);
+		}
+
+		/**
+		 * Construct a new {@link NameAndTypeEntry}.
+		 *
+		 * @param index
+		 *        The index into the {@linkplain ConstantPool constant pool}.
+		 * @param nameEntry
+		 *        The {@linkplain Utf8Entry entry} containing the name.
+		 * @param descriptorEntry
+		 *        The {@linkplain Utf8Entry entry} containing the descriptor.
+		 */
+		NameAndTypeEntry (
+			final int index,
+			final Utf8Entry nameEntry,
+			final Utf8Entry descriptorEntry)
+		{
+			super(index);
+			this.nameEntry = nameEntry;
+			this.descriptorEntry = descriptorEntry;
+		}
+	}
+
+	/**
+	 * {@code MethodHandleEntry} corresponds to the {@code
+	 * CONSTANT_MethodHandle_info} structure.
+	 *
+	 * @see <a
+	 *    href="http://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.4.8">
+	 *    The <code>CONSTANT_MethodHandle_info</code> Structure</a>
+	 */
+	public final class MethodHandleEntry
+	extends Entry
+	{
+		@Override
+		Tag tag ()
+		{
+			return Tag.MethodHandle;
+		}
+
+		/**
+		 * The referenceEntry kind:
+		 *
+		 * <ol>
+		 * <li>REF_getField</li>
+		 * <li>REF_getStatic</li>
+		 * <li>REF_putField</li>
+		 * <li>REF_putStatic</li>
+		 * <li>REF_invokeVirtual</li>
+		 * <li>REF_invokeStatic</li>
+		 * <li>REF_invokeSpecial</li>
+		 * <li>REF_newInvokeSpecial</li>
+		 * <li>REF_invokeInterface</li>
+		 * </ol>
+		 */
+		private final byte kind;
+
+		/**
+		 * The referenceEntry. If {@link #kind} is 1, 2, 3, or 4, then the exact type
+		 * is {@link FieldrefEntry}. If {@code kind} is 5, 6, 7, or 8, then the
+		 * exact type is {@link MethodrefEntry}. If {@code kind} is 9, then the
+		 * exact type is {@link InterfaceMethodrefEntry}.
+		 */
+		private final RefEntry referenceEntry;
+
+		@Override
+		void writeBodyTo (final DataOutput out) throws IOException
+		{
+			out.writeByte(kind);
+			referenceEntry.writeIndexTo(out);
+		}
+
+		/**
+		 * Construct a new {@link MethodHandleEntry}.
+		 *
+		 * @param index
+		 *        The index into the {@linkplain ConstantPool constant pool}.
+		 * @param kind
+		 *        The referenceEntry kind.
+		 * @param referenceEntry
+		 *        The referenceEntry.
+		 * @see #kind
+		 * @see #referenceEntry
+		 */
+		MethodHandleEntry (
+			final int index,
+			final int kind,
+			final RefEntry referenceEntry)
+		{
+			super(index);
+			this.kind = (byte) kind;
+			this.referenceEntry = referenceEntry;
+		}
+	}
+
+	/**
+	 * {@code MethodTypeEntry} corresponds to the {@code
+	 * CONSTANT_MethodType_info} structure.
+	 *
+	 * @see <a
+	 *    href="http://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.4.9">
+	 *    The <code>CONSTANT_MethodType_info</code> Structure</a>
+	 */
+	public final class MethodTypeEntry
+	extends Entry
+	{
+		@Override
+		Tag tag ()
+		{
+			return Tag.MethodType;
+		}
+
+		/** The {@linkplain Utf8Entry entry} for the method's descriptor. */
+		private final Utf8Entry descriptorEntry;
+
+		@Override
+		void writeBodyTo (final DataOutput out) throws IOException
+		{
+			descriptorEntry.writeIndexTo(out);
+		}
+
+		/**
+		 * Construct a new {@link MethodTypeEntry}.
+		 *
+		 * @param index
+		 *        The index into the {@linkplain ConstantPool constant pool}.
+		 * @param descriptorEntry
+		 *        The {@linkplain Utf8Entry entry} for the method's descriptor.
+		 */
+		MethodTypeEntry (final int index, final Utf8Entry descriptorEntry)
+		{
+			super(index);
+			this.descriptorEntry = descriptorEntry;
+		}
+	}
+
+	/**
+	 * {@code MethodTypeEntry} corresponds to the {@code
+	 * CONSTANT_MethodType_info} structure.
+	 *
+	 * @see <a
+	 *    href="http://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.4.10">
+	 *    The <code>CONSTANT_MethodType_info</code> Structure</a>
+	 */
+	public final class InvokeDynamicEntry
+	extends Entry
+	{
+		@Override
+		Tag tag ()
+		{
+			return Tag.InvokeDynamic;
+		}
+
+		/** A valid index into the {@code bootstrap_methods} array. */
+		private final int bootstrapMethodAttrIndex;
+
+		/**
+		 * The {@linkplain NameAndTypeEntry entry} for the method name and
+		 * type.
+		 */
+		private final NameAndTypeEntry nameAndTypeEntry;
+
+		@Override
+		void writeBodyTo (final DataOutput out) throws IOException
+		{
+			out.writeShort(bootstrapMethodAttrIndex);
+			nameAndTypeEntry.writeIndexTo(out);
+		}
+
+		/**
+		 * Construct a new {@link InvokeDynamicEntry}.
+		 *
+		 * @param index
+		 *        The index into the {@linkplain ConstantPool constant pool}.
+		 * @param bootstrapMethodAttrIndex
+		 *        A valid index into the {@code bootstrap_methods} array.
+		 * @param nameAndTypeEntry
+		 *        The {@linkplain NameAndTypeEntry entry} for the method name
+		 *        and type.
+		 */
+		InvokeDynamicEntry (
+			final int index,
+			final int bootstrapMethodAttrIndex,
+			final NameAndTypeEntry nameAndTypeEntry)
+		{
+			super(index);
+			this.bootstrapMethodAttrIndex = bootstrapMethodAttrIndex;
+			this.nameAndTypeEntry = nameAndTypeEntry;
+		}
+	}
+
+	/** The next (unused) index. */
+	private int nextIndex = 0;
+
+	/**
+	 * A {@linkplain Map map} from Java constants to {@linkplain Entry entries}.
+	 */
+	private final LinkedHashMap<Object, Entry> entries = new LinkedHashMap<>();
+
+	/**
+	 * Answer an {@linkplain IntegerEntry entry} for the specified {@code int},
+	 * constructing and installing a new entry if necessary.
+	 *
+	 * @param value
+	 *        The constant.
+	 * @return The entry associated with the specified value.
+	 */
+	public IntegerEntry constant (final int value)
+	{
+		final Integer boxed = new Integer(value);
+		Entry entry = entries.get(boxed);
+		if (entry == null)
+		{
+			entry = new IntegerEntry(nextIndex++, value);
+			entries.put(boxed, entry);
+		}
+		return (IntegerEntry) entry;
+	}
+
+	/**
+	 * Answer an {@linkplain LongEntry entry} for the specified {@code long},
+	 * constructing and installing a new entry if necessary.
+	 *
+	 * @param value
+	 *        The constant.
+	 * @return The entry associated with the specified value.
+	 */
+	public LongEntry constant (final long value)
+	{
+		final Long boxed = new Long(value);
+		Entry entry = entries.get(boxed);
+		if (entry == null)
+		{
+			entry = new LongEntry(nextIndex++, value);
+			entries.put(boxed, entry);
+		}
+		return (LongEntry) entry;
+	}
+
+	/**
+	 * Answer an {@linkplain FloatEntry entry} for the specified {@code float},
+	 * constructing and installing a new entry if necessary.
+	 *
+	 * @param value
+	 *        The constant.
+	 * @return The entry associated with the specified value.
+	 */
+	public FloatEntry constant (final float value)
+	{
+		final Float boxed = new Float(value);
+		Entry entry = entries.get(boxed);
+		if (entry == null)
+		{
+			entry = new FloatEntry(nextIndex++, value);
+			entries.put(boxed, entry);
+		}
+		return (FloatEntry) entry;
+	}
+
+	/**
+	 * Answer an {@linkplain DoubleEntry entry} for the specified {@code
+	 * double}, constructing and installing a new entry if necessary.
+	 *
+	 * @param value
+	 *        The constant.
+	 * @return The entry associated with the specified value.
+	 */
+	public DoubleEntry constant (final double value)
+	{
+		final Double boxed = new Double(value);
+		Entry entry = entries.get(boxed);
+		if (entry == null)
+		{
+			entry = new DoubleEntry(nextIndex++, value);
+			entries.put(boxed, entry);
+		}
+		return (DoubleEntry) entry;
+	}
+
+	/**
+	 * Answer an {@linkplain ClassEntry entry} for the specified {@linkplain
+	 * Class class}, constructing and installing a new entry if necessary.
+	 *
+	 * @param value
+	 *        The constant.
+	 * @return The entry associated with the specified value.
+	 */
+	public ClassEntry constant (final Class<?> value)
+	{
+		Entry entry = entries.get(value);
+		if (entry == null)
+		{
+			final String descriptor = JavaDescriptors.forType(value);
+			final Utf8Entry nameEntry = utf8Constant(descriptor);
+			entry = new ClassEntry(nextIndex++, nameEntry);
+			entries.put(value, entry);
+		}
+		return (ClassEntry) entry;
+	}
+
+	/**
+	 * Answer an {@linkplain StringEntry entry} for the specified {@link
+	 * String}, constructing and installing a new entry if necessary.
+	 *
+	 * @param value
+	 *        The constant.
+	 * @return The entry associated with the specified value.
+	 */
+	public StringEntry constant (final String value)
+	{
+		Entry entry = entries.get(value);
+		if (entry == null)
+		{
+			final Utf8Entry utf8Entry = utf8Constant(value);
+			entry = new StringEntry(nextIndex++, utf8Entry);
+		}
+		return (StringEntry) entry;
+	}
+
+	/**
+	 * {@code Utf8Key} serves as a key in {@link ConstantPool#entries entries}
+	 * for {@link Utf8Entry} objects.
+	 */
+	private final class Utf8Key
+	{
+		/** The value of the key. */
+		private final String value;
+
+		@Override
+		public boolean equals (final Object obj)
+		{
+			if (obj instanceof Utf8Key)
+			{
+				final Utf8Key other = (Utf8Key) obj;
+				return value.equals(other.value);
+			}
+			return false;
+		}
+
+		@Override
+		public int hashCode ()
+		{
+			return 37 * value.hashCode();
+		}
+
+		@Override
+		public String toString ()
+		{
+			return String.format("%s(%s)", getClass().getSimpleName(), value);
+		}
+
+		/**
+		 * Construct a new {@link Utf8Key}.
+		 *
+		 * @param value
+		 *        The value of the key.
+		 */
+		Utf8Key (final String value)
+		{
+			this.value = value;
+		}
+	}
+
+	/**
+	 * Answer a {@link Utf8Entry entry} for the specified {@link String},
+	 * constructing and installing a new entry if necessary.
+	 *
+	 * @param value
+	 *        The constant.
+	 * @return The entry associated with the specified value.
+	 */
+	public Utf8Entry utf8Constant (final String value)
+	{
+		final Utf8Key key = new Utf8Key(value);
+		Entry entry = entries.get(key);
+		if (entry == null)
+		{
+			entry = new Utf8Entry(nextIndex++, value);
+			entries.put(key, entry);
+		}
+		return (Utf8Entry) entry;
+	}
+
+	// TODO: [TLS] Add key classes and constant applicators for other types.
+
+	/**
+	 * {@code NameAndTypeKey} serves as a key in {@link ConstantPool#entries
+	 * entries} for {@link NameAndTypeEntry} objects.
+	 */
+	private final class NameAndTypeKey
+	{
+		/** The name. */
+		private final String name;
+
+		/** The descriptor. */
+		private final String descriptor;
+
+		@Override
+		public boolean equals (final Object obj)
+		{
+			if (obj instanceof NameAndTypeKey)
+			{
+				final NameAndTypeKey other = (NameAndTypeKey) obj;
+				return name.equals(other.name)
+					&& descriptor.equals(other.descriptor);
+			}
+			return false;
+		}
+
+		@Override
+		public int hashCode ()
+		{
+			return 59 * name.hashCode() + 17 * descriptor.hashCode();
+		}
+
+		@Override
+		public String toString ()
+		{
+			return String.format(
+				"%s(%s : %s)",
+				getClass().getSimpleName(),
+				name,
+				descriptor);
+		}
+
+		/**
+		 * Construct a new {@link NameAndTypeKey}.
+		 *
+		 * @param name
+		 *        The name.
+		 * @param descriptor
+		 *        The descriptor.
+		 */
+		NameAndTypeKey (final String name, final String descriptor)
+		{
+			this.name = name;
+			this.descriptor = descriptor;
+		}
+	}
+
+	/**
+	 * Answer a {@link NameAndTypeEntry entry} for the specified name and
+	 * {@linkplain Class type}, constructing and installing a new entry if
+	 * necessary.
+	 *
+	 * @param name
+	 *        The name.
+	 * @param type
+	 *        A Java type.
+	 * @return The entry associated with the specified value.
+	 */
+	public NameAndTypeEntry nameAndTypeConstant (
+		final String name,
+		final Class<?> type)
+	{
+		final String descriptor = JavaDescriptors.forType(type);
+		final NameAndTypeKey key = new NameAndTypeKey(name, descriptor);
+		Entry entry = entries.get(key);
+		if (entry == null)
+		{
+			final Utf8Entry nameEntry = utf8Constant(name);
+			final Utf8Entry descriptorEntry = utf8Constant(descriptor);
+			entry = new NameAndTypeEntry(
+				nextIndex++, nameEntry, descriptorEntry);
+			entries.put(key, entry);
+		}
+		return (NameAndTypeEntry) entry;
+	}
+
+	/**
+	 * Answer a {@link NameAndTypeEntry entry} for the specified name and
+	 * {@linkplain Method method}, constructing and installing a new entry if
+	 * necessary.
+	 *
+	 * @param name
+	 *        The name.
+	 * @param method
+	 *        A Java method.
+	 * @return The entry associated with the specified value.
+	 */
+	public NameAndTypeEntry nameAndTypeConstant (
+		final String name,
+		final Method method)
+	{
+		final String descriptor = JavaDescriptors.forMethod(method);
+		final NameAndTypeKey key = new NameAndTypeKey(name, descriptor);
+		Entry entry = entries.get(key);
+		if (entry == null)
+		{
+			final Utf8Entry nameEntry = utf8Constant(name);
+			final Utf8Entry descriptorEntry = utf8Constant(descriptor);
+			entry = new NameAndTypeEntry(
+				nextIndex++, nameEntry, descriptorEntry);
+			entries.put(key, entry);
+		}
+		return (NameAndTypeEntry) entry;
+	}
+
+	/**
+	 * Answer a {@link NameAndTypeEntry entry} for the specified name and
+	 * {@linkplain Method method} signature, constructing and installing a new
+	 * entry if necessary.
+	 *
+	 * @param name
+	 *        The name.
+	 * @param returnType
+	 *        The method's return type.
+	 * @param parameterTypes
+	 *        The method's parameter types.
+	 * @return The entry associated with the specified value.
+	 */
+	public NameAndTypeEntry nameAndTypeConstant (
+		final String name,
+		final Class<?> returnType,
+		final Class<?>... parameterTypes)
+	{
+		final String descriptor = JavaDescriptors.forMethod(
+			returnType, parameterTypes);
+		final NameAndTypeKey key = new NameAndTypeKey(name, descriptor);
+		Entry entry = entries.get(key);
+		if (entry == null)
+		{
+			final Utf8Entry nameEntry = utf8Constant(name);
+			final Utf8Entry descriptorEntry = utf8Constant(descriptor);
+			entry = new NameAndTypeEntry(
+				nextIndex++, nameEntry, descriptorEntry);
+			entries.put(key, entry);
+		}
+		return (NameAndTypeEntry) entry;
+	}
+
+	/**
+	 * Write the {@linkplain ConstantPool constant pool} to the specified
+	 * {@linkplain DataOutput binary stream}.
+	 *
+	 * @param out
+	 *        A binary output stream.
+	 * @throws IOException
+	 *         If the operation fails.
+	 */
+	public void writeTo (final DataOutput out) throws IOException
+	{
+		out.writeShort(nextIndex);
+		int index = 0;
+		for (final Entry entry : entries.values())
+		{
+			// Yes, this assertion is supposed to contain a side-effect. The
+			// counter is only referenced by this assertion.
+			assert entry.index == index++;
+			entry.writeTo(out);
+		}
+		assert nextIndex == index;
+	}
+}

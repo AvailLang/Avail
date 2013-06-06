@@ -324,7 +324,7 @@ public enum SerializerOperation
 	 * compress the short value for this reason.
 	 *
 	 * <p>
-	 * Separated into two {@code BYTE}s instead of one {@code
+	 * Separated into two {@code BYTE_OR_BOOLEAN}s instead of one {@code
 	 * UNCOMPRESSED_SHORT} <em>just</em> so that the intermediate objects can be
 	 * the Avail {@linkplain IntegerDescriptor integers} that efficiently fit in
 	 * a byte.
