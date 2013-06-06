@@ -150,7 +150,6 @@ Semantic restriction "_[_]" is
 Method "_'s⁇bindings" is stable at [map]→key-value tuple;
 
 /**
- * 
  * @method "_'s⁇bindings"
  * @restricts "map meta"
  */
@@ -164,7 +163,6 @@ Semantic restriction "_'s⁇bindings" is
 Method "_'s⁇keys" is stable at [map]→set;
 
 /**
- * 
  * @method "_'s⁇keys"
  * @restricts "map meta"
  */
@@ -231,7 +229,6 @@ Semantic restriction "_+_→_" is
 Method "_-_" is stable at [map, any]→map;
 
 /**
- * 
  * @method "_-_"
  * @restricts "map meta"
  * @restricts "any meta"
@@ -284,7 +281,6 @@ Method "_[_]else_" is
 ] : any;
 
 /**
- * 
  * @method "_[_]else_"
  * @restricts "map meta"
  * @restricts "any meta"
