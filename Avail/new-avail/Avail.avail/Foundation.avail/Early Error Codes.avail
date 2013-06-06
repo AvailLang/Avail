@@ -222,7 +222,6 @@ Invoke [
 Private method "Ensure:all VM error codes are named" is [];
 
 /**
- * 
  * @method "Ensure:all VM error codes are named"
  */
 Semantic restriction "Ensure:all VM error codes are named" is

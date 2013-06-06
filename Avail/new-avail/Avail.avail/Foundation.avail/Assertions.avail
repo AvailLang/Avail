@@ -84,6 +84,10 @@ Public method "Assert:_" is
 	Raise an assertion-failed exception
 ] : ⊥;
 
+/**
+ * @method "Assert:_"
+ * @restricts "false's type's type"
+ */
 Semantic restriction "Assert:_" is
 [
 	contradiction : false's type's type
@@ -122,8 +126,6 @@ Public method "Assert:_(_)" is
 ] : ⊥;
 
 /**
- * 
- * 
  * @method "Assert:_(_)"
  * @restricts false's type's type
  * @restricts string's type

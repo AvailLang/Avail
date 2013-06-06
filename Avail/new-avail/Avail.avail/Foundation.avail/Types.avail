@@ -95,12 +95,10 @@ Grammatical restriction "[`…]→_" is <{"_'s⁇type"}>;
 /**
  * Tuple type constructor's semantic restriction.
  *
- * Parameters:
- *    leadingTypesTypes - the type of a tuple of the types in the tuple
- *    defaultTypeType -
- *    cardinalityType - The range of allowed cardinalities.
- * Returns:
- *    The requested tuple's type's type.
+ * @method "<_,_`…`|_>"
+ * @restricts "tuple of any meta's type"
+ * @restricts "any meta's type"
+ * @restricts "whole number meta's type"
  */
 Semantic restriction "<_,_`…`|_>" is
 [
@@ -194,14 +192,10 @@ Public method "<«_‡,»`…`|_.._>" is
 ] : tuple meta;
 
 /**
- * Tuple type constructor's semantic restriction.
- *
- * Parameters:
- *  leadingAndDefaultTypesTypes - the type of a tuple of the types in the tuple
- *	minimumSizeType : type of the minimum cardinality
- *	maximumSizeType : type of the maximum cardinality
- * Returns:
- *    The requested tuple's type's type.
+ * @method
+ * @restricts "<<>, any's type…|natural number>'s type"
+ * @restricts "whole number's type"
+ * @restricts "[0..∞]'s type"
  */ 
 Semantic restriction "<«_‡,»`…`|_.._>" is
 [
@@ -284,13 +278,9 @@ Public method "<«_‡,»`…`|_..>" is
 ] : tuple meta;
 
 /**
- * Tuple type constructor's semantic restriction.
- *
- * Parameters:
- *  leadingAndDefaultTypesTypes - the type of a tuple of the types in the tuple
- *	minimumSizeType : type of the minimum cardinality
- * Returns:
- *    The requested tuple's type's type.
+ * @method "<«_‡,»`…`|_..>"
+ * @restricts "<<>, any's type…|natural number>'s type"
+ * @restricts "whole number's type"
  */ 
 Semantic restriction "<«_‡,»`…`|_..>" is
 [
@@ -372,13 +362,9 @@ Public method "<«_‡,»`…`|.._>" is
 ] : tuple meta;
 
 /**
- * Tuple type constructor's semantic restriction.
- *
- * Parameters:
- *  leadingAndDefaultTypesTypes - the type of a tuple of the types in the tuple
- *	maximumSizeType : type of the minimum cardinality
- * Returns:
- *    The requested tuple's type's type.
+ * @method "<«_‡,»`…`|.._>"
+ * @restricts "<<>, any's type…|natural number>'s type"
+ * @restricts "[0..∞]'s type"
  */ 
 Semantic restriction "<«_‡,»`…`|.._>" is
 [
@@ -459,13 +445,9 @@ Public method "<«_‡,»`…`|_>" is
 ] : tuple meta;
 
 /**
- * Tuple type constructor's semantic restriction.
- *
- * Parameters:
- *    leadingAndDefaultTypesTypes - the type of a tuple of the types in the tuple
- *    exactSizeType - type of the minimum and maximum cardinality
- * Returns:
- *    The requested tuple's type's type.
+ * @method "<«_‡,»`…`|_>"
+ * @restricts "<<>, any's type…|natural number>'s type"
+ * @restricts "whole number's type"
  */ 
 Semantic restriction "<«_‡,»`…`|_>" is
 [
@@ -544,12 +526,8 @@ Public method "<«_‡,»`…`|>" is
 ] : tuple meta;
 
 /**
- * Tuple type constructor's semantic restriction.
- *
- * Parameters:
- *  leadingAndDefaultTypesTypes - the type of a tuple of the types in the tuple
- * Returns:
- *    The requested tuple's type's type.
+ * @method "<«_‡,»`…`|>"
+ * @restricts "<<>, any's type…|natural number>'s type"
  */ 
 Semantic restriction "<«_‡,»`…`|>" is
 [
@@ -605,13 +583,9 @@ Semantic restriction "<«_‡,»`…`|>" is
 ];
 
 /**
- * Strengthen set type construction.
- *
- * Parameters:
- *    elementTypeType - The element type's type.
- *    cardinalityTypeType : whole number meta's type
- * Returns:
- *    The requested set type's most specific type. 
+ * @method "{_`|_}"
+ * @restricts "any meta's type"
+ * @restricts "whole number meta's type"
  */
 Semantic restriction "{_`|_}" is
 [
@@ -660,14 +634,10 @@ Public method "{_`|_.._}" is
 ] : set meta;
 
 /**
- * Strengthen set type construction.
- *
- * Parameters:
- *    elementTypeType - The element type's type.
- *	  minimumSizeType - The type of the minimum cardinality of the set
- *	  maximumSizeType - The type of the maximum cardinality of the set.
- * Returns:
- *    The instance metatype of the exact set type.
+ * @method "{_`|_.._}"
+ * @restricts "any's type's type"
+ * @restricts "whole number's type"
+ * @restricts "[0..∞]'s type"
  */
 Semantic restriction "{_`|_.._}" is
 [
@@ -714,13 +684,9 @@ Public method "{_`|_..}" is
 ] : set meta;
 
 /**
- * Strengthen set type construction.
- *
- * Parameters:
- *    elementTypeType - The element type's type.
- *	  minimumSizeType - The type of the minimum cardinality of the set.
- * Returns:
- *    The instance metatype of the exact set type.
+ * @method "{_`|_..}"
+ * @restricts "ant's type's type"
+ * @restricts "whole number's type"
  */
 Semantic restriction "{_`|_..}" is
 [
@@ -754,13 +720,9 @@ Public method "{_`|.._}" is
 ] : set meta;
 
 /**
- * Strengthen set type construction.
- *
- * Parameters:
- *    elementTypeType - The element type's type.
- *	  maximumSizeType - The type of the maximum cardinality of the set.
- * Returns:
- *    The instance metatype of the exact set type.
+ * @method "{_`|.._}"
+ * @restricts "any's type's type"
+ * @restricts "[0..∞]'s type"
  */
 Semantic restriction "{_`|.._}" is
 [
@@ -775,10 +737,9 @@ Semantic restriction "{_`|.._}" is
  * Construct and answer a set type with the specified element type and exact
  * cardinality.
  * 
- * Parameters:
- *    elementType - The element type.
- * Returns:
- *    The requested set type.
+ * @method "{_`|_}"
+ * @restricts "any's type"
+ * @restricts "whole number"
  */
 Method "{_`|_}" is
 [
@@ -801,13 +762,9 @@ Method "{_`|_}" is
 ] : set meta;
 
 /**
- * Strengthen set type construction.
- * 
- * Parameters:
- *    elementMeta -
- *    exactSize -
- * Returns:
- *    An instance type on a set type.
+ * @method "{_`|_}"
+ * @restricts "any's type's type"
+ * @restricts "whole number's type"
  */
 Semantic restriction "{_`|_}" is
 [
@@ -848,12 +805,8 @@ Public method "{_`|}" is
 ] : set meta;
 
 /**
- * Strengthen set type construction.
- *
- * Parameters:
- *    elementTypeType - The element type's type.
- * Returns:
- *    The instance metatype of the exact set type.
+ * @method "{_`|}"
+ * @restricts "any's type's type"
  */
 Semantic restriction "{_`|}" is
 [
@@ -884,13 +837,9 @@ Public method "set«_»of_" is
 ] : set meta;
 
 /**
- * Strengthen set type construction.
- *
- * Parameters:
- *    elementTypeType - The element type's type.
- *    cardinalityTypeType : whole number meta's type
- * Returns:
- *    The requested set type's most specific type. 
+ * @method "set«_»of_"
+ * @restricts "<whole number meta…|0..1>'s type"
+ * @restricts "any meta's type"
  */
 Semantic restriction "set«_»of_" is
 [
@@ -906,14 +855,10 @@ Semantic restriction "set«_»of_" is
 ];
 
 /**
- * Strengthen map type construction.
- *
- * Parameters:
- *    keyTypeType - The type's type to which all keys of instances must conform.
- *    valueTypeType - The type's type to which all values of instances must conform.
- *    cardinalityTypeType - The range of allowed cardinalities.
- * Returns:
- *    The requested map type's most specific type.
+ * @method "{_→_`|_}"
+ * @restricts "any meta's type"
+ * @restricts "any meta's type"
+ * @restricts "whole number meta's type"
  */
 Semantic restriction "{_→_`|_}" is
 [
@@ -952,15 +897,11 @@ Public method "{_→_`|_.._}" is
 ] : map meta;
 
 /**
- * Strengthen map type construction.
- *
- * Parameters:
- *    keyTypeType - The key's type's type.
- *    valueTypeType - The value's type's type.
- *    minimumSizeType - The type of the minimum cardinality.
- *    maximumSizeType : type of the maximum cardinality.
- * Returns:
- *    The instance metatype of the exact map type.
+ * @method "{_→_`|_.._}"
+ * @restricts "any's type's type"
+ * @restricts "any's type's type"
+ * @restricts "whole number's type"
+ * @restricts "[0..∞]'s type"
  */
 Semantic restriction "{_→_`|_.._}" is
 [
@@ -996,14 +937,10 @@ Public method "{_→_`|_..}" is
 ] : map meta;
 
 /**
- * Strengthen map type construction.
- *
- * Parameters:
- *    keyTypeType - The key's type's type.
- *    valueTypeType - The value's type's type.
- *    minimumSizeType - The type of the minimum cardinality of the set.
- * Returns:
- *    The instance metatype of the exact map type.
+ * @method "{_→_`|_..}"
+ * @restricts "any's type's type"
+ * @restricts "any's type's type"
+ * @restricts "whole number's type"
  */
 Semantic restriction "{_→_`|_..}" is
 [
@@ -1038,14 +975,10 @@ Public method "{_→_`|.._}" is
 ] : map meta;
 
 /**
- * Strengthen map type construction.
- *
- * Parameters:
- *    keyTypeType - The key's type's type.
- *    valueTypeType - The value's type's type.
- *    maximumSizeType : type of the maximum cardinality.
- * Returns:
- *    The instance metatype of the exact map type.
+ * @method "{_→_`|.._}"
+ * @restricts "any's type's type"
+ * @restricts "any's type's type"
+ * @restricts "[0..∞]'s type"
  */
 Semantic restriction "{_→_`|.._}" is
 [
@@ -1079,14 +1012,10 @@ Method "{_→_`|_}" is
 ]:map meta;
 
 /**
- * Strengthen map type construction..
- * 
- * Parameters:
- *    keyTypeType - The type's type to which all keys of instances must conform.
- *    valueTypeType - The type's to which all values of instances must conform.
- *    exactSizeType - The minimum and maximum cardinality's type.
- * Returns:
- *    The requested map type.
+ * @method "{_→_`|_}"
+ * @restricts "any meta's type"
+ * @restricts "any meta's type"
+ * @restricts "whole number's type"
  */
 Semantic restriction "{_→_`|_}" is
 [
@@ -1117,13 +1046,9 @@ Public method "{_→_`|}" is
 ] : map meta;
 
 /**
- * Strengthen map type constructor.
- * 
- * Parameters:
- *    keyTypeType - The type's type to which all keys of instances must conform.
- *    valueTypeType - The type's type to which all values of instances must conform.
- * Returns:
- *    The requested map type most specific type.
+ * @method "{_→_`|}"
+ * @restricts "any meta's type"
+ * @restricts "any meta's type"
  */
 Semantic restriction "{_→_`|}" is
 [
@@ -1134,13 +1059,9 @@ Semantic restriction "{_→_`|}" is
 ];
 
 /**
- * Strengthen the type union operation.
- *
- * Parameters:
- *    metaA - A metatype.
- *    metaB - A metatype.
- * Returns:
- *    The type of the type union of the arguments.
+ * @method "_∪_"
+ * @restricts "type's type"
+ * @restricts "type's type"
  */
 Semantic restriction "_∪_" is
 [
@@ -1151,13 +1072,9 @@ Semantic restriction "_∪_" is
 ];
 
 /**
- * Strengthen the type intersection operation.
- *
- * Parameters:
- *    metaA - A metatype.
- *    metaB - A metatype.
- * Returns:
- *    The type of the type intersection of the arguments.
+ * @method "_∩_"
+ * @restricts "type's type"
+ * @restricts "type's type"
  */
 Semantic restriction "_∩_" is
 [
@@ -1168,12 +1085,8 @@ Semantic restriction "_∩_" is
 ];
 
 /**
- * Answer the cardinality type of the specified tuple type.
- * 
- * Parameters:
- *    tupleMeta - A tuple type.
- * Returns:
- *    The cardinality type of the argument's instance.
+ * @method "`|`|_`|`|"
+ * @restricts "tuple meta's type"
  */
 Semantic restriction "`|`|_`|`|" is
 [
@@ -1183,12 +1096,8 @@ Semantic restriction "`|`|_`|`|" is
 ];
 
 /**
- * Answer the cardinality type of the specified set type.
- * 
- * Parameters:
- *    setMeta - A set type.
- * Returns:
- *    The cardinality type of the argument's instance.
+ * @method "`|`|_`|`|"
+ * @restricts "set meta's type"
  */
 Semantic restriction "`|`|_`|`|" is
 [
@@ -1198,12 +1107,8 @@ Semantic restriction "`|`|_`|`|" is
 ];
 
 /**
- * Answer the cardinality type of the specified map type.
- * 
- * Parameters:
- *    mapMeta - A map type.
- * Returns:
- *    The cardinality type of the argument's instance.
+ * @method "`|`|_`|`|"
+ * @restricts "map meta's type"
  */
 Semantic restriction "`|`|_`|`|" is
 [
@@ -1213,12 +1118,8 @@ Semantic restriction "`|`|_`|`|" is
 ];
 
 /**
- * Answer the cardinality type of bottom's type.
- * 
- * Parameters:
- *    bottomMeta - Bottom's type.
- * Returns:
- *    The cardinality type of the argument's instance.
+ * @method "`|`|_`|`|"
+ * @restricts "⊥'s type's type"
  */
 Semantic restriction "`|`|_`|`|" is
 [
@@ -1231,11 +1132,9 @@ Semantic restriction "`|`|_`|`|" is
  * Function type construction can at least statically ensure the correct number
  * of arguments and the return type.
  * 
- * Parameters:
- *    argTypes -
- *    returnType -
- * Returns:
- *    An instance type on a function type with specific arity and return type.
+ * @method "[«_‡,»]→_"
+ * @restricts "tuple of any meta's type"
+ * @restricts "type's type"
  */
 Semantic restriction "[«_‡,»]→_" is
 [

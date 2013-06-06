@@ -228,6 +228,10 @@ Method "Require:_accepts_" is
  * Ensure that the function will accept all elements and indices of the tuple.
  * If the tuple is certainly nonempty and the function certainly does not
  * complete if applied, then answer ⊥.
+ * 
+ * @method "For each of⁇_do_"
+ * @restricts "tuple meta"
+ * @restricts "function meta"
  */
 Semantic restriction "For each of⁇_do_" is
 [
@@ -313,6 +317,10 @@ Method "map_through_" is
 /**
  * Ensure that the function will accept all elements and indices of the tuple.
  * If the tuple is certainly nonempty, then the function cannot answer ⊥.
+ * 
+ * @method "map_through_"
+ * @restricts "tuple meta"
+ * @restricts "[…]→any's type"
  */
 Semantic restriction "map_through_" is
 [
@@ -409,6 +417,10 @@ Method "filter_by_" is
 
 /**
  * Ensure that the function will accept all elements and indices of the tuple.
+ * 
+ * @method "filter_by_"
+ * @restricts "tuple meta"
+ * @restricts "[…]→boolean's type"
  */
 Semantic restriction "filter_by_" is
 [
@@ -534,6 +546,10 @@ Method "map and filter_by_" is
 /**
  * Ensure that the function will accept all elements of the tuple and also an
  * appropriately typed keeper function.
+ * 
+ * @method "map and filter_by_"
+ * @restricts "tuple meta"
+ * @restricts "[⊥, ⊥]→⊤'s type"
  */
 Semantic restriction "map and filter_by_" is
 [
@@ -566,6 +582,10 @@ Semantic restriction "map and filter_by_" is
 /**
  * Ensure that the function will accept all elements and indices of the tuple
  * and also an appropriately typed keeper function.
+ * 
+ * @method "map and filter_by_"
+ * @restricts "tuple meta"
+ * @restricts "[⊥, ⊥, ⊥]→⊤'s type"
  */
 Semantic restriction "map and filter_by_" is
 [
@@ -669,6 +689,10 @@ Method "any of_satisfies_" is
 
 /**
  * Ensure that the function will accept all elements and indices of the tuple.
+ * 
+ * @method "any of_satisfies_"
+ * @restricts "tuple meta"
+ * @restricts "[…]→boolean's type"
  */
 Semantic restriction "any of_satisfies_" is
 [
@@ -683,13 +707,14 @@ Semantic restriction "any of_satisfies_" is
  * Compute and answer whether each of the elements of `aTuple` satisfies the
  * specified function. Do not examine more elements than necessary.
  * 
- * Parameters:
- *    aTuple - A tuple.
- *    predicate - A function that accepts the elements of the tuple and answers
- *       a boolean.
- * Returns:
- *    `true` if `predicate` answers `true` for each element of `aTuple`, `false`
- *    otherwise.
+ * @method "each of_satisfies_"
+ * @param "aTuple" "tuple"
+ * @param "predicate" "[⊥]→boolean"
+ *        A function that accepts the elements of the tuple and answers a
+ *        boolean.
+ * @returns "boolean"
+ *          `true` if `predicate` answers `true` for each element of `aTuple`,
+ *          `false` otherwise.
  */
 Method "each of_satisfies_" is
 [
@@ -713,13 +738,14 @@ Method "each of_satisfies_" is
  * Compute and answer whether each of the elements (and indices) of `aTuple`
  * satisfy the specified function. Do not examine more elements than necessary.
  * 
- * Parameters:
- *    aTuple - A tuple.
- *    predicate - A function that accepts 1) an element of the tuple and 2) the
- *       index of that element and answers a boolean.
- * Returns:
- *    `true` if `predicate` answers `true` for each element of `aTuple`, `false`
- *    otherwise.
+ * @method "each of_satisfies_"
+ * @param "aTuple" "tuple"
+ * @param "predicate" "[⊥, ⊥]→boolean"
+ *        A function that accepts 1) an element of the tuple and 2) the index of
+ *        that element and answers a boolean.
+ * @returns boolean
+ *          `true` if `predicate` answers `true` for each element of `aTuple`,
+ *          `false` otherwise.
  */
 Method "each of_satisfies_" is
 [
@@ -742,6 +768,10 @@ Method "each of_satisfies_" is
 
 /**
  * Ensure that the function will accept all elements and indices of the tuple.
+ * 
+ * @method "each of_satisfies_"
+ * @restricts "tuple meta"
+ * @restricts "[…]→boolean's type"
  */
 Semantic restriction "each of_satisfies_" is
 [
@@ -756,12 +786,14 @@ Semantic restriction "each of_satisfies_" is
  * Compute and answer the count of elements of `aTuple` that satisfy the given
  * predicate.
  * 
- * Parameters:
- *    aTuple - A tuple.
- *    predicate - A function that accepts the elements of the tuple and answers
- *       `true` if the element should be represented in the resulting count.
- * Returns:
- *    The number of elements of `aTuple` for which `predicate` answers `true`.
+ * @method "count of_where_"
+ * @param "aTuple" "tuple"
+ * @param "predicate" "[⊥]→boolean"
+ *        A function that accepts the elements of the tuple and answers `true`
+ *        if the element should be represented in the resulting count.
+ * @returns "whole number"
+ *          The number of elements of `aTuple` for which `predicate` answers
+ *          `true`.
  */
 Method "count of_where_" is
 [
@@ -775,13 +807,15 @@ Method "count of_where_" is
  * Compute and answer the count of elements (and indices) of `aTuple` that
  * satisfy the given predicate.
  * 
- * Parameters:
- *    aTuple - A tuple.
- *    predicate - A function that accepts 1) an element of the tuple and 2) the
- *       index of that element and answers `true` if the element should be
- *       represented in the resulting count.
- * Returns:
- *    The number of elements of `aTuple` for which `predicate` answers `true`.
+ * @method "count of_where_"
+ * @param "aTuple" "tuple"
+ * @param "predicate" "[⊥, ⊥]→boolean"
+ *        A function that accepts 1) an element of the tuple and 2) the index of
+ *        that element and answers `true` if the element should be represented
+ *        in the resulting count.
+ * @returns "whole number"
+ *          The number of elements of `aTuple` for which `predicate` answers
+ *          `true`.
  */
 Method "count of_where_" is
 [

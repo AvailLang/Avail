@@ -173,7 +173,6 @@ Semantic restriction "_(«_‡,»)" is
 ];
 
 /**
- * 
  * @method "_[_]"
  * @restricts "function meta's type"
  * @restricts "natural number's type"
@@ -236,7 +235,6 @@ Semantic restriction "_[_]" is
 ];
 
 /**
- * 
  * @method "new_applying_"
  * @restricts "function meta's type"
  * @restricts "function meta"
