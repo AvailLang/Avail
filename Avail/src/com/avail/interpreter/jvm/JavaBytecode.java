@@ -38,6 +38,7 @@ import java.io.IOException;
 import java.lang.invoke.WrongMethodTypeException;
 import com.avail.interpreter.jvm.ConstantPool.ClassEntry;
 import com.avail.interpreter.jvm.ConstantPool.FieldrefEntry;
+import com.avail.interpreter.jvm.ConstantPool.InterfaceMethodrefEntry;
 
 /**
  * The members of {@code JavaBytecode} represent the bytecodes of the Java
@@ -1806,7 +1807,7 @@ enum JavaBytecode
 		}
 	},
 
-	// TODO: [TLS] Continue here.
+	// TODO: [TLS] Finish support for invokedynamic.
 
 	/**
 	 * Invoke dynamic method.
@@ -1835,7 +1836,18 @@ enum JavaBytecode
 			NoSuchMethodError.class,
 			AbstractMethodError.class,
 			IllegalAccessError.class,
-			UnsatisfiedLinkError.class)),
+			UnsatisfiedLinkError.class))
+	{
+		@Override
+		public JavaInstruction create (final Object... operands)
+		{
+			assert operands.length == 1;
+			return new InvokeInterfaceInstruction(
+				this, (InterfaceMethodrefEntry) operands[0]);
+		}
+	},
+
+	// TODO: [TLS] Continue here.
 
 	/**
 	 * Invoke instance method; special handling for superclass, private, and

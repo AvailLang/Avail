@@ -37,6 +37,7 @@ import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import com.avail.annotations.Nullable;
 
 /**
  * {@code ConstantPool} represents a per-class constant pool.
@@ -55,7 +56,7 @@ class ConstantPool
 	 *    href="http://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.4-140">
 	 *    Constant pool tags</a>
 	 */
-	enum Tag
+	static enum Tag
 	{
 		@SuppressWarnings("javadoc") Utf8 (1),
 		@SuppressWarnings("javadoc") Integer (3),
@@ -109,7 +110,7 @@ class ConstantPool
 	 *    href="http://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.4">
 	 *    The Constant Pool</a>
 	 */
-	abstract class Entry
+	static abstract class Entry
 	{
 		/** The index into the {@linkplain ConstantPool constant pool}. */
 		final int index;
@@ -181,7 +182,7 @@ class ConstantPool
 	 *    href="http://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.4.7">
 	 *    The <code>CONSTANT_Utf8_info</code> Structure</a>
 	 */
-	final class Utf8Entry
+	static final class Utf8Entry
 	extends Entry
 	{
 		@Override
@@ -229,7 +230,7 @@ class ConstantPool
 	 *    The <code>CONSTANT_Integer_info</code> and
 	 *    <code>CONSTANT_Float_info</code> Structure</a>
 	 */
-	final class IntegerEntry
+	static final class IntegerEntry
 	extends Entry
 	{
 		@Override
@@ -277,7 +278,7 @@ class ConstantPool
 	 *    The <code>CONSTANT_Integer_info</code> and
 	 *    <code>CONSTANT_Float_info</code> Structure</a>
 	 */
-	final class FloatEntry
+	static final class FloatEntry
 	extends Entry
 	{
 		@Override
@@ -325,7 +326,7 @@ class ConstantPool
 	 *    The <code>CONSTANT_Long_info</code> and
 	 *    <code>CONSTANT_Double_info</code> Structure</a>
 	 */
-	final class LongEntry
+	static final class LongEntry
 	extends Entry
 	{
 		@Override
@@ -373,7 +374,7 @@ class ConstantPool
 	 *    The <code>CONSTANT_Long_info</code> and
 	 *    <code>CONSTANT_Double_info</code> Structure</a>
 	 */
-	final class DoubleEntry
+	static final class DoubleEntry
 	extends Entry
 	{
 		@Override
@@ -420,7 +421,7 @@ class ConstantPool
 	 *    href="http://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.4.1">
 	 *    The <code>CONSTANT_Class_info</code> Structure</a>
 	 */
-	final class ClassEntry
+	static final class ClassEntry
 	extends Entry
 	{
 		@Override
@@ -471,7 +472,7 @@ class ConstantPool
 	 *    href="http://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.4.3">
 	 *    The <code>CONSTANT_String_info</code> Structure</a>
 	 */
-	final class StringEntry
+	static final class StringEntry
 	extends Entry
 	{
 		@Override
@@ -515,7 +516,7 @@ class ConstantPool
 	 * {@code RefEntry} specifies the representation and serialization of its
 	 * concrete subclasses (which differ only their {@linkplain Tag tags}).
 	 */
-	private abstract class RefEntry
+	private static abstract class RefEntry
 	extends Entry
 	{
 		/**
@@ -578,7 +579,7 @@ class ConstantPool
 	 *    <code>CONSTANT_Methodref_info</code>,
 	 *    and <code>CONSTANT_InterfaceMethodref_info</code> Structures</a>
 	 */
-	final class FieldrefEntry
+	static final class FieldrefEntry
 	extends RefEntry
 	{
 		@Override
@@ -624,7 +625,7 @@ class ConstantPool
 	 *    <code>CONSTANT_Methodref_info</code>,
 	 *    and <code>CONSTANT_InterfaceMethodref_info</code> Structures</a>
 	 */
-	final class MethodrefEntry
+	static final class MethodrefEntry
 	extends RefEntry
 	{
 		@Override
@@ -670,7 +671,7 @@ class ConstantPool
 	 *    <code>CONSTANT_Methodref_info</code>,
 	 *    and <code>CONSTANT_InterfaceMethodref_info</code> Structures</a>
 	 */
-	final class InterfaceMethodrefEntry
+	static final class InterfaceMethodrefEntry
 	extends RefEntry
 	{
 		@Override
@@ -714,7 +715,7 @@ class ConstantPool
 	 *    href="http://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.4.6">
 	 *    The <code>CONSTANT_NameAndType_info</code> Structure</a>
 	 */
-	final class NameAndTypeEntry
+	static final class NameAndTypeEntry
 	extends Entry
 	{
 		@Override
@@ -764,6 +765,80 @@ class ConstantPool
 	}
 
 	/**
+	 * {@code MethodHandleKind} describes the {@linkplain RefEntry reference}
+	 * kind for a dynamic call site.
+	 */
+	@SuppressWarnings("javadoc")
+	static enum MethodHandleKind
+	{
+		GetField (1),
+		GetStatic (2),
+		PutField (3),
+		PutStatic (4),
+		InvokeVirtual (5),
+		InvokeStatic (6),
+		InvokeSpecial (7),
+		NewInvokeSpecial (8),
+		InvokeInterface (9);
+
+		/** The binary type tag. */
+		private final int tag;
+
+		/**
+		 * Answer the {@linkplain RefEntry reference} {@linkplain Class class}
+		 * denoted by the {@linkplain MethodHandleKind method handle kind}.
+		 *
+		 * @return A reference class.
+		 */
+		Class<? extends RefEntry> entryClass ()
+		{
+			switch (this)
+			{
+				case GetField:
+				case GetStatic:
+				case PutField:
+				case PutStatic:
+					return FieldrefEntry.class;
+				case InvokeVirtual:
+				case InvokeStatic:
+				case InvokeSpecial:
+				case NewInvokeSpecial:
+					return MethodrefEntry.class;
+				case InvokeInterface:
+					return InterfaceMethodrefEntry.class;
+				default:
+					assert false : "This never happens";
+					throw new IllegalStateException();
+			}
+		}
+
+		/**
+		 * Write the {@linkplain MethodHandleKind method handle kind} to the
+		 * specified {@linkplain DataOutput binary stream}.
+		 *
+		 * @param out
+		 *        A binary output stream.
+		 * @throws IOException
+		 *         If the operation fails.
+		 */
+		void writeTo (final DataOutput out) throws IOException
+		{
+			out.writeByte(tag);
+		}
+
+		/**
+		 * Construct a new {@link MethodHandleKind}.
+		 *
+		 * @param tag
+		 *        The binary type tag.
+		 */
+		private MethodHandleKind (final int tag)
+		{
+			this.tag = tag;
+		}
+	}
+
+	/**
 	 * {@code MethodHandleEntry} corresponds to the {@code
 	 * CONSTANT_MethodHandle_info} structure.
 	 *
@@ -771,7 +846,7 @@ class ConstantPool
 	 *    href="http://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.4.8">
 	 *    The <code>CONSTANT_MethodHandle_info</code> Structure</a>
 	 */
-	final class MethodHandleEntry
+	static final class MethodHandleEntry
 	extends Entry
 	{
 		@Override
@@ -781,34 +856,29 @@ class ConstantPool
 		}
 
 		/**
-		 * The referenceEntry kind:
+		 * The {@linkplain MethodHandleKind method handle kind}:
 		 *
 		 * <ol>
-		 * <li>REF_getField</li>
-		 * <li>REF_getStatic</li>
-		 * <li>REF_putField</li>
-		 * <li>REF_putStatic</li>
-		 * <li>REF_invokeVirtual</li>
-		 * <li>REF_invokeStatic</li>
-		 * <li>REF_invokeSpecial</li>
-		 * <li>REF_newInvokeSpecial</li>
-		 * <li>REF_invokeInterface</li>
+		 * <li>{@linkplain MethodHandleKind#GetField REF_getField}</li>
+		 * <li>{@linkplain MethodHandleKind#GetStatic REF_getStatic}</li>
+		 * <li>{@linkplain MethodHandleKind#PutField REF_putField}</li>
+		 * <li>{@linkplain MethodHandleKind#PutStatic REF_putStatic}</li>
+		 * <li>{@linkplain MethodHandleKind#InvokeVirtual REF_invokeVirtual}</li>
+		 * <li>{@linkplain MethodHandleKind#InvokeStatic REF_invokeStatic}</li>
+		 * <li>{@linkplain MethodHandleKind#InvokeSpecial REF_invokeSpecial}</li>
+		 * <li>{@linkplain MethodHandleKind#NewInvokeSpecial REF_newInvokeSpecial}</li>
+		 * <li>{@linkplain MethodHandleKind#InvokeInterface REF_invokeInterface}</li>
 		 * </ol>
 		 */
-		private final byte kind;
+		private final MethodHandleKind kind;
 
-		/**
-		 * The referenceEntry. If {@link #kind} is 1, 2, 3, or 4, then the exact type
-		 * is {@link FieldrefEntry}. If {@code kind} is 5, 6, 7, or 8, then the
-		 * exact type is {@link MethodrefEntry}. If {@code kind} is 9, then the
-		 * exact type is {@link InterfaceMethodrefEntry}.
-		 */
+		/** The {@linkplain RefEntry reference entry}. */
 		private final RefEntry referenceEntry;
 
 		@Override
 		void writeBodyTo (final DataOutput out) throws IOException
 		{
-			out.writeByte(kind);
+			kind.writeTo(out);
 			referenceEntry.writeIndexTo(out);
 		}
 
@@ -826,11 +896,12 @@ class ConstantPool
 		 */
 		MethodHandleEntry (
 			final int index,
-			final int kind,
+			final MethodHandleKind kind,
 			final RefEntry referenceEntry)
 		{
 			super(index);
-			this.kind = (byte) kind;
+			assert referenceEntry.getClass().isInstance(kind.entryClass());
+			this.kind = kind;
 			this.referenceEntry = referenceEntry;
 		}
 	}
@@ -843,7 +914,7 @@ class ConstantPool
 	 *    href="http://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.4.9">
 	 *    The <code>CONSTANT_MethodType_info</code> Structure</a>
 	 */
-	final class MethodTypeEntry
+	static final class MethodTypeEntry
 	extends Entry
 	{
 		@Override
@@ -890,7 +961,7 @@ class ConstantPool
 	 *    href="http://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.4.10">
 	 *    The <code>CONSTANT_MethodType_info</code> Structure</a>
 	 */
-	final class InvokeDynamicEntry
+	static final class InvokeDynamicEntry
 	extends Entry
 	{
 		@Override
@@ -949,13 +1020,13 @@ class ConstantPool
 	 * {@code Utf8Key} serves as a key in {@link ConstantPool#entries entries}
 	 * for {@link Utf8Entry} objects.
 	 */
-	private final class Utf8Key
+	private static final class Utf8Key
 	{
 		/** The value of the key. */
 		private final String value;
 
 		@Override
-		public boolean equals (final Object obj)
+		public boolean equals (final @Nullable Object obj)
 		{
 			if (obj instanceof Utf8Key)
 			{
@@ -990,8 +1061,8 @@ class ConstantPool
 	}
 
 	/**
-	 * Answer a {@link Utf8Entry entry} for the specified {@link String},
-	 * constructing and installing a new entry if necessary.
+	 * Answer a {@link Utf8Entry} for the specified {@link String}, constructing
+	 * and installing a new entry if necessary.
 	 *
 	 * @param value
 	 *        The constant.
@@ -1010,7 +1081,7 @@ class ConstantPool
 	}
 
 	/**
-	 * Answer an {@linkplain IntegerEntry entry} for the specified {@code int},
+	 * Answer an {@link IntegerEntry} for the specified {@code int},
 	 * constructing and installing a new entry if necessary.
 	 *
 	 * @param value
@@ -1030,8 +1101,8 @@ class ConstantPool
 	}
 
 	/**
-	 * Answer an {@linkplain LongEntry entry} for the specified {@code long},
-	 * constructing and installing a new entry if necessary.
+	 * Answer a {@link LongEntry} for the specified {@code long}, constructing
+	 * and installing a new entry if necessary.
 	 *
 	 * @param value
 	 *        The constant.
@@ -1043,15 +1114,18 @@ class ConstantPool
 		Entry entry = entries.get(boxed);
 		if (entry == null)
 		{
-			entry = new LongEntry(nextIndex++, value);
+			// CONSTANT_Long_info occupies two slots.
+			final int index = nextIndex;
+			entry = new LongEntry(index, value);
+			nextIndex += 2;
 			entries.put(boxed, entry);
 		}
 		return (LongEntry) entry;
 	}
 
 	/**
-	 * Answer an {@linkplain FloatEntry entry} for the specified {@code float},
-	 * constructing and installing a new entry if necessary.
+	 * Answer a {@link FloatEntry} for the specified {@code float}, constructing
+	 * and installing a new entry if necessary.
 	 *
 	 * @param value
 	 *        The constant.
@@ -1070,8 +1144,8 @@ class ConstantPool
 	}
 
 	/**
-	 * Answer an {@linkplain DoubleEntry entry} for the specified {@code
-	 * double}, constructing and installing a new entry if necessary.
+	 * Answer a {@link DoubleEntry} for the specified {@code double},
+	 * constructing and installing a new entry if necessary.
 	 *
 	 * @param value
 	 *        The constant.
@@ -1083,15 +1157,18 @@ class ConstantPool
 		Entry entry = entries.get(boxed);
 		if (entry == null)
 		{
-			entry = new DoubleEntry(nextIndex++, value);
+			// CONSTANT_Double_info occupies two slots.
+			final int index = nextIndex;
+			entry = new DoubleEntry(index, value);
+			nextIndex += 2;
 			entries.put(boxed, entry);
 		}
 		return (DoubleEntry) entry;
 	}
 
 	/**
-	 * Answer an {@linkplain ClassEntry entry} for the specified {@linkplain
-	 * Class class}, constructing and installing a new entry if necessary.
+	 * Answer a {@link ClassEntry} for the specified {@linkplain Class class},
+	 * constructing and installing a new entry if necessary.
 	 *
 	 * @param value
 	 *        The constant.
@@ -1111,8 +1188,8 @@ class ConstantPool
 	}
 
 	/**
-	 * Answer an {@linkplain StringEntry entry} for the specified {@link
-	 * String}, constructing and installing a new entry if necessary.
+	 * Answer a {@link StringEntry} for the specified {@link String},
+	 * constructing and installing a new entry if necessary.
 	 *
 	 * @param value
 	 *        The constant.
@@ -1132,7 +1209,7 @@ class ConstantPool
 	/**
 	 * {@code RefKey} is the base for entity reference keys.
 	 */
-	private abstract class RefKey
+	private static abstract class RefKey
 	{
 		/**
 		 * Answer the tag of the {@linkplain RefKey reference key}.
@@ -1151,7 +1228,7 @@ class ConstantPool
 		private final String descriptor;
 
 		@Override
-		public final boolean equals (final Object obj)
+		public final boolean equals (final @Nullable Object obj)
 		{
 			if (obj instanceof RefKey)
 			{
@@ -1209,7 +1286,7 @@ class ConstantPool
 	 * {@code FieldrefKey} serves as a key in {@link ConstantPool#entries
 	 * entries} for {@link FieldrefKey} objects.
 	 */
-	private final class FieldrefKey
+	private static final class FieldrefKey
 	extends RefKey
 	{
 		@Override
@@ -1238,8 +1315,8 @@ class ConstantPool
 	}
 
 	/**
-	 * Answer an {@linkplain FieldrefEntry entry} for the specified field
-	 * reference, constructing and installing a new entry if necessary.
+	 * Answer a {@link FieldrefEntry} for the specified field reference,
+	 * constructing and installing a new entry if necessary.
 	 *
 	 * @param definer
 	 *        The {@linkplain Class class} that defines the field.
@@ -1269,10 +1346,182 @@ class ConstantPool
 	}
 
 	/**
+	 * {@code MethodrefKey} serves as a key in {@link ConstantPool#entries
+	 * entries} for {@link MethodrefKey} objects.
+	 */
+	private static final class MethodrefKey
+	extends RefKey
+	{
+		@Override
+		int tag ()
+		{
+			return 2;
+		}
+
+		/**
+		 * Construct a new {@link MethodrefKey}.
+		 *
+		 * @param type
+		 *        The {@linkplain Class type}.
+		 * @param name
+		 *        The name of the referent.
+		 * @param descriptor
+		 *        The descriptor of the referent.
+		 */
+		MethodrefKey (
+			final Class<?> type,
+			final String name,
+			final String descriptor)
+		{
+			super(type, name, descriptor);
+		}
+	}
+
+	/**
+	 * Answer a {@link MethodrefEntry} for the specified method reference,
+	 * constructing and installing a new entry if necessary.
+	 *
+	 * @param definer
+	 *        The {@linkplain Class class} that defines the field.
+	 * @param name
+	 *        The name of the referent.
+	 * @param returnType
+	 *        The return type of the referent.
+	 * @param parameterTypes
+	 *        The parameter types of the referent.
+	 * @return The entry associated with the specified field reference.
+	 */
+	MethodrefEntry methodref (
+		final Class<?> definer,
+		final String name,
+		final Class<?> returnType,
+		final Class<?>... parameterTypes)
+	{
+		final String methodDescriptor = JavaDescriptors.forMethod(
+			returnType, parameterTypes);
+		final MethodrefKey key = new MethodrefKey(
+			returnType, name, methodDescriptor);
+		Entry entry = entries.get(key);
+		if (entry == null)
+		{
+			final ClassEntry classEntry = constant(definer);
+			final NameAndTypeEntry nameAndType =
+				nameAndType(name, methodDescriptor);
+			entry = new FieldrefEntry(nextIndex++, classEntry, nameAndType);
+			entries.put(key, entry);
+		}
+		return (MethodrefEntry) entry;
+	}
+
+	/**
+	 * Answer a {@link MethodrefEntry} for the specified method reference,
+	 * constructing and installing a new entry if necessary.
+	 *
+	 * @param method
+	 *        The {@linkplain Method referent}.
+	 * @return The entry associated with the specified field reference.
+	 */
+	MethodrefEntry methodref (final Method method)
+	{
+		assert !method.getDeclaringClass().isInterface();
+		return methodref(
+			method.getDeclaringClass(),
+			method.getName(),
+			method.getReturnType(),
+			method.getParameterTypes());
+	}
+
+	/**
+	 * {@code InterfaceMethodrefKey} serves as a key in {@link
+	 * ConstantPool#entries entries} for {@link InterfaceMethodrefKey} objects.
+	 */
+	private static final class InterfaceMethodrefKey
+	extends RefKey
+	{
+		@Override
+		int tag ()
+		{
+			return 3;
+		}
+
+		/**
+		 * Construct a new {@link InterfaceMethodrefKey}.
+		 *
+		 * @param type
+		 *        The {@linkplain Class type}.
+		 * @param name
+		 *        The name of the referent.
+		 * @param descriptor
+		 *        The descriptor of the referent.
+		 */
+		InterfaceMethodrefKey (
+			final Class<?> type,
+			final String name,
+			final String descriptor)
+		{
+			super(type, name, descriptor);
+		}
+	}
+
+	/**
+	 * Answer a {@link InterfaceMethodrefEntry} for the specified method
+	 * reference, constructing and installing a new entry if necessary.
+	 *
+	 * @param definer
+	 *        The {@linkplain Class class} that defines the field.
+	 * @param name
+	 *        The name of the referent.
+	 * @param returnType
+	 *        The return type of the referent.
+	 * @param parameterTypes
+	 *        The parameter types of the referent.
+	 * @return The entry associated with the specified field reference.
+	 */
+	InterfaceMethodrefEntry interfaceMethodref (
+		final Class<?> definer,
+		final String name,
+		final Class<?> returnType,
+		final Class<?>... parameterTypes)
+	{
+		final String methodDescriptor = JavaDescriptors.forMethod(
+			returnType, parameterTypes);
+		final InterfaceMethodrefKey key = new InterfaceMethodrefKey(
+			returnType, name, methodDescriptor);
+		Entry entry = entries.get(key);
+		if (entry == null)
+		{
+			final ClassEntry classEntry = constant(definer);
+			final NameAndTypeEntry nameAndType =
+				nameAndType(name, methodDescriptor);
+			entry = new FieldrefEntry(nextIndex++, classEntry, nameAndType);
+			entries.put(key, entry);
+		}
+		return (InterfaceMethodrefEntry) entry;
+	}
+
+	/**
+	 * Answer a {@link InterfaceMethodrefEntry} for the specified method
+	 * reference, constructing and installing a new entry if necessary.
+	 *
+	 * @param method
+	 *        The {@linkplain Method referent}.
+	 * @return The entry associated with the specified field reference.
+	 */
+	InterfaceMethodrefEntry interfaceMethodref (final Method method)
+	{
+		assert method.getDeclaringClass().isInterface();
+		return interfaceMethodref(
+			method.getDeclaringClass(),
+			method.getName(),
+			method.getReturnType(),
+			method.getParameterTypes());
+	}
+
+	/**
 	 * {@code NameAndTypeKey} serves as a key in {@link ConstantPool#entries
 	 * entries} for {@link NameAndTypeEntry} objects.
 	 */
-	private final class NameAndTypeKey
+	private static final class NameAndTypeKey
 	{
 		/** The name. */
 		private final String name;
@@ -1281,7 +1530,7 @@ class ConstantPool
 		private final String descriptor;
 
 		@Override
-		public boolean equals (final Object obj)
+		public boolean equals (final @Nullable Object obj)
 		{
 			if (obj instanceof NameAndTypeKey)
 			{
@@ -1324,8 +1573,8 @@ class ConstantPool
 	}
 
 	/**
-	 * Answer a {@link NameAndTypeEntry entry} for the specified name and
-	 * descriptor, constructing and installing a new entry if necessary.
+	 * Answer a {@link NameAndTypeEntry} for the specified name and descriptor,
+	 * constructing and installing a new entry if necessary.
 	 *
 	 * @param name
 	 *        The name.
@@ -1351,9 +1600,8 @@ class ConstantPool
 	}
 
 	/**
-	 * Answer a {@link NameAndTypeEntry entry} for the specified name and
-	 * {@linkplain Class type}, constructing and installing a new entry if
-	 * necessary.
+	 * Answer a {@link NameAndTypeEntry} for the specified name and {@linkplain
+	 * Class type}, constructing and installing a new entry if necessary.
 	 *
 	 * @param name
 	 *        The name.
@@ -1370,28 +1618,23 @@ class ConstantPool
 	}
 
 	/**
-	 * Answer a {@link NameAndTypeEntry entry} for the specified name and
-	 * {@linkplain Method method}, constructing and installing a new entry if
-	 * necessary.
+	 * Answer a {@link NameAndTypeEntry} for the specified {@linkplain Method
+	 * method}, constructing and installing a new entry if necessary.
 	 *
-	 * @param name
-	 *        The name.
 	 * @param method
 	 *        A Java method.
 	 * @return The entry associated with the specified value.
 	 */
-	NameAndTypeEntry nameAndType (
-		final String name,
-		final Method method)
+	NameAndTypeEntry nameAndType (final Method method)
 	{
 		final String descriptor = JavaDescriptors.forMethod(method);
-		return nameAndType(name, descriptor);
+		return nameAndType(method.getName(), descriptor);
 	}
 
 	/**
-	 * Answer a {@link NameAndTypeEntry entry} for the specified name and
-	 * {@linkplain Method method} signature, constructing and installing a new
-	 * entry if necessary.
+	 * Answer a {@link NameAndTypeEntry} for the specified name and {@linkplain
+	 * Method method} signature, constructing and installing a new entry if
+	 * necessary.
 	 *
 	 * @param name
 	 *        The name.
@@ -1412,6 +1655,196 @@ class ConstantPool
 	}
 
 	/**
+	 * {@code MethodHandleKey} serves as a key in {@link ConstantPool#entries
+	 * entries} for {@link MethodHandleEntry} objects.
+	 */
+	private static final class MethodHandleKey
+	{
+		/** The {@linkplain MethodHandleKind method handle kind}. */
+		private final MethodHandleKind kind;
+
+		/** The {@linkplain RefEntry reference entry}. */
+		private final RefEntry referenceEntry;
+
+		@Override
+		public boolean equals (final @Nullable Object obj)
+		{
+			if (obj instanceof MethodHandleKey)
+			{
+				final MethodHandleKey other = (MethodHandleKey) obj;
+				return kind == other.kind
+					&& referenceEntry == other.referenceEntry;
+			}
+			return false;
+		}
+
+		@Override
+		public int hashCode ()
+		{
+			return 137 * kind.hashCode() + 29 * referenceEntry.hashCode();
+		}
+
+		@Override
+		public String toString ()
+		{
+			return String.format(
+				"%s(%s, %s)",
+				getClass().getSimpleName(),
+				kind,
+				referenceEntry);
+		}
+
+		/**
+		 * Construct a new {@link MethodHandleKey}.
+		 *
+		 * @param kind
+		 *        The {@linkplain MethodHandleKind method handle kind}.
+		 * @param referenceEntry
+		 *        The {@linkplain RefEntry reference entry}.
+		 */
+		MethodHandleKey (
+			final MethodHandleKind kind,
+			final RefEntry referenceEntry)
+		{
+			assert referenceEntry.getClass().isInstance(kind.entryClass());
+			this.kind = kind;
+			this.referenceEntry = referenceEntry;
+		}
+	}
+
+	/**
+	 * Answer a {@link MethodHandleEntry}, constructing and installing a new
+	 * entry if necessary.
+	 *
+	 * @param kind
+	 *        The {@linkplain MethodHandleKind method handle kind}.
+	 * @param referenceEntry
+	 *        The {@linkplain RefEntry reference entry}.
+	 * @return The entry associated with the specified value.
+	 */
+	MethodHandleEntry methodHandle (
+		final MethodHandleKind kind,
+		final RefEntry referenceEntry)
+	{
+		assert referenceEntry.getClass().isInstance(kind.entryClass());
+		final MethodHandleKey key = new MethodHandleKey(kind, referenceEntry);
+		Entry entry = entries.get(key);
+		if (entry == null)
+		{
+			entry = new MethodHandleEntry(nextIndex++, kind, referenceEntry);
+			entries.put(key, entry);
+		}
+		return (MethodHandleEntry) entry;
+	}
+
+	/**
+	 * {@code MethodTypeKey} serves as a key in {@link ConstantPool#entries
+	 * entries} for {@link MethodTypeEntry} objects.
+	 */
+	private static final class MethodTypeKey
+	{
+		/**
+		 * The {@linkplain JavaDescriptors#forMethod(Class, Class...)
+		 * method descriptor}.
+		 */
+		private final String descriptor;
+
+		@Override
+		public boolean equals (final @Nullable Object obj)
+		{
+			if (obj instanceof MethodTypeKey)
+			{
+				final MethodTypeKey other = (MethodTypeKey) obj;
+				return descriptor.equals(other.descriptor);
+			}
+			return false;
+		}
+
+		@Override
+		public int hashCode ()
+		{
+			return 61 * descriptor.hashCode();
+		}
+
+		@Override
+		public String toString ()
+		{
+			return String.format(
+				"%s(%s)",
+				getClass().getSimpleName(),
+				descriptor);
+		}
+
+		/**
+		 * Construct a new {@link MethodTypeKey}.
+		 *
+		 * @param descriptor
+		 *        The {@linkplain JavaDescriptors#forMethod(Class, Class...)
+		 *        method descriptor}.
+		 */
+		MethodTypeKey (final String descriptor)
+		{
+			this.descriptor = descriptor;
+		}
+	}
+
+	/**
+	 * Answer a {@link MethodTypeEntry} for the specified method descriptor,
+	 * constructing and installing a new entry if necessary.
+	 *
+	 * @param descriptor
+	 *        A method descriptor.
+	 * @return The entry associated with the specified value.
+	 */
+	private MethodTypeEntry methodType (final String descriptor)
+	{
+		final MethodTypeKey key = new MethodTypeKey(descriptor);
+		Entry entry = entries.get(key);
+		if (entry == null)
+		{
+			final Utf8Entry descriptorEntry = utf8(descriptor);
+			entry = new MethodTypeEntry(nextIndex++, descriptorEntry);
+			entries.put(key, entry);
+		}
+		return (MethodTypeEntry) entry;
+	}
+
+	/**
+	 * Answer a {@link MethodTypeEntry} for the {@linkplain Method method}
+	 * signature, constructing and installing a new entry if necessary.
+	 *
+	 * @param returnType
+	 *        The method's return type.
+	 * @param parameterTypes
+	 *        The method's parameter types.
+	 * @return The entry associated with the specified value.
+	 */
+	MethodTypeEntry methodType (
+		final Class<?> returnType,
+		final Class<?>... parameterTypes)
+	{
+		final String descriptor = JavaDescriptors.forMethod(
+			returnType, parameterTypes);
+		return methodType(descriptor);
+	}
+
+	/**
+	 * Answer a {@link MethodTypeEntry} for the {@linkplain Method method}
+	 * signature, constructing and installing a new entry if necessary.
+	 *
+	 * @param method
+	 *        A method.
+	 * @return The entry associated with the specified value.
+	 */
+	MethodTypeEntry methodType (final Method method)
+	{
+		final String descriptor = JavaDescriptors.forMethod(method);
+		return methodType(descriptor);
+	}
+
+	// TODO: [TLS] Finish support for InvokeDynamicEntry.
+
+	/**
 	 * Write the {@linkplain ConstantPool constant pool} to the specified
 	 * {@linkplain DataOutput binary stream}.
 	 *
@@ -1423,14 +1856,9 @@ class ConstantPool
 	void writeTo (final DataOutput out) throws IOException
 	{
 		out.writeShort(nextIndex);
-		int index = 0;
 		for (final Entry entry : entries.values())
 		{
-			// Yes, this assertion is supposed to contain a side-effect. The
-			// counter is only referenced by this assertion.
-			assert entry.index == index++;
 			entry.writeTo(out);
 		}
-		assert nextIndex == index;
 	}
 }
