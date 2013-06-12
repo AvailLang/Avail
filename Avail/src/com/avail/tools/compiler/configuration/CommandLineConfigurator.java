@@ -129,7 +129,6 @@ implements Configurator<CompilerConfiguration>
 					}
 				}
 			}));
-/////////////////////////////////////////////////////////////////// LS NEW start
 		factory.addOption(new GenericOption<OptionKey>(
 			AVAIL_RENAMES,
 			asList("availRenames"),
@@ -180,7 +179,6 @@ implements Configurator<CompilerConfiguration>
 					}
 				}
 			}));
-/////////////////////////////////////////////////////////////////// LS NEW end
 		factory.addOption(new GenericHelpOption<OptionKey>(
 			HELP,
 			processor,

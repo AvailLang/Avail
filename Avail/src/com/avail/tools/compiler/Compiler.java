@@ -33,7 +33,6 @@
 package com.avail.tools.compiler;
 
 import java.io.FileNotFoundException;
-import java.util.ArrayList;
 import java.util.List;
 import com.avail.AvailRuntime;
 import com.avail.annotations.Nullable;
@@ -87,6 +86,11 @@ public class Compiler
 		return configuration;
 	}
 
+	/**
+	 * The entry point for command-line invocation of the Avail compiler.
+	 *
+	 * @param args The command-line arguments.
+	 */
 	public static void main (final String[] args)
 	{
 		final CompilerConfiguration configuration;
@@ -97,7 +101,6 @@ public class Compiler
 			configuration = configure(args);
 			resolver = configuration.moduleNameResolver();
 		}
-/////////////////////////////////////////////////////////////////// LS NEW start
 		catch (final ConfigurationException |
 					 FileNotFoundException |
 					 RenamesFileParserException e)
@@ -151,9 +154,9 @@ public class Compiler
 				}
 			};
 
+		final AvailRuntime runtime = new AvailRuntime(resolver);
 		try
 		{
-			final AvailRuntime runtime = new AvailRuntime(resolver);
 			final AvailBuilder builder = new AvailBuilder(runtime);
 			builder.build(moduleName, localTracker, globalTracker);
 		}
@@ -230,13 +233,12 @@ public class Compiler
 			e.printStackTrace();
 			return;
 		}
+		finally
+		{
+			runtime.destroy();
+		}
 
 		// Successful compilation.
-		// If in verbose mode, print timing details of compilation "Build successful. (#.###s)"
-
-		// TODO: [LAS] More stuff?
-
-
-/////////////////////////////////////////////////////////////////// LS NEW end
+		// TODO: [LAS] If in verbose mode, print timing details of compilation "Build successful. (#.###s)"
 	}
 }
