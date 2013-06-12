@@ -66,6 +66,7 @@ import com.avail.descriptor.ModuleDescriptor;
  */
 @ThreadSafe
 public final class ModuleRoots
+implements Iterable<ModuleRoot>
 {
 	/** The Avail {@linkplain ModuleDescriptor module} path. */
 	private final String modulePath;
@@ -187,6 +188,12 @@ public final class ModuleRoots
 			roots.add(entry.getValue());
 		}
 		return roots;
+	}
+
+	@Override
+	public Iterator<ModuleRoot> iterator ()
+	{
+		return Collections.unmodifiableSet(roots()).iterator();
 	}
 
 	/**
