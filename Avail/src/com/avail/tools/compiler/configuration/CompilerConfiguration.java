@@ -39,6 +39,7 @@ import java.io.FileReader;
 import java.io.Reader;
 import java.io.StringReader;
 import com.avail.annotations.Nullable;
+import com.avail.builder.ModuleName;
 import com.avail.builder.ModuleNameResolver;
 import com.avail.builder.ModuleRoots;
 import com.avail.builder.RenamesFileParser;
@@ -163,6 +164,31 @@ implements Configuration
 			moduleNameResolver = resolver;
 		}
 		return resolver;
+	}
+
+	/** The target {@linkplain ModuleName module} for compilation. */
+	private @Nullable ModuleName targetModuleName;
+
+	/**
+	 * Answer the {@linkplain ModuleName module} that is the target for
+	 * compilation.
+	 *
+	 * @return The module name.
+	 */
+	public ModuleName targetModuleName()
+	{
+		return targetModuleName;
+	}
+
+	/**
+	 * Set the {@linkplain ModuleName module} that is to be the target for
+	 * compilation.
+	 *
+	 * @param target The new module name.
+	 */
+	public void setTargetModuleName(final ModuleName target)
+	{
+		targetModuleName = target;
 	}
 
 	@Override

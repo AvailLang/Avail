@@ -37,10 +37,12 @@ import static com.avail.tools.compiler.configuration.CommandLineConfigurator.Opt
 import java.io.File;
 import com.avail.annotations.InnerAccess;
 import com.avail.annotations.Nullable;
+import com.avail.builder.ModuleName;
 import com.avail.builder.ModuleRoots;
 import com.avail.builder.RenamesFileParser;
 import com.avail.tools.configuration.ConfigurationException;
 import com.avail.tools.configuration.Configurator;
+import com.avail.tools.options.DefaultOption;
 import com.avail.tools.options.GenericHelpOption;
 import com.avail.tools.options.GenericOption;
 import com.avail.tools.options.OptionProcessingException;
@@ -50,7 +52,7 @@ import com.avail.utility.Continuation2;
 import com.avail.utility.MutableOrNull;
 
 /**
- * TODO: Document CommandLineConfigurator!
+ * TODO: [LAS] Document CommandLineConfigurator!
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
@@ -69,9 +71,14 @@ implements Configurator<CompilerConfiguration>
 
 		/**
 		 * Specification of the {@linkplain File path} to the {@linkplain
-		 * RenamesFileParser renames file}
+		 * RenamesFileParser renames file}.
 		 */
 		AVAIL_RENAMES,
+
+		/**
+		 * Specification of the target {@linkplain ModuleName module name}.
+		 */
+		TARGET_MODULE_NAME,
 
 		/**
 		 * Request display of help text.
@@ -122,7 +129,58 @@ implements Configurator<CompilerConfiguration>
 					}
 				}
 			}));
-		// TODO: AVAIL_RENAMES
+/////////////////////////////////////////////////////////////////// LS NEW start
+		factory.addOption(new GenericOption<OptionKey>(
+			AVAIL_RENAMES,
+			asList("availRenames"),
+			"The absolute path to the renames file.",
+			new Continuation2<String, String>()
+			{
+				@Override
+				public void value (
+					final @Nullable String keyword,
+					final @Nullable String renamesString)
+				{
+					assert renamesString != null;
+					processor.value().checkEncountered(AVAIL_RENAMES, 0);
+					try
+					{
+						configuration.setRenamesFilePath(renamesString);
+					}
+					catch (final OptionProcessingException e)
+					{
+						throw new OptionProcessingException(
+							keyword + ": " + e.getMessage(),
+							e);
+					}
+				}
+			}));
+		factory.addOption(new DefaultOption<OptionKey>(
+			TARGET_MODULE_NAME,
+			"The target module name for compilation.",
+			new Continuation2<String, String>()
+			{
+				@Override
+				public void value (
+					final @Nullable String keyword,
+					final @Nullable String targetModuleString)
+				{
+					assert targetModuleString != null;
+					processor.value().checkEncountered(TARGET_MODULE_NAME, 0);
+					try
+					{
+						configuration.setTargetModuleName(
+							new ModuleName(targetModuleString));
+					}
+					catch (final OptionProcessingException e)
+					{
+						throw new OptionProcessingException(
+							"«default»: " + e.getMessage(),
+							e);
+					}
+				}
+			}));
+/////////////////////////////////////////////////////////////////// LS NEW end
 		factory.addOption(new GenericHelpOption<OptionKey>(
 			HELP,
 			processor,
