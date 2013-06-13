@@ -34,45 +34,76 @@ package com.avail.interpreter.jvm;
 
 import java.io.DataOutput;
 import java.io.IOException;
-import com.avail.interpreter.jvm.ConstantPool.ClassEntry;
 
 /**
- * The immediate of a {@code NewArrayInstruction} refers to a {@linkplain
- * ClassEntry class entry} within the {@linkplain ConstantPool constant pool}.
+ * The immediate value of a {@code NewObjectArrayInstruction} encodes a
+ * {@linkplain Class#isPrimitive() primitive type}.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 final class NewArrayInstruction
 extends SimpleInstruction
 {
-	/** The {@linkplain ClassEntry class entry} of the element type. */
-	private final ClassEntry classEntry;
+	/** The primitive {@linkplain Class type}. */
+	private final Class<?> primitiveType;
 
 	@Override
 	void writeImmediatesTo (final DataOutput out) throws IOException
 	{
-		classEntry.writeIndexTo(out);
+		final int value;
+		if (primitiveType == Boolean.TYPE)
+		{
+			value = 4;
+		}
+		else if (primitiveType == Character.TYPE)
+		{
+			value = 5;
+		}
+		else if (primitiveType == Float.TYPE)
+		{
+			value = 6;
+		}
+		else if (primitiveType == Double.TYPE)
+		{
+			value = 7;
+		}
+		else if (primitiveType == Byte.TYPE)
+		{
+			value = 8;
+		}
+		else if (primitiveType == Short.TYPE)
+		{
+			value = 9;
+		}
+		else if (primitiveType == Integer.TYPE)
+		{
+			value = 10;
+		}
+		else
+		{
+			assert primitiveType == Long.TYPE;
+			value = 11;
+		}
+		assert (value & 255) == value;
+		out.writeByte(value);
 	}
 
 	@Override
 	public String toString ()
 	{
-		return String.format("%s%s", super.toString(), classEntry);
+		return String.format("%s%s", super.toString(), primitiveType.getName());
 	}
 
 	/**
 	 * Construct a new {@link NewArrayInstruction}.
 	 *
-	 * @param bytecode
-	 *        The {@linkplain JavaBytecode bytecode}.
-	 * @param classEntry
-	 *        The {@linkplain ClassEntry class entry}.
+	 * @param primitiveType
+	 *        The primitive {@linkplain Class type}.
 	 */
-	NewArrayInstruction (
-		final JavaBytecode bytecode,
-		final ClassEntry classEntry)
+	public NewArrayInstruction (final Class<?> primitiveType)
 	{
-		super(bytecode);
-		this.classEntry = classEntry;
+		super(JavaBytecode.newarray);
+		assert primitiveType.isPrimitive();
+		this.primitiveType = primitiveType;
 	}
 }

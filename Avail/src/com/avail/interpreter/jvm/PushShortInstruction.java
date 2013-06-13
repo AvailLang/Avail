@@ -1,5 +1,5 @@
 /**
- * StoreInstruction.java
+ * PushShortInstruction.java
  * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -32,27 +32,43 @@
 
 package com.avail.interpreter.jvm;
 
+import java.io.DataOutput;
+import java.io.IOException;
+
 /**
- * A {@code StoreInstruction} has a one-byte immediate that represents a local
- * variable index.
+ * The immediate value of a {@code PushShortInstruction} is an arbitrary signed
+ * short.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-final class StoreInstruction
-extends VariableAccessInstruction
+final class PushShortInstruction
+extends SimpleInstruction
 {
-	/**
-	 * Construct a new {@link StoreInstruction}.
-	 *
-	 * @param bytecode
-	 *        The {@linkplain JavaBytecode bytecode}.
-	 * @param index
-	 *        The local variable index.
-	 */
-	StoreInstruction (
-		final JavaBytecode bytecode,
-		final int index)
+	/** The immediate value. */
+	private final short value;
+
+	@Override
+	void writeImmediatesTo (final DataOutput out) throws IOException
 	{
-		super(bytecode, index);
+		out.writeShort(value);
+	}
+
+	@Override
+	public String toString ()
+	{
+		return String.format("%s%d", super.toString(), value);
+	}
+
+	/**
+	 * Construct a new {@link PushShortInstruction}.
+	 *
+	 * @param value
+	 *        The immediate short value.
+	 */
+	public PushShortInstruction (final int value)
+	{
+		super(JavaBytecode.sipush);
+		assert (value & 65535) == value;
+		this.value = (short) value;
 	}
 }

@@ -1,5 +1,5 @@
 /**
- * StoreInstruction.java
+ * InvokeInstruction.java
  * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -32,27 +32,49 @@
 
 package com.avail.interpreter.jvm;
 
+import java.io.DataOutput;
+import java.io.IOException;
+import com.avail.interpreter.jvm.ConstantPool.MethodrefEntry;
+
 /**
- * A {@code StoreInstruction} has a one-byte immediate that represents a local
- * variable index.
+ * The immediate value of an {@code InvokeInstruction} is the index of a
+ * {@linkplain MethodrefEntry method entry} within the {@linkplain ConstantPool
+ * constant pool}.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-final class StoreInstruction
-extends VariableAccessInstruction
+final class InvokeInstruction
+extends SimpleInstruction
 {
+	/** The {@linkplain MethodrefEntry method entry} for the target method. */
+	private final MethodrefEntry methodEntry;
+
+	@Override
+	void writeImmediatesTo (final DataOutput out) throws IOException
+	{
+		methodEntry.writeIndexTo(out);
+	}
+
+	@Override
+	public String toString ()
+	{
+		return String.format("%s%s", super.toString(), methodEntry);
+	}
+
 	/**
-	 * Construct a new {@link StoreInstruction}.
+	 * Construct a new {@link InvokeInstruction}.
 	 *
 	 * @param bytecode
 	 *        The {@linkplain JavaBytecode bytecode}.
-	 * @param index
-	 *        The local variable index.
+	 * @param methodEntry
+	 *        The {@linkplain MethodrefEntry method entry} for the target
+	 *        method.
 	 */
-	StoreInstruction (
+	public InvokeInstruction (
 		final JavaBytecode bytecode,
-		final int index)
+		final MethodrefEntry methodEntry)
 	{
-		super(bytecode, index);
+		super(bytecode);
+		this.methodEntry = methodEntry;
 	}
 }

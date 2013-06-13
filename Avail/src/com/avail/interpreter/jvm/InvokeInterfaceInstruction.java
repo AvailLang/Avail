@@ -37,9 +37,11 @@ import java.io.IOException;
 import com.avail.interpreter.jvm.ConstantPool.InterfaceMethodrefEntry;
 
 /**
- * The immediate value of an {@code InvokeInterfaceInstruction} is the index of
- * an {@linkplain InterfaceMethodrefEntry interface method entry} within the
- * {@linkplain ConstantPool constant pool}.
+ * The immediate values of an {@code InvokeInterfaceInstruction} are the index
+ * of an {@linkplain InterfaceMethodrefEntry interface method entry} within the
+ * {@linkplain ConstantPool constant pool}, the {@linkplain
+ * JavaDescriptors#argumentUnits(String) argument units}, and an 8-bit
+ * {@code 0}.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
@@ -56,6 +58,8 @@ extends SimpleInstruction
 	void writeImmediatesTo (final DataOutput out) throws IOException
 	{
 		methodEntry.writeIndexTo(out);
+		methodEntry.writeArgumentUnitsTo(out);
+		out.writeByte(0);
 	}
 
 	@Override
@@ -67,17 +71,14 @@ extends SimpleInstruction
 	/**
 	 * Construct a new {@link InvokeInterfaceInstruction}.
 	 *
-	 * @param bytecode
-	 *        The {@linkplain JavaBytecode bytecode}.
 	 * @param methodEntry
 	 *        The {@linkplain InterfaceMethodrefEntry interface method entry}
 	 *        for the target method.
 	 */
 	public InvokeInterfaceInstruction (
-		final JavaBytecode bytecode,
 		final InterfaceMethodrefEntry methodEntry)
 	{
-		super(bytecode);
+		super(JavaBytecode.invokeinterface);
 		this.methodEntry = methodEntry;
 	}
 }

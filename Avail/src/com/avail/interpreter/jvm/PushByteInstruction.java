@@ -62,16 +62,12 @@ extends SimpleInstruction
 	/**
 	 * Construct a new {@link PushByteInstruction}.
 	 *
-	 * @param bytecode
-	 *        The {@linkplain JavaBytecode bytecode}.
 	 * @param value
 	 *        The immediate byte value.
 	 */
-	PushByteInstruction (
-		final JavaBytecode bytecode,
-		final int value)
+	PushByteInstruction (final int value)
 	{
-		super(bytecode);
+		super(JavaBytecode.bipush);
 		assert (value & 255) == value;
 		this.value = (byte) value;
 	}

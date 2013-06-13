@@ -63,16 +63,12 @@ extends SimpleInstruction
 	/**
 	 * Construct a new {@link CheckCastInstruction}.
 	 *
-	 * @param bytecode
-	 *        The {@linkplain JavaBytecode bytecode}.
 	 * @param classEntry
 	 *        The {@linkplain ClassEntry class entry} of the target type.
 	 */
-	public CheckCastInstruction (
-		final JavaBytecode bytecode,
-		final ClassEntry classEntry)
+	public CheckCastInstruction (final ClassEntry classEntry)
 	{
-		super(bytecode);
+		super(JavaBytecode.checkcast);
 		this.classEntry = classEntry;
 	}
 }
