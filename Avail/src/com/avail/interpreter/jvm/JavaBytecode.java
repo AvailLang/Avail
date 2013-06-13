@@ -1855,8 +1855,6 @@ enum JavaBytecode
 		}
 	},
 
-	// TODO: [TLS] Finish support for invokedynamic.
-
 	/**
 	 * Invoke dynamic method.
 	 *
@@ -1867,7 +1865,15 @@ enum JavaBytecode
 	invokedynamic (0xba, 4,
 		O(PLURAL),
 		O(),
-		X(BootstrapMethodError.class, WrongMethodTypeException.class)),
+		X(BootstrapMethodError.class, WrongMethodTypeException.class))
+	{
+		@Override
+		public JavaInstruction create (final Object... operands)
+		{
+			// TODO: [TLS] Finish support for invokedynamic.
+			throw new UnsupportedOperationException();
+		}
+	},
 
 	/**
 	 * Invoke interface method.
