@@ -209,6 +209,17 @@ abstract class Emitter<T extends Enum<T> & Modifier>
 	}
 
 	/**
+	 * Force the {@linkplain Field field} to be {@linkplain Deprecated
+	 * deprecated}.
+	 */
+	public void beDeprecated ()
+	{
+		assert !attributes().containsKey(DeprecatedAttribute.name);
+		final Attribute attribute = new DeprecatedAttribute();
+		setAttribute(attribute);
+	}
+
+	/**
 	 * Write any necessary header information to the specified {@linkplain
 	 * DataOutput binary stream}.
 	 *

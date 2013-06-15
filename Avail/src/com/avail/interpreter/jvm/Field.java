@@ -215,17 +215,6 @@ extends Emitter<FieldModifier>
 	}
 
 	/**
-	 * Force the {@linkplain Field field} to be {@linkplain Deprecated
-	 * deprecated}.
-	 */
-	public void beDeprecated ()
-	{
-		assert !attributes().containsKey(DeprecatedAttribute.name);
-		final Attribute attribute = new DeprecatedAttribute();
-		setAttribute(attribute);
-	}
-
-	/**
 	 * Write the {@linkplain Field field} as a {@code field_info} structure to
 	 * the specified {@linkplain DataOutput binary stream}.
 	 *
