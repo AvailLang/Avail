@@ -33,19 +33,12 @@
 package com.avail.tools.options;
 
 import java.io.IOException;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.EnumMap;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeSet;
+import java.util.*;
 import com.avail.annotations.*;
 import com.avail.utility.Continuation1;
 import com.avail.utility.Mutable;
+import com.avail.utility.ParagraphFormatter;
+import com.avail.utility.ParagraphFormatterStream;
 
 /**
  * An {@code OptionProcessor} serves primarily to support command-line
@@ -89,6 +82,7 @@ import com.avail.utility.Mutable;
  * runtime assembly constraints.</p>
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
+ * @author Leslie Schultz &lt;leslie@availlang.org&gt;
  * @param <OptionKeyType> The type of the option.
  */
 public class OptionProcessor<OptionKeyType extends Enum<OptionKeyType>>
@@ -341,7 +335,7 @@ public class OptionProcessor<OptionKeyType extends Enum<OptionKeyType>>
 	public Set<Option<OptionKeyType>> allOptions ()
 	{
 		return Collections.unmodifiableSet(
-			new HashSet<Option<OptionKeyType>>(allOptions.values()));
+			new LinkedHashSet<Option<OptionKeyType>>(allOptions.values()));
 	}
 
 	/**
@@ -399,60 +393,40 @@ public class OptionProcessor<OptionKeyType extends Enum<OptionKeyType>>
 		throws IOException
 	{
 		final Set<Option<OptionKeyType>> options = allOptions();
-		final Map<Option<OptionKeyType>, String> longestKeywords =
-			new HashMap<Option<OptionKeyType>, String>();
-
-		// Build a mapping between the options and their longest keywords.
-		for (final Option<OptionKeyType> option : options)
-		{
-			String longestKeyword = null;
-			for (final String keyword : option.keywords())
-			{
-				if (longestKeyword == null
-					|| keyword.length() > longestKeyword.length())
-				{
-					longestKeyword = keyword;
-				}
-			}
-			longestKeywords.put(option, longestKeyword);
-		}
-
-		// Instantiate a comparator that will order the options
-		// lexicographically by their longest keywords.
-		final Comparator<Option<OptionKeyType>> comparator =
-			new Comparator<Option<OptionKeyType>>()
-			{
-				@Override
-				public int compare (
-					final @Nullable Option<OptionKeyType> first,
-					final @Nullable Option<OptionKeyType> second)
-				{
-					assert first != null;
-					assert second != null;
-					return longestKeywords.get(first).compareTo(
-						longestKeywords.get(second));
-				}
-			};
-
-		final SortedSet<Option<OptionKeyType>> sortedOptions =
-			new TreeSet<Option<OptionKeyType>>(comparator);
-		sortedOptions.addAll(options);
 
 		// Write the descriptions of the options onto the specified Appendable
-		// in sorted order.
-		for (final Option<OptionKeyType> option : sortedOptions)
+		// in the order in which they are specified in the source file.
+		for (final Option<OptionKeyType> option : options)
 		{
-			final SortedSet<String> sortedKeywords =
-				new TreeSet<String>(option.keywords());
-			for (final String keyword : sortedKeywords)
+			final ParagraphFormatter keywordFormatter =
+				new ParagraphFormatter(80);
+			final ParagraphFormatterStream keywordStream =
+				new ParagraphFormatterStream(keywordFormatter, appendable);
+
+			final ParagraphFormatter descriptionFormatter =
+				new ParagraphFormatter(80, 4, 4);
+			final ParagraphFormatterStream descriptionStream =
+				new ParagraphFormatterStream(descriptionFormatter, appendable);
+
+			final LinkedHashSet<String> keywords =
+				new LinkedHashSet<String>(option.keywords());
+			for (final String keyword : keywords)
 			{
-				appendable.append(String.format(
-					"%s%s%n",
-					(keyword.length() == 1 ? "-" : "--"),
-					keyword));
+				if (option instanceof DefaultOption)
+				{
+					keywordStream.append(String.format(
+						"<bareword>%n"));
+				}
+				else
+				{
+					keywordStream.append(String.format(
+						"%s%s%n",
+						(keyword.length() == 1 ? "-" : "--"),
+						keyword));
+				}
 			}
 
-			appendable.append(String.format("\t%s%n%n", option.description()));
+			descriptionStream.append(String.format("%s%n%n", option.description()));
 		}
 	}
 }

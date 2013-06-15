@@ -33,8 +33,7 @@
 package com.avail.tools.options;
 
 import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.LinkedHashSet;
 import com.avail.utility.Continuation2;
 
 /**
@@ -42,6 +41,7 @@ import com.avail.utility.Continuation2;
  * during construction.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
+ * @author Leslie Schultz &lt;leslie@availlang.org&gt;
  * @param <OptionKeyType> The type of the option.
  */
 public class GenericOption<OptionKeyType extends Enum<OptionKeyType>>
@@ -57,13 +57,13 @@ implements Option<OptionKeyType>
 	}
 
 	/**
-	 * The {@linkplain Set set} of keywords that indicate this {@linkplain
-	 * GenericOption option}.
+	 * The {@linkplain LinkedHashSet set} of keywords that indicate this
+	 * {@linkplain GenericOption option}.
 	 */
-	private final Set<String> keywords = new HashSet<String>();
+	private final LinkedHashSet<String> keywords = new LinkedHashSet<String>();
 
 	@Override
-	public Set<String> keywords ()
+	public LinkedHashSet<String> keywords ()
 	{
 		return keywords;
 	}

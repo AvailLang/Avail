@@ -55,6 +55,7 @@ import com.avail.utility.MutableOrNull;
  * TODO: [LAS] Document CommandLineConfigurator!
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
+ * @author Leslie Schultz &lt;leslie@availlang.org&gt;
  */
 public class CommandLineConfigurator
 implements Configurator<CompilerConfiguration>
@@ -65,25 +66,56 @@ implements Configurator<CompilerConfiguration>
 	static enum OptionKey
 	{
 		/**
-		 * Specification of the {@linkplain ModuleRoots Avail roots}.
-		 */
-		AVAIL_ROOTS,
-
-		/**
 		 * Specification of the {@linkplain File path} to the {@linkplain
 		 * RenamesFileParser renames file}.
 		 */
 		AVAIL_RENAMES,
 
 		/**
-		 * Specification of the target {@linkplain ModuleName module name}.
+		 * Specification of the {@linkplain ModuleRoots Avail roots}.
 		 */
-		TARGET_MODULE_NAME,
+		AVAIL_ROOTS,
+
+		/**
+		 * The option to force removal of all repositories for which the Avail
+		 * roots path has valid source directories specified.
+		 */
+		CLEAR_REPOSITORIES,
+/*
+		/** TODO: [LAS] Add showStatistics option.
+		 * Add a --showStatistics (-s) option. This is a boolean option. If
+		 * present, then the compiler emits performance statistics for the Avail
+		 * VM, e.g., how much time each primitive spent running, etc.; if
+		 * absent, then no such information is emitted. It defaults to absent. I
+		 * don't know how to actually get this information, but I think that
+		 * it's available through the AvailBuilderFrame, so you can probably
+		 * find it out fairly easily. You can also email Mark, who is
+		 * responsible for the backend of this feature.
+		 *
+		SHOW_STATISTICS,
+*/
+		/**
+		 * The option to emit the time taken to clear the repositories, or the
+		 * elapsed build time following a successful or failed build.
+		 */
+		SHOW_TIMING,
+
+		/**
+		 * The option to request standard verbosity or set the {@linkplain
+		 * VerbosityLevel verbosity level}.
+		 */
+		VERBOSE_MODE,
 
 		/**
 		 * Request display of help text.
 		 */
-		HELP
+		HELP,
+
+		/**
+		 * Specification of the target {@linkplain ModuleName module name}.
+		 */
+		TARGET_MODULE_NAME
+
 	}
 
 	/**
@@ -99,40 +131,12 @@ implements Configurator<CompilerConfiguration>
 			new MutableOrNull<>();
 		final OptionProcessorFactory<OptionKey> factory =
 			new OptionProcessorFactory<>(OptionKey.class);
-		factory.addOption(new GenericOption<OptionKey>(
-			AVAIL_ROOTS,
-			asList("availRoots"),
-			"The Avail roots, as a semicolon (;) separated list of module root "
-			+ "specifications. Each module root specification comprises a "
-			+ "logical root name, then an equals (=), then a module root "
-			+ "location. A module root location comprises the absolute path to "
-			+ "a binary module repository, then optionally a comma (,) and the "
-			+ "absolute path to a source package.",
-			new Continuation2<String, String>()
-			{
-				@Override
-				public void value (
-					final @Nullable String keyword,
-					final @Nullable String rootsString)
-				{
-					assert rootsString != null;
-					processor.value().checkEncountered(AVAIL_ROOTS, 0);
-					try
-					{
-						configuration.setAvailRootsPath(rootsString);
-					}
-					catch (final OptionProcessingException e)
-					{
-						throw new OptionProcessingException(
-							keyword + ": " + e.getMessage(),
-							e);
-					}
-				}
-			}));
+
 		factory.addOption(new GenericOption<OptionKey>(
 			AVAIL_RENAMES,
 			asList("availRenames"),
-			"The absolute path to the renames file.",
+			"The absolute path to the renames file. This option overrides " +
+			"environment variables.",
 			new Continuation2<String, String>()
 			{
 				@Override
@@ -154,6 +158,140 @@ implements Configurator<CompilerConfiguration>
 					}
 				}
 			}));
+
+		factory.addOption(new GenericOption<OptionKey>(
+			AVAIL_ROOTS,
+			asList("availRoots"),
+			"The Avail roots, as a semicolon (;) separated list of module root "
+			+ "specifications. Each module root specification comprises a "
+			+ "logical root name, then an equals (=), then a module root "
+			+ "location. A module root location comprises the absolute path to "
+			+ "a binary module repository, then optionally a comma (,) and the "
+			+ "absolute path to a source package. This option overrides " +
+			"environment variables.",
+			new Continuation2<String, String>()
+			{
+				@Override
+				public void value (
+					final @Nullable String keyword,
+					final @Nullable String rootsString)
+				{
+					assert rootsString != null;
+					processor.value().checkEncountered(AVAIL_ROOTS, 0);
+					try
+					{
+						configuration.setAvailRootsPath(rootsString);
+					}
+					catch (final OptionProcessingException e)
+					{
+						throw new OptionProcessingException(
+							keyword + ": " + e.getMessage(),
+							e);
+					}
+				}
+			}));
+
+		factory.addOption(new GenericOption<OptionKey>(
+			CLEAR_REPOSITORIES,
+			asList("f", "clearRepositories"),
+			"The option to force removal of all repositories for which the "
+			+ "Avail root path has valid source directories specified. This "
+			+ "option can be used in isolation and will cause the repositories "
+			+ "to be emptied. In an invocation with a valid target module "
+			+ "name, the repositories will be cleared before compilation "
+			+ "is attempted.",
+			new Continuation2<String, String>()
+			{
+				@Override
+				public void value (
+					final @Nullable String keyword,
+					final @Nullable String unused)
+				{
+					if (unused != null)
+					{
+						throw new OptionProcessingException(
+							keyword + ": An argument was specified, but none " +
+									"are permitted.");
+					}
+					configuration.setClearRepositoriesFlag();
+				}
+			}));
+
+		factory.addOption(new GenericOption<OptionKey>(
+			SHOW_TIMING,
+			asList("t", "showTiming"),
+			"Emits the time taken to clear the repositories, or the elapsed " +
+				"build time following a successful or failed build.",
+			new Continuation2<String, String>()
+			{
+				@Override
+				public void value (
+					final @Nullable String keyword,
+					final @Nullable String unused)
+				{
+					if (unused != null)
+					{
+						throw new OptionProcessingException(
+							keyword + ": An argument was specified, but none " +
+									"are permitted.");
+					}
+					configuration.setShowTimingFlag();
+				}
+			}));
+
+		factory.addOption(new GenericOption<OptionKey>(
+			VERBOSE_MODE,
+			asList("v", "verboseMode"),
+			"The option to request minimum verbosity ( -v or --verboseMode ) " +
+			"or manually set the verbosity level ( --verboseMode=# ). This " +
+			"option overrides environment variables. " +
+			"\n" +
+			"\nPossible values for # include:" +
+			"\n0 - Zero extra verbosity. Only error messages will be " +
+			"output. This is the default level for the compiler and is " +
+			"used when the verboseMode option is not used." +
+			"\n1 - The minimum verbosity level. The global progress and " +
+			"any error messages will be output. This is the default level " +
+			"for this option when a level is not specified." +
+			"\n2 - Global progress is output along with the local module " +
+			"compilation progress and any error messages.",
+			new Continuation2<String, String>()
+			{
+				@Override
+				public void value (
+					final @Nullable String keyword,
+					final @Nullable String verboseString)
+				{
+					processor.value().checkEncountered(AVAIL_RENAMES, 0);
+					if (verboseString == null)
+					{
+						configuration.setVerbosityLevel(
+							VerbosityLevel.atLevel(1));
+					}
+					else
+					{
+						try
+						{
+							final int level = Integer.parseInt(verboseString);
+							configuration.setVerbosityLevel(
+								VerbosityLevel.atLevel(level));
+						}
+						catch (final NumberFormatException e)
+						{
+							throw new OptionProcessingException(
+								keyword + ": Illegal argument.",
+								e);
+						}
+					}
+				}
+			}));
+
+		factory.addOption(new GenericHelpOption<OptionKey>(
+			HELP,
+			processor,
+			"The Avail compiler understands the following options: ",
+			helpStream));
+
 		factory.addOption(new DefaultOption<OptionKey>(
 			TARGET_MODULE_NAME,
 			"The target module name for compilation.",
@@ -179,11 +317,7 @@ implements Configurator<CompilerConfiguration>
 					}
 				}
 			}));
-		factory.addOption(new GenericHelpOption<OptionKey>(
-			HELP,
-			processor,
-			"The Avail compiler understands the following options: ",
-			helpStream));
+
 		processor.value = factory.createOptionProcessor();
 		return processor.value();
 	}

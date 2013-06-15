@@ -32,7 +32,7 @@
 
 package com.avail.tools.options;
 
-import java.util.Set;
+import java.util.LinkedHashSet;
 import com.avail.utility.Continuation2;
 
 /**
@@ -43,6 +43,7 @@ import com.avail.utility.Continuation2;
  * option is set.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
+ * @author Leslie Schultz &lt;leslie@availlang.org&gt;
  * @param <OptionKeyType> The type of the option.
  */
 public interface Option<OptionKeyType extends Enum<OptionKeyType>>
@@ -56,12 +57,12 @@ public interface Option<OptionKeyType extends Enum<OptionKeyType>>
 	public OptionKeyType key ();
 
 	/**
-	 * Answer the {@linkplain Set set} of keywords that indicate this
+	 * Answer the {@linkplain LinkedHashSet set} of keywords that indicate this
 	 * {@linkplain GenericOption option}.
 	 *
-	 * @return A {@linkplain Set set} of keywords.
+	 * @return A {@linkplain LinkedHashSet set} of keywords.
 	 */
-	public Set<String> keywords ();
+	public LinkedHashSet<String> keywords ();
 
 	/**
 	 * Answer an end-user comprehensible description of the {@linkplain

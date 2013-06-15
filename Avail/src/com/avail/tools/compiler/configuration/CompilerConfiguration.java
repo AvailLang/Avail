@@ -32,6 +32,8 @@
 
 package com.avail.tools.compiler.configuration;
 
+import static com.avail.tools.compiler.configuration.VerbosityLevel.*;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -53,6 +55,7 @@ import com.avail.tools.compiler.Compiler;
  * the building of a target Avail {@linkplain ModuleDescriptor module}.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
+ * @author Leslie Schultz &lt;leslie@availlang.org&gt;
  */
 public class CompilerConfiguration
 implements Configuration
@@ -189,6 +192,82 @@ implements Configuration
 	public void setTargetModuleName(final ModuleName target)
 	{
 		targetModuleName = target;
+	}
+
+	/**
+	 * The flag indicating whether the compiler should clear all repositories
+	 * for which a valid source directory has been specified. This option is
+	 * false by default and is changed to true upon inclusion of the option
+	 * keyword in the arguments invoking the compiler.
+	 */
+	private boolean clearRepositories = false;
+
+	/**
+	 * Answer whether the compiler is set to clear the repositories.
+	 *
+	 * @return The status of the clearRepositories flag.
+	 */
+	public boolean clearRepositories()
+	{
+		return clearRepositories;
+	}
+
+	/**
+	 * Instruct the compiler to clear all repositories for which a valid source
+	 * directory has been specified.
+	 */
+	public void setClearRepositoriesFlag()
+	{
+		clearRepositories = true;
+	}
+
+	/**
+	 * The flag indicating whether the compiler should show the time elapsed
+	 * for the process.
+	 */
+	private boolean showTiming = false;
+
+	/**
+	 * Answer whether the compiler is set to show timing.
+	 *
+	 * @return The status of the showTiming flag.
+	 */
+	public boolean showTiming()
+	{
+		return showTiming;
+	}
+
+	/**
+	 * Instruct the compiler to show the time elapsed for the process.
+	 */
+	public void setShowTimingFlag()
+	{
+		showTiming = true;
+	}
+
+	/**
+	 * The level of verbosity specified for the compiler.
+	 */
+	private VerbosityLevel verbosityLevel = ERROR_ONLY;
+
+	/**
+	 * Answer the current verbosity level.
+	 *
+	 * @return The verbosity level.
+	 */
+	public VerbosityLevel verbosityLevel()
+	{
+		return verbosityLevel;
+	}
+
+	/**
+	 * Set the compiler's verbosity level.
+	 *
+	 * @param level The requested verbosity level.
+	 */
+	public void setVerbosityLevel(final VerbosityLevel level)
+	{
+		verbosityLevel = level;
 	}
 
 	@Override
