@@ -1,5 +1,5 @@
 /**
- * UnconditionalBranchInstruction.java
+ * LoadConstantInstruction.java
  * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -34,99 +34,105 @@ package com.avail.interpreter.jvm;
 
 import java.io.DataOutput;
 import java.io.IOException;
+import com.avail.interpreter.jvm.ConstantPool.Entry;
 
 /**
- * A {@code UnconditionalBranchInstruction} abstractly specifies an
- * unconditional branch.
+ * The immediate value of a {@code LoadConstantInstruction} is an index of a
+ * {@linkplain ConstantPool constant pool} {@linkplain Entry entry}.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-abstract class UnconditionalBranchInstruction
+final class LoadConstantInstruction
 extends JavaInstruction
 {
-	/** The {@linkplain LabelInstruction branch target}. */
-	private final LabelInstruction label;
+	/** A {@linkplain ConstantPool constant pool} {@linkplain Entry entry}. */
+	private final Entry entry;
 
 	@Override
-	final boolean isLabel ()
+	boolean isLabel ()
 	{
 		return false;
 	}
 
 	/**
-	 * Is the {@linkplain GotoInstruction branch} wide?
+	 * Does the {@linkplain Entry entry} consume two indices in the {@linkplain
+	 * ConstantPool constant pool}?
 	 *
-	 * @return {@code true} if the branch is wide, {@code false} otherwise.
+	 * @return {@code true} if the entry consumes two indices in the constant
+	 *         pool, {@code false} if the entry consumes one index.
 	 */
-	final boolean isWide ()
+	private boolean usesWideEntry ()
 	{
-		assert hasValidAddress();
-		assert label.hasValidAddress();
-		final long offset = label.address() - address();
-		return (offset < Short.MIN_VALUE || offset > Short.MAX_VALUE)
-			? true
-			: false;
+		return entry.isWide();
+	}
+
+	/**
+	 * Does the {@linkplain Entry entry}'s index require 16-bits of
+	 * representation?
+	 *
+	 * @return {@code true} if the entry's index requires 16-bits of
+	 *         representation, {@code false} otherwise.
+	 */
+	private boolean usesWideIndex ()
+	{
+		return (entry.index & 255) != entry.index;
 	}
 
 	@Override
-	final int size ()
+	int size ()
 	{
-		return isWide() ? 5 : 3;
+		return usesWideIndex() ? 3 : 2;
 	}
 
 	/**
 	 * Answer the appropriate {@linkplain JavaBytecode bytecode} for this
-	 * {@linkplain UnconditionalBranchInstruction branch instruction}.
+	 * instruction based on the {@linkplain #usesWideIndex() wideness} of the
+	 * {@linkplain Entry entry}'s index.
 	 *
-	 * @return The bytecode.
+	 * @return The appropriate bytecode.
 	 */
-	abstract JavaBytecode bytecode ();
+	private JavaBytecode bytecode ()
+	{
+		return
+			usesWideEntry() ? JavaBytecode.ldc2_w
+			: usesWideIndex() ? JavaBytecode.ldc_w
+			: JavaBytecode.ldc;
+	}
 
 	@Override
-	final void writeBytecodeTo (final DataOutput out) throws IOException
+	void writeBytecodeTo (final DataOutput out) throws IOException
 	{
 		bytecode().writeTo(out);
 	}
 
 	@Override
-	final void writeImmediatesTo (final DataOutput out) throws IOException
+	void writeImmediatesTo (final DataOutput out) throws IOException
 	{
-		if (isWide())
+		if (usesWideIndex())
 		{
-			out.writeInt((int) address());
+			entry.writeIndexTo(out);
 		}
 		else
 		{
-			out.writeShort((short) address());
+			entry.writeSingleByteIndexTo(out);
 		}
 	}
-
-	/**
-	 * The mnemonic to use when the instruction or its {@linkplain
-	 * LabelInstruction label} have not yet been assigned an address.
-	 *
-	 * @return The mnemonic.
-	 */
-	abstract String mnemonicForInvalidAddress ();
 
 	@Override
-	public final String toString ()
+	public String toString ()
 	{
-		if (hasValidAddress() && label.hasValidAddress())
-		{
-			return String.format("%15s%s", bytecode().mnemonic(), label);
-		}
-		return String.format("%15s%s", mnemonicForInvalidAddress(), label);
+		return String.format("%15s%s", bytecode().mnemonic(), entry);
 	}
 
 	/**
-	 * Construct a new {@link UnconditionalBranchInstruction}.
+	 * Construct a new {@link LoadConstantInstruction}.
 	 *
-	 * @param label
-	 *        The {@linkplain LabelInstruction branch target}.
+	 * @param entry
+	 *        A {@linkplain ConstantPool constant pool} {@linkplain Entry
+	 *        entry}.
 	 */
-	UnconditionalBranchInstruction (final LabelInstruction label)
+	public LoadConstantInstruction (final Entry entry)
 	{
-		this.label = label;
+		this.entry = entry;
 	}
 }

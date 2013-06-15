@@ -32,9 +32,6 @@
 
 package com.avail.interpreter.jvm;
 
-import java.io.DataOutput;
-import java.io.IOException;
-
 /**
  * A {@code LoadInstruction} has a one-byte immediate that represents a local
  * variable index.
@@ -42,23 +39,8 @@ import java.io.IOException;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 final class LoadInstruction
-extends SimpleInstruction
+extends VariableAccessInstruction
 {
-	/** The local variable index. */
-	private final byte index;
-
-	@Override
-	void writeImmediatesTo (final DataOutput out) throws IOException
-	{
-		out.writeByte(index);
-	}
-
-	@Override
-	public String toString ()
-	{
-		return String.format("%s#%d", super.toString(), index);
-	}
-
 	/**
 	 * Construct a new {@link LoadInstruction}.
 	 *
@@ -71,8 +53,6 @@ extends SimpleInstruction
 		final JavaBytecode bytecode,
 		final int index)
 	{
-		super(bytecode);
-		assert (index & 255) == index;
-		this.index = (byte) index;
+		super(bytecode, index);
 	}
 }

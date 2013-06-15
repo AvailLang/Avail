@@ -1,5 +1,5 @@
 /**
- * StoreInstruction.java
+ * GotoInstruction.java
  * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -33,26 +33,33 @@
 package com.avail.interpreter.jvm;
 
 /**
- * A {@code StoreInstruction} has a one-byte immediate that represents a local
- * variable index.
+ * A {@code GotoInstruction} abstractly specifies a goto.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-final class StoreInstruction
-extends VariableAccessInstruction
+class GotoInstruction
+extends UnconditionalBranchInstruction
 {
-	/**
-	 * Construct a new {@link StoreInstruction}.
-	 *
-	 * @param bytecode
-	 *        The {@linkplain JavaBytecode bytecode}.
-	 * @param index
-	 *        The local variable index.
-	 */
-	StoreInstruction (
-		final JavaBytecode bytecode,
-		final int index)
+	@Override
+	JavaBytecode bytecode ()
 	{
-		super(bytecode, index);
+		return isWide() ? JavaBytecode.goto_w : JavaBytecode.goto_s;
+	}
+
+	@Override
+	String mnemonicForInvalidAddress ()
+	{
+		return "«goto»";
+	}
+
+	/**
+	 * Construct a new {@link GotoInstruction}.
+	 *
+	 * @param label
+	 *        The {@linkplain LabelInstruction branch target}.
+	 */
+	GotoInstruction (final LabelInstruction label)
+	{
+		super(label);
 	}
 }

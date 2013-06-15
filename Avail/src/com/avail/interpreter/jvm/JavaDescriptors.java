@@ -151,4 +151,60 @@ final class JavaDescriptors
 	{
 		return forMethod(method.getReturnType(), method.getParameterTypes());
 	}
+
+	/**
+	 * Answer the count of argument units indicated by the specified method
+	 * descriptor.
+	 *
+	 * @param descriptor
+	 *        A method descriptor.
+	 * @return The number of argument units. {@code long}s and {@code double}s
+	 *         count for {@code 2} units, but all other primitive and reference
+	 *         types count for {@code 1} unit.
+	 * @throws IllegalArgumentException
+	 *         If the method descriptor is invalid.
+	 */
+	public static int argumentUnits (final String descriptor)
+	{
+		if (descriptor.codePointAt(0) != '(')
+		{
+			throw new IllegalArgumentException();
+		}
+		try
+		{
+			int count = 0;
+			for (int index = 1;; index++)
+			{
+				switch (descriptor.codePointAt(index))
+				{
+					case ')':
+						return count;
+					case 'B':
+					case 'C':
+					case 'F':
+					case 'I':
+					case 'S':
+					case 'Z':
+						count++;
+						break;
+					case 'D':
+					case 'J':
+						count += 2;
+						break;
+					case 'L':
+						for (; descriptor.codePointAt(index) != ';'; index++)
+						{
+							// Do nothing; just skip up to the semicolon.
+						}
+						break;
+					default:
+						throw new IllegalArgumentException();
+				}
+			}
+		}
+		catch (final IndexOutOfBoundsException e)
+		{
+			throw new IllegalArgumentException(e);
+		}
+	}
 }

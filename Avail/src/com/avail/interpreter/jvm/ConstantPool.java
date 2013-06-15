@@ -134,7 +134,35 @@ class ConstantPool
 		abstract void writeBodyTo (DataOutput out) throws IOException;
 
 		/**
-		 * Write the {@linkplain ConstantPool constant pool} index to the
+		 * Does the {@linkplain Entry entry} consume two indices (instead of
+		 * one)?
+		 *
+		 * @return {@code true} if the entry consumes two indices, {@code false}
+		 *         if it consumes one index.
+		 */
+		boolean isWide ()
+		{
+			return false;
+		}
+
+		/**
+		 * Write the 8-bit {@linkplain ConstantPool constant pool} index to the
+		 * specified {@linkplain DataOutput binary stream}.
+		 *
+		 * @param out
+		 *        A binary output stream.
+		 * @throws IOException
+		 *         If the operation fails.
+		 */
+		final void writeSingleByteIndexTo (final DataOutput out)
+			throws IOException
+		{
+			assert (index & 255) == index;
+			out.writeByte(index);
+		}
+
+		/**
+		 * Write the 16-bit {@linkplain ConstantPool constant pool} index to the
 		 * specified {@linkplain DataOutput binary stream}.
 		 *
 		 * @param out
@@ -144,6 +172,7 @@ class ConstantPool
 		 */
 		final void writeIndexTo (final DataOutput out) throws IOException
 		{
+			assert (index & 65535) == index;
 			out.writeShort(index);
 		}
 
@@ -339,6 +368,12 @@ class ConstantPool
 		private final long data;
 
 		@Override
+		boolean isWide ()
+		{
+			return true;
+		}
+
+		@Override
 		void writeBodyTo (final DataOutput out) throws IOException
 		{
 			out.writeLong(data);
@@ -385,6 +420,12 @@ class ConstantPool
 
 		/** The data. */
 		private final double data;
+
+		@Override
+		boolean isWide ()
+		{
+			return true;
+		}
 
 		@Override
 		void writeBodyTo (final DataOutput out) throws IOException
@@ -436,6 +477,11 @@ class ConstantPool
 		 */
 		private final Utf8Entry nameEntry;
 
+		/**
+		 * Does the {@linkplain ClassEntry entry} represent an array type?
+		 */
+		final boolean isArray;
+
 		@Override
 		void writeBodyTo (final DataOutput out) throws IOException
 		{
@@ -456,11 +502,18 @@ class ConstantPool
 		 * @param nameEntry
 		 *        The {@linkplain Utf8Entry entry} containing the {@linkplain
 		 *        JavaDescriptors#forType(Class) binary class name}.
+		 * @param isArray
+		 *        {@code true} if the entry represents an array type, {@code
+		 *        false} otherwise.
 		 */
-		ClassEntry (final int index, final Utf8Entry nameEntry)
+		ClassEntry (
+			final int index,
+			final Utf8Entry nameEntry,
+			final boolean isArray)
 		{
 			super(index);
 			this.nameEntry = nameEntry;
+			this.isArray = isArray;
 		}
 	}
 
@@ -566,6 +619,20 @@ class ConstantPool
 			super(index);
 			this.classEntry = classEntry;
 			this.nameAndTypeEntry = nameAndTypeEntry;
+		}
+
+		/**
+		 * Write the {@linkplain JavaDescriptors#argumentUnits(String) argument
+		 * units} to the specified {@linkplain DataOutput binary stream}.
+		 *
+		 * @param out
+		 *        A binary output stream.
+		 * @throws IOException
+		 *         If the operation fails.
+		 */
+		void writeArgumentUnitsTo (final DataOutput out) throws IOException
+		{
+			nameAndTypeEntry.writeArgumentUnitsTo(out);
 		}
 	}
 
@@ -735,6 +802,23 @@ class ConstantPool
 		{
 			nameEntry.writeIndexTo(out);
 			descriptorEntry.writeIndexTo(out);
+		}
+
+		/**
+		 * Write the {@linkplain JavaDescriptors#argumentUnits(String) argument
+		 * units} to the specified {@linkplain DataOutput binary stream}.
+		 *
+		 * @param out
+		 *        A binary output stream.
+		 * @throws IOException
+		 *         If the operation fails.
+		 */
+		void writeArgumentUnitsTo (final DataOutput out) throws IOException
+		{
+			final int argumentUnits = JavaDescriptors.argumentUnits(
+				descriptorEntry.toString());
+			assert (argumentUnits & 255) == argumentUnits;
+			out.writeByte(argumentUnits);
 		}
 
 		@Override
@@ -1181,7 +1265,7 @@ class ConstantPool
 		{
 			final String descriptor = JavaDescriptors.forType(value);
 			final Utf8Entry nameEntry = utf8(descriptor);
-			entry = new ClassEntry(nextIndex++, nameEntry);
+			entry = new ClassEntry(nextIndex++, nameEntry, value.isArray());
 			entries.put(value, entry);
 		}
 		return (ClassEntry) entry;

@@ -1,5 +1,5 @@
 /**
- * InstanceofInstruction.java
+ * NewObjectArrayInstruction.java
  * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -37,39 +37,100 @@ import java.io.IOException;
 import com.avail.interpreter.jvm.ConstantPool.ClassEntry;
 
 /**
- * The immediate value of an {@code InstanceofInstruction} is the index of a
+ * The immediate values of a {@code NewObjectArrayInstruction} refers to a
  * {@linkplain ClassEntry class entry} within the {@linkplain ConstantPool
- * constant pool}.
+ * constant pool} and the number of dimensions.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-final class InstanceofInstruction
-extends SimpleInstruction
+final class NewObjectArrayInstruction
+extends JavaInstruction
 {
-	/** The {@linkplain ClassEntry class entry} of the class of inquiry. */
+	/** The {@linkplain ClassEntry class entry} of the array type. */
 	private final ClassEntry classEntry;
+
+	/** The number of dimensions. */
+	private final int dimensions;
+
+	@Override
+	boolean isLabel ()
+	{
+		return false;
+	}
+
+	/**
+	 * Does the {@linkplain NewObjectArrayInstruction instruction} create a
+	 * multidimensional array?
+	 *
+	 * @return {@code true} if the instruction creates a multidimensional array,
+	 *         {@code false} if the instruction creates a one-dimensional array.
+	 */
+	private boolean isMultidimensional ()
+	{
+		return dimensions > 1;
+	}
+
+	@Override
+	int size ()
+	{
+		return isMultidimensional() ? 4 : 3;
+	}
+
+	/**
+	 * Answer the appropriate {@linkplain JavaBytecode bytecode} for the
+	 * {@linkplain NewObjectArrayInstruction instruction}.
+	 *
+	 * @return The appropriate bytecode.
+	 */
+	private JavaBytecode bytecode ()
+	{
+		return isMultidimensional()
+			? JavaBytecode.anewarray
+			: JavaBytecode.multianewarray;
+	}
+
+	@Override
+	void writeBytecodeTo (final DataOutput out) throws IOException
+	{
+		bytecode().writeTo(out);
+	}
 
 	@Override
 	void writeImmediatesTo (final DataOutput out) throws IOException
 	{
 		classEntry.writeIndexTo(out);
+		if (isMultidimensional())
+		{
+			out.writeByte(dimensions);
+		}
 	}
 
 	@Override
 	public String toString ()
 	{
-		return String.format("%s%s", super.toString(), classEntry);
+		if (isMultidimensional())
+		{
+			return String.format(
+				"%15s%s [%d]", super.toString(), classEntry, dimensions);
+		}
+		return String.format("%15s%s", super.toString(), classEntry);
 	}
 
 	/**
-	 * Construct a new {@link InstanceofInstruction}.
+	 * Construct a new {@link NewObjectArrayInstruction}.
 	 *
 	 * @param classEntry
-	 *        The {@linkplain ClassEntry class entry} of the class of inquiry.
+	 *        The {@linkplain ClassEntry class entry}.
+	 * @param dimensions
+	 *        The number of dimensions.
 	 */
-	public InstanceofInstruction (final ClassEntry classEntry)
+	NewObjectArrayInstruction (
+		final ClassEntry classEntry,
+		final int dimensions)
 	{
-		super(JavaBytecode.instanceof_);
+		assert dimensions >= 1;
+		assert classEntry.isArray || dimensions == 1;
 		this.classEntry = classEntry;
+		this.dimensions = dimensions;
 	}
 }

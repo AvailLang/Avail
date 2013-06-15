@@ -1,5 +1,5 @@
 /**
- * StoreInstruction.java
+ * ReturnSubroutineInstruction.java
  * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -32,27 +32,44 @@
 
 package com.avail.interpreter.jvm;
 
+import java.io.DataOutput;
+import java.io.IOException;
+
 /**
- * A {@code StoreInstruction} has a one-byte immediate that represents a local
- * variable index.
+ * A {@code ReturnSubroutineInstruction} has a one-byte immediate that
+ * represents a local variable index. The specified local variable must contain
+ * a {@linkplain JavaOperand#RETURN_ADDRESS return address}.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-final class StoreInstruction
-extends VariableAccessInstruction
+final class ReturnSubroutineInstruction
+extends SimpleInstruction
 {
+	/** The local variable index. */
+	private final byte index;
+
+	@Override
+	void writeImmediatesTo (final DataOutput out) throws IOException
+	{
+		out.writeByte(index);
+	}
+
+	@Override
+	public String toString ()
+	{
+		return String.format("%s#%d", super.toString(), index);
+	}
+
 	/**
-	 * Construct a new {@link StoreInstruction}.
+	 * Construct a new {@link ReturnSubroutineInstruction}.
 	 *
-	 * @param bytecode
-	 *        The {@linkplain JavaBytecode bytecode}.
 	 * @param index
 	 *        The local variable index.
 	 */
-	StoreInstruction (
-		final JavaBytecode bytecode,
-		final int index)
+	public ReturnSubroutineInstruction (final int index)
 	{
-		super(bytecode, index);
+		super(JavaBytecode.ret);
+		assert (index & 255) == index;
+		this.index = (byte) index;
 	}
 }

@@ -1,5 +1,5 @@
 /**
- * StoreInstruction.java
+ * VariableAccessInstruction.java
  * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -32,27 +32,85 @@
 
 package com.avail.interpreter.jvm;
 
+import java.io.DataOutput;
+import java.io.IOException;
+
 /**
- * A {@code StoreInstruction} has a one-byte immediate that represents a local
- * variable index.
+ * A {@code VariableAccessInstruction} has a one-byte immediate that represents
+ * a local variable index.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-final class StoreInstruction
-extends VariableAccessInstruction
+abstract class VariableAccessInstruction
+extends SimpleInstruction
 {
+	/** The local variable index. */
+	private final int index;
+
 	/**
-	 * Construct a new {@link StoreInstruction}.
+	 * Does the {@linkplain LoadInstruction instruction} require a 16-bit
+	 * local variable index?
+	 *
+	 * @return {@code true} if the instruction requires a 16-bit local variable
+	 *         index, {@code false} otherwise.
+	 */
+	private boolean isWide ()
+	{
+		return (index & 255) != index;
+	}
+
+	@Override
+	final int size ()
+	{
+		return super.size() + (isWide() ? 2 : 0);
+	}
+
+	@Override
+	final void writeBytecodeTo (final DataOutput out) throws IOException
+	{
+		if (isWide())
+		{
+			JavaBytecode.wide.writeTo(out);
+		}
+		super.writeBytecodeTo(out);
+	}
+
+	@Override
+	final void writeImmediatesTo (final DataOutput out) throws IOException
+	{
+		if (isWide())
+		{
+			out.writeShort(index);
+		}
+		else
+		{
+			out.writeByte(index);
+		}
+	}
+
+	@Override
+	public final String toString ()
+	{
+		final String mnemonic = String.format(
+			"%s%s",
+			isWide() ? "wide " : "",
+			bytecode().mnemonic());
+		return String.format("%15s#%d", mnemonic, index);
+	}
+
+	/**
+	 * Construct a new {@link VariableAccessInstruction}.
 	 *
 	 * @param bytecode
-	 *        The {@linkplain JavaBytecode bytecode}.
+	 *        The {@code JavaBytecode bytecode}.
 	 * @param index
 	 *        The local variable index.
 	 */
-	StoreInstruction (
+	public VariableAccessInstruction (
 		final JavaBytecode bytecode,
 		final int index)
 	{
-		super(bytecode, index);
+		super(bytecode);
+		this.index = index;
 	}
 }

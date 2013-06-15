@@ -1,5 +1,5 @@
 /**
- * StoreInstruction.java
+ * JumpSubroutineInstruction.java
  * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -33,26 +33,33 @@
 package com.avail.interpreter.jvm;
 
 /**
- * A {@code StoreInstruction} has a one-byte immediate that represents a local
- * variable index.
+ * A {@code JumpSubroutineInstruction} abstractly specifies a subroutine jump.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-final class StoreInstruction
-extends VariableAccessInstruction
+final class JumpSubroutineInstruction
+extends UnconditionalBranchInstruction
 {
-	/**
-	 * Construct a new {@link StoreInstruction}.
-	 *
-	 * @param bytecode
-	 *        The {@linkplain JavaBytecode bytecode}.
-	 * @param index
-	 *        The local variable index.
-	 */
-	StoreInstruction (
-		final JavaBytecode bytecode,
-		final int index)
+	@Override
+	JavaBytecode bytecode ()
 	{
-		super(bytecode, index);
+		return isWide() ? JavaBytecode.jsr_w : JavaBytecode.jsr;
+	}
+
+	@Override
+	String mnemonicForInvalidAddress ()
+	{
+		return "«jump»";
+	}
+
+	/**
+	 * Construct a new {@link JumpSubroutineInstruction}.
+	 *
+	 * @param label
+	 *        The {@linkplain LabelInstruction branch target}.
+	 */
+	JumpSubroutineInstruction (final LabelInstruction label)
+	{
+		super(label);
 	}
 }

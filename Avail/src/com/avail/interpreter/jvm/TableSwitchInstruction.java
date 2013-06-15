@@ -1,5 +1,5 @@
 /**
- * IncrementInstruction.java
+ * TableSwitchInstruction.java
  * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -36,88 +36,105 @@ import java.io.DataOutput;
 import java.io.IOException;
 
 /**
- * The immediate values of an {@code IncrementInstruction} are the local
- * variable index and the constant delta.
+ * The immediate values of a {@code TableSwitchInstruction} describe an {@code
+ * int} range and {@linkplain LabelInstruction labels}.
+ *
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-final class IncrementInstruction
-extends SimpleInstruction
+final class TableSwitchInstruction
+extends JavaInstruction
 {
-	/** The local variable index. */
-	private final int index;
+	/** The lower bound. */
+	private final int lowerBound;
 
-	/** The constant delta. */
-	private final int delta;
+	/** The upper bound. */
+	private final int upperBound;
+
+	/** The case {@linkplain LabelInstruction labels}. */
+	private final LabelInstruction[] labels;
+
+	/** The default {@linkplain LabelInstruction} label. */
+	private final LabelInstruction defaultLabel;
+
+	@Override
+	boolean isLabel ()
+	{
+		return false;
+	}
 
 	/**
-	 * Does the {@linkplain IncrementInstruction instruction} require 16-bit
-	 * operands?
+	 * Answer the number of pad bytes required in the format of this
+	 * {@linkplain TableSwitchInstruction instruction}.
 	 *
-	 * @return {@code true} if the instruction requires 16-bit operands, {@code
-	 *         false} otherwise.
+	 * @return The number of pad bytes.
 	 */
-	private boolean isWide ()
+	private int padBytes ()
 	{
-		return (index & 255) != index
-			|| (delta & 255) != delta;
+		assert hasValidAddress();
+		return (int) (address() & 3);
 	}
 
 	@Override
 	int size ()
 	{
-		return super.size() + (isWide() ? 3 : 0);
+		assert hasValidAddress();
+		return 13 + padBytes() + 4 * labels.length;
 	}
 
 	@Override
 	void writeBytecodeTo (final DataOutput out) throws IOException
 	{
-		if (isWide())
-		{
-			JavaBytecode.wide.writeTo(out);
-		}
-		super.writeBytecodeTo(out);
+		JavaBytecode.tableswitch.writeTo(out);
 	}
 
 	@Override
 	void writeImmediatesTo (final DataOutput out) throws IOException
 	{
-		if (isWide())
+		switch (padBytes())
 		{
-			out.writeShort(index);
-			out.writeShort(delta);
+			case 3:
+				out.writeByte(0);
+				// $FALL-THROUGH$
+			case 2:
+				out.writeByte(0);
+				// $FALL-THROUGH$
+			case 1:
+				out.writeByte(0);
+				// $FALL-THROUGH$
+			case 0:
+				// Do nothing.
 		}
-		else
+		out.writeInt((int) defaultLabel.address());
+		out.writeInt(lowerBound);
+		out.writeInt(upperBound);
+		for (final LabelInstruction label : labels)
 		{
-			out.writeByte(index);
-			out.writeByte(delta);
+			out.writeInt((int) label.address());
 		}
-	}
-
-	@Override
-	public String toString ()
-	{
-		final String mnemonic = String.format(
-			"%s%s",
-			isWide() ? "wide " : "",
-			bytecode().mnemonic());
-		return String.format("%15s#%d,%d", mnemonic, index, delta);
 	}
 
 	/**
-	 * Construct a new {@link IncrementInstruction}.
+	 * Construct a new {@link TableSwitchInstruction}.
 	 *
-	 * @param index
-	 *        The local variable index.
-	 * @param delta
-	 *        The constant delta.
+	 * @param lowerBound
+	 *        The lower bound.
+	 * @param upperBound
+	 *        The upper bound.
+	 * @param labels
+	 *        The case {@linkplain LabelInstruction labels}.
+	 * @param defaultLabel
+	 *        The default label.
 	 */
-	public IncrementInstruction (final int index, final int delta)
+	public TableSwitchInstruction (
+		final int lowerBound,
+		final int upperBound,
+		final LabelInstruction[] labels,
+		final LabelInstruction defaultLabel)
 	{
-		super(JavaBytecode.iinc);
-		assert (index & 65535) == index;
-		assert (delta & 65535) == delta;
-		this.index = index;
-		this.delta = delta;
+		this.lowerBound = lowerBound;
+		this.upperBound = upperBound;
+		this.labels = labels;
+		this.defaultLabel = defaultLabel;
 	}
 }

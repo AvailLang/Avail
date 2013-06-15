@@ -37,8 +37,10 @@ import java.io.DataOutput;
 import java.io.IOException;
 import java.lang.invoke.WrongMethodTypeException;
 import com.avail.interpreter.jvm.ConstantPool.ClassEntry;
+import com.avail.interpreter.jvm.ConstantPool.Entry;
 import com.avail.interpreter.jvm.ConstantPool.FieldrefEntry;
 import com.avail.interpreter.jvm.ConstantPool.InterfaceMethodrefEntry;
+import com.avail.interpreter.jvm.ConstantPool.MethodrefEntry;
 
 /**
  * The members of {@code JavaBytecode} represent the bytecodes of the Java
@@ -105,6 +107,12 @@ enum JavaBytecode
 			assert operands.length == 1;
 			return new LoadInstruction(this, (int) operands[0]);
 		}
+
+		@Override
+		public boolean supportsWidePrefix ()
+		{
+			return true;
+		}
 	},
 
 	/**
@@ -167,7 +175,7 @@ enum JavaBytecode
 		public JavaInstruction create (final Object... operands)
 		{
 			assert operands.length == 1;
-			return new NewArrayInstruction(this, (ClassEntry) operands[0]);
+			return new NewObjectArrayInstruction((ClassEntry) operands[0], 1);
 		}
 	},
 
@@ -211,6 +219,12 @@ enum JavaBytecode
 		{
 			assert operands.length == 1;
 			return new StoreInstruction(this, (int) operands[0]);
+		}
+
+		@Override
+		public boolean supportsWidePrefix ()
+		{
+			return true;
 		}
 	},
 
@@ -305,7 +319,7 @@ enum JavaBytecode
 		public JavaInstruction create (final Object... operands)
 		{
 			assert operands.length == 1;
-			return new PushByteInstruction(this, (int) operands[0]);
+			return new PushByteInstruction((int) operands[0]);
 		}
 	},
 
@@ -349,7 +363,7 @@ enum JavaBytecode
 		public JavaInstruction create (final Object... operands)
 		{
 			assert operands.length == 1;
-			return new CheckCastInstruction(this, (ClassEntry) operands[0]);
+			return new CheckCastInstruction((ClassEntry) operands[0]);
 		}
 	},
 
@@ -493,6 +507,12 @@ enum JavaBytecode
 			assert operands.length == 1;
 			return new LoadInstruction(this, (int) operands[0]);
 		}
+
+		@Override
+		public boolean supportsWidePrefix ()
+		{
+			return true;
+		}
 	},
 
 	/**
@@ -600,6 +620,12 @@ enum JavaBytecode
 		{
 			assert operands.length == 1;
 			return new StoreInstruction(this, (int) operands[0]);
+		}
+
+		@Override
+		public boolean supportsWidePrefix ()
+		{
+			return true;
 		}
 	},
 
@@ -876,6 +902,12 @@ enum JavaBytecode
 			assert operands.length == 1;
 			return new LoadInstruction(this, (int) operands[0]);
 		}
+
+		@Override
+		public boolean supportsWidePrefix ()
+		{
+			return true;
+		}
 	},
 
 	/**
@@ -983,6 +1015,12 @@ enum JavaBytecode
 		{
 			assert operands.length == 1;
 			return new StoreInstruction(this, (int) operands[0]);
+		}
+
+		@Override
+		public boolean supportsWidePrefix ()
+		{
+			return true;
 		}
 	},
 
@@ -1115,8 +1153,7 @@ enum JavaBytecode
 		public JavaInstruction create (final Object... operands)
 		{
 			assert operands.length == 1;
-			return new UnconditionalBranchInstruction(
-				(LabelInstruction) operands[0]);
+			return new GotoInstruction((LabelInstruction) operands[0]);
 		}
 
 		@Override
@@ -1148,8 +1185,7 @@ enum JavaBytecode
 		public JavaInstruction create (final Object... operands)
 		{
 			assert operands.length == 1;
-			return new UnconditionalBranchInstruction(
-				(LabelInstruction) operands[0]);
+			return new GotoInstruction((LabelInstruction) operands[0]);
 		}
 	},
 
@@ -1690,7 +1726,13 @@ enum JavaBytecode
 		{
 			assert operands.length == 2;
 			return new IncrementInstruction(
-				this, (int) operands[0], (int) operands[1]);
+				(int) operands[0], (int) operands[1]);
+		}
+
+		@Override
+		public boolean supportsWidePrefix ()
+		{
+			return true;
 		}
 	},
 
@@ -1710,6 +1752,12 @@ enum JavaBytecode
 		{
 			assert operands.length == 1;
 			return new LoadInstruction(this, (int) operands[0]);
+		}
+
+		@Override
+		public boolean supportsWidePrefix ()
+		{
+			return true;
 		}
 	},
 
@@ -1797,7 +1845,7 @@ enum JavaBytecode
 		public JavaInstruction create (final Object... operands)
 		{
 			assert operands.length == 1;
-			return new InstanceofInstruction(this, (ClassEntry) operands[0]);
+			return new InstanceofInstruction((ClassEntry) operands[0]);
 		}
 
 		@Override
@@ -1806,8 +1854,6 @@ enum JavaBytecode
 			return "instanceof";
 		}
 	},
-
-	// TODO: [TLS] Finish support for invokedynamic.
 
 	/**
 	 * Invoke dynamic method.
@@ -1819,7 +1865,15 @@ enum JavaBytecode
 	invokedynamic (0xba, 4,
 		O(PLURAL),
 		O(),
-		X(BootstrapMethodError.class, WrongMethodTypeException.class)),
+		X(BootstrapMethodError.class, WrongMethodTypeException.class))
+	{
+		@Override
+		public JavaInstruction create (final Object... operands)
+		{
+			// TODO: [TLS] Finish support for invokedynamic.
+			throw new UnsupportedOperationException();
+		}
+	},
 
 	/**
 	 * Invoke interface method.
@@ -1843,11 +1897,9 @@ enum JavaBytecode
 		{
 			assert operands.length == 1;
 			return new InvokeInterfaceInstruction(
-				this, (InterfaceMethodrefEntry) operands[0]);
+				(InterfaceMethodrefEntry) operands[0]);
 		}
 	},
-
-	// TODO: [TLS] Continue here.
 
 	/**
 	 * Invoke instance method; special handling for superclass, private, and
@@ -1865,7 +1917,15 @@ enum JavaBytecode
 			NoSuchMethodError.class,
 			AbstractMethodError.class,
 			IllegalAccessError.class,
-			UnsatisfiedLinkError.class)),
+			UnsatisfiedLinkError.class))
+	{
+		@Override
+		public JavaInstruction create (final Object... operands)
+		{
+			assert operands.length == 1;
+			return new InvokeInstruction(this, (MethodrefEntry) operands[0]);
+		}
+	},
 
 	/**
 	 * Invoke a class ({@code static}) method.
@@ -1883,7 +1943,15 @@ enum JavaBytecode
 			NoSuchMethodError.class,
 			AbstractMethodError.class,
 			IllegalAccessError.class,
-			UnsatisfiedLinkError.class)),
+			UnsatisfiedLinkError.class))
+	{
+		@Override
+		public JavaInstruction create (final Object... operands)
+		{
+			assert operands.length == 1;
+			return new InvokeInstruction(this, (MethodrefEntry) operands[0]);
+		}
+	},
 
 	/**
 	 * Invoke instance method; dispatch based on class.
@@ -1901,7 +1969,15 @@ enum JavaBytecode
 			AbstractMethodError.class,
 			IllegalAccessError.class,
 			UnsatisfiedLinkError.class,
-			WrongMethodTypeException.class)),
+			WrongMethodTypeException.class))
+	{
+		@Override
+		public JavaInstruction create (final Object... operands)
+		{
+			assert operands.length == 1;
+			return new InvokeInstruction(this, (MethodrefEntry) operands[0]);
+		}
+	},
 
 	/**
 	 * Boolean OR {@code int}.
@@ -1969,7 +2045,21 @@ enum JavaBytecode
 	 */
 	istore (0x36, 1,
 		O(INT),
-		O()),
+		O())
+	{
+		@Override
+		public JavaInstruction create (final Object... operands)
+		{
+			assert operands.length == 1;
+			return new StoreInstruction(this, (int) operands[0]);
+		}
+
+		@Override
+		public boolean supportsWidePrefix ()
+		{
+			return true;
+		}
+	},
 
 	/**
 	 * Store {@code int} into local variable #0.
@@ -2057,7 +2147,16 @@ enum JavaBytecode
 	 */
 	jsr (0xa8, 2,
 		O(),
-		O(RETURN_ADDRESS)),
+		O(RETURN_ADDRESS))
+	{
+		@Override
+		public JavaInstruction create (final Object... operands)
+		{
+			assert operands.length == 1;
+			return new JumpSubroutineInstruction(
+				(LabelInstruction) operands[0]);
+		}
+	},
 
 	/**
 	 * Jump subroutine (wide index).
@@ -2068,7 +2167,16 @@ enum JavaBytecode
 	 */
 	jsr_w (0xc9, 4,
 		O(),
-		O(RETURN_ADDRESS)),
+		O(RETURN_ADDRESS))
+	{
+		@Override
+		public JavaInstruction create (final Object... operands)
+		{
+			assert operands.length == 1;
+			return new JumpSubroutineInstruction(
+				(LabelInstruction) operands[0]);
+		}
+	},
 
 	/**
 	 * Convert {@code long} to {@code double}.
@@ -2192,7 +2300,15 @@ enum JavaBytecode
 	ldc (0x12, 1,
 		O(),
 		O(VALUE),
-		X(IllegalAccessError.class, IncompatibleClassChangeError.class)),
+		X(IllegalAccessError.class, IncompatibleClassChangeError.class))
+	{
+		@Override
+		public JavaInstruction create (final Object... operands)
+		{
+			assert operands.length == 1;
+			return new LoadConstantInstruction((Entry) operands[0]);
+		}
+	},
 
 	/**
 	 * Push item from run-time constant pool (wide index).
@@ -2204,7 +2320,15 @@ enum JavaBytecode
 	ldc_w (0x13, 2,
 		O(),
 		O(VALUE),
-		X(IllegalAccessError.class, IncompatibleClassChangeError.class)),
+		X(IllegalAccessError.class, IncompatibleClassChangeError.class))
+	{
+		@Override
+		public JavaInstruction create (final Object... operands)
+		{
+			assert operands.length == 1;
+			return new LoadConstantInstruction((Entry) operands[0]);
+		}
+	},
 
 	/**
 	 * Push {@code long} or {@code double} from run-time constant pool (wide
@@ -2217,7 +2341,15 @@ enum JavaBytecode
 	ldc2_w (0x14, 2,
 		O(),
 		O(VALUE),
-		X(IllegalAccessError.class, IncompatibleClassChangeError.class)),
+		X(IllegalAccessError.class, IncompatibleClassChangeError.class))
+	{
+		@Override
+		public JavaInstruction create (final Object... operands)
+		{
+			assert operands.length == 1;
+			return new LoadConstantInstruction((Entry) operands[0]);
+		}
+	},
 
 	/**
 	 * Divide {@code long}.
@@ -2240,7 +2372,21 @@ enum JavaBytecode
 	 */
 	lload (0x16, 1,
 		O(),
-		O(LONG)),
+		O(LONG))
+	{
+		@Override
+		public JavaInstruction create (final Object... operands)
+		{
+			assert operands.length == 1;
+			return new LoadInstruction(this, (int) operands[0]);
+		}
+
+		@Override
+		public boolean supportsWidePrefix ()
+		{
+			return true;
+		}
+	},
 
 	/**
 	 * Load {@code long} from local variable #0.
@@ -2317,7 +2463,18 @@ enum JavaBytecode
 	 */
 	lookupswitch (0xab, 8,
 		O(INT),
-		O()),
+		O())
+	{
+		@Override
+		public JavaInstruction create (final Object... operands)
+		{
+			assert operands.length == 3;
+			return new LookupSwitchInstruction(
+				(int[]) operands[0],
+				(LabelInstruction[]) operands[1],
+				(LabelInstruction) operands[2]);
+		}
+	},
 
 	/**
 	 * Boolean OR {@code long}.
@@ -2385,7 +2542,21 @@ enum JavaBytecode
 	 */
 	lstore (0x37, 1,
 		O(LONG),
-		O()),
+		O())
+	{
+		@Override
+		public JavaInstruction create (final Object... operands)
+		{
+			assert operands.length == 1;
+			return new StoreInstruction(this, (int) operands[0]);
+		}
+
+		@Override
+		public boolean supportsWidePrefix ()
+		{
+			return true;
+		}
+	},
 
 	/**
 	 * Store {@code long} into local variable #0.
@@ -2501,7 +2672,17 @@ enum JavaBytecode
 		X(ClassNotFoundException.class,
 			NoClassDefFoundError.class,
 			IllegalAccessError.class,
-			NegativeArraySizeException.class)),
+			NegativeArraySizeException.class))
+	{
+		@Override
+		public JavaInstruction create (final Object... operands)
+		{
+			assert operands.length == 2;
+			return new NewObjectArrayInstruction(
+				(ClassEntry) operands[0],
+				(int) operands[1]);
+		}
+	},
 
 	/**
 	 * Create new object.
@@ -2522,6 +2703,13 @@ enum JavaBytecode
 			InstantiationError.class))
 	{
 		@Override
+		public JavaInstruction create (final Object... operands)
+		{
+			assert operands.length == 1;
+			return new NewObjectInstruction((ClassEntry) operands[0]);
+		}
+
+		@Override
 		public String mnemonic ()
 		{
 			return "new";
@@ -2538,7 +2726,15 @@ enum JavaBytecode
 	newarray (0xbc, 1,
 		O(COUNT),
 		O(ARRAYREF),
-		X(NegativeArraySizeException.class)),
+		X(NegativeArraySizeException.class))
+	{
+		@Override
+		public JavaInstruction create (final Object... operands)
+		{
+			assert operands.length == 1;
+			return new NewArrayInstruction((Class<?>) operands[0]);
+		}
+	},
 
 	/**
 	 * Do nothing.
@@ -2586,7 +2782,15 @@ enum JavaBytecode
 		X(NoSuchFieldError.class,
 			IncompatibleClassChangeError.class,
 			IllegalAccessError.class,
-			NullPointerException.class)),
+			NullPointerException.class))
+	{
+		@Override
+		public JavaInstruction create (final Object... operands)
+		{
+			assert operands.length == 1;
+			return new SetFieldInstruction(this, (FieldrefEntry) operands[0]);
+		}
+	},
 
 	/**
 	 * Set static field in class.
@@ -2600,7 +2804,15 @@ enum JavaBytecode
 		O(),
 		X(NoSuchFieldError.class,
 			IncompatibleClassChangeError.class,
-			IllegalAccessError.class)),
+			IllegalAccessError.class))
+	{
+		@Override
+		public JavaInstruction create (final Object... operands)
+		{
+			assert operands.length == 1;
+			return new SetFieldInstruction(this, (FieldrefEntry) operands[0]);
+		}
+	},
 
 	/**
 	 * Return from subroutine.
@@ -2611,7 +2823,15 @@ enum JavaBytecode
 	 */
 	ret (0xa9, 1,
 		O(),
-		O()),
+		O())
+	{
+		@Override
+		public JavaInstruction create (final Object... operands)
+		{
+			assert operands.length == 1;
+			return new ReturnSubroutineInstruction((int) operands[0]);
+		}
+	},
 
 	/**
 	 * Return {@code void} from method.
@@ -2668,7 +2888,15 @@ enum JavaBytecode
 	 */
 	sipush (0x11, 2,
 		O(),
-		O(INT)),
+		O(INT))
+	{
+		@Override
+		public JavaInstruction create (final Object... operands)
+		{
+			assert operands.length == 1;
+			return new PushShortInstruction((int) operands[0]);
+		}
+	},
 
 	/**
 	 * Swap the top two operand stack values.
@@ -2690,7 +2918,19 @@ enum JavaBytecode
 	 */
 	tableswitch (0xaa, 12,
 		O(INDEX),
-		O()),
+		O())
+	{
+		@Override
+		public JavaInstruction create (final Object... operands)
+		{
+			assert operands.length == 1;
+			return new TableSwitchInstruction(
+				(int) operands[0],
+				(int) operands[1],
+				(LabelInstruction[]) operands[2],
+				(LabelInstruction) operands[3]);
+		}
+	},
 
 	/**
 	 * Extend local variable index by additional bytes.
@@ -2701,7 +2941,36 @@ enum JavaBytecode
 	 */
 	wide (0xc4, 3,
 		O(),
-		O()),
+		O())
+	{
+		@Override
+		public JavaInstruction create (final Object... operands)
+		{
+			final JavaBytecode bytecode = (JavaBytecode) operands[0];
+			assert bytecode.supportsWidePrefix();
+			switch (bytecode)
+			{
+				case aload:
+				case dload:
+				case fload:
+				case iload:
+				case lload:
+					return new LoadInstruction(bytecode, (int) operands[1]);
+				case astore:
+				case dstore:
+				case fstore:
+				case istore:
+				case lstore:
+					return new StoreInstruction(bytecode, (int) operands[1]);
+				case iinc:
+					return new IncrementInstruction(
+						(int) operands[1], (int) operands[2]);
+				default:
+					assert false : "This never happens";
+					throw new IllegalArgumentException();
+			}
+		}
+	},
 
 	/**
 	 * Invalid instruction.
@@ -2843,6 +3112,18 @@ enum JavaBytecode
 	public String mnemonic ()
 	{
 		return toString();
+	}
+
+	/**
+	 * Does the {@linkplain JavaBytecode bytecode} support the {@link #wide}
+	 * prefix?
+	 *
+	 * @return {@code true} if the bytecode supports the wide prefix, {@code
+	 *         false} otherwise.
+	 */
+	public boolean supportsWidePrefix ()
+	{
+		return false;
 	}
 
 	/**
