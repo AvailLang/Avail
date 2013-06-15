@@ -95,7 +95,7 @@ extends SimpleInstruction
 			"%s%s",
 			isWide() ? "wide " : "",
 			bytecode().mnemonic());
-		return String.format("%15s#%d", mnemonic, index);
+		return String.format("%-15s#%d", mnemonic, index);
 	}
 
 	/**

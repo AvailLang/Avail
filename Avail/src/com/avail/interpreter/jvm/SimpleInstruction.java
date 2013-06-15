@@ -89,7 +89,7 @@ extends JavaInstruction
 		{
 			return bytecode.mnemonic();
 		}
-		return String.format("%15s", bytecode.mnemonic());
+		return String.format("%-15s", bytecode.mnemonic());
 	}
 
 	/**

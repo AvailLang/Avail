@@ -1,5 +1,5 @@
 /**
- * LabelInstruction.java
+ * Modifier.java
  * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -32,59 +32,13 @@
 
 package com.avail.interpreter.jvm;
 
-import java.io.DataOutput;
-import java.io.IOException;
-
 /**
- * A {@code LabelInstruction} is a pseudo-instruction that represents an
- * interesting position within a compiled method.
+ * {@code Modifier} is an interface common to all {@linkplain Enum enumerations}
+ * of Java access and property modifiers.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-final class LabelInstruction
-extends JavaInstruction
+interface Modifier
 {
-	/** The name of the label. */
-	private final String name;
-
-	@Override
-	int size ()
-	{
-		return 0;
-	}
-
-	@Override
-	boolean isLabel ()
-	{
-		return true;
-	}
-
-	@Override
-	void writeBytecodeTo (final DataOutput out) throws IOException
-	{
-		// Don't emit anything.
-	}
-
-	@Override
-	void writeImmediatesTo (final DataOutput out) throws IOException
-	{
-		// Don't emit anything.
-	}
-
-	@Override
-	public String toString ()
-	{
-		return name;
-	}
-
-	/**
-	 * Construct a new {@link LabelInstruction}.
-	 *
-	 * @param name
-	 *        The name of the label.
-	 */
-	LabelInstruction (final String name)
-	{
-		this.name = name;
-	}
+	// No body required.
 }

@@ -1153,7 +1153,7 @@ enum JavaBytecode
 		public JavaInstruction create (final Object... operands)
 		{
 			assert operands.length == 1;
-			return new GotoInstruction((LabelInstruction) operands[0]);
+			return new GotoInstruction((Label) operands[0]);
 		}
 
 		@Override
@@ -1185,7 +1185,7 @@ enum JavaBytecode
 		public JavaInstruction create (final Object... operands)
 		{
 			assert operands.length == 1;
-			return new GotoInstruction((LabelInstruction) operands[0]);
+			return new GotoInstruction((Label) operands[0]);
 		}
 	},
 
@@ -1406,7 +1406,7 @@ enum JavaBytecode
 		{
 			assert operands.length == 1;
 			return new ConditionalBranchInstruction(
-				this, (LabelInstruction) operands[0]);
+				this, (Label) operands[0]);
 		}
 	},
 
@@ -1426,7 +1426,7 @@ enum JavaBytecode
 		{
 			assert operands.length == 1;
 			return new ConditionalBranchInstruction(
-				this, (LabelInstruction) operands[0]);
+				this, (Label) operands[0]);
 		}
 	},
 
@@ -1446,7 +1446,7 @@ enum JavaBytecode
 		{
 			assert operands.length == 1;
 			return new ConditionalBranchInstruction(
-				this, (LabelInstruction) operands[0]);
+				this, (Label) operands[0]);
 		}
 	},
 
@@ -1466,7 +1466,7 @@ enum JavaBytecode
 		{
 			assert operands.length == 1;
 			return new ConditionalBranchInstruction(
-				this, (LabelInstruction) operands[0]);
+				this, (Label) operands[0]);
 		}
 	},
 
@@ -1486,7 +1486,7 @@ enum JavaBytecode
 		{
 			assert operands.length == 1;
 			return new ConditionalBranchInstruction(
-				this, (LabelInstruction) operands[0]);
+				this, (Label) operands[0]);
 		}
 	},
 
@@ -1506,7 +1506,7 @@ enum JavaBytecode
 		{
 			assert operands.length == 1;
 			return new ConditionalBranchInstruction(
-				this, (LabelInstruction) operands[0]);
+				this, (Label) operands[0]);
 		}
 	},
 
@@ -1526,7 +1526,7 @@ enum JavaBytecode
 		{
 			assert operands.length == 1;
 			return new ConditionalBranchInstruction(
-				this, (LabelInstruction) operands[0]);
+				this, (Label) operands[0]);
 		}
 	},
 
@@ -1546,7 +1546,7 @@ enum JavaBytecode
 		{
 			assert operands.length == 1;
 			return new ConditionalBranchInstruction(
-				this, (LabelInstruction) operands[0]);
+				this, (Label) operands[0]);
 		}
 	},
 
@@ -1566,7 +1566,7 @@ enum JavaBytecode
 		{
 			assert operands.length == 1;
 			return new ConditionalBranchInstruction(
-				this, (LabelInstruction) operands[0]);
+				this, (Label) operands[0]);
 		}
 	},
 
@@ -1586,7 +1586,7 @@ enum JavaBytecode
 		{
 			assert operands.length == 1;
 			return new ConditionalBranchInstruction(
-				this, (LabelInstruction) operands[0]);
+				this, (Label) operands[0]);
 		}
 	},
 
@@ -1606,7 +1606,7 @@ enum JavaBytecode
 		{
 			assert operands.length == 1;
 			return new ConditionalBranchInstruction(
-				this, (LabelInstruction) operands[0]);
+				this, (Label) operands[0]);
 		}
 	},
 
@@ -1626,7 +1626,7 @@ enum JavaBytecode
 		{
 			assert operands.length == 1;
 			return new ConditionalBranchInstruction(
-				this, (LabelInstruction) operands[0]);
+				this, (Label) operands[0]);
 		}
 	},
 
@@ -1646,7 +1646,7 @@ enum JavaBytecode
 		{
 			assert operands.length == 1;
 			return new ConditionalBranchInstruction(
-				this, (LabelInstruction) operands[0]);
+				this, (Label) operands[0]);
 		}
 	},
 
@@ -1666,7 +1666,7 @@ enum JavaBytecode
 		{
 			assert operands.length == 1;
 			return new ConditionalBranchInstruction(
-				this, (LabelInstruction) operands[0]);
+				this, (Label) operands[0]);
 		}
 	},
 
@@ -1686,7 +1686,7 @@ enum JavaBytecode
 		{
 			assert operands.length == 1;
 			return new ConditionalBranchInstruction(
-				this, (LabelInstruction) operands[0]);
+				this, (Label) operands[0]);
 		}
 	},
 
@@ -1706,7 +1706,7 @@ enum JavaBytecode
 		{
 			assert operands.length == 1;
 			return new ConditionalBranchInstruction(
-				this, (LabelInstruction) operands[0]);
+				this, (Label) operands[0]);
 		}
 	},
 
@@ -2154,7 +2154,7 @@ enum JavaBytecode
 		{
 			assert operands.length == 1;
 			return new JumpSubroutineInstruction(
-				(LabelInstruction) operands[0]);
+				(Label) operands[0]);
 		}
 	},
 
@@ -2174,7 +2174,7 @@ enum JavaBytecode
 		{
 			assert operands.length == 1;
 			return new JumpSubroutineInstruction(
-				(LabelInstruction) operands[0]);
+				(Label) operands[0]);
 		}
 	},
 
@@ -2471,8 +2471,8 @@ enum JavaBytecode
 			assert operands.length == 3;
 			return new LookupSwitchInstruction(
 				(int[]) operands[0],
-				(LabelInstruction[]) operands[1],
-				(LabelInstruction) operands[2]);
+				(Label[]) operands[1],
+				(Label) operands[2]);
 		}
 	},
 
@@ -2927,8 +2927,8 @@ enum JavaBytecode
 			return new TableSwitchInstruction(
 				(int) operands[0],
 				(int) operands[1],
-				(LabelInstruction[]) operands[2],
-				(LabelInstruction) operands[3]);
+				(Label[]) operands[2],
+				(Label) operands[3]);
 		}
 	},
 

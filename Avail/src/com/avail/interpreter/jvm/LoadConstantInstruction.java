@@ -121,7 +121,7 @@ extends JavaInstruction
 	@Override
 	public String toString ()
 	{
-		return String.format("%15s%s", bytecode().mnemonic(), entry);
+		return String.format("%-15s%s", bytecode().mnemonic(), entry);
 	}
 
 	/**

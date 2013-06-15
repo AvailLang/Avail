@@ -1,5 +1,5 @@
 /**
- * IncrementInstruction.java
+ * Label.java
  * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -36,88 +36,55 @@ import java.io.DataOutput;
 import java.io.IOException;
 
 /**
- * The immediate values of an {@code IncrementInstruction} are the local
- * variable index and the constant delta.
+ * A {@code Label} is a pseudo-instruction that represents an interesting
+ * position within a compiled method.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-final class IncrementInstruction
-extends SimpleInstruction
+final class Label
+extends JavaInstruction
 {
-	/** The local variable index. */
-	private final int index;
-
-	/** The constant delta. */
-	private final int delta;
-
-	/**
-	 * Does the {@linkplain IncrementInstruction instruction} require 16-bit
-	 * operands?
-	 *
-	 * @return {@code true} if the instruction requires 16-bit operands, {@code
-	 *         false} otherwise.
-	 */
-	private boolean isWide ()
-	{
-		return (index & 255) != index
-			|| (delta & 255) != delta;
-	}
+	/** The name of the label. */
+	private final String name;
 
 	@Override
 	int size ()
 	{
-		return super.size() + (isWide() ? 3 : 0);
+		return 0;
+	}
+
+	@Override
+	boolean isLabel ()
+	{
+		return true;
 	}
 
 	@Override
 	void writeBytecodeTo (final DataOutput out) throws IOException
 	{
-		if (isWide())
-		{
-			JavaBytecode.wide.writeTo(out);
-		}
-		super.writeBytecodeTo(out);
+		// Don't emit anything.
 	}
 
 	@Override
 	void writeImmediatesTo (final DataOutput out) throws IOException
 	{
-		if (isWide())
-		{
-			out.writeShort(index);
-			out.writeShort(delta);
-		}
-		else
-		{
-			out.writeByte(index);
-			out.writeByte(delta);
-		}
+		// Don't emit anything.
 	}
 
 	@Override
 	public String toString ()
 	{
-		final String mnemonic = String.format(
-			"%s%s",
-			isWide() ? "wide " : "",
-			bytecode().mnemonic());
-		return String.format("%-15s#%d,%d", mnemonic, index, delta);
+		return name;
 	}
 
 	/**
-	 * Construct a new {@link IncrementInstruction}.
+	 * Construct a new {@link Label}.
 	 *
-	 * @param index
-	 *        The local variable index.
-	 * @param delta
-	 *        The constant delta.
+	 * @param name
+	 *        The name of the label.
 	 */
-	public IncrementInstruction (final int index, final int delta)
+	Label (final String name)
 	{
-		super(JavaBytecode.iinc);
-		assert (index & 65535) == index;
-		assert (delta & 65535) == delta;
-		this.index = index;
-		this.delta = delta;
+		this.name = name;
 	}
 }

@@ -44,8 +44,8 @@ import java.io.IOException;
 abstract class UnconditionalBranchInstruction
 extends JavaInstruction
 {
-	/** The {@linkplain LabelInstruction branch target}. */
-	private final LabelInstruction label;
+	/** The {@linkplain Label branch target}. */
+	private final Label label;
 
 	@Override
 	final boolean isLabel ()
@@ -60,8 +60,12 @@ extends JavaInstruction
 	 */
 	final boolean isWide ()
 	{
-		assert hasValidAddress();
-		assert label.hasValidAddress();
+		// If either the instruction or the label do not yet have a valid
+		// address, then conservatively assume that the instruction is not wide.
+		if (!hasValidAddress() || !label.hasValidAddress())
+		{
+			return false;
+		}
 		final long offset = label.address() - address();
 		return (offset < Short.MIN_VALUE || offset > Short.MAX_VALUE)
 			? true
@@ -103,7 +107,7 @@ extends JavaInstruction
 
 	/**
 	 * The mnemonic to use when the instruction or its {@linkplain
-	 * LabelInstruction label} have not yet been assigned an address.
+	 * Label label} have not yet been assigned an address.
 	 *
 	 * @return The mnemonic.
 	 */
@@ -114,18 +118,18 @@ extends JavaInstruction
 	{
 		if (hasValidAddress() && label.hasValidAddress())
 		{
-			return String.format("%15s%s", bytecode().mnemonic(), label);
+			return String.format("%-15s%s", bytecode().mnemonic(), label);
 		}
-		return String.format("%15s%s", mnemonicForInvalidAddress(), label);
+		return String.format("%-15s%s", mnemonicForInvalidAddress(), label);
 	}
 
 	/**
 	 * Construct a new {@link UnconditionalBranchInstruction}.
 	 *
 	 * @param label
-	 *        The {@linkplain LabelInstruction branch target}.
+	 *        The {@linkplain Label branch target}.
 	 */
-	UnconditionalBranchInstruction (final LabelInstruction label)
+	UnconditionalBranchInstruction (final Label label)
 	{
 		this.label = label;
 	}

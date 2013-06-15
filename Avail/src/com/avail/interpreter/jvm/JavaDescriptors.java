@@ -35,6 +35,7 @@ package com.avail.interpreter.jvm;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
+import com.avail.annotations.Nullable;
 
 /**
  * {@code JavaDescriptors} provides utility methods for producing Java
@@ -47,6 +48,26 @@ import java.util.Map;
  */
 final class JavaDescriptors
 {
+	/**
+	 * Construct and answer the Java descriptor for the specified {@linkplain
+	 * Class class} name.
+	 *
+	 * @param name
+	 *        A fully-qualified Java class name.
+	 * @return The requested descriptor.
+	 * @see <a
+	 *    href="http://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.3">
+	 *    Descriptors and Signatures</a>
+	 */
+	public static String forClassName (final String name)
+	{
+		final StringBuilder builder = new StringBuilder(50);
+		builder.append("L");
+		builder.append(name.replace('.', '/'));
+		builder.append(";");
+		return builder.toString();
+	}
+
 	/**
 	 * A {@linkplain Map map} from {@linkplain Class primitive classes} to their
 	 * Java descriptor characters.
@@ -206,5 +227,50 @@ final class JavaDescriptors
 		{
 			throw new IllegalArgumentException(e);
 		}
+	}
+
+	/**
+	 * A {@linkplain Map map} from Java descriptor characters to the {@linkplain
+	 * Class primitive types} used to represent constants of the corresponding
+	 * types.
+	 */
+	private static final Map<String, Class<?>> constantTypes;
+
+	static
+	{
+		final Map<String, Class<?>> map = new HashMap<>(8);
+		map.put("Z", Integer.TYPE);
+		map.put("B", Integer.TYPE);
+		map.put("C", Integer.TYPE);
+		map.put("D", Double.TYPE);
+		map.put("F", Float.TYPE);
+		map.put("I", Integer.TYPE);
+		map.put("J", Long.TYPE);
+		map.put("S", Integer.TYPE);
+		constantTypes = map;
+	}
+
+	/**
+	 * Answer the {@linkplain Class type} of constant data that conforms to the
+	 * specified descriptor.
+	 *
+	 * @param typeDescriptor
+	 *        A type descriptor.
+	 * @return A type, or {@code null} if the type descriptor does not represent
+	 *         a primitive type or {@link String}.
+	 */
+	public static @Nullable Class<?> toConstantType (
+		final String typeDescriptor)
+	{
+		final Class<?> type = constantTypes.get(typeDescriptor);
+		if (type != null)
+		{
+			return type;
+		}
+		if (typeDescriptor.equals("Ljava/lang/String;"))
+		{
+			return String.class;
+		}
+		return null;
 	}
 }

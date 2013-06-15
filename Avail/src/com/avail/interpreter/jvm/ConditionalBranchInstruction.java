@@ -45,8 +45,8 @@ import java.io.IOException;
 final class ConditionalBranchInstruction
 extends SimpleInstruction
 {
-	/** The {@linkplain LabelInstruction branch target}. */
-	private final LabelInstruction label;
+	/** The {@linkplain Label branch target}. */
+	private final Label label;
 
 	@Override
 	void writeImmediatesTo (final DataOutput out) throws IOException
@@ -66,11 +66,11 @@ extends SimpleInstruction
 	 * @param bytecode
 	 *        The {@linkplain JavaBytecode bytecode}.
 	 * @param label
-	 *        The {@linkplain LabelInstruction branch target}.
+	 *        The {@linkplain Label branch target}.
 	 */
 	public ConditionalBranchInstruction (
 		final JavaBytecode bytecode,
-		final LabelInstruction label)
+		final Label label)
 	{
 		super(bytecode);
 		this.label = label;

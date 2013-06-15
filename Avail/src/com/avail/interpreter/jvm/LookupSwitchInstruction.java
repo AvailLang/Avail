@@ -37,7 +37,7 @@ import java.io.IOException;
 
 /**
  * The immediate values of a {@code LookupSwitchInstruction} describe keys and
- * {@linkplain LabelInstruction labels}.
+ * {@linkplain Label labels}.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
@@ -47,11 +47,11 @@ extends JavaInstruction
 	/** The keys for the switch. */
 	private final int[] keys;
 
-	/** The case {@linkplain LabelInstruction labels} for the switch. */
-	private final LabelInstruction[] labels;
+	/** The case {@linkplain Label labels} for the switch. */
+	private final Label[] labels;
 
-	/** The default {@linkplain LabelInstruction label} for the switch. */
-	private final LabelInstruction defaultLabel;
+	/** The default {@linkplain Label label} for the switch. */
+	private final Label defaultLabel;
 
 	@Override
 	boolean isLabel ()
@@ -67,14 +67,16 @@ extends JavaInstruction
 	 */
 	private int padBytes ()
 	{
-		assert hasValidAddress();
+		if (!hasValidAddress())
+		{
+			return 0;
+		}
 		return (int) (address() & 3);
 	}
 
 	@Override
 	int size ()
 	{
-		assert hasValidAddress();
 		// The magic number 9 accounts for the opcode, the default address, and
 		// the number of labels.
 		return 9 + padBytes() + 8 * labels.length;
@@ -118,14 +120,14 @@ extends JavaInstruction
 	 * @param keys
 	 *        The keys for the switch.
 	 * @param labels
-	 *        The case {@linkplain LabelInstruction labels} for the switch.
+	 *        The case {@linkplain Label labels} for the switch.
 	 * @param defaultLabel
 	 *        The default label for the switch.
 	 */
 	public LookupSwitchInstruction (
 		final int[] keys,
-		final LabelInstruction[] labels,
-		final LabelInstruction defaultLabel)
+		final Label[] labels,
+		final Label defaultLabel)
 	{
 		assert keys.length == labels.length;
 		this.keys = keys;

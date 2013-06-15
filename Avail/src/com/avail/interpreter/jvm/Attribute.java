@@ -1,5 +1,5 @@
 /**
- * IncrementInstruction.java
+ * Attribute.java
  * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -34,90 +34,66 @@ package com.avail.interpreter.jvm;
 
 import java.io.DataOutput;
 import java.io.IOException;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import com.avail.interpreter.jvm.ConstantPool.Utf8Entry;
 
 /**
- * The immediate values of an {@code IncrementInstruction} are the local
- * variable index and the constant delta.
+ * {@code Attributes} are an open-ended mechanism used by the Java class file
+ * format to specify arbitrary qualities of {@linkplain Class classes},
+ * {@linkplain Field fields}, and {@linkplain Method methods}.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
+ * @see <a
+ *     href="http://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.7">
+ *     Attributes</a>
  */
-final class IncrementInstruction
-extends SimpleInstruction
+public abstract class Attribute
 {
-	/** The local variable index. */
-	private final int index;
-
-	/** The constant delta. */
-	private final int delta;
+	/**
+	 * Answer the name of the {@linkplain Attribute attribute}.
+	 *
+	 * @return The name of the attribute.
+	 */
+	public abstract String name ();
 
 	/**
-	 * Does the {@linkplain IncrementInstruction instruction} require 16-bit
-	 * operands?
+	 * Answer the size of the {@linkplain Attribute attribute}.
 	 *
-	 * @return {@code true} if the instruction requires 16-bit operands, {@code
-	 *         false} otherwise.
+	 * @return The size of the attribute.
 	 */
-	private boolean isWide ()
-	{
-		return (index & 255) != index
-			|| (delta & 255) != delta;
-	}
-
-	@Override
-	int size ()
-	{
-		return super.size() + (isWide() ? 3 : 0);
-	}
-
-	@Override
-	void writeBytecodeTo (final DataOutput out) throws IOException
-	{
-		if (isWide())
-		{
-			JavaBytecode.wide.writeTo(out);
-		}
-		super.writeBytecodeTo(out);
-	}
-
-	@Override
-	void writeImmediatesTo (final DataOutput out) throws IOException
-	{
-		if (isWide())
-		{
-			out.writeShort(index);
-			out.writeShort(delta);
-		}
-		else
-		{
-			out.writeByte(index);
-			out.writeByte(delta);
-		}
-	}
-
-	@Override
-	public String toString ()
-	{
-		final String mnemonic = String.format(
-			"%s%s",
-			isWide() ? "wide " : "",
-			bytecode().mnemonic());
-		return String.format("%-15s#%d,%d", mnemonic, index, delta);
-	}
+	protected abstract int size ();
 
 	/**
-	 * Construct a new {@link IncrementInstruction}.
+	 * Write the body of the {@linkplain Attribute attribute} to the specified
+	 * {@linkplain DataOutput binary stream}.
 	 *
-	 * @param index
-	 *        The local variable index.
-	 * @param delta
-	 *        The constant delta.
+	 * @param out
+	 *        A binary output stream.
+	 * @throws IOException
+	 *         If the operation fails.
 	 */
-	public IncrementInstruction (final int index, final int delta)
+	public abstract void writeBodyTo (DataOutput out) throws IOException;
+
+	/**
+	 * Write the {@linkplain Attribute attribute} as an {@code attribute_info}
+	 * structure to the specified {@linkplain DataOutput binary stream}.
+	 *
+	 * @param out
+	 *        A binary output stream.
+	 * @param constantPool
+	 *        The {@linkplain ConstantPool constant pool} to use to encode the
+	 *        {@linkplain #name() attribute name} as a {@link Utf8Entry}.
+	 * @throws IOException
+	 *         If the operation fails.
+	 */
+	final void writeTo (final DataOutput out, final ConstantPool constantPool)
+		throws IOException
 	{
-		super(JavaBytecode.iinc);
-		assert (index & 65535) == index;
-		assert (delta & 65535) == delta;
-		this.index = index;
-		this.delta = delta;
+		final Utf8Entry attributeNameEntry = constantPool.utf8(name());
+		attributeNameEntry.writeIndexTo(out);
+		final int size = size();
+		out.writeInt(size);
+		writeBodyTo(out);
 	}
 }

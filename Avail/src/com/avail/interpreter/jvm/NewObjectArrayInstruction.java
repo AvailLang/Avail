@@ -111,9 +111,9 @@ extends JavaInstruction
 		if (isMultidimensional())
 		{
 			return String.format(
-				"%15s%s [%d]", super.toString(), classEntry, dimensions);
+				"%-15s%s [%d]", super.toString(), classEntry, dimensions);
 		}
-		return String.format("%15s%s", super.toString(), classEntry);
+		return String.format("%-15s%s", super.toString(), classEntry);
 	}
 
 	/**

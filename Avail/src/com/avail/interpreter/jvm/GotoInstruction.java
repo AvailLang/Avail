@@ -56,9 +56,9 @@ extends UnconditionalBranchInstruction
 	 * Construct a new {@link GotoInstruction}.
 	 *
 	 * @param label
-	 *        The {@linkplain LabelInstruction branch target}.
+	 *        The {@linkplain Label branch target}.
 	 */
-	GotoInstruction (final LabelInstruction label)
+	GotoInstruction (final Label label)
 	{
 		super(label);
 	}

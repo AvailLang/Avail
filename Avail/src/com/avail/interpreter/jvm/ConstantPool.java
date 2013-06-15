@@ -38,6 +38,7 @@ import java.lang.reflect.Method;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import com.avail.annotations.Nullable;
+import com.avail.annotations.ThreadSafe;
 
 /**
  * {@code ConstantPool} represents a per-class constant pool.
@@ -47,6 +48,7 @@ import com.avail.annotations.Nullable;
  *    href="http://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.4">
  *    The Constant Pool</a>
  */
+@ThreadSafe
 class ConstantPool
 {
 	/**
@@ -1152,16 +1154,20 @@ class ConstantPool
 	 *        The constant.
 	 * @return The entry associated with the specified value.
 	 */
+	@ThreadSafe
 	Utf8Entry utf8 (final String value)
 	{
 		final Utf8Key key = new Utf8Key(value);
-		Entry entry = entries.get(key);
-		if (entry == null)
+		synchronized (entries)
 		{
-			entry = new Utf8Entry(nextIndex++, value);
-			entries.put(key, entry);
+			Entry entry = entries.get(key);
+			if (entry == null)
+			{
+				entry = new Utf8Entry(nextIndex++, value);
+				entries.put(key, entry);
+			}
+			return (Utf8Entry) entry;
 		}
-		return (Utf8Entry) entry;
 	}
 
 	/**
@@ -1172,16 +1178,20 @@ class ConstantPool
 	 *        The constant.
 	 * @return The entry associated with the specified value.
 	 */
+	@ThreadSafe
 	IntegerEntry constant (final int value)
 	{
 		final Integer boxed = new Integer(value);
-		Entry entry = entries.get(boxed);
-		if (entry == null)
+		synchronized (entries)
 		{
-			entry = new IntegerEntry(nextIndex++, value);
-			entries.put(boxed, entry);
+			Entry entry = entries.get(boxed);
+			if (entry == null)
+			{
+				entry = new IntegerEntry(nextIndex++, value);
+				entries.put(boxed, entry);
+			}
+			return (IntegerEntry) entry;
 		}
-		return (IntegerEntry) entry;
 	}
 
 	/**
@@ -1192,19 +1202,23 @@ class ConstantPool
 	 *        The constant.
 	 * @return The entry associated with the specified value.
 	 */
+	@ThreadSafe
 	LongEntry constant (final long value)
 	{
 		final Long boxed = new Long(value);
-		Entry entry = entries.get(boxed);
-		if (entry == null)
+		synchronized (entries)
 		{
-			// CONSTANT_Long_info occupies two slots.
-			final int index = nextIndex;
-			entry = new LongEntry(index, value);
-			nextIndex += 2;
-			entries.put(boxed, entry);
+			Entry entry = entries.get(boxed);
+			if (entry == null)
+			{
+				// CONSTANT_Long_info occupies two slots.
+				final int index = nextIndex;
+				entry = new LongEntry(index, value);
+				nextIndex += 2;
+				entries.put(boxed, entry);
+			}
+			return (LongEntry) entry;
 		}
-		return (LongEntry) entry;
 	}
 
 	/**
@@ -1215,16 +1229,20 @@ class ConstantPool
 	 *        The constant.
 	 * @return The entry associated with the specified value.
 	 */
+	@ThreadSafe
 	FloatEntry constant (final float value)
 	{
 		final Float boxed = new Float(value);
-		Entry entry = entries.get(boxed);
-		if (entry == null)
+		synchronized (entries)
 		{
-			entry = new FloatEntry(nextIndex++, value);
-			entries.put(boxed, entry);
+			Entry entry = entries.get(boxed);
+			if (entry == null)
+			{
+				entry = new FloatEntry(nextIndex++, value);
+				entries.put(boxed, entry);
+			}
+			return (FloatEntry) entry;
 		}
-		return (FloatEntry) entry;
 	}
 
 	/**
@@ -1235,19 +1253,94 @@ class ConstantPool
 	 *        The constant.
 	 * @return The entry associated with the specified value.
 	 */
+	@ThreadSafe
 	DoubleEntry constant (final double value)
 	{
 		final Double boxed = new Double(value);
-		Entry entry = entries.get(boxed);
-		if (entry == null)
+		synchronized (entries)
 		{
-			// CONSTANT_Double_info occupies two slots.
-			final int index = nextIndex;
-			entry = new DoubleEntry(index, value);
-			nextIndex += 2;
-			entries.put(boxed, entry);
+			Entry entry = entries.get(boxed);
+			if (entry == null)
+			{
+				// CONSTANT_Double_info occupies two slots.
+				final int index = nextIndex;
+				entry = new DoubleEntry(index, value);
+				nextIndex += 2;
+				entries.put(boxed, entry);
+			}
+			return (DoubleEntry) entry;
 		}
-		return (DoubleEntry) entry;
+	}
+
+	/**
+	 * {@code ClassKey} serves as a key in {@link ConstantPool#entries entries}
+	 * for {@link ClassKey} objects.
+	 */
+	private static final class ClassKey
+	{
+		/** The class descriptor. */
+		private final String descriptor;
+
+		@Override
+		public boolean equals (final @Nullable Object obj)
+		{
+			if (obj instanceof ClassKey)
+			{
+				final ClassKey other = (ClassKey) obj;
+				return descriptor.equals(other.descriptor);
+			}
+			return false;
+		}
+
+		@Override
+		public int hashCode ()
+		{
+			return 49 * descriptor.hashCode();
+		}
+
+		@Override
+		public String toString ()
+		{
+			return String.format(
+				"%s(%s)", getClass().getSimpleName(), descriptor);
+		}
+
+		/**
+		 * Construct a new {@link ClassKey}.
+		 *
+		 * @param descriptor
+		 *        The class descriptor.
+		 */
+		ClassKey (final String descriptor)
+		{
+			this.descriptor = descriptor;
+		}
+	}
+
+	/**
+	 * Answer a {@link ClassEntry} for the specified type descriptor,
+	 * constructing and installing a new entry if necessary.
+	 *
+	 * @param descriptor
+	 *        The constant.
+	 * @return The entry associated with the specified value.
+	 */
+	@ThreadSafe
+	ClassEntry classConstant (final String descriptor)
+	{
+		final ClassKey key = new ClassKey(descriptor);
+		synchronized (entries)
+		{
+			Entry entry = entries.get(key);
+			if (entry == null)
+			{
+				final Utf8Entry nameEntry = utf8(descriptor);
+				entry = new ClassEntry(
+					nextIndex++, nameEntry, descriptor.codePointAt(0) == '[');
+				entries.put(key, entry);
+			}
+			return (ClassEntry) entry;
+		}
 	}
 
 	/**
@@ -1258,17 +1351,11 @@ class ConstantPool
 	 *        The constant.
 	 * @return The entry associated with the specified value.
 	 */
+	@ThreadSafe
 	ClassEntry constant (final Class<?> value)
 	{
-		Entry entry = entries.get(value);
-		if (entry == null)
-		{
-			final String descriptor = JavaDescriptors.forType(value);
-			final Utf8Entry nameEntry = utf8(descriptor);
-			entry = new ClassEntry(nextIndex++, nameEntry, value.isArray());
-			entries.put(value, entry);
-		}
-		return (ClassEntry) entry;
+		final String descriptor = JavaDescriptors.forType(value);
+		return classConstant(descriptor);
 	}
 
 	/**
@@ -1279,15 +1366,19 @@ class ConstantPool
 	 *        The constant.
 	 * @return The entry associated with the specified value.
 	 */
+	@ThreadSafe
 	StringEntry constant (final String value)
 	{
-		Entry entry = entries.get(value);
-		if (entry == null)
+		synchronized (entries)
 		{
-			final Utf8Entry utf8Entry = utf8(value);
-			entry = new StringEntry(nextIndex++, utf8Entry);
+			Entry entry = entries.get(value);
+			if (entry == null)
+			{
+				final Utf8Entry utf8Entry = utf8(value);
+				entry = new StringEntry(nextIndex++, utf8Entry);
+			}
+			return (StringEntry) entry;
 		}
-		return (StringEntry) entry;
 	}
 
 	/**
@@ -1302,8 +1393,8 @@ class ConstantPool
 		 */
 		abstract int tag ();
 
-		/** The {@linkplain Class class}. */
-		private final Class<?> type;
+		/** The {@linkplain Class class} descriptor. */
+		private final String type;
 
 		/** The name. */
 		private final String name;
@@ -1349,14 +1440,14 @@ class ConstantPool
 		 * Construct a new {@link RefKey}.
 		 *
 		 * @param type
-		 *        The {@linkplain Class type}.
+		 *        The {@linkplain Class type} descriptor.
 		 * @param name
 		 *        The name of the referent.
 		 * @param descriptor
 		 *        The descriptor of the referent.
 		 */
 		RefKey (
-			final Class<?> type,
+			final String type,
 			final String name,
 			final String descriptor)
 		{
@@ -1383,18 +1474,54 @@ class ConstantPool
 		 * Construct a new {@link FieldrefKey}.
 		 *
 		 * @param type
-		 *        The {@linkplain Class type}.
+		 *        The {@linkplain Class type} descriptor.
 		 * @param name
 		 *        The name of the referent.
 		 * @param descriptor
 		 *        The descriptor of the referent.
 		 */
 		FieldrefKey (
-			final Class<?> type,
+			final String type,
 			final String name,
 			final String descriptor)
 		{
 			super(type, name, descriptor);
+		}
+	}
+
+	/**
+	 * Answer a {@link FieldrefEntry} for the specified field reference,
+	 * constructing and installing a new entry if necessary.
+	 *
+	 * @param definerDescriptor
+	 *        The descriptor of the {@linkplain Class class} that defines the
+	 *        field.
+	 * @param name
+	 *        The name of the referent.
+	 * @param fieldDescriptor
+	 *        The type descriptor of the referent.
+	 * @return The entry associated with the specified field reference.
+	 */
+	@ThreadSafe
+	FieldrefEntry fieldref (
+		final String definerDescriptor,
+		final String name,
+		final String fieldDescriptor)
+	{
+		final FieldrefKey key = new FieldrefKey(
+			definerDescriptor, name, fieldDescriptor);
+		synchronized (entries)
+		{
+			Entry entry = entries.get(key);
+			if (entry == null)
+			{
+				final ClassEntry classEntry = classConstant(definerDescriptor);
+				final NameAndTypeEntry nameAndType =
+					nameAndType(name, fieldDescriptor);
+				entry = new FieldrefEntry(nextIndex++, classEntry, nameAndType);
+				entries.put(key, entry);
+			}
+			return (FieldrefEntry) entry;
 		}
 	}
 
@@ -1410,23 +1537,15 @@ class ConstantPool
 	 *        The type of the referent.
 	 * @return The entry associated with the specified field reference.
 	 */
+	@ThreadSafe
 	FieldrefEntry fieldref (
 		final Class<?> definer,
 		final String name,
 		final Class<?> fieldType)
 	{
+		final String typeDescriptor = JavaDescriptors.forType(definer);
 		final String fieldDescriptor = JavaDescriptors.forType(fieldType);
-		final FieldrefKey key = new FieldrefKey(definer, name, fieldDescriptor);
-		Entry entry = entries.get(key);
-		if (entry == null)
-		{
-			final ClassEntry classEntry = constant(definer);
-			final NameAndTypeEntry nameAndType =
-				nameAndType(name, fieldDescriptor);
-			entry = new FieldrefEntry(nextIndex++, classEntry, nameAndType);
-			entries.put(key, entry);
-		}
-		return (FieldrefEntry) entry;
+		return fieldref(typeDescriptor, name, fieldDescriptor);
 	}
 
 	/**
@@ -1453,11 +1572,47 @@ class ConstantPool
 		 *        The descriptor of the referent.
 		 */
 		MethodrefKey (
-			final Class<?> type,
+			final String type,
 			final String name,
 			final String descriptor)
 		{
 			super(type, name, descriptor);
+		}
+	}
+
+	/**
+	 * Answer a {@link MethodrefEntry} for the specified method reference,
+	 * constructing and installing a new entry if necessary.
+	 *
+	 * @param definerDescriptor
+	 *        The descriptor of the {@linkplain Class class} that defines the
+	 *        field.
+	 * @param name
+	 *        The name of the referent.
+	 * @param methodDescriptor
+	 *        The descriptor of the referent.
+	 * @return The entry associated with the specified field reference.
+	 */
+	@ThreadSafe
+	MethodrefEntry methodref (
+		final String definerDescriptor,
+		final String name,
+		final String methodDescriptor)
+	{
+		final MethodrefKey key = new MethodrefKey(
+			definerDescriptor, name, methodDescriptor);
+		synchronized (entries)
+		{
+			Entry entry = entries.get(key);
+			if (entry == null)
+			{
+				final ClassEntry classEntry = classConstant(definerDescriptor);
+				final NameAndTypeEntry nameAndType =
+					nameAndType(name, methodDescriptor);
+				entry = new FieldrefEntry(nextIndex++, classEntry, nameAndType);
+				entries.put(key, entry);
+			}
+			return (MethodrefEntry) entry;
 		}
 	}
 
@@ -1475,26 +1630,17 @@ class ConstantPool
 	 *        The parameter types of the referent.
 	 * @return The entry associated with the specified field reference.
 	 */
+	@ThreadSafe
 	MethodrefEntry methodref (
 		final Class<?> definer,
 		final String name,
 		final Class<?> returnType,
 		final Class<?>... parameterTypes)
 	{
+		final String definerDescriptor = JavaDescriptors.forType(definer);
 		final String methodDescriptor = JavaDescriptors.forMethod(
 			returnType, parameterTypes);
-		final MethodrefKey key = new MethodrefKey(
-			returnType, name, methodDescriptor);
-		Entry entry = entries.get(key);
-		if (entry == null)
-		{
-			final ClassEntry classEntry = constant(definer);
-			final NameAndTypeEntry nameAndType =
-				nameAndType(name, methodDescriptor);
-			entry = new FieldrefEntry(nextIndex++, classEntry, nameAndType);
-			entries.put(key, entry);
-		}
-		return (MethodrefEntry) entry;
+		return methodref(definerDescriptor, name, methodDescriptor);
 	}
 
 	/**
@@ -1505,6 +1651,7 @@ class ConstantPool
 	 *        The {@linkplain Method referent}.
 	 * @return The entry associated with the specified field reference.
 	 */
+	@ThreadSafe
 	MethodrefEntry methodref (final Method method)
 	{
 		assert !method.getDeclaringClass().isInterface();
@@ -1532,18 +1679,54 @@ class ConstantPool
 		 * Construct a new {@link InterfaceMethodrefKey}.
 		 *
 		 * @param type
-		 *        The {@linkplain Class type}.
+		 *        The {@linkplain Class type} descriptor.
 		 * @param name
 		 *        The name of the referent.
 		 * @param descriptor
 		 *        The descriptor of the referent.
 		 */
 		InterfaceMethodrefKey (
-			final Class<?> type,
+			final String type,
 			final String name,
 			final String descriptor)
 		{
 			super(type, name, descriptor);
+		}
+	}
+
+	/**
+	 * Answer a {@link InterfaceMethodrefEntry} for the specified method
+	 * reference, constructing and installing a new entry if necessary.
+	 *
+	 * @param definerDescriptor
+	 *        The descriptor of the {@linkplain Class class} that defines the
+	 *        field.
+	 * @param name
+	 *        The name of the referent.
+	 * @param methodDescriptor
+	 *        The descriptor of the referent.
+	 * @return The entry associated with the specified field reference.
+	 */
+	@ThreadSafe
+	InterfaceMethodrefEntry interfaceMethodref (
+		final String definerDescriptor,
+		final String name,
+		final String methodDescriptor)
+	{
+		final InterfaceMethodrefKey key = new InterfaceMethodrefKey(
+			definerDescriptor, name, methodDescriptor);
+		synchronized (entries)
+		{
+			Entry entry = entries.get(key);
+			if (entry == null)
+			{
+				final ClassEntry classEntry = classConstant(definerDescriptor);
+				final NameAndTypeEntry nameAndType =
+					nameAndType(name, methodDescriptor);
+				entry = new FieldrefEntry(nextIndex++, classEntry, nameAndType);
+				entries.put(key, entry);
+			}
+			return (InterfaceMethodrefEntry) entry;
 		}
 	}
 
@@ -1561,26 +1744,17 @@ class ConstantPool
 	 *        The parameter types of the referent.
 	 * @return The entry associated with the specified field reference.
 	 */
+	@ThreadSafe
 	InterfaceMethodrefEntry interfaceMethodref (
 		final Class<?> definer,
 		final String name,
 		final Class<?> returnType,
 		final Class<?>... parameterTypes)
 	{
+		final String definerDescriptor = JavaDescriptors.forType(definer);
 		final String methodDescriptor = JavaDescriptors.forMethod(
 			returnType, parameterTypes);
-		final InterfaceMethodrefKey key = new InterfaceMethodrefKey(
-			returnType, name, methodDescriptor);
-		Entry entry = entries.get(key);
-		if (entry == null)
-		{
-			final ClassEntry classEntry = constant(definer);
-			final NameAndTypeEntry nameAndType =
-				nameAndType(name, methodDescriptor);
-			entry = new FieldrefEntry(nextIndex++, classEntry, nameAndType);
-			entries.put(key, entry);
-		}
-		return (InterfaceMethodrefEntry) entry;
+		return interfaceMethodref(definerDescriptor, name, methodDescriptor);
 	}
 
 	/**
@@ -1591,6 +1765,7 @@ class ConstantPool
 	 *        The {@linkplain Method referent}.
 	 * @return The entry associated with the specified field reference.
 	 */
+	@ThreadSafe
 	InterfaceMethodrefEntry interfaceMethodref (final Method method)
 	{
 		assert method.getDeclaringClass().isInterface();
@@ -1605,7 +1780,7 @@ class ConstantPool
 	 * {@code NameAndTypeKey} serves as a key in {@link ConstantPool#entries
 	 * entries} for {@link NameAndTypeEntry} objects.
 	 */
-	private static final class NameAndTypeKey
+	static final class NameAndTypeKey
 	{
 		/** The name. */
 		private final String name;
@@ -1666,21 +1841,25 @@ class ConstantPool
 	 *        A descriptor.
 	 * @return The entry associated with the specified value.
 	 */
-	private NameAndTypeEntry nameAndType (
+	@ThreadSafe
+	NameAndTypeEntry nameAndType (
 		final String name,
 		final String descriptor)
 	{
 		final NameAndTypeKey key = new NameAndTypeKey(name, descriptor);
-		Entry entry = entries.get(key);
-		if (entry == null)
+		synchronized (entries)
 		{
-			final Utf8Entry nameEntry = utf8(name);
-			final Utf8Entry descriptorEntry = utf8(descriptor);
-			entry = new NameAndTypeEntry(
-				nextIndex++, nameEntry, descriptorEntry);
-			entries.put(key, entry);
+			Entry entry = entries.get(key);
+			if (entry == null)
+			{
+				final Utf8Entry nameEntry = utf8(name);
+				final Utf8Entry descriptorEntry = utf8(descriptor);
+				entry = new NameAndTypeEntry(
+					nextIndex++, nameEntry, descriptorEntry);
+				entries.put(key, entry);
+			}
+			return (NameAndTypeEntry) entry;
 		}
-		return (NameAndTypeEntry) entry;
 	}
 
 	/**
@@ -1693,6 +1872,7 @@ class ConstantPool
 	 *        A Java type.
 	 * @return The entry associated with the specified value.
 	 */
+	@ThreadSafe
 	NameAndTypeEntry nameAndType (
 		final String name,
 		final Class<?> type)
@@ -1709,6 +1889,7 @@ class ConstantPool
 	 *        A Java method.
 	 * @return The entry associated with the specified value.
 	 */
+	@ThreadSafe
 	NameAndTypeEntry nameAndType (final Method method)
 	{
 		final String descriptor = JavaDescriptors.forMethod(method);
@@ -1728,6 +1909,7 @@ class ConstantPool
 	 *        The method's parameter types.
 	 * @return The entry associated with the specified value.
 	 */
+	@ThreadSafe
 	NameAndTypeEntry nameAndType (
 		final String name,
 		final Class<?> returnType,
@@ -1806,19 +1988,23 @@ class ConstantPool
 	 *        The {@linkplain RefEntry reference entry}.
 	 * @return The entry associated with the specified value.
 	 */
+	@ThreadSafe
 	MethodHandleEntry methodHandle (
 		final MethodHandleKind kind,
 		final RefEntry referenceEntry)
 	{
 		assert referenceEntry.getClass().isInstance(kind.entryClass());
 		final MethodHandleKey key = new MethodHandleKey(kind, referenceEntry);
-		Entry entry = entries.get(key);
-		if (entry == null)
+		synchronized (entries)
 		{
-			entry = new MethodHandleEntry(nextIndex++, kind, referenceEntry);
-			entries.put(key, entry);
+			Entry entry = entries.get(key);
+			if (entry == null)
+			{
+				entry = new MethodHandleEntry(nextIndex++, kind, referenceEntry);
+				entries.put(key, entry);
+			}
+			return (MethodHandleEntry) entry;
 		}
-		return (MethodHandleEntry) entry;
 	}
 
 	/**
@@ -1880,17 +2066,21 @@ class ConstantPool
 	 *        A method descriptor.
 	 * @return The entry associated with the specified value.
 	 */
-	private MethodTypeEntry methodType (final String descriptor)
+	@ThreadSafe
+	MethodTypeEntry methodType (final String descriptor)
 	{
 		final MethodTypeKey key = new MethodTypeKey(descriptor);
-		Entry entry = entries.get(key);
-		if (entry == null)
+		synchronized (entries)
 		{
-			final Utf8Entry descriptorEntry = utf8(descriptor);
-			entry = new MethodTypeEntry(nextIndex++, descriptorEntry);
-			entries.put(key, entry);
+			Entry entry = entries.get(key);
+			if (entry == null)
+			{
+				final Utf8Entry descriptorEntry = utf8(descriptor);
+				entry = new MethodTypeEntry(nextIndex++, descriptorEntry);
+				entries.put(key, entry);
+			}
+			return (MethodTypeEntry) entry;
 		}
-		return (MethodTypeEntry) entry;
 	}
 
 	/**
@@ -1903,6 +2093,7 @@ class ConstantPool
 	 *        The method's parameter types.
 	 * @return The entry associated with the specified value.
 	 */
+	@ThreadSafe
 	MethodTypeEntry methodType (
 		final Class<?> returnType,
 		final Class<?>... parameterTypes)
@@ -1920,6 +2111,7 @@ class ConstantPool
 	 *        A method.
 	 * @return The entry associated with the specified value.
 	 */
+	@ThreadSafe
 	MethodTypeEntry methodType (final Method method)
 	{
 		final String descriptor = JavaDescriptors.forMethod(method);
@@ -1937,12 +2129,16 @@ class ConstantPool
 	 * @throws IOException
 	 *         If the operation fails.
 	 */
+	@ThreadSafe
 	void writeTo (final DataOutput out) throws IOException
 	{
-		out.writeShort(nextIndex);
-		for (final Entry entry : entries.values())
+		synchronized (entries)
 		{
-			entry.writeTo(out);
+			out.writeShort(nextIndex);
+			for (final Entry entry : entries.values())
+			{
+				entry.writeTo(out);
+			}
 		}
 	}
 }

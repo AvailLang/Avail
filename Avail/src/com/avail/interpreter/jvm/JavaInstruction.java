@@ -69,7 +69,6 @@ abstract class JavaInstruction
 	 */
 	final void setAddress (final long address)
 	{
-		assert this.address == invalidAddress;
 		this.address = address;
 	}
 

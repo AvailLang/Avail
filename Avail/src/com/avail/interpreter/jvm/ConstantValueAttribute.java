@@ -1,5 +1,5 @@
 /**
- * IncrementInstruction.java
+ * ConstantValueAttribute.java
  * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -34,90 +34,52 @@ package com.avail.interpreter.jvm;
 
 import java.io.DataOutput;
 import java.io.IOException;
+import com.avail.interpreter.jvm.ConstantPool.Entry;
 
 /**
- * The immediate values of an {@code IncrementInstruction} are the local
- * variable index and the constant delta.
+ * A {@code ConstantValueAttribute} represents the value of a constant
+ * {@linkplain Field field}.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
+ * @see <a
+ *     href="http://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.7.2">
+ *     The <code>ConstantValue</code> Attribute</a>
  */
-final class IncrementInstruction
-extends SimpleInstruction
+final class ConstantValueAttribute
+extends Attribute
 {
-	/** The local variable index. */
-	private final int index;
+	/** The {@linkplain Entry entry} for the initial value. */
+	private final Entry initialValueEntry;
 
-	/** The constant delta. */
-	private final int delta;
+	/** The name of this {@linkplain ConstantValueAttribute attribute}. */
+	static final String name = "ConstantValue";
 
-	/**
-	 * Does the {@linkplain IncrementInstruction instruction} require 16-bit
-	 * operands?
-	 *
-	 * @return {@code true} if the instruction requires 16-bit operands, {@code
-	 *         false} otherwise.
-	 */
-	private boolean isWide ()
+	@Override
+	public String name ()
 	{
-		return (index & 255) != index
-			|| (delta & 255) != delta;
+		return name;
 	}
 
 	@Override
-	int size ()
+	protected int size ()
 	{
-		return super.size() + (isWide() ? 3 : 0);
+		return 2;
 	}
 
 	@Override
-	void writeBytecodeTo (final DataOutput out) throws IOException
+	public void writeBodyTo (final DataOutput out) throws IOException
 	{
-		if (isWide())
-		{
-			JavaBytecode.wide.writeTo(out);
-		}
-		super.writeBytecodeTo(out);
-	}
-
-	@Override
-	void writeImmediatesTo (final DataOutput out) throws IOException
-	{
-		if (isWide())
-		{
-			out.writeShort(index);
-			out.writeShort(delta);
-		}
-		else
-		{
-			out.writeByte(index);
-			out.writeByte(delta);
-		}
-	}
-
-	@Override
-	public String toString ()
-	{
-		final String mnemonic = String.format(
-			"%s%s",
-			isWide() ? "wide " : "",
-			bytecode().mnemonic());
-		return String.format("%-15s#%d,%d", mnemonic, index, delta);
+		initialValueEntry.writeIndexTo(out);
 	}
 
 	/**
-	 * Construct a new {@link IncrementInstruction}.
+	 * Construct a new {@link ConstantValueAttribute}.
 	 *
-	 * @param index
-	 *        The local variable index.
-	 * @param delta
-	 *        The constant delta.
+	 * @param initialValueEntry
+	 *        The {@linkplain Entry entry} for the initial value.
 	 */
-	public IncrementInstruction (final int index, final int delta)
+	public ConstantValueAttribute (final Entry initialValueEntry)
 	{
-		super(JavaBytecode.iinc);
-		assert (index & 65535) == index;
-		assert (delta & 65535) == delta;
-		this.index = index;
-		this.delta = delta;
+		this.initialValueEntry = initialValueEntry;
 	}
 }
