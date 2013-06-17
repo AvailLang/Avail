@@ -1,5 +1,5 @@
 /**
- * UnconditionalBranchInstruction.java
+ * FieldAccessInstruction.java
  * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -34,63 +34,76 @@ package com.avail.interpreter.jvm;
 
 import java.io.DataOutput;
 import java.io.IOException;
+import com.avail.interpreter.jvm.ConstantPool.FieldrefEntry;
 
 /**
- * A {@code UnconditionalBranchInstruction} abstractly specifies an
- * unconditional branch.
+ * The immediate of a {@code FieldAccessInstruction} is the 2-byte index of a
+ * {@linkplain FieldrefEntry field reference} in the {@linkplain ConstantPool
+ * constant pool}.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-abstract class UnconditionalBranchInstruction
+abstract class FieldAccessInstruction
 extends JavaInstruction
 {
-	/** The {@linkplain Label branch target}. */
-	private final Label label;
+	/**
+	 * The {@linkplain FieldrefEntry field reference entry} for the referenced
+	 * {@linkplain Field field}.
+	 */
+	private final FieldrefEntry fieldrefEntry;
+
+	/** Is the referenced {@linkplain Field field} {@code static}? */
+	private final boolean isStatic;
 
 	@Override
-	final boolean isLabel ()
+	boolean isLabel ()
 	{
 		return false;
 	}
 
-	/**
-	 * Is the {@linkplain GotoInstruction branch} wide?
-	 *
-	 * @return {@code true} if the branch is wide, {@code false} otherwise.
-	 */
-	final boolean isWide ()
-	{
-		// If either the instruction or the label do not yet have a valid
-		// address, then conservatively assume that the instruction is not wide.
-		if (!hasValidAddress() || !label.hasValidAddress())
-		{
-			return false;
-		}
-		final long offset = label.address() - address();
-		return (offset < Short.MIN_VALUE || offset > Short.MAX_VALUE)
-			? true
-			: false;
-	}
-
 	@Override
-	final int size ()
+	int size ()
 	{
-		return isWide() ? 5 : 3;
+		return 3;
 	}
 
 	/**
-	 * Answer the appropriate {@linkplain JavaBytecode bytecode} for this
-	 * {@linkplain UnconditionalBranchInstruction branch instruction}.
+	 * Answer the appropriate static accessor {@linkplain JavaBytecode
+	 * bytecode} for this {@linkplain FieldrefEntry field reference entry}.
 	 *
-	 * @return The bytecode.
+	 * @return The appropriate bytecode.
 	 */
-	abstract JavaBytecode bytecode ();
+	abstract JavaBytecode staticBytecode ();
+
+	/**
+	 * Answer the appropriate instance accessor {@linkplain JavaBytecode
+	 * bytecode} for this {@linkplain FieldrefEntry field reference entry}.
+	 *
+	 * @return The appropriate bytecode.
+	 */
+	abstract JavaBytecode instanceBytecode ();
+
+	/**
+	 * Answer the appropriate {@linkplain JavaBytecode bytecode} for the
+	 * {@linkplain FieldAccessInstruction instruction}.
+	 *
+	 * @return The appropriate bytecode.
+	 */
+	private JavaBytecode bytecode ()
+	{
+		return isStatic ? staticBytecode() : instanceBytecode();
+	}
 
 	@Override
 	final JavaOperand[] inputOperands ()
 	{
-		assert bytecode().inputOperands().length == 0;
-		return noOperands;
+		return bytecode().inputOperands();
+	}
+
+	@Override
+	final JavaOperand[] outputOperands ()
+	{
+		return bytecode().outputOperands();
 	}
 
 	@Override
@@ -102,42 +115,30 @@ extends JavaInstruction
 	@Override
 	final void writeImmediatesTo (final DataOutput out) throws IOException
 	{
-		if (isWide())
-		{
-			out.writeInt((int) address());
-		}
-		else
-		{
-			out.writeShort((short) address());
-		}
+		fieldrefEntry.writeIndexTo(out);
 	}
-
-	/**
-	 * The mnemonic to use when the instruction or its {@linkplain
-	 * Label label} have not yet been assigned an address.
-	 *
-	 * @return The mnemonic.
-	 */
-	abstract String mnemonicForInvalidAddress ();
 
 	@Override
 	public final String toString ()
 	{
-		if (hasValidAddress() && label.hasValidAddress())
-		{
-			return String.format("%-15s%s", bytecode().mnemonic(), label);
-		}
-		return String.format("%-15s%s", mnemonicForInvalidAddress(), label);
+		return String.format("%s%s", super.toString(), fieldrefEntry);
 	}
 
 	/**
-	 * Construct a new {@link UnconditionalBranchInstruction}.
+	 * Construct a new {@link FieldAccessInstruction}.
 	 *
-	 * @param label
-	 *        The {@linkplain Label branch target}.
+	 * @param fieldrefEntry
+	 *        A {@linkplain FieldrefEntry field reference entry} for the
+	 *        referenced {@linkplain Field field}.
+	 * @param isStatic
+	 *        {@code true} if the referenced field is {@code static}, {@code
+	 *        false} otherwise.
 	 */
-	UnconditionalBranchInstruction (final Label label)
+	FieldAccessInstruction (
+		final FieldrefEntry fieldrefEntry,
+		final boolean isStatic)
 	{
-		this.label = label;
+		this.fieldrefEntry = fieldrefEntry;
+		this.isStatic = isStatic;
 	}
 }

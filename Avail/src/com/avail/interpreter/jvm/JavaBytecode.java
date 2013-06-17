@@ -37,7 +37,7 @@ import java.io.DataOutput;
 import java.io.IOException;
 import java.lang.invoke.WrongMethodTypeException;
 import com.avail.interpreter.jvm.ConstantPool.ClassEntry;
-import com.avail.interpreter.jvm.ConstantPool.Entry;
+import com.avail.interpreter.jvm.ConstantPool.ConstantEntry;
 import com.avail.interpreter.jvm.ConstantPool.FieldrefEntry;
 import com.avail.interpreter.jvm.ConstantPool.InterfaceMethodrefEntry;
 import com.avail.interpreter.jvm.ConstantPool.MethodrefEntry;
@@ -105,7 +105,7 @@ enum JavaBytecode
 		public JavaInstruction create (final Object... operands)
 		{
 			assert operands.length == 1;
-			return new LoadInstruction(this, (int) operands[0]);
+			return new LoadInstruction((LocalVariable) operands[0]);
 		}
 
 		@Override
@@ -218,7 +218,7 @@ enum JavaBytecode
 		public JavaInstruction create (final Object... operands)
 		{
 			assert operands.length == 1;
-			return new StoreInstruction(this, (int) operands[0]);
+			return new StoreInstruction((LocalVariable) operands[0]);
 		}
 
 		@Override
@@ -505,7 +505,7 @@ enum JavaBytecode
 		public JavaInstruction create (final Object... operands)
 		{
 			assert operands.length == 1;
-			return new LoadInstruction(this, (int) operands[0]);
+			return new LoadInstruction((LocalVariable) operands[0]);
 		}
 
 		@Override
@@ -619,7 +619,7 @@ enum JavaBytecode
 		public JavaInstruction create (final Object... operands)
 		{
 			assert operands.length == 1;
-			return new StoreInstruction(this, (int) operands[0]);
+			return new StoreInstruction((LocalVariable) operands[0]);
 		}
 
 		@Override
@@ -900,7 +900,7 @@ enum JavaBytecode
 		public JavaInstruction create (final Object... operands)
 		{
 			assert operands.length == 1;
-			return new LoadInstruction(this, (int) operands[0]);
+			return new LoadInstruction((LocalVariable) operands[0]);
 		}
 
 		@Override
@@ -1014,7 +1014,7 @@ enum JavaBytecode
 		public JavaInstruction create (final Object... operands)
 		{
 			assert operands.length == 1;
-			return new StoreInstruction(this, (int) operands[0]);
+			return new StoreInstruction((LocalVariable) operands[0]);
 		}
 
 		@Override
@@ -1098,7 +1098,7 @@ enum JavaBytecode
 		public JavaInstruction create (final Object... operands)
 		{
 			assert operands.length == 1;
-			return new GetFieldInstruction(this, (FieldrefEntry) operands[0]);
+			return new GetFieldInstruction((FieldrefEntry) operands[0], false);
 		}
 	},
 
@@ -1123,7 +1123,7 @@ enum JavaBytecode
 		public JavaInstruction create (final Object... operands)
 		{
 			assert operands.length == 1;
-			return new GetFieldInstruction(this, (FieldrefEntry) operands[0]);
+			return new GetFieldInstruction((FieldrefEntry) operands[0], true);
 		}
 	},
 
@@ -1726,7 +1726,7 @@ enum JavaBytecode
 		{
 			assert operands.length == 2;
 			return new IncrementInstruction(
-				(int) operands[0], (int) operands[1]);
+				(LocalVariable) operands[0], (int) operands[1]);
 		}
 
 		@Override
@@ -1751,7 +1751,7 @@ enum JavaBytecode
 		public JavaInstruction create (final Object... operands)
 		{
 			assert operands.length == 1;
-			return new LoadInstruction(this, (int) operands[0]);
+			return new LoadInstruction((LocalVariable) operands[0]);
 		}
 
 		@Override
@@ -2051,7 +2051,7 @@ enum JavaBytecode
 		public JavaInstruction create (final Object... operands)
 		{
 			assert operands.length == 1;
-			return new StoreInstruction(this, (int) operands[0]);
+			return new StoreInstruction((LocalVariable) operands[0]);
 		}
 
 		@Override
@@ -2306,7 +2306,7 @@ enum JavaBytecode
 		public JavaInstruction create (final Object... operands)
 		{
 			assert operands.length == 1;
-			return new LoadConstantInstruction((Entry) operands[0]);
+			return new LoadConstantInstruction((ConstantEntry) operands[0]);
 		}
 	},
 
@@ -2326,7 +2326,7 @@ enum JavaBytecode
 		public JavaInstruction create (final Object... operands)
 		{
 			assert operands.length == 1;
-			return new LoadConstantInstruction((Entry) operands[0]);
+			return new LoadConstantInstruction((ConstantEntry) operands[0]);
 		}
 	},
 
@@ -2347,7 +2347,7 @@ enum JavaBytecode
 		public JavaInstruction create (final Object... operands)
 		{
 			assert operands.length == 1;
-			return new LoadConstantInstruction((Entry) operands[0]);
+			return new LoadConstantInstruction((ConstantEntry) operands[0]);
 		}
 	},
 
@@ -2378,7 +2378,7 @@ enum JavaBytecode
 		public JavaInstruction create (final Object... operands)
 		{
 			assert operands.length == 1;
-			return new LoadInstruction(this, (int) operands[0]);
+			return new LoadInstruction((LocalVariable) operands[0]);
 		}
 
 		@Override
@@ -2548,7 +2548,7 @@ enum JavaBytecode
 		public JavaInstruction create (final Object... operands)
 		{
 			assert operands.length == 1;
-			return new StoreInstruction(this, (int) operands[0]);
+			return new StoreInstruction((LocalVariable) operands[0]);
 		}
 
 		@Override
@@ -2788,7 +2788,7 @@ enum JavaBytecode
 		public JavaInstruction create (final Object... operands)
 		{
 			assert operands.length == 1;
-			return new SetFieldInstruction(this, (FieldrefEntry) operands[0]);
+			return new SetFieldInstruction((FieldrefEntry) operands[0], false);
 		}
 	},
 
@@ -2810,7 +2810,7 @@ enum JavaBytecode
 		public JavaInstruction create (final Object... operands)
 		{
 			assert operands.length == 1;
-			return new SetFieldInstruction(this, (FieldrefEntry) operands[0]);
+			return new SetFieldInstruction((FieldrefEntry) operands[0], true);
 		}
 	},
 
@@ -2829,7 +2829,7 @@ enum JavaBytecode
 		public JavaInstruction create (final Object... operands)
 		{
 			assert operands.length == 1;
-			return new ReturnSubroutineInstruction((int) operands[0]);
+			return new ReturnSubroutineInstruction((LocalVariable) operands[0]);
 		}
 	},
 
@@ -2955,16 +2955,16 @@ enum JavaBytecode
 				case fload:
 				case iload:
 				case lload:
-					return new LoadInstruction(bytecode, (int) operands[1]);
+					return new LoadInstruction((LocalVariable) operands[1]);
 				case astore:
 				case dstore:
 				case fstore:
 				case istore:
 				case lstore:
-					return new StoreInstruction(bytecode, (int) operands[1]);
+					return new StoreInstruction((LocalVariable) operands[1]);
 				case iinc:
 					return new IncrementInstruction(
-						(int) operands[1], (int) operands[2]);
+						(LocalVariable) operands[1], (int) operands[2]);
 				default:
 					assert false : "This never happens";
 					throw new IllegalArgumentException();

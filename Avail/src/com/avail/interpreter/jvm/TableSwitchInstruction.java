@@ -86,11 +86,35 @@ extends JavaInstruction
 		return 13 + padBytes() + 4 * labels.length;
 	}
 
+	/**
+	 * Answer the appropriate {@linkplain JavaBytecode bytecode} for this
+	 * {@linkplain LookupSwitchInstruction instruction}.
+	 *
+	 * @return The appropriate bytecode.
+	 */
+	private JavaBytecode bytecode ()
+	{
+		return JavaBytecode.tableswitch;
+	}
+
+	@Override
+	JavaOperand[] inputOperands ()
+	{
+		return bytecode().inputOperands();
+	}
+
+	@Override
+	JavaOperand[] outputOperands ()
+	{
+		return bytecode().outputOperands();
+	}
+
 	@Override
 	void writeBytecodeTo (final DataOutput out) throws IOException
 	{
-		JavaBytecode.tableswitch.writeTo(out);
+		bytecode().writeTo(out);
 	}
+
 
 	@Override
 	void writeImmediatesTo (final DataOutput out) throws IOException

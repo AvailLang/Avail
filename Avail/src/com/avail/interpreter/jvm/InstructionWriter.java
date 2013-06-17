@@ -34,6 +34,9 @@ package com.avail.interpreter.jvm;
 
 import java.io.DataOutput;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Deque;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -50,7 +53,24 @@ import java.util.List;
 final class InstructionWriter
 {
 	/** The {@linkplain JavaInstruction instructions}. */
-	private final List<JavaInstruction> instructions = new LinkedList<>();
+	private final Deque<JavaInstruction> instructions = new LinkedList<>();
+
+	{
+		final Label startLabel = new Label("«start»");
+		startLabel.setOperandStack(new LinkedList<JavaOperand>());
+		instructions.add(startLabel);
+	}
+
+	/**
+	 * Answer the count of {@linkplain JavaInstruction instructions} already
+	 * emitted to the {@linkplain InstructionWriter instruction writer}.
+	 *
+	 * @return The instruction count.
+	 */
+	int instructionCount ()
+	{
+		return instructions.size();
+	}
 
 	/** The code size of the method, in bytes. */
 	private long codeSize = -1L;
@@ -67,6 +87,55 @@ final class InstructionWriter
 	}
 
 	/**
+	 * Can the specified {@linkplain JavaInstruction instruction} type-safely
+	 * consume its {@linkplain JavaOperand operands} from the operand stack?
+	 *
+	 * @param instruction
+	 *        An instruction.
+	 * @return {@code true} if the instruction can consume its operands, {@code
+	 *         false} otherwise.
+	 */
+	private boolean canConsumeOperands (final JavaInstruction instruction)
+	{
+		final List<JavaOperand> operands = instruction.operandStack();
+		assert operands != null;
+		final JavaOperand[] inputOperands = instruction.inputOperands();
+		for (int i = 0,
+				j = operands.size() - 1,
+				size = inputOperands.length;
+			i < size;
+			i++, j--)
+		{
+			if (inputOperands[i].baseOperand() != operands.get(j).baseOperand())
+			{
+				return false;
+			}
+		}
+		return true;
+	}
+
+	/**
+	 * Answer the state of the {@linkplain JavaOperand stack} after considering
+	 * the side effects of the most recent {@linkplain JavaInstruction
+	 * instruction}.
+	 *
+	 * @return The new operand stack.
+	 */
+	private List<JavaOperand> newOperandStack ()
+	{
+		final JavaInstruction instr = instructions.peekLast();
+		assert canConsumeOperands(instr);
+		final List<JavaOperand> operands = instr.operandStack();
+		assert operands != null;
+		final List<JavaOperand> after = new ArrayList<>(
+			operands.subList(
+				0,
+				operands.size() - instr.inputOperands().length + 1));
+		after.addAll(Arrays.asList(instr.outputOperands()));
+		return after;
+	}
+
+	/**
 	 * Append the specified {@linkplain JavaInstruction instruction}.
 	 *
 	 * @param instruction
@@ -75,6 +144,16 @@ final class InstructionWriter
 	void append (final JavaInstruction instruction)
 	{
 		assert codeSize == -1L;
+		final List<JavaOperand> operands = instruction.operandStack();
+		if (operands == null)
+		{
+			instruction.setOperandStack(newOperandStack());
+		}
+		else
+		{
+			assert instruction.isLabel();
+			assert operands.equals(newOperandStack());
+		}
 		instructions.add(instruction);
 	}
 

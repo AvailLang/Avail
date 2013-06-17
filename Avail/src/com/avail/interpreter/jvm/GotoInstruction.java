@@ -47,6 +47,12 @@ extends UnconditionalBranchInstruction
 	}
 
 	@Override
+	JavaOperand[] outputOperands ()
+	{
+		return noOperands;
+	}
+
+	@Override
 	String mnemonicForInvalidAddress ()
 	{
 		return "«goto»";

@@ -62,7 +62,7 @@ abstract class Emitter<T extends Enum<T> & Modifier>
 	final ConstantPool constantPool;
 
 	/** The access and property {@linkplain Modifier modifiers}. */
-	private final EnumSet<T> modifiers;
+	final EnumSet<T> modifiers;
 
 	/**
 	 * Answer the access and property {@linkplain Modifier modifiers}.

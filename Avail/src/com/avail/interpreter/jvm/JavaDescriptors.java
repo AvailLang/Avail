@@ -174,7 +174,7 @@ final class JavaDescriptors
 	}
 
 	/**
-	 * Answer the count of argument units indicated by the specified method
+	 * Answer the count of slot units indicated by the specified method
 	 * descriptor.
 	 *
 	 * @param descriptor
@@ -185,7 +185,7 @@ final class JavaDescriptors
 	 * @throws IllegalArgumentException
 	 *         If the method descriptor is invalid.
 	 */
-	public static int argumentUnits (final String descriptor)
+	public static int slotUnits (final String descriptor)
 	{
 		if (descriptor.codePointAt(0) != '(')
 		{
@@ -200,6 +200,12 @@ final class JavaDescriptors
 				{
 					case ')':
 						return count;
+					case 'L':
+						for (; descriptor.codePointAt(index) != ';'; index++)
+						{
+							// Do nothing; just skip up to the semicolon.
+						}
+						// $FALL-THROUGH$
 					case 'B':
 					case 'C':
 					case 'F':
@@ -211,12 +217,6 @@ final class JavaDescriptors
 					case 'D':
 					case 'J':
 						count += 2;
-						break;
-					case 'L':
-						for (; descriptor.codePointAt(index) != ';'; index++)
-						{
-							// Do nothing; just skip up to the semicolon.
-						}
 						break;
 					default:
 						throw new IllegalArgumentException();

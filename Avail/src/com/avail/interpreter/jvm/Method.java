@@ -36,6 +36,10 @@ import static com.avail.interpreter.jvm.JavaBytecode.*;
 import static com.avail.interpreter.jvm.MethodModifier.*;
 import java.io.DataOutput;
 import java.io.IOException;
+import java.util.Deque;
+import java.util.EnumSet;
+import java.util.LinkedList;
+import com.avail.interpreter.jvm.ConstantPool.FieldrefEntry;
 import com.avail.interpreter.jvm.ConstantPool.MethodrefEntry;
 import com.avail.interpreter.jvm.ConstantPool.Utf8Entry;
 
@@ -84,6 +88,10 @@ extends Emitter<MethodModifier>
 	/**
 	 * Construct a new {@link Method}.
 	 *
+	 * <p>If the {@linkplain CodeGenerator code generator} is building an
+	 * {@code interface}, then the new method will be automatically marked as
+	 * {@code abstract}.</p>
+	 *
 	 * @param codeGenerator
 	 *        The {@linkplain CodeGenerator code generator}.
 	 * @param nameEntry
@@ -100,6 +108,11 @@ extends Emitter<MethodModifier>
 		this.codeGenerator = codeGenerator;
 		this.nameEntry = constantPool.utf8(nameEntry);
 		this.descriptorEntry = constantPool.utf8(descriptorEntry);
+		if (codeGenerator.modifiers().contains(ClassModifier.INTERFACE))
+		{
+			modifiers.add(ABSTRACT);
+			writer.fixInstructions();
+		}
 	}
 
 	/**
@@ -118,6 +131,59 @@ extends Emitter<MethodModifier>
 
 	/** The {@linkplain InstructionWriter instruction writer}. */
 	final InstructionWriter writer = new InstructionWriter();
+
+	@Override
+	public void setModifiers (final EnumSet<MethodModifier> mods)
+	{
+		super.setModifiers(mods);
+		if (mods.contains(ABSTRACT))
+		{
+			assert writer.instructionCount() == 0;
+			writer.fixInstructions();
+		}
+	}
+
+	/** The {@linkplain Scope scope} {@linkplain Deque stack}. */
+	private final Deque<Scope> scopeStack = new LinkedList<>();
+
+	/**
+	 * Enter a new {@linkplain Scope scope}.
+	 */
+	public void enterScope ()
+	{
+		final Scope currentScope = scopeStack.peekFirst();
+		final Scope newScope = currentScope.newInnerScope();
+		scopeStack.addFirst(newScope);
+	}
+
+	/**
+	 * Exit the current {@linkplain Scope scope}, retiring all {@linkplain
+	 * LocalVariable local variables} that it defined.
+	 */
+	public void exitScope ()
+	{
+		final Scope doomedScope = scopeStack.removeFirst();
+		doomedScope.exit();
+	}
+
+	/**
+	 * Introduce a new {@linkplain LocalVariable local variable} into the
+	 * current {@linkplain Scope scope}.
+	 *
+	 * @param name
+	 *        The name of the local variable.
+	 * @param type
+	 *        The {@linkplain Class type} of the local variable.
+	 * @return A new local variable.
+	 */
+	public LocalVariable newLocalVariable (
+		final String name,
+		final Class<?> type)
+	{
+		assert LocalVariable.isValid(type);
+		final Scope currentScope = scopeStack.peekFirst();
+		return currentScope.newLocalVariable(name, type);
+	}
 
 	/**
 	 * Emit code to push the specified {@code boolean} value onto the operand
@@ -278,6 +344,141 @@ extends Emitter<MethodModifier>
 	{
 		writer.append(new LoadConstantInstruction(
 			constantPool.constant(value)));
+	}
+
+	/**
+	 * Emit code to push {@code null} onto the operand stack.
+	 */
+	public void pushNull ()
+	{
+		writer.append(aconst_null.create());
+	}
+
+	/**
+	 * Emit code to push the contents of the specified {@linkplain LocalVariable
+	 * local variable} onto the operand stack.
+	 *
+	 * @param local
+	 *        A local variable.
+	 */
+	public void load (final LocalVariable local)
+	{
+		writer.append(new LoadInstruction(local));
+	}
+
+	/**
+	 * Emit code to push the contents of the specified {@linkplain Field field}
+	 * onto the operand stack.
+	 *
+	 * @param field
+	 *        A field.
+	 */
+	public void load (final Field field)
+	{
+		writer.append(new GetFieldInstruction(
+			field.reference(), field.modifiers.contains(FieldModifier.STATIC)));
+	}
+
+	/**
+	 * Emit code to push the contents of the specified {@linkplain Field field}
+	 * onto the operand stack.
+	 *
+	 * @param fieldrefEntry
+	 *        A {@linkplain FieldrefEntry field reference entry}.
+	 * @param isStatic
+	 *        {@code true} if the referenced field is {@code static}, {@code
+	 *        false} otherwise.
+	 */
+	public void load (final FieldrefEntry fieldrefEntry, final boolean isStatic)
+	{
+		writer.append(new GetFieldInstruction(fieldrefEntry, isStatic));
+	}
+
+	/**
+	 * Emit code to push an array element onto the operand stack.
+	 *
+	 * @param type
+	 *        The {@linkplain Class type} of the array, either a {@linkplain
+	 *        Class#isPrimitive() primitive type} or {@link Object Object.class}
+	 *        for a reference type.
+	 */
+	public void loadArrayElement (final Class<?> type)
+	{
+		assert type.isPrimitive() || type == Object.class;
+		writer.append(new ArrayLoadInstruction(type));
+	}
+
+	/**
+	 * Emit code to pop the operand stack and store the result into the
+	 * specified {@linkplain LocalVariable local variable}.
+	 *
+	 * @param local
+	 *        A local variable.
+	 */
+	public void store (final LocalVariable local)
+	{
+		writer.append(new StoreInstruction(local));
+	}
+
+	/**
+	 * Emit code to pop the operand stack and store the result into the
+	 * specified {@linkplain Field field}.
+	 *
+	 * @param field
+	 *        A field.
+	 */
+	public void store (final Field field)
+	{
+		writer.append(new SetFieldInstruction(
+			field.reference(), field.modifiers.contains(FieldModifier.STATIC)));
+	}
+
+	/**
+	 * Emit code to push the contents of the specified {@linkplain Field field}
+	 * onto the operand stack.
+	 *
+	 * @param fieldrefEntry
+	 *        A {@linkplain FieldrefEntry field reference entry}.
+	 * @param isStatic
+	 *        {@code true} if the referenced field is {@code static}, {@code
+	 *        false} otherwise.
+	 */
+	public void store (
+		final FieldrefEntry fieldrefEntry,
+		final boolean isStatic)
+	{
+		writer.append(new SetFieldInstruction(fieldrefEntry, isStatic));
+	}
+
+	/**
+	 * Emit code to pop a value from the operand stack and store it into an
+	 * array.
+	 *
+	 * @param type
+	 *        The {@linkplain Class type} of the array, either a {@linkplain
+	 *        Class#isPrimitive() primitive type} or {@link Object Object.class}
+	 *        for a reference type.
+	 */
+	public void storeArrayElement (final Class<?> type)
+	{
+		assert type.isPrimitive() || type == Object.class;
+		writer.append(new ArrayStoreInstruction(type));
+	}
+
+	/**
+	 * Emit code to pop the operand stack and enter the result's monitor.
+	 */
+	public void enterMonitor ()
+	{
+		writer.append(monitorenter.create());
+	}
+
+	/**
+	 * Emit code to pop the operand stack and exit from the result's monitor.
+	 */
+	public void exitMonitor ()
+	{
+		writer.append(monitorexit.create());
 	}
 
 	// TODO: [TLS] Add missing code generation methods!

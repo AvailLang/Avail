@@ -57,6 +57,18 @@ extends JavaInstruction
 	}
 
 	@Override
+	JavaOperand[] inputOperands ()
+	{
+		return bytecode.inputOperands();
+	}
+
+	@Override
+	JavaOperand[] outputOperands ()
+	{
+		return bytecode.outputOperands();
+	}
+
+	@Override
 	int size ()
 	{
 		return bytecode.minimumFormatSize();

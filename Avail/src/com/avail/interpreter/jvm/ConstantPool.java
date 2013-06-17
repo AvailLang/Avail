@@ -253,6 +253,32 @@ class ConstantPool
 	}
 
 	/**
+	 * {@code ConstantEntry} represents a constant.
+	 */
+	static abstract class ConstantEntry
+	extends Entry
+	{
+		/**
+		 * Answer the {@linkplain JavaOperand operand} associated with the
+		 * constant.
+		 *
+		 * @return An operand.
+		 */
+		abstract JavaOperand operand ();
+
+		/**
+		 * Construct a new {@link ConstantEntry}.
+		 *
+		 * @param index
+		 *        The index into the {@linkplain ConstantPool constant pool}.
+		 */
+		ConstantEntry (final int index)
+		{
+			super(index);
+		}
+	}
+
+	/**
 	 * {@code IntegerEntry} corresponds to the {@code CONSTANT_Integer_info}
 	 * structure.
 	 *
@@ -262,7 +288,7 @@ class ConstantPool
 	 *    <code>CONSTANT_Float_info</code> Structure</a>
 	 */
 	static final class IntegerEntry
-	extends Entry
+	extends ConstantEntry
 	{
 		@Override
 		Tag tag ()
@@ -272,6 +298,12 @@ class ConstantPool
 
 		/** The data. */
 		private final int data;
+
+		@Override
+		JavaOperand operand ()
+		{
+			return JavaOperand.INT;
+		}
 
 		@Override
 		void writeBodyTo (final DataOutput out) throws IOException
@@ -310,7 +342,7 @@ class ConstantPool
 	 *    <code>CONSTANT_Float_info</code> Structure</a>
 	 */
 	static final class FloatEntry
-	extends Entry
+	extends ConstantEntry
 	{
 		@Override
 		Tag tag ()
@@ -320,6 +352,12 @@ class ConstantPool
 
 		/** The data. */
 		private final float data;
+
+		@Override
+		JavaOperand operand ()
+		{
+			return JavaOperand.FLOAT;
+		}
 
 		@Override
 		void writeBodyTo (final DataOutput out) throws IOException
@@ -358,7 +396,7 @@ class ConstantPool
 	 *    <code>CONSTANT_Double_info</code> Structure</a>
 	 */
 	static final class LongEntry
-	extends Entry
+	extends ConstantEntry
 	{
 		@Override
 		Tag tag ()
@@ -368,6 +406,12 @@ class ConstantPool
 
 		/** The data. */
 		private final long data;
+
+		@Override
+		JavaOperand operand ()
+		{
+			return JavaOperand.LONG;
+		}
 
 		@Override
 		boolean isWide ()
@@ -412,7 +456,7 @@ class ConstantPool
 	 *    <code>CONSTANT_Double_info</code> Structure</a>
 	 */
 	static final class DoubleEntry
-	extends Entry
+	extends ConstantEntry
 	{
 		@Override
 		Tag tag ()
@@ -422,6 +466,12 @@ class ConstantPool
 
 		/** The data. */
 		private final double data;
+
+		@Override
+		JavaOperand operand ()
+		{
+			return JavaOperand.DOUBLE;
+		}
 
 		@Override
 		boolean isWide ()
@@ -465,7 +515,7 @@ class ConstantPool
 	 *    The <code>CONSTANT_Class_info</code> Structure</a>
 	 */
 	static final class ClassEntry
-	extends Entry
+	extends ConstantEntry
 	{
 		@Override
 		Tag tag ()
@@ -478,6 +528,12 @@ class ConstantPool
 		 * JavaDescriptors#forType(Class) binary class name}.
 		 */
 		private final Utf8Entry nameEntry;
+
+		@Override
+		JavaOperand operand ()
+		{
+			return JavaOperand.OBJECTREF;
+		}
 
 		/**
 		 * Does the {@linkplain ClassEntry entry} represent an array type?
@@ -528,7 +584,7 @@ class ConstantPool
 	 *    The <code>CONSTANT_String_info</code> Structure</a>
 	 */
 	static final class StringEntry
-	extends Entry
+	extends ConstantEntry
 	{
 		@Override
 		Tag tag ()
@@ -538,6 +594,12 @@ class ConstantPool
 
 		/** The {@linkplain Utf8Entry entry} containing the character data. */
 		private final Utf8Entry utf8Entry;
+
+		@Override
+		JavaOperand operand ()
+		{
+			return JavaOperand.OBJECTREF;
+		}
 
 		@Override
 		void writeBodyTo (final DataOutput out) throws IOException
@@ -624,7 +686,7 @@ class ConstantPool
 		}
 
 		/**
-		 * Write the {@linkplain JavaDescriptors#argumentUnits(String) argument
+		 * Write the {@linkplain JavaDescriptors#slotUnits(String) argument
 		 * units} to the specified {@linkplain DataOutput binary stream}.
 		 *
 		 * @param out
@@ -807,7 +869,7 @@ class ConstantPool
 		}
 
 		/**
-		 * Write the {@linkplain JavaDescriptors#argumentUnits(String) argument
+		 * Write the {@linkplain JavaDescriptors#slotUnits(String) argument
 		 * units} to the specified {@linkplain DataOutput binary stream}.
 		 *
 		 * @param out
@@ -817,7 +879,7 @@ class ConstantPool
 		 */
 		void writeArgumentUnitsTo (final DataOutput out) throws IOException
 		{
-			final int argumentUnits = JavaDescriptors.argumentUnits(
+			final int argumentUnits = JavaDescriptors.slotUnits(
 				descriptorEntry.toString());
 			assert (argumentUnits & 255) == argumentUnits;
 			out.writeByte(argumentUnits);

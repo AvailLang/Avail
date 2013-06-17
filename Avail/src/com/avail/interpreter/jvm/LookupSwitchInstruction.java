@@ -82,10 +82,33 @@ extends JavaInstruction
 		return 9 + padBytes() + 8 * labels.length;
 	}
 
+	/**
+	 * Answer the appropriate {@linkplain JavaBytecode bytecode} for this
+	 * {@linkplain LookupSwitchInstruction instruction}.
+	 *
+	 * @return The appropriate bytecode.
+	 */
+	private JavaBytecode bytecode ()
+	{
+		return JavaBytecode.lookupswitch;
+	}
+
+	@Override
+	JavaOperand[] inputOperands ()
+	{
+		return bytecode().inputOperands();
+	}
+
+	@Override
+	JavaOperand[] outputOperands ()
+	{
+		return bytecode().outputOperands();
+	}
+
 	@Override
 	void writeBytecodeTo (final DataOutput out) throws IOException
 	{
-		JavaBytecode.lookupswitch.writeTo(out);
+		bytecode().writeTo(out);
 	}
 
 	@Override

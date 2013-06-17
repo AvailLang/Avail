@@ -1,5 +1,5 @@
 /**
- * Label.java
+ * ArrayStoreInstruction.java
  * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -32,71 +32,37 @@
 
 package com.avail.interpreter.jvm;
 
-import java.io.DataOutput;
-import java.io.IOException;
+import static com.avail.interpreter.jvm.JavaBytecode.*;
 
 /**
- * A {@code Label} is a pseudo-instruction that represents an interesting
- * position within a compiled method.
+ * An {@code ArrayStoreInstruction} represents overwriting an element of an
+ * array using a value popped from the operand stack.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-final class Label
-extends JavaInstruction
+final class ArrayStoreInstruction
+extends ArrayAccessInstruction
 {
-	/** The name of the label. */
-	private final String name;
+	/** The {@linkplain JavaBytecode bytecodes} for loading arrays. */
+	private static final JavaBytecode[] bytecodes =
+		{aastore, bastore, castore, dastore, fastore, iastore, lastore, sastore};
 
 	@Override
-	int size ()
+	JavaBytecode[] bytecodes ()
 	{
-		return 0;
-	}
-
-	@Override
-	boolean isLabel ()
-	{
-		return true;
-	}
-
-	@Override
-	JavaOperand[] inputOperands ()
-	{
-		return noOperands;
-	}
-
-	@Override
-	JavaOperand[] outputOperands ()
-	{
-		return noOperands;
-	}
-
-	@Override
-	void writeBytecodeTo (final DataOutput out) throws IOException
-	{
-		// Don't emit anything.
-	}
-
-	@Override
-	void writeImmediatesTo (final DataOutput out) throws IOException
-	{
-		// Don't emit anything.
-	}
-
-	@Override
-	public String toString ()
-	{
-		return name;
+		return bytecodes;
 	}
 
 	/**
-	 * Construct a new {@link Label}.
+	 * Construct a new {@link ArrayStoreInstruction}.
 	 *
-	 * @param name
-	 *        The name of the label.
+	 * @param type
+	 *        The {@linkplain Class type} of the array, either a {@linkplain
+	 *        Class#isPrimitive() primitive type} or {@link Object Object.class}
+	 *        for a reference type.
 	 */
-	Label (final String name)
+	ArrayStoreInstruction (final Class<?> type)
 	{
-		this.name = name;
+		super(type);
 	}
 }

@@ -1,5 +1,5 @@
 /**
- * UnconditionalBranchInstruction.java
+ * ArrayAccessInstruction.java
  * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -36,61 +36,73 @@ import java.io.DataOutput;
 import java.io.IOException;
 
 /**
- * A {@code UnconditionalBranchInstruction} abstractly specifies an
- * unconditional branch.
+ * An {@code ArrayAccessInstruction} represents accessing an element of an
+ * array. It requires no immediate values.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-abstract class UnconditionalBranchInstruction
+abstract class ArrayAccessInstruction
 extends JavaInstruction
 {
-	/** The {@linkplain Label branch target}. */
-	private final Label label;
+	/**
+	 * The {@linkplain Class type} of the array, either a {@linkplain
+	 * Class#isPrimitive() primitive type} or {@link Object Object.class} for
+	 * a reference type.
+	 */
+	private final Class<?> type;
 
 	@Override
-	final boolean isLabel ()
+	boolean isLabel ()
 	{
 		return false;
 	}
 
-	/**
-	 * Is the {@linkplain GotoInstruction branch} wide?
-	 *
-	 * @return {@code true} if the branch is wide, {@code false} otherwise.
-	 */
-	final boolean isWide ()
-	{
-		// If either the instruction or the label do not yet have a valid
-		// address, then conservatively assume that the instruction is not wide.
-		if (!hasValidAddress() || !label.hasValidAddress())
-		{
-			return false;
-		}
-		final long offset = label.address() - address();
-		return (offset < Short.MIN_VALUE || offset > Short.MAX_VALUE)
-			? true
-			: false;
-	}
-
 	@Override
-	final int size ()
+	int size ()
 	{
-		return isWide() ? 5 : 3;
+		return 0;
 	}
 
 	/**
-	 * Answer the appropriate {@linkplain JavaBytecode bytecode} for this
-	 * {@linkplain UnconditionalBranchInstruction branch instruction}.
+	 * Answer a table of possible {@linkplain JavaBytecode bytecodes} for the
+	 * encoding of this {@linkplain ArrayAccessInstruction instruction}.
 	 *
-	 * @return The bytecode.
+	 * @return A table of possible bytecodes.
 	 */
-	abstract JavaBytecode bytecode ();
+	abstract JavaBytecode[] bytecodes ();
+
+	/**
+	 * Answer the appropriate {@linkplain JavaBytecode bytecode} that encodes
+	 * this {@linkplain ArrayAccessInstruction instruction}.
+	 *
+	 * @return The appropriate bytecode.
+	 */
+	private JavaBytecode bytecode ()
+	{
+		final int index = type == Object.class ? 0
+			: type == Boolean.TYPE ? 1
+			: type == Byte.TYPE ? 1
+			: type == Character.TYPE ? 2
+			: type == Double.TYPE ? 3
+			: type == Float.TYPE ? 4
+			: type == Integer.TYPE ? 5
+			: type == Long.TYPE ? 6
+			: type == Short.TYPE ? 7
+			: -1;
+		assert index != -1;
+		return bytecodes()[index];
+	}
 
 	@Override
 	final JavaOperand[] inputOperands ()
 	{
-		assert bytecode().inputOperands().length == 0;
-		return noOperands;
+		return bytecode().inputOperands();
+	}
+
+	@Override
+	final JavaOperand[] outputOperands ()
+	{
+		return bytecode().outputOperands();
 	}
 
 	@Override
@@ -102,42 +114,25 @@ extends JavaInstruction
 	@Override
 	final void writeImmediatesTo (final DataOutput out) throws IOException
 	{
-		if (isWide())
-		{
-			out.writeInt((int) address());
-		}
-		else
-		{
-			out.writeShort((short) address());
-		}
+		// No implementation required.
 	}
-
-	/**
-	 * The mnemonic to use when the instruction or its {@linkplain
-	 * Label label} have not yet been assigned an address.
-	 *
-	 * @return The mnemonic.
-	 */
-	abstract String mnemonicForInvalidAddress ();
 
 	@Override
-	public final String toString ()
+	public String toString ()
 	{
-		if (hasValidAddress() && label.hasValidAddress())
-		{
-			return String.format("%-15s%s", bytecode().mnemonic(), label);
-		}
-		return String.format("%-15s%s", mnemonicForInvalidAddress(), label);
+		return String.format("%-15s%s", bytecode().mnemonic());
 	}
 
 	/**
-	 * Construct a new {@link UnconditionalBranchInstruction}.
+	 * Construct a new {@link ArrayAccessInstruction}.
 	 *
-	 * @param label
-	 *        The {@linkplain Label branch target}.
+	 * @param type
+	 *        The {@linkplain Class type} of the array, either a {@linkplain
+	 *        Class#isPrimitive() primitive type} or {@link Object Object.class}
+	 *        for a reference type.
 	 */
-	UnconditionalBranchInstruction (final Label label)
+	ArrayAccessInstruction (final Class<?> type)
 	{
-		this.label = label;
+		this.type = type;
 	}
 }

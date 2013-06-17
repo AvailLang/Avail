@@ -47,6 +47,12 @@ extends UnconditionalBranchInstruction
 	}
 
 	@Override
+	JavaOperand[] outputOperands ()
+	{
+		return bytecode().outputOperands();
+	}
+
+	@Override
 	String mnemonicForInvalidAddress ()
 	{
 		return "«jump»";

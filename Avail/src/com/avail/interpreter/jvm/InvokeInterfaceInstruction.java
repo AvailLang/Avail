@@ -40,7 +40,7 @@ import com.avail.interpreter.jvm.ConstantPool.InterfaceMethodrefEntry;
  * The immediate values of an {@code InvokeInterfaceInstruction} are the index
  * of an {@linkplain InterfaceMethodrefEntry interface method entry} within the
  * {@linkplain ConstantPool constant pool}, the {@linkplain
- * JavaDescriptors#argumentUnits(String) argument units}, and an 8-bit
+ * JavaDescriptors#slotUnits(String) argument units}, and an 8-bit
  * {@code 0}.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;

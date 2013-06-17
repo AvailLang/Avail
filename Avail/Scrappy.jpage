@@ -6,3 +6,5 @@ JavaDescriptors.forMethod(
 		Object.class,
 		Integer.TYPE,
 		Integer.TYPE))
+
+System.getProperty("java.vm.specification.version")

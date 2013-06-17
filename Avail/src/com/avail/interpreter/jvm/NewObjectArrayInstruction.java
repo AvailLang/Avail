@@ -90,6 +90,18 @@ extends JavaInstruction
 	}
 
 	@Override
+	JavaOperand[] inputOperands ()
+	{
+		return bytecode().inputOperands();
+	}
+
+	@Override
+	JavaOperand[] outputOperands ()
+	{
+		return bytecode().outputOperands();
+	}
+
+	@Override
 	void writeBytecodeTo (final DataOutput out) throws IOException
 	{
 		bytecode().writeTo(out);

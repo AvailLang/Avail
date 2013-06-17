@@ -44,6 +44,9 @@ import com.avail.interpreter.jvm.ConstantPool.Utf8Entry;
  * CodeGenerator code generator}.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
+ * @see <a
+ *     href="http://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.5">
+ *     Fields</a>
  */
 public final class Field
 extends Emitter<FieldModifier>
@@ -83,6 +86,11 @@ extends Emitter<FieldModifier>
 	/**
 	 * Construct a new {@link Field}.
 	 *
+	 * <p>If the {@linkplain CodeGenerator code generator} is building an
+	 * {@code interface}, then the new field will be automatically marked as
+	 * {@code static}.</p>
+	 *
+	 *
 	 * @param codeGenerator
 	 *        The {@linkplain CodeGenerator code generator}.
 	 * @param nameEntry
@@ -99,6 +107,10 @@ extends Emitter<FieldModifier>
 		this.codeGenerator = codeGenerator;
 		this.nameEntry = constantPool.utf8(nameEntry);
 		this.descriptorEntry = constantPool.utf8(descriptorEntry);
+		if (codeGenerator.modifiers.contains(ClassModifier.INTERFACE))
+		{
+			modifiers.add(STATIC);
+		}
 	}
 
 	/**

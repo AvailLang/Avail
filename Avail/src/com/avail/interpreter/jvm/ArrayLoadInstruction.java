@@ -1,5 +1,5 @@
 /**
- * VariableAccessInstruction.java
+ * ArrayLoadInstruction.java
  * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -32,85 +32,37 @@
 
 package com.avail.interpreter.jvm;
 
-import java.io.DataOutput;
-import java.io.IOException;
+import static com.avail.interpreter.jvm.JavaBytecode.*;
 
 /**
- * A {@code VariableAccessInstruction} has a one-byte immediate that represents
- * a local variable index.
+ * An {@code ArrayLoadInstruction} represents pushing a value from an array onto
+ * the operand stack.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-abstract class VariableAccessInstruction
-extends SimpleInstruction
+final class ArrayLoadInstruction
+extends ArrayAccessInstruction
 {
-	/** The local variable index. */
-	private final int index;
-
-	/**
-	 * Does the {@linkplain LoadInstruction instruction} require a 16-bit
-	 * local variable index?
-	 *
-	 * @return {@code true} if the instruction requires a 16-bit local variable
-	 *         index, {@code false} otherwise.
-	 */
-	private boolean isWide ()
-	{
-		return (index & 255) != index;
-	}
+	/** The {@linkplain JavaBytecode bytecodes} for loading arrays. */
+	private static final JavaBytecode[] bytecodes =
+		{aaload, baload, caload, daload, faload, iaload, laload, saload};
 
 	@Override
-	final int size ()
+	JavaBytecode[] bytecodes ()
 	{
-		return super.size() + (isWide() ? 2 : 0);
-	}
-
-	@Override
-	final void writeBytecodeTo (final DataOutput out) throws IOException
-	{
-		if (isWide())
-		{
-			JavaBytecode.wide.writeTo(out);
-		}
-		super.writeBytecodeTo(out);
-	}
-
-	@Override
-	final void writeImmediatesTo (final DataOutput out) throws IOException
-	{
-		if (isWide())
-		{
-			out.writeShort(index);
-		}
-		else
-		{
-			out.writeByte(index);
-		}
-	}
-
-	@Override
-	public final String toString ()
-	{
-		final String mnemonic = String.format(
-			"%s%s",
-			isWide() ? "wide " : "",
-			bytecode().mnemonic());
-		return String.format("%-15s#%d", mnemonic, index);
+		return bytecodes;
 	}
 
 	/**
-	 * Construct a new {@link VariableAccessInstruction}.
+	 * Construct a new {@link ArrayLoadInstruction}.
 	 *
-	 * @param bytecode
-	 *        The {@code JavaBytecode bytecode}.
-	 * @param index
-	 *        The local variable index.
+	 * @param type
+	 *        The {@linkplain Class type} of the array, either a {@linkplain
+	 *        Class#isPrimitive() primitive type} or {@link Object Object.class}
+	 *        for a reference type.
 	 */
-	public VariableAccessInstruction (
-		final JavaBytecode bytecode,
-		final int index)
+	ArrayLoadInstruction (final Class<?> type)
 	{
-		super(bytecode);
-		this.index = index;
+		super(type);
 	}
 }

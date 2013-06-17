@@ -1,5 +1,5 @@
 /**
- * IncrementInstruction.java
+ * LocalVariableAccessInstruction.java
  * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -36,87 +36,106 @@ import java.io.DataOutput;
 import java.io.IOException;
 
 /**
- * The immediate values of an {@code IncrementInstruction} are the {@linkplain
- * LocalVariable local variable} index and the constant delta.
+ * A {@code LocalVariableAccessInstruction} represents accessing a local
+ * variable. It may be {@linkplain JavaBytecode#wide}, in which case its
+ * immediate is a 2-byte {@linkplain LocalVariable local variable} index rather
+ * than a 1-byte local variable index.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-final class IncrementInstruction
-extends SimpleInstruction
+abstract class LocalVariableAccessInstruction
+extends JavaInstruction
 {
 	/** The {@linkplain LocalVariable local variable}. */
-	private final LocalVariable local;
+	final LocalVariable local;
 
-	/** The constant delta. */
-	private final int delta;
+	@Override
+	boolean isLabel ()
+	{
+		return false;
+	}
+
+	@Override
+	final int size ()
+	{
+		return local.isWide() ? 3 : 1;
+	}
 
 	/**
-	 * Does the {@linkplain IncrementInstruction instruction} require 16-bit
-	 * operands?
+	 * Answer the table of possible {@linkplain JavaBytecode bytecodes} that
+	 * may encode this {@linkplain LocalVariableAccessInstruction instruction}.
 	 *
-	 * @return {@code true} if the instruction requires 16-bit operands, {@code
-	 *         false} otherwise.
+	 * @return The candidate bytecodes, arranged by {@linkplain Class type} and
+	 *         {@linkplain LocalVariable local variable} index.
 	 */
-	private boolean isWide ()
+	abstract JavaBytecode[] bytecodes ();
+
+	/**
+	 * Answer the appropriate {@linkplain JavaBytecode bytecode} for this
+	 * {@linkplain LocalVariableAccessInstruction instruction}.
+	 *
+	 * @return The appropriate bytecode.
+	 */
+	final JavaBytecode bytecode ()
 	{
-		return local.isWide() || (delta & 255) != delta;
+		final int rowIndex = local.type == Object.class ? 0
+			: local.type == Float.TYPE ? 1
+			: local.type == Double.TYPE ? 2
+			: local.type == Integer.TYPE ? 3
+			: local.type == Long.TYPE ? 4
+			: -1;
+		assert rowIndex != -1;
+		final int columnIndex = Math.min(local.index, 4);
+		return bytecodes()[rowIndex + 5 * columnIndex];
 	}
 
 	@Override
-	int size ()
+	final JavaOperand[] inputOperands ()
 	{
-		return super.size() + (isWide() ? 3 : 0);
+		return bytecode().inputOperands();
 	}
 
 	@Override
-	void writeBytecodeTo (final DataOutput out) throws IOException
+	final JavaOperand[] outputOperands ()
 	{
-		if (isWide())
+		return bytecode().outputOperands();
+	}
+
+	@Override
+	final void writeBytecodeTo (final DataOutput out) throws IOException
+	{
+		if (local.isWide())
 		{
 			JavaBytecode.wide.writeTo(out);
 		}
-		super.writeBytecodeTo(out);
+		bytecode().writeTo(out);
 	}
 
 	@Override
-	void writeImmediatesTo (final DataOutput out) throws IOException
+	final void writeImmediatesTo (final DataOutput out) throws IOException
 	{
-		if (isWide())
-		{
-			out.writeShort(local.index);
-			out.writeShort(delta);
-		}
-		else
-		{
-			out.writeByte(local.index);
-			out.writeByte(delta);
-		}
+		local.writeTo(out);
 	}
 
 	@Override
-	public String toString ()
+	public final String toString ()
 	{
 		final String mnemonic = String.format(
 			"%s%s",
-			isWide() ? "wide " : "",
+			local.isWide() ? "wide " : "",
 			bytecode().mnemonic());
-		return String.format("%-15s#%s += %d", mnemonic, local, delta);
+		return String.format("%-15s#%s", mnemonic, local);
 	}
 
 	/**
-	 * Construct a new {@link IncrementInstruction}.
+	 * Construct a new {@link LocalVariableAccessInstruction}.
 	 *
 	 * @param local
 	 *        The {@linkplain LocalVariable local variable}.
-	 * @param delta
-	 *        The constant delta.
 	 */
-	public IncrementInstruction (final LocalVariable local, final int delta)
+	public LocalVariableAccessInstruction (final LocalVariable local)
 	{
-		super(JavaBytecode.iinc);
 		assert local.isLive();
-		assert (delta & 65535) == delta;
 		this.local = local;
-		this.delta = delta;
 	}
 }
