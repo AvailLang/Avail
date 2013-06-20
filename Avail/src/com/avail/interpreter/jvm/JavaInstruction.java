@@ -46,6 +46,12 @@ import com.avail.annotations.Nullable;
  */
 abstract class JavaInstruction
 {
+	/**
+	 * Has the label been emitted to an {@linkplain InstructionWriter
+	 * instruction writer} yet?
+	 */
+	boolean emitted = false;
+
 	/** The canonical invalid address. */
 	protected static long invalidAddress = Long.MAX_VALUE;
 

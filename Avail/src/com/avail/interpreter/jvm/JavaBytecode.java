@@ -63,7 +63,15 @@ enum JavaBytecode
 	aaload (0x32,
 		O(ARRAYREF, INDEX),
 		O(OBJECTREF),
-		X(NullPointerException.class, ArrayIndexOutOfBoundsException.class)),
+		X(NullPointerException.class, ArrayIndexOutOfBoundsException.class))
+	{
+		@Override
+		public JavaInstruction create (final Object... operands)
+		{
+			assert false : "Use ArrayLoadInstruction instead";
+			throw new UnsupportedOperationException();
+		}
+	},
 
 	/**
 	 * Store into {@code reference} array.
@@ -77,7 +85,16 @@ enum JavaBytecode
 		O(OBJECTREF),
 		X(NullPointerException.class,
 			ArrayIndexOutOfBoundsException.class,
-			ArrayStoreException.class)),
+			ArrayStoreException.class))
+	{
+		@Override
+		public JavaInstruction create (final Object... operands)
+		{
+			assert false : "Use ArrayStoreInstruction instead";
+			throw new UnsupportedOperationException();
+		}
+	},
+
 
 	/**
 	 * Push {@code null}.
@@ -104,8 +121,8 @@ enum JavaBytecode
 		@Override
 		public JavaInstruction create (final Object... operands)
 		{
-			assert operands.length == 1;
-			return new LoadInstruction((LocalVariable) operands[0]);
+			assert false : "Use LoadInstruction instead";
+			throw new UnsupportedOperationException();
 		}
 
 		@Override
@@ -124,7 +141,15 @@ enum JavaBytecode
 	 */
 	aload_0 (0x2a,
 		O(),
-		O(OBJECTREF)),
+		O(OBJECTREF))
+	{
+		@Override
+		public JavaInstruction create (final Object... operands)
+		{
+			assert false : "Use LoadInstruction instead";
+			throw new UnsupportedOperationException();
+		}
+	},
 
 	/**
 	 * Load {@code reference} from local variable #1.
@@ -135,7 +160,15 @@ enum JavaBytecode
 	 */
 	aload_1 (0x2b,
 		O(),
-		O(OBJECTREF)),
+		O(OBJECTREF))
+	{
+		@Override
+		public JavaInstruction create (final Object... operands)
+		{
+			assert false : "Use LoadInstruction instead";
+			throw new UnsupportedOperationException();
+		}
+	},
 
 	/**
 	 * Load {@code reference} from local variable #2.
@@ -146,7 +179,15 @@ enum JavaBytecode
 	 */
 	aload_2 (0x2c,
 		O(),
-		O(OBJECTREF)),
+		O(OBJECTREF))
+	{
+		@Override
+		public JavaInstruction create (final Object... operands)
+		{
+			assert false : "Use LoadInstruction instead";
+			throw new UnsupportedOperationException();
+		}
+	},
 
 	/**
 	 * Load {@code reference} from local variable #3.
@@ -157,7 +198,15 @@ enum JavaBytecode
 	 */
 	aload_3 (0x2d,
 		O(),
-		O(OBJECTREF)),
+		O(OBJECTREF))
+	{
+		@Override
+		public JavaInstruction create (final Object... operands)
+		{
+			assert false : "Use LoadInstruction instead";
+			throw new UnsupportedOperationException();
+		}
+	},
 
 	/**
 	 * Create new array of {@code reference}.
@@ -174,8 +223,8 @@ enum JavaBytecode
 		@Override
 		public JavaInstruction create (final Object... operands)
 		{
-			assert operands.length == 1;
-			return new NewObjectArrayInstruction((ClassEntry) operands[0], 1);
+			assert false : "Use NewObjectArrayInstruction instead";
+			throw new UnsupportedOperationException();
 		}
 	},
 
@@ -217,8 +266,8 @@ enum JavaBytecode
 		@Override
 		public JavaInstruction create (final Object... operands)
 		{
-			assert operands.length == 1;
-			return new StoreInstruction((LocalVariable) operands[0]);
+			assert false : "Use StoreInstruction instead";
+			throw new UnsupportedOperationException();
 		}
 
 		@Override
@@ -237,7 +286,15 @@ enum JavaBytecode
 	 */
 	astore_0 (0x4b,
 		O(OBJECTREF),
-		O()),
+		O())
+	{
+		@Override
+		public JavaInstruction create (final Object... operands)
+		{
+			assert false : "Use StoreInstruction instead";
+			throw new UnsupportedOperationException();
+		}
+	},
 
 	/**
 	 * Store {@code reference} into local variable #1.
@@ -248,7 +305,15 @@ enum JavaBytecode
 	 */
 	astore_1 (0x4c,
 		O(OBJECTREF),
-		O()),
+		O())
+	{
+		@Override
+		public JavaInstruction create (final Object... operands)
+		{
+			assert false : "Use StoreInstruction instead";
+			throw new UnsupportedOperationException();
+		}
+	},
 
 	/**
 	 * Store {@code reference} into local variable #2.
@@ -259,7 +324,15 @@ enum JavaBytecode
 	 */
 	astore_2 (0x4d,
 		O(OBJECTREF),
-		O()),
+		O())
+	{
+		@Override
+		public JavaInstruction create (final Object... operands)
+		{
+			assert false : "Use StoreInstruction instead";
+			throw new UnsupportedOperationException();
+		}
+	},
 
 	/**
 	 * Store {@code reference} into local variable #3.
@@ -270,7 +343,15 @@ enum JavaBytecode
 	 */
 	astore_3 (0x4e,
 		O(OBJECTREF),
-		O()),
+		O())
+	{
+		@Override
+		public JavaInstruction create (final Object... operands)
+		{
+			assert false : "Use StoreInstruction instead";
+			throw new UnsupportedOperationException();
+		}
+	},
 
 	/**
 	 * Throw exception or error
@@ -294,7 +375,15 @@ enum JavaBytecode
 	baload (0x33,
 		O(ARRAYREF, INDEX),
 		O(INT),
-		X(NullPointerException.class, ArrayIndexOutOfBoundsException.class)),
+		X(NullPointerException.class, ArrayIndexOutOfBoundsException.class))
+	{
+		@Override
+		public JavaInstruction create (final Object... operands)
+		{
+			assert false : "Use ArrayLoadInstruction instead";
+			throw new UnsupportedOperationException();
+		}
+	},
 
 	/**
 	 * Store into {@code byte} or {@code boolean} array.
@@ -302,7 +391,15 @@ enum JavaBytecode
 	bastore (0x54,
 		O(ARRAYREF, INDEX, INT),
 		O(),
-		X(NullPointerException.class, ArrayIndexOutOfBoundsException.class)),
+		X(NullPointerException.class, ArrayIndexOutOfBoundsException.class))
+	{
+		@Override
+		public JavaInstruction create (final Object... operands)
+		{
+			assert false : "Use ArrayStoreInstruction instead";
+			throw new UnsupportedOperationException();
+		}
+	},
 
 	/**
 	 * Push {@code byte}.
@@ -333,7 +430,15 @@ enum JavaBytecode
 	caload (0x34,
 		O(ARRAYREF, INDEX),
 		O(INT),
-		X(NullPointerException.class, ArrayIndexOutOfBoundsException.class)),
+		X(NullPointerException.class, ArrayIndexOutOfBoundsException.class))
+	{
+		@Override
+		public JavaInstruction create (final Object... operands)
+		{
+			assert false : "Use ArrayLoadInstruction instead";
+			throw new UnsupportedOperationException();
+		}
+	},
 
 	/**
 	 * Store into {@code char} array.
@@ -345,7 +450,15 @@ enum JavaBytecode
 	castore (0x55,
 		O(ARRAYREF, INDEX, INT),
 		O(),
-		X(NullPointerException.class, ArrayIndexOutOfBoundsException.class)),
+		X(NullPointerException.class, ArrayIndexOutOfBoundsException.class))
+	{
+		@Override
+		public JavaInstruction create (final Object... operands)
+		{
+			assert false : "Use ArrayStoreInstruction instead";
+			throw new UnsupportedOperationException();
+		}
+	},
 
 	/**
 	 * Check whether object is of given type.
@@ -421,7 +534,15 @@ enum JavaBytecode
 	daload (0x31,
 		O(ARRAYREF, INDEX),
 		O(DOUBLE),
-		X(NullPointerException.class, ArrayIndexOutOfBoundsException.class)),
+		X(NullPointerException.class, ArrayIndexOutOfBoundsException.class))
+	{
+		@Override
+		public JavaInstruction create (final Object... operands)
+		{
+			assert false : "Use ArrayLoadInstruction instead";
+			throw new UnsupportedOperationException();
+		}
+	},
 
 	/**
 	 * Store into {@code double} array.
@@ -433,7 +554,15 @@ enum JavaBytecode
 	dastore (0x52,
 		O(ARRAYREF, INDEX, DOUBLE),
 		O(),
-		X(NullPointerException.class, ArrayIndexOutOfBoundsException.class)),
+		X(NullPointerException.class, ArrayIndexOutOfBoundsException.class))
+	{
+		@Override
+		public JavaInstruction create (final Object... operands)
+		{
+			assert false : "Use ArrayStoreInstruction instead";
+			throw new UnsupportedOperationException();
+		}
+	},
 
 	/**
 	 * Compare {@code double}.
@@ -504,8 +633,8 @@ enum JavaBytecode
 		@Override
 		public JavaInstruction create (final Object... operands)
 		{
-			assert operands.length == 1;
-			return new LoadInstruction((LocalVariable) operands[0]);
+			assert false : "Use LoadInstruction instead";
+			throw new UnsupportedOperationException();
 		}
 
 		@Override
@@ -524,7 +653,15 @@ enum JavaBytecode
 	 */
 	dload_0 (0x26,
 		O(),
-		O(DOUBLE)),
+		O(DOUBLE))
+	{
+		@Override
+		public JavaInstruction create (final Object... operands)
+		{
+			assert false : "Use LoadInstruction instead";
+			throw new UnsupportedOperationException();
+		}
+	},
 
 	/**
 	 * Load {@code double} from local variable #1.
@@ -535,7 +672,15 @@ enum JavaBytecode
 	 */
 	dload_1 (0x27,
 		O(),
-		O(DOUBLE)),
+		O(DOUBLE))
+	{
+		@Override
+		public JavaInstruction create (final Object... operands)
+		{
+			assert false : "Use LoadInstruction instead";
+			throw new UnsupportedOperationException();
+		}
+	},
 
 	/**
 	 * Load {@code double} from local variable #2.
@@ -546,7 +691,15 @@ enum JavaBytecode
 	 */
 	dload_2 (0x28,
 		O(),
-		O(DOUBLE)),
+		O(DOUBLE))
+	{
+		@Override
+		public JavaInstruction create (final Object... operands)
+		{
+			assert false : "Use LoadInstruction instead";
+			throw new UnsupportedOperationException();
+		}
+	},
 
 	/**
 	 * Load {@code double} from local variable #3.
@@ -557,7 +710,15 @@ enum JavaBytecode
 	 */
 	dload_3 (0x29,
 		O(),
-		O(DOUBLE)),
+		O(DOUBLE))
+	{
+		@Override
+		public JavaInstruction create (final Object... operands)
+		{
+			assert false : "Use LoadInstruction instead";
+			throw new UnsupportedOperationException();
+		}
+	},
 
 	/**
 	 * Multiply {@code double}.
@@ -618,8 +779,8 @@ enum JavaBytecode
 		@Override
 		public JavaInstruction create (final Object... operands)
 		{
-			assert operands.length == 1;
-			return new StoreInstruction((LocalVariable) operands[0]);
+			assert false : "Use StoreInstruction instead";
+			throw new UnsupportedOperationException();
 		}
 
 		@Override
@@ -638,7 +799,15 @@ enum JavaBytecode
 	 */
 	dstore_0 (0x47,
 		O(DOUBLE),
-		O()),
+		O())
+	{
+		@Override
+		public JavaInstruction create (final Object... operands)
+		{
+			assert false : "Use StoreInstruction instead";
+			throw new UnsupportedOperationException();
+		}
+	},
 
 	/**
 	 * Store {@code double} into local variable #1.
@@ -649,7 +818,15 @@ enum JavaBytecode
 	 */
 	dstore_1 (0x48,
 		O(DOUBLE),
-		O()),
+		O())
+	{
+		@Override
+		public JavaInstruction create (final Object... operands)
+		{
+			assert false : "Use StoreInstruction instead";
+			throw new UnsupportedOperationException();
+		}
+	},
 
 	/**
 	 * Store {@code double} into local variable #2.
@@ -660,7 +837,15 @@ enum JavaBytecode
 	 */
 	dstore_2 (0x49,
 		O(DOUBLE),
-		O()),
+		O())
+	{
+		@Override
+		public JavaInstruction create (final Object... operands)
+		{
+			assert false : "Use StoreInstruction instead";
+			throw new UnsupportedOperationException();
+		}
+	},
 
 	/**
 	 * Store {@code double} into local variable #3.
@@ -805,7 +990,15 @@ enum JavaBytecode
 	faload (0x30,
 		O(ARRAYREF, INDEX),
 		O(FLOAT),
-		X(NullPointerException.class, ArrayIndexOutOfBoundsException.class)),
+		X(NullPointerException.class, ArrayIndexOutOfBoundsException.class))
+	{
+		@Override
+		public JavaInstruction create (final Object... operands)
+		{
+			assert false : "Use ArrayLoadInstruction instead";
+			throw new UnsupportedOperationException();
+		}
+	},
 
 	/**
 	 * Store into {@code float} array.
@@ -817,7 +1010,15 @@ enum JavaBytecode
 	fastore (0x51,
 		O(ARRAYREF, INDEX, FLOAT),
 		O(),
-		X(NullPointerException.class, ArrayIndexOutOfBoundsException.class)),
+		X(NullPointerException.class, ArrayIndexOutOfBoundsException.class))
+	{
+		@Override
+		public JavaInstruction create (final Object... operands)
+		{
+			assert false : "Use ArrayStoreInstruction instead";
+			throw new UnsupportedOperationException();
+		}
+	},
 
 	/**
 	 * Compare {@code float}.
@@ -899,8 +1100,8 @@ enum JavaBytecode
 		@Override
 		public JavaInstruction create (final Object... operands)
 		{
-			assert operands.length == 1;
-			return new LoadInstruction((LocalVariable) operands[0]);
+			assert false : "Use LoadInstruction instead";
+			throw new UnsupportedOperationException();
 		}
 
 		@Override
@@ -919,7 +1120,15 @@ enum JavaBytecode
 	 */
 	fload_0 (0x22,
 		O(),
-		O(FLOAT)),
+		O(FLOAT))
+	{
+		@Override
+		public JavaInstruction create (final Object... operands)
+		{
+			assert false : "Use LoadInstruction instead";
+			throw new UnsupportedOperationException();
+		}
+	},
 
 	/**
 	 * Load {@code float} from local variable #1.
@@ -930,7 +1139,15 @@ enum JavaBytecode
 	 */
 	fload_1 (0x23,
 		O(),
-		O(FLOAT)),
+		O(FLOAT))
+	{
+		@Override
+		public JavaInstruction create (final Object... operands)
+		{
+			assert false : "Use LoadInstruction instead";
+			throw new UnsupportedOperationException();
+		}
+	},
 
 	/**
 	 * Load {@code float} from local variable #2.
@@ -941,7 +1158,15 @@ enum JavaBytecode
 	 */
 	fload_2 (0x24,
 		O(),
-		O(FLOAT)),
+		O(FLOAT))
+	{
+		@Override
+		public JavaInstruction create (final Object... operands)
+		{
+			assert false : "Use LoadInstruction instead";
+			throw new UnsupportedOperationException();
+		}
+	},
 
 	/**
 	 * Load {@code float} from local variable #3.
@@ -952,7 +1177,15 @@ enum JavaBytecode
 	 */
 	fload_3 (0x25,
 		O(),
-		O(FLOAT)),
+		O(FLOAT))
+	{
+		@Override
+		public JavaInstruction create (final Object... operands)
+		{
+			assert false : "Use LoadInstruction instead";
+			throw new UnsupportedOperationException();
+		}
+	},
 
 	/**
 	 * Multiply {@code float}.
@@ -1013,8 +1246,8 @@ enum JavaBytecode
 		@Override
 		public JavaInstruction create (final Object... operands)
 		{
-			assert operands.length == 1;
-			return new StoreInstruction((LocalVariable) operands[0]);
+			assert false : "Use StoreInstruction instead";
+			throw new UnsupportedOperationException();
 		}
 
 		@Override
@@ -1033,7 +1266,15 @@ enum JavaBytecode
 	 */
 	fstore_0 (0x43,
 		O(),
-		O(FLOAT)),
+		O(FLOAT))
+	{
+		@Override
+		public JavaInstruction create (final Object... operands)
+		{
+			assert false : "Use StoreInstruction instead";
+			throw new UnsupportedOperationException();
+		}
+	},
 
 	/**
 	 * Store {@code float} into local variable #1.
@@ -1044,7 +1285,15 @@ enum JavaBytecode
 	 */
 	fstore_1 (0x44,
 		O(),
-		O(FLOAT)),
+		O(FLOAT))
+	{
+		@Override
+		public JavaInstruction create (final Object... operands)
+		{
+			assert false : "Use StoreInstruction instead";
+			throw new UnsupportedOperationException();
+		}
+	},
 
 	/**
 	 * Store {@code float} into local variable #2.
@@ -1055,7 +1304,15 @@ enum JavaBytecode
 	 */
 	fstore_2 (0x45,
 		O(),
-		O(FLOAT)),
+		O(FLOAT))
+	{
+		@Override
+		public JavaInstruction create (final Object... operands)
+		{
+			assert false : "Use StoreInstruction instead";
+			throw new UnsupportedOperationException();
+		}
+	},
 
 	/**
 	 * Store {@code float} into local variable #3.
@@ -1066,7 +1323,15 @@ enum JavaBytecode
 	 */
 	fstore_3 (0x46,
 		O(),
-		O(FLOAT)),
+		O(FLOAT))
+	{
+		@Override
+		public JavaInstruction create (final Object... operands)
+		{
+			assert false : "Use StoreInstruction instead";
+			throw new UnsupportedOperationException();
+		}
+	},
 
 	/**
 	 * Subtract {@code float}.
@@ -1142,18 +1407,11 @@ enum JavaBytecode
 		O(),
 		O())
 	{
-		/**
-		 * {@inheritDoc}
-		 *
-		 * Because the resulting {@linkplain JavaInstruction instruction} is
-		 * fairly abstract, the actual {@linkplain JavaBytecode bytecode}
-		 * emitted may differ from {@link #goto_s}.
-		 */
 		@Override
 		public JavaInstruction create (final Object... operands)
 		{
-			assert operands.length == 1;
-			return new GotoInstruction((Label) operands[0]);
+			assert false : "Use GotoInstruction instead";
+			throw new UnsupportedOperationException();
 		}
 
 		@Override
@@ -1174,18 +1432,11 @@ enum JavaBytecode
 		O(),
 		O())
 	{
-		/**
-		 * {@inheritDoc}
-		 *
-		 * Because the resulting {@linkplain JavaInstruction instruction} is
-		 * fairly abstract, the actual {@linkplain JavaBytecode bytecode}
-		 * emitted may differ from {@link #goto_w}.
-		 */
 		@Override
 		public JavaInstruction create (final Object... operands)
 		{
-			assert operands.length == 1;
-			return new GotoInstruction((Label) operands[0]);
+			assert false : "Use GotoInstruction instead";
+			throw new UnsupportedOperationException();
 		}
 	},
 
@@ -1276,7 +1527,15 @@ enum JavaBytecode
 	iaload (0x2e,
 		O(ARRAYREF, INDEX),
 		O(INT),
-		X(NullPointerException.class, ArrayIndexOutOfBoundsException.class)),
+		X(NullPointerException.class, ArrayIndexOutOfBoundsException.class))
+	{
+		@Override
+		public JavaInstruction create (final Object... operands)
+		{
+			assert false : "Use ArrayLoadInstruction instead";
+			throw new UnsupportedOperationException();
+		}
+	},
 
 	/**
 	 * Boolean AND {@code int}.
@@ -1299,7 +1558,15 @@ enum JavaBytecode
 	iastore (0x4f,
 		O(ARRAYREF, INDEX, INT),
 		O(),
-		X(NullPointerException.class, ArrayIndexOutOfBoundsException.class)),
+		X(NullPointerException.class, ArrayIndexOutOfBoundsException.class))
+	{
+		@Override
+		public JavaInstruction create (final Object... operands)
+		{
+			assert false : "Use ArrayStoreInstruction instead";
+			throw new UnsupportedOperationException();
+		}
+	},
 
 	/**
 	 * Push {@code int} constant -1.
@@ -1750,8 +2017,8 @@ enum JavaBytecode
 		@Override
 		public JavaInstruction create (final Object... operands)
 		{
-			assert operands.length == 1;
-			return new LoadInstruction((LocalVariable) operands[0]);
+			assert false : "Use LoadInstruction instead";
+			throw new UnsupportedOperationException();
 		}
 
 		@Override
@@ -1770,7 +2037,15 @@ enum JavaBytecode
 	 */
 	iload_0 (0x1a,
 		O(),
-		O(INT)),
+		O(INT))
+	{
+		@Override
+		public JavaInstruction create (final Object... operands)
+		{
+			assert false : "Use LoadInstruction instead";
+			throw new UnsupportedOperationException();
+		}
+	},
 
 	/**
 	 * Load {@code int} from local variable #1.
@@ -1781,7 +2056,15 @@ enum JavaBytecode
 	 */
 	iload_1 (0x1b,
 		O(),
-		O(INT)),
+		O(INT))
+	{
+		@Override
+		public JavaInstruction create (final Object... operands)
+		{
+			assert false : "Use LoadInstruction instead";
+			throw new UnsupportedOperationException();
+		}
+	},
 
 	/**
 	 * Load {@code int} from local variable #2.
@@ -1792,7 +2075,15 @@ enum JavaBytecode
 	 */
 	iload_2 (0x1c,
 		O(),
-		O(INT)),
+		O(INT))
+	{
+		@Override
+		public JavaInstruction create (final Object... operands)
+		{
+			assert false : "Use LoadInstruction instead";
+			throw new UnsupportedOperationException();
+		}
+	},
 
 	/**
 	 * Load {@code int} from local variable #3.
@@ -1803,7 +2094,15 @@ enum JavaBytecode
 	 */
 	iload_3 (0x1d,
 		O(),
-		O(INT)),
+		O(INT))
+	{
+		@Override
+		public JavaInstruction create (final Object... operands)
+		{
+			assert false : "Use LoadInstruction instead";
+			throw new UnsupportedOperationException();
+		}
+	},
 
 	/**
 	 * Multiply {@code int}.
@@ -2050,8 +2349,8 @@ enum JavaBytecode
 		@Override
 		public JavaInstruction create (final Object... operands)
 		{
-			assert operands.length == 1;
-			return new StoreInstruction((LocalVariable) operands[0]);
+			assert false : "Use StoreInstruction instead";
+			throw new UnsupportedOperationException();
 		}
 
 		@Override
@@ -2070,7 +2369,15 @@ enum JavaBytecode
 	 */
 	istore_0 (0x3b,
 		O(INT),
-		O()),
+		O())
+	{
+		@Override
+		public JavaInstruction create (final Object... operands)
+		{
+			assert false : "Use StoreInstruction instead";
+			throw new UnsupportedOperationException();
+		}
+	},
 
 	/**
 	 * Store {@code int} into local variable #1.
@@ -2081,7 +2388,15 @@ enum JavaBytecode
 	 */
 	istore_1 (0x3c,
 		O(INT),
-		O()),
+		O())
+	{
+		@Override
+		public JavaInstruction create (final Object... operands)
+		{
+			assert false : "Use StoreInstruction instead";
+			throw new UnsupportedOperationException();
+		}
+	},
 
 	/**
 	 * Store {@code int} into local variable #2.
@@ -2092,7 +2407,15 @@ enum JavaBytecode
 	 */
 	istore_2 (0x3d,
 		O(INT),
-		O()),
+		O())
+	{
+		@Override
+		public JavaInstruction create (final Object... operands)
+		{
+			assert false : "Use StoreInstruction instead";
+			throw new UnsupportedOperationException();
+		}
+	},
 
 	/**
 	 * Store {@code int} into local variable #3.
@@ -2103,7 +2426,15 @@ enum JavaBytecode
 	 */
 	istore_3 (0x3e,
 		O(INT),
-		O()),
+		O())
+	{
+		@Override
+		public JavaInstruction create (final Object... operands)
+		{
+			assert false : "Use StoreInstruction instead";
+			throw new UnsupportedOperationException();
+		}
+	},
 
 	/**
 	 * Subtract {@code int}.
@@ -2152,9 +2483,8 @@ enum JavaBytecode
 		@Override
 		public JavaInstruction create (final Object... operands)
 		{
-			assert operands.length == 1;
-			return new JumpSubroutineInstruction(
-				(Label) operands[0]);
+			assert false : "Use JumpSubroutineInstruction instead";
+			throw new UnsupportedOperationException();
 		}
 	},
 
@@ -2172,9 +2502,8 @@ enum JavaBytecode
 		@Override
 		public JavaInstruction create (final Object... operands)
 		{
-			assert operands.length == 1;
-			return new JumpSubroutineInstruction(
-				(Label) operands[0]);
+			assert false : "Use JumpSubroutineInstruction instead";
+			throw new UnsupportedOperationException();
 		}
 	},
 
@@ -2232,7 +2561,15 @@ enum JavaBytecode
 	laload (0x2f,
 		O(ARRAYREF, INDEX),
 		O(LONG),
-		X(NullPointerException.class, ArrayIndexOutOfBoundsException.class)),
+		X(NullPointerException.class, ArrayIndexOutOfBoundsException.class))
+	{
+		@Override
+		public JavaInstruction create (final Object... operands)
+		{
+			assert false : "Use ArrayLoadInstruction instead";
+			throw new UnsupportedOperationException();
+		}
+	},
 
 	/**
 	 * Boolean AND {@code long}.
@@ -2255,7 +2592,15 @@ enum JavaBytecode
 	lastore (0x50,
 		O(ARRAYREF, INDEX, LONG),
 		O(),
-		X(NullPointerException.class, ArrayIndexOutOfBoundsException.class)),
+		X(NullPointerException.class, ArrayIndexOutOfBoundsException.class))
+	{
+		@Override
+		public JavaInstruction create (final Object... operands)
+		{
+			assert false : "Use ArrayStoreInstruction instead";
+			throw new UnsupportedOperationException();
+		}
+	},
 
 	/**
 	 * Compare {@code long}.
@@ -2377,8 +2722,8 @@ enum JavaBytecode
 		@Override
 		public JavaInstruction create (final Object... operands)
 		{
-			assert operands.length == 1;
-			return new LoadInstruction((LocalVariable) operands[0]);
+			assert false : "Use LoadInstruction instead";
+			throw new UnsupportedOperationException();
 		}
 
 		@Override
@@ -2397,7 +2742,15 @@ enum JavaBytecode
 	 */
 	lload_0 (0x1e,
 		O(),
-		O(LONG)),
+		O(LONG))
+	{
+		@Override
+		public JavaInstruction create (final Object... operands)
+		{
+			assert false : "Use LoadInstruction instead";
+			throw new UnsupportedOperationException();
+		}
+	},
 
 	/**
 	 * Load {@code long} from local variable #1.
@@ -2408,7 +2761,15 @@ enum JavaBytecode
 	 */
 	lload_1 (0x1f,
 		O(),
-		O(LONG)),
+		O(LONG))
+	{
+		@Override
+		public JavaInstruction create (final Object... operands)
+		{
+			assert false : "Use LoadInstruction instead";
+			throw new UnsupportedOperationException();
+		}
+	},
 
 	/**
 	 * Load {@code long} from local variable #2.
@@ -2419,7 +2780,15 @@ enum JavaBytecode
 	 */
 	lload_2 (0x20,
 		O(),
-		O(LONG)),
+		O(LONG))
+	{
+		@Override
+		public JavaInstruction create (final Object... operands)
+		{
+			assert false : "Use LoadInstruction instead";
+			throw new UnsupportedOperationException();
+		}
+	},
 
 	/**
 	 * Load {@code long} from local variable #3.
@@ -2430,7 +2799,15 @@ enum JavaBytecode
 	 */
 	lload_3 (0x21,
 		O(),
-		O(LONG)),
+		O(LONG))
+	{
+		@Override
+		public JavaInstruction create (final Object... operands)
+		{
+			assert false : "Use LoadInstruction instead";
+			throw new UnsupportedOperationException();
+		}
+	},
 
 	/**
 	 * Multiply {@code long}.
@@ -2547,8 +2924,8 @@ enum JavaBytecode
 		@Override
 		public JavaInstruction create (final Object... operands)
 		{
-			assert operands.length == 1;
-			return new StoreInstruction((LocalVariable) operands[0]);
+			assert false : "Use StoreInstruction instead";
+			throw new UnsupportedOperationException();
 		}
 
 		@Override
@@ -2567,7 +2944,15 @@ enum JavaBytecode
 	 */
 	lstore_0 (0x3f,
 		O(LONG),
-		O()),
+		O())
+	{
+		@Override
+		public JavaInstruction create (final Object... operands)
+		{
+			assert false : "Use StoreInstruction instead";
+			throw new UnsupportedOperationException();
+		}
+	},
 
 	/**
 	 * Store {@code long} into local variable #1.
@@ -2578,7 +2963,15 @@ enum JavaBytecode
 	 */
 	lstore_1 (0x40,
 		O(LONG),
-		O()),
+		O())
+	{
+		@Override
+		public JavaInstruction create (final Object... operands)
+		{
+			assert false : "Use StoreInstruction instead";
+			throw new UnsupportedOperationException();
+		}
+	},
 
 	/**
 	 * Store {@code long} into local variable #2.
@@ -2589,7 +2982,15 @@ enum JavaBytecode
 	 */
 	lstore_2 (0x41,
 		O(LONG),
-		O()),
+		O())
+	{
+		@Override
+		public JavaInstruction create (final Object... operands)
+		{
+			assert false : "Use StoreInstruction instead";
+			throw new UnsupportedOperationException();
+		}
+	},
 
 	/**
 	 * Store {@code long} into local variable #3.
@@ -2600,7 +3001,15 @@ enum JavaBytecode
 	 */
 	lstore_3 (0x42,
 		O(LONG),
-		O()),
+		O())
+	{
+		@Override
+		public JavaInstruction create (final Object... operands)
+		{
+			assert false : "Use StoreInstruction instead";
+			throw new UnsupportedOperationException();
+		}
+	},
 
 	/**
 	 * Subtract {@code long}.
@@ -2731,8 +3140,8 @@ enum JavaBytecode
 		@Override
 		public JavaInstruction create (final Object... operands)
 		{
-			assert operands.length == 1;
-			return new NewArrayInstruction((Class<?>) operands[0]);
+			assert false : "Use NewObjectArrayInstruction instead";
+			throw new UnsupportedOperationException();
 		}
 	},
 
@@ -2865,7 +3274,15 @@ enum JavaBytecode
 	saload (0x35,
 		O(ARRAYREF, INDEX),
 		O(INT),
-		X(NullPointerException.class, ArrayIndexOutOfBoundsException.class)),
+		X(NullPointerException.class, ArrayIndexOutOfBoundsException.class))
+	{
+		@Override
+		public JavaInstruction create (final Object... operands)
+		{
+			assert false : "Use ArrayLoadInstruction instead";
+			throw new UnsupportedOperationException();
+		}
+	},
 
 	/**
 	 * Store into {@code short} array.
@@ -2877,7 +3294,15 @@ enum JavaBytecode
 	sastore (0x56,
 		O(ARRAYREF, INDEX, VALUE),
 		O(),
-		X(NullPointerException.class, ArrayIndexOutOfBoundsException.class)),
+		X(NullPointerException.class, ArrayIndexOutOfBoundsException.class))
+	{
+		@Override
+		public JavaInstruction create (final Object... operands)
+		{
+			assert false : "Use ArrayStoreInstruction instead";
+			throw new UnsupportedOperationException();
+		}
+	},
 
 	/**
 	 * Push {@code short}.
