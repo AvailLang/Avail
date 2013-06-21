@@ -36,6 +36,7 @@ import java.io.DataOutput;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Deque;
 import java.util.LinkedList;
 import java.util.List;
@@ -54,12 +55,6 @@ final class InstructionWriter
 {
 	/** The {@linkplain JavaInstruction instructions}. */
 	private final Deque<JavaInstruction> instructions = new LinkedList<>();
-
-	{
-		final Label startLabel = new Label("«start»");
-		startLabel.setOperandStack(new LinkedList<JavaOperand>());
-		instructions.add(startLabel);
-	}
 
 	/**
 	 * Answer the count of {@linkplain JavaInstruction instructions} already
@@ -124,15 +119,19 @@ final class InstructionWriter
 	private List<JavaOperand> newOperandStack ()
 	{
 		final JavaInstruction instr = instructions.peekLast();
-		assert canConsumeOperands(instr);
-		final List<JavaOperand> operands = instr.operandStack();
-		assert operands != null;
-		final List<JavaOperand> after = new ArrayList<>(
-			operands.subList(
-				0,
-				operands.size() - instr.inputOperands().length + 1));
-		after.addAll(Arrays.asList(instr.outputOperands()));
-		return after;
+		if (instr != null)
+		{
+			assert canConsumeOperands(instr);
+			final List<JavaOperand> operands = instr.operandStack();
+			assert operands != null;
+			final List<JavaOperand> after = new ArrayList<>(
+				operands.subList(
+					0,
+					operands.size() - instr.inputOperands().length));
+			after.addAll(Arrays.asList(instr.outputOperands()));
+			return after;
+		}
+		return Collections.emptyList();
 	}
 
 	/**

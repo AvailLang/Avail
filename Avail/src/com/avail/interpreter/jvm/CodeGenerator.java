@@ -130,6 +130,16 @@ extends Emitter<ClassModifier>
 	}
 
 	/**
+	 * Answer the {@linkplain ConstantPool constant pool}.
+	 *
+	 * @return The constant pool.
+	 */
+	public ConstantPool constantPool ()
+	{
+		return constantPool;
+	}
+
+	/**
 	 * The {@linkplain ClassEntry superclass entry} for the target {@linkplain
 	 * Class class}.
 	 */

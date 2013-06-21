@@ -67,7 +67,7 @@ extends Emitter<FieldModifier>
 	 */
 	public String name ()
 	{
-		return nameEntry.toString();
+		return nameEntry.data();
 	}
 
 	/** The descriptor {@linkplain Utf8Entry entry}. */
@@ -80,7 +80,7 @@ extends Emitter<FieldModifier>
 	 */
 	public String descriptor ()
 	{
-		return descriptorEntry.toString();
+		return descriptorEntry.data();
 	}
 
 	/**
@@ -123,8 +123,8 @@ extends Emitter<FieldModifier>
 	{
 		return constantPool.fieldref(
 			codeGenerator.classEntry.toString(),
-			nameEntry.toString(),
-			descriptorEntry.toString());
+			nameEntry.data(),
+			descriptorEntry.data());
 	}
 
 	/**

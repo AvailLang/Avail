@@ -32,8 +32,12 @@
 
 package com.avail.interpreter.jvm;
 
+import static com.avail.interpreter.jvm.JavaDescriptors.parameterOperands;
+import static com.avail.interpreter.jvm.JavaDescriptors.returnOperand;
 import java.io.DataOutput;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import com.avail.interpreter.jvm.ConstantPool.MethodrefEntry;
 
 /**
@@ -48,6 +52,41 @@ extends SimpleInstruction
 {
 	/** The {@linkplain MethodrefEntry method entry} for the target method. */
 	private final MethodrefEntry methodEntry;
+
+	@Override
+	JavaOperand[] inputOperands ()
+	{
+		final List<JavaOperand> operands;
+		switch (bytecode())
+		{
+			case invokestatic:
+				operands = parameterOperands(methodEntry.descriptor());
+				break;
+			case invokeinterface:
+			case invokespecial:
+			case invokevirtual:
+				operands = parameterOperands(methodEntry.descriptor());
+				operands.add(0, JavaOperand.OBJECTREF);
+				break;
+			default:
+				assert false;
+				throw new IllegalStateException();
+		}
+		return operands.toArray(new JavaOperand[operands.size()]);
+	}
+
+	@Override
+	JavaOperand[] outputOperands ()
+	{
+		final List<JavaOperand> operands = new ArrayList<>(1);
+		final JavaOperand returnOperand = returnOperand(
+			methodEntry.descriptor());
+		if (returnOperand != null)
+		{
+			operands.add(returnOperand);
+		}
+		return operands.toArray(new JavaOperand[operands.size()]);
+	}
 
 	@Override
 	void writeImmediatesTo (final DataOutput out) throws IOException

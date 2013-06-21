@@ -39,6 +39,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import com.avail.annotations.Nullable;
 import com.avail.annotations.ThreadSafe;
+import com.avail.utility.Strings;
 
 /**
  * {@code ConstantPool} represents a per-class constant pool.
@@ -49,7 +50,7 @@ import com.avail.annotations.ThreadSafe;
  *    The Constant Pool</a>
  */
 @ThreadSafe
-class ConstantPool
+public class ConstantPool
 {
 	/**
 	 * The enumeration of {@code class} file constant pool tags.
@@ -224,6 +225,16 @@ class ConstantPool
 
 		/** The {@linkplain String data}. */
 		private final String data;
+
+		/**
+		 * Answer the {@linkplain String data}.
+		 *
+		 * @return The data.
+		 */
+		String data ()
+		{
+			return data;
+		}
 
 		@Override
 		void writeBodyTo (final DataOutput out) throws IOException
@@ -529,6 +540,26 @@ class ConstantPool
 		 */
 		private final Utf8Entry nameEntry;
 
+		/**
+		 * Answer the {@linkplain Class class} name.
+		 *
+		 * @return The class descriptor.
+		 */
+		String name ()
+		{
+			return JavaDescriptors.asTypeName(nameEntry.data());
+		}
+
+		/**
+		 * Answer the {@linkplain Class class} descriptor.
+		 *
+		 * @return The class descriptor.
+		 */
+		String descriptor ()
+		{
+			return nameEntry.data();
+		}
+
 		@Override
 		JavaOperand operand ()
 		{
@@ -549,7 +580,7 @@ class ConstantPool
 		@Override
 		public String toString ()
 		{
-			return nameEntry.toString();
+			return nameEntry.data();
 		}
 
 		/**
@@ -610,7 +641,7 @@ class ConstantPool
 		@Override
 		public String toString ()
 		{
-			return utf8Entry.toString();
+			return Strings.escape(utf8Entry.data());
 		}
 
 		/**
@@ -647,6 +678,26 @@ class ConstantPool
 		 */
 		private final NameAndTypeEntry nameAndTypeEntry;
 
+		/**
+		 * Answer the name of the referent.
+		 *
+		 * @return The name of the referent.
+		 */
+		String name ()
+		{
+			return nameAndTypeEntry.name();
+		}
+
+		/**
+		 * Answer the descriptor of the referent.
+		 *
+		 * @return The descriptor of the referent.
+		 */
+		String descriptor ()
+		{
+			return nameAndTypeEntry.descriptor();
+		}
+
 		@Override
 		final void writeBodyTo (final DataOutput out) throws IOException
 		{
@@ -659,7 +710,7 @@ class ConstantPool
 		{
 			return String.format(
 				"%s.%s",
-				classEntry,
+				classEntry.name(),
 				nameAndTypeEntry);
 		}
 
@@ -858,8 +909,28 @@ class ConstantPool
 		/** The {@linkplain Utf8Entry entry} containing the name. */
 		private final Utf8Entry nameEntry;
 
+		/**
+		 * Answer the name.
+		 *
+		 * @return The name.
+		 */
+		String name ()
+		{
+			return nameEntry.data();
+		}
+
 		/** The {@linkplain Utf8Entry entry} containing the descriptor. */
 		private final Utf8Entry descriptorEntry;
+
+		/**
+		 * Answer the descriptor.
+		 *
+		 * @return The descriptor.
+		 */
+		String descriptor ()
+		{
+			return descriptorEntry.data();
+		}
 
 		@Override
 		void writeBodyTo (final DataOutput out) throws IOException
@@ -880,7 +951,7 @@ class ConstantPool
 		void writeArgumentUnitsTo (final DataOutput out) throws IOException
 		{
 			final int argumentUnits = JavaDescriptors.slotUnits(
-				descriptorEntry.toString());
+				descriptorEntry.data());
 			assert (argumentUnits & 255) == argumentUnits;
 			out.writeByte(argumentUnits);
 		}
@@ -888,7 +959,7 @@ class ConstantPool
 		@Override
 		public String toString ()
 		{
-			return nameEntry + ":" + descriptorEntry;
+			return nameEntry.data() + ":" + descriptorEntry;
 		}
 
 		/**
@@ -1083,7 +1154,7 @@ class ConstantPool
 		@Override
 		public String toString ()
 		{
-			return descriptorEntry.toString();
+			return descriptorEntry.data();
 		}
 
 		/**
@@ -1217,7 +1288,7 @@ class ConstantPool
 	 * @return The entry associated with the specified value.
 	 */
 	@ThreadSafe
-	Utf8Entry utf8 (final String value)
+	public Utf8Entry utf8 (final String value)
 	{
 		final Utf8Key key = new Utf8Key(value);
 		synchronized (entries)
@@ -1241,7 +1312,7 @@ class ConstantPool
 	 * @return The entry associated with the specified value.
 	 */
 	@ThreadSafe
-	IntegerEntry constant (final int value)
+	public IntegerEntry constant (final int value)
 	{
 		final Integer boxed = new Integer(value);
 		synchronized (entries)
@@ -1265,7 +1336,7 @@ class ConstantPool
 	 * @return The entry associated with the specified value.
 	 */
 	@ThreadSafe
-	LongEntry constant (final long value)
+	public LongEntry constant (final long value)
 	{
 		final Long boxed = new Long(value);
 		synchronized (entries)
@@ -1292,7 +1363,7 @@ class ConstantPool
 	 * @return The entry associated with the specified value.
 	 */
 	@ThreadSafe
-	FloatEntry constant (final float value)
+	public FloatEntry constant (final float value)
 	{
 		final Float boxed = new Float(value);
 		synchronized (entries)
@@ -1316,7 +1387,7 @@ class ConstantPool
 	 * @return The entry associated with the specified value.
 	 */
 	@ThreadSafe
-	DoubleEntry constant (final double value)
+	public DoubleEntry constant (final double value)
 	{
 		final Double boxed = new Double(value);
 		synchronized (entries)
@@ -1414,7 +1485,7 @@ class ConstantPool
 	 * @return The entry associated with the specified value.
 	 */
 	@ThreadSafe
-	ClassEntry constant (final Class<?> value)
+	public ClassEntry constant (final Class<?> value)
 	{
 		final String descriptor = JavaDescriptors.forType(value);
 		return classConstant(descriptor);
@@ -1429,7 +1500,7 @@ class ConstantPool
 	 * @return The entry associated with the specified value.
 	 */
 	@ThreadSafe
-	StringEntry constant (final String value)
+	public StringEntry constant (final String value)
 	{
 		synchronized (entries)
 		{
@@ -1565,7 +1636,7 @@ class ConstantPool
 	 * @return The entry associated with the specified field reference.
 	 */
 	@ThreadSafe
-	FieldrefEntry fieldref (
+	public FieldrefEntry fieldref (
 		final String definerDescriptor,
 		final String name,
 		final String fieldDescriptor)
@@ -1600,7 +1671,7 @@ class ConstantPool
 	 * @return The entry associated with the specified field reference.
 	 */
 	@ThreadSafe
-	FieldrefEntry fieldref (
+	public FieldrefEntry fieldref (
 		final Class<?> definer,
 		final String name,
 		final Class<?> fieldType)
@@ -1656,7 +1727,7 @@ class ConstantPool
 	 * @return The entry associated with the specified field reference.
 	 */
 	@ThreadSafe
-	MethodrefEntry methodref (
+	public MethodrefEntry methodref (
 		final String definerDescriptor,
 		final String name,
 		final String methodDescriptor)
@@ -1671,7 +1742,8 @@ class ConstantPool
 				final ClassEntry classEntry = classConstant(definerDescriptor);
 				final NameAndTypeEntry nameAndType =
 					nameAndType(name, methodDescriptor);
-				entry = new FieldrefEntry(nextIndex++, classEntry, nameAndType);
+				entry = new MethodrefEntry(
+					nextIndex++, classEntry, nameAndType);
 				entries.put(key, entry);
 			}
 			return (MethodrefEntry) entry;
@@ -1693,7 +1765,7 @@ class ConstantPool
 	 * @return The entry associated with the specified field reference.
 	 */
 	@ThreadSafe
-	MethodrefEntry methodref (
+	public MethodrefEntry methodref (
 		final Class<?> definer,
 		final String name,
 		final Class<?> returnType,
@@ -1714,7 +1786,7 @@ class ConstantPool
 	 * @return The entry associated with the specified field reference.
 	 */
 	@ThreadSafe
-	MethodrefEntry methodref (final Method method)
+	public MethodrefEntry methodref (final Method method)
 	{
 		assert !method.getDeclaringClass().isInterface();
 		return methodref(
@@ -1770,7 +1842,7 @@ class ConstantPool
 	 * @return The entry associated with the specified field reference.
 	 */
 	@ThreadSafe
-	InterfaceMethodrefEntry interfaceMethodref (
+	public InterfaceMethodrefEntry interfaceMethodref (
 		final String definerDescriptor,
 		final String name,
 		final String methodDescriptor)
@@ -1807,7 +1879,7 @@ class ConstantPool
 	 * @return The entry associated with the specified field reference.
 	 */
 	@ThreadSafe
-	InterfaceMethodrefEntry interfaceMethodref (
+	public InterfaceMethodrefEntry interfaceMethodref (
 		final Class<?> definer,
 		final String name,
 		final Class<?> returnType,
@@ -1828,7 +1900,7 @@ class ConstantPool
 	 * @return The entry associated with the specified field reference.
 	 */
 	@ThreadSafe
-	InterfaceMethodrefEntry interfaceMethodref (final Method method)
+	public InterfaceMethodrefEntry interfaceMethodref (final Method method)
 	{
 		assert method.getDeclaringClass().isInterface();
 		return interfaceMethodref(
@@ -1904,7 +1976,7 @@ class ConstantPool
 	 * @return The entry associated with the specified value.
 	 */
 	@ThreadSafe
-	NameAndTypeEntry nameAndType (
+	public NameAndTypeEntry nameAndType (
 		final String name,
 		final String descriptor)
 	{
@@ -1935,7 +2007,7 @@ class ConstantPool
 	 * @return The entry associated with the specified value.
 	 */
 	@ThreadSafe
-	NameAndTypeEntry nameAndType (
+	public NameAndTypeEntry nameAndType (
 		final String name,
 		final Class<?> type)
 	{
@@ -1952,7 +2024,7 @@ class ConstantPool
 	 * @return The entry associated with the specified value.
 	 */
 	@ThreadSafe
-	NameAndTypeEntry nameAndType (final Method method)
+	public NameAndTypeEntry nameAndType (final Method method)
 	{
 		final String descriptor = JavaDescriptors.forMethod(method);
 		return nameAndType(method.getName(), descriptor);
@@ -1972,7 +2044,7 @@ class ConstantPool
 	 * @return The entry associated with the specified value.
 	 */
 	@ThreadSafe
-	NameAndTypeEntry nameAndType (
+	public NameAndTypeEntry nameAndType (
 		final String name,
 		final Class<?> returnType,
 		final Class<?>... parameterTypes)
@@ -2051,7 +2123,7 @@ class ConstantPool
 	 * @return The entry associated with the specified value.
 	 */
 	@ThreadSafe
-	MethodHandleEntry methodHandle (
+	public MethodHandleEntry methodHandle (
 		final MethodHandleKind kind,
 		final RefEntry referenceEntry)
 	{
@@ -2129,7 +2201,7 @@ class ConstantPool
 	 * @return The entry associated with the specified value.
 	 */
 	@ThreadSafe
-	MethodTypeEntry methodType (final String descriptor)
+	public MethodTypeEntry methodType (final String descriptor)
 	{
 		final MethodTypeKey key = new MethodTypeKey(descriptor);
 		synchronized (entries)
@@ -2156,7 +2228,7 @@ class ConstantPool
 	 * @return The entry associated with the specified value.
 	 */
 	@ThreadSafe
-	MethodTypeEntry methodType (
+	public MethodTypeEntry methodType (
 		final Class<?> returnType,
 		final Class<?>... parameterTypes)
 	{
@@ -2174,7 +2246,7 @@ class ConstantPool
 	 * @return The entry associated with the specified value.
 	 */
 	@ThreadSafe
-	MethodTypeEntry methodType (final Method method)
+	public MethodTypeEntry methodType (final Method method)
 	{
 		final String descriptor = JavaDescriptors.forMethod(method);
 		return methodType(descriptor);

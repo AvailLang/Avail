@@ -3438,14 +3438,14 @@ enum JavaBytecode
 	}
 
 	/** The opcode. */
-	private final byte opcode;
+	private final int opcode;
 
 	/**
 	 * Answer the opcode.
 	 *
 	 * @return The opcode.
 	 */
-	public byte opcode ()
+	public int opcode ()
 	{
 		return opcode;
 	}
@@ -3601,7 +3601,7 @@ enum JavaBytecode
 		final Class<? extends Throwable>[] exceptions)
 	{
 		assert (opcode & 255) == opcode;
-		this.opcode = (byte) opcode;
+		this.opcode = opcode;
 		this.minimumFormatSize = 1 + extraBytes;
 		this.inputOperands = inputOperands;
 		this.outputOperands = outputOperands;

@@ -36,9 +36,13 @@ import static com.avail.interpreter.jvm.JavaBytecode.*;
 import static com.avail.interpreter.jvm.MethodModifier.*;
 import java.io.DataOutput;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Deque;
 import java.util.EnumSet;
+import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
 import com.avail.interpreter.jvm.ConstantPool.FieldrefEntry;
 import com.avail.interpreter.jvm.ConstantPool.MethodrefEntry;
 import com.avail.interpreter.jvm.ConstantPool.Utf8Entry;
@@ -69,7 +73,7 @@ extends Emitter<MethodModifier>
 	 */
 	public String name ()
 	{
-		return nameEntry.toString();
+		return nameEntry.data();
 	}
 
 	/** The descriptor {@linkplain Utf8Entry entry}. */
@@ -82,7 +86,7 @@ extends Emitter<MethodModifier>
 	 */
 	public String descriptor ()
 	{
-		return descriptorEntry.toString();
+		return descriptorEntry.data();
 	}
 
 	/**
@@ -125,8 +129,8 @@ extends Emitter<MethodModifier>
 	{
 		return constantPool.methodref(
 			codeGenerator.classEntry.toString(),
-			nameEntry.toString(),
-			descriptorEntry.toString());
+			nameEntry.data(),
+			descriptorEntry.data());
 	}
 
 	/** The {@linkplain InstructionWriter instruction writer}. */
@@ -166,6 +170,9 @@ extends Emitter<MethodModifier>
 		doomedScope.exit();
 	}
 
+	/** The {@linkplain Set set} of {@linkplain Label labels}. */
+	private final Set<String> labelNames = new HashSet<>();
+
 	/**
 	 * Introduce a new {@linkplain Label label} with the specified name, but do
 	 * not emit it to the {@linkplain InstructionWriter instruction stream}.
@@ -177,7 +184,29 @@ extends Emitter<MethodModifier>
 	 */
 	public Label newLabel (final String name)
 	{
+		assert !labelNames.contains(name);
+		labelNames.add(name);
 		return new Label(name);
+	}
+
+	/** The pattern to use for anonymous labels. */
+	private static final String anonymousLabelPattern = "__L%d";
+
+	/** The next ordinal to use for an anonymous label. */
+	private int labelOrdinal = 0;
+
+	/**
+	 * Introduce a new anonymous {@linkplain Label label}, but do not emit it to
+	 * the {@linkplain InstructionWriter instruction stream}. This label can be
+	 * the target of a branch.
+	 *
+	 * @return A new label.
+	 */
+	public Label newLabel ()
+	{
+		final String name = String.format(
+			anonymousLabelPattern, labelOrdinal++);
+		return newLabel(name);
 	}
 
 	/**
@@ -491,6 +520,183 @@ extends Emitter<MethodModifier>
 	}
 
 	/**
+	 * Append to the specified {@linkplain List list} of {@linkplain
+	 * JavaBytecode bytecodes} a bytecode that will convert the {@code int} on
+	 * top of the operand stack to the requested target {@linkplain
+	 * Class#isPrimitive() primitive type}.
+	 *
+	 * @param to
+	 *        The target primitive type.
+	 * @param bytecodes
+	 *        A list of converter bytecodes.
+	 * @see #convert(Class, Class)
+	 */
+	private void convertInt (
+		final Class<?> to,
+		final List<JavaBytecode> bytecodes)
+	{
+		if (to == Byte.TYPE || to == Boolean.TYPE)
+		{
+			bytecodes.add(i2b);
+		}
+		else if (to == Character.TYPE)
+		{
+			bytecodes.add(i2c);
+		}
+		else if (to == Short.TYPE)
+		{
+			bytecodes.add(i2s);
+		}
+		else if (to == Long.TYPE)
+		{
+			bytecodes.add(i2l);
+		}
+		else if (to == Float.TYPE)
+		{
+			bytecodes.add(i2f);
+		}
+		else if (to == Double.TYPE)
+		{
+			bytecodes.add(i2d);
+		}
+	}
+
+	/**
+	 * Append to the specified {@linkplain List list} of {@linkplain
+	 * JavaBytecode bytecodes} a bytecode that will convert the {@code double}
+	 * on top of the operand stack to the requested target {@linkplain
+	 * Class#isPrimitive() primitive type}.
+	 *
+	 * @param to
+	 *        The target primitive type.
+	 * @param bytecodes
+	 *        A list of converter bytecodes.
+	 * @see #convert(Class, Class)
+	 */
+	private void convertDouble (
+		final Class<?> to,
+		final List<JavaBytecode> bytecodes)
+	{
+		if (to == Float.TYPE)
+		{
+			bytecodes.add(d2f);
+		}
+		else if (to == Long.TYPE)
+		{
+			bytecodes.add(d2l);
+		}
+		else
+		{
+			bytecodes.add(d2i);
+			convertInt(to, bytecodes);
+		}
+	}
+
+	/**
+	 * Append to the specified {@linkplain List list} of {@linkplain
+	 * JavaBytecode bytecodes} a bytecode that will convert the {@code float}
+	 * on top of the operand stack to the requested target {@linkplain
+	 * Class#isPrimitive() primitive type}.
+	 *
+	 * @param to
+	 *        The target primitive type.
+	 * @param bytecodes
+	 *        A list of converter bytecodes.
+	 * @see #convert(Class, Class)
+	 */
+	private void convertFloat (
+		final Class<?> to,
+		final List<JavaBytecode> bytecodes)
+	{
+		if (to == Double.TYPE)
+		{
+			bytecodes.add(f2d);
+		}
+		else if (to == Long.TYPE)
+		{
+			bytecodes.add(f2l);
+		}
+		else
+		{
+			bytecodes.add(f2i);
+			convertInt(to, bytecodes);
+		}
+	}
+
+	/**
+	 * Append to the specified {@linkplain List list} of {@linkplain
+	 * JavaBytecode bytecodes} a bytecode that will convert the {@code long}
+	 * on top of the operand stack to the requested target {@linkplain
+	 * Class#isPrimitive() primitive type}.
+	 *
+	 * @param to
+	 *        The target primitive type.
+	 * @param bytecodes
+	 *        A list of converter bytecodes.
+	 * @see #convert(Class, Class)
+	 */
+	private void convertLong (
+		final Class<?> to,
+		final List<JavaBytecode> bytecodes)
+	{
+		if (to == Double.TYPE)
+		{
+			bytecodes.add(l2d);
+		}
+		else if (to == Float.TYPE)
+		{
+			bytecodes.add(l2f);
+		}
+		else
+		{
+			bytecodes.add(l2i);
+			convertInt(to, bytecodes);
+		}
+	}
+
+	/**
+	 * Emit code that will perform the requested {@linkplain Class#isPrimitive()
+	 * primitive} conversion.
+	 *
+	 * @param from
+	 *        The source primitive type.
+	 * @param to
+	 *        The destination primitive type.
+	 */
+	public void convert (final Class<?> from, final Class<?> to)
+	{
+		assert from.isPrimitive();
+		assert from != Void.TYPE;
+		assert to.isPrimitive();
+		assert to != Void.TYPE;
+		// No conversion is needed if both types are the same.
+		if (from != to)
+		{
+			final List<JavaBytecode> bytecodes = new ArrayList<>(2);
+			if (from == Double.TYPE)
+			{
+				convertDouble(to, bytecodes);
+			}
+			else if (from == Float.TYPE)
+			{
+				convertFloat(to, bytecodes);
+			}
+			else if (from == Long.TYPE)
+			{
+				convertLong(to, bytecodes);
+			}
+			else
+			{
+				convertInt(to, bytecodes);
+			}
+			for (final JavaBytecode bytecode : bytecodes)
+			{
+				writer.append(bytecode.create());
+			}
+		}
+	}
+
+	/**
 	 * Emit an unconditional branch to the specified {@linkplain Label label}.
 	 *
 	 * @param label
@@ -547,6 +753,31 @@ extends Emitter<MethodModifier>
 		writer.append(monitorexit.create());
 	}
 
+	/**
+	 * Emit code to invoke a static method. The arguments are sourced from the
+	 * operand stack.
+	 *
+	 * @param methodref
+	 *        A {@linkplain MethodrefEntry method reference}.
+	 */
+	public void invokeStatic (final MethodrefEntry methodref)
+	{
+		writer.append(invokestatic.create(methodref));
+	}
+
+	/**
+	 * Emit code to invoke a method. The method will be dispatched based on the
+	 * {@linkplain Class class} of the receiver. The receiver and arguments are
+	 * sourced from the operand stack.
+	 *
+	 * @param methodref
+	 *        A {@linkplain MethodrefEntry method reference}.
+	 */
+	public void invokeVirtual (final MethodrefEntry methodref)
+	{
+		writer.append(invokevirtual.create(methodref));
+	}
+
 	// TODO: [TLS] Add missing code generation methods!
 
 	/**
@@ -565,5 +796,12 @@ extends Emitter<MethodModifier>
 	{
 		nameEntry.writeIndexTo(out);
 		descriptorEntry.writeIndexTo(out);
+	}
+
+	@Override
+	public String toString ()
+	{
+		// TODO: [TLS] Do better than this!
+		return writer.toString();
 	}
 }
