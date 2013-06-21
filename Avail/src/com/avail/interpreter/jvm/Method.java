@@ -167,6 +167,31 @@ extends Emitter<MethodModifier>
 	}
 
 	/**
+	 * Introduce a new {@linkplain Label label} with the specified name, but do
+	 * not emit it to the {@linkplain InstructionWriter instruction stream}.
+	 * This label can be the target of a branch.
+	 *
+	 * @param name
+	 *        The name of the label.
+	 * @return A new label.
+	 */
+	public Label newLabel (final String name)
+	{
+		return new Label(name);
+	}
+
+	/**
+	 * Emit the specified {@linkplain Label label}.
+	 *
+	 * @param label
+	 *        A label.
+	 */
+	public void addLabel (final Label label)
+	{
+		writer.append(label);
+	}
+
+	/**
 	 * Introduce a new {@linkplain LocalVariable local variable} into the
 	 * current {@linkplain Scope scope}.
 	 *
@@ -463,6 +488,47 @@ extends Emitter<MethodModifier>
 	{
 		assert type.isPrimitive() || type == Object.class;
 		writer.append(new ArrayStoreInstruction(type));
+	}
+
+	/**
+	 * Emit an unconditional branch to the specified {@linkplain Label label}.
+	 *
+	 * @param label
+	 *        A label.
+	 */
+	public void branchTo (final Label label)
+	{
+		writer.append(new GotoInstruction(label));
+	}
+
+	/**
+	 * Emit a subroutine jump to the specified {@linkplain Label label} and a
+	 * store of the {@linkplain JavaOperand#RETURN_ADDRESS return address}.
+	 *
+	 * @param label
+	 *        A label.
+	 * @param returnAddress
+	 *        The {@linkplain LocalVariable variable} that should hold the
+	 *        return address.
+	 */
+	public void jumpSubroutine (
+		final Label label,
+		final LocalVariable returnAddress)
+	{
+		writer.append(new JumpSubroutineInstruction(label));
+		writer.append(new StoreInstruction(returnAddress));
+	}
+
+	/**
+	 * Emit a subroutine return.
+	 *
+	 * @param returnAddress
+	 *        The {@linkplain LocalVariable variable} that holds the return
+	 *        address.
+	 */
+	public void returnSubroutine (final LocalVariable returnAddress)
+	{
+		writer.append(new ReturnSubroutineInstruction(returnAddress));
 	}
 
 	/**

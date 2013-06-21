@@ -143,6 +143,7 @@ final class InstructionWriter
 	 */
 	void append (final JavaInstruction instruction)
 	{
+		assert !instruction.emitted;
 		assert codeSize == -1L;
 		final List<JavaOperand> operands = instruction.operandStack();
 		if (operands == null)
@@ -152,9 +153,9 @@ final class InstructionWriter
 		else
 		{
 			assert instruction.isLabel();
-			assert operands.equals(newOperandStack());
 		}
 		instructions.add(instruction);
+		instruction.emitted = true;
 	}
 
 	/**
