@@ -426,7 +426,12 @@ Public method "_'s⁇owner's name" is
 		else ["«unowned»"]
 ] : string;
 
-/* Always give preference to the specialized method "_'s⁇owner's name". */
+/**
+ * Always give preference to the specialized method "_'s⁇owner's name".
+ * 
+ * @method "_'s⁇name"
+ * @forbids "1" "_'s⁇owner"
+ */
 Grammatical restriction "_'s⁇name" is <{"_'s⁇owner"}>;
 
 Method "“_”" is
@@ -1327,6 +1332,11 @@ Method "Lock|lock_for_" is
 	Signal sem;
 ] : ⊤;
 
+/**
+ * @method "a|an_«with«_«:»?:=_‡,»»"
+ * @forbids "1" "binary semaphore" "condition" "counting semaphore" "monitor" 
+ *              "non-reentrant mutex" "reentrant mutex" "semaphore"
+ */
 Grammatical restriction "a|an_«with«_«:»?:=_‡,»»" is
 	<{
 		"binary semaphore",

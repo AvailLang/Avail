@@ -34,29 +34,26 @@ package com.avail.interpreter.jvm;
 
 import java.io.DataOutput;
 import java.io.IOException;
-import com.avail.interpreter.jvm.ConstantPool.Entry;
+import com.avail.interpreter.jvm.ConstantPool.ConstantEntry;
 
 /**
  * The immediate value of a {@code LoadConstantInstruction} is an index of a
- * {@linkplain ConstantPool constant pool} {@linkplain Entry entry}.
+ * {@linkplain ConstantPool constant pool} {@linkplain ConstantEntry entry}.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 final class LoadConstantInstruction
 extends JavaInstruction
 {
-	/** A {@linkplain ConstantPool constant pool} {@linkplain Entry entry}. */
-	private final Entry entry;
-
-	@Override
-	boolean isLabel ()
-	{
-		return false;
-	}
+	/**
+	 * A {@linkplain ConstantPool constant pool} {@linkplain ConstantEntry
+	 * entry}.
+	 */
+	private final ConstantEntry entry;
 
 	/**
-	 * Does the {@linkplain Entry entry} consume two indices in the {@linkplain
-	 * ConstantPool constant pool}?
+	 * Does the {@linkplain ConstantEntry entry} consume two indices in the
+	 * {@linkplain ConstantPool constant pool}?
 	 *
 	 * @return {@code true} if the entry consumes two indices in the constant
 	 *         pool, {@code false} if the entry consumes one index.
@@ -67,7 +64,7 @@ extends JavaInstruction
 	}
 
 	/**
-	 * Does the {@linkplain Entry entry}'s index require 16-bits of
+	 * Does the {@linkplain ConstantEntry entry}'s index require 16-bits of
 	 * representation?
 	 *
 	 * @return {@code true} if the entry's index requires 16-bits of
@@ -87,7 +84,7 @@ extends JavaInstruction
 	/**
 	 * Answer the appropriate {@linkplain JavaBytecode bytecode} for this
 	 * instruction based on the {@linkplain #usesWideIndex() wideness} of the
-	 * {@linkplain Entry entry}'s index.
+	 * {@linkplain ConstantEntry entry}'s index.
 	 *
 	 * @return The appropriate bytecode.
 	 */
@@ -97,6 +94,19 @@ extends JavaInstruction
 			usesWideEntry() ? JavaBytecode.ldc2_w
 			: usesWideIndex() ? JavaBytecode.ldc_w
 			: JavaBytecode.ldc;
+	}
+
+	@Override
+	JavaOperand[] inputOperands ()
+	{
+		assert bytecode().inputOperands().length == 0;
+		return noOperands;
+	}
+
+	@Override
+	JavaOperand[] outputOperands ()
+	{
+		return new JavaOperand[] {entry.operand()};
 	}
 
 	@Override
@@ -121,17 +131,17 @@ extends JavaInstruction
 	@Override
 	public String toString ()
 	{
-		return String.format("%15s%s", bytecode().mnemonic(), entry);
+		return String.format("%-15s%s", bytecode().mnemonic(), entry);
 	}
 
 	/**
 	 * Construct a new {@link LoadConstantInstruction}.
 	 *
 	 * @param entry
-	 *        A {@linkplain ConstantPool constant pool} {@linkplain Entry
-	 *        entry}.
+	 *        A {@linkplain ConstantPool constant pool} {@linkplain
+	 *        ConstantEntry entry}.
 	 */
-	public LoadConstantInstruction (final Entry entry)
+	public LoadConstantInstruction (final ConstantEntry entry)
 	{
 		this.entry = entry;
 	}

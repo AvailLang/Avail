@@ -32,6 +32,8 @@
 
 package com.avail.interpreter.jvm;
 
+import com.avail.annotations.Nullable;
+
 /**
  * {@code JavaOperand} describes a stack operand for the Java virtual machine.
  *
@@ -43,79 +45,79 @@ enum JavaOperand
 	OBJECTREF (Object.class),
 
 	/** The operand is {@code null}. */
-	NULL (Object.class),
+	NULL (OBJECTREF, Object.class),
 
 	/** The operand is an array reference. */
-	ARRAYREF (Object.class),
+	ARRAYREF (OBJECTREF, Object.class),
 
 	/** The operand is an {@code int}. */
 	INT (Integer.TYPE),
 
 	/** The operand is an {@code int} -1. */
-	INT_M1 (Integer.TYPE),
+	INT_M1 (INT, Integer.TYPE),
 
 	/** The operand is an {@code int} 0. */
-	INT_0 (Integer.TYPE),
+	INT_0 (INT, Integer.TYPE),
 
 	/** The operand is an {@code int} 1. */
-	INT_1 (Integer.TYPE),
+	INT_1 (INT, Integer.TYPE),
 
 	/** The operand is an {@code int} 2. */
-	INT_2 (Integer.TYPE),
+	INT_2 (INT, Integer.TYPE),
 
 	/** The operand is an {@code int} 3. */
-	INT_3 (Integer.TYPE),
+	INT_3 (INT, Integer.TYPE),
 
 	/** The operand is an {@code int} 4. */
-	INT_4 (Integer.TYPE),
+	INT_4 (INT, Integer.TYPE),
 
 	/** The operand is an {@code int} 5. */
-	INT_5 (Integer.TYPE),
+	INT_5 (INT, Integer.TYPE),
 
 	/** The operand is an {@code int} index. */
-	INDEX (Integer.TYPE),
+	INDEX (INT, Integer.TYPE),
 
 	/** The operand is an {@code int} count. */
-	COUNT (Integer.TYPE),
+	COUNT (INT, Integer.TYPE),
 
 	/** The operand is an {@code int} array length. */
-	LENGTH (Integer.TYPE),
+	LENGTH (INT, Integer.TYPE),
 
 	/** The operand is an {@code int} signum. */
-	SIGNUM (Integer.TYPE),
+	SIGNUM (INT, Integer.TYPE),
 
 	/** The operand is an {@code int} 0 or 1. */
-	ZERO_OR_ONE (Integer.TYPE),
+	ZERO_OR_ONE (INT, Integer.TYPE),
 
 	/** The operand is a {@code long}. */
 	LONG (Long.TYPE),
 
 	/** The operand is a {@code long} 0L. */
-	LONG_0 (Long.TYPE),
+	LONG_0 (LONG, Long.TYPE),
 
 	/** The operand is a {@code long} 1L. */
-	LONG_1 (Long.TYPE),
+	LONG_1 (LONG, Long.TYPE),
 
 	/** The operand is a {@code float}. */
 	FLOAT (Float.TYPE),
 
 	/** The operand is a {@code float} 0.0f. */
-	FLOAT_0 (Float.TYPE),
+	FLOAT_0 (FLOAT, Float.TYPE),
 
 	/** The operand is a {@code float} 1.0f. */
-	FLOAT_1 (Float.TYPE),
+	FLOAT_1 (FLOAT, Float.TYPE),
 
 	/** The operand is a {@code float} 2.0f. */
-	FLOAT_2 (Float.TYPE),
+	FLOAT_2 (FLOAT, Float.TYPE),
 
 	/** The operand is a {@code double}. */
 	DOUBLE (Double.TYPE),
 
 	/** The operand is a {@code double} 0.0d. */
-	DOUBLE_0 (Double.TYPE),
+	DOUBLE_0 (DOUBLE, Double.TYPE),
 
 	/** The operand is a {@code double} 1.0d. */
-	DOUBLE_1 (Double.TYPE),
+	DOUBLE_1 (DOUBLE, Double.TYPE),
 
 	/**
 	 * The operand is a category 1 computational type.
@@ -142,6 +144,20 @@ enum JavaOperand
 	/** Represents multiple operands. */
 	PLURAL (Void.TYPE);
 
+	/** The base kind of the operand. */
+	private final JavaOperand baseOperand;
+
+	/**
+	 * Answer the base kind of the {@linkplain JavaOperand operand}. This may be
+	 * identical to the operand itself.
+	 *
+	 * @return The base kind of the operand.
+	 */
+	public JavaOperand baseOperand ()
+	{
+		return baseOperand;
+	}
+
 	/** The representational Java {@linkplain Class type}. */
 	private final Class<?> type;
 
@@ -158,11 +174,61 @@ enum JavaOperand
 	/**
 	 * Construct a new {@link JavaOperand}.
 	 *
+	 * @param baseOperand
+	 *        The base kind of the operand, or {@code null} if the base kind is
+	 *        the same as the operand.
+	 * @param type
+	 *        The representational {@linkplain Class Java type}.
+	 */
+	private JavaOperand (
+		final @Nullable JavaOperand baseOperand,
+		final Class<?> type)
+	{
+		this.baseOperand = baseOperand == null ? this : baseOperand;
+		this.type = type;
+	}
+
+	/**
+	 * Construct a new {@link JavaOperand}.
+	 *
 	 * @param type
 	 *        The representational {@linkplain Class Java type}.
 	 */
 	private JavaOperand (final Class<?> type)
 	{
-		this.type = type;
+		this(null, type);
+	}
+
+	/**
+	 * Answer the {@linkplain JavaOperand operand} kind for the specified
+	 * {@linkplain Class type}.
+	 *
+	 * @param type
+	 *        A type.
+	 * @return An operand kind.
+	 */
+	static JavaOperand forType (final Class<?> type)
+	{
+		if (type.isPrimitive())
+		{
+			if (type == Boolean.TYPE
+				|| type == Byte.TYPE
+				|| type == Short.TYPE
+				|| type == Integer.TYPE)
+			{
+				return INT;
+			}
+			if (type == Float.TYPE)
+			{
+				return FLOAT;
+			}
+			if (type == Double.TYPE)
+			{
+				return DOUBLE;
+			}
+			assert type == Long.TYPE;
+			return LONG;
+		}
+		return OBJECTREF;
 	}
 }

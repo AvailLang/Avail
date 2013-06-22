@@ -47,6 +47,12 @@ extends UnconditionalBranchInstruction
 	}
 
 	@Override
+	JavaOperand[] outputOperands ()
+	{
+		return bytecode().outputOperands();
+	}
+
+	@Override
 	String mnemonicForInvalidAddress ()
 	{
 		return "«jump»";
@@ -56,9 +62,9 @@ extends UnconditionalBranchInstruction
 	 * Construct a new {@link JumpSubroutineInstruction}.
 	 *
 	 * @param label
-	 *        The {@linkplain LabelInstruction branch target}.
+	 *        The {@linkplain Label branch target}.
 	 */
-	JumpSubroutineInstruction (final LabelInstruction label)
+	JumpSubroutineInstruction (final Label label)
 	{
 		super(label);
 	}

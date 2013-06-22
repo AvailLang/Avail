@@ -35,6 +35,8 @@ package com.avail.interpreter.jvm;
 import java.io.DataOutput;
 
 import java.io.IOException;
+import java.util.List;
+import com.avail.annotations.Nullable;
 
 /**
  * {@code JavaInstruction} is the abstract base for all fully reified Java
@@ -44,6 +46,12 @@ import java.io.IOException;
  */
 abstract class JavaInstruction
 {
+	/**
+	 * Has the label been emitted to an {@linkplain InstructionWriter
+	 * instruction writer} yet?
+	 */
+	boolean emitted = false;
+
 	/** The canonical invalid address. */
 	protected static long invalidAddress = Long.MAX_VALUE;
 
@@ -69,7 +77,6 @@ abstract class JavaInstruction
 	 */
 	final void setAddress (final long address)
 	{
-		assert this.address == invalidAddress;
 		this.address = address;
 	}
 
@@ -83,6 +90,50 @@ abstract class JavaInstruction
 	final boolean hasValidAddress ()
 	{
 		return address != invalidAddress;
+	}
+
+	/** An empty array of {@linkplain JavaOperand operands}. */
+	static final JavaOperand[] noOperands = {};
+
+	/**
+	 * Answer the {@linkplain JavaOperand operands} consumed by the {@linkplain
+	 * JavaInstruction instruction}.
+	 *
+	 * @return The operands consumed by the instruction.
+	 */
+	abstract JavaOperand[] inputOperands ();
+
+	/**
+	 * Answer the {@linkplain JavaOperand operands} produced by the {@linkplain
+	 * JavaInstruction instruction}.
+	 *
+	 * @return The operands produced by the instruction.
+	 */
+	abstract JavaOperand[] outputOperands ();
+
+	/** The {@linkplain JavaOperand operand} stack. */
+	private List<JavaOperand> operandStack;
+
+	/**
+	 * Answer the expected state of the {@linkplain JavaOperand operand} stack
+	 * at the start of this {@linkplain JavaInstruction instruction}.
+	 *
+	 * @return The operand stack.
+	 */
+	@Nullable List<JavaOperand> operandStack ()
+	{
+		return operandStack;
+	}
+
+	/**
+	 * Set the expected state of the {@linkplain JavaOperand operand} stack at
+	 * the start of this {@linkplain JavaInstruction instruction}.
+	 *
+	 * @param operandStack The operand stack.
+	 */
+	void setOperandStack (final List<JavaOperand> operandStack)
+	{
+		this.operandStack = operandStack;
 	}
 
 	/**
@@ -99,7 +150,22 @@ abstract class JavaInstruction
 	 * @return {@code true} if the instruction represents a label, {@code
 	 *         false} otherwise.
 	 */
-	abstract boolean isLabel ();
+	boolean isLabel ()
+	{
+		return false;
+	}
+
+	/**
+	 * Does the {@linkplain JavaInstruction instruction} affect a {@code
+	 * return}?
+	 *
+	 * @return {@code true} if the instruction affects a return, {@code false}
+	 *         otherwise.
+	 */
+	boolean isReturn ()
+	{
+		return false;
+	}
 
 	/**
 	 * Write the appropriate {@linkplain JavaBytecode bytecode} to the specified

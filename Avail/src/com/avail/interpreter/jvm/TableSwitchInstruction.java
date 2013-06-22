@@ -37,7 +37,7 @@ import java.io.IOException;
 
 /**
  * The immediate values of a {@code TableSwitchInstruction} describe an {@code
- * int} range and {@linkplain LabelInstruction labels}.
+ * int} range and {@linkplain Label labels}.
  *
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
@@ -51,17 +51,11 @@ extends JavaInstruction
 	/** The upper bound. */
 	private final int upperBound;
 
-	/** The case {@linkplain LabelInstruction labels}. */
-	private final LabelInstruction[] labels;
+	/** The case {@linkplain Label labels}. */
+	private final Label[] labels;
 
-	/** The default {@linkplain LabelInstruction} label. */
-	private final LabelInstruction defaultLabel;
-
-	@Override
-	boolean isLabel ()
-	{
-		return false;
-	}
+	/** The default {@linkplain Label} label. */
+	private final Label defaultLabel;
 
 	/**
 	 * Answer the number of pad bytes required in the format of this
@@ -71,22 +65,50 @@ extends JavaInstruction
 	 */
 	private int padBytes ()
 	{
-		assert hasValidAddress();
+		if (hasValidAddress())
+		{
+			return 0;
+		}
 		return (int) (address() & 3);
 	}
 
 	@Override
 	int size ()
 	{
-		assert hasValidAddress();
+		// The magic number 13 accounts for the opcode, the default address,
+		// the lower bound, and the upper bound.
 		return 13 + padBytes() + 4 * labels.length;
+	}
+
+	/**
+	 * Answer the appropriate {@linkplain JavaBytecode bytecode} for this
+	 * {@linkplain LookupSwitchInstruction instruction}.
+	 *
+	 * @return The appropriate bytecode.
+	 */
+	private JavaBytecode bytecode ()
+	{
+		return JavaBytecode.tableswitch;
+	}
+
+	@Override
+	JavaOperand[] inputOperands ()
+	{
+		return bytecode().inputOperands();
+	}
+
+	@Override
+	JavaOperand[] outputOperands ()
+	{
+		return bytecode().outputOperands();
 	}
 
 	@Override
 	void writeBytecodeTo (final DataOutput out) throws IOException
 	{
-		JavaBytecode.tableswitch.writeTo(out);
+		bytecode().writeTo(out);
 	}
+
 
 	@Override
 	void writeImmediatesTo (final DataOutput out) throws IOException
@@ -108,7 +130,7 @@ extends JavaInstruction
 		out.writeInt((int) defaultLabel.address());
 		out.writeInt(lowerBound);
 		out.writeInt(upperBound);
-		for (final LabelInstruction label : labels)
+		for (final Label label : labels)
 		{
 			out.writeInt((int) label.address());
 		}
@@ -122,15 +144,15 @@ extends JavaInstruction
 	 * @param upperBound
 	 *        The upper bound.
 	 * @param labels
-	 *        The case {@linkplain LabelInstruction labels}.
+	 *        The case {@linkplain Label labels}.
 	 * @param defaultLabel
 	 *        The default label.
 	 */
 	public TableSwitchInstruction (
 		final int lowerBound,
 		final int upperBound,
-		final LabelInstruction[] labels,
-		final LabelInstruction defaultLabel)
+		final Label[] labels,
+		final Label defaultLabel)
 	{
 		this.lowerBound = lowerBound;
 		this.upperBound = upperBound;

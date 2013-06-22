@@ -32,27 +32,44 @@
 
 package com.avail.interpreter.jvm;
 
+import static com.avail.interpreter.jvm.JavaBytecode.*;
+
 /**
- * A {@code LoadInstruction} has a one-byte immediate that represents a local
- * variable index.
+ * A {@code LoadInstruction} represents pushing the value in a {@linkplain
+ * LocalVariable local variable} onto the operand stack.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 final class LoadInstruction
-extends VariableAccessInstruction
+extends LocalVariableAccessInstruction
 {
+	/**
+	 * The {@linkplain JavaBytecode bytecodes} for loading {@linkplain
+	 * LocalVariable local variables}.
+	 */
+	private static final JavaBytecode[] loadBytecodes =
+	{
+		aload_0, aload_1, aload_2, aload_3, aload,
+		dload_0, dload_1, dload_2, dload_3, dload,
+		fload_0, fload_1, fload_2, fload_3, fload,
+		iload_0, iload_1, iload_2, iload_3, iload,
+		lload_0, lload_1, lload_2, lload_3, lload
+	};
+
+	@Override
+	JavaBytecode[] bytecodes ()
+	{
+		return loadBytecodes;
+	}
+
 	/**
 	 * Construct a new {@link LoadInstruction}.
 	 *
-	 * @param bytecode
-	 *        The {@linkplain JavaBytecode bytecode}.
-	 * @param index
-	 *        The local variable index.
+	 * @param local
+	 *        The {@linkplain LocalVariable local variable}.
 	 */
-	LoadInstruction (
-		final JavaBytecode bytecode,
-		final int index)
+	LoadInstruction (final LocalVariable local)
 	{
-		super(bytecode, index);
+		super(local);
 	}
 }

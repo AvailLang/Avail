@@ -32,27 +32,44 @@
 
 package com.avail.interpreter.jvm;
 
+import static com.avail.interpreter.jvm.JavaBytecode.*;
+
 /**
- * A {@code StoreInstruction} has a one-byte immediate that represents a local
- * variable index.
+ * A {@code StoreInstruction} represents storing the value on top of the operand
+ * stack into a {@linkplain LocalVariable local variable}.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 final class StoreInstruction
-extends VariableAccessInstruction
+extends LocalVariableAccessInstruction
 {
+	/**
+	 * The {@linkplain JavaBytecode bytecodes} for updating {@linkplain
+	 * LocalVariable local variables}.
+	 */
+	private static final JavaBytecode[] storeBytecodes =
+	{
+		astore_0, astore_1, astore_2, astore_3, astore,
+		dstore_0, dstore_1, dstore_2, dstore_3, dstore,
+		fstore_0, fstore_1, fstore_2, fstore_3, fstore,
+		istore_0, istore_1, istore_2, istore_3, istore,
+		lstore_0, lstore_1, lstore_2, lstore_3, lstore
+	};
+
+	@Override
+	JavaBytecode[] bytecodes ()
+	{
+		return storeBytecodes;
+	}
+
 	/**
 	 * Construct a new {@link StoreInstruction}.
 	 *
-	 * @param bytecode
-	 *        The {@linkplain JavaBytecode bytecode}.
-	 * @param index
-	 *        The local variable index.
+	 * @param local
+	 *        The {@linkplain LocalVariable local variable}.
 	 */
-	StoreInstruction (
-		final JavaBytecode bytecode,
-		final int index)
+	StoreInstruction (final LocalVariable local)
 	{
-		super(bytecode, index);
+		super(local);
 	}
 }

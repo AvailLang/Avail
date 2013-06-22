@@ -47,6 +47,12 @@ extends UnconditionalBranchInstruction
 	}
 
 	@Override
+	JavaOperand[] outputOperands ()
+	{
+		return noOperands;
+	}
+
+	@Override
 	String mnemonicForInvalidAddress ()
 	{
 		return "«goto»";
@@ -56,9 +62,9 @@ extends UnconditionalBranchInstruction
 	 * Construct a new {@link GotoInstruction}.
 	 *
 	 * @param label
-	 *        The {@linkplain LabelInstruction branch target}.
+	 *        The {@linkplain Label branch target}.
 	 */
-	GotoInstruction (final LabelInstruction label)
+	GotoInstruction (final Label label)
 	{
 		super(label);
 	}

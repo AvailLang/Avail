@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Stacks Scanner"
+System Module "Stacks Scanner" 
 Versions
 	"Dev"
 Extends
@@ -38,7 +38,7 @@ Extends
 Uses
 	"Avail",
 	"Avail Scanner"
-
+	
 Names
 	"@author",
 	"@category",
@@ -64,8 +64,10 @@ Names
 	"character buffer",
 	"comment buffer",
 	"comment buffer index",
+	"comment tokens",
 	"comments",
 	"concatenate_separated by_",
+	"erroneous comment",
 	"erroneous stacks token",
 	"generic stacks token",
 	"Increment_'s⁇buffer index",
@@ -73,12 +75,14 @@ Names
 	"«Increment|Decrement»!_'s⁇open comment count",
 	"open comment count",
 	"quoted stacks token",
+	"raw comment",
 	"read from_'s⁇comment buffer while_",
 	"Reset_'s⁇comment processing structure",
 	"special flag",
 	"special region stacks token",
 	"stacks scanner",
 	"special stacks token",
+	"special token regions",
 	"stacks token",
 	"subtokens buffer",
 	"Toggle_'s⁇new line",
@@ -93,9 +97,13 @@ Names
 	"_'s⁇comment buffer index:=_",
 	"_'s⁇comment buffer is exhausted",
 	"_'s⁇comment buffer is not exhausted",
+	"_'s⁇comment tokens",
+	"_'s⁇comment tokens:=_",
 	"_'s⁇comments",
 	"_'s⁇comments:=_",
 	"_'s⁇current buffer character",
+	"_'s⁇erroneous comment",
+	"_'s⁇erroneous comment:=_",
 	"_'s⁇error flag",
 	"_'s⁇module name",
 	"_'s⁇new line",
@@ -105,18 +113,22 @@ Names
 	"_'s⁇special flag",
 	"_'s⁇special region flag",
 	"_'s⁇special comment",
+	"_'s⁇special token regions",
+	"_'s⁇special token regions:=_",
 	"_'s⁇subtokens buffer",
 	"_'s⁇subtokens buffer:=_",
 	"_'s⁇tokenize",
 	"↑_'s⁇comment buffer index"
-
+	
 Body
 
 "character buffer" is a new field atom;
 "comment buffer" is a new field atom;
 "comment buffer index" is a new field atom;
+"comment tokens" is a new field atom;
 "comments" is a new field atom;
 "error flag" is a new field atom;
+"erroneous comment" is a new field atom;
 "module name" is a new field atom;
 "new line" is a new field atom;
 "open comment count" is a new field atom;
@@ -124,6 +136,7 @@ Body
 "special region flag" is a new field atom;
 "special comment" is a new field atom;
 "special flag" is a new field atom;
+"special token regions" is a new field atom;
 "subtokens" is a new field atom;
 "subtokens buffer" is a new field atom;
 "tokenize" is a new field atom;
@@ -311,6 +324,26 @@ Public method "concatenate_separated by_" is
 		cast flatten lexemeAndSpace into [s : string | s]
 	]
 ]:string;
+	
+/**
+ * A container for comments post lexing, pre-parsing.  
+ * 
+ * @type "raw comment"
+ * @supertype {@type "object" object}
+ * @category Stacks
+ * @field "comment tokens" "<stacks token…|>"
+ *  a tuple of stacks tokens that comprise the text of the comment
+ * @field "erroneous comment" "boolean"
+ *  does the comment contain an error
+ * @field "special token regions" "<natural number's type…|>"
+ *  start/end of special token text
+ * @author Richard Arriaga
+ */
+Public class "raw comment" extends object
+	with mutable fields
+		public comment tokens : <stacks token…|>,
+		public erroneous comment : boolean,
+		public special token regions : <natural number's type…|>;
 
 /**
  * A class that defines a Stacks lexical scanner.  This is a concrete class.
@@ -348,7 +381,7 @@ Public class "stacks scanner" extends Avail scanner
 	with fields
 		module name : nonempty string
 	with mutable fields
-		public comments : <<stacks token…|>…|>,
+		public comments : <raw comment…|>,
 		public subtokens buffer : <stacks token…|>,
 		public comment buffer : <character…|>,
 		public character buffer : <character…|>,

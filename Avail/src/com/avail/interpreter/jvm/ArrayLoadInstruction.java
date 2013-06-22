@@ -1,5 +1,5 @@
 /**
- * LabelInstruction.java
+ * ArrayLoadInstruction.java
  * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -32,59 +32,37 @@
 
 package com.avail.interpreter.jvm;
 
-import java.io.DataOutput;
-import java.io.IOException;
+import static com.avail.interpreter.jvm.JavaBytecode.*;
 
 /**
- * A {@code LabelInstruction} is a pseudo-instruction that represents an
- * interesting position within a compiled method.
+ * An {@code ArrayLoadInstruction} represents pushing a value from an array onto
+ * the operand stack.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-final class LabelInstruction
-extends JavaInstruction
+final class ArrayLoadInstruction
+extends ArrayAccessInstruction
 {
-	/** The name of the label. */
-	private final String name;
+	/** The {@linkplain JavaBytecode bytecodes} for loading arrays. */
+	private static final JavaBytecode[] bytecodes =
+		{aaload, baload, caload, daload, faload, iaload, laload, saload};
 
 	@Override
-	int size ()
+	JavaBytecode[] bytecodes ()
 	{
-		return 0;
-	}
-
-	@Override
-	boolean isLabel ()
-	{
-		return true;
-	}
-
-	@Override
-	void writeBytecodeTo (final DataOutput out) throws IOException
-	{
-		// Don't emit anything.
-	}
-
-	@Override
-	void writeImmediatesTo (final DataOutput out) throws IOException
-	{
-		// Don't emit anything.
-	}
-
-	@Override
-	public String toString ()
-	{
-		return name;
+		return bytecodes;
 	}
 
 	/**
-	 * Construct a new {@link LabelInstruction}.
+	 * Construct a new {@link ArrayLoadInstruction}.
 	 *
-	 * @param name
-	 *        The name of the label.
+	 * @param type
+	 *        The {@linkplain Class type} of the array, either a {@linkplain
+	 *        Class#isPrimitive() primitive type} or {@link Object Object.class}
+	 *        for a reference type.
 	 */
-	LabelInstruction (final String name)
+	ArrayLoadInstruction (final Class<?> type)
 	{
-		this.name = name;
+		super(type);
 	}
 }

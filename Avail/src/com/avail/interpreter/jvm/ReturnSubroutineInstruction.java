@@ -45,31 +45,30 @@ import java.io.IOException;
 final class ReturnSubroutineInstruction
 extends SimpleInstruction
 {
-	/** The local variable index. */
-	private final byte index;
+	/** The {@linkplain LocalVariable local variable}. */
+	private final LocalVariable local;
 
 	@Override
 	void writeImmediatesTo (final DataOutput out) throws IOException
 	{
-		out.writeByte(index);
+		local.writeTo(out);
 	}
 
 	@Override
 	public String toString ()
 	{
-		return String.format("%s#%d", super.toString(), index);
+		return String.format("%s%s", super.toString(), local);
 	}
 
 	/**
 	 * Construct a new {@link ReturnSubroutineInstruction}.
 	 *
-	 * @param index
-	 *        The local variable index.
+	 * @param local
+	 *        The {@linkplain LocalVariable local variable}.
 	 */
-	public ReturnSubroutineInstruction (final int index)
+	public ReturnSubroutineInstruction (final LocalVariable local)
 	{
 		super(JavaBytecode.ret);
-		assert (index & 255) == index;
-		this.index = (byte) index;
+		this.local = local;
 	}
 }

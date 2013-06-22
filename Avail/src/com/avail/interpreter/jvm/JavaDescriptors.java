@@ -33,8 +33,11 @@
 package com.avail.interpreter.jvm;
 
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import com.avail.annotations.Nullable;
 
 /**
  * {@code JavaDescriptors} provides utility methods for producing Java
@@ -47,6 +50,80 @@ import java.util.Map;
  */
 final class JavaDescriptors
 {
+	/**
+	 * Construct and answer the Java descriptor for the specified {@linkplain
+	 * Class class} name.
+	 *
+	 * @param name
+	 *        A fully-qualified Java class name.
+	 * @return The requested descriptor.
+	 * @see <a
+	 *    href="http://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.3">
+	 *    Descriptors and Signatures</a>
+	 */
+	public static String forClassName (final String name)
+	{
+		final StringBuilder builder = new StringBuilder(50);
+		builder.append("L");
+		builder.append(name.replace('.', '/'));
+		builder.append(";");
+		return builder.toString();
+	}
+
+	/**
+	 * Answer the type name that corresponds to the specified descriptor.
+	 *
+	 * @param descriptor
+	 *        A descriptor.
+	 * @return The type name.
+	 */
+	public static String asTypeName (final String descriptor)
+	{
+		switch (descriptor.codePointAt(0))
+		{
+			case 'L':
+				int index = 1;
+				while (true)
+				{
+					// Skip up to the semicolon.
+					final int codePoint = descriptor.codePointAt(index);
+					if (codePoint == ';')
+					{
+						break;
+					}
+					index += Character.charCount(codePoint);
+				}
+				final String substring = descriptor.substring(1, index);
+				return substring.replace('/', '.');
+			case 'Z':
+				assert descriptor.length() == 1;
+				return "boolean";
+			case 'B':
+				assert descriptor.length() == 1;
+				return "byte";
+			case 'C':
+				assert descriptor.length() == 1;
+				return "character";
+			case 'S':
+				assert descriptor.length() == 1;
+				return "short";
+			case 'I':
+				assert descriptor.length() == 1;
+				return "integer";
+			case 'J':
+				assert descriptor.length() == 1;
+				return "long";
+			case 'D':
+				assert descriptor.length() == 1;
+				return "double";
+			case 'F':
+				assert descriptor.length() == 1;
+				return "float";
+			default:
+				throw new IllegalArgumentException();
+		}
+	}
+
 	/**
 	 * A {@linkplain Map map} from {@linkplain Class primitive classes} to their
 	 * Java descriptor characters.
@@ -153,36 +230,60 @@ final class JavaDescriptors
 	}
 
 	/**
-	 * Answer the count of argument units indicated by the specified method
-	 * descriptor.
+	 * Answer the count of slot units indicated by the method descriptor. If the
+	 * descriptor is a method descriptor, then only the parameters will be
+	 * evaluated.
 	 *
 	 * @param descriptor
-	 *        A method descriptor.
+	 *        A descriptor.
 	 * @return The number of argument units. {@code long}s and {@code double}s
 	 *         count for {@code 2} units, but all other primitive and reference
 	 *         types count for {@code 1} unit.
 	 * @throws IllegalArgumentException
-	 *         If the method descriptor is invalid.
+	 *         If the descriptor is invalid.
 	 */
-	public static int argumentUnits (final String descriptor)
+	static int slotUnits (final String descriptor)
 	{
-		if (descriptor.codePointAt(0) != '(')
+		boolean isMethodDescriptor = false;
+		int index = 0;
+		if (descriptor.codePointAt(0) == '(')
 		{
-			throw new IllegalArgumentException();
+			isMethodDescriptor = true;
+			index = 1;
 		}
 		try
 		{
 			int count = 0;
-			for (int index = 1;; index++)
+			while (true)
 			{
 				switch (descriptor.codePointAt(index))
 				{
 					case ')':
-						return count;
+						if (isMethodDescriptor)
+						{
+							return count;
+						}
+						throw new IllegalArgumentException();
+					case 'L':
+						while (true)
+						{
+							// Skip up to the semicolon.
+							final int codePoint = descriptor.codePointAt(index);
+							if (codePoint == ';')
+							{
+								// Don't account for the semicolon here.
+								break;
+							}
+							index += Character.charCount(codePoint);
+						}
+						// $FALL-THROUGH$
 					case 'B':
 					case 'C':
 					case 'F':
 					case 'I':
+					case 'R':
+						// 'R' represents a return address. It is not part of
+						// JVM descriptor specification.
 					case 'S':
 					case 'Z':
 						count++;
@@ -191,16 +292,334 @@ final class JavaDescriptors
 					case 'J':
 						count += 2;
 						break;
+					default:
+						throw new IllegalArgumentException();
+				}
+				if (!isMethodDescriptor)
+				{
+					return count;
+				}
+				index++;
+			}
+		}
+		catch (final IndexOutOfBoundsException e)
+		{
+			throw new IllegalArgumentException(e);
+		}
+	}
+
+	/**
+	 * Answer the {@code targetIndex}-th parameter descriptor from the specified
+	 * method descriptor.
+	 *
+	 * @param descriptor
+	 *        A method descriptor.
+	 * @param targetIndex
+	 *        The zero-based {@linkplain #slotUnits(String) slot index} of the
+	 *        desired parameter descriptor.
+	 * @return The requested parameter descriptor.
+	 * @throws IllegalArgumentException
+	 *         If either of the method descriptor or the index are invalid.
+	 */
+	static String parameterDescriptor (
+		final String descriptor,
+		final int targetIndex)
+	{
+		if (descriptor.codePointAt(0) != '(')
+		{
+			throw new IllegalArgumentException();
+		}
+		try
+		{
+			int parameterIndex = 0;
+			for (int index = 1;; index++)
+			{
+				final int startIndex = index;
+				switch (descriptor.codePointAt(index))
+				{
+					case ')':
+						throw new IllegalArgumentException();
 					case 'L':
-						for (; descriptor.codePointAt(index) != ';'; index++)
+						while (true)
 						{
-							// Do nothing; just skip up to the semicolon.
+							// Skip up to the semicolon.
+							final int codePoint = descriptor.codePointAt(index);
+							index += Character.charCount(codePoint);
+							if (codePoint == ';')
+							{
+								break;
+							}
 						}
+						if (parameterIndex == targetIndex)
+						{
+							return descriptor.substring(startIndex, index);
+						}
+						parameterIndex++;
+						break;
+					case 'B':
+					case 'C':
+					case 'F':
+					case 'I':
+					case 'S':
+					case 'Z':
+						index++;
+						if (parameterIndex == targetIndex)
+						{
+							return descriptor.substring(startIndex, index);
+						}
+						parameterIndex++;
+						break;
+					case 'D':
+					case 'J':
+						index++;
+						if (parameterIndex == targetIndex)
+						{
+							return descriptor.substring(startIndex, index);
+						}
+						parameterIndex += 2;
 						break;
 					default:
 						throw new IllegalArgumentException();
 				}
 			}
+		}
+		catch (final IndexOutOfBoundsException e)
+		{
+			throw new IllegalArgumentException(e);
+		}
+	}
+
+	/**
+	 * A {@linkplain Map map} from Java descriptor characters to the {@linkplain
+	 * Class primitive types} used to represent constants of the corresponding
+	 * types.
+	 */
+	private static final Map<String, Class<?>> constantTypes;
+
+	static
+	{
+		final Map<String, Class<?>> map = new HashMap<>(8);
+		map.put("Z", Integer.TYPE);
+		map.put("B", Integer.TYPE);
+		map.put("C", Integer.TYPE);
+		map.put("D", Double.TYPE);
+		map.put("F", Float.TYPE);
+		map.put("I", Integer.TYPE);
+		map.put("J", Long.TYPE);
+		map.put("S", Integer.TYPE);
+		constantTypes = map;
+	}
+
+	/**
+	 * Answer the {@linkplain Class type} of constant data that conforms to the
+	 * specified descriptor.
+	 *
+	 * @param typeDescriptor
+	 *        A type descriptor.
+	 * @return A type, or {@code null} if the type descriptor does not represent
+	 *         a primitive type or {@link String}.
+	 */
+	public static @Nullable Class<?> toConstantType (
+		final String typeDescriptor)
+	{
+		final Class<?> type = constantTypes.get(typeDescriptor);
+		if (type != null)
+		{
+			return type;
+		}
+		if (typeDescriptor.equals("Ljava/lang/String;"))
+		{
+			return String.class;
+		}
+		return null;
+	}
+
+	/**
+	 * Answer a {@linkplain List list} of {@linkplain JavaOperand operands} that
+	 * describes the parameter list of a method whose signature has the
+	 * specified descriptor.
+	 *
+	 * @param descriptor
+	 *        A {@linkplain #forMethod(Class, Class...) method descriptor}.
+	 * @return The operands that correspond to the parameter types.
+	 */
+	static List<JavaOperand> parameterOperands (final String descriptor)
+	{
+		final List<JavaOperand> operands = new ArrayList<>();
+		if (descriptor.codePointAt(0) != '(')
+		{
+			throw new IllegalArgumentException();
+		}
+		try
+		{
+			for (int index = 1;; index++)
+			{
+				switch (descriptor.codePointAt(index))
+				{
+					case ')':
+						return operands;
+					case 'L':
+						while (true)
+						{
+							// Skip up to the semicolon.
+							final int codePoint = descriptor.codePointAt(index);
+							if (codePoint == ';')
+							{
+								break;
+							}
+							index += Character.charCount(codePoint);
+						}
+						operands.add(JavaOperand.OBJECTREF);
+						break;
+					case 'B':
+					case 'C':
+					case 'I':
+					case 'S':
+					case 'Z':
+						operands.add(JavaOperand.INT);
+						break;
+					case 'F':
+						operands.add(JavaOperand.FLOAT);
+						break;
+					case 'D':
+						operands.add(JavaOperand.DOUBLE);
+						break;
+					case 'J':
+						operands.add(JavaOperand.LONG);
+						break;
+					default:
+						throw new IllegalArgumentException();
+				}
+			}
+		}
+		catch (final IndexOutOfBoundsException e)
+		{
+			throw new IllegalArgumentException(e);
+		}
+	}
+
+	/**
+	 * Answer the {@linkplain JavaOperand operand} that corresponds to the
+	 * return type of a method described by the specified descriptor.
+	 *
+	 * @param descriptor
+	 *        A {@linkplain #forMethod(Class, Class...) method descriptor}.
+	 * @return The appropriate operand, or {@code null} if the method is {@code
+	 *         void}.
+	 */
+	static @Nullable JavaOperand returnOperand (final String descriptor)
+	{
+		if (descriptor.codePointAt(0) != '(')
+		{
+			throw new IllegalArgumentException();
+		}
+		try
+		{
+			int index = 1;
+			while (true)
+			{
+				if (descriptor.codePointAt(index) == ')')
+				{
+					index++;
+					break;
+				}
+				index++;
+			}
+			switch (descriptor.codePointAt(index))
+			{
+				case 'L':
+					while (true)
+					{
+						// Skip up to the semicolon.
+						final int codePoint = descriptor.codePointAt(index);
+						if (codePoint == ';')
+						{
+							break;
+						}
+						index += Character.charCount(codePoint);
+					}
+					return JavaOperand.OBJECTREF;
+				case 'B':
+				case 'C':
+				case 'I':
+				case 'S':
+				case 'Z':
+					return JavaOperand.INT;
+				case 'F':
+					return JavaOperand.FLOAT;
+				case 'D':
+					return JavaOperand.DOUBLE;
+				case 'J':
+					return JavaOperand.LONG;
+				case 'V':
+					return null;
+				default:
+					throw new IllegalArgumentException();
+			}
+		}
+		catch (final IndexOutOfBoundsException e)
+		{
+			throw new IllegalArgumentException(e);
+		}
+	}
+
+	/**
+	 * A {@linkplain Map map} from Java descriptor characters to {@linkplain
+	 * Class primitive classes}.
+	 */
+	private static final Map<String, Class<?>> typesByCharacter;
+
+	static
+	{
+		final Map<String, Class<?>> map = new HashMap<>(9);
+		map.put("Z", Boolean.TYPE);
+		map.put("B", Byte.TYPE);
+		map.put("C", Character.TYPE);
+		map.put("D", Double.TYPE);
+		map.put("F", Float.TYPE);
+		map.put("I", Integer.TYPE);
+		map.put("J", Long.TYPE);
+		// "R" is not official, but represents a return address.
+		map.put("R", Object.class);
+		map.put("S", Short.TYPE);
+		map.put("V", Void.TYPE);
+		typesByCharacter = map;
+	}
+
+	/**
+	 * Given a type descriptor, produce and answer a {@linkplain
+	 * Class#isPrimitive() primitive} {@linkplain Class type} or {@link
+	 * Object Object.class} as appropriate.
+	 *
+	 * @param descriptor
+	 *        A type descriptor. May also be {@code "R"} to represent a return
+	 *        address.
+	 * @return A type.
+	 */
+	public static Class<?> typeForDescriptor (final String descriptor)
+	{
+		try
+		{
+			final Class<?> type = typesByCharacter.get(descriptor);
+			if (type == null)
+			{
+				if (descriptor.codePointAt(0) == 'L')
+				{
+					int index = 1;
+					while (true)
+					{
+						// Skip up to the semicolon.
+						final int codePoint = descriptor.codePointAt(index);
+						if (codePoint == ';')
+						{
+							break;
+						}
+						index += Character.charCount(codePoint);
+					}
+					return Object.class;
+				}
+			}
+			return type;
 		}
 		catch (final IndexOutOfBoundsException e)
 		{

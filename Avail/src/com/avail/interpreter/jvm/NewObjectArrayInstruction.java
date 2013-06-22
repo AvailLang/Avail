@@ -52,12 +52,6 @@ extends JavaInstruction
 	/** The number of dimensions. */
 	private final int dimensions;
 
-	@Override
-	boolean isLabel ()
-	{
-		return false;
-	}
-
 	/**
 	 * Does the {@linkplain NewObjectArrayInstruction instruction} create a
 	 * multidimensional array?
@@ -90,6 +84,18 @@ extends JavaInstruction
 	}
 
 	@Override
+	JavaOperand[] inputOperands ()
+	{
+		return bytecode().inputOperands();
+	}
+
+	@Override
+	JavaOperand[] outputOperands ()
+	{
+		return bytecode().outputOperands();
+	}
+
+	@Override
 	void writeBytecodeTo (final DataOutput out) throws IOException
 	{
 		bytecode().writeTo(out);
@@ -111,9 +117,9 @@ extends JavaInstruction
 		if (isMultidimensional())
 		{
 			return String.format(
-				"%15s%s [%d]", super.toString(), classEntry, dimensions);
+				"%-15s%s [%d]", super.toString(), classEntry, dimensions);
 		}
-		return String.format("%15s%s", super.toString(), classEntry);
+		return String.format("%-15s%s", super.toString(), classEntry);
 	}
 
 	/**

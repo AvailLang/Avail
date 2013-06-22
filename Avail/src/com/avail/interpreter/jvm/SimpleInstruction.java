@@ -57,6 +57,18 @@ extends JavaInstruction
 	}
 
 	@Override
+	JavaOperand[] inputOperands ()
+	{
+		return bytecode.inputOperands();
+	}
+
+	@Override
+	JavaOperand[] outputOperands ()
+	{
+		return bytecode.outputOperands();
+	}
+
+	@Override
 	int size ()
 	{
 		return bytecode.minimumFormatSize();
@@ -66,6 +78,12 @@ extends JavaInstruction
 	final boolean isLabel ()
 	{
 		return false;
+	}
+
+	@Override
+	boolean isReturn ()
+	{
+		return bytecode.isReturn();
 	}
 
 	@Override
@@ -89,7 +107,7 @@ extends JavaInstruction
 		{
 			return bytecode.mnemonic();
 		}
-		return String.format("%15s", bytecode.mnemonic());
+		return String.format("%-15s", bytecode.mnemonic());
 	}
 
 	/**

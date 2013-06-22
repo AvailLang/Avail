@@ -88,8 +88,18 @@ Public method "[«_‡,»]→_" is
 	function accepting argTypes and returning returnType
 ] : function meta;
 
-/* Make it easier to specify argument types in semantic restrictions. */
+/**
+ * Make it easier to specify argument types.
+ * @method "[«_‡,»]→_"
+ * @forbids "2" "_'s⁇type"
+ */
 Grammatical restriction "[«_‡,»]→_" is <∅, {"_'s⁇type"}>;
+
+/**
+ * Make it easier to specify argument types.
+ * @method "[`…]→_"
+ * @forbids "1" "_'s⁇type"
+ */
 Grammatical restriction "[`…]→_" is <{"_'s⁇type"}>;
 
 /**

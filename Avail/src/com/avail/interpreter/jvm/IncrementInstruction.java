@@ -36,16 +36,16 @@ import java.io.DataOutput;
 import java.io.IOException;
 
 /**
- * The immediate values of an {@code IncrementInstruction} are the local
- * variable index and the constant delta.
+ * The immediate values of an {@code IncrementInstruction} are the {@linkplain
+ * LocalVariable local variable} index and the constant delta.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 final class IncrementInstruction
 extends SimpleInstruction
 {
-	/** The local variable index. */
-	private final int index;
+	/** The {@linkplain LocalVariable local variable}. */
+	private final LocalVariable local;
 
 	/** The constant delta. */
 	private final int delta;
@@ -59,8 +59,7 @@ extends SimpleInstruction
 	 */
 	private boolean isWide ()
 	{
-		return (index & 255) != index
-			|| (delta & 255) != delta;
+		return local.isWide() || (delta & 255) != delta;
 	}
 
 	@Override
@@ -84,12 +83,12 @@ extends SimpleInstruction
 	{
 		if (isWide())
 		{
-			out.writeShort(index);
+			out.writeShort(local.index);
 			out.writeShort(delta);
 		}
 		else
 		{
-			out.writeByte(index);
+			out.writeByte(local.index);
 			out.writeByte(delta);
 		}
 	}
@@ -101,23 +100,23 @@ extends SimpleInstruction
 			"%s%s",
 			isWide() ? "wide " : "",
 			bytecode().mnemonic());
-		return String.format("%15s#%d,%d", mnemonic, index, delta);
+		return String.format("%-15s#%s += %d", mnemonic, local, delta);
 	}
 
 	/**
 	 * Construct a new {@link IncrementInstruction}.
 	 *
-	 * @param index
-	 *        The local variable index.
+	 * @param local
+	 *        The {@linkplain LocalVariable local variable}.
 	 * @param delta
 	 *        The constant delta.
 	 */
-	public IncrementInstruction (final int index, final int delta)
+	public IncrementInstruction (final LocalVariable local, final int delta)
 	{
 		super(JavaBytecode.iinc);
-		assert (index & 65535) == index;
+		assert local.isLive();
 		assert (delta & 65535) == delta;
-		this.index = index;
+		this.local = local;
 		this.delta = delta;
 	}
 }

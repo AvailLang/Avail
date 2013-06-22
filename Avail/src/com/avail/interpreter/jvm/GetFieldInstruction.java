@@ -32,48 +32,43 @@
 
 package com.avail.interpreter.jvm;
 
-import java.io.DataOutput;
-import java.io.IOException;
 import com.avail.interpreter.jvm.ConstantPool.FieldrefEntry;
 
 /**
- * The immediate value of a {@code GetFieldInstruction} is a {@linkplain
- * FieldrefEntry field reference entry} within the {@linkplain ConstantPool
- * constant pool}.
+ * A {@code GetFieldInstruction} represents pushing a value from a {@linkplain
+ * Field field} onto the operand stack.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 final class GetFieldInstruction
-extends SimpleInstruction
+extends FieldAccessInstruction
 {
-	/** The {@linkplain FieldrefEntry entry} for the referenced field. */
-	private final FieldrefEntry fieldrefEntry;
-
 	@Override
-	void writeImmediatesTo (final DataOutput out) throws IOException
+	JavaBytecode staticBytecode ()
 	{
-		fieldrefEntry.writeIndexTo(out);
+		return JavaBytecode.getstatic;
 	}
 
 	@Override
-	public String toString ()
+	JavaBytecode instanceBytecode ()
 	{
-		return String.format("%s%s", super.toString(), fieldrefEntry);
+		return JavaBytecode.getfield;
 	}
 
 	/**
 	 * Construct a new {@link GetFieldInstruction}.
 	 *
-	 * @param bytecode
-	 *        The {@linkplain JavaBytecode bytecode}.
 	 * @param fieldrefEntry
-	 *        The {@linkplain FieldrefEntry entry} for the referenced field.
+	 *        A {@linkplain FieldrefEntry field reference entry} for the
+	 *        referenced {@linkplain Field field}.
+	 * @param isStatic
+	 *        {@code true} if the referenced field is {@code static}, {@code
+	 *        false} otherwise.
 	 */
 	public GetFieldInstruction (
-		final JavaBytecode bytecode,
-		final FieldrefEntry fieldrefEntry)
+		final FieldrefEntry fieldrefEntry,
+		final boolean isStatic)
 	{
-		super(bytecode);
-		this.fieldrefEntry = fieldrefEntry;
+		super(fieldrefEntry, isStatic);
 	}
 }
