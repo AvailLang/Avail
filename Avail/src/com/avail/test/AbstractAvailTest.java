@@ -192,35 +192,37 @@ public class AbstractAvailTest
 		{
 			final ModuleNameResolver theResolver = resolver;
 			assert theResolver != null;
-			final ResolvedModuleName resolvedName =
-				theResolver.resolve(e.moduleName());
-			if (resolvedName == null)
+			try
 			{
-				System.err.printf("%s%n", e.getMessage());
+				final ResolvedModuleName resolvedName =
+					theResolver.resolve(e.moduleName(), null);
+				final File sourceFile = resolvedName.sourceReference();
+				assert sourceFile != null;
+				final String source = readSourceFile(sourceFile);
+				if (source == null)
+				{
+					System.err.printf("%s%n", e.getMessage());
+					throw e;
+				}
+				final char[] sourceBuffer = source.toCharArray();
+				final StringBuilder builder = new StringBuilder();
+				System.err.append(new String(
+					sourceBuffer, 0, (int) e.endOfErrorLine()));
+				System.err.append(e.getMessage());
+				builder.append(new String(
+					sourceBuffer,
+					(int) e.endOfErrorLine(),
+					Math.min(100,
+						sourceBuffer.length - (int) e.endOfErrorLine())));
+				builder.append("...\n");
+				System.err.printf("%s%n", builder);
 				throw e;
 			}
-
-			final File sourceFile = resolvedName.sourceReference();
-			assert sourceFile != null;
-			final String source = readSourceFile(sourceFile);
-			if (source == null)
+			catch (final UnresolvedDependencyException exc)
 			{
-				System.err.printf("%s%n", e.getMessage());
-				throw e;
+				System.err.printf("%s%n", exc.getMessage());
+				throw exc;
 			}
-
-			final char[] sourceBuffer = source.toCharArray();
-			final StringBuilder builder = new StringBuilder();
-			System.err.append(new String(
-				sourceBuffer, 0, (int) e.endOfErrorLine()));
-			System.err.append(e.getMessage());
-			builder.append(new String(
-				sourceBuffer,
-				(int) e.endOfErrorLine(),
-				Math.min(100, sourceBuffer.length - (int) e.endOfErrorLine())));
-			builder.append("...\n");
-			System.err.printf("%s%n", builder);
-			throw e;
 		}
 	}
 }

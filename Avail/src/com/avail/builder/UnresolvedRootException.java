@@ -1,5 +1,5 @@
 /**
- * ParagraphFormatterStream.java
+ * UnresolvedRootException.java
  * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -30,66 +30,52 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.utility;
+package com.avail.builder;
 
-import java.io.IOException;
 import com.avail.annotations.Nullable;
 
 /**
- * TODO: [LAS] Document ParagraphFormatterStream!
+ * TODO: [LAS] Document UnresolvedRootException and fix constructor javadoc.
  *
  * @author Leslie Schultz &lt;leslie@availlang.org&gt;
  */
-public class ParagraphFormatterStream
-implements Appendable
+public class UnresolvedRootException
+extends UnresolvedDependencyException
 {
-	/** The text formatter that formats text prior to its appendage. */
-	private final ParagraphFormatter formatter;
 
-	/** The appendor */
-	private final Appendable appendable;
+	/** The serial version identifier. */
+	private static final long serialVersionUID = 1774549045775411642L;
+
+	/** The name of the root that could not be found. */
+	private final String unresolvedRootName;
 
 	/**
-	 * Construct a new {@link ParagraphFormatterStream}.
-	 *
-	 * @param formatter The text formatter.
-	 * @param appendable The Appendable that receives output text.
+	 * @return The name of the root that could not be found.
 	 */
-	public ParagraphFormatterStream (final ParagraphFormatter formatter,
-		final Appendable appendable)
+	public String unresolvedRootName()
 	{
-		this.formatter = formatter;
-		this.appendable = appendable;
+		return unresolvedRootName;
 	}
 
-	@Override
-	public Appendable append (final char c)
-		throws IOException
+	/**
+	 * Construct a new {@link UnresolvedRootException}.
+	 *
+	 * @param referringModuleName
+	 *        The name of the module whose dependency graph resolution
+	 *        triggered the failed root access.
+	 * @param unresolvedModuleName
+	 *        The name of the module which could not be resolved because of the
+	 *        failed root access.
+	 * @param unresolvedRootName
+	 *        The name of the root which could not be resolved.
+	 */
+	UnresolvedRootException (
+		final @Nullable ResolvedModuleName referringModuleName,
+		final String unresolvedModuleName,
+		final String unresolvedRootName)
 	{
-		String str = String.valueOf(c);
-		str = formatter.format(str);
-		return appendable.append(str);
+		super(referringModuleName, unresolvedModuleName);
+		this.unresolvedRootName = unresolvedRootName;
 	}
 
-	@Override
-	public Appendable append (@Nullable final CharSequence csq)
-		throws IOException
-	{
-		String str = String.valueOf(csq);
-		str = formatter.format(str);
-		return appendable.append(str);
-	}
-
-	@Override
-	public Appendable append (
-			@Nullable final CharSequence csq,
-			final int start,
-			final int end)
-		throws IOException
-	{
-		String str = String.valueOf(csq);
-		str = str.substring(start, end);
-		str = formatter.format(str);
-		return appendable.append(str);
-	}
 }

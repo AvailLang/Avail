@@ -33,6 +33,7 @@
 package com.avail.builder;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -78,6 +79,7 @@ import com.avail.utility.*;
  * <p>An instance is obtained via {@link RenamesFileParser#parse()}.</p>
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
+ * @author Leslie Schultz &lt;leslie@availlang.org&gt;
  */
 @ThreadSafe
 public final class ModuleNameResolver
@@ -189,21 +191,21 @@ public final class ModuleNameResolver
 	 * module names}, keyed by fully-qualified {@linkplain ModuleName module
 	 * names}.
 	 */
-	private final LRUCache<ModuleName, ResolvedModuleName> resolutionCache =
-		new LRUCache<>(
+	private final LRUCache<ModuleName, ModuleNameResolutionResult>
+		resolutionCache = new LRUCache<>(
 			100,
 			100,
-			new Transformer1<ModuleName, ResolvedModuleName>()
+			new Transformer1<ModuleName, ModuleNameResolutionResult>()
 			{
 				@Override
-				public @Nullable ResolvedModuleName value (
+				public @Nullable ModuleNameResolutionResult value (
 					final @Nullable ModuleName qualifiedName)
 				{
 					assert qualifiedName != null;
 					IndexedRepositoryManager repository = null;
 					File sourceFile = null;
 
-					// Attempt to lookup the fully-qualified name in the map of
+					// Attempt to look up the fully-qualified name in the map of
 					// renaming rules. Apply the rule if it exists.
 					ModuleName canonicalName = canonicalNameFor(qualifiedName);
 
@@ -213,10 +215,15 @@ public final class ModuleNameResolver
 					ModuleRoot root = moduleRoots.moduleRootFor(enclosingRoot);
 					if (root == null)
 					{
-						return null;
+						return new ModuleNameResolutionResult(
+							new UnresolvedRootException(
+								null, qualifiedName.localName(), enclosingRoot));
 					}
 
 					// Splitting the module group into its components.
+					final ArrayList<ModuleName> checkedPaths =
+						new ArrayList<ModuleName>();
+
 					final String[] components =
 						canonicalName.packageName().split("/");
 					assert components.length > 1;
@@ -264,6 +271,7 @@ public final class ModuleNameResolver
 							canonicalName = new ModuleName(
 								nameStack.removeLast(),
 								canonicalName.localName());
+							checkedPaths.add(canonicalName);
 							final File trial = new File(filenameFor(
 								pathStack.removeLast().getPath(),
 								canonicalName.localName()));
@@ -283,6 +291,7 @@ public final class ModuleNameResolver
 							canonicalName = new ModuleName(
 								nameStack.removeLast(),
 								canonicalName.localName());
+							checkedPaths.add(canonicalName);
 							if (root.repository().hasKey(canonicalName))
 							{
 								repository = root.repository();
@@ -304,6 +313,7 @@ public final class ModuleNameResolver
 										"/%s/%s",
 										rootName,
 										canonicalName.localName()));
+								checkedPaths.add(canonicalName);
 								root = moduleRoots.moduleRootFor(rootName);
 								assert root != null;
 								sourceDirectory = root.sourceDirectory();
@@ -351,7 +361,9 @@ public final class ModuleNameResolver
 								{
 									// Alas, the package representative did not
 									// exist.
-									return null;
+									return new ModuleNameResolutionResult(
+										new UnresolvedModuleException(
+											null, qualifiedName.localName(), checkedPaths));
 								}
 							}
 						}
@@ -359,17 +371,62 @@ public final class ModuleNameResolver
 						{
 							isPackage = repository.isPackage(canonicalName);
 						}
-						return new ResolvedModuleName(
-							canonicalName,
-							isPackage,
-							repository,
-							sourceFile);
+						return new ModuleNameResolutionResult(
+							new ResolvedModuleName(
+								canonicalName,
+								isPackage,
+								repository,
+								sourceFile));
 					}
 
 					// Resolution failed.
-					return null;
+					return new ModuleNameResolutionResult(
+						new UnresolvedModuleException(
+							null, qualifiedName.localName(), checkedPaths));
 				}
 			});
+
+	/**
+	 * This class was created so that, upon an UnresolvedDependencyException,
+	 * the ModuleNameResolver could bundle information about the different paths
+	 * checked for the missing file into the exception itself.
+	 */
+	private static final class ModuleNameResolutionResult
+	{
+		/** The module that was successfully resolved, or null if not found. */
+		public final ResolvedModuleName resolvedModule;
+
+		/** An exception if the module was not found, or null if it was. */
+		public final UnresolvedDependencyException e;
+
+		/**
+		 * Construct a new {@link ModuleNameResolutionResult}, upon successful
+		 * resolution, with the {@linkplain ResolvedModuleName resolved module}.
+		 *
+		 * @param resolvedModule The module that was successfully resolved.
+		 */
+		public ModuleNameResolutionResult (
+			final ResolvedModuleName resolvedModule)
+		{
+			this.resolvedModule = resolvedModule;
+			this.e = null;
+		}
+
+		/**
+		 * Construct a new {@link ModuleNameResolutionResult}, upon an
+		 * unsuccessful resolution, with an {@linkplain
+		 * UnresolvedDependencyException exception} containing the paths that
+		 * did not have the missing module.
+		 *
+		 * @param e
+		 */
+		public ModuleNameResolutionResult (
+			final UnresolvedDependencyException e)
+		{
+			this.resolvedModule = null;
+			this.e = e;
+		}
+	}
 
 	/**
 	 * Resolve a fully-qualified module name (as a reference to the {@linkplain
@@ -378,11 +435,25 @@ public final class ModuleNameResolver
 	 *
 	 * @param qualifiedName
 	 *        A fully-qualified {@linkplain ModuleName module name}.
+	 * @param dependent
+	 *        The name of the module that requires this resolution, if any.
 	 * @return A {@linkplain ResolvedModuleName resolved module name}, or {@code
 	 *         null} if resolution failed.
+	 * @throws UnresolvedDependencyException when the resolution has failed.
 	 */
-	public @Nullable ResolvedModuleName resolve (final ModuleName qualifiedName)
+	public ResolvedModuleName resolve (
+		final ModuleName qualifiedName,
+		final @Nullable ResolvedModuleName dependent)
+		throws UnresolvedDependencyException
 	{
-		return resolutionCache.get(qualifiedName);
+		final ModuleNameResolutionResult result =
+			resolutionCache.get(qualifiedName);
+		assert result != null;
+		if (result.resolvedModule == null) // If the resolution failed
+		{
+			result.e.setReferringModuleName(dependent);
+			throw result.e;
+		}
+		return result.resolvedModule;
 	}
 }

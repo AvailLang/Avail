@@ -40,6 +40,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.Reader;
 import java.io.StringReader;
+import java.util.EnumSet;
 import com.avail.annotations.Nullable;
 import com.avail.builder.ModuleName;
 import com.avail.builder.ModuleNameResolver;
@@ -219,6 +220,67 @@ implements Configuration
 	public void setClearRepositoriesFlag()
 	{
 		clearRepositories = true;
+	}
+
+	/**
+	 * The flag indicating whether the compiler should mute all output
+	 * originating from user code.
+	 */
+	private boolean quiet = false;
+
+	/**
+	 * Answer whether the compiler is set to mute user output.
+	 *
+	 * @return The status of the quiet flag.
+	 */
+	public boolean quiet()
+	{
+		return quiet;
+	}
+
+	/**
+	 * Instruct the compiler to mute all output originating from user code.
+	 */
+	public void setQuietFlag()
+	{
+		quiet = true;
+	}
+
+	/**
+	 * The {@linkplain EnumSet set} of reports the compiler should print
+	 * following its run.
+	 */
+	private EnumSet<StatisticReport> reports;
+
+	/**
+	 * Answer the {@linkplain EnumSet set} of reports the compiler should print
+	 * following its run.
+	 *
+	 * @return The set of report names.
+	 */
+	public EnumSet<StatisticReport> reports()
+	{
+		return reports;
+	}
+
+	/**
+	 * Configure the compiler to display the appropriate reports following its
+	 * run.
+	 *
+	 * @param reports The set of report names.
+	 */
+	public void setReports(final EnumSet<StatisticReport> reports)
+	{
+		this.reports = reports;
+	}
+
+	/**
+	 * @return True if the configuration has been set to output any {@linkplain
+	 *         StatisticReport reports}, false otherwise;
+	 */
+	public boolean hasReports()
+	{
+		return (reports != null) && !(reports.isEmpty());
 	}
 
 	/**

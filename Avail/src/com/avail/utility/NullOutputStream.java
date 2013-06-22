@@ -1,5 +1,5 @@
 /**
- * ParagraphFormatterStream.java
+ * NullOutputStream.java
  * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -32,64 +32,19 @@
 
 package com.avail.utility;
 
-import java.io.IOException;
-import com.avail.annotations.Nullable;
+import java.io.*;
 
 /**
- * TODO: [LAS] Document ParagraphFormatterStream!
+ * The null output stream discards all print arguments without printing.
  *
  * @author Leslie Schultz &lt;leslie@availlang.org&gt;
  */
-public class ParagraphFormatterStream
-implements Appendable
+public class NullOutputStream
+extends OutputStream
 {
-	/** The text formatter that formats text prior to its appendage. */
-	private final ParagraphFormatter formatter;
-
-	/** The appendor */
-	private final Appendable appendable;
-
-	/**
-	 * Construct a new {@link ParagraphFormatterStream}.
-	 *
-	 * @param formatter The text formatter.
-	 * @param appendable The Appendable that receives output text.
-	 */
-	public ParagraphFormatterStream (final ParagraphFormatter formatter,
-		final Appendable appendable)
-	{
-		this.formatter = formatter;
-		this.appendable = appendable;
-	}
-
 	@Override
-	public Appendable append (final char c)
-		throws IOException
+	public void write (final int b) throws IOException
 	{
-		String str = String.valueOf(c);
-		str = formatter.format(str);
-		return appendable.append(str);
-	}
-
-	@Override
-	public Appendable append (@Nullable final CharSequence csq)
-		throws IOException
-	{
-		String str = String.valueOf(csq);
-		str = formatter.format(str);
-		return appendable.append(str);
-	}
-
-	@Override
-	public Appendable append (
-			@Nullable final CharSequence csq,
-			final int start,
-			final int end)
-		throws IOException
-	{
-		String str = String.valueOf(csq);
-		str = str.substring(start, end);
-		str = formatter.format(str);
-		return appendable.append(str);
+		// Do nothing.
 	}
 }

@@ -56,6 +56,7 @@ import com.avail.utility.*;
  * {@linkplain ModuleDescriptor module} and each of its dependencies.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
+ * @author Leslie Schultz &lt;leslie@availlang.org&gt;
  */
 public final class AvailBuilder
 {
@@ -348,14 +349,8 @@ public final class AvailBuilder
 				MalformedSerialStreamException
 		{
 			final ResolvedModuleName resolvedName =
-				runtime.moduleNameResolver().resolve(qualifiedName);
-			if (resolvedName == null)
-			{
-				assert resolvedSuccessor != null;
-				throw new UnresolvedDependencyException(
-					resolvedSuccessor,
-					qualifiedName.localName());
-			}
+				runtime.moduleNameResolver().resolve(
+					qualifiedName, resolvedSuccessor);
 
 			// TODO: [TLS/MvG] The recursion detection mechanism does not
 			// reliably work because of the early exit below. I don't have time
@@ -1022,9 +1017,16 @@ public final class AvailBuilder
 					}
 					catch (final RecursiveDependencyException e)
 					{
-						e.prependModule(runtime.moduleNameResolver().resolve(
-							qualifiedName));
-						killer = e;
+						try
+						{
+							e.prependModule(runtime.moduleNameResolver().resolve(
+								qualifiedName, resolvedSuccessor));
+							killer = e;
+						}
+						catch (final UnresolvedDependencyException exc)
+						{
+							killer = exc;
+						}
 					}
 					catch (final Throwable e)
 					{

@@ -1,5 +1,5 @@
 /**
- * ParagraphFormatterStream.java
+ * UnresolvedModuleException.java
  * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -30,66 +30,54 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.utility;
+package com.avail.builder;
 
-import java.io.IOException;
+import java.util.ArrayList;
 import com.avail.annotations.Nullable;
 
 /**
- * TODO: [LAS] Document ParagraphFormatterStream!
+ * TODO: [LAS] Document UnresolvedModuleException and fix javadoc for constructor.
  *
  * @author Leslie Schultz &lt;leslie@availlang.org&gt;
  */
-public class ParagraphFormatterStream
-implements Appendable
+public class UnresolvedModuleException
+extends UnresolvedDependencyException
 {
-	/** The text formatter that formats text prior to its appendage. */
-	private final ParagraphFormatter formatter;
 
-	/** The appendor */
-	private final Appendable appendable;
+	/** The serial version identifier. */
+	private static final long serialVersionUID = 5538552037288443414L;
 
 	/**
-	 * Construct a new {@link ParagraphFormatterStream}.
-	 *
-	 * @param formatter The text formatter.
-	 * @param appendable The Appendable that receives output text.
+	 * The list of the places the unresolved module could have been.
 	 */
-	public ParagraphFormatterStream (final ParagraphFormatter formatter,
-		final Appendable appendable)
+	private final ArrayList<ModuleName> acceptablePaths;
+
+	/**
+	 * Answer the list of the places the unresolved module could have been.
+	 *
+	 * @return A {@linkplain ArrayList} list of the {@linkplain ModuleName
+	 *         module names}
+	 */
+	public ArrayList<ModuleName> acceptablePaths()
 	{
-		this.formatter = formatter;
-		this.appendable = appendable;
+		return acceptablePaths;
 	}
 
-	@Override
-	public Appendable append (final char c)
-		throws IOException
+	/**
+	 * Construct a new {@link UnresolvedModuleException}.
+	 *
+	 * @param referringModuleName The name of the module which contained the invalid module
+	 *            reference.
+	 * @param unresolvedModuleName The name of the module which could not be resolved.
+	 * @param acceptablePaths The list of places the module could have been.
+	 */
+	UnresolvedModuleException (
+		final @Nullable ResolvedModuleName referringModuleName,
+		final String unresolvedModuleName,
+		final ArrayList<ModuleName> acceptablePaths)
 	{
-		String str = String.valueOf(c);
-		str = formatter.format(str);
-		return appendable.append(str);
+		super(referringModuleName, unresolvedModuleName);
+		this.acceptablePaths = acceptablePaths;
 	}
 
-	@Override
-	public Appendable append (@Nullable final CharSequence csq)
-		throws IOException
-	{
-		String str = String.valueOf(csq);
-		str = formatter.format(str);
-		return appendable.append(str);
-	}
-
-	@Override
-	public Appendable append (
-			@Nullable final CharSequence csq,
-			final int start,
-			final int end)
-		throws IOException
-	{
-		String str = String.valueOf(csq);
-		str = str.substring(start, end);
-		str = formatter.format(str);
-		return appendable.append(str);
-	}
 }

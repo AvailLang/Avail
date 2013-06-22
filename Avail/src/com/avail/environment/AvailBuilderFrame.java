@@ -537,19 +537,22 @@ extends JFrame
 			}
 			catch (final AvailCompilerException e)
 			{
-				final ResolvedModuleName resolvedName =
-					resolver.resolve(e.moduleName());
-				if (resolvedName == null)
+				final ResolvedModuleName resolvedName;
+				try
 				{
-					System.err.printf("%s%n", e.getMessage());
-					throw e;
+					resolvedName = resolver.resolve(e.moduleName(), null);
+				}
+				catch (final UnresolvedDependencyException exc)
+				{
+					terminator = exc;
+					return null;
 				}
 				final String source = readSourceFile(
 					resolvedName.sourceReference());
 				if (source == null)
 				{
-					System.err.printf("%s%n", e.getMessage());
-					throw e;
+					terminator = e;
+					return null;
 				}
 				final char[] sourceBuffer = source.toCharArray();
 				final StringBuilder builder = new StringBuilder();

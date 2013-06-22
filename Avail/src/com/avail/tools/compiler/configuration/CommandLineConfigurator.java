@@ -35,6 +35,7 @@ package com.avail.tools.compiler.configuration;
 import static java.util.Arrays.asList;
 import static com.avail.tools.compiler.configuration.CommandLineConfigurator.OptionKey.*;
 import java.io.File;
+import java.util.EnumSet;
 import com.avail.annotations.InnerAccess;
 import com.avail.annotations.Nullable;
 import com.avail.builder.ModuleName;
@@ -52,7 +53,9 @@ import com.avail.utility.Continuation2;
 import com.avail.utility.MutableOrNull;
 
 /**
- * TODO: [LAS] Document CommandLineConfigurator!
+ * Provides the configuration for the command-line compiler. Specifies the
+ * options that are available as arguments to the compiler and their effects
+ * on the compile process or user interface.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  * @author Leslie Schultz &lt;leslie@availlang.org&gt;
@@ -81,19 +84,18 @@ implements Configurator<CompilerConfiguration>
 		 * roots path has valid source directories specified.
 		 */
 		CLEAR_REPOSITORIES,
-/*
-		/** TODO: [LAS] Add showStatistics option.
-		 * Add a --showStatistics (-s) option. This is a boolean option. If
-		 * present, then the compiler emits performance statistics for the Avail
-		 * VM, e.g., how much time each primitive spent running, etc.; if
-		 * absent, then no such information is emitted. It defaults to absent. I
-		 * don't know how to actually get this information, but I think that
-		 * it's available through the AvailBuilderFrame, so you can probably
-		 * find it out fairly easily. You can also email Mark, who is
-		 * responsible for the backend of this feature.
-		 *
+
+		/**
+		 * The option to mute all output originating from user code.
+		 */
+		QUIET,
+
+		/**
+		 * The option to emit performance statistics for the Avail Virtual
+		 * Machine.
+		 */
 		SHOW_STATISTICS,
-*/
+
 		/**
 		 * The option to emit the time taken to clear the repositories, or the
 		 * elapsed build time following a successful or failed build.
@@ -207,6 +209,7 @@ implements Configurator<CompilerConfiguration>
 					final @Nullable String keyword,
 					final @Nullable String unused)
 				{
+					processor.value().checkEncountered(CLEAR_REPOSITORIES, 0);
 					if (unused != null)
 					{
 						throw new OptionProcessingException(
@@ -214,6 +217,81 @@ implements Configurator<CompilerConfiguration>
 									"are permitted.");
 					}
 					configuration.setClearRepositoriesFlag();
+				}
+			}));
+
+		factory.addOption(new GenericOption<OptionKey>(
+			QUIET,
+			asList("q", "quiet"),
+			"The option to mute all output originating from user code.",
+			new Continuation2<String, String>()
+			{
+				@Override
+				public void value (
+					final @Nullable String keyword,
+					final @Nullable String unused)
+				{
+					processor.value().checkEncountered(QUIET, 0);
+					if (unused != null)
+					{
+						throw new OptionProcessingException(
+							keyword + ": An argument was specified, but none " +
+									"are permitted.");
+					}
+					configuration.setQuietFlag();
+				}
+			}));
+
+		factory.addOption(new GenericOption<OptionKey>(
+			SHOW_STATISTICS,
+			asList("s", "showStatistics"),
+			"The option to request statistics about the most time-intensive " +
+			"operations in all categories ( -s or --showStatistics ) or for " +
+			"specific categories, using a comma-separated list of keywords ( " +
+			"--showStatistics=#,# ). This option overrides environment " +
+			"variables." +
+			"\n" +
+			"\nPossible values in # include:" +
+			"\nL2Operations - The most time-intensive level-two operations." +
+			"\nDynamicLookups - The most time-intensive dynamic method " +
+			"lookups." +
+			"\nPrimitives - The primitives that are the most time-intensive " +
+			"to run overall." +
+			"\nPrimitiveReturnTypeChecks - The primitives that take the most " +
+			"time checking return types.",
+			new Continuation2<String, String>()
+			{
+				@Override
+				public void value (
+					final @Nullable String keyword,
+					final @Nullable String reportsString)
+				{
+					processor.value().checkEncountered(SHOW_STATISTICS, 0);
+					EnumSet<StatisticReport> reports;
+					if (reportsString == null)
+					{
+						reports = EnumSet.allOf(StatisticReport.class);
+					}
+					else
+					{
+						final String[] reportsArr = reportsString.split(",");
+						reports = EnumSet.noneOf(StatisticReport.class);
+						StatisticReport report;
+						for (final String reportName : reportsArr)
+						{
+							report = StatisticReport.reportFor(reportName);
+
+							// This will also catch the illegal use of "="
+							// without any items following.
+							if (report == null)
+							{
+								throw new OptionProcessingException(
+									keyword + ": Illegal argument.");
+							}
+							reports.add(report);
+						}
+					}
+					configuration.setReports(reports);
 				}
 			}));
 
@@ -229,6 +307,7 @@ implements Configurator<CompilerConfiguration>
 					final @Nullable String keyword,
 					final @Nullable String unused)
 				{
+					processor.value().checkEncountered(SHOW_TIMING, 0);
 					if (unused != null)
 					{
 						throw new OptionProcessingException(
@@ -262,7 +341,7 @@ implements Configurator<CompilerConfiguration>
 					final @Nullable String keyword,
 					final @Nullable String verboseString)
 				{
-					processor.value().checkEncountered(AVAIL_RENAMES, 0);
+					processor.value().checkEncountered(VERBOSE_MODE, 0);
 					if (verboseString == null)
 					{
 						configuration.setVerbosityLevel(
@@ -272,6 +351,9 @@ implements Configurator<CompilerConfiguration>
 					{
 						try
 						{
+							// This parseInt will (also) throw an exception if
+							// it tries to parse "" as a result of the illegal
+							// use of "=" without any items following.
 							final int level = Integer.parseInt(verboseString);
 							configuration.setVerbosityLevel(
 								VerbosityLevel.atLevel(level));

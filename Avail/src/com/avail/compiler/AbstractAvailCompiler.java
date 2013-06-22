@@ -525,10 +525,19 @@ public abstract class AbstractAvailCompiler
 
 			for (final ModuleImport moduleImport : importedModules)
 			{
-				final ResolvedModuleName ref = resolver.resolve(
-					moduleName.asSibling(
-						moduleImport.moduleName.asNativeString()));
-				assert ref != null;
+				final ResolvedModuleName ref;
+				try
+				{
+					ref = resolver.resolve(
+						moduleName.asSibling(
+							moduleImport.moduleName.asNativeString()),
+						null);
+				}
+				catch (final UnresolvedDependencyException e)
+				{
+					assert false : "This never happens";
+					throw new RuntimeException(e);
+				}
 				final A_String availRef = StringDescriptor.from(
 					ref.qualifiedName());
 				if (!runtime.includesModuleNamed(availRef))

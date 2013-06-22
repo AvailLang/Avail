@@ -398,11 +398,13 @@ public class OptionProcessor<OptionKeyType extends Enum<OptionKeyType>>
 		// in the order in which they are specified in the source file.
 		for (final Option<OptionKeyType> option : options)
 		{
+			// Keywords should be left-justified within the 80 char window.
 			final ParagraphFormatter keywordFormatter =
 				new ParagraphFormatter(80);
 			final ParagraphFormatterStream keywordStream =
 				new ParagraphFormatterStream(keywordFormatter, appendable);
 
+			// Descriptions should be indented by 4 spaces.
 			final ParagraphFormatter descriptionFormatter =
 				new ParagraphFormatter(80, 4, 4);
 			final ParagraphFormatterStream descriptionStream =
@@ -426,7 +428,8 @@ public class OptionProcessor<OptionKeyType extends Enum<OptionKeyType>>
 				}
 			}
 
-			descriptionStream.append(String.format("%s%n%n", option.description()));
+			descriptionStream.append(
+				String.format("%s%n%n", option.description()));
 		}
 	}
 }
