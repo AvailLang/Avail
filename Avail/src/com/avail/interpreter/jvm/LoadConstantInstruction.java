@@ -51,12 +51,6 @@ extends JavaInstruction
 	 */
 	private final ConstantEntry entry;
 
-	@Override
-	boolean isLabel ()
-	{
-		return false;
-	}
-
 	/**
 	 * Does the {@linkplain ConstantEntry entry} consume two indices in the
 	 * {@linkplain ConstantPool constant pool}?

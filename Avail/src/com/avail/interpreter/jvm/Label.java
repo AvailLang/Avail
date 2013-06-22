@@ -41,7 +41,7 @@ import java.io.IOException;
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-final class Label
+public final class Label
 extends JavaInstruction
 {
 	/** The name of the label. */

@@ -238,7 +238,14 @@ enum JavaBytecode
 	areturn (0xb0,
 		O(OBJECTREF),
 		O(),
-		X(IllegalMonitorStateException.class)),
+		X(IllegalMonitorStateException.class))
+	{
+		@Override
+		public boolean isReturn ()
+		{
+			return true;
+		}
+	},
 
 	/**
 	 * Get length of array.
@@ -763,7 +770,14 @@ enum JavaBytecode
 	dreturn (0xaf,
 		O(DOUBLE),
 		O(),
-		X(IllegalMonitorStateException.class)),
+		X(IllegalMonitorStateException.class))
+	{
+		@Override
+		public boolean isReturn ()
+		{
+			return true;
+		}
+	},
 
 	/**
 	 * Store {@code double} into local variable.
@@ -1230,7 +1244,14 @@ enum JavaBytecode
 	freturn (0xae,
 		O(FLOAT),
 		O(),
-		X(IllegalMonitorStateException.class)),
+		X(IllegalMonitorStateException.class))
+	{
+		@Override
+		public boolean isReturn ()
+		{
+			return true;
+		}
+	},
 
 	/**
 	 * Store {@code flaot} into local variable.
@@ -2311,7 +2332,14 @@ enum JavaBytecode
 	ireturn (0xac,
 		O(INT),
 		O(),
-		X(IllegalMonitorStateException.class)),
+		X(IllegalMonitorStateException.class))
+	{
+		@Override
+		public boolean isReturn ()
+		{
+			return true;
+		}
+	},
 
 	/**
 	 * Shift left {@code int}.
@@ -2886,7 +2914,14 @@ enum JavaBytecode
 	lreturn (0xad,
 		O(LONG),
 		O(),
-		X(IllegalMonitorStateException.class)),
+		X(IllegalMonitorStateException.class))
+	{
+		@Override
+		public boolean isReturn ()
+		{
+			return true;
+		}
+	},
 
 	/**
 	 * Shift left {@code long}.
@@ -3258,6 +3293,12 @@ enum JavaBytecode
 		X(IllegalMonitorStateException.class))
 	{
 		@Override
+		public boolean isReturn ()
+		{
+			return true;
+		}
+
+		@Override
 		public String mnemonic ()
 		{
 			return "return";
@@ -3488,6 +3529,17 @@ enum JavaBytecode
 	public int minimumFormatSize ()
 	{
 		return minimumFormatSize;
+	}
+
+	/**
+	 * Does the {@linkplain JavaBytecode bytecode} affect a {@code return}?
+	 *
+	 * @return {@code true} if the bytecode affects a return, {@code false}
+	 *         otherwise.
+	 */
+	public boolean isReturn ()
+	{
+		return false;
 	}
 
 	/** The input {@linkplain JavaOperand stack operands}. */

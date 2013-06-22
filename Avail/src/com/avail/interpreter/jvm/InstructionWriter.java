@@ -75,10 +75,10 @@ final class InstructionWriter
 	 *
 	 * @return The method's code size.
 	 */
-	long codeSize ()
+	int codeSize ()
 	{
-		assert codeSize != -1L;
-		return codeSize;
+		assert (codeSize & 0xFFFFFFFFL) == codeSize;
+		return (int) codeSize;
 	}
 
 	/**
@@ -109,6 +109,19 @@ final class InstructionWriter
 		return true;
 	}
 
+	/** The maximum stack depth. */
+	private int maxStackDepth = 0;
+
+	/**
+	 * Answer the maximum stack depth.
+	 *
+	 * @return The maximum stack depth.
+	 */
+	public int maxStackDepth ()
+	{
+		return maxStackDepth;
+	}
+
 	/**
 	 * Answer the state of the {@linkplain JavaOperand stack} after considering
 	 * the side effects of the most recent {@linkplain JavaInstruction
@@ -122,14 +135,21 @@ final class InstructionWriter
 		if (instr != null)
 		{
 			assert canConsumeOperands(instr);
-			final List<JavaOperand> operands = instr.operandStack();
-			assert operands != null;
-			final List<JavaOperand> after = new ArrayList<>(
-				operands.subList(
-					0,
-					operands.size() - instr.inputOperands().length));
-			after.addAll(Arrays.asList(instr.outputOperands()));
-			return after;
+			if (!instr.isReturn())
+			{
+				final List<JavaOperand> operands = instr.operandStack();
+				assert operands != null;
+				final List<JavaOperand> after = new ArrayList<>(
+					operands.subList(
+						0,
+						operands.size() - instr.inputOperands().length));
+				after.addAll(Arrays.asList(instr.outputOperands()));
+				if (after.size() > maxStackDepth)
+				{
+					maxStackDepth = after.size();
+				}
+				return after;
+			}
 		}
 		return Collections.emptyList();
 	}
@@ -194,7 +214,7 @@ final class InstructionWriter
 	 */
 	void writeTo (final DataOutput out) throws IOException
 	{
-		assert codeSize != -1L;
+		out.writeInt(codeSize());
 		for (final JavaInstruction instruction : instructions)
 		{
 			instruction.writeTo(out);

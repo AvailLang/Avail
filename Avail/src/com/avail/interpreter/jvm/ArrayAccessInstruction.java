@@ -52,12 +52,6 @@ extends JavaInstruction
 	private final Class<?> type;
 
 	@Override
-	boolean isLabel ()
-	{
-		return false;
-	}
-
-	@Override
 	int size ()
 	{
 		return 0;

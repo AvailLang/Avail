@@ -50,12 +50,6 @@ extends JavaInstruction
 	final LocalVariable local;
 
 	@Override
-	boolean isLabel ()
-	{
-		return false;
-	}
-
-	@Override
 	final int size ()
 	{
 		return local.isWide() ? 3 : 1;
@@ -78,15 +72,21 @@ extends JavaInstruction
 	 */
 	final JavaBytecode bytecode ()
 	{
-		final int rowIndex = local.type == Object.class ? 0
-			: local.type == Float.TYPE ? 1
-			: local.type == Double.TYPE ? 2
-			: local.type == Integer.TYPE ? 3
-			: local.type == Long.TYPE ? 4
+		final String descriptor = local.descriptor();
+		final Class<?> type = JavaDescriptors.typeForDescriptor(descriptor);
+		final int rowIndex = type == Object.class ? 0
+			: type == Float.TYPE ? 1
+			: type == Double.TYPE ? 2
+			: type == Boolean.TYPE ? 3
+			: type == Byte.TYPE ? 3
+			: type == Character.TYPE ? 3
+			: type == Integer.TYPE ? 3
+			: type == Short.TYPE ? 3
+			: type == Long.TYPE ? 4
 			: -1;
 		assert rowIndex != -1;
 		final int columnIndex = Math.min(local.index, 4);
-		return bytecodes()[rowIndex + 5 * columnIndex];
+		return bytecodes()[5 * rowIndex + columnIndex];
 	}
 
 	@Override
@@ -124,7 +124,7 @@ extends JavaInstruction
 			"%s%s",
 			local.isWide() ? "wide " : "",
 			bytecode().mnemonic());
-		return String.format("%-15s#%s", mnemonic, local);
+		return String.format("%-15s%s", mnemonic, local);
 	}
 
 	/**

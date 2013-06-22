@@ -33,7 +33,6 @@
 package com.avail.interpreter.jvm;
 
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -45,10 +44,21 @@ import java.util.Set;
 final class Scope
 {
 	/**
-	 * The local variable index, measured in {@linkplain
-	 * LocalVariable#slotUnits() slot units}.
+	 * The {@linkplain LocalVariable local variable} index, measured in
+	 * {@linkplain LocalVariable#slotUnits() slot units}.
 	 */
-	private int localIndex;
+	private int localIndex = 0;
+
+	/**
+	 * Answer the {@linkplain LocalVariable local variable} index, measured in
+	 * {@linkplain LocalVariable#slotUnits() slot units}.
+	 *
+	 * @return The local variable index.
+	 */
+	int localIndex ()
+	{
+		return localIndex;
+	}
 
 	/**
 	 * Construct a new {@link Scope}.
@@ -72,7 +82,9 @@ final class Scope
 		return new Scope(localIndex);
 	}
 
-	/** A {@linkplain Map map} from local variable names to indices. */
+	/**
+	 * The {@linkplain Set set} of {@linkplain LocalVariable local variables}.
+	 */
 	private final Set<LocalVariable> localVariables = new HashSet<>();
 
 	/**
@@ -81,16 +93,15 @@ final class Scope
 	 *
 	 * @param name
 	 *        The name of the local variable.
-	 * @param type
-	 *        The {@linkplain Class type} of the local variable. This must be
-	 *        either a {@linkplain Class#isPrimitive() primitive} type or
-	 *        {@link Object Object.class} for reference or return address types.
+	 * @param descriptor
+	 *        The type descriptor for the local variable.
 	 * @return A new local variable.
 	 */
-	LocalVariable newLocalVariable (final String name, final Class<?> type)
+	LocalVariable newLocalVariable (final String name, final String descriptor)
 	{
-		final LocalVariable local = new LocalVariable(name, type, localIndex);
-		localIndex += LocalVariable.slotUnits(type);
+		final LocalVariable local =
+			new LocalVariable(name, descriptor, localIndex);
+		localIndex += JavaDescriptors.slotUnits(descriptor);
 		localVariables.add(local);
 		return local;
 	}

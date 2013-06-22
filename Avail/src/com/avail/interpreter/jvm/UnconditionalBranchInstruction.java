@@ -47,12 +47,6 @@ extends JavaInstruction
 	/** The {@linkplain Label branch target}. */
 	private final Label label;
 
-	@Override
-	final boolean isLabel ()
-	{
-		return false;
-	}
-
 	/**
 	 * Is the {@linkplain GotoInstruction branch} wide?
 	 *

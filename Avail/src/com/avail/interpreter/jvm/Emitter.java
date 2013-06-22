@@ -197,7 +197,7 @@ abstract class Emitter<T extends Enum<T> & Modifier>
 
 	/**
 	 * Set the specified {@linkplain Attribute attribute} for the {@linkplain
-	 * Class class}.
+	 * Emitter emitter}.
 	 *
 	 * @param attribute
 	 *        An attribute.

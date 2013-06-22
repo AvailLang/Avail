@@ -81,6 +81,12 @@ extends JavaInstruction
 	}
 
 	@Override
+	boolean isReturn ()
+	{
+		return bytecode.isReturn();
+	}
+
+	@Override
 	void writeBytecodeTo (final DataOutput out) throws IOException
 	{
 		bytecode.writeTo(out);

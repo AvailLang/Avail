@@ -59,43 +59,18 @@ public final class LocalVariable
 		return name;
 	}
 
-	/**
-	 * Is the specified {@linkplain Class type} valid as a {@linkplain
-	 * LocalVariable local variable} type?
-	 *
-	 * @param type
-	 *        A type.
-	 * @return {@code true} if the argument is a valid type for a local
-	 *         variable, {@code false} otherwise.
-	 */
-	static boolean isValid (final Class<?> type)
-	{
-		return type.isPrimitive() || type.equals(Object.class);
-	}
+	/** The type descriptor of the {@linkplain LocalVariable local variable}. */
+	private final String descriptor;
 
 	/**
-	 * The broad type of the local variable. The {@linkplain Class#isPrimitive()
-	 * primitive types} are presented by the appropriate objects, and
-	 * {@link Object Object.class} is used to represent reference and
-	 * return address types.
-	 */
-	final Class<?> type;
-
-	/**
-	 * Answer the number of slot units consumed by the specified {@linkplain
-	 * Class type}.
+	 * Answer the type descriptor of the {@linkplain LocalVariable local
+	 * variable}.
 	 *
-	 * @param type
-	 *        A type.
-	 * @return The number of slot units consumed.
+	 * @return The type descriptor of the local variable.
 	 */
-	static int slotUnits (final Class<?> type)
+	public String descriptor ()
 	{
-		if (type == Long.TYPE || type == Double.TYPE)
-		{
-			return 2;
-		}
-		return 1;
+		return descriptor;
 	}
 
 	/**
@@ -106,7 +81,7 @@ public final class LocalVariable
 	 */
 	int slotUnits ()
 	{
-		return slotUnits(type);
+		return JavaDescriptors.slotUnits(descriptor);
 	}
 
 	/** The local variable index, measured in slot units. */
@@ -127,7 +102,7 @@ public final class LocalVariable
 	@Override
 	public String toString ()
 	{
-		return String.format("%s [%d]", name, index);
+		return String.format("%s [#%d] : %s", name, index, descriptor);
 	}
 
 	/**
@@ -135,19 +110,15 @@ public final class LocalVariable
 	 *
 	 * @param name
 	 *        The name of the local variable.
-	 * @param type
-	 *        The broad type of the local variable. The {@linkplain
-	 *        Class#isPrimitive() primitive types} are presented by the
-	 *        appropriate objects, and {@link Object Object.class} is used
-	 *        to represent reference and return address types.
+	 * @param descriptor
+	 *        The type descriptor of the local variable.
 	 * @param index
 	 *        The local variable index, measured in slot units.
 	 */
-	LocalVariable (final String name, final Class<?> type, final int index)
+	LocalVariable (final String name, final String descriptor, final int index)
 	{
-		assert isValid(type);
 		this.name = name;
-		this.type = type;
+		this.descriptor = descriptor;
 		this.index = index;
 	}
 

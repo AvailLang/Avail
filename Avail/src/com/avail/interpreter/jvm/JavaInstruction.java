@@ -150,7 +150,22 @@ abstract class JavaInstruction
 	 * @return {@code true} if the instruction represents a label, {@code
 	 *         false} otherwise.
 	 */
-	abstract boolean isLabel ();
+	boolean isLabel ()
+	{
+		return false;
+	}
+
+	/**
+	 * Does the {@linkplain JavaInstruction instruction} affect a {@code
+	 * return}?
+	 *
+	 * @return {@code true} if the instruction affects a return, {@code false}
+	 *         otherwise.
+	 */
+	boolean isReturn ()
+	{
+		return false;
+	}
 
 	/**
 	 * Write the appropriate {@linkplain JavaBytecode bytecode} to the specified

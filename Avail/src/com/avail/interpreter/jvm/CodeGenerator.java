@@ -297,7 +297,7 @@ extends Emitter<ClassModifier>
 			}
 			for (final Method method : methods.values())
 			{
-				if (method.writer.instructionCount() != 0)
+				if (method.instructionCount() != 0)
 				{
 					return false;
 				}
@@ -360,5 +360,19 @@ extends Emitter<ClassModifier>
 		{
 			method.writeTo(out);
 		}
+	}
+
+	/**
+	 * Emit the Java class file represented by the {@linkplain CodeGenerator
+	 * code generator} to the specified {@linkplain DataOutput binary stream}.
+	 *
+	 * @param out
+	 *        A binary output stream.
+	 * @throws IOException
+	 *         If the operation fails.
+	 */
+	public void emitOn (final DataOutput out) throws IOException
+	{
+		writeTo(out);
 	}
 }

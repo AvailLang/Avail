@@ -53,12 +53,6 @@ extends JavaInstruction
 	/** The default {@linkplain Label label} for the switch. */
 	private final Label defaultLabel;
 
-	@Override
-	boolean isLabel ()
-	{
-		return false;
-	}
-
 	/**
 	 * Answer the number of pad bytes required in the format of this
 	 * {@linkplain LookupSwitchInstruction instruction}.

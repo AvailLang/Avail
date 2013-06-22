@@ -580,7 +580,7 @@ public class ConstantPool
 		@Override
 		public String toString ()
 		{
-			return nameEntry.data();
+			return "Class " + name();
 		}
 
 		/**
@@ -959,7 +959,7 @@ public class ConstantPool
 		@Override
 		public String toString ()
 		{
-			return nameEntry.data() + ":" + descriptorEntry;
+			return nameEntry.data() + " : " + descriptorEntry;
 		}
 
 		/**
@@ -1485,7 +1485,7 @@ public class ConstantPool
 	 * @return The entry associated with the specified value.
 	 */
 	@ThreadSafe
-	public ClassEntry constant (final Class<?> value)
+	public ClassEntry classConstant (final Class<?> value)
 	{
 		final String descriptor = JavaDescriptors.forType(value);
 		return classConstant(descriptor);

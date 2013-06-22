@@ -37,12 +37,15 @@ import static com.avail.interpreter.jvm.MethodModifier.*;
 import java.io.DataOutput;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Deque;
 import java.util.EnumSet;
+import java.util.Formatter;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import com.avail.interpreter.jvm.ConstantPool.ClassEntry;
 import com.avail.interpreter.jvm.ConstantPool.FieldrefEntry;
 import com.avail.interpreter.jvm.ConstantPool.MethodrefEntry;
 import com.avail.interpreter.jvm.ConstantPool.Utf8Entry;
@@ -134,17 +137,120 @@ extends Emitter<MethodModifier>
 	}
 
 	/** The {@linkplain InstructionWriter instruction writer}. */
-	final InstructionWriter writer = new InstructionWriter();
+	private final InstructionWriter writer = new InstructionWriter();
+
+	/**
+	 * Answer the count of {@linkplain JavaInstruction instructions} already
+	 * emitted.
+	 *
+	 * @return The instruction count.
+	 */
+	int instructionCount ()
+	{
+		return writer.instructionCount();
+	}
+
+	/**
+	 * Answer the code size of the {@linkplain Method method}, in bytes.
+	 *
+	 * @return The code size.
+	 */
+	int codeSize ()
+	{
+		return writer.codeSize();
+	}
+
+	/**
+	 * Answer the maximum stack depth of the {@linkplain Method method}.
+	 *
+	 * @return The maximum stack depth.
+	 */
+	int maxStackDepth ()
+	{
+		return writer.maxStackDepth();
+	}
+
+	/** The maximum number of {@linkplain LocalVariable local variables}. */
+	private int maxLocals = 0;
+
+	/**
+	 * Answer the maximum number of {@linkplain LocalVariable local variables}.
+	 *
+	 * @return The maximum number of local variables.
+	 */
+	int maxLocals ()
+	{
+		return maxLocals;
+	}
+
+	/**
+	 * The parameter index, measured in {@linkplain LocalVariable#slotUnits()
+	 * slot units}.
+	 */
+	private int parameterIndex = 0;
+
+	/**
+	 * The self reference, {@code this}, available only for non-{@code static}
+	 * {@linkplain Method methods}.
+	 */
+	private LocalVariable self;
 
 	@Override
 	public void setModifiers (final EnumSet<MethodModifier> mods)
 	{
+		assert parameterIndex == 0;
 		super.setModifiers(mods);
 		if (mods.contains(ABSTRACT))
 		{
 			assert writer.instructionCount() == 0;
 			writer.fixInstructions();
 		}
+		if (!mods.contains(STATIC))
+		{
+			final String descriptor = codeGenerator.classEntry.descriptor();
+			self = new LocalVariable("this", descriptor, parameterIndex);
+			parameterIndex += JavaDescriptors.slotUnits(descriptor);
+			maxLocals = parameterIndex;
+		}
+	}
+
+	/**
+	 * Answer the {@linkplain LocalVariable local variable} that contains the
+	 * self reference, {@code this}. Note that this local variable is only
+	 * available for non-{@code static} {@linkplain Method methods}.
+	 *
+	 * @return The local variable containing the self reference.
+	 */
+	public LocalVariable self ()
+	{
+		assert self != null;
+		return self;
+	}
+
+	/** The {@linkplain Set set} of {@linkplain LocalVariable parameters}. */
+	private final Set<LocalVariable> parameters = new HashSet<>();
+
+	/**
+	 * Bind the specified name to the next unbound parameter, and answer a new
+	 * {@linkplain LocalVariable local variable} that represents that parameter.
+	 *
+	 * @param name
+	 *        The name of the parameter.
+	 * @return A new local variable.
+	 */
+	public LocalVariable newParameter (final String name)
+	{
+		final String methodDescriptor = descriptor();
+		final int index = parameterIndex - (modifiers.contains(STATIC) ? 0 : 1);
+		assert index < JavaDescriptors.slotUnits(methodDescriptor);
+		final String descriptor = JavaDescriptors.parameterDescriptor(
+			methodDescriptor, index);
+		final LocalVariable param = new LocalVariable(
+			name, descriptor, parameterIndex);
+		parameterIndex += JavaDescriptors.slotUnits(descriptor);
+		maxLocals = parameterIndex;
+		parameters.add(param);
+		return param;
 	}
 
 	/** The {@linkplain Scope scope} {@linkplain Deque stack}. */
@@ -168,6 +274,11 @@ extends Emitter<MethodModifier>
 	{
 		final Scope doomedScope = scopeStack.removeFirst();
 		doomedScope.exit();
+		final int localIndex = doomedScope.localIndex();
+		if (localIndex > maxLocals)
+		{
+			maxLocals = localIndex;
+		}
 	}
 
 	/** The {@linkplain Set set} of {@linkplain Label labels}. */
@@ -226,6 +337,26 @@ extends Emitter<MethodModifier>
 	 *
 	 * @param name
 	 *        The name of the local variable.
+	 * @param descriptor
+	 *        The type descriptor of the local variable. May be the nonstandard
+	 *        descriptor {@code "R"} to indicate a return address.
+	 * @return A new local variable.
+	 */
+	public LocalVariable newLocalVariable (
+		final String name,
+		final String descriptor)
+	{
+		assert parameterIndex == JavaDescriptors.slotUnits(descriptor());
+		final Scope currentScope = scopeStack.peekFirst();
+		return currentScope.newLocalVariable(name, descriptor);
+	}
+
+	/**
+	 * Introduce a new {@linkplain LocalVariable local variable} into the
+	 * current {@linkplain Scope scope}.
+	 *
+	 * @param name
+	 *        The name of the local variable.
 	 * @param type
 	 *        The {@linkplain Class type} of the local variable.
 	 * @return A new local variable.
@@ -234,9 +365,9 @@ extends Emitter<MethodModifier>
 		final String name,
 		final Class<?> type)
 	{
-		assert LocalVariable.isValid(type);
-		final Scope currentScope = scopeStack.peekFirst();
-		return currentScope.newLocalVariable(name, type);
+		assert parameterIndex == JavaDescriptors.slotUnits(descriptor());
+		final String descriptor = JavaDescriptors.forType(type);
+		return newLocalVariable(name, descriptor);
 	}
 
 	/**
@@ -394,10 +525,22 @@ extends Emitter<MethodModifier>
 	 * @param value
 	 *        A {@code Class} value.
 	 */
-	public void pushConstant (final Class<?> value)
+	public void pushClassConstant (final Class<?> value)
 	{
 		writer.append(new LoadConstantInstruction(
-			constantPool.constant(value)));
+			constantPool.classConstant(value)));
+	}
+
+	/**
+	 * Emit code to push the specified class descriptor onto the operand stack.
+	 *
+	 * @param descriptor
+	 *        A class descriptor.
+	 */
+	public void pushClassConstant (final String descriptor)
+	{
+		writer.append(new LoadConstantInstruction(
+			constantPool.classConstant(descriptor)));
 	}
 
 	/**
@@ -708,21 +851,14 @@ extends Emitter<MethodModifier>
 	}
 
 	/**
-	 * Emit a subroutine jump to the specified {@linkplain Label label} and a
-	 * store of the {@linkplain JavaOperand#RETURN_ADDRESS return address}.
+	 * Emit a subroutine jump to the specified {@linkplain Label label}.
 	 *
 	 * @param label
 	 *        A label.
-	 * @param returnAddress
-	 *        The {@linkplain LocalVariable variable} that should hold the
-	 *        return address.
 	 */
-	public void jumpSubroutine (
-		final Label label,
-		final LocalVariable returnAddress)
+	public void jumpSubroutine (final Label label)
 	{
 		writer.append(new JumpSubroutineInstruction(label));
-		writer.append(new StoreInstruction(returnAddress));
 	}
 
 	/**
@@ -753,6 +889,32 @@ extends Emitter<MethodModifier>
 		writer.append(monitorexit.create());
 	}
 
+	// TODO: [TLS] Add support for invokedynamic.
+
+	/**
+	 * Emit code to invoke an {@code interface} method. The receiver and
+	 * arguments are sourced from the operand stack.
+	 *
+	 * @param methodref
+	 */
+	public void invokeInterface (final MethodrefEntry methodref)
+	{
+		writer.append(invokeinterface.create(methodref));
+	}
+
+	/**
+	 * Emit code to invoke a {@code super}, {@code private}, or instance
+	 * initialization ({@code "<init>"}) method. The receiver and arguments are
+	 * sourced from the operand stack.
+	 *
+	 * @param methodref
+	 *        A {@linkplain MethodrefEntry method reference}.
+	 */
+	public void invokeSpecial (final MethodrefEntry methodref)
+	{
+		writer.append(invokespecial.create(methodref));
+	}
+
 	/**
 	 * Emit code to invoke a static method. The arguments are sourced from the
 	 * operand stack.
@@ -780,6 +942,130 @@ extends Emitter<MethodModifier>
 
 	// TODO: [TLS] Add missing code generation methods!
 
+	/** The {@linkplain ExceptionTable exception table}. */
+	private final ExceptionTable exceptionTable = new ExceptionTable();
+
+	/**
+	 * Answer the {@linkplain ExceptionTable exception table}.
+	 *
+	 * @return The exception table.
+	 */
+	ExceptionTable exceptionTable ()
+	{
+		return exceptionTable;
+	}
+
+	/**
+	 * Add a guarded zone to the {@linkplain ExceptionTable exception table}.
+	 *
+	 * @param startLabel
+	 *        The inclusive start {@linkplain Label label}.
+	 * @param endLabel
+	 *        The exclusive end label.
+	 * @param handlerLabel
+	 *        The label of the handler subroutine.
+	 * @param catchEntry
+	 *        The {@linkplain ClassEntry class entry} for the {@linkplain
+	 *        Throwable throwable} type.
+	 */
+	public void addGuardedZone (
+		final Label startLabel,
+		final Label endLabel,
+		final Label handlerLabel,
+		final ClassEntry catchEntry)
+	{
+		exceptionTable.addGuardedZone(
+			startLabel, endLabel, handlerLabel, catchEntry);
+	}
+
+	/**
+	 * Add a guarded zone to the {@linkplain ExceptionTable exception table}.
+	 *
+	 * @param startLabel
+	 *        The inclusive start {@linkplain Label label}.
+	 * @param endLabel
+	 *        The exclusive end label.
+	 * @param handlerLabel
+	 *        The label of the handler subroutine.
+	 * @param catchDescriptor
+	 *        The descriptor for the intercepted {@linkplain Throwable
+	 *        throwable} type.
+	 */
+	public void addGuardedZone (
+		final Label startLabel,
+		final Label endLabel,
+		final Label handlerLabel,
+		final String catchDescriptor)
+	{
+		final ClassEntry catchEntry =
+			constantPool.classConstant(catchDescriptor);
+		addGuardedZone(startLabel, endLabel, handlerLabel, catchEntry);
+	}
+
+	/**
+	 * Add a guarded zone to the {@linkplain ExceptionTable exception table}.
+	 *
+	 * @param startLabel
+	 *        The inclusive start {@linkplain Label label}.
+	 * @param endLabel
+	 *        The exclusive end label.
+	 * @param handlerLabel
+	 *        The label of the handler subroutine.
+	 * @param throwableType
+	 *        The {@linkplain Throwable throwable} {@linkplain Class type}.
+	 */
+	public void addGuardedZone (
+		final Label startLabel,
+		final Label endLabel,
+		final Label handlerLabel,
+		final Class<? extends Throwable> throwableType)
+	{
+		final ClassEntry catchEntry =
+			constantPool.classConstant(throwableType);
+		addGuardedZone(startLabel, endLabel, handlerLabel, catchEntry);
+	}
+
+	/**
+	 * Emit code that will affect a {@code return} to the caller. If the
+	 * {@linkplain Method method} produces a value, then that value will be
+	 * consumed from the top of the stack.
+	 */
+	public void returnToCaller ()
+	{
+		final JavaOperand returnType =
+			JavaDescriptors.returnOperand(descriptor());
+		final JavaBytecode bytecode;
+		if (returnType == null)
+		{
+			bytecode = return_;
+		}
+		else
+		{
+			switch (returnType.baseOperand())
+			{
+				case OBJECTREF:
+					bytecode = areturn;
+					break;
+				case INT:
+					bytecode = ireturn;
+					break;
+				case LONG:
+					bytecode = lreturn;
+					break;
+				case FLOAT:
+					bytecode = freturn;
+					break;
+				case DOUBLE:
+					bytecode = dreturn;
+					break;
+				default:
+					assert false : "This never happens!";
+					throw new IllegalStateException();
+			}
+		}
+		writer.append(bytecode.create());
+	}
+
 	/**
 	 * Fix all {@linkplain JavaInstruction instructions} at concrete {@linkplain
 	 * JavaInstruction#address() addresses}. No more code should be emitted to
@@ -787,8 +1073,11 @@ extends Emitter<MethodModifier>
 	 */
 	public void finish ()
 	{
+		assert scopeStack.isEmpty();
 		writer.fixInstructions();
-		// TODO: Generate a CodeAttribute and install it.
+		final CodeAttribute code = new CodeAttribute(
+			this, Collections.<Attribute>emptyList());
+		setAttribute(code);
 	}
 
 	@Override
@@ -798,10 +1087,39 @@ extends Emitter<MethodModifier>
 		descriptorEntry.writeIndexTo(out);
 	}
 
+	/**
+	 * Write the size-prefixed contents of the {@linkplain InstructionWriter
+	 * instruction stream} to the specified {@linkplain DataOutput output
+	 * stream}.
+	 *
+	 * @param out
+	 *        A binary output stream.
+	 * @throws IOException
+	 *         If the operation fails.
+	 */
+	void writeInstructionsTo (final DataOutput out) throws IOException
+	{
+		writer.writeTo(out);
+	}
+
 	@Override
 	public String toString ()
 	{
-		// TODO: [TLS] Do better than this!
-		return writer.toString();
+		@SuppressWarnings("resource")
+		final Formatter formatter = new Formatter();
+		final String mods = MethodModifier.toString(modifiers);
+		formatter.format("%s%s", mods, mods.isEmpty() ? "" : " ");
+		formatter.format("%s : %s", name(), descriptor());
+		formatter.format("%n\tCode:");
+		final String codeString = writer.toString().replaceAll(
+			String.format("%n"), String.format("%n\t"));
+		formatter.format("%n\t%s", codeString);
+		if (exceptionTable.size() > 0)
+		{
+			final String tableString = exceptionTable.toString().replaceAll(
+				String.format("%n"), String.format("%n\t"));
+			formatter.format("%n\t%s", tableString);
+		}
+		return formatter.toString();
 	}
 }

@@ -52,12 +52,6 @@ extends JavaInstruction
 	/** The number of dimensions. */
 	private final int dimensions;
 
-	@Override
-	boolean isLabel ()
-	{
-		return false;
-	}
-
 	/**
 	 * Does the {@linkplain NewObjectArrayInstruction instruction} create a
 	 * multidimensional array?

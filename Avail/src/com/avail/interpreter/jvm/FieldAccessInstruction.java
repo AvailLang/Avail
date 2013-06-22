@@ -56,12 +56,6 @@ extends JavaInstruction
 	private final boolean isStatic;
 
 	@Override
-	boolean isLabel ()
-	{
-		return false;
-	}
-
-	@Override
 	int size ()
 	{
 		return 3;
