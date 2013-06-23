@@ -32,6 +32,7 @@
 
 package com.avail.descriptor;
 
+import static com.avail.descriptor.VariableTypeDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.List;
 import com.avail.annotations.*;
@@ -71,7 +72,7 @@ extends TypeDescriptor
 		final int indent)
 	{
 		aStream.append("↑");
-		object.slot(ObjectSlots.INNER_TYPE).printOnAvoidingIndent(
+		object.slot(INNER_TYPE).printOnAvoidingIndent(
 			aStream,
 			recursionList,
 			(indent + 1));
@@ -80,13 +81,13 @@ extends TypeDescriptor
 	@Override @AvailMethod
 	A_Type o_ReadType (final AvailObject object)
 	{
-		return object.slot(ObjectSlots.INNER_TYPE);
+		return object.slot(INNER_TYPE);
 	}
 
 	@Override @AvailMethod
 	A_Type o_WriteType (final AvailObject object)
 	{
-		return object.slot(ObjectSlots.INNER_TYPE);
+		return object.slot(INNER_TYPE);
 	}
 
 	@Override @AvailMethod
@@ -106,9 +107,9 @@ extends TypeDescriptor
 		}
 		final boolean same =
 			aType.readType().equals(
-				object.slot(ObjectSlots.INNER_TYPE))
+				object.slot(INNER_TYPE))
 			&& aType.writeType().equals(
-				object.slot(ObjectSlots.INNER_TYPE));
+				object.slot(INNER_TYPE));
 		if (same)
 		{
 			if (!isShared())
@@ -128,7 +129,7 @@ extends TypeDescriptor
 	@Override @AvailMethod
 	int o_Hash (final AvailObject object)
 	{
-		return object.slot(ObjectSlots.INNER_TYPE).hash()
+		return object.slot(INNER_TYPE).hash()
 			* 17 ^ 0x613E420;
 	}
 
@@ -143,7 +144,7 @@ extends TypeDescriptor
 		final AvailObject object,
 		final A_BasicObject aVariableType)
 	{
-		final AvailObject innerType = object.slot(ObjectSlots.INNER_TYPE);
+		final AvailObject innerType = object.slot(INNER_TYPE);
 
 		// Variable types are covariant by read capability and contravariant by
 		// write capability.
@@ -172,7 +173,7 @@ extends TypeDescriptor
 		final AvailObject object,
 		final A_Type aVariableType)
 	{
-		final A_Type innerType = object.slot(ObjectSlots.INNER_TYPE);
+		final A_Type innerType = object.slot(INNER_TYPE);
 		// The intersection of two variable types is a variable type whose
 		// read type is the type intersection of the two incoming read types and
 		// whose write type is the type union of the two incoming write types.
@@ -202,7 +203,7 @@ extends TypeDescriptor
 		final AvailObject object,
 		final A_Type aVariableType)
 	{
-		final A_Type innerType = object.slot(ObjectSlots.INNER_TYPE);
+		final A_Type innerType = object.slot(INNER_TYPE);
 
 		// The union of two variable types is a variable type whose
 		// read type is the type union of the two incoming read types and whose
@@ -242,7 +243,7 @@ extends TypeDescriptor
 	{
 		final AvailObject result = mutable.create();
 		result.setSlot(
-			ObjectSlots.INNER_TYPE,
+			INNER_TYPE,
 			innerType.makeImmutable());
 		return result;
 	}

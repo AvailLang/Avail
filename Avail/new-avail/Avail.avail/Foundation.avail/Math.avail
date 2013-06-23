@@ -106,10 +106,6 @@ cannotMultiplyMessage ::= "terms not be 0 and ±∞";
 cannotDivideByZeroMessage ::= "denominator not to be 0";
 cannotDivideTwoInfinitiesMessage ::=
 	"either numerator or denominator to be finite";
-cannotRaiseZeroToZero ::= "either base or exponent not to be 0";
-cannotRaiseInfinityToZero ::= "base not to be ±∞ or exponent not to be 0";
-cannotRaiseNegativeToInfinity ::=
-	"base not to be negative or exponent not to be ±∞";
 
 Semantic restriction "_mod_" is type promotion function for
 [
@@ -903,147 +899,6 @@ Semantic restriction "«_‡«=|≥|>»!»" is
 	comparison chain semantic restriction function;
 
 /**
- * Compute and answer the result of exponentiating `base` by `exponent`.
- * 
- * Parameters:
- *    base - The base.
- *    exponent - The exponent.
- * Returns:
- *    The result of raising `base` to the `exponent` power.
- */
-Method "_^_" is
-[
-	base : number,
-	exponent : number
-|
-	/* Uses the identity: a^b = exp(ln(a^b)) = exp(b*ln(a)). */
-	Euler's number ^ (exponent × ln (base→double))
-] : number;
-
-/**
- * Establish type promotion rules for exponentiation. Also handle instance
- * types.
- * 
- * Parameters:
- *    a - The base's type.
- *    b - The exponent's type.
- * Returns:
- *    A numeric type that is not an integral kind. (These are dealt with by
- *    another restriction.)
- */
-Semantic restriction "_^_" is type promotion function for
-[
-	a : number,
-	b : number
-|
-	If b = 0 then
-	[
-		If a = 0 then
-		[
-			Reject parse, expected: cannotRaiseZeroToZero
-		];
-		If a ∈ {-∞, ∞} then
-		[
-			Reject parse, expected: cannotRaiseInfinityToZero
-		];
-	];
-	If a ∈ extended integer then
-	[
-		If a < 0 ∧ [ b ∈ {-∞, ∞} ] then
-		[
-			Reject parse, expected: cannotRaiseNegativeToInfinity
-		];
-	];
-	a ^ b
-];
-
-/* The remaining definitions of `_^_` are recursive, so forward declare them
- * here.
- */
-Forward method "_^_" is [extended integer, whole number]→extended integer;
-Forward method "_^_" is [float, whole number]→float;
-Forward method "_^_" is [double, whole number]→double;
-
-/**
- * Compute and answer the result of exponentiating `base` by `exponent`.
- * 
- * Parameters:
- *    base - The base.
- *    exponent - The exponent.
- * Returns:
- *    The result of raising `base` to the `exponent` power.
- */
-Method "_^_" is
-[
-	base : extended integer,
-	exponent : whole number
-|
-	/* TODO: [TLS] Must forbid 0^0, [-∞..0)^{-∞, ∞}, {-∞, ∞}^0. */
-	/*  Uses the identities: b^(2x) = (b^2)^x; and: b^(2x+1) = (b^2)^x*b. */
-	if exponent = 0 then
-	[
-		1
-	]
-	else
-	[
-		intermediate ::= (base × base) ^ (exponent ÷ 2);
-		if exponent is odd then [ intermediate × base ] else [ intermediate ]
-	]
-] : extended integer;
-
-/**
- * Compute and answer the result of exponentiating `base` by `exponent`.
- * 
- * Parameters:
- *    base - The base.
- *    exponent - The exponent.
- * Returns:
- *    The result of raising `base` to the `exponent` power.
- */
-Method "_^_" is
-[
-	base : float,
-	exponent : whole number
-|
-	/*  Uses the identities: b^(2x) = (b^2)^x; and: b^(2x+1) = (b^2)^x*b. */
-	if exponent = 0 then
-	[
-		1.0→float
-	]
-	else
-	[
-		intermediate ::= (base × base) ^ (exponent ÷ 2);
-		if exponent is odd then [ intermediate × base ] else [ intermediate ]
-	]
-] : float;
-
-/**
- * Compute and answer the result of exponentiating `base` by `exponent`.
- * 
- * Parameters:
- *    base - The base.
- *    exponent - The exponent.
- * Returns:
- *    The result of raising `base` to the `exponent` power.
- */
-Method "_^_" is
-[
-	base : double,
-	exponent : whole number
-|
-	/*  Uses the identities: b^(2x) = (b^2)^x; and: b^(2x+1) = (b^2)^x*b. */
-	if exponent = 0 then
-	[
-		1.0
-	]
-	else
-	[
-		intermediate ::= (base × base) ^ (exponent ÷ 2);
-		if exponent is odd then [ intermediate × base ] else [ intermediate ]
-	]
-] : double;
-
-/**
  * Calculate the logarithm of the specified number to the specified base.
  * 
  * Parameters:
@@ -1492,7 +1347,7 @@ Assert: 15 bit∧ 30 = 14;
  *       (must be ≥ 0).
  * Returns:
  *    The value baseInteger * (2<sup>shiftFactor</sup>) mod
- *    (2^<sup>truncationBits</sup>).
+ *    (2<sup>truncationBits</sup>).
  */
 Semantic restriction "_<<_keeping_bits" is
 [

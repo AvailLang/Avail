@@ -214,17 +214,14 @@ public class Statistic implements Comparable<Statistic>
 	{
 		final double nanoseconds = sum();
 		builder.append(String.format(
-			nanoseconds > 1e9
+			nanoseconds >= 999_999_500.0
 				? "%1$, 8.3f s  "
-				: nanoseconds > 1e6
+				: nanoseconds >= 999_999.5
 					? "%2$, 8.3f ms "
-					: nanoseconds > 1e3
-						? "%3$, 8.3f µs "
-						: "%4$, 3d     ns ",
+					: "%3$, 8.3f µs ",
 			nanoseconds / 1.0e9,
 			nanoseconds / 1.0e6,
-			nanoseconds / 1.0e3,
-			(long)nanoseconds));
+			nanoseconds / 1.0e3));
 		builder.append(String.format(
 			"[N=%,10d] ",
 			count()));

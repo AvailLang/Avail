@@ -82,7 +82,7 @@ extends ParseNodeDescriptor
 	@Override @AvailMethod
 	A_Tuple o_ExpressionsTuple (final AvailObject object)
 	{
-		return object.slot(ObjectSlots.EXPRESSIONS_TUPLE);
+		return object.slot(EXPRESSIONS_TUPLE);
 	}
 
 	/**

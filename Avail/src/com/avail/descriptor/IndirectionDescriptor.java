@@ -675,20 +675,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	int o_EndOfZone (final AvailObject object, final int zone)
-	{
-		return o_Traversed(object).endOfZone(zone);
-	}
-
-	@Override
-	int o_EndSubtupleIndexInZone (
-		final AvailObject object,
-		final int zone)
-	{
-		return o_Traversed(object).endSubtupleIndexInZone(zone);
-	}
-
-	@Override
 	boolean o_Equals (
 		final AvailObject object,
 		final A_BasicObject another)
@@ -964,22 +950,6 @@ extends AbstractDescriptor
 		final List<A_Type> argTypes)
 	{
 		return o_Traversed(object).filterByTypes(argTypes);
-	}
-
-	@Override
-	A_BasicObject o_ForZoneSetSubtupleStartSubtupleIndexEndOfZone (
-		final AvailObject object,
-		final int zone,
-		final AvailObject newSubtuple,
-		final int startSubtupleIndex,
-		final int endOfZone)
-	{
-		return o_Traversed(object)
-				.forZoneSetSubtupleStartSubtupleIndexEndOfZone(
-					zone,
-					newSubtuple,
-					startSubtupleIndex,
-					endOfZone);
 	}
 
 	@Override
@@ -1446,15 +1416,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_RawByteForCharacterAtPut (
-		final AvailObject object,
-		final int index,
-		final short anInteger)
-	{
-		o_Traversed(object).rawByteForCharacterAtPut(index, anInteger);
-	}
-
-	@Override
 	void o_RawNybbleAtPut (
 		final AvailObject object,
 		final int index,
@@ -1582,15 +1543,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_SetSubtupleForZoneTo (
-		final AvailObject object,
-		final int zoneIndex,
-		final A_Tuple newTuple)
-	{
-		o_Traversed(object).setSubtupleForZoneTo(zoneIndex, newTuple);
-	}
-
-	@Override
 	A_Set o_SetUnionCanDestroy (
 		final AvailObject object,
 		final A_Set otherSet,
@@ -1644,12 +1596,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	int o_SizeOfZone (final AvailObject object, final int zone)
-	{
-		return o_Traversed(object).sizeOfZone(zone);
-	}
-
-	@Override
 	AvailObject o_StackAt (final AvailObject object, final int slotIndex)
 	{
 		return o_Traversed(object).stackAt(slotIndex);
@@ -1675,20 +1621,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	int o_StartOfZone (final AvailObject object, final int zone)
-	{
-		return o_Traversed(object).startOfZone(zone);
-	}
-
-	@Override
-	int o_StartSubtupleIndexInZone (
-		final AvailObject object,
-		final int zone)
-	{
-		return o_Traversed(object).startSubtupleIndexInZone(zone);
-	}
-
-	@Override
 	A_Number o_SubtractFromInfinityCanDestroy (
 		final AvailObject object,
 		final Sign sign,
@@ -1711,29 +1643,12 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	AvailObject o_SubtupleForZone (
-		final AvailObject object,
-		final int zone)
-	{
-		return o_Traversed(object).subtupleForZone(zone);
-	}
-
-	@Override
 	A_Number o_TimesCanDestroy (
 		final AvailObject object,
 		final A_Number aNumber,
 		final boolean canDestroy)
 	{
 		return o_Traversed(object).timesCanDestroy(aNumber, canDestroy);
-	}
-
-	@Override
-	int o_TranslateToZone (
-		final AvailObject object,
-		final int tupleIndex,
-		final int zoneIndex)
-	{
-		return o_Traversed(object).translateToZone(tupleIndex, zoneIndex);
 	}
 
 	@Override
@@ -1745,26 +1660,9 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	A_Tuple o_TruncateTo (
-		final AvailObject object,
-		final int newTupleSize)
-	{
-		return o_Traversed(object).truncateTo(newTupleSize);
-	}
-
-	@Override
 	AvailObject o_TupleAt (final AvailObject object, final int index)
 	{
 		return o_Traversed(object).tupleAt(index);
-	}
-
-	@Override
-	void o_TupleAtPut (
-		final AvailObject object,
-		final int index,
-		final AvailObject aNybbleObject)
-	{
-		o_Traversed(object).tupleAtPut(index, aNybbleObject);
 	}
 
 	@Override
@@ -2052,12 +1950,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	int o_ZoneForIndex (final AvailObject object, final int index)
-	{
-		return o_Traversed(object).zoneForIndex(index);
-	}
-
-	@Override
 	String o_AsNativeString (final AvailObject object)
 	{
 		return o_Traversed(object).asNativeString();
@@ -2187,12 +2079,6 @@ extends AbstractDescriptor
 	A_Tuple o_CopyAsMutableObjectTuple (final AvailObject object)
 	{
 		return o_Traversed(object).copyAsMutableObjectTuple();
-	}
-
-	@Override
-	A_Tuple o_CopyAsMutableSpliceTuple (final AvailObject object)
-	{
-		return o_Traversed(object).copyAsMutableSpliceTuple();
 	}
 
 	@Override
@@ -2609,12 +2495,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	int o_NumberOfZones (final AvailObject object)
-	{
-		return o_Traversed(object).numberOfZones();
-	}
-
-	@Override
 	int o_NumLiterals (final AvailObject object)
 	{
 		return o_Traversed(object).numLiterals();
@@ -2810,12 +2690,6 @@ extends AbstractDescriptor
 	A_Map o_VariableBindings (final AvailObject object)
 	{
 		return o_Traversed(object).variableBindings();
-	}
-
-	@Override
-	void o_Verify (final AvailObject object)
-	{
-		o_Traversed(object).verify();
 	}
 
 	@Override
@@ -4482,5 +4356,52 @@ extends AbstractDescriptor
 		final int stackp)
 	{
 		o_Traversed(object).adjustPcAndStackp(pc, stackp);
+	}
+
+	@Override
+	int o_TreeTupleLevel (final AvailObject object)
+	{
+		return o_Traversed(object).treeTupleLevel();
+	}
+
+	@Override
+	int o_ChildCount (final AvailObject object)
+	{
+		return o_Traversed(object).childCount();
+	}
+
+	@Override
+	A_Tuple o_ChildAt (final AvailObject object, final int childIndex)
+	{
+		return o_Traversed(object).childAt(childIndex);
+	}
+
+	@Override
+	A_Tuple o_ConcatenateWith (
+		final AvailObject object,
+		final A_Tuple otherTuple,
+		final boolean canDestroy)
+	{
+		return o_Traversed(object).concatenateWith(otherTuple, canDestroy);
+	}
+
+	@Override
+	A_Tuple o_ReplaceFirstChild (
+		final AvailObject object,
+		final A_Tuple newFirst)
+	{
+		return o_Traversed(object).replaceFirstChild(newFirst);
+	}
+
+	@Override
+	boolean o_IsByteString (final AvailObject object)
+	{
+		return o_Traversed(object).isByteString();
+	}
+
+	@Override
+	boolean o_IsTwoByteString (final AvailObject object)
+	{
+		return o_Traversed(object).isTwoByteString();
 	}
 }

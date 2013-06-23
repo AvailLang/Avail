@@ -496,7 +496,12 @@ public enum AvailErrorCode
 	 */
 	E_ATOM_ALREADY_EXISTS (74),
 
-//	E_??? (75)
+	/**
+	 * An attempt was made to add both a method definition and a macro
+	 * definition in the same method.  This is not allowed.
+	 */
+	E_CANNOT_MIX_METHOD_AND_MACRO_DEFINITIONS (75),
+
 //	E_??? (76)
 //	E_??? (77)
 //	E_??? (78)

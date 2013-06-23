@@ -90,7 +90,7 @@ extends StringDescriptor
 	{
 		return anotherObject.compareFromToWithByteStringStartingAt(
 			startIndex2,
-			(startIndex2 + endIndex1 - startIndex1),
+			startIndex2 + endIndex1 - startIndex1,
 			object,
 			startIndex1);
 	}
@@ -120,6 +120,25 @@ extends StringDescriptor
 				return false;
 			}
 		}
+		if (startIndex1 == 1
+			&& startIndex2 == 1
+			&& endIndex1 == object.tupleSize()
+			&& endIndex1 == aByteString.tupleSize())
+		{
+			// They're *completely* equal (but occupy disjoint storage). If
+			// possible, then replace one with an indirection to the other to
+			// keep down the frequency of byte-wise comparisons.
+			if (!isShared())
+			{
+				aByteString.makeImmutable();
+				object.becomeIndirectionTo(aByteString);
+			}
+			else if (!aByteString.descriptor().isShared())
+			{
+				object.makeImmutable();
+				aByteString.becomeIndirectionTo(object);
+			}
+		}
 		return true;
 	}
 
@@ -139,7 +158,8 @@ extends StringDescriptor
 		{
 			return true;
 		}
-		if (object.tupleSize() != aByteString.tupleSize())
+		final int tupleSize = object.tupleSize();
+		if (tupleSize != aByteString.tupleSize())
 		{
 			return false;
 		}
@@ -147,32 +167,12 @@ extends StringDescriptor
 		{
 			return false;
 		}
-		if (!object.compareFromToWithByteStringStartingAt(
-			1,
-			object.tupleSize(),
-			aByteString,
-			1))
-		{
-			return false;
-		}
-		// They're equal (but occupy disjoint storage). If possible, then
-		// replace one with an indirection to the other to keep down the
-		// frequency of byte-wise comparisons.
-		if (!isShared())
-		{
-			aByteString.makeImmutable();
-			object.becomeIndirectionTo(aByteString);
-		}
-		else if (!aByteString.descriptor().isShared())
-		{
-			object.makeImmutable();
-			aByteString.becomeIndirectionTo(object);
-		}
-		return true;
+		return object.compareFromToWithByteStringStartingAt(
+			1, tupleSize, aByteString, 1);
 	}
 
 	@Override @AvailMethod
-	boolean o_IsString (final AvailObject object)
+	boolean o_IsByteString (final AvailObject object)
 	{
 		return true;
 	}
@@ -208,18 +208,6 @@ extends StringDescriptor
 	}
 
 	@Override @AvailMethod
-	void o_RawByteForCharacterAtPut (
-		final AvailObject object,
-		final int index,
-		final short anInteger)
-	{
-		//  Set the character at the given index based on the given byte.
-		assert isMutable();
-		assert index >= 1 && index <= object.tupleSize();
-		object.byteSlotAtPut(RAW_QUAD_AT_, index, anInteger);
-	}
-
-	@Override @AvailMethod
 	AvailObject o_TupleAt (final AvailObject object, final int index)
 	{
 		// Answer the element at the given index in the tuple object.  It's a
@@ -227,20 +215,6 @@ extends StringDescriptor
 		assert index >= 1 && index <= object.tupleSize();
 		final short codePoint = object.byteSlotAt(RAW_QUAD_AT_, index);
 		return CharacterDescriptor.fromByteCodePoint(codePoint);
-	}
-
-	@Override @AvailMethod
-	void o_TupleAtPut (
-		final AvailObject object,
-		final int index,
-		final AvailObject aCharacterObject)
-	{
-		// Set the byte at the given index to the given object (which should be
-		// an AvailObject that's a one-byte character).
-		assert isMutable();
-		assert index >= 1 && index <= object.tupleSize();
-		final short codePoint = (short) aCharacterObject.codePoint();
-		object.byteSlotAtPut(RAW_QUAD_AT_, index, codePoint);
 	}
 
 	@Override @AvailMethod
@@ -259,17 +233,12 @@ extends StringDescriptor
 			final int codePoint = ((A_Character)newValueObject).codePoint();
 			if ((codePoint & 0xFF) == codePoint)
 			{
-				if (canDestroy && isMutable())
-				{
-					object.rawByteForCharacterAtPut(index, (short)codePoint);
-					object.hashOrZero(0);
-					return object;
-				}
-				//  Clone it then modify the copy in place.
-				return copyAsMutableByteString(object).tupleAtPuttingCanDestroy(
-					index,
-					newValueObject,
-					true);
+				final AvailObject result = canDestroy && isMutable()
+					? object
+					: newLike(mutable(), object, 0, 0);
+				result.byteSlotAtPut(RAW_QUAD_AT_, index, (short) codePoint);
+				result.hashOrZero(0);
+				return result;
 			}
 			if ((codePoint & 0xFFFF) == codePoint)
 			{
@@ -279,6 +248,7 @@ extends StringDescriptor
 						newValueObject,
 						true);
 			}
+			// Fall through for SMP Unicode characters.
 		}
 		//  Convert to an arbitrary Tuple instead.
 		return object.copyAsMutableObjectTuple().tupleAtPuttingCanDestroy(
@@ -297,7 +267,8 @@ extends StringDescriptor
 	int o_TupleSize (final AvailObject object)
 	{
 		// Answer the number of elements in the object.
-		return object.variableIntegerSlotsCount() * 4 - unusedBytesOfLastWord;
+		return (object.variableIntegerSlotsCount() << 2)
+			- unusedBytesOfLastWord;
 	}
 
 	@Override @AvailMethod
@@ -327,14 +298,13 @@ extends StringDescriptor
 		{
 			final int itemHash =
 				CharacterDescriptor.hashOfByteCharacterWithCodePoint(
-					object.rawByteForCharacterAt(index)) ^ preToggle;
-			hash = hash * multiplier + itemHash;
+					object.rawByteForCharacterAt(index));
+			hash = hash * multiplier + (itemHash ^ preToggle);
 		}
 		return hash * multiplier;
 	}
 
-	@Override
-	@AvailMethod @ThreadSafe
+	@Override @AvailMethod @ThreadSafe
 	SerializerOperation o_SerializerOperation (final AvailObject object)
 	{
 		return SerializerOperation.BYTE_STRING;
@@ -355,11 +325,18 @@ extends StringDescriptor
 		final int end,
 		final boolean canDestroy)
 	{
-		if (end - start < 50)
+		assert 1 <= start && start <= end + 1;
+		final int tupleSize = object.tupleSize();
+		assert 0 <= end && end <= tupleSize;
+		final int size = end - start + 1;
+		if (size > 0 && size < tupleSize && size < 32)
 		{
-			// Make a simple copy of a small region.
+			// It's not empty, it's not a total copy, and it's reasonably small.
+			// Just copy the applicable bytes out.  In theory we could use
+			// newLike() if start is 1.  Make sure to mask the last word in that
+			// case.
 			return generateByteString(
-				end - start + 1,
+				size,
 				new Generator<Integer>()
 				{
 					private int sourceIndex = start;
@@ -373,10 +350,76 @@ extends StringDescriptor
 				});
 		}
 		return super.o_CopyTupleFromToCanDestroy(
+			object, start, end, canDestroy);
+	}
+
+	@Override
+	A_Tuple o_ConcatenateWith (
+		final AvailObject object,
+		final A_Tuple otherTuple,
+		final boolean canDestroy)
+	{
+		final int size1 = object.tupleSize();
+		if (size1 == 0)
+		{
+			if (!canDestroy)
+			{
+				otherTuple.makeImmutable();
+			}
+			return otherTuple;
+		}
+		final int size2 = otherTuple.tupleSize();
+		if (size2 == 0)
+		{
+			if (!canDestroy)
+			{
+				object.makeImmutable();
+			}
+			return object;
+		}
+		final int newSize = size1 + size2;
+		if (otherTuple.isByteString() && newSize <= 32)
+		{
+			// Copy the characters.
+			final int newWordCount = (newSize + 3) >>> 2;
+			final int deltaSlots =
+				newWordCount - object.variableIntegerSlotsCount();
+			final AvailObject result;
+			if (canDestroy && isMutable() && deltaSlots == 0)
+			{
+				// We can reuse the receiver; it has enough int slots.
+				result = object;
+				result.descriptor = descriptorFor(MUTABLE, newSize);
+			}
+			else
+			{
+				result = newLike(
+					descriptorFor(MUTABLE, newSize), object, 0, deltaSlots);
+			}
+			int dest = size1 + 1;
+			for (int src = 1; src <= size2; src++, dest++)
+			{
+				result.byteSlotAtPut(
+					RAW_QUAD_AT_,
+					dest,
+					otherTuple.rawByteForCharacterAt(src));
+			}
+			result.setSlot(HASH_OR_ZERO, 0);
+			return result;
+		}
+		if (!canDestroy)
+		{
+			object.makeImmutable();
+			otherTuple.makeImmutable();
+		}
+		if (otherTuple.treeTupleLevel() == 0)
+		{
+			return TreeTupleDescriptor.createPair(object, otherTuple, 1, 0);
+		}
+		return TreeTupleDescriptor.concatenateAtLeastOneTree(
 			object,
-			start,
-			end,
-			canDestroy);
+			otherTuple,
+			true);
 	}
 
 
@@ -422,28 +465,7 @@ extends StringDescriptor
 		{
 			final int b = generator.value();
 			assert (b & 255) == b;
-			result.rawByteForCharacterAtPut(index, (short) b);
-		}
-		return result;
-	}
-
-	/**
-	 * Answer a mutable copy of the {@linkplain AvailObject receiver} that also
-	 * only holds byte {@linkplain CharacterDescriptor characters}.
-	 *
-	 * @param object The {@linkplain AvailObject receiver}.
-	 * @return A mutable copy of the {@linkplain AvailObject receiver}.
-	 */
-	private A_String copyAsMutableByteString (
-		final AvailObject object)
-	{
-		final AvailObject result = mutableObjectOfSize(object.tupleSize());
-		assert result.integerSlotsCount() == object.integerSlotsCount();
-		result.hashOrZero(object.hashOrZero());
-		// Copy four bytes at a time.
-		for (int i = 1, end = object.variableIntegerSlotsCount(); i <= end; i++)
-		{
-			result.setSlot(RAW_QUAD_AT_, i, object.slot(RAW_QUAD_AT_, i));
+			result.byteSlotAtPut(RAW_QUAD_AT_, index, (short) b);
 		}
 		return result;
 	}
@@ -456,7 +478,7 @@ extends StringDescriptor
 	 * @return A mutable copy of the {@linkplain AvailObject receiver}.
 	 */
 	private A_String copyAsMutableTwoByteString (
-		final A_String object)
+		final AvailObject object)
 	{
 		final A_String result =
 			TwoByteStringDescriptor.mutableObjectOfSize(object.tupleSize());
@@ -465,7 +487,7 @@ extends StringDescriptor
 		{
 			result.rawShortForCharacterAtPut(
 				i,
-				object.rawByteForCharacterAt(i));
+				object.byteSlotAt(RAW_QUAD_AT_, i));
 		}
 		return result;
 	}

@@ -32,7 +32,10 @@
 
 package com.avail.descriptor;
 
+import static com.avail.descriptor.ObjectTupleDescriptor.ObjectSlots.*;
+import static com.avail.descriptor.ObjectTupleDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.AvailObject.multiplier;
+import static com.avail.descriptor.AvailObjectRepresentation.newLike;
 import com.avail.annotations.*;
 
 /**
@@ -79,16 +82,7 @@ extends TupleDescriptor
 	@Override @AvailMethod
 	AvailObject o_TupleAt (final AvailObject object, final int subscript)
 	{
-		return object.slot(ObjectSlots.TUPLE_AT_, subscript);
-	}
-
-	@Override @AvailMethod
-	void o_TupleAtPut (
-		final AvailObject object,
-		final int subscript,
-		final AvailObject value)
-	{
-		object.setSlot(ObjectSlots.TUPLE_AT_, subscript, value);
+		return object.slot(TUPLE_AT_, subscript);
 	}
 
 	/**
@@ -102,7 +96,7 @@ extends TupleDescriptor
 		final int index,
 		final A_BasicObject anObject)
 	{
-		object.setSlot(ObjectSlots.TUPLE_AT_, index, anObject);
+		object.setSlot(TUPLE_AT_, index, anObject);
 	}
 
 	@Override @AvailMethod
@@ -198,135 +192,6 @@ extends TupleDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Tuple o_CopyTupleFromToCanDestroy (
-		final AvailObject object,
-		final int startIndex,
-		final int endIndex,
-		final boolean canDestroy)
-	{
-		// Make a tuple that only contains the given range of elements of the
-		// given tuple.  If canDestroy and isMutable are true, go ahead and
-		// clobber all fields of the original tuple that don't make it into the
-		// subrange.  Replace these clobbered fields with the integer 0 (always
-		// immutable) after dropping the reference count on replaced objects.
-		assert 1 <= startIndex && startIndex <= endIndex + 1;
-		final int originalSize = object.tupleSize();
-		assert 0 <= endIndex && endIndex <= originalSize;
-		if (isMutable() && canDestroy)
-		{
-			if (startIndex - 1 == endIndex)
-			{
-				object.assertObjectUnreachableIfMutable();
-				return TupleDescriptor.empty();
-			}
-			final A_Number zeroObject = IntegerDescriptor.zero();
-			object.hashOrZero(0);
-			if (startIndex == 1 || endIndex - startIndex < 30)
-			{
-				if (startIndex != 1)
-				{
-					for (int i = 1; i < startIndex; i++)
-					{
-						object.tupleAt(i).assertObjectUnreachableIfMutable();
-					}
-					for (int i = 1; i <= endIndex - startIndex + 1; i++)
-					{
-						object.objectTupleAtPut(
-							i,
-							object.tupleAt(startIndex + i - 1));
-					}
-					for (int i = endIndex - startIndex + 2; i <= endIndex; i++)
-					{
-						object.objectTupleAtPut(i, zeroObject);
-					}
-				}
-				for (int i = endIndex + 1; i <= originalSize; i++)
-				{
-					object.tupleAt(i).assertObjectUnreachableIfMutable();
-					object.objectTupleAtPut(i, zeroObject);
-				}
-				object.truncateTo(endIndex - startIndex + 1);
-				// Clip remaining items off end, padding lost space with a
-				// dummy header.
-				return object;
-			}
-			for (int i = 1; i < startIndex; i++)
-			{
-				object.tupleAt(i).assertObjectUnreachableIfMutable();
-				object.objectTupleAtPut(i, zeroObject);
-			}
-			for (int i = endIndex + 1; i <= originalSize; i++)
-			{
-				object.tupleAt(i).assertObjectUnreachableIfMutable();
-				object.objectTupleAtPut(i, zeroObject);
-			}
-		}
-		if (startIndex - 1 == endIndex)
-		{
-			return TupleDescriptor.empty();
-		}
-		// Compute the hash ahead of time, because asking an element to hash
-		// might trigger a garbage collection.
-		final int newHash = object.computeHashFromTo(startIndex, endIndex);
-		A_Tuple result;
-		if (endIndex - startIndex < 20)
-		{
-			result = mutable().create(endIndex - startIndex + 1);
-			result.hashOrZero(newHash);
-			for (int i = 1, end = endIndex - startIndex + 1; i <= end; i++)
-			{
-				result.objectTupleAtPut(
-					i,
-					object.tupleAt(i + startIndex - 1).makeImmutable());
-			}
-		}
-		else
-		{
-			result = AvailObject.newObjectIndexedIntegerIndexedDescriptor(
-				1,
-				2,
-				SpliceTupleDescriptor.mutable);
-			if (isMutable() && !canDestroy)
-			{
-				object.makeImmutable();
-			}
-			// Share it - play nice
-			result.hashOrZero(newHash);
-			result.forZoneSetSubtupleStartSubtupleIndexEndOfZone(
-				1,
-				object,
-				startIndex,
-				(endIndex - startIndex + 1));
-			result.verify();
-		}
-		return result;
-	}
-
-	@Override @AvailMethod
-	A_Tuple o_TruncateTo (final AvailObject object, final int newTupleSize)
-	{
-		// Shrink the current object on the right.  Assumes that elements beyond
-		// the new end have already been released if necessary.  Since my
-		// representation no longer varies with tupleSize (I used to have
-		// different descriptors for different o_Tuple sizes), I can simply
-		// compute the delta for the number of slots.  I must pad the unused
-		// space on the right with a dummy descriptor and slotsSize for the
-		// garbage collector.
-		assert isMutable();
-		final int delta = object.tupleSize() - newTupleSize;
-		if (delta == 0)
-		{
-			return object;
-		}
-		final int oldSlotsSize = object.objectSlotsCount();
-		assert oldSlotsSize > 0;
-		final int newSlotsCount = oldSlotsSize - delta;
-		assert newSlotsCount > 0;
-		object.truncateWithFillerForNewObjectSlotsCount(newSlotsCount);
-		return object;
-	}
-
-	@Override @AvailMethod
 	A_Tuple o_TupleAtPuttingCanDestroy (
 		final AvailObject object,
 		final int index,
@@ -382,10 +247,109 @@ extends TupleDescriptor
 		int hash = 0;
 		for (int index = end; index >= start; index--)
 		{
-			final int itemHash = object.tupleAt(index).hash() ^ preToggle;
-			hash = hash * multiplier + itemHash;
+			final int itemHash = object.tupleAt(index).hash();
+			hash = hash * multiplier + (itemHash ^ preToggle);
 		}
 		return hash * multiplier;
+	}
+
+	@Override @AvailMethod
+	A_Tuple o_ConcatenateWith (
+		final AvailObject object,
+		final A_Tuple otherTuple,
+		final boolean canDestroy)
+	{
+		final int size1 = object.tupleSize();
+		if (size1 == 0)
+		{
+			if (!canDestroy)
+			{
+				otherTuple.makeImmutable();
+			}
+			return otherTuple;
+		}
+		final int size2 = otherTuple.tupleSize();
+		if (size2 == 0)
+		{
+			if (!canDestroy)
+			{
+				object.makeImmutable();
+			}
+			return object;
+		}
+		final int newSize = size1 + size2;
+		if (newSize <= 32)
+		{
+			// Copy the objects.
+			final int deltaSlots = newSize - object.variableObjectSlotsCount();
+			final AvailObject result = newLike(
+				mutable(), object, deltaSlots, 0);
+			int dest = size1 + 1;
+			for (int src = 1; src <= size2; src++, dest++)
+			{
+				result.setSlot(TUPLE_AT_, dest, otherTuple.tupleAt(src));
+			}
+			result.setSlot(HASH_OR_ZERO, 0);
+			return result;
+		}
+		if (!canDestroy)
+		{
+			object.makeImmutable();
+			otherTuple.makeImmutable();
+		}
+		if (otherTuple.treeTupleLevel() == 0)
+		{
+			return TreeTupleDescriptor.createPair(object, otherTuple, 1, 0);
+		}
+		return TreeTupleDescriptor.concatenateAtLeastOneTree(
+			object,
+			otherTuple,
+			true);
+	}
+
+	/**
+	 * If a subrange ends up getting constructed from this object tuple then it
+	 * may leak memory.  The references that are out of bounds of the subrange
+	 * might no longer be semantically reachable by Avail, but Java won't be
+	 * able to collect them.  Eventually we'll have an Avail-specific garbage
+	 * collector again, at which point we'll solve this problem for real – along
+	 * with many others, I'm sure.
+	 */
+	@Override @AvailMethod
+	A_Tuple o_CopyTupleFromToCanDestroy (
+		final AvailObject object,
+		final int start,
+		final int end,
+		final boolean canDestroy)
+	{
+		assert 1 <= start && start <= end + 1;
+		final int tupleSize = object.tupleSize();
+		assert 0 <= end && end <= tupleSize;
+		final int size = end - start + 1;
+		if (size > 0 && size < tupleSize && size < 32)
+		{
+			// It's not empty, it's not a total copy, and it's reasonably small.
+			// Just copy the applicable entries out.  In theory we could use
+			// newLike() if start is 1.
+			final AvailObject result = createUninitialized(size);
+			int dest = 1;
+			for (int src = start; src <= end; src++, dest++)
+			{
+				result.setSlot(TUPLE_AT_, dest, object.slot(TUPLE_AT_, src));
+			}
+			if (canDestroy)
+			{
+				object.assertObjectUnreachableIfMutable();
+			}
+			else
+			{
+				result.makeSubobjectsImmutable();
+			}
+			result.setSlot(HASH_OR_ZERO, 0);
+			return result;
+		}
+		return super.o_CopyTupleFromToCanDestroy(
+			object, start, end, canDestroy);
 	}
 
 	/**

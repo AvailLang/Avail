@@ -373,7 +373,7 @@ Test "maximum function" in math test suite is
 	Require: -5 max -7 max 10 max 31 max -6 = 31;
 ];
 
-Test "exponentiation" in math test suite is
+Test "simple exponentiation" in math test suite is
 [
 	From 1 to 10 do
 	[
@@ -395,6 +395,91 @@ Test "exponentiation" in math test suite is
 	Require: 10^100 = 10000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000;
 ];
 
+Test "exhaustive exponentiation" in math test suite is
+[
+	For each <
+		<-∞, 0>,     <-∞, 1, -∞>,  <-∞, 2, ∞>,  <-∞, 3,  -∞>,  <-∞, ∞>,
+		<-3, 0, 1>,  <-3, 1, -3>,  <-3, 2, 9>,  <-3, 3, -27>,  <-3, ∞>,
+		<-2, 0, 1>,  <-2, 1, -2>,  <-2, 2, 4>,  <-2, 3,  -8>,  <-2, ∞>,
+		<-1, 0, 1>,  <-1, 1, -1>,  <-1, 2, 1>,  <-1, 3,  -1>,  <-1, ∞>,
+		< 0, 0, 1>,  < 0, 1,  0>,  < 0, 2, 0>,  < 0, 3,   0>,  < 0, ∞, 0>,
+		< 1, 0, 1>,  < 1, 1,  1>,  < 1, 2, 1>,  < 1, 3,   1>,  < 1, ∞>,
+		< 2, 0, 1>,  < 2, 1,  2>,  < 2, 2, 4>,  < 2, 3,   8>,  < 2, ∞, ∞>,
+		< 3, 0, 1>,  < 3, 1,  3>,  < 3, 2, 9>,  < 3, 3,  27>,  < 3, ∞, ∞>,
+		< ∞, 0>,     < ∞, 1,  ∞>,  < ∞, 2, ∞>,  <∞,  3,   ∞>,  < ∞, ∞, ∞>
+	> do [
+		t : <extended integer…|2..3>
+	|
+		power : extended integer;
+		Guard
+		[
+			power := t[1] ^ t[2];
+		]
+		intercept
+		[
+			e : arithmetic exception
+		|
+		];
+		If ↑power is unassigned then
+		[
+			If |t| > 2 then
+			[
+				Require: |t| = 2 (“t[1]” ++ " ^ " ++ “t[2]” ++ " was undefined, not "
+					++ “t[3]”);
+		 	];
+		]
+		else
+		[
+			Require: |t| = 3 (“t[1]” ++ " ^ " ++ “t[2]” ++ " was "
+				++ “power” ++ ", but should have been undefined");
+			Require: t[3] = power (“t[1]” ++ " ^ " ++ “t[2]” ++ " was "
+				++ “power” ++ ", but should have been " ++ “t[3..]”);
+		];
+	];
+];
+
+Test "exponentiation restriction" in math test suite is
+[
+	For each
+	<
+		<10's type, 2's type, [100..100]>,
+		<(-10)'s type, 2's type, [100..100]>,
+		<(-10)'s type, 3's type, [-1000..-1000]>,
+		<1's type, [0..10], [1..1]>,
+		<2's type, [0..10], [1..1024]>,
+		<2's type, [5..10], [32..1024]>,
+		<(-1)'s type, [5..10], [-1..1]>,
+		<(-2)'s type, [5..10], [-512..1024]>,
+		<[-1..2], [5..7], [-1..128]>,
+		<[-2..1], [5..7], [-128..64]>,
+		<[-2..2], [5..7], [-128..128]>,
+		<(-∞)'s type, 1's type, [-∞..-∞]>,
+		<∞'s type, 3's type, [∞..∞]>,
+		<(-∞)'s type, [2..2], [∞..∞]>,
+		<(-∞)'s type, [2..4], [-∞..∞]>,
+		<(-∞..∞), [0..0], [1..1]>,
+		<[-∞..∞], [0..0], [1..1]>,
+		<[-∞..∞], [1..1], [-∞..∞]>,
+		<[-∞..∞], [2..2], [0..∞]>,
+		<[-∞..∞), [2..2], [0..∞]>,
+		<(-∞..∞], [2..2], [0..∞]>,
+		<[2..∞), [6..8], [64..∞)>,
+		<[2..∞], [6..8], [64..∞]>,
+		<[3..∞), [2..4], [9..∞)>,
+		<[-3..∞), [2..4], [-27..∞)>,
+		<[5..∞), whole number, [1..∞)>
+	>
+	do
+	[
+		triple : <
+			extended integer's type,
+			whole number's type,
+			extended integer's type…|3>
+	|
+		Require: triple[1] ^ triple[2] = triple[3];
+	];
+];
+
 Test "precedence" in math test suite is
 [
 	Require: 2 × 2 + 1 = 5;
@@ -403,6 +488,7 @@ Test "precedence" in math test suite is
 	Require: 8 × 2 ÷ 4 = 4;
 	Require: 2^8 × 4 - 1 = 1023;
 	Require: 2 × (2 + 1) = 6;
+	Require: 2^2^3 = 2^8 = 256;
 ];
 
 Test "bit∧" in math test suite is

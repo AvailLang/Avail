@@ -32,7 +32,9 @@
 
 package com.avail.descriptor;
 
+import static com.avail.descriptor.NybbleTupleDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.AvailObject.multiplier;
+import static com.avail.descriptor.AvailObjectRepresentation.newLike;
 import static com.avail.descriptor.Mutability.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static java.lang.Math.*;
@@ -282,18 +284,6 @@ extends TupleDescriptor
 	}
 
 	@Override @AvailMethod
-	void o_TupleAtPut (
-		final AvailObject object,
-		final int index,
-		final AvailObject aNybbleObject)
-	{
-		// Set the nybble at the given index to the given object (which should
-		// be an AvailObject that's an integer 0<=n<=15).
-		assert isMutable();
-		object.rawNybbleAtPut(index, aNybbleObject.extractNybble());
-	}
-
-	@Override @AvailMethod
 	A_Tuple o_TupleAtPuttingCanDestroy (
 		final AvailObject object,
 		final int nybbleIndex,
@@ -345,7 +335,8 @@ extends TupleDescriptor
 	@Override @AvailMethod
 	int o_TupleSize (final AvailObject object)
 	{
-		return object.variableIntegerSlotsCount() * 8 - unusedNybblesOfLastWord;
+		return (object.variableIntegerSlotsCount() << 3)
+			- unusedNybblesOfLastWord;
 	}
 
 	@Override @AvailMethod
@@ -368,12 +359,116 @@ extends TupleDescriptor
 		int hash = 0;
 		for (int nybbleIndex = end; nybbleIndex >= start; nybbleIndex--)
 		{
-			int itemHash = IntegerDescriptor.hashOfUnsignedByte(
+			final int itemHash = IntegerDescriptor.hashOfUnsignedByte(
 				getNybble(object, nybbleIndex));
-			itemHash ^= preToggle;
-			hash = hash * multiplier + itemHash;
+			hash = hash * multiplier + (itemHash ^ preToggle);
 		}
 		return hash * multiplier;
+	}
+
+	@Override @AvailMethod
+	A_Tuple o_ConcatenateWith (
+		final AvailObject object,
+		final A_Tuple otherTuple,
+		final boolean canDestroy)
+	{
+		final int size1 = object.tupleSize();
+		if (size1 == 0)
+		{
+			if (!canDestroy)
+			{
+				otherTuple.makeImmutable();
+			}
+			return otherTuple;
+		}
+		final int size2 = otherTuple.tupleSize();
+		if (size2 == 0)
+		{
+			if (!canDestroy)
+			{
+				object.makeImmutable();
+			}
+			return object;
+		}
+		final int newSize = size1 + size2;
+		if (newSize <= 64)
+		{
+			// Copy the nybbles.
+			final int newWordCount = (newSize + 7) >>> 3;
+			final int deltaSlots =
+				newWordCount - object.variableIntegerSlotsCount();
+			final AvailObject copy;
+			if (canDestroy && isMutable() && deltaSlots == 0)
+			{
+				// We can reuse the receiver; it has enough int slots.
+				object.descriptor = descriptorFor(MUTABLE, newSize);
+				copy = object;
+			}
+			else
+			{
+				copy = newLike(
+					descriptorFor(MUTABLE, newSize), object, 0, deltaSlots);
+			}
+			copy.setSlot(HASH_OR_ZERO, 0);
+			int dest = size1 + 1;
+			A_Tuple result = copy;
+			for (int src = 1; src <= size2; src++, dest++)
+			{
+				// If the slots we want are nybbles then we won't have to copy
+				// into a bulkier representation.
+				result = result.tupleAtPuttingCanDestroy(
+					dest,
+					otherTuple.tupleAt(src),
+					canDestroy);
+			}
+			return result;
+		}
+		if (!canDestroy)
+		{
+			object.makeImmutable();
+			otherTuple.makeImmutable();
+		}
+		if (otherTuple.treeTupleLevel() == 0)
+		{
+			return TreeTupleDescriptor.createPair(object, otherTuple, 1, 0);
+		}
+		return TreeTupleDescriptor.concatenateAtLeastOneTree(
+			object,
+			otherTuple,
+			true);
+	}
+
+	@Override
+	A_Tuple o_CopyTupleFromToCanDestroy (
+		final AvailObject object,
+		final int start,
+		final int end,
+		final boolean canDestroy)
+	{
+		assert 1 <= start && start <= end + 1;
+		final int tupleSize = object.tupleSize();
+		assert 0 <= end && end <= tupleSize;
+		final int size = end - start + 1;
+		if (size > 0 && size < tupleSize && size < 64)
+		{
+			// It's not empty, it's not a total copy, and it's reasonably small.
+			// Just copy the applicable nybbles out.  In theory we could use
+			// newLike() if start is 1.  Make sure to mask the last word in that
+			// case.
+			final AvailObject result = mutableObjectOfSize(size);
+			int dest = 1;
+			for (int src = start; src <= end; src++, dest++)
+			{
+				setNybble(result, dest, getNybble(object, src));
+			}
+			if (canDestroy)
+			{
+				object.assertObjectUnreachableIfMutable();
+			}
+			return result;
+		}
+		return super.o_CopyTupleFromToCanDestroy(
+			object, start, end, canDestroy);
 	}
 
 	/**
@@ -389,10 +484,10 @@ extends TupleDescriptor
 		final int nybbleIndex)
 	{
 		assert nybbleIndex >= 1 && nybbleIndex <= object.tupleSize();
-		final int wordIndex = (nybbleIndex + 7) / 8;
-		final int word = object.slot(IntegerSlots.RAW_QUAD_AT_, wordIndex);
+		final int quadIndex = (nybbleIndex + 7) >>> 3;
+		final int quad = object.slot(RAW_QUAD_AT_, quadIndex);
 		final int shift = (nybbleIndex - 1 & 7) * 4;
-		return (byte) (word>>>shift & 0x0F);
+		return (byte) (quad>>>shift & 0x0F);
 	}
 
 	/**
@@ -409,14 +504,13 @@ extends TupleDescriptor
 		final byte aNybble)
 	{
 		assert nybbleIndex >= 1 && nybbleIndex <= object.tupleSize();
-		assert aNybble >= 0 && aNybble <= 15;
-		object.checkWriteForField(IntegerSlots.RAW_QUAD_AT_);
-		final int wordIndex = (nybbleIndex + 7) / 8;
-		int word = object.slot(IntegerSlots.RAW_QUAD_AT_, wordIndex);
+		assert (aNybble & 15) == aNybble;
+		final int wordIndex = (nybbleIndex + 7) >>> 3;
+		int quad = object.slot(RAW_QUAD_AT_, wordIndex);
 		final int leftShift = (nybbleIndex - 1 & 7) * 4;
-		word &= ~(0x0F << leftShift);
-		word |= aNybble << leftShift;
-		object.setSlot(IntegerSlots.RAW_QUAD_AT_, wordIndex, word);
+		quad &= ~(0x0F << leftShift);
+		quad |= aNybble << leftShift;
+		object.setSlot(RAW_QUAD_AT_, wordIndex, quad);
 	}
 
 	/**
@@ -521,7 +615,7 @@ extends TupleDescriptor
 	{
 		final NybbleTupleDescriptor d = descriptorFor(MUTABLE, size);
 		assert (size + d.unusedNybblesOfLastWord & 7) == 0;
-		final AvailObject result = d.create((size + 7) >> 3);
+		final AvailObject result = d.create((size + 7) >>> 3);
 		return result;
 	}
 

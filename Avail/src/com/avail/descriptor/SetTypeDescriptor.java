@@ -307,8 +307,8 @@ extends TypeDescriptor
 			newContentType = contentType;
 		}
 		final AvailObject result = mutable.create();
-		result.setSlot(ObjectSlots.SIZE_RANGE, newSizeRange);
-		result.setSlot(ObjectSlots.CONTENT_TYPE, newContentType);
+		result.setSlot(SIZE_RANGE, newSizeRange);
+		result.setSlot(CONTENT_TYPE, newContentType);
 		result.makeShared();
 		return result;
 	}

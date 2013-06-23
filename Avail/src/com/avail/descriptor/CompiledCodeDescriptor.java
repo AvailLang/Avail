@@ -582,10 +582,10 @@ extends Descriptor
 					"[#%d] of ",
 					counter);
 				counter++;
-				final A_Tuple parts = TupleDescriptor.from(
-					StringDescriptor.from(prefix),
-					methodName);
-				final A_Tuple newName = parts.concatenateTuplesCanDestroy(true);
+				final A_Tuple newName =
+					StringDescriptor.from(prefix).concatenateWith(
+						methodName,
+						true);
 				subCode.setMethodName((A_String)newName);
 			}
 		}

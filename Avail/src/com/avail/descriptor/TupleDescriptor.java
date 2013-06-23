@@ -32,6 +32,7 @@
 
 package com.avail.descriptor;
 
+import static com.avail.descriptor.TupleDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.AvailObject.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static java.lang.Math.min;
@@ -74,7 +75,7 @@ extends Descriptor
 	final boolean allowsImmutableToMutableReferenceInField (
 		final AbstractSlotsEnum e)
 	{
-		return e == IntegerSlots.HASH_OR_ZERO;
+		return e == HASH_OR_ZERO;
 	}
 
 	@Override @AvailMethod
@@ -84,12 +85,12 @@ extends Descriptor
 		{
 			synchronized (object)
 			{
-				object.setSlot(IntegerSlots.HASH_OR_ZERO, value);
+				object.setSlot(HASH_OR_ZERO, value);
 			}
 		}
 		else
 		{
-			object.setSlot(IntegerSlots.HASH_OR_ZERO, value);
+			object.setSlot(HASH_OR_ZERO, value);
 		}
 	}
 
@@ -100,10 +101,10 @@ extends Descriptor
 		{
 			synchronized (object)
 			{
-				return object.slot(IntegerSlots.HASH_OR_ZERO);
+				return object.slot(HASH_OR_ZERO);
 			}
 		}
-		return object.slot(IntegerSlots.HASH_OR_ZERO);
+		return object.slot(HASH_OR_ZERO);
 	}
 
 	@Override
@@ -563,117 +564,29 @@ extends Descriptor
 		final boolean canDestroy)
 	{
 		// Take a tuple of tuples and answer one big tuple constructed by
-		// concatenating the subtuples together. Optimized so that the resulting
-		// splice tuple's zones are not themselves splice tuples.
-		int zones = 0;
-		int newSize = 0;
-		final int outerTupleSize = object.tupleSize();
-		if (outerTupleSize == 1)
-		{
-			final AvailObject result = object.tupleAt(1);
-			if (canDestroy)
-			{
-				object.assertObjectUnreachableIfMutableExcept(result);
-			}
-			else
-			{
-				result.makeImmutable();
-			}
-			return result;
-		}
-		for (int i = 1; i <= outerTupleSize; i++)
-		{
-			final A_Tuple sub = object.tupleAt(i);
-			final int subZones = sub.tupleSize() == 0
-				? 0
-				: sub.isSplice() ? sub.numberOfZones() : 1;
-			// Empty zones are not allowed in splice tuples.
-			zones += subZones;
-			newSize += sub.tupleSize();
-		}
-		if (newSize == 0)
+		// concatenating the subtuples together.
+		final int tupleSize = object.tupleSize();
+		if (tupleSize == 0)
 		{
 			return TupleDescriptor.empty();
 		}
-		else if (newSize <= 50)
+		if (!canDestroy)
 		{
-			// Make a flat tuple.
-			final A_Tuple result =
-				ObjectTupleDescriptor.createUninitialized(newSize);
-			int index = 1;
-			for (final A_Tuple innerTuple : object)
-			{
-				for (final A_BasicObject element : innerTuple)
-				{
-					result.objectTupleAtPut(index++, element);
-					element.makeImmutable();
-				}
-			}
-			return result;
+			object.makeImmutable();
 		}
-		// Now we know how many zones will be in the final splice tuple.
-		final AvailObject result =
-			AvailObject.newObjectIndexedIntegerIndexedDescriptor(
-				zones,
-				zones * 2,
-				SpliceTupleDescriptor.mutable);
-		int majorIndex = 0;
-		int zone = 1;
-		for (int i = 1, end = object.tupleSize(); i <= end; i++)
+		A_Tuple accumulator = object.tupleAt(1);
+		for (int i = 2; i <= tupleSize; i++)
 		{
-			final AvailObject sub = object.tupleAt(i).traversed();
-			if (sub.isSplice())
-			{
-				assert sub.tupleSize() > 0;
-				for (
-					int originalZone = 1, end2 = sub.numberOfZones();
-					originalZone <= end2;
-					originalZone++)
-				{
-					majorIndex += sub.sizeOfZone(originalZone);
-					result.forZoneSetSubtupleStartSubtupleIndexEndOfZone(
-						zone,
-						sub.subtupleForZone(originalZone),
-						sub.startSubtupleIndexInZone(originalZone),
-						majorIndex);
-					if (canDestroy && sub.descriptor().isMutable())
-					{
-						sub.setSubtupleForZoneTo(
-							originalZone,
-							NilDescriptor.nil());
-					}
-					zone++;
-				}
-			}
-			else
-			{
-				if (sub.tupleSize() != 0)
-				{
-					majorIndex += sub.tupleSize();
-					result.forZoneSetSubtupleStartSubtupleIndexEndOfZone(
-						zone,
-						sub,
-						1,
-						majorIndex);
-					zone++;
-				}
-				if (canDestroy && isMutable())
-				{
-					object.tupleAtPut(i, NilDescriptor.nil());
-				}
-			}
+			accumulator = accumulator.concatenateWith(object.tupleAt(i), true);
 		}
-		assert zone == zones + 1 : "Wrong number of zones";
-		assert majorIndex == newSize : "Wrong resulting tuple size";
-		result.hashOrZero(result.computeHashFromTo(1, majorIndex));
-		if (canDestroy && isMutable())
-		{
-			object.assertObjectUnreachableIfMutable();
-		}
-		result.verify();
-		return result;
+		return accumulator;
 	}
 
+	/**
+	 * Subclasses should override to deal with short subranges and efficient
+	 * copying techniques.  Here we pretty much just create a {@linkplain
+	 * SubrangeTupleDescriptor subrange tuple}.
+	 */
 	@Override @AvailMethod
 	A_Tuple o_CopyTupleFromToCanDestroy (
 		final AvailObject object,
@@ -681,15 +594,11 @@ extends Descriptor
 		final int end,
 		final boolean canDestroy)
 	{
-		// Make a tuple that only contains the given range of elements of the
-		// given tuple.  Overridden in ObjectTupleDescriptor so that if
-		// isMutable and canDestroy are true then the parts of the tuple outside
-		// the subrange will have their reference counts decremented (i.e.,
-		// destroyed if mutable) and those tuple slots will be set to the null
-		// object.
 		assert 1 <= start && start <= end + 1;
-		assert 0 <= end && end <= object.tupleSize();
-		if (start - 1 == end)
+		final int tupleSize = object.tupleSize();
+		assert 0 <= end && end <= tupleSize;
+		final int size = end - start + 1;
+		if (size == 0)
 		{
 			if (isMutable() && canDestroy)
 			{
@@ -697,32 +606,15 @@ extends Descriptor
 			}
 			return TupleDescriptor.empty();
 		}
-		if (isMutable() && canDestroy && (start == 1 || end - start < 20))
+		if (size == tupleSize)
 		{
-			// Reuse the existing tuple to hold the smaller one.
-			if (start != 1)
+			if (isMutable() && !canDestroy)
 			{
-				for (int i = 1; i <= end - start + 1; i++)
-				{
-					object.tupleAtPut(i, object.tupleAt(start + i - 1));
-				}
+				object.makeImmutable();
 			}
-			object.truncateTo(end - start + 1);
 			return object;
 		}
-		final AvailObject result =
-			AvailObject.newObjectIndexedIntegerIndexedDescriptor(
-				1,
-				2,
-				SpliceTupleDescriptor.mutable);
-		result.hashOrZero(object.computeHashFromTo(start, end));
-		result.forZoneSetSubtupleStartSubtupleIndexEndOfZone(
-			1,
-			object,
-			start,
-			end - start + 1);
-		result.verify();
-		return result;
+		return SubrangeTupleDescriptor.createSubrange(object, start, size);
 	}
 
 	@Override @AvailMethod
@@ -789,7 +681,8 @@ extends Descriptor
 	@Override @AvailMethod
 	boolean o_IsString (final AvailObject object)
 	{
-		for (int i = object.tupleSize(); i >= 1; i--)
+		final int limit = object.tupleSize();
+		for (int i = 1; i <= limit; i++)
 		{
 			if (!object.tupleAt(i).isCharacter())
 			{
@@ -891,25 +784,108 @@ extends Descriptor
 		return object.computeHashFromTo(1, object.tupleSize());
 	}
 
+
+	/**
+	 * Compute the hash value from the object's data. The result should be an
+	 * {@code int}.  To keep the rehashing cost down for concatenated tuples, we
+	 * use a non-commutative hash function. If the tuple has elements with hash
+	 * values
+	 * <math xmlns="http://www.w3.org/1998/Math/MathML">
+	 *   <mrow>
+	 *   <msub><mi>h</mi><mn>1</mn></msub>
+	 *   <mi>&hellip;</mi>
+	 *   <msub><mi>h</mi><mi>n</mi></msub>
+	 * </mrow></math>,
+	 * we use the formula
+	 * <math xmlns="http://www.w3.org/1998/Math/MathML">
+	 * <mrow>
+	 *   <mrow>
+	 *     <mo>&InvisibleTimes;</mo>
+	 *     <msub><mi>h</mi><mn>1</mn></msub>
+	 *     <msup><mi>a</mi><mn>1</mn></msup>
+	 *   </mrow>
+	 *   <mo>+</mo>
+	 *   <mrow>
+	 *     <mo>&InvisibleTimes;</mo>
+	 *     <msub><mi>h</mi><mn>2</mn></msub>
+	 *     <msup><mi>a</mi><mn>2</mn></msup>
+	 *   </mrow>
+	 *   <mo>+</mo>
+	 *   <mi>&hellip;</mi>
+	 *   <mo>+</mo>
+	 *   <mrow>
+	 *     <mo>&InvisibleTimes;</mo>
+	 *     <msub><mi>h</mi><mi>n</mi></msub>
+	 *     <msup><mi>a</mi><mi>n</mi></msup>
+	 *   </mrow>
+	 * </mrow>/</math>.
+	 * This can be rewritten as
+	 * <math xmlns="http://www.w3.org/1998/Math/MathML">
+	 * <mrow>
+	 *   <munderover>
+	 *     <mo>&sum;</mo>
+	 *     <mrow><mi>i</mi><mo>=</mo><mn>1</mn></mrow>
+	 *     <mi>n</mi>
+	 *   </munderover>
+	 *   <mrow>
+	 *     <msub><mi>h</mi><mi>i</mi></msub>
+	 *     <mo>&InvisibleTimes;</mo>
+	 *     <msup><mi>a</mi><mi>i</mi></msup>
+	 *   </mrow>
+	 * </mrow></math>
+	 * ). The constant {@code a} is chosen as a primitive element of the group
+	 * <math xmlns="http://www.w3.org/1998/Math/MathML">
+	 * <mrow>
+	 *   <mfenced>
+	 *     <msub>
+	 *       <mo>&integers;</mo>
+	 *       <msup><mn>2</mn><mn>32</mn></msup>
+	 *     </msub>
+	 *     <mo>&times;</mo>
+	 *   </mfenced>
+	 * </mrow></math>,
+	 * specifically 1,664,525, as taken from <cite>Knuth, The Art of Computer
+	 * Programming, Vol. 2, 2<sup>nd</sup> ed., page 102, row 26</cite>. See
+	 * also pages 19, 20, theorems B and C. The period of this cycle is
+	 * 2<sup>30</sup>.
+	 *
+	 * <p>To append an (n+1)<sup>st</sup> element to a tuple, one can compute
+	 * the new hash by adding
+	 * <math xmlns="http://www.w3.org/1998/Math/MathML">
+	 * <mrow>
+	 *   <mrow>
+	 *     <msub>
+	 *       <mi>h</mi>
+	 *       <mi><mrow><mi>n</mi><mo>&plus;</mo><mn>1</mn></mrow></mi>
+	 *     </msub>
+	 *     <mo>&InvisibleTimes;</mo>
+	 *     <msup>
+	 *       <mi>a</mi>
+	 *       <mi><mrow><mi>n</mi><mo>&plus;</mo><mn>1</mn></mrow></mi>
+	 *     </msup>
+	 *   </mrow>
+	 * </mrow></math>
+	 * to the previous hash.  Similarly, concatenating two tuples of length x
+	 * and y is a simple matter of multiplying the right tuple's hash by
+	 * <math xmlns="http://www.w3.org/1998/Math/MathML">
+	 * <mrow>
+	 *   <msup><mi>a</mi><mi>x</mi></msup>
+	 * </mrow></math>
+	 * and adding it to the left tuple's hash.
+	 * </p>
+	 *
+	 * <p>
+	 * The element hash values are exclusive-ored with
+	 * {@linkplain #preToggle a randomly chosen constant} before being used, to
+	 * help prevent similar nested tuples from producing equal hashes.
+	 * </p>
+	 */
 	@Override @AvailMethod
 	int o_ComputeHashFromTo (
 		final AvailObject object,
 		final int start,
 		final int end)
 	{
-		// Compute the hash value from the object's data. The result should be
-		// a Smalltalk Integer between 16r00000000 and 16rFFFFFFFF inclusive.
-		// To keep the rehashing cost down for concatenated tuples, we use a
-		// non-commutative hash function. If the tuple has elements with hash
-		// values h[1] through h[n], we use the formula...
-		// H=h[1]a^1 + h[2]a^2 + h[3]a^3... + h[n]a^n
-		// This can be rewritten as sum(i=1..n)(a^i * h[i]). The constant 'a' is
-		// chosen as a primitive element of (Z[2^32],*), specifically 1664525,
-		// as taken from Knuth, The Art of Computer Programming, Vol. 2, 2nd
-		// ed., page 102, row 26. See also pages 19, 20, theorems B and C. The
-		// period of this cycle is 2^30. The element hash values are xored with
-		// a random constant (16r9EE570A6) before being used, to help prevent
-		// similar nested tuples from producing equal hashes.
 		int hash = 0;
 		for (int index = end; index >= start; index--)
 		{
@@ -938,11 +914,12 @@ extends Descriptor
 	A_Tuple o_CopyAsMutableObjectTuple (final AvailObject object)
 	{
 		final int size = object.tupleSize();
-		final AvailObject result = ObjectTupleDescriptor.mutable.create(size);
+		final AvailObject result =
+			ObjectTupleDescriptor.createUninitialized(size);
 		result.hashOrZero(object.hashOrZero());
 		for (int i = 1; i <= size; i++)
 		{
-			result.tupleAtPut(i, object.tupleAt(i));
+			result.objectTupleAtPut(i, object.tupleAt(i));
 		}
 		return result;
 	}
@@ -1020,11 +997,25 @@ extends Descriptor
 			originalSize + 1);
 		for (int i = 1; i <= originalSize; i++)
 		{
-			newTuple.tupleAtPut(i, object.tupleAt(i));
+			newTuple.objectTupleAtPut(i, object.tupleAt(i));
 		}
 		newTuple.objectTupleAtPut(originalSize + 1, newElement);
 		return newTuple;
 	}
+
+	@Override
+	int o_TreeTupleLevel (final AvailObject object)
+	{
+		// TreeTupleDescriptor overrides this.
+		return 0;
+	}
+
+	@Override
+	abstract A_Tuple o_ConcatenateWith (
+		final AvailObject object,
+		final A_Tuple otherTuple,
+		final boolean canDestroy);
+
 
 	/** The empty tuple. */
 	private static final AvailObject emptyTuple;
@@ -1164,14 +1155,14 @@ extends Descriptor
 			if (originalTuple.tupleAt(seekIndex).equals(elementToExclude))
 			{
 				final A_Tuple newTuple =
-					ObjectTupleDescriptor.mutable.create(originalSize - 1);
+					ObjectTupleDescriptor.createUninitialized(originalSize - 1);
 				for (int i = 1; i < seekIndex; i++)
 				{
-					newTuple.tupleAtPut(i, originalTuple.tupleAt(i));
+					newTuple.objectTupleAtPut(i, originalTuple.tupleAt(i));
 				}
 				for (int i = seekIndex + 1; i <= originalSize; i++)
 				{
-					newTuple.tupleAtPut(i - 1, originalTuple.tupleAt(i));
+					newTuple.objectTupleAtPut(i - 1, originalTuple.tupleAt(i));
 				}
 				return newTuple;
 			}
@@ -1228,6 +1219,28 @@ extends Descriptor
 	}
 
 	/**
+	 * Four tables, each containing powers of {@link #multiplier}.  The 0th
+	 * table contains M^i for i=0..255, the 1st table contains M^(256*i)
+	 * for i=0..255,... and the 3rd table contains M^((256^3)*i) for i=0..255.
+	 */
+	static final int[][] powersOfMultiplier = new int[4][256];
+
+	static
+	{
+		int scaledMultiplier = multiplier;
+		for (final int[] subtable : powersOfMultiplier)
+		{
+			int power = 1;
+			for  (int i = 0; i < 256; i++)
+			{
+				subtable[i] = power;
+				power *= scaledMultiplier;
+			}
+			scaledMultiplier = power;
+		}
+	}
+
+	/**
 	 * Compute {@link #multiplier} raised to the specified power, truncated to
 	 * an int.
 	 *
@@ -1237,19 +1250,10 @@ extends Descriptor
 	 */
 	static int multiplierRaisedTo (final int anInteger)
 	{
-		int result = 1;
-		int power = multiplier;
-		int residue = anInteger;
-		while (residue != 0)
-		{
-			if ((residue & 1) != 0)
-			{
-				result *= power;
-			}
-			power *= power;
-			residue >>>= 1;
-		}
-		return result;
+		return powersOfMultiplier[0][anInteger & 0xFF]
+			* powersOfMultiplier[1][(anInteger >> 8) & 0xFF]
+			* powersOfMultiplier[2][(anInteger >> 16) & 0xFF]
+			* powersOfMultiplier[3][(anInteger >> 24) & 0xFF];
 	}
 
 

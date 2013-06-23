@@ -717,10 +717,10 @@ extends TypeDescriptor
 		assert argsTupleType.isTupleType();
 		final A_Set exceptionsReduced = normalizeExceptionSet(exceptionSet);
 		final AvailObject type = mutable.create();
-		type.setSlot(ObjectSlots.ARGS_TUPLE_TYPE, argsTupleType);
-		type.setSlot(ObjectSlots.DECLARED_EXCEPTIONS, exceptionsReduced);
-		type.setSlot(ObjectSlots.RETURN_TYPE, returnType);
-		type.setSlot(IntegerSlots.HASH_OR_ZERO, 0);
+		type.setSlot(ARGS_TUPLE_TYPE, argsTupleType);
+		type.setSlot(DECLARED_EXCEPTIONS, exceptionsReduced);
+		type.setSlot(RETURN_TYPE, returnType);
+		type.setSlot(HASH_OR_ZERO, 0);
 		type.makeImmutable();
 		return type;
 	}

@@ -916,7 +916,7 @@ public enum SerializerOperation
 				ObjectTupleDescriptor.createUninitialized(numRegularLiterals);
 			for (int i = 1; i <= numRegularLiterals; i++)
 			{
-				regularLiterals.tupleAtPut(i, object.literalAt(i));
+				regularLiterals.objectTupleAtPut(i, object.literalAt(i));
 			}
 			final A_Tuple localTypes =
 				ObjectTupleDescriptor.createUninitialized(numLocals);
@@ -1024,7 +1024,7 @@ public enum SerializerOperation
 				ObjectTupleDescriptor.createUninitialized(numOuters);
 			for (int i = 1; i <= numOuters; i++)
 			{
-				outers.tupleAtPut(i, object.outerVarAt(i));
+				outers.objectTupleAtPut(i, object.outerVarAt(i));
 			}
 			return array(
 				object.code(),

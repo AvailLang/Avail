@@ -221,12 +221,20 @@ extends A_BasicObject, Iterable<AvailObject>
 		int startIndex2);
 
 	/**
-	 * Dispatch to the descriptor.
+	 * Compute the hash of the specified subrange of this tuple.
+	 *
+	 * @param start The first index to contribute to the hash.
+	 * @param end The last index to consider, inclusive.
+	 * @return The hash of the specified tuple subrange.
 	 */
 	int computeHashFromTo (int start, int end);
 
 	/**
-	 * Dispatch to the descriptor.
+	 * Given a tuple of tuples, concatenate all the inner tuples to construct
+	 * one new tuple.  May destroy the original tuple of tuples if so indicated.
+	 *
+	 * @param canDestroy Whether the input may be destroyed or reused.
+	 * @return The concatenation of this tuple's elements, all tuples.
 	 */
 	A_Tuple concatenateTuplesCanDestroy (boolean canDestroy);
 
@@ -234,11 +242,6 @@ extends A_BasicObject, Iterable<AvailObject>
 	 * Dispatch to the descriptor.
 	 */
 	A_Tuple copyAsMutableObjectTuple ();
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	A_Tuple copyAsMutableSpliceTuple ();
 
 	/**
 	 * Dispatch to the descriptor.
@@ -273,11 +276,6 @@ extends A_BasicObject, Iterable<AvailObject>
 	 * Dispatch to the descriptor.
 	 */
 	AvailObject tupleAt (int index);
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	void tupleAtPut (int index, AvailObject anObject);
 
 	/**
 	 * @param index
@@ -344,15 +342,6 @@ extends A_BasicObject, Iterable<AvailObject>
 		boolean canDestroy);
 
 	/**
-	 * Only valid for {@linkplain SpliceTupleDescriptor splice tuples}.  Extract
-	 * the tuple which the zone with the specified index is based on.
-	 *
-	 * @param zone Which zone of the splice tuple is of interest.
-	 * @return The tuple on which that zone is based.
-	 */
-	A_BasicObject subtupleForZone (int zone);
-
-	/**
 	 * @return
 	 */
 	public ByteBuffer byteBuffer ();
@@ -360,68 +349,7 @@ extends A_BasicObject, Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	int endOfZone (int zone);
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	int endSubtupleIndexInZone (int zone);
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	A_BasicObject forZoneSetSubtupleStartSubtupleIndexEndOfZone (
-		int zone,
-		AvailObject newSubtuple,
-		int startSubtupleIndex,
-		int endOfZone);
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	void setSubtupleForZoneTo (
-		int zoneIndex,
-		A_Tuple newTuple);
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	int sizeOfZone (int zone);
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	int startOfZone (int zone);
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	int startSubtupleIndexInZone (int zone);
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	int translateToZone (int tupleIndex, int zoneIndex);
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	int zoneForIndex (int index);
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	int numberOfZones ();
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
 	int bitsPerEntry ();
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	void verify ();
 
 	/**
 	 * Dispatch to the descriptor.
@@ -446,11 +374,6 @@ extends A_BasicObject, Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	void rawByteForCharacterAtPut (int index, short anInteger);
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
 	int rawShortForCharacterAt (int index);
 
 	/**
@@ -459,8 +382,51 @@ extends A_BasicObject, Iterable<AvailObject>
 	void rawShortForCharacterAtPut (int index, int anInteger);
 
 	/**
-	 * Dispatch to the descriptor.
+	 * Return the height of this {@linkplain TreeTupleDescriptor tree tuple}.
+	 * Flat tuples and subranges have height 0, and tree tuples have heights
+	 * from 1 to 10.  All of a tree tuple's children have a height of one less
+	 * than the parent tree tuple.
+	 *
+	 * @return The height of the tree tuple.
 	 */
-	A_Tuple truncateTo (int newTupleSize);
+	int treeTupleLevel ();
 
+	/**
+	 * Answer the number of children this {@linkplain TreeTupleDescriptor tree
+	 * tuple} contains.
+	 *
+	 * @return The width of this tree tuple node.
+	 */
+	int childCount ();
+
+	/**
+	 * Answer the N<sup>th</sup> child of this {@linkplain TreeTupleDescriptor
+	 * tree tuple}.
+	 *
+	 * @param childIndex Which child tuple to fetch.
+	 * @return The specified child of the tree tuple node.
+	 */
+	A_Tuple childAt (int childIndex);
+
+	/**
+	 * Concatenate the receiver and the argument otherTuple to form a new tuple.
+	 * Assume that the two input tuples may be destroyed or recycled if they're
+	 * mutable.
+	 *
+	 * @param otherTuple The tuple to append.
+	 * @param canDestroy Whether the input tuples can be destroyed or reused.
+	 * @return The concatenation of the two tuples.
+	 */
+	A_Tuple concatenateWith (A_Tuple otherTuple, boolean canDestroy);
+
+	/**
+	 * Replace the first child of this {@linkplain TreeTupleDescriptor tree
+	 * tuple}.  Make a copy to modify if the receiver is immutable.  Answer the
+	 * modified original or copy.
+	 *
+	 * @param newFirst The new child tuple.
+	 * @return The tree tuple with the first child replaced, potentially
+	 *         destructively.
+	 */
+	A_Tuple replaceFirstChild (A_Tuple newFirst);
 }

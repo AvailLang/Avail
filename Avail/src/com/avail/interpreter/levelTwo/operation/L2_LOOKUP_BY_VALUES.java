@@ -69,10 +69,13 @@ public class L2_LOOKUP_BY_VALUES extends L2Operation
 		final L2ObjectRegister functionReg =
 			instruction.writeObjectRegisterAt(2);
 
-		interpreter.log(
-			Level.FINER,
-			"Lookup {0}",
-			bundle.message().atomName());
+		if (Interpreter.debugL2)
+		{
+			interpreter.log(
+				Level.FINER,
+				"Lookup {0}",
+				bundle.message().atomName());
+		}
 		interpreter.argsBuffer.clear();
 		for (final L2ObjectRegister argumentReg : argsVector.registers())
 		{

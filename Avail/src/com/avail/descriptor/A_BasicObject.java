@@ -609,7 +609,17 @@ public interface A_BasicObject
 	boolean isUnsignedByte ();
 
 	/**
-	 * Is the {@linkplain AvailObject receiver} an Avail byte tuple?
+	 * Is the {@linkplain AvailObject receiver} an Avail {@linkplain
+	 * ByteStringDescriptor byte string}?
+	 *
+	 * @return {@code true} if the receiver is a byte string, {@code false}
+	 *         otherwise.
+	 */
+	boolean isByteString ();
+
+	/**
+	 * Is the {@linkplain AvailObject receiver} an Avail {@linkplain
+	 * ByteTupleDescriptor byte tuple}?
 	 *
 	 * @return {@code true} if the receiver is a byte tuple, {@code false}
 	 *         otherwise.
@@ -723,6 +733,15 @@ public interface A_BasicObject
 	 * Dispatch to the descriptor.
 	 */
 	boolean isTupleType ();
+
+	/**
+	 * Is the {@linkplain AvailObject receiver} an Avail {@linkplain
+	 * TwoByteStringDescriptor two-byte string}?
+	 *
+	 * @return {@code true} if the receiver is a two-byte string, {@code false}
+	 *         otherwise.
+	 */
+	boolean isTwoByteString ();
 
 	/**
 	 * Dispatch to the descriptor.

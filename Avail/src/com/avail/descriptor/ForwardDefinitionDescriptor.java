@@ -151,9 +151,9 @@ extends DefinitionDescriptor
 		final A_Type bodySignature)
 	{
 		final AvailObject instance = mutable.create();
-		instance.setSlot(ObjectSlots.DEFINITION_METHOD, definitionMethod);
-		instance.setSlot(ObjectSlots.MODULE, definitionModule);
-		instance.setSlot(ObjectSlots.BODY_SIGNATURE, bodySignature);
+		instance.setSlot(DEFINITION_METHOD, definitionMethod);
+		instance.setSlot(MODULE, definitionModule);
+		instance.setSlot(BODY_SIGNATURE, bodySignature);
 		instance.makeShared();
 		return instance;
 	}

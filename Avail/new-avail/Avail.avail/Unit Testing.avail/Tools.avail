@@ -106,7 +106,7 @@ Method "Require:_(_)" is
 /**
  * Require that the arguments are equal.
  *
- * @method "Require:_=_(_)"
+ * @method "Require:_=_"
  * @param "expected" "any"
  *        A value.
  * @param "actual" "any"
@@ -130,7 +130,7 @@ Public method "Require:_=_" is
 /**
  * Reject the current parse if the arguments are guaranteed unequal.
  *
- * @method "Require:_=_(_)"
+ * @method "Require:_=_"
  * @restricts "any's type"
  * @restricts "any's type"
  */

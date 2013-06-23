@@ -31,12 +31,10 @@
  */
 package com.avail.interpreter.primitive;
 
-import static com.avail.descriptor.InfinityDescriptor.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
 import com.avail.descriptor.*;
-import com.avail.exceptions.ArithmeticException;
 import com.avail.exceptions.AvailErrorCode;
 import com.avail.interpreter.*;
 

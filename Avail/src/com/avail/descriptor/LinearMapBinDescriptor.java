@@ -96,7 +96,7 @@ extends MapBinDescriptor
 	@Override boolean allowsImmutableToMutableReferenceInField (
 		final AbstractSlotsEnum e)
 	{
-		return e == IntegerSlots.VALUES_HASH_OR_ZERO;
+		return e == VALUES_HASH_OR_ZERO;
 	}
 
 	/**

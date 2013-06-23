@@ -68,8 +68,7 @@ public class P_040_InvokeWithTuple extends Primitive
 			return interpreter.primitiveFailure(
 				E_INCORRECT_NUMBER_OF_ARGUMENTS);
 		}
-		final List<AvailObject> callArgs =
-			new ArrayList<>(numArgs);
+		final List<AvailObject> callArgs = new ArrayList<>(numArgs);
 		final A_Type tupleType = blockType.argsTupleType();
 		for (int i = 1; i <= numArgs; i++)
 		{

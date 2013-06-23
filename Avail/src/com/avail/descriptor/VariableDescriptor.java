@@ -135,7 +135,7 @@ extends Descriptor
 	@Override @AvailMethod
 	void o_SetValue (final AvailObject object, final A_BasicObject newValue)
 	{
-		final A_BasicObject outerKind = object.slot(ObjectSlots.KIND);
+		final A_BasicObject outerKind = object.slot(KIND);
 		if (!newValue.isInstanceOf(outerKind.writeType()))
 		{
 			throw new VariableSetException(

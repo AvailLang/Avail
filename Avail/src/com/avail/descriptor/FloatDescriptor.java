@@ -32,6 +32,7 @@
 
 package com.avail.descriptor;
 
+import static com.avail.descriptor.FloatDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.TypeDescriptor.Types.FLOAT;
 import java.util.List;
 import com.avail.annotations.*;
@@ -67,7 +68,7 @@ extends AbstractNumberDescriptor
 	private static float getFloat (
 		final AvailObject object)
 	{
-		final int intBits = object.slot(IntegerSlots.RAW_INT);
+		final int intBits = object.slot(RAW_INT);
 		return Float.intBitsToFloat(intBits);
 	}
 
@@ -132,7 +133,7 @@ extends AbstractNumberDescriptor
 	@Override @AvailMethod
 	int o_Hash (final AvailObject object)
 	{
-		return object.slot(IntegerSlots.RAW_INT) ^ 0x16AE2BFD;
+		return object.slot(RAW_INT) ^ 0x16AE2BFD;
 	}
 
 	@Override @AvailMethod
@@ -503,7 +504,7 @@ extends AbstractNumberDescriptor
 	{
 		final AvailObject result = mutable.create();
 		result.setSlot(
-			IntegerSlots.RAW_INT,
+			RAW_INT,
 			Float.floatToRawIntBits(aFloat));
 		return result;
 	}
@@ -551,7 +552,7 @@ extends AbstractNumberDescriptor
 			? (AvailObject) recyclable1
 			: mutable.create();
 		result.setSlot(
-			IntegerSlots.RAW_INT,
+			RAW_INT,
 			Float.floatToRawIntBits(aFloat));
 		return result;
 	}
@@ -591,7 +592,7 @@ extends AbstractNumberDescriptor
 			result = mutable.create();
 		}
 		result.setSlot(
-			IntegerSlots.RAW_INT,
+			RAW_INT,
 			Float.floatToRawIntBits(aFloat));
 		return result;
 	}

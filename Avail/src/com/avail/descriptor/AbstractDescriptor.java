@@ -69,7 +69,7 @@ import com.avail.visitor.AvailSubobjectVisitor;
  * representation for the tuple {@code <1,2,3>}.  It can be represented as an
  * AvailObject using either an {@link ObjectTupleDescriptor}, a {@link
  * ByteTupleDescriptor}, a {@link NybbleTupleDescriptor}, or a {@link
- * SpliceTupleDescriptor}.  It could even be an {@link IndirectionDescriptor} if
+ * TreeTupleDescriptor}.  It could even be an {@link IndirectionDescriptor} if
  * there is another object that already represents this tuple.
  *
  * <p>In particular, {@link AbstractDescriptor} is abstract and has two
@@ -1568,24 +1568,6 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param zone
-	 * @return
-	 */
-	abstract int o_EndOfZone (
-		AvailObject object,
-		int zone);
-
-	/**
-	 * @param object
-	 * @param zone
-	 * @return
-	 */
-	abstract int o_EndSubtupleIndexInZone (
-		AvailObject object,
-		int zone);
-
-	/**
-	 * @param object
 	 * @param value
 	 */
 	abstract void o_ExecutionState (
@@ -1609,21 +1591,6 @@ public abstract class AbstractDescriptor
 	abstract List<A_Definition> o_FilterByTypes (
 		AvailObject object,
 		List<A_Type> argTypes);
-
-	/**
-	 * @param object
-	 * @param zone
-	 * @param newSubtuple
-	 * @param startSubtupleIndex
-	 * @param endOfZone
-	 * @return
-	 */
-	abstract A_BasicObject o_ForZoneSetSubtupleStartSubtupleIndexEndOfZone (
-		AvailObject object,
-		int zone,
-		AvailObject newSubtuple,
-		int startSubtupleIndex,
-		int endOfZone);
 
 	/**
 	 * Answer whether the {@linkplain AvailObject receiver} contains the
@@ -2143,16 +2110,6 @@ public abstract class AbstractDescriptor
 	/**
 	 * @param object
 	 * @param index
-	 * @param anInteger
-	 */
-	abstract void o_RawByteForCharacterAtPut (
-		AvailObject object,
-		int index,
-		short anInteger);
-
-	/**
-	 * @param object
-	 * @param index
 	 * @param aNybble
 	 */
 	abstract void o_RawNybbleAtPut (
@@ -2290,16 +2247,6 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param zoneIndex
-	 * @param newTuple
-	 */
-	abstract void o_SetSubtupleForZoneTo (
-		AvailObject object,
-		int zoneIndex,
-		A_Tuple newTuple);
-
-	/**
-	 * @param object
 	 * @param otherSet
 	 * @param canDestroy
 	 * @return
@@ -2355,13 +2302,6 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param zone
-	 * @return
-	 */
-	abstract int o_SizeOfZone (AvailObject object, int zone);
-
-	/**
-	 * @param object
 	 * @param slotIndex
 	 * @return
 	 */
@@ -2388,24 +2328,6 @@ public abstract class AbstractDescriptor
 		AvailObject object,
 		L2Chunk chunk,
 		int countdown);
-
-	/**
-	 * @param object
-	 * @param zone
-	 * @return
-	 */
-	abstract int o_StartOfZone (
-		AvailObject object,
-		int zone);
-
-	/**
-	 * @param object
-	 * @param zone
-	 * @return
-	 */
-	abstract int o_StartSubtupleIndexInZone (
-		AvailObject object,
-		int zone);
 
 	/**
 	 * Difference the {@linkplain AvailObject operands} and answer the result.
@@ -2460,15 +2382,6 @@ public abstract class AbstractDescriptor
 		boolean canDestroy);
 
 	/**
-	 * @param object
-	 * @param zone
-	 * @return
-	 */
-	abstract AvailObject o_SubtupleForZone (
-		AvailObject object,
-		int zone);
-
-	/**
 	 * Multiply the {@linkplain AvailObject operands} and answer the result.
 	 *
 	 * <p>
@@ -2499,17 +2412,6 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param tupleIndex
-	 * @param zoneIndex
-	 * @return
-	 */
-	abstract int o_TranslateToZone (
-		AvailObject object,
-		int tupleIndex,
-		int zoneIndex);
-
-	/**
-	 * @param object
 	 * @param stringName
 	 * @return
 	 */
@@ -2519,31 +2421,12 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param newTupleSize
-	 * @return
-	 */
-	abstract A_Tuple o_TruncateTo (
-		AvailObject object,
-		int newTupleSize);
-
-	/**
-	 * @param object
 	 * @param index
 	 * @return
 	 */
 	abstract AvailObject o_TupleAt (
 		AvailObject object,
 		int index);
-
-	/**
-	 * @param object
-	 * @param index
-	 * @param aNybbleObject
-	 */
-	abstract void o_TupleAtPut (
-		AvailObject object,
-		int index,
-		AvailObject aNybbleObject);
 
 	/**
 	 * @param object
@@ -2846,15 +2729,6 @@ public abstract class AbstractDescriptor
 		A_BasicObject value);
 
 	/**
-	 * @param object
-	 * @param index
-	 * @return
-	 */
-	abstract int o_ZoneForIndex (
-		AvailObject object,
-		int index);
-
-	/**
 	 * Construct a Java {@linkplain String string} from the given Avail
 	 * {@linkplain StringDescriptor string}.
 	 *
@@ -2985,13 +2859,6 @@ public abstract class AbstractDescriptor
 	 * @return
 	 */
 	abstract A_Tuple o_CopyAsMutableObjectTuple (
-		AvailObject object);
-
-	/**
-	 * @param object
-	 * @return
-	 */
-	abstract A_Tuple o_CopyAsMutableSpliceTuple (
 		AvailObject object);
 
 	/**
@@ -3295,12 +3162,6 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	abstract int o_NumberOfZones (AvailObject object);
-
-	/**
-	 * @param object
-	 * @return
-	 */
 	abstract int o_NumLiterals (AvailObject object);
 
 	/**
@@ -3487,11 +3348,6 @@ public abstract class AbstractDescriptor
 	 * @return
 	 */
 	abstract A_Map o_VariableBindings (AvailObject object);
-
-	/**
-	 * @param object
-	 */
-	abstract void o_Verify (AvailObject object);
 
 	/**
 	 * @param object
@@ -5888,4 +5744,55 @@ public abstract class AbstractDescriptor
 	 * @param stackp
 	 */
 	abstract void o_AdjustPcAndStackp (AvailObject object, int pc, int stackp);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract int o_TreeTupleLevel (AvailObject object);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract int o_ChildCount (AvailObject object);
+
+	/**
+	 * @param object
+	 * @param childIndex
+	 * @return
+	 */
+	abstract A_Tuple o_ChildAt (AvailObject object, int childIndex);
+
+	/**
+	 * @param object
+	 * @param otherTuple
+	 * @param canDestroy
+	 * @return
+	 */
+	abstract A_Tuple o_ConcatenateWith (
+		AvailObject object,
+		A_Tuple otherTuple,
+		boolean canDestroy);
+
+	/**
+	 * @param object
+	 * @param newFirst
+	 * @return
+	 */
+	abstract A_Tuple o_ReplaceFirstChild (
+		AvailObject object,
+		A_Tuple newFirst);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract boolean o_IsByteString (AvailObject object);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract boolean o_IsTwoByteString (AvailObject object);
 }

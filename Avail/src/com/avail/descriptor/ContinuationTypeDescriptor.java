@@ -32,6 +32,7 @@
 
 package com.avail.descriptor;
 
+import static com.avail.descriptor.ContinuationTypeDescriptor.ObjectSlots.*;
 import java.util.List;
 import com.avail.annotations.*;
 import com.avail.interpreter.primitive.*;
@@ -84,7 +85,7 @@ extends TypeDescriptor
 	@Override @AvailMethod
 	A_Type o_FunctionType (final AvailObject object)
 	{
-		return object.slot(ObjectSlots.FUNCTION_TYPE);
+		return object.slot(FUNCTION_TYPE);
 	}
 
 	@Override
@@ -262,7 +263,7 @@ extends TypeDescriptor
 	public static A_Type forFunctionType (final A_Type functionType)
 	{
 		final AvailObject result = mutable.create();
-		result.setSlot(ObjectSlots.FUNCTION_TYPE, functionType.makeImmutable());
+		result.setSlot(FUNCTION_TYPE, functionType.makeImmutable());
 		result.makeImmutable();
 		return result;
 	}

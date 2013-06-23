@@ -68,11 +68,11 @@ public class L2_MOVE_OUTER_VARIABLE extends L2Operation
 			instruction.readObjectRegisterAt(1);
 		final L2ObjectRegister destinationReg =
 			instruction.writeObjectRegisterAt(2);
-		final A_Type outerType = instruction.constantAt(3);
+//		final A_Type outerType = instruction.constantAt(3);
 
 		final A_Function function = functionReg.in(interpreter);
 		final AvailObject value = function.outerVarAt(outerIndex);
-		assert value.isInstanceOf(outerType);
+//		assert value.isInstanceOf(outerType);
 		destinationReg.set(value, interpreter);
 	}
 

@@ -4672,7 +4672,7 @@ public abstract class AbstractAvailCompiler
 		final A_Phrase nameLiteral =
 			LiteralNodeDescriptor.syntheticFrom(availName);
 		final A_Function function =
-			MethodDescriptor.newPrimitiveFunction(
+			FunctionDescriptor.newPrimitiveFunction(
 				Primitive.byPrimitiveNumberOrFail(primitiveNumber));
 		final A_Phrase send = SendNodeDescriptor.from(
 			MethodDescriptor.vmMethodDefinerAtom().bundleOrNil(),
@@ -4729,7 +4729,7 @@ public abstract class AbstractAvailCompiler
 		for (final int primitiveNumber : primitiveNumbers)
 		{
 			functionsList.add(
-				MethodDescriptor.newPrimitiveFunction(
+				FunctionDescriptor.newPrimitiveFunction(
 					Primitive.byPrimitiveNumberOrFail(primitiveNumber)));
 		}
 		final A_Function body = functionsList.remove(functionsList.size() - 1);

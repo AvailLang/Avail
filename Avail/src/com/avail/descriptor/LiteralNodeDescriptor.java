@@ -74,7 +74,7 @@ extends ParseNodeDescriptor
 	@Override @AvailMethod
 	A_Token o_Token (final AvailObject object)
 	{
-		return object.slot(ObjectSlots.TOKEN);
+		return object.slot(TOKEN);
 	}
 
 	@Override @AvailMethod
