@@ -111,7 +111,9 @@ Uses
 		"static method_._<«_‡,»>,⁇on failure do_",
 		"swap_and_",
 		"↓_",
+		"↓_[_]:=_",
 		"↓_`?=_",
+		"↓_«[_]»:=_",
 		"∪_[_.._]"
 	)
 Names
@@ -1796,4 +1798,59 @@ Primitive "in_millisecond|milliseconds,⁇invoke_with_,⁇forked at priority_" i
 	Primitive 623 (failureCode : natural number);
 	Private invoke _fail_primitive with failureCode
 ] : fiber;
+
+/**
+ * Replace the value at the index of the tuple variable with a new value.
+ *
+ * Parameters:
+ *    var - A variable containing a tuple.
+ *    index - A valid index within the tuple.
+ *    newValue - The new value to populate at the given index of the tuple.
+ */
+Primitive "↓_[_]:=_" is
+[
+	var : variable of tuple,
+	index : natural number,
+	newValue : any
+|
+	Primitive 700 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode
+] : ⊤;
+
+/**
+ * Replace the value at the key of the may variable with a new value.
+ *
+ * Parameters:
+ *    var - A variable containing a map.
+ *    key - A valid key in the map.
+ *    newValue - The new value to populate at the given key of the map.
+ */
+Primitive "↓_[_]:=_" is
+[
+	var : variable of map,
+	key : any,
+	newValue : any
+|
+	Primitive 701 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode
+] : ⊤;
+
+/**
+ * Replace the value at the location indicated by the path tuple of the
+ * target tuple with a new value.
+ *
+ * Parameters:
+ *    var - A variable containing a tuple.
+ *    pathTuple - A tuple containing the path of indices to follow to the target.
+ *    newValue - The new value to populate at the given target.
+ */
+Primitive "↓_«[_]»:=_" is
+[
+	var : variable,
+	pathTuple : two or more tuple,
+	newValue : natural number
+|
+	Primitive 702 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode
+] : ⊤;
 

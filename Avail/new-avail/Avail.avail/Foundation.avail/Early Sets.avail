@@ -61,7 +61,6 @@ Semantic restriction "_'s⁇element|member type" is
 Method "_∪_" is stable at [set, set]→set;
 
 /**
- * 
  * @method "_∪_"
  * @restricts "set meta"
  * @restricts "set meta"
@@ -87,7 +86,6 @@ Grammatical restriction "_∪_" is <∅, {"_∪_"}>;
 Method "_∩_" is stable at [set, set]→set;
 
 /**
- * 
  * @method "_∩_"
  * @restricts "set meta"
  * @restricts "set meta"
@@ -118,7 +116,6 @@ Grammatical restriction "_∩_" is <∅, {"_∩_"}>;
 Method "_⊆_" is stable at [set, set]→boolean;
 
 /**
- * 
  * @method "_⊆_"
  * @restricts "set meta"
  * @restricts "set meta"
@@ -159,7 +156,6 @@ Semantic restriction "_⊆_" is
 Method "_∈_" is stable at [any, set]→boolean;
 
 /**
- * 
  * @method "_∈_"
  * @restricts "any meta"
  * @restricts "set meta"

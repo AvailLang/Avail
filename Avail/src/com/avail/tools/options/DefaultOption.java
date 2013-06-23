@@ -41,6 +41,7 @@ import com.avail.utility.Continuation2;
  * implicitly associated with.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
+ * @author Leslie Schultz &lt;leslie@availlang.org&gt;
  * @param <OptionKeyType> The type of the option.
  */
 public final class DefaultOption<OptionKeyType extends Enum<OptionKeyType>>

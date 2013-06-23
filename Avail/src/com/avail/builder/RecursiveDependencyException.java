@@ -41,6 +41,7 @@ import com.avail.descriptor.ModuleDescriptor;
  * dependency is discovered.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
+ * @author Leslie Schultz &lt;leslie@availlang.org&gt;
  */
 public final class RecursiveDependencyException
 extends Exception
@@ -138,6 +139,5 @@ extends Exception
 		{
 			prependModule(mod);
 		}
-		prependModule(recursiveDependent);
 	}
 }

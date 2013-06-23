@@ -145,9 +145,10 @@ Private method "format metacharacters" is
 /**
  * Compute and answer the tuple of format sites for the specified template.
  * 
- * Parameters:
- *    template - A template.
- * Returns:
+ * @method "format sites for_"
+ * @param "template" "string"
+ *        A template.
+ * @returns "<<string, interpolation mode, natural number, natural number…|4>…|>
  *    A tuple comprising the format sites for the specified template.
  */
 Private stable method "format sites for_" is
@@ -255,12 +256,14 @@ Private stable method "format sites for_" is
  *            with {"recipient"→"world"}
  *       = "Hello, world!\n";
  *
- * Parameters:
- *    template - A template string.
- *    vars - A map from format variables to their bindings.
- * Returns:
- *    The result of partially formatting the template usings the specified
- *    bindings.
+ * @method "partially format_with_"
+ * @param "template" "string"
+ *        A template string.
+ * @param "vars" "{string→any|}"
+ *        A map from format variables to their bindings.
+ * @returns "string"
+ *          The result of partially formatting the template usings the specified
+ *          bindings.
  */
 Public stable method "partially format_with_" is
 [
@@ -309,10 +312,11 @@ Public stable method "partially format_with_" is
  * Compute and answer the minimum size of the result of formatting the specified
  * template.
  * 
- * Parameters:
- *    template - A template.
- * Returns:
- *    The minimum size of the formatted string.
+ * @method "minimum`|_after formatting`|"
+ * @param "template" "string"
+ *        A template.
+ * @returns "whole number"
+ *          The minimum size of the formatted string.
  */
 Private method "minimum`|_after formatting`|" is
 [
@@ -327,6 +331,11 @@ Private method "minimum`|_after formatting`|" is
 	]
 ] : whole number;
 
+/**
+ * @method "partially format_with_"
+ * @restricts "string's type"
+ * @restricts "{string→any|}'s type"
+ */
 Semantic restriction "partially format_with_" is
 [
 	template : string's type,
@@ -366,12 +375,14 @@ Semantic restriction "partially format_with_" is
  *            with {"greeting"→"Hello", "recipient"→"world"}
  *        = "Hello, world!\n";
  *
- * Parameters:
- *    template - A template string.
- *    vars - A map from format variables to their bindings. This map must
- *       include a binding for every variable mentioned within the template.
- * Returns:
- *    The result of formatting the template usings the specified bindings.
+ * @method "format_with_"
+ * @param "template" "string"
+ *        A template string.
+ * @param "vars" "{string→any|}"
+ *        A map from format variables to their bindings. This map must include a
+ *        binding for every variable mentioned within the template.
+ * @returns "string"
+ *          The result of formatting the template usings the specified bindings.
  */
 Public stable method "format_with_" is
 [
@@ -417,6 +428,11 @@ Public stable method "format_with_" is
 	formatted
 ] : string;
 
+/**
+ * @method "format_with_"
+ * @restricts "string's type"
+ * @restricts "{string→any|}'s type"
+ */
 Semantic restriction "format_with_" is
 [
 	template : string's type,
@@ -436,10 +452,10 @@ Semantic restriction "format_with_" is
  * Answer the name of the format variable that should be derived from the
  * specified token.
  * 
- * Parameters:
- *    aToken - A token.
- * Returns:
- *    A format variable name.
+ * @method "format variable for_"
+ * @param "aToken" "token"
+ * @returns "string"
+ *          A format variable name.
  */
 Private method "format variable for_" is
 [
@@ -493,12 +509,14 @@ Private method "format variable for_" is
  * The semantic restriction ensures that every lexically specified binding
  * corresponds to a format variable embedded within the template.
  *
- * Parameters:
- *    template - A template string.
- *    bindings - The format variable bindings.
- * Returns:
- *    The result of partially formatting the template usings the specified
- *    bindings.
+ * @method "partially format_with«…::=_‡,»"
+ * @param "template" "string"
+ *        A template string.
+ * @param "bindings" "<<token, any…|2>…|1..>"
+ *        The format variable bindings.
+ * @returns "string"
+ *          The result of partially formatting the template usings the specified
+ *          bindings.
  */
 Public method "partially format_with«…::=_‡,»" is
 [
@@ -518,6 +536,10 @@ Public method "partially format_with«…::=_‡,»" is
  * If the template is statically known, then ensure that 1) each lexical binding
  * references a valid format variable and 2) each format variable that uses
  * the $text interpolation mode is actually bound to a string.
+ * 
+ * @method "partially format_with«…::=_‡,»"
+ * @restricts "string's type"
+ * @restricts "<<token, any…|2>…|1..>'s type"
  */
 Semantic restriction "partially format_with«…::=_‡,»" is
 [
@@ -587,11 +609,13 @@ Semantic restriction "partially format_with«…::=_‡,»" is
  *            with "greeting" ::= "Hello", "recipient" ::= "world")
  *        = "Hello, world!\n";
  *
- * Parameters:
- *    template - A template string.
- *    bindings - The complete format variable bindings.
- * Returns:
- *    The result of formatting the template usings the specified bindings.
+ * @method "format_with«…::=_‡,»"
+ * @param "template" "string"
+ *        A template string.
+ * @param "bindings" "<<token, any…|2>…|1..>"
+ *        The complete format variable bindings.
+ * @returns "string"
+ *          The result of formatting the template usings the specified bindings.
  */
 Public method "format_with«…::=_‡,»" is
 [
@@ -612,6 +636,10 @@ Public method "format_with«…::=_‡,»" is
  * references a valid format variable, 2) each format variable is bound, and
  * 3) each format variable that uses the $text interpolation mode is actually
  * bound to a string.
+ * 
+ * @method "format_with«…::=_‡,»"
+ * @restricts "string's type"
+ * @restricts "<<token, any…|2>…|1..>'s type"
  */
 Semantic restriction "format_with«…::=_‡,»" is
 [
@@ -688,13 +716,15 @@ Semantic restriction "format_with«…::=_‡,»" is
  *        format "‘①’, ‘②’!\n" with unchecked <"Hello", "world">
  *        = "Hello, world!\n";
  *
- * Parameters:
- *    template - A template string.
- *    vars - A tuple of format variable bindings. This tuple must include a
- *       binding (i.e., subscript) for every variable mentioned within the
- *       template.
- * Returns:
- *    The result of formatting the template usings the specified bindings.
+ * @method "format_with unchecked_"
+ * @param "template" "string"
+ *        A template string.
+ * @param "vars" "tuple"
+ *        A tuple of format variable bindings. This tuple must include a
+ *        binding (i.e., subscript) for every variable mentioned within the
+ *        template.
+ * @returns "string"
+ *          The result of formatting the template usings the specified bindings.
  */
 Public stable method "format_with unchecked_" is
 [
@@ -749,6 +779,11 @@ Public stable method "format_with unchecked_" is
 	formatted
 ] : string;
 
+/**
+ * @method "format_with unchecked_"
+ * @restricts "string's type"
+ * @restricts "tuple's type"
+ */
 Semantic restriction "format_with unchecked_" is
 [
 	template : string's type,
@@ -786,13 +821,15 @@ Semantic restriction "format_with unchecked_" is
  *        format "‘①’, ‘②’!\n" with "Hello", "world"
  *        = "Hello, world!\n";
  *
- * Parameters:
- *    template - A template string.
- *    vars - A tuple of format variable bindings. This tuple must include a
- *       binding (i.e., subscript) for every variable mentioned within the
- *       template.
- * Returns:
- *    The result of formatting the template usings the specified bindings.
+ * @method "format_with«_‡,»"
+ * @param "template" "string"
+ *        A template string.
+ * @param "vars" "<any…|1..50>"
+ *        A tuple of format variable bindings. This tuple must include a
+ *        binding (i.e., subscript) for every variable mentioned within the
+ *        template.
+ * @returns "string"
+ *          The result of formatting the template usings the specified bindings.
  */
 Public method "format_with«_‡,»" is
 [
@@ -807,6 +844,10 @@ Public method "format_with«_‡,»" is
  * references a valid format variable, 2) each format variable is bound, and
  * 3) each format variable that uses the $text interpolation mode is actually
  * bound to a string.
+ * 
+ * @method "format_with«_‡,»"
+ * @restricts "string's type"
+ * @restricts "<any…|1..50>'s type"
  */
 Semantic restriction "format_with«_‡,»" is
 [
@@ -874,14 +915,16 @@ cp_Z ::= ¢Z's code point;
 /**
  * Convert the specified string to an extended integer.
  *
- * Parameters:
- *    digits - A string of digits, chosen from the alphabet ¢0 .. ¢9 ∪ ¢A .. ¢Z
- *       ∪ ¢a .. ¢z.
- *    base - The base for `digits`. This determines which symbols of the
- *       alphabet are valid, e.g., when `base = 16` then the valid symbols are
- *       ¢0 .. ¢9 ∪ ¢A .. ¢F ∪ ¢a .. ¢f.
- * Returns:
- *    An extended integer.
+ * @method "_(base_)"
+ * @param "digits" "string"
+ *        A string of digits, chosen from the alphabet ¢0 .. ¢9 ∪ ¢A .. ¢Z ∪ ¢a
+ *        .. ¢z.
+ * @param "base" "[2..36]"
+ *        The base for `digits`. This determines which symbols of the alphabet
+ *        are valid, e.g., when `base = 16` then the valid symbols are ¢0 .. ¢9
+ *        ∪ ¢A .. ¢F ∪ ¢a .. ¢f.
+ * @returns "extended integer"
+ *          An extended integer.
  */
 Public stable method "_(base_)" is
 [
@@ -925,10 +968,10 @@ Public stable method "_(base_)" is
 /**
  * Convert the specified string to an integer.
  * 
- * Parameter:
- *    str - A string of base-10 digits.
- * Returns:
- *    An integer.
+ * @method "_→integer"
+ * @param "str" "string"
+ *        A string of base-10 digits.
+ * @returns "integer"
  */
 Public stable method "_→integer" is
 [
@@ -942,10 +985,10 @@ Public stable method "_→integer" is
 /**
  * Convert the specified string to an extended integer.
  * 
- * Parameter:
- *    str - A string of base-10 digits.
- * Returns:
- *    An extended integer.
+ * @method "_→extended integer"
+ * @param "str" "string"
+ *        A string of base-10 digits.
+ * @returns "extended integer"
  */
 Stable method "_→extended integer" is
 [
@@ -1048,6 +1091,13 @@ Method "_>_" is
 	s1 ≥ s2 ∧ [s1 ≠ s2]
 ] : boolean;
 
+/**
+ * Quicksort a tuple of strings.
+ * 
+ * @method "quicksort_"
+ * @param "strings" "<string…|>"
+ * @returns "<string…|>"
+ */
 Method "quicksort_" is
 [
 	strings : <string…|>
@@ -1055,6 +1105,13 @@ Method "quicksort_" is
 	quicksort strings with [a : string, b : string | a ≤ b]
 ] : <string…|>;
 
+/**
+ * Convert a tuple to a string.
+ * 
+ * @method "“_”"
+ * @param "aTuple" "tuple"
+ * @returns "string"
+ */
 Method "“_”" is
 [
 	aTuple : tuple
@@ -1115,6 +1172,13 @@ Public method "“_”«else_»(as simple list)" is
 	]
 ] : string;
 
+/**
+ * Convert a set to a string.
+ * 
+ * @method "“_”"
+ * @param "aSet" "set"
+ * @returns "string"
+ */
 Method "“_”" is
 [
 	aSet : set
@@ -1170,6 +1234,13 @@ Public abstract method
 	\|(as«conjunctive|disjunctive»!list with serial|Oxford|Harvard comma)"
 is [tuple, <[]→string…|0..1>, [1..2]]→string;
 
+/**
+ * @method "“_”«else_»|(as«conjunctive|disjunctive»!list with serial|Oxford|Harvard comma)"
+ * @param "tuple" "<⊥…|0>"
+ * @param "optionalEmptyText" "<[]→string…|0..1>"
+ * @param "mode" "[1..2]"
+ * @returns "string"
+ */
 Method
 	"“_”«else_»\
 	\|(as«conjunctive|disjunctive»!list with serial|Oxford|Harvard comma)"
@@ -1182,6 +1253,13 @@ is
 	optionalEmptyText[1] else [["(empty)"]]()
 ] : string;
 
+/**
+ * @method "“_”«else_»|(as«conjunctive|disjunctive»!list with serial|Oxford|Harvard comma)"
+ * @param "aTuple" "<any…|1>"
+ * @param "optionalEmptyText" "<[]→string…|0..1>"
+ * @param "mode" "[1..2]"
+ * @returns "string"
+ */
 Method
 	"“_”«else_»\
 	\|(as«conjunctive|disjunctive»!list with serial|Oxford|Harvard comma)"
@@ -1195,6 +1273,13 @@ is
 	cast elem into [t : string | t] else [“elem”]
 ] : string;
 
+/**
+ * @method "“_”«else_»|(as«conjunctive|disjunctive»!list with serial|Oxford|Harvard comma)"
+ * @param "aTuple" "<any…|2>"
+ * @param "optionalEmptyText" "<[]→string…|0..1>"
+ * @param "mode" "[1..2]"
+ * @returns "string"
+ */
 Method
 	"“_”«else_»\
 	\|(as«conjunctive|disjunctive»!list with serial|Oxford|Harvard comma)"
@@ -1209,6 +1294,13 @@ is
 	s1 ++ <" and ", " or ">[mode] ++ s2
 ] : string;
 
+/**
+ * @method "“_”«else_»|(as«conjunctive|disjunctive»!list with serial|Oxford|Harvard comma)"
+ * @param "aTuple" "<any…|3..>"
+ * @param "optionalEmptyText" "<[]→string…|0..1>"
+ * @param "mode" "[1..2]"
+ * @returns "string"
+ */
 Method
 	"“_”«else_»\
 	\|(as«conjunctive|disjunctive»!list with serial|Oxford|Harvard comma)"
@@ -1258,6 +1350,13 @@ Abstract method
 is
 [set, <[]→string…|0..1>, [1..2]]→string;
 
+/**
+ * @method "“_”«else_»|(as«conjunctive|disjunctive»!list with serial|Oxford|Harvard comma)"
+ * @param "aSet" "{⊥|0}"
+ * @param "optionalEmptyText" "<[]→string…|0..1>"
+ * @param "mode" "[1..2]"
+ * @returns "string"
+ */
 Method
 	"“_”«else_»\
 	\|(as«conjunctive|disjunctive»!list with serial|Oxford|Harvard comma)"
@@ -1270,6 +1369,13 @@ is
 	optionalEmptyText[1] else [["(empty)"]]()
 ] : string;
 
+/**
+ * @method "“_”«else_»|(as«conjunctive|disjunctive»!list with serial|Oxford|Harvard comma)"
+ * @param "aSet" "{any|1}"
+ * @param "optionalEmptyText" "<[]→string…|0..1>"
+ * @param "mode" "[1..2]"
+ * @returns "string"
+ */
 Method
 	"“_”«else_»\
 	\|(as«conjunctive|disjunctive»!list with serial|Oxford|Harvard comma)"
@@ -1284,6 +1390,13 @@ is
 	cast elem into [t : string | t] else [“elem”]
 ] : string;
 
+/**
+ * @method "“_”«else_»|(as«conjunctive|disjunctive»!list with serial|Oxford|Harvard comma)"
+ * @param "aSet" "{any|2}"
+ * @param "optionalEmptyText" "<[]→string…|0..1>"
+ * @param "mode" "[1..2]"
+ * @returns "string"
+ */
 Method
 	"“_”«else_»\
 	\|(as«conjunctive|disjunctive»!list with serial|Oxford|Harvard comma)"
@@ -1299,6 +1412,13 @@ is
 	s1 ++ <" and ", " or ">[mode] ++ s2
 ] : string;
 
+/**
+ * @method "“_”«else_»|(as«conjunctive|disjunctive»!list with serial|Oxford|Harvard comma)"
+ * @param "aSet" "{any|3..}"
+ * @param "optionalEmptyText" "<[]→string…|0..1>"
+ * @param "mode" "[1..2]"
+ * @returns "string"
+ */
 Method
 	"“_”«else_»\
 	\|(as«conjunctive|disjunctive»!list with serial|Oxford|Harvard comma)"
@@ -1346,6 +1466,21 @@ is
 Public abstract method "“_”«else_»(as«conjunctive|disjunctive»!list)"
 	is [tuple, <[]→string…|0..1>, [1..2]]→string;
 
+/**
+ * @method "“_”«else_»(as«conjunctive|disjunctive»!list)"
+ * @param "aTuple" "<⊥…|0>"
+ *        An arbitrary tuple.
+ * @param "optionalEmptyText" "<[]→string…|0..1>"
+ *        If specified, then the function to apply if the tuple is empty. If not
+ *        specified, then {@code ["(empty)"]} will be used.
+ * @param "mode" "[1..2]"
+ *        If the mode is {@code 1}, then output the word {@code "and"} before
+ *        the final element of a multi-element tuple. If the mode is {@code 2},
+ *        then output the word {@code "or"} before the final element of a
+ *        multi-element tuple.
+ * @returns "string"
+ *          The requested textual rendition.
+ */
 Method "“_”«else_»(as«conjunctive|disjunctive»!list)" is
 [
 	aTuple : <⊥…|0>,
@@ -1355,6 +1490,21 @@ Method "“_”«else_»(as«conjunctive|disjunctive»!list)" is
 	optionalEmptyText[1] else [["(empty)"]]()
 ] : string;
 
+/**
+ * @method "“_”«else_»(as«conjunctive|disjunctive»!list)"
+ * @param "aTuple" "<any…|1>"
+ *        An arbitrary tuple.
+ * @param "optionalEmptyText" "<[]→string…|0..1>"
+ *        If specified, then the function to apply if the tuple is empty. If not
+ *        specified, then {@code ["(empty)"]} will be used.
+ * @param "mode" "[1..2]"
+ *        If the mode is {@code 1}, then output the word {@code "and"} before
+ *        the final element of a multi-element tuple. If the mode is {@code 2},
+ *        then output the word {@code "or"} before the final element of a
+ *        multi-element tuple.
+ * @returns "string"
+ *          The requested textual rendition.
+ */
 Method "“_”«else_»(as«conjunctive|disjunctive»!list)" is
 [
 	aTuple : <any…|1>,
@@ -1365,6 +1515,21 @@ Method "“_”«else_»(as«conjunctive|disjunctive»!list)" is
 	cast elem into [t : string | t] else [“elem”]
 ] : string;
 
+/**
+ * @method "“_”«else_»(as«conjunctive|disjunctive»!list)"
+ * @param "aTuple" "<any…|2>"
+ *        An arbitrary tuple.
+ * @param "optionalEmptyText" "<[]→string…|0..1>"
+ *        If specified, then the function to apply if the tuple is empty. If not
+ *        specified, then {@code ["(empty)"]} will be used.
+ * @param "mode" "[1..2]"
+ *        If the mode is {@code 1}, then output the word {@code "and"} before
+ *        the final element of a multi-element tuple. If the mode is {@code 2},
+ *        then output the word {@code "or"} before the final element of a
+ *        multi-element tuple.
+ * @returns "string"
+ *          The requested textual rendition.
+ */
 Method "“_”«else_»(as«conjunctive|disjunctive»!list)" is
 [
 	aTuple : <any…|2>,
@@ -1376,6 +1541,21 @@ Method "“_”«else_»(as«conjunctive|disjunctive»!list)" is
 	s1 ++ <" and ", " or ">[mode] ++ s2
 ] : string;
 
+/**
+ * @method "“_”«else_»(as«conjunctive|disjunctive»!list)"
+ * @param "aTuple" "<any…|3..>"
+ *        An arbitrary tuple.
+ * @param "optionalEmptyText" "<[]→string…|0..1>"
+ *        If specified, then the function to apply if the tuple is empty. If not
+ *        specified, then {@code ["(empty)"]} will be used.
+ * @param "mode" "[1..2]"
+ *        If the mode is {@code 1}, then output the word {@code "and"} before
+ *        the final element of a multi-element tuple. If the mode is {@code 2},
+ *        then output the word {@code "or"} before the final element of a
+ *        multi-element tuple.
+ * @returns "string"
+ *          The requested textual rendition.
+ */
 Method "“_”«else_»(as«conjunctive|disjunctive»!list)" is
 [
 	aTuple : <any…|3..>,

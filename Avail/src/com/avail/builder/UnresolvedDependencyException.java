@@ -32,6 +32,7 @@
 
 package com.avail.builder;
 
+import com.avail.annotations.Nullable;
 import com.avail.descriptor.ModuleDescriptor;
 
 /**
@@ -40,8 +41,9 @@ import com.avail.descriptor.ModuleDescriptor;
  * ModuleDescriptor module} is discovered.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @author Leslie Schultz &lt;leslie@availlang.org&gt;
  */
-public final class UnresolvedDependencyException
+public abstract class UnresolvedDependencyException
 extends Exception
 {
 	/** The serial version identifier. */
@@ -50,7 +52,7 @@ extends Exception
 	/**
 	 * The module that contained an unresolved reference to another module.
 	 */
-	private final ResolvedModuleName referringModuleName;
+	private ResolvedModuleName referringModuleName;
 
 	/**
 	 * The name of the module that could not be resolved.
@@ -69,6 +71,17 @@ extends Exception
 	}
 
 	/**
+	 * Set the name of the referring module for this exception, in case it was
+	 * not available at construction time.
+	 *
+	 * @param referrer The name of the referring module.
+	 */
+	public void setReferringModuleName (final ResolvedModuleName referrer)
+	{
+		this.referringModuleName = referrer;
+	}
+
+	/**
 	 * Answer the name of the {@linkplain ModuleDescriptor module} that could
 	 * not be resolved.
 	 *
@@ -77,6 +90,28 @@ extends Exception
 	public String unresolvedModuleName()
 	{
 		return unresolvedModuleName;
+	}
+
+	/**
+	 * Construct the message based on whether or not this exception has a
+	 * referring module name.
+	 *
+	 * @return The customized message.
+	 */
+	@Override
+	public String getMessage()
+	{
+		if (referringModuleName == null)
+		{
+			return "[Unknown module] refers to unresolved module \""
+				+ unresolvedModuleName
+				+ "\".";
+		}
+		return "module \""
+			+ referringModuleName.qualifiedName()
+			+ "\" refers to unresolved module \""
+			+ unresolvedModuleName
+			+ "\".";
 	}
 
 	/**
@@ -89,15 +124,10 @@ extends Exception
 	 *            The name of the module which could not be resolved.
 	 */
 	UnresolvedDependencyException (
-		final ResolvedModuleName referringModuleName,
+		final @Nullable ResolvedModuleName referringModuleName,
 		final String unresolvedModuleName)
 	{
-		super(
-			"module \""
-			+ referringModuleName.qualifiedName()
-			+ "\" refers to unresolved module \""
-			+ unresolvedModuleName
-			+ "\".");
+		super();
 		this.referringModuleName = referringModuleName;
 		this.unresolvedModuleName = unresolvedModuleName;
 	}

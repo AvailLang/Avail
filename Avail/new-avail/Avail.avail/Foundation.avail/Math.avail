@@ -91,11 +91,25 @@ Public stable forward method "-_" is [number]→number;
 	/* Forbid nesting of floor and ceiling. */
 	Grammatical restriction bounds is <bounds>;
 
-	/* Make each bitwise operator left-associative with itself (but leave them
-	 * mutually incomparable in precedence).
+	/**
+	 * Make left-associative.
+	 * @method "_bit∧_"
+	 * @forbids "2" "_bit∧_"
 	 */
 	Grammatical restriction "_bit∧_" is <∅, {"_bit∧_"}>;
+	
+	/**
+	 * Make left-associative.
+	 * @method "_bit∨_"
+	 * @forbids "2" "_bit∨_"
+	 */
 	Grammatical restriction "_bit∨_" is <∅, {"_bit∨_"}>;
+	
+	/**
+	 * Make left-associative.
+	 * @method "_bit⊕_"
+	 * @forbids "2" "_bit⊕_"
+	 */
 	Grammatical restriction "_bit⊕_" is <∅, {"_bit⊕_"}>;
 ]();
 

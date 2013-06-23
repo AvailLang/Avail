@@ -35,7 +35,6 @@ package com.avail.tools.compiler.configuration;
 import com.avail.builder.ModuleRoots;
 import com.avail.builder.RenamesFileParser;
 import com.avail.tools.compiler.Compiler;
-import com.avail.tools.configuration.ConfigurationException;
 import com.avail.tools.configuration.Configurator;
 
 /**
@@ -87,7 +86,6 @@ implements Configurator<CompilerConfiguration>
 
 	@Override
 	public synchronized void updateConfiguration ()
-		throws ConfigurationException
 	{
 		if (!isConfigured)
 		{
