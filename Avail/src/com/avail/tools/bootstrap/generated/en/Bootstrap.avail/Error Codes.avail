@@ -57,6 +57,7 @@ Names
 	/*   4 */ "cannot divide by zero code",
 	/*   5 */ "cannot divide infinities code",
 	/*  81 */ "cannot mark handler frame code",
+	/*  75 */ "cannot mix method and macro definitions code",
 	/* 507 */ "cannot modify final java field code",
 	/*   3 */ "cannot multiply zero and infinity code",
 	/*   6 */ "cannot read unassigned variable code",
@@ -502,6 +503,11 @@ Primitive "no implementation code" is
 Primitive "atom already exists code" is
 [
 	74
+];
+
+Primitive "cannot mix method and macro definitions code" is
+[
+	75
 ];
 
 Primitive "handler sentinel code" is
