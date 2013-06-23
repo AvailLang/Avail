@@ -32,6 +32,7 @@
 
 package com.avail.descriptor;
 
+import static com.avail.descriptor.SyntheticMessageBundleDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.TypeDescriptor.Types.MESSAGE_BUNDLE;
 import java.util.List;
 import com.avail.annotations.AvailMethod;
@@ -98,7 +99,7 @@ extends Descriptor
 		final AvailObject object)
 	{
 		final A_Bundle baseMessageBundle =
-			object.slot(ObjectSlots.BASE_MESSAGE_BUNDLE);
+			object.slot(BASE_MESSAGE_BUNDLE);
 		return baseMessageBundle.hasGrammaticalRestrictions();
 	}
 
@@ -107,7 +108,7 @@ extends Descriptor
 		final AvailObject object)
 	{
 		final A_Bundle baseMessageBundle =
-			object.slot(ObjectSlots.BASE_MESSAGE_BUNDLE);
+			object.slot(BASE_MESSAGE_BUNDLE);
 		return baseMessageBundle.grammaticalRestrictions();
 	}
 
@@ -116,7 +117,7 @@ extends Descriptor
 		final AvailObject object)
 	{
 		final A_Bundle baseMessageBundle =
-			object.slot(ObjectSlots.BASE_MESSAGE_BUNDLE);
+			object.slot(BASE_MESSAGE_BUNDLE);
 		return baseMessageBundle.message();
 	}
 
@@ -125,7 +126,7 @@ extends Descriptor
 		final AvailObject object)
 	{
 		final A_Bundle baseMessageBundle =
-			object.slot(ObjectSlots.BASE_MESSAGE_BUNDLE);
+			object.slot(BASE_MESSAGE_BUNDLE);
 		return baseMessageBundle.messageParts();
 	}
 
@@ -134,15 +135,15 @@ extends Descriptor
 		final AvailObject object)
 	{
 		final A_Bundle baseMessageBundle =
-			object.slot(ObjectSlots.BASE_MESSAGE_BUNDLE);
+			object.slot(BASE_MESSAGE_BUNDLE);
 		return baseMessageBundle.parsingInstructions();
 	}
 
 	@Override boolean allowsImmutableToMutableReferenceInField (
 		final AbstractSlotsEnum e)
 	{
-		return e == ObjectSlots.BASE_MESSAGE_BUNDLE
-			|| e == ObjectSlots.INCLUDED_DEFINITIONS;
+		return e == BASE_MESSAGE_BUNDLE
+			|| e == INCLUDED_DEFINITIONS;
 	}
 
 	@Override
@@ -203,8 +204,8 @@ extends Descriptor
 	throws SignatureException
 	{
 		final AvailObject result = mutable.create();
-		result.setSlot(ObjectSlots.BASE_MESSAGE_BUNDLE, baseMessageBundle);
-		result.setSlot(ObjectSlots.INCLUDED_DEFINITIONS, SetDescriptor.empty());
+		result.setSlot(BASE_MESSAGE_BUNDLE, baseMessageBundle);
+		result.setSlot(INCLUDED_DEFINITIONS, SetDescriptor.empty());
 		result.makeShared();
 		return result;
 	}

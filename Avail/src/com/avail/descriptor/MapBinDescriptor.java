@@ -32,6 +32,7 @@
 
 package com.avail.descriptor;
 
+import static com.avail.descriptor.MapBinDescriptor.IntegerSlots.*;
 import com.avail.annotations.*;
 import com.avail.descriptor.MapDescriptor.MapIterable;
 
@@ -64,7 +65,7 @@ extends Descriptor
 	@Override @AvailMethod
 	int o_MapBinKeysHash (final AvailObject object)
 	{
-		return object.slot(IntegerSlots.KEYS_HASH);
+		return object.slot(KEYS_HASH);
 	}
 
 	@Override @AvailMethod

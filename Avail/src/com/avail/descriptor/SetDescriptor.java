@@ -32,6 +32,7 @@
 
 package com.avail.descriptor;
 
+import static com.avail.descriptor.SetDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.*;
 import com.avail.annotations.*;
@@ -81,7 +82,7 @@ extends Descriptor
 	 */
 	private static AvailObject rootBin (final AvailObject object)
 	{
-		return object.slot(ObjectSlots.ROOT_BIN);
+		return object.slot(ROOT_BIN);
 	}
 
 	/**
@@ -98,7 +99,7 @@ extends Descriptor
 		final A_Set set,
 		final A_BasicObject bin)
 	{
-		((AvailObject) set).setSlot(ObjectSlots.ROOT_BIN, bin);
+		((AvailObject) set).setSlot(ROOT_BIN, bin);
 	}
 
 	@Override

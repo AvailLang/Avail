@@ -271,22 +271,6 @@ extends TupleDescriptor
 	}
 
 	@Override @AvailMethod
-	void o_TupleAtPut (
-		final AvailObject object,
-		final int index,
-		final AvailObject aByteObject)
-	{
-		// Set the byte at the given index to the given object (which should be
-		// an AvailObject that's an integer 0<=n<=255).
-		assert isMutable();
-		assert index >= 1 && index <= object.tupleSize();
-		final byte theByte = (byte) aByteObject.extractUnsignedByte();
-		final ByteBuffer buffer =
-			(ByteBuffer) object.slot(BYTE_BUFFER).javaObject();
-		buffer.put(index - 1, theByte);
-	}
-
-	@Override @AvailMethod
 	A_Tuple o_TupleAtPuttingCanDestroy (
 		final AvailObject object,
 		final int index,
@@ -367,8 +351,7 @@ extends TupleDescriptor
 		return 8;
 	}
 
-	@Override
-	@AvailMethod
+	@Override @AvailMethod
 	int o_TupleSize (final AvailObject object)
 	{
 		final ByteBuffer buffer =
@@ -396,6 +379,76 @@ extends TupleDescriptor
 			object.slot(BYTE_BUFFER).makeShared();
 		}
 		return object;
+	}
+
+	@Override
+	A_Tuple o_ConcatenateWith (
+		final AvailObject object,
+		final A_Tuple otherTuple,
+		final boolean canDestroy)
+	{
+		final int size1 = object.tupleSize();
+		if (size1 == 0)
+		{
+			if (!canDestroy)
+			{
+				otherTuple.makeImmutable();
+			}
+			return otherTuple;
+		}
+		final int size2 = otherTuple.tupleSize();
+		if (size2 == 0)
+		{
+			if (!canDestroy)
+			{
+				object.makeImmutable();
+			}
+			return object;
+		}
+		if (otherTuple.treeTupleLevel() == 0)
+		{
+			return TreeTupleDescriptor.createPair(object, otherTuple, 1, 0);
+		}
+		return TreeTupleDescriptor.concatenateAtLeastOneTree(
+			object, otherTuple, canDestroy);
+	}
+
+	@Override @AvailMethod
+	A_Tuple o_CopyTupleFromToCanDestroy (
+		final AvailObject object,
+		final int start,
+		final int end,
+		final boolean canDestroy)
+	{
+		assert 1 <= start && start <= end + 1;
+		final int tupleSize = object.tupleSize();
+		assert 0 <= end && end <= tupleSize;
+		final int size = end - start + 1;
+		if (size > 0 && size < tupleSize && size < 64)
+		{
+			// It's not empty, it's not a total copy, and it's reasonably small.
+			// Just copy the applicable bytes out.  In theory we could use
+			// newLike() if start is 1.  Make sure to mask the last word in that
+			// case.
+			final ByteBuffer originalBuffer = object.byteBuffer();
+			final AvailObject result =
+				ByteTupleDescriptor.mutableObjectOfSize(size);
+			int dest = 1;
+			for (int src = start; src <= end; src++, dest++)
+			{
+				// Remember to adjust between 1-based inclusive and 0-based
+				// inclusive/exclusive.
+				result.rawByteAtPut(dest, originalBuffer.get(src - 1));
+			}
+			if (canDestroy)
+			{
+				object.assertObjectUnreachableIfMutable();
+			}
+			result.hashOrZero(0);
+			return result;
+		}
+		return super.o_CopyTupleFromToCanDestroy(
+			object, start, end, canDestroy);
 	}
 
 	/**

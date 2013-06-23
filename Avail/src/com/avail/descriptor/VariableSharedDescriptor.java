@@ -32,6 +32,8 @@
 
 package com.avail.descriptor;
 
+import static com.avail.descriptor.VariableSharedDescriptor.IntegerSlots.*;
+import static com.avail.descriptor.VariableSharedDescriptor.ObjectSlots.*;
 import com.avail.annotations.*;
 
 /**
@@ -95,8 +97,8 @@ extends VariableDescriptor
 	boolean allowsImmutableToMutableReferenceInField (final AbstractSlotsEnum e)
 	{
 		return super.allowsImmutableToMutableReferenceInField(e)
-			|| e == IntegerSlots.HASH_OR_ZERO
-			|| e == ObjectSlots.VALUE;
+			|| e == HASH_OR_ZERO
+			|| e == VALUE;
 	}
 
 	@Override @AvailMethod

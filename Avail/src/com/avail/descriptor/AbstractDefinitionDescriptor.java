@@ -32,6 +32,7 @@
 
 package com.avail.descriptor;
 
+import static com.avail.descriptor.AbstractDefinitionDescriptor.ObjectSlots.*;
 import com.avail.annotations.*;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.serialization.SerializerOperation;
@@ -81,13 +82,13 @@ extends DefinitionDescriptor
 	@Override @AvailMethod
 	A_Type o_BodySignature (final AvailObject object)
 	{
-		return object.slot(ObjectSlots.BODY_SIGNATURE);
+		return object.slot(BODY_SIGNATURE);
 	}
 
 	@Override @AvailMethod
 	int o_Hash (final AvailObject object)
 	{
-		return (object.slot(ObjectSlots.BODY_SIGNATURE).hash() * 19)
+		return (object.slot(BODY_SIGNATURE).hash() * 19)
 			^ 0x201FE782;
 	}
 
@@ -129,9 +130,9 @@ extends DefinitionDescriptor
 		final A_Type bodySignature)
 	{
 		final AvailObject instance = mutable.create();
-		instance.setSlot(ObjectSlots.DEFINITION_METHOD, definitionMethod);
-		instance.setSlot(ObjectSlots.MODULE, definitionModule);
-		instance.setSlot(ObjectSlots.BODY_SIGNATURE, bodySignature);
+		instance.setSlot(DEFINITION_METHOD, definitionMethod);
+		instance.setSlot(MODULE, definitionModule);
+		instance.setSlot(BODY_SIGNATURE, bodySignature);
 		instance.makeShared();
 		return instance;
 	}

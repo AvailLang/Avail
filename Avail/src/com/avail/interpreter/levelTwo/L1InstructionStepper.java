@@ -527,7 +527,7 @@ implements L1OperationDispatcher
 			ObjectTupleDescriptor.createUninitialized(count);
 		for (int i = count; i >= 1; i--)
 		{
-			tuple.tupleAtPut(i, pop());
+			tuple.objectTupleAtPut(i, pop());
 		}
 		tuple.hashOrZero(0);
 		push(tuple);

@@ -185,7 +185,7 @@ extends DefinitionDescriptor
 	{
 		final AvailObject instance = mutable.create();
 		instance.setSlot(DEFINITION_METHOD, method);
-		instance.setSlot(ObjectSlots.MODULE, definitionModule);
+		instance.setSlot(MODULE, definitionModule);
 		instance.setSlot(PREFIX_FUNCTIONS, prefixFunctions);
 		instance.setSlot(BODY_BLOCK, bodyBlock);
 		instance.makeShared();

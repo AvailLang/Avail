@@ -32,6 +32,7 @@
 
 package com.avail.descriptor;
 
+import static com.avail.descriptor.DoubleDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.List;
 import com.avail.annotations.*;
@@ -73,8 +74,8 @@ extends AbstractNumberDescriptor
 	 */
 	private static double getDouble (final AvailObject object)
 	{
-		final int low = object.slot(IntegerSlots.LOW_INT);
-		final int high = object.slot(IntegerSlots.HIGH_INT);
+		final int low = object.slot(LOW_INT);
+		final int high = object.slot(HIGH_INT);
 		final long castAsLong = (low & 0xFFFFFFFFL) | (((long) high) << 32L);
 		return Double.longBitsToDouble(castAsLong);
 	}
@@ -259,8 +260,8 @@ extends AbstractNumberDescriptor
 	@Override @AvailMethod
 	int o_Hash (final AvailObject object)
 	{
-		final int low = object.slot(IntegerSlots.LOW_INT);
-		final int high = object.slot(IntegerSlots.HIGH_INT);
+		final int low = object.slot(LOW_INT);
+		final int high = object.slot(HIGH_INT);
 		return (low ^ 0x29F2EAB8) - (high ^ 0x07C453FD);
 	}
 
@@ -616,8 +617,8 @@ extends AbstractNumberDescriptor
 	{
 		final AvailObject result = mutable.create();
 		final long castAsLong = Double.doubleToRawLongBits(aDouble);
-		result.setSlot(IntegerSlots.LOW_INT, (int)castAsLong);
-		result.setSlot(IntegerSlots.HIGH_INT, (int)(castAsLong >> 32));
+		result.setSlot(LOW_INT, (int)castAsLong);
+		result.setSlot(HIGH_INT, (int)(castAsLong >> 32));
 		return result;
 	}
 
@@ -669,8 +670,8 @@ extends AbstractNumberDescriptor
 			? (AvailObject)recyclable1
 			: mutable.create();
 		final long castAsLong = Double.doubleToRawLongBits(aDouble);
-		result.setSlot(IntegerSlots.LOW_INT, (int)castAsLong);
-		result.setSlot(IntegerSlots.HIGH_INT, (int)(castAsLong >> 32));
+		result.setSlot(LOW_INT, (int)castAsLong);
+		result.setSlot(HIGH_INT, (int)(castAsLong >> 32));
 		return result;
 	}
 
@@ -713,8 +714,8 @@ extends AbstractNumberDescriptor
 			result = mutable.create();
 		}
 		final long castAsLong = Double.doubleToRawLongBits(aDouble);
-		result.setSlot(IntegerSlots.LOW_INT, (int)castAsLong);
-		result.setSlot(IntegerSlots.HIGH_INT, (int)(castAsLong >> 32));
+		result.setSlot(LOW_INT, (int)castAsLong);
+		result.setSlot(HIGH_INT, (int)(castAsLong >> 32));
 		return result;
 	}
 

@@ -35,15 +35,12 @@ package com.avail.descriptor;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.descriptor.MethodDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.MethodDescriptor.ObjectSlots.*;
-import static com.avail.interpreter.Primitive.Flag.*;
 import static java.lang.Math.max;
 import java.util.*;
 import com.avail.AvailRuntime;
 import com.avail.annotations.*;
-import com.avail.compiler.*;
 import com.avail.exceptions.*;
 import com.avail.interpreter.*;
-import com.avail.interpreter.levelOne.*;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.primitive.*;
 import com.avail.serialization.SerializerOperation;
@@ -75,10 +72,16 @@ extends Descriptor
 	{
 		/**
 		 * The hash value of this {@linkplain AtomDescriptor atom}.  It is a
-		 * random number (not 0), computed at construction time.
+		 * random number (but not 0), computed at construction time.
 		 */
 		@HideFieldInDebugger
-		HASH
+		HASH,
+
+		/**
+		 * The number of arguments expected by this method.  Set at construction
+		 * time.
+		 */
+		NUM_ARGS
 	}
 
 	/**
@@ -268,8 +271,13 @@ extends Descriptor
 			if (oldTuple.tupleSize() > 0)
 			{
 				// Ensure that we're not mixing macro and non-macro signatures.
-				assert definition.isMacroDefinition()
-					== oldTuple.tupleAt(1).isMacroDefinition();
+				if (definition.isMacroDefinition()
+					!= oldTuple.tupleAt(1).isMacroDefinition())
+				{
+					throw new SignatureException(
+						AvailErrorCode
+							.E_CANNOT_MIX_METHOD_AND_MACRO_DEFINITIONS);
+				}
 			}
 			final A_Tuple seals = object.slot(SEALED_ARGUMENTS_TYPES_TUPLE);
 			final A_Type bodySignature = definition.bodySignature();
@@ -504,17 +512,7 @@ extends Descriptor
 	@Override @AvailMethod
 	int o_NumArgs (final AvailObject object)
 	{
-		final A_Bundle someBundle = object.bundles().iterator().next();
-		final A_String name = someBundle.message().atomName();
-		try
-		{
-			final MessageSplitter splitter = new MessageSplitter(name);
-			return splitter.numberOfArguments();
-		}
-		catch (final SignatureException e)
-		{
-			throw new RuntimeException(e);
-		}
+		return object.slot(NUM_ARGS);
 	}
 
 	/**
@@ -870,13 +868,14 @@ extends Descriptor
 	 *
 	 * @return A new method with no name.
 	 */
-	public static AvailObject newMethod ()
+	public static AvailObject newMethod (final int numArgs)
 	{
 		final AvailObject result = mutable.create();
 		result.setSlot(HASH, AvailRuntime.nextHash());
+		result.setSlot(NUM_ARGS, numArgs);
 		result.setSlot(OWNING_BUNDLES, SetDescriptor.empty());
 		result.setSlot(DEFINITIONS_TUPLE, TupleDescriptor.empty());
-		result.setSlot(PRIVATE_TESTING_TREE, TupleDescriptor.empty());
+		result.setSlot(PRIVATE_TESTING_TREE, NilDescriptor.nil());
 		result.setSlot(SEMANTIC_RESTRICTIONS_SET, SetDescriptor.empty());
 		result.setSlot(SEALED_ARGUMENTS_TYPES_TUPLE, TupleDescriptor.empty());
 		result.setSlot(DEPENDENT_CHUNK_INDICES, SetDescriptor.empty());
@@ -885,11 +884,10 @@ extends Descriptor
 	}
 
 	/**
-	 * The membership of this {@linkplain MethodDescriptor
-	 * method} has changed.  Invalidate anything that depended on
-	 * the previous membership, including the {@linkplain
-	 * ObjectSlots#PRIVATE_TESTING_TREE testing tree} and any dependent level
-	 * two chunks.
+	 * The membership of this {@linkplain MethodDescriptor method} has changed.
+	 * Invalidate anything that depended on the previous membership, including
+	 * the {@linkplain ObjectSlots#PRIVATE_TESTING_TREE testing tree} and any
+	 * dependent level two chunks.
 	 *
 	 * @param object The method that changed.
 	 */
@@ -954,74 +952,6 @@ extends Descriptor
 	}
 
 	/**
-	 * Construct a bootstrapped {@linkplain FunctionDescriptor function} that
-	 * uses the specified primitive.  The primitive failure code should invoke
-	 * the {@link #vmCrashAtom}'s bundle with a tuple of passed arguments
-	 * followed by the primitive failure value.
-	 *
-	 * @param primitive The {@link Primitive} to use.
-	 * @return A function.
-	 */
-	public static A_Function newPrimitiveFunction (final Primitive primitive)
-	{
-		final L1InstructionWriter writer = new L1InstructionWriter(
-			NilDescriptor.nil(),
-			0);
-		writer.primitiveNumber(primitive.primitiveNumber);
-		final A_Type functionType = primitive.blockTypeRestriction();
-		final A_Type argsTupleType = functionType.argsTupleType();
-		final int numArgs = argsTupleType.sizeRange().upperBound().extractInt();
-		final A_Type [] argTypes = new AvailObject[numArgs];
-		for (int i = 0; i < argTypes.length; i++)
-		{
-			argTypes[i] = argsTupleType.typeAtIndex(i + 1);
-		}
-		writer.argumentTypes(argTypes);
-		writer.returnType(functionType.returnType());
-		if (!primitive.hasFlag(CannotFail))
-		{
-			// Produce failure code.  First declare the local that holds
-			// primitive failure information.
-			final int failureLocal = writer.createLocal(
-				VariableTypeDescriptor.wrapInnerType(
-					IntegerRangeTypeDescriptor.naturalNumbers()));
-			for (int i = 1; i <= argTypes.length; i++)
-			{
-				writer.write(
-					new L1Instruction(L1Operation.L1_doPushLastLocal, i));
-			}
-			// Get the failure code.
-			writer.write(
-				new L1Instruction(
-					L1Operation.L1_doGetLocal,
-					failureLocal));
-			// Put the arguments and failure code into a tuple.
-			writer.write(
-				new L1Instruction(
-					L1Operation.L1_doMakeTuple,
-					argTypes.length + 1));
-			writer.write(
-				new L1Instruction(
-					L1Operation.L1_doCall,
-					writer.addLiteral(vmCrashAtom().bundleOrCreate()),
-					writer.addLiteral(BottomTypeDescriptor.bottom())));
-		}
-		else
-		{
-			// Primitive cannot fail, but be nice to the decompiler.
-			writer.write(
-				new L1Instruction(
-					L1Operation.L1_doPushLiteral,
-					writer.addLiteral(NilDescriptor.nil())));
-		}
-		final A_Function function = FunctionDescriptor.create(
-			writer.compiledCode(),
-			TupleDescriptor.empty());
-		function.makeImmutable();
-		return function;
-	}
-
-	/**
 	 * Create a new special atom with the given name.  The name is not globally
 	 * unique, but serves to help to visually distinguish atoms.  Also create
 	 * a {@linkplain MessageBundleDescriptor message bundle} within it, with its
@@ -1048,7 +978,8 @@ extends Descriptor
 		final A_Method method = bundle.bundleMethod();
 		for (final Primitive primitive : primitives)
 		{
-			final A_Function function = newPrimitiveFunction(primitive);
+			final A_Function function =
+				FunctionDescriptor.newPrimitiveFunction(primitive);
 			final A_Definition definition = MethodDefinitionDescriptor.create(
 				method,
 				NilDescriptor.nil(),  // System definitions have no module.

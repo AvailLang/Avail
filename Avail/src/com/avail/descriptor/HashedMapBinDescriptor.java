@@ -801,7 +801,7 @@ extends MapBinDescriptor
 	 * @param level
 	 *        The depth of the bin in the hash tree.
 	 */
-	HashedMapBinDescriptor (
+	private HashedMapBinDescriptor (
 		final Mutability mutability,
 		final int level)
 	{

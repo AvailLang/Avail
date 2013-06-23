@@ -47,6 +47,12 @@ import com.avail.utility.Generator;
 public abstract class StringDescriptor
 extends TupleDescriptor
 {
+	@Override @AvailMethod
+	boolean o_IsString (final AvailObject object)
+	{
+		return true;
+	}
+
 	@Override @AvailMethod @ThreadSafe
 	SerializerOperation o_SerializerOperation (
 		final AvailObject object)

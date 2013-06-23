@@ -186,6 +186,13 @@ public final class Interpreter
 	/** Whether to print detailed Level One debug information. */
 	public static boolean debugL2 = false;
 
+	/**
+	 * Whether to print debug information related to a specific problem being
+	 * debugged with a custom VM.  This is a convenience flag and will be
+	 * inaccessible in a production VM.
+	 */
+	public static boolean debugCustom = false;
+
 	/** A {@linkplain Logger logger}. */
 	private static final Logger logger =
 		Logger.getLogger(Interpreter.class.getCanonicalName());
@@ -875,10 +882,13 @@ public final class Interpreter
 		this.chunkInstructions = chunkToResume.instructions;
 		makeRoomForChunkRegisters(chunkToResume, code);
 		this.offset = newOffset;
-		log(
-			Level.FINER,
-			"starting new chunk ({0})",
-			chunkToResume.index());
+		if (debugL2)
+		{
+			log(
+				Level.FINER,
+				"starting new chunk ({0})",
+				chunkToResume.index());
+		}
 	}
 
 	/** The number of fixed object registers in Level Two. */
@@ -1226,9 +1236,10 @@ public final class Interpreter
 		// Wipe out the existing registers for safety. This is technically
 		// optional, but not doing so may (1) hide bugs, and (2) leak
 		// references to values in registers.
-		wipeObjectRegisters();
+//		wipeObjectRegisters();  TODO[MvG] TEMP DEBUG - restore this one
 		if (caller.equalsNil())
 		{
+			wipeObjectRegisters(); // TODO[MvG] TEMP DEBUG
 			terminateFiber(value);
 			return;
 		}
@@ -1244,6 +1255,7 @@ public final class Interpreter
 				value,
 				expectedType));
 		}
+		wipeObjectRegisters();  // TODO[MvG] TEMP DEBUG
 		final A_Continuation updatedCaller = caller.ensureMutable();
 		updatedCaller.stackAtPut(stackp, value);
 		prepareToResumeContinuation(updatedCaller);

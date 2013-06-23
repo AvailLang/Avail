@@ -32,6 +32,7 @@
 
 package com.avail.descriptor;
 
+import static com.avail.descriptor.DefinitionDescriptor.ObjectSlots.*;
 import com.avail.annotations.*;
 import com.avail.serialization.SerializerOperation;
 
@@ -74,13 +75,13 @@ extends Descriptor
 	@Override @AvailMethod
 	public A_Method o_DefinitionMethod (final AvailObject object)
 	{
-		return object.slot(ObjectSlots.DEFINITION_METHOD);
+		return object.slot(DEFINITION_METHOD);
 	}
 
 	@Override @AvailMethod
 	public A_Module o_DefinitionModule (final AvailObject object)
 	{
-		return object.slot(ObjectSlots.MODULE);
+		return object.slot(MODULE);
 	}
 
 	@Override @AvailMethod

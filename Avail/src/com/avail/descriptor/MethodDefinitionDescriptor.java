@@ -32,6 +32,7 @@
 
 package com.avail.descriptor;
 
+import static com.avail.descriptor.MethodDefinitionDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.TypeDescriptor.Types.METHOD_DEFINITION;
 import com.avail.annotations.*;
 import com.avail.serialization.SerializerOperation;
@@ -85,7 +86,7 @@ extends DefinitionDescriptor
 	@Override @AvailMethod
 	A_Function o_BodyBlock (final AvailObject object)
 	{
-		return object.slot(ObjectSlots.BODY_BLOCK);
+		return object.slot(BODY_BLOCK);
 	}
 
 	@Override @AvailMethod
@@ -133,9 +134,9 @@ extends DefinitionDescriptor
 		final A_Function bodyBlock)
 	{
 		final AvailObject instance = mutable.create();
-		instance.setSlot(ObjectSlots.DEFINITION_METHOD, definitionMethod);
-		instance.setSlot(ObjectSlots.MODULE, definitionModule);
-		instance.setSlot(ObjectSlots.BODY_BLOCK, bodyBlock);
+		instance.setSlot(DEFINITION_METHOD, definitionMethod);
+		instance.setSlot(MODULE, definitionModule);
+		instance.setSlot(BODY_BLOCK, bodyBlock);
 		instance.makeShared();
 		return instance;
 	}

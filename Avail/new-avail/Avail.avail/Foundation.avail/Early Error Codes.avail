@@ -170,6 +170,7 @@ Invoke [
 		<72, "method-is-sealed">,
 		<73, "no-implementation">,
 		<74, "atom-already-exists">,
+		<75, "cannot-mix-method-and-macro-definitions">,
 		<80, "handler-sentinel">,
 		<81, "cannot-mark-handler-frame">,
 		<82, "no-handler-frame">,

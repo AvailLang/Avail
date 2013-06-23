@@ -34,9 +34,11 @@ package com.avail.descriptor;
 
 import static com.avail.descriptor.FunctionDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
+import static com.avail.interpreter.Primitive.Flag.CannotFail;
 import java.util.Collections;
 import java.util.List;
 import com.avail.annotations.*;
+import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelOne.*;
 import com.avail.serialization.SerializerOperation;
 
@@ -413,6 +415,75 @@ extends Descriptor
 		assert compiledBlock.numOuters() == 0;
 		final A_Function function = FunctionDescriptor.create(
 			compiledBlock,
+			TupleDescriptor.empty());
+		function.makeImmutable();
+		return function;
+	}
+
+	/**
+	 * Construct a bootstrapped {@linkplain FunctionDescriptor function} that
+	 * uses the specified primitive.  The primitive failure code should invoke
+	 * the {@link MethodDescriptor#vmCrashAtom}'s bundle with a tuple of passed
+	 * arguments followed by the primitive failure value.
+	 *
+	 * @param primitive The {@link Primitive} to use.
+	 * @return A function.
+	 */
+	public static A_Function newPrimitiveFunction (final Primitive primitive)
+	{
+		final L1InstructionWriter writer = new L1InstructionWriter(
+			NilDescriptor.nil(),
+			0);
+		writer.primitiveNumber(primitive.primitiveNumber);
+		final A_Type functionType = primitive.blockTypeRestriction();
+		final A_Type argsTupleType = functionType.argsTupleType();
+		final int numArgs = argsTupleType.sizeRange().upperBound().extractInt();
+		final A_Type [] argTypes = new AvailObject[numArgs];
+		for (int i = 0; i < argTypes.length; i++)
+		{
+			argTypes[i] = argsTupleType.typeAtIndex(i + 1);
+		}
+		writer.argumentTypes(argTypes);
+		writer.returnType(functionType.returnType());
+		if (!primitive.hasFlag(CannotFail))
+		{
+			// Produce failure code.  First declare the local that holds
+			// primitive failure information.
+			final int failureLocal = writer.createLocal(
+				VariableTypeDescriptor.wrapInnerType(
+					IntegerRangeTypeDescriptor.naturalNumbers()));
+			for (int i = 1; i <= argTypes.length; i++)
+			{
+				writer.write(
+					new L1Instruction(L1Operation.L1_doPushLastLocal, i));
+			}
+			// Get the failure code.
+			writer.write(
+				new L1Instruction(
+					L1Operation.L1_doGetLocal,
+					failureLocal));
+			// Put the arguments and failure code into a tuple.
+			writer.write(
+				new L1Instruction(
+					L1Operation.L1_doMakeTuple,
+					argTypes.length + 1));
+			writer.write(
+				new L1Instruction(
+					L1Operation.L1_doCall,
+					writer.addLiteral(
+						MethodDescriptor.vmCrashAtom().bundleOrCreate()),
+					writer.addLiteral(BottomTypeDescriptor.bottom())));
+		}
+		else
+		{
+			// Primitive cannot fail, but be nice to the decompiler.
+			writer.write(
+				new L1Instruction(
+					L1Operation.L1_doPushLiteral,
+					writer.addLiteral(NilDescriptor.nil())));
+		}
+		final A_Function function = FunctionDescriptor.create(
+			writer.compiledCode(),
 			TupleDescriptor.empty());
 		function.makeImmutable();
 		return function;

@@ -32,7 +32,8 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.AvailObject.multiplier;
+import static com.avail.descriptor.ByteTupleDescriptor.IntegerSlots.*;
+import static com.avail.descriptor.AvailObject.*;
 import static com.avail.descriptor.Mutability.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static java.lang.Math.*;
@@ -246,7 +247,7 @@ extends TupleDescriptor
 	{
 		//  Answer the byte at the given index.
 		assert index >= 1 && index <= object.tupleSize();
-		return object.byteSlotAt(IntegerSlots.RAW_QUAD_AT_, index);
+		return object.byteSlotAt(RAW_QUAD_AT_, index);
 	}
 
 	@Override @AvailMethod
@@ -257,7 +258,7 @@ extends TupleDescriptor
 	{
 		//  Set the byte at the given index.
 		assert index >= 1 && index <= object.tupleSize();
-		object.byteSlotAtPut(IntegerSlots.RAW_QUAD_AT_, index, anInteger);
+		object.byteSlotAtPut(RAW_QUAD_AT_, index, anInteger);
 	}
 
 	@Override @AvailMethod
@@ -268,20 +269,7 @@ extends TupleDescriptor
 		//  Answer the element at the given index in the tuple object.
 		assert index >= 1 && index <= object.tupleSize();
 		return (AvailObject)IntegerDescriptor.fromUnsignedByte(
-			object.byteSlotAt(IntegerSlots.RAW_QUAD_AT_, index));
-	}
-
-	@Override @AvailMethod
-	void o_TupleAtPut (
-		final AvailObject object,
-		final int index,
-		final AvailObject aByteObject)
-	{
-		// Set the byte at the given index to the given object (which should be
-		// an AvailObject that's an integer 0<=n<=255).
-		assert index >= 1 && index <= object.tupleSize();
-		final short theByte = ((A_Number)aByteObject).extractUnsignedByte();
-		object.byteSlotAtPut(IntegerSlots.RAW_QUAD_AT_, index, theByte);
+			object.byteSlotAt(RAW_QUAD_AT_, index));
 	}
 
 	@Override @AvailMethod
@@ -303,20 +291,14 @@ extends TupleDescriptor
 				newValueObject,
 				true);
 		}
-		if (!canDestroy || !isMutable())
-		{
-			return copyAsMutableByteTuple(object).tupleAtPuttingCanDestroy(
-				index,
-				newValueObject,
-				true);
-		}
-		// Clobber the object in place...
-		object.rawByteAtPut(
+		final AvailObject result = canDestroy && isMutable()
+			? object
+			: newLike(mutable(), object, 0, 0);
+		result.rawByteAtPut(
 			index,
 			((A_Number)newValueObject).extractUnsignedByte());
-		object.hashOrZero(0);
-		//  ...invalidate the hash value.
-		return object;
+		result.hashOrZero(0);
+		return result;
 	}
 
 	@Override @AvailMethod
@@ -325,7 +307,7 @@ extends TupleDescriptor
 		final int index)
 	{
 		// Answer the integer element at the given index in the tuple object.
-		return object.byteSlotAt(IntegerSlots.RAW_QUAD_AT_, index);
+		return object.byteSlotAt(RAW_QUAD_AT_, index);
 	}
 
 	@Override @AvailMethod
@@ -360,27 +342,109 @@ extends TupleDescriptor
 		return object.variableIntegerSlotsCount() * 4 - unusedBytesOfLastWord;
 	}
 
-	/**
-	 * Answer a mutable copy of object that also only holds bytes.
-	 *
-	 * @param object The byte tuple to copy.
-	 * @return The new mutable byte tuple.
-	 */
-	private A_Tuple copyAsMutableByteTuple (
-		final AvailObject object)
+	@Override
+	A_Tuple o_ConcatenateWith (
+		final AvailObject object,
+		final A_Tuple otherTuple,
+		final boolean canDestroy)
 	{
-		final AvailObject result = mutableObjectOfSize(object.tupleSize());
-		assert result.integerSlotsCount() == object.integerSlotsCount();
-		result.hashOrZero(object.hashOrZero());
-		// Copy four bytes at a time.
-		for (int i = 1, end = object.tupleSize() + 3 >> 2; i <= end; i++)
+		final int size1 = object.tupleSize();
+		if (size1 == 0)
 		{
-			result.setSlot(
-				IntegerSlots.RAW_QUAD_AT_,
-				i,
-				object.slot(IntegerSlots.RAW_QUAD_AT_, i));
+			if (!canDestroy)
+			{
+				otherTuple.makeImmutable();
+			}
+			return otherTuple;
 		}
-		return result;
+		final int size2 = otherTuple.tupleSize();
+		if (size2 == 0)
+		{
+			if (!canDestroy)
+			{
+				object.makeImmutable();
+			}
+			return object;
+		}
+		final int newSize = size1 + size2;
+		if (otherTuple.isByteTuple() && newSize <= 64)
+		{
+			// Copy the bytes.
+			final int newWordCount = (newSize + 3) >>> 2;
+			final int deltaSlots =
+				newWordCount - object.variableIntegerSlotsCount();
+			final AvailObject result;
+			if (canDestroy && isMutable() && deltaSlots == 0)
+			{
+				// We can reuse the receiver; it has enough int slots.
+				result = object;
+				result.descriptor = descriptorFor(MUTABLE, newSize);
+			}
+			else
+			{
+				result = newLike(
+					descriptorFor(MUTABLE, newSize), object, 0, deltaSlots);
+			}
+			int dest = size1 + 1;
+			for (int src = 1; src <= size2; src++, dest++)
+			{
+				result.byteSlotAtPut(
+					RAW_QUAD_AT_,
+					dest,
+					otherTuple.rawByteAt(src));
+			}
+			result.setSlot(HASH_OR_ZERO, 0);
+			return result;
+		}
+		if (!canDestroy)
+		{
+			object.makeImmutable();
+			otherTuple.makeImmutable();
+		}
+		if (otherTuple.treeTupleLevel() == 0)
+		{
+			return TreeTupleDescriptor.createPair(object, otherTuple, 1, 0);
+		}
+		return TreeTupleDescriptor.concatenateAtLeastOneTree(
+			object,
+			otherTuple,
+			true);
+	}
+
+	@Override
+	A_Tuple o_CopyTupleFromToCanDestroy (
+		final AvailObject object,
+		final int start,
+		final int end,
+		final boolean canDestroy)
+	{
+		assert 1 <= start && start <= end + 1;
+		final int tupleSize = object.tupleSize();
+		assert 0 <= end && end <= tupleSize;
+		final int size = end - start + 1;
+		if (size > 0 && size < tupleSize && size < 32)
+		{
+			// It's not empty, it's not a total copy, and it's reasonably small.
+			// Just copy the applicable bytes out.  In theory we could use
+			// newLike() if start is 1.  Make sure to mask the last word in that
+			// case.
+			final AvailObject result = mutableObjectOfSize(size);
+			int dest = 1;
+			for (int src = start; src <= end; src++, dest++)
+			{
+				result.byteSlotAtPut(
+					RAW_QUAD_AT_,
+					dest,
+					object.byteSlotAt(RAW_QUAD_AT_, src));
+			}
+			if (canDestroy)
+			{
+				object.assertObjectUnreachableIfMutable();
+			}
+			return result;
+		}
+		return super.o_CopyTupleFromToCanDestroy(
+			object, start, end, canDestroy);
 	}
 
 	/**

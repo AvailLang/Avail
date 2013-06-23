@@ -32,6 +32,7 @@
 
 package com.avail.descriptor;
 
+import java.util.Arrays;
 import java.util.Set;
 import com.avail.annotations.Nullable;
 import com.avail.visitor.MarkUnreachableSubobjectVisitor;
@@ -724,6 +725,37 @@ implements A_BasicObject
 				objectToCopy.objectSlots.length,
 				weakerNewObject.objectSlots.length));
 		return newObject;
+	}
+
+	/**
+	 * Search for the key in the {@linkplain #intSlots integer slots} that occur
+	 * within those identified with the specified {@link IntegerSlotsEnum}.
+	 * These ints must be in ascending sorted order, and must be distinct.  If
+	 * the exact int is found, answer its zero-based index within this repeated
+	 * slot (i.e., ≥0).  If the exact int is not found, answer (-n-1), where
+	 * n is the zero-based position of the leftmost element of the repeated slot
+	 * which is greater than the key (if it was equal, the "if found" case would
+	 * have applied).
+	 *
+	 * @param slot
+	 *            The final integer slot, which must be the variable-length part
+	 *            of the intSlots array.
+	 * @param key
+	 *            The value to seek in the designated region of the intSlots
+	 *            array.
+	 * @return
+	 *            The zero-based index of the key within the variable-length
+	 *            repeated slot if found, or else (-n-1) where n is the
+	 *            zero-based index of the leftmost int that is greater than the
+	 *            key.
+	 */
+	public final int binarySearch (final IntegerSlotsEnum slot, final int key)
+	{
+		return Arrays.binarySearch(
+			intSlots,
+			slot.ordinal(),
+			intSlots.length,
+			key);
 	}
 
 	/**

@@ -648,7 +648,7 @@ extends SetBinDescriptor
 	 * @param level
 	 *        The depth of the bin in the hash tree.
 	 */
-	HashedSetBinDescriptor (
+	private HashedSetBinDescriptor (
 		final Mutability mutability,
 		final int level)
 	{

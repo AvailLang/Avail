@@ -41,6 +41,7 @@ import java.util.*;
 import com.avail.AvailRuntime;
 import com.avail.annotations.*;
 import com.avail.compiler.AbstractAvailCompiler.ParserState;
+import com.avail.compiler.MessageSplitter;
 import com.avail.exceptions.AvailRuntimeException;
 import com.avail.exceptions.SignatureException;
 import com.avail.serialization.*;
@@ -338,9 +339,13 @@ extends Descriptor
 		A_Bundle bundle = object.getAtomProperty(messageBundleKey);
 		if (bundle.equalsNil())
 		{
-			final A_Method method = MethodDescriptor.newMethod();
+			final A_String name = object.slot(NAME);
+			final int numArgs;
 			try
 			{
+				final MessageSplitter splitter = new MessageSplitter(name);
+				numArgs = splitter.numberOfArguments();
+				final A_Method method = MethodDescriptor.newMethod(numArgs);
 				bundle = MessageBundleDescriptor.newBundle(object, method);
 			}
 			catch (final SignatureException e)

@@ -119,7 +119,7 @@ extends Descriptor
 	@Override boolean allowsImmutableToMutableReferenceInField (
 		final AbstractSlotsEnum e)
 	{
-		return e == ObjectSlots.GRAMMATICAL_RESTRICTIONS;
+		return e == GRAMMATICAL_RESTRICTIONS;
 	}
 
 	@Override @AvailMethod

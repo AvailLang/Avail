@@ -36,6 +36,7 @@ import java.io.*;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.util.*;
+import java.util.logging.Level;
 import com.avail.annotations.*;
 import com.avail.compiler.*;
 import com.avail.descriptor.AbstractNumberDescriptor.Order;
@@ -1274,20 +1275,39 @@ implements
 	 * Dispatch to the descriptor.
 	 */
 	@Override
-	public A_Tuple copyAsMutableSpliceTuple ()
-	{
-		return descriptor.o_CopyAsMutableSpliceTuple(this);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	@Override
 	public A_Tuple copyTupleFromToCanDestroy (
 		final int start,
 		final int end,
 		final boolean canDestroy)
 	{
+		//XXX MvG - Restore after debugging tuples 2013.06.22
+
+		if (Interpreter.debugCustom)
+		{
+			final StringBuilder builder = new StringBuilder();
+			builder.append(
+				String.format(
+					"Subrange[%d..%d](destroy=%s) of %s:%s%n\t= ",
+					start,
+					end,
+					canDestroy,
+					descriptor.getClass().getSimpleName(),
+					this));
+			final A_Tuple result = descriptor.o_CopyTupleFromToCanDestroy(
+				this,
+				start,
+				end,
+				canDestroy);
+			builder.append(
+				String.format(
+					"%s:%s",
+					result.descriptor().getClass().getSimpleName(),
+					result));
+			Interpreter.current().log(
+				Level.FINER,
+				builder.toString());
+			return result;
+		}
 		return descriptor.o_CopyTupleFromToCanDestroy(
 			this,
 			start,
@@ -1472,26 +1492,6 @@ implements
 			this,
 			index,
 			value);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	@Override
-	public int endOfZone (
-		final int zone)
-	{
-		return descriptor.o_EndOfZone(this, zone);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	@Override
-	public int endSubtupleIndexInZone (
-		final int zone)
-	{
-		return descriptor.o_EndSubtupleIndexInZone(this, zone);
 	}
 
 	/**
@@ -2031,24 +2031,6 @@ implements
 		final List<A_Type> argTypes)
 	{
 		return descriptor.o_FilterByTypes(this, argTypes);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	@Override
-	public A_BasicObject forZoneSetSubtupleStartSubtupleIndexEndOfZone (
-		final int zone,
-		final AvailObject newSubtuple,
-		final int startSubtupleIndex,
-		final int endOfZone)
-	{
-		return descriptor.o_ForZoneSetSubtupleStartSubtupleIndexEndOfZone(
-			this,
-			zone,
-			newSubtuple,
-			startSubtupleIndex,
-			endOfZone);
 	}
 
 	/**
@@ -3170,15 +3152,6 @@ implements
 	 * Dispatch to the descriptor.
 	 */
 	@Override
-	public int numberOfZones ()
-	{
-		return descriptor.o_NumberOfZones(this);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	@Override
 	public int numLiterals ()
 	{
 		return descriptor.o_NumLiterals(this);
@@ -3450,20 +3423,6 @@ implements
 	 * Dispatch to the descriptor.
 	 */
 	@Override
-	public void rawByteForCharacterAtPut (
-		final int index,
-		final short anInteger)
-	{
-		descriptor.o_RawByteForCharacterAtPut(
-			this,
-			index,
-			anInteger);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	@Override
 	public void rawNybbleAtPut (
 		final int index,
 		final byte aNybble)
@@ -3678,20 +3637,6 @@ implements
 	 * Dispatch to the descriptor.
 	 */
 	@Override
-	public void setSubtupleForZoneTo (
-		final int zoneIndex,
-		final A_Tuple newTuple)
-	{
-		descriptor.o_SetSubtupleForZoneTo(
-			this,
-			zoneIndex,
-			newTuple);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	@Override
 	public A_Set setUnionCanDestroy (
 		final A_Set otherSet,
 		final boolean canDestroy)
@@ -3758,16 +3703,6 @@ implements
 		final int value)
 	{
 		descriptor.o_Size(this, value);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	@Override
-	public int sizeOfZone (
-		final int zone)
-	{
-		return descriptor.o_SizeOfZone(this, zone);
 	}
 
 	/**
@@ -3855,26 +3790,6 @@ implements
 	 * Dispatch to the descriptor.
 	 */
 	@Override
-	public int startOfZone (
-		final int zone)
-	{
-		return descriptor.o_StartOfZone(this, zone);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	@Override
-	public int startSubtupleIndexInZone (
-		final int zone)
-	{
-		return descriptor.o_StartSubtupleIndexInZone(this, zone);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	@Override
 	public void step ()
 	{
 		descriptor.o_Step(this);
@@ -3942,16 +3857,6 @@ implements
 			this,
 			anInteger,
 			canDestroy);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	@Override
-	public AvailObject subtupleForZone (
-		final int zone)
-	{
-		return descriptor.o_SubtupleForZone(this, zone);
 	}
 
 	/**
@@ -4045,20 +3950,6 @@ implements
 	 * Dispatch to the descriptor.
 	 */
 	@Override
-	public int translateToZone (
-		final int tupleIndex,
-		final int zoneIndex)
-	{
-		return descriptor.o_TranslateToZone(
-			this,
-			tupleIndex,
-			zoneIndex);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	@Override
 	public AvailObject traversed ()
 	{
 		return descriptor.o_Traversed(this);
@@ -4087,34 +3978,10 @@ implements
 	 * Dispatch to the descriptor.
 	 */
 	@Override
-	public A_Tuple truncateTo (
-		final int newTupleSize)
-	{
-		return descriptor.o_TruncateTo(this, newTupleSize);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	@Override
 	public AvailObject tupleAt (
 		final int index)
 	{
 		return descriptor.o_TupleAt(this, index);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	@Override
-	public void tupleAtPut (
-		final int index,
-		final AvailObject anObject)
-	{
-		descriptor.o_TupleAtPut(
-			this,
-			index,
-			anObject);
 	}
 
 	/**
@@ -4568,28 +4435,9 @@ implements
 	 * Dispatch to the descriptor.
 	 */
 	@Override
-	public void verify ()
-	{
-		descriptor.o_Verify(this);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	@Override
 	public A_Set visibleNames ()
 	{
 		return descriptor.o_VisibleNames(this);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	@Override
-	public int zoneForIndex (
-		final int index)
-	{
-		return descriptor.o_ZoneForIndex(this, index);
 	}
 
 	/**
@@ -6820,5 +6668,74 @@ implements
 	public void adjustPcAndStackp (final int pc, final int stackp)
 	{
 		descriptor.o_AdjustPcAndStackp(this, pc, stackp);
+	}
+
+	@Override
+	public int treeTupleLevel ()
+	{
+		return descriptor.o_TreeTupleLevel(this);
+	}
+
+	@Override
+	public int childCount ()
+	{
+		return descriptor.o_ChildCount(this);
+	}
+
+	@Override
+	public A_Tuple childAt (final int childIndex)
+	{
+		return descriptor.o_ChildAt(this, childIndex);
+	}
+
+	@Override
+	public A_Tuple concatenateWith (
+		final A_Tuple otherTuple,
+		final boolean canDestroy)
+	{
+		//XXX MvG - Restore after debugging tuples 2013.06.22
+
+		if (Interpreter.debugCustom)
+		{
+			final StringBuilder builder = new StringBuilder();
+			builder.append(
+				String.format(
+					"Concat(destroy=%s) %s:%s ++ %s:%s%n\t= ",
+					canDestroy,
+					descriptor.getClass().getSimpleName(),
+					this,
+					otherTuple.descriptor().getClass().getSimpleName(),
+					otherTuple));
+			final A_Tuple result =
+				descriptor.o_ConcatenateWith(this, otherTuple, canDestroy);
+			builder.append(
+				String.format(
+					"%s:%s",
+					result.descriptor().getClass().getSimpleName(),
+					result));
+			Interpreter.current().log(
+				Level.FINER,
+				builder.toString());
+			return result;
+		}
+		return descriptor.o_ConcatenateWith(this, otherTuple, canDestroy);
+	}
+
+	@Override
+	public A_Tuple replaceFirstChild (final A_Tuple newFirst)
+	{
+		return descriptor.o_ReplaceFirstChild(this, newFirst);
+	}
+
+	@Override
+	public boolean isByteString ()
+	{
+		return descriptor.o_IsByteString(this);
+	}
+
+	@Override
+	public boolean isTwoByteString ()
+	{
+		return descriptor.o_IsTwoByteString(this);
 	}
 }

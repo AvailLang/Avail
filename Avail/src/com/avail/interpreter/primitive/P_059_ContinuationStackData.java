@@ -69,7 +69,7 @@ public class P_059_ContinuationStackData extends Primitive
 				// code.
 				entry = ContinuationDescriptor.nilSubstitute();
 			}
-			tuple.tupleAtPut(i, entry);
+			tuple.objectTupleAtPut(i, entry);
 		}
 		tuple.makeSubobjectsImmutable();
 		return interpreter.primitiveSuccess(tuple);

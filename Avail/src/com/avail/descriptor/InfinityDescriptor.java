@@ -32,6 +32,7 @@
 
 package com.avail.descriptor;
 
+import static com.avail.descriptor.InfinityDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.descriptor.AbstractNumberDescriptor.Order.*;
 import java.util.List;
@@ -76,7 +77,7 @@ extends ExtendedIntegerDescriptor
 	 */
 	private static Sign getSign (final AvailObject anInfinity)
 	{
-		return anInfinity.slot(IntegerSlots.SIGN) == Sign.POSITIVE.ordinal()
+		return anInfinity.slot(SIGN) == Sign.POSITIVE.ordinal()
 			? Sign.POSITIVE
 			: Sign.NEGATIVE;
 	}
@@ -104,7 +105,7 @@ extends ExtendedIntegerDescriptor
 	@Override @AvailMethod
 	boolean o_EqualsInfinity (final AvailObject object, final Sign sign)
 	{
-		return object.slot(IntegerSlots.SIGN) == sign.ordinal();
+		return object.slot(SIGN) == sign.ordinal();
 	}
 
 	@Override @AvailMethod
@@ -226,7 +227,7 @@ extends ExtendedIntegerDescriptor
 	@Override @AvailMethod
 	boolean o_IsPositive (final AvailObject object)
 	{
-		return object.slot(IntegerSlots.SIGN) == Sign.POSITIVE.ordinal();
+		return object.slot(SIGN) == Sign.POSITIVE.ordinal();
 	}
 
 	@Override @AvailMethod
@@ -523,7 +524,7 @@ extends ExtendedIntegerDescriptor
 	{
 		final AvailObject positive = mutable.create();
 		positive.setSlot(
-			IntegerSlots.SIGN,
+			SIGN,
 			Sign.POSITIVE.ordinal());
 		positiveInfinity = positive.makeShared();
 	}
@@ -548,7 +549,7 @@ extends ExtendedIntegerDescriptor
 	{
 		final AvailObject negative = mutable.create();
 		negative.setSlot(
-			IntegerSlots.SIGN,
+			SIGN,
 			Sign.NEGATIVE.ordinal());
 		negativeInfinity = negative.makeShared();
 	}

@@ -122,38 +122,6 @@ extends StringDescriptor
 		return true;
 	}
 
-	@Override
-	A_Tuple o_CopyTupleFromToCanDestroy (
-		final AvailObject object,
-		final int start,
-		final int end,
-		final boolean canDestroy)
-	{
-		if (end - start < 50)
-		{
-			// Make a simple copy of a small region.
-			return generateTwoByteString(
-				end - start + 1,
-				new Generator<Integer>()
-				{
-					private int sourceIndex = start;
-
-					@Override
-					public Integer value ()
-					{
-						return (int)object.shortSlotAt(
-							RAW_QUAD_AT_,
-							sourceIndex++);
-					}
-				});
-		}
-		return super.o_CopyTupleFromToCanDestroy(
-			object,
-			start,
-			end,
-			canDestroy);
-	}
-
 	@Override @AvailMethod
 	boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
@@ -203,7 +171,7 @@ extends StringDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_IsString (final AvailObject object)
+	boolean o_IsTwoByteString (final AvailObject object)
 	{
 		return true;
 	}
@@ -255,24 +223,7 @@ extends StringDescriptor
 		// two-byte character.
 		assert index >= 1 && index <= object.tupleSize();
 		return CharacterDescriptor.fromCodePoint(
-				object.shortSlotAt(RAW_QUAD_AT_, index)
-			& 0xFFFF);
-	}
-
-	@Override @AvailMethod
-	void o_TupleAtPut (
-		final AvailObject object,
-		final int index,
-		final AvailObject aCharacterObject)
-	{
-		// Set the short at the given index to the given object (which should be
-		// an AvailObject that's a two-byte character).
-		assert isMutable();
-		assert index >= 1 && index <= object.tupleSize();
-		object.shortSlotAtPut(
-			RAW_QUAD_AT_,
-			index,
-			(short)aCharacterObject.codePoint());
+			object.shortSlotAt(RAW_QUAD_AT_, index) & 0xFFFF);
 	}
 
 	@Override @AvailMethod
@@ -344,9 +295,8 @@ extends StringDescriptor
 		{
 			final int itemHash =
 				CharacterDescriptor.computeHashOfCharacterWithCodePoint(
-					object.rawShortForCharacterAt(index))
-				^ preToggle;
-			hash = hash * multiplier + itemHash;
+					object.rawShortForCharacterAt(index));
+			hash = hash * multiplier + (itemHash ^ preToggle);
 		}
 		return hash * multiplier;
 	}
@@ -357,6 +307,111 @@ extends StringDescriptor
 		final @Nullable Class<?> ignoredClassHint)
 	{
 		return object.asNativeString();
+	}
+
+	@Override
+	A_Tuple o_ConcatenateWith (
+		final AvailObject object,
+		final A_Tuple otherTuple,
+		final boolean canDestroy)
+	{
+		final int size1 = object.tupleSize();
+		if (size1 == 0)
+		{
+			if (!canDestroy)
+			{
+				otherTuple.makeImmutable();
+			}
+			return otherTuple;
+		}
+		final int size2 = otherTuple.tupleSize();
+		if (size2 == 0)
+		{
+			if (!canDestroy)
+			{
+				object.makeImmutable();
+			}
+			return object;
+		}
+		final int newSize = size1 + size2;
+		if (otherTuple.isTwoByteString() && newSize <= 32)
+		{
+			// Copy the characters.
+			final int newWordCount = (newSize + 1) >> 1;
+			final int deltaSlots =
+				newWordCount - object.variableIntegerSlotsCount();
+			final AvailObject result;
+			if (canDestroy && isMutable() && deltaSlots == 0)
+			{
+				// We can reuse the receiver; it has enough int slots.
+				result = object;
+				result.descriptor = descriptorFor(MUTABLE, newSize);
+			}
+			else
+			{
+				result = newLike(
+					descriptorFor(MUTABLE, newSize), object, 0, deltaSlots);
+			}
+			int dest = size1 + 1;
+			for (int src = 1; src <= size2; src++, dest++)
+			{
+				result.shortSlotAtPut(
+					RAW_QUAD_AT_,
+					dest,
+					otherTuple.rawShortForCharacterAt(src));
+			}
+			result.setSlot(HASH_OR_ZERO, 0);
+			return result;
+		}
+		if (!canDestroy)
+		{
+			object.makeImmutable();
+			otherTuple.makeImmutable();
+		}
+		if (otherTuple.treeTupleLevel() == 0)
+		{
+			return TreeTupleDescriptor.createPair(object, otherTuple, 1, 0);
+		}
+		return TreeTupleDescriptor.concatenateAtLeastOneTree(
+			object,
+			otherTuple,
+			true);
+	}
+
+	@Override
+	A_Tuple o_CopyTupleFromToCanDestroy (
+		final AvailObject object,
+		final int start,
+		final int end,
+		final boolean canDestroy)
+	{
+		assert 1 <= start && start <= end + 1;
+		final int tupleSize = object.tupleSize();
+		assert 0 <= end && end <= tupleSize;
+		final int size = end - start + 1;
+		if (size > 0 && size < tupleSize && size < 16)
+		{
+			// It's not empty, it's not a total copy, and it's reasonably small.
+			// Just copy the applicable shorts out.  In theory we could use
+			// newLike() if start is 1.  Make sure to mask the last word in that
+			// case.
+			return generateTwoByteString(
+				size,
+				new Generator<Integer>()
+				{
+					private int sourceIndex = start;
+
+					@Override
+					public Integer value ()
+					{
+						return (int)object.shortSlotAt(
+							RAW_QUAD_AT_,
+							sourceIndex++);
+					}
+				});
+		}
+		return super.o_CopyTupleFromToCanDestroy(
+			object, start, end, canDestroy);
 	}
 
 	/**
@@ -496,7 +551,7 @@ extends StringDescriptor
 	 * @param generator A generator to provide code points to store.
 	 * @return The new Avail {@linkplain TwoByteStringDescriptor string}.
 	 */
-	static AvailObject generateTwoByteString(
+	static AvailObject generateTwoByteString (
 		final int size,
 		final Generator<Integer> generator)
 	{

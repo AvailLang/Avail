@@ -32,6 +32,7 @@
 
 package com.avail.descriptor;
 
+import static com.avail.descriptor.SetBinDescriptor.IntegerSlots.*;
 import com.avail.annotations.*;
 
 /**
@@ -60,13 +61,13 @@ extends Descriptor
 	@Override @AvailMethod
 	void o_BinHash (final AvailObject object, final int value)
 	{
-		object.setSlot(IntegerSlots.BIN_HASH, value);
+		object.setSlot(BIN_HASH, value);
 	}
 
 	@Override @AvailMethod
 	int o_BinHash (final AvailObject object)
 	{
-		return object.slot(IntegerSlots.BIN_HASH);
+		return object.slot(BIN_HASH);
 	}
 
 	@Override @AvailMethod

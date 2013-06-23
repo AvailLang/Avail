@@ -337,7 +337,7 @@ enum SerializerOperandEncoding
 			for (int i = 1; i <= tupleSize; i++)
 			{
 				final int objectIndex = readCompressedPositiveInt(deserializer);
-				newTuple.tupleAtPut(
+				newTuple.objectTupleAtPut(
 					i,
 					deserializer.objectFromIndex(objectIndex));
 			}
