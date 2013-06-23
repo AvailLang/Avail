@@ -35,7 +35,12 @@ package com.avail.builder;
 import com.avail.annotations.Nullable;
 
 /**
- * TODO: [LAS] Document UnresolvedRootException and fix constructor javadoc.
+ * UnresolvedRootException is a type of UnresolvedDependencyException that is
+ * specifically for the case that the compiler could not find one of the roots
+ * it expected to be present. This may be caused by:
+ *   ~ The target module name referring to a root not present in AVAIL_ROOTS, or
+ *   ~ The compiler being unable to find a root accounted for in AVAIL_ROOTS
+ *     because it has disappeared from the file system
  *
  * @author Leslie Schultz &lt;leslie@availlang.org&gt;
  */

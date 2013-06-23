@@ -33,7 +33,13 @@
 package com.avail.utility;
 
 /**
- * TODO: [LAS] Document ParagraphFormatter!
+ * A ParagraphFormatter object holds a particular paragraph style in the form of
+ * window width, margin, and indentation settings. It is then used to apply
+ * those whitespace and word-wrap settings to a String.
+ *
+ * This is intended to be the final format procedure applied to a String before
+ * it is output, and all adjacent, non-newline character whitespace is condensed
+ * to a single space.
  *
  * @author Leslie Schultz &lt;leslie@availlang.org&gt;
  */
@@ -178,9 +184,9 @@ public class ParagraphFormatter
 						int cutoff =
 							paragraph.substring(0, lastIndex).lastIndexOf(" ");
 
-						// If there was no space, this line is a truncated, single
-						// long word. Adjust the cutoff position to the end of that
-						// word, even though it is too long.
+						// If there was no space, this line is a truncated,
+						// single long word. Adjust the cutoff position to the
+						// end of that word, even though it is too long.
 						if (cutoff < 0)
 						{
 							cutoff = paragraph.indexOf(" ");
@@ -245,7 +251,7 @@ public class ParagraphFormatter
 
 	/**
 	 * Construct a new {@link ParagraphFormatter} that formats strings to wrap
-	 * within the supplied window width, if possible. This formatter uses no
+	 * within the supplied window width, if possible. This formatter will use no
 	 * margin and no indentation.
 	 *
 	 * @param windowWidth The width of the output window
@@ -257,8 +263,8 @@ public class ParagraphFormatter
 
 	/**
 	 * Construct a new {@link ParagraphFormatter} that formats strings to wrap
-	 * within the supplied window width, and pads the string with the specified
-	 * margins.
+	 * within the supplied window width, if possible. All text is padded within
+	 * the specified margins.
 	 *
 	 * @param windowWidth The number of characters that can fit horizontally in
 	 *                    the window.
@@ -278,7 +284,7 @@ public class ParagraphFormatter
 	/**
 	 * Construct a new {@link ParagraphFormatter} that formats strings to wrap
 	 * within the supplied window width, if possible. All text is padded within
-	 * the supplied margins. The first line of each paragraph is indented
+	 * the specified margins. The first line of each paragraph is indented
 	 * independently from subsequent lines within the same paragraph.
 	 *
 	 * @param windowWidth The number of characters that can fit horizontally in

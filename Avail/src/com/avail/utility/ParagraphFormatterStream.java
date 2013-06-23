@@ -36,7 +36,9 @@ import java.io.IOException;
 import com.avail.annotations.Nullable;
 
 /**
- * TODO: [LAS] Document ParagraphFormatterStream!
+ * ParagraphFormatterStream wraps an Appendable with a ParagraphFormatter, so
+ * that Strings can automatically be formatted by the ParagraphFormatter before
+ * being appended to the output stream.
  *
  * @author Leslie Schultz &lt;leslie@availlang.org&gt;
  */
@@ -46,7 +48,7 @@ implements Appendable
 	/** The text formatter that formats text prior to its appendage. */
 	private final ParagraphFormatter formatter;
 
-	/** The appendor */
+	/** The appender */
 	private final Appendable appendable;
 
 	/**

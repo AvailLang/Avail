@@ -451,7 +451,10 @@ public final class ModuleNameResolver
 		assert result != null;
 		if (result.resolvedModule == null) // If the resolution failed
 		{
-			result.e.setReferringModuleName(dependent);
+			if (dependent != null)
+			{
+				result.e.setReferringModuleName(dependent);
+			}
 			throw result.e;
 		}
 		return result.resolvedModule;
