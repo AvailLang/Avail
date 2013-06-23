@@ -35,7 +35,13 @@ package com.avail.tools.compiler.configuration;
 import com.avail.annotations.Nullable;
 
 /**
- * TODO: [LAS] Document StatisticReport!
+ * The statistic reports requested of the compiler.
+ *   L2Operations ~ The most time-intensive level-two operations
+ *   DynamicLookups ~ The most time-intensive dynamic method lookups.
+ *   Primitives ~ The primitives that are the most time-intensive to run
+ *                overall.
+ *   PrimitiveReturnTypeChecks ~ The primitives that take the most time
+ *                               checking return types.
  *
  * @author Leslie Schultz &lt;leslie@availlang.org&gt;
  */

@@ -376,7 +376,12 @@ implements Configurator<CompilerConfiguration>
 
 		factory.addOption(new DefaultOption<OptionKey>(
 			TARGET_MODULE_NAME,
-			"The target module name for compilation.",
+			"The target module name for compilation. The module is specified " +
+			"via a path relative to an AVAIL_ROOTS root name. For example, " +
+			"if AVAIL_ROOTS specifies a root named \"foo\" at path " +
+			"/usr/local/avail/stuff/, and module \"frog\" is in the root " +
+			"folder as /usr/local/avail/stuff/frog, the target module name " +
+			"would be /foo/frog.",
 			new Continuation2<String, String>()
 			{
 				@Override
