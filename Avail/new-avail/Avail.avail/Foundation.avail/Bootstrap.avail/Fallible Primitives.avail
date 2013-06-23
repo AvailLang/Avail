@@ -1848,9 +1848,28 @@ Primitive "↓_«[_]»:=_" is
 [
 	var : variable,
 	pathTuple : two or more tuple,
-	newValue : natural number
+	newValue : any
 |
 	Primitive 702 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode
+] : ⊤;
+
+/**
+ * Replace the value at the location indicated by the path tuple of the 
+ * target map with a new value.
+ *
+ * Parameters:
+ *    var - A variable containing a complex map.
+ *    pathTuple - A tuple containing the path of indices to follow to the target.
+ *    newValue - The new value to populate at the given target.
+ */
+Primitive "↓_«[_]»:=_" is
+[
+	var : variable of map,
+	pathTuple : two or more tuple,
+	newValue : any
+|
+	Primitive 703 (failureCode : natural number);
 	Private invoke _fail_primitive with failureCode
 ] : ⊤;
 

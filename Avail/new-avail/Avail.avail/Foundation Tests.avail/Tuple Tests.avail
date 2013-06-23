@@ -183,3 +183,12 @@ Test "quasi-destructive n-ary complex tuple update" in tuple test suite is
 	↓↑t[1][2]["foo"] := 7;
 	Require: <<1,{"foo"→7},3>,<4,{"boo"→5},6>> = t;
 ];
+
+Test "quasi-destructive n-ary very complex tuple update" in tuple test suite is
+[
+	t : <<natural number,{string→<string…|2>|1},natural number…|3>…|> := 
+		<<1,{"foo"→<"cheese","apples">},3>,<4,{"boo"→<"purple","chariots">},6>>;
+	↓↑t[1][2]["foo"][2] := "motor torpedo boat";
+	Require: <<1,{"foo"→<"cheese","motor torpedo boat">},3>,
+		<4,{"boo"→<"purple","chariots">},6>> = t;
+];

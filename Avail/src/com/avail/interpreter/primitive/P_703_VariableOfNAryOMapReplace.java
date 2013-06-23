@@ -1,6 +1,7 @@
+
 /**
- * P_702_VariableOfTupleOfTupleReplace.java Copyright © 1993-2013, Mark van
- * Gulik and Todd L Smith. All rights reserved.
+ * P_703_VariableOfNAryOMapReplace.java Copyright © 1993-2013, Mark van Gulik
+ * and Todd L Smith. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -42,19 +43,19 @@ import com.avail.exceptions.VariableSetException;
 import com.avail.interpreter.*;
 
 /**
- * <strong>Primitive 702</strong>: Replace the value at the location indicated
- * by the path {@linkplain TupleDescriptor tuple} of the target
- * {@linkplain TupleDescriptor tuple} with a new value.
+ * <strong>Primitive Primitive 703</strong>: Replace the value at the location
+ * indicated by the path {@linkplain TupleDescriptor tuple} of the target
+ * {@linkplain MapDescriptor map} with a new value.
  *
  * @author Rich &lt;Rich@availlang.org&gt;
  */
-public final class P_702_VariableOfNAryTupleReplace extends Primitive
+public final class P_703_VariableOfNAryOMapReplace extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_702_VariableOfNAryTupleReplace()
-		.init(3, CanInline, HasSideEffect);
+	public final static Primitive instance = new P_703_VariableOfNAryOMapReplace()
+		.init(3, CanInline,HasSideEffect);
 
 	/**
 	 * Recursively traverses the target {@linkplain TupleDescriptor tuple}
@@ -175,13 +176,13 @@ public final class P_702_VariableOfNAryTupleReplace extends Primitive
 		final A_Variable var = args.get(0);
 		final A_Tuple pathTuple = args.get(1);
 		final A_BasicObject newValue = args.get(2);
-		final A_Tuple tuple;
+		final A_Map map;
 		try
 		{
-			tuple = var.getValue();
-			final A_Tuple newTuple = recursivelyUpdateTuple(
-				tuple, pathTuple, 1, newValue);
-			var.setValue(newTuple);
+			map = var.getValue();
+			final A_Map newMap = recursivelyUpdateMap(
+				map, pathTuple, 1, newValue);
+			var.setValue(newMap);
 			return interpreter.primitiveSuccess(NilDescriptor.nil());
 		}
 		catch (final VariableGetException e)
@@ -196,6 +197,7 @@ public final class P_702_VariableOfNAryTupleReplace extends Primitive
 		{
 			return interpreter.primitiveFailure(e);
 		}
+
 	}
 
 	@Override
@@ -203,7 +205,9 @@ public final class P_702_VariableOfNAryTupleReplace extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				VariableTypeDescriptor.mostGeneralType(),
+				VariableTypeDescriptor.fromReadAndWriteTypes(
+					MapTypeDescriptor.mostGeneralType(),
+					BottomTypeDescriptor.bottom()),
 				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 					IntegerRangeTypeDescriptor.create(
 						IntegerDescriptor.fromInt(2), true,
@@ -214,3 +218,4 @@ public final class P_702_VariableOfNAryTupleReplace extends Primitive
 			TOP.o());
 	}
 }
+
