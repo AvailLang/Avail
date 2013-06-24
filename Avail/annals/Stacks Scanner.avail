@@ -89,6 +89,7 @@ Names
 	"Toggle_'s⁇special region flag",
 	"Toggle_'s⁇special comment",
 	"Toggle_'s⁇tokenize",
+	"_in erroneous comment",
 	"_'s⁇character buffer",
 	"_'s⁇character buffer:=_",
 	"_'s⁇comment buffer",
@@ -129,6 +130,7 @@ Body
 "comments" is a new field atom;
 "error flag" is a new field atom;
 "erroneous comment" is a new field atom;
+"erroneous comment flag" is a new field atom;
 "module name" is a new field atom;
 "new line" is a new field atom;
 "open comment count" is a new field atom;
@@ -383,6 +385,7 @@ Public class "stacks scanner" extends Avail scanner
 	with mutable fields
 		public comments : <raw comment…|>,
 		public subtokens buffer : <stacks token…|>,
+		erroneous comment flag : boolean,
 		public comment buffer : <character…|>,
 		public character buffer : <character…|>,
 		public referable comment buffer index : natural number,
@@ -414,6 +417,7 @@ Public method "a stacks scanner with_" is
 		line number := 1,
 		column number := 1,
 		token start := 1,
+		erroneous comment flag := false,
 		comments := <>,
 		subtokens buffer := <>,
 		comment buffer := <>,
@@ -425,6 +429,25 @@ Public method "a stacks scanner with_" is
 		special region flag := false,
 		tokenize := true
 ] : stacks scanner;
+	
+/**
+ * an accessor for a scanner's erroneous comment flag.
+ *
+ * @method "_'s⁇erroneous comment flag"
+ * @categories "Stacks Scanner"
+ * @param "scanner" "stacks scanner" 
+ *		a stacks scanner
+ * @returnType "boolean"
+ *		the current setting of the flag
+ * @author "Richard Arriaga"
+ */
+Public method "_in erroneous comment" is
+[
+ 	scanner : stacks scanner
+ |
+ 	scanner's erroneous comment flag 
+]:boolean;
+
 
 /**
  * Reset all comment tokenizing fields in a stacks scanner to initial settings
@@ -446,6 +469,7 @@ Public method "Reset_'s⁇comment processing structure" is
 	scanner's comment buffer index := 1;
 	scanner's open comment count := 0;
 	scanner's special comment := false;
+	scanner's erroneous comment flag := false;
 	scanner's new line := true;
 	scanner's token buffer := <>;
 	scanner's column number := 1;
@@ -897,6 +921,7 @@ Private method "tokenize_'s⁇«quoted»?character buffer" is
 				position ::= tokenStart
 		] else
 		[
+		 	scanner's erroneous comment flag := true;
 			an erroneous stacks token with
 				lexeme ::= cb,
 				line ::= scanner's line number,
