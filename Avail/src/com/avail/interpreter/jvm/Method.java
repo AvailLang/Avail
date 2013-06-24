@@ -1058,13 +1058,53 @@ extends Emitter<MethodModifier>
 	 * @param classEntry
 	 *        The {@linkplain ClassEntry class entry} of the target type.
 	 */
+	public void instanceOf (final ClassEntry classEntry)
+	{
+		writer.append(new InstanceofInstruction(classEntry));
+	}
+
+	/**
+	 * Emit an instruction that will ascertain that the top of the operand
+	 * stack is an instance of the specified {@linkplain Class class}.
+	 *
+	 * @param descriptor
+	 *        The descriptor of the target type.
+	 */
+	public void instanceOf (final String descriptor)
+	{
+		final ClassEntry classEntry = constantPool.classConstant(descriptor);
+		instanceOf(classEntry);
+	}
+
+	/**
+	 * Emit an instruction that will ascertain that the top of the operand
+	 * stack is an instance of the specified {@linkplain Class class}.
+	 *
+	 * @param type
+	 *        The target type.
+	 */
+	public void instanceOf (final Class<?> type)
+	{
+		final String descriptor = JavaDescriptors.forType(type);
+		final ClassEntry classEntry = constantPool.classConstant(descriptor);
+		instanceOf(classEntry);
+	}
+
+
+	/**
+	 * Emit an instruction that will ensure that the top of the operand
+	 * stack is an instance of the specified {@linkplain Class class}.
+	 *
+	 * @param classEntry
+	 *        The {@linkplain ClassEntry class entry} of the target type.
+	 */
 	public void checkCast (final ClassEntry classEntry)
 	{
 		writer.append(new CheckCastInstruction(classEntry));
 	}
 
 	/**
-	 * Emit an instruction that will ascertain that the top of the operand
+	 * Emit an instruction that will ensure that the top of the operand
 	 * stack is an instance of the specified {@linkplain Class class}.
 	 *
 	 * @param descriptor
@@ -1077,7 +1117,7 @@ extends Emitter<MethodModifier>
 	}
 
 	/**
-	 * Emit an instruction that will ascertain that the top of the operand
+	 * Emit an instruction that will ensure that the top of the operand
 	 * stack is an instance of the specified {@linkplain Class class}.
 	 *
 	 * @param type
