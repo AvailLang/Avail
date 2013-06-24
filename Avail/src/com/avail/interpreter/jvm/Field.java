@@ -35,6 +35,7 @@ package com.avail.interpreter.jvm;
 import static com.avail.interpreter.jvm.FieldModifier.*;
 import java.io.DataOutput;
 import java.io.IOException;
+import java.util.EnumSet;
 import com.avail.interpreter.jvm.ConstantPool.Entry;
 import com.avail.interpreter.jvm.ConstantPool.FieldrefEntry;
 import com.avail.interpreter.jvm.ConstantPool.Utf8Entry;
@@ -42,6 +43,22 @@ import com.avail.interpreter.jvm.ConstantPool.Utf8Entry;
 /**
  * {@code Field} describes a Java field specified by the {@linkplain
  * CodeGenerator code generator}.
+ *
+ * <p>The typical life cycle of a {@code Field} is as follows:</p>
+ *
+ * <ol>
+ * <li>Obtain a new field from a code generator: {@link
+ * CodeGenerator#newField(String, String)}</li>
+ * <li>Build a {@linkplain EnumSet set} of {@linkplain FieldModifier field
+ * modifiers} and associate it with the field: {@link #setModifiers(EnumSet)}
+ * </li>
+ * <li>Set pertinent {@linkplain Attribute attributes}: {@link
+ * #setAttribute(Attribute)}</li>
+ * </ol>
+ *
+ * <p>The numbered steps must be performed in the specified order. Performing
+ * these steps out of order is not supported, and may result either in {@link
+ * AssertionError}s or malformed fields.</p>
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  * @see <a
