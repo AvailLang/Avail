@@ -71,6 +71,47 @@ final class JavaDescriptors
 	}
 
 	/**
+	 * Answer a descriptor that represents an array with the specified element
+	 * type and dimensionality.
+	 *
+	 * @param descriptor
+	 *        A descriptor.
+	 * @param dimensions
+	 *        The number of dimensions.
+	 * @return An array descriptor.
+	 */
+	public static String forArrayOf (
+		final String descriptor,
+		final int dimensions)
+	{
+		final int cp = descriptor.codePointAt(0);
+		if (cp == '(' || cp == '[')
+		{
+			throw new IllegalArgumentException();
+		}
+		final StringBuilder builder = new StringBuilder();
+		for (int i = 0; i < dimensions; i++)
+		{
+			builder.append('[');
+		}
+		builder.append(descriptor);
+		return builder.toString();
+	}
+
+	/**
+	 * Answer a descriptor that represents an array with the specified element
+	 * type.
+	 *
+	 * @param descriptor
+	 *        A descriptor.
+	 * @return An array descriptor.
+	 */
+	public static String forArrayOf (final String descriptor)
+	{
+		return forArrayOf(descriptor, 1);
+	}
+
+	/**
 	 * Answer the type name that corresponds to the specified descriptor.
 	 *
 	 * @param descriptor

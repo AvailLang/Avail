@@ -55,6 +55,44 @@ import com.avail.interpreter.jvm.ConstantPool.Utf8Entry;
  * CodeGenerator code generator}. It provides a plethora of facilities for
  * emitting {@linkplain JavaInstruction instructions} abstractly.
  *
+ * <p>The typical life cycle of a {@code Method} is as follows:</p>
+ *
+ * <ol>
+ * <li>Obtain a new method from a code generator: {@link
+ * CodeGenerator#newMethod(String, String)}</li>
+ * <li>Build a {@linkplain EnumSet set} of {@linkplain MethodModifier method
+ * modifiers} and associate it with the method: {@link #setModifiers(EnumSet)}
+ * </li>
+ * <li>Specify the parameters of the method from left to right: {@link
+ * #newParameter(String)}</li>
+ * <li>Plan the content of the method by:
+ *    <ul>
+ *    <li>Entering a scope in which {@linkplain LocalVariable local variables}
+ *    may be defined: {@link #enterScope()}.</li>
+ *    <li>Defining local variables: {@link
+ *    #newLocalVariable(String, String)}</li>
+ *    <li>Producing {@linkplain Label labels}: {@link #newLabel()}, or</li>
+ *    <li>Emitting labels: {@link #addLabel(Label)}, or</li>
+ *    <li>Emitting {@linkplain JavaInstruction instructions}.</li>
+ *    </ul>
+ * </li>
+ * <li>Define the {@linkplain ExceptionTable exception table} by adding the
+ * requisite guarded zones: {@link
+ * #addGuardedZone(Label, Label, Label, ClassEntry)}</li>
+ * <li>Set pertinent {@linkplain Attribute attributes}: {@link
+ * #setAttribute(Attribute)}</li>
+ * <li>Finish editing the method, allowing generation of {@linkplain
+ * JavaBytecode bytecodes} and fixation of labels to {@linkplain
+ * JavaInstruction#address() addresses}: {@link #finish()}
+ * </ol>
+ *
+ * <p>The numbered steps must be performed in the specified order. Performing
+ * these steps out of order is not supported, and may result either in {@link
+ * AssertionError}s or malformed methods.</p>
+ *
+ * <p>{@code N.B.} A scope must be entered before any local variables may be
+ * defined.</p>
+ *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public final class Method
@@ -233,6 +271,8 @@ extends Emitter<MethodModifier>
 	/**
 	 * Bind the specified name to the next unbound parameter, and answer a new
 	 * {@linkplain LocalVariable local variable} that represents that parameter.
+	 * The type of the parameter is inferred from the method's {@linkplain
+	 * #descriptor() descriptor}.
 	 *
 	 * @param name
 	 *        The name of the parameter.
@@ -525,7 +565,7 @@ extends Emitter<MethodModifier>
 	 * @param value
 	 *        A {@code Class} value.
 	 */
-	public void pushClassConstant (final Class<?> value)
+	public void pushConstant (final Class<?> value)
 	{
 		writer.append(new LoadConstantInstruction(
 			constantPool.classConstant(value)));
@@ -534,13 +574,12 @@ extends Emitter<MethodModifier>
 	/**
 	 * Emit code to push the specified class descriptor onto the operand stack.
 	 *
-	 * @param descriptor
-	 *        A class descriptor.
+	 * @param classEntry
+	 *        A {@linkplain ClassEntry class entry}.
 	 */
-	public void pushClassConstant (final String descriptor)
+	public void pushConstant (final ClassEntry classEntry)
 	{
-		writer.append(new LoadConstantInstruction(
-			constantPool.classConstant(descriptor)));
+		writer.append(new LoadConstantInstruction(classEntry));
 	}
 
 	/**
@@ -660,6 +699,179 @@ extends Emitter<MethodModifier>
 	{
 		assert type.isPrimitive() || type == Object.class;
 		writer.append(new ArrayStoreInstruction(type));
+	}
+
+	/**
+	 * Emit code to create an array of the specified type.
+	 *
+	 * @param classEntry
+	 *        A {@linkplain ClassEntry class entry} that represents an array
+	 *        with at least the specified dimensionality.
+	 * @param dimensions
+	 *        The dimensionality of the array.
+	 */
+	public void newArray (
+		final ClassEntry classEntry,
+		final int dimensions)
+	{
+		assert dimensions > 0 && dimensions < 256;
+		writer.append(new NewObjectArrayInstruction(classEntry, dimensions));
+	}
+
+	/**
+	 * Emit code to create an array of the specified type.
+	 *
+	 * @param classEntry
+	 *        The {@linkplain ClassEntry class entry}.
+	 */
+	public void newArray (final ClassEntry classEntry)
+	{
+		newArray(classEntry, 1);
+	}
+
+	/**
+	 * Emit code to create an array of the specified type.
+	 *
+	 * @param descriptor
+	 *        A non-array type descriptor.
+	 * @param dimensions
+	 *        The dimensionality of the array.
+	 */
+	public void newArray (final String descriptor, final int dimensions)
+	{
+		assert dimensions > 0 && dimensions < 256;
+		final Class<?> type = JavaDescriptors.typeForDescriptor(descriptor);
+		if (type.isPrimitive() && dimensions == 1)
+		{
+			newArray(type, 1);
+		}
+		else
+		{
+			final String arrayDescriptor = JavaDescriptors.forArrayOf(
+				descriptor, dimensions);
+			final ClassEntry classEntry =
+				constantPool.classConstant(arrayDescriptor);
+			newArray(classEntry, dimensions);
+		}
+	}
+
+	/**
+	 * Emit code to create an array of the specified type.
+	 *
+	 * @param descriptor
+	 *        A non-array type descriptor.
+	 */
+	public void newArray (final String descriptor)
+	{
+		final Class<?> type = JavaDescriptors.typeForDescriptor(descriptor);
+		if (type.isPrimitive())
+		{
+			newArray(type, 1);
+		}
+		else
+		{
+			final ClassEntry classEntry =
+				constantPool.classConstant(descriptor);
+			newArray(classEntry, 1);
+		}
+	}
+
+	/**
+	 * Emit code to create an array of the specified type.
+	 *
+	 * @param elementType
+	 *        The {@linkplain Class element type} of the array.
+	 * @param dimensions
+	 *        The dimensionality of the array.
+	 */
+	public void newArray (
+		final Class<?> elementType,
+		final int dimensions)
+	{
+		assert dimensions > 0 && dimensions < 256;
+		if (elementType.isPrimitive() && dimensions == 1)
+		{
+			assert elementType != Void.TYPE;
+			writer.append(new NewArrayInstruction(elementType));
+		}
+		else
+		{
+			final String descriptor = JavaDescriptors.forType(elementType);
+			final String arrayDescriptor = JavaDescriptors.forArrayOf(
+				descriptor, dimensions);
+			final ClassEntry classEntry =
+				constantPool.classConstant(arrayDescriptor);
+			newArray(classEntry, dimensions);
+		}
+	}
+
+	/**
+	 * Emit code to create an array of the specified type.
+	 *
+	 * @param elementType
+	 *        The {@linkplain Class element type} of the array.
+	 */
+	public void newArray (final Class<?> elementType)
+	{
+		newArray(elementType, 1);
+	}
+
+	/**
+	 * Emit code to instantiate an object of the specified type and to duplicate
+	 * its reference on the operand stack.
+	 *
+	 * <p>{@code N.B.} The constructor {@code "<init>"} that is executed by
+	 * {@link JavaBytecode#invokespecial invokespecial} to finish initialization
+	 * of the new object will consume the top operand, which is why {@link
+	 * JavaBytecode#dup dup} is always emitted after {@link JavaBytecode#new_
+	 * new}.</p>
+	 *
+	 * @param classEntry
+	 *        The {@linkplain ClassEntry class entry} of the target class.
+	 */
+	public void newObject (final ClassEntry classEntry)
+	{
+		writer.append(new NewObjectInstruction(classEntry));
+		writer.append(dup.create());
+	}
+
+	/**
+	 * Emit code to instantiate an object of the specified type and to duplicate
+	 * its reference on the operand stack.
+	 *
+	 * <p>{@code N.B.} The constructor {@code "<init>"} that is executed by
+	 * {@link JavaBytecode#invokespecial invokespecial} to finish initialization
+	 * of the new object will consume the top operand, which is why {@link
+	 * JavaBytecode#dup dup} is always emitted after {@link JavaBytecode#new_
+	 * new}.</p>
+	 *
+	 * @param descriptor
+	 *        The type descriptor of the target {@linkplain Class class}.
+	 */
+	public void newObject (final String descriptor)
+	{
+		final ClassEntry classEntry = constantPool.classConstant(descriptor);
+		newObject(classEntry);
+	}
+
+	/**
+	 * Emit code to instantiate an object of the specified type and to duplicate
+	 * its reference on the operand stack.
+	 *
+	 * <p>{@code N.B.} The constructor {@code "<init>"} that is executed by
+	 * {@link JavaBytecode#invokespecial invokespecial} to finish initialization
+	 * of the new object will consume the top operand, which is why {@link
+	 * JavaBytecode#dup dup} is always emitted after {@link JavaBytecode#new_
+	 * new}.</p>
+	 *
+	 * @param type
+	 *        The target {@linkplain Class type}.
+	 */
+	public void newObject (final Class<?> type)
+	{
+		assert !type.isPrimitive();
+		final ClassEntry classEntry = constantPool.classConstant(type);
+		newObject(classEntry);
 	}
 
 	/**
@@ -840,6 +1052,45 @@ extends Emitter<MethodModifier>
 	}
 
 	/**
+	 * Emit an instruction that will ascertain that the top of the operand
+	 * stack is an instance of the specified {@linkplain Class class}.
+	 *
+	 * @param classEntry
+	 *        The {@linkplain ClassEntry class entry} of the target type.
+	 */
+	public void checkCast (final ClassEntry classEntry)
+	{
+		writer.append(new CheckCastInstruction(classEntry));
+	}
+
+	/**
+	 * Emit an instruction that will ascertain that the top of the operand
+	 * stack is an instance of the specified {@linkplain Class class}.
+	 *
+	 * @param descriptor
+	 *        The descriptor of the target type.
+	 */
+	public void checkCast (final String descriptor)
+	{
+		final ClassEntry classEntry = constantPool.classConstant(descriptor);
+		checkCast(classEntry);
+	}
+
+	/**
+	 * Emit an instruction that will ascertain that the top of the operand
+	 * stack is an instance of the specified {@linkplain Class class}.
+	 *
+	 * @param type
+	 *        The target type.
+	 */
+	public void checkCast (final Class<?> type)
+	{
+		final String descriptor = JavaDescriptors.forType(type);
+		final ClassEntry classEntry = constantPool.classConstant(descriptor);
+		checkCast(classEntry);
+	}
+
+	/**
 	 * Emit an unconditional branch to the specified {@linkplain Label label}.
 	 *
 	 * @param label
@@ -942,6 +1193,47 @@ extends Emitter<MethodModifier>
 
 	// TODO: [TLS] Add missing code generation methods!
 
+	/**
+	 * Emit code that will affect a {@code return} to the caller. If the
+	 * {@linkplain Method method} produces a value, then that value will be
+	 * consumed from the top of the stack.
+	 */
+	public void returnToCaller ()
+	{
+		final JavaOperand returnType =
+			JavaDescriptors.returnOperand(descriptor());
+		final JavaBytecode bytecode;
+		if (returnType == null)
+		{
+			bytecode = return_;
+		}
+		else
+		{
+			switch (returnType.baseOperand())
+			{
+				case OBJECTREF:
+					bytecode = areturn;
+					break;
+				case INT:
+					bytecode = ireturn;
+					break;
+				case LONG:
+					bytecode = lreturn;
+					break;
+				case FLOAT:
+					bytecode = freturn;
+					break;
+				case DOUBLE:
+					bytecode = dreturn;
+					break;
+				default:
+					assert false : "This never happens!";
+					throw new IllegalStateException();
+			}
+		}
+		writer.append(bytecode.create());
+	}
+
 	/** The {@linkplain ExceptionTable exception table}. */
 	private final ExceptionTable exceptionTable = new ExceptionTable();
 
@@ -1023,47 +1315,6 @@ extends Emitter<MethodModifier>
 		final ClassEntry catchEntry =
 			constantPool.classConstant(throwableType);
 		addGuardedZone(startLabel, endLabel, handlerLabel, catchEntry);
-	}
-
-	/**
-	 * Emit code that will affect a {@code return} to the caller. If the
-	 * {@linkplain Method method} produces a value, then that value will be
-	 * consumed from the top of the stack.
-	 */
-	public void returnToCaller ()
-	{
-		final JavaOperand returnType =
-			JavaDescriptors.returnOperand(descriptor());
-		final JavaBytecode bytecode;
-		if (returnType == null)
-		{
-			bytecode = return_;
-		}
-		else
-		{
-			switch (returnType.baseOperand())
-			{
-				case OBJECTREF:
-					bytecode = areturn;
-					break;
-				case INT:
-					bytecode = ireturn;
-					break;
-				case LONG:
-					bytecode = lreturn;
-					break;
-				case FLOAT:
-					bytecode = freturn;
-					break;
-				case DOUBLE:
-					bytecode = dreturn;
-					break;
-				default:
-					assert false : "This never happens!";
-					throw new IllegalStateException();
-			}
-		}
-		writer.append(bytecode.create());
 	}
 
 	/**
