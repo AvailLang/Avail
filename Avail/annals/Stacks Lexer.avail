@@ -974,7 +974,11 @@ Private method "Buffer_'s⁇current comment" is
 [
 	scanner : stacks scanner
 |
-	scanner's comments := (scanner's comments ++ <scanner's token buffer>);
+	rawComment : raw comment := a raw comment with
+		comment tokens := scanner's token buffer,
+		erroneous comment := scanner in erroneous comment,
+		special token regions := <>; /*TODO actually populate this*/
+	scanner's comments := (scanner's comments ++ <rawComment>);
 	Reset scanner's comment processing structure;
 ]:⊤;
 
