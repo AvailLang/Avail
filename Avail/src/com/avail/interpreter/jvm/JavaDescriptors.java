@@ -51,6 +51,22 @@ import com.avail.annotations.Nullable;
 final class JavaDescriptors
 {
 	/**
+	 * Construct and answer the internal Java {@linkplain Class class} name for
+	 * the specified class name.
+	 *
+	 * @param name
+	 *        A fully-qualified Java class name.
+	 * @return The requested internal class name.
+	 * @see <a
+	 *    href="http://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.2.1">
+	 *    Binary Class and Interface Names</a>
+	 */
+	public static String asInternalName (final String name)
+	{
+		return name.replace('.', '/');
+	}
+
+	/**
 	 * Construct and answer the Java descriptor for the specified {@linkplain
 	 * Class class} name.
 	 *
@@ -65,9 +81,24 @@ final class JavaDescriptors
 	{
 		final StringBuilder builder = new StringBuilder(50);
 		builder.append("L");
-		builder.append(name.replace('.', '/'));
+		builder.append(asInternalName(name));
 		builder.append(";");
 		return builder.toString();
+	}
+
+	/**
+	 * Given a class descriptor, answer the fully-qualified name of the
+	 * {@linkplain Class class}.
+	 *
+	 * @param classDescriptor
+	 *        A class descriptor.
+	 * @return A fully-qualified class name.
+	 */
+	public static String nameFromDescriptor (final String classDescriptor)
+	{
+		return classDescriptor
+			.substring(1, classDescriptor.length() - 1)
+			.replace('/', '.');
 	}
 
 	/**

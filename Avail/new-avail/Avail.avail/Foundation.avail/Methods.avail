@@ -67,6 +67,11 @@ Method "method for_" is
 	method for methodAtom
 ] : method;
 
+/**
+ * @method "method definition of_for_"
+ * @restricts "atom's type"
+ * @restricts "<any meta…|>'s type"
+ */
 Semantic restriction "method definition of_for_" is
 [
 	methodNameType : atom's type,
@@ -91,6 +96,10 @@ Semantic restriction "method definition of_for_" is
 	result
 ];
 
+/**
+ * @method "_'s⁇function"
+ * @restricts "method definition's type"
+ */
 Semantic restriction "_'s⁇function" is
 [
 	definitionType : method definition's type
@@ -112,12 +121,12 @@ Semantic restriction "_'s⁇function" is
  * @param "aMethod" "method"
  *        A method.
  * @param "negation" "boolean"
- *        {@method "true"} if the sense of the query is reversed.
+ *        `true` if the sense of the query is reversed.
  * @param "argTypes" "<any's type…|>"
  *        The parameter types of the target {@type "method site"}.
  * @returns "boolean"
- *          {@method "true"} if the specified {@type "method site"} of {@param
- *          "aMethod"} is an {@type "implementation site"}, {@method "false"}
+ *          `true` if the specified {@type "method site"} of {@param
+ *          "aMethod"} is an {@type "implementation site"}, `false`
  *          otherwise.
  */
 Public method "_is«not»?implemented at_" is

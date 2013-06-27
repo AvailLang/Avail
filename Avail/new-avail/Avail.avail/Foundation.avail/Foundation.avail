@@ -33,6 +33,7 @@
 System Module "Foundation"
 Versions
 	"dev"
+
 Extends
 	"Assertions" =
 	(
@@ -237,8 +238,6 @@ Extends
 		"“_”",
 		"↑_",
 		"↓_",
-		"↓_[_]:=_",
-		"↓_«[_]»:=_",
 		"↓_`?=_",
 		"↓_`?=_'s⁇initialization",
 		"∪_",
@@ -322,6 +321,7 @@ Extends
 		"_[_.._]",
 		"_[_]",
 		"_[_]:=_",
+		"_«[_]»→_",
 		"_[_]→_",
 		"_\\_",
 		"_^_",
@@ -686,6 +686,9 @@ Extends
 		"_(`…,_)"
 	),
 	"Late Math" =
+	(
+	),
+	"Late Restrictions" =
 	(
 	),
 	"Literals" =
