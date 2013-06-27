@@ -156,11 +156,11 @@ Public method "Backtracking fence_" is
  * Establish a checkpoint for subsequent backtracking. Must be invoked within
  * the dynamic scope of {@method "Backtracking fence_"}. Answer {@method
  * "true"}. On a subsequent invocation of {@method "Try again"} occurring within
- * the same dynamic scope, restart the checkpoint but answer {@method "false"}.
+ * the same dynamic scope, restart the checkpoint but answer `false`.
  *
  * @method "first try"
  * @returns "boolean"
- *          {@method "true"} on the first invocation, {@method "false"} when
+ *          `true` on the first invocation, `false` when
  *          retried.
  * @raises "no-backtracking-fence exception"
  *         If {@method "first try"} is not invoked from within a function
