@@ -106,10 +106,12 @@ public class L2_ATTEMPT_INLINE_PRIMITIVE extends L2Operation
 			interpreter.argsBuffer.add(register.in(interpreter));
 		}
 		assert function.code().primitiveNumber() == primitive.primitiveNumber;
+		// We'll check the return type on success, below.
 		final Result res = interpreter.attemptPrimitive(
 			primitive.primitiveNumber,
 			function,
-			interpreter.argsBuffer);
+			interpreter.argsBuffer,
+			true);
 		switch (res)
 		{
 			case SUCCESS:

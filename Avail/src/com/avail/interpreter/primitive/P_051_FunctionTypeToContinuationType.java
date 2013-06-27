@@ -52,7 +52,8 @@ public class P_051_FunctionTypeToContinuationType extends Primitive
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,
-		final Interpreter interpreter)
+		final Interpreter interpreter,
+		final boolean skipReturnCheck)
 	{
 		assert args.size() == 1;
 		final A_Type functionType = args.get(0);

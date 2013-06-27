@@ -51,7 +51,8 @@ public class P_034_CreateFunctionType extends Primitive
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,
-		final Interpreter interpreter)
+		final Interpreter interpreter,
+		final boolean skipReturnCheck)
 	{
 		assert args.size() == 2;
 		final AvailObject argTypes = args.get(0);

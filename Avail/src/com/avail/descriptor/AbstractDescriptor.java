@@ -5282,7 +5282,7 @@ public abstract class AbstractDescriptor
 	 * @return
 	 */
 	boolean o_ShowValueInNameForDebugger (
-		final A_BasicObject object)
+		final AvailObject object)
 	{
 		return true;
 	}
@@ -5828,6 +5828,12 @@ public abstract class AbstractDescriptor
 	 * @return
 	 */
 	abstract boolean o_IsTwoByteString (AvailObject object);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract boolean o_SkipReturnFlag (AvailObject object);
 
 	/**
 	 * @param object

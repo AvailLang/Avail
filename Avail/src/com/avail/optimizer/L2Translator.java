@@ -485,10 +485,21 @@ public class L2Translator
 		 * translation to level two.
 		 */
 		private int pc = 1;
+
 		/**
 		 * The current stack depth during naive translation to level two.
 		 */
 		private int stackp = code.maxStackDepth() + 1;
+
+		/**
+		 * The integer register to be used in this naive translation to hold the
+		 * flag indicating whether this continuation can skip the type check
+		 * when returning.
+		 */
+		private final L2IntegerRegister skipReturnCheckRegister =
+			L2IntegerRegister.precolored(
+				nextUnique(),
+				L1InstructionStepper.skipReturnCheckRegister());
 
 		/**
 		 * Answer an integer extracted at the current program counter.  The
@@ -880,19 +891,24 @@ public class L2Translator
 				new L2ReadPointerOperand(fixed(FUNCTION)),
 				new L2ImmediateOperand(pc),
 				new L2ImmediateOperand(stackp),
+				new L2ReadIntOperand(skipReturnCheckRegister),
 				new L2ReadVectorOperand(createVector(preSlots)),
 				new L2PcOperand(postCallLabel),
 				new L2WritePointerOperand(tempCallerRegister));
-			final L2ObjectRegister function = newObjectRegister();
+			final L2ObjectRegister functionReg = newObjectRegister();
 			// Look up the method body to invoke.
-			final List<A_Definition> possibleMethods =
+			final List<A_Definition> possibleDefinitions =
 				method.definitionsAtOrBelow(argTypes);
-			if (possibleMethods.size() == 1
-				&& possibleMethods.get(0).isMethodDefinition())
+			A_Type guaranteedReturnType;
+			if (possibleDefinitions.size() == 1
+				&& possibleDefinitions.get(0).isMethodDefinition())
 			{
 				// If there was only one possible definition to invoke, store it
 				// as a constant instead of looking it up at runtime.
-				moveConstant(possibleMethods.get(0).bodyBlock(), function);
+				final A_Function function =
+					possibleDefinitions.get(0).bodyBlock();
+				moveConstant(function, functionReg);
+				guaranteedReturnType = function.kind().returnType();
 			}
 			else
 			{
@@ -901,8 +917,16 @@ public class L2Translator
 					L2_LOOKUP_BY_VALUES.instance,
 					new L2SelectorOperand(bundle),
 					new L2ReadVectorOperand(createVector(args)),
-					new L2WritePointerOperand(function));
+					new L2WritePointerOperand(functionReg));
+				guaranteedReturnType = BottomTypeDescriptor.bottom();
+				for (final A_Definition possibleDefinition : possibleDefinitions)
+				{
+					guaranteedReturnType = guaranteedReturnType.typeUnion(
+						possibleDefinition.bodySignature().returnType());
+				}
 			}
+			final boolean canSkip =
+				guaranteedReturnType.isSubtypeOf(expectedType);
 
 			// Now invoke what was looked up.
 			if (primFunction != null)
@@ -911,17 +935,19 @@ public class L2Translator
 				addInstruction(
 					L2_INVOKE_AFTER_FAILED_PRIMITIVE.instance,
 					new L2ReadPointerOperand(tempCallerRegister),
-					new L2ReadPointerOperand(function),
+					new L2ReadPointerOperand(functionReg),
 					new L2ReadVectorOperand(createVector(args)),
-					new L2ReadPointerOperand(failureObjectReg));
+					new L2ReadPointerOperand(failureObjectReg),
+					new L2ImmediateOperand(canSkip ? 1 : 1)); //TODO MvG Performance fakery should be : 0
 			}
 			else
 			{
 				addInstruction(
 					L2_INVOKE.instance,
 					new L2ReadPointerOperand(tempCallerRegister),
-					new L2ReadPointerOperand(function),
-					new L2ReadVectorOperand(createVector(args)));
+					new L2ReadPointerOperand(functionReg),
+					new L2ReadVectorOperand(createVector(args)),
+					new L2ImmediateOperand(canSkip ? 1 : 1)); //TODO MvG Performance fakery should be : 0
 			}
 			// The method being invoked will run until it returns, and the next
 			// instruction will be here (if the chunk isn't invalidated in the
@@ -939,6 +965,7 @@ public class L2Translator
 				new L2WriteVectorOperand(createVector(postSlots)),
 				new L2WritePointerOperand(fixed(CALLER)),
 				new L2WritePointerOperand(fixed(FUNCTION)),
+				new L2WriteIntOperand(skipReturnCheckRegister),
 				new L2ConstantOperand(TupleDescriptor.fromList(postSlotTypes)),
 				new L2ConstantOperand(postSlotConstants),
 				new L2ConstantOperand(nullPostSlots),
@@ -1091,10 +1118,13 @@ public class L2Translator
 				{
 					argValues.add(registerSet.constantAt(argReg));
 				}
+				// The skipReturnCheck is irrelevant if the primitive can be
+				// folded.
 				final Result success = interpreter().attemptPrimitive(
 					primitiveNumber,
 					primitiveFunction,
-					argValues);
+					argValues,
+					false);
 				if (success == SUCCESS)
 				{
 					final AvailObject value = interpreter().latestResult();
@@ -1105,6 +1135,7 @@ public class L2Translator
 						canFailPrimitive.value = false;
 						return value;
 					}
+					// Fall through, since folded value is too weak.
 				}
 				assert success == SUCCESS || success == FAILURE;
 			}
@@ -1209,6 +1240,7 @@ public class L2Translator
 				new L2ReadPointerOperand(fixed(FUNCTION)),
 				new L2ImmediateOperand(pc),
 				new L2ImmediateOperand(stackp),
+				new L2ReadIntOperand(skipReturnCheckRegister),
 				new L2ReadVectorOperand(createVector(slots)),
 				new L2PcOperand(postInterruptLabel),
 				new L2WritePointerOperand(reifiedRegister));
@@ -1249,6 +1281,7 @@ public class L2Translator
 				new L2WriteVectorOperand(createVector(slots)),
 				new L2WritePointerOperand(fixed(CALLER)),
 				new L2WritePointerOperand(fixed(FUNCTION)),
+				new L2WriteIntOperand(skipReturnCheckRegister),
 				new L2ConstantOperand(TupleDescriptor.fromList(typesList)),
 				new L2ConstantOperand(constants),
 				new L2ConstantOperand(nullSlots),
@@ -1367,6 +1400,7 @@ public class L2Translator
 					new L2WriteVectorOperand(createVector(slots)),
 					new L2WritePointerOperand(fixed(CALLER)),
 					new L2WritePointerOperand(fixed(FUNCTION)),
+					new L2WriteIntOperand(skipReturnCheckRegister),
 					new L2ConstantOperand(TupleDescriptor.fromList(typesList)),
 					new L2ConstantOperand(MapDescriptor.empty()),
 					new L2ConstantOperand(nullSlots),
@@ -1679,6 +1713,7 @@ public class L2Translator
 				new L2ReadPointerOperand(fixed(FUNCTION)),
 				new L2ImmediateOperand(1),
 				new L2ImmediateOperand(code.maxStackDepth() + 1),
+				new L2ReadIntOperand(skipReturnCheckRegister),
 				new L2ReadVectorOperand(
 					createVector(vectorWithOnlyArgsPreserved)),
 				new L2PcOperand(restartLabel),
@@ -1719,29 +1754,13 @@ public class L2Translator
 			addInstruction(
 				L2_RETURN.instance,
 				new L2ReadPointerOperand(fixed(CALLER)),
-				new L2ReadPointerOperand(stackRegister(stackp)));
+				new L2ReadPointerOperand(stackRegister(stackp)),
+				new L2ReadIntOperand(skipReturnCheckRegister));
 			assert stackp == code.maxStackDepth();
 			stackp = Integer.MIN_VALUE;
 		}
 	}
 
-
-	/**
-	 * Keep track of the total number of generated L2 instructions.
-	 */
-	public static long generatedInstructionCount = 0;
-
-	/**
-	 * Keep track of how many L2 instructions survived dead code elimination and
-	 * redundant move elimination.
-	 */
-	public static long keptInstructionCount = 0;
-
-	/**
-	 * Keep track of how many L2 instructions were removed as part of dead code
-	 * elimination and redundant move elimination.
-	 */
-	public static long removedInstructionCount = 0;
 
 	/**
 	 * Optimize the stream of instructions.
@@ -1769,10 +1788,6 @@ public class L2Translator
 			}
 			System.out.println();
 		}
-		final int survived = instructions.size();
-		generatedInstructionCount += originals.size();
-		keptInstructionCount += survived;
-		removedInstructionCount += originals.size() - survived;
 	}
 
 	/**
@@ -2259,10 +2274,20 @@ public class L2Translator
 
 		};
 
+		final List<L2Instruction> executableInstructions = new ArrayList<>();
+
+		// Note: Number all instructions, but by their index in the
+		// executableInstructions list.  Non-emitted instructions get the same
+		// index as their successor.
 		int offset = 0;
 		for (final L2Instruction instruction : instructions)
 		{
-			instruction.setOffset(offset++);
+			instruction.setOffset(offset);
+			if (instruction.operation.shouldEmit())
+			{
+				executableInstructions.add(instruction);
+				offset++;
+			}
 			for (final L2Operand operand : instruction.operands)
 			{
 				operand.dispatchOperand(dispatcher);
@@ -2275,6 +2300,7 @@ public class L2Translator
 			intRegMaxIndex.value + 1,
 			floatRegMaxIndex.value + 1,
 			instructions,
+			executableInstructions,
 			contingentMethods);
 	}
 

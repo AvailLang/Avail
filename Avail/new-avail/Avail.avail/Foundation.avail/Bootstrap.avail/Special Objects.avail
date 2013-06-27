@@ -112,6 +112,7 @@ Names
 	/* 136 */ "nonempty set of atom",
 	/* 135 */ "nonempty set of string",
 	/* 133 */ "nonempty string",
+	/* 137 */ "nonempty tuple",
 	/* 118 */ "nonnegative extended integer",
 	/*  31 */ "nontype",
 	/*  81 */ "null",
@@ -172,7 +173,10 @@ Names
 	/* 103 */ "unsigned short",
 	/*   7 */ "variable",
 	/*   8 */ "variable meta",
+<<<<<<< HEAD
 	/* 137 */ "variable of tuple",
+=======
+>>>>>>> branch 'master' of ssh://availlang_src@availlang.org:22/home/availlang_src/Avail
 	/*  56 */ "variable reference phrase",
 	/*  60 */ "variable use phrase",
 	/*  36 */ "whole number",
@@ -320,8 +324,12 @@ _nonempty_string                        ::= special object 133;
 _set_of_exception                       ::= special object 134;
 _nonempty_set_of_string                 ::= special object 135;
 _nonempty_set_of_atom                   ::= special object 136;
+<<<<<<< HEAD
 _variable_of_tuple                      ::= special object 137;
 _tuple_of_integer                       ::= special object 138;
+=======
+_nonempty_tuple                         ::= special object 137;
+>>>>>>> branch 'master' of ssh://availlang_src@availlang.org:22/home/availlang_src/Avail
 _two_or_more_tuple                      ::= special object 139;
 
 /**
@@ -1125,14 +1133,18 @@ Primitive "nonempty set of atom" is
 	_nonempty_set_of_atom
 ];
 
-Primitive "variable of tuple" is
+Primitive "nonempty tuple" is
 [
+<<<<<<< HEAD
 	_variable_of_tuple
 ];
 
 Primitive "tuple of integer" is
 [
 	_tuple_of_integer
+=======
+	_nonempty_tuple
+>>>>>>> branch 'master' of ssh://availlang_src@availlang.org:22/home/availlang_src/Avail
 ];
 
 Primitive "two or more tuple" is

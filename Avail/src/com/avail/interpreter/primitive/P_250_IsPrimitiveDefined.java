@@ -52,7 +52,8 @@ extends Primitive
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,
-		final Interpreter interpreter)
+		final Interpreter interpreter,
+		final boolean skipReturnCheck)
 	{
 		assert args.size() == 1;
 		final A_Number ordinal = args.get(0);

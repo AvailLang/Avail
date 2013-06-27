@@ -1224,6 +1224,7 @@ public enum SerializerOperation
 					caller,
 					pcInteger.extractInt(),
 					stackpInteger.extractInt(),
+					false,
 					L2Chunk.unoptimizedChunk(),
 					L2Chunk.offsetToContinueUnoptimizedChunk());
 			for (int i = 1; i <= frameSlotCount; i++)

@@ -41,6 +41,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import com.avail.*;
 import com.avail.annotations.*;
 import com.avail.interpreter.*;
+import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.utility.*;
 
 /**
@@ -49,10 +50,22 @@ import com.avail.utility.*;
  * repeatedly replaced with continuations representing successively more
  * advanced states, thereby effecting execution.
  *
- * <p>At the moment (2011.02.03), only one fiber can be executing at a time,
- * but the ultimate goal is to support very many Avail processes running on top
- * of a (smaller) {@link ThreadPoolExecutor}, each thread of which will be
- * executing an Avail fiber.</p>
+ * <p>Fibers are effectively scheduled via the {@link AvailRuntime}'s
+ * {@linkplain AvailRuntime#execute(AvailTask) executor}, which is a {@link
+ * ThreadPoolExecutor}. A fiber scheduled in this way runs until it acknowledges
+ * being interrupted for some reason or it completes its calculation.  If it is
+ * interrupted, the {@link L2Chunk} machinery ensures the fiber first reaches a
+ * state representing a consistent level one {@linkplain ContinuationDescriptor
+ * continuation} before giving up its time-slice.</p>
+ *
+ * <p>This fiber pooling model allows a huge number of fibers to efficiently
+ * and automatically take advantage the available CPUs and processing cores,
+ * leading to a qualitatively different concurrency model than ones which are
+ * mapped directly to operating system threads, such as Java, or extreme
+ * lightweight models that cannot support simultaneous execution, such as
+ * Smalltalk (e.g., VisualWorks).  Clearly, the latter does not scale to a
+ * modern (2013) computing environment, and the former leaves one at the mercy
+ * of the severe limitations and costs imposed by operating systems.</p>
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */

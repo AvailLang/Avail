@@ -55,7 +55,8 @@ public class P_007_CreateIntegerRange extends Primitive
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,
-		final Interpreter interpreter)
+		final Interpreter interpreter,
+		final boolean skipReturnCheck)
 	{
 		assert args.size() == 4;
 		final A_Number min = args.get(0);

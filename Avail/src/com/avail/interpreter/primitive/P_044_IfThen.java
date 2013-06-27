@@ -54,7 +54,8 @@ public class P_044_IfThen extends Primitive
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,
-		final Interpreter interpreter)
+		final Interpreter interpreter,
+		final boolean skipReturnCheck)
 	{
 		assert args.size() == 2;
 		final A_Atom aBoolean = args.get(0);
@@ -62,9 +63,11 @@ public class P_044_IfThen extends Primitive
 		assert trueBlock.code().numArgs() == 0;
 		if (aBoolean.extractBoolean())
 		{
+			// It's ⊤-valued, so there's no need to check the result's type.
 			return interpreter.invokeFunction (
 				trueBlock,
-				Collections.<AvailObject>emptyList());
+				Collections.<AvailObject>emptyList(),
+				true);
 		}
 		return interpreter.primitiveSuccess(NilDescriptor.nil());
 	}

@@ -4430,6 +4430,12 @@ extends AbstractDescriptor
 	}
 
 	@Override
+	boolean o_SkipReturnFlag (final AvailObject object)
+	{
+		return o_Traversed(object).skipReturnFlag();
+	}
+	
+	@Override
 	boolean o_IsIntegerIntervalTuple (final AvailObject object)
 	{
 		return o_Traversed(object).isIntegerIntervalTuple();

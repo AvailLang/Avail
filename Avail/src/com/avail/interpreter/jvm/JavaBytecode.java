@@ -1063,7 +1063,7 @@ enum JavaBytecode
 	 *    href="http://docs.oracle.com/javase/specs/jvms/se7/html/jvms-6.html#jvms-6.5.fconst_f">
 	 *    fconst_0</a>
 	 */
-	fconst_0 (0x11,
+	fconst_0 (0x0b,
 		O(),
 		O(FLOAT_0)),
 
@@ -1074,7 +1074,7 @@ enum JavaBytecode
 	 *    href="http://docs.oracle.com/javase/specs/jvms/se7/html/jvms-6.html#jvms-6.5.fconst_f">
 	 *    fconst_1</a>
 	 */
-	fconst_1 (0x12,
+	fconst_1 (0x0c,
 		O(),
 		O(FLOAT_1)),
 
@@ -1085,7 +1085,7 @@ enum JavaBytecode
 	 *    href="http://docs.oracle.com/javase/specs/jvms/se7/html/jvms-6.html#jvms-6.5.fconst_f">
 	 *    fconst_2</a>
 	 */
-	fconst_2 (0x13,
+	fconst_2 (0x0d,
 		O(),
 		O(FLOAT_2)),
 

@@ -718,7 +718,8 @@ public final class Interpreter
 									Interpreter.resumeFromSuccessfulPrimitive(
 										AvailRuntime.current(),
 										joiner,
-										NilDescriptor.nil());
+										NilDescriptor.nil(),
+										true);
 								}
 								else
 								{
@@ -767,33 +768,48 @@ public final class Interpreter
 	 * Interpreter#primitiveSuccess(A_BasicObject)} and return {@link
 	 * Result#SUCCESS}.
 	 *
-	 * @param primitiveNumber The number of the primitive to invoke.
-	 * @param function The function whose primitive is being attempted.
-	 * @param args The list of arguments to supply to the primitive.
+	 * @param primitiveNumber
+	 *            The number of the primitive to invoke.
+	 * @param function
+	 *            The function whose primitive is being attempted.
+	 * @param args
+	 *            The list of arguments to supply to the primitive.
+	 * @param skipReturnCheck
+	 *            Whether to skip checking the return result if the primitive
+	 *            attempt succeeds.  It should only skip the check if the VM
+	 *            guarantees the type produced at the current call site will
+	 *            satisfy the expected type at the call site.  To simplify the
+	 *            design, the primitive {@linkplain FunctionDescriptor
+	 *            function}'s Avail backup code, if any, must also satisfy the
+	 *            call site.  This is usually the case anyhow, because most
+	 *            primitive backup Avail code produces type ⊥.
 	 * @return The resulting status of the primitive attempt.
 	 */
 	public final Result attemptPrimitive (
 		final int primitiveNumber,
 		final @Nullable A_Function function,
-		final List<AvailObject> args)
+		final List<AvailObject> args,
+		final boolean skipReturnCheck)
 	{
 		final Primitive primitive =
 			Primitive.byPrimitiveNumberOrFail(primitiveNumber);
-		log(
-			Level.FINER,
-			"attempt {0}",
-			primitive.name());
-
+		if (debugL1 || debugL2)
+		{
+			log(
+				Level.FINER,
+				"attempt {0}",
+				primitive.name());
+		}
 		latestResult = null;
 		primitiveFunctionBeingAttempted = function;
 		assert current() == this;
 		final long timeBefore = System.nanoTime();
-		final Result success = primitive.attempt(args, this);
+		final Result success = primitive.attempt(args, this, skipReturnCheck);
 		final long timeAfter = System.nanoTime();
 		primitive.addNanosecondsRunning(timeAfter - timeBefore);
 		assert success != FAILURE || !primitive.hasFlag(Flag.CannotFail);
 		primitiveFunctionBeingAttempted = null;
-		if (logger.isLoggable(Level.FINER))
+		if ((debugL1 || debugL2) && logger.isLoggable(Level.FINER))
 		{
 			AvailErrorCode errorCode = null;
 			if (success == FAILURE)
@@ -879,7 +895,7 @@ public final class Interpreter
 		final int newOffset)
 	{
 		this.chunk = chunkToResume;
-		this.chunkInstructions = chunkToResume.instructions;
+		this.chunkInstructions = chunkToResume.executableInstructions;
 		makeRoomForChunkRegisters(chunkToResume, code);
 		this.offset = newOffset;
 		if (debugL2)
@@ -894,35 +910,6 @@ public final class Interpreter
 	/** The number of fixed object registers in Level Two. */
 	private static final int numberOfFixedRegisters =
 		FixedRegister.values().length;
-
-	/**
-	 * Answer the subscript of the integer register reserved for holding the
-	 * current (virtualized) continuation's {@linkplain AvailObject#pc() pc}
-	 * (program counter).
-	 *
-	 * @return The subscript to use with {@link Interpreter#integerAt(int)}.
-	 */
-	public final static int pcRegister ()
-	{
-		// Reserved.
-		return 1;
-	}
-
-	/**
-	 * Answer the subscript of the integer register reserved for holding the
-	 * current (virtualized) continuation's {@linkplain AvailObject#stackp()
-	 * stackp} (stack pointer). While in this register, the value refers to the
-	 * exact pointer register number rather than the value that would be stored
-	 * in a continuation's stackp slot, so adjustments must be made during
-	 * reification and explosion of continuations.
-	 *
-	 * @return The subscript to use with {@link Interpreter#integerAt(int)}.
-	 */
-	public final static int stackpRegister ()
-	{
-		// Reserved.
-		return 2;
-	}
 
 	/**
 	 * Answer the subscript of the register holding the argument or local with
@@ -953,38 +940,6 @@ public final class Interpreter
 	public AvailObject currentContinuation ()
 	{
 		return pointerAt(CALLER);
-	}
-
-	/**
-	 * Answer an integer extracted at the current program counter. The program
-	 * counter will be adjusted to skip over the integer.
-	 *
-	 * @return An integer extracted from the instruction stream.
-	 */
-	public int getInteger ()
-	{
-		final A_Function function = pointerAt(FUNCTION);
-		final A_RawFunction code = function.code();
-		final A_Tuple nybbles = code.nybbles();
-		int pc = integerAt(pcRegister());
-		final byte firstNybble = nybbles.extractNybbleFromTupleAt(pc);
-		pc++;
-		int value = 0;
-		final byte[] counts =
-		{
-			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 2, 4, 8
-		};
-		for (int count = counts[firstNybble]; count > 0; count--, pc++)
-		{
-			value = (value << 4) + nybbles.extractNybbleFromTupleAt(pc);
-		}
-		final byte[] offsets =
-		{
-			0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 26, 42, 58, 0, 0
-		};
-		value += offsets[firstNybble];
-		integerAtPut(pcRegister(), pc);
-		return value;
 	}
 
 	/**
@@ -1228,34 +1183,39 @@ public final class Interpreter
 	 *        {@linkplain NilDescriptor#nil() nil}.
 	 * @param value
 	 *        The {@link AvailObject} to return.
+	 * @param skipReturnCheck
+	 *        Whether to skip checking that the return value is of the required
+	 *        type.
 	 */
 	public void returnToCaller (
 		final A_Continuation caller,
-		final A_BasicObject value)
+		final A_BasicObject value,
+		final boolean skipReturnCheck)
 	{
 		// Wipe out the existing registers for safety. This is technically
 		// optional, but not doing so may (1) hide bugs, and (2) leak
 		// references to values in registers.
-//		wipeObjectRegisters();  TODO[MvG] TEMP DEBUG - restore this one
+		wipeObjectRegisters();
 		if (caller.equalsNil())
 		{
-			wipeObjectRegisters(); // TODO[MvG] TEMP DEBUG
 			terminateFiber(value);
 			return;
 		}
 		// Return into the caller.
 		final int stackp = caller.stackp();
-		final A_Type expectedType = caller.stackAt(stackp);
-		if (!value.isInstanceOf(expectedType))
+		if (!skipReturnCheck)
 		{
-			// TODO: [MvG] Remove after debugging.
-			value.isInstanceOf(expectedType);
-			error(String.format(
-				"Return value (%s) does not agree with expected type (%s)",
-				value,
-				expectedType));
+			final A_Type expectedType = caller.stackAt(stackp);
+			if (!value.isInstanceOf(expectedType))
+			{
+				// TODO: [MvG] Handy for recomputing in the debugger.
+				value.isInstanceOf(expectedType);
+				error(String.format(
+					"Return value (%s) does not agree with expected type (%s)",
+					value,
+					expectedType));
+			}
 		}
-		wipeObjectRegisters();  // TODO[MvG] TEMP DEBUG
 		final A_Continuation updatedCaller = caller.ensureMutable();
 		updatedCaller.stackAtPut(stackp, value);
 		prepareToResumeContinuation(updatedCaller);
@@ -1314,7 +1274,8 @@ public final class Interpreter
 		invokeWithoutPrimitiveFunctionArguments(
 			continuationToRestart.function(),
 			argsBuffer,
-			continuationToRestart.caller());
+			continuationToRestart.caller(),
+			continuationToRestart.skipReturnFlag());
 	}
 
 	/**
@@ -1402,7 +1363,8 @@ public final class Interpreter
 							// Run the handler.
 							invokePossiblePrimitiveWithReifiedCaller(
 								handler,
-								continuation);
+								continuation,
+								false);
 							// Catching an exception *always* changes the
 							// continuation.
 							return CONTINUATION_CHANGED;
@@ -1469,13 +1431,17 @@ public final class Interpreter
 	 *        The function to begin executing.
 	 * @param args
 	 *        The arguments to pass to the function.
+	 * @param skipReturnCheck
+	 *        Whether the return type check can be safely skipped upon eventual
+	 *        completion of the function.
 	 * @return The {@linkplain Result success state}. If the function was not a
 	 *         primitive, always indicate that the current continuation was
 	 *         replaced.
 	 */
 	public Result invokeFunction (
 		final A_Function aFunction,
-		final List<? extends A_BasicObject> args)
+		final List<? extends A_BasicObject> args,
+		final boolean skipReturnCheck)
 	{
 		final A_RawFunction code = aFunction.code();
 		assert code.numArgs() == args.size();
@@ -1490,7 +1456,7 @@ public final class Interpreter
 				strongArgs.add((AvailObject)arg);
 			}
 			final Result result = attemptPrimitive(
-				primNum, aFunction, strongArgs);
+				primNum, aFunction, strongArgs, skipReturnCheck);
 			switch (result)
 			{
 				case FAILURE:
@@ -1510,7 +1476,8 @@ public final class Interpreter
 			}
 		}
 		// It wasn't a primitive.
-		invokeWithoutPrimitiveFunctionArguments(aFunction, args, caller);
+		invokeWithoutPrimitiveFunctionArguments(
+			aFunction, args, caller, skipReturnCheck);
 		return CONTINUATION_CHANGED;
 	}
 
@@ -1529,14 +1496,21 @@ public final class Interpreter
 	 * specialization of {@link Interpreter}, but not into the primitive
 	 * failure variable (since that local has not been created yet).</p>
 	 *
-	 * @param aFunction The function to invoke.
-	 * @param args The arguments to pass to the function.
-	 * @param caller The calling continuation.
+	 * @param aFunction
+	 *            The function to invoke.
+	 * @param args
+	 *            The arguments to pass to the function.
+	 * @param caller
+	 *            The calling continuation.
+	 * @param skipReturnCheck
+	 *            Whether this invocation can skip checking its return result
+	 *            upon eventual completion.
 	 */
 	public void invokeWithoutPrimitiveFunctionArguments (
 		final A_Function aFunction,
 		final List<? extends A_BasicObject> args,
-		final A_BasicObject caller)
+		final A_BasicObject caller,
+		final boolean skipReturnCheck)
 	{
 		final A_RawFunction code = aFunction.code();
 		assert code.primitiveNumber() == 0
@@ -1565,6 +1539,12 @@ public final class Interpreter
 			pointerAtPut(dest, args.get(i - 1));
 			dest++;
 		}
+		// Store skipReturnCheck into its *architectural* register.  It will be
+		// retrieved from there by the L2 code, whether it's the default
+		// unoptimized chunk or an optimized chunk.
+		integerAtPut(
+			L1InstructionStepper.skipReturnCheckRegister(),
+			skipReturnCheck ? 1 : 0);
 	}
 
 	/**
@@ -1577,10 +1557,14 @@ public final class Interpreter
 	 *        The function to invoke.
 	 * @param continuation
 	 *        The calling continuation.
+	 * @param skipReturnCheck
+	 *        Whether the function being invoked can safely skip checking its
+	 *        return type when it completes.
 	 */
 	public void invokePossiblePrimitiveWithReifiedCaller (
 		final A_Function function,
-		final A_Continuation continuation)
+		final A_Continuation continuation,
+		final boolean skipReturnCheck)
 	{
 		final int primNum = function.code().primitiveNumber();
 		pointerAtPut(CALLER, continuation);
@@ -1589,7 +1573,8 @@ public final class Interpreter
 			final Result primResult = attemptPrimitive(
 				primNum,
 				function,
-				argsBuffer);
+				argsBuffer,
+				skipReturnCheck);
 			switch (primResult)
 			{
 				case CONTINUATION_CHANGED:
@@ -1602,18 +1587,21 @@ public final class Interpreter
 					final A_Continuation updatedCaller =
 						continuation.ensureMutable();
 					final int stackp = updatedCaller.stackp();
-					final A_Type expectedType =
-						updatedCaller.stackAt(stackp);
 					final AvailObject result = latestResult();
-					if (!result.isInstanceOf(expectedType))
+					if (!skipReturnCheck)
 					{
-						// TODO: [MvG] Remove after debugging.
-						result.isInstanceOf(expectedType);
-						error(String.format(
-							"Return value (%s) does not agree with "
-							+ "expected type (%s)",
-							result,
-							expectedType));
+						final A_Type expectedType =
+							updatedCaller.stackAt(stackp);
+						if (!result.isInstanceOf(expectedType))
+						{
+							// TODO: [MvG] Remove after debugging.
+							result.isInstanceOf(expectedType);
+							error(String.format(
+								"Return value (%s) does not agree with "
+								+ "expected type (%s)",
+								result,
+								expectedType));
+						}
 					}
 					updatedCaller.stackAtPut(stackp, result);
 					pointerAtPut(CALLER, updatedCaller);
@@ -1628,7 +1616,7 @@ public final class Interpreter
 			}
 		}
 		invokeWithoutPrimitiveFunctionArguments(
-			function, argsBuffer, continuation);
+			function, argsBuffer, continuation, skipReturnCheck);
 	}
 
 	/**
@@ -1783,8 +1771,10 @@ public final class Interpreter
 					interpreter.exitNow = false;
 					interpreter.pointerAtPut(CALLER, NilDescriptor.nil());
 					interpreter.clearPointerAt(FUNCTION.ordinal());
+					// Always check the type of the outermost continuation's
+					// return value.
 					final Result result =
-						interpreter.invokeFunction(function, arguments);
+						interpreter.invokeFunction(function, arguments, false);
 					if (result == SUCCESS)
 					{
 						interpreter.terminateFiber(interpreter.latestResult());
@@ -1845,11 +1835,16 @@ public final class Interpreter
 	 *        The fiber to run.
 	 * @param result
 	 *        The result of the primitive.
+	 * @param skipReturnCheck
+	 *        Whether successful completion of the primitive will always produce
+	 *        something of the expected type, allowing us to elide the check of
+	 *        the returned value's type.
 	 */
 	public static void resumeFromSuccessfulPrimitive (
 		final AvailRuntime runtime,
 		final A_Fiber aFiber,
-		final A_BasicObject result)
+		final A_BasicObject result,
+		final boolean skipReturnCheck)
 	{
 		assert !aFiber.continuation().equalsNil();
 		assert aFiber.executionState() == SUSPENDED;
@@ -1868,17 +1863,20 @@ public final class Interpreter
 					final A_Continuation updatedCaller =
 						aFiber.continuation().ensureMutable();
 					final int stackp = updatedCaller.stackp();
-					final A_Type expectedType =
-						updatedCaller.stackAt(stackp);
-					if (!result.isInstanceOf(expectedType))
+					if (!skipReturnCheck)
 					{
-						// TODO: [MvG] Remove after debugging.
-						result.isInstanceOf(expectedType);
-						error(String.format(
-							"Return value (%s) does not agree with "
-							+ "expected type (%s)",
-							result,
-							expectedType));
+						final A_Type expectedType =
+							updatedCaller.stackAt(stackp);
+						if (!result.isInstanceOf(expectedType))
+						{
+							// TODO: [MvG] Remove after debugging.
+							result.isInstanceOf(expectedType);
+							error(String.format(
+								"Return value (%s) does not agree with "
+								+ "expected type (%s)",
+								result,
+								expectedType));
+						}
 					}
 					updatedCaller.stackAtPut(stackp, result);
 					interpreter.prepareToResumeContinuation(
@@ -1899,19 +1897,25 @@ public final class Interpreter
 	 *        An {@linkplain AvailRuntime Avail runtime}.
 	 * @param aFiber
 	 *        The fiber to run.
-	 * @param result
-	 *        The result of the primitive.
+	 * @param failureValue
+	 *        The failure value produced by the failed primitive attempt.
 	 * @param failureFunction
 	 *        The primitive failure {@linkplain FunctionDescriptor function}.
 	 * @param args
 	 *        The arguments to the primitive.
+	 * @param skipReturnCheck
+	 *        Whether this failed primitive's backup Avail code will always
+	 *        produce something of the expected type, allowing us to elide the
+	 *        return check when the non-primitive part of this function
+	 *        eventually completes.
 	 */
 	public static void resumeFromFailedPrimitive (
 		final AvailRuntime runtime,
 		final A_Fiber aFiber,
-		final A_BasicObject result,
+		final A_BasicObject failureValue,
 		final A_Function failureFunction,
-		final List<AvailObject> args)
+		final List<AvailObject> args,
+		final boolean skipReturnCheck)
 	{
 		assert !aFiber.continuation().equalsNil();
 		assert aFiber.executionState() == SUSPENDED;
@@ -1926,11 +1930,12 @@ public final class Interpreter
 					assert interpreter != null;
 					interpreter.pointerAtPut(
 						PRIMITIVE_FAILURE,
-						result);
+						failureValue);
 					interpreter.invokeWithoutPrimitiveFunctionArguments(
 						failureFunction,
 						args,
-						aFiber.continuation());
+						aFiber.continuation(),
+						skipReturnCheck);
 					aFiber.continuation(NilDescriptor.nil());
 					interpreter.exitNow = false;
 				}
@@ -2080,13 +2085,25 @@ public final class Interpreter
 	 */
 	private List<String> builtinDumpStack ()
 	{
-		final List<A_Function> functions = new ArrayList<>(20);
-		final A_Function currentFunction =
+		final List<A_Continuation> frames = new ArrayList<>(20);
+		final AvailObject currentFunction =
 			pointers[FixedRegister.FUNCTION.ordinal()];
 		if (currentFunction != null
 			&& !currentFunction.equalsNil())
 		{
-			functions.add(currentFunction);
+			final A_Continuation syntheticFrame =
+				ContinuationDescriptor.createExceptFrame (
+					currentFunction,
+					NilDescriptor.nil(),
+					0,
+					0,
+					integerAt(
+						// Best guess, but the L2Translator is free to put this
+						// flag anywhere.
+						L1InstructionStepper.skipReturnCheckRegister()) != 0,
+					chunk(),
+					offset);
+			frames.add(syntheticFrame);
 		}
 		A_Continuation c = currentContinuation();
 		// Sometimes the CALLER register contains the current continuation and
@@ -2097,14 +2114,15 @@ public final class Interpreter
 		}
 		while (!c.equalsNil())
 		{
-			functions.add(c.function());
+			frames.add(c);
 			c = c.caller();
 		}
-		final List<String> strings = new ArrayList<>(functions.size());
-		int line = functions.size();
+		final List<String> strings = new ArrayList<>(frames.size());
+		int line = frames.size();
 		final StringBuilder signatureBuilder = new StringBuilder(1000);
-		for (final A_Function function : functions)
+		for (final A_Continuation frame : frames)
 		{
+			final A_Function function = frame.function();
 			final A_RawFunction code = function.code();
 			final A_Type functionType = code.functionType();
 			final A_Type paramsType = functionType.argsTupleType();
@@ -2120,8 +2138,10 @@ public final class Interpreter
 				signatureBuilder.append(paramsType.typeAtIndex(i));
 			}
 			final String entry = String.format(
-				"#%d: %s [%s] (%s:%d)",
+				"#%d (^%s)[ch#%d]: %s [%s] (%s:%d)",
 				line--,
+				frame.skipReturnFlag() ? "skip" : "check",
+				code.startingChunk().index(),
 				code.methodName().asNativeString(),
 				signatureBuilder.toString(),
 				code.module().equalsNil()

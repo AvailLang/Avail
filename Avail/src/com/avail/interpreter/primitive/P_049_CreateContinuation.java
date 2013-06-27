@@ -53,7 +53,8 @@ public class P_049_CreateContinuation extends Primitive
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,
-		final Interpreter interpreter)
+		final Interpreter interpreter,
+		final boolean skipReturnCheck)
 	{
 		assert args.size() == 5;
 		final A_Function function = args.get(0);
@@ -66,6 +67,7 @@ public class P_049_CreateContinuation extends Primitive
 			callerHolder.value(),
 			pc.extractInt(),
 			stackp.extractInt(),
+			false,
 			L2Chunk.unoptimizedChunk(),
 			L2Chunk.offsetToContinueUnoptimizedChunk());
 		for (int i = 1, end = stack.tupleSize(); i <= end; i++)

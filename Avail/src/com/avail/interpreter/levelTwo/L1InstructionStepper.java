@@ -38,6 +38,7 @@ import static com.avail.interpreter.levelTwo.register.FixedRegister.*;
 import java.util.*;
 import java.util.logging.Level;
 import com.avail.descriptor.*;
+import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelOne.*;
 import com.avail.interpreter.levelTwo.operation.L2_INTERPRET_ONE_L1_INSTRUCTION;
@@ -75,6 +76,53 @@ implements L1OperationDispatcher
 	{
 		this.interpreter = interpreter;
 		argsBuffer = interpreter.argsBuffer;
+	}
+
+	/**
+	 * Answer the subscript of the integer register reserved for holding the
+	 * current (virtualized) continuation's {@linkplain AvailObject#pc() pc}
+	 * (program counter).
+	 *
+	 * @return The subscript to use with {@link Interpreter#integerAt(int)}.
+	 */
+	public final static int pcRegister ()
+	{
+		// Reserved.
+		return 1;
+	}
+
+	/**
+	 * Answer the subscript of the integer register reserved for holding the
+	 * current (virtualized) continuation's {@linkplain AvailObject#stackp()
+	 * stackp} (stack pointer). While in this register, the value refers to the
+	 * exact pointer register number rather than the value that would be stored
+	 * in a continuation's stackp slot, so adjustments must be made during
+	 * reification and explosion of continuations.
+	 *
+	 * @return The subscript to use with {@link Interpreter#integerAt(int)}.
+	 */
+	public final static int stackpRegister ()
+	{
+		// Reserved.
+		return 2;
+	}
+
+	/**
+	 * Answer the subscript of the integer register reserved for holding the
+	 * flag (0=false, 1=true) indicating whether the current virtualized
+	 * continuation (that lives only in the registers) needs to check its return
+	 * result's type.  If this continuation becomes reified, this flag will be
+	 * placed in the {@link
+	 * ContinuationDescriptor#o_SkipReturnFlag(AvailObject)}, and extracted into
+	 * this register again when resuming the continuation.  Any continuation
+	 * constructed artificially will have this flag clear for safety.
+	 *
+	 * @return The subscript to use with {@link Interpreter#integerAt(int)}.
+	 */
+	public final static int skipReturnCheckRegister ()
+	{
+		// Reserved.
+		return 3;
 	}
 
 	/**
@@ -154,7 +202,28 @@ implements L1OperationDispatcher
 	 */
 	private int getInteger ()
 	{
-		return interpreter.getInteger();
+		final A_Function function = interpreter.pointerAt(FUNCTION);
+		final A_RawFunction code = function.code();
+		final A_Tuple nybbles = code.nybbles();
+		int pc = interpreter.integerAt(pcRegister());
+		final byte firstNybble = nybbles.extractNybbleFromTupleAt(pc);
+		pc++;
+		int value = 0;
+		final byte[] counts =
+		{
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 2, 4, 8
+		};
+		for (int count = counts[firstNybble]; count > 0; count--, pc++)
+		{
+			value = (value << 4) + nybbles.extractNybbleFromTupleAt(pc);
+		}
+		final byte[] offsets =
+		{
+			0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 26, 42, 58, 0, 0
+		};
+		value += offsets[firstNybble];
+		interpreter.integerAtPut(pcRegister(), pc);
+		return value;
 	}
 
 	/**
@@ -214,9 +283,10 @@ implements L1OperationDispatcher
 	 * In particular, the {@link L1InstructionStepper} treats the object
 	 * registers immediately following the fixed registers as holding the
 	 * exploded content of the current continuation.  The {@link
-	 * Interpreter#pcRegister()} and {@link Interpreter#stackpRegister()}
-	 * are also part of the state manipulated by the L1 stepper.
-	 *
+	 * #pcRegister()}, {@link #stackpRegister()}, and {@link
+	 * #skipReturnCheckRegister()} are also part of the state manipulated by the
+	 * L1 stepper.
+Í	 *
 	 * <p>
 	 * Write the resulting continuation into the {@linkplain
 	 * FixedRegister#CALLER caller register}.
@@ -234,6 +304,7 @@ implements L1OperationDispatcher
 				pointerAt(CALLER),
 				integerAt(pcRegister()),
 				integerAt(stackpRegister()) + 1 - argumentOrLocalRegister(1),
+				integerAt(skipReturnCheckRegister()) != 0,
 				chunk,
 				L2Chunk.offsetToContinueUnoptimizedChunk());
 		for (int i = code.numArgsAndLocalsAndStack(); i >= 1; i--)
@@ -351,7 +422,8 @@ implements L1OperationDispatcher
 		reifyContinuation();
 		interpreter.invokePossiblePrimitiveWithReifiedCaller(
 			matching.bodyBlock(),
-			pointerAt(CALLER));
+			pointerAt(CALLER),
+			expectedReturnType.equals(Types.TOP.o()));
 	}
 
 	@Override
@@ -585,6 +657,7 @@ implements L1OperationDispatcher
 		final A_Continuation newContinuation = ContinuationDescriptor.create(
 			function,
 			pointerAt(CALLER),
+			integerAt(skipReturnCheckRegister()) != 0,
 			L2Chunk.unoptimizedChunk(),
 			L2Chunk.offsetToContinueUnoptimizedChunk(),
 			args,
@@ -642,6 +715,7 @@ implements L1OperationDispatcher
 	{
 		final A_Continuation caller = pointerAt(CALLER);
 		final AvailObject value = pop();
-		interpreter.returnToCaller(caller, value);
+		final boolean skipCheck = integerAt(skipReturnCheckRegister()) != 0;
+		interpreter.returnToCaller(caller, value, skipCheck);
 	}
 }

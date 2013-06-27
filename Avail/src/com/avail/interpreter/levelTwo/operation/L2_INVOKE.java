@@ -62,7 +62,8 @@ public class L2_INVOKE extends L2Operation
 		new L2_INVOKE().init(
 			READ_POINTER.is("continuation"),
 			READ_POINTER.is("function"),
-			READ_VECTOR.is("arguments"));
+			READ_VECTOR.is("arguments"),
+			IMMEDIATE.is("skip return check"));
 
 	@Override
 	public void step (
@@ -76,6 +77,7 @@ public class L2_INVOKE extends L2Operation
 			instruction.readObjectRegisterAt(1);
 		final L2RegisterVector argumentsReg =
 			instruction.readVectorRegisterAt(2);
+		final boolean skipReturnCheck = instruction.immediateAt(3) != 0;
 
 		final A_Continuation caller = continuationReg.in(interpreter);
 		final A_Function function = functionReg.in(interpreter);
@@ -87,7 +89,8 @@ public class L2_INVOKE extends L2Operation
 		interpreter.clearPointerAt(FixedRegister.CALLER.ordinal());  // safety
 		interpreter.invokePossiblePrimitiveWithReifiedCaller(
 			function,
-			caller);
+			caller,
+			skipReturnCheck);
 	}
 
 	@Override

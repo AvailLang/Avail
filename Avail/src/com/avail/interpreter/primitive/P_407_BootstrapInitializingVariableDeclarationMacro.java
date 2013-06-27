@@ -59,7 +59,8 @@ public class P_407_BootstrapInitializingVariableDeclarationMacro extends Primiti
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,
-		final Interpreter interpreter)
+		final Interpreter interpreter,
+		final boolean skipReturnCheck)
 	{
 		assert args.size() == 3;
 		final A_Phrase variableNameLiteral = args.get(0);

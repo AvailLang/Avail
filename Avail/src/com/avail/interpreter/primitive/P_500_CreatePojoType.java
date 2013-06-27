@@ -55,7 +55,8 @@ public class P_500_CreatePojoType extends Primitive
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,
-		final Interpreter interpreter)
+		final Interpreter interpreter,
+		final boolean skipReturnCheck)
 	{
 		assert args.size() == 2;
 		final A_String className = args.get(0);

@@ -54,7 +54,8 @@ public class P_063_MapToObjectType extends Primitive
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,
-		final Interpreter interpreter)
+		final Interpreter interpreter,
+		final boolean skipReturnCheck)
 	{
 		assert args.size() == 1;
 		final AvailObject map = args.get(0);

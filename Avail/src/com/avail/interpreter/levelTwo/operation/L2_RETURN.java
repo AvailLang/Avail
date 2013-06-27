@@ -31,12 +31,13 @@
  */
 package com.avail.interpreter.levelTwo.operation;
 
-import static com.avail.interpreter.levelTwo.L2OperandType.READ_POINTER;
+import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import java.util.List;
 import com.avail.descriptor.A_Continuation;
 import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.*;
+import com.avail.interpreter.levelTwo.register.L2IntegerRegister;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.RegisterSet;
 
@@ -52,7 +53,8 @@ public class L2_RETURN extends L2Operation
 	public final static L2Operation instance =
 		new L2_RETURN().init(
 			READ_POINTER.is("continuation"),
-			READ_POINTER.is("return value"));
+			READ_POINTER.is("return value"),
+			READ_INT.is("skip check"));
 
 	@Override
 	public void step (
@@ -63,10 +65,12 @@ public class L2_RETURN extends L2Operation
 		final L2ObjectRegister continuationReg =
 			instruction.readObjectRegisterAt(0);
 		final L2ObjectRegister valueReg = instruction.readObjectRegisterAt(1);
+		final L2IntegerRegister skipCheckReg = instruction.readIntRegisterAt(2);
 
 		final A_Continuation continuation = continuationReg.in(interpreter);
 		final AvailObject value = valueReg.in(interpreter);
-		interpreter.returnToCaller(continuation, value);
+		final boolean skipCheck = skipCheckReg.in(interpreter) != 0;
+		interpreter.returnToCaller(continuation, value, skipCheck);
 	}
 
 	@Override

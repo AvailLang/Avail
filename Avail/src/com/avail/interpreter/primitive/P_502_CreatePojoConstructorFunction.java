@@ -62,7 +62,8 @@ public class P_502_CreatePojoConstructorFunction extends Primitive
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,
-		final Interpreter interpreter)
+		final Interpreter interpreter,
+		final boolean skipReturnCheck)
 	{
 		assert args.size() == 3;
 		final A_Type pojoType = args.get(0);

@@ -59,7 +59,8 @@ extends Primitive
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,
-		final Interpreter interpreter)
+		final Interpreter interpreter,
+		final boolean skipReturnCheck)
 	{
 		final A_String string = args.get(0);
 		final PrintStream err = AvailRuntime.current().standardErrorStream();

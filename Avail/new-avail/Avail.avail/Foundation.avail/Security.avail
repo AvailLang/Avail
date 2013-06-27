@@ -62,6 +62,7 @@ Body
  *        The signature at which the seal should be placed. Only the parameter
  *        types are actually used to place the seal, but the semantic
  *        restriction cross-checks the return type if possible.
+ * @returns "⊤"
  */
 Method "Seal method_at_" is
 [
@@ -78,6 +79,11 @@ Method "Seal method_at_" is
 	Seal method methodName at argTypes;
 ] : ⊤;
 
+/**
+ * @method "Seal method_at_"
+ * @restricts "string's type"
+ * @restricts "function's type's type"
+ */
 Semantic restriction "Seal method_at_" is
 [
 	nameType : string's type,
@@ -120,6 +126,7 @@ Semantic restriction "Seal method_at_" is
  * @param "methodName" "string"
  *        The method name. This name will be resolved to an atom in the context
  *        of the current module.
+ * @returns "⊤"
  */
 Public method "Completely seal method_" is
 [

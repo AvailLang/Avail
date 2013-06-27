@@ -114,7 +114,10 @@ extends JavaInstruction
 	@Override
 	final void writeImmediatesTo (final DataOutput out) throws IOException
 	{
-		local.writeTo(out);
+		if (local.index > 3)
+		{
+			local.writeTo(out);
+		}
 	}
 
 	@Override

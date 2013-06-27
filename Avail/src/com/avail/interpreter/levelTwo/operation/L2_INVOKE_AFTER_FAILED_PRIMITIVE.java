@@ -71,7 +71,8 @@ public class L2_INVOKE_AFTER_FAILED_PRIMITIVE extends L2Operation
 			READ_POINTER.is("continuation"),
 			READ_POINTER.is("function"),
 			READ_VECTOR.is("arguments"),
-			READ_POINTER.is("primitive failure value"));
+			READ_POINTER.is("primitive failure value"),
+			IMMEDIATE.is("skip return check"));
 
 	@Override
 	public void step (
@@ -87,6 +88,7 @@ public class L2_INVOKE_AFTER_FAILED_PRIMITIVE extends L2Operation
 			instruction.readVectorRegisterAt(2);
 		final L2ObjectRegister failureValueReg =
 			instruction.readObjectRegisterAt(3);
+		final boolean skipReturnCheck = instruction.immediateAt(4) != 0;
 
 		final A_Continuation caller = continuationReg.in(interpreter);
 		final A_Function function = functionReg.in(interpreter);
@@ -108,7 +110,8 @@ public class L2_INVOKE_AFTER_FAILED_PRIMITIVE extends L2Operation
 		interpreter.invokeWithoutPrimitiveFunctionArguments(
 			function,
 			interpreter.argsBuffer,
-			caller);
+			caller,
+			skipReturnCheck);
 	}
 
 	@Override

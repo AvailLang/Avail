@@ -56,7 +56,12 @@ extends A_BasicObject
 	void argOrLocalOrStackAtPut (int index, AvailObject value);
 
 	/**
-	 * Dispatch to the descriptor.
+	 * The {@linkplain ContinuationDescriptor continuation} to which control
+	 * will pass when this continuation returns.  May be {@linkplain
+	 * NilDescriptor#nil()}, indicating this is the outermost stack frame of
+	 * its fiber and will produce a value from the fiber itself.
+	 *
+	 * @return The calling continuation or nil.
 	 */
 	A_Continuation caller ();
 
@@ -128,4 +133,9 @@ extends A_BasicObject
 	 * @param stackp
 	 */
 	void adjustPcAndStackp (int pc, int stackp);
+
+	/**
+	 * @return
+	 */
+	boolean skipReturnFlag ();
 }

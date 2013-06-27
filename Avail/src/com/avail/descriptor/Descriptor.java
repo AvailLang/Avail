@@ -4272,6 +4272,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	}
 
 	@Override
+	boolean o_SkipReturnFlag (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+	
+	@Override
 	boolean o_IsIntegerIntervalTuple (final AvailObject object)
 	{
 		return false;

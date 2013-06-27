@@ -48,7 +48,11 @@ Names
 	"`«[_]:_`»"
 Body
 
-/* Make "_'s type" bind more tightly than phrase type construction. */
+/**
+ * Make "_'s type" bind more tightly than phrase type construction.
+ * 
+ * @method "_⇒_"
+ */
 Invoke
 [
 	exclusions ::= cast {"_'s⁇type"} into [ t : {string|natural number} | t ];
@@ -60,10 +64,11 @@ with <>;
  * Construct and answer a (synthetic) literal token whose artificial source text
  * is the description of the value.
  * 
- * Parameters:
- *    value - Any value, irrespective of whether an Avail compiler would be able
- *       to construct such a literal.
- * Returns:
+ * @method "``_``"
+ * @param "value" "any"
+ *        Any value, irrespective of whether an Avail compiler would be able to
+ *        construct such a literal.
+ * @returns "literal token"
  *    A literal token that embeds the argument.
  */
 Public method "``_``" is
@@ -75,6 +80,9 @@ Public method "``_``" is
 
 /**
  * Strengthen literal token building to covary with the literal value's type.
+ * 
+ * @method "``_``"
+ * @restricts "any meta"
  */
 Semantic restriction "``_``" is
 [
@@ -86,6 +94,9 @@ Semantic restriction "``_``" is
 /**
  * Strengthen literal <em>node</em> building to covary with the type of object
  * inside the passed literal token.
+ * 
+ * @method "‘_’"
+ * @restricts "literal token's type"
  */
 Semantic restriction "‘_’" is
 [
@@ -98,10 +109,11 @@ Semantic restriction "‘_’" is
  * Construct and answer a variable use expression from the specified
  * declaration.
  * 
- * Parameters:
- *    decl - The declaration that introduced the referenced entity.
- * Returns:
- *    A variable use expression.
+ * @method "`«↓_`»"
+ * @param "decl" "declaration phrase"
+ *        The declaration that introduced the referenced entity.
+ * @returns "variable use phrase"
+ *          A variable use expression.
  */
 Public method "`«↓_`»" is
 [
@@ -113,10 +125,11 @@ Public method "`«↓_`»" is
 /**
  * Construct and answer a list phrase from the specified tuple.
  * 
- * Parameters:
- *    aTuple - A tuple of expressions.
- * Returns:
- *    The requested list.
+ * @method "`«<«_‡,»>`»"
+ * @param "aTuple" "<<>, expression phrase⇒any…|whole number>"
+ *        A tuple of expressions.
+ * @returns "list phrase"
+ *          The requested list.
  */
 Public method "`«<«_‡,»>`»" is
 [
@@ -129,12 +142,15 @@ Public method "`«<«_‡,»>`»" is
  * Construct and answer a block from the specified argument declarations,
  * statements, and return type.
  * 
- * Parameters:
- *    args - A tuple of argument declarations.
- *    statements - A tuple of statements.
- *    returnType - The return type of the function described by the block.
- * Returns:
- *    A block.
+ * @method "`«[_`|_]:_`»"
+ * @param "args" "<<>, argument phrase…|whole number>"
+ *        A tuple of argument declarations.
+ * @param "statements" "<<>, phrase…|whole number>"
+ *        A tuple of statements.
+ * @param "returnType" "type"
+ *        The return type of the function described by the block.
+ * @returns "block phrase"
+ *          A block.
  */
 Public method "`«[_`|_]:_`»" is
 [
@@ -150,6 +166,12 @@ Public method "`«[_`|_]:_`»" is
 	] : returnType ^ ∅»
 ] : block phrase;
 
+/**
+ * @method "`«[_`|_]:_`»"
+ * @restricts "<<>, argument phrase…|whole number>'s type"
+ * @restricts "<<>, phrase…|whole number>'s type"
+ * @restricts "type's type"
+ */
 Semantic restriction "`«[_`|_]:_`»" is
 [
 	args : <<>, argument phrase…|whole number>'s type,
@@ -163,10 +185,12 @@ Semantic restriction "`«[_`|_]:_`»" is
  * Construct and answer an arity-0 block from the specified statements and
  * return type.
  * 
- * Parameters:
- *    statements - A tuple of statements.
- *    returnType - The return type of the function described by the block.
- * Returns:
+ * @method "`«[_]:_`»"
+ * @param "statements" "<<>, phrase…|whole number>"
+ *        A tuple of statements.
+ * @param "returnType" "type"
+ *        The return type of the function described by the block.
+ * @returns "block phrase"
  *    A block.
  */
 Public method "`«[_]:_`»" is
@@ -182,6 +206,11 @@ Public method "`«[_]:_`»" is
 	] : returnType ^ ∅»
 ];
 
+/**
+ * @method "`«[_]:_`»"
+ * @restricts "<<>, phrase…|whole number>'s type"
+ * @restricts "type's type"
+ */
 Semantic restriction "`«[_]:_`»" is
 [
 	statements : <<>, phrase…|whole number>'s type,
@@ -193,12 +222,10 @@ Semantic restriction "`«[_]:_`»" is
 /**
  * The requested send node has a semantic type of `returnType`.
  * 
- * Parameters:
- *    aMethod -
- *    arguments -
- *    returnType -
- * Returns:
- *    `send→returnType`.
+ * @method "send_with_:_"
+ * @restricts "atom's type"
+ * @restricts "list phrase's type"
+ * @restricts "type's type"
  */
 Semantic restriction "send_with_:_" is
 [
@@ -215,10 +242,8 @@ Semantic restriction "send_with_:_" is
 /**
  * A block type's semantic type is always a function type.
  *
- * Parameters:
- *    blockType -
- * Returns:
- *    `function meta`.
+ * @method "_'s⁇semantic type"
+ * @restricts "block phrases's type"
  */
 Semantic restriction "_'s⁇semantic type" is
 [
@@ -244,10 +269,8 @@ Semantic restriction "_'s⁇semantic type" is
 /**
  * A block type's semantic type is always a function type.
  *
- * Parameters:
- *    blockType -
- * Returns:
- *    `function meta`.
+ * @method "_'s⁇semantic type"
+ * @restricts "block phrase's type's type"
  */
 Semantic restriction "_'s⁇semantic type" is
 [
@@ -259,10 +282,8 @@ Semantic restriction "_'s⁇semantic type" is
 /**
  * A list type's semantic type is always a tuple of expressions yielding any.
  * 
- * Parameters:
- *    listType -
- * Returns:
- *    `<expression⇒any…|>`.
+ * @method "_'s⁇semantic type"
+ * @restricts "list phrase's type's type"
  */
 Semantic restriction "_'s⁇semantic type" is
 [
@@ -275,10 +296,8 @@ Semantic restriction "_'s⁇semantic type" is
  * The function type of a function generated from a block is the same as the
  * block's semantic type.
  * 
- * Parameters:
- *    blockType -
- * Returns:
- *    The semantic type of the argument.
+ * @method "generate_"
+ * @restricts "block phrase's type"
  */
 Semantic restriction "generate_" is
 [

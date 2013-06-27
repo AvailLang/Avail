@@ -6798,4 +6798,10 @@ implements
 	{
 		return descriptor.o_IsTwoByteString(this);
 	}
+
+	@Override
+	public boolean skipReturnFlag ()
+	{
+		return descriptor.o_SkipReturnFlag(this);
+	}
 }

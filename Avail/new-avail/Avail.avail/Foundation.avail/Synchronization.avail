@@ -190,8 +190,8 @@ Public method "unsafely atomically read_and store_" is
  * @param "newValue" "any"
  *        The new value to store into `var`.
  * @returns "boolean"
- *          {@method "true"} if the operation succeeded and {@param "newValue"}
- *          was stored into {@param "var"}, {@method "false"} otherwise.
+ *          `true` if the operation succeeded and {@param "newValue"}
+ *          was stored into {@param "var"}, `false` otherwise.
  */
 Public method "unsafely atomically compare_to_and,⁇if equal,⁇store_" is
 [
@@ -267,8 +267,8 @@ Public method "parking queue" is [<fiber…|>];
  * @param "queue" "parking queue"
  *        A {@type "parking queue"}.
  * @return "boolean"
- *         {@method "true"} if the queue was empty at the time of enqueuing,
- *         {@method "false"} otherwise.
+ *         `true` if the queue was empty at the time of enqueuing,
+ *         `false` otherwise.
  */
 Public method "priority enqueue_on_" is
 [
@@ -304,7 +304,7 @@ Public method "priority enqueue_on_" is
  * @param "queue" "↑parking queue"
  *        A parking queue.
  * @return "boolean"
- *         {@method "true"} if the queue was empty after the removal, {@method
+ *         `true` if the queue was empty after the removal, {@method
  *         "false"} otherwise.
  */
 Public method "dequeue_from_" is
@@ -870,7 +870,7 @@ Public method "a condition of_is_" is
  * @method "_is satisfied"
  * @param "aCondition" "condition"
  * @returns "boolean"
- *          {@method "true"} if the condition is satisfied, {@method "false"}
+ *          `true` if the condition is satisfied, `false`
  *          otherwise.
  */
 Public method "_is satisfied" is

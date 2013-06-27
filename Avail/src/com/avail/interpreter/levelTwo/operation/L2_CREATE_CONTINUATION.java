@@ -36,6 +36,7 @@ import java.util.List;
 import com.avail.descriptor.*;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.*;
+import com.avail.interpreter.levelTwo.register.L2IntegerRegister;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.interpreter.levelTwo.register.L2RegisterVector;
 import com.avail.optimizer.RegisterSet;
@@ -57,6 +58,7 @@ public class L2_CREATE_CONTINUATION extends L2Operation
 			READ_POINTER.is("function"),
 			IMMEDIATE.is("level one pc"),
 			IMMEDIATE.is("stack pointer"),
+			READ_INT.is("skip return check"),
 			READ_VECTOR.is("slot values"),
 			PC.is("level two pc"),
 			WRITE_POINTER.is("destination"));
@@ -71,22 +73,25 @@ public class L2_CREATE_CONTINUATION extends L2Operation
 			instruction.readObjectRegisterAt(1);
 		final int levelOnePC = instruction.immediateAt(2);
 		final int levelOneStackp = instruction.immediateAt(3);
-		final L2RegisterVector slotsVector = instruction.readVectorRegisterAt(4);
-		final int levelTwoOffset = instruction.pcAt(5);
-		final L2ObjectRegister destReg = instruction.writeObjectRegisterAt(6);
+		final L2IntegerRegister skipReturnReg =
+			instruction.readIntRegisterAt(4);
+		final L2RegisterVector slotsVector = instruction.readVectorRegisterAt(5);
+		final int levelTwoOffset = instruction.pcAt(6);
+		final L2ObjectRegister destReg = instruction.writeObjectRegisterAt(7);
 
 		final A_Function function = functionReg.in(interpreter);
 		final A_RawFunction code = function.code();
 		final int frameSize = code.numArgsAndLocalsAndStack();
+		final boolean skipReturnCheck = skipReturnReg.in(interpreter) != 0;
 		final A_Continuation continuation =
 			ContinuationDescriptor.createExceptFrame(
 				function,
 				callerReg.in(interpreter),
 				levelOnePC,
 				frameSize - code.maxStackDepth() + levelOneStackp,
+				skipReturnCheck,
 				interpreter.chunk(),
 				levelTwoOffset);
-
 		int index = 1;
 		for (final L2ObjectRegister slotRegister : slotsVector.registers())
 		{
@@ -104,7 +109,7 @@ public class L2_CREATE_CONTINUATION extends L2Operation
 	{
 		final L2ObjectRegister functionReg =
 			instruction.readObjectRegisterAt(1);
-		final L2ObjectRegister destReg = instruction.writeObjectRegisterAt(6);
+		final L2ObjectRegister destReg = instruction.writeObjectRegisterAt(7);
 
 		// Propagate information differently to the code just after creating the
 		// continuation and the code after the continuation resumes.

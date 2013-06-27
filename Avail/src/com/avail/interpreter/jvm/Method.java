@@ -770,8 +770,8 @@ extends Emitter<MethodModifier>
 		}
 		else
 		{
-			final ClassEntry classEntry =
-				constantPool.classConstant(descriptor);
+			final String name = JavaDescriptors.nameFromDescriptor(descriptor);
+			final ClassEntry classEntry = constantPool.classConstant(name);
 			newArray(classEntry, 1);
 		}
 	}
@@ -845,12 +845,12 @@ extends Emitter<MethodModifier>
 	 * JavaBytecode#dup dup} is always emitted after {@link JavaBytecode#new_
 	 * new}.</p>
 	 *
-	 * @param descriptor
-	 *        The type descriptor of the target {@linkplain Class class}.
+	 * @param name
+	 *        The fully-qualified name of the target {@linkplain Class class}.
 	 */
-	public void newObject (final String descriptor)
+	public void newObject (final String name)
 	{
-		final ClassEntry classEntry = constantPool.classConstant(descriptor);
+		final ClassEntry classEntry = constantPool.classConstant(name);
 		newObject(classEntry);
 	}
 
@@ -1067,12 +1067,12 @@ extends Emitter<MethodModifier>
 	 * Emit an instruction that will ascertain that the top of the operand
 	 * stack is an instance of the specified {@linkplain Class class}.
 	 *
-	 * @param descriptor
-	 *        The descriptor of the target type.
+	 * @param name
+	 *        The fully-qualified name of the target type.
 	 */
-	public void instanceOf (final String descriptor)
+	public void instanceOf (final String name)
 	{
-		final ClassEntry classEntry = constantPool.classConstant(descriptor);
+		final ClassEntry classEntry = constantPool.classConstant(name);
 		instanceOf(classEntry);
 	}
 
@@ -1085,8 +1085,8 @@ extends Emitter<MethodModifier>
 	 */
 	public void instanceOf (final Class<?> type)
 	{
-		final String descriptor = JavaDescriptors.forType(type);
-		final ClassEntry classEntry = constantPool.classConstant(descriptor);
+		final String name = type.getName();
+		final ClassEntry classEntry = constantPool.classConstant(name);
 		instanceOf(classEntry);
 	}
 
@@ -1107,12 +1107,12 @@ extends Emitter<MethodModifier>
 	 * Emit an instruction that will ensure that the top of the operand
 	 * stack is an instance of the specified {@linkplain Class class}.
 	 *
-	 * @param descriptor
-	 *        The descriptor of the target type.
+	 * @param name
+	 *        The fully-qualified name of the target type.
 	 */
-	public void checkCast (final String descriptor)
+	public void checkCast (final String name)
 	{
-		final ClassEntry classEntry = constantPool.classConstant(descriptor);
+		final ClassEntry classEntry = constantPool.classConstant(name);
 		checkCast(classEntry);
 	}
 
@@ -1125,8 +1125,8 @@ extends Emitter<MethodModifier>
 	 */
 	public void checkCast (final Class<?> type)
 	{
-		final String descriptor = JavaDescriptors.forType(type);
-		final ClassEntry classEntry = constantPool.classConstant(descriptor);
+		final String name = type.getName();
+		final ClassEntry classEntry = constantPool.classConstant(name);
 		checkCast(classEntry);
 	}
 
@@ -1162,6 +1162,46 @@ extends Emitter<MethodModifier>
 	public void returnSubroutine (final LocalVariable returnAddress)
 	{
 		writer.append(new ReturnSubroutineInstruction(returnAddress));
+	}
+
+	/**
+	 * Emit a conditional branch that performs the comparison specified by the
+	 * {@linkplain PrimitiveComparisonOperator operator} and jumps to the
+	 * given {@linkplain Label label} if the operation evaluates to {@code
+	 * false}.
+	 *
+	 * @param op
+	 *        The comparison operator.
+	 * @param notTaken
+	 *        The label to which control should proceed if the comparison
+	 *        operator evaluates to {@code false}.
+	 */
+	public void branchIfNot (
+		final PrimitiveComparisonOperator op,
+		final Label notTaken)
+	{
+		final JavaBytecode bytecode = op.inverseBytecode();
+		writer.append(new ConditionalBranchInstruction(bytecode, notTaken));
+	}
+
+	/**
+	 * Emit a conditional branch that performs the comparison specified by the
+	 * {@linkplain ReferenceComparisonOperator operator} and jumps to the
+	 * given {@linkplain Label label} if the operation evaluates to {@code
+	 * false}.
+	 *
+	 * @param op
+	 *        The comparison operator.
+	 * @param notTaken
+	 *        The label to which control should proceed if the comparison
+	 *        operator evaluates to {@code false}.
+	 */
+	public void branchIfNot (
+		final ReferenceComparisonOperator op,
+		final Label notTaken)
+	{
+		final JavaBytecode bytecode = op.inverseBytecode();
+		writer.append(new ConditionalBranchInstruction(bytecode, notTaken));
 	}
 
 	/**
@@ -1319,18 +1359,18 @@ extends Emitter<MethodModifier>
 	 *        The exclusive end label.
 	 * @param handlerLabel
 	 *        The label of the handler subroutine.
-	 * @param catchDescriptor
-	 *        The descriptor for the intercepted {@linkplain Throwable
+	 * @param throwableName
+	 *        The fully-qualified name of the intercepted {@linkplain Throwable
 	 *        throwable} type.
 	 */
 	public void addGuardedZone (
 		final Label startLabel,
 		final Label endLabel,
 		final Label handlerLabel,
-		final String catchDescriptor)
+		final String throwableName)
 	{
 		final ClassEntry catchEntry =
-			constantPool.classConstant(catchDescriptor);
+			constantPool.classConstant(throwableName);
 		addGuardedZone(startLabel, endLabel, handlerLabel, catchEntry);
 	}
 
@@ -1366,9 +1406,12 @@ extends Emitter<MethodModifier>
 	{
 		assert scopeStack.isEmpty();
 		writer.fixInstructions();
-		final CodeAttribute code = new CodeAttribute(
-			this, Collections.<Attribute>emptyList());
-		setAttribute(code);
+		if (!modifiers.contains(ABSTRACT))
+		{
+			final CodeAttribute code = new CodeAttribute(
+				this, Collections.<Attribute>emptyList());
+			setAttribute(code);
+		}
 	}
 
 	@Override

@@ -165,30 +165,30 @@ Test "complex quicksort with" in tuple test suite is
 Test "quasi-destructive update" in tuple test suite is
 [
 	t : <natural number…|> := <1,2,3>;
-	↓↑t[2] := 5;
-	Require: <1,5,3> = t;
+	n ::= t[2] → 5;
+	Require: <1,5,3> = n;
 ];
 
 Test "quasi-destructive n-ary tuple update" in tuple test suite is
 [
 	t : <<natural number…|3>…|> := <<1,2,3>,<4,5,6>>;
-	↓↑t[1][3] := 7;
-	Require: <<1,2,7>,<4,5,6>> = t;
+	n ::= t[1][3] → 7;
+	Require: <<1,2,7>,<4,5,6>> = n;
 ];
 
 Test "quasi-destructive n-ary complex tuple update" in tuple test suite is
 [
 	t : <<natural number,{string→natural number|1},natural number…|3>…|> := 
 		<<1,{"foo"→2},3>,<4,{"boo"→5},6>>;
-	↓↑t[1][2]["foo"] := 7;
-	Require: <<1,{"foo"→7},3>,<4,{"boo"→5},6>> = t;
+	n ::= t[1][2]["foo"] → 7;
+	Require: <<1,{"foo"→7},3>,<4,{"boo"→5},6>> = n;
 ];
 
 Test "quasi-destructive n-ary very complex tuple update" in tuple test suite is
 [
 	t : <<natural number,{string→<string…|2>|1},natural number…|3>…|> := 
 		<<1,{"foo"→<"cheese","apples">},3>,<4,{"boo"→<"purple","chariots">},6>>;
-	↓↑t[1][2]["foo"][2] := "motor torpedo boat";
+	n ::= t[1][2]["foo"][2] → "motor torpedo boat";
 	Require: <<1,{"foo"→<"cheese","motor torpedo boat">},3>,
-		<4,{"boo"→<"purple","chariots">},6>> = t;
+		<4,{"boo"→<"purple","chariots">},6>> = n;
 ];

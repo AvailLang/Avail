@@ -53,7 +53,8 @@ public class P_045_ShortCircuitHelper extends Primitive
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,
-		final Interpreter interpreter)
+		final Interpreter interpreter,
+		final boolean skipReturnCheck)
 	{
 		assert args.size() == 2;
 		@SuppressWarnings("unused")
@@ -62,7 +63,8 @@ public class P_045_ShortCircuitHelper extends Primitive
 		assert block.code().numArgs() == 0;
 		return interpreter.invokeFunction (
 			block,
-			Collections.<AvailObject>emptyList());
+			Collections.<AvailObject>emptyList(),
+			false);
 	}
 
 	@Override

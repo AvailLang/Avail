@@ -895,9 +895,7 @@ public final class AvailRuntime
 		specials[136] = SetTypeDescriptor.setTypeForSizesContentType(
 			IntegerRangeTypeDescriptor.naturalNumbers(),
 			ATOM.o());
-		specials[137] = VariableTypeDescriptor.fromReadAndWriteTypes(
-			TupleTypeDescriptor.mostGeneralType(),
-			BottomTypeDescriptor.bottom());
+		specials[137] = TupleTypeDescriptor.oneOrMoreOf(ANY.o());
 		specials[138] = TupleTypeDescriptor.zeroOrMoreOf(
 			IntegerRangeTypeDescriptor.integers());
 		specials[139] = TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(

@@ -56,7 +56,8 @@ public class P_512_PojoArrayGet extends Primitive
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,
-		final Interpreter interpreter)
+		final Interpreter interpreter,
+		final boolean skipReturnCheck)
 	{
 		assert args.size() == 2;
 		final A_BasicObject pojo = args.get(0);

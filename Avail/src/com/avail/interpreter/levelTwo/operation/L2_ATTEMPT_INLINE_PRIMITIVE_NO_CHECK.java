@@ -107,7 +107,8 @@ extends L2Operation
 		final Result res = interpreter.attemptPrimitive(
 			primitive.primitiveNumber,
 			function,
-			interpreter.argsBuffer);
+			interpreter.argsBuffer,
+			true);
 
 		switch (res)
 		{

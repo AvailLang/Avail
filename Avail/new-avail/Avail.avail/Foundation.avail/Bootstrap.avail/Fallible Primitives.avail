@@ -79,7 +79,11 @@ Uses
 		"_`#_:_(literals=_,`#locals_,`#outers_,stack depth=_)",
 		"_has definition for_",
 		"_mod_",
+<<<<<<< HEAD
 		"_to_by_",
+=======
+		"_«[_]»→_",
+>>>>>>> branch 'master' of ssh://availlang_src@availlang.org:22/home/availlang_src/Avail
 		"_×_",
 		"_÷_",
 		"_∈_",
@@ -112,9 +116,7 @@ Uses
 		"static method_._<«_‡,»>,⁇on failure do_",
 		"swap_and_",
 		"↓_",
-		"↓_[_]:=_",
 		"↓_`?=_",
-		"↓_«[_]»:=_",
 		"∪_[_.._]"
 	)
 Names
@@ -1823,39 +1825,53 @@ Primitive "in_millisecond|milliseconds,⁇invoke_with_,⁇forked at priority_" i
 ] : fiber;
 
 /**
- * Replace the value at the index of the tuple variable with a new value.
+ * Replace the value with a new value in the tuple at the location indicated
+ * by the path tuple.
  *
  * Parameters:
- *    var - A variable containing a tuple.
- *    index - A valid index within the tuple.
- *    newValue - The new value to populate at the given index of the tuple.
+ *    aTuple - The target tuple.
+ *    pathTuple - The tuple providing the path to follow to reach the location
+ *				to be updated.
+ *    newValue - The replacement value.
+ * Returns:
+ *    a new tuple with the new value installed at the proposed location.
  */
-Primitive "↓_[_]:=_" is
+Primitive "_«[_]»→_" is
 [
-	var : variable of tuple,
-	index : natural number,
+	aTuple : tuple,
+	pathTuple : two or more tuple,
 	newValue : any
 |
 	Primitive 700 (failureCode : natural number);
 	Private invoke _fail_primitive with failureCode
-] : ⊤;
+] : tuple;
 
 /**
- * Replace the value at the key of the may variable with a new value.
+ * Replace the value at the location indicated by the path tuple of the target
+ * map with the new value.
  *
  * Parameters:
- *    var - A variable containing a map.
- *    key - A valid key in the map.
- *    newValue - The new value to populate at the given key of the map.
+ *    aMap - The target map.
+ *    pathTuple - The tuple providing the path to follow to reach the location
+ *				to be updated.
+ *    newValue - The replacement value.
+ * Returns:
+ *    a new map with the new value installed at the proposed location
  */
-Primitive "↓_[_]:=_" is
+Primitive "_«[_]»→_" is
 [
+<<<<<<< HEAD
 	var : null,
 	key : any,
+=======
+	aMap : map,
+	pathTuple : nonempty tuple,
+>>>>>>> branch 'master' of ssh://availlang_src@availlang.org:22/home/availlang_src/Avail
 	newValue : any
 |
 	Primitive 701 (failureCode : natural number);
 	Private invoke _fail_primitive with failureCode
+<<<<<<< HEAD
 ] : ⊤;
 
 /**
@@ -1895,4 +1911,7 @@ Primitive "↓_«[_]»:=_" is
 	Primitive 703 (failureCode : natural number);
 	Private invoke _fail_primitive with failureCode
 ] : ⊤;
+=======
+] : map;
+>>>>>>> branch 'master' of ssh://availlang_src@availlang.org:22/home/availlang_src/Avail
 

@@ -36,7 +36,6 @@ import java.io.*;
 import org.junit.*;
 import com.avail.builder.*;
 import com.avail.interpreter.Primitive;
-import com.avail.optimizer.L2Translator;
 import com.avail.persistence.IndexedRepositoryManager;
 
 /**
@@ -67,7 +66,6 @@ extends AbstractAvailTest
 	 *         If an {@linkplain Exception exception} occurs.
 	 */
 	@Test
-	@SuppressWarnings("unused")
 	public void newAvailTest () throws Exception
 	{
 		final long startTime = System.currentTimeMillis();
@@ -75,16 +73,8 @@ extends AbstractAvailTest
 		System.out.flush();
 		System.err.printf(
 			"%ntime elapsed = %dms%n", System.currentTimeMillis() - startTime);
-		if (false)
-		{
-			System.err.printf("Instructions%n\tGen=%d%n\tKept=%d%n\tRemv=%d%n",
-				L2Translator.generatedInstructionCount,
-				L2Translator.keptInstructionCount,
-				L2Translator.removedInstructionCount);
-		}
 		final StringBuilder builder = new StringBuilder();
 		Primitive.reportReturnCheckTimes(builder);
-		System.err.printf("%nPrimitive return type-check times:%n%s",
-			builder);
+		System.err.append(builder);
 	}
 }
