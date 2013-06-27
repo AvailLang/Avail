@@ -168,6 +168,9 @@ abstract class Emitter<T extends Enum<T> & Modifier>
 			assert false : "This never happens!";
 			throw new RuntimeException(e);
 		}
+		// Always include the Synthetic attribute.
+		final SyntheticAttribute attribute = new SyntheticAttribute();
+		setAttribute(attribute);
 	}
 
 	/**
@@ -176,12 +179,6 @@ abstract class Emitter<T extends Enum<T> & Modifier>
 	 */
 	private final LinkedHashMap<String, Attribute> attributes =
 		new LinkedHashMap<>();
-
-	{
-		// Always include the Synthetic attribute.
-		final SyntheticAttribute attribute = new SyntheticAttribute();
-		attributes.put(attribute.name(), attribute);
-	}
 
 	/**
 	 * Answer an {@linkplain Collections#unmodifiableCollection(Collection)
@@ -204,8 +201,10 @@ abstract class Emitter<T extends Enum<T> & Modifier>
 	 */
 	public void setAttribute (final Attribute attribute)
 	{
-		assert !attributes.containsKey(attribute.name());
-		attributes.put(attribute.name(), attribute);
+		final String name = attribute.name();
+		assert !attributes.containsKey(name);
+		constantPool.utf8(name);
+		attributes.put(name, attribute);
 	}
 
 	/**

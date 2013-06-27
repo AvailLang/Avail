@@ -60,6 +60,14 @@ Names
 	"_⊅_"
 Body
 
+/**
+ * Print set types neatly.
+ * 
+ * @method "“_”"
+ * @param "t" "set meta"
+ * @returns "string"
+ *          A nice-looking string representing the set type.
+ */
 Method "“_”" is
 [
 	t : set meta
@@ -73,6 +81,12 @@ Method "“_”" is
 ] : string;
 
 Method "_+_" is stable at [set, any]→set;
+
+/**
+ * @method "_+_"
+ * @restricts "set meta"
+ * @restricts "any meta"
+ */
 Semantic restriction "_+_" is
 [
 	setType : set meta,
@@ -110,6 +124,11 @@ Semantic restriction "_+_" is
 	]
 ];
 
+/**
+ * @method "_-_"
+ * @restricts "set meta"
+ * @restricts "any meta"
+ */
 Semantic restriction "_-_" is
 [
 	setType : set meta,
@@ -125,6 +144,10 @@ Semantic restriction "_-_" is
 	]
 ];
 
+/**
+ * @method "_→tuple"
+ * @restricts "set meta"
+ */
 Semantic restriction "_→tuple" is
 [
 	setType : set meta
@@ -138,10 +161,10 @@ Semantic restriction "_→tuple" is
 /**
  * Is the specified set empty?
  *
- * Parameters:
- *    aSet - A set.
- * Returns:
- *    `true` if the argument is empty, `false` otherwise.
+ * @method "_is empty"
+ * @param "aSet" "set"
+ * @returns "boolean"
+ *          `true` if the argument is empty, `false` otherwise.
  */
 Stable method "_is empty" is
 [
@@ -154,9 +177,11 @@ Stable method "_is empty" is
  * Iteratively apply `action` to each element of `aSet`, but in no particular
  * order.
  * 
- * Parameters:
- *    aSet - A set.
- *    action - A function that accepts the elements of the set.
+ * @method "For each of⁇_do_"
+ * @param "aSet" "set"
+ * @param "action" "[⊥]→⊤"
+ *        A function that accepts the elements of the set.
+ * @returns "⊤"
  */
 Method "For each of⁇_do_" is
 [
@@ -181,10 +206,12 @@ Method "For each of⁇_do_" is
  * Helper method for semantic restrictions: If `action` does not accept the
  * element types of `setType`, then reject the current parse.
  * 
- * Parameters:
- *    action - A function type whose first argument must correspond to the
- *       element type of `setType`.
- *    setType - A set type.
+ * @method "Require:_accepts_"
+ * @param "action" "function meta"
+ *        A function type whose first argument must correspond to the element
+ *        type of `setType`.
+ * @param "setType" "set meta"
+ * @returns "⊤"
  */
 Method "Require:_accepts_" is
 [
@@ -212,11 +239,9 @@ Method "Require:_accepts_" is
  * certainly nonempty and the function certainly does not complete if applied,
  * then answer ⊥.
  * 
- * Parameters:
- *    setType -
- *    action -
- * Returns:
- *    Either ⊤ or ⊥.
+ * @method "For each of⁇_do_"
+ * @restricts "set meta"
+ * @restricts "[⊥]→⊤'s type"
  */
 Semantic restriction "For each of⁇_do_" is
 [
@@ -239,12 +264,13 @@ Semantic restriction "For each of⁇_do_" is
  * results into a new tuple. The set is traversed in no particular order. Answer
  * the resultant set.
  *
- * Parameters:
- *    aSet - A set.
- *    transformer - A function that accepts the elements of the set.
- * Returns:
- *    A set of results of applications of `transformer` to the elements of
- *    `aSet`.
+ * @method "map_through_"
+ * @param "aSet" "set"
+ * @param "transformer" "[⊥]→any"
+ *        A function that accepts the elements of the set.
+ * @returns "set"
+ *          A set of results of applications of `transformer` to the elements of
+ *          `aSet`.
  */
 Method "map_through_" is
 [
@@ -271,12 +297,9 @@ Method "map_through_" is
  * Ensure that the function will accept all elements of the set. If the set is
  * certainly nonempty, then the function cannot answer ⊥.
  *
- * Parameters:
- *    setType -
- *    transformer -
- * Returns:
- *    A set type whose element type is the return type of `transformer` and
- *    whose cardinality is the same as `setType`'s.
+ * @method "map_through_"
+ * @restricts "set meta"
+ * @restricts "[⊥]→any's type"
  */
 Semantic restriction "map_through_" is
 [
@@ -301,13 +324,14 @@ Semantic restriction "map_through_" is
  * order, collecting those elements for which `predicate` answers `true` into a
  * new set. Answer the new set.
  * 
- * Parameters:
- *    aSet - A set.
- *    predicate - A function that accepts the elements of the set and answers
- *       `true` iff they should be accumulated into the output set.
- * Returns:
- *    A set containing exactly those elements of `aSet` for which
- *    `predicate` answered `true`.
+ * @method "filter_by_"
+ * @param "aSet" "set"
+ * @param "predicate" "[⊥]→boolean"
+ *        A function that accepts the elements of the set and answers `true` iff
+ *        they should be accumulated into the output set.
+ * @returns "set"
+ *          A set containing exactly those elements of `aSet` for which 
+ *          `predicate` answered `true`.
  */
 Method "filter_by_" is
 [
@@ -337,12 +361,9 @@ Method "filter_by_" is
 /**
  * Ensure that the function will accept all elements of the set.
  *
- * Parameters:
- *    setType -
- *    predicate -
- * Returns:
- *    A set type whose element type is the same as `setType`'s and which has
- *    cardinality `[0..⎡setType⎤ + 1)`.
+ * @method "filter_by_"
+ * @restricts "set meta"
+ * @restricts "[⊥]→boolean's type"
  */
 Semantic restriction "filter_by_" is
 [
@@ -366,13 +387,14 @@ Semantic restriction "filter_by_" is
  * value per element of `aSet`, i.e., each time that `accumulator` is invoked,
  * it may invoke the keeper function at most one time. Answer the new set.
  * 
- * Parameters:
- *    aSet - A set.
- *    accumulator - A function that accepts 1) an element from `aSet` and 2)
- *       a keeper function. The keeper function accepts an argument of the type
- *       that should be saved.
- * Returns:
- *    A set whose elements are those saved by the `accumulator`.
+ * @method "map and filter_by_"
+ * @param "aSet" "set"
+ * @param "accumulator" "[⊥, ⊥]→⊤"
+ *        A function that accepts 1) an element from `aSet` and 2) a keeper
+ *        function. The keeper function accepts an argument of the type that
+ *        should be saved.
+ * @returns "set"
+ *          A set whose elements are those saved by the `accumulator`.
  */
 Method "map and filter_by_" is
 [
@@ -412,12 +434,9 @@ Method "map and filter_by_" is
  * Ensure that the function will accept all arguments of the set and also an
  * appropriately typed keeper function.
  *
- * Parameters:
- *    setType -
- *    accumulator -
- * Returns:
- *    A set type whose element type is the argument type of the keeper function
- *    and whose cardinality is `[0..⎡setType⎤ + 1)`.
+ * @method "map and filter_by_"
+ * @restricts "set meta"
+ * @restricts "[⊥, ⊥]→⊤'s type"
  */
 Semantic restriction "map and filter_by_" is
 [
@@ -441,13 +460,13 @@ Semantic restriction "map and filter_by_" is
  * Compute and answer whether any of the elements of `aSet` satisfies the
  * specified function. Do not examine more elements than necessary.
  * 
- * Parameters:
- *    aSet - A set.
- *    predicate - A function that accepts the elements of the set and answers
- *       a boolean.
- * Returns:
- *    `true` if `predicate` answers `true` for any element of `aSet`, `false`
- *    otherwise.
+ * @method "any of_satisfies_"
+ * @param "aSet" "set"
+ * @param "predicate" "[⊥]→boolean"
+ *        A function that accepts the elements of the set and answers a boolean.
+ * @returns "boolean"
+ *          `true` if `predicate` answers `true` for any element of `aSet`,
+ *          `false` otherwise.
  */
 Method "any of_satisfies_" is
 [
@@ -470,11 +489,9 @@ Method "any of_satisfies_" is
 /**
  * Ensure that the function will accept all elements of the set.
  * 
- * Parameters:
- *    setType -
- *    predicate -
- * Returns:
- *    The function's return type.
+ * @method "any of_satisfies_"
+ * @restricts "set meta"
+ * @restricts "[⊥]→boolean's type"
  */
 Semantic restriction "any of_satisfies_" is
 [
@@ -489,13 +506,13 @@ Semantic restriction "any of_satisfies_" is
  * Compute and answer whether each of the elements of `aSet` satisfies the
  * specified function. Do not examine more elements than necessary.
  * 
- * Parameters:
- *    aSet - A set.
- *    predicate - A function that accepts the elements of the set and answers
- *       a boolean.
- * Returns:
- *    `true` if `predicate` answers `true` for each element of `aSet`, `false`
- *    otherwise.
+ * @method "each of_satisfies_"
+ * @param "aSet" "set"
+ * @param "predicate" "[⊥]→boolean"
+ *        A function that accepts the elements of the set and answers a boolean.
+ * @returns "boolean"
+ *          `true` if `predicate` answers `true` for each element of `aSet`,
+ *          `false` otherwise.
  */
 Method "each of_satisfies_" is
 [
@@ -518,11 +535,9 @@ Method "each of_satisfies_" is
 /**
  * Ensure that the function will accept all elements of the set.
  * 
- * Parameters:
- *    setType -
- *    predicate -
- * Returns:
- *    The function's return type.
+ * @method "each of_satisfies_"
+ * @restricts "set meta"
+ * @restricts "[⊥]→boolean's type"
  */
 Semantic restriction "each of_satisfies_" is
 [
@@ -537,12 +552,14 @@ Semantic restriction "each of_satisfies_" is
  * Compute and answer the count of elements of `aSet` that satisfy the given
  * predicate.
  * 
- * Parameters:
- *    aSet - A set.
- *    predicate - A function that accepts the elements of the set and answers
- *       `true` if the element should be represented in the resulting count.
- * Returns:
- *    The number of elements of `aSet` for which `predicate` answers `true`.
+ * @method "count of_where_"
+ * @param "aSet" "set"
+ * @param "predicate" "[⊥]→boolean"
+ *        A function that accepts the elements of the set and answers `true` if
+ *        the element should be represented in the resulting count.
+ * @returns "whole number"
+ *          The number of elements of `aSet` for which `predicate` answers
+ *          `true`.
  */
 Method "count of_where_" is
 [
@@ -555,11 +572,9 @@ Method "count of_where_" is
 /**
  * Ensure that the function will accept all elements of the set.
  * 
- * Parameters:
- *    setType -
- *    predicate -
- * Returns:
- *    `[0..⎡setType⎤ + 1)`.
+ * @method "count of_where_"
+ * @restricts "set meta"
+ * @restricts "[⊥]→boolean's type"
  */
 Semantic restriction "count of_where_" is
 [
@@ -575,13 +590,12 @@ Semantic restriction "count of_where_" is
  * set containing all elements in each set but no elements in both. This
  * amounts to the set union absent each element of the set intersection.
  *
- * Parameters:
- *    a - A set.
- *    b - A set.
- * Returns:
- *    The symmetric difference of `a` and `b`.
- * Author:
- *    Leslie Schultz
+ * @method "_Δ_"
+ * @param "a" "set"
+ * @param "b" "set"
+ * @returns "set"
+ *          The symmetric difference of `a` and `b`.
+ * @author Leslie Schultz
  */
 Public stable method "_Δ_" is
 [
@@ -594,13 +608,10 @@ Public stable method "_Δ_" is
 /**
  * Strengthen `_Δ_`.
  * 
- * Parameters:
- *    aType -
- *    bType -
- * Returns:
- *    The strongest possible set type.
- * Author:
- *    Leslie Schultz
+ * @method "_Δ_"
+ * @restricts "set meta"
+ * @restricts "set meta"
+ * @author Leslie Schultz
  */
 Semantic restriction "_Δ_" is
 [
@@ -620,11 +631,12 @@ Semantic restriction "_Δ_" is
 /**
  * Does `aSet` contain `value`?
  * 
- * Parameters:
- *    aSet - A set.
- *    value - An arbitrary value.
- * Returns:
- *    `true` if `aSet` contains `value` as a member, `false` otherwise.
+ * @method "_∋_"
+ * @param "aSet" "set"
+ * @param "value" "any"
+ *        An arbitrary value.
+ * @returns "boolean"
+ *          `true` if `aSet` contains `value` as a member, `false` otherwise.
  */
 Public stable method "_∋_" is
 [
@@ -634,6 +646,11 @@ Public stable method "_∋_" is
 	value ∈ aSet
 ];
 
+/**
+ * @method "_∋_"
+ * @restricts "set meta"
+ * @restricts "any meta"
+ */
 Semantic restriction "_∋_" is
 [
 	setType : set meta,
@@ -653,11 +670,11 @@ Semantic restriction "_∋_" is
 /**
  * Is `a` a proper subset of `b`?
  *
- * Parameters:
- *    a - A set.
- *    b - A set.
- * Returns:
- *    `true` if `a` is a proper subset of `b`, `false` otherwise.
+ * @method "_⊂_"
+ * @param "a" "set"
+ * @param "b" "set"
+ * @returns "boolean"
+ *          `true` if `a` is a proper subset of `b`, `false` otherwise.
  */
 Public stable method "_⊂_" is
 [
@@ -667,6 +684,13 @@ Public stable method "_⊂_" is
 	|a| ≠ |b| ∧ [ a ⊆ b ]
 ] : boolean;
 
+/**
+ * Is `a` a proper subset of `b`?
+ *
+ * @method "_⊂_"
+ * @restricts "set meta"
+ * @restricts "set meta"
+ */
 Semantic restriction "_⊂_" is
 [
 	typeA : set meta,
@@ -700,11 +724,11 @@ Semantic restriction "_⊂_" is
 /**
  * Is `a` a superset of or equal to `b`?
  *
- * Parameters:
- *    a - A set.
- *    b - A set.
- * Returns:
- *    `true` if `a` is a superset of or equal to `b`, `false` otherwise.
+ * @method "_⊇_"
+ * @param "a" "set"
+ * @param "b" "set"
+ * @retrurns "boolean"
+ *           `true` if `a` is a superset of or equal to `b`, `false` otherwise.
  */
 Public stable method "_⊇_" is
 [
@@ -714,6 +738,11 @@ Public stable method "_⊇_" is
 	b ⊆ a
 ];
 
+/**
+ * @method "_⊇_"
+ * @restricts "set's type"
+ * @restricts "set's type"
+ */
 Semantic restriction "_⊇_" is
 [
 	typeB : set's type,
@@ -747,11 +776,11 @@ Semantic restriction "_⊇_" is
 /**
  * Is `a` a proper superset of `b`?
  *
- * Parameters:
- *    a - A set.
- *    b - A set.
- * Returns:
- *    `true` if `a` is a proper superset of `b`, `false` otherwise.
+ * @method "_⊃_"
+ * @param "a" "set"
+ * @param "b" "set"
+ * @returns "boolean"
+ *          `true` if `a` is a proper superset of `b`, `false` otherwise.
  */
 Public stable method "_⊃_" is
 [
@@ -761,6 +790,11 @@ Public stable method "_⊃_" is
 	b ⊂ a
 ];
 
+/**
+ * @method "_⊂_"
+ * @restricts "set meta"
+ * @restricts "set meta"
+ */
 Semantic restriction "_⊂_" is
 [
 	typeB : set meta,
@@ -794,11 +828,12 @@ Semantic restriction "_⊂_" is
 /**
  * Is `element` not an element of `aSet`?
  *
- * Parameters:
- *    element - An arbitrary value.
- *    aSet - A set.
- * Returns:
- *    `true` if `element` is not an element of `aSet`, `false` otherwise.
+ * @method "_∉_"
+ * @param "element" "any"
+ *        An arbitrary value.
+ * @param "aSet" "set"
+ * @returns "boolean"
+ *          `true` if `element` is not an element of `aSet`, `false` otherwise.
  */
 Stable method "_∉_" is
 [
@@ -809,13 +844,9 @@ Stable method "_∉_" is
 ] : boolean;
 
 /**
- * Strengthen `_∉_`.
- * 
- * Parameters:
- *    valueType -
- *    setType -
- * Returns:
- *    The strongest possible boolean type.
+ * @method "_∉_"
+ * @restricts "any meta"
+ * @restricts "set meta"
  */
 Semantic restriction "_∉_" is
 [
@@ -836,11 +867,11 @@ Semantic restriction "_∉_" is
 /**
  * Is `a` not a proper subset of `b`?
  *
- * Parameters:
- *    a - A set.
- *    b - A set.
- * Returns:
- *    `true` if `a` is not a proper subset of `b`, `false` otherwise.
+ * @method "_⊄_"
+ * @param "a" "set"
+ * @param "b" "set"
+ * @returns "boolean"
+ *          `true` if `a` is not a proper subset of `b`, `false` otherwise.
  */
 Public stable method "_⊄_" is
 [
@@ -850,6 +881,11 @@ Public stable method "_⊄_" is
 	¬ a ⊂ b
 ] : boolean;
 
+/**
+ * @method "_⊄_"
+ * @restricts "set meta"
+ * @restricts "set meta"
+ */
 Semantic restriction "_⊄_" is
 [
 	typeB : set meta,
@@ -883,10 +919,10 @@ Semantic restriction "_⊄_" is
 /**
  * Determines of a set contains an element.
  *
- * Parameters:
- *    aSet - A set
- *    element - any element
- * Returns:
+ * @method "_∌_"
+ * @param "aSet" "set"
+ * @param "element" "any"
+ * @returns "boolean"
  *    a boolean indicating the outcome of the test.
  */
 Public method "_∌_" is
@@ -898,13 +934,9 @@ Public method "_∌_" is
 ] : boolean;
 	
 /**
- * Strengthen `_∌_`.
- * 
- * Parameters:
- *    valueType -
- *    setType -
- * Returns:
- *    The strongest possible boolean type.
+ * @method "_∌_"
+ * @restricts "set meta"
+ * @restricts "any meta"
  */
 Semantic restriction "_∌_" is
 [
@@ -929,12 +961,11 @@ Semantic restriction "_∌_" is
 /**
  * Is `a` not a proper subset of `b`?
  *
- * Parameters:
- * 	  b - A set.
- *    a - A set.
- *
- * Returns:
- *    `true` if `a` is not a proper subset of `b`, `false` otherwise.
+ * @method "_⊅_"
+ * @param "a" "set"
+ * @param "b" "set"
+ * @returns "boolean"
+ *          `true` if `a` is not a proper subset of `b`, `false` otherwise.
  */
 Public method "_⊅_" is
 [
@@ -945,14 +976,9 @@ Public method "_⊅_" is
 ] : boolean;
 
 /**
- * Strengthen `_⊅_`.
- * 
- * Parameters:
- * 	  typeA - A set type.
- *    typeB - A set type.
- *
- * Returns:
- *    A boolean type.
+ * @method "_⊅_"
+ * @restricts "set meta"
+ * @retricts "set meta"
  */
 Semantic restriction "_⊅_" is
 [
@@ -1008,9 +1034,19 @@ Semantic restriction "_⊅_" is
 	]
 ];
 
-/* Make various boolean-valued set operations bind more tightly than logical
+/**
+ * Make various boolean-valued set operations bind more tightly than logical
  * negation.
+ * @method "_∋_"
+ * @method "_⊂_"
+ * @method "_⊇_"
+ * @method "_⊃_"
+ * @method "_∉_"
+ * @method "_∌_"
+ * @method "_⊄_"
+ * @method "_⊅_"
+ * @forbids "1" "¬_"
  */
 Grammatical restriction 
-	{"_∋_", "_⊂_", "_⊇_", "_⊃_", "_∉_", "_∌_", "_⊄_","_⊅_"} is
+	{"_∋_", "_⊂_", "_⊇_", "_⊃_", "_∉_", "_∌_", "_⊄_", "_⊅_"} is
 	<{"¬_"}, ∅>;

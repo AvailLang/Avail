@@ -63,7 +63,7 @@ extends Emitter<ClassModifier>
 	 * The {@linkplain Formatter#format(String, Object...) pattern} to use for
 	 * anonymous {@linkplain Class class} names.
 	 */
-	private static final String anonymousPattern = anonymousPackage + ".A$$%d;";
+	private static final String anonymousPattern = anonymousPackage + ".A$$%d";
 
 	/**
 	 * The {@linkplain AtomicInteger ordinal} used to name the next anonymous
@@ -93,6 +93,16 @@ extends Emitter<ClassModifier>
 	final ClassEntry classEntry;
 
 	/**
+	 * Answer the name of the {@linkplain Class class} being defined.
+	 *
+	 * @return The class name.
+	 */
+	public String name ()
+	{
+		return classEntry.name();
+	}
+
+	/**
 	 * Construct a new {@link CodeGenerator}.
 	 *
 	 * @param name
@@ -105,8 +115,7 @@ extends Emitter<ClassModifier>
 	{
 		super(new ConstantPool(), ClassModifier.class, SUPER, SYNTHETIC);
 		assert isAnonymous || !name.startsWith(anonymousPackage);
-		final String descriptor = JavaDescriptors.forClassName(name);
-		classEntry = constantPool.classConstant(descriptor);
+		classEntry = constantPool.classConstant(name);
 	}
 
 	/**
@@ -154,8 +163,7 @@ extends Emitter<ClassModifier>
 	public void setSuperclass (final String name)
 	{
 		assert superEntry == null;
-		final String descriptor = JavaDescriptors.forClassName(name);
-		superEntry = constantPool.classConstant(descriptor);
+		superEntry = constantPool.classConstant(name);
 	}
 
 	/**
@@ -184,9 +192,7 @@ extends Emitter<ClassModifier>
 	 */
 	public void addInterface (final String name)
 	{
-		final String descriptor = JavaDescriptors.forClassName(name);
-		final ClassEntry interfaceEntry = constantPool.classConstant(
-			descriptor);
+		final ClassEntry interfaceEntry = constantPool.classConstant(name);
 		assert !interfaceEntries.contains(interfaceEntry);
 		interfaceEntries.add(interfaceEntry);
 	}
@@ -340,10 +346,6 @@ extends Emitter<ClassModifier>
 	void writeBodyTo (final DataOutput out) throws IOException
 	{
 		classEntry.writeIndexTo(out);
-		if (superEntry == null)
-		{
-			setSuperclass(Object.class);
-		}
 		superEntry.writeIndexTo(out);
 		out.writeShort(interfaceEntries.size());
 		for (final ClassEntry interfaceEntry : interfaceEntries)

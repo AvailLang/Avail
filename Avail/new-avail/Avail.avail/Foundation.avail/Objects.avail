@@ -64,6 +64,10 @@ Body
 
 Method "_→object type" is stable at [field type map]→object meta;
 
+/**
+ * @method "_→object type"
+ * @restricts "field type map's type"
+ */
 Semantic restriction "_→object type" is
 [
 	mapType : field type map's type
@@ -86,6 +90,11 @@ Semantic restriction "_→object type" is
 ];
 
 Method "_→object type" is stable at [field type tuple]→object meta;
+
+/**
+ * @method "_→object type"
+ * @restricts "field type tuple's type"
+ */
 Semantic restriction "_→object type" is
 [
 	tupleType : field type tuple's type
@@ -157,6 +166,11 @@ Semantic restriction "_→object type" is
 ];
 
 Method "_→object" is stable at [field map]→object;
+
+/**
+ * @method "_→object"
+ * @restricts "field map's type"
+ */
 Semantic restriction "_→object" is
 [
 	mapType : field map's type
@@ -179,6 +193,11 @@ Semantic restriction "_→object" is
 ];
 
 Method "_→object" is stable at [field tuple]→object;
+
+/**
+ * @method "_→object"
+ * @restricts "field tuple's type"
+ */
 Semantic restriction "_→object" is
 [
 	tupleType : field tuple's type
@@ -250,6 +269,11 @@ Semantic restriction "_→object" is
 ];
 
 Method "_→map" is stable at [object]→map;
+
+/**
+ * @method "_→map"
+ * @restricts "object meta"
+ */
 Semantic restriction "_→map" is
 [
 	anObjectType : object meta
@@ -261,6 +285,10 @@ Semantic restriction "_→map" is
 	{atom→any | |objectMap|..}
 ];
 
+/**
+ * @method "_→tuple"
+ * @restricts "object meta"
+ */
 Semantic restriction "_→tuple" is
 [
 	anObjectType : object meta
@@ -280,16 +308,16 @@ Semantic restriction "_→tuple" is
  *
  * @method "extend_with«_:_‡,»"
  * @param "supertype" "object's type"
- *   An object type that must be a supertype of the answer.
+ *        An object type that must be a supertype of the answer.
  * @param "newDefinitions" "<<atom, any meta…|2>…|1..>"
- *   A tuple of 2-tuples. Each 2-tuple consists of 1) an atom that uniquely
- *   identifies the field and 2) the field type, i.e., the type of value that
- *   instances of the answer may store in the field. If the field atom is
- *   defined by {@param "supertype"}, then the new field type must be a subtype
- *   of the field type as defined in {@param "supertype"}, i.e., it must be
- *   covariantly specialized.
+ *        A tuple of 2-tuples. Each 2-tuple consists of 1) an atom that uniquely
+ *        identifies the field and 2) the field type, i.e., the type of value
+ *        that instances of the answer may store in the field. If the field atom
+ *        is defined by {@param "supertype"}, then the new field type must be a
+ *        subtype of the field type as defined in {@param "supertype"}, i.e., it
+ *        must be covariantly specialized.
  * @returns "object's type"
- *   The requested object type.
+ *          The requested object type.
  */
 Public method "extend_with«_:_‡,»" is
 [
@@ -374,9 +402,9 @@ Semantic restriction "extend_with«_:_‡,»" is
  *
  * @method "accessor name for_"
  * @param "fieldAtom" "atom"
- *    A field atom.
+ *        A field atom.
  * @returns "string"
- *    The name of the accessor.
+ *          The name of the accessor.
  */
 Private method "accessor name for_" is
 [
@@ -406,7 +434,7 @@ putAtom ::= $"↓_`?=_";
  * @param "fieldAtom" "atom"
  * @param "fieldType" "any's type"
  * @param "mutable" "boolean"
- *    {@method "true"} if the field is mutable, {@method "false"} otherwise.
+ *        `true` if the field is mutable, `false` otherwise.
  */
 Private method "generate_field accessor for_:_(mutable=_)" is
 [
@@ -446,7 +474,7 @@ Private method "generate_field accessor for_:_(mutable=_)" is
  * @param "fieldAtom" "atom"
  * @param "fieldType" "any's type"
  * @param "mutable" "boolean"
- *    {@method "true"} if the field is mutable, {@method "false"} otherwise.
+ *        `true if the field is mutable, `false` otherwise.
  */
 Private method "generate_field accessor restriction for_:_(mutable=_)" is
 [
@@ -480,11 +508,11 @@ Private method "generate_field accessor restriction for_:_(mutable=_)" is
  *
  * @method "Generate and install_accessor for_"
  * @param "objectType" "object's type"
- *    An object type.
+ *        An object type.
  * @param "isMutable" "boolean"
- *    {@method "true"} if the field is mutable, {@method "false"} otherwise.
+ *        `true` if the field is mutable, `false` otherwise.
  * @param "fieldAtom" "atom"
- *    A field atom.
+ *        A field atom.
  */
 Private method "Generate and install_accessor for«mutable»?_" is
 [
@@ -568,9 +596,9 @@ Private method "Generate and install_accessor for«mutable»?_" is
  *
  * @method "referer name for_"
  * @param "fieldAtom" "atom"
- *    A field atom.
+ *        A field atom.
  * @returns "string"
- *    The name of the accessor.
+ *          The name of the accessor.
  */
 Private method "referer name for_" is
 [
@@ -624,9 +652,9 @@ Private method "Generate and install_referer for mutable_" is
  *
  * @method "mutator name for_"
  * @param "fieldAtom" "atom"
- *    A field atom.
+ *        A field atom.
  * @returns "string"
- *    The name of the mutator.
+ *          The name of the mutator.
  */
 Private method "mutator name for_" is
 [
@@ -690,9 +718,9 @@ Private method "Generate and install_mutator for mutable_" is
  * 
  * @method "reconstructor name for_"
  * @param "fieldAtoms" "<atom…|1..>"
- *    The atoms of the fields migrated by the reconstructor.
+ *        The atoms of the fields migrated by the reconstructor.
  * @returns "string"
- *    The appropriate method name.
+ *          The appropriate method name.
  */
 Private method "reconstructor name for_" is
 [
@@ -714,16 +742,17 @@ Private method "reconstructor name for_" is
  *
  * @method "_reconstructor arguments for_«(for semantic restriction)»?"
  * @param "objectType" "object's type"
- *    The object type.
+ *        The object type.
  * @param "fieldAtoms" "<atom…|1..>"
- *    The atoms of the fields migrated by the reconstructor.
+ *        The atoms of the fields migrated by the reconstructor.
  * @param "forSemanticRestriction" "boolean"
- *    {@method "true"} if the argument declarations should be generated for the
- *    semantic restriction, {@method "false"} if they should be generated for
- *    the method.
+ *        `true` if the argument declarations should be generated for
+ *        the semantic restriction, `false` if they should be
+ *        generated for the method.
  * @returns "<argument phrase…|2..>"
- *    The requested argument declarations. The first declaration is for the
- *    object type (or metatype) and the remaining correspond to the field atoms.
+ *          The requested argument declarations. The first declaration is for
+ *          the object type (or metatype) and the remaining correspond to the
+ *          field atoms.
  */
 Private method "_reconstructor arguments for_«(for semantic restriction)»?" is
 [
@@ -819,9 +848,9 @@ Private method "Generate and install_reconstructor for_" is
  *
  * @method "Generate and install_reconstructor's semantic restriction for_"
  * @param "objectType" "object's type"
- *    An object type.
+ *        An object type.
  * @param "fieldAtoms" "<atom…|1..>"
- *    A field atoms.
+ *        A field atoms.
  */
 Private method
 	"Generate and install_reconstructor's semantic restriction for_"
@@ -867,39 +896,39 @@ is
  *   \|«with mutable field|fields««public»?«shared»?«referable»?«read-only»?_:_‡,»»\
  *   \|«with reconstructor|reconstructors««public»?(«_‡,»)‡,»»"
  * @param "public" "boolean"
- *    {@method "true"} if the class should be exported by the defining module,
- *    {@method "false"} otherwise.
+ *        `true` if the class should be exported by the defining module, `false`
+ *        otherwise.
  * @param "explicit" "boolean"
- *    {@method "true"} if the class should have an artificial identity
- *    introduced (in order to ensure intentional provenance of subtypes),
- *    {@method "false"} otherwise.
+ *        `true` if the class should have an artificial identity introduced (in
+ *        order to ensure intentional provenance of subtypes), `false`
+ *        otherwise.
  * @param "className" "nonempty string"
- *    The name of the class. A method will be generated with this name. This
- *    method will answer the object type. The object type will also be
- *    christened with this name.
+ *        The name of the class. A method will be generated with this name. This
+ *        method will answer the object type. The object type will also be
+ *        christened with this name.
  * @param "supertype" "object's type"
- *    The supertype of the class. Type intersection may be used here to
- *    facilitate inheritance from multiple sources.
- * @param "optionalImmutable"
+ *        The supertype of the class. Type intersection may be used here to
+ *        facilitate inheritance from multiple sources.
+ * @param "optionalImmutable" 
  *        "<<<boolean, boolean, atom, any meta…|4>…|1..>…|0..1>"
- *    The extension fields of this class. An accessor will be generated for each
- *    field. A reconstructor will be generated for each field tagged as
- *    {@code reconstructible}. Each field tagged as {@code public} must be
- *    exported by the defining module.
+ *        The extension fields of this class. An accessor will be generated for
+ *        each field. A reconstructor will be generated for each field tagged as
+ *        {@code reconstructible}. Each field tagged as {@code public} must be
+ *        exported by the defining module.
  * @param "optionalMutable"
  *        "<<<boolean, boolean, boolean, boolean, atom, any meta…|6>…|1..>…|0..1>"
- *    The mutable fields of this class. An accessor will be generated for each
- *    field. A referer will be generated for each field tagged as
- *    {@code referable}. A mutator will be generated for each field not tagged
- *    as {@code read-only}. Each field tagged as {@code public} must have its
- *    accessor, referer, and mutator exported by the defining module. Each field
- *    tagged as {@code shared} will not be cloned (using a new variable) during
- *    reconstruction.
+ *        The mutable fields of this class. An accessor will be generated for
+ *        each field. A referer will be generated for each field tagged as 
+ *        {@code referable}. A mutator will be generated for each field not
+ *        tagged as {@code read-only}. Each field tagged as {@code public} must
+ *        have its accessor, referer, and mutator exported by the defining
+ *        module. Each field tagged as {@code shared} will not be cloned (using
+ *        a new variable) during reconstruction.
  * @param "optionalReconstructors"
  *        "<<<boolean, <atom…|1..>…|2>…|1..>…|0..1>"
- *    The reconstructors of this class. A reconstructor will be generated for
- *    each specification tuple. Each reconstructor tagged as {@code public} must
- *    be exported by the defining module.
+ *        The reconstructors of this class. A reconstructor will be generated
+ *        for each specification tuple. Each reconstructor tagged as {@code
+ *        public} must be exported by the defining module.
  */
 Public method
 	"«Public»?«Explicit|explicit»?\
@@ -1302,16 +1331,17 @@ is
  *
  * @method "a|an_«with«_::=_‡,»»"
  * @param "objectType" "object's type"
- *    An object type that must be a supertype of the answer.
+ *        An object type that must be a supertype of the answer.
  * @param "optional" "<<<atom, boolean, any…|3>…|1..>…|0..1>"
- *    A tuple of field assignments. The outermost tuple may be empty (but only
- *    to support the case that {@code objectType = object}), but usually
- *    contains a single tuple of field assignments. A field assignment is a
- *    3-tuple that consists of 1) an atom that uniquely identifies the field,
- *    2) a boolean that is {@method "true"} if the field is mutable and a
- *    variable should be created and initialized, and 3) the field value.
+ *        A tuple of field assignments. The outermost tuple may be empty (but
+ *        only  to support the case that {@code objectType = object}), but
+ *        usually contains a single tuple of field assignments. A field
+ *        assignment is a 3-tuple that consists of 1) an atom that uniquely
+ *        identifies the field, 2) a boolean that is `true` if the field is
+ *        mutable and a variable should be created and initialized, and 3) the
+ *        field value.
  * @returns "object"
- *    The requested object type.
+ *          The requested object type.
  */
 Public method "a|an_«with«_«:»?:=_‡,»»" is
 [
@@ -1534,15 +1564,15 @@ Semantic restriction "a|an_«with«_«:»?:=_‡,»»" is
  *
  * @method "_as_«with«_::=_‡,»»"
  * @param "instance" "object"
- *    An object.
+ *        An object.
  * @param "objectType" "object's type"
- *    An object type that must be a supertype of the answer.
+ *        An object type that must be a supertype of the answer.
  * @param "optional" "<<<atom, any…|2>…|1..>…|0..1>"
- *    An optional tuple of field assignments. A field assignment is a 2-tuple
- *    that consists of 1) an atom that uniquely identifies the field and 2) the
- *    field value.
+ *        An optional tuple of field assignments. A field assignment is a
+ *        2-tuple that consists of 1) an atom that uniquely identifies the field
+ *        and 2) the field value.
  * @returns "object"
- *    The requested object type.
+ *          The requested object type.
  */
 Public method "_as_«with«_::=_‡,»»" is
 [
