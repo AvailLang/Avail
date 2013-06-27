@@ -1423,14 +1423,7 @@ Public stable method "_to_" is
 	start : integer,
 	end : integer
 |
-	accumulator : <integer…|> := <>;
-	From start to end do
-	[
-		value : integer
-	|
-		accumulator := eject ↑accumulator ++ <value>;
-	];
-	accumulator
+	start to end by 1
 ] : <integer…|>;
 
 /**
@@ -1504,45 +1497,6 @@ Semantic restriction "_to_" is
 		<<>, [min..max + 1)…|sizes>
 	]
 ];
-
-/**
- * Construct and answer an interval including elements that lie between {@param
- * "start"} and {@param "end"}. The actual values included are those which
- * differ from {@param "start"} by a multiple of {@param "delta"}. If {@param
- * "delta"} is positive, then the result will include no values greater than
- * {@param "end"}; if {@param "delta"} is negative, then the result will include
- * no values less than {@param "end"}.
- *
- * @method "_to_by_"
- * @param "start" "integer"
- *        The first value of the resulting tuple.
- * @param "end" "integer"
- *        The largest (or smallest) allowed value of the resulting tuple. It
- *        will not be the last value of the resulting tuple unless the
- *        difference between {@param "start"} and {@param "end"} is a multiple
- *        of {@param "delta"}.
- * @param "delta" "integer"
- *        The difference between two successive elements of the resulting tuple.
- * @returns "tuple"
- *          A tuple containing elements on the specified interval.
- * @raises "incorrect-argument-type"
- *         If {@param "delta"} is {@code 0}.
- */
-Public stable method "_to_by_" is
-[
-	start : integer,
-	end : integer,
-	delta : integer
-|
-	accumulator : <integer…|> := <>;
-	From start to end by delta do
-	[
-		value : integer
-	|
-		accumulator := eject ↑accumulator ++ <value>;
-	];
-	accumulator
-] : <integer…|>;
 
 /**
  * @method "_to_by_"

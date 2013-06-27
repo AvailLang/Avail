@@ -1337,4 +1337,15 @@ public interface A_BasicObject
 		int endIndex1,
 		A_Tuple aByteBufferTuple,
 		int startIndex2);
+
+	/**
+	 * @return
+	 */
+	boolean isIntegerIntervalTuple ();
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	boolean equalsIntegerIntervalTuple (A_Tuple object);
 }

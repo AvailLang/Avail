@@ -898,9 +898,8 @@ public final class AvailRuntime
 		specials[137] = VariableTypeDescriptor.fromReadAndWriteTypes(
 			TupleTypeDescriptor.mostGeneralType(),
 			BottomTypeDescriptor.bottom());
-		specials[138] = VariableTypeDescriptor.fromReadAndWriteTypes(
-			MapTypeDescriptor.mostGeneralType(),
-			BottomTypeDescriptor.bottom());
+		specials[138] = TupleTypeDescriptor.zeroOrMoreOf(
+			IntegerRangeTypeDescriptor.integers());
 		specials[139] = TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 			IntegerRangeTypeDescriptor.create(
 				IntegerDescriptor.fromInt(2), true,
