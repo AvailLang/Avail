@@ -76,19 +76,48 @@ Public stable forward method "-_" is [number]→number;
 
 	sumAndProduct ::= sum ∪ product;
 
-	/* Establish the standard grammatical rules for arithmetic. */
+	/**
+	 * Establish the standard grammatical rules for arithmetic.
+	 * 
+	 * @method "_×_"
+	 * @method "_÷_"
+	 * @method "_mod_"
+	 * @forbids "1" "_+_" "_-_"
+	 * @forbids "2" "_×_" "_÷_" "_mod_" "_+_" "_-_"
+	 */
 	Grammatical restriction product is <sum, sumAndProduct>;
+	
+	/**
+	 * @method "-_"
+	 * @forbids "1" "_×_" "_÷_" "_mod_" "_+_" "_-_" "-_" "«_‡max»" "«_‡min»" "∞"
+	 */
 	Grammatical restriction negation is
 		<sumAndProduct ∪ negation ∪ ext ∪ {"∞"}>;
 
-	/* Establish the precedence of exponentiation. */
+	/**
+	 * Establish the precedence of exponentiation.
+	 * 
+	 * @method "_^_"
+	 * @forbids "1" "_×_" "_÷_" "_mod_" "_+_" "_-_" "-_" "_^_"
+	 * @forbids "2" "_×_" "_÷_" "_mod_" "_+_" "_-_"
+	 */
 	Grammatical restriction power is
 		<sum ∪ product ∪ negation ∪ power, sum ∪ product>;
 
-	/* Forbid nesting of absolute value. */
+	/**
+	 * Forbid nesting of absolute value.
+	 * 
+	 * @method "`|_`|"
+	 * @forbids "1" "`|_`|"
+	 */
 	Grammatical restriction abs is <abs>;
 
-	/* Forbid nesting of floor and ceiling. */
+	/**
+	 * Forbid nesting of floor and ceiling.
+	 * @method "⎣_⎦"
+	 * @method "⎡_⎤"
+	 * @forbids "1" "⎣_⎦" "⎡_⎤"
+	 */
 	Grammatical restriction bounds is <bounds>;
 
 	/**
@@ -143,10 +172,11 @@ Semantic restriction "_mod_" is type promotion function for
  * but the associated semantic restriction effectively overcomes this limitation
  * (for literal arguments).
  * 
- * Parameters:
- *    a - A number.
- * Returns:
- *    The negation of the argument.
+ * @method "-_"
+ * @param "a" "number"
+ *        A number.
+ * @returns "number"
+ *          The negation of the argument.
  */
 Method "-_" is
 [
@@ -160,10 +190,8 @@ Method "-_" is
  * particular, an instance type will result in a precise answer that has the
  * same force as a literal.
  * 
- * Parameters:
- *    a - A numeric type.
- * Returns:
- *    The strongest possible type.
+ * @method "-_"
+ * @restricts "number's type"
  */
 Semantic restriction "-_" is
 [
@@ -199,10 +227,11 @@ Stable abstract method "⎣_⎦" is [number]→number;
  * Compute and answer the floor of the argument. Note that integers and
  * infinities are their own floors.
  * 
- * Parameters:
- *    value - An integral value.
- * Returns:
- *    The argument.
+ * @method "⎣_⎦"
+ * @param "value" "extended integer"
+ *        An integral value.
+ * @returns "extended integer"
+ *          The argument.
  */
 Method "⎣_⎦" is
 [
@@ -214,10 +243,8 @@ Method "⎣_⎦" is
 /**
  * Integers and infinities are their own floors.
  *
- * Parameters:
- *    valueType - An integral type.
- * Returns:
- *    The argument.
+ * @method "⎣_⎦"
+ * @restricts "extended integer's type"
  */
 Semantic restriction "⎣_⎦" is
 [
@@ -232,10 +259,11 @@ Stable abstract method "⎡_⎤" is [number]→number;
  * Compute and answer the ceiling of the argument. Note that integers and
  * infinities are their own ceilings.
  * 
- * Parameters:
- *    value - An integral value.
- * Returns:
- *    The argument.
+ * @method "⎡_⎤"
+ * @param "value" "extended integer"
+ *        An integral value.
+ * @returns "extended integer"
+ *          The argument.
  */
 Method "⎡_⎤" is
 [
@@ -247,10 +275,8 @@ Method "⎡_⎤" is
 /**
  * Integers and infinities are their own ceilings.
  *
- * Parameters:
- *    valueType - An integral type.
- * Returns:
- *    The argument.
+ * @method "⎡_⎤"
+ * @restricts "extended integer's type"
  */
 Semantic restriction "⎡_⎤" is
 [
@@ -262,11 +288,13 @@ Semantic restriction "⎡_⎤" is
 /**
  * Compute and answer the remainder after dividing the dividend by the divisor.
  * 
- * Parameters:
- *    dividend - The dividend.
- *    divisor - The divisor.
- * Returns:
- *    The remainder.
+ * @method "_mod_"
+ * @param "dividend" "number"
+ *        The dividend.
+ * @param "divisor" "number"
+ *        The divisor.
+ * @returns "number"
+ *          The remainder.
  */
 Method "_mod_" is
 [
@@ -279,11 +307,12 @@ Method "_mod_" is
 /**
  * Compute and answer the remainder after dividing the dividend by the divisor.
  * 
- * Parameters:
- *    dividend - The dividend.
- *    divisor - ∞.
- * Returns:
- *    The dividend.
+ * @method "_mod_"
+ * @param "dividend" "extended integer"
+ *        The dividend.
+ * @param "divisor" "∞'s type"
+ * @returns "extended integer"
+ *          The dividend.
  */
 Method "_mod_" is
 [
@@ -296,10 +325,11 @@ Method "_mod_" is
 /**
  * Is the argument odd?
  * 
- * Parameters:
- *    a - An integer.
- * Returns:
- *    `true` if the argument is odd, `false` otherwise.
+ * @method "_is odd"
+ * @param "a" "integer"
+ *        An integer.
+ * @returns "boolean"
+ *          `true` if the argument is odd, `false` otherwise.
  */
 Public stable method "_is odd" is
 [
@@ -311,10 +341,11 @@ Public stable method "_is odd" is
 /**
  * Is the argument even?
  * 
- * Parameters:
- *    a - An integer.
- * Returns:
- *    `true` if the argument is even, `false` otherwise.
+ * @method "_is even"
+ * @param "a" "integer"
+ *        An integer.
+ * @returns "boolean"
+ *          `true` if the argument is even, `false` otherwise.
  */
 Public stable method "_is even" is
 [
@@ -326,10 +357,12 @@ Public stable method "_is even" is
 /**
  * Compute and answer the integer range type of the sum of the argument types.
  * 
- * Parameters:
- *    a - An integral type.
- *    b - An integral type.
- * Returns:
+ * @method "_+_"
+ * @param "a" "extended integer's type"
+ *        An integral type.
+ * @param "b" "extended integer's type"
+ *        An integral type.
+ * @returns 
  *    The narrowest integer range type general enough to hold all possible
  *    sums of the arguments' instances.
  */
@@ -355,9 +388,11 @@ Method "_+_" is
  * Compute and answer the integer range type of the product of the argument
  * types.
  * 
- * Parameters:
- *    a - An integral type.
- *    b - An integral type.
+ * @method "_×_"
+ * @param "a" "extended integer's type"
+ *        An integral type.
+ * @param "b" "extended integer's type"
+ *        An integral type.
  * Returns:
  *    The narrowest integer range type general enough to hold all possible
  *    products of the arguments' instances.
@@ -443,8 +478,9 @@ Method "_×_" is
 /**
  * Compute and answer the negation of the specified integral type.
  * 
- * Parameters:
- *    a - An integral type.
+ * @method "-_"
+ * @param "a" "extended integer's type"
+ *        An integral type.
  * Returns:
  *    The negation of the argument, e.g., the negation of [3..5] is [-5..-3].
  */
@@ -458,10 +494,8 @@ Public method "-_" is
 /**
  * Strengthen negation.
  * 
- * Parameters:
- *    a - An integral type.
- * Returns:
- *    The negation of the argument.
+ * @method "-_"
+ * @restricts "extended integer's type"
  */
 Semantic restriction "-_" is
 [
@@ -474,9 +508,11 @@ Semantic restriction "-_" is
  * Compute and answer the integer range type of the difference of the argument
  * types.
  * 
- * Paramters:
- *    a - An integral type.
- *    b - An integral type.
+ * @method "_-_"
+ * @param "a" "extended integer's type"
+ *        An integral type.
+ * @param "b" "extended integer's type"
+ *        An integral type.
  * Returns:
  *    The narrowest integer range type general enough to hold all possible
  *    differences of the arguments' instances.
@@ -492,12 +528,9 @@ Method "_-_" is
 /**
  * Compute and answer the integer range type of the sum of the argument types.
  * 
- * Parameters:
- *    a - An integral type.
- *    b - An integral type.
- * Returns:
- *    The narrowest integer range type general enough to hold all possible
- *    sums of the arguments' instances.
+ * @method "_+_"
+ * @restricts "extended integer's type"
+ * @restricts "extended integer's type"
  */
 Semantic restriction "_+_" is
 [
@@ -520,12 +553,9 @@ Semantic restriction "_+_" is
  * Compute and answer the integer range type of the difference of the argument
  * types.
  * 
- * Parameters:
- *    a - An integral type.
- *    b - An integral type.
- * Returns:
- *    The narrowest integer range type general enough to hold all possible
- *    differences of the arguments' instances.
+ * @method "_-_"
+ * @restricts "extended integer's type"
+ * @restricts "extended integer's type"
  */
 Semantic restriction "_-_" is
 [
@@ -549,12 +579,9 @@ Semantic restriction "_-_" is
  * Compute and answer the integer range type of the product of the argument
  * types.
  * 
- * Parameters:
- *    a - An integral type.
- *    b - An integral type.
- * Returns:
- *    The narrowest integer range type general enough to hold all possible
- *    products of the arguments' instances.
+ * @method "_×_"
+ * @restricts "extended integer's type"
+ * @restricts "extended integer's type"
  */
 Semantic restriction "_×_" is
 [
@@ -567,9 +594,11 @@ Semantic restriction "_×_" is
 /**
  * Compute and answer the integer range type of the quotient.
  * 
- * Parameters:
- *    numeratorRange - An integral type.
- *    denomintor - An integer.
+ * @method 
+ * @param "numeratorRange" "extended integer's type"
+ *        An integral type.
+ * @param "denomintor" "extended integer"
+ *        An integer.
  * Returns:
  *    The narrowest integer range type general enough to hold all possible
  *    quotients of `numeratorRange`'s instances and `denominator`.
@@ -619,9 +648,11 @@ Method "_÷_" is
 /**
  * Compute and answer the integer range type of the quotient.
  * 
- * Parameters:
- *    numeratorRange - An integral type.
- *    denomintor - An integral type.
+ * @method 
+ * @param "numeratorRange" "extended integer's type"
+ *        An integral type.
+ * @param "denomintor" "extended integer's type"
+ *        An integral type.
  * Returns:
  *    The narrowest integer range type general enough to hold all possible
  *    quotients of `numeratorRange`'s instances and `denominator`.
@@ -666,12 +697,9 @@ Method "_÷_" is
  * Compute and answer the integer range type of the quotient of the argument
  * types.
  * 
- * Parameters:
- *    a - An integral type.
- *    b - An integral type.
- * Returns:
- *    The narrowest integer range type general enough to hold all possible
- *    quotients of the arguments' instances.
+ * @method "_÷_"
+ * @restricts "extended integer's type"
+ * @restricts "extended integer's type"
  */
 Semantic restriction "_÷_" is
 [
@@ -685,12 +713,9 @@ Semantic restriction "_÷_" is
  * Compute and answer the integer range type of the remainder of the argument
  * types.
  * 
- * Parameters:
- *    a - An integral type.
- *    b - An integral type.
- * Returns:
- *    The narrowest integer range type general enough to hold all possible
- *    remainders of the arguments' instances.
+ * @method "_mod_"
+ * @restricts "extended integer's type"
+ * @restricts "extended integer's type"
  */
 Semantic restriction "_mod_" is
 [
@@ -733,16 +758,22 @@ Breakpoint;
 
 
 
-/* Disambiguate `_→_` and several conversion operations. */
+/**
+ * Disambiguate `_→_` and several conversion operations.
+ * 
+ * @method "_→_"
+ * @forbids "1" "double" "extended integer" "float"
+ */
 Grammatical restriction "_→_" is <∅, {"double", "extended integer", "float"}>;
 
 /**
  * Compute and answer the absolute value of the argument.
  * 
- * Parameters:
- *    a - A number.
- * Returns:
- *    The absolute value of `a`.
+ * @method "`|_`|"
+ * @param "a" "number"
+ *        A number.
+ * @returns "number"
+ *          The absolute value of `a`.
  */
 Stable method "`|_`|" is
 [
@@ -754,10 +785,8 @@ Stable method "`|_`|" is
 /**
  * Preserve the numeric type of the argument.
  * 
- * Parameter:
- *    a - `double`.
- * Returns:
- *    `double`.
+ * @method "`|_`|"
+ * @restricts "double's type"
  */
 Semantic restriction "`|_`|" is
 [
@@ -769,10 +798,8 @@ Semantic restriction "`|_`|" is
 /**
  * Preserve the numeric type of the argument.
  * 
- * Parameter:
- *    a - `float`.
- * Returns:
- *    `float`.
+ * @method "`|_`|"
+ * @restricts "float's type"
  */
 Semantic restriction "`|_`|" is
 [
@@ -784,11 +811,8 @@ Semantic restriction "`|_`|" is
 /**
  * Strengthen the absolute value operation for integral types.
  * 
- * Parameters:
- *    a - An integral type.
- * Returns:
- *    A positive integer range that includes the absolute values of all
- *    instances of `a`.
+ * @method "`|_`|"
+ * @restricts "extended integer's type"
  */
 Semantic restriction "`|_`|" is
 [
@@ -811,13 +835,14 @@ predicates ::=
  * Compute and answer the boolean value of the sequence of equals, less than or
  * equal, and less than operators.
  * 
- * Parameters:
- *    args - A tuple whose elements are a sequence of 2-tuples following by an
- *       ending 1-tuple. The first element of these 1,2-tuples is a number.
- *       If present, the second element will be an integer in the range [1..3]
- *       to indicate =, ≤, or <, respectively, as the comparison to be checked
- *       with the next number.
- * Returns:
+ * @method "«_‡«=|≤|<»!»"
+ * @param "args" "<<number, [1..3]…|1..2>…|3..∞>"
+ *        A tuple whose elements are a sequence of 2-tuples following by an
+ *        ending 1-tuple. The first element of these 1,2-tuples is a number.
+ *        If present, the second element will be an integer in the range [1..3]
+ *        to indicate =, ≤, or <, respectively, as the comparison to be checked
+ *        with the next number.
+ * @returns "boolean"
  *    `true` if the entire chain of comparisons is true, `false` otherwise.
  */
 Public method "«_‡«=|≤|<»!»" is
@@ -852,6 +877,9 @@ Public method "«_‡«=|≤|<»!»" is
  * operator (i.e., only "=").  It always rejects the parse if it's just a chain
  * of equalities, since there's a separate operator for that which can deal with
  * non-numerics.
+ * 
+ * @method "comparison chain semantic restriction function"
+ * 
  */
 Private method "comparison chain semantic restriction function" is
 [
@@ -863,6 +891,10 @@ Private method "comparison chain semantic restriction function" is
 	]
 ];
 
+/**
+ * @method "«_‡«=|≤|<»!»"
+ * @restricts "<<any, [1..1]…|1..2>…|3..∞>'s type"
+ */
 Semantic restriction "«_‡«=|≤|<»!»" is
 	comparison chain semantic restriction function;
 
@@ -870,18 +902,20 @@ Semantic restriction "«_‡«=|≤|<»!»" is
  * Compute and answer the boolean value of the sequence of equals, greater than
  * or equal, and greater than operators.
  * 
- * Parameters:
- *    args - A tuple whose elements are a sequence of 4-tuples following by an
- *       ending 1-tuple. The first element of these 1,4-tuples is a number.
- *       If present, the second element will be a boolean that indicates that
- *       this number should be checked for equality with the next number. If
- *       present, the third element will be a boolean that indicates that this
- *       number should be compared against the next number to see if it is
- *       greater than or equal. If present, the fourth element will be a boolean
- *       that indicates this this number should be compared against the next
- *       number to see if it is strictly greater.
- * Returns:
- *    `true` if the entire chain of comparisons is true, `false` otherwise.
+ * @method "«_‡«=|≥|>»!»"
+ * @param "args" "<<number, [1..3]…|1..2>…|3..∞>"
+ *        A tuple whose elements are a sequence of 4-tuples following by an
+ *        ending 1-tuple. The first element of these 1,4-tuples is a number.
+ *        If present, the second element will be a boolean that indicates that
+ *        this number should be checked for equality with the next number. If
+ *        present, the third element will be a boolean that indicates that this
+ *        number should be compared against the next number to see if it is
+ *        greater than or equal. If present, the fourth element will be a boolean
+ *        that indicates this this number should be compared against the next
+ *        number to see if it is strictly greater.
+ * @returns "boolean"
+ *          `true` if the entire chain of comparisons is true, `false`
+ *          otherwise.
  */
 Public method "«_‡«=|≥|>»!»" is
 [
@@ -909,17 +943,23 @@ Public method "«_‡«=|≥|>»!»" is
 	result
 ];
 
+/**
+ * @method "«_‡«=|≥|>»!»"
+ * @restricts "<<any, [1..1]…|1..2>…|3..∞>'s type"
+ */
 Semantic restriction "«_‡«=|≥|>»!»" is
 	comparison chain semantic restriction function;
 
 /**
  * Calculate the logarithm of the specified number to the specified base.
  * 
- * Parameters:
- *    b - The logarithm base to use.
- *    n - The number whose logarithm should be computed.
- * Returns:
- *    The logarithm of `n` to base `b`.
+ * @method "log_of_"
+ * @param "b" "float"
+ *        The logarithm base to use.
+ * @param "n" "float"
+ *        The number whose logarithm should be computed.
+ * @returns "float"
+ *          The logarithm of `n` to base `b`.
  */
 Public stable method "log_of_" is
 [
@@ -932,11 +972,13 @@ Public stable method "log_of_" is
 /**
  * Calculate the logarithm of the specified number to the specified base.
  * 
- * Parameters:
- *    b - The logarithm base to use.
- *    n - The number whose logarithm should be computed.
- * Returns:
- *    The logarithm of `n` to base `b`.
+ * @method "log_of_"
+ * @param "b" "double"
+ *        The logarithm base to use.
+ * @param "n" "double"
+ *        The number whose logarithm should be computed.
+ * @returns "double"
+ *          The logarithm of `n` to base `b`.
  */
 Stable method "log_of_" is
 [
@@ -960,12 +1002,9 @@ Public method "π" is [3.141592653589793];
 /**
  * Strengthen the result type of bitshift.
  *
- * Parameters:
- *    baseInteger - An integer to shift.
- *    shiftFactor - How many bit positions by which to shift left (negative for
- *       a right shift).
- * Returns:
- *    The value baseInteger * (2<sup>shiftFactor</sup>).
+ * @method "_<<_"
+ * @restricts "baseIntegerType" "integer's type"
+ * @restricts "shiftFactorType" "integer's type"
  */
 Semantic restriction "_<<_" is
 [
@@ -1081,6 +1120,10 @@ Private forward method "_positive range pairs"
 /**
  * Compute the ranges as for "_range pairs" (below), but with the knowledge that
  * the range is whole number or a subtype.
+ * 
+ * @method "_positive range pairs"
+ * @param "range" "whole number's type"
+ * @returns "<whole number's type…|0..∞>"
  */
 Private method "_positive range pairs" is
 [
@@ -1178,6 +1221,10 @@ Private method "_positive range pairs" is
  * the upper end must be one less than the negation of a power of two.
  * 
  * Produce the minimum number of such ranges.
+ * 
+ * @method "_range pairs"
+ * @param "range" "integer's type"
+ * @returns "<extended integer's type…|0..∞>"
  */
 Private method "_range pairs" is
 [
@@ -1217,6 +1264,10 @@ Assert: {-6, 4, 5, 6, 7}ᵀ range pairs = <[-6..-5], [-4..-1], [0..7]>;
 
 /**
  * Strengthen bitwise-and operation.
+ * 
+ * @method "_bit∧_"
+ * @restricts "integer's type"
+ * @restricts "integer's type"
  */
 Semantic restriction "_bit∧_" is
 [
@@ -1353,15 +1404,10 @@ Assert: 15 bit∧ 30 = 14;
  * shift B to the left by S bits (treating a negative factor as a right shift),
  * then truncate the result to the bottom T bits by zeroing the rest.
  *
- * Parameters:
- *    baseInteger - A non-negative integer to shift and mask.
- *    shiftFactor - How many bit positions to shift left by (negative for a
- *       right shift).
- *    truncationBits - The number of low-order bits to preserve after the shift
- *       (must be ≥ 0).
- * Returns:
- *    The value baseInteger * (2<sup>shiftFactor</sup>) mod
- *    (2<sup>truncationBits</sup>).
+ * @method "_<<_keeping_bits"
+ * @restricts "whole number's type"
+ * @restricts "integer's type"
+ * @restricts "whole number's type"
  */
 Semantic restriction "_<<_keeping_bits" is
 [

@@ -1008,8 +1008,8 @@ Stable method "_→extended integer" is
  * @param "s1" "string"
  * @param "s2" "string"
  * @returns "boolean"
- *          {@method "true"} if {@param "s1"} collates before {@param "s2"},
- *          {@method "false"} otherwise.
+ *          `true` if {@param "s1"} collates before {@param "s2"},
+ *          `false` otherwise.
  */
 Method "_≤_" is
 [
@@ -1036,8 +1036,8 @@ Method "_≤_" is
  * @param "s1" "string"
  * @param "s2" "string"
  * @returns "boolean"
- *          {@method "true"} if {@param "s1"} collates strictly before
- *          {@param "s2"}, {@method "false"} otherwise.
+ *          `true` if {@param "s1"} collates strictly before
+ *          {@param "s2"}, `false` otherwise.
  */
 Method "_<_" is
 [
@@ -1054,8 +1054,8 @@ Method "_<_" is
  * @param "s1" "string"
  * @param "s2" "string"
  * @returns "boolean"
- *          {@method "true"} if {@param "s1"} collates after {@param "s2"},
- *          {@method "false"} otherwise.
+ *          `true` if {@param "s1"} collates after {@param "s2"},
+ *          `false` otherwise.
  */
 Method "_≥_" is
 [
@@ -1082,8 +1082,8 @@ Method "_≥_" is
  * @param "s1" "string"
  * @param "s2" "string"
  * @returns "boolean"
- *          {@method "true"} if {@param "s1"} collates strictly after
- *          {@param "s2"}, {@method "false"} otherwise.
+ *          `true` if {@param "s1"} collates strictly after
+ *          {@param "s2"}, `false` otherwise.
  */
 Method "_>_" is
 [
