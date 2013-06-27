@@ -32,6 +32,7 @@
 package com.avail.interpreter.levelTwo.operation;
 
 import static com.avail.interpreter.Interpreter.*;
+import static com.avail.interpreter.levelTwo.L1InstructionStepper.*;
 import static com.avail.interpreter.levelTwo.register.FixedRegister.*;
 import com.avail.descriptor.A_Continuation;
 import com.avail.interpreter.Interpreter;

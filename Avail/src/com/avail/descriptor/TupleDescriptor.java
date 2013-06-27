@@ -974,7 +974,7 @@ extends Descriptor
 	}
 
 	@Override
-	boolean o_ShowValueInNameForDebugger (final A_BasicObject object)
+	boolean o_ShowValueInNameForDebugger (final AvailObject object)
 	{
 		return object.isString();
 	}

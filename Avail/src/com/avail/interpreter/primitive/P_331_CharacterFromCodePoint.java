@@ -52,7 +52,8 @@ public class P_331_CharacterFromCodePoint extends Primitive
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,
-		final Interpreter interpreter)
+		final Interpreter interpreter,
+		final boolean skipReturnCheck)
 	{
 		assert args.size() == 1;
 		final A_Number codePoint = args.get(0);

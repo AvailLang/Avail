@@ -56,7 +56,8 @@ public class P_505_BindPojoStaticField extends Primitive
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,
-		final Interpreter interpreter)
+		final Interpreter interpreter,
+		final boolean skipReturnCheck)
 	{
 		assert args.size() == 2;
 		final A_Type pojoType = args.get(0);

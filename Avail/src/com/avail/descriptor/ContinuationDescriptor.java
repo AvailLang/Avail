@@ -87,21 +87,34 @@ extends Descriptor
 
 
 		/**
+		 * A flag that indicates that this continuation does not need to check
+		 * its return type when it returns.  This is not a property of the
+		 * {@linkplain FunctionDescriptor function} or {@linkplain
+		 * CompiledCodeDescriptor raw function}, but instead depends on the
+		 * relationship between the type guaranteed by the function and the type
+		 * expected at the call site.
+		 */
+		public static BitField SKIP_RETURN_CHECK = bitField(
+			PROGRAM_COUNTER_AND_STACK_POINTER,
+			31,
+			1);
+
+		/**
 		 * The index into the current continuation's {@linkplain
 		 * ObjectSlots#FUNCTION function's} compiled code's tuple of nybblecodes
 		 * at which execution will next occur.
 		 */
-		static BitField PROGRAM_COUNTER = bitField(
+		public static BitField PROGRAM_COUNTER = bitField(
 			PROGRAM_COUNTER_AND_STACK_POINTER,
 			16,
-			16);
+			15);
 
 		/**
 		 * An index into this continuation's {@linkplain ObjectSlots#FRAME_AT_
 		 * frame slots}.  It grows from the top + 1 (empty stack), and at its
 		 * deepest it just abuts the last local variable.
 		 */
-		static BitField STACK_POINTER = bitField(
+		public static BitField STACK_POINTER = bitField(
 			PROGRAM_COUNTER_AND_STACK_POINTER,
 			0,
 			16);
@@ -378,7 +391,7 @@ extends Descriptor
 	}
 
 	@Override
-	public boolean o_ShowValueInNameForDebugger (final A_BasicObject object)
+	public boolean o_ShowValueInNameForDebugger (final AvailObject object)
 	{
 		return false;
 	}
@@ -389,22 +402,38 @@ extends Descriptor
 		return SerializerOperation.CONTINUATION;
 	}
 
+	@Override
+	public boolean o_SkipReturnFlag (final AvailObject object)
+	{
+		return object.slot(SKIP_RETURN_CHECK) != 0;
+	}
+
 	/**
 	 * Create a new continuation with the given data.  The continuation should
 	 * represent the state upon entering the new context - i.e., set the pc to
 	 * the first instruction, clear the stack, and set up all local variables.
 	 *
-	 * @param function The function being invoked.
-	 * @param caller The calling continuation.
-	 * @param startingChunk The level two chunk to invoke.
-	 * @param startingOffset The offset into the chunk at which to resume.
-	 * @param args The {@link List} of arguments
-	 * @param locals The {@link List} of (non-argument) local variables.
+	 * @param function
+	 *            The function being invoked.
+	 * @param caller
+	 *            The calling continuation.
+	 * @param skipReturnCheck
+	 *            Whether it's safe to skip type checking the return result from
+	 *            this continuation.
+	 * @param startingChunk
+	 *            The level two chunk to invoke.
+	 * @param startingOffset
+	 *            The offset into the chunk at which to resume.
+	 * @param args
+	 *            The {@link List} of arguments
+	 * @param locals
+	 *            The {@link List} of (non-argument) local variables.
 	 * @return The new continuation.
 	 */
 	public static A_Continuation create (
 		final AvailObject function,
 		final AvailObject caller,
+		final boolean skipReturnCheck,
 		final L2Chunk startingChunk,
 		final int startingOffset,
 		final List<AvailObject> args,
@@ -417,6 +446,7 @@ extends Descriptor
 		cont.setSlot(FUNCTION, function);
 		cont.setSlot(PROGRAM_COUNTER, 1);
 		cont.setSlot(STACK_POINTER, frameSize + 1);
+		cont.setSlot(SKIP_RETURN_CHECK, skipReturnCheck ? 1 : 0);
 		cont.levelTwoChunkOffset(startingChunk, startingOffset);
 		for (int i = code.numArgsAndLocalsAndStack(); i >= 1; i--)
 		{
@@ -444,13 +474,21 @@ extends Descriptor
 	 * Create a mutable continuation with the specified fields.  Leave the stack
 	 * frame slots uninitialized.
 	 *
-	 * @param function The function being invoked/resumed.
-	 * @param caller The calling continuation of this continuation.
-	 * @param pc The level one program counter.
-	 * @param stackp The level one stack depth register.
-	 * @param levelTwoChunk The level two chunk to execute.
-	 * @param levelTwoOffset The level two chunk offset at which to resume.
-	 *
+	 * @param function
+	 *            The function being invoked/resumed.
+	 * @param caller
+	 *            The calling continuation of this continuation.
+	 * @param pc
+	 *            The level one program counter.
+	 * @param stackp
+	 *            The level one operand stack depth.
+	 * @param skipReturnCheck
+	 *            Whether it's safe to skip type checking the return result from
+	 *            this continuation.
+	 * @param levelTwoChunk
+	 *            The {@linkplain L2Chunk level two chunk} to execute.
+	 * @param levelTwoOffset
+	 *            The level two chunk offset at which to resume.
 	 * @return A new mutable continuation.
 	 */
 	public static A_Continuation createExceptFrame (
@@ -458,6 +496,7 @@ extends Descriptor
 		final A_Continuation caller,
 		final int pc,
 		final int stackp,
+		final boolean skipReturnCheck,
 		final L2Chunk levelTwoChunk,
 		final int levelTwoOffset)
 	{
@@ -468,6 +507,7 @@ extends Descriptor
 		continuation.setSlot(FUNCTION, function);
 		continuation.setSlot(PROGRAM_COUNTER, pc);
 		continuation.setSlot(STACK_POINTER, stackp);
+		continuation.setSlot(SKIP_RETURN_CHECK, skipReturnCheck ? 1 : 0);
 		continuation.setSlot(LEVEL_TWO_CHUNK, levelTwoChunk.chunkPojo);
 		continuation.setSlot(LEVEL_TWO_OFFSET, levelTwoOffset);
 		return continuation;
@@ -610,8 +650,9 @@ extends Descriptor
 						}
 						final A_Module module = code.module();
 						strings[frameIndex] = String.format(
-							"#%d: %s [%s] (%s:%d)",
+							"#%d%s: %s [%s] (%s:%d)",
 							lines - frameIndex,
+							frame.skipReturnFlag() ? "(*)" : "",
 							code.methodName().asNativeString(),
 							signatureBuilder.toString(),
 							module.equalsNil()

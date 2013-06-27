@@ -61,7 +61,8 @@ public class P_507_InvokeInstancePojoMethod extends Primitive
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,
-		final Interpreter interpreter)
+		final Interpreter interpreter,
+		final boolean skipReturnCheck)
 	{
 		assert args.size() == 4;
 		final A_BasicObject methodPojo = args.get(0);

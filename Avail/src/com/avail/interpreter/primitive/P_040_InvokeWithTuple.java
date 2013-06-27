@@ -56,7 +56,8 @@ public class P_040_InvokeWithTuple extends Primitive
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,
-		final Interpreter interpreter)
+		final Interpreter interpreter,
+		final boolean skipReturnCheck)
 	{
 		assert args.size() == 2;
 		final A_Function block = args.get(0);
@@ -81,7 +82,7 @@ public class P_040_InvokeWithTuple extends Primitive
 			//  Transfer the argument into callArgs.
 			callArgs.add(anArg);
 		}
-		return interpreter.invokeFunction(block, callArgs);
+		return interpreter.invokeFunction(block, callArgs, false);
 	}
 
 	@Override

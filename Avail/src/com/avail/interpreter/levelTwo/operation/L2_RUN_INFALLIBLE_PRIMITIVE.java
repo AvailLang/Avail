@@ -94,10 +94,13 @@ public class L2_RUN_INFALLIBLE_PRIMITIVE extends L2Operation
 		// a level one unsafe operation and then switch back to level one safe
 		// mode) must *never* be inlined, otherwise they couldn't reach a safe
 		// inter-nybblecode position.
+		// Also, the skipReturnCheck flag doesn't come into play for infallible
+		// primitives, since we check it below instead.
 		final Result res = interpreter.attemptPrimitive(
 			primitive.primitiveNumber,
 			null,
-			interpreter.argsBuffer);
+			interpreter.argsBuffer,
+			false);
 
 		assert res == SUCCESS;
 

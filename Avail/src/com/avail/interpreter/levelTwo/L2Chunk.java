@@ -38,6 +38,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import com.avail.annotations.*;
 import com.avail.descriptor.*;
 import com.avail.optimizer.L2Translator;
+import com.avail.interpreter.levelTwo.operation.L2_LABEL;
 import com.avail.interpreter.levelTwo.register.*;
 
 /**
@@ -126,6 +127,16 @@ public final class L2Chunk
 	 */
 	@SuppressWarnings("null")
 	public L2Instruction [] instructions;
+
+	/**
+	 * The sequence of {@link L2Instruction}s that should be <em>executed</em>
+	 * for this L2Chunk.  Non-executable instructions like {@link L2_LABEL}s
+	 * have been stripped out.  The original instruction sequence is still
+	 * present in {@link #instructions}, which is suitable for inlining into
+	 * callers.
+	 */
+	@SuppressWarnings("null")
+	public L2Instruction [] executableInstructions;
 
 	/**
 	 * Answer the Avail {@linkplain PojoDescriptor pojo} associated with this
@@ -309,7 +320,7 @@ public final class L2Chunk
 	{
 		// This is hard-coded, but cross-checked by
 		// L2Translator#createChunkForFirstInvocation().
-		return 7;
+		return 6;
 	}
 
 	/**
@@ -376,7 +387,11 @@ public final class L2Chunk
 	 *        registers} that this chunk will require.
 	 * @param theInstructions
 	 *        A {@link List} of {@link L2Instruction}s that prescribe what to do
-	 *        in place of the level one nybblecodes.
+	 *        in place of the level one nybblecodes.  These are not normally
+	 *        executed, but they're suitable for inlining.
+	 * @param executableInstructions
+	 *        A {@link List} of {@link L2Instruction}s that can be executed in
+	 *        place of the level one nybblecodes.
 	 * @param contingentMethods
 	 *        A {@link Set} of {@linkplain MethodDescriptor methods} on which
 	 *        the level two chunk depends.
@@ -388,13 +403,15 @@ public final class L2Chunk
 		final int numIntegers,
 		final int numFloats,
 		final List<L2Instruction> theInstructions,
+		final List<L2Instruction> executableInstructions,
 		final Set<A_Method> contingentMethods)
 	{
 		final L2Chunk chunk = create(
 			numObjects,
 			numIntegers,
 			numFloats,
-			theInstructions);
+			theInstructions,
+			executableInstructions);
 		final int index;
 		chunksLock.lock();
 		try
@@ -501,17 +518,19 @@ public final class L2Chunk
 	 * Create a new {@linkplain L2Chunk level two chunk} with the given
 	 * information.
 	 *
-	 * @param numObjects
-	 * @param numIntegers
-	 * @param numFloats
-	 * @param theInstructions
-	 * @return
+	 * @param numObjects The number of object registers needed.
+	 * @param numIntegers The number of integer registers needed.
+	 * @param numFloats The number of float registers needed.
+	 * @param theInstructions The instructions that can be inlined into callers.
+	 * @param executableInstructions The actual instructions to execute.
+	 * @return The new chunk.
 	 */
 	private static L2Chunk create (
 		final int numObjects,
 		final int numIntegers,
 		final int numFloats,
-		final List<L2Instruction> theInstructions)
+		final List<L2Instruction> theInstructions,
+		final List<L2Instruction> executableInstructions)
 	{
 		final L2Chunk chunk = new L2Chunk();
 		// A new chunk starts out saved and valid.
@@ -520,8 +539,10 @@ public final class L2Chunk
 		chunk.numObjects = numObjects;
 		chunk.numIntegers = numIntegers;
 		chunk.numDoubles = numFloats;
-		chunk.instructions =
-			theInstructions.toArray(new L2Instruction[theInstructions.size()]);
+		chunk.instructions = theInstructions.toArray(
+			new L2Instruction[theInstructions.size()]);
+		chunk.executableInstructions = executableInstructions.toArray(
+			new L2Instruction[executableInstructions.size()]);
 		return chunk;
 	}
 

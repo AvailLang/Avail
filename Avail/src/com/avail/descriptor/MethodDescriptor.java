@@ -861,11 +861,12 @@ extends Descriptor
 	 * bundle's name.  The bundles will be grouped into a bundle tree to allow
 	 * parsing of many possible message sends in aggregate.
 	 *
-	 * A method is always {@linkplain Mutability#SHARED shared}, but its tuple
-	 * of owning bundles, its tuple of definitions, its cached
+	 * <p>A method is always {@linkplain Mutability#SHARED shared}, but its
+	 * tuple of owning bundles, its tuple of definitions, its cached
 	 * privateTestingTree, and its set of dependents chunk indices can all be
-	 * updated (while holding a lock).
+	 * updated (while holding a lock).</p>
 	 *
+	 * @param numArgs The number of arguments that this method expects.
 	 * @return A new method with no name.
 	 */
 	public static AvailObject newMethod (final int numArgs)

@@ -89,9 +89,12 @@ extends L2Operation
 				interpreter.argsBuffer.add(
 					interpreter.pointerAt(argumentOrLocalRegister(i)));
 			}
+			final boolean skipReturnCheck = interpreter.integerAt(
+				L1InstructionStepper.skipReturnCheckRegister()) != 0;
 			interpreter.invokeFunction(
 				theFunction,
-				interpreter.argsBuffer);
+				interpreter.argsBuffer,
+				skipReturnCheck);
 		}
 	}
 

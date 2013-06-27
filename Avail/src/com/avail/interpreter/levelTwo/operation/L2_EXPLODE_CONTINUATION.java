@@ -36,6 +36,7 @@ import java.util.List;
 import com.avail.descriptor.*;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.*;
+import com.avail.interpreter.levelTwo.register.L2IntegerRegister;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.interpreter.levelTwo.register.L2RegisterVector;
 import com.avail.optimizer.RegisterSet;
@@ -57,6 +58,7 @@ public class L2_EXPLODE_CONTINUATION extends L2Operation
 			WRITE_VECTOR.is("exploded continuation slots"),
 			WRITE_POINTER.is("exploded caller"),
 			WRITE_POINTER.is("exploded function"),
+			WRITE_INT.is("skip return check"),
 			CONSTANT.is("slot types tuple"),
 			CONSTANT.is("slot constants map"),
 			CONSTANT.is("null slots set"),
@@ -79,6 +81,8 @@ public class L2_EXPLODE_CONTINUATION extends L2Operation
 			instruction.writeObjectRegisterAt(2);
 		final L2ObjectRegister targetFunctionReg =
 			instruction.writeObjectRegisterAt(3);
+		final L2IntegerRegister skipReturnCheckReg =
+			instruction.writeIntRegisterAt(4);
 
 		final List<L2ObjectRegister> slotRegs = explodedSlotsVector.registers();
 		final int slotsCount = slotRegs.size();
@@ -92,6 +96,9 @@ public class L2_EXPLODE_CONTINUATION extends L2Operation
 		}
 		targetCallerReg.set(continuation.caller(), interpreter);
 		targetFunctionReg.set(continuation.function(), interpreter);
+		skipReturnCheckReg.set(
+			continuation.skipReturnFlag() ? 1 : 0,
+				interpreter);
 	}
 
 	@Override
@@ -107,10 +114,12 @@ public class L2_EXPLODE_CONTINUATION extends L2Operation
 			instruction.writeObjectRegisterAt(2);
 		final L2ObjectRegister targetFunctionReg =
 			instruction.writeObjectRegisterAt(3);
-		final A_Tuple slotTypes = instruction.constantAt(4);
-		final A_Map slotConstants = instruction.constantAt(5);
-		final A_Set nullSlots = instruction.constantAt(6);
-		final A_Type functionType = instruction.constantAt(7);
+//		final L2IntegerRegister skipReturnCheckReg =
+//			instruction.writeIntRegisterAt(4);
+		final A_Tuple slotTypes = instruction.constantAt(5);
+		final A_Map slotConstants = instruction.constantAt(6);
+		final A_Set nullSlots = instruction.constantAt(7);
+		final A_Type functionType = instruction.constantAt(8);
 
 		// Update the type and value information to agree with the types and
 		// values known to be in the slots of the continuation being exploded

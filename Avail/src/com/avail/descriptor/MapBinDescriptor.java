@@ -85,7 +85,7 @@ extends Descriptor
 
 	@Override
 	public boolean o_ShowValueInNameForDebugger (
-		final A_BasicObject object)
+		final AvailObject object)
 	{
 		return false;
 	}

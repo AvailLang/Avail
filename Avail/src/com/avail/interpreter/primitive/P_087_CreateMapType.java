@@ -51,7 +51,8 @@ public class P_087_CreateMapType extends Primitive
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,
-		final Interpreter interpreter)
+		final Interpreter interpreter,
+		final boolean skipReturnCheck)
 	{
 		assert args.size() == 3;
 		final AvailObject keyType = args.get(0);

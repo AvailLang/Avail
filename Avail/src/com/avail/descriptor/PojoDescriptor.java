@@ -136,7 +136,7 @@ extends Descriptor
 	}
 
 	@Override
-	public boolean o_ShowValueInNameForDebugger (final A_BasicObject object)
+	public boolean o_ShowValueInNameForDebugger (final AvailObject object)
 	{
 		return false;
 	}

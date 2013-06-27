@@ -81,7 +81,8 @@ public class P_404_BootstrapBlockMacro extends Primitive
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,
-		final Interpreter interpreter)
+		final Interpreter interpreter,
+		final boolean skipReturnCheck)
 	{
 		assert args.size() == 7;
 		final A_Tuple optionalArgumentDeclarations = args.get(0);

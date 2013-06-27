@@ -55,6 +55,23 @@ extends L2Register
 	}
 
 	/**
+	 * Construct a new {@link L2IntegerRegister}, pre-colored to a particular
+	 * integer register number.
+	 *
+	 * @param debugValue A value used to distinguish the new instance visually.
+	 * @param index The index to which to constrain the register.
+	 * @return The new register.
+	 */
+	public static L2IntegerRegister precolored (
+		final long debugValue,
+		final int index)
+	{
+		final L2IntegerRegister register = new L2IntegerRegister(debugValue);
+		register.setFinalIndex(index);
+		return register;
+	}
+
+	/**
 	 * Read the value of this register from the provided {@link Interpreter}.
 	 *
 	 * @param interpreter An Interpreter.

@@ -65,7 +65,8 @@ extends Primitive
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,
-		final Interpreter interpreter)
+		final Interpreter interpreter,
+		final boolean skipReturnCheck)
 	{
 		assert args.size() == 1;
 		final AvailObject sleepMillis = args.get(0);
@@ -105,7 +106,8 @@ extends Primitive
 								Interpreter.resumeFromSuccessfulPrimitive(
 									runtime,
 									fiber,
-									NilDescriptor.nil());
+									NilDescriptor.nil(),
+									true);
 							}
 						}
 					});
@@ -132,7 +134,8 @@ extends Primitive
 								Interpreter.resumeFromSuccessfulPrimitive(
 									runtime,
 									fiber,
-									NilDescriptor.nil());
+									NilDescriptor.nil(),
+									true);
 								return;
 							}
 							fiber.wakeupTask(task);
@@ -168,7 +171,8 @@ extends Primitive
 								Interpreter.resumeFromSuccessfulPrimitive(
 									runtime,
 									fiber,
-									NilDescriptor.nil());
+									NilDescriptor.nil(),
+									true);
 								return;
 							}
 							fiber.executionState(ASLEEP);

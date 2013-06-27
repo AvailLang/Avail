@@ -32,6 +32,7 @@
 package com.avail.interpreter.levelTwo.operation;
 
 import static com.avail.interpreter.Interpreter.*;
+import static com.avail.interpreter.levelTwo.L1InstructionStepper.*;
 import static com.avail.interpreter.levelTwo.register.FixedRegister.*;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
@@ -76,10 +77,10 @@ public class L2_PREPARE_NEW_FRAME extends L2Operation
 				VariableDescriptor.forOuterType(code.localTypeAt(i)));
 			dest++;
 		}
-		// Write nil into the remaining stack slots.  These
-		// values should not encounter any kind of ordinary use, but they
-		// must still be transferred into a continuation during reification.
-		// Therefore don't use Java nulls here.
+		// Write nil into the remaining stack slots.  These values should not
+		// encounter any kind of ordinary use, but they must still be
+		// transferred into a continuation during reification.  Therefore, don't
+		// use Java nulls here.
 		for (int i = numArgs + numLocals + 1; i <= numSlots; i++)
 		{
 			interpreter.pointerAtPut(dest, NilDescriptor.nil());

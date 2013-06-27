@@ -53,7 +53,7 @@ import com.avail.performance.Statistic;
  * in terms of other Level One operations.  A conforming Avail implementation
  * must provide these primitives with equivalent semantics.
  *
- * <p>The enumeration defines an {@link #attempt(List, Interpreter)
+ * <p>The enumeration defines an {@link #attempt(List, Interpreter, boolean)
  * attempt} operation that takes a {@linkplain List list} of arguments of type
  * {@link AvailObject}, as well as the {@link Interpreter} on whose behalf the
  * primitive attempt is being made.  The specific enumeration values override
@@ -225,14 +225,20 @@ implements IntegerEnumSlotDescriptionEnum
 	 * cause a context switch, {@link Result#FIBER_SUSPENDED} should be
 	 * returned.
 	 *
-	 * @param args The {@linkplain List list} of arguments to the primitive.
-	 * @param interpreter The {@link Interpreter} that is executing.
+	 * @param args
+	 *            The {@linkplain List list} of arguments to the primitive.
+	 * @param interpreter
+	 *            The {@link Interpreter} that is executing.
+	 * @param skipReturnCheck
+	 *            Whether the type-check of the return value can be elided, due
+	 *            to VM type guarantees.
 	 * @return The {@link Result} code indicating success or failure (or special
 	 *         circumstance).
 	 */
 	public abstract Result attempt (
 		List<AvailObject> args,
-		Interpreter interpreter);
+		Interpreter interpreter,
+		boolean skipReturnCheck);
 
 	/**
 	 * Return a function type that restricts actual primitive blocks defined

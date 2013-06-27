@@ -4404,4 +4404,10 @@ extends AbstractDescriptor
 	{
 		return o_Traversed(object).isTwoByteString();
 	}
+
+	@Override
+	boolean o_SkipReturnFlag (final AvailObject object)
+	{
+		return o_Traversed(object).skipReturnFlag();
+	}
 }

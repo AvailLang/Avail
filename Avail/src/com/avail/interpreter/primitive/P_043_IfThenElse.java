@@ -53,7 +53,8 @@ public class P_043_IfThenElse extends Primitive
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,
-		final Interpreter interpreter)
+		final Interpreter interpreter,
+		final boolean skipReturnCheck)
 	{
 		assert args.size() == 3;
 		final A_Atom aBoolean = args.get(0);
@@ -65,11 +66,13 @@ public class P_043_IfThenElse extends Primitive
 		{
 			return interpreter.invokeFunction(
 				trueBlock,
-				Collections.<AvailObject>emptyList());
+				Collections.<AvailObject>emptyList(),
+				false);
 		}
 		return interpreter.invokeFunction(
 			falseBlock,
-			Collections.<AvailObject>emptyList());
+			Collections.<AvailObject>emptyList(),
+			false);
 	}
 
 	@Override

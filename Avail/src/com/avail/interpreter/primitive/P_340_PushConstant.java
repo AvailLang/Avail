@@ -52,7 +52,8 @@ public class P_340_PushConstant extends Primitive
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,
-		final Interpreter interpreter)
+		final Interpreter interpreter,
+		final boolean skipReturnCheck)
 	{
 		return interpreter.primitiveSuccess(
 			interpreter.primitiveFunctionBeingAttempted().code().literalAt(1));

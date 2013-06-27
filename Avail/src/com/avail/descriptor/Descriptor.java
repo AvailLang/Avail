@@ -4251,4 +4251,10 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		return false;
 	}
+
+	@Override
+	boolean o_SkipReturnFlag (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
 }
