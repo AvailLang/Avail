@@ -101,7 +101,8 @@ interpolationMode ::= enumeration of {description, text, escape};
  *    - $escape : There is no corresponding argument. There is an escaped
  *      metacharacter at the format site that should be copied, unescaped, into
  *      the result.
- *
+ * 
+ * @method "interpolation mode"
  * Returns:
  *    An enumeration of the atoms listed above.
  */
@@ -116,8 +117,9 @@ Private method "interpolation mode" is [ interpolationMode ];
  *    [3] The start subscript of the site.
  *    [4] The end subscript of the site.
  * 
- * Returns:
- *    The tuple type described above.
+ * @method "format site"
+ * @returns "<string, interpolation mode, natural number, natural number…|4>"
+ *          The tuple type described above.
  */
 Private method "format site" is
 [
@@ -1827,7 +1829,13 @@ Public method "(The)“_”«else_»" is
 	else ["The " ++ s]
 ] : string;
 
-/* Print object types more neatly. */
+/**
+ * Print object types more neatly.
+ * 
+ * @method "“_”"
+ * @param "anObjectType" "object's type"
+ * @returns "string"
+ */
 Method "“_”" is
 [
 	anObjectType : object's type
@@ -1835,7 +1843,13 @@ Method "“_”" is
 	“anObjectType's names” (as list partitioned by " ∩ ")
 ] : string;
 
-/* Print objects more neatly. */
+/**
+ * Print object types more neatly.
+ * 
+ * @method "“_”"
+ * @param "anObject" "object"
+ * @returns "string"
+ */
 Stable method "“_”" is
 [
 	anObject : object
