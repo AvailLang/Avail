@@ -35,6 +35,7 @@ package com.avail.interpreter.jvm;
 import java.io.DataOutput;
 import java.io.IOException;
 import java.lang.reflect.Method;
+import java.util.Formatter;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import com.avail.annotations.Nullable;
@@ -541,13 +542,24 @@ public class ConstantPool
 		private final Utf8Entry nameEntry;
 
 		/**
-		 * Answer the {@linkplain Class class} name.
+		 * Answer the fully-qualified {@linkplain Class class} name.
 		 *
-		 * @return The class descriptor.
+		 * @return The fully-qualified class name.
 		 */
 		String name ()
 		{
-			return JavaDescriptors.asTypeName(nameEntry.data());
+			return nameEntry.data().replace('/', '.');
+		}
+
+		/**
+		 * Answer the {@linkplain JavaDescriptors#asInternalName(String)
+		 * internal} {@linkplain Class class} name.
+		 *
+		 * @return The class descriptor.
+		 */
+		String internalName ()
+		{
+			return nameEntry.data();
 		}
 
 		/**
@@ -557,7 +569,7 @@ public class ConstantPool
 		 */
 		String descriptor ()
 		{
-			return nameEntry.data();
+			return JavaDescriptors.forClassName(nameEntry.data());
 		}
 
 		@Override
@@ -580,7 +592,7 @@ public class ConstantPool
 		@Override
 		public String toString ()
 		{
-			return "Class " + name();
+			return "Class " + internalName();
 		}
 
 		/**
@@ -710,7 +722,7 @@ public class ConstantPool
 		{
 			return String.format(
 				"%s.%s",
-				classEntry.name(),
+				classEntry.internalName(),
 				nameAndTypeEntry);
 		}
 
@@ -1228,7 +1240,7 @@ public class ConstantPool
 	}
 
 	/** The next (unused) index. */
-	private int nextIndex = 0;
+	private int nextIndex = 1;
 
 	/**
 	 * A {@linkplain Map map} from Java constants to {@linkplain Entry entries}.
@@ -1451,25 +1463,26 @@ public class ConstantPool
 	}
 
 	/**
-	 * Answer a {@link ClassEntry} for the specified type descriptor,
-	 * constructing and installing a new entry if necessary.
+	 * Answer a {@link ClassEntry} for the specified type, constructing and
+	 * installing a new entry if necessary.
 	 *
-	 * @param descriptor
+	 * @param name
 	 *        The constant.
 	 * @return The entry associated with the specified value.
 	 */
 	@ThreadSafe
-	ClassEntry classConstant (final String descriptor)
+	ClassEntry classConstant (final String name)
 	{
-		final ClassKey key = new ClassKey(descriptor);
+		final String internalName = JavaDescriptors.asInternalName(name);
+		final ClassKey key = new ClassKey(internalName);
 		synchronized (entries)
 		{
 			Entry entry = entries.get(key);
 			if (entry == null)
 			{
-				final Utf8Entry nameEntry = utf8(descriptor);
+				final Utf8Entry nameEntry = utf8(internalName);
 				entry = new ClassEntry(
-					nextIndex++, nameEntry, descriptor.codePointAt(0) == '[');
+					nextIndex++, nameEntry, internalName.codePointAt(0) == '[');
 				entries.put(key, entry);
 			}
 			return (ClassEntry) entry;
@@ -1626,9 +1639,9 @@ public class ConstantPool
 	 * Answer a {@link FieldrefEntry} for the specified field reference,
 	 * constructing and installing a new entry if necessary.
 	 *
-	 * @param definerDescriptor
-	 *        The descriptor of the {@linkplain Class class} that defines the
-	 *        field.
+	 * @param definer
+	 *        The fully-qualified name of the {@linkplain Class class} that
+	 *        defines the field.
 	 * @param name
 	 *        The name of the referent.
 	 * @param fieldDescriptor
@@ -1637,18 +1650,18 @@ public class ConstantPool
 	 */
 	@ThreadSafe
 	public FieldrefEntry fieldref (
-		final String definerDescriptor,
+		final String definer,
 		final String name,
 		final String fieldDescriptor)
 	{
 		final FieldrefKey key = new FieldrefKey(
-			definerDescriptor, name, fieldDescriptor);
+			definer, name, fieldDescriptor);
 		synchronized (entries)
 		{
 			Entry entry = entries.get(key);
 			if (entry == null)
 			{
-				final ClassEntry classEntry = classConstant(definerDescriptor);
+				final ClassEntry classEntry = classConstant(definer);
 				final NameAndTypeEntry nameAndType =
 					nameAndType(name, fieldDescriptor);
 				entry = new FieldrefEntry(nextIndex++, classEntry, nameAndType);
@@ -1676,9 +1689,9 @@ public class ConstantPool
 		final String name,
 		final Class<?> fieldType)
 	{
-		final String typeDescriptor = JavaDescriptors.forType(definer);
+		final String definerName = definer.getName();
 		final String fieldDescriptor = JavaDescriptors.forType(fieldType);
-		return fieldref(typeDescriptor, name, fieldDescriptor);
+		return fieldref(definerName, name, fieldDescriptor);
 	}
 
 	/**
@@ -1717,9 +1730,9 @@ public class ConstantPool
 	 * Answer a {@link MethodrefEntry} for the specified method reference,
 	 * constructing and installing a new entry if necessary.
 	 *
-	 * @param definerDescriptor
-	 *        The descriptor of the {@linkplain Class class} that defines the
-	 *        field.
+	 * @param definer
+	 *        The fully-qualified name of the {@linkplain Class class} that
+	 *        defines the field.
 	 * @param name
 	 *        The name of the referent.
 	 * @param methodDescriptor
@@ -1728,18 +1741,18 @@ public class ConstantPool
 	 */
 	@ThreadSafe
 	public MethodrefEntry methodref (
-		final String definerDescriptor,
+		final String definer,
 		final String name,
 		final String methodDescriptor)
 	{
 		final MethodrefKey key = new MethodrefKey(
-			definerDescriptor, name, methodDescriptor);
+			definer, name, methodDescriptor);
 		synchronized (entries)
 		{
 			Entry entry = entries.get(key);
 			if (entry == null)
 			{
-				final ClassEntry classEntry = classConstant(definerDescriptor);
+				final ClassEntry classEntry = classConstant(definer);
 				final NameAndTypeEntry nameAndType =
 					nameAndType(name, methodDescriptor);
 				entry = new MethodrefEntry(
@@ -1771,10 +1784,10 @@ public class ConstantPool
 		final Class<?> returnType,
 		final Class<?>... parameterTypes)
 	{
-		final String definerDescriptor = JavaDescriptors.forType(definer);
+		final String definerName = definer.getName();
 		final String methodDescriptor = JavaDescriptors.forMethod(
 			returnType, parameterTypes);
-		return methodref(definerDescriptor, name, methodDescriptor);
+		return methodref(definerName, name, methodDescriptor);
 	}
 
 	/**
@@ -1832,9 +1845,9 @@ public class ConstantPool
 	 * Answer a {@link InterfaceMethodrefEntry} for the specified method
 	 * reference, constructing and installing a new entry if necessary.
 	 *
-	 * @param definerDescriptor
-	 *        The descriptor of the {@linkplain Class class} that defines the
-	 *        field.
+	 * @param definer
+	 *        The fully-qualified name of the {@linkplain Class class} that
+	 *        defines the field.
 	 * @param name
 	 *        The name of the referent.
 	 * @param methodDescriptor
@@ -1843,18 +1856,18 @@ public class ConstantPool
 	 */
 	@ThreadSafe
 	public InterfaceMethodrefEntry interfaceMethodref (
-		final String definerDescriptor,
+		final String definer,
 		final String name,
 		final String methodDescriptor)
 	{
 		final InterfaceMethodrefKey key = new InterfaceMethodrefKey(
-			definerDescriptor, name, methodDescriptor);
+			definer, name, methodDescriptor);
 		synchronized (entries)
 		{
 			Entry entry = entries.get(key);
 			if (entry == null)
 			{
-				final ClassEntry classEntry = classConstant(definerDescriptor);
+				final ClassEntry classEntry = classConstant(definer);
 				final NameAndTypeEntry nameAndType =
 					nameAndType(name, methodDescriptor);
 				entry = new FieldrefEntry(nextIndex++, classEntry, nameAndType);
@@ -1885,10 +1898,10 @@ public class ConstantPool
 		final Class<?> returnType,
 		final Class<?>... parameterTypes)
 	{
-		final String definerDescriptor = JavaDescriptors.forType(definer);
+		final String definerName = definer.getName();
 		final String methodDescriptor = JavaDescriptors.forMethod(
 			returnType, parameterTypes);
-		return interfaceMethodref(definerDescriptor, name, methodDescriptor);
+		return interfaceMethodref(definerName, name, methodDescriptor);
 	}
 
 	/**
@@ -2274,5 +2287,19 @@ public class ConstantPool
 				entry.writeTo(out);
 			}
 		}
+	}
+
+	@Override
+	public String toString ()
+	{
+		@SuppressWarnings("resource")
+		final Formatter formatter = new Formatter();
+		formatter.format("Constant pool:");
+		for (final Map.Entry<Object, Entry> entry : entries.entrySet())
+		{
+			final Entry poolEntry = entry.getValue();
+			formatter.format("%n\t#%-8d %s", poolEntry.index, poolEntry);
+		}
+		return formatter.toString();
 	}
 }
