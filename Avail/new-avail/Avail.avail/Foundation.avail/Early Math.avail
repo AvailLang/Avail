@@ -131,7 +131,7 @@ Semantic restriction "_'s⁇genuine upper bound" is
  * @method "⎣_⎦"
  * @param "range" "extended integer meta"
  *        An integral range type. Must not be ⊥.
- * @returns 
+ * @returns "extended integer"
  *          The lower bound of the argument.
  */
 Method "⎣_⎦" is
@@ -140,7 +140,7 @@ Method "⎣_⎦" is
 |
 	Assert: range ≠ ⊥ ("must use `_'s⁇genuine lower bound` for ⊥");
 	range's genuine lower bound
-];
+]:extended integer;
 
 /**
  * Answer the upper bound of the specified integral range type. Note that unlike
@@ -150,7 +150,7 @@ Method "⎣_⎦" is
  * @method "⎡_⎤"
  * @param "range" "extended integer meta"
  *        An integral range type. Must not be ⊥.
- * Returns:
+ * @returns "extended integer"
  *    The upper bound of the argument.
  */
 Method "⎡_⎤" is
@@ -159,7 +159,7 @@ Method "⎡_⎤" is
 |
 	Assert: range ≠ ⊥ ("must use `_'s⁇genuine upper bound` for ⊥");
 	range's genuine upper bound
-];
+]:extended integer;
 
 /**
  * Is the lower bound of the argument inclusive?

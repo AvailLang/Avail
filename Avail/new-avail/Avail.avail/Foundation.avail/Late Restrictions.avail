@@ -1,5 +1,5 @@
 /*
- * Collections.avail
+ * Late Restrictions.avail
  * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -30,24 +30,21 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Collections"
+System Module "Late Restrictions"
 Versions
 	"dev"
-
+Uses
+	"Bootstrap",
+	"Early Definers",
+	"Literals"
 Names
-	/* The definitions are provided by Tuples, Sets, and Maps, but the names
-	 * are introduced here.
-	 */
-	"For each of⁇_do_",
-	"Require:_accepts_",
-	"any of_satisfies_",
-	"count of_where_",
-	"each of_satisfies_",
-	"filter_by_",
-	"group_by_",
-	"map and filter_by_",
-	"map_through_",
-	"_is empty",
-	"_[_]else_",
-	"_∉_"
+
 Body
+
+/** 
+ * Give nary update a higher precedence than subscript. 
+ * 
+ * @method "_«[_]»→_"
+ * @forbids "1" "_[_]"
+ */
+Grammatical restriction "_«[_]»→_" is <{"_[_]"},∅,∅>;

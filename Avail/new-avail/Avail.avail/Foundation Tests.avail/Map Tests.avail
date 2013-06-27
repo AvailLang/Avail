@@ -46,11 +46,11 @@ Body
 
 New test suite map test suite extends foundation test suite;
 
-Test "trivial empty merge sort" in map test suite is
+Test "quasi-destructive simple map at key replace" in map test suite is
 [
 	m : {string→natural number|} := {"foo"→1,"boo"→2,"zoo"→3};
-	↓↑m["foo"] := 4;
-	Require: {"foo"→4,"boo"→2,"zoo"→3} = m;
+	n ::= m["foo"] → 4;
+	Require: {"foo"→4,"boo"→2,"zoo"→3} = n;
 ];
 
 Test "quasi-destructive n-ary complex map update" in map test suite is
@@ -67,10 +67,17 @@ Test "quasi-destructive n-ary complex map update" in map test suite is
 				5>
 		};
 
-	↓↑t["boo"][1]["zippo"][1] := "jawa";
-	Require: {"foo"→<{"hippo"→<"submarine","bunnies">,
-		"raven"→<"lolipop","turkey">},2>,
-		"boo"→<{"tree"→<"jet","fury">,"zippo"→<"jawa","sarlak">},5>} = t;
+	n ::= t["boo"][1]["zippo"][1] → "jawa";
+	Require: {
+		"foo"→<
+			{"hippo"→<"submarine","bunnies">,
+			"raven"→<"lolipop","turkey">},
+			2>,
+		"boo"→<
+			{"tree"→<"jet","fury">,
+			"zippo"→<"jawa","sarlak">},
+			5>
+		} = n;
 ];
 
 Test "quasi-destructive n-ary very complex map update" in map test suite is
@@ -86,8 +93,15 @@ Test "quasi-destructive n-ary very complex map update" in map test suite is
 					"zippo"→<"weevil","sarlak">},
 				5>
 		};
-		↓↑t["boo"][1]["tree"] := <"boat","jaws">;
-		Require: {"foo"→<{"hippo"→<"submarine","bunnies">,
-		"raven"→<"lolipop","turkey">},2>,
-		"boo"→<{"tree"→<"boat","jaws">,"zippo"→<"weevil","sarlak">},5>} = t;
+		n ::= t["boo"][1]["tree"] → <"boat","jaws">;
+		Require: {
+			"foo"→<
+				{"hippo"→<"submarine","bunnies">,
+				"raven"→<"lolipop","turkey">},
+				2>,
+			"boo"→<
+				{"tree"→<"boat","jaws">,
+				"zippo"→<"weevil","sarlak">},
+				5>
+		} = n;
 ];

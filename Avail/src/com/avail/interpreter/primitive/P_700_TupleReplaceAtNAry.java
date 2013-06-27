@@ -1,6 +1,6 @@
 /**
- * P_702_VariableOfTupleOfTupleReplace.java Copyright © 1993-2013, Mark van
- * Gulik and Todd L Smith. All rights reserved.
+ * P_700_VariableOfTupleReplace.java Copyright © 1993-2013, Mark van Gulik and
+ * Todd L Smith. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -42,20 +42,20 @@ import com.avail.exceptions.VariableSetException;
 import com.avail.interpreter.*;
 
 /**
- * <strong>Primitive 702</strong>: Replace the value at the location indicated
- * by the path {@linkplain TupleDescriptor tuple} of the target
- * {@linkplain TupleDescriptor tuple} with a new value.
+ * <strong>Primitive 700</strong>: Replace the value with a new value in the
+ * {@linkplain TupleDescriptor tuple} at the location indicated by the path
+ * tuple.
  *
- * @author Rich &lt;Rich@availlang.org&gt;
+ * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
-public final class P_702_VariableOfNAryTupleReplace extends Primitive
+public final class P_700_TupleReplaceAtNAry extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_702_VariableOfNAryTupleReplace()
-		.init(3, CanInline, HasSideEffect);
-
+	public final static Primitive instance =
+		new P_700_TupleReplaceAtNAry().init(
+			3, CanInline, CanFold);
 	/**
 	 * Recursively traverses the target {@linkplain TupleDescriptor tuple}
 	 * ultimately updating the value at the final index of the pathIndex.
@@ -172,17 +172,13 @@ public final class P_702_VariableOfNAryTupleReplace extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 3;
-		final A_Variable var = args.get(0);
+		final A_Tuple tuple = args.get(0);
 		final A_Tuple pathTuple = args.get(1);
 		final A_BasicObject newValue = args.get(2);
-		final A_Tuple tuple;
 		try
 		{
-			tuple = var.getValue();
-			final A_Tuple newTuple = recursivelyUpdateTuple(
-				tuple, pathTuple, 1, newValue);
-			var.setValue(newTuple);
-			return interpreter.primitiveSuccess(NilDescriptor.nil());
+			return interpreter.primitiveSuccess(recursivelyUpdateTuple(
+				tuple, pathTuple, 1, newValue));
 		}
 		catch (final VariableGetException e)
 		{
@@ -203,7 +199,7 @@ public final class P_702_VariableOfNAryTupleReplace extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				VariableTypeDescriptor.mostGeneralType(),
+				TupleTypeDescriptor.mostGeneralType(),
 				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 					IntegerRangeTypeDescriptor.create(
 						IntegerDescriptor.fromInt(2), true,
@@ -211,6 +207,6 @@ public final class P_702_VariableOfNAryTupleReplace extends Primitive
 					TupleDescriptor.empty(),
 					ANY.o()),
 				ANY.o()),
-			TOP.o());
+			TupleTypeDescriptor.mostGeneralType());
 	}
 }
