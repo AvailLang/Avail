@@ -411,6 +411,51 @@ extends Emitter<MethodModifier>
 	}
 
 	/**
+	 * Emit a no-op.
+	 */
+	public void noOp ()
+	{
+		writer.append(nop.create());
+	}
+
+	/**
+	 * Emit code to discard the top of the operand stack.
+	 *
+	 * @param descriptor
+	 *        The expected descriptor of the top operand.
+	 */
+	public void pop (final String descriptor)
+	{
+		final int slotUnits = JavaDescriptors.slotUnits(descriptor);
+		final JavaBytecode bytecode = slotUnits == 1 ? pop
+			: slotUnits == 2 ? pop2
+			: invalid;
+		assert bytecode != invalid;
+		writer.append(bytecode.create());
+	}
+
+	/**
+	 * Emit code to discard the top of the operand stack.
+	 *
+	 * @param type
+	 *        The expected {@linkplain Class type} of the top operand.
+	 */
+	public void pop (final Class<?> type)
+	{
+		final String descriptor = JavaDescriptors.forType(type);
+		pop(descriptor);
+	}
+
+	/**
+	 * Emit code to swap the top two operands. Each operand must be a
+	 * {@linkplain JavaOperand#CATEGORY_1 Category 1} operand.
+	 */
+	public void swap ()
+	{
+		writer.append(swap.create());
+	}
+
+	/**
 	 * Emit code to push the specified {@code boolean} value onto the operand
 	 * stack.
 	 *
@@ -434,7 +479,7 @@ extends Emitter<MethodModifier>
 	 * int}s.
 	 */
 	private static final JavaBytecode[] immediateIntBytecodes =
-		{iconst_m1, iconst_0, iconst_1, iconst_2, iconst_4, iconst_5};
+		{iconst_m1, iconst_0, iconst_1, iconst_2, iconst_3, iconst_4, iconst_5};
 
 	/**
 	 * Emit code to push the specified {@code int} value onto the operand stack.
@@ -642,6 +687,14 @@ extends Emitter<MethodModifier>
 	{
 		assert type.isPrimitive() || type == Object.class;
 		writer.append(new ArrayLoadInstruction(type));
+	}
+
+	/**
+	 * Emit code to pop an array from the operand stack and push its size.
+	 */
+	public void arraySize ()
+	{
+		writer.append(arraylength.create());
 	}
 
 	/**
@@ -1010,6 +1063,55 @@ extends Emitter<MethodModifier>
 	}
 
 	/**
+	 * Emit code to increment the specified {@code int} {@linkplain
+	 * LocalVariable variable} by the specified constant amount.
+	 *
+	 * @param var
+	 *        A local variable.
+	 * @param delta
+	 *        The constant amount by which the contents of the variable should
+	 *        be adjusted.
+	 */
+	public void increment (final LocalVariable var, final int delta)
+	{
+		assert JavaDescriptors.typeForDescriptor(var.descriptor())
+			== Integer.TYPE;
+		writer.append(new IncrementInstruction(var, delta));
+	}
+
+	/**
+	 * Emit code to implement the specified {@linkplain UnaryOperator unary
+	 * operator} for the top operand.
+	 *
+	 * @param op
+	 *        A unary operator.
+	 * @param type
+	 *        The expected {@linkplain Class#isPrimitive() primitive type} of
+	 *        the top operand.
+	 */
+	public void doOperator (final UnaryOperator op, final Class<?> type)
+	{
+		assert type.isPrimitive();
+		op.emitOn(type, writer);
+	}
+
+	/**
+	 * Emit code to implement the specified {@linkplain BinaryOperator binary
+	 * operator} for the top operand.
+	 *
+	 * @param op
+	 *        A binary operator.
+	 * @param type
+	 *        The expected {@linkplain Class#isPrimitive() primitive type} of
+	 *        the top operands.
+	 */
+	public void doOperator (final BinaryOperator op, final Class<?> type)
+	{
+		assert type.isPrimitive();
+		op.emitOn(type, writer);
+	}
+
+	/**
 	 * Emit code that will perform the requested {@linkplain Class#isPrimitive()
 	 * primitive} conversion.
 	 *
@@ -1176,7 +1278,7 @@ extends Emitter<MethodModifier>
 	 *        The label to which control should proceed if the comparison
 	 *        operator evaluates to {@code false}.
 	 */
-	public void branchIfNot (
+	public void branchUnless (
 		final PrimitiveComparisonOperator op,
 		final Label notTaken)
 	{
@@ -1196,12 +1298,62 @@ extends Emitter<MethodModifier>
 	 *        The label to which control should proceed if the comparison
 	 *        operator evaluates to {@code false}.
 	 */
-	public void branchIfNot (
+	public void branchUnless (
 		final ReferenceComparisonOperator op,
 		final Label notTaken)
 	{
 		final JavaBytecode bytecode = op.inverseBytecode();
 		writer.append(new ConditionalBranchInstruction(bytecode, notTaken));
+	}
+
+	/**
+	 * Emit code to produce a lookup switch.
+	 *
+	 * @param keys
+	 *        The keys for the switch.
+	 * @param labels
+	 *        The case {@linkplain Label labels} for the switch.
+	 * @param defaultLabel
+	 *        The default label for the switch.
+	 */
+	public void lookupSwitch (
+		final List<Integer> keys,
+		final List<Label> labels,
+		final Label defaultLabel)
+	{
+		final int size = keys.size();
+		assert labels.size() == size;
+		final int[] keysArray = new int[size];
+		for (int i = 0; i < size; i++)
+		{
+			keysArray[i] = keys.get(i);
+		}
+		final Label[] labelsArray = labels.toArray(new Label[labels.size()]);
+		writer.append(
+			new LookupSwitchInstruction(keysArray, labelsArray, defaultLabel));
+	}
+
+	/**
+	 * Emit code to produce a table switch.
+	 *
+	 * @param lowerBound
+	 *        The lower bound of the contiguous integral range.
+	 * @param upperBound
+	 *        The upper bound of the contiguous integral range.
+	 * @param labels
+	 *        The case {@linkplain Label labels} for the switch.
+	 * @param defaultLabel
+	 *        The default label for the switch.
+	 */
+	public void tableSwitch (
+		final int lowerBound,
+		final int upperBound,
+		final List<Label> labels,
+		final Label defaultLabel)
+	{
+		final Label[] array = labels.toArray(new Label[labels.size()]);
+		writer.append(new TableSwitchInstruction(
+			lowerBound, upperBound, array, defaultLabel));
 	}
 
 	/**
@@ -1271,6 +1423,8 @@ extends Emitter<MethodModifier>
 		writer.append(invokevirtual.create(methodref));
 	}
 
+	// TODO: [TLS] Add support for dup, dup_x1, dup_x2, dup2, dup2_x1, dup2_x2.
+
 	// TODO: [TLS] Add missing code generation methods!
 
 	/**
@@ -1312,6 +1466,15 @@ extends Emitter<MethodModifier>
 			}
 		}
 		writer.append(bytecode.create());
+	}
+
+	/**
+	 * Emit code to pop a {@linkplain Throwable throwable} from the operand
+	 * stack and throw it.
+	 */
+	public void throwException ()
+	{
+		writer.append(athrow.create());
 	}
 
 	/** The {@linkplain ExceptionTable exception table}. */

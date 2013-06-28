@@ -42,6 +42,7 @@ import java.lang.reflect.Modifier;
 import java.util.EnumSet;
 import org.junit.Test;
 import com.avail.annotations.Nullable;
+import com.avail.interpreter.jvm.BinaryOperator;
 import com.avail.interpreter.jvm.ClassModifier;
 import com.avail.interpreter.jvm.CodeGenerator;
 import com.avail.interpreter.jvm.ConstantPool;
@@ -120,6 +121,21 @@ public class JVMCodeGeneration
 		return loader.findClass(cg.name());
 	}
 
+	/**
+	 * Emit a simple class definition onto the specified {@linkplain
+	 * CodeGenerator code generator}. The class will be {@linkplain
+	 * ClassModifier#PUBLIC public} and its superclass will be {@link Object}.
+	 *
+	 * @param cg
+	 *        A code generator.
+	 */
+	private void simpleClassPreambleOn (final CodeGenerator cg)
+	{
+		final EnumSet<ClassModifier> cmods = EnumSet.of(ClassModifier.PUBLIC);
+		cg.setModifiers(cmods);
+		cg.setSuperclass(Object.class);
+	}
+
 	@SuppressWarnings("javadoc")
 	@Test
 	public void empty ()
@@ -130,9 +146,7 @@ public class JVMCodeGeneration
 		IllegalArgumentException
 	{
 		final CodeGenerator cg = new CodeGenerator();
-		final EnumSet<ClassModifier> cmods = EnumSet.of(ClassModifier.PUBLIC);
-		cg.setModifiers(cmods);
-		cg.setSuperclass(Object.class);
+		simpleClassPreambleOn(cg);
 		loadClass(cg);
 	}
 
@@ -148,9 +162,7 @@ public class JVMCodeGeneration
 		IllegalAccessException
 	{
 		final CodeGenerator cg = new CodeGenerator();
-		final EnumSet<ClassModifier> cmods = EnumSet.of(ClassModifier.PUBLIC);
-		cg.setModifiers(cmods);
-		cg.setSuperclass(Object.class);
+		simpleClassPreambleOn(cg);
 		final String fieldName = "foo";
 		final Field f = cg.newField(fieldName, "Ljava/lang/String;");
 		final EnumSet<FieldModifier> fmods =
@@ -173,9 +185,7 @@ public class JVMCodeGeneration
 			IllegalArgumentException
 	{
 		final CodeGenerator cg = new CodeGenerator();
-		final EnumSet<ClassModifier> cmods = EnumSet.of(ClassModifier.PUBLIC);
-		cg.setModifiers(cmods);
-		cg.setSuperclass(Object.class);
+		simpleClassPreambleOn(cg);
 		final String methodName = "hello";
 		final Method m = cg.newMethod(methodName, "(Ljava/lang/String;)V");
 		final EnumSet<MethodModifier> mmods =
@@ -203,9 +213,7 @@ public class JVMCodeGeneration
 			InvocationTargetException
 	{
 		final CodeGenerator cg = new CodeGenerator();
-		final EnumSet<ClassModifier> cmods = EnumSet.of(ClassModifier.PUBLIC);
-		cg.setModifiers(cmods);
-		cg.setSuperclass(Object.class);
+		simpleClassPreambleOn(cg);
 		final String methodName = "hello";
 		final Method m = cg.newMethod(
 			methodName,
@@ -225,6 +233,25 @@ public class JVMCodeGeneration
 		assertEquals(expected, actual);
 	}
 
+	/**
+	 * Emit a default constructor onto the specified {@linkplain CodeGenerator
+	 * code generator}.
+	 *
+	 * @param cg
+	 *        A code generator.
+	 */
+	private void defaultConstructorOn (final CodeGenerator cg)
+	{
+		final ConstantPool cp = cg.constantPool();
+		final EnumSet<MethodModifier> mmods = EnumSet.of(MethodModifier.PUBLIC);
+		final Method c = cg.newMethod("<init>", "()V");
+		c.setModifiers(mmods);
+		c.load(c.self());
+		c.invokeSpecial(cp.methodref(Object.class, "<init>", Void.TYPE));
+		c.returnToCaller();
+		c.finish();
+	}
+
 	@SuppressWarnings("javadoc")
 	@Test
 	public void hello ()
@@ -239,21 +266,13 @@ public class JVMCodeGeneration
 			InstantiationException
 	{
 		final CodeGenerator cg = new CodeGenerator();
-		final ConstantPool cp = cg.constantPool();
-		final EnumSet<ClassModifier> cmods = EnumSet.of(ClassModifier.PUBLIC);
-		cg.setModifiers(cmods);
-		cg.setSuperclass(Object.class);
-		final EnumSet<MethodModifier> mmods = EnumSet.of(MethodModifier.PUBLIC);
-		final Method c = cg.newMethod("<init>", "()V");
-		c.setModifiers(mmods);
-		c.load(c.self());
-		c.invokeSpecial(cp.methodref(Object.class, "<init>", Void.TYPE));
-		c.returnToCaller();
-		c.finish();
+		simpleClassPreambleOn(cg);
+		defaultConstructorOn(cg);
 		final String methodName = "hello";
 		final Method m = cg.newMethod(
 			methodName,
 			"(Ljava/lang/String;)Ljava/lang/String;");
+		final EnumSet<MethodModifier> mmods = EnumSet.of(MethodModifier.PUBLIC);
 		m.setModifiers(mmods);
 		final LocalVariable str = m.newParameter("str");
 		m.load(str);
@@ -266,5 +285,49 @@ public class JVMCodeGeneration
 		final String expected = "Hello, world!\n";
 		final Object actual = method.invoke(newInstance, expected);
 		assertEquals(expected, actual);
+	}
+
+	@SuppressWarnings("javadoc")
+	@Test
+	public void sums ()
+		throws
+			IOException,
+			ClassNotFoundException,
+			IllegalAccessException,
+			NoSuchMethodException,
+			SecurityException,
+			IllegalArgumentException,
+			InvocationTargetException,
+			InstantiationException
+	{
+		final CodeGenerator cg = new CodeGenerator();
+		simpleClassPreambleOn(cg);
+		defaultConstructorOn(cg);
+		final String methodName = "add5";
+		final Method m = cg.newMethod(methodName, "(II)I");
+		final EnumSet<MethodModifier> mmods = EnumSet.of(MethodModifier.PUBLIC);
+		m.setModifiers(mmods);
+		final LocalVariable augend = m.newParameter("augend");
+		final LocalVariable addend = m.newParameter("addend");
+		m.load(augend);
+		m.load(addend);
+		m.pushConstant(5);
+		m.doOperator(BinaryOperator.ADDITION, Integer.TYPE);
+		m.doOperator(BinaryOperator.ADDITION, Integer.TYPE);
+		m.returnToCaller();
+		m.finish();
+		final Class<?> newClass = loadClass(cg);
+		final java.lang.reflect.Method method =
+			newClass.getMethod(methodName, Integer.TYPE, Integer.TYPE);
+		final Object newInstance = newClass.newInstance();
+		for (int i = 0; i < 100; i++)
+		{
+			for (int j = 0; j < 100; j++)
+			{
+				final int expected = i + j + 5;
+				final int actual = (int) method.invoke(newInstance, i, j);
+				assertEquals(expected, actual);
+			}
+		}
 	}
 }

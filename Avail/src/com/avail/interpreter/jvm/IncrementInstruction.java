@@ -115,7 +115,7 @@ extends SimpleInstruction
 	{
 		super(JavaBytecode.iinc);
 		assert local.isLive();
-		assert (delta & 65535) == delta;
+		assert (short) delta == delta;
 		this.local = local;
 		this.delta = delta;
 	}

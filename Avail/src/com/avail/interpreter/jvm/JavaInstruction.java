@@ -137,6 +137,32 @@ abstract class JavaInstruction
 	}
 
 	/**
+	 * Can this {@linkplain JavaInstruction instruction} type-safely consume
+	 * its {@linkplain JavaOperand operands} from the specified operand stack?
+	 *
+	 * @param operands
+	 *        An operand stack.
+	 * @return {@code true} if the instruction can consume its operands, {@code
+	 *         false} otherwise.
+	 */
+	boolean canConsumeOperands (final List<JavaOperand> operands)
+	{
+		final JavaOperand[] inputOperands = inputOperands();
+		for (int i = 0,
+				j = operands.size() - 1,
+				size = inputOperands.length;
+			i < size;
+			i++, j--)
+		{
+			if (inputOperands[i].baseOperand() != operands.get(j).baseOperand())
+			{
+				return false;
+			}
+		}
+		return true;
+	}
+
+	/**
 	 * Answer the size of the {@linkplain JavaInstruction instruction}, in
 	 * bytes.
 	 *

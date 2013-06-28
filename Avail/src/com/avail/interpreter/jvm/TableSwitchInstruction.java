@@ -39,7 +39,6 @@ import java.io.IOException;
  * The immediate values of a {@code TableSwitchInstruction} describe an {@code
  * int} range and {@linkplain Label labels}.
  *
- *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 final class TableSwitchInstruction
