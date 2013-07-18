@@ -737,7 +737,7 @@ Semantic restriction "counts for_" is
  * @param "supplementMap" "map" secondary map that provides new map bindings
  * @param "action" "[⊥,⊥,⊥]→map" action to perform in the event that there is a
  * 		duplicate key.  Inputs are [map,any,any]
- * @returnType "map" the resultant map
+ * @returns "map" the resultant map
  * @raises
  */
 Public method "integrate_and_with_" is

@@ -60,7 +60,7 @@ Private forward method "_is at new comment" is [stacks scanner]→boolean;
  * @categories "stacks"
  * @param "scanner" "stacks scanner" 
  *      a stacks scanner
- * @returnType "boolean"
+ * @returns "boolean"
  *      whether or not at start of a new comment.
  * @author "Richard Arriaga"
  */
@@ -118,7 +118,7 @@ Private forward method "_is at nested comment" is [stacks scanner]→boolean;
  * @categories "stacks"
  * @param "scanner" "stacks scanner" 
  *      a stacks scanner
- * @returnType "boolean"
+ * @returns "boolean"
  *      whether or not at start of a nested.
  * @author "Richard Arriaga"
  */
@@ -160,7 +160,7 @@ Private method "_is at nested comment" is
  * @categories "stacks"
  * @param "scanner" "stacks scanner" 
  *      a stacks scanner
- * @returnType "⊤"
+ * @returns "⊤"
  *      none
  * @author "Richard Arriaga"
  */
@@ -207,7 +207,7 @@ Private method "Consume_'s⁇nested comment" is
  * @categories "Stacks"
  * @param "scanner" "stacks scanner" 
  *      a stacks scanner
- * @returnType "⊤"
+ * @returns "⊤"
  *      none
  * @author "Richard Arriaga"
  */
@@ -237,7 +237,7 @@ Private method "Process back slash from_" is
  * @categories "Stacks"
  * @param "scanner" "stacks scanner" 
  *      a stacks scanner
- * @returnType "⊤"
+ * @returns "⊤"
  *      none
  * @author "Richard Arriaga"
  */
@@ -263,7 +263,7 @@ Private method "Process forward slash from_" is
  *  	special region to remove new lines from
  * @param "index" "natural number" 
  *      tuple of new line location
- * @returnType "string"
+ * @returns "string"
  *      string with new line removed
  * @author "Richard Arriaga"
  */
@@ -319,7 +319,7 @@ Private method "process raw new line from_at_" is
  *  	special region to remove new lines from
  * @param "indices" "<natural number…|1..>"
  * 		indices of a new line characters
- * @returnType "string"
+ * @returns "string"
  *      string with new lines removed
  * @raises "exceptionName" 
  *      exceptionDescription
@@ -397,7 +397,7 @@ Private method "remove new lines from_at_" is
  * @categories "Stacks"
  * @param "phrase" "string" 
  *      the string to remove escaped
- * @returnType "string"
+ * @returns "string"
  *      the string with escape characters removed
  * @author "Richard Arriaga"
  */
@@ -432,7 +432,7 @@ Private method "remove escaped character for quotes from_" is
  * @categories "Stacks"
  * @param "scanner" "stacks scanner" 
  *		a stacks scanner
- * @returnType "⊤"
+ * @returns "⊤"
  *		none
  * @author "Richard Arriaga"
  */
@@ -490,7 +490,7 @@ Private method "Process double quote in comment from_" is
  * @categories "Stacks"
  * @param "scanner" "stacks scanner" 
  *		a stacks scanner
- * @returnType "⊤"
+ * @returns "⊤"
  *		none
  * @author "Richard Arriaga"
  */
@@ -511,7 +511,7 @@ Private forward method "Process newline in comment from_" is [stacks scanner]→
  * @categories "Stacks"
  * @param "scanner" "stacks scanner" 
  *		a stacks scanner
- * @returnType "⊤"
+ * @returns "⊤"
  *		none
  * @author "Richard Arriaga"
  */
@@ -553,7 +553,7 @@ Private method "Process newline in comment from_" is
  * @categories "Stacks Scanner"
  * @param "scanner" "stacks scanner" 
  *	a stacks scanner
- * @returnType "⊤"
+ * @returns "⊤"
  *      none
  * @author "authorName"
  */
@@ -577,7 +577,7 @@ Private method "Process at sign in comment from_" is
  * @categories "Stacks Scanner"
  * @param "scanner" "stacks scanner" 
  *	a stacks scanner
- * @returnType "⊤"
+ * @returns "⊤"
  *      none
  * @author "authorName"
  */
@@ -698,7 +698,7 @@ For each tokenDelimiter do
  * @categories "Stacks Scanner"
  * @param "scanner" "stacks scanner" 
  *	a stacks scanner
- * @returnType "⊤"
+ * @returns "⊤"
  *      none
  * @author "Richard Arriaga"
  */
@@ -782,7 +782,7 @@ Private method "Process left curly brace in comment from_" is
  * @categories "Stacks Scanner"
  * @param "scanner" "stacks scanner" 
  *		a stacks scanner
- * @returnType "⊤"
+ * @returns "⊤"
  *		none
  * @author "Richard Arriaga"
  */
@@ -818,7 +818,7 @@ Private method "Process the_'s⁇comment buffer" is
  * @categories "stacks"
  * @param "scanner" "stacks scanner" 
  *      a stacks scanner
- * @returnType "⊤"
+ * @returns "⊤"
  *      none
  * @author "Richard Arriaga"
  */
@@ -862,7 +862,7 @@ Explicit class "unescaped-unterminated-double-quote exception"
  * 		the patricia trie that identifies the delimiters.
  * @param "regionCount" "whole number" the number of comments currently nested
  * 	in
- * @returnType "whole number"
+ * @returns "whole number"
  *      the number of comments deep currently nested
  * @author "Richard Arriaga"
  */
@@ -966,7 +966,7 @@ Private method "comment first pass from_using_in level_" is
  * @categories "Stacks"
  * @param "scanner" "stacks scanner" 
  *		a stacks lexical scanner
- * @returnType "⊤"
+ * @returns "⊤"
  *		none
  * @author "Richard Arriaga"
  */
@@ -990,7 +990,7 @@ Private method "Buffer_'s⁇current comment" is
  * @categories "category"
  * @param "scanner" "stacks scanner" 
  *      a stacks scanner
- * @returnType "⊤"
+ * @returns "⊤"
  *      none
  * @author "Richard Arriaga"
  */

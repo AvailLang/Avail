@@ -261,7 +261,7 @@ Public explicit class "bracketed stacks token"
  * @categories "Stacks"
  * @param "name" "string" 
  *		name of new token type
- * @returnType "⊤"
+ * @returns "⊤"
  *		none
  * @author "Richard Arriaga"
  */
@@ -301,7 +301,7 @@ doNotTokenize ::= {"/*","/**","*/"," ","","\t"};
  *      a tuple of stacks tokens
  * @param "delimeter" "string" 
  *      the string to separate the tokens' lexems in the string
- * @returnType "string"
+ * @returns "string"
  *      a string sentence of the tokens' lexemes
  * @author "authorName"
  */
@@ -402,7 +402,7 @@ Public class "stacks scanner" extends Avail scanner
  * @categories "Stacks Scanner"
  * @param "iter" "iterator of character" 
  *      and iterator of characters
- * @returnType "stacks scanner"
+ * @returns "stacks scanner"
  *      a stacks scanner object
  * @author "Richard Arriaga"
  */
@@ -437,7 +437,7 @@ Public method "a stacks scanner with_" is
  * @categories "Stacks Scanner"
  * @param "scanner" "stacks scanner" 
  *		a stacks scanner
- * @returnType "boolean"
+ * @returns "boolean"
  *		the current setting of the flag
  * @author "Richard Arriaga"
  */
@@ -456,7 +456,7 @@ Public method "_in erroneous comment" is
  * @categories "Stacks Scanner"
  * @param "scanner" "stacks scanner" 
  *      a stacks scanner
- * @returnType "⊤"
+ * @returns "⊤"
  *      none
  * @author "Richard Arriaga"
  */
@@ -483,7 +483,7 @@ Public method "Reset_'s⁇comment processing structure" is
  * @public
  * @param "scanner" "stacks scanner" 
  *      a stacks scanner
- * @returnType "⊤"
+ * @returns "⊤"
  *      none
  * @author "Richard Arriaga"
  */
@@ -501,7 +501,7 @@ Public method "Toggle_'s⁇new line" is
  * @categories "Stacks"
  * @param "scanner" "stacks scanner" 
  *      a stacks scanner
- * @returnType "⊤"
+ * @returns "⊤"
  *      none
  * @author "Richard Arriaga"
  */
@@ -519,7 +519,7 @@ Public method "Toggle_'s⁇special region flag" is
  * @categories "Stacks"
  * @param "scanner" "stacks scanner" 
  *      a stacks scanner
- * @returnType "⊤"
+ * @returns "⊤"
  *      none
  * @author "Richard Arriaga"
  */
@@ -537,7 +537,7 @@ Public method "Toggle_'s⁇special comment" is
  * @categories "Stacks"
  * @param "scanner" "stacks scanner" 
  *      a stacks scanner
- * @returnType "⊤"
+ * @returns "⊤"
  *      none
  * @author "Richard Arriaga"
  */
@@ -567,7 +567,7 @@ Explicit class "open-comment-less-than-zero exception" extends exception;
  *      will 1 be added or subtracted
  * @param "scanner" "stacks scanner" 
  *      a stacks scanner
- * @returnType "⊤"
+ * @returns "⊤"
  *      none
  * @raises "open-comment-less-than-zero exception" 
  *      An open-comment-less-than-zero exception is raised when an attempt is 
@@ -600,7 +600,7 @@ Public method "«Increment|Decrement»!_'s⁇open comment count" is
  * @categories "Stacks Scanner"
  * @param "scanner" "stacks scanner" 
  *		a stacks scanner
- * @returnType "⊤"
+ * @returns "⊤"
  *		none
  * @raises "Raise an exhausted-iterator exception" 
  *		there is nothing left on the iterator to consume
@@ -636,7 +636,7 @@ Method "Next character from_" is
  * @categories "Stacks Scanner"
  * @param "scanner" "stacks scanner" 
  *      a stacks scanner
- * @returnType "boolean"
+ * @returns "boolean"
  *      true if buffer is exhausted, false if it is not.
  * @author "Richard Arriaga"
  */
@@ -655,7 +655,7 @@ Public method "_'s⁇comment buffer is exhausted" is
  * @categories "Stacks Scanner"
  * @param "scanner" "stacks scanner" 
  *      a stacks scanner
- * @returnType "boolean"
+ * @returns "boolean"
  *      true if buffer is not exhausted, false if it is.
  * @author "Richard Arriaga"
  */
@@ -673,7 +673,7 @@ Public method "_'s⁇comment buffer is not exhausted" is
  * @categories "category"
  * @param "scanner" "stacks scanner" 
  *      a stacks scanner
- * @returnType "⊤"
+ * @returns "⊤"
  *      none
  * @author "Richard Arriaga"
  */
@@ -704,7 +704,7 @@ Explicit class "access-comment-buffer-element-out-of-bounds exception"
  * @categories "category"
  * @param "scanner" "stacks scanner" 
  *      a stacks scanner
- * @returnType "character"
+ * @returns "character"
  *      the character at the index position of the comment buffer
  * @raises "exceptionName" 
  *      exceptionDescription
@@ -731,7 +731,7 @@ Public method "_'s⁇current buffer character" is
  * @categories "category"
  * @param "scanner" "stacks scanner" 
  *      a stacks scanner
- * @returnType "character"
+ * @returns "character"
  *      the character at the index position of the comment buffer
  * @raises "exceptionName" 
  *      exceptionDescription
@@ -773,7 +773,7 @@ Explicit class "comment-buffer-index-exceeds-bounds exception"
  * @categories "Stacks Scanner"
  * @param "scanner" "stacks scanner" 
  *      a stacks scanner
- * @returnType "⊤"
+ * @returns "⊤"
  *      none
  * @raises "exceptionName" 
  *      exceptionDescription
@@ -814,7 +814,7 @@ Public method "Increment_'s⁇comment buffer index" is
  *		an stacks scanner 
  * @param "predicate" "boolean" 
  *		The function that guards repeated application of reading from the source
- * @returnType "<character…|>"
+ * @returns "<character…|>"
  *		the tuple of characters read from the source
  * @author "Richard Arriaga"
  */
@@ -884,7 +884,7 @@ Semantic restriction "_'s⁇token buffer" is
  * @categories "Stacks"
  * @param "scanner" "stacks scanner" 
  *		a tuple <token lexeme,token line number,token column position>
- * @returnType "stacks token"
+ * @returns "stacks token"
  *		a stacks token of the input string
  * @author "Richard Arriaga"
  */
@@ -943,7 +943,7 @@ Private method "tokenize_'s⁇«quoted»?character buffer" is
  * @categories "Stacks"
  * @param "scanner" "stacks scanner" 
  *		a tuple <token lexeme,token line number,token column position>
- * @returnType "stacks token"
+ * @returns "stacks token"
  *		a stacks token of the input string
  * @author "Richard Arriaga"
  */
@@ -968,7 +968,7 @@ Private method "tokenize_'s⁇bracketed character buffer" is
  * @categories "Stacks"
  * @param "scanner" "stacks scanner" 
  *		a stacks lexical scanner
- * @returnType "stacks token"
+ * @returns "stacks token"
  *		the newly tokenized stacks token
  * @author "Richard Arriaga"
  */
@@ -1009,7 +1009,7 @@ Public method "Buffer_'s⁇current«quoted»?token" is
  * @categories "Stacks"
  * @param "scanner" "stacks scanner" 
  *		a stacks lexical scanner
- * @returnType "⊤"
+ * @returns "⊤"
  *		none
  * @author "Richard Arriaga"
  */

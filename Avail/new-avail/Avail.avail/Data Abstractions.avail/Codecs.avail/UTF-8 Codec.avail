@@ -51,9 +51,9 @@ Body
  * @method "transform_ as acontinuation byte"
  * @categories "Codec"
  * @param "continuationByte" "byte" 
- *      a continuation byte with leading bits 10
- * @returnType "byte"
- *      the transformed byte
+ *        A continuation byte with leading bits 10.
+ * @returns "byte"
+ *          The transformed byte.
  * @author "Richard Arriaga"
  */
 Private method "transform_as a UTF8 continuation byte" is
@@ -72,13 +72,13 @@ Private method "transform_as a UTF8 continuation byte" is
  * @method "decode_from_"
  * @categories "Codec"
  * @param "bytesExpected" "[1..4]" 
- *      the number of bytes that will appear in the byte tuple.  The purpose
- *      of this input is for the sake of optimization.  It allows the optimizer
- *      to know exactly which method to dispatch.
+ *        The number of bytes that will appear in the byte tuple.  The purpose
+ *        of this input is for the sake of optimization.  It allows the
+ *        optimizer to know exactly which method to dispatch.
  * @param "accumulator" "<byte…|..4>"
- * 		the tuple containing the bytes to be transformed into a code point
- * @returnType "character"
- *      the unicode character represented by the code point
+ *        The tuple containing the bytes to be transformed into a code point.
+ * @returns "character"
+ *          The unicode character represented by the code point.
  * @author "Richard Arriaga"
  */
 Private abstract  method "utf-_decode_from_" is 
@@ -93,11 +93,11 @@ Private abstract  method "utf-_decode_from_" is
  * @method "decode_from_"
  * @categories "Codec"
  * @param "bytesExpected" "1's type" 
- *      only 1 byte is expected in the accumulator
+ *        Only 1 byte is expected in the accumulator.
  * @param "accumulator" "<byte…|..4>"
- * 		the tuple containing the bytes to be transformed into a code point
- * @returnType "character"
- *      the unicode character represented by the code point
+ *        The tuple containing the bytes to be transformed into a code point.
+ * @returns "character"
+ *          The unicode character represented by the code point.
  * @author "Richard Arriaga"
  */
 Method "utf-_decode_from_" is
@@ -107,7 +107,7 @@ Method "utf-_decode_from_" is
 	accumulator : <byte…|1..4>
  |
 	accumulator[1] → character
-]:character;
+] : character;
 
 /**
  * This method defines the decoding of the UTF-8 two byte code.  This is for
@@ -117,11 +117,11 @@ Method "utf-_decode_from_" is
  * @method "decode_from_"
  * @categories "Codec"
  * @param "bytesExpected" "2's type" 
- *      2 bytes are expected in the accumulator
+ *        2 bytes are expected in the accumulator.
  * @param "accumulator" "<byte…|..4>"
- * 		the tuple containing the bytes to be transformed into a code point
- * @returnType "character"
- *      the unicode character represented by the code point
+ *        The tuple containing the bytes to be transformed into a code point.
+ * @returns "character"
+ *          The unicode character represented by the code point.
  * @author "Richard Arriaga"
  */
 Method "utf-_decode_from_" is
@@ -143,11 +143,11 @@ Method "utf-_decode_from_" is
  * @method "decode_from_"
  * @categories "Codec"
  * @param "bytesExpected" "3's type" 
- *      3 bytes are expected in the accumulator
+ *        3 bytes are expected in the accumulator.
  * @param "accumulator" "<byte…|..4>"
- * 		the tuple containing the bytes to be transformed into a code point
- * @returnType "character"
- *      the unicode character represented by the code point
+ *        The tuple containing the bytes to be transformed into a code point.
+ * @returns "character"
+ *          The unicode character represented by the code point.
  * @author "Richard Arriaga"
  */
 Method "utf-_decode_from_" is
@@ -161,7 +161,7 @@ Method "utf-_decode_from_" is
 	secondByte : byte := transform accumulator[2] as a UTF8 continuation byte;
 	thirdByte : byte := transform accumulator[3] as a UTF8 continuation byte;
 	(leadingByte << 12) + (secondByte << 6) + thirdByte → character
-]:character;
+] : character;
 
 /**
  * This method defines the decoding of the UTF-8 four byte code.  This is for
@@ -171,11 +171,11 @@ Method "utf-_decode_from_" is
  * @method "decode_from_"
  * @categories "Codec"
  * @param "bytesExpected" "4's type" 
- *      4 bytes are expected in the accumulator
+ *        4 bytes are expected in the accumulator
  * @param "accumulator" "<byte…|..4>"
- * 		the tuple containing the bytes to be transformed into a code point
- * @returnType "character"
- *      the unicode character represented by the code point
+ *        The tuple containing the bytes to be transformed into a code point
+ * @returns "character"
+ *          The unicode character represented by the code point
  * @author "Richard Arriaga"
  */
 Method "utf-_decode_from_" is
@@ -200,9 +200,9 @@ Method "utf-_decode_from_" is
  * @method "utf-_encode_"
  * @categories "Codec"
  * @param "cp" "code point"
- * 		the code point of the character being encoded.
- * @returnType "<byte…|1..4>"
- *      a tuple of bytes representing the UTF-8 encoded character
+ *        The code point of the character being encoded.
+ * @returns "<byte…|1..4>"
+ *          A tuple of bytes representing the UTF-8 encoded character
  * @author "Richard Arriaga"
  */
 Private abstract  method "utf-_encode_" is [8's type,code point]→<byte…|1..4>;
@@ -215,9 +215,9 @@ Private abstract  method "utf-_encode_" is [8's type,code point]→<byte…|1..4
  * @method "utf-_encode_"
  * @categories "Codec"
  * @param "ascii" "[0..127]"
- * 		the ascii unicode code point
- * @returnType "<byte…|1..4>"
- *      a tuple of bytes representing the UTF-8 encoded character
+ *        The ascii unicode code point
+ * @returns "<byte…|1..4>"
+ *          A tuple of bytes representing the UTF-8 encoded character
  * @author "Richard Arriaga"
  */
 Method "utf-_encode_" is
@@ -238,9 +238,9 @@ Method "utf-_encode_" is
  * @method "utf-_encode_"
  * @categories "Codec"
  * @param "cp" "[128..2047]"
- * 		the unicode code point
- * @returnType "<byte…|1..4>"
- *      a tuple of bytes representing the UTF-8 encoded character
+ *        The unicode code point
+ * @returns "<byte…|1..4>"
+ *          A tuple of bytes representing the UTF-8 encoded character
  * @author "Richard Arriaga"
  */
 Method "utf-_encode_" is
@@ -251,7 +251,7 @@ Method "utf-_encode_" is
 	leading : byte := ((cp << -6) bit∧ 31) + 192;
 	secondary : byte := (cp bit∧ 63) + 128;
 	<leading, secondary>
-]:<byte…|1..4>;
+] : <byte…|1..4>;
 
 /**
  * This method defines the encoding of the UTF-8 three byte code.  This is for
@@ -263,9 +263,9 @@ Method "utf-_encode_" is
  * @method "utf-_encode_"
  * @categories "Codec"
  * @param "cp" "[2048..65534]"
- * 		the unicode code point
- * @returnType "<byte…|1..4>"
- *      a tuple of bytes representing the UTF-8 encoded character
+ *        The unicode code point.
+ * @returns "<byte…|1..4>"
+ *          A tuple of bytes representing the UTF-8 encoded character.
  * @author "Richard Arriaga"
  */
 Method "utf-_encode_" is
@@ -277,7 +277,7 @@ Method "utf-_encode_" is
 	secondary : byte := ((cp << -6) bit∧ 63) + 128; 
 	tertiary : byte := (cp bit∧ 63) + 128;
 	<leading,secondary,tertiary>
-]:<byte…|1..4>;
+] : <byte…|1..4>;
 
 /**
  * This method defines the decoding of the UTF-8 four byte code.  This is for
@@ -289,9 +289,9 @@ Method "utf-_encode_" is
  * @method "utf-_encode_"
  * @categories "Codec"
  * @param "cp" "[65536..1114111]"
- * 		the unicode code point
- * @returnType "<byte…|1..4>"
- *      a tuple of bytes representing the UTF-8 encoded character
+ *        The unicode code point.
+ * @returns "<byte…|1..4>"
+ *          A tuple of bytes representing the UTF-8 encoded character.
  * @author "Richard Arriaga"
  */
 Method "utf-_encode_" is
@@ -304,7 +304,7 @@ Method "utf-_encode_" is
 	tertiary : byte := ((cp << -6) bit∧ 63) + 128; 
 	quaternary : byte := (cp bit∧ 63) + 128;
 	<leading,secondary,tertiary,quaternary>
-]:<byte…|1..4>;
+] : <byte…|1..4>;
 
 "code point range" is a new field atom;
 
@@ -316,7 +316,7 @@ Method "utf-_encode_" is
  * @supertype {@type "object" decoder}
  * @category "Codecs"
  * @field "encoded input position" "natural number"
- * 	the current position in the encoded input buffer
+ *        The current position in the encoded input buffer
  * @author "Richard Arriaga"
  */
 Class "utf8 decoder" extends decoder
@@ -334,9 +334,9 @@ Class "utf8 decoder" extends decoder
  * @supertype {@type "object" encoder}
  * @category "Codecs"
  * @field "decoded input buffer" "<byte…|>"
- * 	a buffer that holds characters waiting to be encoded.
+ *        A buffer that holds characters waiting to be encoded.
  * @field "decoded input position" "natural number"
- * 	the current position in the decoded input buffer
+ *        The current position in the decoded input buffer
  * @author "Richard Arriaga"
  */
 Class "utf8 encoder" extends encoder
@@ -354,10 +354,10 @@ Class "utf8 encoder" extends encoder
  * @supertype {@type "utf8 encoder" encoder} {@type "utf8 decoder" decoder}
  * @category "Codecs"
  * @field "state" "continuation"
- * 	a continuation that can be resumed once more data is received if more data 
- * 	is needed from the source
+ *        A continuation that can be resumed once more data is received if more
+ *        data is needed from the source
  * @field "source exhausted" "boolean"
- * 	indicates if there is no more data to be had from the source. 
+ *        Indicates if there is no more data to be had from the source. 
  * @author "Richard Arriaga"
  */
 Public class "utf8 codec" extends utf8 encoder ∩ utf8 decoder
@@ -372,7 +372,7 @@ Public class "utf8 codec" extends utf8 encoder ∩ utf8 decoder
  * @categories "Codec"
  * @param "spec" "8's type" 
  *		The specification classification number for UTF
- * @returnType "utf8 codec"
+ * @returns "utf8 codec"
  *		a UTF-8 codec
  * @author "Richard Arriaga"
  */
@@ -417,7 +417,7 @@ Public explicit class "encoded-buffer-exhausted exception" extends exception;
  * @categories "Codecs"
  * @param "utf8" "utf8 decoder" 
  *      a utf8 decoder 
- * @returnType "⊤"
+ * @returns "⊤"
  *      none
  * @raises {@type "encoded-buffer-exhausted exception"} 
  *      the encoded input buffer is exhausted
@@ -440,7 +440,7 @@ Private method "Advance_'⁇s encoded input position" is
  * @categories "codec"
  * @param "b" "byte" 
  *		the primary byte to be tested
- * @returnType "[1..4]"
+ * @returns "[1..4]"
  *		how many bytes needed in encoding
  * @raises "exceptionName" 
  *		exceptionDescription
@@ -470,7 +470,7 @@ Private method "_'s⁇primary type" is
  * @categories "Codecs"
  * @param "utf8" "utf8 decoder" 
  *      a utf8 decoder
- * @returnType "[1..4]"
+ * @returns "[1..4]"
  *      the size of the expected byte tuple
  * @raises "malformed" 
  *      exceptionDescription
@@ -492,7 +492,7 @@ Private method "_'⁇s next input byte's primary type" is
  * @categories "category"
  * @param "utf8" "utf8 decoder" 
  *      a utf-8 decoder
- * @returnType "byte"
+ * @returns "byte"
  *      A byte of the form 10xxxxxx
  * @raises "malformed-encoding exception"}" 
  *      returned byte is not of type 10xxxxxx
@@ -588,7 +588,7 @@ utf8DecoderFunction ::=
  * @category "Codecs"
  * @param "byte tuple"
  * @param "codec"
- * @returnType "string"
+ * @returns "string"
  * 	the decoded string
  * @raises {@type "malformed-encoding exception"}
  * 	Thrown when the encoding specification is violated
@@ -634,7 +634,7 @@ Method "decode_using_" is
  * @method "finish decoding with_"
  * @category "Codecs"
  * @param "utf8" "codec"
- * @returnType "string"
+ * @returns "string"
  * 	the decoded string
  * @raises {@type "malformed-encoding exception"}
  * 	Thrown when the encoding specification is violated
@@ -675,7 +675,7 @@ Method "finish decoding with_" is
  * 	The encoder used to encode the string
  * @exception {@type "unsupported-character exception"}
  * 	thrown when an encoding does not surrport the character being processed
- * @returnType "<[0..255]…|>"
+ * @returns "<[0..255]…|>"
  * 	a byte
  * @author "Richard Arriaga"
  */
@@ -720,7 +720,7 @@ Public class "utf8 encoding iterator" extends encoding iterator
  *		the source iterator to be decoded
  * @param "dc" "decoder" 
  *		the codec that is used to complete the decoding of the iterator
- * @returnType "decoding iterator"
+ * @returns "decoding iterator"
  *		a decoding iterator
  * @raises "exceptionName" 
  *		exceptionDescription
