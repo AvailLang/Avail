@@ -42,5 +42,8 @@ Body
 /**
  * A data-validation exception is raised when an I/O operation fails to produce
  * a data item that conforms to imposed semantic rules.
+ * 
+ * @type "data-validation exception" 
+ * @supertype "exception"
  */
 Public explicit class "data-validation exception" extends exception;

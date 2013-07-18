@@ -85,6 +85,10 @@ Method "_'s⁇name" is
 	s's handle's name
 ] : string;
 
+/**
+ * @method "_'s⁇name"
+ * @restricts "server socket's type"
+ */
 Semantic restriction "_'s⁇name" is
 [
 	s : server socket's type
@@ -100,6 +104,7 @@ Semantic restriction "_'s⁇name" is
  *        An optional string that describes the purpose of the server socket at
  *        a high level, provided for debugging purposes only. If not specified,
  *        then the default name {@code "«unnamed»"} is used.
+ * @returns "server socket"
  */
 Public method "a server socket«named_»" is
 [
@@ -151,6 +156,11 @@ Method "_'s⁇«_:=_‡,»" is
 	] : ⊤ (s's handle, optionMap);
 ] : ⊤;
 
+/**
+ * @method "_'s⁇«_:=_‡,»"
+ * @restricts "server socket's type"
+ * @restricts "<<server socket option, any…|2>…|>'s type"
+ */
 Semantic restriction "_'s⁇«_:=_‡,»" is
 [
 	socketType : server socket's type,
@@ -198,6 +208,13 @@ Method "Bind_to_on port_with a backlog of_" is
 	] : ⊤ (s's handle, ipAddress's octets, port, backlog bit∧ (2^31-1));
 ] : ⊤;
 
+/**
+ * @method "Bind_to_on port_with a backlog of_"
+ * @param "s" "server socket"
+ * @param "ipAddress" "IPv6 address"
+ * @param "port" "[0..65535]"
+ * @param "backlog" "whole number"
+ */
 Method "Bind_to_on port_with a backlog of_" is
 [
 	s : server socket,
@@ -309,6 +326,17 @@ is
 	aFiber
 ] : fiber;
 
+/**
+ * @method "a fiber waiting until_accepts a new connection«named_»,⁇\
+	\|on success doing_,⁇\
+	\|on failure doing_«,⁇forked at priority_»"
+ * @restricts "server socket's type"
+ * @restricts "<nonempty string…|0..1>'s type"
+ * @restricts "[client socket]→⊤'s type"
+ * @restricts "[natural number]→⊤'s type"
+ * @restricts "<byte…|0..1>'s type"
+ * 
+ */
 Semantic restriction
 	"a fiber waiting until_accepts a new connection«named_»,⁇\
 	\|on success doing_,⁇\

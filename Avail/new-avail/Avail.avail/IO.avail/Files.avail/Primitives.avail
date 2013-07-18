@@ -103,6 +103,11 @@ Public class "file name" extends object
 	with fields
 		public name : nonempty string;
 
+/**
+ * @method "“_”"
+ * @param "fn" "file name"
+ * @returns "nonempty string"
+ */
 Stable method "“_”" is
 [
 	fn : file name
@@ -126,6 +131,10 @@ Public stable method "_as file name" is
 	a file name with name ::= n
 ] : file name;
 
+/**
+ * @method "_as file name"
+ * @restricts "nonempty string's type"
+ */
 Semantic restriction "_as file name" is
 [
 	n : nonempty string's type
@@ -139,10 +148,10 @@ Semantic restriction "_as file name" is
  * @method "_exists"
  * @param "n" "file name"
  * @returns "boolean"
- *    {@method "true"} if {@param "n"} names an existing file, {@method "false"}
- *    otherwise.
+ *          {@method "true"} if {@param "n"} names an existing file, {@method
+ *          "false"} otherwise.
  * @raises "permission-denied exception"
- *    If permission is denied to use the specified {@type "file name"}.
+ *         If permission is denied to use the specified {@type "file name"}.
  */
 Public method "_exists" is
 [
@@ -162,10 +171,10 @@ Public method "_exists" is
  * @method "_is readable"
  * @param "n" "file name"
  * @returns "boolean"
- *    {@method "true"} if {@param "n"} names an existing file that is readable
- *    by this process; {@method "false"} otherwise.
+ *          {@method "true"} if {@param "n"} names an existing file that is
+ *          readable by this process; {@method "false"} otherwise.
  * @raises "permission-denied exception"
- *    If permission is denied to use the specified {@type "file name"}.
+ *         If permission is denied to use the specified {@type "file name"}.
  */
 Public method "_is readable" is
 [
@@ -185,10 +194,10 @@ Public method "_is readable" is
  * @method "_is writable"
  * @param "n" "file name"
  * @returns "boolean"
- *    {@method "true"} if {@param "n"} names an existing file that is writable
- *    by this process; {@method "false"} otherwise.
+ *          {@method "true"} if {@param "n"} names an existing file that is
+ *          writable by this process; {@method "false"} otherwise.
  * @raises "permission-denied exception"
- *    If permission is denied to use the specified {@type "file name"}.
+ *         If permission is denied to use the specified {@type "file name"}.
  */
 Public method "_is writable" is
 [
@@ -208,10 +217,10 @@ Public method "_is writable" is
  * @method "_is readable"
  * @param "n" "file name"
  * @returns "boolean"
- *    {@method "true"} if {@param "n"} names an existing file that is executable
- *    by this process; {@method "false"} otherwise.
+ *          {@method "true"} if {@param "n"} names an existing file that is
+ *          executable by this process; {@method "false"} otherwise.
  * @raises "permission-denied exception"
- *    If permission is denied to use the specified {@type "file name"}.
+ *         If permission is denied to use the specified {@type "file name"}.
  */
 Public method "_is executable" is
 [
@@ -234,10 +243,10 @@ Public method "_is executable" is
  * @param "dest" "file name"
  *        The destination {@type "file name"}.
  * @raises "permission-denied exception"
- *    If permission is denied to use either of the specified {@type
- *    "file name"}s.
+ *         If permission is denied to use either of the specified {@type "file
+ *         name"}s.
  * @raises "I/O exception"
- *    If an I/O error occurs for any reason.
+ *         If an I/O error occurs for any reason.
  */
 Public method "Rename_to_" is
 [
@@ -261,9 +270,9 @@ Public method "Rename_to_" is
  * @method "Unlink_"
  * @param "n" "file name"
  * @raises "permission-denied exception"
- *    If permission is denied to use the specified {@type "file name"}.
+ *         If permission is denied to use the specified {@type "file name"}.
  * @raises "I/O exception"
- *    If an I/O error occurs for any reason.
+ *         If an I/O error occurs for any reason.
  */
 Public method "Unlink_" is
 [
@@ -280,25 +289,16 @@ Public method "Unlink_" is
 
 /**
  * The atom that represents the readability of a file.
- *
- * {@method "read mode"}
- * @returns "atom"
  */
 Public "read mode" is a new atom;
 
 /**
  * The atom that represents the writability of a file.
- *
- * {@method "write mode"}
- * @returns "atom"
  */
 Public "write mode" is a new atom;
 
 /**
  * Answer the enumeration of file open modes.
- *
- * {@method "file open mode"}
- * @returns "{read mode, write mode}ᵀ"
  */
 _mode ::= {read mode, write mode}ᵀ;
 Public method "file open mode" is [_mode];
@@ -360,9 +360,9 @@ Public class "readable,⁇writable file" extends readable file ∩ writable file
  * @param "n" "file name"
  * @returns "readable file"
  * @raises "permission-denied exception"
- *    If permission is denied to use the specified {@type "file name"}.
+ *         If permission is denied to use the specified {@type "file name"}.
  * @raises "I/O exception"
- *    If an I/O error occurs for any reason.
+ *         If an I/O error occurs for any reason.
  */
 Public method "a readable file named_" is
 [
@@ -382,6 +382,10 @@ Public method "a readable file named_" is
 		open state := true
 ] : readable file;
 
+/**
+ * @method "a readable file named_"
+ * @restricts "file name's type"
+ */
 Semantic restriction "a readable file named_" is
 [
 	n : file name's type
@@ -397,9 +401,9 @@ Semantic restriction "a readable file named_" is
  * @param "n" "file name"
  * @returns "writable file"
  * @raises "permission-denied exception"
- *    If permission is denied to use the specified {@type "file name"}.
+ *         If permission is denied to use the specified {@type "file name"}.
  * @raises "I/O exception"
- *    If an I/O error occurs for any reason.
+ *         If an I/O error occurs for any reason.
  */
 Public method "a writable file named_" is
 [
@@ -419,6 +423,10 @@ Public method "a writable file named_" is
 		open state := true
 ] : writable file;
 
+/**
+ * @method "a writable file named_"
+ * @restricts "file name's type"
+ */
 Semantic restriction "a writable file named_" is
 [
 	n : file name's type
@@ -434,9 +442,9 @@ Semantic restriction "a writable file named_" is
  * @param "n" "file name"
  * @returns "readable,⁇writable file"
  * @raises "permission-denied exception"
- *    If permission is denied to use the specified {@type "file name"}.
+ *         If permission is denied to use the specified {@type "file name"}.
  * @raises "I/O exception"
- *    If an I/O error occurs for any reason.
+ *         If an I/O error occurs for any reason.
  */
 Public method "a readable,⁇writable file named_" is
 [
@@ -455,6 +463,10 @@ Public method "a readable,⁇writable file named_" is
 		open state := true
 ] : readable, writable file;
 
+/**
+ * @method "a readable,⁇writable file named_"
+ * @restricts "file name's type"
+ */
 Semantic restriction "a readable,⁇writable file named_" is
 [
 	n : file name's type
@@ -469,14 +481,15 @@ Semantic restriction "a readable,⁇writable file named_" is
  * @method "a file named_(mode=_)"
  * @param "n" "file name"
  * @param "modes" "{file open mode|1..2}"
- *    A set containing {@method "read mode"}, {@method "write mode"}, or both.
+ *        A set containing {@method "read mode"}, {@method "write mode"}, or
+ *        both.
  * @returns "file"
- *    A file open for reading, writing, or both, as specified by {@param
- *    "modes"}.
+ *          A file open for reading, writing, or both, as specified by {@param
+ *          "modes"}.
  * @raises "permission-denied exception"
- *    If permission is denied to use the specified {@type "file name"}.
+ *         If permission is denied to use the specified {@type "file name"}.
  * @raises "I/O exception"
- *    If an I/O error occurs for any reason.
+ *         If an I/O error occurs for any reason.
  */
 Public method "a file named_(mode=_)" is
 [
@@ -491,6 +504,11 @@ Public method "a file named_(mode=_)" is
 	else [a writable file named n]
 ] : file;
 
+/**
+ * @method "a file named_(mode=_)"
+ * @restricts "file name's type"
+ * @restricts "{file open mode|1..2}'s type"
+ */
 Semantic restriction "a file named_(mode=_)" is
 [
 	n : file name's type,
@@ -516,6 +534,11 @@ Method "_is writable" is [f : writable file | true];
 Public method "_is open" is [f : file | f's open state];
 Public method "_is closed" is [f : file | ¬f's open state];
 
+/**
+ * @method "“_”"
+ * @param "f" "file"
+ * @returns "string"
+ */
 Stable method "“_”" is
 [
 	f : file
@@ -550,7 +573,7 @@ Public explicit class "file-closed exception" extends I/O exception;
  * @method "Close_"
  * @param "f" "file"
  * @raises "file-closed exception"
- *    If {@param "f"} has already been closed.
+ *         If {@param "f"} has already been closed.
  */
 Method "Close_" is
 [
@@ -572,9 +595,9 @@ Method "Close_" is
  * @param "f" "file"
  * @returns "whole number"
  * @raises "I/O exception"
- *    If an I/O error occurs for any reason.
+ *         If an I/O error occurs for any reason.
  * @raises "file-closed exception"
- *    If {@param "f"} has already been closed.
+ *         If {@param "f"} has already been closed.
  */
 Public method "_'s⁇size" is
 [
@@ -601,9 +624,9 @@ Public method "_'s⁇size" is
  * @param "newSize" "whole number"
  * @returns "whole number"
  * @raises "I/O exception"
- *    If an I/O error occurs for any reason.
+ *         If an I/O error occurs for any reason.
  * @raises "file-closed exception"
- *    If {@param "f"} has already been closed.
+ *         If {@param "f"} has already been closed.
  */
 Public method "_'s⁇size:=_" is
 [
@@ -626,12 +649,12 @@ Public method "_'s⁇size:=_" is
  * @method "_'s⁇position"
  * @param "f" "file"
  * @returns "natural number"
- *    The current one-based file position. This is the subscript of the next
- *    byte that will be read or written.
+ *          The current one-based file position. This is the subscript of the
+ *          next byte that will be read or written.
  * @raises "I/O exception"
- *    If an I/O error occurs for any reason.
+ *         If an I/O error occurs for any reason.
  * @raises "file-closed exception"
- *    If {@param "f"} has already been closed.
+ *         If {@param "f"} has already been closed.
  */
 Method "_'s⁇position" is
 [
@@ -655,15 +678,15 @@ Method "_'s⁇position" is
  * @method "_'s⁇position:=_"
  * @param "f" "file"
  * @param "newPosition" "natural number"
- *    The new one-based file position. This is the subscript of the next byte
- *    that will be read or written.
+ *        The new one-based file position. This is the subscript of the next
+ *        byte that will be read or written.
  * @raises "subscript-out-of-bounds exception"
- *    If {@param "newPosition"} exceeds the maximum representation of a file
- *    position for the given file system.
+ *         If {@param "newPosition"} exceeds the maximum representation of a
+ *         file position for the given file system.
  * @raises "I/O exception"
- *    If an I/O error occurs for any reason.
+ *         If an I/O error occurs for any reason.
  * @raises "file-closed exception"
- *    If {@param "f"} has already been closed.
+ *         If {@param "f"} has already been closed.
  */
 Method "_'s⁇position:=_" is
 [
@@ -692,17 +715,17 @@ Method "_'s⁇position:=_" is
  *
  * @method "next_byte|bytes from_"
  * @param "bytesToRead" "[0..∞]"
- *    The number of bytes to attempt to read from {@param "f"}. If infinite,
- *    then return the smaller of 1) all remaining bytes or 2) a huge tuple whose
- *    exact size is unspecified.
+ *        The number of bytes to attempt to read from {@param "f"}. If infinite,
+ *        then return the smaller of 1) all remaining bytes or 2) a huge tuple
+ *        whose exact size is unspecified.
  * @param "f" "readable file"
  * @returns "<[0..255]…|>"
- *    Up to {@param "bytesToRead"} bytes from {@param "f"}. Fewer bytes will be
- *    returned if fewer bytes are available.
+ *          Up to {@param "bytesToRead"} bytes from {@param "f"}. Fewer bytes
+ *          will be returned if fewer bytes are available.
  * @raises "I/O exception"
- *    If an I/O error occurs for any reason.
+ *         If an I/O error occurs for any reason.
  * @raises "file-closed exception"
- *    If {@param "f"} has already been closed.
+ *         If {@param "f"} has already been closed.
  */
 Public method "next_byte|bytes from_" is
 [
@@ -719,6 +742,11 @@ Public method "next_byte|bytes from_" is
 	] : <[0..255]…|> (f's handle, bytesToRead)
 ] : <[0..255]…|>;
 
+/**
+ * @method "next_byte|bytes from_"
+ * @restricts "[0..∞]'s type"
+ * @restricts "readable file's type"
+ */
 Semantic restriction "next_byte|bytes from_" is
 [
 	bytesToRead : [0..∞]'s type,
@@ -734,12 +762,12 @@ Semantic restriction "next_byte|bytes from_" is
  *
  * @method "Write_to_"
  * @param "bytesToWrite" "whole number"
- *    The bytes to write to {@param "f"}.
+ *        The bytes to write to {@param "f"}.
  * @param "f" "writable file"
  * @raises "I/O exception"
- *    If an I/O error occurs for any reason.
+ *         If an I/O error occurs for any reason.
  * @raises "file-closed exception"
- *    If {@param "f"} has already been closed.
+ *         If {@param "f"} has already been closed.
  */
 Public method "Write_to_" is
 [
@@ -763,9 +791,9 @@ Public method "Write_to_" is
  * @method "Synchronize_with file system"
  * @param "f" "writable file"
  * @raises "I/O exception"
- *    If an I/O error occurs for any reason.
+ *         If an I/O error occurs for any reason.
  * @raises "file-closed exception"
- *    If {@param "f"} has already been closed.
+ *         If {@param "f"} has already been closed.
  */
 Public method "Synchronize_with file system" is
 [
@@ -787,12 +815,12 @@ Public method "Synchronize_with file system" is
  *
  * @method "Using|using_,⁇do_"
  * @param "f" "file"
- *    A file, typically opened very near the send of this method. The argument
- *    position works especially well.
+ *        A file, typically opened very near the send of this method. The
+ *        argument position works especially well.
  * @param "action" "[⊥]→⊤"
- *    A function to apply to {@param "f"}.
+ *        A function to apply to {@param "f"}.
  * @returns "⊤"
- *    The answer produced by applying {@param "action"} to {@param "f"}.
+ *          The answer produced by applying {@param "action"} to {@param "f"}.
  */
 Public method "Using|using_,⁇do_" is
 [
@@ -803,6 +831,11 @@ Public method "Using|using_,⁇do_" is
 	ensure [Close f;];
 ] : ⊤;
 
+/**
+ * @method "Using|using_,⁇do_"
+ * @restricts "file's type"
+ * @restricts "[⊥]→⊤'s type"
+ */
 Semantic restriction "Using|using_,⁇do_" is
 [
 	f : file's type,
@@ -819,7 +852,12 @@ Semantic restriction "Using|using_,⁇do_" is
 	action's return type
 ];
 
-/* Disallow the general object constructor for file-related types. */
+/**
+ * Disallow the general object constructor for file-related types.
+ * 
+ * @method "a|an_«with«_«:»?:=_‡,»»"
+ * @forbids "1" "file name" "file" "readable file" "writable file" "readable,⁇writable file"
+ */
 Grammatical restriction "a|an_«with«_«:»?:=_‡,»»" is
 	<{
 		"file name",
