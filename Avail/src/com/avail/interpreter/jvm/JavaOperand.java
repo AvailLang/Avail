@@ -42,34 +42,13 @@ import com.avail.annotations.Nullable;
 enum JavaOperand
 {
 	/** The operand is a {@code reference} index. */
-	OBJECTREF (Object.class)
-	{
-		@Override
-		public JavaOperand computationalCategory ()
-		{
-			throw new UnsupportedOperationException();
-		}
-	},
+	OBJECTREF (Object.class),
 
 	/** The operand is {@code null}. */
-	NULL (OBJECTREF, Object.class)
-	{
-		@Override
-		public JavaOperand computationalCategory ()
-		{
-			throw new UnsupportedOperationException();
-		}
-	},
+	NULL (OBJECTREF, Object.class),
 
 	/** The operand is an array reference. */
-	ARRAYREF (OBJECTREF, Object.class)
-	{
-		@Override
-		public JavaOperand computationalCategory ()
-		{
-			throw new UnsupportedOperationException();
-		}
-	},
+	ARRAYREF (OBJECTREF, Object.class),
 
 	/** The operand is an {@code int}. */
 	INT (Integer.TYPE),
@@ -229,14 +208,7 @@ enum JavaOperand
 	},
 
 	/** The operand is a return address. */
-	RETURN_ADDRESS (Void.TYPE)
-	{
-		@Override
-		public JavaOperand computationalCategory ()
-		{
-			throw new UnsupportedOperationException();
-		}
-	},
+	RETURN_ADDRESS (Void.TYPE),
 
 	/** Represents multiple operands. */
 	PLURAL (Void.TYPE)
