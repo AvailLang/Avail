@@ -280,6 +280,15 @@ extends Descriptor
 		return o_EqualsAnyTuple(object, aTuple);
 	}
 
+	@Override
+	boolean o_EqualsIntegerIntervalTuple (
+		final AvailObject object,
+		final A_Tuple aTuple)
+	{
+		// Default to generic tuple comparison.
+		return o_EqualsAnyTuple(object, aTuple);
+	}
+
 	@Override @AvailMethod
 	boolean o_EqualsNybbleTuple (
 		final AvailObject object,

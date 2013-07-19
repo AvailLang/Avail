@@ -79,11 +79,8 @@ Uses
 		"_`#_:_(literals=_,`#locals_,`#outers_,stack depth=_)",
 		"_has definition for_",
 		"_mod_",
-<<<<<<< HEAD
 		"_to_by_",
-=======
 		"_«[_]»→_",
->>>>>>> branch 'master' of ssh://availlang_src@availlang.org:22/home/availlang_src/Avail
 		"_×_",
 		"_÷_",
 		"_∈_",
@@ -1860,58 +1857,11 @@ Primitive "_«[_]»→_" is
  */
 Primitive "_«[_]»→_" is
 [
-<<<<<<< HEAD
-	var : null,
-	key : any,
-=======
 	aMap : map,
 	pathTuple : nonempty tuple,
->>>>>>> branch 'master' of ssh://availlang_src@availlang.org:22/home/availlang_src/Avail
 	newValue : any
 |
 	Primitive 701 (failureCode : natural number);
 	Private invoke _fail_primitive with failureCode
-<<<<<<< HEAD
-] : ⊤;
-
-/**
- * Replace the value at the location indicated by the path tuple of the
- * target tuple with a new value.
- *
- * Parameters:
- *    var - A variable containing a tuple.
- *    pathTuple - A tuple containing the path of indices to follow to the target.
- *    newValue - The new value to populate at the given target.
- */
-Primitive "↓_«[_]»:=_" is
-[
-	var : variable,
-	pathTuple : two or more tuple,
-	newValue : any
-|
-	Primitive 702 (failureCode : natural number);
-	Private invoke _fail_primitive with failureCode
-] : ⊤;
-
-/**
- * Replace the value at the location indicated by the path tuple of the 
- * target map with a new value.
- *
- * Parameters:
- *    var - A variable containing a complex map.
- *    pathTuple - A tuple containing the path of indices to follow to the target.
- *    newValue - The new value to populate at the given target.
- */
-Primitive "↓_«[_]»:=_" is
-[
-	var : null,
-	pathTuple : two or more tuple,
-	newValue : any
-|
-	Primitive 703 (failureCode : natural number);
-	Private invoke _fail_primitive with failureCode
-] : ⊤;
-=======
 ] : map;
->>>>>>> branch 'master' of ssh://availlang_src@availlang.org:22/home/availlang_src/Avail
 

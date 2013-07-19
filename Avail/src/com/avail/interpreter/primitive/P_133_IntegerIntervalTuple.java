@@ -35,15 +35,7 @@ package com.avail.interpreter.primitive;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
 import com.avail.annotations.NotNull;
-import com.avail.descriptor.A_Number;
-import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.FunctionTypeDescriptor;
-import com.avail.descriptor.IntegerDescriptor;
-import com.avail.descriptor.IntegerIntervalTupleDescriptor;
-import com.avail.descriptor.IntegerRangeTypeDescriptor;
-import com.avail.descriptor.TupleDescriptor;
-import com.avail.descriptor.TupleTypeDescriptor;
+import com.avail.descriptor.*;
 import com.avail.exceptions.AvailErrorCode;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
@@ -79,11 +71,13 @@ extends Primitive
 			return interpreter.primitiveFailure(
 				AvailErrorCode.E_INCORRECT_ARGUMENT_TYPE);
 		}
-		return interpreter.primitiveSuccess(
-			IntegerIntervalTupleDescriptor.createInterval(
-				start,
-				end,
-				delta));
+
+		final A_Tuple success = IntegerIntervalTupleDescriptor.createInterval(
+			start,
+			end,
+			delta);
+
+		return interpreter.primitiveSuccess(success);
 	}
 
 	@Override

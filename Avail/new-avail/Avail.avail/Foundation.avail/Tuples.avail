@@ -80,7 +80,6 @@ Names
 	"_occurrences⁇of_",
 	"_starts with_",
 	"_to_",
-	"_to_by_",
 	"_'s⁇head",
 	"_'s⁇last",
 	"_'s⁇tail",
@@ -1492,11 +1491,17 @@ Semantic restriction "_to_" is
 		into [t : <integer's type…|1..> | <t[1..|t|-1], t[|t|]…|sizes>]
 		else [<>'s type]
 	]
+	else if [sizes = ⊥] then
+	[
+		<⊥…|0>
+	]
 	else
 	[
 		<<>, [min..max + 1)…|sizes>
 	]
 ];
+
+Method "_to_by_" is stable at [integer, integer, integer]→<integer…|>;
 
 /**
  * @method "_to_by_"
@@ -1506,7 +1511,7 @@ Semantic restriction "_to_" is
  * @returns "⊥"
  * @raises "incorrect-argument-type"
  */
-Public method "_to_by_" is
+Method "_to_by_" is
 [
 	start : integer,
 	end : integer,
@@ -1530,28 +1535,42 @@ Semantic restriction "_to_by_" is
 	end : integer's type,
 	delta : integer's type
 |
-	min : extended integer;
-	max : extended integer;
+	low : extended integer;
+	high : extended integer;
 	sizes : whole number's type;
+
+	If delta ⊆ [0..0] then
+	[
+		Reject parse, expected: "delta value not to be zero"
+	];
+
 	If delta ⊆ [0..∞) then
 	[
-		min := ⎣start⎦;
-		max := ⎡end⎤;
-		sizes := [0 max (⎣end⎦ - ⎡start⎤ + 1) .. max - min + 2);
+		low := ⎣start⎦;
+		high := ⎡end⎤;
+		rangeFrom ::= 0 max ((⎣end⎦ - ⎡start⎤) ÷ ⎡delta⎤ + 1);
+		rangeTo ::= (high - low) ÷ ⎣delta⎦ + 1;
+		sizes := [rangeFrom .. rangeTo + 1);
 	]
 	else if [delta ⊆ (-∞..-1]] then
 	[
-		min := ⎣end⎦;
-		max := ⎡start⎤;
-		sizes := [0 max (⎣start⎦ - ⎡end⎤ + 1) .. max - min + 2);
+		low := ⎣end⎦;
+		high := ⎡start⎤;
+		rangeFrom ::= 0 max ((⎣start⎦ - ⎡end⎤) ÷ -⎡delta⎤ + 1);
+		rangeTo ::= (high - low) ÷ -⎣delta⎦ + 1;
+		sizes := [rangeFrom .. rangeTo + 1);
 	]
 	else
 	[
-		min := ⎣start⎦ min ⎣end⎦;
-		max := ⎡start⎤ max ⎡end⎤;
-		sizes := [0 .. max - min + 2);
+		/* There is no need to divide by any value of delta here because if
+		 * delta's value cannot be determined, then 1 and -1 are possible
+		 * values. So, the largest possible size should remain.
+		 */
+		low := ⎣start⎦ min ⎣end⎦;
+		high := ⎡start⎤ max ⎡end⎤;
+		sizes := [0 .. high - low + 2);
 	];
-	<<>, [min..max + 1)…|sizes>
+	<<>, [low..high + 1)…|sizes>
 ];
 
 /**

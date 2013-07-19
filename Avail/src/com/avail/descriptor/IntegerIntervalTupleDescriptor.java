@@ -41,8 +41,7 @@ import com.avail.annotations.HideFieldInDebugger;
 
 /**
  * {@code IntegerIntervalTupleDescriptor} represents an ordered tuple of
- * integers that are each larger than their predecessor by DELTA, an integer
- * value.
+ * integers that each differ from their predecessor by DELTA, an integer value.
  *
  * @author Leslie Schultz &lt;leslie@availlang.org&gt;
  */
@@ -350,7 +349,7 @@ extends TupleDescriptor
 		// Check that the slots match
 		final int firstHash = firstTraversed.slot(HASH_OR_ZERO);
 		final int secondHash = secondTraversed.slot(HASH_OR_ZERO);
-		if (firstHash != 0 && secondHash != 0 && firstHash !=secondHash)
+		if (firstHash != 0 && secondHash != 0 && firstHash != secondHash)
 		{
 			return false;
 		}
@@ -381,6 +380,15 @@ extends TupleDescriptor
 		}
 		return true;
 
+	}
+
+	@Override
+	int o_BitsPerEntry (final AvailObject object)
+	{
+		// Consider a billion element tuple. Since an interval tuple requires
+		// only O(1) storage, irrespective of its size, the average bits per
+		// entry is 0.
+		return 0;
 	}
 
 	@Override @AvailMethod
@@ -430,18 +438,7 @@ extends TupleDescriptor
 	@Override @AvailMethod
 	int o_TupleSize (final AvailObject object)
 	{
-		// Answer the number of values in the tuple (as a Java int).
-		int size = object.slot(SIZE);
-		// If size is zero, it has not been initialized; do so.
-		if (size == 0)
-		{
-			A_Number temp = object.slot(END);
-			temp = temp.minusCanDestroy(object.slot(START), false);
-			temp = temp.divideCanDestroy(object.slot(DELTA), false);
-			size = temp.extractInt();
-			object.setSlot(SIZE, size);
-		}
-		return size;
+		return object.slot(SIZE);
 	}
 
 	/** The mutable {@link IntegerIntervalTupleDescriptor}. */
@@ -490,7 +487,7 @@ extends TupleDescriptor
 	 * @param newStart The first integer in the interval.
 	 * @param newEnd The last integer in the interval.
 	 * @param delta The difference between an integer and its subsequent neighbor
-	 *             in the interval.
+	 *             in the interval. Delta is nonzero.
 	 * @return The new interval.
 	 */
 	public static A_Tuple createInterval (
@@ -498,6 +495,8 @@ extends TupleDescriptor
 		final A_Number newEnd,
 		final A_Number delta)
 	{
+		assert !delta.equals(IntegerDescriptor.zero());
+
 		final A_Number difference = newEnd.minusCanDestroy(newStart, false);
 		final A_Number zero = IntegerDescriptor.zero();
 
@@ -510,36 +509,55 @@ extends TupleDescriptor
 
 		// If the progression is in a different direction than the delta, there
 		// are no members of this interval, so return the empty tuple.
-		if (difference.greaterThan(zero) != delta.greaterOrEqual(zero))
+		if (difference.greaterThan(zero) != delta.greaterThan(zero))
 		{
 			return TupleDescriptor.empty();
 		}
 
 		// If there are fewer than minimumSize members in this interval, create
 		// a normal tuple with them in it instead of an interval tuple.
-		final int size = difference.divideCanDestroy(delta, false).extractInt();
+		final int size;
+		// TODO: [LAS] Remove when Mark fixes -a/-b rounding towards +∞.
+		if (difference.lessThan(zero))
+		{
+			final A_Number negativeOne = IntegerDescriptor.fromInt(-1);
+			final A_Number tempDifference =
+				difference.timesCanDestroy(negativeOne, false);
+			final A_Number tempDelta =
+				delta.timesCanDestroy(negativeOne, false);
+			size = 1 +
+				tempDifference.divideCanDestroy(tempDelta, false).extractInt();
+		}
+		else
+		{
+			size = 1 + difference.divideCanDestroy(delta, false).extractInt();
+		}
 		if (size < minimumSize)
 		{
 			final List<A_Number> members = new ArrayList<A_Number>(size);
-			final A_Number newMember = newStart;
-			do {
+			A_Number newMember = newStart;
+			for (int i = 0; i < size; i++)
+			{
 				members.add(newMember);
-				newMember.addToIntegerCanDestroy(delta, false);
-			} while (newMember.lessOrEqual(newEnd));
+				newMember = newMember.addToIntegerCanDestroy(delta, false);
+			}
 			return TupleDescriptor.fromList(members);
 		}
 
 		// No other efficiency shortcuts. Normalize end, and create a range.
 		final AvailObject interval = mutable.create();
-		interval.setSlot(START, newStart);
-		interval.setSlot(DELTA, delta);
-		// overshot = start mod delta
-		final A_Number overshot = newStart.minusCanDestroy(
+		interval.setSlot(START, newStart.makeImmutable());
+		interval.setSlot(DELTA, delta.makeImmutable());
+		// overshot = (end - start) mod delta
+		final A_Number overshot = difference.minusCanDestroy(
 			delta.timesCanDestroy(
-				newStart.divideCanDestroy(delta, false), false), false);
-		interval.setSlot(END, newEnd.minusCanDestroy(overshot, false));
+				difference.divideCanDestroy(delta, false), false), false);
+		interval.setSlot(
+			END,
+			newEnd.minusCanDestroy(overshot, false).makeImmutable());
 
 		interval.setSlot(HASH_OR_ZERO, 0);
+		interval.setSlot(SIZE, size);
 		return interval;
 	}
 }
