@@ -1,5 +1,5 @@
 /**
- * GotoInstruction.java
+ * PopInstruction.java
  * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -32,42 +32,42 @@
 
 package com.avail.interpreter.jvm;
 
+import static com.avail.interpreter.jvm.JavaOperand.CATEGORY_1;
 import java.util.List;
 
 /**
- * A {@code GotoInstruction} abstractly specifies a goto.
+ * A {@code PopInstruction} requires special {@linkplain JavaOperand operand}
+ * checking logic.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-class GotoInstruction
-extends UnconditionalBranchInstruction
+final class PopInstruction
+extends SimpleInstruction
 {
 	@Override
-	JavaBytecode bytecode ()
+	boolean canConsumeOperands (final List<JavaOperand> operands)
 	{
-		return isWide() ? JavaBytecode.goto_w : JavaBytecode.goto_s;
-	}
-
-	@Override
-	JavaOperand[] outputOperands (final List<JavaOperand> operandStack)
-	{
-		return noOperands;
-	}
-
-	@Override
-	String mnemonicForInvalidAddress ()
-	{
-		return "«goto»";
+		final int size = operands.size();
+		try
+		{
+			final JavaOperand topOperand = operands.get(size - 1);
+			if (topOperand.computationalCategory() == CATEGORY_1)
+			{
+				return true;
+			}
+		}
+		catch (final IndexOutOfBoundsException e)
+		{
+			// Do nothing.
+		}
+		return false;
 	}
 
 	/**
-	 * Construct a new {@link GotoInstruction}.
-	 *
-	 * @param label
-	 *        The {@linkplain Label branch target}.
+	 * Construct a new {@link PopInstruction}.
 	 */
-	GotoInstruction (final Label label)
+	PopInstruction ()
 	{
-		super(label);
+		super(JavaBytecode.pop);
 	}
 }

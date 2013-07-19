@@ -419,31 +419,93 @@ extends Emitter<MethodModifier>
 	}
 
 	/**
-	 * Emit code to discard the top of the operand stack.
-	 *
-	 * @param descriptor
-	 *        The expected descriptor of the top operand.
+	 * Emit code to discard a {@linkplain JavaOperand#CATEGORY_1 Category 1}
+	 * operand at the top of the operand stack.
 	 */
-	public void pop (final String descriptor)
+	public void pop ()
 	{
-		final int slotUnits = JavaDescriptors.slotUnits(descriptor);
-		final JavaBytecode bytecode = slotUnits == 1 ? pop
-			: slotUnits == 2 ? pop2
-			: invalid;
-		assert bytecode != invalid;
-		writer.append(bytecode.create());
+		writer.append(pop.create());
 	}
 
 	/**
-	 * Emit code to discard the top of the operand stack.
-	 *
-	 * @param type
-	 *        The expected {@linkplain Class type} of the top operand.
+	 * Emit code to discard <em>1)</em> a {@linkplain JavaOperand#CATEGORY_2
+	 * Category 2} {@linkplain JavaOperand operand} at the top of the operand
+	 * stack or <em>2)</em> two {@linkplain JavaOperand#CATEGORY_1 Category 1}
+	 * operands at the top of the operand stack.
 	 */
-	public void pop (final Class<?> type)
+	public void pop2 ()
 	{
-		final String descriptor = JavaDescriptors.forType(type);
-		pop(descriptor);
+		writer.append(pop2.create());
+	}
+
+	/**
+	 * Emit code to duplicate the {@linkplain JavaOperand#CATEGORY_1 Category 1}
+	 * {@linkplain JavaOperand operand} at the top of the operand stack.
+	 */
+	public void dup ()
+	{
+		writer.append(dup.create());
+	}
+
+	/**
+	 * Emit code to duplicate the {@linkplain JavaOperand#CATEGORY_1 Category 1}
+	 * {@linkplain JavaOperand operand} at the top of the operand stack
+	 * <em>beneath</em> the next operand.
+	 */
+	public void dupX1 ()
+	{
+		writer.append(dup_x1.create());
+	}
+
+	/**
+	 * Emit code to duplicate the {@linkplain JavaOperand#CATEGORY_1 Category 1}
+	 * {@linkplain JavaOperand operand} at the top of the operand stack
+	 * <em>beneath</em> <em>1)</em> the next two Category 1 operands or
+	 * <em>2)</em> the next {@linkplain JavaOperand#CATEGORY_2 Category 2}
+	 * operand.
+	 */
+	public void dupX2 ()
+	{
+		writer.append(dup_x2.create());
+	}
+
+	/**
+	 * Emit code to duplicate <em>1)</em> a {@linkplain JavaOperand#CATEGORY_2
+	 * Category 2} {@linkplain JavaOperand operand} at the top of the operand
+	 * stack or <em>2)</em> two {@linkplain JavaOperand#CATEGORY_1 Category 1}
+	 * operands at the top of the operand stack.
+	 */
+	public void dup2 ()
+	{
+		writer.append(dup2.create());
+	}
+
+	/**
+	 * Emit code to duplicate <em>1)</em> a {@linkplain JavaOperand#CATEGORY_2
+	 * Category 2} {@linkplain JavaOperand operand} at the top of the operand
+	 * stack <em>beneath</em> the next {@linkplain JavaOperand#CATEGORY_1
+	 * Category 1} operand or <em>2)</em> two Category 1 operands at the top of
+	 * the operand stack <em>beneath</em> the third Category 1 operand.
+	 */
+	public void dup2X1 ()
+	{
+		writer.append(dup2_x1.create());
+	}
+
+	/**
+	 * Emit code to duplicate <em>1)</em> a {@linkplain JavaOperand#CATEGORY_2
+	 * Category 2} {@linkplain JavaOperand operand} at the top of the operand
+	 * stack <em>beneath</em> the next Category 2 operand, <em>2)</em> a
+	 * Category 2 operand at the top of the operand stack <em>beneath</em> the
+	 * next two {@linkplain JavaOperand#CATEGORY_1 Category 1} operands,
+	 * <em>3)</em> two Category 1 operands at the top of the operand stack
+	 * <em>beneath</em> the third Category 2 operand, or <em>4)</em> two
+	 * Category 1 operands at the top of the operand stack <em>beneath</em> the
+	 * third and fourth Category 1 operand.
+	 */
+	public void dup2X2 ()
+	{
+		writer.append(dup2_x2.create());
 	}
 
 	/**
@@ -1422,10 +1484,6 @@ extends Emitter<MethodModifier>
 	{
 		writer.append(invokevirtual.create(methodref));
 	}
-
-	// TODO: [TLS] Add support for dup, dup_x1, dup_x2, dup2, dup2_x1, dup2_x2.
-
-	// TODO: [TLS] Add missing code generation methods!
 
 	/**
 	 * Emit code that will affect a {@code return} to the caller. If the

@@ -42,13 +42,34 @@ import com.avail.annotations.Nullable;
 enum JavaOperand
 {
 	/** The operand is a {@code reference} index. */
-	OBJECTREF (Object.class),
+	OBJECTREF (Object.class)
+	{
+		@Override
+		public JavaOperand computationalCategory ()
+		{
+			throw new UnsupportedOperationException();
+		}
+	},
 
 	/** The operand is {@code null}. */
-	NULL (OBJECTREF, Object.class),
+	NULL (OBJECTREF, Object.class)
+	{
+		@Override
+		public JavaOperand computationalCategory ()
+		{
+			throw new UnsupportedOperationException();
+		}
+	},
 
 	/** The operand is an array reference. */
-	ARRAYREF (OBJECTREF, Object.class),
+	ARRAYREF (OBJECTREF, Object.class)
+	{
+		@Override
+		public JavaOperand computationalCategory ()
+		{
+			throw new UnsupportedOperationException();
+		}
+	},
 
 	/** The operand is an {@code int}. */
 	INT (Integer.TYPE),
@@ -90,13 +111,34 @@ enum JavaOperand
 	ZERO_OR_ONE (INT, Integer.TYPE),
 
 	/** The operand is a {@code long}. */
-	LONG (Long.TYPE),
+	LONG (Long.TYPE)
+	{
+		@Override
+		public JavaOperand computationalCategory ()
+		{
+			return CATEGORY_2;
+		}
+	},
 
 	/** The operand is a {@code long} 0L. */
-	LONG_0 (LONG, Long.TYPE),
+	LONG_0 (LONG, Long.TYPE)
+	{
+		@Override
+		public JavaOperand computationalCategory ()
+		{
+			return CATEGORY_2;
+		}
+	},
 
 	/** The operand is a {@code long} 1L. */
-	LONG_1 (LONG, Long.TYPE),
+	LONG_1 (LONG, Long.TYPE)
+	{
+		@Override
+		public JavaOperand computationalCategory ()
+		{
+			return CATEGORY_2;
+		}
+	},
 
 	/** The operand is a {@code float}. */
 	FLOAT (Float.TYPE),
@@ -111,13 +153,34 @@ enum JavaOperand
 	FLOAT_2 (FLOAT, Float.TYPE),
 
 	/** The operand is a {@code double}. */
-	DOUBLE (Double.TYPE),
+	DOUBLE (Double.TYPE)
+	{
+		@Override
+		public JavaOperand computationalCategory ()
+		{
+			return CATEGORY_2;
+		}
+	},
 
 	/** The operand is a {@code double} 0.0d. */
-	DOUBLE_0 (DOUBLE, Double.TYPE),
+	DOUBLE_0 (DOUBLE, Double.TYPE)
+	{
+		@Override
+		public JavaOperand computationalCategory ()
+		{
+			return CATEGORY_2;
+		}
+	},
 
 	/** The operand is a {@code double} 1.0d. */
-	DOUBLE_1 (DOUBLE, Double.TYPE),
+	DOUBLE_1 (DOUBLE, Double.TYPE)
+	{
+		@Override
+		public JavaOperand computationalCategory ()
+		{
+			return CATEGORY_2;
+		}
+	},
 
 	/**
 	 * The operand is a category 1 computational type.
@@ -125,7 +188,14 @@ enum JavaOperand
 	 * @see <a href="http://docs.oracle.com/javase/specs/jvms/se7/html/jvms-2.html#jvms-2.11.1">
 	 *      Types and the Java Virtual Machine</a>
 	 */
-	CATEGORY_1 (Void.TYPE),
+	CATEGORY_1 (Void.TYPE)
+	{
+		@Override
+		public boolean isCategory ()
+		{
+			return true;
+		}
+	},
 
 	/**
 	 * The operand is a category 2 computational type.
@@ -133,16 +203,50 @@ enum JavaOperand
 	 * @see <a href="http://docs.oracle.com/javase/specs/jvms/se7/html/jvms-2.html#jvms-2.11.1">
 	 *      Types and the Java Virtual Machine</a>
 	 */
-	CATEGORY_2 (Void.TYPE),
+	CATEGORY_2 (Void.TYPE)
+	{
+		@Override
+		public boolean isCategory ()
+		{
+			return true;
+		}
+
+		@Override
+		public JavaOperand computationalCategory ()
+		{
+			return CATEGORY_2;
+		}
+	},
 
 	/** The operand is an arbitrary field. */
-	VALUE (Void.TYPE),
+	VALUE (Void.TYPE)
+	{
+		@Override
+		public JavaOperand computationalCategory ()
+		{
+			throw new UnsupportedOperationException();
+		}
+	},
 
 	/** The operand is a return address. */
-	RETURN_ADDRESS (Void.TYPE),
+	RETURN_ADDRESS (Void.TYPE)
+	{
+		@Override
+		public JavaOperand computationalCategory ()
+		{
+			throw new UnsupportedOperationException();
+		}
+	},
 
 	/** Represents multiple operands. */
-	PLURAL (Void.TYPE);
+	PLURAL (Void.TYPE)
+	{
+		@Override
+		public JavaOperand computationalCategory ()
+		{
+			throw new UnsupportedOperationException();
+		}
+	};
 
 	/** The base kind of the operand. */
 	private final JavaOperand baseOperand;
@@ -169,6 +273,31 @@ enum JavaOperand
 	public Class<?> type ()
 	{
 		return type;
+	}
+
+	/**
+	 * Does the {@linkplain JavaOperand operand} represent one of the
+	 * computational categories?
+	 *
+	 * @return {@code true} if the operand represents a computational category,
+	 *         {@code false} otherwise.
+	 * @see #CATEGORY_1
+	 * @see #CATEGORY_2
+	 */
+	public boolean isCategory ()
+	{
+		return false;
+	}
+
+	/**
+	 * Answer the computational category of the {@linkplain JavaOperand
+	 * operand}.
+	 *
+	 * @return The computational category.
+	 */
+	public JavaOperand computationalCategory ()
+	{
+		return CATEGORY_1;
 	}
 
 	/**

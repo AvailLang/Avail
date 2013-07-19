@@ -34,6 +34,7 @@ package com.avail.interpreter.jvm;
 
 import java.io.DataOutput;
 import java.io.IOException;
+import java.util.List;
 import com.avail.interpreter.jvm.ConstantPool.ClassEntry;
 
 /**
@@ -90,7 +91,7 @@ extends JavaInstruction
 	}
 
 	@Override
-	JavaOperand[] outputOperands ()
+	JavaOperand[] outputOperands (final List<JavaOperand> operandStack)
 	{
 		return bytecode().outputOperands();
 	}

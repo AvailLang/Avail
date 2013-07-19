@@ -1,5 +1,5 @@
 /**
- * GotoInstruction.java
+ * Pop2Instruction.java
  * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -32,42 +32,49 @@
 
 package com.avail.interpreter.jvm;
 
+import static com.avail.interpreter.jvm.JavaOperand.CATEGORY_1;
+import static com.avail.interpreter.jvm.JavaOperand.CATEGORY_2;
 import java.util.List;
 
 /**
- * A {@code GotoInstruction} abstractly specifies a goto.
+ * A {@code Pop2Instruction} requires special {@linkplain JavaOperand operand}
+ * checking logic.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-class GotoInstruction
-extends UnconditionalBranchInstruction
+final class Pop2Instruction
+extends SimpleInstruction
 {
 	@Override
-	JavaBytecode bytecode ()
+	boolean canConsumeOperands (final List<JavaOperand> operands)
 	{
-		return isWide() ? JavaBytecode.goto_w : JavaBytecode.goto_s;
-	}
-
-	@Override
-	JavaOperand[] outputOperands (final List<JavaOperand> operandStack)
-	{
-		return noOperands;
-	}
-
-	@Override
-	String mnemonicForInvalidAddress ()
-	{
-		return "«goto»";
+		final int size = operands.size();
+		try
+		{
+			final JavaOperand topOperand = operands.get(size - 1);
+			if (topOperand.computationalCategory() == CATEGORY_2)
+			{
+				return true;
+			}
+			final JavaOperand nextOperand = operands.get(size - 2);
+			if (topOperand.computationalCategory() == CATEGORY_1
+				&& nextOperand.computationalCategory() == CATEGORY_1)
+			{
+				return true;
+			}
+		}
+		catch (final IndexOutOfBoundsException e)
+		{
+			// Do nothing.
+		}
+		return false;
 	}
 
 	/**
-	 * Construct a new {@link GotoInstruction}.
-	 *
-	 * @param label
-	 *        The {@linkplain Label branch target}.
+	 * Construct a new {@link Pop2Instruction}.
 	 */
-	GotoInstruction (final Label label)
+	Pop2Instruction ()
 	{
-		super(label);
+		super(JavaBytecode.pop2);
 	}
 }

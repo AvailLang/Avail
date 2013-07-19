@@ -34,6 +34,7 @@ package com.avail.interpreter.jvm;
 
 import java.io.DataOutput;
 import java.io.IOException;
+import java.util.List;
 
 /**
  * A {@code LocalVariableAccessInstruction} represents accessing a local
@@ -96,7 +97,7 @@ extends JavaInstruction
 	}
 
 	@Override
-	final JavaOperand[] outputOperands ()
+	final JavaOperand[] outputOperands (final List<JavaOperand> operandStack)
 	{
 		return bytecode().outputOperands();
 	}

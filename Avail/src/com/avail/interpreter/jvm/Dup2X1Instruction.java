@@ -1,5 +1,5 @@
 /**
- * GotoInstruction.java
+ * Dup2X1Instruction.java
  * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -32,42 +32,76 @@
 
 package com.avail.interpreter.jvm;
 
+import static com.avail.interpreter.jvm.JavaOperand.*;
 import java.util.List;
 
 /**
- * A {@code GotoInstruction} abstractly specifies a goto.
+ * A {@code Dup2X1Instruction} requires special {@linkplain JavaOperand operand}
+ * management logic.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-class GotoInstruction
-extends UnconditionalBranchInstruction
+final class Dup2X1Instruction
+extends SimpleInstruction
 {
 	@Override
-	JavaBytecode bytecode ()
+	boolean canConsumeOperands (final List<JavaOperand> operands)
 	{
-		return isWide() ? JavaBytecode.goto_w : JavaBytecode.goto_s;
+		final int size = operands.size();
+		try
+		{
+			final JavaOperand topOperand = operands.get(size - 1);
+			final JavaOperand secondOperand = operands.get(size - 2);
+			if (topOperand.computationalCategory() == CATEGORY_1)
+			{
+				final JavaOperand thirdOperand = operands.get(size - 3);
+				return secondOperand.computationalCategory() == CATEGORY_1
+					&& thirdOperand.computationalCategory() == CATEGORY_1;
+			}
+			return topOperand.computationalCategory() == CATEGORY_2
+				&& secondOperand.computationalCategory() == CATEGORY_1;
+		}
+		catch (final IndexOutOfBoundsException e)
+		{
+			// Do nothing.
+		}
+		return false;
 	}
 
 	@Override
 	JavaOperand[] outputOperands (final List<JavaOperand> operandStack)
 	{
-		return noOperands;
-	}
-
-	@Override
-	String mnemonicForInvalidAddress ()
-	{
-		return "«goto»";
+		assert canConsumeOperands(operandStack);
+		final int size = operandStack.size();
+		final JavaOperand topOperand = operandStack.get(size - 1);
+		final JavaOperand secondOperand = operandStack.get(size - 2);
+		final JavaOperand[] out;
+		if (topOperand.computationalCategory() == CATEGORY_1)
+		{
+			final JavaOperand thirdOperand = operandStack.get(size - 3);
+			out =
+				new JavaOperand[]
+				{
+					secondOperand,
+					topOperand,
+					thirdOperand,
+					secondOperand,
+					topOperand
+				};
+		}
+		else
+		{
+			assert topOperand.computationalCategory() == CATEGORY_2;
+			out = new JavaOperand[] {topOperand, secondOperand, topOperand};
+		}
+		return out;
 	}
 
 	/**
-	 * Construct a new {@link GotoInstruction}.
-	 *
-	 * @param label
-	 *        The {@linkplain Label branch target}.
+	 * Construct a new {@link Dup2X1Instruction}.
 	 */
-	GotoInstruction (final Label label)
+	Dup2X1Instruction ()
 	{
-		super(label);
+		super(JavaBytecode.dup2_x1);
 	}
 }

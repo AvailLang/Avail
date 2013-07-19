@@ -114,7 +114,7 @@ final class InstructionWriter
 					operands.subList(
 						0,
 						operands.size() - instr.inputOperands().length));
-				after.addAll(Arrays.asList(instr.outputOperands()));
+				after.addAll(Arrays.asList(instr.outputOperands(operands)));
 				if (after.size() > maxStackDepth)
 				{
 					maxStackDepth = after.size();
