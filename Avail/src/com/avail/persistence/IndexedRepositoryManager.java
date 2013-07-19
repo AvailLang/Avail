@@ -35,6 +35,7 @@ package com.avail.persistence;
 import java.io.*;
 import java.util.*;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.logging.Level;
 import com.avail.annotations.Nullable;
 import com.avail.builder.*;
 import com.avail.descriptor.ModuleDescriptor;
@@ -206,6 +207,7 @@ public class IndexedRepositoryManager
 					IndexedRepository.class,
 					fileName,
 					null);
+				isOpen = true;
 			}
 			catch (final Exception e)
 			{
@@ -536,6 +538,10 @@ public class IndexedRepositoryManager
 		try
 		{
 			final boolean exists = fileName.exists();
+			IndexedFile.logger.log(
+				Level.INFO,
+				"exists: {0} = {1}",
+				new Object[] { fileName, exists });
 			final IndexedRepository repo = exists
 				? IndexedFile.openFile(IndexedRepository.class, fileName, true)
 				: IndexedFile.newFile(IndexedRepository.class, fileName, null);
@@ -583,7 +589,7 @@ public class IndexedRepositoryManager
 	}
 
 	/** Is the {@linkplain IndexedRepository repository} open? */
-	private boolean isOpen;
+	private boolean isOpen = false;
 
 	/**
 	 * Reopen the {@linkplain IndexedRepository repository file} and
@@ -622,7 +628,6 @@ public class IndexedRepositoryManager
 	{
 		this.rootName = rootName;
 		this.fileName = fileName;
-		openOrCreate();
 	}
 
 	/**

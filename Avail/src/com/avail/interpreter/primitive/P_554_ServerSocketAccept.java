@@ -97,7 +97,11 @@ extends Primitive
 		final A_Fiber current = FiberDescriptor.current();
 		final A_Fiber newFiber = FiberDescriptor.newFiber(
 			succeed.kind().returnType().typeUnion(fail.kind().returnType()),
-			priority.extractInt());
+			priority.extractInt(),
+			StringDescriptor.from(
+				String.format(
+					"Server socket accept (prim 554), name=%s",
+					name)));
 		// If the current fiber is an Avail fiber, then the new one should be
 		// also.
 		newFiber.availLoader(current.availLoader());
@@ -170,8 +174,8 @@ extends Primitive
 								runtime,
 								newFiber,
 								fail,
-								Collections.<AvailObject>singletonList(
-									(AvailObject)E_IO_ERROR.numericCode()));
+								Collections.singletonList(
+									E_IO_ERROR.numericCode()));
 						}
 					}
 				});

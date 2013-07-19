@@ -36,7 +36,6 @@ import java.io.*;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.util.*;
-import java.util.logging.Level;
 import com.avail.annotations.*;
 import com.avail.compiler.*;
 import com.avail.descriptor.AbstractNumberDescriptor.Order;
@@ -1280,34 +1279,6 @@ implements
 		final int end,
 		final boolean canDestroy)
 	{
-		//XXX MvG - Restore after debugging tuples 2013.06.22
-
-		if (Interpreter.debugCustom)
-		{
-			final StringBuilder builder = new StringBuilder();
-			builder.append(
-				String.format(
-					"Subrange[%d..%d](destroy=%s) of %s:%s%n\t= ",
-					start,
-					end,
-					canDestroy,
-					descriptor.getClass().getSimpleName(),
-					this));
-			final A_Tuple result = descriptor.o_CopyTupleFromToCanDestroy(
-				this,
-				start,
-				end,
-				canDestroy);
-			builder.append(
-				String.format(
-					"%s:%s",
-					result.descriptor().getClass().getSimpleName(),
-					result));
-			Interpreter.current().log(
-				Level.FINER,
-				builder.toString());
-			return result;
-		}
 		return descriptor.o_CopyTupleFromToCanDestroy(
 			this,
 			start,
@@ -2165,15 +2136,6 @@ implements
 		final InterruptRequestFlag flag)
 	{
 		descriptor.o_SetInterruptRequestFlag(this, flag);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	@Override
-	public void clearInterruptRequestFlags ()
-	{
-		descriptor.o_ClearInterruptRequestFlags(this);
 	}
 
 	/**
@@ -6693,31 +6655,6 @@ implements
 		final A_Tuple otherTuple,
 		final boolean canDestroy)
 	{
-		//XXX MvG - Restore after debugging tuples 2013.06.22
-
-		if (Interpreter.debugCustom)
-		{
-			final StringBuilder builder = new StringBuilder();
-			builder.append(
-				String.format(
-					"Concat(destroy=%s) %s:%s ++ %s:%s%n\t= ",
-					canDestroy,
-					descriptor.getClass().getSimpleName(),
-					this,
-					otherTuple.descriptor().getClass().getSimpleName(),
-					otherTuple));
-			final A_Tuple result =
-				descriptor.o_ConcatenateWith(this, otherTuple, canDestroy);
-			builder.append(
-				String.format(
-					"%s:%s",
-					result.descriptor().getClass().getSimpleName(),
-					result));
-			Interpreter.current().log(
-				Level.FINER,
-				builder.toString());
-			return result;
-		}
 		return descriptor.o_ConcatenateWith(this, otherTuple, canDestroy);
 	}
 

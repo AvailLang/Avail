@@ -65,10 +65,7 @@ extends ParseNodeDescriptor
 		/**
 		 * Is this an inline {@linkplain AssignmentNodeDescriptor assignment}?
 		 */
-		static BitField IS_INLINE = bitField(
-			FLAGS,
-			0,
-			1);
+		static BitField IS_INLINE = bitField(FLAGS, 0, 1);
 	}
 
 	/**
@@ -125,7 +122,7 @@ extends ParseNodeDescriptor
 	 */
 	private boolean isInline (final AvailObject object)
 	{
-		return object.slot(IS_INLINE) == 1;
+		return object.slot(IS_INLINE) != 0;
 	}
 
 	@Override @AvailMethod

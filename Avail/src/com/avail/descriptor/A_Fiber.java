@@ -87,11 +87,6 @@ extends A_BasicObject
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	void clearInterruptRequestFlags ();
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
 	A_Continuation continuation ();
 
 	/**

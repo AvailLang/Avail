@@ -44,6 +44,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.zip.CRC32;
 import java.util.zip.Deflater;
 import java.util.zip.DeflaterOutputStream;
@@ -73,6 +75,10 @@ import com.avail.utility.*;
 public abstract class IndexedFile
 extends AbstractList<byte[]>
 {
+	/** A {@linkplain Logger logger}. */
+	public static final Logger logger =
+		Logger.getLogger(IndexedFile.class.getCanonicalName());
+
 	/**
 	 * The {@linkplain ReentrantReadWriteLock lock} that guards against unsafe
 	 * concurrent access.
@@ -576,8 +582,7 @@ extends AbstractList<byte[]>
 		{
 			m.orphansByLevel.add(new ArrayList<RecordCoordinates>(fanout));
 		}
-		final List<RecordCoordinates> orphans =
-			m.orphansByLevel.get(level);
+		final List<RecordCoordinates> orphans = m.orphansByLevel.get(level);
 		orphans.add(orphanLocation);
 		if (orphans.size() == fanout)
 		{
@@ -1160,6 +1165,10 @@ extends AbstractList<byte[]>
 	 */
 	public void close ()
 	{
+		logger.log(
+			Level.INFO,
+			"close ({0})",
+			fileReference);
 		lock.writeLock().lock();
 		try
 		{
@@ -1631,6 +1640,10 @@ extends AbstractList<byte[]>
 			IOException,
 			IndexedFileException
 	{
+		logger.log(
+			Level.INFO,
+			"new: {0}",
+			fileReference);
 		assert compressionThreshold % pageSize == 0;
 		final IndexedFile indexedFile = subclass.newInstance();
 		indexedFile.fileReference = fileReference;
@@ -1743,6 +1756,10 @@ extends AbstractList<byte[]>
 			final boolean forWriting)
 		throws InstantiationException, IllegalAccessException, IOException
 	{
+		logger.log(
+			Level.INFO,
+			"open: {0}",
+			fileReference);
 		final IndexedFile indexedFile = subclass.newInstance();
 		indexedFile.fileReference = fileReference;
 		indexedFile.file = new RandomAccessFile(

@@ -660,7 +660,13 @@ public final class AvailBuilder
 						final A_Fiber fiber =
 							FiberDescriptor.newLoaderFiber(
 								function.kind().returnType(),
-								loader);
+								loader,
+								StringDescriptor.from(
+									String.format(
+										"Load repo module %s, in %s:%d",
+										function.code().methodName(),
+										function.code().module().moduleName(),
+										function.code().startingLineNumber())));
 						fiber.resultContinuation(runNext.value());
 						fiber.failureContinuation(fail.value());
 						Interpreter.runOutermostFunction(

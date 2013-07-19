@@ -3723,12 +3723,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_ClearInterruptRequestFlags (final AvailObject object)
-	{
-		o_Traversed(object).clearInterruptRequestFlags();
-	}
-
-	@Override
 	boolean o_IsSystemModule (final AvailObject object)
 	{
 		return o_Traversed(object).isSystemModule();
