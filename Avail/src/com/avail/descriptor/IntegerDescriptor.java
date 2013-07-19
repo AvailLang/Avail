@@ -697,10 +697,11 @@ extends ExtendedIntegerDescriptor
 		}
 		if (object.lessThan(zero()))
 		{
-			// a/o for o<0:  use -(a/-o)
+			// a/o for o<0:  use (-a/-o)
 			return object.subtractFromIntegerCanDestroy(zero(), canDestroy)
-				.divideIntoIntegerCanDestroy(anInteger, canDestroy)
-				.subtractFromIntegerCanDestroy(zero(), canDestroy);
+				.divideIntoIntegerCanDestroy(
+					anInteger.subtractFromIntegerCanDestroy(zero(), canDestroy),
+					canDestroy);
 		}
 		if (anInteger.lessThan(zero()))
 		{
