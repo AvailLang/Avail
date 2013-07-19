@@ -85,7 +85,7 @@ Public class "patricia trie" extends trie
  * @categories "Trie"
  * @param "tree" "trie" 
  *      a trie
- * @returnType "boolean"
+ * @returns "boolean"
  *      true if at end of branch
  * @author "Richard Arriaga"
  */
@@ -103,7 +103,7 @@ Public method "_is at terminus" is
  * @categories "Trie"
  * @param "tree" "patricia trie" 
  *      a trie
- * @returnType "{character→trie|}"
+ * @returns "{character→trie|}"
  *      a map of keyed by next characters with tries as values
  * @author "Richard Arriaga"
  */
@@ -119,7 +119,7 @@ Public method "_'s⁇next steps" is
  *
  * @method "a patricia trie"
  * @categories "category"
- * @returnType "returnType"
+ * @returns "returnType"
  *      returnTypeDescription
  * @raises "exceptionName" 
  *      exceptionDescription
@@ -149,7 +149,7 @@ Grammatical restriction "a|an_«with«_«:»?:=_‡,»»" is <{"patricia trie"},
  *      a string to be added to the trie
  * @param "tree" "patricia tree" 
  *      a patricia tree
- * @returnType "⊤"
+ * @returns "⊤"
  *      none
  * @author "Richard Arriaga"
  */

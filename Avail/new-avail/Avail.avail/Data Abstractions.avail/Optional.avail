@@ -85,6 +85,10 @@ Public method "optional_" is
 	extend optional with actual value : <valueType…|0..1>
 ] : optional's type;
 
+/**
+ * @method "optional_"
+ * @restricts "any's type's type"
+ */
 Semantic restriction "optional_" is
 [
 	valueMeta : any's type's type
@@ -118,6 +122,10 @@ Public method "present_" is
 	extend present with actual value : <valueType…|1>
 ] : present's type;
 
+/**
+ * @method "present_"
+ * @restricts "any's type's type"
+ */
 Semantic restriction "present_" is
 [
 	valueMeta : any's type's type
@@ -141,6 +149,10 @@ Public method "+_" is
 	a present with actual value ::= <value>
 ] : present;
 
+/**
+ * @method "+_"
+ * @restricts "any's type"
+ */
 Semantic restriction "+_" is
 [
 	valueType : any's type
@@ -245,6 +257,11 @@ Public method "When_is present do_" is
 		else [/* Do nothing. */];
 ] : ⊤;
 
+/**
+ * @method "When_is present do_"
+ * @restricts "optional's type"
+ * @restricts "[⊥]→⊤'s type"
+ */
 Semantic restriction "When_is present do_" is
 [
 	optionalType : optional's type,
@@ -287,6 +304,12 @@ Public method "When|when_is present do_else_" is
 		else elseBlock;
 ] : ⊤;
 
+/**
+ * @method "When|when_is present do_else_"
+ * @restricts "optional's type"
+ * @restricts "[⊥]→⊤'s type"
+ * @restricts "[]→⊤'s type"
+ */
 Semantic restriction "When|when_is present do_else_" is
 [
 	optionalType : optional's type,

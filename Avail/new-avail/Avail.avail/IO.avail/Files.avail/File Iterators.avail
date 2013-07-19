@@ -68,6 +68,10 @@ Public class "file iterator" extends positionable buffered iterator
 		position type : natural number's type,
 		element source : file;
 
+/**
+ * @type "readable file iterator"
+ * @supertype "file iterator"
+ */
 Public class "readable file iterator" extends file iterator
 	with field
 		element source : readable file;
@@ -93,15 +97,15 @@ file iterator's set position method is
  *
  * @method "a file iterator for_«that buffers_bytes»"
  * @param "fn" "file name"
- *    The {@method "file name"} of the target file.
+ *        The {@method "file name"} of the target file.
  * @param "optionalSize" "<[2..∞)…|0..1>"
- *    If specified, the number of bytes to buffer from the underlying {@type
- *    "file"}. If not specified, then a default value is used.
+ *        If specified, the number of bytes to buffer from the underlying {@type
+ *        "file"}. If not specified, then a default value is used.
  * @returns "readable file iterator"
  * @raises "permission-denied exception"
- *    If permission is denied to use the specified {@type "file name"}.
+ *         If permission is denied to use the specified {@type "file name"}.
  * @raises "I/O exception"
- *    If an I/O error occurs for any reason.
+ *         If an I/O error occurs for any reason.
  */
 Public method "a file iterator for_«that buffers_bytes»" is
 [
@@ -122,8 +126,8 @@ Public method "a file iterator for_«that buffers_bytes»" is
  * @method "_is open"
  * @param "anIterator" "file iterator"
  * @returns "boolean"
- *    {@method "true"} if {@param "anIterator"} is open, {@method "false"}
- *    otherwise.
+ *          {@method "true"} if {@param "anIterator"} is open, {@method "false"}
+ *          otherwise.
  */
 Method "_is open" is
 [
@@ -139,8 +143,8 @@ Method "_is open" is
  * @method "_is closed"
  * @param "anIterator" "file iterator"
  * @returns "boolean"
- *    {@method "true"} if {@param "anIterator"} is closed, {@method "false"}
- *    otherwise.
+ *          {@method "true"} if {@param "anIterator"} is closed, {@method
+ *          "false"} otherwise.
  */
 Method "_is closed" is
 [
@@ -155,7 +159,7 @@ Method "_is closed" is
  * @method "Close_"
  * @param "anIterator" "file iterator"
  * @raises "file-closed exception"
- *    If {@param "anIterator"} has already been closed.
+ *         If {@param "anIterator"} has already been closed.
  */
 Method "Close_" is
 [
@@ -171,13 +175,13 @@ Method "Close_" is
  *
  * @method "Using|using_,⁇do_"
  * @param "anIterator" "file iterator"
- *    A file iterator, typically opened very near the send of this method. The
- *    argument position works especially well.
+ *        A file iterator, typically opened very near the send of this method.
+ *        The argument position works especially well.
  * @param "action" "[⊥]→⊤"
- *    A function to apply to {@param "anIterator"}.
+ *        A function to apply to {@param "anIterator"}.
  * @returns "⊤"
- *    The answer produced by applying {@param "action"} to {@param
- *    "anIterator"}.
+ *          The answer produced by applying {@param "action"} to {@param
+ *          "anIterator"}.
  */
 Method "Using|using_,⁇do_" is
 [
@@ -188,6 +192,11 @@ Method "Using|using_,⁇do_" is
 	ensure [Close anIterator;];
 ] : ⊤;
 
+/**
+ * @method "Using|using_,⁇do_"
+ * @restricts "file iterator's type"
+ * @restricts "[⊥]→⊤'s type"
+ */
 Semantic restriction "Using|using_,⁇do_" is
 [
 	anIterator : file iterator's type,

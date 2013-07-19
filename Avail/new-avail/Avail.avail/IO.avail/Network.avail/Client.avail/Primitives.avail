@@ -95,6 +95,10 @@ Method "_'s⁇name" is
 	s's handle's name
 ] : string;
 
+/**
+ * @method "_'s⁇name"
+ * @restricts "client socket's type"
+ */
 Semantic restriction "_'s⁇name" is
 [
 	s : client socket's type
@@ -110,6 +114,7 @@ Semantic restriction "_'s⁇name" is
  *        An optional string that describes the purpose of the client socket at
  *        a high level, provided for debugging purposes only. If not specified,
  *        then the default name {@code "«unnamed»"} is used.
+ * @returns "client socket"
  */
 Public method "a client socket«named_»" is
 [
@@ -161,6 +166,11 @@ Method "_'s⁇«_:=_‡,»" is
 	] : ⊤ (s's handle, optionMap);
 ] : ⊤;
 
+/**
+ * @method "_'s⁇«_:=_‡,»"
+ * @restricts "client socket's type"
+ * @restricts "<<client socket option, any…|2>…|>'s type"
+ */
 Semantic restriction "_'s⁇«_:=_‡,»" is
 [
 	socketType : client socket's type,
@@ -174,13 +184,21 @@ Semantic restriction "_'s⁇«_:=_‡,»" is
  * Bind a {@type "client socket"} to a local {@type "IP address"} and port.
  *
  * @method "Bind_to_on port_"
- * @param "s" "server socket"
+ * @param "s" "client socket"
  * @param "ipAddress" "IP address"
  * @param "port" "[0..65535]"
  */
 Private abstract method "Bind_to_on port_"
 	is [client socket, IP address, [0..65535]]→⊤;
 
+/**
+ * Bind a {@type "client socket"} to a local {@type "IPv4 address"} and port.
+ *
+ * @method "Bind_to_on port_"
+ * @param "s" "client socket"
+ * @param "ipAddress" "IPv4 address"
+ * @param "port" "[0..65535]"
+ */
 Method "Bind_to_on port_" is
 [
 	s :  client socket,
@@ -203,6 +221,14 @@ Method "Bind_to_on port_" is
 	] : ⊤ (s's handle, ipAddress's octets, port);
 ] : ⊤;
 
+/**
+ * Bind a {@type "client socket"} to a local {@type "IPv6 address"} and port.
+ *
+ * @method "Bind_to_on port_"
+ * @param "s" "client socket"
+ * @param "ipAddress" "IPv6 address"
+ * @param "port" "[0..65535]"
+ */
 Method "Bind_to_on port_" is
 [
 	s :  client socket,
@@ -283,6 +309,32 @@ is
 	byte
 ]→fiber;
 
+/**
+ * Asynchronously connect a {@type "client socket"} to a remote {@type
+ * "IP address"} and port. If the operation is successful, then fork a new
+ * {@type "fiber"} to apply {@param "success"}. If the operation is
+ * unsuccessful, then fork a new fiber to apply {@param "failure"} to the error
+ * code that classifies the failure. Answer the new fiber.
+ *
+ * @method
+ *   "a fiber connecting_to_on port_,\
+ *   \|on success doing_,\
+ *   \|on failure doing_,\
+ *   \forked at priority_"
+ * @param "s" "client socket"
+ * @param "ipAddress" "IPv4 address"
+ * @param "port" "[0..65535]"
+ * @param "success" "[]→⊤"
+ *        The function to apply when connection establishment completes.
+ * @param "failure" "[natural number]→⊤"
+ *        The function to apply to the error code that classifies the failure of
+ *        the asynchronous connect operation.
+ * @param "priority" "byte"
+ *        The priority of the new fiber.
+ * @returns "fiber"
+ *          The new fiber which may eventually apply either {@param "success"}
+ *          or {@param "failure"}.
+ */
 Private method 
 	"a fiber connecting_to_on port_,\
 	\|on success doing_,\
@@ -316,7 +368,32 @@ is
 		Raise an exception for code
 	] : fiber (s's handle, ipAddress's octets, port, success, failure, priority)
 ] : fiber;
-
+/**
+ * Asynchronously connect a {@type "client socket"} to a remote {@type
+ * "IP address"} and port. If the operation is successful, then fork a new
+ * {@type "fiber"} to apply {@param "success"}. If the operation is
+ * unsuccessful, then fork a new fiber to apply {@param "failure"} to the error
+ * code that classifies the failure. Answer the new fiber.
+ *
+ * @method
+ *   "a fiber connecting_to_on port_,\
+ *   \|on success doing_,\
+ *   \|on failure doing_,\
+ *   \forked at priority_"
+ * @param "s" "client socket"
+ * @param "ipAddress" "IPv6 address"
+ * @param "port" "[0..65535]"
+ * @param "success" "[]→⊤"
+ *        The function to apply when connection establishment completes.
+ * @param "failure" "[natural number]→⊤"
+ *        The function to apply to the error code that classifies the failure of
+ *        the asynchronous connect operation.
+ * @param "priority" "byte"
+ *        The priority of the new fiber.
+ * @returns "fiber"
+ *          The new fiber which may eventually apply either {@param "success"}
+ *          or {@param "failure"}.
+ */
 Private method 
 	"a fiber connecting_to_on port_,\
 	\|on success doing_,\
@@ -473,6 +550,17 @@ is
 	] : fiber (adjustedCount, s's handle, success, failure, priority)
 ] : fiber;
 
+/**
+ * @method 
+ *  "a fiber reading_byte|bytes from_,⁇\
+ *  \|on success doing_,⁇\
+ *  \|on failure doing_«⁇,forked at priority_»"
+ * @restricts "whole number's type"
+ * @restricts "client socket's type"
+ * @restricts "[]→⊤'s type"
+ * @restricts "[natural number]→⊤'s type"
+ * @restricts "<byte…|0..1>'s type"
+ */
 Semantic restriction
 	"a fiber reading_byte|bytes from_,⁇\
 	\|on success doing_,⁇\
@@ -545,6 +633,17 @@ is
 	] : fiber (data, s's handle, success, failure, priority)
 ] : fiber;
 
+/**
+ * @method
+ *  "a fiber writing_to_,⁇\
+ *  \|on success doing_,⁇\
+ *  \|on failure doing_«⁇,forked at priority_»"
+ * @restricts "<byte…|>'s type"
+ * @restricts "client socket's type"
+ * @restricts "[]→⊤'s type"
+ * @restricts "[natural number]→⊤'s type"
+ * @restricts "<byte…|0..1>'s type"
+ */
 Semantic restriction
 	"a fiber writing_to_,⁇\
 	\|on success doing_,⁇\

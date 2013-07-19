@@ -77,10 +77,15 @@ Public class "IP address" extends object
  * @type "IPv4 address"
  * @supertype "IP address"
  */
-Public class "IPv4 address" extends object
+Public class "IPv4 address" extends "IP address"
 	with field
 		octets : <byte…|4>;
 
+/**
+ * @method "“_”"
+ * @param "addr" "IPv4 address"
+ * @returns "nonempty string"
+ */
 Method "“_”" is
 [
 	addr : IPv4 address
@@ -99,6 +104,10 @@ Method "“_”" is
 Public stable abstract method "an IP address from_"
 	is [<byte…|4..16>]→IP address;
 
+/**
+ * @method "an IP address from_"
+ * @restricts "<byte…|4..16>'s type"
+ */
 Semantic restriction "an IP address from_" is
 [
 	o : <byte…|4..16>'s type
@@ -106,6 +115,11 @@ Semantic restriction "an IP address from_" is
 	extend IP address with octets : o
 ];
 
+/**
+ * @method "an IP address from_"
+ * @param "o" "<byte…|5..13>"
+ * @returns "⊥"
+ */
 Method "an IP address from_" is
 [
 	o : <byte…|5..13>
@@ -113,6 +127,11 @@ Method "an IP address from_" is
 	Raise an incorrect-argument-type exception
 ] : ⊥;
 
+/**
+ * @method "an IP address from_"
+ * @param "o" "<byte…|4>"
+ * @returns "IPv4 address"
+ */
 Method "an IP address from_" is
 [
 	o : <byte…|4>
@@ -135,6 +154,10 @@ Public method "«_‡.»" is
 	an IPv4 address with octets ::= o
 ] : IPv4 address;
 
+/**
+ * @method "«_‡.»"
+ * @restricts "<byte…|4>'s type"
+ */
 Semantic restriction "«_‡.»" is
 [
 	o : <byte…|4>'s type
@@ -153,6 +176,11 @@ Public class "IPv6 address" extends object
 	with field
 		octets : <byte…|16>;
 
+/**
+ * @method "an IP address from_"
+ * @param "o" "<byte…|16>"
+ * @returns "IPv6 address"
+ */
 Method "an IP address from_" is
 [
 	o : <byte…|16>
@@ -185,6 +213,11 @@ Public class "socket address" extends object
 Public stable abstract method "a socket address from_and_"
 	is [<byte…|4..16>, [0..65535]]→socket address;
 
+/**
+ * @method "a socket address from_and_"
+ * @restricts "<byte…|4..16>'s type"
+ * @restricts "[0..65535]'s type"
+ */
 Semantic restriction "a socket address from_and_" is
 [
 	o : <byte…|4..16>'s type,
@@ -195,6 +228,11 @@ Semantic restriction "a socket address from_and_" is
 		port : portNumber
 ];
 
+/**
+ * @method "a socket address from_and_"
+ * @param "o" "<byte…|5..13>"
+ * @param "portNumber" "[0..65535]"
+ */
 Method "a socket address from_and_" is
 [
 	o : <byte…|5..13>,
@@ -203,6 +241,11 @@ Method "a socket address from_and_" is
 	Raise an incorrect-argument-type exception
 ] : ⊥;
 
+/**
+ * @method "a socket address from_and_"
+ * @param "o" "<byte…|4>"
+ * @param "portNumber" "[0..65535]"
+ */
 Method "a socket address from_and_" is
 [
 	o : <byte…|4>,
@@ -213,6 +256,11 @@ Method "a socket address from_and_" is
 		port ::= portNumber
 ] : socket address;
 
+/**
+ * @method "a socket address from_and_"
+ * @param "o" "<byte…|16>"
+ * @param "portNumber" "[0..65535]"
+ */
 Method "a socket address from_and_" is
 [
 	o : <byte…|16>,
@@ -241,7 +289,12 @@ Public method "«_‡.»:_" is
 		address ::= an IPv4 address with octets ::= o,
 		port ::= portNumber
 ] : socket address;
-
+	
+/**
+ * @method "«_‡.»:_"
+ * @restricts "<byte…|4>'s type"
+ * @restricts "[0..65535]'s type"
+ */
 Semantic restriction "«_‡.»:_" is
 [
 	o : <byte…|4>'s type,

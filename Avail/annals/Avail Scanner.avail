@@ -149,7 +149,7 @@ Public class "Avail scanner" extends object
  * @categories "Avail Lexical Scanner"
  * @param "iter" "iterator of character" 
  *      and iterator of characters
- * @returnType "Avail scanner"
+ * @returns "Avail scanner"
  *      an Avail scanner object
  * @author "Richard Arriaga"
  */
@@ -172,7 +172,7 @@ Public method "an Avail scanner with_" is
  * @categories "Avail Scanner"
  * @param "scanner" "Avail scanner" 
  *      an avail scanner
- * @returnType "character"
+ * @returns "character"
  *      the Avail scanner's source's current element
  * @raises "Raise an exhausted-iterator exception" 
  *      The iterator is exhausted
@@ -277,7 +277,7 @@ From 1 to 256 do
  * @categories "Avail Lexical Scanner"
  * @param "scanner" "Avail scanner" 
  *		an Avail scanner
- * @returnType "⊤"
+ * @returns "⊤"
  *		none
  * @raises "Raise an exhausted-iterator exception" 
  *		there is nothing left on the iterator to consume
@@ -311,7 +311,7 @@ Public method "Next character from_" is
  * @categories "Avail Lexical Scanner"
  * @param "scanner" "Avail scanner" 
  *		an Avail scanner
- * @returnType "⊤"
+ * @returns "⊤"
  *		none
  * @author "Richard Arriaga"
  */
@@ -362,7 +362,7 @@ Public method "Exhaust_" is
  *		an avail scanner 
  * @param "predicate" "boolean" 
  *		The function that guards repeated application of reading from the source
- * @returnType "<character…|>"
+ * @returns "<character…|>"
  *		the tuple of characters read from the source
  * @author "Richard Arriaga"
  */
@@ -396,7 +396,7 @@ Public method "read from_while_" is
  * @param "scanner" "Avail scanner" 
  *      an Avail scanner object.
  * @param "index" "natural number"
- * @returnType "scanner token"
+ * @returns "scanner token"
  *      a scanner token object
  * @raises "exceptionName" 
  *      exceptionDescription
@@ -429,7 +429,7 @@ Public method "read from_while_" is
  *      the delimiter that indicates the end of a region
  * @param "nesting" "[1..2]" 
  *      indicator for operation allowing nesting or ignoring nesting
- * @returnType "string"
+ * @returns "string"
  *      the string that contains the characters in the region
  * @author "Richard Arriaga"
  */
@@ -486,7 +486,7 @@ Public method "read_'s⁇region delimited by_and_«with|without»!nesting" is
  *      the delimiter that indicates the end of a region
  * @param "nesting" "[1..2]" 
  *      indicator for operation allowing nesting or ignoring nesting
- * @returnType "string"
+ * @returns "string"
  *      the string that contains the characters in the region
  * @author "Richard Arriaga"
  */

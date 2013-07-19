@@ -440,7 +440,7 @@ Public method "identify comment from_" is
  * @categories "Stacks"
  * @param "tokenMap" "<{string→{<stacks token, <stacks token…|>…|>|}|}…|>" 
  *		A
- * @returnType "⊤"
+ * @returns "⊤"
  *		none
  * @author "Richard Arriaga"
  */
