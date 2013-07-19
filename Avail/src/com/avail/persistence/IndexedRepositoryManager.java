@@ -517,7 +517,11 @@ public class IndexedRepositoryManager
 		try
 		{
 			isOpen = false;
-			repository().close();
+			final IndexedRepository repo = repository;
+			if (repo != null)
+			{
+				repo.close();
+			}
 			moduleMap.clear();
 		}
 		finally
@@ -628,6 +632,7 @@ public class IndexedRepositoryManager
 	{
 		this.rootName = rootName;
 		this.fileName = fileName;
+		openOrCreate();
 	}
 
 	/**
