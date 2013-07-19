@@ -1327,6 +1327,11 @@ extends JFrame
 		cleanAction.setEnabled(true);
 		final JMenuItem cleanItem = new JMenuItem(cleanAction);
 		menu.add(cleanItem);
+		menu.addSeparator();
+		final RefreshAction refreshAction = new RefreshAction();
+		final JMenuItem refreshItem = new JMenuItem(refreshAction);
+		menu.add(refreshItem);
+		menu.addSeparator();
 		reportAction = new ReportAction();
 		reportAction.setEnabled(true);
 		final JMenuItem reportItem = new JMenuItem(reportAction);
@@ -1340,7 +1345,6 @@ extends JFrame
 		final JPopupMenu buildPopup = new JPopupMenu("Build");
 		final JMenuItem popupBuildItem = new JMenuItem(buildAction);
 		buildPopup.add(popupBuildItem);
-		final RefreshAction refreshAction = new RefreshAction();
 		final JMenuItem popupRefreshItem = new JMenuItem(refreshAction);
 		buildPopup.add(popupRefreshItem);
 		// The refresh item needs a little help ...

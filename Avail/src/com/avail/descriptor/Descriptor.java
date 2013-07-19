@@ -3515,12 +3515,6 @@ public abstract class Descriptor extends AbstractDescriptor
 	}
 
 	@Override
-	void o_ClearInterruptRequestFlags (final AvailObject object)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
 	boolean o_IsSystemModule (final AvailObject object)
 	{
 		throw unsupportedOperationException();

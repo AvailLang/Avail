@@ -77,7 +77,7 @@ public class L2InstructionDescriber
 		{
 			if (i > 0)
 			{
-				stream.append(", ");
+				stream.append(",");
 			}
 			operandDescriber.describeInOperandChunkOn(
 				operandTypes[i],

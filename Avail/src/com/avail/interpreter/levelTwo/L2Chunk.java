@@ -225,16 +225,14 @@ public final class L2Chunk
 		}
 		final L2InstructionDescriber describer =
 			new L2InstructionDescriber();
-		int offset = 0;
 		for (final L2Instruction instruction : instructions)
 		{
-			builder.append(String.format("\t#%-3d ", offset));
+			builder.append(String.format("\t#%-3d ", instruction.offset()));
 			final StringBuilder tempStream = new StringBuilder(100);
 			describer.describe(instruction, this, tempStream);
 			builder.append(
 				tempStream.toString().replace("\n", "\n\t\t"));
 			builder.append("\n");
-			offset++;
 		}
 		return builder.toString();
 	}
@@ -257,8 +255,8 @@ public final class L2Chunk
 		 * placed upon expiration. There is no special process to remove them
 		 * from here. Rather, an element of this queue is consumed when needed
 		 * for {@linkplain L2Chunk#allocate(A_RawFunction, int, int, int, List,
-		 * Set) allocation} of a new chunk. If this queue is empty, a fresh
-		 * index is allocated.
+		 * List, Set) allocation} of a new chunk. If this queue is empty, a
+		 * fresh index is allocated.
 		 */
 		static final ReferenceQueue<L2Chunk> recyclingQueue =
 			new ReferenceQueue<>();

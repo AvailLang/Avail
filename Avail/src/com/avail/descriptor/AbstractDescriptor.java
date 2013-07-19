@@ -5065,12 +5065,6 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 */
-	abstract void o_ClearInterruptRequestFlags (
-		final AvailObject object);
-
-	/**
-	 * @param object
 	 * @return
 	 */
 	abstract boolean o_IsSystemModule (

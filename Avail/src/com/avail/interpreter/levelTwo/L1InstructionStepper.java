@@ -349,7 +349,8 @@ implements L1OperationDispatcher
 			assert pc == nybbles.tupleSize() + 1;
 			if (debugL1)
 			{
-				interpreter.log(
+				Interpreter.log(
+					interpreter.fiber,
 					Level.FINER,
 					"L1 Return (pc={0}, depth={1})",
 					pc,
@@ -364,7 +365,8 @@ implements L1OperationDispatcher
 		final L1Operation operation = L1Operation.values()[nybble];
 		if (debugL1)
 		{
-			interpreter.log(
+			Interpreter.log(
+				interpreter.fiber,
 				Level.FINER,
 				"{0} (pc={1}, depth={2})",
 				operation,
@@ -380,10 +382,14 @@ implements L1OperationDispatcher
 		final A_Bundle bundle = literalAt(getInteger());
 		final A_Type expectedReturnType = literalAt(getInteger());
 		final int numArgs = bundle.bundleMethod().numArgs();
-		interpreter.log(
-			Level.FINER,
-			"L1 call {0}",
-			bundle.message().atomName());
+		if (debugL1)
+		{
+			Interpreter.log(
+				interpreter.fiber,
+				Level.FINE,
+				"L1 call {0}",
+				bundle.message().atomName());
+		}
 		argsBuffer.clear();
 		for (int i = numArgs; i >= 1; i--)
 		{

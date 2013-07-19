@@ -2378,10 +2378,8 @@ public abstract class AbstractAvailCompiler
 		final A_Phrase interpretation1,
 		final A_Phrase interpretation2)
 	{
-		final Mutable<A_Phrase> node1 =
-			new Mutable<>(interpretation1);
-		final Mutable<A_Phrase> node2 =
-			new Mutable<>(interpretation2);
+		final Mutable<A_Phrase> node1 = new Mutable<>(interpretation1);
+		final Mutable<A_Phrase> node2 = new Mutable<>(interpretation2);
 		findParseTreeDiscriminants(node1, node2);
 		where.expected(
 			new Describer()
@@ -2773,7 +2771,13 @@ public abstract class AbstractAvailCompiler
 		}
 		final A_Fiber fiber = FiberDescriptor.newLoaderFiber(
 			function.kind().returnType(),
-			loader());
+			loader(),
+			StringDescriptor.from(
+				String.format(
+					"Eval fn=%s, in %s:%d",
+					function.code().methodName(),
+					function.code().module().moduleName(),
+					function.code().startingLineNumber())));
 		fiber.resultContinuation(onSuccess);
 		fiber.failureContinuation(onFailure);
 		Interpreter.runOutermostFunction(runtime, fiber, function, args);
@@ -2801,9 +2805,19 @@ public abstract class AbstractAvailCompiler
 		final Continuation1<Throwable> onFailure)
 	{
 		final A_Function function = restriction.function();
+		final A_RawFunction code = function.code();
+		final A_Module mod = code.module();
 		final A_Fiber fiber = FiberDescriptor.newLoaderFiber(
 			function.kind().returnType(),
-			loader());
+			loader(),
+			StringDescriptor.from(
+				String.format(
+					"Semantic restriction %s, in %s:%d",
+					restriction.definitionMethod().bundles().iterator().next().message(),
+					mod.equals(NilDescriptor.nil())
+						? "no module"
+						: mod.moduleName(),
+					code.startingLineNumber())));
 		fiber.setGeneralFlag(GeneralFlag.APPLYING_SEMANTIC_RESTRICTION);
 		fiber.resultContinuation(onSuccess);
 		fiber.failureContinuation(onFailure);
@@ -3893,7 +3907,13 @@ public abstract class AbstractAvailCompiler
 					listNodeOfArgsSoFar.expressionsTuple());
 				final A_Fiber fiber = FiberDescriptor.newLoaderFiber(
 					prefixFunction.kind().returnType(),
-					loader());
+					loader(),
+					StringDescriptor.from(
+						String.format(
+							"Macro prefix %s, in %s:%d",
+							prefixFunction.code().methodName(),
+							prefixFunction.code().module().moduleName(),
+							prefixFunction.code().startingLineNumber())));
 				A_Map fiberGlobals = fiber.fiberGlobals();
 				fiberGlobals = fiberGlobals.mapAtPuttingCanDestroy(
 					clientDataGlobalKey,

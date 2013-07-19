@@ -96,7 +96,13 @@ extends Primitive
 		final A_Fiber current = FiberDescriptor.current();
 		final A_Fiber newFiber = FiberDescriptor.newFiber(
 			function.kind().returnType(),
-			priority.extractInt());
+			priority.extractInt(),
+			StringDescriptor.from(
+				String.format(
+					"Fork (prim 616), %s, %s:%d",
+					function.code().methodName(),
+					function.code().module().moduleName(),
+					function.code().startingLineNumber())));
 		// If the current fiber is an Avail fiber, then the new one should be
 		// also.
 		newFiber.availLoader(current.availLoader());

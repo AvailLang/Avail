@@ -52,7 +52,7 @@ implements A_BasicObject
 	 * being accessed via slot definitions appropriate for the object's actual
 	 * descriptor.  This check slows the system considerably, but it's
 	 * occasionally valuable to enable for a short time, especially right after
-	 * introducing new descriptors subclasses.
+	 * introducing new descriptor subclasses.
 	 */
 	private final static boolean shouldCheckSlots = false;
 

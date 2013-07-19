@@ -77,7 +77,7 @@ Public class "IP address" extends object
  * @type "IPv4 address"
  * @supertype "IP address"
  */
-Public class "IPv4 address" extends "IP address"
+Public class "IPv4 address" extends IP address
 	with field
 		octets : <byte…|4>;
 

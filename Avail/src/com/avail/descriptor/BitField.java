@@ -133,4 +133,14 @@ implements Comparable<BitField>
 		// Order by descending shift values.
 		return bitField.shift - shift;
 	}
+
+	@Override
+	public String toString ()
+	{
+		return String.format(
+			"%s(%d:%d)",
+			getClass().getSimpleName(),
+			shift,
+			bits);
+	}
 }

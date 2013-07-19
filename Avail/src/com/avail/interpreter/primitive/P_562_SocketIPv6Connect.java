@@ -122,7 +122,12 @@ extends Primitive
 		final A_Fiber current = FiberDescriptor.current();
 		final A_Fiber newFiber = FiberDescriptor.newFiber(
 			succeed.kind().returnType().typeUnion(fail.kind().returnType()),
-			priority.extractInt());
+			priority.extractInt(),
+			StringDescriptor.from(
+				String.format(
+					"Socket IPv6 connect (prim 562), %s:%d",
+					addressTuple.toString(),
+					port.extractInt())));
 		// If the current fiber is an Avail fiber, then the new one should be
 		// also.
 		newFiber.availLoader(current.availLoader());
@@ -175,7 +180,7 @@ extends Primitive
 								runtime,
 								newFiber,
 								fail,
-								Collections.singletonList((AvailObject)
+								Collections.singletonList(
 									E_IO_ERROR.numericCode()));
 						}
 					}
