@@ -1,5 +1,5 @@
 /**
- * GotoInstruction.java
+ * DupX1Instruction.java
  * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -32,42 +32,55 @@
 
 package com.avail.interpreter.jvm;
 
+import static com.avail.interpreter.jvm.JavaOperand.CATEGORY_1;
 import java.util.List;
 
 /**
- * A {@code GotoInstruction} abstractly specifies a goto.
+ * A {@code DupX1Instruction} requires special {@linkplain JavaOperand operand}
+ * checking logic.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-class GotoInstruction
-extends UnconditionalBranchInstruction
+final class DupX1Instruction
+extends SimpleInstruction
 {
 	@Override
-	JavaBytecode bytecode ()
+	boolean canConsumeOperands (final List<JavaOperand> operands)
 	{
-		return isWide() ? JavaBytecode.goto_w : JavaBytecode.goto_s;
+		final int size = operands.size();
+		try
+		{
+			final JavaOperand topOperand = operands.get(size - 1);
+			final JavaOperand nextOperand = operands.get(size - 2);
+			if (topOperand.computationalCategory() == CATEGORY_1
+				&& nextOperand.computationalCategory() == CATEGORY_1)
+			{
+				return true;
+			}
+		}
+		catch (final IndexOutOfBoundsException e)
+		{
+			// Do nothing.
+		}
+		return false;
 	}
 
 	@Override
 	JavaOperand[] outputOperands (final List<JavaOperand> operandStack)
 	{
-		return noOperands;
-	}
-
-	@Override
-	String mnemonicForInvalidAddress ()
-	{
-		return "«goto»";
+		assert canConsumeOperands(operandStack);
+		final int size = operandStack.size();
+		final JavaOperand topOperand = operandStack.get(size - 1);
+		final JavaOperand nextOperand = operandStack.get(size - 2);
+		return new JavaOperand[] {topOperand, nextOperand, topOperand};
 	}
 
 	/**
-	 * Construct a new {@link GotoInstruction}.
+	 * Construct a new {@link DupX1Instruction}.
 	 *
-	 * @param label
-	 *        The {@linkplain Label branch target}.
 	 */
-	GotoInstruction (final Label label)
+	DupX1Instruction ()
 	{
-		super(label);
+		super(JavaBytecode.dup_x1);
 	}
 }

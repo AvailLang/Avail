@@ -76,7 +76,7 @@ extends SimpleInstruction
 	}
 
 	@Override
-	JavaOperand[] outputOperands ()
+	JavaOperand[] outputOperands (final List<JavaOperand> operandStack)
 	{
 		final List<JavaOperand> operands = new ArrayList<>(1);
 		final JavaOperand returnOperand = returnOperand(

@@ -34,6 +34,7 @@ package com.avail.interpreter.jvm;
 
 import java.io.DataOutput;
 import java.io.IOException;
+import java.util.List;
 
 /**
  * The immediate values of a {@code TableSwitchInstruction} describe an {@code
@@ -97,7 +98,7 @@ extends JavaInstruction
 	}
 
 	@Override
-	JavaOperand[] outputOperands ()
+	JavaOperand[] outputOperands (final List<JavaOperand> operandStack)
 	{
 		return bytecode().outputOperands();
 	}
