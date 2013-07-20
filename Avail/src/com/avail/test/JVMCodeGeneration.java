@@ -45,7 +45,6 @@ import com.avail.annotations.Nullable;
 import com.avail.interpreter.jvm.BinaryOperator;
 import com.avail.interpreter.jvm.ClassModifier;
 import com.avail.interpreter.jvm.CodeGenerator;
-import com.avail.interpreter.jvm.ConstantPool;
 import com.avail.interpreter.jvm.Field;
 import com.avail.interpreter.jvm.FieldModifier;
 import com.avail.interpreter.jvm.LocalVariable;
@@ -233,25 +232,6 @@ public class JVMCodeGeneration
 		assertEquals(expected, actual);
 	}
 
-	/**
-	 * Emit a default constructor onto the specified {@linkplain CodeGenerator
-	 * code generator}.
-	 *
-	 * @param cg
-	 *        A code generator.
-	 */
-	private void defaultConstructorOn (final CodeGenerator cg)
-	{
-		final ConstantPool cp = cg.constantPool();
-		final EnumSet<MethodModifier> mmods = EnumSet.of(MethodModifier.PUBLIC);
-		final Method c = cg.newMethod("<init>", "()V");
-		c.setModifiers(mmods);
-		c.load(c.self());
-		c.invokeSpecial(cp.methodref(Object.class, "<init>", Void.TYPE));
-		c.returnToCaller();
-		c.finish();
-	}
-
 	@SuppressWarnings("javadoc")
 	@Test
 	public void hello ()
@@ -267,7 +247,7 @@ public class JVMCodeGeneration
 	{
 		final CodeGenerator cg = new CodeGenerator();
 		simpleClassPreambleOn(cg);
-		defaultConstructorOn(cg);
+		cg.newDefaultConstructor();
 		final String methodName = "hello";
 		final Method m = cg.newMethod(
 			methodName,
@@ -302,7 +282,7 @@ public class JVMCodeGeneration
 	{
 		final CodeGenerator cg = new CodeGenerator();
 		simpleClassPreambleOn(cg);
-		defaultConstructorOn(cg);
+		cg.newDefaultConstructor();
 		final String methodName = "add5";
 		final Method m = cg.newMethod(methodName, "(II)I");
 		final EnumSet<MethodModifier> mmods = EnumSet.of(MethodModifier.PUBLIC);
