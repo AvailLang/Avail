@@ -37,6 +37,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.DataOutput;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
 import java.util.EnumSet;
@@ -45,6 +46,7 @@ import com.avail.annotations.Nullable;
 import com.avail.interpreter.jvm.BinaryOperator;
 import com.avail.interpreter.jvm.ClassModifier;
 import com.avail.interpreter.jvm.CodeGenerator;
+import com.avail.interpreter.jvm.ConstantPool;
 import com.avail.interpreter.jvm.Field;
 import com.avail.interpreter.jvm.FieldModifier;
 import com.avail.interpreter.jvm.LocalVariable;
@@ -153,12 +155,12 @@ public class JVMCodeGeneration
 	@Test
 	public void staticField ()
 		throws
-		IOException,
-		ClassNotFoundException,
-		SecurityException,
-		IllegalArgumentException,
-		NoSuchFieldException,
-		IllegalAccessException
+			IOException,
+			ClassNotFoundException,
+			SecurityException,
+			IllegalArgumentException,
+			NoSuchFieldException,
+			IllegalAccessException
 	{
 		final CodeGenerator cg = new CodeGenerator();
 		simpleClassPreambleOn(cg);
@@ -171,6 +173,54 @@ public class JVMCodeGeneration
 		final java.lang.reflect.Field field = newClass.getField(fieldName);
 		field.set(null, "hello");
 		assertEquals("hello", field.get(null));
+	}
+
+	@SuppressWarnings("javadoc")
+	@Test
+	public void instanceField ()
+		throws
+		IOException,
+		ClassNotFoundException,
+		SecurityException,
+		IllegalArgumentException,
+		NoSuchFieldException,
+		IllegalAccessException,
+		NoSuchMethodException,
+		InstantiationException,
+		InvocationTargetException
+	{
+		final CodeGenerator cg = new CodeGenerator();
+		final ConstantPool cp = cg.constantPool();
+		simpleClassPreambleOn(cg);
+		// Declare a field: public String foo
+		final String fieldName = "foo";
+		final Field f = cg.newField(fieldName, "Ljava/lang/String;");
+		final EnumSet<FieldModifier> fmods = EnumSet.of(FieldModifier.PUBLIC);
+		f.setModifiers(fmods);
+		// Declare a constructor: public <init> (String)
+		final Method con = cg.newConstructor("(Ljava/lang/String;)V");
+		final EnumSet<MethodModifier> mmods = EnumSet.of(MethodModifier.PUBLIC);
+		con.setModifiers(mmods);
+		// Give the parameter the same name as the field.
+		final LocalVariable param = con.newParameter(fieldName);
+		// The constructor just sets the field.
+		con.load(con.self());
+		con.dup();
+		con.invokeSpecial(cp.methodref(
+			Object.class, Method.constructorName, Void.TYPE));
+		con.load(param);
+		con.store(f);
+		con.returnToCaller();
+		con.finish();
+		// Load the class.
+		final Class<?> newClass = loadClass(cg);
+		// Instantiate the class and test the field.
+		final Constructor<?> constructor =
+			newClass.getConstructor(String.class);
+		final String expected = "bar";
+		final Object newInstance = constructor.newInstance(expected);
+		final java.lang.reflect.Field field = newClass.getField(fieldName);
+		assertEquals(expected, field.get(newInstance));
 	}
 
 	@SuppressWarnings("javadoc")
