@@ -676,7 +676,7 @@ public class ConstantPool
 	 * {@code RefEntry} specifies the representation and serialization of its
 	 * concrete subclasses (which differ only their {@linkplain Tag tags}).
 	 */
-	private static abstract class RefEntry
+	static abstract class RefEntry
 	extends Entry
 	{
 		/**
