@@ -1228,6 +1228,22 @@ Public method "Raise termination-requested exception if appropriate" is
 	];
 ];
 
+/* If the unhandled exception handler catches a termination-requested exception,
+ * we want the fiber to exit cleanly, so use an uninitialized variable. This is
+ * because we don't want the synthetic base continuation to have a calling
+ * continuation. When a base continuation returns, the fiber exits cleanly, in
+ * this case without a final result.
+ *
+ * Note that the stack tuple must include a value for each stack slot required
+ * by the continuation. The stack grows downward, and predecrements before
+ * pushing, so the stack pointer should begin at the first invalid index.
+ */
+syntheticBase ::=
+	[
+		caller : continuation;
+		$[Ignore: 0;]@pc=1 stack=<⊥>[2] caller=↑caller
+	]();
+
 /* This completes the behavior of "Raise_" in the event that no unhandled
  * exception handler has been specified for the current fiber.
  */
@@ -1288,15 +1304,7 @@ noUnhandledExceptionHandler :=
 		[
 			unused : termination-requested exception
 		|
-			/* We want the fiber to exit cleanly, so the variable is
-			 * deliberately uninitialized. This is because we don't want the
-			 * synthetic base continuation to have a calling continuation. When
-			 * a base continuation returns, the fiber exits cleanly, in this
-			 * case without a final result.
-			 */
-			caller : continuation;
-			syntheticBase ::= $[]@pc=1 stack=<>[1] caller=↑caller;
-			Restart syntheticBase
+			Exit syntheticBase
 		]
 		else
 		[
