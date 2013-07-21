@@ -502,7 +502,13 @@ public enum AvailErrorCode
 	 */
 	E_CANNOT_MIX_METHOD_AND_MACRO_DEFINITIONS (75),
 
-//	E_??? (76)
+	/**
+	 * The VM does not normally instantiate continuations for infallible
+	 * primitive functions, so for conceptual consistency such continuations are
+	 * disallowed.
+	 */
+	E_CANNOT_CREATE_CONTINUATION_FOR_INFALLIBLE_PRIMITIVE_FUNCTION (76),
+
 //	E_??? (77)
 //	E_??? (78)
 //	E_??? (79)
