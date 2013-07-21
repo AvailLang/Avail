@@ -497,7 +497,7 @@ Test "request termination of joining fiber" in concurrency test suite is
 			with <>,
 			forked at priority 50;
 		joiner ::=
-			invoke [Join forked;]
+			invoke [Join forked, then honor a termination request;]
 			with <>,
 			forked at priority 50;
 		Request termination of joiner;

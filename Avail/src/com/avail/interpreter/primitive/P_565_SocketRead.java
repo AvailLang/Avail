@@ -32,7 +32,6 @@
 
 package com.avail.interpreter.primitive;
 
-import static com.avail.descriptor.FiberDescriptor.InterruptRequestFlag.TERMINATION_REQUESTED;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
@@ -128,21 +127,15 @@ extends Primitive
 						final @Nullable Void unused)
 					{
 						assert bytesRead != null;
-						// If termination has not been requested, then start the
-						// fiber.
-						if (!newFiber.getAndClearInterruptRequestFlag(
-							TERMINATION_REQUESTED))
-						{
-							Interpreter.runOutermostFunction(
-								runtime,
-								newFiber,
-								succeed,
-								Arrays.asList(
-									ByteBufferTupleDescriptor.forByteBuffer(
-										buffer),
-									AtomDescriptor.objectFromBoolean(
-										bytesRead == -1)));
-						}
+						Interpreter.runOutermostFunction(
+							runtime,
+							newFiber,
+							succeed,
+							Arrays.asList(
+								ByteBufferTupleDescriptor.forByteBuffer(
+									buffer),
+								AtomDescriptor.objectFromBoolean(
+									bytesRead == -1)));
 					}
 
 					@Override
@@ -151,18 +144,12 @@ extends Primitive
 						final @Nullable Void attachment)
 					{
 						assert killer != null;
-						// If termination has not been requested, then start the
-						// fiber.
-						if (!newFiber.getAndClearInterruptRequestFlag(
-							TERMINATION_REQUESTED))
-						{
-							Interpreter.runOutermostFunction(
-								runtime,
-								newFiber,
-								fail,
-								Collections.singletonList(
-									E_IO_ERROR.numericCode()));
-						}
+						Interpreter.runOutermostFunction(
+							runtime,
+							newFiber,
+							fail,
+							Collections.singletonList(
+								E_IO_ERROR.numericCode()));
 					}
 				});
 		}

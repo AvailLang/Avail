@@ -4155,18 +4155,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	AvailObject o_Joinee (final AvailObject object)
-	{
-		return o_Traversed(object).joinee();
-	}
-
-	@Override
-	void o_Joinee (final AvailObject object, final A_BasicObject joinee)
-	{
-		o_Traversed(object).joinee(joinee);
-	}
-
-	@Override
 	@Nullable TimerTask o_WakeupTask (final AvailObject object)
 	{
 		return o_Traversed(object).wakeupTask();

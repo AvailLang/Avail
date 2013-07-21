@@ -34,7 +34,7 @@ package com.avail.interpreter;
 
 import static com.avail.descriptor.AvailObject.error;
 import static com.avail.descriptor.FiberDescriptor.ExecutionState.*;
-import static com.avail.descriptor.FiberDescriptor.SynchronizationFlag.BOUND;
+import static com.avail.descriptor.FiberDescriptor.SynchronizationFlag.*;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Result.*;
@@ -659,21 +659,6 @@ public final class Interpreter
 	}
 
 	/**
-	 * {@linkplain ExecutionState#JOINING Join} the {@linkplain #fiber()
-	 * current} {@linkplain FiberDescriptor fiber} from a {@linkplain Primitive
-	 * primitive} invocation. The reified {@linkplain ContinuationDescriptor
-	 * continuation} must be available in the architectural {@linkplain
-	 * FixedRegister#CALLER caller register}, and will be installed into the
-	 * current fiber.
-	 *
-	 * @return {@link Result#FIBER_SUSPENDED}, for convenience.
-	 */
-	public Result primitiveJoin ()
-	{
-		return primitiveSuspend(JOINING);
-	}
-
-	/**
 	 * A place to store the primitive {@linkplain CompiledCodeDescriptor
 	 * compiled code} being attempted.  That allows {@linkplain
 	 * P_340_PushConstant} to get to the first literal in order to return it
@@ -706,9 +691,6 @@ public final class Interpreter
 	{
 		primitiveFunctionBeingAttempted = function;
 	}
-
-	/** The lock that synchronizes joins. */
-	public static final Object joinLock = new Object();
 
 	/**
 	 * Terminate the {@linkplain #fiber() current} {@linkplain FiberDescriptor
@@ -754,39 +736,30 @@ public final class Interpreter
 			@Override
 			public void value ()
 			{
-				synchronized (Interpreter.joinLock)
+				final A_Set joining = aFiber.joiningFibers().makeShared();
+				aFiber.joiningFibers(NilDescriptor.nil());
+				// Wake up all fibers trying to join this one.
+				for (final A_Fiber joiner : joining)
 				{
-					final A_Set joining = aFiber.joiningFibers().makeShared();
-					aFiber.joiningFibers(SetDescriptor.empty());
-					// Wake up all fibers trying to join this one.
-					for (final A_Fiber joiner : joining)
+					joiner.lock(new Continuation0()
 					{
-						joiner.lock(new Continuation0()
+						@Override
+						public void value ()
 						{
-							@Override
-							public void value ()
+							// Unpark the fiber, resuming it if it was parked.
+							if (joiner.getAndSetSynchronizationFlag(
+									PERMIT_UNAVAILABLE, false)
+								&& joiner.executionState() == PARKED)
 							{
-								// A termination request could have moved the
-								// joiner out of the JOINING state.
-								if (joiner.executionState() == JOINING)
-								{
-									assert joiner.joinee().equals(aFiber);
-									joiner.joinee(NilDescriptor.nil());
-									joiner.executionState(SUSPENDED);
-									Interpreter.resumeFromSuccessfulPrimitive(
-										AvailRuntime.current(),
-										joiner,
-										NilDescriptor.nil(),
-										true);
-								}
-								else
-								{
-									assert joiner.executionState()
-										.indicatesTermination();
-								}
+								joiner.executionState(SUSPENDED);
+								Interpreter.resumeFromSuccessfulPrimitive(
+									AvailRuntime.current(),
+									joiner,
+									NilDescriptor.nil(),
+									true);
 							}
-						});
-					}
+						}
+					});
 				}
 			}
 		});

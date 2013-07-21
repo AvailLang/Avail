@@ -3981,20 +3981,6 @@ public abstract class Descriptor extends AbstractDescriptor
 
 	@Override
 	@AvailMethod
-	AvailObject o_Joinee (final AvailObject object)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	@AvailMethod
-	void o_Joinee (final AvailObject object, final A_BasicObject joinee)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	@AvailMethod
 	@Nullable
 	TimerTask o_WakeupTask (final AvailObject object)
 	{

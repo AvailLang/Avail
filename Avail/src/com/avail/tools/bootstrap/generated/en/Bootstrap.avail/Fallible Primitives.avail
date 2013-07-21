@@ -48,13 +48,13 @@ Uses
 	"Primitives" =
 	(
 		"Abstract method_is_",
+		"Attempt to join_",
 		"Exit_with_",
 		"Forward method_is_",
 		"Grammatical restriction_is_",
 		"In_millisecond|milliseconds,⁇invoke_with_,⁇forked at priority_",
 		"Invoke_with_,⁇forked at priority_",
 		"Invoke|invoke_with_",
-		"Join_",
 		"Macro_is«_,»_",
 		"Mark for_character|characters of read ahead",
 		"Publish new name:_",
@@ -1715,13 +1715,14 @@ Primitive "invoke_with_,⁇forked at priority_" is
 ] : fiber;
 
 /**
- * Wait for the specified fiber to terminate. If the fiber has already
- * terminated, then return immediately; otherwise, suspend the current fiber.
+ * Attempt to join the specified fiber. If the fiber has already terminated,
+ * then return immediately; otherwise, arrange to unpark the current fiber when
+ * the specified fiber terminates and park the current fiber.
  *
  * Parameters:
  *    aFiber - A fiber.
  */
-Primitive "Join_" is
+Primitive "Attempt to join_" is
 [
 	aFiber : fiber
 |
