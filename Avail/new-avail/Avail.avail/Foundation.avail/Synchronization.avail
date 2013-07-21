@@ -1328,8 +1328,8 @@ Method "Lock|lock_for_" is
 	criticalSection : []→⊤
 |
 	Await sem;
-	criticalSection();
-	Signal sem;
+	Guard criticalSection
+	ensure [Signal sem;];
 ] : ⊤;
 
 /**
