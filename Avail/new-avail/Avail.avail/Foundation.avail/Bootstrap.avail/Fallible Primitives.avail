@@ -47,6 +47,7 @@ Uses
 	"Special Objects",
 	"Primitives" =
 	(
+		"$_@pc=_stack=_[_]caller=_",
 		"Abstract method_is_",
 		"Attempt to join_",
 		"Exit_with_",
@@ -422,6 +423,38 @@ Primitive "Invoke|invoke_with_" is
 	Primitive 40 (failureCode : natural number);
 	Private invoke _fail_primitive with failureCode
 ] : ⊤;
+
+/**
+ * Construct and answer a continuation whose current function, Level One
+ * program counter, local stack, local stack pointer, and calling continuation
+ * are specified by the arguments.
+ *
+ * Parameters:
+ *    aFunction - The new continuation's current function.
+ *    programCounter - `aFunction`'s program counter. This is the index of the
+ *       next Level One instruction to execute when the new continuation is
+ *       resumed.
+ *    stack - `aFunction`'s stack. This tuple contains the arguments, local
+ *       variables, and temporaries.
+ *    stackPointer - `aFunction`'s stack pointer. This is the index of the
+ *       top of the stack.
+ *    caller - A variable holding the new continuation's calling continuation.
+ *       If the variable is unassigned, then create a root continuation (i.e.
+ *       one without a caller).
+ * Returns:
+ *    The requested continuation.
+ */
+Primitive "$_@pc=_stack=_[_]caller=_" is
+[
+	aFunction : function,
+	programCounter : natural number,
+	stack : tuple,
+	stackPointer : natural number,
+	caller : continuation variable
+|
+	Primitive 49 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode
+] : continuation;
 
 /**
  * Restart the continuation with the specified arguments. Execution proceeds as

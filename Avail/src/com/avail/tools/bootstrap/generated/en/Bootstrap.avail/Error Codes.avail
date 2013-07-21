@@ -54,6 +54,7 @@ Names
 	/* 102 */ "block must not contain outers code",
 	/*   1 */ "cannot add unlike infinities code",
 	/*  56 */ "cannot convert not a number to integer code",
+	/*  76 */ "cannot create continuation for infallible primitive function code",
 	/*   4 */ "cannot divide by zero code",
 	/*   5 */ "cannot divide infinities code",
 	/*  81 */ "cannot mark handler frame code",
@@ -508,6 +509,11 @@ Primitive "atom already exists code" is
 Primitive "cannot mix method and macro definitions code" is
 [
 	75
+];
+
+Primitive "cannot create continuation for infallible primitive function code" is
+[
+	76
 ];
 
 Primitive "handler sentinel code" is

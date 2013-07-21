@@ -988,6 +988,8 @@ System exception "atom-already-exists" (74)
 	extends definition exception;
 System exception "cannot-mix-method-and-macro-definitions" (75)
 	extends definition exception;
+System exception "cannot-create-continuation-for-infallible-primitive-function" (76)
+	extends invocation exception;
 System exception "handler-sentinel" (80)
 	extends system exception;
 System exception "cannot-mark-handler-frame" (81)
