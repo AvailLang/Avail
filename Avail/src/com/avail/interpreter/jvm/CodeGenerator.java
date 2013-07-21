@@ -311,9 +311,6 @@ extends Emitter<ClassModifier>
 		}
 	}
 
-	/** The name of every constructor. */
-	public static final String constructorName = "<init>";
-
 	/**
 	 * Create a new {@linkplain Method constructor} with the specified
 	 * {@linkplain JavaDescriptors#forMethod(Class, Class...) signature
@@ -329,7 +326,7 @@ extends Emitter<ClassModifier>
 	public Method newConstructor (final String descriptor)
 	{
 		assert !modifiers.contains(INTERFACE);
-		return newMethod(constructorName, descriptor);
+		return newMethod(Method.constructorName, descriptor);
 	}
 
 	/**
@@ -345,18 +342,15 @@ extends Emitter<ClassModifier>
 	public Method newDefaultConstructor ()
 	{
 		assert !modifiers.contains(INTERFACE);
-		final Method method = newMethod(constructorName, "()V");
+		final Method method = newMethod(Method.constructorName, "()V");
 		method.setModifiers(EnumSet.of(MethodModifier.PUBLIC));
 		method.load(method.self());
 		method.invokeSpecial(constantPool.methodref(
-			superEntry.name(), constructorName, "()V"));
+			superEntry.name(), Method.constructorName, "()V"));
 		method.returnToCaller();
 		method.finish();
 		return method;
 	}
-
-	/** The name of the static initializer. */
-	public static final String staticInitializerName = "<clinit>";
 
 	/**
 	 * Create a new {@linkplain Method static initializer} that is ready to
@@ -372,7 +366,7 @@ extends Emitter<ClassModifier>
 	public Method newStaticInitializer ()
 	{
 		assert !modifiers.contains(INTERFACE);
-		final Method method = newMethod(staticInitializerName, "()V");
+		final Method method = newMethod(Method.staticInitializerName, "()V");
 		method.setModifiers(EnumSet.of(
 			MethodModifier.PRIVATE, MethodModifier.STATIC));
 		return method;
@@ -472,5 +466,61 @@ extends Emitter<ClassModifier>
 	public void emitOn (final DataOutput out) throws IOException
 	{
 		writeTo(out);
+	}
+
+	@Override
+	public String toString ()
+	{
+		@SuppressWarnings("resource")
+		final Formatter formatter = new Formatter();
+		final String mods = ClassModifier.toString(modifiers);
+		formatter.format("%s%s", mods, mods.isEmpty() ? "" : " ");
+		formatter.format("%s", name());
+		if (!superEntry.internalName().equals(
+			JavaDescriptors.asInternalName("java.lang.Object")))
+		{
+			formatter.format("%n\textends %s", superEntry.name());
+		}
+		if (!interfaceEntries.isEmpty())
+		{
+			formatter.format("%n\timplements ");
+			boolean first = true;
+			for (final ClassEntry entry : interfaceEntries)
+			{
+				if (!first)
+				{
+					formatter.format(", ");
+				}
+				formatter.format("%s", entry.name());
+				first = false;
+			}
+		}
+		synchronized (fields)
+		{
+			if (!fields.isEmpty())
+			{
+				formatter.format("%n%nFields:");
+				for (final Field field : fields.values())
+				{
+					final String fieldString = field.toString().replaceAll(
+						String.format("%n"), String.format("%n\t"));
+					formatter.format("%n\t%s", fieldString);
+				}
+			}
+		}
+		synchronized (methods)
+		{
+			if (!methods.isEmpty())
+			{
+				formatter.format("%n%nMethods:");
+				for (final Method method : methods.values())
+				{
+					final String methodString = method.toString().replaceAll(
+						String.format("%n"), String.format("%n\t"));
+					formatter.format("%n\t%s", methodString);
+				}
+			}
+		}
+		return formatter.toString();
 	}
 }

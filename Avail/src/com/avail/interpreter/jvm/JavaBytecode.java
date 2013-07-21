@@ -81,7 +81,7 @@ enum JavaBytecode
 	 *    aastore</a>
 	 */
 	aastore (0x53,
-		O(ARRAYREF, INDEX),
+		O(ARRAYREF, INDEX, OBJECTREF),
 		O(OBJECTREF),
 		X(NullPointerException.class,
 			ArrayIndexOutOfBoundsException.class,
@@ -3153,7 +3153,7 @@ enum JavaBytecode
 	 *    multianewarray</a>
 	 */
 	multianewarray (0xc5, 3,
-		O(COUNT, PLURAL),
+		O(PLURAL),
 		O(ARRAYREF),
 		X(ClassNotFoundException.class,
 			NoClassDefFoundError.class,
@@ -3391,7 +3391,7 @@ enum JavaBytecode
 	 *    sastore</a>
 	 */
 	sastore (0x56,
-		O(ARRAYREF, INDEX, VALUE),
+		O(ARRAYREF, INDEX, INT),
 		O(),
 		X(NullPointerException.class, ArrayIndexOutOfBoundsException.class))
 	{

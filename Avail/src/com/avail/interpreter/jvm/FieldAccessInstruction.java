@@ -34,6 +34,7 @@ package com.avail.interpreter.jvm;
 
 import java.io.DataOutput;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 import com.avail.interpreter.jvm.ConstantPool.FieldrefEntry;
 
@@ -89,16 +90,49 @@ extends JavaInstruction
 		return isStatic ? staticBytecode() : instanceBytecode();
 	}
 
+	/**
+	 * Quasi-destructively update the specified array to replace occurrences of
+	 * {@link JavaOperand#VALUE VALUE} with the {@linkplain JavaOperand operand}
+	 * that corresponds with the {@linkplain FieldrefEntry referenced}
+	 * {@linkplain Field field}'s {@linkplain Class type}.
+	 *
+	 * @param operands
+	 *        An array of operands.
+	 * @return An array of operands that reflects the substitution.
+	 */
+	private JavaOperand[] substituteOperands (final JavaOperand[] operands)
+	{
+		JavaOperand[] result = operands;
+		boolean copied = false;
+		for (int i = 0; i < operands.length; i++)
+		{
+			if (operands[i] == JavaOperand.VALUE)
+			{
+				// Copy the operands on write.
+				if (!copied)
+				{
+					result = Arrays.copyOf(operands, operands.length);
+					copied = true;
+				}
+				final Class<?> type = JavaDescriptors.typeForDescriptor(
+					fieldrefEntry.descriptor());
+				final JavaOperand newOperand = JavaOperand.forType(type);
+				result[i] = newOperand;
+			}
+		}
+		return result;
+	}
+
 	@Override
 	final JavaOperand[] inputOperands ()
 	{
-		return bytecode().inputOperands();
+		return substituteOperands(bytecode().inputOperands());
 	}
 
 	@Override
 	final JavaOperand[] outputOperands (final List<JavaOperand> operandStack)
 	{
-		return bytecode().outputOperands();
+		return substituteOperands(bytecode().outputOperands());
 	}
 
 	@Override
@@ -116,7 +150,10 @@ extends JavaInstruction
 	@Override
 	public final String toString ()
 	{
-		return String.format("%-15s%s", bytecode().mnemonic(), fieldrefEntry);
+		return String.format(
+			"%-15s%s",
+			bytecode().mnemonic(),
+			fieldrefEntry.simpleString());
 	}
 
 	/**

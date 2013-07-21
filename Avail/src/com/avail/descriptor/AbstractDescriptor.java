@@ -5549,18 +5549,6 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	abstract AvailObject o_Joinee (AvailObject object);
-
-	/**
-	 * @param object
-	 * @param joinee
-	 */
-	abstract void o_Joinee (AvailObject object, A_BasicObject joinee);
-
-	/**
-	 * @param object
-	 * @return
-	 */
 	abstract @Nullable TimerTask o_WakeupTask (AvailObject object);
 
 	/**

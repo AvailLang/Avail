@@ -32,7 +32,6 @@
 
 package com.avail.interpreter.primitive;
 
-import static com.avail.descriptor.FiberDescriptor.InterruptRequestFlag.TERMINATION_REQUESTED;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
@@ -152,17 +151,11 @@ extends Primitive
 						final @Nullable Void unused1,
 						final @Nullable Void unused2)
 					{
-						// If termination has not been requested, then start the
-						// fiber.
-						if (!newFiber.getAndClearInterruptRequestFlag(
-							TERMINATION_REQUESTED))
-						{
-							Interpreter.runOutermostFunction(
-								runtime,
-								newFiber,
-								succeed,
-								Collections.<AvailObject>emptyList());
-						}
+						Interpreter.runOutermostFunction(
+							runtime,
+							newFiber,
+							succeed,
+							Collections.<AvailObject>emptyList());
 					}
 
 					@Override
@@ -171,18 +164,12 @@ extends Primitive
 						final @Nullable Void unused)
 					{
 						assert killer != null;
-						// If termination has not been requested, then start the
-						// fiber.
-						if (!newFiber.getAndClearInterruptRequestFlag(
-							TERMINATION_REQUESTED))
-						{
-							Interpreter.runOutermostFunction(
-								runtime,
-								newFiber,
-								fail,
-								Collections.singletonList(
-									E_IO_ERROR.numericCode()));
-						}
+						Interpreter.runOutermostFunction(
+							runtime,
+							newFiber,
+							fail,
+							Collections.singletonList(
+								E_IO_ERROR.numericCode()));
 					}
 				});
 		}

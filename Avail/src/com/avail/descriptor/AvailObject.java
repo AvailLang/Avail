@@ -6396,24 +6396,6 @@ implements
 	 * @return
 	 */
 	@Override
-	public AvailObject joinee ()
-	{
-		return descriptor.o_Joinee(this);
-	}
-
-	/**
-	 * @param joinee
-	 */
-	@Override
-	public void joinee (final A_BasicObject joinee)
-	{
-		descriptor.o_Joinee(this, joinee);
-	}
-
-	/**
-	 * @return
-	 */
-	@Override
 	public @Nullable TimerTask wakeupTask ()
 	{
 		return descriptor.o_WakeupTask(this);

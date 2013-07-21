@@ -34,6 +34,7 @@ package com.avail.interpreter.jvm;
 
 import java.io.DataOutput;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 import com.avail.interpreter.jvm.ConstantPool.ClassEntry;
 
@@ -85,9 +86,32 @@ extends JavaInstruction
 	}
 
 	@Override
+	boolean canConsumeOperands (final List<JavaOperand> operands)
+	{
+		final int size = operands.size();
+		try
+		{
+			for (int i = size - dimensions; i < size; i++)
+			{
+				if (operands.get(i).baseOperand() != JavaOperand.INT)
+				{
+					return false;
+				}
+			}
+			return true;
+		}
+		catch (final IndexOutOfBoundsException e)
+		{
+			return false;
+		}
+	}
+
+	@Override
 	JavaOperand[] inputOperands ()
 	{
-		return bytecode().inputOperands();
+		final JavaOperand[] operands = new JavaOperand[dimensions];
+		Arrays.fill(operands, JavaOperand.COUNT);
+		return operands;
 	}
 
 	@Override

@@ -74,7 +74,7 @@ extends SimpleInstruction
 		try
 		{
 			final List<JavaOperand> topOperands = operands.subList(
-				size - parameters.size(), parameters.size());
+				size - parameters.size(), size);
 			return topOperands.equals(parameters);
 		}
 		catch (final IndexOutOfBoundsException e)
@@ -112,7 +112,10 @@ extends SimpleInstruction
 	@Override
 	public final String toString ()
 	{
-		return String.format("%s%s", super.toString(), methodEntry);
+		return String.format(
+			"%s%s",
+			super.toString(),
+			methodEntry.simpleString());
 	}
 
 	/**

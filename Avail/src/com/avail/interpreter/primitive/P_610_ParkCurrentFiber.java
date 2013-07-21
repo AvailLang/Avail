@@ -34,7 +34,6 @@ package com.avail.interpreter.primitive;
 
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.interpreter.Primitive.Flag.*;
-import static com.avail.descriptor.FiberDescriptor.InterruptRequestFlag.TERMINATION_REQUESTED;
 import static com.avail.descriptor.FiberDescriptor.SynchronizationFlag.PERMIT_UNAVAILABLE;
 import java.util.List;
 import com.avail.descriptor.*;
@@ -79,11 +78,9 @@ extends Primitive
 			@Override
 			public void value ()
 			{
-				// If termination hasn't been requested and the permit is not
-				// available, then park this fiber.
-				if (!fiber.interruptRequestFlag(TERMINATION_REQUESTED)
-					&& fiber.getAndSetSynchronizationFlag(
-						PERMIT_UNAVAILABLE, true))
+				// If permit is not available, then park this fiber.
+				if (fiber.getAndSetSynchronizationFlag(
+					PERMIT_UNAVAILABLE, true))
 				{
 					result.value = interpreter.primitivePark();
 				}

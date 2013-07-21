@@ -717,13 +717,24 @@ public class ConstantPool
 			nameAndTypeEntry.writeIndexTo(out);
 		}
 
-		@Override
-		public String toString ()
+		/**
+		 * Describe the {@linkplain RefEntry reference} using the dotted
+		 * notation.
+		 *
+		 * @return A simple description of the reference.
+		 */
+		public final String simpleString ()
 		{
 			return String.format(
 				"%s.%s",
 				classEntry.internalName(),
 				nameAndTypeEntry);
+		}
+		
+		@Override
+		public String toString ()
+		{
+			return simpleString();
 		}
 
 		/**

@@ -93,7 +93,6 @@ Names
 	"reentry exception",
 	"semaphore exception",
 	"synchronization exception",
-	"termination-requested exception",
 	"_'s⁇misused condition",
 	"_'s⁇misused semaphore",
 	"_'s⁇reentered mutex",
@@ -101,9 +100,9 @@ Names
 
 	/* Low-level synchronization. */
 	"Atomically update_using_",
+	"Join_",
 	"Join_,then honor a termination request",
 	"Park current fiber,then honor a termination request",
-	"Raise termination-requested exception if appropriate",
 	"dequeue_from_",
 	"parking queue",
 	"priority enqueue_on_",
@@ -326,31 +325,6 @@ Public method "dequeue_from_" is
 ] : boolean;
 
 /**
- * A termination-requested exception indicates that termination has been
- * requested for the current fiber.
- *
- * @type "termination-requested exception"
- * @type "exception"
- */
-Public explicit class "termination-requested exception" extends exception;
-
-/**
- * Raise a {@type "termination-requested exception"} iff {@method
- * "termination requested" termination has been requested}.
- *
- * @method "Raise termination-requested exception if appropriate"
- * @raises "termination-requested exception"
- *         If {@method "termination requested" termination has been requested}.
- */
-Public method "Raise termination-requested exception if appropriate" is
-[
-	If termination requested then
-	[
-		Raise a termination-requested exception
-	];
-] : ⊤;
-
-/**
  * Park the {@method "current fiber"}. When the fiber awakens, honor an
  * outstanding {@method "termination requested" termination request}. If
  * termination has not been requested, then return control to the caller.
@@ -366,12 +340,32 @@ Public method "Park current fiber,then honor a termination request" is
 ] : ⊤;
 
 /**
+ * Join the {@method "current fiber"} to the specified {@type "fiber"}. Ignore
+ * {@method "termination requested" termination requests}. Once the specified
+ * fiber {@method "_has terminated" has terminated}, then return control to the
+ * caller.
+ *
+ * @method "Join_"
+ * @param "joinee" "fiber"
+ *        The fiber to join.
+ */
+Public method "Join_" is
+[
+	joinee : fiber
+|
+	Until [joinee has terminated]
+	do [Attempt to join joinee;];
+];
+
+/**
  * Join the {@method "current fiber"} to the specified {@type "fiber"}. If the
  * join is interrupted by a {@method "termination requested" termination
  * request}, then honor it. If termination has not been requested, then return
  * control to the caller.
  *
  * @method "Join_,then honor a termination request"
+ * @param "joinee" "fiber"
+ *        The fiber to join.
  * @raises "termination-requested exception"
  *         If {@method "termination requested" termination has been requested}.
  */
@@ -379,8 +373,12 @@ Public method "Join_,then honor a termination request" is
 [
 	joinee : fiber
 |
-	Join joinee;
-	Raise termination-requested exception if appropriate;
+	Until [joinee has terminated]
+	do
+	[
+		Attempt to join joinee;
+		Raise termination-requested exception if appropriate;
+	];
 ];
 
 "name" is a new field atom;

@@ -184,16 +184,6 @@ extends A_BasicObject
 	/**
 	 * @return
 	 */
-	AvailObject joinee ();
-
-	/**
-	 * @param joinee
-	 */
-	void joinee (A_BasicObject joinee);
-
-	/**
-	 * @return
-	 */
 	A_Set joiningFibers ();
 
 	/**

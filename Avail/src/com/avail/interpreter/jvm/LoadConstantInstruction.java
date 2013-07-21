@@ -98,6 +98,12 @@ extends JavaInstruction
 	}
 
 	@Override
+	boolean canConsumeOperands (final List<JavaOperand> operands)
+	{
+		return true;
+	}
+
+	@Override
 	JavaOperand[] inputOperands ()
 	{
 		assert bytecode().inputOperands().length == 0;

@@ -351,20 +351,9 @@ extends Descriptor
 
 		/**
 		 * A {@linkplain SetDescriptor set} of {@linkplain FiberDescriptor
-		 * fibers} waiting to join the current fiber. Access to this field is
-		 * synchronized by the {@linkplain Interpreter#joinLock global join
-		 * lock}.
+		 * fibers} waiting to join the current fiber.
 		 */
 		JOINING_FIBERS,
-
-		/**
-		 * The {@linkplain FiberDescriptor fiber} that this fiber is attempting
-		 * to join, or {@linkplain NilDescriptor nil} if this fiber is not in
-		 * the {@linkplain ExecutionState#JOINING state}. Access to this field
-		 * is synchronized by the {@linkplain Interpreter#joinLock global join
-		 * lock}.
-		 */
-		JOINEE,
 
 		/**
 		 * A {@linkplain RawPojoDescriptor raw pojo} wrapping the {@linkplain
@@ -411,7 +400,6 @@ extends Descriptor
 					SUSPENDED,
 					INTERRUPTED,
 					PARKED,
-					JOINING,
 					TERMINATED,
 					ABORTED);
 			}
@@ -460,30 +448,6 @@ extends Descriptor
 		 * The fiber has been parked.
 		 */
 		PARKED
-		{
-			@Override
-			public boolean indicatesSuspension ()
-			{
-				return true;
-			}
-
-			@Override
-			public boolean indicatesVoluntarySuspension ()
-			{
-				return true;
-			}
-
-			@Override
-			protected Set<ExecutionState> privateSuccessors ()
-			{
-				return EnumSet.of(SUSPENDED);
-			}
-		},
-
-		/**
-		 * The fiber waiting to join another fiber.
-		 */
-		JOINING
 		{
 			@Override
 			public boolean indicatesSuspension ()
@@ -1127,18 +1091,6 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_Joinee (final AvailObject object)
-	{
-		return object.mutableSlot(JOINEE);
-	}
-
-	@Override @AvailMethod
-	void o_Joinee (final AvailObject object, final A_BasicObject joinee)
-	{
-		object.setMutableSlot(JOINEE, joinee);
-	}
-
-	@Override @AvailMethod
 	@Nullable TimerTask o_WakeupTask (final AvailObject object)
 	{
 		final AvailObject pojo = object.mutableSlot(WAKEUP_TASK);
@@ -1218,15 +1170,48 @@ extends Descriptor
 		error("Process stepping is not implemented");
 	}
 
+	/**
+	 * The currently locked {@linkplain FiberDescriptor fiber}, or {@code null}
+	 * if no fiber is currently locked. This information is used to detect
+	 * deadlocks between fibers.
+	 */
+	private static final ThreadLocal<A_Fiber> currentlyLockedFiber =
+		new ThreadLocal<>();
+
+	/**
+	 * Can the running {@linkplain Thread thread} safely lock the specified
+	 * fiber without potential for deadlock?
+	 *
+	 * @param fiber
+	 *        A fiber.
+	 * @return {@code true} if the current thread can safely lock the specified
+	 *         fiber, {@code false} otherwise.
+	 */
+	private boolean canSafelyLock (final A_Fiber fiber)
+	{
+		final A_Fiber lockedFiber = currentlyLockedFiber.get();
+		return lockedFiber == null || lockedFiber == fiber;
+	}
+
 	@Override
 	void o_Lock (final AvailObject object, final Continuation0 critical)
 	{
-		// A fiber always needs to acquire a lock, even if it's not mutable, as
-		// this prevents races between two threads where one is exiting a fiber
-		// and the other is resuming the same fiber.
-		synchronized (object)
+		assert canSafelyLock(object);
+		final A_Fiber lockedFiber = currentlyLockedFiber.get();
+		currentlyLockedFiber.set(object);
+		try
 		{
-			critical.value();
+			// A fiber always needs to acquire a lock, even if it's not mutable,
+			// as this prevents races between two threads where one is exiting a
+			// fiber and the other is resuming the same fiber.
+			synchronized (object)
+			{
+				critical.value();
+			}
+		}
+		finally
+		{
+			currentlyLockedFiber.set(lockedFiber);
 		}
 	}
 
@@ -1320,7 +1305,6 @@ extends Descriptor
 
 		fiber.setSlot(FAILURE_CONTINUATION, defaultFailureContinuation);
 		fiber.setSlot(JOINING_FIBERS, SetDescriptor.empty());
-		fiber.setSlot(JOINEE, NilDescriptor.nil());
 		fiber.setSlot(WAKEUP_TASK, NilDescriptor.nil());
 		if (debugFibers)
 		{
@@ -1385,7 +1369,6 @@ extends Descriptor
 
 		fiber.setSlot(FAILURE_CONTINUATION, defaultFailureContinuation);
 		fiber.setSlot(JOINING_FIBERS, SetDescriptor.empty());
-		fiber.setSlot(JOINEE, NilDescriptor.nil());
 		fiber.setSlot(WAKEUP_TASK, NilDescriptor.nil());
 		if (debugFibers)
 		{

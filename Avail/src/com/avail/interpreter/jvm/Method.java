@@ -104,6 +104,12 @@ extends Emitter<MethodModifier>
 	 */
 	private final CodeGenerator codeGenerator;
 
+	/** The name of every constructor. */
+	public static final String constructorName = "<init>";
+
+	/** The name of the static initializer. */
+	public static final String staticInitializerName = "<clinit>";
+
 	/** The name {@linkplain Utf8Entry entry}. */
 	private final Utf8Entry nameEntry;
 
@@ -169,7 +175,7 @@ extends Emitter<MethodModifier>
 	MethodrefEntry reference ()
 	{
 		return constantPool.methodref(
-			codeGenerator.classEntry.toString(),
+			codeGenerator.classEntry.internalName(),
 			nameEntry.data(),
 			descriptorEntry.data());
 	}
