@@ -70,7 +70,7 @@ extends A_BasicObject, Iterable<AvailObject>
 		A_Tuple aTuple,
 		int startIndex2);
 
-	/**
+	/** TODO: [LAS] This signature differs from the others
 	 * @param i
 	 * @param tupleSize
 	 * @param aByteArrayTuple
@@ -127,6 +127,29 @@ extends A_BasicObject, Iterable<AvailObject>
 		int startIndex1,
 		int endIndex1,
 		A_Tuple aByteTuple,
+		int startIndex2);
+
+	/**
+	 * Compare a subrange of the {@linkplain AvailObject receiver} with a
+	 * subrange of the given {@linkplain IntegerIntervalTupleDescriptor integer
+	 * interval tuple}. The size of the subrange of both objects is determined
+	 * by the index range supplied for the receiver.
+	 *
+	 * @param startIndex1
+	 *        The inclusive lower bound of the receiver's subrange.
+	 * @param endIndex1
+	 *        The inclusive upper bound of the receiver's subrange.
+	 * @param anIntegerIntervalTuple
+	 *        The integer interval tuple used in the comparison.
+	 * @param startIndex2
+	 *        The inclusive lower bound of the byte tuple's subrange.
+	 * @return {@code true} if the contents of the subranges match exactly,
+	 *         {@code false} otherwise.
+	 */
+	boolean compareFromToWithIntegerIntervalTupleStartingAt (
+		int startIndex1,
+		int endIndex1,
+		A_Tuple anIntegerIntervalTuple,
 		int startIndex2);
 
 	/**

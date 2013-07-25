@@ -154,6 +154,7 @@ Names
 	/* 117 */ "tuple of any meta",
 	/* 125 */ "tuple of expressions yielding any",
 	/*  48 */ "tuple of functions",
+	/* 138 */ "tuple of integer",
 	/* 102 */ "tuple of nybble",
 	/* 108 */ "tuple of semantic restriction function",
 	/* 128 */ "tuple of set of atom",
@@ -320,6 +321,7 @@ _set_of_exception                       ::= special object 134;
 _nonempty_set_of_string                 ::= special object 135;
 _nonempty_set_of_atom                   ::= special object 136;
 _nonempty_tuple                         ::= special object 137;
+_tuple_of_integer                       ::= special object 138;
 _two_or_more_tuple                      ::= special object 139;
 
 /**
@@ -1126,6 +1128,11 @@ Primitive "nonempty set of atom" is
 Primitive "nonempty tuple" is
 [
 	_nonempty_tuple
+];
+
+Primitive "tuple of integer" is
+[
+	_tuple_of_integer
 ];
 
 Primitive "two or more tuple" is

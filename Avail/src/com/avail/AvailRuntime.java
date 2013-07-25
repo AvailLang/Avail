@@ -896,7 +896,8 @@ public final class AvailRuntime
 			IntegerRangeTypeDescriptor.naturalNumbers(),
 			ATOM.o());
 		specials[137] = TupleTypeDescriptor.oneOrMoreOf(ANY.o());
-		//138
+		specials[138] = TupleTypeDescriptor.zeroOrMoreOf(
+			IntegerRangeTypeDescriptor.integers());
 		specials[139] = TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 			IntegerRangeTypeDescriptor.create(
 				IntegerDescriptor.fromInt(2), true,

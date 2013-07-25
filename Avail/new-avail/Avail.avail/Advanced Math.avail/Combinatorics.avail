@@ -46,7 +46,12 @@ Body
 	power    ::= {"_^_"};
 	fac      ::= {"_`!"};
 
-	/* Establish the precedence of factorial. */
+	/**
+	 * Establish the precedence of factorial. 
+	 * 
+	 * @method "_`!"
+	 * @forbids 1 "_+_" "_-_" "_×_" "_÷_" "_mod_" "-_" "_^_" "_`!"
+	 */
 	Grammatical restriction fac is <sum ∪ product ∪ negation ∪ power ∪ fac>;
 ]();
 
@@ -59,13 +64,42 @@ Body
  *          The factorial of {@param "n"}.
  */
 Stable abstract method "_`!" is [[0..∞]]→[1..∞];
+
+/**
+ * One factorial and zero factorial is one.
+ * 
+ * @method "_`!"
+ * @param "n" "[0..1]"
+ */
 Method "_`!" is [n : [0..1] | 1];
+
+/**
+ * @method "_`!"
+ * @param "n" "[2..∞)"
+ */
 Method "_`!" is
 [
 	n : [2..∞)
 |
 	left fold 2 to n through [k : [2..∞), s : [2..∞) | k × s]
 ];
+
+/**
+ * Infinity factorial is infinity.
+ * 
+ * @method "_`!"
+ * @param "n" "∞'s type"
+ */
 Method "_`!" is [n : ∞'s type | ∞];
+
+/**
+ * @method "_`!"
+ * @restricts "[0..∞]'s type"
+ */
 Semantic restriction "_`!" is [n : [0..∞]'s type | [⎣n⎦!..⎡n⎤!]];
+
+/**
+ * @method "_`!"
+ * @restricts "[0..∞)'s type"
+ */
 Semantic restriction "_`!" is [n : [0..∞)'s type | [⎣n⎦!..⎡n⎤!+1)];

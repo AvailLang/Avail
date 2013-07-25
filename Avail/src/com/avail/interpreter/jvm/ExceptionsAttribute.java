@@ -1,5 +1,5 @@
 /**
- * ConstantValueAttribute.java
+ * ExceptionsAttribute.java
  * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -35,35 +35,20 @@ package com.avail.interpreter.jvm;
 import java.io.DataOutput;
 import java.io.IOException;
 import java.util.Formatter;
-import com.avail.interpreter.jvm.ConstantPool.Entry;
+import java.util.List;
+import com.avail.interpreter.jvm.ConstantPool.ClassEntry;
 
 /**
- * A {@code ConstantValueAttribute} represents the value of a constant
- * {@linkplain Field field}.
+ * An {@code ExceptionsAttribute} indicates which checked exceptions a method
+ * may throw.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
- * @see <a
- *     href="http://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.7.2">
- *     The <code>ConstantValue</code> Attribute</a>
  */
-final class ConstantValueAttribute
+final class ExceptionsAttribute
 extends Attribute
 {
-	/** The {@linkplain Entry entry} for the initial value. */
-	private final Entry initialValueEntry;
-
-	/**
-	 * Answer the {@linkplain Entry entry} for the initial value.
-	 *
-	 * @return The entry for the initial value.
-	 */
-	Entry initialValueEntry ()
-	{
-		return initialValueEntry;
-	}
-
-	/** The name of this {@linkplain ConstantValueAttribute attribute}. */
-	static final String name = "ConstantValue";
+	/** The name of this {@linkplain ExceptionsAttribute attribute}. */
+	static final String name = "Exceptions";
 
 	@Override
 	public String name ()
@@ -71,16 +56,27 @@ extends Attribute
 		return name;
 	}
 
+	/**
+	 * The {@linkplain ClassEntry class entries} for the {@linkplain Throwable
+	 * checked exceptions}.
+	 */
+	private final List<ClassEntry> throwableEntries;
+
 	@Override
 	protected int size ()
 	{
-		return 2;
+		// The magic number accounts for the 2-byte table size.
+		return 2 + 2 * throwableEntries.size();
 	}
 
 	@Override
 	public void writeBodyTo (final DataOutput out) throws IOException
 	{
-		initialValueEntry.writeIndexTo(out);
+		out.writeShort(throwableEntries.size());
+		for (final ClassEntry entry : throwableEntries)
+		{
+			entry.writeIndexTo(out);
+		}
 	}
 
 	@Override
@@ -89,18 +85,22 @@ extends Attribute
 		@SuppressWarnings("resource")
 		final Formatter formatter = new Formatter();
 		formatter.format("%s:", name);
-		formatter.format("%n\t%s", initialValueEntry);
+		for (final ClassEntry entry : throwableEntries)
+		{
+			formatter.format("%n\t%s", entry.name());
+		}
 		return formatter.toString();
 	}
 
 	/**
-	 * Construct a new {@link ConstantValueAttribute}.
+	 * Construct a new {@link ExceptionsAttribute}.
 	 *
-	 * @param initialValueEntry
-	 *        The {@linkplain Entry entry} for the initial value.
+	 * @param throwableEntries
+	 *        The {@linkplain ClassEntry class entries} for the {@linkplain
+	 *        Throwable checked exceptions}.
 	 */
-	public ConstantValueAttribute (final Entry initialValueEntry)
+	public ExceptionsAttribute (final List<ClassEntry> throwableEntries)
 	{
-		this.initialValueEntry = initialValueEntry;
+		this.throwableEntries = throwableEntries;
 	}
 }

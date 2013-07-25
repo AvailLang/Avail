@@ -73,9 +73,18 @@ extends SimpleInstruction
 		final int size = operands.size();
 		try
 		{
+			final int parametersSize = parameters.size();
 			final List<JavaOperand> topOperands = operands.subList(
-				size - parameters.size(), size);
-			return topOperands.equals(parameters);
+				size - parametersSize, size);
+			for (int i = 0; i < parametersSize; i++)
+			{
+				if (!topOperands.get(i).baseOperand().equals(
+					parameters.get(i).baseOperand()))
+				{
+					return false;
+				}
+			}
+			return true;
 		}
 		catch (final IndexOutOfBoundsException e)
 		{

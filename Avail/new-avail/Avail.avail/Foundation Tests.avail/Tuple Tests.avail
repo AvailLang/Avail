@@ -1,5 +1,5 @@
 /*
- * Exception Tests.avail
+ * Tuple Tests.avail
  * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -191,4 +191,46 @@ Test "quasi-destructive n-ary very complex tuple update" in tuple test suite is
 	n ::= t[1][2]["foo"][2] → "motor torpedo boat";
 	Require: <<1,{"foo"→<"cheese","motor torpedo boat">},3>,
 		<4,{"boo"→<"purple","chariots">},6>> = n;
+];
+
+Test "integer interval tuple" in tuple test suite is
+[
+	From -5 to 5 do
+	[
+		start : [-5..5]
+	|
+		From -5 to 5 do
+		[
+			end : [-5..5]
+		|
+			From -5 to 5 do
+			[
+				delta : [-5..5]
+			|
+				expected : tuple := <>;
+				If delta ≠ 0 then
+				[
+					From start to end by delta do
+					[
+						i : integer
+					|
+						expected := expected ++ <i>;
+					];
+				];
+				Guard
+				[
+					actual ::= start to end by delta;
+					Require: expected = actual;
+					Require: 0 ≠ delta;
+				]
+				intercept
+				[
+					e : incorrect-argument-type exception
+				|
+					Require: 0 = delta;
+				];
+			];
+		];
+	];
+	Require: <83, 66, 49, 32, 15, -2, -19> = 83 to -29 by -17;
 ];

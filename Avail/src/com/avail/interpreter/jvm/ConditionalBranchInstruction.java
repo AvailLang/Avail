@@ -51,6 +51,7 @@ extends SimpleInstruction
 	@Override
 	void writeImmediatesTo (final DataOutput out) throws IOException
 	{
+		assert label.hasValidAddress();
 		out.writeShort((short) label.address());
 	}
 

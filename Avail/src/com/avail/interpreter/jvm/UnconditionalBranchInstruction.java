@@ -96,6 +96,7 @@ extends JavaInstruction
 	@Override
 	final void writeImmediatesTo (final DataOutput out) throws IOException
 	{
+		assert hasValidAddress();
 		if (isWide())
 		{
 			out.writeInt((int) address());

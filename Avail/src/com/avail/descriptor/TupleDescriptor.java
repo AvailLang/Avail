@@ -280,6 +280,15 @@ extends Descriptor
 		return o_EqualsAnyTuple(object, aTuple);
 	}
 
+	@Override
+	boolean o_EqualsIntegerIntervalTuple (
+		final AvailObject object,
+		final A_Tuple aTuple)
+	{
+		// Default to generic tuple comparison.
+		return o_EqualsAnyTuple(object, aTuple);
+	}
+
 	@Override @AvailMethod
 	boolean o_EqualsNybbleTuple (
 		final AvailObject object,
@@ -492,7 +501,7 @@ extends Descriptor
 			startIndex2);
 	}
 
-	@Override
+	@Override @AvailMethod
 	boolean o_CompareFromToWithByteBufferTupleStartingAt (
 		final AvailObject object,
 		final int startIndex1,
@@ -506,6 +515,23 @@ extends Descriptor
 			startIndex1,
 			endIndex1,
 			aByteBufferTuple,
+			startIndex2);
+	}
+
+	@Override @AvailMethod
+	boolean o_CompareFromToWithIntegerIntervalTupleStartingAt (
+		final AvailObject object,
+		final int startIndex1,
+		final int endIndex1,
+		final A_Tuple anIntegerIntervalTuple,
+		final int startIndex2)
+	{
+		// Compare sections of two tuples. Default to generic comparison.
+		return o_CompareFromToWithAnyTupleStartingAt(
+			object,
+			startIndex1,
+			endIndex1,
+			anIntegerIntervalTuple,
 			startIndex2);
 	}
 

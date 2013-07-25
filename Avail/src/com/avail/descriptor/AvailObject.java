@@ -1088,6 +1088,38 @@ implements
 
 	/**
 	 * Compare a subrange of the {@linkplain AvailObject receiver} with a
+	 * subrange of the given {@linkplain IntegerIntervalTupleDescriptor integer
+	 * interval tuple}. The size of the subrange of both objects is determined
+	 * by the index range supplied for the receiver.
+	 *
+	 * @param startIndex1
+	 *        The inclusive lower bound of the receiver's subrange.
+	 * @param endIndex1
+	 *        The inclusive upper bound of the receiver's subrange.
+	 * @param anIntegerIntervalTuple
+	 *        The integer interval tuple used in the comparison.
+	 * @param startIndex2
+	 *        The inclusive lower bound of the byte tuple's subrange.
+	 * @return {@code true} if the contents of the subranges match exactly,
+	 *         {@code false} otherwise.
+	 */
+	@Override
+	public boolean compareFromToWithIntegerIntervalTupleStartingAt (
+		final int startIndex1,
+		final int endIndex1,
+		final A_Tuple anIntegerIntervalTuple,
+		final int startIndex2)
+	{
+		return descriptor.o_CompareFromToWithIntegerIntervalTupleStartingAt(
+			this,
+			startIndex1,
+			endIndex1,
+			anIntegerIntervalTuple,
+			startIndex2);
+	}
+
+	/**
+	 * Compare a subrange of the {@linkplain AvailObject receiver} with a
 	 * subrange of the given {@linkplain NybbleTupleDescriptor nybble tuple}.
 	 * The size of the subrange of both objects is determined by the index range
 	 * supplied for the receiver.
@@ -1540,6 +1572,25 @@ implements
 		final A_Tuple aByteTuple)
 	{
 		return descriptor.o_EqualsByteTuple(this, aByteTuple);
+	}
+
+	/**
+	 * Answer whether the receiver, an {@linkplain AvailObject object}, and the
+	 * argument, a {@linkplain ByteTupleDescriptor byte tuple}, are equal in
+	 * value.
+	 *
+	 * @param anIntegerIntervalTuple The integer interval tuple to be compared
+	 *                               to the receiver.
+	 * @return {@code true} if the receiver is a byte tuple and of value equal
+	 *         to the argument, {@code false} otherwise.
+	 */
+	@Override
+	public boolean equalsIntegerIntervalTuple (
+		final A_Tuple anIntegerIntervalTuple)
+	{
+		return descriptor.o_EqualsIntegerIntervalTuple(
+			this,
+			anIntegerIntervalTuple);
 	}
 
 	/**
@@ -2341,6 +2392,15 @@ implements
 		final A_Type aType)
 	{
 		return descriptor.o_IsInstanceOfKind(this, aType);
+	}
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	@Override
+	public boolean isIntegerIntervalTuple ()
+	{
+		return descriptor.o_IsIntegerIntervalTuple(this);
 	}
 
 	/**

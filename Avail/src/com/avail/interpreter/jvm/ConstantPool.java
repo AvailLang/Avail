@@ -727,10 +727,10 @@ public class ConstantPool
 		{
 			return String.format(
 				"%s.%s",
-				classEntry.internalName(),
+				classEntry.name(),
 				nameAndTypeEntry);
 		}
-		
+
 		@Override
 		public String toString ()
 		{
@@ -1511,8 +1511,7 @@ public class ConstantPool
 	@ThreadSafe
 	public ClassEntry classConstant (final Class<?> value)
 	{
-		final String descriptor = JavaDescriptors.forType(value);
-		return classConstant(descriptor);
+		return classConstant(value.getName());
 	}
 
 	/**

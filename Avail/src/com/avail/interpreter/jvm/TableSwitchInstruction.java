@@ -127,11 +127,13 @@ extends JavaInstruction
 			case 0:
 				// Do nothing.
 		}
+		assert defaultLabel.hasValidAddress();
 		out.writeInt((int) defaultLabel.address());
 		out.writeInt(lowerBound);
 		out.writeInt(upperBound);
 		for (final Label label : labels)
 		{
+			assert label.hasValidAddress();
 			out.writeInt((int) label.address());
 		}
 	}

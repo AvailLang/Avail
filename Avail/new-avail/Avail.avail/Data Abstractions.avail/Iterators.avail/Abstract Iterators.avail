@@ -113,6 +113,7 @@ Public method "iterator of_" is
  * like {@method "Advance_"}, is performed on an exhausted iterator.
  *
  * @type "exhausted-iterator exception"
+ * @supertype "exception"
  */
 Public explicit class "exhausted-iterator exception" extends exception;
 

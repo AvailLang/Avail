@@ -42,26 +42,26 @@ import java.util.List;
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class Label
+public class Label
 extends JavaInstruction
 {
 	/** The name of the label. */
 	private final String name;
 
 	@Override
-	int size ()
+	final int size ()
 	{
 		return 0;
 	}
 
 	@Override
-	boolean isLabel ()
+	final boolean isLabel ()
 	{
 		return true;
 	}
 
 	@Override
-	JavaOperand[] inputOperands ()
+	final JavaOperand[] inputOperands ()
 	{
 		return noOperands;
 	}
@@ -73,19 +73,19 @@ extends JavaInstruction
 	}
 
 	@Override
-	void writeBytecodeTo (final DataOutput out) throws IOException
+	final void writeBytecodeTo (final DataOutput out) throws IOException
 	{
 		// Don't emit anything.
 	}
 
 	@Override
-	void writeImmediatesTo (final DataOutput out) throws IOException
+	final void writeImmediatesTo (final DataOutput out) throws IOException
 	{
 		// Don't emit anything.
 	}
 
 	@Override
-	public String toString ()
+	public final String toString ()
 	{
 		return name;
 	}

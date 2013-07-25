@@ -184,6 +184,13 @@ Semantic restriction "_'s⁇«_:=_‡,»" is
 Private abstract method "Bind_to_on port_with a backlog of_"
 	is [server socket, IP address, [0..65535], whole number]→⊤;
 
+/**
+ * @method "Bind_to_on port_with a backlog of_"
+ * @param "s" "server socket"
+ * @param "ipAddress" "IPv4 address"
+ * @param "port" "[0..65535]"
+ * @param "backlog" "whole number"
+ */
 Method "Bind_to_on port_with a backlog of_" is
 [
 	s : server socket,

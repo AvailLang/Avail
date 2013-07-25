@@ -296,6 +296,7 @@ Semantic restriction "fork_" is
  * raised an exception.
  *
  * @type "worker exception"
+ * @supertype "cascade exception"
  */
 Public explicit class "worker exception" extends cascade exception;
 

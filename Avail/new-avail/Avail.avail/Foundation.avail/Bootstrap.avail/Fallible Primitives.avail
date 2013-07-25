@@ -80,6 +80,7 @@ Uses
 		"_`#_:_(literals=_,`#locals_,`#outers_,stack depth=_)",
 		"_has definition for_",
 		"_mod_",
+		"_to_by_",
 		"_«[_]»→_",
 		"_×_",
 		"_÷_",
@@ -714,6 +715,28 @@ Primitive "_[_]→_" is
 	Primitive 132 (failureCode : natural number);
 	Private invoke _fail_primitive with failureCode
 ] : tuple;
+
+/**
+ * Construct and answer an integer interval tuple.
+ *
+ * Parameters:
+ *    start - The first value in the tuple.
+ *    end - The last allowed value in the tuple. This value will only be the
+ *       last value in the tuple if the difference between the first and last
+ *       values is a multiple of the step size.
+ *    delta - The step size of the interval.
+ * Returns:
+ *    The requested tuple.
+ */
+Primitive "_to_by_" is
+[
+	start : integer,
+	end : integer,
+	delta : integer
+|
+	Primitive 133 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode
+] : tuple of integer;
 
 /**
  * Construct and answer a slice (i.e. subtuple) of the specified tuple.

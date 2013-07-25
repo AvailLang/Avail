@@ -117,10 +117,13 @@ final class ExceptionTable
 		 */
 		void writeTo (final DataOutput out) throws IOException
 		{
+			assert startLabel.hasValidAddress();
+			assert endLabel.hasValidAddress();
+			assert handlerLabel.hasValidAddress();
 			out.writeShort((int) startLabel.address());
 			out.writeShort((int) endLabel.address());
 			out.writeShort((int) handlerLabel.address());
-			if (catchEntry.descriptor().equals("Ljava/lang/Throwable;"))
+			if (catchEntry.internalName().equals("java/lang/Throwable"))
 			{
 				out.writeShort(0);
 			}
@@ -128,6 +131,20 @@ final class ExceptionTable
 			{
 				catchEntry.writeIndexTo(out);
 			}
+		}
+
+		@Override
+		public String toString ()
+		{
+			@SuppressWarnings("resource")
+			final Formatter formatter = new Formatter();
+			formatter.format(
+				"%-8d %-8d %-8d %s",
+				startLabel.address(),
+				endLabel.address(),
+				handlerLabel.address(),
+				catchEntry.name());
+			return formatter.toString();
 		}
 	}
 
@@ -141,7 +158,7 @@ final class ExceptionTable
 	 */
 	int size ()
 	{
-		return zones.size();
+		return 8 * zones.size();
 	}
 
 	/**
@@ -153,7 +170,7 @@ final class ExceptionTable
 	 * @param endLabel
 	 *        The exclusive end label.
 	 * @param handlerLabel
-	 *        The label of the handler subroutine.
+	 *        The {@linkplain HandlerLabel label} of the handler subroutine.
 	 * @param catchEntry
 	 *        The {@linkplain ClassEntry class entry} for the intercepted
 	 *        {@linkplain Throwable throwable} type.
@@ -161,7 +178,7 @@ final class ExceptionTable
 	void addGuardedZone (
 		final Label startLabel,
 		final Label endLabel,
-		final Label handlerLabel,
+		final HandlerLabel handlerLabel,
 		final ClassEntry catchEntry)
 	{
 		zones.add(new GuardedZone(
@@ -182,7 +199,7 @@ final class ExceptionTable
 				zone.startLabel.address(),
 				zone.endLabel.address(),
 				zone.handlerLabel.address(),
-				zone.catchEntry.descriptor());
+				zone.catchEntry.name());
 		}
 		return formatter.toString();
 	}

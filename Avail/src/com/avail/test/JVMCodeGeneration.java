@@ -43,15 +43,7 @@ import java.lang.reflect.Modifier;
 import java.util.EnumSet;
 import org.junit.Test;
 import com.avail.annotations.Nullable;
-import com.avail.interpreter.jvm.BinaryOperator;
-import com.avail.interpreter.jvm.ClassModifier;
-import com.avail.interpreter.jvm.CodeGenerator;
-import com.avail.interpreter.jvm.ConstantPool;
-import com.avail.interpreter.jvm.Field;
-import com.avail.interpreter.jvm.FieldModifier;
-import com.avail.interpreter.jvm.LocalVariable;
-import com.avail.interpreter.jvm.Method;
-import com.avail.interpreter.jvm.MethodModifier;
+import com.avail.interpreter.jvm.*;
 
 /**
  * Test {@link CodeGenerator}.
@@ -314,6 +306,55 @@ public class JVMCodeGeneration
 		final Object newInstance = newClass.newInstance();
 		final String expected = "Hello, world!\n";
 		final Object actual = method.invoke(newInstance, expected);
+		assertEquals(expected, actual);
+	}
+
+	@SuppressWarnings("javadoc")
+	@Test
+	public void exceptionHandling ()
+		throws
+			IOException,
+			ClassNotFoundException,
+			IllegalAccessException,
+			NoSuchMethodException,
+			SecurityException,
+			IllegalArgumentException,
+			InvocationTargetException,
+			InstantiationException
+	{
+		final CodeGenerator cg = new CodeGenerator();
+		final ConstantPool cp = cg.constantPool();
+		simpleClassPreambleOn(cg);
+		cg.newDefaultConstructor();
+		// Generate a method that answers an integer…
+		final String methodName = "returnConstant";
+		final Method m = cg.newMethod(methodName, "()I");
+		final EnumSet<MethodModifier> mmods = EnumSet.of(MethodModifier.PUBLIC);
+		m.setModifiers(mmods);
+		// …by sending hashCode() to null…
+		final int expected = 29;
+		final Label guardStart = m.newLabel("guardStart");
+		m.addLabel(guardStart);
+		m.pushNull();
+		m.invokeVirtual(cp.methodref(Object.class, "hashCode", Integer.TYPE));
+		m.returnToCaller();
+		// …and answering the magic constant from the exception handler.
+		final HandlerLabel guardEnd = m.newHandlerLabel(
+			"guardEnd", NullPointerException.class);
+		m.addLabel(guardEnd);
+		final LocalVariable e = m.newLocalVariable(
+			"e", NullPointerException.class);
+		m.store(e);
+		m.pushConstant(expected);
+		m.returnToCaller();
+		m.exitScope();
+		m.addGuardedZone(
+			guardStart, guardEnd, guardEnd, NullPointerException.class);
+		m.finish();
+		final Class<?> newClass = loadClass(cg);
+		final java.lang.reflect.Method method = newClass.getMethod(methodName);
+		final Object newInstance = newClass.newInstance();
+		final int actual = (int) method.invoke(newInstance);
 		assertEquals(expected, actual);
 	}
 

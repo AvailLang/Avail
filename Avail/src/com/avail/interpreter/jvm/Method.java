@@ -36,15 +36,8 @@ import static com.avail.interpreter.jvm.JavaBytecode.*;
 import static com.avail.interpreter.jvm.MethodModifier.*;
 import java.io.DataOutput;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Deque;
-import java.util.EnumSet;
-import java.util.Formatter;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+import com.avail.annotations.Nullable;
 import com.avail.interpreter.jvm.ConstantPool.ClassEntry;
 import com.avail.interpreter.jvm.ConstantPool.FieldrefEntry;
 import com.avail.interpreter.jvm.ConstantPool.MethodrefEntry;
@@ -63,6 +56,8 @@ import com.avail.interpreter.jvm.ConstantPool.Utf8Entry;
  * <li>Build a {@linkplain EnumSet set} of {@linkplain MethodModifier method
  * modifiers} and associate it with the method: {@link #setModifiers(EnumSet)}
  * </li>
+ * <li>Declare any {@linkplain Throwable checked exceptions} thrown by the
+ * method: {@link #setCheckedExceptions(String...)}</li>
  * <li>Specify the parameters of the method from left to right: {@link
  * #newParameter(String)}</li>
  * <li>Plan the content of the method by:
@@ -78,7 +73,7 @@ import com.avail.interpreter.jvm.ConstantPool.Utf8Entry;
  * </li>
  * <li>Define the {@linkplain ExceptionTable exception table} by adding the
  * requisite guarded zones: {@link
- * #addGuardedZone(Label, Label, Label, ClassEntry)}</li>
+ * #addGuardedZone(Label, Label, HandlerLabel, ClassEntry)}</li>
  * <li>Set pertinent {@linkplain Attribute attributes}: {@link
  * #setAttribute(Attribute)}</li>
  * <li>Finish editing the method, allowing generation of {@linkplain
@@ -199,7 +194,7 @@ extends Emitter<MethodModifier>
 	 *
 	 * @return The code size.
 	 */
-	int codeSize ()
+	long codeSize ()
 	{
 		return writer.codeSize();
 	}
@@ -259,6 +254,44 @@ extends Emitter<MethodModifier>
 	}
 
 	/**
+	 * Declare the {@linkplain Throwable checked exceptions} that the
+	 * {@linkplain Method method} may throw.
+	 *
+	 * @param descriptors
+	 *        The descriptors for the checked exceptions.
+	 */
+	public void setCheckedExceptions (final String... descriptors)
+	{
+		final List<ClassEntry> entries = new ArrayList<>(descriptors.length);
+		for (final String descriptor : descriptors)
+		{
+			entries.add(constantPool.classConstant(descriptor));
+		}
+		final ExceptionsAttribute attr = new ExceptionsAttribute(entries);
+		setAttribute(attr);
+	}
+
+	/**
+	 * Declare the {@linkplain Throwable checked exceptions} that the
+	 * {@linkplain Method method} may throw.
+	 *
+	 * @param types
+	 *        The {@linkplain Class types} of the checked exceptions.
+	 */
+	@SafeVarargs
+	public final void setCheckedExceptions (
+		final Class<? extends Throwable>... types)
+	{
+		final List<ClassEntry> entries = new ArrayList<>(types.length);
+		for (final Class<? extends Throwable> type : types)
+		{
+			entries.add(constantPool.classConstant(type));
+		}
+		final ExceptionsAttribute attr = new ExceptionsAttribute(entries);
+		setAttribute(attr);
+	}
+
+	/**
 	 * Answer the {@linkplain LocalVariable local variable} that contains the
 	 * self reference, {@code this}. Note that this local variable is only
 	 * available for non-{@code static} {@linkplain Method methods}.
@@ -307,7 +340,12 @@ extends Emitter<MethodModifier>
 	 */
 	public void enterScope ()
 	{
-		final Scope currentScope = scopeStack.peekFirst();
+		Scope currentScope = scopeStack.peekFirst();
+		if (currentScope == null)
+		{
+			currentScope = new Scope(parameterIndex);
+			scopeStack.add(currentScope);
+		}
 		final Scope newScope = currentScope.newInnerScope();
 		scopeStack.addFirst(newScope);
 	}
@@ -327,8 +365,10 @@ extends Emitter<MethodModifier>
 		}
 	}
 
-	/** The {@linkplain Set set} of {@linkplain Label labels}. */
-	private final Set<String> labelNames = new HashSet<>();
+	/**
+	 * The {@linkplain Map map} from label names to {@linkplain Label labels}.
+	 */
+	private final Map<String, Label> labelsByName = new HashMap<>();
 
 	/**
 	 * Introduce a new {@linkplain Label label} with the specified name, but do
@@ -341,9 +381,51 @@ extends Emitter<MethodModifier>
 	 */
 	public Label newLabel (final String name)
 	{
-		assert !labelNames.contains(name);
-		labelNames.add(name);
-		return new Label(name);
+		assert !labelsByName.containsKey(name);
+		final Label label = new Label(name);
+		labelsByName.put(name, label);
+		return label;
+	}
+
+	/**
+	 * Introduce a new {@linkplain HandlerLabel exception handler label} with
+	 * the specified name, but do not emit it to the {@linkplain
+	 * InstructionWriter instruction stream}. This label can also be the target
+	 * of a branch.
+	 *
+	 * @param name
+	 *        The name of the label.
+	 * @param throwableDescriptor
+	 *        A {@link Throwable descriptor}.
+	 * @return A new label.
+	 */
+	public HandlerLabel newHandlerLabel (
+		final String name,
+		final String throwableDescriptor)
+	{
+		assert !labelsByName.containsKey(name);
+		final HandlerLabel label = new HandlerLabel(name, throwableDescriptor);
+		labelsByName.put(name, label);
+		return label;
+	}
+
+	/**
+	 * Introduce a new {@linkplain HandlerLabel exception handler label} with
+	 * the specified name, but do not emit it to the {@linkplain
+	 * InstructionWriter instruction stream}. This label can also be the target
+	 * of a branch.
+	 *
+	 * @param name
+	 *        The name of the label.
+	 * @param throwableClass
+	 *        A {@linkplain Class subclass} of {@link Throwable}.
+	 * @return A new label.
+	 */
+	public HandlerLabel newHandlerLabel (
+		final String name,
+		final Class<? extends Throwable> throwableClass)
+	{
+		return newHandlerLabel(name, JavaDescriptors.forType(throwableClass));
 	}
 
 	/** The pattern to use for anonymous labels. */
@@ -367,6 +449,39 @@ extends Emitter<MethodModifier>
 	}
 
 	/**
+	 * Introduce a new anonymous {@linkplain HandlerLabel exception handler
+	 * label}, but do not emit it to the {@linkplain InstructionWriter
+	 * instruction stream}. This label can be the target of a branch.
+	 *
+	 * @param throwableDescriptor
+	 *        A {@link Throwable descriptor}.
+	 * @return A new label.
+	 */
+	public HandlerLabel newHandlerLabel (final String throwableDescriptor)
+	{
+		final String name = String.format(
+			anonymousLabelPattern, labelOrdinal++);
+		return newHandlerLabel(name, throwableDescriptor);
+	}
+
+	/**
+	 * Introduce a new anonymous {@linkplain HandlerLabel exception handler
+	 * label}, but do not emit it to the {@linkplain InstructionWriter
+	 * instruction stream}. This label can be the target of a branch.
+	 *
+	 * @param throwableClass
+	 *        A {@linkplain Class subclass} of {@link Throwable}.
+	 * @return A new label.
+	 */
+	public HandlerLabel newHandlerLabel (
+		final Class<? extends Throwable> throwableClass)
+	{
+		final String name = String.format(
+			anonymousLabelPattern, labelOrdinal++);
+		return newHandlerLabel(name, JavaDescriptors.forType(throwableClass));
+	}
+
+	/**
 	 * Emit the specified {@linkplain Label label}.
 	 *
 	 * @param label
@@ -375,6 +490,18 @@ extends Emitter<MethodModifier>
 	public void addLabel (final Label label)
 	{
 		writer.append(label);
+	}
+
+	/**
+	 * Answer the first {@linkplain LocalVariable local variable} slot that
+	 * does not correspond to the self reference or a parameter.
+	 *
+	 * @return The first local variable slot.
+	 */
+	private int firstLocalVariableSlot ()
+	{
+		return JavaDescriptors.slotUnits(descriptor()) +
+			(modifiers.contains(STATIC) ? 0 : 1);
 	}
 
 	/**
@@ -392,8 +519,13 @@ extends Emitter<MethodModifier>
 		final String name,
 		final String descriptor)
 	{
-		assert parameterIndex == JavaDescriptors.slotUnits(descriptor());
-		final Scope currentScope = scopeStack.peekFirst();
+		assert parameterIndex == firstLocalVariableSlot();
+		Scope currentScope = scopeStack.peekFirst();
+		if (currentScope == null)
+		{
+			currentScope = new Scope(parameterIndex);
+			scopeStack.add(currentScope);
+		}
 		return currentScope.newLocalVariable(name, descriptor);
 	}
 
@@ -411,7 +543,7 @@ extends Emitter<MethodModifier>
 		final String name,
 		final Class<?> type)
 	{
-		assert parameterIndex == JavaDescriptors.slotUnits(descriptor());
+		assert parameterIndex == firstLocalVariableSlot();
 		final String descriptor = JavaDescriptors.forType(type);
 		return newLocalVariable(name, descriptor);
 	}
@@ -1562,7 +1694,7 @@ extends Emitter<MethodModifier>
 	 * @param endLabel
 	 *        The exclusive end label.
 	 * @param handlerLabel
-	 *        The label of the handler subroutine.
+	 *        The {@linkplain HandlerLabel label} of the handler subroutine.
 	 * @param catchEntry
 	 *        The {@linkplain ClassEntry class entry} for the {@linkplain
 	 *        Throwable throwable} type.
@@ -1570,7 +1702,7 @@ extends Emitter<MethodModifier>
 	public void addGuardedZone (
 		final Label startLabel,
 		final Label endLabel,
-		final Label handlerLabel,
+		final HandlerLabel handlerLabel,
 		final ClassEntry catchEntry)
 	{
 		exceptionTable.addGuardedZone(
@@ -1585,7 +1717,7 @@ extends Emitter<MethodModifier>
 	 * @param endLabel
 	 *        The exclusive end label.
 	 * @param handlerLabel
-	 *        The label of the handler subroutine.
+	 *        The {@linkplain HandlerLabel label} of the handler subroutine.
 	 * @param throwableName
 	 *        The fully-qualified name of the intercepted {@linkplain Throwable
 	 *        throwable} type.
@@ -1593,7 +1725,7 @@ extends Emitter<MethodModifier>
 	public void addGuardedZone (
 		final Label startLabel,
 		final Label endLabel,
-		final Label handlerLabel,
+		final HandlerLabel handlerLabel,
 		final String throwableName)
 	{
 		final ClassEntry catchEntry =
@@ -1609,19 +1741,37 @@ extends Emitter<MethodModifier>
 	 * @param endLabel
 	 *        The exclusive end label.
 	 * @param handlerLabel
-	 *        The label of the handler subroutine.
+	 *        The {@linkplain HandlerLabel label} of the handler subroutine.
 	 * @param throwableType
 	 *        The {@linkplain Throwable throwable} {@linkplain Class type}.
 	 */
 	public void addGuardedZone (
 		final Label startLabel,
 		final Label endLabel,
-		final Label handlerLabel,
+		final HandlerLabel handlerLabel,
 		final Class<? extends Throwable> throwableType)
 	{
 		final ClassEntry catchEntry =
 			constantPool.classConstant(throwableType);
 		addGuardedZone(startLabel, endLabel, handlerLabel, catchEntry);
+	}
+
+	/**
+	 * Has every {@linkplain Label label} been placed?
+	 *
+	 * @return {@code true} if every label that was allocated has also been
+	 *         used, {@code false} otherwise.
+	 */
+	private boolean allLabelsAreUsed ()
+	{
+		for (final Label label : labelsByName.values())
+		{
+			if (!label.hasValidAddress())
+			{
+				return false;
+			}
+		}
+		return true;
 	}
 
 	/**
@@ -1633,6 +1783,7 @@ extends Emitter<MethodModifier>
 	{
 		assert scopeStack.isEmpty();
 		writer.fixInstructions();
+		assert allLabelsAreUsed();
 		if (!modifiers.contains(ABSTRACT))
 		{
 			final CodeAttribute code = new CodeAttribute(
@@ -1663,6 +1814,17 @@ extends Emitter<MethodModifier>
 		writer.writeTo(out);
 	}
 
+	/**
+	 * Answer a textual representation of the {@linkplain InstructionWriter
+	 * instruction stream}.
+	 *
+	 * @return The requested text.
+	 */
+	String instructionsText ()
+	{
+		return writer.toString();
+	}
+
 	@Override
 	public String toString ()
 	{
@@ -1671,15 +1833,42 @@ extends Emitter<MethodModifier>
 		final String mods = MethodModifier.toString(modifiers);
 		formatter.format("%s%s", mods, mods.isEmpty() ? "" : " ");
 		formatter.format("%s : %s", name(), descriptor());
-		formatter.format("%n\tCode:");
-		final String codeString = writer.toString().replaceAll(
-			String.format("%n"), String.format("%n\t"));
-		formatter.format("%n\t%s", codeString);
-		if (exceptionTable.size() > 0)
+		// Make sure that the Code attribute always comes first.
+		final Comparator<Attribute> comparator = new Comparator<Attribute>()
 		{
-			final String tableString = exceptionTable.toString().replaceAll(
+			@Override
+			public int compare (
+				final @Nullable Attribute a1,
+				final @Nullable Attribute a2)
+			{
+				assert a1 != null;
+				assert a2 != null;
+				if (a1.equals(CodeAttribute.name))
+				{
+					return -1;
+				}
+				if (a2.equals(CodeAttribute.name))
+				{
+					return 1;
+				}
+				return a1.name().compareTo(a2.name());
+			}
+		};
+		final List<Attribute> attributes =
+			new ArrayList<>(attributes().values());
+		// If necessary, synthesize a Code attribute prior to sorting.
+		if (!attributes().containsKey(CodeAttribute.name))
+		{
+			final CodeAttribute code =
+				new CodeAttribute(this, Collections.<Attribute>emptyList());
+			attributes.add(code);
+		}
+		Collections.sort(attributes, comparator);
+		for (final Attribute attribute : attributes)
+		{
+			final String text = attribute.toString().replaceAll(
 				String.format("%n"), String.format("%n\t"));
-			formatter.format("%n\t%s", tableString);
+			formatter.format("%n\t%s", text);
 		}
 		return formatter.toString();
 	}

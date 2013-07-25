@@ -538,6 +538,21 @@ extends AbstractDescriptor
 	}
 
 	@Override
+	boolean o_CompareFromToWithIntegerIntervalTupleStartingAt (
+		final AvailObject object,
+		final int startIndex1,
+		final int endIndex1,
+		final A_Tuple anIntegerIntervalTuple,
+		final int startIndex2)
+	{
+		return o_Traversed(object).compareFromToWithIntegerIntervalTupleStartingAt(
+			startIndex1,
+			endIndex1,
+			anIntegerIntervalTuple,
+			startIndex2);
+	}
+
+	@Override
 	boolean o_CompareFromToWithNybbleTupleStartingAt (
 		final AvailObject object,
 		final int startIndex1,
@@ -734,6 +749,15 @@ extends AbstractDescriptor
 		final A_Type aFunctionType)
 	{
 		return o_Traversed(object).equalsFunctionType(aFunctionType);
+	}
+
+	@Override
+	boolean o_EqualsIntegerIntervalTuple (
+		final AvailObject object,
+		final A_Tuple anIntegerIntervalTuple)
+	{
+		return o_Traversed(object).equalsIntegerIntervalTuple(
+			anIntegerIntervalTuple);
 	}
 
 	@Override
@@ -4391,5 +4415,11 @@ extends AbstractDescriptor
 	boolean o_SkipReturnFlag (final AvailObject object)
 	{
 		return o_Traversed(object).skipReturnFlag();
+	}
+	
+	@Override
+	boolean o_IsIntegerIntervalTuple (final AvailObject object)
+	{
+		return o_Traversed(object).isIntegerIntervalTuple();
 	}
 }

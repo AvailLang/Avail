@@ -1,5 +1,5 @@
 /**
- * ConstantValueAttribute.java
+ * P_133_IntegerIntervalTuple.java
  * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -30,77 +30,65 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.interpreter.jvm;
+package com.avail.interpreter.primitive;
 
-import java.io.DataOutput;
-import java.io.IOException;
-import java.util.Formatter;
-import com.avail.interpreter.jvm.ConstantPool.Entry;
+import static com.avail.interpreter.Primitive.Flag.*;
+import java.util.List;
+import com.avail.annotations.NotNull;
+import com.avail.descriptor.*;
+import com.avail.exceptions.AvailErrorCode;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
 
 /**
- * A {@code ConstantValueAttribute} represents the value of a constant
- * {@linkplain Field field}.
+ * <strong>Primitive 133</strong>: Create an integer interval tuple.
  *
- * @author Todd L Smith &lt;todd@availlang.org&gt;
- * @see <a
- *     href="http://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.7.2">
- *     The <code>ConstantValue</code> Attribute</a>
+ * @author Leslie Schultz &lt;leslie@availlang.org&gt;
  */
-final class ConstantValueAttribute
-extends Attribute
+public final class P_133_IntegerIntervalTuple
+extends Primitive
 {
-	/** The {@linkplain Entry entry} for the initial value. */
-	private final Entry initialValueEntry;
-
 	/**
-	 * Answer the {@linkplain Entry entry} for the initial value.
-	 *
-	 * @return The entry for the initial value.
+	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
-	Entry initialValueEntry ()
-	{
-		return initialValueEntry;
-	}
-
-	/** The name of this {@linkplain ConstantValueAttribute attribute}. */
-	static final String name = "ConstantValue";
+	public final @NotNull static Primitive instance =
+		new P_133_IntegerIntervalTuple().init(3, CanFold, CanInline);
 
 	@Override
-	public String name ()
+	public Result attempt (
+		final List<AvailObject> args,
+		final Interpreter interpreter,
+		final boolean skipReturnCheck)
 	{
-		return name;
+		assert args.size() == 3;
+
+		final A_Number start = args.get(0);
+		final A_Number end = args.get(1);
+		final A_Number delta = args.get(2);
+
+		if (delta.equals(IntegerDescriptor.zero()))
+		{
+			return interpreter.primitiveFailure(
+				AvailErrorCode.E_INCORRECT_ARGUMENT_TYPE);
+		}
+
+		final A_Tuple success = IntegerIntervalTupleDescriptor.createInterval(
+			start,
+			end,
+			delta);
+
+		return interpreter.primitiveSuccess(success);
 	}
 
 	@Override
-	protected int size ()
+	protected A_Type privateBlockTypeRestriction ()
 	{
-		return 2;
-	}
-
-	@Override
-	public void writeBodyTo (final DataOutput out) throws IOException
-	{
-		initialValueEntry.writeIndexTo(out);
-	}
-
-	@Override
-	public String toString ()
-	{
-		@SuppressWarnings("resource")
-		final Formatter formatter = new Formatter();
-		formatter.format("%s:", name);
-		formatter.format("%n\t%s", initialValueEntry);
-		return formatter.toString();
-	}
-
-	/**
-	 * Construct a new {@link ConstantValueAttribute}.
-	 *
-	 * @param initialValueEntry
-	 *        The {@linkplain Entry entry} for the initial value.
-	 */
-	public ConstantValueAttribute (final Entry initialValueEntry)
-	{
-		this.initialValueEntry = initialValueEntry;
+		return FunctionTypeDescriptor.create(
+			TupleDescriptor.from(
+				IntegerRangeTypeDescriptor.integers(),
+				IntegerRangeTypeDescriptor.integers(),
+				IntegerRangeTypeDescriptor.integers()),
+			TupleTypeDescriptor.zeroOrMoreOf(
+				IntegerRangeTypeDescriptor.integers()));
 	}
 }
