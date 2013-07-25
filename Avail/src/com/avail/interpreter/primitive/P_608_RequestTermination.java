@@ -74,6 +74,8 @@ extends Primitive
 			{
 				// Set the interrupt request flag.
 				fiber.setInterruptRequestFlag(TERMINATION_REQUESTED);
+				// Restore the parking permit.
+				fiber.getAndSetSynchronizationFlag(PERMIT_UNAVAILABLE, false);
 				switch (fiber.executionState())
 				{
 					case ASLEEP:
@@ -93,17 +95,13 @@ extends Primitive
 							true);
 						break;
 					case PARKED:
-						// Unpark the fiber, resuming it if it was parked.
-						if (fiber.getAndSetSynchronizationFlag(
-							PERMIT_UNAVAILABLE, false))
-						{
-							fiber.executionState(SUSPENDED);
-							Interpreter.resumeFromSuccessfulPrimitive(
-								AvailRuntime.current(),
-								fiber,
-								NilDescriptor.nil(),
-								true);
-						}
+						// Resume the fiber.
+						fiber.executionState(SUSPENDED);
+						Interpreter.resumeFromSuccessfulPrimitive(
+							AvailRuntime.current(),
+							fiber,
+							NilDescriptor.nil(),
+							true);
 						break;
 					case TERMINATED:
 					case ABORTED:
