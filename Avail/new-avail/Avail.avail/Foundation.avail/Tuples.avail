@@ -3919,3 +3919,62 @@ Method "all indices of_in_" is
 		occurrences
 	]
 ] : <natural number…|>;
+
+
+/**
+ * Tuple element replacement affects only those elements whose subscripts are
+ * instances of `indexType`. If multiple subscripts could be affected, then
+ * update the element types via type union with `valueType`. If only a single
+ * subscript could be affected, then simply replace the corresponding element
+ * type with `valueType`. Leverage instance types if possible.
+ * 
+ * @method "_«[_]»→_"
+ * @restricts "tuple's type"
+ * @restricts "two or more tuple's type"
+ * @restricts "any's type"
+ *
+Semantic restriction "_«[_]»→_" is
+[
+	aTuple : tuple's type,
+	pathTuple : two or more tuple's type,
+	newValue : any's type
+|
+	pathLength ::= ⎡pathTuple⎤;
+	leading ::= aTuple's leading types;
+	default ::= aTuple's default type;
+
+	currentType ::= 
+	[
+	 	pathIndex : natural number
+	 |
+	 	if pathLength < pathIndex then [default]
+	 	else [leading[pathIndex]]
+	];
+	
+	recursiveUpdateTupleType ::=
+	[
+		pathIndex : natural number,
+		newType : type
+	 |
+		If pathIndex > ⎡currentType(pathIndex)⎤ then
+		[
+			Reject parse, expected:
+				"a subscript ("
+				++ “⎣indexType⎦”
+				++ " ≤ theSubscript ≤ "
+				++ “⎡indexType⎤”
+				++ ") that could ever be valid ("
+				++ “⎣tupleType⎦”
+				++ " ≤ |theTuple| ≤ "
+				++ “⎡tupleType⎤”
+				++ ")"
+		];
+
+		if pathIndex = pathTypesSize then
+		[
+		 	[]
+		]
+		else if []
+			
+	];
+];*/
