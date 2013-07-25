@@ -52,7 +52,7 @@ abstract class JavaInstruction
 	boolean emitted = false;
 
 	/** The canonical invalid address. */
-	protected static long invalidAddress = Long.MAX_VALUE;
+	protected static long invalidAddress = -1L;
 
 	/** The address of the label within the compiled method. */
 	private long address = invalidAddress;
@@ -64,7 +64,6 @@ abstract class JavaInstruction
 	 */
 	public final long address ()
 	{
-		assert address != invalidAddress;
 		return address;
 	}
 

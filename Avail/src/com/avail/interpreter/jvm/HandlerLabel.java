@@ -1,5 +1,5 @@
 /**
- * ConstantValueAttribute.java
+ * HandlerLabel.java
  * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -32,75 +32,37 @@
 
 package com.avail.interpreter.jvm;
 
-import java.io.DataOutput;
-import java.io.IOException;
-import java.util.Formatter;
-import com.avail.interpreter.jvm.ConstantPool.Entry;
+import java.util.List;
 
 /**
- * A {@code ConstantValueAttribute} represents the value of a constant
- * {@linkplain Field field}.
+ * A {@code HandlerLabel} is a pseudo-instruction that represents the beginning
+ * of an {@linkplain Throwable exception} handler within a compiled method.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
- * @see <a
- *     href="http://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.7.2">
- *     The <code>ConstantValue</code> Attribute</a>
  */
-final class ConstantValueAttribute
-extends Attribute
+public final class HandlerLabel
+extends Label
 {
-	/** The {@linkplain Entry entry} for the initial value. */
-	private final Entry initialValueEntry;
-
-	/**
-	 * Answer the {@linkplain Entry entry} for the initial value.
-	 *
-	 * @return The entry for the initial value.
-	 */
-	Entry initialValueEntry ()
-	{
-		return initialValueEntry;
-	}
-
-	/** The name of this {@linkplain ConstantValueAttribute attribute}. */
-	static final String name = "ConstantValue";
+	/** A {@link Throwable} descriptor. */
+	private final String throwableDescriptor;
 
 	@Override
-	public String name ()
+	JavaOperand[] outputOperands (final List<JavaOperand> operandStack)
 	{
-		return name;
-	}
-
-	@Override
-	protected int size ()
-	{
-		return 2;
-	}
-
-	@Override
-	public void writeBodyTo (final DataOutput out) throws IOException
-	{
-		initialValueEntry.writeIndexTo(out);
-	}
-
-	@Override
-	public String toString ()
-	{
-		@SuppressWarnings("resource")
-		final Formatter formatter = new Formatter();
-		formatter.format("%s:", name);
-		formatter.format("%n\t%s", initialValueEntry);
-		return formatter.toString();
+		return new JavaOperand[] {JavaOperand.OBJECTREF};
 	}
 
 	/**
-	 * Construct a new {@link ConstantValueAttribute}.
+	 * Construct a new {@link HandlerLabel}.
 	 *
-	 * @param initialValueEntry
-	 *        The {@linkplain Entry entry} for the initial value.
+	 * @param name
+	 *        The name of the label.
+	 * @param throwableDescriptor
+	 *        A {@link Throwable} descriptor.
 	 */
-	public ConstantValueAttribute (final Entry initialValueEntry)
+	HandlerLabel (final String name, final String throwableDescriptor)
 	{
-		this.initialValueEntry = initialValueEntry;
+		super(name);
+		this.throwableDescriptor = throwableDescriptor;
 	}
 }

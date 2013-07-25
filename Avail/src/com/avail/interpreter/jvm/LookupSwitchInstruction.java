@@ -123,10 +123,12 @@ extends JavaInstruction
 			case 0:
 				// Do nothing.
 		}
+		assert defaultLabel.hasValidAddress();
 		out.writeInt((int) defaultLabel.address());
 		out.writeInt(labels.length);
 		for (int i = 0; i < labels.length; i++)
 		{
+			assert labels[i].hasValidAddress();
 			out.writeInt(keys[i]);
 			out.writeInt((int) labels[i].address());
 		}

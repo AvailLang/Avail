@@ -68,4 +68,10 @@ extends Attribute
 	{
 		// No body.
 	}
+
+	@Override
+	public String toString ()
+	{
+		return name;
+	}
 }

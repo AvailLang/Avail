@@ -75,10 +75,9 @@ final class InstructionWriter
 	 *
 	 * @return The method's code size.
 	 */
-	int codeSize ()
+	long codeSize ()
 	{
-		assert (codeSize & 0xFFFFFFFFL) == codeSize;
-		return (int) codeSize;
+		return codeSize;
 	}
 
 	/** The maximum stack depth. */
@@ -187,7 +186,8 @@ final class InstructionWriter
 	 */
 	void writeTo (final DataOutput out) throws IOException
 	{
-		out.writeInt(codeSize());
+		assert (codeSize & 0xFFFFFFFFL) == codeSize;
+		out.writeInt((int) codeSize);
 		for (final JavaInstruction instruction : instructions)
 		{
 			instruction.writeTo(out);

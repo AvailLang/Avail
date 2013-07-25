@@ -34,6 +34,7 @@ package com.avail.interpreter.jvm;
 
 import java.io.DataOutput;
 import java.io.IOException;
+import java.util.Formatter;
 import java.util.List;
 
 /**
@@ -73,8 +74,13 @@ extends Attribute
 		// The magic number accounts for the 2-byte max stack, 2-byte max
 		// locals, 4-byte code size, 2-byte exception table size, and 2-byte
 		// attributes count.
+		final long codeSize = method.codeSize();
+		if (codeSize == -1)
+		{
+			throw new IllegalStateException();
+		}
 		return 12
-			+ method.codeSize()
+			+ (int) codeSize
 			+ method.exceptionTable().size()
 			+ attributes.size();
 	}
@@ -91,6 +97,31 @@ extends Attribute
 		{
 			attribute.writeTo(out, method.constantPool);
 		}
+	}
+
+	@Override
+	public String toString ()
+	{
+		@SuppressWarnings("resource")
+		final Formatter formatter = new Formatter();
+		formatter.format(
+			"%s [size=%d, locals=%d, slots=%d]:",
+			name,
+			method.codeSize(),
+			method.maxLocals(),
+			method.maxStackDepth());
+		final String codeString =
+			method.instructionsText().toString().replaceAll(
+				String.format("%n"), String.format("%n\t"));
+		formatter.format("%n\t%s", codeString);
+		if (method.exceptionTable().size() > 0)
+		{
+			final String tableString =
+				method.exceptionTable().toString().replaceAll(
+					String.format("%n"), String.format("%n\t"));
+			formatter.format("%n\t%s", tableString);
+		}
+		return formatter.toString();
 	}
 
 	/**
