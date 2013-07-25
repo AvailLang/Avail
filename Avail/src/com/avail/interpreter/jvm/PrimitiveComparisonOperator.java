@@ -43,7 +43,7 @@ import static com.avail.interpreter.jvm.JavaBytecode.*;
 public enum PrimitiveComparisonOperator
 {
 	/** Specify that the operands should be compared for equality. */
-	EQUALS (ifeq)
+	EQUALS (if_icmpeq)
 	{
 		@Override
 		PrimitiveComparisonOperator inverse ()
@@ -53,7 +53,7 @@ public enum PrimitiveComparisonOperator
 	},
 
 	/** Specify that the operands should be compared for inequality. */
-	NOT_EQUALS (ifne)
+	NOT_EQUALS (if_icmpne)
 	{
 		@Override
 		PrimitiveComparisonOperator inverse ()
@@ -66,7 +66,7 @@ public enum PrimitiveComparisonOperator
 	 * Specify that it should be ascertained whether operand {@code a} is
 	 * strictly less than operand {@code b}.
 	 */
-	LESS_THAN (iflt)
+	LESS_THAN (if_icmplt)
 	{
 		@Override
 		PrimitiveComparisonOperator inverse ()
@@ -79,7 +79,7 @@ public enum PrimitiveComparisonOperator
 	 * Specify that it should be ascertained whether operand {@code a} is
 	 * less than or equal to operand {@code b}.
 	 */
-	LESS_THAN_EQUALS (ifle)
+	LESS_THAN_EQUALS (if_icmple)
 	{
 		@Override
 		PrimitiveComparisonOperator inverse ()
@@ -92,7 +92,7 @@ public enum PrimitiveComparisonOperator
 	 * Specify that it should be ascertained whether operand {@code a} is
 	 * strictly greater than operand {@code b}.
 	 */
-	GREATER_THAN (ifgt)
+	GREATER_THAN (if_icmpgt)
 	{
 		@Override
 		PrimitiveComparisonOperator inverse ()
@@ -105,12 +105,90 @@ public enum PrimitiveComparisonOperator
 	 * Specify that it should be ascertained whether operand {@code a} is
 	 * greater than or equal to operand {@code b}.
 	 */
-	GREATER_THAN_EQUALS (ifge)
+	GREATER_THAN_EQUALS (if_icmpge)
 	{
 		@Override
 		PrimitiveComparisonOperator inverse ()
 		{
 			return LESS_THAN;
+		}
+	},
+
+	/**
+	 * Specify that the operand should be compared against {@code 0} for
+	 * equality.
+	 */
+	EQUALS_ZERO (ifeq)
+	{
+		@Override
+		PrimitiveComparisonOperator inverse ()
+		{
+			return NOT_EQUALS_ZERO;
+		}
+	},
+
+	/**
+	 * Specify that the operand should be compared against {@code 0} for
+	 * inequality.
+	 */
+	NOT_EQUALS_ZERO (ifne)
+	{
+		@Override
+		PrimitiveComparisonOperator inverse ()
+		{
+			return EQUALS_ZERO;
+		}
+	},
+
+	/**
+	 * Specify that it should be ascertained whether operand {@code a} is
+	 * strictly less than {@code 0}.
+	 */
+	LESS_THAN_ZERO (iflt)
+	{
+		@Override
+		PrimitiveComparisonOperator inverse ()
+		{
+			return GREATER_THAN_EQUALS_ZERO;
+		}
+	},
+
+	/**
+	 * Specify that it should be ascertained whether operand {@code a} is
+	 * less than or equal to {@code 0}.
+	 */
+	LESS_THAN_EQUALS_ZERO (ifle)
+	{
+		@Override
+		PrimitiveComparisonOperator inverse ()
+		{
+			return GREATER_THAN_ZERO;
+		}
+	},
+
+	/**
+	 * Specify that it should be ascertained whether operand {@code a} is
+	 * strictly greater than {@code 0}.
+	 */
+	GREATER_THAN_ZERO (ifgt)
+	{
+		@Override
+		PrimitiveComparisonOperator inverse ()
+		{
+			return LESS_THAN_EQUALS_ZERO;
+		}
+	},
+
+	/**
+	 * Specify that it should be ascertained whether operand {@code a} is
+	 * greater than or equal to {@code 0}.
+	 */
+	GREATER_THAN_EQUALS_ZERO (ifge)
+	{
+		@Override
+		PrimitiveComparisonOperator inverse ()
+		{
+			return LESS_THAN_ZERO;
 		}
 	};
 

@@ -31,6 +31,7 @@
  */
 package com.avail.interpreter.primitive;
 
+import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
 import com.avail.descriptor.*;
@@ -40,7 +41,8 @@ import com.avail.interpreter.levelTwo.L2Chunk;
 /**
  * <strong>Primitive 49:</strong> Create a {@linkplain ContinuationDescriptor
  * continuation}. It will execute as unoptimized code via the {@linkplain
- * L2Chunk#unoptimizedChunk()}.
+ * L2Chunk#unoptimizedChunk()}.  Fail if the provided function is an infallible
+ * primitive.
  */
 public class P_049_CreateContinuation extends Primitive
 {
@@ -48,7 +50,7 @@ public class P_049_CreateContinuation extends Primitive
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_049_CreateContinuation().init(5, CanFold, CannotFail);
+		new P_049_CreateContinuation().init(5, CanFold);
 
 	@Override
 	public Result attempt (
@@ -59,9 +61,18 @@ public class P_049_CreateContinuation extends Primitive
 		assert args.size() == 5;
 		final A_Function function = args.get(0);
 		final A_Number pc = args.get(1);
-		final A_Tuple stack = args.get(3);
-		final A_Number stackp = args.get(2);
+		final A_Tuple stack = args.get(2);
+		final A_Number stackp = args.get(3);
 		final A_Variable callerHolder = args.get(4);
+
+		final A_RawFunction code = function.code();
+		final Primitive primitive = Primitive.byPrimitiveNumberOrNull(
+			code.primitiveNumber());
+		if (primitive != null && primitive.hasFlag(CannotFail))
+		{
+			return interpreter.primitiveFailure(
+				E_CANNOT_CREATE_CONTINUATION_FOR_INFALLIBLE_PRIMITIVE_FUNCTION);
+		}
 		final A_Continuation cont = ContinuationDescriptor.createExceptFrame(
 			function,
 			callerHolder.value(),

@@ -81,7 +81,7 @@ enum JavaBytecode
 	 *    aastore</a>
 	 */
 	aastore (0x53,
-		O(ARRAYREF, INDEX),
+		O(ARRAYREF, INDEX, OBJECTREF),
 		O(OBJECTREF),
 		X(NullPointerException.class,
 			ArrayIndexOutOfBoundsException.class,
@@ -892,7 +892,14 @@ enum JavaBytecode
 	 */
 	dup (0x59,
 		O(CATEGORY_1),
-		O(CATEGORY_1)),
+		O(CATEGORY_1))
+	{
+		@Override
+		public JavaInstruction create (final Object... operands)
+		{
+			return new DupInstruction();
+		}
+	},
 
 	/**
 	 * Duplicate the top operand stack value and insert two values down.
@@ -903,7 +910,14 @@ enum JavaBytecode
 	 */
 	dup_x1 (0x5a,
 		O(CATEGORY_1, CATEGORY_1),
-		O(CATEGORY_1, CATEGORY_1, CATEGORY_1)),
+		O(CATEGORY_1, CATEGORY_1, CATEGORY_1))
+	{
+		@Override
+		public JavaInstruction create (final Object... operands)
+		{
+			return new DupX1Instruction();
+		}
+	},
 
 	/**
 	 * Duplicate the top operand stack value and insert two or three values
@@ -914,8 +928,15 @@ enum JavaBytecode
 	 *    dup_x2</a>
 	 */
 	dup_x2 (0x5b,
-		O(CATEGORY_1, CATEGORY_1, CATEGORY_1),
-		O(CATEGORY_1, CATEGORY_1, CATEGORY_1, CATEGORY_1)),
+		O(CATEGORY_2, CATEGORY_1),
+		O(CATEGORY_1, CATEGORY_2, CATEGORY_1))
+	{
+		@Override
+		public JavaInstruction create (final Object... operands)
+		{
+			return new DupX2Instruction();
+		}
+	},
 
 	/**
 	 * Duplicate the top one or two operand stack values.
@@ -925,8 +946,15 @@ enum JavaBytecode
 	 *    dup2</a>
 	 */
 	dup2 (0x5c,
-		O(CATEGORY_1, CATEGORY_1),
-		O(CATEGORY_1, CATEGORY_1, CATEGORY_1, CATEGORY_1)),
+		O(CATEGORY_2),
+		O(CATEGORY_2, CATEGORY_2))
+	{
+		@Override
+		public JavaInstruction create (final Object... operands)
+		{
+			return new Dup2Instruction();
+		}
+	},
 
 	/**
 	 * dup2_x1
@@ -936,8 +964,15 @@ enum JavaBytecode
 	 *    dup2_x1</a>
 	 */
 	dup2_x1 (0x5d,
-		O(CATEGORY_1, CATEGORY_1, CATEGORY_1),
-		O(CATEGORY_1, CATEGORY_1, CATEGORY_1, CATEGORY_1, CATEGORY_1)),
+		O(CATEGORY_2, CATEGORY_1),
+		O(CATEGORY_1, CATEGORY_2, CATEGORY_1))
+	{
+		@Override
+		public JavaInstruction create (final Object... operands)
+		{
+			return new Dup2X1Instruction();
+		}
+	},
 
 	/**
 	 * dup2_x2
@@ -947,8 +982,15 @@ enum JavaBytecode
 	 *    dup2_x2</a>
 	 */
 	dup2_x2 (0x5e,
-		O(CATEGORY_1, CATEGORY_1, CATEGORY_1, CATEGORY_1),
-		O(CATEGORY_1, CATEGORY_1, CATEGORY_1, CATEGORY_1, CATEGORY_1, CATEGORY_1)),
+		O(CATEGORY_2, CATEGORY_2),
+		O(CATEGORY_2, CATEGORY_2, CATEGORY_2))
+	{
+		@Override
+		public JavaInstruction create (final Object... operands)
+		{
+			return new Dup2X2Instruction();
+		}
+	},
 
 	/**
 	 * Convert {@code float} to {@code double}.
@@ -3111,7 +3153,7 @@ enum JavaBytecode
 	 *    multianewarray</a>
 	 */
 	multianewarray (0xc5, 3,
-		O(COUNT, PLURAL),
+		O(PLURAL),
 		O(ARRAYREF),
 		X(ClassNotFoundException.class,
 			NoClassDefFoundError.class,
@@ -3200,7 +3242,15 @@ enum JavaBytecode
 	 */
 	pop (0x57,
 		O(CATEGORY_1),
-		O()),
+		O())
+	{
+		@Override
+		public JavaInstruction create (final Object... operands)
+		{
+			assert operands.length == 0;
+			return new PopInstruction();
+		}
+	},
 
 	/**
 	 * Pop the top one or two operand stack values.
@@ -3210,8 +3260,16 @@ enum JavaBytecode
 	 *    pop2</a>
 	 */
 	pop2 (0x58,
-		O(CATEGORY_1, CATEGORY_1),
-		O()),
+		O(CATEGORY_2),
+		O())
+	{
+		@Override
+		public JavaInstruction create (final Object... operands)
+		{
+			assert operands.length == 0;
+			return new Pop2Instruction();
+		}
+	},
 
 	/**
 	 * Set field in object.
@@ -3333,7 +3391,7 @@ enum JavaBytecode
 	 *    sastore</a>
 	 */
 	sastore (0x56,
-		O(ARRAYREF, INDEX, VALUE),
+		O(ARRAYREF, INDEX, INT),
 		O(),
 		X(NullPointerException.class, ArrayIndexOutOfBoundsException.class))
 	{
@@ -3373,7 +3431,15 @@ enum JavaBytecode
 	 */
 	swap (0x5f,
 		O(CATEGORY_1, CATEGORY_1),
-		O(CATEGORY_1, CATEGORY_1)),
+		O(CATEGORY_1, CATEGORY_1))
+	{
+		@Override
+		public JavaInstruction create (final Object... operands)
+		{
+			assert operands.length == 1;
+			return new SwapInstruction();
+		}
+	},
 
 	/**
 	 * Access jump table by index and jump.

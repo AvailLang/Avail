@@ -34,6 +34,7 @@ package com.avail.interpreter.jvm;
 
 import java.io.DataOutput;
 import java.io.IOException;
+import java.util.List;
 import com.avail.interpreter.jvm.ConstantPool.ConstantEntry;
 
 /**
@@ -97,6 +98,12 @@ extends JavaInstruction
 	}
 
 	@Override
+	boolean canConsumeOperands (final List<JavaOperand> operands)
+	{
+		return true;
+	}
+
+	@Override
 	JavaOperand[] inputOperands ()
 	{
 		assert bytecode().inputOperands().length == 0;
@@ -104,7 +111,7 @@ extends JavaInstruction
 	}
 
 	@Override
-	JavaOperand[] outputOperands ()
+	JavaOperand[] outputOperands (final List<JavaOperand> operandStack)
 	{
 		return new JavaOperand[] {entry.operand()};
 	}

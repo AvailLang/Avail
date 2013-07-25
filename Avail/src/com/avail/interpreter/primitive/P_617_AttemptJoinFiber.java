@@ -1,5 +1,5 @@
 /**
- * P_617_JoinFiber.java
+ * P_617_AttemptJoinFiber.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -33,7 +33,7 @@
 package com.avail.interpreter.primitive;
 
 import static com.avail.exceptions.AvailErrorCode.E_FIBER_CANNOT_JOIN_ITSELF;
-import static com.avail.descriptor.FiberDescriptor.InterruptRequestFlag.TERMINATION_REQUESTED;
+import static com.avail.descriptor.FiberDescriptor.SynchronizationFlag.PERMIT_UNAVAILABLE;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
@@ -43,21 +43,21 @@ import com.avail.interpreter.*;
 import com.avail.utility.*;
 
 /**
- * <strong>Primitive 617</strong>: Wait for the specified {@linkplain
- * FiberDescriptor fiber} to {@linkplain ExecutionState#indicatesTermination()
- * terminate}. If the fiber has already terminated, then answer right away;
- * otherwise, {@linkplain ExecutionState#JOINING suspend} the current fiber.
+ * <strong>Primitive 617</strong>: If the {@linkplain FiberDescriptor fiber} has
+ * already {@linkplain ExecutionState#indicatesTermination() terminated}, then
+ * answer right away; otherwise, record the current fiber as a joiner of the
+ * specified fiber, and attempt to {@linkplain ExecutionState#PARKED park}.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class P_617_JoinFiber
+public final class P_617_AttemptJoinFiber
 extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_617_JoinFiber().init(1, Unknown);
+		new P_617_AttemptJoinFiber().init(1, Unknown);
 
 	@Override
 	public Result attempt (
@@ -67,44 +67,47 @@ extends Primitive
 	{
 		assert args.size() == 1;
 		final A_Fiber joinee = args.get(0);
-		final MutableOrNull<Result> result = new MutableOrNull<>();
+		final Mutable<Boolean> shouldPark = new Mutable<>(false);
 		final A_Fiber current = FiberDescriptor.current();
 		// Forbid auto-joining.
 		if (current.equals(joinee))
 		{
 			return interpreter.primitiveFailure(E_FIBER_CANNOT_JOIN_ITSELF);
 		}
-		synchronized (Interpreter.joinLock)
+		joinee.lock(new Continuation0()
 		{
-			current.lock(new Continuation0()
+			@Override
+			public void value ()
 			{
-				@Override
-				public void value ()
+				if (!joinee.executionState().indicatesTermination())
 				{
-					// If the target hasn't terminated and the current fiber
-					// hasn't been asked to terminate, then add the current
-					// fiber to the set of joining fibers. Notify the
-					// interpreter of its intention to join another fiber.
-					if (!joinee.executionState().indicatesTermination()
-						&& !current.interruptRequestFlag(
-							TERMINATION_REQUESTED))
-					{
-						current.joinee(joinee);
-						joinee.joiningFibers(joinee.joiningFibers()
-							.setWithElementCanDestroy(
-								current,
-								false));
-						result.value = interpreter.primitiveJoin();
-					}
-					else
-					{
-						result.value = interpreter.primitiveSuccess(
-							NilDescriptor.nil());
-					}
+					joinee.joiningFibers(joinee.joiningFibers()
+						.setWithElementCanDestroy(
+							current,
+							false));
+					shouldPark.value = true;
 				}
-			});
+			}
+		});
+		final Result result;
+		if (shouldPark.value)
+		{
+			// If permit is not available, then park this fiber.
+			if (current.getAndSetSynchronizationFlag(
+				PERMIT_UNAVAILABLE, true))
+			{
+				result = interpreter.primitivePark();
+			}
+			else
+			{
+				result = interpreter.primitiveSuccess(NilDescriptor.nil());
+			}
 		}
-		return result.value();
+		else
+		{
+			result = interpreter.primitiveSuccess(NilDescriptor.nil());
+		}
+		return result;
 	}
 
 	@Override

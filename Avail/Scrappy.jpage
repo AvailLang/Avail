@@ -36,4 +36,3 @@ m.returnToCaller();
 m.addGuardedZone(start, handler, handler, Throwable.class);
 m.finish();
 "\n" + m.toString()
-

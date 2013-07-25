@@ -5098,12 +5098,6 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 */
-	abstract void o_ClearInterruptRequestFlags (
-		final AvailObject object);
-
-	/**
-	 * @param object
 	 * @return
 	 */
 	abstract boolean o_IsSystemModule (
@@ -5583,18 +5577,6 @@ public abstract class AbstractDescriptor
 	 * @return
 	 */
 	abstract A_Set o_JoiningFibers (AvailObject object);
-
-	/**
-	 * @param object
-	 * @return
-	 */
-	abstract AvailObject o_Joinee (AvailObject object);
-
-	/**
-	 * @param object
-	 * @param joinee
-	 */
-	abstract void o_Joinee (AvailObject object, A_BasicObject joinee);
 
 	/**
 	 * @param object

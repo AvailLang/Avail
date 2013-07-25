@@ -67,7 +67,7 @@ methodMap : {string→methodContainer|} := {};
  * @method "_is a key character"
  * @categories ""
  * @param "char" character
- * @returnType boolean
+ * @returns boolean
  * @raises
  */
 Private method "_is a key character" is
@@ -81,7 +81,7 @@ Private method "_is a key character" is
  * Creates the enumeration of the global variable keywords.
  * @method "comment keywords"
  * @categories "Annals"
- * @returnType enumeration of keywords
+ * @returns enumeration of keywords
  * @raises
  */
 Private method "comment keywords" is [enumeration of keywords];
@@ -90,7 +90,7 @@ Private method "comment keywords" is [enumeration of keywords];
  * Creates the enumeration of open comment strings.
  * @method "open comment strings"
  * @categories "Annals"
- * @returnType enumeration of open comment strings
+ * @returns enumeration of open comment strings
  * @raises
  */
 Private method "open comment strings" is [enumeration of {"/*","/**"}];
@@ -99,7 +99,7 @@ Private method "open comment strings" is [enumeration of {"/*","/**"}];
  * Updates the globla variable, openCommentCount.  It adds one to the count.
  * @method "Increment the open comment count"
  * @categories Annals""
- * @returnType ⊤
+ * @returns ⊤
  * @raises
  */
 Private method "Increment the open comment count" is
@@ -112,7 +112,7 @@ Private method "Increment the open comment count" is
  * count.
  * @method "Decrement the open comment count"
  * @categories Annals""
- * @returnType ⊤
+ * @returns ⊤
  * @raises
  */
 Private method "Decrement the open comment count" is
@@ -125,7 +125,7 @@ Private method "Decrement the open comment count" is
  * Updates the globla variable, newLineCount.  It adds one to the count.
  * @method "Increment the new line count"
  * @categories Annals""
- * @returnType ⊤
+ * @returns ⊤
  * @raises
  */
 Private method "Increment the new line count" is
@@ -137,7 +137,7 @@ Private method "Increment the new line count" is
  * Clears the global variable, buffer, of all its contents.
  * @method "Clear the buffer"
  * @categories Annals""
- * @returnType ⊤
+ * @returns ⊤
  * @raises
  */
 Private method "Clear the buffer" is
@@ -151,7 +151,7 @@ Private method "Clear the buffer" is
  * @method "Buffer_"
  * @categories "Annals"
  * @param "iter" iterator
- * @returnType ⊤
+ * @returns ⊤
  * @raises
  */
 Private method "Buffer_" is
@@ -168,7 +168,7 @@ Private method "Buffer_" is
  * @method "_is not exhausted"
  * @categories "Annals"
  * @param "iter" iterator
- * @returnType boolean
+ * @returns boolean
  * @raises
  */
 Private method "_is not exhausted" is
@@ -185,7 +185,7 @@ Private method "_is not exhausted" is
  * @method "Generate the key word from_"
  * @categories "Annals"
  * @param "iter" iterator
- * @returnType <character…|>
+ * @returns <character…|>
  * @raises
  */
 Private method "Generate the key word from_" is
@@ -212,7 +212,7 @@ Private method "Generate the key word from_" is
  * @method "Handle the asterisk key word buffer using the_"
  * @categories "Annals"
  * @param "keyBuffer" <character…|>
- * @returnType
+ * @returns
  * @raises
  */
 Private method "Handle the asterisk key word buffer using the_" is
@@ -252,7 +252,7 @@ Private method "Handle the asterisk key word buffer using the_" is
 * @method "Process new line character from_"
 * @categories "Annals"
 * @param "iter" iterator
-* @returnType ⊤
+* @returns ⊤
 * @raises
 */
 Private method "Process new line character from_" is
@@ -296,7 +296,7 @@ Private method "Process new line character from_" is
  * @method "Obtain Annals comment components from_"
  * @categories "Annals"
  * @param "iter" iterator
- * @returnType "{string→{string|1..}|}" A map of the keywords to a set of all
+ * @returns "{string→{string|1..}|}" A map of the keywords to a set of all
  * 		there corresponding contents.  Single occurence keywords, suchas 
  * 		method, will contain a single element set.
  * @raises
@@ -393,7 +393,7 @@ Private method "Perform first pass parse on Annals comment from_" is
 * @method "Bypass current comment from_"
 * @categories "Annals"
 * @param "iter" iterator
-* @returnType string
+* @returns string
 * @raises
 */
 Private method "Bypass current comment from_" is
@@ -445,7 +445,7 @@ Private method "Bypass current comment from_" is
  * @categories "Annals"
  * @param "keyBuffer" <character…|>
  * @param "iter" iterator
- * @returnType
+ * @returns
  * @raises
  */
 Private method "Handle the forward slash key word buffer using the_from_" is
@@ -489,7 +489,7 @@ Private method "Handle the forward slash key word buffer using the_from_" is
  * @method "Handle the tag key word buffer using the_"
  * @categories "Annals"
  * @param "keyBuffer" <character…|>
- * @returnType
+ * @returns
  * @raises
  */
 Private method "Handle the tag key word buffer using the_" is
@@ -537,7 +537,7 @@ Private method "Handle the tag key word buffer using the_" is
  * @method "Parse the Avail document_"
  * @categories "Annals"
  * @param "availSourceDoc" string
- * @returnType
+ * @returns
  * @raises
  */
 Public method "Parse the Avail document_" is

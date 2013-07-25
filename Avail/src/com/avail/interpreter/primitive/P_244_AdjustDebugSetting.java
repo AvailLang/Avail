@@ -62,7 +62,9 @@ public class P_244_AdjustDebugSetting extends Primitive
 		final int level = levelObject.extractInt();
 		Interpreter.debugL1 = (level & 1) != 0;
 		Interpreter.debugL2 = (level & 2) != 0;
-		Interpreter.debugCustom = (level & 4) != 0;
+		FiberDescriptor.debugFibers = (level & 4) != 0;
+		Interpreter.debugPrimitives = (level & 8) != 0;
+		Interpreter.debugCustom = (level & 128) != 0;
 		Interpreter.setLoggerLevel(
 			level != 0 ? Level.ALL : Level.OFF);
 		return interpreter.primitiveSuccess(NilDescriptor.nil());

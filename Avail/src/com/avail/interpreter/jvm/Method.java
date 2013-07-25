@@ -104,6 +104,12 @@ extends Emitter<MethodModifier>
 	 */
 	private final CodeGenerator codeGenerator;
 
+	/** The name of every constructor. */
+	public static final String constructorName = "<init>";
+
+	/** The name of the static initializer. */
+	public static final String staticInitializerName = "<clinit>";
+
 	/** The name {@linkplain Utf8Entry entry}. */
 	private final Utf8Entry nameEntry;
 
@@ -169,7 +175,7 @@ extends Emitter<MethodModifier>
 	MethodrefEntry reference ()
 	{
 		return constantPool.methodref(
-			codeGenerator.classEntry.toString(),
+			codeGenerator.classEntry.internalName(),
 			nameEntry.data(),
 			descriptorEntry.data());
 	}
@@ -411,6 +417,113 @@ extends Emitter<MethodModifier>
 	}
 
 	/**
+	 * Emit a no-op.
+	 */
+	public void noOp ()
+	{
+		writer.append(nop.create());
+	}
+
+	/**
+	 * Emit code to discard a {@linkplain JavaOperand#CATEGORY_1 Category 1}
+	 * operand at the top of the operand stack.
+	 */
+	public void pop ()
+	{
+		writer.append(pop.create());
+	}
+
+	/**
+	 * Emit code to discard <em>1)</em> a {@linkplain JavaOperand#CATEGORY_2
+	 * Category 2} {@linkplain JavaOperand operand} at the top of the operand
+	 * stack or <em>2)</em> two {@linkplain JavaOperand#CATEGORY_1 Category 1}
+	 * operands at the top of the operand stack.
+	 */
+	public void pop2 ()
+	{
+		writer.append(pop2.create());
+	}
+
+	/**
+	 * Emit code to duplicate the {@linkplain JavaOperand#CATEGORY_1 Category 1}
+	 * {@linkplain JavaOperand operand} at the top of the operand stack.
+	 */
+	public void dup ()
+	{
+		writer.append(dup.create());
+	}
+
+	/**
+	 * Emit code to duplicate the {@linkplain JavaOperand#CATEGORY_1 Category 1}
+	 * {@linkplain JavaOperand operand} at the top of the operand stack
+	 * <em>beneath</em> the next operand.
+	 */
+	public void dupX1 ()
+	{
+		writer.append(dup_x1.create());
+	}
+
+	/**
+	 * Emit code to duplicate the {@linkplain JavaOperand#CATEGORY_1 Category 1}
+	 * {@linkplain JavaOperand operand} at the top of the operand stack
+	 * <em>beneath</em> <em>1)</em> the next two Category 1 operands or
+	 * <em>2)</em> the next {@linkplain JavaOperand#CATEGORY_2 Category 2}
+	 * operand.
+	 */
+	public void dupX2 ()
+	{
+		writer.append(dup_x2.create());
+	}
+
+	/**
+	 * Emit code to duplicate <em>1)</em> a {@linkplain JavaOperand#CATEGORY_2
+	 * Category 2} {@linkplain JavaOperand operand} at the top of the operand
+	 * stack or <em>2)</em> two {@linkplain JavaOperand#CATEGORY_1 Category 1}
+	 * operands at the top of the operand stack.
+	 */
+	public void dup2 ()
+	{
+		writer.append(dup2.create());
+	}
+
+	/**
+	 * Emit code to duplicate <em>1)</em> a {@linkplain JavaOperand#CATEGORY_2
+	 * Category 2} {@linkplain JavaOperand operand} at the top of the operand
+	 * stack <em>beneath</em> the next {@linkplain JavaOperand#CATEGORY_1
+	 * Category 1} operand or <em>2)</em> two Category 1 operands at the top of
+	 * the operand stack <em>beneath</em> the third Category 1 operand.
+	 */
+	public void dup2X1 ()
+	{
+		writer.append(dup2_x1.create());
+	}
+
+	/**
+	 * Emit code to duplicate <em>1)</em> a {@linkplain JavaOperand#CATEGORY_2
+	 * Category 2} {@linkplain JavaOperand operand} at the top of the operand
+	 * stack <em>beneath</em> the next Category 2 operand, <em>2)</em> a
+	 * Category 2 operand at the top of the operand stack <em>beneath</em> the
+	 * next two {@linkplain JavaOperand#CATEGORY_1 Category 1} operands,
+	 * <em>3)</em> two Category 1 operands at the top of the operand stack
+	 * <em>beneath</em> the third Category 2 operand, or <em>4)</em> two
+	 * Category 1 operands at the top of the operand stack <em>beneath</em> the
+	 * third and fourth Category 1 operand.
+	 */
+	public void dup2X2 ()
+	{
+		writer.append(dup2_x2.create());
+	}
+
+	/**
+	 * Emit code to swap the top two operands. Each operand must be a
+	 * {@linkplain JavaOperand#CATEGORY_1 Category 1} operand.
+	 */
+	public void swap ()
+	{
+		writer.append(swap.create());
+	}
+
+	/**
 	 * Emit code to push the specified {@code boolean} value onto the operand
 	 * stack.
 	 *
@@ -434,7 +547,7 @@ extends Emitter<MethodModifier>
 	 * int}s.
 	 */
 	private static final JavaBytecode[] immediateIntBytecodes =
-		{iconst_m1, iconst_0, iconst_1, iconst_2, iconst_4, iconst_5};
+		{iconst_m1, iconst_0, iconst_1, iconst_2, iconst_3, iconst_4, iconst_5};
 
 	/**
 	 * Emit code to push the specified {@code int} value onto the operand stack.
@@ -642,6 +755,14 @@ extends Emitter<MethodModifier>
 	{
 		assert type.isPrimitive() || type == Object.class;
 		writer.append(new ArrayLoadInstruction(type));
+	}
+
+	/**
+	 * Emit code to pop an array from the operand stack and push its size.
+	 */
+	public void arraySize ()
+	{
+		writer.append(arraylength.create());
 	}
 
 	/**
@@ -1010,6 +1131,55 @@ extends Emitter<MethodModifier>
 	}
 
 	/**
+	 * Emit code to increment the specified {@code int} {@linkplain
+	 * LocalVariable variable} by the specified constant amount.
+	 *
+	 * @param var
+	 *        A local variable.
+	 * @param delta
+	 *        The constant amount by which the contents of the variable should
+	 *        be adjusted.
+	 */
+	public void increment (final LocalVariable var, final int delta)
+	{
+		assert JavaDescriptors.typeForDescriptor(var.descriptor())
+			== Integer.TYPE;
+		writer.append(new IncrementInstruction(var, delta));
+	}
+
+	/**
+	 * Emit code to implement the specified {@linkplain UnaryOperator unary
+	 * operator} for the top operand.
+	 *
+	 * @param op
+	 *        A unary operator.
+	 * @param type
+	 *        The expected {@linkplain Class#isPrimitive() primitive type} of
+	 *        the top operand.
+	 */
+	public void doOperator (final UnaryOperator op, final Class<?> type)
+	{
+		assert type.isPrimitive();
+		op.emitOn(type, writer);
+	}
+
+	/**
+	 * Emit code to implement the specified {@linkplain BinaryOperator binary
+	 * operator} for the top operand.
+	 *
+	 * @param op
+	 *        A binary operator.
+	 * @param type
+	 *        The expected {@linkplain Class#isPrimitive() primitive type} of
+	 *        the top operands.
+	 */
+	public void doOperator (final BinaryOperator op, final Class<?> type)
+	{
+		assert type.isPrimitive();
+		op.emitOn(type, writer);
+	}
+
+	/**
 	 * Emit code that will perform the requested {@linkplain Class#isPrimitive()
 	 * primitive} conversion.
 	 *
@@ -1176,7 +1346,7 @@ extends Emitter<MethodModifier>
 	 *        The label to which control should proceed if the comparison
 	 *        operator evaluates to {@code false}.
 	 */
-	public void branchIfNot (
+	public void branchUnless (
 		final PrimitiveComparisonOperator op,
 		final Label notTaken)
 	{
@@ -1196,12 +1366,62 @@ extends Emitter<MethodModifier>
 	 *        The label to which control should proceed if the comparison
 	 *        operator evaluates to {@code false}.
 	 */
-	public void branchIfNot (
+	public void branchUnless (
 		final ReferenceComparisonOperator op,
 		final Label notTaken)
 	{
 		final JavaBytecode bytecode = op.inverseBytecode();
 		writer.append(new ConditionalBranchInstruction(bytecode, notTaken));
+	}
+
+	/**
+	 * Emit code to produce a lookup switch.
+	 *
+	 * @param keys
+	 *        The keys for the switch.
+	 * @param labels
+	 *        The case {@linkplain Label labels} for the switch.
+	 * @param defaultLabel
+	 *        The default label for the switch.
+	 */
+	public void lookupSwitch (
+		final List<Integer> keys,
+		final List<Label> labels,
+		final Label defaultLabel)
+	{
+		final int size = keys.size();
+		assert labels.size() == size;
+		final int[] keysArray = new int[size];
+		for (int i = 0; i < size; i++)
+		{
+			keysArray[i] = keys.get(i);
+		}
+		final Label[] labelsArray = labels.toArray(new Label[labels.size()]);
+		writer.append(
+			new LookupSwitchInstruction(keysArray, labelsArray, defaultLabel));
+	}
+
+	/**
+	 * Emit code to produce a table switch.
+	 *
+	 * @param lowerBound
+	 *        The lower bound of the contiguous integral range.
+	 * @param upperBound
+	 *        The upper bound of the contiguous integral range.
+	 * @param labels
+	 *        The case {@linkplain Label labels} for the switch.
+	 * @param defaultLabel
+	 *        The default label for the switch.
+	 */
+	public void tableSwitch (
+		final int lowerBound,
+		final int upperBound,
+		final List<Label> labels,
+		final Label defaultLabel)
+	{
+		final Label[] array = labels.toArray(new Label[labels.size()]);
+		writer.append(new TableSwitchInstruction(
+			lowerBound, upperBound, array, defaultLabel));
 	}
 
 	/**
@@ -1271,8 +1491,6 @@ extends Emitter<MethodModifier>
 		writer.append(invokevirtual.create(methodref));
 	}
 
-	// TODO: [TLS] Add missing code generation methods!
-
 	/**
 	 * Emit code that will affect a {@code return} to the caller. If the
 	 * {@linkplain Method method} produces a value, then that value will be
@@ -1312,6 +1530,15 @@ extends Emitter<MethodModifier>
 			}
 		}
 		writer.append(bytecode.create());
+	}
+
+	/**
+	 * Emit code to pop a {@linkplain Throwable throwable} from the operand
+	 * stack and throw it.
+	 */
+	public void throwException ()
+	{
+		writer.append(athrow.create());
 	}
 
 	/** The {@linkplain ExceptionTable exception table}. */

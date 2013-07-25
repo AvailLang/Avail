@@ -33,10 +33,6 @@
 package com.avail.interpreter.jvm;
 
 import static com.avail.interpreter.jvm.JavaDescriptors.parameterOperands;
-import static com.avail.interpreter.jvm.JavaDescriptors.returnOperand;
-import java.io.DataOutput;
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import com.avail.interpreter.jvm.ConstantPool.MethodrefEntry;
 
@@ -48,56 +44,29 @@ import com.avail.interpreter.jvm.ConstantPool.MethodrefEntry;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 final class InvokeInstruction
-extends SimpleInstruction
+extends AbstractInvokeInstruction
 {
-	/** The {@linkplain MethodrefEntry method entry} for the target method. */
-	private final MethodrefEntry methodEntry;
-
 	@Override
-	JavaOperand[] inputOperands ()
+	List<JavaOperand> parameters ()
 	{
-		final List<JavaOperand> operands;
+		final List<JavaOperand> parameters;
 		switch (bytecode())
 		{
 			case invokestatic:
-				operands = parameterOperands(methodEntry.descriptor());
+				parameters = parameterOperands(methodEntry.descriptor());
 				break;
-			case invokeinterface:
 			case invokespecial:
 			case invokevirtual:
-				operands = parameterOperands(methodEntry.descriptor());
-				operands.add(0, JavaOperand.OBJECTREF);
+				parameters = parameterOperands(methodEntry.descriptor());
+				parameters.add(0, JavaOperand.OBJECTREF);
 				break;
+			case invokedynamic:
+			case invokeinterface:
 			default:
 				assert false;
 				throw new IllegalStateException();
 		}
-		return operands.toArray(new JavaOperand[operands.size()]);
-	}
-
-	@Override
-	JavaOperand[] outputOperands ()
-	{
-		final List<JavaOperand> operands = new ArrayList<>(1);
-		final JavaOperand returnOperand = returnOperand(
-			methodEntry.descriptor());
-		if (returnOperand != null)
-		{
-			operands.add(returnOperand);
-		}
-		return operands.toArray(new JavaOperand[operands.size()]);
-	}
-
-	@Override
-	void writeImmediatesTo (final DataOutput out) throws IOException
-	{
-		methodEntry.writeIndexTo(out);
-	}
-
-	@Override
-	public String toString ()
-	{
-		return String.format("%s%s", super.toString(), methodEntry);
+		return parameters;
 	}
 
 	/**
@@ -113,7 +82,6 @@ extends SimpleInstruction
 		final JavaBytecode bytecode,
 		final MethodrefEntry methodEntry)
 	{
-		super(bytecode);
-		this.methodEntry = methodEntry;
+		super(bytecode, methodEntry);
 	}
 }

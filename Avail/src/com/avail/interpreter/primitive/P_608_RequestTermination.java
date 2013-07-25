@@ -34,18 +34,20 @@ package com.avail.interpreter.primitive;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import static com.avail.descriptor.FiberDescriptor.InterruptRequestFlag.TERMINATION_REQUESTED;
-import static com.avail.descriptor.FiberDescriptor.SynchronizationFlag.*;
-import static com.avail.descriptor.FiberDescriptor.ExecutionState.SUSPENDED;
+import static com.avail.descriptor.FiberDescriptor.SynchronizationFlag.PERMIT_UNAVAILABLE;
+import static com.avail.descriptor.FiberDescriptor.ExecutionState.*;
 import java.util.*;
 import com.avail.AvailRuntime;
 import com.avail.descriptor.*;
+import com.avail.descriptor.FiberDescriptor.ExecutionState;
 import com.avail.interpreter.*;
 import com.avail.utility.Continuation0;
 
 /**
  * <strong>Primitive 608:</strong> Request termination of the given
  * {@linkplain FiberDescriptor fiber}. If the fiber is currently {@linkplain
- * P_610_ParkCurrentFiber parked}, then unpark it.
+ * ExecutionState#PARKED parked} or {@linkplain ExecutionState#ASLEEP asleep},
+ * then unpark it.
  */
 public class P_608_RequestTermination
 extends Primitive
@@ -65,93 +67,55 @@ extends Primitive
 	{
 		assert args.size() == 1;
 		final A_Fiber fiber = args.get(0);
-		// This sucks, but is necessary. Just in case the fiber is joining, we
-		// must acquire the join lock before attempting to acquire the fiber's
-		// own lock.
-		synchronized (Interpreter.joinLock)
+		fiber.lock(new Continuation0()
 		{
-			fiber.lock(new Continuation0()
+			@Override
+			public void value ()
 			{
-				@Override
-				public void value ()
+				// Set the interrupt request flag.
+				fiber.setInterruptRequestFlag(TERMINATION_REQUESTED);
+				switch (fiber.executionState())
 				{
-					switch (fiber.executionState())
-					{
-						case TERMINATED:
-						case ABORTED:
-							// Do nothing in these cases.
-							break;
-						case UNSTARTED:
-						case RUNNING:
-						case SUSPENDED:
-						case INTERRUPTED:
-							// Set the interrupt request flag.
-							fiber.setInterruptRequestFlag(
-								TERMINATION_REQUESTED);
-							break;
-						case PARKED:
-							// Set the interrupt request flag.
-							fiber.setInterruptRequestFlag(
-								TERMINATION_REQUESTED);
-							// Restore the parking permit (to prevent multiple
-							// resumptions due to races with unpark).
-							if (fiber.getAndSetSynchronizationFlag(
-								PERMIT_UNAVAILABLE, false))
-							{
-								fiber.executionState(SUSPENDED);
-								Interpreter.resumeFromSuccessfulPrimitive(
-									AvailRuntime.current(),
-									fiber,
-									NilDescriptor.nil(),
-									true);
-							}
-							break;
-						case JOINING:
-							// Set the interrupt request flag.
-							fiber.setInterruptRequestFlag(
-								TERMINATION_REQUESTED);
-							// If the fiber is trying to join another fiber,
-							// then remove the fiber from its joinee's set of
-							// joiners. Then resume it.
-							final A_Fiber joinee = fiber.joinee();
-							joinee.joiningFibers(
-								joinee.joiningFibers()
-									.setWithoutElementCanDestroy(
-										fiber,
-										false));
+					case ASLEEP:
+						// Try to cancel the task (if any). This is best
+						// effort only.
+						final TimerTask task = fiber.wakeupTask();
+						if (task != null)
+						{
+							task.cancel();
+							fiber.wakeupTask(null);
+						}
+						fiber.executionState(SUSPENDED);
+						Interpreter.resumeFromSuccessfulPrimitive(
+							AvailRuntime.current(),
+							fiber,
+							NilDescriptor.nil(),
+							true);
+						break;
+					case PARKED:
+						// Unpark the fiber, resuming it if it was parked.
+						if (fiber.getAndSetSynchronizationFlag(
+							PERMIT_UNAVAILABLE, false))
+						{
 							fiber.executionState(SUSPENDED);
 							Interpreter.resumeFromSuccessfulPrimitive(
 								AvailRuntime.current(),
 								fiber,
 								NilDescriptor.nil(),
 								true);
-							break;
-						case ASLEEP:
-							// Set the interrupt request flag.
-							fiber.setInterruptRequestFlag(
-								TERMINATION_REQUESTED);
-							// Try to cancel the task (if any). This is best
-							// effort only.
-							final TimerTask task = fiber.wakeupTask();
-							if (task != null)
-							{
-								task.cancel();
-								fiber.wakeupTask(null);
-							}
-							fiber.executionState(SUSPENDED);
-							Interpreter.resumeFromSuccessfulPrimitive(
-								AvailRuntime.current(),
-								fiber,
-								NilDescriptor.nil(),
-								true);
-							break;
-						default:
-							assert false;
-							break;
-					}
+						}
+						break;
+					case TERMINATED:
+					case ABORTED:
+					case UNSTARTED:
+					case RUNNING:
+					case SUSPENDED:
+					case INTERRUPTED:
+						// Do nothing.
+						break;
 				}
-			});
-		}
+			}
+		});
 		return interpreter.primitiveSuccess(NilDescriptor.nil());
 	}
 

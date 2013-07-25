@@ -87,11 +87,6 @@ extends A_BasicObject
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	void clearInterruptRequestFlags ();
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
 	A_Continuation continuation ();
 
 	/**
@@ -185,16 +180,6 @@ extends A_BasicObject
 	 * @return
 	 */
 	boolean interruptRequestFlag (InterruptRequestFlag flag);
-
-	/**
-	 * @return
-	 */
-	AvailObject joinee ();
-
-	/**
-	 * @param joinee
-	 */
-	void joinee (A_BasicObject joinee);
 
 	/**
 	 * @return

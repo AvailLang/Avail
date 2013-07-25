@@ -51,6 +51,16 @@ extends Attribute
 	/** The {@linkplain Entry entry} for the initial value. */
 	private final Entry initialValueEntry;
 
+	/**
+	 * Answer the {@linkplain Entry entry} for the initial value.
+	 *
+	 * @return The entry for the initial value.
+	 */
+	Entry initialValueEntry ()
+	{
+		return initialValueEntry;
+	}
+
 	/** The name of this {@linkplain ConstantValueAttribute attribute}. */
 	static final String name = "ConstantValue";
 

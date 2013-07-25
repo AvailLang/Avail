@@ -59,6 +59,10 @@ Body
 /* Define the valid server socket options. */
 "option`#" is a new atom;
 "option name" is a new atom;
+/**
+ * @type "private socket option"
+ * @supertype "object"
+ */
 Class "private socket option" extends object
 	with field
 		option# : [1..5],
@@ -234,6 +238,11 @@ Public method "keep alive" is [_so_keepalive];
  */
 Public method "Nagle's algorithm disablement" is [_tcp_nodelay];
 
+/**
+ * @method "“_”"
+ * @param "o" "private socket option"
+ * @returns "string"
+ */
 Method "“_”" is [o : private socket option | o's option name];
 
 /**

@@ -71,7 +71,7 @@ public class L2_LOOKUP_BY_VALUES extends L2Operation
 
 		if (Interpreter.debugL2)
 		{
-			interpreter.log(
+			Interpreter.log(
 				Level.FINER,
 				"Lookup {0}",
 				bundle.message().atomName());

@@ -46,26 +46,14 @@ import com.avail.interpreter.jvm.ConstantPool.InterfaceMethodrefEntry;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public class InvokeInterfaceInstruction
-extends SimpleInstruction
+extends AbstractInvokeInstruction
 {
-	/**
-	 * The {@linkplain InterfaceMethodrefEntry interface method entry} for the
-	 * target method.
-	 */
-	private final InterfaceMethodrefEntry methodEntry;
-
 	@Override
 	void writeImmediatesTo (final DataOutput out) throws IOException
 	{
 		methodEntry.writeIndexTo(out);
 		methodEntry.writeArgumentUnitsTo(out);
 		out.writeByte(0);
-	}
-
-	@Override
-	public String toString ()
-	{
-		return String.format("%s%s", super.toString(), methodEntry);
 	}
 
 	/**
@@ -78,7 +66,6 @@ extends SimpleInstruction
 	public InvokeInterfaceInstruction (
 		final InterfaceMethodrefEntry methodEntry)
 	{
-		super(JavaBytecode.invokeinterface);
-		this.methodEntry = methodEntry;
+		super(JavaBytecode.invokeinterface, methodEntry);
 	}
 }

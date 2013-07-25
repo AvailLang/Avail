@@ -85,6 +85,10 @@ Names
 	"security exception",
 	"variable-use exception",
 
+	/* Voluntary termination. */
+	"Raise termination-requested exception if appropriate",
+	"termination-requested exception",
+
 	/* Java exceptions. */
 	"Java exception",
 	"a Java exception caused by_",
@@ -984,6 +988,8 @@ System exception "atom-already-exists" (74)
 	extends definition exception;
 System exception "cannot-mix-method-and-macro-definitions" (75)
 	extends definition exception;
+System exception "cannot-create-continuation-for-infallible-primitive-function" (76)
+	extends invocation exception;
 System exception "handler-sentinel" (80)
 	extends system exception;
 System exception "cannot-mark-handler-frame" (81)
@@ -1131,21 +1137,6 @@ Stable method "“_”" is
 	(a|an) “e's type” ++ " (" ++ e's error message ++ ")"
 ];
 
-/* Exceptions are going live! Failures of bootstrap linked primitives will now
- * raise appropriate exceptions.
- */
-Set early failure function to
-[
-	errorCode : natural number
-|
-	Assert: errorCode ∈ exceptionsByCode
-		("no exception class for " ++ “errorCode”);
-	exceptionType ::= exceptionsByCode[errorCode];
-	Raise an exceptionType with
-		error code ::= errorCode,
-		error name ::= exceptionType's error name's instance
-] : ⊥;
-
 /**
  * Raise the right exception for the specified system error code.
  *
@@ -1214,6 +1205,47 @@ Public method "“_”(stack summary)" is
 	text
 ];
 
+/**
+ * A termination-requested exception indicates that termination has been
+ * requested for the current fiber.
+ *
+ * @type "termination-requested exception"
+ * @type "exception"
+ */
+Public explicit class "termination-requested exception" extends exception;
+
+/**
+ * Raise a {@type "termination-requested exception"} iff {@method
+ * "termination requested" termination has been requested}.
+ *
+ * @method "Raise termination-requested exception if appropriate"
+ * @raises "termination-requested exception"
+ *         If {@method "termination requested" termination has been requested}.
+ */
+Public method "Raise termination-requested exception if appropriate" is
+[
+	If termination requested then
+	[
+		Raise a termination-requested exception
+	];
+];
+
+/* If the unhandled exception handler catches a termination-requested exception,
+ * we want the fiber to exit cleanly, so use an uninitialized variable. This is
+ * because we don't want the synthetic base continuation to have a calling
+ * continuation. When a base continuation returns, the fiber exits cleanly, in
+ * this case without a final result.
+ *
+ * Note that the stack tuple must include a value for each stack slot required
+ * by the continuation. The stack grows downward, and predecrements before
+ * pushing, so the stack pointer should begin at the first invalid index.
+ */
+syntheticBase ::=
+	[
+		caller : continuation;
+		$[Ignore: 0;]@pc=1 stack=<⊥>[2] caller=↑caller
+	]();
+
 /* This completes the behavior of "Raise_" in the event that no unhandled
  * exception handler has been specified for the current fiber.
  */
@@ -1264,6 +1296,17 @@ noUnhandledExceptionHandler :=
 		If current fiber is applying a semantic restriction then
 		[
 			Reject parse, expected: msg
+		];
+		/* If the unhandled exception is a termination-requested exception, then
+		 * arrange to exit the current fiber cleanly. Note that this will only
+		 * work correctly if the current fiber isn't expected to produce a
+		 * result.
+		 */
+		Cast unhandled into
+		[
+			unused : termination-requested exception
+		|
+			Exit syntheticBase
 		]
 		else
 		[
@@ -1271,3 +1314,18 @@ noUnhandledExceptionHandler :=
 			Terminate current fiber
 		]
 	];
+
+/* Exceptions are going live! Failures of bootstrap linked primitives will now
+ * raise appropriate exceptions.
+ */
+Set early failure function to
+[
+	errorCode : natural number
+|
+	Assert: errorCode ∈ exceptionsByCode
+		("no exception class for " ++ “errorCode”);
+	exceptionType ::= exceptionsByCode[errorCode];
+	Raise an exceptionType with
+		error code ::= errorCode,
+		error name ::= exceptionType's error name's instance
+] : ⊥;

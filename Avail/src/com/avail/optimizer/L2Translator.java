@@ -938,7 +938,7 @@ public class L2Translator
 					new L2ReadPointerOperand(functionReg),
 					new L2ReadVectorOperand(createVector(args)),
 					new L2ReadPointerOperand(failureObjectReg),
-					new L2ImmediateOperand(canSkip ? 1 : 1)); //TODO MvG Performance fakery should be : 0
+					new L2ImmediateOperand(canSkip ? 1 : 0));
 			}
 			else
 			{
@@ -947,7 +947,7 @@ public class L2Translator
 					new L2ReadPointerOperand(tempCallerRegister),
 					new L2ReadPointerOperand(functionReg),
 					new L2ReadVectorOperand(createVector(args)),
-					new L2ImmediateOperand(canSkip ? 1 : 1)); //TODO MvG Performance fakery should be : 0
+					new L2ImmediateOperand(canSkip ? 1 : 0));
 			}
 			// The method being invoked will run until it returns, and the next
 			// instruction will be here (if the chunk isn't invalidated in the

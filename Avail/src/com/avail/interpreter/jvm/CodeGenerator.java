@@ -51,6 +51,35 @@ import com.avail.interpreter.jvm.ConstantPool.NameAndTypeKey;
  * class files. It permits specification of {@linkplain Field fields} and
  * {@linkplain Method methods}.
  *
+ * <p>The typical life cycle of a {@code CodeGenerator} is as follows:</p>
+ *
+ * <ol>
+ * <li>Construct a new code generator for a {@linkplain #CodeGenerator(String)
+ * named} or {@linkplain #CodeGenerator() anonymous} {@linkplain Class class}
+ * </li>
+ * <li>Build a {@linkplain EnumSet set} of {@linkplain ClassModifier class
+ * modifiers} and associate it with the class: {@link #setModifiers(EnumSet)}
+ * </li>
+ * <li>Specify the superclass of the class: {@linkplain #setSuperclass(String)}
+ * </li>
+ * <li>Specify the interfaces that the class implements: {@linkplain
+ * #addInterface(String)}</li>
+ * <li>Plan the content of the class by:
+ *    <ul>
+ *    <li>Defining {@linkplain Field fields}: {@linkplain
+ *    #newField(String, String)}</li>
+ *    <li>Defining {@linkplain Method methods}: {@linkplain
+ *    #newMethod(String, String)}</li>
+ *    <li>Defining constructors: {@linkplain #newConstructor(String)} and
+ *    {@linkplain #newDefaultConstructor()}</li>
+ *    <li>Defining static initializers: {@linkplain #newStaticInitializer()}
+ *    </li>
+ *    </ul>
+ * </li>
+ * <li>Emit the class definition as a Java class file to a {@linkplain
+ * DataOutput binary output stream}: {@linkplain #emitOn(DataOutput)}</li>
+ * </ol>
+ *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public class CodeGenerator
@@ -283,6 +312,67 @@ extends Emitter<ClassModifier>
 	}
 
 	/**
+	 * Create a new {@linkplain Method constructor} with the specified
+	 * {@linkplain JavaDescriptors#forMethod(Class, Class...) signature
+	 * descriptor}.
+	 *
+	 * <p>The code generator must not be defining an {@code interface}.</p>
+	 *
+	 * @param descriptor
+	 *        The signature descriptor of the target constructor.
+	 * @return The representative for the new constructor.
+	 */
+	@ThreadSafe
+	public Method newConstructor (final String descriptor)
+	{
+		assert !modifiers.contains(INTERFACE);
+		return newMethod(Method.constructorName, descriptor);
+	}
+
+	/**
+	 * Create a new {@linkplain Method default constructor} that is fully
+	 * specified and implemented.
+	 *
+	 * <p>The code generator must not be defining an {@code interface}.</p>
+	 *
+	 * @return The representative for the new method, already {@linkplain
+	 *         Method#finish() finished}.
+	 */
+	@ThreadSafe
+	public Method newDefaultConstructor ()
+	{
+		assert !modifiers.contains(INTERFACE);
+		final Method method = newMethod(Method.constructorName, "()V");
+		method.setModifiers(EnumSet.of(MethodModifier.PUBLIC));
+		method.load(method.self());
+		method.invokeSpecial(constantPool.methodref(
+			superEntry.name(), Method.constructorName, "()V"));
+		method.returnToCaller();
+		method.finish();
+		return method;
+	}
+
+	/**
+	 * Create a new {@linkplain Method static initializer} that is ready to
+	 * receive content.
+	 *
+	 * <p>The code generator must not be defining an {@code interface}.</p>
+	 *
+	 * @return The representative for the new static initializer, whose
+	 *         {@linkplain MethodModifier method modifiers} have already been
+	 *         {@linkplain Method#setModifiers(EnumSet) set}.
+	 */
+	@ThreadSafe
+	public Method newStaticInitializer ()
+	{
+		assert !modifiers.contains(INTERFACE);
+		final Method method = newMethod(Method.staticInitializerName, "()V");
+		method.setModifiers(EnumSet.of(
+			MethodModifier.PRIVATE, MethodModifier.STATIC));
+		return method;
+	}
+
+	/**
 	 * Is the definition of the {@linkplain Class class} consistent?
 	 *
 	 * @return {@code true} if the definition of the class is consistent, {@code
@@ -376,5 +466,61 @@ extends Emitter<ClassModifier>
 	public void emitOn (final DataOutput out) throws IOException
 	{
 		writeTo(out);
+	}
+
+	@Override
+	public String toString ()
+	{
+		@SuppressWarnings("resource")
+		final Formatter formatter = new Formatter();
+		final String mods = ClassModifier.toString(modifiers);
+		formatter.format("%s%s", mods, mods.isEmpty() ? "" : " ");
+		formatter.format("%s", name());
+		if (!superEntry.internalName().equals(
+			JavaDescriptors.asInternalName("java.lang.Object")))
+		{
+			formatter.format("%n\textends %s", superEntry.name());
+		}
+		if (!interfaceEntries.isEmpty())
+		{
+			formatter.format("%n\timplements ");
+			boolean first = true;
+			for (final ClassEntry entry : interfaceEntries)
+			{
+				if (!first)
+				{
+					formatter.format(", ");
+				}
+				formatter.format("%s", entry.name());
+				first = false;
+			}
+		}
+		synchronized (fields)
+		{
+			if (!fields.isEmpty())
+			{
+				formatter.format("%n%nFields:");
+				for (final Field field : fields.values())
+				{
+					final String fieldString = field.toString().replaceAll(
+						String.format("%n"), String.format("%n\t"));
+					formatter.format("%n\t%s", fieldString);
+				}
+			}
+		}
+		synchronized (methods)
+		{
+			if (!methods.isEmpty())
+			{
+				formatter.format("%n%nMethods:");
+				for (final Method method : methods.values())
+				{
+					final String methodString = method.toString().replaceAll(
+						String.format("%n"), String.format("%n\t"));
+					formatter.format("%n\t%s", methodString);
+				}
+			}
+		}
+		return formatter.toString();
 	}
 }

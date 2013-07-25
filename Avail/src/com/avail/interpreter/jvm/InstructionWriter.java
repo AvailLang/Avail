@@ -81,34 +81,6 @@ final class InstructionWriter
 		return (int) codeSize;
 	}
 
-	/**
-	 * Can the specified {@linkplain JavaInstruction instruction} type-safely
-	 * consume its {@linkplain JavaOperand operands} from the operand stack?
-	 *
-	 * @param instruction
-	 *        An instruction.
-	 * @return {@code true} if the instruction can consume its operands, {@code
-	 *         false} otherwise.
-	 */
-	private boolean canConsumeOperands (final JavaInstruction instruction)
-	{
-		final List<JavaOperand> operands = instruction.operandStack();
-		assert operands != null;
-		final JavaOperand[] inputOperands = instruction.inputOperands();
-		for (int i = 0,
-				j = operands.size() - 1,
-				size = inputOperands.length;
-			i < size;
-			i++, j--)
-		{
-			if (inputOperands[i].baseOperand() != operands.get(j).baseOperand())
-			{
-				return false;
-			}
-		}
-		return true;
-	}
-
 	/** The maximum stack depth. */
 	private int maxStackDepth = 0;
 
@@ -134,7 +106,6 @@ final class InstructionWriter
 		final JavaInstruction instr = instructions.peekLast();
 		if (instr != null)
 		{
-			assert canConsumeOperands(instr);
 			if (!instr.isReturn())
 			{
 				final List<JavaOperand> operands = instr.operandStack();
@@ -143,7 +114,7 @@ final class InstructionWriter
 					operands.subList(
 						0,
 						operands.size() - instr.inputOperands().length));
-				after.addAll(Arrays.asList(instr.outputOperands()));
+				after.addAll(Arrays.asList(instr.outputOperands(operands)));
 				if (after.size() > maxStackDepth)
 				{
 					maxStackDepth = after.size();
@@ -167,7 +138,9 @@ final class InstructionWriter
 		final List<JavaOperand> operands = instruction.operandStack();
 		if (operands == null)
 		{
-			instruction.setOperandStack(newOperandStack());
+			final List<JavaOperand> newOperandStack = newOperandStack();
+			assert instruction.canConsumeOperands(newOperandStack);
+			instruction.setOperandStack(newOperandStack);
 		}
 		else
 		{

@@ -107,7 +107,7 @@ Private method "integer range genuine«lower»?«upper»?\
  * lower and upper bounds drawn from the argument's entire range.
  *
  * @method "_'s⁇genuine lower bound"
- * @param "extended integer meta's type"
+ * @restricts "extended integer meta's type"
  */
 Semantic restriction "_'s⁇genuine lower bound" is
 	integer range genuine lower bound semantic restriction function;
@@ -118,7 +118,7 @@ Semantic restriction "_'s⁇genuine lower bound" is
  * lower and upper bounds drawn from the argument's entire range.
  *
  * @method "_'s⁇genuine upper bound"
- * @param "extended integer meta's type"
+ * @restricts "extended integer meta's type"
  */
 Semantic restriction "_'s⁇genuine upper bound" is
 	integer range genuine upper bound semantic restriction function;
@@ -140,7 +140,7 @@ Method "⎣_⎦" is
 |
 	Assert: range ≠ ⊥ ("must use `_'s⁇genuine lower bound` for ⊥");
 	range's genuine lower bound
-]:extended integer;
+] : extended integer;
 
 /**
  * Answer the upper bound of the specified integral range type. Note that unlike
@@ -159,7 +159,7 @@ Method "⎡_⎤" is
 |
 	Assert: range ≠ ⊥ ("must use `_'s⁇genuine upper bound` for ⊥");
 	range's genuine upper bound
-]:extended integer;
+] : extended integer;
 
 /**
  * Is the lower bound of the argument inclusive?

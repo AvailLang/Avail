@@ -34,11 +34,11 @@ package com.avail.interpreter.jvm;
 
 import java.io.DataOutput;
 import java.io.IOException;
+import java.util.List;
 
 /**
  * The immediate values of a {@code TableSwitchInstruction} describe an {@code
  * int} range and {@linkplain Label labels}.
- *
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
@@ -98,7 +98,7 @@ extends JavaInstruction
 	}
 
 	@Override
-	JavaOperand[] outputOperands ()
+	JavaOperand[] outputOperands (final List<JavaOperand> operandStack)
 	{
 		return bytecode().outputOperands();
 	}

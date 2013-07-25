@@ -155,12 +155,15 @@ class L2OperandDescriber implements L2OperandTypeDispatcher
 		if (targetLabel.operation instanceof L2_LABEL)
 		{
 			// Print as a symbolic label.
-			print("PC(%s)", targetLabel.commentAt(0));
+			print(
+				"PC(%s at #%d)",
+				targetLabel.commentAt(0),
+				targetLabel.offset());
 		}
 		else
 		{
 			// Print the instruction's operation and offset.
-			print("PC(%s at %d)",
+			print("PC(%s at #%d)",
 				targetLabel.operation.name(),
 				targetLabel.offset());
 		}

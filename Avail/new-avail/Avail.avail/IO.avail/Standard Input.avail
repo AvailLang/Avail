@@ -45,10 +45,11 @@ Body
 /**
  * Read `count` characters from the standard input stream.
  * 
- * Parameters:
- *    count - The desired number of characters.
- * Returns:
- *    A string containing `count` characters.
+ * @method "next_character|characters«from console»⁇"
+ * @param "count" "whole number"
+ *        The desired number of characters.
+ * @returns "string"
+ *          A string containing `count` characters.
  */
 Public method "next_character|characters«from console»⁇" is
 [
@@ -62,6 +63,10 @@ Public method "next_character|characters«from console»⁇" is
 	result
 ] : string;
 
+/**
+ * @method "next_character|characters«from console»⁇"
+ * @restricts "whole number's type"
+ */
 Semantic restriction "next_character|characters«from console»⁇" is
 [
 	count : whole number's type
@@ -73,8 +78,9 @@ Semantic restriction "next_character|characters«from console»⁇" is
  * Read a line of text from the standard input stream. Reading stops once a line
  * feed ("\(10)") has been consumed. The result does not include any line feeds.
  *
- * Returns:
- *    A line of text (not including any line feeds).
+ * @method "next line«from console»⁇"
+ * @returns "string"
+ *          A line of text (not including any line feeds).
  */
 Public method "next line«from console»⁇" is
 [
@@ -95,10 +101,11 @@ integerChars ::= "-∞0123456789"→set;
  * Read an integer from the standard input stream. Reading stops once the first
  * inappropriate character has been peeked.
  * 
- * Parameters:
- *    range - The range within which the extended integer must lie.
- * Returns:
- *    An extended integer within the requested range.
+ * @method "next_«from console»⁇"
+ * @param "range" "extended integer's type"
+ *        The range within which the extended integer must lie.
+ * @returns "extended integer"
+ *          An extended integer within the requested range.
  */
 Public method "next_«from console»⁇" is
 [
@@ -122,6 +129,10 @@ Public method "next_«from console»⁇" is
 	value
 ] : extended integer;
 
+/**
+ * @method "next_«from console»⁇"
+ * @restricts "extended integer's type's type"
+ */
 Semantic restriction "next_«from console»⁇" is
 [
 	range : extended integer's type's type

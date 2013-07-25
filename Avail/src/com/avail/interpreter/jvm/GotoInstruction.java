@@ -32,6 +32,8 @@
 
 package com.avail.interpreter.jvm;
 
+import java.util.List;
+
 /**
  * A {@code GotoInstruction} abstractly specifies a goto.
  *
@@ -47,7 +49,7 @@ extends UnconditionalBranchInstruction
 	}
 
 	@Override
-	JavaOperand[] outputOperands ()
+	JavaOperand[] outputOperands (final List<JavaOperand> operandStack)
 	{
 		return noOperands;
 	}

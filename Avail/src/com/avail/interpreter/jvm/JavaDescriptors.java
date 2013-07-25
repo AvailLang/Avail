@@ -404,7 +404,8 @@ final class JavaDescriptors
 		try
 		{
 			int parameterIndex = 0;
-			for (int index = 1;; index++)
+			int index = 1;
+			while (true)
 			{
 				final int startIndex = index;
 				switch (descriptor.codePointAt(index))

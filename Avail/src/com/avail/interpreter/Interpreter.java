@@ -34,12 +34,12 @@ package com.avail.interpreter;
 
 import static com.avail.descriptor.AvailObject.error;
 import static com.avail.descriptor.FiberDescriptor.ExecutionState.*;
-import static com.avail.descriptor.FiberDescriptor.SynchronizationFlag.BOUND;
+import static com.avail.descriptor.FiberDescriptor.SynchronizationFlag.*;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Result.*;
 import static com.avail.interpreter.levelTwo.register.FixedRegister.*;
-import static java.lang.Math.max;
+import static java.lang.Math.*;
 import java.util.*;
 import java.util.logging.*;
 import com.avail.AvailRuntime;
@@ -170,21 +170,41 @@ public final class Interpreter
 	/**
 	 * Answer the {@linkplain Interpreter Level Two interpreter} associated
 	 * with {@linkplain Thread#currentThread() this} {@linkplain Thread thread}.
-	 * If this thread is not an {@link AvailThread}, then answer {@code null}.
+	 * If this thread is not an {@link AvailThread}, then fail.
 	 *
-	 * @return The current Level Two interpreter, or {@code null} if the current
-	 *         thread is not an {@code AvailThread}.
+	 * @return The current Level Two interpreter.
 	 */
 	public static Interpreter current ()
 	{
 		return ((AvailThread) Thread.currentThread()).interpreter;
 	}
 
+	/**
+	 * Answer the {@linkplain Interpreter Level Two interpreter} associated
+	 * with {@linkplain Thread#currentThread() this} {@linkplain Thread thread}.
+	 * If this thread is not an {@link AvailThread}, then answer {@code null}.
+	 *
+	 * @return The current Level Two interpreter, or {@code null} if the current
+	 *         thread is not an {@code AvailThread}.
+	 */
+	public static @Nullable Interpreter currentOrNull ()
+	{
+		final Thread current = Thread.currentThread();
+		if (current instanceof AvailThread)
+		{
+			return ((AvailThread) current).interpreter;
+		}
+		return null;
+	}
+
 	/** Whether to print detailed Level One debug information. */
 	public static boolean debugL1 = false;
 
-	/** Whether to print detailed Level One debug information. */
+	/** Whether to print detailed Level Two debug information. */
 	public static boolean debugL2 = false;
+
+	/** Whether to print detailed Primitive debug information. */
+	public static boolean debugPrimitives = false;
 
 	/**
 	 * Whether to print debug information related to a specific problem being
@@ -196,6 +216,9 @@ public final class Interpreter
 	/** A {@linkplain Logger logger}. */
 	private static final Logger logger =
 		Logger.getLogger(Interpreter.class.getCanonicalName());
+
+	//TODO [MvG] Clean up initial logging state.
+//	static { logger.setLevel(Level.FINER); }
 
 	/**
 	 * Set the current logging level for interpreters.
@@ -214,26 +237,61 @@ public final class Interpreter
 	 * @param message The message pattern to log.
 	 * @param arguments The arguments to fill into the message pattern.
 	 */
-	public void log (
+	public static void log (
 		final Level level,
 		final String message,
 		final Object... arguments)
 	{
 		if (logger.isLoggable(level))
 		{
-			final String fiberId;
-			if (fiber == null)
-			{
-				fiberId = "????????/???????? ";
-			}
-			else
-			{
-				fiberId = String.format(
-					"%08x/%08x ",
-					hashCode(),
-					fiber().hash());
-			}
-			logger.log(level, fiberId + message, arguments);
+			final Thread thread = Thread.currentThread();
+			log(
+				thread instanceof AvailThread
+					? ((AvailThread)thread).interpreter.fiber
+					: null,
+				level,
+				message,
+				arguments);
+		}
+	}
+
+	/**
+	 * Log a message.
+	 *
+	 * @param affectedFiber The affected fiber or null.
+	 * @param level The verbosity level at which to log.
+	 * @param message The message pattern to log.
+	 * @param arguments The arguments to fill into the message pattern.
+	 */
+	public static void log (
+		final @Nullable A_Fiber affectedFiber,
+		final Level level,
+		final String message,
+		final Object... arguments)
+	{
+		if (logger.isLoggable(level))
+		{
+			final @Nullable Interpreter interpreter = currentOrNull();
+			final @Nullable A_Fiber runningFiber = interpreter != null
+				? interpreter.fiber
+				: null;
+			final StringBuilder builder = new StringBuilder();
+			builder.append(
+				runningFiber != null
+					? String.format(
+						"%6d ",
+						runningFiber.traversed().slot(
+							FiberDescriptor.IntegerSlots.DEBUG_UNIQUE_ID))
+					: "?????? ");
+			builder.append('→');
+			builder.append(
+				affectedFiber != null
+					? String.format(
+						"%6d ",
+						affectedFiber.traversed().slot(
+							FiberDescriptor.IntegerSlots.DEBUG_UNIQUE_ID))
+					: "?????? ");
+			logger.log(level, builder.toString() + message, arguments);
 		}
 	}
 
@@ -601,21 +659,6 @@ public final class Interpreter
 	}
 
 	/**
-	 * {@linkplain ExecutionState#JOINING Join} the {@linkplain #fiber()
-	 * current} {@linkplain FiberDescriptor fiber} from a {@linkplain Primitive
-	 * primitive} invocation. The reified {@linkplain ContinuationDescriptor
-	 * continuation} must be available in the architectural {@linkplain
-	 * FixedRegister#CALLER caller register}, and will be installed into the
-	 * current fiber.
-	 *
-	 * @return {@link Result#FIBER_SUSPENDED}, for convenience.
-	 */
-	public Result primitiveJoin ()
-	{
-		return primitiveSuspend(JOINING);
-	}
-
-	/**
 	 * A place to store the primitive {@linkplain CompiledCodeDescriptor
 	 * compiled code} being attempted.  That allows {@linkplain
 	 * P_340_PushConstant} to get to the first literal in order to return it
@@ -648,9 +691,6 @@ public final class Interpreter
 	{
 		primitiveFunctionBeingAttempted = function;
 	}
-
-	/** The lock that synchronizes joins. */
-	public static final Object joinLock = new Object();
 
 	/**
 	 * Terminate the {@linkplain #fiber() current} {@linkplain FiberDescriptor
@@ -696,39 +736,30 @@ public final class Interpreter
 			@Override
 			public void value ()
 			{
-				synchronized (Interpreter.joinLock)
+				final A_Set joining = aFiber.joiningFibers().makeShared();
+				aFiber.joiningFibers(NilDescriptor.nil());
+				// Wake up all fibers trying to join this one.
+				for (final A_Fiber joiner : joining)
 				{
-					final A_Set joining = aFiber.joiningFibers().makeShared();
-					aFiber.joiningFibers(SetDescriptor.empty());
-					// Wake up all fibers trying to join this one.
-					for (final A_Fiber joiner : joining)
+					joiner.lock(new Continuation0()
 					{
-						joiner.lock(new Continuation0()
+						@Override
+						public void value ()
 						{
-							@Override
-							public void value ()
+							// Unpark the fiber, resuming it if it was parked.
+							if (joiner.getAndSetSynchronizationFlag(
+									PERMIT_UNAVAILABLE, false)
+								&& joiner.executionState() == PARKED)
 							{
-								// A termination request could have moved the
-								// joiner out of the JOINING state.
-								if (joiner.executionState() == JOINING)
-								{
-									assert joiner.joinee().equals(aFiber);
-									joiner.joinee(NilDescriptor.nil());
-									joiner.executionState(SUSPENDED);
-									Interpreter.resumeFromSuccessfulPrimitive(
-										AvailRuntime.current(),
-										joiner,
-										NilDescriptor.nil(),
-										true);
-								}
-								else
-								{
-									assert joiner.executionState()
-										.indicatesTermination();
-								}
+								joiner.executionState(SUSPENDED);
+								Interpreter.resumeFromSuccessfulPrimitive(
+									AvailRuntime.current(),
+									joiner,
+									NilDescriptor.nil(),
+									true);
 							}
-						});
-					}
+						}
+					});
 				}
 			}
 		});
@@ -793,7 +824,7 @@ public final class Interpreter
 	{
 		final Primitive primitive =
 			Primitive.byPrimitiveNumberOrFail(primitiveNumber);
-		if (debugL1 || debugL2)
+		if (debugPrimitives)
 		{
 			log(
 				Level.FINER,
@@ -809,7 +840,7 @@ public final class Interpreter
 		primitive.addNanosecondsRunning(timeAfter - timeBefore);
 		assert success != FAILURE || !primitive.hasFlag(Flag.CannotFail);
 		primitiveFunctionBeingAttempted = null;
-		if ((debugL1 || debugL2) && logger.isLoggable(Level.FINER))
+		if (debugPrimitives && logger.isLoggable(Level.FINER))
 		{
 			AvailErrorCode errorCode = null;
 			if (success == FAILURE)
@@ -1753,6 +1784,15 @@ public final class Interpreter
 		final List<? extends A_BasicObject> arguments)
 	{
 		assert aFiber.executionState() == UNSTARTED;
+		//TODO [MvG] - This slows down fiber creation.
+		final A_RawFunction code = function.code();
+		aFiber.fiberName(
+			(A_String)(aFiber.fiberName().concatenateWith(
+				StringDescriptor.from(String.format(
+					" %s @ line #%d",
+					code.methodName(),
+					code.startingLineNumber())),
+				false)));
 		executeFiber(
 			runtime,
 			aFiber,
@@ -1987,7 +2027,8 @@ public final class Interpreter
 		// Create the fiber that will execute the function.
 		final A_Fiber fiber = FiberDescriptor.newFiber(
 			TupleTypeDescriptor.stringType(),
-			FiberDescriptor.stringificationPriority);
+			FiberDescriptor.stringificationPriority,
+			StringDescriptor.from("Stringification"));
 		fiber.resultContinuation(new Continuation1<AvailObject>()
 		{
 			@Override

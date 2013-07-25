@@ -3534,12 +3534,6 @@ public abstract class Descriptor extends AbstractDescriptor
 	}
 
 	@Override
-	void o_ClearInterruptRequestFlags (final AvailObject object)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
 	boolean o_IsSystemModule (final AvailObject object)
 	{
 		throw unsupportedOperationException();
@@ -4000,20 +3994,6 @@ public abstract class Descriptor extends AbstractDescriptor
 	@Override
 	@AvailMethod
 	A_Set o_JoiningFibers (final AvailObject object)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	@AvailMethod
-	AvailObject o_Joinee (final AvailObject object)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	@AvailMethod
-	void o_Joinee (final AvailObject object, final A_BasicObject joinee)
 	{
 		throw unsupportedOperationException();
 	}

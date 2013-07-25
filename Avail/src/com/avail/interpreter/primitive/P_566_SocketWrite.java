@@ -32,7 +32,6 @@
 
 package com.avail.interpreter.primitive;
 
-import static com.avail.descriptor.FiberDescriptor.InterruptRequestFlag.TERMINATION_REQUESTED;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
@@ -123,7 +122,11 @@ extends Primitive
 		final A_Fiber current = FiberDescriptor.current();
 		final A_Fiber newFiber = FiberDescriptor.newFiber(
 			succeed.kind().returnType().typeUnion(fail.kind().returnType()),
-			priority.extractInt());
+			priority.extractInt(),
+			StringDescriptor.from(
+				String.format(
+					"Socket write (prim 566), %s",
+					handle.atomName())));
 		// If the current fiber is an Avail fiber, then the new one should be
 		// also.
 		newFiber.availLoader(current.availLoader());
@@ -148,26 +151,20 @@ extends Primitive
 						final @Nullable Integer bytesWritten,
 						final @Nullable Void attachment)
 					{
-						// If termination has been requested, then take no
-						// further action.
-						if (!newFiber.getAndClearInterruptRequestFlag(
-							TERMINATION_REQUESTED))
+						// If not all bytes have been written yet, then keep
+						// writing.
+						if (buffer.hasRemaining())
 						{
-							// If not all bytes have been written yet, then keep
-							// writing.
-							if (buffer.hasRemaining())
-							{
-								socket.write(buffer, null, this);
-							}
-							// Otherwise, report success.
-							else
-							{
-								Interpreter.runOutermostFunction(
-									runtime,
-									newFiber,
-									succeed,
-									Collections.<AvailObject>emptyList());
-							}
+							socket.write(buffer, null, this);
+						}
+						// Otherwise, report success.
+						else
+						{
+							Interpreter.runOutermostFunction(
+								runtime,
+								newFiber,
+								succeed,
+								Collections.<AvailObject>emptyList());
 						}
 					}
 
@@ -176,19 +173,12 @@ extends Primitive
 						final @Nullable Throwable killer,
 						final @Nullable Void attachment)
 					{
-						assert killer != null;
-						// If termination has not been requested, then start the
-						// fiber.
-						if (!newFiber.getAndClearInterruptRequestFlag(
-							TERMINATION_REQUESTED))
-						{
-							Interpreter.runOutermostFunction(
-								runtime,
-								newFiber,
-								fail,
-								Collections.singletonList(
-									(AvailObject) E_IO_ERROR.numericCode()));
-						}
+						Interpreter.runOutermostFunction(
+							runtime,
+							newFiber,
+							fail,
+							Collections.singletonList(
+								E_IO_ERROR.numericCode()));
 					}
 				});
 		}

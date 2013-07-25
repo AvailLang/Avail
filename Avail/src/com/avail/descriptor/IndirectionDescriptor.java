@@ -3747,12 +3747,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_ClearInterruptRequestFlags (final AvailObject object)
-	{
-		o_Traversed(object).clearInterruptRequestFlags();
-	}
-
-	@Override
 	boolean o_IsSystemModule (final AvailObject object)
 	{
 		return o_Traversed(object).isSystemModule();
@@ -4182,18 +4176,6 @@ extends AbstractDescriptor
 	A_Set o_JoiningFibers (final AvailObject object)
 	{
 		return o_Traversed(object).joiningFibers();
-	}
-
-	@Override
-	AvailObject o_Joinee (final AvailObject object)
-	{
-		return o_Traversed(object).joinee();
-	}
-
-	@Override
-	void o_Joinee (final AvailObject object, final A_BasicObject joinee)
-	{
-		o_Traversed(object).joinee(joinee);
 	}
 
 	@Override

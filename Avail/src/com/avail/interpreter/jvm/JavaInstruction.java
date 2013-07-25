@@ -33,7 +33,6 @@
 package com.avail.interpreter.jvm;
 
 import java.io.DataOutput;
-
 import java.io.IOException;
 import java.util.List;
 import com.avail.annotations.Nullable;
@@ -107,9 +106,12 @@ abstract class JavaInstruction
 	 * Answer the {@linkplain JavaOperand operands} produced by the {@linkplain
 	 * JavaInstruction instruction}.
 	 *
+	 * @param operands
+	 *        The operand stack before the instruction consumes its input
+	 *        operands.
 	 * @return The operands produced by the instruction.
 	 */
-	abstract JavaOperand[] outputOperands ();
+	abstract JavaOperand[] outputOperands (List<JavaOperand> operands);
 
 	/** The {@linkplain JavaOperand operand} stack. */
 	private List<JavaOperand> operandStack;
@@ -134,6 +136,32 @@ abstract class JavaInstruction
 	void setOperandStack (final List<JavaOperand> operandStack)
 	{
 		this.operandStack = operandStack;
+	}
+
+	/**
+	 * Can this {@linkplain JavaInstruction instruction} type-safely consume
+	 * its {@linkplain JavaOperand operands} from the specified operand stack?
+	 *
+	 * @param operands
+	 *        An operand stack.
+	 * @return {@code true} if the instruction can consume its operands, {@code
+	 *         false} otherwise.
+	 */
+	boolean canConsumeOperands (final List<JavaOperand> operands)
+	{
+		final JavaOperand[] inputOperands = inputOperands();
+		for (int i = 0,
+				j = operands.size() - 1,
+				size = inputOperands.length;
+			i < size;
+			i++, j--)
+		{
+			if (inputOperands[i].baseOperand() != operands.get(j).baseOperand())
+			{
+				return false;
+			}
+		}
+		return true;
 	}
 
 	/**

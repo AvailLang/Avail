@@ -108,7 +108,7 @@ public final class AvailRuntime
 
 	/**
 	 * Answer the next unused {@linkplain FiberDescriptor fiber} identifier.
-	 * Fiber identifiers will not repeat for 2^32-1 invocations.
+	 * Fiber identifiers will not repeat for 2^32 invocations.
 	 *
 	 * @return The next fiber identifier.
 	 */

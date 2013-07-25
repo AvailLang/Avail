@@ -35,22 +35,16 @@ package com.avail.interpreter.primitive;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
-import static com.avail.descriptor.FiberDescriptor.InterruptRequestFlag.TERMINATION_REQUESTED;
 import java.util.*;
 import com.avail.AvailRuntime;
 import com.avail.descriptor.*;
-import com.avail.descriptor.FiberDescriptor.InterruptRequestFlag;
 import com.avail.interpreter.*;
 
 /**
  * <strong>Primitive 623</strong>: Schedule a new {@linkplain FiberDescriptor
  * fiber} to execute the specified {@linkplain FunctionDescriptor function} with
  * the supplied arguments. The fiber will begin running after at least the
- * specified number of milliseconds have elapsed. If the fiber discovers, just
- * before it would start running for the first time, that a {@linkplain
- * InterruptRequestFlag#TERMINATION_REQUESTED termination requested interrupt}
- * has been signaled, then don't start the fiber after all. Answer the new
- * fiber.
+ * specified number of milliseconds have elapsed. Answer the new fiber.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
@@ -104,7 +98,13 @@ extends Primitive
 		final A_Fiber current = FiberDescriptor.current();
 		final A_Fiber newFiber = FiberDescriptor.newFiber(
 			function.kind().returnType(),
-			priority.extractInt());
+			priority.extractInt(),
+			StringDescriptor.from(
+				String.format(
+					"Delayed fork (prim 623), %s, %s:%d",
+					function.code().methodName(),
+					function.code().module().moduleName(),
+					function.code().startingLineNumber())));
 		// If the current fiber is an Avail fiber, then the new one should be
 		// also.
 		newFiber.availLoader(current.availLoader());
@@ -133,17 +133,11 @@ extends Primitive
 					@Override
 					public void run ()
 					{
-						// If termination has been requested, then don't start
-						// this fiber after all.
-						if (!newFiber.getAndClearInterruptRequestFlag(
-							TERMINATION_REQUESTED))
-						{
-							Interpreter.runOutermostFunction(
-								runtime,
-								newFiber,
-								function,
-								callArgs);
-						}
+						Interpreter.runOutermostFunction(
+							runtime,
+							newFiber,
+							function,
+							callArgs);
 					}
 				},
 				sleepMillis.extractLong());

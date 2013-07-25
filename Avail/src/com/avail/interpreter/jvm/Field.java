@@ -36,6 +36,7 @@ import static com.avail.interpreter.jvm.FieldModifier.*;
 import java.io.DataOutput;
 import java.io.IOException;
 import java.util.EnumSet;
+import java.util.Formatter;
 import com.avail.interpreter.jvm.ConstantPool.Entry;
 import com.avail.interpreter.jvm.ConstantPool.FieldrefEntry;
 import com.avail.interpreter.jvm.ConstantPool.Utf8Entry;
@@ -139,7 +140,7 @@ extends Emitter<FieldModifier>
 	FieldrefEntry reference ()
 	{
 		return constantPool.fieldref(
-			codeGenerator.classEntry.toString(),
+			codeGenerator.classEntry.internalName(),
 			nameEntry.data(),
 			descriptorEntry.data());
 	}
@@ -260,5 +261,22 @@ extends Emitter<FieldModifier>
 	{
 		nameEntry.writeIndexTo(out);
 		descriptorEntry.writeIndexTo(out);
+	}
+
+	@Override
+	public String toString ()
+	{
+		@SuppressWarnings("resource")
+		final Formatter formatter = new Formatter();
+		final String mods = FieldModifier.toString(modifiers);
+		formatter.format("%s%s", mods, mods.isEmpty() ? "" : " ");
+		formatter.format("%s : %s", name(), descriptor());
+		final ConstantValueAttribute attr = (ConstantValueAttribute)
+			attributes().get(ConstantValueAttribute.name);
+		if (attr != null)
+		{
+			formatter.format(" = %s", attr.initialValueEntry());
+		}
+		return formatter.toString();
 	}
 }
