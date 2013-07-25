@@ -82,6 +82,8 @@ Public "decorated stream|streams" is a new field atom;
 
 /**
  * A stream is an immutable lazy list of arbitarily many elements.
+ * 
+ * @type "stream"
  */
 Public explicit class "stream" extends object
 	with fields
@@ -90,10 +92,11 @@ Public explicit class "stream" extends object
 /**
  * Construct and answer a stream type that answers values of the specified type.
  * 
- * Parameters:
- *    elementType - The type of value produced by streams of the answered type.
- * Returns:
- *    The requested stream type.
+ * @method "stream of_"
+ * @param "elementType" "any's type"
+ *        The type of value produced by streams of the answered type.
+ * @returns "stream's type"
+ *          The requested stream type.
  */
 Public method "stream of_" is
 [
@@ -105,38 +108,42 @@ Public method "stream of_" is
 /**
  * An empty-stream exception is raised when an inappropriate operation, like
  * `_'s⁇head` and `_'s⁇tail`, is performed on an empty stream.
+ * 
+ * @type "empty-stream exception"
+ * @supertype "exception"
  */
 Public explicit class "empty-stream exception" extends exception;
 
 /**
  * Is the specified stream empty?
  * 
- * Parameters:
- *    aStream - A stream.
- * Returns:
- *    `true` if the argument is empty, `false` otherwise.
+ * @method "_is empty"
+ * @param "aStream" "stream"
+ * @returns "boolean"
+ *          `true` if the argument is empty, `false` otherwise.
  */
 Abstract method "_is empty" is [stream]→boolean;
 
 /**
  * Answer the first element of the specified nonempty stream.
  * 
- * Parameters:
- *    aStream - A nonempty stream.
- * Returns:
- *    The first element of the specified stream.
+ * @method "private_'s⁇head"
+ * @param "aStream" "stream"
+ *        A nonempty stream.
+ * @returns "any"
+ *          The first element of the specified stream.
  */
 Private abstract method privateHeadName is [stream]→any;
 
 /**
  * Ensure that the specified stream is not empty, then answer its first element.
  * 
- * Parameters:
- *    aStream - A stream.
- * Returns:
- *    The first element of the specified stream.
- * Raises:
- *    {@"empty-stream exception"} - If the stream is empty.
+ * @method "_'s⁇head"
+ * @param "aStream" "stream"
+ * @returns "any"
+ *          The first element of the specified stream.
+ * @raises "empty-stream exception"
+ *         If the stream is empty.
  */
 Method "_'s⁇head" is
 [
@@ -152,6 +159,10 @@ Method "_'s⁇head" is
 	]
 ] : any;
 
+/**
+ * @method "_'s⁇head"
+ * @restricts "stream's type"
+ */
 Semantic restriction "_'s⁇head" is
 [
 	streamType : stream's type
@@ -168,9 +179,11 @@ Semantic restriction "_'s⁇head" is
  * without exposing it for direct use. These mechanisms cooperate to ensure that
  * stream exhaustion checking is never bypassed.
  *
- * Parameters:
- *    streamType - The stream's type, as a cross check for the implementation.
- *    implementation - The new method extension.
+ * @method "_'s⁇head method is_"
+ * @param "streamType" "stream's type"
+ *        The stream's type, as a cross check for the implementation.
+ * @param "implementation" "[⊥]→any"
+ *        The new method extension.
  */
 Public method "_'s⁇head method is_" is
 [
@@ -182,6 +195,10 @@ Public method "_'s⁇head method is_" is
 
 /**
  * Ensure that the implementation function accepts a stream.
+ * 
+ * @method "_'s⁇head method is_"
+ * @restricts "stream's type's type"
+ * @restricts "[⊥]→any's type"
  */
 Semantic restriction "_'s⁇head method is_" is
 [
@@ -209,10 +226,11 @@ Semantic restriction "_'s⁇head method is_" is
  * Construct and answer a stream that contains all but the first element of the
  * specified nonempty stream.
  * 
- * Parameters:
- *    aStream - A nonempty stream.
- * Returns:
- *    The requested stream.
+ * @method "private_'s⁇tail"
+ * @param "aStream" "stream"
+ *        A nonempty stream.
+ * @returns "stream"
+ *          The requested stream.
  */
 Private abstract method privateTailName is [stream]→stream;
 
@@ -221,12 +239,12 @@ Private abstract method privateTailName is [stream]→stream;
  * stream that contains all but the first element of the specified nonempty
  * stream.
  * 
- * Parameters:
- *    aStream - A stream.
- * Returns:
- *    The requested stream.
- * Raises:
- *    {@"empty-stream exception"} - If the stream is empty.
+ * @method "_'s⁇tail"
+ * @param "aStream" "stream"
+ * @returns "stream"
+ *          The requested stream.
+ * @raises "empty-stream exception"
+ *         If the stream is empty.
  */
 Method "_'s⁇tail" is
 [
@@ -258,9 +276,11 @@ Semantic restriction "_'s⁇tail" is
  * without exposing it for direct use. These mechanisms cooperate to ensure that
  * stream exhaustion checking is never bypassed.
  * 
- * Parameters:
- *    streamType - The stream's type, as a cross check for the implementation.
- *    implementation - The new method extension.
+ * @method "_'s⁇tail method is_"
+ * @param "streamType" "stream's type"
+ *        The stream's type, as a cross check for the implementation.
+ * @param "implementation" "[⊥]→stream"
+ *        The new method extension.
  */
 Public method "_'s⁇tail method is_" is
 [
@@ -272,6 +292,10 @@ Public method "_'s⁇tail method is_" is
 
 /**
  * Ensure that the implementation function accepts a stream.
+ * 
+ * @method "_'s⁇tail method is_"
+ * @restricts "stream's type's type"
+ * @restricts "[⊥]→stream's type"
  */
 Semantic restriction "_'s⁇tail method is_" is
 [
@@ -297,6 +321,10 @@ Semantic restriction "_'s⁇tail method is_" is
 
 /**
  * An empty stream has ⊥ as its element type.
+ * 
+ * @type "empty stream"
+ * @supertype "stream"
+ * @field "element type"
  */
 Public explicit class "empty stream" extends stream
 	with fields
@@ -305,10 +333,10 @@ Public explicit class "empty stream" extends stream
 /**
  * Answer `true`.
  * 
- * Parameters:
- *    aStream - An empty stream.
- * Returns:
- *    `true`.
+ * @method "_is empty"
+ * @param "aStream" "empty stream" 
+ *        An empty stream.
+ * @returns "true's type"
  */
 Method "_is empty" is
 [
@@ -320,8 +348,9 @@ Method "_is empty" is
 /**
  * Raise an `empty-stream exception`.
  * 
- * Parameters:
- *    aStream - An empty stream.
+ * @method "_'s⁇head"
+ * @param "aStream" "empty stream"
+ * @raises "empty-stream exception"
  */
 Method "_'s⁇head" is
 [
@@ -330,6 +359,10 @@ Method "_'s⁇head" is
 	Raise an empty-stream exception
 ] : ⊥;
 
+/**
+ * @method "_'s⁇head"
+ * @restricts "empty stream's type"
+ */
 Semantic restriction "_'s⁇head" is
 [
 	streamType : empty stream's type
@@ -341,8 +374,9 @@ Semantic restriction "_'s⁇head" is
 /**
  * Raise an `empty-stream exception`.
  * 
- * Parameters:
- *    aStream - An empty stream.
+ * @method "_'s⁇tail"
+ * @param "aStream" "empty stream"
+ * @raises "empty-stream exception"
  */
 Method "_'s⁇tail" is
 [
@@ -351,6 +385,10 @@ Method "_'s⁇tail" is
 	Raise an empty-stream exception
 ] : ⊥;
 
+/**
+ * @method "_'s⁇tail"
+ * @restricts "empty stream's type"
+ */
 Semantic restriction "_'s⁇tail" is
 [
 	streamType : empty stream's type
@@ -364,10 +402,16 @@ theEmptyStream ::= an empty stream with element type ::= ⊥;
 /**
  * Answer an empty stream.
  * 
- * Returns:
+ * @method "an empty stream"
+ * @returns "an empty stream with element type ::= ⊥"
  *    An empty stream.
  */
 Public method "an empty stream" is [ theEmptyStream ];
+
+/**
+ * @method "a|an_«with«_:=_‡,»»"
+ * @forbids "1" "empty stream"
+ */
 Grammatical restriction "a|an_«with«_:=_‡,»»" is <{"empty stream"}, ∅, ∅>;
 
 /* Seal the public operations. */

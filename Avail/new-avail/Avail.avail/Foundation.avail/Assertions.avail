@@ -57,6 +57,9 @@ Body
 /**
  * An assertion-failed exception indicates that {@method "Assert:_"} or
  * {@method "Assert:_(_)"} was invoked with a false predicate.
+ * 
+ * @type "assertion-failed exception"
+ * @supertype "exception"
  */
 Public explicit class "assertion-failed exception" extends exception;
 

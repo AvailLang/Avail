@@ -1210,7 +1210,7 @@ Public method "“_”(stack summary)" is
  * requested for the current fiber.
  *
  * @type "termination-requested exception"
- * @type "exception"
+ * @supertype "exception"
  */
 Public explicit class "termination-requested exception" extends exception;
 

@@ -1112,7 +1112,7 @@ Public method "counting semaphore" is [semaphore];
  * for use as a mutual exclusion device.
  *
  * @type "binary semaphore"
- * @type "semaphore"
+ * @supertype "semaphore"
  */
 Public class "binary semaphore" extends semaphore
 	with field

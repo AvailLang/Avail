@@ -244,6 +244,7 @@ Semantic restriction "an edge from_to_" is
  * arbitrary value.
  *
  * @type "labeled edge"
+ * @supertype "edge"
  * @field "edge label" "any"
  *        A value associated with the edge.
  */
@@ -418,8 +419,8 @@ Method "_'s⁇edges" is
  * Both the vertices and edges of a labeled graph have labels. A label is a
  * value associated with the vertex or edge.
  *
- * @type "labeled graph"
- * @supertype "graph"
+ * @type "basic labeled graph"
+ * @supertype "labeled graph"
  * @field "predecessors" "{any→{any→set|}|}"
  *        A map from vertices to maps from edge labels to sets of predecessor
  *        vertices.
