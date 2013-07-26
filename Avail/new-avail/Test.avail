@@ -39,6 +39,9 @@ Uses
 Body
 
 /* Report on all tests. */
-/*[x:[0..255]|Primitive 244;]:⊤(12);*/
-Print: test suite-oriented “report on all tests”;
-/*[x:[0..255]|Primitive 244;]:⊤(0);*/
+[x:[0..255]|Primitive 244;]:⊤(4);
+Repeat
+[
+	Print: test suite-oriented “report on all tests”;
+] 100 times;
+[x:[0..255]|Primitive 244;]:⊤(0);
