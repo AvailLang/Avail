@@ -105,7 +105,7 @@ extends Primitive
 							true);
 						break;
 					case PARKED:
-						// Unpark the fiber, resuming it.
+						// Resume the fiber.
 						assert !hadPermit :
 							"Should not have been parked with a permit";
 						fiber.executionState(SUSPENDED);

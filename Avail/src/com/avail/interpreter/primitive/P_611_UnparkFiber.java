@@ -79,6 +79,8 @@ extends Primitive
 			@Override
 			public void value ()
 			{
+				// Restore the permit. If the fiber is parked, then unpark it.
+				fiber.getAndSetSynchronizationFlag(PERMIT_UNAVAILABLE, false);
 				if (fiber.executionState() == PARKED)
 				{
 					// Wake up the fiber.

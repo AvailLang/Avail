@@ -89,25 +89,33 @@ extends Primitive
 				}
 			}
 		});
-		final Result result;
+		final MutableOrNull<Result> result = new MutableOrNull<>();
 		if (shouldPark.value)
 		{
-			// If permit is not available, then park this fiber.
-			if (current.getAndSetSynchronizationFlag(
-				PERMIT_UNAVAILABLE, true))
+			current.lock(new Continuation0()
 			{
-				result = interpreter.primitivePark();
-			}
-			else
-			{
-				result = interpreter.primitiveSuccess(NilDescriptor.nil());
-			}
+				@Override
+				public void value()
+				{
+					// If permit is not available, then park this fiber.
+					if (current.getAndSetSynchronizationFlag(
+						PERMIT_UNAVAILABLE, true))
+					{
+						result.value = interpreter.primitivePark();
+					}
+					else
+					{
+						result.value =
+							interpreter.primitiveSuccess(NilDescriptor.nil());
+					}
+				}
+			});
 		}
 		else
 		{
-			result = interpreter.primitiveSuccess(NilDescriptor.nil());
+			result.value = interpreter.primitiveSuccess(NilDescriptor.nil());
 		}
-		return result;
+		return result.value();
 	}
 
 	@Override

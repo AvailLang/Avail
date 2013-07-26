@@ -746,6 +746,10 @@ public final class Interpreter
 						@Override
 						public void value ()
 						{
+							// Restore the permit. Resume the fiber if it was
+							// parked.
+							joiner.getAndSetSynchronizationFlag(
+								PERMIT_UNAVAILABLE, false);
 							if (joiner.executionState() == PARKED)
 							{
 								// Wake it up.
@@ -755,12 +759,6 @@ public final class Interpreter
 									joiner,
 									NilDescriptor.nil(),
 									true);
-							}
-							else
-							{
-								// Give it a permit for later.
-								joiner.getAndSetSynchronizationFlag(
-									PERMIT_UNAVAILABLE, false);
 							}
 						}
 					});

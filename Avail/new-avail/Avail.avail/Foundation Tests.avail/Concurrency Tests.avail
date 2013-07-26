@@ -484,7 +484,7 @@ Test "request termination of parked fiber" in concurrency test suite is
 		Request termination of forked;
 		Join forked;
 		Require: forked has terminated;
-	] 10000 times;  /* TODO [MvG] - change back to 10 */
+	] 10 times;
 ];
 
 Test "request termination of joining fiber" in concurrency test suite is
