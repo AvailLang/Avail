@@ -79,18 +79,23 @@ extends Primitive
 			@Override
 			public void value ()
 			{
-				// If the permit is unavailable and the fiber is parked, then
-				// unpark it.
-				if (fiber.getAndSetSynchronizationFlag(
-						PERMIT_UNAVAILABLE, false)
-					&& fiber.executionState() == PARKED)
+				// Restore the permit. If the fiber is parked, then unpark it.
+				fiber.getAndSetSynchronizationFlag(PERMIT_UNAVAILABLE, false);
+				if (fiber.executionState() == PARKED)
 				{
+					// Wake up the fiber.
 					fiber.executionState(SUSPENDED);
 					Interpreter.resumeFromSuccessfulPrimitive(
 						AvailRuntime.current(),
 						fiber,
 						NilDescriptor.nil(),
 						skipReturnCheck);
+				}
+				else
+				{
+					// Save the permit for next time.
+					fiber.getAndSetSynchronizationFlag(
+						PERMIT_UNAVAILABLE, false);
 				}
 			}
 		});

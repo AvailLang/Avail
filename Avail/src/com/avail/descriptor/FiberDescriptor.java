@@ -316,38 +316,18 @@ extends Descriptor
 		RESULT_CONTINUATION,
 
 		/**
-		 * TODO[MvG] - Remove after debugging.  This field captures a Java stack
-		 * trace from the thread that consumes the {@link #RESULT_CONTINUATION}.
-		 * Its purpose is to hunt a problem wherein a second attempt is being
-		 * made to invoke the result continuation.  This situation is erroneous.
-		 * In addition, sometimes the result continuation is never invoked, also
-		 * a potentially erroneous situation.
-		 */
-		DEBUG_STACK_TRACE_OF_CONSUMPTION_OF_RESULT_CONTINUATION,
-
-		/**
-		 * TODO[MvG] - Remove after debugging.  This field captures a Java stack
-		 * trace from the thread that produces the {@link #RESULT_CONTINUATION}.
-		 * Its purpose is to hunt a problem wherein a second attempt is being
-		 * made to invoke the result continuation.  This situation is erroneous.
-		 * In addition, sometimes the result continuation is never invoked, also
-		 * a potentially erroneous situation.
-		 */
-		DEBUG_STACK_TRACE_OF_RECORDING_OF_RESULT_CONTINUATION,
-
-		/**
-		 * A {@linkplain StringDescriptor string} describing why this fiber was
-		 * created.  Useful for debugging.
-		 */
-		DEBUG_FIBER_PURPOSE,
-
-		/**
 		 * A {@linkplain RawPojoDescriptor raw pojo} wrapping the {@linkplain
 		 * Continuation1 continuation} that should be called with the
 		 * {@linkplain Throwable throwable} responsible for the untimely death
 		 * of the fiber.
 		 */
 		FAILURE_CONTINUATION,
+
+		/**
+		 * A {@linkplain StringDescriptor string} describing why this fiber was
+		 * created.  Useful for debugging.
+		 */
+		DEBUG_FIBER_PURPOSE,
 
 		/**
 		 * A {@linkplain SetDescriptor set} of {@linkplain FiberDescriptor
@@ -599,7 +579,7 @@ extends Descriptor
 	 * @param format The message string.
 	 * @param parameters The parameters with which to fill the message string.
 	 */
-	private static void log (
+	public static void log (
 		final @Nullable A_Fiber fiber,
 		final Level level,
 		final String format,
@@ -636,6 +616,15 @@ extends Descriptor
 					[object.mutableSlot(EXECUTION_STATE)];
 				assert current.mayTransitionTo(value);
 				object.setSlot(EXECUTION_STATE, value.ordinal());
+				if (debugFibers)
+				{
+					log(
+						object,
+						Level.FINE,
+						"ExecutionState {0} -> {1} (protected/shared)",
+						current,
+						value);
+				}
 			}
 		}
 		else
@@ -644,6 +633,15 @@ extends Descriptor
 				[object.mutableSlot(EXECUTION_STATE)];
 			assert current.mayTransitionTo(value);
 			object.setSlot(EXECUTION_STATE, value.ordinal());
+			if (debugFibers)
+			{
+				log(
+					object,
+					Level.FINE,
+					"ExecutionState {0} -> {1} (unprotected/unshared)",
+					current,
+					value);
+			}
 		}
 	}
 
@@ -970,25 +968,8 @@ extends Descriptor
 		synchronized (object)
 		{
 			pojo = object.slot(RESULT_CONTINUATION);
-			if (pojo.equalsNil())
-			{
-				final A_BasicObject oldThrowablePojo = object.slot(
-					DEBUG_STACK_TRACE_OF_CONSUMPTION_OF_RESULT_CONTINUATION);
-				final Throwable oldThrowable =
-					(Throwable)oldThrowablePojo.javaObject();
-				oldThrowable.printStackTrace();
-				assert false : "Fiber attepting to succeed twice!";
-			}
-			assert !pojo.equalsNil();
+			assert !pojo.equalsNil() : "Fiber attempting to succeed twice!";
 			object.setSlot(RESULT_CONTINUATION, NilDescriptor.nil());
-			//TODO[MvG] - Remove the rest of this section after debugging.
-			final Throwable throwable = new Throwable("For Debug");
-			throwable.fillInStackTrace();
-			final A_BasicObject throwablePojo =
-				RawPojoDescriptor.identityWrap(throwable);
-			object.setSlot(
-				DEBUG_STACK_TRACE_OF_CONSUMPTION_OF_RESULT_CONTINUATION,
-				throwablePojo.makeShared());
 		}
 		if (debugFibers)
 		{
@@ -1013,14 +994,6 @@ extends Descriptor
 			object.setSlot(
 				RESULT_CONTINUATION,
 				RawPojoDescriptor.identityWrap(continuation));
-			//TODO[MvG] - Remove the rest of this section after debugging.
-			final Throwable throwable = new Throwable("For Debug");
-			throwable.fillInStackTrace();
-			final A_BasicObject throwablePojo =
-				RawPojoDescriptor.identityWrap(throwable);
-			object.setSlot(
-				DEBUG_STACK_TRACE_OF_RECORDING_OF_RESULT_CONTINUATION,
-				throwablePojo.makeShared());
 		}
 	}
 
@@ -1293,13 +1266,6 @@ extends Descriptor
 		fiber.setSlot(LOADER, NilDescriptor.nil());
 		fiber.setSlot(RESULT_CONTINUATION, defaultResultContinuation);
 
-		//TODO[MvG] - Remove the following statements.
-		fiber.setSlot(
-			DEBUG_STACK_TRACE_OF_CONSUMPTION_OF_RESULT_CONTINUATION,
-			NilDescriptor.nil());
-		fiber.setSlot(
-			DEBUG_STACK_TRACE_OF_RECORDING_OF_RESULT_CONTINUATION,
-			NilDescriptor.nil());
 		fiber.setSlot(DEBUG_UNIQUE_ID, uniqueDebugCounter.incrementAndGet());
 		fiber.setSlot(DEBUG_FIBER_PURPOSE, purpose);
 
@@ -1357,13 +1323,6 @@ extends Descriptor
 		fiber.setSlot(LOADER, RawPojoDescriptor.identityWrap(loader));
 		fiber.setSlot(RESULT_CONTINUATION, defaultResultContinuation);
 
-		//TODO[MvG] - Remove the following statements.
-		fiber.setSlot(
-			DEBUG_STACK_TRACE_OF_CONSUMPTION_OF_RESULT_CONTINUATION,
-			NilDescriptor.nil());
-		fiber.setSlot(
-			DEBUG_STACK_TRACE_OF_RECORDING_OF_RESULT_CONTINUATION,
-			NilDescriptor.nil());
 		fiber.setSlot(DEBUG_UNIQUE_ID, uniqueDebugCounter.incrementAndGet());
 		fiber.setSlot(DEBUG_FIBER_PURPOSE, purpose);
 

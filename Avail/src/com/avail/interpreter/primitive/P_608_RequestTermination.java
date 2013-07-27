@@ -37,6 +37,7 @@ import static com.avail.descriptor.FiberDescriptor.InterruptRequestFlag.TERMINAT
 import static com.avail.descriptor.FiberDescriptor.SynchronizationFlag.PERMIT_UNAVAILABLE;
 import static com.avail.descriptor.FiberDescriptor.ExecutionState.*;
 import java.util.*;
+import java.util.logging.Level;
 import com.avail.AvailRuntime;
 import com.avail.descriptor.*;
 import com.avail.descriptor.FiberDescriptor.ExecutionState;
@@ -74,7 +75,18 @@ extends Primitive
 			{
 				// Set the interrupt request flag.
 				fiber.setInterruptRequestFlag(TERMINATION_REQUESTED);
-				switch (fiber.executionState())
+				final ExecutionState oldState = fiber.executionState();
+				final boolean hadPermit = !fiber.getAndSetSynchronizationFlag(
+					PERMIT_UNAVAILABLE, false);
+				if (FiberDescriptor.debugFibers)
+				{
+					FiberDescriptor.log(
+						fiber,
+						Level.FINE,
+						"Prim 608 executionState was {0}",
+						oldState);
+				}
+				switch (oldState)
 				{
 					case ASLEEP:
 						// Try to cancel the task (if any). This is best
@@ -93,25 +105,22 @@ extends Primitive
 							true);
 						break;
 					case PARKED:
-						// Unpark the fiber, resuming it if it was parked.
-						if (fiber.getAndSetSynchronizationFlag(
-							PERMIT_UNAVAILABLE, false))
-						{
-							fiber.executionState(SUSPENDED);
-							Interpreter.resumeFromSuccessfulPrimitive(
-								AvailRuntime.current(),
-								fiber,
-								NilDescriptor.nil(),
-								true);
-						}
+						// Resume the fiber.
+						assert !hadPermit :
+							"Should not have been parked with a permit";
+						fiber.executionState(SUSPENDED);
+						Interpreter.resumeFromSuccessfulPrimitive(
+							AvailRuntime.current(),
+							fiber,
+							NilDescriptor.nil(),
+							true);
 						break;
-					case TERMINATED:
-					case ABORTED:
 					case UNSTARTED:
 					case RUNNING:
 					case SUSPENDED:
 					case INTERRUPTED:
-						// Do nothing.
+					case TERMINATED:
+					case ABORTED:
 						break;
 				}
 			}
