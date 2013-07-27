@@ -1354,7 +1354,8 @@ public abstract class AbstractDescriptor
 	 * @param anIntegerIntervalTuple
 	 *        The integer interval tuple used in the comparison.
 	 * @param startIndex2
-	 *        The inclusive lower bound of the byte tuple's subrange.
+	 *        The inclusive lower bound of the integer interval tuple's
+	 *        subrange.
 	 * @return {@code true} if the contents of the subranges match exactly,
 	 *         {@code false} otherwise.
 	 * @see AvailObject#compareFromToWithByteTupleStartingAt(int, int, A_Tuple, int)
@@ -1364,6 +1365,34 @@ public abstract class AbstractDescriptor
 		int startIndex1,
 		int endIndex1,
 		A_Tuple anIntegerIntervalTuple,
+		int startIndex2);
+
+	/**
+	 * Compare a subrange of the {@linkplain AvailObject receiver} with a
+	 * subrange of the given {@linkplain SmallIntegerIntervalTupleDescriptor small integer
+	 * interval tuple}. The size of the subrange of both objects is determined
+	 * by the index range supplied for the receiver.
+	 *
+	 * @param object
+	 *        The receiver.
+	 * @param startIndex1
+	 *        The inclusive lower bound of the receiver's subrange.
+	 * @param endIndex1
+	 *        The inclusive upper bound of the receiver's subrange.
+	 * @param aSmallIntegerIntervalTuple
+	 *        The small integer interval tuple used in the comparison.
+	 * @param startIndex2
+	 *        The inclusive lower bound of the small integer interval tuple's
+	 *        subrange.
+	 * @return {@code true} if the contents of the subranges match exactly,
+	 *         {@code false} otherwise.
+	 * @see AvailObject#compareFromToWithByteTupleStartingAt(int, int, A_Tuple, int)
+	 */
+	abstract boolean o_CompareFromToWithSmallIntegerIntervalTupleStartingAt (
+		AvailObject object,
+		int startIndex1,
+		int endIndex1,
+		A_Tuple aSmallIntegerIntervalTuple,
 		int startIndex2);
 
 	/**
@@ -4024,6 +4053,12 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
+	abstract boolean o_IsSmallIntegerIntervalTuple (AvailObject object);
+
+	/**
+	 * @param object
+	 * @return
+	 */
 	abstract boolean o_IsIntegerRangeType (AvailObject object);
 
 	/**
@@ -5825,4 +5860,13 @@ public abstract class AbstractDescriptor
 	abstract boolean o_EqualsIntegerIntervalTuple (
 		AvailObject object,
 		A_Tuple anIntegerIntervalTuple);
+
+	/**
+	 * @param object
+	 * @param aSmallIntegerIntervalTuple
+	 * @return
+	 */
+	abstract boolean o_EqualsSmallIntegerIntervalTuple (
+		AvailObject object,
+		A_Tuple aSmallIntegerIntervalTuple);
 }

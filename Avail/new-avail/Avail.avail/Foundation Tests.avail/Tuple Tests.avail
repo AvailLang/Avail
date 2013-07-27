@@ -195,6 +195,9 @@ Test "quasi-destructive n-ary very complex tuple update" in tuple test suite is
 
 Test "integer interval tuple" in tuple test suite is
 [
+	/*
+	 * Create a series of complex small integer interval tuples.
+	 */
 	From -5 to 5 do
 	[
 		start : [-5..5]
@@ -232,5 +235,46 @@ Test "integer interval tuple" in tuple test suite is
 			];
 		];
 	];
+
+	/*
+	 * Test a delta that results in an actual end value that precedes the
+	 * supplied end.
+	 */
 	Require: <83, 66, 49, 32, 15, -2, -19> = 83 to -29 by -17;
+
+	/*
+	 * Create a simple integer interval tuple that is not small.
+	 */
+	expected : tuple := <>;
+	From 12345678901 to 12345678907 by 2 do
+	[
+		i : integer
+	|
+		expected := expected ++ <i>;
+	];
+	Require: expected = 12345678901 to 12345678907 by 2;
+
+	/*
+	 * Test concatenation of a small and a regular integer interval tuple.
+	 */
+	tinyTuple ::= 1 to 10 by 1;
+	concatOne ::= tinyTuple ++ expected;
+	Require: <1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12345678901, 12345678903, 
+		12345678905, 12345678907> = concatOne;
+
+	/* 
+	 * Test the edges of small integer interval tuples and regular ones.
+	 */
+	intMaxInterval ::= 2147483640 to 2147483647 by 1;
+	tooBigInterval ::= 2147483648 to 2147483655 by 1;
+	concatTwo ::= intMaxInterval ++ tooBigInterval;
+	Require: concatTwo = 2147483640 to 2147483655 by 1;
+
+	/* 
+	 * Test concatenation of two small integer interval tuples.
+	 */
+	left ::= 1 to 5 by 1;
+	right ::= 6 to 10 by 1;
+	concatThree ::= left ++ right;
+	Require: concatThree = 1 to 10 by 1;
 ];

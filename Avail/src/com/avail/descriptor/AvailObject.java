@@ -1120,6 +1120,38 @@ implements
 
 	/**
 	 * Compare a subrange of the {@linkplain AvailObject receiver} with a
+	 * subrange of the given {@linkplain SmallIntegerIntervalTupleDescriptor
+	 * small integer interval tuple}. The size of the subrange of both objects
+	 * is determined by the index range supplied for the receiver.
+	 *
+	 * @param startIndex1
+	 *        The inclusive lower bound of the receiver's subrange.
+	 * @param endIndex1
+	 *        The inclusive upper bound of the receiver's subrange.
+	 * @param aSmallIntegerIntervalTuple
+	 *        The small integer interval tuple used in the comparison.
+	 * @param startIndex2
+	 *        The inclusive lower bound of the byte tuple's subrange.
+	 * @return {@code true} if the contents of the subranges match exactly,
+	 *         {@code false} otherwise.
+	 */
+	@Override
+	public boolean compareFromToWithSmallIntegerIntervalTupleStartingAt (
+		final int startIndex1,
+		final int endIndex1,
+		final A_Tuple aSmallIntegerIntervalTuple,
+		final int startIndex2)
+	{
+		return descriptor.o_CompareFromToWithSmallIntegerIntervalTupleStartingAt(
+			this,
+			startIndex1,
+			endIndex1,
+			aSmallIntegerIntervalTuple,
+			startIndex2);
+	}
+
+	/**
+	 * Compare a subrange of the {@linkplain AvailObject receiver} with a
 	 * subrange of the given {@linkplain NybbleTupleDescriptor nybble tuple}.
 	 * The size of the subrange of both objects is determined by the index range
 	 * supplied for the receiver.
@@ -1576,13 +1608,13 @@ implements
 
 	/**
 	 * Answer whether the receiver, an {@linkplain AvailObject object}, and the
-	 * argument, a {@linkplain ByteTupleDescriptor byte tuple}, are equal in
-	 * value.
+	 * argument, an {@linkplain IntegerIntervalTupleDescriptor integer interval
+	 * tuple}, are equal in value.
 	 *
 	 * @param anIntegerIntervalTuple The integer interval tuple to be compared
 	 *                               to the receiver.
-	 * @return {@code true} if the receiver is a byte tuple and of value equal
-	 *         to the argument, {@code false} otherwise.
+	 * @return {@code true} if the receiver is an integer interval tuple and of
+	 *         value equal to the argument, {@code false} otherwise.
 	 */
 	@Override
 	public boolean equalsIntegerIntervalTuple (
@@ -1593,6 +1625,24 @@ implements
 			anIntegerIntervalTuple);
 	}
 
+	/**
+	 * Answer whether the receiver, an {@linkplain AvailObject object}, and the
+	 * argument, a {@linkplain SmallIntegerIntervalTupleDescriptor small integer
+	 * interval tuple}, are equal in value.
+	 *
+	 * @param aSmallIntegerIntervalTuple The integer interval tuple to be compared
+	 *                               to the receiver.
+	 * @return {@code true} if the receiver is a small integer interval tuple
+	 *         and of value equal to the argument, {@code false} otherwise.
+	 */
+	@Override
+	public boolean equalsSmallIntegerIntervalTuple (
+		final A_Tuple aSmallIntegerIntervalTuple)
+	{
+		return descriptor.o_EqualsSmallIntegerIntervalTuple(
+			this,
+			aSmallIntegerIntervalTuple);
+	}
 	/**
 	 * Answer whether the receiver, an {@linkplain AvailObject object}, is a
 	 * character with a code point equal to the integer argument.
@@ -2401,6 +2451,15 @@ implements
 	public boolean isIntegerIntervalTuple ()
 	{
 		return descriptor.o_IsIntegerIntervalTuple(this);
+	}
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	@Override
+	public boolean isSmallIntegerIntervalTuple ()
+	{
+		return descriptor.o_IsSmallIntegerIntervalTuple(this);
 	}
 
 	/**

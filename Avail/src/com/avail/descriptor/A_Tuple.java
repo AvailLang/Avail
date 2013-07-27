@@ -154,6 +154,29 @@ extends A_BasicObject, Iterable<AvailObject>
 
 	/**
 	 * Compare a subrange of the {@linkplain AvailObject receiver} with a
+	 * subrange of the given {@linkplain SmallIntegerIntervalTupleDescriptor
+	 * small integer interval tuple}. The size of the subrange of both objects
+	 * is determined by the index range supplied for the receiver.
+	 *
+	 * @param startIndex1
+	 *        The inclusive lower bound of the receiver's subrange.
+	 * @param endIndex1
+	 *        The inclusive upper bound of the receiver's subrange.
+	 * @param aSmallIntegerIntervalTuple
+	 *        The small integer interval tuple used in the comparison.
+	 * @param startIndex2
+	 *        The inclusive lower bound of the byte tuple's subrange.
+	 * @return {@code true} if the contents of the subranges match exactly,
+	 *         {@code false} otherwise.
+	 */
+	boolean compareFromToWithSmallIntegerIntervalTupleStartingAt (
+		int startIndex1,
+		int endIndex1,
+		A_Tuple aSmallIntegerIntervalTuple,
+		int startIndex2);
+
+	/**
+	 * Compare a subrange of the {@linkplain AvailObject receiver} with a
 	 * subrange of the given {@linkplain NybbleTupleDescriptor nybble tuple}.
 	 * The size of the subrange of both objects is determined by the index range
 	 * supplied for the receiver.

@@ -1,5 +1,5 @@
 /**
- * IntegerIntervalTupleDescriptor.java
+ * SmallIntegerIntervalTupleDescriptor.java
  * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -32,20 +32,18 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.IntegerIntervalTupleDescriptor.IntegerSlots.*;
-import static com.avail.descriptor.IntegerIntervalTupleDescriptor.ObjectSlots.*;
-import java.util.ArrayList;
-import java.util.List;
+import static com.avail.descriptor.SmallIntegerIntervalTupleDescriptor.IntegerSlots.*;
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
 
 /**
- * {@code IntegerIntervalTupleDescriptor} represents an ordered tuple of
- * integers that each differ from their predecessor by DELTA, an integer value.
+ * {@code SmallIntegerIntervalTupleDescriptor} represents an {@linkplain
+ * IntegerIntervalTupleDescriptor integer interval tuple} whose slots are all
+ * Java primitive numerics.
  *
  * @author Leslie Schultz &lt;leslie@availlang.org&gt;
  */
-public class IntegerIntervalTupleDescriptor
+public class SmallIntegerIntervalTupleDescriptor
 extends TupleDescriptor
 {
 	/**
@@ -63,29 +61,6 @@ extends TupleDescriptor
 		@HideFieldInDebugger
 		HASH_OR_ZERO,
 
-		/**
-		 * The number of elements in the tuple.
-		 *
-		 * The API's {@link AvailObject#tupleSize() tuple size accessor}
-		 * currently returns a Java integer, because there wasn't much of a
-		 * problem limiting manually-constructed tuples to two billion elements.
-		 * This restriction will eventually be removed.
-		 */
-		SIZE;
-
-		static
-		{
-			assert TupleDescriptor.IntegerSlots.HASH_OR_ZERO.ordinal()
-				== HASH_OR_ZERO.ordinal();
-		}
-	}
-
-	/**
-	 * The layout of object slots for my instances.
-	 */
-	public enum ObjectSlots
-	implements ObjectSlotsEnum
-	{
 		/** The first value in the tuple, inclusive. */
 		START,
 
@@ -99,18 +74,22 @@ extends TupleDescriptor
 		 * The difference between a value and its subsequent neighbor in the
 		 * tuple.
 		 */
-		DELTA
+		DELTA,
+
+		/**
+		 * The number of elements in the tuple.
+		 */
+		SIZE;
+
+		static
+		{
+			assert TupleDescriptor.IntegerSlots.HASH_OR_ZERO.ordinal()
+				== HASH_OR_ZERO.ordinal();
+		}
 	}
 
-	/**
-	 * The minimum size for integer interval tuple creation. All tuples
-	 * requested below this size will be created as standard tuples or the empty
-	 * tuple.
-	 */
-	private static int minimumSize = 4;
-
 	@Override @AvailMethod
-	public boolean o_IsIntegerIntervalTuple(final AvailObject object)
+	public boolean o_IsSmallIntegerIntervalTuple(final AvailObject object)
 	{
 		return true;
 	}
@@ -132,37 +111,32 @@ extends TupleDescriptor
 		if (newSize != oldSize)
 		{
 			final AvailObject traversed = object.traversed();
-			final A_Number delta = traversed.slot(DELTA);
+			final int delta = traversed.slot(DELTA);
 
 			// Calculate the new start value from the given start index.
-			A_Number newStartValue;
-			final A_Number oldStartValue = traversed.slot(START);
+			int newStartValue;
+			final int oldStartValue = traversed.slot(START);
 			if (start == 1)
 			{
 				newStartValue = oldStartValue;
 			}
 			else
 			{
-				final A_Number newStartIndex =
-					IntegerDescriptor.fromInt(start);
-				newStartValue = oldStartValue.plusCanDestroy(
-					delta.timesCanDestroy(newStartIndex, false),
-					false);
+				final int newStartIndex = start;
+				newStartValue = oldStartValue + delta * newStartIndex;
 			}
 
 			// Calculate the new end value from the given end index.
-			A_Number newEndValue;
-			final A_Number oldEndValue = traversed.slot(END);
+			int newEndValue;
+			final int oldEndValue = traversed.slot(END);
 			if (end == oldSize)
 			{
 				newEndValue = oldEndValue;
 			}
 			else
 			{
-				final A_Number newEndIndex = IntegerDescriptor.fromInt(end);
-				newEndValue = oldStartValue.plusCanDestroy(
-					delta.timesCanDestroy(newEndIndex, false),
-					false);
+				final int newEndIndex = end;
+				newEndValue = oldStartValue + delta * newEndIndex;
 			}
 
 			// Create the new tuple, set its size, and return it.
@@ -204,7 +178,7 @@ extends TupleDescriptor
 		final A_Tuple anotherObject,
 		final int startIndex2)
 	{
-		return anotherObject.compareFromToWithIntegerIntervalTupleStartingAt(
+		return anotherObject.compareFromToWithSmallIntegerIntervalTupleStartingAt(
 			startIndex2,
 			startIndex2 + endIndex1 - startIndex1,
 			object,
@@ -212,16 +186,16 @@ extends TupleDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_CompareFromToWithIntegerIntervalTupleStartingAt (
+	boolean o_CompareFromToWithSmallIntegerIntervalTupleStartingAt (
 		final AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
-		final A_Tuple anIntegerIntervalTuple,
+		final A_Tuple aSmallIntegerIntervalTuple,
 		final int startIndex2)
 	{
 		// If the objects refer to the same memory, and the indices match
 		// up, the subranges are the same.
-		if (object.sameAddressAs(anIntegerIntervalTuple) &&
+		if (object.sameAddressAs(aSmallIntegerIntervalTuple) &&
 			startIndex1 == startIndex2)
 		{
 			return true;
@@ -229,18 +203,18 @@ extends TupleDescriptor
 
 		// If the objects do not refer to the same memory but the tuples are
 		// identical,
-		if (object.equals(anIntegerIntervalTuple))
+		if (object.equals(aSmallIntegerIntervalTuple))
 		{
 			// indirect one to the other if it is not shared.
 			if (!isShared())
 			{
-				anIntegerIntervalTuple.makeImmutable();
-				object.becomeIndirectionTo(anIntegerIntervalTuple);
+				aSmallIntegerIntervalTuple.makeImmutable();
+				object.becomeIndirectionTo(aSmallIntegerIntervalTuple);
 			}
-			else if (!anIntegerIntervalTuple.descriptor().isShared())
+			else if (!aSmallIntegerIntervalTuple.descriptor().isShared())
 			{
 				object.makeImmutable();
-				anIntegerIntervalTuple.becomeIndirectionTo(object);
+				aSmallIntegerIntervalTuple.becomeIndirectionTo(object);
 			}
 
 			// If the subranges start at the same place, they are the same.
@@ -256,7 +230,7 @@ extends TupleDescriptor
 			startIndex1,
 			endIndex1,
 			false);
-		final A_Tuple second = anIntegerIntervalTuple.copyTupleFromToCanDestroy(
+		final A_Tuple second = aSmallIntegerIntervalTuple.copyTupleFromToCanDestroy(
 			startIndex2,
 			startIndex2 + endIndex1 - startIndex1,
 			false);
@@ -276,19 +250,18 @@ extends TupleDescriptor
 			otherTuple.makeImmutable();
 		}
 
-		// Assess the possibility that the concatenation will still be an
+		// Assess the possibility that the concatenation will still be a small
 		// integer interval tuple.
-		if (otherTuple.isIntegerIntervalTuple())
+		if (otherTuple.isSmallIntegerIntervalTuple())
 		{
 			final AvailObject otherDirect = otherTuple.traversed();
-			final AvailObject delta = object.slot(DELTA);
+			final int delta = object.slot(DELTA);
 
 			// If the other's delta is the same as mine,
-			if (delta.equals(otherDirect.slot(DELTA)))
+			if (delta == otherDirect.slot(DELTA))
 			{
 				// and the other's start is one delta away from my end,
-				if (object.slot(END).plusCanDestroy(delta, false)
-					.equals(otherDirect.slot(START)))
+				if (object.slot(END) + delta == otherDirect.slot(START))
 				{
 					// then we're adjacent.
 					final int newSize = object.slot(SIZE) +
@@ -320,6 +293,18 @@ extends TupleDescriptor
 				}
 			}
 		}
+		else if (otherTuple.isIntegerIntervalTuple())
+		{
+			// Force the small interval into a regular one, and attempt to
+			// concatenate them.
+			final A_Tuple big =
+				IntegerIntervalTupleDescriptor.forceCreate(
+					IntegerDescriptor.fromInt(object.slot(START)),
+					IntegerDescriptor.fromInt(object.slot(END)),
+					IntegerDescriptor.fromInt(object.slot(DELTA)),
+					object.slot(SIZE));
+			return big.concatenateWith(otherTuple, canDestroy);
+		}
 		if (otherTuple.treeTupleLevel() == 0)
 		{
 			return TreeTupleDescriptor.createPair(object, otherTuple, 1, 0);
@@ -333,16 +318,16 @@ extends TupleDescriptor
 	@Override @AvailMethod
 	boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
-		return another.equalsIntegerIntervalTuple(object);
+		return another.equalsSmallIntegerIntervalTuple(object);
 	}
 
 	@Override @AvailMethod
-	boolean o_EqualsIntegerIntervalTuple (
+	boolean o_EqualsSmallIntegerIntervalTuple (
 		final AvailObject object,
-		final A_Tuple anIntegerIntervalTuple)
+		final A_Tuple aSmallIntegerIntervalTuple)
 	{
 		// First, check for object-structure (address) identity.
-		if (object.sameAddressAs(anIntegerIntervalTuple))
+		if (object.sameAddressAs(aSmallIntegerIntervalTuple))
 		{
 			return true;
 		}
@@ -350,7 +335,8 @@ extends TupleDescriptor
 		// If the objects do not refer to the same memory, check if the tuples
 		// are identical.
 		final AvailObject firstTraversed = object.traversed();
-		final AvailObject secondTraversed = anIntegerIntervalTuple.traversed();
+		final AvailObject secondTraversed =
+			aSmallIntegerIntervalTuple.traversed();
 
 		// Check that the slots match.
 		final int firstHash = firstTraversed.slot(HASH_OR_ZERO);
@@ -359,16 +345,15 @@ extends TupleDescriptor
 		{
 			return false;
 		}
-		// Since we have SIZE as int, it's cheaper to check it than END.
 		if (firstTraversed.slot(SIZE) != secondTraversed.slot(SIZE))
 		{
 			return false;
 		}
-		if (!firstTraversed.slot(DELTA).equals(secondTraversed.slot(DELTA)))
+		if (firstTraversed.slot(DELTA) != secondTraversed.slot(DELTA))
 		{
 			return false;
 		}
-		if (!firstTraversed.slot(START).equals(secondTraversed.slot(START)))
+		if (firstTraversed.slot(START) != secondTraversed.slot(START))
 		{
 			return false;
 		}
@@ -376,13 +361,13 @@ extends TupleDescriptor
 		// All the slots match. Indirect one to the other if it is not shared.
 		if (!isShared())
 		{
-			anIntegerIntervalTuple.makeImmutable();
-			object.becomeIndirectionTo(anIntegerIntervalTuple);
+			aSmallIntegerIntervalTuple.makeImmutable();
+			object.becomeIndirectionTo(aSmallIntegerIntervalTuple);
 		}
-		else if (!anIntegerIntervalTuple.descriptor().isShared())
+		else if (!aSmallIntegerIntervalTuple.descriptor().isShared())
 		{
 			object.makeImmutable();
-			anIntegerIntervalTuple.becomeIndirectionTo(object);
+			aSmallIntegerIntervalTuple.becomeIndirectionTo(object);
 		}
 		return true;
 
@@ -391,9 +376,9 @@ extends TupleDescriptor
 	@Override
 	int o_BitsPerEntry (final AvailObject object)
 	{
-		// Consider a billion element tuple. Since an interval tuple requires
-		// only O(1) storage, irrespective of its size, the average bits per
-		// entry is 0.
+		// Consider a billion element tuple. Since a small interval tuple
+		// requires only O(1) storage, irrespective of its size, the average
+		// bits per entry is 0.
 		return 0;
 	}
 
@@ -403,10 +388,10 @@ extends TupleDescriptor
 		// Answer the value at the given index in the tuple object.
 		// START + (index-1) × DELTA
 		assert index >= 1 && index <= object.tupleSize();
-		A_Number temp = IntegerDescriptor.fromInt(index - 1);
-		temp = temp.timesCanDestroy(object.slot(DELTA), false);
-		temp = temp.plusCanDestroy(object.slot(START), false);
-		return (AvailObject) temp;
+		int temp = index - 1;
+		temp = temp * object.slot(DELTA);
+		temp = temp + object.slot(START);
+		return (AvailObject) IntegerDescriptor.fromInt(temp);
 	}
 
 	@Override @AvailMethod
@@ -438,7 +423,12 @@ extends TupleDescriptor
 	int o_TupleIntAt (final AvailObject object, final int index)
 	{
 		// Answer the value at the given index in the tuple object.
-		return object.tupleAt(index).extractInt();
+		// START + (index-1) × DELTA
+		assert index >= 1 && index <= object.tupleSize();
+		int temp = index - 1;
+		temp = temp * object.slot(DELTA);
+		temp = temp + object.slot(START);
+		return temp;
 	}
 
 	@Override @AvailMethod
@@ -447,153 +437,101 @@ extends TupleDescriptor
 		return object.slot(SIZE);
 	}
 
-	/** The mutable {@link IntegerIntervalTupleDescriptor}. */
-	public static final IntegerIntervalTupleDescriptor mutable =
-		new IntegerIntervalTupleDescriptor(Mutability.MUTABLE);
+	/** The mutable {@link SmallIntegerIntervalTupleDescriptor}. */
+	public static final SmallIntegerIntervalTupleDescriptor mutable =
+		new SmallIntegerIntervalTupleDescriptor(Mutability.MUTABLE);
 
 	@Override
-	IntegerIntervalTupleDescriptor mutable ()
+	SmallIntegerIntervalTupleDescriptor mutable ()
 	{
 		return mutable;
 	}
 
 	/** The immutable {@link IntegerIntervalTupleDescriptor}. */
-	private static final IntegerIntervalTupleDescriptor immutable =
-		new IntegerIntervalTupleDescriptor(Mutability.IMMUTABLE);
+	private static final SmallIntegerIntervalTupleDescriptor immutable =
+		new SmallIntegerIntervalTupleDescriptor(Mutability.IMMUTABLE);
 
 	@Override
-	IntegerIntervalTupleDescriptor immutable ()
+	SmallIntegerIntervalTupleDescriptor immutable ()
 	{
 		return immutable;
 	}
 
-	/** The shared {@link IntegerIntervalTupleDescriptor}. */
-	private static final IntegerIntervalTupleDescriptor shared =
-		new IntegerIntervalTupleDescriptor(Mutability.SHARED);
+	/** The shared {@link SmallIntegerIntervalTupleDescriptor}. */
+	private static final SmallIntegerIntervalTupleDescriptor shared =
+		new SmallIntegerIntervalTupleDescriptor(Mutability.SHARED);
 
 	@Override
-	IntegerIntervalTupleDescriptor shared ()
+	SmallIntegerIntervalTupleDescriptor shared ()
 	{
 		return shared;
 	}
 
 	/**
-	 * Construct a new {@link IntegerIntervalTupleDescriptor}.
+	 * Construct a new {@link SmallIntegerIntervalTupleDescriptor}.
 	 *
 	 * @param mutability
 	 */
-	public IntegerIntervalTupleDescriptor (final Mutability mutability)
+	public SmallIntegerIntervalTupleDescriptor (final Mutability mutability)
 	{
 		super(mutability);
 	}
 
 	/**
-	 * Create a new interval according to the parameters.
+	 * Evaluates whether the supplied parameters for an integer interval tuple
+	 * are small enough that the small integer interval tuple representation
+	 * can be used.
 	 *
-	 * @param start The first integer in the interval.
-	 * @param end The last allowable integer in the interval.
-	 * @param delta The difference between an integer and its subsequent
-	 *              neighbor in the interval. Delta is nonzero.
-	 * @return The new interval.
+	 * @param newStart The start value for the candidate interval tuple.
+	 * @param newEnd The end value for the candidate interval tuple.
+	 * @param delta The delta for the candidate interval tuple.
+	 * @return True if all values would fit in the small representation, false
+	 *         otherwise.
 	 */
-	public static A_Tuple createInterval (
-		final A_Number start,
-		final A_Number end,
+	static boolean isCandidate (
+		final A_Number newStart,
+		final A_Number newEnd,
 		final A_Number delta)
 	{
-		assert !delta.equals(IntegerDescriptor.zero());
+		// Size is always an integer, so no need to check it.
 
-		final A_Number difference = end.minusCanDestroy(start, false);
-		final A_Number zero = IntegerDescriptor.zero();
+		final A_Number integerMin =
+			IntegerDescriptor.fromInt(Integer.MIN_VALUE);
+		final A_Number integerMax =
+			IntegerDescriptor.fromInt(Integer.MAX_VALUE);
 
-		// If there is only one member in the range, return that integer in
-		// its own tuple.
-		if (difference.equals(zero))
+		if (newStart.greaterOrEqual(integerMin)
+				&& newStart.lessOrEqual(integerMax)
+			&& newEnd.lessOrEqual(integerMax)
+				&& newEnd.lessOrEqual(integerMax)
+			&& delta.lessOrEqual(integerMax)
+				&& delta.lessOrEqual(integerMax))
 		{
-			return TupleDescriptor.from(start);
+			return true;
 		}
-
-		// If the progression is in a different direction than the delta, there
-		// are no members of this interval, so return the empty tuple.
-		if (difference.greaterThan(zero) != delta.greaterThan(zero))
-		{
-			return TupleDescriptor.empty();
-		}
-
-		// If there are fewer than minimumSize members in this interval, create
-		// a normal tuple with them in it instead of an interval tuple.
-		final int size;
-//		// TODO: [LAS] Remove when Mark fixes -a/-b rounding towards +∞.
-//		if (difference.lessThan(zero))
-//		{
-//			final A_Number negativeOne = IntegerDescriptor.fromInt(-1);
-//			final A_Number tempDifference =
-//				difference.timesCanDestroy(negativeOne, false);
-//			final A_Number tempDelta =
-//				delta.timesCanDestroy(negativeOne, false);
-//			size = 1 +
-//				tempDifference.divideCanDestroy(tempDelta, false).extractInt();
-//		}
-//		else
-//		{
-
-			size = 1 + difference.divideCanDestroy(delta, false).extractInt();
-//		}
-		if (size < minimumSize)
-		{
-			final List<A_Number> members = new ArrayList<A_Number>(size);
-			A_Number newMember = start;
-			for (int i = 0; i < size; i++)
-			{
-				members.add(newMember);
-				newMember = newMember.addToIntegerCanDestroy(delta, false);
-			}
-			return TupleDescriptor.fromList(members);
-		}
-
-		// If the slot contents are small enough, create a
-		// SmallIntegerIntervalTuple.
-		if (SmallIntegerIntervalTupleDescriptor.isCandidate(
-			start, end, delta))
-		{
-			return SmallIntegerIntervalTupleDescriptor.createInterval(
-				start.extractInt(),
-				end.extractInt(),
-				delta.extractInt());
-		}
-
-		// No other efficiency shortcuts. Normalize end, and create a range.
-		// overshot = (end - start) mod delta
-		final A_Number overshot = difference.minusCanDestroy(
-			delta.timesCanDestroy(
-				difference.divideCanDestroy(delta, false), false), false);
-		final A_Number normalizedEnd = end.minusCanDestroy(overshot, false);
-		return forceCreate(start, normalizedEnd, delta, size);
+		return false;
 	}
 
 	/**
-	 * Create a new IntegerIntervalTuple using the supplied arguments,
-	 * regardless of the suitability of other representations.
+	 * Create a new interval according to the parameters.
 	 *
-	 * @param start The first integer in the interval.
-	 * @param normalizedEnd The last integer in the interval.
-	 * @param delta The difference between an integer and its subsequent
-	 *              neighbor in the interval. Delta is nonzero.
-	 * @param size The size of the interval, in number of elements.
+	 * @param newStart The first integer in the interval.
+	 * @param newEnd The last integer in the interval.
+	 * @param delta The difference between an integer and its subsequent neighbor
+	 *             in the interval. Delta is nonzero.
 	 * @return The new interval.
 	 */
-	static A_Tuple forceCreate (
-		final A_Number start,
-		final A_Number normalizedEnd,
-		final A_Number delta,
-		final int size)
+	public static A_Tuple createInterval (
+		final int newStart,
+		final int newEnd,
+		final int delta)
 	{
 		final AvailObject interval = mutable.create();
+		interval.setSlot(START, newStart);
+		interval.setSlot(END, newEnd);
+		interval.setSlot(DELTA, delta);
 		interval.setSlot(HASH_OR_ZERO, 0);
-		interval.setSlot(START, start.makeImmutable());
-		interval.setSlot(END, normalizedEnd.makeImmutable());
-		interval.setSlot(DELTA, delta.makeImmutable());
-		interval.setSlot(SIZE, size);
+		interval.setSlot(SIZE, (newEnd - newStart) / delta + 1);
 		return interval;
 	}
 }
