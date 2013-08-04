@@ -83,7 +83,6 @@ extends Primitive
 				return interpreter.primitiveFailure(
 					E_INCORRECT_ARGUMENT_TYPE);
 			}
-			// Make the argument shared.
 			callArgs.add(anArg);
 		}
 		// Now that we know that the call will really happen, share the function

@@ -746,11 +746,13 @@ public final class Interpreter
 						@Override
 						public void value ()
 						{
-							// Unpark the fiber, resuming it if it was parked.
-							if (joiner.getAndSetSynchronizationFlag(
-									PERMIT_UNAVAILABLE, false)
-								&& joiner.executionState() == PARKED)
+							// Restore the permit. Resume the fiber if it was
+							// parked.
+							joiner.getAndSetSynchronizationFlag(
+								PERMIT_UNAVAILABLE, false);
+							if (joiner.executionState() == PARKED)
 							{
+								// Wake it up.
 								joiner.executionState(SUSPENDED);
 								Interpreter.resumeFromSuccessfulPrimitive(
 									AvailRuntime.current(),
