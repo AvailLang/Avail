@@ -1344,8 +1344,19 @@ public interface A_BasicObject
 	boolean isIntegerIntervalTuple ();
 
 	/**
+	 * @return
+	 */
+	boolean isSmallIntegerIntervalTuple ();
+
+	/**
 	 * @param object
 	 * @return
 	 */
 	boolean equalsIntegerIntervalTuple (A_Tuple object);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	boolean equalsSmallIntegerIntervalTuple (A_Tuple object);
 }

@@ -346,6 +346,17 @@ public abstract class Descriptor extends AbstractDescriptor
 	}
 
 	@Override
+	boolean o_CompareFromToWithSmallIntegerIntervalTupleStartingAt (
+		final AvailObject object,
+		final int startIndex1,
+		final int endIndex1,
+		final A_Tuple aSmallIntegerIntervalTuple,
+		final int startIndex2)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
 	boolean o_CompareFromToWithNybbleTupleStartingAt (
 		final AvailObject object,
 		final int startIndex1,
@@ -2004,6 +2015,14 @@ public abstract class Descriptor extends AbstractDescriptor
 
 	@Override
 	boolean o_EqualsIntegerIntervalTuple (
+		final AvailObject object,
+		final A_Tuple aTuple)
+	{
+		return false;
+	}
+
+	@Override
+	boolean o_EqualsSmallIntegerIntervalTuple (
 		final AvailObject object,
 		final A_Tuple aTuple)
 	{
@@ -4260,6 +4279,12 @@ public abstract class Descriptor extends AbstractDescriptor
 
 	@Override
 	boolean o_IsIntegerIntervalTuple (final AvailObject object)
+	{
+		return false;
+	}
+
+	@Override
+	boolean o_IsSmallIntegerIntervalTuple (final AvailObject object)
 	{
 		return false;
 	}
