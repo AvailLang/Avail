@@ -2867,7 +2867,16 @@ implements
 	@Override
 	public AvailObject makeShared ()
 	{
-		return descriptor.o_MakeShared(this);
+		final AvailObject shared = descriptor.o_MakeShared(this);
+		// Force a write barrier. The original object is the only object that
+		// may have pending writes potentially visible to other threads, so
+		// synchronize on it. It doesn't actually matter which object is
+		// synchronized, since any critical session forces both a read barrier
+		// and a write barrier.
+		synchronized (this)
+		{
+			return shared;
+		}
 	}
 
 	/**

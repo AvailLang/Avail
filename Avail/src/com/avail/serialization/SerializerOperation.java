@@ -1064,7 +1064,7 @@ public enum SerializerOperation
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
-			return VariableDescriptor.forOuterType(subobjects[0]);
+			return VariableDescriptor.forVariableType(subobjects[0]);
 		}
 
 		@Override

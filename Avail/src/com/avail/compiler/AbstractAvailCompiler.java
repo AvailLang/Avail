@@ -2922,7 +2922,7 @@ public abstract class AbstractAvailCompiler
 						{
 							assert val != null;
 							final A_Variable var =
-								VariableDescriptor.forInnerType(
+								VariableDescriptor.forContentType(
 									AbstractEnumerationTypeDescriptor
 										.withInstance(val));
 							module.addConstantBinding(name, var);
@@ -2957,7 +2957,7 @@ public abstract class AbstractAvailCompiler
 			}
 			case LOCAL_VARIABLE:
 			{
-				final A_Variable var = VariableDescriptor.forInnerType(
+				final A_Variable var = VariableDescriptor.forContentType(
 					expression.declaredType());
 				module.addVariableBinding(name, var);
 				if (!expression.initializationExpression().equalsNil())

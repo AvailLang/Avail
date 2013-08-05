@@ -59,7 +59,7 @@ public class P_052_ContinuationCaller extends Primitive
 		assert args.size() == 1;
 		final A_Continuation con = args.get(0);
 		final A_Continuation caller = con.caller();
-		final A_Variable callerHolder = VariableDescriptor.forInnerType(
+		final A_Variable callerHolder = VariableDescriptor.forContentType(
 			ContinuationTypeDescriptor.mostGeneralType());
 		if (!caller.equalsNil())
 		{

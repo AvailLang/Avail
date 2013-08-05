@@ -41,7 +41,7 @@ import com.avail.serialization.SerializerOperation;
 
 /**
  * My {@linkplain AvailObject object instances} are variables which can hold
- * any object that agrees with my {@linkplain #forInnerType(A_Type) inner type}.
+ * any object that agrees with my {@linkplain #forContentType(A_Type) inner type}.
  * A variable may also hold no value at all.  Any attempt to read the
  * {@linkplain #o_GetValue(AvailObject) current value} of a variable that holds
  * no value will fail immediately.
@@ -283,6 +283,28 @@ extends Descriptor
 		return object;
 	}
 
+	@Override
+	AvailObject o_MakeShared (final AvailObject object)
+	{
+		assert !isShared();
+		final A_Type kind = object.slot(KIND).makeShared();
+		final AvailObject value = object.slot(VALUE).makeShared();
+		// The value might refer recursively to the variable, so it is possible
+		// that the variable has just become shared.
+		if (!object.descriptor.isShared())
+		{
+			final AvailObject substitutionVariable =
+				VariableSharedDescriptor.create(
+					kind,
+					object.slot(HASH_OR_ZERO),
+					value);
+			object.becomeIndirectionTo(substitutionVariable);
+			object.makeShared();
+			return substitutionVariable;
+		}
+		return object;
+	}
+
 	@Override @AvailMethod
 	final SerializerOperation o_SerializerOperation (final AvailObject object)
 	{
@@ -294,14 +316,14 @@ extends Descriptor
 	 * contain values of the specified type.  The new variable initially holds
 	 * no value.
 	 *
-	 * @param innerType
+	 * @param contentType
 	 *        The type of objects the new variable can contain.
 	 * @return A new variable able to hold the specified type of objects.
 	 */
-	public static AvailObject forInnerType (final A_Type innerType)
+	public static AvailObject forContentType (final A_Type contentType)
 	{
-		return VariableDescriptor.forOuterType(
-			VariableTypeDescriptor.wrapInnerType(innerType));
+		return VariableDescriptor.forVariableType(
+			VariableTypeDescriptor.wrapInnerType(contentType));
 	}
 
 	/**
@@ -309,16 +331,14 @@ extends Descriptor
 	 * {@linkplain VariableTypeDescriptor variable type}.  The new variable
 	 * initially holds no value.
 	 *
-	 * @param outerType
-	 *            The variable type to instantiate.
-	 * @return
-	 *            A new variable of the given type.
+	 * @param variableType
+	 *        The {@linkplain VariableTypeDescriptor variable type}.
+	 * @return A new variable of the given type.
 	 */
-	public static AvailObject forOuterType (
-		final A_Type outerType)
+	public static AvailObject forVariableType (final A_Type variableType)
 	{
 		final AvailObject result = mutable.create();
-		result.setSlot(KIND, outerType);
+		result.setSlot(KIND, variableType);
 		result.setSlot(HASH_OR_ZERO, 0);
 		result.setSlot(VALUE, NilDescriptor.nil());
 		return result;

@@ -2301,7 +2301,8 @@ public abstract class Descriptor extends AbstractDescriptor
 	}
 
 	/** A statically cached stateless visitor instance. */
-	static final BeSharedSubobjectVisitor beSharedSubobjectVisitor = new BeSharedSubobjectVisitor();
+	static final BeSharedSubobjectVisitor beSharedSubobjectVisitor =
+		new BeSharedSubobjectVisitor();
 
 	/**
 	 * {@inheritDoc}
@@ -4256,7 +4257,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		throw unsupportedOperationException();
 	}
-	
+
 	@Override
 	boolean o_IsIntegerIntervalTuple (final AvailObject object)
 	{

@@ -34,6 +34,8 @@ package com.avail.descriptor;
 
 import static com.avail.descriptor.VariableSharedDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.VariableSharedDescriptor.ObjectSlots.*;
+import java.util.HashMap;
+import java.util.Map;
 import com.avail.annotations.*;
 
 /**
@@ -46,6 +48,61 @@ import com.avail.annotations.*;
 public final class VariableSharedDescriptor
 extends VariableDescriptor
 {
+	/**
+	 * A {@code VariableAccessReactor} responds to read and writes of a
+	 * {@linkplain VariableDescriptor variable} by executing arbitrary Java
+	 * code.
+	 *
+	 * @param <T>
+	 *        The subinterface of {@link A_BasicObject} that describes the
+	 *        arbitrary attachment value.
+	 */
+	public static abstract class VariableAccessReactor<T extends A_BasicObject>
+	{
+		/**
+		 * An arbitrary {@linkplain AvailObject value}, for use by the reactor
+		 * methods.
+		 *
+		 * @see #variableRead(A_Variable)
+		 * @see #variableWritten(A_Variable)
+		 */
+		protected final T value;
+
+		/**
+		 * Responds to a read of the specified {@linkplain VariableDescriptor
+		 * variable}.
+		 *
+		 * @param var A variable.
+		 */
+		public void variableRead (final A_Variable var)
+		{
+			// Do nothing.
+		}
+
+		/**
+		 * Responds to a write of the specified {@linkplain VariableDescriptor
+		 * variable}.
+		 *
+		 * @param var A variable.
+		 */
+		public void variableWritten (final A_Variable var)
+		{
+			// Do nothing.
+		}
+
+		/**
+		 * Construct a new {@link VariableAccessReactor}.
+		 *
+		 * @param value
+		 *        An arbitrary {@linkplain AvailObject value}, for use by the
+		 *        reactor methods.
+		 */
+		protected VariableAccessReactor (final T value)
+		{
+			this.value = value;
+		}
+	}
+
 	/**
 	 * The layout of integer slots for my instances.
 	 */
@@ -82,7 +139,23 @@ extends VariableDescriptor
 		 * VariableDescriptor variable}.  Note that this is always a
 		 * {@linkplain VariableTypeDescriptor variable type}.
 		 */
-		KIND;
+		KIND,
+
+		/**
+		 * A {@linkplain RawPojoDescriptor raw pojo} that wraps a {@linkplain
+		 * Map map} from arbitrary {@linkplain AvailObject Avail values} to
+		 * {@linkplain VariableAccessReactor read reactors} that respond to
+		 * reads of the {@linkplain VariableDescriptor variable}.
+		 */
+		READ_REACTORS,
+
+		/**
+		 * A {@linkplain RawPojoDescriptor raw pojo} that wraps a {@linkplain
+		 * Map map} from arbitrary {@linkplain AvailObject Avail values} to
+		 * {@linkplain VariableAccessReactor writer reactors} that respond to
+		 * writes of the {@linkplain VariableDescriptor variable}.
+		 */
+		WRITE_REACTORS;
 
 		static
 		{
@@ -214,8 +287,41 @@ extends VariableDescriptor
 	@Override @AvailMethod
 	AvailObject o_MakeShared (final AvailObject object)
 	{
-		// Do nothing; just answer the already shared receiver.
+		// Do nothing; just answer the (shared) receiver.
 		return object;
+	}
+
+	/**
+	 * Create a {@linkplain VariableSharedDescriptor variable}. This method
+	 * should only be used to "upgrade" a variable's representation.
+	 *
+	 * @param variableType
+	 *        The {@linkplain VariableTypeDescriptor variable type}.
+	 * @param hash
+	 *        The hash of the variable.
+	 * @param value
+	 *        The contents of the variable.
+	 * @return
+	 */
+	static AvailObject create (
+		final A_Type variableType,
+		final int hash,
+		final AvailObject value)
+	{
+		final AvailObject result = mutable.create();
+		result.setSlot(KIND, variableType);
+		result.setSlot(HASH_OR_ZERO, hash);
+		result.setSlot(VALUE, value);
+		result.setSlot(
+			READ_REACTORS,
+			RawPojoDescriptor.identityWrap(
+				new HashMap<AvailObject, VariableAccessReactor<?>>()));
+		result.setSlot(
+			WRITE_REACTORS,
+			RawPojoDescriptor.identityWrap(
+				new HashMap<AvailObject, VariableAccessReactor<?>>()));
+		result.descriptor = VariableSharedDescriptor.shared;
+		return result;
 	}
 
 	/**
@@ -229,7 +335,14 @@ extends VariableDescriptor
 		super(mutability);
 	}
 
-	/** The shared {@link VariableDescriptor}. */
+	/**
+	 * The mutable {@link VariableSharedDescriptor}. Exists only to support
+	 * creation.
+	 */
+	private static final VariableSharedDescriptor mutable =
+		new VariableSharedDescriptor(Mutability.MUTABLE);
+
+	/** The shared {@link VariableSharedDescriptor}. */
 	static final VariableSharedDescriptor shared =
 		new VariableSharedDescriptor(Mutability.SHARED);
 }

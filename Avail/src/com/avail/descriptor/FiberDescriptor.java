@@ -1350,4 +1350,19 @@ extends Descriptor
 	{
 		return ((AvailThread) Thread.currentThread()).interpreter.fiber();
 	}
+
+	/**
+	 * Answer the {@linkplain FiberDescriptor fiber} currently bound to this
+	 * {@link AvailThread}.
+	 *
+	 * @return A fiber, or {@code null} if no fiber is currently bound.
+	 */
+	public static @Nullable A_Fiber currentOrNull ()
+	{
+		final @Nullable Interpreter interpreter = Interpreter.currentOrNull();
+		final @Nullable A_Fiber fiber = interpreter != null
+			? interpreter.fiber
+			: null;
+		return fiber;
+	}
 }

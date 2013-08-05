@@ -271,10 +271,8 @@ public final class Interpreter
 	{
 		if (logger.isLoggable(level))
 		{
-			final @Nullable Interpreter interpreter = currentOrNull();
-			final @Nullable A_Fiber runningFiber = interpreter != null
-				? interpreter.fiber
-				: null;
+			final @Nullable A_Fiber runningFiber =
+				FiberDescriptor.currentOrNull();
 			final StringBuilder builder = new StringBuilder();
 			builder.append(
 				runningFiber != null
