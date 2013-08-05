@@ -45,15 +45,19 @@ Names
 Body
 
 [testDir ::= "annals";
-fn ::= testDir ++ "/Stacks Scanner.avail" as file name;
+fn ::= testDir ++ "/Patricia Trie.avail" as file name;
 
-iter : file iterator := a file iterator for fn;
-di : decoding iterator := a decoding iterator of iter using a UTF-8 codec;
-/*output : string := take at most ∞ from di;
-
-it : iterator of character := an iterator over test;*/
-scanner : stacks scanner := a stacks scanner with di;
+scanner : stacks scanner := a stacks scanner with fn;
 Obtain Stacks comments from scanner;
+/*For each of scanner's comments do
+[
+ 	c : raw comment
+ |
+ 	Print: concatenate c's comment tokens separated by " ~ ";
+ 	Print: "\n\n";
+];*/
+
+/*Obtain Stacks comments from scanner;*/
 For each scanner's comments do
 [
  	rc : raw comment
@@ -63,10 +67,13 @@ For each scanner's comments do
  	 	s : stacks token
  	 |
  	 	Print: format "‘①’-“②”, " with s's lexeme,s's line;
+ 	 	/*Print: format "“①” is a subtype of special stacks token : “②”\n" 
+ 	 		with s, s's type ⊆ special stacks token;*/
 	];
 	Print: "\n\n";
-	q : string := concatenate rc's comment tokens separated by ",";
-			Print: q; Print: "\n\n";
+	Print: format "rc's comment type=“①”\n" with rc's comment type;
+	Print: format "|rc's comment tokens|=“①”\n" with |rc's comment tokens|;
+	Print: format "rc's special token regions=“①”\n\n" with rc's special token regions;
 ];
 /*Print: output ++ "\n";
 

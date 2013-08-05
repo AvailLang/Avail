@@ -65,6 +65,7 @@ Names
 	"comment buffer",
 	"comment buffer index",
 	"comment tokens",
+	"comment type",
 	"comments",
 	"concatenate_separated by_",
 	"erroneous comment",
@@ -100,6 +101,8 @@ Names
 	"_'s⁇comment buffer is not exhausted",
 	"_'s⁇comment tokens",
 	"_'s⁇comment tokens:=_",
+	"_'s⁇comment type",
+	"_'s⁇comment type:=_",
 	"_'s⁇comments",
 	"_'s⁇comments:=_",
 	"_'s⁇current buffer character",
@@ -127,6 +130,7 @@ Body
 "comment buffer" is a new field atom;
 "comment buffer index" is a new field atom;
 "comment tokens" is a new field atom;
+"comment type" is a new field atom;
 "comments" is a new field atom;
 "error flag" is a new field atom;
 "erroneous comment" is a new field atom;
@@ -210,7 +214,7 @@ Public explicit class "special stacks token" extends stacks token
 	special region flag : false's type;
 
 /**
- * A class that defines a special token for the stacks lexor.
+ * A class that defines a region occupying special token for the stacks lexor.
  * 
  * @type "special region stacks token"
  * @supertype {@type "special stacks token" special stacks token}
@@ -337,15 +341,18 @@ Public method "concatenate_separated by_" is
  *  a tuple of stacks tokens that comprise the text of the comment
  * @field "erroneous comment" "boolean"
  *  does the comment contain an error
- * @field "special token regions" "<natural number's type…|>"
+ * @field "special token regions" "<<stacks token…|1..>…|1..>"
  *  start/end of special token text
+ * @field "comment type" "[1..2]"
+ * 	if 1 then this is a method comment, if 2 then is a class comment.
  * @author Richard Arriaga
  */
 Public class "raw comment" extends object
 	with mutable fields
 		public comment tokens : <stacks token…|>,
 		public erroneous comment : boolean,
-		public special token regions : <natural number's type…|>;
+		public special token regions : <<natural number…|2>…|>,
+		public comment type : [1..2];
 
 /**
  * A class that defines a Stacks lexical scanner.  This is a concrete class.
@@ -408,11 +415,13 @@ Public class "stacks scanner" extends Avail scanner
  */
 Public method "a stacks scanner with_" is
 [
-	iter : iterator of character
+	fileName : file name
 |
+	decoded : decoding iterator := a decoding iterator of a file iterator for 
+		fileName using a UTF-8 codec;
 	a stacks scanner with
-		source ::= iter,
-		module name ::= "TestTemp (replace when file hooked up)", /*TODO Replace with correct file name when files hooked in*/
+		source ::= decoded,
+		module name ::= fileName's name,
 		token buffer := <>,
 		line number := 1,
 		column number := 1,

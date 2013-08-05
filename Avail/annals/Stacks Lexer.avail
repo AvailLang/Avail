@@ -959,6 +959,25 @@ Private method "comment first pass from_using_in level_" is
 ]:whole number;
 
 /**
+ * Takes the raw comment and returns a tuple of scanner token tuples; the
+ * special regions of the comment
+ *
+ * @method "_'s⁇special token regions"
+ * @categories "Stacks"
+ * @param "comment" "raw comment" 
+ *		a raw comment
+ * @returnType "<<stacks token…|1..>…|1..>"
+ *		the raw comment broken up into a tuple of scanner token tuples
+ * @author "Richard Arriaga"
+ *
+Private method "_'s⁇special token regions" is
+[
+ 	comment : raw comment
+ |
+ 	
+]:<<stacks token…|1..>…|1..>;*/
+
+/**
  * A method that accepts a stacks scanner and stores a completely tokenized 
  * comment into its comment buffer.
  *
@@ -974,10 +993,58 @@ Private method "Buffer_'s⁇current comment" is
 [
 	scanner : stacks scanner
 |
+	tokenCount ::= cast |scanner's token buffer| into [n : natural number | n];
+	specialRegionStarts : <natural number…|1..> := cast
+		all indices of scanner's token buffer where
+		[
+		 	t : scanner token
+		 |
+		 	t's type ⊆ special stacks token
+		 ] into [t : <natural number…|1..> | t];
+	specialRegionEnds :<natural number…|> := 
+		if specialRegionStarts[1] = 1 then 
+		[
+		 	map specialRegionStarts[2..|specialRegionStarts|] through
+		 	[
+		 	 	n : natural number
+		 	 |
+		 	 	cast n - 1 into [i : natural number | i]
+		 	]
+		] 
+		else
+		[
+		 	map specialRegionStarts through
+		 	[
+		 	 	n : natural number
+		 	 |
+		 	 	cast n - 1 into [i : natural number | i]
+		 	]
+		];
+	
+	If specialRegionStarts[1] ≠ 1 then 
+	[
+	 	specialRegionStarts := <1> ++ specialRegionStarts;
+	];
+	
+	specialRegionPairs : <<natural number…|2>…|> := <>;
+ 	
+	From 1 to |specialRegionEnds| do
+ 	[
+ 	 	i : natural number
+ 	 |
+ 	 	specialRegionPairs := specialRegionPairs ++ 
+ 	 		<<specialRegionStarts[i],specialRegionEnds[i]>>;
+ 	];
+	specialRegionPairs := specialRegionPairs ++
+		<<specialRegionStarts' last,tokenCount>>;
+		
 	rawComment : raw comment := a raw comment with
 		comment tokens := scanner's token buffer,
 		erroneous comment := scanner in erroneous comment,
-		special token regions := <>; /*TODO actually populate this*/
+		special token regions := specialRegionPairs,
+		comment type := 
+			if scanner's token buffer[specialRegionStarts[1]]'s type ⊆
+				@method then [1] else [2];
 	scanner's comments := (scanner's comments ++ <rawComment>);
 	Reset scanner's comment processing structure;
 ]:⊤;
