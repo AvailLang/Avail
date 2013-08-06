@@ -74,7 +74,7 @@ extends Primitive
 					E_TYPE_RESTRICTION_MUST_ACCEPT_ONLY_TYPES);
 			}
 		}
-		final AvailLoader loader = FiberDescriptor.current().availLoader();
+		final AvailLoader loader = interpreter.fiber().availLoader();
 		if (loader == null)
 		{
 			return interpreter.primitiveFailure(E_LOADING_IS_OVER);

@@ -68,7 +68,7 @@ extends Primitive
 		assert args.size() == 1;
 		final A_Fiber joinee = args.get(0);
 		final Mutable<Boolean> shouldPark = new Mutable<>(false);
-		final A_Fiber current = FiberDescriptor.current();
+		final A_Fiber current = interpreter.fiber();
 		// Forbid auto-joining.
 		if (current.equals(joinee))
 		{

@@ -1,5 +1,5 @@
 /**
- * P_248_AddSemanticRestriction.java
+ * P_027_CurrentTimeMilliseconds.java
  * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -31,25 +31,24 @@
  */
 package com.avail.interpreter.primitive;
 
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.exceptions.AvailErrorCode.*;
-import static com.avail.interpreter.Primitive.Flag.Unknown;
+import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
 import com.avail.descriptor.*;
-import com.avail.exceptions.*;
 import com.avail.interpreter.*;
 
 /**
- * <strong>Primitive 248:</strong> Add a type restriction function.
+ * <strong>Primitive 27:</strong> Get the current time as milliseconds since
+ * the Unix Epoch.
  */
-public class P_248_AddSemanticRestriction
+public class P_027_CurrentTimeMilliseconds
 extends Primitive
 {
 	/**
-	 * The sole instance of this primitive class. Accessed through reflection.
+	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_248_AddSemanticRestriction().init(2, Unknown);
+		new P_027_CurrentTimeMilliseconds().init(
+			0, CannotFail, CanInline, HasSideEffect);
 
 	@Override
 	public Result attempt (
@@ -57,57 +56,16 @@ extends Primitive
 		final Interpreter interpreter,
 		final boolean skipReturnCheck)
 	{
-		assert args.size() == 2;
-		final A_String string = args.get(0);
-		final A_Function function = args.get(1);
-		final A_Type functionType = function.kind();
-		final A_Type tupleType = functionType.argsTupleType();
-		final AvailLoader loader = interpreter.fiber().availLoader();
-		if (loader == null)
-		{
-			return interpreter.primitiveFailure(E_LOADING_IS_OVER);
-		}
-		for (int i = function.code().numArgs(); i >= 1; i--)
-		{
-			if (!tupleType.typeAtIndex(i).isInstanceOf(
-				InstanceMetaDescriptor.on(InstanceMetaDescriptor.topMeta())))
-			{
-				return interpreter.primitiveFailure(
-					E_TYPE_RESTRICTION_MUST_ACCEPT_ONLY_TYPES);
-			}
-		}
-		try
-		{
-			function.code().setMethodName(
-				StringDescriptor.from(
-					String.format("Semantic restriction of %s", string)));
-			final A_Atom atom = loader.lookupName(string);
-			final A_SemanticRestriction restriction =
-				SemanticRestrictionDescriptor.create(
-					function,
-					atom.bundleOrCreate().bundleMethod(),
-					interpreter.module());
-			loader.addSemanticRestriction(restriction);
-		}
-		catch (final AmbiguousNameException e)
-		{
-			return interpreter.primitiveFailure(e);
-		}
-		catch (final SignatureException e)
-		{
-			return interpreter.primitiveFailure(e);
-		}
-		return interpreter.primitiveSuccess(NilDescriptor.nil());
+		assert args.size() == 0;
+		return interpreter.primitiveSuccess(
+			IntegerDescriptor.fromLong(System.currentTimeMillis()));
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
-				TupleTypeDescriptor.stringType(),
-				FunctionTypeDescriptor.forReturnType(
-					InstanceMetaDescriptor.topMeta())),
-			TOP.o());
+			TupleDescriptor.empty(),
+			IntegerRangeTypeDescriptor.wholeNumbers());
 	}
 }

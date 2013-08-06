@@ -72,7 +72,7 @@ extends Primitive
 		final A_String string = args.get(0);
 		final A_Tuple prefixFunctions = args.get(1);
 		final A_Function function = args.get(2);
-		final A_Fiber fiber = FiberDescriptor.current();
+		final A_Fiber fiber = interpreter.fiber();
 		final AvailLoader loader = fiber.availLoader();
 		if (loader == null)
 		{

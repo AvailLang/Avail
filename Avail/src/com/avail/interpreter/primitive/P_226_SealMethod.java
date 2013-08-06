@@ -65,7 +65,7 @@ extends Primitive
 		assert args.size() == 2;
 		final A_String methodName = args.get(0);
 		final A_Tuple argumentTypes = args.get(1);
-		final AvailLoader loader = FiberDescriptor.current().availLoader();
+		final AvailLoader loader = interpreter.fiber().availLoader();
 		if (loader == null)
 		{
 			return interpreter.primitiveFailure(E_LOADING_IS_OVER);

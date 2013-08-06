@@ -201,10 +201,11 @@ public class L2Translator
 		new ArrayList<>();
 
 	/**
-	 * All {@link MethodDescriptor methods} for which changes should cause the
-	 * current {@linkplain L2Chunk level two chunk} to be invalidated.
+	 * All {@link A_ChunkDependable contingent values} for which changes should
+	 * cause the current {@linkplain L2Chunk level two chunk} to be invalidated.
 	 */
-	@InnerAccess final Set<A_Method> contingentMethods = new HashSet<>();
+	@InnerAccess final Set<A_ChunkDependable> contingentValues =
+		new HashSet<>();
 
 	/**
 	 * The architectural registers, representing the fixed registers followed by
@@ -768,7 +769,7 @@ public class L2Translator
 			final A_Type expectedType)
 		{
 			final A_Method method = bundle.bundleMethod();
-			contingentMethods.add(method);
+			contingentValues.add(method);
 			// The registers holding slot values that will constitute the
 			// continuation *during* a non-primitive call.
 			final List<L2ObjectRegister> preSlots = new ArrayList<>(numSlots);
@@ -2301,7 +2302,7 @@ public class L2Translator
 			floatRegMaxIndex.value + 1,
 			instructions,
 			executableInstructions,
-			contingentMethods);
+			contingentValues);
 	}
 
 	/**
@@ -2411,7 +2412,7 @@ public class L2Translator
 		numArgs = theCode.numArgs();
 		numLocals = theCode.numLocals();
 		numSlots = theCode.numArgsAndLocalsAndStack();
-		contingentMethods.clear();
+		contingentValues.clear();
 		// Now translate all the instructions. We already wrote a label as
 		// the first instruction so that L1Ext_doPushLabel can always find
 		// it. Since we only translate one method at a time, the first

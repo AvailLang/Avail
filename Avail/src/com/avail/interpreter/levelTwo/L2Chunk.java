@@ -268,29 +268,28 @@ public final class L2Chunk
 		final int index;
 
 		/**
-		 * The list of {@linkplain MethodDescriptor methods} on which the
-		 * referent chunk depends. If one of these methods changes (due to
-		 * adding or removing a {@linkplain DefinitionDescriptor method
-		 * implementation}), this chunk will be immediately invalidated.
+		 * The list of {@linkplain A_ChunkDependable contingent values} on which
+		 * the referent chunk depends. If one of these changes significantly,
+		 * this chunk must be invalidated.
 		 */
-		final Set<A_Method> contingentMethods;
+		final Set<A_ChunkDependable> contingentValues;
 
 		/**
 		 * Construct a new {@link WeakChunkReference}.
 		 *
 		 * @param chunk
 		 *        The chunk to be wrapped with a weak reference.
-		 * @param contingentMethods
-		 *        The {@link Set} of {@linkplain MethodDescriptor methods} on
-		 *        which this chunk depends.
+		 * @param contingentValues
+		 *        The {@link Set} of {@linkplain A_ChunkDependable contingent
+		 *        values} which this chunk depends.
 		 */
 		public WeakChunkReference (
 			final L2Chunk chunk,
-			final Set<A_Method> contingentMethods)
+			final Set<A_ChunkDependable> contingentValues)
 		{
 			super(chunk, recyclingQueue);
 			this.index = chunk.index();
-			this.contingentMethods = contingentMethods;
+			this.contingentValues = contingentValues;
 		}
 	}
 
@@ -390,7 +389,7 @@ public final class L2Chunk
 	 * @param executableInstructions
 	 *        A {@link List} of {@link L2Instruction}s that can be executed in
 	 *        place of the level one nybblecodes.
-	 * @param contingentMethods
+	 * @param contingentValues
 	 *        A {@link Set} of {@linkplain MethodDescriptor methods} on which
 	 *        the level two chunk depends.
 	 * @return The new level two chunk.
@@ -402,7 +401,7 @@ public final class L2Chunk
 		final int numFloats,
 		final List<L2Instruction> theInstructions,
 		final List<L2Instruction> executableInstructions,
-		final Set<A_Method> contingentMethods)
+		final Set<A_ChunkDependable> contingentValues)
 	{
 		final L2Chunk chunk = create(
 			numObjects,
@@ -426,11 +425,12 @@ public final class L2Chunk
 				// so clean it up if necessary.
 				final WeakChunkReference oldReference =
 					(WeakChunkReference) recycledReference;
-				for (final A_Method method : oldReference.contingentMethods)
+				for (final A_ChunkDependable value :
+					oldReference.contingentValues)
 				{
-					method.removeDependentChunkIndex(oldReference.index);
+					value.removeDependentChunkIndex(oldReference.index);
 				}
-				oldReference.contingentMethods.clear();
+				oldReference.contingentValues.clear();
 				index = oldReference.index;
 			}
 			else
@@ -442,7 +442,7 @@ public final class L2Chunk
 			chunk.index = index;
 			final WeakChunkReference newReference = new WeakChunkReference(
 				chunk,
-				contingentMethods);
+				contingentValues);
 			allChunksWeakly.set(index, newReference);
 		}
 		finally
@@ -461,26 +461,25 @@ public final class L2Chunk
 				chunk,
 				L2Chunk.countdownForNewlyOptimizedCode());
 		}
-		for (final A_Method method : contingentMethods)
+		for (final A_ChunkDependable value : contingentValues)
 		{
-			method.addDependentChunkIndex(index);
+			value.addDependentChunkIndex(index);
 		}
 
 		return chunk;
 	}
 
 	/**
-	 * A method has changed. This means a method definition (or a forward or an
-	 * abstract declaration) has been added or removed from the method, and the
-	 * specified chunk previously expressed an interest in change notifications.
-	 * This must have been because it was optimized in a way that relied on some
-	 * aspect of the available definitions (e.g., monomorphic inlining), so we
-	 * need to invalidate the chunk now, so that an attempt to invoke it or
-	 * return into it will be detected and converted into using the {@linkplain
-	 * #unoptimizedChunk unoptimized chunk}. Also remove this chunk's index from
-	 * all methods on which it was depending.  Do not add the chunk's reference
-	 * to the reference queue, since it may still be referenced by code or
-	 * continuations that need to detect that it is now invalid.
+	 * Something that depends on a {@linkplain L2Chunk Level Two chunk} has
+	 * changed. This must have been because it was optimized in a way that
+	 * relied on some aspect of the available definitions (e.g., monomorphic
+	 * inlining), so we need to invalidate the chunk now, so that an attempt to
+	 * invoke it or return into it will be detected and converted into using the
+	 * {@linkplain #unoptimizedChunk unoptimized chunk}. Also remove this
+	 * chunk's index from all objects on which it was depending. Do not add the
+	 * chunk's reference to the reference queue, since it may still be
+	 * referenced by code or continuations that need to detect that it is now
+	 * invalid.
 	 *
 	 * @param chunkIndex The index of the chunk to invalidate.
 	 */
@@ -499,12 +498,12 @@ public final class L2Chunk
 				// it here.
 				chunk.instructions = new L2Instruction[0];
 			}
-			final Set<A_Method> methods = ref.contingentMethods;
-			for (final A_Method method : methods)
+			final Set<A_ChunkDependable> values = ref.contingentValues;
+			for (final A_ChunkDependable value : values)
 			{
-				method.removeDependentChunkIndex(chunkIndex);
+				value.removeDependentChunkIndex(chunkIndex);
 			}
-			ref.contingentMethods.clear();
+			ref.contingentValues.clear();
 		}
 		finally
 		{

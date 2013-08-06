@@ -37,15 +37,15 @@ import com.avail.exceptions.SignatureException;
 import com.avail.interpreter.levelTwo.L2Chunk;
 
 /**
- * {@code A_RawFunction} is an interface that specifies the operations specific
- * to raw functions in Avail.  It's a sub-interface of {@link A_BasicObject},
- * the interface that defines the behavior that all AvailObjects are required to
- * support.
+ * {@code A_Method} is an interface that specifies behavior specific to Avail
+ * {@linkplain MethodDescriptor methods} that an {@link AvailObject} must
+ * implement.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public interface A_Method
-extends A_BasicObject
+extends A_ChunkDependable
 {
 	A_Tuple definitionsTuple ();
 
@@ -59,16 +59,6 @@ extends A_BasicObject
 	A_Set semanticRestrictions ();
 
 	A_Tuple sealedArgumentsTypesTuple ();
-
-	/**
-	 * Add the {@linkplain L2Chunk chunk} with the given index to the receiver's
-	 * list of chunks that depend on it.  The receiver is a {@linkplain
-	 * MethodDescriptor method}.  A change in the method's membership (e.g.,
-	 * adding a new method definition) will cause the chunk to be invalidated.
-	 *
-	 * @param aChunkIndex
-	 */
-	void addDependentChunkIndex (int aChunkIndex);
 
 	/**
 	 * Add the {@linkplain DefinitionDescriptor definition} to the receiver, a
@@ -110,11 +100,6 @@ extends A_BasicObject
 	 */
 	A_Definition lookupByValuesFromList (
 		List<? extends A_BasicObject> argumentList);
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	void removeDependentChunkIndex (int aChunkIndex);
 
 	/**
 	 * Dispatch to the descriptor.

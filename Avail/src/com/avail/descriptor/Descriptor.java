@@ -46,6 +46,7 @@ import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.descriptor.FiberDescriptor.ExecutionState;
 import com.avail.descriptor.SetDescriptor.SetIterator;
 import com.avail.descriptor.TypeDescriptor.Types;
+import com.avail.descriptor.VariableSharedDescriptor.VariableAccessReactor;
 import com.avail.exceptions.*;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.levelTwo.L2Chunk;
@@ -71,7 +72,8 @@ import com.avail.visitor.*;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public abstract class Descriptor extends AbstractDescriptor
+public abstract class Descriptor
+extends AbstractDescriptor
 {
 	/**
 	 * Construct a new {@link Descriptor}.
@@ -4287,5 +4289,21 @@ public abstract class Descriptor extends AbstractDescriptor
 	boolean o_IsSmallIntegerIntervalTuple (final AvailObject object)
 	{
 		return false;
+	}
+
+	@Override
+	A_Variable o_AddWriteReactor (
+		final AvailObject object,
+		final A_Atom key,
+		final VariableAccessReactor<?> reactor)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	void o_RemoveWriteReactor (final AvailObject object, final A_Atom key)
+		throws AvailException
+	{
+		throw unsupportedOperationException();
 	}
 }

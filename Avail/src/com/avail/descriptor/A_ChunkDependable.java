@@ -1,5 +1,5 @@
 /**
- * P_026_CurrentTimeMilliseconds.java
+ * A_ChunkDependable.java
  * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -29,43 +29,35 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.avail.interpreter.primitive;
 
-import static com.avail.interpreter.Primitive.Flag.*;
-import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
+package com.avail.descriptor;
+
+import com.avail.interpreter.levelTwo.L2Chunk;
 
 /**
- * <strong>Primitive 26:</strong> Get the current time as milliseconds since
- * the Unix Epoch.
+ * {@code A_ChunkDependable} is an interface that specifies behavior specific to
+ * values on which {@linkplain L2Chunk chunks} can depend.
+ *
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class P_026_CurrentTimeMilliseconds
-extends Primitive
+public interface A_ChunkDependable
+extends A_BasicObject
 {
 	/**
-	 * The sole instance of this primitive class.  Accessed through reflection.
+	 * Add the {@linkplain L2Chunk chunk} with the given index to the receiver's
+	 * list of dependent chunks.
+	 *
+	 * @param aChunkIndex
+	 *        The chunk index.
 	 */
-	public final static Primitive instance =
-		new P_026_CurrentTimeMilliseconds().init(
-			0, CannotFail, CanInline, HasSideEffect);
+	void addDependentChunkIndex (int aChunkIndex);
 
-	@Override
-	public Result attempt (
-		final List<AvailObject> args,
-		final Interpreter interpreter,
-		final boolean skipReturnCheck)
-	{
-		assert args.size() == 0;
-		return interpreter.primitiveSuccess(
-			IntegerDescriptor.fromLong(System.currentTimeMillis()));
-	}
-
-	@Override
-	protected A_Type privateBlockTypeRestriction ()
-	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.empty(),
-			IntegerRangeTypeDescriptor.wholeNumbers());
-	}
+	/**
+	 * Remove the {@linkplain L2Chunk chunk} with the given index from the
+	 * receiver's list of dependent chunks.
+	 *
+	 * @param aChunkIndex
+	 *        The chunk index.
+	 */
+	void removeDependentChunkIndex (int aChunkIndex);
 }

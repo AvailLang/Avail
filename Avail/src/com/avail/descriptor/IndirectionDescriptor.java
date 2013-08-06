@@ -49,6 +49,8 @@ import com.avail.descriptor.FiberDescriptor.ExecutionState;
 import com.avail.descriptor.FiberDescriptor.InterruptRequestFlag;
 import com.avail.descriptor.SetDescriptor.SetIterator;
 import com.avail.descriptor.TypeDescriptor.Types;
+import com.avail.descriptor.VariableSharedDescriptor.VariableAccessReactor;
+import com.avail.exceptions.AvailException;
 import com.avail.exceptions.SignatureException;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.levelTwo.L2Chunk;
@@ -4451,5 +4453,21 @@ extends AbstractDescriptor
 	boolean o_IsSmallIntegerIntervalTuple (final AvailObject object)
 	{
 		return o_Traversed(object).isIntegerIntervalTuple();
+	}
+
+	@Override
+	A_Variable o_AddWriteReactor (
+		final AvailObject object,
+		final A_Atom key,
+		final VariableAccessReactor<?> reactor)
+	{
+		return o_Traversed(object).addWriteReactor(key, reactor);
+	}
+
+	@Override
+	void o_RemoveWriteReactor (final AvailObject object, final A_Atom key)
+		throws AvailException
+	{
+		o_Traversed(object).removeWriteReactor(key);
 	}
 }

@@ -37,6 +37,9 @@ import static com.avail.descriptor.VariableSharedDescriptor.ObjectSlots.*;
 import java.util.HashMap;
 import java.util.Map;
 import com.avail.annotations.*;
+import com.avail.exceptions.AvailErrorCode;
+import com.avail.exceptions.AvailException;
+import com.avail.interpreter.levelTwo.L2Chunk;
 
 /**
  * My {@linkplain AvailObject object instances} are {@linkplain
@@ -57,7 +60,7 @@ extends VariableDescriptor
 	 *        The subinterface of {@link A_BasicObject} that describes the
 	 *        arbitrary attachment value.
 	 */
-	public static abstract class VariableAccessReactor<T extends A_BasicObject>
+	public static class VariableAccessReactor<T extends A_BasicObject>
 	{
 		/**
 		 * An arbitrary {@linkplain AvailObject value}, for use by the reactor
@@ -97,7 +100,7 @@ extends VariableDescriptor
 		 *        An arbitrary {@linkplain AvailObject value}, for use by the
 		 *        reactor methods.
 		 */
-		protected VariableAccessReactor (final T value)
+		public VariableAccessReactor (final T value)
 		{
 			this.value = value;
 		}
@@ -155,7 +158,16 @@ extends VariableDescriptor
 		 * {@linkplain VariableAccessReactor writer reactors} that respond to
 		 * writes of the {@linkplain VariableDescriptor variable}.
 		 */
-		WRITE_REACTORS;
+		WRITE_REACTORS,
+
+		/**
+		 * The {@linkplain SetDescriptor set} of {@linkplain L2Chunk#index()
+		 * indices} of {@linkplain L2Chunk level two chunks} that depend on the
+		 * {@linkplain VariableAccessReactor reactors} of this {@linkplain
+		 * VariableSharedDescriptor variable}. A change to the reactor maps
+		 * should cause these chunks to be invalidated.
+		 */
+		DEPENDENT_CHUNK_INDICES;
 
 		static
 		{
@@ -171,7 +183,9 @@ extends VariableDescriptor
 	{
 		return super.allowsImmutableToMutableReferenceInField(e)
 			|| e == HASH_OR_ZERO
-			|| e == VALUE;
+			|| e == VALUE
+			|| e == READ_REACTORS
+			|| e == WRITE_REACTORS;
 	}
 
 	@Override @AvailMethod
@@ -278,6 +292,120 @@ extends VariableDescriptor
 	}
 
 	@Override @AvailMethod
+	void o_AddDependentChunkIndex (
+		final AvailObject object,
+		final int aChunkIndex)
+	{
+		synchronized (object)
+		{
+			// Record the fact that the chunk indexed by aChunkIndex depends on
+			// this object not changing.
+			A_Set indices = object.slot(DEPENDENT_CHUNK_INDICES);
+			indices = indices.setWithElementCanDestroy(
+				IntegerDescriptor.fromInt(aChunkIndex),
+				true);
+			object.setSlot(
+				DEPENDENT_CHUNK_INDICES,
+				indices.traversed().makeShared());
+		}
+	}
+
+	@Override @AvailMethod
+	void o_RemoveDependentChunkIndex (
+		final AvailObject object,
+		final int aChunkIndex)
+	{
+		synchronized (object)
+		{
+			A_Set indices =
+				object.slot(DEPENDENT_CHUNK_INDICES);
+			indices = indices.setWithoutElementCanDestroy(
+				IntegerDescriptor.fromInt(aChunkIndex),
+				true);
+			object.setSlot(
+				DEPENDENT_CHUNK_INDICES, indices.traversed().makeShared());
+		}
+	}
+
+	/**
+	 * The reactors of this {@linkplain VariableSharedDescriptor variable} have
+	 * changed. Invalidate any dependent {@linkplain L2Chunk Level Two chunks}.
+	 *
+	 * @param object The method that changed.
+	 */
+	private static void reactorsChanged (final AvailObject object)
+	{
+		assert Thread.holdsLock(object);
+		// Invalidate any affected level two chunks.
+		final A_Set chunkIndices =
+			object.slot(DEPENDENT_CHUNK_INDICES);
+		if (chunkIndices.setSize() > 0)
+		{
+			// Use makeImmutable() to avoid membership changes while iterating.
+			for (final A_Number chunkIndex : chunkIndices.makeImmutable())
+			{
+				L2Chunk.invalidateChunkAtIndex(chunkIndex.extractInt());
+			}
+			// The chunk invalidations should have removed all dependencies...
+			final A_Set chunkIndicesAfter =
+				object.slot(DEPENDENT_CHUNK_INDICES);
+			assert chunkIndicesAfter.setSize() == 0;
+		}
+	}
+
+	@Override
+	@AvailMethod
+	A_Variable o_AddWriteReactor (
+		final AvailObject object,
+		final A_Atom key,
+		final VariableAccessReactor<?> reactor)
+	{
+		synchronized (object)
+		{
+			AvailObject rawPojo = object.slot(WRITE_REACTORS);
+			if (rawPojo.equalsNil())
+			{
+				rawPojo = RawPojoDescriptor.identityWrap(
+					new HashMap<A_Atom, VariableAccessReactor<?>>());
+				object.setSlot(WRITE_REACTORS, rawPojo);
+			}
+			@SuppressWarnings("unchecked")
+			final Map<A_Atom, VariableAccessReactor<?>> writeReactors =
+				(Map<A_Atom, VariableAccessReactor<?>>) rawPojo.javaObject();
+			writeReactors.put(key, reactor);
+			reactorsChanged(object);
+			return object;
+		}
+	}
+
+	@Override
+	@AvailMethod
+	void o_RemoveWriteReactor (final AvailObject object, final A_Atom key)
+		throws AvailException
+	{
+		synchronized (object)
+		{
+			final AvailObject rawPojo = object.slot(WRITE_REACTORS);
+			if (rawPojo.equalsNil())
+			{
+				throw new AvailException(AvailErrorCode.E_KEY_NOT_FOUND);
+			}
+			@SuppressWarnings("unchecked")
+			final Map<A_Atom, VariableAccessReactor<?>> writeReactors =
+				(Map<A_Atom, VariableAccessReactor<?>>) rawPojo.javaObject();
+			if (writeReactors.remove(key) == null)
+			{
+				throw new AvailException(AvailErrorCode.E_KEY_NOT_FOUND);
+			}
+			if (writeReactors.isEmpty())
+			{
+				object.setSlot(WRITE_REACTORS, NilDescriptor.nil());
+			}
+			reactorsChanged(object);
+		}
+	}
+
+	@Override @AvailMethod
 	AvailObject o_MakeImmutable (final AvailObject object)
 	{
 		// Do nothing; just answer the (shared) receiver.
@@ -312,14 +440,9 @@ extends VariableDescriptor
 		result.setSlot(KIND, variableType);
 		result.setSlot(HASH_OR_ZERO, hash);
 		result.setSlot(VALUE, value);
-		result.setSlot(
-			READ_REACTORS,
-			RawPojoDescriptor.identityWrap(
-				new HashMap<AvailObject, VariableAccessReactor<?>>()));
-		result.setSlot(
-			WRITE_REACTORS,
-			RawPojoDescriptor.identityWrap(
-				new HashMap<AvailObject, VariableAccessReactor<?>>()));
+		result.setSlot(READ_REACTORS, NilDescriptor.nil());
+		result.setSlot(WRITE_REACTORS, NilDescriptor.nil());
+		result.setSlot(DEPENDENT_CHUNK_INDICES, SetDescriptor.empty());
 		result.descriptor = VariableSharedDescriptor.shared;
 		return result;
 	}

@@ -36,6 +36,7 @@ import static com.avail.descriptor.VariableDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.VariableDescriptor.ObjectSlots.*;
 import com.avail.AvailRuntime;
 import com.avail.annotations.*;
+import com.avail.descriptor.VariableSharedDescriptor.VariableAccessReactor;
 import com.avail.exceptions.*;
 import com.avail.serialization.SerializerOperation;
 
@@ -250,6 +251,51 @@ extends Descriptor
 		object.setSlot(VALUE, NilDescriptor.nil());
 	}
 
+	@Override
+	void o_AddDependentChunkIndex (
+		final AvailObject object,
+		final int aChunkIndex)
+	{
+		assert !isShared();
+		final A_Variable sharedVariable = object.makeShared();
+		sharedVariable.addDependentChunkIndex(aChunkIndex);
+		object.becomeIndirectionTo(sharedVariable);
+	}
+
+	@Override
+	void o_RemoveDependentChunkIndex (
+		final AvailObject object,
+		final int aChunkIndex)
+	{
+		assert !isShared();
+		// This representation doesn't support dependent chunks, so the
+		// specified index can't be a match. This is certainly an error.
+		assert false : "Chunk removed but not added!";
+		throw unsupportedOperationException();
+	}
+
+	@Override @AvailMethod
+	A_Variable o_AddWriteReactor (
+		final AvailObject object,
+		final A_Atom key,
+		final VariableAccessReactor<?> reactor)
+	{
+		assert !isShared();
+		final A_Variable sharedVariable = object.makeShared();
+		sharedVariable.addWriteReactor(key, reactor);
+		object.becomeIndirectionTo(sharedVariable);
+		return sharedVariable;
+	}
+
+	@Override @AvailMethod
+	void o_RemoveWriteReactor (
+			final AvailObject object,
+			final A_Atom key)
+		throws AvailException
+	{
+		throw new AvailException(AvailErrorCode.E_KEY_NOT_FOUND);
+	}
+
 	@Override @AvailMethod
 	final A_Type o_Kind (final AvailObject object)
 	{
@@ -257,7 +303,9 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	final boolean o_Equals (final AvailObject object, final A_BasicObject another)
+	final boolean o_Equals (
+		final AvailObject object,
+		final A_BasicObject another)
 	{
 		return another.equalsVariable(object);
 	}

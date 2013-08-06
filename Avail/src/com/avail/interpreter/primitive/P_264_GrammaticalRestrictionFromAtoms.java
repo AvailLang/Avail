@@ -69,7 +69,7 @@ extends Primitive
 		assert args.size() == 2;
 		final A_Set atomSet = args.get(0);
 		final A_Tuple exclusionsTuple = args.get(1);
-		final AvailLoader loader = FiberDescriptor.current().availLoader();
+		final AvailLoader loader = interpreter.fiber().availLoader();
 		if (loader == null)
 		{
 			return interpreter.primitiveFailure(E_LOADING_IS_OVER);

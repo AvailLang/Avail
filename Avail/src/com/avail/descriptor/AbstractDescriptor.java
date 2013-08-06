@@ -53,6 +53,8 @@ import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.descriptor.FiberDescriptor.ExecutionState;
 import com.avail.descriptor.SetDescriptor.SetIterator;
 import com.avail.descriptor.TypeDescriptor.Types;
+import com.avail.descriptor.VariableSharedDescriptor.VariableAccessReactor;
+import com.avail.exceptions.AvailException;
 import com.avail.exceptions.AvailUnsupportedOperationException;
 import com.avail.exceptions.SignatureException;
 import com.avail.interpreter.AvailLoader;
@@ -5870,4 +5872,22 @@ public abstract class AbstractDescriptor
 	abstract boolean o_EqualsSmallIntegerIntervalTuple (
 		AvailObject object,
 		A_Tuple aSmallIntegerIntervalTuple);
+
+	/**
+	 * @param object
+	 * @param key
+	 * @param reactor
+	 * @return
+	 */
+	abstract A_Variable o_AddWriteReactor (
+		AvailObject object,
+		A_Atom key,
+		VariableAccessReactor<?> reactor);
+
+	/**
+	 * @param object
+	 * @param key
+	 */
+	abstract void o_RemoveWriteReactor (AvailObject object, A_Atom key)
+		throws AvailException;
 }

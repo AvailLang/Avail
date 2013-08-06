@@ -49,6 +49,7 @@ import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.descriptor.FiberDescriptor.ExecutionState;
 import com.avail.descriptor.SetDescriptor.SetIterator;
 import com.avail.descriptor.TypeDescriptor.Types;
+import com.avail.descriptor.VariableSharedDescriptor.VariableAccessReactor;
 import com.avail.exceptions.*;
 import com.avail.exceptions.ArithmeticException;
 import com.avail.interpreter.*;
@@ -6790,5 +6791,27 @@ implements
 	public boolean skipReturnFlag ()
 	{
 		return descriptor.o_SkipReturnFlag(this);
+	}
+
+	/**
+	 * @param key
+	 * @param reactor
+	 * @return
+	 */
+	@Override
+	public A_Variable addWriteReactor (
+		final A_Atom key,
+		final VariableAccessReactor<?> reactor)
+	{
+		return descriptor.o_AddWriteReactor(this, key, reactor);
+	}
+
+	/**
+	 * @param key
+	 */
+	@Override
+	public void removeWriteReactor (final A_Atom key) throws AvailException
+	{
+		descriptor.o_RemoveWriteReactor(this, key);
 	}
 }
