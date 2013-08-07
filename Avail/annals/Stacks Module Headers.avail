@@ -46,6 +46,7 @@ Names
 	"_'s⁇extends modules",
 	"_has all methods available",
 	"_'s⁇identifier",
+	"_'s⁇local methods",
 	"_'s⁇name",
 	"_'s⁇uses modules",
 	"_'s⁇versions",
@@ -62,6 +63,7 @@ Body
 "exported methods" is a new field atom;
 "extends modules" is a new field atom;	
 "identifier" is a new field atom;
+"local methods" is a new field atom;
 "name" is a new field atom;
 "uses modules" is a new field atom;
 "versions" is a new field atom;
@@ -132,13 +134,16 @@ Public class "method identifier" extends object
  * 	are all methods in that module available for use/extends here
  * @field "available methods" "<method identifier…|>"
  * 	if all methods not available, what methods are available
+ * @field "local methods" "<method identifier…|>"
+ * 	methods not exported from module
  * @author Richard Arriaga
  */
 Public class "module antecedent" extends object
 	with fields
 		identifier : module identifier,
 		all methods available : boolean,
-		available methods : <method identifier…|>;
+		available methods : <method identifier…|>,
+		local methods : <method identifier…|>;
 
 /**
  * module antecedent identifier accessor

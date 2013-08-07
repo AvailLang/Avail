@@ -163,9 +163,9 @@ Body
  */
 Public class "stacks token" extends scanner token
 	with fields
-		public special flag : boolean,
-		public error flag : boolean,
-		public special region flag : boolean;
+		special flag : boolean,
+		error flag : boolean,
+		special region flag : boolean;
 
 /**
  * A class that defines a generic token for the stacks lexor.  
@@ -194,9 +194,9 @@ Public explicit class "generic stacks token" extends stacks token
  */
 Public explicit class "erroneous stacks token" extends stacks token
 	with fields
-	special flag : false's type,
-	error flag : true's type,
-	special region flag : false's type;
+		special flag : false's type,
+		error flag : true's type,
+		special region flag : false's type;
 
 /**
  * A class that defines a special token for the stacks lexor.
@@ -209,9 +209,9 @@ Public explicit class "erroneous stacks token" extends stacks token
  */
 Public explicit class "special stacks token" extends stacks token
 	with fields
-	special flag : true's type,
-	error flag : false's type,
-	special region flag : false's type;
+		special flag : true's type,
+		error flag : false's type,
+		special region flag : false's type;
 
 /**
  * A class that defines a region occupying special token for the stacks lexor.
@@ -224,9 +224,9 @@ Public explicit class "special stacks token" extends stacks token
  */
 Public explicit class "special region stacks token" extends stacks token
 	with fields
-	special flag : false's type,
-	error flag : false's type,
-	special region flag : true's type;
+		special flag : false's type,
+		error flag : false's type,
+		special region flag : true's type;
 
 /**
  * A class that defines a special token for the stacks lexor.
