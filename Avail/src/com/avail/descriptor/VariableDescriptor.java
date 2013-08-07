@@ -35,10 +35,11 @@ package com.avail.descriptor;
 import static com.avail.descriptor.VariableDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.VariableDescriptor.ObjectSlots.*;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 import com.avail.AvailRuntime;
 import com.avail.annotations.*;
-import com.avail.descriptor.VariableSharedDescriptor.VariableAccessReactor;
 import com.avail.exceptions.*;
 import com.avail.interpreter.Interpreter;
 import com.avail.serialization.SerializerOperation;
@@ -55,6 +56,52 @@ import com.avail.serialization.SerializerOperation;
 public class VariableDescriptor
 extends Descriptor
 {
+	/**
+	 * A {@code VariableAccessReactor} records a one-shot {@linkplain
+	 * FunctionDescriptor function}. It is cleared upon read.
+	 */
+	public static class VariableAccessReactor
+	{
+		/** The {@linkplain FunctionDescriptor reactor function}. */
+		private final AtomicReference<A_Function> function =
+			new AtomicReference<A_Function>(NilDescriptor.nil());
+
+		/**
+		 * Atomically get and clear {@linkplain FunctionDescriptor reactor
+		 * function}.
+		 *
+		 * @return The reactor function, or {@linkplain NilDescriptor#nil() nil}
+		 *         if the reactor function has already been requested (and the
+		 *         reactor is therefore invalid).
+		 */
+		public A_Function getAndClearFunction ()
+		{
+			return function.getAndSet(NilDescriptor.nil());
+		}
+
+		/**
+		 * Is the {@linkplain VariableAccessReactor reactor} invalid?
+		 *
+		 * @return {@code true} if the reactor is invalid, {@code false}
+		 *         otherwise.
+		 */
+		boolean isInvalid ()
+		{
+			return function.get().equalsNil();
+		}
+
+		/**
+		 * Construct a new {@link VariableAccessReactor}.
+		 *
+		 * @param function
+		 *        The reactor {@linkplain AvailObject function}.
+		 */
+		public VariableAccessReactor (final A_Function function)
+		{
+			this.function.set(function);
+		}
+	}
+
 	/**
 	 * The layout of integer slots for my instances.
 	 */
@@ -134,7 +181,7 @@ extends Descriptor
 		try
 		{
 			interpreter = Interpreter.current();
-			if (interpreter.traceVariableAccesses())
+			if (interpreter.traceVariableReadsBeforeWrites())
 			{
 				final A_Fiber fiber = interpreter.fiber();
 				fiber.recordVariableAccess(object, true);
@@ -166,7 +213,7 @@ extends Descriptor
 		try
 		{
 			interpreter = Interpreter.current();
-			if (interpreter.traceVariableAccesses())
+			if (interpreter.traceVariableWrites())
 			{
 				final A_Fiber fiber = interpreter.fiber();
 				fiber.recordVariableAccess(object, false);
@@ -194,7 +241,7 @@ extends Descriptor
 		try
 		{
 			interpreter = Interpreter.current();
-			if (interpreter.traceVariableAccesses())
+			if (interpreter.traceVariableWrites())
 			{
 				final A_Fiber fiber = interpreter.fiber();
 				fiber.recordVariableAccess(object, false);
@@ -216,7 +263,7 @@ extends Descriptor
 		try
 		{
 			interpreter = Interpreter.current();
-			if (interpreter.traceVariableAccesses())
+			if (interpreter.traceVariableWrites())
 			{
 				final A_Fiber fiber = interpreter.fiber();
 				fiber.recordVariableAccess(object, true);
@@ -259,7 +306,7 @@ extends Descriptor
 		try
 		{
 			interpreter = Interpreter.current();
-			if (interpreter.traceVariableAccesses())
+			if (interpreter.traceVariableWrites())
 			{
 				final A_Fiber fiber = interpreter.fiber();
 				fiber.recordVariableAccess(object, true);
@@ -305,7 +352,7 @@ extends Descriptor
 		try
 		{
 			interpreter = Interpreter.current();
-			if (interpreter.traceVariableAccesses())
+			if (interpreter.traceVariableWrites())
 			{
 				final A_Fiber fiber = interpreter.fiber();
 				fiber.recordVariableAccess(object, true);
@@ -348,7 +395,7 @@ extends Descriptor
 		try
 		{
 			interpreter = Interpreter.current();
-			if (interpreter.traceVariableAccesses())
+			if (interpreter.traceVariableWrites())
 			{
 				final A_Fiber fiber = interpreter.fiber();
 				fiber.recordVariableAccess(object, false);
@@ -361,7 +408,7 @@ extends Descriptor
 		object.setSlot(VALUE, NilDescriptor.nil());
 	}
 
-	@Override
+	@Override @AvailMethod
 	void o_AddDependentChunkIndex (
 		final AvailObject object,
 		final int aChunkIndex)
@@ -372,7 +419,7 @@ extends Descriptor
 		object.becomeIndirectionTo(sharedVariable);
 	}
 
-	@Override
+	@Override @AvailMethod
 	void o_RemoveDependentChunkIndex (
 		final AvailObject object,
 		final int aChunkIndex)
@@ -384,8 +431,7 @@ extends Descriptor
 		throw unsupportedOperationException();
 	}
 
-	@Override
-	@AvailMethod
+	@Override @AvailMethod
 	A_Variable o_AddWriteReactor (
 		final AvailObject object,
 		final A_Atom key,
@@ -402,20 +448,22 @@ extends Descriptor
 		final Map<A_Atom, VariableAccessReactor> writeReactors =
 			(Map<A_Atom, VariableAccessReactor>) rawPojo.javaObject();
 		// Discard invalidated reactors.
-		for (final Map.Entry<A_Atom, VariableAccessReactor> entry :
-			writeReactors.entrySet())
+		final Iterator<Map.Entry<A_Atom, VariableAccessReactor>> iterator =
+			writeReactors.entrySet().iterator();
+		while (iterator.hasNext())
 		{
+			final Map.Entry<A_Atom, VariableAccessReactor> entry =
+				iterator.next();
 			if (entry.getValue().isInvalid())
 			{
-				writeReactors.remove(entry.getKey());
+				iterator.remove();
 			}
 		}
 		writeReactors.put(key, reactor);
 		return object;
 	}
 
-	@Override
-	@AvailMethod
+	@Override @AvailMethod
 	void o_RemoveWriteReactor (final AvailObject object, final A_Atom key)
 		throws AvailException
 	{
@@ -428,12 +476,15 @@ extends Descriptor
 		final Map<A_Atom, VariableAccessReactor> writeReactors =
 			(Map<A_Atom, VariableAccessReactor>) rawPojo.javaObject();
 		// Discard invalidated reactors.
-		for (final Map.Entry<A_Atom, VariableAccessReactor> entry :
-			writeReactors.entrySet())
+		final Iterator<Map.Entry<A_Atom, VariableAccessReactor>> iterator =
+			writeReactors.entrySet().iterator();
+		while (iterator.hasNext())
 		{
+			final Map.Entry<A_Atom, VariableAccessReactor> entry =
+				iterator.next();
 			if (entry.getValue().isInvalid())
 			{
-				writeReactors.remove(entry.getKey());
+				iterator.remove();
 			}
 		}
 		if (writeReactors.remove(key) == null)
@@ -444,6 +495,31 @@ extends Descriptor
 		{
 			object.setSlot(WRITE_REACTORS, NilDescriptor.nil());
 		}
+	}
+
+	@Override @AvailMethod
+	A_Set o_ValidWriteReactorFunctions (final AvailObject object)
+	{
+		final AvailObject rawPojo = object.slot(WRITE_REACTORS);
+		if (!rawPojo.equalsNil())
+		{
+			@SuppressWarnings("unchecked")
+			final Map<A_Atom, VariableAccessReactor> writeReactors =
+				(Map<A_Atom, VariableAccessReactor>) rawPojo.javaObject();
+			A_Set set = SetDescriptor.empty();
+			for (final Map.Entry<A_Atom, VariableAccessReactor> entry :
+				writeReactors.entrySet())
+			{
+				final A_Function function = entry.getValue().getAndClearFunction();
+				if (!function.equalsNil())
+				{
+					set = set.setWithElementCanDestroy(function, true);
+				}
+			}
+			writeReactors.clear();
+			return set;
+		}
+		return SetDescriptor.empty();
 	}
 
 	@Override @AvailMethod

@@ -38,6 +38,7 @@ import java.io.PrintStream;
 import java.lang.reflect.Array;
 import java.util.*;
 import org.junit.*;
+import com.avail.AvailRuntime;
 import com.avail.annotations.*;
 import com.avail.descriptor.*;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
@@ -1472,6 +1473,9 @@ public class TypeConsistencyTest
 	@BeforeClass
 	public static void initializeAllWellKnownObjects ()
 	{
+		// Force early initialization of the Avail runtime in order to prevent
+		// initialization errors.
+		AvailRuntime.specialAtoms();
 		Node.createTypes();
 		System.out.format("Checking %d types%n", Node.values.size());
 

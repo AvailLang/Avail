@@ -35,8 +35,8 @@ package com.avail.descriptor;
 import static com.avail.descriptor.VariableSharedDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.VariableSharedDescriptor.ObjectSlots.*;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicReference;
 import com.avail.annotations.*;
+import com.avail.descriptor.VariableDescriptor.VariableAccessReactor;
 import com.avail.exceptions.AvailException;
 import com.avail.interpreter.levelTwo.L2Chunk;
 
@@ -50,52 +50,6 @@ import com.avail.interpreter.levelTwo.L2Chunk;
 public final class VariableSharedDescriptor
 extends VariableDescriptor
 {
-	/**
-	 * A {@code VariableAccessReactor} records a one-shot {@linkplain
-	 * FunctionDescriptor function}. It is cleared upon read.
-	 */
-	public static class VariableAccessReactor
-	{
-		/** The {@linkplain FunctionDescriptor reactor function}. */
-		private final AtomicReference<A_Function> function =
-			new AtomicReference<A_Function>(NilDescriptor.nil());
-
-		/**
-		 * Atomically get and clear {@linkplain FunctionDescriptor reactor
-		 * function}.
-		 *
-		 * @return The reactor function, or {@linkplain NilDescriptor#nil() nil}
-		 *         if the reactor function has already been requested (and the
-		 *         reactor is therefore invalid).
-		 */
-		public A_Function getAndClearFunction ()
-		{
-			return function.getAndSet(NilDescriptor.nil());
-		}
-
-		/**
-		 * Is the {@linkplain VariableAccessReactor reactor} invalid?
-		 *
-		 * @return {@code true} if the reactor is invalid, {@code false}
-		 *         otherwise.
-		 */
-		boolean isInvalid ()
-		{
-			return function.get().equalsNil();
-		}
-
-		/**
-		 * Construct a new {@link VariableAccessReactor}.
-		 *
-		 * @param function
-		 *        The reactor {@linkplain AvailObject function}.
-		 */
-		public VariableAccessReactor (final A_Function function)
-		{
-			this.function.set(function);
-		}
-	}
-
 	/**
 	 * The layout of integer slots for my instances.
 	 */
@@ -337,8 +291,7 @@ extends VariableDescriptor
 		}
 	}
 
-	@Override
-	@AvailMethod
+	@Override @AvailMethod
 	A_Variable o_AddWriteReactor (
 		final AvailObject object,
 		final A_Atom key,
@@ -350,14 +303,22 @@ extends VariableDescriptor
 		}
 	}
 
-	@Override
-	@AvailMethod
+	@Override @AvailMethod
 	void o_RemoveWriteReactor (final AvailObject object, final A_Atom key)
 		throws AvailException
 	{
 		synchronized (object)
 		{
 			super.o_RemoveWriteReactor(object, key);
+		}
+	}
+
+	@Override @AvailMethod
+	A_Set o_ValidWriteReactorFunctions (final AvailObject object)
+	{
+		synchronized (object)
+		{
+			return super.o_ValidWriteReactorFunctions(object);
 		}
 	}
 

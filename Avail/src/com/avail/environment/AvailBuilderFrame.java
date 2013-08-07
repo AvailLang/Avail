@@ -1647,7 +1647,7 @@ extends JFrame
 		final String platform = System.getProperty("os.name");
 		if (platform.toLowerCase().matches("mac os x.*"))
 		{
-			// Doesn't work yet.
+			// TODO: [MvG] Doesn't work yet.
 //			setUpForMac();
 		}
 

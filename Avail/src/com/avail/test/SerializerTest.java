@@ -88,7 +88,7 @@ public final class SerializerTest
 		final ModuleRoots roots = new ModuleRoots(String.format(
 			"avail=%s,%s",
 			repositoryFile.getAbsolutePath(),
-			new File("new-avail").getAbsolutePath()));
+			new File("avail").getAbsolutePath()));
 		final RenamesFileParser parser =
 			new RenamesFileParser(new StringReader(""), roots);
 		ModuleNameResolver resolver;
@@ -110,9 +110,11 @@ public final class SerializerTest
 	public static void clearAllWellKnownObjects ()
 	{
 		final AvailRuntime theRuntime = runtime;
-		assert theRuntime != null;
-		theRuntime.destroy();
-		runtime = null;
+		if (theRuntime != null)
+		{
+			theRuntime.destroy();
+			runtime = null;
+		}
 	}
 
 	/**

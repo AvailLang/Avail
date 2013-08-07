@@ -42,7 +42,7 @@ import com.avail.AvailRuntime;
 import com.avail.AvailTask;
 import com.avail.annotations.NotNull;
 import com.avail.descriptor.*;
-import com.avail.descriptor.VariableSharedDescriptor.VariableAccessReactor;
+import com.avail.descriptor.VariableDescriptor.VariableAccessReactor;
 import com.avail.exceptions.AvailException;
 import com.avail.interpreter.*;
 import com.avail.utility.Continuation0;

@@ -1,5 +1,5 @@
 /**
- * P_023_AddWriteReactor.java
+ * P_026_DisableTraceVariableReadsBeforeWrites.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -33,34 +33,35 @@
 package com.avail.interpreter.primitive;
 
 import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.exceptions.AvailErrorCode.E_SPECIAL_ATOM;
+import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
-import static com.avail.interpreter.Primitive.Result.FIBER_SUSPENDED;
 import java.util.List;
-import com.avail.AvailRuntime;
-import com.avail.AvailTask;
 import com.avail.annotations.NotNull;
 import com.avail.descriptor.*;
+import com.avail.descriptor.FiberDescriptor.TraceFlag;
 import com.avail.descriptor.VariableDescriptor.VariableAccessReactor;
 import com.avail.interpreter.*;
-import com.avail.utility.Continuation0;
 
 /**
- * <strong>Primitive 23</strong>: Add a {@linkplain VariableAccessReactor
- * write reactor} to the specified {@linkplain VariableDescriptor variable}.
- * The supplied {@linkplain AtomDescriptor key} may be used subsequently to
- * remove the write reactor.
+ * <strong>Primitive 26</strong>: Disable {@linkplain
+ * TraceFlag#TRACE_VARIABLE_READS_BEFORE_WRITES variable access tracing} for the
+ * {@linkplain FiberDescriptor#current() current fiber}. To each {@linkplain
+ * VariableDescriptor variable} that survived tracing, add a {@linkplain
+ * VariableAccessReactor write reactor} that wraps the specified {@linkplain
+ * FunctionDescriptor function}, associating it with the specified {@linkplain
+ * AtomDescriptor atom} (for potential pre-activation removal).
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class P_023_AddWriteReactor
+public final class P_026_DisableTraceVariableReadsBeforeWrites
 extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
 	public final @NotNull static Primitive instance =
-		new P_023_AddWriteReactor().init(3, HasSideEffect);
+		new P_026_DisableTraceVariableReadsBeforeWrites().init(
+			2, HasSideEffect);
 
 	@Override
 	public Result attempt (
@@ -68,40 +69,23 @@ extends Primitive
 		final Interpreter interpreter,
 		final boolean skipReturnCheck)
 	{
-		assert args.size() == 3;
-		final A_Variable var = args.get(0);
-		final A_Atom key = args.get(1);
-		final A_Function reactorFunction = args.get(2);
-		// Forbid special atoms.
-		if (AvailRuntime.isSpecialAtom(key))
+		assert args.size() == 2;
+		final A_Atom key = args.get(0);
+		final A_Function reactorFunction = args.get(1);
+		if (!interpreter.traceVariableReadsBeforeWrites())
 		{
-			return interpreter.primitiveFailure(E_SPECIAL_ATOM);
+			return interpreter.primitiveFailure(E_ILLEGAL_TRACE_MODE);
 		}
-		// Changing the write reactors can invalidate L2 chunks that depend on
-		// this variable, so defer the update (and invalidation) until Level One
-		// safety is assured.
+		interpreter.setTraceVariableReadsBeforeWrites(false);
 		final A_Fiber fiber = interpreter.fiber();
-		final A_Function sharedFunction = reactorFunction.makeShared();
-		final VariableAccessReactor writeReactor =
-			new VariableAccessReactor(sharedFunction);
-		interpreter.primitiveSuspend();
-		final AvailRuntime runtime = AvailRuntime.current();
-		runtime.whenLevelOneSafeDo(AvailTask.forUnboundFiber(
-			fiber,
-			new Continuation0()
-			{
-				@Override
-				public void value ()
-				{
-					var.addWriteReactor(key, writeReactor);
-					Interpreter.resumeFromSuccessfulPrimitive(
-						runtime,
-						fiber,
-						NilDescriptor.nil(),
-						skipReturnCheck);
-				}
-			}));
-		return FIBER_SUSPENDED;
+		final A_Set readBeforeWritten = fiber.variablesReadBeforeWritten();
+		final VariableAccessReactor reactor =
+			new VariableAccessReactor(reactorFunction);
+		for (final A_Variable var : readBeforeWritten)
+		{
+			var.addWriteReactor(key, reactor);
+		}
+		return interpreter.primitiveSuccess(NilDescriptor.nil());
 	}
 
 	@Override
@@ -109,10 +93,9 @@ extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				VariableTypeDescriptor.mostGeneralType(),
 				ATOM.o(),
 				FunctionTypeDescriptor.create(
-					TupleDescriptor.from(ANY.o(), ANY.o()),
+					TupleDescriptor.empty(),
 					TOP.o())),
 			TOP.o());
 	}

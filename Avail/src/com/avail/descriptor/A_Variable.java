@@ -32,7 +32,7 @@
 
 package com.avail.descriptor;
 
-import com.avail.descriptor.VariableSharedDescriptor.VariableAccessReactor;
+import com.avail.descriptor.VariableDescriptor.VariableAccessReactor;
 import com.avail.exceptions.AvailErrorCode;
 import com.avail.exceptions.AvailException;
 
@@ -148,7 +148,7 @@ extends A_ChunkDependable
 
 	/**
 	 * Add a {@linkplain VariableAccessReactor write reactor} to the {@linkplain
-	 * VariableSharedDescriptor variable} and associate it with the specified
+	 * VariableDescriptor variable} and associate it with the specified
 	 * key (for subsequent removal).
 	 *
 	 * @param key
@@ -165,7 +165,7 @@ extends A_ChunkDependable
 	/**
 	 * Remove the {@linkplain VariableAccessReactor write reactor} associated
 	 * with the specified {@linkplain AtomDescriptor key} from the {@linkplain
-	 * VariableSharedDescriptor variable}.
+	 * VariableDescriptor variable}.
 	 *
 	 * @param key
 	 *        An atom.
@@ -174,4 +174,13 @@ extends A_ChunkDependable
 	 *         found}.
 	 */
 	void removeWriteReactor (final A_Atom key) throws AvailException;
+
+	/**
+	 * Answer the {@linkplain SetDescriptor set} of {@linkplain
+	 * VariableAccessReactor write reactor} {@linkplain FunctionDescriptor
+	 * functions} that have not previously activated.
+	 *
+	 * @return The requested functions.
+	 */
+	A_Set validWriteReactorFunctions ();
 }

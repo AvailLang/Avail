@@ -1,5 +1,5 @@
 /**
- * P_025_TraceVariableAccesses.java
+ * P_042_DisableTraceVariableWrites.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -32,7 +32,6 @@
 
 package com.avail.interpreter.primitive;
 
-import static com.avail.descriptor.FiberDescriptor.TraceFlag.TRACE_VARIABLE_ACCESSES;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
@@ -43,20 +42,18 @@ import com.avail.descriptor.FiberDescriptor.TraceFlag;
 import com.avail.interpreter.*;
 
 /**
- * <strong>Primitive 25</strong>: Enable {@linkplain
- * TraceFlag#TRACE_VARIABLE_ACCESSES variable access tracing} for the
- * {@linkplain FiberDescriptor#current() current fiber}.
+ * <strong>Primitive 42</strong>: TODO: [TLS] Document this!
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class P_025_TraceVariableAccesses
+public final class P_042_DisableTraceVariableWrites
 extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
 	public final @NotNull static Primitive instance =
-		new P_025_TraceVariableAccesses().init(0, HasSideEffect);
+		new P_042_DisableTraceVariableWrites().init(0, HasSideEffect);
 
 	@Override
 	public Result attempt (
@@ -66,13 +63,20 @@ extends Primitive
 	{
 		assert args.size() == 0;
 		final A_Fiber fiber = interpreter.fiber();
-		if (fiber.traceFlag(TRACE_VARIABLE_ACCESSES))
+		if (!fiber.traceFlag(TraceFlag.TRACE_VARIABLE_WRITES))
 		{
 			return interpreter.primitiveFailure(E_ILLEGAL_TRACE_MODE);
 		}
-		fiber.setTraceFlag(TRACE_VARIABLE_ACCESSES);
-		interpreter.setTraceVariableAccesses(true);
-		return interpreter.primitiveSuccess(NilDescriptor.nil());
+		interpreter.setTraceVariableWrites(false);
+		final A_Set written = fiber.variablesWritten();
+		A_Set functions = SetDescriptor.empty();
+		for (final A_Variable var : written)
+		{
+			functions = functions.setUnionCanDestroy(
+				var.validWriteReactorFunctions(),
+				true);
+		}
+		return interpreter.primitiveSuccess(functions);
 	}
 
 	@Override
@@ -80,6 +84,10 @@ extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.empty(),
-			TOP.o());
+			SetTypeDescriptor.setTypeForSizesContentType(
+				IntegerRangeTypeDescriptor.wholeNumbers(),
+				FunctionTypeDescriptor.create(
+					TupleDescriptor.empty(),
+					TOP.o())));
 	}
 }

@@ -47,7 +47,7 @@ import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.descriptor.FiberDescriptor.ExecutionState;
 import com.avail.descriptor.SetDescriptor.SetIterator;
 import com.avail.descriptor.TypeDescriptor.Types;
-import com.avail.descriptor.VariableSharedDescriptor.VariableAccessReactor;
+import com.avail.descriptor.VariableDescriptor.VariableAccessReactor;
 import com.avail.exceptions.*;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.levelTwo.L2Chunk;
@@ -4337,6 +4337,18 @@ extends AbstractDescriptor
 
 	@Override
 	A_Set o_VariablesReadBeforeWritten (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	A_Set o_VariablesWritten (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	A_Set o_ValidWriteReactorFunctions (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}

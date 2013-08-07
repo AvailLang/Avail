@@ -43,7 +43,6 @@ import com.avail.compiler.*;
 import com.avail.descriptor.AbstractNumberDescriptor.Order;
 import com.avail.descriptor.AbstractNumberDescriptor.Sign;
 import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
-import com.avail.descriptor.Descriptor.FakeObjectSlotsForScanning;
 import com.avail.descriptor.FiberDescriptor.GeneralFlag;
 import com.avail.descriptor.FiberDescriptor.InterruptRequestFlag;
 import com.avail.descriptor.FiberDescriptor.SynchronizationFlag;
@@ -54,7 +53,7 @@ import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.descriptor.FiberDescriptor.ExecutionState;
 import com.avail.descriptor.SetDescriptor.SetIterator;
 import com.avail.descriptor.TypeDescriptor.Types;
-import com.avail.descriptor.VariableSharedDescriptor.VariableAccessReactor;
+import com.avail.descriptor.VariableDescriptor.VariableAccessReactor;
 import com.avail.exceptions.AvailException;
 import com.avail.exceptions.AvailUnsupportedOperationException;
 import com.avail.exceptions.SignatureException;
@@ -5927,4 +5926,16 @@ public abstract class AbstractDescriptor
 	 * @return
 	 */
 	abstract A_Set o_VariablesReadBeforeWritten (AvailObject object);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract A_Set o_VariablesWritten (AvailObject object);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract A_Set o_ValidWriteReactorFunctions (AvailObject object);
 }

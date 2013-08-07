@@ -1,5 +1,5 @@
 /**
- * P_026_DisableTraceVariableAccesses.java
+ * P_025_TraceVariableReadsBeforeWrites.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -32,7 +32,6 @@
 
 package com.avail.interpreter.primitive;
 
-import static com.avail.descriptor.FiberDescriptor.TraceFlag.TRACE_VARIABLE_ACCESSES;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
@@ -40,28 +39,23 @@ import java.util.List;
 import com.avail.annotations.NotNull;
 import com.avail.descriptor.*;
 import com.avail.descriptor.FiberDescriptor.TraceFlag;
-import com.avail.descriptor.VariableSharedDescriptor.VariableAccessReactor;
 import com.avail.interpreter.*;
 
 /**
- * <strong>Primitive 26</strong>: Disable {@linkplain
- * TraceFlag#TRACE_VARIABLE_ACCESSES variable access tracing} for the
- * {@linkplain FiberDescriptor#current() current fiber}. To each {@linkplain
- * VariableDescriptor variable} that survived tracing, add a {@linkplain
- * VariableAccessReactor write reactor} that wraps the specified {@linkplain
- * FunctionDescriptor function}, associating it with the specified {@linkplain
- * AtomDescriptor atom} (for potential pre-activation removal).
+ * <strong>Primitive 25</strong>: Enable {@linkplain
+ * TraceFlag#TRACE_VARIABLE_READS_BEFORE_WRITES variable read-before-write
+ * tracing} for the {@linkplain FiberDescriptor#current() current fiber}.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class P_026_DisableTraceVariableAccesses
+public final class P_025_TraceVariableReadsBeforeWrites
 extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
 	public final @NotNull static Primitive instance =
-		new P_026_DisableTraceVariableAccesses().init(2, HasSideEffect);
+		new P_025_TraceVariableReadsBeforeWrites().init(0, HasSideEffect);
 
 	@Override
 	public Result attempt (
@@ -69,23 +63,13 @@ extends Primitive
 		final Interpreter interpreter,
 		final boolean skipReturnCheck)
 	{
-		assert args.size() == 2;
-		final A_Atom key = args.get(0);
-		final A_Function reactorFunction = args.get(1);
-		final A_Fiber fiber = interpreter.fiber();
-		if (!fiber.traceFlag(TRACE_VARIABLE_ACCESSES))
+		assert args.size() == 0;
+		if (interpreter.traceVariableReadsBeforeWrites()
+			|| interpreter.traceVariableWrites())
 		{
 			return interpreter.primitiveFailure(E_ILLEGAL_TRACE_MODE);
 		}
-		fiber.clearTraceFlag(TRACE_VARIABLE_ACCESSES);
-		interpreter.setTraceVariableAccesses(false);
-		final A_Set readBeforeWritten = fiber.variablesReadBeforeWritten();
-		final VariableAccessReactor reactor =
-			new VariableAccessReactor(reactorFunction);
-		for (final A_Variable var : readBeforeWritten)
-		{
-			var.addWriteReactor(key, reactor);
-		}
+		interpreter.setTraceVariableReadsBeforeWrites(true);
 		return interpreter.primitiveSuccess(NilDescriptor.nil());
 	}
 
@@ -93,9 +77,7 @@ extends Primitive
 	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
-				ATOM.o(),
-				FunctionTypeDescriptor.forReturnType(TOP.o())),
+			TupleDescriptor.empty(),
 			TOP.o());
 	}
 }

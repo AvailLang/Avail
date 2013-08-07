@@ -42,7 +42,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import com.avail.*;
 import com.avail.annotations.*;
-import com.avail.descriptor.VariableSharedDescriptor.VariableAccessReactor;
+import com.avail.descriptor.VariableDescriptor.VariableAccessReactor;
 import com.avail.interpreter.*;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.utility.*;
@@ -160,17 +160,18 @@ extends Descriptor
 	{
 		/**
 		 * Should the {@linkplain Interpreter interpreter} record which
-		 * variables are accessed while running this {@linkplain FiberDescriptor
-		 * fiber}?
+		 * {@linkplain VariableDescriptor variables} are read before written
+		 * while running this {@linkplain FiberDescriptor fiber}?
 		 */
-		TRACE_VARIABLE_ACCESSES (_TRACE_VARIABLE_ACCESSES),
+		TRACE_VARIABLE_READS_BEFORE_WRITES
+			(_TRACE_VARIABLE_READS_BEFORE_WRITES),
 
 		/**
 		 * Should the {@linkplain Interpreter interpreter} record which
-		 * {@linkplain VariableAccessReactor write reactors} should be activated
-		 * as a consequence of running this {@linkplain FiberDescriptor fiber}?
+		 * {@linkplain VariableDescriptor variables} are written while running
+		 * this {@linkplain FiberDescriptor fiber}?
 		 */
-		TRACE_WRITE_REACTORS (_TRACE_WRITE_REACTORS);
+		TRACE_VARIABLE_WRITES (_TRACE_VARIABLE_WRITES);
 
 		/** The {@linkplain BitField bit field}. */
 		final BitField bitField;
@@ -275,14 +276,14 @@ extends Descriptor
 			3,
 			1);
 
-		/** See {@link TraceFlag#TRACE_VARIABLE_ACCESSES}. */
-		static final BitField _TRACE_VARIABLE_ACCESSES = bitField(
+		/** See {@link TraceFlag#TRACE_VARIABLE_READS_BEFORE_WRITES}. */
+		static final BitField _TRACE_VARIABLE_READS_BEFORE_WRITES = bitField(
 			FLAGS,
 			4,
 			1);
 
-		/** See {@link TraceFlag#TRACE_WRITE_REACTORS}. */
-		static final BitField _TRACE_WRITE_REACTORS = bitField(
+		/** See {@link TraceFlag#TRACE_VARIABLE_WRITES}. */
+		static final BitField _TRACE_VARIABLE_WRITES = bitField(
 			FLAGS,
 			5,
 			1);
@@ -392,7 +393,7 @@ extends Descriptor
 		/**
 		 * A {@linkplain RawPojoDescriptor raw pojo} wrapping a {@linkplain
 		 * WeakHashMap weak map} from {@linkplain VariableDescriptor variables}
-		 * encountered during a {@linkplain TraceFlag#TRACE_VARIABLE_ACCESSES
+		 * encountered during a {@linkplain TraceFlag#TRACE_VARIABLE_READS_BEFORE_WRITES
 		 * variable access trace} to a {@linkplain Boolean boolean} that is
 		 * {@code true} iff the variable was read before it was written.
 		 */
@@ -1216,7 +1217,8 @@ extends Descriptor
 		final A_Variable var,
 		final boolean wasRead)
 	{
-		assert object.slot(_TRACE_VARIABLE_ACCESSES) == 1;
+		assert object.slot(_TRACE_VARIABLE_READS_BEFORE_WRITES) == 1
+			^ object.slot(_TRACE_VARIABLE_WRITES) == 1;
 		final AvailObject rawPojo = object.slot(TRACED_VARIABLES);
 		@SuppressWarnings("unchecked")
 		final WeakHashMap<A_Variable, Boolean> map =
@@ -1230,7 +1232,7 @@ extends Descriptor
 	@Override @AvailMethod
 	A_Set o_VariablesReadBeforeWritten (final AvailObject object)
 	{
-		assert object.slot(_TRACE_VARIABLE_ACCESSES) != 1;
+		assert object.slot(_TRACE_VARIABLE_READS_BEFORE_WRITES) != 1;
 		final AvailObject rawPojo = object.slot(TRACED_VARIABLES);
 		@SuppressWarnings("unchecked")
 		final WeakHashMap<A_Variable, Boolean> map =
@@ -1242,6 +1244,23 @@ extends Descriptor
 			{
 				set = set.setWithElementCanDestroy(entry.getKey(), true);
 			}
+		}
+		map.clear();
+		return set;
+	}
+
+	@Override @AvailMethod
+	A_Set o_VariablesWritten (final AvailObject object)
+	{
+		assert object.slot(_TRACE_VARIABLE_WRITES) != 1;
+		final AvailObject rawPojo = object.slot(TRACED_VARIABLES);
+		@SuppressWarnings("unchecked")
+		final WeakHashMap<A_Variable, Boolean> map =
+			(WeakHashMap<A_Variable, Boolean>) rawPojo.javaObject();
+		A_Set set = SetDescriptor.empty();
+		for (final Map.Entry<A_Variable, Boolean> entry : map.entrySet())
+		{
+			set = set.setWithElementCanDestroy(entry.getKey(), true);
 		}
 		map.clear();
 		return set;
