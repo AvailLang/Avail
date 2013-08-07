@@ -1,6 +1,6 @@
 /**
- * P_016_CreateVariable.java
- * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
+ * P_025_TraceVariableReadsBeforeWrites.java
+ * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,25 +29,33 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+
 package com.avail.interpreter.primitive;
 
+import static com.avail.descriptor.TypeDescriptor.Types.*;
+import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
+import com.avail.annotations.NotNull;
 import com.avail.descriptor.*;
+import com.avail.descriptor.FiberDescriptor.TraceFlag;
 import com.avail.interpreter.*;
 
 /**
- * <strong>Primitive 16:</strong> Create a {@linkplain
- * VariableDescriptor variable} with the given inner
- * type.
+ * <strong>Primitive 25</strong>: Enable {@linkplain
+ * TraceFlag#TRACE_VARIABLE_READS_BEFORE_WRITES variable read-before-write
+ * tracing} for the {@linkplain FiberDescriptor#current() current fiber}.
+ *
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class P_016_CreateVariable extends Primitive
+public final class P_025_TraceVariableReadsBeforeWrites
+extends Primitive
 {
 	/**
-	 * The sole instance of this primitive class.  Accessed through reflection.
+	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_016_CreateVariable().init(
-		1, CanInline, CannotFail);
+	public final @NotNull static Primitive instance =
+		new P_025_TraceVariableReadsBeforeWrites().init(0, HasSideEffect);
 
 	@Override
 	public Result attempt (
@@ -55,18 +63,21 @@ public class P_016_CreateVariable extends Primitive
 		final Interpreter interpreter,
 		final boolean skipReturnCheck)
 	{
-		assert args.size() == 1;
-		final A_Type innerType = args.get(0);
-		return interpreter.primitiveSuccess(
-			VariableDescriptor.forContentType(innerType));
+		assert args.size() == 0;
+		if (interpreter.traceVariableReadsBeforeWrites()
+			|| interpreter.traceVariableWrites())
+		{
+			return interpreter.primitiveFailure(E_ILLEGAL_TRACE_MODE);
+		}
+		interpreter.setTraceVariableReadsBeforeWrites(true);
+		return interpreter.primitiveSuccess(NilDescriptor.nil());
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
-				InstanceMetaDescriptor.anyMeta()),
-			VariableTypeDescriptor.mostGeneralType());
+			TupleDescriptor.empty(),
+			TOP.o());
 	}
 }

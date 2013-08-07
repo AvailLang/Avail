@@ -70,7 +70,7 @@ extends Primitive
 		assert args.size() == 2;
 		final A_String string = args.get(0);
 		final A_Function function = args.get(1);
-		final A_Fiber fiber = FiberDescriptor.current();
+		final A_Fiber fiber = interpreter.fiber();
 		final AvailLoader loader = fiber.availLoader();
 		if (loader == null || loader.module().equalsNil())
 		{

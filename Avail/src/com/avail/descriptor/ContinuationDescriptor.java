@@ -559,7 +559,7 @@ extends Descriptor
 	 * {@link P_059_ContinuationStackData}.
 	 */
 	private static final AvailObject nilSubstitute =
-		VariableDescriptor.forInnerType(
+		VariableDescriptor.forContentType(
 			BottomTypeDescriptor.bottom()).makeShared();
 
 	/**

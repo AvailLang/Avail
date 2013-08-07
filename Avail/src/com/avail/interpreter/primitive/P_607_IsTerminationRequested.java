@@ -61,7 +61,7 @@ extends Primitive
 		assert args.size() == 0;
 		return interpreter.primitiveSuccess(
 			AtomDescriptor.objectFromBoolean(
-				FiberDescriptor.current().getAndClearInterruptRequestFlag(
+				interpreter.fiber().getAndClearInterruptRequestFlag(
 					TERMINATION_REQUESTED)));
 	}
 

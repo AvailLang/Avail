@@ -1,6 +1,6 @@
 /**
- * P_248_AddSemanticRestriction.java
- * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
+ * P_024_RemoveWriteReactor.java
+ * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,27 +29,38 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+
 package com.avail.interpreter.primitive;
 
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode.*;
-import static com.avail.interpreter.Primitive.Flag.Unknown;
+import static com.avail.interpreter.Primitive.Flag.*;
+import static com.avail.interpreter.Primitive.Result.FIBER_SUSPENDED;
+import java.util.ArrayList;
 import java.util.List;
+import com.avail.AvailRuntime;
+import com.avail.AvailTask;
+import com.avail.annotations.NotNull;
 import com.avail.descriptor.*;
-import com.avail.exceptions.*;
+import com.avail.descriptor.VariableDescriptor.VariableAccessReactor;
+import com.avail.exceptions.AvailException;
 import com.avail.interpreter.*;
+import com.avail.utility.Continuation0;
 
 /**
- * <strong>Primitive 248:</strong> Add a type restriction function.
+ * <strong>Primitive 24</strong>: Remove the {@linkplain VariableAccessReactor
+ * write reactor} associated with the specified {@linkplain AtomDescriptor key}.
+ *
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class P_248_AddSemanticRestriction
+public final class P_024_RemoveWriteReactor
 extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
-	public final static Primitive instance =
-		new P_248_AddSemanticRestriction().init(2, Unknown);
+	public final @NotNull static Primitive instance =
+		new P_024_RemoveWriteReactor().init(2, HasSideEffect);
 
 	@Override
 	public Result attempt (
@@ -58,46 +69,52 @@ extends Primitive
 		final boolean skipReturnCheck)
 	{
 		assert args.size() == 2;
-		final A_String string = args.get(0);
-		final A_Function function = args.get(1);
-		final A_Type functionType = function.kind();
-		final A_Type tupleType = functionType.argsTupleType();
-		final AvailLoader loader = interpreter.fiber().availLoader();
-		if (loader == null)
+		final A_Variable var = args.get(0);
+		final A_Atom key = args.get(1);
+		// Forbid special atoms.
+		if (AvailRuntime.isSpecialAtom(key))
 		{
-			return interpreter.primitiveFailure(E_LOADING_IS_OVER);
+			return interpreter.primitiveFailure(E_SPECIAL_ATOM);
 		}
-		for (int i = function.code().numArgs(); i >= 1; i--)
-		{
-			if (!tupleType.typeAtIndex(i).isInstanceOf(
-				InstanceMetaDescriptor.on(InstanceMetaDescriptor.topMeta())))
+		// Changing the write reactors can invalidate L2 chunks that depend on
+		// this variable, so defer the update (and invalidation) until Level One
+		// safety is assured.
+		final A_Fiber fiber = interpreter.fiber();
+		final A_Function failureFunction =
+			interpreter.primitiveFunctionBeingAttempted();
+		final List<AvailObject> copiedArgs = new ArrayList<>(args);
+		assert failureFunction.code().primitiveNumber() == primitiveNumber;
+		interpreter.primitiveSuspend();
+		final AvailRuntime runtime = AvailRuntime.current();
+		runtime.whenLevelOneSafeDo(AvailTask.forUnboundFiber(
+			fiber,
+			new Continuation0()
 			{
-				return interpreter.primitiveFailure(
-					E_TYPE_RESTRICTION_MUST_ACCEPT_ONLY_TYPES);
-			}
-		}
-		try
-		{
-			function.code().setMethodName(
-				StringDescriptor.from(
-					String.format("Semantic restriction of %s", string)));
-			final A_Atom atom = loader.lookupName(string);
-			final A_SemanticRestriction restriction =
-				SemanticRestrictionDescriptor.create(
-					function,
-					atom.bundleOrCreate().bundleMethod(),
-					interpreter.module());
-			loader.addSemanticRestriction(restriction);
-		}
-		catch (final AmbiguousNameException e)
-		{
-			return interpreter.primitiveFailure(e);
-		}
-		catch (final SignatureException e)
-		{
-			return interpreter.primitiveFailure(e);
-		}
-		return interpreter.primitiveSuccess(NilDescriptor.nil());
+				@Override
+				public void value ()
+				{
+					try
+					{
+						var.removeWriteReactor(key);
+						Interpreter.resumeFromSuccessfulPrimitive(
+							runtime,
+							fiber,
+							NilDescriptor.nil(),
+							skipReturnCheck);
+					}
+					catch (final AvailException e)
+					{
+						Interpreter.resumeFromFailedPrimitive(
+							runtime,
+							fiber,
+							e.numericCode(),
+							failureFunction,
+							copiedArgs,
+							skipReturnCheck);
+					}
+				}
+			}));
+		return FIBER_SUSPENDED;
 	}
 
 	@Override
@@ -105,9 +122,8 @@ extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				TupleTypeDescriptor.stringType(),
-				FunctionTypeDescriptor.forReturnType(
-					InstanceMetaDescriptor.topMeta())),
+				VariableTypeDescriptor.mostGeneralType(),
+				ATOM.o()),
 			TOP.o());
 	}
 }

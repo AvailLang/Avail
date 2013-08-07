@@ -74,7 +74,7 @@ public class L2_PREPARE_NEW_FRAME extends L2Operation
 		{
 			interpreter.pointerAtPut(
 				dest,
-				VariableDescriptor.forOuterType(code.localTypeAt(i)));
+				VariableDescriptor.forVariableType(code.localTypeAt(i)));
 			dest++;
 		}
 		// Write nil into the remaining stack slots.  These values should not

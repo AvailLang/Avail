@@ -1,6 +1,6 @@
 /**
- * P_016_CreateVariable.java
- * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
+ * P_026_DisableTraceVariableReadsBeforeWrites.java
+ * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,25 +29,39 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+
 package com.avail.interpreter.primitive;
 
+import static com.avail.descriptor.TypeDescriptor.Types.*;
+import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
+import com.avail.annotations.NotNull;
 import com.avail.descriptor.*;
+import com.avail.descriptor.FiberDescriptor.TraceFlag;
+import com.avail.descriptor.VariableDescriptor.VariableAccessReactor;
 import com.avail.interpreter.*;
 
 /**
- * <strong>Primitive 16:</strong> Create a {@linkplain
- * VariableDescriptor variable} with the given inner
- * type.
+ * <strong>Primitive 26</strong>: Disable {@linkplain
+ * TraceFlag#TRACE_VARIABLE_READS_BEFORE_WRITES variable access tracing} for the
+ * {@linkplain FiberDescriptor#current() current fiber}. To each {@linkplain
+ * VariableDescriptor variable} that survived tracing, add a {@linkplain
+ * VariableAccessReactor write reactor} that wraps the specified {@linkplain
+ * FunctionDescriptor function}, associating it with the specified {@linkplain
+ * AtomDescriptor atom} (for potential pre-activation removal).
+ *
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class P_016_CreateVariable extends Primitive
+public final class P_026_DisableTraceVariableReadsBeforeWrites
+extends Primitive
 {
 	/**
-	 * The sole instance of this primitive class.  Accessed through reflection.
+	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_016_CreateVariable().init(
-		1, CanInline, CannotFail);
+	public final @NotNull static Primitive instance =
+		new P_026_DisableTraceVariableReadsBeforeWrites().init(
+			2, HasSideEffect);
 
 	@Override
 	public Result attempt (
@@ -55,10 +69,23 @@ public class P_016_CreateVariable extends Primitive
 		final Interpreter interpreter,
 		final boolean skipReturnCheck)
 	{
-		assert args.size() == 1;
-		final A_Type innerType = args.get(0);
-		return interpreter.primitiveSuccess(
-			VariableDescriptor.forContentType(innerType));
+		assert args.size() == 2;
+		final A_Atom key = args.get(0);
+		final A_Function reactorFunction = args.get(1);
+		if (!interpreter.traceVariableReadsBeforeWrites())
+		{
+			return interpreter.primitiveFailure(E_ILLEGAL_TRACE_MODE);
+		}
+		interpreter.setTraceVariableReadsBeforeWrites(false);
+		final A_Fiber fiber = interpreter.fiber();
+		final A_Set readBeforeWritten = fiber.variablesReadBeforeWritten();
+		final VariableAccessReactor reactor =
+			new VariableAccessReactor(reactorFunction);
+		for (final A_Variable var : readBeforeWritten)
+		{
+			var.addWriteReactor(key, reactor);
+		}
+		return interpreter.primitiveSuccess(NilDescriptor.nil());
 	}
 
 	@Override
@@ -66,7 +93,10 @@ public class P_016_CreateVariable extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				InstanceMetaDescriptor.anyMeta()),
-			VariableTypeDescriptor.mostGeneralType());
+				ATOM.o(),
+				FunctionTypeDescriptor.create(
+					TupleDescriptor.empty(),
+					TOP.o())),
+			TOP.o());
 	}
 }

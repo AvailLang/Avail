@@ -1,6 +1,6 @@
 /**
- * P_026_CurrentTimeMilliseconds.java
- * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
+ * P_042_DisableTraceVariableWrites.java
+ * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,26 +29,31 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+
 package com.avail.interpreter.primitive;
 
+import static com.avail.descriptor.TypeDescriptor.Types.*;
+import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
+import com.avail.annotations.NotNull;
 import com.avail.descriptor.*;
+import com.avail.descriptor.FiberDescriptor.TraceFlag;
 import com.avail.interpreter.*;
 
 /**
- * <strong>Primitive 26:</strong> Get the current time as milliseconds since
- * the Unix Epoch.
+ * <strong>Primitive 42</strong>: TODO: [TLS] Document this!
+ *
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class P_026_CurrentTimeMilliseconds
+public final class P_042_DisableTraceVariableWrites
 extends Primitive
 {
 	/**
-	 * The sole instance of this primitive class.  Accessed through reflection.
+	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
-	public final static Primitive instance =
-		new P_026_CurrentTimeMilliseconds().init(
-			0, CannotFail, CanInline, HasSideEffect);
+	public final @NotNull static Primitive instance =
+		new P_042_DisableTraceVariableWrites().init(0, HasSideEffect);
 
 	@Override
 	public Result attempt (
@@ -57,8 +62,21 @@ extends Primitive
 		final boolean skipReturnCheck)
 	{
 		assert args.size() == 0;
-		return interpreter.primitiveSuccess(
-			IntegerDescriptor.fromLong(System.currentTimeMillis()));
+		final A_Fiber fiber = interpreter.fiber();
+		if (!fiber.traceFlag(TraceFlag.TRACE_VARIABLE_WRITES))
+		{
+			return interpreter.primitiveFailure(E_ILLEGAL_TRACE_MODE);
+		}
+		interpreter.setTraceVariableWrites(false);
+		final A_Set written = fiber.variablesWritten();
+		A_Set functions = SetDescriptor.empty();
+		for (final A_Variable var : written)
+		{
+			functions = functions.setUnionCanDestroy(
+				var.validWriteReactorFunctions(),
+				true);
+		}
+		return interpreter.primitiveSuccess(functions);
 	}
 
 	@Override
@@ -66,6 +84,10 @@ extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.empty(),
-			IntegerRangeTypeDescriptor.wholeNumbers());
+			SetTypeDescriptor.setTypeForSizesContentType(
+				IntegerRangeTypeDescriptor.wholeNumbers(),
+				FunctionTypeDescriptor.create(
+					TupleDescriptor.empty(),
+					TOP.o())));
 	}
 }

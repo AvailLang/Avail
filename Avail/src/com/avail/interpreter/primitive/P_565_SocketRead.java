@@ -94,7 +94,7 @@ extends Primitive
 		final AsynchronousSocketChannel socket =
 			(AsynchronousSocketChannel) pojo.javaObject();
 		final ByteBuffer buffer = ByteBuffer.allocateDirect(size.extractInt());
-		final A_Fiber current = FiberDescriptor.current();
+		final A_Fiber current = interpreter.fiber();
 		final A_Fiber newFiber = FiberDescriptor.newFiber(
 			succeed.kind().returnType().typeUnion(fail.kind().returnType()),
 			priority.extractInt(),

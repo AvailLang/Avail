@@ -34,14 +34,19 @@ package com.avail.descriptor;
 
 import static com.avail.descriptor.VariableDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.VariableDescriptor.ObjectSlots.*;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 import com.avail.AvailRuntime;
 import com.avail.annotations.*;
 import com.avail.exceptions.*;
+import com.avail.interpreter.Interpreter;
 import com.avail.serialization.SerializerOperation;
 
 /**
  * My {@linkplain AvailObject object instances} are variables which can hold
- * any object that agrees with my {@linkplain #forInnerType(A_Type) inner type}.
+ * any object that agrees with my {@linkplain #forContentType(A_Type) inner type}.
  * A variable may also hold no value at all.  Any attempt to read the
  * {@linkplain #o_GetValue(AvailObject) current value} of a variable that holds
  * no value will fail immediately.
@@ -51,6 +56,52 @@ import com.avail.serialization.SerializerOperation;
 public class VariableDescriptor
 extends Descriptor
 {
+	/**
+	 * A {@code VariableAccessReactor} records a one-shot {@linkplain
+	 * FunctionDescriptor function}. It is cleared upon read.
+	 */
+	public static class VariableAccessReactor
+	{
+		/** The {@linkplain FunctionDescriptor reactor function}. */
+		private final AtomicReference<A_Function> function =
+			new AtomicReference<A_Function>(NilDescriptor.nil());
+
+		/**
+		 * Atomically get and clear {@linkplain FunctionDescriptor reactor
+		 * function}.
+		 *
+		 * @return The reactor function, or {@linkplain NilDescriptor#nil() nil}
+		 *         if the reactor function has already been requested (and the
+		 *         reactor is therefore invalid).
+		 */
+		public A_Function getAndClearFunction ()
+		{
+			return function.getAndSet(NilDescriptor.nil());
+		}
+
+		/**
+		 * Is the {@linkplain VariableAccessReactor reactor} invalid?
+		 *
+		 * @return {@code true} if the reactor is invalid, {@code false}
+		 *         otherwise.
+		 */
+		boolean isInvalid ()
+		{
+			return function.get().equalsNil();
+		}
+
+		/**
+		 * Construct a new {@link VariableAccessReactor}.
+		 *
+		 * @param function
+		 *        The reactor {@linkplain AvailObject function}.
+		 */
+		public VariableAccessReactor (final A_Function function)
+		{
+			this.function.set(function);
+		}
+	}
+
 	/**
 	 * The layout of integer slots for my instances.
 	 */
@@ -81,7 +132,15 @@ extends Descriptor
 		 * VariableDescriptor variable}.  Note that this is always a
 		 * {@linkplain VariableTypeDescriptor variable type}.
 		 */
-		KIND
+		KIND,
+
+		/**
+		 * A {@linkplain RawPojoDescriptor raw pojo} that wraps a {@linkplain
+		 * Map map} from arbitrary {@linkplain AvailObject Avail values} to
+		 * {@linkplain VariableAccessReactor writer reactors} that respond to
+		 * writes of the {@linkplain VariableDescriptor variable}.
+		 */
+		WRITE_REACTORS
 	}
 
 	@Override
@@ -89,7 +148,8 @@ extends Descriptor
 		final AbstractSlotsEnum e)
 	{
 		return e == VALUE
-			|| e == HASH_OR_ZERO;
+			|| e == HASH_OR_ZERO
+			|| e == WRITE_REACTORS;
 	}
 
 	@Override @AvailMethod
@@ -117,6 +177,20 @@ extends Descriptor
 	@Override @AvailMethod
 	AvailObject o_GetValue (final AvailObject object)
 	{
+		final Interpreter interpreter;
+		try
+		{
+			interpreter = Interpreter.current();
+			if (interpreter.traceVariableReadsBeforeWrites())
+			{
+				final A_Fiber fiber = interpreter.fiber();
+				fiber.recordVariableAccess(object, true);
+			}
+		}
+		catch (final ClassCastException e)
+		{
+			// No implementation required.
+		}
 		// Answer the current value of the variable. Fail if no value is
 		// currently assigned.
 		final AvailObject value = object.slot(VALUE);
@@ -135,6 +209,20 @@ extends Descriptor
 	@Override @AvailMethod
 	void o_SetValue (final AvailObject object, final A_BasicObject newValue)
 	{
+		final Interpreter interpreter;
+		try
+		{
+			interpreter = Interpreter.current();
+			if (interpreter.traceVariableWrites())
+			{
+				final A_Fiber fiber = interpreter.fiber();
+				fiber.recordVariableAccess(object, false);
+			}
+		}
+		catch (final ClassCastException e)
+		{
+			// No implementation required.
+		}
 		final A_BasicObject outerKind = object.slot(KIND);
 		if (!newValue.isInstanceOf(outerKind.writeType()))
 		{
@@ -149,6 +237,20 @@ extends Descriptor
 		final AvailObject object,
 		final AvailObject newValue)
 	{
+		final Interpreter interpreter;
+		try
+		{
+			interpreter = Interpreter.current();
+			if (interpreter.traceVariableWrites())
+			{
+				final A_Fiber fiber = interpreter.fiber();
+				fiber.recordVariableAccess(object, false);
+			}
+		}
+		catch (final ClassCastException e)
+		{
+			// No implementation required.
+		}
 		object.setSlot(VALUE, newValue);
 	}
 
@@ -157,6 +259,20 @@ extends Descriptor
 		final AvailObject object,
 		final AvailObject newValue)
 	{
+		final Interpreter interpreter;
+		try
+		{
+			interpreter = Interpreter.current();
+			if (interpreter.traceVariableWrites())
+			{
+				final A_Fiber fiber = interpreter.fiber();
+				fiber.recordVariableAccess(object, true);
+			}
+		}
+		catch (final ClassCastException e)
+		{
+			// No implementation required.
+		}
 		final AvailObject outerKind = object.slot(KIND);
 		if (!newValue.isInstanceOf(outerKind.writeType()))
 		{
@@ -186,6 +302,20 @@ extends Descriptor
 		final AvailObject reference,
 		final AvailObject newValue)
 	{
+		final Interpreter interpreter;
+		try
+		{
+			interpreter = Interpreter.current();
+			if (interpreter.traceVariableWrites())
+			{
+				final A_Fiber fiber = interpreter.fiber();
+				fiber.recordVariableAccess(object, true);
+			}
+		}
+		catch (final ClassCastException e)
+		{
+			// No implementation required.
+		}
 		final AvailObject outerKind = object.slot(KIND);
 		if (!newValue.isInstanceOf(outerKind.writeType()))
 		{
@@ -218,6 +348,20 @@ extends Descriptor
 		final AvailObject object,
 		final A_Number addend)
 	{
+		final Interpreter interpreter;
+		try
+		{
+			interpreter = Interpreter.current();
+			if (interpreter.traceVariableWrites())
+			{
+				final A_Fiber fiber = interpreter.fiber();
+				fiber.recordVariableAccess(object, true);
+			}
+		}
+		catch (final ClassCastException e)
+		{
+			// No implementation required.
+		}
 		final A_Type outerKind = object.slot(KIND);
 		assert outerKind.readType().isSubtypeOf(
 			IntegerRangeTypeDescriptor.extendedIntegers());
@@ -247,7 +391,135 @@ extends Descriptor
 	@Override @AvailMethod
 	void o_ClearValue (final AvailObject object)
 	{
+		final Interpreter interpreter;
+		try
+		{
+			interpreter = Interpreter.current();
+			if (interpreter.traceVariableWrites())
+			{
+				final A_Fiber fiber = interpreter.fiber();
+				fiber.recordVariableAccess(object, false);
+			}
+		}
+		catch (final ClassCastException e)
+		{
+			// No implementation required.
+		}
 		object.setSlot(VALUE, NilDescriptor.nil());
+	}
+
+	@Override @AvailMethod
+	void o_AddDependentChunkIndex (
+		final AvailObject object,
+		final int aChunkIndex)
+	{
+		assert !isShared();
+		final A_Variable sharedVariable = object.makeShared();
+		sharedVariable.addDependentChunkIndex(aChunkIndex);
+		object.becomeIndirectionTo(sharedVariable);
+	}
+
+	@Override @AvailMethod
+	void o_RemoveDependentChunkIndex (
+		final AvailObject object,
+		final int aChunkIndex)
+	{
+		assert !isShared();
+		// This representation doesn't support dependent chunks, so the
+		// specified index can't be a match. This is certainly an error.
+		assert false : "Chunk removed but not added!";
+		throw unsupportedOperationException();
+	}
+
+	@Override @AvailMethod
+	A_Variable o_AddWriteReactor (
+		final AvailObject object,
+		final A_Atom key,
+		final VariableAccessReactor reactor)
+	{
+		AvailObject rawPojo = object.slot(WRITE_REACTORS);
+		if (rawPojo.equalsNil())
+		{
+			rawPojo = RawPojoDescriptor.identityWrap(
+				new HashMap<A_Atom, VariableAccessReactor>());
+			object.setSlot(WRITE_REACTORS, rawPojo);
+		}
+		@SuppressWarnings("unchecked")
+		final Map<A_Atom, VariableAccessReactor> writeReactors =
+			(Map<A_Atom, VariableAccessReactor>) rawPojo.javaObject();
+		// Discard invalidated reactors.
+		final Iterator<Map.Entry<A_Atom, VariableAccessReactor>> iterator =
+			writeReactors.entrySet().iterator();
+		while (iterator.hasNext())
+		{
+			final Map.Entry<A_Atom, VariableAccessReactor> entry =
+				iterator.next();
+			if (entry.getValue().isInvalid())
+			{
+				iterator.remove();
+			}
+		}
+		writeReactors.put(key, reactor);
+		return object;
+	}
+
+	@Override @AvailMethod
+	void o_RemoveWriteReactor (final AvailObject object, final A_Atom key)
+		throws AvailException
+	{
+		final AvailObject rawPojo = object.slot(WRITE_REACTORS);
+		if (rawPojo.equalsNil())
+		{
+			throw new AvailException(AvailErrorCode.E_KEY_NOT_FOUND);
+		}
+		@SuppressWarnings("unchecked")
+		final Map<A_Atom, VariableAccessReactor> writeReactors =
+			(Map<A_Atom, VariableAccessReactor>) rawPojo.javaObject();
+		// Discard invalidated reactors.
+		final Iterator<Map.Entry<A_Atom, VariableAccessReactor>> iterator =
+			writeReactors.entrySet().iterator();
+		while (iterator.hasNext())
+		{
+			final Map.Entry<A_Atom, VariableAccessReactor> entry =
+				iterator.next();
+			if (entry.getValue().isInvalid())
+			{
+				iterator.remove();
+			}
+		}
+		if (writeReactors.remove(key) == null)
+		{
+			throw new AvailException(AvailErrorCode.E_KEY_NOT_FOUND);
+		}
+		if (writeReactors.isEmpty())
+		{
+			object.setSlot(WRITE_REACTORS, NilDescriptor.nil());
+		}
+	}
+
+	@Override @AvailMethod
+	A_Set o_ValidWriteReactorFunctions (final AvailObject object)
+	{
+		final AvailObject rawPojo = object.slot(WRITE_REACTORS);
+		if (!rawPojo.equalsNil())
+		{
+			@SuppressWarnings("unchecked")
+			final Map<A_Atom, VariableAccessReactor> writeReactors =
+				(Map<A_Atom, VariableAccessReactor>) rawPojo.javaObject();
+			A_Set set = SetDescriptor.empty();
+			for (final Map.Entry<A_Atom, VariableAccessReactor> entry :
+				writeReactors.entrySet())
+			{
+				final A_Function function = entry.getValue().getAndClearFunction();
+				if (!function.equalsNil())
+				{
+					set = set.setWithElementCanDestroy(function, true);
+				}
+			}
+			writeReactors.clear();
+			return set;
+		}
+		return SetDescriptor.empty();
 	}
 
 	@Override @AvailMethod
@@ -257,7 +529,9 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	final boolean o_Equals (final AvailObject object, final A_BasicObject another)
+	final boolean o_Equals (
+		final AvailObject object,
+		final A_BasicObject another)
 	{
 		return another.equalsVariable(object);
 	}
@@ -283,6 +557,28 @@ extends Descriptor
 		return object;
 	}
 
+	@Override
+	AvailObject o_MakeShared (final AvailObject object)
+	{
+		assert !isShared();
+		final A_Type kind = object.slot(KIND).makeShared();
+		final AvailObject value = object.slot(VALUE).makeShared();
+		// The value might refer recursively to the variable, so it is possible
+		// that the variable has just become shared.
+		if (!object.descriptor.isShared())
+		{
+			final AvailObject substitutionVariable =
+				VariableSharedDescriptor.create(
+					kind,
+					object.slot(HASH_OR_ZERO),
+					value);
+			object.becomeIndirectionTo(substitutionVariable);
+			object.makeShared();
+			return substitutionVariable;
+		}
+		return object;
+	}
+
 	@Override @AvailMethod
 	final SerializerOperation o_SerializerOperation (final AvailObject object)
 	{
@@ -294,14 +590,14 @@ extends Descriptor
 	 * contain values of the specified type.  The new variable initially holds
 	 * no value.
 	 *
-	 * @param innerType
+	 * @param contentType
 	 *        The type of objects the new variable can contain.
 	 * @return A new variable able to hold the specified type of objects.
 	 */
-	public static AvailObject forInnerType (final A_Type innerType)
+	public static AvailObject forContentType (final A_Type contentType)
 	{
-		return VariableDescriptor.forOuterType(
-			VariableTypeDescriptor.wrapInnerType(innerType));
+		return VariableDescriptor.forVariableType(
+			VariableTypeDescriptor.wrapInnerType(contentType));
 	}
 
 	/**
@@ -309,18 +605,17 @@ extends Descriptor
 	 * {@linkplain VariableTypeDescriptor variable type}.  The new variable
 	 * initially holds no value.
 	 *
-	 * @param outerType
-	 *            The variable type to instantiate.
-	 * @return
-	 *            A new variable of the given type.
+	 * @param variableType
+	 *        The {@linkplain VariableTypeDescriptor variable type}.
+	 * @return A new variable of the given type.
 	 */
-	public static AvailObject forOuterType (
-		final A_Type outerType)
+	public static AvailObject forVariableType (final A_Type variableType)
 	{
 		final AvailObject result = mutable.create();
-		result.setSlot(KIND, outerType);
+		result.setSlot(KIND, variableType);
 		result.setSlot(HASH_OR_ZERO, 0);
 		result.setSlot(VALUE, NilDescriptor.nil());
+		result.setSlot(WRITE_REACTORS, NilDescriptor.nil());
 		return result;
 	}
 

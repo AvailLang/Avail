@@ -66,7 +66,7 @@ public class P_260_Assert extends Primitive
 		final A_String failureMessage = args.get(1);
 		if (predicate.equals(AtomDescriptor.falseObject()))
 		{
-			final A_Fiber fiber = FiberDescriptor.current();
+			final A_Fiber fiber = interpreter.fiber();
 			final A_Continuation continuation =
 				interpreter.currentContinuation();
 			interpreter.primitiveSuspend();

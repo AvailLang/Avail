@@ -42,10 +42,12 @@ import com.avail.descriptor.MapDescriptor.*;
 import com.avail.descriptor.FiberDescriptor.GeneralFlag;
 import com.avail.descriptor.FiberDescriptor.InterruptRequestFlag;
 import com.avail.descriptor.FiberDescriptor.SynchronizationFlag;
+import com.avail.descriptor.FiberDescriptor.TraceFlag;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.descriptor.FiberDescriptor.ExecutionState;
 import com.avail.descriptor.SetDescriptor.SetIterator;
 import com.avail.descriptor.TypeDescriptor.Types;
+import com.avail.descriptor.VariableDescriptor.VariableAccessReactor;
 import com.avail.exceptions.*;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.levelTwo.L2Chunk;
@@ -71,7 +73,8 @@ import com.avail.visitor.*;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public abstract class Descriptor extends AbstractDescriptor
+public abstract class Descriptor
+extends AbstractDescriptor
 {
 	/**
 	 * Construct a new {@link Descriptor}.
@@ -2320,7 +2323,8 @@ public abstract class Descriptor extends AbstractDescriptor
 	}
 
 	/** A statically cached stateless visitor instance. */
-	static final BeSharedSubobjectVisitor beSharedSubobjectVisitor = new BeSharedSubobjectVisitor();
+	static final BeSharedSubobjectVisitor beSharedSubobjectVisitor =
+		new BeSharedSubobjectVisitor();
 
 	/**
 	 * {@inheritDoc}
@@ -4286,5 +4290,66 @@ public abstract class Descriptor extends AbstractDescriptor
 	boolean o_IsSmallIntegerIntervalTuple (final AvailObject object)
 	{
 		return false;
+	}
+
+	@Override
+	A_Variable o_AddWriteReactor (
+		final AvailObject object,
+		final A_Atom key,
+		final VariableAccessReactor reactor)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	void o_RemoveWriteReactor (final AvailObject object, final A_Atom key)
+		throws AvailException
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	boolean o_TraceFlag (final AvailObject object, final TraceFlag flag)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	void o_SetTraceFlag (final AvailObject object, final TraceFlag flag)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	void o_ClearTraceFlag (final AvailObject object, final TraceFlag flag)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	void o_RecordVariableAccess (
+		final AvailObject object,
+		final A_Variable var,
+		final boolean wasRead)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	A_Set o_VariablesReadBeforeWritten (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	A_Set o_VariablesWritten (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	A_Set o_ValidWriteReactorFunctions (final AvailObject object)
+	{
+		throw unsupportedOperationException();
 	}
 }

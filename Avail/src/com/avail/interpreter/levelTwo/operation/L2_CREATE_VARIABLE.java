@@ -60,7 +60,7 @@ public class L2_CREATE_VARIABLE extends L2Operation
 		final A_Type outerType = instruction.constantAt(0);
 		final L2ObjectRegister destReg = instruction.writeObjectRegisterAt(1);
 
-		final A_Variable newVar = VariableDescriptor.forOuterType(outerType);
+		final A_Variable newVar = VariableDescriptor.forVariableType(outerType);
 		destReg.set(newVar, interpreter);
 	}
 

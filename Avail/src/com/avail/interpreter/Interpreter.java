@@ -35,6 +35,7 @@ package com.avail.interpreter;
 import static com.avail.descriptor.AvailObject.error;
 import static com.avail.descriptor.FiberDescriptor.ExecutionState.*;
 import static com.avail.descriptor.FiberDescriptor.SynchronizationFlag.*;
+import static com.avail.descriptor.FiberDescriptor.TraceFlag.*;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Result.*;
@@ -271,10 +272,8 @@ public final class Interpreter
 	{
 		if (logger.isLoggable(level))
 		{
-			final @Nullable Interpreter interpreter = currentOrNull();
-			final @Nullable A_Fiber runningFiber = interpreter != null
-				? interpreter.fiber
-				: null;
+			final @Nullable A_Fiber runningFiber =
+				FiberDescriptor.currentOrNull();
 			final StringBuilder builder = new StringBuilder();
 			builder.append(
 				runningFiber != null
@@ -410,14 +409,121 @@ public final class Interpreter
 		assert fiber == null ^ newFiber == null;
 		assert newFiber == null || newFiber.executionState() == RUNNING;
 		fiber = newFiber;
+		if (newFiber != null)
+		{
+			final boolean readsBeforeWrites =
+				newFiber.traceFlag(TRACE_VARIABLE_READS_BEFORE_WRITES);
+			if (readsBeforeWrites)
+			{
+				traceVariableReadsBeforeWrites = readsBeforeWrites;
+				traceVariableWrites = true;
+			}
+			else
+			{
+				traceVariableReadsBeforeWrites = false;
+				traceVariableWrites = newFiber.traceFlag(TRACE_VARIABLE_WRITES);
+			}
+		}
+		else
+		{
+			traceVariableReadsBeforeWrites = false;
+			traceVariableWrites = false;
+		}
 	}
 
 	/**
-	 * Answer the module being loaded by this interpreter's loader.  If there is
-	 * no loader then answer {@code nil}.
+	 * Should the {@linkplain Interpreter interpreter} record which
+	 * {@linkplain VariableDescriptor variables} are read before written while
+	 * running its current {@linkplain FiberDescriptor fiber}?
+	 */
+	private boolean traceVariableReadsBeforeWrites = false;
+
+	/**
+	 * Should the {@linkplain Interpreter interpreter} record which
+	 * {@linkplain VariableDescriptor variables} are read before written while
+	 * running its current {@linkplain FiberDescriptor fiber}?
 	 *
-	 * @return The current loader's module under definition, or nil if loading
-	 *         is not taking via in this interpreter.
+	 * @return {@code true} if the interpreter should record variable accesses,
+	 *         {@code false} otherwise.
+	 */
+	public boolean traceVariableReadsBeforeWrites ()
+	{
+		return traceVariableReadsBeforeWrites;
+	}
+
+	/**
+	 * Set the variable trace flag.
+	 *
+	 * @param traceVariableReadsBeforeWrites
+	 *        {@code true} if the {@linkplain Interpreter interpreter} should
+	 *        record which {@linkplain VariableDescriptor variables} are
+	 *        read before written while running its current {@linkplain
+	 *        FiberDescriptor fiber}, {@code false} otherwise.
+	 */
+	public void setTraceVariableReadsBeforeWrites (
+		final boolean traceVariableReadsBeforeWrites)
+	{
+		if (traceVariableReadsBeforeWrites)
+		{
+			fiber().setTraceFlag(TRACE_VARIABLE_READS_BEFORE_WRITES);
+		}
+		else
+		{
+			fiber().clearTraceFlag(TRACE_VARIABLE_READS_BEFORE_WRITES);
+		}
+		this.traceVariableReadsBeforeWrites = traceVariableReadsBeforeWrites;
+		this.traceVariableWrites = traceVariableReadsBeforeWrites;
+	}
+
+	/**
+	 * Should the {@linkplain Interpreter interpreter} record which
+	 * {@linkplain VariableDescriptor variables} are written while running its
+	 * current {@linkplain FiberDescriptor fiber}?
+	 */
+	private boolean traceVariableWrites = false;
+
+	/**
+	 * Should the {@linkplain Interpreter interpreter} record which
+	 * {@linkplain VariableDescriptor variables} are written while running its
+	 * current {@linkplain FiberDescriptor fiber}?
+	 *
+	 * @return {@code true} if the interpreter should record variable accesses,
+	 *         {@code false} otherwise.
+	 */
+	public boolean traceVariableWrites ()
+	{
+		return traceVariableWrites;
+	}
+
+	/**
+	 * Set the variable trace flag.
+	 *
+	 * @param traceVariableWrites
+	 *        {@code true} if the {@linkplain Interpreter interpreter} should
+	 *        record which {@linkplain VariableDescriptor variables} are
+	 *        written while running its current {@linkplain FiberDescriptor
+	 *        fiber}, {@code false} otherwise.
+	 */
+	public void setTraceVariableWrites (final boolean traceVariableWrites)
+	{
+		if (traceVariableWrites)
+		{
+			fiber().setTraceFlag(TRACE_VARIABLE_WRITES);
+		}
+		else
+		{
+			fiber().clearTraceFlag(TRACE_VARIABLE_WRITES);
+		}
+		this.traceVariableWrites = traceVariableWrites;
+	}
+
+	/**
+	 * Answer the {@linkplain ModuleDescriptor module} being loaded by this
+	 * interpreter's loader. If there is no {@linkplain AvailLoader loader} then
+	 * answer {@link NilDescriptor#nil() nil}.
+	 *
+	 * @return The current loader's module under definition, or {@code nil} if
+	 *         loading is not taking via in this interpreter.
 	 */
 	public A_Module module()
 	{

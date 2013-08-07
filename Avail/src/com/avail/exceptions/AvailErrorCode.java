@@ -509,7 +509,12 @@ public enum AvailErrorCode
 	 */
 	E_CANNOT_CREATE_CONTINUATION_FOR_INFALLIBLE_PRIMITIVE_FUNCTION (76),
 
-//	E_??? (77)
+	/**
+	 * An attempt transition the current {@linkplain FiberDescriptor fiber}'s
+	 * trace mode was illegal.
+	 */
+	E_ILLEGAL_TRACE_MODE (77),
+
 //	E_??? (78)
 //	E_??? (79)
 

@@ -38,6 +38,7 @@ import com.avail.descriptor.FiberDescriptor.ExecutionState;
 import com.avail.descriptor.FiberDescriptor.GeneralFlag;
 import com.avail.descriptor.FiberDescriptor.InterruptRequestFlag;
 import com.avail.descriptor.FiberDescriptor.SynchronizationFlag;
+import com.avail.descriptor.FiberDescriptor.TraceFlag;
 import com.avail.interpreter.AvailLoader;
 import com.avail.utility.Continuation1;
 
@@ -166,6 +167,22 @@ extends A_BasicObject
 		boolean b);
 
 	/**
+	 * @param flag
+	 * @return
+	 */
+	public boolean traceFlag (final TraceFlag flag);
+
+	/**
+	 * @param flag
+	 */
+	public void setTraceFlag (final TraceFlag flag);
+
+	/**
+	 * @param flag
+	 */
+	public void clearTraceFlag (final TraceFlag flag);
+
+	/**
 	 * @return
 	 */
 	A_Map heritableFiberGlobals ();
@@ -235,4 +252,39 @@ extends A_BasicObject
 	 * @param task
 	 */
 	void wakeupTask (@Nullable TimerTask task);
+
+	/**
+	 * Record access of the specified {@linkplain VariableDescriptor variable}
+	 * by this {@linkplain FiberDescriptor fiber}.
+	 *
+	 * @param var
+	 *        A variable.
+	 * @param wasRead
+	 *        {@code true} if the variable was read, {@code false} otherwise.
+	 */
+	public void recordVariableAccess (
+		final A_Variable var,
+		final boolean wasRead);
+
+	/**
+	 * Answer the {@linkplain SetDescriptor set} of {@linkplain
+	 * VariableDescriptor variables} that were read before written. Only
+	 * variables still live are included in this set; the {@linkplain
+	 * TraceFlag#TRACE_VARIABLE_READS_BEFORE_WRITES trace mechanism}
+	 * retains variables only weakly.
+	 *
+	 * @return The requested variables.
+	 */
+	public A_Set variablesReadBeforeWritten ();
+
+	/**
+	 * Answer the {@linkplain SetDescriptor set} of {@linkplain
+	 * VariableDescriptor variables} that were written. Only variables still
+	 * live are included in this set; the {@linkplain
+	 * TraceFlag#TRACE_VARIABLE_READS_BEFORE_WRITES trace mechanism}
+	 * retains variables only weakly.
+	 *
+	 * @return The requested variables.
+	 */
+	public A_Set variablesWritten ();
 }

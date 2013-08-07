@@ -396,7 +396,7 @@ Primitive "_'s⁇write type" is
  */
 Primitive "milliseconds since the Epoch" is
 [
-	Primitive 26;
+	Primitive 27;
 ] : whole number;
 
 /**

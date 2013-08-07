@@ -1,6 +1,6 @@
 /**
- * P_251_AbstractMethodDeclaration.java
- * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
+ * P_023_AddWriteReactor.java
+ * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,33 +29,38 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+
 package com.avail.interpreter.primitive;
 
-import static com.avail.descriptor.TypeDescriptor.Types.TOP;
-import static com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER;
-import static com.avail.interpreter.Primitive.Flag.Unknown;
-import static com.avail.interpreter.Primitive.Result.*;
-import java.util.ArrayList;
+import static com.avail.descriptor.TypeDescriptor.Types.*;
+import static com.avail.exceptions.AvailErrorCode.E_SPECIAL_ATOM;
+import static com.avail.interpreter.Primitive.Flag.*;
+import static com.avail.interpreter.Primitive.Result.FIBER_SUSPENDED;
 import java.util.List;
-import com.avail.*;
+import com.avail.AvailRuntime;
+import com.avail.AvailTask;
+import com.avail.annotations.NotNull;
 import com.avail.descriptor.*;
-import com.avail.exceptions.*;
+import com.avail.descriptor.VariableDescriptor.VariableAccessReactor;
 import com.avail.interpreter.*;
 import com.avail.utility.Continuation0;
 
 /**
- * <strong>Primitive 251:</strong> Declare method as {@linkplain
- * AbstractDefinitionDescriptor abstract}. This identifies responsibility for
- * definitions that want to be concrete.
+ * <strong>Primitive 23</strong>: Add a {@linkplain VariableAccessReactor
+ * write reactor} to the specified {@linkplain VariableDescriptor variable}.
+ * The supplied {@linkplain AtomDescriptor key} may be used subsequently to
+ * remove the write reactor.
+ *
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class P_251_AbstractMethodDeclaration
+public final class P_023_AddWriteReactor
 extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
-	public final static Primitive instance =
-		new P_251_AbstractMethodDeclaration().init(2, Unknown);
+	public final @NotNull static Primitive instance =
+		new P_023_AddWriteReactor().init(3, HasSideEffect);
 
 	@Override
 	public Result attempt (
@@ -63,52 +68,39 @@ extends Primitive
 		final Interpreter interpreter,
 		final boolean skipReturnCheck)
 	{
-		assert args.size() == 2;
-		final A_String string = args.get(0);
-		final A_Type blockSignature = args.get(1);
-		final A_Fiber fiber = interpreter.fiber();
-		final AvailLoader loader = fiber.availLoader();
-		if (loader == null)
+		assert args.size() == 3;
+		final A_Variable var = args.get(0);
+		final A_Atom key = args.get(1);
+		final A_Function reactorFunction = args.get(2);
+		// Forbid special atoms.
+		if (AvailRuntime.isSpecialAtom(key))
 		{
-			return interpreter.primitiveFailure(E_LOADING_IS_OVER);
+			return interpreter.primitiveFailure(E_SPECIAL_ATOM);
 		}
-		final A_Function failureFunction =
-			interpreter.primitiveFunctionBeingAttempted();
-		final List<AvailObject> copiedArgs = new ArrayList<>(args);
-		assert failureFunction.code().primitiveNumber() == primitiveNumber;
+		// Changing the write reactors can invalidate L2 chunks that depend on
+		// this variable, so defer the update (and invalidation) until Level One
+		// safety is assured.
+		final A_Fiber fiber = interpreter.fiber();
+		final A_Function sharedFunction = reactorFunction.makeShared();
+		final VariableAccessReactor writeReactor =
+			new VariableAccessReactor(sharedFunction);
 		interpreter.primitiveSuspend();
-		AvailRuntime.current().whenLevelOneSafeDo(
-			AvailTask.forUnboundFiber(
-				fiber,
-				new Continuation0()
+		final AvailRuntime runtime = AvailRuntime.current();
+		runtime.whenLevelOneSafeDo(AvailTask.forUnboundFiber(
+			fiber,
+			new Continuation0()
+			{
+				@Override
+				public void value ()
 				{
-					@Override
-					public void value ()
-					{
-						try
-						{
-							loader.addAbstractSignature(
-								loader.lookupName(string),
-								blockSignature);
-							Interpreter.resumeFromSuccessfulPrimitive(
-								AvailRuntime.current(),
-								fiber,
-								NilDescriptor.nil(),
-								skipReturnCheck);
-						}
-						catch (
-							final AmbiguousNameException|SignatureException e)
-						{
-							Interpreter.resumeFromFailedPrimitive(
-								AvailRuntime.current(),
-								fiber,
-								e.numericCode(),
-								failureFunction,
-								copiedArgs,
-								skipReturnCheck);
-						}
-					}
-				}));
+					var.addWriteReactor(key, writeReactor);
+					Interpreter.resumeFromSuccessfulPrimitive(
+						runtime,
+						fiber,
+						NilDescriptor.nil(),
+						skipReturnCheck);
+				}
+			}));
 		return FIBER_SUSPENDED;
 	}
 
@@ -117,8 +109,11 @@ extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				TupleTypeDescriptor.stringType(),
-				FunctionTypeDescriptor.meta()),
+				VariableTypeDescriptor.mostGeneralType(),
+				ATOM.o(),
+				FunctionTypeDescriptor.create(
+					TupleDescriptor.from(ANY.o(), ANY.o()),
+					TOP.o())),
 			TOP.o());
 	}
 }

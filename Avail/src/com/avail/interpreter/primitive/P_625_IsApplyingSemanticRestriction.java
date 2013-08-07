@@ -63,7 +63,7 @@ extends Primitive
 		assert args.size() == 0;
 		return interpreter.primitiveSuccess(
 			AtomDescriptor.objectFromBoolean(
-				FiberDescriptor.current().generalFlag(
+				interpreter.fiber().generalFlag(
 					APPLYING_SEMANTIC_RESTRICTION)));
 	}
 

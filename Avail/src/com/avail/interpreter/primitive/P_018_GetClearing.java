@@ -32,10 +32,10 @@
 package com.avail.interpreter.primitive;
 
 import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.exceptions.AvailErrorCode.E_CANNOT_READ_UNASSIGNED_VARIABLE;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
 import com.avail.descriptor.*;
+import com.avail.exceptions.VariableGetException;
 import com.avail.interpreter.*;
 
 /**
@@ -61,15 +61,16 @@ public class P_018_GetClearing extends Primitive
 	{
 		assert args.size() == 1;
 		final A_Variable var = args.get(0);
-		final A_BasicObject valueObject = var.value();
-		if (valueObject.equalsNil())
+		try
 		{
-			return interpreter.primitiveFailure(
-				E_CANNOT_READ_UNASSIGNED_VARIABLE);
-
+			final A_BasicObject valueObject = var.getValue();
+			var.clearValue();
+			return interpreter.primitiveSuccess(valueObject);
 		}
-		var.clearValue();
-		return interpreter.primitiveSuccess(valueObject);
+		catch (final VariableGetException e)
+		{
+			return interpreter.primitiveFailure(e.numericCode());
+		}
 	}
 
 	@Override

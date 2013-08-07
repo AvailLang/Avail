@@ -103,7 +103,7 @@ extends Primitive
 		{
 			arg.makeShared();
 		}
-		final A_Fiber current = FiberDescriptor.current();
+		final A_Fiber current = interpreter.fiber();
 		final A_Fiber orphan = FiberDescriptor.newFiber(
 			function.kind().returnType(),
 			priority.extractInt(),

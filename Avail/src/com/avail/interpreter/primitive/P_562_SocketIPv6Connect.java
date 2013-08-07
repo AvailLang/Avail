@@ -118,7 +118,7 @@ extends Primitive
 			assert false;
 			return interpreter.primitiveFailure(E_IO_ERROR);
 		}
-		final A_Fiber current = FiberDescriptor.current();
+		final A_Fiber current = interpreter.fiber();
 		final A_Fiber newFiber = FiberDescriptor.newFiber(
 			succeed.kind().returnType().typeUnion(fail.kind().returnType()),
 			priority.extractInt(),

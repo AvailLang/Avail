@@ -43,12 +43,15 @@ import com.avail.descriptor.AbstractNumberDescriptor.Sign;
 import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
 import com.avail.descriptor.FiberDescriptor.GeneralFlag;
 import com.avail.descriptor.FiberDescriptor.SynchronizationFlag;
+import com.avail.descriptor.FiberDescriptor.TraceFlag;
 import com.avail.descriptor.MapDescriptor.MapIterable;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.descriptor.FiberDescriptor.ExecutionState;
 import com.avail.descriptor.FiberDescriptor.InterruptRequestFlag;
 import com.avail.descriptor.SetDescriptor.SetIterator;
 import com.avail.descriptor.TypeDescriptor.Types;
+import com.avail.descriptor.VariableDescriptor.VariableAccessReactor;
+import com.avail.exceptions.AvailException;
 import com.avail.exceptions.SignatureException;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.levelTwo.L2Chunk;
@@ -4450,6 +4453,67 @@ extends AbstractDescriptor
 	@Override
 	boolean o_IsSmallIntegerIntervalTuple (final AvailObject object)
 	{
-		return o_Traversed(object).isIntegerIntervalTuple();
+		return o_Traversed(object).isSmallIntegerIntervalTuple();
+	}
+
+	@Override
+	A_Variable o_AddWriteReactor (
+		final AvailObject object,
+		final A_Atom key,
+		final VariableAccessReactor reactor)
+	{
+		return o_Traversed(object).addWriteReactor(key, reactor);
+	}
+
+	@Override
+	void o_RemoveWriteReactor (final AvailObject object, final A_Atom key)
+		throws AvailException
+	{
+		o_Traversed(object).removeWriteReactor(key);
+	}
+
+	@Override
+	boolean o_TraceFlag (final AvailObject object, final TraceFlag flag)
+	{
+		return o_Traversed(object).traceFlag(flag);
+	}
+
+	@Override
+	void o_SetTraceFlag (final AvailObject object, final TraceFlag flag)
+	{
+		o_Traversed(object).setTraceFlag(flag);
+	}
+
+	@Override
+	void o_ClearTraceFlag (final AvailObject object, final TraceFlag flag)
+	{
+		o_Traversed(object).clearTraceFlag(flag);
+	}
+
+	@Override
+	void o_RecordVariableAccess (
+		final AvailObject object,
+		final A_Variable var,
+		final boolean wasRead)
+	{
+		o_Traversed(object).recordVariableAccess(var, wasRead);
+	}
+
+	@Override
+	A_Set o_VariablesReadBeforeWritten (final AvailObject object)
+	{
+		return o_Traversed(object).variablesReadBeforeWritten();
+	}
+
+	@Override
+	A_Set o_VariablesWritten (final AvailObject object)
+	{
+		return o_Traversed(object).variablesWritten();
+	}
+
+	@Override
+	A_Set o_ValidWriteReactorFunctions (final AvailObject object)
+	{
+		return o_Traversed(object).validWriteReactorFunctions();
 	}
 }

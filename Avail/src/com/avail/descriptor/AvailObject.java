@@ -44,11 +44,13 @@ import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
 import com.avail.descriptor.FiberDescriptor.GeneralFlag;
 import com.avail.descriptor.FiberDescriptor.InterruptRequestFlag;
 import com.avail.descriptor.FiberDescriptor.SynchronizationFlag;
+import com.avail.descriptor.FiberDescriptor.TraceFlag;
 import com.avail.descriptor.InfinityDescriptor.IntegerSlots;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.descriptor.FiberDescriptor.ExecutionState;
 import com.avail.descriptor.SetDescriptor.SetIterator;
 import com.avail.descriptor.TypeDescriptor.Types;
+import com.avail.descriptor.VariableDescriptor.VariableAccessReactor;
 import com.avail.exceptions.*;
 import com.avail.exceptions.ArithmeticException;
 import com.avail.interpreter.*;
@@ -2926,7 +2928,16 @@ implements
 	@Override
 	public AvailObject makeShared ()
 	{
-		return descriptor.o_MakeShared(this);
+		final AvailObject shared = descriptor.o_MakeShared(this);
+		// Force a write barrier. The original object is the only object that
+		// may have pending writes potentially visible to other threads, so
+		// synchronize on it. It doesn't actually matter which object is
+		// synchronized, since any critical session forces both a read barrier
+		// and a write barrier.
+		synchronized (this)
+		{
+			return shared;
+		}
 	}
 
 	/**
@@ -6781,5 +6792,94 @@ implements
 	public boolean skipReturnFlag ()
 	{
 		return descriptor.o_SkipReturnFlag(this);
+	}
+
+	/**
+	 * @param key
+	 * @param reactor
+	 * @return
+	 */
+	@Override
+	public A_Variable addWriteReactor (
+		final A_Atom key,
+		final VariableAccessReactor reactor)
+	{
+		return descriptor.o_AddWriteReactor(this, key, reactor);
+	}
+
+	/**
+	 * @param key
+	 */
+	@Override
+	public void removeWriteReactor (final A_Atom key) throws AvailException
+	{
+		descriptor.o_RemoveWriteReactor(this, key);
+	}
+
+	/**
+	 * @param flag
+	 * @return
+	 */
+	@Override
+	public boolean traceFlag (final TraceFlag flag)
+	{
+		return descriptor.o_TraceFlag(this, flag);
+	}
+
+	/**
+	 * @param flag
+	 */
+	@Override
+	public void setTraceFlag (final TraceFlag flag)
+	{
+		descriptor.o_SetTraceFlag(this, flag);
+	}
+
+	/**
+	 * @param flag
+	 */
+	@Override
+	public void clearTraceFlag (final TraceFlag flag)
+	{
+		descriptor.o_ClearTraceFlag(this, flag);
+	}
+
+	/**
+	 * @param var
+	 * @param wasRead
+	 */
+	@Override
+	public void recordVariableAccess (
+		final A_Variable var,
+		final boolean wasRead)
+	{
+		descriptor.o_RecordVariableAccess(this, var, wasRead);
+	}
+
+	/**
+	 * @return
+	 */
+	@Override
+	public A_Set variablesReadBeforeWritten ()
+	{
+		return descriptor.o_VariablesReadBeforeWritten(this);
+	}
+
+	/**
+	 * @return
+	 */
+	@Override
+	public A_Set variablesWritten ()
+	{
+		return descriptor.o_VariablesWritten(this);
+	}
+
+	/**
+	 * @return
+	 */
+	@Override
+	public A_Set validWriteReactorFunctions ()
+	{
+		return descriptor.o_ValidWriteReactorFunctions(this);
 	}
 }

@@ -83,6 +83,7 @@ Names
 	"instantiation exception",
 	"invocation exception",
 	"security exception",
+	"trace exception",
 	"variable-use exception",
 
 	/* Voluntary termination. */
@@ -829,6 +830,14 @@ Public explicit class "instantiation exception" extends exception;
 Public explicit class "security exception" extends exception;
 
 /**
+ * A trace exception describes error conditions related to system tracing.
+ *
+ * @type "trace exception"
+ * @supertype "exception"
+ */
+Public explicit class "trace exception" extends exception;
+
+/**
  * A variable use exception describes error conditions related to usage of
  * variables.
  * 
@@ -990,6 +999,8 @@ System exception "cannot-mix-method-and-macro-definitions" (75)
 	extends definition exception;
 System exception "cannot-create-continuation-for-infallible-primitive-function" (76)
 	extends invocation exception;
+System exception "illegal-trace-mode" (77)
+	extends trace exception;
 System exception "handler-sentinel" (80)
 	extends system exception;
 System exception "cannot-mark-handler-frame" (81)

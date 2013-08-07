@@ -32,6 +32,10 @@
 
 package com.avail.descriptor;
 
+import com.avail.descriptor.VariableDescriptor.VariableAccessReactor;
+import com.avail.exceptions.AvailErrorCode;
+import com.avail.exceptions.AvailException;
+
 /**
  * {@code A_Variable} is an interface that specifies the behavior specific to
  * Avail {@linkplain VariableDescriptor variables} that an {@link AvailObject}
@@ -41,9 +45,8 @@ package com.avail.descriptor;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public interface A_Variable
-extends A_BasicObject
+extends A_ChunkDependable
 {
-
 	/**
 	 * Extract the current value of the {@linkplain VariableDescriptor
 	 * variable}.  Answer {@linkplain NilDescriptor#nil() nil} if the variable
@@ -143,4 +146,41 @@ extends A_BasicObject
 	 */
 	void clearValue ();
 
+	/**
+	 * Add a {@linkplain VariableAccessReactor write reactor} to the {@linkplain
+	 * VariableDescriptor variable} and associate it with the specified
+	 * key (for subsequent removal).
+	 *
+	 * @param key
+	 *        An {@linkplain AtomDescriptor atom}.
+	 * @param reactor
+	 *        A write reactor.
+	 * @return The target variable (possibly {@linkplain Mutability#SHARED
+	 *         shared} now).
+	 */
+	A_Variable addWriteReactor (
+		final A_Atom key,
+		final VariableAccessReactor reactor);
+
+	/**
+	 * Remove the {@linkplain VariableAccessReactor write reactor} associated
+	 * with the specified {@linkplain AtomDescriptor key} from the {@linkplain
+	 * VariableDescriptor variable}.
+	 *
+	 * @param key
+	 *        An atom.
+	 * @throws AvailException
+	 *         If the {@linkplain AvailErrorCode#E_KEY_NOT_FOUND key is not
+	 *         found}.
+	 */
+	void removeWriteReactor (final A_Atom key) throws AvailException;
+
+	/**
+	 * Answer the {@linkplain SetDescriptor set} of {@linkplain
+	 * VariableAccessReactor write reactor} {@linkplain FunctionDescriptor
+	 * functions} that have not previously activated.
+	 *
+	 * @return The requested functions.
+	 */
+	A_Set validWriteReactorFunctions ();
 }

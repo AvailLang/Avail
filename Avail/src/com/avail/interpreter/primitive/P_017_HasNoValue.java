@@ -34,6 +34,7 @@ package com.avail.interpreter.primitive;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
 import com.avail.descriptor.*;
+import com.avail.exceptions.VariableGetException;
 import com.avail.interpreter.*;
 
 /**
@@ -41,7 +42,8 @@ import com.avail.interpreter.*;
  * AtomDescriptor#trueObject() true} if the {@linkplain VariableDescriptor
  * variable} is unassigned (has no value).
  */
-public class P_017_HasNoValue extends Primitive
+public class P_017_HasNoValue
+extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
@@ -57,9 +59,15 @@ public class P_017_HasNoValue extends Primitive
 	{
 		assert args.size() == 1;
 		final A_Variable var = args.get(0);
-		return interpreter.primitiveSuccess(
-			AtomDescriptor.objectFromBoolean(
-				var.value().equalsNil()));
+		try
+		{
+			var.getValue();
+			return interpreter.primitiveSuccess(AtomDescriptor.falseObject());
+		}
+		catch (final VariableGetException e)
+		{
+			return interpreter.primitiveSuccess(AtomDescriptor.trueObject());
+		}
 	}
 
 	@Override

@@ -71,7 +71,7 @@ extends Primitive
 		final boolean skipReturnCheck)
 	{
 		assert args.size() == 0;
-		final A_Fiber fiber = FiberDescriptor.current();
+		final A_Fiber fiber = interpreter.fiber();
 		final MutableOrNull<Result> result = new MutableOrNull<>();
 		fiber.lock(new Continuation0()
 		{

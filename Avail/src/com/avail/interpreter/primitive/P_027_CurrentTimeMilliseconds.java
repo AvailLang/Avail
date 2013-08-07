@@ -1,5 +1,5 @@
 /**
- * P_016_CreateVariable.java
+ * P_027_CurrentTimeMilliseconds.java
  * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -37,17 +37,18 @@ import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 
 /**
- * <strong>Primitive 16:</strong> Create a {@linkplain
- * VariableDescriptor variable} with the given inner
- * type.
+ * <strong>Primitive 27:</strong> Get the current time as milliseconds since
+ * the Unix Epoch.
  */
-public class P_016_CreateVariable extends Primitive
+public class P_027_CurrentTimeMilliseconds
+extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_016_CreateVariable().init(
-		1, CanInline, CannotFail);
+	public final static Primitive instance =
+		new P_027_CurrentTimeMilliseconds().init(
+			0, CannotFail, CanInline, HasSideEffect);
 
 	@Override
 	public Result attempt (
@@ -55,18 +56,16 @@ public class P_016_CreateVariable extends Primitive
 		final Interpreter interpreter,
 		final boolean skipReturnCheck)
 	{
-		assert args.size() == 1;
-		final A_Type innerType = args.get(0);
+		assert args.size() == 0;
 		return interpreter.primitiveSuccess(
-			VariableDescriptor.forContentType(innerType));
+			IntegerDescriptor.fromLong(System.currentTimeMillis()));
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
-				InstanceMetaDescriptor.anyMeta()),
-			VariableTypeDescriptor.mostGeneralType());
+			TupleDescriptor.empty(),
+			IntegerRangeTypeDescriptor.wholeNumbers());
 	}
 }
