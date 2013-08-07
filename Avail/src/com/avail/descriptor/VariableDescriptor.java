@@ -34,10 +34,13 @@ package com.avail.descriptor;
 
 import static com.avail.descriptor.VariableDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.VariableDescriptor.ObjectSlots.*;
+import java.util.HashMap;
+import java.util.Map;
 import com.avail.AvailRuntime;
 import com.avail.annotations.*;
 import com.avail.descriptor.VariableSharedDescriptor.VariableAccessReactor;
 import com.avail.exceptions.*;
+import com.avail.interpreter.Interpreter;
 import com.avail.serialization.SerializerOperation;
 
 /**
@@ -82,7 +85,15 @@ extends Descriptor
 		 * VariableDescriptor variable}.  Note that this is always a
 		 * {@linkplain VariableTypeDescriptor variable type}.
 		 */
-		KIND
+		KIND,
+
+		/**
+		 * A {@linkplain RawPojoDescriptor raw pojo} that wraps a {@linkplain
+		 * Map map} from arbitrary {@linkplain AvailObject Avail values} to
+		 * {@linkplain VariableAccessReactor writer reactors} that respond to
+		 * writes of the {@linkplain VariableDescriptor variable}.
+		 */
+		WRITE_REACTORS
 	}
 
 	@Override
@@ -90,7 +101,8 @@ extends Descriptor
 		final AbstractSlotsEnum e)
 	{
 		return e == VALUE
-			|| e == HASH_OR_ZERO;
+			|| e == HASH_OR_ZERO
+			|| e == WRITE_REACTORS;
 	}
 
 	@Override @AvailMethod
@@ -118,6 +130,20 @@ extends Descriptor
 	@Override @AvailMethod
 	AvailObject o_GetValue (final AvailObject object)
 	{
+		final Interpreter interpreter;
+		try
+		{
+			interpreter = Interpreter.current();
+			if (interpreter.traceVariableAccesses())
+			{
+				final A_Fiber fiber = interpreter.fiber();
+				fiber.recordVariableAccess(object, true);
+			}
+		}
+		catch (final ClassCastException e)
+		{
+			// No implementation required.
+		}
 		// Answer the current value of the variable. Fail if no value is
 		// currently assigned.
 		final AvailObject value = object.slot(VALUE);
@@ -136,6 +162,20 @@ extends Descriptor
 	@Override @AvailMethod
 	void o_SetValue (final AvailObject object, final A_BasicObject newValue)
 	{
+		final Interpreter interpreter;
+		try
+		{
+			interpreter = Interpreter.current();
+			if (interpreter.traceVariableAccesses())
+			{
+				final A_Fiber fiber = interpreter.fiber();
+				fiber.recordVariableAccess(object, false);
+			}
+		}
+		catch (final ClassCastException e)
+		{
+			// No implementation required.
+		}
 		final A_BasicObject outerKind = object.slot(KIND);
 		if (!newValue.isInstanceOf(outerKind.writeType()))
 		{
@@ -150,6 +190,20 @@ extends Descriptor
 		final AvailObject object,
 		final AvailObject newValue)
 	{
+		final Interpreter interpreter;
+		try
+		{
+			interpreter = Interpreter.current();
+			if (interpreter.traceVariableAccesses())
+			{
+				final A_Fiber fiber = interpreter.fiber();
+				fiber.recordVariableAccess(object, false);
+			}
+		}
+		catch (final ClassCastException e)
+		{
+			// No implementation required.
+		}
 		object.setSlot(VALUE, newValue);
 	}
 
@@ -158,6 +212,20 @@ extends Descriptor
 		final AvailObject object,
 		final AvailObject newValue)
 	{
+		final Interpreter interpreter;
+		try
+		{
+			interpreter = Interpreter.current();
+			if (interpreter.traceVariableAccesses())
+			{
+				final A_Fiber fiber = interpreter.fiber();
+				fiber.recordVariableAccess(object, true);
+			}
+		}
+		catch (final ClassCastException e)
+		{
+			// No implementation required.
+		}
 		final AvailObject outerKind = object.slot(KIND);
 		if (!newValue.isInstanceOf(outerKind.writeType()))
 		{
@@ -187,6 +255,20 @@ extends Descriptor
 		final AvailObject reference,
 		final AvailObject newValue)
 	{
+		final Interpreter interpreter;
+		try
+		{
+			interpreter = Interpreter.current();
+			if (interpreter.traceVariableAccesses())
+			{
+				final A_Fiber fiber = interpreter.fiber();
+				fiber.recordVariableAccess(object, true);
+			}
+		}
+		catch (final ClassCastException e)
+		{
+			// No implementation required.
+		}
 		final AvailObject outerKind = object.slot(KIND);
 		if (!newValue.isInstanceOf(outerKind.writeType()))
 		{
@@ -219,6 +301,20 @@ extends Descriptor
 		final AvailObject object,
 		final A_Number addend)
 	{
+		final Interpreter interpreter;
+		try
+		{
+			interpreter = Interpreter.current();
+			if (interpreter.traceVariableAccesses())
+			{
+				final A_Fiber fiber = interpreter.fiber();
+				fiber.recordVariableAccess(object, true);
+			}
+		}
+		catch (final ClassCastException e)
+		{
+			// No implementation required.
+		}
 		final A_Type outerKind = object.slot(KIND);
 		assert outerKind.readType().isSubtypeOf(
 			IntegerRangeTypeDescriptor.extendedIntegers());
@@ -248,6 +344,20 @@ extends Descriptor
 	@Override @AvailMethod
 	void o_ClearValue (final AvailObject object)
 	{
+		final Interpreter interpreter;
+		try
+		{
+			interpreter = Interpreter.current();
+			if (interpreter.traceVariableAccesses())
+			{
+				final A_Fiber fiber = interpreter.fiber();
+				fiber.recordVariableAccess(object, false);
+			}
+		}
+		catch (final ClassCastException e)
+		{
+			// No implementation required.
+		}
 		object.setSlot(VALUE, NilDescriptor.nil());
 	}
 
@@ -274,26 +384,66 @@ extends Descriptor
 		throw unsupportedOperationException();
 	}
 
-	@Override @AvailMethod
+	@Override
+	@AvailMethod
 	A_Variable o_AddWriteReactor (
 		final AvailObject object,
 		final A_Atom key,
-		final VariableAccessReactor<?> reactor)
+		final VariableAccessReactor reactor)
 	{
-		assert !isShared();
-		final A_Variable sharedVariable = object.makeShared();
-		sharedVariable.addWriteReactor(key, reactor);
-		object.becomeIndirectionTo(sharedVariable);
-		return sharedVariable;
+		AvailObject rawPojo = object.slot(WRITE_REACTORS);
+		if (rawPojo.equalsNil())
+		{
+			rawPojo = RawPojoDescriptor.identityWrap(
+				new HashMap<A_Atom, VariableAccessReactor>());
+			object.setSlot(WRITE_REACTORS, rawPojo);
+		}
+		@SuppressWarnings("unchecked")
+		final Map<A_Atom, VariableAccessReactor> writeReactors =
+			(Map<A_Atom, VariableAccessReactor>) rawPojo.javaObject();
+		// Discard invalidated reactors.
+		for (final Map.Entry<A_Atom, VariableAccessReactor> entry :
+			writeReactors.entrySet())
+		{
+			if (entry.getValue().isInvalid())
+			{
+				writeReactors.remove(entry.getKey());
+			}
+		}
+		writeReactors.put(key, reactor);
+		return object;
 	}
 
-	@Override @AvailMethod
-	void o_RemoveWriteReactor (
-			final AvailObject object,
-			final A_Atom key)
+	@Override
+	@AvailMethod
+	void o_RemoveWriteReactor (final AvailObject object, final A_Atom key)
 		throws AvailException
 	{
-		throw new AvailException(AvailErrorCode.E_KEY_NOT_FOUND);
+		final AvailObject rawPojo = object.slot(WRITE_REACTORS);
+		if (rawPojo.equalsNil())
+		{
+			throw new AvailException(AvailErrorCode.E_KEY_NOT_FOUND);
+		}
+		@SuppressWarnings("unchecked")
+		final Map<A_Atom, VariableAccessReactor> writeReactors =
+			(Map<A_Atom, VariableAccessReactor>) rawPojo.javaObject();
+		// Discard invalidated reactors.
+		for (final Map.Entry<A_Atom, VariableAccessReactor> entry :
+			writeReactors.entrySet())
+		{
+			if (entry.getValue().isInvalid())
+			{
+				writeReactors.remove(entry.getKey());
+			}
+		}
+		if (writeReactors.remove(key) == null)
+		{
+			throw new AvailException(AvailErrorCode.E_KEY_NOT_FOUND);
+		}
+		if (writeReactors.isEmpty())
+		{
+			object.setSlot(WRITE_REACTORS, NilDescriptor.nil());
+		}
 	}
 
 	@Override @AvailMethod
@@ -389,6 +539,7 @@ extends Descriptor
 		result.setSlot(KIND, variableType);
 		result.setSlot(HASH_OR_ZERO, 0);
 		result.setSlot(VALUE, NilDescriptor.nil());
+		result.setSlot(WRITE_REACTORS, NilDescriptor.nil());
 		return result;
 	}
 

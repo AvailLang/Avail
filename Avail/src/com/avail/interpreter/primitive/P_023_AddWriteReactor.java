@@ -82,8 +82,8 @@ extends Primitive
 		// safety is assured.
 		final A_Fiber fiber = interpreter.fiber();
 		final A_Function sharedFunction = reactorFunction.makeShared();
-		final VariableAccessReactor<A_Function> writeReactor =
-			new VariableAccessReactor<>(sharedFunction);
+		final VariableAccessReactor writeReactor =
+			new VariableAccessReactor(sharedFunction);
 		interpreter.primitiveSuspend();
 		final AvailRuntime runtime = AvailRuntime.current();
 		runtime.whenLevelOneSafeDo(AvailTask.forUnboundFiber(

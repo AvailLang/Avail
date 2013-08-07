@@ -43,6 +43,7 @@ import com.avail.descriptor.AbstractNumberDescriptor.Sign;
 import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
 import com.avail.descriptor.FiberDescriptor.GeneralFlag;
 import com.avail.descriptor.FiberDescriptor.SynchronizationFlag;
+import com.avail.descriptor.FiberDescriptor.TraceFlag;
 import com.avail.descriptor.MapDescriptor.MapIterable;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.descriptor.FiberDescriptor.ExecutionState;
@@ -4452,14 +4453,14 @@ extends AbstractDescriptor
 	@Override
 	boolean o_IsSmallIntegerIntervalTuple (final AvailObject object)
 	{
-		return o_Traversed(object).isIntegerIntervalTuple();
+		return o_Traversed(object).isSmallIntegerIntervalTuple();
 	}
 
 	@Override
 	A_Variable o_AddWriteReactor (
 		final AvailObject object,
 		final A_Atom key,
-		final VariableAccessReactor<?> reactor)
+		final VariableAccessReactor reactor)
 	{
 		return o_Traversed(object).addWriteReactor(key, reactor);
 	}
@@ -4469,5 +4470,38 @@ extends AbstractDescriptor
 		throws AvailException
 	{
 		o_Traversed(object).removeWriteReactor(key);
+	}
+
+	@Override
+	boolean o_TraceFlag (final AvailObject object, final TraceFlag flag)
+	{
+		return o_Traversed(object).traceFlag(flag);
+	}
+
+	@Override
+	void o_SetTraceFlag (final AvailObject object, final TraceFlag flag)
+	{
+		o_Traversed(object).setTraceFlag(flag);
+	}
+
+	@Override
+	void o_ClearTraceFlag (final AvailObject object, final TraceFlag flag)
+	{
+		o_Traversed(object).clearTraceFlag(flag);
+	}
+
+	@Override
+	void o_RecordVariableAccess (
+		final AvailObject object,
+		final A_Variable var,
+		final boolean wasRead)
+	{
+		o_Traversed(object).recordVariableAccess(var, wasRead);
+	}
+
+	@Override
+	A_Set o_VariablesReadBeforeWritten (final AvailObject object)
+	{
+		return o_Traversed(object).variablesReadBeforeWritten();
 	}
 }

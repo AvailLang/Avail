@@ -42,6 +42,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import com.avail.*;
 import com.avail.annotations.*;
+import com.avail.descriptor.VariableSharedDescriptor.VariableAccessReactor;
 import com.avail.interpreter.*;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.utility.*;
@@ -100,7 +101,7 @@ extends Descriptor
 		/**
 		 * Termination of the target fiber has been requested.
 		 */
-		TERMINATION_REQUESTED(_TERMINATION_REQUESTED);
+		TERMINATION_REQUESTED (_TERMINATION_REQUESTED);
 
 		/** The {@linkplain BitField bit field}. */
 		final BitField bitField;
@@ -125,17 +126,17 @@ extends Descriptor
 		/**
 		 * The fiber is bound to an {@linkplain Interpreter interpreter}.
 		 */
-		BOUND(_BOUND),
+		BOUND (_BOUND),
 
 		/**
 		 * The fiber has been scheduled for resumption.
 		 */
-		SCHEDULED(_SCHEDULED),
+		SCHEDULED (_SCHEDULED),
 
 		/**
 		 * The parking permit is unavailable.
 		 */
-		PERMIT_UNAVAILABLE(_PERMIT_UNAVAILABLE);
+		PERMIT_UNAVAILABLE (_PERMIT_UNAVAILABLE);
 
 		/** The {@linkplain BitField bit field}. */
 		final BitField bitField;
@@ -152,6 +153,40 @@ extends Descriptor
 	}
 
 	/**
+	 * The trace flags. The flags declared as enumeration values within this
+	 * {@code enum} are for system tracing modes.
+	 */
+	public static enum TraceFlag
+	{
+		/**
+		 * Should the {@linkplain Interpreter interpreter} record which
+		 * variables are accessed while running this {@linkplain FiberDescriptor
+		 * fiber}?
+		 */
+		TRACE_VARIABLE_ACCESSES (_TRACE_VARIABLE_ACCESSES),
+
+		/**
+		 * Should the {@linkplain Interpreter interpreter} record which
+		 * {@linkplain VariableAccessReactor write reactors} should be activated
+		 * as a consequence of running this {@linkplain FiberDescriptor fiber}?
+		 */
+		TRACE_WRITE_REACTORS (_TRACE_WRITE_REACTORS);
+
+		/** The {@linkplain BitField bit field}. */
+		final BitField bitField;
+
+		/**
+		 * Construct a new {@link TraceFlag}.
+		 *
+		 * @param bitField
+		 */
+		private TraceFlag (final BitField bitField)
+		{
+			this.bitField = bitField;
+		}
+	}
+
+	/**
 	 * The general flags. These are flags that are not otherwise grouped for
 	 * semantic purposes, such as indicating {@linkplain InterruptRequestFlag
 	 * interrupts requests} or {@linkplain SynchronizationFlag synchronization
@@ -162,7 +197,7 @@ extends Descriptor
 		/**
 		 * Was the fiber started to apply a semantic restriction?
 		 */
-		APPLYING_SEMANTIC_RESTRICTION(_APPLYING_SEMANTIC_RESTRICTION);
+		APPLYING_SEMANTIC_RESTRICTION (_APPLYING_SEMANTIC_RESTRICTION);
 
 		/** The {@linkplain BitField bit field}. */
 		final BitField bitField;
@@ -240,10 +275,22 @@ extends Descriptor
 			3,
 			1);
 
+		/** See {@link TraceFlag#TRACE_VARIABLE_ACCESSES}. */
+		static final BitField _TRACE_VARIABLE_ACCESSES = bitField(
+			FLAGS,
+			4,
+			1);
+
+		/** See {@link TraceFlag#TRACE_WRITE_REACTORS}. */
+		static final BitField _TRACE_WRITE_REACTORS = bitField(
+			FLAGS,
+			5,
+			1);
+
 		/** See {@link GeneralFlag#APPLYING_SEMANTIC_RESTRICTION}. */
 		static final BitField _APPLYING_SEMANTIC_RESTRICTION = bitField(
 			FLAGS,
-			4,
+			6,
 			1);
 	}
 
@@ -340,7 +387,16 @@ extends Descriptor
 		 * TimerTask timer task} responsible for waking up the {@linkplain
 		 * ExecutionState#ASLEEP sleeping} {@linkplain FiberDescriptor fiber}.
 		 */
-		WAKEUP_TASK
+		WAKEUP_TASK,
+
+		/**
+		 * A {@linkplain RawPojoDescriptor raw pojo} wrapping a {@linkplain
+		 * WeakHashMap weak map} from {@linkplain VariableDescriptor variables}
+		 * encountered during a {@linkplain TraceFlag#TRACE_VARIABLE_ACCESSES
+		 * variable access trace} to a {@linkplain Boolean boolean} that is
+		 * {@code true} iff the variable was read before it was written.
+		 */
+		TRACED_VARIABLES
 	}
 
 	/**
@@ -848,6 +904,76 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
+	boolean o_TraceFlag (final AvailObject object, final TraceFlag flag)
+	{
+		final int value;
+		if (isShared())
+		{
+			synchronized (object)
+			{
+				value = object.slot(flag.bitField);
+			}
+		}
+		else
+		{
+			value = object.slot(flag.bitField);
+		}
+		return value == 1;
+	}
+
+	@Override @AvailMethod
+	void o_SetTraceFlag (
+		final AvailObject object,
+		final TraceFlag flag)
+	{
+		if (isShared())
+		{
+			synchronized (object)
+			{
+				object.setSlot(flag.bitField, 1);
+			}
+		}
+		else
+		{
+			object.setSlot(flag.bitField, 1);
+		}
+		if (debugFibers)
+		{
+			log(
+				object,
+				Level.FINE,
+				"Set trace flag {0}",
+				flag);
+		}
+	}
+
+	@Override @AvailMethod
+	void o_ClearTraceFlag (
+		final AvailObject object,
+		final TraceFlag flag)
+	{
+		if (isShared())
+		{
+			synchronized (object)
+			{
+				object.setSlot(flag.bitField, 0);
+			}
+		}
+		else
+		{
+			object.setSlot(flag.bitField, 0);
+		}
+		if (debugFibers)
+		{
+			log(
+				object,
+				Level.FINE,
+				"Clear trace flag {0}",
+				flag);
+		}
+	}
+
+	@Override @AvailMethod
 	A_Continuation o_Continuation (final AvailObject object)
 	{
 		return object.mutableSlot(CONTINUATION);
@@ -1085,6 +1211,43 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
+	void o_RecordVariableAccess (
+		final AvailObject object,
+		final A_Variable var,
+		final boolean wasRead)
+	{
+		assert object.slot(_TRACE_VARIABLE_ACCESSES) == 1;
+		final AvailObject rawPojo = object.slot(TRACED_VARIABLES);
+		@SuppressWarnings("unchecked")
+		final WeakHashMap<A_Variable, Boolean> map =
+			(WeakHashMap<A_Variable, Boolean>) rawPojo.javaObject();
+		if (!map.containsKey(var))
+		{
+			map.put(var, wasRead);
+		}
+	}
+
+	@Override @AvailMethod
+	A_Set o_VariablesReadBeforeWritten (final AvailObject object)
+	{
+		assert object.slot(_TRACE_VARIABLE_ACCESSES) != 1;
+		final AvailObject rawPojo = object.slot(TRACED_VARIABLES);
+		@SuppressWarnings("unchecked")
+		final WeakHashMap<A_Variable, Boolean> map =
+			(WeakHashMap<A_Variable, Boolean>) rawPojo.javaObject();
+		A_Set set = SetDescriptor.empty();
+		for (final Map.Entry<A_Variable, Boolean> entry : map.entrySet())
+		{
+			if (entry.getValue())
+			{
+				set = set.setWithElementCanDestroy(entry.getKey(), true);
+			}
+		}
+		map.clear();
+		return set;
+	}
+
+	@Override @AvailMethod
 	boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		// Compare fibers by address (identity).
@@ -1265,13 +1428,16 @@ extends Descriptor
 		fiber.setSlot(RESULT, NilDescriptor.nil());
 		fiber.setSlot(LOADER, NilDescriptor.nil());
 		fiber.setSlot(RESULT_CONTINUATION, defaultResultContinuation);
-
-		fiber.setSlot(DEBUG_UNIQUE_ID, uniqueDebugCounter.incrementAndGet());
-		fiber.setSlot(DEBUG_FIBER_PURPOSE, purpose);
-
 		fiber.setSlot(FAILURE_CONTINUATION, defaultFailureContinuation);
 		fiber.setSlot(JOINING_FIBERS, SetDescriptor.empty());
 		fiber.setSlot(WAKEUP_TASK, NilDescriptor.nil());
+		fiber.setSlot(
+			TRACED_VARIABLES,
+			RawPojoDescriptor.identityWrap(
+				new WeakHashMap<A_Variable, Boolean>()));
+
+		fiber.setSlot(DEBUG_UNIQUE_ID, uniqueDebugCounter.incrementAndGet());
+		fiber.setSlot(DEBUG_FIBER_PURPOSE, purpose);
 		if (debugFibers)
 		{
 			log(
@@ -1322,13 +1488,16 @@ extends Descriptor
 		fiber.setSlot(RESULT, NilDescriptor.nil());
 		fiber.setSlot(LOADER, RawPojoDescriptor.identityWrap(loader));
 		fiber.setSlot(RESULT_CONTINUATION, defaultResultContinuation);
-
-		fiber.setSlot(DEBUG_UNIQUE_ID, uniqueDebugCounter.incrementAndGet());
-		fiber.setSlot(DEBUG_FIBER_PURPOSE, purpose);
-
 		fiber.setSlot(FAILURE_CONTINUATION, defaultFailureContinuation);
 		fiber.setSlot(JOINING_FIBERS, SetDescriptor.empty());
 		fiber.setSlot(WAKEUP_TASK, NilDescriptor.nil());
+		fiber.setSlot(
+			TRACED_VARIABLES,
+			RawPojoDescriptor.identityWrap(
+				new WeakHashMap<A_Variable, Boolean>()));
+
+		fiber.setSlot(DEBUG_UNIQUE_ID, uniqueDebugCounter.incrementAndGet());
+		fiber.setSlot(DEBUG_FIBER_PURPOSE, purpose);
 		if (debugFibers)
 		{
 			log(

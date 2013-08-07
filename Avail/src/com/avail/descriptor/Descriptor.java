@@ -42,6 +42,7 @@ import com.avail.descriptor.MapDescriptor.*;
 import com.avail.descriptor.FiberDescriptor.GeneralFlag;
 import com.avail.descriptor.FiberDescriptor.InterruptRequestFlag;
 import com.avail.descriptor.FiberDescriptor.SynchronizationFlag;
+import com.avail.descriptor.FiberDescriptor.TraceFlag;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.descriptor.FiberDescriptor.ExecutionState;
 import com.avail.descriptor.SetDescriptor.SetIterator;
@@ -4295,7 +4296,7 @@ extends AbstractDescriptor
 	A_Variable o_AddWriteReactor (
 		final AvailObject object,
 		final A_Atom key,
-		final VariableAccessReactor<?> reactor)
+		final VariableAccessReactor reactor)
 	{
 		throw unsupportedOperationException();
 	}
@@ -4303,6 +4304,39 @@ extends AbstractDescriptor
 	@Override
 	void o_RemoveWriteReactor (final AvailObject object, final A_Atom key)
 		throws AvailException
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	boolean o_TraceFlag (final AvailObject object, final TraceFlag flag)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	void o_SetTraceFlag (final AvailObject object, final TraceFlag flag)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	void o_ClearTraceFlag (final AvailObject object, final TraceFlag flag)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	void o_RecordVariableAccess (
+		final AvailObject object,
+		final A_Variable var,
+		final boolean wasRead)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	A_Set o_VariablesReadBeforeWritten (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}

@@ -47,6 +47,7 @@ import com.avail.descriptor.Descriptor.FakeObjectSlotsForScanning;
 import com.avail.descriptor.FiberDescriptor.GeneralFlag;
 import com.avail.descriptor.FiberDescriptor.InterruptRequestFlag;
 import com.avail.descriptor.FiberDescriptor.SynchronizationFlag;
+import com.avail.descriptor.FiberDescriptor.TraceFlag;
 import com.avail.descriptor.InfinityDescriptor.IntegerSlots;
 import com.avail.descriptor.MapDescriptor.MapIterable;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
@@ -5882,12 +5883,48 @@ public abstract class AbstractDescriptor
 	abstract A_Variable o_AddWriteReactor (
 		AvailObject object,
 		A_Atom key,
-		VariableAccessReactor<?> reactor);
+		VariableAccessReactor reactor);
 
 	/**
 	 * @param object
 	 * @param key
+	 * @throws AvailException
 	 */
 	abstract void o_RemoveWriteReactor (AvailObject object, A_Atom key)
 		throws AvailException;
+
+	/**
+	 * @param object
+	 * @param flag
+	 * @return
+	 */
+	abstract boolean o_TraceFlag (AvailObject object, TraceFlag flag);
+
+	/**
+	 * @param object
+	 * @param flag
+	 */
+	abstract void o_SetTraceFlag (AvailObject object, TraceFlag flag);
+
+	/**
+	 * @param object
+	 * @param flag
+	 */
+	abstract void o_ClearTraceFlag (AvailObject object, TraceFlag flag);
+
+	/**
+	 * @param object
+	 * @param var
+	 * @param wasRead
+	 */
+	abstract void o_RecordVariableAccess (
+		AvailObject object,
+		A_Variable var,
+		boolean wasRead);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract A_Set o_VariablesReadBeforeWritten (AvailObject object);
 }

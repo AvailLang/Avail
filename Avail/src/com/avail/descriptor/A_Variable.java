@@ -35,7 +35,6 @@ package com.avail.descriptor;
 import com.avail.descriptor.VariableSharedDescriptor.VariableAccessReactor;
 import com.avail.exceptions.AvailErrorCode;
 import com.avail.exceptions.AvailException;
-import com.avail.interpreter.levelTwo.L2Chunk;
 
 /**
  * {@code A_Variable} is an interface that specifies the behavior specific to
@@ -161,7 +160,7 @@ extends A_ChunkDependable
 	 */
 	A_Variable addWriteReactor (
 		final A_Atom key,
-		final VariableAccessReactor<?> reactor);
+		final VariableAccessReactor reactor);
 
 	/**
 	 * Remove the {@linkplain VariableAccessReactor write reactor} associated

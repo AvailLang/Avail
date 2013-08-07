@@ -408,6 +408,45 @@ public final class Interpreter
 		assert fiber == null ^ newFiber == null;
 		assert newFiber == null || newFiber.executionState() == RUNNING;
 		fiber = newFiber;
+		if (newFiber != null)
+		{
+			traceVariableAccesses =
+				newFiber.traceFlag(TraceFlag.TRACE_VARIABLE_ACCESSES);
+		}
+	}
+
+	/**
+	 * Should the {@linkplain Interpreter interpreter} record which
+	 * variables are accessed while running its current {@linkplain
+	 * FiberDescriptor fiber}?
+	 */
+	private boolean traceVariableAccesses = false;
+
+	/**
+	 * Should the {@linkplain Interpreter interpreter} record which
+	 * variables are accessed while running its current {@linkplain
+	 * FiberDescriptor fiber}?
+	 *
+	 * @return {@code true} if the interpreter should record variable accesses,
+	 *         {@code false} otherwise.
+	 */
+	public boolean traceVariableAccesses ()
+	{
+		return traceVariableAccesses;
+	}
+
+	/**
+	 * Set the variable trace flag.
+	 *
+	 * @param traceVariableAccesses
+	 *        {@code true} if the {@linkplain Interpreter interpreter} should
+	 *        record which {@linkplain VariableDescriptor variables} are
+	 *        accessed while running its current {@linkplain FiberDescriptor
+	 *        fiber}, {@code false} otherwise.
+	 */
+	public void setTraceVariableAccesses (final boolean traceVariableAccesses)
+	{
+		this.traceVariableAccesses = traceVariableAccesses;
 	}
 
 	/**

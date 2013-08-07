@@ -78,6 +78,7 @@ Names
 	/*  90 */ "fiber result unavailable code",
 	/*  27 */ "function disagrees with primitive restriction code",
 	/*  80 */ "handler sentinel code",
+	/*  77 */ "illegal trace mode code",
 	/*  12 */ "incorrect argument type code",
 	/*  11 */ "incorrect number of arguments code",
 	/*  47 */ "incorrect type for boolean group code",
@@ -514,6 +515,11 @@ Primitive "cannot mix method and macro definitions code" is
 Primitive "cannot create continuation for infallible primitive function code" is
 [
 	76
+];
+
+Primitive "illegal trace mode code" is
+[
+	77
 ];
 
 Primitive "handler sentinel code" is

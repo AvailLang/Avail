@@ -34,10 +34,9 @@ package com.avail.descriptor;
 
 import static com.avail.descriptor.VariableSharedDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.VariableSharedDescriptor.ObjectSlots.*;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 import com.avail.annotations.*;
-import com.avail.exceptions.AvailErrorCode;
 import com.avail.exceptions.AvailException;
 import com.avail.interpreter.levelTwo.L2Chunk;
 
@@ -52,57 +51,48 @@ public final class VariableSharedDescriptor
 extends VariableDescriptor
 {
 	/**
-	 * A {@code VariableAccessReactor} responds to read and writes of a
-	 * {@linkplain VariableDescriptor variable} by executing arbitrary Java
-	 * code.
-	 *
-	 * @param <T>
-	 *        The subinterface of {@link A_BasicObject} that describes the
-	 *        arbitrary attachment value.
+	 * A {@code VariableAccessReactor} records a one-shot {@linkplain
+	 * FunctionDescriptor function}. It is cleared upon read.
 	 */
-	public static class VariableAccessReactor<T extends A_BasicObject>
+	public static class VariableAccessReactor
 	{
-		/**
-		 * An arbitrary {@linkplain AvailObject value}, for use by the reactor
-		 * methods.
-		 *
-		 * @see #variableRead(A_Variable)
-		 * @see #variableWritten(A_Variable)
-		 */
-		protected final T value;
+		/** The {@linkplain FunctionDescriptor reactor function}. */
+		private final AtomicReference<A_Function> function =
+			new AtomicReference<A_Function>(NilDescriptor.nil());
 
 		/**
-		 * Responds to a read of the specified {@linkplain VariableDescriptor
-		 * variable}.
+		 * Atomically get and clear {@linkplain FunctionDescriptor reactor
+		 * function}.
 		 *
-		 * @param var A variable.
+		 * @return The reactor function, or {@linkplain NilDescriptor#nil() nil}
+		 *         if the reactor function has already been requested (and the
+		 *         reactor is therefore invalid).
 		 */
-		public void variableRead (final A_Variable var)
+		public A_Function getAndClearFunction ()
 		{
-			// Do nothing.
+			return function.getAndSet(NilDescriptor.nil());
 		}
 
 		/**
-		 * Responds to a write of the specified {@linkplain VariableDescriptor
-		 * variable}.
+		 * Is the {@linkplain VariableAccessReactor reactor} invalid?
 		 *
-		 * @param var A variable.
+		 * @return {@code true} if the reactor is invalid, {@code false}
+		 *         otherwise.
 		 */
-		public void variableWritten (final A_Variable var)
+		boolean isInvalid ()
 		{
-			// Do nothing.
+			return function.get().equalsNil();
 		}
 
 		/**
 		 * Construct a new {@link VariableAccessReactor}.
 		 *
-		 * @param value
-		 *        An arbitrary {@linkplain AvailObject value}, for use by the
-		 *        reactor methods.
+		 * @param function
+		 *        The reactor {@linkplain AvailObject function}.
 		 */
-		public VariableAccessReactor (final T value)
+		public VariableAccessReactor (final A_Function function)
 		{
-			this.value = value;
+			this.function.set(function);
 		}
 	}
 
@@ -147,14 +137,6 @@ extends VariableDescriptor
 		/**
 		 * A {@linkplain RawPojoDescriptor raw pojo} that wraps a {@linkplain
 		 * Map map} from arbitrary {@linkplain AvailObject Avail values} to
-		 * {@linkplain VariableAccessReactor read reactors} that respond to
-		 * reads of the {@linkplain VariableDescriptor variable}.
-		 */
-		READ_REACTORS,
-
-		/**
-		 * A {@linkplain RawPojoDescriptor raw pojo} that wraps a {@linkplain
-		 * Map map} from arbitrary {@linkplain AvailObject Avail values} to
 		 * {@linkplain VariableAccessReactor writer reactors} that respond to
 		 * writes of the {@linkplain VariableDescriptor variable}.
 		 */
@@ -175,6 +157,8 @@ extends VariableDescriptor
 				== VALUE.ordinal();
 			assert VariableDescriptor.ObjectSlots.KIND.ordinal()
 				== KIND.ordinal();
+			assert VariableDescriptor.ObjectSlots.WRITE_REACTORS.ordinal()
+				== WRITE_REACTORS.ordinal();
 		}
 	}
 
@@ -184,7 +168,6 @@ extends VariableDescriptor
 		return super.allowsImmutableToMutableReferenceInField(e)
 			|| e == HASH_OR_ZERO
 			|| e == VALUE
-			|| e == READ_REACTORS
 			|| e == WRITE_REACTORS;
 	}
 
@@ -333,7 +316,8 @@ extends VariableDescriptor
 	 *
 	 * @param object The method that changed.
 	 */
-	private static void reactorsChanged (final AvailObject object)
+	@SuppressWarnings("unused")
+	private static void invalidateChunks (final AvailObject object)
 	{
 		assert Thread.holdsLock(object);
 		// Invalidate any affected level two chunks.
@@ -358,23 +342,11 @@ extends VariableDescriptor
 	A_Variable o_AddWriteReactor (
 		final AvailObject object,
 		final A_Atom key,
-		final VariableAccessReactor<?> reactor)
+		final VariableAccessReactor reactor)
 	{
 		synchronized (object)
 		{
-			AvailObject rawPojo = object.slot(WRITE_REACTORS);
-			if (rawPojo.equalsNil())
-			{
-				rawPojo = RawPojoDescriptor.identityWrap(
-					new HashMap<A_Atom, VariableAccessReactor<?>>());
-				object.setSlot(WRITE_REACTORS, rawPojo);
-			}
-			@SuppressWarnings("unchecked")
-			final Map<A_Atom, VariableAccessReactor<?>> writeReactors =
-				(Map<A_Atom, VariableAccessReactor<?>>) rawPojo.javaObject();
-			writeReactors.put(key, reactor);
-			reactorsChanged(object);
-			return object;
+			return super.o_AddWriteReactor(object, key, reactor);
 		}
 	}
 
@@ -385,23 +357,7 @@ extends VariableDescriptor
 	{
 		synchronized (object)
 		{
-			final AvailObject rawPojo = object.slot(WRITE_REACTORS);
-			if (rawPojo.equalsNil())
-			{
-				throw new AvailException(AvailErrorCode.E_KEY_NOT_FOUND);
-			}
-			@SuppressWarnings("unchecked")
-			final Map<A_Atom, VariableAccessReactor<?>> writeReactors =
-				(Map<A_Atom, VariableAccessReactor<?>>) rawPojo.javaObject();
-			if (writeReactors.remove(key) == null)
-			{
-				throw new AvailException(AvailErrorCode.E_KEY_NOT_FOUND);
-			}
-			if (writeReactors.isEmpty())
-			{
-				object.setSlot(WRITE_REACTORS, NilDescriptor.nil());
-			}
-			reactorsChanged(object);
+			super.o_RemoveWriteReactor(object, key);
 		}
 	}
 
@@ -440,7 +396,6 @@ extends VariableDescriptor
 		result.setSlot(KIND, variableType);
 		result.setSlot(HASH_OR_ZERO, hash);
 		result.setSlot(VALUE, value);
-		result.setSlot(READ_REACTORS, NilDescriptor.nil());
 		result.setSlot(WRITE_REACTORS, NilDescriptor.nil());
 		result.setSlot(DEPENDENT_CHUNK_INDICES, SetDescriptor.empty());
 		result.descriptor = VariableSharedDescriptor.shared;

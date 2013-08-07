@@ -44,6 +44,7 @@ import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
 import com.avail.descriptor.FiberDescriptor.GeneralFlag;
 import com.avail.descriptor.FiberDescriptor.InterruptRequestFlag;
 import com.avail.descriptor.FiberDescriptor.SynchronizationFlag;
+import com.avail.descriptor.FiberDescriptor.TraceFlag;
 import com.avail.descriptor.InfinityDescriptor.IntegerSlots;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.descriptor.FiberDescriptor.ExecutionState;
@@ -6801,7 +6802,7 @@ implements
 	@Override
 	public A_Variable addWriteReactor (
 		final A_Atom key,
-		final VariableAccessReactor<?> reactor)
+		final VariableAccessReactor reactor)
 	{
 		return descriptor.o_AddWriteReactor(this, key, reactor);
 	}
@@ -6813,5 +6814,54 @@ implements
 	public void removeWriteReactor (final A_Atom key) throws AvailException
 	{
 		descriptor.o_RemoveWriteReactor(this, key);
+	}
+
+	/**
+	 * @param flag
+	 * @return
+	 */
+	@Override
+	public boolean traceFlag (final TraceFlag flag)
+	{
+		return descriptor.o_TraceFlag(this, flag);
+	}
+
+	/**
+	 * @param flag
+	 */
+	@Override
+	public void setTraceFlag (final TraceFlag flag)
+	{
+		descriptor.o_SetTraceFlag(this, flag);
+	}
+
+	/**
+	 * @param flag
+	 */
+	@Override
+	public void clearTraceFlag (final TraceFlag flag)
+	{
+		descriptor.o_ClearTraceFlag(this, flag);
+	}
+
+	/**
+	 * @param var
+	 * @param wasRead
+	 */
+	@Override
+	public void recordVariableAccess (
+		final A_Variable var,
+		final boolean wasRead)
+	{
+		descriptor.o_RecordVariableAccess(this, var, wasRead);
+	}
+
+	/**
+	 * @return
+	 */
+	@Override
+	public A_Set variablesReadBeforeWritten ()
+	{
+		return descriptor.o_VariablesReadBeforeWritten(this);
 	}
 }

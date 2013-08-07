@@ -1,6 +1,6 @@
 /**
- * P_018_GetClearing.java
- * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
+ * P_025_TraceVariableAccesses.java
+ * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,29 +29,34 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+
 package com.avail.interpreter.primitive;
 
+import static com.avail.descriptor.FiberDescriptor.TraceFlag.TRACE_VARIABLE_ACCESSES;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
+import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
+import com.avail.annotations.NotNull;
 import com.avail.descriptor.*;
-import com.avail.exceptions.VariableGetException;
+import com.avail.descriptor.FiberDescriptor.TraceFlag;
 import com.avail.interpreter.*;
 
 /**
- * <strong>Primitive 18:</strong> Get the value of the {@linkplain
- * VariableDescriptor variable}, clear the variable, then answer the
- * previously extracted {@linkplain AvailObject value}. This operation
- * allows store-back patterns to be efficiently implemented in Level One
- * code while keeping the interpreter itself thread-safe and debugger-safe.
+ * <strong>Primitive 25</strong>: Enable {@linkplain
+ * TraceFlag#TRACE_VARIABLE_ACCESSES variable access tracing} for the
+ * {@linkplain FiberDescriptor#current() current fiber}.
+ *
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class P_018_GetClearing extends Primitive
+public final class P_025_TraceVariableAccesses
+extends Primitive
 {
 	/**
-	 * The sole instance of this primitive class.  Accessed through reflection.
+	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_018_GetClearing().init(
-		1, CanInline, HasSideEffect);
+	public final @NotNull static Primitive instance =
+		new P_025_TraceVariableAccesses().init(0, HasSideEffect);
 
 	@Override
 	public Result attempt (
@@ -59,35 +64,22 @@ public class P_018_GetClearing extends Primitive
 		final Interpreter interpreter,
 		final boolean skipReturnCheck)
 	{
-		assert args.size() == 1;
-		final A_Variable var = args.get(0);
-		try
+		assert args.size() == 0;
+		final A_Fiber fiber = interpreter.fiber();
+		if (fiber.traceFlag(TRACE_VARIABLE_ACCESSES))
 		{
-			final A_BasicObject valueObject = var.getValue();
-			var.clearValue();
-			return interpreter.primitiveSuccess(valueObject);
+			return interpreter.primitiveFailure(E_ILLEGAL_TRACE_MODE);
 		}
-		catch (final VariableGetException e)
-		{
-			return interpreter.primitiveFailure(e.numericCode());
-		}
+		fiber.setTraceFlag(TRACE_VARIABLE_ACCESSES);
+		interpreter.setTraceVariableAccesses(true);
+		return interpreter.primitiveSuccess(NilDescriptor.nil());
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
-				VariableTypeDescriptor.mostGeneralType()),
-			ANY.o());
-	}
-
-	@Override
-	public A_Type returnTypeGuaranteedByVM (
-		final List<? extends A_Type> argumentTypes)
-	{
-		final A_Type varType = argumentTypes.get(0);
-		final A_Type readType = varType.readType();
-		return readType.equals(TOP.o()) ? ANY.o() : readType;
+			TupleDescriptor.empty(),
+			TOP.o());
 	}
 }

@@ -38,6 +38,7 @@ import com.avail.descriptor.FiberDescriptor.ExecutionState;
 import com.avail.descriptor.FiberDescriptor.GeneralFlag;
 import com.avail.descriptor.FiberDescriptor.InterruptRequestFlag;
 import com.avail.descriptor.FiberDescriptor.SynchronizationFlag;
+import com.avail.descriptor.FiberDescriptor.TraceFlag;
 import com.avail.interpreter.AvailLoader;
 import com.avail.utility.Continuation1;
 
@@ -166,6 +167,22 @@ extends A_BasicObject
 		boolean b);
 
 	/**
+	 * @param flag
+	 * @return
+	 */
+	public boolean traceFlag (final TraceFlag flag);
+
+	/**
+	 * @param flag
+	 */
+	public void setTraceFlag (final TraceFlag flag);
+
+	/**
+	 * @param flag
+	 */
+	public void clearTraceFlag (final TraceFlag flag);
+
+	/**
 	 * @return
 	 */
 	A_Map heritableFiberGlobals ();
@@ -235,4 +252,17 @@ extends A_BasicObject
 	 * @param task
 	 */
 	void wakeupTask (@Nullable TimerTask task);
+
+	/**
+	 * @param var
+	 * @param wasRead
+	 */
+	public void recordVariableAccess (
+		final A_Variable var,
+		final boolean wasRead);
+
+	/**
+	 * @return
+	 */
+	public A_Set variablesReadBeforeWritten ();
 }

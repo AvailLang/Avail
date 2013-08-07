@@ -172,6 +172,7 @@ Invoke [
 		<74, "atom-already-exists">,
 		<75, "cannot-mix-method-and-macro-definitions">,
 		<76, "cannot-create-continuation-for-infallible-primitive-function">,
+		<77, "illegal-trace-mode">,
 		<80, "handler-sentinel">,
 		<81, "cannot-mark-handler-frame">,
 		<82, "no-handler-frame">,
