@@ -1,0 +1,300 @@
+/*
+ * Observing.avail
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+System Module "Observing"
+Versions
+	"dev"
+Uses
+	"Bootstrap",
+	"Concurrency",
+	"Control Structures",
+	"Definers",
+	"Early Error Codes",
+	"Enumeration Support",
+	"Exceptions",
+	"Functions",
+	"Logic",
+	"Strings",
+	"Types"
+Names
+	/* Automatic change tracking. */
+	"Observe|observe_",
+	"Whenever_changes,⁇do_",
+
+	/* Client reactor support. */
+	"write reactor",
+	"_'s⁇write reactors+=_→_",
+	"_'s⁇write reactors-=_"
+Body
+
+/**
+ * A write reactor is a {@type "nullary procedure"} that is invoked at an
+ * {@method "Observe_" observation boundary} if it was associated with any
+ * {@type "variable"} that was written during that observation.
+ *
+ * @type "write reactor"
+ * @supertype "[]→⊤"
+ */
+Public method "write reactor" is [nullary procedure];
+
+/**
+ * Add a write reactor to the specified {@type "variable"}. The next write to
+ * this variable, or another variable that uses the same {@type "atom" key}, by
+ * any {@type "fiber"}, will cause a single invocation of {@param "reactor"} at
+ * the next {@method "Observe_" observation boundary}. A write reactor is
+ * forgotten after it is obtained at an observation boundary.
+ *
+ * @method "_'s⁇write reactors+=_→_"
+ * @param "var" "variable"
+ * @param "key" "atom"
+ *        The key that identifies the write reactor, provided only for
+ *        subsequent removal.
+ * @param "reactor" "write reactor"
+ * @raises "special-atom exception"
+ *         If {@param "key"} is a special atom.
+ */
+Public method "_'s⁇write reactors+=_→_" is
+[
+	var : variable,
+	key : atom,
+	reactor : write reactor
+|
+	Primitive 23 (failureCode : {special-atom code}ᵀ);
+	Raise an exception for failureCode
+] : ⊤;
+
+/**
+ * Remove a write reactor from the specified {@type "variable"}.
+ *
+ * @method "_'s⁇write reactors+=_→_"
+ * @param "var" "variable"
+ * @param "key" "atom"
+ *        The key that identifies the write reactor.
+ * @raises "special-atom exception"
+ *         If {@param "key"} is a special atom.
+ * @raises "key-not-found exception"
+ *         If {@param "key"} is not associated with a write reactor.
+ */
+Public method "_'s⁇write reactors-=_" is
+[
+	var : variable,
+	key : atom
+|
+	Primitive 24 (failureCode : {special-atom code, key-not-found code}ᵀ);
+	Raise an exception for failureCode
+] : ⊤;
+
+/**
+ * Cause the {@method "current fiber"} to enter read-before-write trace mode. In
+ * this mode, track every {@type "variable"} that is read before it is written.
+ *
+ * @method "Track variables that are read before written"
+ * @raises "illegal-trace-mode exception"
+ *         If the {@method "current fiber"} is already tracing (any mode).
+ */
+Private method "Track variables that are read before written" is
+[
+	Primitive 25 (failureCode : {illegal-trace-mode code}ᵀ);
+	Raise an exception for failureCode
+] : ⊤;
+
+/**
+ * Cause the {@method "current fiber"} to exit read-before-write trace mode.
+ * Install the specified {@type "write reactor"} on each {@type "variable"} that
+ * was read before it was written while tracing was enabled.
+ *
+ * @method
+ *    "Stop tracking,and install_on each variable that was read before written"
+ * @param "key" "atom"
+ *        The key that identifies the write reactor.
+ * @param "reactor" "write reactor"
+ * @raises "illegal-trace-mode exception"
+ *         If the {@method "current fiber"} is not already in read-before-write
+ *         trace mode.
+ */
+Private method
+	"Stop tracking,and install_→_on each variable that was read before written"
+is
+[
+	key : atom,
+	reactor : write reactor
+|
+	Primitive 26 (failureCode : {illegal-trace-mode code}ᵀ);
+	Raise an exception for failureCode
+] : ⊤;
+
+/* The sentinel is a value guaranteed to be different from any that a client
+ * trace function could produce, so it is a suitable initial value.
+ */
+sentinel ::= new atom named "sentinel";
+
+/**
+ * Enable {@method "Track variables that are read before written"
+ * read-before-write tracing}, then invoke {@param "traceFunction"}. For each
+ * {@type "variable"} dynamically reachable from {@param "traceFunction"} that
+ * was read before it is written, install a specialized {@type "write reactor"}.
+ * This write reactor will instigate a new trace of {@param "traceFunction"},
+ * reinstall the specialized write reactor on the newly tracked variables, and
+ * compare the new result of {@param "traceFunction"} against its most recent
+ * successful result. If the results differ, then invoke {@param "action"}.
+ * Always invoke {@param "action"} after the initial trace.
+ *
+ * @method "Whenever_changes,⁇do_"
+ * @param "traceFunction" "[]→any"
+ * @param "action" "[⊥]→⊤"
+ *        An arbitrary function that is invoked whenever {@param
+ *        "traceFunction"} produces a new value. It is applied to the value
+ *        produced by {@param "traceFunction"}.
+ * @raises "exception"
+ *         If {@param "traceFunction"} raises an {@type "exception"} during the
+ *         initial trace. Subsequently, {@param "traceFunction"} will be invoked
+ *         by {@method "Observe_"} as a consequence of evaluating the relevant
+ *         write reactors.
+ */
+Public method "Whenever_changes,⁇do_" is
+[
+	traceFunction : []→any,
+	action : [⊥]→⊤
+|
+	/* Use a unique key for each trace function. */
+	changeKey ::= new atom named "change key";
+	wrappedReactor : [any]→⊤;
+	wrappedReactor :=
+		[
+			previousResult : any
+		|
+			Track variables that are read before written;
+			result : any;
+			Guard [result := traceFunction();]
+			intercept
+			[
+				e : exception
+			|
+				result := previousResult;
+				Raise e
+			]
+			ensure
+			[
+				Stop tracking,
+					and install changeKey → [wrappedReactor(result);]
+					on each variable that was read before written;
+			];
+			If result ≠ previousResult then
+			[
+				action(result);
+			];
+		];
+	wrappedReactor(sentinel);
+] : ⊤;
+
+Semantic restriction "Whenever_changes,⁇do_" is
+[
+	traceFunction : []→any's type,
+	action : [⊥]→⊤'s type
+|
+	If action[1] ≠ ⊥ ∧ [¬traceFunction's return type ⊆ action[1]] then
+	[
+		Reject parse, expected:
+			format
+				"action to accept trace function's output \
+				(but “①” is not a subtype of “②”)"
+			with traceFunction's return type, action[1]
+	];
+	⊤
+];
+
+/**
+ * Cause the {@method "current fiber"} to enter write trace mode. In this mode,
+ * track every {@type "variable"} that is written.
+ *
+ * @method "Track variables that are written"
+ * @raises "illegal-trace-mode exception"
+ *         If the {@method "current fiber"} is already tracing (any mode).
+ */
+Private method "Track variables that are written" is
+[
+	Primitive 41 (failureCode : {illegal-trace-mode code}ᵀ);
+	Raise an exception for failureCode
+] : ⊤;
+
+/**
+ * Cause the {@method "current fiber"} to exit write trace mode. Accumulate the
+ * {@type "write reactors"}s of every {@type "variable"} that was written into a
+ * {@type "set"}. Answer the set.
+ *
+ * @method "stop tracking and answer all write reactors"
+ * @returns "{[]→⊤|}"
+ *          The set of relevant write reactors.
+ * @raises "illegal-trace-mode exception"
+ *         If the {@method "current fiber"} is not already in read-before-write
+ *         trace mode.
+ */
+Private method "stop tracking and answer all write reactors" is
+[
+	Primitive 42 (failureCode : {illegal-trace-mode code}ᵀ);
+	Raise an exception for failureCode
+] : {[]→⊤|};
+
+/**
+ * Enable {@method "Track variables that are written" write tracing}, then
+ * invoke {@param "observeFunction"}. Disable write tracing and obtain all
+ * {@type "write reactor"}s that should be invoked, in parallel, as a
+ * consequence of writing to {@type "variables"} under observation. These write
+ * reactors are no longer operative (though {@method "Whenever_changes,⁇do_"}
+ * makes arrangements to reinstall the appropriate write reactors as a
+ * consequence of running the originals).
+ *
+ * @method "Observe|observe_"
+ * @param "observeFunction" "[]→⊤"
+ * @raises "exception"
+ *         If {@param "observeFunction"} raises an {@type "exception"}.
+ * @see {@method "Whenever_changes,⁇do_"}
+ */
+Public method "Observe|observe_" is
+[
+	observeFunction : []→⊤
+|
+	Track variables that are written;
+	Guard observeFunction
+	ensure
+	[
+		reactors ::= stop tracking and answer all write reactors;
+		For each of reactors in parallel do [r : write reactor | r();];
+	];
+] : ⊤;
+
+Semantic restriction "Observe|observe_" is
+[
+	observeFunction : []→⊤'s type
+|
+	observeFunction's return type
+];

@@ -44,12 +44,12 @@ import com.avail.interpreter.*;
 
 /**
  * <strong>Primitive 26</strong>: Disable {@linkplain
- * TraceFlag#TRACE_VARIABLE_READS_BEFORE_WRITES variable access tracing} for the
- * {@linkplain FiberDescriptor#current() current fiber}. To each {@linkplain
- * VariableDescriptor variable} that survived tracing, add a {@linkplain
- * VariableAccessReactor write reactor} that wraps the specified {@linkplain
- * FunctionDescriptor function}, associating it with the specified {@linkplain
- * AtomDescriptor atom} (for potential pre-activation removal).
+ * TraceFlag#TRACE_VARIABLE_READS_BEFORE_WRITES variable read-before-write
+ * tracing} for the {@linkplain FiberDescriptor#current() current fiber}. To
+ * each {@linkplain VariableDescriptor variable} that survived tracing, add a
+ * {@linkplain VariableAccessReactor write reactor} that wraps the specified
+ * {@linkplain FunctionDescriptor function}, associating it with the specified
+ * {@linkplain AtomDescriptor atom} (for potential pre-activation removal).
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
@@ -80,7 +80,7 @@ extends Primitive
 		final A_Fiber fiber = interpreter.fiber();
 		final A_Set readBeforeWritten = fiber.variablesReadBeforeWritten();
 		final VariableAccessReactor reactor =
-			new VariableAccessReactor(reactorFunction);
+			new VariableAccessReactor(reactorFunction.makeShared());
 		for (final A_Variable var : readBeforeWritten)
 		{
 			var.addWriteReactor(key, reactor);
@@ -98,5 +98,12 @@ extends Primitive
 					TupleDescriptor.empty(),
 					TOP.o())),
 			TOP.o());
+	}
+
+	@Override
+	protected A_Type privateFailureVariableType ()
+	{
+		return AbstractEnumerationTypeDescriptor.withInstance(
+			E_ILLEGAL_TRACE_MODE.numericCode());
 	}
 }

@@ -442,7 +442,7 @@ extends Descriptor
 		{
 			rawPojo = RawPojoDescriptor.identityWrap(
 				new HashMap<A_Atom, VariableAccessReactor>());
-			object.setSlot(WRITE_REACTORS, rawPojo);
+			object.setMutableSlot(WRITE_REACTORS, rawPojo);
 		}
 		@SuppressWarnings("unchecked")
 		final Map<A_Atom, VariableAccessReactor> writeReactors =

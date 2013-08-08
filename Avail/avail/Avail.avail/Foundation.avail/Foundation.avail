@@ -769,6 +769,14 @@ Extends
 			\|«with reconstructor|reconstructors««public»?(«_‡,»)‡,»»",
 		"_as_«with«_::=_‡,»»"
 	),
+	"Observing" =
+	(
+		"Observe|observe_",
+		"Whenever_changes,⁇do_",
+		"write reactor",
+		"_'s⁇write reactors+=_→_",
+		"_'s⁇write reactors-=_"
+	),
 	"Phrases" =
 	(
 		"``_``",

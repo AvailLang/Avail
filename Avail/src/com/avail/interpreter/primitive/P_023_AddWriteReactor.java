@@ -35,15 +35,12 @@ package com.avail.interpreter.primitive;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode.E_SPECIAL_ATOM;
 import static com.avail.interpreter.Primitive.Flag.*;
-import static com.avail.interpreter.Primitive.Result.FIBER_SUSPENDED;
 import java.util.List;
 import com.avail.AvailRuntime;
-import com.avail.AvailTask;
 import com.avail.annotations.NotNull;
 import com.avail.descriptor.*;
 import com.avail.descriptor.VariableDescriptor.VariableAccessReactor;
 import com.avail.interpreter.*;
-import com.avail.utility.Continuation0;
 
 /**
  * <strong>Primitive 23</strong>: Add a {@linkplain VariableAccessReactor
@@ -77,31 +74,11 @@ extends Primitive
 		{
 			return interpreter.primitiveFailure(E_SPECIAL_ATOM);
 		}
-		// Changing the write reactors can invalidate L2 chunks that depend on
-		// this variable, so defer the update (and invalidation) until Level One
-		// safety is assured.
-		final A_Fiber fiber = interpreter.fiber();
 		final A_Function sharedFunction = reactorFunction.makeShared();
 		final VariableAccessReactor writeReactor =
 			new VariableAccessReactor(sharedFunction);
-		interpreter.primitiveSuspend();
-		final AvailRuntime runtime = AvailRuntime.current();
-		runtime.whenLevelOneSafeDo(AvailTask.forUnboundFiber(
-			fiber,
-			new Continuation0()
-			{
-				@Override
-				public void value ()
-				{
-					var.addWriteReactor(key, writeReactor);
-					Interpreter.resumeFromSuccessfulPrimitive(
-						runtime,
-						fiber,
-						NilDescriptor.nil(),
-						skipReturnCheck);
-				}
-			}));
-		return FIBER_SUSPENDED;
+		var.addWriteReactor(key, writeReactor);
+		return interpreter.primitiveSuccess(NilDescriptor.nil());
 	}
 
 	@Override
@@ -112,8 +89,15 @@ extends Primitive
 				VariableTypeDescriptor.mostGeneralType(),
 				ATOM.o(),
 				FunctionTypeDescriptor.create(
-					TupleDescriptor.from(ANY.o(), ANY.o()),
+					TupleDescriptor.empty(),
 					TOP.o())),
 			TOP.o());
+	}
+
+	@Override
+	protected A_Type privateFailureVariableType ()
+	{
+		return AbstractEnumerationTypeDescriptor.withInstance(
+			E_SPECIAL_ATOM.numericCode());
 	}
 }

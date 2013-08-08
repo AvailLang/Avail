@@ -39,10 +39,17 @@ import java.util.List;
 import com.avail.annotations.NotNull;
 import com.avail.descriptor.*;
 import com.avail.descriptor.FiberDescriptor.TraceFlag;
+import com.avail.descriptor.VariableDescriptor.VariableAccessReactor;
 import com.avail.interpreter.*;
 
 /**
- * <strong>Primitive 42</strong>: TODO: [TLS] Document this!
+ * <strong>Primitive 42</strong>: Disable {@linkplain
+ * TraceFlag#TRACE_VARIABLE_WRITES variable write tracing} for the {@linkplain
+ * FiberDescriptor#current() current fiber}. For each {@linkplain
+ * VariableDescriptor variable} that survived tracing, accumulate the variable's
+ * {@linkplain VariableAccessReactor write reactor} {@linkplain
+ * FunctionDescriptor functions} into a {@linkplain SetDescriptor set}. Clear
+ * the write reactors for each variable written. Answer the set of functions.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
@@ -89,5 +96,12 @@ extends Primitive
 				FunctionTypeDescriptor.create(
 					TupleDescriptor.empty(),
 					TOP.o())));
+	}
+
+	@Override
+	protected A_Type privateFailureVariableType ()
+	{
+		return AbstractEnumerationTypeDescriptor.withInstance(
+			E_ILLEGAL_TRACE_MODE.numericCode());
 	}
 }

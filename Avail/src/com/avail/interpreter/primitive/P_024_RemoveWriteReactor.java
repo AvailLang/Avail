@@ -35,17 +35,14 @@ package com.avail.interpreter.primitive;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
-import static com.avail.interpreter.Primitive.Result.FIBER_SUSPENDED;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import com.avail.AvailRuntime;
-import com.avail.AvailTask;
 import com.avail.annotations.NotNull;
 import com.avail.descriptor.*;
 import com.avail.descriptor.VariableDescriptor.VariableAccessReactor;
 import com.avail.exceptions.AvailException;
 import com.avail.interpreter.*;
-import com.avail.utility.Continuation0;
 
 /**
  * <strong>Primitive 24</strong>: Remove the {@linkplain VariableAccessReactor
@@ -76,45 +73,15 @@ extends Primitive
 		{
 			return interpreter.primitiveFailure(E_SPECIAL_ATOM);
 		}
-		// Changing the write reactors can invalidate L2 chunks that depend on
-		// this variable, so defer the update (and invalidation) until Level One
-		// safety is assured.
-		final A_Fiber fiber = interpreter.fiber();
-		final A_Function failureFunction =
-			interpreter.primitiveFunctionBeingAttempted();
-		final List<AvailObject> copiedArgs = new ArrayList<>(args);
-		assert failureFunction.code().primitiveNumber() == primitiveNumber;
-		interpreter.primitiveSuspend();
-		final AvailRuntime runtime = AvailRuntime.current();
-		runtime.whenLevelOneSafeDo(AvailTask.forUnboundFiber(
-			fiber,
-			new Continuation0()
-			{
-				@Override
-				public void value ()
-				{
-					try
-					{
-						var.removeWriteReactor(key);
-						Interpreter.resumeFromSuccessfulPrimitive(
-							runtime,
-							fiber,
-							NilDescriptor.nil(),
-							skipReturnCheck);
-					}
-					catch (final AvailException e)
-					{
-						Interpreter.resumeFromFailedPrimitive(
-							runtime,
-							fiber,
-							e.numericCode(),
-							failureFunction,
-							copiedArgs,
-							skipReturnCheck);
-					}
-				}
-			}));
-		return FIBER_SUSPENDED;
+		try
+		{
+			var.removeWriteReactor(key);
+		}
+		catch (final AvailException e)
+		{
+			return interpreter.primitiveFailure(e.numericCode());
+		}
+		return interpreter.primitiveSuccess(NilDescriptor.nil());
 	}
 
 	@Override
@@ -125,5 +92,14 @@ extends Primitive
 				VariableTypeDescriptor.mostGeneralType(),
 				ATOM.o()),
 			TOP.o());
+	}
+
+	@Override
+	protected A_Type privateFailureVariableType ()
+	{
+		return AbstractEnumerationTypeDescriptor.withInstances(
+			SetDescriptor.fromCollection(Arrays.asList(
+				E_SPECIAL_ATOM.numericCode(),
+				E_KEY_NOT_FOUND.numericCode())));
 	}
 }
