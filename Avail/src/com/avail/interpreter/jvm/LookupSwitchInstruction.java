@@ -66,7 +66,7 @@ extends JavaInstruction
 		{
 			return 0;
 		}
-		return (int) (address() & 3);
+		return (int) (-address() & 3);
 	}
 
 	@Override

@@ -65,11 +65,11 @@ extends JavaInstruction
 	 */
 	private int padBytes ()
 	{
-		if (hasValidAddress())
+		if (!hasValidAddress())
 		{
 			return 0;
 		}
-		return (int) (address() & 3);
+		return (int) (-address() & 3);
 	}
 
 	@Override
