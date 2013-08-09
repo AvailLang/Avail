@@ -59,6 +59,25 @@ Test "write reactor" in observation test suite is
 	Require: result = ref;
 ];
 
+Test "multiple write reactor" in observation test suite is
+[
+	x : integer := 0;
+	result1 : integer;
+	k1 ::= new atom named "key 1";
+	ref1 ::= 901;
+	↑x's write reactors += k1→[result1 := ref1;];
+	result2 : integer;
+	k2 ::= new atom named "key 2";
+	ref2 ::= 899;
+	↑x's write reactors += k2→[result2 := ref2;];
+	Observe [x := ref1 + ref2;];
+	Require: x = ref1 + ref2;
+	Require: ↑result1 is assigned;
+	Require: result1 = ref1;
+	Require: ↑result2 is assigned;
+	Require: result2 = ref2;
+];
+
 Test "write reactor fires only once" in observation test suite is
 [
 	x : integer := 0;
@@ -229,3 +248,32 @@ Test "curtailed observe" in observation test suite is
 	Observe [d := d ÷ (d - 2);];
 ]
 must raise cannot-divide-by-zero exception;
+
+Test "nested whenevers" in observation test suite is
+[
+	x : integer;
+	Whenever [Whenever [x] changes, do [unused : integer |]; 0] changes,
+	do [unused : integer |];
+]
+must raise illegal-trace-mode exception;
+
+Test "nested observes" in observation test suite is
+[
+	x : integer;
+	Observe [Observe [x := 5;];];
+]
+must raise illegal-trace-mode exception;
+
+Test "nested whenever[observe]" in observation test suite is
+[
+	x : integer;
+	Whenever [observe [x := 10; x]] changes, do [unused : integer |];
+]
+must raise illegal-trace-mode exception;
+
+Test "nested observe[whenever]" in observation test suite is
+[
+	x : integer;
+	Observe [Whenever [x] changes, do [unused : integer |];];
+]
+must raise illegal-trace-mode exception;
