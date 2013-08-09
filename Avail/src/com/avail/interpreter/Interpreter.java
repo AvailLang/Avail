@@ -36,7 +36,6 @@ import static com.avail.descriptor.AvailObject.error;
 import static com.avail.descriptor.FiberDescriptor.ExecutionState.*;
 import static com.avail.descriptor.FiberDescriptor.SynchronizationFlag.*;
 import static com.avail.descriptor.FiberDescriptor.TraceFlag.*;
-import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Result.*;
 import static com.avail.interpreter.levelTwo.register.FixedRegister.*;
@@ -2111,27 +2110,17 @@ public final class Interpreter
 		final A_BasicObject value,
 		final Continuation1<String> continuation)
 	{
-		final A_Atom stringifierAtom = runtime.stringificationAtom();
-		// If the stringifier atom is not defined, or is not bound to a message
-		// bundle (and thus a method), then use the basic mechanism for
-		// stringification.
-		if (stringifierAtom == null
-			|| stringifierAtom.bundleOrNil().equalsNil())
+		final A_Function stringifierFunction =
+			runtime.stringificationFunction();
+		// If the stringifier function is not defined, then use the basic
+		// mechanism for stringification.
+		if (stringifierFunction == null)
 		{
 			continuation.value(String.format(
 				"(stringifier undefined) %s",
 				value.toString()));
 			return;
 		}
-		// Generate a zero-argument function that will invoke the stringifier
-		// method for the specified value.
-		final A_Phrase send = SendNodeDescriptor.from(
-			stringifierAtom.bundleOrNil(),
-			ListNodeDescriptor.newExpressions(TupleDescriptor.from(
-				LiteralNodeDescriptor.syntheticFrom(value))),
-			TOP.o());
-		final A_Function function = FunctionDescriptor.createFunctionForPhrase(
-			send, NilDescriptor.nil(), 0);
 		// Create the fiber that will execute the function.
 		final A_Fiber fiber = FiberDescriptor.newFiber(
 			TupleTypeDescriptor.stringType(),
@@ -2162,8 +2151,8 @@ public final class Interpreter
 		Interpreter.runOutermostFunction(
 			runtime,
 			fiber,
-			function,
-			Collections.<A_BasicObject>emptyList());
+			stringifierFunction,
+			Collections.singletonList(value));
 	}
 
 	/**

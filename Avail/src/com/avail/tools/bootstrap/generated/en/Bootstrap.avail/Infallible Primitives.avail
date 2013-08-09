@@ -60,6 +60,7 @@ Uses
 		"Print:_",
 		"Reject parse,expected:_",
 		"Request termination of_",
+		"Resume_",
 		"Sleep for_millisecond|milliseconds",
 		"Terminate current fiber",
 		"Unpark_",
@@ -609,6 +610,20 @@ Primitive "If_then_" is
 |
 	Primitive 44;
 ] : ⊤;
+
+/**
+ * Resume the specified continuation. The current continuation (in which this
+ * primitive was invoked) is completely replaced by the resumed continuation.
+ *
+ * Parameters:
+ *    aContinuation - A continuation.
+ */
+Primitive "Resume_" is
+[
+	aContinuation : continuation
+|
+	Primitive 48;
+] : ⊥;
 
 /**
  * Answer the type of the function represented by the specified continuation.

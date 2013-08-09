@@ -127,6 +127,7 @@ Names
 	/*  62 */ "primitive should agree with declared return type code",
 	/*  50 */ "question mark must follow a simple group code",
 	/*  39 */ "redefined with same argument types code",
+	/*  79 */ "result disagreed with expected type code",
 	/*  40 */ "result type should covary with arguments code",
 	/*  64 */ "return type is mandatory with primitives or labels code",
 	/* 105 */ "sequence contains invalid statements code",
@@ -136,6 +137,7 @@ Names
 	/*  52 */ "tilde must not follow argument code",
 	/*  30 */ "too large to represent code",
 	/*  31 */ "type restriction must accept only types code",
+	/*  78 */ "unassigned variable read code",
 	/*  44 */ "unbalanced guillemets code",
 	/*  83 */ "unwind sentinel code",
 	/*  55 */ "vertical bar must follow a simple or simple group code",
@@ -520,6 +522,16 @@ Primitive "cannot create continuation for infallible primitive function code" is
 Primitive "illegal trace mode code" is
 [
 	77
+];
+
+Primitive "unassigned variable read code" is
+[
+	78
+];
+
+Primitive "result disagreed with expected type code" is
+[
+	79
 ];
 
 Primitive "handler sentinel code" is

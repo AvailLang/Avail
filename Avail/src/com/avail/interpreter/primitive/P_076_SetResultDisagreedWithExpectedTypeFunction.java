@@ -1,5 +1,5 @@
 /**
- * P_266_DeclareStringificationAtom.java
+ * P_076_SetResultDisagreedWithExpectedTypeFunction.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -36,28 +36,24 @@ import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
 import com.avail.AvailRuntime;
+import com.avail.annotations.NotNull;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
-import com.avail.interpreter.levelOne.L1Instruction;
-import com.avail.interpreter.levelOne.L1InstructionWriter;
-import com.avail.interpreter.levelOne.L1Operation;
 
 /**
- * <strong>Primitive 266</strong>: Inform the VM of the {@linkplain
- * AtomDescriptor name} of the preferred stringification {@linkplain
- * MethodDescriptor method}.
+ * <strong>Primitive 76</strong>: TODO: [TLS] Document this!
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class P_266_DeclareStringificationAtom
+public final class P_076_SetResultDisagreedWithExpectedTypeFunction
 extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
-	public final static Primitive instance =
-		new P_266_DeclareStringificationAtom().init(
-			1, CannotFail, HasSideEffect, Private);
+	public final @NotNull static Primitive instance =
+		new P_076_SetResultDisagreedWithExpectedTypeFunction().init(
+			1, CannotFail, HasSideEffect);
 
 	@Override
 	public Result attempt (
@@ -66,26 +62,9 @@ extends Primitive
 		final boolean skipReturnCheck)
 	{
 		assert args.size() == 1;
-		final A_Atom atom = args.get(0);
-		// Generate a function that will invoke the stringifier method for
-		// the specified value.
-		final L1InstructionWriter writer = new L1InstructionWriter(
-			NilDescriptor.nil(),
-			0);
-		writer.argumentTypes(ANY.o());
-		writer.returnType(TupleTypeDescriptor.stringType());
-		writer.write(new L1Instruction(L1Operation.L1_doPushLocal, 1));
-		writer.write(
-			new L1Instruction(
-				L1Operation.L1_doCall,
-				writer.addLiteral(atom.bundleOrCreate()),
-				writer.addLiteral(TupleTypeDescriptor.stringType())));
-		final A_Function function = FunctionDescriptor.create(
-			writer.compiledCode(),
-			TupleDescriptor.empty());
-		function.makeShared();
-		// Set the stringification function.
-		AvailRuntime.current().setStringificationFunction(function);
+		final A_Function function = args.get(0);
+		AvailRuntime.current().setResultDisagreedWithExpectedTypeFunction(
+			function);
 		return interpreter.primitiveSuccess(NilDescriptor.nil());
 	}
 
@@ -94,7 +73,9 @@ extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				ATOM.o()),
+				FunctionTypeDescriptor.create(
+					TupleDescriptor.empty(),
+					BottomTypeDescriptor.bottom())),
 			TOP.o());
 	}
 }

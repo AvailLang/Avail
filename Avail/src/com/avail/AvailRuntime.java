@@ -56,6 +56,7 @@ import com.avail.descriptor.*;
 import com.avail.descriptor.FiberDescriptor.ExecutionState;
 import com.avail.exceptions.*;
 import com.avail.interpreter.levelTwo.L2Chunk;
+import com.avail.interpreter.primitive.P_256_EmergencyExit;
 import com.avail.utility.Continuation0;
 
 /**
@@ -477,33 +478,108 @@ public final class AvailRuntime
 	}
 
 	/**
-	 * The {@linkplain AtomDescriptor atom} that names the Avail stringification
-	 * mechanism.
+	 * The {@linkplain FunctionDescriptor function} that performs
+	 * stringification. It accepts a single argument, the value to stringify.
 	 */
-	private @Nullable A_Atom stringificationAtom;
+	private volatile @Nullable A_Function stringificationFunction;
 
 	/**
-	 * Answer the {@linkplain AtomDescriptor atom} that names the Avail
-	 * stringification mechanism.
+	 * Answer the {@linkplain FunctionDescriptor atom} that performs
+	 * stringification.
 	 *
-	 * @return The requested atom, or {@code null} if no such atom has been
-	 *         made known to the implementation.
+	 * @return The requested function, or {@code null} if no such function has
+	 *         been made known to the implementation.
 	 */
-	public @Nullable A_Atom stringificationAtom ()
+	@ThreadSafe
+	public @Nullable A_Function stringificationFunction ()
 	{
-		return stringificationAtom;
+		return stringificationFunction;
 	}
 
 	/**
-	 * Set the {@linkplain AtomDescriptor atom} that names the Avail
-	 * stringification mechanism.
+	 * Set the {@linkplain FunctionDescriptor function} that performs
+	 * stringification.
 	 *
-	 * @param atom
+	 * @param function
+	 *        The stringification function.
 	 */
-	public void setStringificationAtom (final A_Atom atom)
+	@ThreadSafe
+	public void setStringificationFunction (final A_Function function)
 	{
-		assert atom.isAtom();
-		stringificationAtom = atom;
+		stringificationFunction = function;
+	}
+
+	/**
+	 * The {@linkplain FunctionDescriptor function} to invoke whenever an
+	 * unassigned variable is read.
+	 */
+	private volatile A_Function unassignedVariableReadFunction;
+
+	/**
+	 * Answer the {@linkplain FunctionDescriptor function} to invoke whenever an
+	 * unassigned variable is read.
+	 *
+	 * @return The requested function.
+	 */
+	@ThreadSafe
+	public A_Function unassignedVariableReadFunction ()
+	{
+		return unassignedVariableReadFunction;
+	}
+
+	/**
+	 * Set the {@linkplain FunctionDescriptor function} to invoke whenever an
+	 * unassigned variable is read.
+	 *
+	 * @param function
+	 *        The function to invoke whenever an unassigned variable is read.
+	 */
+	@ThreadSafe
+	public void setUnassignedVariableReadFunction (final A_Function function)
+	{
+		unassignedVariableReadFunction = function;
+	}
+
+	/**
+	 * The {@linkplain FunctionDescriptor function} to invoke whenever an
+	 * unassigned variable is read.
+	 */
+	private volatile A_Function resultDisagreedWithExpectedTypeFunction;
+
+	/**
+	 * Answer the {@linkplain FunctionDescriptor function} to invoke whenever
+	 * the value produced by a {@linkplain MethodDescriptor method} send
+	 * disagrees with the {@linkplain TypeDescriptor type} expected.
+	 *
+	 * @return The requested function.
+	 */
+	@ThreadSafe
+	public A_Function resultDisagreedWithExpectedTypeFunction ()
+	{
+		return resultDisagreedWithExpectedTypeFunction;
+	}
+
+	/**
+	 * Set the {@linkplain FunctionDescriptor function} to invoke whenever
+	 * the value produced by a {@linkplain MethodDescriptor method} send
+	 * disagrees with the {@linkplain TypeDescriptor type} expected.
+	 *
+	 * @param function
+	 *        The function to invoke whenever the value produced by a method
+	 *        send disagrees with the type expected.
+	 */
+	@ThreadSafe
+	public void setResultDisagreedWithExpectedTypeFunction (
+		final A_Function function)
+	{
+		resultDisagreedWithExpectedTypeFunction = function;
+	}
+
+	{
+		final A_Function function = FunctionDescriptor.newPrimitiveFunction(
+			P_256_EmergencyExit.instance);
+		unassignedVariableReadFunction = function;
+		resultDisagreedWithExpectedTypeFunction = function;
 	}
 
 	/**
