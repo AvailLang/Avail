@@ -54,6 +54,8 @@ import com.avail.annotations.*;
 import com.avail.builder.*;
 import com.avail.descriptor.*;
 import com.avail.descriptor.FiberDescriptor.ExecutionState;
+import com.avail.descriptor.FiberDescriptor.TraceFlag;
+import com.avail.descriptor.VariableDescriptor.VariableAccessReactor;
 import com.avail.exceptions.*;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.primitive.P_256_EmergencyExit;
@@ -575,11 +577,50 @@ public final class AvailRuntime
 		resultDisagreedWithExpectedTypeFunction = function;
 	}
 
+	/**
+	 * The {@linkplain FunctionDescriptor function} to invoke whenever a
+	 * {@linkplain VariableDescriptor variable} with {@linkplain
+	 * VariableAccessReactor write reactors} is written when {@linkplain
+	 * TraceFlag#TRACE_VARIABLE_WRITES write tracing} is not enabled.
+	 */
+	private volatile A_Function implicitObserveFunction;
+
+	/**
+	 * Answer the {@linkplain FunctionDescriptor function} to invoke whenever
+	 * a {@linkplain VariableDescriptor variable} with {@linkplain
+	 * VariableAccessReactor write reactors} is written when {@linkplain
+	 * TraceFlag#TRACE_VARIABLE_WRITES write tracing} is not enabled.
+	 *
+	 * @return The requested function.
+	 */
+	@ThreadSafe
+	public A_Function implicitObserveFunction ()
+	{
+		return implicitObserveFunction;
+	}
+
+	/**
+	 * Set the {@linkplain FunctionDescriptor function} to invoke whenever a
+	 * {@linkplain VariableDescriptor variable} with {@linkplain
+	 * VariableAccessReactor write reactors} is written when {@linkplain
+	 * TraceFlag#TRACE_VARIABLE_WRITES write tracing} is not enabled.
+	 *
+	 * @param function
+	 *        The function to invoke whenever a variable with write reactors is
+	 *        written when write tracing is not enabled.
+	 */
+	@ThreadSafe
+	public void setImplicitObserveFunction (final A_Function function)
+	{
+		implicitObserveFunction = function;
+	}
+
 	{
 		final A_Function function = FunctionDescriptor.newPrimitiveFunction(
 			P_256_EmergencyExit.instance);
 		unassignedVariableReadFunction = function;
 		resultDisagreedWithExpectedTypeFunction = function;
+		implicitObserveFunction = function;
 	}
 
 	/**

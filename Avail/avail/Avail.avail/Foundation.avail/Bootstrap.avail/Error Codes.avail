@@ -137,7 +137,6 @@ Names
 	/*  52 */ "tilde must not follow argument code",
 	/*  30 */ "too large to represent code",
 	/*  31 */ "type restriction must accept only types code",
-	/*  78 */ "unassigned variable read code",
 	/*  44 */ "unbalanced guillemets code",
 	/*  83 */ "unwind sentinel code",
 	/*  55 */ "vertical bar must follow a simple or simple group code",
@@ -522,11 +521,6 @@ Primitive "cannot create continuation for infallible primitive function code" is
 Primitive "illegal trace mode code" is
 [
 	77
-];
-
-Primitive "unassigned variable read code" is
-[
-	78
 ];
 
 Primitive "result disagreed with expected type code" is

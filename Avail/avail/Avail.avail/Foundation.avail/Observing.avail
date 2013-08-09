@@ -298,3 +298,25 @@ Semantic restriction "Observe|observe_" is
 |
 	observeFunction's return type
 ];
+
+/**
+ * Set the function that should be invoked whenever a variable with write
+ * reactors is written when write tracing is not enabled.
+ */
+Private method "implicit observe function:=_" is
+[
+	aFunction : [variable, any]→⊤
+|
+	Primitive 77;
+] : ⊤;
+
+/* Whenever a variable with write reactors is written when write tracing is not
+ * enabled, then retry the write inside a narrowly scoped observer.
+ */
+implicit observe function :=
+	[
+		var : variable,
+		value : any
+	|
+		Observe [↓var ?= value;];
+	];
