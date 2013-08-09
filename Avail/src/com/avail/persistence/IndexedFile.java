@@ -798,7 +798,8 @@ extends AbstractList<byte[]>
 
 			// Rename the temporary file to the canonical target name. Reopen
 			// the file and reacquire the write lock.
-			tempFilename.renameTo(fileReference);
+			@SuppressWarnings("unused")
+			final boolean ignored = tempFilename.renameTo(fileReference);
 			file = new RandomAccessFile(fileReference, "rw");
 			channel = file().getChannel();
 			acquireLockForWriting(true);

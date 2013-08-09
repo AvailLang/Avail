@@ -1337,7 +1337,7 @@ public class ConstantPool
 	@ThreadSafe
 	public IntegerEntry constant (final int value)
 	{
-		final Integer boxed = new Integer(value);
+		final Integer boxed = Integer.valueOf(value);
 		synchronized (entries)
 		{
 			Entry entry = entries.get(boxed);
@@ -1361,7 +1361,7 @@ public class ConstantPool
 	@ThreadSafe
 	public LongEntry constant (final long value)
 	{
-		final Long boxed = new Long(value);
+		final Long boxed = Long.valueOf(value);
 		synchronized (entries)
 		{
 			Entry entry = entries.get(boxed);

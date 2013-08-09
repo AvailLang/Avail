@@ -5938,4 +5938,13 @@ public abstract class AbstractDescriptor
 	 * @return
 	 */
 	abstract A_Set o_ValidWriteReactorFunctions (AvailObject object);
+
+	/**
+	 * @param object
+	 * @param newCaller
+	 * @return
+	 */
+	abstract A_Continuation o_ReplacingCaller (
+		final AvailObject object,
+		final A_Continuation newCaller);
 }

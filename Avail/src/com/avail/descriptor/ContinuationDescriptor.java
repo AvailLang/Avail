@@ -408,6 +408,16 @@ extends Descriptor
 		return object.slot(SKIP_RETURN_CHECK) != 0;
 	}
 
+	@Override
+	A_Continuation o_ReplacingCaller(
+		final AvailObject object,
+		final A_Continuation newCaller)
+	{
+		final AvailObject result = object.ensureMutable();
+		result.setSlot(CALLER, newCaller);
+		return result;
+	}
+
 	/**
 	 * Create a new continuation with the given data.  The continuation should
 	 * represent the state upon entering the new context - i.e., set the pc to

@@ -4352,4 +4352,12 @@ extends AbstractDescriptor
 	{
 		throw unsupportedOperationException();
 	}
+
+	@Override
+	A_Continuation o_ReplacingCaller(
+		final AvailObject object,
+		final A_Continuation newCaller)
+	{
+		throw unsupportedOperationException();
+	}
 }

@@ -38,7 +38,6 @@ import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.Arrays;
 import java.util.List;
 import com.avail.AvailRuntime;
-import com.avail.annotations.NotNull;
 import com.avail.descriptor.*;
 import com.avail.descriptor.VariableDescriptor.VariableAccessReactor;
 import com.avail.exceptions.AvailException;
@@ -56,7 +55,7 @@ extends Primitive
 	/**
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
-	public final @NotNull static Primitive instance =
+	public final static Primitive instance =
 		new P_024_RemoveWriteReactor().init(2, HasSideEffect);
 
 	@Override

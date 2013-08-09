@@ -131,8 +131,10 @@ abstract class PropertiesFileGenerator
 		// Now switch the new file in.  In the rare event of failure between
 		// these steps, the complete content will still be available in the
 		// corresponding *.propertiesTEMP file.
-		fileName.delete();
-		tempFileName.renameTo(fileName);
+		@SuppressWarnings("unused")
+		final boolean ignored1 = fileName.delete();
+		@SuppressWarnings("unused")
+		final boolean ignored2 = tempFileName.renameTo(fileName);
 	}
 
 	/**

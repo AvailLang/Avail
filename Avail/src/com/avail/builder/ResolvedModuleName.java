@@ -48,14 +48,16 @@ public final class ResolvedModuleName
 extends ModuleName
 {
 	/**
-	 * The {@linkplain ModuleNameResolver#resolve(ModuleName) resolved}
-	 * {@linkplain IndexedRepositoryManager repository}.
+	 * The {@linkplain ModuleNameResolver#resolve(ModuleName,
+	 * ResolvedModuleName) resolved} {@linkplain IndexedRepositoryManager
+	 * repository}.
 	 */
 	private final IndexedRepositoryManager repository;
 
 	/**
-	 * Answer the {@linkplain ModuleNameResolver#resolve(ModuleName) resolved}
-	 * {@linkplain IndexedRepositoryManager repository}.
+	 * Answer the {@linkplain ModuleNameResolver#resolve(ModuleName,
+	 * ResolvedModuleName) resolved} {@linkplain IndexedRepositoryManager
+	 * repository}.
 	 *
 	 * @return The resolved repository.
 	 */
@@ -65,8 +67,9 @@ extends ModuleName
 	}
 
 	/**
-	 * Answer the {@linkplain ModuleNameResolver#resolve(ModuleName) resolved}
-	 * {@linkplain IndexedRepositoryManager repository}'s file reference.
+	 * Answer the {@linkplain ModuleNameResolver#resolve(ModuleName,
+	 * ResolvedModuleName) resolved} {@linkplain IndexedRepositoryManager
+	 * repository}'s file reference.
 	 *
 	 * @return The resolved repository's file reference.
 	 */
@@ -76,14 +79,14 @@ extends ModuleName
 	}
 
 	/**
-	 * The {@linkplain ModuleNameResolver#resolve(ModuleName) resolved} source
-	 * {@linkplain File file reference}.
+	 * The {@linkplain ModuleNameResolver#resolve(ModuleName,
+	 * ResolvedModuleName) resolved} source {@linkplain File file reference}.
 	 */
 	private final @Nullable File sourceReference;
 
 	/**
-	 * Answer the {@linkplain ModuleNameResolver#resolve(ModuleName) resolved}
-	 * source {@linkplain File file reference}.
+	 * Answer the {@linkplain ModuleNameResolver#resolve(ModuleName,
+	 * ResolvedModuleName) resolved} source {@linkplain File file reference}.
 	 *
 	 * @return The resolved source file reference.
 	 */
@@ -137,12 +140,13 @@ extends ModuleName
 	 *        {@code true} if the {@linkplain ModuleName module name} represents
 	 *        a package, {@code false} otherwise.
 	 * @param repository
-	 *        The {@linkplain ModuleNameResolver#resolve(ModuleName) resolved}
-	 *        {@linkplain IndexedRepositoryManager repository}.
+	 *        The {@linkplain ModuleNameResolver#resolve(ModuleName,
+	 *        ResolvedModuleName) resolved} {@linkplain IndexedRepositoryManager
+	 *        repository}.
 	 * @param sourceReference
-	 *        The {@linkplain ModuleNameResolver#resolve(ModuleName) resolved}
-	 *        source {@linkplain File file reference}, or {@code null} if no
-	 *        source file is available.
+	 *        The {@linkplain ModuleNameResolver#resolve(ModuleName,
+	 *        ResolvedModuleName) resolved} source {@linkplain File file
+	 *        reference}, or {@code null} if no source file is available.
 	 */
 	ResolvedModuleName (
 		final ModuleName qualifiedName,

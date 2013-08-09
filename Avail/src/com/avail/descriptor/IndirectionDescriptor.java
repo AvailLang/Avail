@@ -4516,4 +4516,12 @@ extends AbstractDescriptor
 	{
 		return o_Traversed(object).validWriteReactorFunctions();
 	}
+
+	@Override
+	A_Continuation o_ReplacingCaller(
+		final AvailObject object,
+		final A_Continuation newCaller)
+	{
+		return o_Traversed(object).replacingCaller(newCaller);
+	}
 }

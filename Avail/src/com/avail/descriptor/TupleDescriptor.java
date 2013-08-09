@@ -1068,9 +1068,8 @@ extends Descriptor
 		final A_Tuple otherTuple,
 		final boolean canDestroy);
 
-
 	/** The empty tuple. */
-	private static final AvailObject emptyTuple;
+	static final AvailObject emptyTuple;
 
 	static
 	{

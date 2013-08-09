@@ -786,7 +786,7 @@ public abstract class AbstractAvailCompiler
 	 * The special {@linkplain AtomDescriptor atom} used to locate the current
 	 * parsing information in a fiber's globals.
 	 */
-	@InnerAccess final A_Atom clientDataGlobalKey =
+	@InnerAccess static final A_Atom clientDataGlobalKey =
 		AtomDescriptor.clientDataGlobalKey();
 
 	/**
@@ -795,7 +795,7 @@ public abstract class AbstractAvailCompiler
 	 * #clientDataGlobalKey current parsing information} stashed within a
 	 * fiber's globals.
 	 */
-	@InnerAccess final A_Atom compilerScopeMapKey =
+	@InnerAccess static final A_Atom compilerScopeMapKey =
 		AtomDescriptor.compilerScopeMapKey();
 
 	/**
@@ -5202,8 +5202,7 @@ public abstract class AbstractAvailCompiler
 									public void value ()
 									{
 										lastStart.value = afterStatement;
-										greatestGuess = 0;
-										greatExpectations.clear();
+										clearExpectations();
 										parseOutermostStatement(
 											new ParserState(
 												afterStatement.position,
@@ -5249,9 +5248,18 @@ public abstract class AbstractAvailCompiler
 					});
 			}
 		};
-		greatestGuess = 0;
-		greatExpectations.clear();
+		clearExpectations();
 		parseOutermostStatement(afterHeader, parseOutermost.value());
+	}
+
+	/**
+	 * Clear any information about potential problems encountered during
+	 * parsing.
+	 */
+	@InnerAccess void clearExpectations ()
+	{
+		greatestGuess = -1;
+		greatExpectations.clear();
 	}
 
 	/**
@@ -5285,8 +5293,7 @@ public abstract class AbstractAvailCompiler
 	 */
 	public @Nullable ModuleHeader parseModuleHeader ()
 	{
-		greatestGuess = -1;
-		greatExpectations.clear();
+		clearExpectations();
 		if (parseModuleHeader(true) == null)
 		{
 			reportError();
@@ -5316,7 +5323,7 @@ public abstract class AbstractAvailCompiler
 	 *        continuation} is invoked with the terminating {@linkplain
 	 *        Throwable throwable}.
 	 */
-	public void parseModule (
+	public synchronized void parseModule (
 		final Continuation4<ModuleName, Long, Long, Long> reporter,
 		final Continuation1<A_Module> succeed,
 		final Continuation1<Throwable> fail)

@@ -201,7 +201,7 @@ extends Descriptor
 		APPLYING_SEMANTIC_RESTRICTION (_APPLYING_SEMANTIC_RESTRICTION);
 
 		/** The {@linkplain BitField bit field}. */
-		final BitField bitField;
+		final transient BitField bitField;
 
 		/**
 		 * Construct a new {@link GeneralFlag}.

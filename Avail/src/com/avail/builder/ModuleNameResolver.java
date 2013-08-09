@@ -394,7 +394,7 @@ public final class ModuleNameResolver
 	private static final class ModuleNameResolutionResult
 	{
 		/** The module that was successfully resolved, or null if not found. */
-		public final ResolvedModuleName resolvedModule;
+		public final @Nullable ResolvedModuleName resolvedModule;
 
 		/** An exception if the module was not found, or null if it was. */
 		public final UnresolvedDependencyException e;

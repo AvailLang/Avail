@@ -1,5 +1,5 @@
 /**
- * P_133_IntegerIntervalTuple.java
+ * L2ToJavaGenerator.java
  * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -30,64 +30,17 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.interpreter.primitive;
-
-import static com.avail.interpreter.Primitive.Flag.*;
-import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.exceptions.AvailErrorCode;
-import com.avail.interpreter.Interpreter;
-import com.avail.interpreter.Primitive;
+package com.avail.optimizer;
 
 /**
- * <strong>Primitive 133</strong>: Create an integer interval tuple.
+ * The {@code L2ToJavaGenerator} generates a corresponding subclass of {@link
+ * L2JavaTranslation}.
  *
- * @author Leslie Schultz &lt;leslie@availlang.org&gt;
+ * <p>The plan is to directly translate the L2 instructions TODO MvG!!!
+ *
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public final class P_133_IntegerIntervalTuple
-extends Primitive
+public abstract class L2ToJavaGenerator
 {
-	/**
-	 * The sole instance of this primitive class. Accessed through reflection.
-	 */
-	public final static Primitive instance =
-		new P_133_IntegerIntervalTuple().init(3, CanFold, CanInline);
-
-	@Override
-	public Result attempt (
-		final List<AvailObject> args,
-		final Interpreter interpreter,
-		final boolean skipReturnCheck)
-	{
-		assert args.size() == 3;
-
-		final A_Number start = args.get(0);
-		final A_Number end = args.get(1);
-		final A_Number delta = args.get(2);
-
-		if (delta.equals(IntegerDescriptor.zero()))
-		{
-			return interpreter.primitiveFailure(
-				AvailErrorCode.E_INCORRECT_ARGUMENT_TYPE);
-		}
-
-		final A_Tuple success = IntegerIntervalTupleDescriptor.createInterval(
-			start,
-			end,
-			delta);
-
-		return interpreter.primitiveSuccess(success);
-	}
-
-	@Override
-	protected A_Type privateBlockTypeRestriction ()
-	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
-				IntegerRangeTypeDescriptor.integers(),
-				IntegerRangeTypeDescriptor.integers(),
-				IntegerRangeTypeDescriptor.integers()),
-			TupleTypeDescriptor.zeroOrMoreOf(
-				IntegerRangeTypeDescriptor.integers()));
-	}
+	// TODO [MvG] - Write this.
 }

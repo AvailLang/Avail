@@ -128,7 +128,7 @@ public class ParagraphFormatter
 	public String format (final String str)
 	{
 		String input = str;
-		String output = "";
+		final StringBuilder output = new StringBuilder();
 
 		// Replace all line separators with the system standard.
 		final String nwln = System.getProperty("line.separator");
@@ -146,11 +146,11 @@ public class ParagraphFormatter
 			// Get the next paragraph.
 			int newlineIndex = input.indexOf(nwln);
 
-			// If the next "pargraph" is itself a newline, output it skip the
+			// If the next "paragraph" is itself a newline, output it skip the
 			// rest of the string manipulation.
 			if (newlineIndex == 0)
 			{
-				output += nwln;
+				output.append(nwln);
 				input = input.substring(1);
 			}
 			else
@@ -201,7 +201,10 @@ public class ParagraphFormatter
 						paragraph = "";
 					}
 
-					output += margin + indent + currentLine + nwln;
+					output.append(margin);
+					output.append(indent);
+					output.append(currentLine);
+					output.append(nwln);
 
 					// If that was the first line in the paragraph, switch to
 					// subsequent-line indentation.
@@ -213,8 +216,7 @@ public class ParagraphFormatter
 				}
 			}
 		}
-
-		return output;
+		return output.toString();
 	}
 
 	/**
@@ -226,11 +228,11 @@ public class ParagraphFormatter
 	 */
 	private String replaceSeparators(final String input, final String separator)
 	{
-		input.replace("\r\n", separator);
-		input.replace("\r", separator);
-		input.replace("\n", separator);
-
-		return input;
+		String result = input;
+		result = result.replace("\r\n", separator);
+		result = result.replace("\r", separator);
+		result = result.replace("\n", separator);
+		return result;
 	}
 
 	/**
@@ -241,12 +243,12 @@ public class ParagraphFormatter
 	 */
 	private String padding (final int len)
 	{
-		String padding = "";
+		final StringBuilder padding = new StringBuilder(len);
 		for (int i = 0; i < len; i++)
 		{
-			padding += " ";
+			padding.append(' ');
 		}
-		return padding;
+		return padding.toString();
 	}
 
 	/**

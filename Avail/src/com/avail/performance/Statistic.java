@@ -231,7 +231,7 @@ public class Statistic implements Comparable<Statistic>
 	/**
 	 * Reset this statistic as though no samples had ever been recorded.
 	 */
-	public void clear ()
+	public synchronized void clear ()
 	{
 		count = 0;
 		min = Double.POSITIVE_INFINITY;

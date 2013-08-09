@@ -42,6 +42,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
+import com.avail.annotations.Nullable;
 import com.avail.annotations.ThreadSafe;
 import com.avail.interpreter.jvm.ConstantPool.ClassEntry;
 import com.avail.interpreter.jvm.ConstantPool.NameAndTypeKey;
@@ -181,7 +182,20 @@ extends Emitter<ClassModifier>
 	 * The {@linkplain ClassEntry superclass entry} for the target {@linkplain
 	 * Class class}.
 	 */
-	private ClassEntry superEntry;
+	private @Nullable ClassEntry superEntry;
+
+	/**
+	 * Answer the {@linkplain ClassEntry superclass entry} for the target
+	 * {@linkplain Class class}.
+	 *
+	 * @return The constant pool class entry for the target class's superclass.
+	 */
+	public ClassEntry superEntry ()
+	{
+		final ClassEntry theSuper = superEntry;
+		assert theSuper != null;
+		return theSuper;
+	}
 
 	/**
 	 * Set the target {@linkplain Class class}'s superclass.
@@ -346,7 +360,7 @@ extends Emitter<ClassModifier>
 		method.setModifiers(EnumSet.of(MethodModifier.PUBLIC));
 		method.load(method.self());
 		method.invokeSpecial(constantPool.methodref(
-			superEntry.name(), Method.constructorName, "()V"));
+			superEntry().name(), Method.constructorName, "()V"));
 		method.returnToCaller();
 		method.finish();
 		return method;
@@ -436,7 +450,7 @@ extends Emitter<ClassModifier>
 	void writeBodyTo (final DataOutput out) throws IOException
 	{
 		classEntry.writeIndexTo(out);
-		superEntry.writeIndexTo(out);
+		superEntry().writeIndexTo(out);
 		out.writeShort(interfaceEntries.size());
 		for (final ClassEntry interfaceEntry : interfaceEntries)
 		{
@@ -476,10 +490,10 @@ extends Emitter<ClassModifier>
 		final String mods = ClassModifier.toString(modifiers);
 		formatter.format("%s%s", mods, mods.isEmpty() ? "" : " ");
 		formatter.format("%s", name());
-		if (!superEntry.internalName().equals(
+		if (!superEntry().internalName().equals(
 			JavaDescriptors.asInternalName("java.lang.Object")))
 		{
-			formatter.format("%n\textends %s", superEntry.name());
+			formatter.format("%n\textends %s", superEntry().name());
 		}
 		if (!interfaceEntries.isEmpty())
 		{

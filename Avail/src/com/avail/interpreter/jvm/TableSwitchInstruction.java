@@ -65,11 +65,11 @@ extends JavaInstruction
 	 */
 	private int padBytes ()
 	{
-		if (hasValidAddress())
+		if (!hasValidAddress())
 		{
 			return 0;
 		}
-		return (int) (address() & 3);
+		return (int) (3 & -address());
 	}
 
 	@Override
@@ -115,6 +115,9 @@ extends JavaInstruction
 	{
 		switch (padBytes())
 		{
+			default:
+				assert false : "padBytes() should be between 0 and 3";
+				break;
 			case 3:
 				out.writeByte(0);
 				// $FALL-THROUGH$

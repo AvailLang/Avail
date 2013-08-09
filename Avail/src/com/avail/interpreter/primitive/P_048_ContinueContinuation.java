@@ -1,6 +1,6 @@
 /**
- * P_041_TraceVariableWrites.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * P_048_ContinueContinuation.java
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,32 +29,27 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-
 package com.avail.interpreter.primitive;
 
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
 import com.avail.descriptor.*;
-import com.avail.descriptor.FiberDescriptor.TraceFlag;
 import com.avail.interpreter.*;
 
 /**
- * <strong>Primitive 41</strong>: Enable {@linkplain
- * TraceFlag#TRACE_VARIABLE_WRITES variable write tracing} for the {@linkplain
- * FiberDescriptor#current() current fiber}.
- *
- * @author Todd L Smith &lt;todd@availlang.org&gt;
+ * <strong>Primitive 48:</strong> Make the current {@linkplain FiberDescriptor
+ * fiber} continue running the specified {@linkplain ContinuationDescriptor
+ * continuation}, rather than what it's doing (i.e., calling this primitive).
  */
-public final class P_041_TraceVariableWrites
+public class P_048_ContinueContinuation
 extends Primitive
 {
 	/**
-	 * The sole instance of this primitive class. Accessed through reflection.
+	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_041_TraceVariableWrites().init(0, HasSideEffect);
+		new P_048_ContinueContinuation().init(
+			1, SwitchesContinuation, CannotFail);
 
 	@Override
 	public Result attempt (
@@ -62,28 +57,19 @@ extends Primitive
 		final Interpreter interpreter,
 		final boolean skipReturnCheck)
 	{
-		assert args.size() == 0;
-		if (interpreter.traceVariableReadsBeforeWrites()
-			|| interpreter.traceVariableWrites())
-		{
-			return interpreter.primitiveFailure(E_ILLEGAL_TRACE_MODE);
-		}
-		interpreter.setTraceVariableWrites(true);
-		return interpreter.primitiveSuccess(NilDescriptor.nil());
+		assert args.size() == 1;
+		final A_Continuation newContinuation = args.get(0);
+
+		interpreter.prepareToResumeContinuation(newContinuation);
+		return Result.CONTINUATION_CHANGED;
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
-			TupleDescriptor.empty(),
-			TOP.o());
-	}
-
-	@Override
-	protected A_Type privateFailureVariableType ()
-	{
-		return AbstractEnumerationTypeDescriptor.withInstance(
-			E_ILLEGAL_TRACE_MODE.numericCode());
+			TupleDescriptor.from(
+				ContinuationTypeDescriptor.mostGeneralType()),
+			BottomTypeDescriptor.bottom());
 	}
 }

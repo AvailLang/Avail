@@ -64,7 +64,7 @@ final class ExceptionTable
 	 *
 	 * @author Todd L Smith &lt;todd@availlang.org&gt;
 	 */
-	private final class GuardedZone
+	private static final class GuardedZone
 	{
 		/** The inclusive start {@linkplain Label label}. */
 		@InnerAccess final Label startLabel;

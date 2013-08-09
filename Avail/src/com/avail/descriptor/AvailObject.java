@@ -6882,4 +6882,10 @@ implements
 	{
 		return descriptor.o_ValidWriteReactorFunctions(this);
 	}
+
+	@Override
+	public A_Continuation replacingCaller (final A_Continuation newCaller)
+	{
+		return descriptor.o_ReplacingCaller(this, newCaller);
+	}
 }

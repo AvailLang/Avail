@@ -1,5 +1,5 @@
 /**
- * P_133_IntegerIntervalTuple.java
+ * L2JavaTranslation.java
  * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -30,64 +30,45 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.interpreter.primitive;
+package com.avail.optimizer;
 
-import static com.avail.interpreter.Primitive.Flag.*;
-import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.exceptions.AvailErrorCode;
-import com.avail.interpreter.Interpreter;
-import com.avail.interpreter.Primitive;
+import com.avail.descriptor.A_Continuation;
+import com.avail.descriptor.AvailObject;
 
 /**
- * <strong>Primitive 133</strong>: Create an integer interval tuple.
+ * This class represents a translation of a level two continuation into
+ * equivalent Java code.  Its execution should be the equivalent of interpreting
+ * the level two code, which is itself an optimized version of the corresponding
+ * level one raw function.
  *
- * @author Leslie Schultz &lt;leslie@availlang.org&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public final class P_133_IntegerIntervalTuple
-extends Primitive
+public abstract class L2JavaTranslation
 {
 	/**
-	 * The sole instance of this primitive class. Accessed through reflection.
+	 * Start running the Java code produced from the level two code.  If all
+	 * proceeds optimally, the result of the call will be returned.  If anything
+	 * prevents this from happening (unusual continuation manipulation, soft
+	 * stack limit being reached, interrupt requested), then a {@link
+	 * ReifyStackThrowable} will be thrown, accumulating a list of level one
+	 * continuations that represent, in aggregate, the current fiber's reified
+	 * state.
+	 *
+	 * If the chunk behind this Java translation is still valid upon attempting
+	 * to {@link #resume(A_Continuation)} a continuation, the continuation will
+	 * indicate the level two instruction position at which to continue
+	 * executing.  Typically a switch statement with fall-throughs can be used
+	 * to eliminate redundant portions of the code due to the effective
+	 * plurality of entry points.
+	 *
+	 * @param args
+	 * @return
+	 * @throws ReifyStackThrowable
 	 */
-	public final static Primitive instance =
-		new P_133_IntegerIntervalTuple().init(3, CanFold, CanInline);
+	abstract AvailObject start (AvailObject... args)
+	throws ReifyStackThrowable;
 
-	@Override
-	public Result attempt (
-		final List<AvailObject> args,
-		final Interpreter interpreter,
-		final boolean skipReturnCheck)
-	{
-		assert args.size() == 3;
+	abstract AvailObject resume (A_Continuation thisContinuation)
+	throws ReifyStackThrowable;
 
-		final A_Number start = args.get(0);
-		final A_Number end = args.get(1);
-		final A_Number delta = args.get(2);
-
-		if (delta.equals(IntegerDescriptor.zero()))
-		{
-			return interpreter.primitiveFailure(
-				AvailErrorCode.E_INCORRECT_ARGUMENT_TYPE);
-		}
-
-		final A_Tuple success = IntegerIntervalTupleDescriptor.createInterval(
-			start,
-			end,
-			delta);
-
-		return interpreter.primitiveSuccess(success);
-	}
-
-	@Override
-	protected A_Type privateBlockTypeRestriction ()
-	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
-				IntegerRangeTypeDescriptor.integers(),
-				IntegerRangeTypeDescriptor.integers(),
-				IntegerRangeTypeDescriptor.integers()),
-			TupleTypeDescriptor.zeroOrMoreOf(
-				IntegerRangeTypeDescriptor.integers()));
-	}
 }

@@ -34,14 +34,7 @@ System Module "Definers"
 Versions
 	"dev"
 Uses
-	"Avail" =
-	(
-/*		"_+_" → "_+_(Avail)",
-		"_-_",
-		"_×_",
-		"_÷_",
-*/		…
-	),
+	"Avail",
 	"Core" =
 	(
 		"_+_" → "_+_(Core)",

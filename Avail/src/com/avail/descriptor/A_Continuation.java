@@ -138,4 +138,10 @@ extends A_BasicObject
 	 * @return
 	 */
 	boolean skipReturnFlag ();
+
+	/**
+	 * @param current
+	 * @return
+	 */
+	A_Continuation replacingCaller (A_Continuation newCaller);
 }

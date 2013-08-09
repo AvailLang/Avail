@@ -232,7 +232,7 @@ extends Emitter<MethodModifier>
 	 * The self reference, {@code this}, available only for non-{@code static}
 	 * {@linkplain Method methods}.
 	 */
-	private LocalVariable self;
+	private @Nullable LocalVariable self;
 
 	@Override
 	public void setModifiers (final EnumSet<MethodModifier> mods)
@@ -1843,11 +1843,11 @@ extends Emitter<MethodModifier>
 			{
 				assert a1 != null;
 				assert a2 != null;
-				if (a1.equals(CodeAttribute.name))
+				if (a1.name().equals(CodeAttribute.name))
 				{
 					return -1;
 				}
-				if (a2.equals(CodeAttribute.name))
+				if (a2.name().equals(CodeAttribute.name))
 				{
 					return 1;
 				}

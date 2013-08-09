@@ -459,7 +459,7 @@ public class Compiler
 			{
 				final long stopTimeMillis = System.currentTimeMillis();
 				final long timeElapsed = stopTimeMillis - startTimeMillis;
-				System.out.printf("Time elapsed: %d.%03d s\n",
+				System.out.printf("Time elapsed: %d.%03d s%n",
 					timeElapsed / 1000, timeElapsed % 1000);
 			}
 		}
@@ -482,7 +482,7 @@ public class Compiler
 			{
 				final long stopTimeMillis = System.currentTimeMillis();
 				final long timeElapsed = stopTimeMillis - startTimeMillis;
-				System.out.printf("\nTime elapsed: %d.%03ds\n",
+				System.out.printf("%nTime elapsed: %d.%03ds%n",
 					timeElapsed / 1000, timeElapsed % 1000);
 			}
 

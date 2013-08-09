@@ -1352,13 +1352,15 @@ public final class BootstrapGenerator
 			"src/%s/%s",
 			generatedPackageName.replace('.', '/'),
 			locale.getLanguage()));
-		languagePath.mkdir();
+		@SuppressWarnings("unused")
+		final boolean ignored1 = languagePath.mkdir();
 		final File packageName = new File(String.format(
 			"src/%s/%s/%s.avail",
 			generatedPackageName.replace('.', '/'),
 			locale.getLanguage(),
 			preamble.getString(representativeModuleName.name())));
-		packageName.mkdir();
+		@SuppressWarnings("unused")
+		final boolean ignored2 = packageName.mkdir();
 		generateOriginModule(versions);
 		generateSpecialObjectsModule(versions);
 		generatePrimitiveModule(null, versions);
