@@ -42,14 +42,14 @@ Uses
 	"Stacks Scanner"
 
 Names
-	"Obtain Stacks comments from_"
+	"Stacks lex of_"
 
 Body
 "Avail file" is a new field atom;
 "error occurs after line number" is a new field atom;
 
 /* Special characters that could result in token delimiter */
-tokenDelimiter ::= {¢@,¢" ",¢"\t",¢"\"",¢"\n",¢{,¢/,¢*,¢\};
+tokenDelimiter ::= {¢@,¢" ",¢"\t",¢"\"",¢"\n",¢{,¢/,¢*,¢\,¢(,¢,};
 
 Private forward method "_is at new comment" is [stacks scanner]→boolean;
 
@@ -579,7 +579,7 @@ Private method "Process at sign in comment from_" is
  *	a stacks scanner
  * @returns "⊤"
  *      none
- * @author "authorName"
+ * @author "Richard Arriaga"
  */
 Private method "Process asterick in comment from_" is
 [
@@ -605,13 +605,52 @@ Private method "Process asterick in comment from_" is
 	];
 ]:⊤;
 
+/**
+ * Process a comma in the module header
+ *
+ * @method "Process comma in header from_"
+ * @categories "Stacks Scanner"
+ * @param "scanner" "stacks scanner" 
+ *	a stacks scanner
+ * @returns "⊤"
+ *      none
+ * @author "Richard Arriaga"
+ */
+Private method "Process comma in header from_" is
+[
+	scanner : stacks scanner
+ |
+	If scanner's new line then
+	[
+		Buffer scanner's current token;
+		Increment scanner's comment buffer index;
+	] else
+	[
+		Increment scanner's comment buffer index;
+		throwAway ::= read from scanner's comment buffer while
+			[scanner's comment buffer is not exhausted ∧
+			 [scanner's current buffer character is whitespace ∧
+				[scanner's current buffer character ≠ ¢"\n"]]];
+		If scanner's current buffer character ≠ ¢"\n" then
+		[
+		 	scanner's character buffer := scanner's character buffer ++ ",";
+		 	If scanner's previous buffer character is whitespace then
+		 	[Buffer scanner's current token;];
+		];
+	];
+]:⊤;
+
 Private forward method "Process left curly brace in comment from_" is
 	[stacks scanner]→⊤;
+
+Private forward method "Process left parenthesis in header from_" is
+[stacks scanner]→⊤;
 
 /* Construct the function dispatch table for functions that handle characters
  * in a comment.*/
 
 inCommentDispatchTable : {character→[stacks scanner]→⊤|} := {};
+inHeaderDispatchTable : {character→[stacks scanner]→⊤|} := {};
 
 For each tokenDelimiter do
 [
@@ -628,21 +667,32 @@ For each tokenDelimiter do
 	]
 	else if [c = ¢"\n"] then
 	[
-		inCommentDispatchTable := inCommentDispatchTable + 
-			c→ [
-					scanner : stacks scanner
-				 |
-					Process newline in comment from scanner; /*Done*/
-				];
+	 	commentDispatch ::= 
+	 	[
+	 	 	scanner : stacks scanner
+		 |
+			Process newline in comment from scanner; /*Done*/
+		];
+	 	/* For a header, treat a new line as white space */
+	 	headerDispatch ::=
+		[
+		 	scanner : stacks scanner
+		 |
+		 	Process white space in comment from scanner; /*Done*/
+		];
+		inCommentDispatchTable := inCommentDispatchTable + c→ commentDispatch;
+	 	inHeaderDispatchTable := inHeaderDispatchTable + c→ headerDispatch;
 	]
 	else if [c = ¢"\""] then
 	[
-	 	inCommentDispatchTable := inCommentDispatchTable + 
-	 		c→ [
-			 	 	scanner : stacks scanner
-			 	 |
-			 	 	Process double quote in comment from scanner; /*Done*/
-			 	];
+	 	dispatch ::=
+		[
+	 	 	scanner : stacks scanner
+	 	 |
+	 	 	Process double quote in comment from scanner; /*Done*/
+	 	];
+		inCommentDispatchTable := inCommentDispatchTable + c→ dispatch;
+	 	inHeaderDispatchTable := inHeaderDispatchTable + c→ dispatch;
 	]
 	else if [c = ¢{] then
 	[
@@ -653,14 +703,35 @@ For each tokenDelimiter do
 			 	 	Process left curly brace in comment from scanner; /*Done*/
 			 	];
 	]
-	else if [c is whitespace] then
+	else if [c = ¢(] then
 	[
-	 	inCommentDispatchTable := inCommentDispatchTable  + 
+	 	inHeaderDispatchTable := inHeaderDispatchTable  + 
 	 		c→ [
 			 	 	scanner : stacks scanner
 			 	 |
-			 	 	Process white space in comment from scanner; /*Done*/
+			 	 	Process left parenthesis in header from scanner; /*Done*/
 			 	];
+	]
+	else if [c is whitespace] then
+	[
+	 	dispatch ::= 
+	 	[
+	 	 	scanner : stacks scanner
+	 	 |
+	 	 	Process white space in comment from scanner; /*Done*/
+	 	];
+		inCommentDispatchTable := inCommentDispatchTable + c→ dispatch;
+		inHeaderDispatchTable := inHeaderDispatchTable + c→ dispatch;
+	]
+	else if [c = ¢,] then
+	[
+	 	dispatch ::= 
+	 	[
+	 	 	scanner : stacks scanner
+	 	 |
+	 	 	Process comma in header from scanner; /*Done*/
+	 	];
+		inHeaderDispatchTable := inHeaderDispatchTable + c→ dispatch;
 	]
 	else if [c = ¢@] then
 	[
@@ -776,6 +847,90 @@ Private method "Process left curly brace in comment from_" is
 ]:⊤;
 
 /**
+ * Tokenize all characters in header region in parenthesis region
+ *
+ * @method "Process left parenthesis in header from_"
+ * @categories "Stacks Scanner"
+ * @param "scanner" "stacks scanner" 
+ *	a stacks scanner
+ * @returns "⊤"
+ *      none
+ * @author "Richard Arriaga"
+ */
+Private method "Process left parenthesis in header from_" is
+[
+	scanner : stacks scanner
+ |
+	/*Store current comment buffer index to be reset to if not start of special 
+	 * bracketed region */
+ 	parenthesisCounter : whole number := 1;
+
+	startIndex : natural number := scanner's comment buffer index;
+	startColumn : natural number := scanner's column number;
+	Increment scanner's comment buffer index;
+	throwAway ::= read from scanner's comment buffer while
+		[ scanner's current buffer character is whitespace];
+	Buffer scanner's current token;
+	Toggle scanner's special region flag;
+	Toggle scanner's tokenize;
+	startIndex := scanner's comment buffer index;
+	region ::= read from scanner's comment buffer while
+		[
+Print: format "“①”\n" with scanner's current buffer character;
+		 	closeCondition ::= scanner's current buffer character ≠ ¢);
+		 	openCondition ::= scanner's current buffer character = ¢(;
+		 	If openCondition then [↑parenthesisCounter++;];
+		 	If ¬closeCondition then [↑parenthesisCounter--;];
+Print: format "parenthesisCounter=“①”\n" with parenthesisCounter;
+		 	parenthesisCounter ≠ 0
+		]; 
+Print: format "region=“①”\n" with region;
+	endIndex : natural number := scanner's comment buffer index;
+	newlineIndices : <natural number…|> := all indices of region where 
+		[c : character | c = ¢"\n"];
+	columnPosition : natural number := if |newlineIndices| > 0 then 
+	[
+		indices : <natural number…|1..> := cast newlineIndices into 
+			[t : <natural number…|1..> | t];
+		cast |region[indices' last + 1..]| into
+			[n : natural number | n]
+	] else [scanner's column number] + 1; 
+	scanner's character buffer := <>;
+	scanner's comment buffer index := startIndex;
+	While
+	[
+		scanner's comment buffer index < endIndex
+	]
+	do
+	[
+		c ::= scanner's current buffer character;
+		f ::= inHeaderDispatchTable[c] else
+			[
+				[
+					s : stacks scanner
+				 |
+					scanner's character buffer := 
+						scanner's character buffer ++ <c>;
+					Increment scanner's comment buffer index;
+				]
+			];
+		f(scanner);
+	];
+	/*Reached index pointing at close of region, }.  Advance index beyond
+	 * this point in order to not tokenize it*/
+	Increment scanner's comment buffer index;
+	Buffer scanner's current token;
+	scanner's character buffer := 
+		concatenate scanner's subtokens buffer separated by " ";
+	Toggle scanner's tokenize;
+	scanner's token start := startColumn;
+	Buffer scanner's current bracketed token;
+	Toggle scanner's special region flag;
+	scanner's line number := scanner's line number + |newlineIndices|;
+	scanner's column number := columnPosition;
+]:⊤;
+
+/**
  * Tokenize all elements of the stacks scanner comment
  *
  * @method "Process the_'s⁇comment buffer"
@@ -798,6 +953,42 @@ Private method "Process the_'s⁇comment buffer" is
 	[
 		c ::= scanner's current buffer character;
 		f ::= inCommentDispatchTable[c] else
+			[
+				[
+					s : stacks scanner
+				 |
+					scanner's character buffer := 
+						scanner's character buffer ++ <c>;
+					Increment scanner's comment buffer index;
+				]
+			];
+		f(scanner);
+	];
+]:⊤;
+
+/**
+ * Tokenize all elements of the stacks scanner comment
+ *
+ * @method "Process the_'s⁇comment buffer for headers"
+ * @categories "Stacks Scanner"
+ * @param "scanner" "stacks scanner" 
+ *		a stacks scanner
+ * @returns "⊤"
+ *		none
+ * @author "Richard Arriaga"
+ */
+Private method "Process the_'s⁇comment buffer for headers" is
+[
+	scanner : stacks scanner
+|
+	Until
+	[
+		scanner's comment buffer is exhausted
+	]
+	do
+	[
+		c ::= scanner's current buffer character;
+		f ::= inHeaderDispatchTable[c] else
 			[
 				[
 					s : stacks scanner
@@ -872,6 +1063,7 @@ Private method "comment first pass from_using_in level_" is
 	tree : patricia trie,
 	regionCount : ↑whole number
  |
+ 	inModuleHeader : boolean := false;
 	tempCommentBuffer : string := "";
 	buffer : string := "";
 	cursor : patricia trie := tree;
@@ -938,7 +1130,7 @@ Private method "comment first pass from_using_in level_" is
 				];
 				regionCount++;
 			]
-			else 
+			else
 			[
 				regionCount--;
 				If ↓regionCount > 0 ∧ [scanner's special comment = true] then 
@@ -957,25 +1149,6 @@ Private method "comment first pass from_using_in level_" is
 	];
 	↓regionCount
 ]:whole number;
-
-/**
- * Takes the raw comment and returns a tuple of scanner token tuples; the
- * special regions of the comment
- *
- * @method "_'s⁇special token regions"
- * @categories "Stacks"
- * @param "comment" "raw comment" 
- *		a raw comment
- * @returnType "<<stacks token…|1..>…|1..>"
- *		the raw comment broken up into a tuple of scanner token tuples
- * @author "Richard Arriaga"
- *
-Private method "_'s⁇special token regions" is
-[
- 	comment : raw comment
- |
- 	
-]:<<stacks token…|1..>…|1..>;*/
 
 /**
  * A method that accepts a stacks scanner and stores a completely tokenized 
@@ -1039,10 +1212,10 @@ Private method "Buffer_'s⁇current comment" is
 		<<specialRegionStarts' last,tokenCount>>;
 		
 	rawComment : raw comment := a raw comment with
-		comment tokens := scanner's token buffer,
-		erroneous comment := scanner in erroneous comment,
-		special token regions := specialRegionPairs,
-		comment type := 
+		comment tokens ::= scanner's token buffer,
+		erroneous comment ::= scanner in erroneous comment,
+		special token regions ::= specialRegionPairs,
+		comment type ::= 
 			if scanner's token buffer[specialRegionStarts[1]]'s type ⊆
 				@method then [1] else [2];
 	scanner's comments := (scanner's comments ++ <rawComment>);
@@ -1061,7 +1234,7 @@ Private method "Buffer_'s⁇current comment" is
  *      none
  * @author "Richard Arriaga"
  */
-Public method "Obtain Stacks comments from_" is
+Private method "Obtain Stacks comments from_" is
 [
 	scanner : stacks scanner
  |
@@ -1069,7 +1242,7 @@ Public method "Obtain Stacks comments from_" is
 	/* Add open and close comment delimiters to patricia trie */
 	Add "/**" to tree;  /* open stacks comment*/
 	Add "/*" to tree;  /* open plain comment*/
-	Add "*/" to tree;  /* open stacks comment*/
+	Add "*/" to tree;  /* close comment*/
 
 	Until [scanner's source is exhausted]
 	do
@@ -1096,4 +1269,237 @@ Public method "Obtain Stacks comments from_" is
 			Buffer scanner's current comment;
 		];
 	];
+]:⊤;
+
+/**
+ * Process first pass of module header.
+ *
+ * @method "Header first pass from_using_"
+ * @categories "category"
+ * @param "scanner" "stacks scanner" 
+ *      a stacks scanner
+ * @param "tree" "patricia trie"
+ * 		the patricia trie that identifies the delimiters.
+ * @returns "⊤"
+ *      none
+ * @author "Richard Arriaga"
+ */
+Private method "Header first pass from_using_" is
+[
+	scanner : stacks scanner,
+	tree : patricia trie
+|
+	inCommentCount : integer := 0;
+	inModuleHeader : boolean := false;
+	tempCommentBuffer : string := "";
+	tempHeaderBuffer : string := "";
+	buffer : string := "";
+	cursor : patricia trie := tree;
+	Until [scanner's source is exhausted ∨ 
+	       	[scanner's module header read = true]]
+	do
+	[
+		value : character := scanner's current element;
+		next ::= cursor's next steps;
+		If value = ¢"\"" ∧ [scanner's previous element ≠ ¢\ ∧ 
+			[inCommentCount = 0]] then
+		[
+			Next character from scanner;
+			tempHeaderBuffer := tempHeaderBuffer ++ <¢"\""> ++
+				read from scanner while 
+				[
+					scanner's current element ≠ ¢"\"" ∨
+						[scanner's previous element = ¢\ ∧
+						 		[scanner's current element = ¢"\""]]
+				];
+			If scanner's source is not exhausted ∧ 
+				[scanner's current element = ¢"\""] then
+			[
+			 	tempHeaderBuffer := tempHeaderBuffer ++ <¢"\"">;
+			];
+			size : natural number := cast |tempHeaderBuffer| into 
+				[n : natural number | n];
+			If tempHeaderBuffer[size] ≠ ¢"\"" then
+			[
+			 	e::= an unescaped-unterminated-double-quote exception
+					with 
+						error message ::= format "In module, ‘①’, error occurs in \
+								\|comment starting at line number “②”\n" with
+						scanner's module name, scanner's line number;
+				Raise e
+			];
+		]
+		else if [value ∉ next] then
+		[
+			/* We have not hit a delimiter, add collected characters
+			 * to the region and reset buffer and cursor.            */
+			If inModuleHeader = true then
+			[
+				tempHeaderBuffer := tempHeaderBuffer ++ buffer ++ <value>;
+			];
+			buffer := "";
+			cursor := tree;
+		]
+		else
+		[
+		 	/* On track to buidling a delimiter; proceed down tree */
+			cursor := next[value];
+			buffer := buffer ++ <value>;
+		];
+		If cursor is at terminus then
+		[
+		 	/*Check to see if terminating region or opening nested
+		 	 * region. Increment region count appropriately.  */
+			If buffer = "Module" then
+			[
+			 	inModuleHeader := true;
+				tempHeaderBuffer := tempHeaderBuffer ++ buffer;
+				buffer := "";
+			]
+			else if [buffer ∈ {"/**","/*"}] then
+			[
+			 	inCommentCount := inCommentCount + 1;
+				buffer := "";
+			]
+			else if [buffer = "*/" ∧ [inCommentCount > 0]] then
+			[
+				inCommentCount := inCommentCount - 1;
+				buffer := "";
+			]
+			else	
+			[	
+			 	If inModuleHeader = true then
+			 	[
+			 		inModuleHeader := false;
+			 		scanner's module header read := true;
+			 		scanner's comment buffer := scanner's comment buffer ++ 
+			 			tempHeaderBuffer;
+			 	];
+			];
+		];
+		Next character from scanner;
+	];
+]:⊤;
+
+/**
+* A method that accepts a stacks scanner and stores a completely tokenized 
+* comment into its comment buffer.
+*
+* @method "Buffer_'s⁇header"
+* @categories "Stacks"
+* @param "scanner" "stacks scanner" 
+*		a stacks lexical scanner
+* @returns "⊤"
+*		none
+* @author "Richard Arriaga"
+*/
+Private method "Buffer_'s⁇header" is
+[
+	scanner : stacks scanner
+|
+	tokenCount ::= cast |scanner's token buffer| into [n : natural number | n];
+
+	specialRegionStarts : <natural number…|1..> := cast
+		all indices of scanner's token buffer where
+		[
+		 	t : scanner token
+		 |
+		 	t's type ⊆ special stacks token
+		 ] into [t : <natural number…|1..> | t];
+	specialRegionEnds :<natural number…|> := 
+		if specialRegionStarts[1] = 1 then 
+		[
+		 	map specialRegionStarts[2..|specialRegionStarts|] through
+		 	[
+		 	 	n : natural number
+		 	 |
+		 	 	cast n - 1 into [i : natural number | i]
+		 	]
+		] 
+		else
+		[
+		 	map specialRegionStarts through
+		 	[
+		 	 	n : natural number
+		 	 |
+		 	 	cast n - 1 into [i : natural number | i]
+		 	]
+		];
+	
+	If specialRegionStarts[1] ≠ 1 then 
+	[
+	 	specialRegionStarts := <1> ++ specialRegionStarts;
+	];
+	
+	specialRegionPairs : <<natural number…|2>…|> := <>;
+	
+	From 1 to |specialRegionEnds| do
+	[
+	 	i : natural number
+	 |
+	 	specialRegionPairs := specialRegionPairs ++ 
+	 		<<specialRegionStarts[i],specialRegionEnds[i]>>;
+	];
+	specialRegionPairs := specialRegionPairs ++
+		<<specialRegionStarts' last,tokenCount>>;
+		
+	scanner's module header := a raw header with
+		header tokens ::= scanner's token buffer,
+		special token regions ::= specialRegionPairs;
+	Reset scanner's comment processing structure;
+Print: format "scanner's module header=‘①’\n\n" with 
+	concatenate scanner's module header's header tokens separated by "\n";
+Print: format "|scanner's module header's header tokens|=“①”\n\n" with |scanner's module header's header tokens|;
+	Print: format "scanner's module header's header tokens=\n“①”\n\n" with scanner's module header's header tokens;
+]:⊤;
+
+/**
+* Obtain the module header from a scanner then process them into tokenized 
+* regions.
+*
+* @method "Obtain Stacks header from_"
+* @categories "category"
+* @param "scanner" "stacks scanner" 
+*      a stacks scanner
+* @returns "⊤"
+*      none
+* @author "Richard Arriaga"
+*/
+Private method "Obtain Stacks header from_" is
+[
+	scanner : stacks scanner
+|
+	tree : patricia trie := a patricia trie;
+	/* Add delimiters to patricia trie */
+	Add "Module" to tree;  /* begin stacks header*/
+	Add "Body" to tree;  /* end stacks header*/
+	Add "/**" to tree;  /* open stacks comment*/
+	Add "/*" to tree;  /* open plain comment*/
+	Add "*/" to tree;  /* open stacks comment*/
+
+	Header first pass from scanner using tree;
+
+	/*Transform comment buffer into a tokenized comment tuple*/
+	Process the scanner's comment buffer for headers;
+	Buffer scanner's header;
+]:⊤;
+	
+/**
+ * Obtain all Stacks comments from a scanner then process them into tokenized 
+ * regions.
+ *
+ * @method "Stacks lex of_"
+ * @categories "category"
+ * @param "scanner" "stacks scanner" 
+ *      a stacks scanner
+ * @returns "⊤"
+ *      none
+ * @author "Richard Arriaga"
+ */
+Public method "Stacks lex of_" is
+[
+	scanner : stacks scanner
+ |
+ 	Obtain Stacks header from scanner;
+	Obtain Stacks comments from scanner;
 ]:⊤;

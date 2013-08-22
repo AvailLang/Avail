@@ -515,16 +515,13 @@ public enum AvailErrorCode
 	 */
 	E_ILLEGAL_TRACE_MODE (77),
 
-	/** An unassigned variable was read. */
-	E_UNASSIGNED_VARIABLE_READ (78),
+//	E_??? (78)
 
 	/**
 	 * The result of a {@linkplain MethodDescriptor method} send disagreed with
 	 * the expected {@linkplain TypeDescriptor type}.
 	 */
 	E_RESULT_DISAGREED_WITH_EXPECTED_TYPE (79),
-
-//	E_??? (79)
 
 	/**
 	 * The continuation whose primitive failure variable is set to this value is

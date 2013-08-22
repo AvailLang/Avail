@@ -61,31 +61,27 @@ Names
 	"bracketed stacks token",
 	"Buffer_'s⁇current bracketed token",
 	"Buffer_'s⁇current«quoted»?token",
-	"character buffer",
-	"comment buffer",
-	"comment buffer index",
 	"comment tokens",
 	"comment type",
-	"comments",
 	"concatenate_separated by_",
 	"erroneous comment",
 	"erroneous stacks token",
 	"generic stacks token",
+	"header tokens",
 	"Increment_'s⁇buffer index",
 	"Increment_'s⁇comment buffer index",
 	"«Increment|Decrement»!_'s⁇open comment count",
 	"open comment count",
 	"quoted stacks token",
 	"raw comment",
+	"raw header",
 	"read from_'s⁇comment buffer while_",
 	"Reset_'s⁇comment processing structure",
-	"special flag",
 	"special region stacks token",
 	"stacks scanner",
 	"special stacks token",
 	"special token regions",
 	"stacks token",
-	"subtokens buffer",
 	"Toggle_'s⁇new line",
 	"Toggle_'s⁇special region flag",
 	"Toggle_'s⁇special comment",
@@ -109,6 +105,11 @@ Names
 	"_'s⁇erroneous comment",
 	"_'s⁇erroneous comment:=_",
 	"_'s⁇error flag",
+	"_'s⁇header tokens",
+	"_'s⁇module header",
+	"_'s⁇module header:=_",
+	"_'s⁇module header read",
+	"_'s⁇module header read:=_",
 	"_'s⁇module name",
 	"_'s⁇new line",
 	"_'s⁇open comment count",
@@ -135,6 +136,9 @@ Body
 "error flag" is a new field atom;
 "erroneous comment" is a new field atom;
 "erroneous comment flag" is a new field atom;
+"header tokens" is a new field atom;
+"module header" is a new field atom;
+"module header read" is a new field atom;
 "module name" is a new field atom;
 "new line" is a new field atom;
 "open comment count" is a new field atom;
@@ -282,7 +286,8 @@ Private method "_is a stacks token" is
 
 stacksTokenTypeNames::= {"@field","@type","@supertype","@category","@param",
 	"@raises","@restricts","@returns","@forbids","@public","@method","@see",
-	"@author","@link","@code","@global","@general"};
+	"@author","@link","@code","@global","@general","Module","Versions",
+	"Extends","Uses","Names"};
 	
 For each stacksTokenTypeNames do
 [
@@ -348,11 +353,32 @@ Public method "concatenate_separated by_" is
  * @author Richard Arriaga
  */
 Public class "raw comment" extends object
-	with mutable fields
+	with fields
 		public comment tokens : <stacks token…|>,
 		public erroneous comment : boolean,
 		public special token regions : <<natural number…|2>…|>,
 		public comment type : [1..2];
+
+/**
+ * A container for comments post lexing, pre-parsing.  
+ * 
+ * @type "raw comment"
+ * @supertype {@type "object" object}
+ * @category Stacks
+ * @field "comment tokens" "<stacks token…|>"
+ *  a tuple of stacks tokens that comprise the text of the comment
+ * @field "erroneous comment" "boolean"
+ *  does the comment contain an error
+ * @field "special token regions" "<<stacks token…|1..>…|1..>"
+ *  start/end of special token text
+ * @field "comment type" "[1..2]"
+ * 	if 1 then this is a method comment, if 2 then is a class comment.
+ * @author Richard Arriaga
+ */
+Public class "raw header" extends object
+	with fields
+		public header tokens : <stacks token…|>,
+		special token regions : <<natural number…|2>…|>;
 
 /**
  * A class that defines a Stacks lexical scanner.  This is a concrete class.
@@ -390,12 +416,14 @@ Public class "stacks scanner" extends Avail scanner
 	with fields
 		module name : nonempty string
 	with mutable fields
-		public comments : <raw comment…|>,
-		public subtokens buffer : <stacks token…|>,
+		comments : <raw comment…|>,
+		module header : raw header,
+		module header read : boolean, 
+		subtokens buffer : <stacks token…|>,
 		erroneous comment flag : boolean,
-		public comment buffer : <character…|>,
-		public character buffer : <character…|>,
-		public referable comment buffer index : natural number,
+		comment buffer : <character…|>,
+		character buffer : <character…|>,
+		referable comment buffer index : natural number,
 		referable open comment count : whole number,
 		new line : boolean,
 		special comment : boolean,
@@ -421,6 +449,7 @@ Public method "a stacks scanner with_" is
 		fileName using a UTF-8 codec;
 	a stacks scanner with
 		source ::= decoded,
+		module header read := false,
 		module name ::= fileName's name,
 		token buffer := <>,
 		line number := 1,
@@ -1014,7 +1043,7 @@ Public method "Buffer_'s⁇current«quoted»?token" is
  * A method that accepts a stacks scanner and tokenizes its character buffer if
  * the buffer does not meet the do not tokenize criteria
  *
- * @method "Buffer_'s⁇ current«quoted»?token"
+ * @method "Buffer_'s⁇current bracketed token"
  * @categories "Stacks"
  * @param "scanner" "stacks scanner" 
  *		a stacks lexical scanner

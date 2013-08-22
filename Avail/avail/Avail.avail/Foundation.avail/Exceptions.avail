@@ -1001,8 +1001,6 @@ System exception "cannot-create-continuation-for-infallible-primitive-function" 
 	extends invocation exception;
 System exception "illegal-trace-mode" (77)
 	extends trace exception;
-System exception "unassigned-variable-read" (78)
-	extends element-access exception;
 System exception "result-disagreed-with-expected-type" (79)
 	extends definition exception;
 System exception "handler-sentinel" (80)
@@ -1261,11 +1259,11 @@ Private method "unassigned variable read function:=_" is
 	Primitive 75;
 ] : ⊤;
 
-/* Raise an unassigned-variable-read exception whenever an unassigned variable
- * is read.
+/* Raise a cannot-read-unassigned-variable exception whenever an unassigned
+ * variable is read.
  */
 unassigned variable read function :=
-	[Raise an unassigned-variable-read exception];
+	[Raise a cannot-read-unassigned-variable exception];
 
 /**
  * Set the function that should be invoked whenever a method send produces a
