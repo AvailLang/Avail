@@ -878,12 +878,13 @@ Private method "Process left parenthesis in header from_" is
 		[
 Print: format "“①”\n" with scanner's current buffer character;
 		 	closeCondition ::= scanner's current buffer character ≠ ¢);
-		 	openCondition ::= scanner's current buffer character ≠ ¢(;
+		 	openCondition ::= scanner's current buffer character = ¢(;
 		 	If openCondition then [↑parenthesisCounter++;];
+		 	If ¬closeCondition then [↑parenthesisCounter--;];
 Print: format "parenthesisCounter=“①”\n" with parenthesisCounter;
-		 	If closeCondition then [↑parenthesisCounter--;];
-		 	closeCondition ∧ [parenthesisCounter ≠ 0]
+		 	parenthesisCounter ≠ 0
 		]; 
+Print: format "region=“①”\n" with region;
 	endIndex : natural number := scanner's comment buffer index;
 	newlineIndices : <natural number…|> := all indices of region where 
 		[c : character | c = ¢"\n"];
