@@ -50,8 +50,7 @@ Uses
 		"_-_" → "_-_(Core)",
 		"_×_" → "_×_(Core)",
 		"_÷_" → "_÷_(Core)",
-		"_^_" → "_^_(Core)",
-		…
+		"_^_" → "_^_(Core)"
         )
 Names
    "do something with_",
