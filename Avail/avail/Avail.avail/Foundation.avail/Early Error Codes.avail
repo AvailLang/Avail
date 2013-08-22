@@ -179,6 +179,7 @@ Invoke [
 		<81, "cannot-mark-handler-frame">,
 		<82, "no-handler-frame">,
 		<83, "unwind-sentinel">,
+		<89, "fiber-is-terminated">,
 		<90, "fiber-result-unavailable">,
 		<91, "fiber-cannot-join-itself">,
 		<92, "fiber-produced-incorrectly-typed-result">,

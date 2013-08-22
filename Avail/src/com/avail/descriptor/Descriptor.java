@@ -4360,4 +4360,19 @@ extends AbstractDescriptor
 	{
 		throw unsupportedOperationException();
 	}
+
+	@Override
+	void o_WhenContinuationIsAvailableDo (
+		final AvailObject object,
+		final Continuation1<A_Continuation> whenReified)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	A_Set o_GetAndClearReificationWaiters (
+		final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
 }

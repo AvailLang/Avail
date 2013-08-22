@@ -35,6 +35,7 @@ package com.avail.interpreter;
 import static com.avail.descriptor.AvailObject.error;
 import static com.avail.descriptor.FiberDescriptor.ExecutionState.*;
 import static com.avail.descriptor.FiberDescriptor.SynchronizationFlag.*;
+import static com.avail.descriptor.FiberDescriptor.InterruptRequestFlag.*;
 import static com.avail.descriptor.FiberDescriptor.TraceFlag.*;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Result.*;
@@ -61,6 +62,7 @@ import com.avail.performance.Statistic;
 import com.avail.utility.Continuation0;
 import com.avail.utility.Continuation1;
 import com.avail.utility.Mutable;
+import com.avail.utility.MutableOrNull;
 
 /**
  * This class is used to execute {@linkplain L2Chunk Level Two code}, which is a
@@ -1263,7 +1265,8 @@ public final class Interpreter
 	public boolean isInterruptRequested ()
 	{
 		return runtime.levelOneSafetyRequested()
-			|| runtime.clock - startTick >= timeSliceTicks;
+			|| runtime.clock - startTick >= timeSliceTicks
+			|| fiber().interruptRequestFlag(REIFICATION_REQUESTED);
 	}
 
 	/**
@@ -1281,18 +1284,29 @@ public final class Interpreter
 	{
 		assert !exitNow;
 		final A_Fiber aFiber = fiber();
+		final MutableOrNull<A_Set> waiters = new MutableOrNull<>();
 		aFiber.lock(new Continuation0()
 		{
 			@Override
 			public void value ()
 			{
-				assert aFiber.executionState() == RUNNING;
-				aFiber.executionState(INTERRUPTED);
-				aFiber.continuation(continuation);
-				final boolean bound = fiber().getAndSetSynchronizationFlag(
-					BOUND, false);
-				assert bound;
-				fiber = null;
+				synchronized (aFiber)
+				{
+					assert aFiber.executionState() == RUNNING;
+					aFiber.executionState(INTERRUPTED);
+					aFiber.continuation(continuation);
+					if (aFiber.getAndClearInterruptRequestFlag(
+						REIFICATION_REQUESTED))
+					{
+						continuation.makeShared();
+						waiters.value = aFiber.getAndClearReificationWaiters();
+						assert waiters.value().setSize() > 0;
+					}
+					final boolean bound = fiber().getAndSetSynchronizationFlag(
+						BOUND, false);
+					assert bound;
+					fiber = null;
+				}
 			}
 		});
 		exitNow = true;
@@ -1304,6 +1318,17 @@ public final class Interpreter
 			@Override
 			public void value ()
 			{
+				if (waiters.value != null)
+				{
+					for (final A_BasicObject pojo : waiters.value())
+					{
+						@SuppressWarnings("unchecked")
+						final
+						Continuation1<A_Continuation> waiter =
+							(Continuation1<A_Continuation>)(pojo.javaObject());
+						waiter.value(continuation);
+					}
+				}
 				resumeFromInterrupt(aFiber);
 			}
 		});
@@ -2091,12 +2116,12 @@ public final class Interpreter
 
 	/**
 	 * Stringify an {@linkplain AvailObject Avail value}, using the
-	 * {@linkplain AvailRuntime#stringificationAtom() stringification atom}
-	 * associated with the specified {@linkplain AvailRuntime runtime}.
-	 * Stringification will run in a new {@linkplain FiberDescriptor fiber}. If
-	 * stringification fails for any reason, then the built-in mechanism,
-	 * available via {@link AvailObject#toString()} will be used. Invoke the
-	 * specified continuation with the result.
+	 * {@linkplain AvailRuntime#stringificationFunction() stringification
+	 * function} associated with the specified {@linkplain AvailRuntime
+	 * runtime}. Stringification will run in a new {@linkplain FiberDescriptor
+	 * fiber}. If stringification fails for any reason, then the built-in
+	 * mechanism, available via {@link AvailObject#toString()} will be used.
+	 * Invoke the specified continuation with the result.
 	 *
 	 * @param runtime
 	 *        An Avail runtime.
@@ -2157,8 +2182,8 @@ public final class Interpreter
 
 	/**
 	 * Stringify a {@linkplain List list} of {@linkplain AvailObject Avail
-	 * values}, using the {@linkplain AvailRuntime#stringificationAtom()
-	 * stringification atom} associated with the specified {@linkplain
+	 * values}, using the {@linkplain AvailRuntime#stringificationFunction()
+	 * stringification function} associated with the specified {@linkplain
 	 * AvailRuntime runtime}. Stringification will run in parallel, with each
 	 * value being processed by its own new {@linkplain FiberDescriptor fiber}.
 	 * If stringification fails for a value for any reason, then the built-in

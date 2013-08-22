@@ -36,13 +36,13 @@ import static com.avail.descriptor.AvailObject.error;
 import static com.avail.descriptor.FiberDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.FiberDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.FiberDescriptor.ExecutionState.*;
+import static com.avail.descriptor.FiberDescriptor.InterruptRequestFlag.*;
 import java.util.*;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import com.avail.*;
 import com.avail.annotations.*;
-import com.avail.descriptor.VariableDescriptor.VariableAccessReactor;
 import com.avail.interpreter.*;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.utility.*;
@@ -101,7 +101,13 @@ extends Descriptor
 		/**
 		 * Termination of the target fiber has been requested.
 		 */
-		TERMINATION_REQUESTED (_TERMINATION_REQUESTED);
+		TERMINATION_REQUESTED (_TERMINATION_REQUESTED),
+
+		/**
+		 * Another fiber wants to know what this fiber's reified continuation
+		 * is.
+		 */
+		REIFICATION_REQUESTED (_REIFICATION_REQUESTED);
 
 		/** The {@linkplain BitField bit field}. */
 		final BitField bitField;
@@ -258,40 +264,46 @@ extends Descriptor
 			0,
 			1);
 
+		/** See {@link InterruptRequestFlag#REIFICATION_REQUESTED}. */
+		static final BitField _REIFICATION_REQUESTED = bitField(
+			FLAGS,
+			1,
+			1);
+
 		/** See {@link SynchronizationFlag#BOUND}. */
 		static final BitField _BOUND = bitField(
 			FLAGS,
-			1,
+			2,
 			1);
 
 		/** See {@link SynchronizationFlag#SCHEDULED}. */
 		static final BitField _SCHEDULED = bitField(
 			FLAGS,
-			2,
+			3,
 			1);
 
 		/** See {@link SynchronizationFlag#PERMIT_UNAVAILABLE}. */
 		static final BitField _PERMIT_UNAVAILABLE = bitField(
 			FLAGS,
-			3,
+			4,
 			1);
 
 		/** See {@link TraceFlag#TRACE_VARIABLE_READS_BEFORE_WRITES}. */
 		static final BitField _TRACE_VARIABLE_READS_BEFORE_WRITES = bitField(
 			FLAGS,
-			4,
+			5,
 			1);
 
 		/** See {@link TraceFlag#TRACE_VARIABLE_WRITES}. */
 		static final BitField _TRACE_VARIABLE_WRITES = bitField(
 			FLAGS,
-			5,
+			6,
 			1);
 
 		/** See {@link GeneralFlag#APPLYING_SEMANTIC_RESTRICTION}. */
 		static final BitField _APPLYING_SEMANTIC_RESTRICTION = bitField(
 			FLAGS,
-			6,
+			7,
 			1);
 	}
 
@@ -393,11 +405,23 @@ extends Descriptor
 		/**
 		 * A {@linkplain RawPojoDescriptor raw pojo} wrapping a {@linkplain
 		 * WeakHashMap weak map} from {@linkplain VariableDescriptor variables}
-		 * encountered during a {@linkplain TraceFlag#TRACE_VARIABLE_READS_BEFORE_WRITES
-		 * variable access trace} to a {@linkplain Boolean boolean} that is
-		 * {@code true} iff the variable was read before it was written.
+		 * encountered during a {@linkplain
+		 * TraceFlag#TRACE_VARIABLE_READS_BEFORE_WRITES variable access trace}
+		 * to a {@linkplain Boolean boolean} that is {@code true} iff the
+		 * variable was read before it was written.
 		 */
-		TRACED_VARIABLES
+		TRACED_VARIABLES,
+
+		/**
+		 * A {@linkplain RawPojoDescriptor raw pojo} wrapping a {@link
+		 * List} of {@link Continuation1}s which accept this fiber's current
+		 * {@linkplain ContinuationDescriptor continuation} as soon as it is
+		 * reified.
+		 *
+		 * <p>The non-emptiness of this list must agree with the value of the
+		 * {@link InterruptRequestFlag#REIFICATION_REQUESTED} flag.
+		 */
+		REIFICATION_WAITERS;
 	}
 
 	/**
@@ -1325,6 +1349,57 @@ extends Descriptor
 		error("Process stepping is not implemented");
 	}
 
+	@Override
+	void o_WhenContinuationIsAvailableDo (
+		final AvailObject object,
+		final Continuation1<A_Continuation> whenReified)
+	{
+		object.lock(new Continuation0()
+		{
+			@Override
+			public void value ()
+			{
+				switch (object.executionState())
+				{
+					case ABORTED:
+					case ASLEEP:
+					case INTERRUPTED:
+					case PARKED:
+					case SUSPENDED:
+					case TERMINATED:
+					case UNSTARTED:
+					{
+						whenReified.value(object.continuation().makeShared());
+						break;
+					}
+					case RUNNING:
+					{
+						final A_BasicObject pojo =
+							RawPojoDescriptor.identityWrap(whenReified);
+						final A_Set oldSet = object.slot(REIFICATION_WAITERS);
+						final A_Set newSet =
+							oldSet.setWithElementCanDestroy(pojo, true);
+						object.setSlot(REIFICATION_WAITERS, newSet);
+						object.setInterruptRequestFlag(REIFICATION_REQUESTED);
+						break;
+					}
+				}
+			}
+		});
+	}
+
+	@Override
+	A_Set o_GetAndClearReificationWaiters (final AvailObject object)
+	{
+		final A_Set previousSet;
+		synchronized (object)
+		{
+			previousSet = object.slot(REIFICATION_WAITERS);
+			object.setSlot(REIFICATION_WAITERS, SetDescriptor.empty());
+		}
+		return previousSet;
+	}
+
 	/**
 	 * The currently locked {@linkplain FiberDescriptor fiber}, or {@code null}
 	 * if no fiber is currently locked. This information is used to detect
@@ -1454,6 +1529,10 @@ extends Descriptor
 			TRACED_VARIABLES,
 			RawPojoDescriptor.identityWrap(
 				new WeakHashMap<A_Variable, Boolean>()));
+		fiber.setSlot(
+			REIFICATION_WAITERS,
+			RawPojoDescriptor.identityWrap(
+				new ArrayList<Continuation1<A_Continuation>>()));
 
 		fiber.setSlot(DEBUG_UNIQUE_ID, uniqueDebugCounter.incrementAndGet());
 		fiber.setSlot(DEBUG_FIBER_PURPOSE, purpose);
@@ -1514,6 +1593,10 @@ extends Descriptor
 			TRACED_VARIABLES,
 			RawPojoDescriptor.identityWrap(
 				new WeakHashMap<A_Variable, Boolean>()));
+		fiber.setSlot(
+			REIFICATION_WAITERS,
+			RawPojoDescriptor.identityWrap(
+				new ArrayList<Continuation1<A_Continuation>>()));
 
 		fiber.setSlot(DEBUG_UNIQUE_ID, uniqueDebugCounter.incrementAndGet());
 		fiber.setSlot(DEBUG_FIBER_PURPOSE, purpose);

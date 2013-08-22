@@ -1013,6 +1013,8 @@ System exception "no-handler-frame" (82)
 	extends system exception;
 System exception "unwind-sentinel" (83)
 	extends system exception;
+System exception "fiber-is-terminated" (89)
+	extends system exception;
 System exception "fiber-result-unavailable" (90)
 	extends system exception;
 System exception "fiber-cannot-join-itself" (91)

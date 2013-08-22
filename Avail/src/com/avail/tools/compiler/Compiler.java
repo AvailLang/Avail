@@ -208,7 +208,7 @@ public class Compiler
 	 * unified status notification can be output regardless of the verbosity
 	 * level.
 	 */
-	@InnerAccess static String globalStatus;
+	@InnerAccess static String globalStatus = "";
 
 	/**
 	 * @param configuration The configuration from which to read the verbosity

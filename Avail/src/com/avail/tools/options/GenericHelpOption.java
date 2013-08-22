@@ -115,7 +115,7 @@ extends GenericOption<OptionKeyType>
 					try
 					{
 						writeHelpText(
-							optionProcessor.value, preamble, appendable);
+							optionProcessor.value(), preamble, appendable);
 						System.exit(0);
 					}
 					catch (final IOException e)

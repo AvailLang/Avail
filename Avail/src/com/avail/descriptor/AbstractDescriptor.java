@@ -5945,6 +5945,20 @@ public abstract class AbstractDescriptor
 	 * @return
 	 */
 	abstract A_Continuation o_ReplacingCaller (
-		final AvailObject object,
-		final A_Continuation newCaller);
+		AvailObject object,
+		A_Continuation newCaller);
+
+	/**
+	 * @param object
+	 * @param whenReified
+	 */
+	abstract void o_WhenContinuationIsAvailableDo (
+		AvailObject object,
+		Continuation1<A_Continuation> whenReified);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract A_Set o_GetAndClearReificationWaiters (AvailObject object);
 }

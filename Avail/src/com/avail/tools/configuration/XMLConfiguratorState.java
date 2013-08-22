@@ -60,7 +60,7 @@ public class XMLConfiguratorState<
 	private final ConfigurationType configuration;
 
 	/** The {@linkplain XMLDocumentModel document model}. */
-	private
+	private @Nullable
 	XMLDocumentModel<ConfigurationType, ElementType, StateType> model;
 
 	/**
@@ -71,7 +71,13 @@ public class XMLConfiguratorState<
 	public XMLDocumentModel<ConfigurationType, ElementType, StateType>
 	documentModel ()
 	{
-		return model;
+		final XMLDocumentModel<
+				ConfigurationType,
+				ElementType,
+				StateType>
+			documentModel = model;
+		assert documentModel != null;
+		return documentModel;
 	}
 
 	/**

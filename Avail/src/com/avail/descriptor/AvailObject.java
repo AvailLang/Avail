@@ -6888,4 +6888,17 @@ implements
 	{
 		return descriptor.o_ReplacingCaller(this, newCaller);
 	}
+
+	@Override
+	public void whenContinuationIsAvailableDo (
+		final Continuation1<A_Continuation> whenReified)
+	{
+		descriptor.o_WhenContinuationIsAvailableDo(this, whenReified);
+	}
+
+	@Override
+	public A_Set getAndClearReificationWaiters ()
+	{
+		return descriptor.o_GetAndClearReificationWaiters(this);
+	}
 }

@@ -4524,4 +4524,18 @@ extends AbstractDescriptor
 	{
 		return o_Traversed(object).replacingCaller(newCaller);
 	}
+
+	@Override
+	void o_WhenContinuationIsAvailableDo (
+		final AvailObject object,
+		final Continuation1<A_Continuation> whenReified)
+	{
+		o_Traversed(object).whenContinuationIsAvailableDo(whenReified);
+	}
+
+	@Override
+	A_Set o_GetAndClearReificationWaiters (final AvailObject object)
+	{
+		return o_Traversed(object).getAndClearReificationWaiters();
+	}
 }

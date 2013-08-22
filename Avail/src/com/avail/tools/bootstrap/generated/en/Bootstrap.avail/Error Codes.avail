@@ -74,6 +74,7 @@ Names
 	/*  38 */ "exclamation mark must follow an alternation group code",
 	/*  46 */ "expected operator after backquote code",
 	/*  91 */ "fiber cannot join itself code",
+	/*  89 */ "fiber is terminated code",
 	/*  92 */ "fiber produced incorrectly typed result code",
 	/*  90 */ "fiber result unavailable code",
 	/*  27 */ "function disagrees with primitive restriction code",
@@ -552,6 +553,11 @@ Primitive "no handler frame code" is
 Primitive "unwind sentinel code" is
 [
 	83
+];
+
+Primitive "fiber is terminated code" is
+[
+	89
 ];
 
 Primitive "fiber result unavailable code" is

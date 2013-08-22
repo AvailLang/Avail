@@ -52,7 +52,7 @@ extends Exception
 	/**
 	 * The module that contained an unresolved reference to another module.
 	 */
-	private ResolvedModuleName referringModuleName;
+	private @Nullable ResolvedModuleName referringModuleName;
 
 	/**
 	 * The name of the module that could not be resolved.
@@ -67,7 +67,9 @@ extends Exception
 	 */
 	public ResolvedModuleName referringModuleName()
 	{
-		return referringModuleName;
+		final ResolvedModuleName name = referringModuleName;
+		assert name != null;
+		return name;
 	}
 
 	/**
@@ -108,7 +110,7 @@ extends Exception
 				+ "\".";
 		}
 		return "module \""
-			+ referringModuleName.qualifiedName()
+			+ referringModuleName().qualifiedName()
 			+ "\" refers to unresolved module \""
 			+ unresolvedModuleName
 			+ "\".";
