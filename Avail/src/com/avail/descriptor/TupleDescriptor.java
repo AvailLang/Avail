@@ -1149,14 +1149,15 @@ extends Descriptor
 	 *        A tuple.
 	 * @return The corresponding list of objects.
 	 */
-	public static List<AvailObject> toList (
+	@SuppressWarnings("unchecked")
+	public static <X extends A_BasicObject> List<X> toList (
 		final A_Tuple tuple)
 	{
-		final List<AvailObject> list =
+		final List<X> list =
 			new ArrayList<>(tuple.tupleSize());
 		for (final AvailObject element : tuple)
 		{
-			list.add(element);
+			list.add((X) element);
 		}
 		return list;
 	}

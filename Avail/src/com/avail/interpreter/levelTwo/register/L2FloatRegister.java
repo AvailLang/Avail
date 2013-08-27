@@ -51,4 +51,10 @@ extends L2Register
 	{
 		super(debugValue);
 	}
+
+	@Override
+	public String toString ()
+	{
+		return "Float" + super.toString();
+	}
 }

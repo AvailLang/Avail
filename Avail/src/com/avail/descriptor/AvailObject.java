@@ -2879,7 +2879,7 @@ implements
 	 * Dispatch to the descriptor.
 	 */
 	@Override
-	public AvailObject lookupByTypesFromTuple (
+	public A_Definition lookupByTypesFromTuple (
 		final A_Tuple argumentTypeTuple)
 	{
 		return descriptor.o_LookupByTypesFromTuple(this, argumentTypeTuple);
@@ -2889,7 +2889,7 @@ implements
 	 * Dispatch to the descriptor.
 	 */
 	@Override
-	public AvailObject lookupByValuesFromList (
+	public A_Definition lookupByValuesFromList (
 		final List<? extends A_BasicObject> argumentList)
 	{
 		return descriptor.o_LookupByValuesFromList(this, argumentList);
@@ -3955,7 +3955,7 @@ implements
 	 * Dispatch to the descriptor.
 	 */
 	@Override
-	public A_Tuple testingTree ()
+	public A_BasicObject testingTree ()
 	{
 		return descriptor.o_TestingTree(this);
 	}

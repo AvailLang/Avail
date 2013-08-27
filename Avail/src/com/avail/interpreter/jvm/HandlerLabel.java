@@ -43,7 +43,10 @@ import java.util.List;
 public final class HandlerLabel
 extends Label
 {
-	/** A {@link Throwable} descriptor. */
+	/**
+	 * A {@link Throwable} descriptor.
+	 * TODO [TLS] - Add a toString() method to use this.
+	 */
 	private final String throwableDescriptor;
 
 	@Override
