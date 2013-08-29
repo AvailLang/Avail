@@ -715,7 +715,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	AvailObject o_LookupByTypesFromTuple (
+	A_Definition o_LookupByTypesFromTuple (
 		final AvailObject object,
 		final A_Tuple argumentTypeTuple)
 	{
@@ -723,7 +723,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	AvailObject o_LookupByValuesFromList (
+	A_Definition o_LookupByValuesFromList (
 		final AvailObject object,
 		final List<? extends A_BasicObject> argumentList)
 	{
@@ -1891,7 +1891,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	A_Tuple o_TestingTree (final AvailObject object)
+	A_BasicObject o_TestingTree (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}
@@ -4357,6 +4357,21 @@ extends AbstractDescriptor
 	A_Continuation o_ReplacingCaller(
 		final AvailObject object,
 		final A_Continuation newCaller)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	void o_WhenContinuationIsAvailableDo (
+		final AvailObject object,
+		final Continuation1<A_Continuation> whenReified)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	A_Set o_GetAndClearReificationWaiters (
+		final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}

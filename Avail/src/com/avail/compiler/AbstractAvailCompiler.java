@@ -35,7 +35,6 @@ import static com.avail.compiler.AbstractAvailCompiler.ExpectedToken.*;
 import static com.avail.compiler.ParsingOperation.*;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import static com.avail.descriptor.TokenDescriptor.TokenType.*;
-import static com.avail.descriptor.TupleDescriptor.toList;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.utility.PrefixSharingList.*;
 import static java.lang.Math.min;
@@ -480,7 +479,7 @@ public abstract class AbstractAvailCompiler
 			final A_Tuple theVersions = deserializer.deserialize();
 			assert theVersions != null;
 			versions.clear();
-			versions.addAll(toList(theVersions));
+			versions.addAll(TupleDescriptor.<A_String>toList(theVersions));
 			final A_Tuple theExtended = deserializer.deserialize();
 			assert theExtended != null;
 			importedModules.clear();
@@ -488,15 +487,15 @@ public abstract class AbstractAvailCompiler
 			final A_Tuple theExported = deserializer.deserialize();
 			assert theExported != null;
 			exportedNames.clear();
-			exportedNames.addAll(toList(theExported));
+			exportedNames.addAll(TupleDescriptor.<A_String>toList(theExported));
 			final A_Tuple theEntryPoints = deserializer.deserialize();
 			assert theEntryPoints != null;
 			entryPoints.clear();
-			entryPoints.addAll(toList(theEntryPoints));
+			entryPoints.addAll(TupleDescriptor.<A_String>toList(theEntryPoints));
 			final A_Tuple thePragmas = deserializer.deserialize();
 			assert thePragmas != null;
 			pragmas.clear();
-			pragmas.addAll(toList(thePragmas));
+			pragmas.addAll(TupleDescriptor.<A_String>toList(thePragmas));
 		}
 
 		/**
@@ -1250,10 +1249,8 @@ public abstract class AbstractAvailCompiler
 		// Augment the start position with a variant that incorporates the
 		// solution-accepting continuation.
 		final Mutable<Integer> count = new Mutable<>(0);
-		final MutableOrNull<A_Phrase> solution =
-			new MutableOrNull<>();
-		final MutableOrNull<ParserState> afterStatement =
-			new MutableOrNull<>();
+		final MutableOrNull<A_Phrase> solution = new MutableOrNull<>();
+		final MutableOrNull<ParserState> afterStatement = new MutableOrNull<>();
 		noMoreWorkUnits = new Continuation0()
 		{
 			@Override

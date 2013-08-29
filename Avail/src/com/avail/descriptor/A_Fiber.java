@@ -287,4 +287,22 @@ extends A_BasicObject
 	 * @return The requested variables.
 	 */
 	public A_Set variablesWritten ();
+
+	/**
+	 * Ensure the specified {@linkplain Continuation1 action} is invoked with
+	 * this fiber's reified {@linkplain ContinuationDescriptor continuation} as
+	 * soon as it's available.
+	 *
+	 * @param whenReified
+	 */
+	void whenContinuationIsAvailableDo (
+		Continuation1<A_Continuation> whenReified);
+
+	/**
+	 * Extract the current set of {@linkplain Continuation1 actions} to perform
+	 * when this fiber is next reified.  Replace it with the empty set.
+	 *
+	 * @return The set of outstanding actions, prior to clearing it.
+	 */
+	A_Set getAndClearReificationWaiters ();
 }

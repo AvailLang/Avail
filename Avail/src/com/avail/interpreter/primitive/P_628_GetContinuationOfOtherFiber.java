@@ -1,5 +1,5 @@
 /**
- * P_075_SetUnassignedVariableAccessFunction.java
+ * P_628_GetContinuationOfOtherFiber.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -32,30 +32,31 @@
 
 package com.avail.interpreter.primitive;
 
-import static com.avail.descriptor.TypeDescriptor.Types.*;
+import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
+import java.util.ArrayList;
 import java.util.List;
 import com.avail.AvailRuntime;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
+import com.avail.utility.Continuation0;
+import com.avail.utility.Continuation1;
 
 /**
- * <strong>Primitive 75</strong>: Set the {@linkplain FunctionDescriptor
- * function} to invoke whenever the value produced by a {@linkplain
- * MethodDescriptor method} send disagrees with the {@linkplain TypeDescriptor
- * type} expected.
+ * <strong>Primitive 628</strong>: Ask another fiber what it's doing.  Fail if
+ * the fiber's continuation chain is empty (i.e., it is terminated).
  *
- * @author Todd L Smith &lt;todd@availlang.org&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public final class P_075_SetUnassignedVariableAccessFunction
+public final class P_628_GetContinuationOfOtherFiber
 extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_075_SetUnassignedVariableAccessFunction().init(
-			1, CannotFail, HasSideEffect);
+		new P_628_GetContinuationOfOtherFiber().init(
+			1, CannotFail, CanFold, CanInline);
 
 	@Override
 	public Result attempt (
@@ -64,9 +65,58 @@ extends Primitive
 		final boolean skipReturnCheck)
 	{
 		assert args.size() == 1;
-		final A_Function function = args.get(0);
-		AvailRuntime.current().setUnassignedVariableReadFunction(function);
-		return interpreter.primitiveSuccess(NilDescriptor.nil());
+		final A_Fiber otherFiber = args.get(0);
+
+		final A_Fiber thisFiber = interpreter.fiber();
+		final Result suspended = interpreter.primitiveSuspend();
+		final A_Function failureFunction =
+			interpreter.primitiveFunctionBeingAttempted();
+		final List<AvailObject> copiedArgs = new ArrayList<>(args);
+		assert failureFunction.code().primitiveNumber() == primitiveNumber;
+		interpreter.postExitContinuation(new Continuation0()
+		{
+			@Override
+			public void value ()
+			{
+				otherFiber.whenContinuationIsAvailableDo(
+					new Continuation1<A_Continuation>()
+					{
+						@Override
+						public final void value (
+							final A_Continuation theContinuation)
+						{
+							if (!theContinuation.equalsNil())
+							{
+								Interpreter.resumeFromSuccessfulPrimitive(
+									AvailRuntime.current(),
+									thisFiber,
+									theContinuation,
+									skipReturnCheck);
+							}
+							else
+							{
+								Interpreter.resumeFromFailedPrimitive(
+									AvailRuntime.current(),
+									thisFiber,
+									E_FIBER_IS_TERMINATED.numericCode(),
+									failureFunction,
+									copiedArgs,
+									skipReturnCheck);
+							}
+						}
+					});
+			}
+		});
+		return suspended;
+	}
+
+	@Override
+	protected A_Type privateFailureVariableType ()
+	{
+		return AbstractEnumerationTypeDescriptor.withInstances(
+			TupleDescriptor.from(
+				E_FIBER_IS_TERMINATED.numericCode()
+			).asSet());
 	}
 
 	@Override
@@ -74,9 +124,7 @@ extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				FunctionTypeDescriptor.create(
-					TupleDescriptor.empty(),
-					BottomTypeDescriptor.bottom())),
-			TOP.o());
+				FiberTypeDescriptor.mostGeneralType()),
+			ContinuationTypeDescriptor.mostGeneralType());
 	}
 }

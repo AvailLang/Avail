@@ -35,13 +35,15 @@ package com.avail.tools.compiler.configuration;
 import com.avail.annotations.Nullable;
 
 /**
- * The statistic reports requested of the compiler.
- *   L2Operations ~ The most time-intensive level-two operations
- *   DynamicLookups ~ The most time-intensive dynamic method lookups.
- *   Primitives ~ The primitives that are the most time-intensive to run
- *                overall.
- *   PrimitiveReturnTypeChecks ~ The primitives that take the most time
- *                               checking return types.
+ * The statistic reports requested of the compiler:
+ * <ul>
+ * <li>L2Operations ~ The most time-intensive level-two operations</li>
+ * <li>DynamicLookups ~ The most time-intensive dynamic method lookups.</li>
+ * <li>Primitives ~ The primitives that are the most time-intensive to run
+ *                  overall.</li>
+ * <li>PrimitiveReturnTypeChecks ~ The primitives that take the most time
+ *                                 checking return types.</li>
+ * </ul>
  *
  * @author Leslie Schultz &lt;leslie@availlang.org&gt;
  */

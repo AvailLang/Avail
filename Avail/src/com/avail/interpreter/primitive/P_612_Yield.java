@@ -64,7 +64,7 @@ extends Primitive
 		assert args.size() == 0;
 		final A_Fiber fiber = interpreter.fiber();
 		final Result suspended = interpreter.primitiveSuspend();
-		Interpreter.current().postExitContinuation(new Continuation0()
+		interpreter.postExitContinuation(new Continuation0()
 		{
 			@Override
 			public void value ()

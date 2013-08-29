@@ -363,7 +363,9 @@ public final class ModuleNameResolver
 									// exist.
 									return new ModuleNameResolutionResult(
 										new UnresolvedModuleException(
-											null, qualifiedName.localName(), checkedPaths));
+											null,
+											qualifiedName.localName(),
+											checkedPaths));
 								}
 							}
 						}
@@ -394,10 +396,45 @@ public final class ModuleNameResolver
 	private static final class ModuleNameResolutionResult
 	{
 		/** The module that was successfully resolved, or null if not found. */
-		public final @Nullable ResolvedModuleName resolvedModule;
+		private final @Nullable ResolvedModuleName resolvedModule;
 
 		/** An exception if the module was not found, or null if it was. */
-		public final UnresolvedDependencyException e;
+		private final @Nullable UnresolvedDependencyException exception;
+
+		/**
+		 * Answer whether the resolution produced a {@link ResolvedModuleName},
+		 * rather than an exception.
+		 *
+		 * @return whether the resolution was successful.
+		 */
+		public final boolean isResolved ()
+		{
+			return resolvedModule != null;
+		}
+
+		/**
+		 * Answer the resolvedModule, which should not be null.
+		 *
+		 * @return the non-null {@link ResolvedModuleName}.
+		 */
+		public ResolvedModuleName resolvedModule ()
+		{
+			final ResolvedModuleName resolved = resolvedModule;
+			assert resolved != null;
+			return resolved;
+		}
+
+		/**
+		 * Answer the exception, which should not be null.
+		 *
+		 * @return the non-null {@link UnresolvedDependencyException}.
+		 */
+		public UnresolvedDependencyException exception ()
+		{
+			final UnresolvedDependencyException e = exception;
+			assert e != null;
+			return e;
+		}
 
 		/**
 		 * Construct a new {@link ModuleNameResolutionResult}, upon successful
@@ -409,7 +446,7 @@ public final class ModuleNameResolver
 			final ResolvedModuleName resolvedModule)
 		{
 			this.resolvedModule = resolvedModule;
-			this.e = null;
+			this.exception = null;
 		}
 
 		/**
@@ -424,7 +461,7 @@ public final class ModuleNameResolver
 			final UnresolvedDependencyException e)
 		{
 			this.resolvedModule = null;
-			this.e = e;
+			this.exception = e;
 		}
 	}
 
@@ -449,14 +486,15 @@ public final class ModuleNameResolver
 		final ModuleNameResolutionResult result =
 			resolutionCache.get(qualifiedName);
 		assert result != null;
-		if (result.resolvedModule == null) // If the resolution failed
+		if (!result.isResolved())
 		{
+			// The resolution failed.
 			if (dependent != null)
 			{
-				result.e.setReferringModuleName(dependent);
+				result.exception().setReferringModuleName(dependent);
 			}
-			throw result.e;
+			throw result.exception();
 		}
-		return result.resolvedModule;
+		return result.resolvedModule();
 	}
 }

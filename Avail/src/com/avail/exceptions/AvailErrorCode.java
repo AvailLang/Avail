@@ -554,7 +554,12 @@ public enum AvailErrorCode
 //	E_??? (86)
 //	E_??? (87)
 //	E_??? (88)
-//	E_??? (89)
+
+	/**
+	 * The {@linkplain FiberDescriptor fiber} being examined has already been
+	 * terminated.
+	 */
+	E_FIBER_IS_TERMINATED (89),
 
 	/**
 	 * The {@linkplain FiberDescriptor fiber} being interrogated has not (or

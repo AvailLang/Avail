@@ -1295,7 +1295,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	AvailObject o_LookupByTypesFromTuple (
+	A_Definition o_LookupByTypesFromTuple (
 		final AvailObject object,
 		final A_Tuple argumentTypeTuple)
 	{
@@ -1303,7 +1303,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	AvailObject o_LookupByValuesFromList (
+	A_Definition o_LookupByValuesFromList (
 		final AvailObject object,
 		final List<? extends A_BasicObject> argumentList)
 	{
@@ -2672,7 +2672,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	A_Tuple o_TestingTree (final AvailObject object)
+	A_BasicObject o_TestingTree (final AvailObject object)
 	{
 		return o_Traversed(object).testingTree();
 	}
@@ -4523,5 +4523,19 @@ extends AbstractDescriptor
 		final A_Continuation newCaller)
 	{
 		return o_Traversed(object).replacingCaller(newCaller);
+	}
+
+	@Override
+	void o_WhenContinuationIsAvailableDo (
+		final AvailObject object,
+		final Continuation1<A_Continuation> whenReified)
+	{
+		o_Traversed(object).whenContinuationIsAvailableDo(whenReified);
+	}
+
+	@Override
+	A_Set o_GetAndClearReificationWaiters (final AvailObject object)
+	{
+		return o_Traversed(object).getAndClearReificationWaiters();
 	}
 }

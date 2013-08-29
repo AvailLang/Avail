@@ -1,5 +1,5 @@
-/**
- * L2FloatRegister.java
+/*
+ * ShouldFail.avail
  * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -30,31 +30,11 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.interpreter.levelTwo.register;
+System Module "ShouldFail"
+Versions
+	"dev"
+Uses
+	"Avail"  ,
+Body
 
-
-/**
- * {@code L2FloatRegister} models the conceptual usage of a register that can
- * store a machine floating-point number.
- *
- * @author Todd L Smith &lt;todd@availlang.org&gt;
- */
-public class L2FloatRegister
-extends L2Register
-{
-	/**
-	 * Construct a new {@link L2FloatRegister}.
-	 *
-	 * @param debugValue A value used to distinguish the new instance visually.
-	 */
-	public L2FloatRegister (final long debugValue)
-	{
-		super(debugValue);
-	}
-
-	@Override
-	public String toString ()
-	{
-		return "Float" + super.toString();
-	}
-}
+Print: "Made it\n";

@@ -113,7 +113,7 @@ abstract class JavaInstruction
 	abstract JavaOperand[] outputOperands (List<JavaOperand> operands);
 
 	/** The {@linkplain JavaOperand operand} stack. */
-	private List<JavaOperand> operandStack;
+	private @Nullable List<JavaOperand> operandStack;
 
 	/**
 	 * Answer the expected state of the {@linkplain JavaOperand operand} stack

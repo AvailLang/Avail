@@ -120,7 +120,9 @@ implements Configuration
 	 */
 	public String renamesFilePath ()
 	{
-		return renamesFilePath;
+		final String path = renamesFilePath;
+		assert path != null;
+		return path;
 	}
 
 	/**
@@ -181,7 +183,9 @@ implements Configuration
 	 */
 	public ModuleName targetModuleName()
 	{
-		return targetModuleName;
+		final ModuleName name = targetModuleName;
+		assert name != null;
+		return name;
 	}
 
 	/**
@@ -250,7 +254,8 @@ implements Configuration
 	 * The {@linkplain EnumSet set} of reports the compiler should print
 	 * following its run.
 	 */
-	private EnumSet<StatisticReport> reports;
+	private EnumSet<StatisticReport> reports =
+		EnumSet.noneOf(StatisticReport.class);
 
 	/**
 	 * Answer the {@linkplain EnumSet set} of reports the compiler should print
@@ -280,7 +285,7 @@ implements Configuration
 	 */
 	public boolean hasReports()
 	{
-		return (reports != null) && !(reports.isEmpty());
+		return !reports.isEmpty();
 	}
 
 	/**

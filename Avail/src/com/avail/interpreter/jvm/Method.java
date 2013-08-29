@@ -300,8 +300,9 @@ extends Emitter<MethodModifier>
 	 */
 	public LocalVariable self ()
 	{
-		assert self != null;
-		return self;
+		final LocalVariable itself = self;
+		assert itself != null;
+		return itself;
 	}
 
 	/** The {@linkplain Set set} of {@linkplain LocalVariable parameters}. */

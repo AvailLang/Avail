@@ -93,4 +93,10 @@ extends L2Register
 	{
 		interpreter.integerAtPut(finalIndex(), newValue);
 	}
+
+	@Override
+	public String toString ()
+	{
+		return "Int" + super.toString();
+	}
 }

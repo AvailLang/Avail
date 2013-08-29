@@ -1923,7 +1923,7 @@ public abstract class AbstractDescriptor
 	 * @param argumentTypeTuple
 	 * @return
 	 */
-	abstract AvailObject o_LookupByTypesFromTuple (
+	abstract A_Definition o_LookupByTypesFromTuple (
 		AvailObject object,
 		A_Tuple argumentTypeTuple);
 
@@ -1932,7 +1932,7 @@ public abstract class AbstractDescriptor
 	 * @param argumentList
 	 * @return
 	 */
-	abstract AvailObject o_LookupByValuesFromList (
+	abstract A_Definition o_LookupByValuesFromList (
 		AvailObject object,
 		List<? extends A_BasicObject> argumentList);
 
@@ -3346,7 +3346,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	abstract A_Tuple o_TestingTree (AvailObject object);
+	abstract A_BasicObject o_TestingTree (AvailObject object);
 
 	/**
 	 * @param object
@@ -5945,6 +5945,20 @@ public abstract class AbstractDescriptor
 	 * @return
 	 */
 	abstract A_Continuation o_ReplacingCaller (
-		final AvailObject object,
-		final A_Continuation newCaller);
+		AvailObject object,
+		A_Continuation newCaller);
+
+	/**
+	 * @param object
+	 * @param whenReified
+	 */
+	abstract void o_WhenContinuationIsAvailableDo (
+		AvailObject object,
+		Continuation1<A_Continuation> whenReified);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract A_Set o_GetAndClearReificationWaiters (AvailObject object);
 }
