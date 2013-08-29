@@ -40,7 +40,7 @@ import com.avail.interpreter.*;
  * <strong>Primitive 33:</strong> Answer whether type1 is a subtype of type2
  * (or equal).
  */
-public class P_033_IsSubtypeOf extends Primitive
+public final class P_033_IsSubtypeOf extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

@@ -43,7 +43,7 @@ import com.avail.interpreter.*;
  * <strong>Primitive 170:</strong> Does a {@linkplain File file} exists with
  * the specified filename?
  */
-public class P_170_FileExists
+public final class P_170_FileExists
 extends Primitive
 {
 	/**

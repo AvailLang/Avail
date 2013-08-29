@@ -42,7 +42,7 @@ import com.avail.interpreter.*;
  * the given {@linkplain TupleTypeDescriptor tuple type}. Answer
  * {@linkplain BottomTypeDescriptor bottom} if out of range.
  */
-public class P_141_TupleTypeAt extends Primitive
+public final class P_141_TupleTypeAt extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

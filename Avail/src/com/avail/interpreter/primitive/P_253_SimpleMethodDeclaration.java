@@ -52,7 +52,7 @@ import com.avail.utility.Continuation0;
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class P_253_SimpleMethodDeclaration
+public final class P_253_SimpleMethodDeclaration
 extends Primitive
 {
 	/**

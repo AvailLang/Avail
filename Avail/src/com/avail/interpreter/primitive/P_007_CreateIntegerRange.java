@@ -44,7 +44,7 @@ import com.avail.interpreter.*;
  * corresponding bounds are inclusive ({@code true}) or exclusive ({@code
  * false}).
  */
-public class P_007_CreateIntegerRange extends Primitive
+public final class P_007_CreateIntegerRange extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

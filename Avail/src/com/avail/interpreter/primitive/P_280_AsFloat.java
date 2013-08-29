@@ -41,7 +41,7 @@ import com.avail.interpreter.*;
  * <strong>Primitive 280:</strong> Convert the numeric argument to a
  * {@linkplain FloatDescriptor float}.
  */
-public class P_280_AsFloat extends Primitive
+public final class P_280_AsFloat extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

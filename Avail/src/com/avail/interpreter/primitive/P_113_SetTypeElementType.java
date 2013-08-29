@@ -40,7 +40,7 @@ import com.avail.interpreter.*;
  * <strong>Primitive 113:</strong> Extract a {@linkplain SetTypeDescriptor
  * set type}'s element {@linkplain TypeDescriptor type}.
  */
-public class P_113_SetTypeElementType extends Primitive
+public final class P_113_SetTypeElementType extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

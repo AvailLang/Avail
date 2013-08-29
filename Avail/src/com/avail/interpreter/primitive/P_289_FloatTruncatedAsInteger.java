@@ -44,7 +44,7 @@ import com.avail.interpreter.*;
  * float} to an {@linkplain IntegerDescriptor integer}, rounding towards
  * zero.
  */
-public class P_289_FloatTruncatedAsInteger extends Primitive
+public final class P_289_FloatTruncatedAsInteger extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

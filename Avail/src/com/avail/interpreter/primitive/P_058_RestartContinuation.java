@@ -44,7 +44,7 @@ import com.avail.interpreter.*;
  * requires a value to be stored on its stack in order to resume it,
  * something this primitive does not do.
  */
-public class P_058_RestartContinuation extends Primitive
+public final class P_058_RestartContinuation extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

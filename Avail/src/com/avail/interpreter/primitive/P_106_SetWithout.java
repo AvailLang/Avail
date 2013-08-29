@@ -42,7 +42,7 @@ import com.avail.interpreter.*;
  * set} like the argument but without the excluded {@linkplain AvailObject
  * element}. If it was already absent, answer the original set.
  */
-public class P_106_SetWithout extends Primitive
+public final class P_106_SetWithout extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

@@ -41,7 +41,7 @@ import com.avail.interpreter.*;
  * user-assigned names for the specified {@linkplain ObjectTypeDescriptor
  * user-defined object type}.
  */
-public class P_069_TypeNames extends Primitive
+public final class P_069_TypeNames extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

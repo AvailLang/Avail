@@ -41,7 +41,7 @@ import com.avail.interpreter.*;
  * <strong>Primitive 81:</strong> Check if the key is present in the
  * {@linkplain MapDescriptor map}.
  */
-public class P_081_KeyInMap extends Primitive
+public final class P_081_KeyInMap extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

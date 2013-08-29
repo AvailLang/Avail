@@ -45,7 +45,7 @@ import com.avail.interpreter.*;
  * variable}. Reads/writes of this variable pass through to the field.
  * Answer this variable.
  */
-public class P_504_BindPojoInstanceField extends Primitive
+public final class P_504_BindPojoInstanceField extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

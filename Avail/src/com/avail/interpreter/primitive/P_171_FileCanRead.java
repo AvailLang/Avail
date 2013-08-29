@@ -43,7 +43,7 @@ import com.avail.interpreter.*;
  * <strong>Primitive 171:</strong> Is the {@linkplain File file} with the
  * specified filename readable by the OS fiber?
  */
-public class P_171_FileCanRead
+public final class P_171_FileCanRead
 extends Primitive
 {
 	/**

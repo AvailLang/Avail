@@ -43,7 +43,7 @@ import com.avail.interpreter.*;
  * to be considered a member of the set type, assuming the elements all
  * satisfy the set type's element {@linkplain TypeDescriptor type}.
  */
-public class P_112_SetTypeSizes extends Primitive
+public final class P_112_SetTypeSizes extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

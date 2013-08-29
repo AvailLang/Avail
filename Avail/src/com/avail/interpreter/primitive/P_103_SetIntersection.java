@@ -40,7 +40,7 @@ import com.avail.interpreter.*;
  * <strong>Primitive 103:</strong> Answer the intersection of two
  * {@linkplain SetDescriptor sets}.
  */
-public class P_103_SetIntersection extends Primitive
+public final class P_103_SetIntersection extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

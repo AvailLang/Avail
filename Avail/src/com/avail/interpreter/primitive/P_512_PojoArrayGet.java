@@ -45,7 +45,7 @@ import com.avail.interpreter.*;
  * that resides at the given {@linkplain IntegerDescriptor subscript} of the
  * specified {@linkplain PojoTypeDescriptor pojo array type}.
  */
-public class P_512_PojoArrayGet extends Primitive
+public final class P_512_PojoArrayGet extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

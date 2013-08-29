@@ -41,7 +41,7 @@ import com.avail.interpreter.*;
 /**
  * <strong>Primitive 257:</strong> Pause the VM.
  */
-public class P_257_BreakPoint extends Primitive
+public final class P_257_BreakPoint extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

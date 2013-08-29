@@ -41,7 +41,7 @@ import com.avail.interpreter.*;
  * <strong>Primitive 511:</strong> Answer the length of the specified
  * {@linkplain PojoDescriptor pojo array}.
  */
-public class P_511_PojoArrayLength extends Primitive
+public final class P_511_PojoArrayLength extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

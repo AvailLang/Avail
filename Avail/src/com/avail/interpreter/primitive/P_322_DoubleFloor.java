@@ -42,7 +42,7 @@ import com.avail.interpreter.*;
  * DoubleDescriptor double} less than or equal to the given double.  If the
  * double is ±INF or NaN then answer the argument.
  */
-public class P_322_DoubleFloor extends Primitive
+public final class P_322_DoubleFloor extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

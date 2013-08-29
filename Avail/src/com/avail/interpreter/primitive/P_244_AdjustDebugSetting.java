@@ -41,7 +41,7 @@ import com.avail.interpreter.*;
 /**
  * <strong>Primitive 244:</strong> Adjust the debugging level of the VM.
  */
-public class P_244_AdjustDebugSetting extends Primitive
+public final class P_244_AdjustDebugSetting extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

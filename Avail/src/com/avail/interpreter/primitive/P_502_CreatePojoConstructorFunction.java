@@ -51,7 +51,7 @@ import com.avail.interpreter.levelOne.*;
  * types. The last argument is a function that should be invoked with a
  * pojo-wrapped {@link Exception} in the event that Java raises an exception.
  */
-public class P_502_CreatePojoConstructorFunction extends Primitive
+public final class P_502_CreatePojoConstructorFunction extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

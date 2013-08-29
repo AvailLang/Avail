@@ -42,7 +42,7 @@ import com.avail.interpreter.*;
  * FunctionTypeDescriptor function type}. When applied, it applies the
  * specified function and answers that function's result.
  */
-public class P_071_CreateStubFunction extends Primitive
+public final class P_071_CreateStubFunction extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

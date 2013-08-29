@@ -40,7 +40,7 @@ import com.avail.interpreter.*;
  * <strong>Primitive 28:</strong> How many instances does the specified
  * {@linkplain InstanceMetaDescriptor#topMeta() type} have?
  */
-public class P_028_InstanceCount extends Primitive
+public final class P_028_InstanceCount extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

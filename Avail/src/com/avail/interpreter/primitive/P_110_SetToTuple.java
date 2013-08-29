@@ -41,7 +41,7 @@ import com.avail.interpreter.*;
  * into an arbitrarily ordered {@linkplain TupleDescriptor tuple}. The
  * conversion is unstable (two calls may produce different orderings).
  */
-public class P_110_SetToTuple extends Primitive
+public final class P_110_SetToTuple extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

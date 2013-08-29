@@ -34,6 +34,7 @@ package com.avail.interpreter.primitive;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.Invokes;
+import static com.avail.interpreter.Primitive.Fallibility.*;
 import java.util.*;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
@@ -45,7 +46,8 @@ import com.avail.interpreter.*;
  * corruption of the type system. Fail if the arguments are not of the
  * required types.
  */
-public class P_040_InvokeWithTuple extends Primitive
+public final class P_040_InvokeWithTuple
+extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
@@ -93,5 +95,21 @@ public class P_040_InvokeWithTuple extends Primitive
 				FunctionTypeDescriptor.mostGeneralType(),
 				TupleTypeDescriptor.mostGeneralType()),
 			TOP.o());
+	}
+
+	@Override
+	public Fallibility fallibilityForArgumentTypes (
+		final List<? extends A_Type> argumentTypes)
+	{
+		final A_Type blockType = argumentTypes.get(0);
+		final A_Type argTupleType = argumentTypes.get(1);
+		final A_Type paramsType = blockType.argsTupleType();
+		final boolean fixedSize = argTupleType.sizeRange().upperBound().equals(
+			argTupleType.sizeRange().lowerBound());
+		return (fixedSize
+				&& paramsType.sizeRange().equals(argTupleType.sizeRange())
+				&& argTupleType.isSubtypeOf(paramsType))
+			? CallSiteCannotFail
+			: CallSiteCanFail;
 	}
 }

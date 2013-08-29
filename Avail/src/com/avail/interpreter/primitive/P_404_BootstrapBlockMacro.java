@@ -70,7 +70,7 @@ import com.avail.interpreter.*;
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class P_404_BootstrapBlockMacro extends Primitive
+public final class P_404_BootstrapBlockMacro extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

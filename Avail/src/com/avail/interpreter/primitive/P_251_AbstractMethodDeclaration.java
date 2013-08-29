@@ -48,7 +48,7 @@ import com.avail.utility.Continuation0;
  * AbstractDefinitionDescriptor abstract}. This identifies responsibility for
  * definitions that want to be concrete.
  */
-public class P_251_AbstractMethodDeclaration
+public final class P_251_AbstractMethodDeclaration
 extends Primitive
 {
 	/**

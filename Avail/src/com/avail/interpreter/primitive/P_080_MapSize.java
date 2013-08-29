@@ -41,7 +41,7 @@ import com.avail.interpreter.*;
  * MapDescriptor map}. This is the number of entries, which is also the
  * number of keys.
  */
-public class P_080_MapSize extends Primitive
+public final class P_080_MapSize extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

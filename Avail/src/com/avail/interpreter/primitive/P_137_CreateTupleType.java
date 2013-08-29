@@ -41,7 +41,7 @@ import com.avail.interpreter.*;
  * TupleTypeDescriptor tuple type} with the given parameters. Canonize the
  * data if necessary.
  */
-public class P_137_CreateTupleType extends Primitive
+public final class P_137_CreateTupleType extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

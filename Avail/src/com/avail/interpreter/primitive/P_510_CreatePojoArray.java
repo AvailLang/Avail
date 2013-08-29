@@ -43,7 +43,7 @@ import com.avail.interpreter.*;
  * specified {@linkplain TypeDescriptor Avail type} and has the specified
  * {@linkplain IntegerDescriptor length}.
  */
-public class P_510_CreatePojoArray extends Primitive
+public final class P_510_CreatePojoArray extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

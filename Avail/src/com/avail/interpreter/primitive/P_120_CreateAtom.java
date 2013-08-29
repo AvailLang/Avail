@@ -41,7 +41,7 @@ import com.avail.interpreter.*;
  * <strong>Primitive 120:</strong> Create a new {@linkplain AtomDescriptor
  * atom} with the given name.
  */
-public class P_120_CreateAtom extends Primitive
+public final class P_120_CreateAtom extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

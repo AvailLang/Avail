@@ -43,7 +43,7 @@ import com.avail.interpreter.*;
  * set} of {@linkplain AvailRuntime#specialAtoms() special atoms} known to
  * the {@linkplain AvailRuntime Avail runtime}.
  */
-public class P_126_SpecialAtoms extends Primitive
+public final class P_126_SpecialAtoms extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

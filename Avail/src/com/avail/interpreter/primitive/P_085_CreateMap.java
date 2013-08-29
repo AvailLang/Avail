@@ -42,7 +42,7 @@ import com.avail.interpreter.*;
  * whose contents are determined by the argument {@linkplain TupleDescriptor
  * tuple} of key-value bindings, i.e. 2-element tuples.
  */
-public class P_085_CreateMap extends Primitive
+public final class P_085_CreateMap extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

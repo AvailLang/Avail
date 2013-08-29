@@ -43,7 +43,7 @@ import com.avail.interpreter.*;
  * <strong>Primitive 57:</strong> Exit the given {@linkplain
  * ContinuationDescriptor continuation} (returning result to its caller).
  */
-public class P_057_ExitContinuationWithResult extends Primitive
+public final class P_057_ExitContinuationWithResult extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

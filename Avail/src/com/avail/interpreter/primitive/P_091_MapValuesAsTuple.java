@@ -41,7 +41,7 @@ import com.avail.interpreter.*;
  * MapDescriptor map} as a {@linkplain TupleDescriptor tuple}, arbitrarily
  * ordered.
  */
-public class P_091_MapValuesAsTuple extends Primitive
+public final class P_091_MapValuesAsTuple extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

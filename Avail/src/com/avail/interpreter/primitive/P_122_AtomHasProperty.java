@@ -43,7 +43,7 @@ import com.avail.interpreter.*;
  * <strong>Primitive 122:</strong> Answer whether the second {@linkplain
  * AtomDescriptor atom} has a property whose key is the first atom.
  */
-public class P_122_AtomHasProperty extends Primitive
+public final class P_122_AtomHasProperty extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

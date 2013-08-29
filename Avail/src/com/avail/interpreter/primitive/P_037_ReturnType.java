@@ -40,7 +40,7 @@ import com.avail.interpreter.*;
  * <strong>Primitive 37:</strong> Answer the return type of the given
  * functionType.
  */
-public class P_037_ReturnType extends Primitive
+public final class P_037_ReturnType extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

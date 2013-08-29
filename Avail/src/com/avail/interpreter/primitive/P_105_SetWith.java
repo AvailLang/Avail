@@ -42,7 +42,7 @@ import com.avail.interpreter.*;
  * set} like the argument but including the new {@linkplain AvailObject
  * element}. If it was already present, answer the original set.
  */
-public class P_105_SetWith extends Primitive
+public final class P_105_SetWith extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

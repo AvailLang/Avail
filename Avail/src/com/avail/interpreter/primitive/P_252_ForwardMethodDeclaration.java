@@ -47,7 +47,7 @@ import com.avail.utility.Continuation0;
  * <strong>Primitive 252:</strong> Forward declare a method (for recursion
  * or mutual recursion).
  */
-public class P_252_ForwardMethodDeclaration
+public final class P_252_ForwardMethodDeclaration
 extends Primitive
 {
 	/**

@@ -737,7 +737,7 @@ public abstract class AbstractAvailCompiler
 	 * {@linkplain AbstractAvailCompiler compiler} to facilitate the loading of
 	 * {@linkplain ModuleDescriptor modules}.
 	 */
-	public @Nullable AvailLoader loader;
+	private @Nullable AvailLoader loader;
 
 	/**
 	 * Answer the {@linkplain AvailLoader loader} create and operated by this
@@ -746,7 +746,7 @@ public abstract class AbstractAvailCompiler
 	 *
 	 * @return A loader.
 	 */
-	public AvailLoader loader ()
+	private AvailLoader loader ()
 	{
 		final AvailLoader theLoader = loader;
 		assert theLoader != null;
@@ -5148,6 +5148,7 @@ public abstract class AbstractAvailCompiler
 			new MutableOrNull<>();
 		final Mutable<ParserState> lastStart =
 			new Mutable<>(afterHeader);
+		final AvailLoader theLoader = loader();
 		parseOutermost.value = new Con<A_Phrase>("Outermost statement")
 		{
 			@Override
@@ -5213,14 +5214,14 @@ public abstract class AbstractAvailCompiler
 							}
 							// Otherwise, make sure that all forwards were
 							// resolved.
-							else if (loader().pendingForwards.setSize() != 0)
+							else if (theLoader.pendingForwards.setSize() != 0)
 							{
 								@SuppressWarnings("resource")
 								final Formatter formatter = new Formatter();
 								formatter.format(
 									"the following forwards to be resolved:");
 								for (final A_BasicObject forward
-									: loader().pendingForwards)
+									: theLoader.pendingForwards)
 								{
 									formatter.format("%n\t%s", forward);
 								}

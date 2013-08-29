@@ -45,7 +45,7 @@ import com.avail.interpreter.*;
  * map} from {@linkplain AtomDescriptor true name} to message bundle
  * (typically only zero or one entry).
  */
-public class P_207_CompleteMessages extends Primitive
+public final class P_207_CompleteMessages extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

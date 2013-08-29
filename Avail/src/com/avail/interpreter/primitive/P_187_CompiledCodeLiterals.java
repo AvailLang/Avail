@@ -42,7 +42,7 @@ import com.avail.interpreter.*;
  * tuple} with the literals from this {@linkplain CompiledCodeDescriptor
  * compiled code}.
  */
-public class P_187_CompiledCodeLiterals extends Primitive
+public final class P_187_CompiledCodeLiterals extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

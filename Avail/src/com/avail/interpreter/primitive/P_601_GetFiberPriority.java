@@ -39,7 +39,7 @@ import com.avail.interpreter.*;
 /**
  * <strong>Primitive 601:</strong> Get the priority of a fiber.
  */
-public class P_601_GetFiberPriority
+public final class P_601_GetFiberPriority
 extends Primitive
 {
 	/**

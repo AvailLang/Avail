@@ -36,6 +36,7 @@ import static com.avail.descriptor.AvailObject.error;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import static com.avail.interpreter.Primitive.Result.*;
+import static com.avail.interpreter.Primitive.Fallibility.*;
 import static com.avail.interpreter.levelTwo.register.FixedRegister.*;
 import static java.lang.Math.max;
 import java.util.*;
@@ -1150,7 +1151,8 @@ public class L2Translator
 				primitive.returnTypeGuaranteedByVM(argTypes);
 			final boolean skipReturnCheck =
 				guaranteedReturnType.isSubtypeOf(expectedType);
-			if (primitive.hasFlag(CannotFail))
+			if (primitive.fallibilityForArgumentTypes(argTypes)
+				== CallSiteCannotFail)
 			{
 				if (skipReturnCheck)
 				{

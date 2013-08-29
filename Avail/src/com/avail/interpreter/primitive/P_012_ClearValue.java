@@ -41,7 +41,7 @@ import com.avail.interpreter.*;
  * <strong>Primitive 12:</strong> Clear the {@linkplain VariableDescriptor
  * variable}.
  */
-public class P_012_ClearValue extends Primitive
+public final class P_012_ClearValue extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

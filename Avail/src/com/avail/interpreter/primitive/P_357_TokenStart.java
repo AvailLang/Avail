@@ -42,7 +42,7 @@ import com.avail.interpreter.*;
  * TokenDescriptor token}'s zero-based start position within the source
  * module that supplied it.
  */
-public class P_357_TokenStart extends Primitive
+public final class P_357_TokenStart extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

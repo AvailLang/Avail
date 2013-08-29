@@ -43,7 +43,7 @@ import com.avail.interpreter.*;
  * is true, otherwise just answer {@linkplain NilDescriptor#nil()
  * void}.
  */
-public class P_044_IfThen extends Primitive
+public final class P_044_IfThen extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

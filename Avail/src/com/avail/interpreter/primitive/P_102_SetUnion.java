@@ -40,7 +40,7 @@ import com.avail.interpreter.*;
  * <strong>Primitive 102:</strong> Answer the union of two {@linkplain
  * SetDescriptor sets}.
  */
-public class P_102_SetUnion extends Primitive
+public final class P_102_SetUnion extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

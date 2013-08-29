@@ -47,7 +47,7 @@ import com.avail.interpreter.*;
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class P_407_BootstrapInitializingVariableDeclarationMacro extends Primitive
+public final class P_407_BootstrapInitializingVariableDeclarationMacro extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

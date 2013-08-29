@@ -42,7 +42,7 @@ import com.avail.interpreter.*;
  * <strong>Primitive 286:</strong> Compute the natural logarithm of
  * {@linkplain FloatDescriptor float} {@code a}.
  */
-public class P_286_FloatLn extends Primitive
+public final class P_286_FloatLn extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

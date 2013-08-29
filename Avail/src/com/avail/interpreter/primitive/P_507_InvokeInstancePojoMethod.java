@@ -50,7 +50,7 @@ import com.avail.interpreter.*;
  * then store the actual Java {@linkplain Throwable exception} into the
  * primitive failure {@linkplain VariableDescriptor variable}.
  */
-public class P_507_InvokeInstancePojoMethod extends Primitive
+public final class P_507_InvokeInstancePojoMethod extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

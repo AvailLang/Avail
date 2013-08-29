@@ -43,7 +43,7 @@ import com.avail.interpreter.*;
  * {@linkplain AtomDescriptor atoms}) to {@linkplain TypeDescriptor types}
  * into an {@linkplain ObjectTypeDescriptor object type}.
  */
-public class P_063_MapToObjectType extends Primitive
+public final class P_063_MapToObjectType extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

@@ -51,7 +51,7 @@ import com.avail.interpreter.Primitive;
  * distinction is only apparent when guillemet notation is used to accept
  * tuples of arguments.
  */
-public class P_255_GrammaticalRestriction
+public final class P_255_GrammaticalRestriction
 extends Primitive
 {
 	/**

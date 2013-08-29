@@ -44,7 +44,7 @@ import com.avail.interpreter.*;
  * atom} has a property whose key is the second atom, then return the
  * corresponding property value, otherwise fail.
  */
-public class P_123_AtomGetProperty extends Primitive
+public final class P_123_AtomGetProperty extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

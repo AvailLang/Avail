@@ -41,7 +41,7 @@ import com.avail.interpreter.*;
  * <strong>Primitive 359:</strong> Get the specified {@linkplain
  * LiteralTokenDescriptor literal token}'s literal value.
  */
-public class P_359_LiteralTokenValue extends Primitive
+public final class P_359_LiteralTokenValue extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

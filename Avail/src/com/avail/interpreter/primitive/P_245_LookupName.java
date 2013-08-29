@@ -45,7 +45,7 @@ import com.avail.interpreter.*;
  * {@linkplain ModuleDescriptor module} currently being {@linkplain
  * AvailLoader loaded}, creating the true name if necessary.
  */
-public class P_245_LookupName
+public final class P_245_LookupName
 extends Primitive
 {
 	/**

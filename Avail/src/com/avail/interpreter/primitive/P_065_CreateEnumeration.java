@@ -40,7 +40,7 @@ import com.avail.interpreter.*;
  * <strong>Primitive 65:</strong> Create an {@linkplain Enumeration
  * enumeration} from the given {@linkplain SetDescriptor set} of instances.
  */
-public class P_065_CreateEnumeration extends Primitive
+public final class P_065_CreateEnumeration extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

@@ -44,7 +44,7 @@ import com.avail.interpreter.*;
  * {@linkplain AtomDescriptor true name}. This is generally only used when
  * Avail code is constructing Avail code in the metacircular compiler.
  */
-public class P_220_MethodFromName extends Primitive
+public final class P_220_MethodFromName extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

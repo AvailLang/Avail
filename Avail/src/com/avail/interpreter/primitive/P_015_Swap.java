@@ -34,6 +34,7 @@ package com.avail.interpreter.primitive;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.exceptions.AvailErrorCode.E_CANNOT_SWAP_CONTENTS_OF_DIFFERENTLY_TYPED_VARIABLES;
 import static com.avail.interpreter.Primitive.Flag.*;
+import static com.avail.interpreter.Primitive.Fallibility.*;
 import java.util.List;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
@@ -42,7 +43,7 @@ import com.avail.interpreter.*;
  * <strong>Primitive 15:</strong> Swap the contents of two {@linkplain
  * VariableDescriptor variables}.
  */
-public class P_015_Swap extends Primitive
+public final class P_015_Swap extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
@@ -79,5 +80,17 @@ public class P_015_Swap extends Primitive
 				VariableTypeDescriptor.mostGeneralType(),
 				VariableTypeDescriptor.mostGeneralType()),
 			TOP.o());
+	}
+
+	@Override
+	public Fallibility fallibilityForArgumentTypes (
+		final List<? extends A_Type> argumentTypes)
+	{
+		final A_Type var1Type = argumentTypes.get(0);
+		final A_Type var2Type = argumentTypes.get(1);
+		return (var1Type.readType().isSubtypeOf(var2Type.writeType())
+				&& var2Type.readType().isSubtypeOf(var1Type.writeType()))
+			? CallSiteCannotFail
+			: CallSiteCanFail;
 	}
 }

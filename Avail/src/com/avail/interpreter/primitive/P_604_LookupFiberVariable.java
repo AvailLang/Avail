@@ -44,7 +44,7 @@ import com.avail.interpreter.*;
  * AtomDescriptor name} (key) in the variables of the current
  * {@linkplain FiberDescriptor fiber}.
  */
-public class P_604_LookupFiberVariable
+public final class P_604_LookupFiberVariable
 extends Primitive
 {
 	/**

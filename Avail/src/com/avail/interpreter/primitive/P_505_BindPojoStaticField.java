@@ -45,7 +45,7 @@ import com.avail.interpreter.*;
  * PojoFieldDescriptor variable}. Reads/writes of this variable pass through
  * to the field. Answer this variable.
  */
-public class P_505_BindPojoStaticField extends Primitive
+public final class P_505_BindPojoStaticField extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

@@ -46,7 +46,7 @@ import com.avail.utility.Continuation1;
  * FiberDescriptor fiber}. The specified argument will be converted
  * internally into a {@code string} and used to report an error message.
  */
-public class P_256_EmergencyExit extends Primitive
+public final class P_256_EmergencyExit extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

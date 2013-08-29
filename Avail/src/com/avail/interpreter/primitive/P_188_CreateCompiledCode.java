@@ -41,7 +41,7 @@ import com.avail.interpreter.*;
  * <strong>Primitive 188:</strong> Answer a {@linkplain
  * CompiledCodeDescriptor compiled code} with the given data.
  */
-public class P_188_CreateCompiledCode
+public final class P_188_CreateCompiledCode
 extends Primitive
 {
 	/**

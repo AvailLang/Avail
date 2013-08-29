@@ -41,7 +41,7 @@ import com.avail.interpreter.*;
  * <strong>Primitive 330:</strong> Extract the {@linkplain IntegerDescriptor
  * code point} from a {@linkplain CharacterDescriptor character}.
  */
-public class P_330_CharacterCodePoint extends Primitive
+public final class P_330_CharacterCodePoint extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

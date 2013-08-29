@@ -43,7 +43,7 @@ import com.avail.interpreter.*;
  * double} {@code a*(2**b)} without intermediate overflow or any precision
  * loss.
  */
-public class P_321_DoubleTimesTwoPower extends Primitive
+public final class P_321_DoubleTimesTwoPower extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

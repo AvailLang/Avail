@@ -35,6 +35,7 @@ package com.avail.interpreter.primitive;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode.E_SPECIAL_ATOM;
 import static com.avail.interpreter.Primitive.Flag.*;
+import static com.avail.interpreter.Primitive.Fallibility.*;
 import java.util.List;
 import com.avail.AvailRuntime;
 import com.avail.descriptor.*;
@@ -98,5 +99,38 @@ extends Primitive
 	{
 		return AbstractEnumerationTypeDescriptor.withInstance(
 			E_SPECIAL_ATOM.numericCode());
+	}
+
+	@Override
+	public Fallibility fallibilityForArgumentTypes (
+		final List<? extends A_Type> argumentTypes)
+	{
+		@SuppressWarnings("unused")
+		final A_Type varType = argumentTypes.get(0);
+		final A_Type keyType = argumentTypes.get(1);
+		@SuppressWarnings("unused")
+		final A_Type functionType = argumentTypes.get(2);
+		if (keyType.isEnumeration())
+		{
+			boolean allSpecial = true;
+			boolean noneSpecial = true;
+			for (final A_BasicObject key : keyType.instances())
+			{
+				final boolean isSpecial = AvailRuntime.isSpecialAtom(key);
+				allSpecial = allSpecial && isSpecial;
+				noneSpecial = noneSpecial && !isSpecial;
+			}
+			// The aggregate booleans can only both be true in the degenerate
+			// case that keyType is ⊥, which should be impossible.
+			if (noneSpecial)
+			{
+				return CallSiteCannotFail;
+			}
+			if (allSpecial)
+			{
+				return CallSiteMustFail;
+			}
+		}
+		return CallSiteCanFail;
 	}
 }

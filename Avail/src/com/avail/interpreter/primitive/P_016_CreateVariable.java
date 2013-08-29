@@ -41,7 +41,7 @@ import com.avail.interpreter.*;
  * VariableDescriptor variable} with the given inner
  * type.
  */
-public class P_016_CreateVariable extends Primitive
+public final class P_016_CreateVariable extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

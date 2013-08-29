@@ -43,7 +43,7 @@ import com.avail.interpreter.*;
  * <strong>Primitive 318:</strong> Divide {@linkplain DoubleDescriptor
  * double} {@code a} by double {@code b}, but answer the remainder.
  */
-public class P_318_DoubleModulus extends Primitive
+public final class P_318_DoubleModulus extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

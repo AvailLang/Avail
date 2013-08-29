@@ -40,7 +40,7 @@ import com.avail.interpreter.*;
  * <strong>Primitive 53:</strong> Answer the {@linkplain FunctionDescriptor
  * function} of a {@linkplain ContinuationDescriptor continuation}.
  */
-public class P_053_ContinuationFunction extends Primitive
+public final class P_053_ContinuationFunction extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

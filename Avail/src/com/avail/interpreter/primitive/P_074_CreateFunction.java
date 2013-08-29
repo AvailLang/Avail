@@ -42,7 +42,7 @@ import com.avail.interpreter.*;
  * function} built from the {@linkplain CompiledCodeDescriptor compiled code}
  * and the outer variables.
  */
-public class P_074_CreateFunction extends Primitive
+public final class P_074_CreateFunction extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

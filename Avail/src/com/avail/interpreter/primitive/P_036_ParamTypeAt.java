@@ -33,6 +33,7 @@ package com.avail.interpreter.primitive;
 
 import static com.avail.exceptions.AvailErrorCode.E_SUBSCRIPT_OUT_OF_BOUNDS;
 import static com.avail.interpreter.Primitive.Flag.CanFold;
+import static com.avail.interpreter.Primitive.Fallibility.*;
 import java.util.List;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
@@ -41,7 +42,8 @@ import com.avail.interpreter.*;
  * <strong>Primitive 36:</strong> Answer the type of the parameter at the
  * given index within the given functionType.
  */
-public class P_036_ParamTypeAt extends Primitive
+public final class P_036_ParamTypeAt
+extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
@@ -58,7 +60,6 @@ public class P_036_ParamTypeAt extends Primitive
 		assert args.size() == 2;
 		final A_Type functionType = args.get(0);
 		final A_Number indexObject = args.get(1);
-
 		if (!indexObject.isInt())
 		{
 			return interpreter.primitiveFailure(
@@ -78,5 +79,17 @@ public class P_036_ParamTypeAt extends Primitive
 				FunctionTypeDescriptor.meta(),
 				IntegerRangeTypeDescriptor.naturalNumbers()),
 			InstanceMetaDescriptor.anyMeta());
+	}
+
+	@Override
+	public Fallibility fallibilityForArgumentTypes (
+		final List<? extends A_Type> argumentTypes)
+	{
+		@SuppressWarnings("unused")
+		final A_Type functionMeta = argumentTypes.get(0);
+		final A_Type indexType = argumentTypes.get(1);
+		return indexType.isSubtypeOf(PojoTypeDescriptor.intRange())
+			? CallSiteCannotFail
+			: CallSiteCanFail;
 	}
 }

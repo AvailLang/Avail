@@ -44,7 +44,7 @@ import com.avail.interpreter.*;
  * <strong>Primitive 254:</strong> Read one character from the standard input
  * stream.
  */
-public class P_254_ReadFromStandardInput
+public final class P_254_ReadFromStandardInput
 extends Primitive
 {
 	/**

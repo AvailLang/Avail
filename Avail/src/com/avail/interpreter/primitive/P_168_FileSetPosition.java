@@ -47,7 +47,7 @@ import com.avail.interpreter.*;
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class P_168_FileSetPosition
+public final class P_168_FileSetPosition
 extends Primitive
 {
 	/**

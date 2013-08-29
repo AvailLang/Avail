@@ -51,7 +51,7 @@ import com.avail.interpreter.*;
  * Java {@linkplain Throwable exception} into the primitive failure
  * {@linkplain VariableDescriptor variable}.
  */
-public class P_503_InvokePojoConstructor extends Primitive
+public final class P_503_InvokePojoConstructor extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

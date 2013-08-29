@@ -42,7 +42,7 @@ import com.avail.interpreter.*;
  * have been defined (yet) for this {@linkplain MessageBundleDescriptor
  * bundle}.
  */
-public class P_214_BundleHasRestrictions extends Primitive
+public final class P_214_BundleHasRestrictions extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

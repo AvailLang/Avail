@@ -40,7 +40,7 @@ import com.avail.interpreter.*;
  * <strong>Primitive 136:</strong> Concatenate a {@linkplain TupleDescriptor
  * tuple} of tuples together into a single tuple.
  */
-public class P_136_ConcatenateTuples extends Primitive
+public final class P_136_ConcatenateTuples extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

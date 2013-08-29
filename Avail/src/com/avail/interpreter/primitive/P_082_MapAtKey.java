@@ -42,7 +42,7 @@ import com.avail.interpreter.*;
  * <strong>Primitive 82:</strong> Look up the key in the {@linkplain
  * MapDescriptor map}, answering the corresponding value.
  */
-public class P_082_MapAtKey extends Primitive
+public final class P_082_MapAtKey extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

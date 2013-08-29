@@ -43,7 +43,7 @@ import com.avail.interpreter.*;
  * <strong>Primitive 174:</strong> Rename the {@linkplain File file} with
  * the specified source filename.
  */
-public class P_174_FileRename
+public final class P_174_FileRename
 extends Primitive
 {
 	/**

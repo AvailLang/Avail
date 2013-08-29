@@ -47,7 +47,7 @@ import com.avail.utility.Continuation1;
  * {@link AvailAssertionFailedException} (in Java) that contains the
  * provided {@linkplain TupleTypeDescriptor#stringType() message}.
  */
-public class P_260_Assert extends Primitive
+public final class P_260_Assert extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

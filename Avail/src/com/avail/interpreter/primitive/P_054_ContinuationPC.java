@@ -43,7 +43,7 @@ import com.avail.interpreter.*;
  * FunctionDescriptor function}'s {@linkplain CompiledCodeDescriptor code}'s
  * {@linkplain TupleDescriptor tuple} of nybblecodes.
  */
-public class P_054_ContinuationPC extends Primitive
+public final class P_054_ContinuationPC extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

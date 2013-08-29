@@ -40,7 +40,7 @@ import com.avail.interpreter.*;
  * <strong>Primitive 39:</strong> Answer the most general function type with
  * the given return type.
  */
-public class P_039_CreateGeneralFunctionType extends Primitive
+public final class P_039_CreateGeneralFunctionType extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

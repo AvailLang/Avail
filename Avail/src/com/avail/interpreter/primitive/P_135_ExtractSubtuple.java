@@ -41,7 +41,7 @@ import com.avail.interpreter.*;
  * <strong>Primitive 135:</strong> Extract a {@linkplain TupleDescriptor
  * subtuple} with the given range of elements.
  */
-public class P_135_ExtractSubtuple extends Primitive
+public final class P_135_ExtractSubtuple extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

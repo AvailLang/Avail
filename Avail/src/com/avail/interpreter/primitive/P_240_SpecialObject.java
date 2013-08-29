@@ -44,7 +44,7 @@ import com.avail.interpreter.*;
  * AvailRuntime#specialObject(int) special object} with the specified
  * ordinal.
  */
-public class P_240_SpecialObject extends Primitive
+public final class P_240_SpecialObject extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

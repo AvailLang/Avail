@@ -44,7 +44,7 @@ import com.avail.interpreter.*;
  * AtomDescriptor atom}, remove the property with the given property key
  * (another atom).
  */
-public class P_125_AtomRemoveProperty extends Primitive
+public final class P_125_AtomRemoveProperty extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

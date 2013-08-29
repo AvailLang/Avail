@@ -41,7 +41,7 @@ import com.avail.interpreter.*;
  * {@linkplain FunctionDescriptor functions} derived from this {@linkplain
  * CompiledCodeDescriptor compiled code}.
  */
-public class P_182_CompiledCodeNumOuters extends Primitive
+public final class P_182_CompiledCodeNumOuters extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

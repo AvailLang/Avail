@@ -45,7 +45,7 @@ import com.avail.interpreter.*;
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class P_354_CreateReferenceExpression extends Primitive
+public final class P_354_CreateReferenceExpression extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

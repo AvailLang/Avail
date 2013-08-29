@@ -42,7 +42,7 @@ import com.avail.interpreter.*;
  * map}, but without the given key. Answer the original map if the key does
  * not occur in it.
  */
-public class P_084_MapWithoutKey extends Primitive
+public final class P_084_MapWithoutKey extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

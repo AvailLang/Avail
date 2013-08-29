@@ -42,7 +42,7 @@ import com.avail.interpreter.*;
  * MessageBundleDescriptor message bundle}'s message (an {@linkplain
  * AtomDescriptor atom}, the message's true name).
  */
-public class P_211_BundleMessage extends Primitive
+public final class P_211_BundleMessage extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

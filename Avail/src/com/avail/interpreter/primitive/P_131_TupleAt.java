@@ -42,7 +42,7 @@ import com.avail.interpreter.*;
  * <strong>Primitive 131:</strong> Look up an element in the {@linkplain
  * TupleDescriptor tuple}.
  */
-public class P_131_TupleAt extends Primitive
+public final class P_131_TupleAt extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

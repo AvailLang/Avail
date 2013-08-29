@@ -41,7 +41,7 @@ import com.avail.interpreter.*;
  * <strong>Primitive 121:</strong> Answer the name of an {@linkplain
  * AtomDescriptor atom}.
  */
-public class P_121_AtomName extends Primitive
+public final class P_121_AtomName extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

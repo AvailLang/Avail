@@ -40,7 +40,7 @@ import com.avail.interpreter.*;
  * <strong>Primitive 35:</strong> Answer a tuple type describing the
  * parameters accepted by the function type.
  */
-public class P_035_ParamsType extends Primitive
+public final class P_035_ParamsType extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

@@ -40,7 +40,7 @@ import com.avail.interpreter.*;
  * <strong>Primitive 184:</strong> Answer the {@linkplain TupleDescriptor
  * nybblecodes} of the {@linkplain CompiledCodeDescriptor compiled code}.
  */
-public class P_184_CompiledCodeNybbles extends Primitive
+public final class P_184_CompiledCodeNybbles extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

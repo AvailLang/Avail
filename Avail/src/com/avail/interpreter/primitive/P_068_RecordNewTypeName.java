@@ -42,7 +42,7 @@ import com.avail.interpreter.*;
  * ObjectTypeDescriptor user-defined object type}. This can be useful for
  * debugging.
  */
-public class P_068_RecordNewTypeName extends Primitive
+public final class P_068_RecordNewTypeName extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

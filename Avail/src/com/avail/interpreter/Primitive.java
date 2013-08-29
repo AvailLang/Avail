@@ -212,6 +212,33 @@ implements IntegerEnumSlotDescriptionEnum
 	}
 
 	/**
+	 * The actual fallibility of a fallible {@linkplain Primitive} when invoked
+	 * with arguments of specific {@linkplain TypeDescriptor types}.
+	 */
+	public enum Fallibility
+	{
+		/**
+		 * The fallible {@linkplain Primitive primitive} cannot fail when
+		 * invoked with arguments of the specified {@linkplain TypeDescriptor
+		 * types}.
+		 */
+		CallSiteCannotFail,
+
+		/**
+		 * The fallible {@linkplain Primitive primitive} can indeed fail when
+		 * invoked with arguments of the specified {@linkplain TypeDescriptor
+		 * types}.
+		 */
+		CallSiteCanFail,
+
+		/**
+		 * The fallible {@linkplain Primitive primitive} must fail when invoked
+		 * with arguments of the specified {@linkplain TypeDescriptor types}.
+		 */
+		CallSiteMustFail
+	}
+
+	/**
 	 * Attempt this primitive with the given arguments, and the {@linkplain
 	 * Interpreter interpreter} on whose behalf to attempt the primitive.
 	 * If the primitive fails, it should set the primitive failure code by
@@ -358,6 +385,23 @@ implements IntegerEnumSlotDescriptionEnum
 			cachedFailureVariableType = failureType;
 		}
 		return failureType;
+	}
+
+	/**
+	 * Answer the {@linkplain Fallibility fallibility} of the {@linkplain
+	 * Primitive primitive} for a call site with the given argument {@linkplain
+	 * TypeDescriptor types}.
+	 *
+	 * @param argumentTypes
+	 *        A {@linkplain List list} of argument types.
+	 * @return The fallibility of the call site.
+	 */
+	public Fallibility fallibilityForArgumentTypes (
+		final List<? extends A_Type> argumentTypes)
+	{
+		return hasFlag(Flag.CannotFail)
+			? Fallibility.CallSiteCannotFail
+			: Fallibility.CallSiteCanFail;
 	}
 
 	/**

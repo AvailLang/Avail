@@ -44,7 +44,7 @@ import com.avail.interpreter.*;
  * assuming the keys' types and values' types also agree with those
  * specified in the map type.
  */
-public class P_088_MapTypeSizes extends Primitive
+public final class P_088_MapTypeSizes extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

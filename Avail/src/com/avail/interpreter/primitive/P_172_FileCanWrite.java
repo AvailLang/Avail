@@ -43,7 +43,7 @@ import com.avail.interpreter.*;
  * <strong>Primitive 172:</strong> Is the {@linkplain File file} with the
  * specified filename writable by the OS fiber?
  */
-public class P_172_FileCanWrite
+public final class P_172_FileCanWrite
 extends Primitive
 {
 	/**

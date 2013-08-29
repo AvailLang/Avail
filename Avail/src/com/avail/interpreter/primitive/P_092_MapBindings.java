@@ -42,7 +42,7 @@ import com.avail.interpreter.*;
  * MapDescriptor map} as a {@linkplain TupleDescriptor tuple} of 2-tuples of
  * key and value.
  */
-public class P_092_MapBindings extends Primitive
+public final class P_092_MapBindings extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

@@ -44,7 +44,7 @@ import com.avail.interpreter.*;
  * {@linkplain MessageBundleDescriptor bundle}. This includes abstract
  * signatures and forward signatures.
  */
-public class P_213_BundleSignatures extends Primitive
+public final class P_213_BundleSignatures extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

@@ -43,7 +43,7 @@ import com.avail.interpreter.*;
  * invokes the {@linkplain FunctionDescriptor body block}. A handler block is
  * only invoked when an exception is raised.
  */
-public class P_200_CatchException extends Primitive
+public final class P_200_CatchException extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

@@ -42,7 +42,7 @@ import com.avail.interpreter.*;
  * current {@linkplain FiberDescriptor fiber}? Answer the current value of the
  * appropriate interrupt flag and simultaneously clear it.
  */
-public class P_607_IsTerminationRequested
+public final class P_607_IsTerminationRequested
 extends Primitive
 {
 	/**

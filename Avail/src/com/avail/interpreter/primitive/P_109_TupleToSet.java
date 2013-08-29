@@ -40,7 +40,7 @@ import com.avail.interpreter.*;
  * <strong>Primitive 109:</strong> Convert a {@linkplain TupleDescriptor
  * tuple} into a {@linkplain SetDescriptor set}.
  */
-public class P_109_TupleToSet extends Primitive
+public final class P_109_TupleToSet extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

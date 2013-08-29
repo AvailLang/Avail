@@ -42,7 +42,7 @@ import com.avail.interpreter.*;
  * ContinuationDescriptor continuation}. The variable will be unassigned if
  * the continuation has no caller.
  */
-public class P_052_ContinuationCaller extends Primitive
+public final class P_052_ContinuationCaller extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

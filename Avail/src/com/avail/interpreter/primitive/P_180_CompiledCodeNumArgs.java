@@ -40,7 +40,7 @@ import com.avail.interpreter.*;
  * <strong>Primitive 180:</strong> Answer the number of arguments expected
  * by the {@linkplain CompiledCodeDescriptor compiled code}.
  */
-public class P_180_CompiledCodeNumArgs extends Primitive
+public final class P_180_CompiledCodeNumArgs extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

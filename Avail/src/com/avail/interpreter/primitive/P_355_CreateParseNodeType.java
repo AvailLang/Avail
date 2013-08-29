@@ -44,7 +44,7 @@ import com.avail.interpreter.*;
  * node type of the same {@linkplain ParseNodeKind kind} but with the specified
  * expression type.
  */
-public class P_355_CreateParseNodeType extends Primitive
+public final class P_355_CreateParseNodeType extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
