@@ -41,7 +41,7 @@ import com.avail.interpreter.*;
  * Extract the first literal from the {@linkplain CompiledCodeDescriptor
  * compiled code} that the interpreter has squirreled away for this purpose.
  */
-public class P_340_PushConstant extends Primitive
+public final class P_340_PushConstant extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

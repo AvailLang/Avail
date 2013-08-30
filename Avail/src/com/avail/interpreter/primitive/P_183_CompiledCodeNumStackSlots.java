@@ -41,7 +41,7 @@ import com.avail.interpreter.*;
  * counting arguments and locals) created for the {@linkplain
  * CompiledCodeDescriptor compiled code}.
  */
-public class P_183_CompiledCodeNumStackSlots extends Primitive
+public final class P_183_CompiledCodeNumStackSlots extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

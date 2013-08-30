@@ -41,7 +41,7 @@ import com.avail.interpreter.*;
  * tuple} of outer variables captured by this {@linkplain FunctionDescriptor
  * function}.
  */
-public class P_073_OuterVariables extends Primitive
+public final class P_073_OuterVariables extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

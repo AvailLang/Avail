@@ -43,7 +43,7 @@ import com.avail.interpreter.*;
  * key} and {@code value}. Overwrite any existing value if the key is
  * already present.
  */
-public class P_083_MapReplacingKey extends Primitive
+public final class P_083_MapReplacingKey extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

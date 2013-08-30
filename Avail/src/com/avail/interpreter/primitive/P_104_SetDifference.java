@@ -40,7 +40,7 @@ import com.avail.interpreter.*;
  * <strong>Primitive 104:</strong> Answer the difference between two
  * {@linkplain SetDescriptor sets} ({@code set1 - set2}).
  */
-public class P_104_SetDifference extends Primitive
+public final class P_104_SetDifference extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

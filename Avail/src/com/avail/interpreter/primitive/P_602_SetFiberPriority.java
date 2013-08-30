@@ -40,7 +40,7 @@ import com.avail.interpreter.*;
 /**
  * <strong>Primitive 602:</strong> Set the priority of a fiber.
  */
-public class P_602_SetFiberPriority
+public final class P_602_SetFiberPriority
 extends Primitive
 {
 	/**

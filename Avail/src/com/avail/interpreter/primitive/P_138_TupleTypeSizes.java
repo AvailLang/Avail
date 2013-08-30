@@ -44,7 +44,7 @@ import com.avail.interpreter.*;
  * tuple type, assuming the element {@linkplain TypeDescriptor types} are
  * consistent with those specified by the tuple type.
  */
-public class P_138_TupleTypeSizes extends Primitive
+public final class P_138_TupleTypeSizes extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

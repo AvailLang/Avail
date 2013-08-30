@@ -43,7 +43,7 @@ import com.avail.interpreter.*;
  * <strong>Primitive 132:</strong> Answer a {@linkplain TupleDescriptor
  * tuple} like the given one, but with an element changed as indicated.
  */
-public class P_132_TupleReplaceAt extends Primitive
+public final class P_132_TupleReplaceAt extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

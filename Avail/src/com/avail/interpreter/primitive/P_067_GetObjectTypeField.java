@@ -43,7 +43,7 @@ import com.avail.interpreter.*;
  * AtomDescriptor field}'s type from the {@linkplain ObjectTypeDescriptor
  * object type}.
  */
-public class P_067_GetObjectTypeField extends Primitive
+public final class P_067_GetObjectTypeField extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

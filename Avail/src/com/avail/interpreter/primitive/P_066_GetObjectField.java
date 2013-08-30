@@ -42,7 +42,7 @@ import com.avail.interpreter.*;
  * <strong>Primitive 66:</strong> Extract the specified {@linkplain
  * AtomDescriptor field} from the {@linkplain ObjectDescriptor object}.
  */
-public class P_066_GetObjectField extends Primitive
+public final class P_066_GetObjectField extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

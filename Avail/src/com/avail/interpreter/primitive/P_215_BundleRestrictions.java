@@ -41,7 +41,7 @@ import com.avail.interpreter.*;
  * <strong>Primitive 215:</strong> Answer the current precedence
  * restrictions for this {@linkplain MessageBundleDescriptor bundle}.
  */
-public class P_215_BundleRestrictions extends Primitive
+public final class P_215_BundleRestrictions extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

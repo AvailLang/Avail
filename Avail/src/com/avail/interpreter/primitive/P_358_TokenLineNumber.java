@@ -42,7 +42,7 @@ import com.avail.interpreter.*;
  * TokenDescriptor token}'s one-based line number within the source module
  * that supplied it.
  */
-public class P_358_TokenLineNumber extends Primitive
+public final class P_358_TokenLineNumber extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

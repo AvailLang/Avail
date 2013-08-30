@@ -43,7 +43,7 @@ import com.avail.interpreter.*;
  * <strong>Primitive 173:</strong> Is the {@linkplain File file} with the
  * specified filename executable by the OS fiber?
  */
-public class P_173_FileCanExecute
+public final class P_173_FileCanExecute
 extends Primitive
 {
 	/**

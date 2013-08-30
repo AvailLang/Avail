@@ -41,7 +41,7 @@ import com.avail.interpreter.*;
  * {@linkplain IntegerRangeTypeDescriptor integer range} if it includes the
  * answer to determine whether it is inclusive or exclusive.
  */
-public class P_008_LowerBound extends Primitive
+public final class P_008_LowerBound extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

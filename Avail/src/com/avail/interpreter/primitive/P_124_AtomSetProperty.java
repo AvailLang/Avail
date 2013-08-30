@@ -44,7 +44,7 @@ import com.avail.interpreter.*;
  * AtomDescriptor atom}, associate the given property key (another atom)
  * and property value.  This is a destructive operation.
  */
-public class P_124_AtomSetProperty extends Primitive
+public final class P_124_AtomSetProperty extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

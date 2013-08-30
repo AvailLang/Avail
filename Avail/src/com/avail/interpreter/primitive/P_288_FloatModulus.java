@@ -43,7 +43,7 @@ import com.avail.interpreter.*;
  * <strong>Primitive 288:</strong> Divide {@linkplain FloatDescriptor float}
  * {@code a} by float {@code b}, but answer the remainder.
  */
-public class P_288_FloatModulus extends Primitive
+public final class P_288_FloatModulus extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

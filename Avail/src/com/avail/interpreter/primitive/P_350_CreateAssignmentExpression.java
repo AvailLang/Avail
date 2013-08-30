@@ -45,7 +45,7 @@ import com.avail.interpreter.*;
  * node}. Such a node also produces the assigned value as its result, so it
  * can be embedded as a subexpression.
  */
-public class P_350_CreateAssignmentExpression extends Primitive
+public final class P_350_CreateAssignmentExpression extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

@@ -40,7 +40,7 @@ import com.avail.interpreter.*;
  * <strong>Primitive 90:</strong> Answer the value {@linkplain
  * TypeDescriptor type} of a {@linkplain MapTypeDescriptor map type}.
  */
-public class P_090_MapTypeValueType extends Primitive
+public final class P_090_MapTypeValueType extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

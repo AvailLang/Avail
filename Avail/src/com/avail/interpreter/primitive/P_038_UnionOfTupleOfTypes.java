@@ -40,7 +40,7 @@ import com.avail.interpreter.*;
  * <strong>Primitive 38:</strong> Answer the union of the types in the given
  * tuple of types.
  */
-public class P_038_UnionOfTupleOfTypes extends Primitive
+public final class P_038_UnionOfTupleOfTypes extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

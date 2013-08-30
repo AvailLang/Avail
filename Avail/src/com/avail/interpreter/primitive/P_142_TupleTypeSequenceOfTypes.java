@@ -44,7 +44,7 @@ import com.avail.interpreter.*;
  * type}. Use {@linkplain BottomTypeDescriptor bottom} for indices out of
  * range.
  */
-public class P_142_TupleTypeSequenceOfTypes extends Primitive
+public final class P_142_TupleTypeSequenceOfTypes extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

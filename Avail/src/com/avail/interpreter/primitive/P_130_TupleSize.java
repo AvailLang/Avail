@@ -40,7 +40,7 @@ import com.avail.interpreter.*;
  * <strong>Primitive 130:</strong> Answer the size of the {@linkplain
  * TupleDescriptor tuple}.
  */
-public class P_130_TupleSize extends Primitive
+public final class P_130_TupleSize extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

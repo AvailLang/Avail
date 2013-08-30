@@ -33,6 +33,7 @@ package com.avail.interpreter.primitive;
 
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.interpreter.Primitive.Flag.*;
+import static com.avail.interpreter.Primitive.Fallibility.*;
 import java.util.List;
 import com.avail.descriptor.*;
 import com.avail.exceptions.VariableSetException;
@@ -42,7 +43,7 @@ import com.avail.interpreter.*;
  * <strong>Primitive 11:</strong> Assign the {@linkplain AvailObject value}
  * to the {@linkplain VariableDescriptor variable}.
  */
-public class P_011_SetValue
+public final class P_011_SetValue
 extends Primitive
 {
 	/**
@@ -79,5 +80,16 @@ extends Primitive
 				VariableTypeDescriptor.mostGeneralType(),
 				ANY.o()),
 			TOP.o());
+	}
+
+	@Override
+	public Fallibility fallibilityForArgumentTypes (
+		final List<? extends A_Type> argumentTypes)
+	{
+		final A_Type varType = argumentTypes.get(0);
+		final A_Type valueType = argumentTypes.get(1);
+		return valueType.isSubtypeOf(varType.writeType())
+			? CallSiteCannotFail
+			: CallSiteCanFail;
 	}
 }

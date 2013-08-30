@@ -42,7 +42,7 @@ import com.avail.interpreter.*;
  * <strong>Primitive 356:</strong> Get the lexeme associated with the
  * specified {@linkplain TokenDescriptor token}.
  */
-public class P_356_TokenLexeme extends Primitive
+public final class P_356_TokenLexeme extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

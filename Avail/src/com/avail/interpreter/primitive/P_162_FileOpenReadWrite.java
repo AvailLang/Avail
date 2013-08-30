@@ -46,7 +46,7 @@ import com.avail.interpreter.*;
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class P_162_FileOpenReadWrite
+public final class P_162_FileOpenReadWrite
 extends Primitive
 {
 	/**

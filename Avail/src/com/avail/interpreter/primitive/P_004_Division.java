@@ -31,7 +31,9 @@
  */
 package com.avail.interpreter.primitive;
 
+import static com.avail.descriptor.InfinityDescriptor.*;
 import static com.avail.descriptor.TypeDescriptor.Types.NUMBER;
+import static com.avail.interpreter.Primitive.Fallibility.*;
 import static com.avail.interpreter.Primitive.Flag.CanFold;
 import java.util.List;
 import com.avail.descriptor.*;
@@ -41,7 +43,8 @@ import com.avail.interpreter.*;
 /**
  * <strong>Primitive 4:</strong> Divide an extended integer by another one.
  */
-public class P_004_Division extends Primitive
+public final class P_004_Division
+extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
@@ -77,5 +80,33 @@ public class P_004_Division extends Primitive
 				NUMBER.o(),
 				NUMBER.o()),
 			NUMBER.o());
+	}
+
+	@Override
+	public Fallibility fallibilityForArgumentTypes (
+		final List<? extends A_Type> argumentTypes)
+	{
+		final A_Type aType = argumentTypes.get(0);
+		final A_Type bType = argumentTypes.get(1);
+		if (aType.isIntegerRangeType() && bType.isIntegerRangeType())
+		{
+			final boolean aTypeIncludesInfinity =
+				negativeInfinity().isInstanceOf(aType)
+				|| positiveInfinity().isInstanceOf(aType);
+			final boolean bTypeIncludesInfinity =
+				negativeInfinity().isInstanceOf(bType)
+				|| positiveInfinity().isInstanceOf(bType);
+			final boolean bTypeIncludesZero =
+				IntegerDescriptor.zero().isInstanceOf(bType);
+			if (bTypeIncludesZero
+				|| (aTypeIncludesInfinity && bTypeIncludesInfinity))
+			{
+				return CallSiteCanFail;
+			}
+		}
+		return (aType.isFloat() || aType.isDouble()
+				|| bType.isFloat() || bType.isDouble())
+			? CallSiteCannotFail
+			: CallSiteCanFail;
 	}
 }

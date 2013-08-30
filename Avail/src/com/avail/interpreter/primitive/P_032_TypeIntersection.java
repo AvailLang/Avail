@@ -40,7 +40,7 @@ import com.avail.interpreter.*;
  * <strong>Primitive 32:</strong> Answer the type intersection of the
  * specified {@linkplain TypeDescriptor types}.
  */
-public class P_032_TypeIntersection extends Primitive
+public final class P_032_TypeIntersection extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

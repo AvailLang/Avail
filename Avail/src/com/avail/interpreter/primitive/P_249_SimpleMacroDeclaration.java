@@ -53,7 +53,7 @@ import com.avail.utility.Continuation0;
  * complete macro.  It is constrained to answer a {@linkplain
  * ParseNodeDescriptor parse node}.
  */
-public class P_249_SimpleMacroDeclaration
+public final class P_249_SimpleMacroDeclaration
 extends Primitive
 {
 	/**

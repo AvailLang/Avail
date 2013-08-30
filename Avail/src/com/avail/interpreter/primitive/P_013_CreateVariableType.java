@@ -40,7 +40,7 @@ import com.avail.interpreter.*;
  * <strong>Primitive 13:</strong> Create a {@linkplain
  * VariableTypeDescriptor variable type} using the given inner type.
  */
-public class P_013_CreateVariableType extends Primitive
+public final class P_013_CreateVariableType extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

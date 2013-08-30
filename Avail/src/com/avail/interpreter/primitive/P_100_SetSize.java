@@ -40,7 +40,7 @@ import com.avail.interpreter.*;
  * <strong>Primitive 100:</strong> Answer the size of the {@linkplain
  * SetDescriptor set}.
  */
-public class P_100_SetSize extends Primitive
+public final class P_100_SetSize extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

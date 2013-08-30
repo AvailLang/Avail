@@ -41,7 +41,7 @@ import com.avail.interpreter.*;
  * <strong>Primitive 101:</strong> Check if the {@linkplain AvailObject
  * object} is an element of the {@linkplain SetDescriptor set}.
  */
-public class P_101_ElementInSet extends Primitive
+public final class P_101_ElementInSet extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

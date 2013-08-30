@@ -43,7 +43,7 @@ import com.avail.interpreter.*;
  * double} to an {@linkplain IntegerDescriptor integer}, rounding towards
  * zero.
  */
-public class P_319_DoubleTruncatedAsInteger extends Primitive
+public final class P_319_DoubleTruncatedAsInteger extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

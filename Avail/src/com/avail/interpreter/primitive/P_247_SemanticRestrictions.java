@@ -43,7 +43,7 @@ import com.avail.interpreter.*;
  * would run for a call site for the specified {@linkplain
  * MethodDescriptor method} and tuple of argument types.
  */
-public class P_247_SemanticRestrictions
+public final class P_247_SemanticRestrictions
 extends Primitive
 {
 	/**

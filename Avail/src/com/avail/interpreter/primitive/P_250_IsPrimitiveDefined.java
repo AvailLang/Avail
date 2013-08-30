@@ -40,7 +40,7 @@ import com.avail.interpreter.*;
  * <strong>Primitive 250:</strong> Is there a {@linkplain Primitive
  * primitive} with the specified ordinal?
  */
-public class P_250_IsPrimitiveDefined
+public final class P_250_IsPrimitiveDefined
 extends Primitive
 {
 	/**

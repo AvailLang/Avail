@@ -41,7 +41,7 @@ import com.avail.interpreter.*;
  * <strong>Primitive 5:</strong> Compare two extended integers and answer a
  * {@linkplain EnumerationTypeDescriptor#booleanObject() boolean}.
  */
-public class P_005_LessThan extends Primitive
+public final class P_005_LessThan extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

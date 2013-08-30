@@ -40,7 +40,7 @@ import com.avail.interpreter.*;
  * <strong>Primitive 181:</strong> Answer the number of locals created by
  * the {@linkplain CompiledCodeDescriptor compiled code}.
  */
-public class P_181_CompiledCodeNumLocals extends Primitive
+public final class P_181_CompiledCodeNumLocals extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

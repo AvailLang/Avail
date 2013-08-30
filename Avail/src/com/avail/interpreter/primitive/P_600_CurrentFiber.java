@@ -40,7 +40,7 @@ import com.avail.interpreter.*;
  * <strong>Primitive 600:</strong> Answer the currently running {@linkplain
  * FiberDescriptor fiber}.
  */
-public class P_600_CurrentFiber
+public final class P_600_CurrentFiber
 extends Primitive
 {
 	/**

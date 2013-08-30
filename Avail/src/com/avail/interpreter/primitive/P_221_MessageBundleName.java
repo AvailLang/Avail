@@ -44,7 +44,7 @@ import com.avail.interpreter.*;
  * used when Avail code is saving or loading Avail code in the object dumper
  * / loader.
  */
-public class P_221_MessageBundleName extends Primitive
+public final class P_221_MessageBundleName extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

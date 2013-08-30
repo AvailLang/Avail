@@ -41,7 +41,7 @@ import com.avail.interpreter.*;
  * <strong>Primitive 281:</strong> Convert the numeric argument to a
  * {@linkplain DoubleDescriptor double}.
  */
-public class P_281_AsDouble extends Primitive
+public final class P_281_AsDouble extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

@@ -40,7 +40,7 @@ import com.avail.interpreter.*;
  * <strong>Primitive 86:</strong> Answer the keys of this {@linkplain
  * MapDescriptor map} as a {@linkplain SetDescriptor set}.
  */
-public class P_086_MapKeysAsSet extends Primitive
+public final class P_086_MapKeysAsSet extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

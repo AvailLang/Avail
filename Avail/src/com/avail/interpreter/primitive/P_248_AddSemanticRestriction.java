@@ -42,7 +42,7 @@ import com.avail.interpreter.*;
 /**
  * <strong>Primitive 248:</strong> Add a type restriction function.
  */
-public class P_248_AddSemanticRestriction
+public final class P_248_AddSemanticRestriction
 extends Primitive
 {
 	/**

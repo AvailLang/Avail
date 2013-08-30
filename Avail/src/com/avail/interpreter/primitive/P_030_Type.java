@@ -40,7 +40,7 @@ import com.avail.interpreter.*;
 /**
  * <strong>Primitive 30:</strong> Answer the type of the given object.
  */
-public class P_030_Type extends Primitive
+public final class P_030_Type extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

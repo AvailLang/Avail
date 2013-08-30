@@ -46,7 +46,7 @@ import com.avail.interpreter.*;
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class P_411_BootstrapSendAsStatementMacro extends Primitive
+public final class P_411_BootstrapSendAsStatementMacro extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

@@ -42,7 +42,7 @@ import com.avail.interpreter.*;
  * <strong>Primitive 317:</strong> Compute {@code e^a}, the natural
  * exponential of the {@linkplain DoubleDescriptor double} {@code a}.
  */
-public class P_317_DoubleExp extends Primitive
+public final class P_317_DoubleExp extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

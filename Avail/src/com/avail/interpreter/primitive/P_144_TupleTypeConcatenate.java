@@ -42,7 +42,7 @@ import com.avail.interpreter.*;
  * given {@linkplain TupleTypeDescriptor tuple types}. This is basically the
  * semantic restriction of the two-argument concatenation operation.
  */
-public class P_144_TupleTypeConcatenate extends Primitive
+public final class P_144_TupleTypeConcatenate extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

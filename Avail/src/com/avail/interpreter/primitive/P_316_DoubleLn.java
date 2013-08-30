@@ -42,7 +42,7 @@ import com.avail.interpreter.*;
  * <strong>Primitive 316:</strong> Compute the natural logarithm of the
  * {@linkplain DoubleDescriptor double} {@code a}.
  */
-public class P_316_DoubleLn extends Primitive
+public final class P_316_DoubleLn extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

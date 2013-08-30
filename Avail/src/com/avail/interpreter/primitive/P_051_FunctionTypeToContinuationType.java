@@ -41,7 +41,7 @@ import com.avail.interpreter.*;
  * ContinuationTypeDescriptor continuation type} that uses the
  * given {@linkplain FunctionTypeDescriptor function type}.
  */
-public class P_051_FunctionTypeToContinuationType extends Primitive
+public final class P_051_FunctionTypeToContinuationType extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

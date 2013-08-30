@@ -43,7 +43,7 @@ import com.avail.interpreter.*;
  * bottom}-typed {@linkplain VariableDescriptor variable} (unconstructible
  * from Avail) for any {@linkplain NilDescriptor#nil() null} values.
  */
-public class P_059_ContinuationStackData extends Primitive
+public final class P_059_ContinuationStackData extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

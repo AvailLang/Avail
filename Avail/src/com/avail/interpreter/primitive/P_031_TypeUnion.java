@@ -40,7 +40,7 @@ import com.avail.interpreter.*;
  * <strong>Primitive 31:</strong> Answer the type union of the specified
  * {@linkplain TypeDescriptor types}.
  */
-public class P_031_TypeUnion extends Primitive
+public final class P_031_TypeUnion extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

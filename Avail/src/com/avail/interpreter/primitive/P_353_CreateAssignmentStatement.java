@@ -52,7 +52,7 @@ import com.avail.interpreter.*;
  * node proper (whose output is effectively discarded) and a literal
  * {@linkplain NilDescriptor#nil() null value}.</p>
  */
-public class P_353_CreateAssignmentStatement extends Primitive
+public final class P_353_CreateAssignmentStatement extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

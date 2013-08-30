@@ -41,7 +41,7 @@ import com.avail.interpreter.*;
  * tuple} of leading {@linkplain TypeDescriptor types} that constrain this
  * {@linkplain TupleTypeDescriptor tuple type}.
  */
-public class P_139_TupleTypeLeadingTypes extends Primitive
+public final class P_139_TupleTypeLeadingTypes extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

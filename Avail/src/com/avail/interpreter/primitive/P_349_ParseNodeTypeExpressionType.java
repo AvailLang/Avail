@@ -41,7 +41,7 @@ import com.avail.interpreter.*;
  * <strong>Primitive 349:</strong> Extract the result {@linkplain TypeDescriptor
  * type} of a {@linkplain ParseNodeTypeDescriptor parse node type}.
  */
-public class P_349_ParseNodeTypeExpressionType extends Primitive
+public final class P_349_ParseNodeTypeExpressionType extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

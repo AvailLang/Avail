@@ -41,7 +41,7 @@ import com.avail.interpreter.*;
  * FunctionTypeDescriptor type of function} this {@linkplain
  * CompiledCodeDescriptor compiled code} will be closed into.
  */
-public class P_185_CompiledCodeFunctionType extends Primitive
+public final class P_185_CompiledCodeFunctionType extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

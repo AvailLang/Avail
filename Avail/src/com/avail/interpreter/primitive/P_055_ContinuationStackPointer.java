@@ -42,7 +42,7 @@ import com.avail.interpreter.*;
  * of the top-of-stack within the frame slots of the continuation. For an
  * empty stack its value equals the number of frame slots plus one.
  */
-public class P_055_ContinuationStackPointer extends Primitive
+public final class P_055_ContinuationStackPointer extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

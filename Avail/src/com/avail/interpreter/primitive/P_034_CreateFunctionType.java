@@ -40,7 +40,7 @@ import com.avail.interpreter.*;
  * <strong>Primitive 34:</strong> Create a function type from a tuple of
  * argument types and a return type.
  */
-public class P_034_CreateFunctionType extends Primitive
+public final class P_034_CreateFunctionType extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

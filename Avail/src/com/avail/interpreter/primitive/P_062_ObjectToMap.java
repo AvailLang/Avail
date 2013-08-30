@@ -41,7 +41,7 @@ import com.avail.interpreter.*;
  * <strong>Primitive 62:</strong> Convert an {@linkplain ObjectDescriptor
  * object} into a {@linkplain MapDescriptor map} from fields to values.
  */
-public class P_062_ObjectToMap extends Primitive
+public final class P_062_ObjectToMap extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

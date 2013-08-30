@@ -49,7 +49,7 @@ import com.avail.interpreter.*;
  * if the continuation's {@linkplain FunctionDescriptor function} is not
  * capable of accepting the given arguments.
  */
-public class P_056_RestartContinuationWithArguments extends Primitive
+public final class P_056_RestartContinuationWithArguments extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

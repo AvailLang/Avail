@@ -50,7 +50,7 @@ import com.avail.utility.Continuation0;
  * ExecutionState#PARKED parked} or {@linkplain ExecutionState#ASLEEP asleep},
  * then unpark it.
  */
-public class P_608_RequestTermination
+public final class P_608_RequestTermination
 extends Primitive
 {
 	/**

@@ -42,7 +42,7 @@ import com.avail.interpreter.*;
  * FunctionDescriptor trueBlock} or the {@code falseBlock}, depending on
  * {@linkplain EnumerationTypeDescriptor#booleanObject() aBoolean}.
  */
-public class P_043_IfThenElse extends Primitive
+public final class P_043_IfThenElse extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

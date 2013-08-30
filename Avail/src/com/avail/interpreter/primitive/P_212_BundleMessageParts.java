@@ -42,7 +42,7 @@ import com.avail.interpreter.*;
  * MessageBundleDescriptor message bundle}'s message parts (a {@linkplain
  * TupleDescriptor tuple} of strings).
  */
-public class P_212_BundleMessageParts extends Primitive
+public final class P_212_BundleMessageParts extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

@@ -42,7 +42,7 @@ import com.avail.interpreter.*;
  * <strong>Primitive 258:</strong> Print the specified {@linkplain
  * StringDescriptor string} to standard output.
  */
-public class P_258_PrintToConsole
+public final class P_258_PrintToConsole
 extends Primitive
 {
 	/**

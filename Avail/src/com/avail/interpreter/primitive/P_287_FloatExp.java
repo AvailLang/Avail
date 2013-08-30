@@ -42,7 +42,7 @@ import com.avail.interpreter.*;
  * <strong>Primitive 287:</strong> Compute {@code e^a}, the natural
  * exponential of the {@linkplain FloatDescriptor float} {@code a}.
  */
-public class P_287_FloatExp extends Primitive
+public final class P_287_FloatExp extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

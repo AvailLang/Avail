@@ -42,7 +42,7 @@ import com.avail.interpreter.*;
  * MethodDefinitionDescriptor method signature}'s {@linkplain
  * FunctionDescriptor body}.
  */
-public class P_217_MethodDefinitionBody extends Primitive
+public final class P_217_MethodDefinitionBody extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

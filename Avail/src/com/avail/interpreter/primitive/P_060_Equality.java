@@ -41,7 +41,7 @@ import com.avail.interpreter.*;
  * <strong>Primitive 60:</strong> Compare for equality. Answer a {@linkplain
  * EnumerationTypeDescriptor#booleanObject() boolean}.
  */
-public class P_060_Equality extends Primitive
+public final class P_060_Equality extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

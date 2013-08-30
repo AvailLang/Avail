@@ -40,7 +40,7 @@ import com.avail.interpreter.*;
  * <strong>Primitive 19:</strong> Extract the write type of a {@linkplain
  * VariableTypeDescriptor variable type}.
  */
-public class P_019_VariableWriteType extends Primitive
+public final class P_019_VariableWriteType extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

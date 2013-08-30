@@ -44,7 +44,7 @@ import com.avail.interpreter.levelTwo.L2Chunk;
  * L2Chunk#unoptimizedChunk()}.  Fail if the provided function is an infallible
  * primitive.
  */
-public class P_049_CreateContinuation extends Primitive
+public final class P_049_CreateContinuation extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

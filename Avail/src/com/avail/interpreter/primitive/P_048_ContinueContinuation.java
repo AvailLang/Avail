@@ -41,7 +41,7 @@ import com.avail.interpreter.*;
  * fiber} continue running the specified {@linkplain ContinuationDescriptor
  * continuation}, rather than what it's doing (i.e., calling this primitive).
  */
-public class P_048_ContinueContinuation
+public final class P_048_ContinueContinuation
 extends Primitive
 {
 	/**

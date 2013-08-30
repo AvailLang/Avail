@@ -41,7 +41,7 @@ import com.avail.interpreter.*;
  * <strong>Primitive 259:</strong> Produce a {@linkplain
  * StringDescriptor string} description of the sole argument.
  */
-public class P_259_ToString extends Primitive
+public final class P_259_ToString extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

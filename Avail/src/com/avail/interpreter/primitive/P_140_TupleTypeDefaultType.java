@@ -40,7 +40,7 @@ import com.avail.interpreter.*;
  * <strong>Primitive 140:</strong> Answer the default {@linkplain
  * TypeDescriptor type} for elements past the leading types.
  */
-public class P_140_TupleTypeDefaultType extends Primitive
+public final class P_140_TupleTypeDefaultType extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

@@ -42,7 +42,7 @@ import com.avail.interpreter.*;
  * EnumerationTypeDescriptor#booleanObject() boolean} argument. This is used
  * for short-circuit evaluation.
  */
-public class P_045_ShortCircuitHelper extends Primitive
+public final class P_045_ShortCircuitHelper extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

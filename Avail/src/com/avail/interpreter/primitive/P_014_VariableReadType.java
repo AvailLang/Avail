@@ -40,7 +40,7 @@ import com.avail.interpreter.*;
  * <strong>Primitive 14:</strong> Extract the read type of a {@linkplain
  * VariableTypeDescriptor variable type}.
  */
-public class P_014_VariableReadType extends Primitive
+public final class P_014_VariableReadType extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

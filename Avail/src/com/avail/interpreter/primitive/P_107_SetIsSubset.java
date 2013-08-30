@@ -40,7 +40,7 @@ import com.avail.interpreter.*;
  * <strong>Primitive 107:</strong> Check if {@linkplain SetDescriptor set1} is a
  * subset of {@code set2}.
  */
-public class P_107_SetIsSubset extends Primitive
+public final class P_107_SetIsSubset extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

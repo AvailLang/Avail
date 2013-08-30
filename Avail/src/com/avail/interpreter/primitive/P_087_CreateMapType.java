@@ -40,7 +40,7 @@ import com.avail.interpreter.*;
  * <strong>Primitive 87:</strong> Answer a {@linkplain MapTypeDescriptor map
  * type} with the given type constraints.
  */
-public class P_087_CreateMapType extends Primitive
+public final class P_087_CreateMapType extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

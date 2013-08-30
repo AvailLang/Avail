@@ -41,7 +41,7 @@ import com.avail.interpreter.*;
  * <strong>Primitive 331:</strong> Convert a {@linkplain IntegerDescriptor
  * code point} into a {@linkplain CharacterDescriptor character}.
  */
-public class P_331_CharacterFromCodePoint extends Primitive
+public final class P_331_CharacterFromCodePoint extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

@@ -42,7 +42,7 @@ import com.avail.interpreter.*;
  * FloatDescriptor float} greater than or equal to the given float.  If the
  * float is ±INF or NaN then answer the argument.
  */
-public class P_293_FloatCeiling extends Primitive
+public final class P_293_FloatCeiling extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

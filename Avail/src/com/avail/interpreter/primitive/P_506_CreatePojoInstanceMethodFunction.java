@@ -51,7 +51,7 @@ import com.avail.interpreter.levelOne.*;
  * argument is a function that should be invoked with a pojo-wrapped {@link
  * Exception} in the event that Java raises an exception.
  */
-public class P_506_CreatePojoInstanceMethodFunction extends Primitive
+public final class P_506_CreatePojoInstanceMethodFunction extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

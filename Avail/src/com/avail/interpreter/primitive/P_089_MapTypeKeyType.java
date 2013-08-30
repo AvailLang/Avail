@@ -40,7 +40,7 @@ import com.avail.interpreter.*;
  * <strong>Primitive 89:</strong> Answer the key {@linkplain TypeDescriptor
  * type} of a {@linkplain MapTypeDescriptor map type}.
  */
-public class P_089_MapTypeKeyType extends Primitive
+public final class P_089_MapTypeKeyType extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

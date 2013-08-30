@@ -40,7 +40,7 @@ import com.avail.interpreter.*;
  * <strong>Primitive 111:</strong> Create a {@linkplain SetTypeDescriptor
  * set type}.
  */
-public class P_111_CreateSetType extends Primitive
+public final class P_111_CreateSetType extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

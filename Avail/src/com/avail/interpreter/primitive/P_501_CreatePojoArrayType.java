@@ -42,7 +42,7 @@ import com.avail.interpreter.*;
  * TypeDescriptor type} and {@linkplain IntegerRangeTypeDescriptor range of
  * sizes}.
  */
-public class P_501_CreatePojoArrayType extends Primitive
+public final class P_501_CreatePojoArrayType extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

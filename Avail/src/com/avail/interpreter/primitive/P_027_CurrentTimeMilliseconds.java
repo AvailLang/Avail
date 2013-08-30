@@ -40,7 +40,7 @@ import com.avail.interpreter.*;
  * <strong>Primitive 27:</strong> Get the current time as milliseconds since
  * the Unix Epoch.
  */
-public class P_027_CurrentTimeMilliseconds
+public final class P_027_CurrentTimeMilliseconds
 extends Primitive
 {
 	/**

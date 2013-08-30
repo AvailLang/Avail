@@ -43,7 +43,7 @@ import com.avail.interpreter.*;
  * <strong>Primitive 175:</strong> Unlink the {@linkplain File file} with
  * the specified filename from the filesystem.
  */
-public class P_175_FileUnlink
+public final class P_175_FileUnlink
 extends Primitive
 {
 	/**

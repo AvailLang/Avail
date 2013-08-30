@@ -48,7 +48,7 @@ import com.avail.interpreter.*;
  * the handler block with {@code exceptionValue}. If there is no suitable
  * handler block, then fail this primitive (with the unhandled exception).
  */
-public class P_201_RaiseException
+public final class P_201_RaiseException
 extends Primitive
 {
 	/**

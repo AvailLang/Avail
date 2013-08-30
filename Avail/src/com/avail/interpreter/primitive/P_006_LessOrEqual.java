@@ -41,7 +41,7 @@ import com.avail.interpreter.*;
  * <strong>Primitive 6:</strong> Compare two extended integers and answer
  * a {@linkplain EnumerationTypeDescriptor#booleanObject() boolean}.
  */
-public class P_006_LessOrEqual extends Primitive
+public final class P_006_LessOrEqual extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

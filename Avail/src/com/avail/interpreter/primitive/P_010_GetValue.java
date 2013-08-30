@@ -47,7 +47,7 @@ import com.avail.interpreter.*;
  * going to erase it if it's mutable anyhow, only the second case requires
  * any real work.
  */
-public class P_010_GetValue
+public final class P_010_GetValue
 extends Primitive
 {
 	/**

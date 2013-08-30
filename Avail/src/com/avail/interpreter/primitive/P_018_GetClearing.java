@@ -45,7 +45,7 @@ import com.avail.interpreter.*;
  * allows store-back patterns to be efficiently implemented in Level One
  * code while keeping the interpreter itself thread-safe and debugger-safe.
  */
-public class P_018_GetClearing extends Primitive
+public final class P_018_GetClearing extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

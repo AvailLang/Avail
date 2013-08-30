@@ -44,7 +44,7 @@ import com.avail.interpreter.*;
  * PojoTypeDescriptor pojo type} for the specified {@linkplain Class
  * Java class}, specified by fully-qualified name, and type parameters.
  */
-public class P_500_CreatePojoType extends Primitive
+public final class P_500_CreatePojoType extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

@@ -42,7 +42,7 @@ import com.avail.interpreter.*;
  * AtomDescriptor#trueObject() true} if the {@linkplain VariableDescriptor
  * variable} is unassigned (has no value).
  */
-public class P_017_HasNoValue
+public final class P_017_HasNoValue
 extends Primitive
 {
 	/**

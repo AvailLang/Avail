@@ -40,7 +40,7 @@ import com.avail.interpreter.*;
  * <strong>Primitive 186:</strong> Answer the primitive number of this
  * {@linkplain CompiledCodeDescriptor compiled code}.
  */
-public class P_186_CompiledCodePrimitiveNumber extends Primitive
+public final class P_186_CompiledCodePrimitiveNumber extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

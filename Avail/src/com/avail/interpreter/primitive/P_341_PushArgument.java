@@ -40,7 +40,7 @@ import com.avail.interpreter.*;
 /**
  * <strong>Primitive 341:</strong> The only argument is being returned.
  */
-public class P_341_PushArgument extends Primitive
+public final class P_341_PushArgument extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

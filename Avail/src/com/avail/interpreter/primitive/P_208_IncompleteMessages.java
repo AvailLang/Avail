@@ -44,7 +44,7 @@ import com.avail.interpreter.*;
  * those already encountered. Answer it as a {@linkplain MapDescriptor map}
  * from string to message bundle tree.
  */
-public class P_208_IncompleteMessages extends Primitive
+public final class P_208_IncompleteMessages extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

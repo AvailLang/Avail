@@ -33,6 +33,7 @@ package com.avail.interpreter.primitive;
 
 import static com.avail.exceptions.AvailErrorCode.E_NOT_AN_ENUMERATION;
 import static com.avail.interpreter.Primitive.Flag.CanFold;
+import static com.avail.interpreter.Primitive.Fallibility.*;
 import java.util.List;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
@@ -41,7 +42,8 @@ import com.avail.interpreter.*;
  * <strong>Primitive 29:</strong> Obtain the instances of the specified
  * {@linkplain InstanceMetaDescriptor#topMeta() type}.
  */
-public class P_029_Instances extends Primitive
+public final class P_029_Instances
+extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
@@ -71,5 +73,15 @@ public class P_029_Instances extends Primitive
 			TupleDescriptor.from(
 				InstanceMetaDescriptor.topMeta()),
 			SetTypeDescriptor.mostGeneralType());
+	}
+
+	@Override
+	public Fallibility fallibilityForArgumentTypes (
+		final List<? extends A_Type> argumentTypes)
+	{
+		final A_Type meta = argumentTypes.get(0);
+		return meta.instance().isEnumeration()
+			? CallSiteCannotFail
+			: CallSiteMustFail;
 	}
 }

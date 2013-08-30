@@ -34,6 +34,7 @@ package com.avail.interpreter.primitive;
 import static com.avail.descriptor.InfinityDescriptor.*;
 import static com.avail.descriptor.TypeDescriptor.Types.NUMBER;
 import static com.avail.interpreter.Primitive.Flag.CanFold;
+import static com.avail.interpreter.Primitive.Fallibility.*;
 import java.util.List;
 import com.avail.descriptor.*;
 import com.avail.exceptions.ArithmeticException;
@@ -43,7 +44,8 @@ import com.avail.interpreter.*;
  * <strong>Primitive 2:</strong> Subtract {@linkplain
  * AbstractNumberDescriptor number} b from a.
  */
-public class P_002_Subtraction extends Primitive
+public final class P_002_Subtraction
+extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
@@ -138,5 +140,33 @@ public class P_002_Subtraction extends Primitive
 		}
 		return super.returnTypeGuaranteedByVM(
 			argumentTypes);
+	}
+
+	@Override
+	public Fallibility fallibilityForArgumentTypes (
+		final List<? extends A_Type> argumentTypes)
+	{
+		final A_Type aType = argumentTypes.get(0);
+		final A_Type bType = argumentTypes.get(1);
+		if (aType.isIntegerRangeType() && bType.isIntegerRangeType())
+		{
+			final boolean aTypeIncludesNegativeInfinity =
+				negativeInfinity().isInstanceOf(aType);
+			final boolean aTypeIncludesInfinity =
+				positiveInfinity().isInstanceOf(aType);
+			final boolean bTypeIncludesNegativeInfinity =
+				negativeInfinity().isInstanceOf(bType);
+			final boolean bTypeIncludesInfinity =
+				positiveInfinity().isInstanceOf(bType);
+			if ((aTypeIncludesNegativeInfinity && bTypeIncludesNegativeInfinity)
+				|| (aTypeIncludesInfinity && bTypeIncludesInfinity))
+			{
+				return CallSiteCanFail;
+			}
+		}
+		return (aType.isFloat() || aType.isDouble()
+				|| bType.isFloat() || bType.isDouble())
+			? CallSiteCannotFail
+			: CallSiteCanFail;
 	}
 }
