@@ -32,6 +32,7 @@
 
 package com.avail.descriptor;
 
+import static com.avail.descriptor.AvailObject.error;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.descriptor.MethodDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.MethodDescriptor.ObjectSlots.*;
@@ -158,8 +159,17 @@ extends Descriptor
 		 * @param argValues The arguments of the call.
 		 * @return The list of most applicable definitions.
 		 */
-		abstract List<A_Definition> lookupByValues (
+		abstract LookupTree lookupStepByValues (
 			List<? extends A_BasicObject> argValues);
+
+		/**
+		 * Answer the lookup solution ({@link List} of {@linkplain A_Definition
+		 * definitions} at this leaf node, or {@code null} if this is not a leaf
+		 * node.
+		 *
+		 * @return The solution or null.
+		 */
+		abstract @Nullable List<A_Definition> solutionOrNull ();
 
 		/**
 		 * Lookup the most-specific definitions that satisfy the provided
@@ -170,7 +180,7 @@ extends Descriptor
 		 * @param argTypes The types of arguments of the call.
 		 * @return The list of most applicable definitions.
 		 */
-		abstract List<A_Definition> lookupByTypes (
+		abstract LookupTree lookupStepByTypes (
 			List<? extends A_Type> argTypes);
 
 		/**
@@ -182,12 +192,16 @@ extends Descriptor
 		 * @param undecided
 		 *            Definitions which are not known to apply or not apply at
 		 *            this node.
+		 * @param knownArgumentTypes
+		 *            The types that the arguments are known to comply with at
+		 *            this point.
 		 * @return A (potentially lazy) LookupTree used to look up method
 		 *         definitions during calls.
 		 */
 		static LookupTree createTree (
 			final List<A_Definition> positive,
-			final List<A_Definition> undecided)
+			final List<A_Definition> undecided,
+			final List<A_Type> knownArgumentTypes)
 		{
 			if (undecided.size() == 0)
 			{
@@ -203,7 +217,7 @@ extends Descriptor
 				{
 					final A_Type outerType =
 						positive.get(outer).bodySignature();
-					for (int inner = 0 ; inner < size; inner++)
+					for (int inner = 0; inner < size; inner++)
 					{
 						if (outer != inner)
 						{
@@ -224,7 +238,22 @@ extends Descriptor
 				}
 				return new LeafLookupTree(mostSpecific);
 			}
-			return new InternalLookupTree(positive, undecided);
+			return new InternalLookupTree(
+				positive, undecided, knownArgumentTypes);
+		}
+
+		/**
+		 * Describe this {@code LookupTree} at a given indent level.
+		 *
+		 * @param indent How much to indent.
+		 * @return The description of this {@code LookupTree}
+		 */
+		public abstract String toString (final int indent);
+
+		@Override
+		public final String toString ()
+		{
+			return toString(0);
 		}
 	}
 
@@ -250,24 +279,45 @@ extends Descriptor
 			this.finalResult = finalResult;
 		}
 
-		@Override
-		final List<A_Definition> lookupByValues (
-			final List<? extends A_BasicObject> argValues)
+		@Override List<A_Definition> solutionOrNull()
 		{
 			return finalResult;
 		}
 
 		@Override
-		final List<A_Definition> lookupByTypes (
+		LookupTree lookupStepByTypes(
 			final List<? extends A_Type> argTypes)
 		{
-			return finalResult;
+			error("Attempting to lookup past leaf of decision tree");
+			return this;
+		}
+
+		@Override
+		LookupTree lookupStepByValues (
+			final List<? extends A_BasicObject> argValues)
+		{
+			error("Attempting to lookup past leaf of decision tree");
+			return this;
+		}
+
+		@Override
+		public final String toString (final int indent)
+		{
+			if (finalResult.size() == 1)
+			{
+				return String.format(
+					"Success: %s",
+					finalResult.get(0).bodySignature().argsTupleType());
+			}
+			return String.format(
+				"Failure: (%d solutions)",
+				finalResult.size());
 		}
 	}
 
 	/**
 	 * A {@code LookupTree} representing an incomplete search.  To further the
-	 * search, the indicated {@linkplain #argumentTypesToTest type test} will be
+	 * search, the indicated {@linkplain #argumentTypeToTest type test} will be
 	 * made.  If successful, the {@link #ifCheckHolds} child will be visited,
 	 * otherwise the {@link #ifCheckFails} child will be visited.
 	 */
@@ -282,8 +332,17 @@ extends Descriptor
 		 */
 		private final List<A_Definition> undecidedDefinitions;
 
-		/** The types to test against corresponding supplied arguments. */
-		private @Nullable List<A_Type> argumentTypesToTest;
+		/**
+		 * The types that the arguments must satisfy to have reached this
+		 * position in the decision tree.
+		 */
+		private final List<A_Type> knownArgumentTypes;
+
+		/** The type to test against an argument type at this node. */
+		private @Nullable A_Type argumentTypeToTest;
+
+		/** The 1-based index of the argument to be tested at this node. */
+		private int argumentPositionToTest = -1;
 
 		/** The tree to visit if the supplied arguments conform. */
 		private @Nullable LookupTree ifCheckHolds;
@@ -303,33 +362,41 @@ extends Descriptor
 		 *            The definitions for which a decision about whether they
 		 *            apply to the supplied arguments has not yet been made at
 		 *            this point in the decision tree.
+		 * @param knownArgumentTypes
+		 *            The list of argument types known to hold at this position
+		 *            in the decision tree.  Each element corresponds with an
+		 *            argument position for the method.
 		 */
 		public InternalLookupTree (
 			final List<A_Definition> positiveDefinitions,
-			final List<A_Definition> undecidedDefinitions)
+			final List<A_Definition> undecidedDefinitions,
+			final List<A_Type> knownArgumentTypes)
 		{
 			this.positiveDefinitions = positiveDefinitions;
 			this.undecidedDefinitions = undecidedDefinitions;
+			this.knownArgumentTypes = knownArgumentTypes;
 		}
 
 		/**
-		 * Return the list of argument types to test against the supplied
-		 * arguments.  Expand the node if the list is null.
+		 * Return an argument type to test against the supplied argument.  The
+		 * argument's 1-based index is provided by {@link
+		 * #argumentPositionToTest}.
 		 *
 		 * @return A list of argument types to check, expanding this node if
 		 *         necessary.
 		 */
-		final private List<A_Type> argumentTypesToTest ()
+		final private A_Type argumentTypeToTest ()
 		{
-			List<A_Type> test = argumentTypesToTest;
-			if (test == null)
-			{
-				chooseCriterion();
-				test = argumentTypesToTest;
-			}
-			return test;
+			final A_Type testType = argumentTypeToTest;
+			assert testType != null;
+			return testType;
 		}
 
+		/**
+		 * Answer the decision subtree to explore if the condition holds.
+		 *
+		 * @return The "yes" subtree previously set by chooseCriterion().
+		 */
 		final LookupTree ifCheckHolds ()
 		{
 			final LookupTree subtree = ifCheckHolds;
@@ -337,6 +404,12 @@ extends Descriptor
 			return subtree;
 		}
 
+		/**
+		 * Answer the decision subtree to explore if the condition does not
+		 * hold.
+		 *
+		 * @return The "no" subtree previously set by chooseCriterion().
+		 */
 		final LookupTree ifCheckFails ()
 		{
 			final LookupTree subtree = ifCheckFails;
@@ -344,6 +417,56 @@ extends Descriptor
 			return subtree;
 		}
 
+		/**
+		 * If they have not already been computed, compute and cache information
+		 * about this node's {@link #argumentTypeToTest}, {@link
+		 * #argumentPositionToTest}, and {@link #ifCheckHolds}, and {@link
+		 * #ifCheckFails}.
+		 */
+		final void expandIfNecessary ()
+		{
+			if (argumentTypeToTest == null)
+			{
+				chooseCriterion();
+			}
+		}
+
+		/**
+		 * We're doing a method lookup, but {@link #argumentTypeToTest} was
+		 * null, indicating a lazy subtree.  Expand it by choosing and recording
+		 * a criterion to test at this node, then populating the two branches of
+		 * the tree with nodes that may themselves need to be expanded in the
+		 * future.
+		 *
+		 * <p>The criterion to choose should be one which serves to eliminate at
+		 * least one of the {@linkplain #undecidedDefinitions}, regardless of
+		 * whether the test happens to be affirmative or negative.  Eliminating
+		 * more than one is better, however.  Ideally, we should choose a test
+		 * which serves to eliminate as much indecision as possible in the worst
+		 * case (i.e., along the path that is the least effective of the two).
+		 * We do this, but we also break ties by eliminating as much indecision
+		 * as possible in the <em>best</em> case.</p>
+		 *
+		 * <p>This can be improved by only testing the type of one argument
+		 * position at any node of the decision tree, avoiding the redundant
+		 * type tests for arguments that are already known to comply.  Since
+		 * there's always at least one definition signature (i.e., function
+		 * type's arguments tuple type) which will eliminate indecision about a
+		 * definition in the worst case, at most N (=#args) tests of single
+		 * arguments will be able to accomplish the same.  In fact, the negative
+		 * case will always eliminate a signature (the signature of the
+		 * definition being tested).  The positive case, however, may have to
+		 * test all N arguments before certainty about a definition is
+		 * assured.</p>
+		 *
+		 * </p>Since the negative case is already efficient at eliminating
+		 * uncertainty, we only need to track positive information about the
+		 * argument types.  Thus, for each argument we maintain precise
+		 * information about what type each argument must be at this point in
+		 * the tree.  A single type for each argument suffices, since Avail's
+		 * type lattice is precise with respect to type intersection, which is
+		 * exactly what we use during decision tree construction.</p>
+		 */
 		final private void chooseCriterion ()
 		{
 			// Choose a signature to test that guarantees it eliminates the most
@@ -352,21 +475,25 @@ extends Descriptor
 			// test) is a tie between two criteria, break it by choosing the
 			// criterion that eliminates the most undecided definitions in the
 			// *best* case.
+			assert argumentTypeToTest == null;
 			A_Type bestSignature = null;
 			int smallestMax = Integer.MAX_VALUE;
 			int smallestMin = Integer.MAX_VALUE;
 			for (final A_Definition criterion : undecidedDefinitions)
 			{
 				final A_Type criterionSignature = criterion.bodySignature();
+				final A_Type criterionArgsType =
+					criterionSignature.argsTupleType();
 				int undecidedCountIfTrue = 0;
 				int undecidedCountIfFalse = 0;
 				for (final A_Definition each : undecidedDefinitions)
 				{
 					switch (TypeComparison.compare(
-						criterionSignature,
-						each.bodySignature()))
+						criterionArgsType,
+						each.bodySignature().argsTupleType()))
 					{
-						case DISJOINT_TYPE:
+						case SAME_TYPE:
+							break;
 						case PROPER_ANCESTOR_TYPE:
 							undecidedCountIfFalse++;
 							break;
@@ -377,7 +504,8 @@ extends Descriptor
 							undecidedCountIfTrue++;
 							undecidedCountIfFalse++;
 							break;
-						case SAME_TYPE:
+						case DISJOINT_TYPE:
+							undecidedCountIfFalse++;
 							break;
 					}
 				}
@@ -395,150 +523,262 @@ extends Descriptor
 				}
 			}
 			assert bestSignature != null;
+			// We have chosen one of the best signatures to test.  However, we
+			// still need to decide which argument position to test.  Use the
+			// leftmost one which is not already guaranteed by tests that have
+			// already been performed.  In particular, ignore arguments whose
+			// knownArgumentTypes information is a subtype of the chosen
+			// signature's argument type at that position.
 			final A_Type bestArgsTupleType = bestSignature.argsTupleType();
 			final int numArgs =
 				bestArgsTupleType.sizeRange().lowerBound().extractInt();
-			final List<A_Type> typesToTest = new ArrayList<A_Type>(numArgs);
-			for (int argIndex = 0; argIndex < numArgs; argIndex++)
+			for (int i = 1; i <= numArgs; i++)
 			{
-				typesToTest.add(bestArgsTupleType.typeAtIndex(argIndex + 1));
+				final A_Type knownType = knownArgumentTypes.get(i - 1);
+				final A_Type criterionType = bestArgsTupleType.typeAtIndex(i);
+				if (!knownType.isSubtypeOf(criterionType))
+				{
+					argumentPositionToTest = i;
+					argumentTypeToTest = criterionType;
+					break;
+				}
 			}
-			argumentTypesToTest = typesToTest;
+			assert argumentPositionToTest >= 1;
+			final A_Type oldArgType =
+				knownArgumentTypes.get(argumentPositionToTest - 1);
+			final List<A_Type> newPositiveKnownTypes =
+				new ArrayList<>(knownArgumentTypes);
+			final A_Type replacementArgType =
+				argumentTypeToTest().typeIntersection(oldArgType);
+			// Sanity check:  Make sure we at least improve type knowledge in
+			// the positive case.
+			assert !replacementArgType.equals(oldArgType);
+			newPositiveKnownTypes.set(
+				argumentPositionToTest - 1,
+				replacementArgType);
 			// Compute the positive/undecided lists, both for the condition
 			// being true and for the condition being false.
 			final List<A_Definition> positiveIfTrue =
 				new ArrayList<>(positiveDefinitions);
 			final List<A_Definition> undecidedIfTrue = new ArrayList<>();
-			final List<A_Definition> positiveIfFalse =
-				new ArrayList<>(positiveDefinitions);
 			final List<A_Definition> undecidedIfFalse = new ArrayList<>();
+			final A_Type criterionTupleType = TupleTypeDescriptor.forTypes(
+				newPositiveKnownTypes.toArray(new A_Type[numArgs]));
+			final A_Type knownTupleType = TupleTypeDescriptor.forTypes(
+				knownArgumentTypes.toArray(new A_Type[numArgs]));
 			for (final A_Definition undecidedDefinition : undecidedDefinitions)
 			{
+				// We need to synthesize a tuple type with the knowledge we
+				// currently have about the element types.
 				final TypeComparison comparison = TypeComparison.compare(
-					bestSignature,
-					undecidedDefinition.bodySignature());
+					criterionTupleType,
+					undecidedDefinition.bodySignature().argsTupleType()
+						.typeIntersection(knownTupleType));
 				comparison.applyEffect(
-					true,
 					undecidedDefinition,
 					positiveIfTrue,
-					undecidedIfTrue);
-				comparison.applyEffect(
-					false,
-					undecidedDefinition,
-					positiveIfFalse,
+					undecidedIfTrue,
 					undecidedIfFalse);
 			}
 			ifCheckHolds = LookupTree.createTree(
 				positiveIfTrue,
-				undecidedIfTrue);
+				undecidedIfTrue,
+				newPositiveKnownTypes);
 			ifCheckFails = LookupTree.createTree(
-				positiveIfFalse,
-				undecidedIfFalse);
+				positiveDefinitions,
+				undecidedIfFalse,
+				knownArgumentTypes);
+			assert undecidedIfFalse.size() < undecidedDefinitions.size();
 		}
 
 		/**
-		 * Answer how two signatures (function types) are related.
+		 * Answer the relationship between two signatures, the argument tuple
+		 * types of function types representing (1) a criterion to test, and (2)
+		 * a definition's signature to be classified.
 		 */
 		enum TypeComparison
 		{
+			/**
+			 * The definition's signature equals the criterion.
+			 */
 			SAME_TYPE,
+
+			/**
+			 * The definition is a proper ancestor of the criterion.
+			 */
 			PROPER_ANCESTOR_TYPE,
+
+			/**
+			 * The definition is a proper descendant of the criterion.
+			 */
 			PROPER_DESCENDANT_TYPE,
+
+			/**
+			 * The definition's signature and the criterion are not directly
+			 * related, but may share subtypes other than {@linkplain
+			 * BottomTypeDescriptor bottom} (⊥).
+			 */
 			UNRELATED_TYPE,
+
+			/**
+			 * The definition's signature and the criterion have ⊥ as their
+			 * nearest common descendant.  Thus, there are no tuples of actual
+			 * arguments that satisfy both signatures simultaneously.  This is
+			 * a useful distinction from {@link #UNRELATED_TYPE}, since a
+			 * successful test against the criterion <em>eliminates</em> the
+			 * other definition from being considered possible.
+			 */
 			DISJOINT_TYPE;
 
+			/**
+			 * Conditionally augment the supplied lists with the provided
+			 * undecided {@linkplain DefinitionDescriptor definition}.  The
+			 * decision of which lists to augment depends on this instance,
+			 * which is the result of a previous {@linkplain #compareTo(
+			 * TypeComparison) comparison} between the two signatures.
+			 *
+			 * @param undecidedDefinition
+			 *            A {@linkplain DefinitionDescriptor definition} whose
+			 *            applicability has not yet been decided at the current
+			 *            position in the {@link LookupTree}.
+			 * @param ifTruePositiveDefinitions
+			 *            A list of definitions that will be applicable to some
+			 *            arguments if the arguments meet the criterion.
+			 * @param ifTrueUndecidedDefinitions
+			 *            A list of definitions that will be undecided for some
+			 *            arguments if the arguments meet the criterion.
+			 * @param ifFalseUndecidedDefinitions
+			 *            A list of definitions that will be applicable to some
+			 *            arguments if the arguments do not meet the criterion.
+			 */
 			public void applyEffect (
-				final boolean comparisonValue,
 				final A_Definition undecidedDefinition,
-				final List<A_Definition> positiveDefinitions,
-				final List<A_Definition> undecidedDefinitions)
+				final List<A_Definition> ifTruePositiveDefinitions,
+				final List<A_Definition> ifTrueUndecidedDefinitions,
+				final List<A_Definition> ifFalseUndecidedDefinitions)
 			{
-				if (comparisonValue)
+				switch (this)
 				{
-					switch (this)
-					{
-						case SAME_TYPE:
-						case PROPER_ANCESTOR_TYPE:
-							positiveDefinitions.add(undecidedDefinition);
-							break;
-						case PROPER_DESCENDANT_TYPE:
-						case UNRELATED_TYPE:
-							undecidedDefinitions.add(undecidedDefinition);
-							break;
-						case DISJOINT_TYPE:
-							break;
-					}
-				}
-				else
-				{
-					switch (this)
-					{
-						case PROPER_ANCESTOR_TYPE:
-						case UNRELATED_TYPE:
-						case DISJOINT_TYPE:
-							undecidedDefinitions.add(undecidedDefinition);
-							break;
-						case SAME_TYPE:
-						case PROPER_DESCENDANT_TYPE:
-							break;
-					}
+					case SAME_TYPE:
+						ifTruePositiveDefinitions.add(undecidedDefinition);
+						break;
+					case PROPER_ANCESTOR_TYPE:
+						ifTruePositiveDefinitions.add(undecidedDefinition);
+						ifFalseUndecidedDefinitions.add(undecidedDefinition);
+						break;
+					case PROPER_DESCENDANT_TYPE:
+						ifTrueUndecidedDefinitions.add(undecidedDefinition);
+						break;
+					case UNRELATED_TYPE:
+						ifTrueUndecidedDefinitions.add(undecidedDefinition);
+						ifFalseUndecidedDefinitions.add(undecidedDefinition);
+						break;
+					case DISJOINT_TYPE:
+						ifFalseUndecidedDefinitions.add(undecidedDefinition);
+						break;
 				}
 			}
 
+			/**
+			 * Compare two signatures (tuple types).  The first is the
+			 * criterion, which will eventually be tested against arguments.
+			 * The second signature is the one being compared by specificity
+			 * with the criterion.
+			 *
+			 * @param criterionTupleType
+			 *            The criterion signature to test against.
+			 * @param someTupleType
+			 *            A signature to test against the criterion signature.
+			 * @return A TypeComparison representing the relationship between
+			 *         the criterion and the other signature.
+			 */
 			public static TypeComparison compare (
-				final A_Type criterion,
-				final A_Type someType)
+				final A_Type criterionTupleType,
+				final A_Type someTupleType)
 			{
+				assert criterionTupleType.isTupleType();
+				assert someTupleType.isTupleType();
 				final A_Type intersection =
-					criterion.argsTupleType().typeIntersection(
-						someType.argsTupleType());
-				if (intersection == BottomTypeDescriptor.bottom())
+					criterionTupleType.typeIntersection(someTupleType);
+				if (intersection.equals(BottomTypeDescriptor.bottom()))
 				{
 					return DISJOINT_TYPE;
 				}
 				final boolean below =
-					criterion.acceptsArgTypesFromFunctionType(someType);
+					someTupleType.isSubtypeOf(criterionTupleType);
 				final boolean above =
-					someType.acceptsArgTypesFromFunctionType(criterion);
+					criterionTupleType.isSubtypeOf(someTupleType);
 				return
 					below
-						? above ? SAME_TYPE : PROPER_DESCENDANT_TYPE
-						: above ? PROPER_ANCESTOR_TYPE : UNRELATED_TYPE;
+						? (above ? SAME_TYPE : PROPER_DESCENDANT_TYPE)
+						: (above ? PROPER_ANCESTOR_TYPE : UNRELATED_TYPE);
 			}
 		}
 
 		@Override
-		List<A_Definition> lookupByValues (
+		@Nullable List<A_Definition> solutionOrNull ()
+		{
+			return null;
+		}
+
+		@Override
+		LookupTree lookupStepByValues (
 			final List<? extends A_BasicObject> argValues)
 		{
-			final List<A_Type> testTypes = argumentTypesToTest();
-			final int numArgs = argValues.size();
-			assert numArgs == testTypes.size();
-			for (int i = 0; i < numArgs; i++)
+			expandIfNecessary();
+			final A_Type testType = argumentTypeToTest();
+			final A_BasicObject argument =
+				argValues.get(argumentPositionToTest - 1);
+			if (argument.isInstanceOf(testType))
 			{
-				if (!argValues.get(i).isInstanceOf(testTypes.get(i)))
-				{
-					return ifCheckFails().lookupByValues(argValues);
-				}
+				return ifCheckHolds();
 			}
-			return ifCheckHolds().lookupByValues(argValues);
+			return ifCheckFails();
 		}
 
 		@Override
-		List<A_Definition> lookupByTypes (
+		LookupTree lookupStepByTypes (
 			final List<? extends A_Type> argTypes)
 		{
-			final List<A_Type> testTypes = argumentTypesToTest();
-			final int numArgs = argTypes.size();
-			assert numArgs == testTypes.size();
-			for (int i = 0; i < numArgs; i++)
+			expandIfNecessary();
+			final A_Type testType = argumentTypeToTest();
+			final A_Type argumentType =
+				argTypes.get(argumentPositionToTest - 1);
+			if (argumentType.isSubtypeOf(testType))
 			{
-				if (!argTypes.get(i).isSubtypeOf(testTypes.get(i)))
-				{
-					return ifCheckFails().lookupByTypes(argTypes);
-				}
+				return ifCheckHolds();
 			}
-			return ifCheckHolds().lookupByTypes(argTypes);
+			return ifCheckFails();
+		}
+
+		@Override
+		public final String toString (final int indent)
+		{
+			if (argumentTypeToTest == null)
+			{
+				return String.format(
+					"Lazy internal node: known=%s",
+					knownArgumentTypes);
+			}
+			final StringBuilder builder = new StringBuilder();
+			builder.append(
+				String.format(
+					"#%d ∈ %s: known=%s%n",
+					argumentPositionToTest,
+					argumentTypeToTest,
+					knownArgumentTypes));
+			for (int i = 0; i <= indent; i++)
+			{
+				builder.append("\t");
+			}
+			builder.append(ifCheckHolds().toString(indent + 1));
+			builder.append(String.format("%n"));
+			for (int i = 0; i <= indent; i++)
+			{
+				builder.append("\t");
+			}
+			builder.append(ifCheckFails().toString(indent + 1));
+			return builder.toString();
 		}
 	}
 
@@ -795,10 +1035,12 @@ extends Descriptor
 			TupleDescriptor.toList(argumentTypeTuple);
 		synchronized (object)
 		{
-			final LookupTree tree =
-				(LookupTree) (object.testingTree().javaObject());
-			final List<A_Definition> solutions =
-				tree.lookupByTypes(argumentTypesList);
+			LookupTree tree = (LookupTree) (object.testingTree().javaObject());
+			List<A_Definition> solutions;
+			while ((solutions = tree.solutionOrNull()) == null)
+			{
+				tree = tree.lookupStepByTypes(argumentTypesList);
+			}
 			return solutions.size() == 1
 				? solutions.get(0)
 				: NilDescriptor.nil();
@@ -817,10 +1059,12 @@ extends Descriptor
 	{
 		synchronized (object)
 		{
-			final LookupTree tree =
-				(LookupTree) (object.testingTree().javaObject());
-			final List<A_Definition> solutions =
-				tree.lookupByValues(argumentList);
+			LookupTree tree = (LookupTree) (object.testingTree().javaObject());
+			List<A_Definition> solutions;
+			while ((solutions = tree.solutionOrNull()) == null)
+			{
+				tree = tree.lookupStepByValues(argumentList);
+			}
 			return solutions.size() == 1
 				? solutions.get(0)
 				: NilDescriptor.nil();
@@ -893,11 +1137,41 @@ extends Descriptor
 			A_Tuple result = object.slot(PRIVATE_TESTING_TREE);
 			if (result.equalsNil())
 			{
-				// Compute the tree.
+				// Compute the tree.  First determine which method definitions
+				// have a signature where every argument is of type any, as that
+				// qualifies the definition without any testing.
+				final A_Tuple allDefinitions = object.slot(DEFINITIONS_TUPLE);
+				final List<A_Definition> prequalified = new ArrayList<>(1);
+				final List<A_Definition> undecided =
+					new ArrayList<>(allDefinitions.tupleSize());
+				final int numArgs = object.slot(NUM_ARGS);
+				for (final A_Definition definition : allDefinitions)
+				{
+					final A_Type argsTupleType =
+						definition.bodySignature().argsTupleType();
+					boolean allAny = true;
+					for (int i = 1; i <= numArgs; i++)
+					{
+						if (!argsTupleType.typeAtIndex(i).equals(ANY.o()))
+						{
+							allAny = false;
+							break;
+						}
+					}
+					if (allAny)
+					{
+						prequalified.add(definition);
+					}
+					else
+					{
+						undecided.add(definition);
+					}
+				}
+
 				final LookupTree tree = LookupTree.createTree(
-					Collections.<A_Definition>emptyList(),
-					TupleDescriptor.<A_Definition>toList(
-						object.slot(DEFINITIONS_TUPLE)));
+					prequalified,
+					undecided,
+					Collections.<A_Type>nCopies(object.numArgs(), ANY.o()));
 				result = RawPojoDescriptor.identityWrap(tree).makeShared();
 				object.setSlot(PRIVATE_TESTING_TREE, result);
 			}

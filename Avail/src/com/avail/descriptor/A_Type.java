@@ -113,6 +113,13 @@ extends A_BasicObject
 	boolean acceptsTupleOfArguments (A_Tuple arguments);
 
 	/**
+	 * Answer the tuple type describing this function type's argument types.
+	 *
+	 * @return The tuple type for a function type's arguments.
+	 */
+	A_Type argsTupleType ();
+
+	/**
 	 * Answer the type of elements that this set type's sets may hold.
 	 *
 	 * @return The set type's content type.
@@ -126,6 +133,11 @@ extends A_BasicObject
 	 * @return The set of declared exception types.
 	 */
 	A_Set declaredExceptions ();
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	A_Type defaultType ();
 
 	/**
 	 * Return the parse node type's expression type, which is the type of object

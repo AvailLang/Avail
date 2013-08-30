@@ -391,6 +391,36 @@ extends Descriptor
 	}
 
 	/**
+	 * A fake enumeration of slots for a nice description of this pojo.
+	 */
+	enum FakeSlots implements ObjectSlotsEnum
+	{
+		/** The sole (pseudo-)slot, the java object itself. */
+		JAVA_OBJECT;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * Show the actual {@link #o_JavaObject(AvailObject) javaObject}, rather
+	 * than just its index.  This is <em>much</em> nicer to have available in
+	 * the Eclipse Java debugger.
+	 */
+	@Override
+	AvailObjectFieldHelper[] o_DescribeForDebugger (
+		final AvailObject object)
+	{
+		final List<AvailObjectFieldHelper> fields = new ArrayList<>();
+		fields.add(
+			new AvailObjectFieldHelper(
+				object,
+				FakeSlots.JAVA_OBJECT,
+				-1,
+				getPojo(object)));
+		return fields.toArray(new AvailObjectFieldHelper[fields.size()]);
+	}
+
+	/**
 	 * Construct a new {@link RawPojoDescriptor}.
 	 *
 	 * @param mutability

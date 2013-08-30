@@ -268,11 +268,6 @@ public interface A_BasicObject
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	A_Type defaultType ();
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
 	void displayTestingTree ();
 
 	/**
@@ -895,11 +890,6 @@ public interface A_BasicObject
 	 * @return
 	 */
 	boolean isLong ();
-
-	/**
-	 * @return
-	 */
-	A_Type argsTupleType ();
 
 	/**
 	 * @param anInstanceType

@@ -45,8 +45,9 @@ public class P_140_TupleTypeDefaultType extends Primitive
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_140_TupleTypeDefaultType().init(
-		1, CanFold, CannotFail);
+	public final static Primitive instance =
+		new P_140_TupleTypeDefaultType().init(
+			1, CanFold, CannotFail);
 
 	@Override
 	public Result attempt (
@@ -55,7 +56,7 @@ public class P_140_TupleTypeDefaultType extends Primitive
 		final boolean skipReturnCheck)
 	{
 		assert args.size() == 1;
-		final A_BasicObject tupleType = args.get(0);
+		final A_Type tupleType = args.get(0);
 		return interpreter.primitiveSuccess(tupleType.defaultType());
 	}
 
