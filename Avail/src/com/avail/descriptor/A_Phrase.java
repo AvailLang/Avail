@@ -117,6 +117,7 @@ extends A_BasicObject
 
 	/**
 	 * Dispatch to the descriptor.
+	 * @return
 	 */
 	A_Phrase expression ();
 

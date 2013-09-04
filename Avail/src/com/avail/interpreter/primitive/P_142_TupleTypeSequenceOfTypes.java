@@ -49,8 +49,9 @@ public final class P_142_TupleTypeSequenceOfTypes extends Primitive
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_142_TupleTypeSequenceOfTypes().init(
-		3, CanFold);
+	public final static Primitive instance =
+		new P_142_TupleTypeSequenceOfTypes().init(
+			3, CanFold);
 
 	@Override
 	public Result attempt (

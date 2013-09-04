@@ -55,7 +55,7 @@ public final class P_035_ParamsType extends Primitive
 		final boolean skipReturnCheck)
 	{
 		assert args.size() == 1;
-		final A_BasicObject functionType = args.get(0);
+		final A_Type functionType = args.get(0);
 		return interpreter.primitiveSuccess(
 			functionType.argsTupleType());
 	}

@@ -2802,7 +2802,7 @@ public class MessageSplitter
 	 *            If the function type is inappropriate for the method name.
 	 */
 	public void checkImplementationSignature (
-		final A_BasicObject functionType,
+		final A_Type functionType,
 		final int sectionNumber)
 	throws SignatureException
 	{
@@ -2842,7 +2842,7 @@ public class MessageSplitter
 	 *            If the function type is inappropriate for the method name.
 	 */
 	public void checkImplementationSignature (
-		final A_BasicObject functionType)
+		final A_Type functionType)
 	throws SignatureException
 	{
 		checkImplementationSignature(functionType, Integer.MAX_VALUE);
