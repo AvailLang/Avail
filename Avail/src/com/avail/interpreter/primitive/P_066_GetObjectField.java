@@ -33,6 +33,7 @@ package com.avail.interpreter.primitive;
 
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.interpreter.Primitive.Flag.*;
+import static com.avail.interpreter.Primitive.Fallibility.*;
 import java.util.List;
 import com.avail.descriptor.*;
 import com.avail.exceptions.AvailErrorCode;
@@ -42,7 +43,8 @@ import com.avail.interpreter.*;
  * <strong>Primitive 66:</strong> Extract the specified {@linkplain
  * AtomDescriptor field} from the {@linkplain ObjectDescriptor object}.
  */
-public final class P_066_GetObjectField extends Primitive
+public final class P_066_GetObjectField
+extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
@@ -101,5 +103,27 @@ public final class P_066_GetObjectField extends Primitive
 		}
 		return super.returnTypeGuaranteedByVM(
 			argumentTypes);
+	}
+
+	@Override
+	public Fallibility fallibilityForArgumentTypes (
+		final List<? extends A_Type> argumentTypes)
+	{
+		final A_Type objectType = argumentTypes.get(0);
+		final A_Type fieldType = argumentTypes.get(1);
+		final A_Map fieldTypeMap = objectType.fieldTypeMap();
+		if (fieldType.isEnumeration())
+		{
+			for (final A_Atom possibleField : fieldType.instances())
+			{
+				if (!fieldTypeMap.hasKey(possibleField))
+				{
+					// Unknown field.
+					return CallSiteCanFail;
+				}
+			}
+			return CallSiteCannotFail;
+		}
+		return CallSiteCanFail;
 	}
 }

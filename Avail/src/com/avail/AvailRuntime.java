@@ -34,6 +34,7 @@ package com.avail;
 
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
+import static com.avail.exceptions.AvailErrorCode.*;
 import java.io.*;
 import java.nio.channels.AsynchronousChannelGroup;
 import java.nio.channels.AsynchronousFileChannel;
@@ -58,7 +59,6 @@ import com.avail.descriptor.FiberDescriptor.TraceFlag;
 import com.avail.descriptor.VariableDescriptor.VariableAccessReactor;
 import com.avail.exceptions.*;
 import com.avail.interpreter.levelTwo.L2Chunk;
-import com.avail.interpreter.primitive.P_256_EmergencyExit;
 import com.avail.utility.Continuation0;
 
 /**
@@ -615,12 +615,58 @@ public final class AvailRuntime
 		implicitObserveFunction = function;
 	}
 
+	/**
+	 * The {@linkplain FunctionDescriptor function} to invoke whenever a
+	 * {@linkplain MethodDescriptor method} send fails for a definitional
+	 * reason.
+	 */
+	private volatile A_Function invalidMessageSendFunction;
+
+	/**
+	 * Answer the {@linkplain FunctionDescriptor function} to invoke whenever a
+	 * {@linkplain MethodDescriptor method} send fails for a definitional
+	 * reason.
+	 *
+	 * @return The function to invoke whenever a message send fails dynamically
+	 *         because of an ambiguous, invalid, or incomplete lookup.
+	 */
+	@ThreadSafe
+	public A_Function invalidMessageSendFunction ()
 	{
-		final A_Function function = FunctionDescriptor.newPrimitiveFunction(
-			P_256_EmergencyExit.instance);
+		return invalidMessageSendFunction;
+	}
+
+	/**
+	 * Set the {@linkplain FunctionDescriptor function} to invoke whenever a
+	 * {@linkplain MethodDescriptor method} send fails for a definitional
+	 * reason.
+	 *
+	 * @param function
+	 *        The function to invoke whenever a message send fails dynamically
+	 *        because of an ambiguous, invalid, or incomplete lookup.
+	 */
+	@ThreadSafe
+	public void setInvalidMessageSendFunction (final A_Function function)
+	{
+		invalidMessageSendFunction = function;
+	}
+
+	{
+		final A_Function function = FunctionDescriptor.newCrashFunction(
+			TupleDescriptor.empty());
 		unassignedVariableReadFunction = function;
 		resultDisagreedWithExpectedTypeFunction = function;
 		implicitObserveFunction = function;
+		invalidMessageSendFunction = FunctionDescriptor.newCrashFunction(
+			TupleDescriptor.from(
+				AbstractEnumerationTypeDescriptor.withInstances(
+					TupleDescriptor.from(
+							E_NO_METHOD.numericCode(),
+							E_NO_METHOD_DEFINITION.numericCode(),
+							E_AMBIGUOUS_METHOD_DEFINITION.numericCode(),
+							E_FORWARD_METHOD_DEFINITION.numericCode(),
+							E_ABSTRACT_METHOD_DEFINITION.numericCode())
+						.asSet())));
 	}
 
 	/**

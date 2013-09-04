@@ -885,7 +885,7 @@ System exception "shift-and-truncate-requires-non-negative" (18)
 	extends arithmetic exception;
 System exception "no-method" (19)
 	extends element-access exception;
-System exception "wrong-number-of-outers" (20)
+System exception "wrong-outers" (20)
 	extends code-generation exception;
 System exception "key-not-found" (21)
 	extends element-access exception;
@@ -987,8 +987,6 @@ System exception "no-such-field" (69)
 	extends element-access exception;
 System exception "loading-is-over" (70)
 	extends system exception;
-System exception "method-implementation-lookup-failed" (71)
-	extends element-access exception;
 System exception "method-is-sealed" (72)
 	extends definition exception;
 System exception "no-implementation" (73)
@@ -1011,6 +1009,14 @@ System exception "no-handler-frame" (82)
 	extends system exception;
 System exception "unwind-sentinel" (83)
 	extends system exception;
+System exception "no-method-definition" (84)
+	extends definition exception;
+System exception "ambiguous-method-definition" (85)
+	extends definition exception;
+System exception "forward-method-definition" (86)
+	extends definition exception;
+System exception "abstract-method-definition" (87)
+	extends definition exception;
 System exception "fiber-is-terminated" (89)
 	extends system exception;
 System exception "fiber-result-unavailable" (90)
@@ -1286,6 +1292,36 @@ Private method "unexpected result function:=_" is
  */
 unexpected result function :=
 	[Raise a result-disagreed-with-expected-type exception];
+
+/**
+ * Set the function that should be invoked whenever a message send encounters
+ * a definitional error, such as ambiguous or failed method definition lookup,
+ * or invocation of a forward or abstract method.
+ */
+Private method "invalid method send function:=_" is
+[
+	aFunction : [{
+		no-method code,
+		no-method-definition code,
+		ambiguous-method-definition code,
+		forward-method-definition code,
+		abstract-method-definition code}ᵀ]→⊥
+|
+	Primitive 78;
+] : ⊤;
+
+/* Raise the appropriate exception whenever a message send fails dynamically. */
+invalid method send function :=
+	[
+		code : {
+			no-method code,
+			no-method-definition code,
+			ambiguous-method-definition code,
+			forward-method-definition code,
+			abstract-method-definition code}ᵀ
+	|
+		Raise an exception for code
+	] : ⊥;
 
 /* If the unhandled exception handler catches a termination-requested exception,
  * we want the fiber to exit cleanly, so use an uninitialized variable. This is

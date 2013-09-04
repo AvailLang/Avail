@@ -31,7 +31,7 @@
  */
 package com.avail.interpreter.primitive;
 
-import static com.avail.exceptions.AvailErrorCode.E_WRONG_NUMBER_OF_OUTERS;
+import static com.avail.exceptions.AvailErrorCode.E_WRONG_OUTERS;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
 import com.avail.descriptor.*;
@@ -39,7 +39,7 @@ import com.avail.interpreter.*;
 
 /**
  * <strong>Primitive 74:</strong> Answer a {@linkplain FunctionDescriptor
- * function} built from the {@linkplain CompiledCodeDescriptor compiled code}
+ * function} built from the {@linkplain CompiledCodeDescriptor raw function}
  * and the outer variables.
  */
 public final class P_074_CreateFunction extends Primitive
@@ -57,15 +57,25 @@ public final class P_074_CreateFunction extends Primitive
 		final boolean skipReturnCheck)
 	{
 		assert args.size() == 2;
-		final AvailObject compiledCode = args.get(0);
+		final A_RawFunction rawFunction = args.get(0);
 		final A_Tuple outers = args.get(1);
-		if (outers.tupleSize() != compiledCode.numOuters())
+		final int numOuters = rawFunction.numOuters();
+		if (outers.tupleSize() != numOuters)
 		{
-			return interpreter.primitiveFailure(
-				E_WRONG_NUMBER_OF_OUTERS);
+			return interpreter.primitiveFailure(E_WRONG_OUTERS);
 		}
-		return interpreter.primitiveSuccess(
-			FunctionDescriptor.create(compiledCode, outers));
+		for (int i = 1; i <= numOuters; i++)
+		{
+			final A_Type outerType = outers.tupleAt(i);
+			final A_Type requiredType = rawFunction.outerTypeAt(i);
+			if (!outerType.isSubtypeOf(requiredType))
+			{
+				return interpreter.primitiveFailure(E_WRONG_OUTERS);
+			}
+		}
+		final A_Function function =
+			FunctionDescriptor.create(rawFunction, outers);
+		return interpreter.primitiveSuccess(function);
 	}
 
 	@Override

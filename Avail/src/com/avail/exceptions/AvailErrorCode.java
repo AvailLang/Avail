@@ -160,11 +160,11 @@ public enum AvailErrorCode
 	E_NO_METHOD (19),
 
 	/**
-	 * The wrong number of outers were specified for creation of a {@linkplain
-	 * FunctionDescriptor function} from {@linkplain CompiledCodeDescriptor
-	 * compiled code}.
+	 * The wrong number or {@linkplain TypeDescriptor types} of outers were
+	 * specified for creation of a {@linkplain FunctionDescriptor function} from
+	 * a {@linkplain CompiledCodeDescriptor raw function}.
 	 */
-	E_WRONG_NUMBER_OF_OUTERS (20),
+	E_WRONG_OUTERS (20),
 
 	/**
 	 * A key was not present in a {@linkplain MapDescriptor map}.
@@ -473,10 +473,7 @@ public enum AvailErrorCode
 	 */
 	E_LOADING_IS_OVER (70),
 
-	/**
-	 * Method lookup failed.
-	 */
-	E_METHOD_IMPLEMENTATION_LOOKUP_FAILED (71),
+//	E_??? (71),
 
 	/**
 	 * The method is sealed at the specified {@linkplain TupleTypeDescriptor
@@ -549,11 +546,31 @@ public enum AvailErrorCode
 	 */
 	E_UNWIND_SENTINEL (83),
 
-//	E_??? (84)
-//	E_??? (85)
-//	E_??? (86)
-//	E_??? (87)
-//	E_??? (88)
+	/**
+	 * No {@linkplain MethodDefinitionDescriptor method definition} satisfies
+	 * the supplied criteria.
+	 */
+	E_NO_METHOD_DEFINITION (84),
+
+	/**
+	 * More than one {@linkplain MethodDefinitionDescriptor method definition}
+	 * satisfies the supplied criteria.
+	 */
+	E_AMBIGUOUS_METHOD_DEFINITION (85),
+
+	/**
+	 * The resolved {@linkplain DefinitionDescriptor definition} is a
+	 * {@linkplain ForwardDefinitionDescriptor forward definition}.
+	 */
+	E_FORWARD_METHOD_DEFINITION (86),
+
+	/**
+	 * The resolved {@linkplain DefinitionDescriptor definition} is a
+	 * {@linkplain AbstractDefinitionDescriptor abstract definition}.
+	 */
+	E_ABSTRACT_METHOD_DEFINITION (87),
+
+//	E_??? (88),
 
 	/**
 	 * The {@linkplain FiberDescriptor fiber} being examined has already been

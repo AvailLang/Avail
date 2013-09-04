@@ -45,7 +45,9 @@ Extends
 Uses
 	"Origin"
 Names
+	/*  87 */ "abstract method definition code",
 	/*  54 */ "alternative must not contain arguments code",
+	/*  85 */ "ambiguous method definition code",
 	/*  35 */ "ambiguous name code",
 	/*  74 */ "atom already exists code",
 	/* 103 */ "block compilation failed code",
@@ -77,6 +79,7 @@ Names
 	/*  89 */ "fiber is terminated code",
 	/*  92 */ "fiber produced incorrectly typed result code",
 	/*  90 */ "fiber result unavailable code",
+	/*  86 */ "forward method definition code",
 	/*  27 */ "function disagrees with primitive restriction code",
 	/*  80 */ "handler sentinel code",
 	/*  77 */ "illegal trace mode code",
@@ -107,7 +110,6 @@ Names
 	/*  68 */ "macro must return a parse node code",
 	/*  67 */ "macro prefix function argument must be a parse node code",
 	/*  59 */ "macro prefix functions must return top code",
-	/*  71 */ "method implementation lookup failed code",
 	/*  72 */ "method is sealed code",
 	/*  45 */ "method name is not canonical code",
 	/*  13 */ "method return type not as forward declared code",
@@ -115,6 +117,7 @@ Names
 	/*  82 */ "no handler frame code",
 	/*  73 */ "no implementation code",
 	/*  19 */ "no method code",
+	/*  84 */ "no method definition code",
 	/*  33 */ "no special object code",
 	/*   9 */ "no such fiber variable code",
 	/*  69 */ "no such field code",
@@ -141,7 +144,7 @@ Names
 	/*  44 */ "unbalanced guillemets code",
 	/*  83 */ "unwind sentinel code",
 	/*  55 */ "vertical bar must follow a simple or simple group code",
-	/*  20 */ "wrong number of outers code"
+	/*  20 */ "wrong outers code"
 Body
 
 Primitive "cannot add unlike infinities code" is
@@ -234,7 +237,7 @@ Primitive "no method code" is
 	19
 ];
 
-Primitive "wrong number of outers code" is
+Primitive "wrong outers code" is
 [
 	20
 ];
@@ -489,11 +492,6 @@ Primitive "loading is over code" is
 	70
 ];
 
-Primitive "method implementation lookup failed code" is
-[
-	71
-];
-
 Primitive "method is sealed code" is
 [
 	72
@@ -547,6 +545,26 @@ Primitive "no handler frame code" is
 Primitive "unwind sentinel code" is
 [
 	83
+];
+
+Primitive "no method definition code" is
+[
+	84
+];
+
+Primitive "ambiguous method definition code" is
+[
+	85
+];
+
+Primitive "forward method definition code" is
+[
+	86
+];
+
+Primitive "abstract method definition code" is
+[
+	87
 ];
 
 Primitive "fiber is terminated code" is

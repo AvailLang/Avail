@@ -40,7 +40,10 @@ import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 
 /**
- * <strong>Primitive 76</strong>: TODO: [TLS] Document this!
+ * <strong>Primitive 76</strong>: Set the {@linkplain FunctionDescriptor
+ * function} to invoke whenever the result produced by a {@linkplain
+ * MethodDescriptor method invocation} disagrees with the type decreed by the
+ * applicable semantic restrictions at the call site.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */

@@ -1,6 +1,6 @@
 /**
- * P_222_DefinitionForArgumentTypes.java
- * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
+ * P_078_SetInvalidMessageSendFunction.java
+ * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,29 +36,26 @@ import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
-import com.avail.compiler.MessageSplitter;
+import com.avail.AvailRuntime;
 import com.avail.descriptor.*;
-import com.avail.exceptions.MethodDefinitionException;
-import com.avail.exceptions.SignatureException;
 import com.avail.interpreter.*;
 
 /**
- * <strong>Primitive 222</strong>: Lookup the unique {@linkplain
- * DefinitionDescriptor definition} in the specified {@linkplain
- * MessageBundleDescriptor message bundle}'s {@linkplain MethodDescriptor
- * method} by the {@linkplain TupleDescriptor tuple} of parameter {@linkplain
- * TypeDescriptor types}.
+ * <strong>Primitive 78</strong>: Set the {@linkplain FunctionDescriptor
+ * function} to invoke whenever a whenever a {@linkplain MethodDescriptor
+ * method} send fails for a definitional reason.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class P_222_DefinitionForArgumentTypes
+public final class P_078_SetInvalidMessageSendFunction
 extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_222_DefinitionForArgumentTypes().init(2, CanInline);
+		new P_078_SetInvalidMessageSendFunction().init(
+			1, CannotFail, HasSideEffect);
 
 	@Override
 	public Result attempt (
@@ -66,32 +63,10 @@ extends Primitive
 		final Interpreter interpreter,
 		final boolean skipReturnCheck)
 	{
-		assert args.size() == 2;
-		final A_Atom atom = args.get(0);
-		final A_Tuple argTypes = args.get(1);
-		final A_Bundle bundle = atom.bundleOrNil();
-		try
-		{
-			if (bundle.equalsNil())
-			{
-				throw MethodDefinitionException.noMethod();
-			}
-			final MessageSplitter splitter =
-				new MessageSplitter(atom.atomName());
-			if (splitter.numberOfArguments() != argTypes.tupleSize())
-			{
-				return interpreter.primitiveFailure(
-					E_INCORRECT_NUMBER_OF_ARGUMENTS);
-			}
-			final A_Definition definition =
-				bundle.bundleMethod().lookupByTypesFromTuple(argTypes);
-			assert !definition.equalsNil();
-			return interpreter.primitiveSuccess(definition);
-		}
-		catch (final SignatureException|MethodDefinitionException e)
-		{
-			return interpreter.primitiveFailure(e.errorCode());
-		}
+		assert args.size() == 1;
+		final A_Function function = args.get(0);
+		AvailRuntime.current().setInvalidMessageSendFunction(function);
+		return interpreter.primitiveSuccess(NilDescriptor.nil());
 	}
 
 	@Override
@@ -99,9 +74,17 @@ extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				ATOM.o(),
-				TupleTypeDescriptor.zeroOrMoreOf(
-					InstanceMetaDescriptor.anyMeta())),
-			DEFINITION.o());
+				FunctionTypeDescriptor.create(
+					TupleDescriptor.from(
+						AbstractEnumerationTypeDescriptor.withInstances(
+							TupleDescriptor.from(
+									E_NO_METHOD.numericCode(),
+									E_NO_METHOD_DEFINITION.numericCode(),
+									E_AMBIGUOUS_METHOD_DEFINITION.numericCode(),
+									E_FORWARD_METHOD_DEFINITION.numericCode(),
+									E_ABSTRACT_METHOD_DEFINITION.numericCode())
+								.asSet())),
+					BottomTypeDescriptor.bottom())),
+			TOP.o());
 	}
 }

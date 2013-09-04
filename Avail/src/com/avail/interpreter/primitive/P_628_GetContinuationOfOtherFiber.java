@@ -37,6 +37,7 @@ import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.ArrayList;
 import java.util.List;
 import com.avail.AvailRuntime;
+import com.avail.annotations.Nullable;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 import com.avail.utility.Continuation0;
@@ -83,8 +84,9 @@ extends Primitive
 					{
 						@Override
 						public final void value (
-							final A_Continuation theContinuation)
+							final @Nullable A_Continuation theContinuation)
 						{
+							assert theContinuation != null;
 							if (!theContinuation.equalsNil())
 							{
 								Interpreter.resumeFromSuccessfulPrimitive(

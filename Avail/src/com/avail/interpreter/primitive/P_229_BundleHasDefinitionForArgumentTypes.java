@@ -36,6 +36,8 @@ import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
 import com.avail.descriptor.*;
+import com.avail.exceptions.AvailErrorCode;
+import com.avail.exceptions.MethodDefinitionException;
 import com.avail.interpreter.*;
 
 /**
@@ -66,13 +68,20 @@ extends Primitive
 		final A_Bundle bundle = methodName.bundleOrNil();
 		if (bundle.equalsNil())
 		{
+			return interpreter.primitiveFailure(AvailErrorCode.E_NO_METHOD);
+		}
+		try
+		{
+			final A_Method method = bundle.bundleMethod();
+			final A_BasicObject definition =
+				method.lookupByTypesFromTuple(argTypes);
+			assert !definition.equalsNil();
+			return interpreter.primitiveSuccess(AtomDescriptor.trueObject());
+		}
+		catch (final MethodDefinitionException e)
+		{
 			return interpreter.primitiveSuccess(AtomDescriptor.falseObject());
 		}
-		final A_Method method = bundle.bundleMethod();
-		final A_BasicObject definition =
-			method.lookupByTypesFromTuple(argTypes);
-		return interpreter.primitiveSuccess(
-			AtomDescriptor.objectFromBoolean(!definition.equalsNil()));
 	}
 
 	@Override
