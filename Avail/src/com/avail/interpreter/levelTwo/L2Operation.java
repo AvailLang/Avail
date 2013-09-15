@@ -169,8 +169,25 @@ public abstract class L2Operation
 	 * A {@link Statistic} that records the number of nanoseconds spent while
 	 * executing {@link L2Instruction}s that use this operation.
 	 */
-	@SuppressWarnings("null")
 	public Statistic statisticInNanoseconds;
+
+	/**
+	 * Protect the constructor so the subclasses can maintain a fly-weight
+	 * pattern (or arguably a singleton).
+	 */
+	protected L2Operation ()
+	{
+		super();
+		synchronized (values)
+		{
+			final String className = this.getClass().getSimpleName();
+			name = className;
+			statisticInNanoseconds = new Statistic(className);
+			ordinal = numValues;
+			values[ordinal] = this;
+			numValues++;
+		}
+	}
 
 	/**
 	 * Initialize a fresh {@link L2Operation}.
@@ -189,12 +206,6 @@ public abstract class L2Operation
 		{
 			assert namedOperandTypes == null;
 			namedOperandTypes = theNamedOperandTypes;
-			final String className = this.getClass().getSimpleName();
-			name = className;
-			statisticInNanoseconds = new Statistic(className);
-			ordinal = numValues;
-			values[ordinal] = this;
-			numValues++;
 		}
 		return this;
 	}

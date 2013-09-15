@@ -248,3 +248,5 @@ veneer
 verbosity
 appendable
 stringify
+memento
+inlineable

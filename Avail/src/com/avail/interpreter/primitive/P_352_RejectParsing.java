@@ -47,7 +47,7 @@ public final class P_352_RejectParsing extends Primitive
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
 	public final static Primitive instance = new P_352_RejectParsing().init(
-		1, CanFold, CannotFail);
+		1, CannotFail);
 
 	@Override
 	public Result attempt (

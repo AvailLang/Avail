@@ -273,7 +273,7 @@ extends TypeDescriptor
 			if (map2.hasKey(key))
 			{
 				type = type.typeIntersection(map2.mapAt(key));
-				if (type.equals(BottomTypeDescriptor.bottom()))
+				if (type.isBottom())
 				{
 					return BottomTypeDescriptor.bottom();
 				}

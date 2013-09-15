@@ -655,6 +655,18 @@ extends AbstractTypeDescriptor
 	abstract A_Type o_ExpressionType (
 		final AvailObject object);
 
+	@Override @AvailMethod
+	boolean o_IsBottom (final AvailObject object)
+	{
+		return false;
+	}
+
+	@Override @AvailMethod
+	boolean o_IsTop (final AvailObject object)
+	{
+		return false;
+	}
+
 	/**
 	 * Answer a new object instance of this descriptor based on the set of
 	 * objects that will be considered instances of that type. Normalize the

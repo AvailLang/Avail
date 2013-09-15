@@ -46,6 +46,7 @@ import com.avail.descriptor.FiberDescriptor.InterruptRequestFlag;
 import com.avail.descriptor.FiberDescriptor.SynchronizationFlag;
 import com.avail.descriptor.FiberDescriptor.TraceFlag;
 import com.avail.descriptor.InfinityDescriptor.IntegerSlots;
+import com.avail.descriptor.MethodDescriptor.LookupTree;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.descriptor.FiberDescriptor.ExecutionState;
 import com.avail.descriptor.SetDescriptor.SetIterator;
@@ -802,15 +803,17 @@ implements
 	 * Dispatch to the descriptor.
 	 */
 	@Override
-	public AvailObject binRemoveElementHashCanDestroy (
+	public AvailObject binRemoveElementHashLevelCanDestroy (
 		final A_BasicObject elementObject,
 		final int elementObjectHash,
+		final byte myLevel,
 		final boolean canDestroy)
 	{
-		return descriptor.o_BinRemoveElementHashCanDestroy(
+		return descriptor.o_BinRemoveElementHashLevelCanDestroy(
 			this,
 			elementObject,
 			elementObjectHash,
+			myLevel,
 			canDestroy);
 	}
 
@@ -840,16 +843,6 @@ implements
 	public int bitsPerEntry ()
 	{
 		return descriptor.o_BitsPerEntry(this);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	@Override
-	public void bitVector (
-		final int value)
-	{
-		descriptor.o_BitVector(this, value);
 	}
 
 	/**
@@ -2929,12 +2922,10 @@ implements
 	public AvailObject makeShared ()
 	{
 		final AvailObject shared = descriptor.o_MakeShared(this);
-		// Force a write barrier. The original object is the only object that
-		// may have pending writes potentially visible to other threads, so
-		// synchronize on it. It doesn't actually matter which object is
-		// synchronized, since any critical session forces both a read barrier
-		// and a write barrier.
-		synchronized (this)
+		// Force a write barrier. Use a fresh object to avoid deadlocks -- or
+		// even contention.  Create the object right there to spoon-feed HotSpot
+		// a trivial lock elision opportunity.
+		synchronized (new Object())
 		{
 			return shared;
 		}
@@ -3955,7 +3946,7 @@ implements
 	 * Dispatch to the descriptor.
 	 */
 	@Override
-	public A_BasicObject testingTree ()
+	public LookupTree testingTree ()
 	{
 		return descriptor.o_TestingTree(this);
 	}
@@ -6900,5 +6891,17 @@ implements
 	public A_Set getAndClearReificationWaiters ()
 	{
 		return descriptor.o_GetAndClearReificationWaiters(this);
+	}
+
+	@Override
+	public boolean isBottom ()
+	{
+		return descriptor.o_IsBottom(this);
+	}
+
+	@Override
+	public boolean isTop ()
+	{
+		return descriptor.o_IsTop(this);
 	}
 }

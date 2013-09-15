@@ -61,7 +61,7 @@ public final class P_355_CreateParseNodeType extends Primitive
 		assert args.size() == 2;
 		final AvailObject baseType = args.get(0);
 		final AvailObject expressionType = args.get(1);
-		if (baseType.equals(BottomTypeDescriptor.bottom()))
+		if (baseType.isBottom())
 		{
 			return interpreter.primitiveSuccess(baseType);
 		}

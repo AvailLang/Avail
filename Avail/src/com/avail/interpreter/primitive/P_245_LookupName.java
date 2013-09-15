@@ -61,7 +61,7 @@ extends Primitive
 		final boolean skipReturnCheck)
 	{
 		assert args.size() == 1;
-		final AvailObject name = args.get(0);
+		final A_String name = args.get(0);
 		final AvailLoader loader = interpreter.fiber().availLoader();
 		if (loader == null)
 		{

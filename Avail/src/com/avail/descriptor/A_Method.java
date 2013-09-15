@@ -33,6 +33,7 @@
 package com.avail.descriptor;
 
 import java.util.List;
+import com.avail.descriptor.MethodDescriptor.LookupTree;
 import com.avail.exceptions.SignatureException;
 
 /**
@@ -113,7 +114,7 @@ extends A_ChunkDependable
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	A_BasicObject testingTree ();
+	LookupTree testingTree ();
 
 	/**
 	 * Add a {@linkplain SemanticRestrictionDescriptor semantic restriction} to

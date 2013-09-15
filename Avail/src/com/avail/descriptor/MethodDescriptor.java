@@ -45,6 +45,10 @@ import com.avail.interpreter.*;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.primitive.*;
 import com.avail.serialization.SerializerOperation;
+import com.avail.utility.Continuation0;
+import com.avail.utility.Continuation1;
+import com.avail.utility.MutableOrNull;
+import com.avail.utility.Transformer2;
 
 /**
  * A method maintains all definitions that have the same name.  At
@@ -184,6 +188,65 @@ extends Descriptor
 			List<? extends A_Type> argTypes);
 
 		/**
+		 * Create a {@link LookupTree}, using the provided list of {@link
+		 * DefinitionDescriptor definitions} of a {@link MethodDescriptor
+		 * method}.
+		 *
+		 * @param method
+		 *            The method containing the provided definitions.
+		 * @param allDefinitions
+		 *            The list of definitions.
+		 * @param knownArgumentTypes
+		 *            The initial knowledge about the argument types.
+		 * @return A LookupTree, potentially lazy, suitable for dispatching.
+		 */
+		public static LookupTree createRoot (
+			final A_Method method,
+			final List<A_Definition> allDefinitions,
+			final List<A_Type> knownArgumentTypes)
+		{
+			final List<A_Definition> prequalified = new ArrayList<>(1);
+			final List<A_Definition> undecided =
+				new ArrayList<>(allDefinitions.size());
+			final int numArgs = method.numArgs();
+			for (final A_Definition definition : allDefinitions)
+			{
+				final A_Type argsTupleType =
+					definition.bodySignature().argsTupleType();
+				boolean allComply = true;
+				boolean impossible = false;
+				for (int i = 1; i <= numArgs; i++)
+				{
+					final A_Type knownType = knownArgumentTypes.get(i - 1);
+					final A_Type definitionArgType =
+						argsTupleType.typeAtIndex(i);
+					if (!knownType.isSubtypeOf(definitionArgType))
+					{
+						allComply = false;
+					}
+					if (knownType.typeIntersection(definitionArgType)
+						.isBottom())
+					{
+						impossible = true;
+					}
+				}
+				if (allComply)
+				{
+					prequalified.add(definition);
+				}
+				else if (!impossible)
+				{
+					undecided.add(definition);
+				}
+			}
+			final LookupTree tree = LookupTree.createTree(
+				prequalified,
+				undecided,
+				knownArgumentTypes);
+			return tree;
+		}
+
+		/**
 		 * Create a LookupTree suitable for deciding which definition to use
 		 * when actual argument types are provided.
 		 *
@@ -198,7 +261,7 @@ extends Descriptor
 		 * @return A (potentially lazy) LookupTree used to look up method
 		 *         definitions during calls.
 		 */
-		static LookupTree createTree (
+		public static LookupTree createTree (
 			final List<A_Definition> positive,
 			final List<A_Definition> undecided,
 			final List<A_Type> knownArgumentTypes)
@@ -240,6 +303,112 @@ extends Descriptor
 			}
 			return new InternalLookupTree(
 				positive, undecided, knownArgumentTypes);
+		}
+
+		/**
+		 * Traverse the entire {@link LookupTree}, expanding nodes as necessary.
+		 * For each leaf node, invoke the forEachLeafNode {@link Continuation1
+		 * continuation}.  For each non-leaf node, first invoke the
+		 * preInternalNode, save the memento, recurse into the ifCheckHolds
+		 * subtree, invoke the intraInternalNode with the saved memento, recurse
+		 * into the ifCheckFails  subtree, then invoke the postInternalNode with
+		 * the same memento as before.
+		 *
+		 * @param preInternalNode
+		 *            What to do with the the argument number and criterion type
+		 *            found at each non-leaf node.  It must produce a memento to
+		 *            be passed (eventually) to the next two operations.
+		 * @param intraInternalNode
+		 *            What to do between the two branches of a non-leaf, given
+		 *            the Memento produced before the first branch.
+		 * @param postInternalNode
+		 *            What to do after the second branch of a non-leaf, given
+		 *            the Memento produced before the first branch.
+		 * @param forEachLeafNode
+		 *            What to do with the {@link List} of {@linkplain
+		 *            A_Definition definitions} found in a leaf node.
+		 */
+		public final <Memento> void traverseEntireTree (
+			final Transformer2<Integer, A_Type, Memento> preInternalNode,
+			final Continuation1<Memento> intraInternalNode,
+			final Continuation1<Memento> postInternalNode,
+			final Continuation1<List<A_Definition>> forEachLeafNode)
+		{
+			final List<Continuation0> actionStack = new ArrayList<>();
+			final MutableOrNull<Continuation1<LookupTree>> visit =
+				new MutableOrNull<>();
+			visit.value = new Continuation1<LookupTree>()
+			{
+				@Override
+				public void value (final LookupTree node)
+				{
+					final List<A_Definition> solution =
+						node.solutionOrNull();
+					if (solution != null)
+					{
+						forEachLeafNode.value(solution);
+					}
+					else
+					{
+						final InternalLookupTree internalNode =
+							(InternalLookupTree) node;
+						internalNode.expandIfNecessary();
+						final MutableOrNull<Memento> memento =
+							new MutableOrNull<>();
+						// Push some actions in *reverse* order of their
+						// execution.
+						actionStack.add(new Continuation0()
+						{
+							@Override
+							public void value ()
+							{
+								postInternalNode.value(memento.value());
+							}
+						});
+						actionStack.add(new Continuation0()
+						{
+							@Override
+							public void value ()
+							{
+								visit.value().value(
+									internalNode.ifCheckFails());
+							}
+						});
+						actionStack.add(new Continuation0()
+						{
+							@Override
+							public void value ()
+							{
+								intraInternalNode.value(memento.value());
+							}
+						});
+						actionStack.add(new Continuation0()
+						{
+							@Override
+							public void value ()
+							{
+								visit.value().value(
+									internalNode.ifCheckHolds());
+							}
+						});
+						actionStack.add(new Continuation0()
+						{
+							@Override
+							public void value ()
+							{
+								memento.value = preInternalNode.value(
+									internalNode.argumentPositionToTest,
+									internalNode.argumentTypeToTest());
+							}
+						});
+					}
+				}
+			};
+			visit.value().value(this);
+			while (!actionStack.isEmpty())
+			{
+				actionStack.remove(actionStack.size() - 1).value();
+			}
 		}
 
 		/**
@@ -342,13 +511,13 @@ extends Descriptor
 		private @Nullable A_Type argumentTypeToTest;
 
 		/** The 1-based index of the argument to be tested at this node. */
-		private int argumentPositionToTest = -1;
+		@InnerAccess int argumentPositionToTest = -1;
 
 		/** The tree to visit if the supplied arguments conform. */
-		private @Nullable LookupTree ifCheckHolds;
+		@InnerAccess @Nullable LookupTree ifCheckHolds;
 
 		/** The tree to visit if the supplied arguments do not conform. */
-		private @Nullable LookupTree ifCheckFails;
+		@InnerAccess @Nullable LookupTree ifCheckFails;
 
 		/**
 		 * Construct a new {@link InternalLookupTree}.  It is constructed lazily
@@ -385,7 +554,7 @@ extends Descriptor
 		 * @return A list of argument types to check, expanding this node if
 		 *         necessary.
 		 */
-		final private A_Type argumentTypeToTest ()
+		@InnerAccess final A_Type argumentTypeToTest ()
 		{
 			final A_Type testType = argumentTypeToTest;
 			assert testType != null;
@@ -700,7 +869,7 @@ extends Descriptor
 				assert someTupleType.isTupleType();
 				final A_Type intersection =
 					criterionTupleType.typeIntersection(someTupleType);
-				if (intersection.equals(BottomTypeDescriptor.bottom()))
+				if (intersection.isBottom())
 				{
 					return DISJOINT_TYPE;
 				}
@@ -1035,7 +1204,7 @@ extends Descriptor
 			TupleDescriptor.toList(argumentTypeTuple);
 		synchronized (object)
 		{
-			LookupTree tree = (LookupTree) (object.testingTree().javaObject());
+			LookupTree tree = object.testingTree();
 			List<A_Definition> solutions;
 			while ((solutions = tree.solutionOrNull()) == null)
 			{
@@ -1059,7 +1228,7 @@ extends Descriptor
 	{
 		synchronized (object)
 		{
-			LookupTree tree = (LookupTree) (object.testingTree().javaObject());
+			LookupTree tree = object.testingTree();
 			List<A_Definition> solutions;
 			while ((solutions = tree.solutionOrNull()) == null)
 			{
@@ -1130,52 +1299,24 @@ extends Descriptor
 	 * {@link LookupTree}.
 	 */
 	@Override @AvailMethod
-	A_BasicObject o_TestingTree (final AvailObject object)
+	LookupTree o_TestingTree (final AvailObject object)
 	{
 		synchronized (object)
 		{
-			A_Tuple result = object.slot(PRIVATE_TESTING_TREE);
+			A_BasicObject result = object.slot(PRIVATE_TESTING_TREE);
 			if (result.equalsNil())
 			{
-				// Compute the tree.  First determine which method definitions
-				// have a signature where every argument is of type any, as that
-				// qualifies the definition without any testing.
+				final List<A_Type> initialTypes =
+					Collections.<A_Type>nCopies(object.numArgs(), ANY.o());
 				final A_Tuple allDefinitions = object.slot(DEFINITIONS_TUPLE);
-				final List<A_Definition> prequalified = new ArrayList<>(1);
-				final List<A_Definition> undecided =
-					new ArrayList<>(allDefinitions.tupleSize());
-				final int numArgs = object.slot(NUM_ARGS);
-				for (final A_Definition definition : allDefinitions)
-				{
-					final A_Type argsTupleType =
-						definition.bodySignature().argsTupleType();
-					boolean allAny = true;
-					for (int i = 1; i <= numArgs; i++)
-					{
-						if (!argsTupleType.typeAtIndex(i).equals(ANY.o()))
-						{
-							allAny = false;
-							break;
-						}
-					}
-					if (allAny)
-					{
-						prequalified.add(definition);
-					}
-					else
-					{
-						undecided.add(definition);
-					}
-				}
-
-				final LookupTree tree = LookupTree.createTree(
-					prequalified,
-					undecided,
-					Collections.<A_Type>nCopies(object.numArgs(), ANY.o()));
+				final LookupTree tree = LookupTree.createRoot(
+					object,
+					TupleDescriptor.<A_Definition>toList(allDefinitions),
+					initialTypes);
 				result = RawPojoDescriptor.identityWrap(tree).makeShared();
 				object.setSlot(PRIVATE_TESTING_TREE, result);
 			}
-			return result;
+			return (LookupTree) result.javaObject();
 		}
 	}
 

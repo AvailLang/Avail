@@ -63,6 +63,38 @@ public final class P_060_Equality extends Primitive
 	}
 
 	@Override
+	public A_Type returnTypeGuaranteedByVM (
+		final List<? extends A_Type> argumentTypes)
+	{
+		assert argumentTypes.size() == 2;
+		final A_Type type1 = argumentTypes.get(0);
+		final A_Type type2 = argumentTypes.get(1);
+
+		if (type1.typeIntersection(type2).isBottom())
+		{
+			// The actual values cannot be equal at runtime.
+			return AbstractEnumerationTypeDescriptor.withInstance(
+				AtomDescriptor.falseObject());
+		}
+		if (type1.isEnumeration()
+			&& type1.equals(type2)
+			&& type1.instanceCount().equals(IntegerDescriptor.one()))
+		{
+			final A_BasicObject value = type1.instances().iterator().next();
+			// Because of metacovariance, a meta may actually have many
+			// instances.  For instance, tuple's type contains not only tuple,
+			// but every subtype of tuple (e.g., string, <>'s type, etc.).
+			if (!value.isType())
+			{
+				// The actual values will have to be equal at runtime.
+				return AbstractEnumerationTypeDescriptor.withInstance(
+					AtomDescriptor.trueObject());
+			}
+		}
+		return super.returnTypeGuaranteedByVM(argumentTypes);
+	}
+
+	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(

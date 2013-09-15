@@ -60,9 +60,24 @@ public final class P_341_PushArgument extends Primitive
 	}
 
 	@Override
+	public A_Type returnTypeGuaranteedByVM (
+		final List<? extends A_Type> argumentTypes)
+	{
+		assert argumentTypes.size() == 1;
+		return argumentTypes.get(0);
+	}
+
+	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
 		// This primitive is suitable for any actual one-argument function.
+		// It may seem strange that ⊥ is the return type, but that's to allow
+		// functions like [x : map | x] to type-check correctly!  The argument
+		// x has type map, so the last expression does also.  If we made this
+		// primitive say the result must be any, we would be illegally
+		// strengthening it by appending a return type declaration like ": map".
+		// However, the L2 translator will have to ignore the primitive block
+		// type restriction for this particular primitive.
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
 				ANY.o()),

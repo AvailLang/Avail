@@ -34,7 +34,6 @@ package com.avail.compiler;
 
 import static com.avail.descriptor.AvailObject.error;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
-import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import java.io.ByteArrayOutputStream;
 import java.util.*;
 import com.avail.compiler.instruction.*;
@@ -228,7 +227,7 @@ public class AvailCodeGenerator
 			final A_Type lastStatementType = lastStatement.kind();
 			if (lastStatementType.parseNodeKindIsUnder(LABEL_NODE)
 				|| (lastStatementType.parseNodeKindIsUnder(ASSIGNMENT_NODE)
-					&& resultType.equals(TOP.o())))
+					&& resultType.isTop()))
 			{
 				// Either the block 1) ends with the label declaration or
 				// 2) is top-valued and ends with an assignment. Push the top

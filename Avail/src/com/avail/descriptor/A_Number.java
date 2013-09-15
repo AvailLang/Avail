@@ -420,7 +420,9 @@ extends A_BasicObject
 	 * @param canDestroy
 	 * @return
 	 */
-	A_Number divideIntoIntegerCanDestroy (A_Number anInteger, boolean canDestroy);
+	A_Number divideIntoIntegerCanDestroy (
+		A_Number anInteger,
+		boolean canDestroy);
 
 	/**
 	 * @param sign
@@ -450,5 +452,27 @@ extends A_BasicObject
 	 * @param canDestroy
 	 * @return
 	 */
-	A_Number multiplyByIntegerCanDestroy (A_Number anInteger, boolean canDestroy);
+	A_Number multiplyByIntegerCanDestroy (
+		A_Number anInteger,
+		boolean canDestroy);
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	int rawSignedIntegerAt (int index);
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	void rawSignedIntegerAtPut (int index, int value);
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	long rawUnsignedIntegerAt (int index);
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	void rawUnsignedIntegerAtPut (int index, int value);
 }

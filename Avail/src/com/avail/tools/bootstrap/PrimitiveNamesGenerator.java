@@ -140,11 +140,10 @@ extends PropertiesFileGenerator
 					{
 						parameters = "";
 					}
-					final A_BasicObject returnType =
+					final A_Type returnType =
 						primitive.blockTypeRestriction().returnType();
 					final String returns;
-					if (!returnType.equals(TypeDescriptor.Types.TOP.o())
-						&& !returnType.equals(BottomTypeDescriptor.bottom()))
+					if (!returnType.isTop() && !returnType.isBottom())
 					{
 						returns = preambleBundle.getString(
 							methodCommentReturnsTemplate.name());

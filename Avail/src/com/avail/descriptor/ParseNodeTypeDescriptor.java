@@ -618,7 +618,7 @@ extends TypeDescriptor
 						|| kind.parseNodeKindIsUnder(DECLARATION_NODE)
 						|| kind.parseNodeKindIsUnder(LABEL_NODE)
 						|| kind.parseNodeKindIsUnder(SEND_NODE))
-					&& kind.expressionType().equals(TOP.o());
+					&& kind.expressionType().isTop();
 			}
 			else
 			{

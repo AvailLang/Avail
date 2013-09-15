@@ -115,6 +115,13 @@ extends PrimitiveTypeDescriptor
 		return true;
 	}
 
+	@Override
+	@AvailMethod @ThreadSafe
+	boolean o_IsTop (final AvailObject object)
+	{
+		return true;
+	}
+
 	/**
 	 * Construct a new {@link TopTypeDescriptor}.
 	 *
@@ -125,7 +132,6 @@ extends PrimitiveTypeDescriptor
 	{
 		super(mutability);
 	}
-
 
 	/** The mutable {@link TopTypeDescriptor}. */
 	@SuppressWarnings("hiding")

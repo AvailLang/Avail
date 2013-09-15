@@ -1,5 +1,5 @@
 /**
- * L2_REPORT_INVALID_RETURN_TYPE.java
+ * L2_REPORT_FAILED_LOOKUP.java
  * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -33,54 +33,58 @@ package com.avail.interpreter.levelTwo.operation;
 
 import static com.avail.descriptor.AvailObject.error;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
+import java.util.ArrayList;
 import java.util.List;
 import com.avail.descriptor.A_BasicObject;
-import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.A_Bundle;
+import com.avail.descriptor.A_Set;
+import com.avail.descriptor.A_Tuple;
+import com.avail.descriptor.DefinitionDescriptor;
+import com.avail.descriptor.TupleDescriptor;
 import com.avail.interpreter.*;
 import com.avail.interpreter.levelTwo.*;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.RegisterSet;
 
 /**
- * A value is known at this point to disagree with the type that it is
- * expected to be.  Report this problem and stop execution.  Note that this
- * instruction might be in a branch of (potentially inlined) code that
- * happens to be unreachable in actuality, despite the compiler being unable
- * to prove this.
- *
- * <p>
- * TODO [MvG] - Of course, this will ultimately need to be handled in a much
- * better way than just stopping the whole VM.
- * </p>
+ * A method lookup failed, producing either zero or more than one most-specific
+ * matching {@linkplain DefinitionDescriptor definition}.  Report the problem.
  */
-public class L2_REPORT_INVALID_RETURN_TYPE extends L2Operation
+public class L2_REPORT_FAILED_LOOKUP extends L2Operation
 {
 	/**
 	 * Initialize the sole instance.
 	 */
 	public final static L2Operation instance =
-		new L2_REPORT_INVALID_RETURN_TYPE().init(
-			PRIMITIVE.is("failed primitive"),
-			READ_POINTER.is("actual value"),
-			CONSTANT.is("expected type"));
+		new L2_REPORT_FAILED_LOOKUP().init(
+			SELECTOR.is("method bundle"),
+			READ_VECTOR.is("arguments"),
+			CONSTANT.is("matching definitions"));
 
 	@Override
 	public void step (
 		final L2Instruction instruction,
 		final Interpreter interpreter)
 	{
-		final Primitive primitive = instruction.primitiveAt(0);
-		final L2ObjectRegister actualValueReg =
-			instruction.readObjectRegisterAt(1);
-		final AvailObject expectedType = instruction.constantAt(2);
+		final A_Bundle bundle = instruction.bundleAt(0);
+		final List<L2ObjectRegister> arguments =
+			instruction.readVectorRegisterAt(1).registers();
+		final A_Set definitions = instruction.constantAt(2);
 
-		final A_BasicObject actualValue = actualValueReg.in(interpreter);
+		// TODO[MvG]: Invoke the lookup failure handler function.
+		final List<A_BasicObject> argumentValues =
+			new ArrayList<>(arguments.size());
+		for (final L2ObjectRegister argument : arguments)
+		{
+			argumentValues.add(argument.in(interpreter));
+		}
+		final A_Tuple argumentsTuple = TupleDescriptor.fromList(argumentValues);
 		error(
-			"primitive %s's result (%s) did not agree with"
-			+ " semantic restriction's expected type (%s)",
-			primitive.name(),
-			actualValue,
-			expectedType);
+			"lookup of method %s produced %d most-specific definitions"
+			+ "for arguments: %s",
+			bundle.message(),
+			definitions.setSize(),
+			argumentsTuple);
 	}
 
 	@Override
@@ -88,7 +92,9 @@ public class L2_REPORT_INVALID_RETURN_TYPE extends L2Operation
 		final L2Instruction instruction,
 		final List<RegisterSet> registerSets)
 	{
-		assert registerSets.isEmpty();
+		// A lookup failure should invoke the Avail lookup failure handler,
+		// so it doesn't continue running the current continuation.
+		assert registerSets.size() == 0;
 	}
 
 	@Override

@@ -103,7 +103,7 @@ extends ParseNodeDescriptor
 			for (final AvailObject expression : expressionsTuple)
 			{
 				final A_Type expressionType = expression.expressionType();
-				if (expressionType.equals(BottomTypeDescriptor.bottom()))
+				if (expressionType.isBottom())
 				{
 					return BottomTypeDescriptor.bottom();
 				}

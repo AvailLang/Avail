@@ -131,7 +131,7 @@ public final class RegisterSet
 			}
 			assert sources != null;
 			assert !sources.isEmpty();
-			builder.append(",  SOURCES =");
+			builder.append(",  SOURCES = ");
 			boolean first = true;
 			for (final L2Instruction source : sources)
 			{
@@ -202,23 +202,32 @@ public final class RegisterSet
 	{
 		final AvailObject strongValue = (AvailObject) value;
 		registerConstants.put(register, strongValue);
-		registerTypes.put(
-			register,
-			AbstractEnumerationTypeDescriptor.withInstance(strongValue));
+		if (!strongValue.equalsNil())
+		{
+			final A_Type type =
+				AbstractEnumerationTypeDescriptor.withInstance(strongValue);
+			assert !type.isTop();
+			assert !type.isBottom();
+			registerTypes.put(
+				register,
+				type);
+		}
 		propagateWriteTo(register, instruction);
 	}
 
 	/**
-	 * Retrieve the constant currently associated with this register, or null
-	 * if the register is not bound to a constant at this point.
+	 * Retrieve the constant currently associated with this register.  Fail if
+	 * the register is not bound to a constant at this point.
 	 *
 	 * @param register The register.
-	 * @return The constant object or null.
+	 * @return The constant object.
 	 */
 	public AvailObject constantAt (
 		final L2Register register)
 	{
-		return registerConstants.get(register);
+		final AvailObject value = registerConstants.get(register);
+		assert value != null;
+		return value;
 	}
 
 	/**
@@ -254,7 +263,9 @@ public final class RegisterSet
 	public A_Type typeAt (
 		final L2Register register)
 	{
-		return registerTypes.get(register);
+		final A_Type type = registerTypes.get(register);
+		assert type != null;
+		return type;
 	}
 
 	/**
@@ -269,6 +280,10 @@ public final class RegisterSet
 		final L2Register register,
 		final A_Type type)
 	{
+		assert !type.isBottom();
+		assert !type.equals(
+			AbstractEnumerationTypeDescriptor.withInstance(
+				NilDescriptor.nil()));
 		registerTypes.put(register, type);
 	}
 
@@ -289,7 +304,7 @@ public final class RegisterSet
 		final A_Type type,
 		final L2Instruction instruction)
 	{
-		registerTypes.put(register, type);
+		typeAtPut(register, type);
 		propagateWriteTo(register, instruction);
 	}
 
@@ -578,7 +593,7 @@ public final class RegisterSet
 	 * @param other The RegisterSet with information to mix into the receiver.
 	 * @return Whether the receiver changed due to the new information.
 	 */
-	boolean add (final RegisterSet other)
+	boolean mergeFrom (final RegisterSet other)
 	{
 		assert this.translator == other.translator;
 		boolean changed = false;
@@ -590,9 +605,9 @@ public final class RegisterSet
 		{
 			final Map.Entry<L2Register, A_Type> entry = typesIterator.next();
 			final L2Register reg = entry.getKey();
-			final A_Type otherType = other.registerTypes.get(reg);
-			if (otherType != null)
+			if (other.hasTypeAt(reg))
 			{
+				final A_Type otherType = other.typeAt(reg);
 				final A_Type existingType = entry.getValue();
 				final A_Type union = otherType.typeUnion(existingType);
 				if (!union.equals(existingType))
@@ -705,5 +720,31 @@ public final class RegisterSet
 			}
 		}
 		return changed;
+	}
+
+	@Override
+	public String toString ()
+	{
+		@SuppressWarnings("resource")
+		final Formatter formatter = new Formatter();
+		formatter.format("RegisterSet(%n\tConstants:");
+		for (final Map.Entry<L2Register, AvailObject> entry :
+			new TreeMap<>(registerConstants).entrySet())
+		{
+			formatter.format("%n\t\t%s = %s", entry.getKey(), entry.getValue());
+		}
+		formatter.format("%n\tTypes:");
+		for (final Map.Entry<L2Register, A_Type> entry :
+			new TreeMap<>(registerTypes).entrySet())
+		{
+			formatter.format("%n\t\t%s = %s", entry.getKey(), entry.getValue());
+		}
+		formatter.format("%n\tOrigins:");
+		for (final Map.Entry<L2Register, List<L2Register>> entry :
+			new TreeMap<>(registerOrigins).entrySet())
+		{
+			formatter.format("%n\t\t%s = %s", entry.getKey(), entry.getValue());
+		}
+		return formatter.toString();
 	}
 }

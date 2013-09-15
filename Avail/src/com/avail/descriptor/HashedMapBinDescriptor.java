@@ -198,12 +198,6 @@ extends MapBinDescriptor
 	}
 
 	@Override @AvailMethod
-	void o_BitVector (final AvailObject object, final int value)
-	{
-		object.setSlot(BIT_VECTOR, value);
-	}
-
-	@Override @AvailMethod
 	int o_BinSize (final AvailObject object)
 	{
 		return object.slot(BIN_SIZE);

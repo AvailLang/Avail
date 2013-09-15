@@ -43,6 +43,8 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
 import com.avail.annotations.*;
 import com.avail.descriptor.*;
+import com.avail.descriptor.MethodDescriptor.InternalLookupTree;
+import com.avail.descriptor.MethodDescriptor.LookupTree;
 import com.avail.interpreter.*;
 import com.avail.interpreter.Primitive.Result;
 import com.avail.interpreter.levelOne.*;
@@ -81,6 +83,12 @@ public class L2Translator
 	 * Whether detailed optimization information should be logged.
 	 */
 	final static boolean debugRemoveDeadInstructions = false;
+
+	/**
+	 * Don't inline dispatch logic if there are more than this many possible
+	 * implementations at a call site.
+	 */
+	final static int maxPolymorphismToInlineDispatch = 5;
 
 	/**
 	 * An indication of the possible degrees of optimization effort.  These are
@@ -379,13 +387,12 @@ public class L2Translator
 	}
 
 	/**
-	 * Only inline truly monomorphic messages for now -- i.e., method calls
-	 * where only one method definition is possible and it can be inlined.
-	 * Return the primitive function in such a case, otherwise null.
+	 * Attempt to inline an invocation of this method definition.  If it can be
+	 * (and was) inlined, return the primitive function; otherwise return null.
 	 *
-	 * @param method
-	 *            The {@linkplain MethodDescriptor method} containing the
-	 *            method(s) that may be inlined or invoked.
+	 * @param definition
+	 *            The {@linkplain MethodDefinitionDescriptor method definition}
+	 *            containing the function that may be inlined or invoked.
 	 * @param args
 	 *            A {@link List} of {@linkplain L2ObjectRegister registers}
 	 *            holding the actual constant values used to look up the method
@@ -394,12 +401,12 @@ public class L2Translator
 	 *            A {@link RegisterSet} indicating the current state of the
 	 *            registers at this invocation point.
 	 * @return
-	 *            The sole applicable method definition's primitive {@linkplain
+	 *            The provided method definition's primitive {@linkplain
 	 *            FunctionDescriptor function}, or {@code null} otherwise.
 	 */
 	@InnerAccess
 	@Nullable A_Function primitiveFunctionToInline (
-		final A_Method method,
+		final A_Definition definition,
 		final List<L2ObjectRegister> args,
 		final RegisterSet registerSet)
 	{
@@ -409,55 +416,23 @@ public class L2Translator
 			argTypes.add(
 				registerSet.hasTypeAt(arg) ? registerSet.typeAt(arg) : ANY.o());
 		}
-		return primitiveFunctionToInline(method, argTypes);
-	}
-
-	/**
-	 * Only inline truly monomorphic messages for now -- i.e., method calls
-	 * where only one method definition is possible and it can be inlined.
-	 * Return the primitive function in such a case, otherwise null.
-	 *
-	 * @param method
-	 *            The {@linkplain MethodDescriptor method} containing the
-	 *            method(s) that may be inlined or invoked.
-	 * @param argTypes
-	 *            The types of the arguments to the call.
-	 * @return
-	 *            The sole applicable method definition's primitive {@linkplain
-	 *            FunctionDescriptor function}, or {@code null} otherwise.
-	 */
-	private @Nullable A_Function primitiveFunctionToInline (
-		final A_Method method,
-		final List<A_Type> argTypes)
-	{
-		final List<A_Definition> defs = method.definitionsAtOrBelow(argTypes);
-		A_Function primitiveBody = null;
-		for (final A_Definition def : defs)
-		{
-			// If a forward or abstract method is possible, don't inline.
-			if (!def.isMethodDefinition())
-			{
-				return null;
-			}
-			final A_Function body = def.bodyBlock();
-			final int primitiveNumber = body.code().primitiveNumber();
-			if (primitiveNumber == 0 || primitiveBody != null)
-			{
-				return null;
-			}
-			primitiveBody = body;
-		}
-		if (primitiveBody == null)
+		if (!definition.isMethodDefinition())
 		{
 			return null;
 		}
-		final Primitive primitive = Primitive.byPrimitiveNumberOrFail(
-			primitiveBody.code().primitiveNumber());
-		if (primitive.hasFlag(SpecialReturnConstant)
-				|| primitive.hasFlag(CanInline)
-				|| primitive.hasFlag(CanFold))
+		final A_Function body = definition.bodyBlock();
+		final int primitiveNumber = body.code().primitiveNumber();
+		if (primitiveNumber == 0)
 		{
-			return primitiveBody;
+			return null;
+		}
+		final Primitive primitive =
+			Primitive.byPrimitiveNumberOrFail(primitiveNumber);
+		if (primitive.hasFlag(SpecialReturnConstant)
+			|| primitive.hasFlag(CanInline)
+			|| primitive.hasFlag(CanFold))
+		{
+			return body;
 		}
 		return null;
 	}
@@ -491,7 +466,7 @@ public class L2Translator
 		/**
 		 * The current stack depth during naive translation to level two.
 		 */
-		private int stackp = code.maxStackDepth() + 1;
+		@InnerAccess int stackp = code.maxStackDepth() + 1;
 
 		/**
 		 * The integer register to be used in this naive translation to hold the
@@ -635,15 +610,16 @@ public class L2Translator
 			{
 				successors.add(0, null);
 			}
+			final int successorsSize = successors.size();
 			final List<RegisterSet> successorRegisterSets =
-				new ArrayList<>(successors.size());
-			for (int i = 0, end = successors.size(); i < end; i++)
+				new ArrayList<>(successorsSize);
+			for (int i = 0; i < successorsSize; i++)
 			{
 				successorRegisterSets.add(new RegisterSet(naiveRegs));
 			}
 			normalizedInstruction.propagateTypes(successorRegisterSets);
 			naiveRegisters = null;
-			for (int i = 0, end = successors.size(); i < end; i++)
+			for (int i = 0; i < successorsSize; i++)
 			{
 				final L2Instruction successor = successors.get(i);
 				final RegisterSet successorRegisterSet =
@@ -669,7 +645,7 @@ public class L2Translator
 						}
 						else
 						{
-							existing.add(successorRegisterSet);
+							existing.mergeFrom(successorRegisterSet);
 						}
 					}
 				}
@@ -696,19 +672,29 @@ public class L2Translator
 				final RegisterSet naiveRegs = naiveRegisters;
 				if (naiveRegs != null)
 				{
-					storedRegisterSet.add(naiveRegs);
+					storedRegisterSet.mergeFrom(naiveRegs);
 				}
 				naiveRegisters = storedRegisterSet;
 			}
 			if (debugGeneration)
 			{
-				final StringBuilder builder = new StringBuilder(100);
-				naiveRegisters().debugOn(builder);
-				System.out.format(
-					"\t#%d = NAIVE: %s%n\t<-%s%n",
-					label.offset(),
-					label,
-					builder.toString().replace("\n", "\n\t"));
+				if (naiveRegisters == null)
+				{
+					System.out.format(
+						"\t#%d = NAIVE: %s%n\t<-[[[no RegisterSet]]]%n",
+						label.offset(),
+						label);
+				}
+				else
+				{
+					final StringBuilder builder = new StringBuilder(100);
+					naiveRegisters().debugOn(builder);
+					System.out.format(
+						"\t#%d = NAIVE: %s%n\t<-%s%n",
+						label.offset(),
+						label,
+						builder.toString().replace("\n", "\n\t"));
+				}
 			}
 		}
 
@@ -737,6 +723,21 @@ public class L2Translator
 		}
 
 		/**
+		 * Generate instructions to move {@linkplain NilDescriptor#nil() nil}
+		 * into the specified {@link L2ObjectRegister register}.
+		 *
+		 * @param destinationRegister Which register to clear.
+		 */
+		public void moveNil (
+			final L2ObjectRegister destinationRegister)
+		{
+			addInstruction(
+				L2_MOVE.instance,
+				new L2ReadPointerOperand(fixed(NULL)),
+				new L2WritePointerOperand(destinationRegister));
+		}
+
+		/**
 		 * Generate instruction(s) to move from one register to another.
 		 *
 		 * @param sourceRegister Where to read the AvailObject.
@@ -757,6 +758,45 @@ public class L2Translator
 		}
 
 		/**
+		 * A memento to be used for coordinating code generation between the
+		 * branches of an {@link InternalLookupTree}.
+		 */
+		class InternalNodeMemento
+		{
+			/**
+			 * Where to jump if the {@link InternalLookupTree}'s type test is
+			 * false.
+			 */
+			final L2Instruction failCheckLabel;
+
+			/**
+			 * Construct a new memento.  Make the label something meaningful to
+			 * make it easier to decipher.
+			 *
+			 * @param argumentIndexToTest
+			 *            The subscript of the argument being tested.
+			 * @param typeToTest
+			 *            The type to test the argument against.
+			 * @param branchLabelCounter
+			 *            An int unique to this dispatch tree, monotonically
+			 *            allocated at each branch.
+			 */
+			public InternalNodeMemento (
+				final int argumentIndexToTest,
+				final A_Type typeToTest,
+				final int branchLabelCounter)
+			{
+				final String labelName = "Failed type test";
+//				final String labelName = String.format(
+//					"Failed type test [#%d]: #%d ∉ %s",
+//					branchLabelCounter,
+//					argumentIndexToTest,
+//					typeToTest);
+				this.failCheckLabel = newLabel(labelName);
+			}
+		}
+
+		/**
 		 * Generate code to perform a multimethod invocation.
 		 *
 		 * @param bundle
@@ -771,6 +811,175 @@ public class L2Translator
 		{
 			final A_Method method = bundle.bundleMethod();
 			contingentValues.add(method);
+			final L2Instruction afterCall =
+				newLabel("After call"); // + bundle.message().toString());
+			final int nArgs = method.numArgs();
+			final List<A_Type> argTypes = new ArrayList<>(nArgs);
+			final int initialStackp = stackp;
+			for (int i = nArgs - 1; i >= 0; i--)
+			{
+				argTypes.add(
+					naiveRegisters().typeAt(stackRegister(stackp + i)));
+			}
+			final List<A_Definition> allPossible = new ArrayList<>();
+			for (final A_Definition definition : method.definitionsTuple())
+			{
+				if (definition.bodySignature().couldEverBeInvokedWith(argTypes))
+				{
+					allPossible.add(definition);
+					if (allPossible.size() > maxPolymorphismToInlineDispatch)
+					{
+						// It has too many possible implementations to be worth
+						// inlining all of them.
+						generateSlowPolymorphicCall(bundle, expectedType);
+						return;
+					}
+				}
+			}
+			assert !allPossible.isEmpty();
+			// NOTE: Don't use the method's testing tree.  It encodes
+			// information about the known types of arguments that may be too
+			// weak for our purposes.  It's still correct, but it may produce
+			// extra tests that supplying this site's argTypes would eliminate.
+			final LookupTree tree =
+				LookupTree.createRoot(method, allPossible, argTypes);
+			final Mutable<Integer> branchLabelCounter = new Mutable<Integer>(1);
+			tree.<InternalNodeMemento>traverseEntireTree(
+				// preInternalNode
+				new Transformer2<Integer, A_Type, InternalNodeMemento>()
+				{
+					@Override
+					public @Nullable InternalNodeMemento value (
+						final Integer argumentIndexToTest,
+						final A_Type typeToTest)
+					{
+						assert stackp == initialStackp;
+						final InternalNodeMemento memento =
+							new InternalNodeMemento(
+								argumentIndexToTest,
+								typeToTest,
+								branchLabelCounter.value++);
+						final L2ObjectRegister argRegister = stackRegister(
+							stackp + nArgs - argumentIndexToTest);
+						final A_Type existingType =
+							naiveRegisters().typeAt(argRegister);
+						// Strengthen the test based on what's already known
+						// about the argument.  Eventually we can decide whether
+						// to strengthen based on the expected cost of the type
+						// check.
+						final A_Type intersection =
+							existingType.typeIntersection(typeToTest);
+						assert
+							!intersection.isBottom()
+							: "Impossible condition should have been excluded";
+						addInstruction(
+							L2_JUMP_IF_IS_NOT_KIND_OF_CONSTANT.instance,
+							new L2PcOperand(memento.failCheckLabel),
+							new L2ReadPointerOperand(argRegister),
+							new L2ConstantOperand(intersection));
+						return memento;
+					}
+				},
+				// intraInternalNode
+				new Continuation1<InternalNodeMemento> ()
+				{
+					@Override
+					public void value (final InternalNodeMemento memento)
+					{
+						if (naiveRegisters != null)
+						{
+							addInstruction(
+								L2_JUMP.instance,
+								new L2PcOperand(afterCall));
+						}
+						addLabel(memento.failCheckLabel);
+					}
+				},
+				// postInternalNode
+				new Continuation1<InternalNodeMemento> ()
+				{
+					@Override
+					public void value (final InternalNodeMemento memento)
+					{
+						if (naiveRegisters != null)
+						{
+							addInstruction(
+								L2_JUMP.instance,
+								new L2PcOperand(afterCall));
+						}
+					}
+				},
+				// forEachLeafNode
+				new Continuation1<List<A_Definition>>()
+				{
+					@Override
+					public void value(final List<A_Definition> solutions)
+					{
+						assert stackp == initialStackp;
+						A_Definition solution;
+						if (solutions.size() == 1
+							&& (solution = solutions.get(0)).isInstanceOf(
+								METHOD_DEFINITION.o()))
+						{
+							generateMonomorphicCall(
+								bundle, solution, expectedType);
+							// Reset for next type test or call.
+							stackp = initialStackp;
+						}
+						else
+						{
+							// Collect the arguments into a tuple and invoke the
+							// handler for failed method lookups.
+//							System.out.format(
+//								"Invalid Solution:%n%s%n",
+//								naiveRegisters);
+//							System.out.flush();
+							final A_Set solutionsSet =
+								SetDescriptor.fromCollection(solutions);
+							final List<L2ObjectRegister> argumentRegisters =
+								new ArrayList<>(nArgs);
+							for (int i = nArgs - 1; i >= 0; i--)
+							{
+								final L2ObjectRegister arg =
+									stackRegister(stackp + i);
+								assert naiveRegisters().hasTypeAt(arg);
+								argumentRegisters.add(arg);
+							}
+							final L2RegisterVector argumentsVector =
+								new L2RegisterVector(argumentRegisters);
+							addInstruction(
+								L2_REPORT_FAILED_LOOKUP.instance,
+								new L2SelectorOperand(bundle),
+								new L2ReadVectorOperand(argumentsVector),
+								new L2ConstantOperand(solutionsSet));
+						}
+					}
+				});
+			addLabel(afterCall);
+			stackp = initialStackp + nArgs - 1;
+		}
+
+		/**
+		 * Generate code to perform a monomorphic invocation.  The exact method
+		 * definition is known, so no lookup is needed at this position in the
+		 * code stream.
+		 *
+		 * @param bundle
+		 *            The {@linkplain MessageBundleDescriptor message bundle}
+		 *            containing the definition to invoke.
+		 * @param definition
+		 *            The specific {@linkplain DefinitionDescriptor definition}
+		 *            to invoke.
+		 * @param expectedType
+		 *            The expected return {@linkplain TypeDescriptor type}.
+		 */
+		@InnerAccess void generateMonomorphicCall (
+			final A_Bundle bundle,
+			final A_Definition definition,
+			final A_Type expectedType)
+		{
+			assert definition.isInstanceOf(METHOD_DEFINITION.o());
+			final A_Method method = definition.definitionMethod();
 			// The registers holding slot values that will constitute the
 			// continuation *during* a non-primitive call.
 			final List<L2ObjectRegister> preSlots = new ArrayList<>(numSlots);
@@ -802,10 +1011,10 @@ public class L2Translator
 			// preSlots now contains the registers that will constitute the
 			// continuation during a non-primitive call.
 			final A_Function primFunction =
-				primitiveFunctionToInline(method, args, naiveRegisters());
+				primitiveFunctionToInline(definition, args, naiveRegisters());
 			// The convergence point for primitive success and failure paths.
 			final L2Instruction successLabel;
-			successLabel = newLabel("success: " + bundle.message().atomName());
+			successLabel = newLabel("success"); // + bundle.message().atomName());
 			final L2ObjectRegister tempCallerRegister = newObjectRegister();
 			moveRegister(fixed(CALLER), tempCallerRegister);
 			if (primFunction != null)
@@ -844,21 +1053,29 @@ public class L2Translator
 			// Now deduce what the registers will look like after the
 			// non-primitive call.  That should be similar to the preSlots'
 			// registers.
-			final List<A_Type> postSlotTypes = new ArrayList<>(numSlots);
+			A_Map postSlotTypesMap = MapDescriptor.empty();
 			A_Map postSlotConstants = MapDescriptor.empty();
 			A_Set nullPostSlots = SetDescriptor.empty();
 			final List<L2ObjectRegister> postSlots = new ArrayList<>(numSlots);
 			for (int slotIndex = 1; slotIndex <= numSlots; slotIndex++)
 			{
 				final L2ObjectRegister reg = preSlots.get(slotIndex - 1);
-				A_Type slotType = naiveRegisters().typeAt(reg);
+				A_Type slotType = naiveRegisters().hasTypeAt(reg)
+					? naiveRegisters().typeAt(reg)
+					: null;
 				if (reg == expectedTypeReg)
 				{
 					// I.e., upon return from the call, this slot will contain
 					// an *instance* of expectedType.
 					slotType = expectedType;
 				}
-				postSlotTypes.add(slotType != null ? slotType : TOP.o());
+				if (slotType != null)
+				{
+					postSlotTypesMap = postSlotTypesMap.mapAtPuttingCanDestroy(
+						IntegerDescriptor.fromInt(slotIndex),
+						slotType,
+						true);
+				}
 				if (reg != expectedTypeReg
 					&& naiveRegisters().hasConstantAt(reg))
 				{
@@ -886,7 +1103,7 @@ public class L2Translator
 				postSlots.add(naiveRegisters().continuationSlot(slotIndex));
 			}
 			final L2Instruction postCallLabel =
-				newLabel("postCall " + bundle.message().atomName());
+				newLabel("postCall"); // + bundle.message().atomName());
 			addInstruction(
 				L2_CREATE_CONTINUATION.instance,
 				new L2ReadPointerOperand(fixed(CALLER)),
@@ -898,39 +1115,13 @@ public class L2Translator
 				new L2PcOperand(postCallLabel),
 				new L2WritePointerOperand(tempCallerRegister));
 			final L2ObjectRegister functionReg = newObjectRegister();
-			// Look up the method body to invoke.
-			final List<A_Definition> possibleDefinitions =
-				method.definitionsAtOrBelow(argTypes);
 			A_Type guaranteedReturnType;
-			if (possibleDefinitions.size() == 1
-				&& possibleDefinitions.get(0).isMethodDefinition())
-			{
-				// If there was only one possible definition to invoke, store it
-				// as a constant instead of looking it up at runtime.
-				final A_Function function =
-					possibleDefinitions.get(0).bodyBlock();
-				moveConstant(function, functionReg);
-				guaranteedReturnType = function.kind().returnType();
-			}
-			else
-			{
-				// Look it up at runtime.
-				addInstruction(
-					L2_LOOKUP_BY_VALUES.instance,
-					new L2SelectorOperand(bundle),
-					new L2ReadVectorOperand(createVector(args)),
-					new L2WritePointerOperand(functionReg));
-				guaranteedReturnType = BottomTypeDescriptor.bottom();
-				for (final A_Definition possibleDefinition : possibleDefinitions)
-				{
-					guaranteedReturnType = guaranteedReturnType.typeUnion(
-						possibleDefinition.bodySignature().returnType());
-				}
-			}
+			final A_Function function = definition.bodyBlock();
+			moveConstant(function, functionReg);
+			guaranteedReturnType = function.kind().returnType();
 			final boolean canSkip =
 				guaranteedReturnType.isSubtypeOf(expectedType);
-
-			// Now invoke what was looked up.
+			// Now invoke the method definition's body.
 			if (primFunction != null)
 			{
 				// Already tried the primitive.
@@ -961,6 +1152,165 @@ public class L2Translator
 			addInstruction(
 				L2_REENTER_L2_CHUNK.instance,
 				new L2WritePointerOperand(fixed(CALLER)));
+			if (expectedType.isBottom())
+			{
+				// Returning to here should not happen.  Ever.
+				addInstruction(
+					L2_UNREACHABLE_CODE.instance);
+			}
+			else
+			{
+				addInstruction(
+					L2_EXPLODE_CONTINUATION.instance,
+					new L2ReadPointerOperand(fixed(CALLER)),
+					new L2WriteVectorOperand(createVector(postSlots)),
+					new L2WritePointerOperand(fixed(CALLER)),
+					new L2WritePointerOperand(fixed(FUNCTION)),
+					new L2WriteIntOperand(skipReturnCheckRegister),
+					new L2ConstantOperand(postSlotTypesMap),
+					new L2ConstantOperand(postSlotConstants),
+					new L2ConstantOperand(nullPostSlots),
+					new L2ConstantOperand(codeOrFail().functionType()));
+			}
+			addLabel(successLabel);
+		}
+
+		/**
+		 * Generate a slower, but much more compact invocation of a polymorphic
+		 * method.
+		 *
+		 * @param bundle
+		 *            The {@linkplain MessageBundleDescriptor message bundle}
+		 *            containing the definition to invoke.
+		 * @param expectedType
+		 *            The expected return {@linkplain TypeDescriptor type}.
+		 */
+		private void generateSlowPolymorphicCall (
+			final A_Bundle bundle,
+			final A_Type expectedType)
+		{
+			final A_Method method = bundle.bundleMethod();
+			// The registers holding slot values that will constitute the
+			// continuation *during* a non-primitive call.
+			final List<L2ObjectRegister> preSlots = new ArrayList<>(numSlots);
+			for (int slotIndex = 1; slotIndex <= numSlots; slotIndex++)
+			{
+				preSlots.add(naiveRegisters().continuationSlot(slotIndex));
+			}
+			final L2ObjectRegister expectedTypeReg = newObjectRegister();
+			final int nArgs = method.numArgs();
+			final List<L2ObjectRegister> preserved = new ArrayList<>(preSlots);
+			assert preserved.size() == numSlots;
+			final List<L2ObjectRegister> args = new ArrayList<>(nArgs);
+			final List<A_Type> argTypes = new ArrayList<>(nArgs);
+			for (int i = nArgs; i >= 1; i--)
+			{
+				final L2ObjectRegister arg = stackRegister(stackp);
+				assert naiveRegisters().hasTypeAt(arg);
+				argTypes.add(0, naiveRegisters().typeAt(arg));
+				args.add(0, arg);
+				preSlots.set(
+					numArgs + numLocals + stackp - 1,
+					fixed(NULL));
+				stackp++;
+			}
+			stackp--;
+			preSlots.set(numArgs + numLocals + stackp - 1, expectedTypeReg);
+			// preSlots now contains the registers that will constitute the
+			// continuation during a non-primitive call.
+			final L2ObjectRegister tempCallerRegister = newObjectRegister();
+			moveRegister(fixed(CALLER), tempCallerRegister);
+			// Deal with the non-primitive or failed-primitive case.  First
+			// generate the move that puts the expected type on the stack.
+			moveConstant(expectedType, expectedTypeReg);
+			// Now deduce what the registers will look like after the
+			// non-primitive call.  That should be similar to the preSlots'
+			// registers.
+			A_Map postSlotTypesMap = MapDescriptor.empty();
+			A_Map postSlotConstants = MapDescriptor.empty();
+			A_Set nullPostSlots = SetDescriptor.empty();
+			final List<L2ObjectRegister> postSlots = new ArrayList<>(numSlots);
+			for (int slotIndex = 1; slotIndex <= numSlots; slotIndex++)
+			{
+				final L2ObjectRegister reg = preSlots.get(slotIndex - 1);
+				A_Type slotType = naiveRegisters().hasTypeAt(reg)
+					? naiveRegisters().typeAt(reg)
+					: null;
+				if (reg == expectedTypeReg)
+				{
+					// I.e., upon return from the call, this slot will contain
+					// an *instance* of expectedType.
+					slotType = expectedType;
+				}
+				if (slotType != null)
+				{
+					postSlotTypesMap = postSlotTypesMap.mapAtPuttingCanDestroy(
+						IntegerDescriptor.fromInt(slotIndex),
+						slotType,
+						true);
+				}
+				if (reg != expectedTypeReg
+					&& naiveRegisters().hasConstantAt(reg))
+				{
+					final A_BasicObject constant =
+						naiveRegisters().constantAt(reg);
+					if (constant.equalsNil())
+					{
+						nullPostSlots = nullPostSlots.setWithElementCanDestroy(
+							IntegerDescriptor.fromInt(slotIndex),
+							true);
+					}
+					else
+					{
+						postSlotConstants =
+							postSlotConstants.mapAtPuttingCanDestroy(
+								IntegerDescriptor.fromInt(slotIndex),
+								constant,
+								true);
+					}
+				}
+				// But the place we want to write this slot during explosion is
+				// the architectural register.  Eventually we'll support a
+				// throw-away target register for don't-cares like nil stack
+				// slots.
+				postSlots.add(naiveRegisters().continuationSlot(slotIndex));
+			}
+			final L2Instruction postCallLabel =
+				newLabel("postCall"); // + bundle.message().atomName());
+			addInstruction(
+				L2_CREATE_CONTINUATION.instance,
+				new L2ReadPointerOperand(fixed(CALLER)),
+				new L2ReadPointerOperand(fixed(FUNCTION)),
+				new L2ImmediateOperand(pc),
+				new L2ImmediateOperand(stackp),
+				new L2ReadIntOperand(skipReturnCheckRegister),
+				new L2ReadVectorOperand(createVector(preSlots)),
+				new L2PcOperand(postCallLabel),
+				new L2WritePointerOperand(tempCallerRegister));
+			final L2ObjectRegister functionReg = newObjectRegister();
+			addInstruction(
+				L2_LOOKUP_BY_VALUES.instance,
+				new L2SelectorOperand(bundle),
+				new L2ReadVectorOperand(createVector(args)),
+				new L2WritePointerOperand(functionReg));
+			// Now invoke the method definition's body.  Without looking at the
+			// definitions we can't determine if the return type check can be
+			// skipped.
+			addInstruction(
+				L2_INVOKE.instance,
+				new L2ReadPointerOperand(tempCallerRegister),
+				new L2ReadPointerOperand(functionReg),
+				new L2ReadVectorOperand(createVector(args)),
+				new L2ImmediateOperand(0));
+			// The method being invoked will run until it returns, and the next
+			// instruction will be here (if the chunk isn't invalidated in the
+			// meanwhile).
+			addLabel(postCallLabel);
+			// After the call returns, the callerRegister will contain the
+			// continuation to be exploded.
+			addInstruction(
+				L2_REENTER_L2_CHUNK.instance,
+				new L2WritePointerOperand(fixed(CALLER)));
 			addInstruction(
 				L2_EXPLODE_CONTINUATION.instance,
 				new L2ReadPointerOperand(fixed(CALLER)),
@@ -968,11 +1318,10 @@ public class L2Translator
 				new L2WritePointerOperand(fixed(CALLER)),
 				new L2WritePointerOperand(fixed(FUNCTION)),
 				new L2WriteIntOperand(skipReturnCheckRegister),
-				new L2ConstantOperand(TupleDescriptor.fromList(postSlotTypes)),
+				new L2ConstantOperand(postSlotTypesMap),
 				new L2ConstantOperand(postSlotConstants),
 				new L2ConstantOperand(nullPostSlots),
 				new L2ConstantOperand(codeOrFail().functionType()));
-			addLabel(successLabel);
 		}
 
 		/**
@@ -1066,6 +1415,7 @@ public class L2Translator
 				// instructions unreachable, so don't spend a lot of time
 				// generating that dead code.
 				canFailPrimitive.value = false;
+				naiveRegisters = null;  // Indicate dead code
 				return null;
 			}
 			if (primitive.hasFlag(SpecialReturnSoleArgument))
@@ -1151,9 +1501,23 @@ public class L2Translator
 				primitive.returnTypeGuaranteedByVM(argTypes);
 			final boolean skipReturnCheck =
 				guaranteedReturnType.isSubtypeOf(expectedType);
+			assert !guaranteedReturnType.isBottom();
+			// This is an *inlineable* primitive, so it can only succeed with
+			// some value or fail.  The value can't be an instance of bottom, so
+			// the primitive's guaranteed return type can't be bottom.  If the
+			// primitive fails, the backup code can produce bottom, but since
+			// this primitive could have succeeded instead, the function itself
+			// must not be naturally bottom typed.  If a semantic restriction
+			// has strengthened the result type to bottom, only the backup
+			// code's return instruction would be at risk, but invalidly
+			// returning some value from there would have to check the value's
+			// type against the expected type -- and then fail to return.
 			if (primitive.fallibilityForArgumentTypes(argTypes)
 				== CallSiteCannotFail)
 			{
+				// Note that a primitive cannot have return type of bottom
+				// unless it's non-inlineable (already excluded here).
+				assert !expectedType.isBottom();
 				if (skipReturnCheck)
 				{
 					addInstruction(
@@ -1234,8 +1598,14 @@ public class L2Translator
 				new ArrayList<>(nSlots);
 			for (final L2ObjectRegister reg : slots)
 			{
-				savedSlotTypes.add(registerSet.typeAt(reg));
-				savedSlotConstants.add(registerSet.constantAt(reg));
+				savedSlotTypes.add(
+					registerSet.hasTypeAt(reg)
+						? registerSet.typeAt(reg)
+						: null);
+				savedSlotConstants.add(
+					registerSet.hasConstantAt(reg)
+						? registerSet.constantAt(reg)
+						: null);
 			}
 			addInstruction(
 				L2_CREATE_CONTINUATION.instance,
@@ -1254,28 +1624,36 @@ public class L2Translator
 			addInstruction(
 				L2_REENTER_L2_CHUNK.instance,
 				new L2WritePointerOperand(fixed(CALLER)));
-			final List<A_Type> typesList = new ArrayList<>(nSlots);
+			A_Map typesMap = MapDescriptor.empty();
 			A_Map constants = MapDescriptor.empty();
 			A_Set nullSlots = SetDescriptor.empty();
 			for (int slotIndex = 1; slotIndex <= nSlots; slotIndex++)
 			{
 				final A_Type type = savedSlotTypes.get(slotIndex - 1);
-				typesList.add(type != null ? type : TOP.o());
-				final A_BasicObject constant =
-					savedSlotConstants.get(slotIndex - 1);
-				if (constant != null && !constant.equalsNil())
+				if (type != null)
 				{
-					constants = constants.mapAtPuttingCanDestroy(
+					typesMap = typesMap.mapAtPuttingCanDestroy(
 						IntegerDescriptor.fromInt(slotIndex),
-						constant,
+						type,
 						true);
 				}
-				else if (constant != null)
+				final @Nullable A_BasicObject constant =
+					savedSlotConstants.get(slotIndex - 1);
+				if (constant != null)
 				{
-					// It's nil.
-					nullSlots = nullSlots.setWithElementCanDestroy(
-						IntegerDescriptor.fromInt(slotIndex),
-						true);
+					if (constant.equalsNil())
+					{
+						nullSlots = nullSlots.setWithElementCanDestroy(
+							IntegerDescriptor.fromInt(slotIndex),
+							true);
+					}
+					else
+					{
+						constants = constants.mapAtPuttingCanDestroy(
+							IntegerDescriptor.fromInt(slotIndex),
+							constant,
+							true);
+					}
 				}
 			}
 			addInstruction(
@@ -1285,7 +1663,7 @@ public class L2Translator
 				new L2WritePointerOperand(fixed(CALLER)),
 				new L2WritePointerOperand(fixed(FUNCTION)),
 				new L2WriteIntOperand(skipReturnCheckRegister),
-				new L2ConstantOperand(TupleDescriptor.fromList(typesList)),
+				new L2ConstantOperand(typesMap),
 				new L2ConstantOperand(constants),
 				new L2ConstantOperand(nullSlots),
 				new L2ConstantOperand(code.functionType()));
@@ -1350,16 +1728,14 @@ public class L2Translator
 				stackSlot <= end;
 				stackSlot++)
 			{
-				moveConstant(
-					NilDescriptor.nil(),
-					stackRegister(stackSlot));
+				moveNil(stackRegister(stackSlot));
 			}
 			// Check for interrupts. If an interrupt is discovered, then reify
 			// and process the interrupt. When the chunk resumes, it will
 			// explode the continuation again.
 			emitInterruptOffRamp(new RegisterSet(naiveRegisters()));
 
-			// Transliterate each level one nybblecode into level two wordcodes.
+			// Transliterate each level one nybblecode into L2Instructions.
 			while (pc <= nybbles.tupleSize())
 			{
 				final byte nybble = nybbles.extractNybbleFromTupleAt(pc);
@@ -1378,7 +1754,7 @@ public class L2Translator
 			if (anyPushLabelsEncountered)
 			{
 				addLabel(restartLabel);
-				final List<A_Type> typesList = new ArrayList<>(numSlots);
+				A_Map typesMap = MapDescriptor.empty();
 				final List<L2ObjectRegister> slots = new ArrayList<>(numSlots);
 				final A_Type argsType = code.functionType().argsTupleType();
 				A_Set nullSlots = SetDescriptor.empty();
@@ -1387,11 +1763,13 @@ public class L2Translator
 					slots.add(continuationSlot(i));
 					if (i <= numArgs)
 					{
-						typesList.add(argsType.typeAtIndex(i));
+						typesMap = typesMap.mapAtPuttingCanDestroy(
+							IntegerDescriptor.fromInt(i),
+							argsType.typeAtIndex(i),
+							true);
 					}
 					else
 					{
-						typesList.add(TOP.o());
 						nullSlots = nullSlots.setWithElementCanDestroy(
 							IntegerDescriptor.fromInt(i),
 							true);
@@ -1404,7 +1782,7 @@ public class L2Translator
 					new L2WritePointerOperand(fixed(CALLER)),
 					new L2WritePointerOperand(fixed(FUNCTION)),
 					new L2WriteIntOperand(skipReturnCheckRegister),
-					new L2ConstantOperand(TupleDescriptor.fromList(typesList)),
+					new L2ConstantOperand(typesMap),
 					new L2ConstantOperand(MapDescriptor.empty()),
 					new L2ConstantOperand(nullSlots),
 					new L2ConstantOperand(code.functionType()));
@@ -1448,9 +1826,7 @@ public class L2Translator
 				stackIndex <= stackp - 1;
 				stackIndex++)
 			{
-				moveConstant(
-					NilDescriptor.nil(),
-					stackRegister(stackIndex));
+				moveNil(stackRegister(stackIndex));
 			}
 		}
 
@@ -1563,7 +1939,7 @@ public class L2Translator
 		{
 			assert stackp == code.maxStackDepth()
 			: "Pop should only only occur at end of statement";
-			moveConstant(NilDescriptor.nil(), stackRegister(stackp));
+			moveNil(stackRegister(stackp));
 			stackp++;
 		}
 
@@ -1575,9 +1951,7 @@ public class L2Translator
 			moveRegister(
 				argumentOrLocal(localIndex),
 				stackRegister(stackp));
-			moveConstant(
-				NilDescriptor.nil(),
-				argumentOrLocal(localIndex));
+			moveNil(argumentOrLocal(localIndex));
 		}
 
 		@Override
@@ -1828,20 +2202,20 @@ public class L2Translator
 			{
 				successors.add(0, instructions.get(instructionIndex + 1));
 			}
+			final int successorsSize = successors.size();
 			// The list allTargets now holds every target instruction, starting
 			// with the instruction following this one if this one
 			// reachesNextInstruction().
 			final List<RegisterSet> targetRegisterSets =
-				new ArrayList<>(successors.size());
-			for (int i = 0, end = successors.size(); i < end; i++)
+				new ArrayList<>(successorsSize);
+			for (int i = 0; i < successorsSize; i++)
 			{
 				targetRegisterSets.add(new RegisterSet(regs));
 			}
 			instruction.propagateTypes(targetRegisterSets);
 
-			final List<L2Instruction> toAdd =
-				new ArrayList<>(successors.size());
-			for (int i = 0, end = successors.size(); i < end; i++)
+			final List<L2Instruction> toAdd = new ArrayList<>(successorsSize);
+			for (int i = 0; i < successorsSize; i++)
 			{
 				final L2Instruction successor = successors.get(i);
 				final RegisterSet targetRegisterSet = targetRegisterSets.get(i);
@@ -1867,7 +2241,7 @@ public class L2Translator
 				}
 				else
 				{
-					final boolean changed = existing.add(targetRegisterSet);
+					final boolean changed = existing.mergeFrom(targetRegisterSet);
 					followIt = changed;
 				}
 				if (followIt)
@@ -1935,11 +2309,63 @@ public class L2Translator
 	 */
 	private boolean removeDeadInstructions ()
 	{
+//		final long startTime = System.currentTimeMillis();
+//		final int oldInstructionsSize = instructions.size();
 		if (debugRemoveDeadInstructions)
 		{
 			System.out.println("\nRemove dead instructions...\n");
 		}
-		// Sanity check to make sure all target labels are actually present.
+		checkThatAllTargetLabelsExist();
+		computeDataFlow();
+		final Set<L2Instruction> reachableInstructions =
+			findReachableInstructions();
+		final Set<L2Instruction> neededInstructions =
+			findInstructionsThatProduceNeededValues(reachableInstructions);
+
+		// We now have a complete list of which instructions should be kept.
+		if (debugRemoveDeadInstructions)
+		{
+			System.out.println("\nKeep/drop instruction list:");
+			for (int i = 0, end = instructions.size(); i < end; i++)
+			{
+				final L2Instruction instruction = instructions.get(i);
+				System.out.format(
+					"\t%s #%d %s%n",
+					neededInstructions.contains(instruction) ? "+" : "-",
+					i,
+					instruction.toString().replace("\n", "\n\t\t"));
+			}
+		}
+		final List<L2Instruction> newInstructions =
+			new ArrayList<>(instructions.size());
+		boolean anyChanges = instructions.retainAll(neededInstructions);
+		anyChanges |= regenerateInstructions(newInstructions);
+		instructions.clear();
+		instructions.addAll(newInstructions);
+		instructionRegisterSets.clear();
+		for (int i = 0, end = instructions.size(); i < end; i++)
+		{
+			instructions.get(i).setOffset(i);
+			instructionRegisterSets.add(null);
+		}
+		assert instructions.size() == instructionRegisterSets.size();
+		//TODO[MvG] Remove debug
+//		final long duration = System.currentTimeMillis() - startTime;
+//		System.out.format(
+//			"Reduce %d -> %d in %dms%n",
+//			oldInstructionsSize,
+//			instructions.size(),
+//			duration);
+
+		return anyChanges;
+	}
+
+	/**
+	 * Perform a sanity check to be sure that all branch targets actually exist
+	 * in the instruction stream.
+	 */
+	private void checkThatAllTargetLabelsExist ()
+	{
 		for (final L2Instruction instruction : instructions)
 		{
 			for (final L2Instruction targetLabel : instruction.targetLabels())
@@ -1948,10 +2374,16 @@ public class L2Translator
 				assert instructions.get(targetIndex) == targetLabel;
 			}
 		}
+	}
 
-		computeDataFlow();
-
-		// Figure out which instructions are reachable.
+	/**
+	 * Find the set of instructions that are actually reachable recursively from
+	 * the first instruction.
+	 *
+	 * @return The {@link Set} of reachable {@link L2Instruction}s.
+	 */
+	private Set<L2Instruction> findReachableInstructions ()
+	{
 		final Set<L2Instruction> reachableInstructions = new HashSet<>();
 		final Deque<L2Instruction> instructionsToVisit = new ArrayDeque<>();
 		instructionsToVisit.add(instructions.get(0));
@@ -1969,12 +2401,23 @@ public class L2Translator
 				}
 			}
 		}
+		return reachableInstructions;
+	}
 
-		// We now know which instructions can be *reached* by the control flow.
-		// Figure out which of those are actually *needed*.  An instruction is
-		// needed if it has a side-effect, or if it produces a value consumed by
-		// a needed instruction.  Seed with all reachable instructions that have
-		// side-effects.
+	/**
+	 * Given the set of instructions which are reachable and have side-effect,
+	 * compute which instructions recursively provide values needed by them.
+	 * Also include the original instructions that have side-effect.
+	 *
+	 * @param reachableInstructions
+	 *            The instructions which are both reachable from the first
+	 *            instruction and have a side-effect.
+	 * @return The instructions that are essential and should be kept.
+	 */
+	private Set<L2Instruction> findInstructionsThatProduceNeededValues (
+		final Set<L2Instruction> reachableInstructions)
+	{
+		final Deque<L2Instruction> instructionsToVisit = new ArrayDeque<>();
 		final Set<L2Instruction> neededInstructions =
 			new HashSet<>(instructions.size());
 		for (final L2Instruction instruction : reachableInstructions)
@@ -2042,34 +2485,26 @@ public class L2Translator
 				}
 			}
 		}
+		return neededInstructions;
+	}
 
-		// We now have a complete list of which instructions should be kept.
-		assert instructions.containsAll(neededInstructions);
-		if (debugRemoveDeadInstructions)
-		{
-			System.out.println("\nKeep/drop instruction list:");
-			for (int i = 0, end = instructions.size(); i < end; i++)
-			{
-				final L2Instruction instruction = instructions.get(i);
-				System.out.format(
-					"\t%s #%d %s%n",
-					neededInstructions.contains(instruction) ? "+" : "-",
-					i,
-					instruction.toString().replace("\n", "\n\t\t"));
-			}
-		}
-		boolean anyChanges = instructions.retainAll(neededInstructions);
-
-		// Now allow each instruction the opportunity to generate alternative
-		// instructions in place of itself due to its RegisterSet information.
-		// For example, it may be the case that only one method definition can
-		// ever be looked up by a call, so its body can be looked up statically,
-		// and possibly even inlined.  Fallible primitives may also be
-		// effectively infallible with a particular subtype of arguments.
-		// This is also the place where primitive folding can take place, since
-		// it's the first time we have precise type and constant information.
-		final List<L2Instruction> newInstructions =
-			new ArrayList<>(instructions.size());
+	/**
+	 * Allow each kept instruction the opportunity to generate alternative
+	 * instructions in place of itself due to its RegisterSet information.  For
+	 * example, type propagation may allow conditional branches to be replaced
+	 * by unconditional branches.  Fallible primitives may also be effectively
+	 * infallible with a particular subtype of arguments.
+	 *
+	 * @param newInstructions
+	 *            Where to write the original or replacement instructions.
+	 * @return Whether there were any significant changes.  This must eventually
+	 *         converge to {@code false} after multiple passes in order to
+	 *         ensure termination.
+	 */
+	private boolean regenerateInstructions (
+		final List<L2Instruction> newInstructions)
+	{
+		boolean anyChanges = false;
 		for (final L2Instruction instruction : instructions)
 		{
 			anyChanges |= instruction.operation.regenerate(
@@ -2077,15 +2512,6 @@ public class L2Translator
 				newInstructions,
 				instructionRegisterSets.get(instruction.offset()));
 		}
-		instructions.clear();
-		instructions.addAll(newInstructions);
-		instructionRegisterSets.clear();
-		for (int i = 0, end = instructions.size(); i < end; i++)
-		{
-			instructions.get(i).setOffset(i);
-			instructionRegisterSets.add(null);
-		}
-		assert instructions.size() == instructionRegisterSets.size();
 		return anyChanges;
 	}
 

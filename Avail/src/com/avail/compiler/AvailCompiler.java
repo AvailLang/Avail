@@ -34,7 +34,6 @@ package com.avail.compiler;
 
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import static com.avail.descriptor.TokenDescriptor.TokenType.*;
-import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.*;
 import com.avail.annotations.Nullable;
 import com.avail.builder.ResolvedModuleName;
@@ -104,7 +103,7 @@ extends AbstractAvailCompiler
 							{
 								assert afterExpression != null;
 								assert expression != null;
-								if (expression.expressionType().equals(TOP.o()))
+								if (expression.expressionType().isTop())
 								{
 									whenFoundStatement.value(
 										afterExpression,

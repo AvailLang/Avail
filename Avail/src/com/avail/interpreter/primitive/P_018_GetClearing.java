@@ -88,6 +88,6 @@ public final class P_018_GetClearing extends Primitive
 	{
 		final A_Type varType = argumentTypes.get(0);
 		final A_Type readType = varType.readType();
-		return readType.equals(TOP.o()) ? ANY.o() : readType;
+		return readType.isTop() ? ANY.o() : readType;
 	}
 }

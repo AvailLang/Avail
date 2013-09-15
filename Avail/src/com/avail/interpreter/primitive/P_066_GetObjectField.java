@@ -84,6 +84,10 @@ public final class P_066_GetObjectField extends Primitive
 		final A_Type objectType = argumentTypes.get(0);
 		final A_Type fieldType = argumentTypes.get(1);
 
+		if (objectType.isBottom())
+		{
+			return BottomTypeDescriptor.bottom();
+		}
 		final A_Map fieldTypeMap = objectType.fieldTypeMap();
 		if (fieldType.isEnumeration())
 		{

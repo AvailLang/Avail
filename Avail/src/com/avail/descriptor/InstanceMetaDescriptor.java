@@ -156,7 +156,7 @@ extends AbstractEnumerationTypeDescriptor
 		final A_Type object,
 		final A_Type another)
 	{
-		if (another.equals(BottomTypeDescriptor.bottom()))
+		if (another.isBottom())
 		{
 			return another;
 		}
@@ -193,7 +193,7 @@ extends AbstractEnumerationTypeDescriptor
 		final A_Type object,
 		final A_Type another)
 	{
-		if (another.equals(BottomTypeDescriptor.bottom()))
+		if (another.isBottom())
 		{
 			return object;
 		}

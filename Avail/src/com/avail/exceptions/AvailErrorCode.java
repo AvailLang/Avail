@@ -484,10 +484,7 @@ public enum AvailErrorCode
 	 */
 	E_METHOD_IS_SEALED (72),
 
-	/**
-	 * The primitive is not implemented.
-	 */
-	E_NO_IMPLEMENTATION (73),
+//	E_??? (73),
 
 	/**
 	 * A {@linkplain ModuleDescriptor module} already has an {@linkplain

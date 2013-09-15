@@ -43,6 +43,7 @@ import com.avail.descriptor.FiberDescriptor.GeneralFlag;
 import com.avail.descriptor.FiberDescriptor.InterruptRequestFlag;
 import com.avail.descriptor.FiberDescriptor.SynchronizationFlag;
 import com.avail.descriptor.FiberDescriptor.TraceFlag;
+import com.avail.descriptor.MethodDescriptor.LookupTree;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.descriptor.FiberDescriptor.ExecutionState;
 import com.avail.descriptor.SetDescriptor.SetIterator;
@@ -271,12 +272,6 @@ extends AbstractDescriptor
 
 	@Override
 	void o_BinSize (final AvailObject object, final int value)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	void o_BitVector (final AvailObject object, final int value)
 	{
 		throw unsupportedOperationException();
 	}
@@ -1091,7 +1086,7 @@ extends AbstractDescriptor
 
 	@Override
 	void o_ObjectTupleAtPut (
-		final AvailObject availObject,
+		final AvailObject object,
 		final int index,
 		final A_BasicObject anObject)
 	{
@@ -1891,7 +1886,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	A_BasicObject o_TestingTree (final AvailObject object)
+	LookupTree o_TestingTree (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}
@@ -2467,16 +2462,17 @@ extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	AvailObject o_BinRemoveElementHashCanDestroy (
+	AvailObject o_BinRemoveElementHashLevelCanDestroy (
 		final AvailObject object,
 		final A_BasicObject elementObject,
 		final int elementObjectHash,
+		final byte myLevel,
 		final boolean canDestroy)
 	{
 
 		if (object.equals(elementObject))
 		{
-			return NilDescriptor.nil();
+			return LinearSetBinDescriptor.emptyBinForLevel(myLevel);
 		}
 		if (!canDestroy)
 		{
@@ -4373,6 +4369,22 @@ extends AbstractDescriptor
 	A_Set o_GetAndClearReificationWaiters (
 		final AvailObject object)
 	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	boolean o_IsBottom (
+		final AvailObject object)
+	{
+		// Only types should be tested for being bottom.
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	boolean o_IsTop (
+		final AvailObject object)
+	{
+		// Only types should be tested for being top.
 		throw unsupportedOperationException();
 	}
 }

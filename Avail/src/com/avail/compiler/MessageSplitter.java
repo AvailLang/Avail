@@ -136,7 +136,7 @@ public class MessageSplitter
 	 * An {@code Expression} represents a structural view of part of the
 	 * message name.
 	 */
-	abstract class Expression
+	abstract static class Expression
 	{
 		/**
 		 * Answer whether or not this an {@linkplain Argument argument} or
@@ -484,7 +484,7 @@ public class MessageSplitter
 			final int sectionNumber)
 		throws SignatureException
 		{
-			if (argumentType.equals(BottomTypeDescriptor.bottom()))
+			if (argumentType.isBottom())
 			{
 				// Method argument type should not be bottom.
 				throwSignatureException(E_INCORRECT_ARGUMENT_TYPE);
@@ -826,7 +826,7 @@ public class MessageSplitter
 			//TODO[MvG]: Deal with the sectionNumber somehow.
 
 			// Always expect a tuple of solutions here.
-			if (argumentType.equals(BottomTypeDescriptor.bottom()))
+			if (argumentType.isBottom())
 			{
 				// Method argument type should not be bottom.
 				throwSignatureException(E_INCORRECT_ARGUMENT_TYPE);
@@ -858,7 +858,7 @@ public class MessageSplitter
 				for (int i = 1; i <= limit; i++)
 				{
 					final A_Type solutionType = argumentType.typeAtIndex(i);
-					if (solutionType.equals(BottomTypeDescriptor.bottom()))
+					if (solutionType.isBottom())
 					{
 						// It was the empty tuple type.
 						break;
@@ -1183,6 +1183,7 @@ public class MessageSplitter
 			{
 				expressionsToVisit = new ArrayList<Expression>(
 					expressionsBeforeDagger.size()
+					+ 1
 					+ expressionsAfterDagger.size());
 				expressionsToVisit.addAll(expressionsBeforeDagger);
 				expressionsToVisit.add(null);  // Represents the dagger
@@ -1690,8 +1691,12 @@ public class MessageSplitter
 			final StringBuilder builder,
 			final int indent)
 		{
+			// Make sure we don't consume any arguments.  In case the expression
+			// is itself a group, provide a dummy argument for it, containing
+			// just a single empty list.
+			final A_Phrase listNode = ListNodeDescriptor.empty();
 			expression.printWithArguments(
-				argumentProvider,
+				TupleDescriptor.from(listNode).iterator(),
 				builder,
 				indent);
 			builder.append("⁇");

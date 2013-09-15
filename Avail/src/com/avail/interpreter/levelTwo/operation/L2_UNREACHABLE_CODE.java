@@ -1,6 +1,6 @@
 /**
- * P_411_BootstrapSendAsStatementMacro.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * L2_UNREACHABLE_CODE.java
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,56 +29,53 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.interpreter.levelTwo.operation;
 
-package com.avail.interpreter.primitive;
-
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
-import static com.avail.interpreter.Primitive.Flag.*;
-import java.util.*;
-import com.avail.compiler.AvailRejectedParseException;
-import com.avail.descriptor.*;
+import static com.avail.descriptor.AvailObject.error;
+import java.util.List;
 import com.avail.interpreter.*;
+import com.avail.interpreter.levelTwo.*;
+import com.avail.optimizer.RegisterSet;
 
 /**
- * The {@code P_411_BootstrapSendAsStatementMacro} primitive is used to allow
- * message sends producing ⊤ to be used as statements.
- *
- * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * This instruction should never be reached.  Stop the VM if it is.  We need the
+ * instruction for dealing with labels that should never be jumped to, but still
+ * need to be provided for symmetry reasons.
  */
-public final class P_411_BootstrapSendAsStatementMacro extends Primitive
+public class L2_UNREACHABLE_CODE extends L2Operation
 {
 	/**
-	 * The sole instance of this primitive class.  Accessed through reflection.
+	 * Initialize the sole instance.
 	 */
-	public final static Primitive instance =
-		new P_411_BootstrapSendAsStatementMacro().init(
-			1, CannotFail, Bootstrap);
+	public final static L2Operation instance =
+		new L2_UNREACHABLE_CODE().init();
 
 	@Override
-	public Result attempt (
-		final List<AvailObject> args,
-		final Interpreter interpreter,
-		final boolean skipReturnCheck)
+	public void step (
+		final L2Instruction instruction,
+		final Interpreter interpreter)
 	{
-		assert args.size() == 1;
-		final AvailObject sendNode = args.get(0);
-
-		if (!sendNode.expressionType().isTop())
-		{
-			throw new AvailRejectedParseException(
-				StringDescriptor.from(
-					"statement's type to be ⊤"));
-		}
-		return interpreter.primitiveSuccess(sendNode);
+		error("This L2 instruction should never be reached.");
 	}
 
 	@Override
-	protected A_Type privateBlockTypeRestriction ()
+	public void propagateTypes (
+		final L2Instruction instruction,
+		final List<RegisterSet> registerSets)
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
-				/* The send node to treat as a statement */
-				SEND_NODE.mostGeneralType()),
-			SEND_NODE.mostGeneralType());
+		assert registerSets.isEmpty();
+	}
+
+	@Override
+	public boolean hasSideEffect ()
+	{
+		// Don't remove it.
+		return true;
+	}
+
+	@Override
+	public boolean reachesNextInstruction ()
+	{
+		return false;
 	}
 }

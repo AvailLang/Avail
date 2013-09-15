@@ -264,7 +264,7 @@ extends TypeDescriptor
 		final A_Type sizeRange,
 		final A_Type contentType)
 	{
-		if (sizeRange.equals(BottomTypeDescriptor.bottom()))
+		if (sizeRange.isBottom())
 		{
 			return BottomTypeDescriptor.bottom();
 		}
@@ -283,7 +283,7 @@ extends TypeDescriptor
 			newSizeRange = sizeRangeKind;
 			newContentType = BottomTypeDescriptor.bottom();
 		}
-		else if (contentType.equals(BottomTypeDescriptor.bottom()))
+		else if (contentType.isBottom())
 		{
 			if (sizeRangeKind.lowerBound().equals(IntegerDescriptor.zero()))
 			{

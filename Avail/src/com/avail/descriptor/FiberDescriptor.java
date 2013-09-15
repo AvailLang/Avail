@@ -1007,7 +1007,9 @@ extends Descriptor
 	@Override @AvailMethod
 	void o_Continuation (final AvailObject object, final A_Continuation value)
 	{
-		object.setMutableSlot(CONTINUATION, value);
+		// Use a special setter mechanism that allows the continuation to be
+		// non-shared, even if the fiber it's to be plugged into is shared.
+		object.setContinuationSlotOfFiber(CONTINUATION, value);
 	}
 
 	@Override @AvailMethod
