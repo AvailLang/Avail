@@ -34,14 +34,17 @@ System Module "Abstract Codecs"
 Versions
 	"dev"
 Uses
+	"Common" = ("Data|data abstractions test suite"),
 	"Foundation",
-	"Iterators"
+	"Iterators",
+	"Unit Testing"
 Names
 	"a decoding iterator of_using_",
 	"a decoding iterator that buffers_element|elements of_using_",
 	"an encoding iterator that buffers_element|elements of_using_",
 	"byte tuple",
 	"codec",
+	"codecs test suite",
 	"correction instruction",
 	"decoder",
 	"decode_using_",
@@ -252,7 +255,7 @@ Public class "decoder" extends object
  * @author "Richard Arriaga"
  */
 Public abstract method "decode_using_" is
-	[byte tuple, decoder]→string;
+	[byte tuple, decoder]→tuple;
 
 /**
  * The final method call when all the byte data has been read and no further 
@@ -448,3 +451,6 @@ Grammatical restriction "a|an_«with«_«:»?:=_‡,»»" is
 	 	"decoding iterator",
 	 	"encoding iterator"
 	}, ∅, ∅>;
+	
+	Public "codecs test suite" is a new field atom;
+	New test suite codecs test suite extends data abstractions test suite;

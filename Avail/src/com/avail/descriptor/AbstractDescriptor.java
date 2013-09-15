@@ -57,6 +57,7 @@ import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.descriptor.VariableDescriptor.VariableAccessReactor;
 import com.avail.exceptions.AvailException;
 import com.avail.exceptions.AvailUnsupportedOperationException;
+import com.avail.exceptions.MethodDefinitionException;
 import com.avail.exceptions.SignatureException;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.levelTwo.L2Chunk;
@@ -1915,10 +1916,12 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @param argumentTypeTuple
 	 * @return
+	 * @throws MethodDefinitionException
 	 */
 	abstract A_Definition o_LookupByTypesFromTuple (
-		AvailObject object,
-		A_Tuple argumentTypeTuple);
+			AvailObject object,
+			A_Tuple argumentTypeTuple)
+		throws MethodDefinitionException;
 
 	/**
 	 * @param object

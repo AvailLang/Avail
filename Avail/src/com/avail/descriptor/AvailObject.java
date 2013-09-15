@@ -2873,7 +2873,8 @@ implements
 	 */
 	@Override
 	public A_Definition lookupByTypesFromTuple (
-		final A_Tuple argumentTypeTuple)
+			final A_Tuple argumentTypeTuple)
+		throws MethodDefinitionException
 	{
 		return descriptor.o_LookupByTypesFromTuple(this, argumentTypeTuple);
 	}

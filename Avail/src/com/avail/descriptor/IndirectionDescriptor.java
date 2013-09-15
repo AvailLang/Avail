@@ -53,6 +53,7 @@ import com.avail.descriptor.SetDescriptor.SetIterator;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.descriptor.VariableDescriptor.VariableAccessReactor;
 import com.avail.exceptions.AvailException;
+import com.avail.exceptions.MethodDefinitionException;
 import com.avail.exceptions.SignatureException;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.levelTwo.L2Chunk;
@@ -1293,8 +1294,9 @@ extends AbstractDescriptor
 
 	@Override
 	A_Definition o_LookupByTypesFromTuple (
-		final AvailObject object,
-		final A_Tuple argumentTypeTuple)
+			final AvailObject object,
+			final A_Tuple argumentTypeTuple)
+		throws MethodDefinitionException
 	{
 		return o_Traversed(object).lookupByTypesFromTuple(argumentTypeTuple);
 	}

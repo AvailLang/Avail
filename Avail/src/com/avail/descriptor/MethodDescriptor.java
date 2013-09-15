@@ -1197,8 +1197,9 @@ extends Descriptor
 	 */
 	@Override @AvailMethod
 	A_Definition o_LookupByTypesFromTuple (
-		final AvailObject object,
-		final A_Tuple argumentTypeTuple)
+			final AvailObject object,
+			final A_Tuple argumentTypeTuple)
+		throws MethodDefinitionException
 	{
 		final List<A_Type> argumentTypesList =
 			TupleDescriptor.toList(argumentTypeTuple);
@@ -1210,9 +1211,13 @@ extends Descriptor
 			{
 				tree = tree.lookupStepByTypes(argumentTypesList);
 			}
-			return solutions.size() == 1
-				? solutions.get(0)
-				: NilDescriptor.nil();
+			if (solutions.size() != 1)
+			{
+				throw solutions.size() < 1
+					? MethodDefinitionException.noMethodDefinition()
+					: MethodDefinitionException.ambiguousMethodDefinition();
+			}
+			return solutions.get(0);
 		}
 	}
 

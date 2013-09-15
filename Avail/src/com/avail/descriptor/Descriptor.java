@@ -711,8 +711,9 @@ extends AbstractDescriptor
 
 	@Override
 	A_Definition o_LookupByTypesFromTuple (
-		final AvailObject object,
-		final A_Tuple argumentTypeTuple)
+			final AvailObject object,
+			final A_Tuple argumentTypeTuple)
+		throws MethodDefinitionException
 	{
 		throw unsupportedOperationException();
 	}

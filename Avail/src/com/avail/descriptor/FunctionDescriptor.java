@@ -485,7 +485,48 @@ extends Descriptor
 		final A_Function function = FunctionDescriptor.create(
 			writer.compiledCode(),
 			TupleDescriptor.empty());
-		function.makeImmutable();
+		function.makeShared();
+		return function;
+	}
+
+	/**
+	 * Construct a bootstrap {@linkplain FunctionDescriptor function} that
+	 * crashes when invoked.
+	 *
+	 * @param paramTypes
+	 *        The {@linkplain TupleDescriptor tuple} of parameter {@linkplain
+	 *        TypeDescriptor types}.
+	 * @return The requested crash function.
+	 * @see MethodDescriptor#vmCrashAtom()
+	 */
+	public static A_Function newCrashFunction (final A_Tuple paramTypes)
+	{
+		final L1InstructionWriter writer = new L1InstructionWriter(
+			NilDescriptor.nil(),
+			0);
+		writer.primitiveNumber(0);
+		writer.argumentTypesTuple(paramTypes);
+		writer.returnType(BottomTypeDescriptor.bottom());
+		writer.write(
+			new L1Instruction(
+				L1Operation.L1_doPushLiteral,
+				writer.addLiteral(StringDescriptor.from(
+					"unexpected VM failure"))));
+		// Put the error message and arguments into a tuple.
+		writer.write(
+			new L1Instruction(
+				L1Operation.L1_doMakeTuple,
+				paramTypes.tupleSize() + 1));
+		writer.write(
+			new L1Instruction(
+				L1Operation.L1_doCall,
+				writer.addLiteral(
+					MethodDescriptor.vmCrashAtom().bundleOrCreate()),
+				writer.addLiteral(BottomTypeDescriptor.bottom())));
+		final A_Function function = FunctionDescriptor.create(
+			writer.compiledCode(),
+			TupleDescriptor.empty());
+		function.makeShared();
 		return function;
 	}
 

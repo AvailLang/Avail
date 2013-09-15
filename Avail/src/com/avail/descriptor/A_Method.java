@@ -34,6 +34,7 @@ package com.avail.descriptor;
 
 import java.util.List;
 import com.avail.descriptor.MethodDescriptor.LookupTree;
+import com.avail.exceptions.MethodDefinitionException;
 import com.avail.exceptions.SignatureException;
 
 /**
@@ -93,7 +94,8 @@ extends A_ChunkDependable
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	A_Definition lookupByTypesFromTuple (A_Tuple argumentTypeTuple);
+	A_Definition lookupByTypesFromTuple (A_Tuple argumentTypeTuple)
+		throws MethodDefinitionException;
 
 	/**
 	 * Dispatch to the descriptor.
