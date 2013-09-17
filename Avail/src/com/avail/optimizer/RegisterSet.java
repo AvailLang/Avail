@@ -50,50 +50,16 @@ import com.avail.utility.Transformer2;
 public final class RegisterSet
 {
 	/**
-	 * The {@link L2Translator} using this RegisterSet to translate level one
-	 * code to level two.
+	 * The fixed architectural {@linkplain L2ObjectRegister registers}, keyed by
+	 * {@link FixedRegister}.
 	 */
-	private final L2Translator translator;
+	final EnumMap<FixedRegister, L2ObjectRegister> fixedRegisters;
 
 	/**
-	 * The mapping from each register to its current type, if known.
+	 * The mapping from each register to its current state, if any.
 	 */
-	final Map<L2Register, A_Type> registerTypes =
+	final Map<L2Register, RegisterState> registerStates =
 		new HashMap<>(10);
-
-	/**
-	 * The mapping from each register to its current value, if known.
-	 */
-	final Map<L2Register, AvailObject> registerConstants =
-		new HashMap<>(10);
-
-	/**
-	 * The mapping from each register to a list of other registers that have the
-	 * same value (if any).  These occur in the order in which the registers
-	 * acquired the value.
-	 *
-	 * <p>
-	 * The inverse map is kept in {@link #invertedOrigins}, to more efficiently
-	 * disconnect this information.
-	 * </p>
-	 */
-	final Map<L2Register, List<L2Register>> registerOrigins = new HashMap<>();
-
-	/**
-	 * The inverse of {@link #registerOrigins}.  For each key, the value is the
-	 * collection of registers that this value has been copied into (and not yet
-	 * been overwritten).
-	 */
-	final Map<L2Register, Set<L2Register>> invertedOrigins = new HashMap<>();
-
-	/**
-	 * A mapping from {@link L2Register}s to the {@link Set}s of {@link
-	 * L2Instruction}s that may have provided the current value in that
-	 * register.  There may be more than one such instruction due to multiple
-	 * paths converging by jumping to labels.
-	 */
-	final Map<L2Register, Set<L2Instruction>> registerSourceInstructions =
-		new HashMap<>();
 
 	/**
 	 * Output debug information about this RegisterSet to the specified
@@ -104,8 +70,8 @@ public final class RegisterSet
 	void debugOn (
 		final StringBuilder builder)
 	{
-		final Map<L2Register, A_Type> typeMap = registerTypes;
-		final List<L2Register> sortedRegs = new ArrayList<>(typeMap.keySet());
+		final List<L2Register> sortedRegs =
+			new ArrayList<>(registerStates.keySet());
 		Collections.sort(sortedRegs, new Comparator<L2Register>()
 		{
 			@Override
@@ -120,55 +86,69 @@ public final class RegisterSet
 		});
 		for (final L2Register reg : sortedRegs)
 		{
-			builder.append(String.format("%n\t%s : %s", reg, typeMap.get(reg)));
-			final List<L2Register> aliases = registerOrigins.get(reg);
-			final Set<L2Instruction> sources =
-				registerSourceInstructions.get(reg);
-			if (aliases != null && !aliases.isEmpty())
+			final RegisterState state = stateFor(reg);
+			builder.append(String.format(
+				"%n\t%s = %.100s : %s",
+				reg,
+				state.constant,
+				state.type));
+			final List<L2Register> aliases = state.origins;
+			if (!aliases.isEmpty())
 			{
 				builder.append(",  ALIASES = ");
 				builder.append(aliases);
 			}
-			assert sources != null;
-			assert !sources.isEmpty();
-			builder.append(",  SOURCES = ");
-			boolean first = true;
-			for (final L2Instruction source : sources)
+			final Set<L2Instruction> sources = state.sourceInstructions;
+			if (!sources.isEmpty())
 			{
-				if (!first)
+				builder.append(",  SOURCES = ");
+				boolean first = true;
+				for (final L2Instruction source : sources)
 				{
-					builder.append(", ");
+					if (!first)
+					{
+						builder.append(", ");
+					}
+					builder.append("#");
+					builder.append(source.offset());
+					first = false;
 				}
-				builder.append("#");
-				builder.append(source.offset());
-				first = false;
 			}
 		}
 
 	}
 
 	/**
-	 * Answer the base {@linkplain CompiledCodeDescriptor compiled code} for
-	 * which this chunk is being constructed.  Answer null when generating the
-	 * default chunk.
+	 * Lookup the {@link L2ObjectRegister} that represents the specified {@link
+	 * FixedRegister}.
 	 *
-	 * @return The root compiled code being translated.
+	 * @param fixedRegister The FixedRegister to look up.
+	 * @return The corresponding L2ObjectRegister.
 	 */
-	public @Nullable A_RawFunction codeOrNull ()
+	L2ObjectRegister fixed (
+		final FixedRegister fixedRegister)
 	{
-		return translator.codeOrNull();
+		return fixedRegisters.get(fixedRegister);
 	}
 
 	/**
-	 * Answer the base {@linkplain CompiledCodeDescriptor compiled code} for
-	 * which this chunk is being constructed.  Fail if it's null, which happens
-	 * when the default chunk is being generated.
+	 * Answer the {@link RegisterState} for the specified {@link L2Register},
+	 * creating one and associating it with the register for subsequent lookups.
 	 *
-	 * @return The root compiled code being translated.
+	 * @param register The L2Register to look up.
+	 * @return The RegisterState that describes the state of the L2Register at
+	 *         a particular point in the generated code.
 	 */
-	public A_RawFunction codeOrFail ()
+	RegisterState stateFor (
+		final L2Register register)
 	{
-		return translator.codeOrFail();
+		RegisterState state = registerStates.get(register);
+		if (state == null)
+		{
+			state = new RegisterState();
+			registerStates.put(register, state);
+		}
+		return state;
 	}
 
 	/**
@@ -181,7 +161,7 @@ public final class RegisterSet
 	public boolean hasConstantAt (
 		final L2Register register)
 	{
-		return registerConstants.containsKey(register);
+		return stateFor(register).hasConstant();
 	}
 
 	/**
@@ -201,16 +181,15 @@ public final class RegisterSet
 		final L2Instruction instruction)
 	{
 		final AvailObject strongValue = (AvailObject) value;
-		registerConstants.put(register, strongValue);
+		final RegisterState state = stateFor(register);
+		state.constant = strongValue;
 		if (!strongValue.equalsNil())
 		{
 			final A_Type type =
 				AbstractEnumerationTypeDescriptor.withInstance(strongValue);
 			assert !type.isTop();
 			assert !type.isBottom();
-			registerTypes.put(
-				register,
-				type);
+			state.type = type;
 		}
 		propagateWriteTo(register, instruction);
 	}
@@ -225,7 +204,7 @@ public final class RegisterSet
 	public AvailObject constantAt (
 		final L2Register register)
 	{
-		final AvailObject value = registerConstants.get(register);
+		final AvailObject value = stateFor(register).constant;
 		assert value != null;
 		return value;
 	}
@@ -238,7 +217,7 @@ public final class RegisterSet
 	public void removeConstantAt (
 		final L2Register register)
 	{
-		registerConstants.remove(register);
+		stateFor(register).constant = null;
 	}
 
 	/**
@@ -251,7 +230,7 @@ public final class RegisterSet
 	public boolean hasTypeAt (
 		final L2Register register)
 	{
-		return registerTypes.containsKey(register);
+		return stateFor(register).type != null;
 	}
 
 	/**
@@ -263,7 +242,7 @@ public final class RegisterSet
 	public A_Type typeAt (
 		final L2Register register)
 	{
-		final A_Type type = registerTypes.get(register);
+		final A_Type type = stateFor(register).type;
 		assert type != null;
 		return type;
 	}
@@ -284,7 +263,7 @@ public final class RegisterSet
 		assert !type.equals(
 			AbstractEnumerationTypeDescriptor.withInstance(
 				NilDescriptor.nil()));
-		registerTypes.put(register, type);
+		stateFor(register).type = type;
 	}
 
 	/**
@@ -316,7 +295,7 @@ public final class RegisterSet
 	public void removeTypeAt (
 		final L2Register register)
 	{
-		registerTypes.remove(register);
+		stateFor(register).type = null;
 	}
 
 
@@ -360,23 +339,17 @@ public final class RegisterSet
 			return;
 		}
 		propagateWriteTo(destinationRegister, instruction);
-		final List<L2Register> sourceOrigins = registerOrigins.get(
-			sourceRegister);
+		final RegisterState sourceState = stateFor(sourceRegister);
+		final RegisterState destinationState = stateFor(destinationRegister);
+		final List<L2Register> sourceOrigins = sourceState.origins;
 		final List<L2Register> destinationOrigins =
-			sourceOrigins == null
-				? new ArrayList<L2Register>(1)
-				: new ArrayList<L2Register>(sourceOrigins);
+			new ArrayList<L2Register>(sourceOrigins);
 		destinationOrigins.add(sourceRegister);
-		registerOrigins.put(destinationRegister, destinationOrigins);
+		destinationState.origins.clear();
+		destinationState.origins.addAll(destinationOrigins);
 		for (final L2Register origin : destinationOrigins)
 		{
-			Set<L2Register> set = invertedOrigins.get(origin);
-			if (set == null)
-			{
-				set = new HashSet<L2Register>();
-				invertedOrigins.put(origin, set);
-			}
-			set.add(destinationRegister);
+			stateFor(origin).invertedOrigins.add(destinationRegister);
 		}
 	}
 
@@ -385,9 +358,8 @@ public final class RegisterSet
 	 * are handled differently.
 	 *
 	 * <p>
-	 * Update the {@link #registerOrigins} and {@link #invertedOrigins} maps to
-	 * reflect the fact that the destination register is no longer related to
-	 * any of its earlier sources.
+	 * Update the the {@link #registerStates} to reflect the fact that the
+	 * destination register is no longer related to any of its earlier sources.
 	 * </p>
 	 *
 	 * @param destinationRegister The {@link L2Register} being overwritten.
@@ -399,26 +371,25 @@ public final class RegisterSet
 	{
 		// Firstly, the destinationRegister's value is no longer derived
 		// from any other register (until and unless the client says which).
-		final List<L2Register> origins =
-			registerOrigins.get(destinationRegister);
-		if (origins != null && !origins.isEmpty())
+		final RegisterState destinationState = stateFor(destinationRegister);
+		final List<L2Register> origins = destinationState.origins;
+		if (!origins.isEmpty())
 		{
 			for (final L2Register origin : origins)
 			{
-				invertedOrigins.get(origin).remove(destinationRegister);
+				stateFor(origin).invertedOrigins.remove(destinationRegister);
 			}
 			origins.clear();
 		}
 
 		// Secondly, any registers that were derived from the old value of
 		// the destinationRegister are no longer equivalent to it.
-		final Set<L2Register> descendants =
-			invertedOrigins.get(destinationRegister);
-		if (descendants != null && !descendants.isEmpty())
+		final Set<L2Register> descendants = destinationState.invertedOrigins;
+		if (!descendants.isEmpty())
 		{
 			for (final L2Register descendant : descendants)
 			{
-				final List<L2Register> list = registerOrigins.get(descendant);
+				final List<L2Register> list = stateFor(descendant).origins;
 				assert list.contains(destinationRegister);
 				list.remove(destinationRegister);
 			}
@@ -427,9 +398,8 @@ public final class RegisterSet
 
 		// Finally, *this* is the instruction that produces a value for the
 		// destination.
-		registerSourceInstructions.put(
-			destinationRegister,
-			Collections.singleton(instruction));
+		destinationState.sourceInstructions.clear();
+		destinationState.sourceInstructions.add(instruction);
 	}
 
 	/**
@@ -449,14 +419,15 @@ public final class RegisterSet
 	{
 		if (givenOperandType.isSource && !givenOperandType.isDestination)
 		{
-			final List<L2Register> origins = registerOrigins.get(givenRegister);
-			final AvailObject value = registerConstants.get(givenRegister);
+			final RegisterState givenState = stateFor(givenRegister);
+			final List<L2Register> origins = givenState.origins;
+			final AvailObject value = givenState.constant;
 			if (value != null && value.equalsNil())
 			{
 				// Optimization -- always use the dedicated null register.
-				return fixed(FixedRegister.NULL);
+				fixed(FixedRegister.NULL);
 			}
-			if (origins == null || origins.isEmpty())
+			if (origins.isEmpty())
 			{
 				// The origin of the register's value is indeterminate here.
 				return givenRegister;
@@ -490,62 +461,14 @@ public final class RegisterSet
 		};
 
 	/**
-	 * Answer the specified fixed register.
-	 *
-	 * @param registerEnum The {@link FixedRegister} identifying the register.
-	 * @return The {@link L2ObjectRegister} named by the registerEnum.
-	 */
-	public L2ObjectRegister fixed (
-		final FixedRegister registerEnum)
-	{
-		return translator.fixed(registerEnum);
-	}
-
-	/**
-	 * Answer the register holding the specified continuation slot.  The slots
-	 * are the arguments, then the locals, then the stack entries.  The first
-	 * argument occurs just after the {@link FixedRegister}s.
-	 *
-	 * @param slotNumber
-	 *            The index into the continuation's slots.
-	 * @return
-	 *            A register representing that continuation slot.
-	 */
-	public L2ObjectRegister continuationSlot (
-		final int slotNumber)
-	{
-		return translator.continuationSlot(slotNumber);
-	}
-
-	/**
-	 * Answer the register holding the specified argument/local number (the
-	 * 1st argument is the 3rd architectural register).
-	 *
-	 * @param argumentNumber
-	 *            The argument number for which the "architectural" register is
-	 *            being requested.  If this is greater than the number of
-	 *            arguments, then answer the register representing the local
-	 *            variable at that position minus the number of registers.
-	 * @return A register that represents the specified argument or local.
-	 */
-	L2ObjectRegister argumentOrLocal (
-		final int argumentNumber)
-	{
-		return translator.argumentOrLocal(argumentNumber);
-	}
-
-	/**
 	 * Clear all type/constant/origin information for all registers.
 	 *
 	 * @param instruction The instruction responsible for clearing this state.
 	 */
-	public void clearEverythingFor (final L2Instruction instruction)
+	public void clearEverythingFor (
+		final L2Instruction instruction)
 	{
-		registerTypes.clear();
-		registerConstants.clear();
-		registerOrigins.clear();
-		invertedOrigins.clear();
-		registerSourceInstructions.clear();
+		registerStates.clear();
 		constantAtPut(
 			fixed(FixedRegister.NULL),
 			NilDescriptor.nil(),
@@ -553,17 +476,22 @@ public final class RegisterSet
 		typeAtPut(
 			fixed(FixedRegister.CALLER),
 			ContinuationTypeDescriptor.mostGeneralType());
-		propagateWriteTo(fixed(FixedRegister.CALLER), instruction);
+		propagateWriteTo(
+			fixed(FixedRegister.CALLER),
+			instruction);
 	}
 
 	/**
 	 * Construct a new {@link RegisterSet}.
 	 *
-	 * @param translator The {@link L2Translator} using these registers.
+	 * @param fixedRegisters
+	 *            The map from {@link FixedRegister}s to {@link
+	 *            L2ObjectRegister}s.
 	 */
-	RegisterSet (final L2Translator translator)
+	RegisterSet (
+		final EnumMap<FixedRegister, L2ObjectRegister> fixedRegisters)
 	{
-		this.translator = translator;
+		this.fixedRegisters = fixedRegisters;
 	}
 
 	/**
@@ -571,15 +499,18 @@ public final class RegisterSet
 	 *
 	 * @param original The original RegisterSet to copy.
 	 */
-	RegisterSet (final RegisterSet original)
+	RegisterSet (
+		final RegisterSet original)
 	{
-		this.translator = original.translator;
-		this.registerTypes.putAll(original.registerTypes);
-		this.registerConstants.putAll(original.registerConstants);
-		this.registerOrigins.putAll(original.registerOrigins);
-		this.invertedOrigins.putAll(original.invertedOrigins);
-		this.registerSourceInstructions.putAll(
-			original.registerSourceInstructions);
+		this.fixedRegisters = original.fixedRegisters;
+		this.registerStates.clear();
+		for (final Map.Entry<L2Register, RegisterState> entry
+			: original.registerStates.entrySet())
+		{
+			this.registerStates.put(
+				entry.getKey(),
+				new RegisterState(entry.getValue()));
+		}
 	}
 
 	/**
@@ -595,97 +526,71 @@ public final class RegisterSet
 	 */
 	boolean mergeFrom (final RegisterSet other)
 	{
-		assert this.translator == other.translator;
 		boolean changed = false;
-		// Merge in the type information, truncating type information about
-		// registers which are not known in both sources.
-		final Iterator<Map.Entry<L2Register, A_Type>> typesIterator =
-			registerTypes.entrySet().iterator();
-		while (typesIterator.hasNext())
+		for (final Map.Entry<L2Register, RegisterState> entry
+			: registerStates.entrySet())
 		{
-			final Map.Entry<L2Register, A_Type> entry = typesIterator.next();
 			final L2Register reg = entry.getKey();
-			if (other.hasTypeAt(reg))
+			final RegisterState state = entry.getValue();
+			final RegisterState otherState = other.stateFor(reg);
+			// Merge in the type information, truncating type information about
+			// registers which are not known in both sources.
+			final A_Type type = state.type;
+			final A_Type otherType = otherState.type;
+			if (type != null)
 			{
-				final A_Type otherType = other.typeAt(reg);
-				final A_Type existingType = entry.getValue();
-				final A_Type union = otherType.typeUnion(existingType);
-				if (!union.equals(existingType))
+				if (otherType != null)
+				{
+					final A_Type union = otherType.typeUnion(type);
+					if (!union.equals(type))
+					{
+						changed = true;
+						state.type = union;
+					}
+				}
+				else
 				{
 					changed = true;
-					entry.setValue(union);
+					state.type = null;
+					// No type, so no constant.
+					state.constant = null;
 				}
 			}
-			else
-			{
-				changed = true;
-				typesIterator.remove();
-				// No type, so no constant.
-				registerConstants.remove(reg);
-			}
-		}
 
-		// Only keep constant information where it agrees.
-		final Iterator<Map.Entry<L2Register, AvailObject>> constantsIterator =
-			registerConstants.entrySet().iterator();
-		while (constantsIterator.hasNext())
-		{
-			final Map.Entry<L2Register, AvailObject> entry =
-				constantsIterator.next();
-			final L2Register reg = entry.getKey();
-			if (!other.registerConstants.containsKey(reg)
-				|| !other.registerConstants.get(reg).equals(entry.getValue()))
+			// Only keep constant information where it agrees.
+			final AvailObject constant = state.constant;
+			final AvailObject otherConstant = otherState.constant;
+			if (constant != null)
 			{
-				// They disagree, so it's not really a constant here.
-				changed = true;
-				constantsIterator.remove();
-			}
-		}
-
-		// For each register keep the intersection of its lists of origin
-		// registers.  In theory the two lists might have overlapping elements
-		// in a different order, but in that case any order will be good enough.
-		final Iterator<Map.Entry<L2Register, List<L2Register>>>
-			originsIterator = registerOrigins.entrySet().iterator();
-		while (originsIterator.hasNext())
-		{
-			final Map.Entry<L2Register, List<L2Register>> entry =
-				originsIterator.next();
-			final L2Register reg = entry.getKey();
-			final List<L2Register> list = entry.getValue();
-			final List<L2Register> otherList = other.registerOrigins.get(reg);
-			if (otherList != null)
-			{
-				final List<L2Register> intersection = new ArrayList<>(list);
-				intersection.retainAll(otherList);
-				if (!intersection.equals(list))
+				if (otherConstant == null || !otherConstant.equals(constant))
 				{
+					// They disagree, so it's not really a constant here.
 					changed = true;
-					entry.setValue(intersection);
+					state.constant = null;
 				}
 			}
-			else
-			{
-				changed = true;
-				originsIterator.remove();
-			}
+
+			// Keep the intersection of the lists of origin registers.  In
+			// theory the two lists might have overlapping elements in a
+			// different order, but in that case any order will be good enough.
+			final List<L2Register> list = state.origins;
+			final List<L2Register> otherList = otherState.origins;
+			changed |= list.retainAll(otherList);
 		}
 
 		// Rebuild the invertedOrigins from scratch.
-		invertedOrigins.clear();
-		for (final Map.Entry<L2Register, List<L2Register>> entry
-			: registerOrigins.entrySet())
+		for (final Map.Entry<L2Register, RegisterState> entry
+			: registerStates.entrySet())
+		{
+			entry.getValue().invertedOrigins.clear();
+		}
+		for (final Map.Entry<L2Register, RegisterState> entry
+			: registerStates.entrySet())
 		{
 			final L2Register target = entry.getKey();
-			for (final L2Register origin : entry.getValue())
+			for (final L2Register origin : entry.getValue().origins)
 			{
-				Set<L2Register> targetSet = invertedOrigins.get(origin);
-				if (targetSet == null)
-				{
-					targetSet = new HashSet<>();
-					invertedOrigins.put(origin, targetSet);
-				}
-				targetSet.add(target);
+				stateFor(origin).invertedOrigins.add(target);
 			}
 		}
 
@@ -694,30 +599,18 @@ public final class RegisterSet
 		// those instructions from being discarded, since their results *may*
 		// be used here.  However, only keep information about registers that
 		// are mentioned in both RegisterSets.
-		final Iterator<Map.Entry<L2Register, Set<L2Instruction>>>
-			sourcesIterator = registerSourceInstructions.entrySet().iterator();
+		final Iterator<Map.Entry<L2Register, RegisterState>> sourcesIterator =
+			registerStates.entrySet().iterator();
 		while (sourcesIterator.hasNext())
 		{
-			final Map.Entry<L2Register, Set<L2Instruction>> entry =
+			final Map.Entry<L2Register, RegisterState> entry =
 				sourcesIterator.next();
 			final L2Register reg = entry.getKey();
 			final Set<L2Instruction> otherSources =
-				other.registerSourceInstructions.get(reg);
-			if (otherSources == null)
-			{
-				sourcesIterator.remove();
-			}
-			else
-			{
-				final Set<L2Instruction> sources = entry.getValue();
-				final Set<L2Instruction> union = new HashSet<>(sources);
-				union.addAll(otherSources);
-				if (!union.equals(sources))
-				{
-					changed = true;
-					entry.setValue(union);
-				}
-			}
+				other.stateFor(reg).sourceInstructions;
+			final Set<L2Instruction> sources =
+				entry.getValue().sourceInstructions;
+			changed |= sources.addAll(otherSources);
 		}
 		return changed;
 	}
@@ -728,22 +621,59 @@ public final class RegisterSet
 		@SuppressWarnings("resource")
 		final Formatter formatter = new Formatter();
 		formatter.format("RegisterSet(%n\tConstants:");
-		for (final Map.Entry<L2Register, AvailObject> entry :
-			new TreeMap<>(registerConstants).entrySet())
+		final Map<L2Register, RegisterState> sorted =
+			new TreeMap<>(registerStates);
+		for (final Map.Entry<L2Register, RegisterState> entry
+			: sorted.entrySet())
 		{
-			formatter.format("%n\t\t%s = %s", entry.getKey(), entry.getValue());
+			final AvailObject constant = entry.getValue().constant;
+			if (constant != null)
+			{
+				formatter.format("%n\t\t%s = %s", entry.getKey(), constant);
+			}
 		}
 		formatter.format("%n\tTypes:");
-		for (final Map.Entry<L2Register, A_Type> entry :
-			new TreeMap<>(registerTypes).entrySet())
+		for (final Map.Entry<L2Register, RegisterState> entry
+			: sorted.entrySet())
 		{
-			formatter.format("%n\t\t%s = %s", entry.getKey(), entry.getValue());
+			final A_Type type = entry.getValue().type;
+			if (type != null)
+			{
+				formatter.format("%n\t\t%s = %s", entry.getKey(), type);
+			}
 		}
 		formatter.format("%n\tOrigins:");
-		for (final Map.Entry<L2Register, List<L2Register>> entry :
-			new TreeMap<>(registerOrigins).entrySet())
+		for (final Map.Entry<L2Register, RegisterState> entry
+			: sorted.entrySet())
 		{
-			formatter.format("%n\t\t%s = %s", entry.getKey(), entry.getValue());
+			final List<L2Register> origins = entry.getValue().origins;
+			if (!origins.isEmpty())
+			{
+				formatter.format("%n\t\t%s = %s", entry.getKey(), origins);
+			}
+		}
+		formatter.format("%n\tSources:");
+		for (final Map.Entry<L2Register, RegisterState> entry
+			: sorted.entrySet())
+		{
+			final Set<L2Instruction> sourceInstructions =
+				entry.getValue().sourceInstructions;
+			if (!sourceInstructions.isEmpty())
+			{
+				formatter.format(
+					"%n\t\t%s = ",
+					entry.getKey());
+				boolean first = true;
+				for (final L2Instruction instruction : sourceInstructions)
+				{
+					if (!first)
+					{
+						formatter.format(", ");
+					}
+					formatter.format("#%d", instruction.offset());
+					first = false;
+				}
+			}
 		}
 		return formatter.toString();
 	}

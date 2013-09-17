@@ -366,6 +366,14 @@ public final class L2Chunk
 	private static final ReentrantLock chunksLock = new ReentrantLock();
 
 	/**
+	 * The {@linkplain ReentrantLock lock} that protects invalidation of chunks
+	 * due to {@linkplain MethodDescriptor method} changes from interfering
+	 * with each other.  The alternative to a global lock seems to imply
+	 * deadlock conditions.
+	 */
+	public static final ReentrantLock invalidationLock = new ReentrantLock();
+
+	/**
 	 * Allocate and set up a new {@linkplain L2Chunk level two chunk} with the
 	 * given information. If {@code code} is non-null, set it up to use the new
 	 * chunk for subsequent invocations.
@@ -470,42 +478,53 @@ public final class L2Chunk
 	}
 
 	/**
-	 * Something that depends on a {@linkplain L2Chunk Level Two chunk} has
+	 * Something that a {@linkplain L2Chunk Level Two chunk} depended on has
 	 * changed. This must have been because it was optimized in a way that
 	 * relied on some aspect of the available definitions (e.g., monomorphic
 	 * inlining), so we need to invalidate the chunk now, so that an attempt to
 	 * invoke it or return into it will be detected and converted into using the
 	 * {@linkplain #unoptimizedChunk unoptimized chunk}. Also remove this
-	 * chunk's index from all objects on which it was depending. Do not add the
-	 * chunk's reference to the reference queue, since it may still be
-	 * referenced by code or continuations that need to detect that it is now
-	 * invalid.
+	 * chunk's index from all objects on which it was depending.
+	 *
+	 * <p>
+	 * Do not add the chunk's reference to the reference queue, since it may
+	 * still be referenced by code or continuations that need to detect that it
+	 * is now invalid.
+	 * </p>
+	 *
+	 * <p>
+	 * There are two situations in which this method can be invoked:
+	 * <ol>
+	 * <li>While L2 execution is suspended, due to a method changing, or</li>
+	 * <li>When the L2Translator is creating a new chunk and notices an old
+	 *     invalid one has lost its last reference.</li>
+	 * </ol>
+	 * For the former, the {@link #invalidationLock} must be acquired by the
+	 * caller to ensure safe manipulation of the dependency information.  For
+	 * the latter, the {@link #chunksLock} must be acquired by the caller to
+	 * ensure it does not interfere with the addition of dependencies for code
+	 * freshly translated to level two in other fibers.
+	 * </p>
 	 *
 	 * @param chunkIndex The index of the chunk to invalidate.
 	 */
 	public static void invalidateChunkAtIndex (final int chunkIndex)
 	{
-		chunksLock.lock();
-		Set<A_ChunkDependable> dependents = null;
-		try
+		assert chunksLock.isHeldByCurrentThread()
+			|| invalidationLock.isHeldByCurrentThread();
+		final WeakChunkReference ref = allChunksWeakly.get(chunkIndex);
+		assert ref.index == chunkIndex;
+		final L2Chunk chunk = ref.get();
+		if (chunk != null)
 		{
-			final WeakChunkReference ref = allChunksWeakly.get(chunkIndex);
-			assert ref.index == chunkIndex;
-			final L2Chunk chunk = ref.get();
-			if (chunk != null)
-			{
-				chunk.valid = false;
-				// The empty tuple is already shared, so we don't need to share
-				// it here.
-				chunk.instructions = new L2Instruction[0];
-			}
-			dependents = new HashSet<>(ref.contingentValues);
-			ref.contingentValues.clear();
+			chunk.valid = false;
+			// The empty tuple is already shared, so we don't need to share
+			// it here.
+			chunk.instructions = new L2Instruction[0];
 		}
-		finally
-		{
-			chunksLock.unlock();
-		}
+		final Set<A_ChunkDependable> dependents =
+			new HashSet<>(ref.contingentValues);
+		ref.contingentValues.clear();
 		for (final A_ChunkDependable value : dependents)
 		{
 			value.removeDependentChunkIndex(chunkIndex);

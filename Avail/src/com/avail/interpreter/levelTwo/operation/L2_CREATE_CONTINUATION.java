@@ -39,6 +39,7 @@ import com.avail.interpreter.levelTwo.*;
 import com.avail.interpreter.levelTwo.register.L2IntegerRegister;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.interpreter.levelTwo.register.L2RegisterVector;
+import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
 
 /**
@@ -103,9 +104,10 @@ public class L2_CREATE_CONTINUATION extends L2Operation
 	}
 
 	@Override
-	public void propagateTypes (
+	protected void propagateTypes (
 		final L2Instruction instruction,
-		final List<RegisterSet> registerSets)
+		final List<RegisterSet> registerSets,
+		final L2Translator translator)
 	{
 		final L2ObjectRegister functionReg =
 			instruction.readObjectRegisterAt(1);

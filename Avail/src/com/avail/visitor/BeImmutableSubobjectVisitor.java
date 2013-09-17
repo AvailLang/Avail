@@ -46,6 +46,16 @@ import com.avail.descriptor.AvailObject;
 public final class BeImmutableSubobjectVisitor
 extends AvailSubobjectVisitor
 {
+	/** The sole instance of this visitor. */
+	public final static BeImmutableSubobjectVisitor instance =
+		new BeImmutableSubobjectVisitor();
+
+	/** Construct a new {@link BeImmutableSubobjectVisitor}. */
+	private BeImmutableSubobjectVisitor ()
+	{
+		// Do nothing
+	}
+
 	@Override
 	public void invoke (
 		final A_BasicObject parentObject,

@@ -77,15 +77,16 @@ public class L2ReadVectorOperand extends L2Operand
 
 	@Override
 	public L2ReadVectorOperand transformRegisters (
-		final Transformer2<L2Register, L2OperandType, L2Register>
-			transformer)
+		final Transformer2<L2Register, L2OperandType, L2Register> transformer)
 	{
 		final List<L2ObjectRegister> newRegisters =
 			new ArrayList<>(vector.registers().size());
 		for (final L2ObjectRegister register : vector.registers())
 		{
 			final L2ObjectRegister newRegister =
-				(L2ObjectRegister)transformer.value(register, operandType());
+				(L2ObjectRegister)transformer.value(
+					register,
+					operandType());
 			newRegisters.add(newRegister);
 		}
 		final L2RegisterVector newVector = new L2RegisterVector(newRegisters);

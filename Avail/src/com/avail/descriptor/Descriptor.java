@@ -2299,10 +2299,6 @@ extends AbstractDescriptor
 		return object;
 	}
 
-	/** A statically cached stateless visitor instance */
-	static final BeImmutableSubobjectVisitor beImmutableSubobjectVisitor =
-		new BeImmutableSubobjectVisitor();
-
 	/**
 	 * {@inheritDoc}
 	 *
@@ -2315,12 +2311,8 @@ extends AbstractDescriptor
 	@Override
 	final void o_MakeSubobjectsImmutable (final AvailObject object)
 	{
-		object.scanSubobjects(beImmutableSubobjectVisitor);
+		object.scanSubobjects(BeImmutableSubobjectVisitor.instance);
 	}
-
-	/** A statically cached stateless visitor instance. */
-	static final BeSharedSubobjectVisitor beSharedSubobjectVisitor =
-		new BeSharedSubobjectVisitor();
 
 	/**
 	 * {@inheritDoc}
@@ -2334,7 +2326,7 @@ extends AbstractDescriptor
 	@Override
 	final void o_MakeSubobjectsShared (final AvailObject object)
 	{
-		object.scanSubobjects(beSharedSubobjectVisitor);
+		object.scanSubobjects(BeSharedSubobjectVisitor.instance);
 	}
 
 	@Override

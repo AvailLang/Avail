@@ -240,10 +240,13 @@ public abstract class L2Operation
 	 * @param registerSets
 	 *            A list of RegisterSets to update with information that this
 	 *            operation provides.
+	 * @param translator
+	 *            The L2Translator for which to advance the type analysis.
 	 */
-	public void propagateTypes (
+	protected void propagateTypes (
 		final L2Instruction instruction,
-		final List<RegisterSet> registerSets)
+		final List<RegisterSet> registerSets,
+		final L2Translator translator)
 	{
 		assert false : "Please override multi-target L2Operation";
 	}
@@ -259,11 +262,14 @@ public abstract class L2Operation
 	 *            A RegisterSet to supply with information about
 	 *            A list of RegisterSets to update with information that this
 	 *            operation provides.
-	 * @see #propagateTypes(L2Instruction, List)
+	 * @param translator
+	 *            The L2Translator for which to advance the type analysis.
+	 * @see #propagateTypes(L2Instruction, List, L2Translator)
 	 */
-	public void propagateTypes (
+	protected void propagateTypes (
 		final L2Instruction instruction,
-		final RegisterSet registerSet)
+		final RegisterSet registerSet,
+		final L2Translator translator)
 	{
 		assert false : "Please override single-target L2Operation";
 	}

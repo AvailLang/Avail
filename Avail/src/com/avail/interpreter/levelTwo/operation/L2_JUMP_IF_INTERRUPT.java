@@ -35,6 +35,7 @@ import static com.avail.interpreter.levelTwo.L2OperandType.PC;
 import java.util.List;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.*;
+import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
 
 /**
@@ -63,9 +64,10 @@ public class L2_JUMP_IF_INTERRUPT extends L2Operation
 	}
 
 	@Override
-	public void propagateTypes (
+	protected void propagateTypes (
 		final L2Instruction instruction,
-		final List<RegisterSet> registerSets)
+		final List<RegisterSet> registerSets,
+		final L2Translator translator)
 	{
 		// If there's an interrupt then jump, otherwise fall through.  Neither
 		// transition directly affects registers, although the instruction

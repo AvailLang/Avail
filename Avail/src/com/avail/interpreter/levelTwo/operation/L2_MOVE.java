@@ -71,9 +71,10 @@ public class L2_MOVE extends L2Operation
 	}
 
 	@Override
-	public void propagateTypes (
+	protected void propagateTypes (
 		final L2Instruction instruction,
-		final RegisterSet registerSet)
+		final RegisterSet registerSet,
+		final L2Translator translator)
 	{
 		final L2ObjectRegister sourceReg = instruction.readObjectRegisterAt(0);
 		final L2ObjectRegister destinationReg =

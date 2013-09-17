@@ -77,8 +77,7 @@ public class L2ReadIntOperand extends L2Operand
 
 	@Override
 	public L2ReadIntOperand transformRegisters (
-		final Transformer2<L2Register, L2OperandType, L2Register>
-			transformer)
+		final Transformer2<L2Register, L2OperandType, L2Register> transformer)
 	{
 		return new L2ReadIntOperand(
 			(L2IntegerRegister)transformer.value(register, operandType()));

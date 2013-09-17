@@ -37,6 +37,7 @@ import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.*;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
+import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
 
 /**
@@ -74,14 +75,15 @@ extends L2Operation
 	@Override
 	public boolean reachesNextInstruction ()
 	{
-		// Fiber will resume with the given continuation.
+		// Fiber will eventually resume with the provided continuation.
 		return false;
 	}
 
 	@Override
-	public void propagateTypes (
+	protected void propagateTypes (
 		final L2Instruction instruction,
-		final List<RegisterSet> registerSets)
+		final List<RegisterSet> registerSets,
+		final L2Translator translator)
 	{
 		// It doesn't reach the next instruction, and it doesn't mention where
 		// to resume.  That was dealt with by previous instructions that

@@ -1055,10 +1055,12 @@ extends Descriptor
 		final AvailObject object,
 		final int aChunkIndex)
 	{
+		// Record the fact that the chunk indexed by aChunkIndex depends on
+		// this object not changing.  Local synchronization is sufficient, since
+		// invalidation can't happen while L2 code is running (and therefore
+		// when the L2Translator could be calling this).
 		synchronized (object)
 		{
-			// Record the fact that the chunk indexed by aChunkIndex depends on
-			// this object not changing.
 			A_Set indices = object.slot(DEPENDENT_CHUNK_INDICES);
 			indices = indices.setWithElementCanDestroy(
 				IntegerDescriptor.fromInt(aChunkIndex),
@@ -1075,7 +1077,12 @@ extends Descriptor
 		final A_Definition definition)
 	throws SignatureException
 	{
-		synchronized (object)
+		// Method manipulation takes place while all fibers are L1-precise and
+		// suspended.  Use a global lock at the outermost calls to side-step
+		// deadlocks.  Because no fiber is running we don't have to protect
+		// subsystems like the L2Translator from these changes.
+		L2Chunk.invalidationLock.lock();
+		try
 		{
 			final A_Tuple oldTuple = object.definitionsTuple();
 			if (oldTuple.tupleSize() > 0)
@@ -1106,6 +1113,10 @@ extends Descriptor
 				oldTuple.appendCanDestroy(definition, true);
 			object.setSlot(DEFINITIONS_TUPLE, newTuple.makeShared());
 			membershipChanged(object);
+		}
+		finally
+		{
+			L2Chunk.invalidationLock.unlock();
 		}
 	}
 
@@ -1256,6 +1267,10 @@ extends Descriptor
 		final AvailObject object,
 		final int aChunkIndex)
 	{
+		// Record the fact that the chunk indexed by aChunkIndex depends on
+		// this object not changing.  Local synchronization is sufficient, since
+		// invalidation can't happen while L2 code is running (and therefore
+		// when the L2Translator could be calling this).
 		synchronized (object)
 		{
 			A_Set indices =
@@ -1278,7 +1293,12 @@ extends Descriptor
 		final A_Definition definition)
 	{
 		assert !definition.definitionModule().equalsNil();
-		synchronized (object)
+		// Method manipulation takes place while all fibers are L1-precise and
+		// suspended.  Use a global lock at the outermost calls to side-step
+		// deadlocks.  Because no fiber is running we don't have to protect
+		// subsystems like the L2Translator from these changes.
+		L2Chunk.invalidationLock.lock();
+		try
 		{
 			A_Tuple definitionsTuple = object.slot(DEFINITIONS_TUPLE);
 			definitionsTuple = TupleDescriptor.without(
@@ -1288,6 +1308,10 @@ extends Descriptor
 				DEFINITIONS_TUPLE,
 				definitionsTuple.traversed().makeShared());
 			membershipChanged(object);
+		}
+		finally
+		{
+			L2Chunk.invalidationLock.unlock();
 		}
 	}
 
@@ -1463,16 +1487,16 @@ extends Descriptor
 	 */
 	private static void membershipChanged (final AvailObject object)
 	{
-		assert Thread.holdsLock(object);
+		assert L2Chunk.invalidationLock.isHeldByCurrentThread();
 		// Invalidate any affected level two chunks.
-		final A_Set chunkIndices =
-			object.slot(DEPENDENT_CHUNK_INDICES);
+		final A_Set chunkIndices = object.slot(DEPENDENT_CHUNK_INDICES);
 		if (chunkIndices.setSize() > 0)
 		{
 			// Use makeImmutable() to avoid membership changes while iterating.
 			for (final A_Number chunkIndex : chunkIndices.makeImmutable())
 			{
-				L2Chunk.invalidateChunkAtIndex(chunkIndex.extractInt());
+				final int index = chunkIndex.extractInt();
+				L2Chunk.invalidateChunkAtIndex(index);
 			}
 			// The chunk invalidations should have removed all dependencies...
 			final A_Set chunkIndicesAfter =

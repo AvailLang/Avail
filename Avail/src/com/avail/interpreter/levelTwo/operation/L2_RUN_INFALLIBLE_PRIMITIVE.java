@@ -42,6 +42,7 @@ import com.avail.interpreter.levelTwo.*;
 import com.avail.interpreter.levelTwo.operand.*;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.interpreter.levelTwo.register.L2RegisterVector;
+import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
 
 /**
@@ -123,9 +124,10 @@ public class L2_RUN_INFALLIBLE_PRIMITIVE extends L2Operation
 	}
 
 	@Override
-	public void propagateTypes (
+	protected void propagateTypes (
 		final L2Instruction instruction,
-		final RegisterSet registerSet)
+		final RegisterSet registerSet,
+		final L2Translator translator)
 	{
 		final A_Type expectedType = instruction.constantAt(2);
 		final L2ObjectRegister resultReg = instruction.writeObjectRegisterAt(3);

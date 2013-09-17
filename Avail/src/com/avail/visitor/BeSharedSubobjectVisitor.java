@@ -46,6 +46,16 @@ import com.avail.descriptor.AvailObject;
 public class BeSharedSubobjectVisitor
 extends AvailSubobjectVisitor
 {
+	/** The sole instance of this visitor. */
+	public final static BeSharedSubobjectVisitor instance =
+		new BeSharedSubobjectVisitor();
+
+	/** Construct a new {@link BeSharedSubobjectVisitor}. */
+	private BeSharedSubobjectVisitor ()
+	{
+		// Do nothing
+	}
+
 	@Override
 	public void invoke (
 		final A_BasicObject parentObject,

@@ -79,8 +79,7 @@ public class L2ConstantOperand extends L2Operand
 
 	@Override
 	public L2ConstantOperand transformRegisters (
-		final Transformer2<L2Register, L2OperandType, L2Register>
-			transformer)
+		final Transformer2<L2Register, L2OperandType, L2Register> transformer)
 	{
 		return this;
 	}

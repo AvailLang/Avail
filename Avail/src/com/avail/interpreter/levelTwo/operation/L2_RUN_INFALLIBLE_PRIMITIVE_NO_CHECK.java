@@ -41,6 +41,7 @@ import com.avail.interpreter.levelTwo.*;
 import com.avail.interpreter.levelTwo.operand.*;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.interpreter.levelTwo.register.L2RegisterVector;
+import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
 
 /**
@@ -104,9 +105,10 @@ public class L2_RUN_INFALLIBLE_PRIMITIVE_NO_CHECK extends L2Operation
 	}
 
 	@Override
-	public void propagateTypes (
+	protected void propagateTypes (
 		final L2Instruction instruction,
-		final RegisterSet registerSet)
+		final RegisterSet registerSet,
+		final L2Translator translator)
 	{
 		final Primitive primitive = instruction.primitiveAt(0);
 		final L2RegisterVector argsVector = instruction.readVectorRegisterAt(1);

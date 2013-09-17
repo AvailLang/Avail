@@ -41,6 +41,7 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.*;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.interpreter.levelTwo.register.L2RegisterVector;
+import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
 
 /**
@@ -101,9 +102,10 @@ public class L2_LOOKUP_BY_VALUES extends L2Operation
 	}
 
 	@Override
-	public void propagateTypes (
+	protected void propagateTypes (
 		final L2Instruction instruction,
-		final RegisterSet registerSet)
+		final RegisterSet registerSet,
+		final L2Translator translator)
 	{
 		// Find all possible definitions (taking into account the types
 		// of the argument registers).  Then build an enumeration type over

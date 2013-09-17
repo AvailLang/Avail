@@ -35,6 +35,7 @@ import static com.avail.descriptor.AvailObject.error;
 import java.util.List;
 import com.avail.interpreter.*;
 import com.avail.interpreter.levelTwo.*;
+import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
 
 /**
@@ -59,9 +60,10 @@ public class L2_UNREACHABLE_CODE extends L2Operation
 	}
 
 	@Override
-	public void propagateTypes (
+	protected void propagateTypes (
 		final L2Instruction instruction,
-		final List<RegisterSet> registerSets)
+		final List<RegisterSet> registerSets,
+		final L2Translator translator)
 	{
 		assert registerSets.isEmpty();
 	}

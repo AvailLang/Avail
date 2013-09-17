@@ -39,6 +39,7 @@ import com.avail.descriptor.VariableDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.*;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
+import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
 
 /**
@@ -77,9 +78,10 @@ public class L2_MOVE_OUTER_VARIABLE extends L2Operation
 	}
 
 	@Override
-	public void propagateTypes (
+	protected void propagateTypes (
 		final L2Instruction instruction,
-		final RegisterSet registerSet)
+		final RegisterSet registerSet,
+		final L2Translator translator)
 	{
 		final int outerIndex = instruction.immediateAt(0);
 		final L2ObjectRegister functionReg =

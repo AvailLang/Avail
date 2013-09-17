@@ -38,6 +38,7 @@ import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 import com.avail.interpreter.Primitive.Flag;
 import com.avail.interpreter.levelTwo.*;
+import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
 
 /**
@@ -104,9 +105,10 @@ public class L2_PREPARE_NEW_FRAME extends L2Operation
 	}
 
 	@Override
-	public void propagateTypes (
+	protected void propagateTypes (
 		final L2Instruction instruction,
-		final RegisterSet registerSet)
+		final RegisterSet registerSet,
+		final L2Translator translator)
 	{
 		// No real optimization should ever be done near this wordcode.
 		// Do nothing.
