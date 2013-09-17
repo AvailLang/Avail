@@ -228,6 +228,10 @@ extends VariableDescriptor
 		}
 	}
 
+	/**
+	 * Record the fact that the chunk indexed by aChunkIndex depends on
+	 * this object not changing.
+	 */
 	@Override @AvailMethod
 	void o_AddDependentChunkIndex (
 		final AvailObject object,
@@ -235,8 +239,6 @@ extends VariableDescriptor
 	{
 		synchronized (object)
 		{
-			// Record the fact that the chunk indexed by aChunkIndex depends on
-			// this object not changing.
 			A_Set indices = object.slot(DEPENDENT_CHUNK_INDICES);
 			indices = indices.setWithElementCanDestroy(
 				IntegerDescriptor.fromInt(aChunkIndex),

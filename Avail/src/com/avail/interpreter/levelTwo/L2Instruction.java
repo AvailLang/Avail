@@ -142,7 +142,10 @@ public final class L2Instruction
 			if (operand.operandType().isSource)
 			{
 				operand.transformRegisters(
-					new Transformer2<L2Register, L2OperandType, L2Register>()
+					new Transformer2<
+						L2Register,
+						L2OperandType,
+						L2Register>()
 					{
 						@Override
 						public L2Register value (
@@ -175,7 +178,10 @@ public final class L2Instruction
 			if (operand.operandType().isDestination)
 			{
 				operand.transformRegisters(
-					new Transformer2<L2Register, L2OperandType, L2Register>()
+					new Transformer2<
+						L2Register,
+						L2OperandType,
+						L2Register>()
 					{
 						@Override
 						public L2Register value (
@@ -241,9 +247,12 @@ public final class L2Instruction
 	 *
 	 * @param registerSets
 	 *            A list of RegisterSets in the above-specified order.
+	 * @param translator
+	 *            The L2Translator on behalf of which to propagate types.
 	 */
 	public void propagateTypes (
-		final List<RegisterSet> registerSets)
+		final List<RegisterSet> registerSets,
+		final L2Translator translator)
 	{
 		final int count = (operation.reachesNextInstruction() ? 1 : 0)
 			+ targetLabels().size();
@@ -252,13 +261,15 @@ public final class L2Instruction
 		{
 			operation.propagateTypes(
 				this,
-				registerSets.get(0));
+				registerSets.get(0),
+				translator);
 		}
 		else
 		{
 			operation.propagateTypes(
 				this,
-				registerSets);
+				registerSets,
+				translator);
 		}
 	}
 

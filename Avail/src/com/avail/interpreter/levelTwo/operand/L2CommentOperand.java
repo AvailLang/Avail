@@ -76,8 +76,7 @@ public class L2CommentOperand extends L2Operand
 
 	@Override
 	public L2CommentOperand transformRegisters (
-		final Transformer2<L2Register, L2OperandType, L2Register>
-			transformer)
+		final Transformer2<L2Register, L2OperandType, L2Register> transformer)
 	{
 		return this;
 	}

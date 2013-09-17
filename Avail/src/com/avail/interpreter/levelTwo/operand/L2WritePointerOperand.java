@@ -77,8 +77,7 @@ public class L2WritePointerOperand extends L2Operand
 
 	@Override
 	public L2WritePointerOperand transformRegisters (
-		final Transformer2<L2Register, L2OperandType, L2Register>
-			transformer)
+		final Transformer2<L2Register, L2OperandType, L2Register> transformer)
 	{
 		return new L2WritePointerOperand(
 			(L2ObjectRegister)transformer.value(register, operandType()));

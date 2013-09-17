@@ -42,6 +42,7 @@ import com.avail.interpreter.Primitive.Result;
 import com.avail.interpreter.levelTwo.*;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.interpreter.levelTwo.register.L2RegisterVector;
+import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
 
 /**
@@ -142,9 +143,10 @@ public class L2_ATTEMPT_INLINE_PRIMITIVE extends L2Operation
 	}
 
 	@Override
-	public void propagateTypes (
+	protected void propagateTypes (
 		final L2Instruction instruction,
-		final List<RegisterSet> registerSets)
+		final List<RegisterSet> registerSets,
+		final L2Translator translator)
 	{
 		final Primitive primitive = instruction.primitiveAt(0);
 		final A_Type expectedType = instruction.constantAt(3);

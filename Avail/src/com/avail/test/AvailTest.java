@@ -73,8 +73,8 @@ extends AbstractAvailTest
 		System.out.flush();
 		System.err.printf(
 			"%ntime elapsed = %dms%n", System.currentTimeMillis() - startTime);
-		final StringBuilder builder = new StringBuilder();
-		Primitive.reportReturnCheckTimes(builder);
-		System.err.append(builder);
+//		final StringBuilder builder = new StringBuilder();
+//		Primitive.reportReturnCheckTimes(builder);
+//		System.err.append(builder);
 	}
 }

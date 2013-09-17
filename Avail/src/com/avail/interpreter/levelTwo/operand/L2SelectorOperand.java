@@ -82,8 +82,7 @@ public class L2SelectorOperand extends L2Operand
 
 	@Override
 	public L2SelectorOperand transformRegisters (
-		final Transformer2<L2Register, L2OperandType, L2Register>
-			transformer)
+		final Transformer2<L2Register, L2OperandType, L2Register> transformer)
 	{
 		return this;
 	}

@@ -77,8 +77,7 @@ public class L2ImmediateOperand extends L2Operand
 
 	@Override
 	public L2ImmediateOperand transformRegisters (
-		final Transformer2<L2Register, L2OperandType, L2Register>
-			transformer)
+		final Transformer2<L2Register, L2OperandType, L2Register> transformer)
 	{
 		return this;
 	}

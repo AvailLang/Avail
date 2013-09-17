@@ -73,8 +73,7 @@ public abstract class L2Operand
 	 *            The transformed version of the receiver.
 	 */
 	public abstract L2Operand transformRegisters (
-		final Transformer2<L2Register, L2OperandType, L2Register>
-			transformer);
+		final Transformer2<L2Register, L2OperandType, L2Register> transformer);
 
 	@Override
 	public abstract String toString ();

@@ -1171,11 +1171,14 @@ public final class Interpreter
 			pointers[CALLER.ordinal()] = null;
 			pointers[FUNCTION.ordinal()] = null;
 			// Explicitly *do not* clear the primitive failure value register.
-			Arrays.fill(
-				pointers,
-				numberOfFixedRegisters,
-				pointers.length,
-				null);
+
+			//TODO[MvG] - Eventually we'll be running Java code and storing all
+			//variables in stack slots.
+//			Arrays.fill(
+//				pointers,
+//				numberOfFixedRegisters,
+//				pointers.length,
+//				null);
 		}
 	}
 

@@ -88,7 +88,7 @@ public class L2Translator
 	 * Don't inline dispatch logic if there are more than this many possible
 	 * implementations at a call site.
 	 */
-	final static int maxPolymorphismToInlineDispatch = 5;
+	final static int maxPolymorphismToInlineDispatch = 10;
 
 	/**
 	 * An indication of the possible degrees of optimization effort.  These are
@@ -247,6 +247,13 @@ public class L2Translator
 	}
 
 	/**
+	 * An {@link EnumMap} from each {@link FixedRegister} to its manifestation
+	 * as an architectural {@link L2ObjectRegister}.
+	 */
+	@InnerAccess final EnumMap<FixedRegister, L2ObjectRegister>
+		fixedRegisterMap;
+
+	/**
 	 * Answer the register holding the specified continuation slot.  The slots
 	 * are the arguments, then the locals, then the stack entries.  The first
 	 * argument occurs just after the {@link FixedRegister}s.
@@ -387,6 +394,38 @@ public class L2Translator
 	}
 
 	/**
+	 * A {@linkplain Transformer2 transformer} which converts from a {@linkplain
+	 * L2Register register} to another (or the same) register.  At the point
+	 * when the transformation happens, a source register is replaced by the
+	 * earliest known register to contain the same value, thereby attempting to
+	 * eliminate newer registers introduced by moves and decomposable primitive
+	 * pairs (e.g., <a,b>[1]).
+	 */
+	final Transformer3<
+			L2Register,
+			L2OperandType,
+			RegisterSet,
+			L2Register>
+		normalizer =
+			new Transformer3<
+				L2Register,
+				L2OperandType,
+				RegisterSet,
+				L2Register>()
+			{
+				@Override
+				public L2Register value (
+					final @Nullable L2Register register,
+					final @Nullable L2OperandType operandType,
+					final RegisterSet registerSet)
+				{
+					assert register != null;
+					assert operandType != null;
+					return registerSet.normalize(register, operandType);
+				}
+			};
+
+	/**
 	 * Attempt to inline an invocation of this method definition.  If it can be
 	 * (and was) inlined, return the primitive function; otherwise return null.
 	 *
@@ -513,7 +552,7 @@ public class L2Translator
 		 * restartLabel.
 		 */
 		@Nullable RegisterSet naiveRegisters =
-			new RegisterSet(L2Translator.this);
+			new RegisterSet(fixedRegisterMap);
 
 		/**
 		 * Answer the {@link RegisterSet} information at the current position in
@@ -587,7 +626,7 @@ public class L2Translator
 			RegisterSet naiveRegs = naiveRegisters;
 			if (naiveRegs == null)
 			{
-				naiveRegs = new RegisterSet(L2Translator.this);
+				naiveRegs = new RegisterSet(fixedRegisterMap);
 				naiveRegisters = naiveRegs;
 			}
 			final L2Instruction normalizedInstruction =
@@ -597,10 +636,10 @@ public class L2Translator
 				final StringBuilder builder = new StringBuilder(100);
 				naiveRegs.debugOn(builder);
 				System.out.format(
-					"\t#%d = NAIVE: %s%n\t<-%s%n",
+					"%s%n\t#%d = %s",
+					builder.toString().replace("\n", "\n\t"),
 					instructions.size(),
-					normalizedInstruction,
-					builder.toString().replace("\n", "\n\t"));
+					normalizedInstruction);
 			}
 			normalizedInstruction.setOffset(instructions.size());
 			instructions.add(normalizedInstruction);
@@ -617,7 +656,9 @@ public class L2Translator
 			{
 				successorRegisterSets.add(new RegisterSet(naiveRegs));
 			}
-			normalizedInstruction.propagateTypes(successorRegisterSets);
+			normalizedInstruction.propagateTypes(
+				successorRegisterSets,
+				L2Translator.this);
 			naiveRegisters = null;
 			for (int i = 0; i < successorsSize; i++)
 			{
@@ -678,23 +719,20 @@ public class L2Translator
 			}
 			if (debugGeneration)
 			{
+				final StringBuilder builder = new StringBuilder(100);
 				if (naiveRegisters == null)
 				{
-					System.out.format(
-						"\t#%d = NAIVE: %s%n\t<-[[[no RegisterSet]]]%n",
-						label.offset(),
-						label);
+					builder.append("\n[[[no RegisterSet]]]");
 				}
 				else
 				{
-					final StringBuilder builder = new StringBuilder(100);
 					naiveRegisters().debugOn(builder);
-					System.out.format(
-						"\t#%d = NAIVE: %s%n\t<-%s%n",
-						label.offset(),
-						label,
-						builder.toString().replace("\n", "\n\t"));
 				}
+				System.out.format(
+					"%s%n\t#%d = %s",
+					builder.toString().replace("\n", "\n\t"),
+					instructions.size() - 1,
+					label);
 			}
 		}
 
@@ -985,7 +1023,7 @@ public class L2Translator
 			final List<L2ObjectRegister> preSlots = new ArrayList<>(numSlots);
 			for (int slotIndex = 1; slotIndex <= numSlots; slotIndex++)
 			{
-				preSlots.add(naiveRegisters().continuationSlot(slotIndex));
+				preSlots.add(continuationSlot(slotIndex));
 			}
 			final L2ObjectRegister expectedTypeReg = newObjectRegister();
 			final L2ObjectRegister failureObjectReg = newObjectRegister();
@@ -1100,7 +1138,7 @@ public class L2Translator
 				// the architectural register.  Eventually we'll support a
 				// throw-away target register for don't-cares like nil stack
 				// slots.
-				postSlots.add(naiveRegisters().continuationSlot(slotIndex));
+				postSlots.add(continuationSlot(slotIndex));
 			}
 			final L2Instruction postCallLabel =
 				newLabel("postCall"); // + bundle.message().atomName());
@@ -1195,7 +1233,7 @@ public class L2Translator
 			final List<L2ObjectRegister> preSlots = new ArrayList<>(numSlots);
 			for (int slotIndex = 1; slotIndex <= numSlots; slotIndex++)
 			{
-				preSlots.add(naiveRegisters().continuationSlot(slotIndex));
+				preSlots.add(continuationSlot(slotIndex));
 			}
 			final L2ObjectRegister expectedTypeReg = newObjectRegister();
 			final int nArgs = method.numArgs();
@@ -1273,7 +1311,7 @@ public class L2Translator
 				// the architectural register.  Eventually we'll support a
 				// throw-away target register for don't-cares like nil stack
 				// slots.
-				postSlots.add(naiveRegisters().continuationSlot(slotIndex));
+				postSlots.add(continuationSlot(slotIndex));
 			}
 			final L2Instruction postCallLabel =
 				newLabel("postCall"); // + bundle.message().atomName());
@@ -2176,7 +2214,7 @@ public class L2Translator
 	void computeDataFlow ()
 	{
 		instructionRegisterSets.clear();
-		instructionRegisterSets.add(new RegisterSet(this));
+		instructionRegisterSets.add(new RegisterSet(fixedRegisterMap));
 		for (int i = 1, end = instructions.size(); i < end; i++)
 		{
 			instructionRegisterSets.add(null);
@@ -2212,7 +2250,9 @@ public class L2Translator
 			{
 				targetRegisterSets.add(new RegisterSet(regs));
 			}
-			instruction.propagateTypes(targetRegisterSets);
+			instruction.propagateTypes(
+				targetRegisterSets,
+				L2Translator.this);
 
 			final List<L2Instruction> toAdd = new ArrayList<>(successorsSize);
 			for (int i = 0; i < successorsSize; i++)
@@ -2241,8 +2281,7 @@ public class L2Translator
 				}
 				else
 				{
-					final boolean changed = existing.mergeFrom(targetRegisterSet);
-					followIt = changed;
+					followIt = existing.mergeFrom(targetRegisterSet);
 				}
 				if (followIt)
 				{
@@ -2460,9 +2499,8 @@ public class L2Translator
 					: instruction.sourceRegisters())
 				{
 					final Set<L2Instruction> providingInstructions =
-						registerSet.registerSourceInstructions.get(
-							sourceRegister);
-					if (providingInstructions != null)
+						registerSet.stateFor(sourceRegister).sourceInstructions;
+					if (!providingInstructions.isEmpty())
 					{
 						if (debugRemoveDeadInstructions)
 						{
@@ -2723,6 +2761,8 @@ public class L2Translator
 			}
 		}
 
+		// Clean up a little.
+		instructionRegisterSets.clear();
 		chunk = L2Chunk.allocate(
 			codeOrNull(),
 			objectRegMaxIndex.value + 1,
@@ -2769,10 +2809,15 @@ public class L2Translator
 		final int numFixed = firstArgumentRegisterIndex;
 		final int numRegisters = numFixed + code.numArgsAndLocalsAndStack();
 		architecturalRegisters = new ArrayList<L2ObjectRegister>(numRegisters);
-		for (int i = 0; i < numFixed; i++)
+		fixedRegisterMap = new EnumMap<>(FixedRegister.class);
+		for (final FixedRegister fixedRegister : FixedRegister.values())
 		{
-			architecturalRegisters.add(
-				L2ObjectRegister.precolored(nextUnique(), i));
+			final L2ObjectRegister reg =
+				L2ObjectRegister.precolored(
+					nextUnique(),
+					fixedRegister.ordinal());
+			fixedRegisterMap.put(fixedRegister, reg);
+			architecturalRegisters.add(reg);
 		}
 		for (int i = numFixed; i < numRegisters; i++)
 		{
@@ -2791,12 +2836,16 @@ public class L2Translator
 		interpreter = null;
 		architecturalRegisters =
 			new ArrayList<L2ObjectRegister>(firstArgumentRegisterIndex);
-		for (final FixedRegister regEnum : FixedRegister.values())
+		fixedRegisterMap = new EnumMap<>(FixedRegister.class);
+		for (final FixedRegister fixedRegister : FixedRegister.values())
 		{
-			architecturalRegisters.add(
-				L2ObjectRegister.precolored(nextUnique(), regEnum.ordinal()));
+			final L2ObjectRegister reg =
+				L2ObjectRegister.precolored(
+					nextUnique(),
+					fixedRegister.ordinal());
+			fixedRegisterMap.put(fixedRegister, reg);
+			architecturalRegisters.add(reg);
 		}
-
 		final L2Instruction reenterFromCallLabel =
 			newLabel("reenter L1 from call");
 		justAddInstruction(
