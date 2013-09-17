@@ -3190,7 +3190,7 @@ public abstract class AbstractAvailCompiler
 		attempt(afterLeadingArgument, continuation, node);
 
 		// Don't wrap it if its type is top.
-		if (node.expressionType().equals(TOP.o()))
+		if (node.expressionType().isTop())
 		{
 			return;
 		}
@@ -4025,8 +4025,7 @@ public abstract class AbstractAvailCompiler
 				final int finalIndex = index;
 				final A_Type finalType =
 					argTypes.get(finalIndex - 1).makeShared();
-				if (finalType.equals(BottomTypeDescriptor.bottom())
-					|| finalType.equals(TOP.o()))
+				if (finalType.isBottom() || finalType.isTop())
 				{
 					onFailure.value(new Describer()
 					{
@@ -5160,7 +5159,7 @@ public abstract class AbstractAvailCompiler
 					assert workUnitsQueued == workUnitsCompleted;
 				}
 
-				if (!unambiguousStatement.expressionType().equals(TOP.o()))
+				if (!unambiguousStatement.expressionType().isTop())
 				{
 					afterStatement.expected(
 						"top-level statement to have type ⊤");

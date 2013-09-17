@@ -988,6 +988,18 @@ extends AbstractTypeDescriptor
 		return false;
 	}
 
+	@Override
+	boolean o_IsBottom (final AvailObject object)
+	{
+		return false;
+	}
+
+	@Override
+	boolean o_IsTop (final AvailObject object)
+	{
+		return false;
+	}
+
 	/**
 	 * Construct a new {@link TypeDescriptor}.
 	 *

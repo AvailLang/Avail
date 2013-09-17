@@ -411,7 +411,7 @@ extends TypeDescriptor
 			final A_Type intersectionObject =
 				object.typeAtIndex(i).typeIntersection(
 					aTupleType.typeAtIndex(i));
-			if (intersectionObject.equals(BottomTypeDescriptor.bottom()))
+			if (intersectionObject.isBottom())
 			{
 				return BottomTypeDescriptor.bottom();
 			}
@@ -426,7 +426,7 @@ extends TypeDescriptor
 		final A_Type newDefault =
 			object.typeAtIndex(newLeadingSize + 1).typeIntersection(
 				aTupleType.typeAtIndex(newLeadingSize + 1));
-		if (newDefault.equals(BottomTypeDescriptor.bottom()))
+		if (newDefault.isBottom())
 		{
 			final A_Number newLeadingSizeObject =
 				IntegerDescriptor.fromInt(newLeadingSize);
@@ -568,7 +568,7 @@ extends TypeDescriptor
 		final A_Tuple typeTuple,
 		final A_Type defaultType)
 	{
-		if (sizeRange.equals(BottomTypeDescriptor.bottom()))
+		if (sizeRange.isBottom())
 		{
 			return BottomTypeDescriptor.bottom();
 		}

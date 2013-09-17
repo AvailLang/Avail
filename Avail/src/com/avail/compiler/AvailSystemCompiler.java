@@ -312,7 +312,7 @@ extends AbstractAvailCompiler
 					{
 						return;
 					}
-					if (expression.expressionType().equals(TOP.o()))
+					if (expression.expressionType().isTop())
 					{
 						continuation.value(
 							afterExpression.afterToken(),
@@ -463,8 +463,7 @@ extends AbstractAvailCompiler
 										"; to end assignment statement");
 									return;
 								}
-								if (expr.expressionType().equals(
-									BottomTypeDescriptor.bottom()))
+								if (expr.expressionType().isBottom())
 								{
 									afterExpr.expected(
 										"assignment expression to have a type "
@@ -682,9 +681,8 @@ extends AbstractAvailCompiler
 							}
 							final A_Type expressionType =
 								initExpression.expressionType();
-							if (expressionType.equals(TOP.o())
-								|| expressionType.equals(
-									BottomTypeDescriptor.bottom()))
+							if (expressionType.isTop()
+								|| expressionType.isBottom())
 							{
 								afterInitExpression.expected(
 									asList(expressionType),
@@ -730,8 +728,7 @@ extends AbstractAvailCompiler
 					assert afterType != null;
 					assert type != null;
 
-					if (type.equals(TOP.o())
-						|| type.equals(BottomTypeDescriptor.bottom()))
+					if (type.isTop() || type.isBottom())
 					{
 						afterType.expected(
 							"a type for the variable other than "
@@ -786,15 +783,14 @@ extends AbstractAvailCompiler
 								assert afterInit != null;
 								assert initExpr != null;
 
-								if (initExpr.expressionType().equals(TOP.o()))
+								if (initExpr.expressionType().isTop())
 								{
 									afterInit.expected(
 										"initializing expression to have a "
 										+ "type other than ⊤");
 									return;
 								}
-								if (initExpr.expressionType().equals(
-									BottomTypeDescriptor.bottom()))
+								if (initExpr.expressionType().isBottom())
 								{
 									afterInit.expected(
 										"initializing expression to have a "
@@ -892,8 +888,7 @@ extends AbstractAvailCompiler
 					assert afterType != null;
 					assert type != null;
 
-					if (type.equals(TOP.o())
-						|| type.equals(BottomTypeDescriptor.bottom()))
+					if (type.isTop() || type.isBottom())
 					{
 						afterType.expected(
 							asList(type),
@@ -1050,8 +1045,7 @@ extends AbstractAvailCompiler
 					assert afterArgType != null;
 					assert type != null;
 
-					if (type.equals(TOP.o())
-						|| type.equals(BottomTypeDescriptor.bottom()))
+					if (type.isTop() || type.isBottom())
 					{
 						afterArgType.expected(
 							asList(type),
@@ -1857,15 +1851,14 @@ extends AbstractAvailCompiler
 		{
 			final A_Phrase lastStatement =
 				statements.get(statements.size() - 1);
-			if (lastStatement.expressionType().equals(
-				BottomTypeDescriptor.bottom()))
+			if (lastStatement.expressionType().isBottom())
 			{
 				start.expected(
 					"end of statements, since the previous "
 					+ "one has type ⊥");
 				return;
 			}
-			if (!lastStatement.expressionType().equals(TOP.o()))
+			if (!lastStatement.expressionType().isTop())
 			{
 				start.expected(
 					asList(lastStatement, lastStatement.expressionType()),
@@ -1947,7 +1940,7 @@ extends AbstractAvailCompiler
 				{
 					assert afterFinalExpression != null;
 					assert finalExpression != null;
-					if (!finalExpression.expressionType().equals(TOP.o()))
+					if (!finalExpression.expressionType().isTop())
 					{
 						final List<A_Phrase> newStatements =
 							new ArrayList<>(statements);

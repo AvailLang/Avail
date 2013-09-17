@@ -84,8 +84,7 @@ public final class P_400_BootstrapBlockAfterArgumentPrefix extends Primitive
 		final A_Type argType = typePhrase.token().literal();
 		assert argType.isType();
 
-		if (argType.equals(TOP.o())
-			|| argType.equals(BottomTypeDescriptor.bottom()))
+		if (argType.isTop() || argType.isBottom())
 		{
 			return interpreter.primitiveFailure(
 				E_DECLARATION_TYPE_MUST_NOT_BE_TOP_OR_BOTTOM);

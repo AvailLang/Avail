@@ -140,12 +140,14 @@ extends SetBinDescriptor
 				0,
 				bitVector,
 				NilDescriptor.nil());
+			final AvailObject emptySubBin =
+				emptyBinForLevel((byte) (myLevel + 1));
 			for (int i = 1; i <= newSize; i++)
 			{
 				result.setSlot(
 					HashedSetBinDescriptor.ObjectSlots.BIN_ELEMENT_AT_,
 					i,
-					NilDescriptor.nil());
+					emptySubBin);
 			}
 			A_BasicObject localAddResult;
 			for (int i = 0; i <= oldSize; i++)
@@ -184,6 +186,8 @@ extends SetBinDescriptor
 		result.setSlot(BIN_ELEMENT_AT_, oldSize + 1, elementObject);
 		if (canDestroy && isMutable())
 		{
+			final AvailObject emptySubBin =
+				emptyBinForLevel((byte) (myLevel + 1));
 			for (int i = 1; i <= oldSize; i++)
 			{
 				// Clear old bin for safety.
@@ -191,7 +195,7 @@ extends SetBinDescriptor
 					BIN_ELEMENT_AT_,
 					i,
 					object.slot(BIN_ELEMENT_AT_, i));
-				object.setSlot(BIN_ELEMENT_AT_, i, NilDescriptor.nil());
+				object.setSlot(BIN_ELEMENT_AT_, i, emptySubBin);
 			}
 		}
 		else if (isMutable())
@@ -239,12 +243,14 @@ extends SetBinDescriptor
 	 * resulting bin. The bin may be modified if it's mutable and canDestroy.
 	 */
 	@Override @AvailMethod
-	AvailObject o_BinRemoveElementHashCanDestroy (
+	AvailObject o_BinRemoveElementHashLevelCanDestroy (
 		final AvailObject object,
 		final A_BasicObject elementObject,
 		final int elementObjectHash,
+		final byte myLevel,
 		final boolean canDestroy)
 	{
+		assert level == myLevel;
 		final int oldSize = object.variableObjectSlotsCount();
 		for (int searchIndex = 1; searchIndex <= oldSize; searchIndex++)
 		{
@@ -492,5 +498,32 @@ extends SetBinDescriptor
 	LinearSetBinDescriptor shared ()
 	{
 		return descriptorFor(SHARED, level);
+	}
+
+	/**
+	 * The canonical array of empty bins, one for each level.
+	 */
+	private final static AvailObject [] emptyBins =
+		new AvailObject [numberOfLevels];
+
+	static
+	{
+		for (int i = 0; i < numberOfLevels; i++)
+		{
+			final AvailObject bin = createBin((byte) i, 0, 0);
+			bin.makeShared();
+			emptyBins[i] = bin;
+		}
+	}
+
+	/**
+	 * Answer an empty bin for the specified level.
+	 *
+	 * @param level The level at which this bin occurs.
+	 * @return An empty bin.
+	 */
+	final static AvailObject emptyBinForLevel (final byte level)
+	{
+		return emptyBins[level];
 	}
 }

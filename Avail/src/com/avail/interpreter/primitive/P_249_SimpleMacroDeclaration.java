@@ -92,7 +92,7 @@ extends Primitive
 						E_MACRO_PREFIX_FUNCTION_ARGUMENT_MUST_BE_A_PARSE_NODE);
 				}
 			}
-			if (!kind.returnType().equals(TOP.o()))
+			if (!kind.returnType().isTop())
 			{
 				return interpreter.primitiveFailure(
 					E_MACRO_PREFIX_FUNCTIONS_MUST_RETURN_TOP);

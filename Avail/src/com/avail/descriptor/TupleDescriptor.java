@@ -976,41 +976,67 @@ extends Descriptor
 		return result;
 	}
 
+	/**
+	 * A simple {@link Iterator} over a tuple's elements.
+	 */
+	private static final class TupleIterator implements Iterator<AvailObject>
+	{
+		/**
+		 * The tuple over which to iterator.
+		 */
+		private final AvailObject tuple;
+
+		/**
+		 * The size of the tuple.
+		 */
+		private final int size;
+
+		/**
+		 * The index of the next {@linkplain AvailObject element}.
+		 */
+		int index = 1;
+
+		/**
+		 * Construct a new {@link TupleIterator} on the given {@linkplain
+		 * TupleDescriptor tuple}.
+		 *
+		 * @param tuple
+		 */
+		@InnerAccess TupleIterator (final AvailObject tuple)
+		{
+			this.tuple = tuple;
+			this.size = tuple.tupleSize();
+		}
+
+		@Override
+		public boolean hasNext ()
+		{
+			return index <= size;
+		}
+
+		@Override
+		public AvailObject next ()
+		{
+			if (index > size)
+			{
+				throw new NoSuchElementException();
+			}
+
+			return tuple.tupleAt(index++);
+		}
+
+		@Override
+		public void remove ()
+		{
+			throw new UnsupportedOperationException();
+		}
+	}
+
 	@Override
 	public Iterator<AvailObject> o_Iterator (final AvailObject object)
 	{
 		object.makeImmutable();
-		final int size = object.tupleSize();
-		return new Iterator<AvailObject>()
-		{
-			/**
-			 * The index of the next {@linkplain AvailObject element}.
-			 */
-			int index = 1;
-
-			@Override
-			public boolean hasNext ()
-			{
-				return index <= size;
-			}
-
-			@Override
-			public AvailObject next ()
-			{
-				if (index > size)
-				{
-					throw new NoSuchElementException();
-				}
-
-				return object.tupleAt(index++);
-			}
-
-			@Override
-			public void remove ()
-			{
-				throw new UnsupportedOperationException();
-			}
-		};
+		return new TupleIterator(object);
 	}
 
 	@Override

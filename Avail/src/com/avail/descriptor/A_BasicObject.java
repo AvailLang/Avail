@@ -240,9 +240,10 @@ public interface A_BasicObject
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	AvailObject binRemoveElementHashCanDestroy (
+	AvailObject binRemoveElementHashLevelCanDestroy (
 		A_BasicObject elementObject,
 		int elementObjectHash,
+		byte myLevel,
 		boolean canDestroy);
 
 	/**
@@ -254,16 +255,6 @@ public interface A_BasicObject
 	 * Dispatch to the descriptor.
 	 */
 	void binSize (int value);
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	void bitVector (int value);
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	boolean couldEverBeInvokedWith (List<? extends A_Type> argTypes);
 
 	/**
 	 * Dispatch to the descriptor.
@@ -780,26 +771,6 @@ public interface A_BasicObject
 	 * Dispatch to the descriptor.
 	 */
 	void parent (AvailObject value);
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	int rawSignedIntegerAt (int index);
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	void rawSignedIntegerAtPut (int index, int value);
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	long rawUnsignedIntegerAt (int index);
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	void rawUnsignedIntegerAtPut (int index, int value);
 
 	/**
 	 * Dispatch to the descriptor.

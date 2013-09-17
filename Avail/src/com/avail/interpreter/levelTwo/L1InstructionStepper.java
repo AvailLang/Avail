@@ -38,7 +38,6 @@ import static com.avail.interpreter.levelTwo.register.FixedRegister.*;
 import java.util.*;
 import java.util.logging.Level;
 import com.avail.descriptor.*;
-import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelOne.*;
 import com.avail.interpreter.levelTwo.operation.L2_INTERPRET_ONE_L1_INSTRUCTION;
@@ -429,7 +428,7 @@ implements L1OperationDispatcher
 		interpreter.invokePossiblePrimitiveWithReifiedCaller(
 			matching.bodyBlock(),
 			pointerAt(CALLER),
-			expectedReturnType.equals(Types.TOP.o()));
+			expectedReturnType.isTop());
 	}
 
 	@Override

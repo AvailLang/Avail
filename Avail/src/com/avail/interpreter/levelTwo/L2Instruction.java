@@ -274,8 +274,7 @@ public final class L2Instruction
 	 *            The resulting {@link L2Instruction}.
 	 */
 	public L2Instruction transformRegisters (
-		final Transformer2<L2Register, L2OperandType, L2Register>
-			transformer)
+		final Transformer2<L2Register, L2OperandType, L2Register> transformer)
 	{
 		final L2Operand[] newOperands = new L2Operand[operands.length];
 		for (int i = 0; i < newOperands.length; i++)

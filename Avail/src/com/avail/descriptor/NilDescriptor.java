@@ -36,7 +36,6 @@ import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.List;
 import com.avail.annotations.*;
 import com.avail.descriptor.MapDescriptor.*;
-import com.avail.descriptor.SetDescriptor.*;
 import com.avail.serialization.SerializerOperation;
 
 /**
@@ -81,72 +80,12 @@ extends Descriptor
 		return TOP.o();
 	}
 
-	@Override @AvailMethod
-	A_BasicObject o_SetBinAddingElementHashLevelCanDestroy (
-		final AvailObject object,
-		final A_BasicObject elementObject,
-		final int elementObjectHash,
-		final byte myLevel,
-		final boolean canDestroy)
-	{
-		// Nil can't be an actual member of a set, so if one receives this
-		// message it must be the rootBin of a set (empty by definition). Answer
-		// the new element, which will become the new rootBin, indicating a set
-		// of size one.
-		if (!canDestroy)
-		{
-			elementObject.makeImmutable();
-		}
-		return elementObject;
-	}
-
-	@Override
-	@AvailMethod @ThreadSafe
-	boolean o_IsBinSubsetOf (
-		final AvailObject object,
-		final A_Set potentialSuperset)
-	{
-		// Nil can't actually be a member of a set, so treat it as a structural
-		// component indicating an empty bin within a set. Since it's empty, it
-		// is a subset of potentialSuperset.
-		return true;
-	}
-
-	@Override
-	@AvailMethod @ThreadSafe
-	AvailObject o_BinRemoveElementHashCanDestroy (
-		final AvailObject object,
-		final A_BasicObject elementObject,
-		final int elementObjectHash,
-		final boolean canDestroy)
-	{
-		// Nil is acting as a bin of size zero, so the answer must also be nil.
-		return NilDescriptor.nil();
-	}
-
-	@Override
-	@AvailMethod @ThreadSafe
-	int o_BinHash (final AvailObject object)
-	{
-		// Nil acting as a size-zero bin has a bin hash which is the sum of the
-		// elements' hashes, which in this case is zero.
-		return 0;
-	}
-
 	@Override
 	@AvailMethod @ThreadSafe
 	int o_BinSize (final AvailObject object)
 	{
 		// Nil acts as an empty bin.
 		return 0;
-	}
-
-	@Override
-	@AvailMethod @ThreadSafe
-	A_Type o_BinUnionKind (final AvailObject object)
-	{
-		// Nil acts as an empty bin.
-		return BottomTypeDescriptor.bottom();
 	}
 
 	@Override @AvailMethod @ThreadSafe
@@ -205,16 +144,6 @@ extends Descriptor
 	}
 
 	@Override
-	boolean o_BinElementsAreAllInstancesOfKind (
-		final AvailObject object,
-		final A_Type kind)
-	{
-		// Nil is treated as an empty bin, so its members all satisfy.. any
-		// property whatsoever.
-		return true;
-	}
-
-	@Override
 	MapIterable o_MapBinIterable (final AvailObject object)
 	{
 		return new MapIterable()
@@ -227,26 +156,6 @@ extends Descriptor
 
 			@Override
 			public final boolean hasNext ()
-			{
-				return false;
-			}
-		};
-	}
-
-	@Override
-	SetIterator o_SetBinIterator (final AvailObject object)
-	{
-		// Nil acts like a bin of size zero.
-		return new SetDescriptor.SetIterator()
-		{
-			@Override
-			public AvailObject next ()
-			{
-				throw new UnsupportedOperationException();
-			}
-
-			@Override
-			public boolean hasNext ()
 			{
 				return false;
 			}

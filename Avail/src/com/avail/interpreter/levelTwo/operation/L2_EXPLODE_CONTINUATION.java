@@ -59,7 +59,7 @@ public class L2_EXPLODE_CONTINUATION extends L2Operation
 			WRITE_POINTER.is("exploded caller"),
 			WRITE_POINTER.is("exploded function"),
 			WRITE_INT.is("skip return check"),
-			CONSTANT.is("slot types tuple"),
+			CONSTANT.is("slot types map"),
 			CONSTANT.is("slot constants map"),
 			CONSTANT.is("null slots set"),
 			CONSTANT.is("function type"));
@@ -116,7 +116,7 @@ public class L2_EXPLODE_CONTINUATION extends L2Operation
 			instruction.writeObjectRegisterAt(3);
 //		final L2IntegerRegister skipReturnCheckReg =
 //			instruction.writeIntRegisterAt(4);
-		final A_Tuple slotTypes = instruction.constantAt(5);
+		final A_Map slotTypes = instruction.constantAt(5);
 		final A_Map slotConstants = instruction.constantAt(6);
 		final A_Set nullSlots = instruction.constantAt(7);
 		final A_Type functionType = instruction.constantAt(8);
@@ -130,12 +130,13 @@ public class L2_EXPLODE_CONTINUATION extends L2Operation
 			instruction);
 		registerSet.typeAtPut(targetFunctionReg, functionType, instruction);
 		final List<L2ObjectRegister> slotRegs = explodedSlotsVector.registers();
-		assert slotRegs.size() == slotTypes.tupleSize();
-		for (int i = 1, end = slotTypes.tupleSize(); i <= end; i++)
+		for (final MapDescriptor.Entry entry : slotTypes.mapIterable())
 		{
+			final int slotIndex = entry.key().extractInt();
+			final A_Type slotType = entry.value();
 			registerSet.typeAtPut(
-				slotRegs.get(i - 1),
-				slotTypes.tupleAt(i),
+				slotRegs.get(slotIndex - 1),
+				slotType,
 				instruction);
 		}
 		for (final MapDescriptor.Entry entry : slotConstants.mapIterable())

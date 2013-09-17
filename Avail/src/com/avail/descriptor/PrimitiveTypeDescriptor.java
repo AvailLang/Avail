@@ -344,7 +344,7 @@ extends TypeDescriptor
 		{
 			// Note that at this point neither one can be bottom, since that
 			// would always have been detected as a subtype of the other.
-			assert !another.equals(BottomTypeDescriptor.bottom());
+			assert !another.isBottom();
 			return another.computeSuperkind().typeUnion(object);
 		}
 		return object.slot(PARENT).typeUnion(another);

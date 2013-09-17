@@ -68,7 +68,7 @@ public final class P_407_BootstrapInitializingVariableDeclarationMacro extends P
 		final A_Phrase initializingExpression = args.get(2);
 
 		final A_Type type = typeLiteral.token().literal();
-		if (type.equals(TOP.o()) || type.equals(BottomTypeDescriptor.bottom()))
+		if (type.isTop() || type.isBottom())
 		{
 			throw new AvailRejectedParseException(
 				StringDescriptor.from(

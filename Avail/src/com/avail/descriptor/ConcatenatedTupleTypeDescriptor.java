@@ -472,7 +472,7 @@ extends TypeDescriptor
 			final A_Type intersectionObject =
 				object.typeAtIndex(i).typeIntersection(
 					aTupleType.typeAtIndex(i));
-			if (intersectionObject.equals(BottomTypeDescriptor.bottom()))
+			if (intersectionObject.isBottom())
 			{
 				return BottomTypeDescriptor.bottom();
 			}

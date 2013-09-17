@@ -67,7 +67,7 @@ public final class P_405_BootstrapVariableDeclarationMacro extends Primitive
 		final A_Phrase typeLiteral = args.get(1);
 
 		final A_Type type = typeLiteral.token().literal();
-		if (type.equals(TOP.o()) || type.equals(BottomTypeDescriptor.bottom()))
+		if (type.isTop() || type.isBottom())
 		{
 			throw new AvailRejectedParseException(
 				StringDescriptor.from(

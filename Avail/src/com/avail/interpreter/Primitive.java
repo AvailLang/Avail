@@ -315,7 +315,7 @@ implements IntegerEnumSlotDescriptionEnum
 			cachedBlockTypeRestriction = restriction;
 			final A_Type argsTupleType = restriction.argsTupleType();
 			final A_Type sizeRange = argsTupleType.sizeRange();
-			assert restriction.equals(BottomTypeDescriptor.bottom())
+			assert restriction.isBottom()
 				|| (sizeRange.lowerBound().extractInt() == argCount()
 					&& sizeRange.upperBound().extractInt() == argCount());
 		}

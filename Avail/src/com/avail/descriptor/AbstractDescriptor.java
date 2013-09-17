@@ -49,6 +49,7 @@ import com.avail.descriptor.FiberDescriptor.SynchronizationFlag;
 import com.avail.descriptor.FiberDescriptor.TraceFlag;
 import com.avail.descriptor.InfinityDescriptor.IntegerSlots;
 import com.avail.descriptor.MapDescriptor.MapIterable;
+import com.avail.descriptor.MethodDescriptor.LookupTree;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.descriptor.FiberDescriptor.ExecutionState;
 import com.avail.descriptor.SetDescriptor.SetIterator;
@@ -1212,14 +1213,6 @@ public abstract class AbstractDescriptor
 	 * @param value
 	 */
 	abstract void o_BinSize (AvailObject object, int value);
-
-	/**
-	 * @param object
-	 * @param value
-	 */
-	abstract void o_BitVector (
-		AvailObject object,
-		int value);
 
 	/**
 	 * @param object
@@ -3349,7 +3342,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	abstract A_BasicObject o_TestingTree (AvailObject object);
+	abstract LookupTree o_TestingTree (AvailObject object);
 
 	/**
 	 * @param object
@@ -3991,13 +3984,15 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @param elementObject
 	 * @param elementObjectHash
+	 * @param myLevel
 	 * @param canDestroy
 	 * @return
 	 */
-	abstract AvailObject o_BinRemoveElementHashCanDestroy (
+	abstract AvailObject o_BinRemoveElementHashLevelCanDestroy (
 		AvailObject object,
 		A_BasicObject elementObject,
 		int elementObjectHash,
+		byte myLevel,
 		boolean canDestroy);
 
 	/**
@@ -5484,12 +5479,12 @@ public abstract class AbstractDescriptor
 	abstract A_String o_ModuleName (final AvailObject object);
 
 	/**
-	 * @param availObject
+	 * @param object
 	 * @param index
 	 * @param anObject
 	 */
 	abstract void o_ObjectTupleAtPut (
-		final AvailObject availObject,
+		final AvailObject object,
 		final int index,
 		final A_BasicObject anObject);
 
@@ -5964,4 +5959,16 @@ public abstract class AbstractDescriptor
 	 * @return
 	 */
 	abstract A_Set o_GetAndClearReificationWaiters (AvailObject object);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract boolean o_IsBottom (AvailObject object);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract boolean o_IsTop (AvailObject object);
 }

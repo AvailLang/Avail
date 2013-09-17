@@ -486,6 +486,7 @@ public final class L2Chunk
 	public static void invalidateChunkAtIndex (final int chunkIndex)
 	{
 		chunksLock.lock();
+		Set<A_ChunkDependable> dependents = null;
 		try
 		{
 			final WeakChunkReference ref = allChunksWeakly.get(chunkIndex);
@@ -498,16 +499,16 @@ public final class L2Chunk
 				// it here.
 				chunk.instructions = new L2Instruction[0];
 			}
-			final Set<A_ChunkDependable> values = ref.contingentValues;
-			for (final A_ChunkDependable value : values)
-			{
-				value.removeDependentChunkIndex(chunkIndex);
-			}
+			dependents = new HashSet<>(ref.contingentValues);
 			ref.contingentValues.clear();
 		}
 		finally
 		{
 			chunksLock.unlock();
+		}
+		for (final A_ChunkDependable value : dependents)
+		{
+			value.removeDependentChunkIndex(chunkIndex);
 		}
 	}
 

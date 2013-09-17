@@ -331,7 +331,7 @@ extends TypeDescriptor
 		final A_Type keyType,
 		final A_Type valueType)
 	{
-		if (sizeRange.equals(BottomTypeDescriptor.bottom()))
+		if (sizeRange.isBottom())
 		{
 			return BottomTypeDescriptor.bottom();
 		}
@@ -353,8 +353,7 @@ extends TypeDescriptor
 			newKeyType = BottomTypeDescriptor.bottom();
 			newValueType = BottomTypeDescriptor.bottom();
 		}
-		else if (keyType.equals(BottomTypeDescriptor.bottom())
-			|| valueType.equals(BottomTypeDescriptor.bottom()))
+		else if (keyType.isBottom() || valueType.isBottom())
 		{
 			newSizeRange = IntegerRangeTypeDescriptor.singleInteger(
 				IntegerDescriptor.zero());

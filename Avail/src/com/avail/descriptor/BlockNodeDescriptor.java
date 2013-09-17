@@ -37,7 +37,6 @@ import static com.avail.descriptor.BlockNodeDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.BlockNodeDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind.*;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
-import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.*;
 import com.avail.annotations.*;
 import com.avail.compiler.AvailCodeGenerator;
@@ -603,7 +602,7 @@ extends ParseNodeDescriptor
 				builder,
 				recursionList,
 				indent + 1);
-			if (statementsTuple.tupleAt(1).expressionType().equals(TOP.o()))
+			if (statementsTuple.tupleAt(1).expressionType().isTop())
 			{
 				builder.append(";");
 			}
@@ -677,7 +676,7 @@ extends ParseNodeDescriptor
 					recursionList,
 					indent + 2);
 				if (index < statementsSize
-					|| statement.expressionType().equals(TOP.o()))
+					|| statement.expressionType().isTop())
 				{
 					builder.append(';');
 				}

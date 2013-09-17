@@ -105,7 +105,7 @@ extends SetBinDescriptor
 	{
 		/**
 		 * The union of the types of all elements recursively within this bin.
-		 * If this is {@linkplain NilDescriptor#nil() top}, then it can
+		 * If this is {@linkplain NilDescriptor#nil() nil}, then it can
 		 * be recomputed when needed and cached.
 		 */
 		BIN_UNION_TYPE_OR_NULL,
@@ -133,12 +133,6 @@ extends SetBinDescriptor
 	void o_BinSize (final AvailObject object, final int value)
 	{
 		object.setSlot(BIN_SIZE, value);
-	}
-
-	@Override @AvailMethod
-	void o_BitVector (final AvailObject object, final int value)
-	{
-		object.setSlot(BIT_VECTOR, value);
 	}
 
 	@Override @AvailMethod
@@ -351,13 +345,14 @@ extends SetBinDescriptor
 	 * resulting bin. The bin may be modified if it's mutable and canDestroy.
 	 */
 	@Override @AvailMethod
-	AvailObject o_BinRemoveElementHashCanDestroy (
+	AvailObject o_BinRemoveElementHashLevelCanDestroy (
 		final AvailObject object,
 		final A_BasicObject elementObject,
 		final int elementObjectHash,
+		final byte myLevel,
 		final boolean canDestroy)
 	{
-
+		assert level == myLevel;
 		final int objectEntryCount = object.variableObjectSlotsCount();
 		final int logicalIndex = bitShift(elementObjectHash, -5 * level) & 31;
 		final int logicalBitValue = bitShift(1, logicalIndex);
@@ -377,19 +372,20 @@ extends SetBinDescriptor
 		final int oldHash = oldEntry.binHash();
 		final int oldSize = oldEntry.binSize();
 		final AvailObject replacementEntry =
-			oldEntry.binRemoveElementHashCanDestroy(
+			oldEntry.binRemoveElementHashLevelCanDestroy(
 				elementObject,
 				elementObjectHash,
+				(byte) (level + 1),
 				canDestroy);
 		final int deltaHash = replacementEntry.binHash() - oldHash;
 		final int deltaSize = replacementEntry.binSize() - oldSize;
 		AvailObject result;
-		if (replacementEntry.equalsNil())
+		if (replacementEntry.binSize() == 0)
 		{
 			// Exclude the entire hash entry.
 			if (objectEntryCount == 1)
 			{
-				return NilDescriptor.nil();
+				return LinearSetBinDescriptor.emptyBinForLevel(level);
 			}
 			result = HashedSetBinDescriptor.createBin(
 				level,

@@ -84,14 +84,14 @@ public final class P_406_BootstrapConstantDeclarationMacro extends Primitive
 		}
 		final A_Type initializationType =
 			initializationExpression.expressionType();
-		if (initializationType.equals(TOP.o()))
+		if (initializationType.isTop())
 		{
 			throw new AvailRejectedParseException(
 				StringDescriptor.from(
 					"constant initialization expression to have a type"
 					+ " other than ⊤"));
 		}
-		if (initializationType.equals(BottomTypeDescriptor.bottom()))
+		if (initializationType.isBottom())
 		{
 			throw new AvailRejectedParseException(
 				StringDescriptor.from(

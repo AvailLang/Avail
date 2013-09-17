@@ -373,7 +373,7 @@ extends AbstractEnumerationTypeDescriptor
 			// bottom technically is a meta.
 			if (object.isSubtypeOf(InstanceMetaDescriptor.topMeta())
 				&& another.isSubtypeOf(InstanceMetaDescriptor.topMeta())
-				&& !another.equals(BottomTypeDescriptor.bottom()))
+				&& !another.isBottom())
 			{
 				return InstanceMetaDescriptor.on(BottomTypeDescriptor.bottom());
 			}

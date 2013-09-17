@@ -45,6 +45,7 @@ import com.avail.descriptor.FiberDescriptor.GeneralFlag;
 import com.avail.descriptor.FiberDescriptor.SynchronizationFlag;
 import com.avail.descriptor.FiberDescriptor.TraceFlag;
 import com.avail.descriptor.MapDescriptor.MapIterable;
+import com.avail.descriptor.MethodDescriptor.LookupTree;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.descriptor.FiberDescriptor.ExecutionState;
 import com.avail.descriptor.FiberDescriptor.InterruptRequestFlag;
@@ -442,15 +443,17 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	AvailObject o_BinRemoveElementHashCanDestroy (
+	AvailObject o_BinRemoveElementHashLevelCanDestroy (
 		final AvailObject object,
 		final A_BasicObject elementObject,
 		final int elementObjectHash,
+		final byte myLevel,
 		final boolean canDestroy)
 	{
-		return o_Traversed(object).binRemoveElementHashCanDestroy(
+		return o_Traversed(object).binRemoveElementHashLevelCanDestroy(
 			elementObject,
 			elementObjectHash,
+			myLevel,
 			canDestroy);
 	}
 
@@ -458,12 +461,6 @@ extends AbstractDescriptor
 	void o_BinSize (final AvailObject object, final int value)
 	{
 		o_Traversed(object).binSize(value);
-	}
-
-	@Override
-	void o_BitVector (final AvailObject object, final int value)
-	{
-		o_Traversed(object).bitVector(value);
 	}
 
 	@Override
@@ -2674,7 +2671,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	A_BasicObject o_TestingTree (final AvailObject object)
+	LookupTree o_TestingTree (final AvailObject object)
 	{
 		return o_Traversed(object).testingTree();
 	}
@@ -4539,5 +4536,17 @@ extends AbstractDescriptor
 	A_Set o_GetAndClearReificationWaiters (final AvailObject object)
 	{
 		return o_Traversed(object).getAndClearReificationWaiters();
+	}
+
+	@Override
+	boolean o_IsBottom (final AvailObject object)
+	{
+		return o_Traversed(object).isBottom();
+	}
+
+	@Override
+	boolean o_IsTop (final AvailObject object)
+	{
+		return o_Traversed(object).isTop();
 	}
 }

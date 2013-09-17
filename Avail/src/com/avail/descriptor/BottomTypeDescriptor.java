@@ -423,7 +423,7 @@ extends AbstractEnumerationTypeDescriptor
 			return aType.enumerationIncludesInstance(object);
 		}
 		// Bottom is an instance of top and any.
-		if (aType.equals(TOP.o()) || aType.equals(ANY.o()))
+		if (aType.isTop() || aType.equals(ANY.o()))
 		{
 			return true;
 		}
@@ -537,6 +537,12 @@ extends AbstractEnumerationTypeDescriptor
 		final AvailObject object)
 	{
 		return SerializerOperation.BOTTOM_TYPE;
+	}
+
+	@Override
+	boolean o_IsBottom (final AvailObject object)
+	{
+		return true;
 	}
 
 	/**

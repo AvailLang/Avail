@@ -455,6 +455,28 @@ implements A_BasicObject
 	}
 
 	/**
+	 * Store the specified {@linkplain ContinuationDescriptor continuation} in
+	 * the receiver, which must be a {@linkplain FiberDescriptor fiber}.  This
+	 * is the only circumstance in all of Avail in which a field of a
+	 * (potentially) {@linkplain Mutability#SHARED shared} object may hold a
+	 * non-shared object.
+	 *
+	 * @param field An enumeration value that defines the field ordering.
+	 * @param aContinuation The object to store at the specified slot.
+	 */
+	public final void setContinuationSlotOfFiber (
+		final ObjectSlotsEnum field,
+		final A_Continuation aContinuation)
+	{
+		assert field == FiberDescriptor.ObjectSlots.CONTINUATION;
+		checkSlot(field);
+		checkWriteForField(field);
+		// If the receiver is shared, then the new value must become shared
+		// before it can be stored.
+		objectSlots[field.ordinal()] = (AvailObject)aContinuation;
+	}
+
+	/**
 	 * Extract the {@linkplain AvailObject object} at the specified slot of the
 	 * receiver.
 	 *

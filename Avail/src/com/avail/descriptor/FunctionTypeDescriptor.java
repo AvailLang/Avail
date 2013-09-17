@@ -196,7 +196,7 @@ extends TypeDescriptor
 		aStream.append('[');
 		final List<A_BasicObject> list = new ArrayList<>();
 		final A_Type tupleType = object.argsTupleType();
-		if (tupleType.equals(BottomTypeDescriptor.bottom()))
+		if (tupleType.isBottom())
 		{
 			aStream.append("…");
 		}
@@ -414,7 +414,7 @@ extends TypeDescriptor
 			final A_Type argType = tupleType.typeAtIndex(i);
 			final A_Type actualType = argTypes.get(i - 1);
 			final A_Type intersection = argType.typeIntersection(actualType);
-			if (intersection.equals(BottomTypeDescriptor.bottom()))
+			if (intersection.isBottom())
 			{
 				return false;
 			}
@@ -656,8 +656,7 @@ extends TypeDescriptor
 		// exception. If the element is bottom, then exclude it.
 		if (exceptionSet.setSize() == 1)
 		{
-			if (exceptionSet.iterator().next().equals(
-				BottomTypeDescriptor.bottom()))
+			if (exceptionSet.iterator().next().isBottom())
 			{
 				return SetDescriptor.empty();
 			}
@@ -670,7 +669,7 @@ extends TypeDescriptor
 		each_outer:
 		for (final AvailObject outer : exceptionSet)
 		{
-			if (!outer.equals(BottomTypeDescriptor.bottom()))
+			if (!outer.isBottom())
 			{
 				for (final AvailObject inner : exceptionSet)
 				{

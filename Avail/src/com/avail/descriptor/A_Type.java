@@ -127,6 +127,11 @@ extends A_BasicObject
 	A_Type contentType ();
 
 	/**
+	 * Dispatch to the descriptor.
+	 */
+	boolean couldEverBeInvokedWith (List<? extends A_Type> argTypes);
+
+	/**
 	 * Also declared in {@link A_Phrase} for {@linkplain BlockNodeDescriptor
 	 * block phrases} and {@linkplain SendNodeDescriptor send phrases}.
 	 *
@@ -162,6 +167,14 @@ extends A_BasicObject
 	 * @return
 	 */
 	A_Type functionType ();
+
+	/**
+	 * Answer whether this type is ⊥ ({@link BottomTypeDescriptor bottom}), the
+	 * most specific type.
+	 *
+	 * @return Whether the type is bottom.
+	 */
+	boolean isBottom ();
 
 	/**
 	 * Dispatch to the descriptor.
@@ -260,6 +273,14 @@ extends A_BasicObject
 	 * @return
 	 */
 	boolean isSupertypeOfPojoBottomType (A_Type aPojoType);
+
+	/**
+	 * Answer whether this type is ⊤ ({@link TypeDescriptor.Types#TOP top}), the
+	 * most general type.
+	 *
+	 * @return Whether the type is type.
+	 */
+	boolean isTop ();
 
 	/**
 	 * Dispatch to the descriptor.

@@ -99,6 +99,7 @@ extends Descriptor
 		final A_Set set,
 		final A_BasicObject bin)
 	{
+		assert bin != NilDescriptor.nil();
 		((AvailObject) set).setSlot(ROOT_BIN, bin);
 	}
 
@@ -456,9 +457,10 @@ extends Descriptor
 		// true.
 		final AvailObject root = rootBin(object);
 		final int oldSize = root.binSize();
-		final AvailObject newRootBin = root.binRemoveElementHashCanDestroy(
+		final AvailObject newRootBin = root.binRemoveElementHashLevelCanDestroy(
 			elementObjectToExclude,
 			elementObjectToExclude.hash(),
+			(byte) 0,
 			(canDestroy & isMutable()));
 		if (newRootBin.binSize() == oldSize)
 		{
@@ -608,7 +610,7 @@ extends Descriptor
 	static
 	{
 		final A_Set set = mutable.create();
-		setRootBin(set, NilDescriptor.nil());
+		setRootBin(set, LinearSetBinDescriptor.emptyBinForLevel((byte) 0));
 		set.hash();
 		emptySet = set.makeShared();
 	}

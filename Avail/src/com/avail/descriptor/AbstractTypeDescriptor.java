@@ -455,6 +455,12 @@ extends Descriptor
 	abstract SerializerOperation o_SerializerOperation (
 		final AvailObject object);
 
+	@Override @AvailMethod
+	abstract boolean o_IsBottom (final AvailObject object);
+
+	@Override @AvailMethod
+	abstract boolean o_IsTop (final AvailObject object);
+
 	/**
 	 * Construct a new {@link TypeDescriptor}.
 	 *
