@@ -75,13 +75,16 @@ For each scanner's comments do
 	Print: format "|rc's comment tokens|=“①”\n" with |rc's comment tokens|;
 	Print: format "rc's special token regions=“①”\n\n" with rc's special token regions;*/
 ];
-/*Print: output ++ "\n";
+/*Print: output ++ "\n";*/
 
 encodeMe : string := "⊤⊥↓↑±∅∊∰∡℀";
 byteData ::= take at most ∞ from a utf8 encoding iterator that buffers 
 			10 characters of an iterator over encodeMe using a UTF-8 codec;
 Print: format "byteData=“①”\n" with byteData;
-altered ::= <95, 138, 164, 226, 138, 165, 226, 134, 147, 226, 134, 145, 194, 177, 226, 136, 133, 226, 136, 138, 226, 136, 176, 226, 136, 161, 226, 132, 128>;
-di : decoding iterator := a decoding iterator of an iterator over altered using a UTF-8 codec;
-shouldntWork ::= take at most ∞ from di;*/
+
+altered ::= <95, 138, 164, 226, 138, 165, 226, 134, 147, 226, 134, 145, 194, 
+177, 226, 136, 133, 226, 136, 138, 226, 136, 176, 226, 136, 161, 226, 132, 128>;
+di : decoding iterator := a decoding iterator of an iterator over altered using 
+a UTF-8 codec;
+/*shouldntWork ::= take at most ∞ from di;*/
 ]();

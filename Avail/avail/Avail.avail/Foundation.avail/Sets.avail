@@ -54,6 +54,7 @@ Names
 	"_∋_",
 	"_⊂_",
 	"_⊇_",
+	"_⊉_",
 	"_⊃_",
 	"_∌_",
 	"_⊄_",
@@ -772,6 +773,58 @@ Semantic restriction "_⊇_" is
 	]
 	else basicRule
 ];
+	
+/**
+ * Is `a` neither a superset nor equal to `b`?
+ *
+ * @method "_⊉_"
+ * @param "a" "set"
+ * @param "b" "set"
+ * @retrurns "boolean"
+ *	`true` if `a` is neither a superset of nor equal to `b`, `false` otherwise.
+ */
+Public stable method "_⊉_" is
+[
+	a : set,
+	b : set
+|
+	¬b ⊆ a
+];
+
+/**
+ * @method "_⊉_"
+ * @restricts "set's type"
+ * @restricts "set's type"
+ */
+Semantic restriction "_⊉_" is
+[
+	typeB : set's type,
+	typeA : set's type
+|
+	elementA ::= typeA's element type;
+	elementB ::= typeB's element type;
+	/* The basic rule is this: If the type intersection of the element type
+	 * of `typeA` and the element type of `typeB` is ⊥, then the result must
+	 * be false. Otherwise all bets are off.
+	 */
+	basicRule ::=
+		[ if elementA ∩ elementB = ⊥ then [ true's type ] else [ boolean ] ];
+	sizesB ::= ||typeB||;
+	/* This is finesse. If `typeB` is definitely the set of all possible
+	 * instances of its (enumeration) element type, then `typeA`'s instances
+	 * must be subsets of `typeB`'s instance if `typeA`'s element type is a
+	 * subtype of `typeB`'s element type.
+	 */
+	if |elementB| ≠ ∞
+		∧ [ ⎣sizesB⎦ = ⎡sizesB⎤
+		∧ [ |elementB| = ⎣sizesB⎦ ] ]
+	then
+	[
+		if elementA ⊆ elementB then [ false's type ]
+		else basicRule
+	]
+	else basicRule
+];
 
 /**
  * Is `a` a proper superset of `b`?
@@ -791,11 +844,11 @@ Public stable method "_⊃_" is
 ];
 
 /**
- * @method "_⊂_"
+ * @method "_⊃_"
  * @restricts "set meta"
  * @restricts "set meta"
  */
-Semantic restriction "_⊂_" is
+Semantic restriction "_⊃_" is
 [
 	typeB : set meta,
 	typeA : set meta
@@ -888,14 +941,14 @@ Public stable method "_⊄_" is
  */
 Semantic restriction "_⊄_" is
 [
-	typeB : set meta,
-	typeA : set meta
+	typeA : set meta,
+	typeB : set meta
 |
 	elementA ::= typeA's element type;
 	elementB ::= typeB's element type;
 	/* The basic rule is this: If the type intersection of the element type
 	 * of `typeA` and the element type of `typeB` is ⊥, then the result must
-	 * be true. Otherwise all bets are off.
+	 * be false. Otherwise all bets are off.
 	 */
 	basicRule ::=
 		[ if elementA ∩ elementB = ⊥ then [ true's type ] else [ ⊤ ] ];
@@ -910,7 +963,7 @@ Semantic restriction "_⊄_" is
 		∧ [ |elementB| = ⎣sizesB⎦ ] ]
 	then
 	[
-		if ⎡typeA⎤ < |elementB| ∧ [ elementA ⊆ elementB ] then [ false's type ]
+		if ⎡typeA⎤ < |elementB| ∧ [ elementA ⊆ elementB ] then [ false's type]
 		else basicRule
 	]
 	else basicRule

@@ -101,6 +101,7 @@ Names
 	"_'s⁇comment type:=_",
 	"_'s⁇comments",
 	"_'s⁇comments:=_",
+	"_'s⁇contents",
 	"_'s⁇current buffer character",
 	"_'s⁇erroneous comment",
 	"_'s⁇erroneous comment:=_",
@@ -244,6 +245,24 @@ Public explicit class "special region stacks token" extends stacks token
 Public explicit class "quoted stacks token" extends special region stacks token
 	with fields
 		quoted : true's type;
+		
+/**
+ * methodDescription
+ *
+ * @method "_'scontents"
+ * @categories "Stacks"
+ * @param "token" "quoted stacks token" 
+ *		a quoted stacks token
+ * @returnType "string"
+ *		the quoted region without the quotes
+ * @author "Richard Arriaga"
+ */
+Public method "_'s⁇contents" is
+[
+ 	token : quoted stacks token
+ |
+ 	token's lexeme[2..|token's lexeme|-1]
+]:string;
 
 /**
  * A class that defines a special token for the stacks lexor.
@@ -286,7 +305,7 @@ Private method "_is a stacks token" is
 
 stacksTokenTypeNames::= {"@field","@type","@supertype","@category","@param",
 	"@raises","@restricts","@returns","@forbids","@public","@method","@see",
-	"@author","@link","@code","@global","@general","Module","Versions",
+	"@author","@link","@code","@general","Module","Versions",
 	"Extends","Uses","Names"};
 	
 For each stacksTokenTypeNames do

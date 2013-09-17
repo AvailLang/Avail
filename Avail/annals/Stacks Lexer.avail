@@ -876,15 +876,12 @@ Private method "Process left parenthesis in header from_" is
 	startIndex := scanner's comment buffer index;
 	region ::= read from scanner's comment buffer while
 		[
-Print: format "“①”\n" with scanner's current buffer character;
 		 	closeCondition ::= scanner's current buffer character ≠ ¢);
 		 	openCondition ::= scanner's current buffer character = ¢(;
 		 	If openCondition then [↑parenthesisCounter++;];
 		 	If ¬closeCondition then [↑parenthesisCounter--;];
-Print: format "parenthesisCounter=“①”\n" with parenthesisCounter;
 		 	parenthesisCounter ≠ 0
 		]; 
-Print: format "region=“①”\n" with region;
 	endIndex : natural number := scanner's comment buffer index;
 	newlineIndices : <natural number…|> := all indices of region where 
 		[c : character | c = ¢"\n"];
@@ -1447,10 +1444,6 @@ Private method "Buffer_'s⁇header" is
 		header tokens ::= scanner's token buffer,
 		special token regions ::= specialRegionPairs;
 	Reset scanner's comment processing structure;
-Print: format "scanner's module header=‘①’\n\n" with 
-	concatenate scanner's module header's header tokens separated by "\n";
-Print: format "|scanner's module header's header tokens|=“①”\n\n" with |scanner's module header's header tokens|;
-	Print: format "scanner's module header's header tokens=\n“①”\n\n" with scanner's module header's header tokens;
 ]:⊤;
 
 /**

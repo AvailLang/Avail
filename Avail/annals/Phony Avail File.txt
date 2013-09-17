@@ -68,8 +68,9 @@ Body
  * @supertype {@type "object" object}
  * @category "Trie"
  * @field "terminus" "boolean"
- *	Indicates if at the end of a branch
- * @author Richard Arriaga
+ *	Indicates if at the end of a branch {@link "www.google.com" "random link"}
+ * word.
+ * @author "Richard Arriaga"
  */
 Class "trie" extends object
 	with mutable field
@@ -83,7 +84,7 @@ Class "trie" extends object
  * @category "Trie"
  * @field "next nodes" "↑{character→trie|}"
  *	the nodes that follow in the trie
- * @author Richard Arriaga
+ * @author "Richard Arriaga"
  */
 Public class "patricia trie" extends trie
 	with mutable field

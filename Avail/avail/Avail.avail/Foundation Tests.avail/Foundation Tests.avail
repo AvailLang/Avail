@@ -42,5 +42,6 @@ Extends
 	"Map Tests" = ("map test suite"),
 	"Math Tests" = ("math test suite"),
 	"Observation Tests" = ("observation test suite"),
+	"Set Tests" = ("set test suite"),
 	"Tuple Tests" = ("tuple test suite")
 Body

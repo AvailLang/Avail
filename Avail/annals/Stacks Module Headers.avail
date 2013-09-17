@@ -60,11 +60,13 @@ Body
 "alias" is a new field atom;
 "all methods available" is a new field atom;
 "available methods" is a new field atom;
-"exported methods" is a new field atom;
+"explicitly exported methods" is a new field atom;
+"explicitly named methods" is a new field atom;
 "extends modules" is a new field atom;	
 "identifier" is a new field atom;
 "local methods" is a new field atom;
 "name" is a new field atom;
+"originating module name" is a new field atom;
 "uses modules" is a new field atom;
 "versions" is a new field atom;
 
@@ -105,21 +107,35 @@ Public method "_'s⁇current version" is
 
 
 /**
- * A class that defines a method identifier  
+ * A class that defines a method name and origin  
  * 
- * @type "method identifier"
+ * @type "method name"
  * @supertype {@type "object" object}
  * @category Stacks
  * @field "name" "string"
  * 	the method identifier
- * @field "alias" "string"
+ * @field "originating module name" "string"
+ * 	the origin of this method implementation
+ * @author Richard Arriaga
+ */
+Public class "method name" extends object
+	with fields
+		name : string,
+		originating module name: string;
+
+/**
+ * A class that defines a method identifier  
+ * 
+ * @type "method identifier"
+ * @supertype {@type "method name"}
+ * @category Stacks
+ * @field "alias" "method name"
  * 	an alias for this method
  * @author Richard Arriaga
  */
-Public class "method identifier" extends object
+Public class "method identifier" extends method name
 	with fields
-		name : string,
-		alias : string;
+		alias : method name;
 
 /**
  * A module and its importance to a module header.  It contains identifier
@@ -134,16 +150,13 @@ Public class "method identifier" extends object
  * 	are all methods in that module available for use/extends here
  * @field "available methods" "<method identifier…|>"
  * 	if all methods not available, what methods are available
- * @field "local methods" "<method identifier…|>"
- * 	methods not exported from module
  * @author Richard Arriaga
  */
 Public class "module antecedent" extends object
 	with fields
 		identifier : module identifier,
 		all methods available : boolean,
-		available methods : <method identifier…|>,
-		local methods : <method identifier…|>;
+		explicitly named methods : <method identifier…|>;
 
 /**
  * module antecedent identifier accessor
@@ -183,7 +196,7 @@ Public method "_has all methods available" is
  Public class "module header" extends object
  	with fields
  		identifier : module identifier,
- 		exported methods : <method identifier…|>,
+ 		explicitly exported methods : <method identifier…|>,
  		extends modules : <module antecedent…|>,
  		uses modules : <module antecedent…|>;
  
