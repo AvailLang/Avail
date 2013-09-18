@@ -151,4 +151,38 @@ Test "set cardinality" in set test suite is
 	a ::= {1,2,3,4};
 	Require: |a| = 4;
 	Require: |∅| = 0;
+	Require: ∅ is empty = true;
+];
+
+Test "map through" in set test suite is
+[
+ 	a ::= {1,2,3,4};
+ 	b ::= map a through [n : natural number | n × 2];
+ 	Require: b = {2,4,6,8};
+];
+
+Test "map and filter" in set test suite is
+[
+ 	a ::= {1,2,3,4};
+ 	b ::= map and filter a by 
+ 	[
+ 	 	n : natural number,
+ 	 	accept : [natural number]→⊤
+ 	 | 
+ 	 	m ::= n + 2;
+ 		If m mod 2 = 0 then
+ 		[
+ 		 	accept(m);
+ 		];
+ 	];
+ 	Require: b = {4,6};
+];
+
+Test "any satisfies" in set test suite is
+[
+ 	a ::= {1,2,3,4};
+ 	b ::= any of a satisfies [n : natural number | n mod 2 = 0];
+ 	c ::= any of a satisfies [n : natural number | n > 200];
+ 	Require: b = true;
+ 	Require: c = false;
 ];
