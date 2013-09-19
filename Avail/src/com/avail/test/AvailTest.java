@@ -35,7 +35,6 @@ package com.avail.test;
 import java.io.*;
 import org.junit.*;
 import com.avail.builder.*;
-import com.avail.interpreter.Primitive;
 import com.avail.persistence.IndexedRepositoryManager;
 
 /**
