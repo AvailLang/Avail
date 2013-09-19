@@ -46,12 +46,43 @@ Body
 
 New test suite map test suite extends foundation test suite;
 
-Test "set cardinality" in map test suite is
+Test "map cardinality" in map test suite is
 [
 	a ::= {1→"foo",2→"bar",3→"frog",4→"prince"};
 	Require: |a| = 4;
 	Require: |{}| = 0;
 	Require: {} is empty = true;
+];
+
+Test "keys values and bindings" in map test suite is
+[
+	a ::= {"foo"→1,"bar"→2,"frog"→3,"prince"→4};
+	b ::= a's values;
+	Require: a's keys = {"foo","bar","frog","prince"};
+	Require: {}'s keys = ∅;
+	Require: merge sort a's values = <1,2,3,4>;
+	Require: {}'s values = <>;
+	/*Require: a's type's key type ⊆ string;*/
+	/*Require: a's type's value type ⊆ [1..4];*/
+	Require: "foo" ∈ a;
+	Require: a's bindings = <<"foo",1>,<"bar",2>,<"frog",3>,<"prince",4>>;
+
+];
+
+Test "add and remove from map" in map test suite is
+[
+	a : map := {"foo"→1,"bar"→2,"frog"→3,"prince"→4};
+	b ::= a + "bird"→5;
+	c ::= a - "foo";
+	Require: b = {"foo"→1,"bar"→2,"frog"→3,"prince"→4,"bird"→5};
+	Require: c = {"bar"→2,"frog"→3,"prince"→4};
+];
+
+Test "alternative answer via else" in map test suite is
+[
+	a ::= {"foo"→1,"bar"→2,"frog"→3,"prince"→4};
+	Require: a["foo"] else [5] = 1;
+	Require: a["club"] else [5] = 5;
 ];
 
 Test "map through" in map test suite is
