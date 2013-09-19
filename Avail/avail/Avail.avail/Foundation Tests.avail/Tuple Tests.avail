@@ -46,6 +46,215 @@ Body
 
 New test suite tuple test suite extends foundation test suite;
 
+Test "tuple cardinality" in tuple test suite is
+[
+	a ::= <1,2,3,4>;
+	Require: |a| = 4;
+	Require: |<>| = 0;
+	Require: <> is empty = true;
+];
+
+Test "tuple concatenation" in tuple test suite is
+[
+	a ::= <1,2>;
+	b ::= <3,4>;
+	c ::= <"foo", "bar">;
+	Require: a ++ b = <1,2,3,4>;
+	Require: a ++ c = <1,2,"foo", "bar">;
+	Require: c[1] ++ c[2] = "foobar";
+	Require: concatenate c = "foobar";
+];
+
+Test "tuple ranges" in tuple test suite is
+[
+	a ::= <1,2,3,4>;
+	Require: a[1..] = <1,2,3,4>;
+	Require: a[..3] = <1,2,3>;
+	Require: a[2..3] = <2,3>;
+];
+
+Test "map through" in tuple test suite is
+[
+ 	a ::= <1,2,3,4>;
+ 	b ::= map a through [n : natural number | n × 2];
+ 	Require: b = <2,4,6,8>;
+];
+
+Test "map and filter" in tuple test suite is
+[
+ 	a ::= <1,2,3,4>;
+ 	b ::= map and filter a by 
+ 	[
+ 	 	n : natural number,
+ 	 	accept : [natural number]→⊤
+ 	 | 
+ 	 	m ::= n + 2;
+ 		If m mod 2 = 0 then
+ 		[
+ 		 	accept(m);
+ 		];
+ 	];
+ 	Require: b = <4,6>;
+];
+
+Test "any satisfies" in tuple test suite is
+[
+ 	a ::= <1,2,3,4>;
+ 	b ::= any of a satisfies [n : natural number | n mod 2 = 0];
+ 	c ::= any of a satisfies [n : natural number | n > 200];
+ 	Require: b = true;
+ 	Require: c = false;
+];
+
+Test "for each of do" in tuple test suite is
+[
+	a ::= <1,2,3,4>;
+	b : tuple := <>;
+	For each of a do
+	[
+	 	n : natural number
+	 |
+	 	b := b ++ <n>;
+	];
+	Require: b = a;
+];
+
+Test "count of where" in tuple test suite is
+[
+	a ::= <1,2,3,4>;
+ 	b ::= count of a where [n : natural number | n mod 2 = 0];
+ 	c ::= count of a where [n : natural number | n > 2000];
+ 	Require: b = 2;
+ 	Require: c = 0;
+];
+
+Test "each of satisfies" in tuple test suite is
+[
+	a ::= <1,2,3,4>;
+	counter : whole number := 0;
+ 	b ::= each of a satisfies [
+		n : natural number | 
+		counter := counter +1; 
+ 		n ≤ 2
+ 	];
+ 	c ::= each of a satisfies [n : natural number | n > 0];
+ 	Require: b = false;
+ 	Require: counter = 3;
+ 	Require: c = true;
+];
+
+Test "filter by" in tuple test suite is
+[
+	a ::= <1,2,3,4>;
+ 	b ::= filter a by [n : natural number | n mod 2 = 0];
+ 	c ::= filter a by [n : natural number | n > 2000];
+ 	Require: b = <2,4>;
+ 	Require: c = <>;
+];
+
+Test "alternative answer via else" in tuple test suite is
+[
+	a ::= <1,2,3,4>;
+	Require: a[1] else [5] = 1;
+	Require: a[6] else [5] = 5;
+	Require: a[1..2] else [<5>] = <1,2>;
+	Require: a[1..200] else [<5>] = <5>;
+	Require: a[..2] else [<5>] = <1,2>;
+	Require: a[..200] else [<5>] = <5>;
+	Require: a[1..] else [<5>] = <1,2,3,4>;
+	Require: a[200..] else [<5>] = <5>;
+];
+
+Test "tuple search" in tuple test suite is
+[
+	a ::= <1,2,3,2,1,4,5,6>;
+	Require: all indices of <> in <> = <>;
+	Require: all indices of <2> in <> = <>;
+	Require: all indices of <2> in a = <2,4>;
+	Require: first index of <> in <> = 0;
+	Require: first index of <2> in <> = 0;
+	Require: first index of <2> in a = 2;
+	Require: last index of a where [n : natural number | n < 5] = 6;
+	Require: last index of a where [n : natural number | n > 10] = 0;
+	Require: first index of a where [n : natural number | n < 5] = 1;
+	Require: first index of a where [n : natural number | n > 10] = 0;
+];
+
+Test "drop from tuple" in tuple test suite is
+[
+	a ::= <1,2,3,2,1,4,5,6>;
+	Require: drop 4 from a = <1,4,5,6>;
+	Require: drop 8 from a = <>;
+	Require: drop 0 from a = a;
+	Require: drop from a until [n : natural number | n > 3] = <4,5,6>;
+	Require: drop from a until [n : natural number | n > 6] = <>;
+	Require: drop from a while [n : natural number | n < 3] = <3,2,1,4,5,6>;
+	Require: drop from a while [n : natural number | n < 7] = <>;	
+];
+
+Test "take from tuple" in tuple test suite is
+[
+	a ::= <1,2,3,2,1,4,5,6>;
+	Require: take 4 from a = <1,2,3,2>;
+	Require: take 8 from a = a;
+	Require: take 0 from a = <>;
+	Require: take from a until [n : natural number | n > 3] = <1,2,3,2,1>;
+	Require: take from a until [n : natural number | n > 6] = a;
+	Require: take from a while [n : natural number | n ≤ 2] = <1,2>;
+	Require: take from a while [n : natural number | n < 7] = a;	
+];
+
+Test "split tuple" in tuple test suite is
+[
+	a ::= <1,2,3,2,1,4,5,6>;
+	Require: split a after 3 = <<1,2,3>,<2,1,4,5,6>>;
+	Require: split a after 0 = <<>,<1,2,3,2,1,4,5,6>>;
+	Require: split a after 8 = <<1,2,3,2,1,4,5,6>,<>>;
+	Require: split a before 1 = <<>,<1,2,3,2,1,4,5,6>>;
+	Require: split a before 8 = <<1,2,3,2,1,4,5>,<6>>;
+	Require: split a before 9 = <<1,2,3,2,1,4,5,6>,<>>;
+];
+
+Test "stripe tuple" in tuple test suite is
+[
+ 	a ::= <<1,2>,<3,4>,<5,6,7>>;
+ 	Require: stripe a at 2 = <2,4,6>;
+];
+
+Test "zip tuple" in tuple test suite is
+[
+ 	a ::= <1,2,3>;
+ 	b ::= <4,5,6>;
+ 	c ::= <7,8,9>;
+ 	Require: zip <a,b,c> = <<1,4,7>,<2,5,8>,<3,6,9>>;
+ 	Require: a zip b zip c = <<1,4,7>,<2,5,8>,<3,6,9>>;
+ 	Require: c zip b zip a = <<7,4,1>,<8,5,2>,<9,6,3>>;
+];
+
+Test "suffixes and prefixes" in tuple test suite is
+[
+	a ::= <1,2,3,2,1,4,5,6>;
+	Require: a starts with <1,2,3>;
+	Require: a starts with <1,2,4> = false;
+	Require: a ends with <1,4,5,6>;
+	Require: a ends with <1,4,5,7> = false;
+	Require: a's head = 1;
+	Require: a's last = 6;
+	Require: a's tail = <2,3,2,1,4,5,6>;
+];
+
+Test "slice replacement" in tuple test suite is
+[
+	a ::= <1,2,3,2,1,4,5,6>;
+	Require: a[2..4] → <"foo",¢w,∅> = <1,"foo",¢w,∅,1,4,5,6>; 
+];
+
+Test "element swap" in tuple test suite is
+[
+ 	a ::= <1,2,3,2,1,4,5,6>;
+ 	Require: a[3↔8] = <1,2,6,2,1,4,5,3>;
+];
+
 /*Sorting Tests*/
 
 Test "trivial empty merge sort" in tuple test suite is

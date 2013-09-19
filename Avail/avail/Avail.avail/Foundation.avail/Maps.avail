@@ -731,8 +731,8 @@ Semantic restriction "counts for_" is
 /**
  * Combine two maps.  If there are duplicate keys, perform action block to
  * handle duplicates.  
- * @method "Integrate_and_with_"
- * @categories "Annals"
+ * @method "integrate_and_with_"
+ * @categories "Maps"
  * @param "baseMap" "map" base map to add new bindings to.
  * @param "supplementMap" "map" secondary map that provides new map bindings
  * @param "action" "[⊥,⊥,⊥]→map" action to perform in the event that there is a
@@ -768,8 +768,8 @@ Public method "integrate_and_with_" is
 
 /**
  *
- * @method "Integrate_and_with_"
- * @categories "Annals"
+ * @method "integrate_and_with_"
+ * @categories "Maps"
  * @restricts ""
  * @raises
  */

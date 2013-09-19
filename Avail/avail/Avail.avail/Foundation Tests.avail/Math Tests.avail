@@ -314,7 +314,7 @@ Test "division" in math test suite is
 
 Test "mod" in math test suite is
 [
-	ref ::= flatten 3 of (0 to 9);
+	ref ::= concatenate 3 of (0 to 9);
 	From 0 to 29 do
 	[
 		i : [0..29]
@@ -344,7 +344,7 @@ Test "cannot divide infinities" in math test suite is
 
 Test "even/odd" in math test suite is
 [
-	ref ::= flatten 10 of <true, false>;
+	ref ::= concatenate 10 of <true, false>;
 	From 1 to 20 do
 	[
 		i : [1..20]

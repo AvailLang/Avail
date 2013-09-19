@@ -59,7 +59,6 @@ Names
 	"drop_from_",
 	"first index of_in_",
 	"first index of_where_",
-	"flatten_",
 	"last index of_where_",
 	"left fold_through_",
 	"merge sort_",
@@ -2163,7 +2162,7 @@ Semantic restriction "take from_until_" is take-until semantic restriction;
  * Compute and answer the suffix of `aTuple` that begins with the element that
  * answers `false` to `predicate`.
  * 
- * @method "drop from_until"
+ * @method "drop from_while_"
  * @param "aTuple" "tuple"
  * @param "predicate" "[⊥]→boolean"
  *        A function that can accept each element of the specified  tuple. It 
@@ -2490,29 +2489,6 @@ Semantic restriction "_[_↔_]" is
 	defaultType ::= ∪ aTuple[limit..|aTuple's leading types| + 1];
 	<leadingTypes, defaultType… | ||aTuple||>
 ];
-
-/**
- * Flatten a tuple of tuples by a single level.
- *
- * @method "flatten_"
- * @param "aTuple" "<tuple…|>"
- *        A tuple of tuples to flatten.
- * @returns "tuple"
- *          A flattened tuple.
- */
-Public stable method "flatten_" is
-[
-	aTuple : <tuple…|>
-|
-	newTuple : tuple := <>;
-	For each aTuple do 
-	[
-		t : tuple 
-	|
-		newTuple := eject ↑newTuple ++ t;
-	];
-	newTuple
-] : tuple;
 
 /**
  * Obtain the first element of the specified tuple.

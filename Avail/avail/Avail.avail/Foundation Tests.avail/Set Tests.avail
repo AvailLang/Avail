@@ -97,12 +97,14 @@ Test "set includes element" in set test suite is
 [
 	a ::= {1,2,3,4};
 	Require: a ∋ 3;
+	Require: 3 ∈ a;
 ];
 
 Test "set excludes element" in set test suite is
 [
 	a ::= {1,2,3,4};
 	Require: a ∌ 6;
+	Require: 6 ∉ a;
 ];
 
 Test "set proper subset" in set test suite is
@@ -110,7 +112,9 @@ Test "set proper subset" in set test suite is
 	a ::= {1,2,3,4};
 	b ::= {1,2,3,4,5};
 	Require: a ⊂ b;
+	Require: b ⊃ a;
 	Require: ∅ ⊂ a;
+	Require: a ⊃ ∅;
 ];
 
 Test "set not proper subset" in set test suite is
@@ -119,7 +123,10 @@ Test "set not proper subset" in set test suite is
 	b ::= {1,6};
 	Require: b ⊄ a;
 	Require: a ⊄ a;
-	Require: a ⊄ ∅;
+	Require: a ⊄ ∅;	
+	Require: a ⊅ b;
+	Require: a ⊅ a;
+	Require: ∅ ⊅ a;
 ];
 
 Test "set is a superset" in set test suite is
@@ -129,6 +136,9 @@ Test "set is a superset" in set test suite is
 	Require: a ⊇ b;
 	Require: a ⊇ a;
 	Require: a ⊇ ∅;
+	Require: b ⊆ a;
+	Require: a ⊆ a;
+	Require: ∅ ⊆ a;
 ];
 
 Test "set is not a superset" in set test suite is
@@ -137,12 +147,15 @@ Test "set is not a superset" in set test suite is
 	b ::= {3,4,5,6};
 	Require: a ⊉ b;
 	Require: ∅ ⊉ b;
+	Require: b ⊈ a;
+	Require: a ⊈ ∅;
 ];
 
 Test "add element to set" in set test suite is
 [
 	a ::= {1,2,3,4};
 	Require: a + 5000 = {1,2,3,4,5000};
+	Require: a + "foo" = {1,2,3,4,"foo"};
 ];
 
 /* Other set method tests*/
@@ -185,4 +198,50 @@ Test "any satisfies" in set test suite is
  	c ::= any of a satisfies [n : natural number | n > 200];
  	Require: b = true;
  	Require: c = false;
+];
+
+Test "for each of do" in set test suite is
+[
+	a ::= {1,2,3,4};
+	b : set := ∅;
+	For each of a do
+	[
+	 	n : natural number
+	 |
+	 	b := b + n;
+	];
+	Require: b = a;
+];
+
+Test "count of where" in set test suite is
+[
+	a ::= {1,2,3,4};
+ 	b ::= count of a where [n : natural number | n mod 2 = 0];
+ 	c ::= count of a where [n : natural number | n > 2000];
+ 	Require: b = 2;
+ 	Require: c = 0;
+];
+
+Test "each of satisfies" in set test suite is
+[
+	a ::= {1,2,3,4};
+	counter : whole number := 0;
+ 	b ::= each of a satisfies [
+		n : natural number | 
+		counter := counter +1; 
+ 		n ≤ 2
+ 	];
+ 	c ::= each of a satisfies [n : natural number | n > 0];
+ 	Require: b = false;
+ 	Require: counter = 3;
+ 	Require: c = true;
+];
+
+Test "filter by" in set test suite is
+[
+	a ::= {1,2,3,4};
+ 	b ::= filter a by [n : natural number | n mod 2 = 0];
+ 	c ::= filter a by [n : natural number | n > 2000];
+ 	Require: b = {2,4};
+ 	Require: c = ∅;
 ];

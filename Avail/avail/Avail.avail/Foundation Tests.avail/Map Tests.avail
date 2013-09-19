@@ -46,6 +46,120 @@ Body
 
 New test suite map test suite extends foundation test suite;
 
+Test "set cardinality" in map test suite is
+[
+	a ::= {1→"foo",2→"bar",3→"frog",4→"prince"};
+	Require: |a| = 4;
+	Require: |{}| = 0;
+	Require: {} is empty = true;
+];
+
+Test "map through" in map test suite is
+[
+ 	a ::= {"foo"→1,"bar"→2,"frog"→3,"prince"→4};
+ 	b ::= map a through [s : string, n : natural number | n × 2];
+ 	Require: b = {"foo"→2,"bar"→4,"frog"→6,"prince"→8};
+];
+
+Test "map and filter" in map test suite is
+[
+	a ::= {"foo"→1,"bar"→2,"frog"→3,"prince"→4};
+ 	b ::= map and filter a by 
+ 	[
+ 	 	s : string,
+ 	 	n : natural number,
+ 	 	accept : [natural number]→⊤
+ 	 | 
+ 	 	m ::= n + 2;
+ 		If m mod 2 = 0 then
+ 		[
+ 		 	accept(m);
+ 		];
+ 	];
+ 	Require: b = {"bar"→4,"prince"→6};
+];
+
+Test "any satisfies" in map test suite is
+[
+ 	a ::= {"foo"→1,"bar"→2,"frog"→3,"prince"→4};
+ 	b ::= any of a satisfies [s : string, n : natural number | n mod 2 = 0];
+ 	c ::= any of a satisfies [s : string, n : natural number | n > 200];
+ 	Require: b = true;
+ 	Require: c = false;
+];
+
+Test "for each of do" in map test suite is
+[
+	a ::= {"foo"→1,"bar"→2,"frog"→3,"prince"→4};
+	b : map := {};
+	For each of a do
+	[
+	 	s : string,
+	 	n : natural number
+	 |
+	 	b := b + s→n;
+	];
+	Require: b = a;
+];
+
+Test "count of where" in map test suite is
+[
+	a ::= {"foo"→1,"bar"→2,"frog"→3,"prince"→4};
+ 	b ::= count of a where [s : string, n : natural number | n mod 2 = 0];
+ 	c ::= count of a where [s : string, n : natural number | n > 2000];
+ 	Require: b = 2;
+ 	Require: c = 0;
+];
+
+Test "each of satisfies" in map test suite is
+[
+	a ::= {"foo"→1,"bar"→2,"frog"→3,"prince"→4};
+	counter : whole number := 0;
+ 	b ::= each of a satisfies 
+ 	[
+ 	    s : string,  	                      
+		n : natural number 
+	 | 
+		counter := counter +1; 
+ 		n ≤ 2
+ 	];
+ 	c ::= each of a satisfies [s : string, n : natural number | n > 0];
+ 	Require: b = false;
+ 	Require: counter = 3;
+ 	Require: c = true;
+];
+
+Test "filter by" in map test suite is
+[
+	a ::= {"foo"→1,"bar"→2,"frog"→3,"prince"→4};
+ 	b ::= filter a by [s : string, n : natural number | n mod 2 = 0];
+ 	c ::= filter a by [s : string, n : natural number | n > 2000];
+ 	Require: b = {"bar"→2,"prince"→4};
+ 	Require: c = {};
+];
+
+Test "counts for" in map test suite is
+[
+ 	a ::= <"foo","bar","frog","prince","prince","foo","nickel","foo">;
+ 	Require: counts for a = {"foo"→3,"bar"→1,"frog"→1,"prince"→2,"nickel"→1};
+];
+
+Test "integrate maps" in map test suite is
+[
+	a ::= {"foo"→1,"bar"→2,"frog"→3,"prince"→4};
+	b ::= {"foo"→9,"sharks are awesome!"→40};
+	c ::= integrate a and b with
+	[
+	 	m : map,
+	 	k : string,
+	 	v : natural number
+	 |
+	 	chosenValue ::= if a[k] > v then [a[k]] else [v]; 
+	 	m + k → chosenValue
+	];
+	Require: c = {"foo"→9,"bar"→2,"frog"→3,"prince"→4,"sharks are awesome!"→40};
+];
+
 Test "quasi-destructive simple map at key replace" in map test suite is
 [
 	m : {string→natural number|} := {"foo"→1,"boo"→2,"zoo"→3};

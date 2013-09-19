@@ -666,10 +666,12 @@ Semantic restriction "_↚_" is
  * Negation has the highest precedence.
  * 
  * @method "¬_"
- * @forbids 1 "_∧_" "_∨_" "_⊕_" "_↑_" "_↓_" "_→_" "_←_" "_↔_" "_↛_" "_↚_"
+ * @forbids 1 "_∧_" "_∨_" "_⊕_" "_↑_" "_↓_" "_→_" "_←_" "_↔_" "_↛_" "_↚_",
+ * 	"_=_", "_≠_"
  */
 Grammatical restriction "¬_" is
-	<{"_∧_", "_∨_", "_⊕_", "_↑_", "_↓_", "_→_", "_←_", "_↔_", "_↛_", "_↚_"}>;
+	<{"_∧_", "_∨_", "_⊕_", "_↑_", "_↓_", "_→_", "_←_", "_↔_", "_↛_", "_↚_",
+	 "_=_", "_≠_"}>;
 
 /**
  * AND operation is second highest precedence.
