@@ -35,6 +35,7 @@ Versions
 	"dev"
 Extends
 	"Backtracking Tests" = ("backtracking test suite"),
+	"Cast Tests" = ("cast test suite"),
 	"Common" = ("Foundation|foundation test suite"),
 	"Concurrency Tests" = ("concurrency test suite"),
 	"Exception Tests" = ("exception test suite"),
