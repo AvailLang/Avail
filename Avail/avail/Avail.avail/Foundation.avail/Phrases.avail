@@ -60,6 +60,13 @@ Invoke
 ]
 with <>;
 
+Semantic restriction "_'s⁇value" is
+[
+	tokenType : literal token's type
+|
+	tokenType's value type
+];
+
 /**
  * Construct and answer a (synthetic) literal token whose artificial source text
  * is the description of the value.
