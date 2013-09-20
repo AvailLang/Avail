@@ -2002,7 +2002,7 @@ Semantic restriction "stripe_at_" is
 	index : natural number's type
 |
 	uncertainty ::= cast ⎡index⎤ - ⎣index⎦
-		into [ t : whole number | t ];
+		into [ t : [1..∞] | t ];
 	stripeTypes : <any meta…|> := <>;
 	From 1 to |tupleType's leading types| + 1 do
 	[
