@@ -1,5 +1,5 @@
 /*
- * Cast Tests.avail
+ * Assertion Tests.avail
  * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Cast Tests"
+System Module "Assertion Tests"
 Versions
 	"dev"
 Uses
@@ -38,86 +38,72 @@ Uses
 	"Foundation",
 	"Unit Testing"
 Names
-	"cast test suite"
+	"assertion test suite"
 Body
 
-/* The test suite identifier. */
-"cast test suite" is a new atom;
+"assertion test suite" is a new atom;
+New test suite assertion test suite extends foundation test suite;
 
-New test suite cast test suite extends foundation test suite;
-
-Test "basic cast" in cast test suite is
+Test "basic assertions" in assertion test suite is
 [
-	a : integer := 5;
-	b : tuple := "foo";
-	t : <number…|3> := <1,2,3>;
 	Guard 
 	[
-	 	/*Attempt several legitimate casts*/
-	 	numberCast : natural number := cast a into [n : natural number | n];
-	 	tupleCast : string := cast b into [s : string | s];
-	 	Cast each of t into 
-	 	[
-	 	 	c : integer,
-	 	 	d : integer,
-	 	 	e : integer
-	 	 | 
-	 	 	/*Do nothing*/
-	 	];
+	 	Assert: 5 = 5;
+		Assert: "foo" = "foo";
+		Assert: true = true;
+		Assert: 5 < 6;
+		Assert: ∞ = ∞;
 	]
-	intercept [e : bad-cast exception | Require: false];
+	intercept [e : assertion-failed exception | Require: false];
 ];
 
-Test "bad cast exception" in cast test suite is
+Test "assertion failed exception" in assertion test suite is
 [
  	Require: 
  	[
- 	 	a : integer := 5;
- 	 	numberCast : [-∞..-1] := cast a into [i : [-∞..-1] | i];
- 	] raises bad-cast exception;
+ 	 	func :: =
+ 	 	[
+ 	 	 	a : natural number,
+ 	 	 	b : natural number
+ 	 	 |
+ 	 	 	a = b
+ 	 	];
+ 	 	Assert: func(5,6);
+ 	] raises assertion-failed exception;
 
 	Require: 
  	[
- 	 	a : tuple := <1,2,3>;
- 	 	numberCast : string := cast a into [s : string | s];
- 	] raises bad-cast exception;
+	 	func :: =
+	 	[
+	 	 	a : boolean,
+	 	 	b : boolean
+	 	 |
+	 	 	a = b
+	 	];
+	 	Assert: func(true,false);
+ 	] raises assertion-failed exception;
 
 	Require: 
  	[
- 	 	t : <number…|3> := <1,2,3>;
- 	 	Cast each of t into 
+	 	func :: =
  	 	[
  	 	 	a : integer,
- 	 	 	b : integer,
- 	 	 	c : [0..1]
- 	 	 | 
- 	 	 	Print: "Shouldn't print this!";
- 	 	];
- 	] raises bad-cast exception;
-]; 
+ 	 	 	b : integer
+ 	 	 |
+ 	 	 	a ≥ b
+ 	 	]; 
+ 	 	Assert: func(-10,62);
+ 	] raises assertion-failed exception;
 
-Test "cast each of else" in cast test suite is
-[
- 	holder : tuple := <>;
- 	t : <number…|3> := <1,2,3>;
- 	Cast each of t into 
+	Require: 
  	[
- 	 	a : integer,
- 	 	b : integer,
- 	 	c : [0..1]
- 	 | 
- 	 	holder := <1,2,3>;
- 	] else [holder := <4,5,6>;];
- 	Require: holder = <4,5,6>;
- 	
- 	holder := <>;
- 	Cast each of t into 
- 	[
- 	 	a : integer,
- 	 	b : integer,
- 	 	c : integer
- 	 | 
- 	 	holder := <1,2,3>;
- 	] else [holder := <4,5,6>;];
- 	Require: holder = t;
-];
+	 	func :: =
+ 	 	[
+ 	 	 	a : extended integer,
+ 	 	 	b : extended integer
+ 	 	 |
+ 	 	 	a ≥ b
+ 	 	]; 
+ 	 	Assert: func(-∞,∞);
+ 	] raises assertion-failed exception;
+]; 

@@ -34,6 +34,7 @@ System Module "Foundation Tests"
 Versions
 	"dev"
 Extends
+	"Assertion Tests" = ("assertion test suite"),
 	"Backtracking Tests" = ("backtracking test suite"),
 	"Cast Tests" = ("cast test suite"),
 	"Common" = ("Foundation|foundation test suite"),

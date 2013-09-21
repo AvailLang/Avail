@@ -37,6 +37,7 @@ Extends
 	"Bootstrap" =
 	(
 		"_∩_",
+		"Reject parse,expected:_",
 		"Semantic restriction_is_",
 		"⊤", "⊥",
 		"boolean", "false",
@@ -95,7 +96,8 @@ Semantic restriction "Assert:_" is
 [
 	contradiction : false's type's type
 |
-	⊥
+	Reject parse, expected: "use of \"Assert:_\" here will never pass as \
+		\| result of assertion boolean will always be statically false"
 ];
 
 /**
@@ -138,7 +140,8 @@ Semantic restriction "Assert:_(_)" is
 	contradiction : false's type's type,
 	message : string's type
 |
-	⊥
+	Reject parse, expected: "use of \"Assert:_\" here will never pass as \
+		\| result of assertion boolean will always statically be false"
 ];
 
 /**
