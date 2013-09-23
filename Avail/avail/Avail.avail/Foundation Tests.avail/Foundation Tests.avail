@@ -39,6 +39,7 @@ Extends
 	"Cast Tests" = ("cast test suite"),
 	"Common" = ("Foundation|foundation test suite"),
 	"Concurrency Tests" = ("concurrency test suite"),
+	"Control Structure Tests" = ("control structure test suite"),
 	"Exception Tests" = ("exception test suite"),
 	"Function Tests" = ("function test suite"),
 	"Logic Tests" = ("logic test suite"),

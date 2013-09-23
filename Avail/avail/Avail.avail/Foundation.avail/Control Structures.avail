@@ -1166,7 +1166,7 @@ Public method "Unless|unless_then_«else unless_then_»«else_»" is
 	elseUnlessTuple : <<[]→boolean, []→⊤…|2>…|1..>,
 	else : <[]→⊤…|0..1>
 |
-	if firstPredicate then
+	if ¬firstPredicate then
 	[
 		firstThen();
 	]
