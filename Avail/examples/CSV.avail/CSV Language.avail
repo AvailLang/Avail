@@ -1,0 +1,321 @@
+/*
+ * CSV Language.avail
+ * Copyright © 1993-2013, The Avail Foundation, LLC.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+System Module "CSV Language"
+Uses
+	"Avail"
+Names
+	/* Build CSV records. */
+	"«_‡,»",
+
+	/* CSV data module processing. */
+	"Reset CSV processor",
+	"Display CSV(as a table«with headers»?)"
+Body
+
+/**
+ * The number of columns allowed per record. This is determined by the column
+ * count of the very first record, which is construed to be the header.
+ *
+ * @global "records" "natural number"
+ */
+columnCount : natural number;
+
+/**
+ * The records of CSV data. The first such record is the header; it names the
+ * individual data fields. The subsequent records are actual data records.
+ *
+ * @global "records" "<<string…|>…|>"
+ */
+records : <<string…|1..>…|> := <>;
+
+/**
+ * An invalid-CSV-record exception indicates that a CSV record was invalid for
+ * some reason.
+ *
+ * @type "invalid-CSV-record exception"
+ * @supertype "exception"
+ */
+Explicit class "invalid-CSV-record exception" extends descriptive exception;
+
+/**
+ * Validate the specified CSV record. If no records have been previously
+ * validated, then assume that the supplied record is the header and that it
+ * specifies the expected column count.
+ *
+ * @method "Validate_"
+ * @param "record" "<string…|1..>"
+ *        A CSV record that includes at least one column.
+ * @raises "invalid-CSV-record exception"
+ */
+Private method "Validate_" is
+[
+	record : <string…|1..>
+|
+	/* Get the size of the record. */
+	size ::= |record|;
+
+	/* If the column count hasn't been set yet, then set it. */
+	If ↑columnCount is unassigned then
+	[
+		columnCount := size;
+	]
+	/* Otherwise, enforce the column count! */
+	else if [size ≠ columnCount] then
+	[
+		Raise a descriptive exception with
+			error message ::=
+				format "CSV record #“①” to have “②” columns (not “③”)"
+				with |records| + 1, columnCount, size
+	];
+];
+
+/**
+ * Add the CSV record to {@global "records"}.
+ *
+ * @method "«_‡,»"
+ * @param "record" "<string…|1..>"
+ *        A {@type "tuple"} of {@type "string"}s.
+ */
+Public method "«_‡,»" is
+[
+	record : <string…|1..>
+|
+	Validate record;
+	records := records ++ <record>;
+];
+
+/**
+ * Instruct the compiler to enforce the requirement that every column datum is
+ * statically known.
+ *
+ * @method "«_‡,»"
+ * @restricts "<string…|1..>'s type"
+ */
+Semantic restriction "«_‡,»" is
+[
+	recordType : <string…|1..>'s type
+|
+	/* The guillemets in the method name ensure that each CSV record has a
+	 * column count that is entirely *lexical*. The argument therefore has a
+	 * fixed, single value size range. To determine the size of the actual
+	 * record, we can arbitrarily choose either the lower or upper bound of the
+	 * type, because they will be equal.
+	 */
+	sizes ::= ||recordType||;
+	Assert: ⎣sizes⎦ = ⎡sizes⎤;
+	size ::= ⎣sizes⎦;
+
+	/* Ensure that every column is an instance type, i.e. a statically known
+	 * value.
+	 */
+	From 1 to size do
+	[
+		columnIndex : natural number
+	|
+		Unless |recordType[columnIndex]| = 1 then
+		[
+			Reject parse, expected:
+				format
+					"column #“①” to have a well-known value \
+					\|(but the type is merely “②”)"
+				with columnIndex, recordType[columnIndex]
+		];
+	];
+
+	/* Don't bother strengthening the type; the method only has side effect. */
+	⊤
+];
+
+/**
+ * Reset the state of the CSV processor. This should be called before linking
+ * a new CSV data module.
+ *
+ * @method "Reset CSV processor"
+ */
+Public method "Reset CSV processor" is
+[
+	Clear ↑columnCount;
+	records := <>;
+];
+
+/**
+ * Compute the column metrics for the specified {@type "tuple"} of records.
+ *
+ * @method "column metrics for_"
+ * @param "someRecords" "<string…|>"
+ *        Some CSV records.
+ * @returns "<natural number…|>"
+ *          The column metrics, i.e., the widths of the widest datum within each
+ *          column.
+ * @raises "invalid-CSV-record exception"
+ *         If {@param "someRecords"} {@method "_is empty" is empty}.
+ */
+Private method "column metrics for_" is
+[
+	someRecords : <<string…|1..>…|>
+|
+	/* There are no records, so raise an exception. */
+	Raise an invalid-CSV-record exception with
+		error message ::= "no records defined"
+] : <natural number…|>;
+
+/**
+ * Compute the column metrics for the specified {@type "tuple"} of records.
+ *
+ * @method "column metrics for_"
+ * @param "someRecords" "<string…|1..>"
+ *        A nonempty {@type "tuple"} of CSV records.
+ * @returns "<natural number…|>"
+ *          The column metrics, i.e., the widths of the widest datum within each
+ *          column.
+ * @raises "invalid-CSV-record exception"
+ *         If {@param "someRecords"} {@method "_is empty" is empty}.
+ */
+Private method "column metrics for_" is
+[
+	someRecords : <<string…|1..>…|1..>
+|
+	map 1 to |someRecords[1]| through
+	[
+		columnIndex : natural number
+	|
+		max map stripe someRecords at columnIndex through
+			[col : string | 1 max |col|]
+	]
+];
+
+/**
+ * Answer a variant of {@param "s"} that is left-aligned and padded to {@param
+ * "fieldSize"} characters.
+ *
+ * @method "_padded to_character|characters"
+ * @param "s" "string"
+ *        An arbitrary string.
+ * @param "fieldSize" "whole number"
+ *        The size of the field after padding. This is the minimum possible
+ *        field size for the result. The result might be longer if the size of
+ *        {@param "s"} is greater than {@param "fieldSize"}.
+ * @return A potentially padded field.
+ */
+Private method "_padded to_character|characters" is
+[
+	s : string,
+	fieldSize : whole number
+|
+	s ++ (0 max fieldSize - |s| of ¢" ")
+];
+
+/**
+ * Strengthen the result type to include only {@type "string"}s whose sizes are
+ * at least the upper bound of {@param "fieldSize"}.
+ *
+ * @method "_padded to_character|characters"
+ * @restricts "s" "string's type"
+ * @restricts "fieldSize" "whole number's type"
+ */
+Semantic restriction "_padded to_character|characters" is
+[
+	s : string's type,
+	fieldSize : whole number's type
+|
+	<character… | ⎣fieldSize⎦.. >
+];
+
+/**
+ * Display the accumulated CSV records as a table.
+ *
+ * @method "Display CSV(as a table«with headers»?)"
+ * @param "showHeader" "boolean"
+ *        If {@method "true"}, then display the header and a separator row.
+ *        If {@method "false"}, then only display the data records.
+ */
+Public method "Display CSV(as a table«with headers»?)" is
+[
+	showHeaders : boolean
+|
+	/* The first record is the header, but the rest are data records. */
+	dataRecords ::= records[2..];
+	/* Compure the metrics for each column of the table. */
+	metrics ::= column metrics for
+		(if showHeaders then [records] else [dataRecords]);
+
+	/* This is the text collector. */
+	text : string := "";
+
+	/* If the headers are desired, then accumulate them into the text collector.
+	 * Also accumulate a seperator row.
+	 */
+	If showHeaders then
+	[
+		record ::= records[1];
+		text := left fold <""> ++ 1 to |record| through
+			[
+				index : natural number,
+				headerSoFar : string
+			|
+				uppercased ::= uppercase record[index];
+				headerSoFar
+					++ (uppercased padded to metrics[index] characters)
+					++ " "
+			];
+		text := text ++ "\n";
+		text := left fold <text> ++ 1 to |record| through
+			[
+				index : natural number,
+				textSoFar : string
+			|
+				textSoFar ++ metrics[index] of ¢- ++ " "
+			];
+		text := text ++ "\n";
+	];
+
+	/* Accumulate each of the data records into the text collector. */
+	For each of dataRecords do
+	[
+		record : <string…|1..>
+	|
+		text := left fold <text> ++ 1 to |record| through
+			[
+				index : natural number,
+				textSoFar : string
+			|
+				textSoFar
+					++ (record[index] padded to metrics[index] characters)
+					++ " "
+			];
+		text := text ++ "\n";
+	];
+
+	/* Display the collected text. */
+	Print: text;
+];
