@@ -35,6 +35,11 @@ import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
+import com.avail.interpreter.levelTwo.L2Instruction;
+import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
+import com.avail.interpreter.levelTwo.register.L2RegisterVector;
+import com.avail.optimizer.RegisterSet;
+import com.avail.optimizer.L2Translator.L1NaiveTranslator;
 
 /**
  * <strong>Primitive 33:</strong> Answer whether type1 is a subtype of type2
@@ -70,5 +75,69 @@ public final class P_033_IsSubtypeOf extends Primitive
 				InstanceMetaDescriptor.topMeta(),
 				InstanceMetaDescriptor.topMeta()),
 			EnumerationTypeDescriptor.booleanObject());
+	}
+
+	/**
+	 * The test x ⊆ y is always false if x ∩ y = ⊥ (i.e., if x' ∩ y' ⊆ ⊥'.  The
+	 * test is always true if the exact type y1 is known (not a subtype) and
+	 * x ⊆ y1'.
+	 */
+	@Override
+	public void generateL2UnfoldableInlinePrimitive (
+		final L1NaiveTranslator levelOneNaiveTranslator,
+		final A_Function primitiveFunction,
+		final L2RegisterVector args,
+		final L2ObjectRegister resultRegister,
+		final L2RegisterVector preserved,
+		final A_Type expectedType,
+		final L2ObjectRegister failureValueRegister,
+		final L2Instruction successLabel,
+		final boolean canFailPrimitive,
+		final boolean skipReturnCheck)
+	{
+		final L2ObjectRegister xTypeReg = args.registers().get(0);
+		final L2ObjectRegister yTypeReg = args.registers().get(1);
+
+		final RegisterSet registerSet =
+			levelOneNaiveTranslator.naiveRegisters();
+		final A_Type xMeta = registerSet.typeAt(xTypeReg);
+		final A_Type yMeta = registerSet.typeAt(yTypeReg);
+		final A_Type intersectionMeta = xMeta.typeIntersection(yMeta);
+		if (intersectionMeta.isSubtypeOf(
+			AbstractEnumerationTypeDescriptor.withInstance(
+				BottomTypeDescriptor.bottom())))
+		{
+			// The meta intersection is bottom's type (or bottom, its sole
+			// instance).  Therefore the actual types can never intersect.
+			levelOneNaiveTranslator.moveConstant(
+				AtomDescriptor.falseObject(),
+				resultRegister);
+			return;
+		}
+		if (registerSet.hasConstantAt(yTypeReg))
+		{
+			final A_Type constantYType = registerSet.constantAt(yTypeReg);
+			if (xMeta.isSubtypeOf(
+				AbstractEnumerationTypeDescriptor.withInstance(constantYType)))
+			{
+				// The y type is known precisely, and the x type is constrained
+				// to always be a subtype of it.
+				levelOneNaiveTranslator.moveConstant(
+					AtomDescriptor.trueObject(),
+					resultRegister);
+				return;
+			}
+		}
+		super.generateL2UnfoldableInlinePrimitive(
+			levelOneNaiveTranslator,
+			primitiveFunction,
+			args,
+			resultRegister,
+			preserved,
+			expectedType,
+			failureValueRegister,
+			successLabel,
+			canFailPrimitive,
+			skipReturnCheck);
 	}
 }

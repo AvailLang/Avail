@@ -142,10 +142,6 @@ public class L2_JUMP_IF_IS_NOT_KIND_OF_CONSTANT extends L2Operation
 		assert fallThroughSet.hasTypeAt(objectReg);
 		final A_Type existingType = fallThroughSet.typeAt(objectReg);
 		final A_Type intersection = existingType.typeIntersection(type);
-		if (intersection.isBottom())
-		{
-			System.out.println(fallThroughSet);
-		}
 		fallThroughSet.typeAtPut(objectReg, intersection, instruction);
 	}
 

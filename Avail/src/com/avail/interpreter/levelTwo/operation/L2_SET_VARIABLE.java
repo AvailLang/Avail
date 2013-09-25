@@ -32,6 +32,7 @@
 package com.avail.interpreter.levelTwo.operation;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_POINTER;
+import java.util.List;
 import com.avail.descriptor.*;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.*;
@@ -86,5 +87,31 @@ public class L2_SET_VARIABLE extends L2Operation
 	public boolean hasSideEffect ()
 	{
 		return true;
+	}
+
+	@Override
+	public boolean regenerate (
+		final L2Instruction instruction,
+		final List<L2Instruction> newInstructions,
+		final RegisterSet registerSet)
+	{
+		final L2ObjectRegister variableReg =
+			instruction.readObjectRegisterAt(0);
+		final L2ObjectRegister valueReg = instruction.readObjectRegisterAt(1);
+
+		final A_Type varType = registerSet.typeAt(variableReg);
+		final A_Type valueType = registerSet.typeAt(valueReg);
+		if (valueType.isSubtypeOf(varType.writeType()))
+		{
+			// Type propagation has strengthened the value's type enough to
+			// be able to avoid the check.
+			newInstructions.add(new L2Instruction(
+				L2_SET_VARIABLE_NO_CHECK.instance,
+				instruction.operands[0],
+				instruction.operands[1]));
+			return true;
+
+		}
+		return super.regenerate(instruction, newInstructions, registerSet);
 	}
 }

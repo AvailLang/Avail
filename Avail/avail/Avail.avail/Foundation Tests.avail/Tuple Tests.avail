@@ -218,6 +218,12 @@ Test "split tuple" in tuple test suite is
 Test "stripe tuple" in tuple test suite is
 [
  	a ::= <<1,2>,<3,4>,<5,6,7>>;
+ 	
+ 	/*TODO[MvG] Remove right away*/
+ 	b ::= stripe a at 2;
+ 	Require: b = <2,4,6>;
+ 	
+ 	
  	Require: stripe a at 2 = <2,4,6>;
 ];
 
