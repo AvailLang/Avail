@@ -560,7 +560,7 @@ public class L2Translator
 		 *
 		 * @return The current RegisterSet for level one transliteration.
 		 */
-		RegisterSet naiveRegisters ()
+		public RegisterSet naiveRegisters ()
 		{
 			final RegisterSet r = naiveRegisters;
 			assert r != null;
@@ -615,7 +615,7 @@ public class L2Translator
 		 * @param operation The operation to invoke.
 		 * @param operands The operands of the instruction.
 		 */
-		@InnerAccess void addInstruction (
+		public void addInstruction (
 			final L2Operation operation,
 			final L2Operand... operands)
 		{
@@ -1537,9 +1537,9 @@ public class L2Translator
 			}
 			final A_Type guaranteedReturnType =
 				primitive.returnTypeGuaranteedByVM(argTypes);
+			assert !guaranteedReturnType.isBottom();
 			final boolean skipReturnCheck =
 				guaranteedReturnType.isSubtypeOf(expectedType);
-			assert !guaranteedReturnType.isBottom();
 			// This is an *inlineable* primitive, so it can only succeed with
 			// some value or fail.  The value can't be an instance of bottom, so
 			// the primitive's guaranteed return type can't be bottom.  If the
@@ -1550,60 +1550,20 @@ public class L2Translator
 			// code's return instruction would be at risk, but invalidly
 			// returning some value from there would have to check the value's
 			// type against the expected type -- and then fail to return.
-			if (primitive.fallibilityForArgumentTypes(argTypes)
-				== CallSiteCannotFail)
-			{
-				// Note that a primitive cannot have return type of bottom
-				// unless it's non-inlineable (already excluded here).
-				assert !expectedType.isBottom();
-				if (skipReturnCheck)
-				{
-					addInstruction(
-						L2_RUN_INFALLIBLE_PRIMITIVE_NO_CHECK.instance,
-						new L2PrimitiveOperand(primitive),
-						new L2ReadVectorOperand(createVector(args)),
-						new L2WritePointerOperand(resultRegister));
-				}
-				else
-				{
-					addInstruction(
-						L2_RUN_INFALLIBLE_PRIMITIVE.instance,
-						new L2PrimitiveOperand(primitive),
-						new L2ReadVectorOperand(createVector(args)),
-						new L2ConstantOperand(expectedType),
-						new L2WritePointerOperand(resultRegister));
-				}
-				canFailPrimitive.value = false;
-			}
-			else
-			{
-				if (skipReturnCheck)
-				{
-					addInstruction(
-						L2_ATTEMPT_INLINE_PRIMITIVE_NO_CHECK.instance,
-						new L2PrimitiveOperand(primitive),
-						new L2ConstantOperand(primitiveFunction),
-						new L2ReadVectorOperand(createVector(args)),
-						new L2WritePointerOperand(resultRegister),
-						new L2WritePointerOperand(failureValueRegister),
-						new L2ReadWriteVectorOperand(createVector(preserved)),
-						new L2PcOperand(successLabel));
-				}
-				else
-				{
-					addInstruction(
-						L2_ATTEMPT_INLINE_PRIMITIVE.instance,
-						new L2PrimitiveOperand(primitive),
-						new L2ConstantOperand(primitiveFunction),
-						new L2ReadVectorOperand(createVector(args)),
-						new L2ConstantOperand(expectedType),
-						new L2WritePointerOperand(resultRegister),
-						new L2WritePointerOperand(failureValueRegister),
-						new L2ReadWriteVectorOperand(createVector(preserved)),
-						new L2PcOperand(successLabel));
-				}
-				canFailPrimitive.value = true;
-			}
+			canFailPrimitive.value =
+				primitive.fallibilityForArgumentTypes(argTypes)
+					!= CallSiteCannotFail;
+			primitive.generateL2UnfoldableInlinePrimitive(
+				this,
+				primitiveFunction,
+				createVector(args),
+				resultRegister,
+				createVector(preserved),
+				expectedType,
+				failureValueRegister,
+				successLabel,
+				canFailPrimitive.value,
+				skipReturnCheck);
 			return null;
 		}
 

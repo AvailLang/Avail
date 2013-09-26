@@ -40,9 +40,22 @@ import java.util.*;
 import java.util.regex.*;
 import com.avail.annotations.*;
 import com.avail.descriptor.*;
+import com.avail.interpreter.levelTwo.L2Instruction;
+import com.avail.interpreter.levelTwo.operand.L2ConstantOperand;
+import com.avail.interpreter.levelTwo.operand.L2PcOperand;
+import com.avail.interpreter.levelTwo.operand.L2PrimitiveOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadVectorOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadWriteVectorOperand;
+import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
 import com.avail.interpreter.levelTwo.operation.L2_ATTEMPT_INLINE_PRIMITIVE;
+import com.avail.interpreter.levelTwo.operation.L2_ATTEMPT_INLINE_PRIMITIVE_NO_CHECK;
+import com.avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE;
+import com.avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE_NO_CHECK;
+import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
+import com.avail.interpreter.levelTwo.register.L2RegisterVector;
 import com.avail.interpreter.primitive.*;
 import com.avail.optimizer.*;
+import com.avail.optimizer.L2Translator.L1NaiveTranslator;
 import com.avail.performance.Statistic;
 
 
@@ -831,4 +844,114 @@ implements IntegerEnumSlotDescriptionEnum
 			}
 		}
 	}
+
+	/**
+	 * This is an *inlineable* primitive, so it can only succeed with some
+	 * value or fail.  The value can't be an instance of bottom, so the
+	 * primitive's guaranteed return type can't be bottom.  If the primitive
+	 * fails, the backup code can produce bottom, but since this primitive
+	 * could have succeeded instead, the function itself must not be
+	 * naturally bottom typed.  If a semantic restriction has strengthened
+	 * the result type to bottom, only the backup code's return instruction
+	 * would be at risk, but invalidly returning some value from there would
+	 * have to check the value's type against the expected type -- and then
+	 * fail to return.
+	 *
+	 * @param levelOneNaiveTranslator
+	 *            The {@link L1NaiveTranslator} in which to generate an inlined
+	 *            call to this primitive.
+	 * @param primitiveFunction
+	 *            The {@link Primitive} {@linkplain FunctionDescriptor
+	 *            function} being invoked.
+	 * @param args
+	 *            The {@link L2RegisterVector} holding the registers that will
+	 *            provide arguments at invocation time.
+	 * @param resultRegister
+	 *            The {@link L2ObjectRegister} into which the result should
+	 *            be placed at invocation time.
+	 * @param preserved
+	 *            The {@link L2RegisterVector} holding the registers whose
+	 *            values must be preserved whether the primitive succeeds or
+	 *            fails.
+	 * @param expectedType
+	 *            The type of value that this primitive invocation is
+	 *            expected to produce at this call site.
+	 * @param failureValueRegister
+	 *            Where to write the primitive failure value in the case
+	 *            that the primitive fails.
+	 * @param successLabel
+	 *            Where to jump if the primitive is successful.  If the
+	 *            primitive fails it simply falls through.
+	 * @param canFailPrimitive
+	 *            Whether it's possible for the primitive to fail with the
+	 *            provided types of arguments.
+	 * @param skipReturnCheck
+	 *            Whether we can safely skip the check that the primitive's
+	 *            return value matches the type expected at this call site.
+	 */
+	public void generateL2UnfoldableInlinePrimitive (
+		final L1NaiveTranslator levelOneNaiveTranslator,
+		final A_Function primitiveFunction,
+		final L2RegisterVector args,
+		final L2ObjectRegister resultRegister,
+		final L2RegisterVector preserved,
+		final A_Type expectedType,
+		final L2ObjectRegister failureValueRegister,
+		final L2Instruction successLabel,
+		final boolean canFailPrimitive,
+		final boolean skipReturnCheck)
+	{
+		if (!canFailPrimitive)
+		{
+			// Note that a primitive cannot have return type of bottom
+			// unless it's non-inlineable (already excluded here).
+			assert !expectedType.isBottom();
+			if (skipReturnCheck)
+			{
+				levelOneNaiveTranslator.addInstruction(
+					L2_RUN_INFALLIBLE_PRIMITIVE_NO_CHECK.instance,
+					new L2PrimitiveOperand(this),
+					new L2ReadVectorOperand(args),
+					new L2WritePointerOperand(resultRegister));
+			}
+			else
+			{
+				levelOneNaiveTranslator.addInstruction(
+					L2_RUN_INFALLIBLE_PRIMITIVE.instance,
+					new L2PrimitiveOperand(this),
+					new L2ReadVectorOperand(args),
+					new L2ConstantOperand(expectedType),
+					new L2WritePointerOperand(resultRegister));
+			}
+		}
+		else
+		{
+			if (skipReturnCheck)
+			{
+				levelOneNaiveTranslator.addInstruction(
+					L2_ATTEMPT_INLINE_PRIMITIVE_NO_CHECK.instance,
+					new L2PrimitiveOperand(this),
+					new L2ConstantOperand(primitiveFunction),
+					new L2ReadVectorOperand(args),
+					new L2WritePointerOperand(resultRegister),
+					new L2WritePointerOperand(failureValueRegister),
+					new L2ReadWriteVectorOperand(preserved),
+					new L2PcOperand(successLabel));
+			}
+			else
+			{
+				levelOneNaiveTranslator.addInstruction(
+					L2_ATTEMPT_INLINE_PRIMITIVE.instance,
+					new L2PrimitiveOperand(this),
+					new L2ConstantOperand(primitiveFunction),
+					new L2ReadVectorOperand(args),
+					new L2ConstantOperand(expectedType),
+					new L2WritePointerOperand(resultRegister),
+					new L2WritePointerOperand(failureValueRegister),
+					new L2ReadWriteVectorOperand(preserved),
+					new L2PcOperand(successLabel));
+			}
+		}
+	}
+
 }
