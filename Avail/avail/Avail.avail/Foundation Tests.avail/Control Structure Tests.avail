@@ -44,6 +44,63 @@ Body
 "control structure test suite" is a new atom;
 New test suite control structure test suite extends foundation test suite;
 
+Test "continuations" in control structure test suite is
+[
+ 	value : integer := 0;
+ 	end : integer := 5;
+ 	action ::= [i : integer | value := value + i; value ≤ end];
+	[
+		$loop : ⊤;
+		If value ≤ end then
+		[
+			continue ::= action(1);
+			If continue then
+			[
+				Restart loop
+			];
+		];
+	]();
+	Require: value = 6;
+
+ 	action2 ::= [i : integer | value := value + i; value > end];
+ 	value := 0;
+ 	end := 3;
+	[
+		$loop : ⊤;
+		continue ::= action2(1);
+		If continue then [Exit loop] else [Restart loop]
+	] : ⊤ ();
+	Require: value = 4;
+	
+	locate : [⊥,⊥]→boolean := 
+	[ 
+		queryValue : integer,
+		t : <integer…|3..>
+	 |
+	 	$find : boolean;
+	 	For each of t do
+	 	[
+	 	 	i : integer
+	 	 |
+	 	 	If i = queryValue then [Exit find with true];
+	 	];
+	 	false
+	]:boolean;
+	Require: locate(5,<1,4,5,7>);
+	Require: (locate(2,<1,4,5,7>) = false);
+	
+	checkFunction : [⊥]→boolean :=
+	[
+	 	checkValue : integer
+	 |
+	 	$check : boolean;
+	 	If checkValue = 2 then [Exit check with true]
+	 	else [Restart check with <2>]
+	 	
+	]:boolean;
+	Require: checkFunction(1);	
+];
+
 Test "if then else" in control structure test suite is
 [
  	a ::= if 5 > 6 then [1] else [2];
