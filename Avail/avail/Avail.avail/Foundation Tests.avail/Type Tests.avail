@@ -1,0 +1,116 @@
+/*
+ * Type Tests.avail
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+System Module "Type Tests"
+Versions
+	"dev"
+Uses
+	"Common",
+	"Foundation",
+	"Unit Testing"
+Names
+	"type test suite"
+Body
+
+"type test suite" is a new atom;
+New test suite type test suite extends foundation test suite;
+
+Test "type constructors" in type test suite is 
+[
+ 	Require: 5's type ⊆ integer;
+	Require: {string→integer|} ⊆ map;
+	Require: <string…|> ⊆ tuple;
+	Require: {string|} ⊆ set;
+	Require: [⊥]→string ⊆ function;
+];
+
+Test "type cardinality" in type test suite is
+[
+	Require: ||{string→integer|}|| ⊆ [0..∞);
+	Require: ||{string→integer|..7}|| ⊆ [0..7];
+	Require: ||{string→integer|3..}|| ⊆ [3..∞);
+	Require: ||{string→integer|3..7}|| ⊆ [3..7];
+	Require: ||<string…|>|| ⊆ [0..∞);
+	Require: ||<string…|..5>|| ⊆ [0..5];
+	Require: ||<string…|2..>|| ⊆ [2..∞);
+	Require: ||<string…|2..5>|| ⊆ [2..5];
+	Require: ||{string|}|| ⊆ [0..∞);
+	Require: ||{string|..62}|| ⊆ [0..62];
+	Require: ||{string|9..}|| ⊆ [9..∞);
+	Require: ||{string|9..62}|| ⊆ [9..62];
+	Require: |{1,2,3,4,"foo","bar"}ᵀ| = 6;
+	Require: |integer| = ∞;
+	Require: |string| = ∞;
+];
+
+Test "type algebra" in type test suite is
+[
+	type1 ::= [3..10]'s type;
+	type2 ::= [6..12]'s type;
+	awesome ::= {17,6,2,0,"pickle","shark"}ᵀ;
+	
+	/* subtypes */
+	Require: 5's type ⊆ integer;
+	Require: ¬(5's type ⊆ string);
+	Require: ¬(type1 ⊆ type2);
+	Require: {1,2,"foo"}ᵀ ⊆ {1,2,3,4,"foo","bar"}ᵀ;
+	Require: ("foo"'s type) ⊆ {1,2,3,4,"foo","bar"}ᵀ;
+	
+	/* instance of*/
+	Require: 5 ∈ integer;
+	Require: "foo" ∈ {1,2,3,4,"foo","bar"}ᵀ;
+	Require: "pickle" ∈ awesome; 
+	
+ 	/* Type Unions */
+ 	Require: (-∞..0] ∪ natural number ⊆ integer;
+	Require: (((-∞..0] ∪ natural number) ∪ ((-∞)'s type ∪ ∞'s type)) ⊆ 
+		extended integer;
+ 	Require: type1 ∪ type2 ⊆ [3..12]'s type;
+ 	Require: integer ∪ string ⊆ nontype; /*follow up*/
+ 	Require: (enumeration of {1,2,"foo"} ∪ enumeration of {3,4,"bar"}) ⊆ 
+ 			{1,2,3,4,"foo","bar"}ᵀ;
+ 	
+ 	/*Type intersection*/
+ 	Require: type1 ∩ type2 ⊆ [6..10]'s type;
+ 	Require: whole number ∩ natural number ⊆ natural number;
+ 	Require: integer ∩ string ⊆ ⊥;
+ 	Require: ((-∞..0] ∩ [0..∞)) ⊆ [0..0];
+];
+	
+Test "membership" in type test suite is
+[
+	awesome ::= {17,6,2,0,"pickle","shark"}ᵀ;
+ 	Require: awesome's instances = {17,6,2,0,"pickle","shark"};
+ 	
+ 	lonelyZero ::= 0's type;
+ 	Require: lonelyZero's instance = 0;
+];
