@@ -255,6 +255,25 @@ Test "slice replacement" in tuple test suite is
 	Require: a[2..4] → <"foo",¢w,∅> = <1,"foo",¢w,∅,1,4,5,6>; 
 ];
 
+Test "fold" in tuple test suite is
+[
+ 	Require: left fold <6,3,2> through
+ 	[
+ 	 	input : integer,
+ 	 	result : integer
+ 	 |
+ 	 	result ÷ input
+ 	] = 1;
+ 	
+ 	Require: right fold <2,3,5> through
+ 	[
+ 		input : integer,
+ 		result : extended integer
+ 	 |
+ 		result ^ input
+ 	] = 15625;
+];
+
 Test "element swap" in tuple test suite is
 [
  	a ::= <1,2,3,2,1,4,5,6>;
