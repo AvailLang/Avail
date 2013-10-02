@@ -35,6 +35,7 @@ package com.avail.descriptor;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
 import static com.avail.descriptor.CompiledCodeDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.CompiledCodeDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.TypeDescriptor.Types.MODULE;
@@ -117,20 +118,7 @@ extends Descriptor
 		@EnumField(
 			describedBy=Primitive.class,
 			lookupMethodName="byPrimitiveNumberOrNull")
-		PRIMITIVE_NUMBER,
-
-		/**
-		 * The remaining number of times to invoke this code before performing
-		 * a reoptimization attempt.
-		 */
-		COUNTDOWN_TO_REOPTIMIZE,
-
-		/**
-		 * The total number of times this code has been invoked. This is useful
-		 * for determining the expected utility of inlining (i.e., no point in
-		 * inlining a method that is almost never actually called).
-		 */
-		TOTAL_INVOCATIONS;
+		PRIMITIVE_NUMBER;
 
 		/**
 		 * The number of outer variables that must captured by my {@linkplain
@@ -208,6 +196,13 @@ extends Descriptor
 		PROPERTY_ATOM,
 
 		/**
+		 * A {@link RawPojoDescriptor raw pojo} holding an {@link
+		 * InvocationStatistic} that tracks invocations of this code.
+		 */
+		@HideFieldInDebugger
+		INVOCATION_STATISTIC,
+
+		/**
 		 * The literal objects that are referred to numerically by some of the
 		 * operands of {@linkplain L1Instruction level one instructions} encoded
 		 * in the {@linkplain #NYBBLES nybblecodes}.
@@ -216,12 +211,32 @@ extends Descriptor
 		LITERAL_AT_
 	}
 
+	/**
+	 * A helper class that tracks invocation information in {@link
+	 * AtomicLong}s.  Since these require neither locks nor complete memory
+	 * barriers, they're ideally suited for this purpose.
+	 */
+	@InnerAccess static class InvocationStatistic
+	{
+		/**
+		 * An {@link AtomicLong} holding a count of the total number of times
+		 * this code has been invoked.  This statistic can be useful during
+		 * optimization.
+		 */
+		volatile AtomicLong totalInvocations = new AtomicLong(0);
+
+		/**
+		 * An {@link AtomicLong} that indicates how many more invocations can
+		 * take place before the corresponding {@link L2Chunk} should be
+		 * re-optimized.
+		 */
+		volatile AtomicLong countdownToReoptimize = new AtomicLong(0);
+	}
+
 	@Override boolean allowsImmutableToMutableReferenceInField (
 		final AbstractSlotsEnum e)
 	{
 		return e == STARTING_CHUNK
-			|| e == TOTAL_INVOCATIONS
-			|| e == COUNTDOWN_TO_REOPTIMIZE
 			|| e == PROPERTY_ATOM;
 	}
 
@@ -270,16 +285,32 @@ extends Descriptor
 		return fields.toArray(new AvailObjectFieldHelper[fields.size()]);
 	}
 
+	/**
+	 * Answer the {@link InvocationStatistic} associated with the
+	 * specified {@link CompiledCodeDescriptor raw function}.
+	 *
+	 * @param object
+	 *        The {@link A_RawFunction} from which to extract the invocation
+	 *        statistics helper.
+	 * @return The code's invocation statistics.
+	 */
+	final static InvocationStatistic getInvocationStatistic (
+		final AvailObject object)
+	{
+		final AvailObject pojo = object.slot(INVOCATION_STATISTIC);
+		return (InvocationStatistic) pojo.javaObject();
+	}
+
 	@Override @AvailMethod
 	void o_CountdownToReoptimize (final AvailObject object, final int value)
 	{
-		object.setMutableSlot(COUNTDOWN_TO_REOPTIMIZE, value);
+		getInvocationStatistic(object).countdownToReoptimize.set(value);
 	}
 
 	@Override @AvailMethod
 	long o_TotalInvocations (final AvailObject object)
 	{
-		return object.mutableSlot(TOTAL_INVOCATIONS) & 0xFFFFFFFFL;
+		return getInvocationStatistic(object).totalInvocations.get();
 	}
 
 	@Override @AvailMethod
@@ -305,14 +336,26 @@ extends Descriptor
 		final AvailObject object,
 		final Continuation0 continuation)
 	{
-		synchronized (object)
+		final InvocationStatistic invocationStatistic =
+			getInvocationStatistic(object);
+		final long newCount =
+			invocationStatistic.countdownToReoptimize.decrementAndGet();
+		if (newCount <= 0)
 		{
-			// Do the decrement atomically (because of the monitor).
-			final int countdown = object.slot(COUNTDOWN_TO_REOPTIMIZE) - 1;
-			object.setSlot(COUNTDOWN_TO_REOPTIMIZE, countdown);
-			if (countdown == 0)
+			// Either we just decremented past zero or someone else did.  Race
+			// for a lock on the object.  First one through reoptimizes while
+			// the others wait.
+			synchronized (object)
 			{
-				continuation.value();
+				// If the counter is still negative then either (1) it hasn't
+				// been reset yet by repotimization, or (2) it has been
+				// reoptimized, the counter was reset to something positive,
+				// but it has already been decremented back below zero.
+				// Either way, reoptimize now.
+				if (invocationStatistic.countdownToReoptimize.get() < 0)
+				{
+					continuation.value();
+				}
 			}
 		}
 	}
@@ -337,38 +380,6 @@ extends Descriptor
 		// Compiled code now (2012.06.14) compares by identity because it may
 		// have to track references to the source code.
 		return object.sameAddressAs(aCompiledCode);
-
-//		if (object.sameAddressAs(aCompiledCode))
-//		{
-//			return true;
-//		}
-//
-//		if (object.hash() != aCompiledCode.hash()
-//			|| object.numLiterals() != aCompiledCode.numLiterals()
-//			|| !object.nybbles().equals(aCompiledCode.nybbles())
-//			|| object.primitiveNumber() != aCompiledCode.primitiveNumber()
-//			|| object.numArgsAndLocalsAndStack()
-//				!= aCompiledCode.numArgsAndLocalsAndStack()
-//			|| object.numLocals() != aCompiledCode.numLocals()
-//			|| object.numArgs() != aCompiledCode.numArgs()
-//			|| !object.functionType().equals(aCompiledCode.functionType()))
-//		{
-//			return false;
-//		}
-//		for (int i = 1, end = object.numLiterals(); i <= end; i++)
-//		{
-//			if (!object.literalAt(i).equals(aCompiledCode.literalAt(i)))
-//			{
-//				return false;
-//			}
-//		}
-//		// They're equal, but occupy disjoint storage.  Replace one with an
-//		// indirection to the other to reduce storage costs and the need for
-//		// subsequent detailed comparisons.
-//		object.becomeIndirectionTo(aCompiledCode);
-//		// Now that there are at least two references to it.
-//		aCompiledCode.makeImmutable();
-//		return true;
 	}
 
 	@Override @AvailMethod
@@ -403,20 +414,24 @@ extends Descriptor
 	void o_SetStartingChunkAndReoptimizationCountdown (
 		final AvailObject object,
 		final L2Chunk chunk,
-		final int countdown)
+		final long countdown)
 	{
+		final AtomicLong atomicCounter =
+			getInvocationStatistic(object).countdownToReoptimize;
 		if (isShared())
 		{
 			synchronized (object)
 			{
 				object.setSlot(STARTING_CHUNK, chunk.chunkPojo);
-				object.setSlot(COUNTDOWN_TO_REOPTIMIZE, countdown);
 			}
+			// Must be outside the synchronized section to ensure the write of
+			// the new chunk is committed before the counter reset is visible.
+			atomicCounter.set(countdown);
 		}
 		else
 		{
 			object.setSlot(STARTING_CHUNK, chunk.chunkPojo);
-			object.setSlot(COUNTDOWN_TO_REOPTIMIZE, countdown);
+			atomicCounter.set(countdown);
 		}
 	}
 
@@ -432,7 +447,7 @@ extends Descriptor
 	@Override @AvailMethod
 	int o_NumArgs (final AvailObject object)
 	{
-		return (short)object.slot(NUM_ARGS);
+		return object.slot(NUM_ARGS);
 	}
 
 	/**
@@ -482,40 +497,10 @@ extends Descriptor
 		return (L2Chunk)pojo.javaObject();
 	}
 
-	/**
-	 * A function based on this code was just invoked. Tally that fact,
-	 * taking care to avoid overflowing the counter's representation (i.e., it
-	 * stays stuck at the maximum value). The total number of invocations of
-	 * the code can be extracted as a long [0..2^32) via {@link
-	 * AvailObject#totalInvocations()}.
-	 *
-	 * @param object A raw function.
-	 */
-	private void tallyInvocation (final AvailObject object)
-	{
-		int counter = object.slot(TOTAL_INVOCATIONS);
-		counter++;
-		if (counter != 0)
-		{
-			// Didn't overflow *unsigned* int.
-			object.setSlot(TOTAL_INVOCATIONS, counter);
-		}
-	}
-
 	@Override @AvailMethod
 	void o_TallyInvocation (final AvailObject object)
 	{
-		if (isShared())
-		{
-			synchronized (object)
-			{
-				tallyInvocation(object);
-			}
-		}
-		else
-		{
-			tallyInvocation(object);
-		}
+		getInvocationStatistic(object).totalInvocations.incrementAndGet();
 	}
 
 	/**
@@ -698,6 +683,12 @@ extends Descriptor
 		final AvailObject code = mutable.create(
 			literalsSize + outersSize + locals);
 
+		final InvocationStatistic statistic =
+			new InvocationStatistic();
+		statistic.countdownToReoptimize.set(L2Chunk.countdownForNewCode());
+		final AvailObject statisticPojo =
+			RawPojoDescriptor.identityWrap(statistic);
+
 		code.setSlot(NUM_LOCALS, locals);
 		code.setSlot(NUM_ARGS, numArgs);
 		code.setSlot(FRAME_SLOTS, slotCount);
@@ -707,7 +698,7 @@ extends Descriptor
 		code.setSlot(FUNCTION_TYPE, functionType);
 		code.setSlot(PROPERTY_ATOM, NilDescriptor.nil());
 		code.setSlot(STARTING_CHUNK, L2Chunk.unoptimizedChunk().chunkPojo);
-		code.countdownToReoptimize(L2Chunk.countdownForNewCode());
+		code.setSlot(INVOCATION_STATISTIC, statisticPojo);
 
 		// Fill in the literals.
 		int dest;
@@ -744,9 +735,9 @@ extends Descriptor
 	 * @param mutability
 	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 */
-	protected CompiledCodeDescriptor (final Mutability mutability)
+	private CompiledCodeDescriptor (final Mutability mutability)
 	{
-		super(mutability);
+		super(mutability, ObjectSlots.class, IntegerSlots.class);
 	}
 
 	/** The mutable {@link CompiledCodeDescriptor}. */

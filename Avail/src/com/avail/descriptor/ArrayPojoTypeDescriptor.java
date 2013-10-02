@@ -391,7 +391,7 @@ extends PojoTypeDescriptor
 	 */
 	private ArrayPojoTypeDescriptor (final Mutability mutability)
 	{
-		super(mutability);
+		super(mutability, ObjectSlots.class, IntegerSlots.class);
 	}
 
 	/** The mutable {@link ArrayPojoTypeDescriptor}. */

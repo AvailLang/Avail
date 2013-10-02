@@ -165,7 +165,7 @@ extends ParseNodeDescriptor
 	 */
 	private MarkerNodeDescriptor (final Mutability mutability)
 	{
-		super(mutability);
+		super(mutability, ObjectSlots.class, null);
 	}
 
 	/** The mutable {@link MarkerNodeDescriptor}. */

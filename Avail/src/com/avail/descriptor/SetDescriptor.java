@@ -571,7 +571,7 @@ extends Descriptor
 	 */
 	private SetDescriptor (final Mutability mutability)
 	{
-		super(mutability);
+		super(mutability, ObjectSlots.class, null);
 	}
 
 	/** The mutable {@link SetDescriptor}. */

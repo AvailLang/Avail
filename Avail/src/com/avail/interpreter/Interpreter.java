@@ -1043,7 +1043,7 @@ public final class Interpreter
 			log(
 				Level.FINER,
 				"starting new chunk ({0})",
-				chunkToResume.index());
+				chunkToResume);
 		}
 	}
 
@@ -1268,7 +1268,7 @@ public final class Interpreter
 	public boolean isInterruptRequested ()
 	{
 		return runtime.levelOneSafetyRequested()
-			|| runtime.clock - startTick >= timeSliceTicks
+			|| runtime.clock.get() - startTick >= timeSliceTicks
 			|| fiber().interruptRequestFlag(REIFICATION_REQUESTED);
 	}
 
@@ -1793,7 +1793,7 @@ public final class Interpreter
 	@SuppressWarnings("null")
 	@InnerAccess void run ()
 	{
-		startTick = runtime.clock;
+		startTick = runtime.clock.get();
 		while (!exitNow)
 		{
 			/**
@@ -1824,7 +1824,7 @@ public final class Interpreter
 					"d={0}: {1} (chunk={2}, off={3})",
 					depth,
 					operation.name(),
-					chunk().index(),
+					chunk(),
 					offset);
 			}
 			offset++;
@@ -2304,10 +2304,10 @@ public final class Interpreter
 				signatureBuilder.append(paramsType.typeAtIndex(i));
 			}
 			final String entry = String.format(
-				"#%d (^%s)[ch#%d]: %s [%s] (%s:%d)",
+				"#%d (^%s)[%s]: %s [%s] (%s:%d)",
 				line--,
 				frame.skipReturnFlag() ? "skip" : "check",
-				code.startingChunk().index(),
+				code.startingChunk(),
 				code.methodName().asNativeString(),
 				signatureBuilder.toString(),
 				code.module().equalsNil()

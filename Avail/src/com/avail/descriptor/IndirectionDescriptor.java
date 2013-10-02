@@ -202,7 +202,7 @@ extends AbstractDescriptor
 	{
 		final AvailObject next = object.slot(INDIRECTION_TARGET);
 		final AvailObject finalObject = next.traversed();
-		if (!next.sameAddressAs(object))
+		if (!finalObject.sameAddressAs(next))
 		{
 			object.setSlot(INDIRECTION_TARGET, finalObject);
 		}
@@ -223,7 +223,7 @@ extends AbstractDescriptor
 	 */
 	private IndirectionDescriptor (final Mutability mutability)
 	{
-		super(mutability);
+		super(mutability, ObjectSlots.class, IntegerSlots.class);
 	}
 
 	/** The mutable {@link IndirectionDescriptor}. */
@@ -298,11 +298,11 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_AddDependentChunkIndex (
+	void o_AddDependentChunk (
 		final AvailObject object,
-		final int aChunkIndex)
+		final L2Chunk chunk)
 	{
-		o_Traversed(object).addDependentChunkIndex(aChunkIndex);
+		o_Traversed(object).addDependentChunk(chunk);
 	}
 
 	@Override
@@ -938,11 +938,14 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	boolean o_EqualsRawPojo (
+	boolean o_EqualsRawPojoFor (
 		final AvailObject object,
-		final AvailObject aPojo)
+		final AvailObject otherRawPojo,
+		final @Nullable Object otherJavaObject)
 	{
-		return o_Traversed(object).equalsRawPojo(aPojo);
+		return o_Traversed(object).equalsRawPojoFor(
+			otherRawPojo,
+			otherJavaObject);
 	}
 
 	@Override
@@ -1524,11 +1527,11 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_RemoveDependentChunkIndex (
+	void o_RemoveDependentChunk (
 		final AvailObject object,
-		final int aChunkIndex)
+		final L2Chunk chunk)
 	{
-		o_Traversed(object).removeDependentChunkIndex(aChunkIndex);
+		o_Traversed(object).removeDependentChunk(chunk);
 	}
 
 	@Override
@@ -1664,7 +1667,7 @@ extends AbstractDescriptor
 	void o_SetStartingChunkAndReoptimizationCountdown (
 		final AvailObject object,
 		final L2Chunk chunk,
-		final int countdown)
+		final long countdown)
 	{
 		o_Traversed(object).setStartingChunkAndReoptimizationCountdown(
 			chunk, countdown);
@@ -3692,15 +3695,16 @@ extends AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param aRawPojo
+	 * @param otherJavaObject
 	 * @return
 	 */
 	@Override
 	boolean o_EqualsEqualityRawPojo (
 		final AvailObject object,
-		final AvailObject aRawPojo)
+		final AvailObject otherEqualityRawPojo,
+		final @Nullable Object otherJavaObject)
 	{
-		return o_Traversed(object).equalsEqualityRawPojo(aRawPojo);
+		return o_Traversed(object).equalsEqualityRawPojoFor(object, otherJavaObject);
 	}
 
 	/**
@@ -3708,7 +3712,7 @@ extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	Object o_JavaObject (final AvailObject object)
+	@Nullable Object o_JavaObject (final AvailObject object)
 	{
 		return o_Traversed(object).javaObject();
 	}

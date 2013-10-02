@@ -42,6 +42,7 @@ import com.avail.AvailRuntime;
 import com.avail.annotations.*;
 import com.avail.exceptions.*;
 import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.serialization.SerializerOperation;
 
 /**
@@ -409,20 +410,20 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	void o_AddDependentChunkIndex (
+	void o_AddDependentChunk (
 		final AvailObject object,
-		final int aChunkIndex)
+		final L2Chunk chunk)
 	{
 		assert !isShared();
 		final A_Variable sharedVariable = object.makeShared();
-		sharedVariable.addDependentChunkIndex(aChunkIndex);
+		sharedVariable.addDependentChunk(chunk);
 		object.becomeIndirectionTo(sharedVariable);
 	}
 
 	@Override @AvailMethod
-	void o_RemoveDependentChunkIndex (
+	void o_RemoveDependentChunk (
 		final AvailObject object,
-		final int aChunkIndex)
+		final L2Chunk chunk)
 	{
 		assert !isShared();
 		// This representation doesn't support dependent chunks, so the
@@ -623,11 +624,33 @@ extends Descriptor
 	 * Construct a new {@link VariableDescriptor}.
 	 *
 	 * @param mutability
+	 *            The {@linkplain Mutability mutability} of the new descriptor.
+	 * @param objectSlotsEnumClass
+	 *            The Java {@link Class} which is a subclass of {@link
+	 *            ObjectSlotsEnum} and defines this object's object slots
+	 *            layout, or null if there are no object slots.
+	 * @param integerSlotsEnumClass
+	 *            The Java {@link Class} which is a subclass of {@link
+	 *            IntegerSlotsEnum} and defines this object's object slots
+	 *            layout, or null if there are no integer slots.
+	 */
+	protected VariableDescriptor (
+		final Mutability mutability,
+		final @Nullable Class<? extends ObjectSlotsEnum> objectSlotsEnumClass,
+		final @Nullable Class<? extends IntegerSlotsEnum> integerSlotsEnumClass)
+	{
+		super(mutability, objectSlotsEnumClass, integerSlotsEnumClass);
+	}
+
+	/**
+	 * Construct a new {@link VariableDescriptor}.
+	 *
+	 * @param mutability
 	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 */
-	protected VariableDescriptor (final Mutability mutability)
+	private VariableDescriptor (final Mutability mutability)
 	{
-		super(mutability);
+		super(mutability, ObjectSlots.class, IntegerSlots.class);
 	}
 
 	/** The mutable {@link VariableDescriptor}. */

@@ -550,7 +550,7 @@ extends AbstractEnumerationTypeDescriptor
 	 */
 	private BottomTypeDescriptor ()
 	{
-		super(Mutability.SHARED);
+		super(Mutability.SHARED, null, null);
 	}
 
 	@Override

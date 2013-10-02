@@ -2158,7 +2158,7 @@ extends ExtendedIntegerDescriptor
 	 */
 	private IntegerDescriptor (final Mutability mutability)
 	{
-		super(mutability);
+		super(mutability, null, IntegerSlots.class);
 	}
 
 	/** The mutable {@link IntegerDescriptor}. */

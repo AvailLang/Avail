@@ -524,7 +524,7 @@ extends TupleDescriptor
 		final Mutability mutability,
 		final int unusedNybbles)
 	{
-		super(mutability);
+		super(mutability, null, IntegerSlots.class);
 		unusedNybblesOfLastWord = unusedNybbles;
 	}
 

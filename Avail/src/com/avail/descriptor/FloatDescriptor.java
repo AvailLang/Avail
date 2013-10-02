@@ -645,7 +645,7 @@ extends AbstractNumberDescriptor
 	 */
 	private FloatDescriptor (final Mutability mutability)
 	{
-		super(mutability);
+		super(mutability, null, IntegerSlots.class);
 	}
 
 	/** The mutable {@link FloatDescriptor}. */

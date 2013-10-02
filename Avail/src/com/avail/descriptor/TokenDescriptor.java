@@ -126,15 +126,6 @@ extends Descriptor
 		LITERAL,
 
 		/**
-		 * A power string token, detected at lexical scanning time. Actually,
-		 * that "scanning time" distinction is a bit vacuous, since lexical
-		 * scanning is fully incremental and on-demand, specifically to support
-		 * power strings. This token type is only applicable for a {@link
-		 * PowerStringTokenDescriptor power string token}.
-		 */
-		POWER_STRING,
-
-		/**
 		 * A single operator character, which is anything that isn't whitespace,
 		 * a keyword character, or an Avail reserved character.
 		 */
@@ -282,11 +273,33 @@ extends Descriptor
 	 * Construct a new {@link TokenDescriptor}.
 	 *
 	 * @param mutability
+	 *            The {@linkplain Mutability mutability} of the new descriptor.
+	 * @param objectSlotsEnumClass
+	 *            The Java {@link Class} which is a subclass of {@link
+	 *            ObjectSlotsEnum} and defines this object's object slots
+	 *            layout, or null if there are no object slots.
+	 * @param integerSlotsEnumClass
+	 *            The Java {@link Class} which is a subclass of {@link
+	 *            IntegerSlotsEnum} and defines this object's object slots
+	 *            layout, or null if there are no integer slots.
+	 */
+	protected TokenDescriptor (
+		final Mutability mutability,
+		final @Nullable Class<? extends ObjectSlotsEnum> objectSlotsEnumClass,
+		final @Nullable Class<? extends IntegerSlotsEnum> integerSlotsEnumClass)
+	{
+		super(mutability, objectSlotsEnumClass, integerSlotsEnumClass);
+	}
+
+	/**
+	 * Construct a new {@link TokenDescriptor}.
+	 *
+	 * @param mutability
 	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 */
-	protected TokenDescriptor (final Mutability mutability)
+	private TokenDescriptor (final Mutability mutability)
 	{
-		super(mutability);
+		super(mutability, ObjectSlots.class, IntegerSlots.class);
 	}
 
 	/** The mutable {@link TokenDescriptor}. */

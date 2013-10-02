@@ -766,9 +766,9 @@ extends AbstractNumberDescriptor
 	 * @param mutability
 	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 */
-	protected DoubleDescriptor (final Mutability mutability)
+	private DoubleDescriptor (final Mutability mutability)
 	{
-		super(mutability);
+		super(mutability, null, IntegerSlots.class);
 	}
 
 	/** The mutable {@link DoubleDescriptor}. */

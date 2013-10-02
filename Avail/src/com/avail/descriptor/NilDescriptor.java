@@ -179,9 +179,9 @@ extends Descriptor
 	 * @param mutability
 	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 */
-	protected NilDescriptor (final Mutability mutability)
+	private NilDescriptor (final Mutability mutability)
 	{
-		super(mutability);
+		super(mutability, null, null);
 	}
 
 	/** The mutable {@link NilDescriptor}. */

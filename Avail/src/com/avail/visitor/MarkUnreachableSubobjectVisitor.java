@@ -69,21 +69,15 @@ extends AvailSubobjectVisitor
 		final A_BasicObject parentObject,
 		final AvailObject childObject)
 	{
-//		if (!canDestroyObjects())
-//		{
-//			error("Don't invoke this if destructions are disallowed");
-//			return;
-//		}
 		if (!childObject.descriptor().isMutable())
 		{
 			return;
 		}
 		if (childObject.sameAddressAs(exclusion))
 		{
+			// The excluded object was reached.
 			return;
 		}
-		// The excluded object was reached.
-		//
 		// Recursively invoke the iterator on the subobjects of subobject...
 		childObject.scanSubobjects(this);
 		// Indicate the object is no longer valid and should not ever be used

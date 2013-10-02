@@ -365,10 +365,6 @@ implements
 		{
 			return;
 		}
-//		if (!canDestroyObjects())
-//		{
-//			error("Don't invoke this if destructions are disallowed");
-//		}
 		if (sameAddressAs(exceptMe))
 		{
 			error("What happened?  This object is also the excluded one.");
@@ -512,14 +508,11 @@ implements
 	 * list of chunks that depend on it.  The receiver is a {@linkplain
 	 * MethodDescriptor method}.  A change in the method's membership (e.g.,
 	 * adding a new method definition) will cause the chunk to be invalidated.
-	 *
-	 * @param aChunkIndex
 	 */
 	@Override
-	public void addDependentChunkIndex (
-		final int aChunkIndex)
+	public void addDependentChunk (final L2Chunk chunk)
 	{
-		descriptor.o_AddDependentChunkIndex(this, aChunkIndex);
+		descriptor.o_AddDependentChunk(this, chunk);
 	}
 
 	/**
@@ -1910,13 +1903,19 @@ implements
 	}
 
 	/**
-	 * @param aRawPojo
+	 * @param otherRawPojo
+	 * @param otherJavaObject
 	 * @return
 	 */
 	@Override
-	public boolean equalsRawPojo (final AvailObject aRawPojo)
+	public boolean equalsRawPojoFor (
+		final AvailObject otherRawPojo,
+		final @Nullable Object otherJavaObject)
 	{
-		return descriptor.o_EqualsRawPojo(this, aRawPojo);
+		return descriptor.o_EqualsRawPojoFor(
+			this,
+			otherRawPojo,
+			otherJavaObject);
 	}
 
 	/**
@@ -3593,10 +3592,9 @@ implements
 	 * Dispatch to the descriptor.
 	 */
 	@Override
-	public void removeDependentChunkIndex (
-		final int aChunkIndex)
+	public void removeDependentChunk (final L2Chunk chunk)
 	{
-		descriptor.o_RemoveDependentChunkIndex(this, aChunkIndex);
+		descriptor.o_RemoveDependentChunk(this, chunk);
 	}
 
 	/**
@@ -3864,7 +3862,7 @@ implements
 	@Override
 	public void setStartingChunkAndReoptimizationCountdown (
 		final L2Chunk chunk,
-		final int countdown)
+		final long countdown)
 	{
 		descriptor.o_SetStartingChunkAndReoptimizationCountdown(
 			this, chunk, countdown);
@@ -5746,7 +5744,7 @@ implements
 	 * @return
 	 */
 	@Override
-	public Object marshalToJava (final @Nullable Class<?> classHint)
+	public @Nullable Object marshalToJava (final @Nullable Class<?> classHint)
 	{
 		return descriptor.o_MarshalToJava(this, classHint);
 	}
@@ -5810,13 +5808,18 @@ implements
 	}
 
 	/**
-	 * @param aRawPojo
+	 * @param otherJavaObject
 	 * @return
 	 */
 	@Override
-	public boolean equalsEqualityRawPojo (final AvailObject aRawPojo)
+	public boolean equalsEqualityRawPojoFor (
+		final AvailObject otherEqualityRawPojo,
+		final @Nullable Object otherJavaObject)
 	{
-		return descriptor.o_EqualsEqualityRawPojo(this, aRawPojo);
+		return descriptor.o_EqualsEqualityRawPojo(
+			this,
+			otherEqualityRawPojo,
+			otherJavaObject);
 	}
 
 	/**

@@ -748,9 +748,9 @@ extends TypeDescriptor
 	 * @param mutability
 	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 */
-	protected TupleTypeDescriptor (final Mutability mutability)
+	private TupleTypeDescriptor (final Mutability mutability)
 	{
-		super(mutability);
+		super(mutability, ObjectSlots.class, null);
 	}
 
 	/** The mutable {@link TupleTypeDescriptor}. */

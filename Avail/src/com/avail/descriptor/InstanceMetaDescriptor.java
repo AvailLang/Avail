@@ -590,9 +590,9 @@ extends AbstractEnumerationTypeDescriptor
 	 * @param mutability
 	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 */
-	protected InstanceMetaDescriptor (final Mutability mutability)
+	private InstanceMetaDescriptor (final Mutability mutability)
 	{
-		super(mutability);
+		super(mutability, ObjectSlots.class, null);
 	}
 
 	/** The mutable {@link InstanceMetaDescriptor}. */

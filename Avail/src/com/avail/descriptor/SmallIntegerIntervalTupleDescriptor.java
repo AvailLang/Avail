@@ -474,7 +474,7 @@ extends TupleDescriptor
 	 */
 	public SmallIntegerIntervalTupleDescriptor (final Mutability mutability)
 	{
-		super(mutability);
+		super(mutability, null, IntegerSlots.class);
 	}
 
 	/**

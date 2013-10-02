@@ -191,7 +191,7 @@ extends AtomWithPropertiesDescriptor
 	 */
 	private AtomWithPropertiesSharedDescriptor ()
 	{
-		super(Mutability.SHARED);
+		super(Mutability.SHARED, ObjectSlots.class, IntegerSlots.class);
 	}
 
 	/** The shared {@link AtomWithPropertiesDescriptor}. */

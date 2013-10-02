@@ -248,7 +248,7 @@ extends Descriptor
 	 */
 	private CharacterDescriptor (final Mutability mutability)
 	{
-		super(mutability);
+		super(mutability, null, IntegerSlots.class);
 	}
 
 	/** The mutable {@link CharacterDescriptor}. */

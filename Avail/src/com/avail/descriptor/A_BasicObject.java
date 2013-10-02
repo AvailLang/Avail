@@ -486,10 +486,13 @@ public interface A_BasicObject
 	boolean equalsPrimitiveType (A_Type aPrimitiveType);
 
 	/**
-	 * @param aRawPojo
+	 * @param otherRawPojo TODO
+	 * @param otherJavaObject
 	 * @return
 	 */
-	boolean equalsRawPojo (AvailObject aRawPojo);
+	boolean equalsRawPojoFor (
+		AvailObject otherRawPojo,
+		@Nullable Object otherJavaObject);
 
 	/**
 	 * Dispatch to the descriptor.
@@ -1040,7 +1043,7 @@ public interface A_BasicObject
 	 * @param classHint
 	 * @return
 	 */
-	Object marshalToJava (@Nullable Class<?> classHint);
+	@Nullable Object marshalToJava (@Nullable Class<?> classHint);
 
 	/**
 	 * @param field
@@ -1052,10 +1055,13 @@ public interface A_BasicObject
 		AvailObject receiver);
 
 	/**
-	 * @param aRawPojo
+	 * @param otherEqualityRawPojo TODO
+	 * @param otherJavaObject
 	 * @return
 	 */
-	boolean equalsEqualityRawPojo (AvailObject aRawPojo);
+	boolean equalsEqualityRawPojoFor (
+		AvailObject otherEqualityRawPojo,
+		@Nullable Object otherJavaObject);
 
 	/**
 	 * @return

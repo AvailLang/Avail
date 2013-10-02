@@ -464,9 +464,9 @@ extends TupleDescriptor
 	 * @param mutability
 	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 */
-	protected ByteArrayTupleDescriptor (final Mutability mutability)
+	private ByteArrayTupleDescriptor (final Mutability mutability)
 	{
-		super(mutability);
+		super(mutability, ObjectSlots.class, IntegerSlots.class);
 	}
 
 	/** The mutable {@link ByteArrayTupleDescriptor}. */

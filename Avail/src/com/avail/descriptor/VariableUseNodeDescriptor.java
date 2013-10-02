@@ -248,7 +248,7 @@ extends ParseNodeDescriptor
 	 */
 	private VariableUseNodeDescriptor (final Mutability mutability)
 	{
-		super(mutability);
+		super(mutability, ObjectSlots.class, IntegerSlots.class);
 	}
 
 	/** The mutable {@link VariableUseNodeDescriptor}. */

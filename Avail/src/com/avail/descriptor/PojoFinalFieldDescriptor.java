@@ -178,7 +178,7 @@ extends Descriptor
 	 */
 	public PojoFinalFieldDescriptor (final Mutability mutability)
 	{
-		super(mutability);
+		super(mutability, ObjectSlots.class, null);
 	}
 
 	/** The mutable {@link PojoFinalFieldDescriptor}. */

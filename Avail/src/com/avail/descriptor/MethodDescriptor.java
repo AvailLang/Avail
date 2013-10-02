@@ -140,12 +140,14 @@ extends Descriptor
 		SEALED_ARGUMENTS_TYPES_TUPLE,
 
 		/**
-		 * The {@linkplain SetDescriptor set} of {@linkplain L2Chunk#index()
-		 * indices} of {@linkplain L2Chunk level two chunks} that depend on the
-		 * membership of this {@linkplain MethodDescriptor method}.  A change to
-		 * the membership should cause these chunks to be invalidated.
+		 * A {@linkplain RawPojoDescriptor raw pojo} holding a weak set
+		 * (implemented as the {@linkplain Map#keySet() key set} of a {@link
+		 * WeakHashMap}) of {@link L2Chunk}s that depend on the membership of
+		 * this method.  A change to the membership will invalidate all such
+		 * chunks.  This field holds the {@linkplain NilDescriptor#nil() nil}
+		 * object initially.
 		 */
-		DEPENDENT_CHUNK_INDICES
+		DEPENDENT_CHUNKS_WEAK_SET_POJO
 	}
 
 	/**
@@ -958,7 +960,7 @@ extends Descriptor
 		return e == OWNING_BUNDLES
 			|| e == DEFINITIONS_TUPLE
 			|| e == PRIVATE_TESTING_TREE
-			|| e == DEPENDENT_CHUNK_INDICES
+			|| e == DEPENDENT_CHUNKS_WEAK_SET_POJO
 			|| e == SEMANTIC_RESTRICTIONS_SET
 			|| e == SEALED_ARGUMENTS_TYPES_TUPLE;
 	}
@@ -1050,24 +1052,34 @@ extends Descriptor
 		return METHOD.o();
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override @AvailMethod
-	void o_AddDependentChunkIndex (
+	void o_AddDependentChunk (
 		final AvailObject object,
-		final int aChunkIndex)
+		final L2Chunk chunk)
 	{
-		// Record the fact that the chunk indexed by aChunkIndex depends on
-		// this object not changing.  Local synchronization is sufficient, since
-		// invalidation can't happen while L2 code is running (and therefore
-		// when the L2Translator could be calling this).
+		// Record the fact that the given chunk depends on this object not
+		// changing.  Local synchronization is sufficient, since invalidation
+		// can't happen while L2 code is running (and therefore when the
+		// L2Translator could be calling this).
 		synchronized (object)
 		{
-			A_Set indices = object.slot(DEPENDENT_CHUNK_INDICES);
-			indices = indices.setWithElementCanDestroy(
-				IntegerDescriptor.fromInt(aChunkIndex),
-				true);
-			object.setSlot(
-				DEPENDENT_CHUNK_INDICES,
-				indices.traversed().makeShared());
+			final A_BasicObject pojo =
+				object.slot(DEPENDENT_CHUNKS_WEAK_SET_POJO);
+			final Set<L2Chunk> chunkSet;
+			if (pojo.equalsNil())
+			{
+				chunkSet = Collections.newSetFromMap(
+					new WeakHashMap<L2Chunk, Boolean>());
+				object.setSlot(
+					DEPENDENT_CHUNKS_WEAK_SET_POJO,
+					RawPojoDescriptor.identityWrap(chunkSet).makeShared());
+			}
+			else
+			{
+				chunkSet = (Set<L2Chunk>) pojo.javaObject();
+			}
+			chunkSet.add(chunk);
 		}
 	}
 
@@ -1257,29 +1269,23 @@ extends Descriptor
 	}
 
 	/**
-	 * Remove the chunk from my set of dependent chunks. This is probably
-	 * because the chunk has been (A) removed by the garbage collector, or (B)
-	 * invalidated by a new definition in either me or another method that the
-	 * chunk is contingent on.
+	 * Remove the chunk from my set of dependent chunks because it has been
+	 * invalidated by a new definition in either me or another method on which
+	 * the chunk is contingent.
 	 */
 	@Override @AvailMethod
-	void o_RemoveDependentChunkIndex (
+	void o_RemoveDependentChunk (
 		final AvailObject object,
-		final int aChunkIndex)
+		final L2Chunk chunk)
 	{
-		// Record the fact that the chunk indexed by aChunkIndex depends on
-		// this object not changing.  Local synchronization is sufficient, since
-		// invalidation can't happen while L2 code is running (and therefore
-		// when the L2Translator could be calling this).
-		synchronized (object)
+		assert L2Chunk.invalidationLock.isHeldByCurrentThread();
+		final A_BasicObject pojo =
+			object.slot(DEPENDENT_CHUNKS_WEAK_SET_POJO);
+		if (!pojo.equalsNil())
 		{
-			A_Set indices =
-				object.slot(DEPENDENT_CHUNK_INDICES);
-			indices = indices.setWithoutElementCanDestroy(
-				IntegerDescriptor.fromInt(aChunkIndex),
-				true);
-			object.setSlot(
-				DEPENDENT_CHUNK_INDICES, indices.traversed().makeShared());
+			@SuppressWarnings("unchecked")
+			final Set<L2Chunk> chunkSet = (Set<L2Chunk>) pojo.javaObject();
+			chunkSet.remove(chunk);
 		}
 	}
 
@@ -1472,7 +1478,7 @@ extends Descriptor
 		result.setSlot(PRIVATE_TESTING_TREE, NilDescriptor.nil());
 		result.setSlot(SEMANTIC_RESTRICTIONS_SET, SetDescriptor.empty());
 		result.setSlot(SEALED_ARGUMENTS_TYPES_TUPLE, TupleDescriptor.empty());
-		result.setSlot(DEPENDENT_CHUNK_INDICES, SetDescriptor.empty());
+		result.setSlot(DEPENDENT_CHUNKS_WEAK_SET_POJO, NilDescriptor.nil());
 		result.makeShared();
 		return result;
 	}
@@ -1481,7 +1487,8 @@ extends Descriptor
 	 * The membership of this {@linkplain MethodDescriptor method} has changed.
 	 * Invalidate anything that depended on the previous membership, including
 	 * the {@linkplain ObjectSlots#PRIVATE_TESTING_TREE testing tree} and any
-	 * dependent level two chunks.
+	 * {@linkplain ObjectSlots#DEPENDENT_CHUNKS_WEAK_SET_POJO dependent}
+	 * {@link L2Chunk}s.
 	 *
 	 * @param object The method that changed.
 	 */
@@ -1489,19 +1496,21 @@ extends Descriptor
 	{
 		assert L2Chunk.invalidationLock.isHeldByCurrentThread();
 		// Invalidate any affected level two chunks.
-		final A_Set chunkIndices = object.slot(DEPENDENT_CHUNK_INDICES);
-		if (chunkIndices.setSize() > 0)
+		final A_BasicObject pojo = object.slot(DEPENDENT_CHUNKS_WEAK_SET_POJO);
+		if (!pojo.equalsNil())
 		{
-			// Use makeImmutable() to avoid membership changes while iterating.
-			for (final A_Number chunkIndex : chunkIndices.makeImmutable())
+			// Copy the set of chunks to avoid modification during iteration.
+			@SuppressWarnings("unchecked")
+			final
+			Set<L2Chunk> originalSet = (Set<L2Chunk>) pojo.javaObject();
+			final Set<L2Chunk> chunksToInvalidate =
+				new HashSet<>(originalSet);
+			for (final L2Chunk chunk : chunksToInvalidate)
 			{
-				final int index = chunkIndex.extractInt();
-				L2Chunk.invalidateChunkAtIndex(index);
+				chunk.invalidate();
 			}
-			// The chunk invalidations should have removed all dependencies...
-			final A_Set chunkIndicesAfter =
-				object.slot(DEPENDENT_CHUNK_INDICES);
-			assert chunkIndicesAfter.setSize() == 0;
+			// The chunk invalidations should have removed all dependencies.
+			assert originalSet.isEmpty();
 		}
 		// Clear the privateTestingTree cache.
 		object.setSlot(PRIVATE_TESTING_TREE, NilDescriptor.nil());
@@ -1515,7 +1524,7 @@ extends Descriptor
 	 */
 	private MethodDescriptor (final Mutability mutability)
 	{
-		super(mutability);
+		super(mutability, ObjectSlots.class, IntegerSlots.class);
 	}
 
 	/** The mutable {@link MethodDescriptor}. */

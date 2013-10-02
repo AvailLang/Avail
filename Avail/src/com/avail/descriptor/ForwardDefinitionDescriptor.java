@@ -164,9 +164,9 @@ extends DefinitionDescriptor
 	 * @param mutability
 	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 */
-	protected ForwardDefinitionDescriptor (final Mutability mutability)
+	private ForwardDefinitionDescriptor (final Mutability mutability)
 	{
-		super(mutability);
+		super(mutability, ObjectSlots.class, null);
 	}
 
 	/** The mutable {@link ForwardDefinitionDescriptor}. */

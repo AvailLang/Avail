@@ -459,7 +459,7 @@ extends TupleDescriptor
 		final Mutability mutability,
 		final int unusedBytes)
 	{
-		super(mutability);
+		super(mutability, null, IntegerSlots.class);
 		unusedBytesOfLastWord = unusedBytes;
 	}
 

@@ -426,7 +426,7 @@ extends StringDescriptor
 		final Mutability mutability,
 		final int unusedShortsOfLastWord)
 	{
-		super(mutability);
+		super(mutability, null, IntegerSlots.class);
 		this.unusedShortsOfLastWord = unusedShortsOfLastWord;
 	}
 

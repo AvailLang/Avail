@@ -71,6 +71,16 @@ import com.avail.utility.*;
 public abstract class AbstractAvailCompiler
 {
 	/**
+	 * A {@code ProgressReporter} is used to convey to the compiler what should
+	 * be done each time global progress is made.
+	 */
+	public interface ProgressReporter
+	extends Continuation4<ModuleName, Long, Long, Long>
+	{
+		// nothing
+	}
+
+	/**
 	 * The {@link AvailRuntime} for the compiler. Since a compiler cannot
 	 * migrate between two runtime environments, it is safe to cache it for
 	 * efficient access.
@@ -5072,8 +5082,7 @@ public abstract class AbstractAvailCompiler
 		else if (!afterHeader.atEnd())
 		{
 			final A_Token token = afterHeader.peekToken();
-			final Continuation4<ModuleName, Long, Long, Long> reporter =
-				progressReporter;
+			final ProgressReporter reporter = progressReporter;
 			assert reporter != null;
 			reporter.value(
 				moduleHeader.moduleName,
@@ -5253,22 +5262,21 @@ public abstract class AbstractAvailCompiler
 	 * Clear any information about potential problems encountered during
 	 * parsing.
 	 */
-	@InnerAccess void clearExpectations ()
+	@InnerAccess synchronized void clearExpectations ()
 	{
 		greatestGuess = -1;
 		greatExpectations.clear();
 	}
 
 	/**
-	 * The {@linkplain Continuation4 continuation} that reports compilation
-	 * progress at various checkpoints. It that accepts the {@linkplain
-	 * ResolvedModuleName name} of the {@linkplain ModuleDescriptor module}
-	 * undergoing {@linkplain AbstractAvailCompiler compilation}, the line
-	 * number on which the last complete statement concluded, the position of
-	 * the ongoing parse (in bytes), and the size of the module (in bytes).
+	 * The {@linkplain ProgressReporter} that reports compilation progress at
+	 * various checkpoints. It accepts the {@linkplain ResolvedModuleName name}
+	 * of the {@linkplain ModuleDescriptor module} undergoing {@linkplain
+	 * AbstractAvailCompiler compilation}, the line number on which the last
+	 * complete statement concluded, the position of the ongoing parse (in
+	 * bytes), and the size of the module (in bytes).
 	 */
-	@InnerAccess @Nullable Continuation4<ModuleName, Long, Long, Long>
-		progressReporter;
+	@InnerAccess @Nullable ProgressReporter progressReporter;
 
 	/**
 	 * The {@linkplain Continuation1 continuation} that reports success of
@@ -5306,7 +5314,7 @@ public abstract class AbstractAvailCompiler
 	 *
 	 * @param reporter
 	 *        How to report progress to the client who instigated compilation.
-	 *        This {@linkplain Continuation4 continuation} that accepts the
+	 *        This {@linkplain ProgressReporter continuation} that accepts the
 	 *        {@linkplain ModuleName name} of the {@linkplain ModuleDescriptor
 	 *        module} undergoing {@linkplain AbstractAvailCompiler compilation},
 	 *        the line number on which the last complete statement concluded,
@@ -5321,7 +5329,7 @@ public abstract class AbstractAvailCompiler
 	 *        Throwable throwable}.
 	 */
 	public synchronized void parseModule (
-		final Continuation4<ModuleName, Long, Long, Long> reporter,
+		final ProgressReporter reporter,
 		final Continuation1<A_Module> succeed,
 		final Continuation1<Throwable> fail)
 	{

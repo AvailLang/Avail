@@ -229,7 +229,7 @@ implements Comparable<AvailTask>, Runnable
 	@Override
 	public int compareTo (final @Nullable AvailTask other)
 	{
-		return priority - other.priority;
+		return Integer.compare(priority, other.priority);
 	}
 
 	@Override

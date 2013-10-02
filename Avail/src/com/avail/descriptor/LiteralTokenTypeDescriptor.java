@@ -227,9 +227,9 @@ extends TypeDescriptor
 	 * @param mutability
 	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 */
-	protected LiteralTokenTypeDescriptor (final Mutability mutability)
+	private LiteralTokenTypeDescriptor (final Mutability mutability)
 	{
-		super(mutability);
+		super(mutability, ObjectSlots.class, null);
 	}
 
 	/** The mutable {@link LiteralTokenTypeDescriptor}. */

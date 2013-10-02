@@ -225,7 +225,7 @@ extends Descriptor
 	 */
 	private SyntheticMessageBundleDescriptor (final Mutability mutability)
 	{
-		super(mutability);
+		super(mutability, ObjectSlots.class, null);
 	}
 
 	/** The mutable {@link SyntheticMessageBundleDescriptor}. */

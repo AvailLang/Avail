@@ -131,7 +131,7 @@ implements Comparable<BitField>
 		assert integerSlot == bitField.integerSlot
 			: "Bit fields of different slots are incomparable";
 		// Order by descending shift values.
-		return bitField.shift - shift;
+		return Integer.compare(bitField.shift, shift);
 	}
 
 	@Override

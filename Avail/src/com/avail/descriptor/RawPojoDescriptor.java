@@ -32,11 +32,8 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.RawPojoDescriptor.IntegerSlots.INDEX;
 import static com.avail.descriptor.TypeDescriptor.Types.RAW_POJO;
-import java.lang.ref.*;
 import java.util.*;
-import java.util.concurrent.locks.ReentrantLock;
 import com.avail.annotations.*;
 
 /**
@@ -52,271 +49,53 @@ public class RawPojoDescriptor
 extends Descriptor
 {
 	/**
-	 * The {@linkplain List list} of all {@linkplain Object pojos} accessible
-	 * from Avail.
+	 * The actual Java {@link Object} represented by the {@link AvailObject}
+	 * that uses this {@linkplain AbstractAvailObject#descriptor descriptor}.
 	 */
-	@InnerAccess static final List<Object> allPojosStrongly =
-		new ArrayList<>(100);
-
-	/**
-	 * A {@code WeakPojoReference} is the mechanism by which {@linkplain
-	 * RawPojoDescriptor raw pojos} are discarded by the Java garbage collector.
-	 * {@link RawPojoDescriptor#allPojosWeakly} retains weakly all {@linkplain
-	 * AvailObject Avail objects} containing pojo references. When the garbage
-	 * collector clears a particular {@linkplain WeakReference weak reference},
-	 * the pojo corresponding to the index embedded in the weak reference is
-	 * discarded from {@link RawPojoDescriptor#allPojosStrongly}, where, as the
-	 * name suggests, it is strongly held. The index may then be recycled when
-	 * the next pojo is created.
-	 */
-	private static class WeakPojoReference
-	extends WeakReference<AvailObject>
-	{
-		/**
-		 * The {@linkplain ReferenceQueue finalization queue} onto which
-		 * {@linkplain RawPojoDescriptor Avail pojos} will be placed when the
-		 * Java garbage collector reclaims them.
-		 */
-		static @Nullable ReferenceQueue<AvailObject> recyclingQueue =
-			new ReferenceQueue<AvailObject>();
-
-		/**
-		 * The {@linkplain RawPojoDescriptor.IntegerSlots#INDEX index} of
-		 * the {@linkplain RawPojoDescriptor Avail pojo} in the {@linkplain
-		 * RawPojoDescriptor#allPojosStrongly strong} and {@linkplain
-		 * RawPojoDescriptor#allPojosWeakly weak tables} of pojos.
-		 */
-		int index;
-
-		/**
-		 * Construct a new {@link WeakPojoReference}.
-		 *
-		 * @param referent The {@linkplain RawPojoDescriptor referent}.
-		 */
-		WeakPojoReference (
-			final AvailObject referent)
-		{
-			super(referent, recyclingQueue);
-			assert referent.isRawPojo();
-			this.index = referent.slot(INDEX);
-		}
-
-		@Override
-		public String toString ()
-		{
-			return String.format(
-				"weak ref@%d = %s",
-				index,
-				String.valueOf(allPojosStrongly.get(index)));
-		}
-	}
-
-	/**
-	 * The {@linkplain List list} of all {@linkplain WeakPojoReference weak
-	 * references} to {@linkplain Object pojos} wrapped in {@linkplain
-	 * AvailObject Avail objects}.
-	 */
-	private static final List<WeakPojoReference> allPojosWeakly =
-		new ArrayList<>(100);
-
-	/**
-	 * The {@linkplain ReentrantLock lock} that guards access to the {@linkplain
-	 * #allPojosStrongly strong} and {@linkplain #allPojosWeakly weak} pojo
-	 * tables.
-	 */
-	protected static final ReentrantLock pojosLock = new ReentrantLock();
-
-	/**
-	 * Compact the {@linkplain #allPojosStrongly strong} and {@linkplain
-	 * #allPojosWeakly weak} tables of pojos. Though it is likely that these
-	 * tables will be maximally compact after the method returns, poorly timed
-	 * garbage collector interference may prevent this; therefore it cannot be
-	 * promised.
-	 */
-	public static void compactPojos ()
-	{
-		// Grab the lock before modifying the (global) pojo tables.
-		pojosLock.lock();
-		try
-		{
-			// Start by finding the highest-indexed weak reference whose
-			// referent is not null.
-			final int size = allPojosWeakly.size();
-			int newSize = size;
-
-			// Consume all defunct weak references from the queue.
-			Reference<? extends AvailObject> ref;
-			final ReferenceQueue<AvailObject> refQueue =
-				WeakPojoReference.recyclingQueue;
-			assert refQueue != null;
-			while ((ref = refQueue.poll()) != null)
-			{
-				assert ref.get() == null;
-				final WeakPojoReference oldRef = (WeakPojoReference) ref;
-				final int destinationIndex = oldRef.index;
-				final int sourceIndex = newSize - 1;
-				if (destinationIndex != sourceIndex)
-				{
-					final WeakPojoReference copiedReference =
-						allPojosWeakly.get(sourceIndex);
-					allPojosStrongly.set(
-						destinationIndex, allPojosStrongly.get(sourceIndex));
-					allPojosWeakly.set(destinationIndex, copiedReference);
-					copiedReference.index = destinationIndex;
-					// It is possible that the garbage collector cleared the
-					// copied weak reference while we were processing the queue.
-					// Take a strong reference to the referent before trying to
-					// update its INDEX integer slot. Note that this situation
-					// is not harmful as long as we are careful to avoid
-					// NullPointerExceptions; it just means that the tables
-					// won't necessarily be maximally compact when this method
-					// returns. It may still turn out maximally compact if the
-					// garbage collector adds the newly defunct weak reference
-					// to the queue before the loop exits.
-					final AvailObject object = copiedReference.get();
-					if (object != null)
-					{
-						assert object.descriptor() instanceof RawPojoDescriptor;
-						object.setSlot(INDEX, destinationIndex);
-					}
-				}
-				allPojosStrongly.remove(sourceIndex);
-				allPojosWeakly.remove(sourceIndex);
-				newSize--;
-			}
-		}
-		finally
-		{
-			pojosLock.unlock();
-		}
-	}
-
-	/** The layout of the integer slots. */
-	public enum IntegerSlots
-	implements IntegerSlotsEnum
-	{
-		/**
-		 * An index into the {@linkplain RawPojoDescriptor#allPojosStrongly
-		 * strong} and {@linkplain RawPojoDescriptor#allPojosWeakly weak tables
-		 * of pojos}. As such it constitutes an abstract reference to a
-		 * particular pojo.
-		 */
-		INDEX
-	}
-
-	@Override boolean allowsImmutableToMutableReferenceInField (
-		final AbstractSlotsEnum e)
-	{
-		// Indices are allowed to move because of compaction (triggered by the
-		// Java garbage collector).
-		return e == INDEX;
-	}
-
-	/**
-	 * Answer the {@linkplain Object pojo} wrapped by the specified {@linkplain
-	 * AvailObject Avail object}.
-	 *
-	 * @param object An object.
-	 * @return A pojo.
-	 */
-	private static final Object getPojo (final A_BasicObject object)
-	{
-		pojosLock.lock();
-		try
-		{
-			assert object.isRawPojo();
-			final Object pojo = allPojosStrongly.get(
-				object.traversed().slot(INDEX));
-			return pojo;
-		}
-		finally
-		{
-			pojosLock.unlock();
-		}
-	}
+	final @Nullable Object javaObject;
 
 	@Override @AvailMethod
 	boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
-		return another.equalsRawPojo(object);
+		return another.equalsRawPojoFor(object, javaObject);
 	}
 
 	@Override @AvailMethod
 	boolean o_EqualsEqualityRawPojo (
 		final AvailObject object,
-		final AvailObject aRawPojo)
+		final AvailObject otherEqualityRawPojo,
+		final @Nullable Object otherJavaObject)
 	{
 		return false;
 	}
 
-	/**
-	 * The arguments are equal but not reference identical, so coalesce them.
-	 *
-	 * @param object
-	 *        A {@linkplain RawPojoDescriptor raw pojo}.
-	 * @param aRawPojo
-	 *        A raw pojo.
-	 */
-	protected static void coalesce (
-		final AvailObject object,
-		final AvailObject aRawPojo)
-	{
-		pojosLock.lock();
-		try
-		{
-			final AvailObject keeper;
-			final AvailObject loser;
-			if (object.slot(INDEX) < aRawPojo.slot(INDEX))
-			{
-				keeper = object;
-				loser = aRawPojo;
-			}
-			else
-			{
-				keeper = aRawPojo;
-				loser = object;
-			}
-			final int index = loser.slot(INDEX);
-			allPojosStrongly.set(index, null);
-			final WeakPojoReference ref = allPojosWeakly.get(index);
-			ref.clear();
-			ref.enqueue();
-			loser.becomeIndirectionTo(keeper);
-			keeper.makeImmutable();
-		}
-		finally
-		{
-			pojosLock.unlock();
-		}
-	}
-
 	@Override @AvailMethod
-	boolean o_EqualsRawPojo (
+	boolean o_EqualsRawPojoFor (
 		final AvailObject object,
-		final AvailObject aRawPojo)
+		final AvailObject otherRawPojo,
+		final @Nullable Object otherJavaObject)
 	{
-		pojosLock.lock();
-		try
+		if (javaObject != otherJavaObject)
 		{
-			// Identity semantics only, because Avail equality must be stable,
-			// reflexive, symmetric, and transitive. Java equality semantics are
-			// available through reflective Java method invocation.
-			if (getPojo(object) != getPojo(aRawPojo))
+			return false;
+		}
+		// They're equal.  If at least one of the participants is not shared,
+		// then there is no danger that we could form an indirection cycle,
+		// since that would involve two fibers changing both objects into
+		// indirections, which is impossible if one is shared.  And no other
+		// thread can transition these objects to shared, so reading the
+		// mutability is stable.  Therefore *no lock* is needed.
+		if (!object.sameAddressAs(otherRawPojo))
+		{
+			if (!isShared())
 			{
-				return false;
+				object.becomeIndirectionTo(otherRawPojo);
 			}
-
-			if (!object.sameAddressAs(aRawPojo)
-				&& (!isShared() || !aRawPojo.descriptor.isShared()))
+			else if (!otherRawPojo.descriptor.isShared())
 			{
-				coalesce(object, aRawPojo);
+				otherRawPojo.becomeIndirectionTo(object);
 			}
 		}
-		finally
-		{
-			pojosLock.unlock();
-		}
-
 		return true;
 	}
 
@@ -325,7 +104,7 @@ extends Descriptor
 	{
 		// This ensures that mutations of the wrapped pojo do not corrupt hashed
 		// Avail data structures.
-		return System.identityHashCode(getPojo(object)) ^ 0x277AB9C3;
+		return System.identityHashCode(javaObject) ^ 0x277AB9C3;
 	}
 
 	@Override @AvailMethod
@@ -335,9 +114,9 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	final Object o_JavaObject (final AvailObject object)
+	final @Nullable Object o_JavaObject (final AvailObject object)
 	{
-		return getPojo(object);
+		return javaObject;
 	}
 
 	@Override @AvailMethod
@@ -346,32 +125,44 @@ extends Descriptor
 		return RAW_POJO.o();
 	}
 
+	/**
+	 * Replace the descriptor with a newly synthesized one that has the same
+	 * {@link #javaObject} but is {@linkplain Mutability#IMMUTABLE immutable}.
+	 */
 	@Override @AvailMethod
 	AvailObject o_MakeImmutable (final AvailObject object)
 	{
 		if (isMutable())
 		{
-			object.descriptor = immutable;
+			object.descriptor = new RawPojoDescriptor(
+				Mutability.IMMUTABLE,
+				javaObject);
 		}
 		return object;
 	}
 
+	/**
+	 * Replace the descriptor with a newly synthesized one that has the same
+	 * {@link #javaObject} but is {@linkplain Mutability#SHARED shared}.
+	 */
 	@Override @AvailMethod
 	AvailObject o_MakeShared (final AvailObject object)
 	{
 		if (!isShared())
 		{
-			object.descriptor = shared;
+			object.descriptor = new RawPojoDescriptor(
+				Mutability.SHARED,
+				javaObject);
 		}
 		return object;
 	}
 
 	@Override
-	final Object o_MarshalToJava (
+	final @Nullable Object o_MarshalToJava (
 		final AvailObject object,
 		final @Nullable Class<?> ignoredClassHint)
 	{
-		return getPojo(object);
+		return javaObject;
 	}
 
 	@Override
@@ -384,10 +175,8 @@ extends Descriptor
 		// This is not a thread-safe read of the slot, but this method is just
 		// for debugging anyway, so don't bother acquiring the lock. Coherence
 		// isn't important here.
-		builder.append("raw pojo@");
-		builder.append(object.slot(INDEX));
-		builder.append(" = ");
-		builder.append(String.valueOf(getPojo(object)));
+		builder.append("raw pojo: ");
+		builder.append(String.valueOf(javaObject));
 	}
 
 	/**
@@ -416,7 +205,7 @@ extends Descriptor
 				object,
 				FakeSlots.JAVA_OBJECT,
 				-1,
-				getPojo(object)));
+				javaObject));
 		return fields.toArray(new AvailObjectFieldHelper[fields.size()]);
 	}
 
@@ -425,40 +214,16 @@ extends Descriptor
 	 *
 	 * @param mutability
 	 *        The {@linkplain Mutability mutability} of the new descriptor.
+	 * @param javaObject
+	 *        The actual Java {@link Object} represented by the {@link
+	 *        AvailObject} that will use the new descriptor.
 	 */
-	protected RawPojoDescriptor (final Mutability mutability)
+	protected RawPojoDescriptor (
+		final Mutability mutability,
+		final @Nullable Object javaObject)
 	{
-		super(mutability);
-	}
-
-	/** The mutable {@link RawPojoDescriptor}. */
-	private static final RawPojoDescriptor mutable =
-		new RawPojoDescriptor(Mutability.MUTABLE);
-
-	@Override
-	RawPojoDescriptor mutable ()
-	{
-		return mutable;
-	}
-
-	/** The immutable {@link RawPojoDescriptor}. */
-	private static final RawPojoDescriptor immutable =
-		new RawPojoDescriptor(Mutability.IMMUTABLE);
-
-	@Override
-	RawPojoDescriptor immutable ()
-	{
-		return immutable;
-	}
-
-	/** The shared {@link RawPojoDescriptor}. */
-	private static final RawPojoDescriptor shared =
-		new RawPojoDescriptor(Mutability.SHARED);
-
-	@Override
-	RawPojoDescriptor shared ()
-	{
-		return shared;
+		super(mutability, null, null);
+		this.javaObject = javaObject;
 	}
 
 	/**
@@ -495,58 +260,55 @@ extends Descriptor
 
 	/**
 	 * Create a new {@link AvailObject} that wraps the specified {@linkplain
-	 * Object pojo}.
+	 * Object Java Object} for identity-based comparison semantics.
 	 *
-	 * @param pojo
-	 *        A pojo, possibly {@code null}.
-	 * @param descriptor
-	 *        The {@linkplain RawPojoDescriptor descriptor} to instantiate.
+	 * @param javaObject A Java Object, possibly {@code null}.
 	 * @return The new {@linkplain PojoDescriptor Avail pojo}.
 	 */
-	private static AvailObject wrap (
-		final @Nullable Object pojo,
-		final RawPojoDescriptor descriptor)
+	public static AvailObject identityWrap (final @Nullable Object javaObject)
 	{
-		pojosLock.lock();
-		try
-		{
-			// Compact the pojo tables before allocating a new index.
-			compactPojos();
-
-			final AvailObject newObject = descriptor.create();
-			final int newIndex = allPojosStrongly.size();
-			newObject.setSlot(INDEX, newIndex);
-			allPojosStrongly.add(pojo);
-			allPojosWeakly.add(new WeakPojoReference(newObject));
-			return newObject.makeImmutable();
-		}
-		finally
-		{
-			pojosLock.unlock();
-		}
+		final RawPojoDescriptor descriptor = new RawPojoDescriptor(
+			Mutability.MUTABLE,
+			javaObject);
+		final AvailObject wrapper = descriptor.create();
+		return wrapper;
 	}
 
 	/**
 	 * Create a new {@link AvailObject} that wraps the specified {@linkplain
-	 * Object pojo} for identity-based comparison semantics.
+	 * Object Java Object} for equality-based comparison semantics.
 	 *
-	 * @param pojo A pojo, possibly {@code null}.
+	 * @param javaObject A Java Object, possibly {@code null}.
 	 * @return The new {@linkplain PojoDescriptor Avail pojo}.
 	 */
-	public static AvailObject identityWrap (final @Nullable Object pojo)
+	public static AvailObject equalityWrap (final Object javaObject)
 	{
-		return wrap(pojo, mutable);
+		final EqualityRawPojoDescriptor descriptor =
+			new EqualityRawPojoDescriptor(
+				Mutability.MUTABLE,
+				javaObject);
+		final AvailObject wrapper = descriptor.create();
+		return wrapper;
 	}
 
-	/**
-	 * Create a new {@link AvailObject} that wraps the specified {@linkplain
-	 * Object pojo} for equality-based comparison semantics.
-	 *
-	 * @param pojo A pojo, possibly {@code null}.
-	 * @return The new {@linkplain PojoDescriptor Avail pojo}.
-	 */
-	public static AvailObject equalityWrap (final Object pojo)
+	@Deprecated
+	@Override
+	AbstractDescriptor mutable ()
 	{
-		return wrap(pojo, EqualityRawPojoDescriptor.mutable);
+		throw unsupportedOperationException();
+	}
+
+	@Deprecated
+	@Override
+	AbstractDescriptor immutable ()
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Deprecated
+	@Override
+	AbstractDescriptor shared ()
+	{
+		throw unsupportedOperationException();
 	}
 }

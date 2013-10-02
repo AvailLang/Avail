@@ -49,6 +49,7 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import com.avail.annotations.*;
@@ -280,7 +281,7 @@ public final class AvailRuntime
 	 * The number of clock ticks since this {@linkplain AvailRuntime runtime}
 	 * was created.
 	 */
-	public volatile long clock = 0L;
+	public final AtomicLong clock = new AtomicLong(0);
 
 	{
 		// Schedule a fixed-rate timer task to increment the runtime clock.
@@ -290,7 +291,7 @@ public final class AvailRuntime
 				@Override
 				public void run ()
 				{
-					clock++;
+					clock.incrementAndGet();
 				}
 			},
 			1,
@@ -1345,9 +1346,9 @@ public final class AvailRuntime
 	 * #levelOneUnsafeTasks -unsafe} queues and counters.
 	 *
 	 * <p>For example, a {@link L2Chunk} may not be {@linkplain
-	 * L2Chunk#invalidateChunkAtIndex(int) invalidated} while any {@linkplain
-	 * FiberDescriptor fiber} is {@linkplain ExecutionState#RUNNING running} a
-	 * Level Two chunk. These two activities are mutually exclusive.</p>
+	 * L2Chunk#invalidate() invalidated} while any {@linkplain FiberDescriptor
+	 * fiber} is {@linkplain ExecutionState#RUNNING running} a Level Two chunk.
+	 * These two activities are mutually exclusive.</p>
 	 */
 	@InnerAccess final ReentrantLock levelOneSafeLock = new ReentrantLock();
 
@@ -1357,10 +1358,9 @@ public final class AvailRuntime
 	 * #levelOneUnsafeTasks Level One-unsafe tasks} are running.
 	 *
 	 * <p>For example, a {@linkplain L2Chunk Level Two chunk} may not be
-	 * {@linkplain L2Chunk#invalidateChunkAtIndex(int) invalidated} while any
-	 * {@linkplain FiberDescriptor fiber} is {@linkplain ExecutionState#RUNNING
-	 * running} a Level Two chunk. These two activities are mutually
-	 * exclusive.</p>
+	 * {@linkplain L2Chunk#invalidate() invalidated} while any {@linkplain
+	 * FiberDescriptor fiber} is {@linkplain ExecutionState#RUNNING running} a
+	 * Level Two chunk. These two activities are mutually exclusive.</p>
 	 */
 	@InnerAccess Queue<AvailTask> levelOneSafeTasks =
 		new ArrayDeque<AvailTask>();
@@ -1551,7 +1551,14 @@ public final class AvailRuntime
 		timer.cancel();
 		executor.shutdownNow();
 		fileExecutor.shutdownNow();
-		socketExecutor.shutdownNow();
+		try
+		{
+			socketGroup.shutdownNow();
+		}
+		catch (final IOException e)
+		{
+			// Ignore.
+		}
 		try
 		{
 			executor.awaitTermination(10, TimeUnit.SECONDS);

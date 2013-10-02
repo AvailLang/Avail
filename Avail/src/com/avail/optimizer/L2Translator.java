@@ -213,8 +213,7 @@ public class L2Translator
 	 * All {@link A_ChunkDependable contingent values} for which changes should
 	 * cause the current {@linkplain L2Chunk level two chunk} to be invalidated.
 	 */
-	@InnerAccess final Set<A_ChunkDependable> contingentValues =
-		new HashSet<>();
+	@InnerAccess A_Set contingentValues = SetDescriptor.empty();
 
 	/**
 	 * The architectural registers, representing the fixed registers followed by
@@ -848,7 +847,8 @@ public class L2Translator
 			final A_Type expectedType)
 		{
 			final A_Method method = bundle.bundleMethod();
-			contingentValues.add(method);
+			contingentValues =
+				contingentValues.setWithElementCanDestroy(method, true);
 			final L2Instruction afterCall =
 				newLabel("After call"); // + bundle.message().toString());
 			final int nArgs = method.numArgs();
@@ -2849,7 +2849,6 @@ public class L2Translator
 		numArgs = theCode.numArgs();
 		numLocals = theCode.numLocals();
 		numSlots = theCode.numArgsAndLocalsAndStack();
-		contingentValues.clear();
 		// Now translate all the instructions. We already wrote a label as
 		// the first instruction so that L1Ext_doPushLabel can always find
 		// it. Since we only translate one method at a time, the first
@@ -2860,7 +2859,6 @@ public class L2Translator
 		optimize();
 		simpleColorRegisters();
 		createChunk();
-		assert chunk().index() != 0;
 		assert theCode.startingChunk() == chunk;
 	}
 
@@ -2894,7 +2892,6 @@ public class L2Translator
 	{
 		final L2Translator translator = new L2Translator();
 		final L2Chunk newChunk = translator.chunk();
-		assert newChunk.index() == 0;
 		return newChunk;
 	}
 }

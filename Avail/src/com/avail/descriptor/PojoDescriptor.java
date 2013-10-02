@@ -130,7 +130,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	Object o_JavaObject (final AvailObject object)
+	@Nullable Object o_JavaObject (final AvailObject object)
 	{
 		return object.slot(RAW_POJO).javaObject();
 	}
@@ -162,7 +162,7 @@ extends Descriptor
 	 */
 	private PojoDescriptor (final Mutability mutability)
 	{
-		super(mutability);
+		super(mutability, ObjectSlots.class, null);
 	}
 
 	/** The mutable {@link PojoDescriptor}. */

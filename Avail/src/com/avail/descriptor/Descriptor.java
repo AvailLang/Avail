@@ -82,10 +82,21 @@ extends AbstractDescriptor
 	 *
 	 * @param mutability
 	 *            The {@linkplain Mutability mutability} of the new descriptor.
+	 * @param objectSlotsEnumClass
+	 *            The Java {@link Class} which is a subclass of {@link
+	 *            ObjectSlotsEnum} and defines this object's object slots
+	 *            layout, or null if there are no object slots.
+	 * @param integerSlotsEnumClass
+	 *            The Java {@link Class} which is a subclass of {@link
+	 *            IntegerSlotsEnum} and defines this object's object slots
+	 *            layout, or null if there are no integer slots.
 	 */
-	protected Descriptor (final Mutability mutability)
+	protected Descriptor (
+		final Mutability mutability,
+		final @Nullable Class<? extends ObjectSlotsEnum> objectSlotsEnumClass,
+		final @Nullable Class<? extends IntegerSlotsEnum> integerSlotsEnumClass)
 	{
-		super(mutability);
+		super(mutability, objectSlotsEnumClass, integerSlotsEnumClass);
 	}
 
 	/**
@@ -167,9 +178,9 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_AddDependentChunkIndex (
+	void o_AddDependentChunk (
 		final AvailObject object,
-		final int aChunkIndex)
+		final L2Chunk chunk)
 	{
 		throw unsupportedOperationException();
 	}
@@ -914,9 +925,9 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_RemoveDependentChunkIndex (
+	void o_RemoveDependentChunk (
 		final AvailObject object,
-		final int aChunkIndex)
+		final L2Chunk chunk)
 	{
 		throw unsupportedOperationException();
 	}
@@ -1039,7 +1050,7 @@ extends AbstractDescriptor
 	void o_SetStartingChunkAndReoptimizationCountdown (
 		final AvailObject object,
 		final L2Chunk chunk,
-		final int countdown)
+		final long countdown)
 	{
 		throw unsupportedOperationException();
 	}
@@ -2169,9 +2180,10 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	boolean o_EqualsRawPojo (
+	boolean o_EqualsRawPojoFor (
 		final AvailObject object,
-		final AvailObject aRawPojo)
+		final AvailObject otherRawPojo,
+		final @Nullable Object aRawPojo)
 	{
 		return false;
 	}
@@ -3400,7 +3412,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	Object o_MarshalToJava (
+	@Nullable Object o_MarshalToJava (
 		final AvailObject object,
 		final @Nullable Class<?> ignoredClassHint)
 	{
@@ -3467,13 +3479,14 @@ extends AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param aRawPojo
+	 * @param otherJavaObject
 	 * @return
 	 */
 	@Override
 	boolean o_EqualsEqualityRawPojo (
 		final AvailObject object,
-		final AvailObject aRawPojo)
+		final AvailObject otherEqualityRawPojo,
+		final @Nullable Object otherJavaObject)
 	{
 		return false;
 	}
@@ -3483,7 +3496,7 @@ extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	Object o_JavaObject (final AvailObject object)
+	@Nullable Object o_JavaObject (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}

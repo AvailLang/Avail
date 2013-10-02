@@ -557,7 +557,7 @@ extends TypeDescriptor
 	 */
 	public ParseNodeTypeDescriptor (final Mutability mutability)
 	{
-		super(mutability);
+		super(mutability, ObjectSlots.class, IntegerSlots.class);
 	}
 
 	/** The mutable {@link ParseNodeTypeDescriptor}. */

@@ -59,7 +59,7 @@ extends Descriptor
 	 */
 	private FillerDescriptor (final Mutability mutability)
 	{
-		super(mutability);
+		super(mutability, null, null);
 	}
 
 	/** A shared {@link FillerDescriptor}. */

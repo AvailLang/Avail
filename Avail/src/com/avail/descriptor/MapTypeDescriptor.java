@@ -382,7 +382,7 @@ extends TypeDescriptor
 	 */
 	private MapTypeDescriptor (final Mutability mutability)
 	{
-		super(mutability);
+		super(mutability, ObjectSlots.class, null);
 	}
 
 	/** The mutable {@link MapTypeDescriptor}. */

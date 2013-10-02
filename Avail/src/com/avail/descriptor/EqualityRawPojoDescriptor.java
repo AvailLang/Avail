@@ -32,7 +32,6 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.EqualityRawPojoDescriptor.IntegerSlots.*;
 import java.util.List;
 import com.avail.annotations.*;
 
@@ -48,71 +47,75 @@ import com.avail.annotations.*;
 final class EqualityRawPojoDescriptor
 extends RawPojoDescriptor
 {
-	/** The layout of the integer slots. */
-	public enum IntegerSlots
-	implements IntegerSlotsEnum
-	{
-		/**
-		 * An abstract reference to a particular pojo.
-		 */
-		INDEX;
-
-		static
-		{
-			assert RawPojoDescriptor.IntegerSlots.INDEX.ordinal()
-				== INDEX.ordinal();
-		}
-	}
-
-	@Override boolean allowsImmutableToMutableReferenceInField (
-		final AbstractSlotsEnum e)
-	{
-		// Indices are allowed to move because of compaction (triggered by the
-		// Java garbage collector).
-		return super.allowsImmutableToMutableReferenceInField(e)
-			|| e == INDEX;
-	}
-
 	@Override @AvailMethod
 	boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
-		return another.equalsEqualityRawPojo(object);
+		return another.equalsEqualityRawPojoFor(object, javaObject);
 	}
 
 	@Override @AvailMethod
 	boolean o_EqualsEqualityRawPojo (
 		final AvailObject object,
-		final AvailObject aRawPojo)
+		final AvailObject otherEqualityRawPojo,
+		final @Nullable Object otherJavaObject)
 	{
-		pojosLock.lock();
-		try
+		final @Nullable Object javaObject2 = javaObject;
+		if (javaObject2 == null || otherJavaObject == null)
 		{
-			// Use Java equality semantics: the creator of this wrapper has
-			// ensured that the operation satisfies the Avail requirements for
-			// equality.
-			if (!object.javaObject().equals(aRawPojo.javaObject()))
+			if (javaObject2 == null && otherJavaObject == null)
 			{
-				return false;
+				if (!object.sameAddressAs(otherEqualityRawPojo))
+				{
+					// They're equal.  If at least one of the participants is
+					// not shared, then there is no danger that we could form an
+					// indirection cycle, since that would involve two fibers
+					/// changing both objects into indirections, which is
+					// impossible if one is shared.  And no other thread can
+					// transition these objects to shared, so reading the
+					// mutability is stable.  Therefore *no lock* is needed.
+					if (!isShared())
+					{
+						object.becomeIndirectionTo(otherEqualityRawPojo);
+					}
+					else if (!otherEqualityRawPojo.descriptor.isShared())
+					{
+						otherEqualityRawPojo.becomeIndirectionTo(object);
+					}
+				}
+				return true;
 			}
-
-			if (!object.sameAddressAs(aRawPojo)
-				&& (!isShared() || !aRawPojo.descriptor.isShared()))
+			return false;
+		}
+		// Neither is null.
+		if (!javaObject2.equals(otherJavaObject))
+		{
+			return false;
+		}
+		// They're equal.  If at least one of the participants is not shared,
+		// then there is no danger that we could form an indirection cycle,
+		// since that would involve two fibers changing both objects into
+		// indirections, which is impossible if one is shared.  And no other
+		// thread can transition these objects to shared, so reading the
+		// mutability is stable.  Therefore *no lock* is needed.
+		if (!object.sameAddressAs(otherEqualityRawPojo))
+		{
+			if (!isShared())
 			{
-				coalesce(object, aRawPojo);
+				object.becomeIndirectionTo(otherEqualityRawPojo);
+			}
+			else if (!otherEqualityRawPojo.descriptor.isShared())
+			{
+				otherEqualityRawPojo.becomeIndirectionTo(object);
 			}
 		}
-		finally
-		{
-			pojosLock.unlock();
-		}
-
 		return true;
 	}
 
 	@Override @AvailMethod
-	boolean o_EqualsRawPojo (
+	boolean o_EqualsRawPojoFor (
 		final AvailObject object,
-		final AvailObject aRawPojo)
+		final AvailObject otherRawPojo,
+		final @Nullable Object aRawPojo)
 	{
 		return false;
 	}
@@ -120,27 +123,40 @@ extends RawPojoDescriptor
 	@Override @AvailMethod
 	int o_Hash (final AvailObject object)
 	{
-		// Objects eligible for semantic equality comparison must satisfy the
-		// contract for Object.hashCode().
-		return object.javaObject().hashCode() ^ 0x59EEE44C;
+		final Object javaObject2 = javaObject;
+		return javaObject2 == null
+			? 0xC44EEE95
+			: javaObject2.hashCode() ^ 0x59EEE44C;
 	}
 
+	/**
+	 * Replace the descriptor with a newly synthesized one that has the same
+	 * {@link #javaObject} but is {@linkplain Mutability#IMMUTABLE immutable}.
+	 */
 	@Override @AvailMethod
 	AvailObject o_MakeImmutable (final AvailObject object)
 	{
 		if (isMutable())
 		{
-			object.descriptor = immutable;
+			object.descriptor = new EqualityRawPojoDescriptor(
+				Mutability.IMMUTABLE,
+				javaObject);
 		}
 		return object;
 	}
 
+	/**
+	 * Replace the descriptor with a newly synthesized one that has the same
+	 * {@link #javaObject} but is {@linkplain Mutability#SHARED shared}.
+	 */
 	@Override @AvailMethod
 	AvailObject o_MakeShared (final AvailObject object)
 	{
 		if (!isShared())
 		{
-			object.descriptor = shared;
+			object.descriptor = new EqualityRawPojoDescriptor(
+				Mutability.SHARED,
+				javaObject);
 		}
 		return object;
 	}
@@ -152,13 +168,8 @@ extends RawPojoDescriptor
 		final List<A_BasicObject> recursionList,
 		final int indent)
 	{
-		// This is not a thread-safe read of the slot, but this method is just
-		// for debugging anyway, so don't bother acquiring the lock. Coherence
-		// isn't important here.
-		builder.append("equality raw pojo@");
-		builder.append(object.slot(INDEX));
-		builder.append(" = ");
-		builder.append(String.valueOf(object.javaObject()));
+		builder.append("equality raw pojo: ");
+		builder.append(String.valueOf(javaObject));
 	}
 
 	/**
@@ -166,39 +177,15 @@ extends RawPojoDescriptor
 	 *
 	 * @param mutability
 	 *        The {@linkplain Mutability mutability} of the new descriptor.
+	 * @param javaObject
+	 *        The actual Java {@link Object} represented by the {@link
+	 *        AvailObject} that will use the new descriptor.
 	 */
-	private EqualityRawPojoDescriptor (final Mutability mutability)
+	EqualityRawPojoDescriptor (
+		final Mutability mutability,
+		final @Nullable Object javaObject)
 	{
-		super(mutability);
+		super(mutability, javaObject);
 	}
 
-	/** The mutable {@link EqualityRawPojoDescriptor}. */
-	static final EqualityRawPojoDescriptor mutable =
-		new EqualityRawPojoDescriptor(Mutability.MUTABLE);
-
-	@Override
-	EqualityRawPojoDescriptor mutable ()
-	{
-		return mutable;
-	}
-
-	/** The immutable {@link EqualityRawPojoDescriptor}. */
-	private static final EqualityRawPojoDescriptor immutable =
-		new EqualityRawPojoDescriptor(Mutability.IMMUTABLE);
-
-	@Override
-	EqualityRawPojoDescriptor immutable ()
-	{
-		return immutable;
-	}
-
-	/** The shared {@link EqualityRawPojoDescriptor}. */
-	private static final EqualityRawPojoDescriptor shared =
-		new EqualityRawPojoDescriptor(Mutability.SHARED);
-
-	@Override
-	EqualityRawPojoDescriptor shared ()
-	{
-		return shared;
-	}
 }

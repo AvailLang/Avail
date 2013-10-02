@@ -538,15 +538,15 @@ extends StringDescriptor
 	 * Construct a new {@link ByteStringDescriptor}.
 	 *
 	 * @param mutability
-	 *        The {@linkplain Mutability mutability} of the new descriptor.
+	 *            The {@linkplain Mutability mutability} of the new descriptor.
 	 * @param unusedBytes
-	 *        The number of unused bytes of the last word.
+	 *            The number of unused bytes of the last word.
 	 */
-	private ByteStringDescriptor (
+	protected ByteStringDescriptor (
 		final Mutability mutability,
 		final int unusedBytes)
 	{
-		super(mutability);
+		super(mutability, null, IntegerSlots.class);
 		unusedBytesOfLastWord = unusedBytes;
 	}
 

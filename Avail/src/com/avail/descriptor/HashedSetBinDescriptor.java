@@ -648,7 +648,7 @@ extends SetBinDescriptor
 		final Mutability mutability,
 		final int level)
 	{
-		super(mutability, level);
+		super(mutability, ObjectSlots.class, IntegerSlots.class, level);
 	}
 
 	/**

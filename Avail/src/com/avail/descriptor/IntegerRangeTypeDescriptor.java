@@ -573,7 +573,10 @@ extends TypeDescriptor
 		final boolean lowerInclusive,
 		final boolean upperInclusive)
 	{
-		super(isMutable ? Mutability.MUTABLE : Mutability.SHARED);
+		super(
+			isMutable ? Mutability.MUTABLE : Mutability.SHARED,
+			ObjectSlots.class,
+			null);
 		this.lowerInclusive = lowerInclusive;
 		this.upperInclusive = upperInclusive;
 	}

@@ -449,11 +449,11 @@ extends Descriptor
 	{
 		final int size = object.mapSize();
 		final A_Tuple result = ObjectTupleDescriptor.createUninitialized(size);
-		for (int i = 1; i <= size; i++)
-		{
-			// Initialize it for when we have our own garbage collector again.
-			result.objectTupleAtPut(i, NilDescriptor.nil());
-		}
+//		for (int i = 1; i <= size; i++)
+//		{
+//			// Initialize it for when we have our own garbage collector again.
+//			result.objectTupleAtPut(i, NilDescriptor.nil());
+//		}
 		result.hashOrZero(0);
 		int index = 1;
 		for (final Entry entry : object.mapIterable())
@@ -647,7 +647,7 @@ extends Descriptor
 	 */
 	private MapDescriptor (final Mutability mutability)
 	{
-		super(mutability);
+		super(mutability, ObjectSlots.class, null);
 	}
 
 	/** The mutable {@link MapDescriptor}. */

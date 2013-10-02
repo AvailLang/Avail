@@ -106,18 +106,28 @@ extends Descriptor
 	final byte level;
 
 	/**
-	 * Construct a new {@link SetBinDescriptor}.
+	 * Construct a new {@link AtomWithPropertiesDescriptor}.
 	 *
 	 * @param mutability
-	 *        The {@linkplain Mutability mutability} of the new descriptor.
+	 *            The {@linkplain Mutability mutability} of the new descriptor.
+	 * @param objectSlotsEnumClass
+	 *            The Java {@link Class} which is a subclass of {@link
+	 *            ObjectSlotsEnum} and defines this object's object slots
+	 *            layout, or null if there are no object slots.
+	 * @param integerSlotsEnumClass
+	 *            The Java {@link Class} which is a subclass of {@link
+	 *            IntegerSlotsEnum} and defines this object's object slots
+	 *            layout, or null if there are no integer slots.
 	 * @param level
-	 *        The depth of the bin in the hash tree.
+	 *            The depth of the bin in the hash tree.
 	 */
 	protected SetBinDescriptor (
 		final Mutability mutability,
+		final @Nullable Class<? extends ObjectSlotsEnum> objectSlotsEnumClass,
+		final @Nullable Class<? extends IntegerSlotsEnum> integerSlotsEnumClass,
 		final int level)
 	{
-		super(mutability);
+		super(mutability, objectSlotsEnumClass, integerSlotsEnumClass);
 		this.level = (byte) level;
 	}
 }

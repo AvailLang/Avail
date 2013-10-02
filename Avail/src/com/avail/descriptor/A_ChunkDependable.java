@@ -44,20 +44,18 @@ public interface A_ChunkDependable
 extends A_BasicObject
 {
 	/**
-	 * Add the {@linkplain L2Chunk chunk} with the given index to the receiver's
-	 * list of dependent chunks.
+	 * Add the specified {@linkplain L2Chunk chunk} to the receiver's set of
+	 * dependent chunks.
 	 *
-	 * @param aChunkIndex
-	 *        The chunk index.
+	 * @param chunk The chunk to add.
 	 */
-	void addDependentChunkIndex (int aChunkIndex);
+	void addDependentChunk (L2Chunk chunk);
 
 	/**
-	 * Remove the {@linkplain L2Chunk chunk} with the given index from the
-	 * receiver's list of dependent chunks.
+	 * Remove the specified {@linkplain L2Chunk chunk} from the receiver's set
+	 * of dependent chunks.
 	 *
-	 * @param aChunkIndex
-	 *        The chunk index.
+	 * @param chunk The chunk to remove.
 	 */
-	void removeDependentChunkIndex (int aChunkIndex);
+	void removeDependentChunk (L2Chunk chunk);
 }

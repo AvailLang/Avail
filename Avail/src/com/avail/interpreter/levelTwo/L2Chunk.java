@@ -32,7 +32,6 @@
 
 package com.avail.interpreter.levelTwo;
 
-import java.lang.ref.*;
 import java.util.*;
 import java.util.concurrent.locks.ReentrantLock;
 import com.avail.annotations.*;
@@ -75,13 +74,6 @@ import com.avail.interpreter.levelTwo.register.*;
 public final class L2Chunk
 {
 	/**
-	 * The unique integer that identifies this chunk. Weak references are
-	 * used to determine when it is safe to recycle an index for a new
-	 * chunk.
-	 */
-	int index;
-
-	/**
 	 * The number of {@linkplain L2ObjectRegister object registers} that
 	 * this chunk uses (including the fixed registers).  Having the number of
 	 * needed object registers stored separately allows the register list to be
@@ -107,26 +99,24 @@ public final class L2Chunk
 	int numDoubles;
 
 	/**
-	 * A flag indicating whether this chunk has been reached by the garbage
-	 * collector in the current scavenge cycle. If it's still clear at flip
-	 * time, the chunk is unreferenced and can be reclaimed.
-	 *
-	 * TODO: [MvG] This is not used by the current (2011.05.11)
-	 * Avail-on-Java VM.
-	 */
-	boolean saved;
-
-	/**
 	 * A flag indicating whether this chunk is valid or if it has been
 	 * invalidated by the addition or removal of a method signature.
 	 */
 	boolean valid;
 
 	/**
+	 * The set of {@linkplain A_ChunkDependable contingent values} on which
+	 * this chunk depends. If one of these changes significantly, this chunk
+	 * must be invalidated (at which time this set will be emptied).
+	 */
+	@SuppressWarnings("null")
+	A_Set contingentValues;
+
+	/**
 	 * The sequence of {@link L2Instruction}s that make up this L2Chunk.
 	 */
 	@SuppressWarnings("null")
-	public L2Instruction [] instructions;
+	public L2Instruction[] instructions;
 
 	/**
 	 * The sequence of {@link L2Instruction}s that should be <em>executed</em>
@@ -136,29 +126,14 @@ public final class L2Chunk
 	 * callers.
 	 */
 	@SuppressWarnings("null")
-	public L2Instruction [] executableInstructions;
+	public L2Instruction[] executableInstructions;
 
 	/**
 	 * Answer the Avail {@linkplain PojoDescriptor pojo} associated with this
 	 * L2Chunk.
 	 */
-	public final AvailObject chunkPojo = PojoDescriptor.newPojo(
-			RawPojoDescriptor.identityWrap(this),
-			PojoTypeDescriptor.forClass(this.getClass()))
-		.makeShared();
-
-	/**
-	 * Answer an integer that uniquely identifies this chunk.  This allows a
-	 * chunk to be invalidated given only its index and {@link
-	 * #allChunksWeakly}.  In fact, the L2Chunk itself may already have been
-	 * garbage collected by that point!
-	 *
-	 * @return The chunk's identifying index.
-	 */
-	public int index ()
-	{
-		return index;
-	}
+	public final AvailObject chunkPojo =
+		RawPojoDescriptor.identityWrap(this).makeShared();
 
 	/**
 	 * Answer the number of floating point registers used by this chunk.
@@ -212,13 +187,13 @@ public final class L2Chunk
 	public String toString ()
 	{
 		final StringBuilder builder = new StringBuilder();
-		if (index() == 0)
+		if (this == unoptimizedChunk)
 		{
-			return "Default chunk #0";
+			return "Default chunk";
 		}
-		builder.append("Chunk #");
-		builder.append(index());
-		builder.append("\n");
+		builder.append(String.format(
+			"Chunk #%8x%n",
+			System.identityHashCode(this)));
 		if (!isValid())
 		{
 			builder.append("\t(INVALID)\n");
@@ -230,81 +205,11 @@ public final class L2Chunk
 			builder.append(String.format("\t#%-3d ", instruction.offset()));
 			final StringBuilder tempStream = new StringBuilder(100);
 			describer.describe(instruction, this, tempStream);
-			builder.append(
-				tempStream.toString().replace("\n", "\n\t\t"));
+			builder.append(tempStream.toString().replace("\n", "\n\t\t"));
 			builder.append("\n");
 		}
 		return builder.toString();
 	}
-
-	/**
-	 * A {@link WeakChunkReference} is the mechanism by which {@linkplain
-	 * L2Chunk level two chunks} are recycled by the Java garbage collector.
-	 * When a chunk is only weakly reachable (i.e., there are no strong or soft
-	 * references to it), the index reserved for that chunk becomes eligible for
-	 * recycling.
-	 *
-	 * @author Mark van Gulik &lt;mark@availlang.org&gt;
-	 */
-	static class WeakChunkReference
-	extends WeakReference<L2Chunk>
-	{
-		/**
-		 * The finalization queue onto which {@linkplain L2Chunk level two
-		 * chunks}' {@linkplain WeakChunkReference weak references} will be
-		 * placed upon expiration. There is no special process to remove them
-		 * from here. Rather, an element of this queue is consumed when needed
-		 * for {@linkplain L2Chunk#allocate(A_RawFunction, int, int, int, List,
-		 * List, Set) allocation} of a new chunk. If this queue is empty, a
-		 * fresh index is allocated.
-		 */
-		static final ReferenceQueue<L2Chunk> recyclingQueue =
-			new ReferenceQueue<>();
-
-		/**
-		 * The {@linkplain L2Chunk#index} of the {@linkplain L2Chunk level two
-		 * chunk} to which this reference either refers or once referred.
-		 */
-		final int index;
-
-		/**
-		 * The list of {@linkplain A_ChunkDependable contingent values} on which
-		 * the referent chunk depends. If one of these changes significantly,
-		 * this chunk must be invalidated.
-		 */
-		final Set<A_ChunkDependable> contingentValues;
-
-		/**
-		 * Construct a new {@link WeakChunkReference}.
-		 *
-		 * @param chunk
-		 *        The chunk to be wrapped with a weak reference.
-		 * @param contingentValues
-		 *        The {@link Set} of {@linkplain A_ChunkDependable contingent
-		 *        values} which this chunk depends.
-		 */
-		public WeakChunkReference (
-			final L2Chunk chunk,
-			final Set<A_ChunkDependable> contingentValues)
-		{
-			super(chunk, recyclingQueue);
-			this.index = chunk.index();
-			this.contingentValues = contingentValues;
-		}
-	}
-
-	/**
-	 * A list of {@linkplain WeakChunkReference weak chunk references} to every
-	 * {@linkplain L2Chunk level two chunk}. The chunks are wrapped within a
-	 * {@link WeakChunkReference} and placed in the list at their {@linkplain
-	 * L2Chunk#index}, which the weak chunk reference also records. Some of the
-	 * weak references may have a null {@linkplain WeakReference#get()
-	 * referent}, indicating the chunk at that position has either been
-	 * reclaimed or will appear on the {@link WeakChunkReference#recyclingQueue
-	 * finalization queue} shortly.
-	 */
-	private static final List<WeakChunkReference> allChunksWeakly =
-		new ArrayList<>(100);
 
 	/**
 	 * The level two wordcode offset to which to jump when returning into a
@@ -360,12 +265,6 @@ public final class L2Chunk
 	}
 
 	/**
-	 * The {@linkplain ReentrantLock lock} that guards access to the table of
-	 * {@linkplain L2Chunk chunks}.
-	 */
-	private static final ReentrantLock chunksLock = new ReentrantLock();
-
-	/**
 	 * The {@linkplain ReentrantLock lock} that protects invalidation of chunks
 	 * due to {@linkplain MethodDescriptor method} changes from interfering
 	 * with each other.  The alternative to a global lock seems to imply
@@ -409,60 +308,15 @@ public final class L2Chunk
 		final int numFloats,
 		final List<L2Instruction> theInstructions,
 		final List<L2Instruction> executableInstructions,
-		final Set<A_ChunkDependable> contingentValues)
+		final A_Set contingentValues)
 	{
 		final L2Chunk chunk = create(
 			numObjects,
 			numIntegers,
 			numFloats,
 			theInstructions,
-			executableInstructions);
-		final int index;
-		chunksLock.lock();
-		try
-		{
-			final ReferenceQueue<L2Chunk> queue =
-				WeakChunkReference.recyclingQueue;
-			final Reference<? extends L2Chunk> recycledReference =
-				queue.poll();
-			if (recycledReference != null)
-			{
-				// Recycle the reference. Nobody referred to the chunk, so it
-				// has already been garbage collected and nulled from its weak
-				// reference. It may or may not have been invalidated already,
-				// so clean it up if necessary.
-				final WeakChunkReference oldReference =
-					(WeakChunkReference) recycledReference;
-				for (final A_ChunkDependable value :
-					oldReference.contingentValues)
-				{
-					value.removeDependentChunkIndex(oldReference.index);
-				}
-				oldReference.contingentValues.clear();
-				index = oldReference.index;
-			}
-			else
-			{
-				// Nothing available for recycling. Make room for it at the end.
-				index = allChunksWeakly.size();
-				allChunksWeakly.add(null);
-			}
-			chunk.index = index;
-			final WeakChunkReference newReference = new WeakChunkReference(
-				chunk,
-				contingentValues);
-			allChunksWeakly.set(index, newReference);
-		}
-		finally
-		{
-			chunksLock.unlock();
-		}
-
-		// Now that the index has been assigned, connect the dependency. Since
-		// connecting the dependency may grow some sets, make sure the Avail GC
-		// (not yet implemented in Java) can be invoked safely. To assist this,
-		// make sure the code is referring to the chunk being set up, to avoid
-		// having it garbage collected before we have a chance to install it.
+			executableInstructions,
+			contingentValues);
 		if (code != null)
 		{
 			code.setStartingChunkAndReoptimizationCountdown(
@@ -471,63 +325,37 @@ public final class L2Chunk
 		}
 		for (final A_ChunkDependable value : contingentValues)
 		{
-			value.addDependentChunkIndex(index);
+			value.addDependentChunk(chunk);
 		}
-
 		return chunk;
 	}
 
 	/**
-	 * Something that a {@linkplain L2Chunk Level Two chunk} depended on has
+	 * Something that this {@linkplain L2Chunk Level Two chunk} depended on has
 	 * changed. This must have been because it was optimized in a way that
 	 * relied on some aspect of the available definitions (e.g., monomorphic
 	 * inlining), so we need to invalidate the chunk now, so that an attempt to
 	 * invoke it or return into it will be detected and converted into using the
 	 * {@linkplain #unoptimizedChunk unoptimized chunk}. Also remove this
-	 * chunk's index from all objects on which it was depending.
+	 * chunk from the contingent set of each object on which it was depending.
 	 *
 	 * <p>
-	 * Do not add the chunk's reference to the reference queue, since it may
-	 * still be referenced by code or continuations that need to detect that it
-	 * is now invalid.
+	 * This can only happen when L2 execution is suspended, due to a method
+	 * changing (TODO[MvG] - we'll have to consider "observed" variables
+	 * changing at some point).  The {@link #invalidationLock} must be acquired
+	 * by the caller to ensure safe manipulation of the dependency information.
 	 * </p>
-	 *
-	 * <p>
-	 * There are two situations in which this method can be invoked:
-	 * <ol>
-	 * <li>While L2 execution is suspended, due to a method changing, or</li>
-	 * <li>When the L2Translator is creating a new chunk and notices an old
-	 *     invalid one has lost its last reference.</li>
-	 * </ol>
-	 * For the former, the {@link #invalidationLock} must be acquired by the
-	 * caller to ensure safe manipulation of the dependency information.  For
-	 * the latter, the {@link #chunksLock} must be acquired by the caller to
-	 * ensure it does not interfere with the addition of dependencies for code
-	 * freshly translated to level two in other fibers.
-	 * </p>
-	 *
-	 * @param chunkIndex The index of the chunk to invalidate.
 	 */
-	public static void invalidateChunkAtIndex (final int chunkIndex)
+	public void invalidate ()
 	{
-		assert chunksLock.isHeldByCurrentThread()
-			|| invalidationLock.isHeldByCurrentThread();
-		final WeakChunkReference ref = allChunksWeakly.get(chunkIndex);
-		assert ref.index == chunkIndex;
-		final L2Chunk chunk = ref.get();
-		if (chunk != null)
+		assert invalidationLock.isHeldByCurrentThread();
+		valid = false;
+		instructions = new L2Instruction[0];
+		final A_Set contingents = contingentValues.makeImmutable();
+		contingentValues = SetDescriptor.empty();
+		for (final A_ChunkDependable value : contingents)
 		{
-			chunk.valid = false;
-			// The empty tuple is already shared, so we don't need to share
-			// it here.
-			chunk.instructions = new L2Instruction[0];
-		}
-		final Set<A_ChunkDependable> dependents =
-			new HashSet<>(ref.contingentValues);
-		ref.contingentValues.clear();
-		for (final A_ChunkDependable value : dependents)
-		{
-			value.removeDependentChunkIndex(chunkIndex);
+			value.removeDependentChunk(this);
 		}
 	}
 
@@ -540,6 +368,7 @@ public final class L2Chunk
 	 * @param numFloats The number of float registers needed.
 	 * @param theInstructions The instructions that can be inlined into callers.
 	 * @param executableInstructions The actual instructions to execute.
+	 * @param contingentValues The set of contingent {@link A_ChunkDependable}.
 	 * @return The new chunk.
 	 */
 	private static L2Chunk create (
@@ -547,11 +376,11 @@ public final class L2Chunk
 		final int numIntegers,
 		final int numFloats,
 		final List<L2Instruction> theInstructions,
-		final List<L2Instruction> executableInstructions)
+		final List<L2Instruction> executableInstructions,
+		final A_Set contingentValues)
 	{
 		final L2Chunk chunk = new L2Chunk();
-		// A new chunk starts out saved and valid.
-		chunk.saved = true;
+		// A new chunk starts out valid.
 		chunk.valid = true;
 		chunk.numObjects = numObjects;
 		chunk.numIntegers = numIntegers;
@@ -560,6 +389,7 @@ public final class L2Chunk
 			new L2Instruction[theInstructions.size()]);
 		chunk.executableInstructions = executableInstructions.toArray(
 			new L2Instruction[executableInstructions.size()]);
+		chunk.contingentValues = contingentValues;
 		return chunk;
 	}
 
@@ -571,12 +401,6 @@ public final class L2Chunk
 	 */
 	private static final L2Chunk unoptimizedChunk =
 		L2Translator.createChunkForFirstInvocation();
-
-	static
-	{
-		assert unoptimizedChunk.index() == 0;
-		assert allChunksWeakly.size() == 1;
-	}
 
 	/**
 	 * Return the special {@linkplain L2Chunk level two chunk} that is used to

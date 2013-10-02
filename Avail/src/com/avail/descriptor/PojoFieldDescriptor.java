@@ -258,7 +258,7 @@ extends Descriptor
 	 */
 	private PojoFieldDescriptor (final Mutability mutability)
 	{
-		super(mutability);
+		super(mutability, ObjectSlots.class, null);
 	}
 
 	/** The mutable {@link PojoFieldDescriptor}. */

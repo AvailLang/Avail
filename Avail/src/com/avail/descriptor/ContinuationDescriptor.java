@@ -529,9 +529,9 @@ extends Descriptor
 	 * @param mutability
 	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 */
-	protected ContinuationDescriptor (final Mutability mutability)
+	private ContinuationDescriptor (final Mutability mutability)
 	{
-		super(mutability);
+		super(mutability, ObjectSlots.class, IntegerSlots.class);
 	}
 
 	/** The mutable {@link ContinuationDescriptor}. */

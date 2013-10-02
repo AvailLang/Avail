@@ -442,11 +442,33 @@ extends TypeDescriptor
 	 * Construct a new {@link PrimitiveTypeDescriptor}.
 	 *
 	 * @param mutability
+	 *            The {@linkplain Mutability mutability} of the new descriptor.
+	 * @param objectSlotsEnumClass
+	 *            The Java {@link Class} which is a subclass of {@link
+	 *            ObjectSlotsEnum} and defines this object's object slots
+	 *            layout, or null if there are no object slots.
+	 * @param integerSlotsEnumClass
+	 *            The Java {@link Class} which is a subclass of {@link
+	 *            IntegerSlotsEnum} and defines this object's object slots
+	 *            layout, or null if there are no integer slots.
+	 */
+	protected PrimitiveTypeDescriptor (
+		final Mutability mutability,
+		final @Nullable Class<? extends ObjectSlotsEnum> objectSlotsEnumClass,
+		final @Nullable Class<? extends IntegerSlotsEnum> integerSlotsEnumClass)
+	{
+		super(mutability, objectSlotsEnumClass, integerSlotsEnumClass);
+	}
+
+	/**
+	 * Construct a new {@link PrimitiveTypeDescriptor}.
+	 *
+	 * @param mutability
 	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 */
-	protected PrimitiveTypeDescriptor (final Mutability mutability)
+	private PrimitiveTypeDescriptor (final Mutability mutability)
 	{
-		super(mutability);
+		super(mutability, ObjectSlots.class, IntegerSlots.class);
 	}
 
 	/** The mutable {@link PrimitiveTypeDescriptor}. */

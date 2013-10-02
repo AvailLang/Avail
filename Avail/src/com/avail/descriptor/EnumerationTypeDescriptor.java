@@ -766,11 +766,11 @@ extends AbstractEnumerationTypeDescriptor
 	 * Construct a new {@link EnumerationTypeDescriptor}.
 	 *
 	 * @param mutability
-	 *        The {@linkplain Mutability mutability} of the new descriptor.
+	 *            The {@linkplain Mutability mutability} of the new descriptor.
 	 */
-	protected EnumerationTypeDescriptor (final Mutability mutability)
+	private EnumerationTypeDescriptor (final Mutability mutability)
 	{
-		super(mutability);
+		super(mutability, ObjectSlots.class, null);
 	}
 
 	/** The mutable {@link EnumerationTypeDescriptor}. */

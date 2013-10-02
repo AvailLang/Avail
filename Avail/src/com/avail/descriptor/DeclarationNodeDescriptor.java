@@ -1030,7 +1030,7 @@ extends ParseNodeDescriptor
 	 */
 	public DeclarationNodeDescriptor (final Mutability mutability)
 	{
-		super(mutability);
+		super(mutability, ObjectSlots.class, IntegerSlots.class);
 	}
 
 	/** The mutable {@link DeclarationNodeDescriptor}. */

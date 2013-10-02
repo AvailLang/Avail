@@ -328,53 +328,41 @@ public abstract class AbstractDescriptor
 	 * Construct a new {@linkplain AbstractDescriptor descriptor}.
 	 *
 	 * @param mutability
-	 *        The {@linkplain Mutability mutability} of the new descriptor.
+	 *            The {@linkplain Mutability mutability} of the new descriptor.
+	 * @param objectSlotsEnumClass
+	 *            The Java {@link Class} which is a subclass of {@link
+	 *            ObjectSlotsEnum} and defines this object's object slots
+	 *            layout, or null if there are no object slots.
+	 * @param integerSlotsEnumClass
+	 *            The Java {@link Class} which is a subclass of {@link
+	 *            IntegerSlotsEnum} and defines this object's object slots
+	 *            layout, or null if there are no integer slots.
 	 */
-	@SuppressWarnings("unchecked")
-	protected AbstractDescriptor (final Mutability mutability)
+	@SuppressWarnings("null")
+	protected AbstractDescriptor (
+		final Mutability mutability,
+		final @Nullable Class<? extends ObjectSlotsEnum> objectSlotsEnumClass,
+		final @Nullable Class<? extends IntegerSlotsEnum> integerSlotsEnumClass)
 	{
 		this.mutability = mutability;
 
-		final Class<Descriptor> cls = (Class<Descriptor>) this.getClass();
-		final ClassLoader loader = cls.getClassLoader();
-		Class<Enum<?>> enumClass;
-		Enum<?>[] instances;
-
-		try
-		{
-			enumClass = (Class<Enum<?>>) loader.loadClass(
-				cls.getCanonicalName() + "$ObjectSlots");
-		}
-		catch (final ClassNotFoundException e)
-		{
-			enumClass = null;
-		}
-		instances = enumClass != null
-			? enumClass.getEnumConstants()
-			: new Enum<?>[0];
+		final ObjectSlotsEnum [] objectSlots = objectSlotsEnumClass != null
+			? objectSlotsEnumClass.getEnumConstants()
+			: new ObjectSlotsEnum[0];
 		hasVariableObjectSlots =
-			instances.length > 0
-			&& instances[instances.length-1].name().matches(".*_");
+			objectSlots.length > 0
+			&& objectSlots[objectSlots.length - 1].name().endsWith("_");
 		numberOfFixedObjectSlots =
-			instances.length - (hasVariableObjectSlots ? 1 : 0);
+			objectSlots.length - (hasVariableObjectSlots ? 1 : 0);
 
-		try
-		{
-			enumClass = (Class<Enum<?>>) loader.loadClass(
-				cls.getCanonicalName() + "$IntegerSlots");
-		}
-		catch (final ClassNotFoundException e)
-		{
-			enumClass = null;
-		}
-		instances = enumClass != null
-			? enumClass.getEnumConstants()
-			: new Enum<?>[0];
+		final IntegerSlotsEnum [] integerSlots = integerSlotsEnumClass != null
+			? integerSlotsEnumClass.getEnumConstants()
+			: new IntegerSlotsEnum[0];
 		hasVariableIntegerSlots =
-			instances.length > 0
-			&& instances[instances.length-1].name().matches(".*_");
+			integerSlots.length > 0
+			&& integerSlots[integerSlots.length - 1].name().endsWith("_");
 		numberOfFixedIntegerSlots =
-			instances.length - (hasVariableIntegerSlots ? 1 : 0);
+			integerSlots.length - (hasVariableIntegerSlots ? 1 : 0);
 	}
 
 
@@ -632,12 +620,13 @@ public abstract class AbstractDescriptor
 		}
 		final Class<Descriptor> cls = (Class<Descriptor>) this.getClass();
 		final ClassLoader loader = cls.getClassLoader();
-		Class<IntegerSlotsEnum> intEnumClass;
+		Class<? extends IntegerSlotsEnum> intEnumClass;
 
 		try
 		{
-			intEnumClass = (Class<IntegerSlotsEnum>) loader.loadClass(
-				cls.getCanonicalName() + "$IntegerSlots");
+			intEnumClass =
+				(Class<? extends IntegerSlotsEnum>) loader.loadClass(
+					cls.getCanonicalName() + "$IntegerSlots");
 		}
 		catch (final ClassNotFoundException e)
 		{
@@ -683,11 +672,12 @@ public abstract class AbstractDescriptor
 			}
 		}
 
-		Class<ObjectSlotsEnum> objectEnumClass;
+		Class<? extends ObjectSlotsEnum> objectEnumClass;
 		try
 		{
-			objectEnumClass = (Class<ObjectSlotsEnum>) loader.loadClass(
-				cls.getCanonicalName() + "$ObjectSlots");
+			objectEnumClass =
+				(Class<? extends ObjectSlotsEnum>) loader.loadClass(
+					cls.getCanonicalName() + "$ObjectSlots");
 		}
 		catch (final ClassNotFoundException e)
 		{
@@ -1048,11 +1038,11 @@ public abstract class AbstractDescriptor
 	 *
 	 *
 	 * @param object
-	 * @param aChunkIndex
+	 * @param chunk
 	 */
-	abstract void o_AddDependentChunkIndex (
+	abstract void o_AddDependentChunk (
 		AvailObject object,
-		int aChunkIndex);
+		L2Chunk chunk);
 
 	/**
 	 * Add a {@linkplain DefinitionDescriptor definition} to the receiver.
@@ -2231,11 +2221,11 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param aChunkIndex
+	 * @param chunk
 	 */
-	abstract void o_RemoveDependentChunkIndex (
+	abstract void o_RemoveDependentChunk (
 		AvailObject object,
-		int aChunkIndex);
+		L2Chunk chunk);
 
 	/**
 	 * @param object
@@ -2382,7 +2372,7 @@ public abstract class AbstractDescriptor
 	abstract void o_SetStartingChunkAndReoptimizationCountdown (
 		AvailObject object,
 		L2Chunk chunk,
-		int countdown);
+		long countdown);
 
 	/**
 	 * Difference the {@linkplain AvailObject operands} and answer the result.
@@ -3730,12 +3720,14 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param aPojo
+	 * @param otherRawPojo TODO
+	 * @param otherJavaObject
 	 * @return
 	 */
-	abstract boolean o_EqualsRawPojo (
+	abstract boolean o_EqualsRawPojoFor (
 		AvailObject object,
-		AvailObject aPojo);
+		AvailObject otherRawPojo,
+		@Nullable Object otherJavaObject);
 
 	/**
 	 * @param object
@@ -4998,7 +4990,7 @@ public abstract class AbstractDescriptor
 	 * @param ignoredClassHint
 	 * @return
 	 */
-	abstract Object o_MarshalToJava (
+	abstract @Nullable Object o_MarshalToJava (
 		final AvailObject object,
 		final @Nullable Class<?> ignoredClassHint);
 
@@ -5046,18 +5038,20 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param aRawPojo
+	 * @param otherEqualityRawPojo TODO
+	 * @param otherJavaObject
 	 * @return
 	 */
 	abstract boolean o_EqualsEqualityRawPojo (
 		final AvailObject object,
-		final AvailObject aRawPojo);
+		final AvailObject otherEqualityRawPojo,
+		final @Nullable Object otherJavaObject);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	abstract Object o_JavaObject (final AvailObject object);
+	abstract @Nullable Object o_JavaObject (final AvailObject object);
 
 	/**
 	 * @param object

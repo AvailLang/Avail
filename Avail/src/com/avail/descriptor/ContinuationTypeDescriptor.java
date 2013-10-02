@@ -276,7 +276,7 @@ extends TypeDescriptor
 	 */
 	private ContinuationTypeDescriptor (final Mutability mutability)
 	{
-		super(mutability);
+		super(mutability, ObjectSlots.class, null);
 	}
 
 	/** The mutable {@link ContinuationTypeDescriptor}. */

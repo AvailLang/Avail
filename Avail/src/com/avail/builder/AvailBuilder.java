@@ -761,7 +761,7 @@ public final class AvailBuilder
 					{
 						assert compiler != null;
 						compiler.parseModule(
-							new Continuation4<ModuleName, Long, Long, Long>()
+							new AbstractAvailCompiler.ProgressReporter()
 							{
 								@Override
 								public void value (

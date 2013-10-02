@@ -484,7 +484,7 @@ extends TupleDescriptor
 	 */
 	public IntegerIntervalTupleDescriptor (final Mutability mutability)
 	{
-		super(mutability);
+		super(mutability, ObjectSlots.class, IntegerSlots.class);
 	}
 
 	/**

@@ -908,7 +908,7 @@ extends TupleDescriptor
 		final Mutability mutability,
 		final int level)
 	{
-		super(mutability);
+		super(mutability, ObjectSlots.class, IntegerSlots.class);
 		this.level = level;
 	}
 

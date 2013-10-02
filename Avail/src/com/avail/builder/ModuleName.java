@@ -205,7 +205,6 @@ public class ModuleName
 		{
 			return qualifiedName.equals(((ModuleName) obj).qualifiedName);
 		}
-
 		return false;
 	}
 

@@ -64,7 +64,7 @@ extends A_BasicObject
 
 	public void setStartingChunkAndReoptimizationCountdown (
 		L2Chunk chunk,
-		int countdown);
+		long countdown);
 
 	public int maxStackDepth ();
 

@@ -34,6 +34,8 @@ package com.avail.descriptor;
 
 import static com.avail.descriptor.AtomWithPropertiesDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.AtomWithPropertiesDescriptor.ObjectSlots.*;
+import java.util.Map;
+import java.util.WeakHashMap;
 import com.avail.annotations.*;
 import com.avail.serialization.Serializer;
 
@@ -105,9 +107,9 @@ extends AtomDescriptor
 		ISSUING_MODULE,
 
 		/**
-		 * A map from this atom's property keys (atoms) to property values.
+		 * A weak map from this atom's property keys (atoms) to property values.
 		 */
-		PROPERTY_MAP;
+		PROPERTY_MAP_POJO;
 
 		static
 		{
@@ -123,7 +125,7 @@ extends AtomDescriptor
 	{
 		return super.allowsImmutableToMutableReferenceInField(e)
 			|| e == HASH_OR_ZERO
-			|| e == PROPERTY_MAP;
+			|| e == PROPERTY_MAP_POJO;
 	}
 
 	@Override
@@ -134,7 +136,7 @@ extends AtomDescriptor
 		// special needs to happen, i.e., object doesn't need to become an
 		// indirection.
 		object.descriptor = AtomWithPropertiesSharedDescriptor.shared;
-		object.slot(PROPERTY_MAP).makeShared();
+		object.slot(PROPERTY_MAP_POJO).makeShared();
 		return object;
 	}
 
@@ -153,20 +155,18 @@ extends AtomDescriptor
 		final A_BasicObject value)
 	{
 		assert key.isAtom();
-		A_Map map = object.slot(PROPERTY_MAP);
+		final A_BasicObject propertyMapPojo = object.slot(PROPERTY_MAP_POJO);
+		@SuppressWarnings("unchecked")
+		final Map<A_Atom, A_BasicObject> propertyMap =
+			(Map<A_Atom, A_BasicObject>) propertyMapPojo.javaObject();
 		if (value.equalsNil())
 		{
-			map = map.mapWithoutKeyCanDestroy(key, true);
+			propertyMap.remove(key);
 		}
 		else
 		{
-			map = map.mapAtPuttingCanDestroy(key, value, true);
+			propertyMap.put(key, value);
 		}
-		if (isShared())
-		{
-			map = map.traversed().makeShared();
-		}
-		object.setSlot(PROPERTY_MAP, map);
 	}
 
 	/**
@@ -183,12 +183,12 @@ extends AtomDescriptor
 		final A_Atom key)
 	{
 		assert key.isAtom();
-		final A_Map map = object.slot(PROPERTY_MAP);
-		if (map.hasKey(key))
-		{
-			return map.mapAt(key);
-		}
-		return NilDescriptor.nil();
+		final A_BasicObject propertyMapPojo = object.slot(PROPERTY_MAP_POJO);
+		@SuppressWarnings("unchecked")
+		final Map<A_Atom, AvailObject> propertyMap =
+			(Map<A_Atom, AvailObject>) propertyMapPojo.javaObject();
+		final A_BasicObject value = propertyMap.get(key);
+		return value == null ? NilDescriptor.nil() : (AvailObject) value;
 	}
 
 	/**
@@ -212,7 +212,10 @@ extends AtomDescriptor
 		final AvailObject instance = mutable.create();
 		instance.setSlot(NAME, name);
 		instance.setSlot(ISSUING_MODULE, issuingModule);
-		instance.setSlot(PROPERTY_MAP, MapDescriptor.empty());
+		instance.setSlot(
+			PROPERTY_MAP_POJO,
+			RawPojoDescriptor.identityWrap(
+				new WeakHashMap<A_Atom, A_BasicObject>()));
 		instance.setSlot(HASH_OR_ZERO, 0);
 		instance.makeImmutable();
 		return instance;
@@ -246,7 +249,10 @@ extends AtomDescriptor
 		final AvailObject instance = mutable.create();
 		instance.setSlot(NAME, name);
 		instance.setSlot(ISSUING_MODULE, issuingModule);
-		instance.setSlot(PROPERTY_MAP, MapDescriptor.empty());
+		instance.setSlot(
+			PROPERTY_MAP_POJO,
+			RawPojoDescriptor.identityWrap(
+				new WeakHashMap<A_Atom, A_BasicObject>()));
 		instance.setSlot(HASH_OR_ZERO, originalHash);
 		instance.makeImmutable();
 		return instance;
@@ -256,11 +262,33 @@ extends AtomDescriptor
 	 * Construct a new {@link AtomWithPropertiesDescriptor}.
 	 *
 	 * @param mutability
+	 *            The {@linkplain Mutability mutability} of the new descriptor.
+	 * @param objectSlotsEnumClass
+	 *            The Java {@link Class} which is a subclass of {@link
+	 *            ObjectSlotsEnum} and defines this object's object slots
+	 *            layout, or null if there are no object slots.
+	 * @param integerSlotsEnumClass
+	 *            The Java {@link Class} which is a subclass of {@link
+	 *            IntegerSlotsEnum} and defines this object's object slots
+	 *            layout, or null if there are no integer slots.
+	 */
+	protected AtomWithPropertiesDescriptor (
+		final Mutability mutability,
+		final @Nullable Class<? extends ObjectSlotsEnum> objectSlotsEnumClass,
+		final @Nullable Class<? extends IntegerSlotsEnum> integerSlotsEnumClass)
+	{
+		super(mutability, objectSlotsEnumClass, integerSlotsEnumClass);
+	}
+
+	/**
+	 * Construct a new {@link AtomWithPropertiesDescriptor}.
+	 *
+	 * @param mutability
 	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 */
-	protected AtomWithPropertiesDescriptor (final Mutability mutability)
+	private AtomWithPropertiesDescriptor (final Mutability mutability)
 	{
-		super(mutability);
+		super(mutability, ObjectSlots.class, IntegerSlots.class);
 	}
 
 	/** The mutable {@link AtomWithPropertiesDescriptor}. */

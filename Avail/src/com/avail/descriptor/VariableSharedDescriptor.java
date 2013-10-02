@@ -34,7 +34,11 @@ package com.avail.descriptor;
 
 import static com.avail.descriptor.VariableSharedDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.VariableSharedDescriptor.ObjectSlots.*;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
+import java.util.WeakHashMap;
 import com.avail.annotations.*;
 import com.avail.descriptor.VariableDescriptor.VariableAccessReactor;
 import com.avail.exceptions.AvailException;
@@ -97,13 +101,14 @@ extends VariableDescriptor
 		WRITE_REACTORS,
 
 		/**
-		 * The {@linkplain SetDescriptor set} of {@linkplain L2Chunk#index()
-		 * indices} of {@linkplain L2Chunk level two chunks} that depend on the
-		 * {@linkplain VariableAccessReactor reactors} of this {@linkplain
-		 * VariableSharedDescriptor variable}. A change to the reactor maps
-		 * should cause these chunks to be invalidated.
+		 * A {@linkplain RawPojoDescriptor raw pojo} holding a weak set
+		 * (implemented as the {@linkplain Map#keySet() key set} of a {@link
+		 * WeakHashMap}) of {@link L2Chunk}s that depend on the membership of
+		 * this method.  A change to the membership will invalidate all such
+		 * chunks.  This field holds the {@linkplain NilDescriptor#nil() nil}
+		 * object initially.
 		 */
-		DEPENDENT_CHUNK_INDICES;
+		DEPENDENT_CHUNKS_WEAK_SET_POJO;
 
 		static
 		{
@@ -232,64 +237,78 @@ extends VariableDescriptor
 	 * Record the fact that the chunk indexed by aChunkIndex depends on
 	 * this object not changing.
 	 */
+	@SuppressWarnings("unchecked")
 	@Override @AvailMethod
-	void o_AddDependentChunkIndex (
+	void o_AddDependentChunk (
 		final AvailObject object,
-		final int aChunkIndex)
+		final L2Chunk chunk)
 	{
+		// Record the fact that the given chunk depends on this object not
+		// changing.  Local synchronization is sufficient, since invalidation
+		// can't happen while L2 code is running (and therefore when the
+		// L2Translator could be calling this).
 		synchronized (object)
 		{
-			A_Set indices = object.slot(DEPENDENT_CHUNK_INDICES);
-			indices = indices.setWithElementCanDestroy(
-				IntegerDescriptor.fromInt(aChunkIndex),
-				true);
-			object.setSlot(
-				DEPENDENT_CHUNK_INDICES,
-				indices.traversed().makeShared());
+			final A_BasicObject pojo =
+				object.slot(DEPENDENT_CHUNKS_WEAK_SET_POJO);
+			final Set<L2Chunk> chunkSet;
+			if (pojo.equalsNil())
+			{
+				chunkSet = Collections.newSetFromMap(
+					new WeakHashMap<L2Chunk, Boolean>());
+				object.setSlot(
+					DEPENDENT_CHUNKS_WEAK_SET_POJO,
+					RawPojoDescriptor.identityWrap(chunkSet).makeShared());
+			}
+			else
+			{
+				chunkSet = (Set<L2Chunk>) pojo.javaObject();
+			}
+			chunkSet.add(chunk);
 		}
 	}
 
 	@Override @AvailMethod
-	void o_RemoveDependentChunkIndex (
+	void o_RemoveDependentChunk (
 		final AvailObject object,
-		final int aChunkIndex)
+		final L2Chunk chunk)
 	{
-		synchronized (object)
+		assert L2Chunk.invalidationLock.isHeldByCurrentThread();
+		final A_BasicObject pojo =
+			object.slot(DEPENDENT_CHUNKS_WEAK_SET_POJO);
+		if (!pojo.equalsNil())
 		{
-			A_Set indices =
-				object.slot(DEPENDENT_CHUNK_INDICES);
-			indices = indices.setWithoutElementCanDestroy(
-				IntegerDescriptor.fromInt(aChunkIndex),
-				true);
-			object.setSlot(
-				DEPENDENT_CHUNK_INDICES, indices.traversed().makeShared());
+			@SuppressWarnings("unchecked")
+			final Set<L2Chunk> chunkSet = (Set<L2Chunk>) pojo.javaObject();
+			chunkSet.remove(chunk);
 		}
 	}
 
 	/**
-	 * The reactors of this {@linkplain VariableSharedDescriptor variable} have
-	 * changed. Invalidate any dependent {@linkplain L2Chunk Level Two chunks}.
+	 * Invalidate any dependent {@linkplain L2Chunk Level Two chunks}.
 	 *
 	 * @param object The method that changed.
 	 */
 	@SuppressWarnings("unused")
 	private static void invalidateChunks (final AvailObject object)
 	{
-		assert Thread.holdsLock(object);
+		assert L2Chunk.invalidationLock.isHeldByCurrentThread();
 		// Invalidate any affected level two chunks.
-		final A_Set chunkIndices =
-			object.slot(DEPENDENT_CHUNK_INDICES);
-		if (chunkIndices.setSize() > 0)
+		final A_BasicObject pojo = object.slot(DEPENDENT_CHUNKS_WEAK_SET_POJO);
+		if (!pojo.equalsNil())
 		{
-			// Use makeImmutable() to avoid membership changes while iterating.
-			for (final A_Number chunkIndex : chunkIndices.makeImmutable())
+			// Copy the set of chunks to avoid modification during iteration.
+			@SuppressWarnings("unchecked")
+			final
+			Set<L2Chunk> originalSet = (Set<L2Chunk>) pojo.javaObject();
+			final Set<L2Chunk> chunksToInvalidate =
+				new HashSet<>(originalSet);
+			for (final L2Chunk chunk : chunksToInvalidate)
 			{
-				L2Chunk.invalidateChunkAtIndex(chunkIndex.extractInt());
+				chunk.invalidate();
 			}
-			// The chunk invalidations should have removed all dependencies...
-			final A_Set chunkIndicesAfter =
-				object.slot(DEPENDENT_CHUNK_INDICES);
-			assert chunkIndicesAfter.setSize() == 0;
+			// The chunk invalidations should have removed all dependencies.
+			assert originalSet.isEmpty();
 		}
 	}
 
@@ -360,7 +379,7 @@ extends VariableDescriptor
 		result.setSlot(HASH_OR_ZERO, hash);
 		result.setSlot(VALUE, value);
 		result.setSlot(WRITE_REACTORS, NilDescriptor.nil());
-		result.setSlot(DEPENDENT_CHUNK_INDICES, SetDescriptor.empty());
+		result.setSlot(DEPENDENT_CHUNKS_WEAK_SET_POJO, NilDescriptor.nil());
 		result.descriptor = VariableSharedDescriptor.shared;
 		return result;
 	}
@@ -373,7 +392,7 @@ extends VariableDescriptor
 	 */
 	private VariableSharedDescriptor (final Mutability mutability)
 	{
-		super(mutability);
+		super(mutability, ObjectSlots.class, IntegerSlots.class);
 	}
 
 	/**

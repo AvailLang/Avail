@@ -233,7 +233,7 @@ extends PojoTypeDescriptor
 	 */
 	public BottomPojoTypeDescriptor (final Mutability mutability)
 	{
-		super(mutability);
+		super(mutability, null, null);
 	}
 
 	/** The mutable {@link BottomPojoTypeDescriptor}. */

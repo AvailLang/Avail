@@ -92,20 +92,9 @@ public class Statistic implements Comparable<Statistic>
 	 *
 	 * @return The sample count.
 	 */
-	public long count ()
+	public synchronized long count ()
 	{
 		return count;
-	}
-
-	/**
-	 * Return the mean sample.  This is the sum of the samples divided by the
-	 * number of samples.
-	 *
-	 * @return The mean sample.
-	 */
-	public double mean ()
-	{
-		return mean;
 	}
 
 	/**
@@ -113,7 +102,7 @@ public class Statistic implements Comparable<Statistic>
 	 *
 	 * @return The sum of the samples.
 	 */
-	public double sum ()
+	private double sum ()
 	{
 		return mean * count;
 	}
@@ -126,7 +115,7 @@ public class Statistic implements Comparable<Statistic>
 	 *
 	 * @return The Bessel-corrected variance of the samples.
 	 */
-	public double variance ()
+	public synchronized double variance ()
 	{
 		if (count <= 1L)
 		{
@@ -170,8 +159,14 @@ public class Statistic implements Comparable<Statistic>
 	public synchronized void record (final double sample)
 	{
 		count++;
-		min = Math.min(min, sample);
-		max = Math.max(max, sample);
+		if (sample < min)
+		{
+			min = sample;
+		}
+		if (sample > max)
+		{
+			max = sample;
+		}
 		final double delta = sample - mean;
 		mean += delta / count;
 		sumOfDeltaSquares += delta * (sample - mean);
