@@ -4393,4 +4393,12 @@ extends AbstractDescriptor
 		// Only types should be tested for being top.
 		throw unsupportedOperationException();
 	}
+
+	@Override
+	boolean o_IsAtomSpecial (
+		final AvailObject object)
+	{
+		// Only atoms should be tested for being special.
+		throw unsupportedOperationException();
+	}
 }

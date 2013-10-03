@@ -39,7 +39,6 @@ import java.io.IOException;
 import java.net.*;
 import java.nio.channels.AsynchronousSocketChannel;
 import java.util.List;
-import com.avail.AvailRuntime;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 
@@ -76,7 +75,7 @@ extends Primitive
 		if (pojo.equalsNil())
 		{
 			return interpreter.primitiveFailure(
-				AvailRuntime.isSpecialAtom(handle)
+				handle.isAtomSpecial()
 				? E_SPECIAL_ATOM
 				: E_INVALID_HANDLE);
 		}

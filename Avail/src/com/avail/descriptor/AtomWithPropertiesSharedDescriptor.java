@@ -186,15 +186,37 @@ extends AtomWithPropertiesDescriptor
 		}
 	}
 
+	@Override
+	boolean o_IsAtomSpecial (final AvailObject object)
+	{
+		return isSpecial;
+	}
+
+	/**
+	 * Whether this descriptor is the one used to indicate atoms that are
+	 * explicitly defined by the Avail virtual machine.
+	 */
+	final boolean isSpecial;
+
 	/**
 	 * Construct a new {@link AtomWithPropertiesSharedDescriptor}.
+	 *
+	 * @param isSpecial
+	 *            Whether this particular descriptor is used to represent
+	 *            an atom that has special meaning to the Avail virtual machine.
 	 */
-	private AtomWithPropertiesSharedDescriptor ()
+	private AtomWithPropertiesSharedDescriptor (
+		final boolean isSpecial)
 	{
 		super(Mutability.SHARED, ObjectSlots.class, IntegerSlots.class);
+		this.isSpecial = isSpecial;
 	}
 
 	/** The shared {@link AtomWithPropertiesDescriptor}. */
 	static final AtomWithPropertiesSharedDescriptor shared =
-		new AtomWithPropertiesSharedDescriptor();
+		new AtomWithPropertiesSharedDescriptor(false);
+
+	/** The sharedAndSpecial {@link AtomWithPropertiesDescriptor}. */
+	static final AtomWithPropertiesSharedDescriptor sharedAndSpecial =
+		new AtomWithPropertiesSharedDescriptor(true);
 }

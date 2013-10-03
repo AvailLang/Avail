@@ -775,8 +775,7 @@ extends Descriptor
 	 * name is presented in stack traces.
 	 */
 	private static final A_Atom methodNameKeyAtom =
-		AtomDescriptor.createSpecialAtom(
-			StringDescriptor.from("code method name key"));
+		AtomDescriptor.createSpecialAtom("code method name key");
 
 	/**
 	 * Answer the key used to track a method name associated with the code. This
@@ -794,8 +793,7 @@ extends Descriptor
 	 * this code occurs.
 	 */
 	private static final A_Atom lineNumberKeyAtom =
-		AtomDescriptor.createSpecialAtom(
-			StringDescriptor.from("code line number key"));
+		AtomDescriptor.createSpecialAtom("code line number key");
 
 	/**
 	 * Answer the key used to track the first line number within the module on

@@ -5965,4 +5965,10 @@ public abstract class AbstractDescriptor
 	 * @return
 	 */
 	abstract boolean o_IsTop (AvailObject object);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract boolean o_IsAtomSpecial (AvailObject object);
 }

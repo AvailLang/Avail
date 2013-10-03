@@ -56,8 +56,10 @@ extends Primitive
 	{
 		assert args.size() == 1;
 		final A_Fiber fiber = args.get(0);
-		return interpreter.primitiveSuccess(IntegerDescriptor.fromInt(
-			fiber.priority()));
+		final int priority = fiber.priority();
+		assert 0 <= priority && priority <= 255;
+		return interpreter.primitiveSuccess(
+			IntegerDescriptor.fromInt(priority));
 	}
 
 	@Override

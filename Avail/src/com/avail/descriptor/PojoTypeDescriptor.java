@@ -210,8 +210,8 @@ extends TypeDescriptor
 	 * InstanceTypeDescriptor instance type} represents the self type of a
 	 * {@linkplain Class Java class or interface}.
 	 */
-	private static final A_Atom selfAtom = AtomDescriptor.createSpecialAtom(
-		StringDescriptor.from("pojo self"));
+	private static final A_Atom selfAtom =
+		AtomDescriptor.createSpecialAtom("pojo self");
 
 	/**
 	 * Answer a special {@linkplain AtomDescriptor atom} whose {@linkplain

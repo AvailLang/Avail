@@ -37,7 +37,6 @@ import static com.avail.exceptions.AvailErrorCode.E_SPECIAL_ATOM;
 import static com.avail.interpreter.Primitive.Flag.*;
 import static com.avail.interpreter.Primitive.Fallibility.*;
 import java.util.List;
-import com.avail.AvailRuntime;
 import com.avail.descriptor.*;
 import com.avail.descriptor.VariableDescriptor.VariableAccessReactor;
 import com.avail.interpreter.*;
@@ -70,7 +69,7 @@ extends Primitive
 		final A_Atom key = args.get(1);
 		final A_Function reactorFunction = args.get(2);
 		// Forbid special atoms.
-		if (AvailRuntime.isSpecialAtom(key))
+		if (key.isAtomSpecial())
 		{
 			return interpreter.primitiveFailure(E_SPECIAL_ATOM);
 		}
@@ -114,9 +113,9 @@ extends Primitive
 		{
 			boolean allSpecial = true;
 			boolean noneSpecial = true;
-			for (final A_BasicObject key : keyType.instances())
+			for (final A_Atom key : keyType.instances())
 			{
-				final boolean isSpecial = AvailRuntime.isSpecialAtom(key);
+				final boolean isSpecial = key.isAtomSpecial();
 				allSpecial = allSpecial && isSpecial;
 				noneSpecial = noneSpecial && !isSpecial;
 			}

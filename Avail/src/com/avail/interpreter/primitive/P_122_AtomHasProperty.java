@@ -35,7 +35,6 @@ import static com.avail.descriptor.TypeDescriptor.Types.ATOM;
 import static com.avail.exceptions.AvailErrorCode.E_SPECIAL_ATOM;
 import static com.avail.interpreter.Primitive.Flag.CanInline;
 import java.util.List;
-import com.avail.AvailRuntime;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 
@@ -60,8 +59,8 @@ public final class P_122_AtomHasProperty extends Primitive
 		assert args.size() == 2;
 		final A_Atom propertyKey = args.get(0);
 		final A_Atom atom = args.get(1);
-		if (AvailRuntime.isSpecialAtom(atom)
-			|| AvailRuntime.isSpecialAtom(propertyKey))
+		if (atom.isAtomSpecial()
+			|| propertyKey.isAtomSpecial())
 		{
 			return interpreter.primitiveFailure(E_SPECIAL_ATOM);
 		}

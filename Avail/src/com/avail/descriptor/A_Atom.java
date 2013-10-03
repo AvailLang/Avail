@@ -119,4 +119,11 @@ extends A_BasicObject
 	 * @return The atom's message bundle or nil.
 	 */
 	A_Bundle bundleOrNil ();
+
+	/**
+	 * Answer whether this atom is specially known to the Avail virtual machine.
+	 *
+	 * @return Whether this atom is special to the VM.
+	 */
+	boolean isAtomSpecial ();
 }

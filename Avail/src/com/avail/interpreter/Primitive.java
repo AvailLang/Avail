@@ -529,9 +529,7 @@ implements IntegerEnumSlotDescriptionEnum
 					{
 						final Short primNum = Short.valueOf(matcher.group(1));
 						assert !names.containsKey(primNum);
-						names.put(
-							primNum,
-							line);
+						names.put(primNum, line);
 					}
 				}
 				primitiveNames = names;

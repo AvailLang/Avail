@@ -1575,8 +1575,7 @@ extends Descriptor
 		final String name,
 		final Primitive... primitives)
 	{
-		final A_String string = StringDescriptor.from(name);
-		final A_Atom atom = AtomDescriptor.createSpecialAtom(string);
+		final A_Atom atom = AtomDescriptor.createSpecialAtom(name);
 		final A_Bundle bundle = atom.bundleOrCreate();
 		final A_Method method = bundle.bundleMethod();
 		for (final Primitive primitive : primitives)
@@ -1597,7 +1596,9 @@ extends Descriptor
 					"VM method name is invalid: " + name.toString(), e);
 			}
 		}
-		return atom.traversed().makeShared();
+		assert atom.descriptor().isShared();
+		assert atom.isAtomSpecial();
+		return atom;
 	}
 
 	/**

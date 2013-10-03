@@ -6908,4 +6908,10 @@ implements
 	{
 		return descriptor.o_IsTop(this);
 	}
+
+	@Override
+	public boolean isAtomSpecial ()
+	{
+		return descriptor.o_IsAtomSpecial(this);
+	}
 }

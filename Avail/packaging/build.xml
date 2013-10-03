@@ -35,7 +35,8 @@
 		<fileset
 				id="primitives"
 				dir="${path.primitives}"
-				includes="P_*.class">
+				includes="P_*.class"
+				excludes="*$*.class">
 		</fileset>
 		<pathconvert
 			property="one-primitive-per-line"

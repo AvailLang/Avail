@@ -51,6 +51,10 @@ public final class P_126_SpecialAtoms extends Primitive
 	public final static Primitive instance = new P_126_SpecialAtoms().init(
 		0, CanFold, CannotFail);
 
+	/** The cached set of special atoms defined by the Avail runtime. */
+	private final static A_Set specialAtomsSet =
+		SetDescriptor.fromCollection(AvailRuntime.specialAtoms());
+
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,
@@ -58,8 +62,7 @@ public final class P_126_SpecialAtoms extends Primitive
 		final boolean skipReturnCheck)
 	{
 		assert args.size() == 0;
-		return interpreter.primitiveSuccess(
-			SetDescriptor.fromCollection(AvailRuntime.specialAtoms()));
+		return interpreter.primitiveSuccess(specialAtomsSet);
 	}
 
 	@Override
@@ -70,5 +73,12 @@ public final class P_126_SpecialAtoms extends Primitive
 			SetTypeDescriptor.setTypeForSizesContentType(
 				IntegerRangeTypeDescriptor.wholeNumbers(),
 				ATOM.o()));
+	}
+
+	@Override
+	public A_Type returnTypeGuaranteedByVM(
+		final List<? extends A_Type> argumentTypes)
+	{
+		return AbstractEnumerationTypeDescriptor.withInstance(specialAtomsSet);
 	}
 }

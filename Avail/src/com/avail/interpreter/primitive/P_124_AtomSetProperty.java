@@ -35,7 +35,6 @@ import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode.E_SPECIAL_ATOM;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
-import com.avail.AvailRuntime;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 
@@ -62,8 +61,8 @@ public final class P_124_AtomSetProperty extends Primitive
 		final A_Atom atom = args.get(0);
 		final A_Atom propertyKey = args.get(1);
 		final AvailObject propertyValue = args.get(2);
-		if (AvailRuntime.isSpecialAtom(atom)
-			|| AvailRuntime.isSpecialAtom(propertyKey))
+		if (atom.isAtomSpecial()
+			|| propertyKey.isAtomSpecial())
 		{
 			return interpreter.primitiveFailure(E_SPECIAL_ATOM);
 		}

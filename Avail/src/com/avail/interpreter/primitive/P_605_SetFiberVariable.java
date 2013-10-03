@@ -35,7 +35,6 @@ import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode.E_SPECIAL_ATOM;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
-import com.avail.AvailRuntime;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 
@@ -62,7 +61,7 @@ extends Primitive
 		assert args.size() == 2;
 		final A_Atom key = args.get(0);
 		final A_BasicObject value = args.get(1);
-		if (AvailRuntime.isSpecialAtom(key))
+		if (key.isAtomSpecial())
 		{
 			return interpreter.primitiveFailure(E_SPECIAL_ATOM);
 		}

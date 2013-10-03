@@ -209,12 +209,14 @@ extends A_BasicObject
 	void joiningFibers (A_Set empty);
 
 	/**
-	 * Dispatch to the descriptor.
+	 * Answer this fiber's current priority.
+	 * @return The priority.
 	 */
 	int priority ();
 
 	/**
-	 * @param value
+	 * Change this fiber's current priority.
+	 * @param value The new priority.
 	 */
 	void priority (int value);
 

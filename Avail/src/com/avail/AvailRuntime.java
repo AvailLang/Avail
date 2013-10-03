@@ -758,22 +758,9 @@ public final class AvailRuntime
 
 	/**
 	 * The {@linkplain AtomDescriptor special atoms} known to the {@linkplain
-	 * AvailRuntime runtime}.
+	 * AvailRuntime runtime}.  Populated by the anonymous static section below.
 	 */
-	private static final A_Atom[] specialAtoms =
-		new AvailObject[20];
-
-	/**
-	 * The {@linkplain AtomDescriptor special atoms} known to the {@linkplain
-	 * AvailRuntime runtime}.
-	 */
-	private static final List<A_Atom> specialAtomsList =
-		Collections.unmodifiableList(Arrays.asList(specialAtoms));
-
-	/**
-	 * The {@link Set} of special {@linkplain AtomDescriptor atoms}.
-	 */
-	private static @Nullable Set<A_Atom> specialAtomsSet;
+	private static final List<A_Atom> specialAtomsList = new ArrayList<>();
 
 	/**
 	 * Answer the {@linkplain AtomDescriptor special atoms} known to the
@@ -786,23 +773,6 @@ public final class AvailRuntime
 	public static List<A_Atom> specialAtoms()
 	{
 		return specialAtomsList;
-	}
-
-	/**
-	 * Is the specified {@linkplain AtomDescriptor atom} one of the {@linkplain
-	 * #specialAtoms() special atoms} known to the {@linkplain AvailRuntime
-	 * runtime}?
-	 *
-	 * @param atom An atom.
-	 * @return {@code true} if the specified atom is one of the special atoms,
-	 *         {@code false} otherwise.
-	 */
-	@ThreadSafe
-	public static boolean isSpecialAtom (final A_BasicObject atom)
-	{
-		final Set<A_Atom> set = specialAtomsSet;
-		assert set != null;
-		return set.contains(atom);
 	}
 
 	static
@@ -1075,7 +1045,8 @@ public final class AvailRuntime
 		// you care about serializer compatibility, otherwise previously
 		// serialized references to special atoms will not deserialize
 		// correctly.
-		final A_Atom[] atoms = new A_Atom[specialAtoms.length];
+		assert specialAtomsList.isEmpty();
+		final A_Atom[] atoms = new A_Atom[19];
 		atoms[0] = AtomDescriptor.trueObject();
 		atoms[1] = AtomDescriptor.falseObject();
 		atoms[2] = PojoTypeDescriptor.selfAtom();
@@ -1096,31 +1067,25 @@ public final class AvailRuntime
 		atoms[17] = AtomDescriptor.messageBundleKey();
 		atoms[18] = MethodDescriptor.vmDeclareStringifierAtom();
 
-		System.arraycopy(atoms, 0, specialAtoms, 0, atoms.length);
+		// Populate the specialAtomsList.
+		for (int i = 0; i < atoms.length; i++)
+		{
+			assert atoms[i] != null;
+			assert atoms[i].isAtomSpecial();
+			specialAtomsList.add(atoms[i]);
+		}
 
-		assert specialAtomsSet == null;
-		final Set<A_Atom> set = new HashSet<>(specialAtomsList);
-		set.remove(null);
-		specialAtomsSet = set;
-		specialAtomsSet = Collections.unmodifiableSet(specialAtomsSet);
+		// Make sure
 		for (int i = 0; i < specialObjects.length; i++)
 		{
-			final A_BasicObject object = specialObjects[i];
+			final AvailObject object = specialObjects[i];
 			if (object != null)
 			{
 				specialObjects[i] = object.makeShared();
 				if (object.isAtom())
 				{
-					assert set.contains(object);
+					assert object.isAtomSpecial();
 				}
-			}
-		}
-		for (int i = 0; i < specialAtoms.length; i++)
-		{
-			final A_BasicObject object = specialAtoms[i];
-			if (object != null)
-			{
-				specialAtoms[i] = object.makeShared();
 			}
 		}
 	}

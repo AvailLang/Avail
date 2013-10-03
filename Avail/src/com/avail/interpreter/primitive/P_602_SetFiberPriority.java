@@ -58,7 +58,9 @@ extends Primitive
 		assert args.size() == 2;
 		final A_Fiber fiber = args.get(0);
 		final AvailObject priority = args.get(0);
-		fiber.priority(priority.extractInt());
+		final int priorityInt = priority.extractInt();
+		assert 0 <= priorityInt && priorityInt <= 255;
+		fiber.priority(priorityInt);
 		return interpreter.primitiveSuccess(NilDescriptor.nil());
 	}
 

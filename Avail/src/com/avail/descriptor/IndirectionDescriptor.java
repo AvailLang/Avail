@@ -4553,4 +4553,10 @@ extends AbstractDescriptor
 	{
 		return o_Traversed(object).isTop();
 	}
+
+	@Override
+	boolean o_IsAtomSpecial (final AvailObject object)
+	{
+		return o_Traversed(object).isAtomSpecial();
+	}
 }

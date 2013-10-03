@@ -86,7 +86,7 @@ extends Primitive
 		if (pojo.equalsNil())
 		{
 			return interpreter.primitiveFailure(
-				AvailRuntime.isSpecialAtom(handle)
+				handle.isAtomSpecial()
 				? E_SPECIAL_ATOM
 				: E_INVALID_HANDLE);
 		}

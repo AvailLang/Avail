@@ -140,7 +140,7 @@ extends Descriptor
 	{
 		final String nativeName = object.atomName().asNativeString();
 		// Some atoms print nicer than others.
-		if (AvailRuntime.isSpecialAtom(object))
+		if (object.isAtomSpecial())
 		{
 			aStream.append(nativeName);
 			return;
@@ -318,6 +318,13 @@ extends Descriptor
 	}
 
 	@Override
+	boolean o_IsAtomSpecial (final AvailObject object)
+	{
+		// See AtomWithPropertiesSharedDescriptor.
+		return false;
+	}
+
+	@Override
 	final @Nullable Object o_MarshalToJava (
 		final AvailObject object,
 		final @Nullable Class<?> ignoredClassHint)
@@ -416,10 +423,11 @@ extends Descriptor
 		return immutable;
 	}
 
+	@Deprecated
 	@Override
 	final AtomDescriptor shared ()
 	{
-		return AtomWithPropertiesSharedDescriptor.shared;
+		throw unsupportedOperationException();
 	}
 
 	/**
@@ -443,8 +451,7 @@ extends Descriptor
 		instance.setSlot(NAME, name);
 		instance.setSlot(HASH, 0);
 		instance.setSlot(ISSUING_MODULE, issuingModule);
-		instance.makeImmutable();
-		return instance;
+		return instance.makeImmutable();
 	}
 
 	/**
@@ -459,27 +466,26 @@ extends Descriptor
 	 *        was invoked.
 	 */
 	public static A_Atom createSpecialAtom (
-		final A_String name)
+		final String name)
 	{
-		final AvailObject atom = mutable.create();
-		atom.setSlot(NAME, name.makeShared());
+		AvailObject atom = mutable.create();
+		atom.setSlot(NAME, StringDescriptor.from(name).makeShared());
 		atom.setSlot(HASH, 0);
 		atom.setSlot(ISSUING_MODULE, NilDescriptor.nil());
-		atom.makeShared();
+		atom = atom.makeShared();
+		atom.descriptor = AtomWithPropertiesSharedDescriptor.sharedAndSpecial;
 		return atom;
 	}
 
 	/**
 	 * The atom representing the Avail concept "true".
 	 */
-	private static final A_Atom trueObject =
-		createSpecialAtom(StringDescriptor.from("true"));
+	private static final A_Atom trueObject = createSpecialAtom("true");
 
 	/**
 	 * The atom representing the Avail concept "false".
 	 */
-	private static final A_Atom falseObject =
-		createSpecialAtom(StringDescriptor.from("false"));
+	private static final A_Atom falseObject = createSpecialAtom("false");
 
 	/**
 	 * Convert a Java <code>boolean</code> into an Avail boolean.  There are
@@ -499,85 +505,85 @@ extends Descriptor
 	 * The atom used as a property key under which to store information about
 	 * object type names.
 	 */
-	private static final A_Atom objectTypeNamePropertyKey = createSpecialAtom(
-		StringDescriptor.from("object names"));
+	private static final A_Atom objectTypeNamePropertyKey =
+		createSpecialAtom("object names");
 
 	/**
 	 * The atom used as a tag in module files to indicate that the header
 	 * information follows.
 	 */
-	private static final A_Atom moduleHeaderSectionAtom = createSpecialAtom(
-		StringDescriptor.from("Module header section"));
+	private static final A_Atom moduleHeaderSectionAtom =
+		createSpecialAtom("Module header section");
 
 	/**
 	 * The atom used as a tag in module files to indicate that the module's
 	 * body follows.
 	 */
-	private static final A_Atom moduleBodySectionAtom = createSpecialAtom(
-		StringDescriptor.from("Module body section"));
+	private static final A_Atom moduleBodySectionAtom =
+		createSpecialAtom("Module body section");
 
 	/**
 	 * The atom used as a key in a {@link ParserState}'s {@linkplain
 	 * ParserState#clientDataMap} to store the current map of declarations that
 	 * are in scope.
 	 */
-	private static final A_Atom compilerScopeMapKey = createSpecialAtom(
-		StringDescriptor.from("Compilation scope"));
+	private static final A_Atom compilerScopeMapKey =
+		createSpecialAtom("Compilation scope");
 
 	/**
 	 * The atom used as a key in a {@linkplain FiberDescriptor fiber}'s global
 	 * map to extract the current {@link ParserState}'s {@linkplain
 	 * ParserState#clientDataMap}.
 	 */
-	private static final A_Atom clientDataGlobalKey = createSpecialAtom(
-		StringDescriptor.from("Compiler client data"));
+	private static final A_Atom clientDataGlobalKey =
+		createSpecialAtom("Compiler client data");
 
 	/**
 	 * The atom used as a property key under which to store a {@link
 	 * RandomAccessFile}.
 	 */
-	private static final A_Atom fileKey = createSpecialAtom(
-		StringDescriptor.from("file key"));
+	private static final A_Atom fileKey =
+		createSpecialAtom("file key");
 
 	/**
 	 * The property key that indicates that a file is readable.
 	 */
-	private static final A_Atom fileModeReadKey = createSpecialAtom(
-		StringDescriptor.from("file mode read"));
+	private static final A_Atom fileModeReadKey =
+		createSpecialAtom("file mode read");
 
 	/**
 	 * The property key that indicates that a file is writable.
 	 */
-	private static final A_Atom fileModeWriteKey = createSpecialAtom(
-		StringDescriptor.from("file mode write"));
+	private static final A_Atom fileModeWriteKey =
+		createSpecialAtom("file mode write");
 
 	/**
 	 * The atom used as a property key under which to store an {@link
 	 * AsynchronousServerSocketChannel asynchronous server socket channel}.
 	 */
-	private static final A_Atom serverSocketKey = createSpecialAtom(
-		StringDescriptor.from("server socket key"));
+	private static final A_Atom serverSocketKey =
+		createSpecialAtom("server socket key");
 
 	/**
 	 * The atom used as a property key under which to store an {@link
 	 * AsynchronousSocketChannel asynchronous socket channel}.
 	 */
-	private static final A_Atom socketKey = createSpecialAtom(
-		StringDescriptor.from("socket key"));
+	private static final A_Atom socketKey =
+		createSpecialAtom("socket key");
 
 	/**
 	 * The property key that indicates that a {@linkplain FiberDescriptor fiber}
 	 * global is inheritable.
 	 */
-	private static final A_Atom heritableKey = createSpecialAtom(
-		StringDescriptor.from("heritability"));
+	private static final A_Atom heritableKey =
+		createSpecialAtom("heritability");
 
 	/**
 	 * The property key from which to extract an atom's {@linkplain
 	 * MessageBundleDescriptor message bundle}, if any.
 	 */
-	private static final A_Atom messageBundleKey = createSpecialAtom(
-		StringDescriptor.from("message bundle"));
+	private static final A_Atom messageBundleKey =
+		createSpecialAtom("message bundle");
 
 	/**
 	 * Answer the atom representing the Avail concept "true".

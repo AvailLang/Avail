@@ -400,7 +400,10 @@ extends TypeDescriptor
 
 	/**
 	 * Assign a name to the specified {@linkplain ObjectTypeDescriptor
-	 * user-defined object type}.
+	 * user-defined object type}.  If the only field key {@linkplain
+	 * AtomDescriptor atoms} in the object type are {@linkplain
+	 * AtomDescriptor#o_IsAtomSpecial(AvailObject) special atoms}, then the
+	 * name will not be recorded.
 	 *
 	 * @param anObjectType
 	 *        A {@linkplain ObjectTypeDescriptor user-defined object type}.
@@ -419,20 +422,23 @@ extends TypeDescriptor
 			: anObjectType.fieldTypeMap().mapIterable())
 		{
 			final A_Atom atom = entry.key();
-			final A_Map namesMap = atom.getAtomProperty(propertyKey);
-			if (namesMap.equalsNil())
+			if (!atom.isAtomSpecial())
 			{
-				keyAtomWithLeastNames = atom;
-				keyAtomNamesMap = MapDescriptor.empty();
-				leastNames = 0;
-				break;
-			}
-			final int mapSize = namesMap.mapSize();
-			if (mapSize < leastNames)
-			{
-				keyAtomWithLeastNames = atom;
-				keyAtomNamesMap = namesMap;
-				leastNames = mapSize;
+				final A_Map namesMap = atom.getAtomProperty(propertyKey);
+				if (namesMap.equalsNil())
+				{
+					keyAtomWithLeastNames = atom;
+					keyAtomNamesMap = MapDescriptor.empty();
+					leastNames = 0;
+					break;
+				}
+				final int mapSize = namesMap.mapSize();
+				if (mapSize < leastNames)
+				{
+					keyAtomWithLeastNames = atom;
+					keyAtomNamesMap = namesMap;
+					leastNames = mapSize;
+				}
 			}
 		}
 		if (keyAtomWithLeastNames != null)
@@ -621,9 +627,7 @@ extends TypeDescriptor
 	 * #exceptionType exception type}.
 	 */
 	private static final A_Atom exceptionAtom =
-		AtomDescriptor.create(
-			StringDescriptor.from("explicit-exception"),
-			NilDescriptor.nil());
+		AtomDescriptor.createSpecialAtom("explicit-exception");
 
 	/**
 	 * Answer the {@linkplain AtomDescriptor atom} that identifies the
@@ -642,7 +646,7 @@ extends TypeDescriptor
 	 * type}.
 	 */
 	private static final A_Atom stackDumpAtom =
-		AtomDescriptor.createSpecialAtom(StringDescriptor.from("stack dump"));
+		AtomDescriptor.createSpecialAtom("stack dump");
 
 	/**
 	 * Answer the {@linkplain AtomDescriptor atom} that identifies the
