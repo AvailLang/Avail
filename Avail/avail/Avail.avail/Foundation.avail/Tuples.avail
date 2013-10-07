@@ -637,7 +637,7 @@ Semantic restriction "map and filter_by_" is
 	];
 	<
 		<>,
-		cast accumulator[2] into [ t : function meta | t[1] ]…
+		cast accumulator[3] into [ t : function meta | t[1] ]…
 		| [0..⎡tupleType⎤ + 1)
 	>
 ];

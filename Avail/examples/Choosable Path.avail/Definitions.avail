@@ -1,0 +1,1412 @@
+/*
+ * Definitions.avail
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+System Module "Definitions"
+Versions
+	"dev"
+Uses
+	"Avail",
+	"Contexts",
+	"Scenes"
+Names
+	/* Defining the context type. */
+	"Let the game context be without custom state",
+	"Let the game context include\
+		\|«boolean state«_«✔»?/_«✔»?‡,»»\
+		\|«_state«_(initially_)‡,»»",
+
+	/* Defining a scene. */
+	"Let«_‡,⁇and⁇»be a⁇scene|scenes",
+	"Let_be the opening scene",
+	"_«is titled by_,⁇»and⁇is described by_,⁇«and⁇upon entry does_,⁇»«and⁇has_»",
+
+	/* Constructing scene transitions. */
+	"to_contingent on_described by_",
+	"to_contingent on_when chosen doing_described by_",
+	"to_described by_",
+	"to_when chosen doing_described by_",
+
+	/* Conjoining scene transitions. */
+	"a⁇transition|transitions«_‡,⁇and⁇»",
+
+	/* Defining a named scene transition. */
+	"Let_be a transition_"
+Body
+
+/**
+ * This is the name of the atom used to force all {@type "game context"} types
+ * to be distinct.
+ *
+ * @global "explicitAtomName" "nonempty string"
+ */
+explicitAtomName ::= "explicit-game context";
+
+/**
+ * Given the {@type "tuple"}s of boolean and non-boolean state variable
+ * definitions, produce the game-specific {@type "context"} type and a tuple of
+ * instance initialization triples.
+ *
+ * @method "context type and initialization triples given_and_"
+ * @param
+ *    "booleanState"
+ *    "<<<string, boolean, string, boolean…|4>…|1..>…|0..1>"
+ * @param
+ *    "nonBooleanState"
+ *    "<<any's type, <<string, any…|2>…|1..>…|2>…|>"
+ * @returns "<context's type, <<atom, type, any…|3>…|>…|2>"
+ */
+Private method "context type,initialization triples,and atom map given_and_" is
+[
+	booleanState : <<<string, boolean, string, boolean…|4>…|1..>…|0..1>,
+	nonBooleanState : <<any's type, <<string, any…|2>…|1..>…|2>…|>
+|
+	explicitAtom ::= atom for explicitAtomName;
+	typeMap : field type map := context→map + explicitAtom→explicitAtom's type;
+	initializationTriples : <<atom, any's type, any…|3>…|> := <>;
+	atomsByName : {string→atom|} := {};
+	booleanQuartets ::= booleanState[1] else [<>];
+	/* Build the field type map for the game-specific context type. Start with
+	 * the boolean fields, since they require special support.
+	 */
+	For each of booleanQuartets do
+	[
+		quartet : <string, boolean, string, boolean…|4>
+	|
+		/* Use the positve form to name the field atom. */
+		positive ::= quartet[1];
+		fieldAtom ::= atom for positive;
+		atomsByName := atomsByName + positive→fieldAtom;
+		typeMap := typeMap + fieldAtom→↑boolean;
+		initializationTriples := initializationTriples
+			++ <<fieldAtom, boolean, quartet[2]>>;
+	];
+	/* Now augment the field type map with the non-boolean fields. */
+	For each of nonBooleanState do
+	[
+		typeSection : <any's type, <<string, any…|2>…|1..>…|2>
+	|
+		fieldType ::= typeSection[1];
+		For each of typeSection[2] do
+		[
+			fieldDefinition : <string, any…|2>
+		|
+			fieldName ::= fieldDefinition[1];
+			fieldAtom ::= atom for fieldName;
+			atomsByName := atomsByName + fieldName→fieldAtom;
+			typeMap := typeMap + fieldAtom→↑fieldType;
+			initialValue ::= fieldDefinition[2];
+			initializationTriples := initializationTriples
+				++ <<fieldAtom, fieldType, initialValue>>;
+		];
+	];
+	/* Create the game-specific context type. */
+	contextType ::= cast typeMap→object type into [t : context's type | t];
+	/* Answer the context type, initialization triples, and atom map as a
+	 * 3-tuple.
+	 */
+	<contextType, initializationTriples, atomsByName>
+] : <context's type, <<atom, any's type, any…|3>…|>, {string→atom|}…|3>;
+
+/* These atoms are needed for context constructor synthesis. */
+ejectAtom ::= $"eject_";
+addBindingAtom ::= $"_+_→_";
+toObjectAtom ::= $"_→object";
+
+/**
+ * The name of the method that answers the game-specific {@type "context"} type.
+ *
+ * @global "contextTypeName" "nonempty string"
+ */
+contextTypeName ::= "game context";
+
+/**
+ * The name of the method that answers the game-specific {@type "context"}
+ * constructor.
+ *
+ * @global "contextConstructorName" "nonempty string"
+ */
+contextConstructorName ::= "a game context";
+
+/**
+ * The name of the method that answers the {@type "variable"} containing the
+ * opening {@type "scene"}.
+ *
+ * @global "openingSceneName" "nonempty string"
+ */
+openingSceneName ::= "the opening scene";
+
+/* These atoms are needed by context type constructor synthesis. */
+currentSceneAtom ::= $"current scene";
+getAtom ::= $"↓_";
+putAtom ::= $"↓_`?=_";
+
+/**
+ * Generate and install a type accessor named {@method "game context"} to answer
+ * the game-specific {@type "context"} type and a constructor named {@method
+ * "a game context"} to answer an instance that has been initialized
+ * appropriately.
+ *
+ * @method "Install game-specific type accessor and constructor for_given_"
+ * @param "contextType" "context's type"
+ * @param "initializationTriples" "<<atom, any's type, any…|3>…|>"
+ */
+Private method
+	"Install game-specific type accessor and constructor for_given_"
+is
+[
+	contextType : context's type,
+	initializationTriples : <<atom, any's type, any…|3>…|>
+|
+	/*
+	 * Make the game-specific context available.
+	 */
+
+	contextType's name := contextTypeName;
+	Method contextTypeName is
+		generate «[ <‘`contextType`’> ] : contextType's type»;
+
+	/*
+	 * Make the game-specific opening scene variable available.
+	 */
+	sceneType ::= scene for contextType;
+	openingSceneVar ::= new ↑sceneType;
+	openingSceneAtom ::= atom for openingSceneName;
+	Method openingSceneAtom is
+		generate «[ <> | <‘`openingSceneVar`’> ] : ↑sceneType»;
+
+	/*
+	 * Make the game-specific context constructor available.
+	 */
+
+	/* Declare the local variable that holds the field map. */
+	explicitAtom ::= atom for explicitAtomName;
+	contextMap ::= a context→map + explicitAtom→explicitAtom;
+	mapVar ::= «`"contextMap"` : field map := ‘`contextMap`’»;
+
+	/* Arrange to set the opening scene. */
+	currentSceneVar ::= contextMap[currentSceneAtom];
+	currentSceneDecl ::=
+		«`"currentScene"` : abstract scene
+			:= send getAtom with «<‘`openingSceneVar`’>» : sceneType»;
+	currentSceneUpdate ::=
+		««↓mapVar» := send addBindingAtom with
+			«<
+				send ejectAtom with «< «↑«↓mapVar»» >» : field map,
+				‘`currentSceneAtom`’,
+				«↑«↓currentSceneDecl»»
+			>» : field map»;
+
+	/* Declare the local variables that will be captured as the mutable fields
+	 * of the new game-specific context.
+	 */
+	instVars ::= map initializationTriples through
+		[
+			initTriple : <atom, any's type, any…|3>,
+			index : natural number
+		|
+			«`initTriple[1]'s name` : initTriple[2] := ‘`initTriple[3]`’»
+		];
+
+	/* Generate the map construction expressions. */
+	mapUpdates ::= map initializationTriples through
+		[
+			initTriple : <atom, any's type, any…|3>,
+			index : natural number
+		|
+			ejectSend ::= send ejectAtom with «< «↑«↓mapVar»» >» : field map;
+			addBindingSend ::= send addBindingAtom
+				with «< ejectSend, ‘`initTriple[1]`’, «↑«↓instVars[index]»» >»
+				: field map;
+			««↓mapVar» := addBindingSend»
+		];
+
+	/* Convert the field map into an object. */
+	convert ::= send toObjectAtom with «< «↓mapVar» >» : contextType;
+
+	/* Compile the function. */
+	statements ::=
+		<mapVar, currentSceneDecl>
+		++ instVars
+		++ <currentSceneUpdate>
+		++ mapUpdates
+		++ <convert>;
+	newBlock ::= «[ statements ] : contextType»;
+	newFunction ::= generate newBlock;
+	Method contextConstructorName is newFunction;
+	Grammatical restriction "a|an_«with«_«:»?:=_‡,»»" is
+		<{contextTypeName}, ∅, ∅>;
+];
+
+/* These atoms are required by accessor synthesis. */
+impliedContextAtom ::= $"the implied context";
+toMapAtom ::= $"_→map";
+mapAtAtom ::= $"_[_]";
+notAtom ::= $"¬_";
+
+/**
+ * Construct and answer a {@type "phrase"} that produces the field variable
+ * associated with {@method "the implied context"} and the specified field
+ * {@type "atom"}.
+ *
+ * @method "get_'s⁇_field variable expression for_"
+ * @param "contextType" "context's type"
+ *        The {@type "context"} type.
+ * @param "stateType" "any's type"
+ *        The type of the field variable.
+ * @param "fieldAtom" "atom"
+ *        The field atom.
+ * @returns "send phrase⇒↑any"
+ */
+Private method "get_'s⁇_field variable expression for_" is
+[
+	contextType : context's type,
+	stateType : any's type,
+	fieldAtom : atom
+|
+	send mapAtAtom with
+	«<
+		send toMapAtom with
+		«<
+			send impliedContextAtom with «<>» : contextType
+		>» : field map,
+		‘`fieldAtom`’
+	>» : ↑stateType
+] : send phrase⇒variable;
+
+/**
+ * Generate and install the {@type "boolean"} accessors for the specified
+ * {@type "context"} type.
+ *
+ * @method "Install boolean accessors for_given_and_"
+ * @param "contextType" "context's type"
+ * @param "booleanQuintets" "<<string, boolean, string, boolean…|4>…|>"
+ * @param "atomsByName" "{string→atom|}"
+ */
+Private method "Install boolean accessors for_given_and_" is
+[
+	contextType : context's type,
+	booleanQuintets : <<string, boolean, string, boolean…|4>…|>,
+	atomsByName : {string→atom|}
+|
+	For each of booleanQuintets do
+	[
+		quartet : <string, boolean, string, boolean…|4>
+	|
+		/* Generate and install the positive interrogative accessor. */
+		positive ::= quartet[1];
+		fieldAtom ::= atomsByName[positive];
+		getVar ::=
+			get contextType's boolean field variable expression
+			for fieldAtom;
+		positiveInterrogativeBlock ::=
+			«[
+				<send getAtom with «< getVar >» : boolean>
+			] : boolean»;
+		Method positive is generate positiveInterrogativeBlock;
+
+		/* Generate and install the negative interrogative accessor. */
+		negative ::= quartet[3];
+		negativeInterrogativeBlock ::=
+			«[
+				<send notAtom with
+				«<
+					send getAtom with «< getVar >» : boolean
+				>» : boolean >
+			] : boolean»;
+		Method negative is generate negativeInterrogativeBlock;
+
+		/* Generate and install the positive mutator. */
+		positiveSetter ::= "Now " ++ positive;
+		positiveSetterBlock ::=
+			«[
+				<send putAtom with «< getVar, ‘`true`’ >» : ⊤>
+			] : ⊤»;
+		Method positiveSetter is generate positiveSetterBlock;
+
+		/* Generate and install the negative mutator. */
+		negativeSetter ::= "Now " ++ negative;
+		negativeSetterBlock ::=
+			«[
+				<send putAtom with «< getVar, ‘`false`’ >» : ⊤>
+			] : ⊤»;
+		Method negativeSetter is generate negativeSetterBlock;
+	];
+];
+
+/**
+ * Generate and install the non-boolean accessors for the specified {@type
+ * "context"} type.
+ *
+ * @method "Install non-boolean accessors for_given_and_"
+ * @param "contextType" "context's type"
+ * @param "nonBooleanState" <<any's type, <<string, any…|2>…|1..>…|2>…|>
+ * @param "atomsByName" "{string→atom|}"
+ */
+Private method "Install non-boolean accessors for_given_and_" is
+[
+	contextType : context's type,
+	nonBooleanState : <<any's type, <<string, any…|2>…|1..>…|2>…|>,
+	atomsByName : {string→atom|}
+|
+	/* Iterate through the sections of state variables. */
+	For each of nonBooleanState do
+	[
+		typeSection : <any's type, <<string, any…|2>…|1..>…|2>
+	|
+		stateType ::= typeSection[1];
+		For each of typeSection[2] do
+		[
+			stateDefinition : <string, any…|2>
+		|
+			/* Generate and install the accessor. */
+			accessor ::= stateDefinition[1];
+			fieldAtom ::= atomsByName[accessor];
+			getVar ::=
+				get contextType's stateType field variable expression
+				for fieldAtom;
+			accessorBlock ::=
+				«[ <send getAtom with «< getVar >» : stateType> ] : stateType»;
+			accessorFunction ::= generate accessorBlock;
+			Method accessor is accessorFunction;
+
+			/* Generate and install the mutator. */
+			mutator ::= "Now " ++ accessor ++ " is|are_";
+			mutatorArg ::= arg «`"newValue"` : stateType»;
+			mutatorBlock ::=
+				«[
+					<mutatorArg>
+				|
+					<send putAtom with «< getVar, «↓mutatorArg» >» : ⊤>
+				] : ⊤»;
+			mutatorFunction ::= generate mutatorBlock;
+			Method mutator is mutatorFunction;
+		];
+	];
+];
+
+/* The scene vault is given an untypeable name so that user code cannot
+ * reference it. Only reflection can access it.
+ */
+sceneVaultName ::= "\"the scene vault\"";
+
+/**
+ * Install the scene vault. This is a variable containing a {@type "map"} from
+ * {@type "scene"} {@type "variable"}s to their internal names. It will contain
+ * an entry for every scene defined for the specified {@type "context"} type.
+ *
+ * @method "Install the scene vault for_"
+ * @param "contextType" "context's type"
+ */
+Private method "Install the scene vault for_" is
+[
+	contextType : context's type
+|
+	sceneType ::= scene for contextType;
+	/* We want to get the variable's content type exactly right, but can't do
+	 * this statically because we don't know the game context type statically.
+	 * So dynamically create a variable of the right type.
+	 */
+	sceneVaultType ::= {↑sceneType→nonempty string|};
+	sceneVault ::= new ↑sceneVaultType;
+	↓sceneVault ?= {};
+
+	/* Generate the scene vault as a method that answers the variable that
+	 * contains the map from scenes to their internal names.
+	 */
+	sceneVaultBlock ::= «[ <> | <‘`sceneVault`’>] : ↑sceneVaultType»;
+	Method sceneVaultName is generate sceneVaultBlock;
+];
+
+/**
+ * Name the {@type "game context"}-specific types. These are the {@type
+ * "scene"} type and the {@type "scene transition"} type. This step serves only
+ * to provide better compiler messages and debugging statements.
+ *
+ * @method "Name _-specific types"
+ * @param "contextType" "context's type"
+ */
+Private method "Name_-specific types" is
+[
+	contextType : context's type
+|
+	sceneType ::= scene for contextType;
+	sceneType's name := contextTypeName ++ "-specific scene";
+	transitionType ::= scene transition for contextType;
+	transitionType's name := contextTypeName ++ "-specific scene transition";
+];
+
+/**
+ * Define the {@type "game context"} as being without any custom state. The only
+ * state therefore is {@method "the current scene"}, which is universal for all
+ * games. The type {@method "game context"} and the constructor {@method
+ * "a game context"} are made available by this method.
+ *
+ * @method "Let the game context be without custom state"
+ */
+Public method "Let the game context be without custom state" is
+[
+	triple ::=
+		context type, initialization triples, and atom map given <> and <>;
+	contextType ::= triple[1];
+	initializationTriples ::= triple[2];
+	Install game-specific type accessor and constructor
+		for contextType
+		given initializationTriples;
+	Name contextType-specific types;
+	Install the scene vault for contextType;
+];
+
+Semantic restriction "Let the game context be without custom state" is
+[
+	contextTypeAtom ::= atom for contextTypeName;
+	contextConstructorAtom ::= atom for contextConstructorName;
+	If method exists named contextTypeAtom
+		∨ [method exists named contextConstructorAtom]
+	then
+	[
+		Reject parse, expected:
+			"game context not to be redefined"
+	];
+	⊤
+];
+
+/**
+ * Define the {@type "game context"} by specifying all of its necessary state.
+ * The {@method "the current scene" current scene} is supplied automatically,
+ * and must not be reiterated here. The type {@method "game context"} and the
+ * constructor {@method "a game context"} are made available by this method.
+ *
+ * Each {@type "boolean"} state variable is defined by a pair of positive and
+ * negative forms. The positive form answers {@method "true"} if the
+ * corresponding boolean state variable is {@method "true"}, and {@method
+ * "false"} otherwise. The negative form answers {@method "true"} if the
+ * corresponding boolean state variable is {@method "false"}, and {@method
+ * "false"} otherwise. The forms are provided separately only to accommodate the
+ * normal rules of natural languages. To set a boolean state variable to
+ * {@method "true"}, send the message "Now <positive form>". To set a boolean
+ * state variable to {@method "false"}, send the message "Now <negative form>".
+ * The initial value of a boolean state variable is determined by the placement
+ * of a heavy check mark (✔) after exactly one of the positive and negative
+ * forms.
+ *
+ * Each non-boolean state variable is defined by a single form. This form
+ * answers the value of the corresponding state variable. To set a non-boolean
+ * state variable to a particular value, send the message "Now <form> is_".
+ *
+ * @method
+ *    "Let the game context include\
+ *    \|«boolean state«_«✔»?/_«✔»?‡,»»\
+ *    \|«_state«_(initially_)‡,»»"
+ * @param
+ *    "booleanState"
+ *    "<<<string, boolean, string, boolean…|4>…|1..>…|0..1>'s type"
+ * @param
+ *    "nonBooleanState"
+ *    "<<any's type, <<string, any…|2>…|1..>…|2>…|>'s type"
+ */
+Public method
+	"Let the game context include\
+	\|«boolean state«_«✔»?/_«✔»?‡,»»\
+	\|«_state«_(initially_)‡,»»"
+is
+[
+	booleanState : <<<string, boolean, string, boolean…|4>…|1..>…|0..1>,
+	nonBooleanState : <<any's type, <<string, any…|2>…|1..>…|2>…|>
+|
+	triple ::=
+		context type, initialization triples, and atom map
+		given booleanState and nonBooleanState;
+	contextType ::= triple[1];
+	initializationTriples ::= triple[2];
+	atomsByType ::= triple[3];
+	Install game-specific type accessor and constructor
+		for contextType
+		given initializationTriples;
+	Name contextType-specific types;
+	Install boolean accessors
+		for contextType
+		given booleanState[1] else [<>]
+		and atomsByType;
+	Install non-boolean accessors
+		for contextType
+		given nonBooleanState
+		and atomsByType;
+	Install the scene vault for contextType;
+] : ⊤;
+
+/**
+ * Context definition statically requires that:
+ *
+ * - Every quantum of state has a well-known name.
+ * - No two quanta of state have the same name.
+ * - No quantum of state is declared with multiple types.
+ *
+ * @method
+ *    "Let the game context include\
+ *    \|«boolean state«_«✔»?/_«✔»?‡,»»\
+ *    \|«_state«_(initially_)‡,»»"
+ * @restricts
+ *    "<<<string, boolean, string, boolean…|4>…|1..>…|0..1>'s type"
+ * @restricts
+ *    "<<any's type, <<string, any…|2>…|1..>…|2>…|>'s type"
+ */
+Semantic restriction 
+	"Let the game context include\
+	\|«boolean state«_«✔»?/_«✔»?‡,»»\
+	\|«_state«_(initially_)‡,»»"
+is
+[
+	booleanState :
+		<<<string, boolean, string, boolean…|4>…|1..>…|0..1>'s type,
+	typedState : <<any's type, <<string, any…|2>…|1..>…|2>…|>'s type
+|
+	contextTypeAtom ::= atom for contextTypeName;
+	contextConstructorAtom ::= atom for contextConstructorName;
+	If method exists named contextTypeAtom
+		∨ [method exists named contextConstructorAtom]
+	then
+	[
+		Reject parse, expected:
+			"game context not to be redefined"
+	];
+	names : {string|} := ∅;
+	From 1 to relevant |booleanState[1]| do
+	[
+		index : natural number
+	|
+		def ::= booleanState[1][index];
+		Unless {|def[1]|, |def[3]|} = {1} then
+		[
+			Reject parse, expected:
+				"all state variables to be statically named"
+		];
+		positive ::= def[1]'s instance;
+		negative ::= def[3]'s instance;
+		newNames ::= {positive, negative};
+		Unless |newNames| = 2 then
+		[
+			Reject parse, expected:
+				format
+					"boolean state variable to have distinct positive (“①”) \
+					\|and negative (“②”) forms"
+				with positive, negative
+		];
+		Unless names ∩ newNames = ∅ then
+		[
+			Reject parse, expected:
+				"all state variables to be distinctly named"
+		];
+		positiveAtom ::= atom for positive;
+		If method exists named positiveAtom then
+		[
+			Reject parse, expected:
+				format
+					"boolean state variable's positive form (“①”) not to \
+					\|conflict with an existing method name"
+				with positive
+		];
+		negativeAtom ::= atom for negative;
+		If method exists named negativeAtom then
+		[
+			Reject parse, expected:
+				format
+					"boolean state variable's negative form (“①”) not to \
+					\|conflict with an existing method name"
+				with negative
+		];
+		positiveChecked ::= def[2]'s instance;
+		negativeChecked ::= def[4]'s instance;
+		Unless positiveChecked ≠ negativeChecked then
+		[
+			problem ::= if positiveChecked
+				then ["both positive and negative"]
+				else ["neither positive nor negative"];
+			Reject parse, expected:
+				format
+					"boolean state variable with positive form “①” \
+					\|to have a unique initial value (but ‘②’ \
+					\|forms are checked)"
+				with positive, problem
+		];
+		names := names ∪ newNames;
+	];
+	typesSoFar : {type|} := ∅;
+	From 1 to relevant |typedState| do
+	[
+		typeIndex : natural number
+	|
+		typeDef ::= typedState[typeIndex];
+		stateType ::= typeDef[1]'s instance;
+		If stateType ⊆ boolean then
+		[
+			Reject parse, expected:
+				"boolean state variables to be declared first and specially"
+		];
+		If stateType ∈ typesSoFar then
+		[
+			Reject parse, expected:
+				format
+					"each state variable section to be uniquely typed \
+					\|(but at least two sections are typed “①”)"
+				with stateType
+		];
+		From 1 to relevant |typeDef[2]| do
+		[
+			index : natural number
+		|
+			def ::= typeDef[2][index];
+			Unless |def[1]| = 1 then
+			[
+				Reject parse, expected:
+					"all state variables to be statically named"
+			];
+			name ::= def[1]'s instance;
+			If name ∈ names then
+			[
+				Reject parse, expected:
+					"all state variables to be distinctly named"
+			];
+			trueName ::= atom for name;
+			If method exists named trueName then
+			[
+				Reject parse, expected:
+					format
+						"state variable “①” not to conflict with an existing \
+						\|method name"
+					with name
+			];
+			valueType ::= def[2];
+			Unless valueType ⊆ stateType then
+			[
+				Reject parse, expected:
+					format
+						"initial value for state variable “①” to be an \
+						\|instance of “②” (but “③” is an incompatible type)"
+					with name, stateType, valueType
+			];
+			names := names + name;
+		];
+		typesSoFar := typesSoFar + stateType;
+	];
+	⊤
+];
+
+/**
+ * Dynamically obtain the game-specific {@method "context"} type. This method is
+ * used by the DSL machinery, which does not have static access to the
+ * game-specific context type (because it is only created during the
+ * specification of an actual game).
+ *
+ * @method "dynamic game context type"
+ * @returns "context's type"
+ */
+Private method "dynamic game context type" is
+[
+	/* Obtain the game context type. We cannot refer directly to it here,
+	 * because the method "game context" is not valid until after the game
+	 * context has actually been defined. So we generate a function that will
+	 * answer the game context type dynamically.
+	 */
+	contextTypeFunction ::=
+		generate
+		«[
+			<>
+		|
+			<send atom for contextTypeName with «<>» : context's type>
+		] : context's type»;
+	contextType ::= contextTypeFunction();
+	contextType
+] : context's type;
+
+/**
+ * Dynamically obtain the game-specific scene vault. This method is used by the
+ * DSL machinery, which does not have static access to the game-specific context
+ * type (because it is only created during the specification of an actual game).
+ *
+ * @method "dynamic scene vault for_"
+ * @param "sceneType" "scene's type"
+ *        The {@type "game context"}-specific {@type "scene"} type.
+ * @returns "variable"
+ */
+Private method "dynamic scene vault for_" is
+[
+	sceneType : scene's type
+|
+	sceneVaultType ::= {↑sceneType→nonempty string|};
+	sceneVaultFunction ::=
+		generate
+		«[
+			<>
+		|
+			<send atom for sceneVaultName with «<>» : ↑sceneVaultType>
+		] : ↑sceneVaultType»;
+	sceneVault ::= sceneVaultFunction();
+	sceneVault
+] : variable;
+
+/**
+ * Forward declare one or more {@type "scenes"}. This is a prerequisite to
+ * detailing a scene with a title, a description, transitions, etc. Forward
+ * declaration of scenes allows the compiler to cross check that all scene
+ * transitions mentioned by a scene definition are valid.
+ *
+ * @method "Let«_‡,and⁇»be a⁇scene|scenes"
+ * @param "sceneNames" "<nonempty string…|1..>"
+ *        The internal names of the scenes. These are the names by which the
+ *        scenes are known within Avail code.
+ */
+Public method "Let«_‡,⁇and⁇»be a⁇scene|scenes" is
+[
+	sceneNames : <nonempty string…|1..>
+|
+	contextType ::= dynamic game context type;
+	sceneType ::= scene for contextType;
+	/* Obtain the scene vault. */
+	sceneVaultVar ::= dynamic scene vault for sceneType;
+	sceneVaultMap : {variable→nonempty string|} :=
+		cast ↓sceneVaultVar into [v : {variable→nonempty string|} | v];
+	/* Declare the scenes. */
+	For each of sceneNames do
+	[
+		name : nonempty string
+	|
+		/* We want to get the variable's content type exactly right, but can't
+		 * do this statically because we don't know the game context type
+		 * statically. So dynamically create a variable of the right type.
+		 */
+		sceneVar ::= new ↑sceneType;
+
+		/* Add a binding for the new scene to the local scene vault map. */
+		sceneVaultMap := sceneVaultMap + sceneVar→name;
+
+		/* Generate the scene accessor as a method that answers the variable
+		 * that contains the corresponding scene. Originally this variable will
+		 * be unassigned; the actual scene must be provided later. But we need
+		 * to be able to refer to the scene before its details have been
+		 * supplied.
+		 */
+		sceneVarBlock ::= «[ <> | <‘`sceneVar`’>] : ↑sceneType»;
+		Method name is generate sceneVarBlock;
+	];
+	/* Commit all changes to the scene vault. */
+	↓sceneVaultVar ?= sceneVaultMap;
+] : ⊤;
+
+/**
+ * Scene declaration statically requires that:
+ *
+ * - Every scene has a well-known name.
+ * - No two scenes have the same name.
+ *
+ * @method "Let«_‡,and⁇»be a⁇scene|scenes"
+ * @restricts "sceneNames" "<nonempty string…|1..>'s type"
+ */
+Semantic restriction "Let«_‡,⁇and⁇»be a⁇scene|scenes" is
+[
+	sceneNames : <nonempty string…|1..>'s type
+|
+	names : {string|} := ∅;
+	From 1 to relevant |sceneNames| do
+	[
+		index : natural number
+	|
+		nameType ::= sceneNames[index];
+		Unless |nameType| = 1 then
+		[
+			Reject parse, expected:
+				"all scenes to be statically named"
+		];
+		name ::= nameType's instance;
+		If name ∈ names then
+		[
+			Reject parse, expected:
+				format
+					"all scenes to be distinctly named (but multiple scenes \
+					\|are named “①”)"
+				with name
+		];
+		trueName ::= atom for name;
+		If method exists named trueName then
+		[
+			Reject parse, expected:
+				format
+					"scene name “①” not to conflict with an existing method \
+					\|name"
+				with name
+		];
+		names := names + name;
+	];
+	⊤
+];
+
+/**
+ * Require that the specified {@type "variable"} type corresponds to a {@type
+ * "scene"} agrees with the supplied {@type "context"} type.
+ *
+ * @method "Require:scene transition_agrees with_"
+ * @param "varType" "variable's type"
+ * @param "contextType" "context's type"
+ */
+Private method "Require:scene transition_agrees with_" is
+[
+	varType : variable's type,
+	contextType : context's type
+|
+	transitionType ::= scene transition for contextType;
+	Unless {varType's read type, varType's write type} = {transitionType} then
+	[
+		Reject parse, expected:
+			"supplied scene transition to belong to the same schema as the \
+			\|implied context"
+	];
+] : ⊤;
+
+/**
+ * Declare a {@type "scene transition"}. Most scene transitions are expected to
+ * be anonymous, but it may occasionally be useful to include a scene transition
+ * in several different {@type "scene"}s.
+ *
+ * @method "Let_be a transition_"
+ * @param "name" "nonempty string"
+ *        The internal name of the scene transition. This is the names by which
+ *        the scene transition is known within Avail code.
+ */
+Public method "Let_be a transition_" is
+[
+	name : nonempty string,
+	transition : scene transition
+|
+	contextType ::= dynamic game context type;
+	transitionType ::= scene transition for contextType;
+	transitionBlock ::= «[<> | <‘`transition`’>] : transitionType»;
+	Method name is generate transitionBlock;
+] : ⊤;
+
+Semantic restriction "Let_be a transition_" is
+[
+	nameType : nonempty string's type,
+	transitionType : scene transition's type
+|
+	Unless |nameType| = 1 then
+	[
+		Reject parse, expected:
+			"the scene transition to be statically named"
+	];
+	name ::= nameType's instance;
+	trueName ::= atom for name;
+	If method exists named trueName then
+	[
+		Reject parse, expected:
+			format
+				"scene transition name “①” not to conflict with an existing \
+				\|method name"
+			with name
+	];
+	contextType ::= dynamic game context type;
+	Require: scene transition ↑transitionType agrees with contextType;
+	⊤
+];
+
+/**
+ * Require that the specified {@type "variable"} type corresponds to a {@type
+ * "scene"} agrees with the supplied {@type "context"} type.
+ *
+ * @method "Require:scene_agrees with_"
+ * @param "varType" "variable's type"
+ * @param "contextType" "context's type"
+ */
+Private method "Require:scene_agrees with_" is
+[
+	varType : variable's type,
+	contextType : context's type
+|
+	sceneType ::= scene for contextType;
+	Unless {varType's read type, varType's write type} = {sceneType} then
+	[
+		Reject parse, expected:
+			"supplied scene to belong to the same schema as the implied context"
+	];
+] : ⊤;
+
+/**
+ * Require that the specified scene selector {@type "function"} produces
+ * {@type "scene"}s that agree with the supplied {@type "context"} type.
+ *
+ * @method "Require:scene_agrees with_"
+ * @param "selectorType" "[]→variable's type"
+ * @param "contextType" "context's type"
+ */
+Private method "Require:scene_agrees with_" is
+[
+	selectorType : []→variable's type,
+	contextType : context's type
+|
+	sceneType ::= scene for contextType;
+	varType ::= selectorType's return type;
+	Unless {varType's read type, varType's write type} = {sceneType} then
+	[
+		Reject parse, expected:
+			"supplied scene selector to produce scenes that belong to the same \
+			\|schema as the implied context"
+	];
+] : ⊤;
+
+/* These atoms are required by game-specific context wrapper synthesis. */
+invokeAtom ::= $"_(«_‡,»)";
+
+/**
+ * Answer a unary function that wraps the specified nullary function. The outer
+ * function accepts an argument of the game-specific {@type "context"} type.
+ * This parameter is used only to strongly type the supplied function, which in
+ * turn is used to strongly type {@type "scene"}s and {@type
+ * "scene transition"}s.
+ *
+ * @method "unary wrapper on_"
+ * @param "nullary" "[]→⊤"
+ * @returns "[⊥]→⊤"
+ */
+Private method "unary wrapper on_" is
+[
+	nullary : []→⊤
+|
+	returnType ::= nullary's type's return type;
+	contextType ::= dynamic game context type;
+	generate
+	«[
+		<arg «`"c"` : contextType»>
+	|
+		<send invokeAtom with «<‘`nullary`’, ‘`<>`’>» : returnType>
+	] : returnType»
+];
+
+Semantic restriction "unary wrapper on_" is
+[
+	nullaryType : []→⊤'s type
+|
+	[⊥]→(nullaryType's return type)
+];
+
+/**
+ * Answer a unary function that wraps the specified {@type "scene"} selection
+ * function. The outer function accepts an argument of the game-specific {@type
+ * "context"} type. This parameter is used only to strongly type the supplied
+ * function, which in turn is used to strongly type {@type "scene transition"}s.
+ *
+ * @method "target wrapper on_"
+ * @param "nullary" "[]→⊤"
+ * @returns "[⊥]→⊤"
+ */
+Private method "target wrapper on_" is
+[
+	nullary : []→⊤
+|
+	contextType ::= dynamic game context type;
+	sceneType ::= scene for contextType;
+	generate
+	«[
+		<arg «`"c"` : contextType»>
+	|
+		<
+			send getAtom with
+			«<
+				send invokeAtom with «<‘`nullary`’, ‘`<>`’>» : ↑sceneType
+			>» : sceneType
+		>
+	] : sceneType»
+];
+
+Semantic restriction "target wrapper on_" is
+[
+	nullaryType : []→⊤'s type
+|
+	[⊥]→scene
+];
+
+/* These atoms are needed for scene transition constructor synthesis. */
+unaryWrapperAtom ::= $"unary wrapper on_";
+targetWrapperAtom ::= $"target wrapper on_";
+sceneConstructorAtom ::=
+	$"a scene transition to_,⁇contingent on_,⁇before entry doing_,⁇described by_";
+dynamicContextTypeAtom ::= $"dynamic game context type";
+requireSceneAtom ::= $"Require:scene_agrees with_";
+sceneTransitionAtom ::= $"scene transition for_";
+
+/**
+ * Generate every valid {@type "scene transition"} constructor and its semantic
+ * restriciton. This eliminates the boilerplate of hand-coding the sixteen
+ * combinations of the four binary features of scene transition construction.
+ *
+ * @method "Generate scene transition constructors"
+ */
+Private method "Generate scene transition constructors" is
+[
+	/* Use backtracking to compute all permutations of the four dimensions of
+	 * scene transition construction. These dimensions are scene selection,
+	 * predication, activation, and description.
+	 */
+	sceneSelectorTypes ::= <variable, []→variable>;
+	predicateTypes ::= <⊥, []→boolean>;
+	entryTypes ::= <⊥, []→⊤>;
+	describerTypes ::= <nonempty string, []→string>;
+	combinations ::= all values of
+		[
+			<
+				trial element of sceneSelectorTypes,
+				trial element of predicateTypes,
+				trial element of entryTypes,
+				trial element of describerTypes
+			>
+		];
+	/* For each combination of features, generate an appropriate constructor
+	 * method and semantic restriction.
+	 */
+	publicNames ::= current module's public names;
+	argNames ::= <"target", "predicate", "action", "description">;
+	For each of combinations do
+	[
+		combination : <any's type…|4>
+	|
+		/* Construct the name of the method. The predication and activation
+		 * dimensions are implicit in many constructors.
+		 */
+		name ::=
+			format "to_‘①’‘②’described by_"
+			with
+				if combination[2] = ⊥ then [""] else ["contingent on_"],
+				if combination[3] = ⊥ then [""] else ["when chosen doing_"];
+		Assert: name ∈ publicNames;
+
+		/*
+		 * Construct the scene transition constructor method. Do not yet install
+		 * the method.
+		 */
+
+		/* Construct the parameter declarations. */
+		args : <argument phrase…|> := <>;
+		argMap : {[1..4]→[0..4]|} := {};
+		outputIndex : [0..4] := 0;
+		For each of combination do
+		[
+			argType : any's type,
+			index : [1..4]
+		|
+			If argType ≠ ⊥ then
+			[
+				argName ::= argNames[index];
+				arg ::= arg «`argName` : argType»;
+				args := args ++ <arg>;
+				↑outputIndex++;
+				argMap := argMap + index→outputIndex;
+			]
+			else
+			[
+				argMap := argMap + index→0;
+			];
+		];
+		/* Construct the wrapper generation sends. */
+		wrapperSends ::= map combination through
+			[
+				argType : any's type,
+				index : [1..4]
+			|
+				/* The "bogus" parameter will never be used. */
+				argUse ::= «↓args[argMap[index]] else [arg «`"bogus"` : ⊥»]»;
+				if index = 1 then
+				[
+					send targetWrapperAtom with
+					«<
+						if argType = variable
+						then [«[<> | <argUse>] : variable»]
+						else [argUse]
+					>» : [⊥]→scene
+				]
+				else if [index = 2] then
+				[
+					send unaryWrapperAtom with
+					«<
+						if argType = ⊥ then [‘`[true]`’] else [argUse]
+					>» : [⊥]→boolean
+				]
+				else if [index = 3] then
+				[
+					send unaryWrapperAtom with
+					«<
+						if argType = ⊥ then [‘`[]`’] else [argUse]
+					>» : [⊥]→⊤
+				]
+				else
+				[
+					send unaryWrapperAtom with
+					«<
+						if argType = nonempty string
+						then [«[<> | <argUse>] : nonempty string»]
+						else [argUse]
+					>» : [⊥]→string
+				]
+			];
+		/* Construct the scene transition constructor send. */
+		constructorSend ::=
+			send sceneConstructorAtom
+				with wrapperSends→list phrase
+				: scene transition;
+		/* Construct the method body. */
+		methodBlock ::= «[args | <constructorSend>] : scene transition»;
+
+		/*
+		 * Construct the semantic restriction for the scene transition
+		 * constructor method. Do not yet install the semantic restriction.
+		 */
+
+		/* Construct the parameter declarations. */
+		argTypes ::= map and filter combination by
+			[
+				argType : any's type,
+				index : [1..4],
+				accept : [argument phrase]→⊤
+			|
+				If argType ≠ ⊥ then
+				[
+					argName ::= argNames[index] ++ "Type";
+					arg ::= arg «`argName` : argType's type»;
+					accept(arg);
+				];
+			];
+		/* Construct the body of the semantic restriction. */
+		contextTypeDecl ::=
+			«`"contextType"` : context's type :=
+				send dynamicContextTypeAtom with «<>» : context's type»;
+		restrictionBlock ::=
+			«[
+				argTypes
+			|
+				<
+					contextTypeDecl,
+					send requireSceneAtom
+						with «<«↓argTypes[1]», «↓contextTypeDecl»>»
+						: ⊤,
+					send sceneTransitionAtom
+						with «<«↓contextTypeDecl»>»
+						: scene transition's type
+				>
+			] : scene transition's type»;
+
+		/*
+		 * At last, install the method and semantic restriction.
+		 */
+
+		Method name is generate methodBlock;
+		Semantic restriction name is generate restrictionBlock;
+	];
+];
+
+/* Actually generate the plethora of valid scene transition constructors. */
+Generate scene transition constructors;
+
+/**
+ * Construct a tuple of {@type "scene transitions"} from the lexically supplied
+ * elements.
+ *
+ * @method "a⁇transition|transitions«_‡,⁇and⁇»"
+ * @param "transitions" "<scene transition…|1..>"
+ * @returns "<scene transition…|1..>"
+ */
+Public method "a⁇transition|transitions«_‡,⁇and⁇»" is
+[
+	transitions : <scene transition…|1..>
+|
+	transitions
+] : <scene transition…|1..>;
+
+Semantic restriction "a⁇transition|transitions«_‡,⁇and⁇»" is
+[
+	tupleType : <scene transition…|1..>'s type
+|
+	tupleType
+];
+
+/**
+ * Describe a {@type "scene"} in detail. The scene must have been {@method
+ * "Let«_‡,⁇and⁇»be a⁇scene|scenes" forward declared} already.
+ *
+ * @method
+ *    "_«is titled by_,⁇»and⁇is described by_,⁇«and⁇upon entry does_,⁇»«and⁇has_»"
+ * @param "sceneVar" "variable"
+ * @param "optionalTitler" "<nonempty string ∪ []→string…|0..1>"
+ *        If supplied, then either 1) a {@type "nonempty string"} that
+ *        represents a static title or 2) a function that produces the title on
+ *        demand.
+ * @param "describer" "nonempty string ∪ []→string"
+ *        Either 1) a {@type "nonempty string"} that represents a static
+ *        description or 2) a function that produces the description on demand.
+ * @param "optionalEntryAction" "<[]→⊤…|0..1>"
+ *        If supplied, then an action to perform upon entry to this scene.
+ * @param "optionalTransitions" "<<scene transition…|>…|0..1>"
+ *        If supplied, then complete listing of all {@type "scene transition"}s
+ *        from this scene.
+ */
+Public method
+	"_«is titled by_,⁇»and⁇is described by_,⁇«and⁇upon entry does_,⁇»«and⁇has_»"
+is
+[
+	sceneVar : variable,
+	optionalTitler : <nonempty string ∪ []→string…|0..1>,
+	describer : nonempty string ∪ []→string,
+	optionalEntryAction : <[]→⊤…|0..1>,
+	optionalTransitions : <<scene transition…|>…|0..1>
+|
+	titler ::=
+		optionalTitler[1]
+		else
+		[
+			/* If no title is supplied, then default to the scene's internal
+			 * name.
+			 */
+			contextType ::= dynamic game context type;
+			sceneType ::= scene for contextType;
+			sceneVault ::= dynamic scene vault for sceneType;
+			internalName ::=
+				cast ↓sceneVault
+				into [v : {variable→nonempty string|} | v[sceneVar]];
+			internalName
+		];
+	titlerWrapper ::= unary wrapper on
+		cast titler into
+		[title : nonempty string | [title]],
+		[titleFunction : []→string | titleFunction];
+	entryWrapper ::= unary wrapper on optionalEntryAction[1] else [[]];
+	describerWrapper ::= unary wrapper on
+		cast describer into
+		[description : nonempty string | [description]],
+		[descriptionFunction : []→string | descriptionFunction];
+	transitions ::= optionalTransitions[1] else [<>];
+	aScene ::= a scene
+		titled by titlerWrapper,
+		before entry doing entryWrapper,
+		described by describerWrapper,
+		with transitions transitions;
+	↓sceneVar ?= aScene;
+] : ⊤;
+
+Semantic restriction
+	"_«is titled by_,⁇»and⁇is described by_,⁇«and⁇upon entry does_,⁇»«and⁇has_»"
+is
+[
+	varType : variable's type,
+	titlerType : <nontype's type…|0..1>'s type,
+	describerType : nontype's type,
+	entryType : <[]→⊤…|0..1>'s type,
+	transitionsType : <<scene transition…|>…|0..1>'s type
+|
+	contextType ::= dynamic game context type;
+	Require: scene varType agrees with contextType;
+	Unless describerType ⊆ nonempty string
+		∨ [describerType ⊆ []→string]
+	then
+	[
+		Reject parse, expected:
+			format
+				"description to be either a nonempty string or a function that \
+				\|produces a string (but instead it is “①”)"
+			with describerType
+	];
+	Unless titlerType[1] = ⊥ then
+	[
+		Unless titlerType[1] ⊆ nonempty string
+			∨ [titlerType[1] ⊆ []→string]
+		then
+		[
+			Reject parse, expected:
+				format
+					"title to be either a nonempty string or a function that \
+					\|produces a string (but instead it is “①”)"
+				with titlerType[1]
+		];
+	];
+	⊤
+];
+
+/**
+ * Answer the {@type "variable"} that contains the {@type
+ * "game context"}-specific opening {@type "scene"}.
+ *
+ * @method "dynamic opening scene variable for_"
+ * @param "sceneType" "scene's type"
+ */
+Private method "dynamic opening scene variable for_" is
+[
+	sceneType : scene's type
+|
+	openingSceneAtom ::= atom for openingSceneName;
+	openingSceneFunction ::=
+		generate
+		«[
+			<>
+		|
+			<send openingSceneAtom with «<>» : ↑sceneType>
+		] : ↑sceneType»;
+	openingSceneFunction()
+] : variable;
+
+/**
+ * Define the specified {@type "scene"} as the opening scene. The scene must
+ * have been {@method "Let«_‡,⁇and⁇»be a⁇scene|scenes" forward declared}
+ * already. This method causes {@method "the opening scene"} method to become
+ * available for use.
+ *
+ * @method "Let_be the opening scene"
+ * @param "sceneVar" "variable"
+ */
+Public method "Let_be the opening scene" is
+[
+	sceneVar : variable
+|
+	contextType ::= dynamic game context type;
+	sceneType ::= scene for contextType;
+	openingSceneVar ::= dynamic opening scene variable for sceneType;
+	↓openingSceneVar ?= ↓sceneVar;
+] : ⊤;
+
+Semantic restriction "Let_be the opening scene" is
+[
+	varType : variable's type
+|
+	contextType ::= dynamic game context type;
+	sceneType ::= scene for contextType;
+	openingSceneVar ::= dynamic opening scene variable for sceneType;
+	If openingSceneVar is assigned then
+	[
+		Reject parse, expected:
+			"opening scene not to be redefined"
+	];
+	Require: scene varType agrees with contextType;
+	⊤
+];

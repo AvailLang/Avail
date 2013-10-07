@@ -1,0 +1,99 @@
+/*
+ * Commands.avail
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+System Module "Commands"
+Versions
+	"dev"
+Uses
+	"Avail"
+Names
+	/* Commands. */
+	"command",
+	"quit command",
+	"restart command",
+	"transition command",
+
+	/* Transition commands. */
+	"a transition to_command",
+	"_'s⁇chosen transition"
+Body
+
+/**
+ * A command represents a request for the engine to take some action on the
+ * player's behalf.
+ *
+ * @type "command"
+ */
+Public explicit class "command" extends object;
+
+"chosen transition" is a new field atom;
+
+/**
+ * A transition command represents a request to execute the chosen {@type
+ * "scene transition"}.
+ *
+ * @type "transition command"
+ * @supertype "command"
+ */
+Public class "transition command" extends command
+	with fields
+		public chosen transition : natural number;
+
+/**
+ * Answer a command to select the specified {@type "scene transition"}.
+ *
+ * @method "a transition to_command"
+ * @param "transitionOrdinal" "natural number"
+ * @returns "transition command"
+ */
+Public method "a transition to_command" is
+[
+	transitionOrdinal : natural number
+|
+	a transition command with chosen transition ::= transitionOrdinal
+] : transition command;
+
+/**
+ * A restart command represents a request to restart the choosable path story.
+ *
+ * @type "restart command"
+ * @supertype "command"
+ */
+Public explicit class "restart command" extends command;
+
+/**
+ * A quit command represents a request to terminate the choosable path story.
+ *
+ * @type "quit command"
+ * @supertype "command"
+ */
+Public explicit class "quit command" extends command;
