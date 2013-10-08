@@ -3770,7 +3770,7 @@ Method "all indices of_in_" is
  * a string).  This implementation is called when both the target tuple and the
  * subtuple are empty 
  *
- * @method "first index of_in_"
+ * @method "all indices of_in_"
  * @categories "Tuples"
  * @param "aTuple" "<any…|1..>" 
  *        The tuple to search for the subtuple.
@@ -3852,7 +3852,7 @@ Method "all indices of_in_" is
 		occurrences : <natural number…|> := <>;
 		w : whole number := 0;
 		While [
-			index + |subtuple| < |aTuple| 
+			index + |subtuple| ≤ |aTuple| 
 		]
 		do
 		[
