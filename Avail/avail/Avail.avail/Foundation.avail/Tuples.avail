@@ -65,8 +65,8 @@ Names
 	"merge sort_with_",
 	"quicksort_",
 	"quicksort_with_",
-	"replace all instances of_in_with_",
-	"replace the first instance of_in_with_",
+	"replace all occurrences of_in_with_",
+	"replace the first occurrence of_in_with_",
 	"right fold_through_",
 	"split_after_",
 	"split_before_",
@@ -3876,7 +3876,7 @@ Method "all indices of_in_" is
  * tuple and replace it with the new replacement tuple (replace a substring 
  * with a new substring).
  *
- * @method "first index of_in_with_"
+ * @method "replace the first occurrence of_in_with_"
  * @categories "Tuples"
  * @param "aTuple" "<any…|1..>" 
  *        the tuple to search for the subtuple
@@ -3889,7 +3889,7 @@ Method "all indices of_in_" is
  *        the replacement tuple
  * @author "Richard Arriaga"
  */
-Public stable method "replace the first instance of_in_with_" is
+Public stable method "replace the first occurrence of_in_with_" is
 [
 	subtuple : <any…|1..>,
 	aTuple : <any…|1..>,
@@ -3917,7 +3917,7 @@ Public stable method "replace the first instance of_in_with_" is
  * and replace it with the new replacement tuple (replace a substring with a 
  * new substring). 
  *
- * @method "replace all instances of_in_with_"
+ * @method "replace all occurrences of_in_with_"
  * @categories "Tuples"
  * @param "aTuple" "<any…|1..>" 
  *        The tuple to search for the subtuple
@@ -3930,7 +3930,7 @@ Public stable method "replace the first instance of_in_with_" is
  *        the replacement tuple.
  * @author "Richard Arriaga"
  */
-Public stable method "replace all instances of_in_with_" is
+Public stable method "replace all occurrences of_in_with_" is
 [
 	subtuple : <any…|1..>,
 	aTuple : <any…|1..>,

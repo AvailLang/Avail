@@ -194,28 +194,28 @@ Test "subtuple replace" in tuple test suite is
 	a ::= "purple feet on fire";
 	b ::= <1,2,3,4,6,2,3>;
 	c ::= "We know the truth; yes, know indeed";
-	Require: replace all instances of "feet" in a with "people" = 
+	Require: replace all occurrences of "feet" in a with "people" = 
 		"purple people on fire";
-	Require: replace all instances of "know" in c with "hide" = 
+	Require: replace all occurrences of "know" in c with "hide" = 
 		"We hide the truth; yes, hide indeed";
-	Require: replace all instances of "pickles" in c with "hide" = c;
-	Require: replace all instances of <2,3> in b with <9,8,7> = 
+	Require: replace all occurrences of "pickles" in c with "hide" = c;
+	Require: replace all occurrences of <2,3> in b with <9,8,7> = 
 		<1,9,8,7,4,6,9,8,7>;
-	Require: replace all instances of <2,3> in b with <> = 
+	Require: replace all occurrences of <2,3> in b with <> = 
 		<1,4,6>;
-	Require: replace all instances of <2,3> in <2> with <> = 
+	Require: replace all occurrences of <2,3> in <2> with <> = 
 		<2>;
-	Require: replace all instances of <2,3> in <2,3> with <9> = 
+	Require: replace all occurrences of <2,3> in <2,3> with <9> = 
 		<9>;
-	Require: replace the first instance of "know" in c with "fabricate" =
+	Require: replace the first occurrence of "know" in c with "fabricate" =
 		"We fabricate the truth; yes, know indeed";
-	Require: replace the first instance of <2,3> in b with <9,8,7> = 
+	Require: replace the first occurrence of <2,3> in b with <9,8,7> = 
 		<1,9,8,7,4,6,2,3>;
-	Require: replace the first instance of <2,3> in b with <> = 
+	Require: replace the first occurrence of <2,3> in b with <> = 
 		<1,4,6,2,3>;
-	Require: replace the first instance of <2,3> in <2> with <> = 
+	Require: replace the first occurrence of <2,3> in <2> with <> = 
 		<2>;
-	Require: replace the first instance of <2,3> in <2,3> with <9> = 
+	Require: replace the first occurrence of <2,3> in <2,3> with <9> = 
 		<9>;
 ];
 
