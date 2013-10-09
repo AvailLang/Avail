@@ -65,6 +65,8 @@ Names
 	"merge sort_with_",
 	"quicksort_",
 	"quicksort_with_",
+	"replace all instances of_in_with_",
+	"replace the first instance of_in_with_",
 	"right fold_through_",
 	"split_after_",
 	"split_before_",
@@ -3868,3 +3870,116 @@ Method "all indices of_in_" is
 		occurrences
 	]
 ] : <natural number…|>;
+
+/**
+ * Locate of the first instance of a nonempty subtuple occuring in a nonempty 
+ * tuple and replace it with the new replacement tuple (replace a substring 
+ * with a new substring).
+ *
+ * @method "first index of_in_with_"
+ * @categories "Tuples"
+ * @param "aTuple" "<any…|1..>" 
+ *        the tuple to search for the subtuple
+ * @param "subtuple" "<any…|1..>"
+ *        The subtuple to locate in aTuple
+ * @param "replacementTuple" "tuple"
+ *        The tuple to swap out all subtuples with
+ * @returns "tuple"
+ *        the new tuple with the first occurrence of the subtuple replaced with
+ *        the replacement tuple
+ * @author "Richard Arriaga"
+ */
+Public stable method "replace the first instance of_in_with_" is
+[
+	subtuple : <any…|1..>,
+	aTuple : <any…|1..>,
+	replacementTuple : tuple
+ |
+
+ 	if |subtuple| > |aTuple| then [aTuple]
+	else if [subtuple = aTuple] then [replacementTuple]
+	else
+	[
+		subtupleStart : whole number := first index of subtuple in aTuple;
+		if subtupleStart = 0 then [aTuple]
+		else
+		[
+		 	index : natural number := cast subtupleStart - 1 into 
+		 		[n : natural number | n];
+		 	nextIndex : natural number := subtupleStart + |subtuple|; 
+		 	aTuple[..index] ++ replacementTuple ++ aTuple[nextIndex..]
+		]
+	]
+] : tuple;
+
+/**
+ * Locate every instance of a nonempty subtuple occuring in a nonempty tuple 
+ * and replace it with the new replacement tuple (replace a substring with a 
+ * new substring). 
+ *
+ * @method "replace all instances of_in_with_"
+ * @categories "Tuples"
+ * @param "aTuple" "<any…|1..>" 
+ *        The tuple to search for the subtuple
+ * @param "subtuple" "<any…|1..>"
+ *        The subtuple to locate in aTuple
+ * @param "replacementTuple" "tuple"
+ *        The tuple to swap out all subtuples with
+ * @returns "tuple"
+ *        the new tuple with the all occurrences of the subtuple replaced with
+ *        the replacement tuple.
+ * @author "Richard Arriaga"
+ */
+Public stable method "replace all instances of_in_with_" is
+[
+	subtuple : <any…|1..>,
+	aTuple : <any…|1..>,
+	replacementTuple : tuple
+ |
+	if |subtuple| > |aTuple| then [aTuple]
+	else if [subtuple = aTuple] then [replacementTuple]
+	else if [|subtuple| = 1] then
+	[
+		newTuple : tuple := <>;
+		index : natural number := 1;
+		While [index ≤ |aTuple|] do
+		[
+			If aTuple[index] = subtuple then
+			[
+			 	newTuple := newTuple ++ replacementTuple;
+			] else
+			[
+				newTuple := newTuple ++ <aTuple[index]>;
+			];
+			↑index++;
+		];
+		newTuple
+	]
+	else
+	[
+		index : natural number := 1;
+		newTuple : tuple := <>;
+		w : whole number := 0;
+		While [
+			index + |subtuple| ≤ |aTuple| 
+		]
+		do
+		[
+			w := first index of subtuple in aTuple[index..];
+			If w > 0 then 
+			[
+			 	lastPreSubtupleIndex : natural number := cast w - 2 + index into 
+			 		[n : natural number | n];
+			 	newTuple := newTuple ++ aTuple[index..lastPreSubtupleIndex] ++
+			 		replacementTuple;	
+				index := index + w + |subtuple|-1;
+			]
+			else 
+			[
+			 	newTuple := newTuple ++ aTuple[index..];
+			 	index := index + |aTuple|-1;
+			];
+		];
+		newTuple
+	]
+] : tuple;

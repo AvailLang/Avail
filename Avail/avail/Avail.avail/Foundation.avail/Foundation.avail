@@ -895,6 +895,8 @@ Extends
 		"quicksort_",
 		"quicksort_with_",
 		"relevant`|_`|",
+		"replace all instances of_in_with_",
+		"replace the first instance of_in_with_",
 		"right fold_through_",
 		"split_after_",
 		"split_before_",
