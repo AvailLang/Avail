@@ -4007,3 +4007,21 @@ Method "replace all occurrences of_in_with_" is
 		newTuple
 	]
 ] : tuple;
+	
+Semantic restriction "replace all occurrences of_in_with_" is
+[
+	subtuple : <any…|1..>'s type,
+	aTuple : tuple's type,
+	replacementTuple : tuple's type
+ |
+ 	defaultType ::= ∪ aTuple[1..∞] ∪ ∪replacementTuple[1..∞];
+	if ⎡aTuple⎤ = 0 then [<>'s type]
+	else if [⎡aTuple⎤ < ⎣subtuple⎦] then [aTuple]
+	else
+	[
+	 	lower ::= min <⎣aTuple⎦,⎣replacementTuple⎦>;
+	 	upper ::= if ⎡replacementTuple⎤ ≤ ⎡subtuple⎤ then [⎡aTuple⎤]
+	 		else [∞];
+	 	<defaultType…|lower..upper>
+	]
+];
