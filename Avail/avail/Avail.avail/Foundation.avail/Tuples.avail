@@ -3878,10 +3878,10 @@ Method "all indices of_in_" is
  *
  * @method "replace the first occurrence of_in_with_"
  * @categories "Tuples"
- * @param "aTuple" "<any…|1..>" 
- *        the tuple to search for the subtuple
  * @param "subtuple" "<any…|1..>"
  *        The subtuple to locate in aTuple
+ * @param "aTuple" "tuple" 
+ *        The tuple to search for the subtuple
  * @param "replacementTuple" "tuple"
  *        The tuple to swap out all subtuples with
  * @returns "tuple"
@@ -3889,7 +3889,19 @@ Method "all indices of_in_" is
  *        the replacement tuple
  * @author "Richard Arriaga"
  */
-Public stable method "replace the first occurrence of_in_with_" is
+Public stable abstract method "replace the first occurrence of_in_with_" is 
+	[<any…|1..>,tuple,tuple]→tuple;
+
+Method "replace the first occurrence of_in_with_" is
+[
+	subtuple : <any…|1..>,
+	aTuple : <any…|0>,
+	replacementTuple : tuple
+ |
+ 	<>
+] : <>'s type;
+
+Method "replace the first occurrence of_in_with_" is
 [
 	subtuple : <any…|1..>,
 	aTuple : <any…|1..>,
@@ -3919,10 +3931,10 @@ Public stable method "replace the first occurrence of_in_with_" is
  *
  * @method "replace all occurrences of_in_with_"
  * @categories "Tuples"
- * @param "aTuple" "<any…|1..>" 
- *        The tuple to search for the subtuple
  * @param "subtuple" "<any…|1..>"
  *        The subtuple to locate in aTuple
+ * @param "aTuple" "tuple" 
+ *        The tuple to search for the subtuple
  * @param "replacementTuple" "tuple"
  *        The tuple to swap out all subtuples with
  * @returns "tuple"
@@ -3930,7 +3942,19 @@ Public stable method "replace the first occurrence of_in_with_" is
  *        the replacement tuple.
  * @author "Richard Arriaga"
  */
-Public stable method "replace all occurrences of_in_with_" is
+Public stable abstract method "replace all occurrences of_in_with_" is 
+	[<any…|1..>,tuple,tuple]→tuple;
+
+Method "replace all occurrences of_in_with_" is
+[
+	subtuple : <any…|1..>,
+	aTuple : <any…|0>,
+	replacementTuple : tuple
+ |
+ 	<>
+] : <>'s type;
+
+Method "replace all occurrences of_in_with_" is
 [
 	subtuple : <any…|1..>,
 	aTuple : <any…|1..>,

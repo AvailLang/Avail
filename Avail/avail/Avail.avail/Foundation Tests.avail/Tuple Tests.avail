@@ -194,6 +194,7 @@ Test "subtuple replace" in tuple test suite is
 	a ::= "purple feet on fire";
 	b ::= <1,2,3,4,6,2,3>;
 	c ::= "We know the truth; yes, know indeed";
+	Require: replace all occurrences of <2,3,4> in <> with <9> = <>;
 	Require: replace all occurrences of "feet" in a with "people" = 
 		"purple people on fire";
 	Require: replace all occurrences of "know" in c with "hide" = 
@@ -201,22 +202,17 @@ Test "subtuple replace" in tuple test suite is
 	Require: replace all occurrences of "pickles" in c with "hide" = c;
 	Require: replace all occurrences of <2,3> in b with <9,8,7> = 
 		<1,9,8,7,4,6,9,8,7>;
-	Require: replace all occurrences of <2,3> in b with <> = 
-		<1,4,6>;
-	Require: replace all occurrences of <2,3> in <2> with <> = 
-		<2>;
-	Require: replace all occurrences of <2,3> in <2,3> with <9> = 
-		<9>;
+	Require: replace all occurrences of <2,3> in b with <> = <1,4,6>;
+	Require: replace all occurrences of <2,3> in <2> with <> = <2>;
+	Require: replace all occurrences of <2,3> in <2,3> with <9> = <9>;
+	Require: replace the first occurrence of <2,3,4> in <> with <9> = <>;
 	Require: replace the first occurrence of "know" in c with "fabricate" =
 		"We fabricate the truth; yes, know indeed";
 	Require: replace the first occurrence of <2,3> in b with <9,8,7> = 
 		<1,9,8,7,4,6,2,3>;
-	Require: replace the first occurrence of <2,3> in b with <> = 
-		<1,4,6,2,3>;
-	Require: replace the first occurrence of <2,3> in <2> with <> = 
-		<2>;
-	Require: replace the first occurrence of <2,3> in <2,3> with <9> = 
-		<9>;
+	Require: replace the first occurrence of <2,3> in b with <> = <1,4,6,2,3>;
+	Require: replace the first occurrence of <2,3> in <2> with <> = <2>;
+	Require: replace the first occurrence of <2,3> in <2,3> with <9> = <9>;
 ];
 
 Test "drop from tuple" in tuple test suite is
