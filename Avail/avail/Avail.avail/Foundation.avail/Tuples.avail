@@ -1602,7 +1602,7 @@ Semantic restriction "_∈_" is
 	valueType : any meta,
 	tupleType : tuple meta
 |
-	if valueType ∩ (∪ tupleType[1..relevant |tupleType|]) = ⊥ then
+	if valueType ∩ (∪ tupleType[1..∞]) = ⊥ then
 	[
 		false's type
 	]
@@ -3923,7 +3923,43 @@ Method "replace the first occurrence of_in_with_" is
 		]
 	]
 ] : tuple;
-
+/*	
+Semantic restriction "replace the first occurrence of_in_with_" is
+[
+	subtuple : <any…|1..>'s type,
+	aTuple : tuple's type,
+	replacementTuple : tuple's type
+ |
+ 	defaultType ::= ∪ aTuple[1..∞] ∪ ∪replacementTuple[1..∞];
+	if ⎡aTuple⎤ = 0 then [<>'s type]
+	else if [⎡aTuple⎤ < ⎣subtuple⎦] then [aTuple]
+	else if [⎡replacementTuple⎤ < ⎣subtuple⎦] then
+	[
+	 	lower ::=  cast ⎡aTuple⎤ + ⎡replacementTuple⎤ - ⎣subtuple⎦
+	 		into [w : [0..∞) | w];
+	 	upper ::= ⎡aTuple⎤;
+	 	<defaultType…|lower..upper>
+	]
+	else if [⎡subtuple⎤ < ⎣replacementTuple⎦] then
+	[
+	 	lower ::=  ⎡aTuple⎤;
+	 	upper ::= cast ⎡aTuple⎤ + ⎣replacementTuple⎦ - ⎡subtuple⎤
+	 		into [w : [0..∞) | w];
+	 	<defaultType…|lower..upper>
+	]	
+	else
+	[
+	 	lower ::= min <⎣aTuple⎦,⎣replacementTuple⎦>;
+	 	upper ::= if ⎡replacementTuple⎤ ≤ ⎡subtuple⎤ then [⎡aTuple⎤]
+	 		else [∞];
+	 	<defaultType…|lower..upper>
+	]
+];
+sub ::= "great";
+target :<character…|20>:= "harvard great is tea";
+r ::= "me";
+myString : integer := replace the first occurrence of sub in target with r;
+*/
 /**
  * Locate every instance of a nonempty subtuple occuring in a nonempty tuple 
  * and replace it with the new replacement tuple (replace a substring with a 
@@ -3968,7 +4004,7 @@ Method "replace all occurrences of_in_with_" is
 		index : natural number := 1;
 		While [index ≤ |aTuple|] do
 		[
-			If aTuple[index] = subtuple then
+			If <aTuple[index]> = subtuple then
 			[
 			 	newTuple := newTuple ++ replacementTuple;
 			] else
