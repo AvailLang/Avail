@@ -3923,7 +3923,7 @@ Method "replace the first occurrence of_in_with_" is
 		]
 	]
 ] : tuple;
-/*	
+	
 Semantic restriction "replace the first occurrence of_in_with_" is
 [
 	subtuple : <any…|1..>'s type,
@@ -3942,11 +3942,19 @@ Semantic restriction "replace the first occurrence of_in_with_" is
 	]
 	else if [⎡subtuple⎤ < ⎣replacementTuple⎦] then
 	[
-	 	lower ::=  ⎡aTuple⎤;
+	 	lower ::=  cast ⎡aTuple⎤ into [w : [0..∞) | w];
 	 	upper ::= cast ⎡aTuple⎤ + ⎣replacementTuple⎦ - ⎡subtuple⎤
 	 		into [w : [0..∞) | w];
 	 	<defaultType…|lower..upper>
-	]	
+	]
+	else if [⎡subtuple⎤ = ⎣replacementTuple⎦ ∧ 
+		[⎡replacementTuple⎤ = ⎣subtuple⎦]] then
+	[
+	 	lower ::=  cast ⎡aTuple⎤ into [w : [0..∞) | w];
+	 	upper ::= cast ⎡aTuple⎤ + ⎣replacementTuple⎦ - ⎡subtuple⎤
+	 		into [w : [0..∞) | w];
+	 	<defaultType…|lower..upper>
+	]
 	else
 	[
 	 	lower ::= min <⎣aTuple⎦,⎣replacementTuple⎦>;
@@ -3955,11 +3963,7 @@ Semantic restriction "replace the first occurrence of_in_with_" is
 	 	<defaultType…|lower..upper>
 	]
 ];
-sub ::= "great";
-target :<character…|20>:= "harvard great is tea";
-r ::= "me";
-myString : integer := replace the first occurrence of sub in target with r;
-*/
+
 /**
  * Locate every instance of a nonempty subtuple occuring in a nonempty tuple 
  * and replace it with the new replacement tuple (replace a substring with a 
