@@ -59,7 +59,10 @@ Names
 	"a⁇transition|transitions«_‡,⁇and⁇»",
 
 	/* Defining a named scene transition. */
-	"Let_be a transition_"
+	"Let_be a transition_",
+
+	/* Story verification. */
+	"Verify story"
 Body
 
 /**
@@ -193,6 +196,7 @@ is
 	contextType's name := contextTypeName;
 	Method contextTypeName is
 		generate «[ <‘`contextType`’> ] : contextType's type»;
+	Publish new name: contextTypeName;
 
 	/*
 	 * Make the game-specific opening scene variable available.
@@ -202,6 +206,7 @@ is
 	openingSceneAtom ::= atom for openingSceneName;
 	Method openingSceneAtom is
 		generate «[ <> | <‘`openingSceneVar`’> ] : ↑sceneType»;
+	Publish new name: openingSceneName;
 
 	/*
 	 * Make the game-specific context constructor available.
@@ -264,6 +269,7 @@ is
 	Method contextConstructorName is newFunction;
 	Grammatical restriction "a|an_«with«_«:»?:=_‡,»»" is
 		<{contextTypeName}, ∅, ∅>;
+	Publish new name: contextConstructorName;
 ];
 
 /* These atoms are required by accessor synthesis. */
@@ -332,6 +338,7 @@ Private method "Install boolean accessors for_given_and_" is
 				<send getAtom with «< getVar >» : boolean>
 			] : boolean»;
 		Method positive is generate positiveInterrogativeBlock;
+		Publish new name: positive;
 
 		/* Generate and install the negative interrogative accessor. */
 		negative ::= quartet[3];
@@ -343,6 +350,7 @@ Private method "Install boolean accessors for_given_and_" is
 				>» : boolean >
 			] : boolean»;
 		Method negative is generate negativeInterrogativeBlock;
+		Publish new name: negative;
 
 		/* Generate and install the positive mutator. */
 		positiveSetter ::= "Now " ++ positive;
@@ -351,6 +359,7 @@ Private method "Install boolean accessors for_given_and_" is
 				<send putAtom with «< getVar, ‘`true`’ >» : ⊤>
 			] : ⊤»;
 		Method positiveSetter is generate positiveSetterBlock;
+		Publish new name: positiveSetter;
 
 		/* Generate and install the negative mutator. */
 		negativeSetter ::= "Now " ++ negative;
@@ -359,6 +368,7 @@ Private method "Install boolean accessors for_given_and_" is
 				<send putAtom with «< getVar, ‘`false`’ >» : ⊤>
 			] : ⊤»;
 		Method negativeSetter is generate negativeSetterBlock;
+		Publish new name: negativeSetter;
 	];
 ];
 
@@ -397,6 +407,7 @@ Private method "Install non-boolean accessors for_given_and_" is
 				«[ <send getAtom with «< getVar >» : stateType> ] : stateType»;
 			accessorFunction ::= generate accessorBlock;
 			Method accessor is accessorFunction;
+			Publish new name: accessor;
 
 			/* Generate and install the mutator. */
 			mutator ::= "Now " ++ accessor ++ " is|are_";
@@ -409,6 +420,7 @@ Private method "Install non-boolean accessors for_given_and_" is
 				] : ⊤»;
 			mutatorFunction ::= generate mutatorBlock;
 			Method mutator is mutatorFunction;
+			Publish new name: mutator;
 		];
 	];
 ];
@@ -417,6 +429,11 @@ Private method "Install non-boolean accessors for_given_and_" is
  * reference it. Only reflection can access it.
  */
 sceneVaultName ::= "\"the scene vault\"";
+
+/* The scene vault lock is given an untypeable name so that user code cannot
+ * reference it. Only reflection can access it.
+ */
+sceneVaultLockName ::= "\"the scene vault lock\"";
 
 /**
  * Install the scene vault. This is a variable containing a {@type "map"} from
@@ -439,11 +456,22 @@ Private method "Install the scene vault for_" is
 	sceneVault ::= new ↑sceneVaultType;
 	↓sceneVault ?= {};
 
+	/* In the event that multiple story modules are being loading concurrently,
+	 * then we need to protect the scene vault against concurrent access. So we
+	 * create a story-specific scene vault lock that can be used for this
+	 * purpose.
+	 */
+	aMutex ::= a non-reentrant mutex;
+	sceneVaultLockBlock ::= «[ <> | <‘`aMutex`’> ] : non-reentrant mutex»;
+	Method sceneVaultLockName is generate sceneVaultLockBlock;
+	Publish new name: sceneVaultLockName;
+
 	/* Generate the scene vault as a method that answers the variable that
 	 * contains the map from scenes to their internal names.
 	 */
 	sceneVaultBlock ::= «[ <> | <‘`sceneVault`’>] : ↑sceneVaultType»;
 	Method sceneVaultName is generate sceneVaultBlock;
+	Publish new name: sceneVaultName;
 ];
 
 /**
@@ -748,6 +776,25 @@ Private method "dynamic game context type" is
 ] : context's type;
 
 /**
+ * Dynamically obtain the story-specific scene vault {@type "non-reentrant
+ * mutex" mutex}.
+ *
+ * @method "dynamic scene vault lock"
+ * @returns "non-reentrant mutex"
+ */
+Private method "dynamic scene vault lock" is
+[
+	sceneVaultFunction ::=
+		generate
+		«[
+			<>
+		|
+			<send atom for sceneVaultLockName with «<>» : non-reentrant mutex>
+		] : non-reentrant mutex»;
+	sceneVaultFunction()
+] : non-reentrant mutex;
+
+/**
  * Dynamically obtain the game-specific scene vault. This method is used by the
  * DSL machinery, which does not have static access to the game-specific context
  * type (because it is only created during the specification of an actual game).
@@ -790,10 +837,7 @@ Public method "Let«_‡,⁇and⁇»be a⁇scene|scenes" is
 |
 	contextType ::= dynamic game context type;
 	sceneType ::= scene for contextType;
-	/* Obtain the scene vault. */
-	sceneVaultVar ::= dynamic scene vault for sceneType;
-	sceneVaultMap : {variable→nonempty string|} :=
-		cast ↓sceneVaultVar into [v : {variable→nonempty string|} | v];
+	sceneVaultUpdates : <<variable, nonempty string…|2>…|> := <>;
 	/* Declare the scenes. */
 	For each of sceneNames do
 	[
@@ -804,9 +848,7 @@ Public method "Let«_‡,⁇and⁇»be a⁇scene|scenes" is
 		 * statically. So dynamically create a variable of the right type.
 		 */
 		sceneVar ::= new ↑sceneType;
-
-		/* Add a binding for the new scene to the local scene vault map. */
-		sceneVaultMap := sceneVaultMap + sceneVar→name;
+		sceneVaultUpdates := sceneVaultUpdates ++ <<sceneVar, name>>;
 
 		/* Generate the scene accessor as a method that answers the variable
 		 * that contains the corresponding scene. Originally this variable will
@@ -816,9 +858,24 @@ Public method "Let«_‡,⁇and⁇»be a⁇scene|scenes" is
 		 */
 		sceneVarBlock ::= «[ <> | <‘`sceneVar`’>] : ↑sceneType»;
 		Method name is generate sceneVarBlock;
+		Publish new name: name;
 	];
 	/* Commit all changes to the scene vault. */
-	↓sceneVaultVar ?= sceneVaultMap;
+	sceneVaultLock ::= dynamic scene vault lock;
+	Lock sceneVaultLock for
+	[
+		sceneVaultVar ::= dynamic scene vault for sceneType;
+		For each of sceneVaultUpdates do
+		[
+			aBinding : <variable, nonempty string…|2>
+		|
+			sceneVar ::= aBinding[1];
+			internalName ::= aBinding[2];
+			sceneVaultMap ::=
+				cast ↓sceneVaultVar into [v : {variable→nonempty string|} | v];
+			↓sceneVaultVar ?= sceneVaultMap + sceneVar→internalName;
+		];
+	];
 ] : ⊤;
 
 /**
@@ -909,6 +966,7 @@ Public method "Let_be a transition_" is
 	transitionType ::= scene transition for contextType;
 	transitionBlock ::= «[<> | <‘`transition`’>] : transitionType»;
 	Method name is generate transitionBlock;
+	Publish new name: name;
 ] : ⊤;
 
 Semantic restriction "Let_be a transition_" is
@@ -1004,7 +1062,7 @@ Private method "unary wrapper on_" is
 	«[
 		<arg «`"c"` : contextType»>
 	|
-		<send invokeAtom with «<‘`nullary`’, ‘`<>`’>» : returnType>
+		<send invokeAtom with «<‘`nullary`’, «<>»>» : returnType>
 	] : returnType»
 ];
 
@@ -1038,7 +1096,7 @@ Private method "target wrapper on_" is
 		<
 			send getAtom with
 			«<
-				send invokeAtom with «<‘`nullary`’, ‘`<>`’>» : ↑sceneType
+				send invokeAtom with «<‘`nullary`’, «<>»>» : ↑sceneType
 			>» : sceneType
 		>
 	] : sceneType»
@@ -1408,5 +1466,231 @@ Semantic restriction "Let_be the opening scene" is
 			"opening scene not to be redefined"
 	];
 	Require: scene varType agrees with contextType;
+	⊤
+];
+
+/**
+ * Recursively populate {@param "reachable"} with {@type "scene"}s that are
+ * (transitively) reachable from {@param "sceneFunction"}.
+ *
+ * @method "Recursively populate_with scenes of_reachable from_"
+ * @param "reachable" "↑{scene|}"
+ *        The {@type "set"} of scenes transitively reachable from some starting
+ *        scene function.
+ * @param "scenes" "{scene|}"
+ *        The set of game-specific scenes.
+ * @param "scenesByName" "{nonempty string→scene|}"
+ *        A game-specific map from internal names to scenes.
+ * @param "sceneFunction" "function"
+ *        The function which should be (recursively) explored.
+ */
+Forward method
+"Recursively populate_with scenes from_named by_reachable from_" is
+	[↑{scene|}, {scene|}, {nonempty string→scene|}, function]→⊤;
+Private method
+	"Recursively populate_with scenes from_named by_reachable from_"
+is
+[
+	reachable : ↑{scene|},
+	scenes : {scene|},
+	scenesByName : {nonempty string→scene|},
+	sceneFunction : function
+|
+	/* Explore the scene function's literals and outers. */
+	impl ::= sceneFunction's implementation;
+	For each of impl's literals ++ sceneFunction's outer variables do
+	[
+		aLiteral : any
+	|
+		Cast aLiteral into
+		[
+			v : variable
+		|
+			/* If the literal is a variable, then check its contents to see if
+			 * it contains a scene.
+			 */
+			If v is assigned ∧ [↓v ∈ scenes] then
+			[
+				aScene ::= cast ↓v into [s : scene | s];
+				↓reachable ?= ↓reachable + aScene;
+			];
+		],
+		[
+			b : message bundle
+		|
+			/* If the literal is a message bundle, then it probably corresponds
+			 * to a message send. Making that assumption, interpret the bundle's
+			 * atom's name as the message. If this message corresponds to the
+			 * internal name of a scene variable-answering message, then add the
+			 * corresponding scene variable to map of reachable scene variables:
+			 * the scene is reachable.
+			 */
+			message ::= b's atom's name;
+			If message ∈ scenesByName then
+			[
+				↓reachable ?= ↓reachable + scenesByName[message];
+			];
+		],
+		[
+			f : function
+		|
+			/* If the literal is a function, then recursively scan its literals
+			 * in search of sends of appropriate messages.
+			 */
+			Recursively populate reachable
+				with scenes from scenes
+				named by scenesByName
+				reachable from f;
+		]
+		else [/* Ignore this literal. */];
+	];
+] : ⊤;
+
+/**
+ * Answer the {@type "set"} of all {@type "scene"}s transitively reachable from
+ * the specified {@type "function"}.
+ *
+ * @method "scenes of_reachable from_"
+ * @param "scenes" "{scene|}"
+ *        The set of game-specific scenes.
+ * @param "scenesByName" "{nonempty string→variable|}"
+ *        A game-specific map from internal names to scenes.
+ * @param "sceneFunction" "function"
+ *        The function which should be explored.
+ * @returns "{variable|}"
+ *          The scene variables that were transitively reachable from {@param
+ *          "sceneFunction"}.
+ */
+Private method "scenes from_named by_reachable from_" is
+[
+	scenes : {scene|},
+	scenesByName : {nonempty string→scene|},
+	sceneFunction : function
+|
+	reachable : {scene|} := ∅;
+	Recursively populate ↑reachable
+		with scenes from scenes
+		named by scenesByName
+		reachable from sceneFunction;
+	reachable
+] : {scene|};
+
+/**
+ * Verify that every {@type "scene"} referenced from the given {@type "map"} is
+ * transitively reachable from the scene contained in the supplied {@type
+ * "variable"}. Because this method {@method "Reject parse,expected:_" rejects
+ * the current parse} if some scenes are deemed unreachable, it should only be
+ * used with the complete scene vault and real {@method "the opening scene"
+ * opening scene"}.
+ *
+ * @method "Verify all scenes in_are reachable from_"
+ * @param "sceneVault" "{variable→nonempty string|}"
+ *        The complete scene vault.
+ * @param "openingScene" "scene"
+ *        The opening scene.
+ */
+Private method "Verify all scenes in_are reachable from_" is
+[
+	sceneVault : {variable→nonempty string|},
+	openingScene : scene
+|
+	/* Invert the scene vault. Each key and value are related uniquely, so the
+	 * resulting map has the same cardinality as the original.
+	 */
+	scenesByName : {nonempty string→scene|} := {};
+	namesByScene : {scene→nonempty string|} := {};
+	For each of sceneVault do
+	[
+		sceneVar : variable,
+		internalName : nonempty string
+	|
+		aScene ::= cast ↓sceneVar into [s : scene | s];
+		scenesByName := scenesByName + internalName→aScene;
+		namesByScene := namesByScene + aScene→internalName;
+	];
+	Assert: |sceneVault| = |scenesByName|;
+	/* Recursively explore the specified function to find references to methods
+	 * that answer scene variables.
+	 */
+	noted : {scene|} := {openingScene};
+	unvisited : <scene…|> := <openingScene>;
+	Until [unvisited is empty] do
+	[
+		/* Extract the next unvisited seen for processing. */
+		aScene ::= unvisited[1];
+		unvisited := unvisited[2..];
+		/* Process each transition from this scene. */
+		For each of aScene's transitions do
+		[
+			aTransition : scene transition
+		|
+			nextScenes ::=
+				scenes from namesByScene's keys
+				named by scenesByName
+				reachable from aTransition's next scene;
+			unvisited := unvisited ++ nextScenes \ noted→tuple;
+			noted := noted ∪ nextScenes;
+		];
+	];
+	/* If any scenes were transitively unreachable from the opening scene, then
+	 * report exactly which scenes could not be reached.
+	 */
+	unreachable ::= namesByScene's keys \ noted;
+	Unless unreachable = ∅ then
+	[
+		names ::= map unreachable through [s : scene | namesByScene[s]];
+		Reject parse, expected:
+			format
+				"all scenes to be transitively reachable from the opening \
+				\|scene, but the following scenes were not:\n\t‘①’"
+			with “names” (as list partitioned by "\n\t")
+	];
+] : ⊤;
+
+/**
+ * Verify the story. In particular, check that:
+ *
+ * - Every declared scene is also detailed.
+ * - Every scene is reachable along some transition.
+ *
+ * @method "Verify story"
+ */
+Public method "Verify story" is [];
+
+Semantic restriction "Verify story" is
+[
+	contextType ::= dynamic game context type;
+	sceneType ::= scene for contextType;
+	sceneVaultVar ::= dynamic scene vault for sceneType;
+	sceneVault ::=
+		cast ↓sceneVaultVar
+		into [m : {variable→nonempty string|} | m];
+	undetailedScenes : {nonempty string|} := ∅;
+	For each of sceneVault do
+	[
+		sceneVar : variable,
+		internalName : nonempty string
+	|
+		If sceneVar is unassigned then
+		[
+			undetailedScenes := undetailedScenes + internalName;
+		];
+	];
+	Unless undetailedScenes = ∅ then
+	[
+		Reject parse, expected:
+			format
+				"all declared scenes to be detailed, but the following scenes \
+				\|were not:\n\t‘①’"
+			with “undetailedScenes→tuple” (as list partitioned by "\n\t")
+	];
+	openingSceneVar ::= dynamic opening scene variable for sceneType;
+	Unless openingSceneVar is assigned then
+	[
+		Reject parse, expected:
+			"opening scene to be defined"
+	];
+	openingScene ::= cast ↓openingSceneVar into [s : scene | s];
+	Verify all scenes in sceneVault are reachable from openingScene;
 	⊤
 ];

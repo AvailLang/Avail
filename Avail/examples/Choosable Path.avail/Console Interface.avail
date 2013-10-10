@@ -41,6 +41,84 @@ Names
 Body
 
 /**
+ * Prettify the specified {@type "string"} by:
+ *
+ * - Converting each tab into a single space.
+ * - Converting each stand-alone line feeds into a single space.
+ * - Converting each sequence of whitespace characters into:
+ *    - a single whitespace if the sequence contains fewer than two line feeds.
+ *    - two line feeds if the sequence contains two or more line feeds.
+ *
+ * @method "prettify_"
+ * @param "aString" "string"
+ * @return "string"
+ */
+Private method "prettify_" is
+[
+	aString : string
+|
+	/* First eliminate tabs; replace them with spaces. */
+	pretty : string := replace all occurrences of "\t" in aString with " ";
+	/* Determine where all line feeds and spaces occur. */
+	criteria ::= " \n"→set;
+	indices ::= all indices of pretty where [c : character | c ∈ criteria];
+	/* Find all of the singleton line feeds and runs bigger than two.
+	 * Those in the first group should be converted to single spaces;
+	 * those in the second group should be converted to double line
+	 * feeds.
+	 */
+	convert : <natural number…|> := <>;
+	shrink : <<natural number, whole number…|2>…|> := <>;
+	base : natural number := 1;
+	While [base ≤ |indices|] do
+	[
+		/* Compute the run length of continguous line feeds at the
+		 * current index.
+		 */
+		run : whole number := 0;
+		While
+		[
+			forward ::= base + run;
+			forward ≤ |indices| ∧ [indices[forward] - indices[base] = run]
+		]
+		do [↑run++;];
+		If run = 1 then
+		[
+			If pretty[indices[base]] = ¢"\n" then
+			[
+				convert := convert ++ <indices[base]>;
+			];
+		]
+		else
+		[
+			Assert: run > 1;
+			shrink := shrink ++ <<indices[base], indices[base] + run - 1>>;
+		];
+
+		base := base + run;
+	];
+	/* Convert singleton line feeds to spaces. */
+	For each of convert do
+	[
+		where : natural number
+	|
+		pretty := pretty[where]→¢" ";
+	];
+	/* Compress each run bigger than two into a run of two. */
+	From |shrink| to 1 by -1 do
+	[
+		where : natural number
+	|
+		range ::= shrink[where];
+		lineFeedCount ::= count of pretty[range[1]..range[2]]
+			where [c : character | c = ¢"\n"];
+		replacement ::= if lineFeedCount < 2 then [" "] else ["\n\n"];
+		pretty := pretty[range[1]..range[2]]→replacement;
+	];
+	pretty
+] : string;
+
+/**
  * Answer a standard console interface for a choosable path story.
  *
  * @method "standard console interface"
@@ -56,7 +134,7 @@ Public method "standard console interface" is
 		$body : command;
 		Unless title is empty then
 		[
-			Print: title ++ "\n\n";
+			Print: title ++ "\n" ++ |title| of ¢= ++ "\n\n";
 		];
 		If description is empty then
 		[
@@ -64,11 +142,9 @@ Public method "standard console interface" is
 		]
 		else
 		[
-			/* TODO: Replace a single line feed character with a single space.
-			 * Condense multiple line feed characters into two line feed
-			 * characters.
-			 */
-			Print: description ++ "\n\n";
+			/* We finally have the fully formatted string -- print it! */
+			Print: prettify description;
+			Print: "\n\n";
 		];
 		If transitionDescriptions is empty then
 		[
@@ -81,7 +157,9 @@ Public method "standard console interface" is
 				transitionDescription : string,
 				index : natural number
 			|
-				Print: format "“①”) ‘②’\n\n" with index, transitionDescription;
+				Print:
+					format "“①”) ‘②’\n\n"
+					with index, prettify transitionDescription;
 			];
 		];
 		Repeat

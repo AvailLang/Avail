@@ -54,7 +54,8 @@ Names
 	"next scene of_for_",
 	"scene transition",
 	"scene transition for_",
-	"_is valid for_"
+	"_is valid for_",
+	"_'s⁇next scene"
 Body
 
 "predicate" is a new field atom;

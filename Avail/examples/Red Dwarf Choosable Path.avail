@@ -53,14 +53,14 @@ Let "Just Waking Up",
 
 Just Waking Up is described by
 	"Yawwwn. You would've slept better if a certain gerbil-faced git hadn't
-	\|kept you up all night with his uninspired guitar playing. Oh well. Time
-	\|to face the day."
+	kept you up all night with his uninspired guitar playing. Oh well. Time
+	to face the day."
 and has transitions
 	to Studying is Hard
 		described by
 			"Your astronavigation exam is tomorrow. You really need to pass it
-			\|so that you can become an officer and leave slob city behind.
-			\|Better get cracking!"
+			so that you can become an officer and leave slob city behind.
+			Better get cracking!"
 	to Drive Room Maintenance
 		described by
 			"You should report for duty. You'd hate to get a reprimand!";
@@ -68,7 +68,7 @@ and has transitions
 Studying is Hard
 	is described by
 		"You cover yourself with arcane mathematical formulae. Ha! You
-		\|definitely won't write \"I am a fish\" on the test now!",
+		definitely won't write \"I am a fish\" on the test now!",
 	upon entry does [Now astronavigation exam does not require revision;],
 and has a transition
 	to Drive Room Maintenance
@@ -82,27 +82,29 @@ and has transitions
 	to Drive Room Disaster
 		described by
 			"Poke around, but don't bother double checking the drive plate.
-			\|Everything will be fine, and you have other things to do.",
+			Everything will be fine, and you have other things to do.",
 	to Drive Room Diligence
 		contingent on [astronavigation exam does not require revision]
 		described by
 		[
 			time ::= years served + 5;
 			"Better double check the drive plate. You'd hate for there to be
-			\|some kind of freakish nuclear holocaust to interfere with
-			\|acquiring your " ++ “time” ++ " years long service medal."
+			some kind of freakish nuclear holocaust to interfere with
+			acquiring your " ++ “time” ++ " years long service medal."
 		];
 
 Drive Room Disaster is described by
 	"You go about your day until you are suddenly transformed into a small pile
-	\|of white dust by a nuclear explosion. \"Gazpacho soup…\"";
+	of white dust by a nuclear explosion. \"Gazpacho soup…\"";
 
 Drive Room Diligence is described by
 	"It's a good thing that you checked the drive plate! It needed serious
-	\|attention. Were it not for your diligence, there might have been a nuclear
-	\|holocaust.\n\nCongratulations!";
+	attention. Were it not for your diligence, there might have been a nuclear
+	holocaust.\n\nCongratulations!";
 
 Let Just Waking Up be the opening scene;
+
+Verify story;
 
 Play a game,
 	creating a context with [a game context],
