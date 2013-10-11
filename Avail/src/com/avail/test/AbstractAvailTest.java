@@ -146,9 +146,8 @@ public class AbstractAvailTest
 				new MutableOrNull<>();
 			final AvailRuntime theRuntime = runtime;
 			assert theRuntime != null;
-			final AvailBuilder builder = new AvailBuilder(theRuntime);
-			builder.build(
-				target,
+			final AvailBuilder builder = new AvailBuilder(
+				theRuntime,
 				new Continuation4<ModuleName, Long, Long, Long>()
 				{
 					@Override
@@ -187,6 +186,7 @@ public class AbstractAvailTest
 							position * 100.0d / globalCodeSize);
 					}
 				});
+			builder.build(target);
 		}
 		catch (final AvailCompilerException e)
 		{

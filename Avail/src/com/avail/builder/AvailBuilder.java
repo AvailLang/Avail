@@ -37,6 +37,7 @@ import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.*;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.zip.CRC32;
 import java.util.zip.Checksum;
 import com.avail.*;
@@ -57,6 +58,7 @@ import com.avail.utility.*;
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  * @author Leslie Schultz &lt;leslie@availlang.org&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public final class AvailBuilder
 {
@@ -68,16 +70,166 @@ public final class AvailBuilder
 	final @InnerAccess AvailRuntime runtime;
 
 	/**
-	 * Construct a new {@link AvailBuilder}.
+	 * The states of the known {@linkplain ModuleDescriptor modules} of the
+	 * system.  Access to this {@link Map} should be protected by the {@link
+	 * #stateLock}.
+	 */
+	final Map<ModuleName, ModuleBuildNode> moduleNodesByName = new HashMap<>();
+
+	/**
+	 * The states of the known {@linkplain ModuleDescriptor modules} of the
+	 * system.  Access to both the graph structure and state transitions within
+	 * individual {@link ModuleBuildNode}s should be protected by the {@link
+	 * #stateLock}.
+	 */
+	final Graph<ModuleBuildNode> moduleNodesGraph = new Graph<>();
+
+	/**
+	 * The lock used to protect access to the {@link #moduleNodesGraph} and
+	 * {@link #moduleNodesByName} {@link Map}, as well as individual state
+	 * transitions within each {@link ModuleBuildNode}.
+	 */
+	final ReentrantLock stateLock = new ReentrantLock();
+
+	/**
+	 * A {@linkplain Continuation4 continuation} that is updated to show
+	 * progress while compiling or loading a module.  It accepts:
+	 * <ol>
+	 * <li>the name of the module currently undergoing {@linkplain
+	 * AbstractAvailCompiler compilation} as part of the recursive build
+	 * of target,</li>
+	 * <li>the current line number within the current module,</li>
+	 * <li>the position of the ongoing parse (in bytes), and</li>
+	 * <li>the size of the module in bytes.</li>
+	 */
+	@InnerAccess final Continuation4<ModuleName, Long, Long, Long> localTracker;
+
+	/**
+	 * A {@linkplain Continuation3} that is updated to show global progress
+	 * while compiling or loading modules.  It accepts:
+	 * <ol>
+	 * <li>the name of the module undergoing compilation,</li>
+	 * <li>the number of bytes globally processed, and</li>
+	 * <li>the global size (in bytes) of all modules that will be
+	 * built.</li>
+	 */
+	@InnerAccess final Continuation3<ModuleName, Long, Long> globalTracker;
+
+	/**
+	 * Construct an {@link AvailBuilder} for the provided runtime.  During a
+	 * build, the passed trackers will be invoked to show progress.
 	 *
 	 * @param runtime
-	 *        The {@linkplain AvailRuntime runtime} into which the {@linkplain
-	 *        AvailBuilder builder} will install the target {@linkplain
-	 *        ModuleDescriptor module} and its dependencies.
+	 *        The {@link AvailRuntime} in which to load modules and execute
+	 *        commands.
+	 * @param localTracker
+	 *        A {@linkplain Continuation4 continuation} that accepts
+	 *        <ol>
+	 *        <li>the name of the module currently undergoing {@linkplain
+	 *        AbstractAvailCompiler compilation} as part of the recursive build
+	 *        of target,</li>
+	 *        <li>the current line number within the current module,</li>
+	 *        <li>the position of the ongoing parse (in bytes), and</li>
+	 *        <li>the size of the module in bytes.</li>
+	 *        </ol>
+	 * @param globalTracker
+	 *        A {@linkplain Continuation3 continuation} that accepts
+	 *        <ol>
+	 *        <li>the name of the module undergoing compilation,</li>
+	 *        <li>the number of bytes globally processed, and</li>
+	 *        <li>the global size (in bytes) of all modules that will be
+	 *        built.</li>
+	 *        </ol>
 	 */
-	public AvailBuilder (final AvailRuntime runtime)
+	public AvailBuilder (
+		final AvailRuntime runtime,
+		final Continuation4<ModuleName, Long, Long, Long> localTracker,
+		final Continuation3<ModuleName, Long, Long> globalTracker)
 	{
 		this.runtime = runtime;
+		this.localTracker = localTracker;
+		this.globalTracker = globalTracker;
+	}
+
+
+	/**
+	 * The {@code ModuleBuildState} keeps track of the coarse state of a {@link
+	 * ModuleBuildNode}.
+	 */
+	enum ModuleBuildState
+	{
+		UNVALIDATED("VALIDATING"),
+		VALIDATING("VALIDATED"),
+		VALIDATED("SCANNING", "SCANNED"),
+		SCANNING("SCANNED"),
+		SCANNED("MARKED_TO_LOAD"),
+		MARKED_TO_LOAD("LOADING_PREDECESSORS"),
+		LOADING_PREDECESSORS("LOADING", "COMPILING"),
+		COMPILING("LOADED"),
+		LOADING("LOADED"),
+		LOADED("MARKED_TO_UNLOAD"),
+		MARKED_TO_UNLOAD("UNLOADING_SUCCESSORS"),
+		UNLOADING_SUCCESSORS("UNLOADING"),
+		UNLOADING("SCANNED");
+
+		final EnumSet<ModuleBuildState> successorStates =
+			EnumSet.noneOf(ModuleBuildState.class);
+
+		private final String [] successorNames;
+
+		ModuleBuildState (final String...successorNames)
+		{
+			this.successorNames = successorNames;
+		}
+
+		static
+		{
+			for (final ModuleBuildState value : values())
+			{
+				for (final String successorName : value.successorNames)
+				{
+					value.successorStates.add(valueOf(successorName));
+				}
+			}
+		}
+
+		final boolean canTransitionTo (final ModuleBuildState nextState)
+		{
+			return successorStates.contains(nextState);
+		}
+	}
+
+	/**
+	 * A {@code ModuleBuildState} represents the current state of a single Avail
+	 * {@linkplain ModuleDescriptor module}.
+	 */
+	@InnerAccess final class ModuleBuildNode
+	{
+		ModuleBuildState state = ModuleBuildState.UNVALIDATED;
+
+		ResolvedModuleName resolvedModuleName;
+
+		@Nullable A_Module module;
+
+		@Nullable A_Set entryPoints;
+
+		void transitionTo (final ModuleBuildState nextState)
+		{
+			if (!state.canTransitionTo(nextState))
+			{
+				assert false
+					: "Cannot transition from "
+						+ state
+						+ " to "
+						+ nextState;
+			}
+			System.out.format(
+				"%s → %s [%s]%n",
+				state,
+				nextState,
+				resolvedModuleName);
+			state = nextState;
+		}
 	}
 
 	/**
@@ -193,7 +345,7 @@ public final class AvailBuilder
 			for (final ModuleName moduleName : importedModules)
 			{
 				// Copy the recursion set to ensure the independence of each
-				// of the tracing algorithm.
+				// step of the tracing algorithm.
 				final LinkedHashSet<ResolvedModuleName> newSet =
 					new LinkedHashSet<>(
 						recursionSet);
@@ -494,29 +646,10 @@ public final class AvailBuilder
 		 *        module that just finished loading.
 		 * @param lastPosition
 		 *        The last local file position reported.
-		 * @param localTracker
-		 *        A {@linkplain Continuation4 continuation} that accepts
-		 *        <ol>
-		 *        <li>the name of the module undergoing {@linkplain
-		 *        AbstractAvailCompiler compilation},</li>
-		 *        <li>the current line number within the current module,</li>
-		 *        <li>the position of the ongoing parse (in bytes), and</li>
-		 *        <li>the size of the module in bytes.</li>
-		 *        </ol>
-		 * @param globalTracker
-		 *        A {@linkplain Continuation3 continuation} that accepts
-		 *        <ol>
-		 *        <li>the name of the module undergoing compilation,</li>
-		 *        <li>the number of bytes globally processed, and</li>
-		 *        <li>the global size (in bytes) of all modules that will be
-		 *        built.</li>
-		 *        </ol>
 		 */
 		@InnerAccess void postLoad (
 				final ResolvedModuleName moduleName,
-				final long lastPosition,
-				final Continuation4<ModuleName, Long, Long, Long> localTracker,
-				final Continuation3<ModuleName, Long, Long> globalTracker)
+				final long lastPosition)
 		{
 			// Commit the repository.
 			moduleName.repository().commit();
@@ -529,8 +662,7 @@ public final class AvailBuilder
 					unbuiltPredecessors.get(successorName).decrementAndGet();
 				if (count == 0)
 				{
-					scheduleLoadModule(
-						this, successorName, localTracker, globalTracker);
+					scheduleLoadModule(this, successorName);
 				}
 			}
 			globalTracker.value(
@@ -561,32 +693,13 @@ public final class AvailBuilder
 		 * @param moduleName
 		 *        The {@linkplain ResolvedModuleName resolved name} of the
 		 *        module that should be loaded.
-		 * @param localTracker
-		 *        A {@linkplain Continuation4 continuation} that accepts
-		 *        <ol>
-		 *        <li>the name of the module undergoing {@linkplain
-		 *        AbstractAvailCompiler compilation},</li>
-		 *        <li>the current line number within the current module,</li>
-		 *        <li>the position of the ongoing parse (in bytes), and</li>
-		 *        <li>the size of the module in bytes.</li>
-		 *        </ol>
-		 * @param globalTracker
-		 *        A {@linkplain Continuation3 continuation} that accepts
-		 *        <ol>
-		 *        <li>the name of the module undergoing compilation,</li>
-		 *        <li>the number of bytes globally processed, and</li>
-		 *        <li>the global size (in bytes) of all modules that will be
-		 *        built.</li>
-		 *        </ol>
 		 * @throws AvailCompilerException
 		 *         If the compiler cannot build a module.
 		 * @throws MalformedSerialStreamException
 		 *         If the repository contains invalid serialized module data.
 		 */
 		private void loadRepositoryModule (
-				final ResolvedModuleName moduleName,
-				final Continuation4<ModuleName, Long, Long, Long> localTracker,
-				final Continuation3<ModuleName, Long, Long> globalTracker)
+				final ResolvedModuleName moduleName)
 			throws MalformedSerialStreamException
 		{
 			localTracker.value(moduleName, -1L, -1L, -1L);
@@ -663,7 +776,7 @@ public final class AvailBuilder
 								loader,
 								StringDescriptor.from(
 									String.format(
-										"Load repo module %s, in %s:%d",
+										"Load repository module %s, in %s:%d",
 										function.code().methodName(),
 										function.code().module().moduleName(),
 										function.code().startingLineNumber())));
@@ -679,7 +792,7 @@ public final class AvailBuilder
 					{
 						runtime.addModule(module);
 						module.cleanUpAfterCompile();
-						postLoad(moduleName, 0L, localTracker, globalTracker);
+						postLoad(moduleName, 0L);
 					}
 				}
 			};
@@ -716,32 +829,13 @@ public final class AvailBuilder
 		 * @param moduleName
 		 *        The {@linkplain ResolvedModuleName resolved name} of the
 		 *        module that should be loaded.
-		 * @param localTracker
-		 *        A {@linkplain Continuation4 continuation} that accepts
-		 *        <ol>
-		 *        <li>the name of the module undergoing {@linkplain
-		 *        AbstractAvailCompiler compilation},</li>
-		 *        <li>the current line number within the current module,</li>
-		 *        <li>the position of the ongoing parse (in bytes), and</li>
-		 *        <li>the size of the module in bytes.</li>
-		 *        </ol>
-		 * @param globalTracker
-		 *        A {@linkplain Continuation3 continuation} that accepts
-		 *        <ol>
-		 *        <li>the name of the module undergoing compilation,</li>
-		 *        <li>the number of bytes globally processed, and</li>
-		 *        <li>the global size (in bytes) of all modules that will be
-		 *        built.</li>
-		 *        </ol>
 		 * @throws IOException
 		 *         If the source module cannot be opened or read.
 		 * @throws AvailCompilerException
 		 *         If the compiler cannot build a module.
 		 */
 		private void compileModule (
-				final ResolvedModuleName moduleName,
-				final Continuation4<ModuleName, Long, Long, Long> localTracker,
-				final Continuation3<ModuleName, Long, Long> globalTracker)
+				final ResolvedModuleName moduleName)
 			throws IOException, AvailCompilerException
 		{
 			final Mutable<Long> lastPosition = new Mutable<>(0L);
@@ -801,11 +895,7 @@ public final class AvailBuilder
 										moduleName,
 										lastModified,
 										appendCRC(stream.toByteArray()));
-									postLoad(
-										moduleName,
-										lastPosition.value,
-										localTracker,
-										globalTracker);
+									postLoad(moduleName, lastPosition.value);
 								}
 							},
 							new Continuation1<Throwable>()
@@ -851,23 +941,6 @@ public final class AvailBuilder
 		 * @param moduleName
 		 *        The {@linkplain ResolvedModuleName resolved name} of the
 		 *        module that should be loaded.
-		 * @param localTracker
-		 *        A {@linkplain Continuation4 continuation} that accepts
-		 *        <ol>
-		 *        <li>the name of the module undergoing {@linkplain
-		 *        AbstractAvailCompiler compilation},</li>
-		 *        <li>the current line number within the current module,</li>
-		 *        <li>the position of the ongoing parse (in bytes), and</li>
-		 *        <li>the size of the module in bytes.</li>
-		 *        </ol>
-		 * @param globalTracker
-		 *        A {@linkplain Continuation3 continuation} that accepts
-		 *        <ol>
-		 *        <li>the name of the module undergoing compilation,</li>
-		 *        <li>the number of bytes globally processed, and</li>
-		 *        <li>the global size (in bytes) of all modules that will be
-		 *        built.</li>
-		 *        </ol>
 		 * @throws IOException
 		 *         If the source module cannot be opened or read.
 		 * @throws AvailCompilerException
@@ -876,9 +949,7 @@ public final class AvailBuilder
 		 *         If the repository contains invalid serialized module data.
 		 */
 		@InnerAccess void loadModule (
-				final ResolvedModuleName moduleName,
-				final Continuation4<ModuleName, Long, Long, Long> localTracker,
-				final Continuation3<ModuleName, Long, Long> globalTracker)
+				final ResolvedModuleName moduleName)
 			throws
 				IOException,
 				AvailCompilerException,
@@ -897,10 +968,7 @@ public final class AvailBuilder
 				if (sourceReference == null)
 				{
 					assert moduleName.repository().hasKey(moduleName);
-					loadRepositoryModule(
-						moduleName,
-						localTracker,
-						globalTracker);
+					loadRepositoryModule(moduleName);
 				}
 				else
 				{
@@ -910,15 +978,12 @@ public final class AvailBuilder
 					if (moduleName.repository().hasKey(
 						moduleName, moduleTimestamp))
 					{
-						loadRepositoryModule(
-							moduleName,
-							localTracker,
-							globalTracker);
+						loadRepositoryModule(moduleName);
 					}
 					// Compile the module and cache its compiled form.
 					else
 					{
-						compileModule(moduleName, localTracker, globalTracker);
+						compileModule(moduleName);
 					}
 				}
 			}
@@ -1055,29 +1120,10 @@ public final class AvailBuilder
 	 * @param target
 	 *        The {@linkplain ResolvedModuleName resolved name} of the module
 	 *        that should be loaded.
-	 * @param localTracker
-	 *        A {@linkplain Continuation4 continuation} that accepts
-	 *        <ol>
-	 *        <li>the name of the module undergoing {@linkplain
-	 *        AbstractAvailCompiler compilation},</li>
-	 *        <li>the current line number within the current module,</li>
-	 *        <li>the position of the ongoing parse (in bytes), and</li>
-	 *        <li>the size of the module in bytes.</li>
-	 *        </ol>
-	 * @param globalTracker
-	 *        A {@linkplain Continuation3 continuation} that accepts
-	 *        <ol>
-	 *        <li>the name of the module undergoing compilation,</li>
-	 *        <li>the number of bytes globally processed, and</li>
-	 *        <li>the global size (in bytes) of all modules that will be
-	 *        built.</li>
-	 *        </ol>
 	 */
 	@InnerAccess void scheduleLoadModule (
 		final BuildState state,
-		final ResolvedModuleName target,
-		final Continuation4<ModuleName, Long, Long, Long> localTracker,
-		final Continuation3<ModuleName, Long, Long> globalTracker)
+		final ResolvedModuleName target)
 	{
 		// Don't schedule any new tasks if an exception has been encountered.
 		if (state.terminator != null)
@@ -1098,7 +1144,7 @@ public final class AvailBuilder
 					}
 					try
 					{
-						state.loadModule(target, localTracker, globalTracker);
+						state.loadModule(target);
 					}
 					catch (final Throwable killer)
 					{
@@ -1115,30 +1161,11 @@ public final class AvailBuilder
 	 *        The {@linkplain ModuleName canonical name} of the module that the
 	 *        {@linkplain AvailBuilder builder} must (recursively) load into the
 	 *        {@linkplain AvailRuntime runtime}.
-	 * @param localTracker
-	 *        A {@linkplain Continuation4 continuation} that accepts
-	 *        <ol>
-	 *        <li>the name of the module undergoing {@linkplain
-	 *        AbstractAvailCompiler compilation},</li>
-	 *        <li>the current line number within the current module,</li>
-	 *        <li>the position of the ongoing parse (in bytes), and</li>
-	 *        <li>the size of the module in bytes.</li>
-	 *        </ol>
-	 * @param globalTracker
-	 *        A {@linkplain Continuation3 continuation} that accepts
-	 *        <ol>
-	 *        <li>the name of the module undergoing compilation,</li>
-	 *        <li>the number of bytes globally processed, and</li>
-	 *        <li>the global size (in bytes) of all modules that will be
-	 *        built.</li>
-	 *        </ol>
 	 * @throws Throwable
 	 *         If anything went wrong.
 	 */
 	@InnerAccess void buildTarget (
-			final ModuleName target,
-			final Continuation4<ModuleName, Long, Long, Long> localTracker,
-			final Continuation3<ModuleName, Long, Long> globalTracker)
+			final ModuleName target)
 		throws Throwable
 	{
 		final BuildState state = new BuildState();
@@ -1165,7 +1192,7 @@ public final class AvailBuilder
 		}
 		for (final ResolvedModuleName origin : state.originModules())
 		{
-			scheduleLoadModule(state, origin, localTracker, globalTracker);
+			scheduleLoadModule(state, origin);
 		}
 		// Wait until the parallel load completes.
 		synchronized (state)
@@ -1194,24 +1221,6 @@ public final class AvailBuilder
 	 *        The {@linkplain ModuleName canonical name} of the module that the
 	 *        {@linkplain AvailBuilder builder} must (recursively) load into the
 	 *        {@linkplain AvailRuntime runtime}.
-	 * @param localTracker
-	 *        A {@linkplain Continuation4 continuation} that accepts
-	 *        <ol>
-	 *        <li>the name of the module currently undergoing {@linkplain
-	 *        AbstractAvailCompiler compilation} as part of the recursive build
-	 *        of target,</li>
-	 *        <li>the current line number within the current module,</li>
-	 *        <li>the position of the ongoing parse (in bytes), and</li>
-	 *        <li>the size of the module in bytes.</li>
-	 *        </ol>
-	 * @param globalTracker
-	 *        A {@linkplain Continuation3 continuation} that accepts
-	 *        <ol>
-	 *        <li>the name of the module undergoing compilation,</li>
-	 *        <li>the number of bytes globally processed, and</li>
-	 *        <li>the global size (in bytes) of all modules that will be
-	 *        built.</li>
-	 *        </ol>
 	 * @throws AvailCompilerException
 	 *         If an encountered module could not be built.
 	 * @throws RecursiveDependencyException
@@ -1225,9 +1234,7 @@ public final class AvailBuilder
 	 *         build.
 	 */
 	public void build (
-			final ModuleName target,
-			final Continuation4<ModuleName, Long, Long, Long> localTracker,
-			final Continuation3<ModuleName, Long, Long> globalTracker)
+			final ModuleName target)
 		throws
 			AvailCompilerException,
 			RecursiveDependencyException,
@@ -1245,7 +1252,7 @@ public final class AvailBuilder
 				{
 					try
 					{
-						buildTarget(target, localTracker, globalTracker);
+						buildTarget(target);
 					}
 					catch (final Throwable e)
 					{

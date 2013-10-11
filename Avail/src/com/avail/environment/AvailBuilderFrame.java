@@ -169,7 +169,7 @@ extends JFrame
 		 */
 		public CancelAction ()
 		{
-			super("Cancel Build");
+			super("Cancel build");
 			putValue(
 				SHORT_DESCRIPTION,
 				"Cancel the current build process.");
@@ -376,6 +376,7 @@ extends JFrame
 					moduleTree.setSelectionPath(path);
 				}
 			}
+			entryPointsTree.setModel(new DefaultTreeModel(entryPointsTree()));
 		}
 
 		/**
@@ -418,14 +419,14 @@ extends JFrame
 		 * The {@linkplain Thread thread} running the {@linkplain BuildTask
 		 * build task}.
 		 */
-		@InnerAccess @Nullable Thread runner;
+		@InnerAccess @Nullable Thread runnerThread;
 
 		/**
 		 * Cancel the {@linkplain BuildTask build task}.
 		 */
 		public void cancel ()
 		{
-			final Thread thread = runner;
+			final Thread thread = runnerThread;
 			if (thread != null)
 			{
 				thread.interrupt();
@@ -444,85 +445,16 @@ extends JFrame
 		@Override
 		protected @Nullable Void doInBackground () throws Exception
 		{
-			runner = Thread.currentThread();
+			runnerThread = Thread.currentThread();
 			startTimeMillis = System.currentTimeMillis();
-			AvailRuntime runtime = null;
 			try
 			{
-				runtime = new AvailRuntime(resolver);
 				// Reopen the repositories if necessary.
 				for (final ModuleRoot root : resolver.moduleRoots().roots())
 				{
 					root.repository().reopenIfNecessary();
 				}
-				final AvailBuilder builder = new AvailBuilder(runtime);
-				builder.build(
-					new ModuleName(targetModuleName()),
-					new Continuation4<ModuleName, Long, Long, Long>()
-					{
-						@Override
-						public void value (
-							final @Nullable ModuleName moduleName,
-							final @Nullable Long lineNumber,
-							final @Nullable Long position,
-							final @Nullable Long moduleSize)
-						{
-							assert moduleName != null;
-							assert lineNumber != null;
-							assert position != null;
-							assert moduleSize != null;
-							if (Thread.currentThread().isInterrupted())
-							{
-								if (runner == Thread.currentThread())
-								{
-									throw new CancellationException();
-								}
-							}
-							invokeLater(new Runnable()
-							{
-								@Override
-								public void run ()
-								{
-									updateModuleProgress(
-										moduleName,
-										lineNumber,
-										position,
-										moduleSize);
-								}
-							});
-						}
-					},
-					new Continuation3<ModuleName, Long, Long>()
-					{
-						@Override
-						public void value (
-							final @Nullable ModuleName moduleName,
-							final @Nullable Long position,
-							final @Nullable Long globalCodeSize)
-						{
-							assert moduleName != null;
-							assert position != null;
-							assert globalCodeSize != null;
-							if (Thread.currentThread().isInterrupted())
-							{
-								if (runner == Thread.currentThread())
-								{
-									throw new CancellationException();
-								}
-							}
-							invokeLater(new Runnable()
-							{
-								@Override
-								public void run ()
-								{
-									updateBuildProgress(
-										moduleName,
-										position,
-										globalCodeSize);
-								}
-							});
-						}
-					});
+				availBuilder.build(new ModuleName(targetModuleName()));
 				// Close all the repositories.
 				for (final ModuleRoot root : resolver.moduleRoots().roots())
 				{
@@ -582,10 +514,6 @@ extends JFrame
 			}
 			finally
 			{
-				if (runtime != null)
-				{
-					runtime.destroy();
-				}
 				stopTimeMillis = System.currentTimeMillis();
 			}
 		}
@@ -964,6 +892,15 @@ extends JFrame
 	/** The {@linkplain ModuleDescriptor module} {@linkplain JTree tree}. */
 	@InnerAccess final JTree moduleTree;
 
+	/** The {@linkplain JTree tree} of module {@linkplain A_Module#entryPoints()
+	 * entry points}. */
+	@InnerAccess final JTree entryPointsTree;
+
+	/**
+	 * The {@link AvailBuilder} used by this user interface.
+	 */
+	@InnerAccess final AvailBuilder availBuilder;
+
 	/**
 	 * The {@linkplain JProgressBar progress bar} that displays compilation
 	 * progress of the current {@linkplain ModuleDescriptor module}.
@@ -1010,6 +947,50 @@ extends JFrame
 	 * @return The root of the module tree.
 	 */
 	@InnerAccess TreeNode moduleTree ()
+	{
+		final ModuleRoots roots = resolver.moduleRoots();
+		final DefaultMutableTreeNode treeRoot = new DefaultMutableTreeNode();
+		for (final String rootName : roots.rootNames())
+		{
+			final DefaultMutableTreeNode rootNode =
+				new DefaultMutableTreeNode(rootName);
+			treeRoot.add(rootNode);
+			final String extension = ModuleNameResolver.availExtension;
+			final ModuleRoot root = roots.moduleRootFor(rootName);
+			assert root != null;
+			final File rootDirectory = root.sourceDirectory();
+			assert rootDirectory != null;
+			final File[] files = rootDirectory.listFiles(new FilenameFilter()
+			{
+				@Override
+				public boolean accept (
+					final @Nullable File dir,
+					final @Nullable String name)
+				{
+					assert name != null;
+					return name.endsWith(extension);
+				}
+			});
+			for (final File file : files)
+			{
+				final String fileName = file.getName();
+				final String label = fileName.substring(
+					0, fileName.length() - extension.length());
+				final DefaultMutableTreeNode moduleNode =
+					new DefaultMutableTreeNode(label);
+				rootNode.add(moduleNode);
+			}
+		}
+		return treeRoot;
+	}
+
+	/**
+	 * Answer the (invisible) root of the {@linkplain #entryPointsTree entry
+	 * points tree}.
+	 *
+	 * @return The root of the entry points tree.
+	 */
+	@InnerAccess TreeNode entryPointsTree ()
 	{
 		final ModuleRoots roots = resolver.moduleRoots();
 		final DefaultMutableTreeNode treeRoot = new DefaultMutableTreeNode();
@@ -1256,8 +1237,9 @@ extends JFrame
 	 * resolutions/positions to preserve placement information.  Place it on the
 	 * primary screen if this configuration has not yet been encountered.
 	 *
-	 * @return The rectangle into which to position this {@link
-	 *         AvailBuilderFrame}, or null if
+	 * @return The default rectangle into which to position this {@link
+	 *         AvailBuilderFrame} for the current monitor configuration, or null
+	 *         if it has no saved position yet for that configuration.
 	 */
 	@InnerAccess
 	@Nullable Rectangle getInitialRectangle ()
@@ -1307,6 +1289,73 @@ extends JFrame
 	{
 		// Set module components.
 		this.resolver = resolver;
+		availBuilder = new AvailBuilder(
+			new AvailRuntime(resolver),
+			new Continuation4<ModuleName, Long, Long, Long>()
+			{
+				@Override
+				public void value (
+					final @Nullable ModuleName moduleName,
+					final @Nullable Long lineNumber,
+					final @Nullable Long position,
+					final @Nullable Long moduleSize)
+				{
+					assert moduleName != null;
+					assert lineNumber != null;
+					assert position != null;
+					assert moduleSize != null;
+					if (Thread.currentThread().isInterrupted())
+					{
+						if (Thread.currentThread() == buildTask.runnerThread)
+						{
+							throw new CancellationException();
+						}
+					}
+					invokeLater(new Runnable()
+					{
+						@Override
+						public void run ()
+						{
+							updateModuleProgress(
+								moduleName,
+								lineNumber,
+								position,
+								moduleSize);
+						}
+					});
+				}
+			},
+			new Continuation3<ModuleName, Long, Long>()
+			{
+				@Override
+				public void value (
+					final @Nullable ModuleName moduleName,
+					final @Nullable Long position,
+					final @Nullable Long globalCodeSize)
+				{
+					assert moduleName != null;
+					assert position != null;
+					assert globalCodeSize != null;
+					if (Thread.currentThread().isInterrupted())
+					{
+						if (Thread.currentThread() == buildTask.runnerThread)
+						{
+							throw new CancellationException();
+						}
+					}
+					invokeLater(new Runnable()
+					{
+						@Override
+						public void run ()
+						{
+							updateBuildProgress(
+								moduleName,
+								position,
+								globalCodeSize);
+						}
+					});
+				}
+			});
 
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		// Set *just* the window title...
@@ -1354,27 +1403,6 @@ extends JFrame
 		inputMap.put(KeyStroke.getKeyStroke("F5"), "refresh");
 		actionMap.put("refresh", refreshAction);
 
-		// Create the left pane.
-		final Container leftPane = new Panel();
-		leftPane.setLayout(new GridBagLayout());
-
-		// Create the right pane.
-		final Container rightPane = new Panel();
-		rightPane.setLayout(new GridBagLayout());
-
-		// Create the splitter pane separating left from right.
-		final JSplitPane split = new JSplitPane(
-			JSplitPane.HORIZONTAL_SPLIT,
-			leftPane,
-			rightPane);
-		split.setDividerLocation(200);
-		getContentPane().add(split);
-
-		// Create the constraints.
-		final GridBagConstraints c = new GridBagConstraints();
-		c.insets = new Insets(5, 5, 5, 5);
-		int y = 0;
-
 		// Create the module tree.
 		final JScrollPane moduleTreeScrollArea = new JScrollPane();
 		moduleTreeScrollArea.setHorizontalScrollBarPolicy(
@@ -1383,15 +1411,6 @@ extends JFrame
 			VERTICAL_SCROLLBAR_AS_NEEDED);
 		moduleTreeScrollArea.setVisible(true);
 		moduleTreeScrollArea.setMinimumSize(new Dimension(100, 0));
-		c.fill = GridBagConstraints.BOTH;
-		c.gridheight = GridBagConstraints.REMAINDER;
-		c.gridx = 0;
-		c.gridy = y++;
-		c.weightx = 1;
-		c.weighty = 1;
-		leftPane.add(moduleTreeScrollArea, c);
-		c.weightx = 0;
-		c.weighty = 0;
 		moduleTree = new JTree(moduleTree());
 		moduleTree.setToolTipText(
 			"All top-level modules, organized by module root.");
@@ -1459,40 +1478,107 @@ extends JFrame
 		}
 		moduleTreeScrollArea.setViewportView(moduleTree);
 
+		// Create the entry points tree.
+		final JScrollPane entryPointsScrollArea = new JScrollPane();
+		entryPointsScrollArea.setHorizontalScrollBarPolicy(
+			HORIZONTAL_SCROLLBAR_AS_NEEDED);
+		entryPointsScrollArea.setVerticalScrollBarPolicy(
+			VERTICAL_SCROLLBAR_AS_NEEDED);
+		entryPointsScrollArea.setVisible(true);
+		entryPointsScrollArea.setMinimumSize(new Dimension(100, 0));
+		entryPointsTree = new JTree(entryPointsTree());
+		entryPointsTree.setToolTipText(
+			"All top-level modules, organized by module root.");
+		entryPointsTree.setComponentPopupMenu(buildPopup);
+		entryPointsTree.setEditable(false);
+		entryPointsTree.setEnabled(true);
+		entryPointsTree.setFocusable(true);
+		entryPointsTree.setFocusTraversalKeys(
+			FORWARD_TRAVERSAL_KEYS,
+			Collections.singleton(getAWTKeyStroke("TAB")));
+		entryPointsTree.setFocusTraversalKeys(
+			BACKWARD_TRAVERSAL_KEYS,
+			Collections.singleton(getAWTKeyStroke("shift TAB")));
+		entryPointsTree.getSelectionModel().setSelectionMode(
+			TreeSelectionModel.SINGLE_TREE_SELECTION);
+		entryPointsTree.setShowsRootHandles(true);
+		entryPointsTree.setRootVisible(false);
+		entryPointsTree.setVisible(true);
+		entryPointsTree.addTreeSelectionListener(new TreeSelectionListener()
+		{
+			@Override
+ 			public void valueChanged (final @Nullable TreeSelectionEvent event)
+			{
+				final boolean newEnablement = selectedModule() != null;
+				if (buildAction.isEnabled() != newEnablement)
+				{
+					buildAction.setEnabled(newEnablement);
+				}
+			}
+		});
+		entryPointsTree.addMouseListener(new MouseAdapter()
+		{
+			@SuppressWarnings("null")
+			@Override
+			public void mouseClicked (final @Nullable MouseEvent e)
+			{
+				if (buildAction.isEnabled()
+					&& e.getClickCount() == 2
+					&& e.getButton() == MouseEvent.BUTTON1)
+				{
+					final ActionEvent actionEvent = new ActionEvent(
+						entryPointsTree, -1, "Build");
+					buildAction.actionPerformed(actionEvent);
+				}
+			}
+		});
+		inputMap = entryPointsTree.getInputMap(
+			JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+		actionMap = entryPointsTree.getActionMap();
+		inputMap.put(KeyStroke.getKeyStroke("ENTER"), "build");
+		actionMap.put("build", buildAction);
+		for (int i = 0; i < entryPointsTree.getRowCount(); i++)
+		{
+			entryPointsTree.expandRow(i);
+		}
+		buildAction.setEnabled(false);
+		if (!initialTarget.isEmpty())
+		{
+			final TreePath path = modulePath(initialTarget);
+			if (path != null)
+			{
+				entryPointsTree.setSelectionPath(path);
+				buildAction.setEnabled(true);
+			}
+		}
+		entryPointsScrollArea.setViewportView(entryPointsTree);
+
 		// Create the module progress bar.
 		moduleProgress = new JProgressBar(0, 100);
 		moduleProgress.setToolTipText(
 			"Progress indicator for the module undergoing compilation.");
+		moduleProgress.setDoubleBuffered(true);
 		moduleProgress.setEnabled(false);
 		moduleProgress.setFocusable(false);
 		moduleProgress.setIndeterminate(false);
 		moduleProgress.setStringPainted(true);
 		moduleProgress.setString("Module Progress:");
 		moduleProgress.setValue(0);
-		y = 0;
-		c.gridwidth = 1;
-		c.gridheight = 1;
-		c.gridx = 0;
-		c.gridy = y++;
-		rightPane.add(moduleProgress, c);
 
 		// Create the build progress bar.
 		buildProgress = new JProgressBar(0, 100);
 		buildProgress.setToolTipText(
 			"Progress indicator for the build.");
+		buildProgress.setDoubleBuffered(true);
 		buildProgress.setEnabled(false);
 		buildProgress.setFocusable(false);
 		buildProgress.setIndeterminate(false);
 		buildProgress.setStringPainted(true);
 		buildProgress.setString("Build Progress:");
 		buildProgress.setValue(0);
-		c.gridy = y++;
-		rightPane.add(buildProgress, c);
 
 		// Create the transcript.
 		final JLabel outputLabel = new JLabel("Build Transcript:");
-		c.gridy = y++;
-		rightPane.add(outputLabel, c);
 
 		final JScrollPane transcriptScrollArea = new JScrollPane();
 		transcriptScrollArea.setHorizontalScrollBarPolicy(
@@ -1500,14 +1586,8 @@ extends JFrame
 		transcriptScrollArea.setVerticalScrollBarPolicy(
 			VERTICAL_SCROLLBAR_AS_NEEDED);
 		transcriptScrollArea.setVisible(true);
-		c.gridy = y++;
 		// Make this row and column be where the excess space goes.
-		c.weightx = 1.0;
-		c.weighty = 1.0;
-		rightPane.add(transcriptScrollArea, c);
 		// And reset the weights...
-		c.weightx = 0.0;
-		c.weighty = 0.0;
 		transcript = new JTextPane();
 		transcript.setBorder(BorderFactory.createEtchedBorder());
 		transcript.setEditable(false);
@@ -1525,8 +1605,6 @@ extends JFrame
 
 		// Create the input area.
 		final JLabel inputLabel = new JLabel("Console Input:");
-		c.gridy = y++;
-		rightPane.add(inputLabel, c);
 		inputField = new JTextField();
 		inputField.setToolTipText(
 			"Characters entered here form the standard input of the build "
@@ -1544,8 +1622,6 @@ extends JFrame
 			BACKWARD_TRAVERSAL_KEYS,
 			Collections.singleton(getAWTKeyStroke("shift TAB")));
 		inputField.setVisible(true);
-		c.gridy = y++;
-		rightPane.add(inputField, c);
 
 		// Set up styles for the transcript.
 		final StyledDocument doc = transcript.getStyledDocument();
@@ -1598,6 +1674,49 @@ extends JFrame
 				super.windowClosing(e);
 			}
 		});
+
+		final JSplitPane leftPane = new JSplitPane(
+			JSplitPane.VERTICAL_SPLIT,
+			moduleTreeScrollArea,
+			entryPointsScrollArea);
+		leftPane.setContinuousLayout(true);
+		leftPane.setResizeWeight(0.75);
+
+		final JPanel rightPane = new JPanel();
+		final GroupLayout rightPaneLayout = new GroupLayout(rightPane);
+		rightPane.setLayout(rightPaneLayout);
+		rightPaneLayout.setAutoCreateGaps(true);
+		rightPaneLayout.setHorizontalGroup(
+			rightPaneLayout.createParallelGroup()
+				.addComponent(moduleProgress)
+				.addComponent(buildProgress)
+				.addComponent(outputLabel)
+				.addComponent(transcriptScrollArea)
+				.addComponent(inputLabel)
+				.addComponent(inputField));
+		rightPaneLayout.setVerticalGroup(
+			rightPaneLayout.createSequentialGroup()
+				.addGroup(rightPaneLayout.createSequentialGroup()
+					.addComponent(moduleProgress)
+					.addComponent(buildProgress))
+				.addGroup(rightPaneLayout.createSequentialGroup()
+					.addComponent(outputLabel)
+					.addComponent(transcriptScrollArea))
+				.addGroup(rightPaneLayout.createSequentialGroup()
+					.addComponent(inputLabel)
+					.addComponent(
+						inputField,
+						GroupLayout.PREFERRED_SIZE,
+						GroupLayout.PREFERRED_SIZE,
+						GroupLayout.PREFERRED_SIZE)));
+
+		final JSplitPane mainSplit = new JSplitPane(
+			JSplitPane.HORIZONTAL_SPLIT,
+			leftPane,
+			rightPane);
+		mainSplit.setDividerLocation(200);
+		mainSplit.setContinuousLayout(true);
+		getContentPane().add(mainSplit);
 	}
 
 	/**

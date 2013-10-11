@@ -442,11 +442,11 @@ public class Compiler
 
 		try
 		{
-			final AvailBuilder builder = new AvailBuilder(runtime);
-			builder.build(
-				moduleName,
+			final AvailBuilder builder = new AvailBuilder(
+				runtime,
 				localTracker(configuration),
 				globalTracker(configuration));
+			builder.build(moduleName);
 
 			// Successful compilation.
 			if (configuration.hasReports())

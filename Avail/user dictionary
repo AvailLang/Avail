@@ -1,9 +1,13 @@
+Birkhoff
 Gulik
 Todd
+Schultz
+Leslie
 accessor
 addend
 analyses
 anarakul
+appendable
 arity
 atomicity
 availlang.org
@@ -11,7 +15,6 @@ backquote
 backquoted
 bagwell
 bestows
-Birkhoff
 bivalence
 bivalent
 bytecode
@@ -25,6 +28,7 @@ chevron
 chevrons
 chromatic
 cloneable
+coda
 compliant
 conformance
 conformant
@@ -80,6 +84,7 @@ fixup
 foldable
 foreach
 foundational
+fudge
 gmail.com
 guillemet
 guillemets
@@ -92,6 +97,7 @@ identityless
 inbound
 ineligible
 inline
+inlineable
 inlined
 inlining
 inlining
@@ -107,6 +113,8 @@ locales
 lowercase
 magenta
 malformed
+memento
+mementos
 memoization
 metacovariance
 metacovariant
@@ -114,9 +122,9 @@ metadata
 metadatum
 metatype
 metatypes
+minuend
 misparsing
 monomorphic
-mooky
 multigraph
 multigraphs
 multilingual
@@ -141,6 +149,7 @@ ordinals
 ostensibly
 outbound
 parametrically
+parsable
 penultimate
 phony
 pilcrow
@@ -159,6 +168,7 @@ precomputed
 prefilter
 prefiltered
 prim
+provenance
 proxies
 proxy
 rarr
@@ -191,6 +201,8 @@ spacious
 stackp
 stashed
 stateless
+stringification
+stringify
 subclassing
 subdirectory
 subnodes
@@ -233,22 +245,11 @@ unpark
 unparked
 unstarted
 varargs
+veneer
+verbosity
 versioned
 virtualized
 wildcard
 wordcode
 wordcodes
 wow
-stringification
-parsable
-fudge
-minuend
-coda
-veneer
-verbosity
-appendable
-stringify
-memento
-inlineable
-provenance
-mementos
