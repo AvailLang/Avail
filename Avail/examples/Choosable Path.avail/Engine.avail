@@ -175,13 +175,16 @@ Public method "Play a game,⁇creating a context with_,⁇interacting with_" is
 |
 	/* Produce a fresh context for the choosable path story. */
 	aContext : complete context := engine context for gameContextCreator;
-	Use aContext as the implied context for
+	/* Play the story. */
+	title : string;
+	description : string;
+	transitionDescriptions : <string…|>;
+	Until [game is over for aContext] do
 	[
-		/* Play the story. */
-		title : string;
-		description : string;
-		transitionDescriptions : <string…|>;
-		Until [game is over for aContext] do
+		/* Processing certain commands may cause the implied context to
+		 * change.
+		 */
+		Use aContext as the implied context for
 		[
 			previousScene ::= ↑aContext's previous scene;
 			currentScene ::= aContext's current scene;
