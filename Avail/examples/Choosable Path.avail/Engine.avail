@@ -188,9 +188,7 @@ Public method "Play a game,⁇creating a context with_,⁇interacting with_" is
 		[
 			previousScene ::= ↑aContext's previous scene;
 			currentScene ::= aContext's current scene;
-			If previousScene is unassigned
-				∨ [currentScene ≠ ↓previousScene]
-			then
+			If previousScene is unassigned ∨ [currentScene≠↓previousScene] then
 			[
 				title := title of currentScene for aContext;
 				description := description of currentScene for aContext;
