@@ -52,6 +52,7 @@ import java.util.zip.DeflaterOutputStream;
 import java.util.zip.Inflater;
 import com.avail.annotations.*;
 import com.avail.utility.*;
+import com.avail.utility.evaluation.*;
 
 /**
  * {@code IndexedFile}s are record journals. Records may be {@linkplain

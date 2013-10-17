@@ -30,11 +30,11 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.fsm;
+package com.avail.utility.fsm;
 
 import java.util.Collection;
 import java.util.EnumMap;
-import com.avail.utility.Continuation1;
+import com.avail.utility.evaluation.*;
 
 /**
  * A finite state machine (<strong>FSM</strong>) comprises a finite set of

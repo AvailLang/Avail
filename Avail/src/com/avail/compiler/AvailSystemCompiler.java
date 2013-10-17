@@ -46,6 +46,7 @@ import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 import com.avail.interpreter.Primitive.Flag;
 import com.avail.utility.*;
+import com.avail.utility.evaluation.*;
 
 /**
  * I parse a source file to create a {@linkplain ModuleDescriptor module}.

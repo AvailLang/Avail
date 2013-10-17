@@ -34,8 +34,7 @@ package com.avail.interpreter.levelTwo.operand;
 
 import com.avail.interpreter.levelTwo.*;
 import com.avail.interpreter.levelTwo.register.*;
-import com.avail.utility.*;
-
+import com.avail.utility.evaluation.*;
 
 /**
  * An {@code L2ReadWritePointerOperand} is an operand of type {@link

@@ -42,7 +42,7 @@ import java.util.List;
 import com.avail.annotations.*;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.TypeDescriptor.Types;
-import com.avail.utility.*;
+import com.avail.utility.evaluation.*;
 
 /**
  * My instances represent variable and constant statements.  There are several

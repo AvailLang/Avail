@@ -39,7 +39,7 @@ import java.util.List;
 import com.avail.annotations.*;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
-import com.avail.utility.*;
+import com.avail.utility.evaluation.*;
 
 /**
  * My instances represent a parsing marker that can be pushed onto the parse

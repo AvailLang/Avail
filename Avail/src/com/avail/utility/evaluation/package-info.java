@@ -1,21 +1,21 @@
 /**
- * Continuation2.java
- * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
- * All rights reserved.
+ * package-info.java
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith. All
+ * rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
  * * Redistributions of source code must retain the above copyright notice, this
- *   list of conditions and the following disclaimer.
+ * list of conditions and the following disclaimer.
  *
  * * Redistributions in binary form must reproduce the above copyright notice,
- *   this list of conditions and the following disclaimer in the documentation
- *   and/or other materials provided with the distribution.
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
  *
  * * Neither the name of the copyright holder nor the names of the contributors
- *   may be used to endorse or promote products derived from this software
- *   without specific prior written permission.
+ * may be used to endorse or promote products derived from this software without
+ * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -30,26 +30,4 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.utility;
-
-import com.avail.annotations.Nullable;
-import com.avail.utility.Continuation2;
-
-/**
- * Implementors of {@code Continuation2} provide a single arbitrary operation
- * that accepts two arguments.
- *
- * @author Mark van Gulik &lt;mark@availlang.org&gt;
- * @param <X> The type of the first argument.
- * @param <Y> The type of the second argument.
- */
-public interface Continuation2<X, Y>
-{
-	/**
-	 * Perform the operation.
-	 *
-	 * @param arg1 The first argument.
-	 * @param arg2 The second argument.
-	 */
-	public void value (@Nullable X arg1, @Nullable Y arg2);
-}
+@com.avail.annotations.NotNullByDefault package com.avail.utility.evaluation;

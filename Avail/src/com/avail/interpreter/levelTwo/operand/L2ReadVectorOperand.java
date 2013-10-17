@@ -35,8 +35,7 @@ package com.avail.interpreter.levelTwo.operand;
 import java.util.*;
 import com.avail.interpreter.levelTwo.*;
 import com.avail.interpreter.levelTwo.register.*;
-import com.avail.utility.*;
-
+import com.avail.utility.evaluation.*;
 
 /**
  * An {@code L2ReadVectorOperand} is an operand of type {@link

@@ -54,6 +54,7 @@ import com.avail.interpreter.levelTwo.operation.*;
 import com.avail.interpreter.levelTwo.register.*;
 import com.avail.interpreter.primitive.P_058_RestartContinuation;
 import com.avail.utility.*;
+import com.avail.utility.evaluation.*;
 
 /**
  * The {@code L2Translator} converts a level one {@linkplain FunctionDescriptor

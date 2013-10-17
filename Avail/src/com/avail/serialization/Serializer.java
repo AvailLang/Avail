@@ -34,7 +34,7 @@ package com.avail.serialization;
 
 import com.avail.AvailRuntime;
 import com.avail.descriptor.*;
-import com.avail.utility.Continuation0;
+import com.avail.utility.evaluation.*;
 import java.io.*;
 import java.util.*;
 

@@ -39,7 +39,7 @@ import com.avail.descriptor.*;
 import com.avail.descriptor.FiberDescriptor.ExecutionState;
 import com.avail.exceptions.AvailErrorCode;
 import com.avail.interpreter.*;
-import com.avail.utility.Continuation1;
+import com.avail.utility.evaluation.*;
 
 /**
  * <strong>Primitive 256:</strong> Exit the current {@linkplain

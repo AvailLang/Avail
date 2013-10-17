@@ -42,8 +42,8 @@ import com.avail.descriptor.InfinityDescriptor.IntegerSlots;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.descriptor.SetDescriptor.SetIterator;
 import com.avail.serialization.SerializerOperation;
-import com.avail.utility.Continuation0;
-import com.avail.visitor.AvailSubobjectVisitor;
+import com.avail.utility.evaluation.*;
+import com.avail.utility.visitor.AvailSubobjectVisitor;
 
 /**
  * {@code A_BasicObject} is an interface that specifies all generally applicable

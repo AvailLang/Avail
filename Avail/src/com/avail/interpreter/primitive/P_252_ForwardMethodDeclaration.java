@@ -41,7 +41,7 @@ import com.avail.*;
 import com.avail.descriptor.*;
 import com.avail.exceptions.*;
 import com.avail.interpreter.*;
-import com.avail.utility.Continuation0;
+import com.avail.utility.evaluation.*;
 
 /**
  * <strong>Primitive 252:</strong> Forward declare a method (for recursion

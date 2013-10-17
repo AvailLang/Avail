@@ -40,7 +40,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import com.avail.annotations.Nullable;
 import com.avail.annotations.ThreadSafe;
-import com.avail.utility.Strings;
+import com.avail.utility.*;
 
 /**
  * {@code ConstantPool} represents a per-class constant pool.

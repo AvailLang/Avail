@@ -34,8 +34,7 @@ package com.avail.interpreter.levelTwo.operand;
 
 import com.avail.interpreter.levelTwo.*;
 import com.avail.interpreter.levelTwo.register.L2Register;
-import com.avail.utility.*;
-
+import com.avail.utility.evaluation.*;
 
 /**
  * An {@code L2ConstantOperand} is an operand of type {@link

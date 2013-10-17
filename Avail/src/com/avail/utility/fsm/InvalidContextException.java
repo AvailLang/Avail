@@ -1,6 +1,6 @@
 /**
- * BeImmutableSubobjectVisitor.java
- * Copyright © 1993-2011, Mark van Gulik and Todd L Smith.
+ * InvalidContextException.java
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,37 +30,37 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.visitor;
-
-import com.avail.descriptor.A_BasicObject;
-import com.avail.descriptor.AvailObject;
+package com.avail.utility.fsm;
 
 /**
- * Provide the ability to iterate over an object's fields, marking each child
- * object as immutable. Note that marking a child immutable may involve
- * creating another visitor of this class and visiting the child's children
- * in this mutually recursive way.
+ * Exception thrown during a state transition when an invalid {@linkplain
+ * ExecutionContext execution context} is detected
  *
- * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class BeImmutableSubobjectVisitor
-extends AvailSubobjectVisitor
+public class InvalidContextException
+extends RuntimeException
 {
-	/** The sole instance of this visitor. */
-	public final static BeImmutableSubobjectVisitor instance =
-		new BeImmutableSubobjectVisitor();
+	/** The serial version identifier. */
+	private static final long serialVersionUID = -2481013688117392484L;
 
-	/** Construct a new {@link BeImmutableSubobjectVisitor}. */
-	private BeImmutableSubobjectVisitor ()
+	/**
+	 * Construct a new {@link InvalidContextException}.
+	 */
+	InvalidContextException ()
 	{
-		// Do nothing
+		// No implementation required.
 	}
 
-	@Override
-	public void invoke (
-		final A_BasicObject parentObject,
-		final AvailObject childObject)
+	/**
+	 * Construct a new {@link InvalidContextException}.
+	 *
+	 * @param message
+	 *        A (hopefully) informative message describing the invalid
+	 *        transition.
+	 */
+	InvalidContextException (final String message)
 	{
-		childObject.makeImmutable();
+		super(message);
 	}
 }

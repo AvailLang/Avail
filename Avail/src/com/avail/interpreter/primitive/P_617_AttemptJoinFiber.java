@@ -41,6 +41,7 @@ import com.avail.descriptor.*;
 import com.avail.descriptor.FiberDescriptor.*;
 import com.avail.interpreter.*;
 import com.avail.utility.*;
+import com.avail.utility.evaluation.*;
 
 /**
  * <strong>Primitive 617</strong>: If the {@linkplain FiberDescriptor fiber} has

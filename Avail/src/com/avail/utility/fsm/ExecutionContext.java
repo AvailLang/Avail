@@ -30,10 +30,9 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.fsm;
+package com.avail.utility.fsm;
 
-import com.avail.utility.Continuation1;
-import com.avail.utility.Transformer1;
+import com.avail.utility.evaluation.*;
 import com.avail.annotations.*;
 
 /**

@@ -40,7 +40,7 @@ import java.util.*;
 import com.avail.AvailRuntime;
 import com.avail.annotations.*;
 import com.avail.compiler.*;
-import com.avail.utility.Mutable;
+import com.avail.utility.*;
 
 /**
  * A {@linkplain MessageBundleTreeDescriptor message bundle tree} is used by the

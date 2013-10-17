@@ -1,6 +1,6 @@
 /**
- * package-info.java
- * Copyright (c) 1993-2012, Mark van Gulik and Todd L Smith.
+ * Continuation2.java
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,4 +30,25 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-@com.avail.annotations.NotNullByDefault package com.avail.visitor;
+package com.avail.utility.evaluation;
+
+import com.avail.annotations.Nullable;
+
+/**
+ * Implementors of {@code Continuation2} provide a single arbitrary operation
+ * that accepts two arguments.
+ *
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @param <X> The type of the first argument.
+ * @param <Y> The type of the second argument.
+ */
+public interface Continuation2<X, Y>
+{
+	/**
+	 * Perform the operation.
+	 *
+	 * @param arg1 The first argument.
+	 * @param arg2 The second argument.
+	 */
+	public void value (@Nullable X arg1, @Nullable Y arg2);
+}

@@ -49,6 +49,7 @@ import com.avail.interpreter.*;
 import com.avail.persistence.IndexedRepositoryManager;
 import com.avail.serialization.*;
 import com.avail.utility.*;
+import com.avail.utility.evaluation.*;
 
 /**
  * An {@code AvailBuilder} {@linkplain AbstractAvailCompiler compiles} and

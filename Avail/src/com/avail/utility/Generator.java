@@ -32,8 +32,6 @@
 
 package com.avail.utility;
 
-import com.avail.utility.Generator;
-
 /**
  * I represent the ability to generate something in the future, when my {@link
  * #value()} operation is invoked.

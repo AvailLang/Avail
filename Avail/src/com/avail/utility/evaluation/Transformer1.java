@@ -1,5 +1,5 @@
 /**
- * L2ReadWriteIntOperand.java
+ * Transformer1.java
  * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -30,61 +30,26 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.interpreter.levelTwo.operand;
+package com.avail.utility.evaluation;
 
-import com.avail.interpreter.levelTwo.*;
-import com.avail.interpreter.levelTwo.register.*;
-import com.avail.utility.evaluation.*;
+import com.avail.annotations.Nullable;
 
 /**
- * An {@code L2ReadWriteIntOperand} is an operand of type {@link
- * L2OperandType#READWRITE_INT}.  It holds the actual {@link L2IntegerRegister}
- * that is to be accessed.
+ * Implementors of {@code Transformer1} provide a single arbitrary operation
+ * that accepts one argument and produces a result.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ *
+ * @param <X> The type of the sole argument to the operation.
+ * @param <Y> The type of value produced by the operation.
  */
-public class L2ReadWriteIntOperand extends L2Operand
+public abstract class Transformer1 <X,Y>
 {
 	/**
-	 * The actual {@link L2IntegerRegister}.
-	 */
-	public final L2IntegerRegister register;
-
-	/**
-	 * Construct a new {@link L2ReadWriteIntOperand} with the specified {@link
-	 * L2IntegerRegister}.
+	 * Perform the operation.
 	 *
-	 * @param register The integer register.
+	 * @param arg The argument to the operation.
+	 * @return The result of performing the operation.
 	 */
-	public L2ReadWriteIntOperand (
-		final L2IntegerRegister register)
-	{
-		this.register = register;
-	}
-
-	@Override
-	public L2OperandType operandType ()
-	{
-		return L2OperandType.READWRITE_INT;
-	}
-
-	@Override
-	public void dispatchOperand (final L2OperandDispatcher dispatcher)
-	{
-		dispatcher.doOperand(this);
-	}
-
-	@Override
-	public L2WriteIntOperand transformRegisters (
-		final Transformer2<L2Register, L2OperandType, L2Register> transformer)
-	{
-		return new L2WriteIntOperand(
-			(L2IntegerRegister)transformer.value(register, operandType()));
-	}
-
-	@Override
-	public String toString ()
-	{
-		return String.format("WriteInt(%s)", register);
-	}
+	public abstract @Nullable Y value (@Nullable X arg);
 }

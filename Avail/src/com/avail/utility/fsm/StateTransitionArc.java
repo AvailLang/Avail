@@ -29,12 +29,11 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.avail.fsm;
+package com.avail.utility.fsm;
 
 import java.util.Map;
 import com.avail.annotations.Nullable;
-import com.avail.utility.Continuation1;
-import com.avail.utility.Transformer1;
+import com.avail.utility.evaluation.*;
 
 /**
  * A state transition, effectively the "compiled form" of a single state

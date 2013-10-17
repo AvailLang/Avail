@@ -42,6 +42,7 @@ import com.avail.compiler.*;
 import com.avail.descriptor.*;
 import com.avail.exceptions.*;
 import com.avail.utility.*;
+import com.avail.utility.evaluation.*;
 
 /**
  * An {@code AvailLoader} is responsible for orchestrating module-level

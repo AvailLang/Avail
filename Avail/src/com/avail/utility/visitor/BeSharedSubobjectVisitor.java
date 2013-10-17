@@ -1,5 +1,5 @@
 /**
- * Transformer2.java
+ * BeSharedSubobjectVisitor.java
  * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -30,29 +30,37 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.utility;
+package com.avail.utility.visitor;
 
-import com.avail.annotations.Nullable;
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.AvailObject;
 
 /**
- * Implementors of {@code Transformer2} provide a single arbitrary operation
- * that accepts two arguments and produces a result.
+ * Provide the ability to iterate over an object's fields, marking each child
+ * object as shared. Note that marking a child shared may involve creating
+ * another visitor of this class and visiting the child's children in this
+ * mutually recursive way.
  *
- * @author Mark van Gulik &lt;mark@availlang.org&gt;
- *
- * @param <X> The type of the first argument to the operation.
- * @param <Y> The type of the second argument to the operation.
- * @param <Z> The type of value produced by the operation.
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public abstract class Transformer2 <X,Y,Z>
+public class BeSharedSubobjectVisitor
+extends AvailSubobjectVisitor
 {
-	/**
-	 * Perform the operation.
-	 * @param arg1 The first argument to the operation.
-	 * @param arg2 The second argument to the operation.
-	 * @return The result of performing the operation.
-	 */
-	public abstract @Nullable Z value (
-		@Nullable X arg1,
-		@Nullable Y arg2);
+	/** The sole instance of this visitor. */
+	public final static BeSharedSubobjectVisitor instance =
+		new BeSharedSubobjectVisitor();
+
+	/** Construct a new {@link BeSharedSubobjectVisitor}. */
+	private BeSharedSubobjectVisitor ()
+	{
+		// Do nothing
+	}
+
+	@Override
+	public void invoke (
+		final A_BasicObject parentObject,
+		final AvailObject childObject)
+	{
+		childObject.makeShared();
+	}
 }

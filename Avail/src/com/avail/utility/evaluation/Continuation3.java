@@ -1,5 +1,5 @@
 /**
- * AvailSubobjectVisitor.java
+ * Continuation3.java
  * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -30,27 +30,27 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.visitor;
+package com.avail.utility.evaluation;
 
-import com.avail.descriptor.A_BasicObject;
-import com.avail.descriptor.AvailObject;
+import com.avail.annotations.Nullable;
 
 /**
- * I provide an {@link #invoke(A_BasicObject, AvailObject)} operation which
- * supports the ability to visit the object fields of AvailObjects.
+ * Implementors of {@code Continuation3} provide a single arbitrary operation
+ * that accepts three arguments.
  *
- * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
+ * @param <X> The type of the first argument.
+ * @param <Y> The type of the second argument.
+ * @param <Z> The type of the third argument.
  */
-public abstract class AvailSubobjectVisitor
+public interface Continuation3<X, Y, Z>
 {
 	/**
-	 * This is a visitor call from a subobject iterator running on some object.
-	 * The subobject has already been extracted from the parent.
+	 * Perform the operation.
 	 *
-	 * @param parentObject The object whose field we are visiting.
-	 * @param childObject An object referred to by the {@code parentObject}.
+	 * @param arg1 The first argument.
+	 * @param arg2 The second argument.
+	 * @param arg3 The third argument.
 	 */
-	public abstract void invoke (
-		final A_BasicObject parentObject,
-		final AvailObject childObject);
+	public void value (@Nullable X arg1, @Nullable Y arg2, @Nullable Z arg3);
 }

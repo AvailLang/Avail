@@ -39,7 +39,7 @@ import java.util.*;
 import com.avail.annotations.*;
 import com.avail.exceptions.*;
 import com.avail.utility.*;
-
+import com.avail.utility.evaluation.*;
 /**
  * An {@code PojoTypeDescriptor} describes the type of a plain-old Java
  * object (pojo) that is accessible to an Avail programmer as an {@linkplain

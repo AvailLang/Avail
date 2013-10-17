@@ -1,5 +1,5 @@
 /**
- * Transformer0.java
+ * MarkUnreachableSubobjectVisitor.java
  * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -30,24 +30,58 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.utility;
+package com.avail.utility.visitor;
 
-import com.avail.annotations.Nullable;
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.AvailObject;
 
 /**
- * Implementors of {@code Transformer0} provide a single arbitrary operation
- * that accepts zero arguments and produces a result.
+ * Provide the ability to iterate over an object's fields, marking each child
+ * object as unreachable.  Also recurse into the children, but avoid a specific
+ * object during the recursion.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
- *
- * @param <X> The type of value produced by the operation.
  */
-public abstract class Transformer0 <X>
+public final class MarkUnreachableSubobjectVisitor
+extends AvailSubobjectVisitor
 {
 	/**
-	 * Perform the operation.
-	 *
-	 * @return The result of performing the operation.
+	 * An object which we should <em>not</em> recurse into if encountered.
 	 */
-	public abstract @Nullable X value ();
+	private final A_BasicObject exclusion;
+
+	/**
+	 * Construct a new {@link MarkUnreachableSubobjectVisitor}.
+	 *
+	 * @param excludedObject
+	 *        The object within which to <em>avoid</em> marking subobjects as
+	 *        unreachable. Use NilDescriptor.nullObject() if no such object
+	 *        is necessary, as it's always already immutable.
+	 */
+	public MarkUnreachableSubobjectVisitor (
+		final A_BasicObject excludedObject)
+	{
+		exclusion = excludedObject;
+	}
+
+	@Override
+	public void invoke (
+		final A_BasicObject parentObject,
+		final AvailObject childObject)
+	{
+		if (!childObject.descriptor().isMutable())
+		{
+			return;
+		}
+		if (childObject.sameAddressAs(exclusion))
+		{
+			// The excluded object was reached.
+			return;
+		}
+		// Recursively invoke the iterator on the subobjects of subobject...
+		childObject.scanSubobjects(this);
+		// Indicate the object is no longer valid and should not ever be used
+		// again.
+		childObject.destroy();
+	}
 }

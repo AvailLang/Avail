@@ -59,10 +59,8 @@ import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.register.FixedRegister;
 import com.avail.interpreter.primitive.*;
 import com.avail.performance.Statistic;
-import com.avail.utility.Continuation0;
-import com.avail.utility.Continuation1;
-import com.avail.utility.Mutable;
-import com.avail.utility.MutableOrNull;
+import com.avail.utility.evaluation.*;
+import com.avail.utility.*;
 
 /**
  * This class is used to execute {@linkplain L2Chunk Level Two code}, which is a

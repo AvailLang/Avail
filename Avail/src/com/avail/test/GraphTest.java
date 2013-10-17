@@ -35,7 +35,7 @@ package com.avail.test;
 import static org.junit.Assert.*;
 import java.util.Arrays;
 import org.junit.*;
-import com.avail.utility.Graph;
+import com.avail.utility.*;
 import com.avail.utility.Graph.GraphPreconditionFailure;
 
 /**

@@ -1,5 +1,5 @@
 /**
- * package-info.java
+ * AvailSubobjectVisitor.java
  * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -30,4 +30,27 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-@com.avail.annotations.NotNullByDefault package com.avail.fsm;
+package com.avail.utility.visitor;
+
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.AvailObject;
+
+/**
+ * I provide an {@link #invoke(A_BasicObject, AvailObject)} operation which
+ * supports the ability to visit the object fields of AvailObjects.
+ *
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ */
+public abstract class AvailSubobjectVisitor
+{
+	/**
+	 * This is a visitor call from a subobject iterator running on some object.
+	 * The subobject has already been extracted from the parent.
+	 *
+	 * @param parentObject The object whose field we are visiting.
+	 * @param childObject An object referred to by the {@code parentObject}.
+	 */
+	public abstract void invoke (
+		final A_BasicObject parentObject,
+		final AvailObject childObject);
+}

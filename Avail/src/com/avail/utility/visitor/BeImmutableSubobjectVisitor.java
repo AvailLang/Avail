@@ -1,6 +1,6 @@
 /**
- * Continuation4.java
- * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
+ * BeImmutableSubobjectVisitor.java
+ * Copyright © 1993-2011, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,33 +30,37 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.utility;
+package com.avail.utility.visitor;
 
-import com.avail.annotations.Nullable;
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.AvailObject;
 
 /**
- * Implementors of {@code Continuation4} provide a single arbitrary operation
- * that accepts three arguments.
+ * Provide the ability to iterate over an object's fields, marking each child
+ * object as immutable. Note that marking a child immutable may involve
+ * creating another visitor of this class and visiting the child's children
+ * in this mutually recursive way.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
- * @param <W> The type of the first argument.
- * @param <X> The type of the second argument.
- * @param <Y> The type of the third argument.
- * @param <Z> The type of the fourth argument.
  */
-public interface Continuation4<W, X, Y, Z>
+public final class BeImmutableSubobjectVisitor
+extends AvailSubobjectVisitor
 {
-	/**
-	 * Perform the operation.
-	 *
-	 * @param arg1 The first argument.
-	 * @param arg2 The second argument.
-	 * @param arg3 The third argument.
-	 * @param arg4 The fourth argument.
-	 */
-	public void value (
-		@Nullable W arg1,
-		@Nullable X arg2,
-		@Nullable Y arg3,
-		@Nullable Z arg4);
+	/** The sole instance of this visitor. */
+	public final static BeImmutableSubobjectVisitor instance =
+		new BeImmutableSubobjectVisitor();
+
+	/** Construct a new {@link BeImmutableSubobjectVisitor}. */
+	private BeImmutableSubobjectVisitor ()
+	{
+		// Do nothing
+	}
+
+	@Override
+	public void invoke (
+		final A_BasicObject parentObject,
+		final AvailObject childObject)
+	{
+		childObject.makeImmutable();
+	}
 }

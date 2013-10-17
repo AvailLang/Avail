@@ -41,7 +41,7 @@ import org.junit.*;
 import com.avail.AvailRuntime;
 import com.avail.compiler.scanning.*;
 import com.avail.descriptor.*;
-import com.avail.utility.Generator;
+import com.avail.utility.*;
 
 /**
  * Unit tests for the {@link AvailScanner}.

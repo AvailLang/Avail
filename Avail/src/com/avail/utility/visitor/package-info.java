@@ -1,6 +1,6 @@
 /**
- * InvalidContextException.java
- * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
+ * package-info.java
+ * Copyright (c) 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,37 +30,4 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.fsm;
-
-/**
- * Exception thrown during a state transition when an invalid {@linkplain
- * ExecutionContext execution context} is detected
- *
- * @author Todd L Smith &lt;todd@availlang.org&gt;
- */
-public class InvalidContextException
-extends RuntimeException
-{
-	/** The serial version identifier. */
-	private static final long serialVersionUID = -2481013688117392484L;
-
-	/**
-	 * Construct a new {@link InvalidContextException}.
-	 */
-	InvalidContextException ()
-	{
-		// No implementation required.
-	}
-
-	/**
-	 * Construct a new {@link InvalidContextException}.
-	 *
-	 * @param message
-	 *        A (hopefully) informative message describing the invalid
-	 *        transition.
-	 */
-	InvalidContextException (final String message)
-	{
-		super(message);
-	}
-}
+@com.avail.annotations.NotNullByDefault package com.avail.utility.visitor;

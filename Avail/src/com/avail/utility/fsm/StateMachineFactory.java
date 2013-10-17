@@ -30,15 +30,14 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.fsm;
+package com.avail.utility.fsm;
 
 import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Set;
 import com.avail.annotations.Nullable;
-import com.avail.utility.Continuation1;
-import com.avail.utility.Transformer1;
+import com.avail.utility.evaluation.*;
 
 /**
  * A {@code StateMachineFactory} enables a client to dynamically specify and

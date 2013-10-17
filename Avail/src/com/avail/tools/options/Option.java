@@ -33,7 +33,7 @@
 package com.avail.tools.options;
 
 import java.util.LinkedHashSet;
-import com.avail.utility.Continuation2;
+import com.avail.utility.evaluation.*;
 
 /**
  * An {@code Option} comprises an {@linkplain Enum enumerated type} which

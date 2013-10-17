@@ -34,7 +34,7 @@ package com.avail.descriptor;
 
 import com.avail.annotations.*;
 import com.avail.serialization.SerializerOperation;
-import com.avail.utility.Generator;
+import com.avail.utility.*;
 
 /**
  * {@code StringDescriptor} has Avail strings as its instances. The actual

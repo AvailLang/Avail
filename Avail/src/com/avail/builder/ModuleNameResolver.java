@@ -42,7 +42,7 @@ import com.avail.annotations.*;
 import com.avail.descriptor.ModuleDescriptor;
 import com.avail.persistence.IndexedRepositoryManager;
 import com.avail.utility.*;
-
+import com.avail.utility.evaluation.*;
 /**
  * A {@code ModuleNameResolver} resolves fully-qualified references to Avail
  * {@linkplain ModuleDescriptor modules} to {@linkplain File#isAbsolute()

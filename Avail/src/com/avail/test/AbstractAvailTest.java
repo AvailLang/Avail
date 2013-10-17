@@ -40,6 +40,7 @@ import com.avail.builder.*;
 import com.avail.compiler.*;
 import com.avail.descriptor.*;
 import com.avail.utility.*;
+import com.avail.utility.evaluation.*;
 
 /**
  * {@code AbstractAvailTest} defines state and behavior common to actual Avail

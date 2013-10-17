@@ -34,7 +34,7 @@ package com.avail.tools.options;
 
 import java.util.Collection;
 import java.util.LinkedHashSet;
-import com.avail.utility.Continuation2;
+import com.avail.utility.evaluation.*;
 
 /**
  * An implementation of {@link Option} whose accessible state is initializable

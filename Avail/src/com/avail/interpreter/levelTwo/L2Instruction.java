@@ -45,8 +45,7 @@ import com.avail.interpreter.levelTwo.register.L2IntegerRegister;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.interpreter.levelTwo.register.L2Register;
 import com.avail.interpreter.levelTwo.register.L2RegisterVector;
-import com.avail.utility.*;
-
+import com.avail.utility.evaluation.*;
 /**
  * {@code L2Instruction} is the foundation for all instructions understood by
  * the {@linkplain Interpreter level two Avail interpreter}. These

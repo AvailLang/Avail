@@ -35,10 +35,8 @@ package com.avail.tools.options;
 import java.io.IOException;
 import java.util.*;
 import com.avail.annotations.*;
-import com.avail.utility.Continuation1;
-import com.avail.utility.Mutable;
-import com.avail.utility.ParagraphFormatter;
-import com.avail.utility.ParagraphFormatterStream;
+import com.avail.utility.*;
+import com.avail.utility.evaluation.*;
 
 /**
  * An {@code OptionProcessor} serves primarily to support command-line

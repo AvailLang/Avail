@@ -39,6 +39,7 @@ import com.avail.descriptor.*;
 import com.avail.descriptor.FiberDescriptor.*;
 import com.avail.interpreter.Interpreter;
 import com.avail.utility.*;
+import com.avail.utility.evaluation.*;
 
 /**
  * An {@code AvailTask} extends {@link Runnable} with a priority. Instances are

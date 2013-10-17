@@ -1,5 +1,5 @@
 /**
- * Transformer3.java
+ * Continuation4.java
  * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -30,32 +30,33 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.utility;
+package com.avail.utility.evaluation;
 
 import com.avail.annotations.Nullable;
 
 /**
- * Implementors of {@code Transformer3} provide a single arbitrary operation
- * that accepts three arguments and produces a result.
+ * Implementors of {@code Continuation4} provide a single arbitrary operation
+ * that accepts three arguments.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
- *
- * @param <W> The type of the first argument to the operation.
- * @param <X> The type of the second argument to the operation.
- * @param <Y> The type of the third argument to the operation.
- * @param <Z> The type of value produced by the operation.
+ * @param <W> The type of the first argument.
+ * @param <X> The type of the second argument.
+ * @param <Y> The type of the third argument.
+ * @param <Z> The type of the fourth argument.
  */
-public abstract class Transformer3 <W,X,Y,Z>
+public interface Continuation4<W, X, Y, Z>
 {
 	/**
 	 * Perform the operation.
-	 * @param arg1 The first argument to the operation.
-	 * @param arg2 The second argument to the operation.
-	 * @param arg3 The third argument to the operation.
-	 * @return The result of performing the operation.
+	 *
+	 * @param arg1 The first argument.
+	 * @param arg2 The second argument.
+	 * @param arg3 The third argument.
+	 * @param arg4 The fourth argument.
 	 */
-	public abstract @Nullable Z value (
+	public void value (
 		@Nullable W arg1,
 		@Nullable X arg2,
-		@Nullable Y arg3);
+		@Nullable Y arg3,
+		@Nullable Z arg4);
 }

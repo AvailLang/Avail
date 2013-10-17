@@ -42,7 +42,7 @@ import com.avail.AvailRuntime;
 import com.avail.descriptor.*;
 import com.avail.descriptor.FiberDescriptor.ExecutionState;
 import com.avail.interpreter.*;
-import com.avail.utility.Continuation0;
+import com.avail.utility.evaluation.*;
 
 /**
  * <strong>Primitive 608:</strong> Request termination of the given

@@ -1,5 +1,5 @@
 /**
- * MarkUnreachableSubobjectVisitor.java
+ * Transformer3.java
  * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -30,58 +30,32 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.visitor;
+package com.avail.utility.evaluation;
 
-import com.avail.descriptor.A_BasicObject;
-import com.avail.descriptor.AvailObject;
+import com.avail.annotations.Nullable;
 
 /**
- * Provide the ability to iterate over an object's fields, marking each child
- * object as unreachable.  Also recurse into the children, but avoid a specific
- * object during the recursion.
+ * Implementors of {@code Transformer3} provide a single arbitrary operation
+ * that accepts three arguments and produces a result.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ *
+ * @param <W> The type of the first argument to the operation.
+ * @param <X> The type of the second argument to the operation.
+ * @param <Y> The type of the third argument to the operation.
+ * @param <Z> The type of value produced by the operation.
  */
-public final class MarkUnreachableSubobjectVisitor
-extends AvailSubobjectVisitor
+public abstract class Transformer3 <W,X,Y,Z>
 {
 	/**
-	 * An object which we should <em>not</em> recurse into if encountered.
+	 * Perform the operation.
+	 * @param arg1 The first argument to the operation.
+	 * @param arg2 The second argument to the operation.
+	 * @param arg3 The third argument to the operation.
+	 * @return The result of performing the operation.
 	 */
-	private final A_BasicObject exclusion;
-
-	/**
-	 * Construct a new {@link MarkUnreachableSubobjectVisitor}.
-	 *
-	 * @param excludedObject
-	 *        The object within which to <em>avoid</em> marking subobjects as
-	 *        unreachable. Use NilDescriptor.nullObject() if no such object
-	 *        is necessary, as it's always already immutable.
-	 */
-	public MarkUnreachableSubobjectVisitor (
-		final A_BasicObject excludedObject)
-	{
-		exclusion = excludedObject;
-	}
-
-	@Override
-	public void invoke (
-		final A_BasicObject parentObject,
-		final AvailObject childObject)
-	{
-		if (!childObject.descriptor().isMutable())
-		{
-			return;
-		}
-		if (childObject.sameAddressAs(exclusion))
-		{
-			// The excluded object was reached.
-			return;
-		}
-		// Recursively invoke the iterator on the subobjects of subobject...
-		childObject.scanSubobjects(this);
-		// Indicate the object is no longer valid and should not ever be used
-		// again.
-		childObject.destroy();
-	}
+	public abstract @Nullable Z value (
+		@Nullable W arg1,
+		@Nullable X arg2,
+		@Nullable Y arg3);
 }

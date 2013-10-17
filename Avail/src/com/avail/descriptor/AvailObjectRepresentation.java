@@ -35,7 +35,7 @@ package com.avail.descriptor;
 import java.util.Arrays;
 import java.util.Set;
 import com.avail.annotations.Nullable;
-import com.avail.visitor.MarkUnreachableSubobjectVisitor;
+import com.avail.utility.visitor.MarkUnreachableSubobjectVisitor;
 
 /**
  * {@code AvailObjectRepresentation} is the representation used for all Avail

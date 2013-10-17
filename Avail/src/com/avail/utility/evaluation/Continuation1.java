@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.utility;
+package com.avail.utility.evaluation;
 
 import com.avail.annotations.Nullable;
 

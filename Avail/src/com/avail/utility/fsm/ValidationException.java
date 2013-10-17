@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.fsm;
+package com.avail.utility.fsm;
 
 /**
  * Exception thrown by the {@linkplain StateMachineFactory factory}'s

@@ -37,6 +37,7 @@ import java.util.List;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 import com.avail.utility.*;
+import com.avail.utility.evaluation.*;
 
 /**
  * <strong>Primitive 516</strong>: Convert the specified {@linkplain
