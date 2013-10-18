@@ -38,6 +38,7 @@ import com.avail.AvailRuntime;
 import com.avail.annotations.*;
 import com.avail.builder.*;
 import com.avail.compiler.*;
+import com.avail.compiler.AbstractAvailCompiler.*;
 import com.avail.descriptor.*;
 import com.avail.utility.*;
 
@@ -148,7 +149,7 @@ public class AbstractAvailTest
 			assert theRuntime != null;
 			final AvailBuilder builder = new AvailBuilder(
 				theRuntime,
-				new Continuation4<ModuleName, Long, Long, Long>()
+				new CompilerProgressReporter()
 				{
 					@Override
 					public void value (
