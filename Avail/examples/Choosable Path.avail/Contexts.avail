@@ -1,5 +1,5 @@
-/**
- * MarkUnreachableSubobjectVisitor.java
+/*
+ * Contexts.avail
  * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -30,58 +30,69 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.visitor;
+System Module "Contexts"
+Versions
+	"dev"
+Uses
+	"Abstract Types",
+	"Avail"
+Names
+	/* Context. */
+	"context",
+	"current scene",
+	"_'s⁇current scene",
+	"_'s⁇current scene:=_",
 
-import com.avail.descriptor.A_BasicObject;
-import com.avail.descriptor.AvailObject;
+	/* The implied context. */
+	"Use_as the implied context for_",
+	"the implied context"
+Body
 
 /**
- * Provide the ability to iterate over an object's fields, marking each child
- * object as unreachable.  Also recurse into the children, but avoid a specific
- * object during the recursion.
+ * The current scene field atom of a {@type "context"}.
  *
- * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @global "current scene" "atom"
  */
-public final class MarkUnreachableSubobjectVisitor
-extends AvailSubobjectVisitor
-{
-	/**
-	 * An object which we should <em>not</em> recurse into if encountered.
-	 */
-	private final A_BasicObject exclusion;
+Public "current scene" is a new field atom;
 
-	/**
-	 * Construct a new {@link MarkUnreachableSubobjectVisitor}.
-	 *
-	 * @param excludedObject
-	 *        The object within which to <em>avoid</em> marking subobjects as
-	 *        unreachable. Use NilDescriptor.nullObject() if no such object
-	 *        is necessary, as it's always already immutable.
-	 */
-	public MarkUnreachableSubobjectVisitor (
-		final A_BasicObject excludedObject)
-	{
-		exclusion = excludedObject;
-	}
+/**
+ * A context represents the visible state of a game. Many choosable path games
+ * do not require any visible state beyond the current {@type "scene"}.
+ *
+ * @type "context"
+ */
+Public class "context" extends abstract context
+	with mutable field
+		public current scene : abstract scene;
 
-	@Override
-	public void invoke (
-		final A_BasicObject parentObject,
-		final AvailObject childObject)
-	{
-		if (!childObject.descriptor().isMutable())
-		{
-			return;
-		}
-		if (childObject.sameAddressAs(exclusion))
-		{
-			// The excluded object was reached.
-			return;
-		}
-		// Recursively invoke the iterator on the subobjects of subobject...
-		childObject.scanSubobjects(this);
-		// Indicate the object is no longer valid and should not ever be used
-		// again.
-		childObject.destroy();
-	}
-}
+/**
+ * This is the fiber-local key to which the current {@type "context"} is bound.
+ *
+ * @global "contextKey"
+ */
+contextKey ::= new heritable atom named "choosable-path context key";
+
+/**
+ * Use the specified {@type "context"} as the implied context within the dynamic
+ * scope of the specified {@type "function" action}.
+ *
+ * @method "Use_as the implied context"
+ * @param "aContext" "context"
+ * @param "action" "[]→⊤"
+ */
+Public method "Use_as the implied context for_" is
+[
+	aContext : context,
+	action : []→⊤
+|
+	current fiber[contextKey] := aContext;
+	Guard action ensure [Remove current fiber[contextKey];];
+] : ⊤;
+
+/**
+ * Answer the implied {@type "context"}.
+ *
+ * @method "the implied context"
+ * @returns "context"
+ */
+Public method "the implied context" is [current fiber[contextKey]];

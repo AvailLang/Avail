@@ -65,6 +65,8 @@ Names
 	"merge sort_with_",
 	"quicksort_",
 	"quicksort_with_",
+	"replace all occurrences of_in_with_",
+	"replace the first occurrence of_in_with_",
 	"right fold_through_",
 	"split_after_",
 	"split_before_",
@@ -637,7 +639,7 @@ Semantic restriction "map and filter_by_" is
 	];
 	<
 		<>,
-		cast accumulator[2] into [ t : function meta | t[1] ]…
+		cast accumulator[3] into [ t : function meta | t[1] ]…
 		| [0..⎡tupleType⎤ + 1)
 	>
 ];
@@ -1600,7 +1602,7 @@ Semantic restriction "_∈_" is
 	valueType : any meta,
 	tupleType : tuple meta
 |
-	if valueType ∩ (∪ tupleType[1..relevant |tupleType|]) = ⊥ then
+	if valueType ∩ (∪ tupleType[1..∞]) = ⊥ then
 	[
 		false's type
 	]
@@ -3770,7 +3772,7 @@ Method "all indices of_in_" is
  * a string).  This implementation is called when both the target tuple and the
  * subtuple are empty 
  *
- * @method "first index of_in_"
+ * @method "all indices of_in_"
  * @categories "Tuples"
  * @param "aTuple" "<any…|1..>" 
  *        The tuple to search for the subtuple.
@@ -3852,7 +3854,7 @@ Method "all indices of_in_" is
 		occurrences : <natural number…|> := <>;
 		w : whole number := 0;
 		While [
-			index + |subtuple| < |aTuple| 
+			index + |subtuple| ≤ |aTuple| 
 		]
 		do
 		[
@@ -3868,3 +3870,198 @@ Method "all indices of_in_" is
 		occurrences
 	]
 ] : <natural number…|>;
+
+/**
+ * Locate of the first instance of a nonempty subtuple occuring in a nonempty 
+ * tuple and replace it with the new replacement tuple (replace a substring 
+ * with a new substring).
+ *
+ * @method "replace the first occurrence of_in_with_"
+ * @categories "Tuples"
+ * @param "subtuple" "<any…|1..>"
+ *        The subtuple to locate in aTuple
+ * @param "aTuple" "tuple" 
+ *        The tuple to search for the subtuple
+ * @param "replacementTuple" "tuple"
+ *        The tuple to swap out all subtuples with
+ * @returns "tuple"
+ *        the new tuple with the first occurrence of the subtuple replaced with
+ *        the replacement tuple
+ * @author "Richard Arriaga"
+ */
+Public stable abstract method "replace the first occurrence of_in_with_" is 
+	[<any…|1..>,tuple,tuple]→tuple;
+
+Method "replace the first occurrence of_in_with_" is
+[
+	subtuple : <any…|1..>,
+	aTuple : <any…|0>,
+	replacementTuple : tuple
+ |
+ 	<>
+] : <>'s type;
+
+Method "replace the first occurrence of_in_with_" is
+[
+	subtuple : <any…|1..>,
+	aTuple : <any…|1..>,
+	replacementTuple : tuple
+ |
+
+ 	if |subtuple| > |aTuple| then [aTuple]
+	else if [subtuple = aTuple] then [replacementTuple]
+	else
+	[
+		subtupleStart : whole number := first index of subtuple in aTuple;
+		if subtupleStart = 0 then [aTuple]
+		else
+		[
+		 	index : natural number := cast subtupleStart - 1 into 
+		 		[n : natural number | n];
+		 	nextIndex : natural number := subtupleStart + |subtuple|; 
+		 	aTuple[..index] ++ replacementTuple ++ aTuple[nextIndex..]
+		]
+	]
+] : tuple;
+	
+Semantic restriction "replace the first occurrence of_in_with_" is
+[
+	subtuple : <any…|1..>'s type,
+	aTuple : tuple's type,
+	replacementTuple : tuple's type
+ |
+ 	defaultType ::= ∪ aTuple[1..∞] ∪ ∪replacementTuple[1..∞];
+	if ⎡aTuple⎤ = 0 then [<>'s type]
+	else if [⎡aTuple⎤ < ⎣subtuple⎦] then [aTuple]
+	else if [⎡replacementTuple⎤ < ⎣subtuple⎦] then
+	[
+	 	lower ::=  cast ⎡aTuple⎤ + ⎡replacementTuple⎤ - ⎣subtuple⎦
+	 		into [w : [0..∞) | w];
+	 	upper ::= ⎡aTuple⎤;
+	 	<defaultType…|lower..upper>
+	]
+	else if [⎡subtuple⎤ < ⎣replacementTuple⎦] then
+	[
+	 	lower ::=  cast ⎡aTuple⎤ into [w : [0..∞) | w];
+	 	upper ::= cast ⎡aTuple⎤ + ⎣replacementTuple⎦ - ⎡subtuple⎤
+	 		into [w : [0..∞) | w];
+	 	<defaultType…|lower..upper>
+	]
+	else if [⎡subtuple⎤ = ⎣replacementTuple⎦ ∧ 
+		[⎡replacementTuple⎤ = ⎣subtuple⎦]] then
+	[
+	 	lower ::=  cast ⎡aTuple⎤ into [w : [0..∞) | w];
+	 	upper ::= cast ⎡aTuple⎤ + ⎣replacementTuple⎦ - ⎡subtuple⎤
+	 		into [w : [0..∞) | w];
+	 	<defaultType…|lower..upper>
+	]
+	else
+	[
+	 	lower ::= min <⎣aTuple⎦,⎣replacementTuple⎦>;
+	 	upper ::= if ⎡replacementTuple⎤ ≤ ⎡subtuple⎤ then [⎡aTuple⎤]
+	 		else [∞];
+	 	<defaultType…|lower..upper>
+	]
+];
+
+/**
+ * Locate every instance of a nonempty subtuple occuring in a nonempty tuple 
+ * and replace it with the new replacement tuple (replace a substring with a 
+ * new substring). 
+ *
+ * @method "replace all occurrences of_in_with_"
+ * @categories "Tuples"
+ * @param "subtuple" "<any…|1..>"
+ *        The subtuple to locate in aTuple
+ * @param "aTuple" "tuple" 
+ *        The tuple to search for the subtuple
+ * @param "replacementTuple" "tuple"
+ *        The tuple to swap out all subtuples with
+ * @returns "tuple"
+ *        the new tuple with the all occurrences of the subtuple replaced with
+ *        the replacement tuple.
+ * @author "Richard Arriaga"
+ */
+Public stable abstract method "replace all occurrences of_in_with_" is 
+	[<any…|1..>,tuple,tuple]→tuple;
+
+Method "replace all occurrences of_in_with_" is
+[
+	subtuple : <any…|1..>,
+	aTuple : <any…|0>,
+	replacementTuple : tuple
+ |
+ 	<>
+] : <>'s type;
+
+Method "replace all occurrences of_in_with_" is
+[
+	subtuple : <any…|1..>,
+	aTuple : <any…|1..>,
+	replacementTuple : tuple
+ |
+	if |subtuple| > |aTuple| then [aTuple]
+	else if [subtuple = aTuple] then [replacementTuple]
+	else if [|subtuple| = 1] then
+	[
+		newTuple : tuple := <>;
+		index : natural number := 1;
+		While [index ≤ |aTuple|] do
+		[
+			If <aTuple[index]> = subtuple then
+			[
+			 	newTuple := newTuple ++ replacementTuple;
+			] else
+			[
+				newTuple := newTuple ++ <aTuple[index]>;
+			];
+			↑index++;
+		];
+		newTuple
+	]
+	else
+	[
+		index : natural number := 1;
+		newTuple : tuple := <>;
+		w : whole number := 0;
+		While [
+			index + |subtuple| ≤ |aTuple| 
+		]
+		do
+		[
+			w := first index of subtuple in aTuple[index..];
+			If w > 0 then 
+			[
+			 	lastPreSubtupleIndex : natural number := cast w - 2 + index into 
+			 		[n : natural number | n];
+			 	newTuple := newTuple ++ aTuple[index..lastPreSubtupleIndex] ++
+			 		replacementTuple;	
+				index := index + w + |subtuple|-1;
+			]
+			else 
+			[
+			 	newTuple := newTuple ++ aTuple[index..];
+			 	index := index + |aTuple|-1;
+			];
+		];
+		newTuple
+	]
+] : tuple;
+	
+Semantic restriction "replace all occurrences of_in_with_" is
+[
+	subtuple : <any…|1..>'s type,
+	aTuple : tuple's type,
+	replacementTuple : tuple's type
+ |
+ 	defaultType ::= ∪ aTuple[1..∞] ∪ ∪replacementTuple[1..∞];
+	if ⎡aTuple⎤ = 0 then [<>'s type]
+	else if [⎡aTuple⎤ < ⎣subtuple⎦] then [aTuple]
+	else
+	[
+	 	lower ::= min <⎣aTuple⎦,⎣replacementTuple⎦>;
+	 	upper ::= if ⎡replacementTuple⎤ ≤ ⎡subtuple⎤ then [⎡aTuple⎤]
+	 		else [∞];
+	 	<defaultType…|lower..upper>
+	]
+];

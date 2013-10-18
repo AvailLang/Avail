@@ -40,6 +40,7 @@ import com.avail.descriptor.*;
 import com.avail.descriptor.FiberDescriptor.*;
 import com.avail.interpreter.*;
 import com.avail.utility.*;
+import com.avail.utility.evaluation.*;
 
 /**
  * <strong>Primitive 610</strong>: Attempt to acquire the {@linkplain

@@ -45,7 +45,7 @@ import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelOne.*;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.serialization.SerializerOperation;
-import com.avail.utility.Continuation0;
+import com.avail.utility.evaluation.*;
 
 /**
  * A {@linkplain CompiledCodeDescriptor compiled code} object is created

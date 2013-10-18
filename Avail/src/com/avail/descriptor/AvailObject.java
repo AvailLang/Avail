@@ -57,8 +57,8 @@ import com.avail.exceptions.ArithmeticException;
 import com.avail.interpreter.*;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.serialization.*;
-import com.avail.utility.*;
-import com.avail.visitor.*;
+import com.avail.utility.evaluation.*;
+import com.avail.utility.visitor.*;
 
 /**
  * {@code AvailObject} is the fully realized, and mostly machine generated,
@@ -2524,15 +2524,6 @@ implements
 	public boolean isSetType ()
 	{
 		return descriptor.o_IsSetType(this);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	@Override
-	public boolean isSplice ()
-	{
-		return descriptor.o_IsSplice(this);
 	}
 
 	/**

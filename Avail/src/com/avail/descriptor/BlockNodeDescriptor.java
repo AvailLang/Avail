@@ -43,7 +43,7 @@ import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.Primitive.Flag;
-import com.avail.utility.*;
+import com.avail.utility.evaluation.*;
 
 /**
  * My instances represent occurrences of blocks (functions) encountered in code.

@@ -33,7 +33,7 @@
 package com.avail.descriptor;
 
 import com.avail.interpreter.levelTwo.L2Chunk;
-import com.avail.utility.Continuation0;
+import com.avail.utility.evaluation.*;
 
 /**
  * {@code A_RawFunction} is an interface that specifies the operations specific

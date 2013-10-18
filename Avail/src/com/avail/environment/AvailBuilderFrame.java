@@ -58,7 +58,7 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.persistence.*;
-import com.avail.utility.*;
+import com.avail.utility.evaluation.*;
 
 /**
  * {@code AvailBuilderFrame} is a simple user interface for the {@linkplain

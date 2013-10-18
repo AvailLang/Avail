@@ -39,7 +39,7 @@ import com.avail.annotations.Nullable;
 import com.avail.builder.ResolvedModuleName;
 import com.avail.descriptor.*;
 import com.avail.interpreter.Interpreter;
-import com.avail.utility.Continuation1;
+import com.avail.utility.evaluation.*;
 
 /**
  * I parse a source file to create a {@linkplain ModuleDescriptor module}.

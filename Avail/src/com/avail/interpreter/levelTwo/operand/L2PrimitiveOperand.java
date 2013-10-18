@@ -35,8 +35,7 @@ package com.avail.interpreter.levelTwo.operand;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.*;
 import com.avail.interpreter.levelTwo.register.L2Register;
-import com.avail.utility.*;
-
+import com.avail.utility.evaluation.*;
 
 /**
  * An {@code L2PrimitiveOperand} is an operand of type {@link

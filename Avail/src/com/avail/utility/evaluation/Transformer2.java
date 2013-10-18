@@ -1,5 +1,5 @@
 /**
- * Transformer1.java
+ * Transformer2.java
  * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -30,26 +30,29 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.utility;
+package com.avail.utility.evaluation;
 
 import com.avail.annotations.Nullable;
 
 /**
- * Implementors of {@code Transformer1} provide a single arbitrary operation
- * that accepts one argument and produces a result.
+ * Implementors of {@code Transformer2} provide a single arbitrary operation
+ * that accepts two arguments and produces a result.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  *
- * @param <X> The type of the sole argument to the operation.
- * @param <Y> The type of value produced by the operation.
+ * @param <X> The type of the first argument to the operation.
+ * @param <Y> The type of the second argument to the operation.
+ * @param <Z> The type of value produced by the operation.
  */
-public abstract class Transformer1 <X,Y>
+public abstract class Transformer2 <X,Y,Z>
 {
 	/**
 	 * Perform the operation.
-	 *
-	 * @param arg The argument to the operation.
+	 * @param arg1 The first argument to the operation.
+	 * @param arg2 The second argument to the operation.
 	 * @return The result of performing the operation.
 	 */
-	public abstract @Nullable Y value (@Nullable X arg);
+	public abstract @Nullable Z value (
+		@Nullable X arg1,
+		@Nullable Y arg2);
 }

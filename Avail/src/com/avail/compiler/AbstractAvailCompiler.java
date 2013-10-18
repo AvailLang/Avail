@@ -59,6 +59,7 @@ import com.avail.interpreter.*;
 import com.avail.interpreter.primitive.P_352_RejectParsing;
 import com.avail.serialization.*;
 import com.avail.utility.*;
+import com.avail.utility.evaluation.*;
 
 /**
  * The abstract compiler for Avail code.  Subclasses may wish to implement, oh,

@@ -45,7 +45,7 @@ import com.avail.*;
 import com.avail.annotations.*;
 import com.avail.interpreter.*;
 import com.avail.interpreter.levelTwo.L2Chunk;
-import com.avail.utility.*;
+import com.avail.utility.evaluation.*;
 
 /**
  * An Avail {@linkplain FiberDescriptor fiber} represents an independently

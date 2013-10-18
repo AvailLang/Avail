@@ -38,7 +38,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import com.avail.annotations.InnerAccess;
-import com.avail.utility.Graph;
 
 /**
  * A {@code Graph} is an unordered collection of vertices, along with the

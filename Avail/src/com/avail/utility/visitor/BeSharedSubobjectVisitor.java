@@ -1,6 +1,6 @@
 /**
- * BeImmutableSubobjectVisitor.java
- * Copyright © 1993-2011, Mark van Gulik and Todd L Smith.
+ * BeSharedSubobjectVisitor.java
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,28 +30,28 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.visitor;
+package com.avail.utility.visitor;
 
 import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.AvailObject;
 
 /**
  * Provide the ability to iterate over an object's fields, marking each child
- * object as immutable. Note that marking a child immutable may involve
- * creating another visitor of this class and visiting the child's children
- * in this mutually recursive way.
+ * object as shared. Note that marking a child shared may involve creating
+ * another visitor of this class and visiting the child's children in this
+ * mutually recursive way.
  *
- * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class BeImmutableSubobjectVisitor
+public class BeSharedSubobjectVisitor
 extends AvailSubobjectVisitor
 {
 	/** The sole instance of this visitor. */
-	public final static BeImmutableSubobjectVisitor instance =
-		new BeImmutableSubobjectVisitor();
+	public final static BeSharedSubobjectVisitor instance =
+		new BeSharedSubobjectVisitor();
 
-	/** Construct a new {@link BeImmutableSubobjectVisitor}. */
-	private BeImmutableSubobjectVisitor ()
+	/** Construct a new {@link BeSharedSubobjectVisitor}. */
+	private BeSharedSubobjectVisitor ()
 	{
 		// Do nothing
 	}
@@ -61,6 +61,6 @@ extends AvailSubobjectVisitor
 		final A_BasicObject parentObject,
 		final AvailObject childObject)
 	{
-		childObject.makeImmutable();
+		childObject.makeShared();
 	}
 }

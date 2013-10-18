@@ -37,7 +37,6 @@ import static com.avail.descriptor.AvailObject.*;
 import static com.avail.descriptor.Mutability.*;
 import com.avail.annotations.*;
 import com.avail.utility.*;
-
 /**
  * A {@linkplain TupleDescriptor tuple} implementation that consists entirely of
  * two-byte characters.

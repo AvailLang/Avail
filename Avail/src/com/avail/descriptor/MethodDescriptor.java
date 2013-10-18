@@ -45,10 +45,8 @@ import com.avail.interpreter.*;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.primitive.*;
 import com.avail.serialization.SerializerOperation;
-import com.avail.utility.Continuation0;
-import com.avail.utility.Continuation1;
-import com.avail.utility.MutableOrNull;
-import com.avail.utility.Transformer2;
+import com.avail.utility.evaluation.*;
+import com.avail.utility.*;
 
 /**
  * A method maintains all definitions that have the same name.  At

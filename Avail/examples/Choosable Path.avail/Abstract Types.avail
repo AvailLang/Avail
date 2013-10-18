@@ -1,5 +1,5 @@
-/**
- * Transformer3.java
+/*
+ * Abstract Types.avail
  * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -30,32 +30,28 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.utility;
-
-import com.avail.annotations.Nullable;
+System Module "Abstract Types"
+Versions
+	"dev"
+Uses
+	"Avail"
+Names
+	"abstract context",
+	"abstract scene"
+Body
 
 /**
- * Implementors of {@code Transformer3} provide a single arbitrary operation
- * that accepts three arguments and produces a result.
- *
- * @author Mark van Gulik &lt;mark@availlang.org&gt;
- *
- * @param <W> The type of the first argument to the operation.
- * @param <X> The type of the second argument to the operation.
- * @param <Y> The type of the third argument to the operation.
- * @param <Z> The type of value produced by the operation.
+ * An abstract context represents the complete dynamic state of a choosable-path
+ * story. Many stories do not require dynamic state beyond a knowledge of the
+ * current {@type "scene"}.
+ * 
+ * @type "abstract context"
  */
-public abstract class Transformer3 <W,X,Y,Z>
-{
-	/**
-	 * Perform the operation.
-	 * @param arg1 The first argument to the operation.
-	 * @param arg2 The second argument to the operation.
-	 * @param arg3 The third argument to the operation.
-	 * @return The result of performing the operation.
-	 */
-	public abstract @Nullable Z value (
-		@Nullable W arg1,
-		@Nullable X arg2,
-		@Nullable Y arg3);
-}
+Explicit class "abstract context" extends object;
+
+/**
+ * An abstract scene represents a scenario within the story.
+ *
+ * @type "abstract scene"
+ */
+Explicit class "abstract scene" extends object;

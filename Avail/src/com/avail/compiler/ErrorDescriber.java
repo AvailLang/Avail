@@ -32,7 +32,7 @@
 
 package com.avail.compiler;
 
-import com.avail.utility.Continuation1;
+import com.avail.utility.evaluation.*;
 
 /**
  * A {@code Describer} produces a message and forwards it to a supplied

@@ -1,5 +1,5 @@
 /**
- * Continuation4.java
+ * Continuation0.java
  * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -30,33 +30,18 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.utility;
-
-import com.avail.annotations.Nullable;
+package com.avail.utility.evaluation;
 
 /**
- * Implementors of {@code Continuation4} provide a single arbitrary operation
- * that accepts three arguments.
+ * Implementors of {@code Continuation0} provide a single arbitrary operation
+ * that accepts zero arguments.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
- * @param <W> The type of the first argument.
- * @param <X> The type of the second argument.
- * @param <Y> The type of the third argument.
- * @param <Z> The type of the fourth argument.
  */
-public interface Continuation4<W, X, Y, Z>
+public interface Continuation0
 {
 	/**
 	 * Perform the operation.
-	 *
-	 * @param arg1 The first argument.
-	 * @param arg2 The second argument.
-	 * @param arg3 The third argument.
-	 * @param arg4 The fourth argument.
 	 */
-	public void value (
-		@Nullable W arg1,
-		@Nullable X arg2,
-		@Nullable Y arg3,
-		@Nullable Z arg4);
+	public void value ();
 }

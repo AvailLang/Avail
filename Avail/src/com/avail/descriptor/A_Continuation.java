@@ -140,7 +140,7 @@ extends A_BasicObject
 	boolean skipReturnFlag ();
 
 	/**
-	 * @param current
+	 * @param newCaller
 	 * @return
 	 */
 	A_Continuation replacingCaller (A_Continuation newCaller);

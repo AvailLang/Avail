@@ -41,7 +41,7 @@ import com.avail.annotations.Nullable;
 import com.avail.descriptor.*;
 import com.avail.exceptions.MapException;
 import com.avail.interpreter.*;
-import com.avail.utility.Continuation1;
+import com.avail.utility.evaluation.*;
 
 /**
  * <strong>Primitive 203</strong>: Get the {@linkplain

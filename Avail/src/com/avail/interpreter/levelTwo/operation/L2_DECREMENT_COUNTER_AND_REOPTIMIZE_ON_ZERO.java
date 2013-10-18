@@ -40,6 +40,7 @@ import com.avail.interpreter.levelTwo.*;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.L2Translator.OptimizationLevel;
 import com.avail.utility.*;
+import com.avail.utility.evaluation.*;
 
 /**
  * Explicitly decrement the current compiled code's countdown via {@link

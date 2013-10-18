@@ -60,7 +60,7 @@ import com.avail.descriptor.FiberDescriptor.TraceFlag;
 import com.avail.descriptor.VariableDescriptor.VariableAccessReactor;
 import com.avail.exceptions.*;
 import com.avail.interpreter.levelTwo.L2Chunk;
-import com.avail.utility.Continuation0;
+import com.avail.utility.evaluation.*;
 
 /**
  * An {@code AvailRuntime} comprises the {@linkplain ModuleDescriptor

@@ -38,7 +38,7 @@ import com.avail.descriptor.*;
 import com.avail.interpreter.levelTwo.*;
 import com.avail.interpreter.levelTwo.operand.L2Operand;
 import com.avail.interpreter.levelTwo.register.*;
-import com.avail.utility.Transformer2;
+import com.avail.utility.evaluation.*;
 
 /**
  * This class maintains register information during naive translation from level

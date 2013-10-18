@@ -39,7 +39,7 @@ import com.avail.compiler.AvailAssertionFailedException;
 import com.avail.descriptor.*;
 import com.avail.descriptor.FiberDescriptor.ExecutionState;
 import com.avail.interpreter.*;
-import com.avail.utility.Continuation1;
+import com.avail.utility.evaluation.*;
 
 /**
  * <strong>Primitive 260:</strong> Assert the specified {@linkplain

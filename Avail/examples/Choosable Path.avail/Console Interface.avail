@@ -1,0 +1,191 @@
+/*
+ * Console Interface.avail
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+System Module "Console Interface"
+Versions
+	"dev"
+Uses
+	"Avail",
+	"Commands"
+Names
+	"standard console interface"
+Body
+
+/**
+ * Prettify the specified {@type "string"} by:
+ *
+ * - Converting each tab into a single space.
+ * - Converting each stand-alone line feeds into a single space.
+ * - Converting each sequence of whitespace characters into:
+ *    - a single whitespace if the sequence contains fewer than two line feeds.
+ *    - two line feeds if the sequence contains two or more line feeds.
+ *
+ * @method "prettify_"
+ * @param "aString" "string"
+ * @return "string"
+ */
+Private method "prettify_" is
+[
+	aString : string
+|
+	/* First eliminate tabs; replace them with spaces. */
+	pretty : string := replace all occurrences of "\t" in aString with " ";
+	/* Determine where all line feeds and spaces occur. */
+	criteria ::= " \n"→set;
+	indices ::= all indices of pretty where [c : character | c ∈ criteria];
+	/* Find all of the singleton line feeds and runs bigger than two.
+	 * Those in the first group should be converted to single spaces;
+	 * those in the second group should be converted to double line
+	 * feeds.
+	 */
+	convert : <natural number…|> := <>;
+	shrink : <<natural number, whole number…|2>…|> := <>;
+	base : natural number := 1;
+	While [base ≤ |indices|] do
+	[
+		/* Compute the run length of continguous line feeds at the
+		 * current index.
+		 */
+		run : whole number := 0;
+		While
+		[
+			forward ::= base + run;
+			forward ≤ |indices| ∧ [indices[forward] - indices[base] = run]
+		]
+		do [↑run++;];
+		If run = 1 then
+		[
+			If pretty[indices[base]] = ¢"\n" then
+			[
+				convert := convert ++ <indices[base]>;
+			];
+		]
+		else
+		[
+			Assert: run > 1;
+			shrink := shrink ++ <<indices[base], indices[base] + run - 1>>;
+		];
+
+		base := base + run;
+	];
+	/* Convert singleton line feeds to spaces. */
+	For each of convert do
+	[
+		where : natural number
+	|
+		pretty := pretty[where]→¢" ";
+	];
+	/* Compress each run bigger than two into a run of two. */
+	From |shrink| to 1 by -1 do
+	[
+		where : natural number
+	|
+		range ::= shrink[where];
+		lineFeedCount ::= count of pretty[range[1]..range[2]]
+			where [c : character | c = ¢"\n"];
+		replacement ::= if lineFeedCount < 2 then [" "] else ["\n\n"];
+		pretty := pretty[range[1]..range[2]]→replacement;
+	];
+	pretty
+] : string;
+
+/**
+ * Answer a standard console interface for a choosable path story.
+ *
+ * @method "standard console interface"
+ * @returns "[string, string, <string…|>]→command"
+ */
+Public method "standard console interface" is
+[
+	[
+		title : string,
+		description : string,
+		transitionDescriptions : <string…|>
+	|
+		$body : command;
+		Unless title is empty then
+		[
+			Print: title ++ "\n" ++ |title| of ¢= ++ "\n\n";
+		];
+		If description is empty then
+		[
+			Print: "«no description»\n\n";
+		]
+		else
+		[
+			/* We finally have the fully formatted string -- print it! */
+			Print: prettify description;
+			Print: "\n\n";
+		];
+		If transitionDescriptions is empty then
+		[
+			Print: "Enter \"restart\" to begin anew, or \"quit\" to quit.\n";
+		]
+		else
+		[
+			For each of transitionDescriptions do
+			[
+				transitionDescription : string,
+				index : natural number
+			|
+				Print:
+					format "“①”) ‘②’\n\n"
+					with index, prettify transitionDescription;
+			];
+		];
+		Repeat
+		[
+			line ::= next line from console;
+			If line = "quit" then [Exit body with a quit command];
+			If line = "restart" then [Exit body with a restart command];
+			Guard
+			[
+				transitionOrdinal ::= line→integer;
+				If 1 ≤ transitionOrdinal ≤ |transitionDescriptions| then
+				[
+					Cast transitionOrdinal into
+					[
+						validOrdinal : natural number
+					|
+						Exit body with a transition to validOrdinal command
+					] : ⊤;
+				];
+			]
+			intercept
+			[
+				e : invalid-argument exception
+			|
+				/* Ignore malformed input. */
+			];
+		]
+	] : command
+] : [string, string, <string…|>]→command;

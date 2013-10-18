@@ -38,7 +38,7 @@ import com.avail.annotations.*;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.descriptor.TokenDescriptor.TokenType;
-import com.avail.utility.*;
+import com.avail.utility.evaluation.*;
 
 /**
  * My instances are occurrences of literals parsed from Avail source code.  At

@@ -58,8 +58,8 @@ import com.avail.exceptions.SignatureException;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.serialization.SerializerOperation;
-import com.avail.utility.*;
-import com.avail.visitor.AvailSubobjectVisitor;
+import com.avail.utility.evaluation.*;
+import com.avail.utility.visitor.AvailSubobjectVisitor;
 
 /**
  * An {@link AvailObject} with an {@link IndirectionDescriptor} keeps track of
@@ -2392,12 +2392,6 @@ extends AbstractDescriptor
 	boolean o_IsSetType (final AvailObject object)
 	{
 		return o_Traversed(object).isSetType();
-	}
-
-	@Override
-	boolean o_IsSplice (final AvailObject object)
-	{
-		return o_Traversed(object).isSplice();
 	}
 
 	/**

@@ -62,8 +62,8 @@ import com.avail.exceptions.SignatureException;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.serialization.SerializerOperation;
-import com.avail.utility.*;
-import com.avail.visitor.AvailSubobjectVisitor;
+import com.avail.utility.evaluation.*;
+import com.avail.utility.visitor.AvailSubobjectVisitor;
 
 /**
  * {@link AbstractDescriptor} is the base descriptor type.  An {@link
@@ -3077,12 +3077,6 @@ public abstract class AbstractDescriptor
 	 * @return
 	 */
 	abstract boolean o_IsPositive (AvailObject object);
-
-	/**
-	 * @param object
-	 * @return
-	 */
-	abstract boolean o_IsSplice (AvailObject object);
 
 	/**
 	 * @param object

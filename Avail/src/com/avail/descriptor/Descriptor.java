@@ -53,8 +53,8 @@ import com.avail.exceptions.*;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.serialization.SerializerOperation;
-import com.avail.utility.*;
-import com.avail.visitor.*;
+import com.avail.utility.evaluation.*;
+import com.avail.utility.visitor.*;
 
 /**
  * This is the primary subclass of {@linkplain AbstractDescriptor}. It has the
@@ -1653,12 +1653,6 @@ extends AbstractDescriptor
 
 	@Override
 	boolean o_IsPositive (final AvailObject object)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	boolean o_IsSplice (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}

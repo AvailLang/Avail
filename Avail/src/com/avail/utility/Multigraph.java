@@ -33,7 +33,6 @@
 package com.avail.utility;
 
 import java.util.*;
-import com.avail.utility.Multigraph;
 import com.avail.utility.Multigraph.Edge;
 
 /**

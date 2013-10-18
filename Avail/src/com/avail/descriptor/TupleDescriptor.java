@@ -747,12 +747,6 @@ extends Descriptor
 	@Override @AvailMethod
 	abstract int o_TupleSize (final AvailObject object);
 
-	@Override @AvailMethod
-	boolean o_IsSplice (final AvailObject object)
-	{
-		return false;
-	}
-
 	@Override @AvailMethod @ThreadSafe
 	SerializerOperation o_SerializerOperation (
 		final AvailObject object)

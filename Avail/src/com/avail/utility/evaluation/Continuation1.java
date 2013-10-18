@@ -1,5 +1,5 @@
 /**
- * Continuation2.java
+ * Continuation1.java
  * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -30,26 +30,24 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.utility;
+package com.avail.utility.evaluation;
 
 import com.avail.annotations.Nullable;
-import com.avail.utility.Continuation2;
+
 
 /**
- * Implementors of {@code Continuation2} provide a single arbitrary operation
- * that accepts two arguments.
+ * Implementors of {@code Continuation1} provide a single arbitrary operation
+ * that accepts one argument.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
- * @param <X> The type of the first argument.
- * @param <Y> The type of the second argument.
+ * @param <X> The type of the argument.
  */
-public interface Continuation2<X, Y>
+public interface Continuation1<X>
 {
 	/**
 	 * Perform the operation.
 	 *
-	 * @param arg1 The first argument.
-	 * @param arg2 The second argument.
+	 * @param arg The first argument.
 	 */
-	public void value (@Nullable X arg1, @Nullable Y arg2);
+	public void value (@Nullable X arg);
 }

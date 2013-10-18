@@ -1,5 +1,5 @@
 /**
- * Transformer0.java
+ * package-info.java
  * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -30,24 +30,4 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.utility;
-
-import com.avail.annotations.Nullable;
-
-/**
- * Implementors of {@code Transformer0} provide a single arbitrary operation
- * that accepts zero arguments and produces a result.
- *
- * @author Mark van Gulik &lt;mark@availlang.org&gt;
- *
- * @param <X> The type of value produced by the operation.
- */
-public abstract class Transformer0 <X>
-{
-	/**
-	 * Perform the operation.
-	 *
-	 * @return The result of performing the operation.
-	 */
-	public abstract @Nullable X value ();
-}
+@com.avail.annotations.NotNullByDefault package com.avail.utility.fsm;

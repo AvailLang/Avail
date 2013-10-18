@@ -1,5 +1,5 @@
-/**
- * Continuation1.java
+/*
+ * Commands.avail
  * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -30,24 +30,70 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.utility;
+System Module "Commands"
+Versions
+	"dev"
+Uses
+	"Avail"
+Names
+	/* Commands. */
+	"command",
+	"quit command",
+	"restart command",
+	"transition command",
 
-import com.avail.annotations.Nullable;
-
+	/* Transition commands. */
+	"a transition to_command",
+	"_'s⁇chosen transition"
+Body
 
 /**
- * Implementors of {@code Continuation1} provide a single arbitrary operation
- * that accepts one argument.
+ * A command represents a request for the engine to take some action on the
+ * player's behalf.
  *
- * @author Mark van Gulik &lt;mark@availlang.org&gt;
- * @param <X> The type of the argument.
+ * @type "command"
  */
-public interface Continuation1<X>
-{
-	/**
-	 * Perform the operation.
-	 *
-	 * @param arg The first argument.
-	 */
-	public void value (@Nullable X arg);
-}
+Public explicit class "command" extends object;
+
+"chosen transition" is a new field atom;
+
+/**
+ * A transition command represents a request to execute the chosen {@type
+ * "scene transition"}.
+ *
+ * @type "transition command"
+ * @supertype "command"
+ */
+Public class "transition command" extends command
+	with fields
+		public chosen transition : natural number;
+
+/**
+ * Answer a command to select the specified {@type "scene transition"}.
+ *
+ * @method "a transition to_command"
+ * @param "transitionOrdinal" "natural number"
+ * @returns "transition command"
+ */
+Public method "a transition to_command" is
+[
+	transitionOrdinal : natural number
+|
+	a transition command with chosen transition ::= transitionOrdinal
+] : transition command;
+
+/**
+ * A restart command represents a request to restart the choosable path story.
+ *
+ * @type "restart command"
+ * @supertype "command"
+ */
+Public explicit class "restart command" extends command;
+
+/**
+ * A quit command represents a request to terminate the choosable path story.
+ *
+ * @type "quit command"
+ * @supertype "command"
+ */
+Public explicit class "quit command" extends command;

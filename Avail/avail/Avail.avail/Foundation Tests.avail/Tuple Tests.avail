@@ -73,6 +73,12 @@ Test "tuple ranges" in tuple test suite is
 	Require: a[2..3] = <2,3>;
 ];
 
+Test "tuple membership" in tuple test suite is
+[
+ 	Require: 2 ∈ <1,2,3>;
+ 	Require: ¬2 ∈ <1,3>;
+];
+
 Test "map through" in tuple test suite is
 [
  	a ::= <1,2,3,4>;
@@ -168,16 +174,52 @@ Test "alternative answer via else" in tuple test suite is
 Test "tuple search" in tuple test suite is
 [
 	a ::= <1,2,3,2,1,4,5,6>;
+	b ::= <1,2,3,4,6,2,3>;
+	t ::= "The way to the heart is through the chest cavity, not through the \
+			\|stomach, silly!";
 	Require: all indices of <> in <> = <>;
 	Require: all indices of <2> in <> = <>;
 	Require: all indices of <2> in a = <2,4>;
+	Require: all indices of <> in a = <>;
+	Require: all indices of <2,3> in b = <2,6>;
+	Require: all indices of "the" in t = <12,33,63>;
 	Require: first index of <> in <> = 0;
 	Require: first index of <2> in <> = 0;
 	Require: first index of <2> in a = 2;
+	Require: first index of <2,1,4> in a = 4;
 	Require: last index of a where [n : natural number | n < 5] = 6;
 	Require: last index of a where [n : natural number | n > 10] = 0;
 	Require: first index of a where [n : natural number | n < 5] = 1;
 	Require: first index of a where [n : natural number | n > 10] = 0;
+	Require: all indices of a where [n : natural number | n < 2] = <1,5>;
+	Require: all indices of a where [n : natural number | n > 20] = <>;
+];
+
+Test "subtuple replace" in tuple test suite is
+[
+	a ::= "purple feet on fire";
+	b ::= <1,2,3,4,6,2,3>;
+	c ::= "We know the truth; yes, know indeed";
+	Require: replace all occurrences of <2,3,4> in <> with <9> = <>;
+	Require: replace all occurrences of "\t" in "afb	c" with " " = "afb c"; 
+	Require: replace all occurrences of "feet" in a with "people" = 
+		"purple people on fire";
+	Require: replace all occurrences of "know" in c with "hide" = 
+		"We hide the truth; yes, hide indeed";
+	Require: replace all occurrences of "pickles" in c with "hide" = c;
+	Require: replace all occurrences of <2,3> in b with <9,8,7> = 
+		<1,9,8,7,4,6,9,8,7>;
+	Require: replace all occurrences of <2,3> in b with <> = <1,4,6>;
+	Require: replace all occurrences of <2,3> in <2> with <> = <2>;
+	Require: replace all occurrences of <2,3> in <2,3> with <9> = <9>;
+	Require: replace the first occurrence of <2,3,4> in <> with <9> = <>;
+	Require: replace the first occurrence of "know" in c with "fabricate" =
+		"We fabricate the truth; yes, know indeed";
+	Require: replace the first occurrence of <2,3> in b with <9,8,7> = 
+		<1,9,8,7,4,6,2,3>;
+	Require: replace the first occurrence of <2,3> in b with <> = <1,4,6,2,3>;
+	Require: replace the first occurrence of <2,3> in <2> with <> = <2>;
+	Require: replace the first occurrence of <2,3> in <2,3> with <9> = <9>;
 ];
 
 Test "drop from tuple" in tuple test suite is

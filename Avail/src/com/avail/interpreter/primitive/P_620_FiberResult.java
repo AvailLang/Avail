@@ -39,6 +39,7 @@ import java.util.List;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 import com.avail.utility.*;
+import com.avail.utility.evaluation.*;
 
 /**
  * <strong>Primitive 620</strong>: Answer the result of the specified

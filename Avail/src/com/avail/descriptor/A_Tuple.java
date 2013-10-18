@@ -363,12 +363,6 @@ extends A_BasicObject, Iterable<AvailObject>
 	A_Set asSet ();
 
 	/**
-	 * Answer whether this is a {@linkplain SpliceTupleDescriptor splice tuple}.
-	 * @return Whether this is a splice tuple.
-	 */
-	boolean isSplice ();
-
-	/**
 	 * Answer an {@linkplain Iterator iterator} suitable for traversing the
 	 * elements of the {@linkplain AvailObject receiver} with a Java
 	 * <em>foreach</em> construct.

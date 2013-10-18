@@ -36,7 +36,7 @@ import static com.avail.descriptor.TokenDescriptor.TokenType.LITERAL;
 import com.avail.annotations.Nullable;
 import com.avail.compiler.AbstractAvailCompiler.ParserState;
 import com.avail.descriptor.*;
-import com.avail.utility.Continuation1;
+import com.avail.utility.evaluation.*;
 
 /**
  * A {@code ParsingConversionRule} describes how to convert the argument at the

@@ -38,7 +38,6 @@ import static com.avail.descriptor.ByteStringDescriptor.IntegerSlots.*;
 import com.avail.annotations.*;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.*;
-
 /**
  * {@code ByteStringDescriptor} represents a string of Latin-1 characters.
  *

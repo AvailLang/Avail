@@ -1,0 +1,216 @@
+/*
+ * Engine.avail
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+System Module "Engine"
+Versions
+	"dev"
+Uses
+	"Avail",
+	"Commands",
+	"Contexts",
+	"Scenes"
+Names
+	/* Play a choosable path game. */
+	"Play a game,⁇creating a context with_,⁇interacting with_"
+Body
+
+"game context creator" is a new field atom;
+"game over flag" is a new field atom;
+"previous scene" is a new field atom;
+"viable transitions" is a new field atom;
+
+/**
+ * An engine context contains the implementation-specific state of a choosable
+ * path story. It comprises all the details that are necessary, but invisible,
+ * to a choosable path story.
+ *
+ * @type "engine context"
+ */
+Class "engine context" extends object
+	with mutable fields
+		game context creator : []→context,
+		game over flag : boolean,
+		referable previous scene : scene,
+		viable transitions : <natural number…|>;
+
+/**
+ * Does the specified {@type "engine context"} indicate that the game is over?
+ *
+ * @method "game is over for_"
+ * @param "aContext" "engine context"
+ * @returns "boolean"
+ *          {@method "true"} if the game is over, {@method "false"} otherwise.
+ */
+Private method "game is over for_" is
+[
+	aContext : engine context
+|
+	aContext's game over flag
+];
+
+/**
+ * A complete context comprises both game state and engine state.
+ *
+ * @type "complete context"
+ * @supertype "context"
+ * @supertype "engine context"
+ */
+Class "complete context" extends context ∩ engine context;
+
+/**
+ * Create an {@type "engine context"} that subsumes the game-specific {@type
+ * "context"} produced by the supplied {@type "game context"} {@type "function"
+ * generator}.
+ *
+ * @method "engine context for_"
+ * @param "gameContextCreator" "[]→context"
+ *        A function able to produce a new {@type "game context"}.
+ * @returns "context ∩ engine context"
+ *          A fully realized {@type "game context"} cum {@type
+ *          "engine context"}.
+ */
+Private method "engine context for_" is
+[
+	gameContextCreator : []→context
+|
+	creator : []→context := gameContextCreator;
+	gameOver : boolean := false;
+	previousScene : scene;
+	viableTransitions : <natural number…|> := <>;
+	creator() as engine context with
+		game context creator ::= ↑creator,
+		game over flag ::= ↑gameOver,
+		previous scene ::= ↑previousScene,
+		viable transitions ::= ↑viableTransitions
+] : complete context;
+
+/**
+ * Handle the specified {@type "command"}, performing side-effects on the
+ * supplied {@type "complete context"}. A variable containing the complete
+ * context is supplied in order to facilitate replacement of the entire context.
+ *
+ * @method "Handle_for_"
+ * @param "aCommand" "command"
+ * @param "contextVar" "↑complete context"
+ */
+Private abstract method "Handle_for_" is [command, ↑complete context]→⊤;
+
+Private method "Handle_for_" is
+[
+	aCommand : transition command,
+	contextVar : ↑complete context
+|
+	aContext ::= ↓contextVar;
+	allTransitions ::= aContext's current scene's transitions;
+	viableTransitions ::= aContext's viable transitions;
+	chosenTransition ::=
+		allTransitions[viableTransitions[aCommand's chosen transition]];
+	Perform entry action of chosenTransition for aContext;
+	chosenScene ::= next scene of chosenTransition for aContext;
+	aContext's current scene := chosenScene;
+	Perform entry action of chosenScene for aContext;
+];
+
+Private method "Handle_for_" is
+[
+	aCommand : restart command,
+	contextVar : ↑complete context
+|
+	↓contextVar ?= engine context for ↓contextVar's game context creator;
+];
+
+Private method "Handle_for_" is
+[
+	aCommand : quit command,
+	contextVar : ↑complete context
+|
+	aContext ::= ↓contextVar;
+	aContext's game over flag := true;
+];
+
+/**
+ * Play a choosable path game.
+ *
+ * @method "Play a game,⁇creating a context with_,⁇interacting with_"
+ * @param "gameContextCreator" "[]→context"
+ *        A function that answers a new {@type "game context"}.
+ * @param "interface" "[string, string, <string…|>]→command"
+ *        A function that accepts the scene title, the scene description, and
+ *        the tuple of scene transition descriptions, respectively, and answers
+ *        a {@type "command"}.
+ */
+Public method "Play a game,⁇creating a context with_,⁇interacting with_" is
+[
+	gameContextCreator : []→context,
+	interface : [string, string, <string…|>]→command
+|
+	/* Produce a fresh context for the choosable path story. */
+	aContext : complete context := engine context for gameContextCreator;
+	/* Play the story. */
+	title : string;
+	description : string;
+	transitionDescriptions : <string…|>;
+	Until [game is over for aContext] do
+	[
+		/* Processing certain commands may cause the implied context to
+		 * change.
+		 */
+		Use aContext as the implied context for
+		[
+			previousScene ::= ↑aContext's previous scene;
+			currentScene ::= aContext's current scene;
+			If previousScene is unassigned ∨ [currentScene≠↓previousScene] then
+			[
+				title := title of currentScene for aContext;
+				description := description of currentScene for aContext;
+				viableTransitions ::=
+					map and filter currentScene's transitions by
+					[
+						aTransition : scene transition,
+						index : natural number,
+						keep : [<natural number, string…|2>]→⊤
+					|
+						If aTransition is valid for aContext then
+						[
+							transitionDescription ::=
+								description of aTransition for aContext;
+							keep(<index, transitionDescription>);
+						];
+					];
+				aContext's viable transitions := stripe viableTransitions at 1;
+				transitionDescriptions := stripe viableTransitions at 2;
+			];
+			aCommand ::= interface(title, description, transitionDescriptions);
+			Handle aCommand for ↑aContext;
+		];
+	];
+] : ⊤;

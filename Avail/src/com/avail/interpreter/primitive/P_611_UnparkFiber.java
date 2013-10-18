@@ -41,7 +41,7 @@ import com.avail.AvailRuntime;
 import com.avail.descriptor.*;
 import com.avail.descriptor.FiberDescriptor.SynchronizationFlag;
 import com.avail.interpreter.*;
-import com.avail.utility.Continuation0;
+import com.avail.utility.evaluation.*;
 
 /**
  * <strong>Primitive 611</strong>: Unpark the specified {@linkplain

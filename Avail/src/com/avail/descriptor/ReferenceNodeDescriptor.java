@@ -40,7 +40,7 @@ import com.avail.annotations.*;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
-import com.avail.utility.*;
+import com.avail.utility.evaluation.*;
 
 /**
  * My instances represent a reference-taking expression.  A variable itself is

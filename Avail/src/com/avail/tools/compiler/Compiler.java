@@ -56,9 +56,8 @@ import com.avail.tools.compiler.configuration.EnvironmentConfigurator;
 import com.avail.tools.compiler.configuration.StatisticReport;
 import com.avail.tools.compiler.configuration.VerbosityLevel;
 import com.avail.tools.configuration.ConfigurationException;
-import com.avail.utility.Continuation3;
-import com.avail.utility.Continuation4;
-import com.avail.utility.NullOutputStream;
+import com.avail.utility.*;
+import com.avail.utility.evaluation.*;
 
 /**
  * The Avail command-line compiler understands the following options:

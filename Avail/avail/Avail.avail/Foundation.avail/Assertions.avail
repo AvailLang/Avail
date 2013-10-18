@@ -96,8 +96,7 @@ Semantic restriction "Assert:_" is
 [
 	contradiction : false's type's type
 |
-	Reject parse, expected: "use of \"Assert:_\" here will never pass as \
-		\| result of assertion boolean will always be statically false"
+	Reject parse, expected: "an assertion that could ever be true"
 ];
 
 /**
@@ -140,8 +139,7 @@ Semantic restriction "Assert:_(_)" is
 	contradiction : false's type's type,
 	message : string's type
 |
-	Reject parse, expected: "use of \"Assert:_\" here will never pass as \
-		\| result of assertion boolean will always statically be false"
+	Reject parse, expected: "an assertion that could ever be true"
 ];
 
 /**

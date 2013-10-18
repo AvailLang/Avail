@@ -35,8 +35,8 @@ package com.avail.tools.options;
 import static java.util.Arrays.asList;
 import java.io.IOException;
 import com.avail.annotations.*;
-import com.avail.utility.Continuation2;
-import com.avail.utility.MutableOrNull;
+import com.avail.utility.*;
+import com.avail.utility.evaluation.*;
 
 /**
  * A {@code GenericHelpOption} provides an application help message that

@@ -42,7 +42,7 @@ import com.avail.interpreter.levelOne.L1Operation;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.primitive.*;
 import com.avail.serialization.SerializerOperation;
-import com.avail.utility.Continuation1;
+import com.avail.utility.evaluation.*;
 
 /**
  * A {@linkplain ContinuationDescriptor continuation} acts as an immutable

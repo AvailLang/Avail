@@ -36,8 +36,7 @@ import java.util.List;
 import com.avail.annotations.Nullable;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
-import com.avail.utility.Continuation1;
-import com.avail.utility.Transformer1;
+import com.avail.utility.evaluation.*;
 
 /**
  * {@code A_Atom} is an interface that specifies the atom-specific operations

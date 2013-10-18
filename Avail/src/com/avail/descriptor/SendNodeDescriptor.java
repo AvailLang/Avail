@@ -41,7 +41,7 @@ import com.avail.compiler.*;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.exceptions.SignatureException;
-import com.avail.utility.*;
+import com.avail.utility.evaluation.*;
 
 /**
  * My instances represent invocations of multi-methods in Avail code.

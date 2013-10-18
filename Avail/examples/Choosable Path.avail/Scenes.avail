@@ -1,0 +1,500 @@
+/*
+ * Scenes.avail
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+System Module "Scenes"
+Versions
+	"dev"
+Extends
+	"Abstract Types" = ("abstract scene")
+Uses
+	"Avail",
+	"Contexts"
+Names
+	/* Scenes. */
+	"a scene titled by_,⁇before entry doing_,⁇described by_,⁇with transitions_",
+	"scene",
+	"scene for_",
+	"title of_for_",
+	"_'s⁇context type",
+	"_'s⁇transitions",
+
+	/* Scene transitions. */
+	"Perform entry action of_for_",
+	"a scene transition to_,⁇contingent on_,⁇before entry doing_,⁇described by_",
+	"description of_for_",
+	"next scene of_for_",
+	"scene transition",
+	"scene transition for_",
+	"_is valid for_",
+	"_'s⁇next scene"
+Body
+
+"predicate" is a new field atom;
+"entry action" is a new field atom;
+"describer" is a new field atom;
+"next scene" is a new field atom;
+
+/**
+ * A scene transition comprises a predicate and a {@type "variable"} that refers
+ * to the next {@type "scene"}. The scene transition is only considered valid if
+ * the predicate answers {@method "true"}.
+ *
+ * @type "scene transition"
+ */
+Public class "scene transition" extends object
+	with field
+		predicate : [⊥]→boolean,
+		entry action : [⊥]→⊤,
+		describer : [⊥]→string,
+		next scene : [⊥]→abstract scene;
+
+/**
+ * Answer the {@type "context"} type of the specified {@type "scene transition"}
+ * type.
+ *
+ * @method "_'s⁇context type"
+ * @param "transitionType" "scene transition's type"
+ * @returns "context's type"
+ */
+Public method "_'s⁇context type" is
+[
+	transitionType : scene transition's type
+|
+	transitionType's predicate[1]
+];
+
+Semantic restriction "_'s⁇context type" is
+[
+	transitionMeta : scene transition's type's type
+|
+	predicateType ::= transitionMeta's instance's predicate;
+	(if predicateType[1] = ⊥ then [context] else [predicateType[1]])'s type
+];
+
+/**
+ * Is the specified {@type "scene transition"} valid for the given {@type
+ * "context"}?
+ *
+ * @method "_is valid for_"
+ * @param "aTransition" "scene transition"
+ * @param "aContext" "context"
+ * @returns "boolean"
+ *          {@method "true"} if the transition is valid, {@method "false"}
+ *          otherwise.
+ */
+Public method "_is valid for_" is
+[
+	aTransition : scene transition,
+	aContext : context
+|
+	aTransition's predicate(aContext)
+] : boolean;
+
+/**
+ * Perform the entry action for the {@type "scene transition"} with the given
+ * {@type "context"}.
+ *
+ * @method "Perform entry action of_for_"
+ * @param "aTransition" "scene transition"
+ * @param "aContext" "context"
+ */
+Public method "Perform entry action of_for_" is
+[
+	aTransition : scene transition,
+	aContext : context
+|
+	aTransition's entry action(aContext);
+] : ⊤;
+
+/**
+ * Answer a description of the specified {@type "scene transition"}.
+ *
+ * @method "description of_for_"
+ * @param "aTransition" "scene transition"
+ * @param "aContext" "context"
+ * @returns "string"
+ */
+Public method "description of_for_" is
+[
+	aTransition : scene transition,
+	aContext : context
+|
+	aTransition's describer(aContext)
+] : string;
+
+"title" is a new field atom;
+"transitions" is a new field atom;
+
+/**
+ * A scene represents a "location" within the story.
+ *
+ * @type "scene"
+ * @supertype "abstract scene"
+ */
+Public class "scene" extends abstract scene
+	with fields
+		entry action : [⊥]→⊤,
+		title : [⊥]→string,
+		describer : [⊥]→string,
+		transitions : <scene transition…|>;
+
+Semantic restriction "the implied context" is [context];
+
+/**
+ * Answer the {@type "context"} type of the specified {@type "scene"} type.
+ *
+ * @method "_'s⁇context type"
+ * @param "sceneType" "scene's type"
+ * @returns "context's type"
+ */
+Public method "_'s⁇context type" is
+[
+	sceneType : scene's type
+|
+	sceneType's title[1]
+];
+
+Semantic restriction "_'s⁇context type" is
+[
+	sceneMeta : scene's type's type
+|
+	titleType ::= sceneMeta's instance's title;
+	(if titleType[1] = ⊥ then [context] else [titleType[1]])'s type
+];
+
+/**
+ * Perform the entry action for the {@type "scene"}.
+ *
+ * @method "Perform entry action of_for_"
+ * @param "aScene" "scene"
+ * @param "aContext" "context"
+ */
+Public method "Perform entry action of_for_" is
+[
+	aScene : scene,
+	aContext : context
+|
+	aScene's entry action(aContext);
+] : ⊤;
+
+/**
+ * Answer a description of the specified {@type "scene"}.
+ *
+ * @method "description of_for_"
+ * @param "aScene" "scene"
+ * @param "aContext" "context"
+ * @returns "string"
+ */
+Public method "description of_for_" is
+[
+	aScene : scene,
+	aContext : context
+|
+	aScene's describer(aContext)
+] : string;
+
+/**
+ * Answer the title of the specified {@type "scene"}.
+ *
+ * @method "title of_for_"
+ * @param "aScene" "scene"
+ * @param "aContext" "context"
+ * @returns "string"
+ */
+Public method "title of_for_" is
+[
+	aScene : scene,
+	aContext : context
+|
+	aScene's title(aContext)
+] : string;
+
+/**
+ * Construct and answer a {@type "scene transition"} type that is parameterized
+ * by the specified {@type "context"} type.
+ *
+ * @method "scene transition for_"
+ * @param "contextType" "context's type"
+ * @returns "scene transition's type"
+ */
+Public method "scene transition for_" is
+[
+	contextType : context's type
+|
+	extend scene transition with
+		predicate : [contextType]→boolean,
+		entry action : [contextType]→⊤,
+		describer : [contextType]→string,
+		next scene : [contextType]→scene
+] : scene transition's type;
+
+/**
+ * Answer the next scene of the specified {@type "scene transition"}.
+ *
+ * @method "next scene of_for_"
+ * @param "aTransition" "scene transition"
+ * @param "aContext" "context"
+ * @returns "scene"
+ */
+Public method "next scene of_for_" is
+[
+	aTransition : scene transition,
+	aContext : context
+|
+	aTransition's next scene(aContext)
+] : abstract scene;
+
+/**
+ * Construct and answer a {@type "scene"} type that is parameterized by the
+ * specified {@type "context"} type.
+ *
+ * @method "scene for_"
+ * @param "contextType" "context's type"
+ * @returns "scene 's type"
+ */
+Public method "scene for_" is
+[
+	contextType : context's type
+|
+	extend scene with transitions : <scene transition for contextType…|>
+] : scene's type;
+
+Semantic restriction "next scene of_for_" is
+[
+	transitionType : scene transition's type,
+	contextType : context's type
+|
+	scene
+];
+
+/**
+ * The current scene will always be an instance of {@type "scene"} (not just
+ * "abstract scene"}).
+ *
+ * @method "_'s⁇current scene"
+ * @restricts "context's type"
+ */
+Semantic restriction "_'s⁇current scene" is
+[
+	contextType : context's type
+|
+	scene
+];
+
+/**
+ * The current scene will always be an instance of {@type "scene"} (not just
+ * "abstract scene"}).
+ *
+ * @method "_'s⁇current scene"
+ * @restricts "context's type"
+ */
+Semantic restriction "_'s⁇current scene:=_" is
+[
+	contextType : context's type,
+	sceneType : abstract scene's type
+|
+	Unless sceneType ⊆ scene then
+	[
+		Reject parse, expected:
+			"replacement value type to be a subtype of scene"
+	];
+	⊤
+];
+
+/**
+ * Construct and answer a {@type "scene transition"}.
+ *
+ * @method "a scene transition to_,⁇contingent on_,⁇described by_"
+ * @param "sceneFunction" "[⊥]→scene"
+ *        The function which produces the target scene.
+ * @param "predicateFunction" "[⊥]→boolean"
+ *        The function on which the scene transition is contingent.
+ * @param "entryFunction" "[⊥]→⊤"
+ *        The function to execute just before activating the scene transition.
+ * @param "describerFunction" "[⊥]→boolean"
+ *        The function responsible for producing a description of the scene
+ *        transition.
+ * @returns "scene transition"
+ */
+Public method
+	"a scene transition to_,⁇contingent on_,⁇before entry doing_,⁇described by_"
+is
+[
+	sceneFunction : [⊥]→scene,
+	predicateFunction : [⊥]→boolean,
+	entryFunction : [⊥]→⊤,
+	describerFunction : [⊥]→string
+|
+	a scene transition with
+		predicate ::= predicateFunction,
+		entry action ::= entryFunction,
+		describer ::= describerFunction,
+		next scene ::= sceneFunction
+] : scene transition;
+
+Semantic restriction
+	"a scene transition to_,⁇contingent on_,⁇before entry doing_,⁇described by_"
+is
+[
+	sceneType : [⊥]→scene's type,
+	predicateType : [⊥]→boolean's type,
+	entryType : [⊥]→⊤'s type,
+	describerType : [⊥]→string's type
+|
+	Unless sceneType[1] ⊆ context then
+	[
+		Reject parse, expected:
+			format
+				"scene selector's argument type to be a subtype of “①” \
+				\|(not “②”)"
+			with context, sceneType[1]
+	];
+	Unless predicateType[1] ⊆ context then
+	[
+		Reject parse, expected:
+			format
+				"predicate's argument type to be a subtype of “①” \
+				\|(not “②”)"
+			with context, predicateType[1]
+	];
+	Unless entryType[1] ⊆ context then
+	[
+		Reject parse, expected:
+			format
+				"entry action's argument type to be a subtype of “①” \
+				\|(not “②”)"
+			with context, entryType[1]
+	];
+	Unless describerType[1] ⊆ context then
+	[
+		Reject parse, expected:
+			format
+				"describer's argument type to be a subtype of “①” \
+				\|(not “②”)"
+			with context, describerType[1]
+	];
+	Unless sceneType[1] = predicateType[1]
+		∧ [sceneType[1] = entryType[1]]
+		∧ [sceneType[1] = describerType[1]]
+	then
+	[
+		Reject parse, expected:
+			format
+				"scene selector's argument type, predicate's argument type, \
+				\|entry action's argument type, and describer's argument type \
+				\|to agree (types were “①”, “②”, “③”, and “④” respectively)"
+			with sceneType[1], predicateType[1], entryType[1], describerType[1]
+	];
+	contextType ::= cast sceneType[1] into [c : context's type | c];
+	scene transition for contextType
+];
+
+/**
+ * Construct and answer a {@type "scene"}.
+ *
+ * @method "a scene titled by_,⁇described by_,⁇with transitions_"
+ * @param "titleFunction" "[⊥]→string"
+ *        The function that produces the title of the requested scene.
+ * @param "entryFunction" "[⊥]→⊤"
+ *        The function to execute just before activating the scene.
+ * @param "describerFunction" "[⊥]→string"
+ *        The function that produces a description of the requested scene.
+ * @param "nextScenes" "<scene transition…|>"
+ *        The complete {@type "tuple"} of scene transitions.
+ * @returns The requested scene.
+ */
+Public method
+	"a scene titled by_,⁇before entry doing_,⁇described by_,⁇with transitions_"
+is
+[
+	titleFunction : [⊥]→string,
+	entryFunction : [⊥]→⊤,
+	describerFunction : [⊥]→string,
+	nextScenes : <scene transition…|>
+|
+	a scene with
+		entry action ::= entryFunction,
+		title ::= titleFunction,
+		describer ::= describerFunction,
+		transitions ::= nextScenes
+] : scene;
+
+Semantic restriction
+	"a scene titled by_,⁇before entry doing_,⁇described by_,⁇with transitions_"
+is
+[
+	titleType : [⊥]→string's type,
+	entryType : [⊥]→⊤'s type,
+	describerType : [⊥]→string's type,
+	nextScenes : <scene transition…|>'s type
+|
+	Unless titleType[1] ⊆ context then
+	[
+		Reject parse, expected:
+			format
+				"title's argument type to be a subtype of “①” (not “②”)"
+			with context, titleType[1]
+	];
+	Unless entryType[1] ⊆ context then
+	[
+		Reject parse, expected:
+			format
+				"entry action's argument type to be a subtype of “①” \
+				\|(not “②”)"
+			with context, entryType[1]
+	];
+	Unless describerType[1] ⊆ context then
+	[
+		Reject parse, expected:
+			format
+				"describer's argument type to be a subtype of “①” (not “②”)"
+			with context, describerType[1]
+	];
+	Unless titleType[1] = describerType[1]
+		∧ [titleType[1] = entryType[1]
+		∧ [nextScenes[1]'s context type ⊆ titleType[1]]]
+	then
+	[
+		Reject parse, expected:
+			format
+				"title's argument type, entry action's argument type, \
+				\|describer's argument type, and scene transition context type \
+				\|to agree (types were “①”, “②”, “③”, and “④”, respectively)"
+			with
+				titleType[1],
+				entryType[1],
+				describerType[1],
+				nextScenes[1]'s context type
+	];
+	contextType ::= cast titleType[1] into [c : context's type | c];
+	scene for contextType
+];

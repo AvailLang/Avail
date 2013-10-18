@@ -1,6 +1,6 @@
-/**
- * package-info.java
- * Copyright (c) 1993-2012, Mark van Gulik and Todd L Smith.
+/*
+ * Choosable Path.avail
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,4 +30,11 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-@com.avail.annotations.NotNullByDefault package com.avail.visitor;
+System Module "Choosable Path"
+Versions
+	"dev"
+Extends
+	"Console Interface",
+	"Definitions",
+	"Engine"
+Body
