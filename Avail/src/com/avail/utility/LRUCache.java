@@ -719,7 +719,6 @@ public class LRUCache<K, V>
 	 *         execution of the user-supplied {@linkplain Transformer1
 	 *         transformer}.
 	 */
-	@SuppressWarnings("null")   // compensate for null code analysis bug
 	public @Nullable V get (final K key) throws RuntimeException
 	{
 		assert key != null;

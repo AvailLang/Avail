@@ -42,8 +42,7 @@ import com.avail.AvailRuntime;
 import com.avail.annotations.InnerAccess;
 import com.avail.annotations.Nullable;
 import com.avail.builder.*;
-import com.avail.compiler.AbstractAvailCompiler;
-import com.avail.compiler.AbstractAvailCompiler.CompilerProgressReporter;
+import com.avail.compiler.AbstractAvailCompiler.*;
 import com.avail.compiler.AvailCompilerException;
 import com.avail.descriptor.ModuleDescriptor;
 import com.avail.interpreter.Interpreter;
@@ -166,10 +165,10 @@ public class Compiler
 	 * @return A local tracker to store information about the progress of the
 	 *         compilation of the current module.
 	 */
-	private static AbstractAvailCompiler.CompilerProgressReporter localTracker (
+	private static CompilerProgressReporter localTracker (
 		final CompilerConfiguration configuration)
 	{
-		return new AbstractAvailCompiler.CompilerProgressReporter()
+		return new CompilerProgressReporter()
 		{
 			@Override
 			public void value (

@@ -53,6 +53,7 @@ import com.avail.AvailRuntime;
 import com.avail.annotations.*;
 import com.avail.builder.*;
 import com.avail.compiler.*;
+import com.avail.compiler.AbstractAvailCompiler.*;
 import com.avail.descriptor.*;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
@@ -1291,7 +1292,7 @@ extends JFrame
 		this.resolver = resolver;
 		availBuilder = new AvailBuilder(
 			new AvailRuntime(resolver),
-			new Continuation4<ModuleName, Long, Long, Long>()
+			new CompilerProgressReporter()
 			{
 				@Override
 				public void value (
@@ -1680,7 +1681,7 @@ extends JFrame
 			moduleTreeScrollArea,
 			entryPointsScrollArea);
 		leftPane.setContinuousLayout(true);
-		leftPane.setResizeWeight(0.75);
+		leftPane.setResizeWeight(1.0);  // Hide the entry points for now.
 
 		final JPanel rightPane = new JPanel();
 		final GroupLayout rightPaneLayout = new GroupLayout(rightPane);

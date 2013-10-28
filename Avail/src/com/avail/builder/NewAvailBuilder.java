@@ -40,12 +40,12 @@ import com.avail.AvailRuntime;
 import com.avail.annotations.InnerAccess;
 import com.avail.annotations.Nullable;
 import com.avail.compiler.AbstractAvailCompiler;
+import com.avail.compiler.AbstractAvailCompiler.*;
 import com.avail.descriptor.A_Module;
 import com.avail.descriptor.A_Set;
 import com.avail.descriptor.ModuleDescriptor;
 import com.avail.persistence.IndexedRepositoryManager;
-import com.avail.utility.Continuation3;
-import com.avail.utility.Continuation4;
+import com.avail.utility.evaluation.*;
 import com.avail.utility.Graph;
 
 /**
@@ -85,8 +85,8 @@ public final class NewAvailBuilder
 	final ReentrantLock stateLock = new ReentrantLock();
 
 	/**
-	 * A {@linkplain Continuation4 continuation} that is updated to show
-	 * progress while compiling or loading a module.  It accepts:
+	 * A {@linkplain CompilerProgressReporter continuation} that is updated to
+	 * show progress while compiling or loading a module.  It accepts:
 	 * <ol>
 	 * <li>the name of the module currently undergoing {@linkplain
 	 * AbstractAvailCompiler compilation} as part of the recursive build
@@ -95,7 +95,7 @@ public final class NewAvailBuilder
 	 * <li>the position of the ongoing parse (in bytes), and</li>
 	 * <li>the size of the module in bytes.</li>
 	 */
-	@InnerAccess final Continuation4<ModuleName, Long, Long, Long> localTracker;
+	@InnerAccess final CompilerProgressReporter localTracker;
 
 	/**
 	 * A {@linkplain Continuation3} that is updated to show global progress
@@ -116,7 +116,7 @@ public final class NewAvailBuilder
 	 *        The {@link AvailRuntime} in which to load modules and execute
 	 *        commands.
 	 * @param localTracker
-	 *        A {@linkplain AbstractAvailCompiler.CompilerProgressReporter continuation} that accepts
+	 *        A {@linkplain CompilerProgressReporter continuation} that accepts
 	 *        <ol>
 	 *        <li>the name of the module currently undergoing {@linkplain
 	 *        AbstractAvailCompiler compilation} as part of the recursive build
@@ -136,7 +136,7 @@ public final class NewAvailBuilder
 	 */
 	public NewAvailBuilder (
 		final AvailRuntime runtime,
-		final AbstractAvailCompiler.CompilerProgressReporter localTracker,
+		final CompilerProgressReporter localTracker,
 		final Continuation3<ModuleName, Long, Long> globalTracker)
 	{
 		this.runtime = runtime;

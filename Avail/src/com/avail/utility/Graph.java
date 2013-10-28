@@ -230,6 +230,17 @@ public class Graph <Vertex>
 	}
 
 	/**
+	 * Determine if the given vertex is in the graph.
+	 *
+	 * @param vertex The vertex to test for membership in the graph.
+	 * @return Whether the vertex is in the graph.
+	 */
+	public boolean includesVertex (final Vertex vertex)
+	{
+		return outEdges.containsKey(vertex);
+	}
+
+	/**
 	 * Add an edge to the graph from the source vertex to the target vertex.
 	 * Fail if either vertex is not present in the graph or if it already
 	 * contains an edge from the source vertex to the target vertex.
@@ -316,17 +327,6 @@ public class Graph <Vertex>
 		ensure (targetInSet != null, "target vertex is not in graph");
 		sourceOutSet.remove(targetVertex);
 		targetInSet.remove(sourceVertex);
-	}
-
-	/**
-	 * Determine if the given vertex is in the graph.
-	 *
-	 * @param vertex The vertex to test for membership in the graph.
-	 * @return Whether the vertex is in the graph.
-	 */
-	public boolean includesVertex (final Vertex vertex)
-	{
-		return outEdges.containsKey(vertex);
 	}
 
 	/**
