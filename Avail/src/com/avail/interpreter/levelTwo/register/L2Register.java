@@ -32,6 +32,7 @@
 
 package com.avail.interpreter.levelTwo.register;
 
+import com.avail.annotations.Nullable;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.*;
 import com.avail.optimizer.L2Translator;
@@ -112,8 +113,9 @@ public class L2Register implements Comparable<L2Register>
 	}
 
 	@Override
-	public int compareTo (final L2Register otherRegister)
+	public int compareTo (final @Nullable L2Register otherRegister)
 	{
+		assert otherRegister != null;
 		return Long.compare(uniqueValue, otherRegister.uniqueValue);
 	}
 }

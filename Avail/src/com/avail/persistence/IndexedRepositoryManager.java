@@ -1,7 +1,7 @@
 /**
- * IndexedRepositoryManager.java
- * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
+ * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
+ * IndexedRepositoryManager.java
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -49,6 +49,11 @@ import com.avail.descriptor.ModuleDescriptor;
  */
 public class IndexedRepositoryManager
 {
+	/**
+	 * Whether to log repository accesses to System.out.
+	 */
+	private static boolean debugRepository = false;
+
 	/**
 	 * The {@linkplain ReentrantLock lock} responsible for guarding against
 	 * unsafe concurrent access.
@@ -188,6 +193,11 @@ public class IndexedRepositoryManager
 		lock.lock();
 		try
 		{
+			if (debugRepository)
+			{
+				System.out.format("Clear %s%n", rootName);
+				System.out.flush();
+			}
 			moduleMap.clear();
 			final IndexedRepository repo = repository();
 			repo.close();
@@ -435,6 +445,11 @@ public class IndexedRepositoryManager
 		lock.lock();
 		try
 		{
+			if (debugRepository)
+			{
+				System.out.format("Put %s (%s)%n", rootName, name);
+				System.out.flush();
+			}
 			final IndexedRepository repo = repository();
 			final ModuleSummary summary = new ModuleSummary(
 				name.isPackage(),
@@ -462,6 +477,11 @@ public class IndexedRepositoryManager
 		lock.lock();
 		try
 		{
+			if (debugRepository)
+			{
+				System.out.format("Commit %s%n", rootName);
+				System.out.flush();
+			}
 			final ByteArrayOutputStream byteStream =
 				new ByteArrayOutputStream(131072);
 			DataOutputStream binaryStream = null;
@@ -490,6 +510,7 @@ public class IndexedRepositoryManager
 					binaryStream.close();
 				}
 			}
+			reopenIfNecessary();
 			final IndexedRepository repo = repository();
 			repo.metaData(byteStream.toByteArray());
 			repo.commit();
@@ -516,6 +537,11 @@ public class IndexedRepositoryManager
 		lock.lock();
 		try
 		{
+			if (debugRepository)
+			{
+				System.out.format("Close %s%n", rootName);
+				System.out.flush();
+			}
 			isOpen = false;
 			final IndexedRepository repo = repository;
 			if (repo != null)
@@ -604,6 +630,14 @@ public class IndexedRepositoryManager
 		lock.lock();
 		try
 		{
+			if (debugRepository)
+			{
+				System.out.format(
+					"Reopen if necessary %s (was open = %s)%n",
+					rootName,
+					isOpen);
+				System.out.flush();
+			}
 			if (!isOpen)
 			{
 				openOrCreate();

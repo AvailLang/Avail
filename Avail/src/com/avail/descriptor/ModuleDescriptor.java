@@ -598,6 +598,34 @@ extends Descriptor
 		}
 	}
 
+	@Override
+	void o_AddPrivateNames (
+		final AvailObject object,
+		final A_Set trueNames)
+	{
+		// Add the set of trueName atoms to the current private scope.
+		synchronized (object)
+		{
+			A_Map privateNames = object.slot(PRIVATE_NAMES);
+			for (final A_Atom trueName : trueNames)
+			{
+				final A_String string = trueName.atomName();
+				A_Set set = privateNames.hasKey(string)
+					? privateNames.mapAt(string)
+					: SetDescriptor.empty();
+				set = set.setWithElementCanDestroy(trueName, true);
+				privateNames = privateNames.mapAtPuttingCanDestroy(
+					string,
+					set,
+					true);
+			}
+			object.setSlot(PRIVATE_NAMES, privateNames.makeShared());
+			A_Set visibleNames = object.slot(VISIBLE_NAMES);
+			visibleNames = visibleNames.setUnionCanDestroy(trueNames, true);
+			object.setSlot(VISIBLE_NAMES, visibleNames.makeShared());
+		}
+	}
+
 	@Override @AvailMethod
 	void o_AddEntryPoint (
 		final AvailObject object,

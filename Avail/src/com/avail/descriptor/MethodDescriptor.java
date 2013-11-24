@@ -340,8 +340,9 @@ extends Descriptor
 			visit.value = new Continuation1<LookupTree>()
 			{
 				@Override
-				public void value (final LookupTree node)
+				public void value (final @Nullable LookupTree node)
 				{
+					assert node != null;
 					final List<A_Definition> solution =
 						node.solutionOrNull();
 					if (solution != null)
@@ -616,17 +617,9 @@ extends Descriptor
 		 * We do this, but we also break ties by eliminating as much indecision
 		 * as possible in the <em>best</em> case.</p>
 		 *
-		 * <p>This can be improved by only testing the type of one argument
-		 * position at any node of the decision tree, avoiding the redundant
-		 * type tests for arguments that are already known to comply.  Since
-		 * there's always at least one definition signature (i.e., function
-		 * type's arguments tuple type) which will eliminate indecision about a
-		 * definition in the worst case, at most N (=#args) tests of single
-		 * arguments will be able to accomplish the same.  In fact, the negative
-		 * case will always eliminate a signature (the signature of the
-		 * definition being tested).  The positive case, however, may have to
-		 * test all N arguments before certainty about a definition is
-		 * assured.</p>
+		 * <p>We eliminate some of the redundancy of a naïve decision tree by
+		 * testing a single argument at a time, keeping track of the types we
+		 * have tested that argument against.</p>
 		 *
 		 * </p>Since the negative case is already efficient at eliminating
 		 * uncertainty, we only need to track positive information about the

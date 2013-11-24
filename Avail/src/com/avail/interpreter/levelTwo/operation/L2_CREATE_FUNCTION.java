@@ -117,4 +117,32 @@ public class L2_CREATE_FUNCTION extends L2Operation
 			registerSet.removeConstantAt(newFunctionReg);
 		}
 	}
+
+	@Override
+	public boolean extractFunctionOuterRegister (
+		final L2Instruction instruction,
+		final L2ObjectRegister functionRegister,
+		final int outerIndex,
+		final A_Type outerType,
+		final RegisterSet registerSet,
+		final L2ObjectRegister targetRegister,
+		final List<L2Instruction> newInstructions)
+	{
+//TODO[MvG] - Get back to this primitive cancellation stuff
+//		final L2RegisterVector outersVector =
+//			instruction.readVectorRegisterAt(1);
+//		final L2ObjectRegister outerRegister =
+//			outersVector.registers().get(outerIndex - 1);
+//
+//		*** don't we have to determine if the register supplied for this outer
+//		*** to the function creation operation still holds the same value?
+		return super.extractFunctionOuterRegister(
+			instruction,
+			functionRegister,
+			outerIndex,
+			outerType,
+			registerSet,
+			targetRegister,
+			newInstructions);
+	}
 }

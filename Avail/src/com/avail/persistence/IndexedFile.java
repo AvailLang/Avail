@@ -1751,7 +1751,6 @@ extends AbstractList<byte[]>
 	 * @throws IOException
 	 *         If an {@linkplain IOException I/O exception} occurs.
 	 */
-	@SuppressWarnings("unchecked")
 	public static <F extends IndexedFile> F openFile (
 			final Class<F> subclass,
 			final File fileReference,
@@ -1762,7 +1761,8 @@ extends AbstractList<byte[]>
 			Level.INFO,
 			"open: {0}",
 			fileReference);
-		final IndexedFile indexedFile = subclass.newInstance();
+		final F strongIndexedFile = subclass.newInstance();
+		final IndexedFile indexedFile = strongIndexedFile;
 		indexedFile.fileReference = fileReference;
 		indexedFile.file = new RandomAccessFile(
 			fileReference, "r" + (forWriting ? "w" : ""));
@@ -1775,6 +1775,6 @@ extends AbstractList<byte[]>
 			indexedFile.longTermLock = indexedFile.acquireLockForWriting(true);
 		}
 		indexedFile.refresh();
-		return (F) indexedFile;
+		return strongIndexedFile;
 	}
 }

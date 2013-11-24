@@ -241,11 +241,6 @@ extends A_BasicObject
 	void setInterruptRequestFlag (InterruptRequestFlag flag);
 
 	/**
-	 * Dispatch to the descriptor.
-	 */
-	void step ();
-
-	/**
 	 * @return
 	 */
 	@Nullable TimerTask wakeupTask ();
@@ -307,4 +302,12 @@ extends A_BasicObject
 	 * @return The set of outstanding actions, prior to clearing it.
 	 */
 	A_Set getAndClearReificationWaiters ();
+
+	/**
+	 * Record, for debugging, the fact that the specified primitive is being
+	 * attempted.
+	 *
+	 * @param primitiveNumber The primitive being attempted.
+	 */
+	void recordLatestPrimitive (short primitiveNumber);
 }

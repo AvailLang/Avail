@@ -785,19 +785,6 @@ public final class Interpreter
 	}
 
 	/**
-	 * Set the {@linkplain Primitive primitive} {@linkplain
-	 * FunctionDescriptor function} that is currently being attempted. This
-	 * facility is required by primitives that suspend and then fail later.
-	 *
-	 * @param function
-	 *        The primitive function.
-	 */
-	public void primitiveFunctionBeingAttempted (final A_Function function)
-	{
-		primitiveFunctionBeingAttempted = function;
-	}
-
-	/**
 	 * Terminate the {@linkplain #fiber() current} {@linkplain FiberDescriptor
 	 * fiber}, using the specified {@linkplain AvailObject object} as its final
 	 * result.
@@ -938,6 +925,7 @@ public final class Interpreter
 				"attempt {0}",
 				primitive.name());
 		}
+		fiber().recordLatestPrimitive((short)primitiveNumber);
 		latestResult = null;
 		primitiveFunctionBeingAttempted = function;
 		assert current() == this;

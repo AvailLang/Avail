@@ -32,12 +32,17 @@
 
 package com.avail.interpreter.levelTwo;
 
+import static com.avail.interpreter.levelTwo.L2OperandType.*;
+import static com.avail.interpreter.levelTwo.register.FixedRegister.FUNCTION;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import com.avail.annotations.Nullable;
+import com.avail.descriptor.A_Type;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.operand.*;
+import com.avail.interpreter.levelTwo.operation.L2_MOVE_OUTER_VARIABLE;
+import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.*;
 import com.avail.performance.Statistic;
 
@@ -399,5 +404,53 @@ public abstract class L2Operation
 				operation.statisticInNanoseconds.clear();
 			}
 		}
+	}
+
+	/**
+	 * Emit code to extract the specified outer variable from the function
+	 * produced by this instruction.  The new code is appended to the provided
+	 * list of instructions, which may be at a code generation position
+	 * unrelated to the receiver.  The extracted outer variable will be written
+	 * to the provided target register.
+	 *
+	 * @param instruction
+	 *            The instruction that produced the function.  Its {@linkplain
+	 *            L2Instruction#operation operation} is the receiver.
+	 * @param functionRegister
+	 *            The register holding the function after this instruction runs.
+	 * @param outerIndex
+	 *            The one-based outer index to extract from the function.
+	 * @param outerType
+	 *            The static type of the outer variable.
+	 * @param registerSet
+	 *            The {@link RegisterSet} at the current code generation point.
+	 * @param targetRegister
+	 *            The {@link L2ObjectRegister} into which the new code should
+	 *            cause the outer to be written.
+	 * @param newInstructions
+	 *            The mutable {@link List} of {@link L2Instruction}s onto which
+	 *            to append the new code.
+	 * @return A boolean indicating whether an instruction substitution took
+	 *         place which may warrant another pass of optimization.
+	 */
+	public boolean extractFunctionOuterRegister (
+		final L2Instruction instruction,
+		final L2ObjectRegister functionRegister,
+		final int outerIndex,
+		final A_Type outerType,
+		final RegisterSet registerSet,
+		final L2ObjectRegister targetRegister,
+		final List<L2Instruction> newInstructions)
+	{
+		assert instruction.operation == this;
+		// By default we simply extract the outer from the function.  Since this
+		// instruction is supposed to have placed the function into
+		newInstructions.add(new L2Instruction(
+			L2_MOVE_OUTER_VARIABLE.instance,
+			new L2ImmediateOperand(outerIndex),
+			new L2ReadPointerOperand(functionRegister),
+			new L2WritePointerOperand(targetRegister),
+			new L2ConstantOperand(outerType)));
+		return false;
 	}
 }

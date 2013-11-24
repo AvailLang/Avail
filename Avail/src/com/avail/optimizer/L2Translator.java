@@ -417,10 +417,11 @@ public class L2Translator
 				public L2Register value (
 					final @Nullable L2Register register,
 					final @Nullable L2OperandType operandType,
-					final RegisterSet registerSet)
+					final @Nullable RegisterSet registerSet)
 				{
 					assert register != null;
 					assert operandType != null;
+					assert registerSet != null;
 					return registerSet.normalize(register, operandType);
 				}
 			};
@@ -889,9 +890,11 @@ public class L2Translator
 				{
 					@Override
 					public @Nullable InternalNodeMemento value (
-						final Integer argumentIndexToTest,
-						final A_Type typeToTest)
+						final @Nullable Integer argumentIndexToTest,
+						final @Nullable A_Type typeToTest)
 					{
+						assert argumentIndexToTest != null;
+						assert typeToTest != null;
 						assert stackp == initialStackp;
 						final InternalNodeMemento memento =
 							new InternalNodeMemento(
@@ -923,8 +926,10 @@ public class L2Translator
 				new Continuation1<InternalNodeMemento> ()
 				{
 					@Override
-					public void value (final InternalNodeMemento memento)
+					public void value (
+						final @Nullable InternalNodeMemento memento)
 					{
+						assert memento != null;
 						if (naiveRegisters != null)
 						{
 							addInstruction(
@@ -938,8 +943,10 @@ public class L2Translator
 				new Continuation1<InternalNodeMemento> ()
 				{
 					@Override
-					public void value (final InternalNodeMemento memento)
+					public void value (
+						final @Nullable InternalNodeMemento memento)
 					{
+						assert memento != null;
 						if (naiveRegisters != null)
 						{
 							addInstruction(
@@ -952,8 +959,10 @@ public class L2Translator
 				new Continuation1<List<A_Definition>>()
 				{
 					@Override
-					public void value(final List<A_Definition> solutions)
+					public void value(
+						final @Nullable List<A_Definition> solutions)
 					{
+						assert solutions != null;
 						assert stackp == initialStackp;
 						A_Definition solution;
 						if (solutions.size() == 1

@@ -1880,12 +1880,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_Step (final AvailObject object)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
 	A_String o_String (final AvailObject object)
 	{
 		throw unsupportedOperationException();
@@ -4393,6 +4387,22 @@ extends AbstractDescriptor
 		final AvailObject object)
 	{
 		// Only atoms should be tested for being special.
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	void o_RecordLatestPrimitive (
+		final AvailObject object,
+		final short primitiveNumber)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	void o_AddPrivateNames (
+		final AvailObject object,
+		final A_Set trueNames)
+	{
 		throw unsupportedOperationException();
 	}
 }

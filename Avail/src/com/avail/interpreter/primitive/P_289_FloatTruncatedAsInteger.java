@@ -77,7 +77,7 @@ public final class P_289_FloatTruncatedAsInteger extends Primitive
 					? InfinityDescriptor.negativeInfinity()
 					: InfinityDescriptor.positiveInfinity());
 		}
-		if (f >= -0x80000000L && f <= 0x7FFFFFFFL)
+		if (f >= Integer.MIN_VALUE && f <= Integer.MAX_VALUE)
 		{
 			// Common case -- it fits in an int.
 			return interpreter.primitiveSuccess(

@@ -3313,11 +3313,6 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 */
-	abstract void o_Step (AvailObject object);
-
-	/**
-	 * @param object
 	 * @return
 	 */
 	abstract A_String o_String (AvailObject object);
@@ -5965,4 +5960,18 @@ public abstract class AbstractDescriptor
 	 * @return
 	 */
 	abstract boolean o_IsAtomSpecial (AvailObject object);
+
+	/**
+	 * @param object
+	 * @param primitiveNumber
+	 */
+	abstract void o_RecordLatestPrimitive (
+		final AvailObject object,
+		final short primitiveNumber);
+
+	/**
+	 * @param object
+	 * @param trueNames
+	 */
+	abstract void o_AddPrivateNames (AvailObject object, A_Set trueNames);
 }

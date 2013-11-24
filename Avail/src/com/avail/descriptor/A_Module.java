@@ -119,6 +119,12 @@ extends A_BasicObject
 		A_Atom trueName);
 
 	/**
+	 * @param trueNames
+	 */
+	void addPrivateNames (
+		A_Set trueNames);
+
+	/**
 	 * Dispatch to the descriptor.
 	 */
 	A_Map importedNames ();

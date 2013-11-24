@@ -446,7 +446,6 @@ extends JFrame
 		@Override
 		protected @Nullable Void doInBackground () throws Exception
 		{
-			runnerThread = Thread.currentThread();
 			startTimeMillis = System.currentTimeMillis();
 			try
 			{
@@ -1290,8 +1289,9 @@ extends JFrame
 	{
 		// Set module components.
 		this.resolver = resolver;
+		final AvailRuntime runtime = new AvailRuntime(resolver);
 		availBuilder = new AvailBuilder(
-			new AvailRuntime(resolver),
+			runtime,
 			new CompilerProgressReporter()
 			{
 				@Override
@@ -1653,6 +1653,7 @@ extends JFrame
 
 		// Redirect the standard streams.
 		redirectStandardStreams();
+		runtime.setStandardStreams(System.out, System.err, System.in);
 
 		// Save placement when closing.
 		addWindowListener(new WindowAdapter()

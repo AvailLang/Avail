@@ -32,6 +32,8 @@
 package com.avail.interpreter.levelTwo.operation;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
+import java.util.Collection;
+import java.util.List;
 import com.avail.descriptor.A_Function;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
@@ -41,6 +43,7 @@ import com.avail.interpreter.levelTwo.*;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
+import com.avail.optimizer.RegisterState;
 
 /**
  * Extract a captured "outer" variable from a function.  If the outer
@@ -103,5 +106,43 @@ public class L2_MOVE_OUTER_VARIABLE extends L2Operation
 			registerSet.removeConstantAt(destinationReg);
 			registerSet.typeAtPut(destinationReg, outerType, instruction);
 		}
+	}
+
+	/**
+	 * If the function was created by exactly one instruction then see if the
+	 * outer variable can be accessed more economically.
+	 */
+	@Override
+	public boolean regenerate (
+		final L2Instruction instruction,
+		final List<L2Instruction> newInstructions,
+		final RegisterSet registerSet)
+	{
+		assert instruction.operation == this;
+		final L2ObjectRegister functionRegister =
+			instruction.readObjectRegisterAt(1);
+		final RegisterState state = registerSet.stateFor(functionRegister);
+		final Collection<L2Instruction> functionCreationInstructions =
+			state.sourceInstructions;
+		if (functionCreationInstructions.size() == 1)
+		{
+			// Exactly one instruction produced the function.
+			final L2Instruction functionCreationInstruction =
+				functionCreationInstructions.iterator().next();
+			final int outerIndex = instruction.immediateAt(0);
+			final L2ObjectRegister destinationRegister =
+				instruction.writeObjectRegisterAt(2);
+			final A_Type outerType = instruction.constantAt(3);
+			return functionCreationInstruction.operation
+				.extractFunctionOuterRegister(
+					functionCreationInstruction,
+					functionRegister,
+					outerIndex,
+					outerType,
+					registerSet,
+					destinationRegister,
+					newInstructions);
+		}
+		return super.regenerate(instruction, newInstructions, registerSet);
 	}
 }

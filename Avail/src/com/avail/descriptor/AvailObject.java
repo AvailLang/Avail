@@ -2903,6 +2903,11 @@ implements
 	@Override
 	public AvailObject makeImmutable ()
 	{
+		final Mutability mutability = descriptor.mutability;
+		if (mutability != Mutability.MUTABLE)
+		{
+			return this;
+		}
 		return descriptor.o_MakeImmutable(this);
 	}
 
@@ -2912,6 +2917,10 @@ implements
 	@Override
 	public AvailObject makeShared ()
 	{
+		if (descriptor.mutability == Mutability.SHARED)
+		{
+			return this;
+		}
 		final AvailObject shared = descriptor.o_MakeShared(this);
 		// Force a write barrier. Use a fresh object to avoid deadlocks -- or
 		// even contention.  Create the object right there to spoon-feed HotSpot
@@ -3857,15 +3866,6 @@ implements
 	{
 		descriptor.o_SetStartingChunkAndReoptimizationCountdown(
 			this, chunk, countdown);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	@Override
-	public void step ()
-	{
-		descriptor.o_Step(this);
 	}
 
 	/**
@@ -6904,5 +6904,17 @@ implements
 	public boolean isAtomSpecial ()
 	{
 		return descriptor.o_IsAtomSpecial(this);
+	}
+
+	@Override
+	public void recordLatestPrimitive (final short primitiveNumber)
+	{
+		descriptor.o_RecordLatestPrimitive(this, primitiveNumber);
+	}
+
+	@Override
+	public void addPrivateNames (final A_Set trueNames)
+	{
+		descriptor.o_AddPrivateNames(this, trueNames);
 	}
 }

@@ -673,16 +673,16 @@ public abstract class AbstractAvailCompiler
 				}
 
 				// Actually make the atoms available in this module.
-				for (final A_Atom trueName : atomsToImport)
+				if (moduleImport.isExtension)
 				{
-					if (moduleImport.isExtension)
+					for (final A_Atom trueName : atomsToImport)
 					{
 						module.addImportedName(trueName);
 					}
-					else
-					{
-						module.addPrivateName(trueName);
-					}
+				}
+				else
+				{
+					module.addPrivateNames(atomsToImport);
 				}
 			}
 
@@ -2502,7 +2502,9 @@ public abstract class AbstractAvailCompiler
 	 * execute it now or to put it in a bag of continuations to run later <em>in
 	 * an arbitrary order</em>. There may be performance and/or scale benefits
 	 * to processing entries in FIFO, LIFO, or some hybrid order, but the
-	 * correctness is not affected by a choice of order.
+	 * correctness is not affected by a choice of order.  The implementation may
+	 * run the expression in parallel with the invoking thread and other such
+	 * expressions.
 	 *
 	 * @param continuation
 	 *        What to do at some point in the future.

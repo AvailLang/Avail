@@ -32,6 +32,7 @@
 package com.avail.interpreter.levelTwo.operation;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.COMMENT;
+import java.util.List;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.*;
 import com.avail.optimizer.L2Translator;
@@ -79,5 +80,37 @@ public class L2_LABEL extends L2Operation
 	public boolean shouldEmit ()
 	{
 		return false;
+	}
+
+	@Override
+	public boolean regenerate (
+		final L2Instruction instruction,
+		final List<L2Instruction> newInstructions,
+		final RegisterSet registerSet)
+	{
+		if (!newInstructions.isEmpty())
+		{
+			final L2Instruction previousInstruction =
+				newInstructions.get(newInstructions.size() - 1);
+			final L2Operation previousOperation = previousInstruction.operation;
+			if (previousOperation instanceof L2_JUMP)
+			{
+				final List<L2Instruction> targetLabels =
+					previousInstruction.targetLabels();
+				assert targetLabels.size() == 1;
+				if (targetLabels.get(0) == instruction)
+				{
+					// The previous instruction was a jump to the succeeding
+					// instruction, this very label.  Remove the jump but not
+					// this label, but indicate that another pass isn't needed
+					// due to this removal, since it didn't really affect the
+					// control flow.
+					newInstructions.remove(newInstructions.size() - 1);
+					newInstructions.add(instruction);
+					return true;
+				}
+			}
+		}
+		return super.regenerate(instruction, newInstructions, registerSet);
 	}
 }

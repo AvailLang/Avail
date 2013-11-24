@@ -33,10 +33,16 @@
 package com.avail.test;
 
 import static org.junit.Assert.*;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
 import org.junit.*;
+import com.avail.annotations.Nullable;
 import com.avail.utility.*;
 import com.avail.utility.Graph.GraphPreconditionFailure;
+import com.avail.utility.evaluation.Continuation0;
+import com.avail.utility.evaluation.Continuation2;
 
 /**
  * Basic functionality test of {@link Graph}s.
@@ -175,5 +181,68 @@ public class GraphTest
 		tinyGraph.addVertex(5);
 		tinyGraph.addVertex(6);
 		tinyGraph.removeEdge(5, 6);
+	}
+
+	/**
+	 * Test: Check cyclicity detection.
+	 */
+	@Test
+	public void testCyclicity ()
+	{
+		final Graph<Integer> tinyGraph = new Graph<>();
+		tinyGraph.addVertex(5);
+		tinyGraph.addVertex(6);
+		assertFalse(tinyGraph.isCyclic());
+		tinyGraph.addEdge(5, 6);
+		assertFalse(tinyGraph.isCyclic());
+		tinyGraph.addEdge(6, 5);
+		assertTrue(tinyGraph.isCyclic());
+	}
+
+	/**
+	 * Test: Check the parallel DAG visit mechanism.
+	 */
+	@Test
+	public void testSerialEnumeration ()
+	{
+		final Graph<Integer> tinyGraph = new Graph<>();
+		final int scale = 50;
+		for (int i = 1; i <= scale; i++)
+		{
+			tinyGraph.addVertex(i);
+		}
+		for (int i = 1; i <= scale; i++)
+		{
+			for (int j = i + 1; j <= scale; j++)
+			{
+				if (j % i == 0)
+				{
+					tinyGraph.addEdge(i, j);
+				}
+			}
+		}
+		final List<Integer> visitedVertices = new ArrayList<>(scale);
+		final Thread mainThread = Thread.currentThread();
+		tinyGraph.parallelVisit(
+			new Continuation2<Integer, Continuation0>()
+			{
+				@Override
+				public void value (
+					final @Nullable Integer vertex,
+					final @Nullable Continuation0 completion)
+				{
+					assert vertex != null;
+					assert completion != null;
+					assertEquals(mainThread, Thread.currentThread());
+					for (final Integer previousVertex : visitedVertices)
+					{
+						assertFalse(previousVertex % vertex == 0);
+					}
+					visitedVertices.add(vertex);
+					completion.value();
+				}
+			});
+		assertEquals(scale, visitedVertices.size());
+		assertEquals(scale, new HashSet<>(visitedVertices).size());
 	}
 }

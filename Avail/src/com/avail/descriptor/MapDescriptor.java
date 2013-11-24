@@ -286,7 +286,12 @@ extends Descriptor
 		{
 			return false;
 		}
-		if (!aTypeObject.sizeRange().rangeIncludesInt(object.mapSize()))
+		final int mapSize = object.mapSize();
+		if (mapSize == 0)
+		{
+			return true;
+		}
+		if (!aTypeObject.sizeRange().rangeIncludesInt(mapSize))
 		{
 			return false;
 		}
@@ -305,10 +310,21 @@ extends Descriptor
 		{
 			if (valuesMatch)
 			{
-				// assert keysMatch && valuesMatch;
+				assert keysMatch && valuesMatch;
 				return true;
 			}
-			// assert keysMatch && !valuesMatch;
+			assert keysMatch && !valuesMatch;
+			// If the valueUnionKind and the expected valueType don't intersect
+			// then the actual map can't comply.  The empty map was already
+			// special-cased.
+			final boolean valuesCantMatch = !valueType.isEnumeration() &&
+				rootBin.mapBinValueUnionKind()
+					.typeIntersection(valueType)
+					.equals(BottomTypeDescriptor.bottom());
+			if (valuesCantMatch)
+			{
+				return false;
+			}
 			for (final Entry entry : object.mapIterable())
 			{
 				if (!entry.value().isInstanceOf(valueType))
@@ -319,9 +335,20 @@ extends Descriptor
 		}
 		else
 		{
+			// If the keyUnionKind and the expected keyType don't intersect
+			// then the actual map can't comply.  The empty map was already
+			// special-cased.
+			final boolean keysCantMatch = !keyType.isEnumeration() &&
+				rootBin.mapBinKeyUnionKind()
+					.typeIntersection(keyType)
+					.equals(BottomTypeDescriptor.bottom());
+			if (keysCantMatch)
+			{
+				return false;
+			}
 			if (valuesMatch)
 			{
-				// assert !keysMatch && valuesMatch;
+				assert !keysMatch && valuesMatch;
 				for (final Entry entry : object.mapIterable())
 				{
 					if (!entry.key().isInstanceOf(keyType))
@@ -332,7 +359,18 @@ extends Descriptor
 			}
 			else
 			{
-				// assert !keysMatch && !valuesMatch;
+				assert !keysMatch && !valuesMatch;
+				// If the valueUnionKind and the expected valueType don't
+				// intersect then the actual map can't comply.  The empty map
+				// was already special-cased.
+				final boolean valuesCantMatch = !valueType.isEnumeration() &&
+					rootBin.mapBinValueUnionKind()
+						.typeIntersection(valueType)
+						.equals(BottomTypeDescriptor.bottom());
+				if (valuesCantMatch)
+				{
+					return false;
+				}
 				for (final Entry entry : object.mapIterable())
 				{
 					if (!entry.key().isInstanceOf(keyType)

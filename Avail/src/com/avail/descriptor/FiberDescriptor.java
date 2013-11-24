@@ -32,7 +32,6 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.AvailObject.error;
 import static com.avail.descriptor.FiberDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.FiberDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.FiberDescriptor.ExecutionState.*;
@@ -251,6 +250,16 @@ extends Descriptor
 		 * {@linkplain #uniqueDebugCounter counter}.
 		 */
 		DEBUG_UNIQUE_ID,
+
+		/**
+		 * The most recently executed primitive.
+		 */
+		DEBUG_LAST_PRIMITIVE,
+
+		/**
+		 * The second-most recently executed primitive.
+		 */
+		DEBUG_SECOND_LAST_PRIMITIVE,
 
 		/**
 		 * Flags for use by Avail code. Includes the advisory termination
@@ -1123,6 +1132,7 @@ extends Descriptor
 			pojo = object.slot(RESULT_CONTINUATION);
 			assert !pojo.equalsNil() : "Fiber attempting to succeed twice!";
 			object.setSlot(RESULT_CONTINUATION, NilDescriptor.nil());
+			object.setSlot(FAILURE_CONTINUATION, NilDescriptor.nil());
 		}
 		if (debugFibers)
 		{
@@ -1177,6 +1187,7 @@ extends Descriptor
 			pojo = object.slot(FAILURE_CONTINUATION);
 			assert !pojo.equalsNil();
 			object.setSlot(FAILURE_CONTINUATION, NilDescriptor.nil());
+			object.setSlot(RESULT_CONTINUATION, NilDescriptor.nil());
 		}
 		if (debugFibers)
 		{
@@ -1345,12 +1356,6 @@ extends Descriptor
 		return FiberTypeDescriptor.forResultType(object.slot(RESULT_TYPE));
 	}
 
-	@Override @AvailMethod
-	void o_Step (final AvailObject object)
-	{
-		error("Process stepping is not implemented");
-	}
-
 	@Override
 	void o_WhenContinuationIsAvailableDo (
 		final AvailObject object,
@@ -1400,6 +1405,17 @@ extends Descriptor
 			object.setSlot(REIFICATION_WAITERS, SetDescriptor.empty());
 		}
 		return previousSet;
+	}
+
+	@Override
+	void o_RecordLatestPrimitive (
+		final AvailObject object,
+		final short primitiveNumber)
+	{
+		object.setSlot(
+			DEBUG_SECOND_LAST_PRIMITIVE,
+			object.slot(DEBUG_LAST_PRIMITIVE));
+		object.setSlot(DEBUG_LAST_PRIMITIVE, primitiveNumber);
 	}
 
 	/**

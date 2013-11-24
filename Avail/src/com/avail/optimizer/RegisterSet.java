@@ -139,7 +139,7 @@ public final class RegisterSet
 	 * @return The RegisterState that describes the state of the L2Register at
 	 *         a particular point in the generated code.
 	 */
-	RegisterState stateFor (
+	public RegisterState stateFor (
 		final L2Register register)
 	{
 		RegisterState state = registerStates.get(register);

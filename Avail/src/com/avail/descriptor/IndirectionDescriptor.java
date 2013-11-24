@@ -396,6 +396,14 @@ extends AbstractDescriptor
 	}
 
 	@Override
+	void o_AddPrivateNames (
+		final AvailObject object,
+		final A_Set trueNames)
+	{
+		o_Traversed(object).addPrivateNames(trueNames);
+	}
+
+	@Override
 	A_BasicObject o_SetBinAddingElementHashLevelCanDestroy (
 		final AvailObject object,
 		final A_BasicObject elementObject,
@@ -2656,12 +2664,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_Step (final AvailObject object)
-	{
-		o_Traversed(object).step();
-	}
-
-	@Override
 	A_String o_String (final AvailObject object)
 	{
 		return o_Traversed(object).string();
@@ -4552,5 +4554,13 @@ extends AbstractDescriptor
 	boolean o_IsAtomSpecial (final AvailObject object)
 	{
 		return o_Traversed(object).isAtomSpecial();
+	}
+
+	@Override
+	void o_RecordLatestPrimitive (
+		final AvailObject object,
+		final short primitiveNumber)
+	{
+		o_Traversed(object).recordLatestPrimitive(primitiveNumber);
 	}
 }

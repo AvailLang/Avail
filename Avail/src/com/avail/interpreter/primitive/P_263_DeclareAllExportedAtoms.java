@@ -81,10 +81,7 @@ extends Primitive
 		}
 		else
 		{
-			for (final A_Atom name : names)
-			{
-				module.addPrivateName(name);
-			}
+			module.addPrivateNames(names);
 		}
 		return interpreter.primitiveSuccess(NilDescriptor.nil());
 	}
