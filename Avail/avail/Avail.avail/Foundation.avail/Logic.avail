@@ -752,38 +752,3 @@ Semantic restriction "_=_" is
 		]
 	]
 ];
-
-/**
- * Strengthen for exactly known values (but never for types).
- * 
- * @method "_≠_"
- * @restricts "any meta"
- * @restricts "any meta"
- */
-Semantic restriction "_≠_" is
-[
-	a : any meta,
-	b : any meta
-|
-	if |a| = 1
-		∧ [ |b| = 1
-		∧ [ ¬a's instance ∈ type
-		∧ [ ¬b's instance ∈ type ] ] ]
-	then
-	[
-		(a's instance ≠ b's instance)'s type
-	]
-	else
-	[
-		if a ∩ b = ⊥ then
-		[
-			Assert: a ≠ ⊥ ∧ [ b ≠ ⊥ ];
-			true's type
-		]
-		else
-		[
-			/* Don't strengthen. */
-			⊤
-		]
-	]
-];

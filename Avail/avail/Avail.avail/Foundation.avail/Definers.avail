@@ -56,13 +56,49 @@ Names
 	"Stable method_is_"
 Body
 
+/**
+ * Utility method for "Method_is stable at_".  Test whether the tuple of types
+ * have exactly one instance each.  Even though ⊥'s type is technically a
+ * metatype rather than a pure enumeration, it only has one instance (⊥).
+ */
+Private method "«_‡,»are all singular" is
+[
+	argTypes : <<>, type…|whole number>
+|
+	$method : boolean;
+	From 1 to |argTypes| do
+	[
+		index : natural number
+	|
+		argType ::= cast argTypes[index] into [t : type | t];
+		If (|argType| = 1) = false then
+		[
+			Exit method with false
+		];
+		if (argType's instance ∈ type) = false then
+		[
+			true
+		]
+		else
+		[
+			if argType = ⊥'s type's type then
+			[
+				true
+			]
+			else
+			[
+				Exit method with false
+			]
+		]
+	];
+	true
+] : boolean;
+
 /* These methods are needed for autogeneration of stable method restrictions. */
-equalsAtom ::= atom for "_=_";
 ifThenElseAtom ::= atom for "If|if_then_else_";
-instanceCountAtom ::= atom for "`|_`|";
 instanceAtom ::= atom for "_'s⁇instance";
-setAtom ::= atom for "{«_‡,»}";
 typeAtom ::= atom for "_'s⁇type";
+areAllSingularAtom ::= atom for "«_‡,»are all singular";
 
 /**
  * Declare that the method referenced by `methodName` is stable for the given
@@ -95,7 +131,7 @@ Public method "Method_is stable at_" is
 	 *        arg2 : natural number's type,
 	 *        arg3 : any's type
 	 *    |
-	 *        if {|arg1|, |arg2|, |arg3|} = {1} then
+	 *        if <arg1, arg2, arg3> are all singular
 	 *        [
 	 *            (arg1's instance[arg2's instance]→arg3's instance)'s type
 	 *        ]
@@ -157,11 +193,10 @@ Public method "Method_is stable at_" is
 	 */
 	resultType ::= functionType's return type's type;
 	argDecls : <<>, argument phrase…|whole number> := <>;
-	setContents :
-		<<>, send phrase⇒nonnegative extended integer…|whole number> := <>;
+	argUses : <<>, variable use phrase…|whole number> := <>;
 	instances : <<>, send phrase⇒any…|whole number> := <>;
-	/* Construct the tuples of argument declarations, the contents of the
-	 * instance count set, and the tuple of instances.
+	/* Construct the tuples of argument declarations, argument uses, and
+	 * expressions to extract the singular instances.
 	 */
 	From 1 to |message methodName's name's parameters| do
 	[
@@ -169,34 +204,28 @@ Public method "Method_is stable at_" is
 	|
 		argName ::= cast concatenate <"arg", “index”> into [t : string | t];
 		argType ::= functionType[index];
-		argDecl ::= arg «`argName` : argType's type»;
+		argToken ::= `argName`;
+		argDecl ::= arg «argToken : argType's type»;
 		argDecls := cast concatenate <eject ↑argDecls, <argDecl>>
 			into [t : <<>, argument phrase…|whole number> | t];
-		instanceCount ::=
-			send instanceCountAtom
-			with «<«↓argDecl»>»
-			: nonnegative extended integer;
-		setContents :=
-			cast concatenate <eject ↑setContents, <instanceCount>> into
-			[
-				t : <<>, send phrase⇒nonnegative extended integer…|whole number>
-			|
-				t
-			];
-		instance ::= send instanceAtom with «<«↓argDecl»>» : argType;
+		argUse ::= «↓argDecl»(`argToken`);
+		argUses := cast concatenate <eject ↑argUses, <argUse>>
+			into [t : <<>, variable use phrase…|whole number> | t];
+		instance ::= send instanceAtom with «<argUse>» : argType;
 		instances := cast concatenate <eject ↑instances, <instance>>
 			into [t : <<>, send phrase⇒any…|whole number> | t];
 		true
 	];
-	instanceCountSet ::= send setAtom with «<setContents→list phrase>» : set;
-	oneSet ::= send setAtom with «<«<‘`1`’>»>» : {1}'s type;
-	equals ::= send equalsAtom with «<instanceCountSet, oneSet>» : boolean;
-	answer ::= send methodName with instances→list phrase : any;
+	instanceCheck ::=
+		send areAllSingularAtom
+		with «<argUses → list phrase>»
+		: boolean;
+	answer ::= send methodName with instances → list phrase : any;
 	answerType ::= send typeAtom with «<answer>» : resultType;
 	answerTypeBlock ::= «[<answerType>] : resultType»;
 	cantStrengthenBlock ::= «[<‘`⊤`’>] : ⊤'s type»;
 	branch ::= send ifThenElseAtom
-		with «<equals, answerTypeBlock, cantStrengthenBlock>» : type;
+		with «<instanceCheck, answerTypeBlock, cantStrengthenBlock>» : type;
 	restrictionBlock ::= «[argDecls | <branch>] : type»;
 	restrictionFunction ::= generate restrictionBlock;
 	Semantic restriction methodName is restrictionFunction;

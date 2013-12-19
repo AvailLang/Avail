@@ -263,7 +263,7 @@ Semantic restriction "_∨_" is
  * @returns "boolean"
  *    `true` if the arguments are not equal, `false` otherwise.
  */
-Public method "_≠_" is
+Public stable method "_≠_" is
 [
 	a : any,
 	b : any

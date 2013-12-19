@@ -387,6 +387,23 @@ public abstract class AbstractAvailCompiler
 			new ArrayList<>();
 
 		/**
+		 * Answer the list of local module {@linkplain String names} imported by
+		 * this module header, in the order they appear in the Uses and Extends
+		 * clauses.
+		 *
+		 * @return The list of local module names.
+		 */
+		public final List<String> importedModuleNames ()
+		{
+			final List<String> localNames = new ArrayList<>(importedModules.size());
+			for (final ModuleImport moduleImport : importedModules)
+			{
+				localNames.add(moduleImport.moduleName.asNativeString());
+			}
+			return localNames;
+		}
+
+		/**
 		 * The {@linkplain StringDescriptor names} defined and exported by the
 		 * {@linkplain ModuleDescriptor module} undergoing compilation.
 		 */
@@ -1003,8 +1020,8 @@ public abstract class AbstractAvailCompiler
 	 *        This is a continuation that accepts the new compiler.
 	 * @param fail
 	 *        What to do in the event of failure. This is a continuation that
-	 *        accepts the {@linkplain Throwable throwable} responsible for
-	 *        abnormal termination.
+	 *        accepts the {@link Exception} responsible for abnormal
+	 *        termination.
 	 * @throws IOException
 	 *         If the source module cannot be opened or read.
 	 */
@@ -1012,7 +1029,7 @@ public abstract class AbstractAvailCompiler
 			final ResolvedModuleName resolvedName,
 			final boolean stopAfterBodyToken,
 			final Continuation1<AbstractAvailCompiler> succeed,
-			final Continuation1<Throwable> fail)
+			final Continuation1<Exception> fail)
 		throws IOException
 	{
 		extractSourceThen(
@@ -1046,7 +1063,7 @@ public abstract class AbstractAvailCompiler
 						}
 						succeed.value(compiler);
 					}
-					catch (final Throwable e)
+					catch (final Exception e)
 					{
 						fail.value(e);
 					}
@@ -1089,7 +1106,7 @@ public abstract class AbstractAvailCompiler
 	 *
 	 * @param <AnswerType>
 	 *        The type of the second parameter of the {@linkplain
-	 *        Con#value(ParserState, Object)} method.
+	 *        #value(ParserState, Object)} method.
 	 * @author Mark van Gulik &lt;mark@availlang.org&gt;
 	 */
 	abstract class Con<AnswerType>
@@ -1194,7 +1211,7 @@ public abstract class AbstractAvailCompiler
 	 * The {@linkplain Throwable throwable} (if any) responsible for an
 	 * abnormal termination of compilation.
 	 */
-	@InnerAccess volatile @Nullable Throwable terminator;
+	@InnerAccess volatile @Nullable Exception terminator;
 
 	/**
 	 * Announce that compilation has failed because of the specified {@linkplain
@@ -1207,14 +1224,14 @@ public abstract class AbstractAvailCompiler
 	 * Only the first call of this method has any effect.
 	 * </p>
 	 *
-	 * @param throwable
-	 *        The throwable responsible for termination of compilation.
+	 * @param exception
+	 *        The {@link Exception} responsible for terminating compilation.
 	 */
-	synchronized @InnerAccess void compilationFailed (final Throwable throwable)
+	synchronized @InnerAccess void compilationFailed (final Exception exception)
 	{
 		if (terminator == null)
 		{
-			terminator = throwable;
+			terminator = exception;
 			final Continuation0 reporter = failureReporter;
 			assert reporter != null;
 			reporter.value();
@@ -1639,7 +1656,7 @@ public abstract class AbstractAvailCompiler
 		void evaluatePhraseThen (
 			final A_Phrase expression,
 			final Continuation1<AvailObject> continuation,
-			final Continuation1<Throwable> onFailure)
+			final Continuation1<Exception> onFailure)
 		{
 			AbstractAvailCompiler.this.evaluatePhraseThen(
 				expression,
@@ -1985,7 +2002,7 @@ public abstract class AbstractAvailCompiler
 	private static void extractSourceThen (
 			final ResolvedModuleName resolvedName,
 			final Continuation1<String> continuation,
-			final Continuation1<Throwable> fail)
+			final Continuation1<Exception> fail)
 		throws IOException
 	{
 		final AvailRuntime runtime = AvailRuntime.current();
@@ -2092,7 +2109,7 @@ public abstract class AbstractAvailCompiler
 									}));
 						}
 					}
-					catch (final Throwable e)
+					catch (final Exception e)
 					{
 						fail.value(e);
 					}
@@ -2103,7 +2120,10 @@ public abstract class AbstractAvailCompiler
 					@Nullable final Throwable throwable,
 					@Nullable final Void attachment)
 				{
-					fail.value(throwable);
+					final Exception exception = throwable instanceof Exception
+						? (Exception)throwable
+						: new RuntimeException(throwable);
+					fail.value(exception);
 				}
 			};
 		// Kick off the asynchronous read.
@@ -2522,7 +2542,7 @@ public abstract class AbstractAvailCompiler
 					{
 						continuation.value();
 					}
-					catch (final Throwable e)
+					catch (final Exception e)
 					{
 						compilationFailed(e);
 					}
@@ -2589,7 +2609,7 @@ public abstract class AbstractAvailCompiler
 						continuation.value(value);
 					}
 				}
-				catch (final Throwable e)
+				catch (final Exception e)
 				{
 					compilationFailed(e);
 					return;
@@ -2615,7 +2635,7 @@ public abstract class AbstractAvailCompiler
 						noMore.value();
 					}
 				}
-				catch (final Throwable e)
+				catch (final Exception e)
 				{
 					compilationFailed(e);
 				}
@@ -2763,14 +2783,14 @@ public abstract class AbstractAvailCompiler
 	 * @param onSuccess
 	 *        What to do with the result of the evaluation.
 	 * @param onFailure
-	 *        What to do with a terminal {@linkplain Throwable throwable}.
+	 *        What to do with a terminal {@link Exception}.
 	 */
 	protected void evaluateFunctionThen (
 		final A_Function function,
 		final List<? extends A_BasicObject> args,
 		final boolean shouldSerialize,
 		final Continuation1<AvailObject> onSuccess,
-		final Continuation1<Throwable> onFailure)
+		final Continuation1<Exception> onFailure)
 	{
 		synchronized (this)
 		{
@@ -2806,13 +2826,13 @@ public abstract class AbstractAvailCompiler
 	 * @param onSuccess
 	 *        What to do with the result of the evaluation.
 	 * @param onFailure
-	 *        What to do with a terminal {@linkplain Throwable throwable}.
+	 *        What to do with a terminal {@link Exception}.
 	 */
 	protected void evaluateSemanticRestrictionFunctionThen (
 		final A_SemanticRestriction restriction,
 		final List<AvailObject> args,
 		final Continuation1<AvailObject> onSuccess,
-		final Continuation1<Throwable> onFailure)
+		final Continuation1<Exception> onFailure)
 	{
 		final A_Function function = restriction.function();
 		final A_RawFunction code = function.code();
@@ -2850,14 +2870,14 @@ public abstract class AbstractAvailCompiler
 	 * @param onSuccess
 	 *        What to do with the result of the evaluation.
 	 * @param onFailure
-	 *        What to do with a terminal {@linkplain Throwable throwable}.
+	 *        What to do with a terminal {@link Exception}.
 	 */
 	@InnerAccess void evaluatePhraseThen (
 		final A_Phrase expressionNode,
 		final int lineNumber,
 		final boolean shouldSerialize,
 		final Continuation1<AvailObject> onSuccess,
-		final Continuation1<Throwable> onFailure)
+		final Continuation1<Exception> onFailure)
 	{
 		evaluateFunctionThen(
 			FunctionDescriptor.createFunctionForPhrase(
@@ -2885,13 +2905,13 @@ public abstract class AbstractAvailCompiler
 	 *        is no point accepting in the result. Hence the {@linkplain
 	 *        Continuation0 nullary continuation}.
 	 * @param onFailure
-	 *        What to do with a terminal {@linkplain Throwable throwable}.
+	 *        What to do with a terminal {@link Exception}.
 	 */
 	void evaluateModuleStatementThen (
 		final ParserState startState,
 		final A_Phrase expressionOrMacro,
 		final Continuation0 onSuccess,
-		final Continuation1<Throwable> onFailure)
+		final Continuation1<Exception> onFailure)
 	{
 		final A_Phrase expression = expressionOrMacro.stripMacro();
 		if (!expression.isInstanceOfKind(DECLARATION_NODE.mostGeneralType()))
@@ -3816,10 +3836,10 @@ public abstract class AbstractAvailCompiler
 								continuation);
 						}
 					},
-					new Continuation1<Throwable>()
+					new Continuation1<Exception>()
 					{
 						@Override
-						public void value (final @Nullable Throwable arg)
+						public void value (final @Nullable Exception exception)
 						{
 							//TODO[MvG] - Deal with failed conversion (this can
 							// only happen during an eval conversion).
@@ -3955,12 +3975,12 @@ public abstract class AbstractAvailCompiler
 								continuation);
 						}
 					}));
-				fiber.failureContinuation(new Continuation1<Throwable>()
+				fiber.failureContinuation(new Continuation1<Exception>()
 				{
 					@Override
-					public void value (final @Nullable Throwable throwable)
+					public void value (final @Nullable Exception exception)
 					{
-						assert throwable != null;
+						assert exception != null;
 						// The prefix function failed in some way.
 						start.expected(new Describer()
 						{
@@ -3970,7 +3990,7 @@ public abstract class AbstractAvailCompiler
 							{
 								c.value(
 									"prefix function not to have failed with:\n"
-									+ throwable.getLocalizedMessage());
+									+ exception.getLocalizedMessage());
 							}
 						});
 					}
@@ -4270,12 +4290,12 @@ public abstract class AbstractAvailCompiler
 						}
 					}
 				});
-		final Continuation1<Throwable> failed =
+		final Continuation1<Exception> failed =
 			workUnitCompletion(
-				new Continuation1<Throwable>()
+				new Continuation1<Exception>()
 				{
 					@Override
-					public void value (final @Nullable Throwable e)
+					public void value (final @Nullable Exception e)
 					{
 						assert e != null;
 						final boolean alreadyFailed;
@@ -4722,13 +4742,13 @@ public abstract class AbstractAvailCompiler
 			state,
 			send,
 			continuation,
-			new Continuation1<Throwable>()
+			new Continuation1<Exception>()
 			{
 				@Override
-				public void value (final @Nullable Throwable killer)
+				public void value (final @Nullable Exception exception)
 				{
-					assert killer != null;
-					compilationFailed(killer);
+					assert exception != null;
+					compilationFailed(exception);
 				}
 			});
 	}
@@ -4783,13 +4803,13 @@ public abstract class AbstractAvailCompiler
 			state,
 			send,
 			continuation,
-			new Continuation1<Throwable>()
+			new Continuation1<Exception>()
 			{
 				@Override
-				public void value (final @Nullable Throwable killer)
+				public void value (final @Nullable Exception exception)
 				{
-					assert killer != null;
-					compilationFailed(killer);
+					assert exception != null;
+					compilationFailed(exception);
 				}
 			});
 	}
@@ -4964,13 +4984,13 @@ public abstract class AbstractAvailCompiler
 			state,
 			send,
 			continuation,
-			new Continuation1<Throwable>()
+			new Continuation1<Exception>()
 			{
 				@Override
-				public void value (final @Nullable Throwable killer)
+				public void value (final @Nullable Exception exception)
 				{
-					assert killer != null;
-					compilationFailed(killer);
+					assert exception != null;
+					compilationFailed(exception);
 				}
 			});
 	}
@@ -5246,13 +5266,13 @@ public abstract class AbstractAvailCompiler
 							}
 						}
 					},
-					new Continuation1<Throwable>()
+					new Continuation1<Exception>()
 					{
 						@Override
-						public void value (final @Nullable Throwable killer)
+						public void value (final @Nullable Exception exception)
 						{
-							assert killer != null;
-							compilationFailed(killer);
+							assert exception != null;
+							compilationFailed(exception);
 						}
 					});
 			}
@@ -5298,14 +5318,14 @@ public abstract class AbstractAvailCompiler
 	 * TokenDescriptor token} list.
 	 *
 	 * @return A module header.
+	 * @throws AvailCompilerException If parsing the header fails.
 	 */
-	public @Nullable ModuleHeader parseModuleHeader ()
+	public ModuleHeader parseModuleHeader ()
 	{
 		clearExpectations();
 		if (parseModuleHeader(true) == null)
 		{
 			reportError();
-			return null;
 		}
 		return moduleHeader;
 	}
@@ -5329,12 +5349,12 @@ public abstract class AbstractAvailCompiler
 	 * @param fail
 	 *        What to do after compilation fails. This {@linkplain Continuation1
 	 *        continuation} is invoked with the terminating {@linkplain
-	 *        Throwable throwable}.
+	 *        Exception exception}.
 	 */
 	public synchronized void parseModule (
 		final CompilerProgressReporter reporter,
 		final Continuation1<A_Module> succeed,
-		final Continuation1<Throwable> fail)
+		final Continuation1<Exception> fail)
 	{
 		progressReporter = reporter;
 		successReporter = new Continuation0()
@@ -5697,14 +5717,14 @@ public abstract class AbstractAvailCompiler
 										value);
 								}
 						}),
-						new Continuation1<Throwable>()
+						new Continuation1<Exception>()
 						{
 							@Override
 							public void value (
-								final @Nullable Throwable killer)
+								final @Nullable Exception exception)
 							{
-								assert killer != null;
-								compilationFailed(killer);
+								assert exception != null;
+								compilationFailed(exception);
 							}
 						});
 					}

@@ -2149,15 +2149,15 @@ public final class Interpreter
 				continuation.value(string.asNativeString());
 			}
 		});
-		fiber.failureContinuation(new Continuation1<Throwable>()
+		fiber.failureContinuation(new Continuation1<Exception>()
 		{
 			@Override
-			public void value (final @Nullable Throwable killer)
+			public void value (final @Nullable Exception exception)
 			{
-				assert killer != null;
+				assert exception != null;
 				continuation.value(String.format(
 					"(stringification failed [%s]) %s",
-					killer.getClass().getSimpleName(),
+					exception.getClass().getSimpleName(),
 					value.toString()));
 			}
 		});

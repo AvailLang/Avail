@@ -260,10 +260,10 @@ extends AbstractAvailCompiler
 					}
 				}
 			},
-			new Continuation1<Throwable>()
+			new Continuation1<Exception>()
 			{
 				@Override
-				public void value (final @Nullable Throwable e)
+				public void value (final @Nullable Exception e)
 				{
 					if (e instanceof AvailRejectedParseException)
 					{

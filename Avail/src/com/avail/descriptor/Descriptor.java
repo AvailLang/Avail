@@ -3940,7 +3940,7 @@ extends AbstractDescriptor
 	@AvailMethod
 	void o_FailureContinuation (
 		final AvailObject object,
-		final Continuation1<Throwable> continuation)
+		final Continuation1<Exception> continuation)
 	{
 		throw unsupportedOperationException();
 	}

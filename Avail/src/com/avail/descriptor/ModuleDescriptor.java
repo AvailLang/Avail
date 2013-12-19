@@ -108,7 +108,8 @@ extends Descriptor
 		 * The {@linkplain SetDescriptor set} of all ancestor modules of this
 		 * module.  A module's ancestor set includes the module itself.  While
 		 * this may seem like mutual recursion: (1) modules are allowed to
-		 * mutate this field after construction, (2)
+		 * mutate this field after construction, (2) this field is not exposed
+		 * via primitives.
 		 */
 		ALL_ANCESTORS,
 

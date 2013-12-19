@@ -2932,11 +2932,18 @@ Method "quicksort_" is
 	size ::= |numbers|;
 	halfSize ::= |numbers| ÷ 2;
 	pivotIndex : natural number :=
-		if numbers[1] > numbers[size] then [1]
+		if numbers[1] > numbers[size]
+		then [1]
 		else [size];
 	pivotIndex :=
-		if numbers[pivotIndex] < numbers[halfSize] then [pivotIndex]
-		else [halfSize];
+		if numbers[pivotIndex] < numbers[halfSize]
+		then [pivotIndex]
+		else [
+			nonpivotBoundaryIndex : natural number :=
+				cast size + 1 - pivotIndex into [t : natural number | t];
+			if numbers[nonpivotBoundaryIndex] < numbers[halfSize]
+			then [halfSize]
+			else [nonpivotBoundaryIndex]];
 	pivot ::= numbers[pivotIndex];
 	withoutPivot ::= numbers[..pivotIndex-1] ++ numbers[pivotIndex+1..];
 	lesser ::= filter withoutPivot by [n : number | n ≤ pivot];
@@ -3082,25 +3089,27 @@ Private method "merge_with_" is
 	j : natural number := 1;
 	k : natural number := 1;
 
-	output : tuple := splitInput[1] ++ splitInput[2];
+	input1 : tuple := splitInput[1];
+	input2 : tuple := splitInput[2];
+	output : tuple := input1 ++ input2;
 
-	While [i ≤ |splitInput[1]| ∧  [j ≤ |splitInput[2]|]]
+	While [i ≤ |input1| ∧  [j ≤ |input2|]]
 	do
 	[
-		If comparator(splitInput[1][i] ,splitInput[2][j]) then
+		If comparator(input1[i], input2[j]) then
 		[
-			output := output[k]→splitInput[1][i];
+			output := output[k]→input1[i];
 			↑i++;
 		]
 		else
 		[
-			output := output[k]→splitInput[2][j];
+			output := output[k]→input2[j];
 			↑j++;
 		];
 		↑k++;
 	];
-	if  i < |splitInput[1]| then [output[..k-1] ++ splitInput[1][i..]]
-	else [output[..k-1] ++ splitInput[2][j..]]
+	if  i < |input1| then [output[..k-1] ++ input1[i..]]
+	else [output[..k-1] ++ input2[j..]]
 ]: tuple;
 
 /**
@@ -3161,7 +3170,7 @@ Semantic restriction "merge sort_with_" is
  */
 Method "merge sort_with_" is
 [
-	trivial : <any…|..1>,
+	trivial : <any…|0..1>,
 	comparator : [⊥, ⊥]→boolean
 |
 	trivial
@@ -3192,8 +3201,8 @@ Public method "merge sort_with_" is
 	aTuple : <any…|11..>,
 	comparator : [⊥, ⊥]→boolean
  |
-		left : tuple := merge sort aTuple[..|aTuple | ÷ 2] with comparator;
-		right: tuple := merge sort aTuple[|aTuple | ÷ 2 + 1..] with comparator;
+		left : tuple := merge sort aTuple[..|aTuple| ÷ 2] with comparator;
+		right: tuple := merge sort aTuple[|aTuple| ÷ 2 + 1..] with comparator;
 		merge <left,right> with comparator
 ]: tuple;
 

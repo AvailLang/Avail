@@ -113,7 +113,7 @@ extends A_BasicObject
 	/**
 	 * @param onFailure
 	 */
-	void failureContinuation (Continuation1<Throwable> onFailure);
+	void failureContinuation (Continuation1<Exception> onFailure);
 
 	/**
 	 * Dispatch to the descriptor.

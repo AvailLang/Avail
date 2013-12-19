@@ -5534,7 +5534,7 @@ public abstract class AbstractDescriptor
 	 */
 	abstract void o_FailureContinuation (
 		AvailObject object,
-		Continuation1<Throwable> continuation);
+		Continuation1<Exception> continuation);
 
 	/**
 	 * @param object

@@ -4143,7 +4143,7 @@ extends AbstractDescriptor
 	@Override
 	void o_FailureContinuation (
 		final AvailObject object,
-		final Continuation1<Throwable> continuation)
+		final Continuation1<Exception> continuation)
 	{
 		o_Traversed(object).failureContinuation(continuation);
 	}

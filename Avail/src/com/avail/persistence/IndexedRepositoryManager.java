@@ -33,12 +33,18 @@
 package com.avail.persistence;
 
 import java.io.*;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.*;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Level;
+import com.avail.annotations.InnerAccess;
 import com.avail.annotations.Nullable;
 import com.avail.builder.*;
+import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.ModuleDescriptor;
+import com.avail.serialization.Serializer;
+import com.avail.utility.Pair;
 
 /**
  * An {@code IndexedRepositoryManager} manages a persistent {@linkplain
@@ -50,6 +56,16 @@ import com.avail.descriptor.ModuleDescriptor;
 public class IndexedRepositoryManager
 {
 	/**
+	 * The name of the {@link MessageDigest} used to detect file changes.
+	 */
+	private static final String DIGEST_ALGORITHM = "SHA-256";
+
+	/**
+	 * The size in bytes of the digest of a source file.
+	 */
+	private static final int DIGEST_SIZE = 256 / 8;
+
+	/**
 	 * Whether to log repository accesses to System.out.
 	 */
 	private static boolean debugRepository = false;
@@ -58,7 +74,7 @@ public class IndexedRepositoryManager
 	 * The {@linkplain ReentrantLock lock} responsible for guarding against
 	 * unsafe concurrent access.
 	 */
-	private final ReentrantLock lock = new ReentrantLock();
+	@InnerAccess final ReentrantLock lock = new ReentrantLock();
 
 	/**
 	 * The name of the {@linkplain ModuleRoot Avail root} represented by this
@@ -108,7 +124,7 @@ public class IndexedRepositoryManager
 	 *
 	 * @return The repository.
 	 */
-	private IndexedRepository repository ()
+	@InnerAccess IndexedRepository repository ()
 	{
 		final IndexedRepository repo = repository;
 		assert repo != null;
@@ -116,67 +132,506 @@ public class IndexedRepositoryManager
 	}
 
 	/**
-	 * Information kept in memory about a compiled {@linkplain ModuleDescriptor
-	 * module}.
+	 * Keep track of whether changes have happened since the last commit, and
+	 * when the first such change happened.
 	 */
-	private static class ModuleSummary
+	long dirtySince = 0L;
+
+	/**
+	 * Produce a new int hash value from an existing int and a long.
+	 *
+	 * @param currentHash
+	 *        The current hash value.
+	 * @param newLong
+	 *        The long to be mixed in.
+	 * @return
+	 *        A hash value combining the two inputs.
+	 */
+	@InnerAccess static int mix (final int currentHash, final long newLong)
+	{
+		int h = currentHash;
+		h *= A_BasicObject.multiplier;
+		h += (int)newLong;
+		h *= A_BasicObject.multiplier;
+		h ^= (int)(newLong >> 32);
+		return h;
+	}
+
+	/**
+	 * An immutable key which specifies a version of a module.  It includes the
+	 * root-relative name, whether the name refers to a package (a directory),
+	 * and the digest of the file's contents.
+	 */
+	public static class ModuleVersionKey
 	{
 		/**
-		 * Is the {@linkplain ModuleDescriptor module} a package representative?
+		 * The name of this module or package, relative to this repository's
+		 * root.
 		 */
-		public boolean isPackage;
+		public final String rootRelativeName;
 
 		/**
-		 * The {@link File#lastModified() modification time} of the module's
-		 * source file corresponding to the compiled form (i.e., what the
-		 * source modification time was when the module was compiled).
+		 * Is the {@linkplain ModuleDescriptor module} a package
+		 * representative?
 		 */
-		public final long sourceLastModified;
+		public final boolean isPackage;
 
 		/**
-		 * The size of the compiled {@linkplain ModuleDescriptor module}, in
-		 * bytes.
+		 * The SHA256 digest of the UTF-8 representation of the module's
+		 * source code.
 		 */
-		public final long moduleSize;
+		public final byte [] sourceDigest;
+
+		/**
+		 * A hash of all the fields except the index.
+		 */
+		private final int hash;
+
+		@Override
+		public final int hashCode ()
+		{
+			return hash;
+		}
+
+		/**
+		 * Calculate my hash.
+		 *
+		 * @return The hash of my immutable content.
+		 */
+		private int computeHash ()
+		{
+			int h = rootRelativeName.hashCode();
+			h += isPackage ? 0xDEAD_BEEF : 0xA_CABBA6E;
+			for (int i = 0; i < sourceDigest.length; i++)
+			{
+				h = h * A_BasicObject.multiplier + sourceDigest[i];
+			}
+			return h;
+		}
+
+		@Override
+		public boolean equals (@Nullable final Object obj)
+		{
+			if (obj == null)
+			{
+				return false;
+			}
+			if (!(obj instanceof ModuleVersionKey))
+			{
+				return false;
+			}
+			final ModuleVersionKey key = (ModuleVersionKey)obj;
+			return hash == key.hash
+				&& isPackage == key.isPackage
+				&& rootRelativeName.equals(key.rootRelativeName)
+				&& Arrays.equals(sourceDigest, key.sourceDigest);
+		}
+
+		/**
+		 * Output this module version key to the provided {@link
+		 * DataOutputStream}.  An equal key can later be rebuilt via the
+		 * constructor taking a {@link DataInputStream}.
+		 *
+		 * @param binaryStream A DataOutputStream on which to write this key.
+		 * @throws IOException If I/O fails.
+		 */
+		public void write (final DataOutputStream binaryStream)
+			throws IOException
+		{
+			binaryStream.writeUTF(rootRelativeName);
+			binaryStream.writeBoolean(isPackage);
+			binaryStream.write(sourceDigest);
+		}
+
+		/**
+		 * Reconstruct a {@link ModuleVersionKey}, having previously been
+		 * written via {@link #write(DataOutputStream)}.
+		 *
+		 * @param binaryStream Where to read the version key from.
+		 * @throws IOException If I/O fails.
+		 */
+		ModuleVersionKey (final DataInputStream binaryStream)
+			throws IOException
+		{
+			rootRelativeName = binaryStream.readUTF();
+			isPackage = binaryStream.readBoolean();
+			sourceDigest = new byte [DIGEST_SIZE];
+			binaryStream.readFully(sourceDigest);
+			hash = computeHash();
+		}
+
+		/**
+		 * Construct a new {@link ModuleVersionKey}.
+		 *
+		 * @param moduleName
+		 *        The {@linkplain ResolvedModuleName resolved name} of the
+		 *        module.
+		 */
+		public ModuleVersionKey (
+			final ResolvedModuleName moduleName)
+		{
+			final String rootRelative = moduleName.rootRelativeName();
+			final File file = new File(rootRelative);
+			final File parent = file.getParentFile();
+			assert parent == null || !parent.getName().equals(file.getName())
+				: "Representative module encountered – should be package name";
+			this.rootRelativeName = rootRelative;
+			this.isPackage = moduleName.isPackage();
+			this.sourceDigest =
+				moduleName.repository().digestForFile(moduleName);
+			assert sourceDigest.length == DIGEST_SIZE;
+			this.hash = computeHash();
+		}
+	}
+
+	/**
+	 * An immutable key which specifies a version of a module and its context at
+	 * the time of compilation.  It does not explicitly contain the {@link
+	 * ModuleVersionKey}, but it includes the compilation times of the module's
+	 * predecessors.
+	 */
+	public static class ModuleCompilationKey
+	{
+		/**
+		 * The times at which this module's predecessors were compiled, in
+		 * the order specified by the Uses/Extends declarations.
+		 */
+		public final long [] predecessorCompilationTimes;
+
+		/**
+		 * A hash of all the fields except the index.
+		 */
+		private final int hash;
+
+		@Override
+		public final int hashCode ()
+		{
+			return hash;
+		}
+
+		/**
+		 * Calculate my hash.
+		 *
+		 * @return The hash of my immutable content.
+		 */
+		private int computeHash ()
+		{
+			int h = 0x9E5_90125;
+			for (int i = 0; i < predecessorCompilationTimes.length; i++)
+			{
+				h = mix(h, predecessorCompilationTimes[i]);
+			}
+			return h;
+		}
+
+		@Override
+		public boolean equals (@Nullable final Object obj)
+		{
+			if (obj == null)
+			{
+				return false;
+			}
+			if (!(obj instanceof ModuleCompilationKey))
+			{
+				return false;
+			}
+			final ModuleCompilationKey key = (ModuleCompilationKey)obj;
+			return hash == key.hash
+				&& Arrays.equals(
+					predecessorCompilationTimes,
+					key.predecessorCompilationTimes);
+		}
+
+		/**
+		 * Output this module compilation key to the provided {@link
+		 * DataOutputStream}.  An equal key can later be rebuilt via the
+		 * constructor taking a {@link DataInputStream}.
+		 *
+		 * @param binaryStream A DataOutputStream on which to write this key.
+		 * @throws IOException If I/O fails.
+		 */
+		public void write (final DataOutputStream binaryStream)
+			throws IOException
+		{
+			binaryStream.writeInt(predecessorCompilationTimes.length);
+			for (final long predecessorCompilationTime
+				: predecessorCompilationTimes)
+			{
+				binaryStream.writeLong(predecessorCompilationTime);
+			}
+		}
+
+		/**
+		 * Reconstruct a {@link ModuleCompilationKey}, having previously been
+		 * written via {@link #write(DataOutputStream)}.
+		 *
+		 * @param binaryStream Where to read the compilation key from.
+		 * @throws IOException If I/O fails.
+		 */
+		ModuleCompilationKey (final DataInputStream binaryStream)
+			throws IOException
+		{
+			final int predecessorsCount = binaryStream.readInt();
+			predecessorCompilationTimes = new long [predecessorsCount];
+			for (int i = 0; i < predecessorsCount; i++)
+			{
+				predecessorCompilationTimes[i] = binaryStream.readLong();
+			}
+			hash = computeHash();
+		}
+
+		/**
+		 * Construct a new {@link ModuleCompilationKey}.
+		 *
+		 * @param predecessorCompilationTimes
+		 *        The compilation times of this module's predecessors, in
+		 *        the order of import declaration.
+		 */
+		public ModuleCompilationKey (
+			final long [] predecessorCompilationTimes)
+		{
+			this.predecessorCompilationTimes = predecessorCompilationTimes;
+			hash = computeHash();
+		}
+	}
+
+	/**
+	 * Information kept in memory about a specific version of a {@linkplain
+	 * ModuleDescriptor module} file.
+	 */
+	public class ModuleVersion
+	{
+		/**
+		 * The size of the {@linkplain ModuleDescriptor module}'s source code,
+		 * in bytes.
+		 */
+		private final long moduleSize;
+
+		/**
+		 * The names of the modules being imported by this version of this
+		 * module.  The names are local names, in the order they occur in the
+		 * module source.
+		 */
+		private final List<String> localImportNames;
+
+		/**
+		 * All recorded compilations of this version of the module.
+		 */
+		@InnerAccess final Map<ModuleCompilationKey, ModuleCompilation>
+			compilations;
+
+		/**
+		 * Look up the {@link ModuleCompilation} associated with the provided
+		 * {@link ModuleCompilationKey}, answering {@code null} if unavailable.
+		 *
+		 * @param compilationKey
+		 *        The context information about a compilation.
+		 * @return The corresponding compilation or {@code null}.
+		 */
+		public @Nullable ModuleCompilation getCompilation (
+			final ModuleCompilationKey compilationKey)
+		{
+			lock.lock();
+			try
+			{
+				return compilations.get(compilationKey);
+			}
+			finally
+			{
+				lock.unlock();
+			}
+		}
+
+		/**
+		 * Answer the list of local module names imported by this version of the
+		 * module.
+		 *
+		 * @return The list of local module names.
+		 */
+		public List<String> getImports ()
+		{
+			return localImportNames;
+		}
+
+		/**
+		 * Output this module version to the provided {@link
+		 * DataOutputStream}.  It can later be reconstructed via the constructor
+		 * taking a {@link DataInputStream}.
+		 *
+		 * @param binaryStream
+		 *        A DataOutputStream on which to write this module version.
+		 * @throws IOException If I/O fails.
+		 */
+		@InnerAccess void write (final DataOutputStream binaryStream)
+			throws IOException
+		{
+			binaryStream.writeLong(moduleSize);
+			binaryStream.writeInt(localImportNames.size());
+			for (final String importName : localImportNames)
+			{
+				binaryStream.writeUTF(importName);
+			}
+			binaryStream.writeInt(compilations.size());
+			for (final Map.Entry<ModuleCompilationKey, ModuleCompilation>
+				entry : compilations.entrySet())
+			{
+				entry.getKey().write(binaryStream);
+				entry.getValue().write(binaryStream);
+			}
+		}
+
+		/**
+		 * Reconstruct a {@link ModuleVersion}, having previously been
+		 * written via {@link #write(DataOutputStream)}.
+		 *
+		 * @param binaryStream Where to read the key from.
+		 * @throws IOException If I/O fails.
+		 */
+		ModuleVersion (final DataInputStream binaryStream)
+			throws IOException
+		{
+			moduleSize = binaryStream.readLong();
+			int localImportCount = binaryStream.readInt();
+			localImportNames = new ArrayList<>(localImportCount);
+			while (localImportCount-- > 0)
+			{
+				localImportNames.add(binaryStream.readUTF());
+			}
+			int compilationsCount = binaryStream.readInt();
+			compilations = new HashMap<>(compilationsCount);
+			while (compilationsCount-- > 0)
+			{
+				compilations.put(
+					new ModuleCompilationKey(binaryStream),
+					new ModuleCompilation(binaryStream));
+			}
+		}
+
+		/**
+		 * Construct a new {@link ModuleVersion}.
+		 *
+		 * @param moduleSize
+		 *        The size of the compiled module, in bytes.
+		 * @param localImportNames
+		 *        The list of module names being imported.
+		 */
+		public ModuleVersion (
+			final long moduleSize,
+			final List<String> localImportNames)
+		{
+			this.moduleSize = moduleSize;
+			this.localImportNames = new ArrayList<>(localImportNames);
+			this.compilations = new HashMap<>();
+		}
+	}
+
+	/**
+	 * Information kept in memory about a compilation of a {@linkplain
+	 * ModuleDescriptor module}.
+	 */
+	public class ModuleCompilation
+	{
+		/**
+		 * The time at which this module was compiled.
+		 */
+		public final long compilationTime;
 
 		/**
 		 * The persistent record number of this version of the compiled
 		 * {@linkplain ModuleDescriptor module}.
 		 */
-		public final long index;
+		public final long recordNumber;
 
 		/**
-		 * Construct a new {@link ModuleSummary}.
-		 *
-		 * @param isPackage
-		 *        Is the {@linkplain ModuleDescriptor module} a package
-		 *        representative?
-		 * @param sourceLastModified
-		 *        The source file's modification time stamp.
-		 * @param moduleSize
-		 *        The size of the compiled module, in bytes.
-		 * @param index
-		 *        The persistent record number.
+		 * @return
 		 */
-		ModuleSummary (
-			final boolean isPackage,
-			final long sourceLastModified,
-			final long moduleSize,
-			final long index)
+		public @Nullable byte [] getBytes ()
 		{
-			this.isPackage = isPackage;
-			this.sourceLastModified = sourceLastModified;
-			this.moduleSize = moduleSize;
-			this.index = index;
+			lock.lock();
+			try
+			{
+				return repository().get(recordNumber);
+			}
+			finally
+			{
+				lock.unlock();
+			}
+		}
+
+		/**
+		 * Output this module compilation to the provided {@link
+		 * DataOutputStream}.  It can later be reconstructed via the constructor
+		 * taking a {@link DataInputStream}.  Note that the {@link
+		 * ModuleCompilation} is output with the module compilation.
+		 *
+		 * @param binaryStream
+		 *        A DataOutputStream on which to write this module compilation.
+		 * @throws IOException If I/O fails.
+		 */
+		@InnerAccess void write (final DataOutputStream binaryStream)
+			throws IOException
+		{
+			binaryStream.writeLong(compilationTime);
+			binaryStream.writeLong(recordNumber);
+		}
+
+		/**
+		 * Reconstruct a {@link ModuleCompilation}, having previously been
+		 * written via {@link #write(DataOutputStream)}.
+		 *
+		 * @param binaryStream Where to read the key from.
+		 * @throws IOException If I/O fails.
+		 */
+		ModuleCompilation (final DataInputStream binaryStream)
+			throws IOException
+		{
+			compilationTime = binaryStream.readLong();
+			recordNumber = binaryStream.readLong();
+		}
+
+		/**
+		 * Construct a new {@link ModuleCompilation}, adding the serialized
+		 * compiled module bytes to the repository without committing.
+		 *
+		 * @param compilationTime
+		 *        The compilation time of this module.
+		 * @param bytes
+		 *        The {@link Serializer serialized} form of the compiled module.
+		 */
+		public ModuleCompilation (
+			final long compilationTime,
+			final byte [] bytes)
+		{
+			this.compilationTime = compilationTime;
+			final IndexedRepository repo = repository();
+			lock.lock();
+			try
+			{
+				this.recordNumber = repo.longSize();
+				repo.add(recordNumber, bytes);
+			}
+			finally
+			{
+				lock.unlock();
+			}
 		}
 	}
 
 	/**
-	 * A map from {@linkplain ModuleName module name} {@linkplain
-	 * ModuleName#rootRelativeName() root-relative name} to {@linkplain
-	 * ModuleSummary compiled module summary}.
+	 * A {@link Map} used to avoid computing digests of files when the file's
+	 * timestamp has not changed.  Each key is a {@link Pair} consisting of the
+	 * module name relative to this repository's root and that file's
+	 * {@linkplain File#lastModified() last modification} time.  The value is a
+	 * byte array holding the SHA-256 digest of the file content.
 	 */
-	private final Map<String, ModuleSummary> moduleMap =
+	private final Map<Pair<String, Long>, byte []> digestCache =
+		new HashMap<>(100);
+
+	/**
+	 * A map from each {@link ModuleVersionKey} to the corresponding
+	 * {@linkplain ModuleVersion}.
+	 */
+	private final Map<ModuleVersionKey, ModuleVersion> moduleMap =
 		new HashMap<>(100);
 
 	/**
@@ -198,6 +653,7 @@ public class IndexedRepositoryManager
 				System.out.format("Clear %s%n", rootName);
 				System.out.flush();
 			}
+			digestCache.clear();
 			moduleMap.clear();
 			final IndexedRepository repo = repository();
 			repo.close();
@@ -231,152 +687,91 @@ public class IndexedRepositoryManager
 	}
 
 	/**
-	 * Answer whether there is a compiled {@linkplain ModuleDescriptor module}
-	 * for the specified {@linkplain ModuleName source module}.
+	 * Given a resolved module name, determine the cryptographic hash of the
+	 * file contents.  Since we assume that the same filename and modification
+	 * time implies the same digest, we cache the digest under that combination
+	 * for performance.
 	 *
-	 * @param name
-	 *        The name of the source module.
-	 * @return {@code true} if there is already a valid compiled module
-	 *         available, or {@code false} otherwise.
+	 * @param resolvedName
+	 *        The resolved name of the module.
+	 * @return The digest of the file, updating the {@link #digestCache} if
+	 *         necessary.
 	 */
-	public boolean hasKey (final ModuleName name)
+	public byte [] digestForFile (
+		final ResolvedModuleName resolvedName)
 	{
-		if (!name.rootName().equals(rootName))
+		final File sourceFile = resolvedName.sourceReference();
+		assert sourceFile != null;
+		final long lastModification = sourceFile.lastModified();
+		final Pair<String, Long> pair =
+			new Pair<>(resolvedName.rootRelativeName(), lastModification);
+		byte [] digest = digestCache.get(pair);
+		if (digest == null)
 		{
-			return false;
-		}
-		lock.lock();
-		try
-		{
-			final ModuleSummary summary =
-				moduleMap.get(name.rootRelativeName());
-			if (summary != null)
+			// Don't bother protecting against computing the digest for the same
+			// file in multiple threads.  At worst it's extra work, and it's not
+			// likely that maintenance on the build mechanism would *ever* cause
+			// it to do that anyhow.
+			final byte [] buffer = new byte [4096];
+			int bufferSize;
+			final MessageDigest hasher;
+			try (RandomAccessFile reader =
+				new RandomAccessFile(sourceFile, "r"))
 			{
-				return true;
-			}
-			return false;
-		}
-		finally
-		{
-			lock.unlock();
-		}
-	}
-
-	/**
-	 * Answer whether there is a compiled {@linkplain ModuleDescriptor module}
-	 * for the specified {@linkplain ModuleName source module} and last
-	 * modification time.
-	 *
-	 * @param name
-	 *        The name of the source module.
-	 * @param sourceLastModified
-	 *        The last modification time of the source module.
-	 * @return {@code true} if there is already a valid compiled module
-	 *         available, or {@code false} otherwise.
-	 */
-	public boolean hasKey (
-		final ModuleName name,
-		final long sourceLastModified)
-	{
-		if (!name.rootName().equals(rootName))
-		{
-			return false;
-		}
-		lock.lock();
-		try
-		{
-			final ModuleSummary summary =
-				moduleMap.get(name.rootRelativeName());
-			if (summary != null)
-			{
-				if (summary.sourceLastModified == sourceLastModified)
+				hasher = MessageDigest.getInstance(DIGEST_ALGORITHM);
+				while ((bufferSize = reader.read(buffer)) != -1)
 				{
-					return true;
+					hasher.update(buffer, 0, bufferSize);
 				}
 			}
-			return false;
-		}
-		finally
-		{
-			lock.unlock();
-		}
-	}
-
-	/**
-	 * Is the specified {@linkplain ModuleDescriptor module} a package
-	 * representative?
-	 *
-	 * @param name
-	 *        A {@linkplain ModuleName module name}.
-	 * @return {@code true} if the module is a package representative, {@code
-	 *         false} otherwise.
-	 */
-	public boolean isPackage (final ModuleName name)
-	{
-		assert name.rootName().equals(rootName);
-		lock.lock();
-		try
-		{
-			final ModuleSummary summary =
-				moduleMap.get(name.rootRelativeName());
-			assert summary != null;
-			return summary.isPackage;
-		}
-		finally
-		{
-			lock.unlock();
-		}
-	}
-
-	/**
-	 * Answer the specified {@linkplain ModuleDescriptor module}'s size.
-	 *
-	 * @param name
-	 *        A {@linkplain ModuleName module name}.
-	 * @return The size of the compiled module, in bytes.
-	 */
-	public long moduleSize (final ModuleName name)
-	{
-		assert name.rootName().equals(rootName);
-		lock.lock();
-		try
-		{
-			final ModuleSummary summary =
-				moduleMap.get(name.rootRelativeName());
-			assert summary != null;
-			return summary.moduleSize;
-		}
-		finally
-		{
-			lock.unlock();
-		}
-	}
-
-	/**
-	 * Answer the compiled {@linkplain ModuleDescriptor module} for the
-	 * specified {@linkplain ModuleName source module}.
-	 *
-	 * @param name
-	 *        The name of the source module.
-	 * @return The compiled module, or {@code null} if no compiled module is
-	 *         available.
-	 */
-	public @Nullable byte[] get (final ModuleName name)
-	{
-		if (!name.rootName().equals(rootName))
-		{
-			return null;
-		}
-		lock.lock();
-		try
-		{
-			final ModuleSummary summary =
-				moduleMap.get(name.rootRelativeName());
-			if (summary != null)
+			catch (final NoSuchAlgorithmException | IOException e)
 			{
-				return repository().get(summary.index);
+				throw new RuntimeException(e);
 			}
-			return null;
+			digest = hasher.digest();
+			assert digest.length == DIGEST_SIZE;
+			lock.lock();
+			try
+			{
+				digestCache.put(pair, digest);
+				markDirty();
+			}
+			finally
+			{
+				lock.unlock();
+			}
+		}
+		return digest;
+	}
+
+	/**
+	 * If this repository is not already dirty, mark it as dirty as of now.
+	 */
+	public void markDirty ()
+	{
+		if (dirtySince == 0L)
+		{
+			dirtySince = System.currentTimeMillis();
+		}
+	}
+
+	/**
+	 * If this {@link ModuleVersion} exists in the repository, then answer it;
+	 * otherwise answer {@code null}.
+	 *
+	 * @param versionKey
+	 *        The {@link ModuleVersionKey} identifying the version of a module's
+	 *        source.
+	 * @return The associated {@link ModuleVersion} if present, otherwise
+	 *         {@code null}.
+	 */
+	public @Nullable ModuleVersion getVersion (
+		final ModuleVersionKey versionKey)
+	{
+		lock.lock();
+		try
+		{
+			return moduleMap.get(versionKey);
 		}
 		finally
 		{
@@ -385,38 +780,28 @@ public class IndexedRepositoryManager
 	}
 
 	/**
-	 * Answer the compiled {@linkplain ModuleDescriptor module} for the
-	 * specified {@linkplain ModuleName source module} and last modification
-	 * time.
+	 * Record a {@link ModuleVersion version} of a {@linkplain ModuleDescriptor
+	 * module}.  This includes information about the source's digest and the
+	 * list of local imports.
 	 *
-	 * @param name
-	 *        The name of the source module.
-	 * @param sourceLastModified
-	 *        The last modification time of the source module.
-	 * @return The compiled module, or {@code null} if no compiled module is
-	 *         available.
+	 * <p>There must not already be a version with that key in the repository.
+	 *
+	 * @param versionKey
+	 *        The {@link ModuleVersionKey} identifying the version of a module's
+	 *        source.
+	 * @param version
+	 *        The {@link ModuleVersion} to add.
 	 */
-	public @Nullable byte[] get (
-		final ModuleName name,
-		final long sourceLastModified)
+	public void putVersion (
+		final ModuleVersionKey versionKey,
+		final ModuleVersion version)
 	{
-		if (!name.rootName().equals(rootName))
-		{
-			return null;
-		}
 		lock.lock();
 		try
 		{
-			final ModuleSummary summary =
-				moduleMap.get(name.rootRelativeName());
-			if (summary != null)
-			{
-				if (summary.sourceLastModified == sourceLastModified)
-				{
-					return repository().get(summary.index);
-				}
-			}
-			return null;
+			assert !moduleMap.containsKey(versionKey);
+			moduleMap.put(versionKey, version);
+			markDirty();
 		}
 		finally
 		{
@@ -425,39 +810,34 @@ public class IndexedRepositoryManager
 	}
 
 	/**
-	 * Record a compiled {@linkplain ModuleDescriptor module}.
+	 * Record a new {@linkplain ModuleCompilation compilation} of a
+	 * {@linkplain ModuleVersion module version}.  The version must already
+	 * exist in the repository.  The {@linkplain ModuleCompilationKey
+	 * compilation key} must not yet have a {@linkplain ModuleCompilation
+	 * compilation} associated with it.
 	 *
-	 * @param name
-	 *        The {@linkplain ModuleName name} of the module.
-	 * @param sourceLastModified
-	 *        The last modification time of the source module.
-	 * @param compiledBytes
-	 *        A byte array that encodes the compiled module.
-	 * @throws IndexedFileException
+	 * @param versionKey
+	 *        The {@link ModuleVersionKey} identifying the version of a module's
+	 *        source.
+	 * @param compilationKey
+	 *        The {@link ModuleCompilationKey} under which to record the
+	 *        compilation.
+	 * @param compilation
+	 *        The {@link ModuleCompilation} to add.
 	 */
-	public void put (
-			final ResolvedModuleName name,
-			final long sourceLastModified,
-			final byte[] compiledBytes)
-		throws IndexedFileException
+	public void putCompilation (
+		final ModuleVersionKey versionKey,
+		final ModuleCompilationKey compilationKey,
+		final ModuleCompilation compilation)
 	{
-		assert name.rootName().equals(rootName);
 		lock.lock();
 		try
 		{
-			if (debugRepository)
-			{
-				System.out.format("Put %s (%s)%n", rootName, name);
-				System.out.flush();
-			}
-			final IndexedRepository repo = repository();
-			final ModuleSummary summary = new ModuleSummary(
-				name.isPackage(),
-				sourceLastModified,
-				compiledBytes.length,
-				repo.longSize());
-			moduleMap.put(name.rootRelativeName(), summary);
-			repo.add(compiledBytes);
+			final ModuleVersion version = moduleMap.get(versionKey);
+			assert version != null;
+			assert version.getCompilation(compilationKey) == null;
+			version.compilations.put(compilationKey, compilation);
+			markDirty();
 		}
 		finally
 		{
@@ -477,43 +857,43 @@ public class IndexedRepositoryManager
 		lock.lock();
 		try
 		{
-			if (debugRepository)
+			if (dirtySince != 0L)
 			{
-				System.out.format("Commit %s%n", rootName);
-				System.out.flush();
-			}
-			final ByteArrayOutputStream byteStream =
-				new ByteArrayOutputStream(131072);
-			DataOutputStream binaryStream = null;
-			try
-			{
-				binaryStream = new DataOutputStream(byteStream);
-				binaryStream.writeInt(moduleMap.size());
-				for (final Map.Entry<String, ModuleSummary> e :
-					moduleMap.entrySet())
+				if (debugRepository)
 				{
-					final String name = e.getKey();
-					assert name != null;
-					binaryStream.writeUTF(name);
-					final ModuleSummary summary = e.getValue();
-					assert summary != null;
-					binaryStream.writeBoolean(summary.isPackage);
-					binaryStream.writeLong(summary.sourceLastModified);
-					binaryStream.writeLong(summary.moduleSize);
-					binaryStream.writeLong(summary.index);
+					System.out.format("Commit %s%n", rootName);
+					System.out.flush();
 				}
-			}
-			finally
-			{
-				if (binaryStream != null)
+				final ByteArrayOutputStream byteStream =
+					new ByteArrayOutputStream(131072);
+				try (final DataOutputStream binaryStream =
+					new DataOutputStream(byteStream))
 				{
-					binaryStream.close();
+					binaryStream.writeInt(digestCache.size());
+					for (final Map.Entry<Pair<String, Long>, byte []>
+						e : digestCache.entrySet())
+					{
+						final Pair<String, Long> pair = e.getKey();
+						final byte [] value = e.getValue();
+						binaryStream.writeUTF(pair.first());
+						binaryStream.writeLong(pair.second());
+						assert value.length == DIGEST_SIZE;
+						binaryStream.write(value);
+					}
+					binaryStream.writeInt(moduleMap.size());
+					for (final Map.Entry<ModuleVersionKey, ModuleVersion>
+						e : moduleMap.entrySet())
+					{
+						e.getKey().write(binaryStream);
+						e.getValue().write(binaryStream);
+					}
 				}
+				reopenIfNecessary();
+				final IndexedRepository repo = repository();
+				repo.metaData(byteStream.toByteArray());
+				repo.commit();
+				dirtySince = 0L;
 			}
-			reopenIfNecessary();
-			final IndexedRepository repo = repository();
-			repo.metaData(byteStream.toByteArray());
-			repo.commit();
 		}
 		catch (final IndexedFileException e)
 		{
@@ -522,6 +902,31 @@ public class IndexedRepositoryManager
 		catch (final Exception e)
 		{
 			throw new IndexedFileException(e);
+		}
+		finally
+		{
+			lock.unlock();
+		}
+	}
+
+	/**
+	 * Commit the pending changes if they're more than the specified number of
+	 * milliseconds old.
+	 *
+	 * @param maximumChangeAgeMs
+	 *        The maximum age in milliseconds that we should leave changes
+	 *        uncommitted.
+	 */
+	public void commitIfStaleChanges (final long maximumChangeAgeMs)
+	{
+		lock.lock();
+		try
+		{
+			if (dirtySince != 0L
+				&& System.currentTimeMillis() - dirtySince > maximumChangeAgeMs)
+			{
+				commit();
+			}
 		}
 		finally
 		{
@@ -565,47 +970,52 @@ public class IndexedRepositoryManager
 	 */
 	private void openOrCreate () throws IndexedFileException
 	{
+		assert !isOpen;
 		try
 		{
 			final boolean exists = fileName.exists();
 			IndexedFile.logger.log(
 				Level.INFO,
 				"exists: {0} = {1}",
-				new Object[] { fileName, exists });
+				new Object [] { fileName, exists });
 			final IndexedRepository repo = exists
 				? IndexedFile.openFile(IndexedRepository.class, fileName, true)
 				: IndexedFile.newFile(IndexedRepository.class, fileName, null);
 			if (exists)
 			{
-				final byte[] metadata = repo.metaData();
+				final byte [] metadata = repo.metaData();
 				if (metadata != null)
 				{
-					DataInputStream binaryStream = null;
-					try
+					final ByteArrayInputStream byteStream =
+						new ByteArrayInputStream(metadata);
+					try (final DataInputStream binaryStream =
+						new DataInputStream(byteStream))
 					{
-						final ByteArrayInputStream byteStream =
-							new ByteArrayInputStream(metadata);
-						binaryStream = new DataInputStream(byteStream);
-						int count = binaryStream.readInt();
-						while (count-- > 0)
+						int digestCacheSize = binaryStream.readInt();
+						while (digestCacheSize-- > 0)
 						{
 							final String rootRelativeName =
 								binaryStream.readUTF();
-							final ModuleSummary summary =
-								new ModuleSummary(
-									binaryStream.readBoolean(),
-									binaryStream.readLong(),
-									binaryStream.readLong(),
-									binaryStream.readLong());
-							moduleMap.put(rootRelativeName, summary);
+							final long lastModification =
+								binaryStream.readLong();
+							final byte [] digest = new byte [DIGEST_SIZE];
+							binaryStream.readFully(digest);
+							digestCache.put(
+								new Pair<String, Long>(
+									rootRelativeName,
+									lastModification),
+								digest);
 						}
-					}
-					finally
-					{
-						if (binaryStream != null)
+						int moduleMapSize = binaryStream.readInt();
+						while (moduleMapSize-- > 0)
 						{
-							binaryStream.close();
+							final ModuleVersionKey versionKey =
+								new ModuleVersionKey(binaryStream);
+							final ModuleVersion version =
+								new ModuleVersion(binaryStream);
+							moduleMap.put(versionKey, version);
 						}
+						assert byteStream.available() == 0;
 					}
 				}
 			}
@@ -733,8 +1143,8 @@ public class IndexedRepositoryManager
 		{
 			try (final RandomAccessFile file = new RandomAccessFile(path, "r"))
 			{
-				final byte[] repositoryHeader = IndexedRepository.header();
-				final byte[] buffer = new byte[repositoryHeader.length];
+				final byte [] repositoryHeader = IndexedRepository.header();
+				final byte [] buffer = new byte[repositoryHeader.length];
 				int pos = 0;
 				while (true)
 				{

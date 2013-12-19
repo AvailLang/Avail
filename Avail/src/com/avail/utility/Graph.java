@@ -505,6 +505,8 @@ public class Graph <Vertex>
 	 */
 	private class ParallelVisitor
 	{
+		final static boolean debug = true;
+
 		/**
 		 * This action is invoked during {@link #execute() execution} exactly
 		 * once for each vertex, precisely when that vertex's predecessors have
@@ -608,6 +610,10 @@ public class Graph <Vertex>
 					final int countdown = predecessorCountdowns.get(vertex);
 					if (countdown == 1)
 					{
+						if (debug)
+						{
+							System.out.format("Visiting %s%n", vertex).flush();
+						}
 						visitAction.value(
 							vertex,
 							new Continuation0()
@@ -635,9 +641,13 @@ public class Graph <Vertex>
 										final Set<Vertex> successors =
 											successorsOf(vertex);
 										stack.addAll(successors);
-//										System.out.format(
-//											"Parallel completion %s%n",
-//											vertex);
+										if (debug)
+										{
+											System.out
+												.format("Completed %s%n",
+													vertex)
+												.flush();
+										}
 										ParallelVisitor.this.notifyAll();
 									}
 								}

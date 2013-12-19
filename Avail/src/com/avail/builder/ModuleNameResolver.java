@@ -193,8 +193,8 @@ public final class ModuleNameResolver
 	 */
 	private final LRUCache<ModuleName, ModuleNameResolutionResult>
 		resolutionCache = new LRUCache<>(
-			100,
-			100,
+			1000,
+			50,
 			new Transformer1<ModuleName, ModuleNameResolutionResult>()
 			{
 				@Override
@@ -229,8 +229,7 @@ public final class ModuleNameResolver
 					assert components.length > 1;
 					assert components[0].isEmpty();
 
-					final Deque<String> nameStack =
-						new LinkedList<>();
+					final Deque<String> nameStack = new LinkedList<>();
 					nameStack.addLast("/" + enclosingRoot);
 					Deque<File> pathStack = null;
 
@@ -283,22 +282,6 @@ public final class ModuleNameResolver
 							}
 						}
 					}
-					// Otherwise, just search the repository.
-					else
-					{
-						while (!nameStack.isEmpty())
-						{
-							canonicalName = new ModuleName(
-								nameStack.removeLast(),
-								canonicalName.localName());
-							checkedPaths.add(canonicalName);
-							if (root.repository().hasKey(canonicalName))
-							{
-								repository = root.repository();
-								break;
-							}
-						}
-					}
 
 					// If resolution failed, then one final option is available:
 					// search the other roots.
@@ -327,14 +310,6 @@ public final class ModuleNameResolver
 									{
 										repository = root.repository();
 										sourceFile = trial;
-										break;
-									}
-								}
-								else
-								{
-									if (root.repository().hasKey(canonicalName))
-									{
-										repository = root.repository();
 										break;
 									}
 								}
@@ -371,7 +346,7 @@ public final class ModuleNameResolver
 						}
 						else
 						{
-							isPackage = repository.isPackage(canonicalName);
+							isPackage = false;  // For now.
 						}
 						return new ModuleNameResolutionResult(
 							new ResolvedModuleName(
@@ -474,8 +449,8 @@ public final class ModuleNameResolver
 	 *        A fully-qualified {@linkplain ModuleName module name}.
 	 * @param dependent
 	 *        The name of the module that requires this resolution, if any.
-	 * @return A {@linkplain ResolvedModuleName resolved module name}, or {@code
-	 *         null} if resolution failed.
+	 * @return A {@linkplain ResolvedModuleName resolved module name} if the
+	 *         resolution was successful.
 	 * @throws UnresolvedDependencyException when the resolution has failed.
 	 */
 	public ResolvedModuleName resolve (
@@ -496,5 +471,16 @@ public final class ModuleNameResolver
 			throw result.exception();
 		}
 		return result.resolvedModule();
+	}
+
+	/**
+	 * Commit all dirty repositories.
+	 */
+	public void commitRepositories ()
+	{
+		for (final ModuleRoot root : moduleRoots())
+		{
+			root.repository().commit();
+		}
 	}
 }

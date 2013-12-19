@@ -57,7 +57,7 @@ public enum ParsingConversionRule
 			final A_Phrase input,
 			final ParserState startingParserState,
 			final Continuation1<A_Phrase> continuation,
-			final Continuation1<Throwable> onFailure)
+			final Continuation1<Exception> onFailure)
 		{
 			continuation.value(input);
 		}
@@ -76,7 +76,7 @@ public enum ParsingConversionRule
 			final A_Phrase input,
 			final ParserState startingParserState,
 			final Continuation1<A_Phrase> continuation,
-			final Continuation1<Throwable> onFailure)
+			final Continuation1<Exception> onFailure)
 		{
 			final A_Tuple expressions = input.expressionsTuple();
 			final A_Number count = IntegerDescriptor.fromInt(
@@ -106,7 +106,7 @@ public enum ParsingConversionRule
 			final A_Phrase input,
 			final ParserState startingParserState,
 			final Continuation1<A_Phrase> continuation,
-			final Continuation1<Throwable> onFailure)
+			final Continuation1<Exception> onFailure)
 		{
 			final A_Tuple expressions =
 				input.expressionsTuple();
@@ -135,7 +135,7 @@ public enum ParsingConversionRule
 			final A_Phrase input,
 			final ParserState startingParserState,
 			final Continuation1<A_Phrase> continuation,
-			final Continuation1<Throwable> onFailure)
+			final Continuation1<Exception> onFailure)
 		{
 			startingParserState.evaluatePhraseThen(
 				input,
@@ -184,7 +184,7 @@ public enum ParsingConversionRule
 		final A_Phrase input,
 		final ParserState startingParserState,
 		final Continuation1<A_Phrase> continuation,
-		final Continuation1<Throwable> onFailure);
+		final Continuation1<Exception> onFailure);
 
 	/**
 	 * Construct a new {@link ParsingConversionRule}.

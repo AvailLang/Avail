@@ -97,14 +97,14 @@ extends ModuleName
 
 	/**
 	 * Does the {@linkplain ResolvedModuleName resolved module name} represent
-	 * a package? This is a cached value produced by {@link
-	 * #isPackage()}.
+	 * a package?
 	 */
 	private final boolean isPackage;
 
 	/**
 	 * Does the {@linkplain ResolvedModuleName resolved module name} represent
-	 * a package?
+	 * a package?  A package representative is a module file with the same name
+	 * as the directory in which it resides.
 	 *
 	 * @return {@code true} if the {@linkplain ResolvedModuleName resolved
 	 *         module name} represents a package, {@code false} otherwise.
@@ -124,11 +124,8 @@ extends ModuleName
 	public long moduleSize ()
 	{
 		final File ref = sourceReference;
-		if (ref != null)
-		{
-			return ref.length();
-		}
-		return repository.moduleSize(this);
+		assert ref != null : "Source file \"" + ref + "\" is missing";
+		return ref.length();
 	}
 
 	/**
@@ -158,6 +155,20 @@ extends ModuleName
 		this.isPackage = isPackage;
 		this.repository = repository;
 		this.sourceReference = sourceReference;
+		if (sourceReference != null)
+		{
+			assert sourceReference.isFile();
+			final String fileName = sourceReference.getName();
+			final File directoryName = sourceReference.getParentFile();
+			if (directoryName != null)
+			{
+				if (isPackage != (fileName.equals(directoryName.getName())))
+				{
+					// Debug
+					assert isPackage == (fileName.equals(directoryName.getName()));
+				}
+			}
+		}
 	}
 
 	/**

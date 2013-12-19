@@ -6405,7 +6405,7 @@ implements
 	 */
 	@Override
 	public void failureContinuation (
-		final Continuation1<Throwable> continuation)
+		final Continuation1<Exception> continuation)
 	{
 		descriptor.o_FailureContinuation(this, continuation);
 	}

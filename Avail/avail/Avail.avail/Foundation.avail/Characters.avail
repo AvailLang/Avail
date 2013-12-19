@@ -931,10 +931,10 @@ Public stable method "_is a letter" is
  	c : character 
 |
 	cp ::= c's code point;
-	
+
 	if cp < 128 then 
 	[
-			65 ≤ cp ≤ 90 ∨ [97 ≤ cp ≤ 122]
+		65 ≤ cp ≤ 90 ∨ [97 ≤ cp ≤ 122]
 	]
 	else 
 	[
