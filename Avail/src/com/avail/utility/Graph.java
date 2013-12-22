@@ -505,7 +505,8 @@ public class Graph <Vertex>
 	 */
 	private class ParallelVisitor
 	{
-		final static boolean debug = true;
+		/** Whether to log visit information to System.out. */
+		final static boolean debug = false;
 
 		/**
 		 * This action is invoked during {@link #execute() execution} exactly
@@ -644,7 +645,8 @@ public class Graph <Vertex>
 										if (debug)
 										{
 											System.out
-												.format("Completed %s%n",
+												.format(
+													"Completed %s%n",
 													vertex)
 												.flush();
 										}

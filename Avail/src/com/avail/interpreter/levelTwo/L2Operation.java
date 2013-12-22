@@ -32,8 +32,6 @@
 
 package com.avail.interpreter.levelTwo;
 
-import static com.avail.interpreter.levelTwo.L2OperandType.*;
-import static com.avail.interpreter.levelTwo.register.FixedRegister.FUNCTION;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;

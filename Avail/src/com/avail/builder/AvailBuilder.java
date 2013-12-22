@@ -110,6 +110,24 @@ public final class AvailBuilder
 	@InnerAccess final Continuation3<ModuleName, Long, Long> globalTracker;
 
 	/**
+	 * A {@link Graph} of {@link ResolvedModuleName}s, representing the
+	 * relationships between all modules currently loaded or involved in the
+	 * current build action.
+	 */
+	public final Graph<ResolvedModuleName> moduleGraph =
+		new Graph<ResolvedModuleName>();
+
+	/**
+	 * A map from each {@link ResolvedModuleName} to its currently loaded
+	 * {@link ModuleCompilation}.
+	 */
+	public final Map<ResolvedModuleName, ModuleCompilation>
+		moduleCompilations =
+			Collections
+				.<ResolvedModuleName, ModuleCompilation>synchronizedMap(
+					new HashMap<ResolvedModuleName, ModuleCompilation>());
+
+	/**
 	 * Construct an {@link AvailBuilder} for the provided runtime.  During a
 	 * build, the passed trackers will be invoked to show progress.
 	 *
@@ -185,21 +203,6 @@ public final class AvailBuilder
 		{
 			return terminator;
 		}
-
-		/**
-		 * A {@link Graph} of {@link ResolvedModuleName}s, representing the
-		 * relationships between all modules currently loaded or involved in the
-		 * current build action.
-		 */
-		public final Graph<ResolvedModuleName> moduleGraph =
-			new Graph<ResolvedModuleName>();
-
-		/**
-		 * A map from each {@link ResolvedModuleName} to its {@link
-		 * ModuleState}.
-		 */
-		public final Map<ResolvedModuleName, ModuleState> moduleStates =
-			new HashMap<>();
 
 		/**
 		 * The number of trace requests that have been scheduled.
@@ -493,35 +496,6 @@ public final class AvailBuilder
 		/** The number of bytes compiled so far. */
 		final @InnerAccess AtomicLong bytesCompiled = new AtomicLong(0L);
 
-		private final class ModuleState
-		{
-			final ResolvedModuleName moduleName;
-
-			long modulePosition = 0L;
-
-			long moduleSize;
-
-			@Nullable A_Module module;
-
-			long compilationTime;
-
-			/**
-			 * Construct a new {@link ModuleState}.
-			 *
-			 * @param moduleName
-			 *        The {@linkplain ResolvedModuleName resolved name} of the
-			 *        module.
-			 */
-			public ModuleState (
-				final ResolvedModuleName moduleName)
-			{
-				this.moduleName = moduleName;
-				final File reference = moduleName.sourceReference();
-				assert reference != null;
-				this.moduleSize = reference.length();
-			}
-		}
-
 		/**
 		 * Schedule a build of the specified {@linkplain ModuleDescriptor
 		 * module}, on the assumption that its predecessors have already been
@@ -617,48 +591,40 @@ public final class AvailBuilder
 						"Already loaded: \"%s\"%n",
 						moduleName.qualifiedName());
 				}
+				assert moduleCompilations.containsKey(moduleName);
 				postLoad(moduleName, 0L);
 				completionAction.value();
 			}
 			else
 			{
-				final ModuleState moduleState = new ModuleState(moduleName);
-				synchronized (this)
-				{
-					moduleStates.put(moduleName, moduleState);
-				}
+				assert !moduleCompilations.containsKey(moduleName);
 				final IndexedRepositoryManager repository =
 					moduleName.repository();
 				final ModuleVersionKey versionKey =
 					new ModuleVersionKey(moduleName);
 				final ModuleVersion version = repository.getVersion(versionKey);
-				if (version == null)
-				{
-					// Breakpoint here.
-					@SuppressWarnings("unused")
-					final
-					int x = 1;
-				}
 				assert version != null
 				: "Module version should have been populated during tracing";
-				final Map<String, ResolvedModuleName> predecessorsMap =
+				final Map<String, ModuleCompilation> compilationsByName =
 					new HashMap<>();
 				for (final ResolvedModuleName predecessorName :
 					moduleGraph.predecessorsOf(moduleName))
 				{
-					predecessorsMap.put(
-						predecessorName.localName(), predecessorName);
+					final String localName = predecessorName.localName();
+					final ModuleCompilation predecessorCompilation =
+						moduleCompilations.get(predecessorName);
+					assert predecessorCompilation != null;
+					compilationsByName.put(localName, predecessorCompilation);
 				}
 				final List<String> imports = version.getImports();
 				final long [] predecessorCompilationTimes =
 					new long [imports.size()];
 				for (int i = 0; i < predecessorCompilationTimes.length; i++)
 				{
-					final ResolvedModuleName resolvedImportName =
-						predecessorsMap.get(imports.get(i));
-					final ModuleState state =
-						moduleStates.get(resolvedImportName);
-					predecessorCompilationTimes[i] = state.compilationTime;
+					final ModuleCompilation predecessorCompilation =
+						compilationsByName.get(imports.get(i));
+					predecessorCompilationTimes[i] =
+						predecessorCompilation.compilationTime;
 				}
 				final ModuleCompilationKey compilationKey =
 					new ModuleCompilationKey(predecessorCompilationTimes);
@@ -668,6 +634,10 @@ public final class AvailBuilder
 				{
 					// The current version of the module is already
 					// compiled, so load the repository's version.
+					synchronized (this)
+					{
+						moduleCompilations.put(moduleName, compilation);
+					}
 					loadRepositoryModule(
 						moduleName,
 						compilation,
@@ -678,7 +648,7 @@ public final class AvailBuilder
 					// Compile the module and cache its compiled form.
 					compileModule(
 						moduleName,
-						predecessorCompilationTimes,
+						compilationKey,
 						completionAction);
 				}
 			}
@@ -716,7 +686,6 @@ public final class AvailBuilder
 		{
 			localTracker.value(moduleName, -1L, -1L, -1L);
 			// Read the module data from the repository.
-			final IndexedRepositoryManager repository = moduleName.repository();
 			final byte [] bytes = compilation.getBytes();
 			assert bytes != null;
 			final ByteArrayInputStream inputStream = validatedBytesFrom(bytes);
@@ -842,13 +811,15 @@ public final class AvailBuilder
 		 * @param moduleName
 		 *        The {@linkplain ResolvedModuleName resolved name} of the
 		 *        module that should be loaded.
-		 * @param predecessorCompilationTimes
-		 *        The times ({@code long}s) at which the module's currently
-		 *        loaded predecessors were compiled, listed in the same order as
-		 *        the module's {@linkplain ModuleHeader#importedModules
+		 * @param compilationKey
+		 *        The circumstances of compilation of this module.  Currently
+		 *        this is just the compilation times ({@code long}s) of the
+		 *        module's currently loaded predecessors, listed in the same
+		 *        order as the module's {@linkplain ModuleHeader#importedModules
 		 *        imports}.
 		 * @param completionAction
-		 *        What to do after loading the module successfully.
+		 *        What to do after loading the module successfully or
+		 *        unsuccessfully.
 		 * @throws IOException
 		 *         If the source module cannot be opened or read.
 		 * @throws AvailCompilerException
@@ -856,7 +827,7 @@ public final class AvailBuilder
 		 */
 		private void compileModule (
 				final ResolvedModuleName moduleName,
-				final long [] predecessorCompilationTimes,
+				final ModuleCompilationKey compilationKey,
 				final Continuation0 completionAction)
 			throws IOException, AvailCompilerException
 		{
@@ -864,11 +835,9 @@ public final class AvailBuilder
 			// Capture the file's modification time *before* compiling.  That
 			// way if the file is modified during compiling, the next build will
 			// simply treat the stored data as invalid and recompile it.
-			final File sourceReference = moduleName.sourceReference();
-			assert sourceReference != null;
-			final IndexedRepositoryManager repository = moduleName.repository();
 			final ModuleVersionKey versionKey =
 				new ModuleVersionKey(moduleName);
+			final IndexedRepositoryManager repository = moduleName.repository();
 			final Continuation1<AbstractAvailCompiler> continuation =
 				new Continuation1<AbstractAvailCompiler>()
 				{
@@ -913,9 +882,6 @@ public final class AvailBuilder
 								{
 									final ByteArrayOutputStream stream =
 										compiler.serializerOutputStream;
-									final ModuleCompilationKey compilationKey =
-										new ModuleCompilationKey(
-											predecessorCompilationTimes);
 									// This is the moment of compilation.
 									final long compilationTime =
 										System.currentTimeMillis();
@@ -930,6 +896,8 @@ public final class AvailBuilder
 									repository.commitIfStaleChanges(
 										maximumStaleRepositoryMs);
 									postLoad(moduleName, lastPosition.value);
+									moduleCompilations.put(
+										moduleName, compilation);
 									completionAction.value();
 								}
 							},
@@ -944,6 +912,7 @@ public final class AvailBuilder
 										moduleName,
 										lastPosition.value,
 										killer);
+									completionAction.value();
 								}
 							});
 					}
@@ -1070,10 +1039,10 @@ public final class AvailBuilder
 		}
 		System.out.format(
 			"Traced %d modules (%d edges).%n",
-			state.moduleGraph.size(),
+			moduleGraph.size(),
 			state.traceCompletions);
 		System.out.flush();
-		state.moduleGraph.parallelVisit(
+		moduleGraph.parallelVisit(
 			new Continuation2<ResolvedModuleName, Continuation0>()
 			{
 				@Override
@@ -1087,7 +1056,7 @@ public final class AvailBuilder
 				}
 			});
 		// Parallel load has now completed or failed.
-		final @Nullable Exception exception = state.terminator;
+		final @Nullable Exception exception = state.terminator();
 		if (exception != null)
 		{
 			throw exception;
