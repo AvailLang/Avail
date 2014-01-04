@@ -35,9 +35,11 @@ package com.avail.persistence;
 import java.io.*;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Level;
+import javax.xml.bind.DatatypeConverter;
 import com.avail.annotations.InnerAccess;
 import com.avail.annotations.Nullable;
 import com.avail.builder.*;
@@ -241,6 +243,16 @@ public class IndexedRepositoryManager
 			binaryStream.writeUTF(rootRelativeName);
 			binaryStream.writeBoolean(isPackage);
 			binaryStream.write(sourceDigest);
+		}
+
+		@Override
+		public String toString ()
+		{
+			return String.format(
+				"VersionKey(%s @%s...)",
+				rootRelativeName,
+				DatatypeConverter.printHexBinary(
+					Arrays.copyOf(sourceDigest, 3)));
 		}
 
 		/**
@@ -480,6 +492,15 @@ public class IndexedRepositoryManager
 			}
 		}
 
+		@Override
+		public String toString ()
+		{
+			return String.format(
+				"Version:%n\t\timports=%s%n\t\tcompilations=%s",
+				localImportNames,
+				compilations.values());
+		}
+
 		/**
 		 * Reconstruct a {@link ModuleVersion}, having previously been
 		 * written via {@link #write(DataOutputStream)}.
@@ -573,6 +594,15 @@ public class IndexedRepositoryManager
 		{
 			binaryStream.writeLong(compilationTime);
 			binaryStream.writeLong(recordNumber);
+		}
+
+		@Override
+		public String toString ()
+		{
+			return String.format(
+				"Compilation(%tFT%<tTZ, rec=%d)",
+				compilationTime,
+				recordNumber);
 		}
 
 		/**
@@ -1161,5 +1191,19 @@ public class IndexedRepositoryManager
 			}
 		}
 		return false;
+	}
+
+
+	@Override
+	public String toString ()
+	{
+		final Formatter out = new Formatter();
+		out.format("Repository \"%s\" with modules:", rootName);
+		for (final Map.Entry<ModuleVersionKey, ModuleVersion> entry
+			: moduleMap.entrySet())
+		{
+			out.format("%n\t%s → %s", entry.getKey(), entry.getValue());
+		}
+		return out.toString();
 	}
 }

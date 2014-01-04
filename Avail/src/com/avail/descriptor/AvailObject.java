@@ -5339,7 +5339,7 @@ implements
 	@Override
 	public Order numericCompare (final A_Number another)
 	{
-		return  descriptor.o_NumericCompare(this, another);
+		return descriptor.o_NumericCompare(this, another);
 	}
 
 	/**

@@ -119,6 +119,15 @@ public class Graph <Vertex>
 	@InnerAccess final Map<Vertex, Set<Vertex>> inEdges = new HashMap<>();
 
 	/**
+	 * Remove all edges and vertices from the graph.
+	 */
+	public void clear ()
+	{
+		outEdges.clear();
+		inEdges.clear();
+	}
+
+	/**
 	 * Add a vertex to the graph.  Fail if the vertex is already present in the
 	 * graph.  The vertex initially has no edges within this graph.
 	 *

@@ -446,7 +446,7 @@ public class Compiler
 				runtime,
 				localTracker(configuration),
 				globalTracker(configuration));
-			builder.build(moduleName);
+			builder.buildTarget(moduleName);
 
 			// Successful compilation.
 			if (configuration.hasReports())
@@ -488,9 +488,9 @@ public class Compiler
 
 			return;
 		}
-		catch (final InterruptedException e)
+		catch (final Exception e)
 		{
-			// Programmer error within the compiler.
+			// Any other problem within the compiler.
 			e.printStackTrace();
 			return;
 		}

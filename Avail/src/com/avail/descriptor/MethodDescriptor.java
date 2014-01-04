@@ -311,7 +311,7 @@ extends Descriptor
 		 * continuation}.  For each non-leaf node, first invoke the
 		 * preInternalNode, save the memento, recurse into the ifCheckHolds
 		 * subtree, invoke the intraInternalNode with the saved memento, recurse
-		 * into the ifCheckFails  subtree, then invoke the postInternalNode with
+		 * into the ifCheckFails subtree, then invoke the postInternalNode with
 		 * the same memento as before.
 		 *
 		 * @param preInternalNode

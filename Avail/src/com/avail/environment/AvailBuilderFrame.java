@@ -54,6 +54,7 @@ import com.avail.annotations.*;
 import com.avail.builder.*;
 import com.avail.compiler.*;
 import com.avail.compiler.AbstractAvailCompiler.*;
+import com.avail.compiler.scanning.AvailScannerException;
 import com.avail.descriptor.*;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
@@ -454,7 +455,7 @@ extends JFrame
 				{
 					root.repository().reopenIfNecessary();
 				}
-				availBuilder.build(new ModuleName(targetModuleName()));
+				availBuilder.buildTarget(new ModuleName(targetModuleName()));
 				// Close all the repositories.
 				for (final ModuleRoot root : resolver.moduleRoots().roots())
 				{
@@ -464,6 +465,16 @@ extends JFrame
 			}
 			catch (final FiberTerminationException e)
 			{
+				terminator = e;
+				return null;
+			}
+			catch (final AvailScannerException e)
+			{
+				System.err.format(
+					"Lexical scanning error: %s (%s:%d)%n",
+					e.getMessage(),
+					e.moduleName(),
+					e.failureLineNumber());
 				terminator = e;
 				return null;
 			}
@@ -506,7 +517,7 @@ extends JFrame
 				terminator = e;
 				return null;
 			}
-			catch (final Throwable e)
+			catch (final Exception e)
 			{
 				e.printStackTrace();
 				terminator = e;

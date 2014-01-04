@@ -1395,7 +1395,7 @@ Semantic restriction "While_" is
  * 
  * @method "Until_"
  * @param "action" "[]→boolean"
- *        The function to apply repeatedly. It must answer `false` if it  should
+ *        The function to apply repeatedly. It must answer `false` if it should
  *        run again.
  * @returns "⊤"
  */

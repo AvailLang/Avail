@@ -35,7 +35,6 @@ package com.avail.builder;
 import java.io.*;
 import java.nio.ByteBuffer;
 import java.util.*;
-import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.*;
 import java.util.zip.CRC32;
 import java.util.zip.Checksum;
@@ -43,6 +42,7 @@ import com.avail.*;
 import com.avail.annotations.*;
 import com.avail.compiler.*;
 import com.avail.compiler.AbstractAvailCompiler.*;
+import com.avail.compiler.scanning.AvailScannerException;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 import com.avail.persistence.IndexedRepositoryManager;
@@ -67,7 +67,7 @@ public final class AvailBuilder
 	/**
 	 * Whether to debug the builder.
 	 */
-	@InnerAccess static final boolean debugBuilder = false;
+	@InnerAccess static final boolean debugBuilder = true;
 
 	/**
 	 * The maximum age, in milliseconds, that changes should be left uncommitted
@@ -112,7 +112,8 @@ public final class AvailBuilder
 	/**
 	 * A {@link Graph} of {@link ResolvedModuleName}s, representing the
 	 * relationships between all modules currently loaded or involved in the
-	 * current build action.
+	 * current build action.  Modules are only added here after they have been
+	 * locally traced successfully.
 	 */
 	public final Graph<ResolvedModuleName> moduleGraph =
 		new Graph<ResolvedModuleName>();
@@ -121,11 +122,9 @@ public final class AvailBuilder
 	 * A map from each {@link ResolvedModuleName} to its currently loaded
 	 * {@link ModuleCompilation}.
 	 */
-	public final Map<ResolvedModuleName, ModuleCompilation>
-		moduleCompilations =
-			Collections
-				.<ResolvedModuleName, ModuleCompilation>synchronizedMap(
-					new HashMap<ResolvedModuleName, ModuleCompilation>());
+	public final Map<ResolvedModuleName, ModuleCompilation> moduleCompilations =
+		Collections.<ResolvedModuleName, ModuleCompilation>synchronizedMap(
+			new HashMap<ResolvedModuleName, ModuleCompilation>());
 
 	/**
 	 * Construct an {@link AvailBuilder} for the provided runtime.  During a
@@ -265,19 +264,34 @@ public final class AvailBuilder
 							ResolvedModuleName resolvedName = null;
 							try
 							{
+								if (debugBuilder)
+								{
+									System.out.println(
+										"Resolve: " + qualifiedName);
+								}
 								resolvedName =
 									runtime.moduleNameResolver().resolve(
 										qualifiedName, resolvedSuccessor);
-								traceModuleImports(
-									resolvedName,
-									resolvedSuccessor,
-									recursionSet);
 							}
 							catch (final Exception e)
 							{
+								if (debugBuilder)
+								{
+									System.out.println(
+										"Fail resolution: "+ e);
+								}
 								failTrace(e);
 								indicateTraceCompleted();
+								return;
 							}
+							if (debugBuilder)
+							{
+								System.out.println("Trace: " + resolvedName);
+							}
+							traceModuleImports(
+								resolvedName,
+								resolvedSuccessor,
+								recursionSet);
 						}
 					}
 				}));
@@ -285,7 +299,10 @@ public final class AvailBuilder
 
 		/**
 		 * Trace the imports of the {@linkplain ModuleDescriptor module}
-		 * specified by the given {@linkplain ModuleName module name}.
+		 * specified by the given {@linkplain ModuleName module name}.  If a
+		 * failure happens, record it with {@link #failTrace(Exception)}.
+		 * Whether a success or failure happens, end by invoking {@link
+		 * #indicateTraceCompleted()}.
 		 *
 		 * @param resolvedName
 		 *        A resolved {@linkplain ModuleName module name} to trace.
@@ -296,41 +313,30 @@ public final class AvailBuilder
 		 * @param recursionSet
 		 *        An insertion-ordered {@linkplain Set set} that remembers all
 		 *        modules visited along this branch of the trace.
-		 *
-		 * @throws IOException
-		 *         If the source module cannot be opened or read.
-		 * @throws AvailCompilerException
-		 *         If the {@linkplain AbstractAvailCompiler compiler} is unable
-		 *         to find a module declaration for this {@linkplain
-		 *         ModuleDescriptor module}.
-		 * @throws RecursiveDependencyException
-		 *         If the specified {@linkplain ModuleDescriptor module}
-		 *         recursively depends upon itself.
-		 * @throws MalformedSerialStreamException
-		 *         If the repository contains invalid serialized module data.
 		 */
 		@InnerAccess void traceModuleImports (
-				final ResolvedModuleName resolvedName,
-				final @Nullable ResolvedModuleName resolvedSuccessor,
-				final LinkedHashSet<ResolvedModuleName> recursionSet)
-			throws
-				IOException,
-				AvailCompilerException,
-				RecursiveDependencyException,
-				MalformedSerialStreamException
+			final ResolvedModuleName resolvedName,
+			final @Nullable ResolvedModuleName resolvedSuccessor,
+			final LinkedHashSet<ResolvedModuleName> recursionSet)
 		{
 			// Detect recursion into this module.
 			if (recursionSet.contains(resolvedName))
 			{
-				throw new RecursiveDependencyException(
-					resolvedName,
-					recursionSet);
+				failTrace(
+					new RecursiveDependencyException(
+						resolvedName,
+						recursionSet));
+				indicateTraceCompleted();
+				return;
 			}
-			final boolean alreadyTraced;
+			boolean alreadyTraced;
 			synchronized (this)
 			{
 				alreadyTraced = moduleGraph.includesVertex(resolvedName);
-				moduleGraph.includeVertex(resolvedName);
+				if (!alreadyTraced)
+				{
+					moduleGraph.addVertex(resolvedName);
+				}
 				if (resolvedSuccessor != null)
 				{
 					// Note that a module can be both Extended and Used from the
@@ -342,67 +348,89 @@ public final class AvailBuilder
 			if (alreadyTraced)
 			{
 				indicateTraceCompleted();
+				return;
 			}
-			else
+			final IndexedRepositoryManager repository =
+				resolvedName.repository();
+			repository.commitIfStaleChanges(maximumStaleRepositoryMs);
+			final File sourceFile = resolvedName.sourceReference();
+			assert sourceFile != null;
+			final ModuleVersionKey versionKey =
+				new ModuleVersionKey(resolvedName);
+			final ModuleVersion version = repository.getVersion(versionKey);
+			if (version != null)
 			{
-				final IndexedRepositoryManager repository =
-					resolvedName.repository();
-				repository.commitIfStaleChanges(maximumStaleRepositoryMs);
-				final File sourceFile = resolvedName.sourceReference();
-				assert sourceFile != null;
-				final ModuleVersionKey versionKey =
-					new ModuleVersionKey(resolvedName);
-				final ModuleVersion version = repository.getVersion(versionKey);
-				if (version != null)
-				{
-					// This version was already traced in the past.  Reuse it.
-					final List<String> importNames = version.getImports();
-					traceModuleNames(resolvedName, importNames, recursionSet);
-				}
-				else
-				{
-					// Trace the source and write it back to the repository.
-					AbstractAvailCompiler.create(
-						resolvedName,
-						true,
-						new Continuation1<AbstractAvailCompiler>()
-						{
-							@Override
-							public void value (
-								final @Nullable AbstractAvailCompiler compiler)
-							{
-								assert compiler != null;
-								compiler.parseModuleHeader();
-								final List<String> importNames =
-									compiler.moduleHeader.importedModuleNames();
-								repository.putVersion(
-									versionKey,
-									repository.new ModuleVersion(
-										sourceFile.length(),
-										importNames));
-								traceModuleNames(
-									resolvedName,
-									importNames,
-									recursionSet);
-							}
-						},
-						new Continuation1<Exception>()
-						{
-							@Override
-							public void value (
-								final @Nullable Exception exception)
-							{
-								assert exception != null;
-								failTrace(exception);
-							}
-						});
-				}
+				// This version was already traced and recorded for a
+				// subsequent replay... like right now.  Reuse it.
+				final List<String> importNames = version.getImports();
+				traceModuleNames(resolvedName, importNames, recursionSet);
+				indicateTraceCompleted();
+				return;
 			}
+			// Trace the source and write it back to the repository.
+			AbstractAvailCompiler.create(
+				resolvedName,
+				true,
+				new Continuation1<AbstractAvailCompiler>()
+				{
+					@Override
+					public void value (
+						final @Nullable AbstractAvailCompiler compiler)
+					{
+						assert compiler != null;
+						compiler.parseModuleHeader(
+							new Continuation1<ModuleHeader>()
+							{
+								@Override
+								public void value (
+									final @Nullable ModuleHeader header)
+								{
+									assert header != null;
+									final List<String> importNames =
+										header.importedModuleNames();
+									repository.putVersion(
+										versionKey,
+										repository.new ModuleVersion(
+											sourceFile.length(),
+											importNames));
+									traceModuleNames(
+										resolvedName,
+										importNames,
+										recursionSet);
+									indicateTraceCompleted();
+								}
+							},
+							new Continuation1<Exception>()
+							{
+								@Override
+								public void value (
+									final @Nullable Exception exception)
+								{
+									assert exception != null;
+									failTrace(exception);
+									indicateTraceCompleted();
+								}
+							});
+					}
+				},
+				new Continuation1<AvailScannerException>()
+				{
+					@Override
+					public void value (
+						final @Nullable AvailScannerException exception)
+					{
+						assert exception != null;
+						failTrace(exception);
+						indicateTraceCompleted();
+					}
+				});
 		}
 
 		/**
 		 * Trace the imports of the {@linkplain ResolvedModuleName specified}
-		 * {@linkplain ModuleDescriptor module}.
+		 * {@linkplain ModuleDescriptor module}.  Return only when these new
+		 * <em>requests</em> have been accounted for, so that the current
+		 * request can be considered completed in the caller.
 		 *
 		 * @param moduleName
 		 *        The name of the module being traced.
@@ -417,15 +445,16 @@ public final class AvailBuilder
 			final List<String> importNames,
 			final LinkedHashSet<ResolvedModuleName> recursionSet)
 		{
-			synchronized (BuildState.this)
-			{
-				traceRequests += importNames.size();
-			}
 			// Copy the recursion set to ensure the independence of each
 			// path of the tracing algorithm.
 			final LinkedHashSet<ResolvedModuleName> newSet =
 				new LinkedHashSet<>(recursionSet);
 			newSet.add(moduleName);
+
+			synchronized (BuildState.this)
+			{
+				traceRequests += importNames.size();
+			}
 
 			// Recurse in parallel into each import.
 			for (final String localImport : importNames)
@@ -433,7 +462,6 @@ public final class AvailBuilder
 				final ModuleName importName = moduleName.asSibling(localImport);
 				scheduleTraceModuleImports(importName, moduleName, newSet);
 			}
-			indicateTraceCompleted();
 		}
 
 		/**
@@ -466,6 +494,14 @@ public final class AvailBuilder
 		public synchronized void indicateTraceCompleted ()
 		{
 			traceCompletions++;
+			if (debugBuilder)
+			{
+				System.out.format(
+						"Traced one (%d/%d)",
+						traceCompletions,
+						traceRequests)
+					.flush();
+			}
 			// Avoid spurious wake-ups.
 			if (traceRequests == traceCompletions)
 			{
@@ -921,10 +957,11 @@ public final class AvailBuilder
 				moduleName,
 				false,
 				continuation,
-				new Continuation1<Exception>()
+				new Continuation1<AvailScannerException>()
 				{
 					@Override
-					public void value (final @Nullable Exception exception)
+					public void value (
+						final @Nullable AvailScannerException exception)
 					{
 						assert exception != null;
 						failBuild(moduleName, lastPosition.value, exception);
@@ -1013,10 +1050,13 @@ public final class AvailBuilder
 	 * @throws Exception
 	 *         If anything went wrong.
 	 */
-	@InnerAccess void buildTarget (
+	public void buildTarget (
 			final ModuleName target)
 		throws Exception
 	{
+		// Clear all information about modules that have been traced.  This will
+		// be rebuilt below.
+		moduleGraph.clear();
 		final BuildState state = new BuildState();
 		state.traceRequests = 1;
 		state.scheduleTraceModuleImports(
@@ -1060,95 +1100,6 @@ public final class AvailBuilder
 		if (exception != null)
 		{
 			throw exception;
-		}
-	}
-
-	/**
-	 * Schedule the recursive build of the {@linkplain ModuleDescriptor target}
-	 * and its dependencies. Any {@linkplain Exception exceptions} raised during
-	 * the build are rerouted to the current {@linkplain Thread thread} and
-	 * rethrown.
-	 *
-	 * @param target
-	 *        The {@linkplain ModuleName canonical name} of the module that the
-	 *        {@linkplain AvailBuilder builder} must (recursively) load into the
-	 *        {@linkplain AvailRuntime runtime}.
-	 * @throws AvailCompilerException
-	 *         If an encountered module could not be built.
-	 * @throws RecursiveDependencyException
-	 *         If an encountered module recursively depends upon itself.
-	 * @throws UnresolvedDependencyException
-	 *         If a module name could not be resolved.
-	 * @throws FiberTerminationException
-	 *         If compilation has been terminated forcibly.
-	 * @throws InterruptedException
-	 *         If any {@linkplain AvailThread thread} is interrupted during the
-	 *         build.
-	 */
-	public void build (
-			final ModuleName target)
-		throws
-			AvailCompilerException,
-			RecursiveDependencyException,
-			UnresolvedDependencyException,
-			InterruptedException
-	{
-		final MutableOrNull<Throwable> killer = new MutableOrNull<>();
-		final Semaphore semaphore = new Semaphore(0);
-		runtime.execute(new AvailTask(
-			FiberDescriptor.loaderPriority,
-			new Continuation0()
-			{
-				@Override
-				public void value ()
-				{
-					try
-					{
-						buildTarget(target);
-					}
-					catch (final Throwable e)
-					{
-						killer.value = e;
-					}
-					finally
-					{
-						semaphore.release();
-					}
-				}
-			}));
-		// Wait for the builder to finish.
-		semaphore.acquire();
-		final Throwable e = killer.value;
-		if (e != null)
-		{
-			if (e instanceof AvailCompilerException)
-			{
-				throw (AvailCompilerException) e;
-			}
-			else if (e instanceof FiberTerminationException)
-			{
-				throw (FiberTerminationException) e;
-			}
-			else if (e instanceof RecursiveDependencyException)
-			{
-				throw (RecursiveDependencyException) e;
-			}
-			else if (e instanceof UnresolvedDependencyException)
-			{
-				throw (UnresolvedDependencyException) e;
-			}
-			else if (e instanceof Error)
-			{
-				throw (Error) e;
-			}
-			else if (e instanceof RuntimeException)
-			{
-				throw (RuntimeException) e;
-			}
-			else
-			{
-				throw new RuntimeException(e);
-			}
 		}
 	}
 }

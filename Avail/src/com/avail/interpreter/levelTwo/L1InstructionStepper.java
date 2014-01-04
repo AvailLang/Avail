@@ -709,7 +709,7 @@ implements L1OperationDispatcher
 	}
 
 	@Override
-	public  void L1Ext_doReserved ()
+	public void L1Ext_doReserved ()
 	{
 		error("That nybblecode is not supported");
 		return;

@@ -32,6 +32,7 @@
 
 package com.avail.compiler.scanning;
 
+import com.avail.annotations.Nullable;
 import com.avail.descriptor.*;
 
 /**
@@ -42,40 +43,27 @@ import com.avail.descriptor.*;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public class AvailScannerException
-extends RuntimeException
+extends Exception
 {
 	/**
 	 * The serial version identifier.
 	 */
 	private static final long serialVersionUID = 8191896822852052633L;
 
-	@Override
-	public String getMessage()
-	{
-		return super.getMessage() + ": " + failureString();
-	}
-
-	/**
-	 * The {@linkplain StringDescriptor error message} indicating why the
-	 * scanner failed.
-	 */
-	final String failureString;
-
-	/**
-	 * Return the error message {@link String} indicating why the {@link
-	 * AvailScanner} failed.
-	 *
-	 * @return The reason the scanner could not complete its work.
-	 */
-	public String failureString ()
-	{
-		return failureString;
-	}
-
 	/**
 	 * The {@link AvailScanner} that failed.
 	 */
 	final AvailScanner failedScanner;
+
+	/**
+	 * Answer the name of the module that failed lexical scanning.
+	 *
+	 * @return A {@link String} describing which module failed lexical scanning.
+	 */
+	public String moduleName ()
+	{
+		return failedScanner.moduleName();
+	}
 
 	/**
 	 * Return the file position at which the {@link AvailScanner} failed.
@@ -100,17 +88,44 @@ extends RuntimeException
 	/**
 	 * Construct a new {@link AvailScannerException}.
 	 *
-	 * @param failureString
+	 * @param message
 	 *            The error message indicating why the {@link AvailScanner}
 	 *            failed.
 	 * @param failedScanner
 	 *            The AvailScanner that failed, positioned to the failure point.
 	 */
 	public AvailScannerException (
-		final String failureString,
+		final String message,
 		final AvailScanner failedScanner)
 	{
-		this.failureString = failureString;
-		this.failedScanner= failedScanner;
+		super(message);
+		this.failedScanner = failedScanner;
+	}
+
+	/**
+	 * Construct a new {@link AvailScannerException}.  Plug in a dummy {@link
+	 * AvailScanner}.
+	 *
+	 * @param cause
+	 *            The original problem to be treated as a scanner problem.
+	 * @param moduleName
+	 *            The name of the module that failed lexical scanning.
+	 */
+	public AvailScannerException (
+		final Throwable cause,
+		final String moduleName)
+	{
+		super(cause);
+		try
+		{
+			AvailScanner.scanString("", moduleName, true);
+			assert false : "Should have thrown exception";
+			// And throw in case assertions are off.  Keeps Java compiler happy.
+			throw new RuntimeException("Should have thrown exception");
+		}
+		catch (final AvailScannerException contrivedException)
+		{
+			this.failedScanner = contrivedException.failedScanner;
+		}
 	}
 }

@@ -52,7 +52,22 @@ public class AvailScanner
 	 * The string being parsed, usually the entire contents of an Avail source
 	 * file.
 	 */
-	String inputString;
+	final String inputString;
+
+	/**
+	 * The name of the module being lexically scanned.
+	 */
+	final String moduleName;
+
+	/**
+	 * Whether to stop scanning after encountering the keyword "Body".
+	 */
+	final boolean stopAfterBodyToken;
+
+	/**
+	 * The tokens that have been parsed so far.
+	 */
+	final List<A_Token> outputTokens;
 
 	/**
 	 * The current position in the input string.
@@ -68,16 +83,6 @@ public class AvailScanner
 	 * The line number of the start of the token currently being parsed.
 	 */
 	int lineNumber;
-
-	/**
-	 * The tokens that have been parsed so far.
-	 */
-	List<A_Token> outputTokens;
-
-	/**
-	 * Whether to stop scanning after encountering the keyword "Body".
-	 */
-	boolean stopAfterBodyToken;
 
 	/**
 	 * Whether the BODY token has already been encountered. Only set if
@@ -116,6 +121,16 @@ public class AvailScanner
 	int startOfToken ()
 	{
 		return startOfToken;
+	}
+
+	/**
+	 * Answer the name of the module being lexically scanned.
+	 *
+	 * @return The resolved module name.
+	 */
+	String moduleName ()
+	{
+		return moduleName;
 	}
 
 	/**
@@ -199,9 +214,11 @@ public class AvailScanner
 	 * Extract the current character and increment the {@link #position}.
 	 *
 	 * @return The consumed character.
+	 * @throws AvailScannerException If scanning fails.
 	 */
 	@InnerAccess
 	int next ()
+		throws AvailScannerException
 	{
 		if (atEnd())
 		{
@@ -222,9 +239,11 @@ public class AvailScanner
 	 * Extract the value of the next character, which must be a digit.
 	 *
 	 * @return The digit's value.
+	 * @throws AvailScannerException If scanning fails.
 	 */
 	@InnerAccess
 	byte nextDigitValue ()
+		throws AvailScannerException
 	{
 		assert peekIsDigit();
 		final int value = Character.digit(next(), 10);
@@ -251,9 +270,11 @@ public class AvailScanner
 	 *            The character to look for, as an int to allow code points
 	 *            beyond the Basic Multilingual Plane (U+0000 - U+FFFF).
 	 * @return Whether the specified character was found and skipped.
+	 * @throws AvailScannerException If scanning fails.
 	 */
 	@InnerAccess
 	boolean peekFor (final int aCharacter)
+		throws AvailScannerException
 	{
 		if (atEnd())
 		{
@@ -272,9 +293,11 @@ public class AvailScanner
 	 * character was encountered.
 	 *
 	 * @return Whether an alphanumeric character was encountered and skipped.
+	 * @throws AvailScannerException If scanning fails.
 	 */
 	@InnerAccess
 	boolean peekForLetterOrAlphaNumeric ()
+		throws AvailScannerException
 	{
 		if (!atEnd())
 		{
@@ -315,8 +338,6 @@ public class AvailScanner
 	/**
 	 * An enumeration of actions to be performed based on the next character
 	 * encountered.
-	 *
-	 * @author Mark van Gulik &lt;mark@availlang.org&gt;
 	 */
 	enum ScannerAction
 	{
@@ -329,6 +350,7 @@ public class AvailScanner
 		{
 			@Override
 			void scan (final AvailScanner scanner)
+				throws AvailScannerException
 			{
 				scanner.backUp();
 				assert scanner.position() == scanner.startOfToken();
@@ -447,7 +469,9 @@ public class AvailScanner
 		{
 			@Override
 			void scan (final AvailScanner scanner)
+				throws AvailScannerException
 			{
+				final int literalStartingLine = scanner.lineNumber;
 				int c = scanner.next();
 				final StringBuilder stringBuilder = new StringBuilder(40);
 				boolean canErase = true;
@@ -514,6 +538,7 @@ public class AvailScanner
 								parseUnicodeEscapes(scanner, stringBuilder);
 								break;
 							case '[':
+								scanner.lineNumber = literalStartingLine;
 								throw new AvailScannerException(
 									"Power strings are not yet supported",
 									scanner);
@@ -550,13 +575,16 @@ public class AvailScanner
 					else
 					{
 						stringBuilder.appendCodePoint(c);
-						if (!Character.isWhitespace(c))
+						if (canErase && !Character.isWhitespace(c))
 						{
 							canErase = false;
 						}
 					}
 					if (scanner.atEnd())
 					{
+						// Indicate where the quoted string started, to make it
+						// easier to figure out where the end-quote is missing.
+						scanner.lineNumber = literalStartingLine;
 						throw new AvailScannerException(
 							"Unterminated string literal",
 							scanner);
@@ -582,8 +610,9 @@ public class AvailScanner
 			 *            corresponding Unicode characters.
 			 */
 			private void parseUnicodeEscapes (
-				final AvailScanner scanner,
-				final StringBuilder stringBuilder)
+					final AvailScanner scanner,
+					final StringBuilder stringBuilder)
+				throws AvailScannerException
 			{
 				int c;
 				c = scanner.next();
@@ -611,7 +640,7 @@ public class AvailScanner
 						else
 						{
 							throw new AvailScannerException(
-								"Expected an upper case hex  digit or comma or"
+								"Expected an upper case hex digit or comma or"
 								+ " closing parenthesis",
 								scanner);
 						}
@@ -658,6 +687,7 @@ public class AvailScanner
 		{
 			@Override
 			void scan (final AvailScanner scanner)
+				throws AvailScannerException
 			{
 				while (scanner.peekForLetterOrAlphaNumeric())
 				{
@@ -687,6 +717,7 @@ public class AvailScanner
 		{
 			@Override
 			void scan (final AvailScanner scanner)
+				throws AvailScannerException
 			{
 				if (!scanner.peekFor('*'))
 				{
@@ -737,6 +768,7 @@ public class AvailScanner
 		{
 			@Override
 			void scan (final AvailScanner scanner)
+				throws AvailScannerException
 			{
 				throw new AvailScannerException("Unknown character", scanner);
 			}
@@ -749,6 +781,7 @@ public class AvailScanner
 		{
 			@Override
 			void scan (final AvailScanner scanner)
+				throws AvailScannerException
 			{
 				// do nothing.
 			}
@@ -767,6 +800,7 @@ public class AvailScanner
 		{
 			@Override
 			void scan (final AvailScanner scanner)
+				throws AvailScannerException
 			{
 				// do nothing
 			}
@@ -780,6 +814,7 @@ public class AvailScanner
 		{
 			@Override
 			void scan (final AvailScanner scanner)
+				throws AvailScannerException
 			{
 				scanner.addCurrentToken(TokenType.OPERATOR);
 			}
@@ -790,8 +825,10 @@ public class AvailScanner
 		 *
 		 * @param scanner
 		 *            The scanner processing this character.
+		 * @throws AvailScannerException If scanning fails.
 		 */
-		abstract void scan (AvailScanner scanner);
+		abstract void scan (AvailScanner scanner)
+			throws AvailScannerException;
 
 		/**
 		 * Figure out the {@link ScannerAction} to invoke for the specified code
@@ -840,42 +877,75 @@ public class AvailScanner
 	 * @param string
 	 *            The text of an Avail {@linkplain ModuleDescriptor module} (or
 	 *            at least the prefix up to the <em>Names</em> token).
+	 * @param moduleName
+	 *            The name of the module being lexically scanned.
 	 * @param stopAfterBodyTokenFlag
 	 *            Stop scanning after encountering the <em>Names</em> token?
 	 * @return A {@linkplain List list} of {@linkplain TokenDescriptor tokens}
 	 *         terminated by a token of type {@link TokenType#END_OF_FILE}.
+	 * @throws AvailScannerException If scanning fails.
 	 */
 	public static List<A_Token> scanString (
-		final String string,
-		final boolean stopAfterBodyTokenFlag)
+			final String string,
+			final String moduleName,
+			final boolean stopAfterBodyTokenFlag)
+		throws AvailScannerException
 	{
 		final AvailScanner scanner =
-			new AvailScanner(string, stopAfterBodyTokenFlag);
+			new AvailScanner(string, moduleName, stopAfterBodyTokenFlag);
+		scanner.scan();
 		return scanner.outputTokens;
 	}
 
 	/**
 	 * Construct a new {@link AvailScanner}.
 	 *
-	 * @param string The {@link String} to parse.
-	 * @param stopAfterBodyTokenFlag Whether to skip parsing the body.
+	 * @param inputString
+	 *            The {@link String} containing Avail source code to lexically scan.
+	 * @param moduleName
+	 *            The name of the module being scanned.
+	 * @param stopAfterBodyToken
+	 *            Whether to skip parsing the body.
+	 * @throws AvailScannerException If scanning fails.
 	 */
 	private AvailScanner (
-		final String string,
-		final boolean stopAfterBodyTokenFlag)
+			final String inputString,
+			final String moduleName,
+			final boolean stopAfterBodyToken)
+		throws AvailScannerException
 	{
-		inputString = string;
+		this.inputString = inputString;
+		this.moduleName = moduleName;
+		this.stopAfterBodyToken = stopAfterBodyToken;
+		this.outputTokens = new ArrayList<A_Token>(inputString.length() / 20);
+	}
+
+	/**
+	 * Scan the already-specified {@link String} to produce {@linkplain
+	 * #outputTokens tokens}.
+	 *
+	 * @throws AvailScannerException
+	 */
+	private void scan ()
+		throws AvailScannerException
+	{
 		position = 0;
 		lineNumber = 1;
-		outputTokens = new ArrayList<A_Token>(100);
-		stopAfterBodyToken = stopAfterBodyTokenFlag;
-		while (!(stopAfterBodyToken
-			? encounteredBodyToken || atEnd()
-			: atEnd()))
+		if (stopAfterBodyToken)
 		{
-			startOfToken = position;
-			final int c = next();
-			ScannerAction.forCodePoint(c).scan(this);
+			while (!encounteredBodyToken && !atEnd())
+			{
+				startOfToken = position;
+				ScannerAction.forCodePoint(next()).scan(this);
+			}
+		}
+		else
+		{
+			while (!atEnd())
+			{
+				startOfToken = position;
+				ScannerAction.forCodePoint(next()).scan(this);
+			}
 		}
 		startOfToken = position;
 		addCurrentToken(TokenType.END_OF_FILE);

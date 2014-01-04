@@ -78,14 +78,12 @@ extends Primitive
 		}
 		try
 		{
-			function.code().setMethodName(
-				StringDescriptor.from(
-					String.format("Semantic restriction of %s", string)));
 			final A_Atom atom = loader.lookupName(string);
+			final A_Method method = atom.bundleOrCreate().bundleMethod();
 			final A_SemanticRestriction restriction =
 				SemanticRestrictionDescriptor.create(
 					function,
-					atom.bundleOrCreate().bundleMethod(),
+					method,
 					interpreter.module());
 			loader.addSemanticRestriction(restriction);
 		}
@@ -97,6 +95,9 @@ extends Primitive
 		{
 			return interpreter.primitiveFailure(e);
 		}
+		function.code().setMethodName(
+			StringDescriptor.from(
+				String.format("Semantic restriction of %s", string)));
 		return interpreter.primitiveSuccess(NilDescriptor.nil());
 	}
 

@@ -1022,15 +1022,12 @@ public abstract class AbstractAvailCompiler
 	 *        What to do in the event of failure. This is a continuation that
 	 *        accepts the {@link Exception} responsible for abnormal
 	 *        termination.
-	 * @throws IOException
-	 *         If the source module cannot be opened or read.
 	 */
 	public static void create (
-			final ResolvedModuleName resolvedName,
-			final boolean stopAfterBodyToken,
-			final Continuation1<AbstractAvailCompiler> succeed,
-			final Continuation1<Exception> fail)
-		throws IOException
+		final ResolvedModuleName resolvedName,
+		final boolean stopAfterBodyToken,
+		final Continuation1<AbstractAvailCompiler> succeed,
+		final Continuation1<AvailScannerException> fail)
 	{
 		extractSourceThen(
 			resolvedName,
@@ -1039,31 +1036,28 @@ public abstract class AbstractAvailCompiler
 				@Override
 				public void value (final @Nullable String sourceText)
 				{
+					assert sourceText != null;
 					try
 					{
-						assert sourceText != null;
 						final List<A_Token> tokens = tokenize(
 							sourceText,
+							resolvedName.qualifiedName(),
 							stopAfterBodyToken);
 						AbstractAvailCompiler compiler;
 						if (!tokens.isEmpty()
 							&& tokens.get(0).string().equals(SYSTEM.lexeme()))
 						{
 							compiler = new AvailSystemCompiler(
-								resolvedName,
-								sourceText,
-								tokens);
+								resolvedName, sourceText, tokens);
 						}
 						else
 						{
 							compiler = new AvailCompiler(
-								resolvedName,
-								sourceText,
-								tokens);
+								resolvedName, sourceText, tokens);
 						}
 						succeed.value(compiler);
 					}
-					catch (final Exception e)
+					catch (final AvailScannerException e)
 					{
 						fail.value(e);
 					}
@@ -1996,14 +1990,11 @@ public abstract class AbstractAvailCompiler
 	 *        What to do in the event of failure. This is a continuation that
 	 *        accepts the {@linkplain Throwable throwable} responsible for
 	 *        abnormal termination.
-	 * @throws IOException
-	 *         If the source module could not be opened or read for any reason.
 	 */
 	private static void extractSourceThen (
-			final ResolvedModuleName resolvedName,
-			final Continuation1<String> continuation,
-			final Continuation1<Exception> fail)
-		throws IOException
+		final ResolvedModuleName resolvedName,
+		final Continuation1<String> continuation,
+		final Continuation1<AvailScannerException> fail)
 	{
 		final AvailRuntime runtime = AvailRuntime.current();
 		final File ref = resolvedName.sourceReference();
@@ -2018,114 +2009,123 @@ public abstract class AbstractAvailCompiler
 		{
 			file = runtime.openFile(ref.toPath(), StandardOpenOption.READ);
 		}
-		catch (final IOException e)
+		catch (final IOException ioException)
 		{
-			fail.value(e);
+			fail.value(
+				new AvailScannerException(
+					ioException,
+					resolvedName.qualifiedName()));
 			return;
 		}
 		final MutableOrNull<CompletionHandler<Integer, Void>> handler =
 			new MutableOrNull<>();
-		handler.value =
-			new CompletionHandler<Integer, Void>()
+		handler.value = new CompletionHandler<Integer, Void>()
+		{
+			@Override
+			public void completed (
+				@Nullable final Integer bytesRead,
+				@Nullable final Void nothing)
 			{
-				@Override
-				public void completed (
-					@Nullable final Integer bytesRead,
-					@Nullable final Void nothing)
+				try
 				{
-					try
+					assert bytesRead != null;
+					boolean moreInput = true;
+					if (bytesRead == -1)
 					{
-						assert bytesRead != null;
-						boolean moreInput = true;
-						if (bytesRead == -1)
+						moreInput = false;
+					}
+					else
+					{
+						filePosition.value += bytesRead;
+					}
+					input.flip();
+					final CoderResult result = decoder.decode(
+						input, output, !moreInput);
+					// If the decoder didn't consume all of the bytes, then
+					// preserve the unconsumed bytes in the next buffer (for
+					// decoding).
+					if (input.hasRemaining())
+					{
+						final int delta = input.limit() - input.position();
+						for (int i = 0; i < delta; i++)
 						{
-							moreInput = false;
+							final byte b = input.get(input.position() + i);
+							input.put(i, b);
 						}
-						else
-						{
-							filePosition.value += bytesRead;
-						}
-						input.flip();
-						final CoderResult result = decoder.decode(
-							input, output, !moreInput);
-						// If the decoder didn't consume all of the bytes, then
-						// preserve the unconsumed bytes in the next buffer (for
-						// decoding).
-						if (input.hasRemaining())
-						{
-							final int delta = input.limit() - input.position();
-							for (int i = 0; i < delta; i++)
-							{
-								final byte b = input.get(input.position() + i);
-								input.put(i, b);
-							}
-							input.limit(input.capacity());
-							input.position(delta);
-						}
-						else
-						{
-							input.clear();
-						}
-						// UTF-8 never compresses data, so the number of
-						// characters encoded can be no greater than the number
-						// of bytes encoded. The input buffer and the output
-						// buffer are equally sized (in units), so an overflow
-						// cannot occur.
-						assert !result.isOverflow();
-						if (result.isError())
-						{
-							result.throwException();
-						}
-						output.flip();
-						sourceBuilder.append(output.toString());
-						// If more input remains, then queue another read.
-						if (moreInput)
-						{
-							output.clear();
-							file.read(
-								input,
-								filePosition.value,
-								null,
-								handler.value);
-						}
-						// Otherwise, close the file channel and queue the
-						// original continuation.
-						else
-						{
-							decoder.flush(output);
-							sourceBuilder.append(output.toString());
-							file.close();
-							runtime.execute(
-								new AvailTask(
-									FiberDescriptor.compilerPriority,
-									new Continuation0()
+						input.limit(input.capacity());
+						input.position(delta);
+					}
+					else
+					{
+						input.clear();
+					}
+					// UTF-8 never compresses data, so the number of
+					// characters encoded can be no greater than the number
+					// of bytes encoded. The input buffer and the output
+					// buffer are equally sized (in units), so an overflow
+					// cannot occur.
+					assert !result.isOverflow();
+					if (result.isError())
+					{
+						result.throwException();
+					}
+					output.flip();
+					sourceBuilder.append(output);
+					// If more input remains, then queue another read.
+					if (moreInput)
+					{
+						output.clear();
+						file.read(
+							input,
+							filePosition.value,
+							null,
+							handler.value);
+					}
+					// Otherwise, close the file channel and queue the
+					// original continuation.
+					else
+					{
+						decoder.flush(output);
+						sourceBuilder.append(output);
+						file.close();
+						runtime.execute(
+							new AvailTask(
+								FiberDescriptor.compilerPriority,
+								new Continuation0()
+								{
+									@Override
+									public void value ()
 									{
-										@Override
-										public void value ()
-										{
-											continuation.value(
-												sourceBuilder.toString());
-										}
-									}));
-						}
-					}
-					catch (final Exception e)
-					{
-						fail.value(e);
+										continuation.value(
+											sourceBuilder.toString());
+									}
+								}));
 					}
 				}
-
-				@Override
-				public void failed (
-					@Nullable final Throwable throwable,
-					@Nullable final Void attachment)
+				catch (final IOException ioException)
 				{
-					final Exception exception = throwable instanceof Exception
-						? (Exception)throwable
-						: new RuntimeException(throwable);
-					fail.value(exception);
+					fail.value(
+						new AvailScannerException(
+							ioException,
+							resolvedName.qualifiedName()));
 				}
-			};
+			}
+
+			@Override
+			public void failed (
+				@Nullable final Throwable throwable,
+				@Nullable final Void attachment)
+			{
+				assert throwable != null;
+				final AvailScannerException exception =
+					throwable instanceof AvailScannerException
+						? (AvailScannerException)throwable
+						: new AvailScannerException(
+							throwable,
+							resolvedName.qualifiedName());
+				fail.value(exception);
+			}
+		};
 		// Kick off the asynchronous read.
 		file.read(input, 0L, null, handler.value);
 	}
@@ -2137,18 +2137,21 @@ public abstract class AbstractAvailCompiler
 	 * @param source
 	 *        The {@linkplain String string} containing the module's source
 	 *        code.
+	 * @param moduleName
+	 *        The name of the module to tokenize.
 	 * @param stopAfterBodyToken
 	 *        Stop scanning after encountering the BODY token?
 	 * @return The {@linkplain ResolvedModuleName resolved module name}.
-	 * @throws AvailCompilerException
+	 * @throws AvailScannerException
 	 *         If tokenization failed for any reason.
 	 */
 	static List<A_Token> tokenize (
 			final String source,
+			final String moduleName,
 			final boolean stopAfterBodyToken)
-		throws AvailCompilerException
+		throws AvailScannerException
 	{
-		return AvailScanner.scanString(source, stopAfterBodyToken);
+		return AvailScanner.scanString(source, moduleName, stopAfterBodyToken);
 	}
 
 	/**
@@ -2283,14 +2286,11 @@ public abstract class AbstractAvailCompiler
 	 * @param problems
 	 *        A list of {@linkplain Describer describers} that may be
 	 *        invoked to produce problem strings.
-	 * @throws AvailCompilerException
-	 *         Always thrown.
 	 */
 	void reportError (
-			final A_Token token,
-			final String banner,
-			final List<Describer> problems)
-		throws AvailCompilerException
+		final A_Token token,
+		final String banner,
+		final List<Describer> problems)
 	{
 		assert problems.size() > 0 : "Bug - empty problem list";
 		final long charPos = token.start();
@@ -2327,8 +2327,7 @@ public abstract class AbstractAvailCompiler
 		text.format("^-- %s", banner);
 		text.format("%n>>>%s", rowOfDashes);
 		final Set<String> alreadySeen = new HashSet<>(problems.size());
-		final Mutable<Integer> outstanding =
-			new Mutable<>(problems.size());
+		final Mutable<Integer> outstanding = new Mutable<>(problems.size());
 		final Continuation1<String> decrement = new Continuation1<String>()
 		{
 			@Override
@@ -5315,19 +5314,35 @@ public abstract class AbstractAvailCompiler
 
 	/**
 	 * Parse a {@linkplain ModuleHeader module header} from the {@linkplain
-	 * TokenDescriptor token} list.
+	 * TokenDescriptor token} list.  Eventually, and in some thread, invoke
+	 * either the {@code successContinuation} or the {@code
+	 * failureContinuation}, depending on whether the parsing was successful.
 	 *
-	 * @return A module header.
-	 * @throws AvailCompilerException If parsing the header fails.
+	 * @param successContinuation What to do when the header has been parsed.
+	 * @param failureContinuation What to do if a problem occurs.
 	 */
-	public ModuleHeader parseModuleHeader ()
+	public void parseModuleHeader (
+		final Continuation1<ModuleHeader> successContinuation,
+		final Continuation1<Exception> failureContinuation)
 	{
+		failureReporter = new Continuation0()
+		{
+			@Override
+			public void value ()
+			{
+				assert terminator != null;
+				failureContinuation.value(terminator);
+			}
+		};
 		clearExpectations();
-		if (parseModuleHeader(true) == null)
+		if (parseModuleHeader(true) != null)
+		{
+			successContinuation.value(moduleHeader);
+		}
+		else
 		{
 			reportError();
 		}
-		return moduleHeader;
 	}
 
 	/**
@@ -5435,16 +5450,13 @@ public abstract class AbstractAvailCompiler
 			state.expected("module name");
 			return null;
 		}
-		if (!dependenciesOnly)
+		final A_String localName = localNameToken.literal();
+		if (!moduleHeader.moduleName.localName().equals(
+			localName.asNativeString()))
 		{
-			final A_String localName = localNameToken.literal();
-			if (!moduleHeader.moduleName.localName().equals(
-				localName.asNativeString()))
-			{
-				state.expected("declared local module name to agree with "
-						+ "fully-qualified module name");
-				return null;
-			}
+			state.expected("declared local module name to agree with "
+					+ "fully-qualified module name");
+			return null;
 		}
 		state = state.afterToken();
 
@@ -5452,30 +5464,6 @@ public abstract class AbstractAvailCompiler
 		final List<ExpectedToken> expected = new ArrayList<>(
 			asList(VERSIONS, EXTENDS, USES, NAMES, ENTRIES, PRAGMA, BODY));
 		final Set<A_String> seen = new HashSet<>();
-		final Describer expectedMessage = new Describer()
-		{
-			@Override
-			public void describeThen (final @Nullable Continuation1<String> c)
-			{
-				assert c != null;
-				final StringBuilder builder = new StringBuilder();
-				builder.append(
-					expected.size() == 1
-					? "module header keyword "
-					: "one of the following module header keywords: ");
-				boolean first = true;
-				for (final ExpectedToken token : expected)
-				{
-					if (!first)
-					{
-						builder.append(", ");
-					}
-					builder.append(token.lexeme().asNativeString());
-					first = false;
-				}
-				c.value(builder.toString());
-			}
-		};
 
 		// Permit the other sections to appear optionally, singly, and in any
 		// order. Parsing of the module header is complete when BODY has been
@@ -5506,6 +5494,32 @@ public abstract class AbstractAvailCompiler
 				}
 				else
 				{
+					final Describer expectedMessage = new Describer()
+					{
+						@Override
+						public void describeThen (
+							final @Nullable Continuation1<String> c)
+						{
+							assert c != null;
+							final StringBuilder builder = new StringBuilder();
+							builder.append(
+								expected.size() == 1
+								? "module header keyword "
+								: "one of these module header keywords: ");
+							boolean first = true;
+							for (final ExpectedToken expectedToken : expected)
+							{
+								if (!first)
+								{
+									builder.append(", ");
+								}
+								builder.append(
+									expectedToken.lexeme().asNativeString());
+								first = false;
+							}
+							c.value(builder.toString());
+						}
+					};
 					state.expected(expectedMessage);
 				}
 				return null;

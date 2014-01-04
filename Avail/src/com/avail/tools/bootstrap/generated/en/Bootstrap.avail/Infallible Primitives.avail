@@ -283,7 +283,7 @@ Primitive "_'s⁇genuine lower bound" is
  * Parameters:
  *    range - An integral range type.
  * Returns:
- *    The upper  bound of the argument.
+ *    The upper bound of the argument.
  */
 Primitive "_'s⁇genuine upper bound" is
 [
@@ -1218,7 +1218,7 @@ Primitive "_bit∨_" is
  * Compute and answer the bitwise XOR of the arguments.
  *
  * Parameters:
- *    arg1  An integer.
+ *    arg1 An integer.
  *    arg2 -An integer.
  * Returns:
  *    The bitwise XOR of `arg1` and `arg2`.

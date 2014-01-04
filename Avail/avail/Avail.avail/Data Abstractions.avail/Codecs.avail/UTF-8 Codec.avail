@@ -83,7 +83,7 @@ Private method "transform_as a UTF8 continuation byte" is
  *          The unicode character represented by the code point.
  * @author "Richard Arriaga"
  */
-Private abstract  method "utf-_decode_from_" is 
+Private abstract method "utf-_decode_from_" is 
 	[8's type,[1..4],<byte…|1..4>]→character;
 
 /**
@@ -207,7 +207,7 @@ Method "utf-_decode_from_" is
  *          A tuple of bytes representing the UTF-8 encoded character
  * @author "Richard Arriaga"
  */
-Private abstract  method "utf-_encode_" is [8's type,code point]→<byte…|1..4>;
+Private abstract method "utf-_encode_" is [8's type,code point]→<byte…|1..4>;
 
 /**
  * This method defines the encoding of the UTF-8 ascii character.  This is for

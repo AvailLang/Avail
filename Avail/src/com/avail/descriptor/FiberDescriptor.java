@@ -254,11 +254,17 @@ extends Descriptor
 		/**
 		 * The most recently executed primitive.
 		 */
+		@EnumField(
+			describedBy=Primitive.class,
+			lookupMethodName="byPrimitiveNumberOrNull")
 		DEBUG_LAST_PRIMITIVE,
 
 		/**
 		 * The second-most recently executed primitive.
 		 */
+		@EnumField(
+			describedBy=Primitive.class,
+			lookupMethodName="byPrimitiveNumberOrNull")
 		DEBUG_SECOND_LAST_PRIMITIVE,
 
 		/**

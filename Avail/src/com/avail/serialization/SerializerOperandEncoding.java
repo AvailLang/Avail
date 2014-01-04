@@ -632,7 +632,7 @@ enum SerializerOperandEncoding
 	 * Read an operand of the appropriate kind from the {@link
 	 * Deserializer}.
 	 *
-	 * @param deserializer  The {@code Deserializer} from which to read.
+	 * @param deserializer The {@code Deserializer} from which to read.
 	 * @return An AvailObject suitable for this kind of operand.
 	 */
 	abstract A_BasicObject read (
@@ -667,7 +667,7 @@ enum SerializerOperandEncoding
 		{
 			// The first byte is 192..254, or almost six bits (after dealing
 			// with the 192 bias).  The middle and low bytes follow.  That
-			// allows up to 0x003EFFFF to be  written in only three bytes.
+			// allows up to 0x003EFFFF to be written in only three bytes.
 			// The middle and low bytes follow.
 			serializer.writeByte((index >> 16) + 192);
 			serializer.writeShort(index & 0xFFFF);

@@ -2167,7 +2167,7 @@ Semantic restriction "take from_until_" is take-until semantic restriction;
  * @method "drop from_while_"
  * @param "aTuple" "tuple"
  * @param "predicate" "[⊥]→boolean"
- *        A function that can accept each element of the specified  tuple. It 
+ *        A function that can accept each element of the specified tuple. It 
  *        should answer `true` to discard the element (and continue scanning) or
  *        `false` to abort.
  * @returns "tuple"
@@ -3108,7 +3108,7 @@ Private method "merge_with_" is
 		];
 		↑k++;
 	];
-	if  i < |input1| then [output[..k-1] ++ input1[i..]]
+	if i < |input1| then [output[..k-1] ++ input1[i..]]
 	else [output[..k-1] ++ input2[j..]]
 ]: tuple;
 
@@ -3619,7 +3619,7 @@ Method "first index of_in_" is
 
 /**
  * Obtain the location of the start of the first occuring subtuple in a 
- * tuple (a substring of a string).  The  This implementation is called when 
+ * tuple (a substring of a string).  The This implementation is called when 
  * both the target tuple is empty 
  *
  * @method "first index of_in_"

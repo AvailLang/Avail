@@ -34,7 +34,7 @@ System Module "ShouldFail"
 Versions
 	"dev"
 Uses
-	"Avail"  ,
+	"KittyKatNoSuchModule"
 Body
 
 Print: "Made it\n";

@@ -79,7 +79,7 @@ extends Exception
 	 *            The previously reified continuation just beyond the current
 	 *            layers being reified.  Can be {@linkplain NilDescriptor#nil()}
 	 *            to indicate the outermost execution frame.
-	 * @return    The fully assembled reified continuation.
+	 * @return The fully assembled reified continuation.
 	 */
 	A_Continuation assembleContinuation (
 		final A_Continuation alreadyReifiedContinuation)

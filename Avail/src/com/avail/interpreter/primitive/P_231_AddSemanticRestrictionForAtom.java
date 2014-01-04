@@ -65,6 +65,11 @@ extends Primitive
 		final A_Function function = args.get(1);
 		final A_Type functionType = function.kind();
 		final A_Type tupleType = functionType.argsTupleType();
+		final AvailLoader loader = interpreter.fiber().availLoader();
+		if (loader == null)
+		{
+			return interpreter.primitiveFailure(E_LOADING_IS_OVER);
+		}
 		for (int i = function.code().numArgs(); i >= 1; i--)
 		{
 			if (!tupleType.typeAtIndex(i).isInstanceOf(
@@ -74,20 +79,14 @@ extends Primitive
 					E_TYPE_RESTRICTION_MUST_ACCEPT_ONLY_TYPES);
 			}
 		}
-		final AvailLoader loader = interpreter.fiber().availLoader();
-		if (loader == null)
-		{
-			return interpreter.primitiveFailure(E_LOADING_IS_OVER);
-		}
 		try
 		{
 			final A_Method method = atom.bundleOrCreate().bundleMethod();
-			final A_Module module = interpreter.module();
 			final A_SemanticRestriction restriction =
 				SemanticRestrictionDescriptor.create(
 					function,
 					method,
-					module);
+					interpreter.module());
 			loader.addSemanticRestriction(restriction);
 		}
 		catch (final SignatureException e)

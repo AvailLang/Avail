@@ -39,7 +39,7 @@ import com.avail.descriptor.*;
 /**
  * An {@link L1Instruction} consists of an {@link L1Operation} and its
  * operands, each implicitly described by the operation's {@link
- * L1OperandType}s  These operand types say how to interpret some integer that
+ * L1OperandType}s.  These operand types say how to interpret some integer that
  * occurs as the encoding of an actual operand of an instruction.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;

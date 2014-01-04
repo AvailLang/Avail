@@ -420,7 +420,10 @@ public final class ScannerTest
 			List<A_Token> scannedTokens = null;
 			try
 			{
-				scannedTokens = AvailScanner.scanString(input, false);
+				scannedTokens = AvailScanner.scanString(
+					input,
+					"A module synthesized in ScannerTest.testScanner()",
+					false);
 				if (c.tokenGenerators.length == 1
 					&& c.tokenGenerators[0] == null)
 				{
