@@ -41,7 +41,8 @@ import java.util.zip.Checksum;
 import com.avail.*;
 import com.avail.annotations.*;
 import com.avail.compiler.*;
-import com.avail.compiler.AbstractAvailCompiler.*;
+import com.avail.compiler.AbstractAvailCompiler.CompilerProgressReporter;
+import com.avail.compiler.AbstractAvailCompiler.ModuleHeader;
 import com.avail.compiler.scanning.AvailScannerException;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
@@ -120,121 +121,305 @@ public final class AvailBuilder
 
 	/**
 	 * A map from each {@link ResolvedModuleName} to its currently loaded
-	 * {@link ModuleCompilation}.
+	 * {@link LoadedModule}.
 	 */
-	public final Map<ResolvedModuleName, ModuleCompilation> moduleCompilations =
-		Collections.<ResolvedModuleName, ModuleCompilation>synchronizedMap(
-			new HashMap<ResolvedModuleName, ModuleCompilation>());
+	public final Map<ResolvedModuleName, LoadedModule> loadedModules =
+		new HashMap<ResolvedModuleName, LoadedModule>();
 
 	/**
-	 * Construct an {@link AvailBuilder} for the provided runtime.  During a
-	 * build, the passed trackers will be invoked to show progress.
-	 *
-	 * @param runtime
-	 *        The {@link AvailRuntime} in which to load modules and execute
-	 *        commands.
-	 * @param localTracker
-	 *        A {@linkplain CompilerProgressReporter continuation} that accepts
-	 *        <ol>
-	 *        <li>the name of the module currently undergoing {@linkplain
-	 *        AbstractAvailCompiler compilation} as part of the recursive build
-	 *        of target,</li>
-	 *        <li>the current line number within the current module,</li>
-	 *        <li>the position of the ongoing parse (in bytes), and</li>
-	 *        <li>the size of the module in bytes.</li>
-	 *        </ol>
-	 * @param globalTracker
-	 *        A {@linkplain Continuation3 continuation} that accepts
-	 *        <ol>
-	 *        <li>the name of the module undergoing compilation,</li>
-	 *        <li>the number of bytes globally processed, and</li>
-	 *        <li>the global size (in bytes) of all modules that will be
-	 *        built.</li>
-	 *        </ol>
+	 * The {@link Exception} (if any) responsible for an abnormal
+	 * termination of the build.  In the event of multiple exceptions, only
+	 * one will be captured.
 	 */
-	public AvailBuilder (
-		final AvailRuntime runtime,
-		final CompilerProgressReporter localTracker,
-		final Continuation3<ModuleName, Long, Long> globalTracker)
+	private @Nullable Exception terminator;
+
+	/**
+	 * Answer the reason for the failure of the current build, or {@code
+	 * null} if none.
+	 *
+	 * @return The {@link Exception}, if any, responsible for the trace
+	 *         failure.
+	 */
+	public synchronized @Nullable Exception terminator ()
 	{
-		this.runtime = runtime;
-		this.localTracker = localTracker;
-		this.globalTracker = globalTracker;
+		return terminator;
 	}
 
 	/**
-	 * A {@code BuildState} represents the complete state of a build process.
-	 * It allows {@link AvailBuilder} to be stateless.
+	 * Clear any previously captured {@link Exception} from the {@link
+	 * #terminator} field.
 	 */
-	private final class BuildState
+	@InnerAccess synchronized void clearTerminator ()
+	{
+		terminator = null;
+	}
+
+	/**
+	 * Cancel the build at the next convenient stopping point for each module.
+	 */
+	public void cancel ()
+	{
+		try
+		{
+			throw new RuntimeException("Build interrupted by user");
+		}
+		catch (final RuntimeException e)
+		{
+			setTerminator(e);
+		}
+	}
+
+	/**
+	 * Fail the current phase due to the specified {@link Exception}.
+	 * Only the first exception will be reported.
+	 *
+	 * @param exception
+	 *        An {@link Exception} responsible for the trace failure.
+	 */
+	@InnerAccess synchronized void setTerminator (
+		final Exception exception)
+	{
+		if (terminator == null)
+		{
+			terminator = exception;
+		}
+	}
+
+	/**
+	 * A LoadedModule holds state about what the builder knows about a currently
+	 * loaded Avail module.
+	 *
+	 * @author Todd L Smith &lt;todd@availlang.org&gt;
+	 */
+	class LoadedModule
 	{
 		/**
-		 * The {@link Exception} (if any) responsible for an abnormal
-		 * termination of the build.  In the event of multiple exceptions, only
-		 * one will be captured.
+		 * The resolved name of this module.
 		 */
-		private volatile @Nullable Exception terminator;
+		final @InnerAccess ResolvedModuleName name;
 
 		/**
-		 * Fail the current trace due to the specified {@link Exception}.  Only
-		 * the first exception will be reported.
-		 *
-		 * @param exception
-		 *        An {@link Exception} responsible for the trace failure.
+		 * The cryptographic {@link IndexedRepositoryManager#digestForFile(
+		 * ResolvedModuleName) digest} of this module's source code when it was
+		 * compiled.
 		 */
-		@InnerAccess synchronized void failTrace (
-			final Exception exception)
+		final @InnerAccess byte [] sourceDigest;
+
+		/**
+		 * The actual {@link A_Module} that was plugged into the {@link
+		 * AvailRuntime}.
+		 */
+		final @InnerAccess A_Module module;
+
+		/**
+		 * The {@link ModuleCompilation} which was loaded for this module.  This
+		 * indicates when the compilation happened, and where in the {@linkplain
+		 * IndexedRepositoryManager repository} we can find the {@link
+		 * Serializer serialized} module content.
+		 */
+		final ModuleCompilation compilation;
+
+		/**
+		 * Whether this module has been flagged for deletion by the {@link
+		 * BuildUnloader}.
+		 */
+		boolean deletionRequest = false;
+
+		/**
+		 * Construct a new {@link AvailBuilder.LoadedModule} to represent
+		 * information about an Avail module that has been loaded.
+		 *
+		 * @param name The {@linkplain ResolvedModuleName name} of the module.
+		 * @param sourceDigest The module source's cryptographic digest.
+		 * @param module The actual {@link A_Module} loaded in the {@link
+		 *        AvailRuntime}.
+		 * @param compilation Information about the specific {@link
+		 *        ModuleCompilation} that is loaded.
+		 */
+		public LoadedModule (
+			final ResolvedModuleName name,
+			final byte [] sourceDigest,
+			final A_Module module,
+			final ModuleCompilation compilation)
 		{
-			if (terminator == null)
+			this.name = name;
+			this.sourceDigest = sourceDigest;
+			this.module = module;
+			this.compilation = compilation;
+		}
+	}
+
+	/**
+	 * Used for unloading changed modules prior to tracing.
+	 */
+	class BuildUnloader
+	{
+		/**
+		 * Find all loaded modules that have changed since compilation, then
+		 * unload them and all successors in reverse dependency order.
+		 */
+		@InnerAccess void unload ()
+		{
+			// Scan modules in dependency order, checking if either that module
+			// file has changed since loading, or a predecessor is already
+			// flagged for unloading.  We do the propagation here to avoid
+			// having to look at the actual files downstream from a module known
+			// to have changed.
+			moduleGraph.parallelVisit(
+				new Continuation2<ResolvedModuleName, Continuation0>()
+				{
+					@Override
+					public void value (
+						final @Nullable ResolvedModuleName moduleName,
+						final @Nullable Continuation0 completionAction)
+					{
+						assert moduleName != null;
+						assert completionAction != null;
+						runtime.execute(new AvailTask(
+							FiberDescriptor.loaderPriority,
+							new Continuation0()
+							{
+								@Override
+								public void value()
+								{
+									boolean dirty = false;
+									for (final ResolvedModuleName predecessor
+										: moduleGraph.predecessorsOf(
+											moduleName))
+									{
+										final LoadedModule loadedModule =
+											loadedModules.get(predecessor);
+										if (loadedModule.deletionRequest)
+										{
+											dirty = true;
+											break;
+										}
+									}
+									if (!dirty)
+									{
+										// Look at the file to determine if it's
+										// changed.
+										final LoadedModule loadedModule =
+											loadedModules.get(moduleName);
+										assert loadedModule != null;
+										final IndexedRepositoryManager
+											repository =
+												moduleName.repository();
+										final byte [] latestDigest =
+											repository.digestForFile(
+												moduleName);
+										dirty = !Arrays.equals(
+											latestDigest,
+											loadedModule.sourceDigest);
+									}
+									loadedModules.get(moduleName)
+										.deletionRequest = dirty;
+									completionAction.value();
+								}
+							}));
+					}
+				});
+			// We now have the set of modules to be unloaded.  Do so in reverse
+			// dependency order.
+			moduleGraph.reverse().parallelVisit(
+				new Continuation2<ResolvedModuleName, Continuation0>()
+				{
+					@Override
+					public void value (
+						final @Nullable ResolvedModuleName moduleName,
+						final @Nullable Continuation0 completionAction)
+					{
+						// No need to lock dirtyModules any more, since it's
+						// purely read-only at this point.
+						assert moduleName != null;
+						assert completionAction != null;
+						runtime.whenLevelOneSafeDo(new AvailTask(
+							FiberDescriptor.loaderPriority,
+							new Continuation0()
+							{
+								@Override
+								public void value()
+								{
+									final LoadedModule loadedModule =
+										loadedModules.get(moduleName);
+									if (loadedModule.deletionRequest)
+									{
+										if (debugBuilder)
+										{
+											System.out.println(
+												"Beginning unload of: "
+												+ moduleName);
+										}
+										final A_Module module =
+											loadedModule.module;
+										assert module != null;
+										// It's legal to just create a loader
+										// here, since it won't have any pending
+										// forwards to remove.
+										module.removeFrom(
+											AvailLoader.forUnloading(module));
+										runtime.removeModule(module);
+										if (debugBuilder)
+										{
+											System.out.println(
+												"Done unload of: "
+												+ moduleName);
+										}
+									}
+									completionAction.value();
+								}
+							}));
+					}
+				});
+			// Unloading of each A_Module is complete.  Update my local
+			// structures to agree.
+			for (final Map.Entry<ResolvedModuleName, LoadedModule> entry
+				: new ArrayList<>(loadedModules.entrySet()))
 			{
-				terminator = exception;
+				if (entry.getValue().deletionRequest)
+				{
+					final ResolvedModuleName moduleName = entry.getKey();
+					loadedModules.remove(moduleName);
+					moduleGraph.exciseVertex(moduleName);
+				}
 			}
 		}
+	}
 
-		/**
-		 * Answer the reason for the failure of the current build, or {@code
-		 * null} if none.
-		 *
-		 * @return The {@link Exception}, if any, responsible for the trace
-		 *         failure.
-		 */
-		public synchronized @Nullable Exception terminator ()
-		{
-			return terminator;
-		}
+	/**
+	 * Used for unloading changed modules prior to tracing.
+	 */
+	private final BuildUnloader unloader = new BuildUnloader();
+
+	/**
+	 * Used for constructing the module dependency graph.
+	 */
+	@InnerAccess class BuildTracer
+	{
 
 		/**
 		 * The number of trace requests that have been scheduled.
 		 */
-		public int traceRequests = 0;
+		private int traceRequests;
 
 		/**
 		 * The number of trace requests that have been completed.
 		 */
-		public int traceCompletions = 0;
+		private int traceCompletions;
 
 		/**
-		 * Construct a new {@link BuildState}.
-		 */
-		@InnerAccess BuildState ()
-		{
-			// No implementation required, but this prevents a synthetic
-			// accessor being generated in the enclosing class for this class's
-			// default constructor.
-		}
-
-		/**
-		 * Schedule tracing of the imports of the {@linkplain ModuleDescriptor
-		 * module} specified by the given {@linkplain ModuleName module name}.
-		 * The {@link #traceRequests} counter has been incremented already for
-		 * this tracing, and the {@link #traceCompletions} will eventually be
-		 * incremented by this method, but only <em>after</em> increasing the
-		 * {@link #traceRequests} for each recursive trace that is scheduled
-		 * here.  That ensures the two counters won't accidentally be equal at
-		 * any time except after the last trace has completed.
+		 * Schedule tracing of the imports of the {@linkplain
+		 * ModuleDescriptor module} specified by the given {@linkplain
+		 * ModuleName module name}.  The {@link #traceRequests} counter has
+		 * been incremented already for this tracing, and the {@link
+		 * #traceCompletions} will eventually be incremented by this method,
+		 * but only <em>after</em> increasing the {@link #traceRequests} for
+		 * each recursive trace that is scheduled here.  That ensures the
+		 * two counters won't accidentally be equal at any time except after
+		 * the last trace has completed.
 		 *
-		 * <p>When traceCompletions finally does reach traceRequests, a {@link
-		 * #notifyAll()} will be sent to the {@link BuildState}.</p>
+		 * <p>When traceCompletions finally does reach traceRequests, a
+		 * {@link #notifyAll()} will be sent to the {@link BuildTracer}.</p>
 		 *
 		 * @param qualifiedName
 		 *        A fully-qualified {@linkplain ModuleName module name}.
@@ -244,10 +429,10 @@ public final class AvailBuilder
 		 *        recursive
 		 *        resolution (i.e., it will be the last one compiled).
 		 * @param recursionSet
-		 *        An insertion-ordered {@linkplain Set set} that remembers all
-		 *        modules visited along this branch of the trace.
+		 *        An insertion-ordered {@linkplain Set set} that remembers
+		 *        all modules visited along this branch of the trace.
 		 */
-		@InnerAccess void scheduleTraceModuleImports (
+		private void scheduleTraceModuleImports (
 			final ModuleName qualifiedName,
 			final @Nullable ResolvedModuleName resolvedSuccessor,
 			final LinkedHashSet<ResolvedModuleName> recursionSet)
@@ -280,13 +465,14 @@ public final class AvailBuilder
 									System.out.println(
 										"Fail resolution: "+ e);
 								}
-								failTrace(e);
+								setTerminator(e);
 								indicateTraceCompleted();
 								return;
 							}
 							if (debugBuilder)
 							{
-								System.out.println("Trace: " + resolvedName);
+								System.out.println(
+									"Trace: " + resolvedName);
 							}
 							traceModuleImports(
 								resolvedName,
@@ -300,7 +486,7 @@ public final class AvailBuilder
 		/**
 		 * Trace the imports of the {@linkplain ModuleDescriptor module}
 		 * specified by the given {@linkplain ModuleName module name}.  If a
-		 * failure happens, record it with {@link #failTrace(Exception)}.
+		 * failure happens, record it with {@link #setTerminator(Exception)}.
 		 * Whether a success or failure happens, end by invoking {@link
 		 * #indicateTraceCompleted()}.
 		 *
@@ -309,10 +495,11 @@ public final class AvailBuilder
 		 * @param resolvedSuccessor
 		 *        The resolved name of the module using or extending this
 		 *        module, or {@code null} if this module is the start of the
-		 *        recursive resolution (i.e., it will be the last one compiled).
+		 *        recursive resolution (i.e., it will be the last one
+		 *        compiled).
 		 * @param recursionSet
-		 *        An insertion-ordered {@linkplain Set set} that remembers all
-		 *        modules visited along this branch of the trace.
+		 *        An insertion-ordered {@linkplain Set set} that remembers
+		 *        all modules visited along this branch of the trace.
 		 */
 		@InnerAccess void traceModuleImports (
 			final ResolvedModuleName resolvedName,
@@ -322,7 +509,7 @@ public final class AvailBuilder
 			// Detect recursion into this module.
 			if (recursionSet.contains(resolvedName))
 			{
-				failTrace(
+				setTerminator(
 					new RecursiveDependencyException(
 						resolvedName,
 						recursionSet));
@@ -330,7 +517,7 @@ public final class AvailBuilder
 				return;
 			}
 			boolean alreadyTraced;
-			synchronized (this)
+			synchronized (AvailBuilder.this)
 			{
 				alreadyTraced = moduleGraph.includesVertex(resolvedName);
 				if (!alreadyTraced)
@@ -339,10 +526,11 @@ public final class AvailBuilder
 				}
 				if (resolvedSuccessor != null)
 				{
-					// Note that a module can be both Extended and Used from the
-					// same module.  That's to support selective import and
-					// renames.
-					moduleGraph.includeEdge(resolvedName, resolvedSuccessor);
+					// Note that a module can be both Extended and Used from
+					// the same module.  That's to support selective import
+					// and renames.
+					moduleGraph.includeEdge(
+						resolvedName, resolvedSuccessor);
 				}
 			}
 			if (alreadyTraced)
@@ -407,7 +595,7 @@ public final class AvailBuilder
 									final @Nullable Exception exception)
 								{
 									assert exception != null;
-									failTrace(exception);
+									setTerminator(exception);
 									indicateTraceCompleted();
 								}
 							});
@@ -420,25 +608,26 @@ public final class AvailBuilder
 						final @Nullable AvailScannerException exception)
 					{
 						assert exception != null;
-						failTrace(exception);
+						setTerminator(exception);
 						indicateTraceCompleted();
 					}
 				});
 		}
 
 		/**
-		 * Trace the imports of the {@linkplain ResolvedModuleName specified}
-		 * {@linkplain ModuleDescriptor module}.  Return only when these new
-		 * <em>requests</em> have been accounted for, so that the current
-		 * request can be considered completed in the caller.
+		 * Trace the imports of the {@linkplain ResolvedModuleName
+		 * specified} {@linkplain ModuleDescriptor module}.  Return only
+		 * when these new <em>requests</em> have been accounted for, so that
+		 * the current request can be considered completed in the caller.
 		 *
 		 * @param moduleName
 		 *        The name of the module being traced.
 		 * @param importNames
-		 *        The local names of the modules referenced by the current one.
+		 *        The local names of the modules referenced by the current
+		 *        one.
 		 * @param recursionSet
-		 *        An insertion-ordered {@linkplain Set set} that remembers all
-		 *        modules visited along this branch of the trace.
+		 *        An insertion-ordered {@linkplain Set set} that remembers
+		 *        all modules visited along this branch of the trace.
 		 */
 		@InnerAccess void traceModuleNames (
 			final ResolvedModuleName moduleName,
@@ -451,7 +640,7 @@ public final class AvailBuilder
 				new LinkedHashSet<>(recursionSet);
 			newSet.add(moduleName);
 
-			synchronized (BuildState.this)
+			synchronized (AvailBuilder.this)
 			{
 				traceRequests += importNames.size();
 			}
@@ -459,48 +648,26 @@ public final class AvailBuilder
 			// Recurse in parallel into each import.
 			for (final String localImport : importNames)
 			{
-				final ModuleName importName = moduleName.asSibling(localImport);
+				final ModuleName importName =
+					moduleName.asSibling(localImport);
 				scheduleTraceModuleImports(importName, moduleName, newSet);
 			}
 		}
 
 		/**
-		 * Fail the current build due to the specified {@link Exception}.  Only
-		 * the first exception will be reported.
-		 *
-		 * @param moduleName
-		 *        The resolved module name that failed to build or scan.
-		 * @param lastPosition
-		 *        The last source position that has been previously reported.
-		 * @param killer
-		 *        An {@link Exception} responsible for build failure.
+		 * A module was just traced, so record that fact.  Note that the
+		 * trace was either successful or unsuccessful.
 		 */
-		@InnerAccess synchronized void failBuild (
-			final ResolvedModuleName moduleName,
-			final long lastPosition,
-			final Exception killer)
-		{
-			postLoad(moduleName, lastPosition);
-			if (terminator == null)
-			{
-				terminator = killer;
-			}
-		}
-
-		/**
-		 * A module was just traced, so record that fact.  Note that the trace
-		 * was either successful or unsuccessful.
-		 */
-		public synchronized void indicateTraceCompleted ()
+		@InnerAccess synchronized void indicateTraceCompleted ()
 		{
 			traceCompletions++;
 			if (debugBuilder)
 			{
-				System.out.format(
+				System.out.println(
+					String.format(
 						"Traced one (%d/%d)",
 						traceCompletions,
-						traceRequests)
-					.flush();
+						traceRequests));
 			}
 			// Avoid spurious wake-ups.
 			if (traceRequests == traceCompletions)
@@ -509,46 +676,102 @@ public final class AvailBuilder
 			}
 		}
 
+		/**
+		 * Determine the ancestry graph of the indicated module, recording it in
+		 * the {@link #moduleGraph}.
+		 *
+		 * @param target The ultimate module to load.
+		 * @throws InterruptedException If tracing is interrupted.
+		 * @throws Exception If tracing fails.
+		 */
+		@InnerAccess void trace (final ModuleName target)
+			throws InterruptedException, Exception
+		{
+			try
+			{
+				// Clear all information about modules that have been traced.
+				// This graph will be rebuilt below if successful, or cleared on
+				// failure.
+				moduleGraph.clear();
+				traceRequests = 1;
+				traceCompletions = 0;
+				scheduleTraceModuleImports(
+					target,
+					null,
+					new LinkedHashSet<ResolvedModuleName>());
+				// Wait until the parallel recursive trace completes.
+				synchronized (this)
+				{
+					while (traceRequests != traceCompletions)
+					{
+						wait();
+					}
+					runtime.moduleNameResolver().commitRepositories();
+					final @Nullable Exception term = terminator();
+					if (term != null)
+					{
+						throw term;
+					}
+				}
+				System.out.println(
+					String.format(
+						"Traced %d modules (%d edges)",
+						moduleGraph.size(),
+						traceCompletions));
+			}
+			catch (final Exception e)
+			{
+				moduleGraph.clear();
+				throw e;
+			}
+		}
+	}
+
+	/**
+	 * Used for tracing the module dependency graph.
+	 */
+	private final BuildTracer tracer = new BuildTracer();
+
+	/**
+	 * Used for parallel-loading modules discovered by the {@link #tracer}.
+	 */
+	class BuildLoader
+	{
 		/** The size, in bytes, of all source files that will be built. */
 		private long globalCodeSize = 0L;
 
+		/** The number of bytes compiled so far. */
+		@InnerAccess final AtomicLong bytesCompiled = new AtomicLong(0L);
+
 		/**
-		 * Answer the size, in bytes, of all source files that will be built.
+		 * Answer the size, in bytes, of all source files that will be
+		 * built.
 		 *
-		 * @return The size, in bytes, of all source files that will be built.
+		 * @return The number of bytes in all source files that will be
+		 *         built.
 		 */
 		@InnerAccess synchronized long globalCodeSize ()
 		{
-			if (globalCodeSize == 0L)
-			{
-				for (final ResolvedModuleName mod : moduleGraph.vertices())
-				{
-					globalCodeSize += mod.moduleSize();
-				}
-			}
 			return globalCodeSize;
 		}
 
-		/** The number of bytes compiled so far. */
-		final @InnerAccess AtomicLong bytesCompiled = new AtomicLong(0L);
-
 		/**
 		 * Schedule a build of the specified {@linkplain ModuleDescriptor
-		 * module}, on the assumption that its predecessors have already been
-		 * built.
+		 * module}, on the assumption that its predecessors have already
+		 * been built.
 		 *
 		 * @param target
 		 *        The {@linkplain ResolvedModuleName resolved name} of the
 		 *        module that should be loaded.
 		 * @param completionAction
-		 *        The {@linkplain Continuation0 action} to perform after this
-		 *        module has been loaded.
+		 *        The {@linkplain Continuation0 action} to perform after
+		 *        this module has been loaded.
 		 */
 		@InnerAccess void scheduleLoadModule (
 			final ResolvedModuleName target,
 			final Continuation0 completionAction)
 		{
-			// Avoid scheduling new tasks if an exception has been encountered.
+			// Avoid scheduling new tasks if an exception has happened.
 			if (terminator() != null)
 			{
 				return;
@@ -560,8 +783,8 @@ public final class AvailBuilder
 					@Override
 					public void value ()
 					{
-						// An exception has been encountered since the previous
-						// check.  Exit quickly.
+						// An exception has been encountered since the
+						// earlier check.  Exit quickly.
 						if (terminator() != null)
 						{
 							completionAction.value();
@@ -582,8 +805,8 @@ public final class AvailBuilder
 
 		/**
 		 * Load the specified {@linkplain ModuleDescriptor module} into the
-		 * {@linkplain AvailRuntime Avail runtime}. If a current compiled module
-		 * is available from the {@linkplain IndexedRepositoryManager
+		 * {@linkplain AvailRuntime Avail runtime}. If a current compiled
+		 * module is available from the {@linkplain IndexedRepositoryManager
 		 * repository}, then simply load it. Otherwise, {@linkplain
 		 * AbstractAvailCompiler compile} the module, store it into the
 		 * repository, and then load it.
@@ -603,7 +826,8 @@ public final class AvailBuilder
 		 * @throws AvailCompilerException
 		 *         If the compiler cannot build a module.
 		 * @throws MalformedSerialStreamException
-		 *         If the repository contains invalid serialized module data.
+		 *         If the repository contains invalid serialized module
+		 *         data.
 		 */
 		@InnerAccess void loadModule (
 				final ResolvedModuleName moduleName,
@@ -615,52 +839,53 @@ public final class AvailBuilder
 		{
 			globalTracker.value(
 				moduleName, bytesCompiled.get(), globalCodeSize());
-			// If the module is already loaded into the runtime, then we must
-			// not reload it.
+			// If the module is already loaded into the runtime, then we
+			// must not reload it.
 			if (runtime.includesModuleNamed(
 				StringDescriptor.from(moduleName.qualifiedName())))
 			{
 				// The module is already loaded.
 				if (debugBuilder)
 				{
-					System.out.format(
-						"Already loaded: \"%s\"%n",
-						moduleName.qualifiedName());
+					System.out.println(
+						String.format(
+							"Already loaded: %s",
+							moduleName.qualifiedName()));
 				}
-				assert moduleCompilations.containsKey(moduleName);
+				assert loadedModules.containsKey(moduleName);
 				postLoad(moduleName, 0L);
 				completionAction.value();
 			}
 			else
 			{
-				assert !moduleCompilations.containsKey(moduleName);
+				assert !loadedModules.containsKey(moduleName);
 				final IndexedRepositoryManager repository =
 					moduleName.repository();
 				final ModuleVersionKey versionKey =
 					new ModuleVersionKey(moduleName);
 				final ModuleVersion version = repository.getVersion(versionKey);
 				assert version != null
-				: "Module version should have been populated during tracing";
-				final Map<String, ModuleCompilation> compilationsByName =
+					: "Version should have been populated during tracing";
+				final Map<String, LoadedModule> loadedModulesByName =
 					new HashMap<>();
 				for (final ResolvedModuleName predecessorName :
 					moduleGraph.predecessorsOf(moduleName))
 				{
 					final String localName = predecessorName.localName();
-					final ModuleCompilation predecessorCompilation =
-						moduleCompilations.get(predecessorName);
-					assert predecessorCompilation != null;
-					compilationsByName.put(localName, predecessorCompilation);
+					final LoadedModule loadedPredecessor =
+						loadedModules.get(predecessorName);
+					assert loadedPredecessor != null;
+					loadedModulesByName.put(localName, loadedPredecessor);
 				}
 				final List<String> imports = version.getImports();
 				final long [] predecessorCompilationTimes =
 					new long [imports.size()];
 				for (int i = 0; i < predecessorCompilationTimes.length; i++)
 				{
-					final ModuleCompilation predecessorCompilation =
-						compilationsByName.get(imports.get(i));
+					final LoadedModule loadedPredecessor =
+						loadedModulesByName.get(imports.get(i));
 					predecessorCompilationTimes[i] =
-						predecessorCompilation.compilationTime;
+						loadedPredecessor.compilation.compilationTime;
 				}
 				final ModuleCompilationKey compilationKey =
 					new ModuleCompilationKey(predecessorCompilationTimes);
@@ -670,13 +895,10 @@ public final class AvailBuilder
 				{
 					// The current version of the module is already
 					// compiled, so load the repository's version.
-					synchronized (this)
-					{
-						moduleCompilations.put(moduleName, compilation);
-					}
 					loadRepositoryModule(
 						moduleName,
 						compilation,
+						versionKey.sourceDigest,
 						completionAction);
 				}
 				else
@@ -704,30 +926,35 @@ public final class AvailBuilder
 		 *        The {@linkplain ResolvedModuleName resolved name} of the
 		 *        module that should be loaded.
 		 * @param compilation
-		 *        The {@link ModuleCompilation} containing information about the
-		 *        particular stored compilation of this module in the
+		 *        The {@link ModuleCompilation} containing information about
+		 *        the particular stored compilation of this module in the
 		 *        repository.
+		 * @param sourceDigest
+		 *        The cryptographic digest of the module's source code.
 		 * @param completionAction
 		 *        What to do after loading the module successfully.
 		 * @throws AvailCompilerException
 		 *         If the compiler cannot build a module.
 		 * @throws MalformedSerialStreamException
-		 *         If the repository contains invalid serialized module data.
+		 *         If the repository contains invalid serialized module
+		 *         data.
 		 */
 		private void loadRepositoryModule (
 				final ResolvedModuleName moduleName,
 				final ModuleCompilation compilation,
+				final byte[] sourceDigest,
 				final Continuation0 completionAction)
 			throws MalformedSerialStreamException
 		{
 			localTracker.value(moduleName, -1L, -1L, -1L);
 			// Read the module data from the repository.
-			final byte [] bytes = compilation.getBytes();
+			final byte[] bytes = compilation.getBytes();
 			assert bytes != null;
-			final ByteArrayInputStream inputStream = validatedBytesFrom(bytes);
+			final ByteArrayInputStream inputStream =
+				validatedBytesFrom(bytes);
 			final A_Module module = ModuleDescriptor.newModule(
 				StringDescriptor.from(moduleName.qualifiedName()));
-			final AvailLoader loader = new AvailLoader(module);
+			final AvailLoader availLoader = new AvailLoader(module);
 			final Deserializer deserializer = new Deserializer(
 				inputStream, runtime);
 			deserializer.currentModule(module);
@@ -759,10 +986,10 @@ public final class AvailBuilder
 			}
 			catch (final MalformedSerialStreamException|RuntimeException e)
 			{
-				module.removeFrom(loader);
+				module.removeFrom(availLoader);
 				throw e;
 			}
-			loader.createFilteredBundleTree();
+			availLoader.createFilteredBundleTree();
 
 			final Continuation1<Exception> fail =
 				new Continuation1<Exception>()
@@ -773,7 +1000,7 @@ public final class AvailBuilder
 						assert exception != null;
 						try
 						{
-							module.removeFrom(loader);
+							module.removeFrom(availLoader);
 						}
 						finally
 						{
@@ -792,10 +1019,16 @@ public final class AvailBuilder
 					final A_Function function;
 					try
 					{
+						if (terminator() != null)
+						{
+							throw new RuntimeException(
+								"propagate termination");
+						}
 						function = deserializer.deserialize();
 					}
 					catch (
-						final MalformedSerialStreamException|RuntimeException e)
+						final MalformedSerialStreamException
+							| RuntimeException e)
 					{
 						fail.value(e);
 						return;
@@ -806,7 +1039,7 @@ public final class AvailBuilder
 						final A_Fiber fiber =
 							FiberDescriptor.newLoaderFiber(
 								function.kind().returnType(),
-								loader,
+								availLoader,
 								StringDescriptor.from(
 									String.format(
 										"Load repo module %s, in %s:%d",
@@ -824,13 +1057,22 @@ public final class AvailBuilder
 					else
 					{
 						runtime.addModule(module);
-						module.cleanUpAfterCompile();
+						synchronized (AvailBuilder.this)
+						{
+							final LoadedModule loadedModule = new LoadedModule(
+								moduleName,
+								sourceDigest,
+								module,
+								compilation);
+							loadedModules.put(moduleName, loadedModule);
+						}
 						postLoad(moduleName, 0L);
 						completionAction.value();
 					}
 				}
 			};
-			// The argument is ignored, so it doesn't matter what gets passed.
+			// The argument is ignored, so it doesn't matter what gets
+			// passed.
 			runNext.value().value(NilDescriptor.nil());
 		}
 
@@ -868,9 +1110,6 @@ public final class AvailBuilder
 			throws IOException, AvailCompilerException
 		{
 			final Mutable<Long> lastPosition = new Mutable<>(0L);
-			// Capture the file's modification time *before* compiling.  That
-			// way if the file is modified during compiling, the next build will
-			// simply treat the stored data as invalid and recompile it.
 			final ModuleVersionKey versionKey =
 				new ModuleVersionKey(moduleName);
 			final IndexedRepositoryManager repository = moduleName.repository();
@@ -916,6 +1155,7 @@ public final class AvailBuilder
 								public void value (
 									final @Nullable A_Module module)
 								{
+									assert module != null;
 									final ByteArrayOutputStream stream =
 										compiler.serializerOutputStream;
 									// This is the moment of compilation.
@@ -932,8 +1172,13 @@ public final class AvailBuilder
 									repository.commitIfStaleChanges(
 										maximumStaleRepositoryMs);
 									postLoad(moduleName, lastPosition.value);
-									moduleCompilations.put(
-										moduleName, compilation);
+									loadedModules.put(
+										moduleName,
+										new LoadedModule(
+											moduleName,
+											versionKey.sourceDigest,
+											module,
+											compilation));
 									completionAction.value();
 								}
 							},
@@ -986,43 +1231,40 @@ public final class AvailBuilder
 		{
 			globalTracker.value(
 				moduleName,
-				bytesCompiled.addAndGet(moduleName.moduleSize() - lastPosition),
+				bytesCompiled.addAndGet(
+					moduleName.moduleSize() - lastPosition),
 				globalCodeSize());
 		}
 
 		/**
-		 * Given an array of bytes, check that the last four bytes, when treated
-		 * as a Big Endian unsigned int, agree with the {@link CRC32} checksum
-		 * of the bytes excluding the last four.  Fail if they disagree.  Answer
-		 * a ByteArrayInputStream on the bytes excluding the last four.
+		 * Fail the current build due to the specified {@link Exception}.
+		 * Only the first exception will be reported.
 		 *
-		 * @param bytes An array of bytes.
-		 * @return A ByteArrayInputStream on the non-CRC portion of the bytes.
-		 * @throws MalformedSerialStreamException If the CRC check fails.
+		 * @param moduleName
+		 *        The resolved module name that failed to build or scan.
+		 * @param lastPosition
+		 *        The last source position that has already been reported.
+		 * @param killer
+		 *        An {@link Exception} responsible for build failure.
 		 */
-		private ByteArrayInputStream validatedBytesFrom (final byte[] bytes)
-		throws MalformedSerialStreamException
+		@InnerAccess synchronized void failBuild (
+			final ResolvedModuleName moduleName,
+			final long lastPosition,
+			final Exception killer)
 		{
-			final int storedChecksum =
-				ByteBuffer.wrap(bytes).getInt(bytes.length - 4);
-			final Checksum checksum = new CRC32();
-			checksum.update(bytes, 0, bytes.length - 4);
-			if ((int)checksum.getValue() != storedChecksum)
-			{
-				throw new MalformedSerialStreamException(null);
-			}
-			return new ByteArrayInputStream(bytes, 0, bytes.length - 4);
+			postLoad(moduleName, lastPosition);
+			setTerminator(killer);
 		}
 
 		/**
-		 * Given a byte array, compute the {@link CRC32} checksum and append the
-		 * int value as four bytes (Big Endian), answering the new augmented
-		 * byte array.
+		 * Given a byte array, compute the {@link CRC32} checksum and append
+		 * the {@code int} value as four bytes (Big Endian), answering the
+		 * new augmented byte array.
 		 *
 		 * @param bytes The input bytes.
 		 * @return The bytes followed by the checksum.
 		 */
-		public byte[] appendCRC (final byte[] bytes)
+		@InnerAccess byte[] appendCRC (final byte[] bytes)
 		{
 			final CRC32 checksum = new CRC32();
 			checksum.update(bytes);
@@ -1038,6 +1280,107 @@ public final class AvailBuilder
 			combined.get(combinedBytes);
 			return combinedBytes;
 		}
+
+		/**
+		 * Given an array of bytes, check that the last four bytes, when
+		 * treated as a Big Endian unsigned int, agree with the {@link
+		 * CRC32} checksum of the bytes excluding the last four.  Fail if
+		 * they disagree.  Answer a ByteArrayInputStream on the bytes
+		 * excluding the last four.
+		 *
+		 * @param bytes An array of bytes.
+		 * @return A ByteArrayInputStream on the non-CRC portion of the
+		 *         bytes.
+		 * @throws MalformedSerialStreamException If the CRC check fails.
+		 */
+		private ByteArrayInputStream validatedBytesFrom (final byte[] bytes)
+			throws MalformedSerialStreamException
+		{
+			final int storedChecksum =
+				ByteBuffer.wrap(bytes).getInt(bytes.length - 4);
+			final Checksum checksum = new CRC32();
+			checksum.update(bytes, 0, bytes.length - 4);
+			if ((int)checksum.getValue() != storedChecksum)
+			{
+				throw new MalformedSerialStreamException(null);
+			}
+			return new ByteArrayInputStream(bytes, 0, bytes.length - 4);
+		}
+
+		/**
+		 * Load the modules found by the {@link #tracer}.
+		 *
+		 * @throws Exception If loading can't complete.
+		 */
+		@InnerAccess void load () throws Exception
+		{
+			globalCodeSize = 0L;
+			for (final ResolvedModuleName mod : moduleGraph.vertices())
+			{
+				globalCodeSize += mod.moduleSize();
+			}
+			bytesCompiled.set(0L);
+			moduleGraph.parallelVisit(
+				new Continuation2<ResolvedModuleName, Continuation0>()
+				{
+					@Override
+					public void value (
+						final @Nullable ResolvedModuleName moduleName,
+						final @Nullable Continuation0 completionAction)
+					{
+						assert moduleName != null;
+						assert completionAction != null;
+						scheduleLoadModule(moduleName, completionAction);
+					}
+				});
+			// Parallel load has now completed or failed.
+			final @Nullable Exception exception = terminator();
+			if (exception != null)
+			{
+				throw exception;
+			}
+		}
+	}
+
+	/**
+	 * Used for loading the modules discovered by the {@link #tracer}.
+	 */
+	private final BuildLoader loader = new BuildLoader();
+
+	/**
+	 * Construct an {@link AvailBuilder} for the provided runtime.  During a
+	 * build, the passed trackers will be invoked to show progress.
+	 *
+	 * @param runtime
+	 *        The {@link AvailRuntime} in which to load modules and execute
+	 *        commands.
+	 * @param localTracker
+	 *        A {@linkplain CompilerProgressReporter continuation} that accepts
+	 *        <ol>
+	 *        <li>the name of the module currently undergoing {@linkplain
+	 *        AbstractAvailCompiler compilation} as part of the recursive build
+	 *        of target,</li>
+	 *        <li>the current line number within the current module,</li>
+	 *        <li>the position of the ongoing parse (in bytes), and</li>
+	 *        <li>the size of the module in bytes.</li>
+	 *        </ol>
+	 * @param globalTracker
+	 *        A {@linkplain Continuation3 continuation} that accepts
+	 *        <ol>
+	 *        <li>the name of the module undergoing compilation,</li>
+	 *        <li>the number of bytes globally processed, and</li>
+	 *        <li>the global size (in bytes) of all modules that will be
+	 *        built.</li>
+	 *        </ol>
+	 */
+	public AvailBuilder (
+		final AvailRuntime runtime,
+		final CompilerProgressReporter localTracker,
+		final Continuation3<ModuleName, Long, Long> globalTracker)
+	{
+		this.runtime = runtime;
+		this.localTracker = localTracker;
+		this.globalTracker = globalTracker;
 	}
 
 	/**
@@ -1054,52 +1397,12 @@ public final class AvailBuilder
 			final ModuleName target)
 		throws Exception
 	{
-		// Clear all information about modules that have been traced.  This will
-		// be rebuilt below.
-		moduleGraph.clear();
-		final BuildState state = new BuildState();
-		state.traceRequests = 1;
-		state.scheduleTraceModuleImports(
-			target,
-			null,
-			new LinkedHashSet<ResolvedModuleName>());
-		// Wait until the parallel recursive trace completes.
-		synchronized (state)
-		{
-			while (state.traceRequests != state.traceCompletions)
-			{
-				state.wait();
-			}
-			runtime.moduleNameResolver().commitRepositories();
-			final @Nullable Exception term = state.terminator();
-			if (term != null)
-			{
-				throw term;
-			}
-		}
-		System.out.format(
-			"Traced %d modules (%d edges).%n",
-			moduleGraph.size(),
-			state.traceCompletions);
-		System.out.flush();
-		moduleGraph.parallelVisit(
-			new Continuation2<ResolvedModuleName, Continuation0>()
-			{
-				@Override
-				public void value (
-					final @Nullable ResolvedModuleName moduleName,
-					final @Nullable Continuation0 completionAction)
-				{
-					assert moduleName != null;
-					assert completionAction != null;
-					state.scheduleLoadModule(moduleName, completionAction);
-				}
-			});
-		// Parallel load has now completed or failed.
-		final @Nullable Exception exception = state.terminator();
-		if (exception != null)
-		{
-			throw exception;
-		}
+		clearTerminator();
+		unloader.unload();
+		assert terminator() == null;
+		tracer.trace(target);
+		assert terminator() == null;
+		loader.load();
+		assert terminator() == null;
 	}
 }

@@ -645,20 +645,6 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	void o_CleanUpAfterCompile (
-		final AvailObject object)
-	{
-		synchronized (object)
-		{
-			object.setSlot(METHOD_DEFINITIONS_SET, NilDescriptor.nil());
-			object.setSlot(GRAMMATICAL_RESTRICTIONS, NilDescriptor.nil());
-			object.setSlot(VARIABLE_BINDINGS, NilDescriptor.nil());
-			object.setSlot(CONSTANT_BINDINGS, NilDescriptor.nil());
-			object.setSlot(SEMANTIC_RESTRICTIONS, NilDescriptor.nil());
-		}
-	}
-
-	@Override @AvailMethod
 	boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		// Compare by address (identity).

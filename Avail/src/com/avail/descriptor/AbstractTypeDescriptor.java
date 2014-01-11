@@ -164,7 +164,7 @@ extends Descriptor
 	@Override @AvailMethod
 	abstract boolean o_IsSupertypeOfVariableType (
 		final AvailObject object,
-		final A_BasicObject aVariableType);
+		final A_Type aVariableType);
 
 	@Override @AvailMethod
 	abstract boolean o_IsSupertypeOfContinuationType (

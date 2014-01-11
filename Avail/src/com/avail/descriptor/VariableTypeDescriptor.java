@@ -142,7 +142,7 @@ extends TypeDescriptor
 	@Override @AvailMethod
 	boolean o_IsSupertypeOfVariableType (
 		final AvailObject object,
-		final A_BasicObject aVariableType)
+		final A_Type aVariableType)
 	{
 		final AvailObject innerType = object.slot(INNER_TYPE);
 

@@ -508,7 +508,7 @@ extends AbstractTypeDescriptor
 	@Override @AvailMethod
 	final boolean o_IsSupertypeOfVariableType (
 		final AvailObject object,
-		final A_BasicObject aVariableType)
+		final A_Type aVariableType)
 	{
 		return false;
 	}

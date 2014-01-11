@@ -150,7 +150,7 @@ extends TypeDescriptor
 	@Override @AvailMethod
 	boolean o_IsSupertypeOfVariableType (
 		final AvailObject object,
-		final A_BasicObject aVariableType)
+		final A_Type aVariableType)
 	{
 		// Variable types are covariant by read capability and contravariant by
 		// write capability.

@@ -47,6 +47,7 @@ covariantly
 covaries
 covary
 cyan
+cyclicity
 decompilation
 deconstruct
 deconstructed
@@ -220,6 +221,7 @@ supertypes
 tally
 tastier
 throwable
+timestamp
 todd
 tokenization
 tokenize
@@ -253,7 +255,3 @@ wildcard
 wordcode
 wordcodes
 wow
-timestamp
-cyclicity
-enum
-accessor

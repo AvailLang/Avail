@@ -201,6 +201,8 @@ public interface A_BasicObject
 	 */
 	static final int multiplier = 1664525;
 
+
+
 	/**
 	 * Dispatch to the descriptor.
 	 */
@@ -255,11 +257,6 @@ public interface A_BasicObject
 	 * Dispatch to the descriptor.
 	 */
 	void binSize (int value);
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	void displayTestingTree ();
 
 	/**
 	 * Answer the element at the given index of the receiver.
@@ -417,33 +414,57 @@ public interface A_BasicObject
 	boolean equalsVariable (AvailObject aVariable);
 
 	/**
-	 * Dispatch to the descriptor.
+	 * Answer whether the receiver equals the argument, a {@linkplain
+	 * VariableTypeDescriptor variable type}.
+	 *
+	 * @param aVariableType A variable type.
+	 * @return The result of comparing the receiver and aVariableType.
 	 */
 	boolean equalsVariableType (A_Type aVariableType);
 
 	/**
-	 * Dispatch to the descriptor.
+	 * Answer whether the receiver equals the argument, a {@linkplain
+	 * ContinuationDescriptor continuation}.
+	 *
+	 * @param aContinuation A continuation.
+	 * @return The result of comparing the receiver and aContinuation.
 	 */
 	boolean equalsContinuation (A_Continuation aContinuation);
 
 	/**
-	 * Dispatch to the descriptor.
+	 * Answer whether the receiver equals the argument, a {@linkplain
+	 * ContinuationTypeDescriptor continuation type}.
+	 *
+	 * @param aContinuationType A continuation type.
+	 * @return The result of comparing the receiver and aContinuationType.
 	 */
-	boolean equalsContinuationType (A_Type aType);
+	boolean equalsContinuationType (A_Type aContinuationType);
 
 	/**
-	 * Dispatch to the descriptor.
+	 * Answer whether the receiver equals the argument, an {@linkplain
+	 * IntegerRangeTypeDescriptor integer range type}.
+	 *
+	 * @param anIntegerRangeType An integer range type.
+	 * @return The result of comparing the receiver and anIntegerRangeType.
 	 */
 	boolean equalsIntegerRangeType (
 		A_Type anIntegerRangeType);
 
 	/**
-	 * Dispatch to the descriptor.
+	 * Answer whether the receiver equals the argument, an Avail {@linkplain
+	 * MapDescriptor map}.
+	 *
+	 * @param aMap An Avail map.
+	 * @return The result of comparing the receiver and aMap.
 	 */
 	boolean equalsMap (A_Map aMap);
 
 	/**
-	 * Dispatch to the descriptor.
+	 * Answer whether the receiver equals the argument, a {@linkplain
+	 * MapTypeDescriptor map type}.
+	 *
+	 * @param aMapType A map type.
+	 * @return The result of comparing the receiver and aMapType.
 	 */
 	boolean equalsMapType (A_Type aMapType);
 
@@ -927,16 +948,6 @@ public interface A_BasicObject
 	 * @return
 	 */
 	boolean equalsEnumerationType (A_BasicObject anEnumerationType);
-
-	/**
-	 * @return
-	 */
-	A_Type readType ();
-
-	/**
-	 * @return
-	 */
-	A_Type writeType ();
 
 	/**
 	 * @return

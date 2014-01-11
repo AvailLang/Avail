@@ -112,6 +112,22 @@ public final class AvailLoader
 	}
 
 	/**
+	 * Create an {@link AvailLoader} suitable for unloading the specified
+	 * {@linkplain ModuleDescriptor module}.
+	 *
+	 * @param module The module that will be unloaded.
+	 * @return An AvailLoader suitable for unloading the module.
+	 */
+	public static AvailLoader forUnloading (final A_Module module)
+	{
+		final AvailLoader loader = new AvailLoader(module);
+		// We had better not be removing forward declarations from an already
+		// fully-loaded module.
+		loader.pendingForwards = NilDescriptor.nil();
+		return loader;
+	}
+
+	/**
 	 * Create the {@link #rootBundleTree} now that the module's imports and new
 	 * public names have been declared.
 	 */

@@ -1736,7 +1736,7 @@ public abstract class AbstractDescriptor
 	 */
 	abstract boolean o_IsSupertypeOfVariableType (
 		AvailObject object,
-		A_BasicObject aVariableType);
+		A_Type aVariableType);
 
 	/**
 	 * @param object
@@ -2837,11 +2837,6 @@ public abstract class AbstractDescriptor
 	/**
 	 * @param object
 	 */
-	abstract void o_CleanUpAfterCompile (AvailObject object);
-
-	/**
-	 * @param object
-	 */
 	abstract void o_ClearValue (AvailObject object);
 
 	/**
@@ -2911,11 +2906,6 @@ public abstract class AbstractDescriptor
 	 * @return
 	 */
 	abstract A_Type o_DefaultType (AvailObject object);
-
-	/**
-	 * @param object
-	 */
-	abstract void o_DisplayTestingTree (AvailObject object);
 
 	/**
 	 * @param object

@@ -59,6 +59,7 @@ import com.avail.descriptor.FiberDescriptor.ExecutionState;
 import com.avail.descriptor.FiberDescriptor.TraceFlag;
 import com.avail.descriptor.VariableDescriptor.VariableAccessReactor;
 import com.avail.exceptions.*;
+import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.utility.evaluation.*;
 
@@ -1101,17 +1102,39 @@ public final class AvailRuntime
 	 * Add the specified {@linkplain ModuleDescriptor module} to the
 	 * {@linkplain AvailRuntime runtime}.
 	 *
-	 * @param aModule A {@linkplain ModuleDescriptor module}.
+	 * @param module A {@linkplain ModuleDescriptor module}.
 	 */
 	@ThreadSafe
-	public void addModule (final A_Module aModule)
+	public void addModule (final A_Module module)
 	{
 		runtimeLock.writeLock().lock();
 		try
 		{
-			assert !includesModuleNamed(aModule.moduleName());
+			assert !includesModuleNamed(module.moduleName());
 			modules = modules.mapAtPuttingCanDestroy(
-				aModule.moduleName(), aModule, true);
+				module.moduleName(), module, true);
+		}
+		finally
+		{
+			runtimeLock.writeLock().unlock();
+		}
+	}
+
+	/**
+	 * Remove the specified {@linkplain ModuleDescriptor module} from this
+	 * runtime.  The module's code should already have been removed via {@link
+	 * A_Module#removeFrom(AvailLoader)}.
+	 *
+	 * @param module The module to remove.
+	 */
+	public void removeModule (final A_Module module)
+	{
+		runtimeLock.writeLock().lock();
+		try
+		{
+			assert includesModuleNamed(module.moduleName());
+			modules = modules.mapWithoutKeyCanDestroy(
+				module.moduleName(), true);
 		}
 		finally
 		{

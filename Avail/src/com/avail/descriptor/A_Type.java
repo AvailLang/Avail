@@ -184,7 +184,7 @@ extends A_BasicObject
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	boolean isSupertypeOfVariableType (A_BasicObject aVariableType);
+	boolean isSupertypeOfVariableType (A_Type aVariableType);
 
 	/**
 	 * Dispatch to the descriptor.
@@ -304,6 +304,11 @@ extends A_BasicObject
 	 * @return
 	 */
 	ParseNodeKind parseNodeKind ();
+
+	/**
+	 * @return
+	 */
+	A_Type readType ();
 
 	/**
 	 * Also declared in {@link A_Phrase} for {@linkplain BlockNodeDescriptor
@@ -536,4 +541,9 @@ extends A_BasicObject
 	 * Dispatch to the descriptor.
 	 */
 	boolean upperInclusive ();
+
+	/**
+	 * @return
+	 */
+	A_Type writeType ();
 }

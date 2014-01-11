@@ -2764,7 +2764,6 @@ public abstract class AbstractAvailCompiler
 	void commitModuleTransaction ()
 	{
 		runtime.addModule(module);
-		module.cleanUpAfterCompile();
 	}
 
 	/**

@@ -1149,7 +1149,7 @@ extends AbstractDescriptor
 	@Override
 	boolean o_IsSupertypeOfVariableType (
 		final AvailObject object,
-		final A_BasicObject aVariableType)
+		final A_Type aVariableType)
 	{
 		return o_Traversed(object).isSupertypeOfVariableType(aVariableType);
 	}
@@ -2071,12 +2071,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_CleanUpAfterCompile (final AvailObject object)
-	{
-		o_Traversed(object).cleanUpAfterCompile();
-	}
-
-	@Override
 	void o_ClearValue (final AvailObject object)
 	{
 		o_Traversed(object).clearValue();
@@ -2146,12 +2140,6 @@ extends AbstractDescriptor
 	A_Type o_DefaultType (final AvailObject object)
 	{
 		return o_Traversed(object).defaultType();
-	}
-
-	@Override
-	void o_DisplayTestingTree (final AvailObject object)
-	{
-		o_Traversed(object).displayTestingTree();
 	}
 
 	@Override

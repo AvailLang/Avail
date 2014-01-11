@@ -32,7 +32,6 @@
 
 package com.avail.compiler.scanning;
 
-import com.avail.annotations.Nullable;
 import com.avail.descriptor.*;
 
 /**

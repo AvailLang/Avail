@@ -897,15 +897,6 @@ implements
 	 * Dispatch to the descriptor.
 	 */
 	@Override
-	public void cleanUpAfterCompile ()
-	{
-		descriptor.o_CleanUpAfterCompile(this);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	@Override
 	public void clearValue ()
 	{
 		descriptor.o_ClearValue(this);
@@ -1358,15 +1349,6 @@ implements
 	}
 
 	/**
-	 * Dispatch to the descriptor.
-	 */
-	@Override
-	public void displayTestingTree ()
-	{
-		descriptor.o_DisplayTestingTree(this);
-	}
-
-	/**
 	 * Divide the receiver by the argument {@code aNumber} and answer the
 	 * {@linkplain AvailObject result}.
 	 *
@@ -1750,9 +1732,9 @@ implements
 	 */
 	@Override
 	public boolean equalsContinuationType (
-		final A_Type aType)
+		final A_Type aContinuationType)
 	{
-		return descriptor.o_EqualsContinuationType(this, aType);
+		return descriptor.o_EqualsContinuationType(this, aContinuationType);
 	}
 
 	/**
@@ -2563,7 +2545,7 @@ implements
 	 */
 	@Override
 	public boolean isSupertypeOfVariableType (
-		final A_BasicObject aVariableType)
+		final A_Type aVariableType)
 	{
 		return descriptor.o_IsSupertypeOfVariableType(this, aVariableType);
 	}

@@ -224,7 +224,7 @@ extends Descriptor
 		{
 			// No implementation required.
 		}
-		final A_BasicObject outerKind = object.slot(KIND);
+		final A_Type outerKind = object.slot(KIND);
 		if (!newValue.isInstanceOf(outerKind.writeType()))
 		{
 			throw new VariableSetException(

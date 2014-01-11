@@ -575,7 +575,7 @@ extends AbstractDescriptor
 	@Override
 	boolean o_IsSupertypeOfVariableType (
 		final AvailObject object,
-		final A_BasicObject aVariableType)
+		final A_Type aVariableType)
 	{
 		throw unsupportedOperationException();
 	}
@@ -1412,12 +1412,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_CleanUpAfterCompile (final AvailObject object)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
 	void o_ClearValue (final AvailObject object)
 	{
 		throw unsupportedOperationException();
@@ -1485,12 +1479,6 @@ extends AbstractDescriptor
 
 	@Override
 	A_Type o_DefaultType (final AvailObject object)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	void o_DisplayTestingTree (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}
@@ -2060,7 +2048,7 @@ extends AbstractDescriptor
 	@Override
 	boolean o_EqualsContinuationType (
 		final AvailObject object,
-		final A_Type aType)
+		final A_Type aContinuationType)
 	{
 		return false;
 	}

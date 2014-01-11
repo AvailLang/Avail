@@ -55,7 +55,7 @@ public final class P_014_VariableReadType extends Primitive
 		final boolean skipReturnCheck)
 	{
 		assert args.size() == 1;
-		final A_BasicObject type = args.get(0);
+		final A_Type type = args.get(0);
 		return interpreter.primitiveSuccess(type.readType());
 	}
 
@@ -72,8 +72,8 @@ public final class P_014_VariableReadType extends Primitive
 	public A_Type returnTypeGuaranteedByVM (
 		final List<? extends A_Type> argumentTypes)
 	{
-		final A_BasicObject varMeta = argumentTypes.get(0);
-		final A_BasicObject varType = varMeta.instance();
+		final A_Type varMeta = argumentTypes.get(0);
+		final A_Type varType = varMeta.instance();
 		return InstanceMetaDescriptor.on(varType.readType());
 	}
 }

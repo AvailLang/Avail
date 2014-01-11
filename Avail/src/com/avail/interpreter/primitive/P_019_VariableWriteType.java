@@ -55,7 +55,7 @@ public final class P_019_VariableWriteType extends Primitive
 		final boolean skipReturnCheck)
 	{
 		assert args.size() == 1;
-		final A_BasicObject type = args.get(0);
+		final A_Type type = args.get(0);
 		return interpreter.primitiveSuccess(type.writeType());
 	}
 

@@ -428,11 +428,7 @@ extends JFrame
 		 */
 		public void cancel ()
 		{
-			final Thread thread = runnerThread;
-			if (thread != null)
-			{
-				thread.interrupt();
-			}
+			availBuilder.cancel();
 		}
 
 		/** The start time. */
@@ -508,7 +504,7 @@ extends JFrame
 					Math.min(
 						100, sourceBuffer.length - (int) e.endOfErrorLine())));
 				builder.append("...\n");
-				System.err.printf("%s%n", builder);
+				System.err.printf("%s%n", builder).flush();
 				terminator = e;
 				return null;
 			}
@@ -880,6 +876,19 @@ extends JFrame
 
 	/** The current {@linkplain BuildTask build task}. */
 	@InnerAccess volatile @Nullable BuildTask buildTask;
+
+	/**
+	 * Answer the current {@link BuildTask} in progress.  Only applicable during
+	 * a build.
+	 *
+	 * @return The current build task.
+	 */
+	@InnerAccess BuildTask buildTask ()
+	{
+		final BuildTask task = buildTask;
+		assert task != null;
+		return task;
+	}
 
 	/** The {@linkplain BuildInputStream standard input stream}. */
 	private @Nullable BuildInputStream inputStream;
@@ -1318,7 +1327,7 @@ extends JFrame
 					assert moduleSize != null;
 					if (Thread.currentThread().isInterrupted())
 					{
-						if (Thread.currentThread() == buildTask.runnerThread)
+						if (Thread.currentThread() == buildTask().runnerThread)
 						{
 							throw new CancellationException();
 						}
@@ -1350,7 +1359,7 @@ extends JFrame
 					assert globalCodeSize != null;
 					if (Thread.currentThread().isInterrupted())
 					{
-						if (Thread.currentThread() == buildTask.runnerThread)
+						if (Thread.currentThread() == buildTask().runnerThread)
 						{
 							throw new CancellationException();
 						}

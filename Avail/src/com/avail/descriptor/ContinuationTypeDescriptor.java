@@ -119,13 +119,13 @@ extends TypeDescriptor
 	@Override @AvailMethod
 	boolean o_EqualsContinuationType (
 		final AvailObject object,
-		final A_Type aType)
+		final A_Type aContinuationType)
 	{
-		if (object.sameAddressAs(aType))
+		if (object.sameAddressAs(aContinuationType))
 		{
 			return true;
 		}
-		return aType.functionType().equals(object.functionType());
+		return aContinuationType.functionType().equals(object.functionType());
 	}
 
 	@Override @AvailMethod

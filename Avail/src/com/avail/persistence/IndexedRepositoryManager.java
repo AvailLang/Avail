@@ -35,7 +35,6 @@ package com.avail.persistence;
 import java.io.*;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Level;
@@ -1197,6 +1196,7 @@ public class IndexedRepositoryManager
 	@Override
 	public String toString ()
 	{
+		@SuppressWarnings("resource")
 		final Formatter out = new Formatter();
 		out.format("Repository \"%s\" with modules:", rootName);
 		for (final Map.Entry<ModuleVersionKey, ModuleVersion> entry

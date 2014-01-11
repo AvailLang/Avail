@@ -183,9 +183,9 @@ public class Graph <Vertex>
 	public void removeVertex (final Vertex vertex)
 	{
 		final Set<Vertex> outVertices = outEdges.get(vertex);
-		ensure (outVertices != null, "source vertex is not present");
+		ensure(outVertices != null, "source vertex is not present");
 		final Set<Vertex> inVertices = inEdges.get(vertex);
-		ensure (inVertices != null, "target vertex is not present");
+		ensure(inVertices != null, "target vertex is not present");
 		for (final Vertex successor : outVertices)
 		{
 			if (!successor.equals(vertex))
@@ -239,6 +239,20 @@ public class Graph <Vertex>
 	}
 
 	/**
+	 * If the given vertex is present in the graph, remove its incoming and
+	 * outgoing edges, then the vertex itself.  If the given vertex is not in
+	 * the graph, do nothing.
+	 *
+	 * @param vertex The vertex to excise from the graph, if present.
+	 */
+	public void exciseVertex (final Vertex vertex)
+	{
+		excludeEdgesFrom(vertex);
+		excludeEdgesTo(vertex);
+		excludeVertex(vertex);
+	}
+
+	/**
 	 * Determine if the given vertex is in the graph.
 	 *
 	 * @param vertex The vertex to test for membership in the graph.
@@ -263,10 +277,10 @@ public class Graph <Vertex>
 		final Vertex targetVertex)
 	{
 		final Set<Vertex> sourceOutSet = outEdges.get(sourceVertex);
-		ensure (sourceOutSet != null, "source vertex is not present");
+		ensure(sourceOutSet != null, "source vertex is not present");
 		final Set<Vertex> targetInSet = inEdges.get(targetVertex);
-		ensure (targetInSet != null, "target vertex is not present");
-		ensure (
+		ensure(targetInSet != null, "target vertex is not present");
+		ensure(
 			!sourceOutSet.contains(targetVertex),
 			"edge is already present");
 		sourceOutSet.add(targetVertex);
@@ -288,9 +302,9 @@ public class Graph <Vertex>
 		final Vertex targetVertex)
 	{
 		final Set<Vertex> sourceOutSet = outEdges.get(sourceVertex);
-		ensure (sourceOutSet != null, "source vertex is not in graph");
+		ensure(sourceOutSet != null, "source vertex is not in graph");
 		final Set<Vertex> targetInSet = inEdges.get(targetVertex);
-		ensure (targetInSet != null, "target vertex is not in graph");
+		ensure(targetInSet != null, "target vertex is not in graph");
 		sourceOutSet.add(targetVertex);
 		targetInSet.add(sourceVertex);
 	}
@@ -309,10 +323,10 @@ public class Graph <Vertex>
 		final Vertex targetVertex)
 	{
 		final Set<Vertex> sourceOutSet = outEdges.get(sourceVertex);
-		ensure (sourceOutSet != null, "source vertex is not in graph");
+		ensure(sourceOutSet != null, "source vertex is not in graph");
 		final Set<Vertex> targetInSet = inEdges.get(targetVertex);
-		ensure (targetInSet != null, "target vertex is not in graph");
-		ensure (sourceOutSet.contains(targetVertex), "edge is not in graph");
+		ensure(targetInSet != null, "target vertex is not in graph");
+		ensure(sourceOutSet.contains(targetVertex), "edge is not in graph");
 		sourceOutSet.remove(targetVertex);
 		targetInSet.remove(sourceVertex);
 	}
@@ -331,11 +345,49 @@ public class Graph <Vertex>
 		final Vertex targetVertex)
 	{
 		final Set<Vertex> sourceOutSet = outEdges.get(sourceVertex);
-		ensure (sourceOutSet != null, "source vertex is not in graph");
+		ensure(sourceOutSet != null, "source vertex is not in graph");
 		final Set<Vertex> targetInSet = inEdges.get(targetVertex);
-		ensure (targetInSet != null, "target vertex is not in graph");
+		ensure(targetInSet != null, "target vertex is not in graph");
 		sourceOutSet.remove(targetVertex);
 		targetInSet.remove(sourceVertex);
+	}
+
+	/**
+	 * Remove all edges from the graph which originate at the given vertex.
+	 * Fail if the vertex is not present in the graph.
+	 *
+	 * @param sourceVertex The source vertex of the edges to exclude.
+	 */
+	@SuppressWarnings("null")
+	public void excludeEdgesFrom (
+		final Vertex sourceVertex)
+	{
+		final Set<Vertex> sourceOutSet = outEdges.get(sourceVertex);
+		ensure(sourceOutSet != null, "source vertex is not in graph");
+		for (final Vertex successor : sourceOutSet)
+		{
+			inEdges.get(successor).remove(sourceVertex);
+		}
+		sourceOutSet.clear();
+	}
+
+	/**
+	 * Remove all edges from the graph which terminate at the given vertex.
+	 * Fail if the vertex is not present in the graph.
+	 *
+	 * @param targetVertex The target vertex of the edges to exclude.
+	 */
+	@SuppressWarnings("null")
+	public void excludeEdgesTo (
+		final Vertex targetVertex)
+	{
+		final Set<Vertex> targetInSet = inEdges.get(targetVertex);
+		ensure(targetInSet != null, "target vertex is not in graph");
+		for (final Vertex predecessor : targetInSet)
+		{
+			outEdges.get(predecessor).remove(targetVertex);
+		}
+		targetInSet.clear();
 	}
 
 	/**
@@ -352,9 +404,9 @@ public class Graph <Vertex>
 		final Vertex targetVertex)
 	{
 		final Set<Vertex> sourceOutSet = outEdges.get(sourceVertex);
-		ensure (sourceOutSet != null, "source vertex is not in graph");
+		ensure(sourceOutSet != null, "source vertex is not in graph");
 		final Set<Vertex> targetInSet = inEdges.get(targetVertex);
-		ensure (targetInSet != null, "target vertex is not in graph");
+		ensure(targetInSet != null, "target vertex is not in graph");
 		return sourceOutSet.contains(targetVertex);
 	}
 
@@ -389,7 +441,7 @@ public class Graph <Vertex>
 	 */
 	public Set<Vertex> successorsOf (final Vertex vertex)
 	{
-		ensure (outEdges.containsKey(vertex), "source vertex is not in graph");
+		ensure(outEdges.containsKey(vertex), "source vertex is not in graph");
 		return Collections.unmodifiableSet(outEdges.get(vertex));
 	}
 
@@ -403,7 +455,7 @@ public class Graph <Vertex>
 	 */
 	public Set<Vertex> predecessorsOf (final Vertex vertex)
 	{
-		ensure (inEdges.containsKey(vertex), "target vertex is not in graph");
+		ensure(inEdges.containsKey(vertex), "target vertex is not in graph");
 		return Collections.unmodifiableSet(inEdges.get(vertex));
 	}
 
@@ -482,8 +534,16 @@ public class Graph <Vertex>
 	public Graph<Vertex> reverse ()
 	{
 		final Graph<Vertex> result = new Graph<>();
-		result.outEdges.putAll(inEdges);
-		result.inEdges.putAll(outEdges);
+		for (final Map.Entry<Vertex, Set<Vertex>> entry : outEdges.entrySet())
+		{
+			result.inEdges.put(
+				entry.getKey(), new HashSet<>(entry.getValue()));
+		}
+		for (final Map.Entry<Vertex, Set<Vertex>> entry : inEdges.entrySet())
+		{
+			result.outEdges.put(
+				entry.getKey(), new HashSet<>(entry.getValue()));
+		}
 		return result;
 	}
 

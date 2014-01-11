@@ -182,7 +182,7 @@ extends TypeDescriptor
 	@Override @AvailMethod
 	boolean o_IsSupertypeOfVariableType (
 		final AvailObject object,
-		final A_BasicObject aVariableType)
+		final A_Type aVariableType)
 	{
 		// A primitive type is a supertype of a variable type if it is a
 		// supertype of NONTYPE.

@@ -205,11 +205,6 @@ extends A_BasicObject
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	void cleanUpAfterCompile ();
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
 	A_BundleTree buildFilteredBundleTree ();
 
 	/**
