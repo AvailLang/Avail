@@ -4080,6 +4080,15 @@ implements
 	}
 
 	/**
+	 *Dispatch to the descriptor
+	 */
+	@Override
+	public A_Tuple tupleReverse()
+	{
+		return descriptor.o_TupleReverse(this);
+	}
+
+	/**
 	 * Dispatch to the descriptor.
 	 */
 	@Override

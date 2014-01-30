@@ -2676,6 +2676,12 @@ extends AbstractDescriptor
 	}
 
 	@Override
+	A_Tuple o_TupleReverse (final AvailObject object)
+	{
+		return o_Traversed(object).tupleReverse();
+	}
+
+	@Override
 	int o_TupleSize (final AvailObject object)
 	{
 		return o_Traversed(object).tupleSize();

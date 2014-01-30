@@ -1,6 +1,6 @@
 /*
  * Infallible Primitives.avail
- * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2014, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -138,6 +138,7 @@ Uses
 		"_has terminated",
 		"_is a primitive",
 		"_is unassigned",
+		"_reversed",
 		"_→character",
 		"_→double",
 		"_→extended integer",
@@ -1218,7 +1219,7 @@ Primitive "_bit∨_" is
  * Compute and answer the bitwise XOR of the arguments.
  *
  * Parameters:
- *    arg1 An integer.
+ *    arg1  An integer.
  *    arg2 -An integer.
  * Returns:
  *    The bitwise XOR of `arg1` and `arg2`.
@@ -3373,4 +3374,19 @@ Primitive "_'s⁇result type" is
 |
 	Primitive 627;
 ] : type;
+
+/**
+ * Reverses the order of the given tuple.
+ *
+ * Parameters:
+ *    aTuple - A tuple
+ * Returns:
+ *    A tuple that is the reverse of the original tuple
+ */
+Primitive "_reversed" is
+[
+	aTuple : tuple
+|
+	Primitive 702;
+] : tuple;
 

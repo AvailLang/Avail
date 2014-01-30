@@ -442,6 +442,35 @@ extends TupleDescriptor
 	}
 
 	@Override @AvailMethod
+	A_Tuple o_TupleReverse(final AvailObject object)
+	{
+		//If tuple is small enough or is immutable, create a new Interval
+		if (object.tupleSize() < minimumSize || !isMutable())
+		{
+			final A_Number newDelta = object.slot(DELTA)
+				.timesCanDestroy(IntegerDescriptor.fromInt(-1),true);
+			return forceCreate (
+				object.slot(END),
+				object.slot(START),
+				newDelta,
+				o_TupleSize(object));
+		}
+
+		//The interval is mutable and large enough to warrant changing in place.
+		final A_Number newStart =
+			IntegerDescriptor.fromInt(object.slot(END).extractInt());
+		final A_Number newEnd =
+			IntegerDescriptor.fromInt(object.slot(START).extractInt());
+		final A_Number newDelta =
+			IntegerDescriptor.fromInt(object.slot(DELTA).extractInt() * -1);
+
+		object.setSlot(START, newStart);
+		object.setSlot(END, newEnd);
+		object.setSlot(DELTA, newDelta);
+		return object;
+	}
+
+	@Override @AvailMethod
 	int o_TupleSize (final AvailObject object)
 	{
 		return object.slot(SIZE);

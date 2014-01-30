@@ -1091,6 +1091,12 @@ extends AbstractDescriptor
 	}
 
 	@Override
+	A_Tuple o_TupleReverse(final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
 	AvailObject o_TupleAt (final AvailObject object, final int index)
 	{
 		throw unsupportedOperationException();
@@ -1890,6 +1896,7 @@ extends AbstractDescriptor
 	{
 		throw unsupportedOperationException();
 	}
+
 
 	@Override
 	int o_TupleSize (final AvailObject object)

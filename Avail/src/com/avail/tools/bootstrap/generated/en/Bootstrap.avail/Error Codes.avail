@@ -1,6 +1,6 @@
 /*
  * Error Codes.avail
- * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2014, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -115,7 +115,6 @@ Names
 	/*  13 */ "method return type not as forward declared code",
 	/*  22 */ "negative size code",
 	/*  82 */ "no handler frame code",
-	/*  73 */ "no implementation code",
 	/*  19 */ "no method code",
 	/*  84 */ "no method definition code",
 	/*  33 */ "no special object code",
@@ -495,11 +494,6 @@ Primitive "loading is over code" is
 Primitive "method is sealed code" is
 [
 	72
-];
-
-Primitive "no implementation code" is
-[
-	73
 ];
 
 Primitive "atom already exists code" is

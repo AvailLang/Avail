@@ -2497,6 +2497,13 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
+	 * @return
+	 */
+	abstract A_Tuple o_TupleReverse (
+		AvailObject object);
+
+	/**
+	 * @param object
 	 * @param value
 	 */
 	abstract void o_Type (

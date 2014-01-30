@@ -88,6 +88,13 @@ extends TupleDescriptor
 		}
 	}
 
+	/**
+	 * Defined threshold for making copies versus using {@linkplain
+	 * TreeTupleDescriptor}/using other forms of reference instead of creating
+	 * an new tuple.
+	 */
+	private final int minimumSize = 32;
+
 	@Override @AvailMethod
 	public boolean o_IsSmallIntegerIntervalTuple(final AvailObject object)
 	{
@@ -429,6 +436,31 @@ extends TupleDescriptor
 		temp = temp * object.slot(DELTA);
 		temp = temp + object.slot(START);
 		return temp;
+	}
+
+	@Override @AvailMethod
+	A_Tuple o_TupleReverse(final AvailObject object)
+	{
+		//If tuple is small enough or is immutable, create a new Interval
+		if (object.tupleSize() < minimumSize || !isMutable())
+		{
+			final int newDelta = object.slot(DELTA) * -1;
+
+			return createInterval (
+				object.slot(END),
+				object.slot(START),
+				newDelta);
+		}
+
+		//The interval is mutable and large enough to warrant changing in place.
+		final int newStart = object.slot(END);
+		final int newEnd = object.slot(START);
+		final int newDelta = object.slot(DELTA) * -1;
+
+		object.setSlot(START, newStart);
+		object.setSlot(END, newEnd);
+		object.setSlot(DELTA, newDelta);
+		return object;
 	}
 
 	@Override @AvailMethod

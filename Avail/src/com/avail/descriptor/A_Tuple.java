@@ -348,6 +348,13 @@ extends A_BasicObject, Iterable<AvailObject>
 	int tupleIntAt (int index);
 
 	/**
+	 * Answer the reverse tuple of the tuple receiver.
+	 * Dispatch to the descriptor.
+	 * @return
+	 */
+	A_Tuple tupleReverse();
+
+	/**
 	 * Answer the number of elements in this tuple.
 	 *
 	 * @return The maximum valid 1-based index for this tuple.

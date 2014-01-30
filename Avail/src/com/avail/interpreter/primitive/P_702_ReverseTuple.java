@@ -1,5 +1,5 @@
-/*
- * Bootstrap.avail
+/**
+ * P_702_ReverseTuple.java
  * Copyright © 1993-2014, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -30,24 +30,46 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-/*
- * GENERATED FILE
- * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Versioned As: $$Revision$$
+package com.avail.interpreter.primitive;
+
+import static com.avail.interpreter.Primitive.Flag.CanFold;
+import static com.avail.interpreter.Primitive.Flag.CannotFail;
+import com.avail.descriptor.*;
+import com.avail.interpreter.*;
+import java.util.List;
+
+/**
+ * TODO: Document P_702_ReverseTuple!
  *
- * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
+ * @author Richard A Arriaga &lt;rich@availlang.org&gt;
  */
+public final class P_702_ReverseTuple extends Primitive
+{
 
-System Module "Bootstrap"
-Versions
-	"dev"
-Extends
-	"Origin",
-	"Special Objects",
-	"Primitives",
-	"Infallible Primitives",
-	"Fallible Primitives"
-Uses
-Names
-Body
+	/**
+	 * Construct a new {@link P_702_ReverseTuple}.
+	 *
+	 */
+	public final static Primitive instance = new P_702_ReverseTuple().init(
+		1, CanFold, CannotFail);
 
+	@Override
+	public Result attempt (
+		final List<AvailObject> args,
+		final Interpreter interpreter,
+		final boolean skipReturnCheck)
+	{
+		assert args.size() == 1;
+		final A_Tuple tuple = args.get(0);
+		return interpreter.primitiveSuccess(tuple.tupleReverse());
+	}
+
+	@Override
+	protected A_Type privateBlockTypeRestriction ()
+	{
+		return FunctionTypeDescriptor.create(
+			TupleDescriptor.from(
+				TupleTypeDescriptor.mostGeneralType()),
+			TupleTypeDescriptor.mostGeneralType());
+	}
+}
