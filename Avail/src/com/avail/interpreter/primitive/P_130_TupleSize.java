@@ -73,7 +73,7 @@ public final class P_130_TupleSize extends Primitive
 	public A_Type returnTypeGuaranteedByVM (
 		final List<? extends A_Type> argumentTypes)
 	{
-		final A_BasicObject tupleType = argumentTypes.get(0);
+		final A_Type tupleType = argumentTypes.get(0);
 		return tupleType.sizeRange();
 	}
 }

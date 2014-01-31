@@ -58,7 +58,7 @@ public final class P_112_SetTypeSizes extends Primitive
 		final boolean skipReturnCheck)
 	{
 		assert args.size() == 1;
-		final A_BasicObject setType = args.get(0);
+		final A_Type setType = args.get(0);
 		return interpreter.primitiveSuccess(setType.sizeRange());
 	}
 

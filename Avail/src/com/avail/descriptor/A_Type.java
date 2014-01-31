@@ -319,6 +319,11 @@ extends A_BasicObject
 	/**
 	 * Dispatch to the descriptor.
 	 */
+	A_Type sizeRange ();
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	A_Type typeAtIndex (int index);
 
 	/**

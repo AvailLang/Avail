@@ -74,7 +74,7 @@ public final class P_100_SetSize extends Primitive
 	public A_Type returnTypeGuaranteedByVM (
 		final List<? extends A_Type> argumentTypes)
 	{
-		final A_BasicObject setType = argumentTypes.get(0);
+		final A_Type setType = argumentTypes.get(0);
 		return setType.sizeRange();
 	}
 }
