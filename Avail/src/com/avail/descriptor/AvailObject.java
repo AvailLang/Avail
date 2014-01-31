@@ -1901,6 +1901,27 @@ implements
 	}
 
 	/**
+	 * Answer whether the receiver and the argument tuple,
+	 * both {@linkplain AvailObject objects}, are equal in value.
+	 *
+	 * Note that the argument is of type {@link AvailObject} so that correctly
+	 * typed uses (where the argument is statically known to be an AvailObject)
+	 * proceed normally. Incorrectly typed uses (where the argument is an
+	 * arbitrary Java {@link Object} should show up as calling a deprecated
+	 * method, and should fail at runtime if the argument is not actually an
+	 * AvailObject.
+	 *
+	 * @param aTuple The object to be compared to the receiver.
+	 * @return {@code true} if the two objects are of equal value, {@code false}
+	 *         otherwise.
+	 */
+	@Override
+	public boolean equalsReverseTuple (final A_Tuple aTuple)
+	{
+		return descriptor.o_EqualsReverseTuple(this, aTuple);
+	}
+
+	/**
 	 * Dispatch to the descriptor.
 	 */
 	@Override

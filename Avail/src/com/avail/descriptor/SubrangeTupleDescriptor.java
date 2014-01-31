@@ -397,6 +397,15 @@ extends TupleDescriptor
 		return object.slot(BASIS_TUPLE).tupleIntAt(adjustedIndex);
 	}
 
+	@Override @AvailMethod
+	A_Tuple o_TupleReverse(final AvailObject object)
+	{
+		final AvailObject instance = mutable.create();
+		instance.setSlot(BASIS_TUPLE, object);
+		instance.setSlot(SIZE, (object.tupleSize() + object.slot(START_INDEX)));
+		return instance;
+	}
+
 	/**
 	 * Answer the number of elements in the tuple as an int.
 	 */

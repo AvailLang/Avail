@@ -84,7 +84,7 @@ extends TupleDescriptor
 	 * TreeTupleDescriptor}/using other forms of reference instead of creating
 	 * an new tuple.
 	 */
-	private final int minimumSize = 32;
+	private static final int minimumCopySize = 32;
 
 	@Override @AvailMethod
 	AvailObject o_TupleAt (final AvailObject object, final int subscript)
@@ -232,7 +232,7 @@ extends TupleDescriptor
 	@Override @AvailMethod
 	A_Tuple o_TupleReverse(final AvailObject object)
 	{
-		if (o_TupleSize(object) >= minimumSize)
+		if (o_TupleSize(object) >= minimumCopySize)
 		{
 			return super.o_TupleReverse(object);
 		}
@@ -243,7 +243,7 @@ extends TupleDescriptor
 		instance.hashOrZero(object.hashOrZero());
 		for (int i = 1; i <= size; i++)
 		{
-			instance.objectTupleAtPut(size-i, object.tupleAt(i));
+			instance.objectTupleAtPut(size-i+1, object.tupleAt(i));
 		}
 		return instance;
 	}
@@ -304,7 +304,7 @@ extends TupleDescriptor
 			return object;
 		}
 		final int newSize = size1 + size2;
-		if (newSize <= minimumSize)
+		if (newSize <= minimumCopySize)
 		{
 			// Copy the objects.
 			final int deltaSlots = newSize - object.variableObjectSlotsCount();
@@ -352,7 +352,7 @@ extends TupleDescriptor
 		final int tupleSize = object.tupleSize();
 		assert 0 <= end && end <= tupleSize;
 		final int size = end - start + 1;
-		if (size > 0 && size < tupleSize && size < minimumSize)
+		if (size > 0 && size < tupleSize && size < minimumCopySize)
 		{
 			// It's not empty, it's not a total copy, and it's reasonably small.
 			// Just copy the applicable entries out.  In theory we could use

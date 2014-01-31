@@ -74,6 +74,13 @@ extends TupleDescriptor
 	}
 
 	/**
+	 * Defined threshold for making copies versus using {@linkplain
+	 * TreeTupleDescriptor}/using other forms of reference instead of creating
+	 * an new tuple.
+	 */
+	private static final int minimumCopySize = 32;
+
+	/**
 	 * The number of bytes of the last {@code int} that do not participate in
 	 * the representation of the {@linkplain ByteTupleDescriptor byte tuple}.
 	 * Must be between 0 and 3.
@@ -311,6 +318,26 @@ extends TupleDescriptor
 	}
 
 	@Override @AvailMethod
+	A_Tuple o_TupleReverse(final AvailObject object)
+	{
+		final int tupleSize = object.tupleSize();
+		if (tupleSize > 0 && tupleSize < minimumCopySize)
+		{
+			// It's not empty and it's reasonably small.
+			final AvailObject result = mutableObjectOfSize(tupleSize);
+			for (int dest = 1, src = tupleSize; src > 0; dest++, src--)
+			{
+				result.byteSlotAtPut(
+					RAW_QUAD_AT_,
+					dest,
+					object.byteSlotAt(RAW_QUAD_AT_, src));
+			}
+			return result;
+		}
+		return super.o_TupleReverse(object);
+	}
+
+	@Override @AvailMethod
 	int o_BitsPerEntry (
 		final AvailObject object)
 	{
@@ -422,7 +449,7 @@ extends TupleDescriptor
 		final int tupleSize = object.tupleSize();
 		assert 0 <= end && end <= tupleSize;
 		final int size = end - start + 1;
-		if (size > 0 && size < tupleSize && size < 32)
+		if (size > 0 && size < tupleSize && size < minimumCopySize)
 		{
 			// It's not empty, it's not a total copy, and it's reasonably small.
 			// Just copy the applicable bytes out.  In theory we could use

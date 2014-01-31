@@ -957,6 +957,14 @@ extends AbstractDescriptor
 	}
 
 	@Override
+	boolean o_EqualsReverseTuple (
+		final AvailObject object,
+		final A_Tuple aTuple)
+	{
+		return o_Traversed(object).equalsReverseTuple(aTuple);
+	}
+
+	@Override
 	boolean o_EqualsSet (
 		final AvailObject object,
 		final A_Set aSet)

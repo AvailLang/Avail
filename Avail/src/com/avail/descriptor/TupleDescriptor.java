@@ -199,6 +199,11 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
+	abstract boolean o_Equals (
+		AvailObject object,
+		A_BasicObject another);
+
+	@Override @AvailMethod
 	boolean o_EqualsAnyTuple (
 		final AvailObject object,
 		final A_Tuple aTuple)
@@ -282,6 +287,15 @@ extends Descriptor
 
 	@Override
 	boolean o_EqualsIntegerIntervalTuple (
+		final AvailObject object,
+		final A_Tuple aTuple)
+	{
+		// Default to generic tuple comparison.
+		return o_EqualsAnyTuple(object, aTuple);
+	}
+
+	@Override @AvailMethod
+	boolean o_EqualsReverseTuple (
 		final AvailObject object,
 		final A_Tuple aTuple)
 	{
@@ -747,16 +761,6 @@ extends Descriptor
 	@Override @AvailMethod
 	A_Tuple o_TupleReverse(final AvailObject object)
 	{
-		/*final int size = object.tupleSize();
-		final AvailObject instance =
-			ReverseTupleDescriptor.mutable.create(size);
-		instance.hashOrZero(object.hashOrZero());
-		for (int i = 1; i <= size; i++)
-		{
-			instance.objectTupleAtPut(size-i, object.tupleAt(i));
-		}
-		return instance;*/
-
 		return ReverseTupleDescriptor.createReverseTuple(object);
 	}
 

@@ -3717,6 +3717,16 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
+	 * @param aTuple
+	 * @return
+	 */
+
+	abstract boolean o_EqualsReverseTuple (
+		AvailObject object,
+		A_Tuple aTuple);
+
+	/**
+	 * @param object
 	 * @param aSet
 	 * @return
 	 */

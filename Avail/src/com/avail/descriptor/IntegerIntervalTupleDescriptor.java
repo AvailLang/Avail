@@ -107,7 +107,7 @@ extends TupleDescriptor
 	 * requested below this size will be created as standard tuples or the empty
 	 * tuple.
 	 */
-	private static int minimumSize = 4;
+	private static int minimumCopySize = 4;
 
 	@Override @AvailMethod
 	public boolean o_IsIntegerIntervalTuple(final AvailObject object)
@@ -445,7 +445,7 @@ extends TupleDescriptor
 	A_Tuple o_TupleReverse(final AvailObject object)
 	{
 		//If tuple is small enough or is immutable, create a new Interval
-		if (object.tupleSize() < minimumSize || !isMutable())
+		if (object.tupleSize() < minimumCopySize || !isMutable())
 		{
 			final A_Number newDelta = object.slot(DELTA)
 				.timesCanDestroy(IntegerDescriptor.fromInt(-1),true);
@@ -457,12 +457,10 @@ extends TupleDescriptor
 		}
 
 		//The interval is mutable and large enough to warrant changing in place.
-		final A_Number newStart =
-			IntegerDescriptor.fromInt(object.slot(END).extractInt());
-		final A_Number newEnd =
-			IntegerDescriptor.fromInt(object.slot(START).extractInt());
-		final A_Number newDelta =
-			IntegerDescriptor.fromInt(object.slot(DELTA).extractInt() * -1);
+		final A_Number newStart = object.slot(END);
+		final A_Number newEnd = object.slot(START);
+		final A_Number newDelta = object.slot(DELTA)
+			.timesCanDestroy(IntegerDescriptor.fromInt(-1), true);
 
 		object.setSlot(START, newStart);
 		object.setSlot(END, newEnd);
@@ -549,8 +547,8 @@ extends TupleDescriptor
 			return TupleDescriptor.empty();
 		}
 
-		// If there are fewer than minimumSize members in this interval, create
-		// a normal tuple with them in it instead of an interval tuple.
+		// If there are fewer than minimumCopySize members in this interval,
+		// create a normal tuple with them in it instead of an interval tuple.
 		final int size;
 //		// TODO: [LAS] Remove when Mark fixes -a/-b rounding towards +∞.
 //		if (difference.lessThan(zero))
@@ -568,7 +566,7 @@ extends TupleDescriptor
 
 			size = 1 + difference.divideCanDestroy(delta, false).extractInt();
 //		}
-		if (size < minimumSize)
+		if (size < minimumCopySize)
 		{
 			final List<A_Number> members = new ArrayList<A_Number>(size);
 			A_Number newMember = start;

@@ -32,6 +32,7 @@
 package com.avail.descriptor;
 
 import static com.avail.descriptor.AvailObjectRepresentation.newLike;
+import static com.avail.descriptor.ByteTupleDescriptor.IntegerSlots.RAW_QUAD_AT_;
 import static com.avail.descriptor.ReverseTupleDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.ReverseTupleDescriptor.ObjectSlots.*;
 import com.avail.annotations.*;
@@ -95,7 +96,7 @@ extends TupleDescriptor
 
 		assert 1 <= index && index <= size;
 		final int reverseIndex = size - index;
-		return object.slot(ORIGIN_TUPLE).tupleAt(reverseIndex);
+		return object.slot(ORIGIN_TUPLE).tupleAt(reverseIndex + 1);
 	}
 
 	@Override @AvailMethod
@@ -105,7 +106,7 @@ extends TupleDescriptor
 
 		assert 1 <= index && index <= size;
 		final int reverseIndex = size - index;
-		return object.slot(ORIGIN_TUPLE).tupleIntAt(reverseIndex);
+		return object.slot(ORIGIN_TUPLE).tupleIntAt(reverseIndex + 1);
 	}
 
 	@Override @AvailMethod
@@ -136,24 +137,25 @@ extends TupleDescriptor
 	public static final ReverseTupleDescriptor mutable =
 		new ReverseTupleDescriptor(Mutability.MUTABLE);
 
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>
-	 * Compare a subrange of this subrange tuple with part of the given tuple.
-	 * </p>
-	 */
 	@Override @AvailMethod
 	boolean o_CompareFromToWithStartingAt (
 		final AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
-		final A_Tuple anotherObject,
+		final A_Tuple aTuple,
 		final int startIndex2)
 	{
+		for (int index = startIndex1,
+			index2 = startIndex2;
+			index <= endIndex1; index++, index2++)
+		{
+			if (!object.tupleAt(index).equals(aTuple.tupleAt(index2)))
+			{
+				return false;
+			}
+		}
 
-		return o_CompareFromToWithAnyTupleStartingAt(
-			object, startIndex1, endIndex1, anotherObject, startIndex2);
+		return true;
 	}
 
 	@Override @AvailMethod
@@ -244,6 +246,66 @@ extends TupleDescriptor
 			true);
 	}
 
+	@Override @AvailMethod
+	boolean o_Equals (final AvailObject object, final A_BasicObject another)
+	{
+		return another.equalsReverseTuple(object);
+	}
+
+	@Override @AvailMethod
+	boolean o_EqualsReverseTuple (final AvailObject object,
+		final A_Tuple aTuple)
+	{
+		return object.slot(ORIGIN_TUPLE).
+			equals(((AvailObject)aTuple).slot(ORIGIN_TUPLE));
+	}
+
+	@Override @AvailMethod
+	boolean o_EqualsAnyTuple (
+		final AvailObject object,
+		final A_Tuple aTuple)
+	{
+		// Compare this arbitrary Tuple and the given arbitrary tuple.
+		if (object.sameAddressAs(aTuple))
+		{
+			return true;
+		}
+		// Compare sizes...
+		final int size = object.tupleSize();
+		if (size != aTuple.tupleSize())
+		{
+			return false;
+		}
+		if (o_Hash(object) != aTuple.hash())
+		{
+			return false;
+		}
+		for (int i = 1; i <= size; i++)
+		{
+			if (!o_TupleAt(object, i).equals(aTuple.tupleAt(i)))
+			{
+				return false;
+			}
+		}
+		if (object.isBetterRepresentationThan(aTuple))
+		{
+			if (!aTuple.descriptor().isShared())
+			{
+				object.makeImmutable();
+				aTuple.becomeIndirectionTo(object);
+			}
+		}
+		else
+		{
+			if (!isShared())
+			{
+				aTuple.makeImmutable();
+				object.becomeIndirectionTo(aTuple);
+			}
+		}
+		return true;
+	}
+
 	@Override
 	ReverseTupleDescriptor mutable ()
 	{
@@ -285,6 +347,10 @@ extends TupleDescriptor
 	 * Create a new {@link AvailObject} that wraps the specified {@linkplain
 	 * AvailObject} tuple and provides it with a
 	 * {@linkplain ReverseTupleDescriptor} descriptor.
+	 *
+	 * <p>The original tuple may be destroyed by this operation.  If you need
+	 * the original after this call, use {@link A_BasicObject#makeImmutable()}
+	 * on it prior to the call.</p>
 	 *
 	 * @param originTuple The tuple to be reversed.
 	 * @return A new reverse tuple.

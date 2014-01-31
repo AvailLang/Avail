@@ -2172,6 +2172,12 @@ extends AbstractDescriptor
 	}
 
 	@Override
+	boolean o_EqualsReverseTuple (final AvailObject object, final A_Tuple aTuple)
+	{
+		return false;
+	}
+
+	@Override
 	boolean o_EqualsSet (final AvailObject object, final A_Set aSet)
 	{
 		return false;

@@ -516,6 +516,12 @@ public interface A_BasicObject
 		@Nullable Object otherJavaObject);
 
 	/**
+	 * @param aTuple
+	 * @return boolean
+	 */
+	boolean equalsReverseTuple(A_Tuple aTuple);
+
+	/**
 	 * Dispatch to the descriptor.
 	 */
 	boolean equalsSet (A_Set aSet);
