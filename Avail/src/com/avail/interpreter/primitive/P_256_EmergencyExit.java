@@ -37,6 +37,7 @@ import java.util.List;
 import com.avail.annotations.Nullable;
 import com.avail.descriptor.*;
 import com.avail.descriptor.FiberDescriptor.ExecutionState;
+import com.avail.exceptions.AvailEmergencyExitException;
 import com.avail.exceptions.AvailErrorCode;
 import com.avail.interpreter.*;
 import com.avail.utility.evaluation.*;
@@ -96,8 +97,8 @@ public final class P_256_EmergencyExit extends Primitive
 						builder.append(String.format("%n\t-- %s", frame));
 					}
 					builder.append("\n\n");
-					final RuntimeException killer =
-						new RuntimeException(builder.toString());
+					final AvailEmergencyExitException killer =
+						new AvailEmergencyExitException(builder.toString());
 					killer.fillInStackTrace();
 					fiber.executionState(ExecutionState.ABORTED);
 					fiber.failureContinuation().value(killer);

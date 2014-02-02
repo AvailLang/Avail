@@ -33,6 +33,7 @@ package com.avail.compiler;
 
 import static com.avail.compiler.AbstractAvailCompiler.ExpectedToken.*;
 import static com.avail.compiler.ParsingOperation.*;
+import static com.avail.compiler.ProblemType.*;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import static com.avail.descriptor.TokenDescriptor.TokenType.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
@@ -54,9 +55,12 @@ import com.avail.compiler.scanning.*;
 import com.avail.descriptor.*;
 import com.avail.descriptor.FiberDescriptor.GeneralFlag;
 import com.avail.descriptor.TokenDescriptor.TokenType;
+import com.avail.exceptions.AvailAssertionFailedException;
+import com.avail.exceptions.AvailEmergencyExitException;
 import com.avail.exceptions.SignatureException;
 import com.avail.interpreter.*;
 import com.avail.interpreter.primitive.P_352_RejectParsing;
+import com.avail.persistence.IndexedRepositoryManager;
 import com.avail.serialization.*;
 import com.avail.utility.*;
 import com.avail.utility.evaluation.*;
@@ -417,9 +421,10 @@ public abstract class AbstractAvailCompiler
 		public final List<A_String> entryPoints = new ArrayList<>();
 
 		/**
-		 * The {@linkplain String pragma strings}.
+		 * The {@linkplain TokenDescriptor pragma tokens}, which are always
+		 * string {@linkplain LiteralTokenDescriptor literals}.
 		 */
-		public final List<A_String> pragmas = new ArrayList<>();
+		public final List<A_Token> pragmas = new ArrayList<>();
 
 		/**
 		 * Construct a new {@link AbstractAvailCompiler.ModuleHeader}.
@@ -519,11 +524,17 @@ public abstract class AbstractAvailCompiler
 			final A_Tuple theEntryPoints = deserializer.deserialize();
 			assert theEntryPoints != null;
 			entryPoints.clear();
-			entryPoints.addAll(TupleDescriptor.<A_String>toList(theEntryPoints));
+			entryPoints.addAll(
+				TupleDescriptor.<A_String>toList(theEntryPoints));
 			final A_Tuple thePragmas = deserializer.deserialize();
 			assert thePragmas != null;
 			pragmas.clear();
-			pragmas.addAll(TupleDescriptor.<A_String>toList(thePragmas));
+			// Synthesize fake tokens for the pragma strings.
+			for (final A_String pragmaString : thePragmas)
+			{
+				pragmas.add(LiteralTokenDescriptor.create(
+					pragmaString, 0, 0, LITERAL, pragmaString));
+			}
 		}
 
 		/**
@@ -757,17 +768,17 @@ public abstract class AbstractAvailCompiler
 	/**
 	 * The Avail {@linkplain ModuleDescriptor module} undergoing compilation.
 	 */
-	final A_Module module;
+	@InnerAccess final A_Module module;
 
 	/**
-	 * The {@linkplain AvailLoader loader} create and operated by this
+	 * The {@linkplain AvailLoader loader} created and operated by this
 	 * {@linkplain AbstractAvailCompiler compiler} to facilitate the loading of
 	 * {@linkplain ModuleDescriptor modules}.
 	 */
 	private @Nullable AvailLoader loader;
 
 	/**
-	 * Answer the {@linkplain AvailLoader loader} create and operated by this
+	 * Answer the {@linkplain AvailLoader loader} created and operated by this
 	 * {@linkplain AbstractAvailCompiler compiler} to facilitate the loading of
 	 * {@linkplain ModuleDescriptor modules}.
 	 *
@@ -824,6 +835,11 @@ public abstract class AbstractAvailCompiler
 	 */
 	@InnerAccess static final A_Atom compilerScopeMapKey =
 		AtomDescriptor.compilerScopeMapKey();
+
+	/**
+	 * The {@link ProblemHandler} used for reporting compilation problems.
+	 */
+	@InnerAccess final ProblemHandler problemHandler;
 
 	/**
 	 * Answer whether this is a {@linkplain AvailSystemCompiler system
@@ -1018,16 +1034,18 @@ public abstract class AbstractAvailCompiler
 	 * @param succeed
 	 *        What to do with the resultant compiler in the event of success.
 	 *        This is a continuation that accepts the new compiler.
-	 * @param fail
-	 *        What to do in the event of failure. This is a continuation that
-	 *        accepts the {@link Exception} responsible for abnormal
-	 *        termination.
+	 * @param afterFail
+	 *        What to do after a failure that the {@linkplain ProblemHandler
+	 *        problem handler} does not choose to continue.
+	 * @param problemHandler
+	 *        A problem handler.
 	 */
 	public static void create (
 		final ResolvedModuleName resolvedName,
 		final boolean stopAfterBodyToken,
 		final Continuation1<AbstractAvailCompiler> succeed,
-		final Continuation1<AvailScannerException> fail)
+		final Continuation0 afterFail,
+		final ProblemHandler problemHandler)
 	{
 		extractSourceThen(
 			resolvedName,
@@ -1037,33 +1055,56 @@ public abstract class AbstractAvailCompiler
 				public void value (final @Nullable String sourceText)
 				{
 					assert sourceText != null;
+					final List<A_Token> tokens;
 					try
 					{
-						final List<A_Token> tokens = tokenize(
+						tokens = tokenize(
 							sourceText,
 							resolvedName.qualifiedName(),
 							stopAfterBodyToken);
-						AbstractAvailCompiler compiler;
-						if (!tokens.isEmpty()
-							&& tokens.get(0).string().equals(SYSTEM.lexeme()))
-						{
-							compiler = new AvailSystemCompiler(
-								resolvedName, sourceText, tokens);
-						}
-						else
-						{
-							compiler = new AvailCompiler(
-								resolvedName, sourceText, tokens);
-						}
-						succeed.value(compiler);
 					}
 					catch (final AvailScannerException e)
 					{
-						fail.value(e);
+						final Problem problem = new Problem(
+							resolvedName,
+							e.failureLineNumber(),
+							e.failurePosition(),
+							PARSE,
+							"Scanner error: {0}",
+							e.getMessage())
+						{
+							@Override
+							public void abortCompilation ()
+							{
+								afterFail.value();
+							}
+						};
+						reportProblem(problem, problemHandler);
+						return;
 					}
+					final AbstractAvailCompiler compiler;
+					if (!tokens.isEmpty()
+						&& tokens.get(0).string().equals(SYSTEM.lexeme()))
+					{
+						compiler = new AvailSystemCompiler(
+							resolvedName,
+							sourceText,
+							tokens,
+							problemHandler);
+					}
+					else
+					{
+						compiler = new AvailCompiler(
+							resolvedName,
+							sourceText,
+							tokens,
+							problemHandler);
+					}
+					succeed.value(compiler);
 				}
 			},
-			fail);
+			afterFail,
+			problemHandler);
 	}
 
 	/**
@@ -1077,15 +1118,20 @@ public abstract class AbstractAvailCompiler
 	 *        The source code {@linkplain StringDescriptor string}.
 	 * @param tokens
 	 *        The list of {@linkplain TokenDescriptor tokens}.
+	 * @param problemHandler
+	 *        The {@link ProblemHandler} used for reporting compilation
+	 *        problems.
 	 */
 	public AbstractAvailCompiler (
 		final ResolvedModuleName moduleName,
 		final String source,
-		final List<A_Token> tokens)
+		final List<A_Token> tokens,
+		final ProblemHandler problemHandler)
 	{
 		this.moduleHeader = new ModuleHeader(moduleName);
 		this.source = source;
 		this.tokens = tokens;
+		this.problemHandler = problemHandler;
 
 		this.module = ModuleDescriptor.newModule(
 			StringDescriptor.from(moduleHeader.moduleName.qualifiedName()));
@@ -1202,34 +1248,27 @@ public abstract class AbstractAvailCompiler
 	long workUnitsCompleted = 0;
 
 	/**
-	 * The {@linkplain Throwable throwable} (if any) responsible for an
-	 * abnormal termination of compilation.
+	 * This {@code boolean} is set when the {@link #problemHandler} decides that
+	 * an encountered {@link Problem} is sufficient to abort compilation of this
+	 * module at the earliest convenience.
 	 */
-	@InnerAccess volatile @Nullable Exception terminator;
+	@InnerAccess volatile boolean isShuttingDown = false;
 
 	/**
-	 * Announce that compilation has failed because of the specified {@linkplain
-	 * Throwable throwable}. Pending compiler tasks should exit immediately upon
-	 * running, and no new compiler tasks should be queued. Notify all
-	 * {@linkplain Thread threads} waiting on the {@linkplain
-	 * AbstractAvailCompiler receiver}'s monitor.
-	 *
-	 * <p>
-	 * Only the first call of this method has any effect.
-	 * </p>
-	 *
-	 * @param exception
-	 *        The {@link Exception} responsible for terminating compilation.
+	 * This {@code boolean} is set when the {@link #problemHandler} decides that
+	 * an encountered {@link Problem} is serious enough that code generation
+	 * should be suppressed.  In Avail, that means the serialized module should
+	 * not be written to its {@linkplain IndexedRepositoryManager repository}.
 	 */
-	synchronized @InnerAccess void compilationFailed (final Exception exception)
+	@InnerAccess volatile boolean compilationIsInvalid = false;
+
+	/**
+	 * Remove the partially compiled {@linkplain ModuleDescriptor module} from
+	 * the {@link AvailRuntime}.
+	 */
+	public void removeIncompleteModule ()
 	{
-		if (terminator == null)
-		{
-			terminator = exception;
-			final Continuation0 reporter = failureReporter;
-			assert reporter != null;
-			reporter.value();
-		}
+		module.removeFrom(loader());
 	}
 
 	/** The output stream on which the serializer writes. */
@@ -1261,11 +1300,14 @@ public abstract class AbstractAvailCompiler
 	 * @param supplyAnswer
 	 *        What to do if exactly one result was produced. This is a
 	 *        continuation that accepts a solution.
+	 * @param afterFail
+	 *        What to do after a failure has been reported.
 	 */
 	void tryIfUnambiguousThen (
 		final ParserState start,
 		final Con<Con<A_Phrase>> tryBlock,
-		final Con<A_Phrase> supplyAnswer)
+		final Con<A_Phrase> supplyAnswer,
+		final Continuation0 afterFail)
 	{
 		assert noMoreWorkUnits == null;
 		// Augment the start position with a variant that incorporates the
@@ -1288,7 +1330,7 @@ public abstract class AbstractAvailCompiler
 				// If no solutions were found, then report an error.
 				if (count.value == 0)
 				{
-					reportError();
+					reportError(afterFail);
 					return;
 				}
 				// If a simple unambiguous solution was found, then answer
@@ -1331,7 +1373,8 @@ public abstract class AbstractAvailCompiler
 								afterSolution.position - 1,
 								afterSolution.clientDataMap),
 							solution.value(),
-							aSolution);
+							aSolution,
+							afterFail);
 						return;
 					}
 				}
@@ -1643,14 +1686,17 @@ public abstract class AbstractAvailCompiler
 		 * Evaluate the given parse node.  Pass the result to the continuation,
 		 * or if it fails pass the exception to the failure continuation.
 		 *
-		 * @param expression The parse node to evaluate.
-		 * @param continuation What to do with the result of evaluation.
-		 * @param onFailure What to do instead if there was a problem.
+		 * @param expression
+		 *        The parse node to evaluate.
+		 * @param continuation
+		 *        What to do with the result of evaluation.
+		 * @param onFailure
+		 *        What to do after a failure.
 		 */
 		void evaluatePhraseThen (
 			final A_Phrase expression,
 			final Continuation1<AvailObject> continuation,
-			final Continuation1<Exception> onFailure)
+			final Continuation1<Throwable> onFailure)
 		{
 			AbstractAvailCompiler.this.evaluatePhraseThen(
 				expression,
@@ -1696,6 +1742,56 @@ public abstract class AbstractAvailCompiler
 		{
 			// We just read a string literal.
 			strings.add(token.literal());
+			if (!state.peekToken(COMMA))
+			{
+				return state;
+			}
+			state = state.afterToken();
+			token = state.peekStringLiteral();
+			if (token == null)
+			{
+				state.expected("another string literal after comma");
+				return null;
+			}
+			state = state.afterToken();
+		}
+	}
+
+	/**
+	 * Parse one or more string literal tokens separated by commas. This parse
+	 * isn't backtracking like the rest of the grammar - it's greedy. It
+	 * considers a comma followed by something other than a string literal to be
+	 * an unrecoverable parsing error (not a backtrack).
+	 *
+	 * <p>
+	 * Return the {@link ParserState} after the strings if successful, otherwise
+	 * null. Populate the passed {@link List} with the {@linkplain
+	 * LiteralTokenDescriptor string literal tokens}.
+	 * </p>
+	 *
+	 * @param start
+	 *        Where to start parsing.
+	 * @param stringLiteralTokens
+	 *        The initially empty list of string literals to populate.
+	 * @return The parser state after the list of strings, or {@code null} if
+	 *         the list of strings is malformed.
+	 */
+	private static @Nullable ParserState parseStringLiteralTokens (
+		final ParserState start,
+		final List<A_Token> stringLiteralTokens)
+	{
+		assert stringLiteralTokens.isEmpty();
+
+		ParserState state = start.afterToken();
+		A_Token token = start.peekStringLiteral();
+		if (token == null)
+		{
+			return start;
+		}
+		while (true)
+		{
+			// We just read a string literal.
+			stringLiteralTokens.add(token);
 			if (!state.peekToken(COMMA))
 			{
 				return state;
@@ -1987,14 +2083,16 @@ public abstract class AbstractAvailCompiler
 	 *        What to do after the source module has been completely read.
 	 *        Accepts the source text of the module.
 	 * @param fail
-	 *        What to do in the event of failure. This is a continuation that
-	 *        accepts the {@linkplain Throwable throwable} responsible for
-	 *        abnormal termination.
+	 *        What to do in the event of a failure that the {@linkplain
+	 *        ProblemHandler problem handler} does not wish to continue.
+	 * @param problemHandler
+	 *        A problem handler.
 	 */
 	private static void extractSourceThen (
 		final ResolvedModuleName resolvedName,
 		final Continuation1<String> continuation,
-		final Continuation1<AvailScannerException> fail)
+		final Continuation0 fail,
+		final ProblemHandler problemHandler)
 	{
 		final AvailRuntime runtime = AvailRuntime.current();
 		final File ref = resolvedName.sourceReference();
@@ -2009,12 +2107,24 @@ public abstract class AbstractAvailCompiler
 		{
 			file = runtime.openFile(ref.toPath(), StandardOpenOption.READ);
 		}
-		catch (final IOException ioException)
+		catch (final IOException e)
 		{
-			fail.value(
-				new AvailScannerException(
-					ioException,
-					resolvedName.qualifiedName()));
+			final Problem problem = new Problem(
+				resolvedName,
+				TokenDescriptor.createSyntheticStart(),
+				ProblemType.PARSE,
+				"Unable to open source module \"{0}\" [{1}]: {2}",
+				resolvedName,
+				ref.getAbsolutePath(),
+				e.getLocalizedMessage())
+			{
+				@Override
+				public void abortCompilation ()
+				{
+					fail.value();
+				}
+			};
+			reportProblem(problem, problemHandler);
 			return;
 		}
 		final MutableOrNull<CompletionHandler<Integer, Void>> handler =
@@ -2102,28 +2212,54 @@ public abstract class AbstractAvailCompiler
 								}));
 					}
 				}
-				catch (final IOException ioException)
+				catch (final IOException e)
 				{
-					fail.value(
-						new AvailScannerException(
-							ioException,
-							resolvedName.qualifiedName()));
+					final CharArrayWriter trace = new CharArrayWriter();
+					e.printStackTrace(new PrintWriter(trace));
+					final Problem problem = new Problem(
+						resolvedName,
+						TokenDescriptor.createSyntheticStart(),
+						ProblemType.PARSE,
+						"Invalid UTF-8 encoding in source module "
+						+ "\"{0}\": {1}\n{2}",
+						resolvedName,
+						e.getLocalizedMessage(),
+						trace)
+					{
+						@Override
+						public void abortCompilation ()
+						{
+							fail.value();
+						}
+					};
+					reportProblem(problem, problemHandler);
 				}
 			}
 
 			@Override
 			public void failed (
-				@Nullable final Throwable throwable,
+				@Nullable final Throwable e,
 				@Nullable final Void attachment)
 			{
-				assert throwable != null;
-				final AvailScannerException exception =
-					throwable instanceof AvailScannerException
-						? (AvailScannerException)throwable
-						: new AvailScannerException(
-							throwable,
-							resolvedName.qualifiedName());
-				fail.value(exception);
+				assert e != null;
+				final CharArrayWriter trace = new CharArrayWriter();
+				e.printStackTrace(new PrintWriter(trace));
+				final Problem problem = new Problem(
+					resolvedName,
+					TokenDescriptor.createSyntheticStart(),
+					ProblemType.PARSE,
+					"Unable to read source module \"{0}\": {1}\n{2}",
+					resolvedName,
+					e.getLocalizedMessage(),
+					trace)
+				{
+					@Override
+					public void abortCompilation ()
+					{
+						fail.value();
+					}
+				};
+				reportProblem(problem, problemHandler);
 			}
 		};
 		// Kick off the asynchronous read.
@@ -2246,8 +2382,11 @@ public abstract class AbstractAvailCompiler
 	 * position encountered during the parse, and the error strings in {@link
 	 * #greatExpectations} are the things that were expected but not found at
 	 * that position. This seems to work very well in practice.
+	 *
+	 * @param afterFail
+	 *        What to do after actually reporting the error.
 	 */
-	void reportError ()
+	void reportError (final Continuation0 afterFail)
 	{
 		final A_Token token;
 		final List<Describer> expectations;
@@ -2256,28 +2395,15 @@ public abstract class AbstractAvailCompiler
 			token = tokens.get(greatestGuess);
 			expectations = new ArrayList<Describer>(greatExpectations);
 		}
-		reportError(token, "Expected...", expectations);
+		reportError(token, "Expected...", expectations, afterFail);
 	}
 
 	/** A bunch of dash characters, wide enough to catch the eye. */
-	static final String rowOfDashes;
-
-	static
-	{
-		final char[] chars = new char[70];
-		Arrays.fill(chars, '-');
-		rowOfDashes = new String(chars);
-	}
+	static final String rowOfDashes =
+		"---------------------------------------------------------------------";
 
 	/**
-	 * Report an error by throwing an {@link AvailCompilerException}. The
-	 * exception encapsulates the {@linkplain ResolvedModuleName module name} of
-	 * the {@linkplain ModuleDescriptor module} undergoing compilation, the
-	 * error string, and the text position. This position is the rightmost
-	 * position encountered during the parse, and the error strings produced by
-	 * the {@linkplain Describer describers} in {@link #greatExpectations} are
-	 * the things that were expected but not found at that position. This seems
-	 * to work very well in practice.
+	 * Report a parsing problem; after reporting it, execute afterFail.
 	 *
 	 * @param token
 	 *        Where the error occurred.
@@ -2286,11 +2412,14 @@ public abstract class AbstractAvailCompiler
 	 * @param problems
 	 *        A list of {@linkplain Describer describers} that may be
 	 *        invoked to produce problem strings.
+	 * @param afterFail
+	 *        What to do after the error has actually been reported.
 	 */
 	void reportError (
 		final A_Token token,
 		final String banner,
-		final List<Describer> problems)
+		final List<Describer> problems,
+		final Continuation0 afterFail)
 	{
 		assert problems.size() > 0 : "Bug - empty problem list";
 		final long charPos = token.start();
@@ -2348,6 +2477,7 @@ public abstract class AbstractAvailCompiler
 					// the count reaches zero, then produce the remainder of
 					// the message.
 					outstanding.value--;
+					assert outstanding.value >= 0;
 					if (outstanding.value == 0)
 					{
 						text.format(
@@ -2360,15 +2490,21 @@ public abstract class AbstractAvailCompiler
 						{
 							endOfLine = source.length();
 						}
-						final String textString = text.toString();
-						final AvailCompilerException killer =
-							new AvailCompilerException(
-								moduleHeader.moduleName,
-								charPos,
-								endOfLine,
-								textString);
-						killer.fillInStackTrace();
-						compilationFailed(killer);
+						compilationIsInvalid = true;
+						reportProblem(new Problem(
+							moduleHeader.moduleName,
+							token,
+							PARSE,
+							"{0}",
+							text.toString())
+						{
+							@Override
+							public void abortCompilation ()
+							{
+								isShuttingDown = true;
+								afterFail.value();
+							}
+						});
 					}
 				}
 			}
@@ -2376,14 +2512,16 @@ public abstract class AbstractAvailCompiler
 		// Generate the error strings in parallel.
 		for (final Describer describer : problems)
 		{
-			eventuallyDo(new Continuation0()
-			{
-				@Override
-				public void value ()
+			eventuallyDo(
+				token,
+				new Continuation0()
 				{
-					describer.describeThen(decrement);
-				}
-			});
+					@Override
+					public void value ()
+					{
+						describer.describeThen(decrement);
+					}
+				});
 		}
 	}
 
@@ -2399,11 +2537,14 @@ public abstract class AbstractAvailCompiler
 	 * @param interpretation2
 	 *        The second interpretation as a {@linkplain ParseNodeDescriptor
 	 *        parse node}.
+	 * @param afterFail
+	 *        What to do after reporting the failure.
 	 */
 	@InnerAccess void reportAmbiguousInterpretations (
 		final ParserState where,
 		final A_Phrase interpretation1,
-		final A_Phrase interpretation2)
+		final A_Phrase interpretation2,
+		final Continuation0 afterFail)
 	{
 		final Mutable<A_Phrase> node1 = new Mutable<>(interpretation1);
 		final Mutable<A_Phrase> node2 = new Mutable<>(interpretation2);
@@ -2424,7 +2565,7 @@ public abstract class AbstractAvailCompiler
 					c.value(builder.toString());
 				}
 			});
-		reportError();
+		reportError(afterFail);
 	}
 
 	/**
@@ -2517,18 +2658,23 @@ public abstract class AbstractAvailCompiler
 	}
 
 	/**
-	 * Attempt the zero-argument continuation. The implementation is free to
-	 * execute it now or to put it in a bag of continuations to run later <em>in
-	 * an arbitrary order</em>. There may be performance and/or scale benefits
-	 * to processing entries in FIFO, LIFO, or some hybrid order, but the
-	 * correctness is not affected by a choice of order.  The implementation may
-	 * run the expression in parallel with the invoking thread and other such
-	 * expressions.
+	 * Attempt the {@linkplain Continuation0 zero-argument continuation}. The
+	 * implementation is free to execute it now or to put it in a bag of
+	 * continuations to run later <em>in an arbitrary order</em>. There may be
+	 * performance and/or scale benefits to processing entries in FIFO, LIFO, or
+	 * some hybrid order, but the correctness is not affected by a choice of
+	 * order. The implementation may run the expression in parallel with the
+	 * invoking thread and other such expressions.
 	 *
+	 * @param token
+	 *        The {@linkplain TokenDescriptor token} that provides context for
+	 *        the continuation.
 	 * @param continuation
 	 *        What to do at some point in the future.
 	 */
-	void eventuallyDo (final Continuation0 continuation)
+	void eventuallyDo (
+		final A_Token token,
+		final Continuation0 continuation)
 	{
 		runtime.execute(new AvailTask(
 			FiberDescriptor.compilerPriority,
@@ -2543,7 +2689,7 @@ public abstract class AbstractAvailCompiler
 					}
 					catch (final Exception e)
 					{
-						compilationFailed(e);
+						reportInternalProblem(token, e);
 					}
 				}
 			}));
@@ -2554,11 +2700,6 @@ public abstract class AbstractAvailCompiler
 	 */
 	protected synchronized void startWorkUnit ()
 	{
-		if (terminator != null)
-		{
-			// Don't add any new tasks if canceling.
-			return;
-		}
 		workUnitsQueued++;
 	}
 
@@ -2570,11 +2711,6 @@ public abstract class AbstractAvailCompiler
 	 */
 	protected synchronized void startWorkUnits (final int count)
 	{
-		if (terminator != null)
-		{
-			// Don't add any new tasks if canceling.
-			return;
-		}
 		workUnitsQueued += count;
 	}
 
@@ -2585,12 +2721,16 @@ public abstract class AbstractAvailCompiler
 	 * potentially call the {@linkplain #noMoreWorkUnits unambiguous
 	 * statement}.
 	 *
+	 * @param token
+	 *        The {@linkplain A_Token token} that provides context for the
+	 *        work unit completion.
 	 * @param continuation
 	 *        What to do as a work unit.
 	 * @return A new continuation. It accepts an argument of some kind, which
 	 *         will be passed forward to the argument continuation.
 	 */
 	protected <ArgType> Continuation1<ArgType> workUnitCompletion (
+		final A_Token token,
 		final Continuation1<ArgType> continuation)
 	{
 		assert noMoreWorkUnits != null;
@@ -2603,14 +2743,14 @@ public abstract class AbstractAvailCompiler
 				try
 				{
 					// Don't actually run tasks if canceling.
-					if (terminator == null)
+					if (!isShuttingDown)
 					{
 						continuation.value(value);
 					}
 				}
 				catch (final Exception e)
 				{
-					compilationFailed(e);
+					reportInternalProblem(token, e);
 					return;
 				}
 				finally
@@ -2636,7 +2776,7 @@ public abstract class AbstractAvailCompiler
 				}
 				catch (final Exception e)
 				{
-					compilationFailed(e);
+					reportInternalProblem(token, e);
 				}
 			}
 		};
@@ -2660,6 +2800,7 @@ public abstract class AbstractAvailCompiler
 	{
 		startWorkUnit();
 		final Continuation1<AvailObject> workUnit = workUnitCompletion(
+			where.peekToken(),
 			new Continuation1<AvailObject>()
 			{
 				@Override
@@ -2781,14 +2922,14 @@ public abstract class AbstractAvailCompiler
 	 * @param onSuccess
 	 *        What to do with the result of the evaluation.
 	 * @param onFailure
-	 *        What to do with a terminal {@link Exception}.
+	 *        What to do with a terminal {@link Throwable}.
 	 */
 	protected void evaluateFunctionThen (
 		final A_Function function,
 		final List<? extends A_BasicObject> args,
 		final boolean shouldSerialize,
 		final Continuation1<AvailObject> onSuccess,
-		final Continuation1<Exception> onFailure)
+		final Continuation1<Throwable> onFailure)
 	{
 		synchronized (this)
 		{
@@ -2800,12 +2941,11 @@ public abstract class AbstractAvailCompiler
 		final A_Fiber fiber = FiberDescriptor.newLoaderFiber(
 			function.kind().returnType(),
 			loader(),
-			StringDescriptor.from(
-				String.format(
-					"Eval fn=%s, in %s:%d",
-					function.code().methodName(),
-					function.code().module().moduleName(),
-					function.code().startingLineNumber())));
+			StringDescriptor.format(
+				"Eval fn=%s, in %s:%d",
+				function.code().methodName(),
+				function.code().module().moduleName(),
+				function.code().startingLineNumber()));
 		fiber.resultContinuation(onSuccess);
 		fiber.failureContinuation(onFailure);
 		Interpreter.runOutermostFunction(runtime, fiber, function, args);
@@ -2824,13 +2964,13 @@ public abstract class AbstractAvailCompiler
 	 * @param onSuccess
 	 *        What to do with the result of the evaluation.
 	 * @param onFailure
-	 *        What to do with a terminal {@link Exception}.
+	 *        What to do with a terminal {@link Throwable}.
 	 */
 	protected void evaluateSemanticRestrictionFunctionThen (
 		final A_SemanticRestriction restriction,
 		final List<AvailObject> args,
 		final Continuation1<AvailObject> onSuccess,
-		final Continuation1<Exception> onFailure)
+		final Continuation1<Throwable> onFailure)
 	{
 		final A_Function function = restriction.function();
 		final A_RawFunction code = function.code();
@@ -2838,14 +2978,14 @@ public abstract class AbstractAvailCompiler
 		final A_Fiber fiber = FiberDescriptor.newLoaderFiber(
 			function.kind().returnType(),
 			loader(),
-			StringDescriptor.from(
-				String.format(
-					"Semantic restriction %s, in %s:%d",
-					restriction.definitionMethod().bundles().iterator().next().message(),
-					mod.equals(NilDescriptor.nil())
-						? "no module"
-						: mod.moduleName(),
-					code.startingLineNumber())));
+			StringDescriptor.format(
+				"Semantic restriction %s, in %s:%d",
+				restriction.definitionMethod().bundles()
+					.iterator().next().message(),
+				mod.equals(NilDescriptor.nil())
+					? "no module"
+					: mod.moduleName(),
+				code.startingLineNumber()));
 		fiber.setGeneralFlag(GeneralFlag.APPLYING_SEMANTIC_RESTRICTION);
 		fiber.resultContinuation(onSuccess);
 		fiber.failureContinuation(onFailure);
@@ -2868,14 +3008,14 @@ public abstract class AbstractAvailCompiler
 	 * @param onSuccess
 	 *        What to do with the result of the evaluation.
 	 * @param onFailure
-	 *        What to do with a terminal {@link Exception}.
+	 *        What to do after a failure.
 	 */
 	@InnerAccess void evaluatePhraseThen (
 		final A_Phrase expressionNode,
 		final int lineNumber,
 		final boolean shouldSerialize,
 		final Continuation1<AvailObject> onSuccess,
-		final Continuation1<Exception> onFailure)
+		final Continuation1<Throwable> onFailure)
 	{
 		evaluateFunctionThen(
 			FunctionDescriptor.createFunctionForPhrase(
@@ -2902,16 +3042,44 @@ public abstract class AbstractAvailCompiler
 	 *        statement must be {@linkplain NilDescriptor#nil() nil}, so there
 	 *        is no point accepting in the result. Hence the {@linkplain
 	 *        Continuation0 nullary continuation}.
-	 * @param onFailure
-	 *        What to do with a terminal {@link Exception}.
+	 * @param afterFail
+	 *        What to do after execution of the top-level statement fails.
 	 */
 	void evaluateModuleStatementThen (
 		final ParserState startState,
 		final A_Phrase expressionOrMacro,
 		final Continuation0 onSuccess,
-		final Continuation1<Exception> onFailure)
+		final Continuation0 afterFail)
 	{
 		final A_Phrase expression = expressionOrMacro.stripMacro();
+		final Continuation1<Throwable> phraseFailure =
+			new Continuation1<Throwable>()
+			{
+				@Override
+				public void value (final @Nullable Throwable e)
+				{
+					assert e != null;
+					final A_Token token = startState.peekToken();
+					if (e instanceof AvailAssertionFailedException)
+					{
+						reportAssertionFailureProblem(
+							token,
+							(AvailAssertionFailedException) e);
+					}
+					else if (e instanceof AvailEmergencyExitException)
+					{
+						reportEmergencyExitProblem(
+							token,
+							(AvailEmergencyExitException) e);
+					}
+					else
+					{
+						reportExecutionProblem(token, e);
+					}
+					afterFail.value();
+				}
+			};
+
 		if (!expression.isInstanceOfKind(DECLARATION_NODE.mostGeneralType()))
 		{
 			// Only record module statements that aren't declarations. Users of
@@ -2929,7 +3097,7 @@ public abstract class AbstractAvailCompiler
 						onSuccess.value();
 					}
 				},
-				onFailure);
+				phraseFailure);
 			return;
 		}
 		// It's a declaration, but the parser couldn't previously tell that it
@@ -2980,7 +3148,7 @@ public abstract class AbstractAvailCompiler
 							onSuccess.value();
 						}
 					},
-					onFailure);
+					phraseFailure);
 				break;
 			}
 			case LOCAL_VARIABLE:
@@ -3024,7 +3192,7 @@ public abstract class AbstractAvailCompiler
 								onSuccess.value();
 							}
 						},
-						onFailure);
+						phraseFailure);
 				}
 				else
 				{
@@ -3834,10 +4002,10 @@ public abstract class AbstractAvailCompiler
 								continuation);
 						}
 					},
-					new Continuation1<Exception>()
+					new Continuation1<Throwable>()
 					{
 						@Override
-						public void value (final @Nullable Exception exception)
+						public void value (final @Nullable Throwable e)
 						{
 							//TODO[MvG] - Deal with failed conversion (this can
 							// only happen during an eval conversion).
@@ -3936,12 +4104,11 @@ public abstract class AbstractAvailCompiler
 				final A_Fiber fiber = FiberDescriptor.newLoaderFiber(
 					prefixFunction.kind().returnType(),
 					loader(),
-					StringDescriptor.from(
-						String.format(
-							"Macro prefix %s, in %s:%d",
-							prefixFunction.code().methodName(),
-							prefixFunction.code().module().moduleName(),
-							prefixFunction.code().startingLineNumber())));
+					StringDescriptor.format(
+						"Macro prefix %s, in %s:%d",
+						prefixFunction.code().methodName(),
+						prefixFunction.code().module().moduleName(),
+						prefixFunction.code().startingLineNumber()));
 				A_Map fiberGlobals = fiber.fiberGlobals();
 				fiberGlobals = fiberGlobals.mapAtPuttingCanDestroy(
 					clientDataGlobalKey,
@@ -3949,6 +4116,7 @@ public abstract class AbstractAvailCompiler
 					true);
 				fiber.fiberGlobals(fiberGlobals);
 				fiber.resultContinuation(workUnitCompletion(
+					start.peekToken(),
 					new Continuation1<AvailObject>()
 					{
 						@Override
@@ -3973,12 +4141,12 @@ public abstract class AbstractAvailCompiler
 								continuation);
 						}
 					}));
-				fiber.failureContinuation(new Continuation1<Exception>()
+				fiber.failureContinuation(new Continuation1<Throwable>()
 				{
 					@Override
-					public void value (final @Nullable Exception exception)
+					public void value (final @Nullable Throwable e)
 					{
-						assert exception != null;
+						assert e != null;
 						// The prefix function failed in some way.
 						start.expected(new Describer()
 						{
@@ -3988,7 +4156,7 @@ public abstract class AbstractAvailCompiler
 							{
 								c.value(
 									"prefix function not to have failed with:\n"
-									+ exception.getLocalizedMessage());
+									+ e.toString());
 							}
 						});
 					}
@@ -4265,6 +4433,7 @@ public abstract class AbstractAvailCompiler
 		final Mutable<Boolean> anyFailures = new Mutable<>(false);
 		final Continuation1<AvailObject> intersectAndDecrement =
 			workUnitCompletion(
+				state.peekToken(),
 				new Continuation1<AvailObject>()
 				{
 					@Override
@@ -4288,12 +4457,13 @@ public abstract class AbstractAvailCompiler
 						}
 					}
 				});
-		final Continuation1<Exception> failed =
+		final Continuation1<Throwable> failed =
 			workUnitCompletion(
-				new Continuation1<Exception>()
+				state.peekToken(),
+				new Continuation1<Throwable>()
 				{
 					@Override
-					public void value (final @Nullable Exception e)
+					public void value (final @Nullable Throwable e)
 					{
 						assert e != null;
 						final boolean alreadyFailed;
@@ -4311,7 +4481,7 @@ public abstract class AbstractAvailCompiler
 							{
 								final AvailRejectedParseException rej =
 									(AvailRejectedParseException) e;
-								final A_String problem = rej.rejectionString();
+								final A_String text = rej.rejectionString();
 								onFailure.value(
 									new Describer()
 									{
@@ -4320,7 +4490,7 @@ public abstract class AbstractAvailCompiler
 											final Continuation1<String> c)
 										{
 											c.value(
-												problem.asNativeString()
+												text.asNativeString()
 												+ " (while parsing send of "
 												+ bundle.message().atomName()
 												+ ")");
@@ -4329,48 +4499,46 @@ public abstract class AbstractAvailCompiler
 							}
 							else if (e instanceof FiberTerminationException)
 							{
-								onFailure.value(
-									new Describer()
+								onFailure.value(new Describer()
+								{
+									@Override
+									public void describeThen (
+										final Continuation1<String> c)
 									{
-										@Override
-										public void describeThen (
-											final Continuation1<String> c)
-										{
-											c.value(
-												"semantic restriction not to "
-												+ "raise an unhandled "
-												+ "exception (while parsing "
-												+ "send of "
-												+ bundle.message().atomName()
-												+ "):\n\t"
-												+ e.toString());
-										}
-									});
+										c.value(
+											"semantic restriction not to "
+											+ "raise an unhandled "
+											+ "exception (while parsing "
+											+ "send of "
+											+ bundle.message().atomName()
+											+ "):\n\t"
+											+ e.toString());
+									}
+								});
 							}
 							else if (e instanceof AvailAssertionFailedException)
 							{
 								final AvailAssertionFailedException ex =
 									(AvailAssertionFailedException) e;
-								onFailure.value(
-									new Describer()
+								onFailure.value(new Describer()
+								{
+									@Override
+									public void describeThen (
+										final Continuation1<String> c)
 									{
-										@Override
-										public void describeThen (
-											final Continuation1<String> c)
-										{
-											c.value(
-												"assertion failed "
-												+ " (while parsing send of "
-												+ bundle.message().atomName()
-												+ "):\n\t"
-												+ ex.assertionString()
-													.asNativeString());
-										}
-									});
+										c.value(
+											"assertion failed "
+											+ " (while parsing send of "
+											+ bundle.message().atomName()
+											+ "):\n\t"
+											+ ex.assertionString()
+												.asNativeString());
+									}
+								});
 							}
 							else
 							{
-								compilationFailed(e);
+								reportInternalProblem(state.peekToken(), e);
 							}
 						}
 					}
@@ -4715,14 +4883,17 @@ public abstract class AbstractAvailCompiler
 	 * @param primitiveNumber
 	 *        The {@linkplain Primitive#primitiveNumber primitive number} of the
 	 *        {@linkplain MethodDescriptor method} being defined.
-	 * @param continuation
-	 *        What to do after the operation completes.
+	 * @param success
+	 *        What to do after the method is bootstrapped successfully.
+	 * @param failure
+	 *        What to do if the attempt to bootstrap the method fails.
 	 */
 	void bootstrapMethodThen (
 		final ParserState state,
 		final String methodName,
 		final int primitiveNumber,
-		final Continuation0 continuation)
+		final Continuation0 success,
+		final Continuation0 failure)
 	{
 		final A_String availName = StringDescriptor.from(methodName);
 		final A_Phrase nameLiteral =
@@ -4736,19 +4907,7 @@ public abstract class AbstractAvailCompiler
 				nameLiteral,
 				LiteralNodeDescriptor.syntheticFrom(function))),
 			TOP.o());
-		evaluateModuleStatementThen(
-			state,
-			send,
-			continuation,
-			new Continuation1<Exception>()
-			{
-				@Override
-				public void value (final @Nullable Exception exception)
-				{
-					assert exception != null;
-					compilationFailed(exception);
-				}
-			});
+		evaluateModuleStatementThen(state, send, success, failure);
 	}
 
 	/**
@@ -4768,25 +4927,37 @@ public abstract class AbstractAvailCompiler
 	 *        correspond to the occurrences of the {@linkplain StringDescriptor
 	 *        #sectionSign() section sign} (§) in the macro name, plus a final
 	 *        body for the complete macro.
-	 * @param continuation
-	 *        What to do after the operation completes.
+	 * @param success
+	 *        What to do after the macro is defined successfully.
+	 * @param failure
+	 *        What to do after compilation fails.
 	 */
 	void bootstrapMacroThen (
 		final ParserState state,
 		final String macroName,
 		final int[] primitiveNumbers,
-		final Continuation0 continuation)
+		final Continuation0 success,
+		final Continuation0 failure)
 	{
 		assert primitiveNumbers.length > 0;
 		final A_String availName = StringDescriptor.from(macroName);
 		final A_Phrase nameLiteral =
 			LiteralNodeDescriptor.syntheticFrom(availName);
 		final List<A_Function> functionsList = new ArrayList<>();
-		for (final int primitiveNumber : primitiveNumbers)
+		try
 		{
-			functionsList.add(
-				FunctionDescriptor.newPrimitiveFunction(
-					Primitive.byPrimitiveNumberOrFail(primitiveNumber)));
+			for (final int primitiveNumber : primitiveNumbers)
+			{
+				functionsList.add(
+					FunctionDescriptor.newPrimitiveFunction(
+						Primitive.byPrimitiveNumberOrFail(primitiveNumber)));
+			}
+		}
+		catch (final RuntimeException e)
+		{
+			reportInternalProblem(state.peekToken(), e);
+			failure.value();
+			return;
 		}
 		final A_Function body = functionsList.remove(functionsList.size() - 1);
 		final A_Tuple functionsTuple = TupleDescriptor.fromList(functionsList);
@@ -4797,19 +4968,7 @@ public abstract class AbstractAvailCompiler
 				LiteralNodeDescriptor.syntheticFrom(functionsTuple),
 				LiteralNodeDescriptor.syntheticFrom(body))),
 			TOP.o());
-		evaluateModuleStatementThen(
-			state,
-			send,
-			continuation,
-			new Continuation1<Exception>()
-			{
-				@Override
-				public void value (final @Nullable Exception exception)
-				{
-					assert exception != null;
-					compilationFailed(exception);
-				}
-			});
+		evaluateModuleStatementThen(state, send, success, failure);
 	}
 
 	/**
@@ -4851,18 +5010,25 @@ public abstract class AbstractAvailCompiler
 	 * Apply a method pragma detected during parse of the {@linkplain
 	 * ModuleHeader module header}.
 	 *
+	 * @param pragmaToken
+	 *        The string literal token specifying the pragma.
 	 * @param pragmaValue
-	 *        The value of the pragma.
+	 *        The pragma {@link String} after "method=".
 	 * @param state
 	 *        The {@linkplain ParserState parse state} following a parse of the
 	 *        module header.
-	 * @param continuation
-	 *        What to do after the operation completes.
+	 * @param success
+	 *        What to do after the pragmas have been applied successfully.
+	 * @param failure
+	 *        What to do if a problem is found with one of the pragma
+	 *        definitions.
 	 */
 	@InnerAccess void applyMethodPragmaThen (
+		final A_Token pragmaToken,
 		final String pragmaValue,
 		final ParserState state,
-		final Continuation0 continuation)
+		final Continuation0 success,
+		final Continuation0 failure)
 	{
 		final String methodName;
 		final int primNum;
@@ -4879,98 +5045,132 @@ public abstract class AbstractAvailCompiler
 		}
 		catch (final IllegalArgumentException e)
 		{
-			state.expected(String.format(
-				"method pragma to have the form "
-				+ "%s=<digits>=name",
-				PRAGMA_METHOD.lexemeJavaString));
-			reportError();
+			reportProblem(new Problem(
+				moduleHeader.moduleName,
+				pragmaToken,
+				PARSE,
+				"Expected method pragma to have the form {0}=<digits>=name",
+				PRAGMA_METHOD.lexemeJavaString)
+			{
+				@Override
+				public void abortCompilation ()
+				{
+					failure.value();
+				}
+			});
 			return;
 		}
-		bootstrapMethodThen(state, methodName, primNum, continuation);
+		bootstrapMethodThen(state, methodName, primNum, success, failure);
 	}
 
 	/**
 	 * Apply a macro pragma detected during parse of the {@linkplain
 	 * ModuleHeader module header}.
 	 *
+	 * @param pragmaToken
+	 *        The string literal token specifying the pragma.
 	 * @param pragmaValue
-	 *        The value of the pragma.
+	 *        The pragma {@link String} after "macro=".
 	 * @param state
 	 *        The {@linkplain ParserState parse state} following a parse of the
 	 *        module header.
-	 * @param continuation
-	 *        What to do after the operation completes.
+	 * @param success
+	 *        What to do after the macro is defined successfully.
+	 * @param failure
+	 *        What to do if the attempt to define the macro fails.
 	 */
 	@InnerAccess void applyMacroPragmaThen (
+		final A_Token pragmaToken,
 		final String pragmaValue,
 		final ParserState state,
-		final Continuation0 continuation)
+		final Continuation0 success,
+		final Continuation0 failure)
 	{
 		final String macroName;
 		final int[] primNums;
-		try
+		final String[] parts = pragmaValue.split("=", 2);
+		if (parts.length != 2)
 		{
-			final String[] parts = pragmaValue.split("=", 2);
-			if (parts.length != 2)
-			{
-				throw new IllegalArgumentException();
-			}
-			final String pragmaPrim = parts[0].trim();
-			macroName = parts[1].trim();
-			final String[] primNumStrings = pragmaPrim.split(",");
-			primNums = new int[primNumStrings.length];
-			for (int i = 0; i < primNums.length; i++)
-			{
-				primNums[i] = Integer.valueOf(
-					primNumStrings[i]);
-			}
+			throw new IllegalArgumentException();
 		}
-		catch (final IllegalArgumentException e)
+		final String pragmaPrim = parts[0].trim();
+		macroName = parts[1].trim();
+		final String[] primNumStrings = pragmaPrim.split(",");
+		primNums = new int[primNumStrings.length];
+		for (int i = 0; i < primNums.length; i++)
 		{
-			state.expected(String.format(
-				"macro pragma to have the form "
-				+ "%s=<digits‡,>=name",
-				PRAGMA_MACRO.lexemeJavaString));
-			reportError();
-			return;
+			int primNum;
+			try
+			{
+				primNum = Integer.parseInt(primNumStrings[i]);
+			}
+			catch (final NumberFormatException e)
+			{
+				primNum = 0;
+			}
+			if (!Primitive.supportsPrimitive(primNum))
+			{
+				reportError(
+					pragmaToken,
+					"Malformed pragma:",
+					Arrays.asList(generate(
+						String.format(
+							"Expected macro pragma to reference "
+							+ "a valid primitive, not %s",
+							primNum))),
+					failure);
+				return;
+			}
+			primNums[i] = primNum;
 		}
-		bootstrapMacroThen(state, macroName, primNums, continuation);
+		bootstrapMacroThen(state, macroName, primNums, success, failure);
 	}
 
 	/**
 	 * Apply a stringify pragma detected during parse of the {@linkplain
 	 * ModuleHeader module header}.
 	 *
+	 * @param pragmaToken
+	 *        The string literal token specifying the pragma.
 	 * @param pragmaValue
-	 *        The value of the pragma.
+	 *        The pragma {@link String} after "stringify=".
 	 * @param state
 	 *        The {@linkplain ParserState parse state} following a parse of the
 	 *        module header.
-	 * @param continuation
-	 *        What to do after the operation completes.
+	 * @param success
+	 *        What to do after the stringification name is defined successfully.
+	 * @param failure
+	 *        What to do after stringification fails.
 	 */
 	@InnerAccess void applyStringifyPragmaThen (
+		final A_Token pragmaToken,
 		final String pragmaValue,
 		final ParserState state,
-		final Continuation0 continuation)
+		final Continuation0 success,
+		final Continuation0 failure)
 	{
 		final A_String availName = StringDescriptor.from(pragmaValue);
 		final A_Set atoms = module.trueNamesForStringName(availName);
 		if (atoms.setSize() == 0)
 		{
-			state.expected(String.format(
-				"stringification method \"%s\" to be introduced in this module",
-				availName.asNativeString()));
-			reportError();
-			assert false;
+			reportError(
+				pragmaToken,
+				"Problem in stringification macro:",
+				Arrays.asList(generate(
+					"stringification method \"%s\" should be introduced"
+					+ " in this module")),
+				failure);
+			return;
 		}
 		else if (atoms.setSize() > 1)
 		{
-			state.expected(String.format(
-				"stringification method \"%s\" to be unambiguous",
-				availName.asNativeString()));
-			reportError();
-			assert false;
+			reportError(
+				pragmaToken,
+				"Problem in stringification macro:",
+				Arrays.asList(generate(
+					"stringification method \"%s\" is ambiguous")),
+				failure);
+			return;
 		}
 		final A_Atom atom = atoms.asTuple().tupleAt(1);
 		final A_Phrase send = SendNodeDescriptor.from(
@@ -4978,19 +5178,7 @@ public abstract class AbstractAvailCompiler
 			ListNodeDescriptor.newExpressions(TupleDescriptor.from(
 				LiteralNodeDescriptor.syntheticFrom(atom))),
 			TOP.o());
-		evaluateModuleStatementThen(
-			state,
-			send,
-			continuation,
-			new Continuation1<Exception>()
-			{
-				@Override
-				public void value (final @Nullable Exception exception)
-				{
-					assert exception != null;
-					compilationFailed(exception);
-				}
-			});
+		evaluateModuleStatementThen(state, send, success, failure);
 	}
 
 	/**
@@ -5000,101 +5188,106 @@ public abstract class AbstractAvailCompiler
 	 * @param state
 	 *        The {@linkplain ParserState parse state} following a parse of the
 	 *        module header.
-	 * @param continuation
-	 *        What to do after the operation completes.
+	 * @param success
+	 *        What to do after the pragmas have been applied successfully.
+	 * @param failure
+	 *        What to do after a problem is found with one of the pragma
+	 *        definitions.
 	 */
 	private void applyPragmasThen (
 		final ParserState state,
-		final Continuation0 continuation)
+		final Continuation0 success,
+		final Continuation0 failure)
 	{
-		// If there are no pragmas, then just invoke the success continuation
-		// and return.
-		final int count = moduleHeader.pragmas.size();
-		if (count == 0)
+		final Iterator<A_Token> iterator = moduleHeader.pragmas.iterator();
+		final MutableOrNull<Continuation0> body = new MutableOrNull<>();
+		final Continuation0 next = new Continuation0()
 		{
-			continuation.value();
-			return;
-		}
-		final Mutable<Integer> outstanding =
-			new Mutable<>(moduleHeader.pragmas.size());
-		final Continuation0 wrapped =
-			new Continuation0()
+			@Override
+			public void value ()
 			{
-				@Override
-				public void value ()
+				eventuallyDo(state.peekToken(), body.value());
+			}
+		};
+		body.value = new Continuation0()
+		{
+			@Override
+			public void value ()
+			{
+				if (!iterator.hasNext())
 				{
-					synchronized (outstanding)
-					{
-						outstanding.value--;
-						if (outstanding.value == 0)
-						{
-							continuation.value();
-						}
-					}
+					// Done with all the pragmas, if any.
+					success.value();
+					return;
 				}
-			};
-		for (final A_String pragmaString : moduleHeader.pragmas)
-		{
-			eventuallyDo(new Continuation0()
-			{
-				@Override
-				public void value ()
+				final A_Token pragmaToken = iterator.next();
+				final A_String pragmaString = pragmaToken.literal();
+				final String nativeString = pragmaString.asNativeString();
+				final String[] pragmaParts = nativeString.split("=", 2);
+				if (pragmaParts.length != 2)
 				{
-					final String nativeString = pragmaString.asNativeString();
-					final String[] pragmaParts = nativeString.split("=", 2);
-					if (pragmaParts.length != 2)
-					{
-						state.expected("pragma to have the form key=value");
-						reportError();
+					reportError(
+						pragmaToken,
+						"Malformed pragma:",
+						Arrays.asList(generate(
+							"Pragma should have the form key=value")),
+						failure);
+					return;
+				}
+				final String pragmaKind = pragmaParts[0].trim();
+				final String pragmaValue = pragmaParts[1].trim();
+				switch (pragmaKind)
+				{
+					case "method":
+						assert pragmaKind.equals(
+							PRAGMA_METHOD.lexemeJavaString);
+						applyMethodPragmaThen(
+							pragmaToken, pragmaValue, state, next, failure);
+						break;
+					case "macro":
+						assert pragmaKind.equals(PRAGMA_MACRO.lexemeJavaString);
+						applyMacroPragmaThen(
+							pragmaToken, pragmaValue, state, next, failure);
+						break;
+					case "stringify":
+						assert pragmaKind.equals(
+							PRAGMA_STRINGIFY.lexemeJavaString);
+						applyStringifyPragmaThen(
+							pragmaToken, pragmaValue, state, next, failure);
+						break;
+					default:
+						reportError(
+							pragmaToken,
+							"Malformed pragma:",
+							Arrays.asList(generate(
+								String.format(
+									"Pragma key should be one of %s, %s, or %s",
+									PRAGMA_METHOD.lexemeJavaString,
+									PRAGMA_MACRO.lexemeJavaString,
+									PRAGMA_STRINGIFY.lexemeJavaString))),
+							failure);
 						return;
-					}
-					final String pragmaKind = pragmaParts[0].trim();
-					final String pragmaValue = pragmaParts[1].trim();
-					switch (pragmaKind)
-					{
-						case "method":
-							assert pragmaKind.equals(
-								PRAGMA_METHOD.lexemeJavaString);
-							applyMethodPragmaThen(pragmaValue, state, wrapped);
-							break;
-						case "macro":
-							assert pragmaKind.equals(
-								PRAGMA_MACRO.lexemeJavaString);
-							applyMacroPragmaThen(pragmaValue, state, wrapped);
-							break;
-						case "stringify":
-							assert pragmaKind.equals(
-								PRAGMA_STRINGIFY.lexemeJavaString);
-							applyStringifyPragmaThen(
-								pragmaValue, state, wrapped);
-							break;
-						default:
-							state.expected(String.format(
-								"pragma key to be one of "
-								+ "%s, %s, or %s",
-								PRAGMA_METHOD.lexemeJavaString,
-								PRAGMA_MACRO.lexemeJavaString,
-								PRAGMA_STRINGIFY.lexemeJavaString));
-							reportError();
-							return;
-					}
 				}
-			});
-		}
+			}
+		};
+		next.value();
 	}
 
 	/**
 	 * Parse a {@linkplain ModuleHeader module header} from the {@linkplain
-	 * TokenDescriptor token list} and apply any side-effects. Then
-	 * {@linkplain #parseModuleBody(ParserState) parse a module body} and apply
-	 * any side-effects.
+	 * TokenDescriptor token list} and apply any side-effects. Then {@linkplain
+	 * #parseModuleBody(ParserState, Continuation0) parse a module body} and
+	 * apply any side-effects.
+	 *
+	 * @param afterFail
+	 *        What to do after compilation fails.
 	 */
-	@InnerAccess void parseModuleCompletely ()
+	@InnerAccess void parseModuleCompletely (final Continuation0 afterFail)
 	{
 		final ParserState afterHeader = parseModuleHeader(false);
 		if (afterHeader == null)
 		{
-			reportError();
+			reportError(afterFail);
 			return;
 		}
 		// Update the reporter. This condition just prevents
@@ -5112,13 +5305,13 @@ public abstract class AbstractAvailCompiler
 				(long) source.length());
 		}
 		assert afterHeader != null;
-		// Run any side-effects implied by this module header
-		// against the module.
+		// Run any side-effects implied by this module header against the
+		// module.
 		final String errorString = moduleHeader.applyToModule(module, runtime);
 		if (errorString != null)
 		{
 			afterHeader.expected(errorString);
-			reportError();
+			reportError(afterFail);
 			return;
 		}
 		synchronized (this)
@@ -5140,14 +5333,16 @@ public abstract class AbstractAvailCompiler
 					// Parse the body of the module.
 					if (!afterHeader.atEnd())
 					{
-						eventuallyDo(new Continuation0()
-						{
-							@Override
-							public void value ()
+						eventuallyDo(
+							afterHeader.peekToken(),
+							new Continuation0()
 							{
-								parseModuleBody(afterHeader);
-							}
-						});
+								@Override
+								public void value ()
+								{
+									parseModuleBody(afterHeader, afterFail);
+								}
+							});
 					}
 					else
 					{
@@ -5156,7 +5351,8 @@ public abstract class AbstractAvailCompiler
 						reporter.value();
 					}
 				}
-			});
+			},
+			afterFail);
 	}
 
 	/**
@@ -5167,14 +5363,18 @@ public abstract class AbstractAvailCompiler
 	 * @param afterHeader
 	 *        The {@linkplain ParserState parse state} after parsing a
 	 *        {@linkplain ModuleHeader module header}.
+	 * @param afterFail
+	 *        What to do after compilation fails.
 	 */
-	@InnerAccess void parseModuleBody (final ParserState afterHeader)
+	@InnerAccess void parseModuleBody (
+		final ParserState afterHeader,
+		final Continuation0 afterFail)
 	{
-		final MutableOrNull<Con<A_Phrase>> parseOutermost =
-			new MutableOrNull<>();
 		final Mutable<ParserState> lastStart =
 			new Mutable<>(afterHeader);
 		final AvailLoader theLoader = loader();
+		final MutableOrNull<Con<A_Phrase>> parseOutermost =
+			new MutableOrNull<>();
 		parseOutermost.value = new Con<A_Phrase>("Outermost statement")
 		{
 			@Override
@@ -5193,7 +5393,7 @@ public abstract class AbstractAvailCompiler
 				{
 					afterStatement.expected(
 						"top-level statement to have type ⊤");
-					reportError();
+					reportError(afterFail);
 					return;
 				}
 
@@ -5223,20 +5423,23 @@ public abstract class AbstractAvailCompiler
 									(long) token.lineNumber(),
 									(long) token.start() + 2,
 									(long) source.length());
-								eventuallyDo(new Continuation0()
-								{
-									@Override
-									public void value ()
+								eventuallyDo(
+									afterStatement.peekToken(),
+									new Continuation0()
 									{
-										lastStart.value = afterStatement;
-										clearExpectations();
-										parseOutermostStatement(
-											new ParserState(
-												afterStatement.position,
-												afterHeader.clientDataMap),
-											parseOutermost.value());
-									}
-								});
+										@Override
+										public void value ()
+										{
+											lastStart.value = afterStatement;
+											clearExpectations();
+											parseOutermostStatement(
+												new ParserState(
+													afterStatement.position,
+													afterHeader.clientDataMap),
+												parseOutermost.value(),
+												afterFail);
+										}
+									});
 							}
 							// Otherwise, make sure that all forwards were
 							// resolved.
@@ -5252,7 +5455,7 @@ public abstract class AbstractAvailCompiler
 									formatter.format("%n\t%s", forward);
 								}
 								afterStatement.expected(formatter.toString());
-								reportError();
+								reportError(afterFail);
 								return;
 							}
 							// Otherwise, report success.
@@ -5264,19 +5467,11 @@ public abstract class AbstractAvailCompiler
 							}
 						}
 					},
-					new Continuation1<Exception>()
-					{
-						@Override
-						public void value (final @Nullable Exception exception)
-						{
-							assert exception != null;
-							compilationFailed(exception);
-						}
-					});
+					afterFail);
 			}
 		};
 		clearExpectations();
-		parseOutermostStatement(afterHeader, parseOutermost.value());
+		parseOutermostStatement(afterHeader, parseOutermost.value(), afterFail);
 	}
 
 	/**
@@ -5306,41 +5501,28 @@ public abstract class AbstractAvailCompiler
 	@InnerAccess @Nullable Continuation0 successReporter;
 
 	/**
-	 * The {@linkplain Continuation0 continuation} that reports failure of
-	 * compilation.
-	 */
-	@InnerAccess @Nullable Continuation0 failureReporter;
-
-	/**
 	 * Parse a {@linkplain ModuleHeader module header} from the {@linkplain
 	 * TokenDescriptor token} list.  Eventually, and in some thread, invoke
 	 * either the {@code successContinuation} or the {@code
 	 * failureContinuation}, depending on whether the parsing was successful.
 	 *
-	 * @param successContinuation What to do when the header has been parsed.
-	 * @param failureContinuation What to do if a problem occurs.
+	 * @param onSuccess
+	 *        What to do when the header has been parsed.
+	 * @param afterFail
+	 *        What to do after parsing the header fails.
 	 */
 	public void parseModuleHeader (
-		final Continuation1<ModuleHeader> successContinuation,
-		final Continuation1<Exception> failureContinuation)
+		final Continuation1<ModuleHeader> onSuccess,
+		final Continuation0 afterFail)
 	{
-		failureReporter = new Continuation0()
-		{
-			@Override
-			public void value ()
-			{
-				assert terminator != null;
-				failureContinuation.value(terminator);
-			}
-		};
 		clearExpectations();
 		if (parseModuleHeader(true) != null)
 		{
-			successContinuation.value(moduleHeader);
+			onSuccess.value(moduleHeader);
 		}
 		else
 		{
-			reportError();
+			reportError(afterFail);
 		}
 	}
 
@@ -5360,15 +5542,13 @@ public abstract class AbstractAvailCompiler
 	 * @param succeed
 	 *        What to do after compilation succeeds. This {@linkplain
 	 *        Continuation1 continuation} is invoked with the completed module.
-	 * @param fail
-	 *        What to do after compilation fails. This {@linkplain Continuation1
-	 *        continuation} is invoked with the terminating {@linkplain
-	 *        Exception exception}.
+	 * @param afterFail
+	 *        What to do after compilation fails.
 	 */
 	public synchronized void parseModule (
 		final CompilerProgressReporter reporter,
 		final Continuation1<A_Module> succeed,
-		final Continuation1<Exception> fail)
+		final Continuation0 afterFail)
 	{
 		progressReporter = reporter;
 		successReporter = new Continuation0()
@@ -5381,24 +5561,25 @@ public abstract class AbstractAvailCompiler
 				succeed.value(module);
 			}
 		};
-		failureReporter = new Continuation0()
-		{
-			@Override
-			public void value ()
-			{
-				rollbackModuleTransaction();
-				fail.value(terminator);
-			}
-		};
 		startModuleTransaction();
-		eventuallyDo(new Continuation0()
-		{
-			@Override
-			public void value ()
+		eventuallyDo(
+			TokenDescriptor.createSyntheticStart(),
+			new Continuation0()
 			{
-				parseModuleCompletely();
-			}
-		});
+				@Override
+				public void value ()
+				{
+					parseModuleCompletely(new Continuation0()
+					{
+						@Override
+						public void value ()
+						{
+							rollbackModuleTransaction();
+							afterFail.value();
+						}
+					});
+				}
+			});
 	}
 
 	/**
@@ -5559,10 +5740,10 @@ public abstract class AbstractAvailCompiler
 			{
 				state = parseStringLiterals(state, moduleHeader.entryPoints);
 			}
-			// On PRAGMA, record the pragma strings.
+			// On PRAGMA, record the pragma string literals.
 			else if (lexeme.equals(PRAGMA.lexeme()))
 			{
-				state = parseStringLiterals(state, moduleHeader.pragmas);
+				state = parseStringLiteralTokens(state, moduleHeader.pragmas);
 			}
 			// If the parser state is now null, then fail the parse.
 			if (state == null)
@@ -5697,6 +5878,7 @@ public abstract class AbstractAvailCompiler
 						start.peekToken().lineNumber(),
 						false,
 						workUnitCompletion(
+							start.peekToken(),
 							new Continuation1<AvailObject>()
 							{
 								@Override
@@ -5730,14 +5912,33 @@ public abstract class AbstractAvailCompiler
 										value);
 								}
 						}),
-						new Continuation1<Exception>()
+						new Continuation1<Throwable>()
 						{
 							@Override
 							public void value (
-								final @Nullable Exception exception)
+								final @Nullable Throwable e)
 							{
-								assert exception != null;
-								compilationFailed(exception);
+								assert e != null;
+								final A_Token token = start.peekToken();
+								if (e instanceof AvailAssertionFailedException)
+								{
+									reportAssertionFailureProblem(
+										token,
+										(AvailAssertionFailedException) e);
+								}
+								else if (
+									e instanceof AvailEmergencyExitException)
+								{
+									reportEmergencyExitProblem(
+										token,
+										(AvailEmergencyExitException) e);
+								}
+								else
+								{
+									reportExecutionProblem(token, e);
+								}
+								// There is no way to continue along this parse
+								// path.
 							}
 						});
 					}
@@ -5755,10 +5956,13 @@ public abstract class AbstractAvailCompiler
 	 *            Where to start parsing a top-level statement.
 	 * @param continuation
 	 *            What to do with the (unambiguous) top-level statement.
+	 * @param afterFail
+	 *            What to run after a failure has been reported.
 	 */
 	abstract void parseOutermostStatement (
 		final ParserState start,
-		final Con<A_Phrase> continuation);
+		final Con<A_Phrase> continuation,
+		final Continuation0 afterFail);
 
 	/**
 	 * Parse an expression, without directly using the
@@ -5880,5 +6084,169 @@ public abstract class AbstractAvailCompiler
 			}
 		});
 		return usedDeclarations.value;
+	}
+
+	/**
+	 * Report a {@link Problem} via the provided {@link ProblemHandler}.  Also
+	 * use the problem handler's response to either {@linkplain
+	 * Problem#abortCompilation() abort} or {@linkplain
+	 * Problem#continueCompilation() continue} compilation.
+	 *
+	 * @param problem The problem to report.
+	 * @param handler The handler to which to report it.
+	 */
+	protected static void reportProblem (
+		final Problem problem,
+		final ProblemHandler handler)
+	{
+		if (problem.report(handler))
+		{
+			problem.continueCompilation();
+		}
+		else
+		{
+			problem.abortCompilation();
+		}
+	}
+
+	/**
+	 * Report a {@linkplain Problem problem} via the {@linkplain #problemHandler
+	 * problem handler}.  Also use the problem handler's response to either
+	 * {@linkplain Problem#abortCompilation() abort} or {@linkplain
+	 * Problem#continueCompilation() continue} compilation.
+	 *
+	 * @param problem
+	 *        The problem to report.
+	 */
+	protected void reportProblem (final Problem problem)
+	{
+		reportProblem(problem, problemHandler);
+	}
+
+	/**
+	 * Report an {@linkplain ProblemType#INTERNAL internal} {@linkplain
+	 * Problem problem}.
+	 *
+	 * @param token
+	 *        The {@linkplain A_Token token} that provides context to the
+	 *        problem.
+	 * @param e
+	 *        The unexpected {@linkplain Throwable exception} that is the
+	 *        proximal cause of the problem.
+	 */
+	protected void reportInternalProblem (
+		final A_Token token,
+		final Throwable e)
+	{
+		isShuttingDown = true;
+		compilationIsInvalid = true;
+		final CharArrayWriter trace = new CharArrayWriter();
+		e.printStackTrace(new PrintWriter(trace));
+		reportProblem(new Problem(
+			moduleHeader.moduleName,
+			token.lineNumber(),
+			token.start(),
+			INTERNAL,
+			"Internal error: {0}\n{1}",
+			e.getMessage(),
+			trace));
+	}
+
+	/**
+	 * Report an {@linkplain ProblemType#EXECUTION execution} {@linkplain
+	 * Problem problem}.
+	 *
+	 * @param token
+	 *        The {@linkplain A_Token token} that provides context to the
+	 *        problem.
+	 * @param e
+	 *        The unexpected {@linkplain Throwable exception} that is the
+	 *        proximal cause of the problem.
+	 */
+	protected void reportExecutionProblem (
+		final A_Token token,
+		final Throwable e)
+	{
+		compilationIsInvalid = true;
+		final CharArrayWriter trace = new CharArrayWriter();
+		e.printStackTrace(new PrintWriter(trace));
+		reportProblem(new Problem(
+			moduleHeader.moduleName,
+			token.lineNumber(),
+			token.start(),
+			EXECUTION,
+			"Execution error: {0}\n{1}",
+			e.getMessage(),
+			trace)
+		{
+			@Override
+			public void abortCompilation ()
+			{
+				isShuttingDown = true;
+			}
+		});
+	}
+
+	/**
+	 * Report an {@linkplain ProblemType#EXECUTION assertion failure}
+	 * {@linkplain Problem problem}.
+	 *
+	 * @param token
+	 *        The {@linkplain A_Token token} that provides context to the
+	 *        problem.
+	 * @param e
+	 *        The {@linkplain AvailAssertionFailedException assertion failure}.
+	 */
+	protected void reportAssertionFailureProblem (
+		final A_Token token,
+		final AvailAssertionFailedException e)
+	{
+		compilationIsInvalid = true;
+		reportProblem(new Problem(
+			moduleHeader.moduleName,
+			token.lineNumber(),
+			token.start(),
+			EXECUTION,
+			"{0}",
+			e.getMessage())
+		{
+			@Override
+			public void abortCompilation ()
+			{
+				isShuttingDown = true;
+			}
+		});
+	}
+
+	/**
+	 * Report an {@linkplain ProblemType#EXECUTION emergency exit}
+	 * {@linkplain Problem problem}.
+	 *
+	 * @param token
+	 *        The {@linkplain A_Token token} that provides context to the
+	 *        problem.
+	 * @param e
+	 *        The {@linkplain AvailEmergencyExitException emergency exit
+	 *        failure}.
+	 */
+	protected void reportEmergencyExitProblem (
+		final A_Token token,
+		final AvailEmergencyExitException e)
+	{
+		compilationIsInvalid = true;
+		reportProblem(new Problem(
+			moduleHeader.moduleName,
+			token.lineNumber(),
+			token.start(),
+			EXECUTION,
+			"{0}",
+			e.getMessage())
+		{
+			@Override
+			public void abortCompilation ()
+			{
+				isShuttingDown = true;
+			}
+		});
 	}
 }

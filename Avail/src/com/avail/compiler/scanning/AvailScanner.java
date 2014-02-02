@@ -472,6 +472,13 @@ public class AvailScanner
 				throws AvailScannerException
 			{
 				final int literalStartingLine = scanner.lineNumber;
+				if (scanner.atEnd())
+				{
+					// Just the open quote, then end of file.
+					throw new AvailScannerException(
+						"Unterminated string literal",
+						scanner);
+				}
 				int c = scanner.next();
 				final StringBuilder stringBuilder = new StringBuilder(40);
 				boolean canErase = true;
@@ -615,6 +622,13 @@ public class AvailScanner
 				throws AvailScannerException
 			{
 				int c;
+				if (scanner.atEnd())
+				{
+					throw new AvailScannerException(
+						"Expected hexadecimal Unicode codepoints separated by"
+						+ " commas",
+						scanner);
+				}
 				c = scanner.next();
 				while (c != ')')
 				{
@@ -640,8 +654,8 @@ public class AvailScanner
 						else
 						{
 							throw new AvailScannerException(
-								"Expected an upper case hex digit or comma or"
-								+ " closing parenthesis",
+								"Expected a hex digit or comma or closing"
+								+ " parenthesis",
 								scanner);
 						}
 						if (digitCount > 6)

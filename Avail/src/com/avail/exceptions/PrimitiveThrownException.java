@@ -1,6 +1,6 @@
 /**
- * AvailRejectedParseException.java
- * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
+ * PrimitiveThrownException.java
+ * Copyright © 1993-2014, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,52 +30,23 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.compiler;
+package com.avail.exceptions;
 
-import com.avail.descriptor.*;
-import com.avail.exceptions.PrimitiveThrownException;
+import com.avail.descriptor.A_Fiber;
+import com.avail.descriptor.FiberDescriptor;
 
 /**
- * An {@code AvailCompilerException} is thrown by the {@linkplain
- * AbstractAvailCompiler Avail compiler} when compilation fails for any reason.
+ * A {@code PrimitiveThrownException} may be thrown from a primitive as a way to
+ * terminate a {@linkplain FiberDescriptor fiber}, causing its {@linkplain
+ * A_Fiber#failureContinuation() failure continuation} to be executed.
  *
- * @author Todd L Smith &lt;todd@availlang.org&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class AvailRejectedParseException
-extends PrimitiveThrownException
+public class PrimitiveThrownException
+extends RuntimeException
 {
 	/**
 	 * The serial version identifier.
 	 */
-	private static final long serialVersionUID = -5638050952579212324L;
-
-	/**
-	 * The {@linkplain StringDescriptor error message} indicating why a
-	 * particular parse was rejected.
-	 */
-	final A_String rejectionString;
-
-	/**
-	 * Return the {@linkplain StringDescriptor error message} indicating why
-	 * a particular parse was rejected.
-	 *
-	 * @return The reason the parse was rejected.
-	 */
-	public A_String rejectionString ()
-	{
-		return rejectionString;
-	}
-
-	/**
-	 * Construct a new {@link AvailRejectedParseException}.
-	 *
-	 * @param rejectionString
-	 *        The {@linkplain StringDescriptor error message} indicating why
-	 *        a particular parse was rejected.
-	 */
-	public AvailRejectedParseException (
-		final A_String rejectionString)
-	{
-		this.rejectionString = rejectionString;
-	}
+	private static final long serialVersionUID = -3945878927329358120L;
 }

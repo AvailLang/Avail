@@ -1,5 +1,5 @@
 /**
- * ProblemType.java
+ * ProblemHandler.java
  * Copyright © 1993-2014, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -34,120 +34,86 @@ package com.avail.compiler;
 
 import com.avail.descriptor.ParseNodeDescriptor;
 
+
 /**
- * A {@link Problem} has a {@code ProblemType}, indicating its basic nature
+ * A {@link Problem} has a {@link ProblemType}, indicating its basic nature
  * and severity.  This helps a {@link ProblemHandler} decide how best to respond
- * to the Problem, such as deciding whether to proceed and look for subsequent
- * problems or to give up building the modules.
+ * to the Problem, such as deciding whether to continue parsing to discover
+ * subsequent problems or to give up building the modules.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public enum ProblemType
+public interface ProblemHandler
 {
 	/**
 	 * The corresponding {@link Problem} is not actually an unexpected
 	 * condition, but it may still be useful to report the information to the
 	 * user.  It's unclear whether this will actually be used for anything other
 	 * than debugging the compiler.
+	 *
+	 * @param problem The problem whose type is {@link ProblemType#INFORMATION}.
+	 * @return {@code true} if compilation should {@linkplain
+	 *         Problem#continueCompilation() continue}, or false if compilation
+	 *         should {@linkplain Problem#abortCompilation()}.
 	 */
-	INFORMATION
-	{
-		@Override
-		boolean report (final Problem problem, final ProblemHandler handler)
-		{
-			assert problem.type == this;
-			return handler.handleInformation(problem);
-		}
-	},
+	boolean handleInformation (final Problem problem);
 
 	/**
 	 * The corresponding {@link Problem} indicates a situation that is less than
 	 * ideal.  A {@link ProblemHandler} may choose to present this warning, and
 	 * then {@linkplain Problem#continueCompilation() continue compilation}.
+	 *
+	 * @param problem The problem whose type is {@link ProblemType#WARNING}.
+	 * @return {@code true} if compilation should {@linkplain
+	 *         Problem#continueCompilation() continue}, or false if compilation
+	 *         should {@linkplain Problem#abortCompilation()}.
 	 */
-	WARNING
-	{
-		@Override
-		boolean report (final Problem problem, final ProblemHandler handler)
-		{
-			assert problem.type == this;
-			return handler.handleWarning(problem);
-		}
-	},
+	boolean handleWarning (final Problem problem);
 
 	/**
-	 * A {@link Problem} occurred while tracing a module's dependencies.  This
-	 * condition only indicates a narrow range of problems, such as unresolved
-	 * or recursive dependencies.  Syntax errors in the module header that
-	 * preclude a correct trace are treated as {@link #PARSE} problems.
+	 * A {@link Problem} occurred while tracing a module's dependencies.
+	 *
+	 * @param problem The problem whose type is {@link ProblemType#TRACE}.
+	 * @return {@code true} if compilation should {@linkplain
+	 *         Problem#continueCompilation() continue}, or false if compilation
+	 *         should {@linkplain Problem#abortCompilation()}.
 	 */
-	TRACE
-	{
-		@Override
-		boolean report (final Problem problem, final ProblemHandler handler)
-		{
-			assert problem.type == this;
-			return handler.handleTrace(problem);
-		}
-	},
+	boolean handleTrace (final Problem problem);
 
 	/**
 	 * A {@link Problem} occurred while parsing a module's body.  This includes
 	 * both malformed tokens and assemblies of tokens that could not be
 	 * successfully transformed into {@linkplain ParseNodeDescriptor parse
 	 * trees}.
+	 *
+	 * @param problem The problem whose type is {@link ProblemType#PARSE}.
+	 * @return {@code true} if compilation should {@linkplain
+	 *         Problem#continueCompilation() continue}, or false if compilation
+	 *         should {@linkplain Problem#abortCompilation()}.
 	 */
-	PARSE
-	{
-		@Override
-		boolean report (final Problem problem, final ProblemHandler handler)
-		{
-			assert problem.type == this;
-			return handler.handleParse(problem);
-		}
-	},
+	boolean handleParse (final Problem problem);
 
 	/**
 	 * A {@link Problem} occurred while executing Avail code.  Typically this
 	 * means an unhandled exception, or invoking a bootstrap primitive before
-	 * the relevant exception handling mechanisms are in place.  This should
-	 * be treated as a fatal problem.
+	 * the relevant exception handling mechanisms are in place.
+	 *
+	 * @param problem The problem whose type is {@link ProblemType#EXECUTION}.
+	 * @return {@code true} if compilation should {@linkplain
+	 *         Problem#continueCompilation() continue}, or false if compilation
+	 *         should {@linkplain Problem#abortCompilation()}.
 	 */
-	EXECUTION
-	{
-		@Override
-		boolean report (final Problem problem, final ProblemHandler handler)
-		{
-			assert problem.type == this;
-			return handler.handleExecution(problem);
-		}
-	},
+	boolean handleExecution (final Problem problem);
 
 	/**
 	 * An internal {@link Problem} occurred in the virtual machine.  This should
 	 * not happen, and is not the fault of the Avail code, but rather Yours
 	 * Truly, the Avail virtual machine authors.
-	 */
-	INTERNAL
-	{
-		@Override
-		boolean report (final Problem problem, final ProblemHandler handler)
-		{
-			assert problem.type == this;
-			return handler.handleInternal(problem);
-		}
-	};
-
-	/**
-	 * Report the given {@link Problem} to the {@link ProblemHandler}.  The
-	 * problem's type must be the receiver.
 	 *
-	 * @param problem The problem to report.
-	 * @param handler The problem handler to notify.
-	 * @return Whether the handler indicated that an attempt should be made to
-	 *         continue past the problem to identify subsequent problems.
+	 * @param problem The problem whose type is {@link ProblemType#INTERNAL}.
+	 * @return {@code true} if compilation should {@linkplain
+	 *         Problem#continueCompilation() continue}, or false if compilation
+	 *         should {@linkplain Problem#abortCompilation()}.
 	 */
-	abstract boolean report (
-		final Problem problem,
-		final ProblemHandler handler);
+	boolean handleInternal (final Problem problem);
 }

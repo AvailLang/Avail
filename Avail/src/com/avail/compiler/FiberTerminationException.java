@@ -33,6 +33,7 @@
 package com.avail.compiler;
 
 import com.avail.descriptor.FiberDescriptor;
+import com.avail.exceptions.PrimitiveThrownException;
 
 /**
  * Throw a {@code FiberTerminationException} indicate that a {@linkplain
@@ -41,7 +42,7 @@ import com.avail.descriptor.FiberDescriptor;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public class FiberTerminationException
-extends RuntimeException
+extends PrimitiveThrownException
 {
 	/** The serial version identifier. */
 	private static final long serialVersionUID = 6048283627858078215L;

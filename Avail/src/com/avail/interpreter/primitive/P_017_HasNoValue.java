@@ -34,7 +34,6 @@ package com.avail.interpreter.primitive;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
 import com.avail.descriptor.*;
-import com.avail.exceptions.VariableGetException;
 import com.avail.interpreter.*;
 
 /**
@@ -59,15 +58,8 @@ extends Primitive
 	{
 		assert args.size() == 1;
 		final A_Variable var = args.get(0);
-		try
-		{
-			var.getValue();
-			return interpreter.primitiveSuccess(AtomDescriptor.falseObject());
-		}
-		catch (final VariableGetException e)
-		{
-			return interpreter.primitiveSuccess(AtomDescriptor.trueObject());
-		}
+		return interpreter.primitiveSuccess(
+			AtomDescriptor.objectFromBoolean(!var.hasValue()));
 	}
 
 	@Override

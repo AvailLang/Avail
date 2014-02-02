@@ -3928,7 +3928,7 @@ extends AbstractDescriptor
 	@AvailMethod
 	void o_FailureContinuation (
 		final AvailObject object,
-		final Continuation1<Exception> continuation)
+		final Continuation1<Throwable> continuation)
 	{
 		throw unsupportedOperationException();
 	}
@@ -4390,6 +4390,12 @@ extends AbstractDescriptor
 	void o_AddPrivateNames (
 		final AvailObject object,
 		final A_Set trueNames)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	boolean o_HasValue (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}

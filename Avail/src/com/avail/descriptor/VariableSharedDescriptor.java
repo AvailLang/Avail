@@ -158,6 +158,15 @@ extends VariableDescriptor
 	}
 
 	@Override @AvailMethod
+	boolean o_HasValue (final AvailObject object)
+	{
+		synchronized (object)
+		{
+			return super.o_HasValue(object);
+		}
+	}
+
+	@Override @AvailMethod
 	void o_SetValue (final AvailObject object, final A_BasicObject newValue)
 	{
 		synchronized (object)

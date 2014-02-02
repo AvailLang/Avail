@@ -1,6 +1,6 @@
 /**
- * AvailAssertionFailedException.java
- * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
+ * AvailEmergencyExitException.java
+ * Copyright © 1993-2014, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,73 +30,70 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.compiler;
+package com.avail.exceptions;
 
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_String;
+import com.avail.descriptor.StringDescriptor;
 
 /**
- * An {@code AvailAssertionFailedException} is thrown when an Avail assertion
- * fails.
+ * An {@code AvailEmergencyExitException} is thrown when a primitive fails
+ * during system bootstrapping.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class AvailAssertionFailedException
-extends RuntimeException
+public final class AvailEmergencyExitException
+extends Exception
 {
-	/**
-	 * The serial version identifier.
-	 */
-	private static final long serialVersionUID = -3945878927329358120L;
+	/** The serial version identifier. */
+	private static final long serialVersionUID = 3368815860637333527L;
 
 	/**
 	 * The {@linkplain StringDescriptor error message} describing the
-	 * assertion.
+	 * emergency exit situation.
 	 */
-	private final A_String assertionString;
+	private final A_String failureString;
 
 	/**
 	 * Return the {@linkplain StringDescriptor error message} describing the
-	 * assertion.
+	 * emergency exit situation.
 	 *
-	 * @return The interpretation of the assertion.
+	 * @return The interpretation of the exception.
 	 */
-	public A_String assertionString ()
+	public A_String failureString ()
 	{
-		return assertionString;
+		return failureString;
 	}
 
 	/**
-	 * Construct a new {@link AvailAssertionFailedException}.
+	 * Construct a new {@link AvailEmergencyExitException}.
 	 *
-	 * @param assertionString
+	 * @param failureString
 	 *        The {@linkplain StringDescriptor error message} describing the
-	 *        assertion.
+	 *        emergency exit situation.
 	 */
-	public AvailAssertionFailedException (
-		final A_String assertionString)
+	public AvailEmergencyExitException (final A_String failureString)
 	{
-		assert assertionString.isString();
-		this.assertionString = assertionString;
+		assert failureString.isString();
+		this.failureString = failureString;
 	}
 
 	/**
-	 * Construct a new {@link AvailAssertionFailedException}.
+	 * Construct a new {@link AvailEmergencyExitException}.
 	 *
-	 * @param assertionString
+	 * @param failureString
 	 *        The {@linkplain StringDescriptor error message} describing the
-	 *        assertion.
+	 *        emergency exit situation.
 	 */
-	public AvailAssertionFailedException (
-		final String assertionString)
+	public AvailEmergencyExitException (final String failureString)
 	{
-		this.assertionString = StringDescriptor.from(assertionString);
+		this.failureString = StringDescriptor.from(failureString);
 	}
 
 	@Override
 	public String getMessage ()
 	{
 		return String.format(
-			"An assertion failed: %s%n",
-			assertionString.asNativeString());
+			"A bootstrap operation failed: %s%n",
+			failureString.asNativeString());
 	}
 }

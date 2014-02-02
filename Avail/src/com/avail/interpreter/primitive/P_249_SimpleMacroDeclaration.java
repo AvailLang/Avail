@@ -139,18 +139,14 @@ extends Primitive
 								: prefixFunctions)
 							{
 								prefixFunction.code().setMethodName(
-									StringDescriptor.from(
-										String.format(
-											"Macro prefix #%d of %s",
-											counter++,
-											string)));
+									StringDescriptor.format(
+										"Macro prefix #%d of %s",
+										counter++,
+										string));
 							}
 							function.code().setMethodName(
-								StringDescriptor.from(
-									String.format("Macro body of %s", string)));
-							function.code().setMethodName(
-								StringDescriptor.from(
-									String.format("Macro body of %s", string)));
+								StringDescriptor.format(
+									"Macro body of %s", string));
 							Interpreter.resumeFromSuccessfulPrimitive(
 								AvailRuntime.current(),
 								fiber,

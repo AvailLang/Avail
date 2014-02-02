@@ -46,20 +46,22 @@ import com.avail.descriptor.TokenDescriptor;
  * usage multiple problems may simply be collected and later presented in
  * aggregate.
  *
- * <p>It is the responsibility of any client problem handler to invoke either
- * {@link #continueCompilation()} or {@link #abortCompilation()}, the former
- * of which may automatically call the latter if there is no reasonable way to
- * continue compilation.</p>
+ * <p>Subclasses (typically anonymous) may override {@link
+ * #continueCompilation()} and {@link #abortCompilation()} to specify how a
+ * particular problem site can continue or abort compilation, respectively. It
+ * is the responsibility of any client problem handler to <em>decide</em>
+ * whether to continue compiling or abort.  By default, {@code
+ * continueCompilation()} simply invokes {@code abortCompilation()}.</p>
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-abstract class Problem
+public class Problem
 {
 	/**
 	 * The {@linkplain ResolvedModuleName resolved name} of the module in which
 	 * the problem occurred.
 	 */
-	final ResolvedModuleName moduleName;
+	public final ResolvedModuleName moduleName;
 
 	/**
 	 * The one-based line number within the file in which the problem occurred.
@@ -68,7 +70,7 @@ abstract class Problem
 	 * <p>If the problem involves the entire file (file not found, no read
 	 * access, etc.), a line number of 0 can indicate this.</p>
 	 */
-	final int lineNumber;
+	public final long lineNumber;
 
 	/**
 	 * The approximate location of the problem within the source file as a
@@ -81,25 +83,25 @@ abstract class Problem
 	 * current compiler as of 2014.01.26 <em>requires</em> source files to be in
 	 * UTF-8 encoding.</p>
 	 */
-	final int characterInFile;
+	public final long characterInFile;
 
 	/**
 	 * The {@link ProblemType type} of problem that was encountered.
 	 */
-	final ProblemType type;
+	public final ProblemType type;
 
 	/**
 	 * A {@link String} summarizing the issue.  This string will have
 	 * {@linkplain MessageFormat} substitution applied to it, using the supplied
 	 * {@linkplain #arguments}.
 	 */
-	final String messagePattern;
+	private final String messagePattern;
 
 	/**
 	 * The parameters to be applied to the {@link #messagePattern}, which is
 	 * expected to comply with the grammar of a {@link MessageFormat}.
 	 */
-	final Object [] arguments;
+	private final Object [] arguments;
 
 	/**
 	 * Construct a new {@link Problem}.
@@ -168,6 +170,18 @@ abstract class Problem
 	}
 
 	/**
+	 * Report this problem to the {@link ProblemHandler handler}.  Answer
+	 * whether an attempt should be made to continue parsing past this problem.
+	 *
+	 * @param handler The problem handler.
+	 * @return Whether to continue parsing.
+	 */
+	public final boolean report (final ProblemHandler handler)
+	{
+		return type.report(this, handler);
+	}
+
+	/**
 	 * Attempt to continue compiling past this problem.  If continuing to
 	 * compile is inappropriate or impossible for the receiver, then as a
 	 * convenience, this method simply calls {@link #abortCompilation()}.
@@ -185,5 +199,11 @@ abstract class Problem
 	public void abortCompilation ()
 	{
 		// Do nothing by default.
+	}
+
+	@Override
+	public String toString ()
+	{
+		return MessageFormat.format(messagePattern, arguments);
 	}
 }

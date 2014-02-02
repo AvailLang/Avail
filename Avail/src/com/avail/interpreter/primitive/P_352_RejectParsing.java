@@ -41,7 +41,8 @@ import com.avail.interpreter.*;
  * <strong>Primitive 352:</strong> Reject current macro substitution with
  * the specified error string.
  */
-public final class P_352_RejectParsing extends Primitive
+public final class P_352_RejectParsing
+extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

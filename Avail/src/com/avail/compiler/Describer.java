@@ -1,5 +1,5 @@
 /**
- * AvailRejectedParseException.java
+ * Describer.java
  * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -32,50 +32,24 @@
 
 package com.avail.compiler;
 
-import com.avail.descriptor.*;
-import com.avail.exceptions.PrimitiveThrownException;
+import com.avail.utility.evaluation.*;
 
 /**
- * An {@code AvailCompilerException} is thrown by the {@linkplain
- * AbstractAvailCompiler Avail compiler} when compilation fails for any reason.
+ * A {@code Describer} produces a message and forwards it to a supplied
+ * {@linkplain Continuation1 continuation}. It is used by the {@linkplain
+ * AbstractAvailCompiler compiler} to support stringification in a
+ * continuation-passing style.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class AvailRejectedParseException
-extends PrimitiveThrownException
+interface Describer
 {
 	/**
-	 * The serial version identifier.
-	 */
-	private static final long serialVersionUID = -5638050952579212324L;
-
-	/**
-	 * The {@linkplain StringDescriptor error message} indicating why a
-	 * particular parse was rejected.
-	 */
-	final A_String rejectionString;
-
-	/**
-	 * Return the {@linkplain StringDescriptor error message} indicating why
-	 * a particular parse was rejected.
+	 * Assemble a message and pass it into the specified {@linkplain
+	 * Continuation1 continuation}.
 	 *
-	 * @return The reason the parse was rejected.
+	 * @param continuation
+	 *        What to do with the message.
 	 */
-	public A_String rejectionString ()
-	{
-		return rejectionString;
-	}
-
-	/**
-	 * Construct a new {@link AvailRejectedParseException}.
-	 *
-	 * @param rejectionString
-	 *        The {@linkplain StringDescriptor error message} indicating why
-	 *        a particular parse was rejected.
-	 */
-	public AvailRejectedParseException (
-		final A_String rejectionString)
-	{
-		this.rejectionString = rejectionString;
-	}
+	public void describeThen (Continuation1<String> continuation);
 }

@@ -65,6 +65,15 @@ extends A_ChunkDependable
 	AvailObject getValue ();
 
 	/**
+	 * Answer {@code true} if the variable currently has a value, otherwise
+	 * answer {@code false}.  No value is typically represented by the
+	 * variable's value slot containing {@link NilDescriptor#nil()}.
+	 *
+	 * @return Whether the variable has a value.
+	 */
+	boolean hasValue ();
+
+	/**
 	 * Assign the given value to the {@linkplain VariableDescriptor variable}.
 	 * Fail if the value does not have a type suitable for the variable.
 	 *

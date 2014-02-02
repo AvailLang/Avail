@@ -241,6 +241,14 @@ implements Comparable<AvailTask>, Runnable
 			assert !alreadyRun;
 			alreadyRun = true;
 		}
-		continuation.value();
+		try
+		{
+			continuation.value();
+		}
+		catch (final Throwable e)
+		{
+			// Add a breakpoint here to find misbehaving threads.
+			throw e;
+		}
 	}
 }

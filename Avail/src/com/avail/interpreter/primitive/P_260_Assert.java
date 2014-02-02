@@ -35,9 +35,9 @@ import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
 import com.avail.annotations.Nullable;
-import com.avail.compiler.AvailAssertionFailedException;
 import com.avail.descriptor.*;
 import com.avail.descriptor.FiberDescriptor.ExecutionState;
+import com.avail.exceptions.AvailAssertionFailedException;
 import com.avail.interpreter.*;
 import com.avail.utility.evaluation.*;
 

@@ -49,7 +49,6 @@ import com.avail.utility.evaluation.*;
 public class AvailCompiler
 extends AbstractAvailCompiler
 {
-
 	/**
 	 * Construct a new {@link AvailCompiler}.
 	 *
@@ -60,13 +59,16 @@ extends AbstractAvailCompiler
 	 * @param tokens
 	 *        The {@link List} of {@linkplain TokenDescriptor tokens} scanned
 	 *        from the module's source.
+	 * @param problemHandler
+	 *        The {@linkplain ProblemHandler problem handler}.
 	 */
 	public AvailCompiler (
 		final ResolvedModuleName moduleName,
 		final String source,
-		final List<A_Token> tokens)
+		final List<A_Token> tokens,
+		final ProblemHandler problemHandler)
 	{
-		super(moduleName, source, tokens);
+		super(moduleName, source, tokens, problemHandler);
 	}
 
 	/**
@@ -79,7 +81,8 @@ extends AbstractAvailCompiler
 	@Override
 	void parseOutermostStatement (
 		final ParserState start,
-		final Con<A_Phrase> continuation)
+		final Con<A_Phrase> continuation,
+		final Continuation0 afterFail)
 	{
 		tryIfUnambiguousThen(
 			start,
@@ -119,7 +122,8 @@ extends AbstractAvailCompiler
 						});
 				}
 			},
-			continuation);
+			continuation,
+			afterFail);
 	}
 
 	@Override
@@ -260,11 +264,12 @@ extends AbstractAvailCompiler
 					}
 				}
 			},
-			new Continuation1<Exception>()
+			new Continuation1<Throwable>()
 			{
 				@Override
-				public void value (final @Nullable Exception e)
+				public void value (final @Nullable Throwable e)
 				{
+					assert e != null;
 					if (e instanceof AvailRejectedParseException)
 					{
 						final AvailRejectedParseException rej =

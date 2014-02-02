@@ -96,10 +96,9 @@ extends Primitive
 		final A_Fiber newFiber = FiberDescriptor.newFiber(
 			succeed.kind().returnType().typeUnion(fail.kind().returnType()),
 			priority.extractInt(),
-			StringDescriptor.from(
-				String.format(
-					"Server socket accept (prim 554), name=%s",
-					name)));
+			StringDescriptor.format(
+				"Server socket accept (prim 554), name=%s",
+				name));
 		// If the current fiber is an Avail fiber, then the new one should be
 		// also.
 		newFiber.availLoader(current.availLoader());

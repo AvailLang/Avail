@@ -1,5 +1,5 @@
 /*
- * ShouldFail.avail
+ * ShouldFailTrace.avail
  * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "ShouldFail"
+System Module "ShouldFailTrace"
 Versions
 	"dev"
 Uses

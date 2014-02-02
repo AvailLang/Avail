@@ -658,8 +658,9 @@ public class Graph <Vertex>
 		 * #visitAction} invokes its completion action in the same {@link
 		 * Thread} or in another.
 		 */
-		private synchronized void exhaustStack ()
+		private void exhaustStack ()
 		{
+			assert Thread.holdsLock(this);
 			while (!predecessorCountdowns.isEmpty())
 			{
 				while (stack.isEmpty() && !predecessorCountdowns.isEmpty())

@@ -439,7 +439,7 @@ extends Descriptor
 		final A_Type argsTupleType = functionType.argsTupleType();
 		final int numArgs = argsTupleType.sizeRange().upperBound().extractInt();
 		final A_Type [] argTypes = new AvailObject[numArgs];
-		for (int i = 0; i < argTypes.length; i++)
+		for (int i = 0; i < numArgs; i++)
 		{
 			argTypes[i] = argsTupleType.typeAtIndex(i + 1);
 		}
@@ -452,7 +452,7 @@ extends Descriptor
 			final int failureLocal = writer.createLocal(
 				VariableTypeDescriptor.wrapInnerType(
 					IntegerRangeTypeDescriptor.naturalNumbers()));
-			for (int i = 1; i <= argTypes.length; i++)
+			for (int i = 1; i <= numArgs; i++)
 			{
 				writer.write(
 					new L1Instruction(L1Operation.L1_doPushLastLocal, i));
@@ -466,7 +466,7 @@ extends Descriptor
 			writer.write(
 				new L1Instruction(
 					L1Operation.L1_doMakeTuple,
-					argTypes.length + 1));
+					numArgs + 1));
 			writer.write(
 				new L1Instruction(
 					L1Operation.L1_doCall,
@@ -512,11 +512,17 @@ extends Descriptor
 				L1Operation.L1_doPushLiteral,
 				writer.addLiteral(StringDescriptor.from(
 					"unexpected VM failure"))));
+		final int numArgs = paramTypes.tupleSize();
+		for (int i = 1; i <= numArgs; i++)
+		{
+			writer.write(
+				new L1Instruction(L1Operation.L1_doPushLastLocal, i));
+		}
 		// Put the error message and arguments into a tuple.
 		writer.write(
 			new L1Instruction(
 				L1Operation.L1_doMakeTuple,
-				paramTypes.tupleSize() + 1));
+				numArgs + 1));
 		writer.write(
 			new L1Instruction(
 				L1Operation.L1_doCall,

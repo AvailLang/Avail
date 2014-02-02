@@ -78,12 +78,11 @@ public final class P_407_BootstrapInitializingVariableDeclarationMacro extends P
 		if (!initializingExpression.expressionType().isSubtypeOf(type))
 		{
 			throw new AvailRejectedParseException(
-				StringDescriptor.from(
-					String.format(
-						"initializing assignment expression's type (%s) "
-						+ "to match variable type (%s)",
-						initializingExpression.expressionType(),
-						type)));
+				StringDescriptor.format(
+					"initializing assignment expression's type (%s) "
+					+ "to match variable type (%s)",
+					initializingExpression.expressionType(),
+					type));
 		}
 		final A_Phrase variableDeclaration =
 			DeclarationNodeDescriptor.newVariable(

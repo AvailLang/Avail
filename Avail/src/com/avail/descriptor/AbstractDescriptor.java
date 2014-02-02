@@ -5524,7 +5524,7 @@ public abstract class AbstractDescriptor
 	 */
 	abstract void o_FailureContinuation (
 		AvailObject object,
-		Continuation1<Exception> continuation);
+		Continuation1<Throwable> continuation);
 
 	/**
 	 * @param object
@@ -5964,4 +5964,10 @@ public abstract class AbstractDescriptor
 	 * @param trueNames
 	 */
 	abstract void o_AddPrivateNames (AvailObject object, A_Set trueNames);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract boolean o_HasValue (final AvailObject object);
 }

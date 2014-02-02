@@ -1209,7 +1209,7 @@ extends Descriptor
 	@Override @AvailMethod
 	void o_FailureContinuation (
 		final AvailObject object,
-		final Continuation1<Exception> continuation)
+		final Continuation1<Throwable> continuation)
 	{
 		synchronized (object)
 		{
@@ -1532,10 +1532,10 @@ extends Descriptor
 		fiber.setSlot(RESULT_TYPE, resultType.makeImmutable());
 		fiber.setSlot(
 			NAME,
-			StringDescriptor.from(String.format(
+			StringDescriptor.format(
 				"unnamed, creation time = %d, hash = %d",
 				System.currentTimeMillis(),
-				fiber.hash())));
+				fiber.hash()));
 		fiber.setSlot(PRIORITY, priority);
 		fiber.setSlot(CONTINUATION, NilDescriptor.nil());
 		fiber.setSlot(EXECUTION_STATE, UNSTARTED.ordinal());
@@ -1596,10 +1596,10 @@ extends Descriptor
 		fiber.setSlot(RESULT_TYPE, resultType.makeImmutable());
 		fiber.setSlot(
 			NAME,
-			StringDescriptor.from(String.format(
+			StringDescriptor.format(
 				"loader fiber #%d for %s",
 				AvailRuntime.nextHash(),
-				module.moduleName())));
+				module.moduleName()));
 		fiber.setSlot(PRIORITY, FiberDescriptor.loaderPriority);
 		fiber.setSlot(CONTINUATION, NilDescriptor.nil());
 		fiber.setSlot(EXECUTION_STATE, UNSTARTED.ordinal());

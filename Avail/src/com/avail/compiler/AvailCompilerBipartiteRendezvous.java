@@ -80,7 +80,7 @@ public class AvailCompilerBipartiteRendezvous
 	 *
 	 * @param solution The new solution.
 	 */
-	void addSolution(final AvailCompilerCachedSolution solution)
+	void addSolution (final AvailCompilerCachedSolution solution)
 	{
 		solution.parseNode.makeImmutable();
 		solutions.add(solution);
@@ -97,7 +97,7 @@ public class AvailCompilerBipartiteRendezvous
 	 *
 	 * @param action The new action.
 	 */
-	void addAction(final Con<A_Phrase> action)
+	void addAction (final Con<A_Phrase> action)
 	{
 		actions.add(action);
 		for (final AvailCompilerCachedSolution solution : solutions)

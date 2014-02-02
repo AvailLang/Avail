@@ -96,8 +96,8 @@ public class AvailCompilerFragmentCache
 	 *            starting at that position.
 	 */
 	void addSolution (
-			final ParserState state,
-			final AvailCompilerCachedSolution solution)
+		final ParserState state,
+		final AvailCompilerCachedSolution solution)
 	{
 		solutions.get(state).addSolution(solution);
 	}
@@ -114,8 +114,8 @@ public class AvailCompilerFragmentCache
 	 *            specified position.
 	 */
 	void addAction (
-			final ParserState state,
-			final Con<A_Phrase> action)
+		final ParserState state,
+		final Con<A_Phrase> action)
 	{
 		solutions.get(state).addAction(action);
 	}

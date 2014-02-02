@@ -43,7 +43,7 @@ import com.avail.descriptor.ModuleDescriptor;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public class AvailCompilerException
-extends RuntimeException
+extends Exception
 {
 	/** The serial version identifier. */
 	private static final long serialVersionUID = 486558432544374634L;
