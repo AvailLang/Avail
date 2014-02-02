@@ -69,7 +69,7 @@ extends Exception
 	 *
 	 * @return The position in the file at which the scanner failed.
 	 */
-	public long failurePosition ()
+	public int failurePosition ()
 	{
 		return failedScanner.position();
 	}
@@ -79,7 +79,7 @@ extends Exception
 	 *
 	 * @return The line number at which the scanner failed.
 	 */
-	public long failureLineNumber ()
+	public int failureLineNumber ()
 	{
 		return failedScanner.lineNumber;
 	}

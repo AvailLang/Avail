@@ -4145,7 +4145,7 @@ extends AbstractDescriptor
 	@Override
 	void o_FailureContinuation (
 		final AvailObject object,
-		final Continuation1<Exception> continuation)
+		final Continuation1<Throwable> continuation)
 	{
 		o_Traversed(object).failureContinuation(continuation);
 	}
@@ -4564,5 +4564,11 @@ extends AbstractDescriptor
 		final short primitiveNumber)
 	{
 		o_Traversed(object).recordLatestPrimitive(primitiveNumber);
+	}
+
+	@Override
+	boolean o_HasValue (final AvailObject object)
+	{
+		return o_Traversed(object).hasValue();
 	}
 }

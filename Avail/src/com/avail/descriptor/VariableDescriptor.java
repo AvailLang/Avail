@@ -208,6 +208,27 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
+	boolean o_HasValue (final AvailObject object)
+	{
+		final Interpreter interpreter;
+		try
+		{
+			interpreter = Interpreter.current();
+			if (interpreter.traceVariableReadsBeforeWrites())
+			{
+				final A_Fiber fiber = interpreter.fiber();
+				fiber.recordVariableAccess(object, true);
+			}
+		}
+		catch (final ClassCastException e)
+		{
+			// No implementation required.
+		}
+		final AvailObject value = object.slot(VALUE);
+		return !value.equalsNil();
+	}
+
+	@Override @AvailMethod
 	void o_SetValue (final AvailObject object, final A_BasicObject newValue)
 	{
 		final Interpreter interpreter;

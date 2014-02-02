@@ -52,9 +52,7 @@ import javax.swing.tree.*;
 import com.avail.AvailRuntime;
 import com.avail.annotations.*;
 import com.avail.builder.*;
-import com.avail.compiler.*;
 import com.avail.compiler.AbstractAvailCompiler.*;
-import com.avail.compiler.scanning.AvailScannerException;
 import com.avail.descriptor.*;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
@@ -452,75 +450,15 @@ extends JFrame
 					root.repository().reopenIfNecessary();
 				}
 				availBuilder.buildTarget(new ModuleName(targetModuleName()));
+				return null;
+			}
+			finally
+			{
 				// Close all the repositories.
 				for (final ModuleRoot root : resolver.moduleRoots().roots())
 				{
 					root.repository().close();
 				}
-				return null;
-			}
-			catch (final FiberTerminationException e)
-			{
-				terminator = e;
-				return null;
-			}
-			catch (final AvailScannerException e)
-			{
-				System.err.format(
-					"Lexical scanning error: %s (%s:%d)%n",
-					e.getMessage(),
-					e.moduleName(),
-					e.failureLineNumber());
-				terminator = e;
-				return null;
-			}
-			catch (final AvailCompilerException e)
-			{
-				final ResolvedModuleName resolvedName;
-				try
-				{
-					resolvedName = resolver.resolve(e.moduleName(), null);
-				}
-				catch (final UnresolvedDependencyException exc)
-				{
-					terminator = exc;
-					return null;
-				}
-				final String source = readSourceFile(
-					resolvedName.sourceReference());
-				if (source == null)
-				{
-					terminator = e;
-					return null;
-				}
-				final char[] sourceBuffer = source.toCharArray();
-				final StringBuilder builder = new StringBuilder();
-				System.err.append(new String(
-					sourceBuffer, 0, (int) e.endOfErrorLine()));
-				System.err.append(e.getMessage());
-				builder.append(new String(
-					sourceBuffer,
-					(int) e.endOfErrorLine(),
-					Math.min(
-						100, sourceBuffer.length - (int) e.endOfErrorLine())));
-				builder.append("...\n");
-				System.err.printf("%s%n", builder).flush();
-				terminator = e;
-				return null;
-			}
-			catch (final CancellationException e)
-			{
-				terminator = e;
-				return null;
-			}
-			catch (final Exception e)
-			{
-				e.printStackTrace();
-				terminator = e;
-				return null;
-			}
-			finally
-			{
 				stopTimeMillis = System.currentTimeMillis();
 			}
 		}

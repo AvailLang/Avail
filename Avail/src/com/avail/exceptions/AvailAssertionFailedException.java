@@ -1,5 +1,5 @@
 /**
- * ErrorDescriber.java
+ * AvailAssertionFailedException.java
  * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -30,26 +30,73 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.compiler;
+package com.avail.exceptions;
 
-import com.avail.utility.evaluation.*;
+import com.avail.descriptor.*;
 
 /**
- * A {@code Describer} produces a message and forwards it to a supplied
- * {@linkplain Continuation1 continuation}. It is used by the {@linkplain
- * AbstractAvailCompiler compiler} to support stringification in a
- * continuation-passing style.
+ * An {@code AvailAssertionFailedException} is thrown when an Avail assertion
+ * fails.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-interface Describer
+public class AvailAssertionFailedException
+extends Exception
 {
 	/**
-	 * Assemble a message and pass it into the specified {@linkplain
-	 * Continuation1 continuation}.
-	 *
-	 * @param continuation
-	 *        What to do with the message.
+	 * The serial version identifier.
 	 */
-	public void describeThen (Continuation1<String> continuation);
+	private static final long serialVersionUID = -3945878927329358120L;
+
+	/**
+	 * The {@linkplain StringDescriptor error message} describing the
+	 * assertion.
+	 */
+	private final A_String assertionString;
+
+	/**
+	 * Return the {@linkplain StringDescriptor error message} describing the
+	 * assertion.
+	 *
+	 * @return The interpretation of the assertion.
+	 */
+	public A_String assertionString ()
+	{
+		return assertionString;
+	}
+
+	/**
+	 * Construct a new {@link AvailAssertionFailedException}.
+	 *
+	 * @param assertionString
+	 *        The {@linkplain StringDescriptor error message} describing the
+	 *        assertion.
+	 */
+	public AvailAssertionFailedException (
+		final A_String assertionString)
+	{
+		assert assertionString.isString();
+		this.assertionString = assertionString;
+	}
+
+	/**
+	 * Construct a new {@link AvailAssertionFailedException}.
+	 *
+	 * @param assertionString
+	 *        The {@linkplain StringDescriptor error message} describing the
+	 *        assertion.
+	 */
+	public AvailAssertionFailedException (
+		final String assertionString)
+	{
+		this.assertionString = StringDescriptor.from(assertionString);
+	}
+
+	@Override
+	public String getMessage ()
+	{
+		return String.format(
+			"An assertion failed: %s%n",
+			assertionString.asNativeString());
+	}
 }

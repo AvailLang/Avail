@@ -107,12 +107,11 @@ extends Primitive
 		final A_Fiber orphan = FiberDescriptor.newFiber(
 			function.kind().returnType(),
 			priority.extractInt(),
-			StringDescriptor.from(
-				String.format(
-					"Delayed fork orphan (prim 622), %s, %s:%d",
-					function.code().methodName(),
-					function.code().module().moduleName(),
-					function.code().startingLineNumber())));
+			StringDescriptor.format(
+				"Delayed fork orphan (prim 622), %s, %s:%d",
+				function.code().methodName(),
+				function.code().module().moduleName(),
+				function.code().startingLineNumber()));
 		// If the current fiber is an Avail fiber, then the new one should be
 		// also.
 		orphan.availLoader(current.availLoader());

@@ -1,5 +1,5 @@
 /*
- * ShouldFail.avail
+ * ShouldFailPragmas.avail
  * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -30,11 +30,12 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "ShouldFail"
+System Module "ShouldFailPragmas"
+Pragma
+	"someUnknownPragmaKey=253=Primitive_is_"
 Versions
 	"dev"
 Uses
-	"KittyKatNoSuchModule"
 Body
 
-Print: "Made it\n";
+

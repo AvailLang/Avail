@@ -122,11 +122,10 @@ extends Primitive
 		final A_Fiber newFiber = FiberDescriptor.newFiber(
 			succeed.kind().returnType().typeUnion(fail.kind().returnType()),
 			priority.extractInt(),
-			StringDescriptor.from(
-				String.format(
-					"Socket IPv6 connect (prim 562), %s:%d",
-					addressTuple.toString(),
-					port.extractInt())));
+			StringDescriptor.format(
+				"Socket IPv6 connect (prim 562), %s:%d",
+				addressTuple.toString(),
+				port.extractInt()));
 		// If the current fiber is an Avail fiber, then the new one should be
 		// also.
 		newFiber.availLoader(current.availLoader());

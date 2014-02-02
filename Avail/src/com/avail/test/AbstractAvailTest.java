@@ -32,12 +32,12 @@
 
 package com.avail.test;
 
+import static org.junit.Assert.*;
 import java.io.*;
 import org.junit.*;
 import com.avail.AvailRuntime;
 import com.avail.annotations.*;
 import com.avail.builder.*;
-import com.avail.compiler.*;
 import com.avail.compiler.AbstractAvailCompiler.*;
 import com.avail.descriptor.*;
 import com.avail.utility.*;
@@ -142,89 +142,51 @@ public class AbstractAvailTest
 	 */
 	protected void compile (final ModuleName target) throws Exception
 	{
-		try
-		{
-			final MutableOrNull<ModuleName> lastModule =
-				new MutableOrNull<>();
-			final AvailRuntime theRuntime = runtime;
-			assert theRuntime != null;
-			final AvailBuilder builder = new AvailBuilder(
-				theRuntime,
-				new CompilerProgressReporter()
-				{
-					@Override
-					public void value (
-						final @Nullable ModuleName moduleName,
-						final @Nullable Long lineNumber,
-						final @Nullable Long position,
-						final @Nullable Long moduleSize)
-					{
-						assert lineNumber != null;
-						System.out.printf("%nline %d", lineNumber);
-					}
-				},
-				new Continuation3<ModuleName, Long, Long>()
-				{
-					@Override
-					public void value (
-						final @Nullable ModuleName moduleName,
-						final @Nullable Long position,
-						final @Nullable Long globalCodeSize)
-					{
-						assert moduleName != null;
-						assert position != null;
-						assert globalCodeSize != null;
-						if (!moduleName.equals(lastModule.value))
-						{
-							lastModule.value = moduleName;
-							System.out.printf(
-								"%ncompiling %s ... [bytes remaining = %d]",
-								moduleName,
-								globalCodeSize - position);
-						}
-
-						System.out.printf(
-							"%n(%.2f%%)",
-							position * 100.0d / globalCodeSize);
-					}
-				});
-			builder.buildTarget(target);
-		}
-		catch (final AvailCompilerException e)
-		{
-			final ModuleNameResolver theResolver = resolver;
-			assert theResolver != null;
-			try
+		final MutableOrNull<ModuleName> lastModule =
+			new MutableOrNull<>();
+		final AvailRuntime theRuntime = runtime;
+		assert theRuntime != null;
+		final AvailBuilder builder = new AvailBuilder(
+			theRuntime,
+			new CompilerProgressReporter()
 			{
-				final ResolvedModuleName resolvedName =
-					theResolver.resolve(e.moduleName(), null);
-				final File sourceFile = resolvedName.sourceReference();
-				assert sourceFile != null;
-				final String source = readSourceFile(sourceFile);
-				if (source == null)
+				@Override
+				public void value (
+					final @Nullable ModuleName moduleName,
+					final @Nullable Long lineNumber,
+					final @Nullable Long position,
+					final @Nullable Long moduleSize)
 				{
-					System.err.printf("%s%n", e.getMessage());
-					throw e;
+					assert lineNumber != null;
+					System.out.printf("%nline %d", lineNumber);
 				}
-				final char[] sourceBuffer = source.toCharArray();
-				final StringBuilder builder = new StringBuilder();
-				System.err.append(new String(
-					sourceBuffer, 0, (int) e.endOfErrorLine()));
-				System.err.append(e.getMessage());
-				builder.append(new String(
-					sourceBuffer,
-					(int) e.endOfErrorLine(),
-					Math.min(100,
-						sourceBuffer.length - (int) e.endOfErrorLine())));
-				builder.append("...\n");
-				System.err.printf("%s%n", builder);
-				throw e;
-			}
-			catch (final UnresolvedDependencyException exc)
+			},
+			new Continuation3<ModuleName, Long, Long>()
 			{
-				System.err.printf("%s%n", exc.getMessage());
-				throw exc;
-			}
-		}
+				@Override
+				public void value (
+					final @Nullable ModuleName moduleName,
+					final @Nullable Long position,
+					final @Nullable Long globalCodeSize)
+				{
+					assert moduleName != null;
+					assert position != null;
+					assert globalCodeSize != null;
+					if (!moduleName.equals(lastModule.value))
+					{
+						lastModule.value = moduleName;
+						System.out.printf(
+							"%ncompiling %s ... [bytes remaining = %d]",
+							moduleName,
+							globalCodeSize - position);
+					}
+
+					System.out.printf(
+						"%n(%.2f%%)",
+						position * 100.0d / globalCodeSize);
+				}
+			});
+		builder.buildTarget(target);
+		assertFalse(builder.shouldStopBuild);
 	}
 }

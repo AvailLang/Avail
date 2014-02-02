@@ -6413,13 +6413,14 @@ implements
 	 * {@linkplain Throwable throwable} responsible for abnormal termination of
 	 * the {@linkplain FiberDescriptor receiver}.
 	 *
-	 * @param continuation
+	 * @param onFailure
+	 *        The continuation to invoke with the responsible throwable.
 	 */
 	@Override
 	public void failureContinuation (
-		final Continuation1<Exception> continuation)
+		final Continuation1<Throwable> onFailure)
 	{
-		descriptor.o_FailureContinuation(this, continuation);
+		descriptor.o_FailureContinuation(this, onFailure);
 	}
 
 	/**
@@ -6928,5 +6929,11 @@ implements
 	public void addPrivateNames (final A_Set trueNames)
 	{
 		descriptor.o_AddPrivateNames(this, trueNames);
+	}
+
+	@Override
+	public boolean hasValue ()
+	{
+		return descriptor.o_HasValue(this);
 	}
 }

@@ -76,12 +76,11 @@ public final class P_408_BootstrapAssignmentMacro extends Primitive
 			declaration.declaredType()))
 		{
 			throw new AvailRejectedParseException(
-				StringDescriptor.from(
-					String.format(
-						"assignment expression's type (%s) "
-						+ "to match variable type (%s)",
-						valueExpression.expressionType(),
-						declaration.declaredType().expressionType())));
+				StringDescriptor.format(
+					"assignment expression's type (%s) "
+					+ "to match variable type (%s)",
+					valueExpression.expressionType(),
+					declaration.declaredType().expressionType()));
 		}
 		final A_Phrase assignment = AssignmentNodeDescriptor.from(
 			variableUse,

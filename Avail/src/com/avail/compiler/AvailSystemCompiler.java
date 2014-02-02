@@ -66,13 +66,16 @@ extends AbstractAvailCompiler
 	 *        The {@link String} of source code to be parsed.
 	 * @param tokens
 	 *        The list of {@linkplain TokenDescriptor tokens} to be parsed.
+	 * @param problemHandler
+	 *        The {@linkplain ProblemHandler problem handler}.
 	 */
 	public AvailSystemCompiler (
 		final ResolvedModuleName moduleName,
 		final String source,
-		final List<A_Token> tokens)
+		final List<A_Token> tokens,
+		final ProblemHandler problemHandler)
 	{
-		super(moduleName, source, tokens);
+		super(moduleName, source, tokens, problemHandler);
 	}
 
 	@Override
@@ -146,13 +149,16 @@ extends AbstractAvailCompiler
 
 	/**
 	 * Parse a top-level statement.  This is the <em>only</em> boundary for the
-	 * backtracking grammar.  The passed continuation will be invoked at most
-	 * once, and only if the top-level statement had a single interpretation.
+	 * backtracking grammar.  The success continuation will be invoked at most
+	 * once (with the resulting {@linkplain ParseNodeDescriptor phrase}), and
+	 * only if the top-level statement had a single interpretation.  Otherwise
+	 * the failure will be reported and the afterFail continuation will run.
 	 */
 	@Override
 	void parseOutermostStatement (
 		final ParserState start,
-		final Con<A_Phrase> continuation)
+		final Con<A_Phrase> success,
+		final Continuation0 afterFail)
 	{
 		tryIfUnambiguousThen(
 			start,
@@ -230,7 +236,8 @@ extends AbstractAvailCompiler
 						});
 				}
 			},
-			continuation);
+			success,
+			afterFail);
 	}
 
 	/**

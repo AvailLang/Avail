@@ -94,8 +94,9 @@ extends Primitive
 			return interpreter.primitiveFailure(e);
 		}
 		function.code().setMethodName(
-			StringDescriptor.from(
-				String.format("Semantic restriction of %s", atom.atomName())));
+			StringDescriptor.format(
+				"Semantic restriction of %s",
+				atom.atomName()));
 		return interpreter.primitiveSuccess(NilDescriptor.nil());
 	}
 

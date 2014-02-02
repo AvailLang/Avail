@@ -270,6 +270,22 @@ extends Descriptor
 	}
 
 	/**
+	 * Create and initialize a new {@linkplain TokenDescriptor token} that
+	 * represents the beginning of a {@linkplain ModuleDescriptor module}. This
+	 * is a convenience utility primarily used by error reporting.
+	 *
+	 * @return The new token.
+	 */
+	public static A_Token createSyntheticStart ()
+	{
+		return create(
+			StringDescriptor.from("start of module"),
+			0,
+			1,
+			TokenType.END_OF_FILE);
+	}
+
+	/**
 	 * Construct a new {@link TokenDescriptor}.
 	 *
 	 * @param mutability

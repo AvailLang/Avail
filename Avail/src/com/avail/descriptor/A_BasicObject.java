@@ -815,11 +815,6 @@ public interface A_BasicObject
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	A_Type sizeRange ();
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
 	AvailObject traversed ();
 
 	/**

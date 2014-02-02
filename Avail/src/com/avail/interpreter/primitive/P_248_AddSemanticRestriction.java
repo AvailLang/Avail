@@ -96,8 +96,7 @@ extends Primitive
 			return interpreter.primitiveFailure(e);
 		}
 		function.code().setMethodName(
-			StringDescriptor.from(
-				String.format("Semantic restriction of %s", string)));
+			StringDescriptor.format("Semantic restriction of %s", string));
 		return interpreter.primitiveSuccess(NilDescriptor.nil());
 	}
 

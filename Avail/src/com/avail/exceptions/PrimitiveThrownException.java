@@ -1,6 +1,6 @@
 /**
- * P_138_TupleTypeSizes.java
- * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
+ * PrimitiveThrownException.java
+ * Copyright © 1993-2014, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,47 +29,24 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.avail.interpreter.primitive;
 
-import static com.avail.interpreter.Primitive.Flag.*;
-import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
+package com.avail.exceptions;
+
+import com.avail.descriptor.A_Fiber;
+import com.avail.descriptor.FiberDescriptor;
 
 /**
- * <strong>Primitive 138:</strong> Answer the allowed size {@linkplain
- * IntegerRangeTypeDescriptor ranges} for this {@linkplain
- * TupleTypeDescriptor tuple type}. These are the sizes that a {@linkplain
- * TupleDescriptor tuple} may be and still be considered instances of the
- * tuple type, assuming the element {@linkplain TypeDescriptor types} are
- * consistent with those specified by the tuple type.
+ * A {@code PrimitiveThrownException} may be thrown from a primitive as a way to
+ * terminate a {@linkplain FiberDescriptor fiber}, causing its {@linkplain
+ * A_Fiber#failureContinuation() failure continuation} to be executed.
+ *
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public final class P_138_TupleTypeSizes extends Primitive
+public class PrimitiveThrownException
+extends RuntimeException
 {
 	/**
-	 * The sole instance of this primitive class.  Accessed through reflection.
+	 * The serial version identifier.
 	 */
-	public final static Primitive instance = new P_138_TupleTypeSizes().init(
-		1, CanFold, CannotFail);
-
-	@Override
-	public Result attempt (
-		final List<AvailObject> args,
-		final Interpreter interpreter,
-		final boolean skipReturnCheck)
-	{
-		assert args.size() == 1;
-		final A_Type tupleType = args.get(0);
-		return interpreter.primitiveSuccess(tupleType.sizeRange());
-	}
-
-	@Override
-	protected A_Type privateBlockTypeRestriction ()
-	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
-				TupleTypeDescriptor.meta()),
-			InstanceMetaDescriptor.on(
-				IntegerRangeTypeDescriptor.wholeNumbers()));
-	}
+	private static final long serialVersionUID = -3945878927329358120L;
 }

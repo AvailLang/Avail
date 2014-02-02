@@ -33,6 +33,7 @@
 package com.avail.compiler;
 
 import com.avail.descriptor.*;
+import com.avail.exceptions.PrimitiveThrownException;
 
 /**
  * An {@code AvailCompilerException} is thrown by the {@linkplain
@@ -41,7 +42,7 @@ import com.avail.descriptor.*;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public class AvailRejectedParseException
-extends RuntimeException
+extends PrimitiveThrownException
 {
 	/**
 	 * The serial version identifier.

@@ -1909,10 +1909,10 @@ public final class Interpreter
 		final A_RawFunction code = function.code();
 		aFiber.fiberName(
 			(A_String)(aFiber.fiberName().concatenateWith(
-				StringDescriptor.from(String.format(
+				StringDescriptor.format(
 					" %s @ line #%d",
 					code.methodName(),
-					code.startingLineNumber())),
+					code.startingLineNumber()),
 				false)));
 		executeFiber(
 			runtime,
@@ -2149,15 +2149,15 @@ public final class Interpreter
 				continuation.value(string.asNativeString());
 			}
 		});
-		fiber.failureContinuation(new Continuation1<Exception>()
+		fiber.failureContinuation(new Continuation1<Throwable>()
 		{
 			@Override
-			public void value (final @Nullable Exception exception)
+			public void value (final @Nullable Throwable e)
 			{
-				assert exception != null;
+				assert e != null;
 				continuation.value(String.format(
 					"(stringification failed [%s]) %s",
-					exception.getClass().getSimpleName(),
+					e.getClass().getSimpleName(),
 					value.toString()));
 			}
 		});

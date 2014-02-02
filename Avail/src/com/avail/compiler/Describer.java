@@ -1,5 +1,5 @@
 /**
- * P_138_TupleTypeSizes.java
+ * Describer.java
  * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -29,47 +29,27 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.avail.interpreter.primitive;
 
-import static com.avail.interpreter.Primitive.Flag.*;
-import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
+package com.avail.compiler;
+
+import com.avail.utility.evaluation.*;
 
 /**
- * <strong>Primitive 138:</strong> Answer the allowed size {@linkplain
- * IntegerRangeTypeDescriptor ranges} for this {@linkplain
- * TupleTypeDescriptor tuple type}. These are the sizes that a {@linkplain
- * TupleDescriptor tuple} may be and still be considered instances of the
- * tuple type, assuming the element {@linkplain TypeDescriptor types} are
- * consistent with those specified by the tuple type.
+ * A {@code Describer} produces a message and forwards it to a supplied
+ * {@linkplain Continuation1 continuation}. It is used by the {@linkplain
+ * AbstractAvailCompiler compiler} to support stringification in a
+ * continuation-passing style.
+ *
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class P_138_TupleTypeSizes extends Primitive
+interface Describer
 {
 	/**
-	 * The sole instance of this primitive class.  Accessed through reflection.
+	 * Assemble a message and pass it into the specified {@linkplain
+	 * Continuation1 continuation}.
+	 *
+	 * @param continuation
+	 *        What to do with the message.
 	 */
-	public final static Primitive instance = new P_138_TupleTypeSizes().init(
-		1, CanFold, CannotFail);
-
-	@Override
-	public Result attempt (
-		final List<AvailObject> args,
-		final Interpreter interpreter,
-		final boolean skipReturnCheck)
-	{
-		assert args.size() == 1;
-		final A_Type tupleType = args.get(0);
-		return interpreter.primitiveSuccess(tupleType.sizeRange());
-	}
-
-	@Override
-	protected A_Type privateBlockTypeRestriction ()
-	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
-				TupleTypeDescriptor.meta()),
-			InstanceMetaDescriptor.on(
-				IntegerRangeTypeDescriptor.wholeNumbers()));
-	}
+	public void describeThen (Continuation1<String> continuation);
 }

@@ -36,14 +36,11 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.util.ArrayList;
-import java.util.List;
 import com.avail.AvailRuntime;
 import com.avail.annotations.InnerAccess;
 import com.avail.annotations.Nullable;
 import com.avail.builder.*;
 import com.avail.compiler.AbstractAvailCompiler.*;
-import com.avail.compiler.AvailCompilerException;
 import com.avail.descriptor.ModuleDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
@@ -306,93 +303,6 @@ public class Compiler
 	}
 
 	/**
-	 * Output the details of the given {@linkplain RecursiveDependencyException
-	 * exception}.
-	 *
-	 * @param e The exception whose details to output.
-	 */
-	private static void reportRecursiveDependency (
-		final RecursiveDependencyException e)
-	{
-		final List<ResolvedModuleName> circuit = e.recursionPath();
-		final StringBuilder sb = new StringBuilder(500);
-
-		sb.append("ERROR: A recursive dependency was found in the build " +
-			"path.");
-
-		sb.append("\n\nCircuit entry point: ");
-		sb.append(circuit.get(0).qualifiedName());
-
-		sb.append("\nCircuit path: ");
-		boolean firstTime = true;
-		for (final ResolvedModuleName mod : circuit)
-		{
-			if (!firstTime)
-			{
-				sb.append(" < ");
-			}
-			else
-			{
-				firstTime = false;
-			}
-			sb.append(mod.localName());
-		}
-
-		final String errorMsg = sb.toString();
-		System.err.println(errorMsg);
-		return;
-	}
-
-	/**
-	 * Output the details of the given {@linkplain UnresolvedDependencyException
-	 * exception}.
-	 *
-	 * @param e The exception whose details to output.
-	 */
-	private static void reportUnresolvedDependency (
-		final UnresolvedDependencyException e)
-	{
-		final StringBuilder sb = new StringBuilder(500);
-
-		final ResolvedModuleName currentModule = e.referringModuleName();
-		final String missingModule = e.unresolvedModuleName();
-
-		sb.append("ERROR: An unresolved dependency was found in the " +
-			"build path.");
-
-		if (e instanceof UnresolvedModuleException)
-		{
-			final UnresolvedModuleException exc = (UnresolvedModuleException) e;
-
-			sb.append("\n\nModule ");
-			sb.append(currentModule);
-			sb.append(" was unable to find \"");
-			sb.append(missingModule);
-			sb.append("\"; tried:\n");
-
-			final ArrayList<ModuleName> names = exc.acceptablePaths();
-			for (int i = 0; i < names.size(); i++)
-			{
-				sb.append("\t");
-				sb.append(names.get(i).qualifiedName());
-				sb.append("\n");
-			}
-		}
-		else  //e is an instance of UnresolvedRootException
-		{
-			final UnresolvedRootException exc = (UnresolvedRootException) e;
-			final String rootName = exc.unresolvedRootName();
-
-			sb.append("\n\nRoot \"");
-			sb.append(rootName);
-			sb.append("\" was not found.\n");
-		}
-
-		final String errorMsg = sb.toString();
-		System.err.println(errorMsg);
-	}
-
-	/**
 	 * The entry point for command-line invocation of the Avail compiler.
 	 *
 	 * @param args The command-line arguments.
@@ -462,37 +372,6 @@ public class Compiler
 				System.out.printf("Time elapsed: %d.%03d s%n",
 					timeElapsed / 1000, timeElapsed % 1000);
 			}
-		}
-		catch (final RecursiveDependencyException e)
-		{
-			reportRecursiveDependency(e);
-			return;
-		}
-		catch (final UnresolvedDependencyException e)
-		{
-			reportUnresolvedDependency(e);
-			return;
-		}
-		catch (final AvailCompilerException e)
-		{
-			// User code error.
-			System.err.println(e.getMessage());
-
-			if (configuration.showTiming())
-			{
-				final long stopTimeMillis = System.currentTimeMillis();
-				final long timeElapsed = stopTimeMillis - startTimeMillis;
-				System.out.printf("%nTime elapsed: %d.%03ds%n",
-					timeElapsed / 1000, timeElapsed % 1000);
-			}
-
-			return;
-		}
-		catch (final Exception e)
-		{
-			// Any other problem within the compiler.
-			e.printStackTrace();
-			return;
 		}
 		finally
 		{

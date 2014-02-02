@@ -135,6 +135,21 @@ extends TupleDescriptor
 	}
 
 	/**
+	 * Given a Java {@link String} containing a {@linkplain String#format(
+	 * String, Object...) substitution format} and its arguments, perform
+	 * pattern substitution and produce the corresponding Avail {@link A_String
+	 * string}.
+	 *
+	 * @param pattern A substitution pattern.
+	 * @param args The arguments to substitute into the pattern.
+	 * @return An Avail string.
+	 */
+	public static A_String format (final String pattern, final Object... args)
+	{
+		return from(String.format(pattern, args));
+	}
+
+	/**
 	 * Create an object of the appropriate size, whose descriptor is an instance
 	 * of {@link ByteStringDescriptor}.  Note that it can only store Latin-1
 	 * characters (i.e., those having Unicode code points 0..255).  Run the
