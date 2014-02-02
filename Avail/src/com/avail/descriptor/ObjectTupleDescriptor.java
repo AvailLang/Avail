@@ -260,7 +260,7 @@ extends TupleDescriptor
 	{
 		// Answer approximately how many bits per entry are taken up by this
 		// object.
-		return 32;
+		return 64;
 	}
 
 	@Override @AvailMethod

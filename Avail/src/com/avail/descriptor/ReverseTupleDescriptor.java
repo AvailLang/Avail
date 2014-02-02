@@ -32,7 +32,7 @@
 package com.avail.descriptor;
 
 import static com.avail.descriptor.AvailObjectRepresentation.newLike;
-import static com.avail.descriptor.ByteTupleDescriptor.IntegerSlots.RAW_QUAD_AT_;
+import static com.avail.descriptor.ObjectTupleDescriptor.ObjectSlots.TUPLE_AT_;
 import static com.avail.descriptor.ReverseTupleDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.ReverseTupleDescriptor.ObjectSlots.*;
 import com.avail.annotations.*;
@@ -89,14 +89,21 @@ extends TupleDescriptor
 		ORIGIN_TUPLE;
 	}
 
+	/**
+	 * Defined threshold for making copies versus using {@linkplain
+	 * TreeTupleDescriptor}/using other forms of reference instead of creating
+	 * an new tuple.
+	 */
+	private static final int minimumCopySize = 32;
+
 	@Override @AvailMethod
 	AvailObject o_TupleAt (final AvailObject object, final int index)
 	{
 		final int size = object.slot(ORIGIN_TUPLE).tupleSize();
 
 		assert 1 <= index && index <= size;
-		final int reverseIndex = size - index;
-		return object.slot(ORIGIN_TUPLE).tupleAt(reverseIndex + 1);
+		final int reverseIndex = size + 1 - index;
+		return object.slot(ORIGIN_TUPLE).tupleAt(reverseIndex);
 	}
 
 	@Override @AvailMethod
@@ -105,8 +112,8 @@ extends TupleDescriptor
 		final int size = object.slot(ORIGIN_TUPLE).tupleSize();
 
 		assert 1 <= index && index <= size;
-		final int reverseIndex = size - index;
-		return object.slot(ORIGIN_TUPLE).tupleIntAt(reverseIndex + 1);
+		final int reverseIndex = size + 1 - index;
+		return object.slot(ORIGIN_TUPLE).tupleIntAt(reverseIndex);
 	}
 
 	@Override @AvailMethod
@@ -120,15 +127,16 @@ extends TupleDescriptor
 		// index we should have newValueObject.  This may destroy the original
 		// tuple if canDestroy is true.
 		assert index >= 1 && index <= object.tupleSize();
+		final A_Tuple innerTuple = object.slot(ORIGIN_TUPLE)
+			.tupleAtPuttingCanDestroy(
+				object.slot(SIZE) + 1 - index,
+				newValueObject,
+				canDestroy);
 		if (!canDestroy || !isMutable())
 		{
-			return object.copyAsMutableObjectTuple().tupleAtPuttingCanDestroy(
-				object.slot(SIZE) - index ,
-				newValueObject,
-				true);
+			return createReverseTuple(innerTuple);
 		}
-		object.objectTupleAtPut(object.slot(SIZE) - index, newValueObject);
-		// Invalidate the hash value.
+		object.setSlot(ORIGIN_TUPLE, innerTuple);
 		object.hashOrZero(0);
 		return object;
 	}
@@ -136,6 +144,15 @@ extends TupleDescriptor
 	/** The mutable {@link ReverseTupleDescriptor}. */
 	public static final ReverseTupleDescriptor mutable =
 		new ReverseTupleDescriptor(Mutability.MUTABLE);
+
+	@Override @AvailMethod
+	int o_BitsPerEntry (final AvailObject object)
+	{
+		// Answer maximum integer value so that any other representation
+		// for comparison is used in favor of a Reverse Tuple representation
+		return Integer.MAX_VALUE;
+	}
+
 
 	@Override @AvailMethod
 	boolean o_CompareFromToWithStartingAt (
@@ -173,21 +190,21 @@ extends TupleDescriptor
 	/**
 	 * Hash part of the tuple object.
 	 */
-	@Override @AvailMethod
-	int o_ComputeHashFromTo (
-		final AvailObject object,
-		final int startIndex,
-		final int endIndex)
-	{
-		final A_Tuple basis = object.slot(ORIGIN_TUPLE);
-		final int size = object.slot(SIZE);
-		assert 1 <= startIndex && startIndex <= size;
-		assert startIndex - 1 <= endIndex && endIndex <= size;
-		final int adjustment = size - 1;
-		return basis.computeHashFromTo(
-			endIndex - adjustment,
-			startIndex + adjustment);
-	}
+//	@Override @AvailMethod
+//	int o_ComputeHashFromTo (
+//		final AvailObject object,
+//		final int startIndex,
+//		final int endIndex)
+//	{
+//		final A_Tuple basis = object.slot(ORIGIN_TUPLE);
+//		final int size = object.slot(SIZE);
+//		assert 1 <= startIndex && startIndex <= size;
+//		assert startIndex - 1 <= endIndex && endIndex <= size;
+//		final int adjustment = size - 1;
+//		return basis.computeHashFromTo(
+//			endIndex - adjustment,
+//			startIndex + adjustment);
+//	}
 
 	@Override
 	A_Tuple o_ConcatenateWith (
@@ -217,7 +234,7 @@ extends TupleDescriptor
 		}
 
 		final int newSize = size1 + size2;
-		if (newSize <= 32)
+		if (newSize <= minimumCopySize)
 		{
 			// Copy the objects.
 			final int deltaSlots = newSize - object.variableObjectSlotsCount();
@@ -244,6 +261,64 @@ extends TupleDescriptor
 			object,
 			otherTuple,
 			true);
+	}
+
+	@Override @AvailMethod
+	A_Tuple o_CopyTupleFromToCanDestroy (
+		final AvailObject object,
+		final int start,
+		final int end,
+		final boolean canDestroy)
+	{
+		assert 1 <= start && start <= end + 1;
+		final int tupleSize = object.tupleSize();
+		assert 0 <= end && end <= tupleSize;
+		final int subrangeSize = end - start + 1;
+		if (subrangeSize == 0)
+		{
+			if (isMutable() && canDestroy)
+			{
+				object.assertObjectUnreachableIfMutable();
+			}
+			return TupleDescriptor.empty();
+		}
+		if (subrangeSize == tupleSize)
+		{
+			if (isMutable() && !canDestroy)
+			{
+				object.makeImmutable();
+			}
+			return object;
+		}
+		if (subrangeSize > 0 && subrangeSize < tupleSize && subrangeSize < minimumCopySize)
+		{
+			// It's not empty, it's not a total copy, and it's reasonably small.
+			// Just copy the applicable entries out.
+			final AvailObject result =
+				ObjectTupleDescriptor.createUninitialized(subrangeSize);
+			int dest = 1;
+			for (int src = start; src <= end; src++, dest++)
+			{
+				result.setSlot(TUPLE_AT_, dest, object.tupleAt(src));
+			}
+			if (canDestroy)
+			{
+				object.assertObjectUnreachableIfMutable();
+			}
+			else
+			{
+				result.makeSubobjectsImmutable();
+			}
+			result.setSlot(HASH_OR_ZERO, 0);
+			return result;
+		}
+		final A_Tuple subrangeOnOrigin =
+			object.slot(ORIGIN_TUPLE).copyTupleFromToCanDestroy(
+				object.tupleSize() + 1 - end,
+				object.tupleSize() + 1 - start,
+				canDestroy);
+
+		return subrangeOnOrigin.tupleReverse();
 	}
 
 	@Override @AvailMethod
@@ -307,6 +382,12 @@ extends TupleDescriptor
 	}
 
 	@Override
+	int o_TreeTupleLevel (final AvailObject object)
+	{
+		return object.slot(ORIGIN_TUPLE).treeTupleLevel();
+	}
+
+	@Override
 	ReverseTupleDescriptor mutable ()
 	{
 		return mutable;
@@ -356,28 +437,11 @@ extends TupleDescriptor
 	 * @return A new reverse tuple.
 	 */
 	public static AvailObject createReverseTuple (
-		final AvailObject originTuple)
+		final A_Tuple originTuple)
 	{
 		final AvailObject instance = mutable.create();
 		instance.setSlot(ORIGIN_TUPLE, originTuple);
 		instance.setSlot(SIZE, originTuple.tupleSize());
 		return instance;
-	}
-
-	/**
-	 * Create a new {@link AvailObject} that unwraps the specified {@linkplain
-	 * AvailObject} for identity-based comparison semantics.
-	 *
-	 * @param originTuple The tuple to be reversed.
-	 * @param tupleDescriptor Avail object input tuple descriptor. Used to
-	 * identify the correct behavior as in unwrapping the original tuple by
-	 * retrieving the original tuple's reference.
-	 * @return An un-reversed reversed tuple.
-	 */
-	public static AvailObject reverseTuple (
-		final AvailObject originTuple,
-		final ReverseTupleDescriptor tupleDescriptor)
-	{
-		return originTuple.slot(ORIGIN_TUPLE);
 	}
 }

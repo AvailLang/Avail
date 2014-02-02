@@ -587,7 +587,7 @@ extends TupleDescriptor
 	@Override @AvailMethod
 	int o_BitsPerEntry (final AvailObject object)
 	{
-		return 33;
+		return 65;
 	}
 
 	@Override @AvailMethod
