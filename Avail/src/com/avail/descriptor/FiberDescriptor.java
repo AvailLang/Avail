@@ -428,12 +428,12 @@ extends Descriptor
 		TRACED_VARIABLES,
 
 		/**
-		 * A {@linkplain RawPojoDescriptor raw pojo} wrapping a {@link
-		 * List} of {@link Continuation1}s which accept this fiber's current
-		 * {@linkplain ContinuationDescriptor continuation} as soon as it is
-		 * reified.
+		 * A {@linkplain SetDescriptor set} of {@linkplain RawPojoDescriptor raw
+		 * pojos}, each of which wraps a {@link Continuation1} indicating what
+		 * to do with the fiber's reified {@linkplain #CONTINUATION} when the
+		 * fiber next reaches a suitable safe point.
 		 *
-		 * <p>The non-emptiness of this list must agree with the value of the
+		 * <p>The non-emptiness of this set must agree with the value of the
 		 * {@link InterruptRequestFlag#REIFICATION_REQUESTED} flag.
 		 */
 		REIFICATION_WAITERS;
@@ -1392,7 +1392,9 @@ extends Descriptor
 						final A_Set oldSet = object.slot(REIFICATION_WAITERS);
 						final A_Set newSet =
 							oldSet.setWithElementCanDestroy(pojo, true);
-						object.setSlot(REIFICATION_WAITERS, newSet);
+						object.setSlot(
+							REIFICATION_WAITERS,
+							newSet.makeShared());
 						object.setInterruptRequestFlag(REIFICATION_REQUESTED);
 						break;
 					}
@@ -1553,10 +1555,7 @@ extends Descriptor
 			TRACED_VARIABLES,
 			RawPojoDescriptor.identityWrap(
 				new WeakHashMap<A_Variable, Boolean>()));
-		fiber.setSlot(
-			REIFICATION_WAITERS,
-			RawPojoDescriptor.identityWrap(
-				new ArrayList<Continuation1<A_Continuation>>()));
+		fiber.setSlot(REIFICATION_WAITERS, SetDescriptor.empty());
 
 		fiber.setSlot(DEBUG_UNIQUE_ID, uniqueDebugCounter.incrementAndGet());
 		fiber.setSlot(DEBUG_FIBER_PURPOSE, purpose);
@@ -1617,10 +1616,7 @@ extends Descriptor
 			TRACED_VARIABLES,
 			RawPojoDescriptor.identityWrap(
 				new WeakHashMap<A_Variable, Boolean>()));
-		fiber.setSlot(
-			REIFICATION_WAITERS,
-			RawPojoDescriptor.identityWrap(
-				new ArrayList<Continuation1<A_Continuation>>()));
+		fiber.setSlot(REIFICATION_WAITERS, SetDescriptor.empty());
 
 		fiber.setSlot(DEBUG_UNIQUE_ID, uniqueDebugCounter.incrementAndGet());
 		fiber.setSlot(DEBUG_FIBER_PURPOSE, purpose);

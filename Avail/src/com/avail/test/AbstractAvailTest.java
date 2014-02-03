@@ -52,48 +52,10 @@ import com.avail.utility.evaluation.*;
 public class AbstractAvailTest
 {
 	/**
-	 * Read and answer the text of the specified {@linkplain ModuleDescriptor
-	 * Avail module}.
-	 *
-	 * @param sourceFile
-	 *        A {@linkplain File file reference} to an {@linkplain
-	 *        ModuleDescriptor Avail module}.
-	 * @return The text of the specified Avail source file, or {@code null} if
-	 *         the source could not be retrieved.
-	 */
-	private static @Nullable String readSourceFile (final File sourceFile)
-	{
-		Reader sourceReader = null;
-		try
-		{
-			final char[] sourceBuffer = new char[(int) sourceFile.length()];
-			sourceReader = new BufferedReader(new FileReader(sourceFile));
-
-			int offset = 0;
-			int bytesRead = -1;
-			while ((bytesRead = sourceReader.read(
-				sourceBuffer, offset, sourceBuffer.length - offset)) > 0)
-			{
-				offset += bytesRead;
-			}
-			sourceReader.close();
-
-			return new String(sourceBuffer, 0, offset);
-		}
-		catch (final IOException e)
-		{
-			return null;
-		}
-	}
-
-	/**
 	 * The {@linkplain ModuleRoots Avail module roots}. This should be set by a
 	 * static initializer in each subclass.
 	 */
 	protected static @Nullable ModuleRoots roots;
-
-	/** The {@linkplain ModuleNameResolver module name resolver}. */
-	private @Nullable ModuleNameResolver resolver;
 
 	/** The {@linkplain AvailRuntime Avail runtime}. */
 	private @Nullable AvailRuntime runtime;
@@ -113,7 +75,6 @@ public class AbstractAvailTest
 		assert theRoots != null;
 		final ModuleNameResolver theResolver =
 			new RenamesFileParser(new StringReader(""), theRoots).parse();
-		resolver = theResolver;
 		runtime = new AvailRuntime(theResolver);
 	}
 

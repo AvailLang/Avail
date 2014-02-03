@@ -203,7 +203,11 @@ stackp
 stashed
 stateless
 stringification
+stringified
+stringifier
+stringifiers
 stringify
+stringifying
 subclassing
 subdirectory
 subnodes
@@ -255,6 +259,3 @@ wildcard
 wordcode
 wordcodes
 wow
-stringified
-stringifiers
-stringifier
