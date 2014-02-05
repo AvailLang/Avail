@@ -240,7 +240,7 @@ extends TupleDescriptor
 		final int size = object.tupleSize();
 		final AvailObject instance =
 			mutable.create(size);
-		instance.hashOrZero(object.hashOrZero());
+
 		for (int i = 1; i <= size; i++)
 		{
 			instance.objectTupleAtPut(size-i+1, object.tupleAt(i));

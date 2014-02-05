@@ -403,6 +403,7 @@ extends TupleDescriptor
 		final AvailObject instance = mutable.create();
 		instance.setSlot(BASIS_TUPLE, object);
 		instance.setSlot(SIZE, (object.tupleSize() + object.slot(START_INDEX)));
+		System.out.printf("hash value: %d", instance.slot(HASH_OR_ZERO));
 		return instance;
 	}
 
