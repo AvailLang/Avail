@@ -769,42 +769,6 @@ extends JFrame
 		}
 	}
 
-	/**
-	 * Read and answer the text of the specified {@linkplain ModuleDescriptor
-	 * Avail module}.
-	 *
-	 * @param sourceFile
-	 *        A {@linkplain File file reference} to an {@linkplain
-	 *        ModuleDescriptor Avail module}.
-	 * @return The text of the specified Avail source file, or {@code null} if
-	 *         the source could not be retrieved.
-	 */
-	@InnerAccess @Nullable static String readSourceFile (
-		final File sourceFile)
-	{
-		try
-		{
-			final char[] sourceBuffer = new char[(int) sourceFile.length()];
-			final Reader sourceReader =
-				new BufferedReader(new FileReader(sourceFile));
-
-			int offset = 0;
-			int bytesRead = -1;
-			while ((bytesRead = sourceReader.read(
-				sourceBuffer, offset, sourceBuffer.length - offset)) > 0)
-			{
-				offset += bytesRead;
-			}
-
-			sourceReader.close();
-			return new String(sourceBuffer, 0, offset);
-		}
-		catch (final IOException e)
-		{
-			return null;
-		}
-	}
-
 	/*
 	 * Model components.
 	 */

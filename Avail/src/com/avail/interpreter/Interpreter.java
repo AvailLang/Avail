@@ -1312,8 +1312,7 @@ public final class Interpreter
 					for (final A_BasicObject pojo : waiters.value())
 					{
 						@SuppressWarnings("unchecked")
-						final
-						Continuation1<A_Continuation> waiter =
+						final Continuation1<A_Continuation> waiter =
 							(Continuation1<A_Continuation>)(pojo.javaObject());
 						waiter.value(continuation);
 					}

@@ -1,4 +1,6 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?><templates><template autoinsert="true" context="java" deleted="false" description="Create a new AND clause." enabled="true" name="and">${always} ∧ [ ${maybe} ]</template><template autoinsert="true" context="java" deleted="false" description="New method/macro comment." enabled="true" name="availdoc">/**
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<templates>
+<template autoinsert="true" context="java" deleted="false" description="Create a new AND clause." enabled="true" name="and">${always} ∧ [ ${maybe} ]</template><template autoinsert="true" context="java" deleted="false" description="New method/macro comment." enabled="true" name="availdoc">/**
  * ${cursor}
  *
  * Parameters:
