@@ -61,11 +61,15 @@ extends Primitive
 	/**
 	 * Recursively traverses the target {@linkplain TupleDescriptor tuple}
 	 * ultimately updating the value at the final index of the pathIndex.
-	 * @param targetTuple - the {@linkplain TupleDescriptor tuple} to traverse
-	 * @param pathTuple - {@linkplain TupleDescriptor tuple} containing the
-	 * 		path of indices to traverse to
-	 * @param pathIndex - the current position of pathTuple being accessed
-	 * @param newValue - the updating value
+	 * @param targetTuple
+	 *		the {@linkplain TupleDescriptor tuple} to traverse
+	 * @param pathTuple
+	 *		{@linkplain TupleDescriptor tuple} containing the path of indices
+	 *		to traverse to
+	 * @param pathIndex
+	 *		the current position of pathTuple being accessed
+	 * @param newValue
+	 * 		the updating value
 	 * @return
 	 * @throws AvailException E_INCORRECT_ARGUMENT_TYPE
 	 * @throws AvailException E_SUBSCRIPT_OUT_OF_BOUNDS
@@ -117,11 +121,15 @@ extends Primitive
 	/**
 	 * Recursively traverses the target {@linkplain MapDescriptor map}
 	 * ultimately updating the value at the final index of the pathIndex.
-	 * @param targetMap - the {@linkplain MapDescriptor map} to traverse
-	 * @param pathTuple - {@linkplain TupleDescriptor tuple} containing the
-	 * 		path of indices to traverse to
-	 * @param pathIndex - the current position of pathTuple being accessed
-	 * @param newValue - the updating value
+	 * @param targetMap
+	 * 		the {@linkplain MapDescriptor map} to traverse
+	 * @param pathTuple
+	 * 		{@linkplain TupleDescriptor tuple} containing the path of indices
+	 * 		to traverse to
+	 * @param pathIndex
+	 * 		the current position of pathTuple being accessed
+	 * @param newValue
+	 * 		the updating value
 	 * @return
 	 * @throws AvailException E_INCORRECT_ARGUMENT_TYPE
 	 * @throws AvailException E_KEY_NOT_FOUND
