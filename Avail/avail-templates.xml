@@ -1,6 +1,4 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<templates>
-<template autoinsert="true" context="java" deleted="false" description="Create a new AND clause." enabled="true" name="and">${always} ∧ [ ${maybe} ]</template><template autoinsert="true" context="java" deleted="false" description="New method/macro comment." enabled="true" name="availdoc">/**
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><templates><template autoinsert="true" context="java" deleted="false" description="Create a new AND clause." enabled="true" name="and">${always} ∧ [ ${maybe} ]</template><template autoinsert="true" context="java" deleted="false" description="New method/macro comment." enabled="true" name="availdoc">/**
  * ${cursor}
  *
  * Parameters:
@@ -52,7 +50,7 @@ Private method "${methodName}" is
 ]:${returnType};
 </template><template autoinsert="true" context="java" deleted="false" description="The micro (µ) sign." enabled="true" name="micro">µ</template><template autoinsert="true" context="java" deleted="false" description="A middle dot (·)." enabled="true" name="middledot">·</template><template autoinsert="true" context="java" deleted="false" description="New Avail primitive implementation." enabled="true" name="newprimitiveimpl">/**
  * ${file}
- * Copyright © 1993-2014, The Avail Foundation, LLC.
+ * Copyright © 1993-${year}, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -96,7 +94,7 @@ import com.avail.interpreter.*;
 /**
  * &lt;strong&gt;Primitive ${primitiveNumber}&lt;/strong&gt;: TODO: [TLS] Document this!
  *
- * @author Todd L Smith &amp;lt;todd@availlang.org&amp;gt;
+ * @author ${authorName} &amp;lt;${emailAddress}@availlang.org&amp;gt;
  */
 public final class ${primary_type_name}
 extends Primitive

@@ -43,7 +43,7 @@ import com.avail.interpreter.*;
  * <strong>Primitive 164:</strong> Read the requested number of bytes from
  * the {@linkplain RandomAccessFile file} associated with the specified
  * {@linkplain AtomDescriptor handle} and answer them as a {@linkplain
- * ByteTupleDescriptor tuple} of bytes. If fewer bytes are available, then
+ * ByteArrayTupleDescriptor tuple} of bytes. If fewer bytes are available, then
  * simply return a shorter tuple; an empty tuple indicates that the end of the
  * file has been reached. If the request amount is infinite, then answer a tuple
  * containing all remaining bytes, or a very large buffer size, whichever is
