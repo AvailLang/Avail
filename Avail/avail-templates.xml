@@ -52,7 +52,7 @@ Private method "${methodName}" is
 ]:${returnType};
 </template><template autoinsert="true" context="java" deleted="false" description="The micro (µ) sign." enabled="true" name="micro">µ</template><template autoinsert="true" context="java" deleted="false" description="A middle dot (·)." enabled="true" name="middledot">·</template><template autoinsert="true" context="java" deleted="false" description="New Avail primitive implementation." enabled="true" name="newprimitiveimpl">/**
  * ${file}
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -129,7 +129,7 @@ extends Primitive
 }
 </template><template autoinsert="true" context="java" deleted="false" description="New Avail file." enabled="true" name="newsysfile">/*
  * ${file}
- * Copyright © 1993-${year}, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-${year}, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -171,7 +171,7 @@ Names
 Body
 </template><template autoinsert="true" context="java" deleted="false" description="Logical negation (¬)." enabled="true" name="not">¬</template><template autoinsert="true" context="java" deleted="false" description="Inequality operator (≠)." enabled="true" name="notequal">≠</template><template autoinsert="true" context="java" deleted="false" description="Circled digit 1." enabled="true" name="o1">①</template><template autoinsert="true" context="java" deleted="false" description="Circled digit 2." enabled="true" name="o2">②</template><template autoinsert="true" context="java" deleted="false" description="Circled digit 3." enabled="true" name="o3">③</template><template autoinsert="true" context="java" deleted="false" description="Circled digit 4." enabled="true" name="o4">④</template><template autoinsert="true" context="java" deleted="false" description="Circled digit 5." enabled="true" name="o5">⑤</template><template autoinsert="true" context="java" deleted="false" description="Circled digit 6." enabled="true" name="o6">⑥</template><template autoinsert="true" context="java" deleted="false" description="Circled digit 7." enabled="true" name="o7">⑦</template><template autoinsert="true" context="java" deleted="false" description="Circled digit 8." enabled="true" name="o8">⑧</template><template autoinsert="true" context="java" deleted="false" description="Circled digit 9." enabled="true" name="o9">⑨</template><template autoinsert="true" context="java" deleted="false" description="Create a new OR clause." enabled="true" name="or">${always} ∨ [ ${maybe} ]</template><template autoinsert="true" context="java" deleted="false" description="New package-info.java" enabled="true" name="package-info">/**
  * ${file}
- * Copyright (c) 1993-${year}, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-${year}, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without

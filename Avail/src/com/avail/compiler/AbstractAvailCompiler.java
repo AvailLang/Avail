@@ -1,6 +1,6 @@
 /**
  * AbstractAvailCompiler.java
- * Copyright © 1993-2013, Mark van Gulik and Todd L Smith. All rights reserved.
+ * Copyright © 1993-2014, The Avail Foundation, LLC. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:

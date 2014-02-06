@@ -1,20 +1,21 @@
 /**
- * P_700_VariableOfTupleReplace.java Copyright © 1993-2013, Mark van Gulik and
- * Todd L Smith. All rights reserved.
+ * P_700_TupleReplaceAtNAry.java
+ * Copyright © 1993-2014, The Avail Foundation, LLC.
+ * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
  * * Redistributions of source code must retain the above copyright notice, this
- * list of conditions and the following disclaimer.
+ *   list of conditions and the following disclaimer.
  *
  * * Redistributions in binary form must reproduce the above copyright notice,
- * this list of conditions and the following disclaimer in the documentation
- * and/or other materials provided with the distribution.
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
  *
  * * Neither the name of the copyright holder nor the names of the contributors
- * may be used to endorse or promote products derived from this software without
- * specific prior written permission.
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -48,7 +49,8 @@ import com.avail.interpreter.*;
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
-public final class P_700_TupleReplaceAtNAry extends Primitive
+public final class P_700_TupleReplaceAtNAry
+extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class. Accessed through reflection.
@@ -59,14 +61,18 @@ public final class P_700_TupleReplaceAtNAry extends Primitive
 	/**
 	 * Recursively traverses the target {@linkplain TupleDescriptor tuple}
 	 * ultimately updating the value at the final index of the pathIndex.
-	 * @param targetTuple - the {@linkplain TupleDescriptor tuple} to traverse
-	 * @param pathTuple - {@linkplain TupleDescriptor tuple} containing the
-	 * 		path of indices to traverse to
-	 * @param pathIndex - the current position of pathTuple being accessed
-	 * @param newValue - the updating value
+	 *
+	 * @param targetTuple
+	 *        the {@linkplain TupleDescriptor tuple} to traverse
+	 * @param pathTuple
+	 *        {@linkplain TupleDescriptor tuple} containing the path of indices
+	 *        to traverse to
+	 * @param pathIndex
+	 *        the current position of pathTuple being accessed
+	 * @param newValue
+	 *        the updating value
 	 * @return
-	 * @throws AvailException E_INCORRECT_ARGUMENT_TYPE
-	 * @throws AvailException E_SUBSCRIPT_OUT_OF_BOUNDS
+	 * @throws AvailException
 	 */
 	private A_Tuple recursivelyUpdateTuple (
 			final A_Tuple targetTuple,
@@ -115,11 +121,16 @@ public final class P_700_TupleReplaceAtNAry extends Primitive
 	/**
 	 * Recursively traverses the target {@linkplain MapDescriptor map}
 	 * ultimately updating the value at the final index of the pathIndex.
-	 * @param targetMap - the {@linkplain MapDescriptor map} to traverse
-	 * @param pathTuple - {@linkplain TupleDescriptor tuple} containing the
-	 * 		path of indices to traverse to
-	 * @param pathIndex - the current position of pathTuple being accessed
-	 * @param newValue - the updating value
+	 *
+	 * @param targetMap
+	 *        the {@linkplain MapDescriptor map} to traverse
+	 * @param pathTuple
+	 *        {@linkplain TupleDescriptor tuple} containing the path of indices
+	 *        to traverse to
+	 * @param pathIndex
+	 *        the current position of pathTuple being accessed
+	 * @param newValue
+	 *        the updating value
 	 * @return
 	 * @throws AvailException E_INCORRECT_ARGUMENT_TYPE
 	 * @throws AvailException E_KEY_NOT_FOUND

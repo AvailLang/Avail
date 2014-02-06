@@ -1,6 +1,6 @@
 /**
  * P_003_Multiplication.java
- * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without

@@ -1,6 +1,6 @@
 /**
  * AvailBuilder.java
- * Copyright © 1993-2013, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -751,11 +751,14 @@ public final class AvailBuilder
 			}
 			else
 			{
-				System.out.println(
-					String.format(
-						"Traced %d modules (%d edges)",
-						moduleGraph.size(),
-						traceCompletions));
+				if (debugBuilder)
+				{
+					System.out.println(
+						String.format(
+							"Traced %d modules (%d edges)",
+							moduleGraph.size(),
+							traceCompletions));
+				}
 			}
 		}
 	}

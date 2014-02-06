@@ -1,6 +1,6 @@
 /**
  * BeImmutableSubobjectVisitor.java
- * Copyright © 1993-2011, Mark van Gulik and Todd L Smith.
+ * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
