@@ -494,8 +494,7 @@ public final class AvailBuilder
 								final Problem problem = new Problem (
 									resolvedSuccessor != null
 										? resolvedSuccessor
-										: new ResolvedModuleName(
-											qualifiedName, false, null, null),
+										: qualifiedName,
 									TokenDescriptor.createSyntheticStart(),
 									ProblemType.TRACE,
 									"Module resolution problem:\n{0}",
@@ -616,11 +615,14 @@ public final class AvailBuilder
 									assert header != null;
 									final List<String> importNames =
 										header.importedModuleNames();
+									final List<String> entryPoints =
+										header.entryPointNames();
 									repository.putVersion(
 										versionKey,
 										repository.new ModuleVersion(
 											sourceFile.length(),
-											importNames));
+											importNames,
+											entryPoints));
 									traceModuleNames(
 										resolvedName,
 										importNames,
