@@ -40,17 +40,7 @@ Names
 	"_limited to_elements"
 Body
 
-/* TODO: [TLS] Remove these constants once a macro is available for "$…". */
-remainingElements ::= $"remaining elements";
-
-/**
- * Answer the field atom that represents a bounded stream's remaining element
- * count.
- * 
- * Returns:
- *    The requested field atom.
- */
-Private method "remaining elements" is [ remainingElements ];
+"remaining elements" is a new field atom;
 
 /**
  * A bounded stream artificially limits the number of elements that its

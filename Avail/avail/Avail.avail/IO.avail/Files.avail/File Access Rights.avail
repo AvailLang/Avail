@@ -1,5 +1,5 @@
 /*
- * File Permissions.avail
+ * File Access Rights.avail
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "File Permissions"
+System Module "File Access Rights"
 Versions
 	"dev"
 Uses
@@ -39,6 +39,15 @@ Uses
 Names
 	/* File access rights. */
 	"file access right",
+	"group read",
+	"group write",
+	"group execute",
+	"others read",
+	"others write",
+	"others execute",
+	"owner read",
+	"owner write",
+	"owner execute",
 	"_'s⁇access class",
 	"_'s⁇permission",
 
@@ -133,6 +142,7 @@ Method "file permission" is [filePermissions];
 /* Field atoms. */
 "access`#" is a new field atom;
 "access class" is a new field atom;
+"access right name" is a new field atom;
 "permission" is a new field atom;
 
 /**
@@ -145,7 +155,16 @@ Class "private file access right" extends object
 	with fields
 		access# : [1..9],
 		access class : file access class,
+		access right name : nonempty string,
 		permission : file permission;
+private file access right's name := "file access right";
+
+Method "“_”" is
+[
+	right : private file access right
+|
+	right's access right name
+] : nonempty string;
 
 /* Use code generation to produce the file access rights. */
 [
@@ -172,17 +191,19 @@ Class "private file access right" extends object
 				1 is [group],
 				2 is [others];
 		perm ::= 
-			choose cast index mod 3 into [t : {0, 1, 2}ᵀ | t]
+			choose cast (index - 1) mod 3 into [t : {0, 1, 2}ᵀ | t]
 			from {0, 1, 2}ᵀ
 			where
-				0 is [execute],
-				1 is [read],
-				2 is [write];
+				0 is [read],
+				1 is [write],
+				2 is [execute];
 		right ::= a private file access right with
 			access# ::= index,
 			access class ::= class,
+			access right name ::= rightName,
 			permission ::= perm;
 		Method rightName is [right];
+		Semantic restriction rightName is [right's type];
 	];
 ]();
 

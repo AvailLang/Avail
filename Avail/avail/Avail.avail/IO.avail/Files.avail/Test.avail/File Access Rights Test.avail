@@ -1,0 +1,200 @@
+/*
+ * File Access Rights Test.avail
+ * Copyright © 1993-2014, The Avail Foundation, LLC.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+System Module "File Access Rights Test"
+Versions
+	"dev"
+Uses
+	"Common" =
+	(
+		"I/O test suite",
+		"test directory"
+	),
+	"Data Abstractions",
+	"File Access Rights",
+	"File Names",
+	"Foundation",
+	"Unit Testing"
+Names
+	"file access rights test suite"
+Body
+
+"file access rights test suite" is a new atom;
+New test suite file access rights test suite extends I/O test suite;
+
+Private method "abracadabra.txt" is
+[
+	a file named test directory ++ "/abracadabra.txt"
+];
+
+Test "owner read" in file access rights test suite is
+[
+	Require: owner read's access class = owner;
+	Require: owner read's permission = read;
+];
+
+Test "owner write" in file access rights test suite is
+[
+	Require: owner write's access class = owner;
+	Require: owner write's permission = write;
+];
+
+Test "owner execute" in file access rights test suite is
+[
+	Require: owner execute's access class = owner;
+	Require: owner execute's permission = execute;
+];
+
+Test "group read" in file access rights test suite is
+[
+	Require: group read's access class = group;
+	Require: group read's permission = read;
+];
+
+Test "group write" in file access rights test suite is
+[
+	Require: group write's access class = group;
+	Require: group write's permission = write;
+];
+
+Test "group execute" in file access rights test suite is
+[
+	Require: group execute's access class = group;
+	Require: group execute's permission = execute;
+];
+
+Test "others read" in file access rights test suite is
+[
+	Require: others read's access class = others;
+	Require: others read's permission = read;
+];
+
+Test "others write" in file access rights test suite is
+[
+	Require: others write's access class = others;
+	Require: others write's permission = write;
+];
+
+Test "others execute" in file access rights test suite is
+[
+	Require: others execute's access class = others;
+	Require: others execute's permission = execute;
+];
+
+Test "owner readable" in file access rights test suite is
+[
+	fn ::= abracadabra.txt;
+	fn's access rights := {owner read};
+	Require: fn's access rights = {owner read};
+	Require: fn is readable;
+];
+
+Test "group readable" in file access rights test suite is
+[
+	fn ::= abracadabra.txt;
+	fn's access rights := {group read};
+	Require: fn's access rights = {group read};
+	Require: ¬fn is readable;
+];
+
+Test "others readable" in file access rights test suite is
+[
+	fn ::= abracadabra.txt;
+	fn's access rights := {others read};
+	Require: fn's access rights = {others read};
+	Require: ¬fn is readable;
+];
+
+Test "owner writable" in file access rights test suite is
+[
+	fn ::= abracadabra.txt;
+	fn's access rights := {owner write};
+	Require: fn's access rights = {owner write};
+	Require: fn is writable;
+];
+
+Test "group writable" in file access rights test suite is
+[
+	fn ::= abracadabra.txt;
+	fn's access rights := {group write};
+	Require: fn's access rights = {group write};
+	Require: ¬fn is writable;
+];
+
+Test "others writable" in file access rights test suite is
+[
+	fn ::= abracadabra.txt;
+	fn's access rights := {others write};
+	Require: fn's access rights = {others write};
+	Require: ¬fn is writable;
+];
+
+Test "owner executable" in file access rights test suite is
+[
+	fn ::= abracadabra.txt;
+	fn's access rights := {owner execute};
+	Require: fn's access rights = {owner execute};
+	Require: fn is executable;
+];
+
+Test "group executable" in file access rights test suite is
+[
+	fn ::= abracadabra.txt;
+	fn's access rights := {group execute};
+	Require: fn's access rights = {group execute};
+	Require: ¬fn is executable;
+];
+
+Test "others executable" in file access rights test suite is
+[
+	fn ::= abracadabra.txt;
+	fn's access rights := {others execute};
+	Require: fn's access rights = {others execute};
+	Require: ¬fn is executable;
+];
+
+Test "permutations" in file access rights test suite is
+[
+	fn ::= abracadabra.txt;
+	allRights ::=
+		cast file access right's instances into [t : {file access right|9} | t];
+	rng ::= a pRNG;
+	Repeat
+	[
+		n ::= rng's next [0..12];
+		rights : {file access right|} := ∅;
+		Repeat [rights := rights + rng's next element of allRights;] n times;
+		fn's access rights :=
+			cast rights into [t : {file access right|0..9} | t];
+		Require: fn's access rights = rights;
+	] 10 times;
+];

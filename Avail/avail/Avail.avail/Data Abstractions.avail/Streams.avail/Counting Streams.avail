@@ -41,10 +41,9 @@ Names
 	"a counting stream from_to_by_"
 Body
 
-/* TODO: [TLS] Remove these constants once a macro is available for "$…". */
-next ::= $next;
-step ::= $step;
-maximum ::= $maximum;
+"next" is a new field atom;
+"step" is a new field atom;
+"maximum" is a new field atom;
 
 /**
  * A counting number stream is an immutable lazy list of arbitarily many

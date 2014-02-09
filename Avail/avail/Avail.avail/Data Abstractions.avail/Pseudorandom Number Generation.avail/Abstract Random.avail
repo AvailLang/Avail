@@ -39,8 +39,11 @@ Uses
 	"Iterators",
 	"Streams"
 Names
+	/* Types. */
 	"pRNG",
 	"pRNG of_",
+
+	/* Pseudorandom number generation. */
 	"_'s⁇next_",
 	"_'s⁇next element of_",
 	"_'s⁇next binding of_",

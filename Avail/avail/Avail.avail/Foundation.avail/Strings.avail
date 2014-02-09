@@ -34,6 +34,7 @@ System Module "Strings"
 Versions
 	"dev"
 Uses
+	"Atoms",
 	"Bootstrap",
 	"Control Structures",
 	"Definers",
@@ -84,10 +85,9 @@ circledNumbers ::=
 /* This is a map from circled numbers to their implied numeric values. */
 circledNumberValues ::= (circledNumbers zip 1 to 50)→map;
 
-/* TODO: [TLS] Remove these constants once a macro is available for "$…". */
-description ::= $description;
-text ::= $text;
-escape ::= $escape;
+"description" is a new atom;
+"text" is a new atom;
+"escape" is a new atom;
 interpolationMode ::= enumeration of {description, text, escape};
 
 /**

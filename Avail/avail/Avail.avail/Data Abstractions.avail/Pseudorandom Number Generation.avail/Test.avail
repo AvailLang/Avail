@@ -36,8 +36,8 @@ Versions
 Uses
 	"Abstract Random",
 	"Common",
-	"Mersenne Twister",
 	"Foundation",
+	"Generic Construction",
 	"Unit Testing"
 Names
 	"pRNG test suite"
@@ -53,7 +53,7 @@ New test suite pRNG test suite extends data abstractions test suite;
  */
 rng : pRNG of whole number;
 
-Before running pRNG test suite, do [rng := a Mersenne Twister;];
+Before running pRNG test suite, do [rng := a pRNG;];
 After running pRNG test suite, do [Clear ↑rng;];
 
 Test "next integer within range" in pRNG test suite is

@@ -46,12 +46,8 @@ Names
 	"Mersenne Twister test suite"
 Body
 
-/* TODO: [TLS] Remove these constants once a macro is available for "$…". */
-_mt ::= $mt;
-_index ::= $index;
-
-Private method "mt" is [ _mt ];
-Private method "index" is [ _index ];
+"mt" is a new field atom;
+"index" is a new field atom;
 
 /* TODO: [TLS] Remove these constants when folding (or shift) is available. */
 _2_7 ::= 2^7;
@@ -256,18 +252,7 @@ Public method "a Mersenne Twister from_" is
 	(an iterator over a Mersenne Twister stream from seed) as pRNG of [0.._2_32)
 ] : pRNG of [0.._2_32);
 
-/* TODO: [TLS] Remove these constants once a macro is available for "$…". */
-_testSuite ::= $"Mersenne Twister test suite";
-
-/**
- * Answer the test suite identifier of the Mersenne Twister test suite.
- * 
- * @method "Mersenne Twister test suite"
- * @returns "atom"
- *          The requested test suite identifier.
- */
-Public method "Mersenne Twister test suite" is [ _testSuite ];
-
+"Mersenne Twister test suite" is a new atom;
 New test suite Mersenne Twister test suite extends data abstractions test suite;
 
 Test "Mersenne Twister standard test vectors" in Mersenne Twister test suite is

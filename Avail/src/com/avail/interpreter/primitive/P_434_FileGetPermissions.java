@@ -81,7 +81,7 @@ extends Primitive
 			AvailRuntime.posixPermissions();
 		for (int i = 0; i < permissions.length; i++)
 		{
-			permissionMap.put(permissions[i], IntegerDescriptor.fromInt(i));
+			permissionMap.put(permissions[i], IntegerDescriptor.fromInt(i + 1));
 		}
 	}
 

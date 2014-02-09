@@ -34,53 +34,16 @@ System Module "Test"
 Versions
 	"dev"
 Uses
-	"Common" =
-	(
-		"I/O test suite",
-		"test directory"
-	),
-	"File Names",
-	"File Management",
-	"Foundation",
-	"Primitives",
-	"Unit Testing"
-Names
-	"file primitives test suite"
+	"File Access Rights Test",
+	"File Names Test"
 Body
 
-"file primitives test suite" is a new atom;
-New test suite file primitives test suite extends I/O test suite;
+/* TODO: [TLS] Rewrite these tests and distribute them into subordinate
+ * testing modules.
+ */
 
-/* The test directory. */
-testDir ::= test directory;
-
-Test "file name(exists)" in file primitives test suite is
-[
-	fn1 ::= a file named testDir ++ "/abracadabra.txt";
-	fn2 ::= a file named testDir ++ "/doesnotexist.txt";
-	Require: fn1 exists;
-	Require: ¬fn2 exists;
-];
-
-Test "file name(readable)" in file primitives test suite is
-[
-	fn ::= a file named testDir ++ "/abracadabra.txt";
-	Require: fn is readable;
-];
-
-Test "file name(writable)" in file primitives test suite is
-[
-	fn ::= a file named testDir ++ "/abracadabra.txt";
-	Require: ¬fn is writable;
-];
-
-Test "file name(executable)" in file primitives test suite is
-[
-	fn ::= a file named testDir ++ "/abracadabra.txt";
-	Require: ¬fn is executable;
-];
-
-Test "file name(rename)" in file primitives test suite is
+/*
+Test "file name(rename)" in file access rights test suite is
 [
 	src ::= a file named testDir ++ "/source.empty";
 	dest ::= a file named testDir ++ "/destination.empty";
@@ -94,7 +57,7 @@ Test "file name(rename)" in file primitives test suite is
 	Require: ¬dest exists;
 ];
 
-Test "file name(unlink)" in file primitives test suite is
+Test "file name(unlink)" in file access rights test suite is
 [
 	fn ::= a file named testDir ++ "/delete.me";
 	Require: ¬fn exists;
@@ -104,16 +67,16 @@ Test "file name(unlink)" in file primitives test suite is
 	Require: ¬fn exists;
 ];
 
-Test "file(open readable,close)" in file primitives test suite is
+Test "file(open readable,close)" in file access rights test suite is
 [
-	fn ::= a file named testDir ++ "/abracadabra.txt";
+	fn ::= abracadabra.txt;
 	f ::= a readable file named fn;
 	Require: 1 = f's position;
 	Require: 11 = f's size;
 	Close f;
 ];
 
-Test "file(open writable,close)" in file primitives test suite is
+Test "file(open writable,close)" in file access rights test suite is
 [
 	fn ::= a file named testDir ++ "/scratch.txt";
 	f ::= a writable file named fn;
@@ -122,7 +85,7 @@ Test "file(open writable,close)" in file primitives test suite is
 	Close f;
 ];
 
-Test "file(open readable&writable,close)" in file primitives test suite is
+Test "file(open readable&writable,close)" in file access rights test suite is
 [
 	fn ::= a file named testDir ++ "/scratch.txt";
 	f ::= a readable, writable file named fn;
@@ -131,7 +94,7 @@ Test "file(open readable&writable,close)" in file primitives test suite is
 	Close f;
 ];
 
-Test "file(open variable mode,close)" in file primitives test suite is
+Test "file(open variable mode,close)" in file access rights test suite is
 [
 	rdfn ::= a file named testDir ++ "/abracadabra.txt";
 	rf : readable file := a file named rdfn (mode={read mode});
@@ -144,9 +107,9 @@ Test "file(open variable mode,close)" in file primitives test suite is
 	Close rwf;
 ];
 
-Test "file(size)" in file primitives test suite is
+Test "file(size)" in file access rights test suite is
 [
-	fn ::= a file named testDir ++ "/abracadabra.txt";
+	fn ::= abracadabra.txt;
 	Using a readable file named fn, do
 	[
 		f : readable file
@@ -155,10 +118,10 @@ Test "file(size)" in file primitives test suite is
 	];
 ];
 
-Test "file(read fully)" in file primitives test suite is
+Test "file(read fully)" in file access rights test suite is
 [
 	ref ::= map "abracadabra" through [c : character | c's code point];
-	fn ::= a file named testDir ++ "/abracadabra.txt";
+	fn ::= abracadabra.txt;
 	Using a readable file named fn, do
 	[
 		f : readable file
@@ -168,10 +131,10 @@ Test "file(read fully)" in file primitives test suite is
 	];
 ];
 
-Test "file(read in parts)" in file primitives test suite is
+Test "file(read in parts)" in file access rights test suite is
 [
 	ref ::= map "abracadabra" through [c : character | c's code point];
-	fn ::= a file named testDir ++ "/abracadabra.txt";
+	fn ::= abracadabra.txt;
 	Using a readable file named fn, do
 	[
 		f : readable file
@@ -186,7 +149,7 @@ Test "file(read in parts)" in file primitives test suite is
 	];
 ];
 
-Test "file(resize)" in file primitives test suite is
+Test "file(resize)" in file access rights test suite is
 [
 	ref1 ::= map "beluga whale" through
 		[c : character | cast c's code point into [t : [0..255] | t]];
@@ -218,7 +181,7 @@ Test "file(resize)" in file primitives test suite is
 	];
 ];
 
-Test "file(reposition)" in file primitives test suite is
+Test "file(reposition)" in file access rights test suite is
 [
 	ref1 ::= map "beluga whale" through
 		[c : character | cast c's code point into [t : [0..255] | t]];
@@ -253,7 +216,7 @@ Test "file(reposition)" in file primitives test suite is
 	];
 ];
 
-Test "file(round trip)" in file primitives test suite is
+Test "file(round trip)" in file access rights test suite is
 [
 	ref ::= map "my life as a parrot" through
 		[c : character | cast c's code point into [t : [0..255] | t]];
@@ -278,32 +241,33 @@ Test "file(round trip)" in file primitives test suite is
 	Require: ¬fn exists;
 ];
 
-Test "file(double close)" in file primitives test suite is
+Test "file(double close)" in file access rights test suite is
 [
-	fn ::= a file named testDir ++ "/abracadabra.txt";
+	fn ::= abracadabra.txt;
 	f ::= a readable file named fn;
 	Close f;
 	Close f;
 ]
 must raise file-closed exception;
 
-Test "file(can't open for reading)" in file primitives test suite is
+Test "file(can't open for reading)" in file access rights test suite is
 [
 	fn ::= a file named testDir ++ "/doesntexist.txt";
 	f ::= a readable file named fn;
 ]
 must raise I/O exception;
 
-Test "file(can't open for writing)" in file primitives test suite is
+Test "file(can't open for writing)" in file access rights test suite is
 [
-	fn ::= a file named testDir ++ "/abracadabra.txt";
+	fn ::= abracadabra.txt;
 	f ::= a writable file named fn;
 ]
 must raise I/O exception;
 
-Test "file(can't open for reading,writing)" in file primitives test suite is
+Test "file(can't open for reading,writing)" in file access rights test suite is
 [
-	fn ::= a file named testDir ++ "/abracadabra.txt";
+	fn ::= abracadabra.txt;
 	f ::= a readable, writable file named fn;
 ]
 must raise I/O exception;
+*/

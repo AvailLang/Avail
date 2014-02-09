@@ -1,5 +1,5 @@
 /*
- * Files.avail
+ * File Names Test.avail
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,15 +30,41 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Files"
+System Module "File Names Test"
 Versions
 	"dev"
-Extends
-	/* TODO: [TLS] Uncomment these modules. */
+Uses
+	"Common" =
+	(
+		"I/O test suite",
+		"test directory"
+	),
 	"File Access Rights",
-	/* "File Iterators", */
-	"File Management",
 	"File Names",
-	/* "Primitives", */
-	"Test"
+	"Foundation",
+	"Unit Testing"
+Names
+	"file names test suite"
 Body
+
+"file names test suite" is a new atom;
+New test suite file names test suite extends I/O test suite;
+
+Private method "abracadabra.txt" is
+[
+	a file named test directory ++ "/abracadabra.txt"
+];
+
+Before running each test in file names test suite, do
+[
+	fn ::= abracadabra.txt;
+	fn's access rights := {owner read, group read, others read};
+];
+
+Test "exists" in file names test suite is
+[
+	fn1 ::= abracadabra.txt;
+	fn2 ::= a file named test directory ++ "/doesnotexist.txt";
+	Require: fn1 exists;
+	Require: ¬fn2 exists;
+];

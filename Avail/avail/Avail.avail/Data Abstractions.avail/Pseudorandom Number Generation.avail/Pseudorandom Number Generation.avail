@@ -35,6 +35,7 @@ Versions
 	"dev"
 Extends
 	"Abstract Random",
+	"Generic Construction",
 	"Mersenne Twister",
 	"Test"
 Body

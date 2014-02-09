@@ -1,5 +1,5 @@
 /*
- * Files.avail
+ * Generic Construction.avail
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,15 +30,59 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Files"
+System Module "Generic Construction"
 Versions
 	"dev"
-Extends
-	/* TODO: [TLS] Uncomment these modules. */
-	"File Access Rights",
-	/* "File Iterators", */
-	"File Management",
-	"File Names",
-	/* "Primitives", */
-	"Test"
+Uses
+	"Abstract Random",
+	"Foundation",
+	"Mersenne Twister"
+Names
+	"a pRNG",
+	"pRNG constructor",
+	"pRNG constructor:=_"
 Body
+
+"pRNG constructor function" is a new heritable atom;
+
+/**
+ * Establish the specified {@type "function"} as the default means of acquiring
+ * {@method "a pRNG" a pseudorandom number generator}.
+ *
+ * @param "constructor" "[]→pRNG"
+ * @see {@method "a pRNG"}
+ */
+Public method "pRNG constructor:=_" is
+[
+	constructor : []→pRNG
+|
+	current fiber[pRNG constructor function] := constructor;
+] : ⊤;
+
+/**
+ * Answer the {@type "function"} that {@method "a pRNG"} uses to produce a
+ * {@type "pRNG" pseudorandom number generator}. If
+ * {@method "pRNG constructor:=_"} has not been called by the
+ * {@method "current fiber"} or an ancestor {@type "fiber"}, then answer the
+ * implementation-dependent default {@type "function"}. 
+ *
+ * @returns "[]→pRNG"
+ */
+Public method "pRNG constructor" is
+[
+	current fiber[pRNG constructor function] else [[a Mersenne Twister]]
+];
+
+Semantic restriction "pRNG constructor" is [[]→pRNG];
+
+/**
+ * Answer a {@type "pRNG" pseudorandom number generator} of the preferred type
+ * by applying the function previously set by {@method "pRNG constructor:=_"}.
+ *
+ * @method "a pRNG"
+ * @returns "pRNG"
+ */
+Public method "a pRNG" is
+[
+	pRNG constructor()
+] : pRNG;
