@@ -60,7 +60,7 @@ Public method "Connect_to_" is
 	semName ::= format "connect semaphore for ‘①’" with s's name;
 	sem ::= a semaphore named semName with 0 out of 1 permits;
 	killer : exception;
-	Ignore: a fiber connecting s to addr,
+	Ignore: a fiber connecting s to peerAddress,
 		on success doing [Signal sem;]
 		on failure doing [e : exception | killer := e; Signal sem;];
 	Await sem;
@@ -73,7 +73,7 @@ Public method "Connect_to_" is
  * @method "Write_to_"
  * @param "data" "<byte…|>"
  */
-Public method "Write_to_" is
+Method "Write_to_" is
 [
 	data : <byte…|>,
 	s : client socket
@@ -102,7 +102,7 @@ Public method "Write_to_" is
  *        The maximum number of bytes to read from the connection.
  * @param "s" "client socket"
  */
-Public method "read«at most»?_byte|bytes from_" is
+Method "read«at most»?_byte|bytes from_" is
 [
 	soft : boolean,
 	count : whole number,
@@ -115,7 +115,8 @@ Public method "read«at most»?_byte|bytes from_" is
 	endOfStream : boolean := false;
 	Until
 	[
-		Ignore: a fiber reading (count - |data|) bytes from s,
+		remaining ::= cast count - |data| into [t : whole number | t];
+		Ignore: a fiber reading remaining bytes from s,
 			on success doing
 			[
 				justRead : <byte…|>,

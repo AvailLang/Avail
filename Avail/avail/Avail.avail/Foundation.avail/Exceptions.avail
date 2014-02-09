@@ -54,7 +54,7 @@ Names
 	"Current fiber's unhandled exception handler is_",
 	"Guard|guard_«intercept_»«ensure_»",
 	"Raise_",
-	"Raise an exception for_",
+	"an exception for_",
 	"cascade_",
 	"current fiber's unhandled exception handler",
 	"causal exception",
@@ -1043,6 +1043,8 @@ System exception "directory-not-empty" (202)
 	extends I/O exception;
 System exception "partial-success" (203)
 	extends system exception;
+System exception "illegal-option" (204)
+	extends bad-argument exception;
 System exception "Java-class-not-available" (500)
 	extends element-access exception;
 System exception "pojo-type-is-abstract" (501)
@@ -1167,21 +1169,23 @@ Stable method "“_”" is
 ];
 
 /**
- * Raise the right exception for the specified system error code.
+ * Answer the right exception for the specified system error code.
  *
- * @method "Raise an exception for_"
+ * @method "an exception for_"
  * @param "errorCode" "natural number"
  *        A system error code.
- * @raises "exception"
- *         The appropriate exception for the specified error code.
- * @returns "⊥"
+ * @returns "exception"
+ *          The appropriate exception for the specified error code.
  */
-Public method "Raise an exception for_" is
+Public method "an exception for_" is
 [
 	errorCode : natural number
 |
-	early failure function(errorCode)
-] : ⊥;
+	exceptionType ::= exceptionsByCode[errorCode];
+	an exceptionType with
+		error code ::= errorCode,
+		error name ::= exceptionType's error name's instance
+] : exception;
 
 "throwable" is a new field atom;
 

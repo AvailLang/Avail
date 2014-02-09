@@ -34,9 +34,10 @@ System Module "Files"
 Versions
 	"dev"
 Extends
-	"File Iterators",
+	/* TODO: [TLS] Uncomment these modules. */
+	/* "File Iterators", */
 	"File Management",
 	"File Names",
-	"File Permissions",
-	"Primitives"
+	"File Permissions"
+	/* "Primitives"*/
 Body

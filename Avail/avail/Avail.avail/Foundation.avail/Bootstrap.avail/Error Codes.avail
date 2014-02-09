@@ -84,6 +84,7 @@ Names
 	/*  86 */ "forward method definition code",
 	/*  27 */ "function disagrees with primitive restriction code",
 	/*  80 */ "handler sentinel code",
+	/* 204 */ "illegal option code",
 	/*  77 */ "illegal trace mode code",
 	/*  12 */ "incorrect argument type code",
 	/*  11 */ "incorrect number of arguments code",
@@ -628,6 +629,11 @@ Primitive "directory not empty code" is
 Primitive "partial success code" is
 [
 	203
+];
+
+Primitive "illegal option code" is
+[
+	204
 ];
 
 Primitive "java class not available code" is

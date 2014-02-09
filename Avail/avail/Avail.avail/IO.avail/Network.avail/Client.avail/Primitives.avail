@@ -285,9 +285,9 @@ Public method "Bind_to_" is
  * @param "port" "[0..65535]"
  * @param "success" "[]→⊤"
  *        The function to apply when connection establishment completes.
- * @param "failure" "[natural number]→⊤"
- *        The function to apply to the error code that classifies the failure of
- *        the asynchronous connect operation.
+ * @param "failure" "[exception]→⊤"
+ *        The function to apply to the {@type "exception"} that classifies the
+ *        failure of the asynchronous connect operation.
  * @param "priority" "byte"
  *        The priority of the new fiber.
  * @returns "fiber"
@@ -305,7 +305,7 @@ is
 	IP address,
 	[0..65535],
 	[]→⊤,
-	[natural number]→⊤,
+	[exception]→⊤,
 	byte
 ]→fiber;
 

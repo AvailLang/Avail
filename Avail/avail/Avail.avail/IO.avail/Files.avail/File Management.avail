@@ -197,7 +197,7 @@ is
 [
 	src : file name,
 	dest : file name,
-	followSymlinks, boolean,
+	followSymlinks : boolean,
 	overwrite : boolean,
 	copyAttributes : boolean
 |
@@ -260,14 +260,14 @@ is
 [
 	src : file name,
 	dest : file name,
-	followSymlinks, boolean,
+	followSymlinks : boolean,
 	overwrite : boolean,
 	copyAttributes : boolean
 |
 	Recursively copy src to dest (
 		follow symlinks = followSymlinks,
 		overwrite = overwrite,
-		copying attributes = copyAttributes);
+		copy attributes = copyAttributes);
 ] : ⊤;
 
 /**
