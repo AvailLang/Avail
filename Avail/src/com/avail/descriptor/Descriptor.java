@@ -4413,4 +4413,12 @@ extends AbstractDescriptor
 	{
 		throw unsupportedOperationException();
 	}
+
+	@Override
+	void o_AddUnloadFunction (
+		final AvailObject object,
+		final A_Function unloadFunction)
+	{
+		throw unsupportedOperationException();
+	}
 }

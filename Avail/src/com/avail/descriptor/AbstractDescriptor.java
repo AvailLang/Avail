@@ -5987,4 +5987,12 @@ public abstract class AbstractDescriptor
 	 * @return
 	 */
 	abstract boolean o_HasValue (final AvailObject object);
+
+	/**
+	 * @param object
+	 * @param unloadFunction
+	 */
+	abstract void o_AddUnloadFunction (
+		final AvailObject object,
+		final A_Function unloadFunction);
 }

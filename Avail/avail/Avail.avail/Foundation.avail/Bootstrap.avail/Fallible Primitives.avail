@@ -49,6 +49,7 @@ Uses
 	(
 		"$_@pc=_stack=_[_]caller=_",
 		"Abstract method_is_",
+		"After the current module is unloaded,⁇do_",
 		"Attempt to join_",
 		"Exit_with_",
 		"Forward method_is_",
@@ -1003,6 +1004,21 @@ Primitive "Seal method_at_" is
 	signature : tuple of any meta
 |
 	Primitive 232 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode
+] : ⊤;
+
+/**
+ * Register the given function for callback after the module undergoing
+ * compilation has been unloaded.
+ *
+ * Parameters:
+ *    aFunction - The post-unload function.
+ */
+Primitive "After the current module is unloaded,⁇do_" is
+[
+	aFunction : function
+|
+	Primitive 233 (failureCode : natural number);
 	Private invoke _fail_primitive with failureCode
 ] : ⊤;
 

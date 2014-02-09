@@ -6936,4 +6936,10 @@ implements
 	{
 		return descriptor.o_HasValue(this);
 	}
+
+	@Override
+	public void addUnloadFunction (final A_Function unloadFunction)
+	{
+		descriptor.o_AddUnloadFunction(this, unloadFunction);
+	}
 }

@@ -4571,4 +4571,12 @@ extends AbstractDescriptor
 	{
 		return o_Traversed(object).hasValue();
 	}
+
+	@Override
+	void o_AddUnloadFunction (
+		final AvailObject object,
+		final A_Function unloadFunction)
+	{
+		o_Traversed(object).addUnloadFunction(unloadFunction);
+	}
 }

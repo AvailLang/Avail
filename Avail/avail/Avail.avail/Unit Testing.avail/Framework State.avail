@@ -40,8 +40,12 @@ Names
 	"root suite",
 	"root suite:=_",
 	"suite lock",
+	"suite atoms by module",
+	"suite atoms by module:=_",
 	"suites by atom",
 	"suites by atom:=_",
+	"test atoms by module",
+	"test atoms by module:=_",
 	"tests by atom",
 	"tests by atom:=_"
 Body
@@ -70,6 +74,15 @@ rootSuite : root unit test suite := a root unit test suite with
 Public variable ↑rootSuite is "root suite";
 
 /**
+ * The test suite atoms, organized by {@type "module"} and guarded by the
+ * {@method "suite lock"}.
+ *
+ * @global "suiteAtomsByModule" "{module→{atom|}|}"
+ */
+suiteAtomsByModule : {module→{atom|}|} := {};
+Public variable ↑suiteAtomsByModule is "suite atoms by module";
+
+/**
  * The declared unit test suites, keyed by atom, guarded by the {@method
  * "suite lock"}.
  *
@@ -77,6 +90,15 @@ Public variable ↑rootSuite is "root suite";
  */
 suitesByAtom : {atom→unit test suite|} := {};
 Public variable ↑suitesByAtom is "suites by atom";
+
+/**
+ * The test atoms, organized by {@type "module"} and guarded by the
+ * {@method "test lock"}.
+ *
+ * @global "testAtomsByModule" "{module→{atom|}|}"
+ */
+testAtomsByModule : {module→{atom|}|} := {};
+Public variable ↑suiteAtomsByModule is "test atoms by module";
 
 /**
  * The unit tests, organized by test identifier, guarded by the {@method

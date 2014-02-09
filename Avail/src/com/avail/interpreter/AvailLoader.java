@@ -35,6 +35,7 @@ package com.avail.interpreter;
 import static com.avail.descriptor.AvailObject.error;
 import static com.avail.exceptions.AvailErrorCode.*;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import com.avail.AvailRuntime;
 import com.avail.annotations.*;
@@ -709,8 +710,7 @@ public final class AvailLoader
 	 * @param definition
 	 *        A {@linkplain DefinitionDescriptor definition}.
 	 */
-	public final void removeDefinition (
-		final A_Definition definition)
+	public final void removeDefinition (final A_Definition definition)
 	{
 		if (definition.isForwardDefinition())
 		{
@@ -719,6 +719,32 @@ public final class AvailLoader
 				true);
 		}
 		runtime.removeDefinition(definition);
+	}
+
+	/**
+	 * Run the specified {@linkplain A_Tuple tuple} of {@linkplain A_Function
+	 * functions} in parallel. Do not wait for these functions to finish
+	 * running.
+	 *
+	 * @param unloadFunctions
+	 *        A tuple of unload functions.
+	 */
+	public final void runUnloadFunctions (final A_Tuple unloadFunctions)
+	{
+		for (final A_Function unloadFunction : unloadFunctions)
+		{
+			final A_Fiber fiber = FiberDescriptor.newFiber(
+				TypeDescriptor.Types.TOP.o(),
+				FiberDescriptor.loaderPriority,
+				StringDescriptor.format(
+					"Unload function for module %s",
+					module.moduleName()));
+			Interpreter.runOutermostFunction(
+				runtime,
+				fiber,
+				unloadFunction,
+				Collections.<A_BasicObject>emptyList());
+		}
 	}
 
 	/**

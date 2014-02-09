@@ -209,7 +209,14 @@ extends Descriptor
 		 * MethodDescriptor methods} to their {@linkplain AtomDescriptor true
 		 * names}.
 		 */
-		ENTRY_POINTS
+		ENTRY_POINTS,
+
+		/**
+		 * A {@linkplain TupleDescriptor tuple} of {@linkplain
+		 * FunctionDescriptor functions} that should be applied when this
+		 * {@linkplain ModuleDescriptor module} is unloaded.
+		 */
+		UNLOAD_FUNCTIONS
 	}
 
 	@Override boolean allowsImmutableToMutableReferenceInField (
@@ -228,6 +235,7 @@ extends Descriptor
 			|| e == SEMANTIC_RESTRICTIONS
 			|| e == SEALS
 			|| e == ENTRY_POINTS
+			|| e == UNLOAD_FUNCTIONS
 			|| e == FLAGS_AND_COUNTER;
 	}
 
@@ -645,6 +653,20 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
+	void o_AddUnloadFunction (
+		final AvailObject object,
+		final A_Function unloadFunction)
+	{
+		synchronized (object)
+		{
+			A_Tuple unloadFunctions = object.slot(UNLOAD_FUNCTIONS);
+			unloadFunctions = unloadFunctions.appendCanDestroy(
+				unloadFunction, true);
+			object.setSlot(UNLOAD_FUNCTIONS, unloadFunctions);
+		}
+	}
+
+	@Override @AvailMethod
 	boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		// Compare by address (identity).
@@ -689,17 +711,18 @@ extends Descriptor
 		synchronized (object)
 		{
 			final AvailRuntime runtime = AvailRuntime.current();
-			// Remove method definitions
+			// Remove method definitions.
 			for (final A_Definition definition : object.methodDefinitions())
 			{
 				aLoader.removeDefinition(definition);
 			}
-			// Remove semantic restrictions
+			// Remove semantic restrictions.
 			final A_Set restrictions = object.slot(SEMANTIC_RESTRICTIONS);
 			for (final A_SemanticRestriction restriction : restrictions)
 			{
 				runtime.removeTypeRestriction(restriction);
 			}
+			// Remove seals.
 			final A_Map seals = object.slot(SEALS);
 			for (final MapDescriptor.Entry entry : seals.mapIterable())
 			{
@@ -709,6 +732,8 @@ extends Descriptor
 					runtime.removeSeal(methodName, seal);
 				}
 			}
+			// Run unload functions (asynchronously).
+			aLoader.runUnloadFunctions(object.slot(UNLOAD_FUNCTIONS));
 		}
 	}
 
@@ -856,6 +881,7 @@ extends Descriptor
 	{
 		final A_Map emptyMap = MapDescriptor.empty();
 		final A_Set emptySet = SetDescriptor.empty();
+		final A_Tuple emptyTuple = TupleDescriptor.empty();
 		final AvailObject module = mutable.create();
 		module.setSlot(NAME, moduleName);
 		module.setSlot(ALL_ANCESTORS, NilDescriptor.nil());
@@ -872,6 +898,7 @@ extends Descriptor
 		module.setSlot(SEMANTIC_RESTRICTIONS, emptySet);
 		module.setSlot(SEALS, emptyMap);
 		module.setSlot(ENTRY_POINTS, emptyMap);
+		module.setSlot(UNLOAD_FUNCTIONS, emptyTuple);
 		module.setSlot(COUNTER, 0);
 		// Adding the module to its ancestors set will cause recursive scanning
 		// to mark everything as shared, so it's essential that all fields have

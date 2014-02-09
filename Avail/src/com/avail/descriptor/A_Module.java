@@ -249,4 +249,14 @@ extends A_BasicObject
 	 * @param moreAncestors
 	 */
 	void addAncestors (A_Set moreAncestors);
+
+	/**
+	 * Add the specified {@linkplain A_Function function} to the {@linkplain
+	 * A_Tuple tuple} of functions that should be applied when the {@linkplain
+	 * A_Module module} is unloaded.
+	 *
+	 * @param unloadFunction
+	 *        A function.
+	 */
+	void addUnloadFunction (A_Function unloadFunction);
 }
