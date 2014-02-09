@@ -1,5 +1,5 @@
 /**
- * P_170_FileExists.java
+ * P_161_FileClose.java
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -31,25 +31,29 @@
  */
 package com.avail.interpreter.primitive;
 
-import static com.avail.descriptor.TypeDescriptor.Types.CHARACTER;
-import static com.avail.exceptions.AvailErrorCode.E_PERMISSION_DENIED;
+import static com.avail.descriptor.TypeDescriptor.Types.*;
+import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
-import java.io.File;
+import java.io.IOException;
+import java.nio.channels.AsynchronousFileChannel;
 import java.util.List;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 
 /**
- * <strong>Primitive 170:</strong> Does a {@linkplain File file} exists with
- * the specified filename?
+ * <strong>Primitive 161:</strong> Close the {@linkplain AsynchronousFileChannel
+ * file} associated with the specified {@linkplain AtomDescriptor handle}.
+ * Forget the association between the handle and the file.
+ *
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class P_170_FileExists
+public final class P_161_FileClose
 extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_170_FileExists().init(
+	public final static Primitive instance = new P_161_FileClose().init(
 		1, CanInline, HasSideEffect);
 
 	@Override
@@ -59,19 +63,32 @@ extends Primitive
 		final boolean skipReturnCheck)
 	{
 		assert args.size() == 1;
-		final A_String filename = args.get(0);
-		final File file = new File(filename.asNativeString());
-		final boolean exists;
+		final A_Atom handle = args.get(0);
+		final A_BasicObject pojo =
+			handle.getAtomProperty(AtomDescriptor.fileKey());
+		if (pojo.equalsNil())
+		{
+			return interpreter.primitiveFailure(E_INVALID_HANDLE);
+		}
+		final AsynchronousFileChannel file =
+			(AsynchronousFileChannel) pojo.javaObject();
 		try
 		{
-			exists = file.exists();
+			file.close();
 		}
-		catch (final SecurityException e)
+		catch (final IOException e)
 		{
-			return interpreter.primitiveFailure(E_PERMISSION_DENIED);
+			// There isn't much to do about a failed close, especially since
+			// we've already forgotten about the handle. There's no reason
+			// to fail the primitive.
 		}
-		return interpreter.primitiveSuccess(
-			AtomDescriptor.objectFromBoolean(exists));
+		handle.setAtomProperty(
+			AtomDescriptor.fileKey(), NilDescriptor.nil());
+		handle.setAtomProperty(
+			AtomDescriptor.fileModeReadKey(), NilDescriptor.nil());
+		handle.setAtomProperty(
+			AtomDescriptor.fileModeWriteKey(), NilDescriptor.nil());
+		return interpreter.primitiveSuccess(NilDescriptor.nil());
 	}
 
 	@Override
@@ -79,13 +96,13 @@ extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				TupleTypeDescriptor.oneOrMoreOf(CHARACTER.o())),
-			EnumerationTypeDescriptor.booleanObject());
+				ATOM.o()),
+			TOP.o());
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return InstanceTypeDescriptor.on(E_PERMISSION_DENIED.numericCode());
+		return InstanceTypeDescriptor.on(E_INVALID_HANDLE.numericCode());
 	}
 }

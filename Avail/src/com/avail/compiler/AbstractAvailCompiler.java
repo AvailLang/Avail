@@ -2123,7 +2123,8 @@ public abstract class AbstractAvailCompiler
 		final AsynchronousFileChannel file;
 		try
 		{
-			file = runtime.openFile(ref.toPath(), StandardOpenOption.READ);
+			file = runtime.openFile(
+				ref.toPath(), EnumSet.of(StandardOpenOption.READ));
 		}
 		catch (final IOException e)
 		{

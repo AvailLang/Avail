@@ -1,0 +1,160 @@
+/*
+ * File Names.avail
+ * Copyright © 1993-2014, The Avail Foundation.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+System Module "File Names"
+Versions
+	"dev"
+Uses
+	"Foundation"
+Names
+	/* File name types. */
+	"file name",
+
+	/* File naming. */
+	"_'s⁇name",
+
+	/* File name construction. */
+	"a file named_",
+
+	/* File existence. */
+	"_exists(follow if symlink=_)",
+	"_exists«(don't follow if symlink)»?"
+Body
+
+"name" is a new field atom;
+
+/**
+ * A file name represents a node, actual or hypothetical, within a file system.
+ *
+ * @type "file name"
+ * @supertype "object"
+ */
+Public class "file name" extends object
+	with fields
+		public name : nonempty string;
+
+/**
+ * @method "“_”"
+ * @param "fn" "file name"
+ * @returns "nonempty string"
+ */
+Stable method "“_”" is
+[
+	fn : file name
+|
+	fn's name
+];
+
+/**
+ * Construct and answer a {@type "file name"} from the specified {@type
+ * "nonempty string"}.
+ *
+ * @method "a file named_"
+ * @param "n" "nonempty string"
+ * @returns "file name"
+ *          The requested file name.
+ */
+Public stable method "a file named_" is
+[
+	n : nonempty string
+|
+	a file name with name ::= n
+] : file name;
+
+/**
+ * @method "a file named_"
+ * @restricts "nonempty string's type"
+ */
+Semantic restriction "a file named_" is
+[
+	n : nonempty string's type
+|
+	extend file name with name : n
+];
+
+/**
+ * Does the specified {@type "file name"} exist?
+ *
+ * Note that the answer is only guaranteed valid at the time of the underlying
+ * file system query, and is outdated immediately thereafter.
+ *
+ * @method "_exists(follow if symlink=_)"
+ * @param "fn" "file name"
+ * @param "followIfSymlink" "boolean"
+ *        {@method "true"} if {@param "fn"} should be followed if it refers to a
+ *        symbolic link, {@method "false"} otherwise.
+ * @returns "boolean"
+ *          {@method "true"} if {@param "fn"} names an existing file, {@method
+ *          "false"} otherwise.
+ * @raises "permission-denied exception"
+ *         If permission is denied to use the file named by {@param "fn"}.
+ */
+Public method "_exists(follow if symlink=_)" is
+[
+	fn : file name,
+	followIfSymlink : boolean
+|
+	[
+		s : nonempty string,
+		b : boolean
+	|
+		Primitive 430 (e : permission-denied code's type);
+		Raise an exception for e
+	] : boolean (fn's name, followIfSymlink)
+];
+
+/**
+ * Does the specified {@type "file name"} exist?
+ *
+ * Note that the answer is only guaranteed valid at the time of the underlying
+ * file system query, and is outdated immediately thereafter.
+ *
+ * @method "_exists«(don't follow if symlink)»?"
+ * @param "fn" "file name"
+ * @param "dontFollowIfSymlink" "boolean"
+ *        {@method "true"} if {@param "fn"} should not be followed if it refers
+ *        to a symbolic link, {@method "false"} otherwise.
+ * @returns "boolean"
+ *          {@method "true"} if {@param "fn"} names an existing file, {@method
+ *          "false"} otherwise.
+ * @raises "permission-denied exception"
+ *         If permission is denied to use the file named by {@param "fn"}.
+ */
+Public method "_exists«(don't follow if symlink)»?" is
+[
+	fn : file name,
+	dontFollowIfSymlink : boolean
+|
+	fn exists (follow if symlink = ¬dontFollowIfSymlink)
+] : boolean;
+
+/* TODO: [TLS] Add support for real path! */

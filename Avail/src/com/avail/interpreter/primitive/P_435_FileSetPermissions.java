@@ -1,5 +1,5 @@
 /**
- * P_162_FileOpenReadWrite.java
+ * P_435_FileSetPermissions.java
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -29,31 +29,59 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+
 package com.avail.interpreter.primitive;
 
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
-import java.io.*;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.attribute.PosixFilePermission;
+import java.util.EnumSet;
 import java.util.List;
+import java.util.Set;
+import com.avail.AvailRuntime;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 
 /**
- * <strong>Primitive 162:</strong> Open a {@linkplain RandomAccessFile file}
- * for reading and writing. Answer a {@linkplain AtomDescriptor handle} that
- * uniquely identifies the file.
+ * <strong>Primitive 435</strong>: Set the access rights for the file specified
+ * by the given {@linkplain Path path}.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class P_162_FileOpenReadWrite
+public final class P_435_FileSetPermissions
 extends Primitive
 {
 	/**
-	 * The sole instance of this primitive class.  Accessed through reflection.
+	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_162_FileOpenReadWrite().init(
-		1, CanInline, HasSideEffect);
+	public final static Primitive instance =
+		new P_435_FileSetPermissions().init(2, CanInline, HasSideEffect);
+
+	/**
+	 * Convert the specified {@linkplain SetDescriptor set} of {@linkplain
+	 * IntegerDescriptor ordinals} into the corresponding {@linkplain Set set}
+	 * of {@linkplain PosixFilePermission POSIX file permissions}.
+	 *
+	 * @param ordinals
+	 *        Some ordinals.
+	 * @return The equivalent POSIX file permissions.
+	 */
+	private Set<PosixFilePermission> permissionsFor (final A_Set ordinals)
+	{
+		final PosixFilePermission[] allPermissions =
+			AvailRuntime.posixPermissions();
+		final Set<PosixFilePermission> permissions =
+			EnumSet.noneOf(PosixFilePermission.class);
+		for (final A_Number ordinal : ordinals)
+		{
+			permissions.add(allPermissions[ordinal.extractInt() - 1]);
+		}
+		return permissions;
+	}
 
 	@Override
 	public Result attempt (
@@ -61,33 +89,30 @@ extends Primitive
 		final Interpreter interpreter,
 		final boolean skipReturnCheck)
 	{
-		assert args.size() == 1;
+		assert args.size() == 2;
 		final A_String filename = args.get(0);
-		final A_Atom handle =
-			AtomDescriptor.create(filename, NilDescriptor.nil());
+		final A_Set ordinals = args.get(1);
+		final AvailRuntime runtime = AvailRuntime.current();
+		final Path path = runtime.fileSystem().getPath(
+			filename.asNativeString());
+		final Set<PosixFilePermission> permissions = permissionsFor(ordinals);
 		try
 		{
-			final RandomAccessFile file = new RandomAccessFile(
-				filename.asNativeString(),
-				"rw");
-			final AvailObject pojo = RawPojoDescriptor.identityWrap(file);
-			handle.setAtomProperty(AtomDescriptor.fileKey(), pojo);
-			handle.setAtomProperty(
-				AtomDescriptor.fileModeReadKey(),
-				AtomDescriptor.fileModeReadKey());
-			handle.setAtomProperty(
-				AtomDescriptor.fileModeWriteKey(),
-				AtomDescriptor.fileModeWriteKey());
-		}
-		catch (final IOException e)
-		{
-			return interpreter.primitiveFailure(E_IO_ERROR);
+			Files.setPosixFilePermissions(path, permissions);
 		}
 		catch (final SecurityException e)
 		{
 			return interpreter.primitiveFailure(E_PERMISSION_DENIED);
 		}
-		return interpreter.primitiveSuccess(handle);
+		catch (final IOException e)
+		{
+			return interpreter.primitiveFailure(E_IO_ERROR);
+		}
+		catch (final UnsupportedOperationException e)
+		{
+			return interpreter.primitiveFailure(E_PRIMITIVE_NOT_SUPPORTED);
+		}
+		return interpreter.primitiveSuccess(NilDescriptor.nil());
 	}
 
 	@Override
@@ -95,8 +120,19 @@ extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				TupleTypeDescriptor.oneOrMoreOf(CHARACTER.o())),
-			ATOM.o());
+				TupleTypeDescriptor.oneOrMoreOf(CHARACTER.o()),
+				SetTypeDescriptor.setTypeForSizesContentType(
+					IntegerRangeTypeDescriptor.create(
+						IntegerDescriptor.fromInt(0),
+						true,
+						IntegerDescriptor.fromInt(9),
+						true),
+					IntegerRangeTypeDescriptor.create(
+						IntegerDescriptor.fromInt(1),
+						true,
+						IntegerDescriptor.fromInt(9),
+						true))),
+			TOP.o());
 	}
 
 	@Override
@@ -105,7 +141,8 @@ extends Primitive
 		return AbstractEnumerationTypeDescriptor.withInstances(
 			TupleDescriptor.from(
 				E_PERMISSION_DENIED.numericCode(),
-				E_IO_ERROR.numericCode()
+				E_IO_ERROR.numericCode(),
+				E_PRIMITIVE_NOT_SUPPORTED.numericCode()
 			).asSet());
 	}
 }

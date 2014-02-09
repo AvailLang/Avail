@@ -326,9 +326,9 @@ is
  * @param "port" "[0..65535]"
  * @param "success" "[]→⊤"
  *        The function to apply when connection establishment completes.
- * @param "failure" "[natural number]→⊤"
- *        The function to apply to the error code that classifies the failure of
- *        the asynchronous connect operation.
+ * @param "failure" "[exception]→⊤"
+ *        The function to apply to the {@type "exception"} that classifies the
+ *        failure of the asynchronous connect operation.
  * @param "priority" "byte"
  *        The priority of the new fiber.
  * @returns "fiber"
@@ -346,9 +346,10 @@ is
 	ipAddress : IPv4 address,
 	port : [0..65535],
 	success : []→⊤,
-	failure : [natural number]→⊤,
+	failure : [exception]→⊤,
 	priority : byte
 |
+	bad ::= [c : natural number | failure(an exception for c);];
 	[
 		h : atom,
 		octets : <byte…|4>,
@@ -366,8 +367,9 @@ is
 			permission-denied code
 		}ᵀ);
 		Raise an exception for code
-	] : fiber (s's handle, ipAddress's octets, port, success, failure, priority)
+	] : fiber (s's handle, ipAddress's octets, port, success, bad, priority)
 ] : fiber;
+
 /**
  * Asynchronously connect a {@type "client socket"} to a remote {@type
  * "IP address"} and port. If the operation is successful, then fork a new
@@ -385,9 +387,9 @@ is
  * @param "port" "[0..65535]"
  * @param "success" "[]→⊤"
  *        The function to apply when connection establishment completes.
- * @param "failure" "[natural number]→⊤"
- *        The function to apply to the error code that classifies the failure of
- *        the asynchronous connect operation.
+ * @param "failure" "[exception]→⊤"
+ *        The function to apply to the {@type "exception"} that classifies the
+ *        failure of the asynchronous connect operation.
  * @param "priority" "byte"
  *        The priority of the new fiber.
  * @returns "fiber"
@@ -405,9 +407,10 @@ is
 	ipAddress : IPv6 address,
 	port : [0..65535],
 	success : []→⊤,
-	failure : [natural number]→⊤,
+	failure : [exception]→⊤,
 	priority : byte
 |
+	bad ::= [c : natural number | failure(an exception for c);];
 	[
 		h : atom,
 		octets : <byte…|16>,
@@ -425,7 +428,7 @@ is
 			permission-denied code
 		}ᵀ);
 		Raise an exception for code
-	] : fiber (s's handle, ipAddress's octets, port, success, failure, priority)
+	] : fiber (s's handle, ipAddress's octets, port, success, bad, priority)
 ] : fiber;
 
 /**
@@ -443,9 +446,9 @@ is
  * @param "peerAddress" "socket address"
  * @param "success" "[]→⊤"
  *        The function to apply when connection establishment completes.
- * @param "failure" "[natural number]→⊤"
- *        The function to apply to the error code that classifies the failure of
- *        the asynchronous connect operation.
+ * @param "failure" "[exception]→⊤"
+ *        The function to apply to the {@type "exception"} that classifies the
+ *        failure of the asynchronous connect operation.
  * @param "optionalPriority" "<byte…|0..1>"
  *        If specified, then the priority of the new fiber. If not specified,
  *        then the new fiber will run at the same priority as the {@method
@@ -463,7 +466,7 @@ is
 	s : client socket,
 	peerAddress : socket address,
 	success : []→⊤,
-	failure : [natural number]→⊤,
+	failure : [exception]→⊤,
 	optionalPriority : <byte…|0..1>
 |
 	addr ::= peerAddress's address;
@@ -484,7 +487,7 @@ is
 	s : client socket's type,
 	peerAddress : socket address's type,
 	success : []→⊤'s type,
-	failure : [natural number]→⊤'s type,
+	failure : [exception]→⊤'s type,
 	optionalPriority : <byte…|0..1>'s type
 |
 	fiber→(success's return type ∪ failure's return type)
@@ -508,9 +511,9 @@ is
  * @param "success" "[<byte…|>, boolean]→⊤"
  *        The function to apply to the newly read data and end-of-stream
  *        indicator.
- * @param "failure" "[natural number]→⊤"
- *        The function to apply to the error code that classifies the failure of
- *        the asynchronous connect operation.
+ * @param "failure" "[exception]→⊤"
+ *        The function to apply to the {@type "exception"} that classifies the
+ *        failure of the asynchronous read operation.
  * @param "optionalPriority" "<byte…|0..1>"
  *        If specified, then the priority of the new fiber. If not specified,
  *        then the new fiber will run at the same priority as the {@method
@@ -528,11 +531,12 @@ is
 	count : whole number,
 	s : client socket,
 	success : [<byte…|>, boolean]→⊤,
-	failure : [natural number]→⊤,
+	failure : [exception]→⊤,
 	optionalPriority : <byte…|0..1>
 |
-	priority ::= optionalPriority[1] else [current fiber's priority];
 	adjustedCount ::= count min (2^31-1);
+	bad ::= [c : natural number | failure(an exception for c);];
+	priority ::= optionalPriority[1] else [current fiber's priority];
 	[
 		n : [0..2^31-1],
 		h : atom,
@@ -547,7 +551,7 @@ is
 			I/O-error code
 		}ᵀ);
 		Raise an exception for code
-	] : fiber (adjustedCount, s's handle, success, failure, priority)
+	] : fiber (adjustedCount, s's handle, success, bad, priority)
 ] : fiber;
 
 /**
@@ -558,7 +562,7 @@ is
  * @restricts "whole number's type"
  * @restricts "client socket's type"
  * @restricts "[]→⊤'s type"
- * @restricts "[natural number]→⊤'s type"
+ * @restricts "[exception]→⊤'s type"
  * @restricts "<byte…|0..1>'s type"
  */
 Semantic restriction
@@ -570,7 +574,7 @@ is
 	count : whole number's type,
 	s : client socket's type,
 	success : []→⊤'s type,
-	failure : [natural number]→⊤'s type,
+	failure : [exception]→⊤'s type,
 	optionalPriority : <byte…|0..1>'s type
 |
 	fiber→(success's return type ∪ failure's return type)
@@ -592,9 +596,9 @@ is
  * @param "s" "client socket"
  * @param "success" "[<byte…|>, boolean]→⊤"
  *        The function to apply if the write completes successfully.
- * @param "failure" "[natural number]→⊤"
- *        The function to apply to the error code that classifies the failure of
- *        the asynchronous connect operation.
+ * @param "failure" "[exception]→⊤"
+ *        The function to apply to the {@type "exception"} that classifies the
+ *        failure of the asynchronous write operation.
  * @param "optionalPriority" "<byte…|0..1>"
  *        If specified, then the priority of the new fiber. If not specified,
  *        then the new fiber will run at the same priority as the {@method
@@ -612,9 +616,10 @@ is
 	data : <byte…|>,
 	s : client socket,
 	success : []→⊤,
-	failure : [natural number]→⊤,
+	failure : [exception]→⊤,
 	optionalPriority : <byte…|0..1>
 |
+	bad ::= [c : natural number | failure(an exception for c);];
 	priority ::= optionalPriority[1] else [current fiber's priority];
 	[
 		d : <byte…|>,
@@ -630,7 +635,7 @@ is
 			I/O-error code
 		}ᵀ);
 		Raise an exception for code
-	] : fiber (data, s's handle, success, failure, priority)
+	] : fiber (data, s's handle, success, bad, priority)
 ] : fiber;
 
 /**
@@ -641,7 +646,7 @@ is
  * @restricts "<byte…|>'s type"
  * @restricts "client socket's type"
  * @restricts "[]→⊤'s type"
- * @restricts "[natural number]→⊤'s type"
+ * @restricts "[exception]→⊤'s type"
  * @restricts "<byte…|0..1>'s type"
  */
 Semantic restriction
@@ -653,7 +658,7 @@ is
 	data : <byte…|>'s type,
 	s : client socket's type,
 	success : []→⊤'s type,
-	failure : [natural number]→⊤'s type,
+	failure : [exception]→⊤'s type,
 	optionalPriority : <byte…|0..1>'s type
 |
 	fiber→(success's return type ∪ failure's return type)

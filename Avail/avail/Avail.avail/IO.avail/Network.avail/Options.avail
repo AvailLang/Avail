@@ -59,6 +59,8 @@ Body
 /* Define the valid server socket options. */
 "option`#" is a new atom;
 "option name" is a new atom;
+"option type" is a new atom;
+
 /**
  * @type "private socket option"
  * @supertype "object"
@@ -66,24 +68,30 @@ Body
 Class "private socket option" extends object
 	with field
 		option# : [1..5],
-		option name : nonempty string;
+		option name : nonempty string,
+		option type : type;
 
 /* The private names chosen here reflect the traditional option names. */
 _so_rcvbuf ::= a private socket option with
 	option# ::= 1,
-	option name ::= "receive buffer size";
+	option name ::= "receive buffer size",
+	option type ::= whole number;
 _so_reuseaddr ::= a private socket option with
 	option# ::= 2,
-	option name ::= "address reusability";
+	option name ::= "address reusability",
+	option type ::= boolean;
 _so_sndbuf ::= a private socket option with
 	option# ::= 3,
-	option name ::= "transmission buffer size";
+	option name ::= "transmission buffer size",
+	option type ::= whole number;
 _so_keepalive ::= a private socket option with
 	option# ::= 4,
-	option name ::= "keep alive";
+	option name ::= "keep alive",
+	option type ::= boolean;
 _tcp_nodelay ::= a private socket option with
 	option# ::= 5,
-	option name ::= "Nagle's algorithm disablement";
+	option name ::= "Nagle's algorithm disablement",
+	option type ::= boolean;
 
 _server_socket_option ::= {_so_rcvbuf, _so_reuseaddr}ᵀ;
 _client_socket_option ::=
@@ -276,15 +284,7 @@ Public method "Require:_are sensible" is
 				format "option \"“①”\" to appear only once"
 				with option
 		];
-		expectedValueType ::=
-			choose option
-			from socket option
-			where
-				receive buffer size is [whole number],
-				address reusability is [boolean],
-				transmission buffer size is [whole number],
-				keep alive is [boolean],
-				Nagle's algorithm disablement is [boolean];
+		expectedValueType ::= option's option type;
 		If ¬valueType ⊆ expectedValueType then
 		[
 			Reject parse, expected:

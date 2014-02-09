@@ -1,0 +1,382 @@
+/*
+ * File Permissions.avail
+ * Copyright © 1993-2014, The Avail Foundation, LLC.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+System Module "File Permissions"
+Versions
+	"dev"
+Uses
+	"File Names"
+Names
+	/* File access rights. */
+	"file access right",
+	"_'s⁇access class",
+	"_'s⁇permission",
+
+	/* Permission classes. */
+	"file access class",
+	"owner",
+	"group",
+	"others",
+
+	/* Permissions. */
+	"file permission",
+	"read",
+	"write",
+	"execute",
+
+	/* Permission queries. */
+	"_'s⁇access rights(follow if symlink=_)",
+	"_'s⁇access rights«(don't follow if symlink)»",
+	"_is executable",
+	"_is readable",
+	"_is writable",
+
+	/* Setting permissions. */
+	"_'s⁇access rights:=_"
+Body
+
+/**
+ * Answer the {@type "atom"} that denotes a file's owner class.
+ *
+ * @method "owner"
+ * @returns "file access class"
+ */
+"owner" is a new atom;
+
+/**
+ * Answer the {@type "atom"} that denotes a file's group class.
+ *
+ * @method "group"
+ * @returns "file access class"
+ */
+"group" is a new atom;
+
+/**
+ * Answer the {@type "atom"} that denotes a file's others class.
+ *
+ * @method "others"
+ * @returns "file access class"
+ */
+"others" is a new atom;
+
+/**
+ * A file access class describes partitions the users of a system from the
+ * perspective of a file's owner.
+ *
+ * @type "file access class"
+ */
+fileAccessClass ::= {owner, group, others}ᵀ;
+Method "file access class" is [fileAccessClass];
+
+/**
+ * Answer the {@type "atom"} that denotes read permission.
+ *
+ * @method "read"
+ * @returns "file permission"
+ */
+"read" is a new atom;
+
+/**
+ * Answer the {@type "atom"} that denotes write permission.
+ *
+ * @method "write"
+ * @returns "file permission"
+ */
+"write" is a new atom;
+
+/**
+ * Answer the {@type "atom"} that denotes execute permission.
+ *
+ * @method "execute"
+ * @returns "file permission"
+ */
+"execute" is a new atom;
+
+/**
+ * A file permission describes a capability to perform an operation upon a file.
+ *
+ * @type "file permission"
+ */
+filePermissions ::= {read, write, execute}ᵀ;
+Method "file permission" is [filePermissions];
+
+/* Field atoms. */
+"access`#" is a new field atom;
+"access class" is a new field atom;
+"permission" is a new field atom;
+
+/**
+ * A private file access right describes a conjunction of a {@type
+ * "file access class"} and a {@type "file permission"}.
+ *
+ * @type "file access right"
+ */
+Class "private file access right" extends object
+	with fields
+		access# : [1..9],
+		public access class : file access class,
+		public permission : file permission;
+
+/* Use code generation to produce the file access rights. */
+[
+	rights ::= <
+		"owner read",
+		"owner write",
+		"owner execute",
+		"group read",
+		"group write",
+		"group execute",
+		"others read",
+		"others write",
+		"others execute">;
+	For each of rights do
+	[
+		rightName : nonempty string,
+		index : [1..9]
+	|
+		class ::=
+			choose index ÷ 3
+			from {1, 2, 3}ᵀ
+			where
+				1 is [owner],
+				2 is [group],
+				3 is [others];
+		perm ::= 
+			choose index mod 3
+			from {0, 1, 2}ᵀ
+			where
+				0 is [execute]
+				1 is [read],
+				2 is [write];
+		right ::= a private file access right with
+			access# ::= index,
+			access class ::= class,
+			permission ::= perm;
+		Method rightName is [right];
+	];
+]();
+
+/* The ordered file access rights, needed to construct "file access right" (and
+ * implement "_'s⁇access rights(follow symlinks=_)").
+ */
+fileAccessRights ::=
+<
+	owner read, owner write, owner execute,
+	group read, group write, group execute,
+	others read, others write, others execute
+>;
+
+/**
+ * A file access right comprises nine valid combinations of a {@type
+ * "file access class"} and a {@type "file permission"}.
+ *
+ * @type "file access right"
+ */
+fileAccessRightsEnum ::= enumeration of fileAccessRights→set;
+Method "file access right" is [fileAccessRightsEnum];
+
+/**
+ * Is the file named by the specified {@type "file name"} readable by the
+ * current process?
+ *
+ * Note that the answer is only guaranteed valid at the time of the underlying
+ * file system query, and is outdated immediately thereafter.
+ *
+ * @method "_is readable"
+ * @param "fn" "file name"
+ * @returns "boolean"
+ *          {@method "true"} if {@param "fn"} names an existing file that is
+ *          readable by this process; {@method "false"} otherwise.
+ * @raises "permission-denied exception"
+ *         If permission is denied to use the specified {@type "file name"}.
+ */
+Public method "_is readable" is
+[
+	fn : file name
+|
+	[
+		s : nonempty string
+	|
+		Primitive 431 (e : permission-denied code's type);
+		Raise an exception for e
+	] : boolean (fn's name)
+] : boolean;
+
+/**
+ * Is the file named by the specified {@type "file name"} writable by the
+ * current process?
+ *
+ * Note that the answer is only guaranteed valid at the time of the underlying
+ * file system query, and is outdated immediately thereafter.
+ *
+ * @method "_is writable"
+ * @param "fn" "file name"
+ * @returns "boolean"
+ *          {@method "true"} if {@param "fn"} names an existing file that is
+ *          writable by this process; {@method "false"} otherwise.
+ * @raises "permission-denied exception"
+ *         If permission is denied to use the specified {@type "file name"}.
+ */
+Public method "_is writable" is
+[
+	fn : file name
+|
+	[
+		s : nonempty string
+	|
+		Primitive 432 (e : permission-denied code's type);
+		Raise an exception for e
+	] : boolean (fn's name)
+] : boolean;
+
+/**
+ * Is the file named by the specified {@type "file name"} executable by the
+ * current process?
+ *
+ * Note that the answer is only guaranteed valid at the time of the underlying
+ * file system query, and is outdated immediately thereafter.
+ *
+ * @method "_is readable"
+ * @param "fn" "file name"
+ * @returns "boolean"
+ *          {@method "true"} if {@param "fn"} names an existing file that is
+ *          executable by this process; {@method "false"} otherwise.
+ * @raises "permission-denied exception"
+ *         If permission is denied to use the specified {@type "file name"}.
+ */
+Public method "_is executable" is
+[
+	fn : file name
+|
+	[
+		s : nonempty string
+	|
+		Primitive 433 (e : permission-denied code's type);
+		Raise an exception for e
+	] : boolean (fn's name)
+] : boolean;
+
+/**
+ * Obtain the {@type "file access rights"} for the file named by the given
+ * {@type "file name"}.
+ *
+ * @method "_'s⁇access rights(follow symlinks=_)"
+ * @param "fn" "file name"
+ * @param "followIfSymlink" "boolean"
+ *        {@method "true"} if {@param "fn"} should be followed if it refers to a
+ *        symbolic link, {@method "false"} otherwise.
+ * @returns "{file access right…|[0..9]}"
+ * @raises "permission-denied exception"
+ *         If permission is denied to use the file named by {@param "fn"}.
+ * @raises "I/O exception"
+ *         If an I/O exception occurs.
+ * @raises "primitive-not-supported exception"
+ *         If {@type "file access rights"} are not supported by the host
+ *         platform.
+ */
+Public method "_'s⁇access rights(follow if symlink=_)" is
+[
+	fn : file name,
+	followSymlinks : boolean
+|
+	ordinals ::=
+		[
+			s : nonempty string,
+			f : boolean
+		|
+			Primitive 434 (e : {
+				permission-denied code,
+				primitive-not-supported code,
+				I/O error code}ᵀ);
+			Raise an exception for e
+		] : {[1..9]|[0..9]} (fn's name, followSymlinks);
+	map ordinals through [i : [1..9] | fileAccessRights[i]]
+] : {file access right|[0..9]};
+
+/**
+ * Obtain the {@type "file access rights"} for the file named by the given
+ * {@type "file name"}.
+ *
+ * @method "_'s⁇access rights(follow symlinks=_)"
+ * @param "fn" "file name"
+ * @param "dontFollowIfSymlink" "boolean"
+ *        {@method "true"} if {@param "fn"} should not be followed if it refers
+ *        to a symbolic link, {@method "false"} otherwise.
+ * @returns "{file access right…|[0..9]}"
+ * @raises "permission-denied exception"
+ *         If permission is denied to use the file named by {@param "fn"}.
+ * @raises "I/O exception"
+ *         If an I/O exception occurs.
+ * @raises "primitive-not-supported exception"
+ *         If {@type "file access rights"} are not supported by the host
+ *         platform.
+ */
+Public method "_'s⁇access rights«(don't follow if symlink)»" is
+[
+	fn : file name,
+	dontFollowIfSymlink : boolean
+|
+	fn's access rights (follow if symlink = ¬dontFollowIfSymlink)
+] : {file access right…|[0..9]};
+
+/**
+ * Set the {@type "file access rights"} for the file named by the given {@type
+ * "file name"}.
+ *
+ * @method "_'s⁇access rights:=_"
+ * @param "fn" "file name"
+ * @param "rights" "{file access right|[0..9]}"
+ * @raises "permission-denied exception"
+ *         If permission is denied to use the file named by {@param "fn"}.
+ * @raises "I/O exception"
+ *         If an I/O exception occurs.
+ * @raises "primitive-not-supported exception"
+ *         If {@type "file access rights"} are not supported by the host
+ *         platform.
+ */
+Public method "_'s⁇access rights:=_" is
+[
+	fn : file name,
+	rights : {file access right|[0..9]}
+|
+	ordinals ::= map rights through [r : file access right | r's access#];
+	[
+		s : nonempty string,
+		f : {[1..9]|[0..9]}
+	|
+		Primitive 435 (e : {
+			permission-denied code,
+			primitive-not-supported code,
+			I/O error code}ᵀ);
+		Raise an exception for e
+	] : ⊤ (fn's name, followSymlinks);
+] : ⊤;

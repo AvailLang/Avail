@@ -37,6 +37,7 @@ Extends
 	"Data Abstractions" = ("_'s⁇position", "_'s⁇position:=_")
 Uses
 	"Common",
+	"File Names",
 	"Foundation",
 	"Unit Testing"
 Names
@@ -44,19 +45,6 @@ Names
 	"file open mode",
 	"read mode",
 	"write mode",
-
-	/* File name types. */
-	"file name",
-
-	/* File names. */
-	"Rename_to_",
-	"Unlink_",
-	"_as file name",
-	"_exists",
-	"_is executable",
-	"_is readable",
-	"_is writable",
-	"_'s⁇name",
 
 	/* File types. */
 	"file",
@@ -90,202 +78,6 @@ Names
 	/* Unit testing. */
 	"file primitives test suite"
 Body
-
-"name" is a new field atom;
-
-/**
- * A file name represents a node, actual or hypothetical, within a file system.
- *
- * @type "file name"
- * @supertype "object"
- */
-Public class "file name" extends object
-	with fields
-		public name : nonempty string;
-
-/**
- * @method "“_”"
- * @param "fn" "file name"
- * @returns "nonempty string"
- */
-Stable method "“_”" is
-[
-	fn : file name
-|
-	fn's name
-];
-
-/**
- * Construct and answer a {@type "file name"} from the specified {@type
- * "nonempty string"}.
- *
- * @method "_as file name"
- * @param "n" "nonempty string"
- * @returns "file name"
- *    The requested file name.
- */
-Public stable method "_as file name" is
-[
-	n : nonempty string
-|
-	a file name with name ::= n
-] : file name;
-
-/**
- * @method "_as file name"
- * @restricts "nonempty string's type"
- */
-Semantic restriction "_as file name" is
-[
-	n : nonempty string's type
-|
-	extend file name with name : n
-];
-
-/**
- * Does the specified {@type "file name"} exist?
- *
- * @method "_exists"
- * @param "n" "file name"
- * @returns "boolean"
- *          {@method "true"} if {@param "n"} names an existing file, {@method
- *          "false"} otherwise.
- * @raises "permission-denied exception"
- *         If permission is denied to use the specified {@type "file name"}.
- */
-Public method "_exists" is
-[
-	n : file name
-|
-	[
-		s : nonempty string
-	|
-		Primitive 170 (failureCode : permission-denied code's type);
-		Raise a permission-denied exception
-	] : boolean (n's name)
-] : boolean;
-
-/**
- * Is the specified {@type "file name"} readable?
- *
- * @method "_is readable"
- * @param "n" "file name"
- * @returns "boolean"
- *          {@method "true"} if {@param "n"} names an existing file that is
- *          readable by this process; {@method "false"} otherwise.
- * @raises "permission-denied exception"
- *         If permission is denied to use the specified {@type "file name"}.
- */
-Public method "_is readable" is
-[
-	n : file name
-|
-	[
-		s : nonempty string
-	|
-		Primitive 171 (e : permission-denied code's type);
-		Raise a permission-denied exception
-	] : boolean (n's name)
-] : boolean;
-
-/**
- * Is the specified {@type "file name"} writable?
- *
- * @method "_is writable"
- * @param "n" "file name"
- * @returns "boolean"
- *          {@method "true"} if {@param "n"} names an existing file that is
- *          writable by this process; {@method "false"} otherwise.
- * @raises "permission-denied exception"
- *         If permission is denied to use the specified {@type "file name"}.
- */
-Public method "_is writable" is
-[
-	n : file name
-|
-	[
-		s : nonempty string
-	|
-		Primitive 172 (e : permission-denied code's type);
-		Raise a permission-denied exception
-	] : boolean (n's name)
-] : boolean;
-
-/**
- * Is the specified {@type "file name"} executable?
- *
- * @method "_is readable"
- * @param "n" "file name"
- * @returns "boolean"
- *          {@method "true"} if {@param "n"} names an existing file that is
- *          executable by this process; {@method "false"} otherwise.
- * @raises "permission-denied exception"
- *         If permission is denied to use the specified {@type "file name"}.
- */
-Public method "_is executable" is
-[
-	n : file name
-|
-	[
-		s : nonempty string
-	|
-		Primitive 173 (e : permission-denied code's type);
-		Raise a permission-denied exception
-	] : boolean (n's name)
-] : boolean;
-
-/**
- * Rename the {@type "file"} named by {@param "src"} to {@param "dest"}.
- *
- * @method "Rename_to_"
- * @param "src" "file name"
- *        The source {@type "file name"}.
- * @param "dest" "file name"
- *        The destination {@type "file name"}.
- * @raises "permission-denied exception"
- *         If permission is denied to use either of the specified {@type "file
- *         name"}s.
- * @raises "I/O exception"
- *         If an I/O error occurs for any reason.
- */
-Public method "Rename_to_" is
-[
-	src : file name,
-	dest : file name
-|
-	[
-		s : nonempty string,
-		d : nonempty string
-	|
-		Primitive 174 (e : {I/O-error code, permission-denied code}ᵀ);
-		If e = I/O-error code then [Raise an I/O exception];
-		Raise a permission-denied exception
-	] : ⊤ (src's name, dest's name);
-] : ⊤;
-
-/**
- * Unlink {@param "n"}. If no links remaining in the file system to the
- * underlying {@type "file"}, then the {@type "file"} is deleted.
- *
- * @method "Unlink_"
- * @param "n" "file name"
- * @raises "permission-denied exception"
- *         If permission is denied to use the specified {@type "file name"}.
- * @raises "I/O exception"
- *         If an I/O error occurs for any reason.
- */
-Public method "Unlink_" is
-[
-	n : file name
-|
-	[
-		s : nonempty string
-	|
-		Primitive 175 (e : {I/O-error code, permission-denied code}ᵀ);
-		If e = I/O-error code then [Raise an I/O exception];
-		Raise a permission-denied exception
-	] : ⊤ (n's name);
-] : ⊤;
 
 /**
  * The atom that represents the readability of a file.
@@ -374,8 +166,7 @@ Public method "a readable file named_" is
 				s : nonempty string
 			|
 				Primitive 160 (e : {I/O-error code, permission-denied code}ᵀ);
-				If e = I/O-error code then [Raise an I/O exception];
-				Raise a permission-denied exception
+				Raise an exception for e
 			] : atom (n's name),
 		name ::= n,
 		writable ::= false,
@@ -415,8 +206,7 @@ Public method "a writable file named_" is
 				s : nonempty string
 			|
 				Primitive 161 (e : {I/O-error code, permission-denied code}ᵀ);
-				If e = I/O-error code then [Raise an I/O exception];
-				Raise a permission-denied exception
+				Raise an exception for e
 			] : atom (n's name),
 		name ::= n,
 		readable ::= false,
@@ -456,8 +246,7 @@ Public method "a readable,⁇writable file named_" is
 				s : nonempty string
 			|
 				Primitive 162 (e : {I/O-error code, permission-denied code}ᵀ);
-				If e = I/O-error code then [Raise an I/O exception];
-				Raise a permission-denied exception
+				Raise an exception for e
 			] : atom (n's name),
 		name ::= n,
 		open state := true
@@ -583,7 +372,7 @@ Method "Close_" is
 		h : atom
 	|
 		Primitive 163 (e : invalid-handle code's type);
-		Raise a file-closed exception
+		Raise an exception for e
 	] : ⊤ (f's handle);
 	f's open state := false;
 ] : ⊤;
@@ -607,8 +396,7 @@ Public method "_'s⁇size" is
 		h : atom
 	|
 		Primitive 166 (e : {invalid-handle code, I/O-error code}ᵀ);
-		If e = invalid-handle code then [Raise a file-closed exception];
-		Raise an I/O exception
+		Raise an exception for e
 	] : whole number (f's handle)
 ] : whole number;
 
@@ -638,8 +426,7 @@ Public method "_'s⁇size:=_" is
 		v : whole number
 	|
 		Primitive 176 (e : {invalid-handle code, I/O-error code}ᵀ);
-		If e = invalid-handle code then [Raise a file-closed exception];
-		Raise an I/O exception
+		Raise an exception for e
 	] : ⊤ (f's handle, newSize);
 ] : ⊤;
 
@@ -664,8 +451,7 @@ Method "_'s⁇position" is
 		h : atom
 	|
 		Primitive 167 (e : {invalid-handle code, I/O-error code}ᵀ);
-		If e = invalid-handle code then [Raise a file-closed exception];
-		Raise an I/O exception
+		Raise an exception for e
 	] : natural number (f's handle)
 ] : natural number;
 
@@ -697,14 +483,11 @@ Method "_'s⁇position:=_" is
 		h : atom,
 		v : natural number
 	|
-		Primitive 168 (e : {subscript-out-of-bounds code, invalid-handle code,
+		Primitive 168 (e : {
+			subscript-out-of-bounds code,
+			invalid-handle code,
 			I/O-error code}ᵀ);
-		If e = invalid-handle code then [Raise a file-closed exception];
-		If e = subscript-out-of-bounds code then
-		[
-			Raise a subscript-out-of-bounds exception
-		];
-		Raise an I/O exception
+		Raise an exception for e
 	] : ⊤ (f's handle, newPosition);
 ] : ⊤;
 
@@ -737,8 +520,7 @@ Public method "next_byte|bytes from_" is
 		v : [0..∞]
 	|
 		Primitive 164 (e : {invalid-handle code, I/O-error code}ᵀ);
-		If e = invalid-handle code then [Raise a file-closed exception];
-		Raise an I/O exception
+		Raise an exception for e
 	] : <[0..255]…|> (f's handle, bytesToRead)
 ] : <[0..255]…|>;
 
@@ -779,8 +561,7 @@ Public method "Write_to_" is
 		b : <[0..255]…|>
 	|
 		Primitive 165 (e : {invalid-handle code, I/O-error code}ᵀ);
-		If e = invalid-handle code then [Raise a file-closed exception];
-		Raise an I/O exception
+		Raise an exception for e
 	] : ⊤ (f's handle, bytesToWrite);
 ] : ⊤;
 
@@ -803,8 +584,7 @@ Public method "Synchronize_with file system" is
 		h : atom
 	|
 		Primitive 169 (e : {invalid-handle code, I/O-error code}ᵀ);
-		If e = invalid-handle code then [Raise a file-closed exception];
-		Raise an I/O exception
+		Raise an exception for e
 	] : ⊤ (f's handle);
 ] : ⊤;
 
@@ -867,263 +647,3 @@ Grammatical restriction "a|an_«with«_«:»?:=_‡,»»" is
 		"readable,⁇writable file"},
 	∅,
 	∅>;
-
-"file primitives test suite" is a new atom;
-New test suite file primitives test suite extends I/O test suite;
-
-/* The test directory. */
-testDir ::= test directory;
-
-Test "file name(exists)" in file primitives test suite is
-[
-	fn1 ::= testDir ++ "/abracadabra.txt" as file name;
-	fn2 ::= testDir ++ "/doesnotexist.txt" as file name;
-	Require: fn1 exists;
-	Require: ¬fn2 exists;
-];
-
-Test "file name(readable)" in file primitives test suite is
-[
-	fn ::= testDir ++ "/abracadabra.txt" as file name;
-	Require: fn is readable;
-];
-
-Test "file name(writable)" in file primitives test suite is
-[
-	fn ::= testDir ++ "/abracadabra.txt" as file name;
-	Require: ¬fn is writable;
-];
-
-Test "file name(executable)" in file primitives test suite is
-[
-	fn ::= testDir ++ "/abracadabra.txt" as file name;
-	Require: ¬fn is executable;
-];
-
-Test "file name(rename)" in file primitives test suite is
-[
-	src ::= testDir ++ "/source.empty" as file name;
-	dest ::= testDir ++ "/destination.empty" as file name;
-	Require: src exists;
-	Require: ¬dest exists;
-	Rename src to dest;
-	Require: ¬src exists;
-	Require: dest exists;
-	Rename dest to src;
-	Require: src exists;
-	Require: ¬dest exists;
-];
-
-Test "file name(unlink)" in file primitives test suite is
-[
-	fn ::= testDir ++ "/delete.me" as file name;
-	Require: ¬fn exists;
-	Using a writable file named fn, do [f : file |];
-	Require: fn exists;
-	Unlink fn;
-	Require: ¬fn exists;
-];
-
-Test "file(open readable,close)" in file primitives test suite is
-[
-	fn ::= testDir ++ "/abracadabra.txt" as file name;
-	f ::= a readable file named fn;
-	Require: 1 = f's position;
-	Require: 11 = f's size;
-	Close f;
-];
-
-Test "file(open writable,close)" in file primitives test suite is
-[
-	fn ::= testDir ++ "/scratch.txt" as file name;
-	f ::= a writable file named fn;
-	Require: 1 = f's position;
-	Require: 12 = f's size;
-	Close f;
-];
-
-Test "file(open readable&writable,close)" in file primitives test suite is
-[
-	fn ::= testDir ++ "/scratch.txt" as file name;
-	f ::= a readable, writable file named fn;
-	Require: 1 = f's position;
-	Require: 12 = f's size;
-	Close f;
-];
-
-Test "file(open variable mode,close)" in file primitives test suite is
-[
-	rdfn ::= testDir ++ "/abracadabra.txt" as file name;
-	rf : readable file := a file named rdfn (mode={read mode});
-	Close rf;
-	wrfn ::= testDir ++ "/scratch.txt" as file name;
-	wf : writable file := a file named wrfn (mode={write mode});
-	Close wf;
-	rwf : readable, writable file :=
-		a file named wrfn (mode={read mode, write mode});
-	Close rwf;
-];
-
-Test "file(size)" in file primitives test suite is
-[
-	fn ::= testDir ++ "/abracadabra.txt" as file name;
-	Using a readable file named fn, do
-	[
-		f : readable file
-	|
-		Require: 11 = f's size;
-	];
-];
-
-Test "file(read fully)" in file primitives test suite is
-[
-	ref ::= map "abracadabra" through [c : character | c's code point];
-	fn ::= testDir ++ "/abracadabra.txt" as file name;
-	Using a readable file named fn, do
-	[
-		f : readable file
-	|
-		contents ::= next ∞ bytes from f;
-		Require: ref = contents;
-	];
-];
-
-Test "file(read in parts)" in file primitives test suite is
-[
-	ref ::= map "abracadabra" through [c : character | c's code point];
-	fn ::= testDir ++ "/abracadabra.txt" as file name;
-	Using a readable file named fn, do
-	[
-		f : readable file
-	|
-		contents : tuple := next 5 bytes from f;
-		Require: ref[1..5] = contents;
-		contents := eject ↑contents ++ next 6 bytes from f;
-		Require: ref = contents;
-		/* This reads past the end of the file. */
-		contents := next 1 bytes from f;
-		Require: <> = contents;
-	];
-];
-
-Test "file(resize)" in file primitives test suite is
-[
-	ref1 ::= map "beluga whale" through
-		[c : character | cast c's code point into [t : [0..255] | t]];
-	ref2 ::= ref1 ++ 100 of ¢" " ++ "1";
-	fn ::= testDir ++ "/scratch.txt" as file name;
-	Using a readable, writable file named fn, do
-	[
-		f : readable, writable file
-	|
-		Require: 12 = f's size;
-		Require: 1 = f's position;
-		contents ::= next ∞ bytes from f;
-		Require: ref1 = contents;
-		Require: 12 = f's size;
-		Require: 13 = f's position;
-		f's size := 112;
-		Require: 112 = f's size;
-		Require: 13 = f's position;
-		suffix ::= <cast ¢1's code point into [t : [0..255] | t]>;
-		Write suffix to f;
-		Require: 112 = f's size;
-		Require: 14 = f's position;
-		f's size := 0;
-		Require: 0 = f's size;
-		Require: 1 = f's position;
-		Write ref1 to f;
-		Require: 12 = f's size;
-		Require: 13 = f's position;
-	];
-];
-
-Test "file(reposition)" in file primitives test suite is
-[
-	ref1 ::= map "beluga whale" through
-		[c : character | cast c's code point into [t : [0..255] | t]];
-	ref2 ::= ref1 ++ 100 of ¢" " ++ "1";
-	fn ::= testDir ++ "/scratch.txt" as file name;
-	Using a readable, writable file named fn, do
-	[
-		f : readable, writable file
-	|
-		Require: 1 = f's position;
-		Require: 12 = f's size;
-		contents : tuple := next ∞ bytes from f;
-		Require: ref1 = contents;
-		Require: 13 = f's position;
-		Require: 12 = f's size;
-		f's position := 1;
-		Require: 1 = f's position;
-		contents := next ∞ bytes from f;
-		Require: ref1 = contents;
-		Require: 13 = f's position;
-		Require: 12 = f's size;
-		f's position := 200;
-		Require: 200 = f's position;
-		Require: 12 = f's size;
-		suffix ::= <cast ¢1's code point into [t : [0..255] | t]>;
-		Write suffix to f;
-		Require: 200 = f's size;
-		Require: 201 = f's position;
-		f's size := 12;
-		Require: 12 = f's size;
-		Require: 13 = f's position;
-	];
-];
-
-Test "file(round trip)" in file primitives test suite is
-[
-	ref ::= map "my life as a parrot" through
-		[c : character | cast c's code point into [t : [0..255] | t]];
-	fn ::= testDir ++ "/roundtrip.txt" as file name;
-	Require: ¬fn exists;
-	Using a readable, writable file named fn, do
-	[
-		f : readable, writable file
-	|
-		Require: fn exists;
-		Write ref to f;
-		Synchronize f with file system;
-		Require: |ref| = f's position - 1;
-		Require: |ref| = f's size;
-		f's position := 1;
-		contents ::= next |ref| bytes from f;
-		Require: |ref| = f's position - 1;
-		Require: |ref| = f's size;
-		Require: ref = contents;
-	];
-	Unlink fn;
-	Require: ¬fn exists;
-];
-
-Test "file(double close)" in file primitives test suite is
-[
-	fn ::= testDir ++ "/abracadabra.txt" as file name;
-	f ::= a readable file named fn;
-	Close f;
-	Close f;
-]
-must raise file-closed exception;
-
-Test "file(can't open for reading)" in file primitives test suite is
-[
-	fn ::= testDir ++ "/doesntexist.txt" as file name;
-	f ::= a readable file named fn;
-]
-must raise I/O exception;
-
-Test "file(can't open for writing)" in file primitives test suite is
-[
-	fn ::= testDir ++ "/abracadabra.txt" as file name;
-	f ::= a writable file named fn;
-]
-must raise I/O exception;
-
-Test "file(can't open for reading,writing)" in file primitives test suite is
-[
-	fn ::= testDir ++ "/abracadabra.txt" as file name;
-	f ::= a readable, writable file named fn;
-]
-must raise I/O exception;

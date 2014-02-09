@@ -34,5 +34,6 @@ System Module "Server"
 Versions
 	"dev"
 Extends
-	"Primitives"
+	"Primitives",
+	"Synchronous"
 Body

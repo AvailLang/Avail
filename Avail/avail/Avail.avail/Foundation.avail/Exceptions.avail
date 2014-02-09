@@ -1035,6 +1035,14 @@ System exception "block-compilation-failed" (103)
 	extends code-generation exception;
 System exception "sequence-contains-invalid-statements" (105)
 	extends bad-phrase exception;
+System exception "no-file" (200)
+	extends I/O exception;
+System exception "file-exists" (201)
+	extends I/O exception;
+System exception "directory-not-empty" (202)
+	extends I/O exception;
+System exception "partial-success" (203)
+	extends system exception;
 System exception "Java-class-not-available" (500)
 	extends element-access exception;
 System exception "pojo-type-is-abstract" (501)

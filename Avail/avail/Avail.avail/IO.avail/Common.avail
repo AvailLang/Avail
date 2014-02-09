@@ -37,7 +37,14 @@ Uses
 	"Foundation",
 	"Unit Testing"
 Names
+	/* Closing I/O handles. */
 	"Close_",
+
+	/* I/O. */
+	"Write_to_",
+	"read«at most»?_byte|bytes from_",
+
+	/* Unit testing. */
 	"I/O test suite",
 	"test directory"
 Body

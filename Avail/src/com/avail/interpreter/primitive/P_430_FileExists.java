@@ -1,5 +1,5 @@
 /**
- * P_172_FileCanWrite.java
+ * P_430_FileExists.java
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -34,23 +34,27 @@ package com.avail.interpreter.primitive;
 import static com.avail.descriptor.TypeDescriptor.Types.CHARACTER;
 import static com.avail.exceptions.AvailErrorCode.E_PERMISSION_DENIED;
 import static com.avail.interpreter.Primitive.Flag.*;
-import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.LinkOption;
+import java.nio.file.Path;
 import java.util.List;
+import com.avail.AvailRuntime;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 
 /**
- * <strong>Primitive 172:</strong> Is the {@linkplain File file} with the
- * specified filename writable by the OS fiber?
+ * <strong>Primitive 170:</strong> Does a file exist at the specified
+ * {@linkplain Path path}? If the second argument is {@code false}, then no
+ * symbolic links will be traversed.
  */
-public final class P_172_FileCanWrite
+public final class P_430_FileExists
 extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_172_FileCanWrite().init(
-		1, CanInline, HasSideEffect);
+	public final static Primitive instance = new P_430_FileExists().init(
+		2, CanInline, HasSideEffect);
 
 	@Override
 	public Result attempt (
@@ -58,20 +62,25 @@ extends Primitive
 		final Interpreter interpreter,
 		final boolean skipReturnCheck)
 	{
-		assert args.size() == 1;
+		assert args.size() == 2;
 		final A_String filename = args.get(0);
-		final File file = new File(filename.asNativeString());
-		final boolean writable;
+		final A_Atom followSymlinks = args.get(1);
+		final AvailRuntime runtime = AvailRuntime.current();
+		final Path path = runtime.fileSystem().getPath(
+			filename.asNativeString());
+		final LinkOption[] options = AvailRuntime.followSymlinks(
+			followSymlinks.extractBoolean());
+		final boolean exists;
 		try
 		{
-			writable = file.canWrite();
+			exists = Files.exists(path, options);
 		}
 		catch (final SecurityException e)
 		{
 			return interpreter.primitiveFailure(E_PERMISSION_DENIED);
 		}
 		return interpreter.primitiveSuccess(
-			AtomDescriptor.objectFromBoolean(writable));
+			AtomDescriptor.objectFromBoolean(exists));
 	}
 
 	@Override
@@ -79,7 +88,8 @@ extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				TupleTypeDescriptor.oneOrMoreOf(CHARACTER.o())),
+				TupleTypeDescriptor.oneOrMoreOf(CHARACTER.o()),
+				EnumerationTypeDescriptor.booleanObject()),
 			EnumerationTypeDescriptor.booleanObject());
 	}
 

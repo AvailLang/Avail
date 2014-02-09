@@ -64,7 +64,7 @@ Body
  */
 Public class "file iterator" extends positionable buffered iterator
 	with field
-		element type : [0..255]'s type,
+		element type : byte's type,
 		position type : natural number's type,
 		element source : file;
 
@@ -81,7 +81,7 @@ file iterator's next buffer method is
 	anIterator : readable file iterator
 |
 	next anIterator's maximum buffer size bytes from anIterator's element source
-] : <[0..255]…|>;
+] : <byte…|>;
 
 file iterator's set position method is
 [
@@ -114,7 +114,7 @@ Public method "a file iterator for_«that buffers_bytes»" is
 |
 	size ::= optionalSize[1] else [32768];
 	a readable file iterator with
-		element type ::= [0..255],
+		element type ::= byte,
 		position type ::= natural number,
 		element source ::= a readable file named fn,
 		maximum buffer size ::= size

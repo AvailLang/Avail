@@ -35,13 +35,19 @@ package com.avail;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode.*;
+import static java.nio.file.attribute.PosixFilePermission.*;
 import java.io.*;
 import java.nio.channels.AsynchronousChannelGroup;
 import java.nio.channels.AsynchronousFileChannel;
 import java.nio.channels.AsynchronousServerSocketChannel;
 import java.nio.channels.AsynchronousSocketChannel;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
+import java.nio.file.LinkOption;
 import java.nio.file.OpenOption;
 import java.nio.file.Path;
+import java.nio.file.attribute.FileAttribute;
+import java.nio.file.attribute.PosixFilePermission;
 import java.util.*;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.PriorityBlockingQueue;
@@ -220,24 +226,104 @@ public final class AvailRuntime
 
 	/**
 	 * Open an {@linkplain AsynchronousFileChannel asynchronous file channel}
-	 * for the specified {@linkplain Path path} and {@linkplain OpenOption
-	 * open options}.
+	 * for the specified {@linkplain Path path}.
 	 *
-	 * @param path A path.
-	 * @param openOptions The open options.
+	 * @param path
+	 *        A path.
+	 * @param options
+	 *        The {@linkplain OpenOption open options}.
+	 * @param attrs
+	 *        The {@linkplain FileAttribute file attributes} (for newly created
+	 *        files only).
 	 * @return An asynchronous file channel.
+	 * @throws IllegalArgumentException
+	 *         If the combination of options is invalid.
+	 * @throws UnsupportedOperationException
+	 *         If an option is invalid for the specified path.
+	 * @throws SecurityException
+	 *         If the {@linkplain SecurityManager security manager} denies
+	 *         permission to complete the operation.
 	 * @throws IOException
 	 *         If the open fails for any reason.
 	 */
 	public AsynchronousFileChannel openFile (
 			final Path path,
-			final OpenOption... openOptions)
-		throws IOException
+			final Set<? extends OpenOption> options,
+			final FileAttribute<?>... attrs)
+		throws
+			IllegalArgumentException,
+			UnsupportedOperationException,
+			SecurityException,
+			IOException
 	{
 		return AsynchronousFileChannel.open(
-			path,
-			new HashSet<OpenOption>(Arrays.asList(openOptions)),
-			fileExecutor);
+			path, options, fileExecutor, attrs);
+	}
+
+	/** The default {@linkplain FileSystem file system}. */
+	private final static FileSystem fileSystem = FileSystems.getDefault();
+
+	/**
+	 * Answer the default {@linkplain FileSystem file system}.
+	 *
+	 * @return The default file system.
+	 */
+	public FileSystem fileSystem ()
+	{
+		return fileSystem;
+	}
+
+	/**
+	 * The {@linkplain LinkOption link options} for following symbolic links.
+	 */
+	private static final LinkOption[] followSymlinks = {};
+
+	/**
+	 * The {@linkplain LinkOption link options} for forbidding traversal of
+	 * symbolic links.
+	 */
+	private static final LinkOption[] dontFollowSymlinks =
+		{LinkOption.NOFOLLOW_LINKS};
+
+	/**
+	 * Answer the appropriate {@linkplain LinkOption link options} for
+	 * following, or not following, symbolic links.
+	 *
+	 * @param shouldFollow
+	 *        {@code true} for an array that permits symbolic link traversal,
+	 *        {@code false} for an array that forbids symbolic link traversal.
+	 * @return An array of link options.
+	 */
+	public static LinkOption[] followSymlinks (final boolean shouldFollow)
+	{
+		return shouldFollow ? followSymlinks : dontFollowSymlinks;
+	}
+
+	/**
+	 * The {@linkplain PosixFilePermission POSIX file permissions}. <em>The
+	 * order of these elements should not be changed!</em>
+	 */
+	private static final PosixFilePermission[] posixPermissions =
+	{
+		OWNER_READ,
+		OWNER_WRITE,
+		OWNER_EXECUTE,
+		GROUP_READ,
+		GROUP_WRITE,
+		GROUP_EXECUTE,
+		OTHERS_READ,
+		OTHERS_WRITE,
+		OTHERS_EXECUTE
+	};
+
+	/**
+	 * The {@linkplain PosixFilePermission POSIX file permissions}.
+	 *
+	 * @return The POSIX file permissions.
+	 */
+	public static PosixFilePermission[] posixPermissions ()
+	{
+		return posixPermissions;
 	}
 
 	/**

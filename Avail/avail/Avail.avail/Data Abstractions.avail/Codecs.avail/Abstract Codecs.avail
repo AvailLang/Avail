@@ -75,7 +75,6 @@ Names
 	"_'s⁇raise exception",
 	"_'s⁇replacement character",
 	"_'s⁇unsupported character"
-	
 Body
 
 /**
@@ -88,7 +87,7 @@ Body
  *          a byte
  * @author "Richard Arriaga"
  */
-Public method "byte tuple" is [<[0..255]…|>];
+Public method "byte tuple" is [<byte…|>];
 
 /**
  * An object type that provides the decoder with a structured heirarchy of what
@@ -180,7 +179,6 @@ Public class "encoder" extends object
 	with fields
 		public encoding corrector : [character]→correction instruction;
 
-
 /**
  * A method that encodes a string using the provided encoder.
  * 
@@ -241,7 +239,7 @@ Public class "decoder" extends object
 		public encoded input position : natural number;
 
 /**
- * The method that accepts a byte tuple and the decoding specificaiton that
+ * The method that accepts a byte tuple and the decoding specification that
  * transforms the byte tuple into a character.
  * 
  * @method "decode_using_"
@@ -254,8 +252,7 @@ Public class "decoder" extends object
  *         Thrown when the encoding specification is violated
  * @author "Richard Arriaga"
  */
-Public abstract method "decode_using_" is
-	[byte tuple, decoder]→tuple;
+Public abstract method "decode_using_" is [byte tuple, decoder]→tuple;
 
 /**
  * The final method call when all the byte data has been read and no further 
@@ -274,8 +271,7 @@ Public abstract method "decode_using_" is
  *         Thrown when the encoding specification is violated 
  * @author "Richard Arriaga"
  */
-Public abstract method "finish decoding with_" is
-	[decoder]→string;
+Public abstract method "finish decoding with_" is [decoder]→tuple;
 
 /**
  * An object that is the intersection of both the encoder and decoder object
@@ -327,10 +323,10 @@ Public class "encoding iterator" extends buffered iterator ∩ iterator of byte
  */
 Public method "an encoding iterator that buffers_element|elements of_using_" is
 [
- 	size : [2..∞),
- 	src : iterator,
- 	ec : encoder
- |
+	size : [2..∞),
+	src : iterator,
+	ec : encoder
+|
 	an encoding iterator with
 		element type ::= byte,
 		element source ::= src,
@@ -391,10 +387,10 @@ Public class "decoding iterator" extends
  */
 Public method "a decoding iterator that buffers_element|elements of_using_" is
 [
- 	size : [4096..∞),
- 	src : iterator of byte,
- 	dc : decoder
- |
+	size : [4096..∞),
+	src : iterator of byte,
+	dc : decoder
+|
 	a decoding iterator with
 		element type ::= character,
 		element source ::= src,
@@ -418,10 +414,10 @@ Public method "a decoding iterator that buffers_element|elements of_using_" is
  */
 Public method "a decoding iterator of_using_" is
 [
- 	src : iterator of byte,
- 	cdc : codec
- |
- 	a decoding iterator that buffers 32768 elements of src using cdc
+	src : iterator of byte,
+	cdc : codec
+|
+	a decoding iterator that buffers 32768 elements of src using cdc
 ]:decoding iterator;
 
 
@@ -448,9 +444,9 @@ decoding iterator's next buffer method is
  */
 Grammatical restriction "a|an_«with«_«:»?:=_‡,»»" is
 	<{
-	 	"decoding iterator",
-	 	"encoding iterator"
+		"decoding iterator",
+		"encoding iterator"
 	}, ∅, ∅>;
-	
-	Public "codecs test suite" is a new field atom;
-	New test suite codecs test suite extends data abstractions test suite;
+
+Public "codecs test suite" is a new field atom;
+New test suite codecs test suite extends data abstractions test suite;

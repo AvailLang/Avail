@@ -162,7 +162,8 @@ Public method "Play Wump the Wumpus«with reader_with reporter_»" is
 	/* Create a new game. All references to game objects within the block are
 	 * implicitly understood as relative to this new game.
 	 */
-	Use a game of Wump the Wumpus as the implied game and do
+	newGame ::= a game of Wump the Wumpus;
+	Use newGame as the implied game and do
 	[
 		Welcome;
 		Look around, having just entered;

@@ -33,6 +33,7 @@
 package com.avail.exceptions;
 
 import java.lang.reflect.*;
+import java.nio.file.Path;
 import java.util.*;
 import com.avail.AvailRuntime;
 import com.avail.compiler.MessageSplitter;
@@ -631,6 +632,32 @@ public enum AvailErrorCode
 	E_SEQUENCE_CONTAINS_INVALID_STATEMENTS (105),
 
 //	E_??? (106),
+
+	/**
+	 * The specified {@linkplain Path path} does not name an existing file.
+	 */
+	E_NO_FILE (200),
+
+	/**
+	 * The specified {@linkplain Path path} names an existing file.
+	 */
+	E_FILE_EXISTS (201),
+
+	/**
+	 * The specified {@linkplain Path path} names a directory that is not empty.
+	 */
+	E_DIRECTORY_NOT_EMPTY (202),
+
+	/**
+	 * An aggregation non-atomic operation succeeded only partially.
+	 */
+	E_PARTIAL_SUCCESS (203),
+
+	/**
+	 * At least one option was illegal, or possibly some combination of options
+	 * were illegal.
+	 */
+	E_ILLEGAL_OPTION (204),
 
 	/**
 	 * A Java {@linkplain Class class} specified by name was either not found by

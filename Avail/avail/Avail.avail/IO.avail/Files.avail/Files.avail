@@ -35,5 +35,8 @@ Versions
 	"dev"
 Extends
 	"File Iterators",
+	"File Management",
+	"File Names",
+	"File Permissions",
 	"Primitives"
 Body

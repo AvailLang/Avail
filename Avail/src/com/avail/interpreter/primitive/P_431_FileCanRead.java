@@ -1,5 +1,5 @@
 /**
- * P_173_FileCanExecute.java
+ * P_431_FileCanRead.java
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -34,22 +34,24 @@ package com.avail.interpreter.primitive;
 import static com.avail.descriptor.TypeDescriptor.Types.CHARACTER;
 import static com.avail.exceptions.AvailErrorCode.E_PERMISSION_DENIED;
 import static com.avail.interpreter.Primitive.Flag.*;
-import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
+import com.avail.AvailRuntime;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 
 /**
- * <strong>Primitive 173:</strong> Is the {@linkplain File file} with the
- * specified filename executable by the OS fiber?
+ * <strong>Primitive 171:</strong> Is the specified {@linkplain Path path}
+ * readable?
  */
-public final class P_173_FileCanExecute
+public final class P_431_FileCanRead
 extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_173_FileCanExecute().init(
+	public final static Primitive instance = new P_431_FileCanRead().init(
 		1, CanInline, HasSideEffect);
 
 	@Override
@@ -60,18 +62,20 @@ extends Primitive
 	{
 		assert args.size() == 1;
 		final A_String filename = args.get(0);
-		final File file = new File(filename.asNativeString());
-		final boolean executable;
+		final AvailRuntime runtime = AvailRuntime.current();
+		final Path path = runtime.fileSystem().getPath(
+			filename.asNativeString());
+		final boolean readable;
 		try
 		{
-			executable = file.canExecute();
+			readable = Files.isReadable(path);
 		}
 		catch (final SecurityException e)
 		{
 			return interpreter.primitiveFailure(E_PERMISSION_DENIED);
 		}
 		return interpreter.primitiveSuccess(
-			AtomDescriptor.objectFromBoolean(executable));
+			AtomDescriptor.objectFromBoolean(readable));
 	}
 
 	@Override

@@ -224,8 +224,7 @@ Test "curtailed subsequent trace" in observation test suite is
 	Require: d = 2;
 	Require: ↑result is assigned;
 	Require: result = 5;
-	Guard [Observe [d := 0;];]
-	intercept [e : worker exception | Raise e's causal exception];
+	Observe [d := 0;];
 ]
 must raise cannot-divide-by-zero exception;
 

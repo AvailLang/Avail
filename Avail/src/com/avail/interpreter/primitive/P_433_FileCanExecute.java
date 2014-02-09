@@ -1,5 +1,5 @@
 /**
- * P_161_FileOpenWrite.java
+ * P_433_FileCanExecute.java
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -31,28 +31,27 @@
  */
 package com.avail.interpreter.primitive;
 
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.exceptions.AvailErrorCode.*;
+import static com.avail.descriptor.TypeDescriptor.Types.CHARACTER;
+import static com.avail.exceptions.AvailErrorCode.E_PERMISSION_DENIED;
 import static com.avail.interpreter.Primitive.Flag.*;
-import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
+import com.avail.AvailRuntime;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 
 /**
- * <strong>Primitive 161:</strong> Open a {@linkplain RandomAccessFile file}
- * for writing. Answer a {@linkplain AtomDescriptor handle} that uniquely
- * identifies the file.
- *
- * @author Todd L Smith &lt;todd@availlang.org&gt;
+ * <strong>Primitive 173:</strong> Is the specified {@linkplain Path path}
+ * executable?
  */
-public final class P_161_FileOpenWrite
+public final class P_433_FileCanExecute
 extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_161_FileOpenWrite().init(
+	public final static Primitive instance = new P_433_FileCanExecute().init(
 		1, CanInline, HasSideEffect);
 
 	@Override
@@ -63,28 +62,20 @@ extends Primitive
 	{
 		assert args.size() == 1;
 		final A_String filename = args.get(0);
-		final A_Atom handle =
-			AtomDescriptor.create(filename, NilDescriptor.nil());
+		final AvailRuntime runtime = AvailRuntime.current();
+		final Path path = runtime.fileSystem().getPath(
+			filename.asNativeString());
+		final boolean executable;
 		try
 		{
-			final RandomAccessFile file = new RandomAccessFile(
-				filename.asNativeString(),
-				"rw");
-			final AvailObject pojo = RawPojoDescriptor.identityWrap(file);
-			handle.setAtomProperty(AtomDescriptor.fileKey(), pojo);
-			handle.setAtomProperty(
-				AtomDescriptor.fileModeWriteKey(),
-				AtomDescriptor.fileModeWriteKey());
-		}
-		catch (final IOException e)
-		{
-			return interpreter.primitiveFailure(E_IO_ERROR);
+			executable = Files.isExecutable(path);
 		}
 		catch (final SecurityException e)
 		{
 			return interpreter.primitiveFailure(E_PERMISSION_DENIED);
 		}
-		return interpreter.primitiveSuccess(handle);
+		return interpreter.primitiveSuccess(
+			AtomDescriptor.objectFromBoolean(executable));
 	}
 
 	@Override
@@ -93,16 +84,12 @@ extends Primitive
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
 				TupleTypeDescriptor.oneOrMoreOf(CHARACTER.o())),
-			ATOM.o());
+			EnumerationTypeDescriptor.booleanObject());
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.withInstances(
-			TupleDescriptor.from(
-				E_PERMISSION_DENIED.numericCode(),
-				E_IO_ERROR.numericCode()
-			).asSet());
+		return InstanceTypeDescriptor.on(E_PERMISSION_DENIED.numericCode());
 	}
 }

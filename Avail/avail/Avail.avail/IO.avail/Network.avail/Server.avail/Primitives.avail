@@ -274,8 +274,8 @@ Public method "Bind_to_«with a backlog of_connection|connections»" is
  * "server socket"}. If the operation is successful, then fork a new {@type
  * "fiber"} to apply {@param "success"} to the newly connected {@type
  * "client socket"}. If the operation is unsuccessful, then fork a new fiber to
- * apply {@param "failure"} to the error code that classifies the failure.
- * Answer the new fiber.
+ * apply {@param "failure"} to the {@type "exception"} that classifies the
+ * failure. Answer the new fiber.
  *
  * @method
  *    "a fiber waiting until_accepts a new connection«named_»,⁇\
@@ -288,7 +288,7 @@ Public method "Bind_to_«with a backlog of_connection|connections»" is
  *        then the default name {@code "«unnamed»"} is used.
  * @param "success" "[client socket]→⊤"
  *        The function to apply to the newly connected client socket.
- * @param "failure" "[natural number]→⊤"
+ * @param "failure" "[exception]→⊤"
  *        The function to apply to the error code that classifies the failure of
  *        the asynchronous accept operation.
  * @param "optionalPriority" "<byte…|0..1>"
@@ -308,12 +308,13 @@ is
 	s : server socket,
 	optionalName : <nonempty string…|0..1>,
 	success : [client socket]→⊤,
-	failure : [natural number]→⊤,
+	failure : [exception]→⊤,
 	optionalPriority : <byte…|0..1>
 |
 	name ::= optionalName[1] else [defaultName];
 	priority ::= optionalPriority[1] else [current fiber's priority];
-	wrapper ::= [h : atom | success(a client socket with handle ::= h);];
+	good ::= [h : atom | success(a client socket with handle ::= h);];
+	bad ::= [c : natural number | failure(an exception for c);];
 	aFiber ::=
 		[
 			h : atom,
@@ -329,7 +330,7 @@ is
 				I/O-error code
 			}ᵀ);
 			Raise an exception for code
-		] : fiber (s's handle, name, wrapper, failure, priority);
+		] : fiber (s's handle, name, good, bad, priority);
 	aFiber
 ] : fiber;
 
@@ -340,7 +341,7 @@ is
  * @restricts "server socket's type"
  * @restricts "<nonempty string…|0..1>'s type"
  * @restricts "[client socket]→⊤'s type"
- * @restricts "[natural number]→⊤'s type"
+ * @restricts "[exception]→⊤'s type"
  * @restricts "<byte…|0..1>'s type"
  * 
  */
@@ -353,7 +354,7 @@ is
 	s : server socket's type,
 	optionalName : <nonempty string…|0..1>'s type,
 	success : [client socket]→⊤'s type,
-	failure : [natural number]→⊤'s type,
+	failure : [exception]→⊤'s type,
 	optionalPriority : <byte…|0..1>'s type
 |
 	fiber→(success's return type ∪ failure's return type)

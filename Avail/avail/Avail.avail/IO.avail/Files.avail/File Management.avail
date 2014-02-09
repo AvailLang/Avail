@@ -1,0 +1,368 @@
+/*
+ * File Management.avail
+ * Copyright © 1993-2014, The Avail Foundation, LLC.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+System Module "File Management"
+Versions
+	"dev"
+Uses
+	"Foundation",
+	"File Names"
+Names
+	/* File moving. */
+	"Move_to_(overwrite=_)",
+	"Move_to_«,⁇overwriting if necessary»?",
+	"Rename_to_",
+
+	/* File copying. */
+	"Recursively⁇Copy|copy_to_\
+		\|(follow symlinks=_,overwrite=_,copy attributes=_)",
+	"Recursively⁇Copy|copy_to_\
+		\|«,⁇following symlinks»?\
+		\|«,⁇overwriting if necessary»?\
+		\|«,⁇copying attributes»?",
+
+	/* File unlinking. */
+	"Unlink_(recursive=_,must exist=_,follow symlinks=_)",
+	"«Recursively»?Unlink|unlink_«if necessary»?«,⁇following symlinks»?"
+Body
+
+/**
+ * Rename {@param "src"} to {@param "dest"}. Make a best effort to avoid
+ * overwriting an existing file. This operation is only likely to work if
+ * {@param "src"} and {@param "dest"} each reside on the same file system.
+ *
+ * @method "Rename_to_"
+ * @param "src" "file name"
+ *        The source {@type "file name"}.
+ * @param "dest" "file name"
+ *        The destination {@type "file name"}.
+ * @raises "no-file exception"
+ *         If {@param "src"} does not exist.
+ * @raises "I/O exception"
+ *         If an I/O error occurs for any reason.
+ * @raises "permission-denied exception"
+ *         If permission is denied to use either of the named files.
+ */
+Public method "Rename_to_" is
+[
+	src : file name,
+	dest : file name
+|
+	[
+		s : nonempty string,
+		d : nonempty string
+	|
+		Primitive 174
+			(e : {no-file code, I/O-error code, permission-denied code}ᵀ);
+		Raise an exception for e
+	] : ⊤ (src's name, dest's name);
+] : ⊤;
+
+/**
+ * Move the {@type "file"} named by {@param "src"} to {@param "dest"}.
+ *
+ * @method "Move_to_(overwrite=_)"
+ * @param "src" "file name"
+ *        The source {@type "file name"}.
+ * @param "dest" "file name"
+ *        The destination {@type "file name"}.
+ * @param "overwrite" "boolean"
+ *        {@method "true"} if {@param "dest"} should be overwritten if it
+ *        exists, {@method "false"} otherwise.
+ * @raises "no-file exception"
+ *         If {@param "src"} does not exist.
+ * @raises "file-exists exception"
+ *         If {@param "dest"} exists, but overwriting is not permitted.
+ * @raises "I/O exception"
+ *         If an I/O error occurs for any reason.
+ * @raises "permission-denied exception"
+ *         If permission is denied to use either of the specified {@type "file
+ *         name"}s.
+ */
+Public method "Move_to_(overwrite=_)" is
+[
+	src : file name,
+	dest : file name,
+	overwrite : boolean
+|
+	[
+		s : nonempty string,
+		d : nonempty string,
+		o : boolean
+	|
+		Primitive 177 (e : {
+			no-file code,
+			file-exists code,
+			I/O-error code,
+			permission-denied code}ᵀ);
+		Raise an exception for e
+	] : ⊤ (src's name, dest's name, overwrite);
+] : ⊤;
+
+/**
+ * Move the {@type "file"} named by {@param "src"} to {@param "dest"}.
+ *
+ * @method "Move_to_«,⁇overwriting if necessary»?"
+ * @param "src" "file name"
+ *        The source {@type "file name"}.
+ * @param "dest" "file name"
+ *        The destination {@type "file name"}.
+ * @param "overwrite" "boolean"
+ *        {@method "true"} if {@param "dest"} should be overwritten if it
+ *        exists, {@method "false"} otherwise.
+ * @raises "no-file exception"
+ *         If {@param "src"} does not exist.
+ * @raises "file-exists exceptions"
+ *         If {@param "dest"} exists, but overwriting is not permitted.
+ * @raises "I/O exception"
+ *         If an I/O error occurs for any reason.
+ * @raises "permission-denied exception"
+ *         If permission is denied to use either of the specified {@type "file
+ *         name"}s.
+ */
+Public method "Move_to_«,⁇overwriting if necessary»?" is
+[
+	src : file name,
+	dest : file name,
+	overwrite : boolean
+|
+	Move src to dest (overwrite = overwrite);
+] : ⊤;
+
+/**
+ * Copy the {@type "file"} named by {@param "src"} to {@param "dest"}. If
+ * {@param "src"} is a directory, then it will be recursively copied.
+ *
+ * @method
+ *    "Recursively⁇Copy|copy_to_\
+ *    \|(follow symlinks=_,overwrite=_,copy attributes=_)"
+ * @param "src" "file name"
+ *        The source {@type "file name"}.
+ * @param "dest" "file name"
+ *        The destination {@type "file name"}.
+ * @param "followSymlinks" "boolean"
+ *        {@method "true"} if symbolic links should be followed during the
+ *        traversal of the source tree, {@method "false" otherwise}.
+ * @param "overwrite" "boolean"
+ *        {@method "true"} if {@param "dest"} should be overwritten if it
+ *        exists, {@method "false"} otherwise.
+ * @param "copyAttributes" "boolean"
+ *        {@method "true"} if the file attributes of {@param "src"} should be
+ *        copied as faithfully as possible, {@method "false"} otherwise.
+ * @raises "partial-success exception"
+ *         If {@param "recursive"} is {@method "true"} and at least one file
+ *         could not be copied for any reason.
+ * @raises "no-file exception"
+ *         If {@param "src"} does not exist.
+ * @raises "file-exists exception"
+ *         If {@param "dest"} exists, but overwriting is not permitted.
+ * @raises "I/O exception"
+ *         If an I/O error occurs for any reason.
+ * @raises "permission-denied exception"
+ *         If permission is denied to use either of the specified {@type "file
+ *         name"}s.
+ */
+Public method
+	"Recursively⁇Copy|copy_to_(follow symlinks=_,overwrite=_,copy attributes=_)"
+is
+[
+	src : file name,
+	dest : file name,
+	followSymlinks, boolean,
+	overwrite : boolean,
+	copyAttributes : boolean
+|
+	[
+		s : nonempty string,
+		d : nonempty string,
+		f : boolean,
+		o : boolean,
+		c : boolean
+	|
+		Primitive 178 (e : {
+			partial-success code,
+			I/O-error code,
+			permission-denied code}ᵀ);
+		Raise an exception for e
+	] : ⊤ (src's name, dest's name, followSymlinks, overwrite, copyAttributes);
+] : ⊤;
+
+/**
+ * Copy the {@type "file"} named by {@param "src"} to {@param "dest"}. If
+ * {@param "src"} is a directory, then it will be recursively copied.
+ *
+ * @method
+ *    "Recursively⁇Copy|copy_to_\
+ *    \|«,⁇following symlinks»?\
+ *    \|«,⁇overwriting if necessary»?\
+ *    \|«,⁇copying attributes»?"
+ * @param "src" "file name"
+ *        The source {@type "file name"}.
+ * @param "dest" "file name"
+ *        The destination {@type "file name"}.
+ * @param "followSymlinks" "boolean"
+ *        {@method "true"} if symbolic links should be followed during the
+ *        traversal of the source tree, {@method "false" otherwise}.
+ * @param "overwrite" "boolean"
+ *        {@method "true"} if {@param "dest"} should be overwritten if it
+ *        exists, {@method "false"} otherwise.
+ * @param "copyAttributes" "boolean"
+ *        {@method "true"} if the file attributes of {@param "src"} should be
+ *        copied as faithfully as possible, {@method "false"} otherwise.
+ * @raises "partial-success exception"
+ *         If {@param "recursive"} is {@method "true"} and at least one file
+ *         could not be copied for any reason.
+ * @raises "no-file exception"
+ *        If {@param "src"} does not exist.
+ * @raises "file-exists exception"
+ *        If {@param "dest"} exists, but overwriting is not permitted.
+ * @raises "I/O exception"
+ *         If an I/O error occurs for any reason.
+ * @raises "permission-denied exception"
+ *         If permission is denied to use either of the specified {@type "file
+ *         name"}s.
+ */
+Public method
+	"Recursively⁇Copy|copy_to_\
+	\|«,⁇following symlinks»?\
+	\|«,⁇overwriting if necessary»?\
+	\|«,⁇copying attributes»?"
+is
+[
+	src : file name,
+	dest : file name,
+	followSymlinks, boolean,
+	overwrite : boolean,
+	copyAttributes : boolean
+|
+	Recursively copy src to dest (
+		follow symlinks = followSymlinks,
+		overwrite = overwrite,
+		copying attributes = copyAttributes);
+] : ⊤;
+
+/**
+ * Unlink {@param "fn"}. If no links remaining in the file system to the
+ * underlying {@type "file"}, then the {@type "file"} is deleted.
+ *
+ * @method "Unlink_(recursive=_,must exist=_,follow symlinks=_)"
+ * @param "fn" "file name"
+ * @param "recursive" "boolean"
+ *        Unlink {@param "fn"} recursively.
+ * @param "requireExistence" "boolean"
+ *        {@method "true"} if {@param "fn"} must name an existing file,
+ *        {@method "false"} otherwise.
+ * @param "followSymlinks" "boolean"
+ *        {@method "true"} if symbolic links should be followed during
+ *        traversal, {@method "false"} otherwise. Applies to recursive unlinking
+ *        only.
+ * @raises "partial-success exception"
+ *         If {@param "recursive"} is {@method "true"} and at least one file
+ *         could not be unlinked for any reason.
+ * @raises "permission-denied exception"
+ *         If permission is denied to use the specified {@type "file name"}.
+ * @raises "no-file exception"
+ *         If {@param "dontRequireExistence"} is {@method "false"} and {@param
+ *         "fn"} does not exist.
+ * @raises "directory-not-empty exception"
+ *         If {@param "recursive"} is {@method "false"} and {@param "fn"} names
+ *         a non-empty directory.
+ * @raises "I/O exception"
+ *         If an I/O error occurs for any reason.
+ */
+Public method "Unlink_(recursive=_,must exist=_,follow symlinks=_)" is
+[
+	fn : file name,
+	recursive : boolean,
+	requireExistence : boolean,
+	followSymlinks : boolean
+|
+	[
+		r : boolean,
+		s : nonempty string,
+		d : boolean,
+		f : boolean
+	|
+		Primitive 175 (e : {
+			partial-success code,
+			no-file code,
+			directory-not-empty code,
+			I/O-error code,
+			permission-denied code}ᵀ);
+		Raise an exception for e
+	] : ⊤ (recursive, fn's name, requireExistence, followSymlinks);
+] : ⊤;
+
+/**
+ * Unlink {@param "fn"}. If no links remaining in the file system to the
+ * underlying {@type "file"}, then the {@type "file"} is deleted.
+ *
+ * @method
+ *    "«Recursively»?Unlink|unlink_«if necessary»?«,⁇following symlinks»?"
+ * @param "recursive" "boolean"
+ *        Unlink {@param "fn"} recursively.
+ * @param "fn" "file name"
+ * @param "dontRequireExistence" "boolean"
+ *        {@method "true"} if {@param "fn"} need not name an existing file,
+ *        {@method "false"} if it must.
+ * @param "followSymlinks" "boolean"
+ *        {@method "true"} if symbolic links should be followed during
+ *        traversal, {@method "false"} otherwise. Applies to recursive unlinking
+ *        only.
+ * @raises "partial-success exception"
+ *         If {@param "recursive"} is {@method "true"} and at least one file
+ *         could not be unlinked for any reason.
+ * @raises "permission-denied exception"
+ *         If permission is denied to use the specified {@type "file name"}.
+ * @raises "no-file exception"
+ *         If {@param "dontRequireExistence"} is {@method "false"} and {@param
+ *         "fn"} does not exist.
+ * @raises "directory-not-empty exception"
+ *         If {@param "recursive"} is {@method "false"} and {@param "fn"} names
+ *         a non-empty directory.
+ * @raises "I/O exception"
+ *         If an I/O error occurs for any reason.
+ */
+Public method
+	"«Recursively»?Unlink|unlink_«if necessary»?«,⁇following symlinks»?"
+is
+[
+	recursive : boolean,
+	fn : file name,
+	dontRequireExistence : boolean,
+	followSymlinks : boolean
+|
+	Unlink fn (
+		recursive = recursive,
+		must exist = ¬dontRequireExistence,
+		follow symlinks = followSymlinks);
+] : ⊤;

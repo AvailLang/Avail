@@ -72,6 +72,7 @@ Names
 	/*  36 */ "declaration kind does not support assignment code",
 	/*  37 */ "declaration kind does not support reference code",
 	/*  65 */ "declaration type must not be top or bottom code",
+	/* 202 */ "directory not empty code",
 	/*  53 */ "double question mark must follow a simple or simple group code",
 	/*  38 */ "exclamation mark must follow an alternation group code",
 	/*  46 */ "expected operator after backquote code",
@@ -79,6 +80,7 @@ Names
 	/*  89 */ "fiber is terminated code",
 	/*  92 */ "fiber produced incorrectly typed result code",
 	/*  90 */ "fiber result unavailable code",
+	/* 201 */ "file exists code",
 	/*  86 */ "forward method definition code",
 	/*  27 */ "function disagrees with primitive restriction code",
 	/*  80 */ "handler sentinel code",
@@ -114,6 +116,7 @@ Names
 	/*  45 */ "method name is not canonical code",
 	/*  13 */ "method return type not as forward declared code",
 	/*  22 */ "negative size code",
+	/* 200 */ "no file code",
 	/*  82 */ "no handler frame code",
 	/*  19 */ "no method code",
 	/*  84 */ "no method definition code",
@@ -123,6 +126,7 @@ Names
 	/*  17 */ "not an enumeration code",
 	/*  49 */ "octothorp must follow a simple group code",
 	/*  29 */ "outer type literal is not a type code",
+	/* 203 */ "partial success code",
 	/*  24 */ "permission denied code",
 	/* 501 */ "pojo type is abstract code",
 	/*  60 */ "primitive fallibility disagrees with failure variable code",
@@ -604,6 +608,26 @@ Primitive "block compilation failed code" is
 Primitive "sequence contains invalid statements code" is
 [
 	105
+];
+
+Primitive "no file code" is
+[
+	200
+];
+
+Primitive "file exists code" is
+[
+	201
+];
+
+Primitive "directory not empty code" is
+[
+	202
+];
+
+Primitive "partial success code" is
+[
+	203
 ];
 
 Primitive "java class not available code" is

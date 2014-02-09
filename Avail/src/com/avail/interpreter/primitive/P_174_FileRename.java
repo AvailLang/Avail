@@ -34,14 +34,22 @@ package com.avail.interpreter.primitive;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
-import java.io.File;
+import java.io.IOException;
+import java.nio.file.FileStore;
+import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.List;
+import com.avail.AvailRuntime;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 
 /**
- * <strong>Primitive 174:</strong> Rename the {@linkplain File file} with
- * the specified source filename.
+ * <strong>Primitive 174:</strong> Rename the source {@linkplain Path path} to
+ * the destination path. Try not to overwrite an existing destination. This
+ * operation is only likely to work for two paths provided by the same
+ * {@linkplain FileStore file store}.
  */
 public final class P_174_FileRename
 extends Primitive
@@ -61,17 +69,32 @@ extends Primitive
 		assert args.size() == 2;
 		final A_String source = args.get(0);
 		final A_String destination = args.get(1);
-		final File file = new File(source.asNativeString());
-		final boolean renamed;
+		final AvailRuntime runtime = AvailRuntime.current();
+		final Path sourcePath = runtime.fileSystem().getPath(
+			source.asNativeString());
+		final Path destinationPath = runtime.fileSystem().getPath(
+			destination.asNativeString());
+		// Make a best effort to forbid clobbering the destination file.
+		if (Files.exists(destinationPath, AvailRuntime.followSymlinks(false)))
+		{
+			return interpreter.primitiveFailure(E_IO_ERROR);
+		}
 		try
 		{
-			renamed = file.renameTo(new File(destination.asNativeString()));
+			Files.move(
+				sourcePath,
+				destinationPath,
+				StandardCopyOption.ATOMIC_MOVE);
 		}
 		catch (final SecurityException e)
 		{
 			return interpreter.primitiveFailure(E_PERMISSION_DENIED);
 		}
-		if (!renamed)
+		catch (final NoSuchFileException e)
+		{
+			return interpreter.primitiveFailure(E_NO_FILE);
+		}
+		catch (final IOException e)
 		{
 			return interpreter.primitiveFailure(E_IO_ERROR);
 		}
@@ -94,6 +117,7 @@ extends Primitive
 		return AbstractEnumerationTypeDescriptor.withInstances(
 			TupleDescriptor.from(
 				E_PERMISSION_DENIED.numericCode(),
+				E_NO_FILE.numericCode(),
 				E_IO_ERROR.numericCode()
 			).asSet());
 	}

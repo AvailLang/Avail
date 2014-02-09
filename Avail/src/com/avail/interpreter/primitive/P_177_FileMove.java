@@ -1,5 +1,5 @@
 /**
- * P_163_FileClose.java
+ * P_177_FileMove.java
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -29,31 +29,40 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+
 package com.avail.interpreter.primitive;
 
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
-import java.io.*;
+import java.io.IOException;
+import java.nio.file.CopyOption;
+import java.nio.file.FileAlreadyExistsException;
+import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.List;
+import com.avail.AvailRuntime;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 
 /**
- * <strong>Primitive 163:</strong> Close the {@linkplain RandomAccessFile
- * file} associated with the specified {@linkplain AtomDescriptor handle}.
- * Forget the association between the handle and the file.
+ * <strong>Primitive 177</strong>: Move the source {@linkplain Path path} to the
+ * destination path. Use the supplied {@linkplain
+ * EnumerationTypeDescriptor#booleanObject() boolean} to decide whether to
+ * permit the destination to be overwritten.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class P_163_FileClose
+public final class P_177_FileMove
 extends Primitive
 {
 	/**
-	 * The sole instance of this primitive class.  Accessed through reflection.
+	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_163_FileClose().init(
-		1, CanInline, HasSideEffect);
+	public final static Primitive instance =
+		new P_177_FileMove().init(3, CanInline, HasSideEffect);
 
 	@Override
 	public Result attempt (
@@ -61,31 +70,41 @@ extends Primitive
 		final Interpreter interpreter,
 		final boolean skipReturnCheck)
 	{
-		assert args.size() == 1;
-		final A_Atom handle = args.get(0);
-		final A_BasicObject pojo =
-			handle.getAtomProperty(AtomDescriptor.fileKey());
-		if (pojo.equalsNil())
-		{
-			return interpreter.primitiveFailure(E_INVALID_HANDLE);
-		}
-		final RandomAccessFile file = (RandomAccessFile) pojo.javaObject();
+		assert args.size() == 3;
+		final A_String source = args.get(0);
+		final A_String destination = args.get(1);
+		final A_Atom overwrite = args.get(2);
+		final AvailRuntime runtime = AvailRuntime.current();
+		final Path sourcePath = runtime.fileSystem().getPath(
+			source.asNativeString());
+		final Path destinationPath = runtime.fileSystem().getPath(
+			destination.asNativeString());
+		final CopyOption[] options = overwrite.extractBoolean()
+			? new CopyOption[] {StandardCopyOption.REPLACE_EXISTING}
+			: new CopyOption[] {};
 		try
 		{
-			file.close();
+			Files.move(
+				sourcePath,
+				destinationPath,
+				options);
+		}
+		catch (final SecurityException e)
+		{
+			return interpreter.primitiveFailure(E_PERMISSION_DENIED);
+		}
+		catch (final NoSuchFileException e)
+		{
+			return interpreter.primitiveFailure(E_NO_FILE);
+		}
+		catch (final FileAlreadyExistsException e)
+		{
+			return interpreter.primitiveFailure(E_FILE_EXISTS);
 		}
 		catch (final IOException e)
 		{
-			// There isn't much to do about a failed close, especially since
-			// we've already forgotten about the handle. There's no reason
-			// to fail the primitive.
+			return interpreter.primitiveFailure(E_IO_ERROR);
 		}
-		handle.setAtomProperty(
-			AtomDescriptor.fileKey(), NilDescriptor.nil());
-		handle.setAtomProperty(
-			AtomDescriptor.fileModeReadKey(), NilDescriptor.nil());
-		handle.setAtomProperty(
-			AtomDescriptor.fileModeWriteKey(), NilDescriptor.nil());
 		return interpreter.primitiveSuccess(NilDescriptor.nil());
 	}
 
@@ -94,13 +113,22 @@ extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				ATOM.o()),
+				TupleTypeDescriptor.oneOrMoreOf(CHARACTER.o()),
+				TupleTypeDescriptor.oneOrMoreOf(CHARACTER.o()),
+				EnumerationTypeDescriptor.booleanObject()),
 			TOP.o());
 	}
+
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return InstanceTypeDescriptor.on(E_INVALID_HANDLE.numericCode());
+		return AbstractEnumerationTypeDescriptor.withInstances(
+			TupleDescriptor.from(
+				E_PERMISSION_DENIED.numericCode(),
+				E_NO_FILE.numericCode(),
+				E_FILE_EXISTS.numericCode(),
+				E_IO_ERROR.numericCode()
+			).asSet());
 	}
 }

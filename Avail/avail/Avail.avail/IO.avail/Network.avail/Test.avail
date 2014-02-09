@@ -116,7 +116,7 @@ Test "basic connection" in network test suite is
 [
 	server ::= a server socket;
 	accepted : client socket;
-	killer : natural number;
+	killer : exception;
 	serverFiber ::=
 		guard
 		[
@@ -130,7 +130,7 @@ Test "basic connection" in network test suite is
 					c's address reusability := true;
 					accepted := c;
 				],
-				on failure doing [c : natural number | killer := c;]
+				on failure doing [e : exception | killer := e;]
 		]
 		intercept
 		[
@@ -147,7 +147,7 @@ Test "basic connection" in network test suite is
 			Bind client to 127 .0 .0 .1:0;
 			a fiber connecting client to server's address,
 				on success doing [/* Nothing. */],
-				on failure doing [c : natural number | killer := c;]
+				on failure doing [e : exception | killer := e;]
 		]
 		intercept
 		[
@@ -162,7 +162,7 @@ Test "basic connection" in network test suite is
 	[
 		Join serverFiber;
 		Join clientFiber;
-		If ↑killer is assigned then [Raise an exception for killer];
+		If ↑killer is assigned then [Raise killer];
 	]
 	ensure
 	[
@@ -177,7 +177,7 @@ Test "basic transmission" in network test suite is
 	server ::= a server socket;
 	sem ::= a semaphore named "transmission" with 0 out of 2 permits;
 	accepted : client socket;
-	killer : natural number;
+	killer : exception;
 	/* Accepting new connections. */
 	Guard
 	[
@@ -192,7 +192,7 @@ Test "basic transmission" in network test suite is
 				accepted := c;
 				Signal sem;
 			],
-			on failure doing [c : natural number | killer := c; Signal sem;];
+			on failure doing [e : exception | killer := e; Signal sem;];
 	]
 	intercept
 	[
@@ -209,7 +209,7 @@ Test "basic transmission" in network test suite is
 		Bind client to 127 .0 .0 .1:0;
 		Ignore: a fiber connecting client to server's address,
 			on success doing [Signal sem;],
-			on failure doing [c : natural number | killer := c; Signal sem;];
+			on failure doing [e : exception | killer := e; Signal sem;];
 	]
 	intercept
 	[
@@ -228,7 +228,7 @@ Test "basic transmission" in network test suite is
 			Close server;
 			Close client;
 			If ↑accepted is assigned then [Close accepted;];
-			Raise an exception for killer
+			Raise killer
 		];
 	] 2 times;
 	/* Send data. */
@@ -239,13 +239,7 @@ Test "basic transmission" in network test suite is
 	[
 		Ignore: a fiber writing data to client,
 			on success doing [/* Nothing. */],
-			on failure doing
-			[
-				c : natural number
-			|
-				killer := c;
-				Signal sem;
-			];
+			on failure doing [e : exception | killer := e; Signal sem;];
 		read : <byte…|> := <>;
 		Until
 		[
@@ -261,15 +255,15 @@ Test "basic transmission" in network test suite is
 				]
 				on failure doing
 				[
-					c : natural number
+					e : exception
 				|
-					killer := c;
+					killer := e;
 					Signal sem;
 				];
 			Await sem;
 			↑killer is assigned ∨ [|read| = |data|]
 		];
-		If ↑killer is assigned then [Raise an exception for killer];
+		If ↑killer is assigned then [Raise killer];
 		Require: data = read;
 	]
 	ensure

@@ -1,5 +1,5 @@
 /*
- * Client.avail
+ * Synchronous.avail
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,10 +30,48 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Client"
+System Module "Synchronous"
 Versions
 	"dev"
-Extends
-	"Primitives",
-	"Synchronous"
+Uses
+	"Client",
+	"Foundation",
+	"Primitives"
+Names
+	/* Accepting. */
+	"accept a new connection«named_»on_"
 Body
+
+/* The default name for unspecified optional names. */
+defaultName ::= "«unnamed»";
+
+/**
+ * Synchronously accept an incoming connection on the specified {@type "server
+ * socket"}. Answer the resultant {@type "client socket"}.
+ *
+ * @method "accept a new connection«named_»on_"
+ * @param "optionalName" "<nonempty string…|0..1>"
+ *        An optional string that describes the purpose of the client socket at
+ *        a high level, provided for debugging purposes only. If not specified,
+ *        then the default name {@code "«unnamed»"} is used.
+ * @param "s" "server socket"
+ * @returns "client socket"
+ *          The newly connected client socket.
+ */
+Public method "accept a new connection«named_»on_" is
+[
+	optionalName : <nonempty string…|0..1>,
+	s : server socket
+|
+	clientName ::= optionalName[1] else [defaultName];
+	semName ::= format "accept semaphore for ‘①’" with s's name;
+	sem ::= a semaphore named semName with 0 out of 1 permits;
+	client : client socket;
+	killer : exception;
+	Ignore: a fiber waiting until s accepts a new connection named clientName,
+		on success doing [c : client socket | client := c; Signal sem;]
+		on failure doing [e : exception | killer := e; Signal sem;];
+	Await sem;
+	If ↑killer is assigned then [Raise killer];
+	client
+] : client socket;
