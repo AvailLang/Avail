@@ -78,7 +78,7 @@ extends TupleDescriptor
 	 * TreeTupleDescriptor}/using other forms of reference instead of creating
 	 * an new tuple.
 	 */
-	private static final int minimumCopySize = 32;
+	private static final int maximumCopySize = 32;
 
 	/**
 	 * The number of bytes of the last {@code int} that do not participate in
@@ -321,7 +321,7 @@ extends TupleDescriptor
 	A_Tuple o_TupleReverse(final AvailObject object)
 	{
 		final int tupleSize = object.tupleSize();
-		if (tupleSize > 0 && tupleSize < minimumCopySize)
+		if (tupleSize > 0 && tupleSize < maximumCopySize)
 		{
 			// It's not empty and it's reasonably small.
 			final AvailObject result = mutableObjectOfSize(tupleSize);
@@ -449,7 +449,7 @@ extends TupleDescriptor
 		final int tupleSize = object.tupleSize();
 		assert 0 <= end && end <= tupleSize;
 		final int size = end - start + 1;
-		if (size > 0 && size < tupleSize && size < minimumCopySize)
+		if (size > 0 && size < tupleSize && size < maximumCopySize)
 		{
 			// It's not empty, it's not a total copy, and it's reasonably small.
 			// Just copy the applicable bytes out.  In theory we could use

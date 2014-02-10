@@ -84,6 +84,13 @@ extends TupleDescriptor
 	}
 
 	/**
+	 * Defined threshold for making copies versus using {@linkplain
+	 * TreeTupleDescriptor}/using other forms of reference instead of creating
+	 * an new tuple.
+	 */
+	private static final int maximumCopySize = 64;
+
+	/**
 	 * The number of nybbles of the last {@linkplain IntegerSlots#RAW_QUAD_AT_
 	 * integer slot} that are not considered part of the tuple.
 	 */
@@ -333,6 +340,27 @@ extends TupleDescriptor
 	}
 
 	@Override @AvailMethod
+	A_Tuple o_TupleReverse(final AvailObject object)
+	{
+		final int size = object.tupleSize();
+		if (size >= maximumCopySize)
+		{
+			return super.o_TupleReverse(object);
+		}
+
+		// It's not empty, it's not a total copy, and it's reasonably small.
+		// Just copy the applicable nybbles out.  In theory we could use
+		// newLike() if start is 1.  Make sure to mask the last word in that
+		// case.
+		final AvailObject result = mutableObjectOfSize(size);
+		for (int i = 1; i <= size; i++)
+		{
+			setNybble(result, i, getNybble(object, size-i+1));
+		}
+		return result;
+	}
+
+	@Override @AvailMethod
 	int o_TupleSize (final AvailObject object)
 	{
 		return (object.variableIntegerSlotsCount() << 3)
@@ -391,7 +419,7 @@ extends TupleDescriptor
 			return object;
 		}
 		final int newSize = size1 + size2;
-		if (newSize <= 64)
+		if (newSize <= maximumCopySize)
 		{
 			// Copy the nybbles.
 			final int newWordCount = (newSize + 7) >>> 3;
@@ -449,7 +477,7 @@ extends TupleDescriptor
 		final int tupleSize = object.tupleSize();
 		assert 0 <= end && end <= tupleSize;
 		final int size = end - start + 1;
-		if (size > 0 && size < tupleSize && size < 64)
+		if (size > 0 && size < tupleSize && size < maximumCopySize)
 		{
 			// It's not empty, it's not a total copy, and it's reasonably small.
 			// Just copy the applicable nybbles out.  In theory we could use

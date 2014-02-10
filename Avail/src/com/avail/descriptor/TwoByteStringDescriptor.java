@@ -74,6 +74,13 @@ extends StringDescriptor
 	}
 
 	/**
+	 * Defined threshold for making copies versus using {@linkplain
+	 * TreeTupleDescriptor}/using other forms of reference instead of creating
+	 * an new tuple.
+	 */
+	private static final int maximumCopySize = 32;
+
+	/**
 	 * The number of shorts that are unused in the last {@linkplain
 	 * IntegerSlots#RAW_QUAD_AT_ integer slot}. Zero when the number of
 	 * characters is even, one if odd.
@@ -269,6 +276,34 @@ extends StringDescriptor
 	}
 
 	@Override @AvailMethod
+	A_Tuple o_TupleReverse(final AvailObject object)
+	{
+		final int size = object.tupleSize();
+		if (size > maximumCopySize)
+		{
+			return super.o_TupleReverse(object);
+		}
+
+		// It's not empty, it's not a total copy, and it's reasonably small.
+		// Just copy the applicable bytes out.  In theory we could use
+		// newLike() if start is 1.  Make sure to mask the last word in that
+		// case.
+		return generateTwoByteString(
+			size,
+			new Generator<Integer>()
+			{
+				private int sourceIndex = size;
+
+				@Override
+				public Integer value ()
+				{
+					return (int)object.shortSlotAt(
+						RAW_QUAD_AT_, sourceIndex--);
+				}
+			});
+	}
+
+	@Override @AvailMethod
 	int o_TupleSize (final AvailObject object)
 	{
 		return object.variableIntegerSlotsCount() * 2 - unusedShortsOfLastWord;
@@ -333,7 +368,7 @@ extends StringDescriptor
 			return object;
 		}
 		final int newSize = size1 + size2;
-		if (otherTuple.isTwoByteString() && newSize <= 32)
+		if (otherTuple.isTwoByteString() && newSize <= maximumCopySize)
 		{
 			// Copy the characters.
 			final int newWordCount = (newSize + 1) >> 1;

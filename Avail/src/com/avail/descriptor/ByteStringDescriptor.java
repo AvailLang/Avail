@@ -84,7 +84,7 @@ extends StringDescriptor
 	 * TreeTupleDescriptor}/using other forms of reference instead of creating
 	 * an new tuple.
 	 */
-	private final int minimumSize = 32;
+	private final int maximumCopySize = 32;
 
 	@Override @AvailMethod
 	boolean o_CompareFromToWithStartingAt (
@@ -269,24 +269,33 @@ extends StringDescriptor
 		throw unsupportedOperationException();
 	}
 
-	/*@Override @AvailMethod
+	@Override @AvailMethod
 	A_Tuple o_TupleReverse(final AvailObject object)
 	{
-		if (o_TupleSize(object) >= minimumSize)
+		final int size = object.tupleSize();
+		if (size > maximumCopySize)
 		{
 			return super.o_TupleReverse(object);
 		}
 
-		final int size = object.tupleSize();
-		final AvailObject instance =
-			mutable.create(size);
-		instance.hashOrZero(object.hashOrZero());
-		for (int i = 1; i <= size; i++)
-		{
-			instance.objectTupleAtPut(size-i, object.tupleAt(i));
-		}
-		return instance;
-	}*/
+		// It's not empty, it's not a total copy, and it's reasonably small.
+		// Just copy the applicable bytes out.  In theory we could use
+		// newLike() if start is 1.  Make sure to mask the last word in that
+		// case.
+		return generateByteString(
+			size,
+			new Generator<Integer>()
+			{
+				private int sourceIndex = size;
+
+				@Override
+				public Integer value ()
+				{
+					return (int)object.byteSlotAt(
+						RAW_QUAD_AT_, sourceIndex--);
+				}
+			});
+	}
 
 	@Override @AvailMethod
 	int o_TupleSize (final AvailObject object)
@@ -354,7 +363,7 @@ extends StringDescriptor
 		final int tupleSize = object.tupleSize();
 		assert 0 <= end && end <= tupleSize;
 		final int size = end - start + 1;
-		if (size > 0 && size < tupleSize && size < minimumSize)
+		if (size > 0 && size < tupleSize && size < maximumCopySize)
 		{
 			// It's not empty, it's not a total copy, and it's reasonably small.
 			// Just copy the applicable bytes out.  In theory we could use
@@ -403,7 +412,7 @@ extends StringDescriptor
 			return object;
 		}
 		final int newSize = size1 + size2;
-		if (otherTuple.isByteString() && newSize <= minimumSize)
+		if (otherTuple.isByteString() && newSize <= maximumCopySize)
 		{
 			// Copy the characters.
 			final int newWordCount = (newSize + 3) >>> 2;

@@ -95,7 +95,7 @@ extends TupleDescriptor
 	 * TreeTupleDescriptor}/using other forms of reference instead of creating
 	 * an new tuple.
 	 */
-	private static final int minimumCopySize = 32;
+	private static final int maximumCopySize = 32;
 
 	@Override @AvailMethod
 	AvailObject o_TupleAt (final AvailObject object, final int index)
@@ -235,7 +235,7 @@ extends TupleDescriptor
 		}
 
 		final int newSize = size1 + size2;
-		if (newSize <= minimumCopySize)
+		if (newSize <= maximumCopySize)
 		{
 			// Copy the objects.
 			final int deltaSlots = newSize - object.variableObjectSlotsCount();
@@ -291,7 +291,7 @@ extends TupleDescriptor
 			}
 			return object;
 		}
-		if (subrangeSize > 0 && subrangeSize < tupleSize && subrangeSize < minimumCopySize)
+		if (subrangeSize > 0 && subrangeSize < tupleSize && subrangeSize < maximumCopySize)
 		{
 			// It's not empty, it's not a total copy, and it's reasonably small.
 			// Just copy the applicable entries out.
