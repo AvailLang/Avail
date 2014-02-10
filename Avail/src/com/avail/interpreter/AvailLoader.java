@@ -63,6 +63,16 @@ public final class AvailLoader
 	private final AvailRuntime runtime = AvailRuntime.current();
 
 	/**
+	 * Answer the {@link AvailRuntime} for the loader.
+	 *
+	 * @return The Avail runtime.
+	 */
+	public AvailRuntime runtime ()
+	{
+		return runtime;
+	}
+
+	/**
 	 * The Avail {@linkplain ModuleDescriptor module} undergoing {@linkplain
 	 * AvailLoader loader}.
 	 */
@@ -723,27 +733,75 @@ public final class AvailLoader
 
 	/**
 	 * Run the specified {@linkplain A_Tuple tuple} of {@linkplain A_Function
-	 * functions} in parallel. Do not wait for these functions to finish
-	 * running.
+	 * functions} in parallel.
 	 *
 	 * @param unloadFunctions
 	 *        A tuple of unload functions.
+	 * @param afterRunning
+	 *        What to do after every unload function has completed.
 	 */
-	public final void runUnloadFunctions (final A_Tuple unloadFunctions)
+	public final void runUnloadFunctions (
+		final A_Tuple unloadFunctions,
+		final Continuation0 afterRunning)
 	{
-		for (final A_Function unloadFunction : unloadFunctions)
+		final Mutable<Integer> stillRunning = new Mutable<Integer>(
+			unloadFunctions.tupleSize());
+		if (stillRunning.value > 0)
 		{
-			final A_Fiber fiber = FiberDescriptor.newFiber(
-				TypeDescriptor.Types.TOP.o(),
-				FiberDescriptor.loaderPriority,
-				StringDescriptor.format(
-					"Unload function for module %s",
-					module.moduleName()));
-			Interpreter.runOutermostFunction(
-				runtime,
-				fiber,
-				unloadFunction,
-				Collections.<A_BasicObject>emptyList());
+			final Continuation0 onExit = new Continuation0()
+			{
+				@Override
+				public void value ()
+				{
+					boolean finished = false;
+					synchronized (stillRunning)
+					{
+						stillRunning.value--;
+						if (stillRunning.value == 0)
+						{
+							finished = true;
+						}
+					}
+					if (finished)
+					{
+						afterRunning.value();
+					}
+				}
+			};
+			for (final A_Function unloadFunction : unloadFunctions)
+			{
+				final A_Fiber fiber = FiberDescriptor.newFiber(
+					TypeDescriptor.Types.TOP.o(),
+					FiberDescriptor.loaderPriority,
+					StringDescriptor.format(
+						"Unload function for module %s",
+						module.moduleName()));
+				fiber.resultContinuation(new Continuation1<AvailObject>()
+				{
+					@Override
+					public void value (final @Nullable AvailObject unused)
+					{
+						onExit.value();
+					}
+				});
+				fiber.failureContinuation(new Continuation1<Throwable>()
+				{
+					@Override
+					public void value (final @Nullable Throwable unused)
+					{
+						onExit.value();
+					}
+				});
+				Interpreter.runOutermostFunction(
+					runtime,
+					fiber,
+					unloadFunction,
+					Collections.<A_BasicObject>emptyList());
+			}
+		}
+		else
+		{
+			afterRunning.value();
 		}
 	}
 

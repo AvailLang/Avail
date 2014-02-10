@@ -1553,9 +1553,10 @@ extends AbstractDescriptor
 	@Override
 	void o_RemoveFrom (
 		final AvailObject object,
-		final AvailLoader aLoader)
+		final AvailLoader aLoader,
+		final Continuation0 afterRemoval)
 	{
-		o_Traversed(object).removeFrom(aLoader);
+		o_Traversed(object).removeFrom(aLoader, afterRemoval);
 	}
 
 	@Override

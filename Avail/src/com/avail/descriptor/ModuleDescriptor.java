@@ -40,6 +40,7 @@ import java.util.List;
 import com.avail.AvailRuntime;
 import com.avail.annotations.*;
 import com.avail.interpreter.AvailLoader;
+import com.avail.utility.evaluation.Continuation0;
 
 /**
  * A {@linkplain ModuleDescriptor module} is the mechanism by which Avail code
@@ -662,7 +663,7 @@ extends Descriptor
 			A_Tuple unloadFunctions = object.slot(UNLOAD_FUNCTIONS);
 			unloadFunctions = unloadFunctions.appendCanDestroy(
 				unloadFunction, true);
-			object.setSlot(UNLOAD_FUNCTIONS, unloadFunctions);
+			object.setSlot(UNLOAD_FUNCTIONS, unloadFunctions.makeShared());
 		}
 	}
 
@@ -706,11 +707,12 @@ extends Descriptor
 	@Override @AvailMethod
 	void o_RemoveFrom (
 		final AvailObject object,
-		final AvailLoader aLoader)
+		final AvailLoader aLoader,
+		final Continuation0 afterRemoval)
 	{
 		synchronized (object)
 		{
-			final AvailRuntime runtime = AvailRuntime.current();
+			final AvailRuntime runtime = aLoader.runtime();
 			// Remove method definitions.
 			for (final A_Definition definition : object.methodDefinitions())
 			{
@@ -733,7 +735,10 @@ extends Descriptor
 				}
 			}
 			// Run unload functions (asynchronously).
-			aLoader.runUnloadFunctions(object.slot(UNLOAD_FUNCTIONS));
+			aLoader.runUnloadFunctions(
+				object.slot(UNLOAD_FUNCTIONS),
+				afterRemoval);
+			object.setSlot(UNLOAD_FUNCTIONS, NilDescriptor.nil());
 		}
 	}
 

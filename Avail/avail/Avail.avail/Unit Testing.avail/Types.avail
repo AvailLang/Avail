@@ -138,6 +138,14 @@ Public class "unit test" extends object
 		public body : []→⊤,
 		public expected exception type : <exception's type…|0..1>;
 
+Method "“_”" is
+[
+	test : unit test
+|
+	format "unit test “①” (in test suite “②”)"
+	with test's test ID's name, test's suite ID's name
+];
+
 /**
  * The root exception type for test-centric unit-testing framework exceptions.
  * 
@@ -203,10 +211,6 @@ Public method "short“_”" is
 	anException : unit-test exception
 |
 	name ::= “anException”;
-/*		cast anException into
-			[e : no-such-test exception | "no-such-test exception" ],
-			[e : failed-test exception | "failed-test exception" ];
-*/
 	description ::= 
 		cast anException
 		into
@@ -266,6 +270,13 @@ Public class "unit test suite" extends root unit test suite
 		public reconstructible test fixture setup : <[]→⊤…|>,
 		public reconstructible test fixture tear down : <[]→⊤…|>,
 		public reconstructible unit tests : <unit test…|>;
+
+Method "“_”" is
+[
+	suite : unit test suite
+|
+	format "test suite “①”" with suite's suite ID's name
+];
 
 /**
  * The root exception type for suite-centric unit-testing framework exceptions.

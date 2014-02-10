@@ -382,16 +382,28 @@ public final class AvailBuilder
 										// here, since it won't have any pending
 										// forwards to remove.
 										module.removeFrom(
-											AvailLoader.forUnloading(module));
-										runtime.removeModule(module);
-										if (debugBuilder)
-										{
-											System.out.println(
-												"Done unload of: "
-												+ moduleName);
-										}
+											AvailLoader.forUnloading(module),
+											new Continuation0()
+											{
+												@Override
+												public void value ()
+												{
+													runtime.unlinkModule(
+														module);
+													if (debugBuilder)
+													{
+														System.out.println(
+															"Done unload of: "
+															+ moduleName);
+													}
+													completionAction.value();
+												}
+											});
 									}
-									completionAction.value();
+									else
+									{
+										completionAction.value();
+									}
 								}
 							}));
 					}
@@ -978,25 +990,33 @@ public final class AvailBuilder
 					public void value (final @Nullable Throwable e)
 					{
 						assert e != null;
-						module.removeFrom(availLoader);
-						moduleGraph.removeVertex(moduleName);
-						postLoad(moduleName, 0L);
-						final Problem problem = new Problem(
-							moduleName,
-							TokenDescriptor.createSyntheticStart(),
-							ProblemType.EXECUTION,
-							"Problem loading module: {0}",
-							e.getLocalizedMessage())
-						{
-							@Override
-							public void abortCompilation ()
+						module.removeFrom(
+							availLoader,
+							new Continuation0()
 							{
-								shouldStopBuild = true;
-								completionAction.value();
-							}
-						};
-						problem.report(problemHandler);
-						problem.abortCompilation();
+								@Override
+								public void value ()
+								{
+									moduleGraph.removeVertex(moduleName);
+									postLoad(moduleName, 0L);
+									final Problem problem = new Problem(
+										moduleName,
+										TokenDescriptor.createSyntheticStart(),
+										ProblemType.EXECUTION,
+										"Problem loading module: {0}",
+										e.getLocalizedMessage())
+									{
+										@Override
+										public void abortCompilation ()
+										{
+											shouldStopBuild = true;
+											completionAction.value();
+										}
+									};
+									problem.report(problemHandler);
+									problem.abortCompilation();
+								}
+							});
 					}
 				};
 			try
@@ -1206,7 +1226,6 @@ public final class AvailBuilder
 								@Override
 								public void value ()
 								{
-									compiler.removeIncompleteModule();
 									postLoad(moduleName, lastPosition.value);
 									completionAction.value();
 								}

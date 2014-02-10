@@ -41,9 +41,7 @@ Names
 	"observation test suite"
 Body
 
-/* The observation test suite identifier. */
 "observation test suite" is a new atom;
-
 New test suite observation test suite extends foundation test suite;
 
 Test "write reactor" in observation test suite is

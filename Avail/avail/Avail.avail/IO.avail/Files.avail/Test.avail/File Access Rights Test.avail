@@ -56,6 +56,12 @@ Private method "abracadabra.txt" is
 	a file named test directory ++ "/abracadabra.txt"
 ];
 
+After running file access rights test suite, do
+[
+	fn ::= abracadabra.txt;
+	fn's access rights := {owner read, group read};
+];
+
 Test "owner read" in file access rights test suite is
 [
 	Require: owner read's access class = owner;

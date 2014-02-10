@@ -1209,11 +1209,11 @@ public final class AvailRuntime
 	/**
 	 * Remove the specified {@linkplain ModuleDescriptor module} from this
 	 * runtime.  The module's code should already have been removed via {@link
-	 * A_Module#removeFrom(AvailLoader)}.
+	 * A_Module#removeFrom(AvailLoader, Continuation0)}.
 	 *
 	 * @param module The module to remove.
 	 */
-	public void removeModule (final A_Module module)
+	public void unlinkModule (final A_Module module)
 	{
 		runtimeLock.writeLock().lock();
 		try

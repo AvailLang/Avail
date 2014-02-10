@@ -3606,9 +3606,11 @@ implements
 	 * @param loader
 	 */
 	@Override
-	public void removeFrom (final AvailLoader loader)
+	public void removeFrom (
+		final AvailLoader loader,
+		final Continuation0 afterRemoval)
 	{
-		descriptor.o_RemoveFrom(this, loader);
+		descriptor.o_RemoveFrom(this, loader, afterRemoval);
 	}
 
 	/**

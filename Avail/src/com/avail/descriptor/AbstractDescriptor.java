@@ -2230,10 +2230,12 @@ public abstract class AbstractDescriptor
 	/**
 	 * @param object
 	 * @param aLoader
+	 * @param afterRemoval
 	 */
 	abstract void o_RemoveFrom (
 		AvailObject object,
-		AvailLoader aLoader);
+		AvailLoader aLoader,
+		Continuation0 afterRemoval);
 
 	/**
 	 * @param object

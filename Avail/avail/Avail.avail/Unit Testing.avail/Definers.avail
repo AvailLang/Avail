@@ -48,6 +48,115 @@ Names
 Body
 
 /**
+ * Forget everything related to the specified {@type "module"}: deregister all
+ * {@type "unit test"}s and {@type "unit test suites"}, etc.
+ *
+ * @method "Forget everything related to_"
+ * @param "unloadedModule" "module"
+ *        A {@type "module"} that has been unloaded.
+ */
+Private method "Forget everything related to_" is
+[
+	unloadedModule : module
+|
+	Lock suite lock for
+	[
+		/* Traverse the collection of test suites, looking for every atom
+		 * issued by the unloaded module.
+		 */
+		For each of suites by atom do
+		[
+			suiteID : atom,
+			suite : unit test suite
+		|
+			/* Iterate through the test cases, eliminating each one whose test
+			 * ID was issued by the unloaded module.
+			 */
+			unitTests : <unit test…|> := <>;
+			For each of suite's unit tests do
+			[
+				test : unit test
+			|
+				testID ::= test's test ID;
+				/* If the test was created by the unloaded module, then remove
+				 * it from the map of all tests.
+				 */
+				If testID's issuing module = unloadedModule then
+				[
+					tests by atom := tests by atom - testID;
+				]
+				/* Otherwise, remember to include it in the replacement
+				 * suite.
+				 */
+				else
+				[
+					unitTests := unitTests ++ <test>;
+				];
+			];
+			newSuite : unit test suite := suite's unit tests ::= unitTests;
+			/* If the suite was created by the unloaded module, then unlink it
+			 * from the hierarchy of test suites.
+			 */
+			If suiteID's issuing module = unloadedModule then
+			[
+				/* Ascertain the parentage of the test suite. */
+				parentID ::= suite's parent suite ID;
+				isRootTestSuite ::= parentID = root test suite ID;
+				parent ::= if isRootTestSuite
+					then [root suite]
+					else [suites by atom[parentID]];
+				/* Remove the suite from the parent, and add in its own
+				 * children.
+				 */
+				childSuites : <atom…|> := parent's child suite IDs - suiteID;
+				childSuites := childSuites ++ suite's child suite IDs;
+				If isRootTestSuite then
+				[
+					root suite := root suite's child suite IDs ::= childSuites;
+				]
+				else
+				[
+					siblings ::=
+						cast parent's child suite IDs ::= childSuites
+						into [t : unit test suite | t];
+					suites by atom := suites by atom + parentID→siblings;
+				];
+				/* Remove the suite. */
+				suites by atom := suites by atom - suiteID;
+			]
+			/* Otherwise, remember to update it in the map of all suites. */
+			else
+			[
+				suites by atom := suites by atom + suiteID→newSuite;
+			];
+		];
+		modules := modules - unloadedModule;
+	];
+];
+
+/**
+ * Arrange to forget everything related to the {@method "current module"},
+ * unless this has already been arranged.
+ *
+ * @method
+ *    "If necessary,arrange to forget everything related to the current module"
+ */
+Private method
+	"If necessary,arrange to forget everything related to the current module"
+is
+[
+	currentModule ::= current module;
+	If ¬currentModule ∈ modules then
+	[
+		modules := modules + currentModule;
+		After the current module is unloaded, do
+		[
+			Forget everything related to currentModule;
+		];
+	];
+] : ⊤;
+
+/**
  * Define a unit test suite.
  *
  * @method "New test suite,⁇_,⁇extends_"
@@ -80,6 +189,7 @@ Public method "New test suite,⁇_,⁇extends_" is
 		[
 			Raise a test-suite-already-exists exception with suite ID ::= id
 		];
+		/* Build the test suite. */
 		suite ::= a unit test suite with
 			suite ID ::= id,
 			parent suite ID ::= parentID,
@@ -89,6 +199,7 @@ Public method "New test suite,⁇_,⁇extends_" is
 			test fixture setup ::= <>,
 			test fixture tear down ::= <>,
 			unit tests ::= <>;
+		/* Ascertain the parentage of the test suite. */
 		isRootTestSuite ::= parentID = root test suite ID;
 		parent ::= if isRootTestSuite
 			then [root suite]
@@ -100,6 +211,7 @@ Public method "New test suite,⁇_,⁇extends_" is
 						suite ID ::= parentID
 				]
 			];
+		/* Record the suite atom in the global collection of suites. */
 		suites by atom := suites by atom + id→suite;
 		childSuites : <atom…|> := parent's child suite IDs ++ <id>;
 		If isRootTestSuite then
@@ -108,10 +220,12 @@ Public method "New test suite,⁇_,⁇extends_" is
 		]
 		else
 		[
-			updatedParent ::= cast parent's child suite IDs ::= childSuites
+			updatedSiblings ::= cast parent's child suite IDs ::= childSuites
 				into [t : unit test suite | t];
-			suites by atom := suites by atom + parentID→updatedParent;
+			suites by atom := suites by atom + parentID→updatedSiblings;
 		];
+		If necessary,
+			arrange to forget everything related to the current module;
 	];
 ] : ⊤;
 
@@ -304,15 +418,15 @@ Public method "Test_in_is_«must raise_»" is
 	Lock suite lock for
 	[
 		trueName ::= atom for name;
-			If trueName ∈ tests by atom then
-			[
-				Raise a test-already-exists exception with test ID ::= trueName
-			];
-			unitTest ::= a unit test with
-				test ID ::= trueName,
-				suite ID ::= suiteID,
-				body ::= test,
-				expected exception type ::= optionalException;
+		If trueName ∈ tests by atom then
+		[
+			Raise a test-already-exists exception with test ID ::= trueName
+		];
+		unitTest ::= a unit test with
+			test ID ::= trueName,
+			suite ID ::= suiteID,
+			body ::= test,
+			expected exception type ::= optionalException;
 		tests by atom := tests by atom + trueName→unitTest;
 		suite ::= suites by atom[suiteID] else
 			[
@@ -321,6 +435,8 @@ Public method "Test_in_is_«must raise_»" is
 		suiteTests ::= suite's unit tests ++ <unitTest>;
 		suites by atom :=
 			suites by atom + suiteID→suite's unit tests ::= suiteTests;
+		If necessary,
+			arrange to forget everything related to the current module;
 	];
 ] : ⊤;
 

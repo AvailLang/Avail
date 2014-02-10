@@ -37,15 +37,13 @@ Uses
 	"Foundation",
 	"Types"
 Names
+	"modules",
+	"modules:=_",
 	"root suite",
 	"root suite:=_",
 	"suite lock",
-	"suite atoms by module",
-	"suite atoms by module:=_",
 	"suites by atom",
 	"suites by atom:=_",
-	"test atoms by module",
-	"test atoms by module:=_",
 	"tests by atom",
 	"tests by atom:=_"
 Body
@@ -63,7 +61,7 @@ Public method "suite lock" is [suiteLock];
  *
  * @global "rootSuite" "root unit test suite"
  */
-rootSuite : root unit test suite := a root unit test suite with
+_rootSuite : root unit test suite := a root unit test suite with
 	suite ID ::= root test suite ID,
 	child suite IDs ::= <>,
 	suite fixture setup ::= <>,
@@ -71,16 +69,7 @@ rootSuite : root unit test suite := a root unit test suite with
 	test fixture setup ::= <>,
 	test fixture tear down ::= <>,
 	unit tests ::= <>;
-Public variable ↑rootSuite is "root suite";
-
-/**
- * The test suite atoms, organized by {@type "module"} and guarded by the
- * {@method "suite lock"}.
- *
- * @global "suiteAtomsByModule" "{module→{atom|}|}"
- */
-suiteAtomsByModule : {module→{atom|}|} := {};
-Public variable ↑suiteAtomsByModule is "suite atoms by module";
+Public variable ↑_rootSuite is "root suite";
 
 /**
  * The declared unit test suites, keyed by atom, guarded by the {@method
@@ -88,23 +77,31 @@ Public variable ↑suiteAtomsByModule is "suite atoms by module";
  *
  * @global "suitesByAtom" "{atom→unit test suite|}"
  */
-suitesByAtom : {atom→unit test suite|} := {};
-Public variable ↑suitesByAtom is "suites by atom";
-
-/**
- * The test atoms, organized by {@type "module"} and guarded by the
- * {@method "test lock"}.
- *
- * @global "testAtomsByModule" "{module→{atom|}|}"
- */
-testAtomsByModule : {module→{atom|}|} := {};
-Public variable ↑suiteAtomsByModule is "test atoms by module";
+_suitesByAtom : {atom→unit test suite|} := {};
+Public variable ↑_suitesByAtom is "suites by atom";
 
 /**
  * The unit tests, organized by test identifier, guarded by the {@method
- * "test lock"}.
+ * "suite lock"}.
  *
  * @global "testsByAtom" "{atom→unit test|}"
  */
-testsByAtom : {atom→unit test|} := {};
-Public variable ↑testsByAtom is "tests by atom";
+_testsByAtom : {atom→unit test|} := {};
+Public variable ↑_testsByAtom is "tests by atom";
+
+/**
+ * The set of all modules that have created {@type "unit test suites"} and/or
+ * {@type "unit tests"}.
+ *
+ * @global "modules" "{module|}"
+ */
+_modules : {module|} := ∅;
+Public variable ↑_modules is "modules";
+
+After the current module is unloaded, do
+[
+	Assert: _modules is empty ("modules is not empty");
+	Assert: _testsByAtom is empty ("tests by atom is not empty");
+	Assert: _suitesByAtom is empty ("suites by atom is not empty");
+	Assert: _rootSuite's child suite IDs is empty ("root suite has children");
+];

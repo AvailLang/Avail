@@ -38,7 +38,7 @@ Uses
 	"Foundation"
 Names
 	/* File access rights. */
-	"file access right",
+	"file access right", 
 	"group read",
 	"group write",
 	"group execute",

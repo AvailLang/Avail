@@ -1280,15 +1280,6 @@ public abstract class AbstractAvailCompiler
 	 */
 	@InnerAccess volatile boolean compilationIsInvalid = false;
 
-	/**
-	 * Remove the partially compiled {@linkplain ModuleDescriptor module} from
-	 * the {@link AvailRuntime}.
-	 */
-	public void removeIncompleteModule ()
-	{
-		module.removeFrom(loader());
-	}
-
 	/** The output stream on which the serializer writes. */
 	public final ByteArrayOutputStream serializerOutputStream =
 		new ByteArrayOutputStream(1000);
@@ -2911,10 +2902,13 @@ public abstract class AbstractAvailCompiler
 	/**
 	 * Rollback the {@linkplain ModuleDescriptor module} that was defined since
 	 * the most recent {@link #startModuleTransaction()}.
+	 *
+	 * @param afterRollback
+	 *        What to do after rolling back.
 	 */
-	void rollbackModuleTransaction ()
+	void rollbackModuleTransaction (final Continuation0 afterRollback)
 	{
-		module.removeFrom(loader());
+		module.removeFrom(loader(), afterRollback);
 	}
 
 	/**
@@ -5593,8 +5587,7 @@ public abstract class AbstractAvailCompiler
 						@Override
 						public void value ()
 						{
-							rollbackModuleTransaction();
-							afterFail.value();
+							rollbackModuleTransaction(afterFail);
 						}
 					});
 				}

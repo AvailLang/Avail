@@ -36,6 +36,7 @@ import com.avail.compiler.AbstractAvailCompiler.ExpectedToken;
 import com.avail.compiler.AvailCompiler;
 import com.avail.compiler.AvailSystemCompiler;
 import com.avail.interpreter.AvailLoader;
+import com.avail.utility.evaluation.Continuation0;
 
 /**
  * {@code A_Module} is an interface that specifies the {@linkplain
@@ -220,7 +221,7 @@ extends A_BasicObject
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	void removeFrom (AvailLoader aLoader);
+	void removeFrom (AvailLoader aLoader, Continuation0 afterRemoval);
 
 	/**
 	 * Dispatch to the descriptor.
