@@ -399,7 +399,8 @@ public abstract class AbstractAvailCompiler
 		 */
 		public final List<String> importedModuleNames ()
 		{
-			final List<String> localNames = new ArrayList<>(importedModules.size());
+			final List<String> localNames =
+				new ArrayList<>(importedModules.size());
 			for (final ModuleImport moduleImport : importedModules)
 			{
 				localNames.add(moduleImport.moduleName.asNativeString());
@@ -419,6 +420,23 @@ public abstract class AbstractAvailCompiler
 		 * module} entry points.
 		 */
 		public final List<A_String> entryPoints = new ArrayList<>();
+
+		/**
+		 * Answer a {@link List} of {@link String}s which name entry points
+		 * defined in this module header.
+		 *
+		 * @return The list of this module's entry point names.
+		 */
+		public final List<String> entryPointNames ()
+		{
+			final List<String> javaStrings =
+				new ArrayList<>(entryPoints.size());
+			for (final A_String entryPoint : entryPoints)
+			{
+				javaStrings.add(entryPoint.asNativeString());
+			}
+			return javaStrings;
+		}
 
 		/**
 		 * The {@linkplain TokenDescriptor pragma tokens}, which are always

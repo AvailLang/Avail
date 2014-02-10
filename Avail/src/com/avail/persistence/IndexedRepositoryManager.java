@@ -426,6 +426,11 @@ public class IndexedRepositoryManager
 		private final List<String> localImportNames;
 
 		/**
+		 * The list of entry points declared by this module.
+		 */
+		private final List<String> entryPoints;
+
+		/**
 		 * All recorded compilations of this version of the module.
 		 */
 		@InnerAccess final Map<ModuleCompilationKey, ModuleCompilation>
@@ -482,6 +487,11 @@ public class IndexedRepositoryManager
 			{
 				binaryStream.writeUTF(importName);
 			}
+			binaryStream.writeInt(entryPoints.size());
+			for (final String entryPoint : entryPoints)
+			{
+				binaryStream.writeUTF(entryPoint);
+			}
 			binaryStream.writeInt(compilations.size());
 			for (final Map.Entry<ModuleCompilationKey, ModuleCompilation>
 				entry : compilations.entrySet())
@@ -495,8 +505,11 @@ public class IndexedRepositoryManager
 		public String toString ()
 		{
 			return String.format(
-				"Version:%n\t\timports=%s%n\t\tcompilations=%s",
+				"Version:%n\t\timports=%s%s%n\t\tcompilations=%s",
 				localImportNames,
+				entryPoints.isEmpty()
+					? ""
+					: "\n\t\tentry points=" + entryPoints.toString(),
 				compilations.values());
 		}
 
@@ -517,6 +530,12 @@ public class IndexedRepositoryManager
 			{
 				localImportNames.add(binaryStream.readUTF());
 			}
+			int entryPointCount = binaryStream.readInt();
+			entryPoints = new ArrayList<>(entryPointCount);
+			while (entryPointCount-- > 0)
+			{
+				entryPoints.add(binaryStream.readUTF());
+			}
 			int compilationsCount = binaryStream.readInt();
 			compilations = new HashMap<>(compilationsCount);
 			while (compilationsCount-- > 0)
@@ -534,13 +553,17 @@ public class IndexedRepositoryManager
 		 *        The size of the compiled module, in bytes.
 		 * @param localImportNames
 		 *        The list of module names being imported.
+		 * @param entryPoints
+		 *        The list of entry points defined in the module.
 		 */
 		public ModuleVersion (
 			final long moduleSize,
-			final List<String> localImportNames)
+			final List<String> localImportNames,
+			final List<String> entryPoints)
 		{
 			this.moduleSize = moduleSize;
 			this.localImportNames = new ArrayList<>(localImportNames);
+			this.entryPoints = new ArrayList<>(entryPoints);
 			this.compilations = new HashMap<>();
 		}
 	}

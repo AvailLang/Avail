@@ -34,7 +34,7 @@ package com.avail.compiler;
 
 import java.nio.charset.Charset;
 import java.text.MessageFormat;
-import com.avail.builder.ResolvedModuleName;
+import com.avail.builder.ModuleName;
 import com.avail.descriptor.A_Token;
 import com.avail.descriptor.CharacterDescriptor;
 import com.avail.descriptor.TokenDescriptor;
@@ -58,10 +58,10 @@ import com.avail.descriptor.TokenDescriptor;
 public class Problem
 {
 	/**
-	 * The {@linkplain ResolvedModuleName resolved name} of the module in which
-	 * the problem occurred.
+	 * The {@linkplain ModuleName unresolved, canonical name} of the module in
+	 * which the problem occurred.
 	 */
-	public final ResolvedModuleName moduleName;
+	public final ModuleName moduleName;
 
 	/**
 	 * The one-based line number within the file in which the problem occurred.
@@ -123,7 +123,7 @@ public class Problem
 	 *        The arguments with which to parameterize the messagePattern.
 	 */
 	public Problem (
-		final ResolvedModuleName moduleName,
+		final ModuleName moduleName,
 		final int lineNumber,
 		final int characterInFile,
 		final ProblemType type,
@@ -155,7 +155,7 @@ public class Problem
 	 *        The arguments with which to parameterize the messagePattern.
 	 */
 	public Problem (
-		final ResolvedModuleName moduleName,
+		final ModuleName moduleName,
 		final A_Token token,
 		final ProblemType type,
 		final String messagePattern,
