@@ -400,10 +400,14 @@ extends TupleDescriptor
 	@Override @AvailMethod
 	A_Tuple o_TupleReverse(final AvailObject object)
 	{
+		//Because SubrangeTupleDescriptor is also a wrapper, presume
+		//that decision was already made that tuple size was too big to make
+		//a copy.
 		final AvailObject instance = mutable.create();
-		instance.setSlot(BASIS_TUPLE, object);
-		instance.setSlot(SIZE, (object.tupleSize() + object.slot(START_INDEX)));
-		System.out.printf("hash value: %d", instance.slot(HASH_OR_ZERO));
+		instance.setSlot(BASIS_TUPLE, object.slot(BASIS_TUPLE).tupleReverse());
+		instance.setSlot(START_INDEX, object.slot(BASIS_TUPLE).tupleSize() + 2
+			- (object.tupleSize() + object.slot(START_INDEX)));
+		instance.setSlot(SIZE, object.tupleSize());
 		return instance;
 	}
 

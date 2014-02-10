@@ -93,7 +93,7 @@ extends TupleDescriptor
 	 * TreeTupleDescriptor}/using other forms of reference instead of creating
 	 * an new tuple.
 	 */
-	private final int minimumSize = 32;
+	private final int maximumCopySize = 32;
 
 	@Override @AvailMethod
 	public boolean o_IsSmallIntegerIntervalTuple(final AvailObject object)
@@ -442,7 +442,7 @@ extends TupleDescriptor
 	A_Tuple o_TupleReverse(final AvailObject object)
 	{
 		//If tuple is small enough or is immutable, create a new Interval
-		if (object.tupleSize() < minimumSize || !isMutable())
+		if (object.tupleSize() < maximumCopySize || !isMutable())
 		{
 			final int newDelta = object.slot(DELTA) * -1;
 
