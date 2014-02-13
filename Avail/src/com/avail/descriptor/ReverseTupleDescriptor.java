@@ -32,7 +32,6 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.AvailObjectRepresentation.newLike;
 import static com.avail.descriptor.ObjectTupleDescriptor.ObjectSlots.TUPLE_AT_;
 import static com.avail.descriptor.ReverseTupleDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.ReverseTupleDescriptor.ObjectSlots.*;
@@ -154,6 +153,34 @@ extends TupleDescriptor
 		return Integer.MAX_VALUE;
 	}
 
+	@Override @AvailMethod
+	A_Tuple o_ChildAt (final AvailObject object, final int childIndex)
+	{
+
+		if (!object.descriptor.isShared())
+		{
+			final AvailObject treeTuple =
+				TreeTupleDescriptor
+					.internalTreeReverse(object.slot(ORIGIN_TUPLE));
+			treeTuple.hashOrZero(object.slot(HASH_OR_ZERO));
+			object.becomeIndirectionTo(treeTuple);
+			return treeTuple.childAt(childIndex);
+		}
+
+		//Object is shared so cannot change to indirection, instead need
+		//to return the reverse of the child one level down at the opposite
+		//end of the tree from the childIndex.
+		final int adjustedSubscript = object.childCount() + 1 - childIndex;
+		return object.slot(ORIGIN_TUPLE)
+			.childAt(adjustedSubscript)
+			.tupleReverse();
+	}
+
+	@Override @AvailMethod
+	int o_ChildCount (final AvailObject object)
+	{
+		return object.slot(ORIGIN_TUPLE).childCount();
+	}
 
 	@Override @AvailMethod
 	boolean o_CompareFromToWithStartingAt (
@@ -172,7 +199,6 @@ extends TupleDescriptor
 				return false;
 			}
 		}
-
 		return true;
 	}
 
@@ -187,25 +213,6 @@ extends TupleDescriptor
 	{
 		return object.slot(SIZE);
 	}
-
-	/**
-	 * Hash part of the tuple object.
-	 */
-//	@Override @AvailMethod
-//	int o_ComputeHashFromTo (
-//		final AvailObject object,
-//		final int startIndex,
-//		final int endIndex)
-//	{
-//		final A_Tuple basis = object.slot(ORIGIN_TUPLE);
-//		final int size = object.slot(SIZE);
-//		assert 1 <= startIndex && startIndex <= size;
-//		assert startIndex - 1 <= endIndex && endIndex <= size;
-//		final int adjustment = size - 1;
-//		return basis.computeHashFromTo(
-//			endIndex - adjustment,
-//			startIndex + adjustment);
-//	}
 
 	@Override
 	A_Tuple o_ConcatenateWith (
@@ -238,13 +245,18 @@ extends TupleDescriptor
 		if (newSize <= maximumCopySize)
 		{
 			// Copy the objects.
-			final int deltaSlots = newSize - object.variableObjectSlotsCount();
-			final AvailObject result = newLike(
-				mutable(), object, deltaSlots, 0);
-			int dest = size1 + 1;
+			final AvailObject result =
+				ObjectTupleDescriptor.createUninitialized(newSize);
+			int dest = 1;
+
 			for (int src = 1; src <= size2; src++, dest++)
 			{
-				result.setSlot(ORIGIN_TUPLE, dest, otherTuple.tupleAt(src));
+				result.setSlot(ORIGIN_TUPLE, dest, object.tupleAt(src));
+			}
+
+			for (int src = 1; src <= size2; src++, dest++)
+			{
+				result.setSlot(ORIGIN_TUPLE,dest,otherTuple.tupleAt(src));
 			}
 			result.setSlot(HASH_OR_ZERO, 0);
 			return result;
@@ -254,12 +266,25 @@ extends TupleDescriptor
 			object.makeImmutable();
 			otherTuple.makeImmutable();
 		}
-		if (otherTuple.treeTupleLevel() == 0)
+		if (object.slot(ORIGIN_TUPLE).treeTupleLevel() == 0)
 		{
-			return TreeTupleDescriptor.createPair(object, otherTuple, 1, 0);
+			if (otherTuple.treeTupleLevel() == 0)
+			{
+				return TreeTupleDescriptor.createPair(object, otherTuple, 1, 0);
+			}
+			return TreeTupleDescriptor.concatenateAtLeastOneTree(
+				object,
+				otherTuple,
+				true);
 		}
+
+		final AvailObject newTree =
+			TreeTupleDescriptor.internalTreeReverse(object.slot(ORIGIN_TUPLE));
+
+		newTree.setSlot(HASH_OR_ZERO, object.slot(HASH_OR_ZERO));
+
 		return TreeTupleDescriptor.concatenateAtLeastOneTree(
-			object,
+			newTree,
 			otherTuple,
 			true);
 	}
@@ -291,7 +316,9 @@ extends TupleDescriptor
 			}
 			return object;
 		}
-		if (subrangeSize > 0 && subrangeSize < tupleSize && subrangeSize < maximumCopySize)
+		if (subrangeSize > 0
+				&& subrangeSize < tupleSize
+				&& subrangeSize < maximumCopySize)
 		{
 			// It's not empty, it's not a total copy, and it's reasonably small.
 			// Just copy the applicable entries out.

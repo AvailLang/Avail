@@ -859,6 +859,35 @@ extends TupleDescriptor
 	}
 
 	/**
+	 *
+	 * @param object
+	 * @return
+	 */
+	public static AvailObject internalTreeReverse (final AvailObject object)
+	{
+		final int childCount = object.childCount();
+		final AvailObject newTree = TreeTupleDescriptor
+			.createUninitializedTree(object.treeTupleLevel(), childCount);
+		int cumulativeSize = 0;
+		for (int src = childCount,dest = 1; src > 0; src--, dest++)
+		{
+			final A_Tuple child = object.childAt(src);
+			newTree.setSlot(
+				SUBTUPLE_AT_,
+				dest,
+				child.tupleReverse());
+			cumulativeSize += child.tupleSize();
+			newTree.setSlot(
+				CUMULATIVE_SIZE_AT_,
+				dest,
+				cumulativeSize);
+		}
+		assert cumulativeSize == object.tupleSize();
+		newTree.setSlot(HASH_OR_ZERO,0);
+		return newTree;
+	}
+
+	/**
 	 * Answer the minimum number of children a non-root tree tuple may have.
 	 */
 	private static final int minWidthOfNonRoot = 16;

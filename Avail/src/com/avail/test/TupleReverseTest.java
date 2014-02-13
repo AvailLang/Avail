@@ -38,7 +38,8 @@ import org.junit.Test;
 import com.avail.descriptor.*;
 
 /**
- * TODO: Document TupleReverseTest!
+ * A test of TupleReverseDescriptor as it is implemented on all other
+ *  TupleDescriptors.
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
@@ -311,7 +312,7 @@ public class TupleReverseTest
 	}
 
 	/**
-	 * Test: Check reverse of {@link @ByteArrayTupleDescriptor}
+	 * Test: Check reverse of {@link ByteArrayTupleDescriptor}
 	 */
 	@Test
 	public void testByteArrayTupleDescriptorReverse ()
@@ -477,10 +478,6 @@ public class TupleReverseTest
 			nybbleTuple.tupleAt(2));
 		assertEquals(shouldBeSame, nybbleTuple);
 
-
-
-
-
 		final A_Tuple nybbleTupleSmall =
 			NybbleTupleDescriptor.mutableObjectOfSize(5);
 		nybbleTupleSmall
@@ -500,5 +497,64 @@ public class TupleReverseTest
 		assertEquals(nybbleTupleSmall.tupleReverse().tupleAt(4),
 			nybbleTupleSmall.tupleAt(2));
 		assertEquals(shouldBeSameSmall, nybbleTupleSmall);
+	}
+
+	/**
+	 * Test: Check reverse of {@link NybbleTupleDescriptor}
+	 */
+	@Test
+	public void testTreeTupleDescriptorReverse ()
+	{
+		final A_Tuple byteString = StringDescriptor
+			.from("abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz")
+			.makeImmutable();
+
+		final A_Tuple byteStringReversed = byteString.tupleReverse();
+
+		final A_Tuple integerInterval =
+			IntegerIntervalTupleDescriptor.createInterval(
+				IntegerDescriptor.fromInt(1),
+				IntegerDescriptor.fromInt(36),
+				IntegerDescriptor.fromInt(1));
+
+		final A_Tuple anObjectTuple =
+			integerInterval.tupleAtPuttingCanDestroy(
+				2, CharacterDescriptor.fromCodePoint(411), false)
+			.makeImmutable();
+
+		final A_Tuple anObjectTupleReveresed = anObjectTuple.tupleReverse();
+
+		final A_Tuple aTreeTuple = TreeTupleDescriptor
+			.createPair(byteString, anObjectTuple, 2, 0);
+
+		final A_Tuple aTreeTupleReversed = TreeTupleDescriptor
+			.createPair(anObjectTupleReveresed, byteStringReversed, 2, 0);
+
+		assertEquals(aTreeTuple.tupleReverse(),aTreeTupleReversed);
+
+		final A_Tuple aTreeTupleReversedSubrange =
+			aTreeTuple
+				.tupleReverse()
+				.copyTupleFromToCanDestroy(17, 63, false);
+
+		assertEquals(aTreeTupleReversedSubrange.tupleSize(), 63 - 17 + 1);
+		assert(aTreeTupleReversed.descriptor() instanceof TreeTupleDescriptor);
+
+		final A_Tuple aConcatenation =
+			aTreeTuple
+				.tupleReverse()
+				.concatenateWith(aTreeTupleReversed.tupleReverse(), true);
+
+		assert(!(aTreeTupleReversed.descriptor()
+			instanceof TreeTupleDescriptor));
+		assertEquals(aConcatenation.childCount(),4);
+
+		assertEquals(aConcatenation.childAt(4),anObjectTuple);
+		assertEquals(aConcatenation.childAt(3),byteString);
+		assertEquals(aConcatenation.childAt(2),byteString.tupleReverse());
+		assertEquals(aConcatenation.childAt(1),anObjectTuple.tupleReverse());
+		assertEquals(
+			aConcatenation.tupleAt(142),
+			CharacterDescriptor.fromCodePoint(411));
 	}
 }
