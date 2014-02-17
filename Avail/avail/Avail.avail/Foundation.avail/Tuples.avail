@@ -1328,6 +1328,7 @@ Semantic restriction "last index of_where_" is
  * 
  * @method "all indices of_where_"
  * @param "aTuple" "tuple"
+ * 		The tuple to search
  * @param "predicate" "[⊥]→boolean"
  *        A function that accepts the elements of the tuple.
  * @returns <natural number…|0..∞>
@@ -3118,14 +3119,14 @@ Private method "merge_with_" is
  *
  * @method "merge sort_with_"
  * @categories "Tuples"
- * @param "aTuple" "<any…|16..>" 
- *        The two ordered tuples to merge.
+ * @param "aTuple" "tuple" 
+ *        The tuple to sort.
  * @param "comparator" "[⊥, ⊥]→boolean"
  *        A comparison function that accepts two elements of {@param "aTuple"}
  *        and answers {@code "true"} if the first ≤ second and {@code "false"}
  *        otherwise.
  * @returns "tuple"
- *          The merged tuple.
+ *          The sorted tuple.
  * @author "Richard Arriaga"
  */
 Public abstract method "merge sort_with_" is [tuple, [⊥, ⊥]→boolean]→tuple;
@@ -3207,8 +3208,8 @@ Public method "merge sort_with_" is
 ]: tuple;
 
 /**
- * Construct and answer a sorted variant of {@param "aTuple"} using the
- * merge sort algorithm.
+ * Construct and answer a sorted variant of {@param "aTuple"} of numbers using
+ * the merge sort algorithm where n ≤ m.
  *
  * @method "merge sort_"
  * @categories "Tuples"
