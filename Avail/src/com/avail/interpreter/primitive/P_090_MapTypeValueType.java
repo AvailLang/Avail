@@ -55,7 +55,7 @@ public final class P_090_MapTypeValueType extends Primitive
 		final boolean skipReturnCheck)
 	{
 		assert args.size() == 1;
-		final A_BasicObject mapType = args.get(0);
+		final A_Type mapType = args.get(0);
 		return interpreter.primitiveSuccess(mapType.valueType());
 	}
 

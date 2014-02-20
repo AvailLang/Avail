@@ -63,7 +63,7 @@ extends Primitive
 		final boolean skipReturnCheck)
 	{
 		assert args.size() == 1;
-		final A_BasicObject objectType = args.get(0);
+		final A_Type objectType = args.get(0);
 		return interpreter.primitiveSuccess(objectType.fieldTypeTuple());
 	}
 

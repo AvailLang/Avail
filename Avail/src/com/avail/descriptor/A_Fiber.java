@@ -34,7 +34,6 @@ package com.avail.descriptor;
 
 import java.util.TimerTask;
 import com.avail.annotations.Nullable;
-import com.avail.compiler.Problem;
 import com.avail.descriptor.FiberDescriptor.ExecutionState;
 import com.avail.descriptor.FiberDescriptor.GeneralFlag;
 import com.avail.descriptor.FiberDescriptor.InterruptRequestFlag;

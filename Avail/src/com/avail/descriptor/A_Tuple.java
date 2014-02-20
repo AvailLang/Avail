@@ -476,4 +476,22 @@ extends A_BasicObject, Iterable<AvailObject>
 	 *         destructively.
 	 */
 	A_Tuple replaceFirstChild (A_Tuple newFirst);
+
+	/**
+	 * @param startIndex1
+	 * @param endIndex1
+	 * @param aByteBufferTuple
+	 * @param startIndex2
+	 * @return
+	 */
+	boolean compareFromToWithByteBufferTupleStartingAt (
+		int startIndex1,
+		int endIndex1,
+		A_Tuple aByteBufferTuple,
+		int startIndex2);
+
+	/**
+	 * @return
+	 */
+	byte[] byteArray ();
 }

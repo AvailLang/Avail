@@ -149,10 +149,10 @@ extends TypeDescriptor
 	@Override
 	boolean o_EqualsObjectType (
 		final AvailObject object,
-		final AvailObject anObjectType)
+		final A_Type anObjectType)
 	{
 		return object.slot(FIELD_TYPE_MAP).equals(
-			anObjectType.slot(FIELD_TYPE_MAP));
+			anObjectType.fieldTypeMap());
 	}
 
 	@Override @AvailMethod

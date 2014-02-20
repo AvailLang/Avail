@@ -46,12 +46,24 @@ public interface A_Continuation
 extends A_BasicObject
 {
 	/**
-	 * Dispatch to the descriptor.
+	 * Answer the continuation frame slot at the given index.  The frame slots
+	 * are numbered starting at 1, and consist of the arguments, primitive
+	 * failure variable (if defined), locals, and then an operand stack that
+	 * grows from the top down.
+	 *
+	 * @param index
+	 * @return
 	 */
 	AvailObject argOrLocalOrStackAt (int index);
 
 	/**
-	 * Dispatch to the descriptor.
+	 * Update the continuation frame slot at the given index.  The continuation
+	 * must be mutable.  Frame slots are numbered starting at 1, and consist of
+	 * the arguments, primitive failure variable (if defined), locals, and then
+	 * an operand stack that grows from the top down.
+	 *
+	 * @param index
+	 * @param value
 	 */
 	void argOrLocalOrStackAtPut (int index, AvailObject value);
 
@@ -77,7 +89,11 @@ extends A_BasicObject
 	A_Function function ();
 
 	/**
-	 * Dispatch to the descriptor.
+	 * Answer the level one program counter.  This is a one-based subscript that
+	 * indicates the next instruction that will execute in this continuation's
+	 * function's level one code.
+	 *
+	 * @return The continuation's level one program counter.
 	 */
 	int pc ();
 

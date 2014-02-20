@@ -699,21 +699,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	A_BasicObject o_ElementAt (final AvailObject object, final int index)
-	{
-		return o_Traversed(object).elementAt(index);
-	}
-
-	@Override
-	void o_ElementAtPut (
-		final AvailObject object,
-		final int index,
-		final A_BasicObject value)
-	{
-		o_Traversed(object).elementAtPut(index, value);
-	}
-
-	@Override
 	boolean o_Equals (
 		final AvailObject object,
 		final A_BasicObject another)
@@ -1660,12 +1645,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_Size (final AvailObject object, final int value)
-	{
-		o_Traversed(object).size(value);
-	}
-
-	@Override
 	AvailObject o_StackAt (final AvailObject object, final int slotIndex)
 	{
 		return o_Traversed(object).stackAt(slotIndex);
@@ -1752,14 +1731,6 @@ extends AbstractDescriptor
 	int o_TupleIntAt (final AvailObject object, final int index)
 	{
 		return o_Traversed(object).tupleIntAt(index);
-	}
-
-	@Override
-	void o_Type (
-		final AvailObject object,
-		final A_BasicObject value)
-	{
-		o_Traversed(object).type(value);
 	}
 
 	@Override
@@ -1994,21 +1965,6 @@ extends AbstractDescriptor
 		final int endIndex)
 	{
 		return o_Traversed(object).unionOfTypesAtThrough(startIndex, endIndex);
-	}
-
-	@Override
-	int o_UntranslatedDataAt (final AvailObject object, final int index)
-	{
-		return o_Traversed(object).untranslatedDataAt(index);
-	}
-
-	@Override
-	void o_UntranslatedDataAtPut (
-		final AvailObject object,
-		final int index,
-		final int value)
-	{
-		o_Traversed(object).untranslatedDataAtPut(index, value);
 	}
 
 	@Override
@@ -3820,7 +3776,7 @@ extends AbstractDescriptor
 	@Override
 	boolean o_IsSupertypeOfLiteralTokenType (
 		final AvailObject object,
-		final A_BasicObject aLiteralTokenType)
+		final A_Type aLiteralTokenType)
 	{
 		return o_Traversed(object).isSupertypeOfLiteralTokenType(
 			aLiteralTokenType);
@@ -3837,7 +3793,7 @@ extends AbstractDescriptor
 	@Override
 	boolean o_EqualsObjectType (
 		final AvailObject object,
-		final AvailObject anObjectType)
+		final A_Type anObjectType)
 	{
 		return o_Traversed(object).equalsObjectType(anObjectType);
 	}
@@ -4217,12 +4173,6 @@ extends AbstractDescriptor
 	void o_WakeupTask (final AvailObject object, @Nullable final TimerTask task)
 	{
 		o_Traversed(object).wakeupTask(task);
-	}
-
-	@Override
-	void o_Name (final AvailObject object, final A_String value)
-	{
-		o_Traversed(object).name(value);
 	}
 
 	@Override

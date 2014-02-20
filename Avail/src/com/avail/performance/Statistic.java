@@ -102,7 +102,7 @@ public class Statistic implements Comparable<Statistic>
 	 *
 	 * @return The sum of the samples.
 	 */
-	private double sum ()
+	private synchronized double sum ()
 	{
 		return mean * count;
 	}
@@ -148,6 +148,38 @@ public class Statistic implements Comparable<Statistic>
 	}
 
 	/**
+	 * Construct a new {@link Statistic} from individually aggregated values.
+	 *
+	 * @param name
+	 *        The name of this statistic.
+	 * @param count
+	 *        The number of samples.
+	 * @param min
+	 *        The minimum sample.
+	 * @param max
+	 *        The maximum sample.
+	 * @param mean
+	 *        The mean of the samples.
+	 * @param sumOfDeltaSquares
+	 *        The sum of the squares of differences from the mean.
+	 */
+	public Statistic (
+		final String name,
+		final long count,
+		final double min,
+		final double max,
+		final double mean,
+		final double sumOfDeltaSquares)
+	{
+		this.name = name;
+		this.count = count;
+		this.min = min;
+		this.max = max;
+		this.mean = mean;
+		this.sumOfDeltaSquares = sumOfDeltaSquares;
+	}
+
+	/**
 	 * Record a new sample, updating any cumulative statistical values.  This is
 	 * synchronized to prevent unsafe concurrent updates.  Note that reading the
 	 * statistical values is only thread safe if performed while holding the
@@ -182,13 +214,7 @@ public class Statistic implements Comparable<Statistic>
 	 */
 	public synchronized Statistic copy ()
 	{
-		final Statistic copy = new Statistic(name);
-		copy.count = count;
-		copy.min = min;
-		copy.max = max;
-		copy.mean = mean;
-		copy.sumOfDeltaSquares = sumOfDeltaSquares;
-		return copy;
+		return new Statistic(name, count, min, max, mean, sumOfDeltaSquares);
 	}
 
 	@Override

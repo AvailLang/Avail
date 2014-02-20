@@ -32,6 +32,7 @@
 
 package com.avail.descriptor;
 
+import java.math.BigInteger;
 import com.avail.descriptor.AbstractNumberDescriptor.Order;
 import com.avail.descriptor.AbstractNumberDescriptor.Sign;
 
@@ -351,32 +352,46 @@ extends A_BasicObject
 
 
 	/**
-	 * @return
+	 * Extract a signed byte from the {@linkplain AvailObject receiver}.
+	 *
+	 * @return A {@code byte}, which has the range [-128..127].
 	 */
 	byte extractSignedByte ();
 
 	/**
-	 * @return
+	 * Extract a signed short from the {@linkplain AvailObject receiver}.
+	 *
+	 * @return A {@code short}, which has the range [-32768..32767].
 	 */
 	short extractSignedShort ();
 
 	/**
-	 * Dispatch to the descriptor.
+	 * Extract an unsigned byte from the {@linkplain AvailObject receiver}.
+	 * Return it in a Java {@code short} to avoid sign bit reinterpretation.
+	 *
+	 * @return A {@code short} in the range [0..255].
 	 */
 	short extractUnsignedByte ();
 
 	/**
-	 * Dispatch to the descriptor.
+	 * Extract a Java {@code double} from the {@linkplain AvailObject receiver}.
+	 *
+	 * @return A Java {@code double}.
 	 */
 	double extractDouble ();
 
 	/**
-	 * Dispatch to the descriptor.
+	 * Extract a Java float from the {@linkplain AvailObject receiver}.
+	 *
+	 * @return A Java {@code float}.
 	 */
 	float extractFloat ();
 
 	/**
-	 * Dispatch to the descriptor.
+	 * Extract a 32-bit signed Java {@code int} from the {@linkplain
+	 * AvailObject receiver}.
+	 *
+	 * @return A 32-bit signed Java {@code int}.
 	 */
 	int extractInt ();
 
@@ -384,13 +399,15 @@ extends A_BasicObject
 	 * Extract a 64-bit signed Java {@code long} from the {@linkplain
 	 * AvailObject receiver}.
 	 *
-	 * @return A 64-bit signed Java {@code long}
-	 * @author Todd L Smith &lt;todd@availlang.org&gt;
+	 * @return A 64-bit signed Java {@code long}.
 	 */
 	long extractLong ();
 
 	/**
-	 * Dispatch to the descriptor.
+	 * Extract an unsigned nybble from the {@linkplain AvailObject receiver}.
+	 * Return it as a Java {@code byte}.
+	 *
+	 * @return A {@code byte} in the range [0..15].
 	 */
 	byte extractNybble ();
 
@@ -475,4 +492,71 @@ extends A_BasicObject
 	 * Dispatch to the descriptor.
 	 */
 	void rawUnsignedIntegerAtPut (int index, int value);
+
+	/**
+	 * @param shiftFactor
+	 * @param canDestroy
+	 * @return
+	 */
+	A_Number bitShift (
+		A_Number shiftFactor,
+		boolean canDestroy);
+
+	/**
+	 * @param shiftFactor
+	 * @param truncationBits
+	 * @param canDestroy
+	 * @return
+	 */
+	A_Number bitShiftLeftTruncatingToBits (
+		A_Number shiftFactor,
+		A_Number truncationBits,
+		boolean canDestroy);
+
+	/**
+	 * @param anInteger
+	 * @param canDestroy
+	 * @return
+	 */
+	A_Number bitwiseAnd (
+		A_Number anInteger,
+		boolean canDestroy);
+
+	/**
+	 * @param anInteger
+	 * @param canDestroy
+	 * @return
+	 */
+	A_Number bitwiseOr (
+		A_Number anInteger,
+		boolean canDestroy);
+
+	/**
+	 * @param anInteger
+	 * @param canDestroy
+	 * @return
+	 */
+	A_Number bitwiseXor (
+		A_Number anInteger,
+		boolean canDestroy);
+
+	/**
+	 * @return
+	 */
+	BigInteger asBigInteger ();
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	void trimExcessInts ();
+
+	/**
+	 * @return
+	 */
+	int extractUnsignedShort ();
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	boolean isPositive ();
 }

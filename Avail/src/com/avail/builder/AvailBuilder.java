@@ -46,10 +46,7 @@ import com.avail.compiler.AbstractAvailCompiler.ModuleHeader;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 import com.avail.persistence.IndexedRepositoryManager;
-import com.avail.persistence.IndexedRepositoryManager.ModuleCompilation;
-import com.avail.persistence.IndexedRepositoryManager.ModuleCompilationKey;
-import com.avail.persistence.IndexedRepositoryManager.ModuleVersion;
-import com.avail.persistence.IndexedRepositoryManager.ModuleVersionKey;
+import com.avail.persistence.IndexedRepositoryManager.*;
 import com.avail.serialization.*;
 import com.avail.utility.*;
 import com.avail.utility.evaluation.*;
@@ -61,6 +58,7 @@ import com.avail.utility.evaluation.*;
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  * @author Leslie Schultz &lt;leslie@availlang.org&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public final class AvailBuilder
 {
@@ -213,10 +211,8 @@ public final class AvailBuilder
 	/**
 	 * A LoadedModule holds state about what the builder knows about a currently
 	 * loaded Avail module.
-	 *
-	 * @author Todd L Smith &lt;todd@availlang.org&gt;
 	 */
-	class LoadedModule
+	static class LoadedModule
 	{
 		/**
 		 * The resolved name of this module.
@@ -224,7 +220,7 @@ public final class AvailBuilder
 		final @InnerAccess ResolvedModuleName name;
 
 		/**
-		 * The cryptographic {@link IndexedRepositoryManager#digestForFile(
+		 * The cryptographic {@link ModuleArchive#digestForFile(
 		 * ResolvedModuleName) digest} of this module's source code when it was
 		 * compiled.
 		 */
@@ -330,8 +326,11 @@ public final class AvailBuilder
 										final IndexedRepositoryManager
 											repository =
 												moduleName.repository();
+										final ModuleArchive archive =
+											repository.getArchive(
+												moduleName.rootRelativeName());
 										final byte [] latestDigest =
-											repository.digestForFile(
+											archive.digestForFile(
 												moduleName);
 										dirty = !Arrays.equals(
 											latestDigest,
@@ -594,9 +593,12 @@ public final class AvailBuilder
 			repository.commitIfStaleChanges(maximumStaleRepositoryMs);
 			final File sourceFile = resolvedName.sourceReference();
 			assert sourceFile != null;
+			final ModuleArchive archive = repository.getArchive(
+				resolvedName.rootRelativeName());
+			final byte [] digest = archive.digestForFile(resolvedName);
 			final ModuleVersionKey versionKey =
-				new ModuleVersionKey(resolvedName);
-			final ModuleVersion version = repository.getVersion(versionKey);
+				new ModuleVersionKey(resolvedName, digest);
+			final ModuleVersion version = archive.getVersion(versionKey);
 			if (version != null)
 			{
 				// This version was already traced and recorded for a
@@ -629,7 +631,7 @@ public final class AvailBuilder
 										header.importedModuleNames();
 									final List<String> entryPoints =
 										header.entryPointNames();
-									repository.putVersion(
+									archive.putVersion(
 										versionKey,
 										repository.new ModuleVersion(
 											sourceFile.length(),
@@ -689,7 +691,7 @@ public final class AvailBuilder
 				new LinkedHashSet<>(recursionSet);
 			newSet.add(moduleName);
 
-			synchronized (AvailBuilder.this)
+			synchronized (this)
 			{
 				traceRequests += importNames.size();
 			}
@@ -735,10 +737,13 @@ public final class AvailBuilder
 		{
 			// Clear all information about modules that have been traced.
 			// This graph will be rebuilt below if successful, or cleared on
-			// failure.
-			moduleGraph.clear();
-			traceRequests = 1;
-			traceCompletions = 0;
+			// failure.  The synchronization is probably unnecessary.
+			synchronized (this)
+			{
+				moduleGraph.clear();
+				traceRequests = 1;
+				traceCompletions = 0;
+			}
 			scheduleTraceModuleImports(
 				target,
 				null,
@@ -896,9 +901,12 @@ public final class AvailBuilder
 				assert !loadedModules.containsKey(moduleName);
 				final IndexedRepositoryManager repository =
 					moduleName.repository();
+				final ModuleArchive archive = repository.getArchive(
+					moduleName.rootRelativeName());
+				final byte [] digest = archive.digestForFile(moduleName);
 				final ModuleVersionKey versionKey =
-					new ModuleVersionKey(moduleName);
-				final ModuleVersion version = repository.getVersion(versionKey);
+					new ModuleVersionKey(moduleName, digest);
+				final ModuleVersion version = archive.getVersion(versionKey);
 				assert version != null
 					: "Version should have been populated during tracing";
 				final Map<String, LoadedModule> loadedModulesByName =
@@ -1148,10 +1156,13 @@ public final class AvailBuilder
 			final ModuleCompilationKey compilationKey,
 			final Continuation0 completionAction)
 		{
-			final Mutable<Long> lastPosition = new Mutable<>(0L);
-			final ModuleVersionKey versionKey =
-				new ModuleVersionKey(moduleName);
 			final IndexedRepositoryManager repository = moduleName.repository();
+			final ModuleArchive archive = repository.getArchive(
+				moduleName.rootRelativeName());
+			final byte [] digest = archive.digestForFile(moduleName);
+			final ModuleVersionKey versionKey =
+				new ModuleVersionKey(moduleName, digest);
+			final Mutable<Long> lastPosition = new Mutable<>(0L);
 			final Continuation1<AbstractAvailCompiler> continuation =
 				new Continuation1<AbstractAvailCompiler>()
 				{
@@ -1204,7 +1215,7 @@ public final class AvailBuilder
 										repository.new ModuleCompilation(
 											compilationTime,
 											appendCRC(stream.toByteArray()));
-									repository.putCompilation(
+									archive.putCompilation(
 										versionKey,
 										compilationKey,
 										compilation);

@@ -66,9 +66,9 @@ extends Primitive
 		final boolean skipReturnCheck)
 	{
 		assert args.size() == 2;
-		final A_BasicObject decl = args.get(0);
+		final A_Phrase decl = args.get(0);
 		final A_Variable var = args.get(1);
-		final AvailObject initializer = decl.initializationExpression();
+		final A_Phrase initializer = decl.initializationExpression();
 		boolean stored = false;
 		if (!initializer.equalsNil())
 		{

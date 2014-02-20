@@ -230,7 +230,7 @@ extends AbstractEnumerationTypeDescriptor
 	boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		final boolean equal = another.isInstanceMeta()
-			&& getInstance(object).equals(another.instance());
+			&& getInstance(object).equals(((A_Type)another).instance());
 		if (equal)
 		{
 			if (!isShared())

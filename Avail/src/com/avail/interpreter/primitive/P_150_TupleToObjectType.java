@@ -107,16 +107,16 @@ extends Primitive
 				// Can only strengthen if all key atoms are statically known.
 				return super.returnTypeGuaranteedByVM(argumentTypes);
 			}
-			final A_BasicObject keyValue = keyType.instance();
+			final A_Atom keyValue = keyType.instance();
+			assert keyValue.isAtom();
 			if (fieldTypeMap.hasKey(keyValue))
 			{
 				// In case the semantics of this situation change.  Give up.
 				return super.returnTypeGuaranteedByVM(argumentTypes);
 			}
-			assert keyValue.isAtom();
-			final A_BasicObject valueMeta = pairType.typeAtIndex(2);
+			final A_Type valueMeta = pairType.typeAtIndex(2);
 			assert valueMeta.isInstanceMeta();
-			final AvailObject valueType = valueMeta.instance();
+			final A_Type valueType = valueMeta.instance();
 			fieldTypeMap = fieldTypeMap.mapAtPuttingCanDestroy(
 				keyValue,
 				valueType,

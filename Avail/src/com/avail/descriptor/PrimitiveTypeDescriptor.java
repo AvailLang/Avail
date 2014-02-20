@@ -222,7 +222,7 @@ extends TypeDescriptor
 	@Override @AvailMethod
 	boolean o_IsSupertypeOfLiteralTokenType (
 		final AvailObject object,
-		final A_BasicObject aLiteralTokenType)
+		final A_Type aLiteralTokenType)
 	{
 		// This primitive type is a supertype of aLiteralTokenType if and only
 		// if this primitive type is a supertype of TOKEN.

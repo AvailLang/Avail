@@ -468,21 +468,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	A_BasicObject o_ElementAt (final AvailObject object, final int index)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	void o_ElementAtPut (
-		final AvailObject object,
-		final int index,
-		final A_BasicObject value)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
 	void o_ExecutionState (final AvailObject object, final ExecutionState value)
 	{
 		throw unsupportedOperationException();
@@ -1030,12 +1015,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_Size (final AvailObject object, final int value)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
 	AvailObject o_StackAt (final AvailObject object, final int slotIndex)
 	{
 		throw unsupportedOperationException();
@@ -1127,12 +1106,6 @@ extends AbstractDescriptor
 
 	@Override
 	int o_TupleIntAt (final AvailObject object, final int index)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	void o_Type (final AvailObject object, final A_BasicObject value)
 	{
 		throw unsupportedOperationException();
 	}
@@ -1348,21 +1321,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final int startIndex,
 		final int endIndex)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	int o_UntranslatedDataAt (final AvailObject object, final int index)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	void o_UntranslatedDataAtPut (
-		final AvailObject object,
-		final int index,
-		final int value)
 	{
 		throw unsupportedOperationException();
 	}
@@ -3600,7 +3558,7 @@ extends AbstractDescriptor
 	@Override
 	boolean o_IsSupertypeOfLiteralTokenType (
 		final AvailObject object,
-		final A_BasicObject aLiteralTokenType)
+		final A_Type aLiteralTokenType)
 	{
 		throw unsupportedOperationException();
 	}
@@ -3616,7 +3574,7 @@ extends AbstractDescriptor
 	@Override
 	boolean o_EqualsObjectType (
 		final AvailObject object,
-		final AvailObject anObjectType)
+		final A_Type anObjectType)
 	{
 		return false;
 	}
@@ -4027,13 +3985,6 @@ extends AbstractDescriptor
 	@Override
 	@AvailMethod
 	void o_WakeupTask (final AvailObject object, @Nullable final TimerTask task)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	@AvailMethod
-	void o_Name (final AvailObject object, final A_String value)
 	{
 		throw unsupportedOperationException();
 	}

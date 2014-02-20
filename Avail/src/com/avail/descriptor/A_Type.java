@@ -212,7 +212,7 @@ extends A_BasicObject
 	 * Dispatch to the descriptor.
 	 */
 	boolean isSupertypeOfLiteralTokenType (
-		A_BasicObject aLiteralTokenType);
+		A_Type aLiteralTokenType);
 
 	/**
 	 * Dispatch to the descriptor.
@@ -551,4 +551,69 @@ extends A_BasicObject
 	 * @return
 	 */
 	A_Type writeType ();
+
+	/**
+	 * Compute a {@linkplain TypeDescriptor type} that is an ancestor of the
+	 * receiver, but is not an {@linkplain AbstractEnumerationTypeDescriptor
+	 * enumeration}.  Choose the most specific such type.  Fail if the
+	 * receiver is not itself an enumeration.  Also fail if the receiver is
+	 * {@linkplain BottomTypeDescriptor bottom}.
+	 *
+	 * @return The must specific non-union supertype.
+	 */
+	A_Type computeSuperkind ();
+
+	/**
+	 * @return
+	 */
+	boolean isEnumeration ();
+
+	/**
+	 * @return
+	 */
+	A_Type valueType ();
+
+	/**
+	 * @return
+	 */
+	A_Tuple fieldTypeTuple ();
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	boolean hasObjectInstance (AvailObject potentialInstance);
+
+	/**
+	 * @return
+	 */
+	AvailObject instance ();
+
+	/**
+	 * @return
+	 */
+	A_Number instanceCount ();
+
+	/**
+	 * @return
+	 */
+	A_Set instances ();
+
+	/**
+	 * @return
+	 */
+	A_Type literalType ();
+
+	/**
+	 * Dispatch to the descriptor.
+	 *
+	 * TODO[MvG] - Break this accidental polymorphism for better clarity of
+	 * intention.
+	 */
+	AvailObject name ();
+
+	/**
+	 * @param anInt
+	 * @return
+	 */
+	boolean rangeIncludesInt (int anInt);
 }
