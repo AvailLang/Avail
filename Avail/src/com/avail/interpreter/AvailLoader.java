@@ -744,65 +744,63 @@ public final class AvailLoader
 		final A_Tuple unloadFunctions,
 		final Continuation0 afterRunning)
 	{
-		final Mutable<Integer> stillRunning = new Mutable<Integer>(
-			unloadFunctions.tupleSize());
-		if (stillRunning.value > 0)
+		final int size = unloadFunctions.tupleSize();
+		final MutableOrNull<Continuation0> onExit =
+			new MutableOrNull<Continuation0>();
+		onExit.value = new Continuation0()
 		{
-			final Continuation0 onExit = new Continuation0()
+			/** The index into the tuple of unload functions. */
+			@InnerAccess int index = 1;
+
+			@Override
+			public void value ()
 			{
-				@Override
-				public void value ()
+				if (index <= size)
 				{
-					boolean finished = false;
-					synchronized (stillRunning)
-					{
-						stillRunning.value--;
-						if (stillRunning.value == 0)
+					final A_Function unloadFunction =
+						unloadFunctions.tupleAt(index);
+					final A_Fiber fiber = FiberDescriptor.newFiber(
+						TypeDescriptor.Types.TOP.o(),
+						FiberDescriptor.loaderPriority,
+						StringDescriptor.format(
+							"Unload function #%d for module %s",
+							index,
+							module().moduleName()));
+					fiber.resultContinuation(
+						new Continuation1<AvailObject>()
 						{
-							finished = true;
-						}
-					}
-					if (finished)
-					{
-						afterRunning.value();
-					}
+							@Override
+							public void value (
+								final @Nullable AvailObject unused)
+							{
+								index++;
+								onExit.value().value();
+							}
+						});
+					fiber.failureContinuation(
+						new Continuation1<Throwable>()
+						{
+							@Override
+							public void value (
+								final @Nullable Throwable unused)
+							{
+								index++;
+								onExit.value().value();
+							}
+						});
+					Interpreter.runOutermostFunction(
+						runtime(),
+						fiber,
+						unloadFunction,
+						Collections.<A_BasicObject>emptyList());
 				}
-			};
-			for (final A_Function unloadFunction : unloadFunctions)
-			{
-				final A_Fiber fiber = FiberDescriptor.newFiber(
-					TypeDescriptor.Types.TOP.o(),
-					FiberDescriptor.loaderPriority,
-					StringDescriptor.format(
-						"Unload function for module %s",
-						module.moduleName()));
-				fiber.resultContinuation(new Continuation1<AvailObject>()
+				else
 				{
-					@Override
-					public void value (final @Nullable AvailObject unused)
-					{
-						onExit.value();
-					}
-				});
-				fiber.failureContinuation(new Continuation1<Throwable>()
-				{
-					@Override
-					public void value (final @Nullable Throwable unused)
-					{
-						onExit.value();
-					}
-				});
-				Interpreter.runOutermostFunction(
-					runtime,
-					fiber,
-					unloadFunction,
-					Collections.<A_BasicObject>emptyList());
+					afterRunning.value();
+				}
 			}
-		}
-		else
-		{
-			afterRunning.value();
-		}
+		};
+		onExit.value().value();
 	}
 
 	/**

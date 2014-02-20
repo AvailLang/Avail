@@ -734,9 +734,10 @@ extends Descriptor
 					runtime.removeSeal(methodName, seal);
 				}
 			}
-			// Run unload functions (asynchronously).
+			// Run unload functions, asynchronously but serially, in reverse
+			// order.
 			aLoader.runUnloadFunctions(
-				object.slot(UNLOAD_FUNCTIONS),
+				object.slot(UNLOAD_FUNCTIONS).tupleReverse(),
 				afterRemoval);
 			object.setSlot(UNLOAD_FUNCTIONS, NilDescriptor.nil());
 		}
