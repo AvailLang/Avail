@@ -1085,6 +1085,11 @@ extends Descriptor
 		final boolean canDestroy)
 	{
 		final int originalSize = object.tupleSize();
+		if (originalSize >= ObjectTupleDescriptor.maximumCopySize)
+		{
+			final A_Tuple singleton = TupleDescriptor.from(newElement);
+			return object.concatenateWith(singleton, canDestroy);
+		}
 		final A_Tuple newTuple = ObjectTupleDescriptor.createUninitialized(
 			originalSize + 1);
 		for (int i = 1; i <= originalSize; i++)

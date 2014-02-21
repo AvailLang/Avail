@@ -84,7 +84,7 @@ extends TupleDescriptor
 	 * TreeTupleDescriptor}/using other forms of reference instead of creating
 	 * an new tuple.
 	 */
-	private static final int maximumCopySize = 32;
+	public static final int maximumCopySize = 32;
 
 	@Override @AvailMethod
 	AvailObject o_TupleAt (final AvailObject object, final int subscript)
