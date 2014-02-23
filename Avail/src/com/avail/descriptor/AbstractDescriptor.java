@@ -1588,28 +1588,6 @@ public abstract class AbstractDescriptor
 		boolean canDestroy);
 
 	/**
-	 * Answer the element at the given index of the {@code AvailObject object}.
-	 *
-	 * @param object A sequenceable collection.
-	 * @param index An integer.
-	 * @return The element at the given index.
-	 * @see AvailObject#elementAt(int)
-	 */
-	abstract A_BasicObject o_ElementAt (
-		AvailObject object,
-		int index);
-
-	/**
-	 * @param object
-	 * @param index
-	 * @param value
-	 */
-	abstract void o_ElementAtPut (
-		AvailObject object,
-		int index,
-		A_BasicObject value);
-
-	/**
 	 * @param object
 	 * @param value
 	 */
@@ -2343,12 +2321,6 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param value
-	 */
-	abstract void o_Size (AvailObject object, int value);
-
-	/**
-	 * @param object
 	 * @param slotIndex
 	 * @return
 	 */
@@ -2503,14 +2475,6 @@ public abstract class AbstractDescriptor
 	 */
 	abstract A_Tuple o_TupleReverse (
 		AvailObject object);
-
-	/**
-	 * @param object
-	 * @param value
-	 */
-	abstract void o_Type (
-		AvailObject object,
-		A_BasicObject value);
 
 	/**
 	 * @param object
@@ -2754,25 +2718,6 @@ public abstract class AbstractDescriptor
 		AvailObject object,
 		int startIndex,
 		int endIndex);
-
-	/**
-	 * @param object
-	 * @param index
-	 * @return
-	 */
-	abstract int o_UntranslatedDataAt (
-		AvailObject object,
-		int index);
-
-	/**
-	 * @param object
-	 * @param index
-	 * @param value
-	 */
-	abstract void o_UntranslatedDataAtPut (
-		AvailObject object,
-		int index,
-		int value);
 
 	/**
 	 * @param object
@@ -5184,7 +5129,7 @@ public abstract class AbstractDescriptor
 	 */
 	abstract boolean o_IsSupertypeOfLiteralTokenType (
 		final AvailObject object,
-		final A_BasicObject aLiteralTokenType);
+		final A_Type aLiteralTokenType);
 
 	/**
 	 * @param object
@@ -5202,7 +5147,7 @@ public abstract class AbstractDescriptor
 	 */
 	abstract boolean o_EqualsObjectType (
 		final AvailObject object,
-		final AvailObject anObjectType);
+		final A_Type anObjectType);
 
 	/**
 	 * @param object
@@ -5617,12 +5562,6 @@ public abstract class AbstractDescriptor
 	 * @param task
 	 */
 	abstract void o_WakeupTask (AvailObject object, @Nullable TimerTask task);
-
-	/**
-	 * @param object
-	 * @param value
-	 */
-	abstract void o_Name (final AvailObject object, final A_String value);
 
 	/**
 	 * @param object

@@ -472,8 +472,7 @@ public final class SerializerTest
 		final A_Function function = FunctionDescriptor.create(
 			code,
 			TupleDescriptor.empty());
-		final A_Function newFunction = roundTrip(function);
-		assertNotNull(newFunction);
+		final @Nullable A_Function newFunction = roundTrip(function);
 		assert newFunction != null;
 		final A_RawFunction code2 = newFunction.code();
 		assertEquals(code.numOuters(), code2.numOuters());

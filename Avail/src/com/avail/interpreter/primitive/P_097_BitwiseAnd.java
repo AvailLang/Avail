@@ -59,8 +59,8 @@ extends Primitive
 		final boolean skipReturnCheck)
 	{
 		assert args.size() == 2;
-		final A_BasicObject a = args.get(0);
-		final AvailObject b = args.get(1);
+		final A_Number a = args.get(0);
+		final A_Number b = args.get(1);
 		return interpreter.primitiveSuccess(a.bitwiseAnd(b, true));
 	}
 

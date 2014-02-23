@@ -2011,17 +2011,23 @@ extends ExtendedIntegerDescriptor
 		// available), which is better than a double can represent.
 		final int slotsCount = object.integerSlotsCount();
 		final long high = object.rawSignedIntegerAt(slotsCount);
-		double d = Math.scalb(high, ((slotsCount - 1) << 5) - exponentBias);
+		double d = Math.scalb(
+			(double)high,
+			((slotsCount - 1) << 5) - exponentBias);
 		if (slotsCount > 1)
 		{
 			final long med = (high & ~0xFFFFFFFFL)
 				+ object.rawUnsignedIntegerAt(slotsCount - 1);
-			d += Math.scalb(med, ((slotsCount - 2) << 5) - exponentBias);
+			d += Math.scalb(
+				(double)med,
+				((slotsCount - 2) << 5) - exponentBias);
 			if (slotsCount > 2)
 			{
 				final long low = (high & ~0xFFFFFFFFL)
 					+ object.rawUnsignedIntegerAt(slotsCount - 2);
-				d += Math.scalb(low, ((slotsCount - 3) << 5) - exponentBias);
+				d += Math.scalb(
+					(double)low,
+					((slotsCount - 3) << 5) - exponentBias);
 			}
 		}
 		return d;

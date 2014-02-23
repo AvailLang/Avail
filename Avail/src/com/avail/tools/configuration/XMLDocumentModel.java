@@ -169,27 +169,11 @@ public final class XMLDocumentModel<
 			assert Modifier.isStatic(valuesMethod.getModifiers());
 			values = (ElementType[]) valuesMethod.invoke(null);
 		}
-		catch (final SecurityException e)
-		{
-			// This never happens.
-			assert false;
-		}
-		catch (final NoSuchMethodException e)
-		{
-			// This never happens.
-			assert false;
-		}
-		catch (final IllegalArgumentException e)
-		{
-			// This never happens.
-			assert false;
-		}
-		catch (final IllegalAccessException e)
-		{
-			// This never happens.
-			assert false;
-		}
-		catch (final InvocationTargetException e)
+		catch (final SecurityException
+			| NoSuchMethodException
+			| IllegalArgumentException
+			| IllegalAccessException
+			| InvocationTargetException e)
 		{
 			// This never happens.
 			assert false;

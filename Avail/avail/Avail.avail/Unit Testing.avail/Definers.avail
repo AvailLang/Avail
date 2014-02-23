@@ -48,110 +48,62 @@ Names
 Body
 
 /**
- * Forget everything related to the specified {@type "module"}: deregister all
- * {@type "unit test"}s and {@type "unit test suites"}, etc.
+ * Remember that {@method "the current module"} has supplied a {@type
+ * "unit test suite"} or a {@type "unit test"}, and that it should be forgotten
+ * when it is unloaded.
  *
- * @method "Forget everything related to_"
- * @param "unloadedModule" "module"
- *        A {@type "module"} that has been unloaded.
+ * @method "Remember the current module"
  */
-Private method "Forget everything related to_" is
+Private method "Remember the current module" is
 [
-	unloadedModule : module
-|
-	Lock suite lock for
-	[
-		/* Traverse the collection of test suites, looking for every atom
-		 * issued by the unloaded module.
-		 */
-		For each of suites by atom do
-		[
-			suiteID : atom,
-			suite : unit test suite
-		|
-			/* Iterate through the test cases, eliminating each one whose test
-			 * ID was issued by the unloaded module.
-			 */
-			unitTests : <unit test…|> := <>;
-			For each of suite's unit tests do
-			[
-				test : unit test
-			|
-				testID ::= test's test ID;
-				/* If the test was created by the unloaded module, then remove
-				 * it from the map of all tests.
-				 */
-				If testID's issuing module = unloadedModule then
-				[
-					tests by atom := tests by atom - testID;
-				]
-				/* Otherwise, remember to include it in the replacement
-				 * suite.
-				 */
-				else
-				[
-					unitTests := unitTests ++ <test>;
-				];
-			];
-			newSuite : unit test suite := suite's unit tests ::= unitTests;
-			/* If the suite was created by the unloaded module, then unlink it
-			 * from the hierarchy of test suites.
-			 */
-			If suiteID's issuing module = unloadedModule then
-			[
-				/* Ascertain the parentage of the test suite. */
-				parentID ::= suite's parent suite ID;
-				isRootTestSuite ::= parentID = root test suite ID;
-				parent ::= if isRootTestSuite
-					then [root suite]
-					else [suites by atom[parentID]];
-				/* Remove the suite from the parent, and add in its own
-				 * children.
-				 */
-				childSuites : <atom…|> := parent's child suite IDs - suiteID;
-				childSuites := childSuites ++ suite's child suite IDs;
-				If isRootTestSuite then
-				[
-					root suite := root suite's child suite IDs ::= childSuites;
-				]
-				else
-				[
-					siblings ::=
-						cast parent's child suite IDs ::= childSuites
-						into [t : unit test suite | t];
-					suites by atom := suites by atom + parentID→siblings;
-				];
-				/* Remove the suite. */
-				suites by atom := suites by atom - suiteID;
-			]
-			/* Otherwise, remember to update it in the map of all suites. */
-			else
-			[
-				suites by atom := suites by atom + suiteID→newSuite;
-			];
-		];
-		modules := modules - unloadedModule;
-	];
-];
-
-/**
- * Arrange to forget everything related to the {@method "current module"},
- * unless this has already been arranged.
- *
- * @method
- *    "If necessary,arrange to forget everything related to the current module"
- */
-Private method
-	"If necessary,arrange to forget everything related to the current module"
-is
-[
+	/* If necessary, then record the current module and arrange to forget
+	 * about it when it is unloaded.
+	 */
 	currentModule ::= current module;
 	If ¬currentModule ∈ modules then
 	[
 		modules := modules + currentModule;
 		After the current module is unloaded, do
 		[
-			Forget everything related to currentModule;
+			modules := modules - currentModule;
+		];
+	];
+];
+
+/**
+ * Forget about the specifed {@type "unit test suite"}.
+ *
+ * @method "suite" "unit test suite"
+ */
+Private method "Forget_" is
+[
+	suite : unit test suite
+|
+	Lock suite lock for
+	[
+		/* Ascertain the parentage of the test suite. */
+		suiteID ::= suite's suite ID;
+		parentID ::= suite's parent suite ID;
+		isRootTestSuite ::= parentID = root test suite ID;
+		parent ::= if isRootTestSuite
+			then [root suite]
+			else [suites by atom[parentID]];
+		/* Remove the suite atom from the global collection of suites. */
+		suites by atom := suites by atom - suiteID;
+		/* Remove the suite atom from the parent's collection of child
+		 * suites.
+		 */
+		childSuites : <atom…|> :=
+			filter parent's child suite IDs by [id : atom | id ≠ suiteID];
+		If isRootTestSuite then
+		[
+			root suite := root suite's child suite IDs ::= childSuites;
+		]
+		else
+		[
+			updatedParent ::= cast parent's child suite IDs ::= childSuites
+				into [t : unit test suite | t];
+			suites by atom := suites by atom + parentID→updatedParent;
 		];
 	];
 ] : ⊤;
@@ -189,6 +141,7 @@ Public method "New test suite,⁇_,⁇extends_" is
 		[
 			Raise a test-suite-already-exists exception with suite ID ::= id
 		];
+		Remember the current module;
 		/* Build the test suite. */
 		suite ::= a unit test suite with
 			suite ID ::= id,
@@ -220,12 +173,14 @@ Public method "New test suite,⁇_,⁇extends_" is
 		]
 		else
 		[
-			updatedSiblings ::= cast parent's child suite IDs ::= childSuites
+			updatedParent ::= cast parent's child suite IDs ::= childSuites
 				into [t : unit test suite | t];
-			suites by atom := suites by atom + parentID→updatedSiblings;
+			suites by atom := suites by atom + parentID→updatedParent;
 		];
-		If necessary,
-			arrange to forget everything related to the current module;
+		/* Arrange to forget the test suite when its defining module is
+		 * unloaded.
+		 */
+		After the current module is unloaded, do [Forget suite;];
 	];
 ] : ⊤;
 
@@ -388,6 +343,30 @@ Semantic restriction "After running each test in_,⁇do_"
 	is fixture semantic restriction function;
 
 /**
+ * Forget about the specifed {@type "unit test"}.
+ *
+ * @method "test" "unit test"
+ */
+Private method "Forget_" is
+[
+	test : unit test
+|
+	Lock suite lock for
+	[
+		/* Remove the test from the global collection. */
+		testID ::= test's test ID;
+		tests by atom := tests by atom - testID;
+		/* Remove the test from its enclosing test suite. */
+		suiteID ::= test's suite ID;
+		suite ::= suites by atom[suiteID];
+		suiteTests ::=
+			filter suite's unit tests by [t : unit test | t ≠ test];
+		newSuite ::= suite's unit tests ::= suiteTests;
+		suites by atom := suites by atom + suiteID→newSuite;
+	];
+] : ⊤;
+
+/**
  * Define a unit test.
  *
  * @method "Test_in_is_«must raise_»"
@@ -422,6 +401,7 @@ Public method "Test_in_is_«must raise_»" is
 		[
 			Raise a test-already-exists exception with test ID ::= trueName
 		];
+		Remember the current module;
 		unitTest ::= a unit test with
 			test ID ::= trueName,
 			suite ID ::= suiteID,
@@ -435,8 +415,10 @@ Public method "Test_in_is_«must raise_»" is
 		suiteTests ::= suite's unit tests ++ <unitTest>;
 		suites by atom :=
 			suites by atom + suiteID→suite's unit tests ::= suiteTests;
-		If necessary,
-			arrange to forget everything related to the current module;
+		/* Arrange to forget the test suite when its defining module is
+		 * unloaded.
+		 */
+		After the current module is unloaded, do [Forget unitTest;];
 	];
 ] : ⊤;
 

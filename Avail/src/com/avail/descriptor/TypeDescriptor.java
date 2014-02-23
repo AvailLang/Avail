@@ -442,7 +442,7 @@ extends AbstractTypeDescriptor
 	@Override
 	boolean o_IsSupertypeOfLiteralTokenType (
 		final AvailObject object,
-		final A_BasicObject aLiteralTokenType)
+		final A_Type aLiteralTokenType)
 	{
 		// By default, nothing is a supertype of a literal token type unless it
 		// states otherwise.

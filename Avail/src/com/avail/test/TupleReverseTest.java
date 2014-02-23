@@ -525,34 +525,37 @@ public class TupleReverseTest
 		final A_Tuple anObjectTupleReveresed = anObjectTuple.tupleReverse();
 
 		final A_Tuple aTreeTuple = TreeTupleDescriptor
-			.createPair(byteString, anObjectTuple, 2, 0);
+			.createPair(byteString, anObjectTuple, 1, 0);
 
 		final A_Tuple aTreeTupleReversed = TreeTupleDescriptor
-			.createPair(anObjectTupleReveresed, byteStringReversed, 2, 0);
+			.createPair(anObjectTupleReveresed, byteStringReversed, 1, 0);
+		assert(aTreeTupleReversed.descriptor() instanceof TreeTupleDescriptor);
 
-		assertEquals(aTreeTuple.tupleReverse(),aTreeTupleReversed);
+		// Compare all the elements but not the tuples themselves, to avoid
+		// transforming one into an indirection.
+		assertEquals(
+			TupleDescriptor.toList(aTreeTuple.tupleReverse()),
+			TupleDescriptor.toList(aTreeTupleReversed));
 
 		final A_Tuple aTreeTupleReversedSubrange =
 			aTreeTuple
 				.tupleReverse()
 				.copyTupleFromToCanDestroy(17, 63, false);
-
+		assert(aTreeTupleReversedSubrange.descriptor()
+			instanceof ReverseTupleDescriptor);
 		assertEquals(aTreeTupleReversedSubrange.tupleSize(), 63 - 17 + 1);
-		assert(aTreeTupleReversed.descriptor() instanceof TreeTupleDescriptor);
 
 		final A_Tuple aConcatenation =
 			aTreeTuple
 				.tupleReverse()
 				.concatenateWith(aTreeTupleReversed.tupleReverse(), true);
-
-		assert(!(aTreeTupleReversed.descriptor()
-			instanceof TreeTupleDescriptor));
-		assertEquals(aConcatenation.childCount(),4);
-
-		assertEquals(aConcatenation.childAt(4),anObjectTuple);
-		assertEquals(aConcatenation.childAt(3),byteString);
-		assertEquals(aConcatenation.childAt(2),byteString.tupleReverse());
-		assertEquals(aConcatenation.childAt(1),anObjectTuple.tupleReverse());
+		assert(aConcatenation.descriptor()
+			instanceof TreeTupleDescriptor);
+		assertEquals(aConcatenation.childCount(), 4);
+		assertEquals(aConcatenation.childAt(4), anObjectTuple);
+		assertEquals(aConcatenation.childAt(3), byteString);
+		assertEquals(aConcatenation.childAt(2), byteString.tupleReverse());
+		assertEquals(aConcatenation.childAt(1), anObjectTuple.tupleReverse());
 		assertEquals(
 			aConcatenation.tupleAt(142),
 			CharacterDescriptor.fromCodePoint(411));

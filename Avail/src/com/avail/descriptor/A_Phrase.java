@@ -248,4 +248,14 @@ extends A_BasicObject
 	 * @return The variable.
 	 */
 	A_Phrase variable ();
+
+	/**
+	 * @return
+	 */
+	AvailObject initializationExpression ();
+
+	/**
+	 * @return
+	 */
+	A_BasicObject literalObject ();
 }

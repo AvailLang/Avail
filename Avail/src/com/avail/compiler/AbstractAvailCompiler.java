@@ -5054,7 +5054,7 @@ public abstract class AbstractAvailCompiler
 			}
 			final String pragmaPrim = parts[0].trim();
 			methodName = parts[1].trim();
-			primNum = Integer.valueOf(pragmaPrim);
+			primNum = Integer.parseInt(pragmaPrim);
 		}
 		catch (final IllegalArgumentException e)
 		{
@@ -5428,8 +5428,8 @@ public abstract class AbstractAvailCompiler
 								final A_Token token =
 									tokens.get(afterStatement.position - 1);
 								final
-									Continuation4<ModuleName, Long, Long, Long>
-										reporter = progressReporter;
+									CompilerProgressReporter reporter =
+										progressReporter;
 								assert reporter != null;
 								reporter.value(
 									moduleHeader.moduleName,
@@ -5505,13 +5505,13 @@ public abstract class AbstractAvailCompiler
 	 * number on which the last complete statement concluded, the position of
 	 * the ongoing parse (in bytes), and the size of the module (in bytes).
 	 */
-	@InnerAccess @Nullable CompilerProgressReporter progressReporter;
+	@InnerAccess volatile @Nullable CompilerProgressReporter progressReporter;
 
 	/**
 	 * The {@linkplain Continuation1 continuation} that reports success of
 	 * compilation.
 	 */
-	@InnerAccess @Nullable Continuation0 successReporter;
+	@InnerAccess volatile @Nullable Continuation0 successReporter;
 
 	/**
 	 * Parse a {@linkplain ModuleHeader module header} from the {@linkplain

@@ -120,7 +120,7 @@ extends TypeDescriptor
 	@Override
 	boolean o_IsSupertypeOfLiteralTokenType (
 		final AvailObject object,
-		final A_BasicObject aLiteralTokenType)
+		final A_Type aLiteralTokenType)
 	{
 		return aLiteralTokenType.literalType().isSubtypeOf(
 			object.literalType());

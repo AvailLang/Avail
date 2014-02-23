@@ -32,7 +32,6 @@
 
 package com.avail.descriptor;
 
-import java.math.BigInteger;
 import java.util.List;
 import java.util.Set;
 import com.avail.annotations.Nullable;
@@ -257,19 +256,6 @@ public interface A_BasicObject
 	 * Dispatch to the descriptor.
 	 */
 	void binSize (int value);
-
-	/**
-	 * Answer the element at the given index of the receiver.
-	 *
-	 * @param index An integer.
-	 * @return The element at the given index.
-	 */
-	A_BasicObject elementAt (int index);
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	void elementAtPut (int index, A_BasicObject value);
 
 	/**
 	 * {@inheritDoc}
@@ -590,11 +576,6 @@ public interface A_BasicObject
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	boolean hasObjectInstance (AvailObject potentialInstance);
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
 	boolean isAbstract ();
 
 	/**
@@ -715,11 +696,6 @@ public interface A_BasicObject
 	boolean isNybble ();
 
 	/**
-	 * Dispatch to the descriptor.
-	 */
-	boolean isPositive ();
-
-	/**
 	 * Is the {@linkplain AvailObject receiver} an Avail set?
 	 *
 	 * @return {@code true} if the receiver is a set, {@code false} otherwise.
@@ -786,14 +762,6 @@ public interface A_BasicObject
 
 	/**
 	 * Dispatch to the descriptor.
-	 *
-	 * TODO[MvG] - Break this accidental polymorphism for better clarity of
-	 * intention.
-	 */
-	AvailObject name ();
-
-	/**
-	 * Dispatch to the descriptor.
 	 */
 	A_BasicObject parent ();
 
@@ -810,37 +778,12 @@ public interface A_BasicObject
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	void size (int value);
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
 	AvailObject traversed ();
 
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	void trimExcessInts ();
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
 	A_Type kind ();
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	void type (A_BasicObject value);
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	int untranslatedDataAt (int index);
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	void untranslatedDataAtPut (int index, int value);
 
 	/**
 	 * Dispatch to the descriptor.
@@ -856,16 +799,6 @@ public interface A_BasicObject
 	 * @return
 	 */
 	DeclarationKind declarationKind ();
-
-	/**
-	 * @return
-	 */
-	AvailObject initializationExpression ();
-
-	/**
-	 * @return
-	 */
-	A_BasicObject literalObject ();
 
 	/**
 	 * Dispatch to the descriptor.
@@ -894,11 +827,6 @@ public interface A_BasicObject
 	boolean equalsInstanceTypeFor (AvailObject anInstanceType);
 
 	/**
-	 * @return
-	 */
-	A_Set instances ();
-
-	/**
 	 * Determine whether the receiver is an {@linkplain
 	 * AbstractEnumerationTypeDescriptor enumeration} with the given {@linkplain
 	 * SetDescriptor set} of instances.
@@ -910,32 +838,11 @@ public interface A_BasicObject
 	boolean equalsEnumerationWithSet (A_Set aSet);
 
 	/**
-	 * @return
-	 */
-	boolean isEnumeration ();
-
-	/**
 	 * @param potentialInstance
 	 * @return
 	 */
 	boolean enumerationIncludesInstance (
 		AvailObject potentialInstance);
-
-	/**
-	 * @return
-	 */
-	A_Type valueType ();
-
-	/**
-	 * Compute a {@linkplain TypeDescriptor type} that is an ancestor of the
-	 * receiver, but is not an {@linkplain AbstractEnumerationTypeDescriptor
-	 * enumeration}.  Choose the most specific such type.  Fail if the
-	 * receiver is not itself an enumeration.  Also fail if the receiver is
-	 * {@linkplain BottomTypeDescriptor bottom}.
-	 *
-	 * @return The must specific non-union supertype.
-	 */
-	A_Type computeSuperkind ();
 
 	/**
 	 * @param aCompiledCodeType
@@ -980,11 +887,6 @@ public interface A_BasicObject
 	 * @return
 	 */
 	boolean isUnsignedShort ();
-
-	/**
-	 * @return
-	 */
-	int extractUnsignedShort ();
 
 	/**
 	 * @return
@@ -1083,27 +985,7 @@ public interface A_BasicObject
 	/**
 	 * @return
 	 */
-	BigInteger asBigInteger ();
-
-	/**
-	 * @return
-	 */
-	A_Number instanceCount ();
-
-	/**
-	 * @return
-	 */
-	A_Tuple fieldTypeTuple ();
-
-	/**
-	 * @return
-	 */
 	A_Tuple fieldTuple ();
-
-	/**
-	 * @return
-	 */
-	A_Type literalType ();
 
 	/**
 	 * @return
@@ -1121,7 +1003,7 @@ public interface A_BasicObject
 	 * @param anObjectType
 	 * @return
 	 */
-	boolean equalsObjectType (AvailObject anObjectType);
+	boolean equalsObjectType (A_Type anObjectType);
 
 	/**
 	 * @param aToken
@@ -1130,41 +1012,9 @@ public interface A_BasicObject
 	boolean equalsToken (A_Token aToken);
 
 	/**
-	 * @param anInteger
-	 * @param canDestroy
-	 * @return
-	 */
-	A_Number bitwiseAnd (
-		A_Number anInteger,
-		boolean canDestroy);
-
-	/**
-	 * @param anInteger
-	 * @param canDestroy
-	 * @return
-	 */
-	A_Number bitwiseOr (
-		A_Number anInteger,
-		boolean canDestroy);
-
-	/**
-	 * @param anInteger
-	 * @param canDestroy
-	 * @return
-	 */
-	A_Number bitwiseXor (
-		A_Number anInteger,
-		boolean canDestroy);
-
-	/**
 	 * @return
 	 */
 	boolean isInstanceMeta ();
-
-	/**
-	 * @return
-	 */
-	AvailObject instance ();
 
 	/**
 	 * @param kind
@@ -1178,35 +1028,9 @@ public interface A_BasicObject
 	MapDescriptor.MapIterable mapBinIterable ();
 
 	/**
-	 * @param anInt
-	 * @return
-	 */
-	boolean rangeIncludesInt (int anInt);
-
-	/**
-	 * @param shiftFactor
-	 * @param truncationBits
-	 * @param canDestroy
-	 * @return
-	 */
-	A_Number bitShiftLeftTruncatingToBits (
-		A_Number shiftFactor,
-		A_Number truncationBits,
-		boolean canDestroy);
-
-	/**
 	 * @return
 	 */
 	SetIterator setBinIterator ();
-
-	/**
-	 * @param shiftFactor
-	 * @param canDestroy
-	 * @return
-	 */
-	A_Number bitShift (
-		A_Number shiftFactor,
-		boolean canDestroy);
 
 	/**
 	 * @param aParseNode
@@ -1217,17 +1041,7 @@ public interface A_BasicObject
 	/**
 	 * @return
 	 */
-	byte[] byteArray ();
-
-	/**
-	 * @return
-	 */
 	boolean isByteArrayTuple ();
-
-	/**
-	 * @param critical
-	 */
-	void lock (Continuation0 critical);
 
 	/**
 	 * @return
@@ -1289,11 +1103,6 @@ public interface A_BasicObject
 	boolean equalsByteArrayTuple (A_Tuple aByteArrayTuple);
 
 	/**
-	 * @param newName
-	 */
-	void name (A_String newName);
-
-	/**
 	 * @param aByteBufferTuple
 	 * @return
 	 */
@@ -1303,19 +1112,6 @@ public interface A_BasicObject
 	 * @return
 	 */
 	boolean isByteBufferTuple ();
-
-	/**
-	 * @param startIndex1
-	 * @param endIndex1
-	 * @param aByteBufferTuple
-	 * @param startIndex2
-	 * @return
-	 */
-	boolean compareFromToWithByteBufferTupleStartingAt (
-		int startIndex1,
-		int endIndex1,
-		A_Tuple aByteBufferTuple,
-		int startIndex2);
 
 	/**
 	 * @return
@@ -1338,4 +1134,9 @@ public interface A_BasicObject
 	 * @return
 	 */
 	boolean equalsSmallIntegerIntervalTuple (A_Tuple object);
+
+	/**
+	 * @param critical
+	 */
+	void lock (Continuation0 critical);
 }

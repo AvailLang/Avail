@@ -46,7 +46,8 @@ import com.avail.interpreter.*;
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public final class P_402_BootstrapPrimitiveFailureDeclarationMacro extends Primitive
+public final class P_402_BootstrapPrimitiveFailureDeclarationMacro
+extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

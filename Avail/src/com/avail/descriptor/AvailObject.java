@@ -1473,33 +1473,6 @@ implements
 	}
 
 	/**
-	 * Answer the element at the given index of the receiver.
-	 *
-	 * @param index An integer.
-	 * @return The element at the given index.
-	 */
-	@Override
-	public A_BasicObject elementAt (
-		final int index)
-	{
-		return descriptor.o_ElementAt(this, index);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	@Override
-	public void elementAtPut (
-		final int index,
-		final A_BasicObject value)
-	{
-		descriptor.o_ElementAtPut(
-			this,
-			index,
-			value);
-	}
-
-	/**
 	 * Dispatch to the descriptor.
 	 */
 	@Override
@@ -2619,7 +2592,7 @@ implements
 	 */
 	@Override
 	public boolean isSupertypeOfLiteralTokenType (
-		final A_BasicObject aLiteralTokenType)
+		final A_Type aLiteralTokenType)
 	{
 		return descriptor.o_IsSupertypeOfLiteralTokenType(
 			this,
@@ -3177,15 +3150,6 @@ implements
 	public A_String atomName ()
 	{
 		return descriptor.o_AtomName(this);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	@Override
-	public void name (final A_String newName)
-	{
-		descriptor.o_Name(this, newName);
 	}
 
 	/**
@@ -3786,16 +3750,6 @@ implements
 	 * Dispatch to the descriptor.
 	 */
 	@Override
-	public void size (
-		final int value)
-	{
-		descriptor.o_Size(this, value);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	@Override
 	public A_Type sizeRange ()
 	{
 		return descriptor.o_SizeRange(this);
@@ -4133,16 +4087,6 @@ implements
 	 * Dispatch to the descriptor.
 	 */
 	@Override
-	public void type (
-		final A_BasicObject value)
-	{
-		descriptor.o_Type(this, value);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	@Override
 	public A_Type typeAtIndex (
 		final int index)
 	{
@@ -4437,30 +4381,6 @@ implements
 			this,
 			startIndex,
 			endIndex);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	@Override
-	public int untranslatedDataAt (
-		final int index)
-	{
-		return descriptor.o_UntranslatedDataAt(this, index);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	@Override
-	public void untranslatedDataAtPut (
-		final int index,
-		final int value)
-	{
-		descriptor.o_UntranslatedDataAtPut(
-			this,
-			index,
-			value);
 	}
 
 	/**
@@ -6000,7 +5920,7 @@ implements
 	 */
 	@Override
 	public boolean equalsObjectType (
-		final AvailObject anObjectType)
+		final A_Type anObjectType)
 	{
 		return descriptor.o_EqualsObjectType(this, anObjectType);
 	}

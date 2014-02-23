@@ -184,7 +184,7 @@ extends Descriptor
 	@Override @AvailMethod
 	abstract boolean o_IsSupertypeOfLiteralTokenType (
 		final AvailObject object,
-		final A_BasicObject aLiteralTokenType);
+		final A_Type aLiteralTokenType);
 
 	@Override @AvailMethod
 	abstract boolean o_IsSupertypeOfMapType (

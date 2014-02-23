@@ -275,9 +275,8 @@ public final class ArithmeticTest
 		final A_Number availInt = IntegerDescriptor.fromBigInteger(base);
 		final A_Number availShift = IntegerDescriptor.fromInt(leftShift);
 		final A_Number shiftedAvailInt = availInt.bitShift(availShift, true);
-		final A_BasicObject availInt2 = IntegerDescriptor.fromBigInteger(base);
-		final A_BasicObject shiftedAvailInt2 =
-			availInt2.bitShift(availShift, false);
+		final A_Number availInt2 = IntegerDescriptor.fromBigInteger(base);
+		final A_Number shiftedAvailInt2 = availInt2.bitShift(availShift, false);
 		assertEquals(shiftedAvailInt, shiftedAvailInt2);
 		assertEquals(
 			IntegerDescriptor.fromBigInteger(shiftedBigInt),

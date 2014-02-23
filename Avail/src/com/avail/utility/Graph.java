@@ -595,9 +595,6 @@ public class Graph <Vertex>
 		 */
 		private final Continuation2<Vertex, Continuation0> visitAction;
 
-		/** Whether this parallel iteration is shutting down prematurely. */
-		@InnerAccess boolean terminating = false;
-
 		/**
 		 * A {@link Map} keeping track of how many predecessors of each vertex
 		 * have not yet been completed.
@@ -671,8 +668,8 @@ public class Graph <Vertex>
 					}
 					catch (final InterruptedException e)
 					{
-						terminating = true;
-						Thread.currentThread().interrupt();
+						// Ignore.  This is just for debugging.
+						System.err.println("Interrupted build");
 					}
 				}
 				if (!stack.isEmpty())

@@ -156,7 +156,7 @@ extends ParseNodeDescriptor
 	A_Atom o_ApparentSendName (final AvailObject object)
 	{
 		final A_Bundle bundle = object.slot(BUNDLE);
-		return bundle.name();
+		return bundle.message();
 	}
 
 	@Override @AvailMethod

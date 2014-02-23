@@ -124,7 +124,8 @@ extends ModuleName
 	public long moduleSize ()
 	{
 		final File ref = sourceReference;
-		assert ref != null : "Source file \"" + ref + "\" is missing";
+		assert ref != null
+			: "Source file \"" + qualifiedName() + "\" is missing";
 		return ref.length();
 	}
 

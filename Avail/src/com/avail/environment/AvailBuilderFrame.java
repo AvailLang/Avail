@@ -1184,10 +1184,10 @@ extends JFrame
 		}
 		try
 		{
-			final int x = Integer.valueOf(substrings[0]);
-			final int y = Integer.valueOf(substrings[1]);
-			final int w = Integer.valueOf(substrings[2]);
-			final int h = Integer.valueOf(substrings[3]);
+			final int x = Integer.parseInt(substrings[0]);
+			final int y = Integer.parseInt(substrings[1]);
+			final int w = Integer.parseInt(substrings[2]);
+			final int h = Integer.parseInt(substrings[3]);
 			return new Rectangle(x, y, w, h);
 		}
 		catch (final NumberFormatException e)
