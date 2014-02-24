@@ -38,7 +38,7 @@ import com.avail.annotations.InnerAccess;
 import com.avail.descriptor.*;
 
 /**
- * TODO: Document StacksScanner!
+ * A scanner for Stacks comments.
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
@@ -72,13 +72,57 @@ public class StacksScanner
 
 	/**
 	 * The place on the currently line where the token starts.
+	 * Always initialized to zero at creation of {@link StacksScanner scanner}.
 	 */
-	private int startOfTokenLinePostion;
+	private int startOfTokenLinePostion = 0;
 
 	/**
 	 * The line number of the start of the token currently being parsed.
 	 */
 	int lineNumber;
+
+	/**
+	 * Alter the scanner's position in the input String.
+	 *
+	 * @param newLineNumber
+	 *            The new lineNumber for this scanner as an index.
+	 */
+	void lineNumber (final int newLineNumber)
+	{
+		this.lineNumber = newLineNumber;
+	}
+
+	/**
+	 * Answer the scanner's current lineNumber in the input String.
+	 *
+	 * @return The current position in the input String.
+	 */
+	int lineNumber ()
+	{
+		return lineNumber;
+	}
+
+	/**
+	 * Alter the scanner's startOfTokenLinePostion in the input String.
+	 *
+	 * @param newLineNumberPosition
+	 *            The new position for this scanner as an index into the input
+	 *            String's chars current line.
+	 */
+	void startOfTokenLinePostion (final int newLineNumberPosition)
+	{
+		this.lineNumber = newLineNumberPosition;
+	}
+
+	/**
+	 * Answer the scanner's current index in the input String.
+	 *
+	 * @return The current position in the input String.
+	 */
+	int startOfTokenLinePostion ()
+	{
+		return startOfTokenLinePostion;
+	}
 
 	/**
 	 * Alter the scanner's position in the input String.
@@ -159,9 +203,45 @@ public class StacksScanner
 	 * @return The newly added token.
 	 */
 	@InnerAccess
+	BracketedStacksToken addBracketedToken ()
+	{
+		final BracketedStacksToken token = BracketedStacksToken.create(
+			currentTokenString(),
+			startOfToken,
+			lineNumber,
+			startOfTokenLinePostion);
+		outputTokens.add(token);
+		return token;
+	}
+
+	/**
+	 * Add the provided uninitialized {@linkplain QuotedStacksToken quoted
+	 * token}.
+	 *
+	 * @return The newly added token.
+	 */
+	@InnerAccess
 	QuotedStacksToken addQuotedToken ()
 	{
 		final QuotedStacksToken token = QuotedStacksToken.create(
+			currentTokenString(),
+			startOfToken,
+			lineNumber,
+			startOfTokenLinePostion);
+		outputTokens.add(token);
+		return token;
+	}
+
+	/**
+	 * Add the provided uninitialized {@linkplain KeywordStacksToken keyword
+	 * token}.
+	 *
+	 * @return The newly added token.
+	 */
+	@InnerAccess
+	AbstractStacksToken addKeywordToken ()
+	{
+		final AbstractStacksToken token = KeywordStacksToken.create(
 			currentTokenString(),
 			startOfToken,
 			lineNumber,
@@ -219,6 +299,7 @@ public class StacksScanner
 		if (c == '\n')
 		{
 			lineNumber++;
+			startOfTokenLinePostion = 0;
 		}
 		return c;
 	}
@@ -241,7 +322,7 @@ public class StacksScanner
 		}
 
 		startOfToken = position;
-		addCurrentToken(TokenType.END_OF_FILE);
+		addCurrentToken();
 	}
 
 	/**
@@ -391,8 +472,6 @@ public class StacksScanner
 								throw new StacksScannerException(
 									"Power strings are not yet supported",
 									scanner);
-								// TODO parsePowerString(scanner);
-								// break;
 							default:
 								throw new StacksScannerException(
 									"Backslash escape should be followed by"
@@ -443,7 +522,7 @@ public class StacksScanner
 				final String string = stringBuilder.toString();
 				final A_String availValue = StringDescriptor.from(string);
 				availValue.makeImmutable();
-				scanner.addCurrentLiteralToken(availValue);
+				scanner.addQuotedToken();
 			}
 
 			/**
@@ -537,10 +616,84 @@ public class StacksScanner
 		},
 
 		/**
-		 * A slash was encountered. Check if it's the start of a comment, and if
-		 * so skip it. If not, add the slash as a {@linkplain TokenDescriptor
-		 * token} of type {@link TokenType#OPERATOR}.
-		 *
+		 * Process a Bracket Token to determine if it is a {@link
+		 * BracketedStacksToken}
+		 */
+		BRACKET ()
+		{
+			@Override
+			void scan (final StacksScanner scanner)
+				throws StacksScannerException
+			{
+				final int startOfBracket = scanner.position();
+				final int startOfBracketLineNumber = scanner.lineNumber();
+				final int startOfBracketTokenLinePostion =
+					scanner.startOfTokenLinePostion();
+
+				while (Character.isSpaceChar(scanner.peek())
+					|| Character.isWhitespace(scanner.peek()))
+				{
+					scanner.next();
+					if (scanner.atEnd())
+					{
+						scanner.position(startOfBracket);
+						scanner.lineNumber(startOfBracketLineNumber);
+						scanner.startOfTokenLinePostion(
+							startOfBracketTokenLinePostion);
+						scanner.addCurrentToken();
+						return;
+					}
+				}
+
+				if (!scanner.peekFor('@'))
+				{
+					if (scanner.position() != (startOfBracket + 1))
+					{
+						scanner.position(startOfBracket);
+						scanner.addCurrentToken();
+						return;
+					}
+					return;
+				}
+				while (!scanner.peekFor('}'))
+				{
+					scanner.next();
+					if (scanner.atEnd())
+					{
+						scanner.position(startOfBracket);
+						scanner.lineNumber(startOfBracketLineNumber);
+						scanner.startOfTokenLinePostion(
+							startOfBracketTokenLinePostion);
+						return;
+					}
+				}
+				scanner.addBracketedToken();
+			}
+		},
+
+		/**
+		 * Process a Bracket Token to determine if it is a {@link
+		 * KeywordStacksToken}
+		 */
+		KEYWORD_START ()
+		{
+			@Override
+			void scan (final StacksScanner scanner)
+				throws StacksScannerException
+			{
+				while (Character.isSpaceChar(scanner.peek())
+					|| Character.isWhitespace(scanner.peek()))
+				{
+					scanner.next();
+				}
+				scanner.addCurrentToken();
+			}
+		},
+
+		/**
+		 * A slash was encountered. Check if it's the start of a nested comment,
+		 * and if so skip it. If not, add the slash as a {@linkplain
+		 * StacksToken token}.
 		 * <p>
 		 * Nested comments are supported.
 		 * </p>
@@ -553,7 +706,12 @@ public class StacksScanner
 			{
 				if (!scanner.peekFor('*'))
 				{
-					scanner.addCurrentToken(TokenType.OPERATOR);
+					while (Character.isSpaceChar(scanner.peek())
+						|| Character.isWhitespace(scanner.peek()))
+					{
+						scanner.next();
+					}
+					scanner.addCurrentToken();
 				}
 				else
 				{
@@ -598,13 +756,18 @@ public class StacksScanner
 		/**
 		 * Scan an unrecognized character.
 		 */
-		UNKNOWN ()
+		STANDARD_CHARACTER ()
 		{
 			@Override
 			void scan (final StacksScanner scanner)
 				throws StacksScannerException
 			{
-				throw new StacksScannerException("Unknown character", scanner);
+				while (Character.isSpaceChar(scanner.peek())
+					|| Character.isWhitespace(scanner.peek()))
+				{
+					scanner.next();
+				}
+				scanner.addCurrentToken();
 			}
 		},
 
@@ -638,20 +801,6 @@ public class StacksScanner
 			{
 				// do nothing
 			}
-		},
-
-		/**
-		 * Operator characters are never grouped. Instead, method names treat a
-		 * string of operator characters as separate pseudo-keywords.
-		 */
-		OPERATOR ()
-		{
-			@Override
-			void scan (final StacksScanner scanner)
-				throws StacksScannerException
-			{
-				scanner.addCurrentToken(TokenType.OPERATOR);
-			}
 		};
 
 		/**
@@ -681,25 +830,13 @@ public class StacksScanner
 			{
 				return values()[dispatchTable[c]];
 			}
-			else if (Character.isDigit(c))
-			{
-				return DIGIT;
-			}
-			else if (Character.isUnicodeIdentifierStart(c))
-			{
-				return IDENTIFIER_START;
-			}
 			else if (Character.isSpaceChar(c) || Character.isWhitespace(c))
 			{
 				return WHITESPACE;
 			}
-			else if (Character.isDefined(c))
-			{
-				return OPERATOR;
-			}
 			else
 			{
-				return UNKNOWN;
+				return STANDARD_CHARACTER;
 			}
 		}
 	}
@@ -715,7 +852,7 @@ public class StacksScanner
 	 * 		CommentTokenDescriptor Avail comment}.
 	 * @throws StacksScannerException If scanning fails.
 	 */
-	public static List<A_Token> scanString (final A_Token commentToken)
+	public static List<AbstractStacksToken> scanString (final A_Token commentToken)
 		throws StacksScannerException
 	{
 		final StacksScanner scanner =
@@ -724,4 +861,37 @@ public class StacksScanner
 		return scanner.outputTokens;
 	}
 
+	/**
+	 * A table whose indices are Unicode code points (up to 65535) and whose
+	 * values are {@link StacksScanner.ScannerAction scanner actions}.
+	 */
+	static byte[] dispatchTable = new byte[65536];
+
+	/**
+	 * Statically initialize the {@link dispatchTable} with suitable
+	 * {@link AvailScanner.ScannerAction scanner actions}. Note that this
+	 * happens as part of class loading.
+	 */
+	static
+	{
+		for (int i = 0; i < 65536; i++)
+		{
+			final char c = (char) i;
+			StacksScanner.ScannerAction action;
+			if (Character.isSpaceChar(c) || Character.isWhitespace(c))
+			{
+				action = ScannerAction.WHITESPACE;
+			}
+			else
+			{
+				action = ScannerAction.STANDARD_CHARACTER;
+			}
+			dispatchTable[i] = (byte) action.ordinal();
+		}
+		dispatchTable['"'] = (byte) ScannerAction.DOUBLE_QUOTE.ordinal();
+		dispatchTable['/'] = (byte) ScannerAction.SLASH.ordinal();
+		dispatchTable['\uFEFF'] =
+			(byte) ScannerAction.ZEROWIDTHWHITESPACE.ordinal();
+		dispatchTable['@'] = (byte) ScannerAction.KEYWORD_START.ordinal();
+	}
 }

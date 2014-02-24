@@ -88,6 +88,7 @@ public abstract class KeywordStacksToken extends AbstractStacksToken
 					lexeme, lineNumber, postion, startOfTokenLinePostion);
 			}
 		},
+
 		/**
 		 * The category keyword provides a category to which the method
 		 * implementation belongs.
@@ -104,6 +105,23 @@ public abstract class KeywordStacksToken extends AbstractStacksToken
 					lexeme, lineNumber, postion, startOfTokenLinePostion);
 			}
 		},
+
+		/**
+		 * The link keyword creates an external web link.
+		 */
+		CODE("@code")
+		{
+			@Override
+			KeywordStacksToken createToken(
+				final int lineNumber,
+				final int postion,
+				final int startOfTokenLinePostion)
+			{
+				return InlineKeywordStacksToken.create(
+					lexeme, lineNumber, postion, startOfTokenLinePostion);
+			}
+		},
+
 		/**
 		 * The field keyword indicates a field in the class implementation.
 		 */
@@ -119,6 +137,24 @@ public abstract class KeywordStacksToken extends AbstractStacksToken
 					lexeme, lineNumber, postion, startOfTokenLinePostion);
 			}
 		},
+
+		/**
+		 * The forbids keyword indicates the methods forbidden by a
+ 		 * Grammatical Restriction for the method implementation.
+		 */
+		FORBIDS("@forbids")
+		{
+			@Override
+			KeywordStacksToken createToken(
+				final int lineNumber,
+				final int postion,
+				final int startOfTokenLinePostion)
+			{
+				return SectionKeywordStacksToken.create(
+					lexeme, lineNumber, postion, startOfTokenLinePostion);
+			}
+		},
+
 		/**
 		 * The link keyword creates an external web link.
 		 */
@@ -134,6 +170,7 @@ public abstract class KeywordStacksToken extends AbstractStacksToken
 					lexeme, lineNumber, postion, startOfTokenLinePostion);
 			}
 		},
+
 		/**
 		 * The method keyword indicates the name of the method implementation.
 		 */
@@ -149,6 +186,7 @@ public abstract class KeywordStacksToken extends AbstractStacksToken
 					lexeme, lineNumber, postion, startOfTokenLinePostion);
 			}
 		},
+
 		/**
 		 * The parameter keyword indicates an input for the method
 		 * implementation.
@@ -165,6 +203,7 @@ public abstract class KeywordStacksToken extends AbstractStacksToken
 					lexeme, lineNumber, postion, startOfTokenLinePostion);
 			}
 		},
+
 		/**
 		 * The raises keyword indicates the exceptions thrown by the method
 		 * implementation.
@@ -181,6 +220,24 @@ public abstract class KeywordStacksToken extends AbstractStacksToken
 					lexeme, lineNumber, postion, startOfTokenLinePostion);
 			}
 		},
+
+		/**
+		 * The restricts keyword indicates the input types used by the method
+		 * implementation's semantic restriction.
+		 */
+		RESTRICTS("@restricts")
+		{
+			@Override
+			KeywordStacksToken createToken(
+				final int lineNumber,
+				final int postion,
+				final int startOfTokenLinePostion)
+			{
+				return SectionKeywordStacksToken.create(
+					lexeme, lineNumber, postion, startOfTokenLinePostion);
+			}
+		},
+
 		/**
 		 * The returns keyword indicates the output for the method
 		 * implementation.
@@ -197,6 +254,7 @@ public abstract class KeywordStacksToken extends AbstractStacksToken
 					lexeme, lineNumber, postion, startOfTokenLinePostion);
 			}
 		},
+
 		/**
 		 * The see keyword refers the reader to something else.  Not
 		 * inherently linked.
@@ -213,6 +271,7 @@ public abstract class KeywordStacksToken extends AbstractStacksToken
 					lexeme, lineNumber, postion, startOfTokenLinePostion);
 			}
 		},
+
 		/**
 		 * The supertype keyword indicates the supertype of the class
 		 * implementation.
@@ -229,6 +288,7 @@ public abstract class KeywordStacksToken extends AbstractStacksToken
 					lexeme, lineNumber, postion, startOfTokenLinePostion);
 			}
 		},
+
 		/**
 		 * The type keyword indicates the name of the class implementation.
 		 */
@@ -288,6 +348,7 @@ public abstract class KeywordStacksToken extends AbstractStacksToken
 			final int postion,
 			final int startOfTokenLinePostion);
 	}
+
 	/**
 	 * Create the appropriate {@link AbstractStacksToken token type}
 	 *
