@@ -1,5 +1,5 @@
 /**
- * AvailScannerException.java
+ * StacksScannerException.java
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,29 +30,28 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.compiler.scanning;
+package com.avail.stacks;
 
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Token;
+import com.avail.descriptor.CommentTokenDescriptor;
 
 /**
- * An {@code AvailScannerException} is thrown if a problem occurs while
- * an {@link AvailScanner} attempts to convert an Avail source file into a
- * sequence of {@linkplain TokenDescriptor tokens}.
+ * TODO: Document StacksScannerException!
  *
- * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
-public class AvailScannerException
-extends Exception
+public class StacksScannerException extends Exception
 {
+
 	/**
 	 * The serial version identifier.
 	 */
 	private static final long serialVersionUID = 8191896822852052633L;
 
 	/**
-	 * The {@link AvailScanner} that failed.
+	 * The {@link StacksScanner} that failed.
 	 */
-	final AvailScanner failedScanner;
+	final StacksScanner failedScanner;
 
 	/**
 	 * Answer the name of the module that failed lexical scanning.
@@ -61,11 +60,11 @@ extends Exception
 	 */
 	public String moduleName ()
 	{
-		return failedScanner.moduleName();
+		return failedScanner.moduleName().asNativeString();
 	}
 
 	/**
-	 * Return the file position at which the {@link AvailScanner} failed.
+	 * Return the file position at which the {@link StacksScanner} failed.
 	 *
 	 * @return The position in the file at which the scanner failed.
 	 */
@@ -75,7 +74,7 @@ extends Exception
 	}
 
 	/**
-	 * Return the line number at which the {@link AvailScanner} failed.
+	 * Return the line number at which the {@link StacksScanner} failed.
 	 *
 	 * @return The line number at which the scanner failed.
 	 */
@@ -85,47 +84,46 @@ extends Exception
 	}
 
 	/**
-	 * Construct a new {@link AvailScannerException}.
+	 * Construct a new {@link StacksScannerException}.
 	 *
 	 * @param message
-	 *            The error message indicating why the {@link AvailScanner}
+	 *            The error message indicating why the {@link StacksScanner}
 	 *            failed.
 	 * @param failedScanner
-	 *            The AvailScanner that failed, positioned to the failure point.
+	 *            The StacksScanner that failed, positioned to the failure point.
 	 */
-	public AvailScannerException (
+	public StacksScannerException (
 		final String message,
-		final AvailScanner failedScanner)
+		final StacksScanner failedScanner)
 	{
 		super(message);
 		this.failedScanner = failedScanner;
 	}
 
 	/**
-	 * Construct a new {@link AvailScannerException}.  Plug in a dummy {@link
-	 * AvailScanner}.
-	 *
+	 * Construct a new {@link StacksScannerException}.  Plug in a dummy {@link
+	 * StacksScanner}.
 	 * @param cause
 	 *            The original problem to be treated as a scanner problem.
 	 * @param moduleName
 	 *            The name of the module that failed lexical scanning.
-	 * @param captureAvailComments
-	 * 			  Tokenize and collect Avail comments?
+	 * @param availComment
+	 *		The {@link CommentTokenDescriptor Avail comment} to be tokenized.
 	 */
-	public AvailScannerException (
+	public StacksScannerException (
 		final Throwable cause,
 		final String moduleName,
-		final boolean captureAvailComments)
+		final A_Token availComment)
 	{
 		super(cause);
 		try
 		{
-			AvailScanner.scanString("", moduleName, true, captureAvailComments);
+			StacksScanner.scanString(availComment);
 			assert false : "Should have thrown exception";
 			// And throw in case assertions are off.  Keeps Java compiler happy.
 			throw new RuntimeException("Should have thrown exception");
 		}
-		catch (final AvailScannerException contrivedException)
+		catch (final StacksScannerException contrivedException)
 		{
 			this.failedScanner = contrivedException.failedScanner;
 		}

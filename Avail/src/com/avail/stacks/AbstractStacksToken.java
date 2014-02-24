@@ -1,5 +1,5 @@
 /**
- * A_Token.java
+ * AbstractStacksToken.java
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,76 +30,93 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.descriptor;
-
-import com.avail.descriptor.TokenDescriptor.TokenType;
-
+package com.avail.stacks;
 
 /**
- * {@code A_Token} is an interface that specifies the token-specific operations
- * that an {@link AvailObject} must implement.  It's a sub-interface of {@link
- * A_BasicObject}, the interface that defines the behavior that all AvailObjects
- * are required to support.
+ * The abstract form of a token in a Stacks comment that has been lexed.
  *
- * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
-public interface A_Token
-extends A_BasicObject
+public abstract class AbstractStacksToken
 {
-	/**
-	 * Answer the {@linkplain TokenType} of this token.
-	 *
-	 * @return A TokenType.
-	 */
-	TokenType tokenType ();
 
 	/**
-	 * Answer whether this token is a {@linkplain LiteralTokenDescriptor literal
-	 * token}, such as a string or number.
-	 *
-	 * @return Whether the token is a literal.
+	 * The string exactly as it appeared in the source comment.
 	 */
-	boolean isLiteralToken ();
+	final String lexeme;
 
 	/**
-	 * Answer this token's exact string representation as it appeared in the
-	 * source code.
-	 *
-	 * @return The token's string representation.
+	 * The line number where the token occurs/begins.
 	 */
-	A_String string ();
+	final int lineNumber;
 
 	/**
-	 * Answer this token's string representation converted to lower case.
-	 *
-	 * @return The token's lowercase representation.
+	 * The absolute start position of the token.
 	 */
-	A_String lowerCaseString();
+	final int position;
 
 	/**
-	 * Answer this token's initial character position in the source file.
-	 *
-	 * @return The token's source position.
+	 * The position on the line where the token starts.
 	 */
-	int start ();
+	final int startOfTokenLinePostion;
 
 	/**
-	 * The line number of this token in the source file.
-	 *
-	 * @return the token's line number.
+	 * Construct a new {@link AbstractStacksToken}.
+	 * @param string
+	 * 		The string to be tokenized.
+	 * @param lineNumber
+	 * 		The line number where the token occurs/begins
+	 * @param postion
+	 * 		The absolute start position of the token
+	 * @param startOfTokenLinePostion
+	 * 		The position on the line where the token starts.
 	 */
-	int lineNumber ();
+	public AbstractStacksToken (
+		final String string,
+		final int lineNumber,
+		final int postion,
+		final int startOfTokenLinePostion)
+	{
+		this.lexeme = string;
+		this.lineNumber = lineNumber;
+		this.position = postion;
+		this.startOfTokenLinePostion = startOfTokenLinePostion;
+	}
 
 	/**
-	 * Extract the literal value from this token.  It must be a literal token.
-	 *
-	 * @return The value of the literal token.
+	 * Provide the token's string representation.
+	 * @return
 	 */
-	AvailObject literal ();
+	public String lexeme()
+	{
+		return lexeme;
+	}
 
 	/**
-	 * Answer this token's module of origin.
-	 * @return The module this token appears in
+	 * Provide the token's string representation.
+	 * @return
 	 */
-	A_String moduleName ();
+	public int position()
+	{
+		return position;
+	}
+
+	/**
+	 * Provide the token's string representation.
+	 * @return
+	 */
+	public int lineNumber()
+	{
+		return lineNumber;
+	}
+
+	/**
+	 * Provide the token's string representation.
+	 * @return
+	 */
+	public int startOfTokenLinePostion()
+	{
+		return startOfTokenLinePostion;
+	}
+
 }
