@@ -193,7 +193,7 @@ Public method "a Mersenne Twister«from_»" is
 	optionalSeed : <[0.._2_32)…|0..1>
 |
 	seed ::= optionalSeed[1] else
-		[(milliseconds since the Epoch mod (_2_32 - 1)) + 1];
+		[(high-precision timer value mod (_2_32 - 1)) + 1];
 	(an iterator over a Mersenne Twister stream from seed) as pRNG of [0.._2_32)
 ] : pRNG of [0.._2_32);
 

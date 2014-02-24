@@ -224,6 +224,7 @@ Names
 	"function accepting_and returning_",
 	"function from_and_",
 	"generate_",
+	"high-precision timer value",
 	"in_millisecond|milliseconds,⁇invoke_with_,⁇forked at priority_",
 	"integer range from_(inclusive=_)to_(inclusive=_)",
 	"invoke_with_,⁇forked at priority_",

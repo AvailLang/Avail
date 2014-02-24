@@ -138,6 +138,7 @@ Extends
 		"function from_and_",
 		"function implementation",
 		"generate_",
+		"high-precision timer value",
 		"method definition",
 		"integer",
 		"integer range from_(inclusive=_)to_(inclusive=_)",

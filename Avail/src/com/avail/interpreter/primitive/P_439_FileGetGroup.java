@@ -1,5 +1,5 @@
 /**
- * P_435_FileSetPermissions.java
+ * P_439_FileGetGroup.java
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -39,51 +39,28 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
+import java.nio.file.attribute.GroupPrincipal;
 import java.nio.file.attribute.PosixFileAttributeView;
-import java.nio.file.attribute.PosixFilePermission;
-import java.util.EnumSet;
+import java.nio.file.attribute.PosixFileAttributes;
 import java.util.List;
-import java.util.Set;
 import com.avail.AvailRuntime;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 
 /**
- * <strong>Primitive 435</strong>: Set the access rights for the file specified
- * by the given {@linkplain Path path}.
+ * <strong>Primitive 439</strong>: Answer the {@linkplain GroupPrincipal group}
+ * that owns the file denoted by the specified {@linkplain Path path}.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class P_435_FileSetPermissions
+public final class P_439_FileGetGroup
 extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_435_FileSetPermissions().init(3, CanInline, HasSideEffect);
-
-	/**
-	 * Convert the specified {@linkplain SetDescriptor set} of {@linkplain
-	 * IntegerDescriptor ordinals} into the corresponding {@linkplain Set set}
-	 * of {@linkplain PosixFilePermission POSIX file permissions}.
-	 *
-	 * @param ordinals
-	 *        Some ordinals.
-	 * @return The equivalent POSIX file permissions.
-	 */
-	private Set<PosixFilePermission> permissionsFor (final A_Set ordinals)
-	{
-		final PosixFilePermission[] allPermissions =
-			AvailRuntime.posixPermissions();
-		final Set<PosixFilePermission> permissions =
-			EnumSet.noneOf(PosixFilePermission.class);
-		for (final A_Number ordinal : ordinals)
-		{
-			permissions.add(allPermissions[ordinal.extractInt() - 1]);
-		}
-		return permissions;
-	}
+		new P_439_FileGetGroup().init(2, CanInline, HasSideEffect);
 
 	@Override
 	public Result attempt (
@@ -91,35 +68,36 @@ extends Primitive
 		final Interpreter interpreter,
 		final boolean skipReturnCheck)
 	{
-		assert args.size() == 3;
+		assert args.size() == 2;
 		final A_String filename = args.get(0);
-		final A_Set ordinals = args.get(1);
-		final A_Atom followSymlinks = args.get(2);
+		final A_Atom followSymlinks = args.get(1);
 		final AvailRuntime runtime = AvailRuntime.current();
 		final Path path = runtime.fileSystem().getPath(
 			filename.asNativeString());
-		final Set<PosixFilePermission> permissions = permissionsFor(ordinals);
 		final LinkOption[] options = AvailRuntime.followSymlinks(
 			followSymlinks.extractBoolean());
 		final PosixFileAttributeView view = Files.getFileAttributeView(
-			path, PosixFileAttributeView.class, options);
+				path, PosixFileAttributeView.class, options);
 		if (view == null)
 		{
 			return interpreter.primitiveFailure(E_PRIMITIVE_NOT_SUPPORTED);
 		}
+		final GroupPrincipal group;
 		try
 		{
-			view.setPermissions(permissions);
-		}
-		catch (final SecurityException e)
-		{
-			return interpreter.primitiveFailure(E_PERMISSION_DENIED);
+			final PosixFileAttributes attributes = view.readAttributes();
+			group = attributes.group();
 		}
 		catch (final IOException e)
 		{
 			return interpreter.primitiveFailure(E_IO_ERROR);
 		}
-		return interpreter.primitiveSuccess(NilDescriptor.nil());
+		catch (final SecurityException e)
+		{
+			return interpreter.primitiveFailure(E_PERMISSION_DENIED);
+		}
+		return interpreter.primitiveSuccess(
+			StringDescriptor.from(group.getName()));
 	}
 
 	@Override
@@ -128,19 +106,8 @@ extends Primitive
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
 				TupleTypeDescriptor.oneOrMoreOf(CHARACTER.o()),
-				SetTypeDescriptor.setTypeForSizesContentType(
-					IntegerRangeTypeDescriptor.create(
-						IntegerDescriptor.fromInt(0),
-						true,
-						IntegerDescriptor.fromInt(9),
-						true),
-					IntegerRangeTypeDescriptor.create(
-						IntegerDescriptor.fromInt(1),
-						true,
-						IntegerDescriptor.fromInt(9),
-						true)),
 				EnumerationTypeDescriptor.booleanObject()),
-			TOP.o());
+			TupleTypeDescriptor.stringType());
 	}
 
 	@Override
@@ -148,9 +115,9 @@ extends Primitive
 	{
 		return AbstractEnumerationTypeDescriptor.withInstances(
 			TupleDescriptor.from(
+				E_PRIMITIVE_NOT_SUPPORTED.numericCode(),
 				E_PERMISSION_DENIED.numericCode(),
-				E_IO_ERROR.numericCode(),
-				E_PRIMITIVE_NOT_SUPPORTED.numericCode()
+				E_IO_ERROR.numericCode()
 			).asSet());
 	}
 }

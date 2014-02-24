@@ -38,7 +38,9 @@ Extends
 	"File Access Rights",
 	/* "File Iterators", */
 	"File Management",
+	"File Metadata",
 	"File Names",
+	"File Principals",
 	/* "Primitives", */
 	"Test"
 Body

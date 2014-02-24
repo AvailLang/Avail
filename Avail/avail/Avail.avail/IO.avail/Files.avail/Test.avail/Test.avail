@@ -35,6 +35,7 @@ Versions
 	"dev"
 Uses
 	"File Access Rights Test",
+	"File Metadata Test",
 	"File Names Test"
 Body
 

@@ -1,0 +1,371 @@
+/*
+ * File Metadata.avail
+ * Copyright © 1993-2014, The Avail Foundation, LLC.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+System Module "File Metadata"
+Versions
+	"dev"
+Extends
+	"File Types",
+	"Primitives" =
+	(
+		/* Types. */
+		"file metadata",
+
+		/* Aggregate metadata. */
+		"_'s⁇metadata(follow if symlink=_)",
+		"_'s⁇metadata«(don't follow if symlink)»?",
+
+		/* Metadata accessors. */
+		"_'s⁇creation time",
+		"_'s⁇file ID",
+		"_'s⁇file type",
+		"_'s⁇last access time",
+		"_'s⁇last modification time",
+		"_'s⁇size"
+	)
+Uses
+	"File Access Rights",
+	"File Names",
+	"File Principals",
+	"Foundation",
+	"Primitives"
+Names
+	/* Metadata accessors. */
+	"_'s⁇access rights",
+	"_'s⁇group",
+	"_'s⁇owner",
+
+	/* Metadata mutators. */
+	"_'s⁇access rights:=_",
+	"_'s⁇group:=_",
+	"_'s⁇owner:=_"
+Body
+
+/**
+ * Answer the {@type "file access rights"} associated with the specified
+ * {@type "file metadata"}.
+ *
+ * Note that the answer is only guaranteed valid at the time of the underlying
+ * file system query, and is outdated immediately thereafter.
+ *
+ * @method "_'s⁇access rights"
+ * @param "m" "file metadata"
+ * @returns "{file access right|0..9}"
+ * @raises "permission-denied exception"
+ *         If permission is denied to use the file named by {@param "fn"}.
+ * @raises "I/O exception"
+ *         If an I/O exception occurs.
+ * @raises "primitive-not-supported exception"
+ *         If {@type "file access right"}s are not supported by the host
+ *         platform.
+ */
+Public method "_'s⁇access rights" is
+[
+	m : file metadata
+|
+	m's name's access rights (don't follow if symlink)
+] : {file access right|0..9};
+
+/**
+ * Set the {@type "file access rights"} associated with the specified
+ * {@type "file metadata"}.
+ *
+ * @method "_'s⁇access rights:=_"
+ * @param "m" "file metadata"
+ * @param "rights "{file access right|0..9}"
+ * @raises "permission-denied exception"
+ *         If permission is denied to use the file named by {@param "fn"}.
+ * @raises "I/O exception"
+ *         If an I/O exception occurs.
+ * @raises "primitive-not-supported exception"
+ *         If {@type "file access right"}s are not supported by the host
+ *         platform.
+ */
+Public method "_'s⁇access rights:=_" is
+[
+	m : file metadata,
+	rights : {file access right|0..9}
+|
+	m's name's access rights := rights (don't follow if symlink);
+] : ⊤;
+
+/**
+ * Answer the {@type "user principal"} associated with the specified {@type
+ * "file metadata"}.
+ *
+ * Note that the answer is only guaranteed valid at the time of the underlying
+ * file system query, and is outdated immediately thereafter.
+ *
+ * @method "_'s⁇owner"
+ * @param "m" "file metadata"
+ * @returns "user principal"
+ * @raises "permission-denied exception"
+ *         If permission is denied to use the file named by {@param "fn"}.
+ * @raises "I/O exception"
+ *         If an I/O exception occurs.
+ * @raises "primitive-not-supported exception"
+ *         If {@type "user principal"}s are not supported by the host
+ *         platform.
+ */
+Public method "_'s⁇owner" is
+[
+	m : file metadata
+|
+	m's name's owner (don't follow if symlink)
+] : user principal;
+
+/**
+ * Set the {@type "user principal"} associated with the specified {@type
+ * "file metadata"}.
+ *
+ * @method "_'s⁇owner:=_"
+ * @param "m" "file metadata"
+ * @param "owner" "user principal"
+ * @raises "permission-denied exception"
+ *         If permission is denied to use the file named by {@param "fn"}.
+ * @raises "I/O exception"
+ *         If an I/O exception occurs.
+ * @raises "primitive-not-supported exception"
+ *         If {@type "user principal"}s are not supported by the host
+ *         platform.
+ */
+Public method "_'s⁇owner:=_" is
+[
+	m : file metadata,
+	owner : user principal
+|
+	m's name's owner := owner (don't follow if symlink);
+] : ⊤;
+
+/**
+ * Answer the {@type "group principal"} associated with the specified {@type
+ * "file metadata"}.
+ *
+ * Note that the answer is only guaranteed valid at the time of the underlying
+ * file system query, and is outdated immediately thereafter.
+ *
+ * @method "_'s⁇group"
+ * @param "m" "file metadata"
+ * @returns "group principal"
+ * @raises "permission-denied exception"
+ *         If permission is denied to use the file named by {@param "fn"}.
+ * @raises "I/O exception"
+ *         If an I/O exception occurs.
+ * @raises "primitive-not-supported exception"
+ *         If {@type "group principal"}s are not supported by the host
+ *         platform.
+ */
+Public method "_'s⁇group" is
+[
+	m : file metadata
+|
+	m's name's group (don't follow if symlink)
+] : group principal;
+
+/**
+ * Set the {@type "group principal"} associated with the specified {@type
+ * "file metadata"}.
+ *
+ * @method "_'s⁇group:=_"
+ * @param "m" "file metadata"
+ * @param "group" "group principal"
+ * @raises "permission-denied exception"
+ *         If permission is denied to use the file named by {@param "fn"}.
+ * @raises "I/O exception"
+ *         If an I/O exception occurs.
+ * @raises "primitive-not-supported exception"
+ *         If {@type "group principal"}s are not supported by the host
+ *         platform.
+ */
+Public method "_'s⁇group:=_" is
+[
+	m : file metadata,
+	group : group principal
+|
+	m's name's group := group (don't follow if symlink);
+] : ⊤;
+
+/**
+ * Answer the unique identifier associated with the file given by the specified
+ * {@type "file name"}. The identifier is only guaranteed to be unique if the
+ * file system should remain static, because some file systems permit reuse of
+ * identifiers for files that have been deleted. The exact uniqueness
+ * constraints are therefore platform-specific.
+ *
+ * Note that the answer is only guaranteed valid at the time of the underlying
+ * file system query, and is outdated immediately thereafter.
+ *
+ * @method "_'s⁇file ID"
+ * @param "fn" "file name"
+ * @returns "any"
+ *          An opaque identifier.
+ */
+Method "_'s⁇file ID" is
+[
+	fn : file name
+|
+	fn's metadata's file ID
+] : any;
+
+/**
+ * Answer the {@type "file type"} associated with the file given by the
+ * specified {@type "file name"}.
+ *
+ * Note that the answer is only guaranteed valid at the time of the underlying
+ * file system query, and is outdated immediately thereafter.
+ *
+ * @method "_'s⁇file type"
+ * @param "fn" "file name"
+ * @returns "file type"
+ */
+Method "_'s⁇file type" is
+[
+	fn : file name
+|
+	fn's metadata's file type
+] : file type;
+
+/**
+ * Answer the creation time associated with the file given by the specified
+ * {@type "file name"}.
+ *
+ * Note that the answer is only guaranteed valid at the time of the underlying
+ * file system query, and is outdated immediately thereafter.
+ *
+ * TODO: [TLS] This should produce a calendrical answer, not milliseconds since
+ * the Epoch.
+ *
+ * @method "_'s⁇creation time"
+ * @param "fn" "file name"
+ * @returns "[0..2^63 - 1]"
+ *          The number of milliseconds since the Unix Epoch (00:00:00 UTC,
+ *          Thursday, 1 January 1970).
+ */
+Method "_'s⁇creation time" is
+[
+	fn : file name
+|
+	fn's metadata's creation time
+] : signed long;
+
+/**
+ * Answer the most recent modification time associated with the file given by
+ * the specified {@type "file name"}.
+ *
+ * Note that the answer is only guaranteed valid at the time of the underlying
+ * file system query, and is outdated immediately thereafter.
+ *
+ * TODO: [TLS] This should produce a calendrical answer, not milliseconds since
+ * the Epoch.
+ *
+ * @method "_'s⁇last modification time"
+ * @param "fn" "file name"
+ * @returns "[0..2^63 - 1]"
+ *          The number of milliseconds since the Unix Epoch (00:00:00 UTC,
+ *          Thursday, 1 January 1970).
+ */
+Method "_'s⁇last modification time" is
+[
+	fn : file name
+|
+	fn's metadata's last modification time
+] : signed long;
+
+/**
+ * Answer the most recent access time associated with the file given by the
+ * specified {@type "file name"}.
+ *
+ * Note that the answer is only guaranteed valid at the time of the underlying
+ * file system query, and is outdated immediately thereafter.
+ *
+ * TODO: [TLS] This should produce a calendrical answer, not milliseconds since
+ * the Epoch.
+ *
+ * @method "_'s⁇last access time"
+ * @param "fn" "file name"
+ * @returns "[0..2^63 - 1]"
+ *          The number of milliseconds since the Unix Epoch (00:00:00 UTC,
+ *          Thursday, 1 January 1970).
+ */
+Method "_'s⁇last access time" is
+[
+	fn : file name
+|
+	fn's metadata's last access time
+] : signed long;
+
+/**
+ * Answer the size associated with the file given by the specified {@type
+ * "file name"}.
+ *
+ * Note that the answer is only guaranteed valid at the time of the underlying
+ * file system query, and is outdated immediately thereafter.
+ *
+ * @method "_'s⁇size"
+ * @param "fn" "file name"
+ * @returns "[0..2^63 - 1]"
+ */
+Method "_'s⁇size" is
+[
+	fn : file name
+|
+	fn's metadata's size
+] : signed long;
+
+Method "“_”" is
+[
+	m : file metadata
+|
+	format
+		"metadata for “fn”
+		\|\tfile ID: “id”
+		\|\tfile type: ‘fileType’
+		\|\tsize: “size” byte‘sizeUnitsSuffix’
+		\|\tcreation time: “creationTime”ms
+		\|\tlast modification time: “lastModificationTime”ms
+		\|\tlast access time: “lastAccessTime”ms
+		\|\towner: “userPrincipal”
+		\|\tgroup: “groupPrincipal”
+		\|\taccess rights: ‘permissions’"
+	with
+		fn ::= m's name,
+		id ::= m's file ID,
+		fileType ::= m's file type's name,
+		size ::= m's size,
+		sizeUnitsSuffix ::= if m's size = 1 then [""] else ["s"],
+		creationTime ::= m's creation time,
+		lastModificationTime ::= m's last modification time,
+		lastAccessTime ::= m's last access time,
+		userPrincipal ::= m's owner,
+		groupPrincipal ::= m's group,
+		permissions ::= “m's access rights” (access rights summary)
+] : string;

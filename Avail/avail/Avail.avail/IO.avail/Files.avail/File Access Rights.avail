@@ -71,7 +71,11 @@ Names
 	"_is writable",
 
 	/* Setting permissions. */
-	"_'s⁇access rights:=_"
+	"_'s⁇access rights:=_(follow if symlink=_)",
+	"_'s⁇access rights:=_«(don't follow if symlink)»?",
+
+	/* Pretty printing. */
+	"“_”(access rights summary)"
 Body
 
 /**
@@ -218,7 +222,7 @@ fileAccessRights ::=
 >;
 
 /**
- * A file access right comprises nine valid combinations of a {@type
+ * A file access right comprises the nine valid combinations of a {@type
  * "file access class"} and a {@type "file permission"}.
  *
  * @type "file access right"
@@ -311,6 +315,9 @@ Public method "_is executable" is
  * Obtain the {@type "file access rights"} for the file named by the given
  * {@type "file name"}.
  *
+ * Note that the answer is only guaranteed valid at the time of the underlying
+ * file system query, and is outdated immediately thereafter.
+ *
  * @method "_'s⁇access rights(follow symlinks=_)"
  * @param "fn" "file name"
  * @param "followIfSymlink" "boolean"
@@ -322,13 +329,13 @@ Public method "_is executable" is
  * @raises "I/O exception"
  *         If an I/O exception occurs.
  * @raises "primitive-not-supported exception"
- *         If {@type "file access rights"} are not supported by the host
+ *         If {@type "file access right"}s are not supported by the host
  *         platform.
  */
 Public method "_'s⁇access rights(follow if symlink=_)" is
 [
 	fn : file name,
-	followSymlinks : boolean
+	followIfSymlink : boolean
 |
 	ordinals ::=
 		[
@@ -340,13 +347,16 @@ Public method "_'s⁇access rights(follow if symlink=_)" is
 				primitive-not-supported code,
 				I/O-error code}ᵀ);
 			Raise an exception for e
-		] : {[1..9]|0..9} (fn's name, followSymlinks);
+		] : {[1..9]|0..9} (fn's name, followIfSymlink);
 	map ordinals through [i : [1..9] | fileAccessRights[i]]
 ] : {file access right|0..9};
 
 /**
  * Obtain the {@type "file access rights"} for the file named by the given
  * {@type "file name"}.
+ *
+ * Note that the answer is only guaranteed valid at the time of the underlying
+ * file system query, and is outdated immediately thereafter.
  *
  * @method "_'s⁇access rights«(don't follow if symlink)»?"
  * @param "fn" "file name"
@@ -359,7 +369,7 @@ Public method "_'s⁇access rights(follow if symlink=_)" is
  * @raises "I/O exception"
  *         If an I/O exception occurs.
  * @raises "primitive-not-supported exception"
- *         If {@type "file access rights"} are not supported by the host
+ *         If {@type "file access right"}s are not supported by the host
  *         platform.
  */
 Public method "_'s⁇access rights«(don't follow if symlink)»?" is
@@ -377,28 +387,108 @@ Public method "_'s⁇access rights«(don't follow if symlink)»?" is
  * @method "_'s⁇access rights:=_"
  * @param "fn" "file name"
  * @param "rights" "{file access right|[0..9]}"
+ * @param "followIfSymlink" "boolean"
+ *        {@method "true"} if {@param "fn"} should be followed if it refers to a
+ *        symbolic link, {@method "false"} otherwise.
  * @raises "permission-denied exception"
  *         If permission is denied to use the file named by {@param "fn"}.
  * @raises "I/O exception"
  *         If an I/O exception occurs.
  * @raises "primitive-not-supported exception"
- *         If {@type "file access rights"} are not supported by the host
+ *         If {@type "file access right"}s are not supported by the host
  *         platform.
  */
-Public method "_'s⁇access rights:=_" is
+Public method "_'s⁇access rights:=_(follow if symlink=_)" is
 [
 	fn : file name,
-	rights : {file access right|0..9}
+	rights : {file access right|0..9},
+	followIfSymlink : boolean
 |
 	ordinals ::= map rights through [r : file access right | r's access#];
 	[
 		s : nonempty string,
-		f : {[1..9]|0..9}
+		r : {[1..9]|0..9},
+		f : boolean
 	|
 		Primitive 435 (e : {
 			permission-denied code,
 			primitive-not-supported code,
 			I/O-error code}ᵀ);
 		Raise an exception for e
-	] : ⊤ (fn's name, ordinals);
+	] : ⊤ (fn's name, ordinals, followIfSymlink);
 ] : ⊤;
+
+/**
+ * Set the {@type "file access rights"} for the file named by the given {@type
+ * "file name"}.
+ *
+ * @method "_'s⁇access rights:=_"
+ * @param "fn" "file name"
+ * @param "rights" "{file access right|[0..9]}"
+ * @param "dontFollowIfSymlink" "boolean"
+ *        {@method "true"} if {@param "fn"} should not be followed if it refers
+ *        to a symbolic link, {@method "false"} otherwise.
+ * @raises "permission-denied exception"
+ *         If permission is denied to use the file named by {@param "fn"}.
+ * @raises "I/O exception"
+ *         If an I/O exception occurs.
+ * @raises "primitive-not-supported exception"
+ *         If {@type "file access right"}s are not supported by the host
+ *         platform.
+ */
+Public method "_'s⁇access rights:=_«(don't follow if symlink)»?" is
+[
+	fn : file name,
+	rights : {file access right|0..9},
+	dontFollowIfSymlink : boolean
+|
+	fn's access rights := rights (follow if symlink = ¬dontFollowIfSymlink);
+] : ⊤;
+
+/**
+ * Answer a string representation of the specified {@type "set"} of {@type
+ * "file access rights"} as a series of nine {@type "character"}s:
+ *
+ * <ol>
+ * <li>¢r if {@param "rights"} includes {@method "owner read"},
+ * ¢- otherwise.</li>
+ * <li>¢w if {@param "rights"} includes {@method "owner write"},
+ * ¢- otherwise.</li>
+ * <li>¢x if {@param "rights"} includes {@method "owner execute"},
+ * ¢- otherwise.</li>
+ * <li>¢r if {@param "rights"} includes {@method "group read"},
+ * ¢- otherwise.</li>
+ * <li>¢w if {@param "rights"} includes {@method "group write"},
+ * ¢- otherwise.</li>
+ * <li>¢x if {@param "rights"} includes {@method "group execute"},
+ * ¢- otherwise.</li>
+ * <li>¢r if {@param "rights"} includes {@method "others read"},
+ * ¢- otherwise.</li>
+ * <li>¢w if {@param "rights"} includes {@method "others write"},
+ * ¢- otherwise.</li>
+ * <li>¢x if {@param "rights"} includes {@method "others execute"},
+ * ¢- otherwise.</li>
+ * </ol>
+ *
+ * @method "“_”(access rights summary)"
+ * @param "rights" "{file access rights|}"
+ * @returns "<{¢r, ¢-}ᵀ, {¢w, ¢-}ᵀ, {¢x, ¢-}ᵀ,
+ *   {¢r, ¢-}ᵀ, {¢w, ¢-}ᵀ, {¢x, ¢-}ᵀ,
+ *   {¢r, ¢-}ᵀ, {¢w, ¢-}ᵀ, {¢x, ¢-}ᵀ…|9>"
+ */
+Public method "“_”(access rights summary)" is
+[
+	rights : {file access right|}
+|
+	if owner read ∈ rights then ["r"] else ["-"]
+	++ if owner write ∈ rights then ["w"] else ["-"]
+	++ if owner execute ∈ rights then ["x"] else ["-"]
+	++ if group read ∈ rights then ["r"] else ["-"]
+	++ if group write ∈ rights then ["w"] else ["-"]
+	++ if group execute ∈ rights then ["x"] else ["-"]
+	++ if others read ∈ rights then ["r"] else ["-"]
+	++ if others write ∈ rights then ["w"] else ["-"]
+	++ if others execute ∈ rights then ["x"] else ["-"]
+] : <{¢r, ¢-}ᵀ, {¢w, ¢-}ᵀ, {¢x, ¢-}ᵀ,
+	{¢r, ¢-}ᵀ, {¢w, ¢-}ᵀ, {¢x, ¢-}ᵀ,
+	{¢r, ¢-}ᵀ, {¢w, ¢-}ᵀ, {¢x, ¢-}ᵀ…|9>;

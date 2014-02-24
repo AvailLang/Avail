@@ -539,8 +539,8 @@ extends Descriptor
 		createSpecialAtom("Compiler client data");
 
 	/**
-	 * The atom used as a property key under which to store a {@link
-	 * RandomAccessFile}.
+	 * The atom used as a property key under which to store an {@link
+	 * AsynchronousFileChannel}.
 	 */
 	private static final A_Atom fileKey =
 		createSpecialAtom("file key");

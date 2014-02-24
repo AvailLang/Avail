@@ -1,5 +1,5 @@
-/**
- * P_027_CurrentTimeMilliseconds.java
+/*
+ * File Types.avail
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -29,43 +29,62 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.avail.interpreter.primitive;
 
-import static com.avail.interpreter.Primitive.Flag.*;
-import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
+System Module "File Types"
+Versions
+	"dev"
+Uses
+	"Foundation"
+Names
+	/* Types. */
+	"file type",
+
+	/* File types. */
+	"directory",
+	"regular file",
+	"special file",
+	"symbolic link"
+Body
 
 /**
- * <strong>Primitive 27:</strong> Get the current time as milliseconds since
- * the Unix Epoch (00:00:00 UTC, Thursday, 1 January 1970).
+ * Answer the atom that denotes a regular file.
+ *
+ * @method "regular atom"
+ * @returns "atom"
  */
-public final class P_027_CurrentTimeMilliseconds
-extends Primitive
-{
-	/**
-	 * The sole instance of this primitive class.  Accessed through reflection.
-	 */
-	public final static Primitive instance =
-		new P_027_CurrentTimeMilliseconds().init(
-			0, CannotFail, CanInline, HasSideEffect);
+"regular file" is a new atom;
 
-	@Override
-	public Result attempt (
-		final List<AvailObject> args,
-		final Interpreter interpreter,
-		final boolean skipReturnCheck)
-	{
-		assert args.size() == 0;
-		return interpreter.primitiveSuccess(
-			IntegerDescriptor.fromLong(System.currentTimeMillis()));
-	}
+/**
+ * Answer the atom that denotes a directory.
+ *
+ * @method "regular atom"
+ * @returns "atom"
+ */
+"directory" is a new atom;
 
-	@Override
-	protected A_Type privateBlockTypeRestriction ()
-	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.empty(),
-			IntegerRangeTypeDescriptor.wholeNumbers());
-	}
-}
+/**
+ * Answer the atom that denotes a symbolic link.
+ *
+ * @method "symbolic link"
+ * @returns "atom"
+ */
+"symbolic link" is a new atom;
+
+/**
+ * Answer the atom that denotes a special file.
+ *
+ * @method "special file"
+ * @returns "atom"
+ */
+"special file" is a new atom;
+
+/**
+ * A file type is one of {@method "regular file"}, {@method "directory"},
+ * {@method "symbolic link"}, or {@method "special file"}.
+ *
+ * @type "file type"
+ */
+[
+	e ::= {regular file, directory, symbolic link, special file}ᵀ;
+	Public method "file type" is [e];
+]();
