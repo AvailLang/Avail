@@ -1,0 +1,369 @@
+/*
+ * File Principals.avail
+ * Copyright © 1993-2014, The Avail Foundation, LLC.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+System Module "File Principals"
+Versions
+	"dev"
+Uses
+	"File Names",
+	"Foundation"
+Names
+	/* Types. */
+	"group principal",
+	"principal",
+	"user principal",
+
+	/* File prinicpal accessors. */
+	"_'s⁇owner(follow if symlink=_)",
+	"_'s⁇owner«(don't follow if symlink)»?",
+	"_'s⁇group(follow if symlink=_)",
+	"_'s⁇group«(don't follow if symlink)»?",
+
+	/* File principal mutators. */
+	"_'s⁇owner:=_(follow if symlink=_)",
+	"_'s⁇owner:=_«(don't follow if symlink)»?",
+	"_'s⁇group:=_(follow if symlink=_)",
+	"_'s⁇group:=_«(don't follow if symlink)»?"
+Body
+
+"name" is a new field atom;
+
+/**
+ * A principal is an entity that can be authenticated by a security system, and
+ * to which resource ownership and access rights may be assigned.
+ *
+ * @type "principal"
+ */
+Public class "principal" extends object
+	with field
+		name : string;
+
+/**
+ * A user principal represents a user of a security system.
+ *
+ * @type "user principal"
+ * @supertype "principal"
+ */
+Public explicit class "user principal" extends principal;
+
+/**
+ * A group principal represents a group of users – generally a role — within a
+ * security system.
+ *
+ * @type "user principal"
+ * @supertype "principal"
+ */
+Public explicit class "group principal" extends principal;
+
+Method "“_”" is
+[
+	user : user principal
+|
+	format "a user principal named “①”" with user's name
+];
+
+Method "“_”" is
+[
+	group : group principal
+|
+	format "a group principal named “①”" with group's name
+];
+
+/**
+ * Obtain the {@type "user principal"} that owns the file given by the
+ * specified {@type "file name"}.
+ *
+ * Note that the answer is only guaranteed valid at the time of the underlying
+ * file system query, and is outdated immediately thereafter.
+ *
+ * @method "_'s⁇owner(follow if symlink=_)"
+ * @param "fn" "file name"
+ * @param "followIfSymlink" "boolean"
+ *        {@method "true"} if {@param "fn"} should be followed if it refers to a
+ *        symbolic link, {@method "false"} otherwise.
+ * @returns "user principal"
+ * @raises "permission-denied exception"
+ *         If permission is denied to use the file named by {@param "fn"}.
+ * @raises "I/O exception"
+ *         If an I/O exception occurs.
+ * @raises "primitive-not-supported exception"
+ *         If {@type "user principal"}s are not supported by the host
+ *         platform.
+ */
+Public method "_'s⁇owner(follow if symlink=_)" is
+[
+	fn : file name,
+	followIfSymlink : boolean
+|
+	userName ::=
+		[
+			s : nonempty string,
+			f : boolean
+		|
+			Primitive 437 (e : {
+				permission-denied code,
+				I/O-error code,
+				primitive-not-supported code}ᵀ);
+			Raise an exception for e
+		] : string (fn's name, followIfSymlink);
+	a user principal with name ::= userName
+] : user principal;
+
+/**
+ * Obtain the {@type "user principal"} that owns the file given by the
+ * specified {@type "file name"}.
+ *
+ * Note that the answer is only guaranteed valid at the time of the underlying
+ * file system query, and is outdated immediately thereafter.
+ *
+ * @method  "_'s⁇owner«(don't follow if symlink)»?"
+ * @param "fn" "file name"
+ * @param "dontFollowIfSymlink" "boolean"
+ *        {@method "true"} if {@param "fn"} should not be followed if it refers
+ *        to a symbolic link, {@method "false"} otherwise.
+ * @returns "user principal"
+ * @raises "permission-denied exception"
+ *         If permission is denied to use the file named by {@param "fn"}.
+ * @raises "I/O exception"
+ *         If an I/O exception occurs.
+ * @raises "primitive-not-supported exception"
+ *         If {@type "user principal"}s are not supported by the host
+ *         platform.
+ */
+Public method "_'s⁇owner«(don't follow if symlink)»?" is
+[
+	fn : file name,
+	dontFollowIfSymlink : boolean
+|
+	fn's owner (follow if symlink = ¬dontFollowIfSymlink)
+] : user principal;
+
+/**
+ * Set the {@type "user principal"} that owns the file given by the
+ * specified {@type "file name"}.
+ *
+ * @method "_'s⁇owner:=_(follow if symlink=_)"
+ * @param "fn" "file name"
+ * @param "owner" "user principal"
+ * @param "followIfSymlink" "boolean"
+ *        {@method "true"} if {@param "fn"} should be followed if it refers to a
+ *        symbolic link, {@method "false"} otherwise.
+ * @returns "user principal"
+ * @raises "permission-denied exception"
+ *         If permission is denied to use the file named by {@param "fn"}.
+ * @raises "I/O exception"
+ *         If an I/O exception occurs.
+ * @raises "primitive-not-supported exception"
+ *         If {@type "user principal"}s are not supported by the host
+ *         platform.
+ */
+Public method "_'s⁇owner:=_(follow if symlink=_)" is
+[
+	fn : file name,
+	owner : user principal,
+	followIfSymlink : boolean
+|
+	[
+		s : nonempty string,
+		p : string,
+		f : boolean
+	|
+		Primitive 438 (e : {
+			permission-denied code,
+			I/O-error code,
+			primitive-not-supported code}ᵀ);
+		Raise an exception for e
+	] : ⊤ (fn's name, owner's name, followIfSymlink);
+] : ⊤;
+
+/**
+ * Set the {@type "user principal"} that owns the file given by the
+ * specified {@type "file name"}.
+ *
+ * @method  "_'s⁇owner:=_«(don't follow if symlink)»?"
+ * @param "fn" "file name"
+ * @param "owner" "user principal"
+ * @param "dontFollowIfSymlink" "boolean"
+ *        {@method "true"} if {@param "fn"} should not be followed if it refers
+ *        to a symbolic link, {@method "false"} otherwise.
+ * @returns "user principal"
+ * @raises "permission-denied exception"
+ *         If permission is denied to use the file named by {@param "fn"}.
+ * @raises "I/O exception"
+ *         If an I/O exception occurs.
+ * @raises "primitive-not-supported exception"
+ *         If {@type "user principal"}s are not supported by the host
+ *         platform.
+ */
+Public method "_'s⁇owner:=_«(don't follow if symlink)»?" is
+[
+	fn : file name,
+	owner : user principal,
+	dontFollowIfSymlink : boolean
+|
+	fn's owner := owner (follow if symlink = ¬dontFollowIfSymlink);
+] : ⊤;
+
+/**
+ * Obtain the {@type "group principal"} associated with the file given by the
+ * specified {@type "file name"}.
+ *
+ * Note that the answer is only guaranteed valid at the time of the underlying
+ * file system query, and is outdated immediately thereafter.
+ *
+ * @method "_'s⁇group(follow if symlink=_)"
+ * @param "fn" "file name"
+ * @param "followIfSymlink" "boolean"
+ *        {@method "true"} if {@param "fn"} should be followed if it refers to a
+ *        symbolic link, {@method "false"} otherwise.
+ * @returns "group principal"
+ * @raises "permission-denied exception"
+ *         If permission is denied to use the file named by {@param "fn"}.
+ * @raises "I/O exception"
+ *         If an I/O exception occurs.
+ * @raises "primitive-not-supported exception"
+ *         If {@type "user principal"}s are not supported by the host
+ *         platform.
+ */
+Public method "_'s⁇group(follow if symlink=_)" is
+[
+	fn : file name,
+	followIfSymlink : boolean
+|
+	groupName ::=
+		[
+			s : nonempty string,
+			f : boolean
+		|
+			Primitive 439 (e : {
+				permission-denied code,
+				I/O-error code,
+				primitive-not-supported code}ᵀ);
+			Raise an exception for e
+		] : string (fn's name, followIfSymlink);
+	a group principal with name ::= groupName
+] : group principal;
+
+/**
+ * Obtain the {@type "group principal"} associated with the file given by the
+ * specified {@type "file name"}.
+ *
+ * Note that the answer is only guaranteed valid at the time of the underlying
+ * file system query, and is outdated immediately thereafter.
+ *
+ * @method "_'s⁇group«(don't follow if symlink)»?"
+ * @param "fn" "file name"
+ * @param "followIfSymlink" "boolean"
+ *        {@method "true"} if {@param "fn"} should be followed if it refers to a
+ *        symbolic link, {@method "false"} otherwise.
+ * @returns "group principal"
+ * @raises "permission-denied exception"
+ *         If permission is denied to use the file named by {@param "fn"}.
+ * @raises "I/O exception"
+ *         If an I/O exception occurs.
+ * @raises "primitive-not-supported exception"
+ *         If {@type "user principal"}s are not supported by the host
+ *         platform.
+ */
+Public method "_'s⁇group«(don't follow if symlink)»?" is
+[
+	fn : file name,
+	dontFollowIfSymlink : boolean
+|
+	fn's group (follow if symlink = ¬dontFollowIfSymlink)
+] : group principal;
+
+/**
+ * Set the {@type "group principal"} associated with the file given by the
+ * specified {@type "file name"}.
+ *
+ * @method "_'s⁇group:=_(follow if symlink=_)"
+ * @param "fn" "file name"
+ * @param "group" "group principal"
+ * @param "followIfSymlink" "boolean"
+ *        {@method "true"} if {@param "fn"} should be followed if it refers to a
+ *        symbolic link, {@method "false"} otherwise.
+ * @returns "group principal"
+ * @raises "permission-denied exception"
+ *         If permission is denied to use the file named by {@param "fn"}.
+ * @raises "I/O exception"
+ *         If an I/O exception occurs.
+ * @raises "primitive-not-supported exception"
+ *         If {@type "group principal"}s are not supported by the host
+ *         platform.
+ */
+Public method "_'s⁇group:=_(follow if symlink=_)" is
+[
+	fn : file name,
+	group : group principal,
+	followIfSymlink : boolean
+|
+	[
+		s : nonempty string,
+		p : string,
+		f : boolean
+	|
+		Primitive 440 (e : {
+			permission-denied code,
+			I/O-error code,
+			primitive-not-supported code}ᵀ);
+		Raise an exception for e
+	] : ⊤ (fn's name, group's name, followIfSymlink);
+] : ⊤;
+
+/**
+ * Set the {@type "group principal"} associated with the file given by the
+ * specified {@type "file name"}.
+ *
+ * @method  "_'s⁇group:=_«(don't follow if symlink)»?"
+ * @param "fn" "file name"
+ * @param "group" "group principal"
+ * @param "dontFollowIfSymlink" "boolean"
+ *        {@method "true"} if {@param "fn"} should not be followed if it refers
+ *        to a symbolic link, {@method "false"} otherwise.
+ * @returns "group principal"
+ * @raises "permission-denied exception"
+ *         If permission is denied to use the file named by {@param "fn"}.
+ * @raises "I/O exception"
+ *         If an I/O exception occurs.
+ * @raises "primitive-not-supported exception"
+ *         If {@type "group principal"}s are not supported by the host
+ *         platform.
+ */
+Public method "_'s⁇group:=_«(don't follow if symlink)»?" is
+[
+	fn : file name,
+	group : group principal,
+	dontFollowIfSymlink : boolean
+|
+	fn's group := group (follow if symlink = ¬dontFollowIfSymlink);
+] : ⊤;

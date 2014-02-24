@@ -58,8 +58,7 @@ Private method "abracadabra.txt" is
 
 After running file access rights test suite, do
 [
-	fn ::= abracadabra.txt;
-	fn's access rights := {owner read, group read};
+	abracadabra.txt's access rights := {owner read, group read};
 ];
 
 Test "owner read" in file access rights test suite is
@@ -122,6 +121,8 @@ Test "owner readable" in file access rights test suite is
 	fn's access rights := {owner read};
 	Require: fn's access rights = {owner read};
 	Require: fn is readable;
+	Require: ¬fn is writable;
+	Require: ¬fn is executable;
 ];
 
 Test "group readable" in file access rights test suite is
@@ -130,6 +131,8 @@ Test "group readable" in file access rights test suite is
 	fn's access rights := {group read};
 	Require: fn's access rights = {group read};
 	Require: ¬fn is readable;
+	Require: ¬fn is writable;
+	Require: ¬fn is executable;
 ];
 
 Test "others readable" in file access rights test suite is
@@ -138,6 +141,8 @@ Test "others readable" in file access rights test suite is
 	fn's access rights := {others read};
 	Require: fn's access rights = {others read};
 	Require: ¬fn is readable;
+	Require: ¬fn is writable;
+	Require: ¬fn is executable;
 ];
 
 Test "owner writable" in file access rights test suite is
@@ -145,7 +150,9 @@ Test "owner writable" in file access rights test suite is
 	fn ::= abracadabra.txt;
 	fn's access rights := {owner write};
 	Require: fn's access rights = {owner write};
+	Require: ¬fn is readable;
 	Require: fn is writable;
+	Require: ¬fn is executable;
 ];
 
 Test "group writable" in file access rights test suite is
@@ -153,7 +160,9 @@ Test "group writable" in file access rights test suite is
 	fn ::= abracadabra.txt;
 	fn's access rights := {group write};
 	Require: fn's access rights = {group write};
+	Require: ¬fn is readable;
 	Require: ¬fn is writable;
+	Require: ¬fn is executable;
 ];
 
 Test "others writable" in file access rights test suite is
@@ -161,7 +170,9 @@ Test "others writable" in file access rights test suite is
 	fn ::= abracadabra.txt;
 	fn's access rights := {others write};
 	Require: fn's access rights = {others write};
+	Require: ¬fn is readable;
 	Require: ¬fn is writable;
+	Require: ¬fn is executable;
 ];
 
 Test "owner executable" in file access rights test suite is
@@ -169,6 +180,8 @@ Test "owner executable" in file access rights test suite is
 	fn ::= abracadabra.txt;
 	fn's access rights := {owner execute};
 	Require: fn's access rights = {owner execute};
+	Require: ¬fn is readable;
+	Require: ¬fn is writable;
 	Require: fn is executable;
 ];
 
@@ -177,6 +190,8 @@ Test "group executable" in file access rights test suite is
 	fn ::= abracadabra.txt;
 	fn's access rights := {group execute};
 	Require: fn's access rights = {group execute};
+	Require: ¬fn is readable;
+	Require: ¬fn is writable;
 	Require: ¬fn is executable;
 ];
 
@@ -185,6 +200,18 @@ Test "others executable" in file access rights test suite is
 	fn ::= abracadabra.txt;
 	fn's access rights := {others execute};
 	Require: fn's access rights = {others execute};
+	Require: ¬fn is readable;
+	Require: ¬fn is writable;
+	Require: ¬fn is executable;
+];
+
+Test "no permissions" in file access rights test suite is
+[
+	fn ::= abracadabra.txt;
+	fn's access rights := ∅;
+	Require: fn's access rights = ∅;
+	Require: ¬fn is readable;
+	Require: ¬fn is writable;
 	Require: ¬fn is executable;
 ];
 

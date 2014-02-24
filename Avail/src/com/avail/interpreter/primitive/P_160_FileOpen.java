@@ -172,9 +172,13 @@ extends Primitive
 					AtomDescriptor.fileModeWriteKey());
 			}
 		}
-		catch (final IllegalArgumentException | UnsupportedOperationException e)
+		catch (final IllegalArgumentException e)
 		{
 			return interpreter.primitiveFailure(E_ILLEGAL_OPTION);
+		}
+		catch (final UnsupportedOperationException e)
+		{
+			return interpreter.primitiveFailure(E_PRIMITIVE_NOT_SUPPORTED);
 		}
 		catch (final SecurityException e)
 		{
@@ -223,6 +227,8 @@ extends Primitive
 	{
 		return AbstractEnumerationTypeDescriptor.withInstances(
 			TupleDescriptor.from(
+				E_ILLEGAL_OPTION.numericCode(),
+				E_PRIMITIVE_NOT_SUPPORTED.numericCode(),
 				E_PERMISSION_DENIED.numericCode(),
 				E_IO_ERROR.numericCode()
 			).asSet());

@@ -1,5 +1,5 @@
 /**
- * P_027_CurrentTimeMilliseconds.java
+ * P_046_CurrentTimeNanoseconds.java
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -29,6 +29,7 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+
 package com.avail.interpreter.primitive;
 
 import static com.avail.interpreter.Primitive.Flag.*;
@@ -37,17 +38,20 @@ import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 
 /**
- * <strong>Primitive 27:</strong> Get the current time as milliseconds since
- * the Unix Epoch (00:00:00 UTC, Thursday, 1 January 1970).
+ * <strong>Primitive 46</strong>: Get the current time, in nanoseconds, from the
+ * Java virtual machine's high-resolution time source. The value provided has
+ * nanosecond precision, but not necessarily nanosecond resolution.
+ *
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class P_027_CurrentTimeMilliseconds
+public final class P_046_CurrentTimeNanoseconds
 extends Primitive
 {
 	/**
-	 * The sole instance of this primitive class.  Accessed through reflection.
+	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_027_CurrentTimeMilliseconds().init(
+		new P_046_CurrentTimeNanoseconds().init(
 			0, CannotFail, CanInline, HasSideEffect);
 
 	@Override
@@ -58,7 +62,7 @@ extends Primitive
 	{
 		assert args.size() == 0;
 		return interpreter.primitiveSuccess(
-			IntegerDescriptor.fromLong(System.currentTimeMillis()));
+			IntegerDescriptor.fromLong(System.nanoTime()));
 	}
 
 	@Override

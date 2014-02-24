@@ -39,9 +39,6 @@ Names
 	/* File name types. */
 	"file name",
 
-	/* File naming. */
-	"_'s⁇name",
-
 	/* File name construction. */
 	"a file named_",
 
@@ -60,7 +57,7 @@ Body
  */
 Public class "file name" extends object
 	with fields
-		public name : nonempty string;
+		name : nonempty string;
 
 /**
  * @method "“_”"
@@ -71,7 +68,7 @@ Stable method "“_”" is
 [
 	fn : file name
 |
-	fn's name
+	format "a file named “①”" with fn's name
 ];
 
 /**

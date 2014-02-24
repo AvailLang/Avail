@@ -1,0 +1,157 @@
+/*
+ * File Metadata Test.avail
+ * Copyright © 1993-2014, The Avail Foundation, LLC.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+System Module "File Metadata Test"
+Versions
+	"dev"
+Uses
+	"Common" =
+	(
+		"I/O test suite",
+		"test directory"
+	),
+	"Data Abstractions",
+	"File Access Rights",
+	"File Metadata",
+	"File Names",
+	"File Principals",
+	"Foundation",
+	"Unit Testing"
+Names
+	"file metadata test suite"
+Body
+
+"file metadata test suite" is a new atom;
+New test suite file metadata test suite extends I/O test suite;
+
+Private method "abracadabra.txt" is
+[
+	a file named test directory ++ "/abracadabra.txt"
+];
+
+Private method "scratch.txt" is
+[
+	a file named test directory ++ "/scratch.txt"
+];
+
+Before running file metadata test suite, do
+[
+	/* TODO: [TLS] Make sure that abracadabra.txt contains the eponymous
+	 * text.
+	 */
+	/* TODO: [TLS] Create a symbolic link for file type testing. */
+];
+
+After running file metadata test suite, do
+[
+	abracadabra.txt's access rights := {owner read, group read};
+	/* TODO: [TLS] Remove the symbolic link for file type testing. */
+];
+
+Test "file ID" in file metadata test suite is
+[
+	fn1 ::= abracadabra.txt;
+	Require: fn1's file ID = fn1's file ID;
+	m1 ::= fn1's metadata;
+	Require: m1's file ID = m1's file ID;
+	Require: fn1's file ID = m1's file ID;
+	fn2 ::= scratch.txt;
+	Require: fn2's file ID = fn2's file ID;
+	Require: fn1's file ID ≠ fn2's file ID;
+	m2 ::= fn2's metadata;
+	Require: m2's file ID = m2's file ID;
+	Require: fn2's file ID = m2's file ID;
+	Require: m1's file ID ≠ m2's file ID;
+];
+
+Test "file types" in file metadata test suite is
+[
+	fn1 ::= abracadabra.txt;
+	Require: regular file = fn1's file type;
+	fn2 ::= a file named test directory;
+	Require: directory = fn2's file type;
+	fn4 ::= a file named "/dev/null";
+	If fn4 exists then [Require: special file = fn4's file type;];
+];
+
+Test "file times" in file metadata test suite is
+[
+	fn ::= abracadabra.txt;
+	Require:
+		fn's creation time
+		≤ fn's last modification time
+		≤ fn's last access time
+		≤ milliseconds since the Epoch;
+	m ::= fn's metadata;
+	Require:
+		m's creation time
+		≤ m's last modification time
+		≤ m's last access time
+		≤ milliseconds since the Epoch;
+	Require: fn's creation time = m's creation time;
+	Require: fn's last modification time = m's last modification time;
+	Require: fn's last access time = m's last access time;
+];
+
+Test "file size" in file metadata test suite is
+[
+	fn ::= abracadabra.txt;
+	Require: 11 = fn's size;
+	m ::= fn's metadata;
+	Require: 11 = m's size;
+];
+
+Test "file access rights" in file metadata test suite is
+[
+	fn ::= abracadabra.txt;
+	m ::= fn's metadata;
+	allRights ::=
+		cast file access right's instances into [t : {file access right|9} | t];
+	rng ::= a pRNG;
+	Repeat
+	[
+		n ::= rng's next [0..12];
+		rights : {file access right|} := ∅;
+		Repeat [rights := rights + rng's next element of allRights;] n times;
+		fn's access rights :=
+			cast rights into [t : {file access right|0..9} | t];
+		Require: rights = m's access rights;
+	] 10 times;
+];
+
+Test "file principals" in file metadata test suite is
+[
+	fn ::= abracadabra.txt;
+	m ::= fn's metadata;
+	Require: m's owner = fn's owner;
+	Require: m's group = m's group;
+];
