@@ -141,7 +141,7 @@ Semantic restriction "_-_" is
 	[
 		setType
 	]
-	else if [|value| ≠ ∞ ∧ [|elementType| ≠ ∞]] then
+	else if [|value| = 1 ∧ [|elementType| ≠ ∞]] then
 	[
 		instances ::= elementType's instances \ value's instances;
 		newElementType ::=
