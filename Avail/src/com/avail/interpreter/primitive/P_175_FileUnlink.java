@@ -72,8 +72,16 @@ extends Primitive
 		final A_Atom requireExistence = args.get(2);
 		final A_Atom followSymlinks = args.get(3);
 		final AvailRuntime runtime = AvailRuntime.current();
-		final Path target = runtime.fileSystem().getPath(
-			filename.asNativeString());
+		final Path path;
+		try
+		{
+			path = runtime.fileSystem().getPath(
+				filename.asNativeString());
+		}
+		catch (final InvalidPathException e)
+		{
+			return interpreter.primitiveFailure(E_INVALID_PATH);
+		}
 		// Unless the unlink should be recursive, then try unlinking the target
 		// directly.
 		if (!recursive.extractBoolean())
@@ -82,11 +90,11 @@ extends Primitive
 			{
 				if (requireExistence.extractBoolean())
 				{
-					Files.delete(target);
+					Files.delete(path);
 				}
 				else
 				{
-					Files.deleteIfExists(target);
+					Files.deleteIfExists(path);
 				}
 			}
 			catch (final SecurityException e)
@@ -118,7 +126,7 @@ extends Primitive
 				final Mutable<Boolean> partialSuccess =
 					new Mutable<Boolean>(false);
 				Files.walkFileTree(
-					target,
+					path,
 					visitOptions,
 					Integer.MAX_VALUE,
 					new FileVisitor<Path>()
@@ -134,12 +142,12 @@ extends Primitive
 
 						@Override
 						public FileVisitResult visitFile (
-								final @Nullable Path path,
+								final @Nullable Path file,
 								final @Nullable BasicFileAttributes unused)
 							throws IOException
 						{
-							assert path != null;
-							Files.deleteIfExists(path);
+							assert file != null;
+							Files.deleteIfExists(file);
 							return CONTINUE;
 						}
 
@@ -205,6 +213,7 @@ extends Primitive
 	{
 		return AbstractEnumerationTypeDescriptor.withInstances(
 			TupleDescriptor.from(
+				E_INVALID_PATH.numericCode(),
 				E_PERMISSION_DENIED.numericCode(),
 				E_NO_FILE.numericCode(),
 				E_DIRECTORY_NOT_EMPTY.numericCode(),

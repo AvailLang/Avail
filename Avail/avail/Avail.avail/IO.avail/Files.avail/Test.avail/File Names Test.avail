@@ -40,7 +40,9 @@ Uses
 		"test directory"
 	),
 	"File Access Rights",
+	"File Metadata",
 	"File Names",
+	"File Test Utilities",
 	"Foundation",
 	"Unit Testing"
 Names
@@ -49,11 +51,6 @@ Body
 
 "file names test suite" is a new atom;
 New test suite file names test suite extends I/O test suite;
-
-Private method "abracadabra.txt" is
-[
-	a file named test directory ++ "/abracadabra.txt"
-];
 
 Before running each test in file names test suite, do
 [
@@ -67,4 +64,55 @@ Test "exists" in file names test suite is
 	fn2 ::= a file named test directory ++ "/doesnotexist.txt";
 	Require: fn1 exists;
 	Require: ¬fn2 exists;
+];
+
+Test "absolute path" in file names test suite is
+[
+	fn ::= abracadabra.txt;
+	Require: ¬fn is absolute;
+	absoluteTest ::= a file named test directory's absolute path;
+	Require: absoluteTest is absolute;
+	absoluteFile ::= fn's absolute path;
+	Require: absoluteFile is absolute;
+	Require: absoluteFile's name = absoluteTest's name ++ "/abracadabra.txt";
+	Require: absoluteTest names the same file as a file named test directory;
+	Require: absoluteFile names the same file as fn;
+];
+
+Test "real path" in file names test suite is
+[
+	fn ::= abracadabra.txt;
+	Require: ¬fn is absolute;
+	real ::= fn's real path;
+	Require: real is absolute;
+	Require: real names the same file as fn;
+	Require: real names the same file as fn's absolute path;
+	Require: real's metadata's file ID = fn's metadata's file ID;
+];
+
+Test "same file" in file names test suite is
+[
+	Require: abracadabra.txt names the same file as abracadabra.txt;
+	Require:
+		abracadabra.txt names the same file as abracadabra.txt's absolute path;
+	Require:
+		abracadabra.txt names the same file as abracadabra.txt's real path;
+	Require: scratch.txt names the same file as scratch.txt;
+	Require: scratch.txt names the same file as scratch.txt's absolute path;
+	Require: scratch.txt names the same file as scratch.txt's real path;
+	Require: ¬abracadabra.txt names the same file as scratch.txt;
+];
+
+Test "current working directory" in file names test suite is
+[
+	fn ::= abracadabra.txt;
+	Require: ¬fn is absolute;
+	cwd ::= current working directory;
+	Require: cwd is absolute;
+	fn2 ::= a file named cwd's name
+		++ "/avail/Avail.avail/IO.avail/Files.avail/test/abracadabra.txt";
+	Require: fn2 is absolute;
+	Require: fn names the same file as fn2;
+	dot ::= a file named ".";
+	Require: cwd names the same file as dot;
 ];

@@ -95,6 +95,7 @@ Names
 	/*  57 */ "incorrect type for numbered choice code",
 	/*  43 */ "incorrect use of double dagger code",
 	/*  25 */ "invalid handle code",
+	/* 205 */ "invalid path code",
 	/*  26 */ "invalid primitive number code",
 	/*  23 */ "io error code",
 	/* 500 */ "java class not available code",
@@ -634,6 +635,11 @@ Primitive "partial success code" is
 Primitive "illegal option code" is
 [
 	204
+];
+
+Primitive "invalid path code" is
+[
+	205
 ];
 
 Primitive "java class not available code" is

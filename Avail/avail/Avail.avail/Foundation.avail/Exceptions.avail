@@ -1045,6 +1045,8 @@ System exception "partial-success" (203)
 	extends system exception;
 System exception "illegal-option" (204)
 	extends bad-argument exception;
+System exception "invalid-path" (205)
+	extends bad-argument exception;
 System exception "Java-class-not-available" (500)
 	extends element-access exception;
 System exception "pojo-type-is-abstract" (501)

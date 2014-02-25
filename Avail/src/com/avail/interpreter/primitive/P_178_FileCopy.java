@@ -43,6 +43,7 @@ import java.nio.file.FileVisitOption;
 import java.nio.file.FileVisitResult;
 import java.nio.file.FileVisitor;
 import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
@@ -78,14 +79,25 @@ extends Primitive
 		final boolean skipReturnCheck)
 	{
 		assert args.size() == 5;
-		final A_String src = args.get(0);
-		final A_String dst = args.get(1);
+		final A_String source = args.get(0);
+		final A_String destination = args.get(1);
 		final A_Atom followSymlinks = args.get(2);
 		final A_Atom replace = args.get(3);
 		final A_Atom copyAttributes = args.get(4);
 		final AvailRuntime runtime = AvailRuntime.current();
-		final Path srcPath = runtime.fileSystem().getPath(src.asNativeString());
-		final Path dstPath = runtime.fileSystem().getPath(dst.asNativeString());
+		final Path sourcePath;
+		final Path destinationPath;
+		try
+		{
+			sourcePath = runtime.fileSystem().getPath(
+				source.asNativeString());
+			destinationPath = runtime.fileSystem().getPath(
+				destination.asNativeString());
+		}
+		catch (final InvalidPathException e)
+		{
+			return interpreter.primitiveFailure(E_INVALID_PATH);
+		}
 		final List<CopyOption> optionList = new ArrayList<>(2);
 		if (replace.extractBoolean())
 		{
@@ -106,7 +118,7 @@ extends Primitive
 			final Mutable<Boolean> partialSuccess =
 				new Mutable<Boolean>(false);
 			Files.walkFileTree(
-				srcPath,
+				sourcePath,
 				visitOptions,
 				Integer.MAX_VALUE,
 				new FileVisitor<Path>()
@@ -118,8 +130,8 @@ extends Primitive
 						throws IOException
 					{
 						assert dir != null;
-						final Path dstDir = dstPath.resolve(
-							srcPath.relativize(dir));
+						final Path dstDir = destinationPath.resolve(
+							sourcePath.relativize(dir));
 						try
 						{
 							Files.copy(dir, dstDir, options);
@@ -143,7 +155,8 @@ extends Primitive
 						assert file != null;
 						Files.copy(
 							file,
-							dstPath.resolve(srcPath.relativize(file)),
+							destinationPath.resolve(
+								sourcePath.relativize(file)),
 							options);
 						return CONTINUE;
 					}
@@ -205,6 +218,7 @@ extends Primitive
 	{
 		return AbstractEnumerationTypeDescriptor.withInstances(
 			TupleDescriptor.from(
+				E_INVALID_PATH.numericCode(),
 				E_PERMISSION_DENIED.numericCode(),
 				E_IO_ERROR.numericCode(),
 				E_PARTIAL_SUCCESS.numericCode()

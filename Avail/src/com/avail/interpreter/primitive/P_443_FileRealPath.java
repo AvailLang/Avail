@@ -1,5 +1,5 @@
 /**
- * P_430_FileExists.java
+ * P_443_FileRealPath.java
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -29,12 +29,13 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+
 package com.avail.interpreter.primitive;
 
-import static com.avail.descriptor.TypeDescriptor.Types.CHARACTER;
+import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
-import java.nio.file.Files;
+import java.io.IOException;
 import java.nio.file.InvalidPathException;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
@@ -44,18 +45,20 @@ import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 
 /**
- * <strong>Primitive 170:</strong> Does a file exist at the specified
- * {@linkplain Path path}? If the second argument is {@code false}, then no
- * symbolic links will be traversed.
+ * <strong>Primitive 443</strong>: Answer the {@linkplain
+ * Path#toRealPath(LinkOption...) real path} that corresponds to the specified
+ * path.
+ *
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class P_430_FileExists
+public final class P_443_FileRealPath
 extends Primitive
 {
 	/**
-	 * The sole instance of this primitive class.  Accessed through reflection.
+	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_430_FileExists().init(
-		2, CanInline, HasSideEffect);
+	public final static Primitive instance =
+		new P_443_FileRealPath().init(2, CanInline, HasSideEffect);
 
 	@Override
 	public Result attempt (
@@ -79,17 +82,21 @@ extends Primitive
 		}
 		final LinkOption[] options = AvailRuntime.followSymlinks(
 			followSymlinks.extractBoolean());
-		final boolean exists;
+		final Path realPath;
 		try
 		{
-			exists = Files.exists(path, options);
+			realPath = path.toRealPath(options);
+		}
+		catch (final IOException e)
+		{
+			return interpreter.primitiveFailure(E_IO_ERROR);
 		}
 		catch (final SecurityException e)
 		{
 			return interpreter.primitiveFailure(E_PERMISSION_DENIED);
 		}
-		return interpreter.primitiveSuccess(
-			AtomDescriptor.objectFromBoolean(exists));
+		return interpreter.primitiveSuccess(StringDescriptor.from(
+			realPath.toString()));
 	}
 
 	@Override
@@ -99,7 +106,7 @@ extends Primitive
 			TupleDescriptor.from(
 				TupleTypeDescriptor.oneOrMoreOf(CHARACTER.o()),
 				EnumerationTypeDescriptor.booleanObject()),
-			EnumerationTypeDescriptor.booleanObject());
+			TupleTypeDescriptor.oneOrMoreOf(CHARACTER.o()));
 	}
 
 	@Override
@@ -108,7 +115,8 @@ extends Primitive
 		return AbstractEnumerationTypeDescriptor.withInstances(
 			TupleDescriptor.from(
 				E_INVALID_PATH.numericCode(),
-				E_PERMISSION_DENIED.numericCode()
+				E_PERMISSION_DENIED.numericCode(),
+				E_IO_ERROR.numericCode()
 			).asSet());
 	}
 }

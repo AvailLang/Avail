@@ -39,11 +39,11 @@ Uses
 		"I/O test suite",
 		"test directory"
 	),
-	"Data Abstractions",
 	"File Access Rights",
 	"File Metadata",
 	"File Names",
 	"File Principals",
+	"File Test Utilities",
 	"Foundation",
 	"Unit Testing"
 Names
@@ -52,16 +52,6 @@ Body
 
 "file metadata test suite" is a new atom;
 New test suite file metadata test suite extends I/O test suite;
-
-Private method "abracadabra.txt" is
-[
-	a file named test directory ++ "/abracadabra.txt"
-];
-
-Private method "scratch.txt" is
-[
-	a file named test directory ++ "/scratch.txt"
-];
 
 Before running file metadata test suite, do
 [
@@ -134,17 +124,12 @@ Test "file access rights" in file metadata test suite is
 [
 	fn ::= abracadabra.txt;
 	m ::= fn's metadata;
-	allRights ::=
-		cast file access right's instances into [t : {file access right|9} | t];
-	rng ::= a pRNG;
-	Repeat
+	Randomly permute file access rights for
 	[
-		n ::= rng's next [0..12];
-		rights : {file access right|} := ∅;
-		Repeat [rights := rights + rng's next element of allRights;] n times;
-		fn's access rights :=
-			cast rights into [t : {file access right|0..9} | t];
-		Require: rights = m's access rights;
+		rights : {file access right|0..9}
+	|
+		m's access rights := rights;
+		Require: m's access rights = rights;
 	] 10 times;
 ];
 

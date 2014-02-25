@@ -75,7 +75,9 @@ Names
 	"_'s⁇access rights:=_«(don't follow if symlink)»?",
 
 	/* Pretty printing. */
-	"“_”(access rights summary)"
+	"file access rights summary",
+	"“_”(file access rights summary)",
+	"_→file access rights"
 Body
 
 /**
@@ -242,6 +244,8 @@ Method "file access right" is [fileAccessRightsEnum];
  * @returns "boolean"
  *          {@method "true"} if {@param "fn"} names an existing file that is
  *          readable by this process; {@method "false"} otherwise.
+ * @raises "invalid-path exception"
+ *         If {@param "fn"} cannot be understood as a path.
  * @raises "permission-denied exception"
  *         If permission is denied to use the specified {@type "file name"}.
  */
@@ -252,7 +256,9 @@ Public method "_is readable" is
 	[
 		s : nonempty string
 	|
-		Primitive 431 (e : permission-denied code's type);
+		Primitive 431 (e : {
+			invalid-path code,
+			permission-denied code}ᵀ);
 		Raise an exception for e
 	] : boolean (fn's name)
 ] : boolean;
@@ -269,6 +275,8 @@ Public method "_is readable" is
  * @returns "boolean"
  *          {@method "true"} if {@param "fn"} names an existing file that is
  *          writable by this process; {@method "false"} otherwise.
+ * @raises "invalid-path exception"
+ *         If {@param "fn"} cannot be understood as a path.
  * @raises "permission-denied exception"
  *         If permission is denied to use the specified {@type "file name"}.
  */
@@ -279,7 +287,9 @@ Public method "_is writable" is
 	[
 		s : nonempty string
 	|
-		Primitive 432 (e : permission-denied code's type);
+		Primitive 432 (e : {
+			invalid-path code,
+			permission-denied code}ᵀ);
 		Raise an exception for e
 	] : boolean (fn's name)
 ] : boolean;
@@ -296,6 +306,8 @@ Public method "_is writable" is
  * @returns "boolean"
  *          {@method "true"} if {@param "fn"} names an existing file that is
  *          executable by this process; {@method "false"} otherwise.
+ * @raises "invalid-path exception"
+ *         If {@param "fn"} cannot be understood as a path.
  * @raises "permission-denied exception"
  *         If permission is denied to use the specified {@type "file name"}.
  */
@@ -306,7 +318,9 @@ Public method "_is executable" is
 	[
 		s : nonempty string
 	|
-		Primitive 433 (e : permission-denied code's type);
+		Primitive 433 (e : {
+			invalid-path code,
+			permission-denied code}ᵀ);
 		Raise an exception for e
 	] : boolean (fn's name)
 ] : boolean;
@@ -324,6 +338,8 @@ Public method "_is executable" is
  *        {@method "true"} if {@param "fn"} should be followed if it refers to a
  *        symbolic link, {@method "false"} otherwise.
  * @returns "{file access right…|[0..9]}"
+ * @raises "invalid-path exception"
+ *         If {@param "fn"} cannot be understood as a path.
  * @raises "permission-denied exception"
  *         If permission is denied to use the file named by {@param "fn"}.
  * @raises "I/O exception"
@@ -343,6 +359,7 @@ Public method "_'s⁇access rights(follow if symlink=_)" is
 			f : boolean
 		|
 			Primitive 434 (e : {
+				invalid-path code,
 				permission-denied code,
 				primitive-not-supported code,
 				I/O-error code}ᵀ);
@@ -364,6 +381,8 @@ Public method "_'s⁇access rights(follow if symlink=_)" is
  *        {@method "true"} if {@param "fn"} should not be followed if it refers
  *        to a symbolic link, {@method "false"} otherwise.
  * @returns "{file access right…|[0..9]}"
+ * @raises "invalid-path exception"
+ *         If {@param "fn"} cannot be understood as a path.
  * @raises "permission-denied exception"
  *         If permission is denied to use the file named by {@param "fn"}.
  * @raises "I/O exception"
@@ -390,6 +409,8 @@ Public method "_'s⁇access rights«(don't follow if symlink)»?" is
  * @param "followIfSymlink" "boolean"
  *        {@method "true"} if {@param "fn"} should be followed if it refers to a
  *        symbolic link, {@method "false"} otherwise.
+ * @raises "invalid-path exception"
+ *         If {@param "fn"} cannot be understood as a path.
  * @raises "permission-denied exception"
  *         If permission is denied to use the file named by {@param "fn"}.
  * @raises "I/O exception"
@@ -411,6 +432,7 @@ Public method "_'s⁇access rights:=_(follow if symlink=_)" is
 		f : boolean
 	|
 		Primitive 435 (e : {
+			invalid-path code,
 			permission-denied code,
 			primitive-not-supported code,
 			I/O-error code}ᵀ);
@@ -428,6 +450,8 @@ Public method "_'s⁇access rights:=_(follow if symlink=_)" is
  * @param "dontFollowIfSymlink" "boolean"
  *        {@method "true"} if {@param "fn"} should not be followed if it refers
  *        to a symbolic link, {@method "false"} otherwise.
+ * @raises "invalid-path exception"
+ *         If {@param "fn"} cannot be understood as a path.
  * @raises "permission-denied exception"
  *         If permission is denied to use the file named by {@param "fn"}.
  * @raises "I/O exception"
@@ -446,8 +470,8 @@ Public method "_'s⁇access rights:=_«(don't follow if symlink)»?" is
 ] : ⊤;
 
 /**
- * Answer a string representation of the specified {@type "set"} of {@type
- * "file access rights"} as a series of nine {@type "character"}s:
+ * A file access rights summary is a string representation of a {@type "set"} of
+ * {@type "file access rights"} as a series of nine {@type "character"}s:
  *
  * <ol>
  * <li>¢r if {@param "rights"} includes {@method "owner read"},
@@ -470,13 +494,29 @@ Public method "_'s⁇access rights:=_«(don't follow if symlink)»?" is
  * ¢- otherwise.</li>
  * </ol>
  *
- * @method "“_”(access rights summary)"
- * @param "rights" "{file access rights|}"
- * @returns "<{¢r, ¢-}ᵀ, {¢w, ¢-}ᵀ, {¢x, ¢-}ᵀ,
- *   {¢r, ¢-}ᵀ, {¢w, ¢-}ᵀ, {¢x, ¢-}ᵀ,
- *   {¢r, ¢-}ᵀ, {¢w, ¢-}ᵀ, {¢x, ¢-}ᵀ…|9>"
+ * @type "file access rights summary"
+ * @supertype
+ *    "<{¢r, ¢-}ᵀ, {¢w, ¢-}ᵀ, {¢x, ¢-}ᵀ,
+ *    {¢r, ¢-}ᵀ, {¢w, ¢-}ᵀ, {¢x, ¢-}ᵀ,
+ *    {¢r, ¢-}ᵀ, {¢w, ¢-}ᵀ, {¢x, ¢-}ᵀ…|9>"
  */
-Public method "“_”(access rights summary)" is
+[
+	tupleType ::=
+		<{¢r, ¢-}ᵀ, {¢w, ¢-}ᵀ, {¢x, ¢-}ᵀ,
+		{¢r, ¢-}ᵀ, {¢w, ¢-}ᵀ, {¢x, ¢-}ᵀ,
+		{¢r, ¢-}ᵀ, {¢w, ¢-}ᵀ, {¢x, ¢-}ᵀ…|9>;
+	Public method "file access rights summary" is [tupleType];
+]();
+
+/**
+ * Answer a {@type "file access rights summary"} for the specified {@type "set"}
+ * of {@type "file access rights"}.
+ *
+ * @method "“_”(file access rights summary)"
+ * @param "rights" "{file access rights|}"
+ * @returns "file access rights summary"
+ */
+Public method "“_”(file access rights summary)" is
 [
 	rights : {file access right|}
 |
@@ -489,6 +529,32 @@ Public method "“_”(access rights summary)" is
 	++ if others read ∈ rights then ["r"] else ["-"]
 	++ if others write ∈ rights then ["w"] else ["-"]
 	++ if others execute ∈ rights then ["x"] else ["-"]
-] : <{¢r, ¢-}ᵀ, {¢w, ¢-}ᵀ, {¢x, ¢-}ᵀ,
-	{¢r, ¢-}ᵀ, {¢w, ¢-}ᵀ, {¢x, ¢-}ᵀ,
-	{¢r, ¢-}ᵀ, {¢w, ¢-}ᵀ, {¢x, ¢-}ᵀ…|9>;
+] : file access rights summary;
+
+/**
+ * Answer the {@type "set"} of {@type "file access right"}s described by the
+ * specified {@type "file access rights summary"}.
+ *
+ * @method "_→file access rights"
+ * @param "s" "file access rights summary"
+ * @returns "{file access right|0..9}
+ */
+Public stable method "_→file access rights" is
+[
+	s : file access rights summary
+|
+	/* Use 0 as a sentinel to indicate the absence of a right, then discard 0
+	 * from the set.
+	 */
+	{
+		if s[1] = ¢r then [owner read] else [0],
+		if s[2] = ¢w then [owner write] else [0],
+		if s[3] = ¢x then [owner execute] else [0],
+		if s[4] = ¢r then [group read] else [0],
+		if s[5] = ¢w then [group write] else [0],
+		if s[6] = ¢x then [group execute] else [0],
+		if s[7] = ¢r then [others read] else [0],
+		if s[8] = ¢w then [others write] else [0],
+		if s[9] = ¢x then [others execute] else [0]
+	} - 0
+] : {file access right|0..9};

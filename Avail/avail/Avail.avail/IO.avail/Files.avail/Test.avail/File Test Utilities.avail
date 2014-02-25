@@ -1,5 +1,5 @@
-/**
- * P_044_IfThen.java
+/*
+ * File Test Utilities.avail
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -29,58 +29,47 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.avail.interpreter.primitive;
 
-import static com.avail.descriptor.TypeDescriptor.Types.TOP;
-import static com.avail.interpreter.Primitive.Flag.*;
-import java.util.*;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
+System Module "File Test Utilities"
+Versions
+	"dev"
+Uses
+	"Common" = ("test directory"),
+	"Data Abstractions",
+	"Foundation",
+	"File Access Rights",
+	"File Names"
+Names
+	/* File names. */
+	"abracadabra.txt",
+	"scratch.txt",
+	"Randomly permute file access rights for__times"
+Body
 
-/**
- * <strong>Primitive 44:</strong> Invoke the {@linkplain FunctionDescriptor
- * trueBlock} if {@linkplain EnumerationTypeDescriptor#booleanObject() aBoolean}
- * is true, otherwise just answer {@linkplain NilDescriptor#nil()
- * void}.
- */
-public final class P_044_IfThen extends Primitive
-{
-	/**
-	 * The sole instance of this primitive class.  Accessed through reflection.
-	 */
-	public final static Primitive instance = new P_044_IfThen().init(
-		2, Invokes, CannotFail);
+Public method "abracadabra.txt" is
+[
+	a file named test directory ++ "/abracadabra.txt"
+];
 
-	@Override
-	public Result attempt (
-		final List<AvailObject> args,
-		final Interpreter interpreter,
-		final boolean skipReturnCheck)
-	{
-		assert args.size() == 2;
-		final A_Atom aBoolean = args.get(0);
-		final A_Function trueBlock = args.get(1);
-		assert trueBlock.code().numArgs() == 0;
-		if (aBoolean.extractBoolean())
-		{
-			// It's ⊤-valued, so there's no need to check the result's type.
-			return interpreter.invokeFunction(
-				trueBlock,
-				Collections.<AvailObject>emptyList(),
-				true);
-		}
-		return interpreter.primitiveSuccess(NilDescriptor.nil());
-	}
+Public method "scratch.txt" is
+[
+	a file named test directory ++ "/scratch.txt"
+];
 
-	@Override
-	protected A_Type privateBlockTypeRestriction ()
-	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
-				EnumerationTypeDescriptor.booleanObject(),
-				FunctionTypeDescriptor.create(
-					TupleDescriptor.empty(),
-					TOP.o())),
-			TOP.o());
-	}
-}
+Public method "Randomly permute file access rights for__times" is
+[
+	f : [{file access right|0..9}]→⊤,
+	count : whole number
+|
+	allRights ::=
+		cast file access right's instances→tuple
+		into [t : <file access right…|9> | t];
+	rng ::= a pRNG;
+	Repeat
+	[
+		n ::= rng's next [0..12];
+		rights : {file access right|} := ∅;
+		Repeat [rights := rights + rng's next element of allRights;] n times;
+		f(cast rights into [t : {file access right|0..9} | t]);
+	] count times;
+];

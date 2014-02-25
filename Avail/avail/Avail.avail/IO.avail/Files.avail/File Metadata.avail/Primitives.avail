@@ -111,6 +111,8 @@ Public class "file metadata" extends object
  *        {@method "true"} if {@param "fn"} should be followed if it refers to a
  *        symbolic link, {@method "false"} otherwise.
  * @returns "file metadata"
+ * @raises "invalid-path exception"
+ *         If {@param "fn"} cannot be understood as a path.
  * @raises "permission-denied exception"
  *         If permission is denied to use the file named by {@param "fn"}.
  * @raises "I/O exception"
@@ -129,6 +131,7 @@ Public class "file metadata" extends object
 				f : boolean
 			|
 				Primitive 436 (e : {
+					invalid-path code,
 					permission-denied code,
 					I/O-error code}ᵀ);
 				Raise an exception for e
@@ -154,6 +157,8 @@ Public class "file metadata" extends object
  *        {@method "true"} if {@param "fn"} should not be followed if it refers
  *        to a symbolic link, {@method "false"} otherwise.
  * @returns "file metadata"
+ * @raises "invalid-path exception"
+ *         If {@param "fn"} cannot be understood as a path.
  * @raises "permission-denied exception"
  *         If permission is denied to use the file named by {@param "fn"}.
  * @raises "I/O exception"

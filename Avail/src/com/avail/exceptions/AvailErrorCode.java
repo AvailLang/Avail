@@ -660,6 +660,11 @@ public enum AvailErrorCode
 	E_ILLEGAL_OPTION (204),
 
 	/**
+	 * A {@linkplain Path path} expression was invalid.
+	 */
+	E_INVALID_PATH (205),
+
+	/**
 	 * A Java {@linkplain Class class} specified by name was either not found by
 	 * the runtime system or not available for reflection.
 	 */

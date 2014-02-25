@@ -111,6 +111,8 @@ Method "“_”" is
  *        {@method "true"} if {@param "fn"} should be followed if it refers to a
  *        symbolic link, {@method "false"} otherwise.
  * @returns "user principal"
+ * @raises "invalid-path exception"
+ *         If {@param "fn"} cannot be understood as a path.
  * @raises "permission-denied exception"
  *         If permission is denied to use the file named by {@param "fn"}.
  * @raises "I/O exception"
@@ -130,6 +132,7 @@ Public method "_'s⁇owner(follow if symlink=_)" is
 			f : boolean
 		|
 			Primitive 437 (e : {
+				invalid-path code,
 				permission-denied code,
 				I/O-error code,
 				primitive-not-supported code}ᵀ);
@@ -151,6 +154,8 @@ Public method "_'s⁇owner(follow if symlink=_)" is
  *        {@method "true"} if {@param "fn"} should not be followed if it refers
  *        to a symbolic link, {@method "false"} otherwise.
  * @returns "user principal"
+ * @raises "invalid-path exception"
+ *         If {@param "fn"} cannot be understood as a path.
  * @raises "permission-denied exception"
  *         If permission is denied to use the file named by {@param "fn"}.
  * @raises "I/O exception"
@@ -178,6 +183,8 @@ Public method "_'s⁇owner«(don't follow if symlink)»?" is
  *        {@method "true"} if {@param "fn"} should be followed if it refers to a
  *        symbolic link, {@method "false"} otherwise.
  * @returns "user principal"
+ * @raises "invalid-path exception"
+ *         If {@param "fn"} cannot be understood as a path.
  * @raises "permission-denied exception"
  *         If permission is denied to use the file named by {@param "fn"}.
  * @raises "I/O exception"
@@ -198,6 +205,7 @@ Public method "_'s⁇owner:=_(follow if symlink=_)" is
 		f : boolean
 	|
 		Primitive 438 (e : {
+			invalid-path code,
 			permission-denied code,
 			I/O-error code,
 			primitive-not-supported code}ᵀ);
@@ -216,6 +224,8 @@ Public method "_'s⁇owner:=_(follow if symlink=_)" is
  *        {@method "true"} if {@param "fn"} should not be followed if it refers
  *        to a symbolic link, {@method "false"} otherwise.
  * @returns "user principal"
+ * @raises "invalid-path exception"
+ *         If {@param "fn"} cannot be understood as a path.
  * @raises "permission-denied exception"
  *         If permission is denied to use the file named by {@param "fn"}.
  * @raises "I/O exception"
@@ -246,6 +256,8 @@ Public method "_'s⁇owner:=_«(don't follow if symlink)»?" is
  *        {@method "true"} if {@param "fn"} should be followed if it refers to a
  *        symbolic link, {@method "false"} otherwise.
  * @returns "group principal"
+ * @raises "invalid-path exception"
+ *         If {@param "fn"} cannot be understood as a path.
  * @raises "permission-denied exception"
  *         If permission is denied to use the file named by {@param "fn"}.
  * @raises "I/O exception"
@@ -265,6 +277,7 @@ Public method "_'s⁇group(follow if symlink=_)" is
 			f : boolean
 		|
 			Primitive 439 (e : {
+				invalid-path code,
 				permission-denied code,
 				I/O-error code,
 				primitive-not-supported code}ᵀ);
@@ -286,6 +299,8 @@ Public method "_'s⁇group(follow if symlink=_)" is
  *        {@method "true"} if {@param "fn"} should be followed if it refers to a
  *        symbolic link, {@method "false"} otherwise.
  * @returns "group principal"
+ * @raises "invalid-path exception"
+ *         If {@param "fn"} cannot be understood as a path.
  * @raises "permission-denied exception"
  *         If permission is denied to use the file named by {@param "fn"}.
  * @raises "I/O exception"
@@ -313,6 +328,8 @@ Public method "_'s⁇group«(don't follow if symlink)»?" is
  *        {@method "true"} if {@param "fn"} should be followed if it refers to a
  *        symbolic link, {@method "false"} otherwise.
  * @returns "group principal"
+ * @raises "invalid-path exception"
+ *         If {@param "fn"} cannot be understood as a path.
  * @raises "permission-denied exception"
  *         If permission is denied to use the file named by {@param "fn"}.
  * @raises "I/O exception"
@@ -333,6 +350,7 @@ Public method "_'s⁇group:=_(follow if symlink=_)" is
 		f : boolean
 	|
 		Primitive 440 (e : {
+			invalid-path code,
 			permission-denied code,
 			I/O-error code,
 			primitive-not-supported code}ᵀ);
@@ -351,6 +369,8 @@ Public method "_'s⁇group:=_(follow if symlink=_)" is
  *        {@method "true"} if {@param "fn"} should not be followed if it refers
  *        to a symbolic link, {@method "false"} otherwise.
  * @returns "group principal"
+ * @raises "invalid-path exception"
+ *         If {@param "fn"} cannot be understood as a path.
  * @raises "permission-denied exception"
  *         If permission is denied to use the file named by {@param "fn"}.
  * @raises "I/O exception"
