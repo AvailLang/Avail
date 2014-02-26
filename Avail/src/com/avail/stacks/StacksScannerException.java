@@ -36,7 +36,7 @@ import com.avail.descriptor.A_Token;
 import com.avail.descriptor.CommentTokenDescriptor;
 
 /**
- * TODO: Document StacksScannerException!
+ * An Stacks scanner exception
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
@@ -51,7 +51,7 @@ public class StacksScannerException extends Exception
 	/**
 	 * The {@link StacksScanner} that failed.
 	 */
-	final StacksScanner failedScanner;
+	final AbstractStacksScanner failedScanner;
 
 	/**
 	 * Answer the name of the module that failed lexical scanning.
@@ -80,7 +80,7 @@ public class StacksScannerException extends Exception
 	 */
 	public int failureLineNumber ()
 	{
-		return failedScanner.lineNumber;
+		return failedScanner.lineNumber();
 	}
 
 	/**
@@ -90,11 +90,11 @@ public class StacksScannerException extends Exception
 	 *            The error message indicating why the {@link StacksScanner}
 	 *            failed.
 	 * @param failedScanner
-	 *            The StacksScanner that failed, positioned to the failure point.
+	 *            The AbstractStacksScanner that failed, positioned to the failure point.
 	 */
 	public StacksScannerException (
 		final String message,
-		final StacksScanner failedScanner)
+		final AbstractStacksScanner failedScanner)
 	{
 		super(message);
 		this.failedScanner = failedScanner;
@@ -118,7 +118,7 @@ public class StacksScannerException extends Exception
 		super(cause);
 		try
 		{
-			StacksScanner.scanString(availComment);
+			StacksScanner.scanCommentString(availComment);
 			assert false : "Should have thrown exception";
 			// And throw in case assertions are off.  Keeps Java compiler happy.
 			throw new RuntimeException("Should have thrown exception");

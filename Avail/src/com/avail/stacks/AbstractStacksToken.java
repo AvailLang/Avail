@@ -46,6 +46,11 @@ public abstract class AbstractStacksToken
 	final String lexeme;
 
 	/**
+	 * The string exactly as it appeared in the source comment.
+	 */
+	final String moduleName;
+
+	/**
 	 * The line number where the token occurs/begins.
 	 */
 	final int lineNumber;
@@ -70,17 +75,21 @@ public abstract class AbstractStacksToken
 	 * 		The absolute start position of the token
 	 * @param startOfTokenLinePostion
 	 * 		The position on the line where the token starts.
+	 * @param moduleName
+	 * 		The module this token is in.
 	 */
 	public AbstractStacksToken (
 		final String string,
 		final int lineNumber,
 		final int postion,
-		final int startOfTokenLinePostion)
+		final int startOfTokenLinePostion,
+		final String moduleName)
 	{
 		this.lexeme = string;
 		this.lineNumber = lineNumber;
 		this.position = postion;
 		this.startOfTokenLinePostion = startOfTokenLinePostion;
+		this.moduleName = moduleName;
 	}
 
 	/**

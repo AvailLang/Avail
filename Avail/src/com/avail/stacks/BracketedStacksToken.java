@@ -32,6 +32,7 @@
 
 package com.avail.stacks;
 
+import java.util.List;
 /**
  * A stacks token representing a bracketed region in the comment.  This region
  * generally contains some sort of action such as a link.
@@ -40,6 +41,11 @@ package com.avail.stacks;
  */
 public class BracketedStacksToken extends RegionStacksToken
 {
+	/**
+	 * The tokens that have been parsed so far.
+	 */
+	List<AbstractStacksToken> subTokens;
+
 
 	/**
 	 * Construct a new {@link BracketedStacksToken}.
@@ -48,18 +54,23 @@ public class BracketedStacksToken extends RegionStacksToken
 	 * 		The string to be tokenized.
 	 * @param lineNumber
 	 * 		The line number where the token occurs/begins
-	 * @param postion
+	 * @param position
 	 * 		The absolute start position of the token
 	 * @param startOfTokenLinePostion
 	 * 		The position on the line where the token starts.
+	 * @param moduleName
+	 * @throws StacksScannerException
 	 */
 	public BracketedStacksToken (
 		final String string,
 		final int lineNumber,
-		final int postion,
-		final int startOfTokenLinePostion)
+		final int position,
+		final int startOfTokenLinePostion,
+		final String moduleName) throws StacksScannerException
 	{
-		super(string, lineNumber, postion, startOfTokenLinePostion, '\"', '\"');
+		super(string, lineNumber, position,
+			startOfTokenLinePostion, moduleName, '\"', '\"');
+		this.subTokens = StacksBracketScanner.scanBracketString(this);
 	}
 	/**
 	 *
@@ -67,19 +78,23 @@ public class BracketedStacksToken extends RegionStacksToken
 	 * 		The string to be tokenized.
 	 * @param lineNumber
 	 * 		The line number where the token occurs/begins
-	 * @param postion
+	 * @param position
 	 * 		The absolute start position of the token
 	 * @param startOfTokenLinePostion
 	 * 		The position on the line where the token starts.
+	 * @param moduleName
+	 * 		The name of the module the token is in.
 	 * @return a new {@link BracketedStacksToken stacks token}
+	 * @throws StacksScannerException
 	 */
 	public static BracketedStacksToken create (
 		final String string,
 		final int lineNumber,
-		final int postion,
-		final int startOfTokenLinePostion)
+		final int position,
+		final int startOfTokenLinePostion,
+		final String moduleName) throws StacksScannerException
 	{
 		return new BracketedStacksToken(
-			string, lineNumber, postion, startOfTokenLinePostion);
+			string, lineNumber, position, startOfTokenLinePostion, moduleName);
 	}
 }

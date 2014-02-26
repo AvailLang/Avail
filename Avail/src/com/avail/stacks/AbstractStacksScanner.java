@@ -1,5 +1,5 @@
 /**
- * StacksScanner.java
+ * AbstractStacksScanner.java
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -38,53 +38,297 @@ import com.avail.annotations.InnerAccess;
 import com.avail.descriptor.*;
 
 /**
- * A scanner for Stacks comments.
+ * The basics of a Stacks scanner.
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
-public class StacksScanner extends AbstractStacksScanner
+public abstract class AbstractStacksScanner
 {
-	/**
-	 * Does the comment end with the standard asterisk-forward slash?
-	 */
-	private final boolean commentEndsStandardly;
 
 	/**
-	 * Does the comment end with the standard asterisk-forward slash?
+	 * Construct a new {@link AbstractStacksScanner}.
+	 *
 	 */
-	private final boolean commentStartsStandardly;
-
-	/**
-	 * @return the commentEndsStandardly
-	 */
-	public boolean commentEndsStandardly ()
+	AbstractStacksScanner ()
 	{
-		return commentEndsStandardly;
+		this.outputTokens = new ArrayList<AbstractStacksToken>(5);
+		this.filePosition = 0;
+		this.tokenString = "";
+		this.moduleName = null;
 	}
 
 	/**
-	 * Construct a new {@link StacksScanner}.
-	 * @param commentToken
-	 * 		the {@link CommentTokenDescriptor comment token} to be scanned and
-	 * 		tokenized.
-	 *
+	 * The {@link CommentTokenDescriptor comment token} text that has been
+	 * lexed as one long token.
 	 */
-	private StacksScanner (final A_Token commentToken)
+	private String tokenString;
+
+	/**
+	 * The name of the module being lexically scanned.
+	 */
+	A_String moduleName;
+
+	/**
+	 * The tokens that have been parsed so far.
+	 */
+	List<AbstractStacksToken> outputTokens;
+
+	/**
+	 * The current position in the input string.
+	 */
+	private int position;
+
+	/**
+	 * The start position of the comment in the file.
+	 */
+	private int filePosition;
+
+	/**
+	 * The position of the start of the token currently being parsed.
+	 */
+	private int startOfToken;
+
+	/**
+	 * The place on the currently line where the token starts.
+	 * Always initialized to zero at creation of {@link StacksScanner scanner}.
+	 */
+	private int startOfTokenLinePostion;
+
+	/**
+	 * The line number of the start of the token currently being parsed.
+	 */
+	private int lineNumber;
+
+	/**
+	 * Alter the scanner's position in the input String.
+	 *
+	 * @param newLineNumber
+	 *            The new lineNumber for this scanner as an index.
+	 */
+	protected void lineNumber (final int newLineNumber)
 	{
-		final String commentString =
-			commentToken.string().asNativeString();
-		tokenString(commentString);
-		this.moduleName = commentToken.moduleName();
-		this.outputTokens = new ArrayList<AbstractStacksToken>(
-			tokenString().length() / 20);
-		this.commentEndsStandardly = tokenString().substring(
-			tokenString().length()-2,
-			tokenString().length()).equals("*/");
-		this.commentStartsStandardly =
-			tokenString().substring(0,3).equals("/**");
-		this.lineNumber(commentToken.lineNumber());
-		this.filePosition(commentToken.start());
-		this.startOfTokenLinePostion(0);
+		this.lineNumber = newLineNumber;
+	}
+
+	/**
+	 * Answer the scanner's current lineNumber in the input String.
+	 *
+	 * @return The current line number in the input String.
+	 */
+	protected int lineNumber ()
+	{
+		return lineNumber;
+	}
+
+	/**
+	 * Alter the scanner's startOfTokenLinePostion in the input String.
+	 *
+	 * @param newStartOfTokenLinePostion
+	 *            The new position for this scanner as an index into the input
+	 *            String's chars current line.
+	 */
+	protected void startOfTokenLinePostion (
+		final int newStartOfTokenLinePostion)
+	{
+		this.startOfTokenLinePostion = newStartOfTokenLinePostion;
+	}
+
+	/**
+	 * Answer the scanner's current index in the input String.
+	 *
+	 * @return The current character position on the line in the input String.
+	 */
+	protected int startOfTokenLinePostion ()
+	{
+		return startOfTokenLinePostion;
+	}
+
+	/**
+	 * Alter the scanner's startOfToken in the input String.
+	 *
+	 * @param newStartOfToken
+	 *            The new startOftoken for this scanner as an index into the
+	 *            input String.
+	 */
+	protected void startOfToken (final int newStartOfToken)
+	{
+		this.startOfToken = newStartOfToken;
+	}
+
+	/**
+	 * Alter the scanner's input String.
+	 *
+	 * @param aTokenString
+	 * 		The tokenString to be lexed
+	 */
+	protected void tokenString (final String aTokenString)
+	{
+		this.tokenString = aTokenString;
+	}
+
+	/**
+	 * Answer the scanner's token string.
+	 *
+	 * @return The string of the token being lexed.
+	 */
+	protected String tokenString ()
+	{
+		return tokenString;
+	}
+
+	/**
+	 * Alter the scanner's position in the input String.
+	 *
+	 * @param newPosition
+	 *            The new position for this scanner as an index into the input
+	 *            String's chars (which may not correspond with the actual code
+	 *            points in the Supplementary Planes).
+	 */
+	protected void position (final int newPosition)
+	{
+		this.position = newPosition;
+	}
+
+	/**
+	 * Answer the scanner's current index in the input String.
+	 *
+	 * @return The current position in the input String.
+	 */
+	protected int position ()
+	{
+		return position;
+	}
+
+	/**
+	 * Answer the index into the input String at which the current token starts.
+	 *
+	 * @return The location of the start of the current token in the input
+	 * 		String.
+	 */
+	int startOfToken ()
+	{
+		return startOfToken;
+	}
+
+	/**
+	 * Extract a native {@link String} from the input, from the
+	 * {@link #startOfToken} to the current {@link #position}.
+	 *
+	 * @return A substring of the input.
+	 */
+	private String currentTokenString ()
+	{
+		return tokenString.substring(startOfToken, position);
+	}
+
+	/**
+	 * Answer the name of the module being lexically scanned.
+	 *
+	 * @return The resolved module name.
+	 */
+	A_String moduleName ()
+	{
+		return moduleName;
+	}
+
+	/**
+	 * Alter the scanner's ultimate filePosition in the input module.
+	 *
+	 * @param newFilePosition
+	 *            The new position for this scanner as an index into the input
+	 *            String's chars (which may not correspond with the actual code
+	 *            points in the Supplementary Planes).
+	 */
+	protected void filePosition (final int newFilePosition)
+	{
+		this.filePosition = newFilePosition;
+	}
+
+	/**
+	 * Answer the scanner's filePosition in the module.
+	 *
+	 * @return The current filePosition in the module.
+	 */
+	protected int filePosition ()
+	{
+		return filePosition;
+	}
+
+	/**
+	 * Add the provided uninitialized {@linkplain StacksToken quoted
+	 * token}.
+	 *
+	 * @return The newly added token.
+	 */
+	@InnerAccess
+	StacksToken addCurrentToken ()
+	{
+		final StacksToken token = StacksToken.create(
+			currentTokenString(),
+			startOfToken() + filePosition(),
+			lineNumber(),
+			startOfTokenLinePostion(),
+			moduleName.toString());
+		outputTokens.add(token);
+		return token;
+	}
+
+	/**
+	 * Add the provided uninitialized {@linkplain QuotedStacksToken quoted
+	 * token}.
+	 *
+	 * @return The newly added token.
+	 * @throws StacksScannerException
+	 */
+	@InnerAccess
+	BracketedStacksToken addBracketedToken () throws StacksScannerException
+	{
+		final BracketedStacksToken token = BracketedStacksToken.create(
+			currentTokenString(),
+			lineNumber(),
+			startOfToken() + filePosition(),
+			startOfTokenLinePostion(),
+			moduleName.toString());
+		outputTokens.add(token);
+		return token;
+	}
+
+	/**
+	 * Add the provided uninitialized {@linkplain QuotedStacksToken quoted
+	 * token}.
+	 *
+	 * @return The newly added token.
+	 */
+	@InnerAccess
+	QuotedStacksToken addQuotedToken ()
+	{
+		final QuotedStacksToken token = QuotedStacksToken.create(
+			currentTokenString(),
+			startOfToken() + filePosition(),
+			lineNumber(),
+			startOfTokenLinePostion(),
+			moduleName.toString());
+		outputTokens.add(token);
+		return token;
+	}
+
+	/**
+	 * Add the provided uninitialized {@linkplain KeywordStacksToken keyword
+	 * token}.
+	 *
+	 * @return The newly added token.
+	 */
+	@InnerAccess
+	AbstractStacksToken addKeywordToken ()
+	{
+		final AbstractStacksToken token = KeywordStacksToken.create(
+			currentTokenString(),
+			startOfToken() + filePosition(),
+			lineNumber(),
+			startOfTokenLinePostion(),
+			moduleName.toString());
+		outputTokens.add(token);
+		return token;
 	}
 
 	/**
@@ -92,38 +336,71 @@ public class StacksScanner extends AbstractStacksScanner
 	 *
 	 * @return Whether we are finished scanning.
 	 */
-	@InnerAccess @Override
-	boolean atEnd ()
+	@InnerAccess
+	abstract boolean atEnd ();
+
+
+	/**
+	 * Extract the current character and increment the {@link #position}.
+	 *
+	 * @return The consumed character.
+	 * @throws StacksScannerException If scanning fails.
+	 */
+	@InnerAccess
+	int next ()
+		throws StacksScannerException
 	{
-		if (commentEndsStandardly())
+		if (atEnd())
 		{
-			return position() == tokenString().length() - 2;
+			throw new StacksScannerException(
+				"Attempted to read past end of file",
+				this);
 		}
-		return position() == tokenString().length();
+		final int c = Character.codePointAt(tokenString, position);
+		position += Character.charCount(c);
+		if (c == '\n')
+		{
+			lineNumber++;
+			startOfTokenLinePostion = 0;
+		}
+		return c;
 	}
 
 	/**
-	 * Scan the already-specified {@link String} to produce {@linkplain
-	 * #outputTokens tokens}.
+	 * Answer the character at the current {@link #position} of the input.
 	 *
-	 * @throws StacksScannerException
+	 * @return The current character.
 	 */
-	private void scan ()
+	@InnerAccess
+	int peek ()
+	{
+		return Character.codePointAt(tokenString, position);
+	}
+
+	/**
+	 * Skip aCharacter if it's next in the input stream. Answer whether it was
+	 * present.
+	 *
+	 * @param aCharacter
+	 *            The character to look for, as an int to allow code points
+	 *            beyond the Basic Multilingual Plane (U+0000 - U+FFFF).
+	 * @return Whether the specified character was found and skipped.
+	 * @throws StacksScannerException If scanning fails.
+	 */
+	@InnerAccess
+	boolean peekFor (final int aCharacter)
 		throws StacksScannerException
 	{
-		if (commentStartsStandardly)
+		if (atEnd())
 		{
-			position(3);
+			return false;
 		}
-		else
+		if (peek() != aCharacter)
 		{
-			position(0);
+			return false;
 		}
-		while (!atEnd())
-		{
-			startOfToken(position());
-			ScannerAction.forCodePoint(next()).scan(this);
-		}
+		next();
+		return true;
 	}
 
 	/**
@@ -155,7 +432,7 @@ public class StacksScanner extends AbstractStacksScanner
 		DOUBLE_QUOTE ()
 		{
 			@Override
-			void scan (final StacksScanner scanner)
+			void scan (final AbstractStacksScanner scanner)
 				throws StacksScannerException
 			{
 				final int literalStartingLine = scanner.lineNumber();
@@ -163,7 +440,10 @@ public class StacksScanner extends AbstractStacksScanner
 				{
 					// Just the open quote, then end of file.
 					throw new StacksScannerException(
-						"Unterminated string literal",
+						String.format("Unterminated string literal at " +
+								"line, %d, in module, ",
+								scanner.lineNumber(),
+								scanner.moduleName()),
 						scanner);
 				}
 				int c = scanner.next();
@@ -277,8 +557,12 @@ public class StacksScanner extends AbstractStacksScanner
 						// Indicate where the quoted string started, to make it
 						// easier to figure out where the end-quote is missing.
 						scanner.lineNumber(literalStartingLine);
-						throw new StacksScannerException(
-							"Unterminated string literal",
+						final String errorString =
+							String.format("Unterminated string literal at " +
+								"line, %d, in module, %s\n",
+								scanner.lineNumber(),
+								scanner.moduleName);
+						throw new StacksScannerException(errorString,
 							scanner);
 					}
 					c = scanner.next();
@@ -302,7 +586,7 @@ public class StacksScanner extends AbstractStacksScanner
 			 *            corresponding Unicode characters.
 			 */
 			private void parseUnicodeEscapes (
-					final StacksScanner scanner,
+					final AbstractStacksScanner scanner,
 					final StringBuilder stringBuilder)
 				throws StacksScannerException
 			{
@@ -386,7 +670,7 @@ public class StacksScanner extends AbstractStacksScanner
 		BRACKET ()
 		{
 			@Override
-			void scan (final StacksScanner scanner)
+			void scan (final AbstractStacksScanner scanner)
 				throws StacksScannerException
 			{
 				final int startOfBracket = scanner.position();
@@ -443,7 +727,7 @@ public class StacksScanner extends AbstractStacksScanner
 		KEYWORD_START ()
 		{
 			@Override
-			void scan (final StacksScanner scanner)
+			void scan (final AbstractStacksScanner scanner)
 				throws StacksScannerException
 			{
 				while (!Character.isSpaceChar(scanner.peek())
@@ -462,7 +746,7 @@ public class StacksScanner extends AbstractStacksScanner
 		NEWLINE ()
 		{
 			@Override
-			void scan (final StacksScanner scanner)
+			void scan (final AbstractStacksScanner scanner)
 				throws StacksScannerException
 			{
 				while (Character.isSpaceChar(scanner.peek())
@@ -488,7 +772,7 @@ public class StacksScanner extends AbstractStacksScanner
 		SLASH ()
 		{
 			@Override
-			void scan (final StacksScanner scanner)
+			void scan (final AbstractStacksScanner scanner)
 				throws StacksScannerException
 			{
 				if (!scanner.peekFor('*'))
@@ -546,11 +830,12 @@ public class StacksScanner extends AbstractStacksScanner
 		STANDARD_CHARACTER ()
 		{
 			@Override
-			void scan (final StacksScanner scanner)
+			void scan (final AbstractStacksScanner scanner)
 				throws StacksScannerException
 			{
 				while (!Character.isSpaceChar(scanner.peek())
-					&& !Character.isWhitespace(scanner.peek()))
+					&& !Character.isWhitespace(scanner.peek())
+					&& !scanner.atEnd())
 				{
 					scanner.next();
 				}
@@ -564,7 +849,7 @@ public class StacksScanner extends AbstractStacksScanner
 		WHITESPACE ()
 		{
 			@Override
-			void scan (final StacksScanner scanner)
+			void scan (final AbstractStacksScanner scanner)
 				throws StacksScannerException
 			{
 				// do nothing.
@@ -583,7 +868,7 @@ public class StacksScanner extends AbstractStacksScanner
 		ZEROWIDTHWHITESPACE ()
 		{
 			@Override
-			void scan (final StacksScanner scanner)
+			void scan (final AbstractStacksScanner scanner)
 				throws StacksScannerException
 			{
 				// do nothing
@@ -597,7 +882,7 @@ public class StacksScanner extends AbstractStacksScanner
 		 *            The scanner processing this character.
 		 * @throws StacksScannerException If scanning fails.
 		 */
-		abstract void scan (StacksScanner scanner)
+		abstract void scan (AbstractStacksScanner scanner)
 			throws StacksScannerException;
 
 		/**
@@ -629,22 +914,38 @@ public class StacksScanner extends AbstractStacksScanner
 	}
 
 	/**
-	 * Answer the {@linkplain List list} of {@linkplain TokenDescriptor tokens}
-	 * that comprise a {@linkplain CommentTokenDescriptor Avail comment}.
-	 *
-	 * @param commentToken
-	 *		An {@linkplain CommentTokenDescriptor Avail comment} to be
-	 *		tokenized.
-	 * @return a {@link List list} of all tokenized words in the {@link
-	 * 		CommentTokenDescriptor Avail comment}.
-	 * @throws StacksScannerException If scanning fails.
+	 * A table whose indices are Unicode code points (up to 65535) and whose
+	 * values are {@link StacksScanner.ScannerAction scanner actions}.
 	 */
-	public static List<AbstractStacksToken> scanCommentString (final A_Token commentToken)
-		throws StacksScannerException
+	static byte[] dispatchTable = new byte[65536];
+
+	/**
+	 * Statically initialize the {@link dispatchTable} with suitable
+	 * {@link AvailScanner.ScannerAction scanner actions}. Note that this
+	 * happens as part of class loading.
+	 */
+	static
 	{
-		final StacksScanner scanner =
-			new StacksScanner(commentToken);
-		scanner.scan();
-		return scanner.outputTokens;
-	}
+		for (int i = 0; i < 65536; i++)
+		{
+			final char c = (char) i;
+			AbstractStacksScanner.ScannerAction action;
+			if (Character.isSpaceChar(c) || Character.isWhitespace(c))
+			{
+				action = ScannerAction.WHITESPACE;
+			}
+			else
+			{
+				action = ScannerAction.STANDARD_CHARACTER;
+			}
+			dispatchTable[i] = (byte) action.ordinal();
+		}
+		dispatchTable['\n'] = (byte) ScannerAction.NEWLINE.ordinal();
+		dispatchTable['{'] = (byte) ScannerAction.BRACKET.ordinal();
+		dispatchTable['"'] = (byte) ScannerAction.DOUBLE_QUOTE.ordinal();
+		dispatchTable['/'] = (byte) ScannerAction.SLASH.ordinal();
+		dispatchTable['\uFEFF'] =
+			(byte) ScannerAction.ZEROWIDTHWHITESPACE.ordinal();
+		dispatchTable['@'] = (byte) ScannerAction.KEYWORD_START.ordinal();
+		}
 }

@@ -1,5 +1,5 @@
 /**
- * StacksToken.java
+ * AbstractStacksTag.java
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -33,59 +33,26 @@
 package com.avail.stacks;
 
 /**
- * A plain, not special Stacks comment token.
+ * An Avail comment @ tag
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
-public class StacksToken extends AbstractStacksToken
+public class AbstractStacksTag
 {
+	/**
+	 * The Avail comment tag
+	 */
+	KeywordStacksToken tag;
 
 	/**
-	 * Construct a new {@link StacksToken}.
+	 * Construct a new {@link AbstractStacksTag}.
+	 * @param tag
+	 * 		The Avail comment @ tag.
 	 *
-	 * @param string
-	 * 		The string to be tokenized.
-	 * @param lineNumber
-	 * 		The line number where the token occurs/begins
-	 * @param postion
-	 * 		The absolute start position of the token
-	 * @param startOfTokenLinePostion
-	 * 		The position on the line where the token starts.
-	 * @param moduleName
-	 * 		The module the token appears in
 	 */
-	public StacksToken (
-		final String string,
-		final int lineNumber,
-		final int postion,
-		final int startOfTokenLinePostion,
-		final String moduleName)
+	public AbstractStacksTag (final KeywordStacksToken tag)
 	{
-		super(string, lineNumber, postion, startOfTokenLinePostion, moduleName);
+		this.tag = tag;
 	}
 
-	/**
-	 *
-	 * @param string
-	 * 		The string to be tokenized.
-	 * @param lineNumber
-	 * 		The line number where the token occurs/begins
-	 * @param postion
-	 * 		The absolute start position of the token
-	 * @param startOfTokenLinePostion
-	 * 		The position on the line where the token starts.
-	 * @param moduleName
-	 * 		The name of the module the token appears in
-	 * @return a new {@link StacksToken stacks token}
-	 */
-	public static StacksToken create (
-		final String string,
-		final int lineNumber,
-		final int postion,
-		final int startOfTokenLinePostion,
-		final String moduleName)
-	{
-		return new StacksToken(
-			string, lineNumber, postion, startOfTokenLinePostion, moduleName);
-	}
 }

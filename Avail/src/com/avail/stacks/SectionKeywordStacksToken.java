@@ -33,7 +33,8 @@
 package com.avail.stacks;
 
 /**
- * TODO: Document SectionKeywordStacksToken!
+ * A keyword that indicates a full section of tokens that "belong to it" will
+ * follow.
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
@@ -51,14 +52,17 @@ public class SectionKeywordStacksToken extends KeywordStacksToken
 	 * 		The absolute start position of the token
 	 * @param startOfTokenLinePostion
 	 * 		The position on the line where the token starts.
+	 * @param moduleName
+	 * 		The module the token is in
 	 */
 	private SectionKeywordStacksToken (
 		final String string,
 		final int lineNumber,
 		final int postion,
-		final int startOfTokenLinePostion)
+		final int startOfTokenLinePostion,
+		final String moduleName)
 	{
-		super(string, lineNumber, postion, startOfTokenLinePostion);
+		super(string, lineNumber, postion, startOfTokenLinePostion,moduleName);
 	}
 
 	/**
@@ -71,15 +75,18 @@ public class SectionKeywordStacksToken extends KeywordStacksToken
 	 * 		The absolute start position of the token
 	 * @param startOfTokenLinePostion
 	 * 		The position on the line where the token starts.
+	 * @param moduleName
+	 * 		The module the token takes place in.
 	 * @return a new {@link StacksToken stacks token}
 	 */
 	public static SectionKeywordStacksToken create (
 		final String string,
 		final int lineNumber,
 		final int postion,
-		final int startOfTokenLinePostion)
+		final int startOfTokenLinePostion,
+		final String moduleName)
 	{
 		return new SectionKeywordStacksToken(
-			string, lineNumber, postion, startOfTokenLinePostion);
+			string, lineNumber, postion, startOfTokenLinePostion, moduleName);
 	}
 }

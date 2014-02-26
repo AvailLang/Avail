@@ -51,14 +51,18 @@ public class QuotedStacksToken extends RegionStacksToken
 	 * 		The absolute start position of the token
 	 * @param startOfTokenLinePostion
 	 * 		The position on the line where the token starts.
+	 * @param moduleName
+	 * 		The name of the module the token is in.
 	 */
 	private QuotedStacksToken (
 		final String string,
 		final int lineNumber,
 		final int postion,
-		final int startOfTokenLinePostion)
+		final int startOfTokenLinePostion,
+		final String moduleName)
 	{
-		super(string, lineNumber, postion, startOfTokenLinePostion, '\"', '\"');
+		super(string, lineNumber, postion,
+			startOfTokenLinePostion, moduleName, '\"', '\"');
 	}
 
 	/**
@@ -71,15 +75,18 @@ public class QuotedStacksToken extends RegionStacksToken
 	 * 		The absolute start position of the token
 	 * @param startOfTokenLinePostion
 	 * 		The position on the line where the token starts.
+	 * @param moduleName
+	 * 		The name of the module the token is in.
 	 * @return a new {@link QuotedStacksToken stacks token}
 	 */
 	public static QuotedStacksToken create (
 		final String string,
 		final int lineNumber,
 		final int postion,
-		final int startOfTokenLinePostion)
+		final int startOfTokenLinePostion,
+		final String moduleName)
 	{
 		return new QuotedStacksToken(
-			string, lineNumber, postion, startOfTokenLinePostion);
+			string, lineNumber, postion, startOfTokenLinePostion, moduleName);
 	}
 }

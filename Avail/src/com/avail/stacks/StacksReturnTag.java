@@ -1,5 +1,5 @@
 /**
- * StacksToken.java
+ * StacksReturnTag.java
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -32,60 +32,57 @@
 
 package com.avail.stacks;
 
+import java.util.List;
+
 /**
- * A plain, not special Stacks comment token.
+ * The "@returns" component of an Avail comment.
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
-public class StacksToken extends AbstractStacksToken
+public class StacksReturnTag extends AbstractStacksTag
 {
+	/**
+	 * The type of the return
+	 */
+	final private QuotedStacksToken returnType;
 
 	/**
-	 * Construct a new {@link StacksToken}.
-	 *
-	 * @param string
-	 * 		The string to be tokenized.
-	 * @param lineNumber
-	 * 		The line number where the token occurs/begins
-	 * @param postion
-	 * 		The absolute start position of the token
-	 * @param startOfTokenLinePostion
-	 * 		The position on the line where the token starts.
-	 * @param moduleName
-	 * 		The module the token appears in
+	 * The description of the return.
 	 */
-	public StacksToken (
-		final String string,
-		final int lineNumber,
-		final int postion,
-		final int startOfTokenLinePostion,
-		final String moduleName)
+	final private List<AbstractStacksToken> returnDescription;
+
+	/**
+	 * Construct a new {@link StacksReturnTag}.
+	 * @param tag
+	 * 		The Avail comment @ tag.
+	 * @param returnType
+	 * 		The type of the return
+	 * @param returnDescription
+	 * 		The description of the return.
+	 *
+	 */
+	public StacksReturnTag (final KeywordStacksToken tag,
+		final QuotedStacksToken returnType,
+		final List<AbstractStacksToken> returnDescription)
 	{
-		super(string, lineNumber, postion, startOfTokenLinePostion, moduleName);
+		super(tag);
+		this.returnType = returnType;
+		this.returnDescription = returnDescription;
 	}
 
 	/**
-	 *
-	 * @param string
-	 * 		The string to be tokenized.
-	 * @param lineNumber
-	 * 		The line number where the token occurs/begins
-	 * @param postion
-	 * 		The absolute start position of the token
-	 * @param startOfTokenLinePostion
-	 * 		The position on the line where the token starts.
-	 * @param moduleName
-	 * 		The name of the module the token appears in
-	 * @return a new {@link StacksToken stacks token}
+	 * @return the returnDescription
 	 */
-	public static StacksToken create (
-		final String string,
-		final int lineNumber,
-		final int postion,
-		final int startOfTokenLinePostion,
-		final String moduleName)
+	public List<AbstractStacksToken> returnDescription ()
 	{
-		return new StacksToken(
-			string, lineNumber, postion, startOfTokenLinePostion, moduleName);
+		return returnDescription;
+	}
+
+	/**
+	 * @return the returnType
+	 */
+	public QuotedStacksToken returnType ()
+	{
+		return returnType;
 	}
 }

@@ -1,5 +1,5 @@
 /**
- * StacksToken.java
+ * StacksMethodTag.java
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -33,59 +33,39 @@
 package com.avail.stacks;
 
 /**
- * A plain, not special Stacks comment token.
+ * The Avail comment "@method" tag
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
-public class StacksToken extends AbstractStacksToken
+public class StacksMethodTag extends AbstractStacksTag
 {
+	/**
+	 * The name of the method
+	 */
+	final private QuotedStacksToken methodName;
 
 	/**
-	 * Construct a new {@link StacksToken}.
+	 * Construct a new {@link StacksMethodTag}.
 	 *
-	 * @param string
-	 * 		The string to be tokenized.
-	 * @param lineNumber
-	 * 		The line number where the token occurs/begins
-	 * @param postion
-	 * 		The absolute start position of the token
-	 * @param startOfTokenLinePostion
-	 * 		The position on the line where the token starts.
-	 * @param moduleName
-	 * 		The module the token appears in
+	 * @param tag
+	 * 		The Avail comment tag
+	 * @param methodName
+	 * 		The name of the method
 	 */
-	public StacksToken (
-		final String string,
-		final int lineNumber,
-		final int postion,
-		final int startOfTokenLinePostion,
-		final String moduleName)
+	public StacksMethodTag (
+		final KeywordStacksToken tag,
+		final QuotedStacksToken methodName)
 	{
-		super(string, lineNumber, postion, startOfTokenLinePostion, moduleName);
+		super(tag);
+		this.methodName = methodName;
 	}
 
 	/**
-	 *
-	 * @param string
-	 * 		The string to be tokenized.
-	 * @param lineNumber
-	 * 		The line number where the token occurs/begins
-	 * @param postion
-	 * 		The absolute start position of the token
-	 * @param startOfTokenLinePostion
-	 * 		The position on the line where the token starts.
-	 * @param moduleName
-	 * 		The name of the module the token appears in
-	 * @return a new {@link StacksToken stacks token}
+	 * @return the methodName
 	 */
-	public static StacksToken create (
-		final String string,
-		final int lineNumber,
-		final int postion,
-		final int startOfTokenLinePostion,
-		final String moduleName)
+	public QuotedStacksToken methodName ()
 	{
-		return new StacksToken(
-			string, lineNumber, postion, startOfTokenLinePostion, moduleName);
+		return methodName;
 	}
+
 }

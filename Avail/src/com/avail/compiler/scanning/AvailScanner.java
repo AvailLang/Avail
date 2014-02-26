@@ -214,6 +214,22 @@ public class AvailScanner
 			startOfToken,
 			startLine,
 			StringDescriptor.from(moduleName()));
+
+//TODO Remove
+		if (moduleName.equals("/avail/Avail/Foundation/Tuples"))
+		{
+			try
+			{
+				final List<com.avail.stacks.AbstractStacksToken> stacksToken =
+					com.avail.stacks.StacksScanner.scanCommentString(token);
+			}
+			catch (final Exception e)
+			{
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+
 		token.makeShared();
 		commentTokens.add(token);
 		return token;

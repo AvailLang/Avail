@@ -1,5 +1,5 @@
 /**
- * StacksToken.java
+ * StacksParameterTag.java
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -32,60 +32,74 @@
 
 package com.avail.stacks;
 
+import java.util.List;
+
 /**
- * A plain, not special Stacks comment token.
+ * The contents of an Avail comment "@param" tag
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
-public class StacksToken extends AbstractStacksToken
+public class StacksParameterTag extends AbstractStacksTag
 {
+	/**
+	 * The type of the parameter
+	 */
+	final private QuotedStacksToken paramType;
 
 	/**
-	 * Construct a new {@link StacksToken}.
-	 *
-	 * @param string
-	 * 		The string to be tokenized.
-	 * @param lineNumber
-	 * 		The line number where the token occurs/begins
-	 * @param postion
-	 * 		The absolute start position of the token
-	 * @param startOfTokenLinePostion
-	 * 		The position on the line where the token starts.
-	 * @param moduleName
-	 * 		The module the token appears in
+	 * The description of the parameter.
 	 */
-	public StacksToken (
-		final String string,
-		final int lineNumber,
-		final int postion,
-		final int startOfTokenLinePostion,
-		final String moduleName)
+	final private List<AbstractStacksToken> paramDescription;
+
+	/**
+	 * The name of the parameter variable.
+	 */
+	final private QuotedStacksToken paramName;
+
+	/**
+	 * Construct a new {@link StacksParameterTag}.
+	 *
+	 * @param tag
+	 * 		The Avail comment tag
+	 * @param paramType
+	 * 		The type of the parameter
+	 * @param paramDescription
+	 * 		The description of the parameter.
+	 * @param paramName
+	 * 		The name of the parameter variable.
+	 */
+	public StacksParameterTag (final KeywordStacksToken tag,
+		final QuotedStacksToken paramType,
+		final List<AbstractStacksToken> paramDescription,
+		final QuotedStacksToken paramName)
 	{
-		super(string, lineNumber, postion, startOfTokenLinePostion, moduleName);
+		super(tag);
+		this.paramType = paramType;
+		this.paramDescription = paramDescription;
+		this.paramName = paramName;
 	}
 
 	/**
-	 *
-	 * @param string
-	 * 		The string to be tokenized.
-	 * @param lineNumber
-	 * 		The line number where the token occurs/begins
-	 * @param postion
-	 * 		The absolute start position of the token
-	 * @param startOfTokenLinePostion
-	 * 		The position on the line where the token starts.
-	 * @param moduleName
-	 * 		The name of the module the token appears in
-	 * @return a new {@link StacksToken stacks token}
+	 * @return the returnDescription
 	 */
-	public static StacksToken create (
-		final String string,
-		final int lineNumber,
-		final int postion,
-		final int startOfTokenLinePostion,
-		final String moduleName)
+	public List<AbstractStacksToken> paramDescription ()
 	{
-		return new StacksToken(
-			string, lineNumber, postion, startOfTokenLinePostion, moduleName);
+		return paramDescription;
+	}
+
+	/**
+	 * @return the returnType
+	 */
+	public QuotedStacksToken paramType ()
+	{
+		return paramType;
+	}
+
+	/**
+	 * @return the paramName
+	 */
+	public QuotedStacksToken paramName ()
+	{
+		return paramName;
 	}
 }

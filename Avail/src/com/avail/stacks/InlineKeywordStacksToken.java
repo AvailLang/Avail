@@ -44,17 +44,24 @@ public class InlineKeywordStacksToken extends KeywordStacksToken
 	 * Construct a new {@link InlineKeywordStacksToken}.
 	 *
 	 * @param string
+	 * 		The string to be tokenized.
 	 * @param lineNumber
+	 * 		The line number where the token occurs/begins
 	 * @param postion
+	 * 		The absolute start position of the token
 	 * @param startOfTokenLinePostion
+	 * 		The position on the line where the token starts.
+	 * @param moduleName
+	 * 		The module the token appears in
 	 */
 	private InlineKeywordStacksToken (
 		final String string,
 		final int lineNumber,
 		final int postion,
-		final int startOfTokenLinePostion)
+		final int startOfTokenLinePostion,
+		final String moduleName)
 	{
-		super(string, lineNumber, postion, startOfTokenLinePostion);
+		super(string, lineNumber, postion, startOfTokenLinePostion, moduleName);
 	}
 
 	/**
@@ -67,15 +74,18 @@ public class InlineKeywordStacksToken extends KeywordStacksToken
 	 * 		The absolute start position of the token
 	 * @param startOfTokenLinePostion
 	 * 		The position on the line where the token starts.
+	 * @param moduleName
+	 * 		The module the token appears in
 	 * @return a new {@link StacksToken stacks token}
 	 */
 	public static InlineKeywordStacksToken create (
 		final String string,
 		final int lineNumber,
 		final int postion,
-		final int startOfTokenLinePostion)
+		final int startOfTokenLinePostion,
+		final String moduleName)
 	{
 		return new InlineKeywordStacksToken(
-			string, lineNumber, postion, startOfTokenLinePostion);
+			string, lineNumber, postion, startOfTokenLinePostion, moduleName);
 	}
 }
