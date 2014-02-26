@@ -136,13 +136,21 @@ Semantic restriction "_-_" is
 	setType : set meta,
 	value : any meta
 |
-	if setType's element type ∩ value = ⊥ then
+	elementType ::= setType's element type;
+	if elementType ∩ value = ⊥ then
 	[
 		setType
 	]
+	else if [|value| = 1 ∧ [|elementType| ≠ ∞]] then
+	[
+		instances ::= elementType's instances \ value's instances;
+		newElementType ::=
+			cast enumeration of instances into [t : any meta | t];
+		{newElementType | 0 max (⎣setType⎦-1) .. ⎡setType⎤}
+	]
 	else
 	[
-		{setType's element type | 0 max (⎣setType⎦-1) .. ⎡setType⎤}
+		{elementType | 0 max (⎣setType⎦-1) .. ⎡setType⎤}
 	]
 ];
 

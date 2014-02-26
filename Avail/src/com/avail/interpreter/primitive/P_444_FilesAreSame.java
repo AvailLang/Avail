@@ -1,5 +1,5 @@
 /**
- * P_430_FileExists.java
+ * P_444_FilesAreSame.java
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -29,14 +29,16 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+
 package com.avail.interpreter.primitive;
 
-import static com.avail.descriptor.TypeDescriptor.Types.CHARACTER;
+import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
+import java.io.IOException;
+import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
-import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.util.List;
 import com.avail.AvailRuntime;
@@ -44,18 +46,19 @@ import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 
 /**
- * <strong>Primitive 170:</strong> Does a file exist at the specified
- * {@linkplain Path path}? If the second argument is {@code false}, then no
- * symbolic links will be traversed.
+ * <strong>Primitive 444</strong>: Do the specified {@linkplain Path paths}
+ * denote the same file?
+ *
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class P_430_FileExists
+public final class P_444_FilesAreSame
 extends Primitive
 {
 	/**
-	 * The sole instance of this primitive class.  Accessed through reflection.
+	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_430_FileExists().init(
-		2, CanInline, HasSideEffect);
+	public final static Primitive instance =
+		new P_444_FilesAreSame().init(2, CanInline, HasSideEffect);
 
 	@Override
 	public Result attempt (
@@ -64,32 +67,35 @@ extends Primitive
 		final boolean skipReturnCheck)
 	{
 		assert args.size() == 2;
-		final A_String filename = args.get(0);
-		final A_Atom followSymlinks = args.get(1);
-		final AvailRuntime runtime = AvailRuntime.current();
-		final Path path;
+		final A_String first = args.get(0);
+		final A_String second = args.get(1);
+		final Path firstPath;
+		final Path secondPath;
 		try
 		{
-			path = runtime.fileSystem().getPath(
-				filename.asNativeString());
+			final FileSystem fileSystem = AvailRuntime.current().fileSystem();
+			firstPath = fileSystem.getPath(first.asNativeString());
+			secondPath = fileSystem.getPath(second.asNativeString());
 		}
 		catch (final InvalidPathException e)
 		{
 			return interpreter.primitiveFailure(E_INVALID_PATH);
 		}
-		final LinkOption[] options = AvailRuntime.followSymlinks(
-			followSymlinks.extractBoolean());
-		final boolean exists;
+		final boolean same;
 		try
 		{
-			exists = Files.exists(path, options);
+			same = Files.isSameFile(firstPath, secondPath);
+		}
+		catch (final IOException e)
+		{
+			return interpreter.primitiveFailure(E_IO_ERROR);
 		}
 		catch (final SecurityException e)
 		{
 			return interpreter.primitiveFailure(E_PERMISSION_DENIED);
 		}
 		return interpreter.primitiveSuccess(
-			AtomDescriptor.objectFromBoolean(exists));
+			AtomDescriptor.objectFromBoolean(same));
 	}
 
 	@Override
@@ -98,7 +104,7 @@ extends Primitive
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
 				TupleTypeDescriptor.oneOrMoreOf(CHARACTER.o()),
-				EnumerationTypeDescriptor.booleanObject()),
+				TupleTypeDescriptor.oneOrMoreOf(CHARACTER.o())),
 			EnumerationTypeDescriptor.booleanObject());
 	}
 
@@ -108,7 +114,8 @@ extends Primitive
 		return AbstractEnumerationTypeDescriptor.withInstances(
 			TupleDescriptor.from(
 				E_INVALID_PATH.numericCode(),
-				E_PERMISSION_DENIED.numericCode()
+				E_PERMISSION_DENIED.numericCode(),
+				E_IO_ERROR.numericCode()
 			).asSet());
 	}
 }

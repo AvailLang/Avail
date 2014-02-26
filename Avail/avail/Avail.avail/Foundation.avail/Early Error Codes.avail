@@ -195,6 +195,7 @@ Invoke [
 		<202, "directory-not-empty">,
 		<203, "partial-success">,
 		<204, "illegal-option">,
+		<205, "invalid-path">,
 		<500, "Java-class-not-available">,
 		<501, "pojo-type-is-abstract">,
 		<502, "Java-method-not-available">,

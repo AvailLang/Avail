@@ -367,5 +367,5 @@ Method "“_”" is
 		lastAccessTime ::= m's last access time,
 		userPrincipal ::= m's owner,
 		groupPrincipal ::= m's group,
-		permissions ::= “m's access rights” (access rights summary)
+		permissions ::= “m's access rights” (file access rights summary)
 ] : string;

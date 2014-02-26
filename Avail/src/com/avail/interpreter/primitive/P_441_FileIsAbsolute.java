@@ -1,5 +1,5 @@
 /**
- * P_430_FileExists.java
+ * P_441_FileIsAbsolute.java
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -29,14 +29,13 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+
 package com.avail.interpreter.primitive;
 
-import static com.avail.descriptor.TypeDescriptor.Types.CHARACTER;
+import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
-import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
-import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.util.List;
 import com.avail.AvailRuntime;
@@ -44,18 +43,18 @@ import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 
 /**
- * <strong>Primitive 170:</strong> Does a file exist at the specified
- * {@linkplain Path path}? If the second argument is {@code false}, then no
- * symbolic links will be traversed.
+ * <strong>Primitive 441</strong>: TODO: [TLS] Document this!
+ *
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class P_430_FileExists
+public final class P_441_FileIsAbsolute
 extends Primitive
 {
 	/**
-	 * The sole instance of this primitive class.  Accessed through reflection.
+	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_430_FileExists().init(
-		2, CanInline, HasSideEffect);
+	public final static Primitive instance =
+		new P_441_FileIsAbsolute().init(1, CanInline, HasSideEffect);
 
 	@Override
 	public Result attempt (
@@ -63,9 +62,8 @@ extends Primitive
 		final Interpreter interpreter,
 		final boolean skipReturnCheck)
 	{
-		assert args.size() == 2;
+		assert args.size() == 1;
 		final A_String filename = args.get(0);
-		final A_Atom followSymlinks = args.get(1);
 		final AvailRuntime runtime = AvailRuntime.current();
 		final Path path;
 		try
@@ -77,19 +75,9 @@ extends Primitive
 		{
 			return interpreter.primitiveFailure(E_INVALID_PATH);
 		}
-		final LinkOption[] options = AvailRuntime.followSymlinks(
-			followSymlinks.extractBoolean());
-		final boolean exists;
-		try
-		{
-			exists = Files.exists(path, options);
-		}
-		catch (final SecurityException e)
-		{
-			return interpreter.primitiveFailure(E_PERMISSION_DENIED);
-		}
+		final boolean isAbsolute = path.isAbsolute();
 		return interpreter.primitiveSuccess(
-			AtomDescriptor.objectFromBoolean(exists));
+			AtomDescriptor.objectFromBoolean(isAbsolute));
 	}
 
 	@Override
@@ -97,18 +85,14 @@ extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				TupleTypeDescriptor.oneOrMoreOf(CHARACTER.o()),
-				EnumerationTypeDescriptor.booleanObject()),
+				TupleTypeDescriptor.oneOrMoreOf(CHARACTER.o())),
 			EnumerationTypeDescriptor.booleanObject());
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.withInstances(
-			TupleDescriptor.from(
-				E_INVALID_PATH.numericCode(),
-				E_PERMISSION_DENIED.numericCode()
-			).asSet());
+		return AbstractEnumerationTypeDescriptor.withInstance(
+			E_INVALID_PATH.numericCode());
 	}
 }

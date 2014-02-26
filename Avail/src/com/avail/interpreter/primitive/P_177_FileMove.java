@@ -39,6 +39,7 @@ import java.io.IOException;
 import java.nio.file.CopyOption;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -75,10 +76,19 @@ extends Primitive
 		final A_String destination = args.get(1);
 		final A_Atom overwrite = args.get(2);
 		final AvailRuntime runtime = AvailRuntime.current();
-		final Path sourcePath = runtime.fileSystem().getPath(
-			source.asNativeString());
-		final Path destinationPath = runtime.fileSystem().getPath(
-			destination.asNativeString());
+		final Path sourcePath;
+		final Path destinationPath;
+		try
+		{
+			sourcePath = runtime.fileSystem().getPath(
+				source.asNativeString());
+			destinationPath = runtime.fileSystem().getPath(
+				destination.asNativeString());
+		}
+		catch (final InvalidPathException e)
+		{
+			return interpreter.primitiveFailure(E_INVALID_PATH);
+		}
 		final CopyOption[] options = overwrite.extractBoolean()
 			? new CopyOption[] {StandardCopyOption.REPLACE_EXISTING}
 			: new CopyOption[] {};
@@ -125,6 +135,7 @@ extends Primitive
 	{
 		return AbstractEnumerationTypeDescriptor.withInstances(
 			TupleDescriptor.from(
+				E_INVALID_PATH.numericCode(),
 				E_PERMISSION_DENIED.numericCode(),
 				E_NO_FILE.numericCode(),
 				E_FILE_EXISTS.numericCode(),

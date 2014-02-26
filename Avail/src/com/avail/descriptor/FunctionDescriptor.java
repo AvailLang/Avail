@@ -40,6 +40,7 @@ import java.util.List;
 import com.avail.annotations.*;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelOne.*;
+import com.avail.interpreter.primitive.P_340_PushConstant;
 import com.avail.serialization.SerializerOperation;
 
 /**
@@ -418,6 +419,32 @@ extends Descriptor
 			TupleDescriptor.empty());
 		function.makeImmutable();
 		return function;
+	}
+
+	/**
+	 * Construct an arity-0 {@linkplain FunctionDescriptor function} that does
+	 * nothing.
+	 *
+	 * @return A function.
+	 */
+	public static A_Function createNoOp ()
+	{
+		final L1InstructionWriter writer = new L1InstructionWriter(
+			NilDescriptor.nil(),
+			0);
+		writer.primitiveNumber(P_340_PushConstant.instance.primitiveNumber);
+		writer.argumentTypes();
+		writer.returnType(TOP.o());
+		writer.write(
+			new L1Instruction(
+				L1Operation.L1_doPushLiteral,
+				writer.addLiteral(NilDescriptor.nil())));
+		final AvailObject code = writer.compiledCode();
+		final A_Function newFunction = FunctionDescriptor.create(
+			code,
+			TupleDescriptor.empty());
+		newFunction.makeShared();
+		return newFunction;
 	}
 
 	/**

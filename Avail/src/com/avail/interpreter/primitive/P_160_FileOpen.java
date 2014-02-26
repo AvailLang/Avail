@@ -37,6 +37,7 @@ import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.io.*;
 import java.nio.channels.AsynchronousFileChannel;
+import java.nio.file.InvalidPathException;
 import java.nio.file.OpenOption;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
@@ -149,8 +150,16 @@ extends Primitive
 		{
 			return interpreter.primitiveFailure(E_ILLEGAL_OPTION);
 		}
-		final Path path = runtime.fileSystem().getPath(
-			filename.asNativeString());
+		final Path path;
+		try
+		{
+			path = runtime.fileSystem().getPath(
+				filename.asNativeString());
+		}
+		catch (final InvalidPathException e)
+		{
+			return interpreter.primitiveFailure(E_INVALID_PATH);
+		}
 		final A_Atom handle =
 			AtomDescriptor.create(filename, NilDescriptor.nil());
 		try
@@ -227,6 +236,7 @@ extends Primitive
 	{
 		return AbstractEnumerationTypeDescriptor.withInstances(
 			TupleDescriptor.from(
+				E_INVALID_PATH.numericCode(),
 				E_ILLEGAL_OPTION.numericCode(),
 				E_PRIMITIVE_NOT_SUPPORTED.numericCode(),
 				E_PERMISSION_DENIED.numericCode(),

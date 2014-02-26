@@ -47,8 +47,8 @@ public final class P_045_ShortCircuitHelper extends Primitive
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_045_ShortCircuitHelper().init(
-		2, Invokes, CannotFail);
+	public final static Primitive instance =
+		new P_045_ShortCircuitHelper().init(2, Invokes, CannotFail);
 
 	@Override
 	public Result attempt (
@@ -61,7 +61,7 @@ public final class P_045_ShortCircuitHelper extends Primitive
 		final A_Atom ignoredBool = args.get(0);
 		final A_Function block = args.get(1);
 		assert block.code().numArgs() == 0;
-		return interpreter.invokeFunction (
+		return interpreter.invokeFunction(
 			block,
 			Collections.<AvailObject>emptyList(),
 			false);

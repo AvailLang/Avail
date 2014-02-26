@@ -37,6 +37,7 @@ import static com.avail.interpreter.Primitive.Flag.*;
 import java.io.IOException;
 import java.nio.file.FileStore;
 import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -70,10 +71,19 @@ extends Primitive
 		final A_String source = args.get(0);
 		final A_String destination = args.get(1);
 		final AvailRuntime runtime = AvailRuntime.current();
-		final Path sourcePath = runtime.fileSystem().getPath(
-			source.asNativeString());
-		final Path destinationPath = runtime.fileSystem().getPath(
-			destination.asNativeString());
+		final Path sourcePath;
+		final Path destinationPath;
+		try
+		{
+			sourcePath = runtime.fileSystem().getPath(
+				source.asNativeString());
+			destinationPath = runtime.fileSystem().getPath(
+				destination.asNativeString());
+		}
+		catch (final InvalidPathException e)
+		{
+			return interpreter.primitiveFailure(E_INVALID_PATH);
+		}
 		// Make a best effort to forbid clobbering the destination file.
 		if (Files.exists(destinationPath, AvailRuntime.followSymlinks(false)))
 		{
@@ -116,6 +126,7 @@ extends Primitive
 	{
 		return AbstractEnumerationTypeDescriptor.withInstances(
 			TupleDescriptor.from(
+				E_INVALID_PATH.numericCode(),
 				E_PERMISSION_DENIED.numericCode(),
 				E_NO_FILE.numericCode(),
 				E_IO_ERROR.numericCode()

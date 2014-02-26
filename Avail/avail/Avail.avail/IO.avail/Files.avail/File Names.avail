@@ -44,7 +44,19 @@ Names
 
 	/* File existence. */
 	"_exists(follow if symlink=_)",
-	"_exists«(don't follow if symlink)»?"
+	"_exists«(don't follow if symlink)»?",
+
+	/* File name queries. */
+	"_is absolute",
+	"_names the⁇same file as_",
+
+	/* File name conversion. */
+	"_'s⁇absolute path",
+	"_'s⁇real path(follow if symlink=_)",
+	"_'s⁇real path«(don't follow if symlink)»?",
+
+	/* Noteworthy file names. */
+	"current working directory"
 Body
 
 "name" is a new field atom;
@@ -112,6 +124,8 @@ Semantic restriction "a file named_" is
  * @returns "boolean"
  *          {@method "true"} if {@param "fn"} names an existing file, {@method
  *          "false"} otherwise.
+ * @raises "invalid-path exception"
+ *         If {@param "fn"} cannot be understood as a path.
  * @raises "permission-denied exception"
  *         If permission is denied to use the file named by {@param "fn"}.
  */
@@ -124,7 +138,9 @@ Public method "_exists(follow if symlink=_)" is
 		s : nonempty string,
 		b : boolean
 	|
-		Primitive 430 (e : permission-denied code's type);
+		Primitive 430 (e : {
+			invalid-path code,
+			permission-denied code}ᵀ);
 		Raise an exception for e
 	] : boolean (fn's name, followIfSymlink)
 ];
@@ -154,4 +170,189 @@ Public method "_exists«(don't follow if symlink)»?" is
 	fn exists (follow if symlink = ¬dontFollowIfSymlink)
 ] : boolean;
 
-/* TODO: [TLS] Add support for real path! */
+/**
+ * Is {@param "fn"} an absolute path?
+ *
+ * @method "_is absolute"
+ * @param "fn" "file name"
+ * @returns "boolean"
+ *          {@method "true"} if {@param "fn"} is an absolute path, {@method
+ *          "false"} otherwise.
+ * @raises "invalid-path exception"
+ *         If {@param "fn"} cannot be understood as a path.
+ */
+Public method "_is absolute" is
+[
+	fn : file name
+|
+	[
+		s : nonempty string
+	|
+		Primitive 441 (e : invalid-path code's type);
+		Raise an exception for e
+	] : boolean (fn's name)
+] : boolean;
+
+/**
+ * Answer the absolute path that includes the specified {@type "file name"} as a
+ * suffix.
+ *
+ * Note that the answer is only guaranteed valid at the time of the underlying
+ * file system query, and is outdated immediately thereafter.
+ *
+ * @method "_'s⁇absolute path"
+ * @param "fn" "file name"
+ * @returns "file name"
+ * @raises "invalid-path exception"
+ *         If {@param "fn"} cannot be understood as a path.
+ * @raises "permission-denied exception"
+ *         If permission is denied to use the file named by {@param "fn"}.
+ * @raises "I/O exception"
+ *         If an I/O exception occurs.
+ */
+Public method "_'s⁇absolute path" is
+[
+	fn : file name
+|
+	absolute ::=
+		[
+			s : nonempty string
+		|
+			Primitive 442 (e : {
+				invalid-path code,
+				permission-denied code,
+				I/O-error code}ᵀ);
+			Raise an exception for e
+		] : nonempty string (fn's name);
+	a file named absolute
+] : file name;
+
+/**
+ * Answer the real path of the file denoted by the specified {@type
+ * "file name"}. The real path is an {@method "_is absolute" absolute} path that
+ * does not traverse any symbolic links. If the file system preserves the case
+ * of file names, then the file name components are reported with their
+ * canonical cases.
+ *
+ * Note that the answer is only guaranteed valid at the time of the underlying
+ * file system query, and is outdated immediately thereafter.
+ *
+ * @method "_'s⁇real path"
+ * @param "fn" "file name"
+ * @param "followIfSymlink" "boolean"
+ *        {@method "true"} if {@param "fn"} should be followed if it refers to a
+ *        symbolic link, {@method "false"} otherwise.
+ * @returns "file name"
+ * @raises "invalid-path exception"
+ *         If {@param "fn"} cannot be understood as a path.
+ * @raises "permission-denied exception"
+ *         If permission is denied to use the file named by {@param "fn"}.
+ * @raises "I/O exception"
+ *         If an I/O exception occurs.
+ */
+Public method "_'s⁇real path(follow if symlink=_)" is
+[
+	fn : file name,
+	followIfSymlink : boolean
+|
+	real ::=
+		[
+			s : nonempty string,
+			b : boolean
+		|
+			Primitive 443 (e : {
+				invalid-path code,
+				permission-denied code,
+				I/O-error code}ᵀ);
+			Raise an exception for e
+		] : nonempty string (fn's name, followIfSymlink);
+	a file named real
+] : file name;
+
+/**
+ * Answer the real path of the file denoted by the specified {@type
+ * "file name"}. The real path is an {@method "_is absolute" absolute} path that
+ * does not traverse any symbolic links. If the file system preserves the case
+ * of file names, then the file name components are reported with their
+ * canonical cases.
+ *
+ * Note that the answer is only guaranteed valid at the time of the underlying
+ * file system query, and is outdated immediately thereafter.
+ *
+ * @method "_'s⁇real path"
+ * @param "fn" "file name"
+ * @param "dontFollowIfSymlink" "boolean"
+ *        {@method "true"} if {@param "fn"} should not be followed if it refers
+ *        to a symbolic link, {@method "false"} otherwise.
+ * @returns "file name"
+ * @raises "invalid-path exception"
+ *         If {@param "fn"} cannot be understood as a path.
+ * @raises "permission-denied exception"
+ *         If permission is denied to use the file named by {@param "fn"}.
+ * @raises "I/O exception"
+ *         If an I/O exception occurs.
+ */
+Public method "_'s⁇real path«(don't follow if symlink)»?" is
+[
+	fn : file name,
+	dontFollowIfSymlink : boolean
+|
+	fn's real path (follow if symlink = ¬dontFollowIfSymlink)
+] : file name;
+
+/**
+ * Do {@param "f1"} and {@param "f2"} locate the same file?
+ *
+ * Note that the answer is only guaranteed valid at the time of the underlying
+ * file system query, and is outdated immediately thereafter.
+ *
+ * @method "_names the⁇same file as_"
+ * @param "f1" "file name"
+ * @param "f2" "file name"
+ * @returns "boolean"
+ *          {@method "true"} if the arguments locate the same file, {@method
+ *          "false"} otherwise.
+ * @raises "invalid-path exception"
+ *         If either {@param "f1"} or {@param "f2"} cannot be understood as a
+ *         path.
+ * @raises "permission-denied exception"
+ *         If permission is denied to either of the specified {@type
+ *         "file name"}s.
+ * @raises "I/O exception"
+ *         If an I/O exception occurs.
+ */
+Public method "_names the⁇same file as_" is
+[
+	f1 : file name,
+	f2 : file name
+|
+	[
+		s1 : nonempty string,
+		s2 : nonempty string
+	|
+		Primitive 444 (e : {
+			invalid-path code,
+			permission-denied code,
+			I/O-error code}ᵀ);
+		Raise an exception for e
+	] : boolean (f1's name, f2's name)
+] : boolean;
+
+/**
+ * Answer the {@type "file name" current working directory} of the Avail
+ * virtual machine. This is a read-only global value that is set when the
+ * virtual machine starts, and no mechanism is provided to change it.
+ *
+ * @method "current working directory"
+ * @param "file name"
+ *        The {@method "_'s⁇real path(follow if symlink=_)" real path} of the
+ *        current working directory.
+ */
+Public method "current working directory" is
+[
+	cwd ::=
+		[
+			Primitive 445;
+		] : nonempty string ();
+	a file named cwd
+] : file name;

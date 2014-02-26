@@ -65,6 +65,9 @@ Body
  *        The source {@type "file name"}.
  * @param "dest" "file name"
  *        The destination {@type "file name"}.
+ * @raises "invalid-path exception"
+ *         If either {@param "src"} or {@param "dest"} cannot be understood as a
+ *         path.
  * @raises "no-file exception"
  *         If {@param "src"} does not exist.
  * @raises "I/O exception"
@@ -81,8 +84,11 @@ Public method "Rename_to_" is
 		s : nonempty string,
 		d : nonempty string
 	|
-		Primitive 174
-			(e : {no-file code, I/O-error code, permission-denied code}ᵀ);
+		Primitive 174 (e : {
+			invalid-path code,
+			no-file code,
+			I/O-error code,
+			permission-denied code}ᵀ);
 		Raise an exception for e
 	] : ⊤ (src's name, dest's name);
 ] : ⊤;
@@ -98,6 +104,9 @@ Public method "Rename_to_" is
  * @param "overwrite" "boolean"
  *        {@method "true"} if {@param "dest"} should be overwritten if it
  *        exists, {@method "false"} otherwise.
+ * @raises "invalid-path exception"
+ *         If either {@param "src"} or {@param "dest"} cannot be understood as a
+ *         path.
  * @raises "no-file exception"
  *         If {@param "src"} does not exist.
  * @raises "file-exists exception"
@@ -120,6 +129,7 @@ Public method "Move_to_(overwrite=_)" is
 		o : boolean
 	|
 		Primitive 177 (e : {
+			invalid-path code,
 			no-file code,
 			file-exists code,
 			I/O-error code,
@@ -139,6 +149,9 @@ Public method "Move_to_(overwrite=_)" is
  * @param "overwrite" "boolean"
  *        {@method "true"} if {@param "dest"} should be overwritten if it
  *        exists, {@method "false"} otherwise.
+ * @raises "invalid-path exception"
+ *         If either {@param "src"} or {@param "dest"} cannot be understood as a
+ *         path.
  * @raises "no-file exception"
  *         If {@param "src"} does not exist.
  * @raises "file-exists exceptions"
@@ -173,18 +186,20 @@ Public method "Move_to_«,⁇overwriting if necessary»?" is
  *        {@method "true"} if symbolic links should be followed during the
  *        traversal of the source tree, {@method "false" otherwise}.
  * @param "overwrite" "boolean"
- *        {@method "true"} if {@param "dest"} should be overwritten if it
- *        exists, {@method "false"} otherwise.
+ *        {@method "true"} if files in {@param "dest"} should be overwritten by
+ *        files at analogous paths in {@param "src"}, {@method "false"}
+ *        otherwise.
  * @param "copyAttributes" "boolean"
  *        {@method "true"} if the file attributes of {@param "src"} should be
  *        copied as faithfully as possible, {@method "false"} otherwise.
+ * @raises "invalid-path exception"
+ *         If either {@param "src"} or {@param "dest"} cannot be understood as a
+ *         path.
  * @raises "partial-success exception"
  *         If {@param "recursive"} is {@method "true"} and at least one file
  *         could not be copied for any reason.
  * @raises "no-file exception"
  *         If {@param "src"} does not exist.
- * @raises "file-exists exception"
- *         If {@param "dest"} exists, but overwriting is not permitted.
  * @raises "I/O exception"
  *         If an I/O error occurs for any reason.
  * @raises "permission-denied exception"
@@ -209,6 +224,7 @@ is
 		c : boolean
 	|
 		Primitive 178 (e : {
+			invalid-path code,
 			partial-success code,
 			I/O-error code,
 			permission-denied code}ᵀ);
@@ -233,18 +249,20 @@ is
  *        {@method "true"} if symbolic links should be followed during the
  *        traversal of the source tree, {@method "false" otherwise}.
  * @param "overwrite" "boolean"
- *        {@method "true"} if {@param "dest"} should be overwritten if it
- *        exists, {@method "false"} otherwise.
+ *        {@method "true"} if files in {@param "dest"} should be overwritten by
+ *        files at analogous paths in {@param "src"}, {@method "false"}
+ *        otherwise.
  * @param "copyAttributes" "boolean"
  *        {@method "true"} if the file attributes of {@param "src"} should be
  *        copied as faithfully as possible, {@method "false"} otherwise.
+ * @raises "invalid-path exception"
+ *         If either {@param "src"} or {@param "dest"} cannot be understood as a
+ *         path.
  * @raises "partial-success exception"
  *         If {@param "recursive"} is {@method "true"} and at least one file
  *         could not be copied for any reason.
  * @raises "no-file exception"
  *        If {@param "src"} does not exist.
- * @raises "file-exists exception"
- *        If {@param "dest"} exists, but overwriting is not permitted.
  * @raises "I/O exception"
  *         If an I/O error occurs for any reason.
  * @raises "permission-denied exception"
@@ -285,6 +303,8 @@ is
  *        {@method "true"} if symbolic links should be followed during
  *        traversal, {@method "false"} otherwise. Applies to recursive unlinking
  *        only.
+ * @raises "invalid-path exception"
+ *         If {@param "fn"} cannot be understood as a path.
  * @raises "partial-success exception"
  *         If {@param "recursive"} is {@method "true"} and at least one file
  *         could not be unlinked for any reason.
@@ -313,6 +333,7 @@ Public method "Unlink_(recursive=_,must exist=_,follow symlinks=_)" is
 		f : boolean
 	|
 		Primitive 175 (e : {
+			invalid-path code,
 			partial-success code,
 			no-file code,
 			directory-not-empty code,
@@ -338,6 +359,8 @@ Public method "Unlink_(recursive=_,must exist=_,follow symlinks=_)" is
  *        {@method "true"} if symbolic links should be followed during
  *        traversal, {@method "false"} otherwise. Applies to recursive unlinking
  *        only.
+ * @raises "invalid-path exception"
+ *         If {@param "fn"} cannot be understood as a path.
  * @raises "partial-success exception"
  *         If {@param "recursive"} is {@method "true"} and at least one file
  *         could not be unlinked for any reason.

@@ -37,6 +37,7 @@ import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.attribute.PosixFilePermission;
@@ -118,8 +119,16 @@ extends Primitive
 		final A_String filename = args.get(0);
 		final A_Atom followSymlinks = args.get(1);
 		final AvailRuntime runtime = AvailRuntime.current();
-		final Path path = runtime.fileSystem().getPath(
-			filename.asNativeString());
+		final Path path;
+		try
+		{
+			path = runtime.fileSystem().getPath(
+				filename.asNativeString());
+		}
+		catch (final InvalidPathException e)
+		{
+			return interpreter.primitiveFailure(E_INVALID_PATH);
+		}
 		final LinkOption[] options = AvailRuntime.followSymlinks(
 			followSymlinks.extractBoolean());
 		final Set<PosixFilePermission> permissions;
@@ -168,6 +177,7 @@ extends Primitive
 	{
 		return AbstractEnumerationTypeDescriptor.withInstances(
 			TupleDescriptor.from(
+				E_INVALID_PATH.numericCode(),
 				E_PERMISSION_DENIED.numericCode(),
 				E_IO_ERROR.numericCode(),
 				E_PRIMITIVE_NOT_SUPPORTED.numericCode()

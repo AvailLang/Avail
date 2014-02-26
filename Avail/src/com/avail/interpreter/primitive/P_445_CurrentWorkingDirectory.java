@@ -1,5 +1,5 @@
 /**
- * P_044_IfThen.java
+ * P_445_CurrentWorkingDirectory.java
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -29,27 +29,63 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+
 package com.avail.interpreter.primitive;
 
-import static com.avail.descriptor.TypeDescriptor.Types.TOP;
+import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.interpreter.Primitive.Flag.*;
-import java.util.*;
+import java.io.IOException;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
+import java.nio.file.LinkOption;
+import java.nio.file.Path;
+import java.util.List;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 
 /**
- * <strong>Primitive 44:</strong> Invoke the {@linkplain FunctionDescriptor
- * trueBlock} if {@linkplain EnumerationTypeDescriptor#booleanObject() aBoolean}
- * is true, otherwise just answer {@linkplain NilDescriptor#nil()
- * void}.
+ * <strong>Primitive 445</strong>: Answer the {@linkplain
+ * Path#toRealPath(LinkOption...) real path} of the current working directory.
+ *
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class P_044_IfThen extends Primitive
+public final class P_445_CurrentWorkingDirectory
+extends Primitive
 {
 	/**
-	 * The sole instance of this primitive class.  Accessed through reflection.
+	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_044_IfThen().init(
-		2, Invokes, CannotFail);
+	public final static Primitive instance =
+		new P_445_CurrentWorkingDirectory().init(
+			0, CannotFail, CanInline, HasSideEffect);
+
+	/**
+	 * The current working directory of the Avail virtual machine. Because Java
+	 * does not permit the current working directory to be changed, it is safe
+	 * to cache the answer at class-loading time.
+	 */
+	private static final A_String currentWorkingDirectory;
+
+	// Obtain the current working directory. Try to resolve this location to its
+	// real path. If resolution fails, then just use the value of the "user.dir"
+	// system property.
+	static
+	{
+		final String userDir = System.getProperty("user.dir");
+		final FileSystem fileSystem = FileSystems.getDefault();
+		final Path path = fileSystem.getPath(userDir);
+		String realPathString;
+		try
+		{
+			realPathString = path.toRealPath().toString();
+		}
+		catch (final IOException|SecurityException e)
+		{
+			realPathString = userDir;
+		}
+		currentWorkingDirectory =
+			StringDescriptor.from(realPathString).makeShared();
+	}
 
 	@Override
 	public Result attempt (
@@ -57,30 +93,15 @@ public final class P_044_IfThen extends Primitive
 		final Interpreter interpreter,
 		final boolean skipReturnCheck)
 	{
-		assert args.size() == 2;
-		final A_Atom aBoolean = args.get(0);
-		final A_Function trueBlock = args.get(1);
-		assert trueBlock.code().numArgs() == 0;
-		if (aBoolean.extractBoolean())
-		{
-			// It's ⊤-valued, so there's no need to check the result's type.
-			return interpreter.invokeFunction(
-				trueBlock,
-				Collections.<AvailObject>emptyList(),
-				true);
-		}
-		return interpreter.primitiveSuccess(NilDescriptor.nil());
+		assert args.size() == 0;
+		return interpreter.primitiveSuccess(currentWorkingDirectory);
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
-				EnumerationTypeDescriptor.booleanObject(),
-				FunctionTypeDescriptor.create(
-					TupleDescriptor.empty(),
-					TOP.o())),
-			TOP.o());
+			TupleDescriptor.empty(),
+			TupleTypeDescriptor.oneOrMoreOf(CHARACTER.o()));
 	}
 }

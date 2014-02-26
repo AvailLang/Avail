@@ -32,9 +32,10 @@
 package com.avail.interpreter.primitive;
 
 import static com.avail.descriptor.TypeDescriptor.Types.CHARACTER;
-import static com.avail.exceptions.AvailErrorCode.E_PERMISSION_DENIED;
+import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.util.List;
 import com.avail.AvailRuntime;
@@ -63,8 +64,16 @@ extends Primitive
 		assert args.size() == 1;
 		final A_String filename = args.get(0);
 		final AvailRuntime runtime = AvailRuntime.current();
-		final Path path = runtime.fileSystem().getPath(
-			filename.asNativeString());
+		final Path path;
+		try
+		{
+			path = runtime.fileSystem().getPath(
+				filename.asNativeString());
+		}
+		catch (final InvalidPathException e)
+		{
+			return interpreter.primitiveFailure(E_INVALID_PATH);
+		}
 		final boolean writable;
 		try
 		{
@@ -90,6 +99,10 @@ extends Primitive
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return InstanceTypeDescriptor.on(E_PERMISSION_DENIED.numericCode());
+		return AbstractEnumerationTypeDescriptor.withInstances(
+			TupleDescriptor.from(
+				E_INVALID_PATH.numericCode(),
+				E_PERMISSION_DENIED.numericCode()
+			).asSet());
 	}
 }
