@@ -1,5 +1,5 @@
 /**
- * StacksParameterTag.java
+ * StacksSuperTypeTag.java
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -32,75 +32,41 @@
 
 package com.avail.stacks;
 
-import java.util.List;
-
 /**
- * The contents of an Avail comment "@param" tag
+ * The "@supertype" keyword of an Avail class comment.
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
-public class StacksParameterTag extends AbstractStacksTag
+public class StacksSuperTypeTag extends AbstractStacksTag
 {
 	/**
-	 * The type of the parameter
+	 * The supertype keyword indicates the supertype of the class
+	 * implementation
 	 */
-	final private QuotedStacksToken paramType;
+	final private QuotedStacksToken superType;
 
 	/**
-	 * The description of the parameter.
-	 */
-	final private List<AbstractStacksToken> paramDescription;
-
-	/**
-	 * The name of the parameter variable.
-	 */
-	final private QuotedStacksToken paramName;
-
-	/**
-	 * Construct a new {@link StacksParameterTag}.
+	 * Construct a new {@link StacksSuperTypeTag}.
 	 *
 	 * @param tag
-	 * 		The Avail comment tag
-	 * @param paramType
-	 * 		The type of the parameter
-	 * @param paramDescription
-	 * 		The description of the parameter.
-	 * @param paramName
-	 * 		The name of the parameter variable.
+	 * @param superType
+	 * 		The supertype keyword indicates the supertype of the class
+	 * 		implementation
 	 */
-	public StacksParameterTag (
+	public StacksSuperTypeTag (
 		final KeywordStacksToken tag,
-		final QuotedStacksToken paramType,
-		final List<AbstractStacksToken> paramDescription,
-		final QuotedStacksToken paramName)
+		final QuotedStacksToken superType)
 	{
 		super(tag);
-		this.paramType = paramType;
-		this.paramDescription = paramDescription;
-		this.paramName = paramName;
+		this.superType = superType;
 	}
 
 	/**
-	 * @return the returnDescription
+	 * @return the superType
 	 */
-	public List<AbstractStacksToken> paramDescription ()
+	public QuotedStacksToken superType ()
 	{
-		return paramDescription;
+		return superType;
 	}
 
-	/**
-	 * @return the returnType
-	 */
-	public QuotedStacksToken paramType ()
-	{
-		return paramType;
-	}
-
-	/**
-	 * @return the paramName
-	 */
-	public QuotedStacksToken paramName ()
-	{
-		return paramName;
-	}
 }

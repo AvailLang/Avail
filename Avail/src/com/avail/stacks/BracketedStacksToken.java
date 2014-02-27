@@ -73,7 +73,7 @@ public class BracketedStacksToken extends RegionStacksToken
 		this.subTokens = StacksBracketScanner.scanBracketString(this);
 	}
 	/**
-	 *
+	 *  Statically create a new {@link BracketedStacksToken}.
 	 * @param string
 	 * 		The string to be tokenized.
 	 * @param lineNumber

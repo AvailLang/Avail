@@ -1,5 +1,5 @@
 /**
- * StacksParameterTag.java
+ * StacksLinkTag.java
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -35,72 +35,45 @@ package com.avail.stacks;
 import java.util.List;
 
 /**
- * The contents of an Avail comment "@param" tag
+ * The "@link" tag use in an Avail comment to link to an external web page.
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
-public class StacksParameterTag extends AbstractStacksTag
+public class StacksLinkTag extends AbstractStacksTag
 {
 	/**
-	 * The type of the parameter
+	 * The external site to be linked to along with any way you want the link
+	 * to be represented.  If only the web address is listed, the web address
+	 * is what is displayed, otherwise the text following the web address will
+	 * be used as the linking text.
 	 */
-	final private QuotedStacksToken paramType;
+	final private List<QuotedStacksToken> linkTokens;
 
 	/**
-	 * The description of the parameter.
-	 */
-	final private List<AbstractStacksToken> paramDescription;
-
-	/**
-	 * The name of the parameter variable.
-	 */
-	final private QuotedStacksToken paramName;
-
-	/**
-	 * Construct a new {@link StacksParameterTag}.
+	 * Construct a new {@link StacksLinkTag}.
 	 *
 	 * @param tag
 	 * 		The Avail comment tag
-	 * @param paramType
-	 * 		The type of the parameter
-	 * @param paramDescription
-	 * 		The description of the parameter.
-	 * @param paramName
-	 * 		The name of the parameter variable.
+	 * @param linkTokens
+	 * 		The external site to be linked to along with any way you want the
+	 * 		link to be represented.  If only the web address is listed, the web
+	 * 		address is what is displayed, otherwise the text following the web
+	 * 		address will be used as the linking text.
 	 */
-	public StacksParameterTag (
+	public StacksLinkTag (
 		final KeywordStacksToken tag,
-		final QuotedStacksToken paramType,
-		final List<AbstractStacksToken> paramDescription,
-		final QuotedStacksToken paramName)
+		final List<QuotedStacksToken> linkTokens)
 	{
 		super(tag);
-		this.paramType = paramType;
-		this.paramDescription = paramDescription;
-		this.paramName = paramName;
+		this.linkTokens = linkTokens;
 	}
 
 	/**
-	 * @return the returnDescription
+	 * @return the linkTokens
 	 */
-	public List<AbstractStacksToken> paramDescription ()
+	public List<QuotedStacksToken> linkTokens ()
 	{
-		return paramDescription;
+		return linkTokens;
 	}
 
-	/**
-	 * @return the returnType
-	 */
-	public QuotedStacksToken paramType ()
-	{
-		return paramType;
-	}
-
-	/**
-	 * @return the paramName
-	 */
-	public QuotedStacksToken paramName ()
-	{
-		return paramName;
-	}
 }

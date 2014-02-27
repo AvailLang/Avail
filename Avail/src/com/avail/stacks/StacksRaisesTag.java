@@ -1,5 +1,5 @@
 /**
- * StacksParameterTag.java
+ * StacksRaisesTag.java
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -35,72 +35,56 @@ package com.avail.stacks;
 import java.util.List;
 
 /**
- * The contents of an Avail comment "@param" tag
+ * The "@raises" tag in an Avail comment indicates an exception that is thrown
+ * by the method.
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
-public class StacksParameterTag extends AbstractStacksTag
+public class StacksRaisesTag extends AbstractStacksTag
 {
 	/**
-	 * The type of the parameter
+	 * The description of the exception.
 	 */
-	final private QuotedStacksToken paramType;
+	final private List<AbstractStacksToken> exceptionDescription;
 
 	/**
-	 * The description of the parameter.
+	 * The name of the exception.
 	 */
-	final private List<AbstractStacksToken> paramDescription;
+	final private QuotedStacksToken exceptionName;
 
 	/**
-	 * The name of the parameter variable.
-	 */
-	final private QuotedStacksToken paramName;
-
-	/**
-	 * Construct a new {@link StacksParameterTag}.
+	 * Construct a new {@link StacksRaisesTag}.
 	 *
 	 * @param tag
 	 * 		The Avail comment tag
-	 * @param paramType
-	 * 		The type of the parameter
-	 * @param paramDescription
-	 * 		The description of the parameter.
-	 * @param paramName
-	 * 		The name of the parameter variable.
+	 * @param exceptionName
+	 * 		The name of the exception.
+	 * @param exceptionDescription
 	 */
-	public StacksParameterTag (
+	public StacksRaisesTag (
 		final KeywordStacksToken tag,
-		final QuotedStacksToken paramType,
-		final List<AbstractStacksToken> paramDescription,
-		final QuotedStacksToken paramName)
+		final QuotedStacksToken exceptionName,
+		final List<AbstractStacksToken> exceptionDescription)
 	{
 		super(tag);
-		this.paramType = paramType;
-		this.paramDescription = paramDescription;
-		this.paramName = paramName;
+		this.exceptionDescription = exceptionDescription;
+		this.exceptionName = exceptionName;
 	}
 
 	/**
-	 * @return the returnDescription
+	 * @return the exceptionDescription
 	 */
-	public List<AbstractStacksToken> paramDescription ()
+	public List<AbstractStacksToken> exceptionDescription ()
 	{
-		return paramDescription;
+		return exceptionDescription;
 	}
 
 	/**
-	 * @return the returnType
+	 * @return the exceptionName
 	 */
-	public QuotedStacksToken paramType ()
+	public QuotedStacksToken exceptionName ()
 	{
-		return paramType;
+		return exceptionName;
 	}
 
-	/**
-	 * @return the paramName
-	 */
-	public QuotedStacksToken paramName ()
-	{
-		return paramName;
-	}
 }

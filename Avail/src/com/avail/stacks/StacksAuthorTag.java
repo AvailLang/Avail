@@ -1,5 +1,5 @@
 /**
- * StacksParameterTag.java
+ * StacksAuthorTag.java
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -32,75 +32,40 @@
 
 package com.avail.stacks;
 
-import java.util.List;
-
 /**
- * The contents of an Avail comment "@param" tag
+ * he Avail comment "@author" tag
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
-public class StacksParameterTag extends AbstractStacksTag
+public class StacksAuthorTag extends AbstractStacksTag
 {
 	/**
-	 * The type of the parameter
+	 * The author of the method/type
 	 */
-	final private QuotedStacksToken paramType;
+	final private QuotedStacksToken author;
 
 	/**
-	 * The description of the parameter.
-	 */
-	final private List<AbstractStacksToken> paramDescription;
-
-	/**
-	 * The name of the parameter variable.
-	 */
-	final private QuotedStacksToken paramName;
-
-	/**
-	 * Construct a new {@link StacksParameterTag}.
+	 * Construct a new {@link StacksAuthorTag}.
 	 *
 	 * @param tag
 	 * 		The Avail comment tag
-	 * @param paramType
-	 * 		The type of the parameter
-	 * @param paramDescription
-	 * 		The description of the parameter.
-	 * @param paramName
-	 * 		The name of the parameter variable.
+	 * @param author
+	 * 		The author of the method/type
 	 */
-	public StacksParameterTag (
+	public StacksAuthorTag (
 		final KeywordStacksToken tag,
-		final QuotedStacksToken paramType,
-		final List<AbstractStacksToken> paramDescription,
-		final QuotedStacksToken paramName)
+		final QuotedStacksToken author)
 	{
 		super(tag);
-		this.paramType = paramType;
-		this.paramDescription = paramDescription;
-		this.paramName = paramName;
+		this.author = author;
 	}
 
 	/**
-	 * @return the returnDescription
+	 * @return the author
 	 */
-	public List<AbstractStacksToken> paramDescription ()
+	public QuotedStacksToken author ()
 	{
-		return paramDescription;
+		return author;
 	}
 
-	/**
-	 * @return the returnType
-	 */
-	public QuotedStacksToken paramType ()
-	{
-		return paramType;
-	}
-
-	/**
-	 * @return the paramName
-	 */
-	public QuotedStacksToken paramName ()
-	{
-		return paramName;
-	}
 }

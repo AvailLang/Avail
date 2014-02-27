@@ -1,5 +1,5 @@
 /**
- * StacksParameterTag.java
+ * StacksRestrictsTag.java
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -32,75 +32,41 @@
 
 package com.avail.stacks;
 
-import java.util.List;
-
 /**
- * The contents of an Avail comment "@param" tag
+ * The "@restricts" tag in an Avail comment that represents the meta type of an
+ * Avail method's paramater's type as used in a semantic restriction.
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
-public class StacksParameterTag extends AbstractStacksTag
+public class StacksRestrictsTag extends AbstractStacksTag
 {
 	/**
-	 * The type of the parameter
+	 * The type of the method parameter's type.
 	 */
-	final private QuotedStacksToken paramType;
+	final private QuotedStacksToken paramMetaType;
 
 	/**
-	 * The description of the parameter.
-	 */
-	final private List<AbstractStacksToken> paramDescription;
-
-	/**
-	 * The name of the parameter variable.
-	 */
-	final private QuotedStacksToken paramName;
-
-	/**
-	 * Construct a new {@link StacksParameterTag}.
+	 * Construct a new {@link StacksRestrictsTag}.
 	 *
 	 * @param tag
 	 * 		The Avail comment tag
-	 * @param paramType
-	 * 		The type of the parameter
-	 * @param paramDescription
-	 * 		The description of the parameter.
-	 * @param paramName
-	 * 		The name of the parameter variable.
+	 * @param paramMetaType
+	 * 		The type of the method parameter's type.
 	 */
-	public StacksParameterTag (
+	public StacksRestrictsTag (
 		final KeywordStacksToken tag,
-		final QuotedStacksToken paramType,
-		final List<AbstractStacksToken> paramDescription,
-		final QuotedStacksToken paramName)
+		final QuotedStacksToken paramMetaType)
 	{
 		super(tag);
-		this.paramType = paramType;
-		this.paramDescription = paramDescription;
-		this.paramName = paramName;
+		this.paramMetaType = paramMetaType;
 	}
 
 	/**
-	 * @return the returnDescription
+	 * @return the paramMetaType
 	 */
-	public List<AbstractStacksToken> paramDescription ()
+	public QuotedStacksToken paramMetaType ()
 	{
-		return paramDescription;
+		return paramMetaType;
 	}
 
-	/**
-	 * @return the returnType
-	 */
-	public QuotedStacksToken paramType ()
-	{
-		return paramType;
-	}
-
-	/**
-	 * @return the paramName
-	 */
-	public QuotedStacksToken paramName ()
-	{
-		return paramName;
-	}
 }

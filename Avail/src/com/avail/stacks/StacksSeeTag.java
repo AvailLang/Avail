@@ -1,5 +1,5 @@
 /**
- * StacksParameterTag.java
+ * StacksSeeTag.java
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -32,75 +32,40 @@
 
 package com.avail.stacks;
 
-import java.util.List;
-
 /**
- * The contents of an Avail comment "@param" tag
+ * The "@see" Avail comment tag.
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
-public class StacksParameterTag extends AbstractStacksTag
+public class StacksSeeTag extends AbstractStacksTag
 {
 	/**
-	 * The type of the parameter
+	 * The thing that should be 'seen'
 	 */
-	final private QuotedStacksToken paramType;
+	final private RegionStacksToken thingToSee;
 
 	/**
-	 * The description of the parameter.
-	 */
-	final private List<AbstractStacksToken> paramDescription;
-
-	/**
-	 * The name of the parameter variable.
-	 */
-	final private QuotedStacksToken paramName;
-
-	/**
-	 * Construct a new {@link StacksParameterTag}.
+	 * Construct a new {@link StacksSeeTag}.
 	 *
 	 * @param tag
-	 * 		The Avail comment tag
-	 * @param paramType
-	 * 		The type of the parameter
-	 * @param paramDescription
-	 * 		The description of the parameter.
-	 * @param paramName
-	 * 		The name of the parameter variable.
+	 *		The Avail comment tag
+	 * @param thingToSee
+	 * 		The thing that should be 'seen'
 	 */
-	public StacksParameterTag (
+	public StacksSeeTag (
 		final KeywordStacksToken tag,
-		final QuotedStacksToken paramType,
-		final List<AbstractStacksToken> paramDescription,
-		final QuotedStacksToken paramName)
+		final RegionStacksToken thingToSee)
 	{
 		super(tag);
-		this.paramType = paramType;
-		this.paramDescription = paramDescription;
-		this.paramName = paramName;
+		this.thingToSee = thingToSee;
 	}
 
 	/**
-	 * @return the returnDescription
+	 * @return the thingToSee
 	 */
-	public List<AbstractStacksToken> paramDescription ()
+	public RegionStacksToken thingToSee ()
 	{
-		return paramDescription;
+		return thingToSee;
 	}
 
-	/**
-	 * @return the returnType
-	 */
-	public QuotedStacksToken paramType ()
-	{
-		return paramType;
-	}
-
-	/**
-	 * @return the paramName
-	 */
-	public QuotedStacksToken paramName ()
-	{
-		return paramName;
-	}
 }

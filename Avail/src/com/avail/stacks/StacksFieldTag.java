@@ -1,5 +1,5 @@
 /**
- * StacksParameterTag.java
+ * StacksFieldTag.java
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -35,72 +35,72 @@ package com.avail.stacks;
 import java.util.List;
 
 /**
- * The contents of an Avail comment "@param" tag
+ * The "@field" tag in an Avail Class comment.
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
-public class StacksParameterTag extends AbstractStacksTag
+public class StacksFieldTag extends AbstractStacksTag
 {
 	/**
-	 * The type of the parameter
+	 * The type of the field
 	 */
-	final private QuotedStacksToken paramType;
+	final private QuotedStacksToken fieldType;
 
 	/**
-	 * The description of the parameter.
+	 * The description of the field.
 	 */
-	final private List<AbstractStacksToken> paramDescription;
+	final private List<AbstractStacksToken> fieldDescription;
 
 	/**
-	 * The name of the parameter variable.
+	 * The name of the field.
 	 */
-	final private QuotedStacksToken paramName;
+	final private QuotedStacksToken fieldName;
 
 	/**
-	 * Construct a new {@link StacksParameterTag}.
+	 * Construct a new {@link StacksFieldTag}.
 	 *
 	 * @param tag
 	 * 		The Avail comment tag
-	 * @param paramType
-	 * 		The type of the parameter
-	 * @param paramDescription
-	 * 		The description of the parameter.
-	 * @param paramName
-	 * 		The name of the parameter variable.
+	 * @param fieldType
+	 *		The type of the field
+	 * @param fieldDescription
+	 * 		The description of the field.
+	 * @param fieldName
+	 * 		The name of the field.
 	 */
-	public StacksParameterTag (
+	public StacksFieldTag (
 		final KeywordStacksToken tag,
-		final QuotedStacksToken paramType,
-		final List<AbstractStacksToken> paramDescription,
-		final QuotedStacksToken paramName)
+		final QuotedStacksToken fieldType,
+		final List<AbstractStacksToken> fieldDescription,
+		final QuotedStacksToken fieldName)
 	{
 		super(tag);
-		this.paramType = paramType;
-		this.paramDescription = paramDescription;
-		this.paramName = paramName;
+		this.fieldDescription = fieldDescription;
+		this.fieldName = fieldName;
+		this.fieldType = fieldType;
 	}
 
 	/**
-	 * @return the returnDescription
+	 * @return the fieldType
 	 */
-	public List<AbstractStacksToken> paramDescription ()
+	public QuotedStacksToken fieldType ()
 	{
-		return paramDescription;
+		return fieldType;
 	}
 
 	/**
-	 * @return the returnType
+	 * @return the fieldDescription
 	 */
-	public QuotedStacksToken paramType ()
+	public List<AbstractStacksToken> fieldDescription ()
 	{
-		return paramType;
+		return fieldDescription;
 	}
 
 	/**
-	 * @return the paramName
+	 * @return the fieldName
 	 */
-	public QuotedStacksToken paramName ()
+	public QuotedStacksToken fieldName ()
 	{
-		return paramName;
+		return fieldName;
 	}
 }

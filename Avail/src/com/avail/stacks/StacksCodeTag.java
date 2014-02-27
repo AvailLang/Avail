@@ -1,5 +1,5 @@
 /**
- * StacksParameterTag.java
+ * StacksCodeTag.java
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -32,75 +32,42 @@
 
 package com.avail.stacks;
 
-import java.util.List;
-
 /**
- * The contents of an Avail comment "@param" tag
+ * The Avail comment "@code" tag. This is used for code like syntax styles.
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
-public class StacksParameterTag extends AbstractStacksTag
+public class StacksCodeTag extends AbstractStacksTag
 {
 	/**
-	 * The type of the parameter
+	 * The text that is intended to be styled as code.  Can either be quoted
+	 * text or numerical value.  Multiple tokens should be quoted.
 	 */
-	final private QuotedStacksToken paramType;
+	final private AbstractStacksToken codeStyledText;
 
 	/**
-	 * The description of the parameter.
-	 */
-	final private List<AbstractStacksToken> paramDescription;
-
-	/**
-	 * The name of the parameter variable.
-	 */
-	final private QuotedStacksToken paramName;
-
-	/**
-	 * Construct a new {@link StacksParameterTag}.
+	 * Construct a new {@link StacksCodeTag}.
 	 *
 	 * @param tag
 	 * 		The Avail comment tag
-	 * @param paramType
-	 * 		The type of the parameter
-	 * @param paramDescription
-	 * 		The description of the parameter.
-	 * @param paramName
-	 * 		The name of the parameter variable.
+	 * @param codeStyledText
+	 * 		The text that is intended to be styled as code.  Can either be
+	 * 		quoted text or numerical value.  Multiple tokens should be quoted.
 	 */
-	public StacksParameterTag (
+	public StacksCodeTag (
 		final KeywordStacksToken tag,
-		final QuotedStacksToken paramType,
-		final List<AbstractStacksToken> paramDescription,
-		final QuotedStacksToken paramName)
+		final AbstractStacksToken codeStyledText)
 	{
 		super(tag);
-		this.paramType = paramType;
-		this.paramDescription = paramDescription;
-		this.paramName = paramName;
+		this.codeStyledText = codeStyledText;
 	}
 
 	/**
-	 * @return the returnDescription
+	 * @return the codeStyledText
 	 */
-	public List<AbstractStacksToken> paramDescription ()
+	public AbstractStacksToken codeStyledText ()
 	{
-		return paramDescription;
+		return codeStyledText;
 	}
 
-	/**
-	 * @return the returnType
-	 */
-	public QuotedStacksToken paramType ()
-	{
-		return paramType;
-	}
-
-	/**
-	 * @return the paramName
-	 */
-	public QuotedStacksToken paramName ()
-	{
-		return paramName;
-	}
 }
