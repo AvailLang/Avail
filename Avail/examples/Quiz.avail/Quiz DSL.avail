@@ -1,0 +1,94 @@
+/*
+ * Quiz DSL.avail
+ * Copyright © 1993-2014, The Avail Foundation, LLC.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+System Module "Quiz DSL"
+Versions
+	"dev"
+Uses
+	"Avail"
+Names
+	/* Defining a question. */
+	"Q:_«A:_«*»?»",
+
+	/* Administering a quiz. Should also display results. */
+	"Administer quiz"
+Body
+
+/* TODO: Implement the DSL. It should at least support the pre-existing quiz in
+ * "Questions", but once you have the DSL working, consider getting fancier.
+ * 
+ * Here are a few ideas for getting fancy once the basics are working:
+ *
+ * - Support as many answers as desired, rather than just four.
+ * - Allow multiple correct answers.
+ * - Allow questions to be weighted.
+ * - Allow other question types than multiple choice.
+ * - Add a semantic restriction that ensures that at least one answer has been
+ *   designated as correct.
+ * - Redesign "Administer quiz" so that it uses dependency injection for I/O,
+ *   thereby allowing it to be unit tested by an automated process.
+ */
+
+/* TODO: Put module constants and variables and private methods here. */
+
+/**
+ * Define a multiple-choice question.
+ *
+ * @method "Q:_«A:_«*»?»"
+ * @param "questionText" "nonempty string"
+ *        The text of the question.
+ * @param "answers" "<<nonempty string, boolean…|2>…|4>"
+ *        A tuple of pairs. The first element of each pair is the text of an
+ *        answer and the second element is a {@type "boolean"} which is
+ *        {@method "true"} if the answer is considered correct. (The answer is
+ *        considered correct iff an asterisk follows it.)
+ */
+Public method "Q:_«A:_«*»?»" is
+[
+	questionText : nonempty string,
+	answers : <<nonempty string, boolean…|2>…|4>
+|
+	/* TODO: Implement me. */
+] : ⊤;
+
+/**
+ * Administer a quiz by displaying questions and their multiple-choice answers
+ * to standard output. User answers will be supplied by standard input. When
+ * every question has been answered, display the results of the quiz to standard
+ * output.
+ *
+ * @method "Administer quiz"
+ */
+Public method "Administer quiz" is
+[
+	/* TODO: Implement me. */
+] : ⊤;

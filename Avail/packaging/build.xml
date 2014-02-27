@@ -6,6 +6,9 @@
 	<property
 		name="path.interpreter"
 		value="${path.avail.bin}/com/avail/interpreter"/>
+	<property
+		name = "dotted.primitive.path"
+		value="com.avail.interpreter.primitive"/>
 
 	<!--
 		Produce a file containing the build time that can be included as a
@@ -47,21 +50,22 @@
 			file="${path.primitives-list}"
 			append="no"
 			message="${one-primitive-per-line}"/>
-		<!-- Remove the absolute path to the "bin" directory. -->
-		<replace
-			file="${path.primitives-list}"
-			token="${path.avail.bin}/"
-			value=""/>
-		<!-- Convert the path separators into package separators. -->
+		<!-- Remove the absolute path to the "bin" directory, replacing
+		     the remaining path separators with dots. -->
+		<replaceregexp file="${path.primitives-list}"
+			match=".*[\\/]([^\\/]+)\.class"
+			replace="${dotted.primitive.path}.\1"
+			byline="true"/>
+<!-- Convert the path separators into package separators.
 		<replace
 			file="${path.primitives-list}"
 			token="/"
 			value="."/>
-		<!-- Remove the file extensions. -->
 		<replace
 			file="${path.primitives-list}"
 			token=".class"
 			value=""/>
+-->
 	</target>
 
 	<!--
