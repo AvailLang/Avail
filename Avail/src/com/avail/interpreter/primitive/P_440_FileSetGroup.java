@@ -36,6 +36,7 @@ import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.io.IOException;
+import java.nio.file.AccessDeniedException;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
@@ -105,13 +106,13 @@ extends Primitive
 					groupName.asNativeString());
 			view.setGroup(group);
 		}
+		catch (final SecurityException|AccessDeniedException e)
+		{
+			return interpreter.primitiveFailure(E_PERMISSION_DENIED);
+		}
 		catch (final IOException e)
 		{
 			return interpreter.primitiveFailure(E_IO_ERROR);
-		}
-		catch (final SecurityException e)
-		{
-			return interpreter.primitiveFailure(E_PERMISSION_DENIED);
 		}
 		catch (final UnsupportedOperationException e)
 		{

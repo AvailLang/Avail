@@ -35,6 +35,7 @@ import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.io.IOException;
+import java.nio.file.AccessDeniedException;
 import java.nio.file.FileStore;
 import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
@@ -96,7 +97,7 @@ extends Primitive
 				destinationPath,
 				StandardCopyOption.ATOMIC_MOVE);
 		}
-		catch (final SecurityException e)
+		catch (final SecurityException|AccessDeniedException e)
 		{
 			return interpreter.primitiveFailure(E_PERMISSION_DENIED);
 		}

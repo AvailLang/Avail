@@ -97,7 +97,7 @@ extends Primitive
 					Files.deleteIfExists(path);
 				}
 			}
-			catch (final SecurityException e)
+			catch (final SecurityException|AccessDeniedException e)
 			{
 				return interpreter.primitiveFailure(E_PERMISSION_DENIED);
 			}

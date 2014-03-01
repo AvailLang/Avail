@@ -43,6 +43,10 @@ Names
 	"Require:_=_(_)",
 	"Require:_raises_",
 	"Require:_raises_(_)",
+	"Require if supported«on this platform»⁇:_",
+	"Require if supported«on this platform»⁇:_(_)",
+	"Require if supported«on this platform»⁇:_raises_",
+	"Require if supported«on this platform»⁇:_raises_(_)",
 
 	/* Exceptions. */
 	"failed-requirement exception"
@@ -99,7 +103,7 @@ Method "Require:_(_)" is
 	predicate : false's type,
 	message : string
 |
-	Raise a failed-requirement exception ∩ descriptive exception with
+	Raise a descriptive failed-requirement exception with
 		error message ::= message
 ] : ⊥;
 
@@ -121,8 +125,8 @@ Public method "Require:_=_" is
 |
 	If expected ≠ actual then
 	[
-		Raise a failed-requirement exception ∩ descriptive exception
-			with error message ::=
+		Raise a descriptive failed-requirement exception with
+			error message ::=
 				format "expected=“①”, actual=“②”" with expected, actual
 	];
 ] : ⊤;
@@ -168,8 +172,8 @@ Public method "Require:_=_(_)" is
 |
 	If expected ≠ actual then
 	[
-		Raise a failed-requirement exception ∩ descriptive exception
-			with error message ::=
+		Raise a descriptive failed-requirement exception with
+			error message ::=
 				format "“①”: expected=“②”, actual=“③”"
 				with message, expected, actual
 	];
@@ -217,8 +221,8 @@ Public method "Require:_raises_" is
 	Guard
 	[
 		aFunction();
-		Raise a failed-requirement exception ∩ descriptive exception
-			with error message ::=
+		Raise a descriptive failed-requirement exception with
+			error message ::=
 				format "expected ∈ “①” (no exception)"
 				with exceptionType
 	]
@@ -228,12 +232,11 @@ Public method "Require:_raises_" is
 	|
 		If ¬e ∈ exceptionType then
 		[
-			Raise a descriptive cascade failed-requirement exception
-				with
-					causal exception ::= e,
-					error message ::=
-						format "expected ∈ “①”, actual=“②”"
-						with exceptionType, e
+			Raise a descriptive cascade failed-requirement exception with
+				causal exception ::= e,
+				error message ::=
+					format "expected ∈ “①”, actual=“②”"
+					with exceptionType, e
 		];
 	];
 ] : ⊤;
@@ -263,8 +266,8 @@ Public method "Require:_raises_(_)" is
 	Guard
 	[
 		aFunction();
-		Raise a failed-requirement exception ∩ descriptive exception
-			with error message ::=
+		Raise a descriptive failed-requirement exception with
+			error message ::=
 				format "“①”: expected ∈ “②” (no exception)"
 				with message, exceptionType
 	]
@@ -274,15 +277,175 @@ Public method "Require:_raises_(_)" is
 	|
 		If ¬e ∈ exceptionType then
 		[
-			Raise a descriptive cascade failed-requirement exception
-				with
-					causal exception ::= e,
-					error message ::=
-						format "“①”: expected ∈ “②”, actual=“③”"
-						with message, exceptionType, e
+			Raise a descriptive cascade failed-requirement exception with
+				causal exception ::= e,
+				error message ::=
+					format "“①”: expected ∈ “②”, actual=“③”"
+					with message, exceptionType, e
 		];
 	];
 ] :  ⊤;
+
+/**
+ * Require that {@param "aFunction"} answers {@method "true"} or raises an
+ * {@type "unsupported-operation exception"}.
+ *
+ * @method "Require if supported«on this platform»⁇:_"
+ * @param "aFunction" "[]→boolean"
+ * @raises "failed-requirement exception"
+ *         If {@param "aFunction"} answers {@method "false"}.
+ */
+Public method "Require if supported«on this platform»⁇:_" is
+[
+	aFunction : []→boolean
+|
+	Guard
+	[
+		If ¬aFunction() then
+		[
+			Raise a failed-requirement exception
+		];
+	]
+	intercept
+	[
+		e : unsupported-operation exception
+	|
+		/* Ignore this exception. */
+	];
+] : ⊤;
+
+/**
+ * Require that {@param "aFunction"} answers {@method "true"} or raises an
+ * {@type "unsupported-operation exception"}.
+ *
+ * @method "Require if supported«on this platform»⁇:_"
+ * @param "aFunction" "[]→boolean"
+ * @param "message" "string"
+ *        Additional information that should be attached to the exception in the
+ *        event of failure.
+ * @raises "failed-requirement exception"
+ *         If {@param "aFunction"} answers {@method "false"}.
+ */
+Public method "Require if supported«on this platform»⁇:_(_)" is
+[
+	aFunction : []→boolean,
+	message : string
+|
+	Guard
+	[
+		If ¬aFunction() then
+		[
+			Raise a descriptive failed-requirement exception with
+				error message ::= message
+		];
+	]
+	intercept
+	[
+		e : unsupported-operation exception
+	|
+		/* Ignore this exception. */
+	];
+] : ⊤;
+
+/**
+ * Require that {@param "aFunction"} raises an {@type "exception"} that is a
+ * subtype of either {@param "exceptionType"} or {@type
+ * "unsupported-operation exception"}.
+ *
+ * @method "Require if supported«on this platform»⁇:_"
+ * @param "aFunction" "[]→boolean"
+ * @param "exceptionType" "exception's type"
+ * @raises "failed-requirement exception"
+ *         If {@param "aFunction"} does not raise an {@type "exception"} or
+ *         raises an {@type "exception"} that is not a subtype of either
+ *         {@param "exceptionType"} or {@type
+ *         "unsupported-operation exception"}.
+ */
+Public method "Require if supported«on this platform»⁇:_raises_" is
+[
+	aFunction : []→⊤,
+	exceptionType : exception's type
+|
+	Guard
+	[
+		aFunction();
+		Raise a descriptive failed-requirement exception
+			with error message ::=
+				format "expected ∈ “①” (no exception)"
+				with exceptionType
+	]
+	intercept
+	[
+		e : unsupported-operation exception
+	|
+		/* Ignore this exception. */
+	]
+	intercept
+	[
+		e : exception
+	|
+		If ¬e ∈ exceptionType then
+		[
+			Raise a descriptive cascade failed-requirement exception with
+				causal exception ::= e,
+				error message ::=
+					format "expected ∈ “①”, actual=“②”"
+					with exceptionType, e
+		];
+	];
+] : ⊤;
+
+/**
+ * Require that {@param "aFunction"} raises an {@type "exception"} that is a
+ * subtype of either {@param "exceptionType"} or {@type
+ * "unsupported-operation exception"}.
+ *
+ * @method "Require if supported«on this platform»⁇:_"
+ * @param "aFunction" "[]→boolean"
+ * @param "exceptionType" "exception's type"
+ * @param "message" "string"
+ *        Additional information that should be attached to the exception in the
+ *        event of failure.
+ * @raises "failed-requirement exception"
+ *         If {@param "aFunction"} does not raise an {@type "exception"} or
+ *         raises an {@type "exception"} that is not a subtype of either
+ *         {@param "exceptionType"} or {@type
+ *         "unsupported-operation exception"}.
+ */
+Public method "Require if supported«on this platform»⁇:_raises_(_)" is
+[
+	aFunction : []→⊤,
+	exceptionType : exception's type,
+	message : string
+|
+	Guard
+	[
+		aFunction();
+		Raise a descriptive failed-requirement exception with
+			error message ::=
+				format "“①”: expected ∈ “②” (no exception)"
+				with message, exceptionType
+	]
+	intercept
+	[
+		e : unsupported-operation exception
+	|
+		/* Ignore this exception. */
+	]
+	intercept
+	[
+		e : exception
+	|
+		If ¬e ∈ exceptionType then
+		[
+			Raise a descriptive cascade failed-requirement exception with
+				causal exception ::= e,
+				error message ::=
+					format "“①”: expected ∈ “②”, actual=“③”"
+					with message, exceptionType, e
+		];
+	];
+] : ⊤;
 
 [
 	comparisons ::=

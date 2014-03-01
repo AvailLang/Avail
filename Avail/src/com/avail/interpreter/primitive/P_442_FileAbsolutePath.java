@@ -82,13 +82,13 @@ extends Primitive
 		{
 			absolutePath = path.toAbsolutePath();
 		}
-		catch (final IOError e)
-		{
-			return interpreter.primitiveFailure(E_IO_ERROR);
-		}
 		catch (final SecurityException e)
 		{
 			return interpreter.primitiveFailure(E_PERMISSION_DENIED);
+		}
+		catch (final IOError e)
+		{
+			return interpreter.primitiveFailure(E_IO_ERROR);
 		}
 		return interpreter.primitiveSuccess(StringDescriptor.from(
 			absolutePath.toString()));

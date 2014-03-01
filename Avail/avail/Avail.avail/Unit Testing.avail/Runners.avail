@@ -276,6 +276,11 @@ Private method "Tear down:_" is
  * Run and obtain a {@type "unit test result" test metric} for the specified
  * test.
  *
+ * NB: If the name of this method changes, or its implementation changes, then
+ * {@method "long“_”"} in {@module "Types"} will also need to be updated. Its
+ * stack truncation logic expects this method to have a particular name and
+ * internal structure.
+ *
  * @method "Run test_"
  * @param "test" "unit test"
  *        A unit test.
@@ -315,7 +320,12 @@ Private method "test metric for_" is
 		[
 			e : exception
 		|
-			if expected is empty then
+			isOptional ::= test's platform optionality;
+			if isOptional ∧ [e ∈ unsupported-operation exception] then
+			[
+				a unit test exclusion with test ID ::= test's test ID
+			]
+			else if [expected is empty] then
 			[
 				a unit test failure with
 					test ID ::= id,
@@ -614,8 +624,35 @@ Public method "_'s⁇metrics by test suite" is
 	]
 ] : {atom→<unit test result…|>|};
 
+/**
+ * Answer a {@type "tuple"} containing every {@type "unit test failure"}
+ * present in the argument, preserving their order.
+ *
+ * @method "bad results of_"
+ * @param "<unit test result…|>"
+ * @returns "<unit test failure…|>"
+ */
+Private method "bad results of_" is
+[
+	results : <unit test result…|>
+|
+	filter results by [t : unit test result | t ∈ unit test failure]
+];
+
+Semantic restriction "bad results of_" is
+[
+	results : <unit test result…|>'s type
+|
+	<<>, unit test failure… | [0..⎡results⎤+1)>
+];
+
+Private method "report banner"  is ["REPORT "  ++ 73 of ¢=];
+Private method "summary banner" is ["SUMMARY " ++ 72 of ¢=];
+Private method "details banner" is ["DETAILS " ++ 72 of ¢=];
+
 _passed ::= $passed;
 _failed ::= $failed;
+_skipped ::= $skipped;
 
 /**
  * Generate a module-oriented textual report from the specified {@type
@@ -632,12 +669,15 @@ Public method "module-oriented“_”" is
 	report : unit test report
 |
 	desc : string := "";
+	details : string := "";
 	discriminator ::=
 		[
 			result : unit test result
 		|
-			cast result into [ t : unit test success | _passed ]
-			else [ _failed ]
+			cast result into
+				[t : unit test success | _passed],
+				[t : unit test failure | _failed],
+				[t : unit test exclusion | _skipped]
 		];
 	For each report's metrics by module do
 	[
@@ -656,24 +696,48 @@ Public method "module-oriented“_”" is
 		desc := eject ↑desc
 			++ format
 				"\t(summary: total=“total”, passed=“passed”, \
-				\|failed=“failed”)\n\n"
+				\|failed=“failed”, skipped=“skipped”)\n\n"
 			with
 				total ::= |results|,
 				passed ::= |statistics[_passed] else [<>]|,
-				failed ::= |statistics[_failed] else [<>]|;
+				failed ::= |statistics[_failed] else [<>]|,
+				skipped ::= |statistics[_skipped] else [<>]|;
+		badResults ::= bad results of results;
+		index : natural number := 1;
+		While [index ≤ |badResults|]
+		do
+		[
+			result ::= badResults[index];
+			details := eject ↑details ++ long “result”;
+			↑index++;
+		]
+		alternate with
+		[
+			details := eject ↑details ++ "\n" ++ 80 of ¢= ++ "\n\n";
+		];
 	];
-	/* Report statistics. */
+	/* Compute statistics. */
 	statistics ::= group report's metrics by discriminator;
 	format
-		"‘breakdown’SUMMARY:\n\
-		\|\tTOTAL:  “total”\n\
-		\|\tPASSED: “passed”\n\
-		\|\tFAILED: “failed”\n"
+		"‘reportBanner’\n\
+		\|‘breakdown’‘summaryBanner’\n\
+		\|TOTAL:   “total”\n\
+		\|PASSED:  “passed”\n\
+		\|FAILED:  “failed”\n\
+		\|SKIPPED: “skipped”\n\
+		\|‘details’"
 	with
+		reportBanner ::= report banner,
 		breakdown ::= desc,
+		summaryBanner ::= summary banner,
 		total ::= |report's metrics|,
 		passed ::= |statistics[_passed] else [<>]|,
-		failed ::= |statistics[_failed] else [<>]|
+		failed ::= |statistics[_failed] else [<>]|,
+		skipped ::= |statistics[_skipped] else [<>]|,
+		details ::=
+			if details is empty
+			then [""]
+			else ["\n" ++ details banner ++ "\n" ++ details]
 ] : string;
 
 /**
@@ -691,12 +755,15 @@ Public method "test suite-oriented“_”" is
 	report : unit test report
 |
 	desc : string := "";
+	details : string := "";
 	discriminator ::=
 		[
 			result : unit test result
 		|
-			cast result into [ t : unit test success | _passed ]
-			else [ _failed ]
+			cast result into
+				[t : unit test success | _passed],
+				[t : unit test failure | _failed],
+				[t : unit test exclusion | _skipped]
 		];
 	For each report's metrics by test suite do
 	[
@@ -715,24 +782,48 @@ Public method "test suite-oriented“_”" is
 		desc := eject ↑desc
 			++ format
 				"\t(summary: total=“total”, passed=“passed”, \
-				\|failed=“failed”)\n\n"
+				\|failed=“failed”, skipped=“skipped”)\n\n"
 			with
 				total ::= |results|,
 				passed ::= |statistics[_passed] else [<>]|,
-				failed ::= |statistics[_failed] else [<>]|;
+				failed ::= |statistics[_failed] else [<>]|,
+				skipped ::= |statistics[_skipped] else [<>]|;
+		badResults ::= bad results of results;
+		index : natural number := 1;
+		While [index ≤ |badResults|]
+		do
+		[
+			result ::= badResults[index];
+			details := eject ↑details ++ long “result”;
+			↑index++;
+		]
+		alternate with
+		[
+			details := eject ↑details ++ "\n" ++ 80 of ¢= ++ "\n\n";
+		];
 	];
 	/* Report statistics. */
 	statistics ::= group report's metrics by discriminator;
 	format
-		"‘breakdown’SUMMARY:\n\
-		\|\tTOTAL:  “total”\n\
-		\|\tPASSED: “passed”\n\
-		\|\tFAILED: “failed”\n"
+		"‘reportBanner’\n\
+		\|‘breakdown’‘summaryBanner’\n\
+		\|TOTAL:   “total”\n\
+		\|PASSED:  “passed”\n\
+		\|FAILED:  “failed”\n\
+		\|SKIPPED: “skipped”\n\
+		\|‘details’"
 	with
+		reportBanner ::= report banner,
 		breakdown ::= desc,
+		summaryBanner ::= summary banner,
 		total ::= |report's metrics|,
 		passed ::= |statistics[_passed] else [<>]|,
-		failed ::= |statistics[_failed] else [<>]|
+		failed ::= |statistics[_failed] else [<>]|,
+		skipped ::= |statistics[_skipped] else [<>]|,
+		details ::=
+			if details is empty
+			then [""]
+			else ["\n" ++ details banner ++ "\n" ++ details]
 ] : string;
 
 /**

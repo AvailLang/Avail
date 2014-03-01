@@ -37,6 +37,7 @@ import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.io.*;
 import java.nio.channels.AsynchronousFileChannel;
+import java.nio.file.AccessDeniedException;
 import java.nio.file.InvalidPathException;
 import java.nio.file.OpenOption;
 import java.nio.file.Path;
@@ -189,7 +190,7 @@ extends Primitive
 		{
 			return interpreter.primitiveFailure(E_PRIMITIVE_NOT_SUPPORTED);
 		}
-		catch (final SecurityException e)
+		catch (final SecurityException|AccessDeniedException e)
 		{
 			return interpreter.primitiveFailure(E_PERMISSION_DENIED);
 		}

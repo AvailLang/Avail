@@ -120,7 +120,7 @@ Test "file size" in file metadata test suite is
 	Require: 11 = m's size;
 ];
 
-Test "file access rights" in file metadata test suite is
+Test "file access rights" in file metadata test suite, if supported, is
 [
 	fn ::= abracadabra.txt;
 	m ::= fn's metadata;
@@ -133,7 +133,7 @@ Test "file access rights" in file metadata test suite is
 	] 10 times;
 ];
 
-Test "file principals" in file metadata test suite is
+Test "file principals" in file metadata test suite, if supported, is
 [
 	fn ::= abracadabra.txt;
 	m ::= fn's metadata;

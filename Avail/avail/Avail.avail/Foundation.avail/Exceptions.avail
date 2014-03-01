@@ -66,6 +66,7 @@ Names
 	"_'s⁇error message",
 	"_'s⁇stack summary",
 	"“_”(stack summary)",
+	"“_”(frames_of stack summary«,⁇renumbered starting at_»)",
 
 	/* System exception categories. */
 	"arithmetic exception",
@@ -84,6 +85,7 @@ Names
 	"invocation exception",
 	"security exception",
 	"trace exception",
+	"unsupported-operation exception",
 	"variable-use exception",
 
 	/* Voluntary termination. */
@@ -813,7 +815,7 @@ Public explicit class "invocation exception" extends exception;
 
 /**
  * An instantiation exception describes error conditions related to
- * instantiating types (particulary user-defined object types).
+ * instantiating types (particularly user-defined object types).
  * 
  * @type "instantiation exception"
  * @supertype "exception"
@@ -836,6 +838,12 @@ Public explicit class "security exception" extends exception;
  * @supertype "exception"
  */
 Public explicit class "trace exception" extends exception;
+
+/**
+ * An unsupported-operation exception describes error conditions related to
+ * performing operations that are not supported by the underlying platform.
+ */
+Public explicit class "unsupported-operation exception" extends exception;
 
 /**
  * A variable use exception describes error conditions related to usage of
@@ -878,7 +886,7 @@ System exception "method-return-type-not-as-forward-declared" (13)
 System exception "continuation-expected-stronger-type" (14)
 	extends invocation exception;
 System exception "primitive-not-supported" (15)
-	extends bad-primitive exception;
+	extends bad-primitive exception ∩ unsupported-operation exception;
 System exception "not-enumeration" (17)
 	extends invocation exception;
 System exception "shift-and-truncate-requires-non-negative" (18)
@@ -1223,6 +1231,7 @@ Method "a Java exception caused by_" is
  *
  * @method "“_”(stack summary)"
  * @param "e" "exception"
+ * @returns "string"
  */
 Public method "“_”(stack summary)" is
 [
@@ -1236,6 +1245,45 @@ Public method "“_”(stack summary)" is
 	|
 		frame ::= dump[index];
 		text := eject ↑text ++ (format "\t‘①’\n" with frame);
+	];
+	text
+];
+
+/**
+ * Obtain a printed representation of the specified {@type "exception"}'s stack
+ * summary, suitable for printing. Only summarize frames in the given range.
+ *
+ * @method "“_”(stack summary)"
+ * @param "e" "exception"
+ * @param "range" "natural number's type"
+ *        The range of the stack to summarize. The ordinal of the base frame is
+ *        {@code 1}. If the ceiling of the range is out of bounds for the stack,
+ *        then substitute the actual size of the stack.
+ * @param "start" "natural number"
+ *        If specified, then the ordinal to present for the {@code ⎣range⎦}-th
+ *        frame of the stack.
+ * @returns "string"
+ */
+Public method "“_”(frames_of stack summary«,⁇renumbered starting at_»)" is
+[
+	e : exception,
+	range : [1..∞)'s type,
+	start : <natural number…|0..1>
+|
+	dump ::= e's stack summary;
+	text : string := "";
+	ordinal : natural number := start[1] else [1];
+	From ⎣range⎦ to ⎡range⎤ min |dump| do
+	[
+		index : natural number
+	|
+		frame ::= dump[index];
+		colon ::= first index of ":" in frame;
+		Assert: colon ≠ 0;
+		withoutOrdinal ::= frame[colon + 1..];
+		newFrame ::= format "\t#“①”:‘②’\n" with ordinal, withoutOrdinal;
+		text := newFrame ++ eject ↑text;
+		↑ordinal++;
 	];
 	text
 ];
