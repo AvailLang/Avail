@@ -58,6 +58,8 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.persistence.*;
+import com.avail.persistence.IndexedRepositoryManager.ModuleVersion;
+import com.avail.utility.MutableOrNull;
 import com.avail.utility.evaluation.*;
 
 /**
@@ -318,6 +320,37 @@ extends JFrame
 	}
 
 	/**
+	 * An {@code InsertEntryPointAction} inserts a string based on the currently
+	 * selected entry point into the user input field.
+	 */
+	private final class InsertEntryPointAction
+	extends AbstractAction
+	{
+		/** The serial version identifier. */
+		private static final long serialVersionUID = 5141044753199192996L;
+
+		@Override
+		public void actionPerformed (final @Nullable ActionEvent event)
+		{
+			final String selectedEntryPoint = selectedEntryPoint();
+			assert selectedEntryPoint != null;
+			inputField.replaceSelection(selectedEntryPoint);
+			inputField.requestFocusInWindow();
+		}
+
+		/**
+		 * Construct a new {@link InsertEntryPointAction}.
+		 */
+		public InsertEntryPointAction ()
+		{
+			super("Insert entry point");
+			putValue(
+				SHORT_DESCRIPTION,
+				"Insert this entry point's name in the input area.");
+		}
+	}
+
+	/**
 	 * A {@code SubmitInputAction} sends a line of text from the {@linkplain
 	 * #inputField input field} to standard input.
 	 */
@@ -363,8 +396,12 @@ extends JFrame
 		public void actionPerformed (final @Nullable ActionEvent event)
 		{
 			final String selection = selectedModule();
-			moduleTree.setModel(new DefaultTreeModel(moduleTree()));
-			for (int i = 0; i < moduleTree.getRowCount(); i++)
+			final MutableOrNull<TreeNode> modules = new MutableOrNull<>();
+			final MutableOrNull<TreeNode> entryPoints = new MutableOrNull<>();
+			populateModuleTreeAndEntryPoints(modules, entryPoints);
+
+			moduleTree.setModel(new DefaultTreeModel(modules.value));
+			for (int i = moduleTree.getRowCount() - 1; i >= 0; i--)
 			{
 				moduleTree.expandRow(i);
 			}
@@ -376,7 +413,12 @@ extends JFrame
 					moduleTree.setSelectionPath(path);
 				}
 			}
-			entryPointsTree.setModel(new DefaultTreeModel(entryPointsTree()));
+
+			entryPointsTree.setModel(new DefaultTreeModel(entryPoints.value));
+			for (int i = entryPointsTree.getRowCount() - 1; i >= 0; i--)
+			{
+				entryPointsTree.expandRow(i);
+			}
 		}
 
 		/**
@@ -848,6 +890,9 @@ extends JFrame
 	 * Actions.
 	 */
 
+	/** The {@linkplain RefreshAction refresh action}. */
+	@InnerAccess final RefreshAction refreshAction;
+
 	/** The {@linkplain BuildAction build action}. */
 	@InnerAccess final BuildAction buildAction;
 
@@ -863,64 +908,31 @@ extends JFrame
 	/** The {@linkplain ClearReportAction clear report action}. */
 	@InnerAccess final ClearReportAction clearReportAction;
 
-	/**
-	 * Answer the (invisible) root of the {@linkplain #moduleTree module tree}.
-	 *
-	 * @return The root of the module tree.
-	 */
-	@InnerAccess TreeNode moduleTree ()
-	{
-		final ModuleRoots roots = resolver.moduleRoots();
-		final DefaultMutableTreeNode treeRoot = new DefaultMutableTreeNode();
-		for (final String rootName : roots.rootNames())
-		{
-			final DefaultMutableTreeNode rootNode =
-				new DefaultMutableTreeNode(rootName);
-			treeRoot.add(rootNode);
-			final String extension = ModuleNameResolver.availExtension;
-			final ModuleRoot root = roots.moduleRootFor(rootName);
-			assert root != null;
-			final File rootDirectory = root.sourceDirectory();
-			assert rootDirectory != null;
-			final File[] files = rootDirectory.listFiles(new FilenameFilter()
-			{
-				@Override
-				public boolean accept (
-					final @Nullable File dir,
-					final @Nullable String name)
-				{
-					assert name != null;
-					return name.endsWith(extension);
-				}
-			});
-			for (final File file : files)
-			{
-				final String fileName = file.getName();
-				final String label = fileName.substring(
-					0, fileName.length() - extension.length());
-				final DefaultMutableTreeNode moduleNode =
-					new DefaultMutableTreeNode(label);
-				rootNode.add(moduleNode);
-			}
-		}
-		return treeRoot;
-	}
+	/** The {@linkplain InsertEntryPointAction insert entry point action}. */
+	@InnerAccess final InsertEntryPointAction insertEntryPointAction;
 
 	/**
-	 * Answer the (invisible) root of the {@linkplain #entryPointsTree entry
-	 * points tree}.
+	 * Rebuild the {@linkplain #moduleTree module tree}, storing its (invisible)
+	 * root into {@code modules}' value slot.  Also update the entryPoints the
+	 * same way.
 	 *
-	 * @return The root of the entry points tree.
+	 * @param modulesTreeHolder
+	 *        Where to store the root of the module tree.
+	 * @param entryPointsTreeHolder
+	 *        Where to store the root of the entry points tree.
 	 */
-	@InnerAccess TreeNode entryPointsTree ()
+	@InnerAccess void populateModuleTreeAndEntryPoints (
+		final MutableOrNull<TreeNode> modulesTreeHolder,
+		final MutableOrNull<TreeNode> entryPointsTreeHolder)
 	{
 		final ModuleRoots roots = resolver.moduleRoots();
-		final DefaultMutableTreeNode treeRoot = new DefaultMutableTreeNode();
+		final DefaultMutableTreeNode moduleTreeRoot =
+			new DefaultMutableTreeNode();
 		for (final String rootName : roots.rootNames())
 		{
 			final DefaultMutableTreeNode rootNode =
 				new DefaultMutableTreeNode(rootName);
-			treeRoot.add(rootNode);
+			moduleTreeRoot.add(rootNode);
 			final String extension = ModuleNameResolver.availExtension;
 			final ModuleRoot root = roots.moduleRootFor(rootName);
 			assert root != null;
@@ -947,7 +959,50 @@ extends JFrame
 				rootNode.add(moduleNode);
 			}
 		}
-		return treeRoot;
+		modulesTreeHolder.value = moduleTreeRoot;
+
+		final Object mutex = new Object();
+		final Map<String, DefaultMutableTreeNode> moduleNodes = new HashMap<>();
+		availBuilder.traceDirectories(
+			new Continuation2<ResolvedModuleName, ModuleVersion>()
+			{
+				@Override
+				public void value (
+					final @Nullable ResolvedModuleName resolvedName,
+					final @Nullable ModuleVersion moduleVersion)
+				{
+					assert resolvedName != null;
+					assert moduleVersion != null;
+					final List<String> entryPoints =
+						moduleVersion.getEntryPoints();
+					if (!entryPoints.isEmpty())
+					{
+						final String moduleLabel = resolvedName.qualifiedName();
+						final DefaultMutableTreeNode moduleNode =
+							new DefaultMutableTreeNode(moduleLabel);
+						for (final String entryPoint : entryPoints)
+						{
+							final DefaultMutableTreeNode entryPointNode =
+								new DefaultMutableTreeNode(entryPoint);
+							moduleNode.add(entryPointNode);
+						}
+						synchronized (mutex)
+						{
+							moduleNodes.put(moduleLabel, moduleNode);
+						}
+					}
+				}
+			});
+		final String [] mapKeys = moduleNodes.keySet().toArray(
+			new String [moduleNodes.size()]);
+		Arrays.sort(mapKeys);
+		final DefaultMutableTreeNode entryPointsTreeRoot =
+			new DefaultMutableTreeNode();
+		for (final String moduleLabel : mapKeys)
+		{
+			entryPointsTreeRoot.add(moduleNodes.get(moduleLabel));
+		}
+		entryPointsTreeHolder.value = entryPointsTreeRoot;
 	}
 
 	/**
@@ -1016,6 +1071,29 @@ extends JFrame
 			builder.append((String) node.getUserObject());
 		}
 		return builder.toString();
+	}
+
+	/**
+	 * Answer the currently selected entry point, or {@code null} if none.
+	 *
+	 * @return An entry point name, or {@code null} if no entry point is
+	 *         selected.
+	 */
+	@InnerAccess @Nullable String selectedEntryPoint ()
+	{
+		final TreePath path = entryPointsTree.getSelectionPath();
+		if (path == null)
+		{
+			return null;
+		}
+		final Object[] nodes = path.getPath();
+		if (nodes.length != 3)
+		{
+			return null;
+		}
+		final DefaultMutableTreeNode node =
+			(DefaultMutableTreeNode)nodes[nodes.length - 1];
+		return (String)node.getUserObject();
 	}
 
 	/**
@@ -1285,46 +1363,55 @@ extends JFrame
 		setTitle("Avail Builder");
 		setResizable(true);
 
-		// Create the menu bar and menus.
-		final JMenuBar menuBar = new JMenuBar();
-		final JMenu menu = new JMenu("Build");
+		// Create the actions.
 		buildAction = new BuildAction();
-		final JMenuItem buildItem = new JMenuItem(buildAction);
-		menu.add(buildItem);
+		buildAction.setEnabled(false);
 		cancelAction = new CancelAction();
 		cancelAction.setEnabled(false);
-		final JMenuItem cancelItem = new JMenuItem(cancelAction);
-		menu.add(cancelItem);
 		cleanAction = new CleanAction();
 		cleanAction.setEnabled(true);
-		final JMenuItem cleanItem = new JMenuItem(cleanAction);
-		menu.add(cleanItem);
-		menu.addSeparator();
-		final RefreshAction refreshAction = new RefreshAction();
-		final JMenuItem refreshItem = new JMenuItem(refreshAction);
-		menu.add(refreshItem);
-		menu.addSeparator();
+		refreshAction = new RefreshAction();
 		reportAction = new ReportAction();
 		reportAction.setEnabled(true);
-		final JMenuItem reportItem = new JMenuItem(reportAction);
-		menu.add(reportItem);
 		clearReportAction = new ClearReportAction();
 		clearReportAction.setEnabled(true);
-		final JMenuItem clearReportItem = new JMenuItem(clearReportAction);
-		menu.add(clearReportItem);
+		insertEntryPointAction = new InsertEntryPointAction();
+		insertEntryPointAction.setEnabled(false);
+
+		// Create the menu bar and its menus.
+		final JMenuBar menuBar = new JMenuBar();
+		final JMenu menu = new JMenu("Build");
+		menu.add(new JMenuItem(buildAction));
+		menu.add(new JMenuItem(cancelAction));
+		menu.add(new JMenuItem(cleanAction));
+		menu.addSeparator();
+		menu.add(new JMenuItem(refreshAction));
+		menu.addSeparator();
+		menu.add(new JMenuItem(reportAction));
+		menu.add(new JMenuItem(clearReportAction));
+		menu.addSeparator();
+		menu.add(new JMenuItem(insertEntryPointAction));
 		menuBar.add(menu);
 		setJMenuBar(menuBar);
+
 		final JPopupMenu buildPopup = new JPopupMenu("Build");
-		final JMenuItem popupBuildItem = new JMenuItem(buildAction);
-		buildPopup.add(popupBuildItem);
-		final JMenuItem popupRefreshItem = new JMenuItem(refreshAction);
-		buildPopup.add(popupRefreshItem);
+		buildPopup.add(new JMenuItem(buildAction));
+		buildPopup.add(new JMenuItem(refreshAction));
 		// The refresh item needs a little help ...
 		InputMap inputMap = getRootPane().getInputMap(
 			JComponent.WHEN_IN_FOCUSED_WINDOW);
 		ActionMap actionMap = getRootPane().getActionMap();
 		inputMap.put(KeyStroke.getKeyStroke("F5"), "refresh");
 		actionMap.put("refresh", refreshAction);
+
+		final JPopupMenu entryPointsPopup = new JPopupMenu("Entry points");
+		entryPointsPopup.add(new JMenuItem(refreshAction));
+		entryPointsPopup.add(new JMenuItem(insertEntryPointAction));
+
+		// Collect the modules and entry points.
+		final MutableOrNull<TreeNode> modules = new MutableOrNull<>();
+		final MutableOrNull<TreeNode> entryPoints = new MutableOrNull<>();
+		populateModuleTreeAndEntryPoints(modules, entryPoints);
 
 		// Create the module tree.
 		final JScrollPane moduleTreeScrollArea = new JScrollPane();
@@ -1334,7 +1421,7 @@ extends JFrame
 			VERTICAL_SCROLLBAR_AS_NEEDED);
 		moduleTreeScrollArea.setVisible(true);
 		moduleTreeScrollArea.setMinimumSize(new Dimension(100, 0));
-		moduleTree = new JTree(moduleTree());
+		moduleTree = new JTree(modules.value);
 		moduleTree.setToolTipText(
 			"All top-level modules, organized by module root.");
 		moduleTree.setComponentPopupMenu(buildPopup);
@@ -1377,6 +1464,7 @@ extends JFrame
 					final ActionEvent actionEvent = new ActionEvent(
 						moduleTree, -1, "Build");
 					buildAction.actionPerformed(actionEvent);
+					e.consume();
 				}
 			}
 		});
@@ -1389,14 +1477,12 @@ extends JFrame
 		{
 			moduleTree.expandRow(i);
 		}
-		buildAction.setEnabled(false);
 		if (!initialTarget.isEmpty())
 		{
 			final TreePath path = modulePath(initialTarget);
 			if (path != null)
 			{
 				moduleTree.setSelectionPath(path);
-				buildAction.setEnabled(true);
 			}
 		}
 		moduleTreeScrollArea.setViewportView(moduleTree);
@@ -1409,10 +1495,10 @@ extends JFrame
 			VERTICAL_SCROLLBAR_AS_NEEDED);
 		entryPointsScrollArea.setVisible(true);
 		entryPointsScrollArea.setMinimumSize(new Dimension(100, 0));
-		entryPointsTree = new JTree(entryPointsTree());
+		entryPointsTree = new JTree(entryPoints.value);
 		entryPointsTree.setToolTipText(
-			"All top-level modules, organized by module root.");
-		entryPointsTree.setComponentPopupMenu(buildPopup);
+			"All entry points, organized by defining module.");
+		entryPointsTree.setComponentPopupMenu(entryPointsPopup);
 		entryPointsTree.setEditable(false);
 		entryPointsTree.setEnabled(true);
 		entryPointsTree.setFocusable(true);
@@ -1432,10 +1518,10 @@ extends JFrame
 			@Override
  			public void valueChanged (final @Nullable TreeSelectionEvent event)
 			{
-				final boolean newEnablement = selectedModule() != null;
-				if (buildAction.isEnabled() != newEnablement)
+				final boolean newEnablement = selectedEntryPoint() != null;
+				if (insertEntryPointAction.isEnabled() != newEnablement)
 				{
-					buildAction.setEnabled(newEnablement);
+					insertEntryPointAction.setEnabled(newEnablement);
 				}
 			}
 		});
@@ -1445,13 +1531,13 @@ extends JFrame
 			@Override
 			public void mouseClicked (final @Nullable MouseEvent e)
 			{
-				if (buildAction.isEnabled()
+				if (insertEntryPointAction.isEnabled()
 					&& e.getClickCount() == 2
 					&& e.getButton() == MouseEvent.BUTTON1)
 				{
 					final ActionEvent actionEvent = new ActionEvent(
-						entryPointsTree, -1, "Build");
-					buildAction.actionPerformed(actionEvent);
+						entryPointsTree, -1, "Insert entry point");
+					insertEntryPointAction.actionPerformed(actionEvent);
 				}
 			}
 		});
@@ -1463,16 +1549,6 @@ extends JFrame
 		for (int i = 0; i < entryPointsTree.getRowCount(); i++)
 		{
 			entryPointsTree.expandRow(i);
-		}
-		buildAction.setEnabled(false);
-		if (!initialTarget.isEmpty())
-		{
-			final TreePath path = modulePath(initialTarget);
-			if (path != null)
-			{
-				entryPointsTree.setSelectionPath(path);
-				buildAction.setEnabled(true);
-			}
 		}
 		entryPointsScrollArea.setViewportView(entryPointsTree);
 

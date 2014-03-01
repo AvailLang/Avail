@@ -32,6 +32,7 @@
 
 package com.avail.builder;
 
+import java.io.File;
 import com.avail.annotations.*;
 import com.avail.descriptor.ModuleDescriptor;
 
@@ -160,7 +161,7 @@ public class ModuleName
 	{
 		this.qualifiedName = qualifiedName;
 
-		final String[] components = qualifiedName.split("/");
+		final String[] components = qualifiedName.split(File.separator);
 		if (components.length < 3 || !components[0].isEmpty())
 		{
 			throw new IllegalArgumentException(
@@ -168,17 +169,17 @@ public class ModuleName
 		}
 
 		// Handle the easy ones first.
-		rootName = components[1];
-		localName  = components[components.length - 1];
+		this.rootName = components[1];
+		this.localName  = components[components.length - 1];
 
 		// Now determine the package.
 		final StringBuilder builder = new StringBuilder(50);
 		for (int index = 1; index < components.length - 1; index++)
 		{
-			builder.append('/');
+			builder.append(File.separatorChar);
 			builder.append(components[index]);
 		}
-		packageName = builder.toString();
+		this.packageName = builder.toString();
 	}
 
 	/**

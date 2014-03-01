@@ -40,7 +40,7 @@ import com.avail.annotations.Nullable;
  * specifically for the case that the compiler could not find a module it
  * needed in order to resolve its dependency graph. It contains the list of
  * locations checked by the compiler for that module, which is all of the
- * acceptable locations for the missing module according to it's dependent's
+ * acceptable locations for the missing module according to its dependent's
  * location.
  *
  * @author Leslie Schultz &lt;leslie@availlang.org&gt;

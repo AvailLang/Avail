@@ -56,16 +56,6 @@
 			match=".*[\\/]([^\\/]+)\.class"
 			replace="${dotted.primitive.path}.\1"
 			byline="true"/>
-<!-- Convert the path separators into package separators.
-		<replace
-			file="${path.primitives-list}"
-			token="/"
-			value="."/>
-		<replace
-			file="${path.primitives-list}"
-			token=".class"
-			value=""/>
--->
 	</target>
 
 	<!--
