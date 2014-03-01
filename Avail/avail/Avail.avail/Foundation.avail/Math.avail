@@ -747,17 +747,6 @@ Semantic restriction "_mod_" is
 	]
 ];
 
-/** TODO[MvG] REMOVE **/
-/*
-/*Method "cow_" is [x : integer | x + 1];*/
-Method "moo" is [123];
-/*Print: cow moo;*/
-Print: cow 2;
-Breakpoint;
-*/
-
-
-
 /**
  * Disambiguate `_→_` and several conversion operations.
  * 
@@ -819,6 +808,22 @@ Semantic restriction "`|_`|" is
 	a : extended integer's type
 |
 	([0..∞] ∩ a) ∪ ([0..∞] ∩ -a)
+];
+
+/**
+ * Catch accidental use of absolute value on expressions that are strictly
+ * non-negative.
+ */
+Semantic restriction "`|_`|" is
+[
+	a : extended integer's type
+|
+	If a ∩ [0..∞] = a then
+	[
+		Reject parse, expected:
+			"argument of absolute value (\"`|_`|\") to be potentially negative."
+	];
+	⊤
 ];
 
 /* This table of functions is used by the inequality operations. */

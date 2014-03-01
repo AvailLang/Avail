@@ -834,6 +834,12 @@ public abstract class AbstractAvailCompiler
 	 */
 	@InnerAccess final List<Describer> greatExpectations = new ArrayList<>();
 
+	/**
+	 * The first token of the snippet of code to regurgitate when reporting a
+	 * parsing error.
+	 */
+	protected @Nullable A_Token firstRelevantTokenOfSection;
+
 	/** The memoization of results of previous parsing attempts. */
 	final @InnerAccess AvailCompilerFragmentCache fragmentCache =
 		new AvailCompilerFragmentCache();
@@ -2432,39 +2438,80 @@ public abstract class AbstractAvailCompiler
 		final Continuation0 afterFail)
 	{
 		assert problems.size() > 0 : "Bug - empty problem list";
-		final long charPos = token.start();
-		final String sourceUpToError = source.substring(0, (int) charPos);
-		final int startOfPreviousLine = sourceUpToError.lastIndexOf('\n') + 1;
-		@SuppressWarnings("resource")
-		final Formatter text = new Formatter();
-		text.format("%n");
-		int wedges = 3;
-		for (int i = startOfPreviousLine; i < charPos; i++)
+		final int lineNumber = token.lineNumber();
+		final int charPos = token.start();
+		final int startOfLine = source.lastIndexOf('\n', charPos - 1) + 1;
+		int startLineNumber;
+		int startOfFirstLine;
+		final @Nullable A_Token firstToken = firstRelevantTokenOfSection;
+		if (firstToken != null)
 		{
-			if (source.codePointAt(i) == '\t')
+			startLineNumber = firstToken.lineNumber();
+			startOfFirstLine = source.lastIndexOf(
+				'\n', firstToken.start() - 1) + 1;
+		}
+		else
+		{
+			startOfFirstLine =
+				source.lastIndexOf('\n', startOfLine - 2) + 1;
+			startLineNumber = (startOfFirstLine != startOfLine)
+				? lineNumber - 1
+				: lineNumber;
+		}
+		int startOfNextLine = source.indexOf('\n', startOfLine) + 1;
+		startOfNextLine = (startOfNextLine != 0)
+			? startOfNextLine
+			: source.length();
+		int startOfSecondNextLine = source.indexOf('\n', startOfNextLine) + 1;
+		startOfSecondNextLine = (startOfSecondNextLine != 0)
+			? startOfSecondNextLine
+			: source.length();
+		final StringBuilder snippet = new StringBuilder(100);
+		@SuppressWarnings("resource")
+		final Formatter formatter = new Formatter(snippet);
+		final int lastLineNumber = (startOfNextLine != startOfSecondNextLine)
+			? lineNumber + 1
+			: lineNumber;
+		final int lineNumberWidth = Integer.toString(lastLineNumber).length();
+		final String pattern = ">>> %" + lineNumberWidth + "d:";
+		int currentPosition = startOfFirstLine;
+		int currentLine = startLineNumber;
+		do
+		{
+			formatter.format(pattern, currentLine);
+			int nextStart = source.indexOf('\n', currentPosition) + 1;
+			if (nextStart == 0)
 			{
-				while (wedges > 0)
-				{
-					text.format(">");
-					wedges--;
-				}
-				text.format("\t");
+				nextStart = source.length();
+			}
+			if (currentLine == lineNumber)
+			{
+				snippet.append(source, currentPosition, charPos);
+				// Give the user a hand.
+				snippet.append("☞⃝ ");
+				snippet.append(source, charPos, nextStart);
 			}
 			else
 			{
-				if (wedges > 0)
-				{
-					text.format(">");
-					wedges--;
-				}
-				else
-				{
-					text.format(" ");
-				}
+				snippet.append(source, currentPosition, nextStart);
 			}
+			if (nextStart == source.length()
+				&& source.charAt(source.length() - 1) != '\n')
+			{
+				// Final line didn't end with a line break.
+				snippet.append('\n');
+			}
+			currentPosition = nextStart;
+			currentLine++;
 		}
-		text.format("^-- %s", banner);
-		text.format("%n>>>%s", rowOfDashes);
+		while (currentPosition < source.length()
+			&& currentLine <= lineNumber + 1);
+
+		@SuppressWarnings("resource")
+		final Formatter text = new Formatter();
+		text.format("%s", snippet);
+		text.format(">>>%s%n", rowOfDashes);
+		text.format(">>> %s", banner);
 		final Set<String> alreadySeen = new HashSet<>(problems.size());
 		final Mutable<Integer> outstanding = new Mutable<>(problems.size());
 		final Continuation1<String> decrement = new Continuation1<String>()
@@ -2495,7 +2542,7 @@ public abstract class AbstractAvailCompiler
 							moduleHeader.moduleName.qualifiedName(),
 							token.lineNumber());
 						text.format("%n>>>%s", rowOfDashes);
-						int endOfLine = source.indexOf('\n', (int) charPos);
+						int endOfLine = source.indexOf('\n', charPos);
 						if (endOfLine == -1)
 						{
 							endOfLine = source.length();
@@ -3268,21 +3315,25 @@ public abstract class AbstractAvailCompiler
 						{
 							final StringBuilder buffer = new StringBuilder();
 							buffer.append(string);
-							buffer.append(" (");
+							buffer.append("  (");
 							boolean first = true;
 							for (final MapDescriptor.Entry successorBundleEntry
 								: entry.value().allBundles().mapIterable())
 							{
-								if (first)
-								{
-									first = false;
-								}
-								else
+								if (!first)
 								{
 									buffer.append(", ");
 								}
-								buffer.append(
-									successorBundleEntry.key().toString());
+								final A_Atom atom = successorBundleEntry.key();
+								buffer.append(atom.atomName());
+								buffer.append(" from ");
+								final A_Module issuer = atom.issuingModule();
+								final String issuerName =
+									issuer.moduleName().asNativeString();
+								final String shortIssuer = issuerName.substring(
+									issuerName.lastIndexOf('/') + 1);
+								buffer.append(shortIssuer);
+								first = false;
 							}
 							buffer.append(")");
 							sorted.add(buffer.toString());
@@ -3529,6 +3580,7 @@ public abstract class AbstractAvailCompiler
 			&& firstArgOrNull == null
 			&& !start.atEnd())
 		{
+			boolean keywordRecognized = false;
 			final A_Token keywordToken = start.peekToken();
 			if (keywordToken.tokenType() == KEYWORD
 				|| keywordToken.tokenType() == OPERATOR)
@@ -3536,6 +3588,7 @@ public abstract class AbstractAvailCompiler
 				final A_String keywordString = keywordToken.string();
 				if (incomplete.hasKey(keywordString))
 				{
+					keywordRecognized = true;
 					eventuallyParseRestOfSendNode(
 						"Continue send after a keyword",
 						start.afterToken(),
@@ -3547,12 +3600,8 @@ public abstract class AbstractAvailCompiler
 						marksSoFar,
 						continuation);
 				}
-				else
-				{
-					expectedKeywordsOf(start, incomplete, false);
-				}
 			}
-			else
+			if (!keywordRecognized && consumedAnything)
 			{
 				expectedKeywordsOf(start, incomplete, false);
 			}
@@ -3561,6 +3610,7 @@ public abstract class AbstractAvailCompiler
 			&& firstArgOrNull == null
 			&& !start.atEnd())
 		{
+			boolean keywordRecognized = false;
 			final A_Token keywordToken = start.peekToken();
 			if (keywordToken.tokenType() == KEYWORD
 				|| keywordToken.tokenType() == OPERATOR)
@@ -3568,8 +3618,9 @@ public abstract class AbstractAvailCompiler
 				final A_String keywordString = keywordToken.lowerCaseString();
 				if (caseInsensitive.hasKey(keywordString))
 				{
+					keywordRecognized = true;
 					eventuallyParseRestOfSendNode(
-						"Continue send after a keyword",
+						"Continue send after a case-insensitive keyword",
 						start.afterToken(),
 						caseInsensitive.mapAt(keywordString),
 						null,
@@ -3579,12 +3630,8 @@ public abstract class AbstractAvailCompiler
 						marksSoFar,
 						continuation);
 				}
-				else
-				{
-					expectedKeywordsOf(start, caseInsensitive, true);
-				}
 			}
-			else
+			if (!keywordRecognized && consumedAnything)
 			{
 				expectedKeywordsOf(start, caseInsensitive, true);
 			}
@@ -5620,6 +5667,8 @@ public abstract class AbstractAvailCompiler
 				compilerScopeMapKey,
 				MapDescriptor.empty(),
 				false));
+
+		firstRelevantTokenOfSection = tokens.isEmpty() ? null : tokens.get(0);
 
 		// The module header must begin with either SYSTEM MODULE or MODULE,
 		// followed by the local name of the module.

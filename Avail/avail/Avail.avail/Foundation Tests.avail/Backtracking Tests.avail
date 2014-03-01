@@ -60,7 +60,7 @@ Test "partial Cartesian product" in backtracking test suite is
 	|
 		product ::= first i values of
 			[<trial element of <true, false>, trial# of 5>];
-		Require: ref[1..|i|] = product;
+		Require: ref[1..i] = product;
 	];
 ];
 

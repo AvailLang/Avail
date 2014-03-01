@@ -225,7 +225,7 @@ Semantic restriction "Cast|cast_into«_‡,»«else_»" is
 |
 	acceptSize ::= relevant |caseTuple|;
 	union : type := ⊥;
-	From 1 to |acceptSize| do
+	From 1 to acceptSize do
 	[
 		index : natural number
 	|

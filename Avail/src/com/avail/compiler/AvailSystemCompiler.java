@@ -160,6 +160,9 @@ extends AbstractAvailCompiler
 		final Con<A_Phrase> success,
 		final Continuation0 afterFail)
 	{
+		// If a parsing error happens during parsing of this outermost
+		// statement, only show the section of the file starting here.
+		firstRelevantTokenOfSection = tokens.get(start.position);
 		tryIfUnambiguousThen(
 			start,
 			new Con<Con<A_Phrase>>("Detect ambiguity")
@@ -952,7 +955,7 @@ extends AbstractAvailCompiler
 		final List<A_Phrase> argsSoFar,
 		final Con<List<A_Phrase>> continuation)
 	{
-		if (start.peekToken(COMMA, "comma and more block arguments"))
+		if (start.peekToken(COMMA, "a comma and more block arguments"))
 		{
 			parseBlockArgumentThen(
 				start.afterToken(),
@@ -975,7 +978,7 @@ extends AbstractAvailCompiler
 
 		if (start.peekToken(
 			VERTICAL_BAR,
-			"comma and more block arguments or a vertical bar"))
+			"a vertical bar after block arguments"))
 		{
 			attempt(
 				start.afterToken(),

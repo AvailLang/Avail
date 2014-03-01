@@ -601,7 +601,10 @@ public class AvailScanner
 				final String string = stringBuilder.toString();
 				final A_String availValue = StringDescriptor.from(string);
 				availValue.makeImmutable();
+				final int lineAfterToken = scanner.lineNumber;
+				scanner.lineNumber = literalStartingLine;
 				scanner.addCurrentLiteralToken(availValue);
+				scanner.lineNumber = lineAfterToken;
 			}
 
 			/**
