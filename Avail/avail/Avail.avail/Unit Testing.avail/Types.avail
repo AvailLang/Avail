@@ -456,7 +456,7 @@ Method "long“_”" is
 		e : failed-test exception ∩ expected-a-specific-exception exception
 	|
 		cause ::= e's causal exception;
-		name := “cause”;
+		name := “cause's type's names” (as list partitioned by " ∩ ");
 		message :=
 			format ": expected ∈ “①”, actual=“②”"
 			with e's expected exception type, cause;
@@ -466,7 +466,7 @@ Method "long“_”" is
 		e : failed-test exception
 	|
 		cause ::= e's causal exception;
-		name := “cause”;
+		name := “cause's type's names” (as list partitioned by " ∩ ");
 		message :=
 			cast e's causal exception
 			into [t : descriptive exception | ": " ++ t's error message]
@@ -496,14 +496,14 @@ Method "long“_”" is
 	[
 		e : expected-a-specific-exception exception
 	|
-		name := “e”;
+		name := “e's type's names” (as list partitioned by " ∩ ");
 		message :=
 			format ": expected ∈ “①” (no exception)"
 			with e's expected exception type;
 		trace := "\n";
 	];
 	testID ::= result's test ID;
-	format "FAILED: ‘①’ (from ‘②’)\nraised: ‘③’‘④’‘⑤’" with
+	format "FAILED: “①” (from ‘②’)\nraised: ‘③’‘④’‘⑤’" with
 		testID's name,
 		testID's issuing module's name,
 		name,

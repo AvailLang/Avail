@@ -53,7 +53,7 @@ New test suite file access rights test suite extends I/O test suite;
 
 After running file access rights test suite, do
 [
-	abracadabra.txt's access rights := {owner read, group read};
+	Set standard file access rights;
 ];
 
 Test "owner read" in file access rights test suite is

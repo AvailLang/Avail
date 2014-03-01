@@ -63,7 +63,7 @@ Before running file metadata test suite, do
 
 After running file metadata test suite, do
 [
-	abracadabra.txt's access rights := {owner read, group read};
+	Set standard file access rights;
 	/* TODO: [TLS] Remove the symbolic link for file type testing. */
 ];
 

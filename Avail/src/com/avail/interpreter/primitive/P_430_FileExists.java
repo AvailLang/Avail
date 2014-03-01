@@ -31,7 +31,6 @@
  */
 package com.avail.interpreter.primitive;
 
-import static com.avail.descriptor.TypeDescriptor.Types.CHARACTER;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.nio.file.Files;
@@ -97,7 +96,7 @@ extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				TupleTypeDescriptor.oneOrMoreOf(CHARACTER.o()),
+				TupleTypeDescriptor.stringType(),
 				EnumerationTypeDescriptor.booleanObject()),
 			EnumerationTypeDescriptor.booleanObject());
 	}

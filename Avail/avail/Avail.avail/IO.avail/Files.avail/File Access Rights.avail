@@ -254,7 +254,7 @@ Public method "_is readable" is
 	fn : file name
 |
 	[
-		s : nonempty string
+		s : string
 	|
 		Primitive 431 (e : {
 			invalid-path code,
@@ -285,7 +285,7 @@ Public method "_is writable" is
 	fn : file name
 |
 	[
-		s : nonempty string
+		s : string
 	|
 		Primitive 432 (e : {
 			invalid-path code,
@@ -316,7 +316,7 @@ Public method "_is executable" is
 	fn : file name
 |
 	[
-		s : nonempty string
+		s : string
 	|
 		Primitive 433 (e : {
 			invalid-path code,
@@ -355,7 +355,7 @@ Public method "_'s⁇access rights(follow if symlink=_)" is
 |
 	ordinals ::=
 		[
-			s : nonempty string,
+			s : string,
 			f : boolean
 		|
 			Primitive 434 (e : {
@@ -427,7 +427,7 @@ Public method "_'s⁇access rights:=_(follow if symlink=_)" is
 |
 	ordinals ::= map rights through [r : file access right | r's access#];
 	[
-		s : nonempty string,
+		s : string,
 		r : {[1..9]|0..9},
 		f : boolean
 	|

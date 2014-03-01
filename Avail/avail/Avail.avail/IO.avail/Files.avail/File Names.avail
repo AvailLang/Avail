@@ -69,13 +69,8 @@ Body
  */
 Public class "file name" extends object
 	with fields
-		name : nonempty string;
+		name : string;
 
-/**
- * @method "“_”"
- * @param "fn" "file name"
- * @returns "nonempty string"
- */
 Stable method "“_”" is
 [
 	fn : file name
@@ -85,27 +80,23 @@ Stable method "“_”" is
 
 /**
  * Construct and answer a {@type "file name"} from the specified {@type
- * "nonempty string"}.
+ * "string"}.
  *
  * @method "a file named_"
- * @param "n" "nonempty string"
+ * @param "n" "string"
  * @returns "file name"
  *          The requested file name.
  */
 Public stable method "a file named_" is
 [
-	n : nonempty string
+	n : string
 |
 	a file name with name ::= n
 ] : file name;
 
-/**
- * @method "a file named_"
- * @restricts "nonempty string's type"
- */
 Semantic restriction "a file named_" is
 [
-	n : nonempty string's type
+	n : string's type
 |
 	extend file name with name : n
 ];
@@ -135,7 +126,7 @@ Public method "_exists(follow if symlink=_)" is
 	followIfSymlink : boolean
 |
 	[
-		s : nonempty string,
+		s : string,
 		b : boolean
 	|
 		Primitive 430 (e : {
@@ -186,7 +177,7 @@ Public method "_is absolute" is
 	fn : file name
 |
 	[
-		s : nonempty string
+		s : string
 	|
 		Primitive 441 (e : invalid-path code's type);
 		Raise an exception for e
@@ -216,14 +207,14 @@ Public method "_'s⁇absolute path" is
 |
 	absolute ::=
 		[
-			s : nonempty string
+			s : string
 		|
 			Primitive 442 (e : {
 				invalid-path code,
 				permission-denied code,
 				I/O-error code}ᵀ);
 			Raise an exception for e
-		] : nonempty string (fn's name);
+		] : string (fn's name);
 	a file named absolute
 ] : file name;
 
@@ -257,7 +248,7 @@ Public method "_'s⁇real path(follow if symlink=_)" is
 |
 	real ::=
 		[
-			s : nonempty string,
+			s : string,
 			b : boolean
 		|
 			Primitive 443 (e : {
@@ -265,7 +256,7 @@ Public method "_'s⁇real path(follow if symlink=_)" is
 				permission-denied code,
 				I/O-error code}ᵀ);
 			Raise an exception for e
-		] : nonempty string (fn's name, followIfSymlink);
+		] : string (fn's name, followIfSymlink);
 	a file named real
 ] : file name;
 
@@ -327,8 +318,8 @@ Public method "_names the⁇same file as_" is
 	f2 : file name
 |
 	[
-		s1 : nonempty string,
-		s2 : nonempty string
+		s1 : string,
+		s2 : string
 	|
 		Primitive 444 (e : {
 			invalid-path code,
@@ -353,6 +344,76 @@ Public method "current working directory" is
 	cwd ::=
 		[
 			Primitive 445;
-		] : nonempty string ();
+		] : string ();
 	a file named cwd
 ] : file name;
+
+/**
+ * Concatenate the specified {@type "tuple"} of {@type "string"}s to obtain a
+ * {@type "file name"}.
+ *
+ * @method "concatenate_"
+ * @param "fns" "<file name…|0..>"
+ * @returns "file name"
+ * @raises "invalid-path exception"
+ *         If any of the elements of {@param "fns"} cannot be understood as a
+ *         path.
+ */
+Method "concatenate_" is
+[
+	fns : <file name…|>
+|
+	path ::=
+		[
+			ns : <string…|>
+		|
+			Primitive 446 (e : {invalid-path code}ᵀ);
+			Raise an exception for e
+		] : string (map fns through [fn : file name | fn's name]);
+	a file named path
+] : file name;
+
+/**
+ * Concatenate the specified {@type "tuple"} of {@type "string"}s to obtain a
+ * {@type "file name"}.
+ *
+ * @method "concatenate_"
+ * @param "fns" "<file name…|2..>"
+ * @returns "file name"
+ * @raises "invalid-path exception"
+ *         If any of the elements of {@param "fns"} cannot be understood as a
+ *         path.
+ */
+Method "«_‡++»" is
+[
+	fns : <file name…|2..>
+|
+	concatenate fns
+] : file name;
+
+/**
+ * Concatenate the specified {@type "tuple"} of {@type "string"}s to obtain a
+ * {@type "file name"}.
+ *
+ * @method "concatenate_"
+ * @param "fns" "<file name, string…|2..>"
+ * @returns "file name"
+ * @raises "invalid-path exception"
+ *         If any of the elements of {@param "fns"} cannot be understood as a
+ *         path.
+ */
+Method "«_‡++»" is
+[
+	fns : <file name, string…|2..>
+|
+	path ::=
+		[
+			ns : <string…|>
+		|
+			Primitive 446 (e : {invalid-path code}ᵀ);
+			Raise an exception for e
+		] : string (<fns[1]'s name> ++ fns[2..]);
+	a file named path
+] : file name;
+
+Grammatical restriction "a file named_" is <{"«_‡++»"}>;

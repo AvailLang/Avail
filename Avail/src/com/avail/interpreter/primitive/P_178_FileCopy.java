@@ -197,8 +197,8 @@ extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				TupleTypeDescriptor.oneOrMoreOf(CHARACTER.o()),
-				TupleTypeDescriptor.oneOrMoreOf(CHARACTER.o()),
+				TupleTypeDescriptor.stringType(),
+				TupleTypeDescriptor.stringType(),
 				EnumerationTypeDescriptor.booleanObject(),
 				EnumerationTypeDescriptor.booleanObject(),
 				EnumerationTypeDescriptor.booleanObject()),

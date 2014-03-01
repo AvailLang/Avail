@@ -137,7 +137,7 @@ extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				TupleTypeDescriptor.oneOrMoreOf(CHARACTER.o()),
+				TupleTypeDescriptor.stringType(),
 				SetTypeDescriptor.setTypeForSizesContentType(
 					IntegerRangeTypeDescriptor.create(
 						IntegerDescriptor.fromInt(0),

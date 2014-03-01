@@ -127,7 +127,7 @@ Public class "file metadata" extends object
 	|
 		t ::=
 			[
-				s : nonempty string,
+				s : string,
 				f : boolean
 			|
 				Primitive 436 (e : {

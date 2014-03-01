@@ -202,7 +202,7 @@ extends Primitive
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
 				EnumerationTypeDescriptor.booleanObject(),
-				TupleTypeDescriptor.oneOrMoreOf(CHARACTER.o()),
+				TupleTypeDescriptor.stringType(),
 				EnumerationTypeDescriptor.booleanObject(),
 				EnumerationTypeDescriptor.booleanObject()),
 			TOP.o());

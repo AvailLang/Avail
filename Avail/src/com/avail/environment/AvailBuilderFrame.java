@@ -1639,7 +1639,7 @@ extends JFrame
 		final Style defaultStyle =
 			StyleContext.getDefaultStyleContext().getStyle(
 				StyleContext.DEFAULT_STYLE);
-		StyleConstants.setFontFamily(defaultStyle, "courier");
+		StyleConstants.setFontFamily(defaultStyle, "Monospaced");
 		final Style outputStyle = doc.addStyle(outputStyleName, defaultStyle);
 		StyleConstants.setForeground(outputStyle, Color.BLACK);
 		final Style errorStyle = doc.addStyle(errorStyleName, defaultStyle);
